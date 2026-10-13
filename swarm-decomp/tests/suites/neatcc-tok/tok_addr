@@ -1,0 +1,7 @@
+# tok_addr  (global, 25 bytes, 6 instructions)
+    0:  movl (%rip), %edx   <var:tok_set+0>
+    6:  movq (%rip), %rax   <var:off+0>
+    d:  testl %edx, %edx
+    f:  je 0x18
+   11:  movq (%rip), %rax   <var:off_pre+0>
+   18:  retq

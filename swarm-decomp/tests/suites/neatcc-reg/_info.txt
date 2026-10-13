@@ -1,0 +1,31 @@
+# neatcc-reg: translation unit reg of neatcc
+# write each function as src/neatcc/reg/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+rgn_add	static	313 bytes
+reg_region.isra.0	static	305 bytes
+reg_init	global	1918 bytes
+reg_mask	global	86 bytes
+reg_lmap	global	70 bytes
+reg_rmap	global	78 bytes
+reg_done	global	109 bytes
+reg_safe	global	33 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+rgn_n	static	4 bytes	.bss.rgn_n
+    (zero-initialised)
+rgn	static	8 bytes	.bss.rgn
+    (zero-initialised)
+rgn_sz	static	4 bytes	.bss.rgn_sz
+    (zero-initialised)
+dst_head	static	8 bytes	.bss.dst_head
+    (zero-initialised)
+dst_next	static	8 bytes	.bss.dst_next
+    (zero-initialised)
+loc_n	static	4 bytes	.bss.loc_n
+    (zero-initialised)
+loc_ptr	static	8 bytes	.bss.loc_ptr
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+argregs calloc free malloc memset mextend opt

@@ -1,0 +1,18 @@
+# luaK_reserveregs  (global, 52 bytes, 17 instructions)
+    0:  movq (%rdi), %rcx
+    3:  movzbl 0x44(%rdi), %eax
+    7:  movzbl 0xc(%rcx), %r8d
+    c:  movl %eax, %edx
+    e:  addl %esi, %eax
+   10:  cmpl %r8d, %eax
+   13:  jle 0x1f
+   15:  cmpl $0xfe, %eax
+   1a:  jg 0x25
+   1c:  movb %al, 0xc(%rcx)
+   1f:  addl %esi, %edx
+   21:  movb %dl, 0x44(%rdi)
+   24:  retq
+   25:  pushq %rax
+   26:  movq 0x10(%rdi), %rdi
+   2a:  movl $0, %esi   <str:"function or expression needs too many registers">
+   2f:  callq luaX_syntaxerror+0

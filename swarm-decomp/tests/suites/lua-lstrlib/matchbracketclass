@@ -1,0 +1,62 @@
+# matchbracketclass  (static, 164 bytes, 61 instructions)
+    0:  pushq %r13
+    2:  movl %edi, %r13d
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movl $1, %ebp
+   10:  pushq %rbx
+   11:  movq %rsi, %rbx
+   14:  subq $8, %rsp
+   18:  cmpb $0x5e, 1(%rsi)
+   1c:  jne 0x28
+   1e:  addq $1, %rbx
+   22:  xorl %ebp, %ebp
+   24:  nopl (%rax)
+   28:  leaq 1(%rbx), %rcx
+   2c:  cmpq %r12, %rcx
+   2f:  jae 0x54
+   31:  movzbl 1(%rbx), %eax
+   35:  movzbl 2(%rbx), %esi
+   39:  cmpb $0x25, %al
+   3b:  je 0x68
+   3d:  cmpb $0x2d, %sil
+   41:  je 0x88
+   43:  cmpl %eax, %r13d
+   46:  je 0x57
+   48:  movq %rcx, %rbx
+   4b:  leaq 1(%rbx), %rcx
+   4f:  cmpq %r12, %rcx
+   52:  jb 0x31
+   54:  xorl $1, %ebp
+   57:  addq $8, %rsp
+   5b:  movl %ebp, %eax
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  popq %r13
+   63:  retq
+   64:  nopl (%rax)
+   68:  movl %r13d, %edi
+   6b:  addq $2, %rbx
+   6f:  callq fn:match_class+0
+   74:  testl %eax, %eax
+   76:  je 0x28
+   78:  addq $8, %rsp
+   7c:  movl %ebp, %eax
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  popq %r12
+   82:  popq %r13
+   84:  retq
+   85:  nopl (%rax)
+   88:  leaq 3(%rbx), %rdx
+   8c:  cmpq %r12, %rdx
+   8f:  jae 0x43
+   91:  cmpl %eax, %r13d
+   94:  jl 0x9f
+   96:  movzbl 3(%rbx), %eax
+   9a:  cmpl %r13d, %eax
+   9d:  jge 0x57
+   9f:  movq %rdx, %rbx
+   a2:  jmp 0x28

@@ -1,0 +1,150 @@
+# main  (global, 618 bytes, 149 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  cmpl $1, %edi
+    d:  jle 0xae
+   13:  movl %edi, %r13d
+   16:  movq %rsi, %r12
+   19:  movl $1, %ebp
+   1e:  movl $1, %ebx
+   23:  nopl (%rax, %rax)
+   28:  movslq %ebp, %rax
+   2b:  movq (%r12, %rax, 8), %rsi
+   2f:  leaq (, %rax, 8), %rdx
+   37:  cmpb $0x2d, (%rsi)
+   3a:  jne 0x68
+   3c:  movzbl 1(%rsi), %eax
+   40:  subl $0x46, %eax
+   43:  cmpb $0x31, %al
+   45:  ja 0x8c
+   47:  movzbl %al, %eax
+   4a:  jmpq *(, %rax, 8)   <var:main+0>
+   51:  movl $1, (%rip)   <mkfn_warn+0>
+   5b:  nopl (%rax, %rax)
+   60:  addl $1, %ebp
+   63:  cmpl %ebp, %r13d
+   66:  jg 0x28
+   68:  callq trfn_init+0
+   6d:  testl %ebx, %ebx
+   6f:  jne 0xb3
+   71:  callq otf_read+0
+   76:  testl %eax, %eax
+   78:  jne 0xbc
+   7a:  callq trfn_done+0
+   7f:  xorl %eax, %eax
+   81:  addq $8, %rsp
+   85:  popq %rbx
+   86:  popq %rbp
+   87:  popq %r12
+   89:  popq %r13
+   8b:  retq
+   8c:  movl $0x2f7, %edx
+   91:  movl $1, %esi
+   96:  movl $0, %edi   <str:"Usage: mkfn [options] <input >output\nOptions:\n  -a      \tread an AFM file (default)\n  -o      \tread a TTF or an OTF file\n  -s      \tspecial font\n  -p name \toverride font postscript name\n  -t name \tset font troff name\n  -f path \tset font path\n  -r res  \tset device resolution (720)\n  -k kmin \tspecify the minimum amount of kerning (0)\n  -b      \tinclude glyph bounding boxes\n  -l      \tsuppress the ligatures line\n  -n      \tsuppress glyph positions\n  -g      \talways reference glyphs by name in OTF rules\n  -S scrs \tcomma-separated list of scripts to include (list to list)\n  -L langs\tcomma-separated list of languages to include (list to list)\n  -F font \tfont name or index in a font collection (list to list)\n  -w      \twarn about unsupported font features\n">
+   9b:  movq (%rip), %rcx   <stderr+0>
+   a2:  callq fwrite+0
+   a7:  movl $1, %eax
+   ac:  jmp 0x81
+   ae:  callq trfn_init+0
+   b3:  callq afm_read+0
+   b8:  testl %eax, %eax
+   ba:  je 0x7a
+   bc:  movl $0x20, %edx
+   c1:  movl $1, %esi
+   c6:  movl $0, %edi   <str:"neatmkfn: cannot parse the font\n">
+   cb:  movq (%rip), %rcx   <stderr+0>
+   d2:  callq fwrite+0
+   d7:  callq trfn_done+0
+   dc:  jmp 0xa7
+   de:  cmpb $0, 2(%rsi)
+   e2:  je 0x23c
+   e8:  addq $2, %rsi
+   ec:  movq %rsi, (%rip)   <var:mkfn_trname+0>
+   f3:  jmp 0x60
+   f8:  movl $1, (%rip)   <mkfn_special+0>
+  102:  jmp 0x60
+  107:  cmpb $0, 2(%rsi)
+  10b:  leaq 2(%rsi), %rdi
+  10f:  jne 0x119
+  111:  movq 8(%r12, %rdx), %rdi
+  116:  addl $1, %ebp
+  119:  movl $0xa, %edx
+  11e:  xorl %esi, %esi
+  120:  callq strtol+0
+  125:  movl %eax, (%rip)   <mkfn_res+0>
+  12b:  jmp 0x60
+  130:  cmpb $0, 2(%rsi)
+  134:  je 0x249
+  13a:  addq $2, %rsi
+  13e:  movq %rsi, (%rip)   <var:mkfn_psname+0>
+  145:  jmp 0x60
+  14a:  xorl %eax, %eax
+  14c:  movl %eax, (%rip)   <mkfn_pos+0>
+  152:  jmp 0x60
+  157:  movl $1, (%rip)   <mkfn_noligs+0>
+  161:  jmp 0x60
+  166:  cmpb $0, 2(%rsi)
+  16a:  leaq 2(%rsi), %rdi
+  16e:  jne 0x178
+  170:  movq 8(%r12, %rdx), %rdi
+  175:  addl $1, %ebp
+  178:  movl $0xa, %edx
+  17d:  xorl %esi, %esi
+  17f:  callq strtol+0
+  184:  movl %eax, (%rip)   <mkfn_kmin+0>
+  18a:  jmp 0x60
+  18f:  movl $1, (%rip)   <mkfn_byname+0>
+  199:  jmp 0x60
+  19e:  cmpb $0, 2(%rsi)
+  1a2:  je 0x21e
+  1a4:  addq $2, %rsi
+  1a8:  movq %rsi, (%rip)   <var:mkfn_path+0>
+  1af:  jmp 0x60
+  1b4:  movl $1, (%rip)   <mkfn_bbox+0>
+  1be:  jmp 0x60
+  1c3:  cmpb $0, 2(%rsi)
+  1c7:  je 0x228
+  1c9:  addq $2, %rsi
+  1cd:  movq %rsi, (%rip)   <var:mkfn_scripts+0>
+  1d4:  movl $0, %edi   <str:"list">
+  1d9:  callq strcmp+0
+  1de:  testl %eax, %eax
+  1e0:  sete %al
+  1e3:  movzbl %al, %eax
+  1e6:  movl %eax, (%rip)   <mkfn_dry+0>
+  1ec:  jmp 0x60
+  1f1:  cmpb $0, 2(%rsi)
+  1f5:  je 0x232
+  1f7:  addq $2, %rsi
+  1fb:  movq %rsi, (%rip)   <var:mkfn_langs+0>
+  202:  jmp 0x1d4
+  204:  cmpb $0, 2(%rsi)
+  208:  je 0x256
+  20a:  addq $2, %rsi
+  20e:  movq %rsi, (%rip)   <var:mkfn_subfont+0>
+  215:  jmp 0x1d4
+  217:  xorl %ebx, %ebx
+  219:  jmp 0x60
+  21e:  movq 8(%r12, %rdx), %rsi
+  223:  addl $1, %ebp
+  226:  jmp 0x1a8
+  228:  movq 8(%r12, %rdx), %rsi
+  22d:  addl $1, %ebp
+  230:  jmp 0x1cd
+  232:  movq 8(%r12, %rdx), %rsi
+  237:  addl $1, %ebp
+  23a:  jmp 0x1fb
+  23c:  movq 8(%r12, %rdx), %rsi
+  241:  addl $1, %ebp
+  244:  jmp 0xec
+  249:  movq 8(%r12, %rdx), %rsi
+  24e:  addl $1, %ebp
+  251:  jmp 0x13e
+  256:  movq 8(%r12, %rdx), %rsi
+  25b:  addl $1, %ebp
+  25e:  jmp 0x20e
+  260:  movl $1, %ebx
+  265:  jmp 0x60

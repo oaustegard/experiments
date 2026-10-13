@@ -1,0 +1,79 @@
+# ren_until  (static, 218 bytes, 78 instructions)
+    0:  pushq %r14
+    2:  movq %rcx, %r14
+    5:  pushq %r13
+    7:  movq %rdi, %r13
+    a:  pushq %r12
+    c:  movq %r8, %r12
+    f:  pushq %rbp
+   10:  movq %rdx, %rbp
+   13:  pushq %rbx
+   14:  movq %rsi, %rbx
+   17:  addq $-0x80, %rsp
+   1b:  callq *%rsi
+   1d:  cmpl $0xa, %eax
+   20:  je 0xc8
+   26:  movl %eax, %edi
+   28:  testl %eax, %eax
+   2a:  jns 0x6a
+   2c:  jmp 0xb8
+   31:  nopl (%rax)
+   38:  testq %r12, %r12
+   3b:  je 0x4c
+   3d:  movq %rsp, %rsi
+   40:  movq %r12, %rdi
+   43:  callq strcmp+0
+   48:  testl %eax, %eax
+   4a:  je 0xa0
+   4c:  movq %r13, %rdi
+   4f:  movq %rbp, %rcx
+   52:  movq %rbx, %rdx
+   55:  movq %rsp, %rsi
+   58:  callq fn:ren_put+0
+   5d:  callq *%rbx
+   5f:  movl %eax, %edi
+   61:  testl %eax, %eax
+   63:  js 0xb8
+   65:  cmpl $0xa, %eax
+   68:  je 0xc8
+   6a:  callq *%rbp
+   6c:  movq %rbp, %rdx
+   6f:  movq %rbx, %rsi
+   72:  movq %rsp, %rdi
+   75:  callq charnext+0
+   7a:  testl %eax, %eax
+   7c:  js 0xd3
+   7e:  movq %rsp, %rsi
+   81:  movq %r14, %rdi
+   84:  callq strcmp+0
+   89:  testl %eax, %eax
+   8b:  jne 0x38
+   8d:  movl $1, %eax
+   92:  subq $-0x80, %rsp
+   96:  popq %rbx
+   97:  popq %rbp
+   98:  popq %r12
+   9a:  popq %r13
+   9c:  popq %r14
+   9e:  retq
+   9f:  nop
+   a0:  subq $-0x80, %rsp
+   a4:  movl $2, %eax
+   a9:  popq %rbx
+   aa:  popq %rbp
+   ab:  popq %r12
+   ad:  popq %r13
+   af:  popq %r14
+   b1:  retq
+   b2:  nopw (%rax, %rax)
+   b8:  cmpl $0xa, %edi
+   bb:  je 0xc8
+   bd:  xorl %eax, %eax
+   bf:  jmp 0x92
+   c1:  nopl (%rax)
+   c8:  movl $0xa, %edi
+   cd:  callq *%rbp
+   cf:  xorl %eax, %eax
+   d1:  jmp 0x92
+   d3:  movl $0xffffffff, %eax
+   d8:  jmp 0x92

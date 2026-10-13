@@ -1,0 +1,24 @@
+# panic  (static, 84 bytes, 23 instructions)
+    0:  pushq %rbx
+    1:  movl $0xffffffff, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_type+0
+    e:  movl $0, %edx   <str:"error object is not a string">
+   13:  cmpl $4, %eax
+   16:  je 0x40
+   18:  movq (%rip), %rdi   <stderr+0>
+   1f:  movl $0, %esi   <str:"PANIC: unprotected error in call to Lua API (%s)\n">
+   24:  xorl %eax, %eax
+   26:  callq fprintf+0
+   2b:  movq (%rip), %rdi   <stderr+0>
+   32:  callq fflush+0
+   37:  xorl %eax, %eax
+   39:  popq %rbx
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  xorl %edx, %edx
+   42:  movl $0xffffffff, %esi
+   47:  movq %rbx, %rdi
+   4a:  callq lua_tolstring+0
+   4f:  movq %rax, %rdx
+   52:  jmp 0x18

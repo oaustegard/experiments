@@ -1,0 +1,43 @@
+# math_min  (static, 137 bytes, 42 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  callq lua_gettop+0
+   12:  testl %eax, %eax
+   14:  jle 0x70
+   16:  movl %eax, %r13d
+   19:  cmpl $1, %eax
+   1c:  je 0x82
+   1e:  movl $2, %ebx
+   23:  movl $1, %ebp
+   28:  nopl (%rax, %rax)
+   30:  movl %ebp, %edx
+   32:  movl %ebx, %esi
+   34:  movl $1, %ecx
+   39:  movq %r12, %rdi
+   3c:  callq lua_compare+0
+   41:  testl %eax, %eax
+   43:  cmovnel %ebx, %ebp
+   46:  addl $1, %ebx
+   49:  cmpl %ebx, %r13d
+   4c:  jge 0x30
+   4e:  movl %ebp, %esi
+   50:  movq %r12, %rdi
+   53:  callq lua_pushvalue+0
+   58:  addq $8, %rsp
+   5c:  movl $1, %eax
+   61:  popq %rbx
+   62:  popq %rbp
+   63:  popq %r12
+   65:  popq %r13
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  movl $0, %edx   <str:"value expected">
+   75:  movl $1, %esi
+   7a:  movq %r12, %rdi
+   7d:  callq luaL_argerror+0
+   82:  movl $1, %ebp
+   87:  jmp 0x4e

@@ -1,0 +1,104 @@
+# clearbyvalues  (static, 321 bytes, 103 instructions)
+    0:  cmpq %rdx, %rsi
+    3:  je 0x140
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  movq %rsi, %r13
+   10:  pushq %r12
+   12:  movl $1, %r12d
+   18:  pushq %rbp
+   19:  movq %rdx, %rbp
+   1c:  pushq %rbx
+   1d:  movq %rdi, %rbx
+   20:  movzbl 0xb(%r13), %ecx
+   25:  movl %r12d, %eax
+   28:  movq %r13, %rdi
+   2b:  shll %cl, %eax
+   2d:  cltq
+   2f:  leaq (%rax, %rax, 2), %rdx
+   33:  movq 0x18(%r13), %rax
+   37:  leaq (%rax, %rdx, 8), %r14
+   3b:  callq luaH_realasize+0
+   40:  testl %eax, %eax
+   42:  je 0xa0
+   44:  movq 0x10(%r13), %r8
+   48:  movl %eax, %eax
+   4a:  shlq $4, %rax
+   4e:  leaq (%rax, %r8), %r9
+   52:  jmp 0x6a
+   54:  nopl (%rax)
+   58:  testb %dl, %dl
+   5a:  je 0x61
+   5c:  movb $0x10, 8(%r8)
+   61:  addq $0x10, %r8
+   65:  cmpq %r8, %r9
+   68:  je 0xa0
+   6a:  testb $0x40, 8(%r8)
+   6f:  je 0x61
+   71:  movq (%r8), %rsi
+   74:  testq %rsi, %rsi
+   77:  je 0x61
+   79:  movzbl 8(%rsi), %eax
+   7d:  movzbl 9(%rsi), %edx
+   81:  andl $0xf, %eax
+   84:  andl $0x18, %edx
+   87:  cmpb $4, %al
+   89:  jne 0x58
+   8b:  testb %dl, %dl
+   8d:  je 0x61
+   8f:  movq %rbx, %rdi
+   92:  addq $0x10, %r8
+   96:  callq fn:reallymarkobject+0
+   9b:  cmpq %r8, %r9
+   9e:  jne 0x6a
+   a0:  movq 0x18(%r13), %r8
+   a4:  cmpq %r14, %r8
+   a7:  jb 0xe8
+   a9:  jmp 0x100
+   ab:  nopl (%rax, %rax)
+   b0:  movq (%r8), %rsi
+   b3:  testq %rsi, %rsi
+   b6:  je 0xf2
+   b8:  movzbl 8(%rsi), %eax
+   bc:  movzbl 9(%rsi), %edx
+   c0:  andl $0xf, %eax
+   c3:  andl $0x18, %edx
+   c6:  cmpb $4, %al
+   c8:  je 0x120
+   ca:  testb %dl, %dl
+   cc:  je 0xf2
+   ce:  movb $0x10, 8(%r8)
+   d3:  testb $0x40, 9(%r8)
+   d8:  je 0xdf
+   da:  movb $0xb, 9(%r8)
+   df:  addq $0x18, %r8
+   e3:  cmpq %r14, %r8
+   e6:  jae 0x100
+   e8:  movzbl 8(%r8), %ecx
+   ed:  testb $0x40, %cl
+   f0:  jne 0xb0
+   f2:  andl $0xf, %ecx
+   f5:  je 0xd3
+   f7:  addq $0x18, %r8
+   fb:  cmpq %r14, %r8
+   fe:  jb 0xe8
+  100:  movq 0x30(%r13), %r13
+  104:  cmpq %r13, %rbp
+  107:  jne 0x20
+  10d:  popq %rbx
+  10e:  popq %rbp
+  10f:  popq %r12
+  111:  popq %r13
+  113:  popq %r14
+  115:  retq
+  116:  nopw %cs:(%rax, %rax)
+  120:  testb %dl, %dl
+  122:  je 0xf2
+  124:  movq %rbx, %rdi
+  127:  callq fn:reallymarkobject+0
+  12c:  movzbl 8(%r8), %ecx
+  131:  andl $0xf, %ecx
+  134:  jne 0xf7
+  136:  jmp 0xd3
+  138:  nopl (%rax, %rax)
+  140:  retq

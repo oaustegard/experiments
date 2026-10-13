@@ -1,0 +1,104 @@
+# otf_featrec.isra.0  (static, 372 bytes, 103 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rdx, %rbp
+    c:  pushq %rbx
+    d:  subq $0x38, %rsp
+   11:  movzwl 4(%rsi), %edx
+   15:  movzwl 6(%rdi), %eax
+   19:  movq %rcx, 0x18(%rsp)
+   1e:  movl (%rsi), %esi
+   20:  rolw $8, %ax
+   24:  rolw $8, %dx
+   28:  movq %r8, (%rsp)
+   2c:  movq $0, 0x28(%rsp)
+   35:  movzwl %dx, %edx
+   38:  movzwl %ax, %eax
+   3b:  addq %rdx, %rax
+   3e:  movl %esi, 0x28(%rsp)
+   42:  addq %rdi, %rax
+   45:  movzwl 2(%rax), %ecx
+   49:  movl %ecx, %edx
+   4b:  rolw $8, %dx
+   4f:  testw %cx, %cx
+   52:  je 0x16c
+   58:  movzwl %dx, %edx
+   5b:  leaq 4(%rax), %rbx
+   5f:  movl %r9d, %r14d
+   62:  subl $1, %edx
+   65:  leaq 6(%rax, %rdx, 2), %rax
+   6a:  movq %rax, 0x10(%rsp)
+   6f:  nop
+   70:  movzwl (%rbx), %ecx
+   73:  rolw $8, %cx
+   77:  movzwl %cx, %r12d
+   7b:  testl %r14d, %r14d
+   7e:  jle 0x164
+   84:  leaq 0x28(%rsp), %rax
+   89:  movq (%rsp), %r15
+   8d:  xorl %r13d, %r13d
+   90:  movq %rax, 8(%rsp)
+   95:  jmp 0xad
+   97:  nopw (%rax, %rax)
+   a0:  addl $1, %r13d
+   a4:  addq $0x1c, %r15
+   a8:  cmpl %r14d, %r13d
+   ab:  je 0x110
+   ad:  cmpl 0x18(%r15), %r12d
+   b1:  jne 0xa0
+   b3:  cmpb $0, 8(%r15)
+   b8:  jne 0xa0
+   ba:  movq %rbp, %rsi
+   bd:  movq %r15, %rdi
+   c0:  callq strcmp+0
+   c5:  testl %eax, %eax
+   c7:  jne 0xa0
+   c9:  leaq 0x10(%r15), %rdi
+   cd:  leaq 0x28(%rsp), %rsi
+   d2:  callq strcmp+0
+   d7:  testl %eax, %eax
+   d9:  jne 0xa0
+   db:  cmpl %r14d, %r13d
+   de:  je 0xfd
+   e0:  addq $2, %rbx
+   e4:  cmpq %rbx, 0x10(%rsp)
+   e9:  jne 0x70
+   eb:  addq $0x38, %rsp
+   ef:  movl %r14d, %eax
+   f2:  popq %rbx
+   f3:  popq %rbp
+   f4:  popq %r12
+   f6:  popq %r13
+   f8:  popq %r14
+   fa:  popq %r15
+   fc:  retq
+   fd:  leaq 0x28(%rsp), %rax
+  102:  movq %rax, 8(%rsp)
+  107:  nopw (%rax, %rax)
+  110:  movslq %r13d, %rdx
+  113:  movq 8(%rsp), %rsi
+  118:  addl $1, %r14d
+  11c:  leaq (, %rdx, 8), %rax
+  124:  subq %rdx, %rax
+  127:  movq (%rsp), %rdx
+  12b:  leaq (%rdx, %rax, 4), %r15
+  12f:  leaq 0x10(%r15), %rdi
+  133:  callq strcpy+0
+  138:  movq %rbp, %rsi
+  13b:  movq %r15, %rdi
+  13e:  callq strcpy+0
+  143:  movq 0x18(%rsp), %rsi
+  148:  leaq 8(%r15), %rdi
+  14c:  callq strcpy+0
+  151:  movzwl (%rbx), %eax
+  154:  rolw $8, %ax
+  158:  movzwl %ax, %eax
+  15b:  movl %eax, 0x18(%r15)
+  15f:  jmp 0xe0
+  164:  xorl %r13d, %r13d
+  167:  jmp 0xdb
+  16c:  movl %r9d, %r14d
+  16f:  jmp 0xeb

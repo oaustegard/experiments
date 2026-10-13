@@ -1,0 +1,68 @@
+# in_push  (global, 274 bytes, 67 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rsi, %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq strlen+0
+   15:  movl $0x4b8, %edi
+   1a:  movq %rax, %rbp
+   1d:  callq xmalloc+0
+   22:  leaq 8(%rax), %rdi
+   26:  movq %rax, %rcx
+   29:  movq $0, (%rax)
+   30:  movq %rax, %rbx
+   33:  movq $0, 0x4b0(%rax)
+   3e:  andq $0xfffffffffffffff8, %rdi
+   42:  xorl %eax, %eax
+   44:  subq %rdi, %rcx
+   47:  addl $0x4b8, %ecx
+   4d:  shrl $3, %ecx
+   50:  rep stosq %rax, (%rdi)
+   53:  leal 1(%rbp), %edi
+   56:  movslq %edi, %rdi
+   59:  movq (%rip), %rax   <var:buf+0>
+   60:  movq %rbx, (%rip)   <var:buf+0>
+   67:  movq %rax, 0x4b0(%rbx)
+   6e:  callq xmalloc+0
+   73:  movq %r13, %rsi
+   76:  movq %rax, 0x408(%rbx)
+   7d:  movq (%rip), %rbx   <var:buf+0>
+   84:  movl %ebp, 0x4a0(%rbx)
+   8a:  movq 0x408(%rbx), %rdi
+   91:  callq strcpy+0
+   96:  testq %r12, %r12
+   99:  je 0x100
+   9b:  movl $0x100, %edi
+   a0:  xorl %ebx, %ebx
+   a2:  callq xmalloc+0
+   a7:  movq %rax, %r13
+   aa:  nopw (%rax, %rax)
+   b0:  movq $0, (%r13, %rbx)
+   b9:  movq (%r12, %rbx), %rdi
+   bd:  testq %rdi, %rdi
+   c0:  je 0xe9
+   c2:  callq strlen+0
+   c7:  leal 1(%rax), %ebp
+   ca:  movslq %ebp, %rbp
+   cd:  movq %rbp, %rdi
+   d0:  callq xmalloc+0
+   d5:  movq %rbp, %rdx
+   d8:  movq %rax, (%r13, %rbx)
+   dd:  movq (%r12, %rbx), %rsi
+   e1:  movq %rax, %rdi
+   e4:  callq memcpy+0
+   e9:  addq $8, %rbx
+   ed:  cmpq $0x100, %rbx
+   f4:  jne 0xb0
+   f6:  movq (%rip), %rbx   <var:buf+0>
+   fd:  movq %r13, %r12
+  100:  movq %r12, 0x410(%rbx)
+  107:  addq $8, %rsp
+  10b:  popq %rbx
+  10c:  popq %rbp
+  10d:  popq %r12
+  10f:  popq %r13
+  111:  retq

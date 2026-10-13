@@ -1,0 +1,76 @@
+# font_readgpat  (static, 263 bytes, 75 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  pushq %rbx
+    a:  movq %rdx, %rbx
+    d:  callq __ctype_b_loc+0
+   12:  movzbl (%rbx), %ecx
+   15:  movq (%rax), %rdx
+   18:  testb $8, 1(%rdx, %rcx, 2)
+   1d:  jne 0xb8
+   23:  cmpb $0x40, %cl
+   26:  je 0x80
+   28:  movq 0x78(%r12), %rdi
+   2d:  movq %rbx, %rsi
+   30:  callq dict_get+0
+   35:  testl %eax, %eax
+   37:  js 0xe0
+   3d:  cltq
+   3f:  leaq (%rax, %rax, 4), %rdx
+   43:  leaq (%rax, %rdx, 2), %rax
+   47:  shlq $3, %rax
+   4b:  movq %rax, %rcx
+   4e:  addq 0x68(%r12), %rcx
+   53:  je 0xe0
+   59:  movabsq $0x2e8ba2e8ba2e8ba3, %rdx
+   63:  sarq $3, %rax
+   67:  imulq %rdx, %rax
+   6b:  movl %eax, (%rbp)
+   6e:  movl %eax, %edx
+   70:  xorl %eax, %eax
+   72:  cmpl %edx, 0x70(%r12)
+   77:  popq %rbx
+   78:  setle %al
+   7b:  popq %rbp
+   7c:  popq %r12
+   7e:  retq
+   7f:  nop
+   80:  xorl %esi, %esi
+   82:  leaq 1(%rbx), %rdi
+   86:  movl $0xa, %edx
+   8b:  callq strtol+0
+   90:  movq 0xac8(%r12), %rdi
+   98:  movl %eax, (%rbp)
+   9b:  movl %eax, %esi
+   9d:  callq iset_len+0
+   a2:  cmpl $1, %eax
+   a5:  je 0xf0
+   a7:  orw $8, 4(%rbp)
+   ac:  movl (%rbp), %edx
+   af:  jmp 0xcc
+   b1:  nopl (%rax)
+   b8:  movl $0xa, %edx
+   bd:  xorl %esi, %esi
+   bf:  movq %rbx, %rdi
+   c2:  callq strtol+0
+   c7:  movl %eax, (%rbp)
+   ca:  movl %eax, %edx
+   cc:  testl %edx, %edx
+   ce:  jns 0x70
+   d0:  popq %rbx
+   d1:  movl $1, %eax
+   d6:  popq %rbp
+   d7:  popq %r12
+   d9:  retq
+   da:  nopw (%rax, %rax)
+   e0:  movl $0xffffffff, (%rbp)
+   e7:  jmp 0xd0
+   e9:  nopl (%rax)
+   f0:  movl (%rbp), %esi
+   f3:  movq 0xac8(%r12), %rdi
+   fb:  callq iset_get+0
+  100:  movl (%rax), %edx
+  102:  movl %edx, (%rbp)
+  105:  jmp 0xcc

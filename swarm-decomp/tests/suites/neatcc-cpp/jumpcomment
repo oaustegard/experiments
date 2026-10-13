@@ -1,0 +1,54 @@
+# jumpcomment  (static, 211 bytes, 53 instructions)
+    0:  movq (%rip), %rdx   <var:buf+0>
+    7:  movq (%rip), %rax   <var:cur+0>
+    e:  cmpb $0x2f, (%rdx, %rax)
+   12:  je 0x20
+   14:  movl $1, %eax
+   19:  retq
+   1a:  nopw (%rax, %rax)
+   20:  movzbl 1(%rdx, %rax), %ecx
+   25:  cmpb $0x2a, %cl
+   28:  je 0x78
+   2a:  movq (%rip), %rax   <var:cur+0>
+   31:  movq (%rip), %rdi   <var:len+0>
+   38:  cmpb $0x2f, %cl
+   3b:  je 0x5c
+   3d:  movl $1, %eax
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  movzbl (%rdx, %rax), %ecx
+   4c:  cmpb $0xa, %cl
+   4f:  je 0x68
+   51:  addq $2, %rsi
+   55:  cmpb $0x5c, %cl
+   58:  cmoveq %rsi, %rax
+   5c:  movq %rax, %rsi
+   5f:  addq $1, %rax
+   63:  cmpq %rdi, %rax
+   66:  jl 0x48
+   68:  movq %rax, (%rip)   <var:cur+0>
+   6f:  xorl %eax, %eax
+   71:  retq
+   72:  nopw (%rax, %rax)
+   78:  movq (%rip), %rcx   <var:len+0>
+   7f:  addq $1, %rax
+   83:  movq %rax, (%rip)   <var:cur+0>
+   8a:  cmpq %rcx, %rax
+   8d:  jl 0xa1
+   8f:  jmp 0xbf
+   91:  nopl (%rax)
+   98:  addq $1, %rax
+   9c:  cmpq %rcx, %rax
+   9f:  je 0xb8
+   a1:  cmpb $0x2a, (%rdx, %rax)
+   a5:  jne 0x98
+   a7:  cmpb $0x2f, 1(%rdx, %rax)
+   ac:  jne 0x98
+   ae:  addq $2, %rax
+   b2:  jmp 0x68
+   b4:  nopl (%rax)
+   b8:  movq %rax, (%rip)   <var:cur+0>
+   bf:  cmpb $0x2f, (%rdx, %rax)
+   c3:  jne 0x14
+   c9:  movzbl 1(%rdx, %rax), %ecx
+   ce:  jmp 0x2a

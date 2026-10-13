@@ -1,0 +1,37 @@
+# box_move  (global, 100 bytes, 36 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movl %edx, %ebx
+    9:  testl %esi, %esi
+    b:  jne 0x20
+    d:  testl %ebx, %ebx
+    f:  jne 0x42
+   11:  popq %rbx
+   12:  popq %rbp
+   13:  popq %r12
+   15:  retq
+   16:  nopw %cs:(%rax, %rax)
+   20:  movl 0x10(%rdi), %edi
+   23:  movl %esi, %ebp
+   25:  callq nreg+0
+   2a:  movl %ebp, %edx
+   2c:  movl $0, %esi   <str:"\\v'%du*%sp/100u'">
+   31:  movq %r12, %rdi
+   34:  movq %rax, %rcx
+   37:  xorl %eax, %eax
+   39:  callq box_putf+0
+   3e:  testl %ebx, %ebx
+   40:  je 0x11
+   42:  movl 0x10(%r12), %edi
+   47:  callq nreg+0
+   4c:  movl %ebx, %edx
+   4e:  movq %r12, %rdi
+   51:  popq %rbx
+   52:  movq %rax, %rcx
+   55:  popq %rbp
+   56:  movl $0, %esi   <str:"\\h'%du*%sp/100u'">
+   5b:  xorl %eax, %eax
+   5d:  popq %r12
+   5f:  jmp box_putf+0

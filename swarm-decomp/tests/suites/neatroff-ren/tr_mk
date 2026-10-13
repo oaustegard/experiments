@@ -1,0 +1,32 @@
+# tr_mk  (global, 97 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  cmpq $0, 8(%rdi)
+    b:  je 0x38
+    d:  movq %rdi, %rbx
+   10:  movl $0x64, %edi
+   15:  callq nreg+0
+   1a:  movq 8(%rbx), %rdi
+   1e:  movl (%rax), %ebp
+   20:  callq map+0
+   25:  addq $8, %rsp
+   29:  movl %ebp, %esi
+   2b:  popq %rbx
+   2c:  movl %eax, %edi
+   2e:  popq %rbp
+   2f:  jmp num_set+0
+   34:  nopl (%rax)
+   38:  movl $0x64, %edi
+   3d:  callq nreg+0
+   42:  movl $0, %edi   <str:".mk">
+   47:  movq %rax, %rbx
+   4a:  callq map+0
+   4f:  movl %eax, %edi
+   51:  callq nreg+0
+   56:  movl (%rbx), %edx
+   58:  movl %edx, (%rax)
+   5a:  addq $8, %rsp
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  retq

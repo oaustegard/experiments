@@ -1,0 +1,49 @@
+# checkformat  (static, 142 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  movl %ecx, %r13d
+    5:  pushq %r12
+    7:  movq %rdi, %r12
+    a:  pushq %rbp
+    b:  movq %rsi, %rbp
+    e:  movq %rdx, %rsi
+   11:  pushq %rbx
+   12:  leaq 1(%rbp), %rbx
+   16:  movq %rbx, %rdi
+   19:  subq $8, %rsp
+   1d:  callq strspn+0
+   22:  leaq (%rbx, %rax), %rdi
+   26:  movzbl (%rdi), %ebx
+   29:  cmpb $0x30, %bl
+   2c:  je 0x41
+   2e:  callq fn:get2digits+0
+   33:  movzbl (%rax), %ebx
+   36:  cmpb $0x2e, %bl
+   39:  jne 0x41
+   3b:  andl $1, %r13d
+   3f:  jne 0x80
+   41:  callq __ctype_b_loc+0
+   46:  movq (%rax), %rax
+   49:  testb $4, 1(%rax, %rbx, 2)
+   4e:  je 0x60
+   50:  addq $8, %rsp
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  popq %r12
+   58:  popq %r13
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  addq $8, %rsp
+   64:  movq %rbp, %rdx
+   67:  movq %r12, %rdi
+   6a:  movl $0, %esi   <str:"invalid conversion specification: '%s'">
+   6f:  popq %rbx
+   70:  xorl %eax, %eax
+   72:  popq %rbp
+   73:  popq %r12
+   75:  popq %r13
+   77:  jmp luaL_error+0
+   7c:  nopl (%rax)
+   80:  leaq 1(%rax), %rdi
+   84:  callq fn:get2digits+0
+   89:  movzbl (%rax), %ebx
+   8c:  jmp 0x41

@@ -1,0 +1,41 @@
+# index2value  (static, 129 bytes, 40 instructions)
+    0:  movq 0x20(%rdi), %rdx
+    4:  testl %esi, %esi
+    6:  jle 0x28
+    8:  movslq %esi, %rax
+    b:  shlq $4, %rax
+    f:  addq (%rdx), %rax
+   12:  cmpq 0x10(%rdi), %rax
+   16:  jb 0x63
+   18:  movq 0x18(%rdi), %rax
+   1c:  addq $0x50, %rax
+   20:  retq
+   21:  nopl (%rax)
+   28:  cmpl $0xfff0b9d9, %esi
+   2e:  jge 0x68
+   30:  cmpl $0xfff0b9d8, %esi
+   36:  je 0x78
+   38:  movq (%rdx), %rax
+   3b:  cmpb $0x66, 8(%rax)
+   3f:  jne 0x18
+   41:  movq (%rax), %rdx
+   44:  movl $0xfff0b9d8, %eax
+   49:  subl %esi, %eax
+   4b:  movzbl 0xa(%rdx), %ecx
+   4f:  cmpl %eax, %ecx
+   51:  jl 0x18
+   53:  movl $0xfff0b9d9, %eax
+   58:  subl %esi, %eax
+   5a:  cltq
+   5c:  shlq $4, %rax
+   60:  addq %rdx, %rax
+   63:  retq
+   64:  nopl (%rax)
+   68:  movslq %esi, %rax
+   6b:  shlq $4, %rax
+   6f:  addq 0x10(%rdi), %rax
+   73:  retq
+   74:  nopl (%rax)
+   78:  movq 0x18(%rdi), %rax
+   7c:  addq $0x40, %rax
+   80:  retq

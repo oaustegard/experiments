@@ -1,0 +1,29 @@
+# env_done  (global, 108 bytes, 28 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl $0, %ebx   <var:envs+0>
+    7:  subq $8, %rsp
+    b:  nopl (%rax, %rax)
+   10:  movq (%rbx), %rbp
+   13:  testq %rbp, %rbp
+   16:  je 0x38
+   18:  movq 0x1a0(%rbp), %rdi
+   1f:  callq fmt_free+0
+   24:  leaq 0x1a8(%rbp), %rdi
+   2b:  callq wb_done+0
+   30:  movq %rbp, %rdi
+   33:  callq free+0
+   38:  addq $8, %rbx
+   3c:  cmpq $0, %rbx   <var:envs+65536>
+   43:  jne 0x10
+   45:  movl $0, %ebx   <var:sregs+0>
+   4a:  nopw (%rax, %rax)
+   50:  movq (%rbx), %rdi
+   53:  addq $8, %rbx
+   57:  callq free+0
+   5c:  cmpq $0, %rbx   <var:sregs+65536>
+   63:  jne 0x50
+   65:  addq $8, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq

@@ -1,0 +1,59 @@
+# postspline  (static, 189 bytes, 58 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $0x18, %rsp
+    a:  callq fn:nextnum+0
+    f:  movl %eax, %r12d
+   12:  callq fn:nextnum+0
+   17:  movl %eax, %r13d
+   1a:  nopw (%rax, %rax)
+   20:  movq (%rip), %rdi   <stdin+0>
+   27:  callq getc+0
+   2c:  movl %eax, %ebx
+   2e:  cmpl $0x20, %eax
+   31:  je 0x20
+   33:  movq (%rip), %rsi   <stdin+0>
+   3a:  movl %eax, %edi
+   3c:  callq ungetc+0
+   41:  cmpl $0xa, %ebx
+   44:  jne 0x7b
+   46:  jmp 0xa8
+   48:  nopl (%rax, %rax)
+   50:  leaq 0xc(%rsp), %rdi
+   55:  callq fn:readnum+0
+   5a:  testl %eax, %eax
+   5c:  jne 0x89
+   5e:  movl 0xc(%rsp), %ebp
+   62:  movl 8(%rsp), %ebx
+   66:  movl %r13d, %esi
+   69:  movl %r12d, %edi
+   6c:  movl %ebp, %ecx
+   6e:  movl %ebx, %edx
+   70:  movl %ebp, %r13d
+   73:  movl %ebx, %r12d
+   76:  callq draws+0
+   7b:  leaq 8(%rsp), %rdi
+   80:  callq fn:readnum+0
+   85:  testl %eax, %eax
+   87:  je 0x50
+   89:  addq $0x18, %rsp
+   8d:  movl %r13d, %esi
+   90:  movl %r12d, %edi
+   93:  xorl %ecx, %ecx
+   95:  popq %rbx
+   96:  xorl %edx, %edx
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  popq %r13
+   9d:  jmp draws+0
+   a2:  nopw (%rax, %rax)
+   a8:  addq $0x18, %rsp
+   ac:  movl %r13d, %esi
+   af:  movl %r12d, %edi
+   b2:  popq %rbx
+   b3:  popq %rbp
+   b4:  popq %r12
+   b6:  popq %r13
+   b8:  jmp drawl+0

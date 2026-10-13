@@ -1,0 +1,72 @@
+# luaL_argerror  (global, 244 bytes, 71 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  xorl %esi, %esi
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x90, %rsp
+   15:  movq %rsp, %rdx
+   18:  callq lua_getstack+0
+   1d:  testl %eax, %eax
+   1f:  je 0x78
+   21:  movl $0, %esi   <str:"n">
+   26:  movq %rbx, %rdi
+   29:  movq %rsp, %rdx
+   2c:  callq lua_getinfo+0
+   31:  movq 0x10(%rsp), %rdi
+   36:  movl $0, %esi   <str:"method">
+   3b:  callq strcmp+0
+   40:  testl %eax, %eax
+   42:  jne 0x49
+   44:  subl $1, %ebp
+   47:  je 0xc0
+   49:  movq 8(%rsp), %rcx
+   4e:  testq %rcx, %rcx
+   51:  je 0xa0
+   53:  movq %r12, %r8
+   56:  movl %ebp, %edx
+   58:  movl $0, %esi   <str:"bad argument #%d to '%s' (%s)">
+   5d:  movq %rbx, %rdi
+   60:  xorl %eax, %eax
+   62:  callq luaL_error+0
+   67:  addq $0x90, %rsp
+   6e:  popq %rbx
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  movq %r12, %rcx
+   7b:  movl %ebp, %edx
+   7d:  movq %rbx, %rdi
+   80:  movl $0, %esi   <str:"bad argument #%d (%s)">
+   85:  callq luaL_error+0
+   8a:  addq $0x90, %rsp
+   91:  popq %rbx
+   92:  popq %rbp
+   93:  popq %r12
+   95:  retq
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movq %rsp, %rsi
+   a3:  movq %rbx, %rdi
+   a6:  callq fn:pushglobalfuncname+0
+   ab:  movl $0, %ecx   <str:"?">
+   b0:  testl %eax, %eax
+   b2:  jne 0xe0
+   b4:  movq %rcx, 8(%rsp)
+   b9:  jmp 0x53
+   bb:  nopl (%rax, %rax)
+   c0:  movq 8(%rsp), %rdx
+   c5:  movq %r12, %rcx
+   c8:  movl $0, %esi   <str:"calling '%s' on bad self (%s)">
+   cd:  movq %rbx, %rdi
+   d0:  callq luaL_error+0
+   d5:  jmp 0x67
+   d7:  nopw (%rax, %rax)
+   e0:  xorl %edx, %edx
+   e2:  movl $0xffffffff, %esi
+   e7:  movq %rbx, %rdi
+   ea:  callq lua_tolstring+0
+   ef:  movq %rax, %rcx
+   f2:  jmp 0xb4

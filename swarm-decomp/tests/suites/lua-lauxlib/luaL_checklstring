@@ -1,0 +1,28 @@
+# luaL_checklstring  (global, 67 bytes, 27 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  callq lua_tolstring+0
+    f:  movq %rax, %rbx
+   12:  testq %rax, %rax
+   15:  je 0x20
+   17:  movq %rbx, %rax
+   1a:  popq %rbx
+   1b:  popq %rbp
+   1c:  popq %r12
+   1e:  retq
+   1f:  nop
+   20:  movq %rbp, %rdi
+   23:  movl $4, %esi
+   28:  callq lua_typename+0
+   2d:  movl %r12d, %esi
+   30:  movq %rbp, %rdi
+   33:  movq %rax, %rdx
+   36:  callq luaL_typeerror+0
+   3b:  movq %rbx, %rax
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  popq %r12
+   42:  retq

@@ -1,0 +1,34 @@
+# wb_fnszget  (global, 87 bytes, 33 instructions)
+    0:  pushq %r14
+    2:  movq %rsi, %r14
+    5:  pushq %r13
+    7:  movq %rdx, %r13
+    a:  movl 0x2068(%rdi), %edx
+   10:  pushq %r12
+   12:  movq %rcx, %r12
+   15:  pushq %rbp
+   16:  movq %r8, %rbp
+   19:  pushq %rbx
+   1a:  movq %rdi, %rbx
+   1d:  testl %edx, %edx
+   1f:  je 0x2b
+   21:  movl 0x206c(%rdi), %eax
+   27:  testl %eax, %eax
+   29:  jne 0x50
+   2b:  movl 0x20(%rbx), %eax
+   2e:  movl %eax, (%r14)
+   31:  movl 0x24(%rbx), %eax
+   34:  movl %eax, (%r13)
+   38:  movl 0x28(%rbx), %eax
+   3b:  movl %eax, (%r12)
+   3f:  movl 0x2c(%rbx), %eax
+   42:  movl %eax, (%rbp)
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  popq %r12
+   49:  popq %r13
+   4b:  popq %r14
+   4d:  retq
+   4e:  nop
+   50:  callq fn:wb_flushsub.part.0+0
+   55:  jmp 0x2b

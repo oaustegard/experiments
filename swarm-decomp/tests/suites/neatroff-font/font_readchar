@@ -1,0 +1,118 @@
+# font_readchar  (static, 454 bytes, 117 instructions)
+    0:  pushq %r14
+    2:  xorl %eax, %eax
+    4:  pushq %r13
+    6:  movq %rdx, %r13
+    9:  pushq %r12
+    b:  movq %rcx, %r12
+    e:  pushq %rbp
+    f:  movq %rdi, %rbp
+   12:  pushq %rbx
+   13:  movq %rsi, %rbx
+   16:  movl $0, %esi   <str:"%31s %127s">
+   1b:  movq %rbx, %rdi
+   1e:  subq $0xd0, %rsp
+   25:  leaq 0x50(%rsp), %rcx
+   2a:  leaq 0x10(%rsp), %rdx
+   2f:  callq __isoc99_fscanf+0
+   34:  cmpl $2, %eax
+   37:  jne 0x69
+   39:  cmpl $0x2d2d2d, 0x10(%rsp)
+   41:  je 0x80
+   43:  cmpw $0x22, 0x50(%rsp)
+   49:  je 0x9d
+   4b:  xorl %eax, %eax
+   4d:  leaq 0x30(%rsp), %rcx
+   52:  leaq 0xc(%rsp), %rdx
+   57:  movq %rbx, %rdi
+   5a:  movl $0, %esi   <str:"%d %31s">
+   5f:  callq __isoc99_fscanf+0
+   64:  cmpl $2, %eax
+   67:  je 0xc0
+   69:  movl $1, %eax
+   6e:  addq $0xd0, %rsp
+   75:  popq %rbx
+   76:  popq %rbp
+   77:  popq %r12
+   79:  popq %r13
+   7b:  popq %r14
+   7d:  retq
+   7e:  nop
+   80:  movl (%r13), %edx
+   84:  xorl %eax, %eax
+   86:  movl $0, %esi   <str:"c%04d">
+   8b:  leaq 0x10(%rsp), %rdi
+   90:  callq sprintf+0
+   95:  cmpw $0x22, 0x50(%rsp)
+   9b:  jne 0x4b
+   9d:  movl (%r12), %edx
+   a1:  movq 0x88(%rbp), %rdi
+   a8:  leaq 0x10(%rsp), %rsi
+   ad:  callq dict_put+0
+   b2:  xorl %eax, %eax
+   b4:  jmp 0x6e
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  movl 0xc(%rsp), %ebx
+   c4:  movslq 0x70(%rbp), %rsi
+   c8:  movq 0x68(%rbp), %rdi
+   cc:  cmpl 0x74(%rbp), %esi
+   cf:  je 0x1a0
+   d5:  leaq (%rsi, %rsi, 4), %rax
+   d9:  leaq 0x30(%rsp), %rcx
+   de:  movl $0, %edx   <str:"%s">
+   e3:  leaq (%rsi, %rax, 2), %rax
+   e7:  movl $0x20, %esi
+   ec:  leaq (%rdi, %rax, 8), %r14
+   f0:  xorl %eax, %eax
+   f2:  movq %r14, %rdi
+   f5:  callq snprintf+0
+   fa:  leaq 0x10(%rsp), %rcx
+   ff:  leaq 0x20(%r14), %rdi
+  103:  xorl %eax, %eax
+  105:  movl $0, %edx   <str:"%s">
+  10a:  movl $0x20, %esi
+  10f:  callq snprintf+0
+  114:  movw %bx, 0x52(%r14)
+  119:  movl 0x70(%rbp), %edx
+  11c:  movq %r14, %rsi
+  11f:  movq %rbp, 0x40(%r14)
+  123:  movq 0x78(%rbp), %rdi
+  127:  callq dict_put+0
+  12c:  movslq 0x70(%rbp), %rax
+  130:  subq $8, %rsp
+  134:  leal 1(%rax), %edx
+  137:  movl %edx, 0x70(%rbp)
+  13a:  leaq (%rax, %rax, 4), %rdx
+  13e:  movl %eax, (%r12)
+  142:  leaq (%rax, %rdx, 2), %rdx
+  146:  movq 0x68(%rbp), %rax
+  14a:  leaq (%rax, %rdx, 8), %rax
+  14e:  leaq 0x50(%rax), %rsi
+  152:  leaq 0x4a(%rax), %rcx
+  156:  pushq %rsi
+  157:  leaq 0x48(%rax), %rdx
+  15b:  leaq 0x4e(%rax), %r9
+  15f:  movl $0, %esi   <str:"%hd,%hd,%hd,%hd,%hd">
+  164:  leaq 0x4c(%rax), %r8
+  168:  xorl %eax, %eax
+  16a:  leaq 0x60(%rsp), %rdi
+  16f:  callq __isoc99_sscanf+0
+  174:  movl (%r12), %edx
+  178:  leaq 0x20(%rsp), %rsi
+  17d:  movq 0x80(%rbp), %rdi
+  184:  callq dict_put+0
+  189:  addl $1, (%r13)
+  18e:  popq %rax
+  18f:  xorl %eax, %eax
+  191:  popq %rdx
+  192:  jmp 0x6e
+  197:  nopw (%rax, %rax)
+  1a0:  leal 0x400(%rsi), %edx
+  1a6:  movl $0x58, %ecx
+  1ab:  movl %edx, 0x74(%rbp)
+  1ae:  movslq %edx, %rdx
+  1b1:  callq mextend+0
+  1b6:  movslq 0x70(%rbp), %rsi
+  1ba:  movq %rax, 0x68(%rbp)
+  1be:  movq %rax, %rdi
+  1c1:  jmp 0xd5

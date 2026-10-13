@@ -1,0 +1,1 @@
+static void tr_pmll(struct tr_args *a) { int v = 0; if (a->arg[0]) { int *p = nreg(map(".pmll")); v = eval_re(a->arg[0], *p, 0); } int *q = nreg(map(".pmll")); *q = v; int w = 100; if (a->arg[1]) { int *r = nreg(map(".pmllcost")); w = eval_re(a->arg[1], *r, 0); } *nreg(map(".pmllcost")) = w; }

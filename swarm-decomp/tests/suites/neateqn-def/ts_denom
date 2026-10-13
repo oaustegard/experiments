@@ -1,0 +1,14 @@
+# ts_denom  (global, 38 bytes, 13 instructions)
+    0:  cmpl $1, %edi
+    3:  jbe 0x20
+    5:  sarl $4, %edi
+    8:  movl $1, %eax
+    d:  testl %edi, %edi
+    f:  cmovgl %eax, %edi
+   12:  leal 1(%rdi), %eax
+   15:  shll $4, %eax
+   18:  orl $1, %eax
+   1b:  retq
+   1c:  nopl (%rax)
+   20:  movl $3, %eax
+   25:  retq

@@ -1,0 +1,1 @@
+static void tr_hydash(struct tr_args *a) { hy_dashcnt = 0; if (a->arg[0]) { char *s = a->arg[0]; while (s) { if (charread(&s, hy_dash[hy_dashcnt]) < 0) break; if (hy_dashcnt <= 30) hy_dashcnt++; } } }

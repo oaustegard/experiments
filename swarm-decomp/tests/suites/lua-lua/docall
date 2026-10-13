@@ -1,0 +1,59 @@
+# docall  (static, 227 bytes, 58 instructions)
+    0:  pushq %r13
+    2:  movl %edx, %r13d
+    5:  pushq %r12
+    7:  movl %esi, %r12d
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $0xa8, %rsp
+   16:  callq lua_gettop+0
+   1b:  movq %rbx, %rdi
+   1e:  xorl %edx, %edx
+   20:  movl $0, %esi   <fn:msghandler+0>
+   25:  subl %r12d, %eax
+   28:  movl %eax, %ebp
+   2a:  callq lua_pushcclosure+0
+   2f:  movl %ebp, %esi
+   31:  movl $1, %edx
+   36:  movq %rbx, %rdi
+   39:  callq lua_rotate+0
+   3e:  leaq 8(%rsp), %rdi
+   43:  movq %rbx, (%rip)   <var:globalL+0>
+   4a:  movq $0, (%rsp)   <fn:laction+0>
+   52:  movl $0, 0x88(%rsp)
+   5d:  callq sigemptyset+0
+   62:  movq %rsp, %rsi
+   65:  xorl %edx, %edx
+   67:  movl $2, %edi
+   6c:  callq sigaction+0
+   71:  movl %ebp, %ecx
+   73:  xorl %r9d, %r9d
+   76:  xorl %r8d, %r8d
+   79:  movl %r13d, %edx
+   7c:  movl %r12d, %esi
+   7f:  movq %rbx, %rdi
+   82:  callq lua_pcallk+0
+   87:  leaq 8(%rsp), %rdi
+   8c:  movq $0, (%rsp)
+   94:  movl $0, 0x88(%rsp)
+   9f:  movl %eax, %r12d
+   a2:  callq sigemptyset+0
+   a7:  movq %rsp, %rsi
+   aa:  xorl %edx, %edx
+   ac:  movl $2, %edi
+   b1:  callq sigaction+0
+   b6:  movl %ebp, %esi
+   b8:  movq %rbx, %rdi
+   bb:  movl $0xffffffff, %edx
+   c0:  callq lua_rotate+0
+   c5:  movq %rbx, %rdi
+   c8:  movl $0xfffffffe, %esi
+   cd:  callq lua_settop+0
+   d2:  addq $0xa8, %rsp
+   d9:  movl %r12d, %eax
+   dc:  popq %rbx
+   dd:  popq %rbp
+   de:  popq %r12
+   e0:  popq %r13
+   e2:  retq

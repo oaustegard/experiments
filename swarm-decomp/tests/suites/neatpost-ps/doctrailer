@@ -1,0 +1,47 @@
+# doctrailer  (global, 184 bytes, 46 instructions)
+    0:  pushq %rbx
+    1:  xorl %eax, %eax
+    3:  movl %edi, %ebx
+    5:  movl $0, %edi   <str:"[">
+    a:  callq out+0
+    f:  cmpb $0, (%rip)   <var:ps_title+0>
+   16:  jne 0x78
+   18:  cmpb $0, (%rip)   <var:ps_author+0>
+   1f:  jne 0x9a
+   21:  movl $0, %edi   <str:" /Creator (Neatroff) /DOCINFO pdfmark\n">
+   26:  xorl %eax, %eax
+   28:  callq out+0
+   2d:  movl $0, %edi   <str:"%%%%Trailer\n">
+   32:  xorl %eax, %eax
+   34:  callq out+0
+   39:  movl $0, %edi   <str:"done\n">
+   3e:  xorl %eax, %eax
+   40:  callq out+0
+   45:  movl $0, %esi   <var:o_fonts+0>
+   4a:  movl $0, %edi   <str:"%%%%DocumentFonts: %s\n">
+   4f:  xorl %eax, %eax
+   51:  callq out+0
+   56:  movl %ebx, %esi
+   58:  movl $0, %edi   <str:"%%%%Pages: %d\n">
+   5d:  xorl %eax, %eax
+   5f:  callq out+0
+   64:  movl $0, %edi   <str:"%%%%EOF\n">
+   69:  xorl %eax, %eax
+   6b:  popq %rbx
+   6c:  jmp out+0
+   71:  nopl (%rax)
+   78:  movl $0, %edi   <var:ps_title+0>
+   7d:  callq pdftext_static+0
+   82:  movl $0, %edi   <str:" /Title %s">
+   87:  movq %rax, %rsi
+   8a:  xorl %eax, %eax
+   8c:  callq out+0
+   91:  cmpb $0, (%rip)   <var:ps_author+0>
+   98:  je 0x21
+   9a:  movl $0, %edi   <var:ps_author+0>
+   9f:  callq pdftext_static+0
+   a4:  movl $0, %edi   <str:" /Author %s">
+   a9:  movq %rax, %rsi
+   ac:  xorl %eax, %eax
+   ae:  callq out+0
+   b3:  jmp 0x21

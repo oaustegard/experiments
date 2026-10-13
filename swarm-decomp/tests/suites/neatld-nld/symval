@@ -1,0 +1,120 @@
+# symval  (static, 434 bytes, 119 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %rax
+    4:  movq %rsi, %rcx
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  subq $0x18, %rsp
+    f:  movq %rdx, (%rsp)
+   13:  movzbl 4(%rdx), %edx
+   17:  movq %rsi, 8(%rsp)
+   1c:  andl $0xf, %edx
+   1f:  testq %rsi, %rsi
+   22:  je 0x120
+   28:  movq 0x28(%rsi), %rsi
+   2c:  movl (%rax), %edi
+   2e:  cmpb $2, %dl
+   31:  jbe 0x98
+   33:  cmpb $3, %dl
+   36:  jne 0x110
+   3c:  movzwl 6(%rax), %eax
+   40:  movl 0x16048(%rbx), %esi
+   46:  leaq 0xe048(%rbx), %rdx
+   4d:  shlq $6, %rax
+   51:  addq 0x10(%rcx), %rax
+   55:  movq %rax, %rcx
+   58:  xorl %eax, %eax
+   5a:  testl %esi, %esi
+   5c:  jg 0x77
+   5e:  jmp 0x110
+   63:  nopl (%rax, %rax)
+   68:  addl $1, %eax
+   6b:  addq $0x20, %rdx
+   6f:  cmpl %esi, %eax
+   71:  je 0x110
+   77:  cmpq (%rdx), %rcx
+   7a:  jne 0x68
+   7c:  cltq
+   7e:  shlq $5, %rax
+   82:  movq 0xe058(%rbx, %rax), %rax
+   8a:  addq $0x18, %rsp
+   8e:  popq %rbx
+   8f:  popq %rbp
+   90:  retq
+   91:  nopl (%rax)
+   98:  addq %rdi, %rsi
+   9b:  movzwl 6(%rax), %ecx
+   9f:  movq %rsi, %rbp
+   a2:  je 0xad
+   a4:  cmpb $0, (%rsi)
+   a7:  jne 0x138
+   ad:  cmpw $-0xe, %cx
+   b1:  je 0x168
+   b7:  movq 8(%rax), %rdi
+   bb:  movl 0x16048(%rbx), %esi
+   c1:  shlq $6, %rcx
+   c5:  movq 8(%rsp), %rax
+   ca:  addq 0x10(%rax), %rcx
+   ce:  testl %esi, %esi
+   d0:  jle 0x110
+   d2:  leaq 0xe048(%rbx), %rdx
+   d9:  xorl %eax, %eax
+   db:  jmp 0xeb
+   dd:  nopl (%rax)
+   e0:  addl $1, %eax
+   e3:  addq $0x20, %rdx
+   e7:  cmpl %eax, %esi
+   e9:  je 0x110
+   eb:  cmpq (%rdx), %rcx
+   ee:  jne 0xe0
+   f0:  cltq
+   f2:  movslq %edi, %rdi
+   f5:  shlq $5, %rax
+   f9:  addq 0xe058(%rbx, %rax), %rdi
+  101:  addq $0x18, %rsp
+  105:  movq %rdi, %rax
+  108:  popq %rbx
+  109:  popq %rbp
+  10a:  retq
+  10b:  nopl (%rax, %rax)
+  110:  xorl %eax, %eax
+  112:  addq $0x18, %rsp
+  116:  popq %rbx
+  117:  popq %rbp
+  118:  retq
+  119:  nopl (%rax)
+  120:  cmpb $2, %dl
+  123:  ja 0x33
+  129:  movzwl 6(%rax), %ecx
+  12d:  jmp 0xad
+  132:  nopw (%rax, %rax)
+  138:  testw %cx, %cx
+  13b:  jne 0xad
+  141:  movq %rsp, %rcx
+  144:  leaq 8(%rsp), %rdx
+  149:  movq %rbx, %rdi
+  14c:  callq fn:outelf_find+0
+  151:  testl %eax, %eax
+  153:  jne 0x1aa
+  155:  movq (%rsp), %rax
+  159:  movzwl 6(%rax), %ecx
+  15d:  jmp 0xad
+  162:  nopw (%rax, %rax)
+  168:  movslq 0x17c68(%rbx), %rcx
+  16f:  testl %ecx, %ecx
+  171:  jle 0x110
+  173:  movq 0x17c60(%rbx), %rdx
+  17a:  shlq $4, %rcx
+  17e:  addq %rdx, %rcx
+  181:  jmp 0x195
+  183:  nopl (%rax, %rax)
+  188:  addq $0x10, %rdx
+  18c:  cmpq %rdx, %rcx
+  18f:  je 0x110
+  195:  cmpq (%rdx), %rax
+  198:  jne 0x188
+  19a:  movslq 8(%rdx), %rax
+  19e:  addq 0x17c70(%rbx), %rax
+  1a5:  jmp 0x112
+  1aa:  movq %rbp, %rdi
+  1ad:  callq fn:die_undef+0

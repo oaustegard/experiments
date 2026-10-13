@@ -1,0 +1,152 @@
+# i_reg  (global, 741 bytes, 151 instructions)
+    0:  movq %rdi, %rax
+    3:  movq $0, (%rsi)
+    a:  movq $0, (%rdx)
+   11:  movq $0, (%rcx)
+   18:  movq $0, (%r8)
+   1f:  movq $0, (%r9)
+   26:  testb $4, %ah
+   29:  jne 0x130
+   2f:  movl %edi, %r10d
+   32:  andl $0xffffff, %r10d
+   39:  testb $0x10, %dil
+   3d:  jne 0x100
+   43:  testb $0x20, %dil
+   47:  jne 0x190
+   4d:  testb $0x40, %dil
+   51:  jne 0x150
+   57:  testb $0x80, %dil
+   5b:  jne 0x210
+   61:  testb $1, %ah
+   64:  jne 0x220
+   6a:  cmpl $0x800, %r10d
+   71:  je 0x1e8
+   77:  cmpl $0x801, %r10d
+   7e:  je 0x270
+   84:  cmpl $0x8000, %r10d
+   8b:  je 0x238
+   91:  testb $2, %ah
+   94:  jne 0x248
+   9a:  testl $0x10000, %edi
+   a0:  jne 0x291
+   a6:  testl $0x20000, %edi
+   ac:  jne 0x2bb
+   b2:  testb $0x20, %ah
+   b5:  jne 0x229
+   bb:  xorl %edi, %edi
+   bd:  cmpl $0x1000, %r10d
+   c4:  setne %dil
+   c8:  testb $0x40, %ah
+   cb:  je 0xf2
+   cd:  nopl (%rax)
+   d0:  andl $0x100000, %eax
+   d5:  movq $0xffcf, (%rdx)
+   dc:  cmpl $1, %eax
+   df:  sbbq %rax, %rax
+   e2:  andl $0xffc7, %eax
+   e7:  addq $8, %rax
+   eb:  movq %rax, (%rcx)
+   ee:  nop
+   f0:  xorl %edi, %edi
+   f2:  movq %rdi, %rax
+   f5:  retq
+   f6:  nopw %cs:(%rax, %rax)
+  100:  movq $0xffcf, (%rdx)
+  107:  movl $0xffcf, %edx
+  10c:  testl $0x100000, %edi
+  112:  je 0x126
+  114:  cmpl $0x10, %r10d
+  118:  movl $8, %edx
+  11d:  movl $0x20, %eax
+  122:  cmoveq %rax, %rdx
+  126:  movq %rdx, (%rcx)
+  129:  jmp 0xf0
+  12b:  nopl (%rax, %rax)
+  130:  andl $0x500000, %eax
+  135:  movq $0xffcf, (%rsi)
+  13c:  cmpl $1, %eax
+  13f:  sbbq %rax, %rax
+  142:  andl $0xffaf, %eax
+  147:  addq $0x20, %rax
+  14b:  movq %rax, (%rdx)
+  14e:  jmp 0xf0
+  150:  movl $1, %edi
+  155:  testl $0x100000, %eax
+  15a:  jne 0xf2
+  15c:  cmpl $0x42, %r10d
+  160:  je 0x1c8
+  162:  xorl %eax, %eax
+  164:  movq $1, (%rsi)
+  16b:  cmpl $0x41, %r10d
+  16f:  movq $1, (%rdx)
+  176:  setne %al
+  179:  leaq 0xffca(, %rax, 4), %rax
+  181:  movq %rax, (%rcx)
+  184:  movq $5, (%r9)
+  18b:  jmp 0xf0
+  190:  testl $0x100000, %edi
+  196:  je 0x1b0
+  198:  movq $0xffcf, (%rdx)
+  19f:  movq $8, (%rcx)
+  1a6:  jmp 0xf0
+  1ab:  nopl (%rax, %rax)
+  1b0:  movq $2, (%rcx)
+  1b7:  movq $0xffcd, (%rdx)
+  1be:  jmp 0xf0
+  1c3:  nopl (%rax, %rax)
+  1c8:  movq $4, (%rsi)
+  1cf:  movq $1, (%rdx)
+  1d6:  movq (%rsi), %rax
+  1d9:  notq %rax
+  1dc:  andl $0xffce, %eax
+  1e1:  jmp 0x181
+  1e3:  nopl (%rax, %rax)
+  1e8:  movq $0x80, (%rdx)
+  1ef:  movq $1, (%rcx)
+  1f6:  movq $2, (%r8)
+  1fd:  movq $0x82, (%r9)
+  204:  jmp 0xf0
+  209:  nopl (%rax)
+  210:  movq $1, (%rsi)
+  217:  jmp 0xd0
+  21c:  nopl (%rax)
+  220:  cmpl $0x102, %r10d
+  227:  je 0x238
+  229:  movq $0xffcf, (%rdx)
+  230:  jmp 0xf0
+  235:  nopl (%rax)
+  238:  movq $1, (%rdx)
+  23f:  jmp 0xf0
+  244:  nopl (%rax)
+  248:  andl $0x400000, %eax
+  24d:  movq $1, (%rsi)
+  254:  cmpl $1, %eax
+  257:  sbbq %rax, %rax
+  25a:  andl $0xffcf, %eax
+  25f:  movq %rax, (%rdx)
+  262:  movq $0xfc7, (%r9)
+  269:  jmp 0xf0
+  26e:  nop
+  270:  movq $0x80, (%rdx)
+  277:  movq $0x40, (%rcx)
+  27e:  movq $2, (%r8)
+  285:  movq $0xc2, (%r9)
+  28c:  jmp 0xf0
+  291:  andl $0x100000, %eax
+  296:  movq $0xffcf, (%rsi)
+  29d:  cmpl $1, %eax
+  2a0:  movq $0xffcf, (%rdx)
+  2a7:  sbbq %rax, %rax
+  2aa:  andl $0xffaf, %eax
+  2af:  addq $0x20, %rax
+  2b3:  movq %rax, (%rcx)
+  2b6:  jmp 0xf0
+  2bb:  andl $0x100000, %eax
+  2c0:  movq $0xffcf, (%rdx)
+  2c7:  cmpl $1, %eax
+  2ca:  movq $0xffcf, (%rcx)
+  2d1:  sbbq %rax, %rax
+  2d4:  andl $0xffaf, %eax
+  2d9:  addq $0x20, %rax
+  2dd:  movq %rax, (%r8)
+  2e0:  jmp 0xf0

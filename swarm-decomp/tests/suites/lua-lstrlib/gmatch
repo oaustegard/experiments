@@ -1,0 +1,75 @@
+# gmatch  (static, 269 bytes, 74 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x18, %rsp
+   12:  movq %rsp, %rdx
+   15:  callq luaL_checklstring+0
+   1a:  leaq 8(%rsp), %rdx
+   1f:  movl $2, %esi
+   24:  movq %rbx, %rdi
+   27:  movq %rax, %r13
+   2a:  callq luaL_checklstring+0
+   2f:  movl $1, %edx
+   34:  movq %rbx, %rdi
+   37:  movq (%rsp), %r12
+   3b:  movl $3, %esi
+   40:  movq %rax, %rbp
+   43:  callq luaL_optinteger+0
+   48:  testq %rax, %rax
+   4b:  jg 0x85
+   4d:  je 0x5a
+   4f:  movq %r12, %rdx
+   52:  negq %rdx
+   55:  cmpq %rdx, %rax
+   58:  jge 0x80
+   5a:  movl $2, %esi
+   5f:  movq %rbx, %rdi
+   62:  callq lua_settop+0
+   67:  xorl %edx, %edx
+   69:  movl $0x240, %esi
+   6e:  movq %rbx, %rdi
+   71:  callq lua_newuserdatauv+0
+   76:  movq (%rsp), %rdx
+   7a:  movq %r13, %rcx
+   7d:  jmp 0xba
+   7f:  nop
+   80:  leaq 1(%r12, %rax), %rax
+   85:  movl $2, %esi
+   8a:  movq %rbx, %rdi
+   8d:  leaq -1(%rax), %r12
+   91:  callq lua_settop+0
+   96:  xorl %edx, %edx
+   98:  movl $0x240, %esi
+   9d:  movq %rbx, %rdi
+   a0:  callq lua_newuserdatauv+0
+   a5:  movq (%rsp), %rdx
+   a9:  leaq (%r13, %r12), %rsi
+   ae:  leaq 1(%r13, %rdx), %rcx
+   b3:  cmpq %r12, %rdx
+   b6:  cmovaeq %rsi, %rcx
+   ba:  addq %r13, %rdx
+   bd:  movq %rbx, 0x30(%rax)
+   c1:  movq %rbx, %rdi
+   c4:  movl $0, %esi   <fn:gmatch_aux+0>
+   c9:  movq %rdx, 0x20(%rax)
+   cd:  movq 8(%rsp), %rdx
+   d2:  movq %r13, 0x18(%rax)
+   d6:  addq %rbp, %rdx
+   d9:  movq %rbp, 8(%rax)
+   dd:  movq %rdx, 0x28(%rax)
+   e1:  movl $3, %edx
+   e6:  movl $0xc8, 0x38(%rax)
+   ed:  movq %rcx, (%rax)
+   f0:  movq $0, 0x10(%rax)
+   f8:  callq lua_pushcclosure+0
+   fd:  addq $0x18, %rsp
+  101:  movl $1, %eax
+  106:  popq %rbx
+  107:  popq %rbp
+  108:  popq %r12
+  10a:  popq %r13
+  10c:  retq

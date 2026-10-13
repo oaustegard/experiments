@@ -1,0 +1,79 @@
+# mkargs_ds  (static, 247 bytes, 78 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  movl $0x43, %edi
+    a:  subq $0x18, %rsp
+    e:  callq nreg+0
+   13:  movl (%rax), %edi
+   15:  callq fn:read_name+0
+   1a:  movq %rbx, %rdi
+   1d:  movq %rax, %rsi
+   20:  movq %rax, %rbp
+   23:  callq sbuf_append+0
+   28:  xorl %esi, %esi
+   2a:  movq %rbx, %rdi
+   2d:  callq sbuf_add+0
+   32:  movq %rbp, %rdi
+   35:  callq free+0
+   3a:  movq %rsp, %rdi
+   3d:  callq sbuf_init+0
+   42:  movl $1, %edi
+   47:  callq cp_copymode+0
+   4c:  nopl (%rax)
+   50:  callq cp_next+0
+   55:  cmpl $0x20, %eax
+   58:  je 0x50
+   5a:  testl %eax, %eax
+   5c:  setle %bpl
+   60:  cmpl $0xa, %eax
+   63:  sete %dl
+   66:  orl %edx, %ebp
+   68:  cmpl $0x22, %eax
+   6b:  jne 0x84
+   6d:  jmp 0x7f
+   6f:  nop
+   70:  cmpl $4, %eax
+   73:  je 0x7f
+   75:  movl %eax, %esi
+   77:  movq %rsp, %rdi
+   7a:  callq sbuf_add+0
+   7f:  callq cp_next+0
+   84:  testl %eax, %eax
+   86:  jle 0x8d
+   88:  cmpl $0xa, %eax
+   8b:  jne 0x70
+   8d:  testl %eax, %eax
+   8f:  js 0x98
+   91:  movl %eax, %edi
+   93:  callq in_back+0
+   98:  xorl %edi, %edi
+   9a:  callq cp_copymode+0
+   9f:  movq %rsp, %rdi
+   a2:  testb %bpl, %bpl
+   a5:  jne 0xf0
+   a7:  callq sbuf_out+0
+   ac:  movq %rax, %rbp
+   af:  testq %rax, %rax
+   b2:  je 0xd8
+   b4:  movq %rax, %rsi
+   b7:  movq %rbx, %rdi
+   ba:  callq sbuf_append+0
+   bf:  movq %rbx, %rdi
+   c2:  xorl %esi, %esi
+   c4:  callq sbuf_add+0
+   c9:  movq %rbp, %rdi
+   cc:  callq free+0
+   d1:  nopl (%rax)
+   d8:  callq cp_next+0
+   dd:  testl %eax, %eax
+   df:  js 0xe6
+   e1:  cmpl $0xa, %eax
+   e4:  jne 0xd8
+   e6:  addq $0x18, %rsp
+   ea:  popq %rbx
+   eb:  popq %rbp
+   ec:  retq
+   ed:  nopl (%rax)
+   f0:  callq sbuf_done+0
+   f5:  jmp 0xd8

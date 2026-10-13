@@ -1,0 +1,44 @@
+# entergen  (static, 147 bytes, 43 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq 0x18(%rdi), %rbp
+    b:  movq %rdi, %rbx
+    e:  cmpb $8, 0x65(%rbp)
+   12:  je 0x30
+   14:  nopl (%rax)
+   18:  movq %rbx, %rdi
+   1b:  callq fn:singlestep+0
+   20:  cmpb $8, 0x65(%rbp)
+   24:  jne 0x18
+   26:  movq 0x18(%rbx), %rbp
+   2a:  cmpb $0, 0x65(%rbp)
+   2e:  je 0x3e
+   30:  movq %rbx, %rdi
+   33:  callq fn:singlestep+0
+   38:  cmpb $0, 0x65(%rbp)
+   3c:  jne 0x30
+   3e:  movq %rbx, %rdi
+   41:  callq fn:atomic+0
+   46:  movq %r12, %rsi
+   49:  movq %rbx, %rdi
+   4c:  movq %rax, %rbp
+   4f:  callq fn:atomic2gen+0
+   54:  movq 0x18(%r12), %rdx
+   59:  addq 0x10(%r12), %rdx
+   5e:  movq %r12, %rdi
+   61:  movabsq $0x28f5c28f5c28f5c3, %rax
+   6b:  shrq $2, %rdx
+   6f:  mulq %rdx
+   72:  movzbl 0x68(%r12), %eax
+   78:  shrq $2, %rdx
+   7c:  movq %rdx, %rsi
+   7f:  imulq %rax, %rsi
+   83:  negq %rsi
+   86:  callq luaE_setdebt+0
+   8b:  movq %rbp, %rax
+   8e:  popq %rbx
+   8f:  popq %rbp
+   90:  popq %r12
+   92:  retq

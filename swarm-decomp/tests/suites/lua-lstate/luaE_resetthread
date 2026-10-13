@@ -1,0 +1,45 @@
+# luaE_resetthread  (global, 152 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  leaq 0x60(%rdi), %rax
+    5:  movl %esi, %edx
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  subq $8, %rsp
+    f:  movq %rax, 0x20(%rdi)
+   13:  movq 0x30(%rdi), %rax
+   17:  movb $0, 8(%rax)
+   1b:  movq %rax, 0x60(%rdi)
+   1f:  movl $2, %eax
+   24:  movw %ax, 0x9e(%rdi)
+   2b:  xorl %eax, %eax
+   2d:  cmpl $1, %esi
+   30:  movl $1, %esi
+   35:  movb $0, 0xa(%rdi)
+   39:  cmovel %eax, %edx
+   3c:  callq luaD_closeprotected+0
+   41:  testl %eax, %eax
+   43:  movl %eax, %ebp
+   45:  movq 0x30(%rbx), %rax
+   49:  jne 0x80
+   4b:  leaq 0x10(%rax), %rsi
+   4f:  movq %rsi, 0x10(%rbx)
+   53:  addq $0x140, %rsi
+   5a:  movq %rbx, %rdi
+   5d:  xorl %edx, %edx
+   5f:  movq %rsi, 0x68(%rbx)
+   63:  subq %rax, %rsi
+   66:  sarq $4, %rsi
+   6a:  callq luaD_reallocstack+0
+   6f:  addq $8, %rsp
+   73:  movl %ebp, %eax
+   75:  popq %rbx
+   76:  popq %rbp
+   77:  retq
+   78:  nopl (%rax, %rax)
+   80:  leaq 0x10(%rax), %rdx
+   84:  movl %ebp, %esi
+   86:  movq %rbx, %rdi
+   89:  callq luaD_seterrorobj+0
+   8e:  movq 0x10(%rbx), %rsi
+   92:  movq 0x30(%rbx), %rax
+   96:  jmp 0x53

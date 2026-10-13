@@ -1,0 +1,8 @@
+# luaX_lookahead  (global, 18 bytes, 7 instructions)
+    0:  pushq %rbx
+    1:  leaq 0x28(%rdi), %rsi
+    5:  movq %rdi, %rbx
+    8:  callq fn:llex+0
+    d:  movl %eax, 0x20(%rbx)
+   10:  popq %rbx
+   11:  retq

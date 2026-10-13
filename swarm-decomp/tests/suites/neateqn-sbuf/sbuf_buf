@@ -1,0 +1,6 @@
+# sbuf_buf  (global, 15 bytes, 5 instructions)
+    0:  movslq 0xc(%rdi), %rax
+    4:  movq (%rdi), %rdx
+    7:  movb $0, (%rdx, %rax)
+    b:  movq (%rdi), %rax
+    e:  retq

@@ -1,0 +1,28 @@
+# os_rename  (static, 84 bytes, 27 instructions)
+    0:  pushq %r12
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checklstring+0
+   13:  xorl %edx, %edx
+   15:  movq %rbx, %rdi
+   18:  movl $2, %esi
+   1d:  movq %rax, %rbp
+   20:  callq luaL_checklstring+0
+   25:  movq %rax, %r12
+   28:  callq __errno_location+0
+   2d:  movq %r12, %rsi
+   30:  movq %rbp, %rdi
+   33:  movl $0, (%rax)
+   39:  callq rename+0
+   3e:  xorl %esi, %esi
+   40:  movq %rbx, %rdi
+   43:  popq %rbx
+   44:  testl %eax, %eax
+   46:  popq %rbp
+   47:  popq %r12
+   49:  sete %sil
+   4d:  xorl %edx, %edx
+   4f:  jmp luaL_fileresult+0

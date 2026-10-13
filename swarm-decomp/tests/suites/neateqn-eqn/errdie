@@ -1,0 +1,6 @@
+# errdie  (global, 26 bytes, 5 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rsi   <stderr+0>
+    b:  callq fputs+0
+   10:  movl $1, %edi
+   15:  callq exit+0

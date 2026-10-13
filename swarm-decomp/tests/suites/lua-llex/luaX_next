@@ -1,0 +1,18 @@
+# luaX_next  (global, 54 bytes, 17 instructions)
+    0:  movl 4(%rdi), %eax
+    3:  cmpl $0x120, 0x20(%rdi)
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  movl %eax, 8(%rdi)
+   11:  je 0x28
+   13:  movdqu 0x20(%rdi), %xmm0
+   18:  popq %rbx
+   19:  movl $0x120, 0x20(%rdi)
+   20:  movups %xmm0, 0x10(%rdi)
+   24:  retq
+   25:  nopl (%rax)
+   28:  leaq 0x18(%rdi), %rsi
+   2c:  callq fn:llex+0
+   31:  movl %eax, 0x10(%rbx)
+   34:  popq %rbx
+   35:  retq

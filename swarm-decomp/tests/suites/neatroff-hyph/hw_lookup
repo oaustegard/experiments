@@ -1,0 +1,75 @@
+# hw_lookup  (static, 337 bytes, 74 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %r8
+    4:  xorl %eax, %eax
+    6:  movl $0x80, %ecx
+    b:  pushq %rbx
+    c:  pxor %xmm0, %xmm0
+   10:  movq %rsi, %rbp
+   13:  movq %r8, %rsi
+   16:  subq $0x518, %rsp
+   1d:  leaq 0x110(%rsp), %rdi
+   25:  leaq 0x110(%rsp), %rdx
+   2d:  movaps %xmm0, 0x10(%rsp)
+   32:  rep stosq %rax, (%rdi)
+   35:  leaq 0x10(%rsp), %rdi
+   3a:  movaps %xmm0, 0x20(%rsp)
+   3f:  movl $0xffffffff, 0xc(%rsp)
+   47:  movaps %xmm0, 0x30(%rsp)
+   4c:  movaps %xmm0, 0x40(%rsp)
+   51:  movaps %xmm0, 0x50(%rsp)
+   56:  movaps %xmm0, 0x60(%rsp)
+   5b:  movaps %xmm0, 0x70(%rsp)
+   60:  movaps %xmm0, 0x80(%rsp)
+   68:  movaps %xmm0, 0x90(%rsp)
+   70:  movaps %xmm0, 0xa0(%rsp)
+   78:  movaps %xmm0, 0xb0(%rsp)
+   80:  movaps %xmm0, 0xc0(%rsp)
+   88:  movaps %xmm0, 0xd0(%rsp)
+   90:  movaps %xmm0, 0xe0(%rsp)
+   98:  movaps %xmm0, 0xf0(%rsp)
+   a0:  movaps %xmm0, 0x100(%rsp)
+   a8:  callq fn:hcode_strcpy+0
+   ad:  cmpb $0x2e, 0x10(%rsp)
+   b2:  jne 0x148
+   b8:  movl $1, %eax
+   bd:  nopl (%rax)
+   c0:  movq %rax, %rsi
+   c3:  addq $1, %rax
+   c7:  cmpb $0x2e, 0xf(%rsp, %rax)
+   cc:  je 0xc0
+   ce:  movl %esi, %ebx
+   d0:  leaq 0x10(%rsp), %rax
+   d5:  movslq %esi, %rsi
+   d8:  addq %rax, %rsi
+   db:  movq (%rip), %rdi   <var:hwpref+0>
+   e2:  leaq 0xc(%rsp), %rdx
+   e7:  callq pref_prefix+0
+   ec:  movl $1, %edx
+   f1:  testl %eax, %eax
+   f3:  js 0x135
+   f5:  cltq
+   f7:  movslq (, %rax, 4), %rcx   <var:hwoff+0>
+   ff:  movslq %ebx, %rax
+  102:  subq %rax, %rcx
+  105:  cmpb $0, 0x10(%rsp, %rax)
+  10a:  je 0x133
+  10c:  nopl (%rax)
+  110:  movzbl (%rcx, %rax), %edx   <var:hwhyph+0>
+  118:  testb %dl, %dl
+  11a:  je 0x128
+  11c:  movslq 0x110(%rsp, %rax, 4), %rsi
+  124:  movb %dl, (%rbp, %rsi)
+  128:  addq $1, %rax
+  12c:  cmpb $0, 0x10(%rsp, %rax)
+  131:  jne 0x110
+  133:  xorl %edx, %edx
+  135:  addq $0x518, %rsp
+  13c:  movl %edx, %eax
+  13e:  popq %rbx
+  13f:  popq %rbp
+  140:  retq
+  141:  nopl (%rax)
+  148:  leaq 0x10(%rsp), %rsi
+  14d:  xorl %ebx, %ebx
+  14f:  jmp 0xdb

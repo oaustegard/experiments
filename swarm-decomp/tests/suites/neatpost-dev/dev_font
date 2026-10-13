@@ -1,0 +1,7 @@
+# dev_font  (global, 22 bytes, 6 instructions)
+    0:  xorl %eax, %eax
+    2:  cmpl $0x3ff, %edi
+    8:  ja 0x15
+    a:  movslq %edi, %rdi
+    d:  movq (, %rdi, 8), %rax   <var:fn_font+0>
+   15:  retq

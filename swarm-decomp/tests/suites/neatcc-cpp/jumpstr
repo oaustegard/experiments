@@ -1,0 +1,41 @@
+# jumpstr  (static, 146 bytes, 40 instructions)
+    0:  movq (%rip), %rsi   <var:buf+0>
+    7:  movq (%rip), %rax   <var:cur+0>
+    e:  movq (%rip), %rdi   <var:len+0>
+   15:  movzbl (%rsi, %rax), %edx
+   19:  cmpb $0x27, %dl
+   1c:  je 0x4c
+   1e:  movq (%rip), %rdi   <var:len+0>
+   25:  movl $1, %ecx
+   2a:  cmpb $0x22, %dl
+   2d:  je 0x84
+   2f:  movl %ecx, %eax
+   31:  retq
+   32:  nopw (%rax, %rax)
+   38:  movzbl (%rsi, %rax), %ecx
+   3c:  cmpb $0x27, %cl
+   3f:  je 0x58
+   41:  addq $2, %rdx
+   45:  cmpb $0x5c, %cl
+   48:  cmoveq %rdx, %rax
+   4c:  movq %rax, %rdx
+   4f:  addq $1, %rax
+   53:  cmpq %rdi, %rax
+   56:  jl 0x38
+   58:  addq $2, %rdx
+   5c:  xorl %ecx, %ecx
+   5e:  movq %rdx, (%rip)   <var:cur+0>
+   65:  movl %ecx, %eax
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  movzbl (%rsi, %rax), %ecx
+   74:  cmpb $0x22, %cl
+   77:  je 0x58
+   79:  addq $2, %rdx
+   7d:  cmpb $0x5c, %cl
+   80:  cmoveq %rdx, %rax
+   84:  movq %rax, %rdx
+   87:  addq $1, %rax
+   8b:  cmpq %rdi, %rax
+   8e:  jl 0x70
+   90:  jmp 0x58

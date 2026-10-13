@@ -1,0 +1,280 @@
+# neatroff-hyph: translation unit hyph of neatroff
+# write each function as src/neatroff/hyph/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+hw_add	static	250 bytes
+hyph_readexceptions	static	142 bytes
+hy_add	static	258 bytes
+hyph_readpatterns	static	142 bytes
+hy_cget	static	441 bytes
+hcode_add	static	178 bytes
+hcode_mapchar.isra.0	static	111 bytes
+hy_cput	global	106 bytes
+hcode_strcpy	static	165 bytes
+hw_lookup	static	337 bytes
+hy_dohyph	static	1134 bytes
+tr_hw	global	177 bytes
+tr_hcode	global	90 bytes
+hyphenate	global	111 bytes
+tr_hpfa	global	444 bytes
+hyph_init	global	52 bytes
+hyph_done	global	69 bytes
+tr_hpf	global	142 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+hw_n	static	4 bytes	.bss.hw_n
+    (zero-initialised)
+hwword_len	static	4 bytes	.bss.hwword_len
+    (zero-initialised)
+hwword	static	262144 bytes	.bss.hwword
+    (zero-initialised)
+hwhyph	static	262144 bytes	.bss.hwhyph
+    (zero-initialised)
+hwpref	static	8 bytes	.bss.hwpref
+    (zero-initialised)
+hwoff	static	65536 bytes	.bss.hwoff
+    (zero-initialised)
+hy_n	static	4 bytes	.bss.hy_n
+    (zero-initialised)
+hypats_len	static	4 bytes	.bss.hypats_len
+    (zero-initialised)
+hypats	static	262144 bytes	.bss.hypats
+    (zero-initialised)
+hynums	static	262144 bytes	.bss.hynums
+    (zero-initialised)
+hypref	static	8 bytes	.bss.hypref
+    (zero-initialised)
+hyoff	static	65536 bytes	.bss.hyoff
+    (zero-initialised)
+hcodedict	static	8 bytes	.bss.hcodedict
+    (zero-initialised)
+hcode_n	static	4 bytes	.bss.hcode_n
+    (zero-initialised)
+hcodedst	static	16384 bytes	.bss.hcodedst
+    (zero-initialised)
+hcodesrc	static	16384 bytes	.bss.hcodesrc
+    (zero-initialised)
+hyinit	static	4 bytes	.bss.hyinit
+    (zero-initialised)
+hycase	static	4112 bytes	.rodata.hycase
+    +0     -> str:"a"
+    +8     -> str:"A"
+    +16    -> str:"\xc3\xa1"
+    +24    -> str:"\xc3\x81"
+    +32    -> str:"\xc3\xa0"
+    +40    -> str:"\xc3\x80"
+    +48    -> str:"\xc4\x83"
+    +56    -> str:"\xc4\x82"
+    +64    -> str:"\xc3\xa2"
+    +72    -> str:"\xc3\x82"
+    +80    -> str:"\xc7\x8e"
+    +88    -> str:"\xc7\x8d"
+    +96    -> str:"\xc3\xa5"
+    +104   -> str:"\xc3\x85"
+    +112   -> str:"\xc3\xa4"
+    +120   -> str:"\xc3\x84"
+    +128   -> str:"\xc3\xa3"
+    +136   -> str:"\xc3\x83"
+    +144   -> str:"\xc4\x85"
+    +152   -> str:"\xc4\x84"
+    +160   -> str:"\xc4\x81"
+    +168   -> str:"\xc4\x80"
+    +176   -> str:"\xc3\xa6"
+    +184   -> str:"\xc3\x86"
+    +192   -> str:"\xc7\xbd"
+    +200   -> str:"\xc7\xbc"
+    +208   -> str:"b"
+    +216   -> str:"B"
+    +224   -> str:"c"
+    +232   -> str:"C"
+    +240   -> str:"\xc4\x87"
+    +248   -> str:"\xc4\x86"
+    +256   -> str:"\xc4\x89"
+    +264   -> str:"\xc4\x88"
+    +272   -> str:"\xc4\x8d"
+    +280   -> str:"\xc4\x8c"
+    +288   -> str:"\xc3\xa7"
+    +296   -> str:"\xc3\x87"
+    +304   -> str:"d"
+    +312   -> str:"D"
+    +320   -> str:"\xc4\x8f"
+    +328   -> str:"\xc4\x8e"
+    +336   -> str:"\xc4\x91"
+    +344   -> str:"\xc4\x90"
+    +352   -> str:"\xe1\xb8\x8d"
+    +360   -> str:"\xe1\xb8\x8c"
+    +368   -> str:"\xc3\xb0"
+    +376   -> str:"\xc3\x90"
+    +384   -> str:"e"
+    +392   -> str:"E"
+    +400   -> str:"\xc3\xa9"
+    +408   -> str:"\xc3\x89"
+    +416   -> str:"\xc3\xa8"
+    +424   -> str:"\xc3\x88"
+    +432   -> str:"\xc3\xaa"
+    +440   -> str:"\xc3\x8a"
+    +448   -> str:"\xc4\x9b"
+    +456   -> str:"\xc4\x9a"
+    +464   -> str:"\xc3\xab"
+    +472   -> str:"\xc3\x8b"
+    +480   -> str:"\xc4\x97"
+    +488   -> str:"\xc4\x96"
+    +496   -> str:"\xc4\x99"
+    +504   -> str:"\xc4\x98"
+    +512   -> str:"\xc4\x93"
+    +520   -> str:"\xc4\x92"
+    +528   -> str:"f"
+    +536   -> str:"F"
+    +544   -> str:"g"
+    +552   -> str:"G"
+    +560   -> str:"\xc4\x9f"
+    +568   -> str:"\xc4\x9e"
+    +576   -> str:"\xc4\x9d"
+    +584   -> str:"\xc4\x9c"
+    +592   -> str:"\xc4\xa3"
+    +600   -> str:"\xc4\xa2"
+    +608   -> str:"h"
+    +616   -> str:"H"
+    +624   -> str:"\xc4\xa5"
+    +632   -> str:"\xc4\xa4"
+    +640   -> str:"\xe1\xb8\xa5"
+    +648   -> str:"\xe1\xb8\xa4"
+    +656   -> str:"\xe1\xb8\xab"
+    +664   -> str:"\xe1\xb8\xaa"
+    +672   -> str:"i"
+    +680   -> str:"I"
+    +688   -> str:"\xc4\xb1"
+    +696   -> str:"I"
+    +704   -> str:"\xc3\xad"
+    +712   -> str:"\xc3\x8d"
+    +720   -> str:"\xc3\xac"
+    +728   -> str:"\xc3\x8c"
+    +736   -> str:"\xc3\xae"
+    +744   -> str:"\xc3\x8e"
+    +752   -> str:"\xc7\x90"
+    +760   -> str:"\xc7\x8f"
+    +768   -> str:"\xc3\xaf"
+    +776   -> str:"\xc3\x8f"
+    +784   -> str:"\xc4\xaf"
+    +792   -> str:"\xc4\xae"
+    +800   -> str:"\xc4\xab"
+    +808   -> str:"\xc4\xaa"
+    +816   -> str:"j"
+    +824   -> str:"J"
+    +832   -> str:"\xc4\xb5"
+    +840   -> str:"\xc4\xb4"
+    +848   -> str:"k"
+    +856   -> str:"K"
+    +864   -> str:"\xc4\xb7"
+    +872   -> str:"\xc4\xb6"
+    +880   -> str:"l"
+    +888   -> str:"L"
+    +896   -> str:"\xc4\xbe"
+    +904   -> str:"\xc4\xbd"
+    +912   -> str:"\xc5\x82"
+    +920   -> str:"\xc5\x81"
+    +928   -> str:"\xc4\xbc"
+    +936   -> str:"\xc4\xbb"
+    +944   -> str:"\xe1\xb8\xb7"
+    +952   -> str:"\xe1\xb8\xb6"
+    +960   -> str:"m"
+    +968   -> str:"M"
+    +976   -> str:"\xe1\xb9\x81"
+    +984   -> str:"\xe1\xb9\x80"
+    +992   -> str:"\xe1\xb9\x83"
+    +1000  -> str:"\xe1\xb9\x82"
+    +1008  -> str:"n"
+    +1016  -> str:"N"
+    +1024  -> str:"\xc5\x84"
+    +1032  -> str:"\xc5\x83"
+    +1040  -> str:"\xc5\x88"
+    +1048  -> str:"\xc5\x87"
+    +1056  -> str:"\xc3\xb1"
+    +1064  -> str:"\xc3\x91"
+    +1072  -> str:"\xe1\xb9\x85"
+    +1080  -> str:"\xe1\xb9\x84"
+    +1088  -> str:"\xc5\x86"
+    +1096  -> str:"\xc5\x85"
+    +1104  -> str:"\xe1\xb9\x87"
+    +1112  -> str:"\xe1\xb9\x86"
+    +1120  -> str:"\xc5\x93"
+    +1128  -> str:"\xc5\x92"
+    +1136  -> str:"o"
+    +1144  -> str:"O"
+    +1152  -> str:"\xc3\xb3"
+    +1160  -> str:"\xc3\x93"
+    +1168  -> str:"\xc3\xb2"
+    +1176  -> str:"\xc3\x92"
+    +1184  -> str:"\xc3\xb4"
+    +1192  -> str:"\xc3\x94"
+    +1200  -> str:"\xc7\x92"
+    +1208  -> str:"\xc7\x91"
+    +1216  -> str:"\xc3\xb6"
+    +1224  -> str:"\xc3\x96"
+    +1232  -> str:"\xc5\x91"
+    +1240  -> str:"\xc5\x90"
+    +1248  -> str:"\xc3\xb5"
+    +1256  -> str:"\xc3\x95"
+    +1264  -> str:"\xc3\xb8"
+    +1272  -> str:"\xc3\x98"
+    +1280  -> str:"\xc5\x8d"
+    +1288  -> str:"\xc5\x8c"
+    +1296  -> str:"p"
+    +1304  -> str:"P"
+    +1312  -> str:"q"
+    +1320  -> str:"Q"
+    +1328  -> str:"r"
+    +1336  -> str:"R"
+    +1344  -> str:"\xc5\x95"
+    +1352  -> str:"\xc5\x94"
+    +1360  -> str:"\xc5\x99"
+    +1368  -> str:"\xc5\x98"
+    +1376  -> str:"s"
+    +1384  -> str:"S"
+    +1392  -> str:"\xc5\x9b"
+    +1400  -> str:"\xc5\x9a"
+    +1408  -> str:"\xc5\x9d"
+    +1416  -> str:"\xc5\x9c"
+    +1424  -> str:"\xc5\xa1"
+    +1432  -> str:"\xc5\xa0"
+    +1440  -> str:"\xc5\x9f"
+    +1448  -> str:"\xc5\x9e"
+    +1456  -> str:"\xe1\xb9\xa3"
+    +1464  -> str:"\xe1\xb9\xa2"
+    +1472  -> str:"t"
+    +1480  -> str:"T"
+    +1488  -> str:"\xc5\xa5"
+    +1496  -> str:"\xc5\xa4"
+    +1504  -> str:"\xc8\x9b"
+    +1512  -> str:"\xc8\x9a"
+    +1520  -> str:"\xe1\xb9\xad"
+    +1528  -> str:"\xe1\xb9\xac"
+    +1536  -> str:"u"
+    +1544  -> str:"U"
+    +1552  -> str:"\xc3\xba"
+    +1560  -> str:"\xc3\x9a"
+    +1568  -> str:"\xc3\xb9"
+    +1576  -> str:"\xc3\x99"
+    +1584  -> str:"\xc5\xad"
+    +1592  -> str:"\xc5\xac"
+    ... 314 more pointers
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 3600 more bytes
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc __isoc99_fscanf charread dict_free dict_get dict_make dict_put escread fclose fopen memset pref_free pref_make pref_prefix pref_put snprintf strcpy strlen utf8one utf8read

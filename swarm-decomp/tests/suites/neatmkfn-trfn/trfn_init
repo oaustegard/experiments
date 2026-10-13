@@ -1,0 +1,34 @@
+# trfn_init  (global, 146 bytes, 33 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %ebx   <var:agl+0>
+    6:  callq sbuf_make+0
+    b:  movl $0x10b9, %edi
+   10:  movq %rax, (%rip)   <var:sbuf_char+0>
+   17:  callq tab_alloc+0
+   1c:  movq %rax, (%rip)   <var:tab_agl+0>
+   23:  movq %rax, %rdi
+   26:  jmp 0x37
+   28:  nopl (%rax, %rax)
+   30:  movq (%rip), %rdi   <var:tab_agl+0>
+   37:  movq 8(%rbx), %rdx
+   3b:  movq (%rbx), %rsi
+   3e:  addq $0x10, %rbx
+   42:  callq tab_put+0
+   47:  cmpq $0, %rbx   <var:agl+68496>
+   4e:  jne 0x30
+   50:  movl $0x161, %edi
+   55:  movl $0, %ebx   <var:alts+8>
+   5a:  callq tab_alloc+0
+   5f:  movq %rax, (%rip)   <var:tab_alts+0>
+   66:  movq %rax, %rdi
+   69:  jmp 0x77
+   6b:  nopl (%rax, %rax)
+   70:  movq (%rip), %rdi   <var:tab_alts+0>
+   77:  movq -8(%rbx), %rsi
+   7b:  movq %rbx, %rdx
+   7e:  addq $0x40, %rbx
+   82:  callq tab_put+0
+   87:  cmpq $0, %rbx   <var:alts+22600>
+   8e:  jne 0x70
+   90:  popq %rbx
+   91:  retq

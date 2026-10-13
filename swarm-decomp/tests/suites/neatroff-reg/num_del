@@ -1,0 +1,12 @@
+# num_del  (global, 63 bytes, 11 instructions)
+    0:  movslq %edi, %rdi
+    3:  movslq (, %rdi, 4), %rax   <var:eregs_idx+0>
+    b:  leaq (, %rdi, 4), %rdx   <var:nregs+0>
+   13:  testl %eax, %eax
+   15:  je 0x22
+   17:  movq (%rip), %rdx   <var:env+0>
+   1e:  leaq (%rdx, %rax, 4), %rdx
+   22:  movl $0, (%rdx)
+   28:  movl $0, (, %rdi, 4)   <var:nregs_inc+0>
+   33:  movl $0, (, %rdi, 4)   <var:nregs_fmt+0>
+   3e:  retq

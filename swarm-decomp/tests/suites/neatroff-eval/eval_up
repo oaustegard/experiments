@@ -1,0 +1,47 @@
+# eval_up  (global, 151 bytes, 46 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl %esi, (%rip)   <var:defunit+0>
+    f:  cmpl $0x76, %esi
+   12:  je 0x30
+   14:  cmpl $0x6d, %esi
+   17:  je 0x68
+   19:  movq %rbx, %rdi
+   1c:  callq fn:evalexpr+0
+   21:  addq $8, %rsp
+   25:  popq %rbx
+   26:  popq %rbp
+   27:  retq
+   28:  nopl (%rax, %rax)
+   30:  movl $0x64, %edi
+   35:  callq nreg+0
+   3a:  movl (%rax), %ebp
+   3c:  callq env_wb+0
+   41:  movq %rax, %rdi
+   44:  negl %ebp
+   46:  callq wb_vpos+0
+   4b:  movq %rbx, %rdi
+   4e:  subl %eax, %ebp
+   50:  movl %ebp, (%rip)   <var:abspos+0>
+   56:  callq fn:evalexpr+0
+   5b:  addq $8, %rsp
+   5f:  popq %rbx
+   60:  popq %rbp
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movl $0, %edi   <str:".b0">
+   6d:  callq map+0
+   72:  movl %eax, %edi
+   74:  callq nreg+0
+   79:  movl (%rax), %ebp
+   7b:  callq f_hpos+0
+   80:  movq %rbx, %rdi
+   83:  subl %eax, %ebp
+   85:  movl %ebp, (%rip)   <var:abspos+0>
+   8b:  callq fn:evalexpr+0
+   90:  addq $8, %rsp
+   94:  popq %rbx
+   95:  popq %rbp
+   96:  retq

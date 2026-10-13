@@ -1,0 +1,13 @@
+# tr_lsm  (static, 44 bytes, 12 instructions)
+    0:  movq 8(%rdi), %rdi
+    4:  testq %rdi, %rdi
+    7:  je 0x20
+    9:  subq $8, %rsp
+    d:  callq map+0
+   12:  movl %eax, (%rip)   <var:tr_sm+0>
+   18:  addq $8, %rsp
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  movl $0xffffffff, %eax
+   25:  movl %eax, (%rip)   <var:tr_sm+0>
+   2b:  retq

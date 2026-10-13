@@ -1,0 +1,52 @@
+# sweep2old  (static, 162 bytes, 51 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  pushq %rbx
+    7:  movq (%rsi), %rsi
+    a:  movq 0x18(%rdi), %r12
+    e:  testq %rsi, %rsi
+   11:  je 0x63
+   13:  movq %rdi, %rbx
+   16:  jmp 0x43
+   18:  nopl (%rax, %rax)
+   20:  movzbl 8(%rsi), %edx
+   24:  cmpb $8, %dl
+   27:  je 0x70
+   29:  cmpb $9, %dl
+   2c:  je 0x90
+   2e:  andl $0xfffffff8, %eax
+   31:  orl $0x24, %eax
+   34:  movq %rsi, %rbp
+   37:  movb %al, 9(%rsi)
+   3a:  movq (%rbp), %rsi
+   3e:  testq %rsi, %rsi
+   41:  je 0x63
+   43:  movzbl 9(%rsi), %eax
+   47:  testb $0x18, %al
+   49:  je 0x20
+   4b:  movq (%rsi), %rax
+   4e:  movq %rbx, %rdi
+   51:  movq %rax, (%rbp)
+   55:  callq fn:freeobj+0
+   5a:  movq (%rbp), %rsi
+   5e:  testq %rsi, %rsi
+   61:  jne 0x43
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  popq %r12
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  movq 0x90(%r12), %rdx
+   78:  andl $0xffffffc0, %eax
+   7b:  orl $4, %eax
+   7e:  movq %rdx, 0x48(%rsi)
+   82:  movq %rsi, 0x90(%r12)
+   8a:  jmp 0x34
+   8c:  nopl (%rax)
+   90:  leaq 0x18(%rsi), %rdx
+   94:  cmpq %rdx, 0x10(%rsi)
+   98:  je 0x2e
+   9a:  andl $0xffffffc0, %eax
+   9d:  orl $4, %eax
+   a0:  jmp 0x34

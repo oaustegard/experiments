@@ -1,0 +1,76 @@
+# tinsert  (static, 255 bytes, 75 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  subq $8, %rsp
+   12:  callq lua_type+0
+   17:  cmpl $5, %eax
+   1a:  je 0x2e
+   1c:  movl $7, %edx
+   21:  movl $1, %esi
+   26:  movq %rbp, %rdi
+   29:  callq fn:checktab.part.0+0
+   2e:  movq %rbp, %rdi
+   31:  movl $1, %esi
+   36:  callq luaL_len+0
+   3b:  movq %rbp, %rdi
+   3e:  leaq 1(%rax), %r12
+   42:  movq %r12, %rbx
+   45:  callq lua_gettop+0
+   4a:  cmpl $2, %eax
+   4d:  je 0xa7
+   4f:  cmpl $3, %eax
+   52:  jne 0xc8
+   54:  movl $2, %esi
+   59:  movq %rbp, %rdi
+   5c:  callq luaL_checkinteger+0
+   61:  movq %rax, %r13
+   64:  leaq -1(%rax), %rax
+   68:  cmpq %r12, %rax
+   6b:  jae 0xe8
+   6d:  cmpq %r13, %r12
+   70:  jle 0xa4
+   72:  nopw (%rax, %rax)
+   78:  movq %rbx, %r12
+   7b:  subq $1, %rbx
+   7f:  movl $1, %esi
+   84:  movq %rbp, %rdi
+   87:  movq %rbx, %rdx
+   8a:  callq lua_geti+0
+   8f:  movq %r12, %rdx
+   92:  movl $1, %esi
+   97:  movq %rbp, %rdi
+   9a:  callq lua_seti+0
+   9f:  cmpq %r13, %rbx
+   a2:  jg 0x78
+   a4:  movq %r13, %rbx
+   a7:  movq %rbx, %rdx
+   aa:  movq %rbp, %rdi
+   ad:  movl $1, %esi
+   b2:  callq lua_seti+0
+   b7:  addq $8, %rsp
+   bb:  xorl %eax, %eax
+   bd:  popq %rbx
+   be:  popq %rbp
+   bf:  popq %r12
+   c1:  popq %r13
+   c3:  retq
+   c4:  nopl (%rax)
+   c8:  addq $8, %rsp
+   cc:  movq %rbp, %rdi
+   cf:  movl $0, %esi   <str:"wrong number of arguments to 'insert'">
+   d4:  xorl %eax, %eax
+   d6:  popq %rbx
+   d7:  popq %rbp
+   d8:  popq %r12
+   da:  popq %r13
+   dc:  jmp luaL_error+0
+   e1:  nopl (%rax)
+   e8:  movl $0, %edx   <str:"position out of bounds">
+   ed:  movl $2, %esi
+   f2:  movq %rbp, %rdi
+   f5:  callq luaL_argerror+0
+   fa:  jmp 0x6d

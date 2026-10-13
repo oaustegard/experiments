@@ -1,0 +1,26 @@
+{
+  "suite": "neatroff-sbuf",
+  "functions": {
+    "sbuf_init": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "sbuf_add": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "sbuf_append": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "sbuf_printf": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    }
+  },
+  "notes": "O0: all four matched on the first or second write; the one blocker was the static helper sbuf_extend, which the other three call. It is in the same TU but outside the assigned four, so I implemented it as a same-TU helper (src/neatroff/sbuf/sbuf_extend.c, PASS at O0 and O1, and gcc inlines it at O2 so it has no target symbol there). Calling it required mextend's n and m parameters to be long (the target sign-extends them with movslq), which I fixed in the shared types/mextend.h. O1 and O2 needed no source changes: the same source matched at all three levels. sbuf_printf's va_list and 1024-byte buffer layout matched directly at every level."
+}

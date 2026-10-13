@@ -1,0 +1,45 @@
+# db_upvaluejoin  (static, 172 bytes, 44 instructions)
+    0:  pushq %rbx
+    1:  movl $2, %edx
+    6:  movq %rdi, %rbx
+    9:  movl $1, %esi
+    e:  subq $0x10, %rsp
+   12:  leaq 8(%rsp), %rcx
+   17:  callq fn:checkupval+0
+   1c:  movl $3, %esi
+   21:  movq %rbx, %rdi
+   24:  leaq 0xc(%rsp), %rcx
+   29:  movl $4, %edx
+   2e:  callq fn:checkupval+0
+   33:  movl $1, %esi
+   38:  movq %rbx, %rdi
+   3b:  callq lua_iscfunction+0
+   40:  testl %eax, %eax
+   42:  jne 0x80
+   44:  movl $3, %esi
+   49:  movq %rbx, %rdi
+   4c:  callq lua_iscfunction+0
+   51:  testl %eax, %eax
+   53:  jne 0x98
+   55:  movl 0xc(%rsp), %r8d
+   5a:  movl 8(%rsp), %edx
+   5e:  movq %rbx, %rdi
+   61:  movl $3, %ecx
+   66:  movl $1, %esi
+   6b:  callq lua_upvaluejoin+0
+   70:  addq $0x10, %rsp
+   74:  xorl %eax, %eax
+   76:  popq %rbx
+   77:  retq
+   78:  nopl (%rax, %rax)
+   80:  movl $0, %edx   <str:"Lua function expected">
+   85:  movl $1, %esi
+   8a:  movq %rbx, %rdi
+   8d:  callq luaL_argerror+0
+   92:  jmp 0x44
+   94:  nopl (%rax)
+   98:  movl $0, %edx   <str:"Lua function expected">
+   9d:  movl $3, %esi
+   a2:  movq %rbx, %rdi
+   a5:  callq luaL_argerror+0
+   aa:  jmp 0x55

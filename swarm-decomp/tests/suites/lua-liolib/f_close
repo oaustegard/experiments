@@ -1,0 +1,26 @@
+# f_close  (static, 97 bytes, 25 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  movq %rdi, %rbx
+    e:  subq $0x10, %rsp
+   12:  callq luaL_checkudata+0
+   17:  cmpq $0, 8(%rax)
+   1c:  je 0x50
+   1e:  movq %rbx, %rdi
+   21:  movl $0, %edx   <str:"FILE*">
+   26:  movl $1, %esi
+   2b:  callq luaL_checkudata+0
+   30:  movq %rbx, %rdi
+   33:  movq 8(%rax), %rdx
+   37:  movq $0, 8(%rax)
+   3f:  movq %rdx, 8(%rsp)
+   44:  movq 8(%rsp), %rax
+   49:  addq $0x10, %rsp
+   4d:  popq %rbx
+   4e:  jmpq *%rax
+   50:  movl $0, %esi   <str:"attempt to use a closed file">
+   55:  movq %rbx, %rdi
+   58:  xorl %eax, %eax
+   5a:  callq luaL_error+0
+   5f:  jmp 0x1e

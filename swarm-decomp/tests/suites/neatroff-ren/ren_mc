@@ -1,0 +1,56 @@
+# ren_mc  (static, 185 bytes, 55 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rdi, %r12
+    9:  pushq %rbp
+    a:  movl %esi, %ebp
+    c:  pushq %rbx
+    d:  movl %edx, %ebx
+    f:  leal (%rbp, %rbx), %r14d
+   14:  subq $0x2070, %rsp
+   1b:  movq %rsp, %rdi
+   1e:  callq wb_init+0
+   23:  movl $0x6c, %edi
+   28:  callq nreg+0
+   2d:  movl $0, %edi   <str:".mcn">
+   32:  movl (%rax), %r13d
+   35:  callq map+0
+   3a:  movl %eax, %edi
+   3c:  callq nreg+0
+   41:  addl (%rax), %r13d
+   44:  cmpl %r13d, %r14d
+   47:  jl 0x88
+   49:  callq env_mc+0
+   4e:  movq %rsp, %rdi
+   51:  movq %rax, %rsi
+   54:  callq wb_putexpand+0
+   59:  movq %rsp, %rdi
+   5c:  callq wb_buf+0
+   61:  movq %r12, %rdi
+   64:  movq %rax, %rsi
+   67:  callq sbuf_append+0
+   6c:  movq %rsp, %rdi
+   6f:  callq wb_done+0
+   74:  addq $0x2070, %rsp
+   7b:  popq %rbx
+   7c:  popq %rbp
+   7d:  popq %r12
+   7f:  popq %r13
+   81:  popq %r14
+   83:  retq
+   84:  nopl (%rax)
+   88:  movl $0x6c, %edi
+   8d:  callq nreg+0
+   92:  movl $0, %edi   <str:".mcn">
+   97:  movl (%rax), %r13d
+   9a:  callq map+0
+   9f:  movl %eax, %edi
+   a1:  callq nreg+0
+   a6:  movq %rsp, %rdi
+   a9:  movl (%rax), %esi
+   ab:  addl %r13d, %esi
+   ae:  subl %ebp, %esi
+   b0:  subl %ebx, %esi
+   b2:  callq wb_hmov+0
+   b7:  jmp 0x49

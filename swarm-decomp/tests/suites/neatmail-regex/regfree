@@ -1,0 +1,33 @@
+# regfree  (global, 99 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq (%rdi), %rbp
+    9:  movl 8(%rbp), %ecx
+    c:  movq (%rbp), %rdi
+   10:  testl %ecx, %ecx
+   12:  jle 0x50
+   14:  xorl %ebx, %ebx
+   16:  jmp 0x29
+   18:  nopl (%rax, %rax)
+   20:  addq $1, %rbx
+   24:  cmpl %ebx, 8(%rbp)
+   27:  jle 0x50
+   29:  movq %rbx, %rax
+   2c:  shlq $5, %rax
+   30:  addq %rdi, %rax
+   33:  movl 0x10(%rax), %edx
+   36:  testl %edx, %edx
+   38:  jne 0x20
+   3a:  movq 8(%rax), %rdi
+   3e:  addq $1, %rbx
+   42:  callq free+0
+   47:  movq (%rbp), %rdi
+   4b:  cmpl %ebx, 8(%rbp)
+   4e:  jg 0x29
+   50:  callq free+0
+   55:  addq $8, %rsp
+   59:  movq %rbp, %rdi
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  jmp free+0

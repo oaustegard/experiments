@@ -1,0 +1,11 @@
+# ts_sup  (global, 27 bytes, 10 instructions)
+    0:  movl %edi, %eax
+    2:  movl $1, %edx
+    7:  sarl $4, %eax
+    a:  testl %eax, %eax
+    c:  cmovgl %edx, %eax
+    f:  andl $1, %edi
+   12:  addl $1, %eax
+   15:  shll $4, %eax
+   18:  orl %edi, %eax
+   1a:  retq

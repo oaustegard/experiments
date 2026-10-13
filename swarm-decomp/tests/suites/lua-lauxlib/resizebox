@@ -1,0 +1,42 @@
+# resizebox  (static, 119 bytes, 41 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movl %esi, %ebx
+    e:  subq $0x18, %rsp
+   12:  leaq 8(%rsp), %rsi
+   17:  callq lua_getallocf+0
+   1c:  movl %ebx, %esi
+   1e:  movq %r13, %rdi
+   21:  movq %rax, %rbp
+   24:  callq lua_touserdata+0
+   29:  movq 8(%rsp), %rdi
+   2e:  movq %r12, %rcx
+   31:  movq 8(%rax), %rdx
+   35:  movq (%rax), %rsi
+   38:  movq %rax, %rbx
+   3b:  callq *%rbp
+   3d:  movq %rax, %rbp
+   40:  testq %rax, %rax
+   43:  jne 0x4a
+   45:  testq %r12, %r12
+   48:  jne 0x60
+   4a:  movq %rbp, (%rbx)
+   4d:  movq %rbp, %rax
+   50:  movq %r12, 8(%rbx)
+   54:  addq $0x18, %rsp
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  popq %r12
+   5c:  popq %r13
+   5e:  retq
+   5f:  nop
+   60:  movq %r13, %rdi
+   63:  movl $0, %esi   <str:"not enough memory">
+   68:  callq lua_pushstring+0
+   6d:  movq %r13, %rdi
+   70:  callq lua_error+0
+   75:  jmp 0x4a

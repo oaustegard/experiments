@@ -1,0 +1,48 @@
+# fileread  (static, 152 bytes, 47 instructions)
+    0:  pushq %r12
+    2:  xorl %eax, %eax
+    4:  movq %rsi, %r12
+    7:  xorl %esi, %esi
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  subq $0x1000, %rsp
+   12:  callq open+0
+   17:  movl %eax, %ebx
+   19:  xorl %eax, %eax
+   1b:  testl %ebx, %ebx
+   1d:  js 0x8c
+   1f:  callq sbuf_make+0
+   24:  movq %rax, %rbp
+   27:  nopw (%rax, %rax)
+   30:  movl $0x1000, %edx
+   35:  movq %rsp, %rsi
+   38:  movl %ebx, %edi
+   3a:  callq read+0
+   3f:  movl %eax, %edx
+   41:  cmpl $-1, %eax
+   44:  je 0x60
+   46:  testl %eax, %eax
+   48:  jle 0x71
+   4a:  movq %rsp, %rsi
+   4d:  movq %rbp, %rdi
+   50:  callq sbuf_mem+0
+   55:  jmp 0x30
+   57:  nopw (%rax, %rax)
+   60:  callq __errno_location+0
+   65:  movl (%rax), %eax
+   67:  cmpl $0xb, %eax
+   6a:  je 0x30
+   6c:  cmpl $4, %eax
+   6f:  je 0x30
+   71:  movl %ebx, %edi
+   73:  callq close+0
+   78:  movq %rbp, %rdi
+   7b:  callq sbuf_len+0
+   80:  movq %rbp, %rdi
+   83:  movl %eax, (%r12)
+   87:  callq sbuf_done+0
+   8c:  addq $0x1000, %rsp
+   93:  popq %rbx
+   94:  popq %rbp
+   95:  popq %r12
+   97:  retq

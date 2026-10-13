@@ -1,0 +1,34 @@
+# o_sym  (global, 171 bytes, 33 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <out_sym+0>
+    6:  movq (%rip), %rsi   <var:ic_n+0>
+    d:  cmpq (%rip), %rsi   <var:ic_sz+0>
+   14:  movq %rax, %rbx
+   17:  je 0x70
+   19:  movq (%rip), %rax   <var:ic+0>
+   20:  leaq 1(%rsi), %rdx
+   24:  movq %rdx, (%rip)   <var:ic_n+0>
+   2b:  leaq (%rsi, %rsi, 4), %rdx
+   2f:  leaq (%rax, %rdx, 8), %rdx
+   33:  movq (%rip), %rax   <var:iv_n+0>
+   3a:  movq $0x400400, (%rdx)
+   41:  movq %rbx, 8(%rdx)
+   45:  movq $0, 0x10(%rdx)
+   4d:  movq $0, 0x18(%rdx)
+   55:  leaq 1(%rax), %rdx
+   59:  popq %rbx
+   5a:  movq %rdx, (%rip)   <var:iv_n+0>
+   61:  movq %rsi, (, %rax, 8)   <var:iv+0>
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  leaq (%rsi, %rsi), %rdx
+   74:  movl $0x80, %eax
+   79:  movl $0x28, %ecx
+   7e:  movq (%rip), %rdi   <var:ic+0>
+   85:  cmpq %rax, %rdx
+   88:  cmovlq %rax, %rdx
+   8c:  movq %rdx, (%rip)   <var:ic_sz+0>
+   93:  callq mextend+0
+   98:  movq (%rip), %rsi   <var:ic_n+0>
+   9f:  movq %rax, (%rip)   <var:ic+0>
+   a6:  jmp 0x20

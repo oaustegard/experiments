@@ -1,0 +1,7 @@
+# luaL_buffinit  (global, 28 bytes, 6 instructions)
+    0:  leaq 0x20(%rsi), %rax
+    4:  movdqa (%rip), %xmm0   <cst:00040000000000000000000000000000>
+    c:  movq %rdi, 0x18(%rsi)
+   10:  movq %rax, (%rsi)
+   13:  movups %xmm0, 8(%rsi)
+   17:  jmp lua_pushlightuserdata+0

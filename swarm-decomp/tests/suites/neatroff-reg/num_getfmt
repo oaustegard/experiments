@@ -1,0 +1,45 @@
+# num_getfmt  (global, 143 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  movslq %edi, %rdi
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movl (, %rdi, 4), %ebx   <var:nregs_fmt+0>
+   10:  cmpb $0x30, %bl
+   13:  je 0x21
+   15:  movl %ebx, %eax
+   17:  andl $0xdf, %eax
+   1c:  cmpl $0x58, %eax
+   1f:  jne 0x60
+   21:  movl %ebx, %eax
+   23:  sarl $8, %eax
+   26:  cmpl $0x1ff, %ebx
+   2c:  jle 0x88
+   2e:  leal -1(%rax), %ebp
+   31:  movl $0x30, %esi
+   36:  movl $0, %edi   <var:fmtbuf+0>
+   3b:  movq %rbp, %rdx
+   3e:  callq memset+0
+   43:  leaq (%rbp), %rax   <var:fmtbuf+0>
+   4a:  movb %bl, (%rax)
+   4c:  leaq 1(%rax), %rdx
+   50:  movb $0, (%rdx)
+   53:  addq $8, %rsp
+   57:  movl $0, %eax   <var:fmtbuf+0>
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  retq
+   5f:  nop
+   60:  movl $0, %edx   <var:fmtbuf+0>
+   65:  testl %ebx, %ebx
+   67:  je 0x50
+   69:  movl $0, %edx   <var:fmtbuf+1>
+   6e:  movb %bl, (%rip)   <var:fmtbuf+0>
+   74:  movl $0, %eax   <var:fmtbuf+0>
+   79:  movb $0, (%rdx)
+   7c:  addq $8, %rsp
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  retq
+   83:  nopl (%rax, %rax)
+   88:  movl $0, %eax   <var:fmtbuf+0>
+   8d:  jmp 0x4a

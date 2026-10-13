@@ -1,0 +1,59 @@
+# src_define  (global, 198 bytes, 58 instructions)
+    0:  pushq %r14
+    2:  movl (%rip), %r14d   <var:nmacros+0>
+    9:  pushq %r13
+    b:  movq %rsi, %r13
+    e:  pushq %r12
+   10:  movq %rdi, %r12
+   13:  pushq %rbp
+   14:  pushq %rbx
+   15:  testl %r14d, %r14d
+   18:  jle 0xb8
+   1e:  movl $0, %ebp   <var:macros+0>
+   23:  xorl %ebx, %ebx
+   25:  jmp 0x3c
+   27:  nopw (%rax, %rax)
+   30:  addl $1, %ebx
+   33:  addq $0x28, %rbp
+   37:  cmpl %r14d, %ebx
+   3a:  je 0xa0
+   3c:  movq %r12, %rsi
+   3f:  movq %rbp, %rdi
+   42:  callq strcmp+0
+   47:  testl %eax, %eax
+   49:  jne 0x30
+   4b:  movslq %ebx, %rbx
+   4e:  movq %r12, %rsi
+   51:  leaq (%rbx, %rbx, 4), %rax
+   55:  leaq (, %rax, 8), %rbp   <var:macros+0>
+   5d:  movq %rbp, %rdi
+   60:  callq strcpy+0
+   65:  movq 0x20(%rbp), %rdi
+   69:  callq free+0
+   6e:  movq %r13, %rdi
+   71:  callq strlen+0
+   76:  leaq 1(%rax), %rbx
+   7a:  movq %rbx, %rdi
+   7d:  callq malloc+0
+   82:  movq %rbx, %rdx
+   85:  movq %r13, %rsi
+   88:  movq %rax, %rdi
+   8b:  callq memcpy+0
+   90:  movq %rax, 0x20(%rbp)
+   94:  popq %rbx
+   95:  popq %rbp
+   96:  popq %r12
+   98:  popq %r13
+   9a:  popq %r14
+   9c:  retq
+   9d:  nopl (%rax)
+   a0:  cmpl $0x1ff, %r14d
+   a7:  jg 0x94
+   a9:  leal 1(%r14), %eax
+   ad:  movl %eax, (%rip)   <var:nmacros+0>
+   b3:  movl %r14d, %ebx
+   b6:  jmp 0x4b
+   b8:  leal 1(%r14), %eax
+   bc:  movl %eax, (%rip)   <var:nmacros+0>
+   c2:  jne 0x94
+   c4:  jmp 0xb3

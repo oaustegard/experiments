@@ -1,0 +1,11 @@
+# math_rad  (static, 37 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checknumber+0
+    e:  mulsd (%rip), %xmm0   <cst:399d52a246df913f>
+   16:  movq %rbx, %rdi
+   19:  callq lua_pushnumber+0
+   1e:  movl $1, %eax
+   23:  popq %rbx
+   24:  retq

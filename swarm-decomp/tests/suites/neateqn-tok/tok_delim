@@ -1,0 +1,15 @@
+# tok_delim  (global, 53 bytes, 14 instructions)
+    0:  subq $0x28, %rsp
+    4:  xorl %esi, %esi
+    6:  movq %rsp, %rdi
+    9:  callq fn:tok_preview+0
+    e:  xorl %eax, %eax
+   10:  xorl %edx, %edx
+   12:  cmpl $0x66666f, (%rsp)
+   19:  je 0x24
+   1b:  movsbl (%rsp), %eax
+   1f:  movsbl 1(%rsp), %edx
+   24:  movl %edx, (%rip)   <var:eqn_end+0>
+   2a:  movl %eax, (%rip)   <var:eqn_beg+0>
+   30:  addq $0x28, %rsp
+   34:  retq

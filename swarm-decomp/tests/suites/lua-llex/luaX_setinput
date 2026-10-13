@@ -1,0 +1,31 @@
+# luaX_setinput  (global, 128 bytes, 30 instructions)
+    0:  movabsq $0x100000001, %rax
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movq %rsi, %rbx
+    f:  subq $8, %rsp
+   13:  movq %rdi, 0x38(%rsi)
+   17:  movl %r8d, (%rsi)
+   1a:  movq %rdx, 0x40(%rsi)
+   1e:  movl $4, %edx
+   23:  movq %rcx, 0x60(%rsi)
+   27:  movl $0, 0x10(%rsi)
+   2e:  movl $0x120, 0x20(%rsi)
+   35:  movq $0, 0x30(%rsi)
+   3d:  movq %rax, 4(%rsi)
+   41:  movl $0, %esi   <str:"_ENV">
+   46:  callq luaS_newlstr+0
+   4b:  movq 0x48(%rbx), %rbp
+   4f:  movq 0x38(%rbx), %rdi
+   53:  movl $0x20, %ecx
+   58:  movq %rax, 0x68(%rbx)
+   5c:  movq 0x10(%rbp), %rdx
+   60:  movq (%rbp), %rsi
+   64:  callq luaM_saferealloc_+0
+   69:  movq %rax, (%rbp)
+   6d:  movq 0x48(%rbx), %rax
+   71:  movq $0x20, 0x10(%rax)
+   79:  addq $8, %rsp
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  retq

@@ -1,0 +1,89 @@
+# luaopen_math  (global, 358 bytes, 88 instructions)
+    0:  pushq %rbp
+    1:  movl $0x88, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+   16:  callq luaL_checkversion_+0
+   1b:  movl $0x23, %edx
+   20:  xorl %esi, %esi
+   22:  movq %rbx, %rdi
+   25:  callq lua_createtable+0
+   2a:  xorl %edx, %edx
+   2c:  movl $0, %esi   <var:mathlib+0>
+   31:  movq %rbx, %rdi
+   34:  callq luaL_setfuncs+0
+   39:  movsd (%rip), %xmm0   <cst:182d4454fb210940>
+   41:  movq %rbx, %rdi
+   44:  callq lua_pushnumber+0
+   49:  movl $0, %edx   <str:"pi">
+   4e:  movl $0xfffffffe, %esi
+   53:  movq %rbx, %rdi
+   56:  callq lua_setfield+0
+   5b:  movsd (%rip), %xmm0   <cst:000000000000f07f>
+   63:  movq %rbx, %rdi
+   66:  callq lua_pushnumber+0
+   6b:  movl $0, %edx   <str:"huge">
+   70:  movl $0xfffffffe, %esi
+   75:  movq %rbx, %rdi
+   78:  callq lua_setfield+0
+   7d:  movq %rbx, %rdi
+   80:  movabsq $0x7fffffffffffffff, %rsi
+   8a:  callq lua_pushinteger+0
+   8f:  movl $0, %edx   <str:"maxinteger">
+   94:  movl $0xfffffffe, %esi
+   99:  movq %rbx, %rdi
+   9c:  callq lua_setfield+0
+   a1:  movq %rbx, %rdi
+   a4:  movabsq $9223372036854775808, %rsi
+   ae:  callq lua_pushinteger+0
+   b3:  movl $0, %edx   <str:"mininteger">
+   b8:  movl $0xfffffffe, %esi
+   bd:  movq %rbx, %rdi
+   c0:  callq lua_setfield+0
+   c5:  xorl %edx, %edx
+   c7:  movl $0x20, %esi
+   cc:  movq %rbx, %rdi
+   cf:  callq lua_newuserdatauv+0
+   d4:  xorl %edi, %edi
+   d6:  movq %rax, %rbp
+   d9:  callq time+0
+   de:  movq %rbx, %rcx
+   e1:  movl $0x10, %r10d
+   e7:  xorl %edx, %edx
+   e9:  movq %rax, %rsi
+   ec:  movq %rax, %r9
+   ef:  movl $0xff, %edi
+   f4:  nopl (%rax)
+   f8:  movq %rdi, %r8
+   fb:  xorq %r9, %rcx
+   fe:  xorq %rdi, %rdx
+  101:  shlq $0x11, %r8
+  105:  xorq %rdx, %r9
+  108:  xorq %rcx, %rdi
+  10b:  rorq $0x13, %rdx
+  10f:  xorq %r8, %rcx
+  112:  subl $1, %r10d
+  116:  jne 0xf8
+  118:  movq %r9, (%rbp)
+  11c:  movq %rcx, 0x10(%rbp)
+  120:  movq %rdx, 0x18(%rbp)
+  124:  movq %rdi, 8(%rbp)
+  128:  movq %rbx, %rdi
+  12b:  callq lua_pushinteger+0
+  130:  movq %rbx, %rsi
+  133:  movq %rbx, %rdi
+  136:  callq lua_pushinteger+0
+  13b:  movq %rbx, %rdi
+  13e:  movl $0xfffffffd, %esi
+  143:  callq lua_settop+0
+  148:  movq %rbx, %rdi
+  14b:  movl $1, %edx
+  150:  movl $0, %esi   <var:randfuncs+0>
+  155:  callq luaL_setfuncs+0
+  15a:  addq $8, %rsp
+  15e:  movl $1, %eax
+  163:  popq %rbx
+  164:  popq %rbp
+  165:  retq

@@ -1,0 +1,46 @@
+# sort_comp  (static, 143 bytes, 45 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  movl $2, %esi
+    a:  pushq %rbp
+    b:  movl %edx, %ebp
+    d:  pushq %rbx
+    e:  movq %rdi, %rbx
+   11:  callq lua_type+0
+   16:  testl %eax, %eax
+   18:  jne 0x30
+   1a:  movl %ebp, %edx
+   1c:  movl %r12d, %esi
+   1f:  movq %rbx, %rdi
+   22:  movl $1, %ecx
+   27:  popq %rbx
+   28:  popq %rbp
+   29:  popq %r12
+   2b:  jmp lua_compare+0
+   30:  movq %rbx, %rdi
+   33:  movl $2, %esi
+   38:  callq lua_pushvalue+0
+   3d:  leal -1(%r12), %esi
+   42:  movq %rbx, %rdi
+   45:  callq lua_pushvalue+0
+   4a:  leal -2(%rbp), %esi
+   4d:  movq %rbx, %rdi
+   50:  callq lua_pushvalue+0
+   55:  xorl %r8d, %r8d
+   58:  xorl %ecx, %ecx
+   5a:  movl $1, %edx
+   5f:  movq %rbx, %rdi
+   62:  movl $2, %esi
+   67:  callq lua_callk+0
+   6c:  movq %rbx, %rdi
+   6f:  movl $0xffffffff, %esi
+   74:  callq lua_toboolean+0
+   79:  movq %rbx, %rdi
+   7c:  movl $0xfffffffe, %esi
+   81:  movl %eax, %ebp
+   83:  callq lua_settop+0
+   88:  movl %ebp, %eax
+   8a:  popq %rbx
+   8b:  popq %rbp
+   8c:  popq %r12
+   8e:  retq

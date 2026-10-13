@@ -1,0 +1,59 @@
+# neatrefer-refer: translation unit refer of neatrefer
+# write each function as src/neatrefer/refer/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+intcmp	static	5 bytes
+lastname	static	127 bytes
+sdup	static	85 bytes
+refer_refmac	static	137 bytes
+lnput	static	33 bytes
+ref_ins	static	494 bytes
+refer_insert	static	81 bytes
+refer_cite	static	1548 bytes
+refer	static	1073 bytes
+main	global	1236 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+fields	static	16 bytes	.data.fields
+        0: 4c 54 41 42 45 52 4a 44 56 4e 50 49 54 4f 48 00
+fields_flag	static	3 bytes	.data.fields_flag
+        0: 4f 50 00
+kinds	static	40 bytes	.rodata.kinds
+    +0     -> str:"Other"
+    +8     -> str:"Article"
+    +16    -> str:"Book"
+    +24    -> str:"In book"
+    +32    -> str:"Report"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00
+inserted	static	4 bytes	.bss.inserted
+    (zero-initialised)
+cites	static	131072 bytes	.bss.cites
+    (zero-initialised)
+refs_n	static	4 bytes	.bss.refs_n
+    (zero-initialised)
+refs	static	33685504 bytes	.bss.refs
+    (zero-initialised)
+multiref	static	4 bytes	.bss.multiref
+    (zero-initialised)
+cites_n	static	4 bytes	.bss.cites_n
+    (zero-initialised)
+sortall	static	4 bytes	.bss.sortall
+    (zero-initialised)
+buf.0	static	1024 bytes	.bss.buf.0
+    (zero-initialised)
+refmac	static	8 bytes	.bss.refmac
+    (zero-initialised)
+refmac_auth	static	8 bytes	.bss.refmac_auth
+    (zero-initialised)
+accumulate	static	4 bytes	.bss.accumulate
+    (zero-initialised)
+refdb	static	8 bytes	.bss.refdb
+    (zero-initialised)
+buf.1	static	1024 bytes	.bss.buf.1
+    (zero-initialised)
+initials	static	4 bytes	.bss.initials
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc fclose fgets fopen fprintf free fwrite malloc memcpy qsort sprintf stderr stdin strchr strcmp strcpy strlen strstr write

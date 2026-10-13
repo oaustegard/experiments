@@ -1,0 +1,10 @@
+# luaB_yield  (static, 24 bytes, 9 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <lua_gettop+0>
+    9:  movq %rbx, %rdi
+    c:  xorl %ecx, %ecx
+    e:  xorl %edx, %edx
+   10:  movl %eax, %esi
+   12:  popq %rbx
+   13:  jmp lua_yieldk+0

@@ -1,0 +1,26 @@
+# evalcexpr  (static, 80 bytes, 25 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evalor+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x20
+   14:  cmpl $0x3f, %eax
+   17:  je 0x30
+   19:  movq %rbx, %rax
+   1c:  popq %rbx
+   1d:  retq
+   1e:  nop
+   20:  callq fn:eval_tok+0
+   25:  movl %eax, (%rip)   <var:enext+0>
+   2b:  cmpl $0x3f, %eax
+   2e:  jne 0x19
+   30:  movl $0xffffffff, (%rip)   <var:enext+0>
+   3a:  testq %rbx, %rbx
+   3d:  jne 0x4a
+   3f:  nop
+   40:  callq fn:eval_tok+0
+   45:  cmpl $0x3a, %eax
+   48:  jne 0x40
+   4a:  popq %rbx
+   4b:  jmp fn:evalor+0

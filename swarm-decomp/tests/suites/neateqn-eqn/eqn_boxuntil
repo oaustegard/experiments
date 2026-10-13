@@ -1,0 +1,62 @@
+# eqn_boxuntil  (static, 169 bytes, 61 instructions)
+    0:  pushq %r15
+    2:  movl $0x7d, %r15d
+    8:  pushq %r14
+    a:  movl %esi, %r14d
+    d:  pushq %r13
+    f:  movq %rdx, %r13
+   12:  pushq %r12
+   14:  movq %rcx, %r12
+   17:  pushq %rbp
+   18:  movq %rdi, %rbp
+   1b:  pushq %rbx
+   1c:  xorl %ebx, %ebx
+   1e:  subq $8, %rsp
+   22:  jmp 0x58
+   24:  nopl (%rax)
+   28:  testq %rbx, %rbx
+   2b:  movl 0x28(%rbp), %edi
+   2e:  movq %r13, %rcx
+   31:  movl %r14d, %edx
+   34:  cmovneq %rbp, %rbx
+   38:  movq %rbx, %rsi
+   3b:  callq fn:eqn_box+0
+   40:  movq %rbp, %rdi
+   43:  xorl %edx, %edx
+   45:  movq %rax, %rbx
+   48:  movq %rax, %rsi
+   4b:  callq box_merge+0
+   50:  movq %rbx, %rdi
+   53:  callq box_free+0
+   58:  callq tok_get+0
+   5d:  testq %rax, %rax
+   60:  je 0x98
+   62:  movq %r12, %rdi
+   65:  callq tok_jmp+0
+   6a:  testl %eax, %eax
+   6c:  je 0x98
+   6e:  callq tok_get+0
+   73:  movzbl (%rax), %edx
+   76:  cmpl %edx, %r15d
+   79:  jne 0x28
+   7b:  cmpb $0, 1(%rax)
+   7f:  jne 0x28
+   81:  addq $8, %rsp
+   85:  movl $1, %eax
+   8a:  popq %rbx
+   8b:  popq %rbp
+   8c:  popq %r12
+   8e:  popq %r13
+   90:  popq %r14
+   92:  popq %r15
+   94:  retq
+   95:  nopl (%rax)
+   98:  addq $8, %rsp
+   9c:  xorl %eax, %eax
+   9e:  popq %rbx
+   9f:  popq %rbp
+   a0:  popq %r12
+   a2:  popq %r13
+   a4:  popq %r14
+   a6:  popq %r15
+   a8:  retq

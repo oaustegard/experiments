@@ -1,0 +1,173 @@
+# pdf_dictcopy  (static, 626 bytes, 172 instructions)
+    0:  pushq %r15
+    2:  xorl %eax, %eax
+    4:  movq %rcx, %r15
+    7:  pushq %r14
+    9:  movl %edx, %r14d
+    c:  pushq %r13
+    e:  xorl %r13d, %r13d
+   11:  pushq %r12
+   13:  pushq %rbp
+   14:  movl %esi, %ebp
+   16:  movl $0, %esi   <str:"<<">
+   1b:  pushq %rbx
+   1c:  movq %rdi, %rbx
+   1f:  movq %rcx, %rdi
+   22:  subq $0x18, %rsp
+   26:  callq sbuf_printf+0
+   2b:  jmp 0x4b
+   2d:  nopl (%rax)
+   30:  callq fn:pdf_copy+0
+   35:  movl $0, %esi   <str:" %s">
+   3a:  movq %r15, %rdi
+   3d:  movq %rax, %rdx
+   40:  xorl %eax, %eax
+   42:  callq sbuf_printf+0
+   47:  addl $1, %r13d
+   4b:  movl %r13d, %ecx
+   4e:  movl %r14d, %edx
+   51:  movl %ebp, %esi
+   53:  movq %rbx, %rdi
+   56:  callq pdf_dkey+0
+   5b:  movl %eax, %r12d
+   5e:  testl %eax, %eax
+   60:  js 0x188
+   66:  movl %eax, %edx
+   68:  movl %ebp, %esi
+   6a:  movq %rbx, %rdi
+   6d:  callq fn:pdf_copy+0
+   72:  movl $0, %esi   <str:" %s">
+   77:  movq %r15, %rdi
+   7a:  movq %rax, %rdx
+   7d:  xorl %eax, %eax
+   7f:  callq sbuf_printf+0
+   84:  movl %r12d, %edx
+   87:  movl %ebp, %esi
+   89:  movq %rbx, %rdi
+   8c:  callq fn:pdf_copy+0
+   91:  movl %r14d, %edx
+   94:  movl %ebp, %esi
+   96:  movq %rbx, %rdi
+   99:  movq %rax, %rcx
+   9c:  callq pdf_dval+0
+   a1:  movl %ebp, %esi
+   a3:  movq %rbx, %rdi
+   a6:  movl %eax, %edx
+   a8:  movl %eax, %r12d
+   ab:  callq pdf_type+0
+   b0:  movl %r12d, %edx
+   b3:  movl %ebp, %esi
+   b5:  movq %rbx, %rdi
+   b8:  cmpl $0x72, %eax
+   bb:  jne 0x30
+   c1:  callq pdf_ref+0
+   c6:  movl %eax, %r12d
+   c9:  testl %eax, %eax
+   cb:  js 0x47
+   d1:  movl %eax, %edx
+   d3:  movl %ebp, %esi
+   d5:  movq %rbx, %rdi
+   d8:  callq pdf_type+0
+   dd:  cmpl $0x64, %eax
+   e0:  je 0x1a8
+   e6:  callq fn:obj_map+0
+   eb:  movl (%rip), %ecx   <var:pdf_pos+0>
+   f1:  movl $0, %edi   <str:"%d 0 obj\n">
+   f6:  movslq %eax, %rdx
+   f9:  movq (%rip), %rax   <var:obj_off+0>
+  100:  movl %edx, %esi
+  102:  movl %edx, 0xc(%rsp)
+  106:  movl %ecx, (%rax, %rdx, 4)
+  109:  xorl %eax, %eax
+  10b:  callq fn:pdfout+0
+  110:  movl %r12d, %edx
+  113:  movl %ebp, %esi
+  115:  movq %rbx, %rdi
+  118:  callq pdf_len+0
+  11d:  movq (%rip), %rcx   <stdout+0>
+  124:  movslq %r12d, %rdi
+  127:  movl $1, %edx
+  12c:  movslq %eax, %rsi
+  12f:  addq %rbx, %rdi
+  132:  movl %esi, (%rsp)
+  135:  callq fwrite+0
+  13a:  movl $0, %edi   <str:"\n">
+  13f:  xorl %eax, %eax
+  141:  movl (%rsp), %r9d
+  145:  addl %r9d, (%rip)   <var:pdf_pos+0>
+  14c:  callq fn:pdfout+0
+  151:  movl $0, %edi   <str:"endobj\n\n">
+  156:  xorl %eax, %eax
+  158:  callq fn:pdfout+0
+  15d:  movl 0xc(%rsp), %r8d
+  162:  testl %r8d, %r8d
+  165:  js 0x47
+  16b:  movl %r8d, %edx
+  16e:  movl $0, %esi   <str:" %d 0 R">
+  173:  movq %r15, %rdi
+  176:  xorl %eax, %eax
+  178:  callq sbuf_printf+0
+  17d:  jmp 0x47
+  182:  nopw (%rax, %rax)
+  188:  addq $0x18, %rsp
+  18c:  movq %r15, %rdi
+  18f:  movl $0, %esi   <str:" >>">
+  194:  xorl %eax, %eax
+  196:  popq %rbx
+  197:  popq %rbp
+  198:  popq %r12
+  19a:  popq %r13
+  19c:  popq %r14
+  19e:  popq %r15
+  1a0:  jmp sbuf_printf+0
+  1a5:  nopl (%rax)
+  1a8:  callq sbuf_make+0
+  1ad:  movl %r12d, %edx
+  1b0:  movl %ebp, %esi
+  1b2:  movq %rbx, %rdi
+  1b5:  movq %rax, %rcx
+  1b8:  movq %rax, (%rsp)
+  1bc:  callq 0
+  1c1:  movq (%rsp), %rdi
+  1c5:  movl $0xa, %esi
+  1ca:  callq sbuf_chr+0
+  1cf:  movl $0, %ecx   <str:"/Length">
+  1d4:  movl %r12d, %edx
+  1d7:  movl %ebp, %esi
+  1d9:  movq %rbx, %rdi
+  1dc:  callq pdf_dval+0
+  1e1:  testl %eax, %eax
+  1e3:  js 0x1f6
+  1e5:  movq (%rsp), %rcx
+  1e9:  movl %r12d, %edx
+  1ec:  movl %ebp, %esi
+  1ee:  movq %rbx, %rdi
+  1f1:  callq fn:pdf_strcopy.isra.0+0
+  1f6:  callq fn:obj_map+0
+  1fb:  movl (%rip), %ecx   <var:pdf_pos+0>
+  201:  movl $0, %edi   <str:"%d 0 obj\n">
+  206:  movslq %eax, %rdx
+  209:  movq (%rip), %rax   <var:obj_off+0>
+  210:  movl %edx, %esi
+  212:  movl %edx, 0xc(%rsp)
+  216:  movl %ecx, (%rax, %rdx, 4)
+  219:  xorl %eax, %eax
+  21b:  callq fn:pdfout+0
+  220:  movq (%rsp), %rdi
+  224:  callq sbuf_len+0
+  229:  movq (%rsp), %rdi
+  22d:  movl %eax, %r12d
+  230:  callq sbuf_buf+0
+  235:  movq (%rip), %rcx   <stdout+0>
+  23c:  movslq %r12d, %rsi
+  23f:  movl $1, %edx
+  244:  movq %rax, %rdi
+  247:  callq fwrite+0
+  24c:  movl $0, %edi   <str:"endobj\n\n">
+  251:  xorl %eax, %eax
+  253:  addl %r12d, (%rip)   <var:pdf_pos+0>
+  25a:  callq fn:pdfout+0
+  25f:  movq (%rsp), %rdi
+  263:  callq sbuf_free+0
+  268:  movl 0xc(%rsp), %r8d
+  26d:  jmp 0x162

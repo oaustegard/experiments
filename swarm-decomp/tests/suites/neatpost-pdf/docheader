@@ -1,0 +1,45 @@
+# docheader  (global, 161 bytes, 44 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movl %edx, %ebp
+    8:  pushq %rbx
+    9:  movl %ecx, %ebx
+    b:  testq %rdi, %rdi
+    e:  je 0x1d
+   10:  movq %rdi, %rsi
+   13:  movl $0, %edi   <str:"Title">
+   18:  callq outinfo+0
+   1d:  callq fn:obj_map+0
+   22:  callq fn:obj_map+0
+   27:  movl %eax, (%rip)   <var:pdf_root+0>
+   2d:  callq fn:obj_map+0
+   32:  movl $0, %edi   <str:"%%PDF-1.6\n\n">
+   37:  movl %eax, (%rip)   <var:pdf_pages+0>
+   3d:  xorl %eax, %eax
+   3f:  callq fn:pdfout+0
+   44:  leal (%r12, %r12, 8), %eax
+   48:  movl %ebx, (%rip)   <var:pdf_linewid+0>
+   4e:  popq %rbx
+   4f:  leal 0x7f(, %rax, 8), %edx
+   56:  movslq %edx, %rax
+   59:  imulq $-0x7efdfbf7, %rax, %rax
+   60:  shrq $0x20, %rax
+   64:  addl %edx, %eax
+   66:  sarl $0x1f, %edx
+   69:  sarl $7, %eax
+   6c:  subl %edx, %eax
+   6e:  movl %eax, (%rip)   <var:pdf_width+0>
+   74:  leal (%rbp, %rbp, 8), %eax
+   78:  popq %rbp
+   79:  leal 0x7f(, %rax, 8), %edx
+   80:  popq %r12
+   82:  movslq %edx, %rax
+   85:  imulq $-0x7efdfbf7, %rax, %rax
+   8c:  shrq $0x20, %rax
+   90:  addl %edx, %eax
+   92:  sarl $0x1f, %edx
+   95:  sarl $7, %eax
+   98:  subl %edx, %eax
+   9a:  movl %eax, (%rip)   <var:pdf_height+0>
+   a0:  retq

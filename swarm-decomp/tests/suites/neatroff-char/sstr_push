@@ -1,0 +1,8 @@
+# sstr_push  (global, 39 bytes, 7 instructions)
+    0:  movslq (%rip), %rax   <var:sstr_n+0>
+    7:  leal 1(%rax), %edx
+    a:  movl %edx, (%rip)   <var:sstr_n+0>
+   10:  movq (%rip), %rdx   <var:sstr_s+0>
+   17:  movq %rdi, (%rip)   <var:sstr_s+0>
+   1e:  movq %rdx, (, %rax, 8)   <var:sstr_bufs+0>
+   26:  retq

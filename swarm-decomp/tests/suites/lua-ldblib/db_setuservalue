@@ -1,0 +1,38 @@
+# db_setuservalue  (static, 132 bytes, 37 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %edx
+    6:  movl $3, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_optinteger+0
+   18:  movl $7, %edx
+   1d:  movl $1, %esi
+   22:  movq %rbx, %rdi
+   25:  movq %rax, %rbp
+   28:  callq luaL_checktype+0
+   2d:  movl $2, %esi
+   32:  movq %rbx, %rdi
+   35:  callq luaL_checkany+0
+   3a:  movl $2, %esi
+   3f:  movq %rbx, %rdi
+   42:  callq lua_settop+0
+   47:  movl %ebp, %edx
+   49:  movl $1, %esi
+   4e:  movq %rbx, %rdi
+   51:  callq lua_setiuservalue+0
+   56:  testl %eax, %eax
+   58:  je 0x70
+   5a:  addq $8, %rsp
+   5e:  movl $1, %eax
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  retq
+   66:  nopw %cs:(%rax, %rax)
+   70:  movq %rbx, %rdi
+   73:  callq lua_pushnil+0
+   78:  addq $8, %rsp
+   7c:  movl $1, %eax
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  retq

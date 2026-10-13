@@ -1,0 +1,22 @@
+# tok_chops  (global, 70 bytes, 21 instructions)
+    0:  movzbl (%rip), %esi   <var:tok+0>
+    7:  testb %sil, %sil
+    a:  je 0x40
+    c:  cmpl $3, (%rip)   <var:tok_curtype+0>
+   13:  je 0x40
+   15:  testl %edi, %edi
+   17:  je 0x38
+   19:  subq $8, %rsp
+   1d:  movl $0, %edi   <str:"^~{}(),\"\n\t =:|.+-*/\\,()[]<>!">
+   22:  callq strchr+0
+   27:  testq %rax, %rax
+   2a:  setne %al
+   2d:  addq $8, %rsp
+   31:  movzbl %al, %eax
+   34:  retq
+   35:  nopl (%rax)
+   38:  movl %esi, %edi
+   3a:  jmp def_chopped+0
+   3f:  nop
+   40:  movl $1, %eax
+   45:  retq

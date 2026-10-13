@@ -1,0 +1,22 @@
+# neatroff-out: translation unit out of neatroff
+# write each function as src/neatroff/out/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+outnn	static	191 bytes
+out	global	222 bytes
+outg	static	300 bytes
+out_x	global	15 bytes
+out_line	global	1968 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+out_nl	static	4 bytes	.data.out_nl
+        0: 01 00 00 00
+o_f	static	4 bytes	.data.o_f
+        0: 01 00 00 00
+o_s	static	4 bytes	.data.o_s
+        0: 0a 00 00 00
+o_m	static	4 bytes	.bss.o_m
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_tolower_loc c_ec c_hymark clr_get clr_str cmap_map dev_font dev_fontpos dev_glyph dev_pos escread eval eval_up font_getbd font_getcs font_gwid font_mapped font_wid font_zoom nreg stdout strchr utf8one vfprintf

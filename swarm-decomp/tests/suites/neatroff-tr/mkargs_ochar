@@ -1,0 +1,21 @@
+# mkargs_ochar  (static, 62 bytes, 20 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  xorl %edi, %edi
+    7:  subq $8, %rsp
+    b:  callq fn:read_name+0
+   10:  movq %rbx, %rdi
+   13:  movq %rax, %rsi
+   16:  movq %rax, %rbp
+   19:  callq sbuf_append+0
+   1e:  movq %rbx, %rdi
+   21:  xorl %esi, %esi
+   23:  callq sbuf_add+0
+   28:  movq %rbp, %rdi
+   2b:  callq free+0
+   30:  addq $8, %rsp
+   34:  movq %rbx, %rdi
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  jmp fn:mkargs_ds+0

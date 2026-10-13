@@ -1,0 +1,49 @@
+# lua-lcorolib: translation unit lcorolib of lua
+# write each function as src/lua/lcorolib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+luaB_yield	static	24 bytes
+auxresume	static	197 bytes
+luaB_auxwrap	static	190 bytes
+luaB_corunning	static	26 bytes
+luaB_cocreate	static	76 bytes
+luaB_yieldable	static	105 bytes
+auxstatus	static	113 bytes
+luaB_costatus	static	92 bytes
+luaB_coresume	static	160 bytes
+luaB_close	static	199 bytes
+luaB_cowrap	static	94 bytes
+luaopen_coroutine	global	59 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+statname	static	32 bytes	.rodata.statname
+    +0     -> str:"running"
+    +8     -> str:"dead"
+    +16    -> str:"suspended"
+    +24    -> str:"normal"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+co_funcs	static	144 bytes	.rodata.co_funcs
+    +0     -> str:"create"
+    +8     -> fn:luaB_cocreate+0
+    +16    -> str:"resume"
+    +24    -> fn:luaB_coresume+0
+    +32    -> str:"running"
+    +40    -> fn:luaB_corunning+0
+    +48    -> str:"status"
+    +56    -> fn:luaB_costatus+0
+    +64    -> str:"wrap"
+    +72    -> fn:luaB_cowrap+0
+    +80    -> str:"yield"
+    +88    -> fn:luaB_yield+0
+    +96    -> str:"isyieldable"
+    +104   -> fn:luaB_yieldable+0
+    +112   -> str:"close"
+    +120   -> fn:luaB_close+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaL_checktype luaL_checkversion_ luaL_error luaL_setfuncs luaL_typeerror luaL_where lua_checkstack lua_closethread lua_concat lua_createtable lua_error lua_getstack lua_gettop lua_isyieldable lua_newthread lua_pushboolean lua_pushcclosure lua_pushstring lua_pushthread lua_pushvalue lua_resume lua_rotate lua_settop lua_status lua_tothread lua_type lua_xmove lua_yieldk

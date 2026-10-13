@@ -1,0 +1,16 @@
+# in_lnum  (global, 51 bytes, 15 instructions)
+    0:  movq (%rip), %rax   <var:buf+0>
+    7:  testq %rax, %rax
+    a:  jne 0x1c
+    c:  retq
+    d:  nopl (%rax)
+   10:  movq 0x4b0(%rax), %rax
+   17:  testq %rax, %rax
+   1a:  je 0x30
+   1c:  cmpq $0, 0x400(%rax)
+   24:  je 0x10
+   26:  movl 0x4a8(%rax), %eax
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  xorl %eax, %eax
+   32:  retq

@@ -1,0 +1,12 @@
+# iset_make  (global, 37 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movl $0x20, %edi
+    b:  callq calloc+0
+   10:  movl $0x400, %esi
+   15:  movq %rax, %rbx
+   18:  movq %rax, %rdi
+   1b:  callq fn:iset_extend+0
+   20:  movq %rbx, %rax
+   23:  popq %rbx
+   24:  retq

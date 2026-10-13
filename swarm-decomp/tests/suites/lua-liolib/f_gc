@@ -1,0 +1,25 @@
+# f_gc  (static, 89 bytes, 24 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  movq %rdi, %rbx
+    e:  subq $0x10, %rsp
+   12:  callq luaL_checkudata+0
+   17:  cmpq $0, 8(%rax)
+   1c:  je 0x51
+   1e:  cmpq $0, (%rax)
+   22:  je 0x51
+   24:  movl $0, %edx   <str:"FILE*">
+   29:  movq %rbx, %rdi
+   2c:  movl $1, %esi
+   31:  callq luaL_checkudata+0
+   36:  movq %rbx, %rdi
+   39:  movq 8(%rax), %rdx
+   3d:  movq $0, 8(%rax)
+   45:  movq %rdx, 8(%rsp)
+   4a:  movq 8(%rsp), %rax
+   4f:  callq *%rax
+   51:  addq $0x10, %rsp
+   55:  xorl %eax, %eax
+   57:  popq %rbx
+   58:  retq

@@ -1,0 +1,27 @@
+# luaG_ordererror  (global, 84 bytes, 26 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  callq luaT_objtypename+0
+    f:  movq %r12, %rsi
+   12:  movq %rbx, %rdi
+   15:  movq %rax, %rbp
+   18:  callq luaT_objtypename+0
+   1d:  movq %rbp, %rdi
+   20:  movq %rax, %rsi
+   23:  movq %rax, %r12
+   26:  callq strcmp+0
+   2b:  testl %eax, %eax
+   2d:  jne 0x3f
+   2f:  movq %rbp, %rdx
+   32:  movl $0, %esi   <str:"attempt to compare two %s values">
+   37:  movq %rbx, %rdi
+   3a:  callq luaG_runerror+0
+   3f:  movq %r12, %rcx
+   42:  movq %rbp, %rdx
+   45:  movl $0, %esi   <str:"attempt to compare %s with %s">
+   4a:  movq %rbx, %rdi
+   4d:  xorl %eax, %eax
+   4f:  callq luaG_runerror+0

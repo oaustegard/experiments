@@ -1,0 +1,17 @@
+# fmt_wid  (global, 49 bytes, 16 instructions)
+    0:  pushq %rbx
+    1:  movslq 8(%rdi), %rbx
+    5:  testl %ebx, %ebx
+    7:  je 0x28
+    9:  movq (%rdi), %rax
+    c:  leaq (, %rbx, 8), %rdx
+   14:  subq %rbx, %rdx
+   17:  leaq -0x38(%rax, %rdx, 8), %rdx
+   1c:  movl 0x28(%rdx), %ebx
+   1f:  subl 0x28(%rax), %ebx
+   22:  addl 8(%rax), %ebx
+   25:  addl 0x18(%rdx), %ebx
+   28:  callq fn:fmt_wordgap+0
+   2d:  addl %ebx, %eax
+   2f:  popq %rbx
+   30:  retq

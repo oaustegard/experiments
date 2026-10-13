@@ -1,0 +1,42 @@
+# chopargs  (static, 117 bytes, 41 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq sbuf_buf+0
+   15:  movq %rbp, %rdi
+   18:  movq %rax, %rbx
+   1b:  callq sbuf_len+0
+   20:  movslq %eax, %r13
+   23:  addq %rbx, %r13
+   26:  testq %rbx, %rbx
+   29:  je 0x6a
+   2b:  cmpq %r13, %rbx
+   2e:  jae 0x6a
+   30:  movl $1, %ebp
+   35:  nopl (%rax)
+   38:  movq %rbx, -8(%r12, %rbp, 8)
+   3d:  movq %r13, %rdx
+   40:  xorl %esi, %esi
+   42:  movq %rbx, %rdi
+   45:  subq %rbx, %rdx
+   48:  callq memchr+0
+   4d:  testq %rax, %rax
+   50:  je 0x6a
+   52:  leaq 1(%rax), %rbx
+   56:  cmpq %r13, %rbx
+   59:  setb %dl
+   5c:  cmpl $0x1f, %ebp
+   5f:  setle %al
+   62:  addq $1, %rbp
+   66:  testb %al, %dl
+   68:  jne 0x38
+   6a:  addq $8, %rsp
+   6e:  popq %rbx
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  retq

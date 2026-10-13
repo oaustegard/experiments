@@ -1,0 +1,48 @@
+# neatld-nld: translation unit nld of neatld
+# write each function as src/neatld/nld/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+outelf_find	static	234 bytes
+hexnum	static	163 bytes
+die_undef	static	36 bytes
+symval	static	434 bytes
+die	static	36 bytes
+outelf_add	static	357 bytes
+obj_add	static	660 bytes
+outelf_sym	static	121 bytes
+outelf_str	static	165 bytes
+main	global	4609 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+e_machine	static	4 bytes	.bss.e_machine
+    (zero-initialised)
+e_flags	static	4 bytes	.bss.e_flags
+    (zero-initialised)
+secalign	static	4 bytes	.data.secalign
+        0: 10 00 00 00
+sec_vaddr	static	24 bytes	.data.sec_vaddr
+        0: 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+sec_laddr	static	24 bytes	.data.sec_laddr
+        0: 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+sec_set	static	12 bytes	.data.sec_set
+        0: 01 00 00 00 00 00 00 00 00 00 00 00
+nosyms	static	4 bytes	.bss.nosyms
+    (zero-initialised)
+nlibdirs	static	4 bytes	.data.nlibdirs
+        0: 01 00 00 00
+libdirs	static	256 bytes	.data.libdirs
+    +0     -> str:"/lib"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+entry	static	8 bytes	.data.entry
+    +0     -> str:"_start"
+        0: 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc close exit fprintf free fstat lseek malloc memcpy memset open puts read realloc sprintf stat stderr strchr strcmp strcpy strlen strtol write

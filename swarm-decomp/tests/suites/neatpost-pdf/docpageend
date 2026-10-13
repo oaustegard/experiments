@@ -1,0 +1,204 @@
+# docpageend  (global, 880 bytes, 203 instructions)
+    0:  cmpl $1, (%rip)   <var:o_queued+0>
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  je 0x358
+   11:  movq (%rip), %rdi   <var:pg+0>
+   18:  movl $0, %esi   <str:"ET\n">
+   1d:  xorl %eax, %eax
+   1f:  movl $0, (%rip)   <var:o_queued+0>
+   29:  callq sbuf_printf+0
+   2e:  callq fn:obj_map+0
+   33:  movl (%rip), %ecx   <var:pdf_pos+0>
+   39:  movl $0, %edi   <str:"%d 0 obj\n">
+   3e:  movslq %eax, %rdx
+   41:  movq (%rip), %rax   <var:obj_off+0>
+   48:  movl %edx, %esi
+   4a:  movq %rdx, %r12
+   4d:  movl %ecx, (%rax, %rdx, 4)
+   50:  xorl %eax, %eax
+   52:  callq fn:pdfout+0
+   57:  xorl %eax, %eax
+   59:  movl $0, %edi   <str:"<<\n">
+   5e:  callq fn:pdfout+0
+   63:  movq (%rip), %rdi   <var:pg+0>
+   6a:  callq sbuf_len+0
+   6f:  movl $0, %edi   <str:"  /Length %d\n">
+   74:  leal -1(%rax), %esi
+   77:  xorl %eax, %eax
+   79:  callq fn:pdfout+0
+   7e:  xorl %eax, %eax
+   80:  movl $0, %edi   <str:">>\n">
+   85:  callq fn:pdfout+0
+   8a:  xorl %eax, %eax
+   8c:  movl $0, %edi   <str:"stream\n">
+   91:  callq fn:pdfout+0
+   96:  movq (%rip), %rdi   <var:pg+0>
+   9d:  callq sbuf_len+0
+   a2:  movq (%rip), %rdi   <var:pg+0>
+   a9:  movl %eax, %ebx
+   ab:  callq sbuf_buf+0
+   b0:  movq (%rip), %rcx   <stdout+0>
+   b7:  movslq %ebx, %rsi
+   ba:  movl $1, %edx
+   bf:  movq %rax, %rdi
+   c2:  callq fwrite+0
+   c7:  xorl %eax, %eax
+   c9:  movl $0, %edi   <str:"endstream\n">
+   ce:  addl %ebx, (%rip)   <var:pdf_pos+0>
+   d4:  callq fn:pdfout+0
+   d9:  xorl %eax, %eax
+   db:  movl $0, %edi   <str:"endobj\n\n">
+   e0:  callq fn:pdfout+0
+   e5:  movslq (%rip), %rsi   <var:page_n+0>
+   ec:  cmpl (%rip), %esi   <var:page_sz+0>
+   f2:  je 0x320
+   f8:  movq (%rip), %rax   <var:page_id+0>
+   ff:  leal 1(%rsi), %edx
+  102:  leaq (%rax, %rsi, 4), %rbp
+  106:  movl %edx, (%rip)   <var:page_n+0>
+  10c:  callq fn:obj_map+0
+  111:  movl (%rip), %ecx   <var:pdf_pos+0>
+  117:  movl $0, %edi   <str:"%d 0 obj\n">
+  11c:  movslq %eax, %rdx
+  11f:  movq (%rip), %rax   <var:obj_off+0>
+  126:  movq %rdx, %rbx
+  129:  movl %edx, %esi
+  12b:  movl %ecx, (%rax, %rdx, 4)
+  12e:  xorl %eax, %eax
+  130:  callq fn:pdfout+0
+  135:  movl %ebx, (%rbp)
+  138:  movl $0, %edi   <str:"<<\n">
+  13d:  xorl %eax, %eax
+  13f:  xorl %ebp, %ebp
+  141:  xorl %ebx, %ebx
+  143:  callq fn:pdfout+0
+  148:  movl $0, %edi   <str:"  /Type /Page\n">
+  14d:  xorl %eax, %eax
+  14f:  callq fn:pdfout+0
+  154:  movl (%rip), %esi   <var:pdf_pages+0>
+  15a:  movl $0, %edi   <str:"  /Parent %d 0 R\n">
+  15f:  xorl %eax, %eax
+  161:  callq fn:pdfout+0
+  166:  movl $0, %edi   <str:"  /Resources <<\n">
+  16b:  xorl %eax, %eax
+  16d:  callq fn:pdfout+0
+  172:  movl $0, %edi   <str:"    /Font <<">
+  177:  xorl %eax, %eax
+  179:  callq fn:pdfout+0
+  17e:  movl (%rip), %r9d   <var:pfonts_n+0>
+  185:  testl %r9d, %r9d
+  188:  jg 0x1b1
+  18a:  jmp 0x1f0
+  18c:  nopl (%rax)
+  190:  movl %ecx, %edx
+  192:  movl $0, %edi   <str:" /%s %d 0 R">
+  197:  xorl %eax, %eax
+  199:  callq fn:pdfout+0
+  19e:  addq $1, %rbx
+  1a2:  addq $0x898, %rbp
+  1a9:  cmpl %ebx, (%rip)   <var:pfonts_n+0>
+  1af:  jle 0x1f0
+  1b1:  cmpb $0, (%rbx)   <var:o_iset+0>
+  1b8:  je 0x19e
+  1ba:  movq (%rip), %rsi   <var:pfonts+0>
+  1c1:  addq %rbp, %rsi
+  1c4:  movl 0x894(%rsi), %edi
+  1ca:  movl 0x88c(%rsi), %ecx
+  1d0:  testl %edi, %edi
+  1d2:  jne 0x190
+  1d4:  movl 0x888(%rsi), %edx
+  1da:  movl $0, %edi   <str:" /%s.%d %d 0 R">
+  1df:  xorl %eax, %eax
+  1e1:  callq fn:pdfout+0
+  1e6:  jmp 0x19e
+  1e8:  nopl (%rax, %rax)
+  1f0:  movl $0, %edi   <str:" >>\n">
+  1f5:  xorl %eax, %eax
+  1f7:  callq fn:pdfout+0
+  1fc:  movl (%rip), %r8d   <var:xobj_n+0>
+  203:  testl %r8d, %r8d
+  206:  jne 0x288
+  20c:  movl $0, %edi   <str:"  >>\n">
+  211:  xorl %eax, %eax
+  213:  callq fn:pdfout+0
+  218:  movl %r12d, %esi
+  21b:  movl $0, %edi   <str:"  /Contents %d 0 R\n">
+  220:  xorl %eax, %eax
+  222:  callq fn:pdfout+0
+  227:  movl (%rip), %edx   <var:ann_n+0>
+  22d:  testl %edx, %edx
+  22f:  jne 0x2d8
+  235:  movl $0, %edi   <str:">>\n">
+  23a:  xorl %eax, %eax
+  23c:  callq fn:pdfout+0
+  241:  xorl %eax, %eax
+  243:  movl $0, %edi   <str:"endobj\n\n">
+  248:  callq fn:pdfout+0
+  24d:  movq (%rip), %rdi   <var:pg+0>
+  254:  callq sbuf_free+0
+  259:  movslq (%rip), %rdx   <var:pfonts_n+0>
+  260:  xorl %esi, %esi
+  262:  movl $0, %edi   <var:o_iset+0>
+  267:  callq memset+0
+  26c:  popq %rbx
+  26d:  popq %rbp
+  26e:  movl $0, (%rip)   <var:xobj_n+0>
+  278:  movl $0, (%rip)   <var:ann_n+0>
+  282:  popq %r12
+  284:  retq
+  285:  nopl (%rax)
+  288:  movl $0, %edi   <str:"    /XObject <<">
+  28d:  xorl %eax, %eax
+  28f:  xorl %ebx, %ebx
+  291:  callq fn:pdfout+0
+  296:  movl (%rip), %ecx   <var:xobj_n+0>
+  29c:  testl %ecx, %ecx
+  29e:  jle 0x2c1
+  2a0:  movl (, %rbx, 4), %edx   <var:xobj+0>
+  2a7:  movl %ebx, %esi
+  2a9:  xorl %eax, %eax
+  2ab:  movl $0, %edi   <str:" /FO%d %d 0 R">
+  2b0:  addq $1, %rbx
+  2b4:  callq fn:pdfout+0
+  2b9:  cmpl %ebx, (%rip)   <var:xobj_n+0>
+  2bf:  jg 0x2a0
+  2c1:  movl $0, %edi   <str:" >>\n">
+  2c6:  xorl %eax, %eax
+  2c8:  callq fn:pdfout+0
+  2cd:  jmp 0x20c
+  2d2:  nopw (%rax, %rax)
+  2d8:  xorl %eax, %eax
+  2da:  movl $0, %edi   <str:"  /Annots [">
+  2df:  xorl %ebx, %ebx
+  2e1:  callq fn:pdfout+0
+  2e6:  movl (%rip), %eax   <var:ann_n+0>
+  2ec:  testl %eax, %eax
+  2ee:  jle 0x30f
+  2f0:  movl (, %rbx, 4), %esi   <var:ann+0>
+  2f7:  xorl %eax, %eax
+  2f9:  movl $0, %edi   <str:" %d 0 R">
+  2fe:  addq $1, %rbx
+  302:  callq fn:pdfout+0
+  307:  cmpl %ebx, (%rip)   <var:ann_n+0>
+  30d:  jg 0x2f0
+  30f:  movl $0, %edi   <str:" ]\n">
+  314:  xorl %eax, %eax
+  316:  callq fn:pdfout+0
+  31b:  jmp 0x235
+  320:  leal 0x400(%rsi), %edx
+  326:  movq (%rip), %rdi   <var:page_id+0>
+  32d:  movl $4, %ecx
+  332:  movl %edx, (%rip)   <var:page_sz+0>
+  338:  movslq %edx, %rdx
+  33b:  callq mextend+0
+  340:  movslq (%rip), %rsi   <var:page_n+0>
+  347:  movq %rax, (%rip)   <var:page_id+0>
+  34e:  jmp 0xff
+  353:  nopl (%rax, %rax)
+  358:  movq (%rip), %rdi   <var:pg+0>
+  35f:  movl $0, %esi   <str:">] TJ\n">
+  364:  xorl %eax, %eax
+  366:  callq sbuf_printf+0
+  36b:  jmp 0x11

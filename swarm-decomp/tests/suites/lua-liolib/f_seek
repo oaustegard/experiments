@@ -1,0 +1,61 @@
+# f_seek  (static, 206 bytes, 60 instructions)
+    0:  pushq %r13
+    2:  movl $0, %edx   <str:"FILE*">
+    7:  movl $1, %esi
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $8, %rsp
+   17:  callq luaL_checkudata+0
+   1c:  cmpq $0, 8(%rax)
+   21:  movq %rax, %rbp
+   24:  je 0xa0
+   26:  movl $0, %ecx   <var:modenames+0>
+   2b:  movl $0, %edx   <str:"cur">
+   30:  movl $2, %esi
+   35:  movq %rbx, %rdi
+   38:  movq (%rbp), %r13
+   3c:  callq luaL_checkoption+0
+   41:  xorl %edx, %edx
+   43:  movl $3, %esi
+   48:  movq %rbx, %rdi
+   4b:  movslq %eax, %rbp
+   4e:  callq luaL_optinteger+0
+   53:  movq %rax, %r12
+   56:  callq __errno_location+0
+   5b:  movl (, %rbp, 4), %edx   <var:mode+0>
+   62:  movq %r12, %rsi
+   65:  movq %r13, %rdi
+   68:  movl $0, (%rax)
+   6e:  callq fseeko64+0
+   73:  testl %eax, %eax
+   75:  jne 0xb8
+   77:  movq %r13, %rdi
+   7a:  callq ftello64+0
+   7f:  movq %rbx, %rdi
+   82:  movq %rax, %rsi
+   85:  callq lua_pushinteger+0
+   8a:  addq $8, %rsp
+   8e:  movl $1, %eax
+   93:  popq %rbx
+   94:  popq %rbp
+   95:  popq %r12
+   97:  popq %r13
+   99:  retq
+   9a:  nopw (%rax, %rax)
+   a0:  movl $0, %esi   <str:"attempt to use a closed file">
+   a5:  movq %rbx, %rdi
+   a8:  xorl %eax, %eax
+   aa:  callq luaL_error+0
+   af:  jmp 0x26
+   b4:  nopl (%rax)
+   b8:  addq $8, %rsp
+   bc:  movq %rbx, %rdi
+   bf:  xorl %edx, %edx
+   c1:  xorl %esi, %esi
+   c3:  popq %rbx
+   c4:  popq %rbp
+   c5:  popq %r12
+   c7:  popq %r13
+   c9:  jmp luaL_fileresult+0

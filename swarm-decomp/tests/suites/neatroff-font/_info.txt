@@ -1,0 +1,42 @@
+# neatroff-font: translation unit font of neatroff
+# write each function as src/neatroff/font/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+font_findfeat	static	128 bytes
+font_findscrp	static	130 bytes
+font_findlang	static	130 bytes
+font_readfeat	static	185 bytes
+font_readchar	static	454 bytes
+font_isetinsert.isra.0	static	106 bytes
+font_gpos	static	236 bytes
+font_gsub	static	236 bytes
+font_rulematch	static	474 bytes
+font_readgpat	static	263 bytes
+font_readgpos.isra.0	static	239 bytes
+font_readgsub.isra.0	static	228 bytes
+font_find	global	81 bytes
+font_glyph	global	42 bytes
+font_map	global	138 bytes
+font_mapped	global	30 bytes
+font_layout	global	2216 bytes
+font_open	global	2836 bytes
+font_close	global	244 bytes
+font_special	global	4 bytes
+font_wid	global	75 bytes
+font_gwid	global	420 bytes
+font_swid	global	148 bytes
+font_getcs	global	4 bytes
+font_setcs	global	7 bytes
+font_getbd	global	4 bytes
+font_setbd	global	4 bytes
+font_track	global	34 bytes
+font_zoom	global	38 bytes
+font_setzoom	global	4 bytes
+font_feat	global	52 bytes
+font_scrp	global	27 bytes
+font_lang	global	27 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __isoc99_fscanf __isoc99_sscanf dev_res dev_uwid dict_free dict_get dict_make dict_put dir_do fclose fgets fopen free getc iset_free iset_get iset_has iset_len iset_make iset_put memcpy memset mextend snprintf sprintf strchr strcmp strtol utf8read xmalloc

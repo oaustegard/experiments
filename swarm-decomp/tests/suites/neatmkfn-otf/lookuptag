@@ -1,0 +1,27 @@
+# lookuptag  (static, 96 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %ecx   <str:"DFLT">
+    6:  cmpb $0, (%rdi)
+    9:  movq %rdi, %rbx
+    c:  cmovneq %rdi, %rcx
+   10:  leaq 0x10(%rdi), %rdx
+   14:  xorl %eax, %eax
+   16:  movl $0, %esi   <str:"%s:%s">
+   1b:  movl $0, %edi   <var:tag+0>
+   20:  callq sprintf+0
+   25:  cmpb $0, 8(%rbx)
+   29:  jne 0x38
+   2b:  movl $0, %eax   <var:tag+0>
+   30:  popq %rbx
+   31:  retq
+   32:  nopw (%rax, %rax)
+   38:  movl $0, %edi   <var:tag+0>
+   3d:  callq strlen+0
+   42:  leaq 8(%rbx), %rdx
+   46:  movl $0, %esi   <str:":%s">
+   4b:  leaq (%rax), %rdi   <var:tag+0>
+   52:  xorl %eax, %eax
+   54:  callq sprintf+0
+   59:  movl $0, %eax   <var:tag+0>
+   5e:  popq %rbx
+   5f:  retq

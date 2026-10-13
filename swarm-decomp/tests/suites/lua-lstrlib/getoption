@@ -1,0 +1,125 @@
+# getoption  (static, 531 bytes, 124 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdx, %rbx
+    8:  subq $8, %rsp
+    c:  movq (%rsi), %rcx
+    f:  leaq 1(%rcx), %rdi
+   13:  movq %rdi, (%rsi)
+   16:  movsbl (%rcx), %edx
+   19:  movl $0, (%rbx)
+   1f:  leal -0x20(%rdx), %eax
+   22:  cmpb $0x5a, %al
+   24:  ja 0x70
+   26:  movzbl %al, %eax
+   29:  jmpq *(, %rax, 8)   <var:getoption+0>
+   30:  movl $8, %eax
+   35:  movl %eax, (%rbx)
+   37:  movl $1, %eax
+   3c:  addq $8, %rsp
+   40:  popq %rbx
+   41:  popq %rbp
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  movl $1, 8(%rbp)
+   4f:  movl $0xa, %eax
+   54:  jmp 0x3c
+   56:  nopw %cs:(%rax, %rax)
+   60:  movl $8, %eax
+   65:  movl %eax, (%rbx)
+   67:  xorl %eax, %eax
+   69:  jmp 0x3c
+   6b:  nopl (%rax, %rax)
+   70:  movq (%rbp), %rdi
+   74:  movl $0, %esi   <str:"invalid format option '%c'">
+   79:  xorl %eax, %eax
+   7b:  callq luaL_error+0
+   80:  jmp 0x4f
+   82:  nopw (%rax, %rax)
+   88:  movl $0, 8(%rbp)
+   8f:  jmp 0x4f
+   91:  nopl (%rax)
+   98:  movl $8, %edx
+   9d:  movq %rbp, %rdi
+   a0:  callq fn:getnumlimit+0
+   a5:  movl %eax, 0xc(%rbp)
+   a8:  jmp 0x4f
+   aa:  nopw (%rax, %rax)
+   b0:  movl $1, (%rbx)
+   b6:  movl $8, %eax
+   bb:  jmp 0x3c
+   c0:  movl $8, %edx
+   c5:  movq %rbp, %rdi
+   c8:  callq fn:getnumlimit+0
+   cd:  movl %eax, (%rbx)
+   cf:  movl $6, %eax
+   d4:  jmp 0x3c
+   d9:  nopl (%rax)
+   e0:  movl $8, (%rbx)
+   e6:  movl $3, %eax
+   eb:  jmp 0x3c
+   f0:  movl $4, (%rbx)
+   f6:  movl $2, %eax
+   fb:  jmp 0x3c
+  100:  movl $8, (%rbx)
+  106:  movl $4, %eax
+  10b:  jmp 0x3c
+  110:  movsbl 1(%rcx), %eax
+  114:  subl $0x30, %eax
+  117:  cmpl $9, %eax
+  11a:  ja 0x1f8
+  120:  xorl %eax, %eax
+  122:  jmp 0x12f
+  124:  nopl (%rax)
+  128:  cmpl $0xccccccb, %eax
+  12d:  jg 0x14c
+  12f:  addq $1, %rdi
+  133:  leal (%rax, %rax, 4), %edx
+  136:  movq %rdi, (%rsi)
+  139:  movsbl -1(%rdi), %eax
+  13d:  leal -0x30(%rax, %rdx, 2), %eax
+  141:  movsbl (%rdi), %edx
+  144:  subl $0x30, %edx
+  147:  cmpl $9, %edx
+  14a:  jbe 0x128
+  14c:  movl %eax, (%rbx)
+  14e:  cmpl $-1, %eax
+  151:  je 0x1fe
+  157:  movl $5, %eax
+  15c:  jmp 0x3c
+  161:  nopl (%rax)
+  168:  movl $4, %edx
+  16d:  movq %rbp, %rdi
+  170:  callq fn:getnumlimit+0
+  175:  jmp 0x35
+  17a:  nopw (%rax, %rax)
+  180:  movl $4, %edx
+  185:  movq %rbp, %rdi
+  188:  callq fn:getnumlimit+0
+  18d:  jmp 0x65
+  192:  nopw (%rax, %rax)
+  198:  movl $9, %eax
+  19d:  jmp 0x3c
+  1a2:  nopw (%rax, %rax)
+  1a8:  movl $2, %eax
+  1ad:  jmp 0x65
+  1b2:  nopw (%rax, %rax)
+  1b8:  movl $2, %eax
+  1bd:  jmp 0x35
+  1c2:  nopw (%rax, %rax)
+  1c8:  movl $1, %eax
+  1cd:  jmp 0x65
+  1d2:  nopw (%rax, %rax)
+  1d8:  movl $7, %eax
+  1dd:  jmp 0x3c
+  1e2:  nopw (%rax, %rax)
+  1e8:  movl $1, %eax
+  1ed:  jmp 0x35
+  1f2:  nopw (%rax, %rax)
+  1f8:  movl $0xffffffff, (%rbx)
+  1fe:  movq (%rbp), %rdi
+  202:  movl $0, %esi   <str:"missing size for format option 'c'">
+  207:  xorl %eax, %eax
+  209:  callq luaL_error+0
+  20e:  jmp 0x157

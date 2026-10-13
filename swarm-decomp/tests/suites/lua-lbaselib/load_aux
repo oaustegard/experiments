@@ -1,0 +1,32 @@
+# load_aux  (static, 102 bytes, 31 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  testl %esi, %esi
+    6:  jne 0x48
+    8:  testl %edx, %edx
+    a:  jne 0x18
+    c:  movl $1, %eax
+   11:  popq %rbx
+   12:  retq
+   13:  nopl (%rax, %rax)
+   18:  movl %edx, %esi
+   1a:  callq lua_pushvalue+0
+   1f:  movl $1, %edx
+   24:  movl $0xfffffffe, %esi
+   29:  movq %rbx, %rdi
+   2c:  callq lua_setupvalue+0
+   31:  testq %rax, %rax
+   34:  jne 0xc
+   36:  movl $0xfffffffe, %esi
+   3b:  movq %rbx, %rdi
+   3e:  callq lua_settop+0
+   43:  jmp 0xc
+   45:  nopl (%rax)
+   48:  callq lua_pushnil+0
+   4d:  movq %rbx, %rdi
+   50:  movl $1, %edx
+   55:  movl $0xfffffffe, %esi
+   5a:  callq lua_rotate+0
+   5f:  movl $2, %eax
+   64:  popq %rbx
+   65:  retq

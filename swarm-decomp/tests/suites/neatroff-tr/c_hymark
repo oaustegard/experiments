@@ -1,0 +1,22 @@
+# c_hymark  (global, 59 bytes, 21 instructions)
+    0:  pushq %rbx
+    1:  cmpb $0x5c, (%rdi)
+    4:  movq %rdi, %rbx
+    7:  je 0x28
+    9:  callq env_hc+0
+    e:  movq %rbx, %rsi
+   11:  movq %rax, %rdi
+   14:  callq strcmp+0
+   19:  popq %rbx
+   1a:  testl %eax, %eax
+   1c:  sete %al
+   1f:  movzbl %al, %eax
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  cmpb $0x3a, 1(%rdi)
+   2c:  jne 9
+   2e:  cmpb $0, 2(%rdi)
+   32:  movl $1, %eax
+   37:  jne 9
+   39:  popq %rbx
+   3a:  retq

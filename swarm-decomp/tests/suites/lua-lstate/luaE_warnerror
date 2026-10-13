@@ -1,0 +1,62 @@
+# luaE_warnerror  (global, 229 bytes, 61 instructions)
+    0:  pushq %r12
+    2:  movl $0, %r12d   <str:"error object is not a string">
+    8:  pushq %rbp
+    9:  movq %rsi, %rbp
+    c:  pushq %rbx
+    d:  movq 0x10(%rdi), %rdx
+   11:  movq %rdi, %rbx
+   14:  movzbl -8(%rdx), %eax
+   18:  andl $0xf, %eax
+   1b:  cmpb $4, %al
+   1d:  jne 0x27
+   1f:  movq -0x10(%rdx), %r12
+   23:  addq $0x18, %r12
+   27:  movq 0x18(%rbx), %rdx
+   2b:  movq 0x578(%rdx), %rax
+   32:  testq %rax, %rax
+   35:  je 0xe0
+   3b:  movq 0x580(%rdx), %rdi
+   42:  movl $0, %esi   <str:"error in ">
+   47:  movl $1, %edx
+   4c:  callq *%rax
+   4e:  movq 0x18(%rbx), %rdx
+   52:  movq 0x578(%rdx), %rax
+   59:  testq %rax, %rax
+   5c:  je 0xe0
+   62:  movq 0x580(%rdx), %rdi
+   69:  movq %rbp, %rsi
+   6c:  movl $1, %edx
+   71:  callq *%rax
+   73:  movq 0x18(%rbx), %rdx
+   77:  movq 0x578(%rdx), %rax
+   7e:  testq %rax, %rax
+   81:  je 0xe0
+   83:  movq 0x580(%rdx), %rdi
+   8a:  movl $0, %esi   <str:" (">
+   8f:  movl $1, %edx
+   94:  callq *%rax
+   96:  movq 0x18(%rbx), %rdx
+   9a:  movq 0x578(%rdx), %rax
+   a1:  testq %rax, %rax
+   a4:  je 0xe0
+   a6:  movq 0x580(%rdx), %rdi
+   ad:  movq %r12, %rsi
+   b0:  movl $1, %edx
+   b5:  callq *%rax
+   b7:  movq 0x18(%rbx), %rdx
+   bb:  movq 0x578(%rdx), %rax
+   c2:  testq %rax, %rax
+   c5:  je 0xe0
+   c7:  popq %rbx
+   c8:  movq 0x580(%rdx), %rdi
+   cf:  movl $0, %esi   <str:")">
+   d4:  xorl %edx, %edx
+   d6:  popq %rbp
+   d7:  popq %r12
+   d9:  jmpq *%rax
+   db:  nopl (%rax, %rax)
+   e0:  popq %rbx
+   e1:  popq %rbp
+   e2:  popq %r12
+   e4:  retq

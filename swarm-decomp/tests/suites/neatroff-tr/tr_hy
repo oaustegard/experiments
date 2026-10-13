@@ -1,0 +1,26 @@
+# tr_hy  (static, 79 bytes, 25 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %ebp
+    6:  pushq %rbx
+    7:  subq $8, %rsp
+    b:  cmpq $0, 8(%rdi)
+   10:  je 0x35
+   12:  movq %rdi, %rbx
+   15:  movl $0, %edi   <str:".hy">
+   1a:  callq map+0
+   1f:  movl %eax, %edi
+   21:  callq nreg+0
+   26:  movq 8(%rbx), %rdi
+   2a:  xorl %edx, %edx
+   2c:  movl (%rax), %esi
+   2e:  callq eval_re+0
+   33:  movl %eax, %ebp
+   35:  movl $0, %edi   <str:".hy">
+   3a:  callq map+0
+   3f:  movl %eax, %edi
+   41:  callq nreg+0
+   46:  movl %ebp, (%rax)
+   48:  addq $8, %rsp
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  retq

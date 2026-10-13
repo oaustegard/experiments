@@ -1,0 +1,49 @@
+# luaD_shrinkstack  (global, 178 bytes, 48 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  movq 0x10(%rdi), %rdx
+    8:  testq %rax, %rax
+    b:  je 0x24
+    d:  nopl (%rax)
+   10:  movq 8(%rax), %rcx
+   14:  movq 0x10(%rax), %rax
+   18:  cmpq %rcx, %rdx
+   1b:  cmovbq %rcx, %rdx
+   1f:  testq %rax, %rax
+   22:  jne 0x10
+   24:  movq 0x30(%rdi), %r8
+   28:  movl $0x14, %ecx
+   2d:  subq %r8, %rdx
+   30:  sarq $4, %rdx
+   34:  leal 1(%rdx), %eax
+   37:  cmpl %ecx, %eax
+   39:  cmovll %ecx, %eax
+   3c:  cmpl $0x51614, %edx
+   42:  jg 0x80
+   44:  movq 0x28(%rdi), %rdx
+   48:  leal (%rax, %rax), %esi
+   4b:  addl %esi, %eax
+   4d:  subq %r8, %rdx
+   50:  sarq $4, %rdx
+   54:  cmpl %edx, %eax
+   56:  jge 0x88
+   58:  subq $0x18, %rsp
+   5c:  xorl %edx, %edx
+   5e:  movq %rdi, 8(%rsp)
+   63:  callq luaD_reallocstack+0
+   68:  movq 8(%rsp), %rdi
+   6d:  addq $0x18, %rsp
+   71:  jmp luaE_shrinkCI+0
+   76:  nopw %cs:(%rax, %rax)
+   80:  cmpl $0xf423f, %edx
+   86:  jle 0x8d
+   88:  jmp luaE_shrinkCI+0
+   8d:  movq 0x28(%rdi), %rcx
+   91:  subq %r8, %rcx
+   94:  sarq $4, %rcx
+   98:  cmpl $0xf4240, %ecx
+   9e:  jle 0x88
+   a0:  movl $0xf4240, %esi
+   a5:  cmpl $0x7a11f, %edx
+   ab:  jg 0x58
+   ad:  leal (%rax, %rax), %esi
+   b0:  jmp 0x58

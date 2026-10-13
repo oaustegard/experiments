@@ -1,0 +1,149 @@
+# luaK_prefix  (global, 518 bytes, 148 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movl %ecx, %r13d
+    9:  pushq %r12
+    b:  movl %esi, %r12d
+    e:  movq %rdx, %rsi
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  movq %rdx, %rbx
+   19:  subq $8, %rsp
+   1d:  callq luaK_dischargevars+0
+   22:  cmpl $2, %r12d
+   26:  je 0xb0
+   2c:  jbe 0x88
+   2e:  cmpl $3, %r12d
+   32:  jne 0xa1
+   34:  movq %rbx, %rsi
+   37:  movq %rbp, %rdi
+   3a:  addl $0x31, %r12d
+   3e:  callq luaK_exp2anyreg+0
+   43:  cmpl $8, (%rbx)
+   46:  movl %eax, %r14d
+   49:  je 0x188
+   4f:  movl %r14d, %esi
+   52:  movq %rbp, %rdi
+   55:  shll $0x10, %esi
+   58:  orl %r12d, %esi
+   5b:  callq luaK_code+0
+   60:  movl $0x11, (%rbx)
+   66:  movl %r13d, %esi
+   69:  movq %rbp, %rdi
+   6c:  movl %eax, 8(%rbx)
+   6f:  addq $8, %rsp
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  popq %r12
+   77:  popq %r13
+   79:  popq %r14
+   7b:  popq %r15
+   7d:  jmp luaK_fixline+0
+   82:  nopw (%rax, %rax)
+   88:  leal 0xc(%r12), %esi
+   8d:  movl $0, %ecx   <var:ef+0>
+   92:  movq %rbx, %rdx
+   95:  movq %rbp, %rdi
+   98:  callq fn:constfolding+0
+   9d:  testl %eax, %eax
+   9f:  je 0x34
+   a1:  addq $8, %rsp
+   a5:  popq %rbx
+   a6:  popq %rbp
+   a7:  popq %r12
+   a9:  popq %r13
+   ab:  popq %r14
+   ad:  popq %r15
+   af:  retq
+   b0:  movl (%rbx), %eax
+   b2:  cmpl $0x11, %eax
+   b5:  ja 0xc6
+   b7:  movl %eax, %edx
+   b9:  jmpq *(, %rdx, 8)   <var:luaK_prefix+0>
+   c0:  movl $2, (%rbx)
+   c6:  movq 0x10(%rbx), %xmm0
+   cb:  movq %rbp, %rdi
+   ce:  pshufd $0xe1, %xmm0, %xmm1
+   d3:  movd %xmm0, %esi
+   d7:  movq %xmm1, 0x10(%rbx)
+   dc:  callq fn:removevalues+0
+   e1:  movl 0x10(%rbx), %esi
+   e4:  addq $8, %rsp
+   e8:  movq %rbp, %rdi
+   eb:  popq %rbx
+   ec:  popq %rbp
+   ed:  popq %r12
+   ef:  popq %r13
+   f1:  popq %r14
+   f3:  popq %r15
+   f5:  jmp fn:removevalues+0
+   fa:  nopw (%rax, %rax)
+  100:  movl $3, (%rbx)
+  106:  jmp 0xc6
+  108:  nopl (%rax, %rax)
+  110:  cmpl $8, %eax
+  113:  jne 0x1b0
+  119:  movl 8(%rbx), %r12d
+  11d:  movq %rbp, %rdi
+  120:  callq luaY_nvarstack+0
+  125:  cmpl %eax, %r12d
+  128:  jl 0x130
+  12a:  subb $1, 0x44(%rbp)
+  12e:  nop
+  130:  movl 8(%rbx), %esi
+  133:  movq %rbp, %rdi
+  136:  shll $0x10, %esi
+  139:  orl $0x33, %esi
+  13c:  callq luaK_code+0
+  141:  movl $0x11, (%rbx)
+  147:  movl %eax, 8(%rbx)
+  14a:  jmp 0xc6
+  14f:  nop
+  150:  movq (%rbp), %rax
+  154:  movslq 8(%rbx), %rcx
+  158:  movq 0x40(%rax), %rax
+  15c:  leaq (%rax, %rcx, 4), %rax
+  160:  testl %ecx, %ecx
+  162:  jle 0x179
+  164:  movl -4(%rax), %edx
+  167:  leaq -4(%rax), %rcx
+  16b:  andl $0x7f, %edx
+  16e:  testb $0x10, (%rdx)   <luaP_opmodes+0>
+  175:  cmovneq %rcx, %rax
+  179:  xorl $0x8000, (%rax)
+  17f:  jmp 0xc6
+  184:  nopl (%rax)
+  188:  movl 8(%rbx), %r15d
+  18c:  movq %rbp, %rdi
+  18f:  callq luaY_nvarstack+0
+  194:  cmpl %eax, %r15d
+  197:  jl 0x4f
+  19d:  subb $1, 0x44(%rbp)
+  1a1:  jmp 0x4f
+  1a6:  nopw %cs:(%rax, %rax)
+  1b0:  movq (%rbp), %rcx
+  1b4:  movzbl 0x44(%rbp), %edx
+  1b8:  movzbl 0xc(%rcx), %edi
+  1bc:  leal 1(%rdx), %esi
+  1bf:  movl %edx, %eax
+  1c1:  cmpl %edi, %esi
+  1c3:  jg 0x1e8
+  1c5:  addl $1, %eax
+  1c8:  movb %al, 0x44(%rbp)
+  1cb:  movq %rbx, %rsi
+  1ce:  movq %rbp, %rdi
+  1d1:  callq fn:discharge2reg+0
+  1d6:  cmpl $8, (%rbx)
+  1d9:  jne 0x130
+  1df:  jmp 0x119
+  1e4:  nopl (%rax)
+  1e8:  cmpl $0xfe, %esi
+  1ee:  jg 0x1f8
+  1f0:  addl $1, %eax
+  1f3:  movb %al, 0xc(%rcx)
+  1f6:  jmp 0x1c8
+  1f8:  movq 0x10(%rbp), %rdi
+  1fc:  movl $0, %esi   <str:"function or expression needs too many registers">
+  201:  callq luaX_syntaxerror+0

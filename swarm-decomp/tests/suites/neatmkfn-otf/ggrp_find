@@ -1,0 +1,41 @@
+# ggrp_find  (static, 125 bytes, 40 instructions)
+    0:  movslq (%rip), %r10   <var:ggrp_n+0>
+    7:  testl %r10d, %r10d
+    a:  jle 0x70
+    c:  xorl %eax, %eax
+    e:  movslq %esi, %r9
+   11:  jmp 0x21
+   13:  nopl (%rax, %rax)
+   18:  addq $1, %rax
+   1c:  cmpq %r10, %rax
+   1f:  je 0x70
+   21:  cmpl %esi, (, %rax, 4)   <var:ggrp_len+0>
+   28:  jne 0x18
+   2a:  testl %esi, %esi
+   2c:  jle 0x76
+   2e:  movq (, %rax, 8), %r8   <var:ggrp_g+0>
+   36:  xorl %edx, %edx
+   38:  jmp 0x4c
+   3a:  nopw (%rax, %rax)
+   40:  leaq 1(%rdx), %rcx
+   44:  cmpq %r9, %rcx
+   47:  je 0x60
+   49:  movq %rcx, %rdx
+   4c:  movl (%r8, %rdx, 4), %ecx
+   50:  cmpl %ecx, (%rdi, %rdx, 4)
+   53:  je 0x40
+   55:  cmpl %edx, %esi
+   57:  jne 0x18
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  addl $1, %edx
+   63:  cmpl %edx, %esi
+   65:  jne 0x18
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  movl $0xffffffff, %eax
+   75:  retq
+   76:  xorl %edx, %edx
+   78:  cmpl %edx, %esi
+   7a:  jne 0x18
+   7c:  retq

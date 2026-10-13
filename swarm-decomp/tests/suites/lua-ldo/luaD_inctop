@@ -1,0 +1,21 @@
+# luaD_inctop  (global, 78 bytes, 20 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  movq 0x28(%rdi), %rdx
+    8:  subq %rax, %rdx
+    b:  cmpq $0x10, %rdx
+    f:  jle 0x20
+   11:  addq $0x10, %rax
+   15:  movq %rax, 0x10(%rdi)
+   19:  retq
+   1a:  nopw (%rax, %rax)
+   20:  subq $0x18, %rsp
+   24:  movl $1, %edx
+   29:  movl $1, %esi
+   2e:  movq %rdi, 8(%rsp)
+   33:  callq luaD_growstack+0
+   38:  movq 8(%rsp), %rdi
+   3d:  movq 0x10(%rdi), %rax
+   41:  addq $0x10, %rax
+   45:  movq %rax, 0x10(%rdi)
+   49:  addq $0x18, %rsp
+   4d:  retq

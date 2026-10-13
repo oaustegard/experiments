@@ -1,0 +1,10 @@
+# sstr_pop  (global, 43 bytes, 9 instructions)
+    0:  movl (%rip), %eax   <var:sstr_n+0>
+    6:  movq (%rip), %rdx   <var:sstr_s+0>
+    d:  subl $1, %eax
+   10:  movl %eax, (%rip)   <var:sstr_n+0>
+   16:  cltq
+   18:  movq (, %rax, 8), %rax   <var:sstr_bufs+0>
+   20:  movq %rax, (%rip)   <var:sstr_s+0>
+   27:  movq %rdx, %rax
+   2a:  retq

@@ -1,0 +1,71 @@
+# trap_first  (static, 236 bytes, 70 instructions)
+    0:  movl (%rip), %edx   <var:ntraps+0>
+    6:  pushq %r14
+    8:  pushq %r13
+    a:  pushq %r12
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  testl %edx, %edx
+   10:  jle 0x90
+   12:  movl %edi, %r12d
+   15:  xorl %ebx, %ebx
+   17:  movl $0xffffffff, %r13d
+   1d:  jmp 0x5c
+   1f:  nop
+   20:  cmpl %r12d, %edx
+   23:  jle 0x50
+   25:  testl %r13d, %r13d
+   28:  js 0x47
+   2a:  movl %eax, %ebp
+   2c:  testl %eax, %eax
+   2e:  js 0xa8
+   30:  movslq %r13d, %r14
+   33:  movl (, %r14, 4), %eax   <var:tpos+0>
+   3b:  testl %eax, %eax
+   3d:  js 0xd0
+   43:  cmpl %eax, %ebp
+   45:  jge 0x50
+   47:  movl %ebx, %r13d
+   4a:  nopw (%rax, %rax)
+   50:  addq $1, %rbx
+   54:  cmpl %ebx, (%rip)   <var:ntraps+0>
+   5a:  jle 0x96
+   5c:  movl (, %rbx, 4), %eax   <var:treg+0>
+   63:  testl %eax, %eax
+   65:  js 0x50
+   67:  movl (, %rbx, 4), %eax   <var:tpos+0>
+   6e:  movl %eax, %edx
+   70:  testl %eax, %eax
+   72:  jns 0x20
+   74:  movl $0x70, %edi
+   79:  callq nreg+0
+   7e:  movq %rax, %rdx
+   81:  movl (, %rbx, 4), %eax   <var:tpos+0>
+   88:  movl (%rdx), %ecx
+   8a:  addl %eax, %ecx
+   8c:  movl %ecx, %edx
+   8e:  jmp 0x20
+   90:  movl $0xffffffff, %r13d
+   96:  popq %rbx
+   97:  movl %r13d, %eax
+   9a:  popq %rbp
+   9b:  popq %r12
+   9d:  popq %r13
+   9f:  popq %r14
+   a1:  retq
+   a2:  nopw (%rax, %rax)
+   a8:  movl $0x70, %edi
+   ad:  movslq %r13d, %r14
+   b0:  callq nreg+0
+   b5:  movl (, %rbx, 4), %edx   <var:tpos+0>
+   bc:  addl (%rax), %edx
+   be:  movl (, %r14, 4), %eax   <var:tpos+0>
+   c6:  movl %edx, %ebp
+   c8:  testl %eax, %eax
+   ca:  jns 0x43
+   d0:  movl $0x70, %edi
+   d5:  callq nreg+0
+   da:  movq %rax, %rdx
+   dd:  movl (, %r14, 4), %eax   <var:tpos+0>
+   e5:  addl (%rdx), %eax
+   e7:  jmp 0x43

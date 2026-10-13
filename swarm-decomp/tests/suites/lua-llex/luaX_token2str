@@ -1,0 +1,29 @@
+# luaX_token2str  (global, 115 bytes, 28 instructions)
+    0:  cmpl $0xff, %esi
+    6:  jg 0x30
+    8:  leal 1(%rsi), %eax
+    b:  movq 0x38(%rdi), %rdi
+    f:  movl %esi, %edx
+   11:  cltq
+   13:  testb $4, (%rax)   <luai_ctype_+0>
+   1a:  je 0x50
+   1c:  movl $0, %esi   <str:"'%c'">
+   21:  xorl %eax, %eax
+   23:  jmp luaO_pushfstring+0
+   28:  nopl (%rax, %rax)
+   30:  leal -0x100(%rsi), %eax
+   36:  cltq
+   38:  movq (, %rax, 8), %rax   <var:luaX_tokens+0>
+   40:  cmpl $0x11f, %esi
+   46:  jle 0x60
+   48:  retq
+   49:  nopl (%rax)
+   50:  movl $0, %esi   <str:"'<\\%d>'">
+   55:  xorl %eax, %eax
+   57:  jmp luaO_pushfstring+0
+   5c:  nopl (%rax)
+   60:  movq 0x38(%rdi), %rdi
+   64:  movq %rax, %rdx
+   67:  movl $0, %esi   <str:"'%s'">
+   6c:  xorl %eax, %eax
+   6e:  jmp luaO_pushfstring+0

@@ -1,0 +1,18 @@
+# luaS_hash  (global, 46 bytes, 17 instructions)
+    0:  movl %edx, %eax
+    2:  xorl %esi, %eax
+    4:  testq %rsi, %rsi
+    7:  je 0x2d
+    9:  nopl (%rax)
+   10:  movl %eax, %ecx
+   12:  movl %eax, %edx
+   14:  subq $1, %rsi
+   18:  shrl $2, %edx
+   1b:  shll $5, %ecx
+   1e:  addl %edx, %ecx
+   20:  movzbl (%rdi, %rsi), %edx
+   24:  addl %edx, %ecx
+   26:  xorl %ecx, %eax
+   28:  testq %rsi, %rsi
+   2b:  jne 0x10
+   2d:  retq

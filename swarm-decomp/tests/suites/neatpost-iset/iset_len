@@ -1,0 +1,10 @@
+# iset_len  (global, 22 bytes, 9 instructions)
+    0:  xorl %eax, %eax
+    2:  testl %esi, %esi
+    4:  js 0x15
+    6:  cmpl %esi, 0x18(%rdi)
+    9:  jle 0x15
+    b:  movq 0x10(%rdi), %rax
+    f:  movslq %esi, %rsi
+   12:  movl (%rax, %rsi, 4), %eax
+   15:  retq

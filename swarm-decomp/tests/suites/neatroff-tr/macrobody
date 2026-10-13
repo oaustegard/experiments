@@ -1,0 +1,75 @@
+# macrobody  (static, 248 bytes, 74 instructions)
+    0:  pushq %r13
+    2:  movq %rsi, %r13
+    5:  pushq %r12
+    7:  movq %rdi, %r12
+    a:  movl $0xa, %edi
+    f:  pushq %rbp
+   10:  movl $1, %ebp
+   15:  pushq %rbx
+   16:  subq $8, %rsp
+   1a:  callq in_back+0
+   1f:  movl $1, %edi
+   24:  callq cp_copymode+0
+   29:  jmp 0x4a
+   2b:  nopl (%rax, %rax)
+   30:  testq %r12, %r12
+   33:  je 0x43
+   35:  testl %ebp, %ebp
+   37:  jne 0x43
+   39:  movl %ebx, %esi
+   3b:  movq %r12, %rdi
+   3e:  callq sbuf_add+0
+   43:  xorl %ebp, %ebp
+   45:  cmpl $0xa, %ebx
+   48:  je 0x70
+   4a:  callq cp_next+0
+   4f:  movl %eax, %ebx
+   51:  testl %eax, %eax
+   53:  jns 0x30
+   55:  xorl %ebx, %ebx
+   57:  movq %rbx, %rdi
+   5a:  callq free+0
+   5f:  addq $8, %rsp
+   63:  xorl %edi, %edi
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  popq %r12
+   69:  popq %r13
+   6b:  jmp cp_copymode+0
+   70:  callq cp_next+0
+   75:  cmpl %eax, (%rip)   <c_cc+0>
+   7b:  jne 0xd0
+   7d:  movl $0x43, %edi
+   82:  callq nreg+0
+   87:  movl (%rax), %edi
+   89:  callq fn:read_name+0
+   8e:  movq %r13, %rdi
+   91:  movq %rax, %rsi
+   94:  movq %rax, %rbx
+   97:  callq strcmp+0
+   9c:  testl %eax, %eax
+   9e:  je 0xde
+   a0:  testq %r12, %r12
+   a3:  je 0xbe
+   a5:  movl (%rip), %esi   <c_cc+0>
+   ab:  movq %r12, %rdi
+   ae:  callq sbuf_add+0
+   b3:  movq %rbx, %rsi
+   b6:  movq %r12, %rdi
+   b9:  callq sbuf_append+0
+   be:  movq %rbx, %rdi
+   c1:  xorl %ebp, %ebp
+   c3:  callq free+0
+   c8:  jmp 0x4a
+   ca:  nopw (%rax, %rax)
+   d0:  movl %eax, %edi
+   d2:  xorl %ebp, %ebp
+   d4:  callq in_back+0
+   d9:  jmp 0x4a
+   de:  movq %r13, %rdi
+   e1:  xorl %esi, %esi
+   e3:  callq in_push+0
+   e8:  movl (%rip), %edi   <c_cc+0>
+   ee:  callq in_back+0
+   f3:  jmp 0x57

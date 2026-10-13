@@ -1,0 +1,27 @@
+# str_rn  (global, 141 bytes, 26 instructions)
+    0:  pushq %rbp
+    1:  movslq %edi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  cmpq $0, (, %rbp, 8)   <var:sregs+0>
+   12:  je 0x80
+   14:  movslq %esi, %rbx
+   17:  movq (, %rbx, 8), %rdi   <var:sregs+0>
+   1f:  testq %rdi, %rdi
+   22:  je 0x29
+   24:  callq free+0
+   29:  movq $0, (, %rbx, 8)   <var:sregs+0>
+   35:  movq (, %rbp, 8), %rax   <var:sregs+0>
+   3d:  movq $0, (, %rbx, 8)   <var:sregs_dat+0>
+   49:  movq %rax, (, %rbx, 8)   <var:sregs+0>
+   51:  movq (, %rbp, 8), %rax   <var:sregs_dat+0>
+   59:  movq $0, (, %rbp, 8)   <var:sregs+0>
+   65:  movq %rax, (, %rbx, 8)   <var:sregs_dat+0>
+   6d:  movq $0, (, %rbp, 8)   <var:sregs_dat+0>
+   79:  addq $8, %rsp
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  retq
+   80:  cmpq $0, (, %rbp, 8)   <var:sregs_dat+0>
+   89:  jne 0x14
+   8b:  jmp 0x79

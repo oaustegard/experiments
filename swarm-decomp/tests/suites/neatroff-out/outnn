@@ -1,0 +1,39 @@
+# outnn  (static, 191 bytes, 38 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0xd0, %rsp
+    b:  movq %rsi, 0x28(%rsp)
+   10:  movq %rdx, 0x30(%rsp)
+   15:  movq %rcx, 0x38(%rsp)
+   1a:  movq %r8, 0x40(%rsp)
+   1f:  movq %r9, 0x48(%rsp)
+   24:  testb %al, %al
+   26:  je 0x5f
+   28:  movaps %xmm0, 0x50(%rsp)
+   2d:  movaps %xmm1, 0x60(%rsp)
+   32:  movaps %xmm2, 0x70(%rsp)
+   37:  movaps %xmm3, 0x80(%rsp)
+   3f:  movaps %xmm4, 0x90(%rsp)
+   47:  movaps %xmm5, 0xa0(%rsp)
+   4f:  movaps %xmm6, 0xb0(%rsp)
+   57:  movaps %xmm7, 0xc0(%rsp)
+   5f:  leaq 0xe0(%rsp), %rax
+   67:  movq %rbx, %rdi
+   6a:  movl $0xa, %esi
+   6f:  movl $8, 8(%rsp)
+   77:  movq %rax, 0x10(%rsp)
+   7c:  leaq 0x20(%rsp), %rax
+   81:  movl $0x30, 0xc(%rsp)
+   89:  movq %rax, 0x18(%rsp)
+   8e:  callq strchr+0
+   93:  movq (%rip), %rdi   <stdout+0>
+   9a:  leaq 8(%rsp), %rdx
+   9f:  movq %rbx, %rsi
+   a2:  testq %rax, %rax
+   a5:  setne %al
+   a8:  movzbl %al, %eax
+   ab:  movl %eax, (%rip)   <var:out_nl+0>
+   b1:  callq vfprintf+0
+   b6:  addq $0xd0, %rsp
+   bd:  popq %rbx
+   be:  retq

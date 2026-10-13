@@ -1,0 +1,91 @@
+# lua_getupvalue  (global, 333 bytes, 90 instructions)
+    0:  movslq %edx, %rax
+    3:  movq %rdi, %rcx
+    6:  movq 0x20(%rdi), %rdx
+    a:  testl %esi, %esi
+    c:  jle 0x70
+    e:  movslq %esi, %rsi
+   11:  shlq $4, %rsi
+   15:  addq (%rdx), %rsi
+   18:  cmpq 0x10(%rdi), %rsi
+   1c:  jae 0x91
+   1e:  movzbl 8(%rsi), %edx
+   22:  movq (%rsi), %rdi
+   25:  andl $0x3f, %edx
+   28:  cmpb $6, %dl
+   2b:  je 0xa8
+   2d:  xorl %esi, %esi
+   2f:  cmpb $0x26, %dl
+   32:  jne 0x6a
+   34:  movzbl 0xa(%rdi), %edx
+   38:  leal -1(%rax), %r8d
+   3c:  cmpl %edx, %r8d
+   3f:  jae 0x6a
+   41:  addq $1, %rax
+   45:  movl $0, %esi   <str:"">
+   4a:  shlq $4, %rax
+   4e:  addq %rax, %rdi
+   51:  movq 0x10(%rcx), %rax
+   55:  movq (%rdi), %rdx
+   58:  movq %rdx, (%rax)
+   5b:  movzbl 8(%rdi), %edx
+   5f:  addq $0x10, %rax
+   63:  movb %dl, -8(%rax)
+   66:  movq %rax, 0x10(%rcx)
+   6a:  movq %rsi, %rax
+   6d:  retq
+   6e:  nop
+   70:  cmpl $0xfff0b9d9, %esi
+   76:  jge 0x118
+   7c:  cmpl $0xfff0b9d8, %esi
+   82:  je 0x140
+   88:  movq (%rdx), %rdx
+   8b:  cmpb $0x66, 8(%rdx)
+   8f:  je 0xe8
+   91:  movq 0x18(%rcx), %rdi
+   95:  movzbl 0x58(%rdi), %edx
+   99:  leaq 0x50(%rdi), %rsi
+   9d:  movq (%rsi), %rdi
+   a0:  andl $0x3f, %edx
+   a3:  cmpb $6, %dl
+   a6:  jne 0x2d
+   a8:  movq 0x18(%rdi), %rsi
+   ac:  leal -1(%rax), %edx
+   af:  cmpl 0x10(%rsi), %edx
+   b2:  jae 0x130
+   b4:  shlq $4, %rax
+   b8:  addq 0x50(%rsi), %rax
+   bc:  movslq %edx, %rdx
+   bf:  movq -0x10(%rax), %rax
+   c3:  movq 0x20(%rdi, %rdx, 8), %rdx
+   c8:  leaq 0x18(%rax), %rsi
+   cc:  testq %rax, %rax
+   cf:  movl $0, %eax   <str:"(no name)">
+   d4:  movq 0x10(%rdx), %rdi
+   d8:  cmoveq %rax, %rsi
+   dc:  jmp 0x51
+   e1:  nopl (%rax)
+   e8:  movq (%rdx), %rdi
+   eb:  movl $0xfff0b9d8, %edx
+   f0:  subl %esi, %edx
+   f2:  movzbl 0xa(%rdi), %r8d
+   f7:  cmpl %r8d, %edx
+   fa:  jg 0x91
+   fc:  movl $0xfff0b9d9, %edx
+  101:  subl %esi, %edx
+  103:  movslq %edx, %rdx
+  106:  shlq $4, %rdx
+  10a:  leaq (%rdi, %rdx), %rsi
+  10e:  jmp 0x1e
+  113:  nopl (%rax, %rax)
+  118:  movslq %esi, %rsi
+  11b:  shlq $4, %rsi
+  11f:  addq 0x10(%rdi), %rsi
+  123:  jmp 0x1e
+  128:  nopl (%rax, %rax)
+  130:  xorl %esi, %esi
+  132:  jmp 0x6a
+  137:  nopw (%rax, %rax)
+  140:  movq 0x18(%rdi), %rdi
+  144:  leaq 0x40(%rdi), %rsi
+  148:  jmp 0x1e

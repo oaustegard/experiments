@@ -1,0 +1,15 @@
+# drawl  (global, 65 bytes, 14 instructions)
+    0:  subq $8, %rsp
+    4:  addl (%rip), %edi   <var:o_h+0>
+    a:  addl (%rip), %esi   <var:o_v+0>
+   10:  movl %edi, (%rip)   <var:o_h+0>
+   16:  imull $0x64, %edi, %edi
+   19:  movl %esi, (%rip)   <var:o_v+0>
+   1f:  imull $0x64, %esi, %esi
+   22:  callq fn:pdfpos00+0
+   27:  movq (%rip), %rdi   <var:pg+0>
+   2e:  movl $0, %esi   <str:"%s l\n">
+   33:  addq $8, %rsp
+   37:  movq %rax, %rdx
+   3a:  xorl %eax, %eax
+   3c:  jmp sbuf_printf+0

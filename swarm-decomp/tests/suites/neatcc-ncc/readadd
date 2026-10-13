@@ -1,0 +1,31 @@
+# readadd  (static, 106 bytes, 30 instructions)
+    0:  pushq %rbx
+    1:  movl $0x2b, %ebx
+    6:  callq fn:readmul+0
+    b:  callq tok_see+0
+   10:  movzbl (%rax), %edx
+   13:  cmpl %edx, %ebx
+   15:  jne 0x3d
+   17:  cmpb $0, 1(%rax)
+   1b:  jne 0x3d
+   1d:  callq tok_get+0
+   22:  callq fn:readmul+0
+   27:  movl $0x10, %edi
+   2c:  callq fn:ts_addop+0
+   31:  callq tok_see+0
+   36:  movzbl (%rax), %edx
+   39:  cmpl %edx, %ebx
+   3b:  je 0x17
+   3d:  callq tok_see+0
+   42:  cmpb $0x2d, (%rax)
+   45:  jne 0x68
+   47:  cmpb $0, 1(%rax)
+   4b:  jne 0x68
+   4d:  callq tok_get+0
+   52:  callq fn:readmul+0
+   57:  movl $0x11, %edi
+   5c:  callq fn:ts_addop+0
+   61:  jmp 0xb
+   63:  nopl (%rax, %rax)
+   68:  popq %rbx
+   69:  retq

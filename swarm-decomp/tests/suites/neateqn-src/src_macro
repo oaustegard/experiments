@@ -1,0 +1,38 @@
+# src_macro  (global, 101 bytes, 37 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movl (%rip), %r13d   <var:nmacros+0>
+   11:  testl %r13d, %r13d
+   14:  jle 0x58
+   16:  movq %rdi, %r12
+   19:  movl $0, %ebx   <var:macros+0>
+   1e:  xorl %ebp, %ebp
+   20:  jmp 0x34
+   22:  nopw (%rax, %rax)
+   28:  addl $1, %ebp
+   2b:  addq $0x28, %rbx
+   2f:  cmpl %r13d, %ebp
+   32:  je 0x58
+   34:  movq %r12, %rsi
+   37:  movq %rbx, %rdi
+   3a:  callq strcmp+0
+   3f:  testl %eax, %eax
+   41:  jne 0x28
+   43:  addq $8, %rsp
+   47:  movl $1, %eax
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  popq %r13
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  addq $8, %rsp
+   5c:  xorl %eax, %eax
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  popq %r12
+   62:  popq %r13
+   64:  retq

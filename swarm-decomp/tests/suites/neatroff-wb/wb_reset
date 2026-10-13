@@ -1,0 +1,18 @@
+# wb_reset  (global, 68 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <sbuf_done+0>
+    9:  movq %rbx, %rdi
+    c:  movl $0x2070, %edx
+   11:  xorl %esi, %esi
+   13:  callq memset+0
+   18:  movq %rbx, %rdi
+   1b:  callq sbuf_init+0
+   20:  pcmpeqd %xmm0, %xmm0
+   24:  movl $1, 0x206c(%rbx)
+   2e:  movups %xmm0, 0x10(%rbx)
+   32:  movups %xmm0, 0x20(%rbx)
+   36:  movdqa (%rip), %xmm0   <cst:0000002000000020000000e0000000e0>
+   3e:  movups %xmm0, 0x54(%rbx)
+   42:  popq %rbx
+   43:  retq

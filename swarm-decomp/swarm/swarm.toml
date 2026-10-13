@@ -1,0 +1,115 @@
+# swarm-decomp: Haiku 5.5 workers doing matching decompilation (one suite per TU, one test per function).
+#   cd /home/user/swarm-decomp && python3 $SK/scripts/swarm.py run --config swarm/swarm.toml --only 'neat*' ...
+project = "swarm-decomp"
+state_dir = "swarm/state"
+rejected_dir = "swarm/rejected"
+wt_root = "/home/user/swarm-decomp-wt"
+
+[tests]
+# tests/run.py writes {test_id: {status, reason, stage, frac}}; ids are "<proj>-<tu>/<function>".
+command = ["python3", "tests/run.py", "--suite", "{suites}", "--jobs", "{jobs}", "--json", "{out}", "--quiet"]
+filter_args = ["--filter", "{glob}"]
+filter_escape = "fnmatch"
+env = { PYTHONDONTWRITEBYTECODE = "1" }
+timeout = 1800
+suites_dir = "tests/suites"
+tests_tree = "tests"
+link_untracked = []
+source_root = "tests/suites"        # the listing file tests/suites/<suite>/<function>: smallest functions first
+quarantine = []
+one_stage_ok = ["missing", "match"]   # all stubs at the start, nearly all "match" later; the category is in the reason
+
+[paths]
+code = ["src/"]
+allowed = []
+forbidden = ["tests/", "swarm/", "pipeline/"]
+junk = ["__pycache__/", ".pyc"]                 # target.o under tests/ are fixtures, not artefacts
+
+[queue]
+ladder = [["neat", 5], ["lua", 5]]
+default_level = 2
+keep_words = []
+shard_size = 10
+max_shards = 6
+max_test_attempts = 3
+reps = 3
+gate_targets = 20
+feature_after = 2
+
+[gate]
+# Every suite runs at every gate (about 15 s for all 101 TUs): a type edit in one TU can break another,
+# and a full run catches it, so no regression rides on the sample.
+always_suites = ["lua-lapi", "lua-lauxlib", "lua-lbaselib", "lua-lcode", "lua-lcorolib", "lua-lctype", "lua-ldblib",
+                "lua-ldebug", "lua-ldo", "lua-ldump", "lua-lfunc", "lua-lgc", "lua-linit", "lua-liolib",
+                "lua-llex", "lua-lmathlib", "lua-lmem", "lua-loadlib", "lua-lobject", "lua-lopcodes", "lua-loslib",
+                "lua-lparser", "lua-lstate", "lua-lstring", "lua-lstrlib", "lua-ltable", "lua-ltablib", "lua-ltm",
+                "lua-lua", "lua-lundump", "lua-lutf8lib", "lua-lvm", "lua-lzio", "neatcc-cpp", "neatcc-gen",
+                "neatcc-int", "neatcc-mem", "neatcc-ncc", "neatcc-out", "neatcc-reg", "neatcc-tok", "neatcc-x64",
+                "neateqn-box", "neateqn-def", "neateqn-eqn", "neateqn-reg", "neateqn-sbuf", "neateqn-src",
+                "neateqn-tok", "neatld-nld", "neatmail-ex", "neatmail-mail", "neatmail-mbox", "neatmail-me",
+                "neatmail-mime", "neatmail-mk", "neatmail-msg", "neatmail-pg", "neatmail-pn", "neatmail-regex",
+                "neatmail-sbuf", "neatmail-util", "neatmkfn-afm", "neatmkfn-mkfn", "neatmkfn-otf", "neatmkfn-sbuf",
+                "neatmkfn-tab", "neatmkfn-trfn", "neatpost-clr", "neatpost-dev", "neatpost-dict", "neatpost-font",
+                "neatpost-iset", "neatpost-pdf", "neatpost-pdfext", "neatpost-post", "neatpost-ps",
+                "neatpost-sbuf", "neatpost-txt", "neatrefer-refer", "neatroff-char", "neatroff-clr", "neatroff-cp",
+                "neatroff-dev", "neatroff-dict", "neatroff-dir", "neatroff-draw", "neatroff-eval", "neatroff-fmt",
+                "neatroff-font", "neatroff-hyph", "neatroff-in", "neatroff-iset", "neatroff-map", "neatroff-out",
+                "neatroff-reg", "neatroff-ren", "neatroff-roff", "neatroff-sbuf", "neatroff-tr", "neatroff-wb"]
+cheap_suites = ["neatcc-cpp", "neatcc-gen", "neatcc-int", "neatcc-mem", "neatcc-ncc", "neatcc-out", "neatcc-reg",
+                "neatcc-tok", "neatcc-x64", "neateqn-box", "neateqn-def", "neateqn-eqn", "neateqn-reg",
+                "neateqn-sbuf", "neateqn-src", "neateqn-tok", "neatld-nld", "neatmail-ex", "neatmail-mail",
+                "neatmail-mbox", "neatmail-me", "neatmail-mime", "neatmail-mk", "neatmail-msg", "neatmail-pg",
+                "neatmail-pn", "neatmail-regex", "neatmail-sbuf", "neatmail-util", "neatmkfn-afm", "neatmkfn-mkfn",
+                "neatmkfn-otf", "neatmkfn-sbuf", "neatmkfn-tab", "neatmkfn-trfn", "neatpost-clr", "neatpost-dev",
+                "neatpost-dict", "neatpost-font", "neatpost-iset", "neatpost-pdf", "neatpost-pdfext",
+                "neatpost-post", "neatpost-ps", "neatpost-sbuf", "neatpost-txt", "neatrefer-refer",
+                "neatroff-char", "neatroff-clr", "neatroff-cp", "neatroff-dev", "neatroff-dict", "neatroff-dir",
+                "neatroff-draw", "neatroff-eval", "neatroff-fmt", "neatroff-font", "neatroff-hyph", "neatroff-in",
+                "neatroff-iset", "neatroff-map", "neatroff-out", "neatroff-reg", "neatroff-ren", "neatroff-roff",
+                "neatroff-sbuf", "neatroff-tr", "neatroff-wb"]
+compat_command = ["python3", "{tree}/tests/bin/pin-check", "{tree}"]
+batch = 6
+sample = 0
+full_every = 200
+quick_every = 0                      # always_suites is already everything
+idle_refresh = true
+recheck_max = 1500
+coauthor = "Claude Haiku 5.5 <noreply@anthropic.com>"
+partial_credit = "frac"              # a caller can only match once its static callees exist: merge measurable progress
+partial_min_gain = 0.05
+
+[git]
+author_name = "Oskar Austegard"
+author_email = "oskar@austegard.com"
+
+[worker]
+system_prompt = "swarm/worker_prompt.md"
+model = "haiku"
+effort = ""
+timeout = 1500
+per_task_usd = 1.5
+feature_timeout = 3000
+feature_usd = 3.0
+tools = "Read,Grep,Glob,Edit,Write,Bash"
+allow = ["Edit(//tmp/**)", "Bash"]
+deny = ["Bash(curl:*)", "Bash(wget:*)", "Bash(git clone:*)", "Bash(git fetch:*)", "Bash(git pull:*)",
+        "Bash(git remote:*)", "Bash(git submodule:*)", "Bash(pip:*)", "Bash(pip3:*)", "Bash(python3 -m pip:*)",
+        "Bash(uv:*)", "Bash(npm:*)", "Bash(npx:*)", "Bash(apt:*)", "Bash(apt-get:*)", "Bash(nc:*)",
+        "Bash(ssh:*)", "Bash(scp:*)", "Bash(rsync:*)", "Bash(lynx:*)", "WebFetch", "WebSearch"]
+scratch = "/tmp/{id}"
+repro_command = "python3 tests/run.py --suite {suite} --filter '{test}' -v"
+task_footer = "Follow the procedure in your instructions. Read CONTRACT.md first."
+preflight_files = ["tests/run.py", "CONTRACT.md", "tests/flags.json"]
+feature_mode = """FEATURE MODE. Earlier workers on this cluster did not get a match (their notes are above).
+Your budget is larger: up to ~120 tool calls and about 50 minutes. Start from their notes, not from scratch.
+Reconstruct the TU's types properly first (every struct the listings touch, field by field, from the
+displacements across ALL functions of the TU in _info.txt, not just yours), then the functions. Compile your
+own TU with -S using the pinned flags to compare control flow when the runner's diff is not enough.
+One function matching with no regressions is a success (status fixed); say in notes what is left."""
+
+[run]
+concurrency = 16
+max_load = 12.0
+min_free_gb = 3.0
+idle_max = 14400
+poll = 5.0

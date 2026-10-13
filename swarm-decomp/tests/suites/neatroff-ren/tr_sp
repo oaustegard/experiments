@@ -1,0 +1,51 @@
+# tr_sp  (global, 156 bytes, 50 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movq (%rdi), %rax
+    e:  movsbl (%rax), %eax
+   11:  cmpl (%rip), %eax   <c_cc+0>
+   17:  je 0x80
+   19:  movq 8(%rbx), %rdi
+   1d:  testq %rdi, %rdi
+   20:  je 0x70
+   22:  movl $0x76, %esi
+   27:  callq eval+0
+   2c:  movl %eax, %ebx
+   2e:  testl %ebx, %ebx
+   30:  jne 0x40
+   32:  addq $8, %rsp
+   36:  popq %rbx
+   37:  popq %rbp
+   38:  retq
+   39:  nopl (%rax)
+   40:  movl $0, %edi   <str:".ns">
+   45:  callq map+0
+   4a:  movl %eax, %edi
+   4c:  callq nreg+0
+   51:  movl (%rax), %edx
+   53:  testl %edx, %edx
+   55:  jne 0x90
+   57:  testl %ebp, %ebp
+   59:  jne 0x32
+   5b:  addq $8, %rsp
+   5f:  movl %ebx, %edi
+   61:  popq %rbx
+   62:  popq %rbp
+   63:  jmp fn:down+0
+   68:  nopl (%rax, %rax)
+   70:  movl $0x76, %edi
+   75:  callq nreg+0
+   7a:  movl (%rax), %ebx
+   7c:  jmp 0x2e
+   7e:  nop
+   80:  callq fn:ren_br+0
+   85:  movl %eax, %ebp
+   87:  jmp 0x19
+   89:  nopl (%rax)
+   90:  movl (%rip), %eax   <var:ren_div+0>
+   96:  testl %eax, %eax
+   98:  je 0x32
+   9a:  jmp 0x57

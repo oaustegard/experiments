@@ -1,0 +1,25 @@
+# neatmail-me: translation unit me of neatmail
+# write each function as src/neatmail/me/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+q_beg	static	61 bytes
+q_put	static	163 bytes
+q_end	static	140 bytes
+me	global	1006 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+out_n	static	4 bytes	.bss.out_n
+    (zero-initialised)
+out_mime	static	4 bytes	.bss.out_mime
+    (zero-initialised)
+out	static	2048 bytes	.bss.out
+    (zero-initialised)
+out_mlen	static	4 bytes	.bss.out_mlen
+    (zero-initialised)
+out_mbuf	static	4 bytes	.bss.out_mbuf
+    (zero-initialised)
+out_mhdr	static	4 bytes	.bss.out_mhdr
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_tolower_loc fgets fputs memset stdin stdout

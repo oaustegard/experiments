@@ -1,0 +1,40 @@
+# symstr_add  (static, 146 bytes, 39 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  callq strlen+0
+   12:  movq (%rip), %rbp   <var:symstr_n+0>
+   19:  movq (%rip), %rdx   <var:symstr_sz+0>
+   20:  leaq 1(%rax), %r12
+   24:  movq (%rip), %rdi   <var:symstr+0>
+   2b:  leaq (%rbp, %r12), %r13
+   30:  cmpq %rdx, %r13
+   33:  jge 0x58
+   35:  addq %rbp, %rdi
+   38:  movq %rbx, %rsi
+   3b:  callq strcpy+0
+   40:  movq %r13, (%rip)   <var:symstr_n+0>
+   47:  addq $8, %rsp
+   4b:  movq %rbp, %rax
+   4e:  popq %rbx
+   4f:  popq %rbp
+   50:  popq %r12
+   52:  popq %r13
+   54:  retq
+   55:  nopl (%rax)
+   58:  movl $0x200, %eax
+   5d:  addq %rdx, %rdx
+   60:  movq %rbp, %rsi
+   63:  movl $1, %ecx
+   68:  cmpq %rax, %rdx
+   6b:  cmovlq %rax, %rdx
+   6f:  movq %rdx, (%rip)   <var:symstr_sz+0>
+   76:  callq mextend+0
+   7b:  movq (%rip), %rbp   <var:symstr_n+0>
+   82:  movq %rax, (%rip)   <var:symstr+0>
+   89:  movq %rax, %rdi
+   8c:  leaq (%r12, %rbp), %r13
+   90:  jmp 0x35

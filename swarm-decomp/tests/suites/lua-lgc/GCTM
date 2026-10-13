@@ -1,0 +1,87 @@
+# GCTM  (static, 311 bytes, 86 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $0x18, %rsp
+    d:  movq 0x18(%rdi), %rbp
+   11:  movq 0xb0(%rbp), %rax
+   18:  movq (%rax), %rdx
+   1b:  movq %rdx, 0xb0(%rbp)
+   22:  movq 0x70(%rbp), %rdx
+   26:  movq %rdx, (%rax)
+   29:  movq %rax, 0x70(%rbp)
+   2d:  movzbl 9(%rax), %edx
+   31:  movl %edx, %ecx
+   33:  andl $0xffffffbf, %ecx
+   36:  movb %cl, 9(%rax)
+   39:  movzbl 0x65(%rbp), %esi
+   3d:  leal -3(%rsi), %ecx
+   40:  cmpb $3, %cl
+   43:  ja 0x90
+   45:  movzbl 0x64(%rbp), %ecx
+   49:  andl $0xffffff87, %edx
+   4c:  andl $0x18, %ecx
+   4f:  orl %ecx, %edx
+   51:  movb %dl, 9(%rax)
+   54:  movq %rax, (%rsp)
+   58:  movzbl 8(%rax), %eax
+   5c:  movl $2, %edx
+   61:  movq %rsp, %rsi
+   64:  movq %rbx, %rdi
+   67:  orl $0x40, %eax
+   6a:  movb %al, 8(%rsp)
+   6e:  callq luaT_gettmbyobj+0
+   73:  movzbl 8(%rax), %edx
+   77:  testb $0xf, %dl
+   7a:  jne 0xa8
+   7c:  addq $0x18, %rsp
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  retq
+   87:  nopw (%rax, %rax)
+   90:  andl $7, %edx
+   93:  cmpb $3, %dl
+   96:  jne 0x54
+   98:  movq %rax, 0xd8(%rbp)
+   9f:  jmp 0x54
+   a1:  nopl (%rax)
+   a8:  movzbl 0x6a(%rbp), %r12d
+   ad:  movzbl 0xb(%rbx), %r13d
+   b2:  xorl %r8d, %r8d
+   b5:  movq %rbx, %rdi
+   b8:  movl $0, %esi   <fn:dothecall+0>
+   bd:  movl %r12d, %ecx
+   c0:  orl $2, %ecx
+   c3:  movb %cl, 0x6a(%rbp)
+   c6:  movq 0x10(%rbx), %rcx
+   ca:  movb $0, 0xb(%rbx)
+   ce:  movq (%rax), %rax
+   d1:  movb %dl, 8(%rcx)
+   d4:  xorl %edx, %edx
+   d6:  movq %rax, (%rcx)
+   d9:  leaq 0x20(%rcx), %rax
+   dd:  movq %rax, 0x10(%rbx)
+   e1:  movq (%rsp), %rax
+   e5:  movq %rax, 0x10(%rcx)
+   e9:  movzbl 8(%rsp), %eax
+   ee:  movb %al, 0x18(%rcx)
+   f1:  movq 0x20(%rbx), %rax
+   f5:  subq 0x30(%rbx), %rcx
+   f9:  orw $0x80, 0x3e(%rax)
+   ff:  callq luaD_pcall+0
+  104:  movl %eax, %edx
+  106:  movq 0x20(%rbx), %rax
+  10a:  andw $0xff7f, 0x3e(%rax)
+  110:  movb %r13b, 0xb(%rbx)
+  114:  movb %r12b, 0x6a(%rbp)
+  118:  testl %edx, %edx
+  11a:  je 0x7c
+  120:  movl $0, %esi   <str:"__gc">
+  125:  movq %rbx, %rdi
+  128:  callq luaE_warnerror+0
+  12d:  subq $0x10, 0x10(%rbx)
+  132:  jmp 0x7c

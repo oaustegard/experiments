@@ -1,0 +1,69 @@
+# ren_br  (static, 264 bytes, 68 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movl (%rip), %eax   <var:bp_first+0>
+    c:  testl %eax, %eax
+    e:  je 0x1e
+   10:  cmpq $0, (%rip)   <var:cdiv+0>
+   18:  je 0xef
+   1e:  callq env_wb+0
+   23:  movq %rax, %rbp
+   26:  nopw %cs:(%rax, %rax)
+   30:  callq env_fmt+0
+   35:  movq %rbp, %rsi
+   38:  movq %rax, %rdi
+   3b:  callq fmt_word+0
+   40:  testl %eax, %eax
+   42:  je 0x70
+   44:  callq env_fmt+0
+   49:  movq %rax, %rbx
+   4c:  nopl (%rax)
+   50:  movq %rbx, %rdi
+   53:  callq fmt_morelines+0
+   58:  testl %eax, %eax
+   5a:  je 0x30
+   5c:  movq %rbx, %rdi
+   5f:  callq fn:ren_passline+0
+   64:  jmp 0x50
+   66:  nopw %cs:(%rax, %rax)
+   70:  movq %rbp, %rdi
+   73:  callq wb_reset+0
+   78:  nopl (%rax, %rax)
+   80:  callq env_fmt+0
+   85:  movl $1, %esi
+   8a:  movq %rax, %rdi
+   8d:  callq fmt_fill+0
+   92:  movl %eax, %ebx
+   94:  testl %eax, %eax
+   96:  je 0xc0
+   98:  callq env_fmt+0
+   9d:  movq %rax, %rbx
+   a0:  movq %rbx, %rdi
+   a3:  callq fmt_morelines+0
+   a8:  testl %eax, %eax
+   aa:  je 0x80
+   ac:  movq %rbx, %rdi
+   af:  callq fn:ren_passline+0
+   b4:  jmp 0xa0
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  callq env_fmt+0
+   c5:  movq %rax, %rbp
+   c8:  jmp 0xda
+   ca:  nopw (%rax, %rax)
+   d0:  movq %rbp, %rdi
+   d3:  callq fn:ren_passline+0
+   d8:  movl %eax, %ebx
+   da:  movq %rbp, %rdi
+   dd:  callq fmt_morelines+0
+   e2:  testl %eax, %eax
+   e4:  jne 0xd0
+   e6:  addq $8, %rsp
+   ea:  movl %ebx, %eax
+   ec:  popq %rbx
+   ed:  popq %rbp
+   ee:  retq
+   ef:  movl $0, (%rip)   <var:bp_first+0>
+   f9:  movl $1, %edi
+   fe:  callq fn:ren_page+0
+  103:  jmp 0x1e

@@ -1,0 +1,28 @@
+# mkargs_eol  (static, 85 bytes, 27 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl $1, %edi
+    9:  callq cp_copymode+0
+    e:  nop
+   10:  callq cp_next+0
+   15:  cmpl $0x20, %eax
+   18:  je 0x10
+   1a:  testl %eax, %eax
+   1c:  jns 0x48
+   1e:  xorl %edi, %edi
+   20:  popq %rbx
+   21:  jmp cp_copymode+0
+   26:  nopw %cs:(%rax, %rax)
+   30:  cmpl $4, %eax
+   33:  je 0x3f
+   35:  movl %eax, %esi
+   37:  movq %rbx, %rdi
+   3a:  callq sbuf_add+0
+   3f:  callq cp_next+0
+   44:  testl %eax, %eax
+   46:  js 0x1e
+   48:  cmpl $0xa, %eax
+   4b:  jne 0x30
+   4d:  xorl %edi, %edi
+   4f:  popq %rbx
+   50:  jmp cp_copymode+0

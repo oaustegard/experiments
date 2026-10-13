@@ -1,0 +1,63 @@
+# def_sizesput  (global, 215 bytes, 62 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  xorl %ebx, %ebx
+    e:  subq $8, %rsp
+   12:  jmp 0x26
+   14:  nopl (%rax)
+   18:  addq $1, %rbx
+   1c:  cmpq $0x20, %rbx
+   20:  je 0xb0
+   26:  movq %rbx, %rdi
+   29:  movq %r12, %rsi
+   2c:  shlq $9, %rdi
+   30:  addq $0, %rdi   <var:bracketsizes+0>
+   37:  callq strcmp+0
+   3c:  testl %eax, %eax
+   3e:  jne 0x18
+   40:  movslq %ebx, %rbx
+   43:  movq %r12, %rcx
+   46:  movl $0, %edx   <str:"%s">
+   4b:  movl $0x40, %esi
+   50:  shlq $9, %rbx
+   54:  xorl %eax, %eax
+   56:  leaq 0x38(%rbp), %r13
+   5a:  movl $0, %r12d   <str:"">
+   60:  leaq (%rbx), %rdi   <var:bracketsizes+0>
+   67:  addq $0, %rbx   <var:bracketsizes+64>
+   6e:  callq snprintf+0
+   73:  nopl (%rax, %rax)
+   78:  movq (%rbp), %rcx
+   7c:  movq %rbx, %rdi
+   7f:  movl $0, %edx   <str:"%s">
+   84:  movl $0x40, %esi
+   89:  testq %rcx, %rcx
+   8c:  cmoveq %r12, %rcx
+   90:  xorl %eax, %eax
+   92:  addq $8, %rbp
+   96:  addq $0x40, %rbx
+   9a:  callq snprintf+0
+   9f:  cmpq %rbp, %r13
+   a2:  jne 0x78
+   a4:  addq $8, %rsp
+   a8:  popq %rbx
+   a9:  popq %rbp
+   aa:  popq %r12
+   ac:  popq %r13
+   ae:  retq
+   af:  nop
+   b0:  xorl %ebx, %ebx
+   b2:  jmp 0xc2
+   b4:  nopl (%rax)
+   b8:  addq $1, %rbx
+   bc:  cmpq $0x20, %rbx
+   c0:  je 0xa4
+   c2:  movq %rbx, %rax
+   c5:  shlq $9, %rax
+   c9:  cmpb $0, (%rax)   <var:bracketsizes+0>
+   d0:  jne 0xb8
+   d2:  jmp 0x40

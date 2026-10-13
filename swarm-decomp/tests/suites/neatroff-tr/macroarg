@@ -1,0 +1,112 @@
+# macroarg  (static, 341 bytes, 111 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rcx, %r14
+    7:  pushq %r13
+    9:  movl %esi, %r13d
+    c:  pushq %r12
+    e:  movq %rdi, %r12
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  movq %rdx, %rbx
+   16:  subq $0x18, %rsp
+   1a:  callq *%rdx
+   1c:  cmpl $0x20, %eax
+   1f:  jne 0x2f
+   21:  nopl (%rax)
+   28:  callq *%rbx
+   2a:  cmpl $0x20, %eax
+   2d:  je 0x28
+   2f:  cmpl $0xa, %eax
+   32:  sete %bpl
+   36:  cmpl %eax, %r13d
+   39:  sete %dl
+   3c:  orb %dl, %bpl
+   3f:  jne 0xe0
+   45:  testl %eax, %eax
+   47:  js 0xe5
+   4d:  movl $1, %r15d
+   53:  cmpl $0x22, %eax
+   56:  je 0x138
+   5c:  nopl (%rax)
+   60:  cmpl $0x22, %eax
+   63:  jne 0x75
+   65:  testb %bpl, %bpl
+   68:  je 0x75
+   6a:  callq *%rbx
+   6c:  cmpl $0x22, %eax
+   6f:  jne 0x118
+   75:  cmpl %eax, (%rip)   <c_ec+0>
+   7b:  je 0x100
+   81:  movl %eax, %esi
+   83:  movq %r12, %rdi
+   86:  callq sbuf_add+0
+   8b:  callq *%rbx
+   8d:  testl %eax, %eax
+   8f:  js 0x118
+   95:  cmpl $0xa, %eax
+   98:  je 0x118
+   9a:  cmpl %eax, %r13d
+   9d:  jne 0xa4
+   9f:  testb %bpl, %bpl
+   a2:  je 0xb3
+   a4:  cmpl $0x20, %eax
+   a7:  jne 0x60
+   a9:  testb %r15b, %r15b
+   ac:  je 0x60
+   ae:  movl $0x20, %eax
+   b3:  xorl %esi, %esi
+   b5:  movq %r12, %rdi
+   b8:  movl %eax, 0xc(%rsp)
+   bc:  callq sbuf_add+0
+   c1:  movl 0xc(%rsp), %eax
+   c5:  movl %eax, %edi
+   c7:  callq *%r14
+   ca:  xorl %eax, %eax
+   cc:  addq $0x18, %rsp
+   d0:  popq %rbx
+   d1:  popq %rbp
+   d2:  popq %r12
+   d4:  popq %r13
+   d6:  popq %r14
+   d8:  popq %r15
+   da:  retq
+   db:  nopl (%rax, %rax)
+   e0:  movl %eax, %edi
+   e2:  callq *%r14
+   e5:  addq $0x18, %rsp
+   e9:  movl $1, %eax
+   ee:  popq %rbx
+   ef:  popq %rbp
+   f0:  popq %r12
+   f2:  popq %r13
+   f4:  popq %r14
+   f6:  popq %r15
+   f8:  retq
+   f9:  nopl (%rax)
+  100:  movl %eax, %esi
+  102:  movq %r12, %rdi
+  105:  callq sbuf_add+0
+  10a:  callq *%rbx
+  10c:  jmp 0x81
+  111:  nopl (%rax)
+  118:  xorl %esi, %esi
+  11a:  movq %r12, %rdi
+  11d:  movl %eax, 0xc(%rsp)
+  121:  callq sbuf_add+0
+  126:  movl 0xc(%rsp), %eax
+  12a:  testl %eax, %eax
+  12c:  jns 0xc5
+  12e:  xorl %eax, %eax
+  130:  jmp 0xcc
+  132:  nopw (%rax, %rax)
+  138:  callq *%rbx
+  13a:  movl %eax, %edx
+  13c:  notl %edx
+  13e:  shrl $0x1f, %edx
+  141:  cmpl $0xa, %eax
+  144:  setne %bpl
+  148:  andb %dl, %bpl
+  14b:  je 0x118
+  14d:  xorl %r15d, %r15d
+  150:  jmp 0x60

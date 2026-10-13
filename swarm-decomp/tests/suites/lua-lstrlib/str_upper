@@ -1,0 +1,35 @@
+# str_upper  (static, 125 bytes, 34 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  subq $0x438, %rsp
+   11:  leaq 8(%rsp), %rdx
+   16:  callq luaL_checklstring+0
+   1b:  movq 8(%rsp), %rdx
+   20:  leaq 0x10(%rsp), %rsi
+   25:  movq %rbp, %rdi
+   28:  movq %rax, %rbx
+   2b:  callq luaL_buffinitsize+0
+   30:  movq 8(%rsp), %rsi
+   35:  testq %rsi, %rsi
+   38:  je 0x64
+   3a:  movq %rax, %rbp
+   3d:  callq __ctype_toupper_loc+0
+   42:  xorl %edx, %edx
+   44:  nopl (%rax)
+   48:  movzbl (%rbx, %rdx), %esi
+   4c:  movq (%rax), %rcx
+   4f:  movl (%rcx, %rsi, 4), %ecx
+   52:  movb %cl, (%rbp, %rdx)
+   56:  movq 8(%rsp), %rsi
+   5b:  addq $1, %rdx
+   5f:  cmpq %rsi, %rdx
+   62:  jb 0x48
+   64:  leaq 0x10(%rsp), %rdi
+   69:  callq luaL_pushresultsize+0
+   6e:  addq $0x438, %rsp
+   75:  movl $1, %eax
+   7a:  popq %rbx
+   7b:  popq %rbp
+   7c:  retq

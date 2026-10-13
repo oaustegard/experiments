@@ -1,0 +1,69 @@
+# savelineinfo  (static, 226 bytes, 68 instructions)
+    0:  pushq %r14
+    2:  movl %edx, %r14d
+    5:  pushq %r13
+    7:  movl %edx, %r13d
+    a:  pushq %r12
+    c:  pushq %rbp
+    d:  movq %rsi, %rbp
+   10:  pushq %rbx
+   11:  movl 0x20(%rdi), %eax
+   14:  movq %rdi, %rbx
+   17:  subl 0x28(%rdi), %r14d
+   1b:  leal -1(%rax), %r12d
+   1f:  movl %r14d, %eax
+   22:  negl %eax
+   24:  cmovsl %r14d, %eax
+   28:  cmpl $0x7f, %eax
+   2b:  jg 0x88
+   2d:  movzbl 0x45(%rdi), %eax
+   31:  leal 1(%rax), %edx
+   34:  movb %dl, 0x45(%rdi)
+   37:  testb %al, %al
+   39:  js 0x88
+   3b:  movq 0x10(%rbx), %rax
+   3f:  subq $8, %rsp
+   43:  movq 0x58(%rbp), %rsi
+   47:  movl %r12d, %edx
+   4a:  leaq 0x1c(%rbp), %rcx
+   4e:  movl $0x7fffffff, %r9d
+   54:  movl $1, %r8d
+   5a:  movslq %r12d, %r12
+   5d:  movq 0x38(%rax), %rdi
+   61:  pushq $0   <str:"opcodes">
+   66:  callq luaM_growaux_+0
+   6b:  movq %rax, 0x58(%rbp)
+   6f:  movb %r14b, (%rax, %r12)
+   73:  movl %r13d, 0x28(%rbx)
+   77:  popq %rax
+   78:  popq %rdx
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  popq %r13
+   7f:  popq %r14
+   81:  retq
+   82:  nopw (%rax, %rax)
+   88:  movq 0x10(%rbx), %rax
+   8c:  subq $8, %rsp
+   90:  movl 0x34(%rbx), %edx
+   93:  leaq 0x28(%rbp), %rcx
+   97:  movq 0x60(%rbp), %rsi
+   9b:  movl $0x7fffffff, %r9d
+   a1:  movl $8, %r8d
+   a7:  movl $0xffffff80, %r14d
+   ad:  movq 0x38(%rax), %rdi
+   b1:  pushq $0   <str:"lines">
+   b6:  callq luaM_growaux_+0
+   bb:  movslq 0x34(%rbx), %rcx
+   bf:  movq %rax, 0x60(%rbp)
+   c3:  movq %rcx, %rdx
+   c6:  leaq (%rax, %rcx, 8), %rax
+   ca:  addl $1, %edx
+   cd:  movl %r12d, (%rax)
+   d0:  movl %edx, 0x34(%rbx)
+   d3:  movl %r13d, 4(%rax)
+   d7:  movb $1, 0x45(%rbx)
+   db:  popq %rcx
+   dc:  popq %rsi
+   dd:  jmp 0x3b

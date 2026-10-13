@@ -1,0 +1,82 @@
+# cparg.constprop.0  (static, 273 bytes, 81 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  callq cp_next+0
+    e:  cmpl $4, %eax
+   11:  jne 0xf8
+   17:  nopw (%rax, %rax)
+   20:  callq cp_next+0
+   25:  movl %eax, %ebx
+   27:  cmpl $4, %eax
+   2a:  je 0x20
+   2c:  cmpl $0x28, %ebx
+   2f:  je 0xd0
+   35:  movl $0x43, %edi
+   3a:  callq nreg+0
+   3f:  movl (%rax), %eax
+   41:  testl %eax, %eax
+   43:  jne 0x4a
+   45:  cmpl $0x5b, %ebx
+   48:  je 0x70
+   4a:  movl %ebx, %edi
+   4c:  callq in_back+0
+   51:  movl $0, %esi   <fn:cp_noninext+0>
+   56:  movq %rbp, %rdi
+   59:  callq utf8next+0
+   5e:  xorl %eax, %eax
+   60:  addq $8, %rsp
+   64:  popq %rbx
+   65:  popq %rbp
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  callq cp_next+0
+   75:  cmpl $4, %eax
+   78:  je 0x70
+   7a:  testl %eax, %eax
+   7c:  js 0xff
+   82:  cmpl $0x5d, %eax
+   85:  je 0xff
+   87:  cmpl $0x20, %eax
+   8a:  je 0x10a
+   8c:  xorl %ebx, %ebx
+   8e:  nop
+   90:  leal 1(%rbx), %edx
+   93:  cmpl $0x7f, %edx
+   96:  jg 0xa0
+   98:  movb %al, (%rbp, %rbx)
+   9c:  movslq %edx, %rbx
+   9f:  nop
+   a0:  callq cp_next+0
+   a5:  cmpl $4, %eax
+   a8:  je 0xa0
+   aa:  testl %eax, %eax
+   ac:  js 0x103
+   ae:  cmpl $0x5d, %eax
+   b1:  je 0x103
+   b3:  cmpl $0x20, %eax
+   b6:  jne 0x90
+   b8:  addq %rbx, %rbp
+   bb:  movl $1, %eax
+   c0:  movb $0, (%rbp)
+   c4:  jmp 0x60
+   c6:  nopw %cs:(%rax, %rax)
+   d0:  movq %rbp, %rdi
+   d3:  movl $0, %esi   <fn:cp_noninext+0>
+   d8:  callq utf8next+0
+   dd:  movl $0, %esi   <fn:cp_noninext+0>
+   e2:  movslq %eax, %rdi
+   e5:  addq %rbp, %rdi
+   e8:  callq utf8next+0
+   ed:  jmp 0x5e
+   f2:  nopw (%rax, %rax)
+   f8:  movl %eax, %ebx
+   fa:  jmp 0x2c
+   ff:  xorl %eax, %eax
+  101:  jmp 0xc0
+  103:  addq %rbx, %rbp
+  106:  xorl %eax, %eax
+  108:  jmp 0xc0
+  10a:  movl $1, %eax
+  10f:  jmp 0xc0

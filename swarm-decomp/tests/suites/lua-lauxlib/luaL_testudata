@@ -1,0 +1,48 @@
+# luaL_testudata  (global, 136 bytes, 47 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  movl %esi, %r12d
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  subq $8, %rsp
+   13:  callq lua_touserdata+0
+   18:  testq %rax, %rax
+   1b:  je 0x2f
+   1d:  movl %r12d, %esi
+   20:  movq %rbp, %rdi
+   23:  movq %rax, %rbx
+   26:  callq lua_getmetatable+0
+   2b:  testl %eax, %eax
+   2d:  jne 0x40
+   2f:  addq $8, %rsp
+   33:  xorl %ebx, %ebx
+   35:  movq %rbx, %rax
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  popq %r12
+   3c:  popq %r13
+   3e:  retq
+   3f:  nop
+   40:  movq %r13, %rdx
+   43:  movq %rbp, %rdi
+   46:  movl $0xfff0b9d8, %esi
+   4b:  callq lua_getfield+0
+   50:  movq %rbp, %rdi
+   53:  movl $0xfffffffe, %edx
+   58:  movl $0xffffffff, %esi
+   5d:  callq lua_rawequal+0
+   62:  movq %rbp, %rdi
+   65:  movl $0xfffffffd, %esi
+   6a:  testl %eax, %eax
+   6c:  movl $0, %eax
+   71:  cmoveq %rax, %rbx
+   75:  callq lua_settop+0
+   7a:  addq $8, %rsp
+   7e:  movq %rbx, %rax
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  popq %r12
+   85:  popq %r13
+   87:  retq

@@ -1,0 +1,86 @@
+# op_rm  (static, 326 bytes, 85 instructions)
+    0:  pushq %r14
+    2:  movl %edx, %r14d
+    5:  pushq %r13
+    7:  xorl %r13d, %r13d
+    a:  pushq %r12
+    c:  leal (, %rsi, 8), %r12d
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  movl %ecx, %ebx
+   18:  movl %r8d, %ecx
+   1b:  movsbl %bl, %eax
+   1e:  cmpl %ebx, %eax
+   20:  setne %bpl
+   24:  setne %r13b
+   28:  andl $7, %r14d
+   2c:  andl $0x38, %r12d
+   30:  movzbl %bpl, %ebp
+   34:  leal 1(%r13, %r13, 2), %r13d
+   39:  orl %r14d, %r12d
+   3c:  addl $1, %ebp
+   3f:  testl %ebx, %ebx
+   41:  jne 0x80
+   43:  cmpl $5, %r14d
+   47:  je 0x110
+   4d:  callq fn:op_x+0
+   52:  movl $1, %edx
+   57:  movl $0, %esi   <var:buf+0>
+   5c:  movl $0, %edi   <var:cs+0>
+   61:  movb %r12b, (%rip)   <var:buf+0>
+   68:  callq mem_put+0
+   6d:  cmpl $4, %r14d
+   71:  je 0x138
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  popq %r13
+   7d:  popq %r14
+   7f:  retq
+   80:  callq fn:op_x+0
+   85:  shll $6, %ebp
+   88:  movl $1, %edx
+   8d:  movl $0, %esi   <var:buf+0>
+   92:  orl %r12d, %ebp
+   95:  movl $0, %edi   <var:cs+0>
+   9a:  movb %bpl, (%rip)   <var:buf+0>
+   a1:  callq mem_put+0
+   a6:  cmpl $4, %r14d
+   aa:  jne 0xc7
+   ac:  movl $1, %edx
+   b1:  movl $0, %esi   <var:buf+0>
+   b6:  movl $0, %edi   <var:cs+0>
+   bb:  movb $0x24, (%rip)   <var:buf+0>
+   c2:  callq mem_put+0
+   c7:  movslq %r13d, %r13
+   ca:  movl $0, %eax   <var:buf+0>
+   cf:  movslq %ebx, %rdx
+   d2:  leaq (%r13, %rax), %rcx
+   d7:  nopw (%rax, %rax)
+   e0:  movb %dl, (%rax)
+   e2:  addq $1, %rax
+   e6:  sarq $8, %rdx
+   ea:  cmpq %rcx, %rax
+   ed:  jne 0xe0
+   ef:  movq %r13, %rdx
+   f2:  popq %rbx
+   f3:  movl $0, %esi   <var:buf+0>
+   f8:  popq %rbp
+   f9:  movl $0, %edi   <var:cs+0>
+   fe:  popq %r12
+  100:  popq %r13
+  102:  popq %r14
+  104:  jmp mem_put+0
+  109:  nopl (%rax)
+  110:  callq fn:op_x+0
+  115:  shll $6, %ebp
+  118:  movl $1, %edx
+  11d:  movl $0, %esi   <var:buf+0>
+  122:  orl %r12d, %ebp
+  125:  movl $0, %edi   <var:cs+0>
+  12a:  movb %bpl, (%rip)   <var:buf+0>
+  131:  callq mem_put+0
+  136:  jmp 0xc7
+  138:  movb $0x24, (%rip)   <var:buf+0>
+  13f:  movl $1, %edx
+  144:  jmp 0xf2

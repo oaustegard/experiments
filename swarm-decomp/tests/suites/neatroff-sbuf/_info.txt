@@ -1,0 +1,19 @@
+# neatroff-sbuf: translation unit sbuf of neatroff
+# write each function as src/neatroff/sbuf/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+sbuf_init	global	42 bytes
+sbuf_add	global	89 bytes
+sbuf_append	global	104 bytes
+sbuf_printf	global	198 bytes
+sbuf_empty	global	11 bytes
+sbuf_buf	global	15 bytes
+sbuf_len	global	4 bytes
+sbuf_cut	global	9 bytes
+sbuf_done	global	8 bytes
+sbuf_out	global	11 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+free memcpy mextend strlen vsnprintf

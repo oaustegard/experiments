@@ -1,0 +1,128 @@
+# drawquad  (static, 468 bytes, 127 instructions)
+    0:  movslq %esi, %r9
+    3:  pushq %r15
+    5:  movabsq $0x20c49ba5e353f7cf, %rsi
+    f:  pushq %r14
+   11:  imull $0x1f4, %r9d, %r15d
+   18:  pushq %r13
+   1a:  movq %r9, %r13
+   1d:  imulq $0x86beb, %r9, %r9
+   24:  pushq %r12
+   26:  pushq %rbp
+   27:  movslq %r15d, %r15
+   2a:  movq %r9, %rax
+   2d:  pushq %rbx
+   2e:  movslq %edi, %rbx
+   31:  sarq $0x3f, %r9
+   35:  imulq %rsi
+   38:  movq %rbx, %r12
+   3b:  imull $0x1f4, %ebx, %r14d
+   42:  imulq $0x86beb, %rbx, %rbx
+   49:  subq $0x18, %rsp
+   4d:  imull $0x3e8, (%rip), %ecx   <var:o_h+0>
+   57:  sarq $8, %rdx
+   5b:  imull $0x3e8, (%rip), %edi   <var:o_v+0>
+   65:  subq %r9, %rdx
+   68:  movslq %r14d, %r14
+   6b:  movq %rbx, %rax
+   6e:  movq %rdx, %r8
+   71:  sarq $0x3f, %rbx
+   75:  imulq %rsi
+   78:  movslq %ecx, %rcx
+   7b:  movslq %edi, %rdi
+   7e:  addq %rcx, %r14
+   81:  addq %rdi, %r15
+   84:  sarq $8, %rdx
+   88:  subq %rdx, %rbx
+   8b:  testl %r12d, %r12d
+   8e:  jle 0x1b8
+   94:  testl %r13d, %r13d
+   97:  jns 0x1b8
+   9d:  movq %r15, %r9
+   a0:  subq %rbx, %rcx
+   a3:  movq %r14, %rbx
+   a6:  subq %r8, %r9
+   a9:  movabsq $0x6666666666666667, %rbp
+   b3:  movq %rdi, %rax
+   b6:  sarq $0x3f, %rdi
+   ba:  movq %r9, 8(%rsp)
+   bf:  imulq %rbp
+   c2:  movq %rcx, %rax
+   c5:  sarq $0x3f, %rcx
+   c9:  movq %rdx, %rsi
+   cc:  imulq %rbp
+   cf:  sarq $2, %rsi
+   d3:  subl %edi, %esi
+   d5:  sarq $2, %rdx
+   d9:  movl %edx, %edi
+   db:  subl %ecx, %edi
+   dd:  callq fn:pdfpos00+0
+   e2:  movq (%rip), %rdi   <var:pg+0>
+   e9:  movl $0, %esi   <str:"%s ">
+   ee:  movq %rax, %rdx
+   f1:  xorl %eax, %eax
+   f3:  callq sbuf_printf+0
+   f8:  movq 8(%rsp), %r9
+   fd:  movq %r9, %rax
+  100:  sarq $0x3f, %r9
+  104:  imulq %rbp
+  107:  movq %rbx, %rax
+  10a:  sarq $0x3f, %rbx
+  10e:  movq %rdx, %rsi
+  111:  imulq %rbp
+  114:  sarq $2, %rsi
+  118:  subl %r9d, %esi
+  11b:  movq %rdx, %rdi
+  11e:  sarq $2, %rdi
+  122:  subl %ebx, %edi
+  124:  callq fn:pdfpos00+0
+  129:  movq (%rip), %rdi   <var:pg+0>
+  130:  movl $0, %esi   <str:"%s ">
+  135:  movq %rax, %rdx
+  138:  xorl %eax, %eax
+  13a:  callq sbuf_printf+0
+  13f:  movq %r15, %rax
+  142:  sarq $0x3f, %r15
+  146:  imulq %rbp
+  149:  movq %r14, %rax
+  14c:  sarq $0x3f, %r14
+  150:  movq %rdx, %rsi
+  153:  imulq %rbp
+  156:  sarq $2, %rsi
+  15a:  subl %r15d, %esi
+  15d:  movq %rdx, %rdi
+  160:  sarq $2, %rdi
+  164:  subl %r14d, %edi
+  167:  callq fn:pdfpos00+0
+  16c:  movq (%rip), %rdi   <var:pg+0>
+  173:  movl $0, %esi   <str:"%s c\n">
+  178:  movq %rax, %rdx
+  17b:  xorl %eax, %eax
+  17d:  callq sbuf_printf+0
+  182:  movl %r12d, %eax
+  185:  shrl $0x1f, %eax
+  188:  addl %r12d, %eax
+  18b:  sarl $1, %eax
+  18d:  addl %eax, (%rip)   <var:o_h+0>
+  193:  movl %r13d, %eax
+  196:  shrl $0x1f, %eax
+  199:  addl %r13d, %eax
+  19c:  sarl $1, %eax
+  19e:  addl %eax, (%rip)   <var:o_v+0>
+  1a4:  addq $0x18, %rsp
+  1a8:  popq %rbx
+  1a9:  popq %rbp
+  1aa:  popq %r12
+  1ac:  popq %r13
+  1ae:  popq %r14
+  1b0:  popq %r15
+  1b2:  retq
+  1b3:  nopl (%rax, %rax)
+  1b8:  testl %r12d, %r12d
+  1bb:  jns 0x1c6
+  1bd:  testl %r13d, %r13d
+  1c0:  jg 0x9d
+  1c6:  addq %r8, %rdi
+  1c9:  addq %r14, %rbx
+  1cc:  movq %r15, %r9
+  1cf:  jmp 0xa9

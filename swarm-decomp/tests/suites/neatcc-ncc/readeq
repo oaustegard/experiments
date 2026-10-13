@@ -1,0 +1,59 @@
+# readeq  (static, 274 bytes, 58 instructions)
+    0:  pushq %rbx
+    1:  movl $0x3d, %ebx
+    6:  callq fn:readcmp+0
+    b:  callq tok_see+0
+   10:  movzbl (%rax), %edx
+   13:  cmpl %edx, %ebx
+   15:  jne 0xba
+   1b:  movzbl 1(%rax), %edx
+   1f:  cmpl %edx, %ebx
+   21:  jne 0xba
+   27:  cmpb $0, 2(%rax)
+   2b:  jne 0xba
+   31:  callq tok_get+0
+   36:  callq fn:readcmp+0
+   3b:  movl $1, %edi
+   40:  callq fn:ts_de+0
+   45:  subl $1, (%rip)   <var:nts+0>
+   4c:  callq o_tmpswap+0
+   51:  movl $1, %edi
+   56:  callq fn:ts_de+0
+   5b:  subl $1, (%rip)   <var:nts+0>
+   62:  callq o_tmpswap+0
+   67:  movl $0x82, %edi
+   6c:  callq o_bop+0
+   71:  movslq (%rip), %rdx   <var:nts+0>
+   78:  movq %rdx, %rax
+   7b:  leaq (%rdx, %rdx, 4), %rdx
+   7f:  leaq (, %rdx, 4), %rcx   <var:ts+0>
+   87:  addl $1, %eax
+   8a:  movl $0, 8(%rcx)
+   91:  movl $0, 0x10(%rcx)
+   98:  movq $0x14, (, %rdx, 4)   <var:ts+0>
+   a4:  movl %eax, (%rip)   <var:nts+0>
+   aa:  callq tok_see+0
+   af:  movzbl (%rax), %edx
+   b2:  cmpl %edx, %ebx
+   b4:  je 0x1b
+   ba:  callq tok_see+0
+   bf:  cmpb $0x21, (%rax)
+   c2:  jne 0x110
+   c4:  cmpb $0x3d, 1(%rax)
+   c8:  jne 0x110
+   ca:  cmpb $0, 2(%rax)
+   ce:  jne 0x110
+   d0:  callq tok_get+0
+   d5:  callq fn:readcmp+0
+   da:  movl $1, %edi
+   df:  callq fn:ts_de+0
+   e4:  subl $1, (%rip)   <var:nts+0>
+   eb:  callq o_tmpswap+0
+   f0:  movl $1, %edi
+   f5:  callq fn:ts_de+0
+   fa:  subl $1, (%rip)   <var:nts+0>
+  101:  callq o_tmpswap+0
+  106:  movl $0x83, %edi
+  10b:  jmp 0x6c
+  110:  popq %rbx
+  111:  retq

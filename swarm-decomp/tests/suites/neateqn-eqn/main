@@ -1,0 +1,204 @@
+# main  (global, 811 bytes, 203 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $0x88, %rsp
+    d:  cmpl $1, %edi
+   10:  jle 0x78
+   12:  movl %edi, %r12d
+   15:  movq %rsi, %rbp
+   18:  movl $1, %ebx
+   1d:  jmp 0x31
+   1f:  nop
+   20:  addq $2, %rdi
+   24:  addl $1, %ebx
+   27:  callq def_choppedset+0
+   2c:  cmpl %ebx, %r12d
+   2f:  jle 0x78
+   31:  movslq %ebx, %rax
+   34:  movq (%rbp, %rax, 8), %rdi
+   39:  leaq (, %rax, 8), %rdx
+   41:  cmpb $0x2d, (%rdi)
+   44:  jne 0x78
+   46:  movzbl 1(%rdi), %eax
+   4a:  testb %al, %al
+   4c:  je 0x78
+   4e:  cmpb $0x63, %al
+   50:  jne 0x306
+   56:  cmpb $0, 2(%rdi)
+   5a:  jne 0x20
+   5c:  movq 8(%rbp, %rdx), %rdi
+   61:  addl $1, %ebx
+   64:  addl $1, %ebx
+   67:  callq def_choppedset+0
+   6c:  cmpl %ebx, %r12d
+   6f:  jg 0x31
+   71:  nopl (%rax)
+   78:  movq (%rip), %rdi   <def_macros+0>
+   7f:  movl $0, %ebx   <def_macros+8>
+   84:  testq %rdi, %rdi
+   87:  je 0xa5
+   89:  nopl (%rax)
+   90:  movq (%rbx), %rsi
+   93:  addq $0x10, %rbx
+   97:  callq src_define+0
+   9c:  movq -8(%rbx), %rdi
+   a0:  testq %rdi, %rdi
+   a3:  jne 0x90
+   a5:  callq tok_eqn+0
+   aa:  testl %eax, %eax
+   ac:  jne 0x1f4
+   b2:  nopw (%rax, %rax)
+   b8:  callq reg_reset+0
+   bd:  xorl %r12d, %r12d
+   c0:  movl $0, (%rip)   <var:eqn_mk+0>
+   ca:  callq tok_pop+0
+   cf:  movl $0, %esi   <str:".eqnsz">
+   d4:  movl $0, %edi   <str:".nr %s \\n(.s\n">
+   d9:  xorl %eax, %eax
+   db:  callq printf+0
+   e0:  movl $0, %esi   <str:".eqnfn">
+   e5:  movl $0, %edi   <str:".nr %s \\n(.f\n">
+   ea:  xorl %eax, %eax
+   ec:  callq printf+0
+   f1:  callq nregmk+0
+   f6:  movl %eax, (%rip)   <var:eqn_lineupreg+0>
+   fc:  callq tok_inline+0
+  101:  testl %eax, %eax
+  103:  setne %r12b
+  107:  callq nregmk+0
+  10c:  addl %r12d, %r12d
+  10f:  movl %eax, %edi
+  111:  movl %eax, %ebp
+  113:  callq nregname+0
+  118:  movl $0, %edx   <var:gsize+0>
+  11d:  movl $0, %edi   <str:".nr %s %s\n">
+  122:  movq %rax, %rsi
+  125:  xorl %eax, %eax
+  127:  callq printf+0
+  12c:  movl %r12d, %edx
+  12f:  xorl %esi, %esi
+  131:  movl %ebp, %edi
+  133:  callq box_alloc+0
+  138:  movq %rax, %rbx
+  13b:  nopl (%rax, %rax)
+  140:  callq tok_get+0
+  145:  testq %rax, %rax
+  148:  je 0x189
+  14a:  movl $0, %edi   <str:"mark">
+  14f:  callq tok_jmp+0
+  154:  testl %eax, %eax
+  156:  jne 0x210
+  15c:  movl (%rip), %eax   <var:eqn_mk+0>
+  162:  movl $1, %edx
+  167:  movl $0, %esi   <str:".eqnmk">
+  16c:  movq %rbx, %rdi
+  16f:  testl %eax, %eax
+  171:  cmovel %edx, %eax
+  174:  movl %eax, (%rip)   <var:eqn_mk+0>
+  17a:  callq box_markpos+0
+  17f:  callq tok_get+0
+  184:  testq %rax, %rax
+  187:  jne 0x14a
+  189:  movq %rbx, %rdi
+  18c:  callq box_vertspace+0
+  191:  movl %ebp, %edi
+  193:  callq nregrm+0
+  198:  movl (%rip), %esi   <var:eqn_mk+0>
+  19e:  movl $0, %edi   <str:".nr MK %d\n">
+  1a3:  xorl %eax, %eax
+  1a5:  callq printf+0
+  1aa:  movq %rbx, %rdi
+  1ad:  callq box_empty+0
+  1b2:  testl %eax, %eax
+  1b4:  je 0x2a8
+  1ba:  callq src_lineget+0
+  1bf:  movl $0, %edi   <str:".lf %d\n">
+  1c4:  movl %eax, %esi
+  1c6:  xorl %eax, %eax
+  1c8:  callq printf+0
+  1cd:  movl (%rip), %edi   <var:eqn_lineupreg+0>
+  1d3:  movb $0, (%rip)   <var:eqn_lineup+0>
+  1da:  callq nregrm+0
+  1df:  movq %rbx, %rdi
+  1e2:  callq box_free+0
+  1e7:  callq tok_eqn+0
+  1ec:  testl %eax, %eax
+  1ee:  je 0xb8
+  1f4:  callq src_done+0
+  1f9:  xorl %eax, %eax
+  1fb:  addq $0x88, %rsp
+  202:  popq %rbx
+  203:  popq %rbp
+  204:  popq %r12
+  206:  popq %r13
+  208:  retq
+  209:  nopl (%rax)
+  210:  movl $0, %edi   <str:"lineup">
+  215:  callq tok_jmp+0
+  21a:  testl %eax, %eax
+  21c:  je 0x250
+  21e:  xorl %ecx, %ecx
+  220:  movl %ebp, %edx
+  222:  movq %rbx, %rsi
+  225:  movl %r12d, %edi
+  228:  callq fn:eqn_box+0
+  22d:  movq %rbx, %rdi
+  230:  movl $1, %edx
+  235:  movq %rax, %r13
+  238:  movq %rax, %rsi
+  23b:  callq box_merge+0
+  240:  movq %r13, %rdi
+  243:  callq box_free+0
+  248:  jmp 0x140
+  24d:  nopl (%rax)
+  250:  movl $2, (%rip)   <var:eqn_mk+0>
+  25a:  movl (%rip), %edi   <var:eqn_lineupreg+0>
+  260:  callq nregname+0
+  265:  movq %rbx, %rdi
+  268:  movq %rax, %rsi
+  26b:  callq box_markpos+0
+  270:  movl (%rip), %edi   <var:eqn_lineupreg+0>
+  276:  callq nreg+0
+  27b:  movl $0, %edi   <str:".eqnmk">
+  280:  movq %rax, %r13
+  283:  callq escarg+0
+  288:  movq %r13, %rcx
+  28b:  movl $0, %esi   <str:"\\h'\\n%su-%su'">
+  290:  movl $0, %edi   <var:eqn_lineup+0>
+  295:  movq %rax, %rdx
+  298:  xorl %eax, %eax
+  29a:  callq sprintf+0
+  29f:  jmp 0x140
+  2a4:  nopl (%rax)
+  2a8:  movq %rbx, %rdi
+  2ab:  callq box_toreg+0
+  2b0:  movl $0, %edx   <var:eqn_lineup+0>
+  2b5:  movl $0, %esi   <str:"%s%s">
+  2ba:  movq %rsp, %rdi
+  2bd:  movq %rax, %rcx
+  2c0:  xorl %eax, %eax
+  2c2:  callq sprintf+0
+  2c7:  movq %rsp, %rdi
+  2ca:  callq tok_eqnout+0
+  2cf:  movl $0, %edi   <str:".eqnsz">
+  2d4:  callq escarg+0
+  2d9:  movl $0, %edi   <str:".ps \\n%s\n">
+  2de:  movq %rax, %rsi
+  2e1:  xorl %eax, %eax
+  2e3:  callq printf+0
+  2e8:  movl $0, %edi   <str:".eqnfn">
+  2ed:  callq escarg+0
+  2f2:  movl $0, %edi   <str:".ft \\n%s\n">
+  2f7:  movq %rax, %rsi
+  2fa:  xorl %eax, %eax
+  2fc:  callq printf+0
+  301:  jmp 0x1ba
+  306:  movl $0x5e, %edx
+  30b:  movl $1, %esi
+  310:  movl $0, %edi   <str:"Usage: neateqn [options] <input >output\n\nOptions:\n  -c chars  \tcharacters that chop equations\n">
+  315:  movq (%rip), %rcx   <stderr+0>
+  31c:  callq fwrite+0
+  321:  movl $1, %eax
+  326:  jmp 0x1fb

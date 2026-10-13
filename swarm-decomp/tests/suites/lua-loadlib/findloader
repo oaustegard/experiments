@@ -1,0 +1,87 @@
+# findloader  (static, 324 bytes, 86 instructions)
+    0:  pushq %r12
+    2:  movl $0, %edx   <str:"searchers">
+    7:  movq %rsi, %r12
+    a:  movl $0xfff0b9d7, %esi
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $0x420, %rsp
+   1b:  callq lua_getfield+0
+   20:  cmpl $5, %eax
+   23:  jne 0x130
+   29:  movq %rsp, %rsi
+   2c:  movq %rbx, %rdi
+   2f:  movl $1, %ebp
+   34:  callq luaL_buffinit+0
+   39:  jmp 0x59
+   3b:  nopl (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  movl $0xfffffffe, %esi
+   48:  callq lua_settop+0
+   4d:  movq %rsp, %rdi
+   50:  callq luaL_addvalue+0
+   55:  addq $1, %rbp
+   59:  movl $0, %esi   <str:"\n\t">
+   5e:  movq %rsp, %rdi
+   61:  callq luaL_addstring+0
+   66:  movq %rbp, %rdx
+   69:  movl $3, %esi
+   6e:  movq %rbx, %rdi
+   71:  callq lua_rawgeti+0
+   76:  testl %eax, %eax
+   78:  je 0xe8
+   7a:  movq %r12, %rsi
+   7d:  movq %rbx, %rdi
+   80:  callq lua_pushstring+0
+   85:  xorl %r8d, %r8d
+   88:  xorl %ecx, %ecx
+   8a:  movl $1, %esi
+   8f:  movq %rbx, %rdi
+   92:  movl $2, %edx
+   97:  callq lua_callk+0
+   9c:  movl $0xfffffffe, %esi
+   a1:  movq %rbx, %rdi
+   a4:  callq lua_type+0
+   a9:  cmpl $6, %eax
+   ac:  je 0xd8
+   ae:  movl $0xfffffffe, %esi
+   b3:  movq %rbx, %rdi
+   b6:  callq lua_isstring+0
+   bb:  testl %eax, %eax
+   bd:  jne 0x40
+   bf:  movl $0xfffffffd, %esi
+   c4:  movq %rbx, %rdi
+   c7:  callq lua_settop+0
+   cc:  subq $2, 0x10(%rsp)
+   d2:  jmp 0x55
+   d4:  nopl (%rax)
+   d8:  addq $0x420, %rsp
+   df:  popq %rbx
+   e0:  popq %rbp
+   e1:  popq %r12
+   e3:  retq
+   e4:  nopl (%rax)
+   e8:  movl $0xfffffffe, %esi
+   ed:  movq %rbx, %rdi
+   f0:  callq lua_settop+0
+   f5:  movq %rsp, %rdi
+   f8:  subq $2, 0x10(%rsp)
+   fe:  callq luaL_pushresult+0
+  103:  xorl %edx, %edx
+  105:  movq %rbx, %rdi
+  108:  movl $0xffffffff, %esi
+  10d:  callq lua_tolstring+0
+  112:  movq %r12, %rdx
+  115:  movl $0, %esi   <str:"module '%s' not found:%s">
+  11a:  movq %rbx, %rdi
+  11d:  movq %rax, %rcx
+  120:  xorl %eax, %eax
+  122:  callq luaL_error+0
+  127:  jmp 0x7a
+  12c:  nopl (%rax)
+  130:  movl $0, %esi   <str:"'package.searchers' must be a table">
+  135:  movq %rbx, %rdi
+  138:  xorl %eax, %eax
+  13a:  callq luaL_error+0
+  13f:  jmp 0x29

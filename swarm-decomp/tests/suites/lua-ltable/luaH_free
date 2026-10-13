@@ -1,0 +1,30 @@
+# luaH_free  (global, 97 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  cmpq $0, 0x20(%rsi)
+   11:  je 0x31
+   13:  movzbl 0xb(%rsi), %ecx
+   17:  movl $1, %eax
+   1c:  movq 0x18(%rsi), %rsi
+   20:  shll %cl, %eax
+   22:  cltq
+   24:  leaq (%rax, %rax, 2), %rdx
+   28:  shlq $3, %rdx
+   2c:  callq luaM_free_+0
+   31:  movq %rbx, %rdi
+   34:  callq luaH_realasize+0
+   39:  movq 0x10(%rbx), %rsi
+   3d:  movq %rbp, %rdi
+   40:  movl %eax, %edx
+   42:  shlq $4, %rdx
+   46:  callq luaM_free_+0
+   4b:  addq $8, %rsp
+   4f:  movq %rbx, %rsi
+   52:  movq %rbp, %rdi
+   55:  popq %rbx
+   56:  movl $0x38, %edx
+   5b:  popq %rbp
+   5c:  jmp luaM_free_+0

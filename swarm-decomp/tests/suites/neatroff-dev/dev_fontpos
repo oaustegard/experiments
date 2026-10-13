@@ -1,0 +1,13 @@
+# dev_fontpos  (global, 35 bytes, 12 instructions)
+    0:  xorl %eax, %eax
+    2:  jmp 0x12
+    4:  nopl (%rax)
+    8:  addq $1, %rax
+    c:  cmpq $0x20, %rax
+   10:  je 0x20
+   12:  cmpq %rdi, (, %rax, 8)   <var:fn_font+0>
+   1a:  jne 8
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  xorl %eax, %eax
+   22:  retq

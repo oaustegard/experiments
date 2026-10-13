@@ -1,0 +1,59 @@
+# lua_getglobal  (global, 174 bytes, 58 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  movq 0x18(%rdi), %rax
+   11:  movq 0x40(%rax), %rax
+   15:  movq 0x10(%rax), %r13
+   19:  callq luaS_new+0
+   1e:  xorl %r8d, %r8d
+   21:  cmpb $0x45, 0x18(%r13)
+   26:  leaq 0x10(%r13), %r12
+   2a:  movq %rax, %rbp
+   2d:  je 0x70
+   2f:  movq 0x10(%rbx), %rdx
+   33:  movq %r12, %rsi
+   36:  movq %rbx, %rdi
+   39:  movq %rbp, (%rdx)
+   3c:  movzbl 8(%rbp), %eax
+   40:  movq %rdx, %rcx
+   43:  orl $0x40, %eax
+   46:  movb %al, 8(%rdx)
+   49:  leaq 0x10(%rdx), %rax
+   4d:  movq %rax, 0x10(%rbx)
+   51:  callq luaV_finishget+0
+   56:  movq 0x10(%rbx), %rax
+   5a:  movzbl -8(%rax), %edx
+   5e:  addq $8, %rsp
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  andl $0xf, %edx
+   67:  popq %r12
+   69:  popq %r13
+   6b:  movzbl %dl, %eax
+   6e:  retq
+   6f:  nop
+   70:  movq 0x10(%r13), %rdi
+   74:  movq %rax, %rsi
+   77:  callq luaH_getstr+0
+   7c:  movq %rax, %r8
+   7f:  movzbl 8(%rax), %eax
+   83:  movl %eax, %edx
+   85:  andl $0xf, %edx
+   88:  je 0x2f
+   8a:  movq 0x10(%rbx), %rcx
+   8e:  movq (%r8), %rsi
+   91:  addq $0x10, %rcx
+   95:  movb %al, -8(%rcx)
+   98:  movzbl %dl, %eax
+   9b:  movq %rsi, -0x10(%rcx)
+   9f:  movq %rcx, 0x10(%rbx)
+   a3:  addq $8, %rsp
+   a7:  popq %rbx
+   a8:  popq %rbp
+   a9:  popq %r12
+   ab:  popq %r13
+   ad:  retq

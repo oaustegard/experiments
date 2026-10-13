@@ -1,0 +1,22 @@
+# luaL_optinteger  (global, 46 bytes, 21 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  callq lua_type+0
+   11:  testl %eax, %eax
+   13:  jg 0x20
+   15:  movq %r12, %rax
+   18:  popq %rbx
+   19:  popq %rbp
+   1a:  popq %r12
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  movl %ebp, %esi
+   22:  movq %rbx, %rdi
+   25:  popq %rbx
+   26:  popq %rbp
+   27:  popq %r12
+   29:  jmp luaL_checkinteger+0

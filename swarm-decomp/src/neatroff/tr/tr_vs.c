@@ -1,0 +1,1 @@
+static void tr_vs(struct tr_args *a) { int v; if (a->arg[0]) v = eval_re(a->arg[0], *nreg(0x76), 0x70); else v = *nreg(map(".v0")); int *p = nreg(0x76); int *q = nreg(map(".v0")); *q = *p; if (v < 0) v = 0; *nreg(0x76) = v; }

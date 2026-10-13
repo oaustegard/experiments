@@ -1,0 +1,38 @@
+# luaB_loadfile  (static, 112 bytes, 37 instructions)
+    0:  pushq %r13
+    2:  xorl %ecx, %ecx
+    4:  xorl %edx, %edx
+    6:  movl $1, %esi
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  xorl %ebp, %ebp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $8, %rsp
+   18:  callq luaL_optlstring+0
+   1d:  xorl %ecx, %ecx
+   1f:  xorl %edx, %edx
+   21:  movq %rbx, %rdi
+   24:  movl $2, %esi
+   29:  movq %rax, %r12
+   2c:  callq luaL_optlstring+0
+   31:  movq %rbx, %rdi
+   34:  movl $3, %esi
+   39:  movq %rax, %r13
+   3c:  callq lua_type+0
+   41:  movq %r13, %rdx
+   44:  movq %r12, %rsi
+   47:  movq %rbx, %rdi
+   4a:  cmpl $-1, %eax
+   4d:  setne %bpl
+   51:  callq luaL_loadfilex+0
+   56:  leal (%rbp, %rbp, 2), %ebp
+   5a:  addq $8, %rsp
+   5e:  movq %rbx, %rdi
+   61:  movl %ebp, %edx
+   63:  popq %rbx
+   64:  movl %eax, %esi
+   66:  popq %rbp
+   67:  popq %r12
+   69:  popq %r13
+   6b:  jmp fn:load_aux+0

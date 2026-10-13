@@ -1,0 +1,32 @@
+# wb_drawc  (global, 95 bytes, 31 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movl %edx, %ebp
+    8:  pushq %rbx
+    9:  movl 0x2068(%rdi), %edx
+    f:  movq %rdi, %rbx
+   12:  testl %edx, %edx
+   14:  je 0x20
+   16:  movl 0x206c(%rdi), %eax
+   1c:  testl %eax, %eax
+   1e:  jne 0x58
+   20:  movq %rbx, %rdi
+   23:  callq wb_flushdir+0
+   28:  movq %rbx, %rdi
+   2b:  callq fn:wb_flushfont+0
+   30:  movl (%rip), %edx   <c_ec+0>
+   36:  movl %ebp, %r8d
+   39:  xorl %eax, %eax
+   3b:  movl %r12d, %ecx
+   3e:  movq %rbx, %rdi
+   41:  movl $0, %esi   <str:"%cD'%c %du'">
+   46:  callq sbuf_printf+0
+   4b:  addl %ebp, 0x40(%rbx)
+   4e:  popq %rbx
+   4f:  popq %rbp
+   50:  popq %r12
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  callq fn:wb_flushsub.part.0+0
+   5d:  jmp 0x20

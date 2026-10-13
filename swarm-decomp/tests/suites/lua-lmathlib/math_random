@@ -1,0 +1,157 @@
+# math_random  (static, 567 bytes, 156 instructions)
+    0:  pushq %r15
+    2:  movl $0xfff0b9d7, %esi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  movq %rdi, %rbp
+   11:  pushq %rbx
+   12:  subq $8, %rsp
+   16:  callq lua_touserdata+0
+   1b:  movq %rbp, %rdi
+   1e:  movdqu (%rax), %xmm3
+   22:  movdqu 0x10(%rax), %xmm0
+   27:  movq %rax, %r12
+   2a:  movdqa %xmm3, %xmm4
+   2e:  pxor %xmm3, %xmm0
+   32:  psrldq $8, %xmm4
+   37:  movhlps %xmm0, %xmm5
+   3a:  movdqa %xmm0, %xmm2
+   3e:  movq %xmm4, %rax
+   43:  movdqa %xmm4, %xmm1
+   47:  shufpd $1, %xmm0, %xmm2
+   4c:  pxor %xmm3, %xmm2
+   50:  leaq (%rax, %rax, 4), %rax
+   54:  psllq $0x11, %xmm1
+   59:  movups %xmm2, (%r12)
+   5e:  rolq $7, %rax
+   62:  pxor %xmm0, %xmm1
+   66:  leaq (%rax, %rax, 8), %rbx
+   6a:  movq %xmm5, %rax
+   6f:  movq %xmm1, 0x10(%r12)
+   76:  rorq $0x13, %rax
+   7a:  movq %rax, 0x18(%r12)
+   7f:  callq lua_gettop+0
+   84:  cmpl $1, %eax
+   87:  je 0x120
+   8d:  cmpl $2, %eax
+   90:  je 0xd0
+   92:  testl %eax, %eax
+   94:  jne 0x158
+   9a:  shrq $0xb, %rbx
+   9e:  pxor %xmm0, %xmm0
+   a2:  movq %rbp, %rdi
+   a5:  cvtsi2sdq %rbx, %xmm0
+   aa:  mulsd (%rip), %xmm0   <cst:000000000000a03c>
+   b2:  callq lua_pushnumber+0
+   b7:  addq $8, %rsp
+   bb:  movl $1, %eax
+   c0:  popq %rbx
+   c1:  popq %rbp
+   c2:  popq %r12
+   c4:  popq %r13
+   c6:  popq %r14
+   c8:  popq %r15
+   ca:  retq
+   cb:  nopl (%rax, %rax)
+   d0:  movl $1, %esi
+   d5:  movq %rbp, %rdi
+   d8:  callq luaL_checkinteger+0
+   dd:  movl $2, %esi
+   e2:  movq %rbp, %rdi
+   e5:  movq %rax, %r15
+   e8:  callq luaL_checkinteger+0
+   ed:  movq %r15, %r13
+   f0:  movq %rax, %r14
+   f3:  cmpq %r14, %r15
+   f6:  jg 0x220
+   fc:  movq %r14, %rax
+   ff:  subq %r13, %rax
+  102:  leaq 1(%rax), %rdx
+  106:  testq %rax, %rdx
+  109:  jne 0x178
+  10b:  andq %rbx, %rax
+  10e:  movq %rax, %rsi
+  111:  addq %r13, %rsi
+  114:  movq %rbp, %rdi
+  117:  callq lua_pushinteger+0
+  11c:  jmp 0xb7
+  11e:  nop
+  120:  movl $1, %esi
+  125:  movq %rbp, %rdi
+  128:  movl $1, %r13d
+  12e:  movl $1, %r15d
+  134:  callq luaL_checkinteger+0
+  139:  movq %rax, %r14
+  13c:  testq %rax, %rax
+  13f:  jne 0xf3
+  141:  movq %rbx, %rsi
+  144:  movq %rbp, %rdi
+  147:  callq lua_pushinteger+0
+  14c:  jmp 0xb7
+  151:  nopl (%rax)
+  158:  addq $8, %rsp
+  15c:  movq %rbp, %rdi
+  15f:  movl $0, %esi   <str:"wrong number of arguments">
+  164:  xorl %eax, %eax
+  166:  popq %rbx
+  167:  popq %rbp
+  168:  popq %r12
+  16a:  popq %r13
+  16c:  popq %r14
+  16e:  popq %r15
+  170:  jmp luaL_error+0
+  175:  nopl (%rax)
+  178:  movq %rax, %r8
+  17b:  shrq $1, %r8
+  17e:  orq %rax, %r8
+  181:  movq %r8, %rdx
+  184:  shrq $2, %rdx
+  188:  orq %rdx, %r8
+  18b:  movq %r8, %rdx
+  18e:  shrq $4, %rdx
+  192:  orq %rdx, %r8
+  195:  movq %r8, %rdx
+  198:  shrq $8, %rdx
+  19c:  orq %rdx, %r8
+  19f:  movq %r8, %rdx
+  1a2:  shrq $0x10, %rdx
+  1a6:  orq %rdx, %r8
+  1a9:  movq %r8, %rdx
+  1ac:  shrq $0x20, %rdx
+  1b0:  orq %rdx, %r8
+  1b3:  andq %r8, %rbx
+  1b6:  movq %rbx, %rsi
+  1b9:  cmpq %rbx, %rax
+  1bc:  jae 0x111
+  1c2:  movq (%r12), %r9
+  1c6:  movq 8(%r12), %rdx
+  1cb:  movq 0x10(%r12), %rdi
+  1d0:  movq 0x18(%r12), %rcx
+  1d5:  nopl (%rax)
+  1d8:  leaq (%rdx, %rdx, 4), %rsi
+  1dc:  movq %rdx, %r10
+  1df:  xorq %r9, %rdi
+  1e2:  xorq %rdx, %rcx
+  1e5:  rolq $7, %rsi
+  1e9:  shlq $0x11, %r10
+  1ed:  xorq %rcx, %r9
+  1f0:  xorq %rdi, %rdx
+  1f3:  leaq (%rsi, %rsi, 8), %rsi
+  1f7:  xorq %r10, %rdi
+  1fa:  rorq $0x13, %rcx
+  1fe:  andq %r8, %rsi
+  201:  cmpq %rsi, %rax
+  204:  jb 0x1d8
+  206:  movq %r9, (%r12)
+  20a:  movq %rdx, 8(%r12)
+  20f:  movq %rdi, 0x10(%r12)
+  214:  movq %rcx, 0x18(%r12)
+  219:  jmp 0x111
+  21e:  nop
+  220:  movl $0, %edx   <str:"interval is empty">
+  225:  movl $1, %esi
+  22a:  movq %rbp, %rdi
+  22d:  callq luaL_argerror+0
+  232:  jmp 0xfc

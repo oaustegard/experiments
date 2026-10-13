@@ -1,0 +1,25 @@
+# luaH_getshortstr  (global, 78 bytes, 24 instructions)
+    0:  movzbl 0xb(%rdi), %ecx
+    4:  movl $1, %eax
+    9:  shll %cl, %eax
+    b:  subl $1, %eax
+    e:  andl 0xc(%rsi), %eax
+   11:  cltq
+   13:  leaq (%rax, %rax, 2), %rdx
+   17:  movq 0x18(%rdi), %rax
+   1b:  leaq (%rax, %rdx, 8), %rax
+   1f:  jmp 0x38
+   21:  nopl (%rax)
+   28:  movslq 0xc(%rax), %rdx
+   2c:  testl %edx, %edx
+   2e:  je 0x48
+   30:  leaq (%rdx, %rdx, 2), %rdx
+   34:  leaq (%rax, %rdx, 8), %rax
+   38:  cmpb $0x44, 9(%rax)
+   3c:  jne 0x28
+   3e:  cmpq %rsi, 0x10(%rax)
+   42:  jne 0x28
+   44:  retq
+   45:  nopl (%rax)
+   48:  movl $0, %eax   <var:absentkey+0>
+   4d:  retq

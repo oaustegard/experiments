@@ -1,0 +1,112 @@
+# lua_newstate  (global, 601 bytes, 111 instructions)
+    0:  pushq %r13
+    2:  movl $0x658, %ecx
+    7:  movl $8, %edx
+    c:  pushq %r12
+    e:  movq %rdi, %r12
+   11:  pushq %rbp
+   12:  movq %rsi, %rbp
+   15:  xorl %esi, %esi
+   17:  pushq %rbx
+   18:  movq %rbp, %rdi
+   1b:  subq $0x48, %rsp
+   1f:  callq *%r12
+   22:  testq %rax, %rax
+   25:  je 0x248
+   2b:  movq %rax, %rbx
+   2e:  leaq 8(%rax), %r13
+   32:  leaq 0x1c(%rsp), %rax
+   37:  xorl %edx, %edx
+   39:  movq %rax, %xmm1
+   3e:  movl $0x808, %eax
+   43:  movw %dx, 0x14(%rbx)
+   47:  xorl %edi, %edi
+   49:  movl $0x100, %ecx
+   4e:  movw %ax, 0x10(%rbx)
+   52:  leaq 0xd0(%rbx), %rax
+   59:  movq %r13, %xmm0
+   5e:  movq $0, 0xa8(%rbx)
+   69:  punpcklqdq %xmm1, %xmm0
+   6d:  movw %cx, 0x12(%rbx)
+   71:  movb $8, 0x134(%rbx)
+   78:  movq %rax, 0x20(%rbx)
+   7c:  movq $0, 0x38(%rbx)
+   84:  movq $0, 0x28(%rbx)
+   8c:  movq %r13, 0x58(%rbx)
+   90:  movq $0, 0x60(%rbx)
+   98:  movl $0, 0xc8(%rbx)
+   a2:  movq $0, 0x40(%rbx)
+   aa:  movq %r13, 0x140(%rbx)
+   b1:  movq $0, 8(%rbx)
+   b9:  movq $0, 0xb0(%rbx)
+   c4:  movq $0x10000, 0xb8(%rbx)
+   cf:  movq $0, 0xc0(%rbx)
+   da:  movq %r12, 0xd0(%rbx)
+   e1:  movq %rbp, 0xd8(%rbx)
+   e8:  movq $0, 0x648(%rbx)
+   f3:  movq $0, 0x650(%rbx)
+   fe:  movq %r13, 0x1d8(%rbx)
+  105:  movaps %xmm0, (%rsp)
+  109:  callq time+0
+  10e:  movdqa (%rsp), %xmm0
+  113:  movl $0x18, %esi
+  118:  leaq 0x20(%rsp), %rdi
+  11d:  movl %eax, %edx
+  11f:  movl %eax, 0x1c(%rsp)
+  123:  movaps %xmm0, 0x20(%rsp)
+  128:  movq $0, 0x30(%rsp)   <lua_newstate+0>
+  131:  callq luaS_hash+0
+  136:  pxor %xmm0, %xmm0
+  13a:  movl $0xd19, %esi
+  13f:  xorl %edx, %edx
+  141:  movl %eax, 0x130(%rbx)
+  147:  movq (%rip), %rax   <cst:0800001419020032>
+  14e:  movq %r13, %rdi
+  151:  movups %xmm0, 0x148(%rbx)
+  158:  movups %xmm0, 0x158(%rbx)
+  15f:  movups %xmm0, 0x168(%rbx)
+  166:  movups %xmm0, 0x178(%rbx)
+  16d:  movups %xmm0, 0x188(%rbx)
+  174:  movups %xmm0, 0x198(%rbx)
+  17b:  movups %xmm0, 0x1a8(%rbx)
+  182:  movups %xmm0, 0x1b8(%rbx)
+  189:  movdqa (%rip), %xmm0   <cst:58060000000000000000000000000000>
+  191:  movw %si, 0x13d(%rbx)
+  198:  movl $0, %esi   <fn:f_luaopen+0>
+  19d:  movq $0, 0x108(%rbx)
+  1a8:  movq $0, 0x100(%rbx)
+  1b3:  movb $0, 0x118(%rbx)
+  1ba:  movq $0, 0x1d0(%rbx)
+  1c5:  movq $0, 0x1c8(%rbx)
+  1d0:  movq $0, 0xf8(%rbx)
+  1db:  movq $0, 0x120(%rbx)
+  1e6:  movb $3, 0x128(%rbx)
+  1ed:  movq %rax, 0x135(%rbx)
+  1f4:  movq $0, 0x2f0(%rbx)
+  1ff:  movups %xmm0, 0xe0(%rbx)
+  206:  pxor %xmm0, %xmm0
+  20a:  movups %xmm0, 0x2b0(%rbx)
+  211:  movups %xmm0, 0x2c0(%rbx)
+  218:  movups %xmm0, 0x2d0(%rbx)
+  21f:  movups %xmm0, 0x2e0(%rbx)
+  226:  callq luaD_rawrunprotected+0
+  22b:  testl %eax, %eax
+  22d:  jne 0x240
+  22f:  addq $0x48, %rsp
+  233:  movq %r13, %rax
+  236:  popq %rbx
+  237:  popq %rbp
+  238:  popq %r12
+  23a:  popq %r13
+  23c:  retq
+  23d:  nopl (%rax)
+  240:  movq %r13, %rdi
+  243:  callq fn:close_state+0
+  248:  addq $0x48, %rsp
+  24c:  xorl %r13d, %r13d
+  24f:  popq %rbx
+  250:  movq %r13, %rax
+  253:  popq %rbp
+  254:  popq %r12
+  256:  popq %r13
+  258:  retq

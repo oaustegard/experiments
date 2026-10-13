@@ -1,0 +1,55 @@
+# inc_pre  (static, 222 bytes, 54 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movslq %edi, %rbx
+    5:  subq $0x28, %rsp
+    9:  callq fn:readpre+0
+    e:  callq o_tmpcopy+0
+   13:  movl (%rip), %edx   <var:nts+0>
+   19:  movl $1, %edi
+   1e:  leal -1(%rdx), %eax
+   21:  addl $1, %edx
+   24:  cltq
+   26:  movl %edx, (%rip)   <var:nts+0>
+   2c:  leaq (%rax, %rax, 4), %rax
+   30:  shlq $2, %rax
+   34:  movdqu (%rax), %xmm0   <var:ts+0>
+   3c:  movl (%rax), %edx   <var:ts+16>
+   42:  movups %xmm0, (%rax)   <var:ts+20>
+   49:  movl %edx, (%rax)   <var:ts+36>
+   4f:  callq fn:ts_de+0
+   54:  movl (%rip), %eax   <var:nts+0>
+   5a:  subl $1, %eax
+   5d:  movl %eax, (%rip)   <var:nts+0>
+   63:  cltq
+   65:  leaq (%rax, %rax, 4), %rax
+   69:  shlq $2, %rax
+   6d:  movdqu (%rax), %xmm1   <var:ts+0>
+   75:  movl (%rax), %eax   <var:ts+16>
+   7b:  movaps %xmm1, (%rsp)
+   7f:  movl 8(%rsp), %ebp
+   83:  movl %eax, 0x10(%rsp)
+   87:  testl %ebp, %ebp
+   89:  jg 0xc0
+   8b:  movl $1, %edi
+   90:  callq o_num+0
+   95:  movq %rbx, %rdi
+   98:  callq o_bop+0
+   9d:  movl (%rsp), %edi
+   a0:  testl %ebp, %ebp
+   a2:  jne 0xd7
+   a4:  callq o_assign+0
+   a9:  addq $0x28, %rsp
+   ad:  xorl %edi, %edi
+   af:  popq %rbx
+   b0:  popq %rbp
+   b1:  jmp fn:ts_de+0
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  movq %rsp, %rdi
+   c3:  callq fn:type_szde+0
+   c8:  movl %eax, %edi
+   ca:  callq o_num+0
+   cf:  movq %rbx, %rdi
+   d2:  callq o_bop+0
+   d7:  movl $8, %edi
+   dc:  jmp 0xa4

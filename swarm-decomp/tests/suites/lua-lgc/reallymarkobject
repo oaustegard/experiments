@@ -1,0 +1,68 @@
+# reallymarkobject  (static, 251 bytes, 67 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  movzbl 8(%rbx), %edx
+    8:  leal -4(%rdx), %eax
+    b:  cmpb $0x22, %al
+    d:  ja 0x4b
+    f:  movzbl %al, %eax
+   12:  jmpq *(, %rax, 8)   <var:reallymarkobject+0>
+   19:  nopl (%rax)
+   20:  cmpw $0, 0xa(%rbx)
+   25:  jne 0xa8
+   2b:  movq 0x18(%rbx), %rsi
+   2f:  testq %rsi, %rsi
+   32:  je 0x3e
+   34:  testb $0x18, 9(%rsi)
+   38:  jne 0xe0
+   3e:  movzbl 9(%rbx), %eax
+   42:  andl $0xffffffc7, %eax
+   45:  orl $0x20, %eax
+   48:  movb %al, 9(%rbx)
+   4b:  popq %rbx
+   4c:  retq
+   4d:  nopl (%rax)
+   50:  subl $5, %edx
+   53:  cmpb $0x21, %dl
+   56:  ja fn:reallymarkobject.cold+0
+   5c:  movzbl %dl, %edx
+   5f:  jmpq *(, %rdx, 8)   <var:reallymarkobject+280>
+   66:  nopw %cs:(%rax, %rax)
+   70:  movzbl 9(%rbx), %eax
+   74:  movq 0x10(%rbx), %rdx
+   78:  leaq 0x18(%rbx), %rsi
+   7c:  andl $0xffffffc7, %eax
+   7f:  movl %eax, %ecx
+   81:  orl $0x20, %ecx
+   84:  cmpq %rsi, %rdx
+   87:  cmovel %ecx, %eax
+   8a:  movb %al, 9(%rbx)
+   8d:  testb $0x40, 8(%rdx)
+   91:  je 0x4b
+   93:  movq (%rdx), %rbx
+   96:  testb $0x18, 9(%rbx)
+   9a:  jne 4
+   a0:  popq %rbx
+   a1:  retq
+   a2:  nopw (%rax, %rax)
+   a8:  leaq 0x20(%rbx), %rdx
+   ac:  movq 0x88(%rdi), %rax
+   b3:  movq %rax, (%rdx)
+   b6:  movq %rbx, 0x88(%rdi)
+   bd:  andb $0xc7, 9(%rbx)
+   c1:  popq %rbx
+   c2:  retq
+   c3:  nopl (%rax, %rax)
+   c8:  leaq 0x10(%rbx), %rdx
+   cc:  jmp 0xac
+   ce:  leaq 0x30(%rbx), %rdx
+   d2:  jmp 0xac
+   d4:  leaq 0x78(%rbx), %rdx
+   d8:  jmp 0xac
+   da:  leaq 0x48(%rbx), %rdx
+   de:  jmp 0xac
+   e0:  callq 0
+   e5:  jmp 0x3e
+   ea:  movq 0x88(%rdi), %rax
+   f1:  movq %rax, 0
+   f9:  ud2

@@ -1,0 +1,50 @@
+# down  (static, 144 bytes, 49 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl %edi, %ebx
+    4:  movl $0x64, %edi
+    9:  subq $8, %rsp
+    d:  callq nreg+0
+   12:  movl (%rax), %ebp
+   14:  movl %ebx, %eax
+   16:  testl %ebx, %ebx
+   18:  je 0x70
+   1a:  movl $0x64, %edi
+   1f:  addl %eax, %ebp
+   21:  callq nreg+0
+   26:  movl $1, %edx
+   2b:  movl %ebp, %esi
+   2d:  movl (%rax), %edi
+   2f:  callq fn:ren_traps+0
+   34:  testl %eax, %eax
+   36:  je 0x48
+   38:  addq $8, %rsp
+   3c:  movl $1, %eax
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  retq
+   44:  nopl (%rax)
+   48:  movl $0x64, %edi
+   4d:  callq nreg+0
+   52:  movl (%rax), %eax
+   54:  negl %eax
+   56:  cmpl %ebx, %eax
+   58:  jg 0x80
+   5a:  movl %ebx, %edi
+   5c:  xorl %esi, %esi
+   5e:  callq fn:ren_sp+0
+   63:  addq $8, %rsp
+   67:  xorl %edi, %edi
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  jmp fn:ren_pagelimit+0
+   70:  movl $0x76, %edi
+   75:  callq nreg+0
+   7a:  movl (%rax), %eax
+   7c:  jmp 0x1a
+   7e:  nop
+   80:  movl $0x64, %edi
+   85:  callq nreg+0
+   8a:  movl (%rax), %ebx
+   8c:  negl %ebx
+   8e:  jmp 0x5a

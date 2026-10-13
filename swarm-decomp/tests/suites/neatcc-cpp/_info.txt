@@ -1,0 +1,96 @@
+# neatcc-cpp: translation unit cpp of neatcc
+# write each function as src/neatcc/cpp/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+jumpcomment	static	211 bytes
+jumpstr	static	146 bytes
+jumpws	static	129 bytes
+read_word	static	170 bytes
+readarg	static	231 bytes
+read_tilleol	static	332 bytes
+buf_pop	static	126 bytes
+eval_tok	static	742 bytes
+buf_arg_find	static	170 bytes
+evalbitor	static	432 bytes
+evalor	static	317 bytes
+evalcexpr	static	80 bytes
+evalpre	static	656 bytes
+evalmul	static	210 bytes
+evaladd	static	124 bytes
+evalshift	static	134 bytes
+evalcmp	static	269 bytes
+evaleq	static	149 bytes
+die	global	213 bytes
+buf_new	static	126 bytes
+include_file	static	216 bytes
+buf_macro	static	729 bytes
+macro_expand.constprop.0	static	705 bytes
+macro_define	static	419 bytes
+cpp_init	global	5 bytes
+cpp_path	global	25 bytes
+cpp_define	global	70 bytes
+cpp_read	global	1134 bytes
+cpp_eval	static	200 bytes
+jumpifs	static	417 bytes
+cpp_cmd	static	943 bytes
+cpp_loc	global	303 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+buf	static	8 bytes	.bss.buf
+    (zero-initialised)
+cur	static	8 bytes	.bss.cur
+    (zero-initialised)
+len	static	8 bytes	.bss.len
+    (zero-initialised)
+bufs_n	static	4 bytes	.bss.bufs_n
+    (zero-initialised)
+bufs	static	1054208 bytes	.bss.bufs
+    (zero-initialised)
+ecur	static	4 bytes	.bss.ecur
+    (zero-initialised)
+elen	static	4 bytes	.bss.elen
+    (zero-initialised)
+ebuf	static	1024 bytes	.bss.ebuf
+    (zero-initialised)
+tok2	static	64 bytes	.rodata.tok2
+    +0     -> str:"<<"
+    +8     -> str:">>"
+    +16    -> str:"&&"
+    +24    -> str:"||"
+    +32    -> str:"=="
+    +40    -> str:"!="
+    +48    -> str:"<="
+    +56    -> str:">="
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+etok	static	128 bytes	.bss.etok
+    (zero-initialised)
+enext	static	4 bytes	.bss.enext
+    (zero-initialised)
+mhead	static	1024 bytes	.bss.mhead
+    (zero-initialised)
+macros	static	25739264 bytes	.bss.macros
+    (zero-initialised)
+mnext	static	16384 bytes	.bss.mnext
+    (zero-initialised)
+seen_name	static	128 bytes	.bss.seen_name
+    (zero-initialised)
+mcount	static	4 bytes	.data.mcount
+        0: 01 00 00 00
+nlocs	static	4 bytes	.bss.nlocs
+    (zero-initialised)
+locs	static	8192 bytes	.bss.locs
+    (zero-initialised)
+seen_macro	static	4 bytes	.bss.seen_macro
+    (zero-initialised)
+hunk_len	static	4 bytes	.bss.hunk_len
+    (zero-initialised)
+hunk_off	static	4 bytes	.bss.hunk_off
+    (zero-initialised)
+bufs_limit	static	4 bytes	.bss.bufs_limit
+    (zero-initialised)
+loc.0	static	256 bytes	.bss.loc.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc close err exit free fstat malloc mem_done mem_get mem_init mem_len mem_putc memcpy open read sprintf stpcpy strchr strcmp strcpy strlen strtol vsprintf write

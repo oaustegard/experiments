@@ -1,0 +1,49 @@
+# luaT_trybinTM  (global, 142 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movl %r8d, %ebp
+    e:  pushq %rbx
+    f:  movq %rsi, %rbx
+   12:  subq $8, %rsp
+   16:  callq fn:callbinTM+0
+   1b:  testl %eax, %eax
+   1d:  je 0x30
+   1f:  addq $8, %rsp
+   23:  popq %rbx
+   24:  popq %rbp
+   25:  popq %r12
+   27:  popq %r13
+   29:  retq
+   2a:  nopw (%rax, %rax)
+   30:  cmpl $0x11, %ebp
+   33:  ja 0x68
+   35:  cmpl $0xc, %ebp
+   38:  jbe 0x6d
+   3a:  movzbl 8(%rbx), %eax
+   3e:  andl $0xf, %eax
+   41:  cmpb $3, %al
+   43:  jne 0x52
+   45:  movzbl 8(%r12), %eax
+   4b:  andl $0xf, %eax
+   4e:  cmpb $3, %al
+   50:  je 0x80
+   52:  movl $0, %ecx   <str:"perform bitwise operation on">
+   57:  movq %r12, %rdx
+   5a:  movq %rbx, %rsi
+   5d:  movq %r13, %rdi
+   60:  callq luaG_opinterror+0
+   65:  nopl (%rax)
+   68:  cmpl $0x13, %ebp
+   6b:  je 0x3a
+   6d:  movl $0, %ecx   <str:"perform arithmetic on">
+   72:  movq %r12, %rdx
+   75:  movq %rbx, %rsi
+   78:  movq %r13, %rdi
+   7b:  callq luaG_opinterror+0
+   80:  movq %r12, %rdx
+   83:  movq %rbx, %rsi
+   86:  movq %r13, %rdi
+   89:  callq luaG_tointerror+0

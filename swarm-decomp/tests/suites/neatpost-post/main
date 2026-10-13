@@ -1,0 +1,271 @@
+# main  (global, 1142 bytes, 270 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %edi, %r12d
+    b:  movl $0, %edi   <str:"NEATROFF_F">
+   10:  pushq %rbp
+   11:  movq %rsi, %rbp
+   14:  pushq %rbx
+   15:  subq $0x18, %rsp
+   19:  callq getenv+0
+   1e:  testq %rax, %rax
+   21:  je 0x46
+   23:  movl $0, %edi   <str:"NEATROFF_F">
+   28:  callq getenv+0
+   2d:  movl $0, %edx   <str:"%s">
+   32:  movl $0x400, %esi
+   37:  movl $0, %edi   <var:postdir+0>
+   3c:  movq %rax, %rcx
+   3f:  xorl %eax, %eax
+   41:  callq snprintf+0
+   46:  xorl %r13d, %r13d
+   49:  movl $1, %r14d
+   4f:  cmpl $1, %r12d
+   53:  jle 0xa9
+   55:  nopl (%rax)
+   58:  movslq %r14d, %rax
+   5b:  movq (%rbp, %rax, 8), %rsi
+   60:  leaq (, %rax, 8), %rdx
+   68:  cmpb $0x2d, (%rsi)
+   6b:  jne 0x2cd
+   71:  movzbl 1(%rsi), %eax
+   75:  subl $0x46, %eax
+   78:  cmpb $0x31, %al
+   7a:  ja 0x14d
+   80:  movzbl %al, %eax
+   83:  jmpq *(, %rax, 8)   <var:main+0>
+   8a:  nopw (%rax, %rax)
+   90:  callq __ctype_b_loc+0
+   95:  movq %rax, %rdx
+   98:  movslq %ebx, %rax
+   9b:  movq (%rdx), %rdx
+   9e:  testb $0x20, 1(%rdx, %rax, 2)
+   a3:  je 0x3da
+   a9:  movq (%rip), %rdi   <stdin+0>
+   b0:  callq getc+0
+   b5:  movl %eax, %ebx
+   b7:  testl %eax, %eax
+   b9:  jns 0x90
+   bb:  movl (%rip), %edi   <var:o_pages+0>
+   c1:  testl %edi, %edi
+   c3:  jne 0x446
+   c9:  movl (%rip), %edi   <var:name_n+0>
+   cf:  testl %edi, %edi
+   d1:  jne 0x427
+   d7:  movl (%rip), %edi   <var:mark_n+0>
+   dd:  testl %edi, %edi
+   df:  jne 0x401
+   e5:  movl (%rip), %edi   <var:o_pages+0>
+   eb:  callq doctrailer+0
+   f0:  callq dev_close+0
+   f5:  movq (%rip), %rdi   <var:mark_desc+0>
+   fc:  callq free+0
+  101:  movq (%rip), %rdi   <var:mark_page+0>
+  108:  callq free+0
+  10d:  movq (%rip), %rdi   <var:mark_offset+0>
+  114:  callq free+0
+  119:  movq (%rip), %rdi   <var:mark_level+0>
+  120:  callq free+0
+  125:  movq (%rip), %rdi   <var:name_desc+0>
+  12c:  callq free+0
+  131:  movq (%rip), %rdi   <var:name_page+0>
+  138:  callq free+0
+  13d:  movq (%rip), %rdi   <var:name_offset+0>
+  144:  callq free+0
+  149:  xorl %eax, %eax
+  14b:  jmp 0x16d
+  14d:  movl $0x172, %edx
+  152:  movl $1, %esi
+  157:  movl $0, %edi   <str:"Usage: neatpost [options] <input >output\nOptions:\n  -F dir  \tset font directory (/neatroff/font)\n  -p size \tset paper size (letter); e.g., a4, 2100x2970\n  -t title\tspecify document title\n  -w lwid \tdrawing line thickness in thousandths of an em (40)\n  -l      \tlandscape mode\n  -n      \talways draw glyphs by name (ps glyphshow)\n  -d x=v  \tset device-specific variables\n">
+  15c:  movq (%rip), %rcx   <stderr+0>
+  163:  callq fwrite+0
+  168:  movl $1, %eax
+  16d:  addq $0x18, %rsp
+  171:  popq %rbx
+  172:  popq %rbp
+  173:  popq %r12
+  175:  popq %r13
+  177:  popq %r14
+  179:  popq %r15
+  17b:  retq
+  17c:  cmpb $0, 2(%rsi)
+  180:  jne 0x375
+  186:  movq 8(%rbp, %rdx), %rsi
+  18b:  addl $1, %r14d
+  18f:  movq %rsi, (%rip)   <var:ps_title+0>
+  196:  jmp 0x2c0
+  19b:  cmpb $0, 2(%rsi)
+  19f:  leaq 2(%rsi), %rbx
+  1a3:  je 0x367
+  1a9:  xorl %r15d, %r15d
+  1ac:  movq %r15, %rax
+  1af:  movq %rbx, %rsi
+  1b2:  shlq $4, %rax
+  1b6:  movq (%rax), %rdi   <var:papers+0>
+  1bd:  callq strcmp+0
+  1c2:  testl %eax, %eax
+  1c4:  je 0x450
+  1ca:  addq $1, %r15
+  1ce:  cmpq $4, %r15
+  1d2:  jne 0x1ac
+  1d4:  callq __ctype_b_loc+0
+  1d9:  movq (%rax), %r15
+  1dc:  movsbq (%rbx), %rax
+  1e0:  movq %rax, (%rsp)
+  1e4:  movq %rax, %rdx
+  1e7:  testb $8, 1(%r15, %rax, 2)
+  1ed:  jne 0x37e
+  1f3:  movsbl %dl, %esi
+  1f6:  movl $0, %edi   <str:"abcABC">
+  1fb:  callq strchr+0
+  200:  testq %rax, %rax
+  203:  je 0x2c0
+  209:  movsbq 1(%rbx), %rax
+  20e:  movq %rax, %rbx
+  211:  testb $8, 1(%r15, %rax, 2)
+  217:  je 0x2c0
+  21d:  callq __ctype_tolower_loc+0
+  222:  movq (%rsp), %rcx
+  226:  movq (%rax), %rax
+  229:  movl (%rax, %rcx, 4), %eax
+  22c:  cmpl $0x62, %eax
+  22f:  je 0x3f1
+  235:  cmpl $0x63, %eax
+  238:  movl $0x32aa, %r8d
+  23e:  movl $0x2e72, %eax
+  243:  movl $0x23d2, %ecx
+  248:  cmovnel %eax, %r8d
+  24c:  movl $0x20da, %eax
+  251:  cmovel %ecx, %eax
+  254:  movl %eax, %edx
+  256:  movsbl %bl, %esi
+  259:  movl %r8d, %edi
+  25c:  leal -0x2f(%rsi), %ecx
+  25f:  leal -0x30(%rsi), %eax
+  262:  sarl $1, %ecx
+  264:  sarl %cl, %edi
+  266:  andb $1, %sil
+  26a:  jne 0x273
+  26c:  movl %edx, %edi
+  26e:  movl %r8d, %edx
+  271:  sarl %cl, %edi
+  273:  sarl $1, %eax
+  275:  movl $0xa, %esi
+  27a:  movl %eax, %ecx
+  27c:  movl %edi, %eax
+  27e:  sarl %cl, %edx
+  280:  movl %edx, %ecx
+  282:  cltd
+  283:  idivl %esi
+  285:  movl %ecx, %eax
+  287:  subl %edx, %edi
+  289:  cltd
+  28a:  idivl %esi
+  28c:  movl %edi, (%rip)   <var:ps_pagewidth+0>
+  292:  subl %edx, %ecx
+  294:  movl %ecx, (%rip)   <var:ps_pageheight+0>
+  29a:  jmp 0x2c0
+  29c:  cmpb $0, 2(%rsi)
+  2a0:  leaq 2(%rsi), %rdi
+  2a4:  je 0x359
+  2aa:  movl $0xa, %edx
+  2af:  xorl %esi, %esi
+  2b1:  callq strtol+0
+  2b6:  movl %eax, (%rip)   <var:ps_linewidth+0>
+  2bc:  nopl (%rax)
+  2c0:  addl $1, %r14d
+  2c4:  cmpl %r14d, %r12d
+  2c7:  jg 0x58
+  2cd:  testl %r13d, %r13d
+  2d0:  je 0xa9
+  2d6:  movl (%rip), %eax   <var:ps_pagewidth+0>
+  2dc:  movl (%rip), %edx   <var:ps_pageheight+0>
+  2e2:  movl %eax, (%rip)   <var:ps_pageheight+0>
+  2e8:  movl %edx, (%rip)   <var:ps_pagewidth+0>
+  2ee:  jmp 0xa9
+  2f3:  cmpb $0, 2(%rsi)
+  2f7:  jne 0x353
+  2f9:  movq 8(%rbp, %rdx), %rsi
+  2fe:  addl $1, %r14d
+  302:  movl $0, %edi   <var:postdir+0>
+  307:  callq strcpy+0
+  30c:  jmp 0x2c0
+  30e:  movl $1, %edi
+  313:  callq outgname+0
+  318:  jmp 0x2c0
+  31a:  cmpb $0, 2(%rsi)
+  31e:  leaq 2(%rsi), %rbx
+  322:  jne 0x32d
+  324:  movq 8(%rbp, %rdx), %rbx
+  329:  addl $1, %r14d
+  32d:  movl $0x3d, %esi
+  332:  movq %rbx, %rdi
+  335:  callq strchr+0
+  33a:  testq %rax, %rax
+  33d:  je 0x2c0
+  33f:  movb $0, (%rax)
+  342:  leaq 1(%rax), %rsi
+  346:  movq %rbx, %rdi
+  349:  callq outset+0
+  34e:  jmp 0x2c0
+  353:  addq $2, %rsi
+  357:  jmp 0x302
+  359:  movq 8(%rbp, %rdx), %rdi
+  35e:  addl $1, %r14d
+  362:  jmp 0x2aa
+  367:  movq 8(%rbp, %rdx), %rbx
+  36c:  addl $1, %r14d
+  370:  jmp 0x1a9
+  375:  addq $2, %rsi
+  379:  jmp 0x18f
+  37e:  movl $0x78, %esi
+  383:  movq %rbx, %rdi
+  386:  movb %al, 0xf(%rsp)
+  38a:  callq strchr+0
+  38f:  movzbl 0xf(%rsp), %edx
+  394:  testq %rax, %rax
+  397:  je 0x1f3
+  39d:  movl $0xa, %edx
+  3a2:  xorl %esi, %esi
+  3a4:  movq %rbx, %rdi
+  3a7:  callq strtol+0
+  3ac:  movl $0x78, %esi
+  3b1:  movq %rbx, %rdi
+  3b4:  movl %eax, (%rip)   <var:ps_pagewidth+0>
+  3ba:  callq strchr+0
+  3bf:  movl $0xa, %edx
+  3c4:  xorl %esi, %esi
+  3c6:  leaq 1(%rax), %rdi
+  3ca:  callq strtol+0
+  3cf:  movl %eax, (%rip)   <var:ps_pageheight+0>
+  3d5:  jmp 0x2c0
+  3da:  movl %ebx, %edi
+  3dc:  callq fn:postcmd+0
+  3e1:  jmp 0xa9
+  3e6:  movl $1, %r13d
+  3ec:  jmp 0x2c0
+  3f1:  movl $0x373c, %r8d
+  3f7:  movl $0x2710, %edx
+  3fc:  jmp 0x256
+  401:  movq (%rip), %r8   <var:mark_level+0>
+  408:  movq (%rip), %rcx   <var:mark_offset+0>
+  40f:  movq (%rip), %rdx   <var:mark_page+0>
+  416:  movq (%rip), %rsi   <var:mark_desc+0>
+  41d:  callq outmark+0
+  422:  jmp 0xe5
+  427:  movq (%rip), %rcx   <var:name_offset+0>
+  42e:  movq (%rip), %rdx   <var:name_page+0>
+  435:  movq (%rip), %rsi   <var:name_desc+0>
+  43c:  callq outname+0
+  441:  jmp 0xd7
+  446:  callq docpageend+0
+  44b:  jmp 0xc9
+  450:  movslq %r15d, %r15
+  453:  shlq $4, %r15
+  457:  movl (%r15), %edx   <var:papers+8>
+  45e:  movl (%r15), %eax   <var:papers+12>
+  465:  movl %edx, (%rip)   <var:ps_pagewidth+0>
+  46b:  movl %eax, (%rip)   <var:ps_pageheight+0>
+  471:  jmp 0x2c0

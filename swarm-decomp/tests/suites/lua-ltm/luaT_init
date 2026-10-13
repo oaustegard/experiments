@@ -1,0 +1,26 @@
+# luaT_init  (global, 83 bytes, 25 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  xorl %ebx, %ebx
+    9:  nopl (%rax)
+   10:  movq (, %rbx, 8), %rsi   <var:luaT_eventname+0>
+   18:  movq %rbp, %rdi
+   1b:  movq 0x18(%rbp), %r12
+   1f:  callq luaS_new+0
+   24:  movq %rbp, %rdi
+   27:  movq %rax, %rdx
+   2a:  movslq %ebx, %rax
+   2d:  addq $1, %rbx
+   31:  addq $0x22, %rax
+   35:  movq %rdx, 8(%r12, %rax, 8)
+   3a:  movq 0x18(%rbp), %rdx
+   3e:  movq 8(%rdx, %rax, 8), %rsi
+   43:  callq luaC_fix+0
+   48:  cmpq $0x19, %rbx
+   4c:  jne 0x10
+   4e:  popq %rbx
+   4f:  popq %rbp
+   50:  popq %r12
+   52:  retq

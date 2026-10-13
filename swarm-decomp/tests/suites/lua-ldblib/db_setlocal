@@ -1,0 +1,111 @@
+# db_setlocal  (static, 412 bytes, 110 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $0x90, %rsp
+   17:  callq lua_type+0
+   1c:  movl $1, %esi
+   21:  movq %rbx, %rdi
+   24:  cmpl $8, %eax
+   27:  je 0xf0
+   2d:  callq luaL_checkinteger+0
+   32:  movq %rsp, %r13
+   35:  movl $2, %esi
+   3a:  movq %rbx, %rdi
+   3d:  movq %rax, %rbp
+   40:  callq luaL_checkinteger+0
+   45:  movq %r13, %rdx
+   48:  movl %ebp, %esi
+   4a:  movq %rbx, %rdi
+   4d:  movq %rax, %r12
+   50:  callq lua_getstack+0
+   55:  testl %eax, %eax
+   57:  je 0xc8
+   59:  movl $3, %esi
+   5e:  movq %rbx, %rdi
+   61:  movl %r12d, %ebp
+   64:  movq %rbx, %r12
+   67:  callq luaL_checkany+0
+   6c:  movl $3, %esi
+   71:  movq %rbx, %rdi
+   74:  callq lua_settop+0
+   79:  movl $1, %edx
+   7e:  movq %r12, %rsi
+   81:  movq %rbx, %rdi
+   84:  callq lua_xmove+0
+   89:  movl %ebp, %edx
+   8b:  movq %r13, %rsi
+   8e:  movq %r12, %rdi
+   91:  callq lua_setlocal+0
+   96:  movq %rax, %rbp
+   99:  testq %rax, %rax
+   9c:  je 0x180
+   a2:  movq %rbp, %rsi
+   a5:  movq %rbx, %rdi
+   a8:  callq lua_pushstring+0
+   ad:  addq $0x90, %rsp
+   b4:  movl $1, %eax
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  popq %r12
+   bd:  popq %r13
+   bf:  popq %r14
+   c1:  retq
+   c2:  nopw (%rax, %rax)
+   c8:  movl $1, %esi
+   cd:  movq %rbx, %rdi
+   d0:  movl $0, %edx   <str:"level out of range">
+   d5:  callq luaL_argerror+0
+   da:  addq $0x90, %rsp
+   e1:  popq %rbx
+   e2:  popq %rbp
+   e3:  popq %r12
+   e5:  popq %r13
+   e7:  popq %r14
+   e9:  retq
+   ea:  nopw (%rax, %rax)
+   f0:  callq lua_tothread+0
+   f5:  movl $2, %esi
+   fa:  movq %rbx, %rdi
+   fd:  movq %rsp, %r13
+  100:  movq %rax, %r12
+  103:  callq luaL_checkinteger+0
+  108:  movl $3, %esi
+  10d:  movq %rbx, %rdi
+  110:  movq %rax, %r14
+  113:  callq luaL_checkinteger+0
+  118:  movq %r13, %rdx
+  11b:  movl %r14d, %esi
+  11e:  movq %r12, %rdi
+  121:  movl %eax, %ebp
+  123:  callq lua_getstack+0
+  128:  testl %eax, %eax
+  12a:  je 0x192
+  12c:  movl $4, %esi
+  131:  movq %rbx, %rdi
+  134:  callq luaL_checkany+0
+  139:  movl $4, %esi
+  13e:  movq %rbx, %rdi
+  141:  callq lua_settop+0
+  146:  cmpq %r12, %rbx
+  149:  je 0x79
+  14f:  movl $1, %esi
+  154:  movq %r12, %rdi
+  157:  callq lua_checkstack+0
+  15c:  testl %eax, %eax
+  15e:  jne 0x79
+  164:  movl $0, %esi   <str:"stack overflow">
+  169:  movq %rbx, %rdi
+  16c:  callq luaL_error+0
+  171:  jmp 0x79
+  176:  nopw %cs:(%rax, %rax)
+  180:  movl $0xfffffffe, %esi
+  185:  movq %r12, %rdi
+  188:  callq lua_settop+0
+  18d:  jmp 0xa2
+  192:  movl $2, %esi
+  197:  jmp 0xcd

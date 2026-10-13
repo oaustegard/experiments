@@ -1,0 +1,64 @@
+# luaL_execresult  (global, 207 bytes, 63 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  testl %esi, %esi
+    9:  je 0xb8
+    f:  movl %esi, %ebx
+   11:  callq __errno_location+0
+   16:  movl (%rax), %r12d
+   19:  testl %r12d, %r12d
+   1c:  jne 0x40
+   1e:  movl %ebx, %eax
+   20:  andl $0x7f, %eax
+   23:  jne 0x70
+   25:  movzbl %bh, %ebx
+   28:  testl %ebx, %ebx
+   2a:  je 0xb8
+   30:  movl $0, %r12d   <str:"exit">
+   36:  jmp 0x89
+   38:  nopl (%rax, %rax)
+   40:  movq %rbp, %rdi
+   43:  callq lua_pushnil+0
+   48:  movl %r12d, %edi
+   4b:  callq strerror+0
+   50:  movq %rbp, %rdi
+   53:  movq %rax, %rsi
+   56:  callq lua_pushstring+0
+   5b:  movslq %r12d, %rsi
+   5e:  movq %rbp, %rdi
+   61:  callq lua_pushinteger+0
+   66:  popq %rbx
+   67:  movl $3, %eax
+   6c:  popq %rbp
+   6d:  popq %r12
+   6f:  retq
+   70:  leal 1(%rax), %edx
+   73:  movl $0, %r12d   <str:"exit">
+   79:  sarb $1, %dl
+   7b:  testb %dl, %dl
+   7d:  cmovgl %eax, %ebx
+   80:  movl $0, %eax   <str:"signal">
+   85:  cmovgq %rax, %r12
+   89:  movq %rbp, %rdi
+   8c:  movslq %ebx, %rbx
+   8f:  callq lua_pushnil+0
+   94:  movq %r12, %rsi
+   97:  movq %rbp, %rdi
+   9a:  callq lua_pushstring+0
+   9f:  movq %rbx, %rsi
+   a2:  movq %rbp, %rdi
+   a5:  callq lua_pushinteger+0
+   aa:  popq %rbx
+   ab:  movl $3, %eax
+   b0:  popq %rbp
+   b1:  popq %r12
+   b3:  retq
+   b4:  nopl (%rax)
+   b8:  movl $1, %esi
+   bd:  movq %rbp, %rdi
+   c0:  xorl %ebx, %ebx
+   c2:  movl $0, %r12d   <str:"exit">
+   c8:  callq lua_pushboolean+0
+   cd:  jmp 0x94

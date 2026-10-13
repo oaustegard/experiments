@@ -1,0 +1,37 @@
+# trap_pos  (static, 119 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %ebx
+    3:  callq 8   <fn:trap_first+0>
+    8:  cmpl $2, (%rip)   <var:bp_final+0>
+    f:  jg 0x70
+   11:  movq (%rip), %rdx   <var:cdiv+0>
+   18:  testq %rdx, %rdx
+   1b:  je 0x40
+   1d:  movl 0x18(%rdx), %ecx
+   20:  movl $0xffffffff, %eax
+   25:  testl %ecx, %ecx
+   27:  je 0x36
+   29:  movl 0x14(%rdx), %eax
+   2c:  movl $0xffffffff, %edx
+   31:  cmpl %ebx, %eax
+   33:  cmovlel %edx, %eax
+   36:  popq %rbx
+   37:  retq
+   38:  nopl (%rax, %rax)
+   40:  testl %eax, %eax
+   42:  js 0x70
+   44:  movslq %eax, %rbx
+   47:  movl (, %rbx, 4), %eax   <var:tpos+0>
+   4e:  testl %eax, %eax
+   50:  jns 0x36
+   52:  movl $0x70, %edi
+   57:  callq nreg+0
+   5c:  movq %rax, %rdx
+   5f:  movl (, %rbx, 4), %eax   <var:tpos+0>
+   66:  popq %rbx
+   67:  addl (%rdx), %eax
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  movl $0xffffffff, %eax
+   75:  popq %rbx
+   76:  retq

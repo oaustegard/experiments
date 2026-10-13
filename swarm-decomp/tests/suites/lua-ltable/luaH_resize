@@ -1,0 +1,249 @@
+# luaH_resize  (global, 915 bytes, 248 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movl %edx, %ebp
+    b:  pushq %rbx
+    c:  movq %rsi, %rbx
+    f:  subq $0x48, %rsp
+   13:  movq %rdi, (%rsp)
+   17:  movq %rsi, %rdi
+   1a:  callq luaH_realasize+0
+   1f:  andb $0x7f, 0xa(%rsi)
+   23:  movl %eax, 0xc(%rsi)
+   26:  movl %eax, %r12d
+   29:  testl %ecx, %ecx
+   2b:  jne 0x2b0
+   31:  xorl %r14d, %r14d
+   34:  movl $0, %r9d   <var:dummynode_+0>
+   3a:  xorl %r8d, %r8d
+   3d:  cmpl %r12d, %ebp
+   40:  jb 0x1b0
+   46:  movl %ebp, %eax
+   48:  movq 0x10(%rbx), %rsi
+   4c:  movq %rax, 8(%rsp)
+   51:  movl %r12d, %r10d
+   54:  movq 8(%rsp), %rcx
+   59:  movq (%rsp), %rdi
+   5d:  movb %r8b, 0x2f(%rsp)
+   62:  movq %r10, %rdx
+   65:  movq %r9, 0x10(%rsp)
+   6a:  shlq $4, %rdx
+   6e:  shlq $4, %rcx
+   72:  movq %r10, 0x20(%rsp)
+   77:  movq %rdx, 8(%rsp)
+   7c:  callq luaM_realloc_+0
+   81:  movq 8(%rsp), %rdx
+   86:  movq 0x20(%rsp), %r10
+   8b:  testq %rax, %rax
+   8e:  movq 0x10(%rsp), %r9
+   93:  movzbl 0x2f(%rsp), %r8d
+   99:  movq %rax, %rsi
+   9c:  jne 0xa6
+   9e:  testl %ebp, %ebp
+   a0:  jne 0x350
+   a6:  movzbl 0xb(%rbx), %ecx
+   aa:  movq 0x18(%rbx), %r15
+   ae:  movb %r8b, 0xb(%rbx)
+   b2:  movq 0x20(%rbx), %r13
+   b6:  movq %r9, 0x18(%rbx)
+   ba:  movq %r14, 0x20(%rbx)
+   be:  movq %rsi, 0x10(%rbx)
+   c2:  movl %ebp, 0xc(%rbx)
+   c5:  cmpl %ebp, %r12d
+   c8:  jae 0x111
+   ca:  subl $1, %ebp
+   cd:  leaq (%rsi, %rdx), %rax
+   d1:  subl %r12d, %ebp
+   d4:  leaq 1(%r10, %rbp), %rdx
+   d9:  shlq $4, %rdx
+   dd:  addq %rdx, %rsi
+   e0:  movq %rsi, %rdx
+   e3:  subq %rax, %rdx
+   e6:  andl $0x10, %edx
+   e9:  je 0x100
+   eb:  movb $0x10, 8(%rax)
+   ef:  addq $0x10, %rax
+   f3:  cmpq %rax, %rsi
+   f6:  je 0x111
+   f8:  nopl (%rax, %rax)
+  100:  movb $0x10, 8(%rax)
+  104:  addq $0x20, %rax
+  108:  movb $0x10, -8(%rax)
+  10c:  cmpq %rax, %rsi
+  10f:  jne 0x100
+  111:  movl $1, %r12d
+  117:  shll %cl, %r12d
+  11a:  testl %r12d, %r12d
+  11d:  jle 0x17e
+  11f:  movslq %r12d, %rax
+  122:  movq %r15, %rbp
+  125:  leaq (%rax, %rax, 2), %rax
+  129:  leaq (%r15, %rax, 8), %r14
+  12d:  jmp 0x139
+  12f:  nop
+  130:  addq $0x18, %rbp
+  134:  cmpq %r14, %rbp
+  137:  je 0x17e
+  139:  testb $0xf, 8(%rbp)
+  13d:  je 0x130
+  13f:  movq 0x10(%rbp), %rax
+  143:  leaq 0x30(%rsp), %rsi
+  148:  movq %rbx, %rdi
+  14b:  movq %rax, 0x30(%rsp)
+  150:  movzbl 9(%rbp), %eax
+  154:  movb %al, 0x38(%rsp)
+  158:  callq luaH_get+0
+  15d:  cmpb $0x20, 8(%rax)
+  161:  je 0x280
+  167:  movq (%rbp), %rdx
+  16b:  addq $0x18, %rbp
+  16f:  movq %rdx, (%rax)
+  172:  movzbl -0x10(%rbp), %edx
+  176:  movb %dl, 8(%rax)
+  179:  cmpq %r14, %rbp
+  17c:  jne 0x139
+  17e:  testq %r13, %r13
+  181:  je 0x2a0
+  187:  movslq %r12d, %r12
+  18a:  movq (%rsp), %rdi
+  18e:  addq $0x48, %rsp
+  192:  movq %r15, %rsi
+  195:  leaq (%r12, %r12, 2), %rdx
+  199:  popq %rbx
+  19a:  popq %rbp
+  19b:  shlq $3, %rdx
+  19f:  popq %r12
+  1a1:  popq %r13
+  1a3:  popq %r14
+  1a5:  popq %r15
+  1a7:  jmp luaM_free_+0
+  1ac:  nopl (%rax)
+  1b0:  movzbl 0xb(%rbx), %eax
+  1b4:  movdqu 0x18(%rbx), %xmm0
+  1b9:  leal 1(%rbp), %r10d
+  1bd:  movl %ebp, 0xc(%rbx)
+  1c0:  movq %r14, 0x20(%rbx)
+  1c4:  leaq 1(%r10), %r14
+  1c8:  movq 0x10(%rbx), %rsi
+  1cc:  movb %al, 0x20(%rsp)
+  1d0:  movl %ebp, %eax
+  1d2:  movq %rax, %r13
+  1d5:  movq %rax, 8(%rsp)
+  1da:  movl %r12d, %eax
+  1dd:  subl %ebp, %eax
+  1df:  movb %r8b, 0xb(%rbx)
+  1e3:  shlq $4, %r13
+  1e7:  subl $1, %eax
+  1ea:  movq %r9, 0x18(%rbx)
+  1ee:  movaps %xmm0, 0x10(%rsp)
+  1f3:  leaq (%rax, %r14), %r15
+  1f7:  jmp 0x210
+  1f9:  nopl (%rax)
+  200:  addq $0x10, %r13
+  204:  movq %r14, %r10
+  207:  cmpq %r15, %r14
+  20a:  je 0x24e
+  20c:  addq $1, %r14
+  210:  leaq (%rsi, %r13), %r9
+  214:  movzbl 8(%r9), %r11d
+  219:  testb $0xf, %r11b
+  21d:  je 0x200
+  21f:  movq %r10, %rsi
+  222:  movq %rbx, %rdi
+  225:  callq luaH_getint+0
+  22a:  cmpb $0x20, 8(%rax)
+  22e:  je 0x320
+  234:  movq (%r9), %rdx
+  237:  addq $0x10, %r13
+  23b:  movb %r11b, 8(%rax)
+  23f:  movq %r14, %r10
+  242:  movq 0x10(%rbx), %rsi
+  246:  movq %rdx, (%rax)
+  249:  cmpq %r15, %r14
+  24c:  jne 0x20c
+  24e:  movzbl 0x20(%rsp), %eax
+  253:  movdqa 0x10(%rsp), %xmm1
+  259:  movl %r12d, 0xc(%rbx)
+  25d:  movzbl 0xb(%rbx), %r8d
+  262:  movq 0x18(%rbx), %r9
+  266:  movq 0x20(%rbx), %r14
+  26a:  movb %al, 0xb(%rbx)
+  26d:  movups %xmm1, 0x18(%rbx)
+  271:  jmp 0x51
+  276:  nopw %cs:(%rax, %rax)
+  280:  movq (%rsp), %rdi
+  284:  movq %rbp, %rcx
+  287:  leaq 0x30(%rsp), %rdx
+  28c:  movq %rbx, %rsi
+  28f:  callq fn:luaH_newkey+0
+  294:  jmp 0x130
+  299:  nopl (%rax)
+  2a0:  addq $0x48, %rsp
+  2a4:  popq %rbx
+  2a5:  popq %rbp
+  2a6:  popq %r12
+  2a8:  popq %r13
+  2aa:  popq %r14
+  2ac:  popq %r15
+  2ae:  retq
+  2af:  nop
+  2b0:  movl %ecx, %edi
+  2b2:  callq luaO_ceillog2+0
+  2b7:  movl %eax, %r15d
+  2ba:  cmpl $0x1e, %eax
+  2bd:  jg 0x383
+  2c3:  movl %r15d, %ecx
+  2c6:  movl $1, %eax
+  2cb:  movq (%rsp), %rdi
+  2cf:  xorl %edx, %edx
+  2d1:  shll %cl, %eax
+  2d3:  cltq
+  2d5:  leaq (%rax, %rax, 2), %r14
+  2d9:  shlq $3, %r14
+  2dd:  movq %r14, %rsi
+  2e0:  callq luaM_malloc_+0
+  2e5:  movzwl (%rip), %edx   <cst:1000>
+  2ec:  movq %rax, %r9
+  2ef:  leaq 8(%rax), %rax
+  2f3:  leaq 8(%r9, %r14), %rsi
+  2f8:  nopl (%rax, %rax)
+  300:  movl $0, 4(%rax)
+  307:  addq $0x18, %rax
+  30b:  movw %dx, -0x18(%rax)
+  30f:  cmpq %rsi, %rax
+  312:  jne 0x300
+  314:  movl %r15d, %r8d
+  317:  addq %r9, %r14
+  31a:  jmp 0x3d
+  31f:  nop
+  320:  movq (%rsp), %rdi
+  324:  movq %rbx, %rsi
+  327:  movq %r9, %rcx
+  32a:  leaq 0x30(%rsp), %rdx
+  32f:  movq %r10, 0x30(%rsp)
+  334:  movb $3, 0x38(%rsp)
+  339:  callq fn:luaH_newkey+0
+  33e:  movq 0x10(%rbx), %rsi
+  342:  jmp 0x200
+  347:  nopw (%rax, %rax)
+  350:  testq %r14, %r14
+  353:  je 0x375
+  355:  movl $1, %eax
+  35a:  movl %r8d, %ecx
+  35d:  movq (%rsp), %rdi
+  361:  movq %r9, %rsi
+  364:  shll %cl, %eax
+  366:  cltq
+  368:  leaq (%rax, %rax, 2), %rdx
+  36c:  shlq $3, %rdx
+  370:  callq luaM_free_+0
+  375:  movq (%rsp), %rdi
+  379:  movl $4, %esi
+  37e:  callq luaD_throw+0
+  383:  movq (%rsp), %rdi
+  387:  movl $0, %esi   <str:"table overflow">
+  38c:  xorl %eax, %eax
+  38e:  callq luaG_runerror+0

@@ -1,0 +1,68 @@
+# put_sym  (static, 233 bytes, 67 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rdi, %rbp
+    c:  pushq %rbx
+    d:  subq $8, %rsp
+   11:  movq (%rip), %rbx   <var:syms_n+0>
+   18:  movq (%rip), %r13   <var:syms+0>
+   1f:  testq %rbx, %rbx
+   22:  jle 0x68
+   24:  movq (%rip), %r12   <var:symstr+0>
+   2b:  movq %r13, %r15
+   2e:  xorl %r14d, %r14d
+   31:  jmp 0x45
+   33:  nopl (%rax, %rax)
+   38:  addq $1, %r14
+   3c:  addq $0x18, %r15
+   40:  cmpq %r14, %rbx
+   43:  je 0x68
+   45:  movl (%r15), %esi
+   48:  movq %rbp, %rdi
+   4b:  addq %r12, %rsi
+   4e:  callq strcmp+0
+   53:  testl %eax, %eax
+   55:  jne 0x38
+   57:  leaq (%r14, %r14, 2), %rax
+   5b:  leaq (%r13, %rax, 8), %rbx
+   60:  jmp 0x9c
+   62:  nopw (%rax, %rax)
+   68:  movq (%rip), %rdx   <var:syms_sz+0>
+   6f:  cmpq %rbx, %rdx
+   72:  jle 0xb0
+   74:  leaq 1(%rbx), %rax
+   78:  movq %rbp, %rdi
+   7b:  movq %rax, (%rip)   <var:syms_n+0>
+   82:  leaq (%rbx, %rbx, 2), %rax
+   86:  leaq (%r13, %rax, 8), %rbx
+   8b:  callq fn:symstr_add+0
+   90:  movb $0x12, 4(%rbx)
+   94:  movl %eax, (%rbx)
+   96:  xorl %eax, %eax
+   98:  movw %ax, 6(%rbx)
+   9c:  addq $8, %rsp
+   a0:  movq %rbx, %rax
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  popq %r12
+   a7:  popq %r13
+   a9:  popq %r14
+   ab:  popq %r15
+   ad:  retq
+   ae:  nop
+   b0:  movl $0x80, %eax
+   b5:  addq %rdx, %rdx
+   b8:  movq %rbx, %rsi
+   bb:  movq %r13, %rdi
+   be:  cmpq %rax, %rdx
+   c1:  movl $0x18, %ecx
+   c6:  cmovlq %rax, %rdx
+   ca:  movq %rdx, (%rip)   <var:syms_sz+0>
+   d1:  callq mextend+0
+   d6:  movq (%rip), %rbx   <var:syms_n+0>
+   dd:  movq %rax, (%rip)   <var:syms+0>
+   e4:  movq %rax, %r13
+   e7:  jmp 0x74

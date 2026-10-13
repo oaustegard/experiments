@@ -1,0 +1,432 @@
+# box_bracketmk  (static, 1896 bytes, 431 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0xf8, %rsp
+   11:  movl %edi, 8(%rsp)
+   15:  leaq 0xb0(%rsp), %rbp
+   1d:  leaq 0xc0(%rsp), %r15
+   25:  movl %esi, 0x78(%rsp)
+   29:  movq %rbp, %rbx
+   2c:  movq %rdx, 0x38(%rsp)
+   31:  movq %rcx, 0x40(%rsp)
+   36:  movq %r8, 0x48(%rsp)
+   3b:  movq %r9, 0x18(%rsp)
+   40:  callq nregmk+0
+   45:  movl %eax, 0xc(%rsp)
+   49:  callq nregmk+0
+   4e:  movl %eax, 0x10(%rsp)
+   52:  callq nregmk+0
+   57:  movl %eax, 0x14(%rsp)
+   5b:  callq sregmk+0
+   60:  movl %eax, 0x28(%rsp)
+   64:  callq nregmk+0
+   69:  addq $4, %rbx
+   6d:  movl %eax, -4(%rbx)
+   70:  cmpq %r15, %rbx
+   73:  jne 0x64
+   75:  movl 0xb0(%rsp), %eax
+   7c:  movq 0x38(%rsp), %rdi
+   81:  movq %r15, %r12
+   84:  movq %r15, %rbx
+   87:  movl 0xbc(%rsp), %r8d
+   8f:  movl 0xb8(%rsp), %ecx
+   96:  movl 0xb4(%rsp), %edx
+   9d:  movl %eax, %esi
+   9f:  movl %eax, 0xa8(%rsp)
+   a6:  movl %r8d, 0x70(%rsp)
+   ab:  movl %ecx, 0x74(%rsp)
+   af:  movl %edx, 0x30(%rsp)
+   b3:  callq fn:tok_len+0
+   b8:  callq nregmk+0
+   bd:  addq $4, %rbx
+   c1:  movl %eax, -4(%rbx)
+   c4:  leaq 0xd0(%rsp), %rax
+   cc:  cmpq %rax, %rbx
+   cf:  jne 0xb8
+   d1:  movl 0xc0(%rsp), %eax
+   d8:  movl 0xcc(%rsp), %r8d
+   e0:  leaq 0xd0(%rsp), %rbx
+   e8:  movl 0xc8(%rsp), %ecx
+   ef:  movl 0xc4(%rsp), %edx
+   f6:  movq %rbx, %r13
+   f9:  movq 0x40(%rsp), %rdi
+   fe:  movl %eax, %esi
+  100:  movl %r8d, 0x60(%rsp)
+  105:  movl %ecx, 0x68(%rsp)
+  109:  movl %edx, 0x2c(%rsp)
+  10d:  movl %eax, 0x50(%rsp)
+  111:  callq fn:tok_len+0
+  116:  callq nregmk+0
+  11b:  addq $4, %r13
+  11f:  movl %eax, -4(%r13)
+  123:  leaq 0xe0(%rsp), %rax
+  12b:  cmpq %rax, %r13
+  12e:  jne 0x116
+  130:  movl 0xd0(%rsp), %eax
+  137:  movl 0xdc(%rsp), %r8d
+  13f:  leaq 0xe0(%rsp), %r14
+  147:  leaq 0xf0(%rsp), %r13
+  14f:  movl 0xd8(%rsp), %ecx
+  156:  movl 0xd4(%rsp), %edx
+  15d:  movq 0x48(%rsp), %rdi
+  162:  movl %eax, %esi
+  164:  movl %r8d, 0x54(%rsp)
+  169:  movl %ecx, 0x58(%rsp)
+  16d:  movl %edx, 0x20(%rsp)
+  171:  movl %eax, 0x5c(%rsp)
+  175:  callq fn:tok_len+0
+  17a:  cmpq $0, 0x18(%rsp)
+  180:  je 0x640
+  186:  callq nregmk+0
+  18b:  addq $4, %r14
+  18f:  movl %eax, -4(%r14)
+  193:  cmpq %r13, %r14
+  196:  jne 0x186
+  198:  movl 0xec(%rsp), %r11d
+  1a0:  movl 0xe8(%rsp), %r14d
+  1a8:  movl 0xe4(%rsp), %r13d
+  1b0:  movl 0xe0(%rsp), %eax
+  1b7:  movq 0x18(%rsp), %rdi
+  1bc:  movl %r11d, %r8d
+  1bf:  movl %r14d, %ecx
+  1c2:  movl %r11d, 0xac(%rsp)
+  1ca:  movl %r13d, %edx
+  1cd:  movl %eax, %esi
+  1cf:  movl %eax, 0x80(%rsp)
+  1d6:  callq fn:tok_len+0
+  1db:  movl 0x2c(%rsp), %edi
+  1df:  callq nreg+0
+  1e4:  movl 0x20(%rsp), %edi
+  1e8:  movq %rax, 0xa0(%rsp)
+  1f0:  callq nreg+0
+  1f5:  movl 0x30(%rsp), %edi
+  1f9:  movq %rax, 0x98(%rsp)
+  201:  callq nreg+0
+  206:  movl %r13d, %edi
+  209:  movq %rax, 0x90(%rsp)
+  211:  callq nreg+0
+  216:  movl 0x78(%rsp), %edi
+  21a:  movq %rax, 0x88(%rsp)
+  222:  callq nreg+0
+  227:  movl 0x14(%rsp), %edi
+  22b:  movq %rax, %r13
+  22e:  callq nregname+0
+  233:  subq $8, %rsp
+  237:  movl $0, %edi   <str:".nr %s %s-(%s+%s+%s/2)*11/10/%s\n">
+  23c:  movq 0xa8(%rsp), %rdx
+  244:  movq %rax, %rsi
+  247:  xorl %eax, %eax
+  249:  pushq %rdx
+  24a:  movq 0xa8(%rsp), %r9
+  252:  movq %r13, %rdx
+  255:  movq 0xa0(%rsp), %r8
+  25d:  movq 0x98(%rsp), %rcx
+  265:  callq printf+0
+  26a:  movl 0x24(%rsp), %edi
+  26e:  callq nregname+0
+  273:  movl 0x24(%rsp), %edi
+  277:  movq %rax, %r13
+  27a:  callq nreg+0
+  27f:  movq %r13, %rdx
+  282:  movl $0, %edi   <str:".if %s<0 .nr %s 0\n">
+  287:  movq %rax, %rsi
+  28a:  xorl %eax, %eax
+  28c:  callq printf+0
+  291:  movl 0x24(%rsp), %edi
+  295:  callq nreg+0
+  29a:  movl 0x1c(%rsp), %edi
+  29e:  movq %rax, %r13
+  2a1:  callq nregname+0
+  2a6:  movq %r13, %rdx
+  2a9:  movl $0, %edi   <str:".nr %s 0%s*2\n">
+  2ae:  movq %rax, %rsi
+  2b1:  xorl %eax, %eax
+  2b3:  callq printf+0
+  2b8:  movl 0x38(%rsp), %edi
+  2bc:  callq sregname+0
+  2c1:  movl $0, %edi   <str:".de %s\n">
+  2c6:  movq %rax, %rsi
+  2c9:  xorl %eax, %eax
+  2cb:  callq printf+0
+  2d0:  movl %r14d, %edi
+  2d3:  callq nreg+0
+  2d8:  movl 0x90(%rsp), %edi
+  2df:  movq %rax, %r14
+  2e2:  callq nreg+0
+  2e7:  movl 0xbc(%rsp), %edi
+  2ee:  movq %rax, %r13
+  2f1:  callq nreg+0
+  2f6:  movl 0x18(%rsp), %edi
+  2fa:  movq %rax, 0x98(%rsp)
+  302:  callq sregname+0
+  307:  movl 0x24(%rsp), %edi
+  30b:  movq %rax, 0x90(%rsp)
+  313:  callq nreg+0
+  318:  movl 0x20(%rsp), %edi
+  31c:  movq %rax, 0x88(%rsp)
+  324:  callq nreg+0
+  329:  pushq %r14
+  32b:  movl $0, %edi   <str:".if \\%s=\\%s .as %s \"\\v'-\\%su'%s\\h'-\\%su'\\v'-\\%su'\n">
+  330:  pushq %r13
+  332:  movq 0x38(%rsp), %r9
+  337:  movq %rax, %rsi
+  33a:  xorl %eax, %eax
+  33c:  movq 0xa8(%rsp), %r8
+  344:  movq 0xa0(%rsp), %rcx
+  34c:  movq 0x98(%rsp), %rdx
+  354:  callq printf+0
+  359:  addq $0x20, %rsp
+  35d:  movl 0x68(%rsp), %edi
+  361:  callq nreg+0
+  366:  movl 0x50(%rsp), %edi
+  36a:  movq %rax, %r14
+  36d:  callq nreg+0
+  372:  movl 0x60(%rsp), %edi
+  376:  movq %rax, %r13
+  379:  callq nreg+0
+  37e:  movl 8(%rsp), %edi
+  382:  movq %rax, 0x78(%rsp)
+  387:  callq sregname+0
+  38c:  movl 0xc(%rsp), %edi
+  390:  movq %rax, 0x68(%rsp)
+  395:  callq nreg+0
+  39a:  movl 0x10(%rsp), %edi
+  39e:  movq %rax, 0x60(%rsp)
+  3a3:  callq nreg+0
+  3a8:  pushq %r14
+  3aa:  movl $0, %edi   <str:".if \\%s<\\%s .as %s \"\\v'-\\%su'%s\\h'-\\%su'\\v'-\\%su'\n">
+  3af:  pushq %r13
+  3b1:  movq 0x50(%rsp), %r9
+  3b6:  movq %rax, %rsi
+  3b9:  xorl %eax, %eax
+  3bb:  movq 0x88(%rsp), %r8
+  3c3:  movq 0x78(%rsp), %rcx
+  3c8:  movq 0x70(%rsp), %rdx
+  3cd:  callq printf+0
+  3d2:  movl 0x38(%rsp), %edi
+  3d6:  callq sregname+0
+  3db:  movl 0x1c(%rsp), %edi
+  3df:  movq %rax, %r14
+  3e2:  callq nreg+0
+  3e7:  movl 0x20(%rsp), %edi
+  3eb:  movq %rax, %r13
+  3ee:  callq nregname+0
+  3f3:  movq %rax, %rdi
+  3f6:  callq escarg+0
+  3fb:  movq %r14, %rcx
+  3fe:  movq %r13, %rdx
+  401:  movl $0, %edi   <str:".if \\\\n+%s<\\%s .%s\n">
+  406:  movq %rax, %rsi
+  409:  xorl %eax, %eax
+  40b:  callq printf+0
+  410:  movl $0, %edi   <str:"..">
+  415:  callq puts+0
+  41a:  movl 0x68(%rsp), %edi
+  41e:  callq nreg+0
+  423:  movl 0x6c(%rsp), %edi
+  427:  movq %rax, 0x50(%rsp)
+  42c:  callq nreg+0
+  431:  movl 0x64(%rsp), %edi
+  435:  movq %rax, %r14
+  438:  callq nreg+0
+  43d:  movl 0x18(%rsp), %edi
+  441:  movq %rax, %r13
+  444:  callq sregname+0
+  449:  movq 0x50(%rsp), %r9
+  44e:  movq %r14, %r8
+  451:  movq %r13, %rdx
+  454:  movq 0x58(%rsp), %rcx
+  459:  movq %rax, %rsi
+  45c:  movl $0, %edi   <str:".ds %s \"\\v'-%su'%s\\h'-%su'\\v'-%su'\n">
+  461:  xorl %eax, %eax
+  463:  callq printf+0
+  468:  movl 0x20(%rsp), %edi
+  46c:  callq nregname+0
+  471:  movl $0, %edi   <str:".nr %s 0 1\n">
+  476:  movq %rax, %rsi
+  479:  xorl %eax, %eax
+  47b:  callq printf+0
+  480:  movl 0x38(%rsp), %edi
+  484:  callq sregname+0
+  489:  movl $0, %edi   <str:".%s\n">
+  48e:  movq %rax, %rsi
+  491:  xorl %eax, %eax
+  493:  callq printf+0
+  498:  movl 0x84(%rsp), %edi
+  49f:  callq nreg+0
+  4a4:  movl 0xb8(%rsp), %edi
+  4ab:  movq %rax, 0x50(%rsp)
+  4b0:  callq nreg+0
+  4b5:  movl 0x80(%rsp), %edi
+  4bc:  movq %rax, %r14
+  4bf:  callq nreg+0
+  4c4:  movl 0x18(%rsp), %edi
+  4c8:  movq %rax, %r13
+  4cb:  callq sregname+0
+  4d0:  movq 0x50(%rsp), %r9
+  4d5:  movq %r14, %r8
+  4d8:  movq %r13, %rdx
+  4db:  movq 0x48(%rsp), %rcx
+  4e0:  movq %rax, %rsi
+  4e3:  movl $0, %edi   <str:".as %s \"\\v'-%su'%s\\h'-%su'\\v'-%su'\n">
+  4e8:  xorl %eax, %eax
+  4ea:  callq printf+0
+  4ef:  popq %rdi
+  4f0:  popq %r8
+  4f2:  cmpq $0, 0x18(%rsp)
+  4f8:  je 0x6f0
+  4fe:  movl 0xe4(%rsp), %edi
+  505:  callq nreg+0
+  50a:  movl 0x30(%rsp), %edi
+  50e:  movq %rax, %r13
+  511:  callq nreg+0
+  516:  movl 0x20(%rsp), %edi
+  51a:  movq %rax, 0x38(%rsp)
+  51f:  callq nreg+0
+  524:  movl 0x2c(%rsp), %edi
+  528:  movq %rax, 0x30(%rsp)
+  52d:  callq nreg+0
+  532:  movl 0xc(%rsp), %edi
+  536:  movq %rax, %r14
+  539:  callq nreg+0
+  53e:  movl 8(%rsp), %edi
+  542:  movq %rax, 0x20(%rsp)
+  547:  callq sregname+0
+  54c:  subq $8, %rsp
+  550:  movq %r14, %rcx
+  553:  movl $0, %edi   <str:".as %s \"\\v'%su*%su+%su+%su+%su'\n">
+  558:  pushq %r13
+  55a:  movq 0x48(%rsp), %r9
+  55f:  movq %rax, %rsi
+  562:  xorl %eax, %eax
+  564:  movq 0x40(%rsp), %r8
+  569:  movq 0x30(%rsp), %rdx
+  56e:  callq printf+0
+  573:  movl 0xf0(%rsp), %edi
+  57a:  callq nreg+0
+  57f:  popq %rcx
+  580:  popq %rsi
+  581:  movq %rax, %r13
+  584:  movl 8(%rsp), %edi
+  588:  callq sregname+0
+  58d:  movq %r13, %rdx
+  590:  movl $0, %edi   <str:".as %s \"\\h'%su'\n">
+  595:  movq %rax, %rsi
+  598:  xorl %eax, %eax
+  59a:  callq printf+0
+  59f:  movl (%rbp), %edi
+  5a2:  addq $4, %rbp
+  5a6:  callq nregrm+0
+  5ab:  cmpq %r15, %rbp
+  5ae:  jne 0x59f
+  5b0:  movl (%r12), %edi
+  5b4:  addq $4, %r12
+  5b8:  callq nregrm+0
+  5bd:  leaq 0xd0(%rsp), %rax
+  5c5:  cmpq %rax, %r12
+  5c8:  jne 0x5b0
+  5ca:  movl (%rbx), %edi
+  5cc:  addq $4, %rbx
+  5d0:  callq nregrm+0
+  5d5:  leaq 0xe0(%rsp), %rax
+  5dd:  cmpq %rax, %rbx
+  5e0:  jne 0x5ca
+  5e2:  cmpq $0, 0x18(%rsp)
+  5e8:  je 0x602
+  5ea:  leaq 0xf0(%rsp), %rbp
+  5f2:  movl (%rbx), %edi
+  5f4:  addq $4, %rbx
+  5f8:  callq nregrm+0
+  5fd:  cmpq %rbx, %rbp
+  600:  jne 0x5f2
+  602:  movl 0xc(%rsp), %edi
+  606:  callq nregrm+0
+  60b:  movl 0x10(%rsp), %edi
+  60f:  callq nregrm+0
+  614:  movl 0x14(%rsp), %edi
+  618:  callq nregrm+0
+  61d:  movl 0x28(%rsp), %edi
+  621:  addq $0xf8, %rsp
+  628:  popq %rbx
+  629:  popq %rbp
+  62a:  popq %r12
+  62c:  popq %r13
+  62e:  popq %r14
+  630:  popq %r15
+  632:  jmp sregrm+0
+  637:  nopw (%rax, %rax)
+  640:  movl 0x2c(%rsp), %edi
+  644:  callq nreg+0
+  649:  movl 0x20(%rsp), %edi
+  64d:  movq %rax, 0x88(%rsp)
+  655:  callq nreg+0
+  65a:  movl 0x30(%rsp), %edi
+  65e:  movq %rax, 0x80(%rsp)
+  666:  callq nreg+0
+  66b:  movl 0x78(%rsp), %edi
+  66f:  movq %rax, %r14
+  672:  callq nreg+0
+  677:  movl 0xc(%rsp), %edi
+  67b:  movq %rax, %r13
+  67e:  callq nregname+0
+  683:  movq %r14, %rcx
+  686:  movq %r13, %rdx
+  689:  movl $0, %edi   <str:".nr %s %s*2-%s-%s*11/10/%s\n">
+  68e:  movq 0x88(%rsp), %r9
+  696:  movq 0x80(%rsp), %r8
+  69e:  movq %rax, %rsi
+  6a1:  xorl %eax, %eax
+  6a3:  callq printf+0
+  6a8:  movl 0xc(%rsp), %r14d
+  6ad:  movl %r14d, %edi
+  6b0:  callq nregname+0
+  6b5:  movl %r14d, %edi
+  6b8:  movq %rax, %r13
+  6bb:  callq nreg+0
+  6c0:  movq %r13, %rdx
+  6c3:  movl $0, %edi   <str:".if %s<0 .nr %s 0\n">
+  6c8:  movq %rax, %rsi
+  6cb:  xorl %eax, %eax
+  6cd:  callq printf+0
+  6d2:  movl 0x28(%rsp), %edi
+  6d6:  callq sregname+0
+  6db:  movl $0, %edi   <str:".de %s\n">
+  6e0:  movq %rax, %rsi
+  6e3:  xorl %eax, %eax
+  6e5:  callq printf+0
+  6ea:  jmp 0x35d
+  6ef:  nop
+  6f0:  movl 0x30(%rsp), %edi
+  6f4:  callq nreg+0
+  6f9:  movl 0x20(%rsp), %edi
+  6fd:  movq %rax, 0x30(%rsp)
+  702:  callq nreg+0
+  707:  movl 0x2c(%rsp), %edi
+  70b:  movq %rax, 0x20(%rsp)
+  710:  callq nreg+0
+  715:  movl 0xc(%rsp), %edi
+  719:  movq %rax, %r14
+  71c:  callq nreg+0
+  721:  movl 8(%rsp), %edi
+  725:  movq %rax, %r13
+  728:  callq sregname+0
+  72d:  subq $8, %rsp
+  731:  movq %r13, %rdx
+  734:  movq %r14, %rcx
+  737:  pushq $0   <str:"0">
+  73c:  movq 0x40(%rsp), %r9
+  741:  movq %rax, %rsi
+  744:  movl $0, %edi   <str:".as %s \"\\v'%su*%su+%su+%su+%su'\n">
+  749:  movq 0x30(%rsp), %r8
+  74e:  xorl %eax, %eax
+  750:  callq printf+0
+  755:  movl 0x60(%rsp), %edi
+  759:  callq nreg+0
+  75e:  movq %rax, %r13
+  761:  popq %rax
+  762:  popq %rdx
+  763:  jmp 0x584

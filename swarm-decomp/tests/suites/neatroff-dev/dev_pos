@@ -1,0 +1,59 @@
+# dev_pos  (global, 188 bytes, 58 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movl $0, %ebp   <var:fn_name+32>
+    b:  pushq %rbx
+    c:  movl $1, %ebx
+   11:  callq __ctype_b_loc+0
+   16:  movsbq (%r12), %rdx
+   1b:  movq (%rax), %rax
+   1e:  testb $8, 1(%rax, %rdx, 2)
+   23:  je 0x3c
+   25:  jmp 0x58
+   27:  nopw (%rax, %rax)
+   30:  addl $1, %ebx
+   33:  addq $0x20, %rbp
+   37:  cmpl $0x20, %ebx
+   3a:  je 0x98
+   3c:  movq %r12, %rsi
+   3f:  movq %rbp, %rdi
+   42:  callq strcmp+0
+   47:  testl %eax, %eax
+   49:  jne 0x30
+   4b:  movl %ebx, %eax
+   4d:  popq %rbx
+   4e:  popq %rbp
+   4f:  popq %r12
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  movl $0xa, %edx
+   5d:  xorl %esi, %esi
+   5f:  movq %r12, %rdi
+   62:  callq strtol+0
+   67:  movl %eax, %ebx
+   69:  cmpl $0x1f, %eax
+   6c:  ja 0x7b
+   6e:  cltq
+   70:  cmpq $0, (, %rax, 8)   <var:fn_font+0>
+   79:  jne 0x4b
+   7b:  movq %r12, %rsi
+   7e:  movl $0, %edi   <str:"neatroff: bad font position %s\n">
+   83:  xorl %eax, %eax
+   85:  movl $0xffffffff, %ebx
+   8a:  callq errmsg+0
+   8f:  jmp 0x4b
+   91:  nopl (%rax)
+   98:  movq %r12, %rsi
+   9b:  movl $0, %edi   <var:fn_name+0>
+   a0:  callq strcmp+0
+   a5:  movl %eax, %ebx
+   a7:  testl %eax, %eax
+   a9:  je 0x4b
+   ab:  popq %rbx
+   ac:  movq %r12, %rdx
+   af:  movq %r12, %rsi
+   b2:  popq %rbp
+   b3:  xorl %edi, %edi
+   b5:  popq %r12
+   b7:  jmp dev_mnt+0

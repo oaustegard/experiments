@@ -1,0 +1,42 @@
+# luaK_setlist  (global, 115 bytes, 41 instructions)
+    0:  movl %ecx, %eax
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  shll $0x10, %eax
+    b:  movl %esi, %ebp
+    d:  pushq %rbx
+    e:  movl %edx, %ebx
+   10:  xorl %edx, %edx
+   12:  cmpl $-1, %ecx
+   15:  cmovel %edx, %eax
+   18:  movl %ebx, %edx
+   1a:  shll $7, %esi
+   1d:  shll $0x18, %edx
+   20:  orl %edx, %esi
+   22:  orl %eax, %esi
+   24:  cmpl $0xff, %ebx
+   2a:  jg 0x48
+   2c:  addl $1, %ebp
+   2f:  orl $0x4e, %esi
+   32:  callq luaK_code+0
+   37:  movb %bpl, 0x44(%r12)
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  popq %r12
+   40:  retq
+   41:  nopl (%rax)
+   48:  orl $0x804e, %esi
+   4e:  sarl $8, %ebx
+   51:  addl $1, %ebp
+   54:  callq luaK_code+0
+   59:  movl %ebx, %esi
+   5b:  movq %r12, %rdi
+   5e:  shll $7, %esi
+   61:  orl $0x52, %esi
+   64:  callq luaK_code+0
+   69:  movb %bpl, 0x44(%r12)
+   6e:  popq %rbx
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  retq

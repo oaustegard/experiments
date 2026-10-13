@@ -1,0 +1,8 @@
+# box_empty  (global, 23 bytes, 7 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <sbuf_buf+0>
+    9:  cmpb $0, (%rax)
+    c:  sete %al
+    f:  addq $8, %rsp
+   13:  movzbl %al, %eax
+   16:  retq

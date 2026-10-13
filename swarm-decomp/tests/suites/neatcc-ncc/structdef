@@ -1,0 +1,84 @@
+# structdef  (static, 385 bytes, 83 instructions)
+    0:  imulq $0x9090, %rdi, %rdi
+    7:  movq (%rip), %rdx   <var:structs+0>
+    e:  leaq (%rdx, %rdi), %r8
+   12:  movl 0x9084(%r8), %eax
+   19:  movl 0x9088(%r8), %r9d
+   20:  testl %eax, %eax
+   22:  je 0xa0
+   24:  movq $0, 0x118(%rsi)
+   2f:  leaq 0x100(%rsi), %rdi
+   36:  callq fn:type_totsz+0
+   3b:  cmpl %r9d, %eax
+   3e:  jle 0x47
+   40:  movl %eax, 0x9088(%r8)
+   47:  movslq 0x9080(%r8), %rax
+   4e:  leal 1(%rax), %edx
+   51:  leaq (%rax, %rax, 8), %rax
+   55:  shlq $5, %rax
+   59:  movl %edx, 0x9080(%r8)
+   60:  leaq 0x80(%r8, %rax), %rcx
+   68:  movq (%rsi), %rax
+   6b:  leaq 8(%rcx), %rdi
+   6f:  movq %rax, (%rcx)
+   72:  movq 0x118(%rsi), %rax
+   79:  andq $0xfffffffffffffff8, %rdi
+   7d:  movq %rax, 0x118(%rcx)
+   84:  subq %rdi, %rcx
+   87:  subq %rcx, %rsi
+   8a:  addl $0x120, %ecx
+   90:  shrl $3, %ecx
+   93:  rep movsq (%rsi), (%rdi)
+   96:  retq
+   97:  nopw (%rax, %rax)
+   a0:  leaq 0x100(%rsi), %r10
+   a7:  movq (%rip), %r11   <var:arrays+0>
+   ae:  movq %r10, %rdi
+   b1:  nopl (%rax)
+   b8:  movl 4(%rdi), %eax
+   bb:  testb $1, %al
+   bd:  je 0x140
+   c3:  movl 8(%rdi), %eax
+   c6:  testl %eax, %eax
+   c8:  je 0x170
+   ce:  callq fn:type_totsz+0
+   d3:  movl $8, %edx
+   d8:  cmpl %edx, %eax
+   da:  cmovgl %edx, %eax
+   dd:  testb $1, 0x104(%rsi)
+   e4:  je 0x10e
+   e6:  movl 0x108(%rsi), %edx
+   ec:  testl %edx, %edx
+   ee:  jne 0x10e
+   f0:  movslq 0x10c(%rsi), %rax
+   f7:  leaq (%rax, %rax, 2), %rax
+   fb:  leaq (%r11, %rax, 8), %rdi
+   ff:  callq fn:type_totsz+0
+  104:  movl $8, %edx
+  109:  cmpl %edx, %eax
+  10b:  cmovgl %edx, %eax
+  10e:  leal -1(%rax, %r9), %r9d
+  113:  negl %eax
+  115:  movq %r10, %rdi
+  118:  andl %eax, %r9d
+  11b:  movslq %r9d, %rax
+  11e:  movl %r9d, 0x9088(%r8)
+  125:  movq %rax, 0x118(%rsi)
+  12c:  callq fn:type_totsz+0
+  131:  addl %eax, %r9d
+  134:  movl %r9d, 0x9088(%r8)
+  13b:  jmp 0x47
+  140:  testb $2, %al
+  142:  je 0xce
+  144:  movl 8(%rdi), %ecx
+  147:  testl %ecx, %ecx
+  149:  jne 0xce
+  14f:  movslq 0xc(%rdi), %rax
+  153:  imulq $0x9090, %rax, %rax
+  15a:  leaq 0x180(%rdx, %rax), %rdi
+  162:  jmp 0xb8
+  167:  nopw (%rax, %rax)
+  170:  movslq 0xc(%rdi), %rax
+  174:  leaq (%rax, %rax, 2), %rax
+  178:  leaq (%r11, %rax, 8), %rdi
+  17c:  jmp 0xb8

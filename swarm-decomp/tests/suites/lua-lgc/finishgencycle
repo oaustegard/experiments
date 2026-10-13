@@ -1,0 +1,70 @@
+# finishgencycle  (static, 255 bytes, 69 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  leaq 0x90(%rsi), %rdi
+    d:  pushq %rbx
+    e:  movq %rsi, %rbx
+   11:  callq fn:correctgraylist+0
+   16:  movq %rax, %rdi
+   19:  movq 0x98(%rbx), %rax
+   20:  movq %rax, (%rdi)
+   23:  movq $0, 0x98(%rbx)
+   2e:  callq fn:correctgraylist+0
+   33:  movq %rax, %rdi
+   36:  movq 0xa8(%rbx), %rax
+   3d:  movq %rax, (%rdi)
+   40:  movq $0, 0xa8(%rbx)
+   4b:  callq fn:correctgraylist+0
+   50:  movq %rax, %rdi
+   53:  movq 0xa0(%rbx), %rax
+   5a:  movq %rax, (%rdi)
+   5d:  movq $0, 0xa0(%rbx)
+   68:  callq fn:correctgraylist+0
+   6d:  cmpb $0, 0x6b(%rbx)
+   71:  je 0x80
+   73:  movb $0, 0x65(%rbx)
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  retq
+   7c:  nopl (%rax)
+   80:  movl 0x3c(%rbx), %eax
+   83:  testl %eax, %eax
+   85:  leal 3(%rax), %edx
+   88:  cmovnsl %eax, %edx
+   8b:  sarl $2, %edx
+   8e:  cmpl 0x38(%rbx), %edx
+   91:  jg 0xd0
+   93:  movb $0, 0x65(%rbx)
+   97:  nopw (%rax, %rax)
+   a0:  movq 0x18(%rbp), %rbx
+   a4:  cmpq $0, 0xb0(%rbx)
+   ac:  je 0x77
+   ae:  nop
+   b0:  movq %rbp, %rdi
+   b3:  callq fn:GCTM+0
+   b8:  cmpq $0, 0xb0(%rbx)
+   c0:  jne 0xb0
+   c2:  popq %rbx
+   c3:  popq %rbp
+   c4:  popq %r12
+   c6:  retq
+   c7:  nopw (%rax, %rax)
+   d0:  movl %eax, %esi
+   d2:  movq %rbp, %rdi
+   d5:  movq 0x18(%rbx), %r12
+   d9:  shrl $0x1f, %esi
+   dc:  addl %eax, %esi
+   de:  sarl $1, %esi
+   e0:  callq luaS_resize+0
+   e5:  movq 0x18(%rbx), %rax
+   e9:  movb $0, 0x65(%rbx)
+   ed:  subq %r12, %rax
+   f0:  addq %rax, 0x20(%rbx)
+   f4:  cmpb $0, 0x6b(%rbx)
+   f8:  je 0xa0
+   fa:  popq %rbx
+   fb:  popq %rbp
+   fc:  popq %r12
+   fe:  retq

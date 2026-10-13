@@ -1,0 +1,5 @@
+# mem_init  (global, 16 bytes, 4 instructions)
+    0:  pxor %xmm0, %xmm0
+    4:  movq $0, 0x10(%rdi)
+    c:  movups %xmm0, (%rdi)
+    f:  retq

@@ -1,0 +1,53 @@
+# neateqn-box: translation unit box of neateqn
+# write each function as src/neateqn/box/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+box_afterput	static	135 bytes
+roff_max	static	132 bytes
+tok_len	static	165 bytes
+bracsign	static	202 bytes
+box_bracketsel	static	411 bytes
+tok_dim	static	108 bytes
+box_italiccorrection	static	91 bytes
+box_bracketmk	static	1896 bytes
+box_alloc	global	80 bytes
+box_free	global	62 bytes
+box_putf	global	242 bytes
+box_buf	global	5 bytes
+box_size	global	156 bytes
+box_move	global	100 bytes
+box_toreg	global	91 bytes
+box_beforeput	static	386 bytes
+box_puttext	global	319 bytes
+box_sub	global	2429 bytes
+box_over	global	1453 bytes
+box_bracket	static	592 bytes
+box_sqrt	global	2395 bytes
+box_bar	global	523 bytes
+box_accent	global	595 bytes
+box_under	global	491 bytes
+box_colinit	static	769 bytes
+box_colput	static	545 bytes
+box_merge	global	172 bytes
+box_from	global	1581 bytes
+box_wrap	global	311 bytes
+box_empty	global	23 bytes
+box_vcenter	global	306 bytes
+box_vertspace	global	357 bytes
+box_markpos	global	5 bytes
+box_pile	global	424 bytes
+box_matrix	global	1604 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+spacing	static	256 bytes	.rodata.spacing
+        0: 00 00 00 00 01 00 00 00 02 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00
+       32: 01 00 00 00 01 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00
+       64: 02 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 02 00 00 00
+       96: 03 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 03 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 01 00 00 00 02 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00
+      192: 01 00 00 00 01 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00
+      224: 01 00 00 00 01 00 00 00 02 00 00 00 03 00 00 00 01 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+calloc def_brcost def_pieces def_sizes e_axisheight e_baselinesep e_bigopspacing1 e_bigopspacing2 e_bigopspacing3 e_bigopspacing4 e_bodydepth e_bodyheight e_columnsep e_denom1 e_denom2 e_mediumspace e_nulldelim e_num1 e_num2 e_overhang e_rulethickness e_scriptspace e_sub1 e_sub2 e_subdrop e_sup1 e_sup2 e_sup3 e_supdrop e_thickspace e_thinspace e_xheight escarg free nreg nregmk nregname nregrm printf puts sbuf_append sbuf_buf sbuf_done sbuf_init sreg sregmk sregname sregrm strlen strncmp vsnprintf

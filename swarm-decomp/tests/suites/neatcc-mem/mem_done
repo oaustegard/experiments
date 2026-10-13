@@ -1,0 +1,10 @@
+# mem_done  (global, 29 bytes, 9 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq (%rdi), %rdi
+    7:  callq free+0
+    c:  pxor %xmm0, %xmm0
+   10:  movq $0, 0x10(%rbx)
+   18:  movups %xmm0, (%rbx)
+   1b:  popq %rbx
+   1c:  retq

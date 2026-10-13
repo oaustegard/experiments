@@ -1,0 +1,6 @@
+# tok_type  (global, 18 bytes, 5 instructions)
+    0:  xorl %eax, %eax
+    2:  cmpb $0, (%rip)   <var:tok+0>
+    9:  je 0x11
+    b:  movl (%rip), %eax   <var:tok_curtype+0>
+   11:  retq

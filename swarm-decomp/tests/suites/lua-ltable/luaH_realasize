@@ -1,0 +1,26 @@
+# luaH_realasize  (global, 62 bytes, 25 instructions)
+    0:  cmpb $0, 0xa(%rdi)
+    4:  movl 0xc(%rdi), %eax
+    7:  jns 0x10
+    9:  leal -1(%rax), %edx
+    c:  testl %eax, %edx
+    e:  jne 0x18
+   10:  retq
+   11:  nopl (%rax)
+   18:  movl %eax, %edx
+   1a:  shrl $1, %edx
+   1c:  orl %edx, %eax
+   1e:  movl %eax, %edx
+   20:  shrl $2, %edx
+   23:  orl %eax, %edx
+   25:  movl %edx, %eax
+   27:  shrl $4, %eax
+   2a:  orl %edx, %eax
+   2c:  movl %eax, %edx
+   2e:  shrl $8, %edx
+   31:  orl %eax, %edx
+   33:  movl %edx, %eax
+   35:  shrl $0x10, %eax
+   38:  orl %edx, %eax
+   3a:  addl $1, %eax
+   3d:  retq

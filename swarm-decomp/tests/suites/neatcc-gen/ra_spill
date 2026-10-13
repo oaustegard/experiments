@@ -1,0 +1,43 @@
+# ra_spill  (static, 167 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movslq %edi, %rbx
+    5:  subq $8, %rsp
+    9:  movq (, %rbx, 8), %rdi   <var:ra_vmap+0>
+   11:  testq %rdi, %rdi
+   14:  js 0x2a
+   16:  movq %rbx, %rsi
+   19:  callq fn:val_tomem+0
+   1e:  movq $18446744073709551615, (, %rbx, 8)   <var:ra_vmap+0>
+   2a:  movq (, %rbx, 8), %rbp   <var:ra_lmap+0>
+   32:  testq %rbp, %rbp
+   35:  jns 0x40
+   37:  addq $8, %rsp
+   3b:  popq %rbx
+   3c:  popq %rbp
+   3d:  retq
+   3e:  nop
+   40:  movq (%rip), %rdi   <var:ic_i+0>
+   47:  movq %rbx, %rsi
+   4a:  callq reg_rmap+0
+   4f:  cltq
+   51:  cmpq %rax, %rbp
+   54:  je 0x70
+   56:  movq $18446744073709551615, (, %rbx, 8)   <var:ra_lmap+0>
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq
+   69:  nopl (%rax)
+   70:  movq (, %rbx, 8), %rax   <var:ra_lmap+0>
+   78:  movq (%rip), %rdx   <var:loc_mem+0>
+   7f:  movl $5, %ecx
+   84:  xorl %esi, %esi
+   86:  movl $0x8120000, %edi
+   8b:  addl $1, (%rdx, %rax, 4)
+   8f:  movq (%rip), %rdx   <var:loc_off+0>
+   96:  movq (%rdx, %rax, 8), %r8
+   9a:  movq %rbx, %rdx
+   9d:  negq %r8
+   a0:  callq i_ins+0
+   a5:  jmp 0x56

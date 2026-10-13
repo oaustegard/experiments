@@ -1,0 +1,18 @@
+# msg_hdrdec  (global, 54 bytes, 17 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  callq sbuf_make+0
+    e:  movq %rbx, %rdi
+   11:  movq %rax, %rbp
+   14:  callq strlen+0
+   19:  movq %rbp, %rdi
+   1c:  movq %rbx, %rsi
+   1f:  leaq (%rbx, %rax), %rdx
+   23:  callq fn:msg_hdrdec2+0
+   28:  addq $8, %rsp
+   2c:  movq %rbp, %rdi
+   2f:  popq %rbx
+   30:  popq %rbp
+   31:  jmp sbuf_done+0

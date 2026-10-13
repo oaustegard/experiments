@@ -1,0 +1,9 @@
+# luaG_opinterror  (global, 28 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  movzbl 8(%rsi), %eax
+    8:  movq %rdx, %r8
+    b:  movq %rcx, %rdx
+    e:  andl $0xf, %eax
+   11:  cmpb $3, %al
+   13:  cmoveq %r8, %rsi
+   17:  callq luaG_typeerror+0

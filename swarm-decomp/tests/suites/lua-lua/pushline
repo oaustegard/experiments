@@ -1,0 +1,86 @@
+# pushline  (static, 337 bytes, 85 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %esi, %ebp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $0x200, %rsp
+   10:  testl %esi, %esi
+   12:  je 0x100
+   18:  movl $0, %esi   <str:"_PROMPT">
+   1d:  movl $0, %r12d   <str:"> ">
+   23:  callq lua_getglobal+0
+   28:  testl %eax, %eax
+   2a:  jne 0xc8
+   30:  movq (%rip), %rsi   <stdout+0>
+   37:  movq %r12, %rdi
+   3a:  callq fputs+0
+   3f:  movq (%rip), %rdi   <stdout+0>
+   46:  callq fflush+0
+   4b:  movq (%rip), %rdx   <stdin+0>
+   52:  movl $0x200, %esi
+   57:  movq %rsp, %rdi
+   5a:  callq fgets+0
+   5f:  movq %rax, %rdx
+   62:  xorl %eax, %eax
+   64:  testq %rdx, %rdx
+   67:  je 0xb5
+   69:  movl $0xfffffffe, %esi
+   6e:  movq %rbx, %rdi
+   71:  callq lua_settop+0
+   76:  movq %rsp, %rdi
+   79:  callq strlen+0
+   7e:  movq %rax, %rdx
+   81:  testq %rax, %rax
+   84:  je 0x97
+   86:  leaq -1(%rax), %rax
+   8a:  leaq (%rsp, %rax), %rcx
+   8e:  cmpb $0xa, (%rcx)
+   91:  je 0x120
+   97:  testl %ebp, %ebp
+   99:  je 0xa5
+   9b:  cmpb $0x3d, (%rsp)
+   9f:  je 0x138
+   a5:  movq %rsp, %rsi
+   a8:  movq %rbx, %rdi
+   ab:  callq lua_pushlstring+0
+   b0:  movl $1, %eax
+   b5:  addq $0x200, %rsp
+   bc:  popq %rbx
+   bd:  popq %rbp
+   be:  popq %r12
+   c0:  retq
+   c1:  nopl (%rax)
+   c8:  xorl %edx, %edx
+   ca:  movq %rbx, %rdi
+   cd:  movl $0xffffffff, %esi
+   d2:  callq luaL_tolstring+0
+   d7:  movq %rbx, %rdi
+   da:  movl $0xffffffff, %edx
+   df:  movl $0xfffffffe, %esi
+   e4:  movq %rax, %r12
+   e7:  callq lua_rotate+0
+   ec:  movl $0xfffffffe, %esi
+   f1:  movq %rbx, %rdi
+   f4:  callq lua_settop+0
+   f9:  jmp 0x30
+   fe:  nop
+  100:  movl $0, %esi   <str:"_PROMPT2">
+  105:  callq lua_getglobal+0
+  10a:  testl %eax, %eax
+  10c:  jne 0xc8
+  10e:  movl $0, %r12d   <str:">> ">
+  114:  jmp 0x30
+  119:  nopl (%rax)
+  120:  movb $0, (%rcx)
+  123:  movq %rax, %rdx
+  126:  testl %ebp, %ebp
+  128:  jne 0x9b
+  12e:  jmp 0xa5
+  133:  nopl (%rax, %rax)
+  138:  leaq 1(%rsp), %rdx
+  13d:  movl $0, %esi   <str:"return %s">
+  142:  movq %rbx, %rdi
+  145:  xorl %eax, %eax
+  147:  callq lua_pushfstring+0
+  14c:  jmp 0xb0

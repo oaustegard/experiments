@@ -1,0 +1,35 @@
+# luaD_throw  (global, 132 bytes, 34 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 0x58(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x26
+   12:  movl %esi, 0xd0(%rdi)
+   18:  addq $8, %rdi
+   1c:  movl $1, %esi
+   21:  callq _longjmp+0
+   26:  movq 0x18(%rbx), %rbp
+   2a:  movq %rbx, %rdi
+   2d:  callq luaE_resetthread+0
+   32:  movq 0x108(%rbp), %rdi
+   39:  movl %eax, %esi
+   3b:  cmpq $0, 0x58(%rdi)
+   40:  je 0x65
+   42:  movq 0x10(%rdi), %rax
+   46:  leaq 0x10(%rax), %rdx
+   4a:  movq %rdx, 0x10(%rdi)
+   4e:  movq 0x10(%rbx), %rdx
+   52:  movq -0x10(%rdx), %rcx
+   56:  movq %rcx, (%rax)
+   59:  movzbl -8(%rdx), %edx
+   5d:  movb %dl, 8(%rax)
+   60:  callq luaD_throw+0
+   65:  movq 0x100(%rbp), %rax
+   6c:  testq %rax, %rax
+   6f:  je fn:luaD_throw.cold+0
+   75:  movq %rbx, %rdi
+   78:  callq *%rax
+   7a:  jmp fn:luaD_throw.cold+0
+   7f:  callq abort+0

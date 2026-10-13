@@ -1,0 +1,63 @@
+# callbinTM  (static, 188 bytes, 62 instructions)
+    0:  pushq %r14
+    2:  movl %r8d, %r14d
+    5:  pushq %r13
+    7:  movq %rdi, %r13
+    a:  pushq %r12
+    c:  movq %rsi, %r12
+    f:  pushq %rbp
+   10:  movq %rcx, %rbp
+   13:  pushq %rbx
+   14:  movzbl 8(%rsi), %eax
+   18:  movq %rdx, %rbx
+   1b:  movq 0x18(%rdi), %rdx
+   1f:  andl $0xf, %eax
+   22:  cmpb $5, %al
+   24:  je 0xb0
+   2a:  cmpb $7, %al
+   2c:  jne 0x80
+   2e:  movq (%rsi), %rax
+   31:  movq 0x18(%rax), %rdi
+   35:  leaq 0x50(%rdx), %rax
+   39:  testq %rdi, %rdi
+   3c:  je 0x4e
+   3e:  movl %r14d, %eax
+   41:  movq 0x118(%rdx, %rax, 8), %rsi
+   49:  callq luaH_getshortstr+0
+   4e:  testb $0xf, 8(%rax)
+   52:  je 0x90
+   54:  movq %rbp, %r8
+   57:  movq %rbx, %rcx
+   5a:  movq %r12, %rdx
+   5d:  movq %rax, %rsi
+   60:  movq %r13, %rdi
+   63:  callq luaT_callTMres+0
+   68:  popq %rbx
+   69:  movl $1, %eax
+   6e:  popq %rbp
+   6f:  popq %r12
+   71:  popq %r13
+   73:  popq %r14
+   75:  retq
+   76:  nopw %cs:(%rax, %rax)
+   80:  andl $0xf, %eax
+   83:  movq 0x1e0(%rdx, %rax, 8), %rdi
+   8b:  jmp 0x35
+   8d:  nopl (%rax)
+   90:  movl %r14d, %edx
+   93:  movq %rbx, %rsi
+   96:  movq %r13, %rdi
+   99:  callq luaT_gettmbyobj+0
+   9e:  testb $0xf, 8(%rax)
+   a2:  jne 0x54
+   a4:  popq %rbx
+   a5:  xorl %eax, %eax
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  popq %r13
+   ac:  popq %r14
+   ae:  retq
+   af:  nop
+   b0:  movq (%rsi), %rax
+   b3:  movq 0x28(%rax), %rdi
+   b7:  jmp 0x35

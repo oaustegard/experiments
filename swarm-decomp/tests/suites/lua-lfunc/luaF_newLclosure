@@ -1,0 +1,27 @@
+# luaF_newLclosure  (global, 85 bytes, 26 instructions)
+    0:  pushq %r12
+    2:  leal 0x20(, %rsi, 8), %r12d
+    a:  pushq %rbp
+    b:  movslq %r12d, %r12
+    e:  pushq %rbx
+    f:  movq %r12, %rdx
+   12:  movl %esi, %ebx
+   14:  movl $6, %esi
+   19:  callq luaC_newobj+0
+   1e:  movq $0, 0x18(%rax)
+   26:  movq %rax, %rbp
+   29:  movb %bl, 0xa(%rax)
+   2c:  testl %ebx, %ebx
+   2e:  je 0x4d
+   30:  leal -1(%rbx), %eax
+   33:  xorl %esi, %esi
+   35:  leaq 8(, %rax, 8), %rdx
+   3d:  negq %rax
+   40:  leaq -8(%r12, %rax, 8), %rdi
+   45:  addq %rbp, %rdi
+   48:  callq memset+0
+   4d:  movq %rbp, %rax
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  popq %r12
+   54:  retq

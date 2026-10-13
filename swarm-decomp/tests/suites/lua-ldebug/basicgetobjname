@@ -1,0 +1,164 @@
+# basicgetobjname  (static, 604 bytes, 163 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rcx, %r13
+    9:  pushq %r12
+    b:  movq %rsi, %r12
+    e:  pushq %rbp
+    f:  movq %rdi, %rbp
+   12:  pushq %rbx
+   13:  movl %edx, %ebx
+   15:  subq $8, %rsp
+   19:  movl (%rsi), %r14d
+   1c:  leal 1(%rbx), %esi
+   1f:  movl %r14d, %edx
+   22:  movq %rbp, %rdi
+   25:  callq luaF_getlocalname+0
+   2a:  movq %rax, (%r13)
+   2e:  movq %rax, %r9
+   31:  testq %rax, %rax
+   34:  jne 0x251
+   3a:  movq 0x40(%rbp), %rdi
+   3e:  movslq %r14d, %rax
+   41:  movl (%rdi, %rax, 4), %eax
+   44:  andl $0x7f, %eax
+   47:  cmpb $0x80, (%rax)   <luaP_opmodes+0>
+   4e:  adcl $-1, %r14d
+   52:  testl %r14d, %r14d
+   55:  jle 0x230
+   5b:  movslq %r14d, %r8
+   5e:  xorl %eax, %eax
+   60:  movl $0xffffffff, %r10d
+   66:  xorl %esi, %esi
+   68:  jmp 0xa9
+   6a:  nopw (%rax, %rax)
+   70:  cmpl $0x43, %edx
+   73:  ja 0x1a0
+   79:  cmpl $8, %edx
+   7c:  je 0x180
+   82:  cmpl $0x38, %edx
+   85:  jne 0x160
+   8b:  leal -0xfffffe(%r15, %rax), %edx
+   93:  movl %esi, %ecx
+   95:  cmpl %edx, %esi
+   97:  cmovll %edx, %esi
+   9a:  cmpl %r14d, %edx
+   9d:  cmovgl %ecx, %esi
+   a0:  addq $1, %rax
+   a4:  cmpq %rax, %r8
+   a7:  je 0xe7
+   a9:  movl (%rdi, %rax, 4), %ecx
+   ac:  movl %ecx, %edx
+   ae:  movl %ecx, %r15d
+   b1:  shrl $7, %r15d
+   b5:  andl $0x7f, %edx
+   b8:  movzbl %r15b, %r11d
+   bc:  cmpl $0x45, %edx
+   bf:  jbe 0x70
+   c1:  cmpl $0x4c, %edx
+   c4:  jne 0x160
+   ca:  addl $1, %r11d
+   ce:  cmpl %r11d, %ebx
+   d1:  jle 0xa0
+   d3:  cmpl %eax, %esi
+   d5:  jg 0x23d
+   db:  movl %eax, %r10d
+   de:  addq $1, %rax
+   e2:  cmpq %rax, %r8
+   e5:  jne 0xa9
+   e7:  movl %r10d, (%r12)
+   eb:  cmpl $-1, %r10d
+   ef:  je 0x14c
+   f1:  movslq %r10d, %rax
+   f4:  leaq (, %rax, 4), %rcx
+   fc:  movl (%rdi, %rax, 4), %eax
+   ff:  movl %eax, %edx
+  101:  andl $0x7f, %edx
+  104:  cmpl $4, %edx
+  107:  je 0x210
+  10d:  ja 0x1d0
+  113:  testl %edx, %edx
+  115:  je 0x1b0
+  11b:  shrl $0xf, %eax
+  11e:  cmpl $3, %edx
+  121:  jne 0x14c
+  123:  shlq $4, %rax
+  127:  addq 0x38(%rbp), %rax
+  12b:  movzbl 8(%rax), %edx
+  12f:  andl $0xf, %edx
+  132:  cmpb $4, %dl
+  135:  jne 0x220
+  13b:  movq (%rax), %rax
+  13e:  movl $0, %r9d   <str:"constant">
+  144:  addq $0x18, %rax
+  148:  movq %rax, (%r13)
+  14c:  addq $8, %rsp
+  150:  movq %r9, %rax
+  153:  popq %rbx
+  154:  popq %rbp
+  155:  popq %r12
+  157:  popq %r13
+  159:  popq %r14
+  15b:  popq %r15
+  15d:  retq
+  15e:  nop
+  160:  testb $8, (%rdx)   <luaP_opmodes+0>
+  167:  je 0xa0
+  16d:  cmpl %r11d, %ebx
+  170:  jne 0xa0
+  176:  jmp 0xd3
+  17b:  nopl (%rax, %rax)
+  180:  cmpl %r11d, %ebx
+  183:  jl 0xa0
+  189:  shrl $0x10, %ecx
+  18c:  movzbl %cl, %ecx
+  18f:  addl %r11d, %ecx
+  192:  cmpl %ecx, %ebx
+  194:  jle 0xd3
+  19a:  jmp 0xa0
+  19f:  nop
+  1a0:  cmpl %r11d, %ebx
+  1a3:  jge 0xd3
+  1a9:  jmp 0xa0
+  1ae:  nop
+  1b0:  movl %eax, %edx
+  1b2:  shrl $7, %eax
+  1b5:  shrl $0x10, %edx
+  1b8:  movzbl %dl, %ebx
+  1bb:  cmpb %dl, %al
+  1bd:  jbe 0x14c
+  1bf:  movl %r10d, %r14d
+  1c2:  jmp 0x1c
+  1c7:  nopw (%rax, %rax)
+  1d0:  cmpl $9, %edx
+  1d3:  jne 0x14c
+  1d9:  shrl $0x10, %eax
+  1dc:  movl $0, %r9d   <str:"upvalue">
+  1e2:  movzbl %al, %eax
+  1e5:  shlq $4, %rax
+  1e9:  addq 0x50(%rbp), %rax
+  1ed:  movq (%rax), %rdx
+  1f0:  leaq 0x18(%rdx), %rax
+  1f4:  testq %rdx, %rdx
+  1f7:  movl $0, %edx   <str:"?">
+  1fc:  cmoveq %rdx, %rax
+  200:  movq %rax, (%r13)
+  204:  jmp 0x14c
+  209:  nopl (%rax)
+  210:  movl 4(%rdi, %rcx), %eax
+  214:  shrl $7, %eax
+  217:  jmp 0x123
+  21c:  nopl (%rax)
+  220:  movq $0, (%r13)   <str:"?">
+  228:  jmp 0x14c
+  22d:  nopl (%rax)
+  230:  movl $0xffffffff, (%r12)
+  238:  jmp 0x14c
+  23d:  addq $1, %rax
+  241:  cmpq %r8, %rax
+  244:  je 0x230
+  246:  movl $0xffffffff, %r10d
+  24c:  jmp 0xa9
+  251:  movl $0, %r9d   <str:"local">
+  257:  jmp 0x14c

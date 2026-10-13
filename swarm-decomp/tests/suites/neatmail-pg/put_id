@@ -1,0 +1,26 @@
+# put_id  (static, 110 bytes, 25 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0xb0, %rsp
+    b:  movdqa (%rip), %xmm0   <cst:6e6561746d61696c2e686f7374000000>
+   13:  leaq 8(%rsp), %rdi
+   18:  movaps %xmm0, 0x10(%rsp)
+   1d:  pxor %xmm0, %xmm0
+   21:  movaps %xmm0, 0x20(%rsp)
+   26:  callq time+0
+   2b:  leaq 8(%rsp), %rdi
+   30:  callq localtime+0
+   35:  leaq 0x30(%rsp), %rdi
+   3a:  movl $0, %edx   <str:"%Y%d%m%H%M%S">
+   3f:  movl $0x80, %esi
+   44:  movq %rax, %rcx
+   47:  callq strftime+0
+   4c:  leaq 0x10(%rsp), %rcx
+   51:  movq %rbx, %rdi
+   54:  xorl %eax, %eax
+   56:  leaq 0x30(%rsp), %rdx
+   5b:  movl $0, %esi   <str:"Message-ID: <%s@%s>\n">
+   60:  callq sbuf_printf+0
+   65:  addq $0xb0, %rsp
+   6c:  popq %rbx
+   6d:  retq

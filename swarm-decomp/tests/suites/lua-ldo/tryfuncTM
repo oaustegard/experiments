@@ -1,0 +1,56 @@
+# tryfuncTM  (static, 187 bytes, 55 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  movq 0x28(%rdi), %rax
+   10:  subq 0x10(%rdi), %rax
+   14:  cmpq $0x10, %rax
+   18:  jle 0x80
+   1a:  movl $0x17, %edx
+   1f:  movq %rbx, %rsi
+   22:  movq %rbp, %rdi
+   25:  callq luaT_gettmbyobj+0
+   2a:  movzbl 8(%rax), %edx
+   2e:  testb $0xf, %dl
+   31:  je 0xb0
+   33:  movq 0x10(%rbp), %rsi
+   37:  cmpq %rsi, %rbx
+   3a:  jae 0x5c
+   3c:  movq %rsi, %rdx
+   3f:  nop
+   40:  movq -0x10(%rdx), %rcx
+   44:  subq $0x10, %rdx
+   48:  movq %rcx, 0x10(%rdx)
+   4c:  movzbl 8(%rdx), %ecx
+   50:  movb %cl, 0x18(%rdx)
+   53:  cmpq %rdx, %rbx
+   56:  jb 0x40
+   58:  movzbl 8(%rax), %edx
+   5c:  movq (%rax), %rax
+   5f:  addq $0x10, %rsi
+   63:  movq %rsi, 0x10(%rbp)
+   67:  movq %rax, (%rbx)
+   6a:  movq %rbx, %rax
+   6d:  movb %dl, 8(%rbx)
+   70:  addq $8, %rsp
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  retq
+   77:  nopw (%rax, %rax)
+   80:  movq 0x18(%rdi), %rax
+   84:  subq 0x30(%rdi), %rbx
+   88:  cmpq $0, 0x18(%rax)
+   8d:  jle 0x94
+   8f:  callq luaC_step+0
+   94:  movl $1, %edx
+   99:  movl $1, %esi
+   9e:  movq %rbp, %rdi
+   a1:  callq luaD_growstack+0
+   a6:  addq 0x30(%rbp), %rbx
+   aa:  jmp 0x1a
+   af:  nop
+   b0:  movq %rbx, %rsi
+   b3:  movq %rbp, %rdi
+   b6:  callq luaG_callerror+0

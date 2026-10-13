@@ -1,0 +1,12 @@
+# map_name  (global, 58 bytes, 11 instructions)
+    0:  cmpl $0xff, %edi
+    6:  jg 0x28
+    8:  movb $0x2e, (%rip)   <var:map_buf+0>
+    f:  movl $0, %eax   <var:map_buf+0>
+   14:  movb %dil, (%rip)   <var:map_buf+1>
+   1b:  movb $0, (%rip)   <var:map_buf+2>
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  leal -0x100(%rdi), %esi
+   2e:  movq (%rip), %rdi   <var:mapdict+0>
+   35:  jmp dict_key+0

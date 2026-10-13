@@ -1,0 +1,60 @@
+# tr_hycost  (static, 196 bytes, 59 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  cmpq $0, 8(%rdi)
+   10:  je 0x32
+   12:  movl $0, %edi   <str:".hycost">
+   17:  callq map+0
+   1c:  movl %eax, %edi
+   1e:  callq nreg+0
+   23:  movq 8(%rbx), %rdi
+   27:  xorl %edx, %edx
+   29:  movl (%rax), %esi
+   2b:  callq eval_re+0
+   30:  movl %eax, %ebp
+   32:  movl $0, %edi   <str:".hycost">
+   37:  callq map+0
+   3c:  movl %eax, %edi
+   3e:  callq nreg+0
+   43:  movl %ebp, (%rax)
+   45:  xorl %ebp, %ebp
+   47:  cmpq $0, 0x10(%rbx)
+   4c:  je 0x6e
+   4e:  movl $0, %edi   <str:".hycost2">
+   53:  callq map+0
+   58:  movl %eax, %edi
+   5a:  callq nreg+0
+   5f:  movq 0x10(%rbx), %rdi
+   63:  xorl %edx, %edx
+   65:  movl (%rax), %esi
+   67:  callq eval_re+0
+   6c:  movl %eax, %ebp
+   6e:  movl $0, %edi   <str:".hycost2">
+   73:  callq map+0
+   78:  movl %eax, %edi
+   7a:  callq nreg+0
+   7f:  movl %ebp, (%rax)
+   81:  xorl %ebp, %ebp
+   83:  cmpq $0, 0x18(%rbx)
+   88:  je 0xaa
+   8a:  movl $0, %edi   <str:".hycost3">
+   8f:  callq map+0
+   94:  movl %eax, %edi
+   96:  callq nreg+0
+   9b:  movq 0x18(%rbx), %rdi
+   9f:  xorl %edx, %edx
+   a1:  movl (%rax), %esi
+   a3:  callq eval_re+0
+   a8:  movl %eax, %ebp
+   aa:  movl $0, %edi   <str:".hycost3">
+   af:  callq map+0
+   b4:  movl %eax, %edi
+   b6:  callq nreg+0
+   bb:  movl %ebp, (%rax)
+   bd:  addq $8, %rsp
+   c1:  popq %rbx
+   c2:  popq %rbp
+   c3:  retq

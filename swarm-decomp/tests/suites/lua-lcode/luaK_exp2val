@@ -1,0 +1,7 @@
+# luaK_exp2val  (global, 21 bytes, 6 instructions)
+    0:  movl 0x14(%rsi), %eax
+    3:  cmpl %eax, 0x10(%rsi)
+    6:  je 0x10
+    8:  jmp luaK_exp2anyreg+0
+    d:  nopl (%rax)
+   10:  jmp luaK_dischargevars+0

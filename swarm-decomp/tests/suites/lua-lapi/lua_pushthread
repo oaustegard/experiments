@@ -1,0 +1,11 @@
+# lua_pushthread  (global, 37 bytes, 10 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  movq %rdi, (%rax)
+    7:  addq $0x10, %rax
+    b:  movb $0x48, -8(%rax)
+    f:  movq %rax, 0x10(%rdi)
+   13:  movq 0x18(%rdi), %rax
+   17:  cmpq %rdi, 0x108(%rax)
+   1e:  sete %al
+   21:  movzbl %al, %eax
+   24:  retq

@@ -1,0 +1,28 @@
+# luaL_len  (global, 89 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x18, %rsp
+    9:  callq lua_len+0
+    e:  leaq 0xc(%rsp), %rdx
+   13:  movl $0xffffffff, %esi
+   18:  movq %rbx, %rdi
+   1b:  callq lua_tointegerx+0
+   20:  movq %rax, %rbp
+   23:  movl 0xc(%rsp), %eax
+   27:  testl %eax, %eax
+   29:  je 0x48
+   2b:  movq %rbx, %rdi
+   2e:  movl $0xfffffffe, %esi
+   33:  callq lua_settop+0
+   38:  addq $0x18, %rsp
+   3c:  movq %rbp, %rax
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  movl $0, %esi   <str:"object length is not an integer">
+   4d:  movq %rbx, %rdi
+   50:  xorl %eax, %eax
+   52:  callq luaL_error+0
+   57:  jmp 0x2b

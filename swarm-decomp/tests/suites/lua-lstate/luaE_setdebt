@@ -1,0 +1,11 @@
+# luaE_setdebt  (global, 40 bytes, 10 instructions)
+    0:  movabsq $9223372036854775809, %rax
+    a:  movq 0x18(%rdi), %rdx
+    e:  addq 0x10(%rdi), %rdx
+   12:  addq %rdx, %rax
+   15:  cmpq %rsi, %rax
+   18:  cmovlq %rsi, %rax
+   1c:  subq %rax, %rdx
+   1f:  movq %rax, 0x18(%rdi)
+   23:  movq %rdx, 0x10(%rdi)
+   27:  retq

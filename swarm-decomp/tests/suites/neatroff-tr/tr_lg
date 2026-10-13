@@ -1,0 +1,20 @@
+# tr_lg  (static, 55 bytes, 19 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 8(%rdi), %rbx
+    a:  testq %rbx, %rbx
+    d:  je 0x30
+    f:  movl $0, %edi   <str:".lg">
+   14:  callq map+0
+   19:  movl %eax, %edi
+   1b:  callq nreg+0
+   20:  xorl %esi, %esi
+   22:  movq %rbx, %rdi
+   25:  movq %rax, %rbp
+   28:  callq eval+0
+   2d:  movl %eax, (%rbp)
+   30:  addq $8, %rsp
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  retq

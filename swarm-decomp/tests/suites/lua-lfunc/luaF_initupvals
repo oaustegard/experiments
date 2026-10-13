@@ -1,0 +1,41 @@
+# luaF_initupvals  (global, 121 bytes, 40 instructions)
+    0:  cmpb $0, 0xa(%rsi)
+    4:  je 0x78
+    6:  pushq %r12
+    8:  movq %rdi, %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  pushq %rbx
+   10:  xorl %ebx, %ebx
+   12:  jmp 0x24
+   14:  nopl (%rax)
+   18:  movzbl 0xa(%rbp), %eax
+   1c:  addq $1, %rbx
+   20:  cmpl %ebx, %eax
+   22:  jle 0x6d
+   24:  movl $0x28, %edx
+   29:  movl $9, %esi
+   2e:  movq %r12, %rdi
+   31:  callq luaC_newobj+0
+   36:  movq %rax, %rdx
+   39:  leaq 0x18(%rax), %rax
+   3d:  movq %rax, 0x10(%rdx)
+   41:  movb $0, 0x20(%rdx)
+   45:  movq %rdx, 0x20(%rbp, %rbx, 8)
+   4a:  testb $0x20, 9(%rbp)
+   4e:  je 0x18
+   50:  testb $0x18, 9(%rdx)
+   54:  je 0x18
+   56:  movq %rbp, %rsi
+   59:  movq %r12, %rdi
+   5c:  addq $1, %rbx
+   60:  callq luaC_barrier_+0
+   65:  movzbl 0xa(%rbp), %eax
+   69:  cmpl %ebx, %eax
+   6b:  jg 0x24
+   6d:  popq %rbx
+   6e:  popq %rbp
+   6f:  popq %r12
+   71:  retq
+   72:  nopw (%rax, %rax)
+   78:  retq

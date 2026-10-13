@@ -1,0 +1,27 @@
+# iset_free  (global, 87 bytes, 26 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movl 0x18(%rdi), %eax
+    c:  testl %eax, %eax
+    e:  jle 0x2e
+   10:  xorl %ebx, %ebx
+   12:  nopw (%rax, %rax)
+   18:  movq (%rbp), %rax
+   1c:  movq (%rax, %rbx, 8), %rdi
+   20:  addq $1, %rbx
+   24:  callq free+0
+   29:  cmpl %ebx, 0x18(%rbp)
+   2c:  jg 0x18
+   2e:  movq (%rbp), %rdi
+   32:  callq free+0
+   37:  movq 0x10(%rbp), %rdi
+   3b:  callq free+0
+   40:  movq 8(%rbp), %rdi
+   44:  callq free+0
+   49:  addq $8, %rsp
+   4d:  movq %rbp, %rdi
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  jmp free+0

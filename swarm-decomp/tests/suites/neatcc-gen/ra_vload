@@ -1,0 +1,83 @@
+# ra_vload  (static, 320 bytes, 82 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %r12
+    5:  movq (, %r12, 8), %rax   <var:ra_vmap+0>
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  cmpq %rdi, %rax
+   12:  je 0xac
+   18:  movq %rdi, %rbp
+   1b:  testq %rax, %rax
+   1e:  jns 0x2b
+   20:  cmpq $0, (, %r12, 8)   <var:ra_lmap+0>
+   29:  js 0x32
+   2b:  movl %esi, %edi
+   2d:  callq fn:ra_spill+0
+   32:  movslq %ebp, %rbx
+   35:  xorl %eax, %eax
+   37:  nopw (%rax, %rax)
+   40:  cmpq %rbx, (, %rax, 8)   <var:ra_vmap+0>
+   48:  je 0xb8
+   4a:  addq $1, %rax
+   4e:  cmpq $0x10, %rax
+   52:  jne 0x40
+   54:  xorl %eax, %eax
+   56:  jmp 0x6e
+   58:  nopl (%rax, %rax)
+   60:  addq $1, %rax
+   64:  cmpq $0x40, %rax
+   68:  je 0x12d
+   6e:  cmpq (, %rax, 8), %rbp   <var:ra_live+0>
+   76:  jne 0x60
+   78:  cltq
+   7a:  shlq $3, %rax
+   7e:  xorl %r8d, %r8d
+   81:  movl $5, %edx
+   86:  movq %r12, %rsi
+   89:  movl $0x8110000, %edi
+   8e:  addq (%rip), %rax   <var:loc_pos+0>
+   95:  movq $18446744073709551608, %rcx
+   9c:  subq %rax, %rcx
+   9f:  callq i_ins+0
+   a4:  movq %rbp, (, %r12, 8)   <var:ra_vmap+0>
+   ac:  popq %rbx
+   ad:  popq %rbp
+   ae:  popq %r12
+   b0:  retq
+   b1:  nopl (%rax)
+   b8:  xorl %edx, %edx
+   ba:  nopw (%rax, %rax)
+   c0:  cmpq %rbx, (, %rdx, 8)   <var:ra_vmap+0>
+   c8:  je 0x128
+   ca:  addq $1, %rdx
+   ce:  cmpq $0x10, %rdx
+   d2:  jne 0xc0
+   d4:  movq $18446744073709551615, %rdx
+   db:  xorl %r8d, %r8d
+   de:  xorl %ecx, %ecx
+   e0:  movq %r12, %rsi
+   e3:  movl $0x8000400, %edi
+   e8:  callq i_ins+0
+   ed:  xorl %eax, %eax
+   ef:  nop
+   f0:  cmpq %rbx, (, %rax, 8)   <var:ra_vmap+0>
+   f8:  je 0x109
+   fa:  addq $1, %rax
+   fe:  cmpq $0x10, %rax
+  102:  jne 0xf0
+  104:  movl $0xffffffff, %eax
+  109:  cltq
+  10b:  popq %rbx
+  10c:  movq $18446744073709551615, (, %rax, 8)   <var:ra_vmap+0>
+  118:  movq %rbp, (, %r12, 8)   <var:ra_vmap+0>
+  120:  popq %rbp
+  121:  popq %r12
+  123:  retq
+  124:  nopl (%rax)
+  128:  movslq %edx, %rdx
+  12b:  jmp 0xdb
+  12d:  xorl %eax, %eax
+  12f:  movl $0, %edi   <str:"neatcc: the specified value is not live\n">
+  134:  callq die+0
+  139:  xorl %eax, %eax
+  13b:  jmp 0x7e

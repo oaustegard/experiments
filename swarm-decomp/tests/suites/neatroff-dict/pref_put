@@ -1,0 +1,61 @@
+# pref_put  (global, 197 bytes, 60 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movl %edx, %r12d
+    9:  pushq %rbp
+    a:  movq %rsi, %rbp
+    d:  pushq %rbx
+    e:  movl 0x1c(%rdi), %r13d
+   12:  movq %rdi, %rbx
+   15:  movslq 0x18(%rdi), %rsi
+   19:  cmpl %esi, %r13d
+   1c:  jge 0x80
+   1e:  movq 0x10(%rdi), %rax
+   22:  movq 8(%rbx), %rsi
+   26:  leal 1(%r13), %edx
+   2a:  movq (%rbx), %rdi
+   2d:  movl %edx, 0x1c(%rbx)
+   30:  movslq %r13d, %rdx
+   33:  movq %rbp, (%rsi, %rdx, 8)
+   37:  movl %r12d, (%rax, %rdx, 4)
+   3b:  movzbl (%rbp), %esi
+   3f:  movzbl 1(%rbp), %eax
+   43:  popq %rbx
+   44:  shll $5, %esi
+   47:  popq %rbp
+   48:  popq %r12
+   4a:  orl %eax, %esi
+   4c:  movl %esi, %edx
+   4e:  movl %esi, %eax
+   50:  imulq $0x401005, %rdx, %rdx
+   57:  shrq $0x20, %rdx
+   5b:  subl %edx, %eax
+   5d:  shrl $1, %eax
+   5f:  addl %edx, %eax
+   61:  shrl $9, %eax
+   64:  movl %eax, %edx
+   66:  shll $0xa, %edx
+   69:  subl %eax, %edx
+   6b:  subl %edx, %esi
+   6d:  movl %r13d, %edx
+   70:  popq %r13
+   72:  popq %r14
+   74:  jmp iset_put+0
+   79:  nopl (%rax)
+   80:  addl $0x400, %r13d
+   87:  movq 8(%rdi), %rdi
+   8b:  movl $8, %ecx
+   90:  movslq %r13d, %r14
+   93:  movq %r14, %rdx
+   96:  callq mextend+0
+   9b:  movslq 0x18(%rbx), %rsi
+   9f:  movq 0x10(%rbx), %rdi
+   a3:  movq %r14, %rdx
+   a6:  movq %rax, 8(%rbx)
+   aa:  movl $4, %ecx
+   af:  callq mextend+0
+   b4:  movl %r13d, 0x18(%rbx)
+   b8:  movl 0x1c(%rbx), %r13d
+   bc:  movq %rax, 0x10(%rbx)
+   c0:  jmp 0x22

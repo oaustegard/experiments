@@ -1,0 +1,171 @@
+# pdftext_static  (global, 642 bytes, 170 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  callq sbuf_make+0
+    c:  movq %rax, %rbp
+    f:  movzbl (%r12), %eax
+   14:  testb %al, %al
+   16:  je 0x260
+   1c:  movq %r12, %rdx
+   1f:  jmp 0x3c
+   21:  nopl (%rax)
+   28:  testb %al, %al
+   2a:  js 0x44
+   2c:  movzbl 1(%rdx), %eax
+   30:  addq $1, %rdx
+   34:  testb %al, %al
+   36:  je 0x260
+   3c:  leal -0x28(%rax), %ecx
+   3f:  cmpb $1, %cl
+   42:  ja 0x28
+   44:  movl $0, %esi   <str:"<FEFF">
+   49:  movq %rbp, %rdi
+   4c:  callq sbuf_str+0
+   51:  movzbl (%r12), %edx
+   56:  testb %dl, %dl
+   58:  jne 0x8f
+   5a:  jmp 0xfd
+   5f:  nop
+   60:  movl $2, %edx
+   65:  testb $0x20, %cl
+   68:  je 0x83
+   6a:  movl $3, %edx
+   6f:  testb $0x10, %cl
+   72:  je 0x83
+   74:  andl $8, %eax
+   77:  cmpb $1, %al
+   79:  sbbq %rdx, %rdx
+   7c:  andl $3, %edx
+   7f:  addq $1, %rdx
+   83:  addq %rdx, %r12
+   86:  movzbl (%r12), %edx
+   8b:  testb %dl, %dl
+   8d:  je 0xfd
+   8f:  movl %edx, %ecx
+   91:  movzbl %dl, %eax
+   94:  notl %ecx
+   96:  andl $0xc0, %ecx
+   9c:  jne 0x140
+   a2:  testb $0x20, %dl
+   a5:  je 0x150
+   ab:  testb $0x10, %dl
+   ae:  je 0x170
+   b4:  andl $8, %edx
+   b7:  movl %eax, %ecx
+   b9:  je 0x1b8
+   bf:  sarl $8, %eax
+   c2:  movl $0, %esi   <str:"%02X%02X">
+   c7:  movq %rbp, %rdi
+   ca:  movl %eax, %edx
+   cc:  xorl %eax, %eax
+   ce:  callq sbuf_printf+0
+   d3:  movzbl (%r12), %ecx
+   d8:  movl %ecx, %edx
+   da:  movl %ecx, %eax
+   dc:  notl %edx
+   de:  andl $0xc0, %edx
+   e4:  je 0x60
+   ea:  xorl %edx, %edx
+   ec:  testl %ecx, %ecx
+   ee:  setg %dl
+   f1:  addq %rdx, %r12
+   f4:  movzbl (%r12), %edx
+   f9:  testb %dl, %dl
+   fb:  jne 0x8f
+   fd:  movl $0x3e, %esi
+  102:  movq %rbp, %rdi
+  105:  callq sbuf_chr+0
+  10a:  movq %rbp, %rdi
+  10d:  callq sbuf_done+0
+  112:  movl $0, %edx   <str:"%s">
+  117:  movl $0x400, %esi
+  11c:  movl $0, %edi   <var:buf+0>
+  121:  movq %rax, %rbx
+  124:  movq %rax, %rcx
+  127:  xorl %eax, %eax
+  129:  callq snprintf+0
+  12e:  movq %rbx, %rdi
+  131:  callq free+0
+  136:  popq %rbx
+  137:  movl $0, %eax   <var:buf+0>
+  13c:  popq %rbp
+  13d:  popq %r12
+  13f:  retq
+  140:  movl %eax, %ecx
+  142:  jmp 0xbf
+  147:  nopw (%rax, %rax)
+  150:  movzbl 1(%r12), %ecx
+  156:  shll $6, %eax
+  159:  andl $0x7c0, %eax
+  15e:  andl $0x3f, %ecx
+  161:  orl %ecx, %eax
+  163:  movzbl %al, %ecx
+  166:  jmp 0xbf
+  16b:  nopl (%rax, %rax)
+  170:  movsbl 1(%r12), %ecx
+  176:  shll $0xc, %eax
+  179:  movzwl %ax, %eax
+  17c:  shll $6, %ecx
+  17f:  andl $0xfc0, %ecx
+  185:  orl %eax, %ecx
+  187:  movzbl 2(%r12), %eax
+  18d:  andl $0x3f, %eax
+  190:  orl %ecx, %eax
+  192:  leal -0xe000(%rax), %edx
+  198:  cmpl $0x1fff, %edx
+  19e:  jbe 0x1ab
+  1a0:  cmpl $0xd7ff, %eax
+  1a5:  ja 0xd3
+  1ab:  movzbl %al, %ecx
+  1ae:  jmp 0xbf
+  1b3:  nopl (%rax, %rax)
+  1b8:  movsbl 1(%r12), %ecx
+  1be:  shll $0x12, %eax
+  1c1:  andl $0x1c0000, %eax
+  1c6:  shll $0xc, %ecx
+  1c9:  andl $0x3f000, %ecx
+  1cf:  orl %eax, %ecx
+  1d1:  movzbl 3(%r12), %eax
+  1d7:  andl $0x3f, %eax
+  1da:  orl %eax, %ecx
+  1dc:  movsbl 2(%r12), %eax
+  1e2:  shll $6, %eax
+  1e5:  andl $0xfc0, %eax
+  1ea:  orl %ecx, %eax
+  1ec:  leal -0xe000(%rax), %edx
+  1f2:  cmpl $0x1fff, %edx
+  1f8:  jbe 0x1ab
+  1fa:  cmpl $0xd7ff, %eax
+  1ff:  jbe 0x1ab
+  201:  leal -0x10000(%rax), %ecx
+  207:  cmpl $0xfffff, %ecx
+  20d:  ja 0xd3
+  213:  sarl $0xa, %ecx
+  216:  andl $0x3ff, %eax
+  21b:  movq %rbp, %rdi
+  21e:  movl $0, %esi   <str:"%02X%02X">
+  223:  leal 0xd800(%rcx), %edx
+  229:  leal 0xdc00(%rax), %ebx
+  22f:  movzbl %cl, %ecx
+  232:  xorl %eax, %eax
+  234:  sarl $8, %edx
+  237:  callq sbuf_printf+0
+  23c:  movzbl %bl, %ecx
+  23f:  sarl $8, %ebx
+  242:  movl $0, %esi   <str:"%02X%02X">
+  247:  movl %ebx, %edx
+  249:  movq %rbp, %rdi
+  24c:  xorl %eax, %eax
+  24e:  callq sbuf_printf+0
+  253:  jmp 0xd3
+  258:  nopl (%rax, %rax)
+  260:  movl $0x28, %esi
+  265:  movq %rbp, %rdi
+  268:  callq sbuf_chr+0
+  26d:  movq %r12, %rsi
+  270:  movq %rbp, %rdi
+  273:  callq sbuf_str+0
+  278:  movl $0x29, %esi
+  27d:  jmp 0x102

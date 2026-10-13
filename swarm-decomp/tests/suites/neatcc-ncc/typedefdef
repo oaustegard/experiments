@@ -1,0 +1,74 @@
+# typedefdef  (static, 280 bytes, 73 instructions)
+    0:  pushq %r15
+    2:  leaq 0x100(%rsi), %r15
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  pushq %r12
+    f:  pushq %rbp
+   10:  movq %rsi, %rbp
+   13:  pushq %rbx
+   14:  subq $0x18, %rsp
+   18:  movslq (%rip), %r13   <var:typedefs_n+0>
+   1f:  movl (%rip), %eax   <var:typedefs_sz+0>
+   25:  movq (%rip), %r14   <var:typedefs+0>
+   2c:  movq %r13, %r12
+   2f:  cmpl %eax, %r13d
+   32:  jge 0x88
+   34:  leal 1(%r12), %eax
+   39:  movq %rbp, %rsi
+   3c:  movl %eax, (%rip)   <var:typedefs_n+0>
+   42:  leaq (%r13, %r13, 8), %rax
+   47:  leaq (%r13, %rax, 4), %rax
+   4c:  leaq (%r14, %rax, 4), %rdx
+   50:  movq %rdx, %rdi
+   53:  callq strcpy+0
+   58:  movdqu 0x100(%rbp), %xmm0
+   60:  movq %rax, %rdx
+   63:  movups %xmm0, 0x80(%rax)
+   6a:  movl 0x10(%r15), %eax
+   6e:  movl %eax, 0x90(%rdx)
+   74:  addq $0x18, %rsp
+   78:  popq %rbx
+   79:  popq %rbp
+   7a:  popq %r12
+   7c:  popq %r13
+   7e:  popq %r14
+   80:  popq %r15
+   82:  retq
+   83:  nopl (%rax, %rax)
+   88:  movl $0x80, %edx
+   8d:  addl %eax, %eax
+   8f:  cmpl %edx, %eax
+   91:  cmovll %edx, %eax
+   94:  movslq %eax, %rbx
+   97:  movl %eax, (%rip)   <var:typedefs_sz+0>
+   9d:  leaq (%rbx, %rbx, 8), %rax
+   a1:  leaq (%rbx, %rax, 4), %rdi
+   a5:  shlq $2, %rdi
+   a9:  callq malloc+0
+   ae:  movq %r14, %rsi
+   b1:  movq %rax, %rcx
+   b4:  leaq (%r13, %r13, 8), %rax
+   b9:  leaq (%r13, %rax, 4), %r8
+   be:  movq %rcx, %rdi
+   c1:  shlq $2, %r8
+   c5:  movq %r8, %rdx
+   c8:  movq %r8, 8(%rsp)
+   cd:  callq memcpy+0
+   d2:  movq 8(%rsp), %r8
+   d7:  xorl %esi, %esi
+   d9:  movq %rax, %rcx
+   dc:  movq %rbx, %rax
+   df:  subq %r13, %rax
+   e2:  leaq (%rcx, %r8), %rdi
+   e6:  movq %rcx, 8(%rsp)
+   eb:  leaq (%rax, %rax, 8), %rdx
+   ef:  leaq (%rax, %rdx, 4), %rdx
+   f3:  shlq $2, %rdx
+   f7:  callq memset+0
+   fc:  movq %r14, %rdi
+   ff:  callq free+0
+  104:  movq 8(%rsp), %rcx
+  109:  movq %rcx, (%rip)   <var:typedefs+0>
+  110:  movq %rcx, %r14
+  113:  jmp 0x34

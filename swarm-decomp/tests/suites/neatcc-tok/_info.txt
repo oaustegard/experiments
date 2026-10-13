@@ -1,0 +1,62 @@
+# neatcc-tok: translation unit tok of neatcc
+# write each function as src/neatcc/tok/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+skipws	static	491 bytes
+esc_char.part.0	static	295 bytes
+tok_read	static	1126 bytes
+tok_num	global	467 bytes
+tok_get	global	58 bytes
+tok_see	global	58 bytes
+tok_len	global	10 bytes
+tok_addr	global	25 bytes
+tok_jump	global	29 bytes
+tok_done	global	28 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+len	static	8 bytes	.bss.len
+    (zero-initialised)
+off	static	8 bytes	.bss.off
+    (zero-initialised)
+buf	static	8 bytes	.bss.buf
+    (zero-initialised)
+tok_mem	static	24 bytes	.bss.tok_mem
+    (zero-initialised)
+tok	static	24 bytes	.bss.tok
+    (zero-initialised)
+off_pre	static	8 bytes	.bss.off_pre
+    (zero-initialised)
+tok3	static	176 bytes	.rodata.tok3
+    +0     -> str:"<<="
+    +8     -> str:">>="
+    +16    -> str:"..."
+    +24    -> str:"<<"
+    +32    -> str:">>"
+    +40    -> str:"++"
+    +48    -> str:"--"
+    +56    -> str:"+="
+    +64    -> str:"-="
+    +72    -> str:"*="
+    +80    -> str:"/="
+    +88    -> str:"%="
+    +96    -> str:"|="
+    +104   -> str:"&="
+    +112   -> str:"^="
+    +120   -> str:"&&"
+    +128   -> str:"||"
+    +136   -> str:"=="
+    +144   -> str:"!="
+    +152   -> str:"<="
+    +160   -> str:">="
+    +168   -> str:"->"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+tok_set	static	4 bytes	.bss.tok_set
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc cpp_read mem_buf mem_cut mem_done mem_len mem_put mem_putc memchr strchr strlen

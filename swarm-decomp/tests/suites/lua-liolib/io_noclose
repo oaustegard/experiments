@@ -1,0 +1,15 @@
+# io_noclose  (static, 55 bytes, 14 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checkudata+0
+   13:  movq %rbx, %rdi
+   16:  movq $0, 8(%rax)   <fn:io_noclose+0>
+   1e:  callq lua_pushnil+0
+   23:  movq %rbx, %rdi
+   26:  movl $0, %esi   <str:"cannot close standard file">
+   2b:  callq lua_pushstring+0
+   30:  movl $2, %eax
+   35:  popq %rbx
+   36:  retq

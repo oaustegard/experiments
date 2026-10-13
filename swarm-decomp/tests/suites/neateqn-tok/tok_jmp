@@ -1,0 +1,49 @@
+# tok_jmp  (global, 178 bytes, 48 instructions)
+    0:  cmpb $0, (%rip)   <var:tok+0>
+    7:  jne 0x10
+    9:  movl $1, %eax
+    e:  retq
+    f:  nop
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  cmpl $1, (%rip)   <var:tok_curtype+0>
+   1b:  jne 0x48
+   1d:  movl $0, %esi   <var:tok+0>
+   22:  movl $0, %edi   <var:tok_prev+0>
+   27:  callq strcpy+0
+   2c:  callq fn:tok_read.isra.0+0
+   31:  cmpb $0, (%rip)   <var:tok+0>
+   38:  jne 0x14
+   3a:  movl $1, %eax
+   3f:  popq %rbx
+   40:  retq
+   41:  nopl (%rax)
+   48:  cmpb $0, 1(%rbx)
+   4c:  jne 0x80
+   4e:  movsbl (%rbx), %esi
+   51:  movl $0, %edi   <str:"{}~^\t">
+   56:  callq strchr+0
+   5b:  testq %rax, %rax
+   5e:  je 0x80
+   60:  movl $0, %esi   <var:tok+0>
+   65:  movq %rbx, %rdi
+   68:  callq strcmp+0
+   6d:  testl %eax, %eax
+   6f:  je 0x9a
+   71:  movl $1, %eax
+   76:  jmp 0x3f
+   78:  nopl (%rax, %rax)
+   80:  cmpl $3, (%rip)   <var:tok_curtype+0>
+   87:  jne 0x3a
+   89:  movl $0, %esi   <var:tok+0>
+   8e:  movq %rbx, %rdi
+   91:  callq strcmp+0
+   96:  testl %eax, %eax
+   98:  jne 0x3a
+   9a:  movl $0, %esi   <var:tok+0>
+   9f:  movl $0, %edi   <var:tok_prev+0>
+   a4:  callq strcpy+0
+   a9:  callq fn:tok_read.isra.0+0
+   ae:  xorl %eax, %eax
+   b0:  popq %rbx
+   b1:  retq

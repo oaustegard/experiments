@@ -1,0 +1,30 @@
+# buf_pop  (static, 126 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movl (%rip), %ebx   <var:bufs_n+0>
+    c:  leal -1(%rbx), %ebp
+    f:  movslq %ebp, %rax
+   12:  movl %ebp, (%rip)   <var:bufs_n+0>
+   18:  imulq $0x80b0, %rax, %rax
+   1f:  cmpl $1, (%rax)   <var:bufs+24>
+   26:  jbe 0x70
+   28:  testl %ebp, %ebp
+   2a:  je 0x63
+   2c:  subl $2, %ebx
+   2f:  movslq %ebx, %rbx
+   32:  imulq $0x80b0, %rbx, %rbx
+   39:  movq (%rbx), %rax   <var:bufs+8>
+   40:  movq (%rbx), %rdx   <var:bufs+16>
+   47:  movq %rax, (%rip)   <var:len+0>
+   4e:  movq (%rbx), %rax   <var:bufs+0>
+   55:  movq %rdx, (%rip)   <var:cur+0>
+   5c:  movq %rax, (%rip)   <var:buf+0>
+   63:  addq $8, %rsp
+   67:  popq %rbx
+   68:  popq %rbp
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  movq (%rip), %rdi   <var:buf+0>
+   77:  callq free+0
+   7c:  jmp 0x28

@@ -1,0 +1,43 @@
+# ll_loadlib  (static, 143 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq luaL_checklstring+0
+   15:  xorl %edx, %edx
+   17:  movl $2, %esi
+   1c:  movq %rbx, %rdi
+   1f:  movq %rax, %rbp
+   22:  callq luaL_checklstring+0
+   27:  movq %rbp, %rsi
+   2a:  movq %rbx, %rdi
+   2d:  movq %rax, %rdx
+   30:  callq fn:lookforfunc+0
+   35:  movl %eax, %ebp
+   37:  movl $1, %eax
+   3c:  testl %ebp, %ebp
+   3e:  jne 0x50
+   40:  addq $8, %rsp
+   44:  popq %rbx
+   45:  popq %rbp
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  movq %rbx, %rdi
+   53:  callq lua_pushnil+0
+   58:  movq %rbx, %rdi
+   5b:  movl $1, %edx
+   60:  movl $0xfffffffe, %esi
+   65:  callq lua_rotate+0
+   6a:  cmpl $1, %ebp
+   6d:  movl $0, %eax   <str:"open">
+   72:  movq %rbx, %rdi
+   75:  movl $0, %esi   <str:"init">
+   7a:  cmoveq %rax, %rsi
+   7e:  callq lua_pushstring+0
+   83:  addq $8, %rsp
+   87:  movl $3, %eax
+   8c:  popq %rbx
+   8d:  popq %rbp
+   8e:  retq

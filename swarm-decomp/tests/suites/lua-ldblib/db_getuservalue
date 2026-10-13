@@ -1,0 +1,33 @@
+# db_getuservalue  (static, 112 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  movl $1, %edx
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_optinteger+0
+   18:  movl $1, %esi
+   1d:  movq %rbx, %rdi
+   20:  movq %rax, %rbp
+   23:  callq lua_type+0
+   28:  cmpl $7, %eax
+   2b:  je 0x48
+   2d:  movq %rbx, %rdi
+   30:  callq lua_pushnil+0
+   35:  movl $1, %eax
+   3a:  addq $8, %rsp
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  retq
+   41:  nopl (%rax)
+   48:  movl %ebp, %edx
+   4a:  movl $1, %esi
+   4f:  movq %rbx, %rdi
+   52:  callq lua_getiuservalue+0
+   57:  cmpl $-1, %eax
+   5a:  je 0x35
+   5c:  movl $1, %esi
+   61:  movq %rbx, %rdi
+   64:  callq lua_pushboolean+0
+   69:  movl $2, %eax
+   6e:  jmp 0x3a

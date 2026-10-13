@@ -1,0 +1,29 @@
+# luaL_checknumber  (global, 85 bytes, 28 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x28, %rsp
+    b:  leaq 0x1c(%rsp), %rdx
+   10:  callq lua_tonumberx+0
+   15:  movl 0x1c(%rsp), %eax
+   19:  testl %eax, %eax
+   1b:  je 0x28
+   1d:  addq $0x28, %rsp
+   21:  popq %rbx
+   22:  popq %rbp
+   23:  retq
+   24:  nopl (%rax)
+   28:  movq %rbx, %rdi
+   2b:  movl $3, %esi
+   30:  movsd %xmm0, 8(%rsp)
+   36:  callq lua_typename+0
+   3b:  movl %ebp, %esi
+   3d:  movq %rbx, %rdi
+   40:  movq %rax, %rdx
+   43:  callq luaL_typeerror+0
+   48:  movsd 8(%rsp), %xmm0
+   4e:  addq $0x28, %rsp
+   52:  popq %rbx
+   53:  popq %rbp
+   54:  retq

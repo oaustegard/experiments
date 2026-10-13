@@ -1,0 +1,9 @@
+# luaO_hexavalue  (global, 26 bytes, 8 instructions)
+    0:  leal 1(%rdi), %edx
+    3:  leal -0x30(%rdi), %ecx
+    6:  orl $0x20, %edi
+    9:  movslq %edx, %rdx
+    c:  leal -0x57(%rdi), %eax
+    f:  testb $2, (%rdx)   <luai_ctype_+0>
+   16:  cmovnel %ecx, %eax
+   19:  retq

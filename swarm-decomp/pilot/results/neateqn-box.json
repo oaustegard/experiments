@@ -1,0 +1,74 @@
+{
+ "suite": "neateqn-box",
+ "functions": {
+  "box_alloc": {
+   "O0": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": "match"
+   },
+   "O1": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": "match"
+   },
+   "O2": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": "match"
+   }
+  },
+  "box_size": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.9697,
+    "reason": "ref: wrong reference sec in neateqn-box"
+   },
+   "O1": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": "match"
+   },
+   "O2": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": "match"
+   }
+  },
+  "box_merge": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.9524,
+    "reason": "call: expected call to box_beforeput"
+   },
+   "O1": {
+    "status": "FAIL",
+    "frac": 0.925,
+    "reason": "call: expected call to box_beforeput"
+   },
+   "O2": {
+    "status": "FAIL",
+    "frac": 0.7736,
+    "reason": "call: expected call to sbuf_buf"
+   }
+  },
+  "box_bracketsel": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.9453,
+    "reason": "ref: wrong reference sec in neateqn-box"
+   },
+   "O1": {
+    "status": "FAIL",
+    "frac": 0.0,
+    "reason": "absent: written but not in the object (inlined, unused static or renamed) in neateqn-box"
+   },
+   "O2": {
+    "status": "FAIL",
+    "frac": 0.0,
+    "reason": "absent: written but not in the object (inlined, unused static or renamed) in neateqn-box"
+   }
+  }
+ },
+ "notes": "O0: box_alloc passes. box_size and box_bracketsel differ only in .rodata string offsets, which depend on the string literals of earlier, unwritten functions in the TU. box_merge differs only in the call form to same-TU static callees not yet written (fn: prefix). O1: box_size passes; box_bracketsel is absent because its only caller is outside this pilot and gcc drops the unused static at -O1. box_merge has the same call-form diff. O2: box_size passes; box_bracketsel absent for the same reason; box_merge fails because the target inlines box_toreg, a same-TU callee still a stub here. Layout of struct box (size 0x38, sbuf assumed 16 bytes) is inferred from offsets, not verified."
+}

@@ -1,0 +1,37 @@
+# q_end  (static, 140 bytes, 36 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movl (%rip), %ecx   <var:out_mlen+0>
+    c:  testl %ecx, %ecx
+    e:  je 0x80
+   10:  xorl %r8d, %r8d
+   13:  nopl (%rax, %rax)
+   18:  xorl %edi, %edi
+   1a:  callq fn:q_put+0
+   1f:  movl (%rip), %edx   <var:out_mlen+0>
+   25:  movslq %r8d, %rax
+   28:  addl $1, %r8d
+   2c:  testl %edx, %edx
+   2e:  jne 0x18
+   30:  movslq (%rip), %rbp   <var:out_n+0>
+   37:  leaq 1(%rax), %rdx
+   3b:  movl $0x3d, %esi
+   40:  movq %rbp, %rcx
+   43:  movq %rbp, %rbx
+   46:  subq %rax, %rcx
+   49:  leaq (%rcx), %rdi   <var:out+-1>
+   50:  callq memset+0
+   55:  addl $2, %ebx
+   58:  movl $0x3d3f, %eax
+   5d:  movl $0, (%rip)   <var:out_mime+0>
+   67:  movl %ebx, (%rip)   <var:out_n+0>
+   6d:  movw %ax, (%rbp)   <var:out+0>
+   74:  addq $8, %rsp
+   78:  popq %rbx
+   79:  popq %rbp
+   7a:  retq
+   7b:  nopl (%rax, %rax)
+   80:  movslq (%rip), %rbp   <var:out_n+0>
+   87:  movq %rbp, %rbx
+   8a:  jmp 0x55

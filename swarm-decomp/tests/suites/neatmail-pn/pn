@@ -1,0 +1,246 @@
+# pn  (global, 1164 bytes, 245 instructions)
+    0:  pushq %r13
+    2:  movl $0x10, %ecx
+    7:  xorl %eax, %eax
+    9:  xorl %r13d, %r13d
+    c:  pushq %r12
+    e:  movq %rdi, %r12
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  subq $0x88, %rsp
+   1a:  movq %rsp, %rbx
+   1d:  movq %rbx, %rdi
+   20:  rep stosq %rax, (%rdi)
+   23:  movq (%r12), %rdi
+   27:  testq %rdi, %rdi
+   2a:  jne 0x62
+   2c:  jmp 0x478
+   31:  nopl (%rax)
+   38:  cmpb $0x48, %dl
+   3b:  je 0x120
+   41:  cmpb $0x73, %dl
+   44:  je 0x3b0
+   4a:  cmpb $0x62, %dl
+   4d:  je 0x3e0
+   53:  movslq %ebp, %rdx
+   56:  movq (%r12, %rdx, 8), %rdi
+   5a:  movq %rdx, %rax
+   5d:  testq %rdi, %rdi
+   60:  je 0xc0
+   62:  cmpb $0x2d, (%rdi)
+   65:  jne 0x410
+   6b:  leal 1(%rax), %ebp
+   6e:  movzbl 1(%rdi), %edx
+   72:  movslq %ebp, %rcx
+   75:  movl %ebp, %esi
+   77:  leaq (%r12, %rcx, 8), %rcx
+   7b:  cmpb $0x68, %dl
+   7e:  jne 0x38
+   80:  cmpb $0, 2(%rdi)
+   84:  movq (%rcx), %rdx
+   87:  je 0x408
+   8d:  leaq 2(%rdi), %rdx
+   91:  movslq (%rip), %rax   <var:hdrs_n+0>
+   98:  cmpl $0x7f, %eax
+   9b:  jg 0x53
+   9d:  movq %rdx, (, %rax, 8)   <var:hdrs+0>
+   a5:  movslq %ebp, %rdx
+   a8:  leal 1(%rax), %ecx
+   ab:  movq (%r12, %rdx, 8), %rdi
+   af:  movl %ecx, (%rip)   <var:hdrs_n+0>
+   b5:  movq %rdx, %rax
+   b8:  testq %rdi, %rdi
+   bb:  jne 0x62
+   bd:  nopl (%rax)
+   c0:  testl %r13d, %r13d
+   c3:  jle 0x460
+   c9:  movslq %r13d, %r13
+   cc:  leaq (%rbx, %r13, 8), %r12
+   d0:  jmp 0xe1
+   d2:  nopw (%rax, %rax)
+   d8:  addq $8, %rbx
+   dc:  cmpq %rbx, %r12
+   df:  je 0x10f
+   e1:  movq (%rbx), %rbp
+   e4:  movq %rbp, %rdi
+   e7:  callq fn:pn_proc+0
+   ec:  testl %eax, %eax
+   ee:  je 0xd8
+   f0:  movq (%rip), %rdi   <stderr+0>
+   f7:  movq %rbp, %rdx
+   fa:  xorl %eax, %eax
+   fc:  addq $8, %rbx
+  100:  movl $0, %esi   <str:"pn: cannot open <%s>\n">
+  105:  callq fprintf+0
+  10a:  cmpq %rbx, %r12
+  10d:  jne 0xe1
+  10f:  xorl %eax, %eax
+  111:  addq $0x88, %rsp
+  118:  popq %rbx
+  119:  popq %rbp
+  11a:  popq %r12
+  11c:  popq %r13
+  11e:  retq
+  11f:  nop
+  120:  movl (%rip), %eax   <var:hdrs_n+0>
+  126:  cmpl $0x7f, %eax
+  129:  jg 0x53
+  12f:  leal 1(%rax), %edx
+  132:  movslq %eax, %rcx
+  135:  movl %edx, (%rip)   <var:hdrs_n+0>
+  13b:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"From:">
+  147:  cmpl $0x80, %edx
+  14d:  je 0x53
+  153:  leal 2(%rax), %ecx
+  156:  movslq %edx, %rdx
+  159:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  15f:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"To:">
+  16b:  cmpl $0x80, %ecx
+  171:  je 0x53
+  177:  leal 3(%rax), %edx
+  17a:  movslq %ecx, %rcx
+  17d:  movl %edx, (%rip)   <var:hdrs_n+0>
+  183:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"Cc:">
+  18f:  cmpl $0x80, %edx
+  195:  je 0x53
+  19b:  leal 4(%rax), %ecx
+  19e:  movslq %edx, %rdx
+  1a1:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  1a7:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Bcc:">
+  1b3:  cmpl $0x80, %ecx
+  1b9:  je 0x53
+  1bf:  leal 5(%rax), %edx
+  1c2:  movslq %ecx, %rcx
+  1c5:  movl %edx, (%rip)   <var:hdrs_n+0>
+  1cb:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"Subject:">
+  1d7:  cmpl $0x80, %edx
+  1dd:  je 0x53
+  1e3:  leal 6(%rax), %ecx
+  1e6:  movslq %edx, %rdx
+  1e9:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  1ef:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Date:">
+  1fb:  cmpl $0x80, %ecx
+  201:  je 0x53
+  207:  leal 7(%rax), %edx
+  20a:  movslq %ecx, %rcx
+  20d:  movl %edx, (%rip)   <var:hdrs_n+0>
+  213:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"Message-ID:">
+  21f:  cmpl $0x80, %edx
+  225:  je 0x53
+  22b:  leal 8(%rax), %ecx
+  22e:  movslq %edx, %rdx
+  231:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  237:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Reply-To:">
+  243:  cmpl $0x80, %ecx
+  249:  je 0x53
+  24f:  leal 9(%rax), %edx
+  252:  movslq %ecx, %rcx
+  255:  movl %edx, (%rip)   <var:hdrs_n+0>
+  25b:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"In-Reply-To:">
+  267:  cmpl $0x80, %edx
+  26d:  je 0x53
+  273:  leal 0xa(%rax), %ecx
+  276:  movslq %edx, %rdx
+  279:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  27f:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"References:">
+  28b:  cmpl $0x80, %ecx
+  291:  je 0x53
+  297:  leal 0xb(%rax), %edx
+  29a:  movslq %ecx, %rcx
+  29d:  movl %edx, (%rip)   <var:hdrs_n+0>
+  2a3:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"MIME-Version:">
+  2af:  cmpl $0x80, %edx
+  2b5:  je 0x53
+  2bb:  leal 0xc(%rax), %ecx
+  2be:  movslq %edx, %rdx
+  2c1:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  2c7:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Content-Type:">
+  2d3:  cmpl $0x80, %ecx
+  2d9:  je 0x53
+  2df:  leal 0xd(%rax), %edx
+  2e2:  movslq %ecx, %rcx
+  2e5:  movl %edx, (%rip)   <var:hdrs_n+0>
+  2eb:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"Content-Transfer-Encoding:">
+  2f7:  cmpl $0x80, %edx
+  2fd:  je 0x53
+  303:  leal 0xe(%rax), %ecx
+  306:  movslq %edx, %rdx
+  309:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  30f:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"User-Agent:">
+  31b:  cmpl $0x80, %ecx
+  321:  je 0x53
+  327:  leal 0xf(%rax), %edx
+  32a:  movslq %ecx, %rcx
+  32d:  movl %edx, (%rip)   <var:hdrs_n+0>
+  333:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"X-Mailer:">
+  33f:  cmpl $0x80, %edx
+  345:  je 0x53
+  34b:  leal 0x10(%rax), %ecx
+  34e:  movslq %edx, %rdx
+  351:  movl %ecx, (%rip)   <var:hdrs_n+0>
+  357:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Organization:">
+  363:  cmpl $0x80, %ecx
+  369:  je 0x53
+  36f:  leal 0x11(%rax), %edx
+  372:  movslq %ecx, %rcx
+  375:  movl %edx, (%rip)   <var:hdrs_n+0>
+  37b:  movq $0, (, %rcx, 8)   <var:hdrs+0, str:"Status:">
+  387:  cmpl $0x80, %edx
+  38d:  je 0x53
+  393:  addl $0x12, %eax
+  396:  movslq %edx, %rdx
+  399:  movl %eax, (%rip)   <var:hdrs_n+0>
+  39f:  movq $0, (, %rdx, 8)   <var:hdrs+0, str:"Neatmail">
+  3ab:  jmp 0x53
+  3b0:  cmpb $0, 2(%rdi)
+  3b4:  jne 0x450
+  3ba:  movq (%rcx), %rdi
+  3bd:  leal 2(%rax), %ebp
+  3c0:  movl $0xa, %edx
+  3c5:  xorl %esi, %esi
+  3c7:  callq strtol+0
+  3cc:  movl %eax, (%rip)   <var:maxlen+0>
+  3d2:  jmp 0x53
+  3d7:  nopw (%rax, %rax)
+  3e0:  cmpb $0, 2(%rdi)
+  3e4:  movq (%rcx), %rdx
+  3e7:  je 0x3ef
+  3e9:  leaq 2(%rdi), %rdx
+  3ed:  movl %eax, %esi
+  3ef:  movslq %r13d, %rax
+  3f2:  leal 1(%rsi), %ebp
+  3f5:  addl $1, %r13d
+  3f9:  movq %rdx, (%rsp, %rax, 8)
+  3fd:  jmp 0x53
+  402:  nopw (%rax, %rax)
+  408:  leal 2(%rax), %ebp
+  40b:  jmp 0x91
+  410:  movslq %eax, %rdx
+  413:  movq (%r12, %rdx, 8), %rcx
+  417:  testq %rcx, %rcx
+  41a:  je 0xc0
+  420:  leal 1(%r13), %eax
+  424:  movslq %r13d, %r13
+  427:  subq %r13, %rdx
+  42a:  cltq
+  42c:  leaq (%r12, %rdx, 8), %rdx
+  430:  movq %rcx, -8(%rbx, %rax, 8)
+  435:  movq %rax, %r13
+  438:  addq $1, %rax
+  43c:  movq -8(%rdx, %rax, 8), %rcx
+  441:  testq %rcx, %rcx
+  444:  jne 0x430
+  446:  jmp 0xc0
+  44b:  nopl (%rax, %rax)
+  450:  addq $2, %rdi
+  454:  jmp 0x3c0
+  459:  nopl (%rax)
+  460:  jne 0x10f
+  466:  xorl %edi, %edi
+  468:  callq fn:pn_proc+0
+  46d:  jmp 0x10f
+  472:  nopw (%rax, %rax)
+  478:  movl $0, %edi   <str:"usage: neatmail pn [options] [imbox] <imbox >ombox\n\noptions:\n   -h hdr  \tspecify headers to include\n   -H      \tinclude the default set of headers\n   -s size \tmaximum message body length to include">
+  47d:  callq puts+0
+  482:  movl $1, %eax
+  487:  jmp 0x111

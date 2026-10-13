@@ -1,0 +1,60 @@
+# allocupvalue  (static, 205 bytes, 59 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq (%rdi), %rbp
+    7:  movq %rdi, %rbx
+    a:  movzbl 0x43(%rdi), %edx
+    e:  movl 0x10(%rbp), %r12d
+   12:  cmpb $0xff, %dl
+   15:  je 0xbe
+   1b:  movq 0x10(%rdi), %rax
+   1f:  subq $8, %rsp
+   23:  movq 0x50(%rbp), %rsi
+   27:  leaq 0x10(%rbp), %rcx
+   2b:  movl $0xff, %r9d
+   31:  movl $0x10, %r8d
+   37:  movq 0x38(%rax), %rdi
+   3b:  pushq $0   <str:"upvalues">
+   40:  callq luaM_growaux_+0
+   45:  movl 0x10(%rbp), %edx
+   48:  movq %rax, 0x50(%rbp)
+   4c:  movq %rax, %rcx
+   4f:  popq %rax
+   50:  popq %rsi
+   51:  cmpl %edx, %r12d
+   54:  jge 0xa8
+   56:  movslq %r12d, %rsi
+   59:  subl %r12d, %edx
+   5c:  addq %rsi, %rdx
+   5f:  movq %rsi, %rax
+   62:  shlq $4, %rdx
+   66:  shlq $4, %rax
+   6a:  addq %rcx, %rdx
+   6d:  addq %rcx, %rax
+   70:  movq %rdx, %rsi
+   73:  subq %rax, %rsi
+   76:  andl $0x10, %esi
+   79:  je 0x90
+   7b:  movq $0, (%rax)
+   82:  addq $0x10, %rax
+   86:  cmpq %rdx, %rax
+   89:  je 0xa8
+   8b:  nopl (%rax, %rax)
+   90:  movq $0, (%rax)
+   97:  addq $0x20, %rax
+   9b:  movq $0, -0x10(%rax)
+   a3:  cmpq %rdx, %rax
+   a6:  jne 0x90
+   a8:  movzbl 0x43(%rbx), %eax
+   ac:  leal 1(%rax), %edx
+   af:  shlq $4, %rax
+   b3:  movb %dl, 0x43(%rbx)
+   b6:  addq %rcx, %rax
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  popq %r12
+   bd:  retq
+   be:  movl $0, %edx   <str:"upvalues">
+   c3:  movl $0xff, %esi
+   c8:  callq fn:errorlimit+0

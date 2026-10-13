@@ -1,0 +1,26 @@
+# math_type  (static, 84 bytes, 25 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_type+0
+    e:  movl $1, %esi
+   13:  movq %rbx, %rdi
+   16:  cmpl $3, %eax
+   19:  je 0x30
+   1b:  callq luaL_checkany+0
+   20:  movq %rbx, %rdi
+   23:  callq lua_pushnil+0
+   28:  movl $1, %eax
+   2d:  popq %rbx
+   2e:  retq
+   2f:  nop
+   30:  callq lua_isinteger+0
+   35:  movl $0, %esi   <str:"float">
+   3a:  movq %rbx, %rdi
+   3d:  testl %eax, %eax
+   3f:  movl $0, %eax   <str:"integer">
+   44:  cmovneq %rax, %rsi
+   48:  callq lua_pushstring+0
+   4d:  movl $1, %eax
+   52:  popq %rbx
+   53:  retq

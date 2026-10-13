@@ -1,0 +1,85 @@
+# pushglobalfuncname  (static, 295 bytes, 84 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rsi, %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq lua_gettop+0
+   15:  movq %rbp, %rdx
+   18:  movl $0, %esi   <str:"f">
+   1d:  movq %rbx, %rdi
+   20:  movl %eax, %r12d
+   23:  callq lua_getinfo+0
+   28:  movl $0xfff0b9d8, %esi
+   2d:  movq %rbx, %rdi
+   30:  movl $0, %edx   <str:"_LOADED">
+   35:  callq lua_getfield+0
+   3a:  movl $6, %esi
+   3f:  movq %rbx, %rdi
+   42:  callq lua_checkstack+0
+   47:  testl %eax, %eax
+   49:  je 0x110
+   4f:  leal 1(%r12), %r13d
+   54:  movl $2, %edx
+   59:  movq %rbx, %rdi
+   5c:  movl %r13d, %esi
+   5f:  callq fn:findfield+0
+   64:  movl %eax, %ebp
+   66:  testl %eax, %eax
+   68:  je 0xb0
+   6a:  xorl %edx, %edx
+   6c:  movl $0xffffffff, %esi
+   71:  movq %rbx, %rdi
+   74:  callq lua_tolstring+0
+   79:  cmpb $0x5f, (%rax)
+   7c:  je 0xd0
+   7e:  movl %r13d, %edx
+   81:  movq %rbx, %rdi
+   84:  movl $0xffffffff, %esi
+   89:  movl $1, %ebp
+   8e:  callq lua_copy+0
+   93:  movl %r13d, %esi
+   96:  movq %rbx, %rdi
+   99:  callq lua_settop+0
+   9e:  addq $8, %rsp
+   a2:  movl %ebp, %eax
+   a4:  popq %rbx
+   a5:  popq %rbp
+   a6:  popq %r12
+   a8:  popq %r13
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  movl %r12d, %esi
+   b3:  movq %rbx, %rdi
+   b6:  callq lua_settop+0
+   bb:  addq $8, %rsp
+   bf:  movl %ebp, %eax
+   c1:  popq %rbx
+   c2:  popq %rbp
+   c3:  popq %r12
+   c5:  popq %r13
+   c7:  retq
+   c8:  nopl (%rax, %rax)
+   d0:  cmpb $0x47, 1(%rax)
+   d4:  jne 0x7e
+   d6:  cmpb $0x2e, 2(%rax)
+   da:  jne 0x7e
+   dc:  movq %rbx, %rdi
+   df:  leaq 3(%rax), %rsi
+   e3:  callq lua_pushstring+0
+   e8:  movq %rbx, %rdi
+   eb:  movl $0xffffffff, %edx
+   f0:  movl $0xfffffffe, %esi
+   f5:  callq lua_rotate+0
+   fa:  movl $0xfffffffe, %esi
+   ff:  movq %rbx, %rdi
+  102:  callq lua_settop+0
+  107:  jmp 0x7e
+  10c:  nopl (%rax)
+  110:  movl $0, %edx   <str:"not enough stack">
+  115:  movl $0, %esi   <str:"stack overflow (%s)">
+  11a:  movq %rbx, %rdi
+  11d:  callq luaL_error+0
+  122:  jmp 0x4f

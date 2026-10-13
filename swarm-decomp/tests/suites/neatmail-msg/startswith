@@ -1,0 +1,30 @@
+# startswith  (global, 71 bytes, 29 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  pushq %rbx
+    a:  jmp 0x2d
+    c:  nopl (%rax)
+   10:  callq __ctype_tolower_loc+0
+   15:  movzbl (%r12), %edx
+   1a:  addq $1, %r12
+   1e:  addq $1, %rbp
+   22:  movq (%rax), %rax
+   25:  movl (%rax, %rbx, 4), %ecx
+   28:  cmpl %ecx, (%rax, %rdx, 4)
+   2b:  jne 0x40
+   2d:  movzbl (%rbp), %ebx
+   31:  testb %bl, %bl
+   33:  jne 0x10
+   35:  popq %rbx
+   36:  movl $1, %eax
+   3b:  popq %rbp
+   3c:  popq %r12
+   3e:  retq
+   3f:  nop
+   40:  popq %rbx
+   41:  xorl %eax, %eax
+   43:  popq %rbp
+   44:  popq %r12
+   46:  retq

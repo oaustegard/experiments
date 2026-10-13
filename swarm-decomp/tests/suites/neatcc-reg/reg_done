@@ -1,0 +1,17 @@
+# reg_done  (global, 109 bytes, 16 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rdi   <var:dst_head+0>
+    b:  callq free+0
+   10:  movq (%rip), %rdi   <var:dst_next+0>
+   17:  callq free+0
+   1c:  movq (%rip), %rdi   <var:loc_ptr+0>
+   23:  callq free+0
+   28:  movq (%rip), %rdi   <var:rgn+0>
+   2f:  callq free+0
+   34:  movq $0, (%rip)   <var:loc_ptr+0>
+   3f:  movq $0, (%rip)   <var:rgn+0>
+   4a:  movl $0, (%rip)   <var:rgn_sz+0>
+   54:  movl $0, (%rip)   <var:rgn_n+0>
+   5e:  movl $0, (%rip)   <var:loc_n+0>
+   68:  addq $8, %rsp
+   6c:  retq

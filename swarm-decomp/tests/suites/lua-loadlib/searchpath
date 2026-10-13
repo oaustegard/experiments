@@ -1,0 +1,113 @@
+# searchpath  (static, 431 bytes, 112 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movq %rdi, %r13
+    7:  pushq %r12
+    9:  movq %rdx, %r12
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  movq %rsi, %rbx
+   11:  subq $0x840, %rsp
+   18:  movsbl (%rcx), %esi
+   1b:  testb %sil, %sil
+   1e:  je 0x47
+   20:  movq %rbx, %rdi
+   23:  movq %rcx, %rbp
+   26:  movq %r8, %r14
+   29:  callq strchr+0
+   2e:  testq %rax, %rax
+   31:  je 0x47
+   33:  movq %rbx, %rsi
+   36:  movq %r14, %rcx
+   39:  movq %rbp, %rdx
+   3c:  movq %r13, %rdi
+   3f:  callq luaL_gsub+0
+   44:  movq %rax, %rbx
+   47:  movq %rsp, %rsi
+   4a:  movq %r13, %rdi
+   4d:  callq luaL_buffinit+0
+   52:  movq %rbx, %rcx
+   55:  movl $0, %edx   <str:"?">
+   5a:  movq %r12, %rsi
+   5d:  movq %rsp, %rdi
+   60:  callq luaL_addgsub+0
+   65:  movq 0x10(%rsp), %rax
+   6a:  cmpq 8(%rsp), %rax
+   6f:  jae 0x190
+   75:  leaq 1(%rax), %rdx
+   79:  movq %rdx, 0x10(%rsp)
+   7e:  movq (%rsp), %rdx
+   82:  movb $0, (%rdx, %rax)
+   86:  movq (%rsp), %rbp
+   8a:  movq 0x10(%rsp), %rax
+   8f:  leaq -1(%rbp, %rax), %r12
+   94:  cmpq %rbp, %r12
+   97:  je 0x100
+   99:  cmpb $0, (%rbp)
+   9d:  jne 0xa7
+   9f:  movb $0x3b, (%rbp)
+   a3:  addq $1, %rbp
+   a7:  movl $0x3b, %esi
+   ac:  movq %rbp, %rdi
+   af:  callq strchr+0
+   b4:  movq %rbp, %rdi
+   b7:  movl $0, %esi   <str:"r">
+   bc:  movq %rax, %rbx
+   bf:  testq %rax, %rax
+   c2:  cmoveq %r12, %rbx
+   c6:  movb $0, (%rbx)
+   c9:  callq fopen64+0
+   ce:  movq %rax, %rdi
+   d1:  testq %rax, %rax
+   d4:  je 0x1a7
+   da:  callq fclose+0
+   df:  movq %rbp, %rsi
+   e2:  movq %r13, %rdi
+   e5:  callq lua_pushstring+0
+   ea:  addq $0x840, %rsp
+   f1:  popq %rbx
+   f2:  popq %rbp
+   f3:  popq %r12
+   f5:  popq %r13
+   f7:  popq %r14
+   f9:  retq
+   fa:  nopw (%rax, %rax)
+  100:  movq %rsp, %rdi
+  103:  callq luaL_pushresult+0
+  108:  xorl %edx, %edx
+  10a:  movq %r13, %rdi
+  10d:  movl $0xffffffff, %esi
+  112:  callq lua_tolstring+0
+  117:  leaq 0x420(%rsp), %rsi
+  11f:  movq %r13, %rdi
+  122:  movq %rax, %rbx
+  125:  callq luaL_buffinit+0
+  12a:  leaq 0x420(%rsp), %rdi
+  132:  movl $0, %esi   <str:"no file '">
+  137:  callq luaL_addstring+0
+  13c:  movl $0, %ecx   <str:"'\n\tno file '">
+  141:  movq %rbx, %rsi
+  144:  movl $0, %edx   <str:";">
+  149:  leaq 0x420(%rsp), %rdi
+  151:  callq luaL_addgsub+0
+  156:  leaq 0x420(%rsp), %rdi
+  15e:  movl $0, %esi   <str:"'">
+  163:  callq luaL_addstring+0
+  168:  leaq 0x420(%rsp), %rdi
+  170:  callq luaL_pushresult+0
+  175:  addq $0x840, %rsp
+  17c:  xorl %eax, %eax
+  17e:  popq %rbx
+  17f:  popq %rbp
+  180:  popq %r12
+  182:  popq %r13
+  184:  popq %r14
+  186:  retq
+  187:  nopw (%rax, %rax)
+  190:  movl $1, %esi
+  195:  movq %rsp, %rdi
+  198:  callq luaL_prepbuffsize+0
+  19d:  movq 0x10(%rsp), %rax
+  1a2:  jmp 0x75
+  1a7:  movq %rbx, %rbp
+  1aa:  jmp 0x94

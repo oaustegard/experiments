@@ -1,0 +1,41 @@
+# neateqn-reg: translation unit reg of neateqn
+# write each function as src/neateqn/reg/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+sregrm	global	24 bytes
+sregname	global	12 bytes
+sreg	global	12 bytes
+nregrm	global	24 bytes
+nregname	global	12 bytes
+nreg	global	12 bytes
+reg_reset	global	41 bytes
+escarg	global	110 bytes
+sregmk	global	129 bytes
+nregmk	global	129 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+sreg_n	static	4 bytes	.bss.sreg_n
+    (zero-initialised)
+sreg_free	static	8192 bytes	.bss.sreg_free
+    (zero-initialised)
+sreg_name	static	16384 bytes	.bss.sreg_name
+    (zero-initialised)
+sreg_read	static	16384 bytes	.bss.sreg_read
+    (zero-initialised)
+nreg_n	static	4 bytes	.bss.nreg_n
+    (zero-initialised)
+nreg_free	static	8192 bytes	.bss.nreg_free
+    (zero-initialised)
+nreg_name	static	16384 bytes	.bss.nreg_name
+    (zero-initialised)
+nreg_read	static	16384 bytes	.bss.nreg_read
+    (zero-initialised)
+nreg_max	static	4 bytes	.bss.nreg_max
+    (zero-initialised)
+sreg_max	static	4 bytes	.bss.sreg_max
+    (zero-initialised)
+buf.0	static	256 bytes	.bss.buf.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+sprintf

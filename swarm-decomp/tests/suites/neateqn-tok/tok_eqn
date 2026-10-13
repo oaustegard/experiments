@@ -1,0 +1,159 @@
+# tok_eqn  (global, 632 bytes, 158 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $0x18, %rsp
+    6:  movl $1, (%rip)   <var:tok_cursep+0>
+   10:  movq %rsp, %rdi
+   13:  callq sbuf_init+0
+   18:  nopl (%rax, %rax)
+   20:  callq src_next+0
+   25:  movl %eax, %ebx
+   27:  testl %eax, %eax
+   29:  jle 0xb0
+   2f:  cmpl %ebx, (%rip)   <var:eqn_beg+0>
+   35:  je 0x1d8
+   3b:  movl %ebx, %esi
+   3d:  movq %rsp, %rdi
+   40:  callq sbuf_add+0
+   45:  cmpl $0xa, %ebx
+   48:  jne 0x20
+   4a:  movl (%rip), %edx   <var:tok_part+0>
+   50:  testl %edx, %edx
+   52:  je 0xc8
+   54:  callq src_lineget+0
+   59:  movl $0, %edi   <str:".lf %d\n">
+   5e:  movl %eax, %esi
+   60:  xorl %eax, %eax
+   62:  callq printf+0
+   67:  movq %rsp, %rdi
+   6a:  callq sbuf_buf+0
+   6f:  movl $0, %edi   <str:"10">
+   74:  movq %rax, %rbx
+   77:  callq escarg+0
+   7c:  movq %rbx, %rdx
+   7f:  movl $0, %edi   <str:"\\*%s%s">
+   84:  movq %rax, %rsi
+   87:  xorl %eax, %eax
+   89:  callq printf+0
+   8e:  movl $0, (%rip)   <var:tok_part+0>
+   98:  xorl %esi, %esi
+   9a:  movq %rsp, %rdi
+   9d:  callq sbuf_cut+0
+   a2:  callq src_next+0
+   a7:  movl %eax, %ebx
+   a9:  testl %eax, %eax
+   ab:  jg 0x2f
+   ad:  nopl (%rax)
+   b0:  movq %rsp, %rdi
+   b3:  callq sbuf_done+0
+   b8:  movl $1, %eax
+   bd:  addq $0x18, %rsp
+   c1:  popq %rbx
+   c2:  popq %rbp
+   c3:  retq
+   c4:  nopl (%rax)
+   c8:  movq %rsp, %rdi
+   cb:  callq sbuf_buf+0
+   d0:  movl $0, %edi   <str:"%s">
+   d5:  movq %rax, %rsi
+   d8:  xorl %eax, %eax
+   da:  callq printf+0
+   df:  movq %rsp, %rdi
+   e2:  callq sbuf_buf+0
+   e7:  cmpb $0x2e, (%rax)
+   ea:  movq %rax, %rbp
+   ed:  jne 0x126
+   ef:  leaq 1(%rax), %rbx
+   f3:  callq __ctype_b_loc+0
+   f8:  movzbl 1(%rbp), %edx
+   fc:  movq (%rax), %rcx
+   ff:  movq %rdx, %rax
+  102:  testb $0x20, 1(%rcx, %rdx, 2)
+  107:  je 0x122
+  109:  nopl (%rax)
+  110:  movzbl 1(%rbx), %edx
+  114:  addq $1, %rbx
+  118:  movq %rdx, %rax
+  11b:  testb $0x20, 1(%rcx, %rdx, 2)
+  120:  jne 0x110
+  122:  cmpb $0x6c, %al
+  124:  je 0x180
+  126:  movq %rsp, %rdi
+  129:  callq sbuf_buf+0
+  12e:  cmpb $0x2e, (%rax)
+  131:  movq %rax, %rbp
+  134:  jne 0x16a
+  136:  leaq 1(%rax), %rbx
+  13a:  callq __ctype_b_loc+0
+  13f:  movzbl 1(%rbp), %edx
+  143:  movq (%rax), %rcx
+  146:  movq %rdx, %rax
+  149:  testb $0x20, 1(%rcx, %rdx, 2)
+  14e:  je 0x162
+  150:  movzbl 1(%rbx), %edx
+  154:  addq $1, %rbx
+  158:  movq %rdx, %rax
+  15b:  testb $0x20, 1(%rcx, %rdx, 2)
+  160:  jne 0x150
+  162:  cmpb $0x45, %al
+  164:  je 0x248
+  16a:  movl (%rip), %eax   <var:tok_part+0>
+  170:  testl %eax, %eax
+  172:  je 0x98
+  178:  jmp 0x54
+  17d:  nopl (%rax)
+  180:  cmpb $0x66, 1(%rbx)
+  184:  jne 0x126
+  186:  movzbl 2(%rbx), %eax
+  18a:  leaq 2(%rbx), %rdi
+  18e:  movzwl (%rcx, %rax, 2), %eax
+  192:  testb $0x20, %ah
+  195:  je 0x1b1
+  197:  nopw (%rax, %rax)
+  1a0:  movzbl 1(%rdi), %eax
+  1a4:  addq $1, %rdi
+  1a8:  movzwl (%rcx, %rax, 2), %eax
+  1ac:  testb $0x20, %ah
+  1af:  jne 0x1a0
+  1b1:  testb $8, %ah
+  1b4:  je 0x126
+  1ba:  movl $0xa, %edx
+  1bf:  xorl %esi, %esi
+  1c1:  callq strtol+0
+  1c6:  movl %eax, %edi
+  1c8:  callq src_lineset+0
+  1cd:  jmp 0x126
+  1d2:  nopw (%rax, %rax)
+  1d8:  movl $0, %edi   <str:".eo">
+  1dd:  callq puts+0
+  1e2:  movq %rsp, %rdi
+  1e5:  callq sbuf_buf+0
+  1ea:  movl (%rip), %esi   <var:tok_part+0>
+  1f0:  movl $0, %edx   <str:"10">
+  1f5:  movl $0, %edi   <str:".%s %s \"%s\n">
+  1fa:  movq %rax, %rcx
+  1fd:  movl $0, %eax   <str:"as">
+  202:  testl %esi, %esi
+  204:  movl $0, %esi   <str:"ds">
+  209:  cmovneq %rax, %rsi
+  20d:  xorl %eax, %eax
+  20f:  callq printf+0
+  214:  movq %rsp, %rdi
+  217:  callq sbuf_done+0
+  21c:  movl $0, %edi   <str:".ec">
+  221:  callq puts+0
+  226:  xorl %eax, %eax
+  228:  movl $1, (%rip)   <var:tok_part+0>
+  232:  movl $1, (%rip)   <var:tok_line+0>
+  23c:  jmp 0xbd
+  241:  nopl (%rax)
+  248:  cmpb $0x51, 1(%rbx)
+  24c:  jne 0x16a
+  252:  callq fn:tok_req.constprop.0+0
+  257:  testl %eax, %eax
+  259:  jne 0x16a
+  25f:  movl $1, (%rip)   <var:tok_eqen+0>
+  269:  movq %rsp, %rdi
+  26c:  callq sbuf_done+0
+  271:  xorl %eax, %eax
+  273:  jmp 0xbd

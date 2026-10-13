@@ -1,0 +1,86 @@
+# def_piecesput  (global, 303 bytes, 85 instructions)
+    0:  pushq %r15
+    2:  movq %r8, %r15
+    5:  pushq %r14
+    7:  movq %rcx, %r14
+    a:  pushq %r13
+    c:  movq %rdx, %r13
+    f:  pushq %r12
+   11:  movq %rsi, %r12
+   14:  pushq %rbp
+   15:  movq %rdi, %rbp
+   18:  pushq %rbx
+   19:  xorl %ebx, %ebx
+   1b:  subq $8, %rsp
+   1f:  jmp 0x36
+   21:  nopl (%rax)
+   28:  addq $1, %rbx
+   2c:  cmpq $0x20, %rbx
+   30:  je 0xf0
+   36:  movq %rbx, %rdi
+   39:  movq %rbp, %rsi
+   3c:  shlq $9, %rdi
+   40:  addq $0, %rdi   <var:bracketpieces+0>
+   47:  callq strcmp+0
+   4c:  testl %eax, %eax
+   4e:  jne 0x28
+   50:  movslq %ebx, %rbx
+   53:  movq %rbp, %rcx
+   56:  movl $0, %edx   <str:"%s">
+   5b:  movl $0x40, %esi
+   60:  shlq $9, %rbx
+   64:  xorl %eax, %eax
+   66:  leaq (%rbx), %rdi   <var:bracketpieces+0>
+   6d:  callq snprintf+0
+   72:  movq %r12, %rcx
+   75:  movl $0, %edx   <str:"%s">
+   7a:  xorl %eax, %eax
+   7c:  leaq (%rbx), %rdi   <var:bracketpieces+64>
+   83:  movl $0x40, %esi
+   88:  callq snprintf+0
+   8d:  movq %r13, %rcx
+   90:  movl $0, %edx   <str:"%s">
+   95:  xorl %eax, %eax
+   97:  leaq (%rbx), %rdi   <var:bracketpieces+128>
+   9e:  movl $0x40, %esi
+   a3:  callq snprintf+0
+   a8:  movq %r14, %rcx
+   ab:  movl $0, %edx   <str:"%s">
+   b0:  xorl %eax, %eax
+   b2:  leaq (%rbx), %rdi   <var:bracketpieces+192>
+   b9:  movl $0x40, %esi
+   be:  callq snprintf+0
+   c3:  addq $8, %rsp
+   c7:  movq %r15, %rcx
+   ca:  xorl %eax, %eax
+   cc:  leaq (%rbx), %rdi   <var:bracketpieces+256>
+   d3:  movl $0, %edx   <str:"%s">
+   d8:  popq %rbx
+   d9:  movl $0x40, %esi
+   de:  popq %rbp
+   df:  popq %r12
+   e1:  popq %r13
+   e3:  popq %r14
+   e5:  popq %r15
+   e7:  jmp snprintf+0
+   ec:  nopl (%rax)
+   f0:  xorl %ebx, %ebx
+   f2:  jmp 0x102
+   f4:  nopl (%rax)
+   f8:  addq $1, %rbx
+   fc:  cmpq $0x20, %rbx
+  100:  je 0x120
+  102:  movq %rbx, %rax
+  105:  shlq $9, %rax
+  109:  cmpb $0, (%rax)   <var:bracketpieces+0>
+  110:  jne 0xf8
+  112:  jmp 0x50
+  117:  nopw (%rax, %rax)
+  120:  addq $8, %rsp
+  124:  popq %rbx
+  125:  popq %rbp
+  126:  popq %r12
+  128:  popq %r13
+  12a:  popq %r14
+  12c:  popq %r15
+  12e:  retq

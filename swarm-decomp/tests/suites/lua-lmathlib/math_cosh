@@ -1,0 +1,11 @@
+# math_cosh  (static, 34 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checknumber+0
+    e:  callq cosh+0
+   13:  movq %rbx, %rdi
+   16:  callq lua_pushnumber+0
+   1b:  movl $1, %eax
+   20:  popq %rbx
+   21:  retq

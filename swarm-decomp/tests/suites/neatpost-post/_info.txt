@@ -1,0 +1,99 @@
+# neatpost-post: translation unit post of neatpost
+# write each function as src/neatpost/post/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+strcut	static	159 bytes
+nextskip	static	55 bytes
+nextword	static	110 bytes
+nextnum	static	161 bytes
+readnum	static	105 bytes
+postarc	static	90 bytes
+postspline	static	189 bytes
+nextutf8.isra.0	static	237 bytes
+postps	static	2280 bytes
+postcmd	static	1384 bytes
+mextend	global	110 bytes
+pdftext_static	global	642 bytes
+main	global	1142 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+name_n	static	4 bytes	.bss.name_n
+    (zero-initialised)
+name_sz	static	4 bytes	.bss.name_sz
+    (zero-initialised)
+name_desc	static	8 bytes	.bss.name_desc
+    (zero-initialised)
+name_page	static	8 bytes	.bss.name_page
+    (zero-initialised)
+name_offset	static	8 bytes	.bss.name_offset
+    (zero-initialised)
+mark_n	static	4 bytes	.bss.mark_n
+    (zero-initialised)
+mark_page	static	8 bytes	.bss.mark_page
+    (zero-initialised)
+mark_sz	static	4 bytes	.bss.mark_sz
+    (zero-initialised)
+mark_desc	static	8 bytes	.bss.mark_desc
+    (zero-initialised)
+mark_offset	static	8 bytes	.bss.mark_offset
+    (zero-initialised)
+mark_level	static	8 bytes	.bss.mark_level
+    (zero-initialised)
+o_pages	static	4 bytes	.bss.o_pages
+    (zero-initialised)
+postdev	static	1024 bytes	.data.postdev
+        0: 75 74 66 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+postdir	static	1024 bytes	.data.postdir
+        0: 2f 6e 65 61 74 72 6f 66 66 2f 66 6f 6e 74 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+ps_linewidth	static	4 bytes	.data.ps_linewidth
+        0: 28 00 00 00
+ps_pageheight	static	4 bytes	.data.ps_pageheight
+        0: ea 0a 00 00
+ps_pagewidth	static	4 bytes	.data.ps_pagewidth
+        0: 6f 08 00 00
+ps_title	static	8 bytes	.bss.ps_title
+    (zero-initialised)
+buf.0	static	1024 bytes	.bss.buf.0
+    (zero-initialised)
+papers	static	64 bytes	.rodata.papers
+    +0     -> str:"letter"
+    +16    -> str:"legal"
+    +32    -> str:"ledger"
+    +48    -> str:"tabloid"
+        0: 00 00 00 00 00 00 00 00 6f 08 00 00 ea 0a 00 00 00 00 00 00 00 00 00 00 6f 08 00 00 e4 0d 00 00
+       32: 00 00 00 00 00 00 00 00 de 10 00 00 ea 0a 00 00 00 00 00 00 00 00 00 00 ea 0a 00 00 de 10 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc __isoc99_sscanf clr_get dev_close dev_mnt dev_open docheader docpagebeg docpageend doctrailer drawa drawbeg drawc drawe drawend drawl drawmbeg drawmend draws exit fprintf free fwrite getc getenv malloc memcpy memset out outc outcolor outeps outfont outgname outh outinfo outlink outmark outmnt outname outpage outpdf outrel outrotate outset outsize outv sbuf_chr sbuf_done sbuf_make sbuf_printf sbuf_str snprintf stderr stdin strchr strcmp strcpy strtol ungetc

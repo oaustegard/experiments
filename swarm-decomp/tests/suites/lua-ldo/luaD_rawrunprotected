@@ -1,0 +1,28 @@
+# luaD_rawrunprotected  (global, 128 bytes, 27 instructions)
+    0:  subq $0x108, %rsp
+    7:  movq 0x58(%rdi), %rax
+    b:  movq %rsi, 0x10(%rsp)
+   10:  movl 0xb0(%rdi), %esi
+   16:  movq %rax, 0x20(%rsp)
+   1b:  leaq 0x20(%rsp), %rax
+   20:  movq %rax, 0x58(%rdi)
+   24:  movq %rdi, (%rsp)
+   28:  leaq 0x28(%rsp), %rdi
+   2d:  movq %rdx, 0x18(%rsp)
+   32:  movl %esi, 0xc(%rsp)
+   36:  movl $0, 0xf0(%rsp)
+   41:  callq _setjmp+0
+   46:  testl %eax, %eax
+   48:  jne 0x5a
+   4a:  movq 0x18(%rsp), %rsi
+   4f:  movq (%rsp), %rdi
+   53:  movq 0x10(%rsp), %rax
+   58:  callq *%rax
+   5a:  movq 0x20(%rsp), %rax
+   5f:  movq (%rsp), %rdx
+   63:  movl 0xc(%rsp), %esi
+   67:  movq %rax, 0x58(%rdx)
+   6b:  movl 0xf0(%rsp), %eax
+   72:  movl %esi, 0xb0(%rdx)
+   78:  addq $0x108, %rsp
+   7f:  retq

@@ -1,0 +1,34 @@
+# neatpost-dev: translation unit dev of neatpost
+# write each function as src/neatpost/dev/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+dev_fontopen	global	94 bytes
+dev_mnt	global	130 bytes
+dev_open	global	673 bytes
+dev_close	global	51 bytes
+dev_glyph	global	79 bytes
+dev_font	global	22 bytes
+dev_fontid	global	34 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+dev_dev	static	1024 bytes	.bss.dev_dev
+    (zero-initialised)
+dev_dir	static	1024 bytes	.bss.dev_dir
+    (zero-initialised)
+fn_font	static	8192 bytes	.bss.fn_font
+    (zero-initialised)
+fn_name	static	65536 bytes	.bss.fn_name
+    (zero-initialised)
+fn_n	static	4 bytes	.bss.fn_n
+    (zero-initialised)
+dev_res	global	4 bytes	.bss.dev_res
+    (zero-initialised)
+dev_uwid	global	4 bytes	.bss.dev_uwid
+    (zero-initialised)
+dev_hor	global	4 bytes	.bss.dev_hor
+    (zero-initialised)
+dev_vert	global	4 bytes	.bss.dev_vert
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__isoc99_fscanf fclose font_close font_find font_glyph font_open fopen getc snprintf sprintf strchr strcpy strncmp

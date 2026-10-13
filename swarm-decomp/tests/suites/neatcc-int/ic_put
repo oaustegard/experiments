@@ -1,0 +1,46 @@
+# ic_put  (static, 183 bytes, 45 instructions)
+    0:  pushq %r13
+    2:  movq %rsi, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movq %rcx, %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $8, %rsp
+   16:  movq (%rip), %rsi   <var:ic_n+0>
+   1d:  cmpq (%rip), %rsi   <var:ic_sz+0>
+   24:  movq (%rip), %rdi   <var:ic+0>
+   2b:  je 0x80
+   2d:  leaq 1(%rsi), %rax
+   31:  movq %rax, (%rip)   <var:ic_n+0>
+   38:  leaq (%rsi, %rsi, 4), %rax
+   3c:  leaq (%rdi, %rax, 8), %rax
+   40:  movq %rbx, (%rax)
+   43:  movq %r13, 8(%rax)
+   47:  movq %r12, 0x10(%rax)
+   4b:  movq %rbp, 0x18(%rax)
+   4f:  testl $0x107f0, %ebx
+   55:  je 0x71
+   57:  movq (%rip), %rdx   <var:iv_n+0>
+   5e:  leaq 1(%rdx), %rcx
+   62:  movq %rsi, (, %rdx, 8)   <var:iv+0>
+   6a:  movq %rcx, (%rip)   <var:iv_n+0>
+   71:  addq $8, %rsp
+   75:  popq %rbx
+   76:  popq %rbp
+   77:  popq %r12
+   79:  popq %r13
+   7b:  retq
+   7c:  nopl (%rax)
+   80:  leaq (%rsi, %rsi), %rdx
+   84:  movl $0x80, %eax
+   89:  movl $0x28, %ecx
+   8e:  cmpq %rax, %rdx
+   91:  cmovlq %rax, %rdx
+   95:  movq %rdx, (%rip)   <var:ic_sz+0>
+   9c:  callq mextend+0
+   a1:  movq (%rip), %rsi   <var:ic_n+0>
+   a8:  movq %rax, (%rip)   <var:ic+0>
+   af:  movq %rax, %rdi
+   b2:  jmp 0x2d

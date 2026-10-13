@@ -1,0 +1,26 @@
+# fmt_space  (global, 77 bytes, 25 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movl $0, %edi   <str:".ss">
+    c:  callq map+0
+   11:  movl %eax, %edi
+   13:  callq nreg+0
+   18:  movl $0x73, %edi
+   1d:  movl (%rax), %r12d
+   20:  callq nreg+0
+   25:  movl $0x66, %edi
+   2a:  movl (%rax), %ebp
+   2c:  callq nreg+0
+   31:  movl (%rax), %edi
+   33:  callq dev_font+0
+   38:  movl %r12d, %edx
+   3b:  movl %ebp, %esi
+   3d:  movq %rax, %rdi
+   40:  callq font_swid+0
+   45:  addl %eax, 0x40(%rbx)
+   48:  popq %rbx
+   49:  popq %rbp
+   4a:  popq %r12
+   4c:  retq

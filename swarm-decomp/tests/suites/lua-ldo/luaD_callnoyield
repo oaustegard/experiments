@@ -1,0 +1,47 @@
+# luaD_callnoyield  (global, 164 bytes, 46 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x10, %rsp
+    e:  movl 0xb0(%rdi), %eax
+   14:  addl $0x10001, %eax
+   19:  movl %eax, 0xb0(%rdi)
+   1f:  cmpw $0xc7, %ax
+   23:  ja 0x60
+   25:  movl %r12d, %edx
+   28:  movq %rbx, %rdi
+   2b:  callq luaD_precall+0
+   30:  testq %rax, %rax
+   33:  je 0x49
+   35:  movl $4, %edx
+   3a:  movq %rax, %rsi
+   3d:  movq %rbx, %rdi
+   40:  movw %dx, 0x3e(%rax)
+   44:  callq luaV_execute+0
+   49:  subl $0x10001, 0xb0(%rbx)
+   53:  addq $0x10, %rsp
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  popq %r12
+   5b:  retq
+   5c:  nopl (%rax)
+   60:  movq 0x28(%rdi), %rax
+   64:  subq 0x10(%rdi), %rax
+   68:  testq %rax, %rax
+   6b:  jle 0x88
+   6d:  movq %rbx, %rdi
+   70:  movq %rsi, 8(%rsp)
+   75:  callq luaE_checkcstack+0
+   7a:  movq 8(%rsp), %rsi
+   7f:  jmp 0x25
+   81:  nopl (%rax)
+   88:  subq 0x30(%rdi), %rsi
+   8c:  movl $1, %edx
+   91:  movq %rsi, %rbp
+   94:  xorl %esi, %esi
+   96:  callq luaD_growstack+0
+   9b:  movq 0x30(%rbx), %rsi
+   9f:  addq %rbp, %rsi
+   a2:  jmp 0x6d

@@ -1,0 +1,14 @@
+# os_getenv  (static, 42 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  movq %rdi, %rbx
+    b:  callq luaL_checklstring+0
+   10:  movq %rax, %rdi
+   13:  callq getenv+0
+   18:  movq %rbx, %rdi
+   1b:  movq %rax, %rsi
+   1e:  callq lua_pushstring+0
+   23:  movl $1, %eax
+   28:  popq %rbx
+   29:  retq

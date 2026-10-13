@@ -1,0 +1,19 @@
+# tr_cp  (static, 53 bytes, 18 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 8(%rdi), %rbx
+    a:  testq %rbx, %rbx
+    d:  je 0x2e
+    f:  movl $0x43, %edi
+   14:  callq nreg+0
+   19:  movl $0xa, %edx
+   1e:  xorl %esi, %esi
+   20:  movq %rbx, %rdi
+   23:  movq %rax, %rbp
+   26:  callq strtol+0
+   2b:  movl %eax, (%rbp)
+   2e:  addq $8, %rsp
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  retq

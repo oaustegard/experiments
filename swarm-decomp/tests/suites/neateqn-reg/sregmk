@@ -1,0 +1,37 @@
+# sregmk  (global, 129 bytes, 36 instructions)
+    0:  movl (%rip), %eax   <var:sreg_n+0>
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  testl %eax, %eax
+    c:  je 0x70
+    e:  subl $1, %eax
+   11:  movl %eax, (%rip)   <var:sreg_n+0>
+   17:  cltq
+   19:  movl (, %rax, 4), %ebp   <var:sreg_free+0>
+   20:  movslq %ebp, %rbx
+   23:  movl %ebp, %ecx
+   25:  movl $0, %edx   <str:"">
+   2a:  movl $0, %esi   <str:"%s%02d">
+   2f:  shlq $3, %rbx
+   33:  xorl %eax, %eax
+   35:  leaq (%rbx), %r12   <var:sreg_name+0>
+   3c:  movq %r12, %rdi
+   3f:  callq sprintf+0
+   44:  movq %r12, %rdi
+   47:  callq escarg+0
+   4c:  leaq (%rbx), %rdi   <var:sreg_read+0>
+   53:  movl $0, %esi   <str:"\\*%s">
+   58:  movq %rax, %rdx
+   5b:  xorl %eax, %eax
+   5d:  callq sprintf+0
+   62:  movl %ebp, %eax
+   64:  popq %rbx
+   65:  popq %rbp
+   66:  popq %r12
+   68:  retq
+   69:  nopl (%rax)
+   70:  movl (%rip), %eax   <var:sreg_max+0>
+   76:  leal 1(%rax), %ebp
+   79:  movl %ebp, (%rip)   <var:sreg_max+0>
+   7f:  jmp 0x20

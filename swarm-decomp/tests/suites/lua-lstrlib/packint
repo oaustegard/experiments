@@ -1,0 +1,71 @@
+# packint  (static, 215 bytes, 70 instructions)
+    0:  pushq %r15
+    2:  movslq %ecx, %r15
+    5:  pushq %r14
+    7:  movq %r15, %r14
+    a:  pushq %r13
+    c:  movq %rdi, %r13
+    f:  pushq %r12
+   11:  movl %edx, %r12d
+   14:  pushq %rbp
+   15:  movl %r8d, %ebp
+   18:  pushq %rbx
+   19:  movq %rsi, %rbx
+   1c:  movq %r15, %rsi
+   1f:  subq $8, %rsp
+   23:  callq luaL_prepbuffsize+0
+   28:  movq %rax, %rcx
+   2b:  movq %rax, %rsi
+   2e:  testl %r12d, %r12d
+   31:  jne 0x3d
+   33:  leal -1(%r15), %esi
+   37:  movslq %esi, %rsi
+   3a:  addq %rax, %rsi
+   3d:  movb %bl, (%rsi)
+   3f:  movl %r14d, %r8d
+   42:  movl $1, %edx
+   47:  leal -1(%r14), %edi
+   4b:  cmpl $1, %r14d
+   4f:  jle 0xc4
+   51:  nopl (%rax)
+   58:  movl %edi, %eax
+   5a:  shrq $8, %rbx
+   5e:  subl %edx, %eax
+   60:  testl %r12d, %r12d
+   63:  cltq
+   65:  cmovneq %rdx, %rax
+   69:  addq $1, %rdx
+   6d:  movb %bl, (%rcx, %rax)
+   70:  cmpq %rdx, %r8
+   73:  jne 0x58
+   75:  cmpl $8, %r14d
+   79:  jle 0xc4
+   7b:  andl $1, %ebp
+   7e:  je 0xc4
+   80:  movl $8, %eax
+   85:  jmp 0x9d
+   87:  nopw (%rax, %rax)
+   90:  movb $0xff, (%rcx, %rax)
+   94:  addq $1, %rax
+   98:  cmpl %eax, %r14d
+   9b:  jle 0xc4
+   9d:  testl %r12d, %r12d
+   a0:  jne 0x90
+   a2:  leal -1(%r14), %esi
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movl %esi, %edx
+   b2:  subl %eax, %edx
+   b4:  addq $1, %rax
+   b8:  movslq %edx, %rdx
+   bb:  movb $0xff, (%rcx, %rdx)
+   bf:  cmpl %eax, %r14d
+   c2:  jg 0xb0
+   c4:  addq %r15, 0x10(%r13)
+   c8:  addq $8, %rsp
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  popq %r12
+   d0:  popq %r13
+   d2:  popq %r14
+   d4:  popq %r15
+   d6:  retq

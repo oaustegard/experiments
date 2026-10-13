@@ -1,0 +1,29 @@
+# lua_yieldk  (global, 115 bytes, 28 instructions)
+    0:  subq $8, %rsp
+    4:  movq 0x20(%rdi), %rax
+    8:  cmpl $0xffff, 0xb0(%rdi)
+   12:  ja 0x30
+   14:  movb $1, 0xa(%rdi)
+   18:  movl %esi, 0x38(%rax)
+   1b:  testb $2, 0x3e(%rax)
+   1f:  jne 0x5c
+   21:  xorl %eax, %eax
+   23:  addq $8, %rsp
+   27:  retq
+   28:  nopl (%rax, %rax)
+   30:  movq 0x18(%rdi), %rax
+   34:  cmpq %rdi, 0x108(%rax)
+   3b:  je 0x50
+   3d:  movl $0, %esi   <str:"attempt to yield across a C-call boundary">
+   42:  xorl %eax, %eax
+   44:  callq luaG_runerror+0
+   49:  nopl (%rax)
+   50:  movl $0, %esi   <str:"attempt to yield from outside a coroutine">
+   55:  xorl %eax, %eax
+   57:  callq luaG_runerror+0
+   5c:  movq %rcx, 0x20(%rax)
+   60:  testq %rcx, %rcx
+   63:  je 0x69
+   65:  movq %rdx, 0x30(%rax)
+   69:  movl $1, %esi
+   6e:  callq luaD_throw+0

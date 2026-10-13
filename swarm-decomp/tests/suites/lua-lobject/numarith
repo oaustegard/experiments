@@ -1,0 +1,53 @@
+# numarith  (static, 197 bytes, 52 instructions)
+    0:  cmpl $0xc, %esi
+    3:  ja 0x10
+    5:  movl %esi, %esi
+    7:  jmpq *(, %rsi, 8)   <var:numarith+0>
+    e:  nop
+   10:  pxor %xmm0, %xmm0
+   14:  retq
+   15:  nopl (%rax)
+   18:  xorpd (%rip), %xmm0   <cst:00000000000000800000000000000000>
+   20:  retq
+   21:  nopl (%rax)
+   28:  addsd %xmm1, %xmm0
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  subsd %xmm1, %xmm0
+   34:  retq
+   35:  nopl (%rax)
+   38:  mulsd %xmm1, %xmm0
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  jmp luaV_modf+0
+   45:  nopl (%rax)
+   48:  ucomisd (%rip), %xmm1   <cst:0000000000000040>
+   50:  jp 0xc0
+   52:  jne 0xc0
+   54:  mulsd %xmm0, %xmm0
+   58:  retq
+   59:  nopl (%rax)
+   60:  divsd %xmm1, %xmm0
+   64:  retq
+   65:  nopl (%rax)
+   68:  divsd %xmm1, %xmm0
+   6c:  movsd (%rip), %xmm2   <cst:ffffffffffffff7f>
+   74:  movsd (%rip), %xmm3   <cst:0000000000003043>
+   7c:  movapd %xmm0, %xmm1
+   80:  andpd %xmm2, %xmm1
+   84:  ucomisd %xmm1, %xmm3
+   88:  jbe 0x14
+   8a:  cvttsd2si %xmm0, %rax
+   8f:  pxor %xmm1, %xmm1
+   93:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   9b:  andnpd %xmm0, %xmm2
+   9f:  cvtsi2sdq %rax, %xmm1
+   a4:  movapd %xmm1, %xmm3
+   a8:  cmpnlesd %xmm0, %xmm3
+   ad:  andpd %xmm4, %xmm3
+   b1:  subsd %xmm3, %xmm1
+   b5:  orpd %xmm2, %xmm1
+   b9:  movapd %xmm1, %xmm0
+   bd:  retq
+   be:  nop
+   c0:  jmp pow+0

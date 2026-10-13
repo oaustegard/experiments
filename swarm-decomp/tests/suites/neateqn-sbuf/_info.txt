@@ -1,0 +1,18 @@
+# neateqn-sbuf: translation unit sbuf of neateqn
+# write each function as src/neateqn/sbuf/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+sbuf_init	global	33 bytes
+sbuf_add	global	144 bytes
+sbuf_append	global	144 bytes
+sbuf_printf	global	190 bytes
+sbuf_empty	global	11 bytes
+sbuf_buf	global	15 bytes
+sbuf_len	global	4 bytes
+sbuf_cut	global	9 bytes
+sbuf_done	global	8 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+free malloc memcpy strlen vsprintf

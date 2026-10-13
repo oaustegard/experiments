@@ -1,0 +1,10 @@
+# o_tmpdrop  (global, 35 bytes, 9 instructions)
+    0:  movq (%rip), %rax   <var:iv_n+0>
+    7:  testl %edi, %edi
+    9:  movl $0, %edx
+    e:  cmovsl %eax, %edi
+   11:  movslq %edi, %rdi
+   14:  subq %rdi, %rax
+   17:  cmovsq %rdx, %rax
+   1b:  movq %rax, (%rip)   <var:iv_n+0>
+   22:  retq

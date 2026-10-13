@@ -1,0 +1,16 @@
+# tab_next  (global, 51 bytes, 15 instructions)
+    0:  movq (%rip), %rax   <var:env+0>
+    7:  xorl %edx, %edx
+    9:  jmp 0x1a
+    b:  nopl (%rax, %rax)
+   10:  addq $1, %rdx
+   14:  cmpq $0x20, %rdx
+   18:  je 0x30
+   1a:  cmpl 0x100(%rax, %rdx, 4), %edi
+   21:  jge 0x10
+   23:  movslq %edx, %rdx
+   26:  movl 0x100(%rax, %rdx, 4), %eax
+   2d:  retq
+   2e:  nop
+   30:  movl %edi, %eax
+   32:  retq

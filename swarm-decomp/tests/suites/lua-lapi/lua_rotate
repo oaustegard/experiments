@@ -1,0 +1,73 @@
+# lua_rotate  (global, 249 bytes, 72 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  movl %edx, %r8d
+    7:  movslq %esi, %rdx
+    a:  movq 0x20(%rdi), %rdi
+    e:  shlq $4, %rdx
+   12:  leaq -0x10(%rax), %rcx
+   16:  addq %rdx, %rax
+   19:  testl %esi, %esi
+   1b:  jle 0x23
+   1d:  movq (%rdi), %rax
+   20:  addq %rdx, %rax
+   23:  movslq %r8d, %rdx
+   26:  movq %rax, %rdi
+   29:  movq %rcx, %rsi
+   2c:  shlq $4, %rdx
+   30:  subq %rdx, %rdi
+   33:  subq %rdx, %rsi
+   36:  testl %r8d, %r8d
+   39:  leaq -0x10(%rdi), %rdx
+   3d:  cmovnsq %rsi, %rdx
+   41:  movq %rax, %rsi
+   44:  movq %rdx, %rdi
+   47:  cmpq %rdx, %rax
+   4a:  jae 0x7d
+   4c:  nopl (%rax)
+   50:  movq (%rdi), %r10
+   53:  movq (%rsi), %r9
+   56:  subq $0x10, %rdi
+   5a:  addq $0x10, %rsi
+   5e:  movzbl -8(%rsi), %r8d
+   63:  movq %r10, -0x10(%rsi)
+   67:  movzbl 0x18(%rdi), %r10d
+   6c:  movb %r10b, -8(%rsi)
+   70:  movq %r9, 0x10(%rdi)
+   74:  movb %r8b, 0x18(%rdi)
+   78:  cmpq %rdi, %rsi
+   7b:  jb 0x50
+   7d:  addq $0x10, %rdx
+   81:  movq %rcx, %rsi
+   84:  cmpq %rcx, %rdx
+   87:  jae 0xbc
+   89:  nopl (%rax)
+   90:  movq (%rsi), %r9
+   93:  movq (%rdx), %r8
+   96:  subq $0x10, %rsi
+   9a:  addq $0x10, %rdx
+   9e:  movzbl -8(%rdx), %edi
+   a2:  movq %r9, -0x10(%rdx)
+   a6:  movzbl 0x18(%rsi), %r9d
+   ab:  movb %r9b, -8(%rdx)
+   af:  movq %r8, 0x10(%rsi)
+   b3:  movb %dil, 0x18(%rsi)
+   b7:  cmpq %rsi, %rdx
+   ba:  jb 0x90
+   bc:  cmpq %rcx, %rax
+   bf:  jae 0xf8
+   c1:  nopl (%rax)
+   c8:  movq (%rcx), %rdi
+   cb:  movq (%rax), %rsi
+   ce:  subq $0x10, %rcx
+   d2:  addq $0x10, %rax
+   d6:  movzbl -8(%rax), %edx
+   da:  movq %rdi, -0x10(%rax)
+   de:  movzbl 0x18(%rcx), %edi
+   e2:  movb %dil, -8(%rax)
+   e6:  movq %rsi, 0x10(%rcx)
+   ea:  movb %dl, 0x18(%rcx)
+   ed:  cmpq %rcx, %rax
+   f0:  jb 0xc8
+   f2:  retq
+   f3:  nopl (%rax, %rax)
+   f8:  retq

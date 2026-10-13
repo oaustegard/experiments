@@ -1,0 +1,60 @@
+# tr_ta  (global, 227 bytes, 59 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  xorl %ebx, %ebx
+    f:  subq $8, %rsp
+   13:  movq (%rip), %r15   <var:env+0>
+   1a:  jmp 0x92
+   1c:  nopl (%rax)
+   20:  xorl %esi, %esi
+   22:  testq %rbx, %rbx
+   25:  je 0x34
+   27:  leal -1(%rbx), %eax
+   2a:  cltq
+   2c:  movl 0x100(%r15, %rax, 4), %esi
+   34:  movl $0x6d, %edx
+   39:  movq %rbp, %rdi
+   3c:  xorl %r12d, %r12d
+   3f:  callq eval_re+0
+   44:  movl %eax, 0x100(%r15, %r13, 4)
+   4c:  cmpb $0, (%rbp)
+   50:  je 0x60
+   52:  movq %rbp, %rdi
+   55:  callq strlen+0
+   5a:  movzbl -1(%rbp, %rax), %r12d
+   60:  movl %r12d, %esi
+   63:  movl $0, %edi   <str:"LRC">
+   68:  callq strchr+0
+   6d:  movq (%rip), %r15   <var:env+0>
+   74:  testq %rax, %rax
+   77:  movl $0x4c, %eax
+   7c:  cmovel %eax, %r12d
+   80:  addq $1, %rbx
+   84:  movb %r12b, 0x180(%r15, %r13)
+   8c:  cmpq $0x1f, %rbx
+   90:  je 0xc1
+   92:  movq 8(%r14, %rbx, 8), %rbp
+   97:  movslq %ebx, %r13
+   9a:  testq %rbp, %rbp
+   9d:  jne 0x20
+   9f:  movslq %ebx, %rax
+   a2:  addq $1, %rbx
+   a6:  movl $0, 0x100(%r15, %rax, 4)
+   b2:  movb $0, 0x180(%r15, %rax)
+   bb:  cmpq $0x1f, %rbx
+   bf:  jne 0x92
+   c1:  movl $0, 0x17c(%r15)
+   cc:  movb $0, 0x19f(%r15)
+   d4:  addq $8, %rsp
+   d8:  popq %rbx
+   d9:  popq %rbp
+   da:  popq %r12
+   dc:  popq %r13
+   de:  popq %r14
+   e0:  popq %r15
+   e2:  retq

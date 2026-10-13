@@ -1,0 +1,5 @@
+# lua_isyieldable  (global, 16 bytes, 4 instructions)
+    0:  xorl %eax, %eax
+    2:  cmpl $0xffff, 0xb0(%rdi)
+    c:  setbe %al
+    f:  retq

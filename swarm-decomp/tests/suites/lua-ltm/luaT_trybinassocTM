@@ -1,0 +1,13 @@
+# luaT_trybinassocTM  (global, 40 bytes, 12 instructions)
+    0:  movq %rdx, %rax
+    3:  movl %ecx, %edx
+    5:  movq %r8, %rcx
+    8:  movl %r9d, %r8d
+    b:  testl %edx, %edx
+    d:  je 0x20
+    f:  movq %rsi, %rdx
+   12:  movq %rax, %rsi
+   15:  jmp luaT_trybinTM+0
+   1a:  nopw (%rax, %rax)
+   20:  movq %rax, %rdx
+   23:  jmp luaT_trybinTM+0

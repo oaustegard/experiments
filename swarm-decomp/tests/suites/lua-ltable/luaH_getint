@@ -1,0 +1,56 @@
+# luaH_getint  (global, 190 bytes, 55 instructions)
+    0:  movl 0xc(%rdi), %eax
+    3:  leaq -1(%rsi), %rdx
+    7:  cmpq %rax, %rdx
+    a:  jb 0xa5
+   10:  cmpb $0, 0xa(%rdi)
+   14:  js 0x90
+   16:  movzbl 0xb(%rdi), %ecx
+   1a:  movl $1, %eax
+   1f:  shll %cl, %eax
+   21:  leal -1(%rax), %ecx
+   24:  orl $1, %ecx
+   27:  cmpq $0x7fffffff, %rsi
+   2e:  jbe 0x70
+   30:  movslq %ecx, %rcx
+   33:  movq %rsi, %rax
+   36:  xorl %edx, %edx
+   38:  divq %rcx
+   3b:  movq 0x18(%rdi), %rax
+   3f:  leaq (%rdx, %rdx, 2), %rdx
+   43:  leaq (%rax, %rdx, 8), %rax
+   47:  jmp 0x60
+   49:  nopl (%rax)
+   50:  movslq 0xc(%rax), %rdx
+   54:  testl %edx, %edx
+   56:  je 0xb8
+   58:  leaq (%rdx, %rdx, 2), %rdx
+   5c:  leaq (%rax, %rdx, 8), %rax
+   60:  cmpb $3, 9(%rax)
+   64:  jne 0x50
+   66:  cmpq %rsi, 0x10(%rax)
+   6a:  jne 0x50
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  movl %esi, %eax
+   72:  cltd
+   73:  idivl %ecx
+   75:  movq 0x18(%rdi), %rax
+   79:  movslq %edx, %rdx
+   7c:  leaq (%rdx, %rdx, 2), %rdx
+   80:  leaq (%rax, %rdx, 8), %rax
+   84:  jmp 0x60
+   86:  nopw %cs:(%rax, %rax)
+   90:  movq %rax, %rcx
+   93:  negq %rcx
+   96:  andq %rcx, %rdx
+   99:  cmpq %rax, %rdx
+   9c:  jae 0x16
+   a2:  movl %esi, 0xc(%rdi)
+   a5:  movq 0x10(%rdi), %rax
+   a9:  shlq $4, %rsi
+   ad:  leaq -0x10(%rax, %rsi), %rax
+   b2:  retq
+   b3:  nopl (%rax, %rax)
+   b8:  movl $0, %eax   <var:absentkey+0>
+   bd:  retq

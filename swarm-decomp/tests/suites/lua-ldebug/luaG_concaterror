@@ -1,0 +1,9 @@
+# luaG_concaterror  (global, 31 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  movzbl 8(%rsi), %eax
+    8:  andl $0xf, %eax
+    b:  subl $3, %eax
+    e:  cmpl $2, %eax
+   11:  cmovbq %rdx, %rsi
+   15:  movl $0, %edx   <str:"concatenate">
+   1a:  callq luaG_typeerror+0

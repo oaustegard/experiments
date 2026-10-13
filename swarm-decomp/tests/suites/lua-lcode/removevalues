@@ -1,0 +1,38 @@
+# removevalues  (static, 116 bytes, 37 instructions)
+    0:  movl %esi, %eax
+    2:  cmpl $-1, %esi
+    5:  je 0x73
+    7:  movq (%rdi), %rdx
+    a:  movq 0x40(%rdx), %r8
+    e:  nop
+   10:  movslq %eax, %rdx
+   13:  leaq (%r8, %rdx, 4), %rdx
+   17:  movq %rdx, %rcx
+   1a:  testl %eax, %eax
+   1c:  jle 0x33
+   1e:  movl -4(%rdx), %esi
+   21:  leaq -4(%rdx), %rcx
+   25:  andl $0x7f, %esi
+   28:  testb $0x10, (%rsi)   <luaP_opmodes+0>
+   2f:  cmoveq %rdx, %rcx
+   33:  movl (%rcx), %edi
+   35:  movl %edi, %esi
+   37:  andl $0x7f, %esi
+   3a:  cmpl $0x43, %esi
+   3d:  jne 0x57
+   3f:  movl %edi, %esi
+   41:  andl $0x8000, %edi
+   47:  shrl $9, %esi
+   4a:  andl $0x7f80, %esi
+   50:  orl %edi, %esi
+   52:  orl $0x42, %esi
+   55:  movl %esi, (%rcx)
+   57:  movl (%rdx), %edx
+   59:  shrl $7, %edx
+   5c:  leal -0xffffff(%rdx), %ecx
+   62:  cmpl $0xfffffe, %edx
+   68:  je 0x73
+   6a:  leal 1(%rcx, %rax), %eax
+   6e:  cmpl $-1, %eax
+   71:  jne 0x10
+   73:  retq

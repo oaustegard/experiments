@@ -1,0 +1,91 @@
+# draws  (global, 319 bytes, 90 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movl %edi, %r14d
+    7:  pushq %r13
+    9:  movl %esi, %r13d
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movl %edx, %ebx
+   12:  subq $0x18, %rsp
+   16:  movl (%rip), %eax   <var:o_h+0>
+   1c:  movl (%rip), %edx   <var:o_v+0>
+   22:  leal (%rax, %rdi), %r12d
+   26:  leal (%rdx, %rsi), %r15d
+   2a:  leal (%r15, %r15, 4), %r8d
+   2e:  leal (%r15, %rcx), %ebp
+   32:  addl %r12d, %ebx
+   35:  leal (%r12, %r12, 4), %ecx
+   39:  addl %r8d, %edx
+   3c:  movl %r8d, 0xc(%rsp)
+   41:  addl %ecx, %eax
+   43:  movslq %edx, %rsi
+   46:  sarl $0x1f, %edx
+   49:  movl %ecx, 8(%rsp)
+   4d:  movslq %eax, %rdi
+   50:  imulq $0x2aaaaaab, %rsi, %rsi
+   57:  sarl $0x1f, %eax
+   5a:  imulq $0x2aaaaaab, %rdi, %rdi
+   61:  shrq $0x20, %rsi
+   65:  shrq $0x20, %rdi
+   69:  subl %edx, %esi
+   6b:  subl %eax, %edi
+   6d:  imull $0x64, %esi, %esi
+   70:  imull $0x64, %edi, %edi
+   73:  callq fn:pdfpos00+0
+   78:  movq (%rip), %rdi   <var:pg+0>
+   7f:  movl $0, %esi   <str:"%s ">
+   84:  movq %rax, %rdx
+   87:  xorl %eax, %eax
+   89:  callq sbuf_printf+0
+   8e:  movl 0xc(%rsp), %r8d
+   93:  movl 8(%rsp), %ecx
+   97:  addl %ebp, %r8d
+   9a:  addl %ebx, %ecx
+   9c:  movslq %r8d, %rsi
+   9f:  movslq %ecx, %rdi
+   a2:  sarl $0x1f, %r8d
+   a6:  imulq $0x2aaaaaab, %rsi, %rsi
+   ad:  sarl $0x1f, %ecx
+   b0:  imulq $0x2aaaaaab, %rdi, %rdi
+   b7:  shrq $0x20, %rsi
+   bb:  shrq $0x20, %rdi
+   bf:  subl %r8d, %esi
+   c2:  subl %ecx, %edi
+   c4:  imull $0x64, %esi, %esi
+   c7:  imull $0x64, %edi, %edi
+   ca:  callq fn:pdfpos00+0
+   cf:  movq (%rip), %rdi   <var:pg+0>
+   d6:  movl $0, %esi   <str:"%s ">
+   db:  movq %rax, %rdx
+   de:  xorl %eax, %eax
+   e0:  callq sbuf_printf+0
+   e5:  addl %ebp, %r15d
+   e8:  addl %ebx, %r12d
+   eb:  movl %r15d, %esi
+   ee:  movl %r12d, %edi
+   f1:  shrl $0x1f, %esi
+   f4:  shrl $0x1f, %edi
+   f7:  addl %r15d, %esi
+   fa:  addl %r12d, %edi
+   fd:  sarl $1, %esi
+   ff:  sarl $1, %edi
+  101:  imull $0x64, %esi, %esi
+  104:  imull $0x64, %edi, %edi
+  107:  callq fn:pdfpos00+0
+  10c:  movq (%rip), %rdi   <var:pg+0>
+  113:  movl $0, %esi   <str:"%s c\n">
+  118:  movq %rax, %rdx
+  11b:  xorl %eax, %eax
+  11d:  callq sbuf_printf+0
+  122:  addl %r14d, (%rip)   <var:o_h+0>
+  129:  addl %r13d, (%rip)   <var:o_v+0>
+  130:  addq $0x18, %rsp
+  134:  popq %rbx
+  135:  popq %rbp
+  136:  popq %r12
+  138:  popq %r13
+  13a:  popq %r14
+  13c:  popq %r15
+  13e:  retq

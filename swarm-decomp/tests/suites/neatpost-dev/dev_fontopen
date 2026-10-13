@@ -1,0 +1,28 @@
+# dev_fontopen  (global, 94 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movl $0x2f, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x408, %rsp
+   11:  callq strchr+0
+   16:  movq %rsp, %rbp
+   19:  testq %rax, %rax
+   1c:  je 0x40
+   1e:  movq %rbx, %rsi
+   21:  movq %rbp, %rdi
+   24:  callq strcpy+0
+   29:  movq %rbp, %rdi
+   2c:  callq font_open+0
+   31:  addq $0x408, %rsp
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movq %rbx, %r8
+   43:  movl $0, %ecx   <var:dev_dev+0>
+   48:  movl $0, %edx   <var:dev_dir+0>
+   4d:  movq %rbp, %rdi
+   50:  movl $0, %esi   <str:"%s/dev%s/%s">
+   55:  xorl %eax, %eax
+   57:  callq sprintf+0
+   5c:  jmp 0x29

@@ -1,0 +1,68 @@
+# tconcat  (static, 247 bytes, 67 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  subq $0x438, %rsp
+   15:  callq lua_type+0
+   1a:  cmpl $5, %eax
+   1d:  je 0x31
+   1f:  movl $5, %edx
+   24:  movl $1, %esi
+   29:  movq %rbp, %rdi
+   2c:  callq fn:checktab.part.0+0
+   31:  movl $1, %esi
+   36:  movq %rbp, %rdi
+   39:  callq luaL_len+0
+   3e:  leaq 8(%rsp), %rcx
+   43:  movl $0, %edx   <str:"">
+   48:  movq %rbp, %rdi
+   4b:  movl $2, %esi
+   50:  movq %rax, %r12
+   53:  callq luaL_optlstring+0
+   58:  movl $1, %edx
+   5d:  movl $3, %esi
+   62:  movq %rbp, %rdi
+   65:  movq %rax, %r13
+   68:  callq luaL_optinteger+0
+   6d:  movq %r12, %rdx
+   70:  movl $4, %esi
+   75:  movq %rbp, %rdi
+   78:  movq %rax, %rbx
+   7b:  callq luaL_optinteger+0
+   80:  leaq 0x10(%rsp), %rsi
+   85:  movq %rbp, %rdi
+   88:  movq %rax, %r12
+   8b:  callq luaL_buffinit+0
+   90:  cmpq %r12, %rbx
+   93:  jge 0xd8
+   95:  nopl (%rax)
+   98:  movq %rbx, %rdx
+   9b:  leaq 0x10(%rsp), %rsi
+   a0:  movq %rbp, %rdi
+   a3:  addq $1, %rbx
+   a7:  callq fn:addfield+0
+   ac:  movq 8(%rsp), %rdx
+   b1:  movq %r13, %rsi
+   b4:  leaq 0x10(%rsp), %rdi
+   b9:  callq luaL_addlstring+0
+   be:  cmpq %rbx, %r12
+   c1:  jne 0x98
+   c3:  movq %rbx, %rdx
+   c6:  leaq 0x10(%rsp), %rsi
+   cb:  movq %rbp, %rdi
+   ce:  callq fn:addfield+0
+   d3:  jmp 0xda
+   d5:  nopl (%rax)
+   d8:  je 0xc3
+   da:  leaq 0x10(%rsp), %rdi
+   df:  callq luaL_pushresult+0
+   e4:  addq $0x438, %rsp
+   eb:  movl $1, %eax
+   f0:  popq %rbx
+   f1:  popq %rbp
+   f2:  popq %r12
+   f4:  popq %r13
+   f6:  retq

@@ -1,0 +1,173 @@
+# clr_get  (global, 645 bytes, 172 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movsbq (%rdi), %rbx
+   11:  cmpb $0x23, %bl
+   14:  je 0xb8
+   1a:  callq __ctype_b_loc+0
+   1f:  movq (%rax), %rax
+   22:  testb $8, 1(%rax, %rbx, 2)
+   27:  jne 0x70
+   29:  xorl %ebx, %ebx
+   2b:  nopl (%rax, %rax)
+   30:  movq %rbx, %rax
+   33:  movq %rbp, %rsi
+   36:  shlq $4, %rax
+   3a:  movq (%rax), %rdi   <var:colors+0>
+   41:  callq strcmp+0
+   46:  testl %eax, %eax
+   48:  je 0x160
+   4e:  addq $1, %rbx
+   52:  cmpq $8, %rbx
+   56:  jne 0x30
+   58:  xorl %ebx, %ebx
+   5a:  addq $8, %rsp
+   5e:  movl %ebx, %eax
+   60:  popq %rbx
+   61:  popq %rbp
+   62:  popq %r12
+   64:  popq %r13
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  xorl %esi, %esi
+   72:  movl $0xa, %edx
+   77:  movq %rbp, %rdi
+   7a:  callq strtol+0
+   7f:  testl %eax, %eax
+   81:  js 0x29
+   83:  xorl %esi, %esi
+   85:  movl $0xa, %edx
+   8a:  movq %rbp, %rdi
+   8d:  callq strtol+0
+   92:  cmpl $7, %eax
+   95:  ja 0x29
+   97:  movl $0xa, %edx
+   9c:  xorl %esi, %esi
+   9e:  movq %rbp, %rdi
+   a1:  callq strtol+0
+   a6:  cltq
+   a8:  shlq $4, %rax
+   ac:  movl (%rax), %ebx   <var:colors+8>
+   b2:  jmp 0x5a
+   b4:  nopl (%rax)
+   b8:  callq strlen+0
+   bd:  cmpq $7, %rax
+   c1:  je 0x180
+   c7:  cmpq $4, %rax
+   cb:  jne 0x1a
+   d1:  callq __ctype_tolower_loc+0
+   d6:  movl $0, %edi   <str:"0123456789abcdef">
+   db:  xorl %ebx, %ebx
+   dd:  movq (%rax), %r12
+   e0:  movsbq 1(%rbp), %rax
+   e5:  movl (%r12, %rax, 4), %esi
+   e9:  callq strchr+0
+   ee:  testq %rax, %rax
+   f1:  je 0x103
+   f3:  subq $0, %rax   <str:"0123456789abcdef">
+   f9:  movl %eax, %ebx
+   fb:  shll $4, %ebx
+   fe:  addl %eax, %ebx
+  100:  shll $0x10, %ebx
+  103:  movsbq 2(%rbp), %rax
+  108:  movl $0, %edi   <str:"0123456789abcdef">
+  10d:  movl (%r12, %rax, 4), %esi
+  111:  callq strchr+0
+  116:  testq %rax, %rax
+  119:  je 0x12d
+  11b:  subq $0, %rax   <str:"0123456789abcdef">
+  121:  movl %eax, %edx
+  123:  shll $4, %edx
+  126:  addl %edx, %eax
+  128:  shll $8, %eax
+  12b:  orl %eax, %ebx
+  12d:  movsbq 3(%rbp), %rax
+  132:  movl $0, %edi   <str:"0123456789abcdef">
+  137:  movl (%r12, %rax, 4), %esi
+  13b:  callq strchr+0
+  140:  testq %rax, %rax
+  143:  je 0x5a
+  149:  subq $0, %rax   <str:"0123456789abcdef">
+  14f:  movl %eax, %edx
+  151:  shll $4, %edx
+  154:  addl %edx, %eax
+  156:  orl %eax, %ebx
+  158:  jmp 0x5a
+  15d:  nopl (%rax)
+  160:  movslq %ebx, %rbx
+  163:  shlq $4, %rbx
+  167:  movl (%rbx), %ebx   <var:colors+8>
+  16d:  addq $8, %rsp
+  171:  movl %ebx, %eax
+  173:  popq %rbx
+  174:  popq %rbp
+  175:  popq %r12
+  177:  popq %r13
+  179:  retq
+  17a:  nopw (%rax, %rax)
+  180:  callq __ctype_tolower_loc+0
+  185:  movl $0, %edi   <str:"0123456789abcdef">
+  18a:  xorl %r12d, %r12d
+  18d:  movq (%rax), %r13
+  190:  movsbq 1(%rbp), %rax
+  195:  movl (%r13, %rax, 4), %esi
+  19a:  callq strchr+0
+  19f:  movl $0, %edi   <str:"0123456789abcdef">
+  1a4:  movq %rax, %rdx
+  1a7:  subq $0, %rdx   <str:"0123456789abcdef">
+  1ae:  testq %rax, %rax
+  1b1:  movsbq 2(%rbp), %rax
+  1b6:  cmovnel %edx, %r12d
+  1ba:  movl (%r13, %rax, 4), %esi
+  1bf:  callq strchr+0
+  1c4:  testq %rax, %rax
+  1c7:  je 0x1d6
+  1c9:  shll $4, %r12d
+  1cd:  subq $0, %rax   <str:"0123456789abcdef">
+  1d3:  addl %eax, %r12d
+  1d6:  movsbq 3(%rbp), %rax
+  1db:  movl $0, %edi   <str:"0123456789abcdef">
+  1e0:  shll $0x10, %r12d
+  1e4:  movl (%r13, %rax, 4), %esi
+  1e9:  callq strchr+0
+  1ee:  movl $0, %edi   <str:"0123456789abcdef">
+  1f3:  movq %rax, %rdx
+  1f6:  subq $0, %rdx   <str:"0123456789abcdef">
+  1fd:  testq %rax, %rax
+  200:  movl $0, %eax
+  205:  movl %edx, %ebx
+  207:  cmovel %eax, %ebx
+  20a:  movsbq 4(%rbp), %rax
+  20f:  movl (%r13, %rax, 4), %esi
+  214:  callq strchr+0
+  219:  testq %rax, %rax
+  21c:  je 0x229
+  21e:  shll $4, %ebx
+  221:  subq $0, %rax   <str:"0123456789abcdef">
+  227:  addl %eax, %ebx
+  229:  movsbq 5(%rbp), %rax
+  22e:  movl $0, %edi   <str:"0123456789abcdef">
+  233:  shll $8, %ebx
+  236:  orl %r12d, %ebx
+  239:  xorl %r12d, %r12d
+  23c:  movl (%r13, %rax, 4), %esi
+  241:  callq strchr+0
+  246:  movl $0, %edi   <str:"0123456789abcdef">
+  24b:  movq %rax, %rdx
+  24e:  subq $0, %rdx   <str:"0123456789abcdef">
+  255:  testq %rax, %rax
+  258:  movsbq 6(%rbp), %rax
+  25d:  cmovnel %edx, %r12d
+  261:  movl (%r13, %rax, 4), %esi
+  266:  callq strchr+0
+  26b:  testq %rax, %rax
+  26e:  je 0x27d
+  270:  shll $4, %r12d
+  274:  subq $0, %rax   <str:"0123456789abcdef">
+  27a:  addl %eax, %r12d
+  27d:  orl %r12d, %ebx
+  280:  jmp 0x5a

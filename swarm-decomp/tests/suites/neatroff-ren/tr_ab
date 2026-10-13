@@ -1,0 +1,10 @@
+# tr_ab  (global, 42 bytes, 9 instructions)
+    0:  subq $8, %rsp
+    4:  movq 8(%rdi), %rdx
+    8:  movl $0, %esi   <str:"%s\n">
+    d:  xorl %eax, %eax
+    f:  movq (%rip), %rdi   <stderr+0>
+   16:  callq fprintf+0
+   1b:  movl $1, (%rip)   <var:ren_aborted+0>
+   25:  addq $8, %rsp
+   29:  retq

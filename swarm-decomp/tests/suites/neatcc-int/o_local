@@ -1,0 +1,33 @@
+# o_local  (global, 159 bytes, 32 instructions)
+    0:  movq (%rip), %rsi   <var:ic_n+0>
+    7:  cmpq (%rip), %rsi   <var:ic_sz+0>
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  movq (%rip), %rdi   <var:ic+0>
+   19:  je 0x68
+   1b:  leaq 1(%rsi), %rax
+   1f:  movq %rax, (%rip)   <var:ic_n+0>
+   26:  leaq (%rsi, %rsi, 4), %rax
+   2a:  leaq (%rdi, %rax, 8), %rax
+   2e:  movq $0x200400, (%rax)
+   35:  movq %rbx, 8(%rax)
+   39:  movq $0, 0x10(%rax)
+   41:  movq $0, 0x18(%rax)
+   49:  movq (%rip), %rax   <var:iv_n+0>
+   50:  popq %rbx
+   51:  leaq 1(%rax), %rdx
+   55:  movq %rsi, (, %rax, 8)   <var:iv+0>
+   5d:  movq %rdx, (%rip)   <var:iv_n+0>
+   64:  retq
+   65:  nopl (%rax)
+   68:  leaq (%rsi, %rsi), %rdx
+   6c:  movl $0x80, %eax
+   71:  movl $0x28, %ecx
+   76:  cmpq %rax, %rdx
+   79:  cmovlq %rax, %rdx
+   7d:  movq %rdx, (%rip)   <var:ic_sz+0>
+   84:  callq mextend+0
+   89:  movq (%rip), %rsi   <var:ic_n+0>
+   90:  movq %rax, (%rip)   <var:ic+0>
+   97:  movq %rax, %rdi
+   9a:  jmp 0x1b

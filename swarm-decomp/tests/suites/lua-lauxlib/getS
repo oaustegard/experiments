@@ -1,0 +1,11 @@
+# getS  (static, 35 bytes, 10 instructions)
+    0:  movq 8(%rsi), %rax
+    4:  testq %rax, %rax
+    7:  je 0x20
+    9:  movq %rax, (%rdx)
+    c:  movq (%rsi), %rax
+    f:  movq $0, 8(%rsi)
+   17:  retq
+   18:  nopl (%rax, %rax)
+   20:  xorl %eax, %eax
+   22:  retq

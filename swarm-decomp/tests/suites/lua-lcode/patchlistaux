@@ -1,0 +1,100 @@
+# patchlistaux  (static, 341 bytes, 99 instructions)
+    0:  cmpl $-1, %esi
+    3:  je 0x138
+    9:  pushq %r13
+    b:  movq %rdi, %r9
+    e:  movl %edx, %r11d
+   11:  movl %ecx, %edi
+   13:  pushq %r12
+   15:  pushq %rbp
+   16:  pushq %rbx
+   17:  movl %ecx, %ebx
+   19:  shll $7, %ebx
+   1c:  andl $0x7f80, %ebx
+   22:  subq $8, %rsp
+   26:  movq (%r9), %rax
+   29:  movq 0x40(%rax), %r10
+   2d:  jmp 0x5c
+   2f:  nop
+   30:  movl %r8d, %esi
+   33:  subl %ebp, %esi
+   35:  addl $0xffffff, %esi
+   3b:  cmpl $0x1ffffff, %esi
+   41:  ja 0x139
+   47:  andl $0x7f, %eax
+   4a:  shll $7, %esi
+   4d:  orl %esi, %eax
+   4f:  movl %eax, (%rdx)
+   51:  cmpl $-1, %ecx
+   54:  je 0xfb
+   5a:  movl %ecx, %esi
+   5c:  movslq %esi, %rax
+   5f:  leal 1(%rsi), %ebp
+   62:  leaq (%r10, %rax, 4), %rdx
+   66:  movl (%rdx), %eax
+   68:  movl %eax, %r12d
+   6b:  shrl $7, %r12d
+   6f:  leal -0xffffff(%r12), %ecx
+   77:  cmpl $0xfffffe, %r12d
+   7e:  je 0x82
+   80:  addl %ebp, %ecx
+   82:  testl %esi, %esi
+   84:  jle 0x110
+   8a:  movl -4(%rdx), %esi
+   8d:  movl %esi, %r12d
+   90:  andl $0x7f, %r12d
+   94:  testb $0x10, (%r12)   <luaP_opmodes+0>
+   9d:  je 0x110
+   9f:  leaq -4(%rdx), %r12
+   a3:  movl %esi, %r13d
+   a6:  andl $0x7f, %r13d
+   aa:  cmpl $0x43, %r13d
+   ae:  jne 0x30
+   b0:  movl %esi, %eax
+   b2:  shrl $0x10, %eax
+   b5:  cmpl $0xff, %edi
+   bb:  je 0x120
+   bd:  movzbl %al, %r13d
+   c1:  cmpl %r13d, %edi
+   c4:  je 0x120
+   c6:  movl %esi, %eax
+   c8:  andl $0xffff807f, %eax
+   cd:  orl %ebx, %eax
+   cf:  movl %r11d, %esi
+   d2:  movl %eax, (%r12)
+   d6:  subl %ebp, %esi
+   d8:  addl $0xffffff, %esi
+   de:  cmpl $0x1ffffff, %esi
+   e4:  ja 0x147
+   e6:  movl (%rdx), %eax
+   e8:  shll $7, %esi
+   eb:  andl $0x7f, %eax
+   ee:  orl %esi, %eax
+   f0:  movl %eax, (%rdx)
+   f2:  cmpl $-1, %ecx
+   f5:  jne 0x5a
+   fb:  addq $8, %rsp
+   ff:  popq %rbx
+  100:  popq %rbp
+  101:  popq %r12
+  103:  popq %r13
+  105:  retq
+  106:  nopw %cs:(%rax, %rax)
+  110:  movl %eax, %esi
+  112:  movq %rdx, %r12
+  115:  jmp 0xa3
+  117:  nopw (%rax, %rax)
+  120:  shll $7, %eax
+  123:  andl $0x8000, %esi
+  129:  andl $0x7f80, %eax
+  12e:  orl %esi, %eax
+  130:  orl $0x42, %eax
+  133:  jmp 0xcf
+  135:  nopl (%rax)
+  138:  retq
+  139:  movq 0x10(%r9), %rdi
+  13d:  movl $0, %esi   <str:"control structure too long">
+  142:  callq luaX_syntaxerror+0
+  147:  movq 0x10(%r9), %rdi
+  14b:  movl $0, %esi   <str:"control structure too long">
+  150:  callq luaX_syntaxerror+0

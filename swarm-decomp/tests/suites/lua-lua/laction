@@ -1,0 +1,19 @@
+# laction  (static, 86 bytes, 18 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %ebx
+    3:  subq $0xa0, %rsp
+    a:  leaq 8(%rsp), %rdi
+    f:  movq $0, (%rsp)
+   17:  movl $0, 0x88(%rsp)
+   22:  callq sigemptyset+0
+   27:  movq %rsp, %rsi
+   2a:  movl %ebx, %edi
+   2c:  xorl %edx, %edx
+   2e:  callq sigaction+0
+   33:  movl $1, %ecx
+   38:  movl $0xf, %edx
+   3d:  movq (%rip), %rdi   <var:globalL+0>
+   44:  addq $0xa0, %rsp
+   4b:  movl $0, %esi   <fn:lstop+0>
+   50:  popq %rbx
+   51:  jmp lua_sethook+0

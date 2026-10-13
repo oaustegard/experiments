@@ -1,0 +1,54 @@
+# luaB_print  (static, 199 bytes, 53 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  subq $0x18, %rsp
+    d:  callq lua_gettop+0
+   12:  testl %eax, %eax
+   14:  jle 0x93
+   16:  leaq 8(%rsp), %rdx
+   1b:  movl $1, %esi
+   20:  movq %r12, %rdi
+   23:  movl %eax, %r13d
+   26:  callq luaL_tolstring+0
+   2b:  movl $1, %ebx
+   30:  movq %rax, %rbp
+   33:  jmp 0x65
+   35:  nopl (%rax)
+   38:  leaq 8(%rsp), %rdx
+   3d:  movl %ebx, %esi
+   3f:  movq %r12, %rdi
+   42:  callq luaL_tolstring+0
+   47:  movl $1, %edx
+   4c:  movl $1, %esi
+   51:  movq (%rip), %rcx   <stdout+0>
+   58:  movl $0, %edi   <str:"\t">
+   5d:  movq %rax, %rbp
+   60:  callq fwrite+0
+   65:  movq 8(%rsp), %rdx
+   6a:  movl $1, %esi
+   6f:  movq %rbp, %rdi
+   72:  addl $1, %ebx
+   75:  movq (%rip), %rcx   <stdout+0>
+   7c:  callq fwrite+0
+   81:  movl $0xfffffffe, %esi
+   86:  movq %r12, %rdi
+   89:  callq lua_settop+0
+   8e:  cmpl %ebx, %r13d
+   91:  jge 0x38
+   93:  movl $1, %edx
+   98:  movl $1, %esi
+   9d:  movl $0, %edi   <str:"\n">
+   a2:  movq (%rip), %rcx   <stdout+0>
+   a9:  callq fwrite+0
+   ae:  movq (%rip), %rdi   <stdout+0>
+   b5:  callq fflush+0
+   ba:  addq $0x18, %rsp
+   be:  xorl %eax, %eax
+   c0:  popq %rbx
+   c1:  popq %rbp
+   c2:  popq %r12
+   c4:  popq %r13
+   c6:  retq

@@ -1,0 +1,82 @@
+# setallfields  (static, 319 bytes, 81 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movslq 0x14(%rsi), %rsi
+   10:  addq $0x76c, %rsi
+   17:  callq lua_pushinteger+0
+   1c:  movl $0, %edx   <str:"year">
+   21:  movl $0xfffffffe, %esi
+   26:  movq %rbx, %rdi
+   29:  callq lua_setfield+0
+   2e:  movslq 0x10(%rbp), %rsi
+   32:  movq %rbx, %rdi
+   35:  addq $1, %rsi
+   39:  callq lua_pushinteger+0
+   3e:  movl $0, %edx   <str:"month">
+   43:  movl $0xfffffffe, %esi
+   48:  movq %rbx, %rdi
+   4b:  callq lua_setfield+0
+   50:  movslq 0xc(%rbp), %rsi
+   54:  movq %rbx, %rdi
+   57:  callq lua_pushinteger+0
+   5c:  movl $0, %edx   <str:"day">
+   61:  movl $0xfffffffe, %esi
+   66:  movq %rbx, %rdi
+   69:  callq lua_setfield+0
+   6e:  movslq 8(%rbp), %rsi
+   72:  movq %rbx, %rdi
+   75:  callq lua_pushinteger+0
+   7a:  movl $0, %edx   <str:"hour">
+   7f:  movl $0xfffffffe, %esi
+   84:  movq %rbx, %rdi
+   87:  callq lua_setfield+0
+   8c:  movslq 4(%rbp), %rsi
+   90:  movq %rbx, %rdi
+   93:  callq lua_pushinteger+0
+   98:  movl $0, %edx   <str:"min">
+   9d:  movl $0xfffffffe, %esi
+   a2:  movq %rbx, %rdi
+   a5:  callq lua_setfield+0
+   aa:  movslq (%rbp), %rsi
+   ae:  movq %rbx, %rdi
+   b1:  callq lua_pushinteger+0
+   b6:  movl $0, %edx   <str:"sec">
+   bb:  movl $0xfffffffe, %esi
+   c0:  movq %rbx, %rdi
+   c3:  callq lua_setfield+0
+   c8:  movslq 0x1c(%rbp), %rsi
+   cc:  movq %rbx, %rdi
+   cf:  addq $1, %rsi
+   d3:  callq lua_pushinteger+0
+   d8:  movl $0, %edx   <str:"yday">
+   dd:  movl $0xfffffffe, %esi
+   e2:  movq %rbx, %rdi
+   e5:  callq lua_setfield+0
+   ea:  movslq 0x18(%rbp), %rsi
+   ee:  movq %rbx, %rdi
+   f1:  addq $1, %rsi
+   f5:  callq lua_pushinteger+0
+   fa:  movl $0xfffffffe, %esi
+   ff:  movl $0, %edx   <str:"wday">
+  104:  movq %rbx, %rdi
+  107:  callq lua_setfield+0
+  10c:  movl 0x20(%rbp), %esi
+  10f:  testl %esi, %esi
+  111:  js 0x138
+  113:  movq %rbx, %rdi
+  116:  callq lua_pushboolean+0
+  11b:  addq $8, %rsp
+  11f:  movq %rbx, %rdi
+  122:  movl $0, %edx   <str:"isdst">
+  127:  popq %rbx
+  128:  movl $0xfffffffe, %esi
+  12d:  popq %rbp
+  12e:  jmp lua_setfield+0
+  133:  nopl (%rax, %rax)
+  138:  addq $8, %rsp
+  13c:  popq %rbx
+  13d:  popq %rbp
+  13e:  retq

@@ -1,0 +1,24 @@
+# neatroff-cp: translation unit cp of neatroff
+# write each function as src/neatroff/cp/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+cp_raw	static	245 bytes
+cp_args	static	229 bytes
+cparg.constprop.0	static	273 bytes
+cp_next	global	1103 bytes
+cp_noninext	static	23 bytes
+cp_str	static	212 bytes
+cp_blk	global	73 bytes
+cp_copymode	global	7 bytes
+cp_reqbeg	global	13 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+cp_cpmode	static	4 bytes	.bss.cp_cpmode
+    (zero-initialised)
+cp_blkdep	static	4 bytes	.bss.cp_blkdep
+    (zero-initialised)
+cp_reqdep	static	4 bytes	.bss.cp_reqdep
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+c_ec charread charread_delim eval_re eval_up free in_arg in_back in_nargs in_next in_push in_top map nreg num_getfmt num_inc num_set num_str quotednext ren_wid sbuf_add sbuf_append sbuf_buf sbuf_done sbuf_init sprintf str_get strtol tr_args tr_req utf8next

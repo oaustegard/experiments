@@ -1,0 +1,47 @@
+# luaopen_string  (global, 185 bytes, 46 instructions)
+    0:  pushq %rbx
+    1:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+    9:  movq %rdi, %rbx
+    c:  movl $0x88, %esi
+   11:  callq luaL_checkversion_+0
+   16:  movq %rbx, %rdi
+   19:  movl $0x11, %edx
+   1e:  xorl %esi, %esi
+   20:  callq lua_createtable+0
+   25:  movq %rbx, %rdi
+   28:  xorl %edx, %edx
+   2a:  movl $0, %esi   <var:strlib+0>
+   2f:  callq luaL_setfuncs+0
+   34:  movq %rbx, %rdi
+   37:  movl $9, %edx
+   3c:  xorl %esi, %esi
+   3e:  callq lua_createtable+0
+   43:  xorl %edx, %edx
+   45:  movq %rbx, %rdi
+   48:  movl $0, %esi   <var:stringmetamethods+0>
+   4d:  callq luaL_setfuncs+0
+   52:  movq %rbx, %rdi
+   55:  movl $0, %esi   <str:"">
+   5a:  callq lua_pushstring+0
+   5f:  movq %rbx, %rdi
+   62:  movl $0xfffffffe, %esi
+   67:  callq lua_pushvalue+0
+   6c:  movq %rbx, %rdi
+   6f:  movl $0xfffffffe, %esi
+   74:  callq lua_setmetatable+0
+   79:  movq %rbx, %rdi
+   7c:  movl $0xfffffffe, %esi
+   81:  callq lua_settop+0
+   86:  movq %rbx, %rdi
+   89:  movl $0xfffffffe, %esi
+   8e:  callq lua_pushvalue+0
+   93:  movq %rbx, %rdi
+   96:  movl $0, %edx   <str:"__index">
+   9b:  movl $0xfffffffe, %esi
+   a0:  callq lua_setfield+0
+   a5:  movq %rbx, %rdi
+   a8:  movl $0xfffffffe, %esi
+   ad:  callq lua_settop+0
+   b2:  movl $1, %eax
+   b7:  popq %rbx
+   b8:  retq

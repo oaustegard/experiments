@@ -1,0 +1,25 @@
+# tr_hpf  (global, 142 bytes, 24 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq (%rip), %rdi   <var:hypref+0>
+    b:  movl $0, (%rip)   <var:hypats_len+0>
+   15:  movl $0, (%rip)   <var:hy_n+0>
+   1f:  callq pref_free+0
+   24:  movq (%rip), %rdi   <var:hwpref+0>
+   2b:  movl $0, (%rip)   <var:hwword_len+0>
+   35:  movl $0, (%rip)   <var:hw_n+0>
+   3f:  callq pref_free+0
+   44:  movq (%rip), %rdi   <var:hcodedict+0>
+   4b:  movl $0, (%rip)   <var:hcode_n+0>
+   55:  callq dict_free+0
+   5a:  callq pref_make+0
+   5f:  movq %rax, (%rip)   <var:hwpref+0>
+   66:  callq pref_make+0
+   6b:  movl $0x400, %edi
+   70:  xorl %esi, %esi
+   72:  movq %rax, (%rip)   <var:hypref+0>
+   79:  callq dict_make+0
+   7e:  movq %rbx, %rdi
+   81:  popq %rbx
+   82:  movq %rax, (%rip)   <var:hcodedict+0>
+   89:  jmp tr_hpfa+0

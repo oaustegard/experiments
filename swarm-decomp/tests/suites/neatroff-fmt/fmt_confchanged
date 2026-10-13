@@ -1,0 +1,58 @@
+# fmt_confchanged  (static, 190 bytes, 57 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl 0x50(%rdi), %ebp
+    c:  movl $0x6c, %edi
+   11:  callq nreg+0
+   16:  cmpl (%rax), %ebp
+   18:  je 0x30
+   1a:  movl $1, %eax
+   1f:  addq $8, %rsp
+   23:  popq %rbx
+   24:  popq %rbp
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  movl $0, %edi   <str:".ti">
+   35:  movl 0x4c(%rbx), %ebp
+   38:  callq map+0
+   3d:  movl %eax, %edi
+   3f:  callq nreg+0
+   44:  movl (%rax), %edx
+   46:  testl %edx, %edx
+   48:  js 0xa0
+   4a:  movl $0, %edi   <str:".ti">
+   4f:  callq map+0
+   54:  movl %eax, %edi
+   56:  callq nreg+0
+   5b:  movl (%rax), %eax
+   5d:  cmpl %eax, %ebp
+   5f:  jne 0x1a
+   61:  movl $0, %edi   <str:".tI">
+   66:  movl 0x54(%rbx), %ebx
+   69:  callq map+0
+   6e:  movl %eax, %edi
+   70:  callq nreg+0
+   75:  movl (%rax), %eax
+   77:  testl %eax, %eax
+   79:  js 0xb0
+   7b:  movl $0, %edi   <str:".tI">
+   80:  callq map+0
+   85:  movl %eax, %edi
+   87:  callq nreg+0
+   8c:  movl (%rax), %eax
+   8e:  cmpl %eax, %ebx
+   90:  setne %al
+   93:  movzbl %al, %eax
+   96:  jmp 0x1f
+   98:  nopl (%rax, %rax)
+   a0:  movl $0x69, %edi
+   a5:  callq nreg+0
+   aa:  movl (%rax), %eax
+   ac:  jmp 0x5d
+   ae:  nop
+   b0:  movl $0x49, %edi
+   b5:  callq nreg+0
+   ba:  movl (%rax), %eax
+   bc:  jmp 0x8e

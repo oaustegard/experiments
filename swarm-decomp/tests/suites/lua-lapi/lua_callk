@@ -1,0 +1,40 @@
+# lua_callk  (global, 131 bytes, 39 instructions)
+    0:  pushq %rbp
+    1:  movslq %esi, %rax
+    4:  movq $18446744073709551600, %rsi
+    b:  movl %edx, %ebp
+    d:  pushq %rbx
+    e:  shlq $4, %rax
+   12:  movq %rdi, %rbx
+   15:  subq %rax, %rsi
+   18:  subq $8, %rsp
+   1c:  addq 0x10(%rdi), %rsi
+   20:  testq %r8, %r8
+   23:  je 0x31
+   25:  cmpl $0xffff, 0xb0(%rdi)
+   2f:  jbe 0x70
+   31:  movl %ebp, %edx
+   33:  movq %rbx, %rdi
+   36:  callq luaD_callnoyield+0
+   3b:  testl %ebp, %ebp
+   3d:  js 0x50
+   3f:  addq $8, %rsp
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movq 0x20(%rbx), %rax
+   54:  movq 0x10(%rbx), %rdx
+   58:  cmpq %rdx, 8(%rax)
+   5c:  jae 0x3f
+   5e:  movq %rdx, 8(%rax)
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq
+   69:  nopl (%rax)
+   70:  movq 0x20(%rdi), %rax
+   74:  movq %r8, 0x20(%rax)
+   78:  movq %rcx, 0x30(%rax)
+   7c:  callq luaD_call+0
+   81:  jmp 0x3b

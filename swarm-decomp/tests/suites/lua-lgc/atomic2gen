@@ -1,0 +1,41 @@
+# atomic2gen  (static, 186 bytes, 40 instructions)
+    0:  pushq %rbp
+    1:  pxor %xmm0, %xmm0
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  movq %rsi, %rbx
+    c:  leaq 0x70(%rsi), %rsi
+   10:  subq $8, %rsp
+   14:  movq $0, 0x38(%rsi)
+   1c:  movb $3, -0xb(%rsi)
+   20:  movups %xmm0, 0x18(%rsi)
+   24:  movups %xmm0, 0x28(%rsi)
+   28:  callq fn:sweep2old+0
+   2d:  movq 0x70(%rbx), %xmm0
+   32:  leaq 0x80(%rbx), %rsi
+   39:  movq %rbp, %rdi
+   3c:  movq $0, 0xd8(%rbx)
+   47:  movq %xmm0, 0xd0(%rbx)
+   4f:  movdqa %xmm0, %xmm1
+   53:  punpcklqdq %xmm1, %xmm1
+   57:  movups %xmm1, 0xc0(%rbx)
+   5e:  callq fn:sweep2old+0
+   63:  leaq 0xb0(%rbx), %rsi
+   6a:  movq %rbp, %rdi
+   6d:  movq 0x80(%rbx), %xmm0
+   75:  movq %xmm0, 0xf0(%rbx)
+   7d:  movdqa %xmm0, %xmm1
+   81:  punpcklqdq %xmm1, %xmm1
+   85:  movups %xmm1, 0xe0(%rbx)
+   8c:  callq fn:sweep2old+0
+   91:  movq 0x18(%rbx), %rax
+   95:  addq 0x10(%rbx), %rax
+   99:  movq %rbx, %rsi
+   9c:  movb $1, 0x66(%rbx)
+   a0:  movq %rbp, %rdi
+   a3:  movq $0, 0x28(%rbx)
+   ab:  movq %rax, 0x20(%rbx)
+   af:  addq $8, %rsp
+   b3:  popq %rbx
+   b4:  popq %rbp
+   b5:  jmp fn:finishgencycle+0

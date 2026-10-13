@@ -1,0 +1,69 @@
+# lua_setmetatable  (global, 234 bytes, 68 instructions)
+    0:  pushq %r12
+    2:  pushq %rbx
+    3:  movq %rdi, %rbx
+    6:  subq $0x18, %rsp
+    a:  callq fn:index2value+0
+    f:  movq 0x10(%rdi), %rdx
+   13:  movzbl 8(%rax), %ecx
+   17:  andl $0xf, %ecx
+   1a:  testb $0xf, -8(%rdx)
+   1e:  je 0x48
+   20:  movq -0x10(%rdx), %r12
+   24:  cmpb $5, %cl
+   27:  je 0x80
+   29:  cmpb $7, %cl
+   2c:  je 0xb0
+   32:  movq 0x18(%rbx), %rax
+   36:  andl $0xf, %ecx
+   39:  movq %r12, 0x1e0(%rax, %rcx, 8)
+   41:  jmp 0x64
+   43:  nopl (%rax, %rax)
+   48:  cmpb $5, %cl
+   4b:  je 0xc0
+   4d:  xorl %r12d, %r12d
+   50:  cmpb $7, %cl
+   53:  jne 0x32
+   55:  movq (%rax), %rax
+   58:  movq $0, 0x18(%rax)
+   60:  movq 0x10(%rbx), %rdx
+   64:  subq $0x10, %rdx
+   68:  movl $1, %eax
+   6d:  movq %rdx, 0x10(%rbx)
+   71:  addq $0x18, %rsp
+   75:  popq %rbx
+   76:  popq %r12
+   78:  retq
+   79:  nopl (%rax)
+   80:  movq (%rax), %rdx
+   83:  movq %r12, 0x28(%rdx)
+   87:  testq %r12, %r12
+   8a:  je 0x60
+   8c:  movq (%rax), %rsi
+   8f:  testb $0x20, 9(%rsi)
+   93:  je 0x9d
+   95:  testb $0x18, 9(%r12)
+   9b:  jne 0xd0
+   9d:  movq %r12, %rdx
+   a0:  movq %rbx, %rdi
+   a3:  callq luaC_checkfinalizer+0
+   a8:  movq 0x10(%rbx), %rdx
+   ac:  jmp 0x64
+   ae:  nop
+   b0:  movq (%rax), %rdx
+   b3:  movq %r12, 0x18(%rdx)
+   b7:  testq %r12, %r12
+   ba:  jne 0x8c
+   bc:  jmp 0x60
+   be:  nop
+   c0:  movq (%rax), %rax
+   c3:  movq $0, 0x28(%rax)
+   cb:  jmp 0x60
+   cd:  nopl (%rax)
+   d0:  movq %r12, %rdx
+   d3:  movq %rbx, %rdi
+   d6:  movq %rax, 8(%rsp)
+   db:  callq luaC_barrier_+0
+   e0:  movq 8(%rsp), %rax
+   e5:  movq (%rax), %rsi
+   e8:  jmp 0x9d

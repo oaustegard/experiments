@@ -1,0 +1,30 @@
+# i_subsp  (static, 129 bytes, 29 instructions)
+    0:  testq %rdi, %rdi
+    3:  je 0x80
+    5:  leaq 0x80(%rdi), %rax
+    c:  pushq %rbx
+    d:  movl $3, %edx
+   12:  movq %rdi, %rbx
+   15:  cmpq $0xff, %rax
+   1b:  ja 0x50
+   1d:  movl $0, %esi   <str:"H\x83\xec">
+   22:  movl $0, %edi   <var:cs+0>
+   27:  callq mem_put+0
+   2c:  movb %bl, (%rip)   <var:buf+0>
+   32:  movl $1, %edx
+   37:  popq %rbx
+   38:  movl $0, %esi   <var:buf+0>
+   3d:  movl $0, %edi   <var:cs+0>
+   42:  jmp mem_put+0
+   47:  nopw (%rax, %rax)
+   50:  movl $0, %esi   <str:"H\x81\xec">
+   55:  movl $0, %edi   <var:cs+0>
+   5a:  callq mem_put+0
+   5f:  movl %ebx, (%rip)   <var:buf+0>
+   65:  movl $4, %edx
+   6a:  popq %rbx
+   6b:  movl $0, %esi   <var:buf+0>
+   70:  movl $0, %edi   <var:cs+0>
+   75:  jmp mem_put+0
+   7a:  nopw (%rax, %rax)
+   80:  retq

@@ -1,0 +1,22 @@
+# otf_input.constprop.0  (static, 73 bytes, 21 instructions)
+    0:  pushq %rbx
+    1:  subq $0x1000, %rsp
+    8:  callq sbuf_make+0
+    d:  movq %rax, %rbx
+   10:  jmp 0x23
+   12:  nopw (%rax, %rax)
+   18:  movq %rsp, %rsi
+   1b:  movq %rbx, %rdi
+   1e:  callq sbuf_mem+0
+   23:  movl $0x1000, %edx
+   28:  movq %rsp, %rsi
+   2b:  xorl %edi, %edi
+   2d:  callq read+0
+   32:  movl %eax, %edx
+   34:  testl %eax, %eax
+   36:  jg 0x18
+   38:  movq %rbx, %rdi
+   3b:  callq sbuf_done+0
+   40:  addq $0x1000, %rsp
+   47:  popq %rbx
+   48:  retq

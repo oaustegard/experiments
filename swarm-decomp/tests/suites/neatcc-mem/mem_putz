@@ -1,0 +1,53 @@
+# mem_putz  (global, 159 bytes, 52 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movq 0x10(%rdi), %r13
+   14:  movq 8(%rdi), %rax
+   18:  leaq 1(%r13, %rsi), %rdx
+   1d:  cmpq %rax, %rdx
+   20:  jge 0x59
+   22:  jmp 0x80
+   24:  nopl (%rax)
+   28:  addq %rax, %rax
+   2b:  movq %rax, %rdi
+   2e:  movq %rax, 8(%rbx)
+   32:  callq malloc+0
+   37:  movq %rax, (%rbx)
+   3a:  testq %r13, %r13
+   3d:  jne 0x70
+   3f:  movq %rbp, %rdi
+   42:  callq free+0
+   47:  movq 0x10(%rbx), %r13
+   4b:  movq 8(%rbx), %rax
+   4f:  leaq 1(%r13, %r12), %rdx
+   54:  cmpq %rax, %rdx
+   57:  jl 0x80
+   59:  movq (%rbx), %rbp
+   5c:  testq %rax, %rax
+   5f:  jne 0x28
+   61:  movl $0x200, %edi
+   66:  movl $0x200, %eax
+   6b:  jmp 0x2e
+   6d:  nopl (%rax)
+   70:  movq %r13, %rdx
+   73:  movq %rbp, %rsi
+   76:  movq %rax, %rdi
+   79:  callq memcpy+0
+   7e:  jmp 0x3f
+   80:  movq (%rbx), %rdi
+   83:  movq %r12, %rdx
+   86:  xorl %esi, %esi
+   88:  addq %r13, %rdi
+   8b:  callq memset+0
+   90:  addq %r12, 0x10(%rbx)
+   94:  addq $8, %rsp
+   98:  popq %rbx
+   99:  popq %rbp
+   9a:  popq %r12
+   9c:  popq %r13
+   9e:  retq

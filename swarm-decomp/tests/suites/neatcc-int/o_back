@@ -1,0 +1,31 @@
+# o_back  (global, 96 bytes, 30 instructions)
+    0:  movq (%rip), %rax   <var:ic_n+0>
+    7:  movslq %edi, %rdx
+    a:  pushq %r12
+    c:  movq %rdi, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  cmpq %rax, %rdx
+   14:  jge 0x54
+   16:  movq (%rip), %rcx   <var:ic+0>
+   1d:  leaq (%rdx, %rdx, 4), %rdx
+   21:  leaq (%rax, %rax, 4), %rax
+   25:  leaq (%rcx, %rdx, 8), %rbx
+   29:  leaq (%rcx, %rax, 8), %rbp
+   2d:  jmp 0x39
+   2f:  nop
+   30:  addq $0x28, %rbx
+   34:  cmpq %rbp, %rbx
+   37:  je 0x54
+   39:  testq $0x200, (%rbx)
+   40:  je 0x30
+   42:  movq 0x20(%rbx), %rdi
+   46:  addq $0x28, %rbx
+   4a:  callq free+0
+   4f:  cmpq %rbp, %rbx
+   52:  jne 0x39
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  movq %r12, (%rip)   <var:ic_n+0>
+   5d:  popq %r12
+   5f:  retq

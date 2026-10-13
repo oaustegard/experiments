@@ -1,0 +1,81 @@
+# luaD_hook  (global, 311 bytes, 80 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0xa8, %rsp
+   11:  movq 0xa0(%rdi), %r15
+   18:  testq %r15, %r15
+   1b:  je 0xd4
+   21:  cmpb $0, 0xb(%rdi)
+   25:  movq %rdi, %rbx
+   28:  je 0xd4
+   2e:  movq 0x20(%rdi), %rbp
+   32:  movq 0x30(%rdi), %r9
+   36:  movl %esi, 0x10(%rsp)
+   3a:  movq 0x10(%rdi), %rax
+   3e:  movq 8(%rbp), %rdi
+   42:  movl %edx, 0x40(%rsp)
+   46:  movq %rax, %r13
+   49:  movq %rbp, 0x90(%rsp)
+   51:  movq %rdi, %r12
+   54:  subq %r9, %r13
+   57:  subq %r9, %r12
+   5a:  testl %r8d, %r8d
+   5d:  jne 0xf0
+   63:  movl $0xfffffff7, %r14d
+   69:  movl $8, %ecx
+   6e:  movzwl 0x3e(%rbp), %esi
+   72:  testb $2, %sil
+   76:  jne 0x84
+   78:  cmpq %rdi, %rax
+   7b:  jae 0x84
+   7d:  movq %rdi, 0x10(%rbx)
+   81:  movq %rdi, %rax
+   84:  movq 0x28(%rbx), %rdx
+   88:  subq %rax, %rdx
+   8b:  cmpq $0x140, %rdx
+   92:  jle 0x110
+   94:  addq $0x140, %rax
+   9a:  cmpq %rax, 8(%rbp)
+   9e:  jae 0xa4
+   a0:  movq %rax, 8(%rbp)
+   a4:  orl %esi, %ecx
+   a6:  movb $0, 0xb(%rbx)
+   aa:  leaq 0x10(%rsp), %rsi
+   af:  movq %rbx, %rdi
+   b2:  movw %cx, 0x3e(%rbp)
+   b6:  callq *%r15
+   b9:  movq 0x30(%rbx), %rax
+   bd:  movb $1, 0xb(%rbx)
+   c1:  addq %rax, %r12
+   c4:  addq %r13, %rax
+   c7:  movq %r12, 8(%rbp)
+   cb:  movq %rax, 0x10(%rbx)
+   cf:  andw %r14w, 0x3e(%rbp)
+   d4:  addq $0xa8, %rsp
+   db:  popq %rbx
+   dc:  popq %rbp
+   dd:  popq %r12
+   df:  popq %r13
+   e1:  popq %r14
+   e3:  popq %r15
+   e5:  retq
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  movw %cx, 0x38(%rbp)
+   f4:  movl $0xfffffef7, %r14d
+   fa:  movl $0x108, %ecx
+   ff:  movw %r8w, 0x3a(%rbp)
+  104:  jmp 0x6e
+  109:  nopl (%rax)
+  110:  movl $0x14, %esi
+  115:  movl $1, %edx
+  11a:  movq %rbx, %rdi
+  11d:  movl %ecx, 0xc(%rsp)
+  121:  callq luaD_growstack+0
+  126:  movq 0x10(%rbx), %rax
+  12a:  movzwl 0x3e(%rbp), %esi
+  12e:  movl 0xc(%rsp), %ecx
+  132:  jmp 0x94

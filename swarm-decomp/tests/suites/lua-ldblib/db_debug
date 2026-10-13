@@ -1,0 +1,60 @@
+# db_debug  (static, 233 bytes, 59 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x100, %rsp
+    b:  jmp 0x85
+    d:  nopl (%rax)
+   10:  movq %rsp, %rdi
+   13:  callq strlen+0
+   18:  xorl %r8d, %r8d
+   1b:  movl $0, %ecx   <str:"=(debug command)">
+   20:  movq %rsp, %rsi
+   23:  movq %rax, %rdx
+   26:  movq %rbx, %rdi
+   29:  callq luaL_loadbufferx+0
+   2e:  testl %eax, %eax
+   30:  jne 0x4a
+   32:  xorl %r9d, %r9d
+   35:  xorl %r8d, %r8d
+   38:  xorl %ecx, %ecx
+   3a:  xorl %edx, %edx
+   3c:  xorl %esi, %esi
+   3e:  movq %rbx, %rdi
+   41:  callq lua_pcallk+0
+   46:  testl %eax, %eax
+   48:  je 0x7b
+   4a:  xorl %edx, %edx
+   4c:  movl $0xffffffff, %esi
+   51:  movq %rbx, %rdi
+   54:  callq luaL_tolstring+0
+   59:  movq (%rip), %rdi   <stderr+0>
+   60:  movl $0, %esi   <str:"%s\n">
+   65:  movq %rax, %rdx
+   68:  xorl %eax, %eax
+   6a:  callq fprintf+0
+   6f:  movq (%rip), %rdi   <stderr+0>
+   76:  callq fflush+0
+   7b:  xorl %esi, %esi
+   7d:  movq %rbx, %rdi
+   80:  callq lua_settop+0
+   85:  movl $0xb, %edx
+   8a:  movl $1, %esi
+   8f:  movl $0, %edi   <str:"lua_debug> ">
+   94:  movq (%rip), %rcx   <stderr+0>
+   9b:  callq fwrite+0
+   a0:  movq (%rip), %rdi   <stderr+0>
+   a7:  callq fflush+0
+   ac:  movq (%rip), %rdx   <stdin+0>
+   b3:  movl $0xfa, %esi
+   b8:  movq %rsp, %rdi
+   bb:  callq fgets+0
+   c0:  testq %rax, %rax
+   c3:  je 0xde
+   c5:  cmpl $0x746e6f63, (%rsp)
+   cc:  jne 0x10
+   d2:  cmpw $0xa, 4(%rsp)
+   d8:  jne 0x10
+   de:  addq $0x100, %rsp
+   e5:  xorl %eax, %eax
+   e7:  popq %rbx
+   e8:  retq

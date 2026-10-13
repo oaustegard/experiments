@@ -1,0 +1,43 @@
+# readtok  (static, 136 bytes, 42 instructions)
+    0:  movabsq $0x400010100000600, %rax
+    a:  movzbl (%rdi), %edx
+    d:  cmpb $0x3a, %dl
+   10:  ja 0x2a
+   12:  btq %rdx, %rax
+   16:  jae 0x82
+   18:  cmpb $0x28, %dl
+   1b:  je 0x68
+   1d:  movzbl 1(%rdi), %edx
+   21:  addq $1, %rdi
+   25:  cmpb $0x3a, %dl
+   28:  jbe 0x12
+   2a:  movabsq $0x400010000000600, %rcx
+   34:  movq %rdi, %rax
+   37:  jmp 0x52
+   39:  nopl (%rax)
+   40:  addq $1, %rax
+   44:  movb %dl, (%rsi)
+   46:  addq $1, %rsi
+   4a:  movzbl (%rax), %edx
+   4d:  testb $0xdf, %dl
+   50:  je 0x5d
+   52:  cmpb $0x3a, %dl
+   55:  ja 0x40
+   57:  btq %rdx, %rcx
+   5b:  jae 0x40
+   5d:  movb $0, (%rsi)
+   60:  retq
+   61:  nopl (%rax)
+   68:  movzbl 1(%rdi), %edx
+   6c:  addq $1, %rdi
+   70:  testb %dl, %dl
+   72:  je 0x7d
+   74:  cmpb $0x29, %dl
+   77:  jne 0x68
+   79:  testb %dl, %dl
+   7b:  jne 0x1d
+   7d:  movq %rdi, %rax
+   80:  jmp 0x5d
+   82:  testb %dl, %dl
+   84:  jne 0x2a
+   86:  jmp 0x7d

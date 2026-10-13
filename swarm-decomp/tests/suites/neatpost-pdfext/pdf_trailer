@@ -1,0 +1,41 @@
+# pdf_trailer  (global, 117 bytes, 40 instructions)
+    0:  pushq %rbx
+    1:  movl %esi, %r9d
+    4:  movq %rdi, %rbx
+    7:  callq fn:prevline.isra.0+0
+    c:  movl %eax, %esi
+    e:  nop
+   10:  movslq %esi, %r8
+   13:  xorl %edx, %edx
+   15:  addq %rbx, %r8
+   18:  jmp 0x35
+   1a:  nopw (%rax, %rax)
+   20:  movzbl (%rdx), %edi   <str:"trailer">
+   27:  testb %dil, %dil
+   2a:  je 0x3e
+   2c:  addq $1, %rdx
+   30:  cmpb %dil, %cl
+   33:  jne 0x60
+   35:  movzbl (%r8, %rdx), %ecx
+   3a:  testb %cl, %cl
+   3c:  jne 0x20
+   3e:  movl %r9d, %edx
+   41:  movq %r8, %rdi
+   44:  subl %esi, %edx
+   46:  movl $0xa, %esi
+   4b:  movslq %edx, %rdx
+   4e:  callq memchr+0
+   53:  testq %rax, %rax
+   56:  je 0x6e
+   58:  subq %rbx, %rax
+   5b:  popq %rbx
+   5c:  addl $1, %eax
+   5f:  retq
+   60:  movq %rbx, %rdi
+   63:  callq fn:prevline.isra.0+0
+   68:  movl %eax, %esi
+   6a:  testl %eax, %eax
+   6c:  jns 0x10
+   6e:  movl $0xffffffff, %eax
+   73:  popq %rbx
+   74:  retq

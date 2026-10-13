@@ -1,0 +1,51 @@
+# lua_pushcclosure  (global, 165 bytes, 50 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  testl %edx, %edx
+    c:  jne 0x30
+    e:  movq 0x10(%rdi), %rax
+   12:  movq %rsi, (%rax)
+   15:  addq $0x10, %rax
+   19:  movb $0x16, -8(%rax)
+   1d:  movq %rax, 0x10(%rdi)
+   21:  popq %rbx
+   22:  popq %rbp
+   23:  popq %r12
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  movl %edx, %ebp
+   32:  movl %edx, %esi
+   34:  callq luaF_newCclosure+0
+   39:  movslq %ebp, %rdi
+   3c:  movq 0x10(%rbx), %rsi
+   40:  leal -1(%rbp), %edx
+   43:  movq %rdi, %rcx
+   46:  movq %r12, 0x18(%rax)
+   4a:  subq %rdx, %rdi
+   4d:  shlq $4, %rcx
+   51:  shlq $4, %rdi
+   55:  subq %rcx, %rsi
+   58:  nopl (%rax, %rax)
+   60:  movq -0x10(%rsi, %rcx), %rdx
+   65:  movq %rdx, 0x10(%rax, %rcx)
+   6a:  movzbl -8(%rsi, %rcx), %edx
+   6f:  movb %dl, 0x18(%rax, %rcx)
+   73:  movq %rcx, %rdx
+   76:  subq $0x10, %rcx
+   7a:  cmpq %rdi, %rdx
+   7d:  jne 0x60
+   7f:  movq %rax, (%rsi)
+   82:  addq $0x10, %rsi
+   86:  movb $0x66, -8(%rsi)
+   8a:  movq 0x18(%rbx), %rax
+   8e:  movq %rsi, 0x10(%rbx)
+   92:  cmpq $0, 0x18(%rax)
+   97:  jle 0x21
+   99:  movq %rbx, %rdi
+   9c:  popq %rbx
+   9d:  popq %rbp
+   9e:  popq %r12
+   a0:  jmp luaC_step+0

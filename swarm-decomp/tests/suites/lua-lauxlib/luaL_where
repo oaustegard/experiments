@@ -1,0 +1,31 @@
+# luaL_where  (global, 109 bytes, 30 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x90, %rsp
+    b:  movq %rsp, %rdx
+    e:  callq lua_getstack+0
+   13:  testl %eax, %eax
+   15:  je 0x2f
+   17:  movq %rsp, %rdx
+   1a:  movl $0, %esi   <str:"Sl">
+   1f:  movq %rbx, %rdi
+   22:  callq lua_getinfo+0
+   27:  movl 0x30(%rsp), %ecx
+   2b:  testl %ecx, %ecx
+   2d:  jg 0x50
+   2f:  movq %rbx, %rdi
+   32:  movl $0, %esi   <str:"">
+   37:  xorl %eax, %eax
+   39:  callq lua_pushfstring+0
+   3e:  addq $0x90, %rsp
+   45:  popq %rbx
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  leaq 0x44(%rsp), %rdx
+   55:  movq %rbx, %rdi
+   58:  movl $0, %esi   <str:"%s:%d: ">
+   5d:  xorl %eax, %eax
+   5f:  callq lua_pushfstring+0
+   64:  addq $0x90, %rsp
+   6b:  popq %rbx
+   6c:  retq

@@ -1,0 +1,97 @@
+# jumponcond  (static, 329 bytes, 96 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movl %edx, %r12d
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  movl (%rsi), %eax
+   15:  cmpl $0x11, %eax
+   18:  je 0x70
+   1a:  cmpl $8, %eax
+   1d:  jne 0xe0
+   23:  movl 8(%rbp), %r13d
+   27:  movq %rbx, %rdi
+   2a:  callq luaY_nvarstack+0
+   2f:  cmpl %eax, %r13d
+   32:  jge 0xd0
+   38:  movl 8(%rbp), %esi
+   3b:  shll $0xf, %r12d
+   3f:  shll $0x10, %esi
+   42:  orl %r12d, %esi
+   45:  orl $0x7fc3, %esi
+   4b:  movq %rbx, %rdi
+   4e:  callq luaK_code+0
+   53:  addq $8, %rsp
+   57:  movq %rbx, %rdi
+   5a:  movl $0x7fffff38, %esi
+   5f:  popq %rbx
+   60:  popq %rbp
+   61:  popq %r12
+   63:  popq %r13
+   65:  jmp luaK_code+0
+   6a:  nopw (%rax, %rax)
+   70:  movq (%rdi), %rcx
+   73:  movslq 8(%rsi), %rdx
+   77:  movq 0x40(%rcx), %rax
+   7b:  movl (%rax, %rdx, 4), %eax
+   7e:  movl %eax, %edx
+   80:  andl $0x7f, %edx
+   83:  cmpl $0x33, %edx
+   86:  je 0xe8
+   88:  movzbl 0x44(%rbx), %edx
+   8c:  movzbl 0xc(%rcx), %edi
+   90:  leal 1(%rdx), %esi
+   93:  movl %edx, %eax
+   95:  cmpl %edi, %esi
+   97:  jg 0xb8
+   99:  addl $1, %eax
+   9c:  movb %al, 0x44(%rbx)
+   9f:  movq %rbp, %rsi
+   a2:  movq %rbx, %rdi
+   a5:  callq fn:discharge2reg+0
+   aa:  cmpl $8, (%rbp)
+   ae:  jne 0x38
+   b0:  jmp 0x23
+   b5:  nopl (%rax)
+   b8:  cmpl $0xfe, %esi
+   be:  jg 0x13b
+   c0:  addl $1, %eax
+   c3:  movb %al, 0xc(%rcx)
+   c6:  jmp 0x9c
+   c8:  nopl (%rax, %rax)
+   d0:  subb $1, 0x44(%rbx)
+   d4:  jmp 0x38
+   d9:  nopl (%rax)
+   e0:  movq (%rdi), %rcx
+   e3:  jmp 0x88
+   e5:  nopl (%rax)
+   e8:  movl 0x20(%rdi), %edi
+   eb:  movq 0x58(%rcx), %rcx
+   ef:  leal -1(%rdi), %edx
+   f2:  movslq %edx, %rsi
+   f5:  movsbl (%rcx, %rsi), %ecx
+   f9:  cmpb $0x80, %cl
+   fc:  je 0x130
+   fe:  subl %ecx, 0x28(%rbx)
+  101:  movzbl 0x45(%rbx), %ecx
+  105:  subl $1, %ecx
+  108:  shrl $9, %eax
+  10b:  shll $0xf, %r12d
+  10f:  movb %cl, 0x45(%rbx)
+  112:  movl %eax, %esi
+  114:  xorl $0x8000, %r12d
+  11b:  movl %edx, 0x20(%rbx)
+  11e:  andl $0x7f80, %esi
+  124:  orl %r12d, %esi
+  127:  orl $0x42, %esi
+  12a:  jmp 0x4b
+  12f:  nop
+  130:  subl $1, 0x34(%rbx)
+  134:  movl $0xffffff81, %ecx
+  139:  jmp 0x108
+  13b:  movq 0x10(%rbx), %rdi
+  13f:  movl $0, %esi   <str:"function or expression needs too many registers">
+  144:  callq luaX_syntaxerror+0

@@ -1,0 +1,33 @@
+# io_tmpfile  (static, 111 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $0x10, %esi
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq lua_newuserdatauv+0
+   15:  movl $0, %esi   <str:"FILE*">
+   1a:  movq %rbp, %rdi
+   1d:  movq $0, 8(%rax)
+   25:  movq %rax, %rbx
+   28:  callq luaL_setmetatable+0
+   2d:  movq $0, (%rbx)
+   34:  movq $0, 8(%rbx)   <fn:io_fclose+0>
+   3c:  callq __errno_location+0
+   41:  movl $0, (%rax)
+   47:  callq tmpfile64+0
+   4c:  movq %rax, (%rbx)
+   4f:  testq %rax, %rax
+   52:  je 0x60
+   54:  addq $8, %rsp
+   58:  movl $1, %eax
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  retq
+   60:  popq %rax
+   61:  movq %rbp, %rdi
+   64:  popq %rbx
+   65:  xorl %edx, %edx
+   67:  xorl %esi, %esi
+   69:  popq %rbp
+   6a:  jmp luaL_fileresult+0

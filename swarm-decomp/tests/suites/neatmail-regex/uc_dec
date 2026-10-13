@@ -1,0 +1,51 @@
+# uc_dec  (static, 150 bytes, 50 instructions)
+    0:  movzbl (%rdi), %eax
+    3:  movl %eax, %ecx
+    5:  movl %eax, %edx
+    7:  notl %ecx
+    9:  andl $0xc0, %ecx
+    f:  jne 0x38
+   11:  movzbl 1(%rdi), %ecx
+   15:  testb %cl, %cl
+   17:  je 0x38
+   19:  testb $0x20, %al
+   1b:  je 0x40
+   1d:  movzbl 2(%rdi), %esi
+   21:  testb %sil, %sil
+   24:  je 0x40
+   26:  testb $0x10, %al
+   28:  je 0x50
+   2a:  movzbl 3(%rdi), %edi
+   2e:  testb %dil, %dil
+   31:  je 0x50
+   33:  andl $8, %edx
+   36:  je 0x70
+   38:  retq
+   39:  nopl (%rax)
+   40:  shll $6, %eax
+   43:  andl $0x3f, %ecx
+   46:  andl $0x7c0, %eax
+   4b:  orl %ecx, %eax
+   4d:  retq
+   4e:  nop
+   50:  shll $6, %ecx
+   53:  andl $0x3f, %esi
+   56:  shll $0xc, %eax
+   59:  andl $0xfc0, %ecx
+   5f:  movzwl %ax, %eax
+   62:  orl %esi, %ecx
+   64:  orl %ecx, %eax
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  shll $6, %esi
+   73:  movl %ecx, %edx
+   75:  andl $0x3f, %edi
+   78:  shll $0x12, %eax
+   7b:  shll $0xc, %edx
+   7e:  andl $0xfc0, %esi
+   84:  andl $0x1c0000, %eax
+   89:  andl $0x3f000, %edx
+   8f:  orl %esi, %edx
+   91:  orl %edi, %edx
+   93:  orl %edx, %eax
+   95:  retq

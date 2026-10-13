@@ -1,0 +1,8 @@
+# cp_noninext  (static, 23 bytes, 7 instructions)
+    0:  subq $8, %rsp
+    4:  nopl (%rax)
+    8:  callq cp_next+0
+    d:  cmpl $4, %eax
+   10:  je 8
+   12:  addq $8, %rsp
+   16:  retq

@@ -1,0 +1,43 @@
+# luaF_closeupval  (global, 133 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  subq $0x10, %rsp
+    8:  jmp 0x4f
+    a:  nopw (%rax, %rax)
+   10:  movq 0x10(%rsi), %rax
+   14:  cmpq %rbp, %rax
+   17:  jb 0x58
+   19:  movq 0x20(%rsi), %rcx
+   1d:  movq 0x18(%rsi), %rdx
+   21:  leaq 0x18(%rsi), %r8
+   25:  movq %rdx, (%rcx)
+   28:  testq %rdx, %rdx
+   2b:  je 0x35
+   2d:  movq 0x20(%rsi), %rcx
+   31:  movq %rcx, 0x20(%rdx)
+   35:  movq (%rax), %rcx
+   38:  movq %rcx, 0x18(%rsi)
+   3c:  movzbl 8(%rax), %edx
+   40:  movzbl 9(%rsi), %eax
+   44:  movq %r8, 0x10(%rsi)
+   48:  movb %dl, 0x20(%rsi)
+   4b:  testb $0x18, %al
+   4d:  je 0x60
+   4f:  movq 0x38(%rdi), %rsi
+   53:  testq %rsi, %rsi
+   56:  jne 0x10
+   58:  addq $0x10, %rsp
+   5c:  popq %rbp
+   5d:  retq
+   5e:  nop
+   60:  orl $0x20, %eax
+   63:  andl $0x40, %edx
+   66:  movb %al, 9(%rsi)
+   69:  je 0x4f
+   6b:  testb $0x18, 9(%rcx)
+   6f:  je 0x4f
+   71:  movq %rcx, %rdx
+   74:  movq %rdi, 8(%rsp)
+   79:  callq luaC_barrier_+0
+   7e:  movq 8(%rsp), %rdi
+   83:  jmp 0x4f

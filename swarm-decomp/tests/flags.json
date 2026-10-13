@@ -1,0 +1,12 @@
+{
+  "gcc_version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "cc": "gcc",
+  "opt": "-O2",
+  "common": ["-g0", "-fno-pie", "-fno-stack-protector", "-fno-stack-clash-protection", "-fcf-protection=none",
+             "-U_FORTIFY_SOURCE", "-fno-asynchronous-unwind-tables", "-fno-unwind-tables",
+             "-ffunction-sections", "-fdata-sections", "-fno-ident"],
+  "diagnostics": ["-w", "-Werror=implicit-function-declaration", "-Werror=implicit-int"],
+  "projects": {
+    "lua": {"defines": ["-DLUA_COMPAT_5_3", "-DLUA_USE_LINUX"], "include": ["tests/include/lua"]}
+  }
+}

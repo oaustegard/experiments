@@ -1,0 +1,72 @@
+# lua_getmetatable  (global, 253 bytes, 71 instructions)
+    0:  movq 0x20(%rdi), %rdx
+    4:  movq %rdi, %rax
+    7:  testl %esi, %esi
+    9:  jle 0x70
+    b:  movslq %esi, %rsi
+    e:  shlq $4, %rsi
+   12:  addq (%rdx), %rsi
+   15:  cmpq 0x10(%rdi), %rsi
+   19:  jae 0x89
+   1b:  movzbl 8(%rsi), %edx
+   1f:  andl $0xf, %edx
+   22:  cmpb $5, %dl
+   25:  je 0x9d
+   27:  cmpb $7, %dl
+   2a:  jne 0x58
+   2c:  movq (%rsi), %rdx
+   2f:  movq 0x18(%rdx), %rcx
+   33:  xorl %edx, %edx
+   35:  testq %rcx, %rcx
+   38:  je 0x52
+   3a:  movq 0x10(%rax), %rdx
+   3e:  movq %rcx, (%rdx)
+   41:  addq $0x10, %rdx
+   45:  movb $0x45, -8(%rdx)
+   49:  movq %rdx, 0x10(%rax)
+   4d:  movl $1, %edx
+   52:  movl %edx, %eax
+   54:  retq
+   55:  nopl (%rax)
+   58:  movq 0x18(%rax), %rcx
+   5c:  andl $0xf, %edx
+   5f:  movq 0x1e0(%rcx, %rdx, 8), %rcx
+   67:  jmp 0x33
+   69:  nopl (%rax)
+   70:  cmpl $0xfff0b9d9, %esi
+   76:  jge 0xe0
+   78:  cmpl $0xfff0b9d8, %esi
+   7e:  je 0xf0
+   80:  movq (%rdx), %rdx
+   83:  cmpb $0x66, 8(%rdx)
+   87:  je 0xb0
+   89:  movq 0x18(%rax), %rdi
+   8d:  movzbl 0x58(%rdi), %edx
+   91:  leaq 0x50(%rdi), %rsi
+   95:  andl $0xf, %edx
+   98:  cmpb $5, %dl
+   9b:  jne 0x27
+   9d:  movq (%rsi), %rdx
+   a0:  movq 0x28(%rdx), %rcx
+   a4:  jmp 0x33
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movq (%rdx), %rcx
+   b3:  movl $0xfff0b9d8, %edx
+   b8:  subl %esi, %edx
+   ba:  movzbl 0xa(%rcx), %edi
+   be:  cmpl %edi, %edx
+   c0:  jg 0x89
+   c2:  movl $0xfff0b9d9, %edx
+   c7:  subl %esi, %edx
+   c9:  movslq %edx, %rdx
+   cc:  shlq $4, %rdx
+   d0:  leaq (%rcx, %rdx), %rsi
+   d4:  jmp 0x1b
+   d9:  nopl (%rax)
+   e0:  movslq %esi, %rsi
+   e3:  shlq $4, %rsi
+   e7:  addq 0x10(%rdi), %rsi
+   eb:  jmp 0x1b
+   f0:  movq 0x18(%rdi), %rcx
+   f4:  leaq 0x40(%rcx), %rsi
+   f8:  jmp 0x1b

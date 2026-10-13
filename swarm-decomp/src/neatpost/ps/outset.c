@@ -1,0 +1,3 @@
+void outset(void)
+{
+}

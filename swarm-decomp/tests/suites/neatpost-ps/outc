@@ -1,0 +1,128 @@
+# outc  (global, 544 bytes, 127 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movl (%rip), %esi   <var:o_f+0>
+    f:  callq dev_glyph+0
+   14:  testq %rax, %rax
+   17:  je 0x1b0
+   1d:  movq 0x40(%rax), %rdi
+   21:  movq %rax, %rbx
+   24:  callq dev_fontid+0
+   29:  movl %eax, %edi
+   2b:  callq fn:out_fontup+0
+   30:  movl 0x50(%rbx), %eax
+   33:  testl %eax, %eax
+   35:  jle 0x110
+   3b:  cmpl $1, (%rip)   <var:o_gname+0>
+   42:  movl $1, %ebp
+   47:  sbbl $-1, %ebp
+   4a:  cmpl (%rip), %ebp   <var:o_qtype+0>
+   50:  jne 0x64
+   52:  movl (%rip), %eax   <var:o_h+0>
+   58:  cmpl %eax, (%rip)   <var:o_qend+0>
+   5e:  je 0x190
+   64:  callq fn:o_flush+0
+   69:  movl (%rip), %eax   <var:o_h+0>
+   6f:  movl $0, %edi   <str:"(">
+   74:  movl %eax, (%rip)   <var:o_qh+0>
+   7a:  movl (%rip), %eax   <var:o_v+0>
+   80:  cmpl $1, %ebp
+   83:  je 0x8f
+   85:  movl $2, %ebp
+   8a:  movl $0, %edi   <str:"[">
+   8f:  movl %eax, (%rip)   <var:o_qv+0>
+   95:  xorl %eax, %eax
+   97:  movl %ebp, (%rip)   <var:o_qtype+0>
+   9d:  callq fn:outf+0
+   a2:  cmpl $1, (%rip)   <var:o_qtype+0>
+   a9:  jne 0x150
+   af:  movl 0x50(%rbx), %ebp
+   b2:  leal -0x20(%rbp), %eax
+   b5:  cmpl $0x5e, %eax
+   b8:  ja 0x1e0
+   be:  movl %ebp, %esi
+   c0:  movl $0, %edi   <str:"()\\">
+   c5:  callq strchr+0
+   ca:  movl $0, %esi   <str:"">
+   cf:  movl %ebp, %edx
+   d1:  movl $0, %edi   <str:"%s%c">
+   d6:  testq %rax, %rax
+   d9:  movl $0, %eax   <str:"\\">
+   de:  cmovneq %rax, %rsi
+   e2:  xorl %eax, %eax
+   e4:  callq fn:outf+0
+   e9:  movl 0x48(%rbx), %edx
+   ec:  movq 0x40(%rbx), %rdi
+   f0:  movl (%rip), %esi   <var:o_s+0>
+   f6:  callq font_wid+0
+   fb:  addl (%rip), %eax   <var:o_h+0>
+  101:  movl %eax, (%rip)   <var:o_qend+0>
+  107:  addq $8, %rsp
+  10b:  popq %rbx
+  10c:  popq %rbp
+  10d:  retq
+  10e:  nop
+  110:  movl (%rip), %ebp   <var:o_qtype+0>
+  116:  cmpl $2, %ebp
+  119:  jne 0x168
+  11b:  movl (%rip), %eax   <var:o_h+0>
+  121:  cmpl %eax, (%rip)   <var:o_qend+0>
+  127:  je 0x190
+  129:  callq fn:o_flush+0
+  12e:  movl (%rip), %eax   <var:o_h+0>
+  134:  movl $0, %edi   <str:"[">
+  139:  movl %eax, (%rip)   <var:o_qh+0>
+  13f:  movl (%rip), %eax   <var:o_v+0>
+  145:  jmp 0x8f
+  14a:  nopw (%rax, %rax)
+  150:  movq %rbx, %rsi
+  153:  movl $0, %edi   <str:"/%s">
+  158:  xorl %eax, %eax
+  15a:  callq fn:outf+0
+  15f:  jmp 0xe9
+  161:  nopl (%rax)
+  168:  callq fn:o_flush+0
+  16d:  movl (%rip), %eax   <var:o_h+0>
+  173:  movl $2, %ebp
+  178:  movl $0, %edi   <str:"[">
+  17d:  movl %eax, (%rip)   <var:o_qh+0>
+  183:  movl (%rip), %eax   <var:o_v+0>
+  189:  jmp 0x8f
+  18e:  nop
+  190:  movl (%rip), %eax   <var:o_v+0>
+  196:  cmpl %eax, (%rip)   <var:o_qv+0>
+  19c:  jne 0x64
+  1a2:  jmp 0xa2
+  1a7:  nopw (%rax, %rax)
+  1b0:  movl (%rip), %edi   <var:o_f+0>
+  1b6:  callq dev_font+0
+  1bb:  cmpb $0x20, (%rbp)
+  1bf:  jne 0x1c6
+  1c1:  testq %rax, %rax
+  1c4:  jne 0x210
+  1c6:  movl $1, %eax
+  1cb:  addl %eax, (%rip)   <var:o_h+0>
+  1d1:  addq $8, %rsp
+  1d5:  popq %rbx
+  1d6:  popq %rbp
+  1d7:  retq
+  1d8:  nopl (%rax, %rax)
+  1e0:  movl %ebp, %edx
+  1e2:  movl %ebp, %esi
+  1e4:  movl %ebp, %ecx
+  1e6:  movl $0, %edi   <str:"\\%d%d%d">
+  1eb:  sarl $3, %edx
+  1ee:  sarl $6, %esi
+  1f1:  andl $7, %ecx
+  1f4:  xorl %eax, %eax
+  1f6:  andl $7, %edx
+  1f9:  andl $7, %esi
+  1fc:  callq fn:outf+0
+  201:  jmp 0xe9
+  206:  nopw %cs:(%rax, %rax)
+  210:  movl (%rip), %esi   <var:o_s+0>
+  216:  movq %rax, %rdi
+  219:  callq font_swid+0
+  21e:  jmp 0x1cb

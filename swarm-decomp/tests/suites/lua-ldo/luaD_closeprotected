@@ -1,0 +1,32 @@
+# luaD_closeprotected  (global, 90 bytes, 31 instructions)
+    0:  pushq %r13
+    2:  movl %edx, %eax
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rsi, %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x18, %rsp
+   12:  movq 0x20(%rdi), %r13
+   16:  movzbl 0xb(%rdi), %r12d
+   1b:  movq 0x30(%rbx), %rdx
+   1f:  movl $0, %esi   <fn:closepaux+0>
+   24:  movq %rbx, %rdi
+   27:  movl %eax, 8(%rsp)
+   2b:  addq %rbp, %rdx
+   2e:  movq %rdx, (%rsp)
+   32:  movq %rsp, %rdx
+   35:  callq luaD_rawrunprotected+0
+   3a:  testl %eax, %eax
+   3c:  jne 0x50
+   3e:  movl 8(%rsp), %eax
+   42:  addq $0x18, %rsp
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  popq %r12
+   4a:  popq %r13
+   4c:  retq
+   4d:  nopl (%rax)
+   50:  movq %r13, 0x20(%rbx)
+   54:  movb %r12b, 0xb(%rbx)
+   58:  jmp 0x1b

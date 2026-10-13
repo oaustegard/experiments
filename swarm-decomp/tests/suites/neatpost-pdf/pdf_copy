@@ -1,0 +1,50 @@
+# pdf_copy  (static, 156 bytes, 49 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movl %edx, %ebx
+    c:  callq pdf_ws+0
+   11:  movl %r12d, %esi
+   14:  movq %rbp, %rdi
+   17:  addl %eax, %ebx
+   19:  movl %ebx, %edx
+   1b:  callq pdf_len+0
+   20:  cmpl $0xfff, %eax
+   25:  ja 0x90
+   27:  cltq
+   29:  movq %rax, %rcx
+   2c:  movslq %ebx, %rbx
+   2f:  movl %ecx, %r8d
+   32:  movl $0, %edi   <var:buf+0>
+   37:  leaq (%rbp, %rbx), %rsi
+   3c:  cmpl $8, %ecx
+   3f:  jb 0x47
+   41:  shrl $3, %ecx
+   44:  rep movsq (%rsi), (%rdi)
+   47:  xorl %edx, %edx
+   49:  testb $4, %r8b
+   4d:  je 0x58
+   4f:  movl (%rsi), %edx
+   51:  movl %edx, (%rdi)
+   53:  movl $4, %edx
+   58:  testb $2, %r8b
+   5c:  je 0x6a
+   5e:  movzwl (%rsi, %rdx), %ecx
+   62:  movw %cx, (%rdi, %rdx)
+   66:  addq $2, %rdx
+   6a:  andl $1, %r8d
+   6e:  je 0x77
+   70:  movzbl (%rsi, %rdx), %ecx
+   74:  movb %cl, (%rdi, %rdx)
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  movb $0, (%rax)   <var:buf+0>
+   80:  movl $0, %eax   <var:buf+0>
+   85:  popq %r12
+   87:  retq
+   88:  nopl (%rax, %rax)
+   90:  movl $0xfff, %ecx
+   95:  movl $0xfff, %eax
+   9a:  jmp 0x2c

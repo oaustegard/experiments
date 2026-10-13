@@ -1,0 +1,26 @@
+# loc_isread.isra.0  (static, 94 bytes, 25 instructions)
+    0:  movl (%rip), %eax   <var:ic_i+0>
+    6:  movq (%rip), %rsi   <var:ic_n+0>
+    d:  leal 1(%rax), %edx
+   10:  movslq %edx, %rdx
+   13:  cmpq %rsi, %rdx
+   16:  jge 0x4e
+   18:  movq (%rip), %rax   <var:ic+0>
+   1f:  leaq (%rdx, %rdx, 4), %rcx
+   23:  movq (%rip), %rdi   <var:ic_bbeg+0>
+   2a:  leaq (%rax, %rcx, 8), %rcx
+   2e:  jmp 0x47
+   30:  movq (%rcx), %rax
+   33:  testl $0x200000, %eax
+   38:  jne 0x58
+   3a:  addq $1, %rdx
+   3e:  addq $0x28, %rcx
+   42:  cmpq %rsi, %rdx
+   45:  je 0x4e
+   47:  cmpq $0, (%rdi, %rdx, 8)
+   4c:  je 0x30
+   4e:  xorl %eax, %eax
+   50:  retq
+   51:  nopl (%rax)
+   58:  andl $0x10000, %eax
+   5d:  retq

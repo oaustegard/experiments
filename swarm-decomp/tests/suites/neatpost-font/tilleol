@@ -1,0 +1,33 @@
+# tilleol  (static, 99 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  callq fgetc+0
+   11:  cmpl $-1, %eax
+   14:  jne 0x33
+   16:  jmp 0x38
+   18:  nopl (%rax, %rax)
+   20:  movb %al, (%rbx)
+   22:  movq %rbp, %rdi
+   25:  addq $1, %rbx
+   29:  callq fgetc+0
+   2e:  cmpl $-1, %eax
+   31:  je 0x38
+   33:  cmpl $0xa, %eax
+   36:  jne 0x20
+   38:  movb $0, (%rbx)
+   3b:  cmpl $-1, %eax
+   3e:  jne 0x50
+   40:  addq $8, %rsp
+   44:  popq %rbx
+   45:  popq %rbp
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  addq $8, %rsp
+   54:  movq %rbp, %rsi
+   57:  movl $0xa, %edi
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  jmp ungetc+0

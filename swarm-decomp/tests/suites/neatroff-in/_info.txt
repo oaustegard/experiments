@@ -1,0 +1,32 @@
+# neatroff-in: translation unit in of neatroff
+# write each function as src/neatroff/in/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+in_pop	static	152 bytes
+in_push	global	274 bytes
+in_so	global	341 bytes
+in_lf	global	98 bytes
+in_queue	global	65 bytes
+in_nx	global	50 bytes
+in_ex	global	61 bytes
+in_next	global	249 bytes
+in_back	global	45 bytes
+in_top	global	46 bytes
+in_arg	global	86 bytes
+in_nargs	global	89 bytes
+in_shift	global	104 bytes
+in_filename	global	62 bytes
+in_lnum	global	51 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+buf	static	8 bytes	.bss.buf
+    (zero-initialised)
+nfiles	static	4 bytes	.bss.nfiles
+    (zero-initialised)
+files	static	16384 bytes	.bss.files
+    (zero-initialised)
+cfile	static	4 bytes	.bss.cfile
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+errmsg fclose fopen free getc memcpy memmove snprintf stdin strcpy strlen xmalloc

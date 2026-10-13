@@ -1,0 +1,21 @@
+# src_done  (global, 65 bytes, 20 instructions)
+    0:  movslq (%rip), %rax   <var:nmacros+0>
+    7:  testl %eax, %eax
+    9:  jle 0x40
+    b:  pushq %rbp
+    c:  leaq (%rax, %rax, 4), %rax
+   10:  pushq %rbx
+   11:  leaq (, %rax, 8), %rbp   <var:macros+32>
+   19:  movl $0, %ebx   <var:macros+32>
+   1e:  subq $8, %rsp
+   22:  nopw (%rax, %rax)
+   28:  movq (%rbx), %rdi
+   2b:  addq $0x28, %rbx
+   2f:  callq free+0
+   34:  cmpq %rbp, %rbx
+   37:  jne 0x28
+   39:  addq $8, %rsp
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  retq
+   40:  retq

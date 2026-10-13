@@ -1,0 +1,29 @@
+# sdup  (static, 85 bytes, 28 instructions)
+    0:  pushq %rbp
+    1:  movl $0xa, %esi
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  subq $8, %rsp
+    e:  callq strchr+0
+   13:  testq %rax, %rax
+   16:  je 0x48
+   18:  subq %rbp, %rax
+   1b:  leal 1(%rax), %edi
+   1e:  movq %rax, %rbx
+   21:  movslq %edi, %rdi
+   24:  movslq %ebx, %rbx
+   27:  callq malloc+0
+   2c:  movq %rbx, %rdx
+   2f:  movq %rbp, %rsi
+   32:  movq %rax, %rdi
+   35:  callq memcpy+0
+   3a:  movb $0, (%rax, %rbx)
+   3e:  addq $8, %rsp
+   42:  popq %rbx
+   43:  popq %rbp
+   44:  retq
+   45:  nopl (%rax)
+   48:  movq %rbp, %rdi
+   4b:  callq strlen+0
+   50:  addq %rbp, %rax
+   53:  jmp 0x18

@@ -1,0 +1,92 @@
+# macro_define  (static, 419 bytes, 91 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  pushq %rbx
+    8:  addq $-0x80, %rsp
+    c:  movq %rsp, %rdi
+    f:  callq fn:read_word+0
+   14:  movzbl (%rsp), %r14d
+   19:  movl (, %r14, 4), %r13d   <var:mhead+0>
+   21:  testl %r13d, %r13d
+   24:  jle 0x53
+   26:  movl %r13d, %r12d
+   29:  movslq %r12d, %rbp
+   2c:  movq %rsp, %rdi
+   2f:  imulq $0x188c, %rbp, %rbx
+   36:  leaq (%rbx), %rsi   <var:macros+0>
+   3d:  callq strcmp+0
+   42:  testl %eax, %eax
+   44:  je 0x9b
+   46:  movl (, %rbp, 4), %r12d   <var:mnext+0>
+   4e:  testl %r12d, %r12d
+   51:  jg 0x29
+   53:  movl (%rip), %r12d   <var:mcount+0>
+   5a:  cmpl $0xfff, %r12d
+   61:  jg 0x197
+   67:  movslq %r12d, %rbp
+   6a:  leal 1(%r12), %eax
+   6f:  movq %rsp, %rsi
+   72:  imulq $0x188c, %rbp, %rbx
+   79:  movl %eax, (%rip)   <var:mcount+0>
+   7f:  leaq (%rbx), %rdi   <var:macros+0>
+   86:  callq strcpy+0
+   8b:  movl %r13d, (, %rbp, 4)   <var:mnext+0>
+   93:  movl %r12d, (, %r14, 4)   <var:mhead+0>
+   9b:  imulq $0x188c, %rbp, %r13
+   a2:  movq (%rip), %r12   <var:buf+0>
+   a9:  movq (%rip), %rax   <var:cur+0>
+   b0:  movq $0, (%r13)   <var:macros+6272>
+   bb:  movl $0, (%r13)   <var:macros+6280>
+   c6:  cmpb $0x28, (%r12, %rax)
+   cb:  je 0xe8
+   cd:  subq $-0x80, %rsp
+   d1:  leaq (%rbx), %rdi   <var:macros+128>
+   d8:  popq %rbx
+   d9:  popq %rbp
+   da:  popq %r12
+   dc:  popq %r13
+   de:  popq %r14
+   e0:  jmp fn:read_tilleol+0
+   e5:  nopl (%rax)
+   e8:  addq $1, %rax
+   ec:  movq %rax, (%rip)   <var:cur+0>
+   f3:  callq fn:jumpws+0
+   f8:  movq (%rip), %rdx   <var:cur+0>
+   ff:  movq (%rip), %r14   <var:len+0>
+  106:  movq %rdx, %rax
+  109:  cmpq %r14, %rdx
+  10c:  jl 0x188
+  10e:  nop
+  110:  imulq $0x188c, %rbp, %rbp
+  117:  addq $1, %rax
+  11b:  movq %rax, (%rip)   <var:cur+0>
+  122:  movl $1, (%rbp)   <var:macros+6276>
+  12c:  jmp 0xcd
+  12e:  nop
+  130:  movslq (%r13), %rax   <var:macros+6272>
+  137:  leal 1(%rax), %ecx
+  13a:  addq $0x11, %rax
+  13e:  shlq $7, %rax
+  142:  movl %ecx, (%r13)   <var:macros+6272>
+  149:  leaq (%rbx, %rax), %rdi   <var:macros+0>
+  151:  callq fn:readarg+0
+  156:  callq fn:jumpws+0
+  15b:  movq (%rip), %rax   <var:cur+0>
+  162:  cmpb $0x2c, (%r12, %rax)
+  167:  jne 0x110
+  169:  addq $1, %rax
+  16d:  movq %rax, (%rip)   <var:cur+0>
+  174:  callq fn:jumpws+0
+  179:  movq (%rip), %rdx   <var:cur+0>
+  180:  movq %rdx, %rax
+  183:  cmpq %r14, %rdx
+  186:  jge 0x110
+  188:  cmpb $0x29, (%r12, %rdx)
+  18d:  jne 0x130
+  18f:  movq %rdx, %rax
+  192:  jmp 0x110
+  197:  movl $0, %edi   <str:"nomem: NDEFS reached!\n">
+  19c:  xorl %eax, %eax
+  19e:  callq die+0

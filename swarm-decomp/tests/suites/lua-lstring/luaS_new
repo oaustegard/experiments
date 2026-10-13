@@ -1,0 +1,54 @@
+# luaS_new  (global, 165 bytes, 53 instructions)
+    0:  movl %esi, %edx
+    2:  movl %esi, %eax
+    4:  pushq %r14
+    6:  imulq $0x3521cfb3, %rdx, %rdx
+    d:  pushq %r13
+    f:  pushq %r12
+   11:  pushq %rbp
+   12:  movq %rsi, %rbp
+   15:  shrq $0x20, %rdx
+   19:  pushq %rbx
+   1a:  movq %rdi, %rbx
+   1d:  subl %edx, %eax
+   1f:  shrl $1, %eax
+   21:  addl %edx, %eax
+   23:  movl %esi, %edx
+   25:  shrl $5, %eax
+   28:  imull $0x35, %eax, %eax
+   2b:  subl %eax, %edx
+   2d:  movq %rdx, %rax
+   30:  movq 0x18(%rdi), %rdx
+   34:  movq %rbp, %rdi
+   37:  shlq $4, %rax
+   3b:  leaq 0x228(%rdx, %rax), %r13
+   43:  movq (%r13), %r12
+   47:  leaq 0x18(%r12), %rsi
+   4c:  callq strcmp+0
+   51:  testl %eax, %eax
+   53:  je 0x8a
+   55:  movq 8(%r13), %r14
+   59:  movq %rbp, %rdi
+   5c:  leaq 0x18(%r14), %rsi
+   60:  callq strcmp+0
+   65:  testl %eax, %eax
+   67:  je 0xa0
+   69:  movq %r12, 8(%r13)
+   6d:  movq %rbp, %rdi
+   70:  callq strlen+0
+   75:  movq %rbp, %rsi
+   78:  movq %rbx, %rdi
+   7b:  movq %rax, %rdx
+   7e:  callq luaS_newlstr+0
+   83:  movq %rax, (%r13)
+   87:  movq %rax, %r12
+   8a:  popq %rbx
+   8b:  movq %r12, %rax
+   8e:  popq %rbp
+   8f:  popq %r12
+   91:  popq %r13
+   93:  popq %r14
+   95:  retq
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movq %r14, %r12
+   a3:  jmp 0x8a

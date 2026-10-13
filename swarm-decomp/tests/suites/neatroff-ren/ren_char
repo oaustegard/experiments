@@ -1,0 +1,26 @@
+# ren_char  (global, 71 bytes, 25 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rdx, %rbp
+    9:  pushq %rbx
+    a:  movq %rsi, %rbx
+    d:  addq $-0x80, %rsp
+   11:  movq %rsp, %rdi
+   14:  callq charnext+0
+   19:  testl %eax, %eax
+   1b:  js 0x40
+   1d:  movq %rbp, %rcx
+   20:  movq %rbx, %rdx
+   23:  movq %rsp, %rsi
+   26:  movq %r12, %rdi
+   29:  callq fn:ren_put+0
+   2e:  xorl %eax, %eax
+   30:  subq $-0x80, %rsp
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  popq %r12
+   38:  retq
+   39:  nopl (%rax)
+   40:  movl $0xffffffff, %eax
+   45:  jmp 0x30

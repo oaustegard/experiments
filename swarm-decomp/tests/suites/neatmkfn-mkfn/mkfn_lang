@@ -1,0 +1,45 @@
+# mkfn_lang  (global, 140 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq (%rip), %rbp   <var:mkfn_langs+0>
+    d:  testq %rbp, %rbp
+   10:  je 0x80
+   12:  movq %rdi, %rbx
+   15:  movq %rbp, %rsi
+   18:  movl $0, %edi   <str:"list">
+   1d:  callq strcmp+0
+   22:  testq %rbx, %rbx
+   25:  je 0x60
+   27:  testl %eax, %eax
+   29:  je 0x69
+   2b:  movl $0x20, %esi
+   30:  movq %rbx, %rdi
+   33:  callq strchr+0
+   38:  testq %rax, %rax
+   3b:  je 0x40
+   3d:  movb $0, (%rax)
+   40:  movq %rbx, %rsi
+   43:  movq %rbp, %rdi
+   46:  callq strstr+0
+   4b:  testq %rax, %rax
+   4e:  setne %al
+   51:  addq $8, %rsp
+   55:  movzbl %al, %eax
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  movl $0, %ebx   <str:"">
+   65:  testl %eax, %eax
+   67:  jne 0x40
+   69:  movq %rbx, %rdi
+   6c:  callq puts+0
+   71:  movq (%rip), %rbp   <var:mkfn_langs+0>
+   78:  jmp 0x2b
+   7a:  nopw (%rax, %rax)
+   80:  addq $8, %rsp
+   84:  movl $1, %eax
+   89:  popq %rbx
+   8a:  popq %rbp
+   8b:  retq

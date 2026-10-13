@@ -1,0 +1,39 @@
+# krdef  (static, 137 bytes, 38 instructions)
+    0:  pushq %r14
+    2:  imulq $0x131c, %rdi, %r14
+    9:  addq (%rip), %r14   <var:funcs+0>
+   10:  pushq %r13
+   12:  pushq %r12
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  movl 0x294(%r14), %eax
+   1d:  testl %eax, %eax
+   1f:  jle 0x80
+   21:  movq %rsi, %r13
+   24:  leaq 0x29c(%r14), %rbp
+   2b:  movq %r14, %r12
+   2e:  xorl %ebx, %ebx
+   30:  jmp 0x4c
+   32:  nopw (%rax, %rax)
+   38:  addl $1, %ebx
+   3b:  subq $-0x80, %rbp
+   3f:  addq $0x14, %r12
+   43:  cmpl %ebx, 0x294(%r14)
+   4a:  jle 0x80
+   4c:  movq %r13, %rsi
+   4f:  movq %rbp, %rdi
+   52:  callq strcmp+0
+   57:  testl %eax, %eax
+   59:  jne 0x38
+   5b:  movdqu 0x100(%r13), %xmm0
+   64:  movups %xmm0, (%r12)
+   69:  movl 0x110(%r13), %eax
+   70:  movl %eax, 0x10(%r12)
+   75:  jmp 0x38
+   77:  nopw (%rax, %rax)
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  popq %r14
+   88:  retq

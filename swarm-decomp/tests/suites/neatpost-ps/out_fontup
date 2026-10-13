@@ -1,0 +1,66 @@
+# out_fontup  (static, 242 bytes, 65 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl %edi, %ebx
+    4:  subq $0x48, %rsp
+    8:  movl (%rip), %eax   <var:o_m+0>
+    e:  cmpl (%rip), %eax   <var:p_m+0>
+   14:  je 0x3a
+   16:  movzbl %al, %ecx
+   19:  movzbl %ah, %edx
+   1c:  sarl $0x10, %eax
+   1f:  movl $0, %edi   <str:"%d %d %d rgb\n">
+   24:  movzbl %al, %esi
+   27:  xorl %eax, %eax
+   29:  callq out+0
+   2e:  movl (%rip), %eax   <var:o_m+0>
+   34:  movl %eax, (%rip)   <var:p_m+0>
+   3a:  cmpl %ebx, (%rip)   <var:p_f+0>
+   40:  jne 0x50
+   42:  movl (%rip), %eax   <var:p_s+0>
+   48:  cmpl %eax, (%rip)   <var:o_s+0>
+   4e:  je 0xb5
+   50:  movl %ebx, %edi
+   52:  callq dev_font+0
+   57:  movq %rax, %rdi
+   5a:  movq %rax, %rbp
+   5d:  callq font_name+0
+   62:  movl (%rip), %esi   <var:o_s+0>
+   68:  movl $0, %edi   <str:"%d /%s f\n">
+   6d:  movq %rax, %rdx
+   70:  xorl %eax, %eax
+   72:  callq out+0
+   77:  movl (%rip), %eax   <var:o_s+0>
+   7d:  movq %rbp, %rdi
+   80:  movl %ebx, (%rip)   <var:p_f+0>
+   86:  movl %eax, (%rip)   <var:p_s+0>
+   8c:  callq font_name+0
+   91:  movl $0, %esi   <str:" %s ">
+   96:  movq %rsp, %rdi
+   99:  movq %rax, %rdx
+   9c:  xorl %eax, %eax
+   9e:  callq sprintf+0
+   a3:  movq %rsp, %rsi
+   a6:  movl $0, %edi   <var:o_fonts+0>
+   ab:  callq strstr+0
+   b0:  testq %rax, %rax
+   b3:  je 0xc0
+   b5:  addq $0x48, %rsp
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  retq
+   bc:  nopl (%rax)
+   c0:  movq %rbp, %rdi
+   c3:  callq font_name+0
+   c8:  movl $0, %edi   <var:o_fonts+0>
+   cd:  movq %rax, %rbx
+   d0:  callq strlen+0
+   d5:  movq %rbx, %rdx
+   d8:  movl $0, %esi   <str:"%s ">
+   dd:  leaq (%rax), %rdi   <var:o_fonts+0>
+   e4:  xorl %eax, %eax
+   e6:  callq sprintf+0
+   eb:  addq $0x48, %rsp
+   ef:  popq %rbx
+   f0:  popq %rbp
+   f1:  retq

@@ -1,0 +1,43 @@
+# tr_pmll  (static, 139 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  cmpq $0, 8(%rdi)
+   10:  je 0x32
+   12:  movl $0, %edi   <str:".pmll">
+   17:  callq map+0
+   1c:  movl %eax, %edi
+   1e:  callq nreg+0
+   23:  movq 8(%rbx), %rdi
+   27:  xorl %edx, %edx
+   29:  movl (%rax), %esi
+   2b:  callq eval_re+0
+   30:  movl %eax, %ebp
+   32:  movl $0, %edi   <str:".pmll">
+   37:  callq map+0
+   3c:  movl %eax, %edi
+   3e:  callq nreg+0
+   43:  cmpq $0, 0x10(%rbx)
+   48:  movl %ebp, (%rax)
+   4a:  movl $0x64, %ebp
+   4f:  je 0x71
+   51:  movl $0, %edi   <str:".pmllcost">
+   56:  callq map+0
+   5b:  movl %eax, %edi
+   5d:  callq nreg+0
+   62:  movq 0x10(%rbx), %rdi
+   66:  xorl %edx, %edx
+   68:  movl (%rax), %esi
+   6a:  callq eval_re+0
+   6f:  movl %eax, %ebp
+   71:  movl $0, %edi   <str:".pmllcost">
+   76:  callq map+0
+   7b:  movl %eax, %edi
+   7d:  callq nreg+0
+   82:  movl %ebp, (%rax)
+   84:  addq $8, %rsp
+   88:  popq %rbx
+   89:  popq %rbp
+   8a:  retq

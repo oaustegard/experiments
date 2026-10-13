@@ -1,0 +1,150 @@
+# otf_gsubtype3.part.0  (static, 590 bytes, 149 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  xorl %esi, %esi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  xorl %ebp, %ebp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $0x28, %rsp
+   18:  movq %rdi, 0x18(%rsp)
+   1d:  movzwl 2(%rdi), %edi
+   21:  rolw $8, %di
+   25:  movzwl %di, %edi
+   28:  addq %rbx, %rdi
+   2b:  callq fn:coverage+0
+   30:  movq %rax, %r13
+   33:  movzwl 4(%rbx), %eax
+   37:  rolw $8, %ax
+   3b:  movzwl %ax, %eax
+   3e:  movl %eax, 0x14(%rsp)
+   42:  testl %eax, %eax
+   44:  je 0x206
+   4a:  nopw (%rax, %rax)
+   50:  movq 0x18(%rsp), %rcx
+   55:  movzwl 6(%rcx, %rbp, 2), %eax
+   5a:  rolw $8, %ax
+   5e:  movzwl %ax, %eax
+   61:  addq %rcx, %rax
+   64:  movzwl (%rax), %esi
+   67:  movl %esi, %edx
+   69:  rolw $8, %dx
+   6d:  testw %si, %si
+   70:  je 0x1f8
+   76:  movzwl %dx, %edx
+   79:  leaq 2(%rax), %rbx
+   7d:  subl $1, %edx
+   80:  leaq 4(%rax, %rdx, 2), %rax
+   85:  movq %rax, 8(%rsp)
+   8a:  nopw (%rax, %rax)
+   90:  testq %r15, %r15
+   93:  je 0x238
+   99:  movl 0xc4(%r15), %esi
+   a0:  addl 0xc0(%r15), %esi
+   a7:  xorl %eax, %eax
+   a9:  xorl %r12d, %r12d
+   ac:  addl 0xc8(%r15), %esi
+   b3:  movl $0, %edi   <str:"%d">
+   b8:  addl $1, %esi
+   bb:  callq printf+0
+   c0:  movl 0xc0(%r15), %esi
+   c7:  testl %esi, %esi
+   c9:  jle 0xed
+   cb:  nopl (%rax, %rax)
+   d0:  movl (%r15, %r12, 4), %esi
+   d4:  movl $0, %edi   <str:" =@%d">
+   d9:  xorl %eax, %eax
+   db:  addq $1, %r12
+   df:  callq printf+0
+   e4:  cmpl %r12d, 0xc0(%r15)
+   eb:  jg 0xd0
+   ed:  movl 0xcc(%r15), %ecx
+   f4:  xorl %r12d, %r12d
+   f7:  testl %ecx, %ecx
+   f9:  jle 0x11e
+   fb:  nopl (%rax, %rax)
+  100:  movl 0x40(%r15, %r12, 4), %esi
+  105:  movl $0, %edi   <str:" =@%d">
+  10a:  xorl %eax, %eax
+  10c:  addq $1, %r12
+  110:  callq printf+0
+  115:  cmpl %r12d, 0xcc(%r15)
+  11c:  jg 0x100
+  11e:  movslq (%r13, %rbp, 4), %rsi
+  123:  movl (%rip), %edx   <mkfn_byname+0>
+  129:  movq %rsi, %r14
+  12c:  shlq $6, %rsi
+  130:  leaq (%rsi), %r12   <var:glyph_name+0>
+  137:  testl %edx, %edx
+  139:  jne 0x163
+  13b:  movq %r12, %rdi
+  13e:  callq strlen+0
+  143:  cmpq $3, %rax
+  147:  jbe 0x163
+  149:  movl %r14d, %edx
+  14c:  movl $0, %esi   <str:"%d">
+  151:  movl $0, %edi   <var:str+0>
+  156:  xorl %eax, %eax
+  158:  callq sprintf+0
+  15d:  movl $0, %r12d   <var:str+0>
+  163:  movq %r12, %rsi
+  166:  movl $0, %edi   <str:" -%s">
+  16b:  xorl %eax, %eax
+  16d:  callq printf+0
+  172:  movzwl (%rbx), %edx
+  175:  movl (%rip), %eax   <mkfn_byname+0>
+  17b:  movl %edx, %r12d
+  17e:  rolw $8, %r12w
+  183:  testl %eax, %eax
+  185:  jne 0x220
+  18b:  movzwl %r12w, %esi
+  18f:  shlq $6, %rsi
+  193:  leaq (%rsi), %r14   <var:glyph_name+0>
+  19a:  movq %r14, %rdi
+  19d:  callq strlen+0
+  1a2:  cmpq $3, %rax
+  1a6:  jbe 0x1c3
+  1a8:  movzwl %r12w, %edx
+  1ac:  movl $0, %esi   <str:"%d">
+  1b1:  movl $0, %edi   <var:str+0>
+  1b6:  xorl %eax, %eax
+  1b8:  callq sprintf+0
+  1bd:  movl $0, %r14d   <var:str+0>
+  1c3:  movq %r14, %rsi
+  1c6:  movl $0, %edi   <str:" +%s">
+  1cb:  xorl %eax, %eax
+  1cd:  addq $2, %rbx
+  1d1:  callq printf+0
+  1d6:  movl $1, %esi
+  1db:  movq %r15, %rdi
+  1de:  callq fn:gctx_lookahead+0
+  1e3:  movl $0xa, %edi
+  1e8:  callq putchar+0
+  1ed:  cmpq %rbx, 8(%rsp)
+  1f2:  jne 0x90
+  1f8:  addq $1, %rbp
+  1fc:  cmpl %ebp, 0x14(%rsp)
+  200:  jg 0x50
+  206:  addq $0x28, %rsp
+  20a:  movq %r13, %rdi
+  20d:  popq %rbx
+  20e:  popq %rbp
+  20f:  popq %r12
+  211:  popq %r13
+  213:  popq %r14
+  215:  popq %r15
+  217:  jmp free+0
+  21c:  nopl (%rax)
+  220:  movzwl %r12w, %edx
+  224:  shlq $6, %rdx
+  228:  leaq (%rdx), %r14   <var:glyph_name+0>
+  22f:  jmp 0x1c3
+  231:  nopl (%rax)
+  238:  movl $2, %esi
+  23d:  movl $0, %edi   <str:"%d">
+  242:  xorl %eax, %eax
+  244:  callq printf+0
+  249:  jmp 0x11e

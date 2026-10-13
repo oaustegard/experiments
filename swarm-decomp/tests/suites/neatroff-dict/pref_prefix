@@ -1,0 +1,72 @@
+# pref_prefix  (global, 198 bytes, 71 instructions)
+    0:  pushq %r15
+    2:  movq %rdi, %r15
+    5:  pushq %r14
+    7:  movq %rdx, %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  movq %rsi, %rbp
+   12:  pushq %rbx
+   13:  subq $8, %rsp
+   17:  movzbl (%rsi), %esi
+   1a:  movzbl 1(%rbp), %eax
+   1e:  movq (%rdi), %rdi
+   21:  shll $5, %esi
+   24:  orl %eax, %esi
+   26:  movl %esi, %edx
+   28:  movl %esi, %eax
+   2a:  imulq $0x401005, %rdx, %rdx
+   31:  shrq $0x20, %rdx
+   35:  subl %edx, %eax
+   37:  shrl $1, %eax
+   39:  addl %edx, %eax
+   3b:  shrl $9, %eax
+   3e:  movl %eax, %edx
+   40:  shll $0xa, %edx
+   43:  subl %eax, %edx
+   45:  subl %edx, %esi
+   47:  callq iset_get+0
+   4c:  movq %rax, %r12
+   4f:  testq %rax, %rax
+   52:  jne 0x85
+   54:  jmp 0x98
+   56:  nopw %cs:(%rax, %rax)
+   60:  movslq %eax, %rbx
+   63:  movq 8(%r15), %rax
+   67:  movq (%rax, %rbx, 8), %r13
+   6b:  movq %r13, %rdi
+   6e:  callq strlen+0
+   73:  movq %rbp, %rsi
+   76:  movq %r13, %rdi
+   79:  movslq %eax, %rdx
+   7c:  callq strncmp+0
+   81:  testl %eax, %eax
+   83:  je 0xb0
+   85:  movl (%r14), %eax
+   88:  addl $1, %eax
+   8b:  movl %eax, (%r14)
+   8e:  cltq
+   90:  movl (%r12, %rax, 4), %eax
+   94:  testl %eax, %eax
+   96:  jns 0x60
+   98:  addq $8, %rsp
+   9c:  movl $0xffffffff, %eax
+   a1:  popq %rbx
+   a2:  popq %rbp
+   a3:  popq %r12
+   a5:  popq %r13
+   a7:  popq %r14
+   a9:  popq %r15
+   ab:  retq
+   ac:  nopl (%rax)
+   b0:  movq 0x10(%r15), %rax
+   b4:  movl (%rax, %rbx, 4), %eax
+   b7:  addq $8, %rsp
+   bb:  popq %rbx
+   bc:  popq %rbp
+   bd:  popq %r12
+   bf:  popq %r13
+   c1:  popq %r14
+   c3:  popq %r15
+   c5:  retq

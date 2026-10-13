@@ -1,0 +1,49 @@
+# outelf_str  (static, 165 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  movq %rsi, %rdi
+    8:  pushq %r12
+    a:  pushq %rbp
+    b:  movq %rsi, %rbp
+    e:  pushq %rbx
+    f:  subq $8, %rsp
+   13:  callq strlen+0
+   18:  movl 0x27c90(%r13), %r12d
+   1f:  movq 0x27c88(%r13), %rdi
+   26:  leal 1(%rax), %ebx
+   29:  movslq %r12d, %rdx
+   2c:  jmp 0x57
+   2e:  nop
+   30:  addl %eax, %eax
+   32:  movslq %eax, %rsi
+   35:  movl %eax, 0x27c94(%r13)
+   3c:  callq realloc+0
+   41:  movq %rax, 0x27c88(%r13)
+   48:  movq %rax, %rdi
+   4b:  testq %rax, %rax
+   4e:  je 0x9b
+   50:  movslq 0x27c90(%r13), %rdx
+   57:  movl 0x27c94(%r13), %eax
+   5e:  leal (%rbx, %rdx), %ecx
+   61:  cmpl %eax, %ecx
+   63:  jle 0x78
+   65:  testl %eax, %eax
+   67:  jne 0x30
+   69:  movl $0x400, %esi
+   6e:  movl $0x400, %eax
+   73:  jmp 0x35
+   75:  nopl (%rax)
+   78:  addq %rdx, %rdi
+   7b:  movq %rbp, %rsi
+   7e:  movslq %ebx, %rdx
+   81:  callq memcpy+0
+   86:  addl %ebx, 0x27c90(%r13)
+   8d:  addq $8, %rsp
+   91:  movl %r12d, %eax
+   94:  popq %rbx
+   95:  popq %rbp
+   96:  popq %r12
+   98:  popq %r13
+   9a:  retq
+   9b:  movl $0, %edi   <str:"neatld: failed to allocate oe->symstr">
+   a0:  callq fn:die+0

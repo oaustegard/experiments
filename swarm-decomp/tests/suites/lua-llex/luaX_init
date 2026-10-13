@@ -1,0 +1,28 @@
+# luaX_init  (global, 96 bytes, 27 instructions)
+    0:  pushq %r12
+    2:  movl $4, %edx
+    7:  movl $0, %esi   <str:"_ENV">
+    c:  movq %rdi, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movl $1, %ebx
+   16:  callq luaS_newlstr+0
+   1b:  movq %r12, %rdi
+   1e:  movq %rax, %rsi
+   21:  callq luaC_fix+0
+   26:  nopw %cs:(%rax, %rax)
+   30:  movq (, %rbx, 8), %rsi   <var:luaX_tokens+-8>
+   38:  movq %r12, %rdi
+   3b:  callq luaS_new+0
+   40:  movq %r12, %rdi
+   43:  movq %rax, %rbp
+   46:  movq %rax, %rsi
+   49:  callq luaC_fix+0
+   4e:  movb %bl, 0xa(%rbp)
+   51:  addq $1, %rbx
+   55:  cmpq $0x17, %rbx
+   59:  jne 0x30
+   5b:  popq %rbx
+   5c:  popq %rbp
+   5d:  popq %r12
+   5f:  retq

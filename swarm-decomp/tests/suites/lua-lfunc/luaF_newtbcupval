@@ -1,0 +1,57 @@
+# luaF_newtbcupval  (global, 183 bytes, 56 instructions)
+    0:  movzbl 8(%rsi), %eax
+    4:  cmpb $1, %al
+    6:  je 0xc
+    8:  testb $0xf, %al
+    a:  jne 0x10
+    c:  retq
+    d:  nopl (%rax)
+   10:  pushq %rbp
+   11:  movl $0x18, %edx
+   16:  movq %rdi, %rbp
+   19:  pushq %rbx
+   1a:  movq %rsi, %rbx
+   1d:  subq $8, %rsp
+   21:  callq luaT_gettmbyobj+0
+   26:  testb $0xf, 8(%rax)
+   2a:  je 0x81
+   2c:  movq 0x40(%rbp), %rax
+   30:  movq %rbx, %rdx
+   33:  subq %rax, %rdx
+   36:  sarq $4, %rdx
+   3a:  cmpl $0xffff, %edx
+   40:  jbe 0x72
+   42:  nopw (%rax, %rax)
+   48:  movq %rax, %rcx
+   4b:  xorl %edx, %edx
+   4d:  addq $0xffff0, %rax
+   53:  movw %dx, 0xa(%rax)
+   57:  movq %rbx, %rdx
+   5a:  subq %rax, %rdx
+   5d:  sarq $4, %rdx
+   61:  cmpl $0xffff, %edx
+   67:  ja 0x48
+   69:  xorl %eax, %eax
+   6b:  movw %ax, 0xffffa(%rcx)
+   72:  movw %dx, 0xa(%rbx)
+   76:  movq %rbx, 0x40(%rbp)
+   7a:  addq $8, %rsp
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  retq
+   81:  movq 0x20(%rbp), %rsi
+   85:  xorl %ecx, %ecx
+   87:  movq %rbp, %rdi
+   8a:  subq (%rsi), %rbx
+   8d:  movq %rbx, %rdx
+   90:  sarq $4, %rdx
+   94:  callq luaG_findlocal+0
+   99:  movq %rax, %rdx
+   9c:  testq %rax, %rax
+   9f:  je 0xb0
+   a1:  movl $0, %esi   <str:"variable '%s' got a non-closable value">
+   a6:  movq %rbp, %rdi
+   a9:  xorl %eax, %eax
+   ab:  callq luaG_runerror+0
+   b0:  movl $0, %edx   <str:"?">
+   b5:  jmp 0xa1

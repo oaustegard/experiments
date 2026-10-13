@@ -1,0 +1,17 @@
+# math_frexp  (static, 60 bytes, 16 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  callq luaL_checknumber+0
+   12:  leaq 0xc(%rsp), %rdi
+   17:  callq frexp+0
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_pushnumber+0
+   24:  movslq 0xc(%rsp), %rsi
+   29:  movq %rbx, %rdi
+   2c:  callq lua_pushinteger+0
+   31:  addq $0x10, %rsp
+   35:  movl $2, %eax
+   3a:  popq %rbx
+   3b:  retq

@@ -1,0 +1,23 @@
+# luaL_openlibs  (global, 73 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <luaopen_base+0>
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movl $0, %ebx   <var:loadedlibs+0>
+    f:  subq $8, %rsp
+   13:  nopl (%rax, %rax)
+   18:  movq (%rbx), %rsi
+   1b:  movl $1, %ecx
+   20:  movq %rbp, %rdi
+   23:  addq $0x10, %rbx
+   27:  callq luaL_requiref+0
+   2c:  movl $0xfffffffe, %esi
+   31:  movq %rbp, %rdi
+   34:  callq lua_settop+0
+   39:  movq 8(%rbx), %rdx
+   3d:  testq %rdx, %rdx
+   40:  jne 0x18
+   42:  addq $8, %rsp
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  retq

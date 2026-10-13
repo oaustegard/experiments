@@ -1,0 +1,12 @@
+# error  (static, 39 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 0x10(%rdi), %rdx
+    8:  movq %rsi, %rcx
+    b:  movq (%rdi), %rdi
+    e:  movl $0, %esi   <str:"%s: bad binary format (%s)">
+   13:  xorl %eax, %eax
+   15:  callq luaO_pushfstring+0
+   1a:  movq (%rbx), %rdi
+   1d:  movl $3, %esi
+   22:  callq luaD_throw+0

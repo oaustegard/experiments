@@ -1,0 +1,23 @@
+# tr_done  (global, 84 bytes, 22 instructions)
+    0:  movslq (%rip), %rax   <var:cdef_n+0>
+    7:  testl %eax, %eax
+    9:  jle 0x48
+    b:  pushq %rbp
+    c:  leaq (, %rax, 8), %rbp   <var:cdef_dst+0>
+   14:  pushq %rbx
+   15:  movl $0, %ebx   <var:cdef_dst+0>
+   1a:  subq $8, %rsp
+   1e:  nop
+   20:  movq (%rbx), %rdi
+   23:  addq $8, %rbx
+   27:  callq free+0
+   2c:  cmpq %rbp, %rbx
+   2f:  jne 0x20
+   31:  movq (%rip), %rdi   <var:cmap+0>
+   38:  addq $8, %rsp
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  jmp dict_free+0
+   43:  nopl (%rax, %rax)
+   48:  movq (%rip), %rdi   <var:cmap+0>
+   4f:  jmp dict_free+0

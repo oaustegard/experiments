@@ -1,0 +1,16 @@
+# lua-lundump: translation unit lundump of lua
+# write each function as src/lua/lundump/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+error	static	39 bytes
+loadByte	static	71 bytes
+fchecksize.part.0	static	33 bytes
+loadUnsigned	static	130 bytes
+loadStringN	static	275 bytes
+loadFunction	static	1424 bytes
+luaU_undump	global	593 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_barrier_ luaD_inctop luaD_throw luaF_newLclosure luaF_newproto luaM_malloc_ luaO_pushfstring luaS_createlngstrobj luaS_newlstr luaZ_fill luaZ_read memset

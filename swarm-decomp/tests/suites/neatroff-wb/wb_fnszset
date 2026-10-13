@@ -1,0 +1,10 @@
+# wb_fnszset  (global, 34 bytes, 9 instructions)
+    0:  movd %ecx, %xmm1
+    4:  movd %r8d, %xmm2
+    9:  movd %esi, %xmm0
+    d:  movd %edx, %xmm3
+   11:  punpckldq %xmm2, %xmm1
+   15:  punpckldq %xmm3, %xmm0
+   19:  punpcklqdq %xmm1, %xmm0
+   1d:  movups %xmm0, 0x20(%rdi)
+   21:  retq

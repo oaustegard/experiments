@@ -1,0 +1,22 @@
+# loadByte  (static, 71 bytes, 21 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 8(%rdi), %rdi
+    8:  movq (%rdi), %rax
+    b:  leaq -1(%rax), %rdx
+    f:  movq %rdx, (%rdi)
+   12:  testq %rax, %rax
+   15:  je 0x30
+   17:  movq 8(%rdi), %rax
+   1b:  leaq 1(%rax), %rdx
+   1f:  movq %rdx, 8(%rdi)
+   23:  movzbl (%rax), %eax
+   26:  popq %rbx
+   27:  retq
+   28:  nopl (%rax, %rax)
+   30:  callq luaZ_fill+0
+   35:  cmpl $-1, %eax
+   38:  jne 0x26
+   3a:  movl $0, %esi   <str:"truncated chunk">
+   3f:  movq %rbx, %rdi
+   42:  callq fn:error+0

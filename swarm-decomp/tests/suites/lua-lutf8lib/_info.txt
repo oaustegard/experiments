@@ -1,0 +1,37 @@
+# lua-lutf8lib: translation unit lutf8lib of lua
+# write each function as src/lua/lutf8lib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+utf8_decode	static	173 bytes
+iter_codes	static	132 bytes
+iter_aux	static	216 bytes
+iter_auxstrict	static	10 bytes
+iter_auxlax	static	7 bytes
+byteoffset	static	559 bytes
+utflen	static	539 bytes
+codepoint	static	523 bytes
+utfchar	static	240 bytes
+luaopen_utf8	global	95 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+limits.0	static	24 bytes	.rodata.limits.0
+        0: ff ff ff ff 80 00 00 00 00 08 00 00 00 00 01 00 00 00 20 00 00 00 00 04
+funcs	static	112 bytes	.rodata.funcs
+    +0     -> str:"offset"
+    +8     -> fn:byteoffset+0
+    +16    -> str:"codepoint"
+    +24    -> fn:codepoint+0
+    +32    -> str:"char"
+    +40    -> fn:utfchar+0
+    +48    -> str:"len"
+    +56    -> fn:utflen+0
+    +64    -> str:"codes"
+    +72    -> fn:iter_codes+0
+    +80    -> str:"charpattern"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaL_addvalue luaL_argerror luaL_buffinit luaL_checkinteger luaL_checklstring luaL_checkstack luaL_checkversion_ luaL_error luaL_optinteger luaL_pushresult luaL_setfuncs lua_createtable lua_gettop lua_pushcclosure lua_pushfstring lua_pushinteger lua_pushlstring lua_pushnil lua_pushvalue lua_setfield lua_toboolean lua_tointegerx

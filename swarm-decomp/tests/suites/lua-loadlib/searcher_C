@@ -1,0 +1,56 @@
+# searcher_C  (static, 165 bytes, 55 instructions)
+    0:  pushq %r12
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checklstring+0
+   13:  movl $0, %edx   <str:"cpath">
+   18:  movq %rbx, %rdi
+   1b:  movq %rax, %rsi
+   1e:  movq %rax, %r12
+   21:  callq fn:findfile.constprop.0+0
+   26:  testq %rax, %rax
+   29:  je 0x58
+   2b:  movq %r12, %rdx
+   2e:  movq %rax, %rsi
+   31:  movq %rbx, %rdi
+   34:  movq %rax, %rbp
+   37:  callq fn:loadfunc+0
+   3c:  testl %eax, %eax
+   3e:  jne 0x68
+   40:  movq %rbp, %rsi
+   43:  movq %rbx, %rdi
+   46:  callq lua_pushstring+0
+   4b:  popq %rbx
+   4c:  movl $2, %eax
+   51:  popq %rbp
+   52:  popq %r12
+   54:  retq
+   55:  nopl (%rax)
+   58:  popq %rbx
+   59:  movl $1, %eax
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movq %rbx, %rdi
+   6b:  xorl %edx, %edx
+   6d:  movl $0xffffffff, %esi
+   72:  callq lua_tolstring+0
+   77:  movq %rbx, %rdi
+   7a:  xorl %edx, %edx
+   7c:  movl $1, %esi
+   81:  movq %rax, %r12
+   84:  callq lua_tolstring+0
+   89:  movq %r12, %r8
+   8c:  movq %rbp, %rcx
+   8f:  movq %rbx, %rdi
+   92:  movq %rax, %rdx
+   95:  popq %rbx
+   96:  movl $0, %esi   <str:"error loading module '%s' from file '%s':\n\t%s">
+   9b:  popq %rbp
+   9c:  xorl %eax, %eax
+   9e:  popq %r12
+   a0:  jmp luaL_error+0

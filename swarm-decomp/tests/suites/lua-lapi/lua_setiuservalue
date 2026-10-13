@@ -1,0 +1,80 @@
+# lua_setiuservalue  (global, 273 bytes, 79 instructions)
+    0:  pushq %rbp
+    1:  movslq %edx, %rax
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movq 0x20(%rdi), %rcx
+   10:  movq 0x10(%rdi), %rdx
+   14:  testl %esi, %esi
+   16:  jle 0x80
+   18:  movslq %esi, %rsi
+   1b:  shlq $4, %rsi
+   1f:  addq (%rcx), %rsi
+   22:  cmpq %rdx, %rsi
+   25:  jae 0x99
+   27:  movq (%rsi), %rcx
+   2a:  leal -1(%rax), %r8d
+   2e:  xorl %ebp, %ebp
+   30:  movzwl 0xa(%rcx), %edi
+   34:  cmpl %edi, %r8d
+   37:  jae 0x6f
+   39:  shlq $4, %rax
+   3d:  movl $1, %ebp
+   42:  addq %rax, %rcx
+   45:  movq -0x10(%rdx), %rax
+   49:  movq %rax, 0x18(%rcx)
+   4d:  movzbl -8(%rdx), %eax
+   51:  movb %al, 0x20(%rcx)
+   54:  testb $0x40, %al
+   56:  je 0x6f
+   58:  movq (%rsi), %rsi
+   5b:  testb $0x20, 9(%rsi)
+   5f:  je 0x6f
+   61:  movq -0x10(%rdx), %rax
+   65:  testb $0x18, 9(%rax)
+   69:  jne 0x100
+   6f:  leaq -0x10(%rdx), %rax
+   73:  movq %rax, 0x10(%rbx)
+   77:  addq $8, %rsp
+   7b:  movl %ebp, %eax
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  retq
+   80:  cmpl $0xfff0b9d9, %esi
+   86:  jge 0xd8
+   88:  cmpl $0xfff0b9d8, %esi
+   8e:  je 0xf0
+   90:  movq (%rcx), %rcx
+   93:  cmpb $0x66, 8(%rcx)
+   97:  je 0xa8
+   99:  movq 0x18(%rbx), %rdi
+   9d:  leaq 0x50(%rdi), %rsi
+   a1:  jmp 0x27
+   a3:  nopl (%rax, %rax)
+   a8:  movq (%rcx), %rdi
+   ab:  movl $0xfff0b9d8, %ecx
+   b0:  subl %esi, %ecx
+   b2:  movzbl 0xa(%rdi), %r8d
+   b7:  cmpl %r8d, %ecx
+   ba:  jg 0x99
+   bc:  movl $0xfff0b9d9, %ecx
+   c1:  subl %esi, %ecx
+   c3:  movslq %ecx, %rcx
+   c6:  shlq $4, %rcx
+   ca:  leaq (%rdi, %rcx), %rsi
+   ce:  jmp 0x27
+   d3:  nopl (%rax, %rax)
+   d8:  movslq %esi, %rsi
+   db:  shlq $4, %rsi
+   df:  addq %rdx, %rsi
+   e2:  jmp 0x27
+   e7:  nopw (%rax, %rax)
+   f0:  movq 0x18(%rdi), %rdi
+   f4:  leaq 0x40(%rdi), %rsi
+   f8:  jmp 0x27
+   fd:  nopl (%rax)
+  100:  movq %rbx, %rdi
+  103:  callq luaC_barrierback_+0
+  108:  movq 0x10(%rbx), %rdx
+  10c:  jmp 0x6f

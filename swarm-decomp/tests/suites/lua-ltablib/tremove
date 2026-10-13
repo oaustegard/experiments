@@ -1,0 +1,74 @@
+# tremove  (static, 263 bytes, 73 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  subq $8, %rsp
+   12:  callq lua_type+0
+   17:  cmpl $5, %eax
+   1a:  je 0x2e
+   1c:  movl $7, %edx
+   21:  movl $1, %esi
+   26:  movq %rbp, %rdi
+   29:  callq fn:checktab.part.0+0
+   2e:  movl $1, %esi
+   33:  movq %rbp, %rdi
+   36:  callq luaL_len+0
+   3b:  movl $2, %esi
+   40:  movq %rbp, %rdi
+   43:  movq %rax, %rdx
+   46:  movq %rax, %r13
+   49:  callq luaL_optinteger+0
+   4e:  movq %rax, %rbx
+   51:  cmpq %rax, %r13
+   54:  je 0xd8
+   5a:  leaq -1(%rax), %rax
+   5e:  cmpq %rax, %r13
+   61:  jb 0xf0
+   67:  movq %rbx, %rdx
+   6a:  movl $1, %esi
+   6f:  movq %rbp, %rdi
+   72:  callq lua_geti+0
+   77:  cmpq %rbx, %r13
+   7a:  jle 0xe8
+   7c:  nopl (%rax)
+   80:  movq %rbx, %r12
+   83:  addq $1, %rbx
+   87:  movl $1, %esi
+   8c:  movq %rbp, %rdi
+   8f:  movq %rbx, %rdx
+   92:  callq lua_geti+0
+   97:  movq %r12, %rdx
+   9a:  movl $1, %esi
+   9f:  movq %rbp, %rdi
+   a2:  callq lua_seti+0
+   a7:  cmpq %r13, %rbx
+   aa:  jne 0x80
+   ac:  movq %rbp, %rdi
+   af:  callq lua_pushnil+0
+   b4:  movq %r13, %rdx
+   b7:  movq %rbp, %rdi
+   ba:  movl $1, %esi
+   bf:  callq lua_seti+0
+   c4:  addq $8, %rsp
+   c8:  movl $1, %eax
+   cd:  popq %rbx
+   ce:  popq %rbp
+   cf:  popq %r12
+   d1:  popq %r13
+   d3:  retq
+   d4:  nopl (%rax)
+   d8:  movq %rax, %rdx
+   db:  movl $1, %esi
+   e0:  movq %rbp, %rdi
+   e3:  callq lua_geti+0
+   e8:  movq %rbx, %r13
+   eb:  jmp 0xac
+   ed:  nopl (%rax)
+   f0:  movl $0, %edx   <str:"position out of bounds">
+   f5:  movl $2, %esi
+   fa:  movq %rbp, %rdi
+   fd:  callq luaL_argerror+0
+  102:  jmp 0x67

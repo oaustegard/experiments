@@ -1,0 +1,138 @@
+# getobjname  (static, 544 bytes, 137 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rdi, %r12
+    9:  pushq %rbp
+    a:  movq %rcx, %rbp
+    d:  pushq %rbx
+    e:  subq $0x20, %rsp
+   12:  movl %esi, 0xc(%rsp)
+   16:  leaq 0xc(%rsp), %rsi
+   1b:  callq fn:basicgetobjname+0
+   20:  movq %rax, %rbx
+   23:  testq %rax, %rax
+   26:  je 0x40
+   28:  addq $0x20, %rsp
+   2c:  movq %rbx, %rax
+   2f:  popq %rbx
+   30:  popq %rbp
+   31:  popq %r12
+   33:  popq %r13
+   35:  popq %r14
+   37:  retq
+   38:  nopl (%rax, %rax)
+   40:  movl 0xc(%rsp), %r14d
+   45:  cmpl $-1, %r14d
+   49:  je 0x28
+   4b:  movq 0x40(%r12), %rdx
+   50:  movslq %r14d, %rax
+   53:  movl (%rdx, %rax, 4), %r13d
+   57:  movl %r13d, %eax
+   5a:  andl $0x7f, %eax
+   5d:  subl $0xb, %eax
+   60:  cmpl $9, %eax
+   63:  ja 0x28
+   65:  jmpq *(, %rax, 8)   <var:getobjname+0>
+   6c:  nopl (%rax)
+   70:  movl %r13d, %edx
+   73:  shrl $0x18, %edx
+   76:  andl $0x8000, %r13d
+   7d:  je 0x1f0
+   83:  shlq $4, %rdx
+   87:  addq 0x38(%r12), %rdx
+   8c:  movzbl 8(%rdx), %eax
+   90:  andl $0xf, %eax
+   93:  cmpb $4, %al
+   95:  jne 0x213
+   9b:  movq (%rdx), %rax
+   9e:  addq $0x18, %rax
+   a2:  movq %rax, (%rbp)
+   a6:  movl $0, %ebx   <str:"method">
+   ab:  jmp 0x28
+   b0:  movl %r13d, %eax
+   b3:  movl $0, %ecx   <str:"?">
+   b8:  shrl $0x18, %eax
+   bb:  shlq $4, %rax
+   bf:  addq 0x38(%r12), %rax
+   c4:  movzbl 8(%rax), %edx
+   c8:  andl $0xf, %edx
+   cb:  cmpb $4, %dl
+   ce:  jne 0xd7
+   d0:  movq (%rax), %rcx
+   d3:  addq $0x18, %rcx
+   d7:  movq %rcx, (%rbp)
+   db:  shrl $0x10, %r13d
+   df:  movq %r12, %rdi
+   e2:  leaq 0x18(%rsp), %rcx
+   e7:  movl %r14d, 0x14(%rsp)
+   ec:  movzbl %r13b, %edx
+   f0:  leaq 0x14(%rsp), %rsi
+   f5:  movl $0, %ebx   <str:"field">
+   fa:  callq fn:basicgetobjname+0
+   ff:  movq 0x18(%rsp), %rdi
+  104:  testq %rdi, %rdi
+  107:  je 0x28
+  10d:  movl $0, %esi   <str:"_ENV">
+  112:  callq strcmp+0
+  117:  testl %eax, %eax
+  119:  movl $0, %eax   <str:"global">
+  11e:  cmoveq %rax, %rbx
+  122:  jmp 0x28
+  127:  nopw (%rax, %rax)
+  130:  movq $0, (%rbp)   <str:"integer index">
+  138:  movl $0, %ebx   <str:"field">
+  13d:  jmp 0x28
+  142:  nopw (%rax, %rax)
+  148:  movl %r13d, %edx
+  14b:  movq %rbp, %rcx
+  14e:  leaq 0x18(%rsp), %rsi
+  153:  movq %r12, %rdi
+  156:  shrl $0x18, %edx
+  159:  movl %r14d, 0x18(%rsp)
+  15e:  callq fn:basicgetobjname+0
+  163:  testq %rax, %rax
+  166:  je 0x171
+  168:  cmpb $0x63, (%rax)
+  16b:  je 0xdb
+  171:  movq $0, (%rbp)   <str:"?">
+  179:  jmp 0xdb
+  17e:  nop
+  180:  movl %r13d, %eax
+  183:  movl $0, %ecx   <str:"?">
+  188:  shrl $0x18, %eax
+  18b:  shlq $4, %rax
+  18f:  addq 0x38(%r12), %rax
+  194:  movzbl 8(%rax), %edx
+  198:  andl $0xf, %edx
+  19b:  cmpb $4, %dl
+  19e:  jne 0x1a7
+  1a0:  movq (%rax), %rcx
+  1a3:  addq $0x18, %rcx
+  1a7:  shrl $0x10, %r13d
+  1ab:  movq %rcx, (%rbp)
+  1af:  movzbl %r13b, %r13d
+  1b3:  shlq $4, %r13
+  1b7:  addq 0x50(%r12), %r13
+  1bc:  movq (%r13), %rdi
+  1c0:  testq %rdi, %rdi
+  1c3:  je 0x138
+  1c9:  addq $0x18, %rdi
+  1cd:  movl $0, %esi   <str:"_ENV">
+  1d2:  movl $0, %ebx   <str:"global">
+  1d7:  callq strcmp+0
+  1dc:  testl %eax, %eax
+  1de:  je 0x28
+  1e4:  jmp 0x138
+  1e9:  nopl (%rax)
+  1f0:  movq %rbp, %rcx
+  1f3:  leaq 0x18(%rsp), %rsi
+  1f8:  movq %r12, %rdi
+  1fb:  movl %r14d, 0x18(%rsp)
+  200:  callq fn:basicgetobjname+0
+  205:  testq %rax, %rax
+  208:  je 0x213
+  20a:  cmpb $0x63, (%rax)
+  20d:  je 0xa6
+  213:  movq $0, (%rbp)   <str:"?">
+  21b:  jmp 0xa6

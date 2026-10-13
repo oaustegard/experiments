@@ -1,0 +1,37 @@
+# f_luaopen  (static, 128 bytes, 36 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %rsi
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  movq 0x18(%rdi), %r12
+    e:  callq fn:stack_init+0
+   13:  movq %rbx, %rdi
+   16:  callq luaH_new+0
+   1b:  movb $0x45, 0x48(%r12)
+   21:  xorl %ecx, %ecx
+   23:  movq %rbx, %rdi
+   26:  movq %rax, 0x40(%r12)
+   2b:  movl $2, %edx
+   30:  movq %rax, %rsi
+   33:  movq %rax, %rbp
+   36:  callq luaH_resize+0
+   3b:  movq 0x10(%rbp), %rbp
+   3f:  movq %rbx, %rdi
+   42:  movq %rbx, (%rbp)
+   46:  movb $0x48, 8(%rbp)
+   4a:  callq luaH_new+0
+   4f:  movb $0x45, 0x18(%rbp)
+   53:  movq %rbx, %rdi
+   56:  movq %rax, 0x10(%rbp)
+   5a:  callq luaS_init+0
+   5f:  movq %rbx, %rdi
+   62:  callq luaT_init+0
+   67:  movq %rbx, %rdi
+   6a:  callq luaX_init+0
+   6f:  movb $0, 0x6a(%r12)
+   75:  movb $0, 0x58(%r12)
+   7b:  popq %rbx
+   7c:  popq %rbp
+   7d:  popq %r12
+   7f:  retq

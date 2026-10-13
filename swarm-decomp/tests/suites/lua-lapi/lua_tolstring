@@ -1,0 +1,86 @@
+# lua_tolstring  (global, 285 bytes, 85 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  movq 0x20(%rdi), %rax
+   10:  testl %esi, %esi
+   12:  jle 0xa0
+   18:  movslq %esi, %rsi
+   1b:  shlq $4, %rsi
+   1f:  addq (%rax), %rsi
+   22:  cmpq 0x10(%rdi), %rsi
+   26:  jae 0xb9
+   2c:  movzbl 8(%rsi), %eax
+   30:  andl $0xf, %eax
+   33:  cmpb $4, %al
+   35:  je 0x63
+   37:  cmpb $3, %al
+   39:  jne 0x88
+   3b:  movq %rbx, %rdi
+   3e:  callq luaO_tostring+0
+   43:  movq 0x18(%rbx), %rax
+   47:  cmpq $0, 0x18(%rax)
+   4c:  jle 0x56
+   4e:  movq %rbx, %rdi
+   51:  callq luaC_step+0
+   56:  movl %ebp, %esi
+   58:  movq %rbx, %rdi
+   5b:  callq fn:index2value+0
+   60:  movq %rax, %rsi
+   63:  movq (%rsi), %rax
+   66:  testq %r12, %r12
+   69:  je 0x7c
+   6b:  movzbl 0xb(%rax), %edx
+   6f:  cmpb $0xff, %dl
+   72:  jne 0x78
+   74:  movq 0x10(%rax), %rdx
+   78:  movq %rdx, (%r12)
+   7c:  popq %rbx
+   7d:  addq $0x18, %rax
+   81:  popq %rbp
+   82:  popq %r12
+   84:  retq
+   85:  nopl (%rax)
+   88:  testq %r12, %r12
+   8b:  je 0x95
+   8d:  movq $0, (%r12)
+   95:  popq %rbx
+   96:  xorl %eax, %eax
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  retq
+   9c:  nopl (%rax)
+   a0:  cmpl $0xfff0b9d9, %esi
+   a6:  jge 0x100
+   a8:  cmpl $0xfff0b9d8, %esi
+   ae:  je 0x110
+   b0:  movq (%rax), %rax
+   b3:  cmpb $0x66, 8(%rax)
+   b7:  je 0xd0
+   b9:  movq 0x18(%rbx), %rax
+   bd:  leaq 0x50(%rax), %rsi
+   c1:  jmp 0x2c
+   c6:  nopw %cs:(%rax, %rax)
+   d0:  movq (%rax), %rsi
+   d3:  movl $0xfff0b9d8, %eax
+   d8:  subl %ebp, %eax
+   da:  movzbl 0xa(%rsi), %edx
+   de:  cmpl %edx, %eax
+   e0:  jg 0xb9
+   e2:  movl $0xfff0b9d9, %eax
+   e7:  subl %ebp, %eax
+   e9:  cltq
+   eb:  shlq $4, %rax
+   ef:  addq %rax, %rsi
+   f2:  jmp 0x2c
+   f7:  nopw (%rax, %rax)
+  100:  movslq %esi, %rsi
+  103:  shlq $4, %rsi
+  107:  addq 0x10(%rdi), %rsi
+  10b:  jmp 0x2c
+  110:  movq 0x18(%rdi), %rax
+  114:  leaq 0x40(%rax), %rsi
+  118:  jmp 0x2c

@@ -1,0 +1,39 @@
+# render  (global, 160 bytes, 38 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %edi   <str:"nl">
+    9:  callq map+0
+    e:  movl %eax, %edi
+   10:  callq nreg+0
+   15:  movl $0xffffffff, (%rax)
+   1b:  nopl (%rax, %rax)
+   20:  callq tr_nextreq+0
+   25:  testl %eax, %eax
+   27:  je 0x20
+   29:  movl (%rip), %eax   <var:bp_first+0>
+   2f:  testl %eax, %eax
+   31:  je 0x3d
+   33:  cmpq $0, (%rip)   <var:cdiv+0>
+   3b:  je 0x8a
+   3d:  xorl %edi, %edi
+   3f:  callq fn:render_rec.isra.0+0
+   44:  movl $3, (%rip)   <var:bp_final+0>
+   4e:  callq env_fmt+0
+   53:  movq %rax, %rdi
+   56:  callq fmt_morewords+0
+   5b:  testl %eax, %eax
+   5d:  jne 0x70
+   5f:  callq fn:ren_br+0
+   64:  movl (%rip), %eax   <var:ren_aborted+0>
+   6a:  addq $8, %rsp
+   6e:  retq
+   6f:  nop
+   70:  movl $1, %edi
+   75:  callq fn:ren_page+0
+   7a:  callq fn:ren_br+0
+   7f:  movl (%rip), %eax   <var:ren_aborted+0>
+   85:  addq $8, %rsp
+   89:  retq
+   8a:  movl $0, (%rip)   <var:bp_first+0>
+   94:  movl $1, %edi
+   99:  callq fn:ren_page+0
+   9e:  jmp 0x3d

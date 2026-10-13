@@ -1,0 +1,100 @@
+# jumpifs  (static, 417 bytes, 99 instructions)
+    0:  movq (%rip), %rax   <var:cur+0>
+    7:  cmpq (%rip), %rax   <var:len+0>
+    e:  jge 0x1a0
+   14:  pushq %r12
+   16:  pushq %rbp
+   17:  movl %edi, %ebp
+   19:  pushq %rbx
+   1a:  xorl %ebx, %ebx
+   1c:  addq $-0x80, %rsp
+   20:  jmp 0x5d
+   22:  nopw (%rax, %rax)
+   28:  callq fn:jumpcomment+0
+   2d:  testl %eax, %eax
+   2f:  je 0xd0
+   35:  callq fn:jumpstr+0
+   3a:  testl %eax, %eax
+   3c:  movq (%rip), %rax   <var:cur+0>
+   43:  je 0x50
+   45:  addq $1, %rax
+   49:  movq %rax, (%rip)   <var:cur+0>
+   50:  cmpq %rax, (%rip)   <var:len+0>
+   57:  jle 0xe4
+   5d:  movq (%rip), %rdx   <var:buf+0>
+   64:  cmpb $0x23, (%rdx, %rax)
+   68:  jne 0x28
+   6a:  addq $1, %rax
+   6e:  movq %rsp, %rdi
+   71:  movq %rax, (%rip)   <var:cur+0>
+   78:  callq fn:read_word+0
+   7d:  cmpl $0x65736c65, (%rsp)
+   84:  je 0x138
+   8a:  movl $1, %eax
+   8f:  movl %ebp, %r12d
+   92:  orl %ebx, %r12d
+   95:  testl %eax, %eax
+   97:  jne 0xf0
+   99:  testl %r12d, %r12d
+   9c:  je 0xe4
+   9e:  cmpl $0x69646e65, (%rsp)
+   a5:  je 0x150
+   ab:  cmpl $0x65646669, (%rsp)
+   b2:  je 0x120
+   b4:  cmpl $0x646e6669, (%rsp)
+   bb:  je 0x190
+   c1:  cmpw $0x6669, (%rsp)
+   c7:  je 0x170
+   cd:  nopl (%rax)
+   d0:  movq (%rip), %rax   <var:cur+0>
+   d7:  cmpq %rax, (%rip)   <var:len+0>
+   de:  jg 0x5d
+   e4:  subq $-0x80, %rsp
+   e8:  popq %rbx
+   e9:  popq %rbp
+   ea:  popq %r12
+   ec:  retq
+   ed:  nopl (%rax)
+   f0:  movq %rsp, %rsi
+   f3:  movl $0, %edi   <str:"elif">
+   f8:  callq strcmp+0
+   fd:  orl %r12d, %eax
+  100:  jne 0x9e
+  102:  callq fn:cpp_eval+0
+  107:  testq %rax, %rax
+  10a:  jne 0xe4
+  10c:  cmpl $0x69646e65, (%rsp)
+  113:  je 0x180
+  115:  xorl %ebx, %ebx
+  117:  cmpl $0x65646669, (%rsp)
+  11e:  jne 0xb4
+  120:  cmpw $0x66, 4(%rsp)
+  126:  jne 0xb4
+  128:  movq (%rip), %rax   <var:cur+0>
+  12f:  addl $1, %ebx
+  132:  jmp 0xd7
+  134:  nopl (%rax)
+  138:  xorl %eax, %eax
+  13a:  cmpb $0, 4(%rsp)
+  13f:  je 0x8f
+  145:  jmp 0x8a
+  14a:  nopw (%rax, %rax)
+  150:  cmpw $0x66, 4(%rsp)
+  156:  jne 0xab
+  15c:  testl %ebx, %ebx
+  15e:  je 0xe4
+  160:  subl $1, %ebx
+  163:  jmp 0xab
+  168:  nopl (%rax, %rax)
+  170:  cmpb $0, 2(%rsp)
+  175:  jne 0xd0
+  17b:  jmp 0x128
+  17d:  nopl (%rax)
+  180:  cmpw $0x66, 4(%rsp)
+  186:  je 0xe4
+  18c:  xorl %ebx, %ebx
+  18e:  jmp 0x117
+  190:  cmpl $0x666564, 3(%rsp)
+  198:  jne 0xc1
+  19e:  jmp 0x128
+  1a0:  retq

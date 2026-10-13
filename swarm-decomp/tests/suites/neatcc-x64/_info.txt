@@ -1,0 +1,70 @@
+# neatcc-x64: translation unit x64 of neatcc
+# write each function as src/neatcc/x64/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+i_rel	static	215 bytes
+jmp_add	static	215 bytes
+lab_add	static	109 bytes
+i_subsp	static	129 bytes
+i_jmp	static	314 bytes
+op_x	static	488 bytes
+op_rr	static	61 bytes
+mov_r2r	static	205 bytes
+op_rm	static	326 bytes
+i_div.isra.0	static	134 bytes
+i_mov	global	19 bytes
+i_label	global	9 bytes
+i_wrap	global	1188 bytes
+i_code	global	1221 bytes
+i_done	global	56 bytes
+i_reg	global	741 bytes
+i_imm	global	40 bytes
+i_ins	global	2353 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+rel_n	static	8 bytes	.bss.rel_n
+    (zero-initialised)
+rel_sz	static	8 bytes	.bss.rel_sz
+    (zero-initialised)
+rel_off	static	8 bytes	.bss.rel_off
+    (zero-initialised)
+rel_sym	static	8 bytes	.bss.rel_sym
+    (zero-initialised)
+rel_flg	static	8 bytes	.bss.rel_flg
+    (zero-initialised)
+jmp_n	static	8 bytes	.bss.jmp_n
+    (zero-initialised)
+jmp_sz	static	8 bytes	.bss.jmp_sz
+    (zero-initialised)
+jmp_op	static	8 bytes	.bss.jmp_op
+    (zero-initialised)
+jmp_off	static	8 bytes	.bss.jmp_off
+    (zero-initialised)
+jmp_dst	static	8 bytes	.bss.jmp_dst
+    (zero-initialised)
+lab_sz	static	8 bytes	.bss.lab_sz
+    (zero-initialised)
+lab_loc	static	8 bytes	.bss.lab_loc
+    (zero-initialised)
+cs	static	24 bytes	.bss.cs
+    (zero-initialised)
+buf.4	static	16 bytes	.bss.buf.4
+    (zero-initialised)
+ucond.2	static	24 bytes	.rodata.ucond.2
+        0: 92 00 00 00 93 00 00 00 94 00 00 00 95 00 00 00 96 00 00 00 97 00 00 00
+scond.3	static	24 bytes	.rodata.scond.3
+        0: 9c 00 00 00 9d 00 00 00 94 00 00 00 95 00 00 00 9e 00 00 00 9f 00 00 00
+jmp_ret	static	8 bytes	.bss.jmp_ret
+    (zero-initialised)
+rx.0	static	20 bytes	.rodata.rx.0
+        0: 03 00 00 00 2b 00 00 00 23 00 00 00 0b 00 00 00 33 00 00 00
+rx.1	static	20 bytes	.rodata.rx.1
+        0: c0 00 00 00 e8 00 00 00 e0 00 00 00 c8 00 00 00 f0 00 00 00
+argregs	global	24 bytes	.data.argregs
+        0: 07 00 00 00 06 00 00 00 02 00 00 00 01 00 00 00 08 00 00 00 09 00 00 00
+tmpregs	global	56 bytes	.data.tmpregs
+        0: 00 00 00 00 07 00 00 00 06 00 00 00 02 00 00 00 01 00 00 00 08 00 00 00 09 00 00 00 0a 00 00 00
+       32: 0b 00 00 00 03 00 00 00 0c 00 00 00 0d 00 00 00 0e 00 00 00 0f 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+free malloc mem_cpy mem_cut mem_get mem_len mem_put memset mextend

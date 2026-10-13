@@ -1,0 +1,65 @@
+# include_file  (static, 216 bytes, 64 instructions)
+    0:  pushq %r15
+    2:  xorl %esi, %esi
+    4:  xorl %eax, %eax
+    6:  pushq %r14
+    8:  pushq %r13
+    a:  pushq %r12
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  subq $0xa8, %rsp
+   15:  movq %rdi, 8(%rsp)
+   1a:  callq open+0
+   1f:  movl %eax, %r12d
+   22:  cmpl $-1, %eax
+   25:  je 0xc3
+   2b:  movl %eax, %edi
+   2d:  leaq 0x10(%rsp), %rsi
+   32:  movl $1, %r14d
+   38:  callq fstat+0
+   3d:  movl $1, %edi
+   42:  testl %eax, %eax
+   44:  jne 0x51
+   46:  movl 0x40(%rsp), %eax
+   4a:  leal 1(%rax), %r14d
+   4e:  movslq %r14d, %rdi
+   51:  callq malloc+0
+   56:  xorl %r15d, %r15d
+   59:  movq %rax, %r13
+   5c:  jmp 0x63
+   5e:  nop
+   60:  addl %eax, %r15d
+   63:  movslq %r15d, %rbx
+   66:  movl %r14d, %edx
+   69:  movl %r12d, %edi
+   6c:  subl %r15d, %edx
+   6f:  leaq (%r13, %rbx), %rbp
+   74:  movslq %edx, %rdx
+   77:  movq %rbp, %rsi
+   7a:  callq read+0
+   7f:  testl %eax, %eax
+   81:  jg 0x60
+   83:  movl %r12d, %edi
+   86:  xorl %r12d, %r12d
+   89:  callq close+0
+   8e:  movb $0, (%rbp)
+   92:  movq %rbx, %rdx
+   95:  movq %r13, %rsi
+   98:  xorl %edi, %edi
+   9a:  callq fn:buf_new+0
+   9f:  movl (%rip), %eax   <var:bufs_n+0>
+   a5:  movq 8(%rsp), %rsi
+   aa:  leal -1(%rax), %edi
+   ad:  movslq %edi, %rdi
+   b0:  imulq $0x80b0, %rdi, %rdi
+   b7:  addq $0, %rdi   <var:bufs+28>
+   be:  callq strcpy+0
+   c3:  addq $0xa8, %rsp
+   ca:  movl %r12d, %eax
+   cd:  popq %rbx
+   ce:  popq %rbp
+   cf:  popq %r12
+   d1:  popq %r13
+   d3:  popq %r14
+   d5:  popq %r15
+   d7:  retq

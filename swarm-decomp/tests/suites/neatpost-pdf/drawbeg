@@ -1,0 +1,21 @@
+# drawbeg  (global, 101 bytes, 20 instructions)
+    0:  subq $8, %rsp
+    4:  cmpl $1, (%rip)   <var:o_queued+0>
+    b:  je 0x50
+    d:  movl $0, (%rip)   <var:o_queued+0>
+   17:  callq fn:out_fontup+0
+   1c:  imull $0x64, (%rip), %esi   <var:o_v+0>
+   23:  imull $0x64, (%rip), %edi   <var:o_h+0>
+   2a:  callq fn:pdfpos00+0
+   2f:  movq (%rip), %rdi   <var:pg+0>
+   36:  movl $0, %esi   <str:"%s m\n">
+   3b:  addq $8, %rsp
+   3f:  movq %rax, %rdx
+   42:  xorl %eax, %eax
+   44:  jmp sbuf_printf+0
+   49:  nopl (%rax)
+   50:  movq (%rip), %rdi   <var:pg+0>
+   57:  movl $0, %esi   <str:">] TJ\n">
+   5c:  xorl %eax, %eax
+   5e:  callq sbuf_printf+0
+   63:  jmp 0xd

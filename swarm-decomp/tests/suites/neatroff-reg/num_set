@@ -1,0 +1,14 @@
+# num_set  (global, 59 bytes, 13 instructions)
+    0:  movslq %edi, %rdi
+    3:  movl (, %rdi, 4), %eax   <var:nregs_fmt+0>
+    a:  testl %eax, %eax
+    c:  jne 0x19
+    e:  movl $0x30, (, %rdi, 4)   <var:nregs_fmt+0>
+   19:  movslq (, %rdi, 4), %rax   <var:eregs_idx+0>
+   21:  leaq (, %rdi, 4), %rdx   <var:nregs+0>
+   29:  testl %eax, %eax
+   2b:  je 0x38
+   2d:  movq (%rip), %rdx   <var:env+0>
+   34:  leaq (%rdx, %rax, 4), %rdx
+   38:  movl %esi, (%rdx)
+   3a:  retq

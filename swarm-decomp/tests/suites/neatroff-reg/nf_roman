@@ -1,0 +1,67 @@
+# nf_roman  (static, 227 bytes, 66 instructions)
+    0:  testl %esi, %esi
+    2:  je 0xe2
+    8:  pushq %rbx
+    9:  movq %rdx, %r9
+    c:  movq %rcx, %r10
+    f:  jmp 0x55
+   11:  nopl (%rax)
+   18:  cmpl $9, %eax
+   1b:  je 0xd0
+   21:  movzbl (%r10), %eax
+   25:  movb %al, (%rdi)
+   27:  movzbl (%r9), %eax
+   2b:  addq $2, %rdi
+   2f:  movb %al, -1(%rdi)
+   32:  sarl $0x1f, %esi
+   35:  addq $1, %r10
+   39:  addq $1, %r9
+   3d:  movb $0, (%rdi)
+   40:  imulq $0x66666667, %rcx, %rax
+   47:  sarq $0x22, %rax
+   4b:  subl %esi, %eax
+   4d:  movl %eax, %esi
+   4f:  je 0xe0
+   55:  movslq %esi, %rcx
+   58:  movl %esi, %r8d
+   5b:  imulq $0x66666667, %rcx, %rax
+   62:  sarl $0x1f, %r8d
+   66:  movq %rax, %rbx
+   69:  sarq $0x22, %rax
+   6d:  sarq $0x21, %rbx
+   71:  subl %r8d, %eax
+   74:  movq %rbx, %rdx
+   77:  subl %r8d, %edx
+   7a:  leal (%rax, %rax, 4), %r8d
+   7e:  movl %esi, %eax
+   80:  leal (%rdx, %rdx, 4), %r11d
+   84:  movl %esi, %edx
+   86:  addl %r8d, %r8d
+   89:  subl %r11d, %edx
+   8c:  subl %r8d, %eax
+   8f:  cmpl $4, %edx
+   92:  je 0x18
+   94:  testl %edx, %edx
+   96:  jle 0xb7
+   98:  movslq %edx, %rbx
+   9b:  movq %rdi, %r8
+   9e:  addq %rdi, %rbx
+   a1:  movzbl (%r9), %r11d
+   a5:  addq $1, %r8
+   a9:  movb %r11b, -1(%r8)
+   ad:  cmpq %rbx, %r8
+   b0:  jne 0xa1
+   b2:  movl %edx, %edx
+   b4:  addq %rdx, %rdi
+   b7:  cmpl $4, %eax
+   ba:  jle 0x32
+   c0:  movzbl (%r10), %eax
+   c4:  addq $1, %rdi
+   c8:  movb %al, -1(%rdi)
+   cb:  jmp 0x32
+   d0:  movzbl 1(%r9), %eax
+   d5:  jmp 0x25
+   da:  nopw (%rax, %rax)
+   e0:  popq %rbx
+   e1:  retq
+   e2:  retq

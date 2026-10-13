@@ -1,0 +1,75 @@
+# arith  (static, 261 bytes, 74 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  movl $1, %esi
+    a:  pushq %rbp
+    b:  movq %rdx, %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  callq fn:tonum+0
+   17:  testl %eax, %eax
+   19:  je 0x30
+   1b:  movl $2, %esi
+   20:  movq %rbx, %rdi
+   23:  callq fn:tonum+0
+   28:  testl %eax, %eax
+   2a:  jne 0xf0
+   30:  movl $2, %esi
+   35:  movq %rbx, %rdi
+   38:  callq lua_settop+0
+   3d:  movl $2, %esi
+   42:  movq %rbx, %rdi
+   45:  callq lua_type+0
+   4a:  cmpl $4, %eax
+   4d:  jne 0xd0
+   53:  movl $0xffffffff, %esi
+   58:  movq %rbx, %rdi
+   5b:  callq lua_type+0
+   60:  movq %rbx, %rdi
+   63:  movl %eax, %esi
+   65:  callq lua_typename+0
+   6a:  movl $0xfffffffe, %esi
+   6f:  movq %rbx, %rdi
+   72:  movq %rax, %r12
+   75:  callq lua_type+0
+   7a:  movq %rbx, %rdi
+   7d:  movl %eax, %esi
+   7f:  callq lua_typename+0
+   84:  leaq 2(%rbp), %rdx
+   88:  movq %r12, %r8
+   8b:  movq %rbx, %rdi
+   8e:  movq %rax, %rcx
+   91:  movl $0, %esi   <str:"attempt to %s a '%s' with a '%s'">
+   96:  xorl %eax, %eax
+   98:  callq luaL_error+0
+   9d:  movq %rbx, %rdi
+   a0:  movl $1, %edx
+   a5:  movl $0xfffffffd, %esi
+   aa:  callq lua_rotate+0
+   af:  movq %rbx, %rdi
+   b2:  xorl %r8d, %r8d
+   b5:  xorl %ecx, %ecx
+   b7:  movl $1, %edx
+   bc:  movl $2, %esi
+   c1:  callq lua_callk+0
+   c6:  popq %rbx
+   c7:  movl $1, %eax
+   cc:  popq %rbp
+   cd:  popq %r12
+   cf:  retq
+   d0:  movq %rbp, %rdx
+   d3:  movl $2, %esi
+   d8:  movq %rbx, %rdi
+   db:  callq luaL_getmetafield+0
+   e0:  testl %eax, %eax
+   e2:  je 0x53
+   e8:  jmp 0x9d
+   ea:  nopw (%rax, %rax)
+   f0:  movl %r12d, %esi
+   f3:  movq %rbx, %rdi
+   f6:  callq lua_arith+0
+   fb:  popq %rbx
+   fc:  movl $1, %eax
+  101:  popq %rbp
+  102:  popq %r12
+  104:  retq

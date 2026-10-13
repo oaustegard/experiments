@@ -1,0 +1,20 @@
+# fmt_fillreq  (global, 50 bytes, 19 instructions)
+    0:  movl 0x60(%rdi), %eax
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  testl %eax, %eax
+    9:  jg 0x20
+    b:  movl 8(%rbx), %eax
+    e:  addl $1, %eax
+   11:  movl %eax, 0x60(%rbx)
+   14:  xorl %eax, %eax
+   16:  popq %rbx
+   17:  retq
+   18:  nopl (%rax, %rax)
+   20:  xorl %esi, %esi
+   22:  callq fn:fmt_fillwords+0
+   27:  testl %eax, %eax
+   29:  je 0xb
+   2b:  movl $1, %eax
+   30:  popq %rbx
+   31:  retq

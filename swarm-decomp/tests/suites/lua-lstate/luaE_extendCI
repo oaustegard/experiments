@@ -1,0 +1,14 @@
+# luaE_extendCI  (global, 50 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  xorl %edx, %edx
+    3:  movq %rdi, %rbx
+    6:  movl $0x40, %esi
+    b:  callq luaM_malloc_+0
+   10:  movq 0x20(%rbx), %rdx
+   14:  movq %rax, 0x18(%rdx)
+   18:  movq %rdx, 0x10(%rax)
+   1c:  movq $0, 0x18(%rax)
+   24:  movl $0, 0x28(%rax)
+   2b:  addw $1, 0xc(%rbx)
+   30:  popq %rbx
+   31:  retq

@@ -1,0 +1,21 @@
+# luaL_checkany  (global, 53 bytes, 20 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  callq lua_type+0
+   10:  cmpl $-1, %eax
+   13:  je 0x20
+   15:  addq $8, %rsp
+   19:  popq %rbx
+   1a:  popq %rbp
+   1b:  retq
+   1c:  nopl (%rax)
+   20:  addq $8, %rsp
+   24:  movl %ebp, %esi
+   26:  movq %rbx, %rdi
+   29:  movl $0, %edx   <str:"value expected">
+   2e:  popq %rbx
+   2f:  popq %rbp
+   30:  jmp luaL_argerror+0

@@ -1,0 +1,35 @@
+# tr_rt  (global, 109 bytes, 34 instructions)
+    0:  pushq %rbx
+    1:  cmpq $0, 8(%rdi)
+    6:  je 0x58
+    8:  movq %rdi, %rbx
+    b:  movl $0x64, %edi
+   10:  callq nreg+0
+   15:  movq 8(%rbx), %rdi
+   19:  movl $0x76, %edx
+   1e:  movl (%rax), %esi
+   20:  callq eval_re+0
+   25:  movl %eax, %ebx
+   27:  testl %ebx, %ebx
+   29:  jns 0x30
+   2b:  popq %rbx
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  movl $0x64, %edi
+   35:  callq nreg+0
+   3a:  cmpl %ebx, (%rax)
+   3c:  jle 0x2b
+   3e:  movl $0x64, %edi
+   43:  callq nreg+0
+   48:  xorl %esi, %esi
+   4a:  subl (%rax), %ebx
+   4c:  movl %ebx, %edi
+   4e:  popq %rbx
+   4f:  jmp fn:ren_sp+0
+   54:  nopl (%rax)
+   58:  movl $0, %edi   <str:".mk">
+   5d:  callq map+0
+   62:  movl %eax, %edi
+   64:  callq nreg+0
+   69:  movl (%rax), %ebx
+   6b:  jmp 0x27

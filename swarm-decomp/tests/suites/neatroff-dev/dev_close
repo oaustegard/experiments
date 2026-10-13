@@ -1,0 +1,20 @@
+# dev_close  (global, 67 bytes, 19 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edi   <str:"x trailer\n">
+    6:  xorl %eax, %eax
+    8:  movl $0, %ebx   <var:fn_font+0>
+    d:  callq out+0
+   12:  movl $0, %edi   <str:"x stop\n">
+   17:  xorl %eax, %eax
+   19:  callq out+0
+   1e:  nop
+   20:  movq (%rbx), %rdi
+   23:  testq %rdi, %rdi
+   26:  je 0x2d
+   28:  callq font_close+0
+   2d:  movq $0, (%rbx)
+   34:  addq $8, %rbx
+   38:  cmpq $0, %rbx   <var:fn_font+256>
+   3f:  jne 0x20
+   41:  popq %rbx
+   42:  retq

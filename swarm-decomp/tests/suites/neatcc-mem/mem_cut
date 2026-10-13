@@ -1,0 +1,6 @@
+# mem_cut  (global, 16 bytes, 5 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  cmpq %rsi, %rax
+    7:  cmovgq %rsi, %rax
+    b:  movq %rax, 0x10(%rdi)
+    f:  retq

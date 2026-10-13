@@ -1,0 +1,21 @@
+# tr_pl  (static, 65 bytes, 20 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl $0x70, %edi
+    9:  callq nreg+0
+    e:  movq 8(%rbx), %rdi
+   12:  movl $0x76, %edx
+   17:  movl (%rax), %esi
+   19:  movl $0, %eax   <str:"11i">
+   1e:  testq %rdi, %rdi
+   21:  cmoveq %rax, %rdi
+   25:  callq eval_re+0
+   2a:  movl $0x70, %edi
+   2f:  movl %eax, %ebx
+   31:  callq nreg+0
+   36:  xorl %edx, %edx
+   38:  testl %ebx, %ebx
+   3a:  cmovsl %edx, %ebx
+   3d:  movl %ebx, (%rax)
+   3f:  popq %rbx
+   40:  retq

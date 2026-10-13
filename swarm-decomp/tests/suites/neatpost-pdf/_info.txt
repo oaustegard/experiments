@@ -1,0 +1,152 @@
+# neatpost-pdf: translation unit pdf of neatpost
+# write each function as src/neatpost/pdf/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+obj_map	static	98 bytes
+fonttype	static	118 bytes
+pdfout	static	164 bytes
+pdfcolor	static	167 bytes
+pdfpos00	static	183 bytes
+drawquad	static	468 bytes
+pdf_copy	static	156 bytes
+pdf_strcopy.isra.0	static	201 bytes
+out_fontup	static	314 bytes
+pdf_dictcopy	static	626 bytes
+writedesc	static	1166 bytes
+out	global	1 bytes
+outc	global	1233 bytes
+outh	global	7 bytes
+outv	global	7 bytes
+outrel	global	13 bytes
+outfont	global	21 bytes
+outsize	global	11 bytes
+outcolor	global	7 bytes
+outrotate	global	1 bytes
+outeps	global	1 bytes
+outpdf	global	2118 bytes
+outlink	global	367 bytes
+outname	global	280 bytes
+outmark	global	1325 bytes
+outinfo	global	117 bytes
+outset	global	167 bytes
+outpage	global	91 bytes
+outmnt	global	27 bytes
+outgname	global	1 bytes
+drawbeg	global	101 bytes
+drawend	global	381 bytes
+drawmbeg	global	1 bytes
+drawmend	global	1 bytes
+drawl	global	65 bytes
+drawc	global	59 bytes
+drawe	global	79 bytes
+drawa	global	69 bytes
+draws	global	319 bytes
+docheader	global	161 bytes
+doctrailer	global	2000 bytes
+docpagebeg	global	35 bytes
+docpageend	global	880 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+obj_n	static	4 bytes	.bss.obj_n
+    (zero-initialised)
+obj_sz	static	4 bytes	.bss.obj_sz
+    (zero-initialised)
+obj_off	static	8 bytes	.bss.obj_off
+    (zero-initialised)
+pdf_pos	static	4 bytes	.bss.pdf_pos
+    (zero-initialised)
+pg	static	8 bytes	.bss.pg
+    (zero-initialised)
+buf.3	static	64 bytes	.bss.buf.3
+    (zero-initialised)
+pdf_height	static	4 bytes	.bss.pdf_height
+    (zero-initialised)
+buf.2	static	64 bytes	.bss.buf.2
+    (zero-initialised)
+o_h	static	4 bytes	.bss.o_h
+    (zero-initialised)
+o_v	static	4 bytes	.bss.o_v
+    (zero-initialised)
+buf.0	static	4096 bytes	.bss.buf.0
+    (zero-initialised)
+o_m	static	4 bytes	.bss.o_m
+    (zero-initialised)
+p_m	static	4 bytes	.bss.p_m
+    (zero-initialised)
+o_i	static	4 bytes	.bss.o_i
+    (zero-initialised)
+p_i	static	4 bytes	.bss.p_i
+    (zero-initialised)
+p_s	static	4 bytes	.bss.p_s
+    (zero-initialised)
+o_s	static	4 bytes	.bss.o_s
+    (zero-initialised)
+pfonts	static	8 bytes	.bss.pfonts
+    (zero-initialised)
+o_queued	static	4 bytes	.bss.o_queued
+    (zero-initialised)
+hex.4	static	17 bytes	.rodata.hex.4
+        0: 30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46 00
+o_f	static	4 bytes	.bss.o_f
+    (zero-initialised)
+pfonts_n	static	4 bytes	.bss.pfonts_n
+    (zero-initialised)
+pfonts_sz	static	4 bytes	.bss.pfonts_sz
+    (zero-initialised)
+o_iset	static	1024 bytes	.bss.o_iset
+    (zero-initialised)
+p_v	static	4 bytes	.bss.p_v
+    (zero-initialised)
+p_h	static	4 bytes	.bss.p_h
+    (zero-initialised)
+buf.1	static	64 bytes	.bss.buf.1
+    (zero-initialised)
+xobj_n	static	4 bytes	.bss.xobj_n
+    (zero-initialised)
+xobj	static	512 bytes	.bss.xobj
+    (zero-initialised)
+ann_n	static	4 bytes	.bss.ann_n
+    (zero-initialised)
+ann	static	512 bytes	.bss.ann
+    (zero-initialised)
+pdf_dests	static	4 bytes	.bss.pdf_dests
+    (zero-initialised)
+page_n	static	4 bytes	.bss.page_n
+    (zero-initialised)
+page_id	static	8 bytes	.bss.page_id
+    (zero-initialised)
+pdf_outline	static	4 bytes	.bss.pdf_outline
+    (zero-initialised)
+pdf_author	static	256 bytes	.bss.pdf_author
+    (zero-initialised)
+pdf_title	static	256 bytes	.bss.pdf_title
+    (zero-initialised)
+pdf_linewid	static	4 bytes	.bss.pdf_linewid
+    (zero-initialised)
+pdf_linejoin	static	4 bytes	.data.pdf_linejoin
+        0: 01 00 00 00
+pdf_linecap	static	4 bytes	.data.pdf_linecap
+        0: 01 00 00 00
+p_f	static	4 bytes	.bss.p_f
+    (zero-initialised)
+l_page	static	4 bytes	.bss.l_page
+    (zero-initialised)
+l_size	static	4 bytes	.bss.l_size
+    (zero-initialised)
+l_wid	static	4 bytes	.bss.l_wid
+    (zero-initialised)
+l_cap	static	4 bytes	.bss.l_cap
+    (zero-initialised)
+l_join	static	4 bytes	.bss.l_join
+    (zero-initialised)
+pdf_root	static	4 bytes	.bss.pdf_root
+    (zero-initialised)
+pdf_pages	static	4 bytes	.bss.pdf_pages
+    (zero-initialised)
+pdf_width	static	4 bytes	.bss.pdf_width
+    (zero-initialised)
+page_sz	static	4 bytes	.bss.page_sz
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc close dev_font dev_fontopen dev_glyph dev_res font_close font_desc font_glget font_glnum font_name font_path font_swid font_wid free fwrite malloc memset mextend open pdf_dkey pdf_dval pdf_dval_obj pdf_dval_val pdf_len pdf_lval pdf_ref pdf_trailer pdf_type pdf_ws pdftext_static read sbuf_buf sbuf_chr sbuf_cut sbuf_free sbuf_len sbuf_make sbuf_mem sbuf_printf sbuf_str snprintf sprintf stdout strcmp strrchr strtol vfprintf

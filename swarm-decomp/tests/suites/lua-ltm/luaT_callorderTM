@@ -1,0 +1,62 @@
+# luaT_callorderTM  (global, 176 bytes, 61 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  movq %rsi, %r12
+    a:  pushq %rbp
+    b:  movl %ecx, %ebp
+    d:  pushq %rbx
+    e:  movl %ebp, %r8d
+   11:  movq %rdi, %rbx
+   14:  subq $8, %rsp
+   18:  movq 0x10(%rdi), %rcx
+   1c:  callq fn:callbinTM+0
+   21:  testl %eax, %eax
+   23:  jne 0x80
+   25:  cmpl $0x15, %ebp
+   28:  jne 0xa2
+   2a:  movq 0x20(%rbx), %rax
+   2e:  movq 0x10(%rbx), %rcx
+   32:  movq %r12, %rdx
+   35:  movq %r13, %rsi
+   38:  movl $0x14, %r8d
+   3e:  movq %rbx, %rdi
+   41:  orw $0x2000, 0x3e(%rax)
+   47:  callq fn:callbinTM+0
+   4c:  testl %eax, %eax
+   4e:  je 0xa2
+   50:  movq 0x20(%rbx), %rax
+   54:  xorw $0x2000, 0x3e(%rax)
+   5a:  movq 0x10(%rbx), %rax
+   5e:  movzbl 8(%rax), %edx
+   62:  movl $1, %eax
+   67:  cmpb $1, %dl
+   6a:  je 0x74
+   6c:  xorl %eax, %eax
+   6e:  andl $0xf, %edx
+   71:  sete %al
+   74:  addq $8, %rsp
+   78:  popq %rbx
+   79:  popq %rbp
+   7a:  popq %r12
+   7c:  popq %r13
+   7e:  retq
+   7f:  nop
+   80:  movq 0x10(%rbx), %rax
+   84:  movzbl 8(%rax), %edx
+   88:  xorl %eax, %eax
+   8a:  cmpb $1, %dl
+   8d:  je 0x74
+   8f:  xorl %eax, %eax
+   91:  andl $0xf, %edx
+   94:  setne %al
+   97:  addq $8, %rsp
+   9b:  popq %rbx
+   9c:  popq %rbp
+   9d:  popq %r12
+   9f:  popq %r13
+   a1:  retq
+   a2:  movq %r13, %rdx
+   a5:  movq %r12, %rsi
+   a8:  movq %rbx, %rdi
+   ab:  callq luaG_ordererror+0

@@ -1,0 +1,31 @@
+# f_flush  (static, 105 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_checkudata+0
+   18:  cmpq $0, 8(%rax)
+   1d:  movq %rax, %rbp
+   20:  je 0x58
+   22:  callq __errno_location+0
+   27:  movq (%rbp), %rbp
+   2b:  movl $0, (%rax)
+   31:  movq %rbp, %rdi
+   34:  callq fflush+0
+   39:  xorl %esi, %esi
+   3b:  movq %rbx, %rdi
+   3e:  testl %eax, %eax
+   40:  sete %sil
+   44:  addq $8, %rsp
+   48:  xorl %edx, %edx
+   4a:  popq %rbx
+   4b:  popq %rbp
+   4c:  jmp luaL_fileresult+0
+   51:  nopl (%rax)
+   58:  movl $0, %esi   <str:"attempt to use a closed file">
+   5d:  movq %rbx, %rdi
+   60:  xorl %eax, %eax
+   62:  callq luaL_error+0
+   67:  jmp 0x22

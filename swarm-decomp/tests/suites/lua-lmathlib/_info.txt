@@ -1,0 +1,129 @@
+# lua-lmathlib: translation unit lmathlib of lua
+# write each function as src/lua/lmathlib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+math_rad	static	37 bytes
+math_deg	static	37 bytes
+math_log10	static	34 bytes
+math_ldexp	static	69 bytes
+math_frexp	static	60 bytes
+math_pow	static	73 bytes
+math_tanh	static	34 bytes
+math_sinh	static	34 bytes
+math_cosh	static	34 bytes
+math_tan	static	34 bytes
+math_sqrt	static	50 bytes
+math_sin	static	34 bytes
+math_min	static	137 bytes
+math_max	static	137 bytes
+math_log	static	196 bytes
+math_ult	static	64 bytes
+math_fmod	static	273 bytes
+math_exp	static	34 bytes
+math_cos	static	34 bytes
+math_atan	static	81 bytes
+math_asin	static	34 bytes
+math_acos	static	34 bytes
+math_type	static	84 bytes
+math_modf	static	386 bytes
+math_toint	static	88 bytes
+math_abs	static	100 bytes
+math_randomseed	static	307 bytes
+math_floor	static	196 bytes
+math_ceil	static	196 bytes
+math_random	static	567 bytes
+luaopen_math	global	358 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+mathlib	static	576 bytes	.rodata.mathlib
+    +0     -> str:"abs"
+    +8     -> fn:math_abs+0
+    +16    -> str:"acos"
+    +24    -> fn:math_acos+0
+    +32    -> str:"asin"
+    +40    -> fn:math_asin+0
+    +48    -> str:"atan"
+    +56    -> fn:math_atan+0
+    +64    -> str:"ceil"
+    +72    -> fn:math_ceil+0
+    +80    -> str:"cos"
+    +88    -> fn:math_cos+0
+    +96    -> str:"deg"
+    +104   -> fn:math_deg+0
+    +112   -> str:"exp"
+    +120   -> fn:math_exp+0
+    +128   -> str:"tointeger"
+    +136   -> fn:math_toint+0
+    +144   -> str:"floor"
+    +152   -> fn:math_floor+0
+    +160   -> str:"fmod"
+    +168   -> fn:math_fmod+0
+    +176   -> str:"ult"
+    +184   -> fn:math_ult+0
+    +192   -> str:"log"
+    +200   -> fn:math_log+0
+    +208   -> str:"max"
+    +216   -> fn:math_max+0
+    +224   -> str:"min"
+    +232   -> fn:math_min+0
+    +240   -> str:"modf"
+    +248   -> fn:math_modf+0
+    +256   -> str:"rad"
+    +264   -> fn:math_rad+0
+    +272   -> str:"sin"
+    +280   -> fn:math_sin+0
+    +288   -> str:"sqrt"
+    +296   -> fn:math_sqrt+0
+    +304   -> str:"tan"
+    +312   -> fn:math_tan+0
+    +320   -> str:"type"
+    +328   -> fn:math_type+0
+    +336   -> str:"atan2"
+    +344   -> fn:math_atan+0
+    +352   -> str:"cosh"
+    +360   -> fn:math_cosh+0
+    +368   -> str:"sinh"
+    +376   -> fn:math_sinh+0
+    +384   -> str:"tanh"
+    +392   -> fn:math_tanh+0
+    +400   -> str:"pow"
+    +408   -> fn:math_pow+0
+    +416   -> str:"frexp"
+    +424   -> fn:math_frexp+0
+    +432   -> str:"ldexp"
+    +440   -> fn:math_ldexp+0
+    +448   -> str:"log10"
+    +456   -> fn:math_log10+0
+    +464   -> str:"random"
+    +480   -> str:"randomseed"
+    +496   -> str:"pi"
+    +512   -> str:"huge"
+    +528   -> str:"maxinteger"
+    +544   -> str:"mininteger"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 64 more bytes
+randfuncs	static	48 bytes	.rodata.randfuncs
+    +0     -> str:"random"
+    +8     -> fn:math_random+0
+    +16    -> str:"randomseed"
+    +24    -> fn:math_randomseed+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+acos asin atan2 cos cosh exp fmod frexp ldexp log log10 log2 luaL_argerror luaL_checkany luaL_checkinteger luaL_checknumber luaL_checkversion_ luaL_error luaL_optinteger luaL_optnumber luaL_setfuncs lua_compare lua_createtable lua_gettop lua_isinteger lua_newuserdatauv lua_pushboolean lua_pushinteger lua_pushnil lua_pushnumber lua_pushstring lua_pushvalue lua_setfield lua_settop lua_tointegerx lua_touserdata lua_type pow sin sinh sqrt tan tanh time

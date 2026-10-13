@@ -1,0 +1,20 @@
+# luaC_runtilstate  (global, 56 bytes, 19 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq 0x18(%rdi), %r12
+    8:  movzbl 0x65(%r12), %eax
+    e:  btl %eax, %esi
+   11:  jb 0x33
+   13:  movq %rdi, %rbp
+   16:  movl %esi, %ebx
+   18:  nopl (%rax, %rax)
+   20:  movq %rbp, %rdi
+   23:  callq fn:singlestep+0
+   28:  movzbl 0x65(%r12), %eax
+   2e:  btl %eax, %ebx
+   31:  jae 0x20
+   33:  popq %rbx
+   34:  popq %rbp
+   35:  popq %r12
+   37:  retq

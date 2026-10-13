@@ -1,0 +1,54 @@
+# mbox_off  (global, 141 bytes, 53 instructions)
+    0:  pushq %r14
+    2:  xorl %eax, %eax
+    4:  movq %r8, %r14
+    7:  pushq %r13
+    9:  movq %rcx, %r13
+    c:  pushq %r12
+    e:  movq %rsi, %r12
+   11:  xorl %esi, %esi
+   13:  pushq %rbp
+   14:  movq %rdx, %rbp
+   17:  pushq %rbx
+   18:  callq open+0
+   1d:  testl %eax, %eax
+   1f:  js 0x7f
+   21:  xorl %edx, %edx
+   23:  movq %r12, %rsi
+   26:  movl %eax, %edi
+   28:  movl %eax, %ebx
+   2a:  callq lseek+0
+   2f:  testq %rax, %rax
+   32:  js 0x78
+   34:  subq %r12, %rbp
+   37:  leaq 1(%rbp), %rdi
+   3b:  callq malloc+0
+   40:  movq %rax, (%r13)
+   44:  movq %rax, %rsi
+   47:  testq %rax, %rax
+   4a:  je 0x7f
+   4c:  movq %rbp, %rdx
+   4f:  movl %ebx, %edi
+   51:  callq xread+0
+   56:  movq (%r13), %rdx
+   5a:  movl %ebx, %edi
+   5c:  movb $0, (%rdx, %rax)
+   60:  movq %rax, (%r14)
+   63:  callq close+0
+   68:  popq %rbx
+   69:  xorl %eax, %eax
+   6b:  popq %rbp
+   6c:  popq %r12
+   6e:  popq %r13
+   70:  popq %r14
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  movl %ebx, %edi
+   7a:  callq close+0
+   7f:  popq %rbx
+   80:  movl $1, %eax
+   85:  popq %rbp
+   86:  popq %r12
+   88:  popq %r13
+   8a:  popq %r14
+   8c:  retq

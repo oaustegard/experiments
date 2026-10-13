@@ -1,0 +1,32 @@
+# luaL_unref  (global, 87 bytes, 31 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movslq %edx, %rbx
+    7:  testl %ebx, %ebx
+    9:  jns 0x10
+    b:  popq %rbx
+    c:  popq %rbp
+    d:  popq %r12
+    f:  retq
+   10:  movq %rdi, %rbp
+   13:  callq lua_absindex+0
+   18:  movq %rbp, %rdi
+   1b:  movl $3, %edx
+   20:  movl %eax, %r12d
+   23:  movl %eax, %esi
+   25:  callq lua_rawgeti+0
+   2a:  movq %rbx, %rdx
+   2d:  movl %r12d, %esi
+   30:  movq %rbp, %rdi
+   33:  callq lua_rawseti+0
+   38:  movq %rbx, %rsi
+   3b:  movq %rbp, %rdi
+   3e:  callq lua_pushinteger+0
+   43:  popq %rbx
+   44:  movl %r12d, %esi
+   47:  movq %rbp, %rdi
+   4a:  movl $3, %edx
+   4f:  popq %rbp
+   50:  popq %r12
+   52:  jmp lua_rawseti+0

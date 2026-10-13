@@ -1,0 +1,32 @@
+# uc_len  (static, 90 bytes, 31 instructions)
+    0:  movzbl (%rdi), %ecx
+    3:  movl %ecx, %edx
+    5:  movl %ecx, %eax
+    7:  notl %edx
+    9:  andl $0xc0, %edx
+    f:  jne 0x50
+   11:  cmpb $0, 1(%rdi)
+   15:  je 0x50
+   17:  movl $2, %edx
+   1c:  testb $0x20, %cl
+   1f:  je 0x57
+   21:  cmpb $0, 2(%rdi)
+   25:  je 0x57
+   27:  movl $3, %edx
+   2c:  testb $0x10, %cl
+   2f:  je 0x57
+   31:  cmpb $0, 3(%rdi)
+   35:  je 0x57
+   37:  andl $8, %eax
+   3a:  cmpb $1, %al
+   3c:  sbbl %edx, %edx
+   3e:  andl $3, %edx
+   41:  addl $1, %edx
+   44:  movl %edx, %eax
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  xorl %edx, %edx
+   52:  testl %ecx, %ecx
+   54:  setg %dl
+   57:  movl %edx, %eax
+   59:  retq

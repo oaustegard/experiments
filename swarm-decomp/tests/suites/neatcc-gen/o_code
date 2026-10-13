@@ -1,0 +1,21 @@
+# o_code  (global, 61 bytes, 20 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  movl $0, %edi   <var:cs+0>
+    a:  pushq %rbp
+    b:  movq %rdx, %rbp
+    e:  pushq %rbx
+    f:  movq %rsi, %rbx
+   12:  callq mem_len+0
+   17:  movq %r12, %rdi
+   1a:  movl $1, %esi
+   1f:  xorl %ecx, %ecx
+   21:  movq %rax, %rdx
+   24:  callq out_def+0
+   29:  movq %rbp, %rdx
+   2c:  movq %rbx, %rsi
+   2f:  movl $0, %edi   <var:cs+0>
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  popq %r12
+   38:  jmp mem_put+0

@@ -1,0 +1,52 @@
+# tr_fspecial  (global, 158 bytes, 51 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  subq $8, %rsp
+   11:  movq 8(%rdi), %rdi
+   15:  testq %rdi, %rdi
+   18:  je 0x8f
+   1a:  callq dev_pos+0
+   1f:  movslq %eax, %r12
+   22:  testl %r12d, %r12d
+   25:  jle 0x8f
+   27:  leaq 0x10(%rbx), %r14
+   2b:  xorl %r15d, %r15d
+   2e:  movslq %r12d, %r13
+   31:  addq $0x100, %rbx
+   38:  jmp 0x6d
+   3a:  nopw (%rax, %rax)
+   40:  callq dev_pos+0
+   45:  testl %eax, %eax
+   47:  jle 0x64
+   49:  cmpl $3, %r15d
+   4d:  ja 0x64
+   4f:  movslq %r15d, %rdx
+   52:  addl $1, %r15d
+   56:  leaq (%rdx, %r13, 4), %rdx
+   5a:  movl %r15d, %ebp
+   5d:  movl %eax, (, %rdx, 4)   <var:fn_special+0>
+   64:  addq $8, %r14
+   68:  cmpq %rbx, %r14
+   6b:  je 0x78
+   6d:  movq (%r14), %rdi
+   70:  movl %r15d, %ebp
+   73:  testq %rdi, %rdi
+   76:  jne 0x40
+   78:  cmpl $3, %ebp
+   7b:  ja 0x8f
+   7d:  movslq %r15d, %r15
+   80:  leaq (%r15, %r12, 4), %rax
+   84:  movl $0, (, %rax, 4)   <var:fn_special+0>
+   8f:  addq $8, %rsp
+   93:  popq %rbx
+   94:  popq %rbp
+   95:  popq %r12
+   97:  popq %r13
+   99:  popq %r14
+   9b:  popq %r15
+   9d:  retq

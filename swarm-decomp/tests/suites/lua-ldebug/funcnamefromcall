@@ -1,0 +1,103 @@
+# funcnamefromcall  (static, 378 bytes, 102 instructions)
+    0:  movzwl 0x3e(%rsi), %eax
+    4:  testb $8, %al
+    6:  jne 0x60
+    8:  testb $0x80, %al
+    a:  jne 0x50
+    c:  testb $2, %al
+    e:  jne 0x70
+   10:  movq (%rsi), %rax
+   13:  movq 0x20(%rsi), %rsi
+   17:  movq (%rax), %rax
+   1a:  movq 0x18(%rax), %r8
+   1e:  movq 0x40(%r8), %rax
+   22:  subq %rax, %rsi
+   25:  sarq $2, %rsi
+   29:  subl $1, %esi
+   2c:  movslq %esi, %rcx
+   2f:  movl (%rax, %rcx, 4), %eax
+   32:  movl %eax, %ecx
+   34:  andl $0x7f, %ecx
+   37:  cmpl $0x36, %ecx
+   3a:  ja 0x78
+   3c:  cmpl $0xa, %ecx
+   3f:  jbe 0x70
+   41:  subl $0xb, %ecx
+   44:  cmpl $0x2b, %ecx
+   47:  ja 0x70
+   49:  jmpq *(, %rcx, 8)   <var:funcnamefromcall+0>
+   50:  movq $0, (%rdx)   <str:"__gc">
+   57:  movl $0, %eax   <str:"metamethod">
+   5c:  retq
+   5d:  nopl (%rax)
+   60:  movq $0, (%rdx)   <str:"?">
+   67:  movl $0, %eax   <str:"hook">
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  xorl %eax, %eax
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  cmpl $0x41, %ecx
+   7b:  ja 0x120
+   81:  cmpl $0x38, %ecx
+   84:  jbe 0x70
+   86:  subl $0x39, %ecx
+   89:  movl $1, %eax
+   8e:  shlq %cl, %rax
+   91:  movq %rax, %rcx
+   94:  testl $0x144, %eax
+   99:  jne 0xd0
+   9b:  testb $0xa2, %al
+   9d:  jne 0x170
+   a3:  andl $1, %ecx
+   a6:  movl $5, %eax
+   ab:  je 0x70
+   ad:  movq 0x18(%rdi), %rcx
+   b1:  movq 0x118(%rcx, %rax, 8), %rax
+   b9:  addq $0x1a, %rax
+   bd:  movq %rax, (%rdx)
+   c0:  movl $0, %eax   <str:"metamethod">
+   c5:  retq
+   c6:  nopw %cs:(%rax, %rax)
+   d0:  movl $0x15, %eax
+   d5:  jmp 0xad
+   d7:  nopw (%rax, %rax)
+   e0:  xorl %eax, %eax
+   e2:  jmp 0xad
+   e4:  nopl (%rax)
+   e8:  movl $1, %eax
+   ed:  jmp 0xad
+   ef:  shrl $0x18, %eax
+   f2:  jmp 0xad
+   f4:  movl $0x16, %eax
+   f9:  jmp 0xad
+   fb:  movl $4, %eax
+  100:  jmp 0xad
+  102:  movl $0x13, %eax
+  107:  jmp 0xad
+  109:  movl $0x12, %eax
+  10e:  jmp 0xad
+  110:  movl $0x18, %eax
+  115:  jmp 0xad
+  117:  nopw (%rax, %rax)
+  120:  cmpl $0x46, %ecx
+  123:  je 0x110
+  125:  ja 0x150
+  127:  subl $0x44, %ecx
+  12a:  cmpl $1, %ecx
+  12d:  ja 0x70
+  133:  shrl $7, %eax
+  136:  movq %rdx, %rcx
+  139:  movq %r8, %rdi
+  13c:  movzbl %al, %eax
+  13f:  movl %eax, %edx
+  141:  jmp fn:getobjname+0
+  146:  nopw %cs:(%rax, %rax)
+  150:  cmpl $0x4c, %ecx
+  153:  jne 0x70
+  159:  movq $0, (%rdx)   <str:"for iterator">
+  160:  movl $0, %eax   <str:"for iterator">
+  165:  retq
+  166:  nopw %cs:(%rax, %rax)
+  170:  movl $0x14, %eax
+  175:  jmp 0xad

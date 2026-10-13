@@ -1,0 +1,106 @@
+# box_beforeput  (static, 386 bytes, 105 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  movl 0x1c(%rdi), %eax
+   10:  testl %eax, %eax
+   12:  je 0xf0
+   18:  movl 0x28(%rdi), %ecx
+   1b:  movl %esi, %eax
+   1d:  andl $0x100, %esi
+   23:  movl %edx, %ebp
+   25:  movl 0x24(%rdi), %edx
+   28:  shrl $4, %ecx
+   2b:  jne 0x140
+   31:  movl %eax, %ecx
+   33:  andl $0xf0, %ecx
+   39:  andl $0xf0, %edx
+   3f:  je 0x140
+   45:  testl %ecx, %ecx
+   47:  je 0x140
+   4d:  sarl $4, %ecx
+   50:  sarl $4, %edx
+   53:  movl (%rip), %r13d   <e_thickspace+0>
+   5a:  subl $1, %ecx
+   5d:  subl $1, %edx
+   60:  movslq %ecx, %rcx
+   63:  movslq %edx, %rdx
+   66:  leaq (%rcx, %rdx, 8), %rdx
+   6a:  movl (, %rdx, 4), %edx   <var:spacing+0>
+   71:  cmpl $3, %edx
+   74:  je 0x86
+   76:  movl (%rip), %r13d   <e_mediumspace+0>
+   7d:  cmpl $2, %edx
+   80:  jne 0x128
+   86:  cmpl $0x14, %eax
+   89:  setne %r12b
+   8d:  testl %r13d, %r13d
+   90:  setne %al
+   93:  andl %eax, %r12d
+   96:  testl %esi, %esi
+   98:  je 0x150
+   9e:  testb %r12b, %r12b
+   a1:  je 0xf0
+   a3:  cmpl $0x14, 0x24(%rbx)
+   a7:  je 0xf0
+   a9:  movq %rbx, %rdi
+   ac:  callq fn:box_italiccorrection+0
+   b1:  testl %ebp, %ebp
+   b3:  je 0x160
+   b9:  movl 0x24(%rbx), %edi
+   bc:  andl $0xf0, %edi
+   c2:  callq def_brcost+0
+   c7:  movl 0x10(%rbx), %edi
+   ca:  movl %eax, %ebp
+   cc:  callq nreg+0
+   d1:  movl %ebp, %r8d
+   d4:  movl %r13d, %edx
+   d7:  movl $0, %esi   <str:"\\s[\\En(.s*%du*%sp/100u/\\w' 'u]\\j'%d' \\s0">
+   dc:  movq %rax, %rcx
+   df:  movq %rbx, %rdi
+   e2:  xorl %eax, %eax
+   e4:  callq box_putf+0
+   e9:  nopl (%rax)
+   f0:  cmpq $0, 0x30(%rbx)
+   f5:  je 0x11a
+   f7:  movq %rbx, %rdi
+   fa:  callq box_toreg+0
+   ff:  movq 0x30(%rbx), %rsi
+  103:  movl $0, %edi   <str:".nr %s 0\\w'%s'\n">
+  108:  movq %rax, %rdx
+  10b:  xorl %eax, %eax
+  10d:  callq printf+0
+  112:  movq $0, 0x30(%rbx)
+  11a:  addq $8, %rsp
+  11e:  popq %rbx
+  11f:  popq %rbp
+  120:  popq %r12
+  122:  popq %r13
+  124:  retq
+  125:  nopl (%rax)
+  128:  movl (%rip), %r13d   <e_thinspace+0>
+  12f:  testl %edx, %edx
+  131:  jne 0x86
+  137:  nopw (%rax, %rax)
+  140:  testl %esi, %esi
+  142:  jne 0xf0
+  144:  movq %rbx, %rdi
+  147:  callq fn:box_italiccorrection+0
+  14c:  jmp 0xf0
+  14e:  nop
+  150:  movq %rbx, %rdi
+  153:  callq fn:box_italiccorrection+0
+  158:  jmp 0x9e
+  15d:  nopl (%rax)
+  160:  movl 0x10(%rbx), %edi
+  163:  callq nreg+0
+  168:  movl %r13d, %edx
+  16b:  movl $0, %esi   <str:"\\h'%du*%sp/100u'">
+  170:  movq %rbx, %rdi
+  173:  movq %rax, %rcx
+  176:  xorl %eax, %eax
+  178:  callq box_putf+0
+  17d:  jmp 0xf0

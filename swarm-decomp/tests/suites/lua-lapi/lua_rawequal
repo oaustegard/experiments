@@ -1,0 +1,28 @@
+# lua_rawequal  (global, 87 bytes, 27 instructions)
+    0:  movl %edx, %r9d
+    3:  subq $8, %rsp
+    7:  callq fn:index2value+0
+    c:  movl %r9d, %esi
+    f:  movq %rax, %r8
+   12:  callq fn:index2value+0
+   17:  movq %rax, %rdx
+   1a:  testb $0xf, 8(%r8)
+   1f:  jne 0x2e
+   21:  movq 0x18(%rdi), %rax
+   25:  addq $0x50, %rax
+   29:  cmpq %rax, %r8
+   2c:  je 0x50
+   2e:  testb $0xf, 8(%rdx)
+   32:  jne 0x41
+   34:  movq 0x18(%rdi), %rax
+   38:  addq $0x50, %rax
+   3c:  cmpq %rax, %rdx
+   3f:  je 0x50
+   41:  movq %r8, %rsi
+   44:  xorl %edi, %edi
+   46:  addq $8, %rsp
+   4a:  jmp luaV_equalobj+0
+   4f:  nop
+   50:  xorl %eax, %eax
+   52:  addq $8, %rsp
+   56:  retq

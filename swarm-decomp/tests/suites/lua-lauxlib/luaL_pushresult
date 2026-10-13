@@ -1,0 +1,26 @@
+# luaL_pushresult  (global, 87 bytes, 25 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 0x18(%rdi), %rbp
+    d:  movq 0x10(%rdi), %rdx
+   11:  movq (%rdi), %rsi
+   14:  movq %rbp, %rdi
+   17:  callq lua_pushlstring+0
+   1c:  leaq 0x20(%rbx), %rax
+   20:  cmpq %rax, (%rbx)
+   23:  je 0x32
+   25:  movl $0xfffffffe, %esi
+   2a:  movq %rbp, %rdi
+   2d:  callq lua_closeslot+0
+   32:  movq %rbp, %rdi
+   35:  movl $0xfffffffe, %esi
+   3a:  movl $0xffffffff, %edx
+   3f:  callq lua_rotate+0
+   44:  addq $8, %rsp
+   48:  movq %rbp, %rdi
+   4b:  movl $0xfffffffe, %esi
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  jmp lua_settop+0

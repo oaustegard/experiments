@@ -1,0 +1,63 @@
+# o_assign  (global, 257 bytes, 62 instructions)
+    0:  movq (%rip), %rax   <var:iv_n+0>
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq (, %rax, 8), %r12   <var:iv+-8>
+   13:  subq $2, %rax
+   17:  movq %rdi, %rbx
+   1a:  movq (, %rax, 8), %rbp   <var:iv+0>
+   22:  movl $1, %edi
+   27:  movq %rax, (%rip)   <var:iv_n+0>
+   2e:  callq opt+0
+   33:  movslq %ebp, %rbp
+   36:  testl %eax, %eax
+   38:  je 0x91
+   3a:  movq (%rip), %rdx   <var:ic+0>
+   41:  leaq (%rbp, %rbp, 4), %rax
+   46:  leaq (%rdx, %rax, 8), %r9
+   4a:  movq (%r9), %r10
+   4d:  testl $0x400, %r10d
+   54:  je 0xe0
+   5a:  testl $0x700000, %r10d
+   61:  je 0xe0
+   63:  movq 0x18(%r9), %rcx
+   67:  movq 0x10(%r9), %rdx
+   6b:  movq %r10, %rdi
+   6e:  movq 8(%r9), %rsi
+   72:  callq fn:ic_put+0
+   77:  movq (%rip), %rax   <var:iv_n+0>
+   7e:  subq $1, %rax
+   82:  movq %rax, (%rip)   <var:iv_n+0>
+   89:  movslq (, %rax, 8), %rbp   <var:iv+0>
+   91:  shlq $0x18, %rbx
+   95:  movslq %r12d, %r12
+   98:  xorl %ecx, %ecx
+   9a:  movq %rbp, %rdx
+   9d:  movq %rbx, %rdi
+   a0:  movq %r12, %rsi
+   a3:  orq $0x120000, %rdi
+   aa:  callq fn:ic_put+0
+   af:  movq (%rip), %rax   <var:iv_n+0>
+   b6:  movl $1, %edi
+   bb:  leaq 1(%rax), %rdx
+   bf:  movq %r12, (, %rax, 8)   <var:iv+0>
+   c7:  movq %rdx, (%rip)   <var:iv_n+0>
+   ce:  callq opt+0
+   d3:  testl %eax, %eax
+   d5:  jne 0xf8
+   d7:  popq %rbx
+   d8:  popq %rbp
+   d9:  popq %r12
+   db:  retq
+   dc:  nopl (%rax)
+   e0:  movq %rbp, %rdi
+   e3:  callq fn:ic_load+0
+   e8:  testl %eax, %eax
+   ea:  je 0x91
+   ec:  jmp 0x63
+   f1:  nopl (%rax)
+   f8:  popq %rbx
+   f9:  popq %rbp
+   fa:  popq %r12
+   fc:  jmp fn:io_loc.isra.0+0

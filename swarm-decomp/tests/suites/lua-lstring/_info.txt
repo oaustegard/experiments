@@ -1,0 +1,22 @@
+# lua-lstring: translation unit lstring of lua
+# write each function as src/lua/lstring/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+tablerehash	static	126 bytes
+luaS_eqlngstr	global	62 bytes
+luaS_hash	global	46 bytes
+luaS_hashlongstr	global	64 bytes
+luaS_resize	global	203 bytes
+internshrstr	static	403 bytes
+luaS_clearcache	global	66 bytes
+luaS_init	global	175 bytes
+luaS_createlngstrobj	global	58 bytes
+luaS_remove	global	60 bytes
+luaS_newlstr	global	149 bytes
+luaS_new	global	165 bytes
+luaS_newudata	global	205 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_fix luaC_fullgc luaC_newobj luaD_throw luaM_malloc_ luaM_realloc_ luaM_toobig memcmp memcpy memset strcmp strlen

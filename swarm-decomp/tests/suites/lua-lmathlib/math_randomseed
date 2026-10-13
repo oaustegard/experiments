@@ -1,0 +1,93 @@
+# math_randomseed  (static, 307 bytes, 92 instructions)
+    0:  pushq %r13
+    2:  movl $0xfff0b9d7, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $8, %rsp
+   12:  callq lua_touserdata+0
+   17:  movl $1, %esi
+   1c:  movq %rbx, %rdi
+   1f:  movq %rax, %rbp
+   22:  callq lua_type+0
+   27:  cmpl $-1, %eax
+   2a:  je 0xc0
+   30:  movl $1, %esi
+   35:  movq %rbx, %rdi
+   38:  callq luaL_checkinteger+0
+   3d:  xorl %edx, %edx
+   3f:  movl $2, %esi
+   44:  movq %rbx, %rdi
+   47:  movq %rax, %r12
+   4a:  callq luaL_optinteger+0
+   4f:  movq %r12, %r8
+   52:  movl $0x10, %r9d
+   58:  xorl %edx, %edx
+   5a:  movq %rax, %r13
+   5d:  movq %rax, %rcx
+   60:  movl $0xff, %esi
+   65:  nopl (%rax)
+   68:  movq %rsi, %rdi
+   6b:  xorq %r8, %rcx
+   6e:  xorq %rsi, %rdx
+   71:  shlq $0x11, %rdi
+   75:  xorq %rdx, %r8
+   78:  xorq %rcx, %rsi
+   7b:  rorq $0x13, %rdx
+   7f:  xorq %rdi, %rcx
+   82:  subl $1, %r9d
+   86:  jne 0x68
+   88:  movq %r8, (%rbp)
+   8c:  movq %rbx, %rdi
+   8f:  movq %rsi, 8(%rbp)
+   93:  movq %r12, %rsi
+   96:  movq %rcx, 0x10(%rbp)
+   9a:  movq %rdx, 0x18(%rbp)
+   9e:  callq lua_pushinteger+0
+   a3:  movq %r13, %rsi
+   a6:  movq %rbx, %rdi
+   a9:  callq lua_pushinteger+0
+   ae:  addq $8, %rsp
+   b2:  movl $2, %eax
+   b7:  popq %rbx
+   b8:  popq %rbp
+   b9:  popq %r12
+   bb:  popq %r13
+   bd:  retq
+   be:  nop
+   c0:  xorl %edi, %edi
+   c2:  callq time+0
+   c7:  movq %rbx, %rcx
+   ca:  movl $0x10, %r10d
+   d0:  xorl %edx, %edx
+   d2:  movq %rax, %rsi
+   d5:  movq %rax, %r9
+   d8:  movl $0xff, %edi
+   dd:  nopl (%rax)
+   e0:  movq %rdi, %r8
+   e3:  xorq %r9, %rcx
+   e6:  xorq %rdi, %rdx
+   e9:  shlq $0x11, %r8
+   ed:  xorq %rdx, %r9
+   f0:  xorq %rcx, %rdi
+   f3:  rorq $0x13, %rdx
+   f7:  xorq %r8, %rcx
+   fa:  subl $1, %r10d
+   fe:  jne 0xe0
+  100:  movq %r9, (%rbp)
+  104:  movq %rdi, 8(%rbp)
+  108:  movq %rbx, %rdi
+  10b:  movq %rcx, 0x10(%rbp)
+  10f:  movq %rdx, 0x18(%rbp)
+  113:  callq lua_pushinteger+0
+  118:  movq %rbx, %rsi
+  11b:  movq %rbx, %rdi
+  11e:  callq lua_pushinteger+0
+  123:  addq $8, %rsp
+  127:  movl $2, %eax
+  12c:  popq %rbx
+  12d:  popq %rbp
+  12e:  popq %r12
+  130:  popq %r13
+  132:  retq

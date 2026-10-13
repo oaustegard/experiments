@@ -1,0 +1,257 @@
+# rnode_seq  (static, 1000 bytes, 256 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $8, %rsp
+    e:  movq (%rdi), %r15
+   11:  movzbl (%r15), %eax
+   15:  testb %al, %al
+   17:  je 0x140
+   1d:  cmpb $0x7c, %al
+   1f:  je 0x140
+   25:  cmpb $0x29, %al
+   27:  je 0x140
+   2d:  movq %rdi, %rbp
+   30:  cmpb $0x28, %al
+   32:  je 0x108
+   38:  movl $1, %esi
+   3d:  movl $0x30, %edi
+   42:  callq calloc+0
+   47:  movq (%rip), %r13   <cst:0100000001000000>
+   4e:  movq %rax, %r12
+   51:  movq %r13, 0x20(%rax)
+   55:  movzbl (%r15), %eax
+   59:  cmpb $0x5b, %al
+   5b:  je 0x338
+   61:  jle 0x158
+   67:  cmpb $0x5c, %al
+   69:  je 0x270
+   6f:  cmpb $0x5e, %al
+   71:  jne 0x28b
+   77:  addq $1, %r15
+   7b:  movl $0x5e, (%r12)
+   83:  movq %r15, (%rbp)
+   87:  nopw (%rax, %rax)
+   90:  movzbl (%r15), %eax
+   94:  cmpb $0x2a, %al
+   96:  je 0x1c0
+   9c:  cmpb $0x3f, %al
+   9e:  je 0x1c0
+   a4:  cmpb $0x2b, %al
+   a6:  jne 0xc4
+   a8:  movq (%rip), %rax   <cst:01000000ffffffff>
+   af:  leaq 1(%r15), %rdx
+   b3:  movq %rdx, (%rbp)
+   b7:  movq %rax, 0x20(%r12)
+   bc:  movzbl 1(%r15), %eax
+   c1:  movq %rdx, %r15
+   c4:  cmpb $0x7b, %al
+   c6:  je 0x1f0
+   cc:  movq %rbp, %rdi
+   cf:  callq 0
+   d4:  movq %rax, %rbx
+   d7:  testq %rax, %rax
+   da:  je 0x143
+   dc:  movl $1, %esi
+   e1:  movl $0x30, %edi
+   e6:  callq calloc+0
+   eb:  movq %r12, 0x10(%rax)
+   ef:  movq %rax, %r12
+   f2:  movl $0x63, 0x2c(%rax)
+   f9:  movq %rbx, 0x18(%rax)
+   fd:  movq %r13, 0x20(%rax)
+  101:  jmp 0x143
+  103:  nopl (%rax, %rax)
+  108:  leaq 1(%r15), %rax
+  10c:  xorl %r13d, %r13d
+  10f:  movq %rax, (%rdi)
+  112:  cmpb $0x29, 1(%r15)
+  117:  je 0x180
+  119:  callq fn:rnode_parse+0
+  11e:  movq %rax, %r13
+  121:  testq %rax, %rax
+  124:  je 0x140
+  126:  movq (%rbp), %rax
+  12a:  cmpb $0x29, (%rax)
+  12d:  je 0x180
+  12f:  movq %r13, %rdi
+  132:  callq fn:rnode_free+0
+  137:  nopw (%rax, %rax)
+  140:  xorl %r12d, %r12d
+  143:  addq $8, %rsp
+  147:  movq %r12, %rax
+  14a:  popq %rbx
+  14b:  popq %rbp
+  14c:  popq %r12
+  14e:  popq %r13
+  150:  popq %r14
+  152:  popq %r15
+  154:  retq
+  155:  nopl (%rax)
+  158:  cmpb $0x24, %al
+  15a:  je 0x320
+  160:  cmpb $0x2e, %al
+  162:  jne 0x28b
+  168:  addq $1, %r15
+  16c:  movl $0x2e, (%r12)
+  174:  movq %r15, (%rbp)
+  178:  jmp 0x90
+  17d:  nopl (%rax)
+  180:  leaq 1(%rax), %r15
+  184:  movl $1, %esi
+  189:  movl $0x30, %edi
+  18e:  movq %r15, (%rbp)
+  192:  callq calloc+0
+  197:  movq %r13, 0x10(%rax)
+  19b:  movq (%rip), %r13   <cst:0100000001000000>
+  1a2:  movq %rax, %r12
+  1a5:  movl $0x28, 0x2c(%rax)
+  1ac:  movq %r13, 0x20(%rax)
+  1b0:  movzbl (%r15), %eax
+  1b4:  cmpb $0x2a, %al
+  1b6:  jne 0x9c
+  1bc:  nopl (%rax)
+  1c0:  movl $0, 0x20(%r12)
+  1c9:  xorl %eax, %eax
+  1cb:  cmpb $0x2a, (%r15)
+  1cf:  leaq 1(%r15), %rdx
+  1d3:  setne %al
+  1d6:  movq %rdx, (%rbp)
+  1da:  leal -1(%rax, %rax), %eax
+  1de:  movl %eax, 0x24(%r12)
+  1e3:  movzbl 1(%r15), %eax
+  1e8:  movq %rdx, %r15
+  1eb:  jmp 0xa4
+  1f0:  movq $0, 0x20(%r12)
+  1f9:  leaq 1(%r15), %r14
+  1fd:  movq %r14, (%rbp)
+  201:  callq __ctype_b_loc+0
+  206:  movzbl 1(%r15), %edx
+  20b:  movq (%rax), %rdi
+  20e:  leaq 2(%r15), %rax
+  212:  movq %rdx, %rcx
+  215:  testb $8, 1(%rdi, %rdx, 2)
+  21a:  je 0x249
+  21c:  xorl %edx, %edx
+  21e:  nop
+  220:  movq %rax, (%rbp)
+  224:  leal (%rdx, %rdx, 4), %ecx
+  227:  movsbl -1(%rax), %edx
+  22b:  movq %rax, %r14
+  22e:  addq $1, %rax
+  232:  leal -0x30(%rdx, %rcx, 2), %edx
+  236:  movl %edx, 0x20(%r12)
+  23b:  movzbl -1(%rax), %esi
+  23f:  movq %rsi, %rcx
+  242:  testb $8, 1(%rdi, %rsi, 2)
+  247:  jne 0x220
+  249:  cmpb $0x2c, %cl
+  24c:  je 0x360
+  252:  movl 0x20(%r12), %eax
+  257:  movl %eax, 0x24(%r12)
+  25c:  addq $1, %r14
+  260:  movq %r14, (%rbp)
+  264:  jmp 0xcc
+  269:  nopl (%rax)
+  270:  movzbl 1(%r15), %eax
+  275:  movl %eax, %edx
+  277:  andl $0xfffffffd, %edx
+  27a:  cmpb $0x3c, %dl
+  27d:  je 0x3b0
+  283:  addq $1, %r15
+  287:  movq %r15, (%rbp)
+  28b:  movq %r15, %rbx
+  28e:  jmp 0x2cb
+  290:  movzbl (%rbx), %esi
+  293:  movl $0, %edi   <str:".^$[(|)*?+{\\">
+  298:  callq strchr+0
+  29d:  testq %rax, %rax
+  2a0:  jne 0x2e0
+  2a2:  movq %rbx, %rdi
+  2a5:  callq fn:uc_len+0
+  2aa:  movslq %eax, %r14
+  2ad:  addq %rbx, %r14
+  2b0:  movzbl (%r14), %esi
+  2b4:  testb %sil, %sil
+  2b7:  je 0x2c8
+  2b9:  movl $0, %edi   <str:"*?+{">
+  2be:  callq strchr+0
+  2c3:  testq %rax, %rax
+  2c6:  jne 0x2e0
+  2c8:  movq %r14, %rbx
+  2cb:  cmpq %r15, %rbx
+  2ce:  jne 0x290
+  2d0:  movq %r15, %rdi
+  2d3:  callq fn:uc_len+0
+  2d8:  movslq %eax, %r14
+  2db:  addq %r15, %r14
+  2de:  jmp 0x2c8
+  2e0:  subq %r15, %rbx
+  2e3:  leal 1(%rbx), %edi
+  2e6:  movslq %ebx, %rbx
+  2e9:  movslq %edi, %rdi
+  2ec:  callq malloc+0
+  2f1:  movq %rax, 8(%r12)
+  2f6:  movq %rax, %rcx
+  2f9:  movq %r15, %rsi
+  2fc:  movq %rbx, %rdx
+  2ff:  movq %rcx, %rdi
+  302:  addq %rbx, %r15
+  305:  callq memcpy+0
+  30a:  movb $0, (%rax, %rbx)
+  30e:  movq %r15, (%rbp)
+  312:  jmp 0x90
+  317:  nopw (%rax, %rax)
+  320:  addq $1, %r15
+  324:  movl $0x24, (%r12)
+  32c:  movq %r15, (%rbp)
+  330:  jmp 0x90
+  335:  nopl (%rax)
+  338:  movq %r15, %rdi
+  33b:  callq fn:brk_len+0
+  340:  movl $0x5b, (%r12)
+  348:  movslq %eax, %rbx
+  34b:  leal 1(%rbx), %edi
+  34e:  movslq %edi, %rdi
+  351:  callq malloc+0
+  356:  movq %rax, 8(%r12)
+  35b:  movq %rax, %rcx
+  35e:  jmp 0x2f9
+  360:  movq %rax, (%rbp)
+  364:  movzbl 1(%r14), %edx
+  369:  cmpb $0x7d, %dl
+  36c:  je 0x3d0
+  36e:  testb $8, 1(%rdi, %rdx, 2)
+  373:  je 0x3e0
+  375:  movl 0x24(%r12), %edx
+  37a:  addq $1, %rax
+  37e:  nop
+  380:  movq %rax, (%rbp)
+  384:  leal (%rdx, %rdx, 4), %ecx
+  387:  movsbl -1(%rax), %edx
+  38b:  movq %rax, %r14
+  38e:  addq $1, %rax
+  392:  leal -0x30(%rdx, %rcx, 2), %edx
+  396:  movl %edx, 0x24(%r12)
+  39b:  movzbl (%r14), %ecx
+  39f:  testb $8, 1(%rdi, %rcx, 2)
+  3a4:  jne 0x380
+  3a6:  jmp 0x25c
+  3ab:  nopl (%rax, %rax)
+  3b0:  cmpb $0x3c, %al
+  3b2:  setne %al
+  3b5:  addq $2, %r15
+  3b9:  movzbl %al, %eax
+  3bc:  movq %r15, (%rbp)
+  3c0:  leal 0x3c(%rax, %rax), %eax
+  3c4:  movl %eax, (%r12)
+  3c8:  jmp 0x90
+  3cd:  nopl (%rax)
+  3d0:  movl $0xffffffff, 0x24(%r12)
+  3d9:  movzbl 1(%r14), %edx
+  3de:  jmp 0x36e
+  3e0:  movq %rax, %r14
+  3e3:  jmp 0x25c

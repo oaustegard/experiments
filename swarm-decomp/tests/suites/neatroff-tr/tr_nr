@@ -1,0 +1,37 @@
+# tr_nr  (static, 113 bytes, 36 instructions)
+    0:  cmpq $0, 0x10(%rdi)
+    5:  je 0x70
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movq 8(%rdi), %rdi
+   14:  callq map+0
+   19:  movl %eax, %edi
+   1b:  movl %eax, %ebp
+   1d:  callq nreg+0
+   22:  movq 0x10(%rbx), %rdi
+   26:  movl $0x75, %edx
+   2b:  movl (%rax), %esi
+   2d:  callq eval_re+0
+   32:  movl %ebp, %edi
+   34:  movl %eax, %esi
+   36:  callq num_set+0
+   3b:  movq 0x18(%rbx), %rdi
+   3f:  testq %rdi, %rdi
+   42:  je 0x60
+   44:  movl $0x75, %esi
+   49:  callq eval+0
+   4e:  addq $8, %rsp
+   52:  movl %ebp, %edi
+   54:  popq %rbx
+   55:  movl %eax, %esi
+   57:  popq %rbp
+   58:  jmp num_setinc+0
+   5d:  nopl (%rax)
+   60:  addq $8, %rsp
+   64:  popq %rbx
+   65:  popq %rbp
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  retq

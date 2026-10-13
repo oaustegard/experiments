@@ -1,0 +1,18 @@
+# luaL_newstate  (global, 55 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  xorl %esi, %esi
+    3:  movl $0, %edi   <fn:l_alloc+0>
+    8:  callq lua_newstate+0
+    d:  movq %rax, %rbx
+   10:  testq %rax, %rax
+   13:  je 0x32
+   15:  movl $0, %esi   <fn:panic+0>
+   1a:  movq %rax, %rdi
+   1d:  callq lua_atpanic+0
+   22:  movq %rbx, %rdx
+   25:  movl $0, %esi   <fn:warnfoff+0>
+   2a:  movq %rbx, %rdi
+   2d:  callq lua_setwarnf+0
+   32:  movq %rbx, %rax
+   35:  popq %rbx
+   36:  retq

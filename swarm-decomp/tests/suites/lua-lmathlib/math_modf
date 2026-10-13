@@ -1,0 +1,89 @@
+# math_modf  (static, 386 bytes, 88 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  callq lua_isinteger+0
+   12:  movl $1, %esi
+   17:  movq %rbx, %rdi
+   1a:  testl %eax, %eax
+   1c:  je 0x40
+   1e:  callq lua_settop+0
+   23:  movq %rbx, %rdi
+   26:  pxor %xmm0, %xmm0
+   2a:  callq lua_pushnumber+0
+   2f:  addq $0x10, %rsp
+   33:  movl $2, %eax
+   38:  popq %rbx
+   39:  retq
+   3a:  nopw (%rax, %rax)
+   40:  callq luaL_checknumber+0
+   45:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+   4d:  movsd (%rip), %xmm4   <cst:0000000000003043>
+   55:  movapd %xmm0, %xmm1
+   59:  pxor %xmm0, %xmm0
+   5d:  comisd %xmm1, %xmm0
+   61:  movapd %xmm1, %xmm2
+   65:  movapd %xmm1, %xmm0
+   69:  andpd %xmm3, %xmm2
+   6d:  ja 0xe0
+   6f:  ucomisd %xmm2, %xmm4
+   73:  ja 0x120
+   79:  comisd (%rip), %xmm0   <cst:000000000000e0c3>
+   81:  movsd %xmm1, 8(%rsp)
+   87:  jb 0x9b
+   89:  movsd (%rip), %xmm2   <cst:000000000000e043>
+   91:  comisd %xmm0, %xmm2
+   95:  ja 0x160
+   9b:  movq %rbx, %rdi
+   9e:  movsd %xmm0, (%rsp)
+   a3:  callq lua_pushnumber+0
+   a8:  movsd 8(%rsp), %xmm1
+   ae:  movsd (%rsp), %xmm0
+   b3:  ucomisd %xmm0, %xmm1
+   b7:  jp 0xbf
+   b9:  pxor %xmm2, %xmm2
+   bd:  je 0xc7
+   bf:  subsd %xmm0, %xmm1
+   c3:  movapd %xmm1, %xmm2
+   c7:  movq %rbx, %rdi
+   ca:  movapd %xmm2, %xmm0
+   ce:  callq lua_pushnumber+0
+   d3:  addq $0x10, %rsp
+   d7:  movl $2, %eax
+   dc:  popq %rbx
+   dd:  retq
+   de:  nop
+   e0:  ucomisd %xmm2, %xmm4
+   e4:  jbe 0x79
+   e6:  cvttsd2si %xmm1, %rax
+   eb:  pxor %xmm2, %xmm2
+   ef:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   f7:  andnpd %xmm1, %xmm3
+   fb:  cvtsi2sdq %rax, %xmm2
+  100:  cmpnlesd %xmm2, %xmm0
+  105:  andpd %xmm4, %xmm0
+  109:  addsd %xmm2, %xmm0
+  10d:  orpd %xmm3, %xmm0
+  111:  jmp 0x79
+  116:  nopw %cs:(%rax, %rax)
+  120:  cvttsd2si %xmm1, %rax
+  125:  pxor %xmm2, %xmm2
+  129:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+  131:  andnpd %xmm1, %xmm3
+  135:  cvtsi2sdq %rax, %xmm2
+  13a:  movapd %xmm2, %xmm0
+  13e:  cmpnlesd %xmm1, %xmm0
+  143:  andpd %xmm4, %xmm0
+  147:  subsd %xmm0, %xmm2
+  14b:  orpd %xmm3, %xmm2
+  14f:  movapd %xmm2, %xmm0
+  153:  jmp 0x79
+  158:  nopl (%rax, %rax)
+  160:  cvttsd2si %xmm0, %rsi
+  165:  movq %rbx, %rdi
+  168:  movsd %xmm0, (%rsp)
+  16d:  callq lua_pushinteger+0
+  172:  movsd (%rsp), %xmm0
+  177:  movsd 8(%rsp), %xmm1
+  17d:  jmp 0xb3

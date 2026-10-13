@@ -1,0 +1,1 @@
+static void tr_hystop(struct tr_args *a) { hy_stopcnt = 0; if (a->arg[0]) { char *s = a->arg[0]; while (s) { if (charread(&s, hy_stop[hy_stopcnt]) < 0) break; if (hy_stopcnt <= 30) hy_stopcnt++; } } }

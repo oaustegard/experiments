@@ -1,0 +1,9 @@
+# xmalloc  (global, 29 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <malloc+0>
+    9:  testq %rax, %rax
+    c:  je 0x13
+    e:  addq $8, %rsp
+   12:  retq
+   13:  movl $0, %edi   <str:"neatroff: malloc() failed\n">
+   18:  callq errdie+0

@@ -1,0 +1,41 @@
+# char_type.constprop.0  (static, 135 bytes, 40 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movzbl (%rip), %r12d   <var:tok+0>
+   12:  callq __ctype_b_loc+0
+   17:  movq (%rax), %rdx
+   1a:  movzbl %r12b, %r13d
+   1e:  movq %rax, %rbx
+   21:  movl $0x12, %eax
+   26:  testb $8, 1(%rdx, %r13, 2)
+   2c:  jne 0x7c
+   2e:  movl $0x13, %eax
+   33:  cmpl $0x22, %r12d
+   37:  je 0x7c
+   39:  movl $0, %edi   <var:tok+0>
+   3e:  callq def_type+0
+   43:  testl %eax, %eax
+   45:  jns 0x7c
+   47:  movl %r12d, %ebp
+   4a:  movl $0x14, %eax
+   4f:  andl $0xffffffdf, %ebp
+   52:  cmpb $0x5e, %bpl
+   56:  je 0x7c
+   58:  movq (%rbx), %rdx
+   5b:  movl $0x11, %eax
+   60:  testb $4, (%rdx, %r13, 2)
+   65:  je 0x7c
+   67:  movl $0x10, %eax
+   6c:  cmpl $0x5c, %r12d
+   70:  jne 0x7c
+   72:  cmpb $1, (%rip)   <var:tok+1>
+   79:  sbbl $-1, %eax
+   7c:  addq $8, %rsp
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  retq

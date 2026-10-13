@@ -1,0 +1,55 @@
+# hcode_add  (static, 178 bytes, 54 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rdi, %rbp
+    a:  pushq %rbx
+    b:  movq %rsi, %rbx
+    e:  movq %rdi, %rsi
+   11:  movq (%rip), %rdi   <var:hcodedict+0>
+   18:  callq dict_get+0
+   1d:  testl %eax, %eax
+   1f:  jns 0x40
+   21:  movl (%rip), %r12d   <var:hcode_n+0>
+   28:  cmpl $0x1ff, %r12d
+   2f:  jle 0x68
+   31:  popq %rbx
+   32:  popq %rbp
+   33:  popq %r12
+   35:  popq %r13
+   37:  popq %r14
+   39:  retq
+   3a:  nopw (%rax, %rax)
+   40:  movslq %eax, %rdi
+   43:  movq %rbx, %rsi
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  movq %rdi, %rax
+   4b:  popq %r12
+   4d:  popq %r13
+   4f:  shlq $5, %rax
+   53:  popq %r14
+   55:  leaq (%rax), %rdi   <var:hcodedst+0>
+   5c:  jmp strcpy+0
+   61:  nopl (%rax)
+   68:  movslq %r12d, %r13
+   6b:  movq %rbp, %rsi
+   6e:  shlq $5, %r13
+   72:  leaq (%r13), %r14   <var:hcodesrc+0>
+   79:  movq %r14, %rdi
+   7c:  callq strcpy+0
+   81:  leaq (%r13), %rdi   <var:hcodedst+0>
+   88:  movq %rbx, %rsi
+   8b:  callq strcpy+0
+   90:  movq (%rip), %rdi   <var:hcodedict+0>
+   97:  movl %r12d, %edx
+   9a:  movq %r14, %rsi
+   9d:  callq dict_put+0
+   a2:  popq %rbx
+   a3:  addl $1, (%rip)   <var:hcode_n+0>
+   aa:  popq %rbp
+   ab:  popq %r12
+   ad:  popq %r13
+   af:  popq %r14
+   b1:  retq

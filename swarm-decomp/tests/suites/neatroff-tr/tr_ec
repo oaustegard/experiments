@@ -1,0 +1,8 @@
+# tr_ec  (static, 24 bytes, 7 instructions)
+    0:  movq 8(%rdi), %rdx
+    4:  movl $0x5c, %eax
+    9:  testq %rdx, %rdx
+    c:  je 0x11
+    e:  movsbl (%rdx), %eax
+   11:  movl %eax, (%rip)   <c_ec+0>
+   17:  retq

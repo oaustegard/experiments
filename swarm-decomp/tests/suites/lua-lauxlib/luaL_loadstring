@@ -1,0 +1,20 @@
+# luaL_loadstring  (global, 58 bytes, 19 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  movq %rsi, %rdi
+    7:  pushq %rbx
+    8:  movq %rsi, %rbx
+    b:  subq $0x18, %rsp
+    f:  callq strlen+0
+   14:  movq %rbx, %rcx
+   17:  movq %rsp, %rdx
+   1a:  movq %rbp, %rdi
+   1d:  xorl %r8d, %r8d
+   20:  movl $0, %esi   <fn:getS+0>
+   25:  movq %rbx, (%rsp)
+   29:  movq %rax, 8(%rsp)
+   2e:  callq lua_load+0
+   33:  addq $0x18, %rsp
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  retq

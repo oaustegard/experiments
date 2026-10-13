@@ -1,0 +1,27 @@
+# luaB_type  (static, 84 bytes, 26 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_type+0
+   13:  movl %eax, %ebp
+   15:  cmpl $-1, %eax
+   18:  je 0x40
+   1a:  movl %ebp, %esi
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_typename+0
+   24:  movq %rbx, %rdi
+   27:  movq %rax, %rsi
+   2a:  callq lua_pushstring+0
+   2f:  addq $8, %rsp
+   33:  movl $1, %eax
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movl $0, %edx   <str:"value expected">
+   45:  movl $1, %esi
+   4a:  movq %rbx, %rdi
+   4d:  callq luaL_argerror+0
+   52:  jmp 0x1a

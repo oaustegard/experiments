@@ -1,0 +1,91 @@
+# ic_off  (static, 302 bytes, 90 instructions)
+    0:  pushq %r13
+    2:  leaq (%rsi, %rsi, 4), %rax
+    6:  movq %rdx, %r13
+    9:  pushq %r12
+    b:  movq %rcx, %r12
+    e:  pushq %rbp
+    f:  leaq (%rdi, %rax, 8), %rbp
+   13:  pushq %rbx
+   14:  subq $0x18, %rsp
+   18:  movq (%rbp), %rax
+   1c:  andl $0xffffff, %eax
+   21:  cmpq $0x100010, %rax
+   27:  je 0x60
+   29:  cmpq $0x100011, %rax
+   2f:  je 0xd8
+   35:  movq %rdi, %rbx
+   38:  cmpq $0x10, %rax
+   3c:  je 0x70
+   3e:  cmpq $0x11, %rax
+   42:  je 0xf0
+   48:  movq %rsi, (%rdx)
+   4b:  movq $0, (%rcx)
+   52:  addq $0x18, %rsp
+   56:  xorl %eax, %eax
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  popq %r12
+   5c:  popq %r13
+   5e:  retq
+   5f:  nop
+   60:  movq 8(%rbp), %rax
+   64:  movq %rax, (%rdx)
+   67:  movq 0x10(%rbp), %rax
+   6b:  movq %rax, (%rcx)
+   6e:  jmp 0x52
+   70:  movq 8(%rbp), %rsi
+   74:  callq 0
+   79:  movq 0x10(%rbp), %r8
+   7d:  testl %eax, %eax
+   7f:  jne 0x99
+   81:  leaq 8(%rsp), %rdx
+   86:  movq %r8, %rsi
+   89:  movq %rbx, %rdi
+   8c:  callq ic_num+0
+   91:  testl %eax, %eax
+   93:  je 0x120
+   99:  movq %r12, %rcx
+   9c:  movq %r13, %rdx
+   9f:  movq %r8, %rsi
+   a2:  movq %rbx, %rdi
+   a5:  callq 0
+   aa:  testl %eax, %eax
+   ac:  jne 0xc3
+   ae:  movq 8(%rbp), %rsi
+   b2:  leaq 8(%rsp), %rdx
+   b7:  movq %rbx, %rdi
+   ba:  callq ic_num+0
+   bf:  testl %eax, %eax
+   c1:  je 0x120
+   c3:  addq $0x18, %rsp
+   c7:  movl $1, %eax
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  popq %r12
+   d0:  popq %r13
+   d2:  retq
+   d3:  nopl (%rax, %rax)
+   d8:  movq 8(%rbp), %rax
+   dc:  movq %rax, (%rdx)
+   df:  movq 0x10(%rbp), %rax
+   e3:  negq %rax
+   e6:  movq %rax, (%rcx)
+   e9:  jmp 0x52
+   ee:  nop
+   f0:  movq 8(%rbp), %rsi
+   f4:  callq 0
+   f9:  testl %eax, %eax
+   fb:  jne 0xc3
+   fd:  movq 0x10(%rbp), %rsi
+  101:  leaq 8(%rsp), %rdx
+  106:  movq %rbx, %rdi
+  109:  callq ic_num+0
+  10e:  testl %eax, %eax
+  110:  jne 0xc3
+  112:  movq 8(%rsp), %rax
+  117:  subq %rax, (%r12)
+  11b:  jmp 0x52
+  120:  movq 8(%rsp), %rax
+  125:  addq %rax, (%r12)
+  129:  jmp 0x52

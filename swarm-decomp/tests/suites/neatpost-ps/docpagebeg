@@ -1,0 +1,19 @@
+# docpagebeg  (global, 58 bytes, 18 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %esi
+    3:  movl %edi, %edx
+    5:  movl %edi, %ebx
+    7:  xorl %eax, %eax
+    9:  movl $0, %edi   <str:"%%%%Page: %d %d\n">
+    e:  callq out+0
+   13:  movl $0, %edi   <str:"/saveobj save def\n">
+   18:  xorl %eax, %eax
+   1a:  callq out+0
+   1f:  movl $0, %edi   <str:"mark\n">
+   24:  xorl %eax, %eax
+   26:  callq out+0
+   2b:  movl %ebx, %esi
+   2d:  movl $0, %edi   <str:"%d pagesetup\n">
+   32:  xorl %eax, %eax
+   34:  popq %rbx
+   35:  jmp out+0

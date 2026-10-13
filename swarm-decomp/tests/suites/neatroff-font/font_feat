@@ -1,0 +1,22 @@
+# font_feat  (global, 52 bytes, 21 instructions)
+    0:  pushq %rbp
+    1:  movl %edx, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  callq fn:font_findfeat+0
+   10:  xorl %edx, %edx
+   12:  testl %eax, %eax
+   14:  js 0x2b
+   16:  cltq
+   18:  xorl %ecx, %ecx
+   1a:  addq $0x124, %rax
+   20:  testl %ebp, %ebp
+   22:  setne %cl
+   25:  movl (%rbx, %rax, 4), %edx
+   28:  movl %ecx, (%rbx, %rax, 4)
+   2b:  addq $8, %rsp
+   2f:  movl %edx, %eax
+   31:  popq %rbx
+   32:  popq %rbp
+   33:  retq

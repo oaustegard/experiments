@@ -1,0 +1,66 @@
+# luaK_self  (global, 206 bytes, 65 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdx, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaK_exp2anyreg+0
+   18:  cmpl $8, (%rbp)
+   1c:  movl 8(%rbp), %r13d
+   20:  je 0xa0
+   22:  movzbl 0x44(%rbx), %eax
+   26:  movq (%rbx), %rsi
+   29:  movzbl %al, %edx
+   2c:  movl $8, (%rbp)
+   33:  movl %edx, 8(%rbp)
+   36:  leal 2(%rdx), %ecx
+   39:  movzbl 0xc(%rsi), %edi
+   3d:  cmpl %edi, %ecx
+   3f:  jg 0x70
+   41:  addl $2, %eax
+   44:  movb %al, 0x44(%rbx)
+   47:  movq %r12, %r8
+   4a:  movl %r13d, %ecx
+   4d:  movl $0x14, %esi
+   52:  movq %rbx, %rdi
+   55:  callq fn:codeABRK+0
+   5a:  cmpl $8, (%r12)
+   5f:  je 0x80
+   61:  addq $8, %rsp
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  popq %r12
+   69:  popq %r13
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  cmpl $0xfe, %ecx
+   76:  jg 0xc0
+   78:  addl $2, %eax
+   7b:  movb %al, 0xc(%rsi)
+   7e:  jmp 0x44
+   80:  movl 8(%r12), %ebp
+   85:  movq %rbx, %rdi
+   88:  callq luaY_nvarstack+0
+   8d:  cmpl %eax, %ebp
+   8f:  jl 0x61
+   91:  subb $1, 0x44(%rbx)
+   95:  addq $8, %rsp
+   99:  popq %rbx
+   9a:  popq %rbp
+   9b:  popq %r12
+   9d:  popq %r13
+   9f:  retq
+   a0:  movq %rbx, %rdi
+   a3:  callq luaY_nvarstack+0
+   a8:  cmpl %eax, %r13d
+   ab:  movzbl 0x44(%rbx), %eax
+   af:  jl 0x26
+   b5:  subl $1, %eax
+   b8:  movb %al, 0x44(%rbx)
+   bb:  jmp 0x26
+   c0:  movq 0x10(%rbx), %rdi
+   c4:  movl $0, %esi   <str:"function or expression needs too many registers">
+   c9:  callq luaX_syntaxerror+0

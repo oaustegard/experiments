@@ -1,0 +1,35 @@
+# lua-lobject: translation unit lobject of lua
+# write each function as src/lua/lobject/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+intarith	static	148 bytes
+numarith	static	197 bytes
+l_str2dloc	static	124 bytes
+pushstr	static	81 bytes
+tostringbuff.part.0.isra.0	static	105 bytes
+addstr2buff	static	147 bytes
+addnum2buff	static	121 bytes
+luaO_ceillog2	global	40 bytes
+luaO_rawarith	global	387 bytes
+luaO_arith	global	77 bytes
+luaO_hexavalue	global	26 bytes
+luaO_str2num	global	764 bytes
+luaO_utf8esc	global	107 bytes
+luaO_tostring	global	108 bytes
+luaO_pushvfstring	global	1159 bytes
+luaO_pushfstring	global	143 bytes
+luaO_chunkid	global	495 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+log_2.0	static	256 bytes	.rodata.log_2.0
+        0: 00 01 02 02 03 03 03 03 04 04 04 04 04 04 04 04 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05
+       32: 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06 06
+       64: 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07
+       96: 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07 07
+      128: 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08
+      160: 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08
+      192: 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08
+      224: 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08
+
+## symbols this TU uses but does not define (other TUs, libc)
+localeconv luaG_runerror luaS_newlstr luaT_trybinTM luaV_concat luaV_idiv luaV_mod luaV_modf luaV_shiftl luaV_tointegerns luai_ctype_ memcpy pow snprintf strchr strlen strpbrk strspn strtod

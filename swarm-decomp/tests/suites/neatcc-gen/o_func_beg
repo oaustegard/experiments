@@ -1,0 +1,67 @@
+# o_func_beg  (global, 288 bytes, 66 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movl %edx, %r12d
+    7:  pushq %rbp
+    8:  movq %rdi, %rbp
+    b:  movl $0xffffffff, %edi
+   10:  pushq %rbx
+   11:  movslq %esi, %rbx
+   14:  subq $8, %rsp
+   18:  movl %ecx, (%rip)   <var:func_varg+0>
+   1e:  movl %ebx, (%rip)   <var:func_argc+0>
+   24:  movl $0, (%rip)   <var:func_regs+0>
+   2e:  callq o_tmpdrop+0
+   33:  xorl %edi, %edi
+   35:  callq o_back+0
+   3a:  movq (%rip), %rdi   <var:loc_off+0>
+   41:  callq free+0
+   46:  movq $0, (%rip)   <var:loc_off+0>
+   51:  movq $0, (%rip)   <var:loc_n+0>
+   5c:  movq $0, (%rip)   <var:loc_sz+0>
+   67:  movq $0, (%rip)   <var:loc_pos+0>
+   72:  testl %ebx, %ebx
+   74:  jle 0xf0
+   76:  negq %rbx
+   79:  xorl %edi, %edi
+   7b:  xorl %edx, %edx
+   7d:  xorl %esi, %esi
+   7f:  leaq -0x10(, %rbx, 8), %r13
+   87:  movq $18446744073709551600, %rbx
+   8e:  jmp 0xaf
+   90:  movq %rbx, (%rdi, %rsi, 8)
+   94:  addq $1, %rsi
+   98:  subq $8, %rbx
+   9c:  movq %rsi, (%rip)   <var:loc_n+0>
+   a3:  cmpq %rbx, %r13
+   a6:  je 0xf0
+   a8:  movq (%rip), %rdx   <var:loc_sz+0>
+   af:  cmpq %rdx, %rsi
+   b2:  jl 0x90
+   b4:  movl $0x80, %eax
+   b9:  addq %rdx, %rdx
+   bc:  movl $8, %ecx
+   c1:  cmpq %rax, %rdx
+   c4:  cmovlq %rax, %rdx
+   c8:  movq %rdx, (%rip)   <var:loc_sz+0>
+   cf:  callq mextend+0
+   d4:  movq (%rip), %rsi   <var:loc_n+0>
+   db:  movq %rax, (%rip)   <var:loc_off+0>
+   e2:  movq %rax, %rdi
+   e5:  jmp 0x90
+   e7:  nopw (%rax, %rax)
+   f0:  movl $0, %edi   <var:cs+0>
+   f5:  callq mem_len+0
+   fa:  cmpl $1, %r12d
+   fe:  movq %rbp, %rdi
+  101:  sbbq %rsi, %rsi
+  104:  addq $8, %rsp
+  108:  movq %rax, %rdx
+  10b:  xorl %ecx, %ecx
+  10d:  andq $0xfffffffffffffff0, %rsi
+  111:  popq %rbx
+  112:  popq %rbp
+  113:  addq $0x11, %rsi
+  117:  popq %r12
+  119:  popq %r13
+  11b:  jmp out_def+0

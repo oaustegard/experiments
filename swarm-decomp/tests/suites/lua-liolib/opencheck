@@ -1,0 +1,46 @@
+# opencheck  (static, 147 bytes, 45 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  xorl %edx, %edx
+    7:  pushq %r12
+    9:  movq %rsi, %r12
+    c:  movl $0x10, %esi
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  subq $8, %rsp
+   1a:  callq lua_newuserdatauv+0
+   1f:  movl $0, %esi   <str:"FILE*">
+   24:  movq %rbp, %rdi
+   27:  movq $0, 8(%rax)
+   2f:  movq %rax, %rbx
+   32:  callq luaL_setmetatable+0
+   37:  movq $0, (%rbx)
+   3e:  movq %r13, %rsi
+   41:  movq %r12, %rdi
+   44:  movq $0, 8(%rbx)   <fn:io_fclose+0>
+   4c:  callq fopen64+0
+   51:  movq %rax, (%rbx)
+   54:  testq %rax, %rax
+   57:  je 0x68
+   59:  addq $8, %rsp
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  popq %r13
+   63:  retq
+   64:  nopl (%rax)
+   68:  callq __errno_location+0
+   6d:  movl (%rax), %edi
+   6f:  callq strerror+0
+   74:  addq $8, %rsp
+   78:  movq %r12, %rdx
+   7b:  movq %rbp, %rdi
+   7e:  popq %rbx
+   7f:  movq %rax, %rcx
+   82:  popq %rbp
+   83:  movl $0, %esi   <str:"cannot open file '%s' (%s)">
+   88:  popq %r12
+   8a:  xorl %eax, %eax
+   8c:  popq %r13
+   8e:  jmp luaL_error+0

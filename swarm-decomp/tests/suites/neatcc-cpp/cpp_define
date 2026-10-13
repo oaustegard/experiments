@@ -1,0 +1,18 @@
+# cpp_define  (global, 70 bytes, 17 instructions)
+    0:  subq $0x808, %rsp
+    7:  movq %rsi, %rcx
+    a:  movq %rdi, %rdx
+    d:  xorl %eax, %eax
+    f:  movl $0, %esi   <str:"%s\t%s">
+   14:  movq %rsp, %rdi
+   17:  callq sprintf+0
+   1c:  movq %rsp, %rdi
+   1f:  callq strlen+0
+   24:  movq %rsp, %rsi
+   27:  movl $4, %edi
+   2c:  movq %rax, %rdx
+   2f:  callq fn:buf_new+0
+   34:  callq fn:macro_define+0
+   39:  callq fn:buf_pop+0
+   3e:  addq $0x808, %rsp
+   45:  retq

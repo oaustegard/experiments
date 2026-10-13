@@ -1,0 +1,13 @@
+# tr_req  (global, 34 bytes, 12 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  callq 9   <str_dget+0>
+    9:  testq %rax, %rax
+    c:  je 0x20
+    e:  movq %rbx, %rdi
+   11:  movq 8(%rax), %rax
+   15:  popq %rbx
+   16:  jmpq *%rax
+   18:  nopl (%rax, %rax)
+   20:  popq %rbx
+   21:  retq

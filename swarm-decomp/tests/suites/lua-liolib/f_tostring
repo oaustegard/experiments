@@ -1,0 +1,23 @@
+# f_tostring  (static, 76 bytes, 22 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checkudata+0
+   13:  cmpq $0, 8(%rax)
+   18:  je 0x38
+   1a:  movq (%rax), %rdx
+   1d:  movq %rbx, %rdi
+   20:  movl $0, %esi   <str:"file (%p)">
+   25:  xorl %eax, %eax
+   27:  callq lua_pushfstring+0
+   2c:  movl $1, %eax
+   31:  popq %rbx
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movq %rbx, %rdi
+   3b:  movl $0, %esi   <str:"file (closed)">
+   40:  callq lua_pushstring+0
+   45:  movl $1, %eax
+   4a:  popq %rbx
+   4b:  retq

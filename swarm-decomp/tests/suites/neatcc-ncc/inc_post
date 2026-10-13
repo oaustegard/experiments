@@ -1,0 +1,65 @@
+# inc_post  (static, 270 bytes, 64 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movslq %edi, %rbx
+    5:  subq $0x28, %rsp
+    9:  movl (%rip), %eax   <var:nts+0>
+    f:  subl $1, %eax
+   12:  cltq
+   14:  leaq (%rax, %rax, 4), %rax
+   18:  shlq $2, %rax
+   1c:  movdqu (%rax), %xmm0   <var:ts+0>
+   24:  movl (%rax), %eax   <var:ts+16>
+   2a:  movaps %xmm0, (%rsp)
+   2e:  movl %eax, 0x10(%rsp)
+   32:  callq o_tmpcopy+0
+   37:  movl $1, %edi
+   3c:  callq fn:ts_de+0
+   41:  callq o_tmpswap+0
+   46:  callq o_tmpcopy+0
+   4b:  movdqa (%rsp), %xmm1
+   50:  movl $1, %edi
+   55:  movslq (%rip), %rax   <var:nts+0>
+   5c:  leal 1(%rax), %edx
+   5f:  leaq (%rax, %rax, 4), %rax
+   63:  movl %edx, (%rip)   <var:nts+0>
+   69:  movl 0x10(%rsp), %edx
+   6d:  shlq $2, %rax
+   71:  movups %xmm1, (%rax)   <var:ts+0>
+   78:  movl %edx, (%rax)   <var:ts+16>
+   7e:  callq fn:ts_de+0
+   83:  movl (%rip), %eax   <var:nts+0>
+   89:  subl $1, %eax
+   8c:  movl %eax, (%rip)   <var:nts+0>
+   92:  cltq
+   94:  leaq (%rax, %rax, 4), %rax
+   98:  shlq $2, %rax
+   9c:  movdqu (%rax), %xmm2   <var:ts+0>
+   a4:  movl (%rax), %eax   <var:ts+16>
+   aa:  movaps %xmm2, (%rsp)
+   ae:  movl 8(%rsp), %ebp
+   b2:  movl %eax, 0x10(%rsp)
+   b6:  testl %ebp, %ebp
+   b8:  jg 0xf0
+   ba:  movl $1, %edi
+   bf:  callq o_num+0
+   c4:  movq %rbx, %rdi
+   c7:  callq o_bop+0
+   cc:  movl (%rsp), %edi
+   cf:  testl %ebp, %ebp
+   d1:  jne 0x107
+   d3:  callq o_assign+0
+   d8:  addq $0x28, %rsp
+   dc:  movl $1, %edi
+   e1:  popq %rbx
+   e2:  popq %rbp
+   e3:  jmp o_tmpdrop+0
+   e8:  nopl (%rax, %rax)
+   f0:  movq %rsp, %rdi
+   f3:  callq fn:type_szde+0
+   f8:  movl %eax, %edi
+   fa:  callq o_num+0
+   ff:  movq %rbx, %rdi
+  102:  callq o_bop+0
+  107:  movl $8, %edi
+  10c:  jmp 0xd3

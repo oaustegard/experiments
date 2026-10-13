@@ -1,0 +1,40 @@
+# tok_dim  (static, 108 bytes, 39 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  movl %esi, %edi
+    7:  pushq %rbp
+    8:  movl %edx, %ebp
+    a:  pushq %rbx
+    b:  movl %ecx, %ebx
+    d:  callq nregname+0
+   12:  movq %r12, %rdx
+   15:  movl $0, %edi   <str:".nr %s 0\\w'%s'\n">
+   1a:  movq %rax, %rsi
+   1d:  xorl %eax, %eax
+   1f:  callq printf+0
+   24:  testl %ebp, %ebp
+   26:  jne 0x38
+   28:  testl %ebx, %ebx
+   2a:  jne 0x52
+   2c:  popq %rbx
+   2d:  popq %rbp
+   2e:  popq %r12
+   30:  retq
+   31:  nopl (%rax)
+   38:  movl %ebp, %edi
+   3a:  callq nregname+0
+   3f:  movl $0, %edi   <str:".nr %s 0-\\n[bbury]\n">
+   44:  movq %rax, %rsi
+   47:  xorl %eax, %eax
+   49:  callq printf+0
+   4e:  testl %ebx, %ebx
+   50:  je 0x2c
+   52:  movl %ebx, %edi
+   54:  callq nregname+0
+   59:  popq %rbx
+   5a:  movl $0, %edi   <str:".nr %s 0\\n[bblly]\n">
+   5f:  popq %rbp
+   60:  movq %rax, %rsi
+   63:  popq %r12
+   65:  xorl %eax, %eax
+   67:  jmp printf+0

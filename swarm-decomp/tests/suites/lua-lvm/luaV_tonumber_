@@ -1,0 +1,44 @@
+# luaV_tonumber_  (global, 137 bytes, 43 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rsi, %rbx
+    5:  subq $0x18, %rsp
+    9:  movzbl 8(%rdi), %eax
+    d:  cmpb $3, %al
+    f:  je 0x28
+   11:  andl $0xf, %eax
+   14:  cmpb $4, %al
+   16:  je 0x48
+   18:  addq $0x18, %rsp
+   1c:  xorl %eax, %eax
+   1e:  popq %rbx
+   1f:  popq %rbp
+   20:  retq
+   21:  nopl (%rax)
+   28:  pxor %xmm0, %xmm0
+   2c:  cvtsi2sdq (%rdi), %xmm0
+   31:  movsd %xmm0, (%rsi)
+   35:  addq $0x18, %rsp
+   39:  movl $1, %eax
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  retq
+   41:  nopl (%rax)
+   48:  movq (%rdi), %rbp
+   4b:  movq %rsp, %rsi
+   4e:  leaq 0x18(%rbp), %rdi
+   52:  callq luaO_str2num+0
+   57:  movzbl 0xb(%rbp), %edx
+   5b:  cmpb $0xff, %dl
+   5e:  jne 0x64
+   60:  movq 0x10(%rbp), %rdx
+   64:  addq $1, %rdx
+   68:  cmpq %rdx, %rax
+   6b:  jne 0x18
+   6d:  cmpb $3, 8(%rsp)
+   72:  movsd (%rsp), %xmm0
+   77:  jne 0x83
+   79:  pxor %xmm0, %xmm0
+   7d:  cvtsi2sdq (%rsp), %xmm0
+   83:  movsd %xmm0, (%rbx)
+   87:  jmp 0x35

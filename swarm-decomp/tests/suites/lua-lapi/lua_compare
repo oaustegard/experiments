@@ -1,0 +1,44 @@
+# lua_compare  (global, 140 bytes, 43 instructions)
+    0:  movl %edx, %r10d
+    3:  subq $8, %rsp
+    7:  movl %ecx, %r9d
+    a:  callq fn:index2value+0
+    f:  movl %r10d, %esi
+   12:  movq %rax, %r8
+   15:  callq fn:index2value+0
+   1a:  movq %rax, %rdx
+   1d:  testb $0xf, 8(%r8)
+   22:  jne 0x31
+   24:  movq 0x18(%rdi), %rax
+   28:  addq $0x50, %rax
+   2c:  cmpq %rax, %r8
+   2f:  je 0x48
+   31:  testb $0xf, 8(%rdx)
+   35:  je 0x50
+   37:  cmpl $1, %r9d
+   3b:  je 0x63
+   3d:  cmpl $2, %r9d
+   41:  je 0x80
+   43:  testl %r9d, %r9d
+   46:  je 0x70
+   48:  xorl %eax, %eax
+   4a:  addq $8, %rsp
+   4e:  retq
+   4f:  nop
+   50:  movq 0x18(%rdi), %rax
+   54:  addq $0x50, %rax
+   58:  cmpq %rax, %rdx
+   5b:  je 0x48
+   5d:  cmpl $1, %r9d
+   61:  jne 0x3d
+   63:  movq %r8, %rsi
+   66:  addq $8, %rsp
+   6a:  jmp luaV_lessthan+0
+   6f:  nop
+   70:  movq %r8, %rsi
+   73:  addq $8, %rsp
+   77:  jmp luaV_equalobj+0
+   7c:  nopl (%rax)
+   80:  movq %r8, %rsi
+   83:  addq $8, %rsp
+   87:  jmp luaV_lessequal+0

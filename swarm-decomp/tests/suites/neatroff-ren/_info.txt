@@ -1,0 +1,119 @@
+# neatroff-ren: translation unit ren of neatroff
+# write each function as src/neatroff/ren/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+ren_back	static	24 bytes
+trap_first	static	236 bytes
+trap_pos	static	119 bytes
+ren_next	static	37 bytes
+zwid	static	103 bytes
+ren_lnum	static	470 bytes
+ren_mc	static	185 bytes
+ren_ps	static	268 bytes
+ren_ft	static	156 bytes
+ren_cl	static	105 bytes
+ren_put	static	1580 bytes
+ren_until	static	218 bytes
+ren_field	static	495 bytes
+ren_tab	static	406 bytes
+render_rec.isra.0	static	1271 bytes
+trap_exec	static	354 bytes
+ren_page	static	319 bytes
+ren_pagelimit	static	78 bytes
+ren_sp	static	601 bytes
+ren_traps	static	199 bytes
+down	static	144 bytes
+ren_line	static	1385 bytes
+ren_passline	static	432 bytes
+ren_br	static	264 bytes
+ren_ejectpage	static	291 bytes
+tr_di	global	671 bytes
+f_divreg	global	22 bytes
+f_hpos	global	33 bytes
+tr_divbeg	global	21 bytes
+tr_divend	global	44 bytes
+tr_divvs	global	29 bytes
+tr_transparent	global	47 bytes
+tr_br	global	107 bytes
+tr_sp	global	156 bytes
+tr_ns	global	32 bytes
+tr_rs	global	32 bytes
+tr_os	global	90 bytes
+tr_mk	global	97 bytes
+tr_rt	global	109 bytes
+tr_ne	global	170 bytes
+tr_bp	global	130 bytes
+tr_pn	global	57 bytes
+tr_ps	global	9 bytes
+tr_ll	global	133 bytes
+tr_in	global	196 bytes
+tr_ti	global	103 bytes
+tr_l2r	global	87 bytes
+tr_r2l	global	87 bytes
+tr_in2	global	196 bytes
+tr_ti2	global	103 bytes
+tr_ft	global	9 bytes
+tr_fp	global	134 bytes
+tr_nf	global	55 bytes
+tr_fi	global	55 bytes
+tr_ce	global	79 bytes
+tr_fc	global	115 bytes
+tr_cl	global	9 bytes
+tr_ab	global	42 bytes
+ren_char	global	71 bytes
+ren_wid	global	383 bytes
+ren_tl	global	733 bytes
+ren_parse	global	129 bytes
+tr_popren	global	49 bytes
+render	global	160 bytes
+tr_wh	global	285 bytes
+tr_ch	global	133 bytes
+tr_dt	global	94 bytes
+tr_em	global	44 bytes
+f_nexttrap	global	94 bytes
+tr_sv	global	102 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+ren_un	static	4 bytes	.bss.ren_un
+    (zero-initialised)
+ren_unbuf	static	32 bytes	.bss.ren_unbuf
+    (zero-initialised)
+ntraps	static	4 bytes	.bss.ntraps
+    (zero-initialised)
+tpos	static	4096 bytes	.bss.tpos
+    (zero-initialised)
+treg	static	4096 bytes	.bss.treg
+    (zero-initialised)
+bp_final	static	4 bytes	.bss.bp_final
+    (zero-initialised)
+cdiv	static	8 bytes	.bss.cdiv
+    (zero-initialised)
+c_fa	static	32 bytes	.bss.c_fa
+    (zero-initialised)
+ren_div	static	4 bytes	.bss.ren_div
+    (zero-initialised)
+c_fb	static	32 bytes	.bss.c_fb
+    (zero-initialised)
+ren_level	static	4 bytes	.bss.ren_level
+    (zero-initialised)
+ren_aborted	static	4 bytes	.bss.ren_aborted
+    (zero-initialised)
+ren_partial	static	4 bytes	.bss.ren_partial
+    (zero-initialised)
+ren_nl	static	4 bytes	.bss.ren_nl
+    (zero-initialised)
+trap_em	static	4 bytes	.data.trap_em
+        0: ff ff ff ff
+bp_next	static	4 bytes	.data.bp_next
+        0: 00 00 00 40
+bp_first	static	4 bytes	.data.bp_first
+        0: 01 00 00 00
+ren_divvs	static	4 bytes	.bss.ren_divvs
+    (zero-initialised)
+bp_ejected	static	4 bytes	.bss.bp_ejected
+    (zero-initialised)
+divs	static	768 bytes	.bss.divs
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc c_cc c_ec c_pc cdef_map charnext charread clr_get dev_font dev_glyph dev_mnt dev_pos dev_res dir_do dir_fix env_fmt env_lc env_mc env_tc env_wb errdie errmsg eval eval_re fmt_fill fmt_fillreq fmt_morelines fmt_morewords fmt_newline fmt_nextline fmt_space fmt_suppressnl fmt_wid fmt_word font_gwid font_swid fprintf free in_push map nreg num_set num_str odiv_beg odiv_end out out_line quotednext ren_bcmd ren_dcmd ren_hlcmd ren_hline ren_ocmd ren_vlcmd ren_zcmd sbuf_append sbuf_buf sbuf_done sbuf_init sbuf_printf snprintf sprintf sstr_back sstr_next sstr_pop sstr_push stderr str_get str_set strchr strcmp strlen strtol tab_next tab_type tr_next tr_nextreq unquotednext wb_buf wb_cat wb_done wb_els wb_etc wb_flushdir wb_hmov wb_init wb_italiccorrection wb_italiccorrectionleft wb_part wb_put wb_putexpand wb_putraw wb_reset wb_setcost wb_setpart wb_vmov wb_wconf wb_wid

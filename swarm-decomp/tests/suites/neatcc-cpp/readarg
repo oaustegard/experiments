@@ -1,0 +1,68 @@
+# readarg  (static, 231 bytes, 67 instructions)
+    0:  pushq %rbp
+    1:  xorl %r8d, %r8d
+    4:  movq %rdi, %rbp
+    7:  pushq %rbx
+    8:  subq $8, %rsp
+    c:  movq (%rip), %r10   <var:cur+0>
+   13:  movq (%rip), %r9   <var:len+0>
+   1a:  movq %r10, %rax
+   1d:  nopl (%rax)
+   20:  cmpq %rax, %r9
+   23:  jle 0x90
+   25:  testl %r8d, %r8d
+   28:  jne 0x3f
+   2a:  movq (%rip), %rdx   <var:buf+0>
+   31:  movzbl (%rdx, %rax), %edx
+   35:  cmpb $0x2c, %dl
+   38:  je 0x90
+   3a:  cmpb $0x29, %dl
+   3d:  je 0x90
+   3f:  callq fn:jumpstr+0
+   44:  testl %eax, %eax
+   46:  je 0xc0
+   48:  callq fn:jumpcomment+0
+   4d:  testl %eax, %eax
+   4f:  je 0xc0
+   51:  movq (%rip), %rdx   <var:cur+0>
+   58:  movq (%rip), %rcx   <var:buf+0>
+   5f:  leaq 1(%rdx), %rax
+   63:  movzbl (%rcx, %rdx), %edx
+   67:  movq %rax, (%rip)   <var:cur+0>
+   6e:  cmpb $0x5d, %dl
+   71:  je 0xde
+   73:  jg 0xd0
+   75:  cmpb $0x29, %dl
+   78:  je 0xde
+   7a:  cmpb $0x5b, %dl
+   7d:  je 0x84
+   7f:  cmpb $0x28, %dl
+   82:  jne 0x20
+   84:  addl $1, %r8d
+   88:  cmpq %rax, %r9
+   8b:  jg 0x25
+   8d:  nopl (%rax)
+   90:  testq %rbp, %rbp
+   93:  je 0xb5
+   95:  movslq %r10d, %rsi
+   98:  movq %rbp, %rdi
+   9b:  subq %rsi, %rax
+   9e:  addq (%rip), %rsi   <var:buf+0>
+   a5:  movq %rax, %rbx
+   a8:  movq %rax, %rdx
+   ab:  callq memcpy+0
+   b0:  movb $0, (%rbp, %rbx)
+   b5:  addq $8, %rsp
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  retq
+   bc:  nopl (%rax)
+   c0:  movq (%rip), %rax   <var:cur+0>
+   c7:  jmp 0x20
+   cc:  nopl (%rax)
+   d0:  cmpb $0x7b, %dl
+   d3:  je 0x84
+   d5:  cmpb $0x7d, %dl
+   d8:  jne 0x20
+   de:  subl $1, %r8d
+   e2:  jmp 0x20

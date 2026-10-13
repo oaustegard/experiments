@@ -1,0 +1,82 @@
+# lua-ldblib: translation unit ldblib of lua
+# write each function as src/lua/ldblib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+db_setcstacklimit	static	42 bytes
+db_getregistry	static	24 bytes
+auxupvalue	static	122 bytes
+db_setupvalue	static	25 bytes
+db_getupvalue	static	10 bytes
+db_setmetatable	static	84 bytes
+db_setuservalue	static	132 bytes
+checkupval	static	122 bytes
+db_upvaluejoin	static	172 bytes
+db_getmetatable	static	63 bytes
+db_getuservalue	static	112 bytes
+db_debug	static	233 bytes
+hookf	static	135 bytes
+db_upvalueid	static	108 bytes
+db_traceback	static	193 bytes
+db_gethook	static	382 bytes
+db_setlocal	static	412 bytes
+db_sethook	static	496 bytes
+db_getlocal	static	373 bytes
+db_getinfo	static	1162 bytes
+luaopen_debug	global	59 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+hooknames.0	static	40 bytes	.rodata.hooknames.0
+    +0     -> str:"call"
+    +8     -> str:"return"
+    +16    -> str:"line"
+    +24    -> str:"count"
+    +32    -> str:"tail call"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00
+dblib	static	288 bytes	.rodata.dblib
+    +0     -> str:"debug"
+    +8     -> fn:db_debug+0
+    +16    -> str:"getuservalue"
+    +24    -> fn:db_getuservalue+0
+    +32    -> str:"gethook"
+    +40    -> fn:db_gethook+0
+    +48    -> str:"getinfo"
+    +56    -> fn:db_getinfo+0
+    +64    -> str:"getlocal"
+    +72    -> fn:db_getlocal+0
+    +80    -> str:"getregistry"
+    +88    -> fn:db_getregistry+0
+    +96    -> str:"getmetatable"
+    +104   -> fn:db_getmetatable+0
+    +112   -> str:"getupvalue"
+    +120   -> fn:db_getupvalue+0
+    +128   -> str:"upvaluejoin"
+    +136   -> fn:db_upvaluejoin+0
+    +144   -> str:"upvalueid"
+    +152   -> fn:db_upvalueid+0
+    +160   -> str:"setuservalue"
+    +168   -> fn:db_setuservalue+0
+    +176   -> str:"sethook"
+    +184   -> fn:db_sethook+0
+    +192   -> str:"setlocal"
+    +200   -> fn:db_setlocal+0
+    +208   -> str:"setmetatable"
+    +216   -> fn:db_setmetatable+0
+    +224   -> str:"setupvalue"
+    +232   -> fn:db_setupvalue+0
+    +240   -> str:"traceback"
+    +248   -> fn:db_traceback+0
+    +256   -> str:"setcstacklimit"
+    +264   -> fn:db_setcstacklimit+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+fflush fgets fprintf fwrite luaL_argerror luaL_checkany luaL_checkinteger luaL_checklstring luaL_checktype luaL_checkversion_ luaL_error luaL_getsubtable luaL_loadbufferx luaL_optinteger luaL_optlstring luaL_setfuncs luaL_tolstring luaL_traceback luaL_typeerror lua_callk lua_checkstack lua_createtable lua_getfield lua_gethook lua_gethookcount lua_gethookmask lua_getinfo lua_getiuservalue lua_getlocal lua_getmetatable lua_getstack lua_getupvalue lua_iscfunction lua_pcallk lua_pushboolean lua_pushfstring lua_pushinteger lua_pushlightuserdata lua_pushlstring lua_pushnil lua_pushstring lua_pushthread lua_pushvalue lua_rawget lua_rawset lua_rotate lua_setcstacklimit lua_setfield lua_sethook lua_setiuservalue lua_setlocal lua_setmetatable lua_settop lua_setupvalue lua_tolstring lua_tothread lua_type lua_upvalueid lua_upvaluejoin lua_xmove stderr stdin strchr strlen

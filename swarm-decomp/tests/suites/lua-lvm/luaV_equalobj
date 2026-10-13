@@ -1,0 +1,203 @@
+# luaV_equalobj  (global, 803 bytes, 202 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdx, %rbp
+    6:  pushq %rbx
+    7:  movzbl 8(%rsi), %eax
+    b:  movq %rsi, %rbx
+    e:  movzbl 8(%rdx), %ecx
+   12:  movl %eax, %edx
+   14:  xorl %ecx, %edx
+   16:  testb $0x3f, %dl
+   19:  je 0x38
+   1b:  andl $0xf, %edx
+   1e:  jne 0x2a
+   20:  movl %eax, %edx
+   22:  andl $0xf, %edx
+   25:  cmpb $3, %dl
+   28:  je 0x68
+   2a:  xorl %eax, %eax
+   2c:  popq %rbx
+   2d:  popq %rbp
+   2e:  popq %r12
+   30:  retq
+   31:  nopl (%rax)
+   38:  andl $0x3f, %eax
+   3b:  cmpb $0x16, %al
+   3d:  ja 0x50
+   3f:  movzbl %al, %eax
+   42:  movq %rdi, %r12
+   45:  jmpq *(, %rax, 8)   <var:luaV_equalobj+0>
+   4c:  nopl (%rax)
+   50:  movq (%rbp), %rax
+   54:  cmpq %rax, (%rbx)
+   57:  sete %al
+   5a:  popq %rbx
+   5b:  popq %rbp
+   5c:  movzbl %al, %eax
+   5f:  popq %r12
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  cmpb $0x13, %al
+   6a:  je 0x1a6
+   70:  cmpb $3, %al
+   72:  jne 0x2a
+   74:  movq (%rsi), %rax
+   77:  cmpb $0x13, %cl
+   7a:  je 0x28f
+   80:  cmpb $3, %cl
+   83:  jne 0x2a
+   85:  movq (%rbp), %rdx
+   89:  cmpq %rax, %rdx
+   8c:  sete %al
+   8f:  movzbl %al, %eax
+   92:  jmp 0x2c
+   94:  nopl (%rax)
+   98:  movq (%rsi), %rax
+   9b:  movq (%rbp), %rdx
+   9f:  cmpq %rdx, %rax
+   a2:  jne 0x120
+   a4:  popq %rbx
+   a5:  movl $1, %eax
+   aa:  popq %rbp
+   ab:  popq %r12
+   ad:  retq
+   ae:  nop
+   b0:  movq (%rsi), %rax
+   b3:  movq (%rbp), %rdx
+   b7:  cmpq %rdx, %rax
+   ba:  je 0xa4
+   bc:  testq %rdi, %rdi
+   bf:  je 0x2a
+   c5:  movq 0x18(%rax), %rdi
+   c9:  testq %rdi, %rdi
+   cc:  je 0xd8
+   ce:  testb $0x20, 0xa(%rdi)
+   d2:  je 0x264
+   d8:  movq 0x18(%rdx), %rdi
+   dc:  testq %rdi, %rdi
+   df:  jne 0x149
+   e1:  jmp 0x2a
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  movq (%rbp), %rsi
+   f4:  movq (%rbx), %rdi
+   f7:  popq %rbx
+   f8:  popq %rbp
+   f9:  popq %r12
+   fb:  jmp luaS_eqlngstr+0
+  100:  xorl %eax, %eax
+  102:  movsd (%rsi), %xmm0
+  106:  ucomisd (%rbp), %xmm0
+  10b:  movl $0, %edx
+  110:  setnp %al
+  113:  cmovnel %edx, %eax
+  116:  jmp 0x2c
+  11b:  nopl (%rax, %rax)
+  120:  testq %rdi, %rdi
+  123:  je 0x2a
+  129:  movq 0x28(%rax), %rdi
+  12d:  testq %rdi, %rdi
+  130:  je 0x13c
+  132:  testb $0x20, 0xa(%rdi)
+  136:  je 0x239
+  13c:  movq 0x28(%rdx), %rdi
+  140:  testq %rdi, %rdi
+  143:  je 0x2a
+  149:  testb $0x20, 0xa(%rdi)
+  14d:  jne 0x2a
+  153:  movq 0x18(%r12), %rax
+  158:  movl $5, %esi
+  15d:  movq 0x140(%rax), %rdx
+  164:  callq luaT_gettm+0
+  169:  movq %rax, %rsi
+  16c:  testq %rax, %rax
+  16f:  je 0x2a
+  175:  movq 0x10(%r12), %r8
+  17a:  movq %rbp, %rcx
+  17d:  movq %rbx, %rdx
+  180:  movq %r12, %rdi
+  183:  callq luaT_callTMres+0
+  188:  movq 0x10(%r12), %rax
+  18d:  movzbl 8(%rax), %eax
+  191:  cmpb $1, %al
+  193:  je 0x2a
+  199:  testb $0xf, %al
+  19b:  setne %al
+  19e:  movzbl %al, %eax
+  1a1:  jmp 0x2c
+  1a6:  movsd (%rsi), %xmm0
+  1aa:  movsd (%rip), %xmm2   <cst:ffffffffffffff7f0000000000000000>
+  1b2:  movsd (%rip), %xmm4   <cst:0000000000003043>
+  1ba:  movapd %xmm0, %xmm1
+  1be:  movapd %xmm0, %xmm3
+  1c2:  andpd %xmm2, %xmm1
+  1c6:  ucomisd %xmm1, %xmm4
+  1ca:  jbe 0x1ff
+  1cc:  cvttsd2si %xmm0, %rax
+  1d1:  pxor %xmm1, %xmm1
+  1d5:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+  1dd:  andnpd %xmm0, %xmm2
+  1e1:  cvtsi2sdq %rax, %xmm1
+  1e6:  movapd %xmm1, %xmm3
+  1ea:  cmpnlesd %xmm0, %xmm3
+  1ef:  andpd %xmm4, %xmm3
+  1f3:  subsd %xmm3, %xmm1
+  1f7:  movapd %xmm1, %xmm3
+  1fb:  orpd %xmm2, %xmm3
+  1ff:  ucomisd %xmm3, %xmm0
+  203:  jp 0x2a
+  209:  jne 0x2a
+  20f:  comisd (%rip), %xmm3   <cst:000000000000e0c3>
+  217:  jb 0x2a
+  21d:  movsd (%rip), %xmm0   <cst:000000000000e043>
+  225:  comisd %xmm3, %xmm0
+  229:  jbe 0x2a
+  22f:  cvttsd2si %xmm3, %rax
+  234:  jmp 0x77
+  239:  movq 0x18(%r12), %rax
+  23e:  movl $5, %esi
+  243:  movq 0x140(%rax), %rdx
+  24a:  callq luaT_gettm+0
+  24f:  movq %rax, %rsi
+  252:  testq %rax, %rax
+  255:  jne 0x175
+  25b:  movq (%rbp), %rdx
+  25f:  jmp 0x13c
+  264:  movq 0x18(%r12), %rax
+  269:  movl $5, %esi
+  26e:  movq 0x140(%rax), %rdx
+  275:  callq luaT_gettm+0
+  27a:  movq %rax, %rsi
+  27d:  testq %rax, %rax
+  280:  jne 0x175
+  286:  movq (%rbp), %rdx
+  28a:  jmp 0xd8
+  28f:  movsd (%rbp), %xmm0
+  294:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+  29c:  movsd (%rip), %xmm4   <cst:0000000000003043>
+  2a4:  movapd %xmm0, %xmm1
+  2a8:  movapd %xmm0, %xmm2
+  2ac:  andpd %xmm3, %xmm1
+  2b0:  ucomisd %xmm1, %xmm4
+  2b4:  jbe 0x2e9
+  2b6:  cvttsd2si %xmm0, %rdx
+  2bb:  pxor %xmm1, %xmm1
+  2bf:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+  2c7:  andnpd %xmm0, %xmm3
+  2cb:  cvtsi2sdq %rdx, %xmm1
+  2d0:  movapd %xmm1, %xmm2
+  2d4:  cmpnlesd %xmm0, %xmm2
+  2d9:  andpd %xmm4, %xmm2
+  2dd:  subsd %xmm2, %xmm1
+  2e1:  movapd %xmm1, %xmm2
+  2e5:  orpd %xmm3, %xmm2
+  2e9:  ucomisd %xmm2, %xmm0
+  2ed:  jp 0x2a
+  2f3:  jne 0x2a
+  2f9:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+  301:  jb 0x2a
+  307:  movsd (%rip), %xmm0   <cst:000000000000e043>
+  30f:  comisd %xmm2, %xmm0
+  313:  jbe 0x2a
+  319:  cvttsd2si %xmm2, %rdx
+  31e:  jmp 0x89

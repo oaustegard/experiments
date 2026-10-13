@@ -1,0 +1,39 @@
+# iter_codes  (static, 132 bytes, 38 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_toboolean+0
+   13:  xorl %edx, %edx
+   15:  movl $1, %esi
+   1a:  movq %rbx, %rdi
+   1d:  movl %eax, %ebp
+   1f:  callq luaL_checklstring+0
+   24:  movsbl (%rax), %eax
+   27:  andl $0xc0, %eax
+   2c:  cmpl $0x80, %eax
+   31:  je 0x70
+   33:  testl %ebp, %ebp
+   35:  movl $0, %eax   <fn:iter_auxlax+0>
+   3a:  movl $0, %esi   <fn:iter_auxstrict+0>
+   3f:  movq %rbx, %rdi
+   42:  cmovneq %rax, %rsi
+   46:  xorl %edx, %edx
+   48:  callq lua_pushcclosure+0
+   4d:  movq %rbx, %rdi
+   50:  movl $1, %esi
+   55:  callq lua_pushvalue+0
+   5a:  movq %rbx, %rdi
+   5d:  xorl %esi, %esi
+   5f:  callq lua_pushinteger+0
+   64:  addq $8, %rsp
+   68:  movl $3, %eax
+   6d:  popq %rbx
+   6e:  popq %rbp
+   6f:  retq
+   70:  movl $0, %edx   <str:"invalid UTF-8 code">
+   75:  movl $1, %esi
+   7a:  movq %rbx, %rdi
+   7d:  callq luaL_argerror+0
+   82:  jmp 0x33

@@ -1,0 +1,232 @@
+# lua_gc  (global, 871 bytes, 231 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $0x68, %rsp
+    a:  movq %rdx, 0x40(%rsp)
+    f:  movq %rcx, 0x48(%rsp)
+   14:  movq %r8, 0x50(%rsp)
+   19:  movq %r9, 0x58(%rsp)
+   1e:  movq 0x18(%rdi), %r13
+   22:  movzbl 0x6a(%r13), %ebp
+   27:  testb $2, %bpl
+   2b:  jne 0x298
+   31:  leaq 0x90(%rsp), %rax
+   39:  movl $0x10, 0x18(%rsp)
+   41:  movl %esi, %ebx
+   43:  movq %rax, 0x20(%rsp)
+   48:  leaq 0x30(%rsp), %rax
+   4d:  movq %rax, 0x28(%rsp)
+   52:  cmpl $0xb, %esi
+   55:  ja 0x298
+   5b:  movl %esi, %eax
+   5d:  movq %rdi, %r12
+   60:  jmpq *(, %rax, 8)   <var:lua_gc+0>
+   67:  nopw (%rax, %rax)
+   70:  movl 0x18(%rsp), %eax
+   74:  cmpl $0x2f, %eax
+   77:  ja 0x2f0
+   7d:  movq 0x28(%rsp), %rdx
+   82:  leal 8(%rax), %ecx
+   85:  movl %eax, %esi
+   87:  movl %ecx, 0x18(%rsp)
+   8b:  movl (%rdx, %rsi), %esi
+   8e:  cmpl $0x2f, %ecx
+   91:  ja 0x360
+   97:  addl $0x10, %eax
+   9a:  movl (%rdx, %rcx), %ecx
+   9d:  cmpl $0x2f, %eax
+   a0:  ja 0x356
+   a6:  addq %rdx, %rax
+   a9:  cmpb $1, 0x66(%r13)
+   ae:  movl (%rax), %edi
+   b0:  movl $0xa, %eax
+   b5:  je 0xbf
+   b7:  cmpq $0, 0x28(%r13)
+   bc:  cmovel %ebx, %eax
+   bf:  testl %esi, %esi
+   c1:  je 0xd0
+   c3:  leal 3(%rsi), %edx
+   c6:  cmovnsl %esi, %edx
+   c9:  sarl $2, %edx
+   cc:  movb %dl, 0x6c(%r13)
+   d0:  testl %ecx, %ecx
+   d2:  je 0xe1
+   d4:  leal 3(%rcx), %edx
+   d7:  cmovnsl %ecx, %edx
+   da:  sarl $2, %edx
+   dd:  movb %dl, 0x6d(%r13)
+   e1:  testl %edi, %edi
+   e3:  je 0xe9
+   e5:  movb %dil, 0x6e(%r13)
+   e9:  xorl %esi, %esi
+   eb:  movq %r12, %rdi
+   ee:  movl %eax, 0xc(%rsp)
+   f2:  callq luaC_changemode+0
+   f7:  movl 0xc(%rsp), %eax
+   fb:  jmp 0x107
+   fd:  nopl (%rax)
+  100:  movb $1, 0x6a(%r13)
+  105:  xorl %eax, %eax
+  107:  addq $0x68, %rsp
+  10b:  popq %rbx
+  10c:  popq %rbp
+  10d:  popq %r12
+  10f:  popq %r13
+  111:  retq
+  112:  nopw (%rax, %rax)
+  118:  xorl %esi, %esi
+  11a:  movq %r13, %rdi
+  11d:  callq luaE_setdebt+0
+  122:  movb $0, 0x6a(%r13)
+  127:  jmp 0x105
+  129:  nopl (%rax)
+  130:  xorl %esi, %esi
+  132:  callq luaC_fullgc+0
+  137:  jmp 0x105
+  139:  nopl (%rax)
+  140:  movq 0x18(%r13), %rax
+  144:  addq 0x10(%r13), %rax
+  148:  shrq $0xa, %rax
+  14c:  jmp 0x107
+  14e:  nop
+  150:  movq 0x18(%r13), %rax
+  154:  addl 0x10(%r13), %eax
+  158:  andl $0x3ff, %eax
+  15d:  jmp 0x107
+  15f:  nop
+  160:  movl 0x18(%rsp), %eax
+  164:  cmpl $0x2f, %eax
+  167:  ja 0x2d8
+  16d:  movl %eax, %edx
+  16f:  addl $8, %eax
+  172:  addq 0x28(%rsp), %rdx
+  177:  movl %eax, 0x18(%rsp)
+  17b:  movl (%rdx), %eax
+  17d:  movb $0, 0x6a(%r13)
+  182:  testl %eax, %eax
+  184:  jne 0x310
+  18a:  xorl %esi, %esi
+  18c:  movq %r13, %rdi
+  18f:  callq luaE_setdebt+0
+  194:  movq %r12, %rdi
+  197:  callq luaC_step+0
+  19c:  movb %bpl, 0x6a(%r13)
+  1a0:  xorl %eax, %eax
+  1a2:  cmpb $8, 0x65(%r13)
+  1a7:  sete %al
+  1aa:  jmp 0x107
+  1af:  nop
+  1b0:  movl 0x18(%rsp), %eax
+  1b4:  cmpl $0x2f, %eax
+  1b7:  ja 0x2c8
+  1bd:  movl %eax, %edx
+  1bf:  addq 0x28(%rsp), %rdx
+  1c4:  movl (%rdx), %ecx
+  1c6:  movzbl 0x6c(%r13), %eax
+  1cb:  leal 3(%rcx), %edx
+  1ce:  shll $2, %eax
+  1d1:  testl %ecx, %ecx
+  1d3:  cmovnsl %ecx, %edx
+  1d6:  sarl $2, %edx
+  1d9:  movb %dl, 0x6c(%r13)
+  1dd:  jmp 0x107
+  1e2:  nopw (%rax, %rax)
+  1e8:  movl 0x18(%rsp), %eax
+  1ec:  cmpl $0x2f, %eax
+  1ef:  ja 0x2b8
+  1f5:  movl %eax, %edx
+  1f7:  addq 0x28(%rsp), %rdx
+  1fc:  movl (%rdx), %ecx
+  1fe:  movzbl 0x6d(%r13), %eax
+  203:  leal 3(%rcx), %edx
+  206:  shll $2, %eax
+  209:  testl %ecx, %ecx
+  20b:  cmovnsl %ecx, %edx
+  20e:  sarl $2, %edx
+  211:  movb %dl, 0x6d(%r13)
+  215:  jmp 0x107
+  21a:  nopw (%rax, %rax)
+  220:  xorl %eax, %eax
+  222:  cmpb $0, 0x6a(%r13)
+  227:  sete %al
+  22a:  jmp 0x107
+  22f:  nop
+  230:  movl 0x18(%rsp), %eax
+  234:  cmpl $0x2f, %eax
+  237:  ja 0x2a8
+  239:  movq 0x28(%rsp), %rdx
+  23e:  leal 8(%rax), %esi
+  241:  movl (%rdx, %rax), %ecx
+  244:  cmpl $0x2f, %esi
+  247:  ja 0x34c
+  24d:  leaq (%rdx, %rsi), %rax
+  251:  cmpb $1, 0x66(%r13)
+  256:  movl (%rax), %eax
+  258:  je 0x267
+  25a:  cmpq $0, 0x28(%r13)
+  25f:  movl $0xb, %edx
+  264:  cmovel %edx, %ebx
+  267:  testl %ecx, %ecx
+  269:  je 0x26f
+  26b:  movb %cl, 0x68(%r13)
+  26f:  testl %eax, %eax
+  271:  je 0x280
+  273:  leal 3(%rax), %edx
+  276:  cmovsl %edx, %eax
+  279:  sarl $2, %eax
+  27c:  movb %al, 0x69(%r13)
+  280:  movl $1, %esi
+  285:  movq %r12, %rdi
+  288:  callq luaC_changemode+0
+  28d:  movl %ebx, %eax
+  28f:  jmp 0x107
+  294:  nopl (%rax)
+  298:  movl $0xffffffff, %eax
+  29d:  jmp 0x107
+  2a2:  nopw (%rax, %rax)
+  2a8:  movq 0x20(%rsp), %rdx
+  2ad:  movl (%rdx), %ecx
+  2af:  leaq 8(%rdx), %rax
+  2b3:  jmp 0x251
+  2b5:  nopl (%rax)
+  2b8:  movq 0x20(%rsp), %rdx
+  2bd:  jmp 0x1fc
+  2c2:  nopw (%rax, %rax)
+  2c8:  movq 0x20(%rsp), %rdx
+  2cd:  jmp 0x1c4
+  2d2:  nopw (%rax, %rax)
+  2d8:  movq 0x20(%rsp), %rdx
+  2dd:  leaq 8(%rdx), %rax
+  2e1:  movq %rax, 0x20(%rsp)
+  2e6:  jmp 0x17b
+  2eb:  nopl (%rax, %rax)
+  2f0:  movq 0x20(%rsp), %rax
+  2f5:  movl (%rax), %esi
+  2f7:  leaq 8(%rax), %rdx
+  2fb:  movl (%rdx), %ecx
+  2fd:  leaq 8(%rdx), %rax
+  301:  jmp 0xa9
+  306:  nopw %cs:(%rax, %rax)
+  310:  movslq %eax, %rbx
+  313:  movq %r13, %rdi
+  316:  shlq $0xa, %rbx
+  31a:  addq 0x18(%r13), %rbx
+  31e:  movq %rbx, %rsi
+  321:  callq luaE_setdebt+0
+  326:  movq 0x18(%r12), %rax
+  32b:  cmpq $0, 0x18(%rax)
+  330:  jle 0x33a
+  332:  movq %r12, %rdi
+  335:  callq luaC_step+0
+  33a:  movb %bpl, 0x6a(%r13)
+  33e:  testq %rbx, %rbx
+  341:  jg 0x1a0
+  347:  jmp 0x105
+  34c:  movq 0x20(%rsp), %rax
+  351:  jmp 0x251
+  356:  movq 0x20(%rsp), %rax
+  35b:  jmp 0xa9
+  360:  movq 0x20(%rsp), %rdx
+  365:  jmp 0x2fb

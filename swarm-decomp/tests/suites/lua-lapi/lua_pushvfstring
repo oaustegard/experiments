@@ -1,0 +1,15 @@
+# lua_pushvfstring  (global, 48 bytes, 14 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x10, %rsp
+    8:  callq luaO_pushvfstring+0
+    d:  movq 0x18(%rbx), %rdx
+   11:  cmpq $0, 0x18(%rdx)
+   16:  jle 0x2a
+   18:  movq %rbx, %rdi
+   1b:  movq %rax, 8(%rsp)
+   20:  callq luaC_step+0
+   25:  movq 8(%rsp), %rax
+   2a:  addq $0x10, %rsp
+   2e:  popq %rbx
+   2f:  retq

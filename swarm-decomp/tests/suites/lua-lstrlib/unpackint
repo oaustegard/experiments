@@ -1,0 +1,92 @@
+# unpackint  (static, 287 bytes, 91 instructions)
+    0:  pushq %r15
+    2:  movl $8, %eax
+    7:  pushq %r14
+    9:  movl %ecx, %r14d
+    c:  pushq %r13
+    e:  movq %rdi, %r13
+   11:  pushq %r12
+   13:  movq %rsi, %r12
+   16:  pushq %rbp
+   17:  movl %edx, %ebp
+   19:  pushq %rbx
+   1a:  subq $0x18, %rsp
+   1e:  cmpl %eax, %ecx
+   20:  cmovlel %ecx, %eax
+   23:  movl %eax, %esi
+   25:  subl $1, %esi
+   28:  js 0x118
+   2e:  movl %ecx, %edx
+   30:  movslq %esi, %rsi
+   33:  subl %eax, %edx
+   35:  xorl %eax, %eax
+   37:  nopw (%rax, %rax)
+   40:  shlq $8, %rax
+   44:  movslq %edx, %rcx
+   47:  testl %ebp, %ebp
+   49:  cmovneq %rsi, %rcx
+   4d:  addl $1, %edx
+   50:  subq $1, %rsi
+   54:  movzbl (%r12, %rcx), %ecx
+   59:  orq %rcx, %rax
+   5c:  cmpl %r14d, %edx
+   5f:  jne 0x40
+   61:  movq %rax, %rbx
+   64:  cmpl $7, %r14d
+   68:  jg 0xa0
+   6a:  testl %r8d, %r8d
+   6d:  je 0x88
+   6f:  leal -1(, %r14, 8), %ecx
+   77:  movl $1, %edx
+   7c:  shlq %cl, %rdx
+   7f:  xorq %rdx, %rax
+   82:  subq %rdx, %rax
+   85:  movq %rax, %rbx
+   88:  addq $0x18, %rsp
+   8c:  movq %rbx, %rax
+   8f:  popq %rbx
+   90:  popq %rbp
+   91:  popq %r12
+   93:  popq %r13
+   95:  popq %r14
+   97:  popq %r15
+   99:  retq
+   9a:  nopw (%rax, %rax)
+   a0:  cmpl $8, %r14d
+   a4:  je 0x88
+   a6:  andl $1, %r8d
+   aa:  je 0x110
+   ac:  movl $0xff, %ecx
+   b1:  testq %rax, %rax
+   b4:  jns 0x110
+   b6:  movl $8, %r15d
+   bc:  leal -1(%r14), %r8d
+   c0:  movl %r8d, %eax
+   c3:  subl %r15d, %eax
+   c6:  testl %ebp, %ebp
+   c8:  cltq
+   ca:  cmovneq %r15, %rax
+   ce:  movzbl (%r12, %rax), %eax
+   d3:  cmpl %ecx, %eax
+   d5:  jne 0xe8
+   d7:  addq $1, %r15
+   db:  cmpl %r15d, %r14d
+   de:  jg 0xc0
+   e0:  jmp 0x88
+   e2:  nopw (%rax, %rax)
+   e8:  movl %r14d, %edx
+   eb:  movl $0, %esi   <str:"%d-byte integer does not fit into Lua Integer">
+   f0:  movq %r13, %rdi
+   f3:  xorl %eax, %eax
+   f5:  movl %r8d, 0xc(%rsp)
+   fa:  movl %ecx, 8(%rsp)
+   fe:  callq luaL_error+0
+  103:  movl 0xc(%rsp), %r8d
+  108:  movl 8(%rsp), %ecx
+  10c:  jmp 0xd7
+  10e:  nop
+  110:  xorl %ecx, %ecx
+  112:  jmp 0xb6
+  114:  nopl (%rax)
+  118:  xorl %eax, %eax
+  11a:  jmp 0x61

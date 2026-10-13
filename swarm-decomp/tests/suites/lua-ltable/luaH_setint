@@ -1,0 +1,27 @@
+# luaH_setint  (global, 87 bytes, 26 instructions)
+    0:  movq %rsi, %r9
+    3:  subq $0x18, %rsp
+    7:  movq %rdi, %r11
+    a:  movq %rdx, %rsi
+    d:  movq %r9, %rdi
+   10:  movq %rdx, %r10
+   13:  movq %rcx, %r8
+   16:  callq luaH_getint+0
+   1b:  cmpb $0x20, 8(%rax)
+   1f:  je 0x38
+   21:  movq (%r8), %rdx
+   24:  movq %rdx, (%rax)
+   27:  movzbl 8(%r8), %edx
+   2c:  movb %dl, 8(%rax)
+   2f:  addq $0x18, %rsp
+   33:  retq
+   34:  nopl (%rax)
+   38:  movq %rsp, %rdx
+   3b:  movq %r8, %rcx
+   3e:  movq %r9, %rsi
+   41:  movq %r11, %rdi
+   44:  movq %r10, (%rsp)
+   48:  movb $3, 8(%rsp)
+   4d:  callq fn:luaH_newkey+0
+   52:  addq $0x18, %rsp
+   56:  retq

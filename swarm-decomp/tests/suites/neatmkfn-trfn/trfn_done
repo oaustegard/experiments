@@ -1,0 +1,14 @@
+# trfn_done  (global, 61 bytes, 13 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rdi   <var:sbuf_char+0>
+    b:  callq sbuf_free+0
+   10:  movq (%rip), %rdi   <var:tab_alts+0>
+   17:  callq tab_free+0
+   1c:  movq (%rip), %rdi   <var:tab_agl+0>
+   23:  testq %rdi, %rdi
+   26:  je 0x38
+   28:  addq $8, %rsp
+   2c:  jmp tab_free+0
+   31:  nopl (%rax)
+   38:  addq $8, %rsp
+   3c:  retq

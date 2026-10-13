@@ -1,0 +1,115 @@
+# io_loc.isra.0  (static, 486 bytes, 114 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $0x48, %rsp
+    6:  movq (%rip), %rax   <var:ic_n+0>
+    d:  movq (%rip), %r10   <var:ic+0>
+   14:  leaq (%rax, %rax, 4), %rax
+   18:  leaq -0x28(%r10, %rax, 8), %rbx
+   1d:  movq (%rbx), %r9
+   20:  movq %r9, %rax
+   23:  notq %rax
+   26:  testl $0x110000, %eax
+   2b:  je 0x48
+   2d:  movq %r9, %rax
+   30:  notq %rax
+   33:  testl $0x120000, %eax
+   38:  je 0xb0
+   3a:  addq $0x48, %rsp
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  retq
+   41:  nopl (%rax)
+   48:  movq 8(%rbx), %rsi
+   4c:  leaq 8(%rsp), %rcx
+   51:  movq %rsp, %rdx
+   54:  movq %r10, %rdi
+   57:  callq fn:ic_off+0
+   5c:  testl %eax, %eax
+   5e:  jne 0x3a
+   60:  movq (%rsp), %rax
+   64:  movq 8(%rsp), %rbp
+   69:  leaq (%rax, %rax, 4), %rax
+   6d:  leaq (%r10, %rax, 8), %rdx
+   71:  movq (%rdx), %rax
+   74:  notq %rax
+   77:  testl $0x200400, %eax
+   7c:  jne 0x118
+   82:  andq $0xffffffffffcfffff, %r9
+   89:  orq $0x200000, %r9
+   90:  movq %r9, %xmm0
+   95:  movhps 8(%rdx), %xmm0
+   99:  movups %xmm0, (%rbx)
+   9c:  addq 0x10(%rdx), %rbp
+   a0:  addq %rbp, 0x10(%rbx)
+   a4:  jmp 0x3a
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movq 0x10(%rbx), %rsi
+   b4:  leaq 8(%rsp), %rcx
+   b9:  movq %rsp, %rdx
+   bc:  movq %r10, %rdi
+   bf:  callq fn:ic_off+0
+   c4:  testl %eax, %eax
+   c6:  jne 0x3a
+   cc:  movq (%rsp), %rax
+   d0:  movq 8(%rsp), %rbp
+   d5:  leaq (%rax, %rax, 4), %rax
+   d9:  leaq (%r10, %rax, 8), %rdx
+   dd:  movq (%rdx), %rax
+   e0:  notq %rax
+   e3:  testl $0x200400, %eax
+   e8:  jne 0x180
+   ee:  movq 8(%rdx), %rax
+   f2:  andq $0xffffffffffcfffff, %r9
+   f9:  orq $0x200000, %r9
+  100:  movq %rax, 0x10(%rbx)
+  104:  addq 0x10(%rdx), %rbp
+  108:  movq %r9, (%rbx)
+  10b:  addq %rbp, 0x18(%rbx)
+  10f:  jmp 0x3a
+  114:  nopl (%rax)
+  118:  movq %r9, %rdi
+  11b:  leaq 0x28(%rsp), %r8
+  120:  leaq 0x30(%rsp), %r9
+  125:  orq $0x100000, %rdi
+  12c:  leaq 0x20(%rsp), %rcx
+  131:  leaq 0x18(%rsp), %rdx
+  136:  leaq 0x10(%rsp), %rsi
+  13b:  callq i_reg+0
+  140:  testq %rax, %rax
+  143:  jne 0x3a
+  149:  movq 0x20(%rsp), %rdi
+  14e:  movq %rbp, %rsi
+  151:  callq i_imm+0
+  156:  testl %eax, %eax
+  158:  je 0x3a
+  15e:  movq 8(%rsp), %rax
+  163:  movq (%rsp), %xmm0
+  168:  addq 0x10(%rbx), %rax
+  16c:  movq %rax, %xmm1
+  171:  punpcklqdq %xmm1, %xmm0
+  175:  movups %xmm0, 8(%rbx)
+  179:  jmp 0x3a
+  17e:  nop
+  180:  movq %r9, %rdi
+  183:  leaq 0x28(%rsp), %r8
+  188:  leaq 0x30(%rsp), %r9
+  18d:  orq $0x100000, %rdi
+  194:  leaq 0x20(%rsp), %rcx
+  199:  leaq 0x18(%rsp), %rdx
+  19e:  leaq 0x10(%rsp), %rsi
+  1a3:  callq i_reg+0
+  1a8:  testq %rax, %rax
+  1ab:  jne 0x3a
+  1b1:  movq 0x28(%rsp), %rdi
+  1b6:  movq %rbp, %rsi
+  1b9:  callq i_imm+0
+  1be:  testl %eax, %eax
+  1c0:  je 0x3a
+  1c6:  movq 8(%rsp), %rax
+  1cb:  movq (%rsp), %xmm0
+  1d0:  addq 0x18(%rbx), %rax
+  1d4:  movq %rax, %xmm2
+  1d9:  punpcklqdq %xmm2, %xmm0
+  1dd:  movups %xmm0, 0x10(%rbx)
+  1e1:  jmp 0x3a

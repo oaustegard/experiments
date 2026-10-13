@@ -1,0 +1,75 @@
+# lua_upvalueid  (global, 253 bytes, 74 instructions)
+    0:  movslq %edx, %r8
+    3:  movq 0x20(%rdi), %rdx
+    7:  testl %esi, %esi
+    9:  jle 0x50
+    b:  movslq %esi, %rax
+    e:  shlq $4, %rax
+   12:  addq (%rdx), %rax
+   15:  cmpq 0x10(%rdi), %rax
+   19:  jae 0x71
+   1b:  movzbl 8(%rax), %edx
+   1f:  xorl %r9d, %r9d
+   22:  andl $0x3f, %edx
+   25:  cmpb $6, %dl
+   28:  je 0x88
+   2a:  cmpb $0x26, %dl
+   2d:  jne 0x4c
+   2f:  testl %r8d, %r8d
+   32:  jle 0x4c
+   34:  movq (%rax), %rax
+   37:  movzbl 0xa(%rax), %edx
+   3b:  cmpl %r8d, %edx
+   3e:  jl 0x4c
+   40:  addq $1, %r8
+   44:  shlq $4, %r8
+   48:  leaq (%rax, %r8), %r9
+   4c:  movq %r9, %rax
+   4f:  retq
+   50:  cmpl $0xfff0b9d9, %esi
+   56:  jge 0xe0
+   5c:  cmpl $0xfff0b9d8, %esi
+   62:  je 0xf0
+   68:  movq (%rdx), %rax
+   6b:  cmpb $0x66, 8(%rax)
+   6f:  je 0xb0
+   71:  movq 0x18(%rdi), %rax
+   75:  xorl %r9d, %r9d
+   78:  movzbl 0x58(%rax), %edx
+   7c:  addq $0x50, %rax
+   80:  andl $0x3f, %edx
+   83:  cmpb $6, %dl
+   86:  jne 0x2a
+   88:  testl %r8d, %r8d
+   8b:  jle 0x4c
+   8d:  callq fn:index2value+0
+   92:  movq (%rax), %rax
+   95:  movq 0x18(%rax), %rdx
+   99:  cmpl 0x10(%rdx), %r8d
+   9d:  jg 0x4c
+   9f:  subl $1, %r8d
+   a3:  movslq %r8d, %r8
+   a6:  movq 0x20(%rax, %r8, 8), %r9
+   ab:  movq %r9, %rax
+   ae:  retq
+   af:  nop
+   b0:  movq (%rax), %rax
+   b3:  movl $0xfff0b9d8, %edx
+   b8:  subl %esi, %edx
+   ba:  movzbl 0xa(%rax), %ecx
+   be:  cmpl %ecx, %edx
+   c0:  jg 0x71
+   c2:  movl $0xfff0b9d9, %edx
+   c7:  subl %esi, %edx
+   c9:  movslq %edx, %rdx
+   cc:  shlq $4, %rdx
+   d0:  addq %rdx, %rax
+   d3:  jmp 0x1b
+   d8:  nopl (%rax, %rax)
+   e0:  movslq %esi, %rax
+   e3:  shlq $4, %rax
+   e7:  addq 0x10(%rdi), %rax
+   eb:  jmp 0x1b
+   f0:  movq 0x18(%rdi), %rax
+   f4:  addq $0x40, %rax
+   f8:  jmp 0x1b

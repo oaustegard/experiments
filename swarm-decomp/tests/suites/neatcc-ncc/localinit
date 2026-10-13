@@ -1,0 +1,82 @@
+# localinit  (static, 300 bytes, 81 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movl %esi, %ebp
+    9:  pushq %rbx
+    a:  movq %rdx, %rbx
+    d:  movq (%rdi), %r12
+   10:  testb $1, 4(%rdx)
+   14:  je 0x20
+   16:  callq fn:tok_grp+0
+   1b:  cmpl $0x22, %eax
+   1e:  je 0x98
+   20:  movq %r12, %rdi
+   23:  callq o_local+0
+   28:  testl %ebp, %ebp
+   2a:  jne 0x80
+   2c:  movslq (%rip), %rax   <var:nts+0>
+   33:  movdqu (%rbx), %xmm0
+   37:  leal 1(%rax), %edx
+   3a:  leaq (%rax, %rax, 4), %rax
+   3e:  shlq $2, %rax
+   42:  movl %edx, (%rip)   <var:nts+0>
+   48:  movups %xmm0, (%rax)   <var:ts+0>
+   4f:  movl 0x10(%rbx), %edx
+   52:  movl %edx, (%rax)   <var:ts+16>
+   58:  callq fn:readexpr+0
+   5d:  callq fn:doassign+0
+   62:  subl $1, (%rip)   <var:nts+0>
+   69:  popq %rbx
+   6a:  movl $1, %edi
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  popq %r14
+   76:  jmp o_tmpdrop+0
+   7b:  nopl (%rax, %rax)
+   80:  movslq %ebp, %rdi
+   83:  callq o_num+0
+   88:  movl $0x10, %edi
+   8d:  callq o_bop+0
+   92:  jmp 0x2c
+   94:  nopl (%rax)
+   98:  movslq 0xc(%rbx), %rax
+   9c:  leaq (%rax, %rax, 2), %rdx
+   a0:  movq (%rip), %rax   <var:arrays+0>
+   a7:  leaq (%rax, %rdx, 8), %rax
+   ab:  movl 8(%rax), %ecx
+   ae:  testl %ecx, %ecx
+   b0:  jne 0x20
+   b6:  movl 4(%rax), %edx
+   b9:  testl %edx, %edx
+   bb:  jne 0x20
+   c1:  movl (%rax), %eax
+   c3:  andl $0xf, %eax
+   c6:  cmpl $1, %eax
+   c9:  jne 0x20
+   cf:  callq tok_get+0
+   d4:  leaq 1(%rax), %r13
+   d8:  callq tok_len+0
+   dd:  movq %r12, %rdi
+   e0:  movq %rax, %rbx
+   e3:  leal -2(%rax), %r14d
+   e7:  callq o_local+0
+   ec:  testl %ebp, %ebp
+   ee:  jne 0x118
+   f0:  movl %r14d, %esi
+   f3:  movq %r13, %rdi
+   f6:  callq fn:tmp_str+0
+   fb:  movq %rax, %rdi
+   fe:  callq o_sym+0
+  103:  leal -1(%rbx), %edi
+  106:  movslq %edi, %rdi
+  109:  callq o_num+0
+  10e:  callq o_memcpy+0
+  113:  jmp 0x69
+  118:  movslq %ebp, %rdi
+  11b:  callq o_num+0
+  120:  movl $0x10, %edi
+  125:  callq o_bop+0
+  12a:  jmp 0xf0

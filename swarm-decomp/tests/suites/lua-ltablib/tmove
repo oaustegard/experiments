@@ -1,0 +1,127 @@
+# tmove  (static, 487 bytes, 126 instructions)
+    0:  pushq %r15
+    2:  movl $2, %esi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  xorl %r12d, %r12d
+   10:  pushq %rbp
+   11:  movq %rdi, %rbp
+   14:  pushq %rbx
+   15:  subq $8, %rsp
+   19:  callq luaL_checkinteger+0
+   1e:  movl $3, %esi
+   23:  movq %rbp, %rdi
+   26:  movq %rax, %rbx
+   29:  callq luaL_checkinteger+0
+   2e:  movl $4, %esi
+   33:  movq %rbp, %rdi
+   36:  movq %rax, %r15
+   39:  callq luaL_checkinteger+0
+   3e:  movl $5, %esi
+   43:  movq %rbp, %rdi
+   46:  movq %rax, %r13
+   49:  callq lua_type+0
+   4e:  movl $1, %esi
+   53:  movq %rbp, %rdi
+   56:  testl %eax, %eax
+   58:  setg %r12b
+   5c:  leal 1(, %r12, 4), %r12d
+   64:  callq lua_type+0
+   69:  cmpl $5, %eax
+   6c:  je 0x80
+   6e:  movl $1, %edx
+   73:  movl $1, %esi
+   78:  movq %rbp, %rdi
+   7b:  callq fn:checktab.part.0+0
+   80:  movl %r12d, %esi
+   83:  movq %rbp, %rdi
+   86:  callq lua_type+0
+   8b:  cmpl $5, %eax
+   8e:  je 0xa0
+   90:  movl $2, %edx
+   95:  movl %r12d, %esi
+   98:  movq %rbp, %rdi
+   9b:  callq fn:checktab.part.0+0
+   a0:  cmpq %r15, %rbx
+   a3:  jg 0x117
+   a5:  testq %rbx, %rbx
+   a8:  jle 0x140
+   ae:  movq %r15, %r14
+   b1:  subq %rbx, %r14
+   b4:  cmpq %r13, %r15
+   b7:  setl %r15b
+   bb:  cmpq %r13, %rbx
+   be:  setge %al
+   c1:  orl %eax, %r15d
+   c4:  movabsq $0x7fffffffffffffff, %rax
+   ce:  subq %r14, %rax
+   d1:  cmpq %r13, %rax
+   d4:  jl 0x1d0
+   da:  testb %r15b, %r15b
+   dd:  jne 0x190
+   e3:  cmpl $1, %r12d
+   e7:  jne 0x170
+   ed:  nopl (%rax)
+   f0:  leaq (%rbx, %r14), %rdx
+   f4:  movl $1, %esi
+   f9:  movq %rbp, %rdi
+   fc:  callq lua_geti+0
+  101:  leaq (%r13, %r14), %rdx
+  106:  movl %r12d, %esi
+  109:  movq %rbp, %rdi
+  10c:  callq lua_seti+0
+  111:  subq $1, %r14
+  115:  jae 0xf0
+  117:  movl %r12d, %esi
+  11a:  movq %rbp, %rdi
+  11d:  callq lua_pushvalue+0
+  122:  addq $8, %rsp
+  126:  movl $1, %eax
+  12b:  popq %rbx
+  12c:  popq %rbp
+  12d:  popq %r12
+  12f:  popq %r13
+  131:  popq %r14
+  133:  popq %r15
+  135:  retq
+  136:  nopw %cs:(%rax, %rax)
+  140:  movabsq $0x7ffffffffffffffe, %rax
+  14a:  addq %rbx, %rax
+  14d:  cmpq %r15, %rax
+  150:  jge 0xae
+  156:  movl $0, %edx   <str:"too many elements to move">
+  15b:  movl $3, %esi
+  160:  movq %rbp, %rdi
+  163:  callq luaL_argerror+0
+  168:  jmp 0xae
+  16d:  nopl (%rax)
+  170:  xorl %ecx, %ecx
+  172:  movl $5, %edx
+  177:  movl $1, %esi
+  17c:  movq %rbp, %rdi
+  17f:  callq lua_compare+0
+  184:  testl %eax, %eax
+  186:  jne 0xf0
+  18c:  nopl (%rax)
+  190:  leaq 1(%r14, %rbx), %r14
+  195:  subq %rbx, %r13
+  198:  nopl (%rax, %rax)
+  1a0:  movq %rbx, %rdx
+  1a3:  movl $1, %esi
+  1a8:  movq %rbp, %rdi
+  1ab:  callq lua_geti+0
+  1b0:  leaq (%r13, %rbx), %rdx
+  1b5:  movl %r12d, %esi
+  1b8:  movq %rbp, %rdi
+  1bb:  callq lua_seti+0
+  1c0:  addq $1, %rbx
+  1c4:  cmpq %rbx, %r14
+  1c7:  jne 0x1a0
+  1c9:  jmp 0x117
+  1ce:  nop
+  1d0:  movl $0, %edx   <str:"destination wrap around">
+  1d5:  movl $4, %esi
+  1da:  movq %rbp, %rdi
+  1dd:  callq luaL_argerror+0
+  1e2:  jmp 0xda

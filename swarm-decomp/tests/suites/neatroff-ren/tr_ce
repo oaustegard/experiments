@@ -1,0 +1,25 @@
+# tr_ce  (global, 79 bytes, 24 instructions)
+    0:  pushq %rbx
+    1:  movq (%rdi), %rax
+    4:  movq %rdi, %rbx
+    7:  movsbl (%rax), %eax
+    a:  cmpl (%rip), %eax   <c_cc+0>
+   10:  je 0x48
+   12:  movq 8(%rbx), %rdi
+   16:  movl $1, %ebx
+   1b:  testq %rdi, %rdi
+   1e:  je 0x2e
+   20:  movl $0xa, %edx
+   25:  xorl %esi, %esi
+   27:  callq strtol+0
+   2c:  movl %eax, %ebx
+   2e:  movl $0, %edi   <str:".ce">
+   33:  callq map+0
+   38:  movl %eax, %edi
+   3a:  callq nreg+0
+   3f:  movl %ebx, (%rax)
+   41:  popq %rbx
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  callq fn:ren_br+0
+   4d:  jmp 0x12

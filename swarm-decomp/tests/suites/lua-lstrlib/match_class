@@ -1,0 +1,99 @@
+# match_class  (static, 367 bytes, 98 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %r12
+    5:  pushq %rbp
+    6:  movq %r12, %rbp
+    9:  pushq %rbx
+    a:  movslq %edi, %rbx
+    d:  callq __ctype_tolower_loc+0
+   12:  movq (%rax), %rax
+   15:  movl (%rax, %r12, 4), %eax
+   19:  subl $0x61, %eax
+   1c:  cmpl $0x19, %eax
+   1f:  ja 0x30
+   21:  jmpq *(, %rax, 8)   <var:match_class+0>
+   28:  nopl (%rax, %rax)
+   30:  cmpl %ebx, %ebp
+   32:  sete %bl
+   35:  movzbl %bl, %ebx
+   38:  movl %ebx, %eax
+   3a:  popq %rbx
+   3b:  popq %rbp
+   3c:  popq %r12
+   3e:  retq
+   3f:  nop
+   40:  testl %ebx, %ebx
+   42:  sete %bl
+   45:  callq __ctype_b_loc+0
+   4a:  movzbl %bl, %ebx
+   4d:  movq (%rax), %rax
+   50:  testb $2, 1(%rax, %r12, 2)
+   56:  jne 0x38
+   58:  testl %ebx, %ebx
+   5a:  sete %bl
+   5d:  movzbl %bl, %ebx
+   60:  movl %ebx, %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  callq __ctype_b_loc+0
+   75:  movq (%rax), %rax
+   78:  movzwl (%rax, %rbx, 2), %ebx
+   7c:  andl $0x1000, %ebx
+   82:  jmp 0x50
+   84:  nopl (%rax)
+   88:  callq __ctype_b_loc+0
+   8d:  movq (%rax), %rax
+   90:  movzwl (%rax, %rbx, 2), %ebx
+   94:  andl $8, %ebx
+   97:  jmp 0x50
+   99:  nopl (%rax)
+   a0:  callq __ctype_b_loc+0
+   a5:  movq (%rax), %rax
+   a8:  movzwl (%rax, %rbx, 2), %ebx
+   ac:  andl $0x100, %ebx
+   b2:  jmp 0x50
+   b4:  nopl (%rax)
+   b8:  callq __ctype_b_loc+0
+   bd:  movq (%rax), %rax
+   c0:  movzwl (%rax, %rbx, 2), %ebx
+   c4:  andl $0x2000, %ebx
+   ca:  jmp 0x50
+   cc:  nopl (%rax)
+   d0:  callq __ctype_b_loc+0
+   d5:  movq (%rax), %rax
+   d8:  movzwl (%rax, %rbx, 2), %ebx
+   dc:  andl $4, %ebx
+   df:  jmp 0x50
+   e4:  nopl (%rax)
+   e8:  callq __ctype_b_loc+0
+   ed:  movq (%rax), %rax
+   f0:  movzwl (%rax, %rbx, 2), %ebx
+   f4:  andl $0x200, %ebx
+   fa:  jmp 0x50
+   ff:  nop
+  100:  callq __ctype_b_loc+0
+  105:  movq (%rax), %rax
+  108:  movzwl (%rax, %rbx, 2), %ebx
+  10c:  andl $0x8000, %ebx
+  112:  jmp 0x50
+  117:  nopw (%rax, %rax)
+  120:  callq __ctype_b_loc+0
+  125:  movq (%rax), %rax
+  128:  movzwl (%rax, %rbx, 2), %ebx
+  12c:  andl $0x800, %ebx
+  132:  jmp 0x50
+  137:  nopw (%rax, %rax)
+  140:  callq __ctype_b_loc+0
+  145:  movq (%rax), %rax
+  148:  movzwl (%rax, %rbx, 2), %ebx
+  14c:  andl $2, %ebx
+  14f:  jmp 0x50
+  154:  nopl (%rax)
+  158:  callq __ctype_b_loc+0
+  15d:  movq (%rax), %rax
+  160:  movzwl (%rax, %rbx, 2), %ebx
+  164:  andl $0x400, %ebx
+  16a:  jmp 0x50

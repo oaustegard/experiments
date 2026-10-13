@@ -1,0 +1,28 @@
+# io_read  (static, 102 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"_IO_input">
+    6:  movl $0xfff0b9d8, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq lua_getfield+0
+   18:  movl $0xffffffff, %esi
+   1d:  movq %rbx, %rdi
+   20:  callq lua_touserdata+0
+   25:  cmpq $0, 8(%rax)
+   2a:  movq %rax, %rbp
+   2d:  je 0x50
+   2f:  movq (%rbp), %rsi
+   33:  addq $8, %rsp
+   37:  movq %rbx, %rdi
+   3a:  movl $1, %edx
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  jmp fn:g_read+0
+   46:  nopw %cs:(%rax, %rax)
+   50:  movl $0, %edx   <str:"input">
+   55:  movl $0, %esi   <str:"default %s file is closed">
+   5a:  movq %rbx, %rdi
+   5d:  xorl %eax, %eax
+   5f:  callq luaL_error+0
+   64:  jmp 0x2f

@@ -1,0 +1,18 @@
+# tr_init  (global, 68 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %ebx   <var:cmds+0>
+    6:  nopw %cs:(%rax, %rax)
+   10:  movq (%rbx), %rdi
+   13:  callq map+0
+   18:  movq %rbx, %rsi
+   1b:  addq $0x18, %rbx
+   1f:  movl %eax, %edi
+   21:  callq str_dset+0
+   26:  cmpq $0, %rbx   <var:cmds+2832>
+   2d:  jne 0x10
+   2f:  xorl %esi, %esi
+   31:  movl $0x400, %edi
+   36:  callq dict_make+0
+   3b:  popq %rbx
+   3c:  movq %rax, (%rip)   <var:cmap+0>
+   43:  retq

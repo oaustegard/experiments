@@ -1,0 +1,11 @@
+# luaH_finishset  (global, 32 bytes, 10 instructions)
+    0:  cmpb $0x20, 8(%rcx)
+    4:  je 0x18
+    6:  movq (%r8), %rdx
+    9:  movq %rdx, (%rcx)
+    c:  movzbl 8(%r8), %edx
+   11:  movb %dl, 8(%rcx)
+   14:  retq
+   15:  nopl (%rax)
+   18:  movq %r8, %rcx
+   1b:  jmp fn:luaH_newkey+0

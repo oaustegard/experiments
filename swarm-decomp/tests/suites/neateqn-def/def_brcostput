@@ -1,0 +1,43 @@
+# def_brcostput  (global, 140 bytes, 42 instructions)
+    0:  testl %edi, %edi
+    2:  jne 0x10
+    4:  movl $0, (%rip)   <var:brcost_n+0>
+    e:  retq
+    f:  nop
+   10:  movl (%rip), %r8d   <var:brcost_n+0>
+   17:  testl %r8d, %r8d
+   1a:  jle 0x75
+   1c:  movslq %r8d, %rcx
+   1f:  xorl %eax, %eax
+   21:  jmp 0x34
+   23:  nopl (%rax, %rax)
+   28:  leaq 1(%rax), %rdx
+   2c:  cmpq %rcx, %rdx
+   2f:  je 0x70
+   31:  movq %rdx, %rax
+   34:  cmpl %edi, (, %rax, 4)   <var:brcost_type+0>
+   3b:  jne 0x28
+   3d:  testl %edi, %edi
+   3f:  jle 0x6f
+   41:  xorl %edx, %edx
+   43:  cmpl %eax, %r8d
+   46:  setle %dl
+   49:  addl %eax, %edx
+   4b:  cmpl $0x1f, %edx
+   4e:  jg 0x6f
+   50:  movslq %eax, %rdx
+   53:  movl %edi, (, %rdx, 4)   <var:brcost_type+0>
+   5a:  movl %esi, (, %rdx, 4)   <var:brcost_cost+0>
+   61:  cmpl %eax, %r8d
+   64:  jg 0x6f
+   66:  addl $1, %eax
+   69:  movl %eax, (%rip)   <var:brcost_n+0>
+   6f:  retq
+   70:  addl $1, %eax
+   73:  jmp 0x3d
+   75:  testl %edi, %edi
+   77:  jle 0x6f
+   79:  movl %edi, (%rip)   <var:brcost_type+0>
+   7f:  movl $1, %eax
+   84:  movl %esi, (%rip)   <var:brcost_cost+0>
+   8a:  jmp 0x69

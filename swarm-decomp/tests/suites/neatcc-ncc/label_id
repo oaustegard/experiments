@@ -1,0 +1,120 @@
+# label_id  (static, 440 bytes, 119 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  subq $0x28, %rsp
+   11:  movq (%rip), %rcx   <var:label_name+0>
+   18:  movl (%rip), %eax   <var:label_sz+0>
+   1e:  movslq (%rip), %r13   <var:label_n+0>
+   25:  movq %rcx, 8(%rsp)
+   2a:  movq (%rip), %rcx   <var:label_ids+0>
+   31:  movq %r13, %rbp
+   34:  movq %rcx, 0x10(%rsp)
+   39:  cmpl %eax, %r13d
+   3c:  jge 0xf0
+   42:  movl %ebp, %eax
+   44:  subl $1, %eax
+   47:  js 0xa8
+   49:  movslq %eax, %r14
+   4c:  movq 8(%rsp), %rcx
+   51:  leaq -2(%r13), %r15
+   55:  movl %eax, %eax
+   57:  movq %r14, %rdx
+   5a:  subq %rax, %r15
+   5d:  shlq $7, %rdx
+   61:  leaq (%rcx, %rdx), %r12
+   65:  jmp 0x7d
+   67:  nopw (%rax, %rax)
+   70:  subq $1, %r14
+   74:  addq $-0x80, %r12
+   78:  cmpq %r14, %r15
+   7b:  je 0xa8
+   7d:  movq %rbx, %rsi
+   80:  movq %r12, %rdi
+   83:  callq strcmp+0
+   88:  testl %eax, %eax
+   8a:  jne 0x70
+   8c:  movq 0x10(%rsp), %rax
+   91:  movl (%rax, %r14, 4), %eax
+   95:  addq $0x28, %rsp
+   99:  popq %rbx
+   9a:  popq %rbp
+   9b:  popq %r12
+   9d:  popq %r13
+   9f:  popq %r14
+   a1:  popq %r15
+   a3:  retq
+   a4:  nopl (%rax)
+   a8:  movq 8(%rsp), %rdi
+   ad:  movq %r13, %rax
+   b0:  movq %rbx, %rsi
+   b3:  addl $1, %ebp
+   b6:  shlq $7, %rax
+   ba:  addq %rax, %rdi
+   bd:  callq strcpy+0
+   c2:  movl (%rip), %eax   <var:label+0>
+   c8:  movq 0x10(%rsp), %rdx
+   cd:  movl %ebp, (%rip)   <var:label_n+0>
+   d3:  addl $1, %eax
+   d6:  movl %eax, (%rdx, %r13, 4)
+   da:  movl %eax, (%rip)   <var:label+0>
+   e0:  addq $0x28, %rsp
+   e4:  popq %rbx
+   e5:  popq %rbp
+   e6:  popq %r12
+   e8:  popq %r13
+   ea:  popq %r14
+   ec:  popq %r15
+   ee:  retq
+   ef:  nop
+   f0:  movl $0x80, %edx
+   f5:  addl %eax, %eax
+   f7:  movq %r13, %r14
+   fa:  cmpl %edx, %eax
+   fc:  cmovll %edx, %eax
+   ff:  shlq $7, %r14
+  103:  movslq %eax, %r12
+  106:  movl %eax, (%rip)   <var:label_sz+0>
+  10c:  movq %r12, %rdi
+  10f:  shlq $7, %rdi
+  113:  callq malloc+0
+  118:  movq 8(%rsp), %rsi
+  11d:  movq %r14, %rdx
+  120:  movq %rax, %rdi
+  123:  movq %rax, %r15
+  126:  callq memcpy+0
+  12b:  movq %r12, %rcx
+  12e:  xorl %esi, %esi
+  130:  leaq (%r15, %r14), %rdi
+  134:  subq %r13, %rcx
+  137:  leaq (, %r13, 4), %r14
+  13f:  movq %rcx, %rdx
+  142:  movq %rcx, 0x18(%rsp)
+  147:  shlq $7, %rdx
+  14b:  callq memset+0
+  150:  movq 8(%rsp), %rdi
+  155:  callq free+0
+  15a:  leaq (, %r12, 4), %rdi
+  162:  movq %r15, (%rip)   <var:label_name+0>
+  169:  callq malloc+0
+  16e:  movq 0x10(%rsp), %rsi
+  173:  movq %r14, %rdx
+  176:  movq %rax, %rdi
+  179:  movq %rax, %r12
+  17c:  callq memcpy+0
+  181:  movq 0x18(%rsp), %rcx
+  186:  leaq (%r12, %r14), %rdi
+  18a:  xorl %esi, %esi
+  18c:  shlq $2, %rcx
+  190:  movq %rcx, %rdx
+  193:  callq memset+0
+  198:  movq 0x10(%rsp), %rdi
+  19d:  callq free+0
+  1a2:  movq %r12, (%rip)   <var:label_ids+0>
+  1a9:  movq %r12, 0x10(%rsp)
+  1ae:  movq %r15, 8(%rsp)
+  1b3:  jmp 0x42

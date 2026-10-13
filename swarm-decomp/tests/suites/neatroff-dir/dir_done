@@ -1,0 +1,7 @@
+# dir_done  (global, 32 bytes, 6 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rdi   <var:rbuf+0>
+    b:  callq free+0
+   10:  movq (%rip), %rdi   <var:dbuf+0>
+   17:  addq $8, %rsp
+   1b:  jmp free+0

@@ -1,0 +1,84 @@
+# eqn_pile  (static, 308 bytes, 83 instructions)
+    0:  pushq %r15
+    2:  xorl %eax, %eax
+    4:  pushq %r14
+    6:  movq %rdx, %r14
+    9:  pushq %r13
+    b:  movq %rdi, %r13
+    e:  pushq %r12
+   10:  movl %esi, %r12d
+   13:  pushq %rbp
+   14:  pushq %rbx
+   15:  subq $0x118, %rsp
+   1c:  leaq 0x10(%rsp), %rbx
+   21:  movl %ecx, 0xc(%rsp)
+   25:  movl $0x20, %ecx
+   2a:  movq %rbx, %rdi
+   2d:  rep stosq %rax, (%rdi)
+   30:  movl $0, %edi   <str:"{">
+   35:  callq tok_jmp+0
+   3a:  movl %eax, %r15d
+   3d:  testl %eax, %eax
+   3f:  jne 0xe8
+   45:  xorl %ebp, %ebp
+   47:  jmp 0x53
+   49:  nopl (%rax)
+   50:  movq %rdx, %rbp
+   53:  callq tok_get+0
+   58:  testq %rax, %rax
+   5b:  je 0x120
+   61:  movl 0x28(%r13), %edx
+   65:  xorl %esi, %esi
+   67:  movl %r12d, %edi
+   6a:  callq box_alloc+0
+   6f:  movq %r14, %rdx
+   72:  movl $0, %ecx   <str:"above">
+   77:  movl %r12d, %esi
+   7a:  movq %rax, %rdi
+   7d:  movq %rax, (%rbx, %rbp, 8)
+   81:  callq fn:eqn_boxuntil+0
+   86:  leaq 1(%rbp), %rdx
+   8a:  testl %eax, %eax
+   8c:  je 0x50
+   8e:  movl $0, %edi   <str:"}">
+   93:  callq tok_jmp+0
+   98:  testl %eax, %eax
+   9a:  jne 0x12a
+   a0:  movl 0xc(%rsp), %edx
+   a4:  movl %r15d, %ecx
+   a7:  movq %rbx, %rsi
+   aa:  movq %r13, %rdi
+   ad:  leaq 0x18(%rsp, %rbp, 8), %rbp
+   b2:  callq box_pile+0
+   b7:  nopw (%rax, %rax)
+   c0:  movq (%rbx), %rdi
+   c3:  addq $8, %rbx
+   c7:  callq box_free+0
+   cc:  cmpq %rbp, %rbx
+   cf:  jne 0xc0
+   d1:  addq $0x118, %rsp
+   d8:  popq %rbx
+   d9:  popq %rbp
+   da:  popq %r12
+   dc:  popq %r13
+   de:  popq %r14
+   e0:  popq %r15
+   e2:  retq
+   e3:  nopl (%rax, %rax)
+   e8:  movl $1, %edi
+   ed:  callq tok_poptext+0
+   f2:  xorl %esi, %esi
+   f4:  movl $0xa, %edx
+   f9:  movq %rax, %rdi
+   fc:  callq strtol+0
+  101:  movl $0, %edi   <str:"{">
+  106:  movl %eax, %r15d
+  109:  callq tok_jmp+0
+  10e:  testl %eax, %eax
+  110:  je 0x45
+  116:  movl $0, %edi   <str:"{">
+  11b:  callq fn:tok_expect.part.0+0
+  120:  movl $0, %edi   <str:"neateqn: unterminated pile\n">
+  125:  callq errdie+0
+  12a:  movl $0, %edi   <str:"}">
+  12f:  callq fn:tok_expect.part.0+0

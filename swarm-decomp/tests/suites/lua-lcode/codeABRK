@@ -1,0 +1,38 @@
+# codeABRK  (static, 103 bytes, 37 instructions)
+    0:  pushq %r14
+    2:  movl %esi, %r14d
+    5:  movq %r8, %rsi
+    8:  pushq %r13
+    a:  movq %r8, %r13
+    d:  pushq %r12
+    f:  movl %edx, %r12d
+   12:  pushq %rbp
+   13:  movq %rdi, %rbp
+   16:  pushq %rbx
+   17:  movl %ecx, %ebx
+   19:  callq fn:luaK_exp2K+0
+   1e:  movl $0x8000, %edx
+   23:  testl %eax, %eax
+   25:  je 0x58
+   27:  shll $0x10, %ebx
+   2a:  movl 8(%r13), %eax
+   2e:  shll $7, %r12d
+   32:  movq %rbp, %rdi
+   35:  movl %ebx, %esi
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  orl %r14d, %esi
+   3c:  shll $0x18, %eax
+   3f:  orl %r12d, %esi
+   42:  popq %r12
+   44:  popq %r13
+   46:  orl %eax, %esi
+   48:  popq %r14
+   4a:  orl %edx, %esi
+   4c:  jmp luaK_code+0
+   51:  nopl (%rax)
+   58:  movq %r13, %rsi
+   5b:  movq %rbp, %rdi
+   5e:  callq luaK_exp2anyreg+0
+   63:  xorl %edx, %edx
+   65:  jmp 0x27

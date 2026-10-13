@@ -1,0 +1,12 @@
+# lua_error  (global, 46 bytes, 11 instructions)
+    0:  subq $8, %rsp
+    4:  movq 0x10(%rdi), %rax
+    8:  cmpb $0x44, -8(%rax)
+    c:  jne 0x1f
+    e:  movq 0x18(%rdi), %rdx
+   12:  movq 0x110(%rdx), %rcx
+   19:  cmpq %rcx, -0x10(%rax)
+   1d:  je 0x24
+   1f:  callq luaG_errormsg+0
+   24:  movl $4, %esi
+   29:  callq luaD_throw+0

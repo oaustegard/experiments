@@ -1,0 +1,38 @@
+# tr_bp  (global, 130 bytes, 37 instructions)
+    0:  cmpq $0, (%rip)   <var:cdiv+0>
+    8:  je 0x10
+    a:  retq
+    b:  nopl (%rax, %rax)
+   10:  pushq %rbx
+   11:  cmpq $0, 8(%rdi)
+   16:  movq %rdi, %rbx
+   19:  je 0x60
+   1b:  movl $0, %edi   <str:"%">
+   20:  callq map+0
+   25:  movl %eax, %edi
+   27:  callq nreg+0
+   2c:  movq 8(%rbx), %rdi
+   30:  xorl %edx, %edx
+   32:  movl (%rax), %esi
+   34:  callq eval_re+0
+   39:  movl %eax, (%rip)   <var:bp_next+0>
+   3f:  movq (%rbx), %rax
+   42:  xorl %edi, %edi
+   44:  popq %rbx
+   45:  movsbl (%rax), %eax
+   48:  cmpl (%rip), %eax   <c_cc+0>
+   4e:  sete %dil
+   52:  jmp fn:ren_ejectpage+0
+   57:  nopw (%rax, %rax)
+   60:  movl $0, %edi   <str:".ns">
+   65:  callq map+0
+   6a:  movl %eax, %edi
+   6c:  callq nreg+0
+   71:  movl (%rax), %eax
+   73:  testl %eax, %eax
+   75:  jne 0x80
+   77:  cmpq $0, 8(%rbx)
+   7c:  je 0x3f
+   7e:  jmp 0x1b
+   80:  popq %rbx
+   81:  retq

@@ -1,0 +1,56 @@
+# cdef_expand  (global, 169 bytes, 55 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movslq (%rip), %rbp   <var:cdef_n+0>
+    e:  pushq %rbx
+    f:  testl %ebp, %ebp
+   11:  jle 0x53
+   13:  movq %rdi, %r13
+   16:  movq %rsi, %r12
+   19:  movl %edx, %r14d
+   1c:  xorl %ebx, %ebx
+   1e:  nop
+   20:  movl (, %rbx, 4), %eax   <var:cdef_fn+0>
+   27:  testl %eax, %eax
+   29:  je 0x30
+   2b:  cmpl %eax, %r14d
+   2e:  jne 0x4a
+   30:  movq %rbx, %rdi
+   33:  movq %r12, %rsi
+   36:  shlq $5, %rdi
+   3a:  addq $0, %rdi   <var:cdef_src+0>
+   41:  callq strcmp+0
+   46:  testl %eax, %eax
+   48:  je 0x68
+   4a:  addq $1, %rbx
+   4e:  cmpq %rbx, %rbp
+   51:  jne 0x20
+   53:  movl $1, %ebp
+   58:  popq %rbx
+   59:  movl %ebp, %eax
+   5b:  popq %rbp
+   5c:  popq %r12
+   5e:  popq %r13
+   60:  popq %r14
+   62:  retq
+   63:  nopl (%rax, %rax)
+   68:  movl (%rip), %ebp   <var:cdef_expanding+0>
+   6e:  testl %ebp, %ebp
+   70:  jne 0x53
+   72:  movslq %ebx, %rbx
+   75:  movq (, %rbx, 8), %rsi   <var:cdef_dst+0>
+   7d:  testq %rsi, %rsi
+   80:  je 0x53
+   82:  movl $1, (%rip)   <var:cdef_expanding+0>
+   8c:  movq %r13, %rdi
+   8f:  callq ren_parse+0
+   94:  popq %rbx
+   95:  movl %ebp, %eax
+   97:  popq %rbp
+   98:  movl $0, (%rip)   <var:cdef_expanding+0>
+   a2:  popq %r12
+   a4:  popq %r13
+   a6:  popq %r14
+   a8:  retq

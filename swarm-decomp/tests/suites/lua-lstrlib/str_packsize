@@ -1,0 +1,63 @@
+# str_packsize  (static, 212 bytes, 62 instructions)
+    0:  pushq %r13
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x28, %rsp
+   14:  callq luaL_checklstring+0
+   19:  movq (%rip), %rdx   <cst:0100000001000000>
+   20:  movq %r12, 0x10(%rsp)
+   25:  cmpb $0, (%rax)
+   28:  movq %rax, 8(%rsp)
+   2d:  movq %rdx, 0x18(%rsp)
+   32:  je 0xd0
+   38:  xorl %ebp, %ebp
+   3a:  movl $0x7fffffff, %r13d
+   40:  leaq 4(%rsp), %r8
+   45:  movq %rsp, %rcx
+   48:  leaq 8(%rsp), %rdx
+   4d:  movq %rbp, %rsi
+   50:  leaq 0x10(%rsp), %rdi
+   55:  callq fn:getdetails+0
+   5a:  subl $6, %eax
+   5d:  cmpl $1, %eax
+   60:  jbe 0xb8
+   62:  movl 4(%rsp), %ebx
+   66:  addl (%rsp), %ebx
+   69:  movq %r13, %rax
+   6c:  movslq %ebx, %rbx
+   6f:  subq %rbx, %rax
+   72:  cmpq %rbp, %rax
+   75:  jb 0xa0
+   77:  movq 8(%rsp), %rax
+   7c:  addq %rbx, %rbp
+   7f:  cmpb $0, (%rax)
+   82:  jne 0x40
+   84:  movq %rbp, %rsi
+   87:  movq %r12, %rdi
+   8a:  callq lua_pushinteger+0
+   8f:  addq $0x28, %rsp
+   93:  movl $1, %eax
+   98:  popq %rbx
+   99:  popq %rbp
+   9a:  popq %r12
+   9c:  popq %r13
+   9e:  retq
+   9f:  nop
+   a0:  movl $0, %edx   <str:"format result too large">
+   a5:  movl $1, %esi
+   aa:  movq %r12, %rdi
+   ad:  callq luaL_argerror+0
+   b2:  jmp 0x77
+   b4:  nopl (%rax)
+   b8:  movl $0, %edx   <str:"variable-length format">
+   bd:  movl $1, %esi
+   c2:  movq %r12, %rdi
+   c5:  callq luaL_argerror+0
+   ca:  jmp 0x62
+   cc:  nopl (%rax)
+   d0:  xorl %esi, %esi
+   d2:  jmp 0x87

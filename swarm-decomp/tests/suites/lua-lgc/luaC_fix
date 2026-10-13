@@ -1,0 +1,12 @@
+# luaC_fix  (global, 42 bytes, 11 instructions)
+    0:  movzbl 9(%rsi), %eax
+    4:  movq 0x18(%rdi), %rdx
+    8:  andl $0xffffffc0, %eax
+    b:  orl $4, %eax
+    e:  movb %al, 9(%rsi)
+   11:  movq (%rsi), %rax
+   14:  movq %rax, 0x70(%rdx)
+   18:  movq 0xb8(%rdx), %rax
+   1f:  movq %rax, (%rsi)
+   22:  movq %rsi, 0xb8(%rdx)
+   29:  retq

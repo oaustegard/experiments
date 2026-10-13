@@ -1,0 +1,24 @@
+# writer  (static, 74 bytes, 23 instructions)
+    0:  pushq %r12
+    2:  leaq 8(%rcx), %r12
+    6:  pushq %rbx
+    7:  movq %rsi, %rbx
+    a:  subq $0x18, %rsp
+    e:  movl (%rcx), %eax
+   10:  testl %eax, %eax
+   12:  je 0x30
+   14:  movq %rbx, %rsi
+   17:  movq %r12, %rdi
+   1a:  callq luaL_addlstring+0
+   1f:  addq $0x18, %rsp
+   23:  xorl %eax, %eax
+   25:  popq %rbx
+   26:  popq %r12
+   28:  retq
+   29:  nopl (%rax)
+   30:  movl $1, (%rcx)
+   36:  movq %r12, %rsi
+   39:  movq %rdx, 8(%rsp)
+   3e:  callq luaL_buffinit+0
+   43:  movq 8(%rsp), %rdx
+   48:  jmp 0x14

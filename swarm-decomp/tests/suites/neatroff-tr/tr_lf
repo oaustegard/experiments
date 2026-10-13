@@ -1,0 +1,14 @@
+# tr_lf  (static, 34 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 8(%rdi), %rdi
+    8:  testq %rdi, %rdi
+    b:  je 0x20
+    d:  xorl %esi, %esi
+    f:  callq eval+0
+   14:  movq 0x10(%rbx), %rdi
+   18:  popq %rbx
+   19:  movl %eax, %esi
+   1b:  jmp in_lf+0
+   20:  popq %rbx
+   21:  retq

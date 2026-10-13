@@ -1,0 +1,55 @@
+# luaD_protectedparser  (global, 263 bytes, 54 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x68, %rsp
+    9:  movq 0xa8(%rdi), %r8
+   10:  addl $0x10000, 0xb0(%rdi)
+   1a:  movq %rsi, (%rsp)
+   1e:  movl $0, %esi   <fn:f_parser+0>
+   23:  movq %rdx, 0x58(%rsp)
+   28:  movq %rsp, %rdx
+   2b:  movq %rcx, 0x50(%rsp)
+   30:  movq 0x10(%rdi), %rcx
+   34:  subq 0x30(%rdi), %rcx
+   38:  movq $0, 0x20(%rsp)
+   41:  movl $0, 0x2c(%rsp)
+   49:  movq $0, 0x30(%rsp)
+   52:  movl $0, 0x3c(%rsp)
+   5a:  movq $0, 0x40(%rsp)
+   63:  movl $0, 0x4c(%rsp)
+   6b:  movq $0, 8(%rsp)
+   74:  movq $0, 0x18(%rsp)
+   7d:  callq luaD_pcall+0
+   82:  movq 0x18(%rsp), %rdx
+   87:  xorl %ecx, %ecx
+   89:  movq %rbx, %rdi
+   8c:  movq 8(%rsp), %rsi
+   91:  movl %eax, %ebp
+   93:  callq luaM_saferealloc_+0
+   98:  movq 0x20(%rsp), %rsi
+   9d:  movq %rbx, %rdi
+   a0:  movq $0, 0x18(%rsp)
+   a9:  movq %rax, 8(%rsp)
+   ae:  movslq 0x2c(%rsp), %rax
+   b3:  leaq (%rax, %rax, 2), %rdx
+   b7:  shlq $3, %rdx
+   bb:  callq luaM_free_+0
+   c0:  movslq 0x3c(%rsp), %rax
+   c5:  movq 0x30(%rsp), %rsi
+   ca:  movq %rbx, %rdi
+   cd:  leaq (%rax, %rax, 2), %rdx
+   d1:  shlq $3, %rdx
+   d5:  callq luaM_free_+0
+   da:  movslq 0x4c(%rsp), %rax
+   df:  movq 0x40(%rsp), %rsi
+   e4:  movq %rbx, %rdi
+   e7:  leaq (%rax, %rax, 2), %rdx
+   eb:  shlq $3, %rdx
+   ef:  callq luaM_free_+0
+   f4:  movl %ebp, %eax
+   f6:  subl $0x10000, 0xb0(%rbx)
+  100:  addq $0x68, %rsp
+  104:  popq %rbx
+  105:  popq %rbp
+  106:  retq

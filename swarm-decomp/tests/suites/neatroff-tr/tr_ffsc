@@ -1,0 +1,28 @@
+# tr_ffsc  (static, 79 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x48
+   12:  callq dev_pos+0
+   17:  movl %eax, %edi
+   19:  callq dev_font+0
+   1e:  movq %rax, %rbp
+   21:  testq %rax, %rax
+   24:  je 0x48
+   26:  movq 0x10(%rbx), %rsi
+   2a:  movq %rax, %rdi
+   2d:  callq font_scrp+0
+   32:  movq 0x18(%rbx), %rsi
+   36:  addq $8, %rsp
+   3a:  movq %rbp, %rdi
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  jmp font_lang+0
+   44:  nopl (%rax)
+   48:  addq $8, %rsp
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  retq

@@ -1,0 +1,27 @@
+# postarc  (static, 90 bytes, 26 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq %rsp, %rdi
+    7:  callq fn:readnum+0
+    c:  testl %eax, %eax
+    e:  je 0x18
+   10:  addq $0x18, %rsp
+   14:  retq
+   15:  nopl (%rax)
+   18:  leaq 4(%rsp), %rdi
+   1d:  callq fn:readnum+0
+   22:  testl %eax, %eax
+   24:  jne 0x10
+   26:  leaq 8(%rsp), %rdi
+   2b:  callq fn:readnum+0
+   30:  testl %eax, %eax
+   32:  jne 0x10
+   34:  leaq 0xc(%rsp), %rdi
+   39:  callq fn:readnum+0
+   3e:  testl %eax, %eax
+   40:  jne 0x10
+   42:  movl 0xc(%rsp), %ecx
+   46:  movl 8(%rsp), %edx
+   4a:  movl 4(%rsp), %esi
+   4e:  movl (%rsp), %edi
+   51:  addq $0x18, %rsp
+   55:  jmp drawa+0

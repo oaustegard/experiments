@@ -1,0 +1,16 @@
+# ts_num  (global, 41 bytes, 15 instructions)
+    0:  cmpl $1, %edi
+    3:  jbe 0x20
+    5:  movl %edi, %eax
+    7:  movl $1, %edx
+    c:  sarl $4, %eax
+    f:  testl %eax, %eax
+   11:  cmovgl %edx, %eax
+   14:  andl $1, %edi
+   17:  addl $1, %eax
+   1a:  shll $4, %eax
+   1d:  orl %edi, %eax
+   1f:  retq
+   20:  movl $2, %eax
+   25:  sbbl $-1, %eax
+   28:  retq

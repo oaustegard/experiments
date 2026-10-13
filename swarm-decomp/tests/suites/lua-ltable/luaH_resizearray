@@ -1,0 +1,9 @@
+# luaH_resizearray  (global, 27 bytes, 8 instructions)
+    0:  xorl %ecx, %ecx
+    2:  cmpq $0, 0x20(%rsi)
+    7:  je 0x16
+    9:  movzbl 0xb(%rsi), %ecx
+    d:  movl $1, %eax
+   12:  shll %cl, %eax
+   14:  movl %eax, %ecx
+   16:  jmp luaH_resize+0

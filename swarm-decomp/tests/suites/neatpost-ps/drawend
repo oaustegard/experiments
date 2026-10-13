@@ -1,0 +1,29 @@
+# drawend  (global, 89 bytes, 28 instructions)
+    0:  movl (%rip), %eax   <var:draw_path+0>
+    6:  testl %eax, %eax
+    8:  jne 0x58
+    a:  pushq %rbx
+    b:  movl %esi, %ebx
+    d:  movl $0, (%rip)   <var:draw_point+0>
+   17:  testl %edi, %edi
+   19:  jne 0x40
+   1b:  testl %ebx, %ebx
+   1d:  je 0x30
+   1f:  movl $0, %edi   <str:"fill\n">
+   24:  xorl %eax, %eax
+   26:  popq %rbx
+   27:  jmp fn:outf+0
+   2c:  nopl (%rax)
+   30:  movl $0, %edi   <str:"stroke\n">
+   35:  xorl %eax, %eax
+   37:  popq %rbx
+   38:  jmp fn:outf+0
+   3d:  nopl (%rax)
+   40:  xorl %eax, %eax
+   42:  movl $0, %edi   <str:"closepath ">
+   47:  callq fn:outf+0
+   4c:  testl %ebx, %ebx
+   4e:  je 0x30
+   50:  jmp 0x1f
+   52:  nopw (%rax, %rax)
+   58:  retq

@@ -1,0 +1,11 @@
+# luaF_newCclosure  (global, 27 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  leal 2(%rsi), %edx
+    4:  movl %esi, %ebx
+    6:  movl $0x26, %esi
+    b:  shll $4, %edx
+    e:  movslq %edx, %rdx
+   11:  callq luaC_newobj+0
+   16:  movb %bl, 0xa(%rax)
+   19:  popq %rbx
+   1a:  retq

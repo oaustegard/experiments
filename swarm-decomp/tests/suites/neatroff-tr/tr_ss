@@ -1,0 +1,56 @@
+# tr_ss  (static, 189 bytes, 55 instructions)
+    0:  cmpq $0, 8(%rdi)
+    5:  je 0xa0
+    b:  pushq %r13
+    d:  pushq %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  movl $0, %edi   <str:".ss">
+   19:  subq $8, %rsp
+   1d:  callq map+0
+   22:  movl %eax, %edi
+   24:  callq nreg+0
+   29:  movl $0, %edi   <str:".ss">
+   2e:  movq 8(%rbx), %r12
+   32:  movl (%rax), %r13d
+   35:  callq map+0
+   3a:  movl %eax, %edi
+   3c:  callq nreg+0
+   41:  xorl %edx, %edx
+   43:  movl %r13d, %esi
+   46:  movq %r12, %rdi
+   49:  movq %rax, %rbp
+   4c:  callq eval_re+0
+   51:  cmpq $0, 0x10(%rbx)
+   56:  movl %eax, (%rbp)
+   59:  je 0xa8
+   5b:  movl $0, %edi   <str:".sss">
+   60:  callq map+0
+   65:  movl %eax, %edi
+   67:  callq nreg+0
+   6c:  movq 0x10(%rbx), %rdi
+   70:  xorl %edx, %edx
+   72:  movl (%rax), %esi
+   74:  callq eval_re+0
+   79:  movl %eax, %ebx
+   7b:  movl $0, %edi   <str:".sss">
+   80:  callq map+0
+   85:  movl %eax, %edi
+   87:  callq nreg+0
+   8c:  movl %ebx, (%rax)
+   8e:  addq $8, %rsp
+   92:  popq %rbx
+   93:  popq %rbp
+   94:  popq %r12
+   96:  popq %r13
+   98:  retq
+   99:  nopl (%rax)
+   a0:  retq
+   a1:  nopl (%rax)
+   a8:  movl $0, %edi   <str:".ss">
+   ad:  callq map+0
+   b2:  movl %eax, %edi
+   b4:  callq nreg+0
+   b9:  movl (%rax), %ebx
+   bb:  jmp 0x7b

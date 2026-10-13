@@ -1,0 +1,21 @@
+# lua_setlocal  (global, 77 bytes, 20 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x10, %rsp
+    8:  movq 0x80(%rsi), %rsi
+    f:  movq $0, 8(%rsp)
+   18:  leaq 8(%rsp), %rcx
+   1d:  callq luaG_findlocal+0
+   22:  testq %rax, %rax
+   25:  je 0x47
+   27:  movq 0x10(%rbx), %rdx
+   2b:  movq 8(%rsp), %rcx
+   30:  movq -0x10(%rdx), %rsi
+   34:  subq $0x10, %rdx
+   38:  movq %rsi, (%rcx)
+   3b:  movzbl 8(%rdx), %esi
+   3f:  movb %sil, 8(%rcx)
+   43:  movq %rdx, 0x10(%rbx)
+   47:  addq $0x10, %rsp
+   4b:  popq %rbx
+   4c:  retq

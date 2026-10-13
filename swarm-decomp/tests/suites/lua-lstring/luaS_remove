@@ -1,0 +1,21 @@
+# luaS_remove  (global, 60 bytes, 20 instructions)
+    0:  movq 0x18(%rdi), %rcx
+    4:  movl 0x3c(%rcx), %eax
+    7:  movq 0x30(%rcx), %rdx
+    b:  subl $1, %eax
+    e:  andl 0xc(%rsi), %eax
+   11:  cltq
+   13:  leaq (%rdx, %rax, 8), %rdx
+   17:  movq (%rdx), %rax
+   1a:  cmpq %rsi, %rax
+   1d:  je 0x30
+   1f:  nop
+   20:  movq %rax, %rdx
+   23:  movq 0x10(%rax), %rax
+   27:  cmpq %rsi, %rax
+   2a:  jne 0x20
+   2c:  addq $0x10, %rdx
+   30:  movq 0x10(%rsi), %rax
+   34:  movq %rax, (%rdx)
+   37:  subl $1, 0x38(%rcx)
+   3b:  retq

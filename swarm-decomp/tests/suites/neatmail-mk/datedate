@@ -1,0 +1,132 @@
+# datedate  (static, 502 bytes, 131 instructions)
+    0:  pushq %rbp
+    1:  pxor %xmm0, %xmm0
+    5:  pushq %rbx
+    6:  subq $0xc8, %rsp
+    d:  leaq 0x40(%rsp), %rsi
+   12:  movaps %xmm0, (%rsp)
+   16:  movq $0, 0x30(%rsp)
+   1f:  movaps %xmm0, 0x10(%rsp)
+   24:  movaps %xmm0, 0x20(%rsp)
+   29:  callq fn:readtok+0
+   2e:  movl $0x2c, %esi
+   33:  leaq 0x40(%rsp), %rdi
+   38:  movq %rax, %rbx
+   3b:  callq strchr+0
+   40:  testq %rax, %rax
+   43:  je 0x55
+   45:  movq %rbx, %rdi
+   48:  leaq 0x40(%rsp), %rsi
+   4d:  callq fn:readtok+0
+   52:  movq %rax, %rbx
+   55:  movl $0xa, %edx
+   5a:  xorl %esi, %esi
+   5c:  leaq 0x40(%rsp), %rdi
+   61:  callq strtol+0
+   66:  movq %rbx, %rdi
+   69:  leaq 0x40(%rsp), %rsi
+   6e:  xorl %ebx, %ebx
+   70:  movl %eax, 0xc(%rsp)
+   74:  callq fn:readtok+0
+   79:  movq %rax, %rbp
+   7c:  nopl (%rax)
+   80:  movq (, %rbx, 8), %rdi   <var:months+0>
+   88:  leaq 0x40(%rsp), %rsi
+   8d:  callq strcmp+0
+   92:  testl %eax, %eax
+   94:  jne 0x9a
+   96:  movl %ebx, 0x10(%rsp)
+   9a:  addq $1, %rbx
+   9e:  cmpq $0xc, %rbx
+   a2:  jne 0x80
+   a4:  leaq 0x40(%rsp), %rsi
+   a9:  movq %rbp, %rdi
+   ac:  callq fn:readtok+0
+   b1:  movl $0xa, %edx
+   b6:  xorl %esi, %esi
+   b8:  leaq 0x40(%rsp), %rdi
+   bd:  movq %rax, %rbx
+   c0:  callq strtol+0
+   c5:  movq %rbx, %rdi
+   c8:  leaq 0x40(%rsp), %rsi
+   cd:  subl $0x76c, %eax
+   d2:  movl %eax, 0x14(%rsp)
+   d6:  callq fn:readtok+0
+   db:  movl $0xa, %edx
+   e0:  xorl %esi, %esi
+   e2:  leaq 0x40(%rsp), %rdi
+   e7:  movq %rax, %rbx
+   ea:  callq strtol+0
+   ef:  movq %rbx, %rdi
+   f2:  leaq 0x40(%rsp), %rsi
+   f7:  movl %eax, 8(%rsp)
+   fb:  callq fn:readtok+0
+  100:  movl $0xa, %edx
+  105:  xorl %esi, %esi
+  107:  leaq 0x40(%rsp), %rdi
+  10c:  movq %rax, %rbx
+  10f:  callq strtol+0
+  114:  movq %rbx, %rdi
+  117:  leaq 0x40(%rsp), %rsi
+  11c:  movl %eax, 4(%rsp)
+  120:  callq fn:readtok+0
+  125:  movq %rax, %rbx
+  128:  movzbl 0x40(%rsp), %eax
+  12d:  leal -0x2b(%rax), %edx
+  130:  andl $0xfd, %edx
+  136:  jne 0x1d0
+  13c:  xorl %esi, %esi
+  13e:  leaq 0x40(%rsp), %rdi
+  143:  movl $0xa, %edx
+  148:  callq strtol+0
+  14d:  movq %rsp, %rdi
+  150:  movq %rax, %rbx
+  153:  callq mktime+0
+  158:  testl %ebx, %ebx
+  15a:  js 0x190
+  15c:  movslq %ebx, %rdx
+  15f:  movl %ebx, %ecx
+  161:  addq $0xc8, %rsp
+  168:  imulq $0x51eb851f, %rdx, %rdx
+  16f:  sarl $0x1f, %ecx
+  172:  sarq $0x25, %rdx
+  176:  subl %ecx, %edx
+  178:  imull $0xe10, %edx, %ecx
+  17e:  imull $0x64, %edx, %edx
+  181:  subl %edx, %ebx
+  183:  imull $0x3c, %ebx, %ebx
+  186:  leal (%rcx, %rbx), %edx
+  189:  popq %rbx
+  18a:  popq %rbp
+  18b:  subl %edx, %eax
+  18d:  retq
+  18e:  nop
+  190:  movl %ebx, %edx
+  192:  addq $0xc8, %rsp
+  199:  negl %edx
+  19b:  movl %edx, %ecx
+  19d:  imulq $0x51eb851f, %rcx, %rcx
+  1a4:  shrq $0x25, %rcx
+  1a8:  imull $0x64, %ecx, %ecx
+  1ab:  subl %ecx, %edx
+  1ad:  imull $0x3c, %edx, %ecx
+  1b0:  movslq %ebx, %rdx
+  1b3:  sarl $0x1f, %ebx
+  1b6:  imulq $0x51eb851f, %rdx, %rdx
+  1bd:  sarq $0x25, %rdx
+  1c1:  subl %edx, %ebx
+  1c3:  imull $0xe10, %ebx, %edx
+  1c9:  popq %rbx
+  1ca:  popq %rbp
+  1cb:  addl %ecx, %edx
+  1cd:  addl %edx, %eax
+  1cf:  retq
+  1d0:  xorl %esi, %esi
+  1d2:  leaq 0x40(%rsp), %rdi
+  1d7:  movl $0xa, %edx
+  1dc:  callq strtol+0
+  1e1:  leaq 0x40(%rsp), %rsi
+  1e6:  movq %rbx, %rdi
+  1e9:  movl %eax, (%rsp)
+  1ec:  callq fn:readtok+0
+  1f1:  jmp 0x13c

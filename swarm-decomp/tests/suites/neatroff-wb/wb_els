@@ -1,0 +1,28 @@
+# wb_els  (global, 89 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  subq $0x10, %rsp
+    7:  movl 0x2068(%rdi), %edx
+    d:  testl %edx, %edx
+    f:  je 0x1b
+   11:  movl 0x206c(%rdi), %eax
+   17:  testl %eax, %eax
+   19:  jne 0x48
+   1b:  cmpl %ebp, 0x3c(%rdi)
+   1e:  jge 0x23
+   20:  movl %ebp, 0x3c(%rdi)
+   23:  cmpl %ebp, 0x38(%rdi)
+   26:  jle 0x2b
+   28:  movl %ebp, 0x38(%rdi)
+   2b:  movl (%rip), %edx   <c_ec+0>
+   31:  addq $0x10, %rsp
+   35:  movl %ebp, %ecx
+   37:  xorl %eax, %eax
+   39:  movl $0, %esi   <str:"%cx'%du'">
+   3e:  popq %rbp
+   3f:  jmp sbuf_printf+0
+   44:  nopl (%rax)
+   48:  movq %rdi, 8(%rsp)
+   4d:  callq fn:wb_flushsub.part.0+0
+   52:  movq 8(%rsp), %rdi
+   57:  jmp 0x1b

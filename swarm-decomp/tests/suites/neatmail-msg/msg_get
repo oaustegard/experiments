@@ -1,0 +1,51 @@
+# msg_get  (global, 135 bytes, 50 instructions)
+    0:  pushq %r14
+    2:  leaq (%rdi, %rsi), %r14
+    6:  pushq %r13
+    8:  pushq %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  testq %rdi, %rdi
+    f:  je 0x78
+   11:  movq %rdi, %r12
+   14:  movq %rdx, %r13
+   17:  cmpq %r14, %rdi
+   1a:  jae 0x78
+   1c:  nopl (%rax)
+   20:  xorl %ebp, %ebp
+   22:  jmp 0x41
+   24:  nopl (%rax)
+   28:  callq __ctype_tolower_loc+0
+   2d:  movzbl (%r12, %rbp), %edx
+   32:  addq $1, %rbp
+   36:  movq (%rax), %rax
+   39:  movl (%rax, %rdx, 4), %ecx
+   3c:  cmpl %ecx, (%rax, %rbx, 4)
+   3f:  jne 0x60
+   41:  movzbl (%r13, %rbp), %ebx
+   47:  testb %bl, %bl
+   49:  jne 0x28
+   4b:  popq %rbx
+   4c:  movq %r12, %rax
+   4f:  popq %rbp
+   50:  popq %r12
+   52:  popq %r13
+   54:  popq %r14
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  movq %r12, %rdi
+   63:  movq %r14, %rsi
+   66:  callq fn:hdrnext+0
+   6b:  movq %rax, %r12
+   6e:  testq %rax, %rax
+   71:  je 0x78
+   73:  cmpq %r14, %rax
+   76:  jb 0x20
+   78:  xorl %r12d, %r12d
+   7b:  popq %rbx
+   7c:  popq %rbp
+   7d:  movq %r12, %rax
+   80:  popq %r12
+   82:  popq %r13
+   84:  popq %r14
+   86:  retq

@@ -1,0 +1,31 @@
+# pdf_dval_obj  (global, 92 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x18, %rsp
+    b:  callq pdf_dval+0
+   10:  testl %eax, %eax
+   12:  js 0x50
+   14:  movl %eax, %edx
+   16:  leaq 0xc(%rsp), %r8
+   1b:  leaq 8(%rsp), %rcx
+   20:  movl %ebp, %esi
+   22:  movq %rbx, %rdi
+   25:  callq pdf_obj+0
+   2a:  testl %eax, %eax
+   2c:  jne 0x50
+   2e:  movl 0xc(%rsp), %ecx
+   32:  movl 8(%rsp), %edx
+   36:  addq $0x18, %rsp
+   3a:  movl %ebp, %esi
+   3c:  movq %rbx, %rdi
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  jmp pdf_find+0
+   46:  nopw %cs:(%rax, %rax)
+   50:  addq $0x18, %rsp
+   54:  movl $0xffffffff, %eax
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  retq

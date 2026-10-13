@@ -1,0 +1,39 @@
+# auxupvalue  (static, 122 bytes, 38 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %esi, %ebp
+    5:  movl $2, %esi
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checkinteger+0
+   13:  movl $6, %edx
+   18:  movl $1, %esi
+   1d:  movq %rbx, %rdi
+   20:  movl %eax, %r12d
+   23:  callq luaL_checktype+0
+   28:  movl %r12d, %edx
+   2b:  movl $1, %esi
+   30:  movq %rbx, %rdi
+   33:  testl %ebp, %ebp
+   35:  je 0x70
+   37:  callq lua_getupvalue+0
+   3c:  movq %rax, %rsi
+   3f:  xorl %eax, %eax
+   41:  testq %rsi, %rsi
+   44:  je 0x62
+   46:  movq %rbx, %rdi
+   49:  callq lua_pushstring+0
+   4e:  movl %ebp, %esi
+   50:  movl $1, %edx
+   55:  movq %rbx, %rdi
+   58:  notl %esi
+   5a:  callq lua_rotate+0
+   5f:  leal 1(%rbp), %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  callq lua_setupvalue+0
+   75:  movq %rax, %rsi
+   78:  jmp 0x3f

@@ -1,0 +1,26 @@
+# ren_pagelimit  (static, 78 bytes, 25 instructions)
+    0:  cmpq $0, (%rip)   <var:cdiv+0>
+    8:  je 0x10
+    a:  xorl %eax, %eax
+    c:  retq
+    d:  nopl (%rax)
+   10:  pushq %rbx
+   11:  movl %edi, %ebx
+   13:  movl $0, %edi   <str:"nl">
+   18:  callq map+0
+   1d:  movl %eax, %edi
+   1f:  callq nreg+0
+   24:  movl $0x70, %edi
+   29:  addl (%rax), %ebx
+   2b:  callq nreg+0
+   30:  cmpl (%rax), %ebx
+   32:  jge 0x40
+   34:  xorl %eax, %eax
+   36:  popq %rbx
+   37:  retq
+   38:  nopl (%rax, %rax)
+   40:  xorl %edi, %edi
+   42:  callq fn:ren_page+0
+   47:  movl $1, %eax
+   4c:  popq %rbx
+   4d:  retq

@@ -1,0 +1,35 @@
+# luaO_tostring  (global, 108 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  movq %rsi, %rbx
+    a:  subq $0x30, %rsp
+    e:  cmpb $3, 8(%rsi)
+   12:  je 0x50
+   14:  movq %rsp, %r12
+   17:  movsd (%rsi), %xmm0
+   1b:  movq %r12, %rdi
+   1e:  callq fn:tostringbuff.part.0.isra.0+0
+   23:  movq %r12, %rsi
+   26:  movq %rbp, %rdi
+   29:  movslq %eax, %rdx
+   2c:  callq luaS_newlstr+0
+   31:  movq %rax, (%rbx)
+   34:  movzbl 8(%rax), %eax
+   38:  orl $0x40, %eax
+   3b:  movb %al, 8(%rbx)
+   3e:  addq $0x30, %rsp
+   42:  popq %rbx
+   43:  popq %rbp
+   44:  popq %r12
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  movq (%rsi), %rcx
+   53:  movq %rsp, %r12
+   56:  movl $0, %edx   <str:"%lld">
+   5b:  movl $0x2c, %esi
+   60:  movq %r12, %rdi
+   63:  xorl %eax, %eax
+   65:  callq snprintf+0
+   6a:  jmp 0x23

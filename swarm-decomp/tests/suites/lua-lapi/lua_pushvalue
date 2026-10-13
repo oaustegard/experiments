@@ -1,0 +1,49 @@
+# lua_pushvalue  (global, 162 bytes, 48 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  movq 0x20(%rdi), %rcx
+    8:  movq %rdi, %rdx
+    b:  testl %esi, %esi
+    d:  jle 0x40
+    f:  movslq %esi, %rsi
+   12:  shlq $4, %rsi
+   16:  addq (%rcx), %rsi
+   19:  cmpq %rax, %rsi
+   1c:  jb 0x26
+   1e:  movq 0x18(%rdx), %rdi
+   22:  leaq 0x50(%rdi), %rsi
+   26:  movq (%rsi), %rcx
+   29:  addq $0x10, %rax
+   2d:  movq %rcx, -0x10(%rax)
+   31:  movzbl 8(%rsi), %ecx
+   35:  movb %cl, -8(%rax)
+   38:  movq %rax, 0x10(%rdx)
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  cmpl $0xfff0b9d9, %esi
+   46:  jge 0x88
+   48:  cmpl $0xfff0b9d8, %esi
+   4e:  je 0x98
+   50:  movq (%rcx), %rcx
+   53:  cmpb $0x66, 8(%rcx)
+   57:  jne 0x1e
+   59:  movq (%rcx), %rdi
+   5c:  movl $0xfff0b9d8, %ecx
+   61:  subl %esi, %ecx
+   63:  movzbl 0xa(%rdi), %r8d
+   68:  cmpl %r8d, %ecx
+   6b:  jg 0x1e
+   6d:  movl $0xfff0b9d9, %ecx
+   72:  subl %esi, %ecx
+   74:  movslq %ecx, %rcx
+   77:  shlq $4, %rcx
+   7b:  leaq (%rdi, %rcx), %rsi
+   7f:  jmp 0x26
+   81:  nopl (%rax)
+   88:  movslq %esi, %rsi
+   8b:  shlq $4, %rsi
+   8f:  addq %rax, %rsi
+   92:  jmp 0x26
+   94:  nopl (%rax)
+   98:  movq 0x18(%rdi), %rdi
+   9c:  leaq 0x40(%rdi), %rsi
+   a0:  jmp 0x26

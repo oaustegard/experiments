@@ -1,0 +1,75 @@
+# dict_prefix  (global, 206 bytes, 74 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  movq %rdx, %r13
+    c:  leaq 1(%rsi), %rdx
+   10:  pushq %r12
+   12:  pushq %rbp
+   13:  pushq %rbx
+   14:  movq %rsi, %rbx
+   17:  subq $8, %rsp
+   1b:  movl 0x24(%rdi), %edi
+   1e:  movzbl (%rsi), %esi
+   21:  cmpl $1, %edi
+   24:  jle 0x4d
+   26:  addq %rbx, %rdi
+   29:  jmp 0x46
+   2b:  nopl (%rax, %rax)
+   30:  movq %rsi, %rcx
+   33:  addq $1, %rdx
+   37:  shlq $5, %rcx
+   3b:  addq %rcx, %rsi
+   3e:  addq %rax, %rsi
+   41:  cmpq %rdi, %rdx
+   44:  je 0x4d
+   46:  movzbl (%rdx), %eax
+   49:  testb %al, %al
+   4b:  jne 0x30
+   4d:  movq (%r14), %rdi
+   50:  andl $0x3ff, %esi
+   56:  callq iset_get+0
+   5b:  movq %rax, %r12
+   5e:  testq %rax, %rax
+   61:  jne 0x8d
+   63:  jmp 0xa2
+   65:  nopl (%rax)
+   68:  movslq %eax, %rbp
+   6b:  movq 8(%r14), %rax
+   6f:  movq (%rax, %rbp, 8), %r15
+   73:  movq %r15, %rdi
+   76:  callq strlen+0
+   7b:  movq %rbx, %rsi
+   7e:  movq %r15, %rdi
+   81:  movslq %eax, %rdx
+   84:  callq strncmp+0
+   89:  testl %eax, %eax
+   8b:  je 0xb8
+   8d:  movl (%r13), %eax
+   91:  addl $1, %eax
+   94:  movl %eax, (%r13)
+   98:  cltq
+   9a:  movl (%r12, %rax, 4), %eax
+   9e:  testl %eax, %eax
+   a0:  jns 0x68
+   a2:  movl 0x20(%r14), %eax
+   a6:  addq $8, %rsp
+   aa:  popq %rbx
+   ab:  popq %rbp
+   ac:  popq %r12
+   ae:  popq %r13
+   b0:  popq %r14
+   b2:  popq %r15
+   b4:  retq
+   b5:  nopl (%rax)
+   b8:  movq 0x10(%r14), %rax
+   bc:  movl (%rax, %rbp, 4), %eax
+   bf:  addq $8, %rsp
+   c3:  popq %rbx
+   c4:  popq %rbp
+   c5:  popq %r12
+   c7:  popq %r13
+   c9:  popq %r14
+   cb:  popq %r15
+   cd:  retq

@@ -1,0 +1,55 @@
+# tr_eos  (static, 211 bytes, 54 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x10, %rsp
+    8:  movq 8(%rdi), %rax
+    c:  movl $0, (%rip)   <var:eos_sentcnt+0>
+   16:  movl $0, (%rip)   <var:eos_trancnt+0>
+   20:  testq %rax, %rax
+   23:  je 0x65
+   25:  movq %rax, 8(%rsp)
+   2a:  jmp 0x60
+   2c:  nopl (%rax)
+   30:  movslq (%rip), %rsi   <var:eos_sentcnt+0>
+   37:  leaq 8(%rsp), %rdi
+   3c:  shlq $5, %rsi
+   40:  addq $0, %rsi   <var:eos_sent+0>
+   47:  callq charread+0
+   4c:  testl %eax, %eax
+   4e:  js 0x65
+   50:  movl (%rip), %edx   <var:eos_sentcnt+0>
+   56:  movq 8(%rsp), %rax
+   5b:  cmpl $0x1e, %edx
+   5e:  jle 0xb8
+   60:  testq %rax, %rax
+   63:  jne 0x30
+   65:  movq 0x10(%rbx), %rax
+   69:  testq %rax, %rax
+   6c:  je 0xad
+   6e:  movq %rax, 8(%rsp)
+   73:  jmp 0xa8
+   75:  nopl (%rax)
+   78:  movslq (%rip), %rsi   <var:eos_trancnt+0>
+   7f:  leaq 8(%rsp), %rdi
+   84:  shlq $5, %rsi
+   88:  addq $0, %rsi   <var:eos_tran+0>
+   8f:  callq charread+0
+   94:  testl %eax, %eax
+   96:  js 0xad
+   98:  movl (%rip), %edx   <var:eos_trancnt+0>
+   9e:  movq 8(%rsp), %rax
+   a3:  cmpl $0x1e, %edx
+   a6:  jle 0xc8
+   a8:  testq %rax, %rax
+   ab:  jne 0x78
+   ad:  addq $0x10, %rsp
+   b1:  popq %rbx
+   b2:  retq
+   b3:  nopl (%rax, %rax)
+   b8:  addl $1, %edx
+   bb:  movl %edx, (%rip)   <var:eos_sentcnt+0>
+   c1:  jmp 0x60
+   c3:  nopl (%rax, %rax)
+   c8:  addl $1, %edx
+   cb:  movl %edx, (%rip)   <var:eos_trancnt+0>
+   d1:  jmp 0xa8

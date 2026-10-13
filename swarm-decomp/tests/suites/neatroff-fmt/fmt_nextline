@@ -1,0 +1,28 @@
+# fmt_nextline  (global, 83 bytes, 27 instructions)
+    0:  movq %rdx, %r10
+    3:  movq 8(%rsp), %r11
+    8:  movslq 0x1c(%rdi), %rdx
+    c:  movq %rdi, %rax
+    f:  cmpl %edx, 0x18(%rdi)
+   12:  je 0x50
+   14:  leal 1(%rdx), %edi
+   17:  movl %edi, 0x1c(%rax)
+   1a:  leaq (%rdx, %rdx, 4), %rdi
+   1e:  movq 0x10(%rax), %rdx
+   22:  leaq (%rdx, %rdi, 8), %rdi
+   26:  movl 0x14(%rdi), %eax
+   29:  movl %eax, (%r10)
+   2c:  movl 0x1c(%rdi), %eax
+   2f:  movl %eax, (%rcx)
+   31:  movl 0x18(%rdi), %eax
+   34:  movl %eax, (%r8)
+   37:  movl 0x10(%rdi), %eax
+   3a:  movl %eax, (%rsi)
+   3c:  movl 0x20(%rdi), %eax
+   3f:  movl %eax, (%r9)
+   42:  movl 0x24(%rdi), %eax
+   45:  movl %eax, (%r11)
+   48:  jmp sbuf_out+0
+   4d:  nopl (%rax)
+   50:  xorl %eax, %eax
+   52:  retq

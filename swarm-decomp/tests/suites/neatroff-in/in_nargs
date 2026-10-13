@@ -1,0 +1,26 @@
+# in_nargs  (global, 89 bytes, 25 instructions)
+    0:  movq (%rip), %rax   <var:buf+0>
+    7:  testq %rax, %rax
+    a:  je 0x22
+    c:  cmpq $0, 0x410(%rax)
+   14:  jne 0x30
+   16:  movq 0x4b0(%rax), %rax
+   1d:  testq %rax, %rax
+   20:  jne 0xc
+   22:  xorl %edx, %edx
+   24:  movl %edx, %eax
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  movq 0x410(%rax), %rcx
+   37:  xorl %edx, %edx
+   39:  xorl %eax, %eax
+   3b:  testq %rcx, %rcx
+   3e:  jne 0x4a
+   40:  jmp 0x24
+   42:  nopw (%rax, %rax)
+   48:  movl %eax, %edx
+   4a:  addq $1, %rax
+   4e:  cmpq $0, -8(%rcx, %rax, 8)
+   54:  jne 0x48
+   56:  movl %edx, %eax
+   58:  retq

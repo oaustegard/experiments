@@ -1,0 +1,30 @@
+# luaB_assert  (static, 111 bytes, 29 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_toboolean+0
+    e:  testl %eax, %eax
+   10:  je 0x20
+   12:  movq %rbx, %rdi
+   15:  popq %rbx
+   16:  jmp lua_gettop+0
+   1b:  nopl (%rax, %rax)
+   20:  movq %rbx, %rdi
+   23:  movl $1, %esi
+   28:  callq luaL_checkany+0
+   2d:  movl $0xffffffff, %edx
+   32:  movq %rbx, %rdi
+   35:  movl $1, %esi
+   3a:  callq lua_rotate+0
+   3f:  movq %rbx, %rdi
+   42:  movl $0xfffffffe, %esi
+   47:  callq lua_settop+0
+   4c:  movq %rbx, %rdi
+   4f:  movl $0, %esi   <str:"assertion failed!">
+   54:  callq lua_pushstring+0
+   59:  movq %rbx, %rdi
+   5c:  movl $1, %esi
+   61:  callq lua_settop+0
+   66:  movq %rbx, %rdi
+   69:  popq %rbx
+   6a:  jmp fn:luaB_error+0

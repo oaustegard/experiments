@@ -1,0 +1,23 @@
+# luaB_getmetatable  (static, 79 bytes, 22 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movl $1, %esi
+   13:  movq %rbx, %rdi
+   16:  callq lua_getmetatable+0
+   1b:  testl %eax, %eax
+   1d:  je 0x40
+   1f:  movq %rbx, %rdi
+   22:  movl $0, %edx   <str:"__metatable">
+   27:  movl $1, %esi
+   2c:  callq luaL_getmetafield+0
+   31:  movl $1, %eax
+   36:  popq %rbx
+   37:  retq
+   38:  nopl (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  callq lua_pushnil+0
+   48:  movl $1, %eax
+   4d:  popq %rbx
+   4e:  retq

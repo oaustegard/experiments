@@ -1,0 +1,57 @@
+# luaB_auxwrap  (static, 190 bytes, 56 instructions)
+    0:  pushq %r12
+    2:  movl $0xfff0b9d7, %esi
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  callq lua_tothread+0
+   11:  movq %rbx, %rdi
+   14:  movq %rax, %rbp
+   17:  callq lua_gettop+0
+   1c:  movq %rbp, %rsi
+   1f:  movq %rbx, %rdi
+   22:  movl %eax, %edx
+   24:  callq fn:auxresume+0
+   29:  testl %eax, %eax
+   2b:  js 0x38
+   2d:  popq %rbx
+   2e:  popq %rbp
+   2f:  popq %r12
+   31:  retq
+   32:  nopw (%rax, %rax)
+   38:  movq %rbp, %rdi
+   3b:  callq lua_status+0
+   40:  cmpl $1, %eax
+   43:  jbe 0x69
+   45:  movq %rbx, %rsi
+   48:  movq %rbp, %rdi
+   4b:  callq lua_closethread+0
+   50:  movl $1, %edx
+   55:  movq %rbx, %rsi
+   58:  movq %rbp, %rdi
+   5b:  movl %eax, %r12d
+   5e:  callq lua_xmove+0
+   63:  cmpl $4, %r12d
+   67:  je 0x7b
+   69:  movl $0xffffffff, %esi
+   6e:  movq %rbx, %rdi
+   71:  callq lua_type+0
+   76:  cmpl $4, %eax
+   79:  je 0x90
+   7b:  movq %rbx, %rdi
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  popq %r12
+   82:  jmp lua_error+0
+   87:  nopw (%rax, %rax)
+   90:  movq %rbx, %rdi
+   93:  movl $1, %esi
+   98:  callq luaL_where+0
+   9d:  movq %rbx, %rdi
+   a0:  movl $1, %edx
+   a5:  movl $0xfffffffe, %esi
+   aa:  callq lua_rotate+0
+   af:  movl $2, %esi
+   b4:  movq %rbx, %rdi
+   b7:  callq lua_concat+0
+   bc:  jmp 0x7b

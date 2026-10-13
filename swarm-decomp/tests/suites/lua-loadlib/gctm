@@ -1,0 +1,30 @@
+# gctm  (static, 97 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  subq $8, %rsp
+    e:  callq luaL_len+0
+   13:  testq %rax, %rax
+   16:  jle 0x58
+   18:  movq %rax, %rbx
+   1b:  nopl (%rax, %rax)
+   20:  movq %rbx, %rdx
+   23:  movl $1, %esi
+   28:  movq %rbp, %rdi
+   2b:  callq lua_rawgeti+0
+   30:  movl $0xffffffff, %esi
+   35:  movq %rbp, %rdi
+   38:  callq lua_touserdata+0
+   3d:  movq %rax, %rdi
+   40:  callq dlclose+0
+   45:  movl $0xfffffffe, %esi
+   4a:  movq %rbp, %rdi
+   4d:  callq lua_settop+0
+   52:  subq $1, %rbx
+   56:  jne 0x20
+   58:  addq $8, %rsp
+   5c:  xorl %eax, %eax
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  retq

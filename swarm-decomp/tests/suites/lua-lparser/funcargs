@@ -1,0 +1,100 @@
+# funcargs  (static, 386 bytes, 99 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rsi, %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x20, %rsp
+   12:  movl 0x10(%rdi), %eax
+   15:  movq 0x30(%rdi), %r12
+   19:  movl 4(%rdi), %r13d
+   1d:  cmpl $0x7b, %eax
+   20:  je 0x150
+   26:  cmpl $0x124, %eax
+   2b:  je 0x70
+   2d:  cmpl $0x28, %eax
+   30:  jne 0x178
+   36:  callq luaX_next+0
+   3b:  cmpl $0x29, 0x10(%rbx)
+   3f:  jne 0x114
+   45:  movl $0, (%rsp)
+   4c:  movl %r13d, %ecx
+   4f:  movl $0x28, %edx
+   54:  movl $0x29, %esi
+   59:  movq %rbx, %rdi
+   5c:  callq fn:check_match+0
+   61:  movq (%rip), %r14   <cst:ffffffffffffffff>
+   68:  jmp 0x91
+   6a:  nopw (%rax, %rax)
+   70:  movq 0x18(%rdi), %rax
+   74:  movq (%rip), %r14   <cst:ffffffffffffffff>
+   7b:  movl $7, (%rsp)
+   82:  movq %r14, 0x10(%rsp)
+   87:  movq %rax, 8(%rsp)
+   8c:  callq luaX_next+0
+   91:  movl (%rsp), %eax
+   94:  movl 8(%rbp), %ebx
+   97:  xorl %ecx, %ecx
+   99:  leal -0x12(%rax), %edx
+   9c:  cmpl $1, %edx
+   9f:  jbe 0xb1
+   a1:  testl %eax, %eax
+   a3:  jne 0x168
+   a9:  movzbl 0x44(%r12), %ecx
+   af:  subl %ebx, %ecx
+   b1:  movl %ebx, %edx
+   b3:  movq %r12, %rdi
+   b6:  xorl %r9d, %r9d
+   b9:  movl $2, %r8d
+   bf:  movl $0x44, %esi
+   c4:  addl $1, %ebx
+   c7:  callq luaK_codeABCk+0
+   cc:  movq %r14, 0x10(%rbp)
+   d0:  movl %r13d, %esi
+   d3:  movq %r12, %rdi
+   d6:  movl $0x12, (%rbp)
+   dd:  movl %eax, 8(%rbp)
+   e0:  callq luaK_fixline+0
+   e5:  movb %bl, 0x44(%r12)
+   ea:  addq $0x20, %rsp
+   ee:  popq %rbx
+   ef:  popq %rbp
+   f0:  popq %r12
+   f2:  popq %r13
+   f4:  popq %r14
+   f6:  retq
+   f7:  nopw (%rax, %rax)
+  100:  movq %rbx, %rdi
+  103:  callq luaX_next+0
+  108:  movq 0x30(%rbx), %rdi
+  10c:  movq %rsp, %rsi
+  10f:  callq luaK_exp2nextreg+0
+  114:  xorl %edx, %edx
+  116:  movq %rsp, %rsi
+  119:  movq %rbx, %rdi
+  11c:  callq fn:subexpr+0
+  121:  cmpl $0x2c, 0x10(%rbx)
+  125:  je 0x100
+  127:  movl (%rsp), %eax
+  12a:  subl $0x12, %eax
+  12d:  cmpl $1, %eax
+  130:  ja 0x4c
+  136:  movl $0xffffffff, %edx
+  13b:  movq %rsp, %rsi
+  13e:  movq %r12, %rdi
+  141:  callq luaK_setreturns+0
+  146:  jmp 0x4c
+  14b:  nopl (%rax, %rax)
+  150:  movq %rsp, %rsi
+  153:  callq fn:constructor+0
+  158:  movq (%rip), %r14   <cst:ffffffffffffffff>
+  15f:  jmp 0x91
+  164:  nopl (%rax)
+  168:  movq %rsp, %rsi
+  16b:  movq %r12, %rdi
+  16e:  callq luaK_exp2nextreg+0
+  173:  jmp 0xa9
+  178:  movl $0, %esi   <str:"function arguments expected">
+  17d:  callq luaX_syntaxerror+0

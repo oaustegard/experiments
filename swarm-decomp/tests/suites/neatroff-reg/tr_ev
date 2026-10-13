@@ -1,0 +1,43 @@
+# tr_ev  (global, 158 bytes, 42 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 8(%rdi), %rdi
+    8:  testq %rdi, %rdi
+    b:  je 0x70
+    d:  callq map+0
+   12:  movl %eax, %edi
+   14:  testl %eax, %eax
+   16:  js 0x68
+   18:  cmpq $0, 8(%rbx)
+   1d:  je 0x4b
+   1f:  cmpq $0, (%rip)   <var:env+0>
+   27:  je 0x4b
+   29:  movslq (%rip), %rax   <var:nenv+0>
+   30:  cmpl $0xf, %eax
+   33:  jg 0x4b
+   35:  leal 1(%rax), %edx
+   38:  movl %edx, (%rip)   <var:nenv+0>
+   3e:  movl (%rip), %edx   <var:env_id+0>
+   44:  movl %edx, (, %rax, 4)   <var:oenv+0>
+   4b:  movslq %edi, %rax
+   4e:  movl %edi, (%rip)   <var:env_id+0>
+   54:  movq (, %rax, 8), %rax   <var:envs+0>
+   5c:  movq %rax, (%rip)   <var:env+0>
+   63:  testq %rax, %rax
+   66:  je 0x98
+   68:  popq %rbx
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  movl (%rip), %eax   <var:nenv+0>
+   76:  testl %eax, %eax
+   78:  je 0x68
+   7a:  subl $1, %eax
+   7d:  movl %eax, (%rip)   <var:nenv+0>
+   83:  cltq
+   85:  movl (, %rax, 4), %edi   <var:oenv+0>
+   8c:  testl %edi, %edi
+   8e:  jns 0x4b
+   90:  jmp 0x68
+   92:  nopw (%rax, %rax)
+   98:  popq %rbx
+   99:  jmp fn:env_set.part.0+0

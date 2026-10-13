@@ -1,0 +1,40 @@
+# wb_catstr  (global, 142 bytes, 39 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdx, %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x20, %rsp
+    e:  movl 0x2068(%rdi), %eax
+   14:  movl 0x206c(%rdi), %r12d
+   1b:  movq %rsi, 8(%rsp)
+   20:  testl %eax, %eax
+   22:  je 0x29
+   24:  testl %r12d, %r12d
+   27:  jne 0x80
+   29:  movl $0, 0x206c(%rbx)
+   33:  cmpq %rbp, 8(%rsp)
+   38:  jb 0x54
+   3a:  jmp 0x69
+   3c:  nopl (%rax)
+   40:  movq 0x18(%rsp), %rdx
+   45:  movq %rbx, %rdi
+   48:  callq fn:wb_putc+0
+   4d:  cmpq %rbp, 8(%rsp)
+   52:  jae 0x69
+   54:  leaq 0x18(%rsp), %rsi
+   59:  leaq 8(%rsp), %rdi
+   5e:  callq escread+0
+   63:  movl %eax, %esi
+   65:  testl %eax, %eax
+   67:  jns 0x40
+   69:  movl %r12d, 0x206c(%rbx)
+   70:  addq $0x20, %rsp
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  popq %r12
+   78:  retq
+   79:  nopl (%rax)
+   80:  callq fn:wb_flushsub.part.0+0
+   85:  movl 0x206c(%rbx), %r12d
+   8c:  jmp 0x29

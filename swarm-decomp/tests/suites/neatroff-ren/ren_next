@@ -1,0 +1,11 @@
+# ren_next  (static, 37 bytes, 10 instructions)
+    0:  movl (%rip), %eax   <var:ren_un+0>
+    6:  testl %eax, %eax
+    8:  jle 0x20
+    a:  subl $1, %eax
+    d:  movl %eax, (%rip)   <var:ren_un+0>
+   13:  cltq
+   15:  movl (, %rax, 4), %eax   <var:ren_unbuf+0>
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  jmp tr_next+0

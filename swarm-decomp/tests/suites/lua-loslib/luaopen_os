@@ -1,0 +1,17 @@
+# luaopen_os  (global, 59 bytes, 16 instructions)
+    0:  pushq %rbx
+    1:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+    9:  movq %rdi, %rbx
+    c:  movl $0x88, %esi
+   11:  callq luaL_checkversion_+0
+   16:  movq %rbx, %rdi
+   19:  movl $0xb, %edx
+   1e:  xorl %esi, %esi
+   20:  callq lua_createtable+0
+   25:  movq %rbx, %rdi
+   28:  xorl %edx, %edx
+   2a:  movl $0, %esi   <var:syslib+0>
+   2f:  callq luaL_setfuncs+0
+   34:  movl $1, %eax
+   39:  popq %rbx
+   3a:  retq

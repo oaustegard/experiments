@@ -1,0 +1,142 @@
+# wb_keshideh  (global, 547 bytes, 141 instructions)
+    0:  pushq %r15
+    2:  pxor %xmm0, %xmm0
+    6:  pushq %r14
+    8:  xorl %r14d, %r14d
+    b:  pushq %r13
+    d:  xorl %r13d, %r13d
+   10:  pushq %r12
+   12:  movq %rsi, %r12
+   15:  pushq %rbp
+   16:  movl $0, %ebp   <var:keshideh_chars+224>
+   1b:  pushq %rbx
+   1c:  subq $0x58, %rsp
+   20:  movq %rdi, 0x18(%rsp)
+   25:  movl %edx, 0x14(%rsp)
+   29:  movq %rdi, 0x20(%rsp)
+   2e:  movl $0, 8(%rsp)
+   36:  movaps %xmm0, 0x30(%rsp)
+   3b:  movaps %xmm0, 0x40(%rsp)
+   40:  jmp 0x5f
+   42:  nopw (%rax, %rax)
+   48:  movq 0x20(%rsp), %r14
+   4d:  movl $0, %esi   <str:"">
+   52:  leaq 0x30(%rsp), %rbx
+   57:  movq %rbx, %rdi
+   5a:  callq strcpy+0
+   5f:  leaq 0x28(%rsp), %rsi
+   64:  leaq 0x20(%rsp), %rdi
+   69:  callq escread+0
+   6e:  movl %eax, %ebx
+   70:  testl %eax, %eax
+   72:  js 0x138
+   78:  movq 0x28(%rsp), %rdx
+   7d:  movl %ebx, %esi
+   7f:  movq %r12, %rdi
+   82:  callq fn:wb_putc+0
+   87:  testl %ebx, %ebx
+   89:  jne 0x48
+   8b:  movl $0, %r15d   <var:keshideh_chars+0>
+   91:  leaq 0x30(%rsp), %rbx
+   96:  jmp 0xa9
+   98:  nopl (%rax, %rax)
+   a0:  addq $8, %r15
+   a4:  cmpq %r15, %rbp
+   a7:  je 0x125
+   a9:  movq (%r15), %rdi
+   ac:  movq %rbx, %rsi
+   af:  callq strcmp+0
+   b4:  testl %eax, %eax
+   b6:  jne 0xa0
+   b8:  movl 0x20(%r12), %esi
+   bd:  testl %esi, %esi
+   bf:  js 0x1e0
+   c5:  movl $0, %edi   <str:"\xd9\x80">
+   ca:  callq dev_glyph+0
+   cf:  movq %rax, %r15
+   d2:  testq %rax, %rax
+   d5:  je 0x125
+   d7:  movswl 0x48(%rax), %eax
+   db:  movl 0x24(%r12), %edx
+   e0:  movl %eax, 0xc(%rsp)
+   e4:  testl %edx, %edx
+   e6:  js 0x1f1
+   ec:  movl 0x20(%r12), %edi
+   f1:  testl %edi, %edi
+   f3:  js 0x20a
+   f9:  movl %edx, 0x10(%rsp)
+   fd:  callq dev_font+0
+  102:  movl 0xc(%rsp), %ecx
+  106:  movq 0x40(%r15), %rdi
+  10a:  movl 0x10(%rsp), %edx
+  10e:  movq %rax, %rsi
+  111:  callq font_gwid+0
+  116:  movl 0x14(%rsp), %ecx
+  11a:  cmpl %ecx, %eax
+  11c:  jge 0x125
+  11e:  movl %eax, 8(%rsp)
+  122:  movq %r14, %r13
+  125:  movq 0x20(%rsp), %r14
+  12a:  movq 0x28(%rsp), %rsi
+  12f:  jmp 0x57
+  134:  nopl (%rax)
+  138:  movq 0x18(%rsp), %rax
+  13d:  movq %r12, %rdi
+  140:  movq %rax, 0x20(%rsp)
+  145:  callq sbuf_done+0
+  14a:  movl $0x2070, %edx
+  14f:  xorl %esi, %esi
+  151:  movq %r12, %rdi
+  154:  callq memset+0
+  159:  movq %r12, %rdi
+  15c:  callq sbuf_init+0
+  161:  pcmpeqd %xmm0, %xmm0
+  165:  movl $1, 0x206c(%r12)
+  171:  movups %xmm0, 0x10(%r12)
+  177:  movups %xmm0, 0x20(%r12)
+  17d:  movdqa (%rip), %xmm0   <cst:0000002000000020000000e0000000e0>
+  185:  movups %xmm0, 0x54(%r12)
+  18b:  jmp 0x1a4
+  18d:  nopl (%rax)
+  190:  movq 0x28(%rsp), %rdx
+  195:  movq %r12, %rdi
+  198:  callq fn:wb_putc+0
+  19d:  cmpq %r13, 0x20(%rsp)
+  1a2:  je 0x1d0
+  1a4:  leaq 0x28(%rsp), %rsi
+  1a9:  leaq 0x20(%rsp), %rdi
+  1ae:  callq escread+0
+  1b3:  movl %eax, %esi
+  1b5:  testl %eax, %eax
+  1b7:  jns 0x190
+  1b9:  movl 8(%rsp), %eax
+  1bd:  addq $0x58, %rsp
+  1c1:  popq %rbx
+  1c2:  popq %rbp
+  1c3:  popq %r12
+  1c5:  popq %r13
+  1c7:  popq %r14
+  1c9:  popq %r15
+  1cb:  retq
+  1cc:  nopl (%rax)
+  1d0:  movl $0, %esi   <str:"\xd9\x80">
+  1d5:  movq %r12, %rdi
+  1d8:  callq fn:wb_put.part.0+0
+  1dd:  jmp 0x1a4
+  1df:  nop
+  1e0:  movl $0x66, %edi
+  1e5:  callq nreg+0
+  1ea:  movl (%rax), %esi
+  1ec:  jmp 0xc5
+  1f1:  movl $0x73, %edi
+  1f6:  callq nreg+0
+  1fb:  movl 0x20(%r12), %edi
+  200:  movl (%rax), %edx
+  202:  testl %edi, %edi
+  204:  jns 0xf9
+  20a:  movl $0x66, %edi
+  20f:  movl %edx, 0x10(%rsp)
+  213:  callq nreg+0
+  218:  movl 0x10(%rsp), %edx
+  21c:  movl (%rax), %edi
+  21e:  jmp 0xf9

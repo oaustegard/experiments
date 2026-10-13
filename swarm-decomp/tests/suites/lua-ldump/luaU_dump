@@ -1,0 +1,104 @@
+# luaU_dump  (global, 445 bytes, 103 instructions)
+    0:  pushq %rbx
+    1:  movq %rdx, %rax
+    4:  movq %rsi, %rbx
+    7:  movl $0, %esi   <str:"\x1bLua">
+    c:  subq $0x30, %rsp
+   10:  movq %rdx, 0x18(%rsp)
+   15:  movl $4, %edx
+   1a:  movq %rdi, 0x10(%rsp)
+   1f:  movq %rcx, 0x20(%rsp)
+   24:  movl %r8d, 0x28(%rsp)
+   29:  movl $0, 0x2c(%rsp)
+   31:  callq *%rax
+   33:  movb $0x54, 8(%rsp)
+   38:  movl %eax, 0x2c(%rsp)
+   3c:  testl %eax, %eax
+   3e:  jne 0x1a4
+   44:  movq 0x20(%rsp), %rcx
+   49:  movq 0x10(%rsp), %rdi
+   4e:  movl $1, %edx
+   53:  leaq 8(%rsp), %rsi
+   58:  callq *0x18(%rsp)
+   5c:  movb $0, 8(%rsp)
+   61:  movl %eax, 0x2c(%rsp)
+   65:  testl %eax, %eax
+   67:  jne 0x1a4
+   6d:  movq 0x20(%rsp), %rcx
+   72:  movq 0x10(%rsp), %rdi
+   77:  movl $1, %edx
+   7c:  leaq 8(%rsp), %rsi
+   81:  callq *0x18(%rsp)
+   85:  movl %eax, 0x2c(%rsp)
+   89:  testl %eax, %eax
+   8b:  jne 0x1a4
+   91:  movq 0x20(%rsp), %rcx
+   96:  movq 0x10(%rsp), %rdi
+   9b:  movl $6, %edx
+   a0:  movl $0, %esi   <str:"\x19\x93\r\n\x1a\n">
+   a5:  callq *0x18(%rsp)
+   a9:  movb $4, 8(%rsp)
+   ae:  movl %eax, 0x2c(%rsp)
+   b2:  testl %eax, %eax
+   b4:  jne 0x1a4
+   ba:  movq 0x20(%rsp), %rcx
+   bf:  movq 0x10(%rsp), %rdi
+   c4:  movl $1, %edx
+   c9:  leaq 8(%rsp), %rsi
+   ce:  callq *0x18(%rsp)
+   d2:  movb $8, 8(%rsp)
+   d7:  movl %eax, 0x2c(%rsp)
+   db:  testl %eax, %eax
+   dd:  jne 0x1a4
+   e3:  movq 0x20(%rsp), %rcx
+   e8:  movq 0x10(%rsp), %rdi
+   ed:  movl $1, %edx
+   f2:  leaq 8(%rsp), %rsi
+   f7:  callq *0x18(%rsp)
+   fb:  movb $8, 8(%rsp)
+  100:  movl %eax, 0x2c(%rsp)
+  104:  testl %eax, %eax
+  106:  jne 0x1a4
+  10c:  movq 0x20(%rsp), %rcx
+  111:  movq 0x10(%rsp), %rdi
+  116:  movl $1, %edx
+  11b:  leaq 8(%rsp), %rsi
+  120:  callq *0x18(%rsp)
+  124:  movq $0x5678, 8(%rsp)
+  12d:  movl %eax, 0x2c(%rsp)
+  131:  testl %eax, %eax
+  133:  jne 0x1a4
+  135:  movl $8, %edx
+  13a:  movq 0x20(%rsp), %rcx
+  13f:  movq 0x10(%rsp), %rdi
+  144:  leaq 8(%rsp), %rsi
+  149:  callq *0x18(%rsp)
+  14d:  movq (%rip), %rdx   <cst:0000000000287740>
+  154:  movl %eax, 0x2c(%rsp)
+  158:  movq %rdx, 8(%rsp)
+  15d:  testl %eax, %eax
+  15f:  jne 0x1a4
+  161:  movl $8, %edx
+  166:  movq 0x20(%rsp), %rcx
+  16b:  movq 0x10(%rsp), %rdi
+  170:  leaq 8(%rsp), %rsi
+  175:  callq *0x18(%rsp)
+  179:  movl 0x10(%rbx), %edx
+  17c:  movl %eax, 0x2c(%rsp)
+  180:  movb %dl, 8(%rsp)
+  184:  testl %eax, %eax
+  186:  jne 0x1a4
+  188:  movq 0x20(%rsp), %rcx
+  18d:  movq 0x10(%rsp), %rdi
+  192:  movl $1, %edx
+  197:  leaq 8(%rsp), %rsi
+  19c:  callq *0x18(%rsp)
+  1a0:  movl %eax, 0x2c(%rsp)
+  1a4:  movq %rbx, %rsi
+  1a7:  leaq 0x10(%rsp), %rdi
+  1ac:  xorl %edx, %edx
+  1ae:  callq fn:dumpFunction+0
+  1b3:  movl 0x2c(%rsp), %eax
+  1b7:  addq $0x30, %rsp
+  1bb:  popq %rbx
+  1bc:  retq

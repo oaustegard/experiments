@@ -1,0 +1,157 @@
+# test_then_block  (static, 578 bytes, 156 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rsi, %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x40, %rsp
+   12:  movq 0x30(%rdi), %rbp
+   16:  callq luaX_next+0
+   1b:  xorl %edx, %edx
+   1d:  leaq 0x20(%rsp), %rsi
+   22:  movq %rbx, %rdi
+   25:  callq fn:subexpr+0
+   2a:  cmpl $0x112, 0x10(%rbx)
+   31:  jne 0x235
+   37:  movq %rbx, %rdi
+   3a:  callq luaX_next+0
+   3f:  cmpl $0x101, 0x10(%rbx)
+   46:  je 0x110
+   4c:  movq 0x30(%rbx), %rdi
+   50:  leaq 0x20(%rsp), %rsi
+   55:  callq luaK_goiftrue+0
+   5a:  movzbl 0x42(%rbp), %eax
+   5e:  xorl %edx, %edx
+   60:  movb %al, 0x10(%rsp)
+   64:  movq 0x10(%rbp), %rax
+   68:  movq 0x58(%rax), %rax
+   6c:  movd 0x28(%rax), %xmm0
+   71:  movd 0x18(%rax), %xmm1
+   76:  xorl %eax, %eax
+   78:  movw %ax, 0x11(%rsp)
+   7d:  movq 0x18(%rbp), %rax
+   81:  punpckldq %xmm1, %xmm0
+   85:  movq %xmm0, 8(%rsp)
+   8b:  testq %rax, %rax
+   8e:  je 0x97
+   90:  cmpb $0, 0x13(%rax)
+   94:  setne %dl
+   97:  movb %dl, 0x13(%rsp)
+   9b:  movl 0x34(%rsp), %r13d
+   a0:  movq %rax, (%rsp)
+   a4:  movq %rsp, 0x18(%rbp)
+   a8:  movl $0x20020007, %r14d
+   ae:  movl 0x10(%rbx), %edx
+   b1:  leal -0x103(%rdx), %eax
+   b7:  cmpl $0x1d, %eax
+   ba:  ja 0x104
+   bc:  btq %rax, %r14
+   c0:  jae 0xf8
+   c2:  movq %rbp, %rdi
+   c5:  callq fn:leaveblock+0
+   ca:  movl 0x10(%rbx), %eax
+   cd:  subl $0x103, %eax
+   d2:  cmpl $1, %eax
+   d5:  jbe 0x208
+   db:  movl %r13d, %esi
+   de:  movq %rbp, %rdi
+   e1:  callq luaK_patchtohere+0
+   e6:  addq $0x40, %rsp
+   ea:  popq %rbx
+   eb:  popq %rbp
+   ec:  popq %r12
+   ee:  popq %r13
+   f0:  popq %r14
+   f2:  retq
+   f3:  nopl (%rax, %rax)
+   f8:  cmpl $0x111, %edx
+   fe:  je 0x228
+  104:  movq %rbx, %rdi
+  107:  callq fn:statement+0
+  10c:  jmp 0xae
+  10e:  nop
+  110:  movq 0x30(%rbx), %rdi
+  114:  leaq 0x20(%rsp), %rsi
+  119:  movl 4(%rbx), %r13d
+  11d:  callq luaK_goiffalse+0
+  122:  movq %rbx, %rdi
+  125:  callq luaX_next+0
+  12a:  movzbl 0x42(%rbp), %eax
+  12e:  xorl %edx, %edx
+  130:  movb %al, 0x10(%rsp)
+  134:  movq 0x10(%rbp), %rax
+  138:  movw %dx, 0x11(%rsp)
+  13d:  xorl %edx, %edx
+  13f:  movq 0x58(%rax), %rax
+  143:  movd 0x28(%rax), %xmm0
+  148:  movd 0x18(%rax), %xmm2
+  14d:  movq 0x18(%rbp), %rax
+  151:  punpckldq %xmm2, %xmm0
+  155:  movq %xmm0, 8(%rsp)
+  15b:  testq %rax, %rax
+  15e:  je 0x167
+  160:  cmpb $0, 0x13(%rax)
+  164:  setne %dl
+  167:  movq %rsp, 0x18(%rbp)
+  16b:  movq 0x38(%rbx), %rdi
+  16f:  movl $0, %esi   <str:"break">
+  174:  movb %dl, 0x13(%rsp)
+  178:  movl $5, %edx
+  17d:  movl 0x30(%rsp), %r14d
+  182:  movq %rax, (%rsp)
+  186:  callq luaS_newlstr+0
+  18b:  movl %r14d, %r8d
+  18e:  movl %r13d, %ecx
+  191:  movq %rbx, %rdi
+  194:  movq %rax, %rdx
+  197:  movq 0x58(%rbx), %rax
+  19b:  leaq 0x10(%rax), %rsi
+  19f:  callq fn:newlabelentry+0
+  1a4:  movl 0x10(%rbx), %eax
+  1a7:  cmpl $0x3b, %eax
+  1aa:  je 0x1d0
+  1ac:  cmpl $0x105, %eax
+  1b1:  jg 0x1e7
+  1b3:  nopl (%rax, %rax)
+  1b8:  cmpl $0x102, %eax
+  1bd:  jg 0x1ee
+  1bf:  movq %rbp, %rdi
+  1c2:  callq luaK_jump+0
+  1c7:  movl %eax, %r13d
+  1ca:  jmp 0xa8
+  1cf:  nop
+  1d0:  movq %rbx, %rdi
+  1d3:  callq luaX_next+0
+  1d8:  movl 0x10(%rbx), %eax
+  1db:  cmpl $0x3b, %eax
+  1de:  je 0x1d0
+  1e0:  cmpl $0x105, %eax
+  1e5:  jle 0x1b8
+  1e7:  cmpl $0x120, %eax
+  1ec:  jne 0x1bf
+  1ee:  movq %rbp, %rdi
+  1f1:  callq fn:leaveblock+0
+  1f6:  addq $0x40, %rsp
+  1fa:  popq %rbx
+  1fb:  popq %rbp
+  1fc:  popq %r12
+  1fe:  popq %r13
+  200:  popq %r14
+  202:  retq
+  203:  nopl (%rax, %rax)
+  208:  movq %rbp, %rdi
+  20b:  callq luaK_jump+0
+  210:  movq %r12, %rsi
+  213:  movq %rbp, %rdi
+  216:  movl %eax, %edx
+  218:  callq luaK_concat+0
+  21d:  jmp 0xdb
+  222:  nopw (%rax, %rax)
+  228:  movq %rbx, %rdi
+  22b:  callq fn:statement+0
+  230:  jmp 0xc2
+  235:  movl $0x112, %esi
+  23a:  movq %rbx, %rdi
+  23d:  callq fn:error_expected+0

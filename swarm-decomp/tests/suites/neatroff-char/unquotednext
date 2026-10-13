@@ -1,0 +1,94 @@
+# unquotednext  (global, 287 bytes, 93 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  movl %edi, %r12d
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movq %rsi, %rbx
+    f:  subq $0x18, %rsp
+   13:  callq *%rsi
+   15:  movq %rsp, %rdi
+   18:  movl %eax, %ebp
+   1a:  callq sbuf_init+0
+   1f:  cmpl $0x73, %r12d
+   23:  je 0xe8
+   29:  cmpl $0x28, %ebp
+   2c:  jne 0x60
+   2e:  callq *%rbx
+   30:  movq %rsp, %rdi
+   33:  movl %eax, %esi
+   35:  callq sbuf_add+0
+   3a:  callq *%rbx
+   3c:  movq %rsp, %rdi
+   3f:  movl %eax, %esi
+   41:  callq sbuf_add+0
+   46:  movq %rsp, %rdi
+   49:  callq sbuf_out+0
+   4e:  addq $0x18, %rsp
+   52:  popq %rbx
+   53:  popq %rbp
+   54:  popq %r12
+   56:  popq %r13
+   58:  retq
+   59:  nopl (%rax)
+   60:  movl $0x43, %edi
+   65:  callq nreg+0
+   6a:  movl (%rax), %edx
+   6c:  testl %edx, %edx
+   6e:  jne 0x75
+   70:  cmpl $0x5b, %ebp
+   73:  je 0xcd
+   75:  movl %ebp, %esi
+   77:  movq %rsp, %rdi
+   7a:  callq sbuf_add+0
+   7f:  movl $0x43, %edi
+   84:  callq nreg+0
+   89:  movl (%rax), %eax
+   8b:  testl %eax, %eax
+   8d:  je 0x46
+   8f:  subl $0x31, %ebp
+   92:  cmpl $2, %ebp
+   95:  ja 0x46
+   97:  cmpl $0x73, %r12d
+   9b:  jne 0x46
+   9d:  callq *%rbx
+   9f:  movl %eax, %ebx
+   a1:  callq __ctype_b_loc+0
+   a6:  movslq %ebx, %rdx
+   a9:  movq (%rax), %rax
+   ac:  testb $8, 1(%rax, %rdx, 2)
+   b1:  jne 0x110
+   b3:  movl %ebx, %edi
+   b5:  callq *%r13
+   b8:  jmp 0x46
+   ba:  nopw (%rax, %rax)
+   c0:  cmpl $0x5d, %esi
+   c3:  je 0x46
+   c5:  movq %rsp, %rdi
+   c8:  callq sbuf_add+0
+   cd:  callq *%rbx
+   cf:  testl %eax, %eax
+   d1:  movl %eax, %esi
+   d3:  setg %dl
+   d6:  cmpl $0xa, %eax
+   d9:  setne %al
+   dc:  testb %al, %dl
+   de:  jne 0xc0
+   e0:  jmp 0x46
+   e5:  nopl (%rax)
+   e8:  leal -0x2b(%rbp), %eax
+   eb:  andl $0xfffffffd, %eax
+   ee:  jne 0x29
+   f4:  movl %ebp, %esi
+   f6:  movq %rsp, %rdi
+   f9:  movl %ebp, %r12d
+   fc:  callq sbuf_add+0
+  101:  callq *%rbx
+  103:  movl %eax, %ebp
+  105:  jmp 0x29
+  10a:  nopw (%rax, %rax)
+  110:  movl %ebx, %esi
+  112:  movq %rsp, %rdi
+  115:  callq sbuf_add+0
+  11a:  jmp 0x46

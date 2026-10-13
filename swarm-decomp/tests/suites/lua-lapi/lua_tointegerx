@@ -1,0 +1,63 @@
+# lua_tointegerx  (global, 221 bytes, 62 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rax
+    4:  movq %rdx, %rbx
+    7:  subq $0x10, %rsp
+    b:  movq 0x20(%rdi), %rdx
+    f:  movq $0, 8(%rsp)
+   18:  testl %esi, %esi
+   1a:  jle 0x50
+   1c:  movslq %esi, %rdi
+   1f:  shlq $4, %rdi
+   23:  addq (%rdx), %rdi
+   26:  cmpq 0x10(%rax), %rdi
+   2a:  jae 0x69
+   2c:  cmpb $3, 8(%rdi)
+   30:  jne 0x77
+   32:  movq (%rdi), %rax
+   35:  movl $1, %edx
+   3a:  testq %rbx, %rbx
+   3d:  je 0x41
+   3f:  movl %edx, (%rbx)
+   41:  addq $0x10, %rsp
+   45:  popq %rbx
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  cmpl $0xfff0b9d9, %esi
+   56:  jge 0xc0
+   58:  cmpl $0xfff0b9d8, %esi
+   5e:  je 0xd0
+   60:  movq (%rdx), %rdx
+   63:  cmpb $0x66, 8(%rdx)
+   67:  je 0x90
+   69:  movq 0x18(%rax), %rdi
+   6d:  addq $0x50, %rdi
+   71:  cmpb $3, 8(%rdi)
+   75:  je 0x32
+   77:  xorl %edx, %edx
+   79:  leaq 8(%rsp), %rsi
+   7e:  callq luaV_tointeger+0
+   83:  movl %eax, %edx
+   85:  movq 8(%rsp), %rax
+   8a:  jmp 0x3a
+   8c:  nopl (%rax)
+   90:  movq (%rdx), %rcx
+   93:  movl $0xfff0b9d8, %edx
+   98:  subl %esi, %edx
+   9a:  movzbl 0xa(%rcx), %edi
+   9e:  cmpl %edi, %edx
+   a0:  jg 0x69
+   a2:  movl $0xfff0b9d9, %eax
+   a7:  subl %esi, %eax
+   a9:  cltq
+   ab:  shlq $4, %rax
+   af:  leaq (%rcx, %rax), %rdi
+   b3:  jmp 0x2c
+   b8:  nopl (%rax, %rax)
+   c0:  movslq %esi, %rdi
+   c3:  shlq $4, %rdi
+   c7:  addq 0x10(%rax), %rdi
+   cb:  jmp 0x2c
+   d0:  movq 0x18(%rdi), %rdi
+   d4:  addq $0x40, %rdi
+   d8:  jmp 0x2c

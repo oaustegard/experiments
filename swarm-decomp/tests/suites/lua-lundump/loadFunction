@@ -1,0 +1,380 @@
+# loadFunction  (static, 1424 bytes, 379 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdx, %r12
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  movq %rsi, %rbx
+   13:  subq $0x18, %rsp
+   17:  callq fn:loadStringN+0
+   1c:  movl $0x7fffffff, %esi
+   21:  movq %rbp, %rdi
+   24:  testq %rax, %rax
+   27:  cmoveq %r12, %rax
+   2b:  movq %rax, 0x70(%rbx)
+   2f:  callq fn:loadUnsigned+0
+   34:  movl $0x7fffffff, %esi
+   39:  movq %rbp, %rdi
+   3c:  movl %eax, 0x2c(%rbx)
+   3f:  callq fn:loadUnsigned+0
+   44:  movq %rbp, %rdi
+   47:  movl %eax, 0x30(%rbx)
+   4a:  callq fn:loadByte+0
+   4f:  movq %rbp, %rdi
+   52:  movb %al, 0xa(%rbx)
+   55:  callq fn:loadByte+0
+   5a:  movq %rbp, %rdi
+   5d:  movb %al, 0xb(%rbx)
+   60:  callq fn:loadByte+0
+   65:  movl $0x7fffffff, %esi
+   6a:  movq %rbp, %rdi
+   6d:  movb %al, 0xc(%rbx)
+   70:  callq fn:loadUnsigned+0
+   75:  movq (%rbp), %rdi
+   79:  xorl %edx, %edx
+   7b:  movslq %eax, %r12
+   7e:  movq %rax, %r13
+   81:  shlq $2, %r12
+   85:  movq %r12, %rsi
+   88:  callq luaM_malloc_+0
+   8d:  movl %r13d, 0x18(%rbx)
+   91:  movq 8(%rbp), %rdi
+   95:  movq %r12, %rdx
+   98:  movq %rax, 0x40(%rbx)
+   9c:  movq %rax, %rsi
+   9f:  callq luaZ_read+0
+   a4:  testq %rax, %rax
+   a7:  jne 0x576
+   ad:  movl $0x7fffffff, %esi
+   b2:  movq %rbp, %rdi
+   b5:  movq %rax, %r12
+   b8:  callq fn:loadUnsigned+0
+   bd:  movq (%rbp), %rdi
+   c1:  xorl %edx, %edx
+   c3:  movslq %eax, %rsi
+   c6:  movq %rax, %r14
+   c9:  shlq $4, %rsi
+   cd:  callq luaM_malloc_+0
+   d2:  movl %r14d, 0x14(%rbx)
+   d6:  movq %rax, 0x38(%rbx)
+   da:  movq %rax, %r13
+   dd:  testl %r14d, %r14d
+   e0:  jle 0x190
+   e6:  subl $1, %r14d
+   ea:  leaq 8(%rax), %rax
+   ee:  shlq $4, %r14
+   f2:  leaq 0x18(%r13, %r14), %rdx
+   f7:  movq %rdx, %rcx
+   fa:  subq %rax, %rcx
+   fd:  andl $0x10, %ecx
+  100:  je 0x110
+  102:  movb $0, (%rax)
+  105:  leaq 0x18(%r13), %rax
+  109:  cmpq %rdx, %rax
+  10c:  je 0x120
+  10e:  nop
+  110:  movb $0, (%rax)
+  113:  addq $0x20, %rax
+  117:  movb $0, -0x10(%rax)
+  11b:  cmpq %rdx, %rax
+  11e:  jne 0x110
+  120:  xorl %r15d, %r15d
+  123:  nopl (%rax, %rax)
+  128:  movq %rbp, %rdi
+  12b:  addq %r15, %r13
+  12e:  callq fn:loadByte+0
+  133:  cmpb $0x14, %al
+  135:  ja 0x150
+  137:  movzbl %al, %eax
+  13a:  jmpq *(, %rax, 8)   <var:loadFunction+0>
+  141:  nopl (%rax)
+  148:  movb $0, 8(%r13)
+  14d:  nopl (%rax)
+  150:  cmpq %r14, %r15
+  153:  je 0x190
+  155:  movq 0x38(%rbx), %r13
+  159:  addq $0x10, %r15
+  15d:  jmp 0x128
+  15f:  nop
+  160:  movq %rbx, %rsi
+  163:  movq %rbp, %rdi
+  166:  callq fn:loadStringN+0
+  16b:  testq %rax, %rax
+  16e:  je 0x583
+  174:  movq %rax, (%r13)
+  178:  movzbl 8(%rax), %eax
+  17c:  orl $0x40, %eax
+  17f:  movb %al, 8(%r13)
+  183:  cmpq %r14, %r15
+  186:  jne 0x155
+  188:  nopl (%rax, %rax)
+  190:  movl $0x7fffffff, %esi
+  195:  movq %rbp, %rdi
+  198:  callq fn:loadUnsigned+0
+  19d:  movq (%rbp), %rdi
+  1a1:  xorl %edx, %edx
+  1a3:  movslq %eax, %rsi
+  1a6:  movq %rax, %r13
+  1a9:  shlq $4, %rsi
+  1ad:  callq luaM_malloc_+0
+  1b2:  movl %r13d, 0x10(%rbx)
+  1b6:  movq %rax, 0x50(%rbx)
+  1ba:  testl %r13d, %r13d
+  1bd:  jle 0x253
+  1c3:  leal -1(%r13), %r14d
+  1c7:  leaq 0x10(%rax), %rsi
+  1cb:  movq %rax, %rdx
+  1ce:  shlq $4, %r14
+  1d2:  leaq (%rsi, %r14), %rcx
+  1d6:  movq %rcx, %rdi
+  1d9:  subq %rax, %rdi
+  1dc:  andl $0x10, %edi
+  1df:  je 0x1f0
+  1e1:  movq $0, (%rax)
+  1e8:  movq %rsi, %rdx
+  1eb:  cmpq %rcx, %rsi
+  1ee:  je 0x208
+  1f0:  movq $0, (%rdx)
+  1f7:  addq $0x20, %rdx
+  1fb:  movq $0, -0x10(%rdx)
+  203:  cmpq %rcx, %rdx
+  206:  jne 0x1f0
+  208:  xorl %r13d, %r13d
+  20b:  jmp 0x218
+  20d:  nopl (%rax)
+  210:  movq 0x50(%rbx), %rax
+  214:  addq $0x10, %r13
+  218:  movq %rbp, %rdi
+  21b:  leaq (%rax, %r13), %r15
+  21f:  callq fn:loadByte+0
+  224:  movq %rbp, %rdi
+  227:  movb %al, 8(%r15)
+  22b:  movq 0x50(%rbx), %r15
+  22f:  addq %r13, %r15
+  232:  callq fn:loadByte+0
+  237:  movq %rbp, %rdi
+  23a:  movb %al, 9(%r15)
+  23e:  movq 0x50(%rbx), %r15
+  242:  addq %r13, %r15
+  245:  callq fn:loadByte+0
+  24a:  movb %al, 0xa(%r15)
+  24e:  cmpq %r14, %r13
+  251:  jne 0x210
+  253:  movl $0x7fffffff, %esi
+  258:  movq %rbp, %rdi
+  25b:  callq fn:loadUnsigned+0
+  260:  movq (%rbp), %rdi
+  264:  xorl %edx, %edx
+  266:  movslq %eax, %rsi
+  269:  movq %rax, %r13
+  26c:  shlq $3, %rsi
+  270:  callq luaM_malloc_+0
+  275:  movl %r13d, 0x20(%rbx)
+  279:  movq %rax, 0x48(%rbx)
+  27d:  testl %r13d, %r13d
+  280:  jle 0x390
+  286:  leal -1(%r13), %r14d
+  28a:  xorl %esi, %esi
+  28c:  movq %rax, %rdi
+  28f:  leaq 8(, %r14, 8), %rdx
+  297:  shlq $3, %r14
+  29b:  callq memset+0
+  2a0:  movq %rax, %rcx
+  2a3:  jmp 0x2c5
+  2a5:  nopl (%rax)
+  2a8:  movq 0x70(%rbx), %rdx
+  2ac:  movq %rbp, %rdi
+  2af:  callq 0
+  2b4:  cmpq %r12, %r14
+  2b7:  je 0x390
+  2bd:  movq 0x48(%rbx), %rcx
+  2c1:  addq $8, %r12
+  2c5:  movq (%rbp), %rdi
+  2c9:  leaq (%rcx, %r12), %r13
+  2cd:  callq luaF_newproto+0
+  2d2:  movq %rax, (%r13)
+  2d6:  movq 0x48(%rbx), %rax
+  2da:  testb $0x20, 9(%rbx)
+  2de:  movq (%rax, %r12), %rsi
+  2e2:  je 0x2a8
+  2e4:  testb $0x18, 9(%rsi)
+  2e8:  je 0x2a8
+  2ea:  movq (%rbp), %rdi
+  2ee:  movq %rsi, %rdx
+  2f1:  movq %rbx, %rsi
+  2f4:  callq luaC_barrier_+0
+  2f9:  movq 0x48(%rbx), %rax
+  2fd:  movq (%rax, %r12), %rsi
+  301:  jmp 0x2a8
+  303:  nopl (%rax, %rax)
+  308:  movq 8(%rbp), %rdi
+  30c:  movl $8, %edx
+  311:  movq %rsp, %rsi
+  314:  callq luaZ_read+0
+  319:  testq %rax, %rax
+  31c:  jne 0x576
+  322:  movsd (%rsp), %xmm0
+  327:  movb $0x13, 8(%r13)
+  32c:  movsd %xmm0, (%r13)
+  332:  jmp 0x150
+  337:  nopw (%rax, %rax)
+  340:  movb $0x11, 8(%r13)
+  345:  jmp 0x150
+  34a:  nopw (%rax, %rax)
+  350:  movq 8(%rbp), %rdi
+  354:  movl $8, %edx
+  359:  leaq 8(%rsp), %rsi
+  35e:  callq luaZ_read+0
+  363:  testq %rax, %rax
+  366:  jne 0x576
+  36c:  movq 8(%rsp), %rax
+  371:  movb $3, 8(%r13)
+  376:  movq %rax, (%r13)
+  37a:  jmp 0x150
+  37f:  nop
+  380:  movb $1, 8(%r13)
+  385:  jmp 0x150
+  38a:  nopw (%rax, %rax)
+  390:  movl $0x7fffffff, %esi
+  395:  movq %rbp, %rdi
+  398:  callq fn:loadUnsigned+0
+  39d:  movq (%rbp), %rdi
+  3a1:  xorl %edx, %edx
+  3a3:  movslq %eax, %r13
+  3a6:  movq %rax, %r12
+  3a9:  movq %r13, %rsi
+  3ac:  callq luaM_malloc_+0
+  3b1:  movl %r12d, 0x1c(%rbx)
+  3b5:  movq 8(%rbp), %rdi
+  3b9:  movq %r13, %rdx
+  3bc:  movq %rax, 0x58(%rbx)
+  3c0:  movq %rax, %rsi
+  3c3:  callq luaZ_read+0
+  3c8:  movq %rax, %r13
+  3cb:  testq %rax, %rax
+  3ce:  jne 0x576
+  3d4:  movl $0x7fffffff, %esi
+  3d9:  movq %rbp, %rdi
+  3dc:  callq fn:loadUnsigned+0
+  3e1:  movq (%rbp), %rdi
+  3e5:  xorl %edx, %edx
+  3e7:  movslq %eax, %rsi
+  3ea:  movq %rax, %r12
+  3ed:  shlq $3, %rsi
+  3f1:  callq luaM_malloc_+0
+  3f6:  movl %r12d, 0x28(%rbx)
+  3fa:  movq %rax, 0x60(%rbx)
+  3fe:  testl %r12d, %r12d
+  401:  jle 0x451
+  403:  leal -1(%r12), %r14d
+  408:  xorl %r12d, %r12d
+  40b:  shlq $3, %r14
+  40f:  jmp 0x420
+  411:  nopl (%rax)
+  418:  movq 0x60(%rbx), %rax
+  41c:  addq $8, %r12
+  420:  movl $0x7fffffff, %esi
+  425:  movq %rbp, %rdi
+  428:  leaq (%rax, %r12), %r15
+  42c:  callq fn:loadUnsigned+0
+  431:  movl $0x7fffffff, %esi
+  436:  movq %rbp, %rdi
+  439:  movl %eax, (%r15)
+  43c:  movq 0x60(%rbx), %r15
+  440:  addq %r12, %r15
+  443:  callq fn:loadUnsigned+0
+  448:  movl %eax, 4(%r15)
+  44c:  cmpq %r14, %r12
+  44f:  jne 0x418
+  451:  movl $0x7fffffff, %esi
+  456:  movq %rbp, %rdi
+  459:  callq fn:loadUnsigned+0
+  45e:  movq (%rbp), %rdi
+  462:  xorl %edx, %edx
+  464:  movslq %eax, %rsi
+  467:  movq %rax, %r12
+  46a:  shlq $4, %rsi
+  46e:  callq luaM_malloc_+0
+  473:  movl %r12d, 0x24(%rbx)
+  477:  movq %rax, 0x68(%rbx)
+  47b:  testl %r12d, %r12d
+  47e:  jle 0x527
+  484:  leal -1(%r12), %r14d
+  489:  leaq 0x10(%rax), %rsi
+  48d:  movq %rax, %rdx
+  490:  shlq $4, %r14
+  494:  leaq (%rsi, %r14), %rcx
+  498:  movq %rcx, %rdi
+  49b:  subq %rax, %rdi
+  49e:  andl $0x10, %edi
+  4a1:  je 0x4b8
+  4a3:  movq $0, (%rax)
+  4aa:  movq %rsi, %rdx
+  4ad:  cmpq %rsi, %rcx
+  4b0:  je 0x4d0
+  4b2:  nopw (%rax, %rax)
+  4b8:  movq $0, (%rdx)
+  4bf:  addq $0x20, %rdx
+  4c3:  movq $0, -0x10(%rdx)
+  4cb:  cmpq %rdx, %rcx
+  4ce:  jne 0x4b8
+  4d0:  xorl %r12d, %r12d
+  4d3:  jmp 0x4e0
+  4d5:  nopl (%rax)
+  4d8:  movq 0x68(%rbx), %rax
+  4dc:  addq $0x10, %r12
+  4e0:  movq %rbx, %rsi
+  4e3:  movq %rbp, %rdi
+  4e6:  leaq (%rax, %r12), %r15
+  4ea:  callq fn:loadStringN+0
+  4ef:  movl $0x7fffffff, %esi
+  4f4:  movq %rbp, %rdi
+  4f7:  movq %rax, (%r15)
+  4fa:  movq 0x68(%rbx), %r15
+  4fe:  addq %r12, %r15
+  501:  callq fn:loadUnsigned+0
+  506:  movl $0x7fffffff, %esi
+  50b:  movq %rbp, %rdi
+  50e:  movl %eax, 8(%r15)
+  512:  movq 0x68(%rbx), %r15
+  516:  addq %r12, %r15
+  519:  callq fn:loadUnsigned+0
+  51e:  movl %eax, 0xc(%r15)
+  522:  cmpq %r12, %r14
+  525:  jne 0x4d8
+  527:  movl $0x7fffffff, %esi
+  52c:  movq %rbp, %rdi
+  52f:  callq fn:loadUnsigned+0
+  534:  testl %eax, %eax
+  536:  je 0x567
+  538:  movslq 0x10(%rbx), %r14
+  53c:  testl %r14d, %r14d
+  53f:  jle 0x567
+  541:  shlq $4, %r14
+  545:  nopl (%rax)
+  548:  movq 0x50(%rbx), %r12
+  54c:  movq %rbx, %rsi
+  54f:  movq %rbp, %rdi
+  552:  callq fn:loadStringN+0
+  557:  addq %r13, %r12
+  55a:  addq $0x10, %r13
+  55e:  movq %rax, (%r12)
+  562:  cmpq %r14, %r13
+  565:  jne 0x548
+  567:  addq $0x18, %rsp
+  56b:  popq %rbx
+  56c:  popq %rbp
+  56d:  popq %r12
+  56f:  popq %r13
+  571:  popq %r14
+  573:  popq %r15
+  575:  retq
+  576:  movl $0, %esi   <str:"truncated chunk">
+  57b:  movq %rbp, %rdi
+  57e:  callq fn:error+0
+  583:  movl $0, %esi   <str:"bad format for constant string">
+  588:  movq %rbp, %rdi
+  58b:  callq fn:error+0

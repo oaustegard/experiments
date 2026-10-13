@@ -1,0 +1,25 @@
+# pdf_ref  (global, 76 bytes, 24 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x18, %rsp
+    b:  leaq 0xc(%rsp), %r8
+   10:  leaq 8(%rsp), %rcx
+   15:  callq pdf_obj+0
+   1a:  testl %eax, %eax
+   1c:  jne 0x40
+   1e:  movl 0xc(%rsp), %ecx
+   22:  movl 8(%rsp), %edx
+   26:  addq $0x18, %rsp
+   2a:  movl %ebp, %esi
+   2c:  movq %rbx, %rdi
+   2f:  popq %rbx
+   30:  popq %rbp
+   31:  jmp pdf_find+0
+   36:  nopw %cs:(%rax, %rax)
+   40:  addq $0x18, %rsp
+   44:  movl $0xffffffff, %eax
+   49:  popq %rbx
+   4a:  popq %rbp
+   4b:  retq

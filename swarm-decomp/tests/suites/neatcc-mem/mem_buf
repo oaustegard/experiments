@@ -1,0 +1,11 @@
+# mem_buf  (global, 30 bytes, 10 instructions)
+    0:  movq (%rdi), %rax
+    3:  testq %rax, %rax
+    6:  je 0x18
+    8:  movq 0x10(%rdi), %rdx
+    c:  movb $0, (%rax, %rdx)
+   10:  movq (%rdi), %rax
+   13:  retq
+   14:  nopl (%rax)
+   18:  movl $0, %eax   <str:"">
+   1d:  retq

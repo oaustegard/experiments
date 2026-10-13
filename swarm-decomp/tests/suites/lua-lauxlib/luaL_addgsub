@@ -1,0 +1,88 @@
+# luaL_addgsub  (global, 274 bytes, 87 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rcx, %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  movq %rdx, %rdi
+   11:  pushq %rbp
+   12:  movq %rsi, %rbp
+   15:  pushq %rbx
+   16:  subq $0x18, %rsp
+   1a:  movq %rdx, 8(%rsp)
+   1f:  callq strlen+0
+   24:  movq %rax, %r15
+   27:  jmp 0x44
+   29:  nopl (%rax)
+   30:  movq %r13, %rdi
+   33:  callq strlen+0
+   38:  movq %rax, %rbp
+   3b:  testq %rax, %rax
+   3e:  jne 0x94
+   40:  leaq (%rbx, %r15), %rbp
+   44:  movq 8(%rsp), %rsi
+   49:  movq %rbp, %rdi
+   4c:  callq strstr+0
+   51:  movq %rax, %rbx
+   54:  testq %rax, %rax
+   57:  je 0xc0
+   59:  movq %rbx, %r14
+   5c:  subq %rbp, %r14
+   5f:  je 0x30
+   61:  movl $0xffffffff, %edx
+   66:  movq %r14, %rsi
+   69:  movq %r12, %rdi
+   6c:  callq fn:prepbuffsize+0
+   71:  movq %rbp, %rsi
+   74:  movq %r14, %rdx
+   77:  movq %rax, %rdi
+   7a:  callq memcpy+0
+   7f:  addq %r14, 0x10(%r12)
+   84:  movq %r13, %rdi
+   87:  callq strlen+0
+   8c:  movq %rax, %rbp
+   8f:  testq %rax, %rax
+   92:  je 0x40
+   94:  movl $0xffffffff, %edx
+   99:  movq %rax, %rsi
+   9c:  movq %r12, %rdi
+   9f:  callq fn:prepbuffsize+0
+   a4:  movq %rbp, %rdx
+   a7:  movq %r13, %rsi
+   aa:  movq %rax, %rdi
+   ad:  callq memcpy+0
+   b2:  addq %rbp, 0x10(%r12)
+   b7:  jmp 0x40
+   b9:  nopl (%rax)
+   c0:  movq %rbp, %rdi
+   c3:  callq strlen+0
+   c8:  movq %rax, %rbx
+   cb:  testq %rax, %rax
+   ce:  jne 0xe0
+   d0:  addq $0x18, %rsp
+   d4:  popq %rbx
+   d5:  popq %rbp
+   d6:  popq %r12
+   d8:  popq %r13
+   da:  popq %r14
+   dc:  popq %r15
+   de:  retq
+   df:  nop
+   e0:  movq %r12, %rdi
+   e3:  movl $0xffffffff, %edx
+   e8:  movq %rax, %rsi
+   eb:  callq fn:prepbuffsize+0
+   f0:  movq %rbx, %rdx
+   f3:  movq %rbp, %rsi
+   f6:  movq %rax, %rdi
+   f9:  callq memcpy+0
+   fe:  addq %rbx, 0x10(%r12)
+  103:  addq $0x18, %rsp
+  107:  popq %rbx
+  108:  popq %rbp
+  109:  popq %r12
+  10b:  popq %r13
+  10d:  popq %r14
+  10f:  popq %r15
+  111:  retq

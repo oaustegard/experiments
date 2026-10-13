@@ -1,0 +1,45 @@
+# luaT_callTMres  (global, 151 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rax
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movq 0x10(%rdi), %rsi
+   10:  subq 0x30(%rdi), %r8
+   14:  movq (%rax), %rdi
+   17:  movq %r8, %rbp
+   1a:  movq %rdi, (%rsi)
+   1d:  movzbl 8(%rax), %eax
+   21:  movq %rbx, %rdi
+   24:  movb %al, 8(%rsi)
+   27:  movq (%rdx), %rax
+   2a:  movq %rax, 0x10(%rsi)
+   2e:  movzbl 8(%rdx), %eax
+   32:  movl $1, %edx
+   37:  movb %al, 0x18(%rsi)
+   3a:  movq (%rcx), %rax
+   3d:  movq %rax, 0x20(%rsi)
+   41:  movzbl 8(%rcx), %eax
+   45:  movb %al, 0x28(%rsi)
+   48:  leaq 0x30(%rsi), %rax
+   4c:  movq %rax, 0x10(%rbx)
+   50:  movq 0x20(%rbx), %rax
+   54:  testb $0xa, 0x3e(%rax)
+   58:  jne 0x90
+   5a:  callq luaD_call+0
+   5f:  movq 0x10(%rbx), %rax
+   63:  movq 0x30(%rbx), %r8
+   67:  leaq -0x10(%rax), %rdx
+   6b:  addq %rbp, %r8
+   6e:  movq %rdx, 0x10(%rbx)
+   72:  movq -0x10(%rax), %rdx
+   76:  movq %rdx, (%r8)
+   79:  movzbl -8(%rax), %eax
+   7d:  movb %al, 8(%r8)
+   81:  addq $8, %rsp
+   85:  popq %rbx
+   86:  popq %rbp
+   87:  retq
+   88:  nopl (%rax, %rax)
+   90:  callq luaD_callnoyield+0
+   95:  jmp 0x5f

@@ -1,0 +1,23 @@
+# luaT_gettm  (global, 53 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  movq %rdx, %rsi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq luaH_getshortstr+0
+   13:  testb $0xf, 8(%rax)
+   17:  je 0x20
+   19:  addq $8, %rsp
+   1d:  popq %rbx
+   1e:  popq %rbp
+   1f:  retq
+   20:  movl %ebp, %ecx
+   22:  movl $1, %eax
+   27:  shll %cl, %eax
+   29:  orb %al, 0xa(%rbx)
+   2c:  addq $8, %rsp
+   30:  xorl %eax, %eax
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  retq

@@ -1,0 +1,112 @@
+# dev_mnt  (global, 429 bytes, 111 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x408, %rsp
+   11:  cmpl $0x1f, %edi
+   14:  jg 0x1a3
+   1a:  movl %edi, %ebx
+   1c:  movq %rsi, %r12
+   1f:  movq %rdx, %rdi
+   22:  movl $0x2f, %esi
+   27:  movq %rdx, %r13
+   2a:  movq %rsp, %rbp
+   2d:  callq strchr+0
+   32:  testq %rax, %rax
+   35:  je 0x120
+   3b:  movq %r13, %rcx
+   3e:  movl $0, %edx   <str:"%s">
+   43:  movl $0x400, %esi
+   48:  movq %rbp, %rdi
+   4b:  xorl %eax, %eax
+   4d:  callq snprintf+0
+   52:  movq %rbp, %rdi
+   55:  callq font_open+0
+   5a:  movq %rax, %r14
+   5d:  testq %rax, %rax
+   60:  je 0x1a3
+   66:  testl %ebx, %ebx
+   68:  js 0xe0
+   6a:  movslq %ebx, %rbp
+   6d:  movq (, %rbp, 8), %rdi   <var:fn_font+0>
+   75:  shlq $5, %rbp
+   79:  addq $0, %rbp   <var:fn_name+0>
+   80:  testq %rdi, %rdi
+   83:  je 0x8a
+   85:  callq font_close+0
+   8a:  cmpq %rbp, %r13
+   8d:  je 0xa6
+   8f:  movq %r12, %rcx
+   92:  movl $0, %edx   <str:"%s">
+   97:  movl $0x20, %esi
+   9c:  movq %rbp, %rdi
+   9f:  xorl %eax, %eax
+   a1:  callq snprintf+0
+   a6:  movslq %ebx, %rax
+   a9:  movq %r13, %rdx
+   ac:  movl %ebx, %esi
+   ae:  movl $0, %edi   <str:"x font %d %s\n">
+   b3:  movq %r14, (, %rax, 8)   <var:fn_font+0>
+   bb:  xorl %eax, %eax
+   bd:  callq out+0
+   c2:  addq $0x408, %rsp
+   c9:  movl %ebx, %eax
+   cb:  popq %rbx
+   cc:  popq %rbp
+   cd:  popq %r12
+   cf:  popq %r13
+   d1:  popq %r14
+   d3:  popq %r15
+   d5:  retq
+   d6:  nopw %cs:(%rax, %rax)
+   e0:  movl $0, %r15d   <var:fn_name+32>
+   e6:  movl $1, %ebx
+   eb:  jmp 0xfc
+   ed:  nopl (%rax)
+   f0:  addl $1, %ebx
+   f3:  addq $0x20, %r15
+   f7:  cmpl $0x20, %ebx
+   fa:  je 0x150
+   fc:  movq %r12, %rsi
+   ff:  movq %r15, %rdi
+  102:  movq %r15, %rbp
+  105:  callq strcmp+0
+  10a:  testl %eax, %eax
+  10c:  jne 0xf0
+  10e:  movslq %ebx, %rax
+  111:  movq (, %rax, 8), %rdi   <var:fn_font+0>
+  119:  jmp 0x80
+  11e:  nop
+  120:  movq %r13, %r9
+  123:  movl $0, %r8d   <var:dev_dev+0>
+  129:  movl $0, %ecx   <var:dev_dir+0>
+  12e:  xorl %eax, %eax
+  130:  movl $0, %edx   <str:"%s/dev%s/%s">
+  135:  movl $0x400, %esi
+  13a:  movq %rbp, %rdi
+  13d:  callq snprintf+0
+  142:  jmp 0x52
+  147:  nopw (%rax, %rax)
+  150:  movl $1, %eax
+  155:  jmp 0x16a
+  157:  nopw (%rax, %rax)
+  160:  addq $1, %rax
+  164:  cmpq $0x20, %rax
+  168:  je 0x190
+  16a:  cmpq $0, (, %rax, 8)   <var:fn_font+0>
+  173:  jne 0x160
+  175:  movl %eax, %ebx
+  177:  cltq
+  179:  shlq $5, %rax
+  17d:  leaq (%rax), %rbp   <var:fn_name+0>
+  184:  jmp 0x8a
+  189:  nopl (%rax)
+  190:  movq (%rip), %rdi   <var:fn_font+0>
+  197:  movl $0, %ebp   <var:fn_name+0>
+  19c:  xorl %ebx, %ebx
+  19e:  jmp 0x80
+  1a3:  movl $0xffffffff, %ebx
+  1a8:  jmp 0xc2

@@ -1,0 +1,68 @@
+# bracsign  (static, 202 bytes, 67 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movzbl (%rdi), %eax
+    e:  cmpb $0x63, %al
+   10:  je 0x70
+   12:  cmpb $0x66, %al
+   14:  jne 0x48
+   16:  callq strlen+0
+   1b:  movl $6, %edx
+   20:  movq %rbx, %rsi
+   23:  movl $0, %edi   <str:"floor">
+   28:  cmpq %rdx, %rax
+   2b:  cmovbeq %rax, %rdx
+   2f:  callq strncmp+0
+   34:  testl %eax, %eax
+   36:  je 0xb0
+   38:  addq $8, %rsp
+   3c:  movq %rbx, %rax
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  cmpb $0x3c, %al
+   4a:  je 0x60
+   4c:  cmpb $0x3e, %al
+   4e:  jne 0x38
+   50:  cmpb $0, 1(%rdi)
+   54:  jne 0x38
+   56:  movl $0, %ebx   <str:"\\(ra">
+   5b:  jmp 0x38
+   5d:  nopl (%rax)
+   60:  cmpb $0, 1(%rdi)
+   64:  jne 0x38
+   66:  movl $0, %ebx   <str:"\\(la">
+   6b:  jmp 0x38
+   6d:  nopl (%rax)
+   70:  callq strlen+0
+   75:  movl $8, %edx
+   7a:  movq %rbx, %rsi
+   7d:  movl $0, %edi   <str:"ceiling">
+   82:  cmpq %rdx, %rax
+   85:  cmovbeq %rax, %rdx
+   89:  callq strncmp+0
+   8e:  testl %eax, %eax
+   90:  jne 0x38
+   92:  testl %ebp, %ebp
+   94:  movl $0, %eax   <str:"\\(lc">
+   99:  movl $0, %ebx   <str:"\\(rc">
+   9e:  cmovneq %rax, %rbx
+   a2:  addq $8, %rsp
+   a6:  movq %rbx, %rax
+   a9:  popq %rbx
+   aa:  popq %rbp
+   ab:  retq
+   ac:  nopl (%rax)
+   b0:  testl %ebp, %ebp
+   b2:  movl $0, %eax   <str:"\\(lf">
+   b7:  movl $0, %ebx   <str:"\\(rf">
+   bc:  cmovneq %rax, %rbx
+   c0:  addq $8, %rsp
+   c4:  movq %rbx, %rax
+   c7:  popq %rbx
+   c8:  popq %rbp
+   c9:  retq

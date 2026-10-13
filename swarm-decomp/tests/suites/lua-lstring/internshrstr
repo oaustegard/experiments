@@ -1,0 +1,120 @@
+# internshrstr  (static, 403 bytes, 119 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdx, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movq %rsi, %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x18, %rsp
+   14:  movq 0x18(%rdi), %rbp
+   18:  movq %rdi, 8(%rsp)
+   1d:  movl 0x60(%rbp), %r13d
+   21:  xorl %edx, %r13d
+   24:  testq %rdx, %rdx
+   27:  je 0x51
+   29:  nopl (%rax)
+   30:  movl %r13d, %eax
+   33:  movl %r13d, %esi
+   36:  subq $1, %rdx
+   3a:  shrl $2, %esi
+   3d:  shll $5, %eax
+   40:  addl %esi, %eax
+   42:  movzbl (%r12, %rdx), %esi
+   47:  addl %esi, %eax
+   49:  xorl %eax, %r13d
+   4c:  testq %rdx, %rdx
+   4f:  jne 0x30
+   51:  movl 0x3c(%rbp), %eax
+   54:  movq 0x30(%rbp), %rdx
+   58:  movl %eax, 4(%rsp)
+   5c:  subl $1, %eax
+   5f:  andl %r13d, %eax
+   62:  cltq
+   64:  leaq (%rdx, %rax, 8), %r15
+   68:  movq (%r15), %rbx
+   6b:  testq %rbx, %rbx
+   6e:  jne 0x81
+   70:  jmp 0xb8
+   72:  nopw (%rax, %rax)
+   78:  movq 0x10(%rbx), %rbx
+   7c:  testq %rbx, %rbx
+   7f:  je 0xb8
+   81:  movzbl 0xb(%rbx), %eax
+   85:  cmpq %r14, %rax
+   88:  jne 0x78
+   8a:  leaq 0x18(%rbx), %rsi
+   8e:  movq %r14, %rdx
+   91:  movq %r12, %rdi
+   94:  callq memcmp+0
+   99:  testl %eax, %eax
+   9b:  jne 0x78
+   9d:  movzbl 0x64(%rbp), %eax
+   a1:  movzbl 9(%rbx), %edx
+   a5:  xorl $0x18, %eax
+   a8:  testb %dl, %al
+   aa:  je 0x106
+   ac:  xorl $0x18, %edx
+   af:  movb %dl, 9(%rbx)
+   b2:  jmp 0x106
+   b4:  nopl (%rax)
+   b8:  movl 0x38(%rbp), %eax
+   bb:  cmpl %eax, 4(%rsp)
+   bf:  jle 0x120
+   c1:  movq 8(%rsp), %rdi
+   c6:  leaq 0x19(%r14), %rdx
+   ca:  movl $4, %esi
+   cf:  callq luaC_newobj+0
+   d4:  movq %r14, %rdx
+   d7:  movq %r12, %rsi
+   da:  movl %r13d, 0xc(%rax)
+   de:  leaq 0x18(%rax), %rdi
+   e2:  movq %rax, %rbx
+   e5:  movb $0, 0xa(%rax)
+   e9:  movb $0, 0x18(%rax, %r14)
+   ef:  movb %r14b, 0xb(%rax)
+   f3:  callq memcpy+0
+   f8:  movq (%r15), %rax
+   fb:  movq %rax, 0x10(%rbx)
+   ff:  movq %rbx, (%r15)
+  102:  addl $1, 0x38(%rbp)
+  106:  addq $0x18, %rsp
+  10a:  movq %rbx, %rax
+  10d:  popq %rbx
+  10e:  popq %rbp
+  10f:  popq %r12
+  111:  popq %r13
+  113:  popq %r14
+  115:  popq %r15
+  117:  retq
+  118:  nopl (%rax, %rax)
+  120:  cmpl $0x7fffffff, %eax
+  125:  je 0x163
+  127:  cmpl $0x3fffffff, 4(%rsp)
+  12f:  jle 0x14a
+  131:  movl 4(%rsp), %eax
+  135:  movq 0x30(%rbp), %rdx
+  139:  subl $1, %eax
+  13c:  andl %r13d, %eax
+  13f:  cltq
+  141:  leaq (%rdx, %rax, 8), %r15
+  145:  jmp 0xc1
+  14a:  movl 4(%rsp), %esi
+  14e:  movq 8(%rsp), %rdi
+  153:  addl %esi, %esi
+  155:  callq luaS_resize+0
+  15a:  movl 0x3c(%rbp), %eax
+  15d:  movl %eax, 4(%rsp)
+  161:  jmp 0x131
+  163:  movq 8(%rsp), %rdi
+  168:  movl $1, %esi
+  16d:  callq luaC_fullgc+0
+  172:  cmpl $0x7fffffff, 0x38(%rbp)
+  179:  je 0x184
+  17b:  movl 0x3c(%rbp), %eax
+  17e:  movl %eax, 4(%rsp)
+  182:  jmp 0x127
+  184:  movq 8(%rsp), %rdi
+  189:  movl $4, %esi
+  18e:  callq luaD_throw+0

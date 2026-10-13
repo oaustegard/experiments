@@ -1,0 +1,13 @@
+# luaG_forerror  (global, 38 bytes, 12 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq luaT_objtypename+0
+   11:  movq %rbp, %rdx
+   14:  movl $0, %esi   <str:"bad 'for' %s (number expected, got %s)">
+   19:  movq %rbx, %rdi
+   1c:  movq %rax, %rcx
+   1f:  xorl %eax, %eax
+   21:  callq luaG_runerror+0

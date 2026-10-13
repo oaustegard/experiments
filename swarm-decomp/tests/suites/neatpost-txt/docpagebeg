@@ -1,0 +1,18 @@
+# docpagebeg  (global, 61 bytes, 17 instructions)
+    0:  movl (%rip), %edx   <var:p_cwd+0>
+    6:  imull (%rip), %edx   <var:p_cht+0>
+    d:  pushq %rbx
+    e:  movl %edi, %ebx
+   10:  movq (%rip), %rdi   <var:o_pg+0>
+   17:  xorl %esi, %esi
+   19:  movslq %edx, %rdx
+   1c:  callq memset+0
+   21:  cmpl $1, %ebx
+   24:  jg 0x30
+   26:  popq %rbx
+   27:  retq
+   28:  nopl (%rax, %rax)
+   30:  movl $0, %edi   <str:"\x0c\n">
+   35:  xorl %eax, %eax
+   37:  popq %rbx
+   38:  jmp out+0

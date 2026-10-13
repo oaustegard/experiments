@@ -1,0 +1,9 @@
+# docpagebeg  (global, 35 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <sbuf_make+0>
+    9:  movl $0, %esi   <str:"BT\n">
+    e:  movq %rax, (%rip)   <var:pg+0>
+   15:  movq %rax, %rdi
+   18:  addq $8, %rsp
+   1c:  xorl %eax, %eax
+   1e:  jmp sbuf_printf+0

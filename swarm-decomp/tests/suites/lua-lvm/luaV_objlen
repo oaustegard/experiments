@@ -1,0 +1,86 @@
+# luaV_objlen  (global, 264 bytes, 85 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdx, %rbx
+    f:  subq $8, %rsp
+   13:  movzbl 8(%rdx), %eax
+   17:  andl $0x3f, %eax
+   1a:  cmpb $5, %al
+   1c:  je 0x80
+   1e:  cmpb $0x14, %al
+   20:  je 0x60
+   22:  cmpb $4, %al
+   24:  je 0xb0
+   2a:  movq %rbx, %rsi
+   2d:  movl $4, %edx
+   32:  callq luaT_gettmbyobj+0
+   37:  movq %rax, %rsi
+   3a:  testb $0xf, 8(%rax)
+   3e:  je 0xf8
+   44:  addq $8, %rsp
+   48:  movq %rbp, %r8
+   4b:  movq %rbx, %rcx
+   4e:  movq %rbx, %rdx
+   51:  movq %r12, %rdi
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  popq %r12
+   58:  popq %r13
+   5a:  jmp luaT_callTMres+0
+   5f:  nop
+   60:  movq (%rdx), %rax
+   63:  movq 0x10(%rax), %rax
+   67:  movb $3, 8(%rsi)
+   6b:  movq %rax, (%rsi)
+   6e:  addq $8, %rsp
+   72:  popq %rbx
+   73:  popq %rbp
+   74:  popq %r12
+   76:  popq %r13
+   78:  retq
+   79:  nopl (%rax)
+   80:  movq (%rdx), %r13
+   83:  movq 0x28(%r13), %rdi
+   87:  testq %rdi, %rdi
+   8a:  je 0x92
+   8c:  testb $0x10, 0xa(%rdi)
+   90:  je 0xd0
+   92:  movq %r13, %rdi
+   95:  callq luaH_getn+0
+   9a:  movb $3, 8(%rbp)
+   9e:  movq %rax, (%rbp)
+   a2:  addq $8, %rsp
+   a6:  popq %rbx
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  popq %r13
+   ac:  retq
+   ad:  nopl (%rax)
+   b0:  movq (%rdx), %rax
+   b3:  movzbl 0xb(%rax), %eax
+   b7:  movb $3, 8(%rsi)
+   bb:  movq %rax, (%rsi)
+   be:  addq $8, %rsp
+   c2:  popq %rbx
+   c3:  popq %rbp
+   c4:  popq %r12
+   c6:  popq %r13
+   c8:  retq
+   c9:  nopl (%rax)
+   d0:  movq 0x18(%r12), %rax
+   d5:  movl $4, %esi
+   da:  movq 0x138(%rax), %rdx
+   e1:  callq luaT_gettm+0
+   e6:  movq %rax, %rsi
+   e9:  testq %rax, %rax
+   ec:  jne 0x44
+   f2:  jmp 0x92
+   f4:  nopl (%rax)
+   f8:  movl $0, %edx   <str:"get length of">
+   fd:  movq %rbx, %rsi
+  100:  movq %r12, %rdi
+  103:  callq luaG_typeerror+0

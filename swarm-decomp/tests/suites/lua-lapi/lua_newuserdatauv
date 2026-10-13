@@ -1,0 +1,28 @@
+# lua_newuserdatauv  (global, 88 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  callq luaS_newudata+0
+    e:  movq %rax, %rbx
+   11:  movq 0x10(%rbp), %rax
+   15:  movq %rbx, (%rax)
+   18:  addq $0x10, %rax
+   1c:  movb $0x47, -8(%rax)
+   20:  movq %rax, 0x10(%rbp)
+   24:  movq 0x18(%rbp), %rax
+   28:  cmpq $0, 0x18(%rax)
+   2d:  jle 0x37
+   2f:  movq %rbp, %rdi
+   32:  callq luaC_step+0
+   37:  movzwl 0xa(%rbx), %eax
+   3b:  movl $0x20, %edx
+   40:  testw %ax, %ax
+   43:  je 0x4d
+   45:  shlq $4, %rax
+   49:  leaq 0x28(%rax), %rdx
+   4d:  addq $8, %rsp
+   51:  leaq (%rbx, %rdx), %rax
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  retq

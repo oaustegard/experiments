@@ -1,0 +1,26 @@
+#pragma once
+static int str_byte (lua_State *L);
+static int str_char (lua_State *L);
+static int str_dump (lua_State *L);
+static int str_find (lua_State *L);
+static int str_format (lua_State *L);
+static int str_gsub (lua_State *L);
+static int str_len (lua_State *L);
+static int str_lower (lua_State *L);
+static int str_match (lua_State *L);
+static int str_pack (lua_State *L);
+static int str_packsize (lua_State *L);
+static int str_rep (lua_State *L);
+static int str_reverse (lua_State *L);
+static int str_sub (lua_State *L);
+static int str_unpack (lua_State *L);
+static int str_upper (lua_State *L);
+static int gmatch (lua_State *L);
+static int arith_add (lua_State *L);
+static int arith_sub (lua_State *L);
+static int arith_mul (lua_State *L);
+static int arith_mod (lua_State *L);
+static int arith_pow (lua_State *L);
+static int arith_div (lua_State *L);
+static int arith_idiv (lua_State *L);
+static int arith_unm (lua_State *L);

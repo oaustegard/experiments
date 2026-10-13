@@ -1,0 +1,36 @@
+# check_next2  (static, 103 bytes, 35 instructions)
+    0:  pushq %rbx
+    1:  movl (%rdi), %eax
+    3:  movq %rdi, %rbx
+    6:  movsbl (%rsi), %edx
+    9:  cmpl %edx, %eax
+    b:  je 0x20
+    d:  movsbl 1(%rsi), %ecx
+   11:  xorl %edx, %edx
+   13:  cmpl %ecx, %eax
+   15:  je 0x20
+   17:  movl %edx, %eax
+   19:  popq %rbx
+   1a:  retq
+   1b:  nopl (%rax, %rax)
+   20:  movl %eax, %esi
+   22:  movq %rbx, %rdi
+   25:  callq fn:save+0
+   2a:  movq 0x40(%rbx), %rdi
+   2e:  movq (%rdi), %rax
+   31:  leaq -1(%rax), %rdx
+   35:  movq %rdx, (%rdi)
+   38:  testq %rax, %rax
+   3b:  je 0x60
+   3d:  movq 8(%rdi), %rax
+   41:  leaq 1(%rax), %rdx
+   45:  movq %rdx, 8(%rdi)
+   49:  movzbl (%rax), %eax
+   4c:  movl $1, %edx
+   51:  movl %eax, (%rbx)
+   53:  popq %rbx
+   54:  movl %edx, %eax
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  callq luaZ_fill+0
+   65:  jmp 0x4c

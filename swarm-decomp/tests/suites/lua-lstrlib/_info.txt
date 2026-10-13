@@ -1,0 +1,121 @@
+# lua-lstrlib: translation unit lstrlib of lua
+# write each function as src/lua/lstrlib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+str_len	static	47 bytes
+unpackint	static	287 bytes
+classend	static	186 bytes
+packint	static	215 bytes
+writer	static	74 bytes
+str_upper	static	125 bytes
+str_reverse	static	114 bytes
+str_rep	static	327 bytes
+str_lower	static	125 bytes
+match_class	static	367 bytes
+matchbracketclass	static	164 bytes
+get2digits	static	49 bytes
+str_char	static	171 bytes
+checkformat	static	142 bytes
+addlenmod	static	76 bytes
+str_dump	static	137 bytes
+tonum	static	110 bytes
+arith	static	261 bytes
+arith_unm	static	15 bytes
+arith_idiv	static	15 bytes
+arith_div	static	15 bytes
+arith_pow	static	15 bytes
+arith_mod	static	15 bytes
+arith_mul	static	15 bytes
+arith_sub	static	15 bytes
+arith_add	static	12 bytes
+singlematch.part.0.isra.0	static	74 bytes
+str_format	static	2002 bytes
+getnumlimit	static	94 bytes
+getoption	static	531 bytes
+getdetails	static	277 bytes
+str_packsize	static	212 bytes
+push_onecapture	static	194 bytes
+str_sub	static	229 bytes
+gmatch	static	269 bytes
+str_byte	static	308 bytes
+match	static	1335 bytes
+str_unpack	static	1061 bytes
+gmatch_aux	static	244 bytes
+str_gsub	static	1653 bytes
+str_pack	static	1443 bytes
+str_find_aux	static	901 bytes
+str_match	static	7 bytes
+str_find	static	10 bytes
+luaopen_string	global	185 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+strlib	static	288 bytes	.rodata.strlib
+    +0     -> str:"byte"
+    +8     -> fn:str_byte+0
+    +16    -> str:"char"
+    +24    -> fn:str_char+0
+    +32    -> str:"dump"
+    +40    -> fn:str_dump+0
+    +48    -> str:"find"
+    +56    -> fn:str_find+0
+    +64    -> str:"format"
+    +72    -> fn:str_format+0
+    +80    -> str:"gmatch"
+    +88    -> fn:gmatch+0
+    +96    -> str:"gsub"
+    +104   -> fn:str_gsub+0
+    +112   -> str:"len"
+    +120   -> fn:str_len+0
+    +128   -> str:"lower"
+    +136   -> fn:str_lower+0
+    +144   -> str:"match"
+    +152   -> fn:str_match+0
+    +160   -> str:"rep"
+    +168   -> fn:str_rep+0
+    +176   -> str:"reverse"
+    +184   -> fn:str_reverse+0
+    +192   -> str:"sub"
+    +200   -> fn:str_sub+0
+    +208   -> str:"upper"
+    +216   -> fn:str_upper+0
+    +224   -> str:"pack"
+    +232   -> fn:str_pack+0
+    +240   -> str:"packsize"
+    +248   -> fn:str_packsize+0
+    +256   -> str:"unpack"
+    +264   -> fn:str_unpack+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+stringmetamethods	static	160 bytes	.rodata.stringmetamethods
+    +0     -> str:"__add"
+    +8     -> fn:arith_add+0
+    +16    -> str:"__sub"
+    +24    -> fn:arith_sub+0
+    +32    -> str:"__mul"
+    +40    -> fn:arith_mul+0
+    +48    -> str:"__mod"
+    +56    -> fn:arith_mod+0
+    +64    -> str:"__pow"
+    +72    -> fn:arith_pow+0
+    +80    -> str:"__div"
+    +88    -> fn:arith_div+0
+    +96    -> str:"__idiv"
+    +104   -> fn:arith_idiv+0
+    +112   -> str:"__unm"
+    +120   -> fn:arith_unm+0
+    +128   -> str:"__index"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc __ctype_toupper_loc localeconv luaL_addlstring luaL_addstring luaL_addvalue luaL_argerror luaL_buffinit luaL_buffinitsize luaL_checkinteger luaL_checklstring luaL_checknumber luaL_checkstack luaL_checktype luaL_checkversion_ luaL_error luaL_getmetafield luaL_optinteger luaL_optlstring luaL_prepbuffsize luaL_pushresult luaL_pushresultsize luaL_setfuncs luaL_tolstring luaL_typeerror lua_arith lua_callk lua_createtable lua_dump lua_gettable lua_gettop lua_isinteger lua_isstring lua_newuserdatauv lua_pushcclosure lua_pushinteger lua_pushlstring lua_pushnil lua_pushnumber lua_pushstring lua_pushvalue lua_rotate lua_setfield lua_setmetatable lua_settop lua_stringtonumber lua_toboolean lua_tointegerx lua_tolstring lua_tonumberx lua_topointer lua_touserdata lua_type lua_typename memchr memcmp memcpy snprintf strchr strlen strpbrk strspn

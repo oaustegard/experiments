@@ -1,0 +1,132 @@
+# pdf_find  (global, 455 bytes, 131 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movl %edx, %r13d
+    9:  pushq %r12
+    b:  movl %esi, %r12d
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x28, %rsp
+   14:  movl %ecx, 0xc(%rsp)
+   18:  callq fn:prevline.isra.0+0
+   1d:  movl %eax, %esi
+   1f:  callq fn:prevline.isra.0+0
+   24:  movl %eax, 0x1c(%rsp)
+   28:  testl %eax, %eax
+   2a:  js 0x1c0
+   30:  cltq
+   32:  movq %rdi, %rbp
+   35:  leaq 0x1c(%rsp), %rdx
+   3a:  movl $0, %esi   <str:"%d">
+   3f:  leaq (%rdi, %rax), %rdi
+   43:  xorl %eax, %eax
+   45:  callq __isoc99_sscanf+0
+   4a:  cmpl $1, %eax
+   4d:  jne 0x1c0
+   53:  movslq 0x1c(%rsp), %rax
+   58:  cmpl %eax, %r12d
+   5b:  jle 0x1c0
+   61:  testl %eax, %eax
+   63:  js 0x1c0
+   69:  movl %r12d, %edx
+   6c:  leaq (%rbp, %rax), %rdi
+   71:  movl $0xa, %esi
+   76:  subl %eax, %edx
+   78:  movslq %edx, %rdx
+   7b:  callq memchr+0
+   80:  movq %rax, %r8
+   83:  testq %rax, %rax
+   86:  je 0x1c0
+   8c:  subq %rbp, %r8
+   8f:  movl %r8d, %r14d
+   92:  addl $1, %r14d
+   96:  js 0x1c0
+   9c:  cmpl %r14d, %r12d
+   9f:  jle 0x1c0
+   a5:  movslq %r14d, %r15
+   a8:  xorl %eax, %eax
+   aa:  leaq 0x14(%rsp), %rcx
+   af:  movl $0, %esi   <str:"%d %d">
+   b4:  leaq (%rbp, %r15), %rdi
+   b9:  leaq 0x10(%rsp), %rdx
+   be:  callq __isoc99_sscanf+0
+   c3:  cmpl $2, %eax
+   c6:  jne 0x1c0
+   cc:  movl 0x14(%rsp), %eax
+   d0:  xorl %ebx, %ebx
+   d2:  testl %eax, %eax
+   d4:  jg 0xec
+   d6:  jmp 0x9c
+   d8:  nopl (%rax, %rax)
+   e0:  addl $1, %ebx
+   e3:  cmpl %ebx, 0x14(%rsp)
+   e7:  jle 0x9c
+   e9:  movslq %r15d, %r15
+   ec:  movl %r12d, %edx
+   ef:  leaq (%rbp, %r15), %rdi
+   f4:  movl $0xa, %esi
+   f9:  subl %r14d, %edx
+   fc:  movslq %edx, %rdx
+   ff:  callq memchr+0
+  104:  testq %rax, %rax
+  107:  je 0x1c0
+  10d:  subq %rbp, %rax
+  110:  leal 1(%rax), %r15d
+  114:  movl %r15d, %r14d
+  117:  testl %r15d, %r15d
+  11a:  js 0x1c0
+  120:  movl %r15d, %edi
+  123:  xorl %eax, %eax
+  125:  leaq 0x18(%rsp), %rcx
+  12a:  movl $0, %esi   <str:"%d %d">
+  12f:  addq %rbp, %rdi
+  132:  leaq 0x1c(%rsp), %rdx
+  137:  callq __isoc99_sscanf+0
+  13c:  cmpl $2, %eax
+  13f:  jne 0x1c0
+  141:  movl 0x10(%rsp), %eax
+  145:  addl %ebx, %eax
+  147:  cmpl %r13d, %eax
+  14a:  jne 0xe0
+  14c:  movl 0xc(%rsp), %eax
+  150:  cmpl %eax, 0x18(%rsp)
+  154:  jne 0xe0
+  156:  movslq 0x1c(%rsp), %rax
+  15b:  cmpl %r12d, %eax
+  15e:  jge 0x1c0
+  160:  testl %eax, %eax
+  162:  js 0x1c0
+  164:  leaq (%rbp, %rax), %rdi
+  169:  movl $0, %esi   <str:"obj">
+  16e:  callq strstr+0
+  173:  testq %rax, %rax
+  176:  je 0x1c0
+  178:  subq %rbp, %rax
+  17b:  leal 3(%rax), %ebx
+  17e:  cmpl %ebx, %r12d
+  181:  jle 0x1af
+  183:  callq __ctype_b_loc+0
+  188:  movq (%rax), %rdx
+  18b:  movslq %ebx, %rax
+  18e:  addq %rax, %rbp
+  191:  jmp 0x1a4
+  193:  nopl (%rax, %rax)
+  198:  addl $1, %ebx
+  19b:  addq $1, %rbp
+  19f:  cmpl %ebx, %r12d
+  1a2:  jle 0x1af
+  1a4:  movzbl (%rbp), %eax
+  1a8:  testb $0x20, 1(%rdx, %rax, 2)
+  1ad:  jne 0x198
+  1af:  addq $0x28, %rsp
+  1b3:  movl %ebx, %eax
+  1b5:  popq %rbx
+  1b6:  popq %rbp
+  1b7:  popq %r12
+  1b9:  popq %r13
+  1bb:  popq %r14
+  1bd:  popq %r15
+  1bf:  retq
+  1c0:  movl $0xffffffff, %ebx
+  1c5:  jmp 0x1af

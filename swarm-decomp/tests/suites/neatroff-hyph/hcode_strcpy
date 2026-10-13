@@ -1,0 +1,56 @@
+# hcode_strcpy  (static, 165 bytes, 55 instructions)
+    0:  pushq %r15
+    2:  xorl %r15d, %r15d
+    5:  pushq %r14
+    7:  movq %rdx, %r14
+    a:  pushq %r13
+    c:  movq %rsi, %r13
+    f:  pushq %r12
+   11:  movq %rdi, %r12
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  subq $0x38, %rsp
+   1a:  movl %ecx, 0xc(%rsp)
+   1e:  testl %ecx, %ecx
+   20:  je 0x28
+   22:  movb $0x2e, (%rdi)
+   25:  movl %ecx, %r15d
+   28:  xorl %ebx, %ebx
+   2a:  jmp 0x63
+   2c:  nopl (%rax)
+   30:  movl %ebx, (%r14, %rax, 4)
+   34:  leaq 0x10(%rsp), %rdi
+   39:  callq fn:hy_cget+0
+   3e:  leaq 0x10(%rsp), %rdi
+   43:  addl %eax, %ebx
+   45:  callq fn:hcode_mapchar.isra.0+0
+   4a:  leaq 0x10(%rsp), %rsi
+   4f:  movq %rbp, %rdi
+   52:  callq hy_cput+0
+   57:  addl %eax, %r15d
+   5a:  cmpl $0xdf, %r15d
+   61:  jg 0xa0
+   63:  movslq %ebx, %rsi
+   66:  movslq %r15d, %rax
+   69:  addq %r13, %rsi
+   6c:  leaq (%r12, %rax), %rbp
+   70:  cmpb $0, (%rsi)
+   73:  jne 0x30
+   75:  movl 0xc(%rsp), %edx
+   79:  testl %edx, %edx
+   7b:  je 0x89
+   7d:  leal 1(%r15), %edx
+   81:  movb $0x2e, (%r12, %rax)
+   86:  movslq %edx, %rax
+   89:  movb $0, (%r12, %rax)
+   8e:  addq $0x38, %rsp
+   92:  popq %rbx
+   93:  popq %rbp
+   94:  popq %r12
+   96:  popq %r13
+   98:  popq %r14
+   9a:  popq %r15
+   9c:  retq
+   9d:  nopl (%rax)
+   a0:  movslq %r15d, %rax
+   a3:  jmp 0x75

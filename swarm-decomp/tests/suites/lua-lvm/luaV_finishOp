@@ -1,0 +1,107 @@
+# luaV_finishOp  (global, 385 bytes, 106 instructions)
+    0:  movq 0x20(%rdi), %rdx
+    4:  movq (%rdx), %rax
+    7:  movq 0x20(%rdx), %r8
+    b:  leaq 0x10(%rax), %rsi
+    f:  movl -4(%r8), %eax
+   13:  movl %eax, %ecx
+   15:  andl $0x7f, %ecx
+   18:  cmpl $0x36, %ecx
+   1b:  je 0x12d
+   21:  ja 0xb0
+   27:  leal -0xb(%rcx), %edx
+   2a:  cmpl $0x2a, %edx
+   2d:  ja 0x135
+   33:  movabsq $0x16000000107800, %r9
+   3d:  movl $1, %edx
+   42:  shlq %cl, %rdx
+   45:  testq %r9, %rdx
+   48:  jne 0x144
+   4e:  movabsq $0x1c00000000000, %r9
+   58:  testq %r9, %rdx
+   5b:  jne 0x140
+   61:  cmpl $0x35, %ecx
+   64:  jne 0x180
+   6a:  movq 0x10(%rdi), %rdx
+   6e:  shrl $7, %eax
+   71:  movzbl %al, %eax
+   74:  leaq -0x20(%rdx), %r8
+   78:  shlq $4, %rax
+   7c:  addq %rsi, %rax
+   7f:  movq %r8, %rcx
+   82:  subq %rax, %rcx
+   85:  movq %rcx, %rax
+   88:  movq -0x10(%rdx), %rcx
+   8c:  sarq $4, %rax
+   90:  movq %rcx, -0x30(%rdx)
+   94:  movzbl -8(%rdx), %ecx
+   98:  movl %eax, %esi
+   9a:  movb %cl, -0x28(%rdx)
+   9d:  movq %r8, 0x10(%rdi)
+   a1:  cmpl $1, %eax
+   a4:  je 0x135
+   aa:  jmp fn:luaV_concat.part.0+0
+   af:  nop
+   b0:  cmpl $0x41, %ecx
+   b3:  ja 0x110
+   b5:  cmpl $0x3d, %ecx
+   b8:  ja 0xc6
+   ba:  subl $0x39, %ecx
+   bd:  cmpl $2, %ecx
+   c0:  ja 0x178
+   c6:  movq 0x10(%rdi), %rcx
+   ca:  xorl %esi, %esi
+   cc:  movzbl -8(%rcx), %r9d
+   d1:  cmpb $1, %r9b
+   d5:  je 0xe1
+   d7:  xorl %esi, %esi
+   d9:  andl $0xf, %r9d
+   dd:  setne %sil
+   e1:  subq $0x10, %rcx
+   e5:  movq %rcx, 0x10(%rdi)
+   e9:  movzwl 0x3e(%rdx), %ecx
+   ed:  testb $0x20, %ch
+   f0:  je 0xfc
+   f2:  xorb $0x20, %ch
+   f5:  xorl $1, %esi
+   f8:  movw %cx, 0x3e(%rdx)
+   fc:  shrl $0xf, %eax
+   ff:  andl $1, %eax
+  102:  cmpl %esi, %eax
+  104:  je 0x135
+  106:  leaq 4(%r8), %rax
+  10a:  movq %rax, 0x20(%rdx)
+  10e:  retq
+  10f:  nop
+  110:  cmpl $0x46, %ecx
+  113:  jne 0x170
+  115:  movslq 0x38(%rdx), %rcx
+  119:  shrl $7, %eax
+  11c:  movzbl %al, %eax
+  11f:  addq %rcx, %rax
+  122:  shlq $4, %rax
+  126:  addq %rax, %rsi
+  129:  movq %rsi, 0x10(%rdi)
+  12d:  leaq -4(%r8), %rax
+  131:  movq %rax, 0x20(%rdx)
+  135:  retq
+  136:  nopw %cs:(%rax, %rax)
+  140:  movl -8(%r8), %eax
+  144:  movq 0x10(%rdi), %rdx
+  148:  shrl $7, %eax
+  14b:  movzbl %al, %eax
+  14e:  leaq -0x10(%rdx), %rcx
+  152:  shlq $4, %rax
+  156:  movq %rcx, 0x10(%rdi)
+  15a:  movq -0x10(%rdx), %rcx
+  15e:  addq %rsi, %rax
+  161:  movq %rcx, (%rax)
+  164:  movzbl -8(%rdx), %edx
+  168:  movb %dl, 8(%rax)
+  16b:  retq
+  16c:  nopl (%rax)
+  170:  retq
+  171:  nopl (%rax)
+  178:  retq
+  179:  nopl (%rax)
+  180:  retq

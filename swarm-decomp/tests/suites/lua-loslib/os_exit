@@ -1,0 +1,40 @@
+# os_exit  (static, 129 bytes, 39 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_type+0
+   13:  cmpl $1, %eax
+   16:  je 0x50
+   18:  xorl %edx, %edx
+   1a:  movl $1, %esi
+   1f:  movq %rbx, %rdi
+   22:  callq luaL_optinteger+0
+   27:  movl %eax, %ebp
+   29:  movl $2, %esi
+   2e:  movq %rbx, %rdi
+   31:  callq lua_toboolean+0
+   36:  testl %eax, %eax
+   38:  jne 0x70
+   3a:  testq %rbx, %rbx
+   3d:  jne 0x7a
+   3f:  addq $8, %rsp
+   43:  xorl %eax, %eax
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  retq
+   48:  nopl (%rax, %rax)
+   50:  movl $1, %esi
+   55:  movq %rbx, %rdi
+   58:  xorl %ebp, %ebp
+   5a:  callq lua_toboolean+0
+   5f:  testl %eax, %eax
+   61:  sete %bpl
+   65:  jmp 0x29
+   67:  nopw (%rax, %rax)
+   70:  movq %rbx, %rdi
+   73:  callq lua_close+0
+   78:  jmp 0x3a
+   7a:  movl %ebp, %edi
+   7c:  callq exit+0

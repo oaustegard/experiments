@@ -1,0 +1,171 @@
+# escread  (global, 649 bytes, 170 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq (%rdi), %rax
+    7:  cmpb $0, (%rax)
+    a:  je 0x200
+   10:  movq $0, (%rsi)   <var:buf+0>
+   17:  movl $0, %esi   <var:buf+0>
+   1c:  movq %rdi, %rbx
+   1f:  callq utf8read+0
+   24:  movsbl (%rip), %edx   <var:buf+0>
+   2b:  cmpl (%rip), %edx   <c_ec+0>
+   31:  je 0x60
+   33:  cmpb $4, %dl
+   36:  je 0x48
+   38:  xorl %ebp, %ebp
+   3a:  movl %ebp, %eax
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  popq %r12
+   40:  retq
+   41:  nopl (%rax)
+   48:  movl $0, %esi   <var:buf+1>
+   4d:  xorl %ebp, %ebp
+   4f:  callq utf8read+0
+   54:  jmp 0x3a
+   56:  nopw %cs:(%rax, %rax)
+   60:  movl $0, %esi   <var:buf+1>
+   65:  callq utf8read+0
+   6a:  cmpb $0x28, (%rip)   <var:buf+1>
+   71:  je 0x160
+   77:  movl $0x43, %edi
+   7c:  callq nreg+0
+   81:  movsbl (%rip), %ebp   <var:buf+1>
+   88:  movl (%rax), %ecx
+   8a:  testl %ecx, %ecx
+   8c:  jne 0x98
+   8e:  cmpb $0x5b, %bpl
+   92:  je 0x190
+   98:  movl %ebp, %esi
+   9a:  movl $0, %edi   <str:"CDfhmsvXx<>">
+   9f:  callq strchr+0
+   a4:  testq %rax, %rax
+   a7:  je 0x38
+   a9:  movl %ebp, %esi
+   ab:  movl $0, %edi   <str:"*fgkmns">
+   b0:  movb $0, (%rip)   <var:buf+0>
+   b7:  callq strchr+0
+   bc:  testq %rax, %rax
+   bf:  je 0xf7
+   c1:  movq (%rbx), %r12
+   c4:  cmpb $0x28, (%r12)
+   c9:  jne 0x210
+   cf:  movzbl 1(%r12), %eax
+   d5:  movzbl 2(%r12), %edx
+   db:  movb %al, (%rip)   <var:buf+0>
+   e1:  leaq 3(%r12), %rax
+   e6:  movb %dl, (%rip)   <var:buf+1>
+   ec:  movl $0, %edx   <var:buf+2>
+   f1:  movb $0, (%rdx)
+   f4:  movq %rax, (%rbx)
+   f7:  movl %ebp, %esi
+   f9:  movl $0, %edi   <str:"bCDhHjlLNoRSvwxXZ?">
+   fe:  callq strchr+0
+  103:  testq %rax, %rax
+  106:  je 0x14c
+  108:  movq (%rbx), %rax
+  10b:  movl $0, %ecx   <var:buf+0>
+  110:  movzbl (%rax), %esi
+  113:  leaq 1(%rax), %rdx
+  117:  movzbl 1(%rax), %eax
+  11b:  testb %al, %al
+  11d:  jne 0x13d
+  11f:  jmp 0x1f0
+  124:  nopl (%rax)
+  128:  addq $1, %rdx
+  12c:  movb %al, (%rcx)
+  12e:  addq $1, %rcx
+  132:  movzbl (%rdx), %eax
+  135:  testb %al, %al
+  137:  je 0x1f0
+  13d:  cmpb %al, %sil
+  140:  jne 0x128
+  142:  addq $1, %rdx
+  146:  movb $0, (%rcx)
+  149:  movq %rdx, (%rbx)
+  14c:  cmpl $0x43, %ebp
+  14f:  jne 0x3a
+  155:  jmp 0x38
+  15a:  nopw (%rax, %rax)
+  160:  movl $0, %esi   <var:buf+0>
+  165:  xorl %ebp, %ebp
+  167:  callq utf8read+0
+  16c:  movq %rsi, %rdi
+  16f:  callq strlen+0
+  174:  movq %rbx, %rdi
+  177:  leaq (%rax), %rsi   <var:buf+0>
+  17e:  callq utf8read+0
+  183:  jmp 0x3a
+  188:  nopl (%rax, %rax)
+  190:  movq (%rbx), %rax
+  193:  movzbl (%rax), %edx
+  196:  testb %dl, %dl
+  198:  je 0x27f
+  19e:  cmpb $0x5d, %dl
+  1a1:  je 0x27f
+  1a7:  movl $0, %edx   <var:buf+0>
+  1ac:  jmp 0x1b5
+  1ae:  nop
+  1b0:  cmpb $0x5d, %cl
+  1b3:  je 0x1d0
+  1b5:  leaq 1(%rax), %rcx
+  1b9:  addq $1, %rdx
+  1bd:  movq %rcx, (%rbx)
+  1c0:  movzbl (%rax), %eax
+  1c3:  movb %al, -1(%rdx)
+  1c6:  movq (%rbx), %rax
+  1c9:  movzbl (%rax), %ecx
+  1cc:  testb %cl, %cl
+  1ce:  jne 0x1b0
+  1d0:  movb $0, (%rdx)
+  1d3:  movq (%rbx), %rax
+  1d6:  cmpb $0x5d, (%rax)
+  1d9:  jne 0x38
+  1df:  addq $1, %rax
+  1e3:  xorl %ebp, %ebp
+  1e5:  movq %rax, (%rbx)
+  1e8:  jmp 0x3a
+  1ed:  nopl (%rax)
+  1f0:  testb %sil, %sil
+  1f3:  jne 0x146
+  1f9:  jmp 0x142
+  1fe:  nop
+  200:  movl $0xffffffff, %ebp
+  205:  jmp 0x3a
+  20a:  nopw (%rax, %rax)
+  210:  movl $0x43, %edi
+  215:  callq nreg+0
+  21a:  movq %rax, %rdx
+  21d:  leaq 1(%r12), %rax
+  222:  movl (%rdx), %edx
+  224:  testl %edx, %edx
+  226:  movzbl (%r12), %edx
+  22b:  jne 0x232
+  22d:  cmpb $0x5b, %dl
+  230:  je 0x242
+  232:  movb %dl, (%rip)   <var:buf+0>
+  238:  movl $0, %edx   <var:buf+1>
+  23d:  jmp 0xf1
+  242:  movzbl 1(%r12), %ecx
+  248:  movl $0, %edx   <var:buf+0>
+  24d:  testb %cl, %cl
+  24f:  jne 0x269
+  251:  jmp 0x26e
+  253:  nopl (%rax, %rax)
+  258:  addq $1, %rax
+  25c:  movb %cl, (%rdx)
+  25e:  addq $1, %rdx
+  262:  movzbl (%rax), %ecx
+  265:  testb %cl, %cl
+  267:  je 0x26e
+  269:  cmpb $0x5d, %cl
+  26c:  jne 0x258
+  26e:  cmpb $0x5d, %cl
+  271:  sete %cl
+  274:  movzbl %cl, %ecx
+  277:  addq %rcx, %rax
+  27a:  jmp 0xf1
+  27f:  movl $0, %edx   <var:buf+0>
+  284:  jmp 0x1d0

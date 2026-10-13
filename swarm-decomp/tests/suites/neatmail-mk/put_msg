@@ -1,0 +1,103 @@
+# put_msg  (static, 366 bytes, 102 instructions)
+    0:  pushq %r15
+    2:  movq %rdi, %rax
+    5:  addq $8, %rdi
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  pushq %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  subq $0x28, %rsp
+   15:  movq 0x40(%rsi), %r15
+   19:  movq %rsi, (%rax)
+   1c:  testq %r15, %r15
+   1f:  je 0x15c
+   25:  movq 0x40(%r15), %rdx
+   29:  addq $8, %rdi
+   2d:  movq %r15, -8(%rdi)
+   31:  testq %rdx, %rdx
+   34:  je 0x14f
+   3a:  movq 0x40(%rdx), %rcx
+   3e:  addq $8, %rdi
+   42:  movq %rdx, -8(%rdi)
+   46:  testq %rcx, %rcx
+   49:  je 0x142
+   4f:  movq 0x40(%rcx), %r8
+   53:  addq $8, %rdi
+   57:  movq %rcx, -8(%rdi)
+   5b:  testq %r8, %r8
+   5e:  je 0x135
+   64:  movq 0x40(%r8), %rbx
+   68:  addq $8, %rdi
+   6c:  movq %r8, -8(%rdi)
+   70:  testq %rbx, %rbx
+   73:  je 0x128
+   79:  movq 0x40(%rbx), %r12
+   7d:  leaq 8(%rdi), %rax
+   81:  movq %rbx, (%rdi)
+   84:  movq %rax, %rdi
+   87:  testq %r12, %r12
+   8a:  je 0x11b
+   90:  movq 0x40(%r12), %r14
+   95:  leaq 8(%rax), %rdi
+   99:  movq %r12, (%rax)
+   9c:  testq %r14, %r14
+   9f:  je 0x109
+   a1:  movq 0x40(%r14), %rbp
+   a5:  movq %rdi, %rax
+   a8:  addq $8, %rdi
+   ac:  movq %r14, (%rax)
+   af:  testq %rbp, %rbp
+   b2:  je 0x100
+   b4:  movq 0x40(%rbp), %r13
+   b8:  addq $8, %rdi
+   bc:  movq %rbp, -8(%rdi)
+   c0:  testq %r13, %r13
+   c3:  je 0xf7
+   c5:  movq %r13, %rsi
+   c8:  movq %r8, 0x18(%rsp)
+   cd:  movq %rcx, 0x10(%rsp)
+   d2:  movq %rdx, 8(%rsp)
+   d7:  callq 0
+   dc:  movq 0x50(%r13), %r13
+   e0:  movq 8(%rsp), %rdx
+   e5:  movq 0x10(%rsp), %rcx
+   ea:  movq 0x18(%rsp), %r8
+   ef:  movq %rax, %rdi
+   f2:  testq %r13, %r13
+   f5:  jne 0xc5
+   f7:  movq 0x50(%rbp), %rbp
+   fb:  testq %rbp, %rbp
+   fe:  jne 0xb4
+  100:  movq 0x50(%r14), %r14
+  104:  testq %r14, %r14
+  107:  jne 0xa1
+  109:  movq 0x50(%r12), %r12
+  10e:  testq %r12, %r12
+  111:  je 0x11b
+  113:  movq %rdi, %rax
+  116:  jmp 0x90
+  11b:  movq 0x50(%rbx), %rbx
+  11f:  testq %rbx, %rbx
+  122:  jne 0x79
+  128:  movq 0x50(%r8), %r8
+  12c:  testq %r8, %r8
+  12f:  jne 0x64
+  135:  movq 0x50(%rcx), %rcx
+  139:  testq %rcx, %rcx
+  13c:  jne 0x4f
+  142:  movq 0x50(%rdx), %rdx
+  146:  testq %rdx, %rdx
+  149:  jne 0x3a
+  14f:  movq 0x50(%r15), %r15
+  153:  testq %r15, %r15
+  156:  jne 0x25
+  15c:  addq $0x28, %rsp
+  160:  movq %rdi, %rax
+  163:  popq %rbx
+  164:  popq %rbp
+  165:  popq %r12
+  167:  popq %r13
+  169:  popq %r14
+  16b:  popq %r15
+  16d:  retq

@@ -1,0 +1,47 @@
+# sbuf_add  (global, 144 bytes, 46 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movslq 0xc(%rdi), %rbp
+   14:  movl 8(%rdi), %eax
+   17:  leal 2(%rbp), %edx
+   1a:  cmpl %eax, %edx
+   1c:  jge 0x40
+   1e:  movq (%rbx), %rax
+   21:  leal 1(%rbp), %edx
+   24:  movl %edx, 0xc(%rbx)
+   27:  movb %r13b, (%rax, %rbp)
+   2b:  addq $8, %rsp
+   2f:  popq %rbx
+   30:  popq %rbp
+   31:  popq %r12
+   33:  popq %r13
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  addl %eax, %eax
+   42:  movl $1, %edx
+   47:  movq (%rdi), %r12
+   4a:  testl %eax, %eax
+   4c:  cmovlel %edx, %eax
+   4f:  addl $0x1ff, %eax
+   54:  andl $0xfffffe00, %eax
+   59:  movl %eax, 8(%rdi)
+   5c:  movslq %eax, %rdi
+   5f:  callq malloc+0
+   64:  movq %rax, (%rbx)
+   67:  testl %ebp, %ebp
+   69:  jne 0x80
+   6b:  movq %r12, %rdi
+   6e:  callq free+0
+   73:  movslq 0xc(%rbx), %rbp
+   77:  jmp 0x1e
+   79:  nopl (%rax)
+   80:  movslq %ebp, %rdx
+   83:  movq %r12, %rsi
+   86:  movq %rax, %rdi
+   89:  callq memcpy+0
+   8e:  jmp 0x6b

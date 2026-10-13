@@ -1,0 +1,6 @@
+# ren_back  (static, 24 bytes, 5 instructions)
+    0:  movslq (%rip), %rax   <var:ren_un+0>
+    7:  leal 1(%rax), %edx
+    a:  movl %edi, (, %rax, 4)   <var:ren_unbuf+0>
+   11:  movl %edx, (%rip)   <var:ren_un+0>
+   17:  retq

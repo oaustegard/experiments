@@ -1,0 +1,91 @@
+# mbox_ith  (global, 295 bytes, 90 instructions)
+    0:  pushq %r15
+    2:  xorl %eax, %eax
+    4:  pushq %r14
+    6:  movq %rdx, %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  movl %esi, %r12d
+   10:  xorl %esi, %esi
+   12:  pushq %rbp
+   13:  pushq %rbx
+   14:  subq $0xa8, %rsp
+   1b:  movq %rcx, 8(%rsp)
+   20:  callq open+0
+   25:  testl %eax, %eax
+   27:  js 0x110
+   2d:  leaq 0x10(%rsp), %rsi
+   32:  movl %eax, %edi
+   34:  movl %eax, %ebx
+   36:  callq fstat+0
+   3b:  movq 0x40(%rsp), %rbp
+   40:  leal 1(%rbp), %edi
+   43:  movslq %edi, %rdi
+   46:  callq malloc+0
+   4b:  movq %rax, %r13
+   4e:  testq %rax, %rax
+   51:  je 0x110
+   57:  movslq %ebp, %rbp
+   5a:  movq %rax, %rsi
+   5d:  movl %ebx, %edi
+   5f:  movq %rbp, %rdx
+   62:  addq %r13, %rbp
+   65:  callq xread+0
+   6a:  movb $0, (%rbp)
+   6e:  movl %ebx, %edi
+   70:  callq close+0
+   75:  movq %rbp, %rsi
+   78:  movq %r13, %rdi
+   7b:  callq fn:mbox_from_+0
+   80:  movq %rax, %rbx
+   83:  testq %rax, %rax
+   86:  je 0x110
+   8c:  testl %r12d, %r12d
+   8f:  jle 0xb5
+   91:  xorl %r15d, %r15d
+   94:  nopl (%rax)
+   98:  leaq 1(%rbx), %rdi
+   9c:  movq %rbp, %rsi
+   9f:  addl $1, %r15d
+   a3:  callq fn:mbox_from_+0
+   a8:  movq %rax, %rbx
+   ab:  testq %rax, %rax
+   ae:  je 0x110
+   b0:  cmpl %r15d, %r12d
+   b3:  jg 0x98
+   b5:  testq %rbx, %rbx
+   b8:  je 0x110
+   ba:  movq %rbp, %rsi
+   bd:  leaq 1(%rbx), %rdi
+   c1:  callq fn:mbox_from_+0
+   c6:  testq %rax, %rax
+   c9:  cmoveq %rbp, %rax
+   cd:  subq %rbx, %rax
+   d0:  leaq 1(%rax), %rdi
+   d4:  movq %rax, %rbp
+   d7:  callq malloc+0
+   dc:  movq %rax, (%r14)
+   df:  movq %rax, %rcx
+   e2:  testq %rax, %rax
+   e5:  je 0x110
+   e7:  movq 8(%rsp), %rax
+   ec:  movq %rcx, %rdi
+   ef:  movq %rbp, %rdx
+   f2:  movq %rbx, %rsi
+   f5:  movq %rbp, (%rax)
+   f8:  callq memcpy+0
+   fd:  movq %r13, %rdi
+  100:  movb $0, (%rax, %rbp)
+  104:  callq free+0
+  109:  xorl %eax, %eax
+  10b:  jmp 0x115
+  10d:  nopl (%rax)
+  110:  movl $1, %eax
+  115:  addq $0xa8, %rsp
+  11c:  popq %rbx
+  11d:  popq %rbp
+  11e:  popq %r12
+  120:  popq %r13
+  122:  popq %r14
+  124:  popq %r15
+  126:  retq

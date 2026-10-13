@@ -1,0 +1,60 @@
+# skip_sep  (static, 186 bytes, 59 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movl (%rdi), %ebp
+    6:  movq %rdi, %rbx
+    9:  movl %ebp, %esi
+    b:  callq fn:save+0
+   10:  movq 0x40(%rbx), %rdi
+   14:  movq (%rdi), %rax
+   17:  leaq -1(%rax), %rdx
+   1b:  movq %rdx, (%rdi)
+   1e:  testq %rax, %rax
+   21:  je 0xb0
+   27:  movq 8(%rdi), %rax
+   2b:  leaq 1(%rax), %rdx
+   2f:  movq %rdx, 8(%rdi)
+   33:  movzbl (%rax), %eax
+   36:  movl %eax, (%rbx)
+   38:  xorl %r12d, %r12d
+   3b:  cmpl $0x3d, %eax
+   3e:  je 0x62
+   40:  jmp 0x92
+   42:  nopw (%rax, %rax)
+   48:  movq 8(%rdi), %rax
+   4c:  addq $1, %r12
+   50:  leaq 1(%rax), %rdx
+   54:  movq %rdx, 8(%rdi)
+   58:  movzbl (%rax), %eax
+   5b:  movl %eax, (%rbx)
+   5d:  cmpl $0x3d, %eax
+   60:  jne 0x92
+   62:  movq %rbx, %rdi
+   65:  movl $0x3d, %esi
+   6a:  callq fn:save+0
+   6f:  movq 0x40(%rbx), %rdi
+   73:  movq (%rdi), %rax
+   76:  leaq -1(%rax), %rdx
+   7a:  movq %rdx, (%rdi)
+   7d:  testq %rax, %rax
+   80:  jne 0x48
+   82:  callq luaZ_fill+0
+   87:  addq $1, %r12
+   8b:  movl %eax, (%rbx)
+   8d:  cmpl $0x3d, %eax
+   90:  je 0x62
+   92:  xorl %edx, %edx
+   94:  testq %r12, %r12
+   97:  popq %rbx
+   98:  sete %dl
+   9b:  addq $2, %r12
+   9f:  cmpl %eax, %ebp
+   a1:  popq %rbp
+   a2:  cmoveq %r12, %rdx
+   a6:  popq %r12
+   a8:  movq %rdx, %rax
+   ab:  retq
+   ac:  nopl (%rax)
+   b0:  callq luaZ_fill+0
+   b5:  jmp 0x36

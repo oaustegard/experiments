@@ -1,0 +1,70 @@
+# utfchar  (static, 240 bytes, 69 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rdi, %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  subq $0x420, %rsp
+   12:  callq lua_gettop+0
+   17:  cmpl $1, %eax
+   1a:  je 0xb0
+   20:  movl %eax, %r13d
+   23:  movq %rsp, %rsi
+   26:  movq %r12, %rdi
+   29:  callq luaL_buffinit+0
+   2e:  testl %r13d, %r13d
+   31:  jle 0x74
+   33:  movl $1, %ebp
+   38:  movl $0x80000000, %r14d
+   3e:  nop
+   40:  movl %ebp, %esi
+   42:  movq %r12, %rdi
+   45:  callq luaL_checkinteger+0
+   4a:  movq %rax, %rbx
+   4d:  cmpq %r14, %rax
+   50:  jae 0x98
+   52:  movq %rbx, %rdx
+   55:  movl $0, %esi   <str:"%U">
+   5a:  movq %r12, %rdi
+   5d:  xorl %eax, %eax
+   5f:  callq lua_pushfstring+0
+   64:  addl $1, %ebp
+   67:  movq %rsp, %rdi
+   6a:  callq luaL_addvalue+0
+   6f:  cmpl %ebp, %r13d
+   72:  jge 0x40
+   74:  movq %rsp, %rdi
+   77:  callq luaL_pushresult+0
+   7c:  addq $0x420, %rsp
+   83:  movl $1, %eax
+   88:  popq %rbx
+   89:  popq %rbp
+   8a:  popq %r12
+   8c:  popq %r13
+   8e:  popq %r14
+   90:  retq
+   91:  nopl (%rax)
+   98:  movl $0, %edx   <str:"value out of range">
+   9d:  movl %ebp, %esi
+   9f:  movq %r12, %rdi
+   a2:  callq luaL_argerror+0
+   a7:  jmp 0x52
+   a9:  nopl (%rax)
+   b0:  movl $1, %esi
+   b5:  movq %r12, %rdi
+   b8:  callq luaL_checkinteger+0
+   bd:  movq %rax, %rbx
+   c0:  cmpq $0x7fffffff, %rax
+   c6:  ja 0xdc
+   c8:  movq %rbx, %rdx
+   cb:  movl $0, %esi   <str:"%U">
+   d0:  movq %r12, %rdi
+   d3:  xorl %eax, %eax
+   d5:  callq lua_pushfstring+0
+   da:  jmp 0x7c
+   dc:  movl $0, %edx   <str:"value out of range">
+   e1:  movl $1, %esi
+   e6:  movq %r12, %rdi
+   e9:  callq luaL_argerror+0
+   ee:  jmp 0xc8

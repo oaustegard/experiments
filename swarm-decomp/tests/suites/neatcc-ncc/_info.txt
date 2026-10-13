@@ -1,0 +1,131 @@
+# neatcc-ncc: translation unit ncc of neatcc
+# write each function as src/neatcc/ncc/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+type_totsz	static	119 bytes
+bt_op	static	84 bytes
+structdef	static	385 bytes
+tok_grp	static	103 bytes
+krdef	static	137 bytes
+tmp_str	static	98 bytes
+type_szde	static	105 bytes
+ts_de	static	175 bytes
+doassign	static	175 bytes
+inc_post	static	270 bytes
+ts_binop	static	239 bytes
+local_add	static	253 bytes
+global_add	static	253 bytes
+array_add	static	243 bytes
+typedefdef	static	280 bytes
+struct_find	static	336 bytes
+label_id	static	440 bytes
+ts_addop	static	536 bytes
+err	global	216 bytes
+readfield	static	334 bytes
+readpre	static	4284 bytes
+readmul	static	154 bytes
+readadd	static	106 bytes
+shift	static	229 bytes
+cmp	static	350 bytes
+readcmp	static	318 bytes
+readeq	static	274 bytes
+readxor	static	178 bytes
+readand.part.0	static	412 bytes
+readcexpr	static	1327 bytes
+readexpr	static	519 bytes
+globalinit	static	218 bytes
+readarrays	static	342 bytes
+readname	static	1988 bytes
+readdefs	static	228 bytes
+basetype	static	1554 bytes
+initsize	static	630 bytes
+initexpr.part.0	static	1262 bytes
+localinit	static	300 bytes
+opassign.isra.0	static	199 bytes
+inc_pre	static	222 bytes
+readstmt	static	3565 bytes
+readfunc.isra.0	static	361 bytes
+globaldef	static	456 bytes
+localdef	static	413 bytes
+mextend	global	110 bytes
+opt	global	12 bytes
+main	global	1526 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+arrays	static	8 bytes	.bss.arrays
+    (zero-initialised)
+structs	static	8 bytes	.bss.structs
+    (zero-initialised)
+funcs	static	8 bytes	.bss.funcs
+    (zero-initialised)
+name.0	static	128 bytes	.bss.name.0
+    (zero-initialised)
+id.1	static	4 bytes	.bss.id.1
+    (zero-initialised)
+nts	static	4 bytes	.bss.nts
+    (zero-initialised)
+ts	static	1280 bytes	.bss.ts
+    (zero-initialised)
+locals_n	static	4 bytes	.bss.locals_n
+    (zero-initialised)
+locals_sz	static	4 bytes	.bss.locals_sz
+    (zero-initialised)
+locals	static	8 bytes	.bss.locals
+    (zero-initialised)
+globals_n	static	4 bytes	.bss.globals_n
+    (zero-initialised)
+globals_sz	static	4 bytes	.bss.globals_sz
+    (zero-initialised)
+globals	static	8 bytes	.bss.globals
+    (zero-initialised)
+arrays_n	static	4 bytes	.bss.arrays_n
+    (zero-initialised)
+arrays_sz	static	4 bytes	.bss.arrays_sz
+    (zero-initialised)
+typedefs_n	static	4 bytes	.bss.typedefs_n
+    (zero-initialised)
+typedefs_sz	static	4 bytes	.bss.typedefs_sz
+    (zero-initialised)
+typedefs	static	8 bytes	.bss.typedefs
+    (zero-initialised)
+structs_n	static	4 bytes	.bss.structs_n
+    (zero-initialised)
+structs_sz	static	4 bytes	.bss.structs_sz
+    (zero-initialised)
+label_name	static	8 bytes	.bss.label_name
+    (zero-initialised)
+label_sz	static	4 bytes	.bss.label_sz
+    (zero-initialised)
+label_n	static	4 bytes	.bss.label_n
+    (zero-initialised)
+label_ids	static	8 bytes	.bss.label_ids
+    (zero-initialised)
+label	static	4 bytes	.bss.label
+    (zero-initialised)
+tok_previden	static	128 bytes	.bss.tok_previden
+    (zero-initialised)
+ncexpr	static	4 bytes	.bss.ncexpr
+    (zero-initialised)
+caseexpr	static	4 bytes	.bss.caseexpr
+    (zero-initialised)
+enums_n	static	4 bytes	.bss.enums_n
+    (zero-initialised)
+enums	static	8 bytes	.bss.enums
+    (zero-initialised)
+funcs_n	static	4 bytes	.bss.funcs_n
+    (zero-initialised)
+funcs_sz	static	4 bytes	.bss.funcs_sz
+    (zero-initialised)
+enums_sz	static	4 bytes	.bss.enums_sz
+    (zero-initialised)
+l_cont	static	4 bytes	.bss.l_cont
+    (zero-initialised)
+l_break	static	4 bytes	.bss.l_break
+    (zero-initialised)
+func_name	static	128 bytes	.bss.func_name
+    (zero-initialised)
+ncc_opt	static	4 bytes	.data.ncc_opt
+        0: 02 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc close cpp_define cpp_init cpp_loc cpp_path cpp_read die free malloc memcpy memset o_arg2loc o_assign o_back o_bop o_bsnew o_call o_cast o_deref o_dscpy o_dsnew o_dsset o_func_beg o_func_end o_jmp o_jz o_label o_local o_mark o_memcpy o_memset o_mklocal o_num o_popnum o_ret o_rmlocal o_sym o_tmpcopy o_tmpdrop o_tmpswap o_uop o_write open out_init printf putchar puts snprintf sprintf stpcpy strchr strcmp strcpy strrchr strtol tok_addr tok_done tok_get tok_jump tok_len tok_num tok_see vsprintf write

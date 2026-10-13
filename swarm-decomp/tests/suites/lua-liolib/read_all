@@ -1,0 +1,23 @@
+# read_all  (static, 88 bytes, 22 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  subq $0x420, %rsp
+    b:  movq %rsp, %rsi
+    e:  callq luaL_buffinit+0
+   13:  nopl (%rax, %rax)
+   18:  movl $0x400, %esi
+   1d:  movq %rsp, %rdi
+   20:  callq luaL_prepbuffsize+0
+   25:  movq %rbx, %rcx
+   28:  movl $0x400, %edx
+   2d:  movl $1, %esi
+   32:  movq %rax, %rdi
+   35:  callq fread+0
+   3a:  addq %rax, 0x10(%rsp)
+   3f:  cmpq $0x400, %rax
+   45:  je 0x18
+   47:  movq %rsp, %rdi
+   4a:  callq luaL_pushresult+0
+   4f:  addq $0x420, %rsp
+   56:  popq %rbx
+   57:  retq

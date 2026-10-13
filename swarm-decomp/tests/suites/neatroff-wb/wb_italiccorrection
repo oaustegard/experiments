@@ -1,0 +1,53 @@
+# wb_italiccorrection  (global, 162 bytes, 52 instructions)
+    0:  movl 0x2068(%rdi), %eax
+    6:  testl %eax, %eax
+    8:  je 0x50
+    a:  pushq %rbp
+    b:  subl $1, %eax
+    e:  pushq %rbx
+    f:  cltq
+   11:  movq %rdi, %rbx
+   14:  shlq $5, %rax
+   18:  subq $8, %rsp
+   1c:  movl 0x10(%rdi), %esi
+   1f:  leaq 0x68(%rdi, %rax), %rdi
+   24:  callq dev_glyph+0
+   29:  testq %rax, %rax
+   2c:  je 0x43
+   2e:  movswl 0x4e(%rax), %edx
+   32:  movswl 0x48(%rax), %edi
+   36:  movl %edx, %esi
+   38:  subl %edi, %edx
+   3a:  testl %edx, %edx
+   3c:  jle 0x43
+   3e:  cmpw %di, %si
+   41:  jne 0x58
+   43:  addq $8, %rsp
+   47:  popq %rbx
+   48:  popq %rbp
+   49:  retq
+   4a:  nopw (%rax, %rax)
+   50:  retq
+   51:  nopl (%rax)
+   58:  movl 0x14(%rbx), %esi
+   5b:  movq 0x40(%rax), %rdi
+   5f:  callq font_wid+0
+   64:  movl 0x2068(%rbx), %edx
+   6a:  movl %eax, %ebp
+   6c:  testl %edx, %edx
+   6e:  je 0x82
+   70:  movl 0x206c(%rbx), %eax
+   76:  testl %eax, %eax
+   78:  je 0x82
+   7a:  movq %rbx, %rdi
+   7d:  callq fn:wb_flushsub.part.0+0
+   82:  addl %ebp, 0x40(%rbx)
+   85:  movl (%rip), %edx   <c_ec+0>
+   8b:  addq $8, %rsp
+   8f:  movl %ebp, %ecx
+   91:  movq %rbx, %rdi
+   94:  movl $0, %esi   <str:"%ch'%du'">
+   99:  popq %rbx
+   9a:  xorl %eax, %eax
+   9c:  popq %rbp
+   9d:  jmp sbuf_printf+0

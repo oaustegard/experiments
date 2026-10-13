@@ -1,0 +1,31 @@
+# errorlimit  (static, 96 bytes, 30 instructions)
+    0:  pushq %r13
+    2:  movl $0, %r8d   <str:"main function">
+    8:  pushq %r12
+    a:  movl %esi, %r12d
+    d:  pushq %rbp
+    e:  movq %rdx, %rbp
+   11:  pushq %rbx
+   12:  movq %rdi, %rbx
+   15:  subq $8, %rsp
+   19:  movq 0x10(%rdi), %rax
+   1d:  movq 0x38(%rax), %r13
+   21:  movq (%rdi), %rax
+   24:  movl 0x2c(%rax), %edx
+   27:  testl %edx, %edx
+   29:  jne 0x4c
+   2b:  movl $0, %esi   <str:"too many %s (limit is %d) in %s">
+   30:  movq %r13, %rdi
+   33:  movl %r12d, %ecx
+   36:  movq %rbp, %rdx
+   39:  xorl %eax, %eax
+   3b:  callq luaO_pushfstring+0
+   40:  movq 0x10(%rbx), %rdi
+   44:  movq %rax, %rsi
+   47:  callq luaX_syntaxerror+0
+   4c:  movl $0, %esi   <str:"function at line %d">
+   51:  movq %r13, %rdi
+   54:  xorl %eax, %eax
+   56:  callq luaO_pushfstring+0
+   5b:  movq %rax, %r8
+   5e:  jmp 0x2b

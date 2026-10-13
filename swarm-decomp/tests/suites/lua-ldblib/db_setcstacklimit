@@ -1,0 +1,14 @@
+# db_setcstacklimit  (static, 42 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkinteger+0
+    e:  movq %rbx, %rdi
+   11:  movl %eax, %esi
+   13:  callq lua_setcstacklimit+0
+   18:  movq %rbx, %rdi
+   1b:  movslq %eax, %rsi
+   1e:  callq lua_pushinteger+0
+   23:  movl $1, %eax
+   28:  popq %rbx
+   29:  retq

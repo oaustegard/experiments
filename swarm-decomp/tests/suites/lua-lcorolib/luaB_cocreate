@@ -1,0 +1,23 @@
+# luaB_cocreate  (static, 76 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  movl $6, %edx
+    6:  movl $1, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_checktype+0
+   18:  movq %rbx, %rdi
+   1b:  callq lua_newthread+0
+   20:  movq %rbx, %rdi
+   23:  movl $1, %esi
+   28:  movq %rax, %rbp
+   2b:  callq lua_pushvalue+0
+   30:  movq %rbp, %rsi
+   33:  movq %rbx, %rdi
+   36:  movl $1, %edx
+   3b:  callq lua_xmove+0
+   40:  addq $8, %rsp
+   44:  movl $1, %eax
+   49:  popq %rbx
+   4a:  popq %rbp
+   4b:  retq

@@ -1,0 +1,41 @@
+# save  (static, 125 bytes, 40 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %esi, %ebp
+    5:  pushq %rbx
+    6:  movq 0x48(%rdi), %rbx
+    a:  movq 8(%rbx), %rdx
+    e:  movq 0x10(%rbx), %rax
+   12:  leaq 1(%rdx), %rcx
+   16:  cmpq %rcx, %rax
+   19:  jb 0x30
+   1b:  movq (%rbx), %rax
+   1e:  movq %rcx, 8(%rbx)
+   22:  movb %bpl, (%rax, %rdx)
+   26:  popq %rbx
+   27:  popq %rbp
+   28:  popq %r12
+   2a:  retq
+   2b:  nopl (%rax, %rax)
+   30:  movabsq $0x3ffffffffffffffe, %rdx
+   3a:  cmpq %rax, %rdx
+   3d:  jb 0x71
+   3f:  leaq (%rax, %rax), %r12
+   43:  movq (%rbx), %rsi
+   46:  movq 0x38(%rdi), %rdi
+   4a:  movq %rax, %rdx
+   4d:  movq %r12, %rcx
+   50:  callq luaM_saferealloc_+0
+   55:  movq 8(%rbx), %rdx
+   59:  movq %r12, 0x10(%rbx)
+   5d:  movq %rax, (%rbx)
+   60:  leaq 1(%rdx), %rcx
+   64:  movq %rcx, 8(%rbx)
+   68:  movb %bpl, (%rax, %rdx)
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  popq %r12
+   70:  retq
+   71:  xorl %edx, %edx
+   73:  movl $0, %esi   <str:"lexical element too long">
+   78:  callq fn:lexerror+0

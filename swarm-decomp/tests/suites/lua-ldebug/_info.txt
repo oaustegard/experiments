@@ -1,0 +1,35 @@
+# lua-ldebug: translation unit ldebug of lua
+# write each function as src/lua/ldebug/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+basicgetobjname	static	604 bytes
+getobjname	static	544 bytes
+funcnamefromcall	static	378 bytes
+varinfo	static	242 bytes
+luaG_getfuncline	global	142 bytes
+lua_sethook	global	113 bytes
+lua_gethook	global	8 bytes
+lua_gethookmask	global	7 bytes
+lua_gethookcount	global	7 bytes
+lua_getstack	global	83 bytes
+luaG_findlocal	global	234 bytes
+lua_getlocal	global	133 bytes
+lua_setlocal	global	77 bytes
+lua_getinfo	global	1039 bytes
+luaG_addinfo	global	110 bytes
+luaG_errormsg	global	96 bytes
+luaG_runerror	global	280 bytes
+luaG_typeerror	global	62 bytes
+luaG_concaterror	global	31 bytes
+luaG_opinterror	global	28 bytes
+luaG_forerror	global	38 bytes
+luaG_tointerror	global	67 bytes
+luaG_ordererror	global	84 bytes
+luaG_callerror	global	121 bytes
+luaG_tracecall	global	81 bytes
+luaG_traceexec	global	591 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_step luaD_callnoyield luaD_hook luaD_hookcall luaD_throw luaF_getlocalname luaH_new luaH_setint luaO_chunkid luaO_pushfstring luaO_pushvfstring luaP_opmodes luaT_objtypename luaV_tointegerns strchr strcmp

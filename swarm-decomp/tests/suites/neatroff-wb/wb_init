@@ -1,0 +1,16 @@
+# wb_init  (global, 60 bytes, 15 instructions)
+    0:  pushq %rbx
+    1:  movl $0x2070, %edx
+    6:  movq %rdi, %rbx
+    9:  xorl %esi, %esi
+    b:  callq memset+0
+   10:  movq %rbx, %rdi
+   13:  callq sbuf_init+0
+   18:  pcmpeqd %xmm0, %xmm0
+   1c:  movl $1, 0x206c(%rbx)
+   26:  movups %xmm0, 0x10(%rbx)
+   2a:  movups %xmm0, 0x20(%rbx)
+   2e:  movdqa (%rip), %xmm0   <cst:0000002000000020000000e0000000e0>
+   36:  movups %xmm0, 0x54(%rbx)
+   3a:  popq %rbx
+   3b:  retq

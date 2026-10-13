@@ -1,0 +1,18 @@
+# trfn_header  (global, 66 bytes, 17 instructions)
+    0:  subq $8, %rsp
+    4:  movl (%rip), %esi   <mkfn_swid+0>
+    a:  movl $0, %edi   <str:"spacewidth %d\n">
+    f:  xorl %eax, %eax
+   11:  callq printf+0
+   16:  movl (%rip), %eax   <mkfn_noligs+0>
+   1c:  testl %eax, %eax
+   1e:  je 0x28
+   20:  addq $8, %rsp
+   24:  retq
+   25:  nopl (%rax)
+   28:  movl $0, %edx   <var:mkfn_ligs2+0>
+   2d:  movl $0, %esi   <var:mkfn_ligs+0>
+   32:  xorl %eax, %eax
+   34:  addq $8, %rsp
+   38:  movl $0, %edi   <str:"ligatures %s%s0\n">
+   3d:  jmp printf+0

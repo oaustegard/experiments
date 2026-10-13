@@ -1,0 +1,71 @@
+# luaT_adjustvarargs  (global, 242 bytes, 70 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  movq %rcx, %rdx
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $8, %rsp
+   16:  movq 0x10(%rdi), %rcx
+   1a:  movq (%r12), %rdi
+   1e:  movq %rcx, %rbp
+   21:  subq %rdi, %rbp
+   24:  sarq $4, %rbp
+   28:  leal -1(%rbp), %eax
+   2b:  subl %esi, %eax
+   2d:  movl %eax, 0x2c(%r12)
+   32:  movq 0x28(%rbx), %rax
+   36:  movzbl 0xc(%rdx), %esi
+   3a:  subq %rcx, %rax
+   3d:  addl $1, %esi
+   40:  sarq $4, %rax
+   44:  movslq %esi, %rdx
+   47:  cmpq %rdx, %rax
+   4a:  jle 0xd8
+   50:  leaq 0x10(%rcx), %rax
+   54:  movq %rax, 0x10(%rbx)
+   58:  movq (%rdi), %rax
+   5b:  movq %rax, (%rcx)
+   5e:  movzbl 8(%rdi), %eax
+   62:  movb %al, 8(%rcx)
+   65:  testl %r13d, %r13d
+   68:  jle 0xa4
+   6a:  leal -1(%r13), %esi
+   6e:  leaq 0x20(%rcx), %rax
+   72:  shlq $4, %rsi
+   76:  leaq 0x18(%rdi), %rdx
+   7a:  leaq 0x30(%rcx, %rsi), %rsi
+   7f:  nop
+   80:  movq -8(%rdx), %rcx
+   84:  movq %rax, 0x10(%rbx)
+   88:  addq $0x10, %rax
+   8c:  addq $0x10, %rdx
+   90:  movq %rcx, -0x20(%rax)
+   94:  movzbl -0x10(%rdx), %ecx
+   98:  movb %cl, -0x18(%rax)
+   9b:  movb $0, -0x10(%rdx)
+   9f:  cmpq %rsi, %rax
+   a2:  jne 0x80
+   a4:  movslq %ebp, %rbp
+   a7:  movq %rdi, %xmm1
+   ac:  shlq $4, %rbp
+   b0:  movhps 8(%r12), %xmm1
+   b6:  movq %rbp, %xmm0
+   bb:  punpcklqdq %xmm0, %xmm0
+   bf:  paddq %xmm1, %xmm0
+   c3:  movups %xmm0, (%r12)
+   c8:  addq $8, %rsp
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  popq %r12
+   d0:  popq %r13
+   d2:  retq
+   d3:  nopl (%rax, %rax)
+   d8:  movq %rbx, %rdi
+   db:  movl $1, %edx
+   e0:  callq luaD_growstack+0
+   e5:  movq 0x10(%rbx), %rcx
+   e9:  movq (%r12), %rdi
+   ed:  jmp 0x50

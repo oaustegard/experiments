@@ -1,0 +1,38 @@
+# neatroff-dev: translation unit dev of neatroff
+# write each function as src/neatroff/dev/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+dev_find	static	186 bytes
+dev_mnt	global	429 bytes
+dev_open	global	866 bytes
+dev_close	global	67 bytes
+dev_glyph	global	156 bytes
+dev_pos	global	188 bytes
+dev_fontpos	global	35 bytes
+dev_font	global	19 bytes
+tr_fspecial	global	158 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+fn_font	static	256 bytes	.bss.fn_font
+    (zero-initialised)
+fn_special	static	512 bytes	.bss.fn_special
+    (zero-initialised)
+fn_name	static	1024 bytes	.bss.fn_name
+    (zero-initialised)
+dev_dev	static	1024 bytes	.bss.dev_dev
+    (zero-initialised)
+dev_dir	static	1024 bytes	.bss.dev_dir
+    (zero-initialised)
+fn_n	static	4 bytes	.bss.fn_n
+    (zero-initialised)
+dev_res	global	4 bytes	.bss.dev_res
+    (zero-initialised)
+dev_uwid	global	4 bytes	.bss.dev_uwid
+    (zero-initialised)
+dev_hor	global	4 bytes	.bss.dev_hor
+    (zero-initialised)
+dev_vert	global	4 bytes	.bss.dev_vert
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __isoc99_fscanf c_ec cmap_map errmsg fclose font_close font_find font_glyph font_open font_special fopen getc out snprintf strchr strcmp strncmp strtol

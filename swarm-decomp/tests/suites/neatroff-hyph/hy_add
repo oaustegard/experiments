@@ -1,0 +1,77 @@
+# hy_add  (static, 258 bytes, 76 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movl (%rip), %r12d   <var:hy_n+0>
+   11:  cmpl $0x3fff, %r12d
+   18:  jg 0x36
+   1a:  movl (%rip), %ebx   <var:hypats_len+0>
+   20:  movq %rdi, %rbp
+   23:  callq strlen+0
+   28:  addl $1, %eax
+   2b:  leal (%rbx, %rax), %edx
+   2e:  cmpl $0x3ffff, %edx
+   34:  jbe 0x48
+   36:  addq $8, %rsp
+   3a:  popq %rbx
+   3b:  popq %rbp
+   3c:  popq %r12
+   3e:  popq %r13
+   40:  retq
+   41:  nopl (%rax)
+   48:  movslq %ebx, %r8
+   4b:  movslq %eax, %rdx
+   4e:  xorl %esi, %esi
+   50:  leaq (%r8), %r13   <var:hypats+0>
+   57:  addq $0, %r8   <var:hynums+0>
+   5e:  movq %r8, %rdi
+   61:  callq memset+0
+   66:  leaq 1(%rbp), %rcx
+   6a:  movq %rax, %r8
+   6d:  movzbl (%rbp), %eax
+   71:  testb %al, %al
+   73:  je 0xf8
+   79:  xorl %esi, %esi
+   7b:  xorl %edi, %edi
+   7d:  jmp 0x93
+   7f:  nop
+   80:  subl $0x30, %eax
+   83:  addq $1, %rcx
+   87:  movb %al, (%r8, %rdi)
+   8b:  movzbl -1(%rcx), %eax
+   8f:  testb %al, %al
+   91:  je 0xb5
+   93:  movzbl %al, %edx
+   96:  subl $0x30, %edx
+   99:  cmpl $9, %edx
+   9c:  jbe 0x80
+   9e:  addq $1, %rcx
+   a2:  movb %al, (%r13, %rdi)
+   a7:  addl $1, %esi
+   aa:  movzbl -1(%rcx), %eax
+   ae:  movslq %esi, %rdi
+   b1:  testb %al, %al
+   b3:  jne 0x93
+   b5:  addq %r13, %rdi
+   b8:  leal 1(%rsi), %ebp
+   bb:  movb $0, (%rdi)
+   be:  movq (%rip), %rdi   <var:hypref+0>
+   c5:  movslq %r12d, %rax
+   c8:  movl %r12d, %edx
+   cb:  movq %r13, %rsi
+   ce:  movl %ebx, (, %rax, 4)   <var:hyoff+0>
+   d5:  callq pref_put+0
+   da:  addl %ebp, (%rip)   <var:hypats_len+0>
+   e0:  addl $1, (%rip)   <var:hy_n+0>
+   e7:  addq $8, %rsp
+   eb:  popq %rbx
+   ec:  popq %rbp
+   ed:  popq %r12
+   ef:  popq %r13
+   f1:  retq
+   f2:  nopw (%rax, %rax)
+   f8:  movq %r13, %rdi
+   fb:  movl $1, %ebp
+  100:  jmp 0xbb

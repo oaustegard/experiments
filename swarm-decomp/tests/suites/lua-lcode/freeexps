@@ -1,0 +1,50 @@
+# freeexps  (static, 144 bytes, 49 instructions)
+    0:  cmpl $8, (%rsi)
+    3:  movl (%rdx), %eax
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  je 0x80
+    e:  cmpl $8, %eax
+   11:  je 0x48
+   13:  movl $0xffffffff, %ebp
+   18:  movl $0xffffffff, %r12d
+   1e:  movq %rbx, %rdi
+   21:  callq luaY_nvarstack+0
+   26:  cmpl %ebp, %eax
+   28:  jg 0x2e
+   2a:  subb $1, 0x44(%rbx)
+   2e:  movq %rbx, %rdi
+   31:  callq luaY_nvarstack+0
+   36:  cmpl %r12d, %eax
+   39:  jg 0x3f
+   3b:  subb $1, 0x44(%rbx)
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  popq %r12
+   43:  retq
+   44:  nopl (%rax)
+   48:  movl $0xffffffff, %r12d
+   4e:  movl 8(%rdx), %ebp
+   51:  cmpl %r12d, %ebp
+   54:  jge 0x1e
+   56:  movq %rbx, %rdi
+   59:  callq luaY_nvarstack+0
+   5e:  cmpl %r12d, %eax
+   61:  jg 0x67
+   63:  subb $1, 0x44(%rbx)
+   67:  movq %rbx, %rdi
+   6a:  callq luaY_nvarstack+0
+   6f:  cmpl %eax, %ebp
+   71:  jge 0x3b
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  popq %r12
+   77:  retq
+   78:  nopl (%rax, %rax)
+   80:  movl 8(%rsi), %r12d
+   84:  movl $0xffffffff, %ebp
+   89:  cmpl $8, %eax
+   8c:  jne 0x51
+   8e:  jmp 0x4e

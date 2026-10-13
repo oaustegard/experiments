@@ -1,0 +1,19 @@
+# luaM_saferealloc_  (global, 53 bytes, 18 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rcx, %rbx
+    8:  subq $8, %rsp
+    c:  callq luaM_realloc_+0
+   11:  testq %rax, %rax
+   14:  jne 0x1b
+   16:  testq %rbx, %rbx
+   19:  jne 0x28
+   1b:  addq $8, %rsp
+   1f:  popq %rbx
+   20:  popq %rbp
+   21:  retq
+   22:  nopw (%rax, %rax)
+   28:  movl $4, %esi
+   2d:  movq %rbp, %rdi
+   30:  callq luaD_throw+0

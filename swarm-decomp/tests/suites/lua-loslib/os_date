@@ -1,0 +1,163 @@
+# os_date  (static, 686 bytes, 162 instructions)
+    0:  pushq %r15
+    2:  movl $1, %esi
+    7:  movl $0, %edx   <str:"%c">
+    c:  pushq %r14
+    e:  pushq %r13
+   10:  pushq %r12
+   12:  pushq %rbp
+   13:  pushq %rbx
+   14:  movq %rdi, %rbx
+   17:  subq $0x4a8, %rsp
+   1e:  leaq 0x30(%rsp), %rcx
+   23:  movq %rdi, 0x10(%rsp)
+   28:  callq luaL_optlstring+0
+   2d:  movl $2, %esi
+   32:  movq %rbx, %rdi
+   35:  movq %rax, %rbp
+   38:  callq lua_type+0
+   3d:  testl %eax, %eax
+   3f:  jle 0x250
+   45:  movq 0x10(%rsp), %rdi
+   4a:  movl $2, %esi
+   4f:  callq luaL_checkinteger+0
+   54:  movq %rax, 0x38(%rsp)
+   59:  cmpb $0x21, (%rbp)
+   5d:  leaq 0x40(%rsp), %rsi
+   62:  leaq 0x38(%rsp), %rdi
+   67:  movq 0x30(%rsp), %rbx
+   6c:  je 0x260
+   72:  callq localtime_r+0
+   77:  movq %rbp, %r12
+   7a:  movq %rax, 8(%rsp)
+   7f:  cmpq $0, 8(%rsp)
+   85:  je 0x298
+   8b:  cmpb $0x2a, (%r12)
+   90:  je 0x110
+   92:  movq 0x10(%rsp), %rdi
+   97:  leaq 0x80(%rsp), %rsi
+   9f:  movb $0x25, 0x2c(%rsp)
+   a4:  addq %rbx, %rbp
+   a7:  callq luaL_buffinit+0
+   ac:  cmpq %rbp, %r12
+   af:  jae 0xfb
+   b1:  cmpb $0x25, (%r12)
+   b6:  leaq 1(%r12), %rbx
+   bb:  je 0x180
+   c1:  movq 0x90(%rsp), %rax
+   c9:  cmpq 0x88(%rsp), %rax
+   d1:  jae 0x160
+   d7:  leaq 1(%rax), %rdx
+   db:  movq %rdx, 0x90(%rsp)
+   e3:  movq 0x80(%rsp), %rdx
+   eb:  movzbl (%r12), %ecx
+   f0:  movq %rbx, %r12
+   f3:  movb %cl, (%rdx, %rax)
+   f6:  cmpq %rbp, %r12
+   f9:  jb 0xb1
+   fb:  leaq 0x80(%rsp), %rdi
+  103:  callq luaL_pushresult+0
+  108:  jmp 0x149
+  10a:  nopw (%rax, %rax)
+  110:  cmpb $0x74, 1(%r12)
+  116:  jne 0x92
+  11c:  cmpb $0, 2(%r12)
+  122:  jne 0x92
+  128:  movq 0x10(%rsp), %rbx
+  12d:  xorl %esi, %esi
+  12f:  movl $9, %edx
+  134:  movq %rbx, %rdi
+  137:  callq lua_createtable+0
+  13c:  movq 8(%rsp), %rsi
+  141:  movq %rbx, %rdi
+  144:  callq fn:setallfields+0
+  149:  movl $1, %eax
+  14e:  addq $0x4a8, %rsp
+  155:  popq %rbx
+  156:  popq %rbp
+  157:  popq %r12
+  159:  popq %r13
+  15b:  popq %r14
+  15d:  popq %r15
+  15f:  retq
+  160:  movl $1, %esi
+  165:  leaq 0x80(%rsp), %rdi
+  16d:  callq luaL_prepbuffsize+0
+  172:  movq 0x90(%rsp), %rax
+  17a:  jmp 0xd7
+  17f:  nop
+  180:  movl $0xfa, %esi
+  185:  leaq 0x80(%rsp), %rdi
+  18d:  movq %rbp, %r12
+  190:  callq luaL_prepbuffsize+0
+  195:  subq %rbx, %r12
+  198:  movq %rax, 0x18(%rsp)
+  19d:  testq %r12, %r12
+  1a0:  jle 0x200
+  1a2:  movl $0, %r13d   <str:"aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%||EcECExEXEyEYOdOeOHOIOmOMOSOuOUOVOwOWOy">
+  1a8:  movl $1, %r14d
+  1ae:  movl $0x61, %eax
+  1b3:  jmp 0x1e2
+  1b5:  nopl (%rax)
+  1b8:  movslq %r14d, %r15
+  1bb:  movq %r13, %rsi
+  1be:  movq %rbx, %rdi
+  1c1:  movq %r15, %rdx
+  1c4:  callq memcmp+0
+  1c9:  testl %eax, %eax
+  1cb:  je 0x278
+  1d1:  addq %r15, %r13
+  1d4:  movzbl (%r13), %eax
+  1d9:  testb %al, %al
+  1db:  je 0x200
+  1dd:  cmpq %r15, %r12
+  1e0:  jl 0x200
+  1e2:  cmpb $0x7c, %al
+  1e4:  jne 0x1b8
+  1e6:  addl $1, %r14d
+  1ea:  movslq %r14d, %r15
+  1ed:  addq %r15, %r13
+  1f0:  movzbl (%r13), %eax
+  1f5:  testb %al, %al
+  1f7:  jne 0x1dd
+  1f9:  nopl (%rax)
+  200:  movq 0x10(%rsp), %r14
+  205:  movq %rbx, %rdx
+  208:  movl $0, %esi   <str:"invalid conversion specifier '%%%s'">
+  20d:  xorl %eax, %eax
+  20f:  movq %rbx, %r12
+  212:  movq %r14, %rdi
+  215:  callq lua_pushfstring+0
+  21a:  movl $1, %esi
+  21f:  movq %r14, %rdi
+  222:  movq %rax, %rdx
+  225:  callq luaL_argerror+0
+  22a:  movq 8(%rsp), %rcx
+  22f:  movq 0x18(%rsp), %rdi
+  234:  leaq 0x2c(%rsp), %rdx
+  239:  movl $0xfa, %esi
+  23e:  callq strftime+0
+  243:  addq %rax, 0x90(%rsp)
+  24b:  jmp 0xac
+  250:  xorl %edi, %edi
+  252:  callq time+0
+  257:  jmp 0x54
+  25c:  nopl (%rax)
+  260:  callq gmtime_r+0
+  265:  leaq 1(%rbp), %r12
+  269:  movq %rax, 8(%rsp)
+  26e:  jmp 0x7f
+  273:  nopl (%rax, %rax)
+  278:  movq %r15, %rdx
+  27b:  leaq 0x2d(%rsp), %rdi
+  280:  leaq (%rbx, %r15), %r12
+  284:  movq %rbx, %rsi
+  287:  callq memcpy+0
+  28c:  movb $0, 0x2d(%rsp, %r15)
+  292:  jmp 0x22a
+  294:  nopl (%rax)
+  298:  movq 0x10(%rsp), %rdi
+  29d:  movl $0, %esi   <str:"date result cannot be represented in this installation">
+  2a2:  xorl %eax, %eax
+  2a4:  callq luaL_error+0
+  2a9:  jmp 0x14e

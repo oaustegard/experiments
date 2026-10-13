@@ -1,0 +1,36 @@
+#pragma once
+#include "mkfn_scriptent.h"
+
+/* the script table, in the order mkfn_featrank searches it */
+static struct mkfn_scriptent scriptorder[] = {
+	{ "latn", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "cyrl", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "grek", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "armn", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "geor", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "runr", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "ogam", "ccmp,liga,clig,dist,kern,mark,mkmk" },
+	{ "arab", "ccmp,isol,fina,medi,init,rlig,calt,liga,dlig,cswh,mset,curs,kern,mark,mkmk" },
+	{ "bugi", "locl,ccmp,rlig,liga,clig,calt,kern,dist,mark,mkmk" },
+	{ "hang", "ccmp,ljmo,vjmo,tjmo" },
+	{ "hebr", "ccmp,dlig,kern,mark" },
+	{ "bng2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "dev2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "gjr2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "gur2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "knd2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "mlym", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "ory2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "tml2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "tml2", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "telu", "locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm" },
+	{ "java", "locl,pref,abvf,blwf,pstf,pres,abvs,blws,psts,ccmp,rlig,liga,clig,calt,kern,dist,mark,mkmk" },
+	{ "khmr", "pref,blwf,abvf,pstf,pres,blws,abvs,psts,clig,dist,blwm,abvm,mkmk" },
+	{ "lao ", "ccmp,kern,mark,mkmk" },
+	{ "mym2", "locl,rphf,pref,blwf,pstf,pres,abvs,blws,psts,kern,dist,mark,mkmk" },
+	{ "sinh", "locl,ccmp,akhn,rphf,vatu,pstf,pres,abvs,blws,psts,kern,dist,abvm,blwm" },
+	{ "syrc", "stch,ccmp,isol,fina,fin2,fin3,medi,med2,init,rlig,calt,liga,dlig,kern,mark,mkmk" },
+	{ "thaa", "kern,mark" },
+	{ "thai", "ccmp,kern,mark,mkmk" },
+	{ "tibt", "ccmp,abvs,blws,calt,liga,kern,abvm,blwm,mkmk" },
+};

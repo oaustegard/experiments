@@ -1,0 +1,13 @@
+# in_back  (global, 45 bytes, 12 instructions)
+    0:  testl %edi, %edi
+    2:  js 0x2c
+    4:  movq (%rip), %rax   <var:buf+0>
+    b:  testq %rax, %rax
+    e:  je 0x2c
+   10:  movslq 0x498(%rax), %rdx
+   17:  cmpl $0x7f, %edx
+   1a:  ja 0x2c
+   1c:  leal 1(%rdx), %ecx
+   1f:  movl %ecx, 0x498(%rax)
+   25:  movl %edi, 0x418(%rax, %rdx, 4)
+   2c:  retq

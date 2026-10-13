@@ -1,0 +1,9 @@
+# db_setupvalue  (static, 25 bytes, 8 instructions)
+    0:  pushq %rbx
+    1:  movl $3, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movq %rbx, %rdi
+   11:  xorl %esi, %esi
+   13:  popq %rbx
+   14:  jmp fn:auxupvalue+0

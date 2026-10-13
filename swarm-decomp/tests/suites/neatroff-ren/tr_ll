@@ -1,0 +1,40 @@
+# tr_ll  (global, 133 bytes, 39 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  cmpq $0, 8(%rdi)
+    b:  je 0x70
+    d:  movq %rdi, %rbx
+   10:  movl $0x6c, %edi
+   15:  callq nreg+0
+   1a:  movq 8(%rbx), %rdi
+   1e:  movl $0x6d, %edx
+   23:  movl (%rax), %esi
+   25:  callq eval_re+0
+   2a:  movl %eax, %ebx
+   2c:  movl $0x6c, %edi
+   31:  callq nreg+0
+   36:  movl $0, %edi   <str:".l0">
+   3b:  movq %rax, %rbp
+   3e:  callq map+0
+   43:  movl %eax, %edi
+   45:  callq nreg+0
+   4a:  movl (%rbp), %edx
+   4d:  movl $0x6c, %edi
+   52:  movl %edx, (%rax)
+   54:  callq nreg+0
+   59:  xorl %edx, %edx
+   5b:  testl %ebx, %ebx
+   5d:  cmovsl %edx, %ebx
+   60:  movl %ebx, (%rax)
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq
+   69:  nopl (%rax)
+   70:  movl $0, %edi   <str:".l0">
+   75:  callq map+0
+   7a:  movl %eax, %edi
+   7c:  callq nreg+0
+   81:  movl (%rax), %ebx
+   83:  jmp 0x2c

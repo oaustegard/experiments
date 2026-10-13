@@ -1,0 +1,31 @@
+# luaM_shrinkvector_  (global, 85 bytes, 30 instructions)
+    0:  pushq %r13
+    2:  movl %r8d, %r13d
+    5:  pushq %r12
+    7:  imull %ecx, %r13d
+    b:  movl %ecx, %r12d
+    e:  pushq %rbp
+    f:  movq %rdx, %rbp
+   12:  pushq %rbx
+   13:  movq %rdi, %rbx
+   16:  movslq %r13d, %r13
+   19:  movq %r13, %rcx
+   1c:  subq $8, %rsp
+   20:  imull (%rdx), %r8d
+   24:  movslq %r8d, %rdx
+   27:  callq luaM_realloc_+0
+   2c:  testq %rax, %rax
+   2f:  jne 0x36
+   31:  testq %r13, %r13
+   34:  jne 0x48
+   36:  movl %r12d, (%rbp)
+   3a:  addq $8, %rsp
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  popq %r12
+   42:  popq %r13
+   44:  retq
+   45:  nopl (%rax)
+   48:  movl $4, %esi
+   4d:  movq %rbx, %rdi
+   50:  callq luaD_throw+0

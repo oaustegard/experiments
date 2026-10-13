@@ -1,0 +1,50 @@
+# tok_macro  (global, 153 bytes, 49 instructions)
+    0:  pushq %rbp
+    1:  xorl %esi, %esi
+    3:  pushq %rbx
+    4:  subq $0x38, %rsp
+    8:  leaq 0x10(%rsp), %rdi
+    d:  callq fn:tok_preview+0
+   12:  movq %rsp, %rdi
+   15:  callq sbuf_init+0
+   1a:  callq src_next+0
+   1f:  movl %eax, %ebx
+   21:  testl %eax, %eax
+   23:  jle 0x88
+   25:  callq __ctype_b_loc+0
+   2a:  movq %rax, %rbp
+   2d:  jmp 0x3b
+   2f:  nop
+   30:  callq src_next+0
+   35:  movl %eax, %ebx
+   37:  testl %eax, %eax
+   39:  jle 0x88
+   3b:  movq (%rbp), %rdx
+   3f:  movslq %ebx, %rax
+   42:  testb $0x20, 1(%rdx, %rax, 2)
+   47:  jne 0x30
+   49:  callq src_next+0
+   4e:  movl %eax, %esi
+   50:  testl %eax, %eax
+   52:  jg 0x93
+   54:  movq %rsp, %rdi
+   57:  callq sbuf_buf+0
+   5c:  leaq 0x10(%rsp), %rdi
+   61:  movq %rax, %rsi
+   64:  callq src_define+0
+   69:  movq %rsp, %rdi
+   6c:  callq sbuf_done+0
+   71:  addq $0x38, %rsp
+   75:  popq %rbx
+   76:  popq %rbp
+   77:  retq
+   78:  nopl (%rax, %rax)
+   80:  movq %rsp, %rdi
+   83:  callq sbuf_add+0
+   88:  callq src_next+0
+   8d:  movl %eax, %esi
+   8f:  testl %eax, %eax
+   91:  jle 0x54
+   93:  cmpl %ebx, %esi
+   95:  jne 0x80
+   97:  jmp 0x54

@@ -1,0 +1,41 @@
+# box_afterput  (static, 135 bytes, 40 instructions)
+    0:  movl 0x24(%rdi), %ecx
+    3:  movl %esi, %eax
+    5:  addl $1, 0x1c(%rdi)
+    9:  movzbl %sil, %edx
+    d:  andl $0x100, %eax
+   12:  movzbl %cl, %r8d
+   16:  cmpb $0x30, %sil
+   1a:  je 0x40
+   1c:  cmpl $0x40, %edx
+   1f:  jne 0x2c
+   21:  testl %r8d, %r8d
+   24:  je 0x80
+   26:  cmpl $0x50, %r8d
+   2a:  je 0x80
+   2c:  orl %edx, %eax
+   2e:  movl 0x20(%rdi), %edx
+   31:  movl %eax, 0x24(%rdi)
+   34:  testl %edx, %edx
+   36:  jne 0x3b
+   38:  movl %eax, 0x20(%rdi)
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  cmpl $0x70, %r8d
+   44:  jg 0x2c
+   46:  testb $0xc0, %cl
+   49:  jne 0x60
+   4b:  andl $0xdf, %ecx
+   51:  movl $0x10, %ecx
+   56:  cmovel %ecx, %edx
+   59:  jmp 0x2c
+   5b:  nopl (%rax, %rax)
+   60:  movabsq $0x1000000010001, %rcx
+   6a:  subl $0x40, %r8d
+   6e:  btq %r8, %rcx
+   72:  movl $0x10, %ecx
+   77:  cmovbl %ecx, %edx
+   7a:  jmp 0x2c
+   7c:  nopl (%rax)
+   80:  movl $0x10, %edx
+   85:  jmp 0x2c

@@ -1,0 +1,176 @@
+# ren_vlcmd  (global, 650 bytes, 175 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  subq $0x38, %rsp
+   11:  movq %rsi, 8(%rsp)
+   16:  leaq 8(%rsp), %rdi
+   1b:  movl $0x76, %esi
+   20:  callq eval_up+0
+   25:  movq 8(%rsp), %rdx
+   2a:  movl %eax, %r12d
+   2d:  movsbl (%rdx), %ecx
+   30:  cmpl (%rip), %ecx   <c_ec+0>
+   36:  movl %ecx, %eax
+   38:  je 0x160
+   3e:  testb %al, %al
+   40:  je 0x70
+   42:  leaq 0x10(%rsp), %rsi
+   47:  leaq 8(%rsp), %rdi
+   4c:  callq charread+0
+   51:  testl %eax, %eax
+   53:  js 0x70
+   55:  testl %r12d, %r12d
+   58:  jne 0x84
+   5a:  addq $0x38, %rsp
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  popq %r12
+   62:  popq %r13
+   64:  popq %r14
+   66:  popq %r15
+   68:  retq
+   69:  nopl (%rax)
+   70:  movl $0x7262, %eax
+   75:  movb $0, 0x12(%rsp)
+   7a:  movw %ax, 0x10(%rsp)
+   7f:  testl %r12d, %r12d
+   82:  je 0x5a
+   84:  movl $0x73, %edi
+   89:  callq nreg+0
+   8e:  leaq 0x10(%rsp), %rdi
+   93:  movl (%rax), %eax
+   95:  imull (%rip), %eax   <dev_res+0>
+   9c:  movslq %eax, %rbp
+   9f:  sarl $0x1f, %eax
+   a2:  imulq $0x38e38e39, %rbp, %rbp
+   a9:  sarq $0x24, %rbp
+   ad:  subl %eax, %ebp
+   af:  callq fn:cwid+0
+   b4:  movl %r12d, (%rsp)
+   b8:  movl %eax, 4(%rsp)
+   bc:  testl %r12d, %r12d
+   bf:  js 0x1f0
+   c5:  testl %ebp, %ebp
+   c7:  je 0x180
+   cd:  movl (%rsp), %eax
+   d0:  cmpl %eax, %ebp
+   d2:  jle 0x210
+   d8:  sarl $1, %eax
+   da:  movq %rbx, %rdi
+   dd:  movl $1, %r13d
+   e3:  movl %eax, %esi
+   e5:  subl %ebp, %esi
+   e7:  callq wb_vmov+0
+   ec:  movl 4(%rsp), %r14d
+   f1:  xorl %r15d, %r15d
+   f4:  negl %r14d
+   f7:  nopw (%rax, %rax)
+  100:  movl %ebp, %esi
+  102:  movq %rbx, %rdi
+  105:  addl $1, %r15d
+  109:  callq wb_vmov+0
+  10e:  leaq 0x10(%rsp), %rsi
+  113:  movq %rbx, %rdi
+  116:  callq wb_putexpand+0
+  11b:  movl %r14d, %esi
+  11e:  movq %rbx, %rdi
+  121:  callq wb_hmov+0
+  126:  cmpl %r13d, %r15d
+  129:  jne 0x100
+  12b:  movl (%rsp), %eax
+  12e:  cmpl %eax, %ebp
+  130:  jg 0x1c0
+  136:  testl %r12d, %r12d
+  139:  js 0x1d8
+  13f:  movl 4(%rsp), %esi
+  143:  movq %rbx, %rdi
+  146:  callq wb_hmov+0
+  14b:  addq $0x38, %rsp
+  14f:  popq %rbx
+  150:  popq %rbp
+  151:  popq %r12
+  153:  popq %r13
+  155:  popq %r14
+  157:  popq %r15
+  159:  retq
+  15a:  nopw (%rax, %rax)
+  160:  cmpb $0x26, 1(%rdx)
+  164:  jne 0x3e
+  16a:  leaq 2(%rdx), %rax
+  16e:  movq %rax, 8(%rsp)
+  173:  movzbl 2(%rdx), %eax
+  177:  jmp 0x3e
+  17c:  nopl (%rax)
+  180:  movl (%rsp), %r14d
+  184:  xorl %r13d, %r13d
+  187:  movzbl 0x11(%rsp), %eax
+  18c:  movzbl 0x10(%rsp), %edx
+  191:  testb %al, %al
+  193:  je 0x280
+  199:  cmpb $0x62, %dl
+  19c:  je 0x238
+  1a2:  movl %r14d, %esi
+  1a5:  movq %rbx, %rdi
+  1a8:  callq wb_vmov+0
+  1ad:  testl %r13d, %r13d
+  1b0:  jg 0xec
+  1b6:  jmp 0x12b
+  1bb:  nopl (%rax, %rax)
+  1c0:  movl (%rsp), %esi
+  1c3:  movq %rbx, %rdi
+  1c6:  sarl $1, %esi
+  1c8:  callq wb_vmov+0
+  1cd:  jmp 0x136
+  1d2:  nopw (%rax, %rax)
+  1d8:  movl (%rsp), %esi
+  1db:  movq %rbx, %rdi
+  1de:  negl %esi
+  1e0:  callq wb_vmov+0
+  1e5:  jmp 0x13f
+  1ea:  nopw (%rax, %rax)
+  1f0:  movl %r12d, %esi
+  1f3:  movq %rbx, %rdi
+  1f6:  callq wb_vmov+0
+  1fb:  movl %r12d, %eax
+  1fe:  negl %eax
+  200:  movl %eax, (%rsp)
+  203:  jmp 0xc5
+  208:  nopl (%rax, %rax)
+  210:  movl (%rsp), %eax
+  213:  cltd
+  214:  idivl %ebp
+  216:  movl %eax, %r13d
+  219:  movl %edx, %r14d
+  21c:  testl %edx, %edx
+  21e:  jne 0x187
+  224:  testl %eax, %eax
+  226:  jg 0xec
+  22c:  jmp 0x136
+  231:  nopl (%rax)
+  238:  andl $0xfffffffb, %eax
+  23b:  cmpb $0x72, %al
+  23d:  jne 0x1a2
+  243:  movl %ebp, %esi
+  245:  movq %rbx, %rdi
+  248:  callq wb_vmov+0
+  24d:  leaq 0x10(%rsp), %rsi
+  252:  movq %rbx, %rdi
+  255:  callq wb_putexpand+0
+  25a:  movl 4(%rsp), %esi
+  25e:  movq %rbx, %rdi
+  261:  negl %esi
+  263:  callq wb_hmov+0
+  268:  movl %r14d, %esi
+  26b:  movq %rbx, %rdi
+  26e:  subl %ebp, %esi
+  270:  callq wb_vmov+0
+  275:  jmp 0x1ad
+  27a:  nopw (%rax, %rax)
+  280:  cmpb $0x7c, %dl
+  283:  je 0x243
+  285:  jmp 0x1a2

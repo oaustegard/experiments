@@ -1,0 +1,18 @@
+# tr_pn  (global, 57 bytes, 17 instructions)
+    0:  cmpq $0, 8(%rdi)
+    5:  je 0x38
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movl $0, %edi   <str:"%">
+   10:  callq map+0
+   15:  movl %eax, %edi
+   17:  callq nreg+0
+   1c:  movq 8(%rbx), %rdi
+   20:  xorl %edx, %edx
+   22:  movl (%rax), %esi
+   24:  callq eval_re+0
+   29:  popq %rbx
+   2a:  movl %eax, (%rip)   <var:bp_next+0>
+   30:  retq
+   31:  nopl (%rax)
+   38:  retq

@@ -1,0 +1,44 @@
+# lua-lgc: translation unit lgc of lua
+# write each function as src/lua/lgc/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+separatetobefnz	static	153 bytes
+enterinc	static	172 bytes
+freeobj	static	305 bytes
+sweep2old	static	162 bytes
+GCTM	static	311 bytes
+dothecall	static	15 bytes
+sweepstep.constprop.0	static	231 bytes
+sweepgen.isra.0	static	154 bytes
+entersweep	static	143 bytes
+correctgraylist	static	228 bytes
+finishgencycle	static	255 bytes
+atomic2gen	static	186 bytes
+genlink	static	117 bytes
+reallymarkobject	static	234 bytes
+clearbykeys	static	185 bytes
+clearbyvalues	static	321 bytes
+traverseephemeron	static	544 bytes
+propagatemark	static	2156 bytes
+convergeephemerons	static	135 bytes
+atomic	static	759 bytes
+singlestep	static	666 bytes
+entergen	static	147 bytes
+luaC_barrier_	global	98 bytes
+luaC_barrierback_	global	150 bytes
+luaC_fix	global	42 bytes
+luaC_newobjdt	global	58 bytes
+luaC_newobj	global	56 bytes
+luaC_checkfinalizer	global	466 bytes
+luaC_changemode	global	58 bytes
+luaC_freeallobjects	global	190 bytes
+luaC_runtilstate	global	56 bytes
+luaC_step	global	1409 bytes
+luaC_fullgc	global	346 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+nextage.0	static	7 bytes	.rodata.nextage.0
+        0: 01 03 03 04 04 05 06
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaD_callnoyield luaD_pcall luaD_shrinkstack luaE_freethread luaE_setdebt luaE_warnerror luaF_freeproto luaF_unlinkupval luaH_free luaH_realasize luaM_free_ luaM_malloc_ luaS_clearcache luaS_remove luaS_resize luaT_gettm luaT_gettmbyobj strchr

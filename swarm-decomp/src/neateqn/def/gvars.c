@@ -1,0 +1,36 @@
+#pragma once
+#include "gvar.h"
+#include "e_vars.h"
+
+static const struct gvar gvars[] = {
+	{ "axis_height", &e_axisheight },
+	{ "minimum_size", &e_minimumsize },
+	{ "over_hang", &e_overhang },
+	{ "null_delimiter_space", &e_nulldelim },
+	{ "script_space", &e_scriptspace },
+	{ "thin_space", &e_thinspace },
+	{ "medium_space", &e_mediumspace },
+	{ "thick_space", &e_thickspace },
+	{ "num1", &e_num1 },
+	{ "num2", &e_num2 },
+	{ "denom1", &e_denom1 },
+	{ "denom2", &e_denom2 },
+	{ "sup1", &e_sup1 },
+	{ "sup2", &e_sup2 },
+	{ "sup3", &e_sup3 },
+	{ "sub1", &e_sub1 },
+	{ "sub2", &e_sub2 },
+	{ "sup_drop", &e_supdrop },
+	{ "sub_drop", &e_subdrop },
+	{ "x_height", &e_xheight },
+	{ "default_rule_thickness", &e_rulethickness },
+	{ "big_op_spacing1", &e_bigopspacing1 },
+	{ "big_op_spacing2", &e_bigopspacing2 },
+	{ "big_op_spacing3", &e_bigopspacing3 },
+	{ "big_op_spacing4", &e_bigopspacing4 },
+	{ "big_op_spacing5", &e_bigopspacing5 },
+	{ "column_sep", &e_columnsep },
+	{ "baseline_sep", &e_baselinesep },
+	{ "body_height", &e_bodyheight },
+	{ "body_depth", &e_bodydepth },
+};

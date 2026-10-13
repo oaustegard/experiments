@@ -1,0 +1,88 @@
+# drawend  (global, 381 bytes, 87 instructions)
+    0:  pushq %r12
+    2:  movl $2, %r12d
+    8:  pushq %rbp
+    9:  movl %esi, %ebp
+    b:  pushq %rbx
+    c:  movl %edi, %ebx
+    e:  testl %esi, %esi
+   10:  je 0x1c
+   12:  movl %esi, %r12d
+   15:  andl $1, %ebp
+   18:  andl $2, %r12d
+   1c:  movl (%rip), %edi   <var:page_n+0>
+   22:  cmpl %edi, (%rip)   <var:l_page+0>
+   28:  movl (%rip), %ecx   <var:o_s+0>
+   2e:  movl (%rip), %eax   <var:pdf_linewid+0>
+   34:  jne 0x42
+   36:  cmpl %ecx, (%rip)   <var:l_size+0>
+   3c:  je 0x148
+   42:  imull %eax, %ecx
+   45:  movq (%rip), %rdi   <var:pg+0>
+   4c:  movl $0, %esi   <str:"%d.%03d w\n">
+   51:  movslq %ecx, %rdx
+   54:  movl %ecx, %eax
+   56:  imulq $0x10624dd3, %rdx, %rdx
+   5d:  sarl $0x1f, %eax
+   60:  sarq $0x26, %rdx
+   64:  subl %eax, %edx
+   66:  imull $0x3e8, %edx, %eax
+   6c:  subl %eax, %ecx
+   6e:  xorl %eax, %eax
+   70:  callq sbuf_printf+0
+   75:  movl (%rip), %ecx   <var:pdf_linejoin+0>
+   7b:  movl (%rip), %edx   <var:pdf_linecap+0>
+   81:  xorl %eax, %eax
+   83:  movq (%rip), %rdi   <var:pg+0>
+   8a:  movl $0, %esi   <str:"%d J %d j\n">
+   8f:  callq sbuf_printf+0
+   94:  movl (%rip), %eax   <var:page_n+0>
+   9a:  movl %eax, (%rip)   <var:l_page+0>
+   a0:  movl (%rip), %eax   <var:o_s+0>
+   a6:  movl %eax, (%rip)   <var:l_size+0>
+   ac:  movl (%rip), %eax   <var:pdf_linewid+0>
+   b2:  movl %eax, (%rip)   <var:l_wid+0>
+   b8:  movl (%rip), %eax   <var:pdf_linecap+0>
+   be:  movl %eax, (%rip)   <var:l_cap+0>
+   c4:  movl (%rip), %eax   <var:pdf_linejoin+0>
+   ca:  movl %eax, (%rip)   <var:l_join+0>
+   d0:  testl %r12d, %r12d
+   d3:  jne 0x108
+   d5:  movl $0, %esi   <str:"f\n">
+   da:  testl %ebp, %ebp
+   dc:  je 0x132
+   de:  movq (%rip), %rdi   <var:pg+0>
+   e5:  xorl %eax, %eax
+   e7:  callq sbuf_printf+0
+   ec:  popq %rbx
+   ed:  popq %rbp
+   ee:  movl $0, (%rip)   <var:p_v+0>
+   f8:  movl $0, (%rip)   <var:p_h+0>
+  102:  popq %r12
+  104:  retq
+  105:  nopl (%rax)
+  108:  movl (%rip), %edi   <var:o_m+0>
+  10e:  callq fn:pdfcolor+0
+  113:  movq (%rip), %rdi   <var:pg+0>
+  11a:  movl $0, %esi   <str:"%s RG\n">
+  11f:  movq %rax, %rdx
+  122:  xorl %eax, %eax
+  124:  callq sbuf_printf+0
+  129:  movl $0, %esi   <str:"b\n">
+  12e:  testl %ebp, %ebp
+  130:  jne 0xde
+  132:  testl %ebx, %ebx
+  134:  movl $0, %esi   <str:"S\n">
+  139:  movl $0, %eax   <str:"s\n">
+  13e:  cmovneq %rax, %rsi
+  142:  jmp 0xde
+  144:  nopl (%rax)
+  148:  cmpl %eax, (%rip)   <var:l_wid+0>
+  14e:  jne 0x42
+  154:  movl (%rip), %edi   <var:pdf_linecap+0>
+  15a:  cmpl %edi, (%rip)   <var:l_cap+0>
+  160:  jne 0x42
+  166:  movl (%rip), %edi   <var:pdf_linejoin+0>
+  16c:  cmpl %edi, (%rip)   <var:l_join+0>
+  172:  jne 0x42
+  178:  jmp 0xd0

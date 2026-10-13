@@ -1,0 +1,33 @@
+# luaL_optnumber  (global, 111 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x28, %rsp
+    b:  movsd %xmm0, 8(%rsp)
+   11:  callq lua_type+0
+   16:  movsd 8(%rsp), %xmm0
+   1c:  testl %eax, %eax
+   1e:  jg 0x30
+   20:  addq $0x28, %rsp
+   24:  popq %rbx
+   25:  popq %rbp
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  leaq 0x1c(%rsp), %rdx
+   35:  movl %ebp, %esi
+   37:  movq %rbx, %rdi
+   3a:  callq lua_tonumberx+0
+   3f:  movl 0x1c(%rsp), %eax
+   43:  testl %eax, %eax
+   45:  jne 0x20
+   47:  movl $3, %esi
+   4c:  movq %rbx, %rdi
+   4f:  movsd %xmm0, 8(%rsp)
+   55:  callq lua_typename+0
+   5a:  movl %ebp, %esi
+   5c:  movq %rbx, %rdi
+   5f:  movq %rax, %rdx
+   62:  callq luaL_typeerror+0
+   67:  movsd 8(%rsp), %xmm0
+   6d:  jmp 0x20

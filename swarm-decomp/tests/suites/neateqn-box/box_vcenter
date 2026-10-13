@@ -1,0 +1,85 @@
+# box_vcenter  (global, 306 bytes, 84 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rsi, %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $0x28, %rsp
+   14:  callq nregmk+0
+   19:  movl %eax, %r15d
+   1c:  callq nregmk+0
+   21:  movl %eax, %r14d
+   24:  callq nregmk+0
+   29:  movl %eax, %r13d
+   2c:  callq nregmk+0
+   31:  movl 0x20(%r12), %esi
+   36:  xorl %edx, %edx
+   38:  movq %rbx, %rdi
+   3b:  movl %eax, %ebp
+   3d:  callq fn:box_beforeput+0
+   42:  movq %r12, %rdi
+   45:  callq box_toreg+0
+   4a:  movl %r13d, %ecx
+   4d:  movl %r14d, %edx
+   50:  movl %r15d, %esi
+   53:  movq %rax, %rdi
+   56:  callq fn:tok_dim+0
+   5b:  movl (%rip), %r9d   <e_axisheight+0>
+   62:  movl 0x10(%rbx), %edi
+   65:  movl %r9d, 0x1c(%rsp)
+   6a:  callq nreg+0
+   6f:  movl %r14d, %edi
+   72:  movq %rax, 0x10(%rsp)
+   77:  callq nreg+0
+   7c:  movl %r13d, %edi
+   7f:  movq %rax, 8(%rsp)
+   84:  callq nreg+0
+   89:  movl %ebp, %edi
+   8b:  movq %rax, (%rsp)
+   8f:  callq nregname+0
+   94:  movl 0x1c(%rsp), %r9d
+   99:  movq 0x10(%rsp), %r8
+   9e:  movl $0, %edi   <str:".nr %s 0-%s+%s/2-(%sp*%du/100u)\n">
+   a3:  movq 8(%rsp), %rcx
+   a8:  movq (%rsp), %rdx
+   ac:  movq %rax, %rsi
+   af:  xorl %eax, %eax
+   b1:  callq printf+0
+   b6:  movl %ebp, %edi
+   b8:  callq nreg+0
+   bd:  movq %r12, %rdi
+   c0:  movq %rax, 8(%rsp)
+   c5:  callq box_toreg+0
+   ca:  movl %ebp, %edi
+   cc:  movq %rax, (%rsp)
+   d0:  callq nreg+0
+   d5:  movq 8(%rsp), %r8
+   da:  movq (%rsp), %rcx
+   de:  movq %rbx, %rdi
+   e1:  movq %rax, %rdx
+   e4:  movl $0, %esi   <str:"\\v'%su'%s\\v'-%su'">
+   e9:  xorl %eax, %eax
+   eb:  callq box_putf+0
+   f0:  movq %rbx, %rdi
+   f3:  callq box_toreg+0
+   f8:  movl 0x24(%r12), %esi
+   fd:  movq %rbx, %rdi
+  100:  callq fn:box_afterput+0
+  105:  movl %r15d, %edi
+  108:  callq nregrm+0
+  10d:  movl %r14d, %edi
+  110:  callq nregrm+0
+  115:  movl %r13d, %edi
+  118:  callq nregrm+0
+  11d:  addq $0x28, %rsp
+  121:  movl %ebp, %edi
+  123:  popq %rbx
+  124:  popq %rbp
+  125:  popq %r12
+  127:  popq %r13
+  129:  popq %r14
+  12b:  popq %r15
+  12d:  jmp nregrm+0

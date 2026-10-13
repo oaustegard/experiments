@@ -1,0 +1,81 @@
+# io_open  (static, 275 bytes, 80 instructions)
+    0:  pushq %r15
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  pushq %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $8, %rsp
+   18:  callq luaL_checklstring+0
+   1d:  xorl %ecx, %ecx
+   1f:  movl $0, %edx   <str:"r">
+   24:  movq %rbx, %rdi
+   27:  movl $2, %esi
+   2c:  movq %rax, %r13
+   2f:  callq luaL_optlstring+0
+   34:  xorl %edx, %edx
+   36:  movl $0x10, %esi
+   3b:  movq %rbx, %rdi
+   3e:  movq %rax, %r12
+   41:  callq lua_newuserdatauv+0
+   46:  movl $0, %esi   <str:"FILE*">
+   4b:  movq %rbx, %rdi
+   4e:  movq $0, 8(%rax)
+   56:  movq %rax, %rbp
+   59:  callq luaL_setmetatable+0
+   5e:  movq $0, (%rbp)
+   66:  movq $0, 8(%rbp)   <fn:io_fclose+0>
+   6e:  movsbl (%r12), %esi
+   73:  testb %sil, %sil
+   76:  je 0xb6
+   78:  movl $0, %edi   <str:"rwa">
+   7d:  callq strchr+0
+   82:  testq %rax, %rax
+   85:  je 0xb6
+   87:  cmpb $0x2b, 1(%r12)
+   8d:  leaq 2(%r12), %r15
+   92:  je 0x99
+   94:  leaq 1(%r12), %r15
+   99:  movq %r15, %rdi
+   9c:  movl $0, %esi   <str:"b">
+   a1:  callq strspn+0
+   a6:  movq %r15, %rdi
+   a9:  movq %rax, %r14
+   ac:  callq strlen+0
+   b1:  cmpq %rax, %r14
+   b4:  je 0xc8
+   b6:  movl $0, %edx   <str:"invalid mode">
+   bb:  movl $2, %esi
+   c0:  movq %rbx, %rdi
+   c3:  callq luaL_argerror+0
+   c8:  callq __errno_location+0
+   cd:  movq %r12, %rsi
+   d0:  movq %r13, %rdi
+   d3:  movl $0, (%rax)
+   d9:  callq fopen64+0
+   de:  movq %rax, (%rbp)
+   e2:  testq %rax, %rax
+   e5:  je 0xfb
+   e7:  addq $8, %rsp
+   eb:  movl $1, %eax
+   f0:  popq %rbx
+   f1:  popq %rbp
+   f2:  popq %r12
+   f4:  popq %r13
+   f6:  popq %r14
+   f8:  popq %r15
+   fa:  retq
+   fb:  popq %rax
+   fc:  movq %r13, %rdx
+   ff:  movq %rbx, %rdi
+  102:  xorl %esi, %esi
+  104:  popq %rbx
+  105:  popq %rbp
+  106:  popq %r12
+  108:  popq %r13
+  10a:  popq %r14
+  10c:  popq %r15
+  10e:  jmp luaL_fileresult+0

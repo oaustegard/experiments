@@ -1,0 +1,116 @@
+# suffixedexp  (static, 440 bytes, 115 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rsi, %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $0x28, %rsp
+   10:  movl 0x10(%rdi), %eax
+   13:  movq 0x30(%rdi), %r12
+   17:  cmpl $0x28, %eax
+   1a:  je 0x158
+   20:  cmpl $0x123, %eax
+   25:  jne 0x194
+   2b:  callq fn:singlevar+0
+   30:  movl 0x10(%rbx), %eax
+   33:  cmpl $0x3a, %eax
+   36:  je 0x7e
+   38:  jle 0xd8
+   3e:  cmpl $0x5b, %eax
+   41:  je 0x108
+   47:  cmpl $0x5a, %eax
+   4a:  jle 0xf8
+   50:  cmpl $0x7b, %eax
+   53:  je 0x60
+   55:  cmpl $0x124, %eax
+   5a:  jne 0xf8
+   60:  movq %rbp, %rsi
+   63:  movq %r12, %rdi
+   66:  callq luaK_exp2nextreg+0
+   6b:  movq %rbp, %rsi
+   6e:  movq %rbx, %rdi
+   71:  callq fn:funcargs+0
+   76:  movl 0x10(%rbx), %eax
+   79:  cmpl $0x3a, %eax
+   7c:  jne 0x38
+   7e:  movq %rbx, %rdi
+   81:  callq luaX_next+0
+   86:  cmpl $0x123, 0x10(%rbx)
+   8d:  jne 0x1ab
+   93:  movq 0x18(%rbx), %r13
+   97:  movq %rbx, %rdi
+   9a:  callq luaX_next+0
+   9f:  movq %rbp, %rsi
+   a2:  movq %r12, %rdi
+   a5:  movq %rsp, %rdx
+   a8:  movq $18446744073709551615, 0x10(%rsp)
+   b1:  movl $7, (%rsp)
+   b8:  movq %r13, 8(%rsp)
+   bd:  callq luaK_self+0
+   c2:  movq %rbp, %rsi
+   c5:  movq %rbx, %rdi
+   c8:  callq fn:funcargs+0
+   cd:  jmp 0x30
+   d2:  nopw (%rax, %rax)
+   d8:  cmpl $0x28, %eax
+   db:  je 0x60
+   dd:  cmpl $0x2e, %eax
+   e0:  jne 0xf8
+   e2:  movq %rbp, %rsi
+   e5:  movq %rbx, %rdi
+   e8:  callq fn:fieldsel+0
+   ed:  jmp 0x30
+   f2:  nopw (%rax, %rax)
+   f8:  addq $0x28, %rsp
+   fc:  popq %rbx
+   fd:  popq %rbp
+   fe:  popq %r12
+  100:  popq %r13
+  102:  retq
+  103:  nopl (%rax, %rax)
+  108:  movq %rbp, %rsi
+  10b:  movq %r12, %rdi
+  10e:  callq luaK_exp2anyregup+0
+  113:  movq %rbx, %rdi
+  116:  callq luaX_next+0
+  11b:  xorl %edx, %edx
+  11d:  movq %rsp, %rsi
+  120:  movq %rbx, %rdi
+  123:  callq fn:subexpr+0
+  128:  movq 0x30(%rbx), %rdi
+  12c:  movq %rsp, %rsi
+  12f:  callq luaK_exp2val+0
+  134:  cmpl $0x5d, 0x10(%rbx)
+  138:  jne 0x19e
+  13a:  movq %rbx, %rdi
+  13d:  callq luaX_next+0
+  142:  movq %rsp, %rdx
+  145:  movq %rbp, %rsi
+  148:  movq %r12, %rdi
+  14b:  callq luaK_indexed+0
+  150:  jmp 0x30
+  155:  nopl (%rax)
+  158:  movl 4(%rdi), %r13d
+  15c:  callq luaX_next+0
+  161:  xorl %edx, %edx
+  163:  movq %rbp, %rsi
+  166:  movq %rbx, %rdi
+  169:  callq fn:subexpr+0
+  16e:  movq %rbx, %rdi
+  171:  movl %r13d, %ecx
+  174:  movl $0x28, %edx
+  179:  movl $0x29, %esi
+  17e:  callq fn:check_match+0
+  183:  movq 0x30(%rbx), %rdi
+  187:  movq %rbp, %rsi
+  18a:  callq luaK_dischargevars+0
+  18f:  jmp 0x30
+  194:  movl $0, %esi   <str:"unexpected symbol">
+  199:  callq luaX_syntaxerror+0
+  19e:  movl $0x5d, %esi
+  1a3:  movq %rbx, %rdi
+  1a6:  callq fn:error_expected+0
+  1ab:  movl $0x123, %esi
+  1b0:  movq %rbx, %rdi
+  1b3:  callq fn:error_expected+0

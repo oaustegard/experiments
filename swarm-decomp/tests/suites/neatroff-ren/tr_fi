@@ -1,0 +1,14 @@
+# tr_fi  (global, 55 bytes, 13 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rdi), %rax
+    7:  movsbl (%rax), %eax
+    a:  cmpl (%rip), %eax   <c_cc+0>
+   10:  je 0x30
+   12:  movl $0x75, %edi
+   17:  callq nreg+0
+   1c:  movl $1, (%rax)
+   22:  addq $8, %rsp
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  callq fn:ren_br+0
+   35:  jmp 0x12

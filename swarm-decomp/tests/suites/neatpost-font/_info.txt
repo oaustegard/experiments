@@ -1,0 +1,22 @@
+# neatpost-font: translation unit font of neatpost
+# write each function as src/neatpost/font/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+tilleol	static	99 bytes
+font_readchar	static	511 bytes
+font_find	global	87 bytes
+font_glyph	global	48 bytes
+font_open	global	742 bytes
+font_close	global	61 bytes
+font_wid	global	24 bytes
+font_swid	global	28 bytes
+font_name	global	19 bytes
+font_path	global	8 bytes
+font_glnum	global	18 bytes
+font_glget	global	37 bytes
+font_desc	global	5 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__isoc99_fscanf __isoc99_sscanf calloc dev_uwid dict_free dict_get dict_make dict_put fclose fgetc fopen free getc mextend snprintf sprintf ungetc

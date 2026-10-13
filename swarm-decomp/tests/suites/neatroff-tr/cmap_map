@@ -1,0 +1,14 @@
+# cmap_map  (global, 42 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rsi
+    4:  movq %rdi, %rbx
+    7:  movq (%rip), %rdi   <var:cmap+0>
+    e:  callq dict_get+0
+   13:  movslq %eax, %rdx
+   16:  movq %rbx, %rax
+   19:  testl %edx, %edx
+   1b:  js 0x28
+   1d:  shlq $5, %rdx
+   21:  leaq (%rdx), %rax   <var:cmap_dst+0>
+   28:  popq %rbx
+   29:  retq

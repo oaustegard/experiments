@@ -1,0 +1,89 @@
+# luaK_storevar  (global, 315 bytes, 88 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdx, %r12
+    7:  pushq %rbp
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  movl (%rsi), %eax
+   12:  subl $9, %eax
+   15:  cmpl $6, %eax
+   18:  ja 0x50
+   1a:  movq %rsi, %rbx
+   1d:  jmpq *(, %rax, 8)   <var:luaK_storevar+0>
+   24:  nopl (%rax)
+   28:  movq %rdx, %rsi
+   2b:  callq luaK_exp2anyreg+0
+   30:  movl 8(%rbx), %esi
+   33:  movq %rbp, %rdi
+   36:  shll $7, %eax
+   39:  shll $0x10, %esi
+   3c:  orl %eax, %esi
+   3e:  orl $0xa, %esi
+   41:  callq luaK_code+0
+   46:  nopw %cs:(%rax, %rax)
+   50:  cmpl $8, (%r12)
+   55:  je 0x88
+   57:  addq $8, %rsp
+   5b:  popq %rbx
+   5c:  popq %rbp
+   5d:  popq %r12
+   5f:  popq %r13
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movswl 8(%rsi), %ecx
+   6c:  movzbl 0xa(%rsi), %edx
+   70:  movq %r12, %r8
+   73:  movl $0x12, %esi
+   78:  callq fn:codeABRK+0
+   7d:  cmpl $8, (%r12)
+   82:  jne 0x57
+   84:  nopl (%rax)
+   88:  movl 8(%r12), %ebx
+   8d:  movq %rbp, %rdi
+   90:  callq luaY_nvarstack+0
+   95:  cmpl %eax, %ebx
+   97:  jl 0x57
+   99:  subb $1, 0x44(%rbp)
+   9d:  jmp 0x57
+   9f:  nop
+   a0:  cmpl $8, (%rdx)
+   a3:  je 0x120
+   a5:  movzbl 8(%rbx), %edx
+   a9:  addq $8, %rsp
+   ad:  movq %r12, %rsi
+   b0:  movq %rbp, %rdi
+   b3:  popq %rbx
+   b4:  popq %rbp
+   b5:  popq %r12
+   b7:  popq %r13
+   b9:  jmp fn:exp2reg+0
+   be:  nop
+   c0:  movswl 8(%rsi), %ecx
+   c4:  movzbl 0xa(%rsi), %edx
+   c8:  movq %r12, %r8
+   cb:  movl $0x10, %esi
+   d0:  callq fn:codeABRK+0
+   d5:  jmp 0x50
+   da:  nopw (%rax, %rax)
+   e0:  movswl 8(%rsi), %ecx
+   e4:  movzbl 0xa(%rsi), %edx
+   e8:  movq %r12, %r8
+   eb:  movl $0xf, %esi
+   f0:  callq fn:codeABRK+0
+   f5:  jmp 0x50
+   fa:  nopw (%rax, %rax)
+  100:  movswl 8(%rsi), %ecx
+  104:  movzbl 0xa(%rsi), %edx
+  108:  movq %r12, %r8
+  10b:  movl $0x11, %esi
+  110:  callq fn:codeABRK+0
+  115:  jmp 0x50
+  11a:  nopw (%rax, %rax)
+  120:  movl 8(%rdx), %r13d
+  124:  callq luaY_nvarstack+0
+  129:  cmpl %eax, %r13d
+  12c:  jl 0xa5
+  132:  subb $1, 0x44(%rbp)
+  136:  jmp 0xa5

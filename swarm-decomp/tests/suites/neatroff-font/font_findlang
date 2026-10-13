@@ -1,0 +1,46 @@
+# font_findlang  (static, 130 bytes, 45 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rsi, %r12
+    a:  pushq %rbp
+    b:  xorl %ebp, %ebp
+    d:  pushq %rbx
+    e:  leaq 0x894(%rdi), %rbx
+   15:  subq $8, %rsp
+   19:  jmp 0x3b
+   1b:  nopl (%rax, %rax)
+   20:  movq %rbx, %rsi
+   23:  movq %r12, %rdi
+   26:  callq strcmp+0
+   2b:  testl %eax, %eax
+   2d:  je 0x5f
+   2f:  addl $1, %ebp
+   32:  addq $8, %rbx
+   36:  cmpl $0x40, %ebp
+   39:  je 0x70
+   3b:  cmpb $0, (%rbx)
+   3e:  jne 0x20
+   40:  movslq %ebp, %rax
+   43:  movq %r12, %rcx
+   46:  movl $0, %edx   <str:"%s">
+   4b:  movl $8, %esi
+   50:  leaq 0x894(%r13, %rax, 8), %rdi
+   58:  xorl %eax, %eax
+   5a:  callq snprintf+0
+   5f:  addq $8, %rsp
+   63:  movl %ebp, %eax
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  popq %r12
+   69:  popq %r13
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  addq $8, %rsp
+   74:  movl $0xffffffff, %ebp
+   79:  popq %rbx
+   7a:  movl %ebp, %eax
+   7c:  popq %rbp
+   7d:  popq %r12
+   7f:  popq %r13
+   81:  retq

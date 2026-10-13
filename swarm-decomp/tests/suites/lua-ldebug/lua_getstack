@@ -1,0 +1,29 @@
+# lua_getstack  (global, 83 bytes, 28 instructions)
+    0:  xorl %ecx, %ecx
+    2:  testl %esi, %esi
+    4:  js 0x41
+    6:  movq 0x20(%rdi), %rax
+    a:  je 0x4d
+    c:  addq $0x60, %rdi
+   10:  cmpq %rdi, %rax
+   13:  jne 0x25
+   15:  jmp 0x41
+   17:  nopw (%rax, %rax)
+   20:  cmpq %rdi, %rax
+   23:  je 0x48
+   25:  movq 0x10(%rax), %rax
+   29:  subl $1, %esi
+   2c:  jne 0x20
+   2e:  xorl %ecx, %ecx
+   30:  cmpq %rdi, %rax
+   33:  je 0x41
+   35:  movq %rax, 0x80(%rdx)
+   3c:  movl $1, %ecx
+   41:  movl %ecx, %eax
+   43:  retq
+   44:  nopl (%rax)
+   48:  xorl %ecx, %ecx
+   4a:  movl %ecx, %eax
+   4c:  retq
+   4d:  addq $0x60, %rdi
+   51:  jmp 0x2e

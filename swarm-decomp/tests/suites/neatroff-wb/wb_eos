@@ -1,0 +1,38 @@
+# wb_eos  (global, 100 bytes, 37 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movl 0x2068(%rdi), %eax
+    d:  leal -1(%rax), %ebx
+   10:  testl %ebx, %ebx
+   12:  jle 0x5b
+   14:  movslq %ebx, %rax
+   17:  shlq $5, %rax
+   1b:  leaq 0x68(%rdi, %rax), %rbp
+   20:  jmp 0x31
+   22:  nopw (%rax, %rax)
+   28:  subq $0x20, %rbp
+   2c:  subl $1, %ebx
+   2f:  je 0x3d
+   31:  movq %rbp, %rdi
+   34:  callq c_eostran+0
+   39:  testl %eax, %eax
+   3b:  jne 0x28
+   3d:  movslq %ebx, %rbx
+   40:  shlq $5, %rbx
+   44:  leaq 0x68(%r12, %rbx), %rdi
+   49:  callq c_eossent+0
+   4e:  popq %rbx
+   4f:  popq %rbp
+   50:  testl %eax, %eax
+   52:  popq %r12
+   54:  setne %al
+   57:  movzbl %al, %eax
+   5a:  retq
+   5b:  je 0x3d
+   5d:  popq %rbx
+   5e:  xorl %eax, %eax
+   60:  popq %rbp
+   61:  popq %r12
+   63:  retq

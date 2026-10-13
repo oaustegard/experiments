@@ -1,0 +1,14 @@
+# in_top  (global, 46 bytes, 13 instructions)
+    0:  movq (%rip), %rdx   <var:buf+0>
+    7:  testq %rdx, %rdx
+    a:  je 0x28
+    c:  movl 0x498(%rdx), %eax
+   12:  testl %eax, %eax
+   14:  je 0x28
+   16:  subl $1, %eax
+   19:  cltq
+   1b:  movl 0x418(%rdx, %rax, 4), %eax
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  movl $0xffffffff, %eax
+   2d:  retq

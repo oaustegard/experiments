@@ -1,0 +1,123 @@
+# font_gwid  (global, 420 bytes, 122 instructions)
+    0:  movq %rsi, %r9
+    3:  movl %edx, %r8d
+    6:  testq %rsi, %rsi
+    9:  je 0x70
+    b:  movl 0x48(%rsi), %esi
+    e:  testl %esi, %esi
+   10:  jne 0x7a
+   12:  movl %ecx, %edx
+   14:  movl %r8d, %esi
+   17:  callq font_wid+0
+   1c:  movl 0x58(%rdi), %edx
+   1f:  movl %eax, %ecx
+   21:  testl %edx, %edx
+   23:  js 0x128
+   29:  cmpl %edx, %r8d
+   2c:  jle 0x100
+   32:  movl 0x60(%rdi), %esi
+   35:  testl %esi, %esi
+   37:  js 0xcf
+   3d:  cmpl %esi, %r8d
+   40:  jl 0x140
+   46:  movslq (%rip), %rax   <dev_res+0>
+   4d:  movq %rax, %rdx
+   50:  imulq $0x38e38e39, %rax, %rax
+   57:  sarl $0x1f, %edx
+   5a:  sarq $0x24, %rax
+   5e:  subl %edx, %eax
+   60:  imull 0x64(%rdi), %eax
+   64:  addl %eax, %ecx
+   66:  jmp 0xcf
+   68:  nopl (%rax, %rax)
+   70:  movl 0x48(%rdi), %esi
+   73:  testl %esi, %esi
+   75:  je 0xc0
+   77:  movq %rdi, %r9
+   7a:  movl 0x4c(%r9), %eax
+   7e:  movl 0x54(%rdi), %edx
+   81:  testl %eax, %eax
+   83:  cmovel %r8d, %eax
+   87:  testl %edx, %edx
+   89:  jne 0xe0
+   8b:  imull (%rip), %eax   <dev_res+0>
+   92:  movslq %eax, %rdx
+   95:  sarl $0x1f, %eax
+   98:  imulq $0x38e38e39, %rdx, %rdx
+   9f:  sarq $0x24, %rdx
+   a3:  subl %eax, %edx
+   a5:  movl %edx, %eax
+   a7:  imull %esi, %eax
+   aa:  movslq %eax, %rcx
+   ad:  sarl $0x1f, %eax
+   b0:  imulq $0x38e38e39, %rcx, %rcx
+   b7:  sarq $0x23, %rcx
+   bb:  subl %eax, %ecx
+   bd:  movl %ecx, %eax
+   bf:  retq
+   c0:  movl %ecx, %edx
+   c2:  movl %r8d, %esi
+   c5:  movq %rdi, %r9
+   c8:  callq font_wid+0
+   cd:  movl %eax, %ecx
+   cf:  movl 0x50(%r9), %eax
+   d3:  leal -1(%rax, %rcx), %edx
+   d7:  testl %eax, %eax
+   d9:  cmovnel %edx, %ecx
+   dc:  movl %ecx, %eax
+   de:  retq
+   df:  nop
+   e0:  imull %edx, %eax
+   e3:  leal 0x1f4(%rax), %edx
+   e9:  movslq %edx, %rax
+   ec:  sarl $0x1f, %edx
+   ef:  imulq $0x10624dd3, %rax, %rax
+   f6:  sarq $0x26, %rax
+   fa:  subl %edx, %eax
+   fc:  jmp 0x8b
+   fe:  nop
+  100:  movslq (%rip), %rax   <dev_res+0>
+  107:  movq %rax, %rdx
+  10a:  imulq $0x38e38e39, %rax, %rax
+  111:  sarl $0x1f, %edx
+  114:  sarq $0x24, %rax
+  118:  subl %edx, %eax
+  11a:  imull 0x5c(%rdi), %eax
+  11e:  addl %eax, %ecx
+  120:  jmp 0xcf
+  122:  nopw (%rax, %rax)
+  128:  movl 0x60(%rdi), %esi
+  12b:  testl %esi, %esi
+  12d:  js 0x190
+  12f:  cmpl %esi, %r8d
+  132:  jge 0x46
+  138:  cmpl %edx, %r8d
+  13b:  jle 0xcf
+  13d:  nopl (%rax)
+  140:  movl %esi, %eax
+  142:  subl %edx, %esi
+  144:  subl %r8d, %eax
+  147:  imull 0x5c(%rdi), %eax
+  14b:  subl %edx, %r8d
+  14e:  movslq %esi, %rsi
+  151:  imull 0x64(%rdi), %r8d
+  156:  movslq (%rip), %rdi   <dev_res+0>
+  15d:  addl %r8d, %eax
+  160:  movq %rdi, %r8
+  163:  imulq $0x38e38e39, %rdi, %rdi
+  16a:  sarl $0x1f, %r8d
+  16e:  cltq
+  170:  sarq $0x24, %rdi
+  174:  subl %r8d, %edi
+  177:  movslq %edi, %rdi
+  17a:  imulq %rdi, %rax
+  17e:  cqto
+  180:  idivq %rsi
+  183:  addl %eax, %ecx
+  185:  jmp 0xcf
+  18a:  nopw (%rax, %rax)
+  190:  cmpl %edx, %r8d
+  193:  jle 0xcf
+  199:  cmpl %esi, %r8d
+  19c:  jge 0xcf
+  1a2:  jmp 0x140

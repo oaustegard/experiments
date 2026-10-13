@@ -1,0 +1,20 @@
+# clr_str  (global, 64 bytes, 19 instructions)
+    0:  testl %edi, %edi
+    2:  jne 0x10
+    4:  movl $0, %eax   <str:"0">
+    9:  retq
+    a:  nopw (%rax, %rax)
+   10:  movl %edi, %edx
+   12:  movl %edi, %eax
+   14:  subq $8, %rsp
+   18:  movzbl %dil, %r8d
+   1c:  sarl $0x10, %edx
+   1f:  movzbl %ah, %ecx
+   22:  movl $0, %esi   <str:"#%02x%02x%02x">
+   27:  movl $0, %edi   <var:clr_buf+0>
+   2c:  movzbl %dl, %edx
+   2f:  xorl %eax, %eax
+   31:  callq sprintf+0
+   36:  movl $0, %eax   <var:clr_buf+0>
+   3b:  addq $8, %rsp
+   3f:  retq

@@ -1,0 +1,28 @@
+# type_szde  (static, 105 bytes, 27 instructions)
+    0:  subq $0x28, %rsp
+    4:  movl 0x10(%rdi), %eax
+    7:  movdqu (%rdi), %xmm0
+    b:  movl %eax, 0x10(%rsp)
+    f:  movaps %xmm0, (%rsp)
+   13:  movl 8(%rsp), %eax
+   17:  testb $1, 4(%rsp)
+   1c:  je 0x22
+   1e:  testl %eax, %eax
+   20:  je 0x40
+   22:  subl $1, %eax
+   25:  movq %rsp, %rdi
+   28:  movl %eax, 8(%rsp)
+   2c:  callq fn:type_totsz+0
+   31:  addq $0x28, %rsp
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  movslq 0xc(%rsp), %rax
+   45:  leaq (%rax, %rax, 2), %rdx
+   49:  movq (%rip), %rax   <var:arrays+0>
+   50:  leaq (%rax, %rdx, 8), %rax
+   54:  movdqu (%rax), %xmm1
+   58:  movl 0x10(%rax), %eax
+   5b:  movaps %xmm1, (%rsp)
+   5f:  movl %eax, 0x10(%rsp)
+   63:  movl 8(%rsp), %eax
+   67:  jmp 0x25

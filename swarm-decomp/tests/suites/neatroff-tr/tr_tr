@@ -1,0 +1,29 @@
+# tr_tr  (static, 109 bytes, 28 instructions)
+    0:  subq $0x58, %rsp
+    4:  movq 8(%rdi), %rax
+    8:  movq %rax, 8(%rsp)
+    d:  testq %rax, %rax
+   10:  jne 0x2f
+   12:  jmp 0x68
+   14:  nopl (%rax)
+   18:  leaq 0x30(%rsp), %rsi
+   1d:  leaq 0x10(%rsp), %rdi
+   22:  callq cmap_add+0
+   27:  cmpq $0, 8(%rsp)
+   2d:  je 0x68
+   2f:  leaq 0x10(%rsp), %rsi
+   34:  leaq 8(%rsp), %rdi
+   39:  callq charread+0
+   3e:  testl %eax, %eax
+   40:  js 0x68
+   42:  leaq 0x30(%rsp), %rsi
+   47:  leaq 8(%rsp), %rdi
+   4c:  callq charread+0
+   51:  testl %eax, %eax
+   53:  jns 0x18
+   55:  movl $0x20, %eax
+   5a:  movw %ax, 0x30(%rsp)
+   5f:  jmp 0x18
+   61:  nopl (%rax)
+   68:  addq $0x58, %rsp
+   6c:  retq

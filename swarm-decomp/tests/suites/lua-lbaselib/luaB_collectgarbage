@@ -1,0 +1,151 @@
+# luaB_collectgarbage  (static, 526 bytes, 150 instructions)
+    0:  pushq %r12
+    2:  movl $0, %ecx   <var:opts+0>
+    7:  movl $0, %edx   <str:"collect">
+    c:  movl $1, %esi
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  movq %rdi, %rbx
+   16:  callq luaL_checkoption+0
+   1b:  cltq
+   1d:  movl (, %rax, 4), %ebp   <var:optsnum+0>
+   24:  leal -3(%rbp), %eax
+   27:  cmpl $8, %eax
+   2a:  ja 0x168
+   30:  jmpq *(, %rax, 8)   <var:luaB_collectgarbage+0>
+   37:  nopw (%rax, %rax)
+   40:  xorl %edx, %edx
+   42:  movl $2, %esi
+   47:  movq %rbx, %rdi
+   4a:  callq luaL_optinteger+0
+   4f:  movl %ebp, %esi
+   51:  movq %rbx, %rdi
+   54:  movl %eax, %edx
+   56:  xorl %eax, %eax
+   58:  callq lua_gc+0
+   5d:  cmpl $-1, %eax
+   60:  je 0x17d
+   66:  movslq %eax, %rsi
+   69:  movq %rbx, %rdi
+   6c:  callq lua_pushinteger+0
+   71:  popq %rbx
+   72:  movl $1, %eax
+   77:  popq %rbp
+   78:  popq %r12
+   7a:  retq
+   7b:  nopl (%rax, %rax)
+   80:  xorl %eax, %eax
+   82:  movl $9, %esi
+   87:  movq %rbx, %rdi
+   8a:  callq lua_gc+0
+   8f:  cmpl $-1, %eax
+   92:  je 0x17d
+   98:  movl %eax, %esi
+   9a:  movq %rbx, %rdi
+   9d:  callq lua_pushboolean+0
+   a2:  popq %rbx
+   a3:  movl $1, %eax
+   a8:  popq %rbp
+   a9:  popq %r12
+   ab:  retq
+   ac:  nopl (%rax)
+   b0:  xorl %edx, %edx
+   b2:  movl $2, %esi
+   b7:  movq %rbx, %rdi
+   ba:  callq luaL_optinteger+0
+   bf:  xorl %edx, %edx
+   c1:  movl $3, %esi
+   c6:  movq %rbx, %rdi
+   c9:  movq %rax, %rbp
+   cc:  callq luaL_optinteger+0
+   d1:  movl %ebp, %edx
+   d3:  movl $0xa, %esi
+   d8:  movq %rbx, %rdi
+   db:  movl %eax, %ecx
+   dd:  xorl %eax, %eax
+   df:  callq lua_gc+0
+   e4:  cmpl $-1, %eax
+   e7:  je 0x17d
+   ed:  cmpl $0xb, %eax
+   f0:  movl $0, %esi   <str:"generational">
+   f5:  movl $0, %eax   <str:"incremental">
+   fa:  movq %rbx, %rdi
+   fd:  cmoveq %rax, %rsi
+  101:  callq lua_pushstring+0
+  106:  popq %rbx
+  107:  movl $1, %eax
+  10c:  popq %rbp
+  10d:  popq %r12
+  10f:  retq
+  110:  xorl %edx, %edx
+  112:  movl $2, %esi
+  117:  movq %rbx, %rdi
+  11a:  callq luaL_optinteger+0
+  11f:  xorl %edx, %edx
+  121:  movl $3, %esi
+  126:  movq %rbx, %rdi
+  129:  movq %rax, %rbp
+  12c:  callq luaL_optinteger+0
+  131:  xorl %edx, %edx
+  133:  movl $4, %esi
+  138:  movq %rbx, %rdi
+  13b:  movq %rax, %r12
+  13e:  callq luaL_optinteger+0
+  143:  movl %r12d, %ecx
+  146:  movl %ebp, %edx
+  148:  movl $0xb, %esi
+  14d:  movl %eax, %r8d
+  150:  movq %rbx, %rdi
+  153:  xorl %eax, %eax
+  155:  callq lua_gc+0
+  15a:  cmpl $-1, %eax
+  15d:  jne 0xed
+  15f:  jmp 0x17d
+  161:  nopl (%rax)
+  168:  xorl %eax, %eax
+  16a:  movl %ebp, %esi
+  16c:  movq %rbx, %rdi
+  16f:  callq lua_gc+0
+  174:  cmpl $-1, %eax
+  177:  jne 0x66
+  17d:  movq %rbx, %rdi
+  180:  callq lua_pushnil+0
+  185:  popq %rbx
+  186:  movl $1, %eax
+  18b:  popq %rbp
+  18c:  popq %r12
+  18e:  retq
+  18f:  nop
+  190:  movl $3, %esi
+  195:  movq %rbx, %rdi
+  198:  xorl %eax, %eax
+  19a:  callq lua_gc+0
+  19f:  movl $4, %esi
+  1a4:  movq %rbx, %rdi
+  1a7:  movl %eax, %ebp
+  1a9:  xorl %eax, %eax
+  1ab:  callq lua_gc+0
+  1b0:  cmpl $-1, %ebp
+  1b3:  je 0x17d
+  1b5:  pxor %xmm0, %xmm0
+  1b9:  pxor %xmm1, %xmm1
+  1bd:  movq %rbx, %rdi
+  1c0:  cvtsi2sdl %eax, %xmm0
+  1c4:  mulsd (%rip), %xmm0   <cst:000000000000503f>
+  1cc:  cvtsi2sdl %ebp, %xmm1
+  1d0:  addsd %xmm1, %xmm0
+  1d4:  callq lua_pushnumber+0
+  1d9:  jmp 0x71
+  1de:  nop
+  1e0:  xorl %edx, %edx
+  1e2:  movl $2, %esi
+  1e7:  movq %rbx, %rdi
+  1ea:  callq luaL_optinteger+0
+  1ef:  movl $5, %esi
+  1f4:  movq %rbx, %rdi
+  1f7:  movl %eax, %edx
+  1f9:  xorl %eax, %eax
+  1fb:  callq lua_gc+0
+  200:  cmpl $-1, %eax
+  203:  je 0x17d
+  209:  jmp 0x98

@@ -1,0 +1,8 @@
+# f_divreg  (global, 22 bytes, 7 instructions)
+    0:  movq (%rip), %rax   <var:cdiv+0>
+    7:  testq %rax, %rax
+    a:  je 0x10
+    c:  movl 0x10(%rax), %eax
+    f:  retq
+   10:  movl $0xffffffff, %eax
+   15:  retq

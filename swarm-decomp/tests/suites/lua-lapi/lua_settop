@@ -1,0 +1,51 @@
+# lua_settop  (global, 166 bytes, 50 instructions)
+    0:  movq 0x10(%rdi), %rcx
+    4:  testl %esi, %esi
+    6:  js 0x60
+    8:  movq 0x20(%rdi), %rax
+    c:  movslq %esi, %rsi
+    f:  addq $1, %rsi
+   13:  shlq $4, %rsi
+   17:  addq (%rax), %rsi
+   1a:  movq %rcx, %rax
+   1d:  movq %rsi, %rdx
+   20:  subq %rcx, %rdx
+   23:  testq %rdx, %rdx
+   26:  jle 0xa0
+   28:  testb $0x10, %dl
+   2b:  je 0x40
+   2d:  leaq 0x10(%rcx), %rax
+   31:  movb $0, -8(%rax)
+   35:  cmpq %rax, %rsi
+   38:  je 0x51
+   3a:  nopw (%rax, %rax)
+   40:  movb $0, 8(%rax)
+   44:  addq $0x20, %rax
+   48:  movb $0, -8(%rax)
+   4c:  cmpq %rax, %rsi
+   4f:  jne 0x40
+   51:  movb $0, -8(%rcx, %rdx)
+   56:  movq %rsi, 0x10(%rdi)
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  addl $1, %esi
+   63:  movslq %esi, %rdx
+   66:  movq %rdx, %rsi
+   69:  shlq $4, %rsi
+   6d:  addq %rcx, %rsi
+   70:  testq %rdx, %rdx
+   73:  je 0x56
+   75:  cmpq %rsi, 0x40(%rdi)
+   79:  jb 0x56
+   7b:  subq $0x18, %rsp
+   7f:  xorl %ecx, %ecx
+   81:  movl $0xffffffff, %edx
+   86:  movq %rdi, 8(%rsp)
+   8b:  callq luaF_close+0
+   90:  movq 8(%rsp), %rdi
+   95:  movq %rax, 0x10(%rdi)
+   99:  addq $0x18, %rsp
+   9d:  retq
+   9e:  nop
+   a0:  sarq $4, %rdx
+   a4:  jmp 0x66

@@ -1,0 +1,40 @@
+# lexerror  (static, 129 bytes, 39 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %edx, %ebp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  movl 4(%rdi), %ecx
+    c:  movq 0x60(%rdi), %rdx
+   10:  movq 0x38(%rdi), %rdi
+   14:  callq luaG_addinfo+0
+   19:  testl %ebp, %ebp
+   1b:  jne 0x2b
+   1d:  movq 0x38(%rbx), %rdi
+   21:  movl $3, %esi
+   26:  callq luaD_throw+0
+   2b:  movq %rax, %r12
+   2e:  leal -0x121(%rbp), %eax
+   34:  cmpl $3, %eax
+   37:  ja 0x72
+   39:  xorl %esi, %esi
+   3b:  movq %rbx, %rdi
+   3e:  callq fn:save+0
+   43:  movq 0x48(%rbx), %rax
+   47:  movq 0x38(%rbx), %rdi
+   4b:  movl $0, %esi   <str:"'%s'">
+   50:  movq (%rax), %rdx
+   53:  xorl %eax, %eax
+   55:  callq luaO_pushfstring+0
+   5a:  movq %rax, %rcx
+   5d:  movq 0x38(%rbx), %rdi
+   61:  movq %r12, %rdx
+   64:  movl $0, %esi   <str:"%s near %s">
+   69:  xorl %eax, %eax
+   6b:  callq luaO_pushfstring+0
+   70:  jmp 0x1d
+   72:  movl %ebp, %esi
+   74:  movq %rbx, %rdi
+   77:  callq luaX_token2str+0
+   7c:  movq %rax, %rcx
+   7f:  jmp 0x5d

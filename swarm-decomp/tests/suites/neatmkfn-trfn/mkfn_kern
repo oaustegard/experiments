@@ -1,0 +1,19 @@
+# mkfn_kern  (global, 52 bytes, 18 instructions)
+    0:  testl %edx, %edx
+    2:  je 0x1d
+    4:  movl %edx, %eax
+    6:  negl %eax
+    8:  cmovsl %edx, %eax
+    b:  cmpl (%rip), %eax   <mkfn_kmin+0>
+   11:  jl 0x1d
+   13:  movl (%rip), %eax   <mkfn_dry+0>
+   19:  testl %eax, %eax
+   1b:  je 0x20
+   1d:  retq
+   1e:  nop
+   20:  movl %edx, %ecx
+   22:  xorl %eax, %eax
+   24:  movq %rsi, %rdx
+   27:  movq %rdi, %rsi
+   2a:  movl $0, %edi   <str:"kern %s\t%s\t%d\n">
+   2f:  jmp printf+0

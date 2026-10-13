@@ -1,0 +1,154 @@
+# traverseephemeron  (static, 544 bytes, 153 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %edx, %r12d
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  movq %rsi, %rdi
+   12:  pushq %rbx
+   13:  movq %rsi, %rbx
+   16:  subq $8, %rsp
+   1a:  callq luaH_realasize+0
+   1f:  movzbl 0xb(%rbx), %ecx
+   23:  movl $1, %r9d
+   29:  shll %cl, %r9d
+   2c:  testl %eax, %eax
+   2e:  je 0x218
+   34:  movq 0x10(%rbx), %r8
+   38:  movl %eax, %eax
+   3a:  xorl %r11d, %r11d
+   3d:  shlq $4, %rax
+   41:  leaq (%rax, %r8), %r10
+   45:  jmp 0x59
+   47:  nopw (%rax, %rax)
+   50:  addq $0x10, %r8
+   54:  cmpq %r10, %r8
+   57:  je 0x80
+   59:  testb $0x40, 8(%r8)
+   5e:  je 0x50
+   60:  movq (%r8), %rsi
+   63:  testb $0x18, 9(%rsi)
+   67:  je 0x50
+   69:  movq %rbp, %rdi
+   6c:  addq $0x10, %r8
+   70:  movl $1, %r11d
+   76:  callq fn:reallymarkobject+0
+   7b:  cmpq %r10, %r8
+   7e:  jne 0x59
+   80:  testl %r9d, %r9d
+   83:  je 0x1f8
+   89:  subl $1, %r9d
+   8d:  xorl %r10d, %r10d
+   90:  xorl %r13d, %r13d
+   93:  xorl %r14d, %r14d
+   96:  movl $1, %r15d
+   9c:  jmp 0xb7
+   9e:  nop
+   a0:  testb %al, %al
+   a2:  je 0xa9
+   a4:  movb $0xb, 9(%r8)
+   a9:  subl $1, %r9d
+   ad:  addq $0x18, %r10
+   b1:  cmpl $-1, %r9d
+   b5:  je 0x130
+   b7:  movq 0x18(%rbx), %rax
+   bb:  leaq (%rax, %r10), %r8
+   bf:  testl %r12d, %r12d
+   c2:  je 0xcf
+   c4:  movl %r9d, %edx
+   c7:  leaq (%rdx, %rdx, 2), %rdx
+   cb:  leaq (%rax, %rdx, 8), %r8
+   cf:  movzbl 9(%r8), %eax
+   d4:  movzbl 8(%r8), %edx
+   d9:  andl $0x40, %eax
+   dc:  testb $0xf, %dl
+   df:  je 0xa0
+   e1:  testb %al, %al
+   e3:  je 0x164
+   e5:  movq 0x10(%r8), %rsi
+   e9:  testq %rsi, %rsi
+   ec:  je 0x164
+   ee:  movzbl 8(%rsi), %eax
+   f2:  movzbl 9(%rsi), %ecx
+   f6:  andl $0xf, %eax
+   f9:  andl $0x18, %ecx
+   fc:  cmpb $4, %al
+   fe:  je 0x160
+  100:  movl %edx, %eax
+  102:  andl $0x40, %eax
+  105:  testb %cl, %cl
+  107:  je 0x164
+  109:  movl $1, %r14d
+  10f:  testb %al, %al
+  111:  je 0xa9
+  113:  movq (%r8), %rax
+  116:  testb $0x18, 9(%rax)
+  11a:  cmovnel %r15d, %r13d
+  11e:  subl $1, %r9d
+  122:  addq $0x18, %r10
+  126:  cmpl $-1, %r9d
+  12a:  jne 0xb7
+  12c:  nopl (%rax)
+  130:  cmpb $0, 0x65(%rbp)
+  134:  jne 0x190
+  136:  movq 0x90(%rbp), %rax
+  13d:  movq %rax, 0x30(%rbx)
+  141:  movq %rbx, 0x90(%rbp)
+  148:  andb $0xc7, 9(%rbx)
+  14c:  addq $8, %rsp
+  150:  movl %r11d, %eax
+  153:  popq %rbx
+  154:  popq %rbp
+  155:  popq %r12
+  157:  popq %r13
+  159:  popq %r14
+  15b:  popq %r15
+  15d:  retq
+  15e:  nop
+  160:  testb %cl, %cl
+  162:  jne 0x1b8
+  164:  andl $0x40, %edx
+  167:  je 0xa9
+  16d:  movq (%r8), %rsi
+  170:  testb $0x18, 9(%rsi)
+  174:  je 0xa9
+  17a:  movq %rbp, %rdi
+  17d:  movl $1, %r11d
+  183:  callq fn:reallymarkobject+0
+  188:  jmp 0xa9
+  18d:  nopl (%rax)
+  190:  testl %r13d, %r13d
+  193:  jne 0x1d0
+  195:  testl %r14d, %r14d
+  198:  je 0x202
+  19a:  movq 0xa8(%rbp), %rax
+  1a1:  movq %rax, 0x30(%rbx)
+  1a5:  movq %rbx, 0xa8(%rbp)
+  1ac:  movzbl 9(%rbx), %eax
+  1b0:  andl $0xffffffc7, %eax
+  1b3:  jmp 0x1e9
+  1b5:  nopl (%rax)
+  1b8:  movq %rbp, %rdi
+  1bb:  callq fn:reallymarkobject+0
+  1c0:  movzbl 8(%r8), %edx
+  1c5:  jmp 0x164
+  1c7:  nopw (%rax, %rax)
+  1d0:  movq 0xa0(%rbp), %rax
+  1d7:  movq %rax, 0x30(%rbx)
+  1db:  movq %rbx, 0xa0(%rbp)
+  1e2:  movzbl 9(%rbx), %eax
+  1e6:  andl $0xffffffc7, %eax
+  1e9:  movb %al, 9(%rbx)
+  1ec:  jmp 0x14c
+  1f1:  nopl (%rax)
+  1f8:  cmpb $0, 0x65(%rbp)
+  1fc:  je 0x136
+  202:  movq %rbx, %rsi
+  205:  movq %rbp, %rdi
+  208:  callq fn:genlink+0
+  20d:  jmp 0x14c
+  212:  nopw (%rax, %rax)
+  218:  xorl %r11d, %r11d
+  21b:  jmp 0x80

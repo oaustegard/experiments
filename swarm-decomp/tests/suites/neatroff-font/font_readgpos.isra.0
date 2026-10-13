@@ -1,0 +1,72 @@
+# font_readgpos.isra.0  (static, 239 bytes, 71 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  movq %rdi, %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  movslq %edx, %r12
+   11:  movl %ecx, %edx
+   13:  movl %r8d, %ecx
+   16:  pushq %rbp
+   17:  movl %r9d, %r8d
+   1a:  movl %r12d, %esi
+   1d:  pushq %rbx
+   1e:  subq $0x88, %rsp
+   25:  movl 0xc0(%rsp), %r9d
+   2d:  callq fn:font_gpos+0
+   32:  testl %r12d, %r12d
+   35:  jle 0xdd
+   3b:  movq %rax, %r13
+   3e:  shlq $4, %r12
+   42:  xorl %ebp, %ebp
+   44:  jmp 0xc2
+   46:  nopw %cs:(%rax, %rax)
+   50:  movl $0x3a, %esi
+   55:  movq %rsp, %rdi
+   58:  callq strchr+0
+   5d:  movq %rax, %rbx
+   60:  testq %rax, %rax
+   63:  je 0x68
+   65:  movb $0, (%rax)
+   68:  movq (%r13), %rsi
+   6c:  movl $1, %eax
+   71:  addq %rbp, %rsi
+   74:  cmpb $0, (%rsp)
+   78:  movw %ax, 4(%rsi)
+   7c:  je 0xdd
+   7e:  movq %rsp, %rdx
+   81:  movq %r14, %rdi
+   84:  callq fn:font_readgpat+0
+   89:  testl %eax, %eax
+   8b:  jne 0xdd
+   8d:  testq %rbx, %rbx
+   90:  je 0xb9
+   92:  movq (%r13), %rax
+   96:  leaq 1(%rbx), %rdi
+   9a:  movl $0, %esi   <str:"%hd%hd%hd%hd">
+   9f:  addq %rbp, %rax
+   a2:  leaq 8(%rax), %rcx
+   a6:  leaq 6(%rax), %rdx
+   aa:  leaq 0xc(%rax), %r9
+   ae:  leaq 0xa(%rax), %r8
+   b2:  xorl %eax, %eax
+   b4:  callq __isoc99_sscanf+0
+   b9:  addq $0x10, %rbp
+   bd:  cmpq %rbp, %r12
+   c0:  je 0xdd
+   c2:  xorl %eax, %eax
+   c4:  movq %rsp, %rdx
+   c7:  movl $0, %esi   <str:"%127s">
+   cc:  movq %r15, %rdi
+   cf:  callq __isoc99_fscanf+0
+   d4:  cmpl $1, %eax
+   d7:  je 0x50
+   dd:  addq $0x88, %rsp
+   e4:  popq %rbx
+   e5:  popq %rbp
+   e6:  popq %r12
+   e8:  popq %r13
+   ea:  popq %r14
+   ec:  popq %r15
+   ee:  retq

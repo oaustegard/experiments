@@ -1,0 +1,7 @@
+# pdf_len  (global, 19 bytes, 6 instructions)
+    0:  cmpl %esi, %edx
+    2:  jge 0x10
+    4:  jmp 9   <fn:pdf_len.part.0+0>
+    9:  nopl (%rax)
+   10:  xorl %eax, %eax
+   12:  retq

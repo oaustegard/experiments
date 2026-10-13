@@ -1,0 +1,93 @@
+# trap_exec  (static, 354 bytes, 92 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl %edi, %ebx
+    4:  subq $0x18, %rsp
+    8:  movl (%rip), %edx   <var:ren_partial+0>
+    e:  testl %edx, %edx
+   10:  je 0xa0
+   16:  movl (%rip), %eax   <var:ren_un+0>
+   1c:  testl %eax, %eax
+   1e:  jne 0x108
+   24:  callq str_get+0
+   29:  testq %rax, %rax
+   2c:  je 0x97
+   2e:  movl (%rip), %edx   <c_cc+0>
+   34:  movl $0, %ecx   <str:"\x07P">
+   39:  movq %rsp, %rdi
+   3c:  xorl %eax, %eax
+   3e:  movl (%rip), %r8d   <var:ren_level+0>
+   45:  movl $0, %esi   <str:"%c%s %d\n">
+   4a:  callq sprintf+0
+   4f:  xorl %esi, %esi
+   51:  movq %rsp, %rdi
+   54:  callq in_push+0
+   59:  movl %ebx, %edi
+   5b:  callq str_get+0
+   60:  xorl %esi, %esi
+   62:  movq %rax, %rdi
+   65:  callq in_push+0
+   6a:  xorl %esi, %esi
+   6c:  movl $0, %edi   <str:"\n">
+   71:  callq in_push+0
+   76:  movl (%rip), %eax   <var:ren_level+0>
+   7c:  leal 1(%rax), %edi
+   7f:  movl %edi, (%rip)   <var:ren_level+0>
+   85:  callq fn:render_rec.isra.0+0
+   8a:  callq env_fmt+0
+   8f:  movq %rax, %rdi
+   92:  callq fmt_suppressnl+0
+   97:  addq $0x18, %rsp
+   9b:  popq %rbx
+   9c:  popq %rbp
+   9d:  retq
+   9e:  nop
+   a0:  callq str_get+0
+   a5:  testq %rax, %rax
+   a8:  je 0x97
+   aa:  movl (%rip), %edx   <c_cc+0>
+   b0:  movl $0, %ecx   <str:"\x07P">
+   b5:  movq %rsp, %rdi
+   b8:  xorl %eax, %eax
+   ba:  movl (%rip), %r8d   <var:ren_level+0>
+   c1:  movl $0, %esi   <str:"%c%s %d\n">
+   c6:  callq sprintf+0
+   cb:  xorl %esi, %esi
+   cd:  movq %rsp, %rdi
+   d0:  callq in_push+0
+   d5:  movl %ebx, %edi
+   d7:  callq str_get+0
+   dc:  xorl %esi, %esi
+   de:  movq %rax, %rdi
+   e1:  callq in_push+0
+   e6:  movl (%rip), %eax   <var:ren_level+0>
+   ec:  leal 1(%rax), %edi
+   ef:  movl %edi, (%rip)   <var:ren_level+0>
+   f5:  callq fn:render_rec.isra.0+0
+   fa:  addq $0x18, %rsp
+   fe:  popq %rbx
+   ff:  popq %rbp
+  100:  retq
+  101:  nopl (%rax)
+  108:  movl (%rip), %ebp   <var:ren_unbuf+0>
+  10e:  callq str_get+0
+  113:  testq %rax, %rax
+  116:  je 0x97
+  11c:  movl (%rip), %edx   <c_cc+0>
+  122:  movl $0, %ecx   <str:"\x07P">
+  127:  movq %rsp, %rdi
+  12a:  xorl %eax, %eax
+  12c:  movl (%rip), %r8d   <var:ren_level+0>
+  133:  movl $0, %esi   <str:"%c%s %d\n">
+  138:  callq sprintf+0
+  13d:  xorl %esi, %esi
+  13f:  movq %rsp, %rdi
+  142:  callq in_push+0
+  147:  movl %ebx, %edi
+  149:  callq str_get+0
+  14e:  xorl %esi, %esi
+  150:  movq %rax, %rdi
+  153:  callq in_push+0
+  158:  cmpl $0xa, %ebp
+  15b:  je 0xe6
+  15d:  jmp 0x6a

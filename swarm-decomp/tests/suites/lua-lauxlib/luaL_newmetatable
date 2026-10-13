@@ -1,0 +1,39 @@
+# luaL_newmetatable  (global, 131 bytes, 38 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rdx
+    4:  movq %rsi, %rbp
+    7:  movl $0xfff0b9d8, %esi
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $8, %rsp
+   14:  callq lua_getfield+0
+   19:  movl %eax, %edx
+   1b:  xorl %eax, %eax
+   1d:  testl %edx, %edx
+   1f:  jne 0x7c
+   21:  movl $0xfffffffe, %esi
+   26:  movq %rbx, %rdi
+   29:  callq lua_settop+0
+   2e:  movl $2, %edx
+   33:  xorl %esi, %esi
+   35:  movq %rbx, %rdi
+   38:  callq lua_createtable+0
+   3d:  movq %rbp, %rsi
+   40:  movq %rbx, %rdi
+   43:  callq lua_pushstring+0
+   48:  movl $0, %edx   <str:"__name">
+   4d:  movl $0xfffffffe, %esi
+   52:  movq %rbx, %rdi
+   55:  callq lua_setfield+0
+   5a:  movl $0xffffffff, %esi
+   5f:  movq %rbx, %rdi
+   62:  callq lua_pushvalue+0
+   67:  movq %rbp, %rdx
+   6a:  movl $0xfff0b9d8, %esi
+   6f:  movq %rbx, %rdi
+   72:  callq lua_setfield+0
+   77:  movl $1, %eax
+   7c:  addq $8, %rsp
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  retq

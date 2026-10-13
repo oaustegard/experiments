@@ -1,0 +1,1 @@
+static void tr_nr(struct tr_args *a) { if (a->arg[1]) { int r = map(a->arg[0]); int *p = nreg(r); int v = eval_re(a->arg[1], *p, 0x75); num_set(r, v); if (a->arg[2]) num_setinc(r, eval(a->arg[2], 0x75)); } }

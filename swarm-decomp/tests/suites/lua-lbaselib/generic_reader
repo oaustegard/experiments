@@ -1,0 +1,57 @@
+# generic_reader  (static, 207 bytes, 56 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  movq %rdx, %rbp
+    9:  movl $0, %edx   <str:"too many nested functions">
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $8, %rsp
+   16:  callq luaL_checkstack+0
+   1b:  movl $1, %esi
+   20:  movq %rbx, %rdi
+   23:  callq lua_pushvalue+0
+   28:  xorl %esi, %esi
+   2a:  xorl %r8d, %r8d
+   2d:  xorl %ecx, %ecx
+   2f:  movq %rbx, %rdi
+   32:  movl $1, %edx
+   37:  callq lua_callk+0
+   3c:  movl $0xffffffff, %esi
+   41:  movq %rbx, %rdi
+   44:  callq lua_type+0
+   49:  testl %eax, %eax
+   4b:  je 0x98
+   4d:  movl $0xffffffff, %esi
+   52:  movq %rbx, %rdi
+   55:  callq lua_isstring+0
+   5a:  testl %eax, %eax
+   5c:  je 0xc0
+   5e:  movl $5, %edx
+   63:  movq %rbx, %rdi
+   66:  movl $0xffffffff, %esi
+   6b:  callq lua_copy+0
+   70:  movq %rbx, %rdi
+   73:  movl $0xfffffffe, %esi
+   78:  callq lua_settop+0
+   7d:  addq $8, %rsp
+   81:  movq %rbp, %rdx
+   84:  movq %rbx, %rdi
+   87:  movl $5, %esi
+   8c:  popq %rbx
+   8d:  popq %rbp
+   8e:  jmp lua_tolstring+0
+   93:  nopl (%rax, %rax)
+   98:  movq %rbx, %rdi
+   9b:  movl $0xfffffffe, %esi
+   a0:  callq lua_settop+0
+   a5:  movq $0, (%rbp)
+   ad:  xorl %eax, %eax
+   af:  addq $8, %rsp
+   b3:  popq %rbx
+   b4:  popq %rbp
+   b5:  retq
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  movl $0, %esi   <str:"reader function must return a string">
+   c5:  movq %rbx, %rdi
+   c8:  callq luaL_error+0
+   cd:  jmp 0x5e

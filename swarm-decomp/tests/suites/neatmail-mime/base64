@@ -1,0 +1,97 @@
+# base64  (global, 341 bytes, 96 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %esi, %r12d
+    b:  pushq %rbp
+    c:  xorl %ebp, %ebp
+    e:  pushq %rbx
+    f:  subq $0x18, %rsp
+   13:  movq %rdi, 8(%rsp)
+   18:  callq sbuf_make+0
+   1d:  movq %rax, %r14
+   20:  testl %r12d, %r12d
+   23:  jg 0xbd
+   29:  jmp 0x130
+   2e:  nop
+   30:  movl %ebx, %eax
+   32:  movl $0, %esi   <str:"%c">
+   37:  movq %r14, %rdi
+   3a:  shrl $0x12, %eax
+   3d:  movsbl (%rax), %edx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   44:  xorl %eax, %eax
+   46:  callq sbuf_printf+0
+   4b:  movl %ebx, %eax
+   4d:  movl $0, %esi   <str:"%c">
+   52:  movq %r14, %rdi
+   55:  shrl $0xc, %eax
+   58:  andl $0x3f, %eax
+   5b:  movsbl (%rax), %edx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   62:  xorl %eax, %eax
+   64:  callq sbuf_printf+0
+   69:  movl $0x3d, %edx
+   6e:  cmpl %r15d, %r12d
+   71:  jle 0x82
+   73:  movl %ebx, %eax
+   75:  shrl $6, %eax
+   78:  andl $0x3f, %eax
+   7b:  movsbl (%rax), %edx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   82:  movl $0, %esi   <str:"%c">
+   87:  movq %r14, %rdi
+   8a:  xorl %eax, %eax
+   8c:  callq sbuf_printf+0
+   91:  movl $0x3d, %edx
+   96:  cmpl %r13d, %r12d
+   99:  jle 0xa5
+   9b:  andl $0x3f, %ebx
+   9e:  movsbl (%rbx), %edx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   a5:  movl $0, %esi   <str:"%c">
+   aa:  movq %r14, %rdi
+   ad:  xorl %eax, %eax
+   af:  addq $3, %rbp
+   b3:  callq sbuf_printf+0
+   b8:  cmpl %ebp, %r12d
+   bb:  jle 0x130
+   bd:  movq 8(%rsp), %rcx
+   c2:  leal 1(%rbp), %r15d
+   c6:  movl %ebp, %r13d
+   c9:  xorl %eax, %eax
+   cb:  movzbl (%rcx, %rbp), %ebx
+   cf:  cmpl %r15d, %r12d
+   d2:  jle 0xdc
+   d4:  movzbl 1(%rcx, %rbp), %eax
+   d9:  shll $8, %eax
+   dc:  addl $2, %r13d
+   e0:  xorl %edx, %edx
+   e2:  cmpl %r13d, %r12d
+   e5:  jle 0xf1
+   e7:  movq 8(%rsp), %rsi
+   ec:  movzbl 2(%rsi, %rbp), %edx
+   f1:  shll $0x10, %ebx
+   f4:  orl %eax, %ebx
+   f6:  orl %edx, %ebx
+   f8:  testq %rbp, %rbp
+   fb:  je 0x30
+  101:  imull $0xb823ee09, %ebp, %eax
+  107:  cmpl $0x47dc11f, %eax
+  10c:  ja 0x30
+  112:  movl $0, %esi   <str:"\n">
+  117:  movq %r14, %rdi
+  11a:  xorl %eax, %eax
+  11c:  callq sbuf_printf+0
+  121:  jmp 0x30
+  126:  nopw %cs:(%rax, %rax)
+  130:  movq %r14, %rdi
+  133:  movl $0, %esi   <str:"\n">
+  138:  xorl %eax, %eax
+  13a:  callq sbuf_printf+0
+  13f:  addq $0x18, %rsp
+  143:  movq %r14, %rdi
+  146:  popq %rbx
+  147:  popq %rbp
+  148:  popq %r12
+  14a:  popq %r13
+  14c:  popq %r14
+  14e:  popq %r15
+  150:  jmp sbuf_done+0

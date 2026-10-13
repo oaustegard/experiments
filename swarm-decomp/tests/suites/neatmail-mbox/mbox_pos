@@ -1,0 +1,24 @@
+# mbox_pos  (global, 80 bytes, 23 instructions)
+    0:  movl 0x240(%rdi), %r8d
+    7:  cmpl $1, %r8d
+    b:  jle 0x45
+    d:  movl $1, %eax
+   12:  jmp 0x21
+   14:  nopl (%rax)
+   18:  addq $1, %rax
+   1c:  cmpq %r8, %rax
+   1f:  je 0x3d
+   21:  movl 0x1c0(%rdi, %rax, 4), %ecx
+   28:  movl %eax, %r9d
+   2b:  cmpl %esi, %ecx
+   2d:  jle 0x18
+   2f:  leal -1(%rax), %r9d
+   33:  movslq %r9d, %rax
+   36:  movl 0x1c0(%rdi, %rax, 4), %ecx
+   3d:  subl %ecx, %esi
+   3f:  movl %r9d, %eax
+   42:  movl %esi, (%rdx)
+   44:  retq
+   45:  movl 0x1c0(%rdi), %ecx
+   4b:  xorl %r9d, %r9d
+   4e:  jmp 0x3d

@@ -1,0 +1,59 @@
+# auxsetstr  (static, 185 bytes, 58 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  movq %rdx, %rsi
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  callq luaS_new+0
+   12:  xorl %r8d, %r8d
+   15:  cmpb $0x45, 8(%rbp)
+   19:  movq %rax, %r12
+   1c:  je 0x60
+   1e:  movq 0x10(%rbx), %rdx
+   22:  movq %rbp, %rsi
+   25:  movq %rbx, %rdi
+   28:  movq %r12, (%rdx)
+   2b:  movzbl 8(%r12), %eax
+   31:  leaq -0x10(%rdx), %rcx
+   35:  orl $0x40, %eax
+   38:  movb %al, 8(%rdx)
+   3b:  leaq 0x10(%rdx), %rax
+   3f:  movq %rax, 0x10(%rbx)
+   43:  callq luaV_finishset+0
+   48:  movq 0x10(%rbx), %rax
+   4c:  subq $0x20, %rax
+   50:  movq %rax, 0x10(%rbx)
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  popq %r12
+   58:  retq
+   59:  nopl (%rax)
+   60:  movq (%rbp), %rdi
+   64:  movq %rax, %rsi
+   67:  callq luaH_getstr+0
+   6c:  movq %rax, %r8
+   6f:  testb $0xf, 8(%rax)
+   73:  je 0x1e
+   75:  movq 0x10(%rbx), %rdx
+   79:  movq -0x10(%rdx), %rax
+   7d:  movq %rax, (%r8)
+   80:  movzbl -8(%rdx), %eax
+   84:  movb %al, 8(%r8)
+   88:  testb $0x40, %al
+   8a:  je 0xac
+   8c:  movq (%rbp), %rsi
+   90:  testb $0x20, 9(%rsi)
+   94:  je 0xac
+   96:  movq -0x10(%rdx), %rax
+   9a:  testb $0x18, 9(%rax)
+   9e:  je 0xac
+   a0:  movq %rbx, %rdi
+   a3:  callq luaC_barrierback_+0
+   a8:  movq 0x10(%rbx), %rdx
+   ac:  leaq -0x10(%rdx), %rax
+   b0:  movq %rax, 0x10(%rbx)
+   b4:  popq %rbx
+   b5:  popq %rbp
+   b6:  popq %r12
+   b8:  retq

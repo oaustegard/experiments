@@ -1,0 +1,11 @@
+# l_alloc  (static, 32 bytes, 10 instructions)
+    0:  movq %rsi, %rdi
+    3:  testq %rcx, %rcx
+    6:  je 0x10
+    8:  movq %rcx, %rsi
+    b:  jmp realloc+0
+   10:  subq $8, %rsp
+   14:  callq free+0
+   19:  xorl %eax, %eax
+   1b:  addq $8, %rsp
+   1f:  retq

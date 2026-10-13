@@ -1,0 +1,69 @@
+# cp_args  (static, 229 bytes, 68 instructions)
+    0:  pushq %r13
+    2:  movl $0, %r13d   <str:"\"">
+    8:  pushq %r12
+    a:  pushq %rbp
+    b:  movl %esi, %ebp
+    d:  pushq %rbx
+    e:  movl %edi, %ebx
+   10:  subq $0x18, %rsp
+   14:  movq %rsp, %rdi
+   17:  callq sbuf_init+0
+   1c:  andl $1, %ebx
+   1f:  movl $0, %eax   <str:"">
+   24:  cmoveq %rax, %r13
+   28:  callq in_nargs+0
+   2d:  cmpl $1, %eax
+   30:  jle 0xc0
+   36:  movl $1, %r12d
+   3c:  movl $0, %esi   <str:"">
+   41:  andl $1, %ebp
+   44:  nopl (%rax)
+   48:  movq %rsp, %rdi
+   4b:  callq sbuf_append+0
+   50:  movq %r13, %rsi
+   53:  movq %rsp, %rdi
+   56:  callq sbuf_append+0
+   5b:  movl %r12d, %edi
+   5e:  callq in_arg+0
+   63:  movq %rax, %rbx
+   66:  movzbl (%rax), %eax
+   69:  testb %al, %al
+   6b:  je 0xa2
+   6d:  nopl (%rax)
+   70:  cmpb $0x22, %al
+   72:  jne 0x7e
+   74:  movl $0, %esi   <str:"\"">
+   79:  testb %bpl, %bpl
+   7c:  jne 0x83
+   7e:  movl $0, %esi   <str:"">
+   83:  movq %rsp, %rdi
+   86:  addq $1, %rbx
+   8a:  callq sbuf_append+0
+   8f:  movzbl -1(%rbx), %esi
+   93:  movq %rsp, %rdi
+   96:  callq sbuf_add+0
+   9b:  movzbl (%rbx), %eax
+   9e:  testb %al, %al
+   a0:  jne 0x70
+   a2:  movq %r13, %rsi
+   a5:  movq %rsp, %rdi
+   a8:  addl $1, %r12d
+   ac:  callq sbuf_append+0
+   b1:  callq in_nargs+0
+   b6:  movl $0, %esi   <str:" ">
+   bb:  cmpl %eax, %r12d
+   be:  jl 0x48
+   c0:  movq %rsp, %rdi
+   c3:  callq sbuf_buf+0
+   c8:  xorl %esi, %esi
+   ca:  movq %rax, %rdi
+   cd:  callq in_push+0
+   d2:  movq %rsp, %rdi
+   d5:  callq sbuf_done+0
+   da:  addq $0x18, %rsp
+   de:  popq %rbx
+   df:  popq %rbp
+   e0:  popq %r12
+   e2:  popq %r13
+   e4:  retq

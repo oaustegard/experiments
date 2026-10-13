@@ -1,0 +1,70 @@
+# ren_traps  (static, 199 bytes, 69 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movl %edx, %r13d
+    7:  pushq %r12
+    9:  movl %esi, %r12d
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  movl %edi, %ebx
+   10:  callq fn:trap_pos+0
+   15:  movl %ebx, %edi
+   17:  movl %eax, %r14d
+   1a:  callq fn:trap_pos+0
+   1f:  testl %eax, %eax
+   21:  js 0x8e
+   23:  cmpq $0, (%rip)   <var:cdiv+0>
+   2b:  movl %eax, %ebp
+   2d:  je 0x80
+   2f:  cmpl %ebp, %r12d
+   32:  jl 0x8e
+   34:  cmpl %r14d, %ebx
+   37:  jge 0x3f
+   39:  andl $1, %r13d
+   3d:  jne 0xb0
+   3f:  movl %ebx, %edi
+   41:  callq fn:trap_first+0
+   46:  movq (%rip), %rdx   <var:cdiv+0>
+   4d:  testq %rdx, %rdx
+   50:  je 0xa0
+   52:  movl 0x18(%rdx), %edi
+   55:  testl %edi, %edi
+   57:  je 0xc0
+   59:  cmpl 0x14(%rdx), %ebx
+   5c:  movl $0xffffffff, %eax
+   61:  cmovgel %eax, %edi
+   64:  callq fn:trap_exec+0
+   69:  popq %rbx
+   6a:  movl $1, %eax
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  popq %r14
+   76:  retq
+   77:  nopw (%rax, %rax)
+   80:  movl $0x70, %edi
+   85:  callq nreg+0
+   8a:  cmpl (%rax), %ebp
+   8c:  jl 0x2f
+   8e:  popq %rbx
+   8f:  xorl %eax, %eax
+   91:  popq %rbp
+   92:  popq %r12
+   94:  popq %r13
+   96:  popq %r14
+   98:  retq
+   99:  nopl (%rax)
+   a0:  testl %eax, %eax
+   a2:  js 0xc0
+   a4:  cltq
+   a6:  movl (, %rax, 4), %edi   <var:treg+0>
+   ad:  jmp 0x64
+   af:  nop
+   b0:  movl %r14d, %edi
+   b3:  xorl %esi, %esi
+   b5:  subl %ebx, %edi
+   b7:  callq fn:ren_sp+0
+   bc:  jmp 0x3f
+   be:  nop
+   c0:  movl $0xffffffff, %edi
+   c5:  jmp 0x64

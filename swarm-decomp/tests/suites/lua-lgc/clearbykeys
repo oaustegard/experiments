@@ -1,0 +1,56 @@
+# clearbykeys  (static, 185 bytes, 55 instructions)
+    0:  testq %rsi, %rsi
+    3:  je 0xb8
+    9:  subq $8, %rsp
+    d:  movq %rsi, %r10
+   10:  movl $1, %r11d
+   16:  nopw %cs:(%rax, %rax)
+   20:  movzbl 0xb(%r10), %ecx
+   25:  movl %r11d, %eax
+   28:  movq 0x18(%r10), %r8
+   2c:  shll %cl, %eax
+   2e:  cltq
+   30:  leaq (%rax, %rax, 2), %rax
+   34:  leaq (%r8, %rax, 8), %r9
+   38:  cmpq %r9, %r8
+   3b:  jb 0x57
+   3d:  jmp 0x90
+   3f:  nop
+   40:  testb %dl, %dl
+   42:  je 0x7d
+   44:  movb $0x10, 8(%r8)
+   49:  movb $0xb, 9(%r8)
+   4e:  addq $0x18, %r8
+   52:  cmpq %r9, %r8
+   55:  jae 0x90
+   57:  testb $0x40, 9(%r8)
+   5c:  je 0x4e
+   5e:  movq 0x10(%r8), %rsi
+   62:  testq %rsi, %rsi
+   65:  je 0x7d
+   67:  movzbl 8(%rsi), %eax
+   6b:  movzbl 9(%rsi), %edx
+   6f:  andl $0xf, %eax
+   72:  andl $0x18, %edx
+   75:  cmpb $4, %al
+   77:  jne 0x40
+   79:  testb %dl, %dl
+   7b:  jne 0xa0
+   7d:  testb $0xf, 8(%r8)
+   82:  jne 0x4e
+   84:  jmp 0x49
+   86:  nopw %cs:(%rax, %rax)
+   90:  movq 0x30(%r10), %r10
+   94:  testq %r10, %r10
+   97:  jne 0x20
+   99:  addq $8, %rsp
+   9d:  retq
+   9e:  nop
+   a0:  callq fn:reallymarkobject+0
+   a5:  testb $0xf, 8(%r8)
+   aa:  jne 0x4e
+   ac:  testb $0x40, 9(%r8)
+   b1:  je 0x4e
+   b3:  jmp 0x49
+   b5:  nopl (%rax)
+   b8:  retq

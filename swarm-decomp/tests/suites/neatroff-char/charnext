@@ -1,0 +1,102 @@
+# charnext  (global, 343 bytes, 101 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdx, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq utf8next+0
+   18:  testl %eax, %eax
+   1a:  je 0xf8
+   20:  movsbl (%rbx), %eax
+   23:  cmpb $4, %al
+   25:  je 0xb8
+   2b:  xorl %edx, %edx
+   2d:  cmpl (%rip), %eax   <c_ec+0>
+   33:  je 0x48
+   35:  addq $8, %rsp
+   39:  movl %edx, %eax
+   3b:  popq %rbx
+   3c:  popq %rbp
+   3d:  popq %r12
+   3f:  popq %r13
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  leaq 1(%rbx), %rdi
+   4c:  movq %rbp, %rsi
+   4f:  callq utf8next+0
+   54:  cmpb $0x28, 1(%rbx)
+   58:  je 0xd0
+   5a:  movl $0x43, %edi
+   5f:  callq nreg+0
+   64:  movslq (%rax), %r13
+   67:  movzbl 1(%rbx), %eax
+   6b:  testl %r13d, %r13d
+   6e:  jne 0x78
+   70:  cmpb $0x5b, %al
+   72:  je 0x108
+   78:  movl $0x5c, %edx
+   7d:  cmpb $0x43, %al
+   7f:  jne 0x35
+   81:  movq %rbp, %rdi
+   84:  movq %r12, %rsi
+   87:  callq quotednext+0
+   8c:  movl $0, %edx   <str:"%s">
+   91:  movl $0x20, %esi
+   96:  movq %rbx, %rdi
+   99:  movq %rax, %rcx
+   9c:  movq %rax, %rbp
+   9f:  xorl %eax, %eax
+   a1:  callq snprintf+0
+   a6:  movq %rbp, %rdi
+   a9:  callq free+0
+   ae:  movl $0x43, %edx
+   b3:  jmp 0x35
+   b5:  nopl (%rax)
+   b8:  leaq 1(%rbx), %rdi
+   bc:  movq %rbp, %rsi
+   bf:  callq utf8next+0
+   c4:  movl $4, %edx
+   c9:  jmp 0x35
+   ce:  nop
+   d0:  movq %rbp, %rsi
+   d3:  movq %rbx, %rdi
+   d6:  callq utf8next+0
+   db:  movq %rbp, %rsi
+   de:  movslq %eax, %rdi
+   e1:  addq %rbx, %rdi
+   e4:  callq utf8next+0
+   e9:  movl $0x28, %edx
+   ee:  jmp 0x35
+   f3:  nopl (%rax, %rax)
+   f8:  movl $0xffffffff, %edx
+   fd:  jmp 0x35
+  102:  nopw (%rax, %rax)
+  108:  callq *%rbp
+  10a:  cmpl $0xa, %eax
+  10d:  je 0x148
+  10f:  testl %eax, %eax
+  111:  js 0x148
+  113:  cmpl $0x5d, %eax
+  116:  je 0x148
+  118:  movl $1, %r12d
+  11e:  nop
+  120:  movb %al, -1(%rbx, %r12)
+  125:  movslq %r12d, %r13
+  128:  callq *%rbp
+  12a:  testl %eax, %eax
+  12c:  js 0x148
+  12e:  cmpl $0xa, %eax
+  131:  je 0x148
+  133:  cmpl $0x5d, %eax
+  136:  setne %cl
+  139:  cmpl $0x1e, %r12d
+  13d:  setle %dl
+  140:  addq $1, %r12
+  144:  testb %dl, %cl
+  146:  jne 0x120
+  148:  movb $0, (%rbx, %r13)
+  14d:  movl $0x5b, %edx
+  152:  jmp 0x35

@@ -1,0 +1,11 @@
+# lua_absindex  (global, 34 bytes, 10 instructions)
+    0:  leal 0xf4627(%rsi), %edx
+    6:  movl %esi, %eax
+    8:  cmpl $0xf4627, %edx
+    e:  ja 0x21
+   10:  movq 0x20(%rdi), %rcx
+   14:  movq 0x10(%rdi), %rdx
+   18:  subq (%rcx), %rdx
+   1b:  sarq $4, %rdx
+   1f:  addl %edx, %eax
+   21:  retq

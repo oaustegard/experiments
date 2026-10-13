@@ -1,0 +1,26 @@
+# o_cast  (global, 97 bytes, 25 instructions)
+    0:  movq %rdi, %rax
+    3:  andl $0xf, %eax
+    6:  cmpq $8, %rax
+    a:  jne 0x10
+    c:  retq
+    d:  nopl (%rax)
+   10:  subq $8, %rsp
+   14:  movq (%rip), %rax   <var:iv_n+0>
+   1b:  xorl %ecx, %ecx
+   1d:  xorl %edx, %edx
+   1f:  shlq $0x18, %rdi
+   23:  subq $1, %rax
+   27:  orq $0x400, %rdi
+   2e:  movslq (, %rax, 8), %rsi   <var:iv+0>
+   36:  movq %rax, (%rip)   <var:iv_n+0>
+   3d:  callq fn:ic_put+0
+   42:  movl $1, %edi
+   47:  callq opt+0
+   4c:  testl %eax, %eax
+   4e:  jne 0x58
+   50:  addq $8, %rsp
+   54:  retq
+   55:  nopl (%rax)
+   58:  addq $8, %rsp
+   5c:  jmp fn:io_num.isra.0+0

@@ -1,0 +1,33 @@
+# need_value  (static, 99 bytes, 32 instructions)
+    0:  movl %esi, %eax
+    2:  jmp 0x1f
+    4:  nopl (%rax)
+    8:  movl (%rdx), %edx
+    a:  shrl $7, %edx
+    d:  leal -0xffffff(%rdx), %ecx
+   13:  cmpl $0xfffffe, %edx
+   19:  je 0x60
+   1b:  leal 1(%rcx, %rax), %eax
+   1f:  cmpl $-1, %eax
+   22:  je 0x60
+   24:  movq (%rdi), %rcx
+   27:  movslq %eax, %rdx
+   2a:  movq 0x40(%rcx), %rcx
+   2e:  leaq (%rcx, %rdx, 4), %rdx
+   32:  movq %rdx, %rcx
+   35:  testl %eax, %eax
+   37:  jle 0x4e
+   39:  movl -4(%rdx), %esi
+   3c:  leaq -4(%rdx), %rcx
+   40:  andl $0x7f, %esi
+   43:  testb $0x10, (%rsi)   <luaP_opmodes+0>
+   4a:  cmoveq %rdx, %rcx
+   4e:  movl (%rcx), %ecx
+   50:  andl $0x7f, %ecx
+   53:  cmpl $0x43, %ecx
+   56:  je 8
+   58:  movl $1, %eax
+   5d:  retq
+   5e:  nop
+   60:  xorl %eax, %eax
+   62:  retq

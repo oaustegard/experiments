@@ -1,0 +1,53 @@
+# eqn_gaps  (static, 168 bytes, 52 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  movl $0, %edi   <str:"~">
+    9:  pushq %rbx
+    a:  movl %esi, %ebx
+    c:  subq $8, %rsp
+   10:  callq tok_jmp+0
+   15:  testl %eax, %eax
+   17:  je 0x78
+   19:  movl $0, %edi   <str:"^">
+   1e:  callq tok_jmp+0
+   23:  testl %eax, %eax
+   25:  je 0x48
+   27:  movl $0, %edi   <str:"\t">
+   2c:  callq tok_jmp+0
+   31:  movl %eax, %edx
+   33:  movl $1, %eax
+   38:  testl %edx, %edx
+   3a:  je 0x90
+   3c:  addq $8, %rsp
+   40:  popq %rbx
+   41:  popq %rbp
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  movl %ebx, %edi
+   4a:  callq nreg+0
+   4f:  movl (%rip), %ecx   <e_thinspace+0>
+   55:  movq %rax, %r8
+   58:  xorl %eax, %eax
+   5a:  movl $0, %edx   <str:"\\h'%du*%sp/100u'">
+   5f:  movl $0x14, %esi
+   64:  movq %rbp, %rdi
+   67:  callq box_puttext+0
+   6c:  xorl %eax, %eax
+   6e:  addq $8, %rsp
+   72:  popq %rbx
+   73:  popq %rbp
+   74:  retq
+   75:  nopl (%rax)
+   78:  movl %ebx, %edi
+   7a:  callq nreg+0
+   7f:  movl (%rip), %ecx   <e_thickspace+0>
+   85:  movq %rax, %r8
+   88:  jmp 0x58
+   8a:  nopw (%rax, %rax)
+   90:  xorl %eax, %eax
+   92:  movl $0, %edx   <str:"\t">
+   97:  movl $0x14, %esi
+   9c:  movq %rbp, %rdi
+   9f:  callq box_puttext+0
+   a4:  xorl %eax, %eax
+   a6:  jmp 0x6e

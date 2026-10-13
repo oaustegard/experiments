@@ -1,0 +1,96 @@
+# ll_require  (static, 361 bytes, 95 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq luaL_checklstring+0
+   15:  movl $1, %esi
+   1a:  movq %rbx, %rdi
+   1d:  movq %rax, %rbp
+   20:  callq lua_settop+0
+   25:  movl $0, %edx   <str:"_LOADED">
+   2a:  movl $0xfff0b9d8, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq lua_getfield+0
+   37:  movq %rbp, %rdx
+   3a:  movl $2, %esi
+   3f:  movq %rbx, %rdi
+   42:  callq lua_getfield+0
+   47:  movl $0xffffffff, %esi
+   4c:  movq %rbx, %rdi
+   4f:  callq lua_toboolean+0
+   54:  movl %eax, %edx
+   56:  movl $1, %eax
+   5b:  testl %edx, %edx
+   5d:  je 0x70
+   5f:  addq $8, %rsp
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  retq
+   66:  nopw %cs:(%rax, %rax)
+   70:  movl $0xfffffffe, %esi
+   75:  movq %rbx, %rdi
+   78:  callq lua_settop+0
+   7d:  movq %rbp, %rsi
+   80:  movq %rbx, %rdi
+   83:  callq fn:findloader+0
+   88:  movl $1, %edx
+   8d:  movl $0xfffffffe, %esi
+   92:  movq %rbx, %rdi
+   95:  callq lua_rotate+0
+   9a:  movl $1, %esi
+   9f:  movq %rbx, %rdi
+   a2:  callq lua_pushvalue+0
+   a7:  movl $0xfffffffd, %esi
+   ac:  movq %rbx, %rdi
+   af:  callq lua_pushvalue+0
+   b4:  xorl %r8d, %r8d
+   b7:  xorl %ecx, %ecx
+   b9:  movl $2, %esi
+   be:  movq %rbx, %rdi
+   c1:  movl $1, %edx
+   c6:  callq lua_callk+0
+   cb:  movl $0xffffffff, %esi
+   d0:  movq %rbx, %rdi
+   d3:  callq lua_type+0
+   d8:  testl %eax, %eax
+   da:  jne 0x120
+   dc:  movl $0xfffffffe, %esi
+   e1:  movq %rbx, %rdi
+   e4:  callq lua_settop+0
+   e9:  movq %rbp, %rdx
+   ec:  movl $2, %esi
+   f1:  movq %rbx, %rdi
+   f4:  callq lua_getfield+0
+   f9:  testl %eax, %eax
+   fb:  je 0x138
+   fd:  movq %rbx, %rdi
+  100:  movl $1, %edx
+  105:  movl $0xfffffffe, %esi
+  10a:  callq lua_rotate+0
+  10f:  addq $8, %rsp
+  113:  movl $2, %eax
+  118:  popq %rbx
+  119:  popq %rbp
+  11a:  retq
+  11b:  nopl (%rax, %rax)
+  120:  movq %rbp, %rdx
+  123:  movl $2, %esi
+  128:  movq %rbx, %rdi
+  12b:  callq lua_setfield+0
+  130:  jmp 0xe9
+  132:  nopw (%rax, %rax)
+  138:  movq %rbx, %rdi
+  13b:  movl $1, %esi
+  140:  callq lua_pushboolean+0
+  145:  movq %rbx, %rdi
+  148:  movl $0xfffffffe, %edx
+  14d:  movl $0xffffffff, %esi
+  152:  callq lua_copy+0
+  157:  movq %rbp, %rdx
+  15a:  movl $2, %esi
+  15f:  movq %rbx, %rdi
+  162:  callq lua_setfield+0
+  167:  jmp 0xfd

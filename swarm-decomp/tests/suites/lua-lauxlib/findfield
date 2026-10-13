@@ -1,0 +1,71 @@
+# findfield  (static, 239 bytes, 70 instructions)
+    0:  testl %edx, %edx
+    2:  jne 0x10
+    4:  xorl %eax, %eax
+    6:  retq
+    7:  nopw (%rax, %rax)
+   10:  pushq %r12
+   12:  movl %esi, %r12d
+   15:  movl $0xffffffff, %esi
+   1a:  pushq %rbp
+   1b:  movl %edx, %ebp
+   1d:  pushq %rbx
+   1e:  movq %rdi, %rbx
+   21:  callq lua_type+0
+   26:  cmpl $5, %eax
+   29:  je 0x38
+   2b:  xorl %eax, %eax
+   2d:  popq %rbx
+   2e:  popq %rbp
+   2f:  popq %r12
+   31:  retq
+   32:  nopw (%rax, %rax)
+   38:  movq %rbx, %rdi
+   3b:  subl $1, %ebp
+   3e:  callq lua_pushnil+0
+   43:  jmp 0x55
+   45:  nopl (%rax)
+   48:  movl $0xfffffffe, %esi
+   4d:  movq %rbx, %rdi
+   50:  callq lua_settop+0
+   55:  movl $0xfffffffe, %esi
+   5a:  movq %rbx, %rdi
+   5d:  callq lua_next+0
+   62:  testl %eax, %eax
+   64:  je 0x2b
+   66:  movl $0xfffffffe, %esi
+   6b:  movq %rbx, %rdi
+   6e:  callq lua_type+0
+   73:  cmpl $4, %eax
+   76:  jne 0x48
+   78:  movl $0xffffffff, %edx
+   7d:  movl %r12d, %esi
+   80:  movq %rbx, %rdi
+   83:  callq lua_rawequal+0
+   88:  testl %eax, %eax
+   8a:  jne 0xe0
+   8c:  movl %ebp, %edx
+   8e:  movl %r12d, %esi
+   91:  movq %rbx, %rdi
+   94:  callq 0
+   99:  testl %eax, %eax
+   9b:  je 0x48
+   9d:  movl $0, %esi   <str:".">
+   a2:  movq %rbx, %rdi
+   a5:  callq lua_pushstring+0
+   aa:  movl $0xfffffffd, %edx
+   af:  movl $0xffffffff, %esi
+   b4:  movq %rbx, %rdi
+   b7:  callq lua_copy+0
+   bc:  movl $0xfffffffe, %esi
+   c1:  movq %rbx, %rdi
+   c4:  callq lua_settop+0
+   c9:  movl $3, %esi
+   ce:  movq %rbx, %rdi
+   d1:  callq lua_concat+0
+   d6:  movl $1, %eax
+   db:  jmp 0x2d
+   e0:  movl $0xfffffffe, %esi
+   e5:  movq %rbx, %rdi
+   e8:  callq lua_settop+0
+   ed:  jmp 0xd6

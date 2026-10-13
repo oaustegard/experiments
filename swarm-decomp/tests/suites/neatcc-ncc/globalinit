@@ -1,0 +1,68 @@
+# globalinit  (static, 218 bytes, 67 instructions)
+    0:  pushq %r13
+    2:  leaq 0x80(%rdi), %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  movq %rdx, %rbx
+   13:  subq $8, %rsp
+   17:  cmpb $0, 0x80(%rdi)
+   1e:  jne 0x23
+   20:  movq %rdi, %r13
+   23:  movslq %esi, %r12
+   26:  testb $1, 4(%rbx)
+   2a:  je 0x36
+   2c:  callq fn:tok_grp+0
+   31:  cmpl $0x22, %eax
+   34:  je 0x70
+   36:  callq fn:readexpr+0
+   3b:  movl $1, %edi
+   40:  callq fn:ts_de+0
+   45:  movl 8(%rbx), %eax
+   48:  movl $8, %edx
+   4d:  testl %eax, %eax
+   4f:  jne 0x53
+   51:  movl (%rbx), %edx
+   53:  movq %r12, %rsi
+   56:  movq %r13, %rdi
+   59:  callq o_dsset+0
+   5e:  subl $1, (%rip)   <var:nts+0>
+   65:  addq $8, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  popq %r12
+   6d:  popq %r13
+   6f:  retq
+   70:  movslq 0xc(%rbx), %rax
+   74:  leaq (%rax, %rax, 2), %rdx
+   78:  movq (%rip), %rax   <var:arrays+0>
+   7f:  leaq (%rax, %rdx, 8), %rax
+   83:  movl 8(%rax), %ecx
+   86:  testl %ecx, %ecx
+   88:  jne 0x36
+   8a:  movl 4(%rax), %edx
+   8d:  testl %edx, %edx
+   8f:  jne 0x36
+   91:  movl (%rax), %eax
+   93:  andl $0xf, %eax
+   96:  cmpl $1, %eax
+   99:  jne 0x36
+   9b:  callq tok_get+0
+   a0:  movq %rax, %r13
+   a3:  leaq 1(%rax), %rbx
+   a7:  callq tok_len+0
+   ac:  movq %rbx, %rsi
+   af:  leal -2(%rax), %edx
+   b2:  subl $1, %eax
+   b5:  movslq %edx, %rdx
+   b8:  movb $0, 1(%r13, %rdx)
+   be:  movq 0x118(%rbp), %rdi
+   c5:  movslq %eax, %rdx
+   c8:  addq $8, %rsp
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  addq %r12, %rdi
+   d1:  popq %r12
+   d3:  popq %r13
+   d5:  jmp o_dscpy+0

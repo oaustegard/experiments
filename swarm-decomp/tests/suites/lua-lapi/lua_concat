@@ -1,0 +1,32 @@
+# lua_concat  (global, 101 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  testl %esi, %esi
+    b:  jle 0x40
+    d:  callq luaV_concat+0
+   12:  movq 0x18(%rbx), %rax
+   16:  cmpq $0, 0x18(%rax)
+   1b:  jg 0x28
+   1d:  addq $8, %rsp
+   21:  popq %rbx
+   22:  popq %rbp
+   23:  retq
+   24:  nopl (%rax)
+   28:  addq $8, %rsp
+   2c:  movq %rbx, %rdi
+   2f:  popq %rbx
+   30:  popq %rbp
+   31:  jmp luaC_step+0
+   36:  nopw %cs:(%rax, %rax)
+   40:  movq 0x10(%rdi), %rbp
+   44:  xorl %edx, %edx
+   46:  movl $0, %esi   <str:"">
+   4b:  callq luaS_newlstr+0
+   50:  movq %rax, (%rbp)
+   54:  movzbl 8(%rax), %eax
+   58:  orl $0x40, %eax
+   5b:  movb %al, 8(%rbp)
+   5e:  addq $0x10, 0x10(%rbx)
+   63:  jmp 0x12

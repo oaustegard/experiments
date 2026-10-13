@@ -1,0 +1,156 @@
+# tr_di  (global, 671 bytes, 155 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 8(%rdi), %rbp
+    a:  movq (%rip), %rax   <var:cdiv+0>
+   11:  testq %rbp, %rbp
+   14:  je 0x150
+   1a:  testq %rax, %rax
+   1d:  movq %rdi, %rbx
+   20:  leaq 0x30(%rax), %rdi
+   24:  movl $0, %eax   <var:divs+0>
+   29:  cmoveq %rax, %rdi
+   2d:  pxor %xmm0, %xmm0
+   31:  movups %xmm0, (%rdi)
+   34:  movups %xmm0, 0x10(%rdi)
+   38:  movups %xmm0, 0x20(%rdi)
+   3c:  movq %rdi, (%rip)   <var:cdiv+0>
+   43:  callq sbuf_init+0
+   48:  movq 8(%rbx), %rdi
+   4c:  movq (%rip), %rbp   <var:cdiv+0>
+   53:  callq map+0
+   58:  movq (%rip), %rdi   <var:cdiv+0>
+   5f:  movl %eax, 0x10(%rbp)
+   62:  movq (%rbx), %rax
+   65:  movl $0xffffffff, 0x18(%rdi)
+   6c:  cmpb $0x61, 2(%rax)
+   70:  je 0x268
+   76:  movl (%rip), %edx   <c_cc+0>
+   7c:  movl $0, %ecx   <str:"\x07<">
+   81:  movl $0, %esi   <str:"%c%s\n">
+   86:  xorl %eax, %eax
+   88:  callq sbuf_printf+0
+   8d:  movl $0x64, %edi
+   92:  callq nreg+0
+   97:  movl $0x68, %edi
+   9c:  movl (%rax), %edx
+   9e:  movq (%rip), %rax   <var:cdiv+0>
+   a5:  movl %edx, 0x20(%rax)
+   a8:  callq nreg+0
+   ad:  movl $0, %edi   <str:".mk">
+   b2:  movl (%rax), %edx
+   b4:  movq (%rip), %rax   <var:cdiv+0>
+   bb:  movl %edx, 0x24(%rax)
+   be:  callq map+0
+   c3:  movl %eax, %edi
+   c5:  callq nreg+0
+   ca:  movl $0, %edi   <str:".ns">
+   cf:  movl (%rax), %edx
+   d1:  movq (%rip), %rax   <var:cdiv+0>
+   d8:  movl %edx, 0x28(%rax)
+   db:  callq map+0
+   e0:  movl %eax, %edi
+   e2:  callq nreg+0
+   e7:  movl $0x64, %edi
+   ec:  movl (%rax), %edx
+   ee:  movq (%rip), %rax   <var:cdiv+0>
+   f5:  movl %edx, 0x2c(%rax)
+   f8:  callq nreg+0
+   fd:  movl $0x68, %edi
+  102:  movl $0, (%rax)
+  108:  callq nreg+0
+  10d:  movl $0, %edi   <str:".mk">
+  112:  movl $0, (%rax)
+  118:  callq map+0
+  11d:  movl %eax, %edi
+  11f:  callq nreg+0
+  124:  movl $0, %edi   <str:".ns">
+  129:  movl $0, (%rax)
+  12f:  callq map+0
+  134:  movl %eax, %edi
+  136:  callq nreg+0
+  13b:  movl $0, (%rax)
+  141:  addq $8, %rsp
+  145:  popq %rbx
+  146:  popq %rbp
+  147:  retq
+  148:  nopl (%rax, %rax)
+  150:  testq %rax, %rax
+  153:  je 0x141
+  155:  movl (%rip), %edx   <c_cc+0>
+  15b:  movl $0, %ecx   <str:"\x07>">
+  160:  movl $0, %esi   <str:"%c%s\n">
+  165:  movq %rax, %rdi
+  168:  xorl %eax, %eax
+  16a:  callq sbuf_printf+0
+  16f:  movq (%rip), %rdi   <var:cdiv+0>
+  176:  callq sbuf_buf+0
+  17b:  movq %rax, %rsi
+  17e:  movq (%rip), %rax   <var:cdiv+0>
+  185:  movl 0x10(%rax), %edi
+  188:  callq str_set+0
+  18d:  movq (%rip), %rdi   <var:cdiv+0>
+  194:  callq sbuf_done+0
+  199:  movl $0, %edi   <str:"dl">
+  19e:  movq (%rip), %rbx   <var:cdiv+0>
+  1a5:  callq map+0
+  1aa:  movl %eax, %edi
+  1ac:  callq nreg+0
+  1b1:  movl 0x1c(%rbx), %edx
+  1b4:  movl $0x64, %edi
+  1b9:  movl %edx, (%rax)
+  1bb:  callq nreg+0
+  1c0:  movl $0, %edi   <str:"dn">
+  1c5:  movq %rax, %rbx
+  1c8:  callq map+0
+  1cd:  movl %eax, %edi
+  1cf:  callq nreg+0
+  1d4:  movl (%rbx), %edx
+  1d6:  movq (%rip), %rbx   <var:cdiv+0>
+  1dd:  movl $0x64, %edi
+  1e2:  movl %edx, (%rax)
+  1e4:  callq nreg+0
+  1e9:  movl 0x20(%rbx), %edx
+  1ec:  movq (%rip), %rbx   <var:cdiv+0>
+  1f3:  movl $0x68, %edi
+  1f8:  movl %edx, (%rax)
+  1fa:  callq nreg+0
+  1ff:  movl 0x24(%rbx), %edx
+  202:  movl $0, %edi   <str:".mk">
+  207:  movq (%rip), %rbx   <var:cdiv+0>
+  20e:  movl %edx, (%rax)
+  210:  callq map+0
+  215:  movl %eax, %edi
+  217:  callq nreg+0
+  21c:  movl 0x28(%rbx), %edx
+  21f:  movl $0, %edi   <str:".ns">
+  224:  movq (%rip), %rbx   <var:cdiv+0>
+  22b:  movl %edx, (%rax)
+  22d:  callq map+0
+  232:  movl %eax, %edi
+  234:  callq nreg+0
+  239:  movl 0x2c(%rbx), %edx
+  23c:  movl %edx, (%rax)
+  23e:  movq (%rip), %rax   <var:cdiv+0>
+  245:  cmpq $0, %rax   <var:divs+0>
+  24b:  leaq -0x30(%rax), %rdx
+  24f:  cmovaq %rdx, %rbp
+  253:  movq %rbp, (%rip)   <var:cdiv+0>
+  25a:  addq $8, %rsp
+  25e:  popq %rbx
+  25f:  popq %rbp
+  260:  retq
+  261:  nopl (%rax)
+  268:  movl 0x10(%rdi), %edi
+  26b:  callq str_get+0
+  270:  testq %rax, %rax
+  273:  je 0x293
+  275:  movq (%rip), %rax   <var:cdiv+0>
+  27c:  movl 0x10(%rax), %edi
+  27f:  callq str_get+0
+  284:  movq (%rip), %rdi   <var:cdiv+0>
+  28b:  movq %rax, %rsi
+  28e:  callq sbuf_append+0
+  293:  movq (%rip), %rdi   <var:cdiv+0>
+  29a:  jmp 0x76

@@ -1,0 +1,93 @@
+# g_write  (static, 296 bytes, 92 instructions)
+    0:  pushq %r14
+    2:  movq %rsi, %r14
+    5:  pushq %r13
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  movl %edx, %ebx
+   10:  subq $0x10, %rsp
+   14:  callq lua_gettop+0
+   19:  movl %eax, %r12d
+   1c:  movl %eax, %r13d
+   1f:  callq __errno_location+0
+   24:  subl %ebx, %r12d
+   27:  movl $0, (%rax)
+   2d:  testl %r12d, %r12d
+   30:  je 0xac
+   32:  movl $1, %r12d
+   38:  jmp 0x5c
+   3a:  nopw (%rax, %rax)
+   40:  leaq 8(%rsp), %rdx
+   45:  movl %ebx, %esi
+   47:  movq %rbp, %rdi
+   4a:  callq luaL_checklstring+0
+   4f:  testl %r12d, %r12d
+   52:  jne 0xc0
+   54:  addl $1, %ebx
+   57:  cmpl %ebx, %r13d
+   5a:  je 0xa7
+   5c:  movl %ebx, %esi
+   5e:  movq %rbp, %rdi
+   61:  callq lua_type+0
+   66:  cmpl $3, %eax
+   69:  jne 0x40
+   6b:  movl %ebx, %esi
+   6d:  movq %rbp, %rdi
+   70:  callq lua_isinteger+0
+   75:  xorl %edx, %edx
+   77:  movl %ebx, %esi
+   79:  movq %rbp, %rdi
+   7c:  testl %eax, %eax
+   7e:  je 0xf0
+   80:  callq lua_tointegerx+0
+   85:  movl $0, %esi   <str:"%lld">
+   8a:  movq %r14, %rdi
+   8d:  movq %rax, %rdx
+   90:  xorl %eax, %eax
+   92:  callq fprintf+0
+   97:  testl %eax, %eax
+   99:  setg %al
+   9c:  addl $1, %ebx
+   9f:  andl %eax, %r12d
+   a2:  cmpl %ebx, %r13d
+   a5:  jne 0x5c
+   a7:  testl %r12d, %r12d
+   aa:  je 0x110
+   ac:  addq $0x10, %rsp
+   b0:  movl $1, %eax
+   b5:  popq %rbx
+   b6:  popq %rbp
+   b7:  popq %r12
+   b9:  popq %r13
+   bb:  popq %r14
+   bd:  retq
+   be:  nop
+   c0:  movq 8(%rsp), %rdx
+   c5:  movq %r14, %rcx
+   c8:  movl $1, %esi
+   cd:  movq %rax, %rdi
+   d0:  xorl %r12d, %r12d
+   d3:  callq fwrite+0
+   d8:  cmpq %rax, 8(%rsp)
+   dd:  sete %r12b
+   e1:  jmp 0x54
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  callq lua_tonumberx+0
+   f5:  movl $0, %esi   <str:"%.14g">
+   fa:  movq %r14, %rdi
+   fd:  movl $1, %eax
+  102:  callq fprintf+0
+  107:  jmp 0x97
+  109:  nopl (%rax)
+  110:  addq $0x10, %rsp
+  114:  movq %rbp, %rdi
+  117:  xorl %edx, %edx
+  119:  xorl %esi, %esi
+  11b:  popq %rbx
+  11c:  popq %rbp
+  11d:  popq %r12
+  11f:  popq %r13
+  121:  popq %r14
+  123:  jmp luaL_fileresult+0

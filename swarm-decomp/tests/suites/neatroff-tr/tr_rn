@@ -1,0 +1,23 @@
+# tr_rn  (static, 63 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 0x10(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x38
+   12:  callq map+0
+   17:  movq 8(%rbx), %rdi
+   1b:  movl %eax, %ebp
+   1d:  callq map+0
+   22:  addq $8, %rsp
+   26:  movl %ebp, %esi
+   28:  popq %rbx
+   29:  movl %eax, %edi
+   2b:  popq %rbp
+   2c:  jmp str_rn+0
+   31:  nopl (%rax)
+   38:  addq $8, %rsp
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  retq

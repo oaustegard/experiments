@@ -1,0 +1,21 @@
+# luaL_getmetafield  (global, 49 bytes, 20 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq lua_getmetatable+0
+   11:  testl %eax, %eax
+   13:  jne 0x20
+   15:  addq $8, %rsp
+   19:  xorl %eax, %eax
+   1b:  popq %rbx
+   1c:  popq %rbp
+   1d:  retq
+   1e:  nop
+   20:  addq $8, %rsp
+   24:  movq %rbp, %rsi
+   27:  movq %rbx, %rdi
+   2a:  popq %rbx
+   2b:  popq %rbp
+   2c:  jmp fn:luaL_getmetafield.part.0+0

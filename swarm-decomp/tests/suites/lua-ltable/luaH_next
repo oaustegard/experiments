@@ -1,0 +1,106 @@
+# luaH_next  (global, 364 bytes, 105 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  movq %rsi, %rdi
+    8:  pushq %r12
+    a:  movq %rsi, %r12
+    d:  pushq %rbp
+    e:  movq %rdx, %rbp
+   11:  pushq %rbx
+   12:  subq $8, %rsp
+   16:  callq luaH_realasize+0
+   1b:  movl %eax, %ebx
+   1d:  movzbl 8(%rbp), %eax
+   21:  testb $0xf, %al
+   23:  je 0x140
+   29:  cmpb $3, %al
+   2b:  je 0xc0
+   31:  movl $1, %edx
+   36:  movq %rbp, %rsi
+   39:  movq %r12, %rdi
+   3c:  callq fn:getgeneric+0
+   41:  cmpb $0x20, 8(%rax)
+   45:  je 0x15d
+   4b:  movabsq $12297829382473034411, %rdx
+   55:  subq 0x18(%r12), %rax
+   5a:  sarq $3, %rax
+   5e:  imulq %rdx, %rax
+   62:  leal 1(%rbx, %rax), %eax
+   66:  cmpl %ebx, %eax
+   68:  jae 0xe8
+   6a:  movl %eax, %edx
+   6c:  shlq $4, %rdx
+   70:  addq 0x10(%r12), %rdx
+   75:  jmp 0x88
+   77:  nopw (%rax, %rax)
+   80:  addq $0x10, %rdx
+   84:  cmpl %eax, %ebx
+   86:  je 0xe8
+   88:  addl $1, %eax
+   8b:  testb $0xf, 8(%rdx)
+   8f:  je 0x80
+   91:  movq %rax, (%rbp)
+   95:  movb $3, 8(%rbp)
+   99:  movq (%rdx), %rax
+   9c:  movq %rax, 0x10(%rbp)
+   a0:  movzbl 8(%rdx), %eax
+   a4:  movb %al, 0x18(%rbp)
+   a7:  addq $8, %rsp
+   ab:  movl $1, %eax
+   b0:  popq %rbx
+   b1:  popq %rbp
+   b2:  popq %r12
+   b4:  popq %r13
+   b6:  retq
+   b7:  nopw (%rax, %rax)
+   c0:  movq (%rbp), %rdx
+   c4:  leaq -1(%rdx), %rax
+   c8:  cmpq $0x7fffffff, %rax
+   ce:  ja 0x31
+   d4:  movl %edx, %eax
+   d6:  subl $1, %edx
+   d9:  cmpl %ebx, %edx
+   db:  jb 0x66
+   dd:  jmp 0x31
+   e2:  nopw (%rax, %rax)
+   e8:  movzbl 0xb(%r12), %ecx
+   ee:  movl $1, %edx
+   f3:  subl %ebx, %eax
+   f5:  shll %cl, %edx
+   f7:  movl %edx, %ecx
+   f9:  cmpl %eax, %edx
+   fb:  jle 0x150
+   fd:  movq 0x18(%r12), %rsi
+  102:  jmp 0x10f
+  104:  nopl (%rax)
+  108:  addl $1, %eax
+  10b:  cmpl %eax, %ecx
+  10d:  jle 0x150
+  10f:  movl %eax, %edx
+  111:  leaq (%rdx, %rdx, 2), %rdx
+  115:  leaq (%rsi, %rdx, 8), %rdx
+  119:  testb $0xf, 8(%rdx)
+  11d:  je 0x108
+  11f:  movq 0x10(%rdx), %rax
+  123:  movq %rax, (%rbp)
+  127:  movzbl 9(%rdx), %eax
+  12b:  movb %al, 8(%rbp)
+  12e:  movq (%rdx), %rax
+  131:  movq %rax, 0x10(%rbp)
+  135:  movzbl 8(%rdx), %eax
+  139:  jmp 0xa4
+  13e:  nop
+  140:  xorl %eax, %eax
+  142:  jmp 0x66
+  147:  nopw (%rax, %rax)
+  150:  addq $8, %rsp
+  154:  xorl %eax, %eax
+  156:  popq %rbx
+  157:  popq %rbp
+  158:  popq %r12
+  15a:  popq %r13
+  15c:  retq
+  15d:  movl $0, %esi   <str:"invalid key to 'next'">
+  162:  movq %r13, %rdi
+  165:  xorl %eax, %eax
+  167:  callq luaG_runerror+0

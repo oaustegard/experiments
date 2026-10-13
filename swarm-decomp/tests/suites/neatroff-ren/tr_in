@@ -1,0 +1,54 @@
+# tr_in  (global, 196 bytes, 53 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  cmpq $0, 8(%rdi)
+    e:  je 0x98
+   14:  movl $0x69, %edi
+   19:  callq nreg+0
+   1e:  movq 8(%rbp), %rdi
+   22:  movl $0x6d, %edx
+   27:  movl (%rax), %esi
+   29:  callq eval_re+0
+   2e:  movl %eax, %ebx
+   30:  movq (%rbp), %rax
+   34:  movsbl (%rax), %eax
+   37:  cmpl (%rip), %eax   <c_cc+0>
+   3d:  je 0xba
+   3f:  movl $0x69, %edi
+   44:  callq nreg+0
+   49:  movl $0, %edi   <str:".i0">
+   4e:  movq %rax, %rbp
+   51:  callq map+0
+   56:  movl %eax, %edi
+   58:  callq nreg+0
+   5d:  movl (%rbp), %edx
+   60:  movl $0x69, %edi
+   65:  movl %edx, (%rax)
+   67:  callq nreg+0
+   6c:  xorl %edx, %edx
+   6e:  testl %ebx, %ebx
+   70:  movl $0, %edi   <str:".ti">
+   75:  cmovsl %edx, %ebx
+   78:  movl %ebx, (%rax)
+   7a:  callq map+0
+   7f:  movl %eax, %edi
+   81:  callq nreg+0
+   86:  movl $0xffffffff, (%rax)
+   8c:  addq $8, %rsp
+   90:  popq %rbx
+   91:  popq %rbp
+   92:  retq
+   93:  nopl (%rax, %rax)
+   98:  movl $0, %edi   <str:".i0">
+   9d:  callq map+0
+   a2:  movl %eax, %edi
+   a4:  callq nreg+0
+   a9:  movl (%rax), %ebx
+   ab:  movq (%rbp), %rax
+   af:  movsbl (%rax), %eax
+   b2:  cmpl (%rip), %eax   <c_cc+0>
+   b8:  jne 0x3f
+   ba:  callq fn:ren_br+0
+   bf:  jmp 0x3f

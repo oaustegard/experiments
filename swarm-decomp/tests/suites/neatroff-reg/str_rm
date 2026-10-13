@@ -1,0 +1,11 @@
+# str_rm  (global, 48 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  movslq %edi, %rbx
+    4:  movq (, %rbx, 8), %rdi   <var:sregs+0>
+    c:  testq %rdi, %rdi
+    f:  je 0x16
+   11:  callq free+0
+   16:  movq $0, (, %rbx, 8)   <var:sregs+0>
+   22:  movq $0, (, %rbx, 8)   <var:sregs_dat+0>
+   2e:  popq %rbx
+   2f:  retq

@@ -1,0 +1,9 @@
+# tr_nh  (static, 32 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %edi   <str:".hy">
+    9:  callq map+0
+    e:  movl %eax, %edi
+   10:  callq nreg+0
+   15:  movl $0, (%rax)
+   1b:  addq $8, %rsp
+   1f:  retq

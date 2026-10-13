@@ -1,0 +1,41 @@
+# luaK_setreturns  (global, 130 bytes, 40 instructions)
+    0:  movq (%rdi), %r8
+    3:  movq %rdi, %rcx
+    6:  movslq 8(%rsi), %rdi
+    a:  addl $1, %edx
+    d:  shll $0x18, %edx
+   10:  movq 0x40(%r8), %rax
+   14:  leaq (%rax, %rdi, 4), %rdi
+   18:  movl (%rdi), %eax
+   1a:  andl $0xffffff, %eax
+   1f:  orl %edx, %eax
+   21:  cmpl $0x12, (%rsi)
+   24:  jne 0x30
+   26:  movl %eax, (%rdi)
+   28:  retq
+   29:  nopl (%rax)
+   30:  movzbl 0x44(%rcx), %esi
+   34:  andl $0xffff807f, %eax
+   39:  movl %esi, %r9d
+   3c:  movl %esi, %edx
+   3e:  addl $1, %esi
+   41:  shll $7, %r9d
+   45:  orl %r9d, %eax
+   48:  movl %eax, (%rdi)
+   4a:  movzbl 0xc(%r8), %eax
+   4f:  cmpl %eax, %esi
+   51:  jg 0x60
+   53:  addl $1, %edx
+   56:  movb %dl, 0x44(%rcx)
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  cmpl $0xfe, %esi
+   66:  jg 0x73
+   68:  addl $1, %edx
+   6b:  movb %dl, 0xc(%r8)
+   6f:  movb %dl, 0x44(%rcx)
+   72:  retq
+   73:  pushq %rax
+   74:  movq 0x10(%rcx), %rdi
+   78:  movl $0, %esi   <str:"function or expression needs too many registers">
+   7d:  callq luaX_syntaxerror+0

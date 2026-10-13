@@ -1,0 +1,17 @@
+# in_queue  (global, 65 bytes, 16 instructions)
+    0:  movslq (%rip), %rax   <var:nfiles+0>
+    7:  movq %rdi, %rcx
+    a:  cmpl $0xf, %eax
+    d:  jg 0x40
+    f:  testq %rdi, %rdi
+   12:  movl $0, %edx   <str:"">
+   17:  movl $0x400, %esi
+   1c:  cmoveq %rdx, %rcx
+   20:  leal 1(%rax), %edx
+   23:  shlq $0xa, %rax
+   27:  movl %edx, (%rip)   <var:nfiles+0>
+   2d:  leaq (%rax), %rdi   <var:files+0>
+   34:  movl $0, %edx   <str:"%s">
+   39:  xorl %eax, %eax
+   3b:  jmp snprintf+0
+   40:  retq

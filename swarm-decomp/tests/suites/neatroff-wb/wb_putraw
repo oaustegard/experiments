@@ -1,0 +1,35 @@
+# wb_putraw  (global, 139 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  pushq %rbx
+    3:  movq %rdi, %rbx
+    6:  subq $0x18, %rsp
+    a:  movl 0x2068(%rdi), %eax
+   10:  movl 0x206c(%rdi), %r12d
+   17:  testl %eax, %eax
+   19:  je 0x20
+   1b:  testl %r12d, %r12d
+   1e:  jne 0x50
+   20:  movl $0, 0x206c(%rbx)
+   2a:  cmpb $0xa, (%rsi)
+   2d:  je 0x75
+   2f:  movq %rbx, %rdi
+   32:  callq fn:wb_put.part.0+0
+   37:  movl %r12d, 0x206c(%rbx)
+   3e:  addq $0x18, %rsp
+   42:  popq %rbx
+   43:  popq %r12
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movq %rsi, 8(%rsp)
+   55:  callq fn:wb_flushsub.part.0+0
+   5a:  movq 8(%rsp), %rsi
+   5f:  movl 0x206c(%rbx), %r12d
+   66:  movl $0, 0x206c(%rbx)
+   70:  cmpb $0xa, (%rsi)
+   73:  jne 0x2f
+   75:  movl $0, 0x30(%rbx)
+   7c:  movl %r12d, 0x206c(%rbx)
+   83:  addq $0x18, %rsp
+   87:  popq %rbx
+   88:  popq %r12
+   8a:  retq

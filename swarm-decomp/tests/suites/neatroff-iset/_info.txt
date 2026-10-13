@@ -1,0 +1,16 @@
+# neatroff-iset: translation unit iset of neatroff
+# write each function as src/neatroff/iset/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+iset_extend	static	92 bytes
+iset_make	global	43 bytes
+iset_free	global	87 bytes
+iset_get	global	22 bytes
+iset_len	global	22 bytes
+iset_put	global	319 bytes
+iset_has	global	75 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+free memcpy mextend xmalloc

@@ -1,0 +1,84 @@
+# outelf_add  (static, 357 bytes, 83 instructions)
+    0:  cmpw $1, 0x10(%rsi)
+    5:  movq 0x28(%rsi), %r11
+    9:  jne 0x150
+    f:  pushq %r12
+   11:  movq %rsi, %r8
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  movzwl 0x12(%rsi), %eax
+   1a:  movl %eax, (%rip)   <var:e_machine+0>
+   20:  movl 0x30(%rsi), %eax
+   23:  movl %eax, (%rip)   <var:e_flags+0>
+   29:  movslq 0x17c50(%rdi), %rax
+   30:  cmpl $0x7f, %eax
+   33:  jg 0x15b
+   39:  leaq (, %rax, 8), %r9
+   41:  leal 1(%rax), %edx
+   44:  movq %rsi, %xmm0
+   49:  addq %rsi, %r11
+   4c:  subq %rax, %r9
+   4f:  movzwl 0x3e(%rsi), %eax
+   53:  punpcklqdq %xmm0, %xmm0
+   57:  movl %edx, 0x17c50(%rdi)
+   5d:  shlq $3, %r9
+   61:  shlq $6, %rax
+   65:  leaq 0x16050(%rdi, %r9), %r10
+   6d:  movups %xmm0, 0x16050(%rdi, %r9)
+   76:  addq %rdi, %r9
+   79:  movq 0x18(%r11, %rax), %rbx
+   7e:  movzwl 0x3c(%rsi), %eax
+   82:  movq %r11, 0x16060(%r9)
+   89:  addq %rsi, %rbx
+   8c:  movq %rbx, 0x16080(%r9)
+   93:  testw %ax, %ax
+   96:  je 0x14b
+   9c:  leal -1(%rax), %r12d
+   a0:  leaq 4(%r11), %rsi
+   a4:  movq %r11, %rcx
+   a7:  movabsq $12297829382473034411, %rbp
+   b1:  shlq $6, %r12
+   b5:  leaq 0x44(%r11, %r12), %rbx
+   ba:  nopw (%rax, %rax)
+   c0:  cmpl $2, (%rsi)
+   c3:  jne 0xfb
+   c5:  movl 0x24(%rsi), %eax
+   c8:  shlq $6, %rax
+   cc:  movq 0x18(%r11, %rax), %rdx
+   d1:  movq 0x14(%rsi), %rax
+   d5:  addq %r8, %rdx
+   d8:  addq %r8, %rax
+   db:  movq %rdx, 0x16078(%r9)
+   e2:  movq %rax, 0x16068(%r9)
+   e9:  movq %rbp, %rax
+   ec:  mulq 0x1c(%rsi)
+   f0:  shrq $4, %rdx
+   f4:  movl %edx, 0x16070(%r9)
+   fb:  addq $0x40, %rsi
+   ff:  cmpq %rbx, %rsi
+  102:  jne 0xc0
+  104:  leaq 0x40(%r11, %r12), %rsi
+  109:  nopl (%rax)
+  110:  testb $7, 8(%rcx)
+  114:  je 0x142
+  116:  movslq 0x16048(%rdi), %rax
+  11d:  cmpl $0x3ff, %eax
+  122:  jg 0x151
+  124:  leal 1(%rax), %edx
+  127:  shlq $5, %rax
+  12b:  addq %rdi, %rax
+  12e:  movl %edx, 0x16048(%rdi)
+  134:  movq %rcx, 0xe048(%rax)
+  13b:  movq %r10, 0xe050(%rax)
+  142:  addq $0x40, %rcx
+  146:  cmpq %rcx, %rsi
+  149:  jne 0x110
+  14b:  popq %rbx
+  14c:  popq %rbp
+  14d:  popq %r12
+  14f:  retq
+  150:  retq
+  151:  movl $0, %edi   <str:"neatld: MAXSECS reached!">
+  156:  callq fn:die+0
+  15b:  movl $0, %edi   <str:"neatld: MAXOBJS reached!">
+  160:  callq fn:die+0

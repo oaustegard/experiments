@@ -1,0 +1,96 @@
+# luaF_close  (global, 328 bytes, 95 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  movq %rsi, %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  movl %edx, %ebp
+   11:  pushq %rbx
+   12:  movq %rsi, %rbx
+   15:  subq $0x18, %rsp
+   19:  subq 0x30(%rdi), %r13
+   1d:  movl %ecx, 0xc(%rsp)
+   21:  callq luaF_closeupval+0
+   26:  movq 0x40(%r14), %r15
+   2a:  cmpq %rbx, %r15
+   2d:  jb 0x136
+   33:  movq 0x30(%r14), %rdx
+   37:  nopw (%rax, %rax)
+   40:  movzwl 0xa(%r15), %ecx
+   45:  movq %r15, %rax
+   48:  shlq $4, %rcx
+   4c:  subq %rcx, %rax
+   4f:  cmpq %rax, %rdx
+   52:  jb 0x6b
+   54:  jmp 0x72
+   56:  nopw %cs:(%rax, %rax)
+   60:  subq $0xffff0, %rax
+   66:  cmpq %rax, %rdx
+   69:  jae 0x72
+   6b:  cmpw $0, 0xa(%rax)
+   70:  je 0x60
+   72:  movq %rax, 0x40(%r14)
+   76:  cmpl $-1, %ebp
+   79:  jne 0x120
+   7f:  movq 0x18(%r14), %rax
+   83:  leaq 0x50(%rax), %r12
+   87:  movl $0x18, %edx
+   8c:  movq %r15, %rsi
+   8f:  movq %r14, %rdi
+   92:  movq 0x10(%r14), %rbx
+   96:  callq luaT_gettmbyobj+0
+   9b:  movq %r14, %rdi
+   9e:  movq (%rax), %rdx
+   a1:  movq %rbx, %rsi
+   a4:  movq %rdx, (%rbx)
+   a7:  movzbl 8(%rax), %eax
+   ab:  xorl %edx, %edx
+   ad:  movb %al, 8(%rbx)
+   b0:  movq (%r15), %rax
+   b3:  movq %rax, 0x10(%rbx)
+   b7:  movzbl 8(%r15), %eax
+   bc:  movb %al, 0x18(%rbx)
+   bf:  movq (%r12), %rax
+   c3:  movq %rax, 0x20(%rbx)
+   c7:  movzbl 8(%r12), %eax
+   cd:  movb %al, 0x28(%rbx)
+   d0:  leaq 0x30(%rbx), %rax
+   d4:  movq %rax, 0x10(%r14)
+   d8:  movl 0xc(%rsp), %eax
+   dc:  testl %eax, %eax
+   de:  je 0x110
+   e0:  callq luaD_call+0
+   e5:  movq 0x30(%r14), %rdx
+   e9:  movq 0x40(%r14), %r15
+   ed:  leaq (%rdx, %r13), %rax
+   f1:  cmpq %rax, %r15
+   f4:  jae 0x40
+   fa:  addq $0x18, %rsp
+   fe:  popq %rbx
+   ff:  popq %rbp
+  100:  popq %r12
+  102:  popq %r13
+  104:  popq %r14
+  106:  popq %r15
+  108:  retq
+  109:  nopl (%rax)
+  110:  callq luaD_callnoyield+0
+  115:  jmp 0xe5
+  117:  nopw (%rax, %rax)
+  120:  leaq 0x10(%r15), %r12
+  124:  movl %ebp, %esi
+  126:  movq %r14, %rdi
+  129:  movq %r12, %rdx
+  12c:  callq luaD_seterrorobj+0
+  131:  jmp 0x87
+  136:  addq $0x18, %rsp
+  13a:  movq %rbx, %rax
+  13d:  popq %rbx
+  13e:  popq %rbp
+  13f:  popq %r12
+  141:  popq %r13
+  143:  popq %r14
+  145:  popq %r15
+  147:  retq

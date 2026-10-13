@@ -1,0 +1,66 @@
+# src_next  (global, 241 bytes, 65 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq (%rip), %r13   <var:esrc+0>
+   11:  movl 0xfb4(%r13), %eax
+   18:  testl %eax, %eax
+   1a:  jne 0x9c
+   20:  movq %r13, %r12
+   23:  movq (%r13), %r13
+   27:  testq %r13, %r13
+   2a:  je 0xb8
+   30:  movslq 0x10(%r12), %rax
+   35:  movq %rax, %rdx
+   38:  addq 8(%r12), %rax
+   3d:  cmpb $0, (%rax)
+   40:  jne 0xdb
+   46:  leaq 0xfb8(%r12), %rbx
+   4e:  leaq 0x1008(%r12), %rbp
+   56:  nopw %cs:(%rax, %rax)
+   60:  movq (%rbx), %rdi
+   63:  addq $8, %rbx
+   67:  callq free+0
+   6c:  cmpq %rbp, %rbx
+   6f:  jne 0x60
+   71:  movq 8(%r12), %rdi
+   76:  callq free+0
+   7b:  movq %r12, %rdi
+   7e:  callq free+0
+   83:  subl $1, (%rip)   <var:esrc_depth+0>
+   8a:  movl 0xfb4(%r13), %eax
+   91:  movq %r13, (%rip)   <var:esrc+0>
+   98:  testl %eax, %eax
+   9a:  je 0x20
+   9c:  subl $1, %eax
+   9f:  movl %eax, 0xfb4(%r13)
+   a6:  cltq
+   a8:  movl 0x14(%r13, %rax, 4), %eax
+   ad:  addq $8, %rsp
+   b1:  popq %rbx
+   b2:  popq %rbp
+   b3:  popq %r12
+   b5:  popq %r13
+   b7:  retq
+   b8:  movq (%rip), %rdi   <stdin+0>
+   bf:  callq fgetc+0
+   c4:  cmpl $0xa, %eax
+   c7:  jne 0xad
+   c9:  addl $1, (%rip)   <var:lineno+0>
+   d0:  addq $8, %rsp
+   d4:  popq %rbx
+   d5:  popq %rbp
+   d6:  popq %r12
+   d8:  popq %r13
+   da:  retq
+   db:  addl $1, %edx
+   de:  movl %edx, 0x10(%r12)
+   e3:  movzbl (%rax), %eax
+   e6:  addq $8, %rsp
+   ea:  popq %rbx
+   eb:  popq %rbp
+   ec:  popq %r12
+   ee:  popq %r13
+   f0:  retq

@@ -1,0 +1,14 @@
+# msgcmp_date  (static, 31 bytes, 13 instructions)
+    0:  movq (%rdi), %rdi
+    3:  movq (%rsi), %rsi
+    6:  movl 0x2c(%rdi), %ecx
+    9:  movl 0x2c(%rsi), %edx
+    c:  movl %ecx, %eax
+    e:  subl %edx, %eax
+   10:  cmpl %edx, %ecx
+   12:  je 0x18
+   14:  retq
+   15:  nopl (%rax)
+   18:  movl 0x34(%rdi), %eax
+   1b:  subl 0x34(%rsi), %eax
+   1e:  retq

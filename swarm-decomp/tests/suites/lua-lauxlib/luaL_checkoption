@@ -1,0 +1,67 @@
+# luaL_checkoption  (global, 184 bytes, 66 instructions)
+    0:  pushq %r14
+    2:  movl %esi, %r14d
+    5:  pushq %r13
+    7:  movq %rdi, %r13
+    a:  pushq %r12
+    c:  movq %rcx, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  testq %rdx, %rdx
+   14:  je 0x58
+   16:  movq %rdx, %rbp
+   19:  callq lua_type+0
+   1e:  testl %eax, %eax
+   20:  jg 0x58
+   22:  movq (%r12), %rdi
+   26:  testq %rdi, %rdi
+   29:  je 0x90
+   2b:  xorl %ebx, %ebx
+   2d:  jmp 0x3d
+   2f:  nop
+   30:  addq $1, %rbx
+   34:  movq (%r12, %rbx, 8), %rdi
+   38:  testq %rdi, %rdi
+   3b:  je 0x90
+   3d:  movq %rbp, %rsi
+   40:  callq strcmp+0
+   45:  testl %eax, %eax
+   47:  jne 0x30
+   49:  movl %ebx, %eax
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  popq %r12
+   4f:  popq %r13
+   51:  popq %r14
+   53:  retq
+   54:  nopl (%rax)
+   58:  xorl %edx, %edx
+   5a:  movl %r14d, %esi
+   5d:  movq %r13, %rdi
+   60:  callq lua_tolstring+0
+   65:  movq %rax, %rbp
+   68:  testq %rax, %rax
+   6b:  jne 0x22
+   6d:  movq %r13, %rdi
+   70:  movl $4, %esi
+   75:  callq lua_typename+0
+   7a:  movl %r14d, %esi
+   7d:  movq %r13, %rdi
+   80:  movq %rax, %rdx
+   83:  callq luaL_typeerror+0
+   88:  jmp 0x22
+   8a:  nopw (%rax, %rax)
+   90:  movq %rbp, %rdx
+   93:  movq %r13, %rdi
+   96:  movl $0, %esi   <str:"invalid option '%s'">
+   9b:  xorl %eax, %eax
+   9d:  callq lua_pushfstring+0
+   a2:  popq %rbx
+   a3:  movl %r14d, %esi
+   a6:  popq %rbp
+   a7:  movq %r13, %rdi
+   aa:  popq %r12
+   ac:  movq %rax, %rdx
+   af:  popq %r13
+   b1:  popq %r14
+   b3:  jmp luaL_argerror+0

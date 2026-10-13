@@ -1,0 +1,60 @@
+# mem_cpy  (global, 191 bytes, 59 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  movq %rdx, %r13
+    c:  pushq %r12
+    e:  movq %rcx, %r12
+   11:  pushq %rbp
+   12:  movq %rsi, %rbp
+   15:  pushq %rbx
+   16:  subq $8, %rsp
+   1a:  movq 0x10(%rdi), %r15
+   1e:  movq 8(%rdi), %rax
+   22:  leaq (%rsi, %r15), %rdx
+   26:  leaq 1(%rcx, %rdx), %rdx
+   2b:  cmpq %rax, %rdx
+   2e:  jge 0x6d
+   30:  jmp 0xa0
+   32:  nopw (%rax, %rax)
+   38:  addq %rax, %rax
+   3b:  movq %rax, %rdi
+   3e:  movq %rax, 8(%r14)
+   42:  callq malloc+0
+   47:  movq %rax, (%r14)
+   4a:  testq %r15, %r15
+   4d:  jne 0x88
+   4f:  movq %rbx, %rdi
+   52:  callq free+0
+   57:  movq 0x10(%r14), %r15
+   5b:  movq 8(%r14), %rax
+   5f:  leaq (%r15, %rbp), %rdx
+   63:  leaq 1(%r12, %rdx), %rdx
+   68:  cmpq %rax, %rdx
+   6b:  jl 0xa0
+   6d:  movq (%r14), %rbx
+   70:  testq %rax, %rax
+   73:  jne 0x38
+   75:  movl $0x200, %edi
+   7a:  movl $0x200, %eax
+   7f:  jmp 0x3e
+   81:  nopl (%rax)
+   88:  movq %r15, %rdx
+   8b:  movq %rbx, %rsi
+   8e:  movq %rax, %rdi
+   91:  callq memcpy+0
+   96:  jmp 0x4f
+   98:  nopl (%rax, %rax)
+   a0:  movq (%r14), %rdi
+   a3:  addq $8, %rsp
+   a7:  movq %r12, %rdx
+   aa:  movq %r13, %rsi
+   ad:  popq %rbx
+   ae:  addq %rbp, %rdi
+   b1:  popq %rbp
+   b2:  popq %r12
+   b4:  popq %r13
+   b6:  popq %r14
+   b8:  popq %r15
+   ba:  jmp memcpy+0

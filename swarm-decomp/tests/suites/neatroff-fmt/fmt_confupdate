@@ -1,0 +1,55 @@
+# fmt_confupdate  (static, 190 bytes, 54 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl $0x6c, %edi
+    9:  callq nreg+0
+    e:  movl $0, %edi   <str:".ti">
+   13:  movl (%rax), %eax
+   15:  movl %eax, 0x50(%rbx)
+   18:  callq map+0
+   1d:  movl %eax, %edi
+   1f:  callq nreg+0
+   24:  movl (%rax), %edx
+   26:  testl %edx, %edx
+   28:  js 0xa0
+   2a:  movl $0, %edi   <str:".ti">
+   2f:  callq map+0
+   34:  movl %eax, %edi
+   36:  callq nreg+0
+   3b:  movl (%rax), %eax
+   3d:  movl %eax, 0x4c(%rbx)
+   40:  movl $0, %edi   <str:".tI">
+   45:  callq map+0
+   4a:  movl %eax, %edi
+   4c:  callq nreg+0
+   51:  movl (%rax), %eax
+   53:  testl %eax, %eax
+   55:  js 0xb0
+   57:  movl $0, %edi   <str:".tI">
+   5c:  callq map+0
+   61:  movl %eax, %edi
+   63:  callq nreg+0
+   68:  movl (%rax), %eax
+   6a:  movl %eax, 0x54(%rbx)
+   6d:  movl $0, %edi   <str:".ti">
+   72:  callq map+0
+   77:  movl %eax, %edi
+   79:  callq nreg+0
+   7e:  movl $0, %edi   <str:".tI">
+   83:  movl $0xffffffff, (%rax)
+   89:  callq map+0
+   8e:  movl %eax, %edi
+   90:  callq nreg+0
+   95:  movl $0xffffffff, (%rax)
+   9b:  popq %rbx
+   9c:  retq
+   9d:  nopl (%rax)
+   a0:  movl $0x69, %edi
+   a5:  callq nreg+0
+   aa:  movl (%rax), %eax
+   ac:  jmp 0x3d
+   ae:  nop
+   b0:  movl $0x49, %edi
+   b5:  callq nreg+0
+   ba:  movl (%rax), %eax
+   bc:  jmp 0x6a

@@ -1,0 +1,50 @@
+# sort  (static, 172 bytes, 49 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_type+0
+   13:  cmpl $5, %eax
+   16:  je 0x2a
+   18:  movl $7, %edx
+   1d:  movl $1, %esi
+   22:  movq %rbx, %rdi
+   25:  callq fn:checktab.part.0+0
+   2a:  movl $1, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq luaL_len+0
+   37:  movq %rax, %rbp
+   3a:  cmpq $1, %rax
+   3e:  jle 0x77
+   40:  cmpq $0x7ffffffe, %rax
+   46:  jg 0x98
+   48:  movl $2, %esi
+   4d:  movq %rbx, %rdi
+   50:  callq lua_type+0
+   55:  testl %eax, %eax
+   57:  jg 0x80
+   59:  movl $2, %esi
+   5e:  movq %rbx, %rdi
+   61:  callq lua_settop+0
+   66:  xorl %ecx, %ecx
+   68:  movl %ebp, %edx
+   6a:  movl $1, %esi
+   6f:  movq %rbx, %rdi
+   72:  callq fn:auxsort+0
+   77:  addq $8, %rsp
+   7b:  xorl %eax, %eax
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  retq
+   80:  movl $6, %edx
+   85:  movl $2, %esi
+   8a:  movq %rbx, %rdi
+   8d:  callq luaL_checktype+0
+   92:  jmp 0x59
+   94:  nopl (%rax)
+   98:  movl $0, %edx   <str:"array too big">
+   9d:  movl $1, %esi
+   a2:  movq %rbx, %rdi
+   a5:  callq luaL_argerror+0
+   aa:  jmp 0x48

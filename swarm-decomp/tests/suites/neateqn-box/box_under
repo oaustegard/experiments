@@ -1,0 +1,129 @@
+# box_under  (global, 491 bytes, 128 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rdi, %rbp
+    c:  pushq %rbx
+    d:  subq $0x28, %rsp
+   11:  callq nregmk+0
+   16:  movl %eax, %r14d
+   19:  callq nregmk+0
+   1e:  movl %eax, %ebx
+   20:  callq nregmk+0
+   25:  movl %eax, %r15d
+   28:  callq nregmk+0
+   2d:  movl %eax, %r13d
+   30:  callq nregmk+0
+   35:  movq %rbp, %rdi
+   38:  movl %eax, %r12d
+   3b:  callq fn:box_italiccorrection+0
+   40:  movl 0x10(%rbp), %edi
+   43:  callq nreg+0
+   48:  movl $0, %edi   <str:".ps %s\n">
+   4d:  movq %rax, %rsi
+   50:  xorl %eax, %eax
+   52:  callq printf+0
+   57:  movl %r15d, %edi
+   5a:  callq nregname+0
+   5f:  movl $0, %edx   <str:"\\(ul">
+   64:  movl $0, %edi   <str:".nr %s 0\\w'%s'\n">
+   69:  movq %rax, %rsi
+   6c:  xorl %eax, %eax
+   6e:  callq printf+0
+   73:  testl %r13d, %r13d
+   76:  jne 0x1b0
+   7c:  movq %rbp, %rdi
+   7f:  callq box_toreg+0
+   84:  movl %r14d, %edi
+   87:  movq %rax, 8(%rsp)
+   8c:  callq nregname+0
+   91:  movq 8(%rsp), %rdx
+   96:  movl $0, %edi   <str:".nr %s 0\\w'%s'\n">
+   9b:  movq %rax, %rsi
+   9e:  xorl %eax, %eax
+   a0:  callq printf+0
+   a5:  testl %ebx, %ebx
+   a7:  jne 0x1d0
+   ad:  movl %ebx, %edi
+   af:  callq nregname+0
+   b4:  movl %ebx, %edi
+   b6:  movq %rax, 8(%rsp)
+   bb:  callq nreg+0
+   c0:  movq 8(%rsp), %rdx
+   c5:  movl $0, %edi   <str:".if %s<0 .nr %s 0\n">
+   ca:  movq %rax, %rsi
+   cd:  xorl %eax, %eax
+   cf:  callq printf+0
+   d4:  movl (%rip), %r8d   <e_rulethickness+0>
+   db:  movl %r13d, %edi
+   de:  movl %r8d, 0x18(%rsp)
+   e3:  callq nreg+0
+   e8:  movl %ebx, %edi
+   ea:  movq %rax, 0x10(%rsp)
+   ef:  callq nreg+0
+   f4:  movl %r12d, %edi
+   f7:  movq %rax, 8(%rsp)
+   fc:  callq nregname+0
+  101:  movl 0x18(%rsp), %r8d
+  106:  movq 0x10(%rsp), %rcx
+  10b:  movl $0, %edi   <str:".nr %s 0%su+%su+(3*%dm/100u)\n">
+  110:  movq 8(%rsp), %rdx
+  115:  movq %rax, %rsi
+  118:  xorl %eax, %eax
+  11a:  callq printf+0
+  11f:  movl %r12d, %edi
+  122:  callq nreg+0
+  127:  movl %r14d, %edi
+  12a:  movq %rax, 0x18(%rsp)
+  12f:  callq nreg+0
+  134:  movl 0x10(%rbp), %edi
+  137:  movq %rax, 0x10(%rsp)
+  13c:  callq nreg+0
+  141:  movq %rax, %rdi
+  144:  callq escarg+0
+  149:  movl %r12d, %edi
+  14c:  movq %rax, 8(%rsp)
+  151:  callq nreg+0
+  156:  movq 0x18(%rsp), %r9
+  15b:  movq 0x10(%rsp), %r8
+  160:  movq %rbp, %rdi
+  163:  movq 8(%rsp), %rcx
+  168:  movq %rax, %rdx
+  16b:  movl $0, %esi   <str:"\\v'%su'\\s%s\\f[\\n(.f]\\l'-%su\\(ul'\\v'-%su'">
+  170:  xorl %eax, %eax
+  172:  callq box_putf+0
+  177:  movl %r14d, %edi
+  17a:  callq nregrm+0
+  17f:  movl %ebx, %edi
+  181:  callq nregrm+0
+  186:  movl %r15d, %edi
+  189:  callq nregrm+0
+  18e:  movl %r13d, %edi
+  191:  callq nregrm+0
+  196:  addq $0x28, %rsp
+  19a:  movl %r12d, %edi
+  19d:  popq %rbx
+  19e:  popq %rbp
+  19f:  popq %r12
+  1a1:  popq %r13
+  1a3:  popq %r14
+  1a5:  popq %r15
+  1a7:  jmp nregrm+0
+  1ac:  nopl (%rax)
+  1b0:  movl %r13d, %edi
+  1b3:  callq nregname+0
+  1b8:  movl $0, %edi   <str:".nr %s 0-\\n[bbury]-1\n">
+  1bd:  movq %rax, %rsi
+  1c0:  xorl %eax, %eax
+  1c2:  callq printf+0
+  1c7:  jmp 0x7c
+  1cc:  nopl (%rax)
+  1d0:  movl %ebx, %edi
+  1d2:  callq nregname+0
+  1d7:  movl $0, %edi   <str:".nr %s 0\\n[bblly]\n">
+  1dc:  movq %rax, %rsi
+  1df:  xorl %eax, %eax
+  1e1:  callq printf+0
+  1e6:  jmp 0xad

@@ -1,0 +1,311 @@
+# render_rec.isra.0  (static, 1271 bytes, 310 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movl %edi, %ebp
+    b:  pushq %rbx
+    c:  subq $0x88, %rsp
+   13:  movl (%rip), %eax   <var:ren_level+0>
+   19:  movl (%rip), %r13d   <var:ren_div+0>
+   20:  movl $0, (%rip)   <var:ren_div+0>
+   2a:  cmpl $0x63, %eax
+   2d:  jg 0x4e2
+   33:  cmpl %eax, %ebp
+   35:  jle 0x55
+   37:  jmp 0x140
+   3c:  nopl (%rax)
+   40:  callq tr_nextreq+0
+   45:  testl %eax, %eax
+   47:  jne 0x61
+   49:  cmpl %ebp, (%rip)   <var:ren_level+0>
+   4f:  jl 0x140
+   55:  movl (%rip), %r10d   <var:ren_un+0>
+   5c:  testl %r10d, %r10d
+   5f:  je 0x40
+   61:  cmpl (%rip), %ebp   <var:ren_level+0>
+   67:  jg 0x140
+   6d:  movl (%rip), %r9d   <var:ren_aborted+0>
+   74:  testl %r9d, %r9d
+   77:  jne 0x147
+   7d:  movl (%rip), %eax   <var:ren_un+0>
+   83:  testl %eax, %eax
+   85:  jle 0x2c8
+   8b:  subl $1, %eax
+   8e:  movl %eax, (%rip)   <var:ren_un+0>
+   94:  cltq
+   96:  movl (, %rax, 4), %r12d   <var:ren_unbuf+0>
+   9e:  testl %r12d, %r12d
+   a1:  js 0x160
+   a7:  xorl %eax, %eax
+   a9:  cmpl $0xa, %r12d
+   ad:  setne %al
+   b0:  sete %r14b
+   b4:  cmpl $0x20, %r12d
+   b8:  sete %r15b
+   bc:  movl %eax, (%rip)   <var:ren_partial+0>
+   c2:  orb %r14b, %r15b
+   c5:  jne 0x2a8
+   cb:  movl (%rip), %eax   <var:ren_nl+0>
+   d1:  testl %eax, %eax
+   d3:  je 0x226
+   d9:  movl $0, %edi   <str:".b0">
+   de:  callq map+0
+   e3:  movl %eax, %edi
+   e5:  callq nreg+0
+   ea:  movq %rax, %rbx
+   ed:  callq env_fmt+0
+   f2:  movq %rax, %rdi
+   f5:  callq fmt_wid+0
+   fa:  movl %eax, %r14d
+   fd:  callq env_wb+0
+  102:  movq %rax, %rdi
+  105:  callq wb_wid+0
+  10a:  addl %r14d, %eax
+  10d:  movl %eax, (%rbx)
+  10f:  cmpl $0x20, %r12d
+  113:  je 0x11e
+  115:  testl %r12d, %r12d
+  118:  jns 0x226
+  11e:  movl (%rip), %edx   <var:ren_level+0>
+  124:  movl %edx, %eax
+  126:  testl %r12d, %r12d
+  129:  jns 0x277
+  12f:  cmpl %eax, %ebp
+  131:  jle 0x55
+  137:  nopw (%rax, %rax)
+  140:  movl %r13d, (%rip)   <var:ren_div+0>
+  147:  addq $0x88, %rsp
+  14e:  popq %rbx
+  14f:  popq %rbp
+  150:  popq %r12
+  152:  popq %r13
+  154:  popq %r14
+  156:  popq %r15
+  158:  retq
+  159:  nopl (%rax)
+  160:  movl (%rip), %eax   <var:bp_final+0>
+  166:  cmpl $1, %eax
+  169:  jg 0x140
+  16b:  testl %eax, %eax
+  16d:  jne 0x2d8
+  173:  movl $1, (%rip)   <var:bp_final+0>
+  17d:  movl (%rip), %edi   <var:trap_em+0>
+  183:  testl %edi, %edi
+  185:  js 0x18c
+  187:  callq fn:trap_exec+0
+  18c:  xorl %r15d, %r15d
+  18f:  callq env_fmt+0
+  194:  movq %rax, %rbx
+  197:  jmp 0x1a8
+  199:  nopl (%rax)
+  1a0:  movq %rbx, %rdi
+  1a3:  callq fn:ren_passline+0
+  1a8:  movq %rbx, %rdi
+  1ab:  callq fmt_morelines+0
+  1b0:  testl %eax, %eax
+  1b2:  jne 0x1a0
+  1b4:  cmpl $0xa, %r12d
+  1b8:  jne 0x290
+  1be:  movl $0, %edi   <str:".b0">
+  1c3:  callq map+0
+  1c8:  movl %eax, %edi
+  1ca:  callq nreg+0
+  1cf:  movq %rax, %rbx
+  1d2:  callq env_fmt+0
+  1d7:  movq %rax, %rdi
+  1da:  callq fmt_wid+0
+  1df:  movl %eax, %r14d
+  1e2:  callq env_wb+0
+  1e7:  movq %rax, %rdi
+  1ea:  callq wb_wid+0
+  1ef:  movl $0, %edi   <str:".it">
+  1f4:  addl %r14d, %eax
+  1f7:  movl %eax, (%rbx)
+  1f9:  callq map+0
+  1fe:  movl %eax, %edi
+  200:  callq nreg+0
+  205:  movl (%rax), %edx
+  207:  testl %edx, %edx
+  209:  jne 0x460
+  20f:  callq env_wb+0
+  214:  movq %rax, %rdi
+  217:  callq wb_part+0
+  21c:  movl %eax, %ebx
+  21e:  testl %eax, %eax
+  220:  je 0x430
+  226:  movslq (%rip), %rax   <var:ren_un+0>
+  22d:  leal 1(%rax), %edx
+  230:  movl %r12d, (, %rax, 4)   <var:ren_unbuf+0>
+  238:  movl %edx, (%rip)   <var:ren_un+0>
+  23e:  callq env_wb+0
+  243:  movl $0, %edx   <fn:ren_back+0>
+  248:  movl $0, %esi   <fn:ren_next+0>
+  24d:  movq %rsp, %rdi
+  250:  movq %rax, %rbx
+  253:  callq charnext+0
+  258:  testl %eax, %eax
+  25a:  js 0x271
+  25c:  movl $0, %ecx   <fn:ren_back+0>
+  261:  movl $0, %edx   <fn:ren_next+0>
+  266:  movq %rsp, %rsi
+  269:  movq %rbx, %rdi
+  26c:  callq fn:ren_put+0
+  271:  movl (%rip), %edx   <var:ren_level+0>
+  277:  movzbl %r15b, %r15d
+  27b:  movl %edx, %eax
+  27d:  movl %r15d, (%rip)   <var:ren_nl+0>
+  284:  jmp 0x33
+  289:  nopl (%rax)
+  290:  movl (%rip), %ecx   <var:ren_nl+0>
+  296:  testl %ecx, %ecx
+  298:  je 0x10f
+  29e:  jmp 0xd9
+  2a3:  nopl (%rax, %rax)
+  2a8:  callq env_wb+0
+  2ad:  movq %rax, %rdi
+  2b0:  callq wb_part+0
+  2b5:  testl %eax, %eax
+  2b7:  je 0x2f8
+  2b9:  movl %r14d, %r15d
+  2bc:  jmp 0x18f
+  2c1:  nopl (%rax)
+  2c8:  callq tr_next+0
+  2cd:  movl %eax, %r12d
+  2d0:  jmp 0x9e
+  2d5:  nopl (%rax)
+  2d8:  movl $2, (%rip)   <var:bp_final+0>
+  2e2:  movl $1, %edi
+  2e7:  callq fn:ren_ejectpage+0
+  2ec:  jmp 0x18c
+  2f1:  nopl (%rax)
+  2f8:  callq env_wb+0
+  2fd:  movq %rax, %r15
+  300:  callq env_fmt+0
+  305:  movq %r15, %rsi
+  308:  movq %rax, %rdi
+  30b:  callq fmt_word+0
+  310:  testl %eax, %eax
+  312:  je 0x340
+  314:  callq env_fmt+0
+  319:  movq %rax, %rbx
+  31c:  nopl (%rax)
+  320:  movq %rbx, %rdi
+  323:  callq fmt_morelines+0
+  328:  testl %eax, %eax
+  32a:  je 0x300
+  32c:  movq %rbx, %rdi
+  32f:  callq fn:ren_passline+0
+  334:  jmp 0x320
+  336:  nopw %cs:(%rax, %rax)
+  340:  movq %r15, %rdi
+  343:  callq wb_reset+0
+  348:  cmpl $0xa, %r12d
+  34c:  je 0x3c0
+  34e:  movl $0x75, %edi
+  353:  callq nreg+0
+  358:  movl (%rax), %r8d
+  35b:  testl %r8d, %r8d
+  35e:  je 0x37b
+  360:  movl $0, %edi   <str:".na">
+  365:  callq map+0
+  36a:  movl %eax, %edi
+  36c:  callq nreg+0
+  371:  movl (%rax), %edi
+  373:  testl %edi, %edi
+  375:  je 0x4af
+  37b:  callq env_fmt+0
+  380:  movq %rax, %rbx
+  383:  nopl (%rax, %rax)
+  388:  xorl %esi, %esi
+  38a:  movq %rbx, %rdi
+  38d:  callq fmt_fill+0
+  392:  testl %eax, %eax
+  394:  je 0x408
+  396:  nopw %cs:(%rax, %rax)
+  3a0:  movq %rbx, %rdi
+  3a3:  callq fmt_morelines+0
+  3a8:  testl %eax, %eax
+  3aa:  je 0x388
+  3ac:  movq %rbx, %rdi
+  3af:  callq fn:ren_passline+0
+  3b4:  jmp 0x3a0
+  3b6:  nopw %cs:(%rax, %rax)
+  3c0:  callq env_fmt+0
+  3c5:  movq %rax, %rdi
+  3c8:  callq fmt_newline+0
+  3cd:  testl %eax, %eax
+  3cf:  je 0x34e
+  3d5:  callq env_fmt+0
+  3da:  movq %rax, %rbx
+  3dd:  nopl (%rax)
+  3e0:  movq %rbx, %rdi
+  3e3:  callq fmt_morelines+0
+  3e8:  testl %eax, %eax
+  3ea:  je 0x3c0
+  3ec:  movq %rbx, %rdi
+  3ef:  callq fn:ren_passline+0
+  3f4:  jmp 0x3e0
+  3f6:  nopw %cs:(%rax, %rax)
+  400:  movq %rbx, %rdi
+  403:  callq fn:ren_passline+0
+  408:  movq %rbx, %rdi
+  40b:  callq fmt_morelines+0
+  410:  testl %eax, %eax
+  412:  jne 0x400
+  414:  cmpl $0x20, %r12d
+  418:  jne 0x2b9
+  41e:  callq env_fmt+0
+  423:  movq %rax, %rdi
+  426:  callq fmt_space+0
+  42b:  jmp 0x18c
+  430:  movl $0, %edi   <str:".ce">
+  435:  callq map+0
+  43a:  movl %eax, %edi
+  43c:  callq nreg+0
+  441:  cmpl $1, (%rax)
+  444:  jg 0x497
+  446:  movl $0, %edi   <str:".ce">
+  44b:  callq map+0
+  450:  movl %eax, %edi
+  452:  callq nreg+0
+  457:  movl %ebx, (%rax)
+  459:  jmp 0x226
+  45e:  nop
+  460:  movl $0, %edi   <str:".itn">
+  465:  callq map+0
+  46a:  movl %eax, %edi
+  46c:  callq nreg+0
+  471:  subl $1, (%rax)
+  474:  jne 0x20f
+  47a:  movl $0, %edi   <str:".it">
+  47f:  callq map+0
+  484:  movl %eax, %edi
+  486:  callq nreg+0
+  48b:  movl (%rax), %edi
+  48d:  callq fn:trap_exec+0
+  492:  jmp 0x20f
+  497:  movl $0, %edi   <str:".ce">
+  49c:  callq map+0
+  4a1:  movl %eax, %edi
+  4a3:  callq nreg+0
+  4a8:  movl (%rax), %ebx
+  4aa:  subl $1, %ebx
+  4ad:  jmp 0x446
+  4af:  movl $0, %edi   <str:".ce">
+  4b4:  callq map+0
+  4b9:  movl %eax, %edi
+  4bb:  callq nreg+0
+  4c0:  movl (%rax), %esi
+  4c2:  testl %esi, %esi
+  4c4:  jne 0x37b
+  4ca:  movl $0x6a, %edi
+  4cf:  callq nreg+0
+  4d4:  testb $0x20, (%rax)
+  4d7:  je 0x37b
+  4dd:  jmp 0x414
+  4e2:  movl $0, %edi   <str:"neatroff: trap recursion depth limit reached\n">
+  4e7:  callq errdie+0
+  4ec:  movl (%rip), %eax   <var:ren_level+0>
+  4f2:  jmp 0x33

@@ -1,0 +1,36 @@
+# outinfo  (global, 117 bytes, 35 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  movq %rdi, %rsi
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movl $0, %edi   <str:"Author">
+   10:  subq $8, %rsp
+   14:  callq strcmp+0
+   19:  testl %eax, %eax
+   1b:  je 0x38
+   1d:  movq %rbx, %rsi
+   20:  movl $0, %edi   <str:"Title">
+   25:  callq strcmp+0
+   2a:  testl %eax, %eax
+   2c:  je 0x58
+   2e:  addq $8, %rsp
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  retq
+   35:  nopl (%rax)
+   38:  movq %rbp, %rcx
+   3b:  movl $0, %edx   <str:"%s">
+   40:  movl $0x100, %esi
+   45:  movl $0, %edi   <var:ps_author+0>
+   4a:  callq snprintf+0
+   4f:  jmp 0x1d
+   51:  nopl (%rax)
+   58:  addq $8, %rsp
+   5c:  movq %rbp, %rcx
+   5f:  movl $0, %edx   <str:"%s">
+   64:  movl $0x100, %esi
+   69:  popq %rbx
+   6a:  movl $0, %edi   <var:ps_title+0>
+   6f:  popq %rbp
+   70:  jmp snprintf+0

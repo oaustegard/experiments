@@ -1,0 +1,45 @@
+# loadUnsigned  (static, 130 bytes, 44 instructions)
+    0:  shrq $7, %rsi
+    4:  pushq %r12
+    6:  movq %rsi, %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  xorl %ebx, %ebx
+   10:  jmp 0x3c
+   12:  nopw (%rax, %rax)
+   18:  movq 8(%rdi), %rax
+   1c:  leaq 1(%rax), %rdx
+   20:  movq %rdx, 8(%rdi)
+   24:  movzbl (%rax), %eax
+   27:  movl %eax, %edx
+   29:  cmpq %r12, %rbx
+   2c:  jae 0x68
+   2e:  shlq $7, %rbx
+   32:  andl $0x7f, %edx
+   35:  orq %rdx, %rbx
+   38:  testb %al, %al
+   3a:  js 0x60
+   3c:  movq 8(%rbp), %rdi
+   40:  movq (%rdi), %rax
+   43:  leaq -1(%rax), %rdx
+   47:  movq %rdx, (%rdi)
+   4a:  testq %rax, %rax
+   4d:  jne 0x18
+   4f:  callq luaZ_fill+0
+   54:  cmpl $-1, %eax
+   57:  je 0x75
+   59:  movl %eax, %edx
+   5b:  jmp 0x29
+   5d:  nopl (%rax)
+   60:  movq %rbx, %rax
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  popq %r12
+   67:  retq
+   68:  movl $0, %esi   <str:"integer overflow">
+   6d:  movq %rbp, %rdi
+   70:  callq fn:error+0
+   75:  movl $0, %esi   <str:"truncated chunk">
+   7a:  movq %rbp, %rdi
+   7d:  callq fn:error+0

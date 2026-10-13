@@ -1,0 +1,15 @@
+# luaK_checkstack  (global, 43 bytes, 14 instructions)
+    0:  movq (%rdi), %rdx
+    3:  movzbl 0x44(%rdi), %eax
+    7:  movzbl 0xc(%rdx), %ecx
+    b:  addl %esi, %eax
+    d:  cmpl %eax, %ecx
+    f:  jge 0x1b
+   11:  cmpl $0xfe, %eax
+   16:  jg 0x1c
+   18:  movb %al, 0xc(%rdx)
+   1b:  retq
+   1c:  pushq %rax
+   1d:  movq 0x10(%rdi), %rdi
+   21:  movl $0, %esi   <str:"function or expression needs too many registers">
+   26:  callq luaX_syntaxerror+0

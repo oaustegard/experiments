@@ -1,0 +1,27 @@
+# addlenmod  (static, 76 bytes, 26 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movq %rsi, %r13
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  callq strlen+0
+   13:  movq %r13, %rdi
+   16:  movq %rax, %rbx
+   19:  callq strlen+0
+   1e:  leaq -1(%rbp, %rbx), %rdi
+   23:  movq %r13, %rsi
+   26:  movzbl (%rdi), %r14d
+   2a:  movq %rax, %r12
+   2d:  leaq 1(%rax), %rdx
+   31:  callq memcpy+0
+   36:  addq %r12, %rbx
+   39:  movb %r14b, -1(%rbp, %rbx)
+   3e:  movb $0, (%rbp, %rbx)
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  popq %r12
+   47:  popq %r13
+   49:  popq %r14
+   4b:  retq

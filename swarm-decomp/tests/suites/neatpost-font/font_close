@@ -1,0 +1,14 @@
+# font_close  (global, 61 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 0x898(%rdi), %rdi
+    b:  callq dict_free+0
+   10:  movq 0x8a0(%rbx), %rdi
+   17:  callq dict_free+0
+   1c:  movq 0x8a8(%rbx), %rdi
+   23:  callq dict_free+0
+   28:  movq 0x888(%rbx), %rdi
+   2f:  callq free+0
+   34:  movq %rbx, %rdi
+   37:  popq %rbx
+   38:  jmp free+0

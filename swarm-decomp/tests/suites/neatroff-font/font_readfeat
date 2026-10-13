@@ -1,0 +1,57 @@
+# font_readfeat  (static, 185 bytes, 56 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdx, %r14
+    7:  pushq %r13
+    9:  movq %r8, %r13
+    c:  pushq %r12
+    e:  movq %rcx, %r12
+   11:  pushq %rbp
+   12:  movq %rsi, %rbp
+   15:  movl $0x3a, %esi
+   1a:  pushq %rbx
+   1b:  movq %rdi, %rbx
+   1e:  movq %rbp, %rdi
+   21:  subq $0x18, %rsp
+   25:  movl $0xffffffff, (%rcx)
+   2b:  movl $0xffffffff, (%r8)
+   32:  callq strchr+0
+   37:  testq %rax, %rax
+   3a:  je 0x84
+   3c:  movb $0, (%rax)
+   3f:  leaq 1(%rax), %rdx
+   43:  movl $0x3a, %esi
+   48:  movq %rdx, %rdi
+   4b:  movq %rdx, 8(%rsp)
+   50:  callq strchr+0
+   55:  movq 8(%rsp), %rdx
+   5a:  testq %rax, %rax
+   5d:  movq %rax, %r15
+   60:  je 0xa8
+   62:  movb $0, (%rax)
+   65:  movq %rdx, %rsi
+   68:  movq %rbx, %rdi
+   6b:  callq fn:font_findscrp+0
+   70:  leaq 1(%r15), %rsi
+   74:  movq %rbx, %rdi
+   77:  movl %eax, (%r12)
+   7b:  callq fn:font_findlang+0
+   80:  movl %eax, (%r13)
+   84:  movq %rbp, %rsi
+   87:  movq %rbx, %rdi
+   8a:  callq fn:font_findfeat+0
+   8f:  movl %eax, (%r14)
+   92:  addq $0x18, %rsp
+   96:  popq %rbx
+   97:  popq %rbp
+   98:  popq %r12
+   9a:  popq %r13
+   9c:  popq %r14
+   9e:  popq %r15
+   a0:  retq
+   a1:  nopl (%rax)
+   a8:  movq %rdx, %rsi
+   ab:  movq %rbx, %rdi
+   ae:  callq fn:font_findscrp+0
+   b3:  movl %eax, (%r12)
+   b7:  jmp 0x84

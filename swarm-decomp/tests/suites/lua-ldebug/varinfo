@@ -1,0 +1,73 @@
+# varinfo  (static, 242 bytes, 72 instructions)
+    0:  pushq %rbx
+    1:  subq $0x10, %rsp
+    5:  movq 0x20(%rdi), %r9
+    9:  movq $0, 8(%rsp)
+   12:  testb $2, 0x3e(%r9)
+   17:  je 0x24
+   19:  addq $0x10, %rsp
+   1d:  movl $0, %eax   <str:"">
+   22:  popq %rbx
+   23:  retq
+   24:  movq (%r9), %rcx
+   27:  movq %rdi, %rbx
+   2a:  movq (%rcx), %rdi
+   2d:  movzbl 0xa(%rdi), %r8d
+   32:  testb %r8b, %r8b
+   35:  je 0x87
+   37:  xorl %eax, %eax
+   39:  jmp 0x49
+   3b:  nopl (%rax, %rax)
+   40:  addq $1, %rax
+   44:  cmpl %eax, %r8d
+   47:  jle 0x87
+   49:  movq 0x20(%rdi, %rax, 8), %rdx
+   4e:  cmpq 0x10(%rdx), %rsi
+   52:  jne 0x40
+   54:  movq 0x18(%rdi), %rdx
+   58:  cltq
+   5a:  shlq $4, %rax
+   5e:  addq 0x50(%rdx), %rax
+   62:  movq (%rax), %rcx
+   65:  testq %rcx, %rcx
+   68:  je 0xe7
+   6a:  addq $0x18, %rcx
+   6e:  movl $0, %edx   <str:"upvalue">
+   73:  addq $0x10, %rsp
+   77:  movq %rbx, %rdi
+   7a:  movl $0, %esi   <str:" (%s '%s')">
+   7f:  xorl %eax, %eax
+   81:  popq %rbx
+   82:  jmp luaO_pushfstring+0
+   87:  movq 8(%r9), %r8
+   8b:  leaq 0x10(%rcx), %rax
+   8f:  cmpq %r8, %rax
+   92:  jae 0x19
+   94:  cmpq %rax, %rsi
+   97:  je 0xee
+   99:  leaq 0x20(%rcx), %rax
+   9d:  xorl %edx, %edx
+   9f:  nop
+   a0:  addl $1, %edx
+   a3:  movq %rax, %rcx
+   a6:  cmpq %r8, %rax
+   a9:  jae 0x19
+   af:  addq $0x10, %rax
+   b3:  cmpq %rcx, %rsi
+   b6:  jne 0xa0
+   b8:  movq 0x18(%rdi), %rdi
+   bc:  movq 0x20(%r9), %rsi
+   c0:  leaq 8(%rsp), %rcx
+   c5:  subq 0x40(%rdi), %rsi
+   c9:  sarq $2, %rsi
+   cd:  subl $1, %esi
+   d0:  callq fn:getobjname+0
+   d5:  movq 8(%rsp), %rcx
+   da:  movq %rax, %rdx
+   dd:  testq %rax, %rax
+   e0:  jne 0x73
+   e2:  jmp 0x19
+   e7:  movl $0, %ecx   <str:"?">
+   ec:  jmp 0x6e
+   ee:  xorl %edx, %edx
+   f0:  jmp 0xb8

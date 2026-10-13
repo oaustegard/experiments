@@ -1,0 +1,50 @@
+# tr_coi  (static, 173 bytes, 49 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  subq $0x410, %rsp
+    b:  movq 8(%rdi), %rbp
+    f:  movq 0x10(%rdi), %rdi
+   13:  testq %rbp, %rbp
+   16:  je 0xa1
+   1c:  cmpb $0, (%rbp)
+   20:  je 0xa1
+   22:  testq %rdi, %rdi
+   25:  je 0xa1
+   27:  cmpb $0, (%rdi)
+   2a:  je 0xa1
+   2c:  movl $0, %esi   <str:"r">
+   31:  callq fopen+0
+   36:  movq %rax, %rbx
+   39:  testq %rax, %rax
+   3c:  je 0xa1
+   3e:  movq %rsp, %rdi
+   41:  callq sbuf_init+0
+   46:  jmp 0x5d
+   48:  nopl (%rax, %rax)
+   50:  leaq 0x10(%rsp), %rsi
+   55:  movq %rsp, %rdi
+   58:  callq sbuf_append+0
+   5d:  movq %rbx, %rdx
+   60:  movl $0x400, %esi
+   65:  leaq 0x10(%rsp), %rdi
+   6a:  callq fgets+0
+   6f:  testq %rax, %rax
+   72:  jne 0x50
+   74:  movq %rsp, %rdi
+   77:  callq sbuf_buf+0
+   7c:  movq %rbp, %rdi
+   7f:  movq %rax, %r12
+   82:  callq map+0
+   87:  movq %r12, %rsi
+   8a:  movl %eax, %edi
+   8c:  callq str_set+0
+   91:  movq %rsp, %rdi
+   94:  callq sbuf_done+0
+   99:  movq %rbx, %rdi
+   9c:  callq fclose+0
+   a1:  addq $0x410, %rsp
+   a8:  popq %rbx
+   a9:  popq %rbp
+   aa:  popq %r12
+   ac:  retq

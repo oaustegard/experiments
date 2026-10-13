@@ -1,0 +1,47 @@
+# luaB_setmetatable  (static, 157 bytes, 46 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_type+0
+   13:  movl $5, %edx
+   18:  movl $1, %esi
+   1d:  movq %rbx, %rdi
+   20:  movl %eax, %ebp
+   22:  callq luaL_checktype+0
+   27:  testl %ebp, %ebp
+   29:  je 0x30
+   2b:  cmpl $5, %ebp
+   2e:  jne 0x70
+   30:  movl $0, %edx   <str:"__metatable">
+   35:  movl $1, %esi
+   3a:  movq %rbx, %rdi
+   3d:  callq luaL_getmetafield+0
+   42:  testl %eax, %eax
+   44:  jne 0x88
+   46:  movq %rbx, %rdi
+   49:  movl $2, %esi
+   4e:  callq lua_settop+0
+   53:  movq %rbx, %rdi
+   56:  movl $1, %esi
+   5b:  callq lua_setmetatable+0
+   60:  addq $8, %rsp
+   64:  movl $1, %eax
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  movl $0, %edx   <str:"nil or table">
+   75:  movl $2, %esi
+   7a:  movq %rbx, %rdi
+   7d:  callq luaL_typeerror+0
+   82:  jmp 0x30
+   84:  nopl (%rax)
+   88:  addq $8, %rsp
+   8c:  movq %rbx, %rdi
+   8f:  movl $0, %esi   <str:"cannot change a protected metatable">
+   94:  xorl %eax, %eax
+   96:  popq %rbx
+   97:  popq %rbp
+   98:  jmp luaL_error+0

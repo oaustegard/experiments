@@ -1,0 +1,49 @@
+# hdrnext  (static, 141 bytes, 48 instructions)
+    0:  pushq %rbp
+    1:  leaq 1(%rdi), %rax
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  cmpq %rsi, %rax
+    d:  jae 0x70
+    f:  movzbl (%rdi), %eax
+   12:  movq %rsi, %rbp
+   15:  jmp 0x62
+   17:  nopw (%rax, %rax)
+   20:  movq %rbp, %rdx
+   23:  movl $0xa, %esi
+   28:  subq %rdi, %rdx
+   2b:  subq $1, %rdx
+   2f:  callq memchr+0
+   34:  movq %rax, %rbx
+   37:  testq %rax, %rax
+   3a:  je 0x72
+   3c:  callq __ctype_b_loc+0
+   41:  movzbl 1(%rbx), %ecx
+   45:  leaq 1(%rbx), %rdi
+   49:  movq %rax, %rdx
+   4c:  movq (%rdx), %rdx
+   4f:  movq %rcx, %rax
+   52:  testb $4, 1(%rdx, %rcx, 2)
+   57:  jne 0x80
+   59:  addq $2, %rbx
+   5d:  cmpq %rbp, %rbx
+   60:  jae 0x70
+   62:  cmpb $0xa, %al
+   64:  je 0x70
+   66:  cmpb $0xd, %al
+   68:  jne 0x20
+   6a:  cmpb $0xa, 1(%rdi)
+   6e:  jne 0x20
+   70:  xorl %ebx, %ebx
+   72:  addq $8, %rsp
+   76:  movq %rbx, %rax
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  retq
+   7c:  nopl (%rax)
+   80:  movq %rdi, %rbx
+   83:  addq $8, %rsp
+   87:  movq %rbx, %rax
+   8a:  popq %rbx
+   8b:  popq %rbp
+   8c:  retq

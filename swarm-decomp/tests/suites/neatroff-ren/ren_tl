@@ -1,0 +1,175 @@
+# ren_tl  (global, 733 bytes, 174 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rdi, %rbp
+    a:  pushq %rbx
+    b:  movq %rsi, %rbx
+    e:  subq $0x4100, %rsp
+   15:  movl (%rip), %eax   <var:bp_first+0>
+   1b:  testl %eax, %eax
+   1d:  je 0x2d
+   1f:  cmpq $0, (%rip)   <var:cdiv+0>
+   27:  je 0x2c4
+   2d:  movl $0, %edi   <str:"%">
+   32:  callq map+0
+   37:  movl %eax, %edi
+   39:  callq num_str+0
+   3e:  leaq 0x20(%rsp), %rdi
+   43:  movq %rax, %r12
+   46:  callq wb_init+0
+   4b:  leaq 0x2090(%rsp), %rdi
+   53:  callq wb_init+0
+   58:  movq %rbx, %rdx
+   5b:  movq %rbp, %rsi
+   5e:  movq %rsp, %rdi
+   61:  callq charnext+0
+   66:  cmpw $0xa, (%rsp)
+   6b:  jne 0xaa
+   6d:  movl $0xa, %edi
+   72:  callq *%rbx
+   74:  jmp 0xaa
+   76:  nopw %cs:(%rax, %rax)
+   80:  movq %r12, %rdi
+   83:  callq sstr_push+0
+   88:  xorl %r8d, %r8d
+   8b:  movq %rsp, %rcx
+   8e:  movl $0, %edx   <sstr_back+0>
+   93:  movl $0, %esi   <sstr_next+0>
+   98:  leaq 0x2090(%rsp), %rdi
+   a0:  callq fn:ren_until+0
+   a5:  callq sstr_pop+0
+   aa:  movq %rsp, %r8
+   ad:  movl $0, %ecx   <c_pc+0>
+   b2:  movq %rbx, %rdx
+   b5:  movq %rbp, %rsi
+   b8:  leaq 0x2090(%rsp), %rdi
+   c0:  callq fn:ren_until+0
+   c5:  cmpl $1, %eax
+   c8:  je 0x80
+   ca:  leaq 0x20(%rsp), %rdi
+   cf:  callq wb_wid+0
+   d4:  leaq 0x20(%rsp), %rdi
+   d9:  negl %eax
+   db:  movl %eax, %esi
+   dd:  callq wb_hmov+0
+   e2:  leaq 0x2090(%rsp), %rsi
+   ea:  leaq 0x20(%rsp), %rdi
+   ef:  callq wb_cat+0
+   f4:  jmp 0x12a
+   f6:  nopw %cs:(%rax, %rax)
+  100:  movq %r12, %rdi
+  103:  callq sstr_push+0
+  108:  xorl %r8d, %r8d
+  10b:  movq %rsp, %rcx
+  10e:  movl $0, %edx   <sstr_back+0>
+  113:  movl $0, %esi   <sstr_next+0>
+  118:  leaq 0x2090(%rsp), %rdi
+  120:  callq fn:ren_until+0
+  125:  callq sstr_pop+0
+  12a:  movq %rsp, %r8
+  12d:  movl $0, %ecx   <c_pc+0>
+  132:  movq %rbx, %rdx
+  135:  movq %rbp, %rsi
+  138:  leaq 0x2090(%rsp), %rdi
+  140:  callq fn:ren_until+0
+  145:  cmpl $1, %eax
+  148:  je 0x100
+  14a:  movl $0, %edi   <str:".lt">
+  14f:  callq map+0
+  154:  movl %eax, %edi
+  156:  callq nreg+0
+  15b:  leaq 0x2090(%rsp), %rdi
+  163:  movl (%rax), %r13d
+  166:  callq wb_wid+0
+  16b:  leaq 0x20(%rsp), %rdi
+  170:  movl %eax, %r14d
+  173:  callq wb_wid+0
+  178:  movl %r13d, %edx
+  17b:  leaq 0x20(%rsp), %rdi
+  180:  subl %r14d, %edx
+  183:  movl %edx, %esi
+  185:  shrl $0x1f, %esi
+  188:  addl %edx, %esi
+  18a:  sarl $1, %esi
+  18c:  subl %eax, %esi
+  18e:  callq wb_hmov+0
+  193:  leaq 0x2090(%rsp), %rsi
+  19b:  leaq 0x20(%rsp), %rdi
+  1a0:  callq wb_cat+0
+  1a5:  jmp 0x1da
+  1a7:  nopw (%rax, %rax)
+  1b0:  movq %r12, %rdi
+  1b3:  callq sstr_push+0
+  1b8:  xorl %r8d, %r8d
+  1bb:  movq %rsp, %rcx
+  1be:  movl $0, %edx   <sstr_back+0>
+  1c3:  movl $0, %esi   <sstr_next+0>
+  1c8:  leaq 0x2090(%rsp), %rdi
+  1d0:  callq fn:ren_until+0
+  1d5:  callq sstr_pop+0
+  1da:  movq %rsp, %r8
+  1dd:  movl $0, %ecx   <c_pc+0>
+  1e2:  movq %rbx, %rdx
+  1e5:  movq %rbp, %rsi
+  1e8:  leaq 0x2090(%rsp), %rdi
+  1f0:  callq fn:ren_until+0
+  1f5:  cmpl $1, %eax
+  1f8:  je 0x1b0
+  1fa:  movl $0, %edi   <str:".lt">
+  1ff:  callq map+0
+  204:  movl %eax, %edi
+  206:  callq nreg+0
+  20b:  leaq 0x2090(%rsp), %rdi
+  213:  movl (%rax), %ebx
+  215:  callq wb_wid+0
+  21a:  leaq 0x20(%rsp), %rdi
+  21f:  subl %eax, %ebx
+  221:  callq wb_wid+0
+  226:  leaq 0x20(%rsp), %rdi
+  22b:  subl %eax, %ebx
+  22d:  movl %ebx, %esi
+  22f:  callq wb_hmov+0
+  234:  leaq 0x2090(%rsp), %rsi
+  23c:  leaq 0x20(%rsp), %rdi
+  241:  callq wb_cat+0
+  246:  movl $0, %edi   <str:".lt">
+  24b:  movl 0x5c(%rsp), %r13d
+  250:  movl 0x58(%rsp), %r12d
+  255:  callq map+0
+  25a:  movl %eax, %edi
+  25c:  callq nreg+0
+  261:  leaq 0x20(%rsp), %rdi
+  266:  movl (%rax), %ebp
+  268:  callq wb_wid+0
+  26d:  leaq 0x20(%rsp), %rdi
+  272:  movl %eax, %ebx
+  274:  callq wb_buf+0
+  279:  subq $8, %rsp
+  27d:  movl %ebx, %esi
+  27f:  xorl %r9d, %r9d
+  282:  pushq %r13
+  284:  xorl %r8d, %r8d
+  287:  xorl %ecx, %ecx
+  289:  movl $2, %edx
+  28e:  pushq %r12
+  290:  movq %rax, %rdi
+  293:  pushq %rbp
+  294:  callq fn:ren_line+0
+  299:  addq $0x20, %rsp
+  29d:  leaq 0x2090(%rsp), %rdi
+  2a5:  callq wb_done+0
+  2aa:  leaq 0x20(%rsp), %rdi
+  2af:  callq wb_done+0
+  2b4:  addq $0x4100, %rsp
+  2bb:  popq %rbx
+  2bc:  popq %rbp
+  2bd:  popq %r12
+  2bf:  popq %r13
+  2c1:  popq %r14
+  2c3:  retq
+  2c4:  movl $0, (%rip)   <var:bp_first+0>
+  2ce:  movl $1, %edi
+  2d3:  callq fn:ren_page+0
+  2d8:  jmp 0x2d

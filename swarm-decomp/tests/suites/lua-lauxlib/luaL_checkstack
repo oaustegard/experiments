@@ -1,0 +1,31 @@
+# luaL_checkstack  (global, 85 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq lua_checkstack+0
+   11:  testl %eax, %eax
+   13:  je 0x20
+   15:  addq $8, %rsp
+   19:  popq %rbx
+   1a:  popq %rbp
+   1b:  retq
+   1c:  nopl (%rax)
+   20:  testq %rbp, %rbp
+   23:  je 0x40
+   25:  addq $8, %rsp
+   29:  movq %rbp, %rdx
+   2c:  movq %rbx, %rdi
+   2f:  movl $0, %esi   <str:"stack overflow (%s)">
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  jmp luaL_error+0
+   3b:  nopl (%rax, %rax)
+   40:  addq $8, %rsp
+   44:  movq %rbx, %rdi
+   47:  movl $0, %esi   <str:"stack overflow">
+   4c:  xorl %eax, %eax
+   4e:  popq %rbx
+   4f:  popq %rbp
+   50:  jmp luaL_error+0

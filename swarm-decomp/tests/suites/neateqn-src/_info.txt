@@ -1,0 +1,33 @@
+# neateqn-src: translation unit src of neateqn
+# write each function as src/neateqn/src/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+src_push	static	254 bytes
+src_next	global	241 bytes
+src_back	global	32 bytes
+src_lineget	global	7 bytes
+src_lineset	global	7 bytes
+src_macro	global	101 bytes
+src_define	global	198 bytes
+src_done	global	65 bytes
+src_expand	global	146 bytes
+src_arg	global	53 bytes
+src_top	global	18 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+esrc_depth	static	4 bytes	.bss.esrc_depth
+    (zero-initialised)
+esrc	static	8 bytes	.data.esrc
+    +0     -> var:esrc_stdin+0
+        0: 00 00 00 00 00 00 00 00
+lineno	static	4 bytes	.data.lineno
+        0: 01 00 00 00
+nmacros	static	4 bytes	.bss.nmacros
+    (zero-initialised)
+macros	static	20480 bytes	.bss.macros
+    (zero-initialised)
+esrc_stdin	static	4112 bytes	.bss.esrc_stdin
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+calloc errdie fgetc free malloc memcpy stdin strcmp strcpy strlen

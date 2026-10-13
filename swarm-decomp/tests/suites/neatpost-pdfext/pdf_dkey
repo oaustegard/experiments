@@ -1,0 +1,94 @@
+# pdf_dkey  (global, 323 bytes, 93 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  leal 2(%rdx), %ebx
+    d:  addl $4, %edx
+   10:  subq $8, %rsp
+   14:  cmpl %edx, %esi
+   16:  jle 0xf0
+   1c:  movq %rdi, %r12
+   1f:  movl %esi, %r15d
+   22:  movl %ecx, %r14d
+   25:  xorl %r13d, %r13d
+   28:  nopl (%rax, %rax)
+   30:  movslq %ebx, %rax
+   33:  leaq (%r12, %rax), %rbp
+   37:  cmpb $0x3e, (%rbp)
+   3b:  je 0x130
+   41:  cmpl %ebx, %r15d
+   44:  jle 0x110
+   4a:  callq __ctype_b_loc+0
+   4f:  movq (%rax), %rcx
+   52:  movq %rbp, %rax
+   55:  jmp 0x70
+   57:  nopw (%rax, %rax)
+   60:  addl $1, %ebx
+   63:  addq $1, %rax
+   67:  cmpl %ebx, %r15d
+   6a:  je 0x110
+   70:  movzbl (%rax), %edx
+   73:  testb $0x20, 1(%rcx, %rdx, 2)
+   78:  jne 0x60
+   7a:  cmpl %r13d, %r14d
+   7d:  je 0xf5
+   7f:  cmpl %ebx, %r15d
+   82:  jle 0xd6
+   84:  movl %ebx, %edx
+   86:  movl %r15d, %esi
+   89:  movq %r12, %rdi
+   8c:  callq fn:pdf_len.part.0+0
+   91:  addl %eax, %ebx
+   93:  cmpl %ebx, %r15d
+   96:  jle 0xd6
+   98:  movl %ebx, %edx
+   9a:  movl %r15d, %esi
+   9d:  movq %r12, %rdi
+   a0:  callq fn:pdf_len.part.0+0
+   a5:  addl %eax, %ebx
+   a7:  cmpl %ebx, %r15d
+   aa:  jle 0xd6
+   ac:  callq __ctype_b_loc+0
+   b1:  movq (%rax), %rcx
+   b4:  movslq %ebx, %rax
+   b7:  addq %r12, %rax
+   ba:  jmp 0xcc
+   bc:  nopl (%rax)
+   c0:  addl $1, %ebx
+   c3:  addq $1, %rax
+   c7:  cmpl %ebx, %r15d
+   ca:  je 0xf0
+   cc:  movzbl (%rax), %edx
+   cf:  testb $0x20, 1(%rcx, %rdx, 2)
+   d4:  jne 0xc0
+   d6:  leal 2(%rbx), %eax
+   d9:  addl $1, %r13d
+   dd:  cmpl %r15d, %eax
+   e0:  jl 0x30
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  movl $0xffffffff, %ebx
+   f5:  addq $8, %rsp
+   f9:  movl %ebx, %eax
+   fb:  popq %rbx
+   fc:  popq %rbp
+   fd:  popq %r12
+   ff:  popq %r13
+  101:  popq %r14
+  103:  popq %r15
+  105:  retq
+  106:  nopw %cs:(%rax, %rax)
+  110:  cmpl %r13d, %r14d
+  113:  je 0xf5
+  115:  leal 2(%rbx), %eax
+  118:  addl $1, %r13d
+  11c:  cmpl %r15d, %eax
+  11f:  jl 0x30
+  125:  jmp 0xf0
+  127:  nopw (%rax, %rax)
+  130:  cmpb $0x3e, 1(%r12, %rax)
+  136:  jne 0x41
+  13c:  movl $0xffffffff, %ebx
+  141:  jmp 0xf5

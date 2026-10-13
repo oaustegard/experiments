@@ -1,0 +1,46 @@
+# font_findfeat  (static, 128 bytes, 45 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rsi, %r12
+    a:  pushq %rbp
+    b:  xorl %ebp, %ebp
+    d:  pushq %rbx
+    e:  leaq 0x90(%rdi), %rbx
+   15:  subq $8, %rsp
+   19:  jmp 0x3e
+   1b:  nopl (%rax, %rax)
+   20:  movq %rbx, %rsi
+   23:  movq %r12, %rdi
+   26:  callq strcmp+0
+   2b:  testl %eax, %eax
+   2d:  je 0x61
+   2f:  addl $1, %ebp
+   32:  addq $8, %rbx
+   36:  cmpl $0x80, %ebp
+   3c:  je 0x6e
+   3e:  cmpb $0, (%rbx)
+   41:  jne 0x20
+   43:  leal 0x12(%rbp), %eax
+   46:  movq %r12, %rcx
+   49:  movl $0, %edx   <str:"%s">
+   4e:  movl $8, %esi
+   53:  cltq
+   55:  leaq (%r13, %rax, 8), %rdi
+   5a:  xorl %eax, %eax
+   5c:  callq snprintf+0
+   61:  addq $8, %rsp
+   65:  movl %ebp, %eax
+   67:  popq %rbx
+   68:  popq %rbp
+   69:  popq %r12
+   6b:  popq %r13
+   6d:  retq
+   6e:  addq $8, %rsp
+   72:  movl $0xffffffff, %ebp
+   77:  popq %rbx
+   78:  movl %ebp, %eax
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  popq %r13
+   7f:  retq

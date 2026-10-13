@@ -1,0 +1,38 @@
+# tr_ch  (global, 133 bytes, 37 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x5f
+   12:  callq map+0
+   17:  movslq (%rip), %rdx   <var:ntraps+0>
+   1e:  testl %edx, %edx
+   20:  jle 0x5f
+   22:  xorl %ebx, %ebx
+   24:  jmp 0x39
+   26:  nopw %cs:(%rax, %rax)
+   30:  addq $1, %rbx
+   34:  cmpq %rdx, %rbx
+   37:  je 0x5f
+   39:  cmpl (, %rbx, 4), %eax   <var:treg+0>
+   40:  jne 0x30
+   42:  movq 0x10(%rbp), %rdi
+   46:  testq %rdi, %rdi
+   49:  je 0x70
+   4b:  movl $0x76, %esi
+   50:  movslq %ebx, %rbx
+   53:  callq eval+0
+   58:  movl %eax, (, %rbx, 4)   <var:tpos+0>
+   5f:  addq $8, %rsp
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  retq
+   66:  nopw %cs:(%rax, %rax)
+   70:  movslq %ebx, %rbx
+   73:  movl $0xffffffff, (, %rbx, 4)   <var:treg+0>
+   7e:  addq $8, %rsp
+   82:  popq %rbx
+   83:  popq %rbp
+   84:  retq

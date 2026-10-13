@@ -1,0 +1,30 @@
+# sbuf_add  (global, 89 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movslq 0xc(%rdi), %rsi
+    f:  movl 8(%rdi), %eax
+   12:  movq (%rdi), %rdi
+   15:  leal 2(%rsi), %edx
+   18:  cmpl %eax, %edx
+   1a:  jge 0x30
+   1c:  leal 1(%rsi), %eax
+   1f:  movl %eax, 0xc(%rbx)
+   22:  movb %bpl, (%rdi, %rsi)
+   26:  addq $8, %rsp
+   2a:  popq %rbx
+   2b:  popq %rbp
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  leal 0x1ff(%rax, %rax), %edx
+   37:  movl $1, %ecx
+   3c:  andl $0xfffffe00, %edx
+   42:  movl %edx, 8(%rbx)
+   45:  movslq %edx, %rdx
+   48:  callq mextend+0
+   4d:  movslq 0xc(%rbx), %rsi
+   51:  movq %rax, (%rbx)
+   54:  movq %rax, %rdi
+   57:  jmp 0x1c

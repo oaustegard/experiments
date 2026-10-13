@@ -1,0 +1,112 @@
+# luaopen_package  (global, 461 bytes, 111 instructions)
+    0:  pushq %r12
+    2:  movl $0, %edx   <str:"_CLIBS">
+    7:  movl $0xfff0b9d8, %esi
+    c:  movl $0, %r12d   <fn:searcher_preload+0>
+   12:  pushq %rbp
+   13:  movl $1, %ebp
+   18:  pushq %rbx
+   19:  movq %rdi, %rbx
+   1c:  callq luaL_getsubtable+0
+   21:  movl $1, %edx
+   26:  xorl %esi, %esi
+   28:  movq %rbx, %rdi
+   2b:  callq lua_createtable+0
+   30:  xorl %edx, %edx
+   32:  movl $0, %esi   <fn:gctm+0>
+   37:  movq %rbx, %rdi
+   3a:  callq lua_pushcclosure+0
+   3f:  movl $0, %edx   <str:"__gc">
+   44:  movl $0xfffffffe, %esi
+   49:  movq %rbx, %rdi
+   4c:  callq lua_setfield+0
+   51:  movl $0xfffffffe, %esi
+   56:  movq %rbx, %rdi
+   59:  callq lua_setmetatable+0
+   5e:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+   66:  movl $0x88, %esi
+   6b:  movq %rbx, %rdi
+   6e:  callq luaL_checkversion_+0
+   73:  movl $7, %edx
+   78:  xorl %esi, %esi
+   7a:  movq %rbx, %rdi
+   7d:  callq lua_createtable+0
+   82:  xorl %edx, %edx
+   84:  movl $0, %esi   <var:pk_funcs+0>
+   89:  movq %rbx, %rdi
+   8c:  callq luaL_setfuncs+0
+   91:  xorl %edx, %edx
+   93:  movl $4, %esi
+   98:  movq %rbx, %rdi
+   9b:  callq lua_createtable+0
+   a0:  movl $0xfffffffe, %esi
+   a5:  movq %rbx, %rdi
+   a8:  callq lua_pushvalue+0
+   ad:  movq %r12, %rsi
+   b0:  movl $1, %edx
+   b5:  movq %rbx, %rdi
+   b8:  callq lua_pushcclosure+0
+   bd:  movq %rbp, %rdx
+   c0:  movl $0xfffffffe, %esi
+   c5:  movq %rbx, %rdi
+   c8:  callq lua_rawseti+0
+   cd:  addq $1, %rbp
+   d1:  movq (, %rbp, 8), %r12   <var:searchers+-8>
+   d9:  testq %r12, %r12
+   dc:  jne 0xa0
+   de:  movq %rbx, %rdi
+   e1:  movl $0, %edx   <str:"searchers">
+   e6:  movl $0xfffffffe, %esi
+   eb:  callq lua_setfield+0
+   f0:  movq %rbx, %rdi
+   f3:  movl $0, %ecx   <str:"/usr/local/share/lua/5.4/?.lua;/usr/local/share/lua/5.4/?/init.lua;/usr/local/lib/lua/5.4/?.lua;/usr/local/lib/lua/5.4/?/init.lua;./?.lua;./?/init.lua">
+   f8:  movl $0, %edx   <str:"LUA_PATH">
+   fd:  movl $0, %esi   <str:"path">
+  102:  callq fn:setpath+0
+  107:  movl $0, %ecx   <str:"/usr/local/lib/lua/5.4/?.so;/usr/local/lib/lua/5.4/loadall.so;./?.so">
+  10c:  movl $0, %edx   <str:"LUA_CPATH">
+  111:  movq %rbx, %rdi
+  114:  movl $0, %esi   <str:"cpath">
+  119:  callq fn:setpath+0
+  11e:  movq %rbx, %rdi
+  121:  movl $0, %esi   <str:"/\n;\n?\n!\n-\n">
+  126:  callq lua_pushstring+0
+  12b:  movq %rbx, %rdi
+  12e:  movl $0, %edx   <str:"config">
+  133:  movl $0xfffffffe, %esi
+  138:  callq lua_setfield+0
+  13d:  movq %rbx, %rdi
+  140:  movl $0, %edx   <str:"_LOADED">
+  145:  movl $0xfff0b9d8, %esi
+  14a:  callq luaL_getsubtable+0
+  14f:  movq %rbx, %rdi
+  152:  movl $0, %edx   <str:"loaded">
+  157:  movl $0xfffffffe, %esi
+  15c:  callq lua_setfield+0
+  161:  movq %rbx, %rdi
+  164:  movl $0, %edx   <str:"_PRELOAD">
+  169:  movl $0xfff0b9d8, %esi
+  16e:  callq luaL_getsubtable+0
+  173:  movq %rbx, %rdi
+  176:  movl $0, %edx   <str:"preload">
+  17b:  movl $0xfffffffe, %esi
+  180:  callq lua_setfield+0
+  185:  movl $2, %edx
+  18a:  movq %rbx, %rdi
+  18d:  movl $0xfff0b9d8, %esi
+  192:  callq lua_rawgeti+0
+  197:  movq %rbx, %rdi
+  19a:  movl $0xfffffffe, %esi
+  19f:  callq lua_pushvalue+0
+  1a4:  movq %rbx, %rdi
+  1a7:  movl $1, %edx
+  1ac:  movl $0, %esi   <var:ll_funcs+0>
+  1b1:  callq luaL_setfuncs+0
+  1b6:  movq %rbx, %rdi
+  1b9:  movl $0xfffffffe, %esi
+  1be:  callq lua_settop+0
+  1c3:  popq %rbx
+  1c4:  movl $1, %eax
+  1c9:  popq %rbp
+  1ca:  popq %r12
+  1cc:  retq

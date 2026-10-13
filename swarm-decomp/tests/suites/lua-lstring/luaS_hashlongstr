@@ -1,0 +1,24 @@
+# luaS_hashlongstr  (global, 64 bytes, 23 instructions)
+    0:  cmpb $0, 0xa(%rdi)
+    4:  movl 0xc(%rdi), %edx
+    7:  jne 0x3d
+    9:  movq 0x10(%rdi), %rcx
+    d:  xorl %ecx, %edx
+    f:  testq %rcx, %rcx
+   12:  je 0x36
+   14:  nopl (%rax)
+   18:  movl %edx, %eax
+   1a:  movl %edx, %esi
+   1c:  subq $1, %rcx
+   20:  shrl $2, %esi
+   23:  shll $5, %eax
+   26:  addl %esi, %eax
+   28:  movzbl 0x18(%rdi, %rcx), %esi
+   2d:  addl %esi, %eax
+   2f:  xorl %eax, %edx
+   31:  testq %rcx, %rcx
+   34:  jne 0x18
+   36:  movl %edx, 0xc(%rdi)
+   39:  movb $1, 0xa(%rdi)
+   3d:  movl %edx, %eax
+   3f:  retq

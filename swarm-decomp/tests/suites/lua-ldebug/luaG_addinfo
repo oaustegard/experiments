@@ -1,0 +1,40 @@
+# luaG_addinfo  (global, 110 bytes, 39 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  movl %ecx, %ebp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x48, %rsp
+   12:  testq %rdx, %rdx
+   15:  je 0x60
+   17:  movzbl 0xb(%rdx), %eax
+   1b:  cmpb $0xff, %al
+   1d:  je 0x58
+   1f:  movq %rsp, %r13
+   22:  leaq 0x18(%rdx), %rsi
+   26:  movq %rax, %rdx
+   29:  movq %r13, %rdi
+   2c:  callq luaO_chunkid+0
+   31:  movq %r12, %r8
+   34:  movl %ebp, %ecx
+   36:  movq %r13, %rdx
+   39:  movq %rbx, %rdi
+   3c:  movl $0, %esi   <str:"%s:%d: %s">
+   41:  xorl %eax, %eax
+   43:  callq luaO_pushfstring+0
+   48:  addq $0x48, %rsp
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  popq %r13
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  movq 0x10(%rdx), %rax
+   5c:  jmp 0x1f
+   5e:  nop
+   60:  movl $0x3f, %eax
+   65:  movq %rsp, %r13
+   68:  movw %ax, (%rsp)
+   6c:  jmp 0x31

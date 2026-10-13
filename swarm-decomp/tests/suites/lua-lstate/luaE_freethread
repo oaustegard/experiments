@@ -1,0 +1,21 @@
+# luaE_freethread  (global, 61 bytes, 20 instructions)
+    0:  pushq %r12
+    2:  leaq -8(%rsi), %r12
+    6:  pushq %rbp
+    7:  movq %rdi, %rbp
+    a:  pushq %rbx
+    b:  movq %rsi, %rbx
+    e:  movq 0x30(%rsi), %rsi
+   12:  movq %rbx, %rdi
+   15:  callq luaF_closeupval+0
+   1a:  cmpq $0, 0x30(%rbx)
+   1f:  je 0x29
+   21:  movq %rbx, %rdi
+   24:  callq fn:freestack.part.0+0
+   29:  popq %rbx
+   2a:  movq %r12, %rsi
+   2d:  movq %rbp, %rdi
+   30:  movl $0xd0, %edx
+   35:  popq %rbp
+   36:  popq %r12
+   38:  jmp luaM_free_+0

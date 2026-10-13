@@ -1,0 +1,74 @@
+# lua-llex: translation unit llex of lua
+# write each function as src/lua/llex/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+luaX_init	global	96 bytes
+luaX_token2str	global	115 bytes
+lexerror	static	129 bytes
+save	static	125 bytes
+skip_sep	static	186 bytes
+check_next2	static	103 bytes
+inclinenumber	static	184 bytes
+esccheck.part.0	static	97 bytes
+gethexa	static	94 bytes
+read_numeral	static	527 bytes
+luaX_syntaxerror	global	12 bytes
+luaX_newstring	global	152 bytes
+read_long_string	static	717 bytes
+llex	static	3271 bytes
+luaX_setinput	global	128 bytes
+luaX_next	global	54 bytes
+luaX_lookahead	global	18 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+luaX_tokens	static	296 bytes	.rodata.luaX_tokens
+    +0     -> str:"and"
+    +8     -> str:"break"
+    +16    -> str:"do"
+    +24    -> str:"else"
+    +32    -> str:"elseif"
+    +40    -> str:"end"
+    +48    -> str:"false"
+    +56    -> str:"for"
+    +64    -> str:"function"
+    +72    -> str:"goto"
+    +80    -> str:"if"
+    +88    -> str:"in"
+    +96    -> str:"local"
+    +104   -> str:"nil"
+    +112   -> str:"not"
+    +120   -> str:"or"
+    +128   -> str:"repeat"
+    +136   -> str:"return"
+    +144   -> str:"then"
+    +152   -> str:"true"
+    +160   -> str:"until"
+    +168   -> str:"while"
+    +176   -> str:"//"
+    +184   -> str:".."
+    +192   -> str:"..."
+    +200   -> str:"=="
+    +208   -> str:">="
+    +216   -> str:"<="
+    +224   -> str:"~="
+    +232   -> str:"<<"
+    +240   -> str:">>"
+    +248   -> str:"::"
+    +256   -> str:"<eof>"
+    +264   -> str:"<number>"
+    +272   -> str:"<integer>"
+    +280   -> str:"<name>"
+    +288   -> str:"<string>"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_fix luaC_step luaD_throw luaG_addinfo luaH_finishset luaH_getstr luaM_saferealloc_ luaO_hexavalue luaO_pushfstring luaO_str2num luaO_utf8esc luaS_new luaS_newlstr luaZ_fill luai_ctype_

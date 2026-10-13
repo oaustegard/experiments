@@ -1,0 +1,134 @@
+# mainpositionTV.isra.0  (static, 444 bytes, 133 instructions)
+    0:  pushq %rbp
+    1:  andl $0x3f, %edx
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $0x18, %rsp
+    c:  cmpb $0x14, %dl
+    f:  ja 0x20
+   11:  movzbl %dl, %edx
+   14:  jmpq *(, %rdx, 8)   <var:mainpositionTV.isra+0>
+   1b:  nopl (%rax, %rax)
+   20:  movzbl 0xb(%rbx), %ecx
+   24:  movl $1, %edx
+   29:  movl %esi, %eax
+   2b:  shll %cl, %edx
+   2d:  leal -1(%rdx), %ecx
+   30:  xorl %edx, %edx
+   32:  orl $1, %ecx
+   35:  divl %ecx
+   37:  movq 0x18(%rbx), %rax
+   3b:  leaq (%rdx, %rdx, 2), %rdx
+   3f:  leaq (%rax, %rdx, 8), %rax
+   43:  addq $0x18, %rsp
+   47:  popq %rbx
+   48:  popq %rbp
+   49:  retq
+   4a:  nopw (%rax, %rax)
+   50:  movq 0x18(%rdi), %rbp
+   54:  movq %rsi, %rdi
+   57:  callq luaS_hashlongstr+0
+   5c:  movzbl 0xb(%rbx), %ecx
+   60:  addq $0x18, %rsp
+   64:  movl %eax, %edx
+   66:  movl $1, %eax
+   6b:  popq %rbx
+   6c:  shll %cl, %eax
+   6e:  subl $1, %eax
+   71:  andl %edx, %eax
+   73:  cltq
+   75:  leaq (%rax, %rax, 2), %rax
+   79:  leaq (%rbp, %rax, 8), %rax
+   7e:  popq %rbp
+   7f:  retq
+   80:  movq 0x18(%rdi), %rax
+   84:  addq $0x18, %rsp
+   88:  popq %rbx
+   89:  popq %rbp
+   8a:  retq
+   8b:  nopl (%rax, %rax)
+   90:  movzbl 0xb(%rdi), %ecx
+   94:  movl $1, %edx
+   99:  shll %cl, %edx
+   9b:  leal -1(%rdx), %ecx
+   9e:  orl $1, %ecx
+   a1:  cmpq $0x7fffffff, %rsi
+   a8:  ja 0x188
+   ae:  movl %esi, %eax
+   b0:  cltd
+   b1:  idivl %ecx
+   b3:  movq 0x18(%rdi), %rax
+   b7:  movslq %edx, %rdx
+   ba:  leaq (%rdx, %rdx, 2), %rdx
+   be:  leaq (%rax, %rdx, 8), %rax
+   c2:  jmp 0x43
+   c7:  nopw (%rax, %rax)
+   d0:  movzbl 0xb(%rdi), %ecx
+   d4:  movl $1, %edx
+   d9:  shll %cl, %edx
+   db:  subl $1, %edx
+   de:  andl 0xc(%rsi), %edx
+   e1:  movslq %edx, %rax
+   e4:  leaq (%rax, %rax, 2), %rdx
+   e8:  movq 0x18(%rdi), %rax
+   ec:  addq $0x18, %rsp
+   f0:  popq %rbx
+   f1:  popq %rbp
+   f2:  leaq (%rax, %rdx, 8), %rax
+   f6:  retq
+   f7:  nopw (%rax, %rax)
+  100:  movzbl 0xb(%rdi), %ecx
+  104:  movl $1, %eax
+  109:  shll %cl, %eax
+  10b:  subl $1, %eax
+  10e:  andl $1, %eax
+  111:  negq %rax
+  114:  andl $0x18, %eax
+  117:  addq 0x18(%rdi), %rax
+  11b:  addq $0x18, %rsp
+  11f:  popq %rbx
+  120:  popq %rbp
+  121:  retq
+  122:  nopw (%rax, %rax)
+  128:  movq 0x18(%rdi), %rbp
+  12c:  movq %rsi, %xmm0
+  131:  leaq 0xc(%rsp), %rdi
+  136:  callq frexp+0
+  13b:  mulsd (%rip), %xmm0   <cst:000000000000e041>
+  143:  comisd (%rip), %xmm0   <cst:000000000000e0c3>
+  14b:  jb 0x15b
+  14d:  movsd (%rip), %xmm1   <cst:000000000000e043>
+  155:  comisd %xmm0, %xmm1
+  159:  ja 0x1a8
+  15b:  xorl %eax, %eax
+  15d:  movzbl 0xb(%rbx), %ecx
+  161:  movl $1, %edx
+  166:  addq $0x18, %rsp
+  16a:  popq %rbx
+  16b:  shll %cl, %edx
+  16d:  leal -1(%rdx), %ecx
+  170:  cltd
+  171:  orl $1, %ecx
+  174:  idivl %ecx
+  176:  movslq %edx, %rdx
+  179:  leaq (%rdx, %rdx, 2), %rax
+  17d:  leaq (%rbp, %rax, 8), %rax
+  182:  popq %rbp
+  183:  retq
+  184:  nopl (%rax)
+  188:  movslq %ecx, %rcx
+  18b:  movq %rsi, %rax
+  18e:  xorl %edx, %edx
+  190:  divq %rcx
+  193:  movq 0x18(%rdi), %rax
+  197:  leaq (%rdx, %rdx, 2), %rdx
+  19b:  leaq (%rax, %rdx, 8), %rax
+  19f:  jmp 0x43
+  1a4:  nopl (%rax)
+  1a8:  cvttsd2si %xmm0, %rax
+  1ad:  addl 0xc(%rsp), %eax
+  1b1:  movl %eax, %edx
+  1b3:  notl %edx
+  1b5:  cmpl %edx, %eax
+  1b7:  cmovll %edx, %eax
+  1ba:  jmp 0x15d

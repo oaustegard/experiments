@@ -1,0 +1,41 @@
+# separatetobefnz  (static, 153 bytes, 40 instructions)
+    0:  movq 0xb0(%rdi), %rax
+    7:  leaq 0x80(%rdi), %r8
+    e:  testq %rax, %rax
+   11:  je 0x90
+   13:  nopl (%rax, %rax)
+   18:  movq %rax, %rcx
+   1b:  movq (%rax), %rax
+   1e:  testq %rax, %rax
+   21:  jne 0x18
+   23:  movq 0x80(%rdi), %rax
+   2a:  cmpq 0xe8(%rdi), %rax
+   31:  jne 0x47
+   33:  retq
+   34:  nopl (%rax)
+   38:  movq %rax, %r8
+   3b:  movq (%r8), %rax
+   3e:  cmpq %rax, 0xe8(%rdi)
+   45:  je 0x79
+   47:  movzbl 9(%rax), %edx
+   4b:  andl $0x18, %edx
+   4e:  orl %esi, %edx
+   50:  je 0x38
+   52:  movq (%rax), %rdx
+   55:  cmpq %rax, 0xe0(%rdi)
+   5c:  je 0x80
+   5e:  movq %rdx, (%r8)
+   61:  movq (%rcx), %rdx
+   64:  movq %rdx, (%rax)
+   67:  movq %rax, (%rcx)
+   6a:  movq %rax, %rcx
+   6d:  movq (%r8), %rax
+   70:  cmpq %rax, 0xe8(%rdi)
+   77:  jne 0x47
+   79:  retq
+   7a:  nopw (%rax, %rax)
+   80:  movq %rdx, 0xe0(%rdi)
+   87:  jmp 0x5e
+   89:  nopl (%rax)
+   90:  leaq 0xb0(%rdi), %rcx
+   97:  jmp 0x23

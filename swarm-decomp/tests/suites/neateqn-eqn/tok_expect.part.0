@@ -1,0 +1,12 @@
+# tok_expect.part.0  (static, 44 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <tok_get+0>
+    9:  movq (%rip), %rdi   <stderr+0>
+   10:  movq %rbx, %rdx
+   13:  movl $0, %esi   <str:"neateqn: expected %s bot got %s\n">
+   18:  movq %rax, %rcx
+   1b:  xorl %eax, %eax
+   1d:  callq fprintf+0
+   22:  movl $1, %edi
+   27:  callq exit+0

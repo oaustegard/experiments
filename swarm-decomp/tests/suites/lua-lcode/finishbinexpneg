@@ -1,0 +1,48 @@
+# finishbinexpneg  (static, 156 bytes, 47 instructions)
+    0:  xorl %eax, %eax
+    2:  cmpl $6, (%rdx)
+    5:  je 0x10
+    7:  retq
+    8:  nopl (%rax, %rax)
+   10:  pushq %rbp
+   11:  pushq %rbx
+   12:  movq %rdi, %rbx
+   15:  subq $8, %rsp
+   19:  movl 0x10(%rdx), %edi
+   1c:  cmpl %edi, 0x14(%rdx)
+   1f:  je 0x30
+   21:  addq $8, %rsp
+   25:  popq %rbx
+   26:  popq %rbp
+   27:  retq
+   28:  nopl (%rax, %rax)
+   30:  movq 8(%rdx), %rbp
+   34:  leaq 0x7f(%rbp), %rdi
+   38:  cmpq $0xff, %rdi
+   3f:  ja 0x21
+   41:  movl $0x7f, %edi
+   46:  subq %rbp, %rdi
+   49:  cmpq $0xff, %rdi
+   50:  ja 0x21
+   52:  subq $8, %rsp
+   56:  movq %rbx, %rdi
+   59:  pushq %r9
+   5b:  xorl %r9d, %r9d
+   5e:  pushq $0x2f
+   60:  pushq %r8
+   62:  movl $0x7f, %r8d
+   68:  subl %ebp, %r8d
+   6b:  addl $0x7f, %ebp
+   6e:  shll $0x10, %ebp
+   71:  callq fn:finishbinexpval+0
+   76:  movq (%rbx), %rax
+   79:  movslq 0x20(%rbx), %rdx
+   7d:  addq $0x20, %rsp
+   81:  movq 0x40(%rax), %rax
+   85:  leaq -4(%rax, %rdx, 4), %rdx
+   8a:  movl (%rdx), %eax
+   8c:  andl $0xff00ffff, %eax
+   91:  orl %ebp, %eax
+   93:  movl %eax, (%rdx)
+   95:  movl $1, %eax
+   9a:  jmp 0x21

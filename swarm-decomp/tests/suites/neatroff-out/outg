@@ -1,0 +1,85 @@
+# outg  (static, 300 bytes, 84 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movl %edx, %ebp
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  subq $8, %rsp
+    f:  movl (%rip), %r12d   <var:o_f+0>
+   16:  movl (%rip), %r13d   <var:o_s+0>
+   1d:  testl %esi, %esi
+   1f:  js 0x2a
+   21:  cmpl %esi, %r12d
+   24:  jne 0xe0
+   2a:  movl %r13d, %eax
+   2d:  cmpl %ebp, %eax
+   2f:  je 0x45
+   31:  movl %ebp, %esi
+   33:  movl $0, %edi   <str:"s%d\n">
+   38:  xorl %eax, %eax
+   3a:  movl %ebp, (%rip)   <var:o_s+0>
+   40:  callq out+0
+   45:  movq %rbx, %rdi
+   48:  callq utf8one+0
+   4d:  testl %eax, %eax
+   4f:  je 0x100
+   55:  cmpb $0, 1(%rbx)
+   59:  movl $0, %eax   <str:"\n">
+   5e:  movl $0, %edx   <str:"">
+   63:  movq %rbx, %rsi
+   66:  cmovneq %rax, %rdx
+   6a:  movl $0, %edi   <str:"c%s%s">
+   6f:  xorl %eax, %eax
+   71:  callq fn:outnn+0
+   76:  testl %r12d, %r12d
+   79:  js 0x84
+   7b:  cmpl (%rip), %r12d   <var:o_f+0>
+   82:  jne 0xa0
+   84:  cmpl (%rip), %r13d   <var:o_s+0>
+   8b:  jne 0xbf
+   8d:  addq $8, %rsp
+   91:  popq %rbx
+   92:  popq %rbp
+   93:  popq %r12
+   95:  popq %r13
+   97:  retq
+   98:  nopl (%rax, %rax)
+   a0:  xorl %eax, %eax
+   a2:  movl %r12d, %esi
+   a5:  movl $0, %edi   <str:"f%d\n">
+   aa:  movl %r12d, (%rip)   <var:o_f+0>
+   b1:  callq out+0
+   b6:  cmpl (%rip), %r13d   <var:o_s+0>
+   bd:  je 0x8d
+   bf:  movl %r13d, (%rip)   <var:o_s+0>
+   c6:  addq $8, %rsp
+   ca:  movl %r13d, %esi
+   cd:  movl $0, %edi   <str:"s%d\n">
+   d2:  popq %rbx
+   d3:  xorl %eax, %eax
+   d5:  popq %rbp
+   d6:  popq %r12
+   d8:  popq %r13
+   da:  jmp out+0
+   df:  nop
+   e0:  xorl %eax, %eax
+   e2:  movl $0, %edi   <str:"f%d\n">
+   e7:  movl %esi, (%rip)   <var:o_f+0>
+   ed:  callq out+0
+   f2:  movl (%rip), %eax   <var:o_s+0>
+   f8:  jmp 0x2d
+   fd:  nopl (%rax)
+  100:  movsbl (%rbx), %eax
+  103:  cmpl (%rip), %eax   <c_ec+0>
+  109:  je 0x120
+  10b:  movq %rbx, %rsi
+  10e:  movl $0, %edi   <str:"C%s\n">
+  113:  xorl %eax, %eax
+  115:  callq out+0
+  11a:  jmp 0x76
+  11f:  nop
+  120:  cmpb $0x28, 1(%rbx)
+  124:  jne 0x10b
+  126:  addq $2, %rbx
+  12a:  jmp 0x10b

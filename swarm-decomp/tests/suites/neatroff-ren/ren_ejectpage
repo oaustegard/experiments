@@ -1,0 +1,70 @@
+# ren_ejectpage  (static, 291 bytes, 69 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl %edi, %ebx
+    4:  subq $8, %rsp
+    8:  movl (%rip), %eax   <var:bp_first+0>
+    e:  testl %eax, %eax
+   10:  je 0x20
+   12:  cmpq $0, (%rip)   <var:cdiv+0>
+   1a:  je 0x10a
+   20:  movl $0x25, %edi
+   25:  callq nreg+0
+   2a:  movl (%rax), %eax
+   2c:  movl %eax, (%rip)   <var:bp_ejected+0>
+   32:  testl %ebx, %ebx
+   34:  jne 0x100
+   3a:  nopw (%rax, %rax)
+   40:  movl $0x25, %edi
+   45:  callq nreg+0
+   4a:  movl (%rip), %ecx   <var:bp_ejected+0>
+   50:  cmpl %ecx, (%rax)
+   52:  jne 0xf0
+   58:  cmpq $0, (%rip)   <var:cdiv+0>
+   60:  jne 0xf0
+   66:  movl $0x70, %edi
+   6b:  callq nreg+0
+   70:  movl $0x64, %edi
+   75:  movl (%rax), %ebp
+   77:  callq nreg+0
+   7c:  movl (%rax), %edi
+   7e:  callq fn:trap_pos+0
+   83:  movl %eax, %ebx
+   85:  testl %eax, %eax
+   87:  js 0xd0
+   89:  cmpq $0, (%rip)   <var:cdiv+0>
+   91:  je 0xc0
+   93:  cmpl %ebx, %ebp
+   95:  jl 0xd0
+   97:  movl $0x70, %edi
+   9c:  callq nreg+0
+   a1:  movl $0x64, %edi
+   a6:  movl (%rax), %ebx
+   a8:  callq nreg+0
+   ad:  movl $1, %edx
+   b2:  movl (%rax), %edi
+   b4:  movl %ebx, %esi
+   b6:  callq fn:ren_traps+0
+   bb:  jmp 0x40
+   bd:  nopl (%rax)
+   c0:  movl $0x70, %edi
+   c5:  callq nreg+0
+   ca:  cmpl (%rax), %ebx
+   cc:  jl 0x93
+   ce:  nop
+   d0:  movl $0, (%rip)   <var:bp_ejected+0>
+   da:  xorl %edi, %edi
+   dc:  callq fn:ren_page+0
+   e1:  jmp 0x40
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  addq $8, %rsp
+   f4:  popq %rbx
+   f5:  popq %rbp
+   f6:  retq
+   f7:  nopw (%rax, %rax)
+  100:  callq fn:ren_br+0
+  105:  jmp 0x40
+  10a:  movl $0, (%rip)   <var:bp_first+0>
+  114:  movl $1, %edi
+  119:  callq fn:ren_page+0
+  11e:  jmp 0x20

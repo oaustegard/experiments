@@ -1,0 +1,29 @@
+# outc  (global, 101 bytes, 28 instructions)
+    0:  subq $8, %rsp
+    4:  movl (%rip), %esi   <var:o_f+0>
+    a:  callq dev_glyph+0
+    f:  movq %rax, %rsi
+   12:  movl (%rip), %eax   <var:o_v+0>
+   18:  cltd
+   19:  idivl (%rip)   <var:c_ht+0>
+   1f:  leal -1(%rax), %ecx
+   22:  movl (%rip), %eax   <var:o_h+0>
+   28:  cltd
+   29:  idivl (%rip)   <var:c_wd+0>
+   2f:  testl %eax, %eax
+   31:  js 0x60
+   33:  testl %ecx, %ecx
+   35:  js 0x60
+   37:  movl (%rip), %edx   <var:p_cwd+0>
+   3d:  cmpl %eax, %edx
+   3f:  jle 0x60
+   41:  cmpl %ecx, (%rip)   <var:p_cht+0>
+   47:  jle 0x60
+   49:  imull %ecx, %edx
+   4c:  movzbl 0x20(%rsi), %esi
+   50:  addl %eax, %edx
+   52:  movq (%rip), %rax   <var:o_pg+0>
+   59:  movslq %edx, %rdx
+   5c:  movb %sil, (%rax, %rdx)
+   60:  addq $8, %rsp
+   64:  retq

@@ -1,0 +1,29 @@
+# lua_sethook  (global, 113 bytes, 28 instructions)
+    0:  movd %ecx, %xmm1
+    4:  pshufd $0xe0, %xmm1, %xmm0
+    9:  testq %rsi, %rsi
+    c:  je 0x50
+    e:  testl %edx, %edx
+   10:  je 0x50
+   12:  movq 0x20(%rdi), %rax
+   16:  movzbl %dl, %edx
+   19:  movq %rsi, 0xa0(%rdi)
+   20:  movq %xmm0, 0xb8(%rdi)
+   28:  movl %edx, 0xc0(%rdi)
+   2e:  testq %rax, %rax
+   31:  je 0x70
+   33:  nopl (%rax, %rax)
+   38:  testb $2, 0x3e(%rax)
+   3c:  jne 0x45
+   3e:  movl $1, 0x28(%rax)
+   45:  movq 0x10(%rax), %rax
+   49:  testq %rax, %rax
+   4c:  jne 0x38
+   4e:  retq
+   4f:  nop
+   50:  movq $0, 0xa0(%rdi)
+   5b:  movq %xmm0, 0xb8(%rdi)
+   63:  movl $0, 0xc0(%rdi)
+   6d:  retq
+   6e:  nop
+   70:  retq

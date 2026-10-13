@@ -1,0 +1,34 @@
+# nextword  (static, 110 bytes, 33 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  callq fn:nextskip+0
+    c:  movq (%rip), %rdi   <stdin+0>
+   13:  callq getc+0
+   18:  testl %eax, %eax
+   1a:  js 0x65
+   1c:  movl %eax, %ebx
+   1e:  callq __ctype_b_loc+0
+   23:  movq %rax, %r12
+   26:  jmp 0x49
+   28:  nopl (%rax, %rax)
+   30:  movb %bl, (%rbp)
+   33:  movq (%rip), %rdi   <stdin+0>
+   3a:  addq $1, %rbp
+   3e:  callq getc+0
+   43:  movl %eax, %ebx
+   45:  testl %eax, %eax
+   47:  js 0x65
+   49:  movq (%r12), %rdx
+   4d:  movslq %ebx, %rax
+   50:  testb $0x20, 1(%rdx, %rax, 2)
+   55:  je 0x30
+   57:  movq (%rip), %rsi   <stdin+0>
+   5e:  movl %ebx, %edi
+   60:  callq ungetc+0
+   65:  movb $0, (%rbp)
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  popq %r12
+   6d:  retq

@@ -1,0 +1,23 @@
+# tr_tl  (static, 75 bytes, 22 instructions)
+    0:  subq $8, %rsp
+    4:  nopl (%rax)
+    8:  callq cp_next+0
+    d:  testl %eax, %eax
+    f:  js 0x1b
+   11:  cmpl $0x20, %eax
+   14:  je 8
+   16:  cmpl $9, %eax
+   19:  je 8
+   1b:  movl %eax, %edi
+   1d:  callq in_back+0
+   22:  movl $0, %esi   <in_back+0>
+   27:  movl $0, %edi   <cp_next+0>
+   2c:  callq ren_tl+0
+   31:  nopl (%rax)
+   38:  callq cp_next+0
+   3d:  testl %eax, %eax
+   3f:  js 0x46
+   41:  cmpl $0xa, %eax
+   44:  jne 0x38
+   46:  addq $8, %rsp
+   4a:  retq

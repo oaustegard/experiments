@@ -1,0 +1,80 @@
+# getfield  (static, 239 bytes, 79 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movq %rsi, %r13
+    7:  pushq %r12
+    9:  movslq %ecx, %r12
+    c:  pushq %rbp
+    d:  movq %rdi, %rbp
+   10:  pushq %rbx
+   11:  movl %edx, %ebx
+   13:  movq %rsi, %rdx
+   16:  movl $0xffffffff, %esi
+   1b:  subq $0x10, %rsp
+   1f:  callq lua_getfield+0
+   24:  leaq 0xc(%rsp), %rdx
+   29:  movl $0xffffffff, %esi
+   2e:  movq %rbp, %rdi
+   31:  movl %eax, %r14d
+   34:  callq lua_tointegerx+0
+   39:  movl 0xc(%rsp), %edx
+   3d:  testl %edx, %edx
+   3f:  jne 0x70
+   41:  testl %r14d, %r14d
+   44:  jne 0xc0
+   46:  cmpl $-1, %ebx
+   49:  je 0xd8
+   4f:  movl $0xfffffffe, %esi
+   54:  movq %rbp, %rdi
+   57:  callq lua_settop+0
+   5c:  movl %ebx, %eax
+   5e:  addq $0x10, %rsp
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  popq %r13
+   68:  popq %r14
+   6a:  retq
+   6b:  nopl (%rax, %rax)
+   70:  testq %rax, %rax
+   73:  js 0x88
+   75:  subq %r12, %rax
+   78:  cmpq $0x7fffffff, %rax
+   7e:  jg 0xa0
+   80:  movl %eax, %ebx
+   82:  jmp 0x4f
+   84:  nopl (%rax)
+   88:  leal -0x80000000(%r12), %edx
+   90:  movslq %edx, %rdx
+   93:  cmpq %rax, %rdx
+   96:  jg 0xa0
+   98:  subq %r12, %rax
+   9b:  movl %eax, %ebx
+   9d:  jmp 0x4f
+   9f:  nop
+   a0:  movq %r13, %rdx
+   a3:  movq %rbp, %rdi
+   a6:  movl $0, %esi   <str:"field '%s' is out-of-bound">
+   ab:  xorl %eax, %eax
+   ad:  callq luaL_error+0
+   b2:  addq $0x10, %rsp
+   b6:  popq %rbx
+   b7:  popq %rbp
+   b8:  popq %r12
+   ba:  popq %r13
+   bc:  popq %r14
+   be:  retq
+   bf:  nop
+   c0:  movq %r13, %rdx
+   c3:  movl $0, %esi   <str:"field '%s' is not an integer">
+   c8:  movq %rbp, %rdi
+   cb:  xorl %eax, %eax
+   cd:  callq luaL_error+0
+   d2:  jmp 0x5e
+   d4:  nopl (%rax)
+   d8:  movq %r13, %rdx
+   db:  movl $0, %esi   <str:"field '%s' missing in date table">
+   e0:  movq %rbp, %rdi
+   e3:  xorl %eax, %eax
+   e5:  callq luaL_error+0
+   ea:  jmp 0x5e

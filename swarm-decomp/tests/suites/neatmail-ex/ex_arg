@@ -1,0 +1,83 @@
+# ex_arg  (static, 244 bytes, 82 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq __ctype_b_loc+0
+   11:  movq (%rax), %rsi
+   14:  jmp 0x24
+   16:  nopw %cs:(%rax, %rax)
+   20:  addq $1, %rbx
+   24:  movzbl (%rbx), %ecx
+   27:  movq %rcx, %rdx
+   2a:  movzwl (%rsi, %rcx, 2), %ecx
+   2e:  testb $0x20, %ch
+   31:  jne 0x20
+   33:  cmpb $0x22, %dl
+   36:  je 0x98
+   38:  testb %dl, %dl
+   3a:  jne 0x63
+   3c:  jmp 0x80
+   3e:  nop
+   40:  movzbl (%rbx), %ecx
+   43:  movq %rbx, %rdx
+   46:  leaq 1(%rdx), %rbx
+   4a:  movb %cl, (%rbp)
+   4d:  movzbl 1(%rdx), %edx
+   51:  addq $1, %rbp
+   55:  testb %dl, %dl
+   57:  je 0x80
+   59:  movq (%rax), %rsi
+   5c:  movzbl %dl, %ecx
+   5f:  movzwl (%rsi, %rcx, 2), %ecx
+   63:  andb $0x20, %ch
+   66:  jne 0x80
+   68:  cmpb $0x5c, %dl
+   6b:  jne 0x40
+   6d:  movzbl 1(%rbx), %ecx
+   71:  leaq 1(%rbx), %rdx
+   75:  testb %cl, %cl
+   77:  jne 0x46
+   79:  jmp 0x40
+   7b:  nopl (%rax, %rax)
+   80:  movb $0, (%rbp)
+   84:  movq %rbx, %rdx
+   87:  addq $8, %rsp
+   8b:  movq %rdx, %rax
+   8e:  popq %rbx
+   8f:  popq %rbp
+   90:  retq
+   91:  nopl (%rax)
+   98:  movzbl 1(%rbx), %eax
+   9c:  leaq 1(%rbx), %rdx
+   a0:  testb %al, %al
+   a2:  jne 0xc9
+   a4:  jmp 0xe0
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movzbl (%rdx), %ecx
+   b3:  movq %rdx, %rax
+   b6:  leaq 1(%rax), %rdx
+   ba:  movb %cl, (%rbp)
+   bd:  movzbl 1(%rax), %eax
+   c1:  addq $1, %rbp
+   c5:  testb %al, %al
+   c7:  je 0xe0
+   c9:  cmpb $0x22, %al
+   cb:  je 0xe0
+   cd:  cmpb $0x5c, %al
+   cf:  jne 0xb0
+   d1:  movzbl 1(%rdx), %ecx
+   d5:  leaq 1(%rdx), %rax
+   d9:  testb %cl, %cl
+   db:  jne 0xb6
+   dd:  jmp 0xb0
+   df:  nop
+   e0:  cmpb $1, %al
+   e2:  movb $0, (%rbp)
+   e6:  sbbq $-1, %rdx
+   ea:  addq $8, %rsp
+   ee:  movq %rdx, %rax
+   f1:  popq %rbx
+   f2:  popq %rbp
+   f3:  retq

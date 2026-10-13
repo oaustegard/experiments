@@ -1,0 +1,156 @@
+# luaL_loadfilex  (global, 656 bytes, 155 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdx, %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $0x2028, %rsp
+   1a:  callq lua_gettop+0
+   1f:  leal 1(%rax), %r13d
+   23:  testq %rbp, %rbp
+   26:  je 0x228
+   2c:  movq %rbp, %rdx
+   2f:  movl $0, %esi   <str:"@%s">
+   34:  movq %rbx, %rdi
+   37:  xorl %eax, %eax
+   39:  callq lua_pushfstring+0
+   3e:  callq __errno_location+0
+   43:  movq %rbp, %rdi
+   46:  movl $0, %esi   <str:"r">
+   4b:  movl $0, (%rax)
+   51:  callq fopen64+0
+   56:  movq %rax, 0x18(%rsp)
+   5b:  movq %rax, %rdi
+   5e:  testq %rax, %rax
+   61:  je 0x278
+   67:  leaq 0xc(%rsp), %rsi
+   6c:  movl $0, 0x10(%rsp)
+   74:  callq fn:skipcomment+0
+   79:  testl %eax, %eax
+   7b:  jne 0x140
+   81:  callq __errno_location+0
+   86:  movl 0xc(%rsp), %r15d
+   8b:  movq %rax, %r14
+   8e:  cmpl $0x1b, %r15d
+   92:  je 0x160
+   98:  cmpl $-1, %r15d
+   9c:  je 0xaf
+   9e:  movslq 0x10(%rsp), %rax
+   a3:  leal 1(%rax), %edx
+   a6:  movl %edx, 0x10(%rsp)
+   aa:  movb %r15b, 0x20(%rsp, %rax)
+   af:  movl $0, (%r14)
+   b6:  xorl %edx, %edx
+   b8:  movl $0xffffffff, %esi
+   bd:  movq %rbx, %rdi
+   c0:  callq lua_tolstring+0
+   c5:  movq %r12, %r8
+   c8:  leaq 0x10(%rsp), %rdx
+   cd:  movq %rbx, %rdi
+   d0:  movq %rax, %rcx
+   d3:  movl $0, %esi   <fn:getF+0>
+   d8:  callq lua_load+0
+   dd:  movq 0x18(%rsp), %rdi
+   e2:  movl %eax, %r12d
+   e5:  callq ferror+0
+   ea:  movl %eax, %r14d
+   ed:  testq %rbp, %rbp
+   f0:  je 0xfc
+   f2:  movq 0x18(%rsp), %rdi
+   f7:  callq fclose+0
+   fc:  testl %r14d, %r14d
+   ff:  jne 0x200
+  105:  movl %r13d, %esi
+  108:  movq %rbx, %rdi
+  10b:  movl $0xffffffff, %edx
+  110:  callq lua_rotate+0
+  115:  movl $0xfffffffe, %esi
+  11a:  movq %rbx, %rdi
+  11d:  callq lua_settop+0
+  122:  addq $0x2028, %rsp
+  129:  movl %r12d, %eax
+  12c:  popq %rbx
+  12d:  popq %rbp
+  12e:  popq %r12
+  130:  popq %r13
+  132:  popq %r14
+  134:  popq %r15
+  136:  retq
+  137:  nopw (%rax, %rax)
+  140:  movslq 0x10(%rsp), %rax
+  145:  leal 1(%rax), %edx
+  148:  movb $0xa, 0x20(%rsp, %rax)
+  14d:  movl %edx, 0x10(%rsp)
+  151:  jmp 0x81
+  156:  nopw %cs:(%rax, %rax)
+  160:  movl $0, 0x10(%rsp)
+  168:  testq %rbp, %rbp
+  16b:  je 0x250
+  171:  movl $0, (%rax)
+  177:  movq 0x18(%rsp), %rdx
+  17c:  movq %rbp, %rdi
+  17f:  movl $0, %esi   <str:"rb">
+  184:  callq freopen64+0
+  189:  movq %rax, 0x18(%rsp)
+  18e:  movq %rax, %rdi
+  191:  testq %rax, %rax
+  194:  je 0x260
+  19a:  leaq 0xc(%rsp), %rsi
+  19f:  callq fn:skipcomment+0
+  1a4:  movl 0xc(%rsp), %r15d
+  1a9:  cmpl $-1, %r15d
+  1ad:  jne 0x9e
+  1b3:  movl $0, (%r14)
+  1ba:  xorl %edx, %edx
+  1bc:  movl $0xffffffff, %esi
+  1c1:  movq %rbx, %rdi
+  1c4:  callq lua_tolstring+0
+  1c9:  movq %r12, %r8
+  1cc:  leaq 0x10(%rsp), %rdx
+  1d1:  movq %rbx, %rdi
+  1d4:  movq %rax, %rcx
+  1d7:  movl $0, %esi   <fn:getF+0>
+  1dc:  callq lua_load+0
+  1e1:  movq 0x18(%rsp), %rdi
+  1e6:  movl %eax, %r12d
+  1e9:  callq ferror+0
+  1ee:  movl %eax, %r14d
+  1f1:  jmp 0xf2
+  1f6:  nopw %cs:(%rax, %rax)
+  200:  movl %r13d, %esi
+  203:  movq %rbx, %rdi
+  206:  callq lua_settop+0
+  20b:  movl %r13d, %edx
+  20e:  movl $0, %esi   <str:"read">
+  213:  movq %rbx, %rdi
+  216:  callq fn:errfile+0
+  21b:  movl %eax, %r12d
+  21e:  jmp 0x122
+  223:  nopl (%rax, %rax)
+  228:  movq %rbx, %rdi
+  22b:  movl $0, %esi   <str:"=stdin">
+  230:  callq lua_pushstring+0
+  235:  movq (%rip), %rdi   <stdin+0>
+  23c:  movq %rdi, 0x18(%rsp)
+  241:  jmp 0x67
+  246:  nopw %cs:(%rax, %rax)
+  250:  movl $1, %edx
+  255:  xorl %eax, %eax
+  257:  jmp 0xa6
+  25c:  nopl (%rax)
+  260:  movl %r13d, %edx
+  263:  movl $0, %esi   <str:"reopen">
+  268:  movq %rbx, %rdi
+  26b:  callq fn:errfile+0
+  270:  movl %eax, %r12d
+  273:  jmp 0x122
+  278:  movl %r13d, %edx
+  27b:  movl $0, %esi   <str:"open">
+  280:  movq %rbx, %rdi
+  283:  callq fn:errfile+0
+  288:  movl %eax, %r12d
+  28b:  jmp 0x122

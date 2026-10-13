@@ -1,0 +1,3 @@
+void drawmbeg(void)
+{
+}

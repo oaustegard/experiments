@@ -1,0 +1,77 @@
+# math_fmod  (static, 273 bytes, 76 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x28, %rsp
+    e:  callq lua_isinteger+0
+   13:  testl %eax, %eax
+   15:  je 0x28
+   17:  movl $2, %esi
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_isinteger+0
+   24:  testl %eax, %eax
+   26:  jne 0x90
+   28:  movl $2, %esi
+   2d:  movq %rbx, %rdi
+   30:  callq luaL_checknumber+0
+   35:  movl $1, %esi
+   3a:  movq %rbx, %rdi
+   3d:  movsd %xmm0, 0x10(%rsp)
+   43:  callq luaL_checknumber+0
+   48:  fldl 0x10(%rsp)
+   4c:  movsd %xmm0, 0x18(%rsp)
+   52:  fldl 0x18(%rsp)
+   56:  fprem
+   58:  fnstsw %ax
+   5a:  testb $4, %ah
+   5d:  jne 0x56
+   5f:  fstp %st(1)
+   61:  fstpl 8(%rsp)
+   65:  movsd 8(%rsp), %xmm2
+   6b:  ucomisd %xmm2, %xmm2
+   6f:  jp 0xf5
+   75:  movapd %xmm2, %xmm0
+   79:  movq %rbx, %rdi
+   7c:  callq lua_pushnumber+0
+   81:  addq $0x28, %rsp
+   85:  movl $1, %eax
+   8a:  popq %rbx
+   8b:  popq %rbp
+   8c:  retq
+   8d:  nopl (%rax)
+   90:  xorl %edx, %edx
+   92:  movl $2, %esi
+   97:  movq %rbx, %rdi
+   9a:  callq lua_tointegerx+0
+   9f:  movq %rax, %rbp
+   a2:  leaq 1(%rax), %rax
+   a6:  cmpq $1, %rax
+   aa:  ja 0xc0
+   ac:  testq %rbp, %rbp
+   af:  je 0xe1
+   b1:  xorl %esi, %esi
+   b3:  movq %rbx, %rdi
+   b6:  callq lua_pushinteger+0
+   bb:  jmp 0x81
+   bd:  nopl (%rax)
+   c0:  xorl %edx, %edx
+   c2:  movq %rbx, %rdi
+   c5:  movl $1, %esi
+   ca:  callq lua_tointegerx+0
+   cf:  movq %rbx, %rdi
+   d2:  cqto
+   d4:  idivq %rbp
+   d7:  movq %rdx, %rsi
+   da:  callq lua_pushinteger+0
+   df:  jmp 0x81
+   e1:  movl $0, %edx   <str:"zero">
+   e6:  movl $2, %esi
+   eb:  movq %rbx, %rdi
+   ee:  callq luaL_argerror+0
+   f3:  jmp 0xb1
+   f5:  movsd 0x10(%rsp), %xmm1
+   fb:  movsd 0x18(%rsp), %xmm0
+  101:  callq fmod+0
+  106:  movsd 8(%rsp), %xmm2
+  10c:  jmp 0x75

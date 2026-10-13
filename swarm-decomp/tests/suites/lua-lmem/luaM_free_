@@ -1,0 +1,14 @@
+# luaM_free_  (global, 32 bytes, 13 instructions)
+    0:  pushq %rbp
+    1:  xorl %ecx, %ecx
+    3:  movq %rdx, %rbp
+    6:  pushq %rbx
+    7:  subq $8, %rsp
+    b:  movq 0x18(%rdi), %rbx
+    f:  movq 8(%rbx), %rdi
+   13:  callq *(%rbx)
+   15:  subq %rbp, 0x18(%rbx)
+   19:  addq $8, %rsp
+   1d:  popq %rbx
+   1e:  popq %rbp
+   1f:  retq

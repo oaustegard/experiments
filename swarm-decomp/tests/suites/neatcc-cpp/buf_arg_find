@@ -1,0 +1,56 @@
+# buf_arg_find  (static, 170 bytes, 55 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movl (%rip), %ebp   <var:bufs_n+0>
+   10:  subl $1, %ebp
+   13:  js 0x98
+   19:  movq %rdi, %r12
+   1c:  jmp 0x30
+   1e:  nop
+   20:  cmpl $2, %edx
+   23:  jne 0x2b
+   25:  movl 0x80a8(%rax), %ebp
+   2b:  subl $1, %ebp
+   2e:  js 0x98
+   30:  movslq %ebp, %rax
+   33:  imulq $0x80b0, %rax, %rax
+   3a:  addq $0, %rax   <var:bufs+0>
+   40:  movl 0x18(%rax), %edx
+   43:  cmpl $1, %edx
+   46:  jne 0x20
+   48:  movq 0xa0(%rax), %rbx
+   4f:  movslq 0x1880(%rbx), %r13
+   56:  testl %r13d, %r13d
+   59:  jle 0x2b
+   5b:  addq $0x880, %rbx
+   62:  shlq $7, %r13
+   66:  addq %rbx, %r13
+   69:  jmp 0x79
+   6b:  nopl (%rax, %rax)
+   70:  subq $-0x80, %rbx
+   74:  cmpq %r13, %rbx
+   77:  je 0x2b
+   79:  movq %rbx, %rsi
+   7c:  movq %r12, %rdi
+   7f:  callq strcmp+0
+   84:  testl %eax, %eax
+   86:  jne 0x70
+   88:  addq $8, %rsp
+   8c:  movl %ebp, %eax
+   8e:  popq %rbx
+   8f:  popq %rbp
+   90:  popq %r12
+   92:  popq %r13
+   94:  retq
+   95:  nopl (%rax)
+   98:  addq $8, %rsp
+   9c:  movl $0xffffffff, %ebp
+   a1:  popq %rbx
+   a2:  movl %ebp, %eax
+   a4:  popq %rbp
+   a5:  popq %r12
+   a7:  popq %r13
+   a9:  retq

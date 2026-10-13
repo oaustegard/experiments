@@ -1,0 +1,44 @@
+# font_swid  (global, 148 bytes, 43 instructions)
+    0:  movl 0x48(%rdi), %ecx
+    3:  testl %ecx, %ecx
+    5:  jne 0x38
+    7:  imull 0x40(%rdi), %edx
+    b:  leal 6(%rdx), %eax
+    e:  movslq %eax, %rdx
+   11:  sarl $0x1f, %eax
+   14:  imulq $0x2aaaaaab, %rdx, %rdx
+   1b:  sarq $0x21, %rdx
+   1f:  subl %eax, %edx
+   21:  callq font_wid+0
+   26:  movl 0x50(%rdi), %edx
+   29:  leal -1(%rdx, %rax), %ecx
+   2d:  testl %edx, %edx
+   2f:  cmovnel %ecx, %eax
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movl 0x4c(%rdi), %eax
+   3b:  movl 0x54(%rdi), %edx
+   3e:  testl %eax, %eax
+   40:  cmovel %esi, %eax
+   43:  testl %edx, %edx
+   45:  je 0x63
+   47:  imull %eax, %edx
+   4a:  addl $0x1f4, %edx
+   50:  movslq %edx, %rax
+   53:  sarl $0x1f, %edx
+   56:  imulq $0x10624dd3, %rax, %rax
+   5d:  sarq $0x26, %rax
+   61:  subl %edx, %eax
+   63:  imull (%rip), %eax   <dev_res+0>
+   6a:  movslq %eax, %rdx
+   6d:  sarl $0x1f, %eax
+   70:  imulq $0x38e38e39, %rdx, %rdx
+   77:  sarq $0x24, %rdx
+   7b:  subl %eax, %edx
+   7d:  imull %ecx, %edx
+   80:  movslq %edx, %rax
+   83:  sarl $0x1f, %edx
+   86:  imulq $0x38e38e39, %rax, %rax
+   8d:  sarq $0x23, %rax
+   91:  subl %edx, %eax
+   93:  retq

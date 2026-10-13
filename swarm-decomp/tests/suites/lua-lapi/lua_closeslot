@@ -1,0 +1,18 @@
+# lua_closeslot  (global, 54 bytes, 17 instructions)
+    0:  movslq %esi, %rsi
+    3:  subq $8, %rsp
+    7:  movq 0x20(%rdi), %rdx
+    b:  movq %rsi, %rax
+    e:  shlq $4, %rsi
+   12:  testl %eax, %eax
+   14:  jle 0x30
+   16:  addq (%rdx), %rsi
+   19:  xorl %ecx, %ecx
+   1b:  movl $0xffffffff, %edx
+   20:  callq luaF_close+0
+   25:  movb $0, 8(%rax)
+   29:  addq $8, %rsp
+   2d:  retq
+   2e:  nop
+   30:  addq 0x10(%rdi), %rsi
+   34:  jmp 0x19

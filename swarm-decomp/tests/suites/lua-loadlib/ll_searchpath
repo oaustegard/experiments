@@ -1,0 +1,57 @@
+# ll_searchpath  (static, 178 bytes, 56 instructions)
+    0:  pushq %r13
+    2:  xorl %ecx, %ecx
+    4:  movl $0, %edx   <str:"/">
+    9:  movl $4, %esi
+    e:  pushq %r12
+   10:  pushq %rbp
+   11:  pushq %rbx
+   12:  movq %rdi, %rbx
+   15:  subq $8, %rsp
+   19:  callq luaL_optlstring+0
+   1e:  xorl %ecx, %ecx
+   20:  movl $0, %edx   <str:".">
+   25:  movq %rbx, %rdi
+   28:  movl $3, %esi
+   2d:  movq %rax, %r13
+   30:  callq luaL_optlstring+0
+   35:  xorl %edx, %edx
+   37:  movl $2, %esi
+   3c:  movq %rbx, %rdi
+   3f:  movq %rax, %r12
+   42:  callq luaL_checklstring+0
+   47:  xorl %edx, %edx
+   49:  movl $1, %esi
+   4e:  movq %rbx, %rdi
+   51:  movq %rax, %rbp
+   54:  callq luaL_checklstring+0
+   59:  movq %rbp, %rdx
+   5c:  movq %r13, %r8
+   5f:  movq %r12, %rcx
+   62:  movq %rax, %rsi
+   65:  movq %rbx, %rdi
+   68:  callq fn:searchpath+0
+   6d:  movq %rax, %rdx
+   70:  movl $1, %eax
+   75:  testq %rdx, %rdx
+   78:  je 0x88
+   7a:  addq $8, %rsp
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  popq %r12
+   82:  popq %r13
+   84:  retq
+   85:  nopl (%rax)
+   88:  movq %rbx, %rdi
+   8b:  callq lua_pushnil+0
+   90:  movq %rbx, %rdi
+   93:  movl $1, %edx
+   98:  movl $0xfffffffe, %esi
+   9d:  callq lua_rotate+0
+   a2:  addq $8, %rsp
+   a6:  movl $2, %eax
+   ab:  popq %rbx
+   ac:  popq %rbp
+   ad:  popq %r12
+   af:  popq %r13
+   b1:  retq

@@ -1,0 +1,23 @@
+# luaL_addlstring  (global, 65 bytes, 22 instructions)
+    0:  testq %rdx, %rdx
+    3:  jne 0x10
+    5:  retq
+    6:  nopw %cs:(%rax, %rax)
+   10:  pushq %r12
+   12:  movq %rsi, %r12
+   15:  pushq %rbp
+   16:  movq %rdi, %rbp
+   19:  pushq %rbx
+   1a:  movq %rdx, %rbx
+   1d:  movl $0xffffffff, %edx
+   22:  movq %rbx, %rsi
+   25:  callq fn:prepbuffsize+0
+   2a:  movq %rbx, %rdx
+   2d:  movq %r12, %rsi
+   30:  movq %rax, %rdi
+   33:  callq memcpy+0
+   38:  addq %rbx, 0x10(%rbp)
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  popq %r12
+   40:  retq

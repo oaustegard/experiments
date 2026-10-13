@@ -1,0 +1,41 @@
+# o_ret  (global, 191 bytes, 40 instructions)
+    0:  pushq %rbx
+    1:  testl %edi, %edi
+    3:  je 0x70
+    5:  movq (%rip), %rax   <var:iv_n+0>
+    c:  movq (%rip), %rsi   <var:ic_n+0>
+   13:  movq (%rip), %rdi   <var:ic+0>
+   1a:  subq $1, %rax
+   1e:  cmpq (%rip), %rsi   <var:ic_sz+0>
+   25:  movq %rax, (%rip)   <var:iv_n+0>
+   2c:  movq (, %rax, 8), %rbx   <var:iv+0>
+   34:  je 0x88
+   36:  leaq 1(%rsi), %rax
+   3a:  movq %rax, (%rip)   <var:ic_n+0>
+   41:  leaq (%rsi, %rsi, 4), %rax
+   45:  leaq (%rdi, %rax, 8), %rax
+   49:  movq $0x8000, (%rax)
+   50:  movq %rbx, 8(%rax)
+   54:  movq $0, 0x10(%rax)
+   5c:  movq $0, 0x18(%rax)
+   64:  popq %rbx
+   65:  retq
+   66:  nopw %cs:(%rax, %rax)
+   70:  xorl %ecx, %ecx
+   72:  xorl %edx, %edx
+   74:  xorl %esi, %esi
+   76:  movl $0x100400, %edi
+   7b:  callq fn:ic_put+0
+   80:  jmp 5
+   82:  nopw (%rax, %rax)
+   88:  leaq (%rsi, %rsi), %rdx
+   8c:  movl $0x80, %eax
+   91:  movl $0x28, %ecx
+   96:  cmpq %rax, %rdx
+   99:  cmovlq %rax, %rdx
+   9d:  movq %rdx, (%rip)   <var:ic_sz+0>
+   a4:  callq mextend+0
+   a9:  movq (%rip), %rsi   <var:ic_n+0>
+   b0:  movq %rax, (%rip)   <var:ic+0>
+   b7:  movq %rax, %rdi
+   ba:  jmp 0x36

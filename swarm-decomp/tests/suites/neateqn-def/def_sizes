@@ -1,0 +1,43 @@
+# def_sizes  (global, 121 bytes, 42 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  pushq %rbx
+    a:  xorl %ebx, %ebx
+    c:  jmp 0x1a
+    e:  nop
+   10:  addq $1, %rbx
+   14:  cmpq $0x20, %rbx
+   18:  je 0x70
+   1a:  movq %rbx, %rdi
+   1d:  movq %r12, %rsi
+   20:  shlq $9, %rdi
+   24:  addq $0, %rdi   <var:bracketsizes+0>
+   2b:  callq strcmp+0
+   30:  testl %eax, %eax
+   32:  jne 0x10
+   34:  movslq %ebx, %rbx
+   37:  movq %r12, (%rbp)
+   3b:  leaq 0x38(%rbp), %rcx
+   3f:  xorl %edx, %edx
+   41:  shlq $9, %rbx
+   45:  addq $0, %rbx   <var:bracketsizes+64>
+   4c:  nopl (%rax)
+   50:  cmpb $0, (%rbx)
+   53:  movq %rdx, %rax
+   56:  cmovneq %rbx, %rax
+   5a:  addq $8, %rbp
+   5e:  addq $0x40, %rbx
+   62:  movq %rax, -8(%rbp)
+   66:  cmpq %rbp, %rcx
+   69:  jne 0x50
+   6b:  popq %rbx
+   6c:  popq %rbp
+   6d:  popq %r12
+   6f:  retq
+   70:  movq %r12, (%rbp)
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  popq %r12
+   78:  retq

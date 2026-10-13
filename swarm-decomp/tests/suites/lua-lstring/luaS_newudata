@@ -1,0 +1,54 @@
+# luaS_newudata  (global, 205 bytes, 53 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  pushq %rbx
+    7:  testl %edx, %edx
+    9:  je 0x90
+    f:  movabsq $0x7fffffffffffffd7, %rax
+   19:  movslq %edx, %r12
+   1c:  movl %edx, %ebx
+   1e:  shlq $4, %r12
+   22:  subq %r12, %rax
+   25:  cmpq %rsi, %rax
+   28:  jb 0xc8
+   2e:  leaq 0x28(%r12, %rsi), %rdx
+   33:  movl $7, %esi
+   38:  callq luaC_newobj+0
+   3d:  movq %rbp, 0x10(%rax)
+   41:  movw %bx, 0xa(%rax)
+   45:  movq $0, 0x18(%rax)
+   4d:  testl %ebx, %ebx
+   4f:  jle 0x81
+   51:  leaq (%r12, %rax), %rcx
+   55:  andl $0x10, %r12d
+   59:  movq %rax, %rdx
+   5c:  je 0x70
+   5e:  leaq 0x10(%rax), %rdx
+   62:  movb $0, 0x30(%rax)
+   66:  cmpq %rcx, %rdx
+   69:  je 0x81
+   6b:  nopl (%rax, %rax)
+   70:  movb $0, 0x30(%rdx)
+   74:  addq $0x20, %rdx
+   78:  movb $0, 0x20(%rdx)
+   7c:  cmpq %rcx, %rdx
+   7f:  jne 0x70
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  popq %r12
+   85:  retq
+   86:  nopw %cs:(%rax, %rax)
+   90:  movabsq $0x7fffffffffffffdf, %rax
+   9a:  cmpq %rsi, %rax
+   9d:  jb 0xc8
+   9f:  leaq 0x20(%rsi), %rdx
+   a3:  movl $7, %esi
+   a8:  callq luaC_newobj+0
+   ad:  xorl %edx, %edx
+   af:  movq %rbp, 0x10(%rax)
+   b3:  movw %dx, 0xa(%rax)
+   b7:  movq $0, 0x18(%rax)
+   bf:  jmp 0x81
+   c1:  nopl (%rax)
+   c8:  callq luaM_toobig+0

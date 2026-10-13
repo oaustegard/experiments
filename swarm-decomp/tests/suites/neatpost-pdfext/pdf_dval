@@ -1,0 +1,138 @@
+# pdf_dval  (global, 469 bytes, 137 instructions)
+    0:  pushq %r14
+    2:  movl %esi, %r14d
+    5:  pushq %r13
+    7:  movq %rcx, %r13
+    a:  pushq %r12
+    c:  movq %rdi, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  leal 2(%rdx), %ebx
+   14:  addl $4, %edx
+   17:  cmpl %edx, %esi
+   19:  jle 0x100
+   1f:  nop
+   20:  movslq %ebx, %rax
+   23:  leaq (%r12, %rax), %rbp
+   27:  cmpb $0x3e, (%rbp)
+   2b:  je 0x110
+   31:  cmpl %ebx, %r14d
+   34:  jle 0x128
+   3a:  callq __ctype_b_loc+0
+   3f:  movq (%rax), %rcx
+   42:  movq %rbp, %rax
+   45:  jmp 0x60
+   47:  nopw (%rax, %rax)
+   50:  addl $1, %ebx
+   53:  addq $1, %rax
+   57:  cmpl %ebx, %r14d
+   5a:  je 0x128
+   60:  movzbl (%rax), %edx
+   63:  testb $0x20, 1(%rcx, %rdx, 2)
+   68:  jne 0x50
+   6a:  cmpl %ebx, %r14d
+   6d:  jle 0x128
+   73:  movl %ebx, %edx
+   75:  movl %r14d, %esi
+   78:  movq %r12, %rdi
+   7b:  callq fn:pdf_len.part.0+0
+   80:  movq %r13, %rdi
+   83:  movl %eax, %ebp
+   85:  callq strlen+0
+   8a:  movslq %ebp, %rdx
+   8d:  addl %ebx, %ebp
+   8f:  cmpq %rax, %rdx
+   92:  je 0x137
+   98:  movl %ebx, %edx
+   9a:  movl %r14d, %esi
+   9d:  movq %r12, %rdi
+   a0:  callq fn:pdf_len.part.0+0
+   a5:  cmpl %ebp, %r14d
+   a8:  jle 0x1c2
+   ae:  movl %ebp, %edx
+   b0:  movl %r14d, %esi
+   b3:  movq %r12, %rdi
+   b6:  callq fn:pdf_len.part.0+0
+   bb:  leal (%rax, %rbp), %ebx
+   be:  cmpl %ebx, %r14d
+   c1:  jle 0xee
+   c3:  callq __ctype_b_loc+0
+   c8:  movq (%rax), %rcx
+   cb:  movslq %ebx, %rax
+   ce:  addq %r12, %rax
+   d1:  jmp 0xe4
+   d3:  nopl (%rax, %rax)
+   d8:  addl $1, %ebx
+   db:  addq $1, %rax
+   df:  cmpl %ebx, %r14d
+   e2:  je 0x100
+   e4:  movzbl (%rax), %edx
+   e7:  testb $0x20, 1(%rcx, %rdx, 2)
+   ec:  jne 0xd8
+   ee:  leal 2(%rbx), %eax
+   f1:  cmpl %r14d, %eax
+   f4:  jl 0x20
+   fa:  nopw (%rax, %rax)
+  100:  movl $0xffffffff, %ebp
+  105:  popq %rbx
+  106:  movl %ebp, %eax
+  108:  popq %rbp
+  109:  popq %r12
+  10b:  popq %r13
+  10d:  popq %r14
+  10f:  retq
+  110:  cmpb $0x3e, 1(%r12, %rax)
+  116:  je 0x100
+  118:  cmpl %ebx, %r14d
+  11b:  jg 0x3a
+  121:  nopl (%rax)
+  128:  movq %r13, %rdi
+  12b:  callq strlen+0
+  130:  testq %rax, %rax
+  133:  jne 0xee
+  135:  movl %ebx, %ebp
+  137:  movslq %ebx, %rsi
+  13a:  xorl %eax, %eax
+  13c:  addq %r12, %rsi
+  13f:  jmp 0x158
+  141:  nopl (%rax)
+  148:  movzbl (%rsi, %rax), %ecx
+  14c:  testb %cl, %cl
+  14e:  je 0x162
+  150:  addq $1, %rax
+  154:  cmpb %dl, %cl
+  156:  jne 0x1b0
+  158:  movzbl (%r13, %rax), %edx
+  15e:  testb %dl, %dl
+  160:  jne 0x148
+  162:  cmpl %ebx, %r14d
+  165:  jle 0x174
+  167:  movl %ebx, %edx
+  169:  movl %r14d, %esi
+  16c:  movq %r12, %rdi
+  16f:  callq fn:pdf_len.part.0+0
+  174:  cmpl %ebp, %r14d
+  177:  jle 0x105
+  179:  callq __ctype_b_loc+0
+  17e:  movq (%rax), %rdx
+  181:  movslq %ebp, %rax
+  184:  addq %rax, %r12
+  187:  jmp 0x199
+  189:  addl $1, %ebp
+  18c:  addq $1, %r12
+  190:  cmpl %ebp, %r14d
+  193:  je 0x105
+  199:  movzbl (%r12), %eax
+  19e:  testb $0x20, 1(%rdx, %rax, 2)
+  1a3:  jne 0x189
+  1a5:  jmp 0x105
+  1aa:  nopw (%rax, %rax)
+  1b0:  cmpl %ebx, %r14d
+  1b3:  jg 0x98
+  1b9:  cmpl %ebp, %r14d
+  1bc:  jg 0xae
+  1c2:  movl %ebp, %ebx
+  1c4:  leal 2(%rbx), %eax
+  1c7:  cmpl %r14d, %eax
+  1ca:  jl 0x20
+  1d0:  jmp 0x100

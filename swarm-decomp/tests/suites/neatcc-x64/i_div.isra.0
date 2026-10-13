@@ -1,0 +1,37 @@
+# i_div.isra.0  (static, 134 bytes, 36 instructions)
+    0:  sarl $0x18, %edi
+    3:  pushq %rbx
+    4:  movl %esi, %ebx
+    6:  andl $0x10, %edi
+    9:  cmpl $2, %esi
+    c:  je 0x80
+    e:  testl %edi, %edi
+   10:  jne 0x60
+   12:  movl $2, %edx
+   17:  movl $2, %esi
+   1c:  movl $0x33, %edi
+   21:  movl $4, %ecx
+   26:  callq fn:op_x+0
+   2b:  movl $1, %edx
+   30:  movl $0, %esi   <var:buf+0>
+   35:  movl $0, %edi   <var:cs+0>
+   3a:  movb $0xd2, (%rip)   <var:buf+0>
+   41:  callq mem_put+0
+   46:  movl $6, %esi
+   4b:  movl %ebx, %edx
+   4d:  movl $8, %ecx
+   52:  movl $0xf7, %edi
+   57:  popq %rbx
+   58:  jmp fn:op_rr+0
+   5d:  nopl (%rax)
+   60:  movl $8, %ecx
+   65:  movl $2, %edx
+   6a:  xorl %esi, %esi
+   6c:  movl $0x99, %edi
+   71:  callq fn:op_x+0
+   76:  movl $7, %esi
+   7b:  jmp 0x4b
+   7d:  nopl (%rax)
+   80:  testl %edi, %edi
+   82:  jne 0x76
+   84:  jmp 0x46

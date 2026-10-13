@@ -1,0 +1,15 @@
+# wb_buf  (global, 60 bytes, 14 instructions)
+    0:  movl 0x2068(%rdi), %edx
+    6:  testl %edx, %edx
+    8:  je 0x14
+    a:  movl 0x206c(%rdi), %eax
+   10:  testl %eax, %eax
+   12:  jne 0x20
+   14:  jmp sbuf_buf+0
+   19:  nopl (%rax)
+   20:  subq $0x18, %rsp
+   24:  movq %rdi, 8(%rsp)
+   29:  callq fn:wb_flushsub.part.0+0
+   2e:  movq 8(%rsp), %rdi
+   33:  addq $0x18, %rsp
+   37:  jmp sbuf_buf+0

@@ -1,0 +1,51 @@
+# tr_tkf  (static, 137 bytes, 50 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movq 8(%rdi), %rdi
+    f:  testq %rdi, %rdi
+   12:  je 0x80
+   14:  callq dev_pos+0
+   19:  movl %eax, %edi
+   1b:  callq dev_font+0
+   20:  movq %rax, %rbp
+   23:  testq %rax, %rax
+   26:  je 0x80
+   28:  movq 0x28(%rbx), %rdi
+   2c:  testq %rdi, %rdi
+   2f:  je 0x80
+   31:  xorl %esi, %esi
+   33:  callq eval+0
+   38:  movq 0x20(%rbx), %rdi
+   3c:  xorl %esi, %esi
+   3e:  movl %eax, %r14d
+   41:  callq eval+0
+   46:  movq 0x18(%rbx), %rdi
+   4a:  xorl %esi, %esi
+   4c:  movl %eax, %r13d
+   4f:  callq eval+0
+   54:  movq 0x10(%rbx), %rdi
+   58:  xorl %esi, %esi
+   5a:  movl %eax, %r12d
+   5d:  callq eval+0
+   62:  popq %rbx
+   63:  movl %r14d, %r8d
+   66:  movl %r13d, %ecx
+   69:  movl %r12d, %edx
+   6c:  movq %rbp, %rdi
+   6f:  movl %eax, %esi
+   71:  popq %rbp
+   72:  popq %r12
+   74:  popq %r13
+   76:  popq %r14
+   78:  jmp font_track+0
+   7d:  nopl (%rax)
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  popq %r14
+   88:  retq

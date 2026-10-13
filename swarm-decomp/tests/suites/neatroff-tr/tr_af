@@ -1,0 +1,14 @@
+# tr_af  (static, 34 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movq 0x10(%rdi), %rbx
+    5:  testq %rbx, %rbx
+    8:  je 0x20
+    a:  movq 8(%rdi), %rdi
+    e:  callq map+0
+   13:  movq %rbx, %rsi
+   16:  popq %rbx
+   17:  movl %eax, %edi
+   19:  jmp num_setfmt+0
+   1e:  nop
+   20:  popq %rbx
+   21:  retq

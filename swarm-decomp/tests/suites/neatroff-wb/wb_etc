@@ -1,0 +1,28 @@
+# wb_etc  (global, 87 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movl 0x2068(%rdi), %edx
+   12:  testl %edx, %edx
+   14:  je 0x20
+   16:  movl 0x206c(%rdi), %eax
+   1c:  testl %eax, %eax
+   1e:  jne 0x50
+   20:  movq %rbx, %rdi
+   23:  callq wb_flushdir+0
+   28:  movq %rbx, %rdi
+   2b:  callq fn:wb_flushfont+0
+   30:  movl (%rip), %edx   <c_ec+0>
+   36:  movq %rbp, %rcx
+   39:  xorl %eax, %eax
+   3b:  addq $8, %rsp
+   3f:  movq %rbx, %rdi
+   42:  movl $0, %esi   <str:"%cX\x02%s\x02">
+   47:  popq %rbx
+   48:  popq %rbp
+   49:  jmp sbuf_printf+0
+   4e:  nop
+   50:  callq fn:wb_flushsub.part.0+0
+   55:  jmp 0x20

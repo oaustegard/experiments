@@ -1,0 +1,177 @@
+# outeps  (global, 679 bytes, 176 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movl %esi, %r12d
+    e:  movl $0, %esi   <str:"r">
+   13:  pushq %rbp
+   14:  pushq %rbx
+   15:  subq $0x1038, %rsp
+   1c:  movl %edx, 0xc(%rsp)
+   20:  callq fopen+0
+   25:  testq %rax, %rax
+   28:  je 0x218
+   2e:  movq %rax, %rdx
+   31:  movl $0x1000, %esi
+   36:  leaq 0x30(%rsp), %rdi
+   3b:  movq %rax, %rbx
+   3e:  callq fgets+0
+   43:  testq %rax, %rax
+   46:  je 0x270
+   4c:  leaq 0x2c(%rsp), %r9
+   51:  movl $0, %esi   <str:"%%!PS-Adobe-%d.%d EPSF-%d.%d">
+   56:  xorl %eax, %eax
+   58:  xorl %r13d, %r13d
+   5b:  movq %r9, %r8
+   5e:  movq %r9, %rcx
+   61:  leaq 0x30(%rsp), %rdi
+   66:  movq %r9, %rdx
+   69:  callq __isoc99_sscanf+0
+   6e:  movabsq $0x69646e756f422525, %rbp
+   78:  movabsq $0x203a786f42676e69, %r15
+   82:  cmpl $4, %eax
+   85:  jne 0x248
+   8b:  nopl (%rax, %rax)
+   90:  movq %rbx, %rdx
+   93:  movl $0x1000, %esi
+   98:  leaq 0x30(%rsp), %rdi
+   9d:  callq fgets+0
+   a2:  testq %rax, %rax
+   a5:  je 0x230
+   ab:  cmpq %rbp, 0x30(%rsp)
+   b0:  jne 0x90
+   b2:  cmpq %r15, 0x37(%rsp)
+   b7:  jne 0x90
+   b9:  leaq 0x28(%rsp), %r9
+   be:  leaq 0x24(%rsp), %r8
+   c3:  movl $0, %esi   <str:"%d %d %d %d">
+   c8:  xorl %eax, %eax
+   ca:  leaq 0x20(%rsp), %rcx
+   cf:  leaq 0x1c(%rsp), %rdx
+   d4:  leaq 0x3f(%rsp), %rdi
+   d9:  callq __isoc99_sscanf+0
+   de:  movl %eax, %r13d
+   e1:  cmpl $4, %eax
+   e4:  jne 0x90
+   e6:  movq %rbx, %rdi
+   e9:  callq fclose+0
+   ee:  nop
+   f0:  testl %r12d, %r12d
+   f3:  jg 0x28e
+   f9:  movl 0xc(%rsp), %edx
+   fd:  testl %edx, %edx
+   ff:  jg 0x139
+  101:  movl (%rip), %eax   <dev_res+0>
+  107:  movl 0x24(%rsp), %ecx
+  10b:  subl 0x1c(%rsp), %ecx
+  10f:  imull %ecx, %eax
+  112:  movslq %eax, %r12
+  115:  sarl $0x1f, %eax
+  118:  imulq $0x38e38e39, %r12, %r12
+  11f:  sarq $0x24, %r12
+  123:  subl %eax, %r12d
+  126:  movl 0x28(%rsp), %eax
+  12a:  subl 0x20(%rsp), %eax
+  12e:  imull %r12d, %eax
+  132:  cltd
+  133:  idivl %ecx
+  135:  movl %eax, 0xc(%rsp)
+  139:  testl %r12d, %r12d
+  13c:  jg 0x15b
+  13e:  movl 0xc(%rsp), %ecx
+  142:  movl 0x24(%rsp), %eax
+  146:  subl 0x1c(%rsp), %eax
+  14a:  imull %ecx, %eax
+  14d:  movl 0x28(%rsp), %ecx
+  151:  subl 0x20(%rsp), %ecx
+  155:  cltd
+  156:  idivl %ecx
+  158:  movl %eax, %r12d
+  15b:  callq fn:o_flush+0
+  160:  movl (%rip), %edi   <var:o_f+0>
+  166:  callq fn:out_fontup+0
+  16b:  movl 0x20(%rsp), %edx
+  16f:  movl 0x1c(%rsp), %esi
+  173:  movl %r12d, %ecx
+  176:  movl (%rip), %eax   <var:o_v+0>
+  17c:  subq $8, %rsp
+  180:  movl $0, %edi   <str:"%d %d %d %d %d %d %d %d EPSFBEG\n">
+  185:  pushq %rax
+  186:  movl (%rip), %eax   <var:o_h+0>
+  18c:  pushq %rax
+  18d:  movl 0x40(%rsp), %eax
+  191:  subl %edx, %eax
+  193:  pushq %rax
+  194:  movl 0x44(%rsp), %r8d
+  199:  xorl %eax, %eax
+  19b:  movl 0x2c(%rsp), %r9d
+  1a0:  subl %esi, %r8d
+  1a3:  callq fn:outf+0
+  1a8:  addq $0x20, %rsp
+  1ac:  movq %r14, %rsi
+  1af:  xorl %eax, %eax
+  1b1:  movl $0, %edi   <str:"%%%%BeginDocument: %s\n">
+  1b6:  callq fn:outf+0
+  1bb:  movl $0, %esi   <str:"r">
+  1c0:  movq %r14, %rdi
+  1c3:  callq fopen+0
+  1c8:  movq %rax, %rbx
+  1cb:  jmp 0x1e1
+  1cd:  nopl (%rax)
+  1d0:  leaq 0x30(%rsp), %rsi
+  1d5:  movl $0, %edi   <str:"%s">
+  1da:  xorl %eax, %eax
+  1dc:  callq out+0
+  1e1:  movq %rbx, %rdx
+  1e4:  movl $0x1000, %esi
+  1e9:  leaq 0x30(%rsp), %rdi
+  1ee:  callq fgets+0
+  1f3:  testq %rax, %rax
+  1f6:  jne 0x1d0
+  1f8:  movq %rbx, %rdi
+  1fb:  callq fclose+0
+  200:  movl $0, %edi   <str:"%%%%EndDocument\n">
+  205:  xorl %eax, %eax
+  207:  callq fn:outf+0
+  20c:  movl $0, %edi   <str:"EPSFEND\n">
+  211:  xorl %eax, %eax
+  213:  callq fn:outf+0
+  218:  addq $0x1038, %rsp
+  21f:  popq %rbx
+  220:  popq %rbp
+  221:  popq %r12
+  223:  popq %r13
+  225:  popq %r14
+  227:  popq %r15
+  229:  retq
+  22a:  nopw (%rax, %rax)
+  230:  movq %rbx, %rdi
+  233:  callq fclose+0
+  238:  cmpl $3, %r13d
+  23c:  jg 0xf0
+  242:  jmp 0x218
+  244:  nopl (%rax)
+  248:  movq (%rip), %rdi   <stderr+0>
+  24f:  movq %r14, %rdx
+  252:  movl $0, %esi   <str:"warning: unsupported EPSF header in %s\n">
+  257:  xorl %eax, %eax
+  259:  callq fprintf+0
+  25e:  movq %rbx, %rdi
+  261:  callq fclose+0
+  266:  jmp 0x218
+  268:  nopl (%rax, %rax)
+  270:  movq (%rip), %rdi   <stderr+0>
+  277:  movq %r14, %rdx
+  27a:  movl $0, %esi   <str:"warning: file %s is empty\n">
+  27f:  callq fprintf+0
+  284:  movq %rbx, %rdi
+  287:  callq fclose+0
+  28c:  jmp 0x218
+  28e:  movl 0xc(%rsp), %eax
+  292:  testl %eax, %eax
+  294:  jg 0x139
+  29a:  movl 0x24(%rsp), %ecx
+  29e:  subl 0x1c(%rsp), %ecx
+  2a2:  jmp 0x126

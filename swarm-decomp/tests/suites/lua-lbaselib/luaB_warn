@@ -1,0 +1,48 @@
+# luaB_warn  (static, 149 bytes, 47 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  callq lua_gettop+0
+    c:  xorl %edx, %edx
+    e:  movl $1, %esi
+   13:  movq %rbp, %rdi
+   16:  movl %eax, %r12d
+   19:  callq luaL_checklstring+0
+   1e:  cmpl $1, %r12d
+   22:  jle 0x74
+   24:  movl $2, %ebx
+   29:  nopl (%rax)
+   30:  movl %ebx, %esi
+   32:  xorl %edx, %edx
+   34:  movq %rbp, %rdi
+   37:  addl $1, %ebx
+   3a:  callq luaL_checklstring+0
+   3f:  cmpl %ebx, %r12d
+   42:  jge 0x30
+   44:  movl $1, %ebx
+   49:  nopl (%rax)
+   50:  movl %ebx, %esi
+   52:  xorl %edx, %edx
+   54:  movq %rbp, %rdi
+   57:  addl $1, %ebx
+   5a:  callq lua_tolstring+0
+   5f:  movl $1, %edx
+   64:  movq %rbp, %rdi
+   67:  movq %rax, %rsi
+   6a:  callq lua_warning+0
+   6f:  cmpl %ebx, %r12d
+   72:  jne 0x50
+   74:  movl %r12d, %esi
+   77:  movq %rbp, %rdi
+   7a:  xorl %edx, %edx
+   7c:  callq lua_tolstring+0
+   81:  movq %rbp, %rdi
+   84:  xorl %edx, %edx
+   86:  movq %rax, %rsi
+   89:  callq lua_warning+0
+   8e:  popq %rbx
+   8f:  xorl %eax, %eax
+   91:  popq %rbp
+   92:  popq %r12
+   94:  retq

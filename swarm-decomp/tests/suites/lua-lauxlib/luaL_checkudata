@@ -1,0 +1,32 @@
+# luaL_checkudata  (global, 76 bytes, 31 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  movl %esi, %r12d
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_testudata+0
+   18:  movq %rax, %rbx
+   1b:  testq %rax, %rax
+   1e:  je 0x30
+   20:  addq $8, %rsp
+   24:  movq %rbx, %rax
+   27:  popq %rbx
+   28:  popq %rbp
+   29:  popq %r12
+   2b:  popq %r13
+   2d:  retq
+   2e:  nop
+   30:  movq %r13, %rdx
+   33:  movl %r12d, %esi
+   36:  movq %rbp, %rdi
+   39:  callq luaL_typeerror+0
+   3e:  addq $8, %rsp
+   42:  movq %rbx, %rax
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  popq %r12
+   49:  popq %r13
+   4b:  retq

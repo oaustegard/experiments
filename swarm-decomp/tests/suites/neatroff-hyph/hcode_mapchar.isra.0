@@ -1,0 +1,36 @@
+# hcode_mapchar.isra.0  (static, 111 bytes, 35 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rsi
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movq (%rip), %rdi   <var:hcodedict+0>
+   13:  callq dict_get+0
+   18:  testl %eax, %eax
+   1a:  jns 0x50
+   1c:  cmpb $0, 1(%rbx)
+   20:  jne 0x47
+   22:  callq __ctype_b_loc+0
+   27:  movzbl (%rbx), %ebp
+   2a:  movq (%rax), %rdx
+   2d:  movl $0x2e, %eax
+   32:  testb $4, 1(%rdx, %rbp, 2)
+   37:  je 0x45
+   39:  callq __ctype_tolower_loc+0
+   3e:  movq (%rax), %rax
+   41:  movzbl (%rax, %rbp, 4), %eax
+   45:  movb %al, (%rbx)
+   47:  addq $8, %rsp
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  retq
+   4e:  nop
+   50:  movslq %eax, %rsi
+   53:  addq $8, %rsp
+   57:  movq %rbx, %rdi
+   5a:  movq %rsi, %rax
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  shlq $5, %rax
+   63:  leaq (%rax), %rsi   <var:hcodedst+0>
+   6a:  jmp strcpy+0

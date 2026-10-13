@@ -1,0 +1,9 @@
+# font_mapped  (global, 30 bytes, 8 instructions)
+    0:  subq $8, %rsp
+    4:  movq 0x88(%rdi), %rdi
+    b:  callq dict_get+0
+   10:  cmpl $-1, %eax
+   13:  setne %al
+   16:  addq $8, %rsp
+   1a:  movzbl %al, %eax
+   1d:  retq

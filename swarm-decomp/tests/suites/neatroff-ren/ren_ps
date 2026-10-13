@@ -1,0 +1,75 @@
+# ren_ps  (static, 268 bytes, 74 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  testq %rdi, %rdi
+    9:  je 0x17
+    b:  cmpb $0, (%rdi)
+    e:  movq %rdi, %rbx
+   11:  jne 0xb8
+   17:  movl $0, %edi   <str:".s0">
+   1c:  callq map+0
+   21:  movl %eax, %edi
+   23:  callq nreg+0
+   28:  movslq (%rip), %rbx   <dev_res+0>
+   2f:  movq %rax, %rdx
+   32:  movq %rbx, %rax
+   35:  imulq $0x38e38e39, %rbx, %rbx
+   3c:  sarl $0x1f, %eax
+   3f:  sarq $0x24, %rbx
+   43:  subl %eax, %ebx
+   45:  imull (%rdx), %ebx
+   48:  movl $0x73, %edi
+   4d:  callq nreg+0
+   52:  movl $0, %edi   <str:".s0">
+   57:  movq %rax, %rbp
+   5a:  callq map+0
+   5f:  movl %eax, %edi
+   61:  callq nreg+0
+   66:  movl (%rbp), %edx
+   69:  movl $0x73, %edi
+   6e:  movl %edx, (%rax)
+   70:  movslq (%rip), %rcx   <dev_res+0>
+   77:  movq %rcx, %rdx
+   7a:  imulq $0x38e38e39, %rcx, %rcx
+   81:  sarl $0x1f, %edx
+   84:  movq %rcx, %rax
+   87:  sarq $0x24, %rcx
+   8b:  sarq $0x25, %rax
+   8f:  subl %edx, %ecx
+   91:  subl %edx, %eax
+   93:  addl %ebx, %eax
+   95:  cltd
+   96:  idivl %ecx
+   98:  movl %eax, %ebx
+   9a:  callq nreg+0
+   9f:  testl %ebx, %ebx
+   a1:  movl $1, %edx
+   a6:  cmovlel %edx, %ebx
+   a9:  movl %ebx, (%rax)
+   ab:  addq $8, %rsp
+   af:  popq %rbx
+   b0:  popq %rbp
+   b1:  retq
+   b2:  nopw (%rax, %rax)
+   b8:  cmpb $0x30, (%rdi)
+   bb:  je 0x100
+   bd:  movl $0x73, %edi
+   c2:  callq nreg+0
+   c7:  movslq (%rip), %rsi   <dev_res+0>
+   ce:  movq %rbx, %rdi
+   d1:  movq %rax, %rdx
+   d4:  movq %rsi, %rax
+   d7:  imulq $0x38e38e39, %rsi, %rsi
+   de:  sarl $0x1f, %eax
+   e1:  sarq $0x24, %rsi
+   e5:  subl %eax, %esi
+   e7:  imull (%rdx), %esi
+   ea:  movl $0x70, %edx
+   ef:  callq eval_re+0
+   f4:  movl %eax, %ebx
+   f6:  jmp 0x48
+   fb:  nopl (%rax, %rax)
+  100:  cmpb $0, 1(%rdi)
+  104:  je 0x17
+  10a:  jmp 0xbd

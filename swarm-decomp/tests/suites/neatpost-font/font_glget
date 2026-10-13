@@ -1,0 +1,12 @@
+# font_glget  (global, 37 bytes, 11 instructions)
+    0:  xorl %eax, %eax
+    2:  testl %esi, %esi
+    4:  js 0x24
+    6:  cmpl %esi, 0x890(%rdi)
+    c:  jle 0x24
+    e:  movslq %esi, %rsi
+   11:  leaq (%rsi, %rsi, 4), %rax
+   15:  leaq (%rsi, %rax, 2), %rdx
+   19:  movq 0x888(%rdi), %rax
+   20:  leaq (%rax, %rdx, 8), %rax
+   24:  retq

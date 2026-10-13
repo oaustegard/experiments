@@ -1,0 +1,17 @@
+# in_nx  (global, 50 bytes, 16 instructions)
+    0:  cmpq $0, (%rip)   <var:buf+0>
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  je 0x1f
+    e:  nop
+   10:  callq fn:in_pop+0
+   15:  cmpq $0, (%rip)   <var:buf+0>
+   1d:  jne 0x10
+   1f:  testq %rbx, %rbx
+   22:  je 0x30
+   24:  movq %rbx, %rdi
+   27:  popq %rbx
+   28:  jmp in_so+0
+   2d:  nopl (%rax)
+   30:  popq %rbx
+   31:  retq

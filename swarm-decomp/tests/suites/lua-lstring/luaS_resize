@@ -1,0 +1,76 @@
+# luaS_resize  (global, 203 bytes, 75 instructions)
+    0:  pushq %r15
+    2:  movslq %esi, %r15
+    5:  pushq %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %r15, %rbx
+   13:  shlq $3, %r15
+   17:  subq $8, %rsp
+   1b:  movq 0x18(%rdi), %rbp
+   1f:  movslq 0x3c(%rbp), %r14
+   23:  movq 0x30(%rbp), %rdi
+   27:  movq %r14, %r13
+   2a:  shlq $3, %r14
+   2e:  cmpl %ebx, %r13d
+   31:  jg 0x88
+   33:  movq %rdi, %rsi
+   36:  movq %r15, %rcx
+   39:  movq %r14, %rdx
+   3c:  movq %r12, %rdi
+   3f:  callq luaM_realloc_+0
+   44:  testq %rax, %rax
+   47:  je 0x55
+   49:  movq %rax, 0x30(%rbp)
+   4d:  movl %ebx, 0x3c(%rbp)
+   50:  cmpl %ebx, %r13d
+   53:  jl 0x68
+   55:  addq $8, %rsp
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  popq %r12
+   5d:  popq %r13
+   5f:  popq %r14
+   61:  popq %r15
+   63:  retq
+   64:  nopl (%rax)
+   68:  movl %ebx, %edx
+   6a:  movl %r13d, %esi
+   6d:  movq %rax, %rdi
+   70:  addq $8, %rsp
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  popq %r12
+   78:  popq %r13
+   7a:  popq %r14
+   7c:  popq %r15
+   7e:  jmp fn:tablerehash+0
+   83:  nopl (%rax, %rax)
+   88:  movl %ebx, %edx
+   8a:  movl %r13d, %esi
+   8d:  callq fn:tablerehash+0
+   92:  movq 0x30(%rbp), %rsi
+   96:  movq %r15, %rcx
+   99:  movq %r14, %rdx
+   9c:  movq %r12, %rdi
+   9f:  callq luaM_realloc_+0
+   a4:  testq %rax, %rax
+   a7:  je 0xc0
+   a9:  movq %rax, 0x30(%rbp)
+   ad:  movl %ebx, 0x3c(%rbp)
+   b0:  addq $8, %rsp
+   b4:  popq %rbx
+   b5:  popq %rbp
+   b6:  popq %r12
+   b8:  popq %r13
+   ba:  popq %r14
+   bc:  popq %r15
+   be:  retq
+   bf:  nop
+   c0:  movq 0x30(%rbp), %rdi
+   c4:  movl %r13d, %edx
+   c7:  movl %ebx, %esi
+   c9:  jmp 0x70

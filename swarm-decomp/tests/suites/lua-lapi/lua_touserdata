@@ -1,0 +1,59 @@
+# lua_touserdata  (global, 189 bytes, 58 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x50
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jae 0x69
+   18:  movzbl 8(%rsi), %eax
+   1c:  movq (%rsi), %rdx
+   1f:  andl $0xf, %eax
+   22:  cmpb $2, %al
+   24:  je 0x2c
+   26:  cmpb $7, %al
+   28:  je 0x30
+   2a:  xorl %edx, %edx
+   2c:  movq %rdx, %rax
+   2f:  retq
+   30:  movzwl 0xa(%rdx), %eax
+   34:  movl $0x20, %ecx
+   39:  testw %ax, %ax
+   3c:  je 0x46
+   3e:  shlq $4, %rax
+   42:  leaq 0x28(%rax), %rcx
+   46:  addq %rcx, %rdx
+   49:  movq %rdx, %rax
+   4c:  retq
+   4d:  nopl (%rax)
+   50:  cmpl $0xfff0b9d9, %esi
+   56:  jge 0xa0
+   58:  cmpl $0xfff0b9d8, %esi
+   5e:  je 0xb0
+   60:  movq (%rax), %rax
+   63:  cmpb $0x66, 8(%rax)
+   67:  je 0x78
+   69:  movq 0x18(%rdi), %rsi
+   6d:  addq $0x50, %rsi
+   71:  jmp 0x18
+   73:  nopl (%rax, %rax)
+   78:  movq (%rax), %rdx
+   7b:  movl $0xfff0b9d8, %eax
+   80:  subl %esi, %eax
+   82:  movzbl 0xa(%rdx), %ecx
+   86:  cmpl %ecx, %eax
+   88:  jg 0x69
+   8a:  movl $0xfff0b9d9, %eax
+   8f:  subl %esi, %eax
+   91:  cltq
+   93:  shlq $4, %rax
+   97:  leaq (%rdx, %rax), %rsi
+   9b:  jmp 0x18
+   a0:  movslq %esi, %rsi
+   a3:  shlq $4, %rsi
+   a7:  addq 0x10(%rdi), %rsi
+   ab:  jmp 0x18
+   b0:  movq 0x18(%rdi), %rsi
+   b4:  addq $0x40, %rsi
+   b8:  jmp 0x18

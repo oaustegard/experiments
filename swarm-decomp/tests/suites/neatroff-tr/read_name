@@ -1,0 +1,61 @@
+# read_name  (static, 182 bytes, 60 instructions)
+    0:  pushq %rbp
+    1:  movl %edi, %ebp
+    3:  pushq %rbx
+    4:  movabsq $0x100000210, %rbx
+    e:  subq $0x28, %rsp
+   12:  callq cp_next+0
+   17:  leaq 0x10(%rsp), %rdi
+   1c:  movl %eax, 0xc(%rsp)
+   20:  callq sbuf_init+0
+   25:  movl 0xc(%rsp), %esi
+   29:  jmp 0x37
+   2b:  nopl (%rax, %rax)
+   30:  callq cp_next+0
+   35:  movl %eax, %esi
+   37:  cmpl $0x20, %esi
+   3a:  ja 0xa8
+   3c:  btq %rsi, %rbx
+   40:  jb 0x30
+   42:  testl %esi, %esi
+   44:  je 0x8c
+   46:  cmpl $0xa, %esi
+   49:  je 0x8c
+   4b:  testl %ebp, %ebp
+   4d:  sete %bpl
+   51:  xorl %ebx, %ebx
+   53:  nopl (%rax, %rax)
+   58:  cmpl $4, %esi
+   5b:  je 0x6a
+   5d:  leaq 0x10(%rsp), %rdi
+   62:  addl $1, %ebx
+   65:  callq sbuf_add+0
+   6a:  callq cp_next+0
+   6f:  movl %eax, %esi
+   71:  testl %eax, %eax
+   73:  jle 0xb0
+   75:  cmpl $0x20, %eax
+   78:  je 0xb0
+   7a:  leal -9(%rax), %eax
+   7d:  cmpl $1, %eax
+   80:  jbe 0x8c
+   82:  cmpl $1, %ebx
+   85:  jle 0x58
+   87:  testb %bpl, %bpl
+   8a:  jne 0x58
+   8c:  movl %esi, %edi
+   8e:  callq in_back+0
+   93:  leaq 0x10(%rsp), %rdi
+   98:  callq sbuf_out+0
+   9d:  addq $0x28, %rsp
+   a1:  popq %rbx
+   a2:  popq %rbp
+   a3:  retq
+   a4:  nopl (%rax)
+   a8:  testl %esi, %esi
+   aa:  jg 0x4b
+   ac:  jmp 0x93
+   ae:  nop
+   b0:  testl %esi, %esi
+   b2:  js 0x93
+   b4:  jmp 0x8c

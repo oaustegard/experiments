@@ -1,0 +1,18 @@
+# hyph_done  (global, 69 bytes, 17 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rdi   <var:hwpref+0>
+    b:  testq %rdi, %rdi
+    e:  je 0x15
+   10:  callq pref_free+0
+   15:  movq (%rip), %rdi   <var:hypref+0>
+   1c:  testq %rdi, %rdi
+   1f:  je 0x26
+   21:  callq pref_free+0
+   26:  movq (%rip), %rdi   <var:hcodedict+0>
+   2d:  testq %rdi, %rdi
+   30:  je 0x40
+   32:  addq $8, %rsp
+   36:  jmp dict_free+0
+   3b:  nopl (%rax, %rax)
+   40:  addq $8, %rsp
+   44:  retq

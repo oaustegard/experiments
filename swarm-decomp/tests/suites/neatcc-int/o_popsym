@@ -1,0 +1,21 @@
+# o_popsym  (global, 82 bytes, 20 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rax   <var:iv_n+0>
+    b:  movq %rdi, %rdx
+    e:  movq %rsi, %rcx
+   11:  movq (%rip), %rdi   <var:ic+0>
+   18:  leaq -1(%rax), %r9
+   1c:  movq (, %r9, 8), %rsi   <var:iv+0>
+   24:  callq ic_sym+0
+   29:  testl %eax, %eax
+   2b:  jne 0x48
+   2d:  xorl %edx, %edx
+   2f:  testq %r9, %r9
+   32:  cmovsq %rdx, %r9
+   36:  movq %r9, (%rip)   <var:iv_n+0>
+   3d:  addq $8, %rsp
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  movl $1, %eax
+   4d:  addq $8, %rsp
+   51:  retq

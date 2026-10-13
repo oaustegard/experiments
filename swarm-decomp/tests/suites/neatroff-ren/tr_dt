@@ -1,0 +1,28 @@
+# tr_dt  (global, 94 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq (%rip), %rbp   <var:cdiv+0>
+    d:  testq %rbp, %rbp
+   10:  je 0x40
+   12:  cmpq $0, 0x10(%rdi)
+   17:  movq %rdi, %rbx
+   1a:  je 0x50
+   1c:  movq 8(%rdi), %rdi
+   20:  movl $0x76, %esi
+   25:  callq eval+0
+   2a:  movq 0x10(%rbx), %rdi
+   2e:  movl %eax, 0x14(%rbp)
+   31:  movq (%rip), %rbp   <var:cdiv+0>
+   38:  callq map+0
+   3d:  movl %eax, 0x18(%rbp)
+   40:  addq $8, %rsp
+   44:  popq %rbx
+   45:  popq %rbp
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  movl $0xffffffff, 0x18(%rbp)
+   57:  addq $8, %rsp
+   5b:  popq %rbx
+   5c:  popq %rbp
+   5d:  retq

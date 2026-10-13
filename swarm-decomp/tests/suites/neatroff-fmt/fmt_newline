@@ -1,0 +1,53 @@
+# fmt_newline  (global, 152 bytes, 52 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl $0, 0x40(%rdi)
+    b:  movl $0, %edi   <str:".ce">
+   10:  callq map+0
+   15:  movl %eax, %edi
+   17:  callq nreg+0
+   1c:  movl (%rax), %edi
+   1e:  testl %edi, %edi
+   20:  jne 0x60
+   22:  movl $0x75, %edi
+   27:  callq nreg+0
+   2c:  movl (%rax), %esi
+   2e:  testl %esi, %esi
+   30:  je 0x60
+   32:  movl 0x44(%rbx), %ecx
+   35:  testl %ecx, %ecx
+   37:  jne 0x80
+   39:  movl 0x58(%rbx), %eax
+   3c:  testl %eax, %eax
+   3e:  jne 0x70
+   40:  movl 8(%rbx), %esi
+   43:  testl %esi, %esi
+   45:  jne 0x70
+   47:  xorl %edx, %edx
+   49:  movq %rbx, %rdi
+   4c:  callq fn:fmt_extractline+0
+   51:  testl %eax, %eax
+   53:  je 0x70
+   55:  movl $1, %eax
+   5a:  popq %rbx
+   5b:  retq
+   5c:  nopl (%rax)
+   60:  addl $1, 0x44(%rbx)
+   64:  movq %rbx, %rdi
+   67:  callq fn:fmt_flush+0
+   6c:  xorl %eax, %eax
+   6e:  popq %rbx
+   6f:  retq
+   70:  addl $1, 0x44(%rbx)
+   74:  xorl %eax, %eax
+   76:  jmp 0x6e
+   78:  nopl (%rax, %rax)
+   80:  movq %rbx, %rdi
+   83:  callq fn:fmt_flush+0
+   88:  testl %eax, %eax
+   8a:  jne 0x55
+   8c:  movl 0x44(%rbx), %edx
+   8f:  testl %edx, %edx
+   91:  je 0x39
+   93:  movl 8(%rbx), %esi
+   96:  jmp 0x47

@@ -1,0 +1,82 @@
+# dec_b64  (static, 285 bytes, 81 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rdx, %rbp
+    9:  pushq %rbx
+    a:  movq %rsi, %rbx
+    d:  subq $0x10, %rsp
+   11:  movl (%rip), %eax   <var:b64_val+264>
+   17:  testl %eax, %eax
+   19:  je 0xfe
+   1f:  nop
+   20:  leaq 4(%rbx), %rax
+   24:  cmpq %rax, %rbp
+   27:  jb 0xf5
+   2d:  cmpq %rbp, %rbx
+   30:  jae 0x24
+   32:  callq __ctype_b_loc+0
+   37:  movq (%rax), %rdx
+   3a:  jmp 0x4d
+   3c:  nopl (%rax)
+   40:  addq $1, %rbx
+   44:  cmpq %rbx, %rbp
+   47:  je 0xe8
+   4d:  movzbl (%rbx), %eax
+   50:  testb $0x20, 1(%rdx, %rax, 2)
+   55:  jne 0x40
+   57:  cmpq %rbp, %rbx
+   5a:  jae 0x20
+   5c:  movzbl (%rbx), %eax
+   5f:  movzbl 1(%rbx), %edx
+   63:  movzbl 3(%rbx), %edi
+   67:  movl (, %rax, 4), %eax   <var:b64_val+0>
+   6e:  movq %rdx, %rsi
+   71:  shll $6, %eax
+   74:  orl (, %rdx, 4), %eax   <var:b64_val+0>
+   7b:  movzbl 2(%rbx), %edx
+   7f:  shll $6, %eax
+   82:  orl (, %rdx, 4), %eax   <var:b64_val+0>
+   89:  movq %rdx, %rcx
+   8c:  movq %rdi, %rdx
+   8f:  shll $6, %eax
+   92:  orl (, %rdi, 4), %eax   <var:b64_val+0>
+   99:  movl %eax, %edi
+   9b:  shrl $0x10, %eax
+   9e:  rolw $8, %di
+   a2:  movb %al, 0xc(%rsp)
+   a6:  xorl %eax, %eax
+   a8:  cmpb $0x3d, %sil
+   ac:  setne %al
+   af:  addq $4, %rbx
+   b3:  movw %di, 0xd(%rsp)
+   b8:  movq %r12, %rdi
+   bb:  addl $2, %eax
+   be:  cmpb $0x3d, %cl
+   c1:  leaq 0xc(%rsp), %rsi
+   c6:  sete %cl
+   c9:  movzbl %cl, %ecx
+   cc:  subl %ecx, %eax
+   ce:  xorl %ecx, %ecx
+   d0:  cmpb $0x3d, %dl
+   d3:  sete %cl
+   d6:  subl %ecx, %eax
+   d8:  movl %eax, %edx
+   da:  callq sbuf_mem+0
+   df:  jmp 0x20
+   e4:  nopl (%rax)
+   e8:  leaq 4(%rbp), %rax
+   ec:  cmpq %rax, %rbp
+   ef:  jae 0x2d
+   f5:  addq $0x10, %rsp
+   f9:  popq %rbx
+   fa:  popq %rbp
+   fb:  popq %r12
+   fd:  retq
+   fe:  xorl %eax, %eax
+  100:  movzbl (%rax), %edx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+  107:  movl %eax, (, %rdx, 4)   <var:b64_val+0>
+  10e:  addq $1, %rax
+  112:  cmpq $0x40, %rax
+  116:  jne 0x100
+  118:  jmp 0x20

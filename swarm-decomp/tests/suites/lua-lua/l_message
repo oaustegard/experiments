@@ -1,0 +1,20 @@
+# l_message  (static, 78 bytes, 19 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  testq %rdi, %rdi
+    7:  je 0x2b
+    9:  movq %rdi, %rdx
+    c:  movq (%rip), %rdi   <stderr+0>
+   13:  movl $0, %esi   <str:"%s: ">
+   18:  xorl %eax, %eax
+   1a:  callq fprintf+0
+   1f:  movq (%rip), %rdi   <stderr+0>
+   26:  callq fflush+0
+   2b:  movq (%rip), %rdi   <stderr+0>
+   32:  movq %rbx, %rdx
+   35:  movl $0, %esi   <str:"%s\n">
+   3a:  xorl %eax, %eax
+   3c:  callq fprintf+0
+   41:  movq (%rip), %rdi   <stderr+0>
+   48:  popq %rbx
+   49:  jmp fflush+0

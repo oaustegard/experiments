@@ -1,0 +1,111 @@
+# io_readline  (static, 363 bytes, 110 instructions)
+    0:  pushq %r14
+    2:  movl $0xfff0b9d7, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  subq $0x10, %rsp
+   14:  callq lua_touserdata+0
+   19:  xorl %edx, %edx
+   1b:  movl $0xfff0b9d6, %esi
+   20:  movq %rbp, %rdi
+   23:  movq %rax, %r14
+   26:  callq lua_tointegerx+0
+   2b:  cmpq $0, 8(%r14)
+   30:  je 0x150
+   36:  movq %rax, %rbx
+   39:  movl $1, %esi
+   3e:  movq %rbp, %rdi
+   41:  movl %eax, %r12d
+   44:  callq lua_settop+0
+   49:  movl $0, %edx   <str:"too many arguments">
+   4e:  movl %ebx, %esi
+   50:  movq %rbp, %rdi
+   53:  callq luaL_checkstack+0
+   58:  testl %ebx, %ebx
+   5a:  jle 0x85
+   5c:  movl $1, %ebx
+   61:  movl $0xfff0b9d5, %r13d
+   67:  nopw (%rax, %rax)
+   70:  movl %r13d, %esi
+   73:  movq %rbp, %rdi
+   76:  subl %ebx, %esi
+   78:  addl $1, %ebx
+   7b:  callq lua_pushvalue+0
+   80:  cmpl %ebx, %r12d
+   83:  jge 0x70
+   85:  movq (%r14), %rsi
+   88:  movq %rbp, %rdi
+   8b:  movl $2, %edx
+   90:  callq fn:g_read+0
+   95:  movq %rbp, %rdi
+   98:  movl %eax, %esi
+   9a:  movl %eax, %ebx
+   9c:  negl %esi
+   9e:  callq lua_toboolean+0
+   a3:  testl %eax, %eax
+   a5:  jne 0xf3
+   a7:  cmpl $1, %ebx
+   aa:  jle 0xe0
+   ac:  movl $1, %esi
+   b1:  movq %rbp, %rdi
+   b4:  xorl %edx, %edx
+   b6:  subl %ebx, %esi
+   b8:  callq lua_tolstring+0
+   bd:  addq $0x10, %rsp
+   c1:  movq %rbp, %rdi
+   c4:  movl $0, %esi   <str:"%s">
+   c9:  popq %rbx
+   ca:  movq %rax, %rdx
+   cd:  popq %rbp
+   ce:  xorl %eax, %eax
+   d0:  popq %r12
+   d2:  popq %r13
+   d4:  popq %r14
+   d6:  jmp luaL_error+0
+   db:  nopl (%rax, %rax)
+   e0:  movl $0xfff0b9d5, %esi
+   e5:  movq %rbp, %rdi
+   e8:  callq lua_toboolean+0
+   ed:  testl %eax, %eax
+   ef:  jne 0x102
+   f1:  xorl %ebx, %ebx
+   f3:  addq $0x10, %rsp
+   f7:  movl %ebx, %eax
+   f9:  popq %rbx
+   fa:  popq %rbp
+   fb:  popq %r12
+   fd:  popq %r13
+   ff:  popq %r14
+  101:  retq
+  102:  xorl %esi, %esi
+  104:  movq %rbp, %rdi
+  107:  xorl %ebx, %ebx
+  109:  callq lua_settop+0
+  10e:  movl $0xfff0b9d7, %esi
+  113:  movq %rbp, %rdi
+  116:  callq lua_pushvalue+0
+  11b:  movl $0, %edx   <str:"FILE*">
+  120:  movl $1, %esi
+  125:  movq %rbp, %rdi
+  128:  callq luaL_checkudata+0
+  12d:  movq %rbp, %rdi
+  130:  movq 8(%rax), %rdx
+  134:  movq $0, 8(%rax)
+  13c:  movq %rdx, 8(%rsp)
+  141:  movq 8(%rsp), %rax
+  146:  callq *%rax
+  148:  jmp 0xf3
+  14a:  nopw (%rax, %rax)
+  150:  addq $0x10, %rsp
+  154:  movq %rbp, %rdi
+  157:  movl $0, %esi   <str:"file is already closed">
+  15c:  xorl %eax, %eax
+  15e:  popq %rbx
+  15f:  popq %rbp
+  160:  popq %r12
+  162:  popq %r13
+  164:  popq %r14
+  166:  jmp luaL_error+0

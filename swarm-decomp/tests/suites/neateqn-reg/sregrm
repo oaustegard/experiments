@@ -1,0 +1,6 @@
+# sregrm  (global, 24 bytes, 5 instructions)
+    0:  movslq (%rip), %rax   <var:sreg_n+0>
+    7:  leal 1(%rax), %edx
+    a:  movl %edi, (, %rax, 4)   <var:sreg_free+0>
+   11:  movl %edx, (%rip)   <var:sreg_n+0>
+   17:  retq

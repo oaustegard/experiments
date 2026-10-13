@@ -1,0 +1,32 @@
+# lua_rawseti  (global, 97 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %r8
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq fn:index2value+0
+   11:  movq %r8, %rdx
+   14:  movq (%rax), %rbp
+   17:  movq 0x10(%rdi), %rax
+   1b:  movq %rbp, %rsi
+   1e:  leaq -0x10(%rax), %rcx
+   22:  callq luaH_setint+0
+   27:  movq 0x10(%rbx), %rax
+   2b:  testb $0x40, -8(%rax)
+   2f:  je 0x41
+   31:  testb $0x20, 9(%rbp)
+   35:  je 0x41
+   37:  movq -0x10(%rax), %rdx
+   3b:  testb $0x18, 9(%rdx)
+   3f:  jne 0x50
+   41:  subq $0x10, %rax
+   45:  movq %rax, 0x10(%rbx)
+   49:  addq $8, %rsp
+   4d:  popq %rbx
+   4e:  popq %rbp
+   4f:  retq
+   50:  movq %rbp, %rsi
+   53:  movq %rbx, %rdi
+   56:  callq luaC_barrierback_+0
+   5b:  movq 0x10(%rbx), %rax
+   5f:  jmp 0x41

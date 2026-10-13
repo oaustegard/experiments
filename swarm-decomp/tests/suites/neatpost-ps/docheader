@@ -1,0 +1,110 @@
+# docheader  (global, 400 bytes, 109 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  movl $0, %edi   <str:"%%!PS-Adobe-2.0\n">
+    a:  pushq %r12
+    c:  movl %edx, %r12d
+    f:  pushq %rbp
+   10:  movl %esi, %ebp
+   12:  pushq %rbx
+   13:  movl %ecx, %ebx
+   15:  subq $8, %rsp
+   19:  imull (%rip), %edx   <dev_res+0>
+   20:  movslq %edx, %rax
+   23:  imulq $-0x7efdfbf7, %rax, %rax
+   2a:  shrq $0x20, %rax
+   2e:  addl %edx, %eax
+   30:  sarl $0x1f, %edx
+   33:  sarl $7, %eax
+   36:  subl %edx, %eax
+   38:  movl %eax, (%rip)   <var:ps_height+0>
+   3e:  xorl %eax, %eax
+   40:  callq out+0
+   45:  xorl %eax, %eax
+   47:  movl $0, %edi   <str:"%%%%Version: 1.0\n">
+   4c:  callq out+0
+   51:  testq %r13, %r13
+   54:  je 0x65
+   56:  movq %r13, %rsi
+   59:  movl $0, %edi   <str:"%%%%Title: %s\n">
+   5e:  xorl %eax, %eax
+   60:  callq out+0
+   65:  xorl %eax, %eax
+   67:  movl $0, %edi   <str:"%%%%Creator: Neatroff\n">
+   6c:  callq out+0
+   71:  xorl %eax, %eax
+   73:  movl $0, %edi   <str:"%%%%DocumentFonts: (atend)\n">
+   78:  callq out+0
+   7d:  xorl %eax, %eax
+   7f:  movl $0, %edi   <str:"%%%%Pages: (atend)\n">
+   84:  callq out+0
+   89:  xorl %eax, %eax
+   8b:  movl $0, %edi   <str:"%%%%EndComments\n">
+   90:  callq out+0
+   95:  xorl %eax, %eax
+   97:  movl $0, %edi   <str:"%%%%BeginProlog\n">
+   9c:  callq out+0
+   a1:  movl (%rip), %esi   <dev_res+0>
+   a7:  xorl %eax, %eax
+   a9:  movl $0, %edi   <str:"/resolution %d def\n">
+   ae:  callq out+0
+   b3:  leal (%r12, %r12, 8), %eax
+   b7:  movl $0, %edi   <str:"/pagesize [%d %d] def\n">
+   bc:  leal 0x7f(, %rax, 8), %eax
+   c3:  movslq %eax, %rdx
+   c6:  imulq $-0x7efdfbf7, %rdx, %rdx
+   cd:  shrq $0x20, %rdx
+   d1:  addl %eax, %edx
+   d3:  sarl $0x1f, %eax
+   d6:  sarl $7, %edx
+   d9:  subl %eax, %edx
+   db:  leal (%rbp, %rbp, 8), %eax
+   df:  leal 0x7f(, %rax, 8), %eax
+   e6:  movslq %eax, %rsi
+   e9:  imulq $-0x7efdfbf7, %rsi, %rsi
+   f0:  shrq $0x20, %rsi
+   f4:  addl %eax, %esi
+   f6:  sarl $0x1f, %eax
+   f9:  sarl $7, %esi
+   fc:  subl %eax, %esi
+   fe:  xorl %eax, %eax
+  100:  callq out+0
+  105:  movslq %ebx, %rsi
+  108:  movl %ebx, %eax
+  10a:  movl $0, %edi   <str:"/linewidth %d.%02d def\n\n">
+  10f:  imulq $0x51eb851f, %rsi, %rsi
+  116:  sarl $0x1f, %eax
+  119:  sarq $0x25, %rsi
+  11d:  subl %eax, %esi
+  11f:  imull $0x64, %esi, %eax
+  122:  subl %eax, %ebx
+  124:  xorl %eax, %eax
+  126:  movl %ebx, %edx
+  128:  callq out+0
+  12d:  movl $0, %esi   <str:"/setup {\n\tcounttomark 2 idiv {def} repeat pop\n\t/scaling 72 resolution div def\n\tlinewidth setlinewidth\n\t1 setlinecap\n\t0 pagesize 1 get translate\n\tscaling scaling scale\n\t0 0 moveto\n} def\n\n/pagesetup {\n\t/page exch def\n\tcurrentdict /pagedict known currentdict page known and {\n\t\tpage load pagedict exch get cvx exec\n\t} if\n} def\n\n/pdfmark where\n\t{ pop globaldict /?pdfmark /exec load put }\n\t{ globaldict begin\n\t\t/?pdfmark /pop load def\n\t\t/pdfmark /cleartomark load def\n\t\tend }\n\tifelse\n\n/t {neg} bind def\n/w {neg moveto show} bind def\n/m {neg moveto} bind def\n/g {neg moveto {glyphshow} forall} bind def\n/rgb {255 div 3 1 roll 255 div 3 1 roll 255 div 3 1 roll setrgbcolor} bind def\n/rot {/y exch def /x exch def x y neg translate rotate x neg y translate} bind def\n/done {/lastpage where {pop lastpage} if} def\n\n% caching fonts, as selectfont is supposed to be doing\n/fncache 16 dict def\n/selectfont_append { fncache exch dup findfont put } bind def\n/selectfont_cached {\n\texch dup fncache exch known not { dup selectfont_append } if\n\tfncache exch get exch scalefont setfont\n} bind def\n/f {\n\texch dup 3 1 roll scaling div selectfont_cached\n\tlinewidth mul scaling 10 mul div setlinewidth\n} bind def\n\n/savedmatrix matrix def\n/drawl {\n\tneg lineto\n} bind def\n/drawe {\n\tsavedmatrix currentmatrix pop scale\n\t.5 0 rmoveto currentpoint .5 0 rmoveto .5 0 360 arc\n\tsavedmatrix setmatrix\n} bind def\n/drawa {\n\t/dy2 exch def\n\t/dx2 exch def\n\t/dy1 exch def\n\t/dx1 exch def\n\tcurrentpoint dy1 neg add exch dx1 add exch\n\tdx1 dx1 mul dy1 dy1 mul add sqrt\n\tdy1 dx1 neg atan\n\tdy2 neg dx2 atan\n\tarc\n} bind def\n/draws {\n\t/y2 exch def\n\t/x2 exch def\n\t/y1 exch def\n\t/x1 exch def\n\t/y0 exch def\n\t/x0 exch def\n\tx0 5 x1 mul add 6 div\n\ty0 5 y1 mul add -6 div\n\tx2 5 x1 mul add 6 div\n\ty2 5 y1 mul add -6 div\n\tx1 x2 add 2 div\n\ty1 y2 add -2 div\n\tcurveto\n} bind def\n% including EPS files\n/EPSFBEG {\n\t/epsf_state save def\n\tneg translate\n\tdiv 3 1 roll div exch scale\n\tneg exch neg exch translate\n\t/dict_count countdictstack def\n\t/op_count count 1 sub def\n\tuserdict begin\n\t/showpage { } def\n\t0 setgray 0 setlinecap 1 setlinewidth 0 setlinejoin\n\t10 setmiterlimit [ ] 0 setdash newpath\n} bind def\n/EPSFEND {\n\tcount op_count sub {pop} repeat\n\tcountdictstack dict_count sub {end} repeat\n\tepsf_state restore\n} bind def\n">
+  132:  movl $0, %edi   <str:"%s">
+  137:  xorl %eax, %eax
+  139:  callq out+0
+  13e:  movl $0, %edi   <str:"%%%%EndProlog\n">
+  143:  xorl %eax, %eax
+  145:  callq out+0
+  14a:  movl $0, %edi   <str:"%%%%BeginSetup\n">
+  14f:  xorl %eax, %eax
+  151:  callq out+0
+  156:  movl $0, %edi   <str:"<< /PageSize pagesize /ImagingBBox null >> setpagedevice\n">
+  15b:  xorl %eax, %eax
+  15d:  callq out+0
+  162:  movl $0, %edi   <str:"mark\n">
+  167:  xorl %eax, %eax
+  169:  callq out+0
+  16e:  movl $0, %edi   <str:"setup\n">
+  173:  xorl %eax, %eax
+  175:  callq out+0
+  17a:  addq $8, %rsp
+  17e:  movl $0, %edi   <str:"%%%%EndSetup\n">
+  183:  xorl %eax, %eax
+  185:  popq %rbx
+  186:  popq %rbp
+  187:  popq %r12
+  189:  popq %r13
+  18b:  jmp out+0

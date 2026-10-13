@@ -1,0 +1,29 @@
+# iset_extend  (static, 92 bytes, 28 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %r12
+    5:  movl $8, %ecx
+    a:  pushq %rbp
+    b:  movq %r12, %rdx
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  movslq 0x18(%rdi), %rsi
+   16:  movq (%rdi), %rdi
+   19:  callq mextend+0
+   1e:  movslq 0x18(%rbx), %rsi
+   22:  movq 8(%rbx), %rdi
+   26:  movq %r12, %rdx
+   29:  movq %rax, (%rbx)
+   2c:  movl $4, %ecx
+   31:  callq mextend+0
+   36:  movslq 0x18(%rbx), %rsi
+   3a:  movq 0x10(%rbx), %rdi
+   3e:  movq %r12, %rdx
+   41:  movq %rax, 8(%rbx)
+   45:  movl $4, %ecx
+   4a:  callq mextend+0
+   4f:  movl %r12d, 0x18(%rbx)
+   53:  movq %rax, 0x10(%rbx)
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  popq %r12
+   5b:  retq

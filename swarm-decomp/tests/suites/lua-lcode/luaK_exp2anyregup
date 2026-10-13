@@ -1,0 +1,9 @@
+# luaK_exp2anyregup  (global, 25 bytes, 8 instructions)
+    0:  cmpl $0xa, (%rsi)
+    3:  jne 0xd
+    5:  movl 0x14(%rsi), %eax
+    8:  cmpl %eax, 0x10(%rsi)
+    b:  je 0x18
+    d:  jmp luaK_exp2anyreg+0
+   12:  nopw (%rax, %rax)
+   18:  retq

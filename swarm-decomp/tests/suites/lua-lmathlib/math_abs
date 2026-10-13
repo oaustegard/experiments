@@ -1,0 +1,30 @@
+# math_abs  (static, 100 bytes, 29 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_isinteger+0
+    e:  testl %eax, %eax
+   10:  je 0x40
+   12:  xorl %edx, %edx
+   14:  movq %rbx, %rdi
+   17:  movl $1, %esi
+   1c:  callq lua_tointegerx+0
+   21:  movq %rbx, %rdi
+   24:  movq %rax, %rsi
+   27:  negq %rax
+   2a:  testq %rsi, %rsi
+   2d:  cmovsq %rax, %rsi
+   31:  callq lua_pushinteger+0
+   36:  movl $1, %eax
+   3b:  popq %rbx
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  movq %rbx, %rdi
+   43:  movl $1, %esi
+   48:  callq luaL_checknumber+0
+   4d:  andpd (%rip), %xmm0   <cst:ffffffffffffff7f0000000000000000>
+   55:  movq %rbx, %rdi
+   58:  callq lua_pushnumber+0
+   5d:  movl $1, %eax
+   62:  popq %rbx
+   63:  retq

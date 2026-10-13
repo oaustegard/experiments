@@ -1,0 +1,44 @@
+# enterinc  (static, 172 bytes, 43 instructions)
+    0:  movzbl 0x64(%rdi), %ecx
+    4:  movq 0x70(%rdi), %rdx
+    8:  andl $0x18, %ecx
+    b:  testq %rdx, %rdx
+    e:  je 0x24
+   10:  movzbl 9(%rdx), %eax
+   14:  andl $0xffffffc0, %eax
+   17:  orl %ecx, %eax
+   19:  movb %al, 9(%rdx)
+   1c:  movq (%rdx), %rdx
+   1f:  testq %rdx, %rdx
+   22:  jne 0x10
+   24:  movq 0x80(%rdi), %rdx
+   2b:  pxor %xmm0, %xmm0
+   2f:  movq $0, 0xd0(%rdi)
+   3a:  movups %xmm0, 0xc0(%rdi)
+   41:  testq %rdx, %rdx
+   44:  je 0x64
+   46:  nopw %cs:(%rax, %rax)
+   50:  movzbl 9(%rdx), %eax
+   54:  andl $0xffffffc0, %eax
+   57:  orl %ecx, %eax
+   59:  movb %al, 9(%rdx)
+   5c:  movq (%rdx), %rdx
+   5f:  testq %rdx, %rdx
+   62:  jne 0x50
+   64:  movq 0xb0(%rdi), %rdx
+   6b:  testq %rdx, %rdx
+   6e:  je 0x84
+   70:  movzbl 9(%rdx), %eax
+   74:  andl $0xffffffc0, %eax
+   77:  orl %ecx, %eax
+   79:  movb %al, 9(%rdx)
+   7c:  movq (%rdx), %rdx
+   7f:  testq %rdx, %rdx
+   82:  jne 0x70
+   84:  pxor %xmm0, %xmm0
+   88:  movl $8, %eax
+   8d:  movq $0, 0xf0(%rdi)
+   98:  movw %ax, 0x65(%rdi)
+   9c:  movq $0, 0x28(%rdi)
+   a4:  movups %xmm0, 0xe0(%rdi)
+   ab:  retq

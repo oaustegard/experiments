@@ -1,0 +1,37 @@
+# auxstatus  (static, 113 bytes, 36 instructions)
+    0:  xorl %eax, %eax
+    2:  cmpq %rdi, %rsi
+    5:  je 0x70
+    7:  pushq %rbx
+    8:  movq %rsi, %rdi
+    b:  movq %rsi, %rbx
+    e:  subq $0x90, %rsp
+   15:  callq lua_status+0
+   1a:  testl %eax, %eax
+   1c:  je 0x38
+   1e:  cmpl $1, %eax
+   21:  sete %al
+   24:  movzbl %al, %eax
+   27:  addl $1, %eax
+   2a:  addq $0x90, %rsp
+   31:  popq %rbx
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movq %rsp, %rdx
+   3b:  xorl %esi, %esi
+   3d:  movq %rbx, %rdi
+   40:  callq lua_getstack+0
+   45:  movl %eax, %edx
+   47:  movl $3, %eax
+   4c:  testl %edx, %edx
+   4e:  jne 0x2a
+   50:  movq %rbx, %rdi
+   53:  callq lua_gettop+0
+   58:  cmpl $1, %eax
+   5b:  movl $1, %eax
+   60:  sbbl $-1, %eax
+   63:  addq $0x90, %rsp
+   6a:  popq %rbx
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  retq

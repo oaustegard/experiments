@@ -1,0 +1,28 @@
+# luaB_costatus  (static, 92 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_tothread+0
+   13:  movq %rax, %rbp
+   16:  testq %rax, %rax
+   19:  je 0x48
+   1b:  movq %rbp, %rsi
+   1e:  movq %rbx, %rdi
+   21:  callq fn:auxstatus+0
+   26:  movq %rbx, %rdi
+   29:  cltq
+   2b:  movq (, %rax, 8), %rsi   <var:statname+0>
+   33:  callq lua_pushstring+0
+   38:  addq $8, %rsp
+   3c:  movl $1, %eax
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  retq
+   44:  nopl (%rax)
+   48:  movl $0, %edx   <str:"thread">
+   4d:  movl $1, %esi
+   52:  movq %rbx, %rdi
+   55:  callq luaL_typeerror+0
+   5a:  jmp 0x1b

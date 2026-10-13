@@ -1,0 +1,48 @@
+# luaD_pcall  (global, 165 bytes, 47 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rcx, %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x20, %rsp
+   12:  movq 0xa8(%rdi), %r12
+   19:  movq %r8, 0xa8(%rdi)
+   20:  movq 0x20(%rdi), %r14
+   24:  movzbl 0xb(%rdi), %r13d
+   29:  callq luaD_rawrunprotected+0
+   2e:  testl %eax, %eax
+   30:  jne 0x50
+   32:  movq %r12, 0xa8(%rbx)
+   39:  addq $0x20, %rsp
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  popq %r12
+   41:  popq %r13
+   43:  popq %r14
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movq 0x30(%rbx), %rdx
+   54:  movq %r14, 0x20(%rbx)
+   58:  movl $0, %esi   <fn:closepaux+0>
+   5d:  movq %rbx, %rdi
+   60:  movb %r13b, 0xb(%rbx)
+   64:  addq %rbp, %rdx
+   67:  movl %eax, 0x18(%rsp)
+   6b:  movq %rdx, 0x10(%rsp)
+   70:  leaq 0x10(%rsp), %rdx
+   75:  callq luaD_rawrunprotected+0
+   7a:  testl %eax, %eax
+   7c:  jne 0x50
+   7e:  movl 0x18(%rsp), %eax
+   82:  movq 0x30(%rbx), %rdx
+   86:  movq %rbx, %rdi
+   89:  movl %eax, %esi
+   8b:  addq %rbp, %rdx
+   8e:  movl %eax, 0xc(%rsp)
+   92:  callq luaD_seterrorobj+0
+   97:  movq %rbx, %rdi
+   9a:  callq luaD_shrinkstack+0
+   9f:  movl 0xc(%rsp), %eax
+   a3:  jmp 0x32

@@ -1,0 +1,106 @@
+# rnode_emit  (static, 345 bytes, 105 instructions)
+    0:  testq %rdi, %rdi
+    3:  je 0x158
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  movq %rdi, %r13
+   10:  pushq %r12
+   12:  pushq %rbp
+   13:  pushq %rbx
+   14:  movq 0x20(%rdi), %rax
+   18:  testq %rax, %rax
+   1b:  je 0xd8
+   21:  movabsq $0x100000001, %rdx
+   2b:  movq %rsi, %r12
+   2e:  cmpq %rdx, %rax
+   31:  je 0x148
+   37:  movl 0x20(%rdi), %r14d
+   3b:  xorl %ebx, %ebx
+   3d:  testl %r14d, %r14d
+   40:  jle 0x5f
+   42:  nopw (%rax, %rax)
+   48:  movq %r12, %rsi
+   4b:  movq %r13, %rdi
+   4e:  addl $1, %ebx
+   51:  callq fn:rnode_emitnorep+0
+   56:  movl 0x20(%r13), %r14d
+   5a:  cmpl %r14d, %ebx
+   5d:  jl 0x48
+   5f:  movl 0x24(%r13), %eax
+   63:  cmpl %r14d, %eax
+   66:  jle 0xd4
+   68:  movl $0xffffffff, %ebp
+   6d:  nopl (%rax)
+   70:  movslq 8(%r12), %rbx
+   75:  movl %ebp, %edx
+   77:  movq %r12, %rsi
+   7a:  movq %r13, %rdi
+   7d:  addl $1, %r14d
+   81:  leal 1(%rbx), %eax
+   84:  movq %rbx, %rbp
+   87:  movl %eax, 8(%r12)
+   8c:  movq %rbx, %rax
+   8f:  shlq $5, %rax
+   93:  addq (%r12), %rax
+   97:  movl $0x66, 0x10(%rax)
+   9e:  movl %edx, 0x14(%rax)
+   a1:  callq fn:rnode_emitnorep+0
+   a6:  movl 0x24(%r13), %eax
+   aa:  cmpl %eax, %r14d
+   ad:  jl 0x70
+   af:  testl %ebx, %ebx
+   b1:  js 0xd4
+   b3:  movq (%r12), %rcx
+   b7:  movl 8(%r12), %edx
+   bc:  jmp 0xc3
+   be:  nop
+   c0:  movslq %ebp, %rbx
+   c3:  shlq $5, %rbx
+   c7:  addq %rcx, %rbx
+   ca:  movl 0x14(%rbx), %ebp
+   cd:  movl %edx, 0x14(%rbx)
+   d0:  testl %ebp, %ebp
+   d2:  jns 0xc0
+   d4:  testl %eax, %eax
+   d6:  js 0xe8
+   d8:  popq %rbx
+   d9:  popq %rbp
+   da:  popq %r12
+   dc:  popq %r13
+   de:  popq %r14
+   e0:  retq
+   e1:  nopl (%rax)
+   e8:  movslq 8(%r12), %rbx
+   ed:  movq (%r12), %rax
+   f1:  movq %r12, %rsi
+   f4:  movq %r13, %rdi
+   f7:  leal 1(%rbx), %edx
+   fa:  movq %rbx, %rbp
+   fd:  shlq $5, %rbx
+  101:  movl %edx, 8(%r12)
+  106:  movl $0x66, 0x10(%rax, %rbx)
+  10e:  callq fn:rnode_emitnorep+0
+  113:  movslq 8(%r12), %rax
+  118:  movq (%r12), %rdx
+  11c:  leal 1(%rax), %ecx
+  11f:  shlq $5, %rax
+  123:  addq %rdx, %rax
+  126:  movl %ecx, 8(%r12)
+  12b:  movl $0x6a, 0x10(%rax)
+  132:  movl %ebp, 0x14(%rax)
+  135:  movl %ecx, 0x14(%rdx, %rbx)
+  139:  popq %rbx
+  13a:  popq %rbp
+  13b:  popq %r12
+  13d:  popq %r13
+  13f:  popq %r14
+  141:  retq
+  142:  nopw (%rax, %rax)
+  148:  popq %rbx
+  149:  popq %rbp
+  14a:  popq %r12
+  14c:  popq %r13
+  14e:  popq %r14
+  150:  jmp fn:rnode_emitnorep+0
+  155:  nopl (%rax)
+  158:  retq

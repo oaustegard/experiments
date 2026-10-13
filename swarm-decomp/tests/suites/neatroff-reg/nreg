@@ -1,0 +1,10 @@
+# nreg  (global, 38 bytes, 9 instructions)
+    0:  movslq %edi, %rdi
+    3:  movslq (, %rdi, 4), %rax   <var:eregs_idx+0>
+    b:  leaq (, %rdi, 4), %rdx   <var:nregs+0>
+   13:  testl %eax, %eax
+   15:  je 0x22
+   17:  movq (%rip), %rdx   <var:env+0>
+   1e:  leaq (%rdx, %rax, 4), %rdx
+   22:  movq %rdx, %rax
+   25:  retq

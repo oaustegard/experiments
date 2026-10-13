@@ -1,0 +1,154 @@
+# tr_nm  (static, 549 bytes, 153 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  cmpq $0, 8(%rdi)
+    b:  je 0x1e0
+   11:  movq %rdi, %rbx
+   14:  movl $0, %edi   <str:".nm">
+   19:  callq map+0
+   1e:  movl %eax, %edi
+   20:  callq nreg+0
+   25:  movq 8(%rbx), %rbp
+   29:  movl $0, %edi   <str:"0123456789+-(">
+   2e:  movl $1, (%rax)
+   34:  movsbl (%rbp), %esi
+   38:  callq strchr+0
+   3d:  testq %rax, %rax
+   40:  je 0x8f
+   42:  movl $0, %esi   <str:"0123456789">
+   47:  movq %rbp, %rdi
+   4a:  callq strpbrk+0
+   4f:  testq %rax, %rax
+   52:  je 0x8f
+   54:  movl $0, %edi   <str:"ln">
+   59:  xorl %ebp, %ebp
+   5b:  callq map+0
+   60:  movl %eax, %edi
+   62:  callq nreg+0
+   67:  movq 8(%rbx), %rdi
+   6b:  xorl %edx, %edx
+   6d:  movl (%rax), %esi
+   6f:  callq eval_re+0
+   74:  testl %eax, %eax
+   76:  jg 0x200
+   7c:  movl $0, %edi   <str:"ln">
+   81:  callq map+0
+   86:  movl %eax, %edi
+   88:  callq nreg+0
+   8d:  movl %ebp, (%rax)
+   8f:  movq 0x10(%rbx), %rbp
+   93:  testq %rbp, %rbp
+   96:  je 0xe8
+   98:  movsbl (%rbp), %esi
+   9c:  movl $0, %edi   <str:"0123456789+-(">
+   a1:  callq strchr+0
+   a6:  testq %rax, %rax
+   a9:  je 0xe8
+   ab:  movl $0, %esi   <str:"0123456789">
+   b0:  movq %rbp, %rdi
+   b3:  callq strpbrk+0
+   b8:  testq %rax, %rax
+   bb:  je 0xe8
+   bd:  movq %rbp, %rdi
+   c0:  xorl %esi, %esi
+   c2:  movl $1, %ebp
+   c7:  callq eval+0
+   cc:  cmpl $1, %eax
+   cf:  jg 0x1b0
+   d5:  movl $0, %edi   <str:".nM">
+   da:  callq map+0
+   df:  movl %eax, %edi
+   e1:  callq nreg+0
+   e6:  movl %ebp, (%rax)
+   e8:  movq 0x18(%rbx), %rbp
+   ec:  testq %rbp, %rbp
+   ef:  je 0x13d
+   f1:  movsbl (%rbp), %esi
+   f5:  movl $0, %edi   <str:"0123456789+-(">
+   fa:  callq strchr+0
+   ff:  testq %rax, %rax
+  102:  je 0x13d
+  104:  movl $0, %esi   <str:"0123456789">
+  109:  movq %rbp, %rdi
+  10c:  callq strpbrk+0
+  111:  testq %rax, %rax
+  114:  je 0x13d
+  116:  movq %rbp, %rdi
+  119:  xorl %esi, %esi
+  11b:  xorl %ebp, %ebp
+  11d:  callq eval+0
+  122:  testl %eax, %eax
+  124:  jg 0x1c8
+  12a:  movl $0, %edi   <str:".nS">
+  12f:  callq map+0
+  134:  movl %eax, %edi
+  136:  callq nreg+0
+  13b:  movl %ebp, (%rax)
+  13d:  movq 0x20(%rbx), %rbp
+  141:  testq %rbp, %rbp
+  144:  je 0x18e
+  146:  movsbl (%rbp), %esi
+  14a:  movl $0, %edi   <str:"0123456789+-(">
+  14f:  callq strchr+0
+  154:  testq %rax, %rax
+  157:  je 0x18e
+  159:  movl $0, %esi   <str:"0123456789">
+  15e:  movq %rbp, %rdi
+  161:  callq strpbrk+0
+  166:  testq %rax, %rax
+  169:  je 0x18e
+  16b:  movq %rbp, %rdi
+  16e:  xorl %esi, %esi
+  170:  xorl %ebp, %ebp
+  172:  callq eval+0
+  177:  testl %eax, %eax
+  179:  jg 0x198
+  17b:  movl $0, %edi   <str:".nI">
+  180:  callq map+0
+  185:  movl %eax, %edi
+  187:  callq nreg+0
+  18c:  movl %ebp, (%rax)
+  18e:  addq $8, %rsp
+  192:  popq %rbx
+  193:  popq %rbp
+  194:  retq
+  195:  nopl (%rax)
+  198:  movq 0x20(%rbx), %rdi
+  19c:  xorl %esi, %esi
+  19e:  callq eval+0
+  1a3:  movl %eax, %ebp
+  1a5:  jmp 0x17b
+  1a7:  nopw (%rax, %rax)
+  1b0:  movq 0x10(%rbx), %rdi
+  1b4:  xorl %esi, %esi
+  1b6:  callq eval+0
+  1bb:  movl %eax, %ebp
+  1bd:  jmp 0xd5
+  1c2:  nopw (%rax, %rax)
+  1c8:  movq 0x18(%rbx), %rdi
+  1cc:  xorl %esi, %esi
+  1ce:  callq eval+0
+  1d3:  movl %eax, %ebp
+  1d5:  jmp 0x12a
+  1da:  nopw (%rax, %rax)
+  1e0:  movl $0, %edi   <str:".nm">
+  1e5:  callq map+0
+  1ea:  movl %eax, %edi
+  1ec:  callq nreg+0
+  1f1:  movl $0, (%rax)
+  1f7:  addq $8, %rsp
+  1fb:  popq %rbx
+  1fc:  popq %rbp
+  1fd:  retq
+  1fe:  nop
+  200:  movl $0, %edi   <str:"ln">
+  205:  callq map+0
+  20a:  movl %eax, %edi
+  20c:  callq nreg+0
+  211:  movq 8(%rbx), %rdi
+  215:  xorl %edx, %edx
+  217:  movl (%rax), %esi
+  219:  callq eval_re+0
+  21e:  movl %eax, %ebp
+  220:  jmp 0x7c

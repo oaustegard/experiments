@@ -1,0 +1,61 @@
+# finishbinexpval  (static, 195 bytes, 60 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movl %ecx, %r13d
+    9:  pushq %r12
+    b:  movl %r8d, %r12d
+    e:  pushq %rbp
+    f:  movq %rdi, %rbp
+   12:  pushq %rbx
+   13:  movq %rsi, %rbx
+   16:  subq $0x28, %rsp
+   1a:  movl 0x70(%rsp), %eax
+   1e:  movl 0x60(%rsp), %r14d
+   23:  movl %r9d, 0xc(%rsp)
+   28:  movl 0x68(%rsp), %r15d
+   2d:  movq %rdx, 0x18(%rsp)
+   32:  movl %eax, 0x10(%rsp)
+   36:  callq luaK_exp2anyreg+0
+   3b:  movl %r12d, %esi
+   3e:  movq %rbp, %rdi
+   41:  shll $0x10, %r12d
+   45:  movl %eax, %edx
+   47:  shll $0x18, %esi
+   4a:  movl %eax, 0x14(%rsp)
+   4e:  shll $0x10, %edx
+   51:  orl %r13d, %esi
+   54:  orl %edx, %esi
+   56:  callq luaK_code+0
+   5b:  movq 0x18(%rsp), %rdx
+   60:  movq %rbx, %rsi
+   63:  movq %rbp, %rdi
+   66:  movl %eax, %r13d
+   69:  callq fn:freeexps+0
+   6e:  movl %r13d, 8(%rbx)
+   72:  movl %r14d, %esi
+   75:  movq %rbp, %rdi
+   78:  movl $0x11, (%rbx)
+   7e:  callq luaK_fixline+0
+   83:  movl 0xc(%rsp), %esi
+   87:  movl 0x10(%rsp), %eax
+   8b:  movq %rbp, %rdi
+   8e:  movl 0x14(%rsp), %ecx
+   92:  shll $0xf, %esi
+   95:  shll $0x18, %eax
+   98:  orl %r15d, %esi
+   9b:  shll $7, %ecx
+   9e:  orl %eax, %esi
+   a0:  orl %r12d, %esi
+   a3:  orl %ecx, %esi
+   a5:  callq luaK_code+0
+   aa:  addq $0x28, %rsp
+   ae:  movl %r14d, %esi
+   b1:  movq %rbp, %rdi
+   b4:  popq %rbx
+   b5:  popq %rbp
+   b6:  popq %r12
+   b8:  popq %r13
+   ba:  popq %r14
+   bc:  popq %r15
+   be:  jmp luaK_fixline+0

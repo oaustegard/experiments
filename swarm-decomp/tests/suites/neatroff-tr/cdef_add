@@ -1,0 +1,106 @@
+# cdef_add  (static, 368 bytes, 105 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x38, %rsp
+    e:  movq %rsi, 8(%rsp)
+   13:  testq %rdx, %rdx
+   16:  je 0xd6
+   1c:  movq %rdi, %r12
+   1f:  leaq 0x10(%rsp), %rsi
+   24:  leaq 8(%rsp), %rdi
+   29:  movq %rdx, %rbp
+   2c:  callq charread+0
+   31:  testl %eax, %eax
+   33:  js 0xd6
+   39:  movl $0xffffffff, %r15d
+   3f:  testq %r12, %r12
+   42:  je 0x4f
+   44:  movq %r12, %rdi
+   47:  callq dev_pos+0
+   4c:  movl %eax, %r15d
+   4f:  movl (%rip), %r13d   <var:cdef_n+0>
+   56:  testl %r13d, %r13d
+   59:  jle 0xe5
+   5f:  movslq %r13d, %r14
+   62:  xorl %ebx, %ebx
+   64:  nopl (%rax)
+   68:  movl (, %rbx, 4), %eax   <var:cdef_fn+0>
+   6f:  cmpl %eax, %r15d
+   72:  je 0x78
+   74:  testl %eax, %eax
+   76:  jne 0x94
+   78:  movq %rbx, %rdi
+   7b:  leaq 0x10(%rsp), %rsi
+   80:  shlq $5, %rdi
+   84:  addq $0, %rdi   <var:cdef_src+0>
+   8b:  callq strcmp+0
+   90:  testl %eax, %eax
+   92:  je 0xd1
+   94:  addq $1, %rbx
+   98:  cmpq %rbx, %r14
+   9b:  jne 0x68
+   9d:  xorl %ebx, %ebx
+   9f:  jmp 0xb8
+   a1:  nopl (%rax)
+   a8:  leaq 1(%rbx), %rax
+   ac:  cmpq %rax, %r14
+   af:  je 0x168
+   b5:  movq %rax, %rbx
+   b8:  cmpq $0, (, %rbx, 8)   <var:cdef_dst+0>
+   c1:  jne 0xa8
+   c3:  cmpl $0x80, %r13d
+   ca:  je 0xd1
+   cc:  cmpl %ebx, %r13d
+   cf:  je 0xe9
+   d1:  cmpl %r13d, %ebx
+   d4:  jl 0xf4
+   d6:  addq $0x38, %rsp
+   da:  popq %rbx
+   db:  popq %rbp
+   dc:  popq %r12
+   de:  popq %r13
+   e0:  popq %r14
+   e2:  popq %r15
+   e4:  retq
+   e5:  jne 0xd6
+   e7:  xorl %ebx, %ebx
+   e9:  addl $1, %r13d
+   ed:  movl %r13d, (%rip)   <var:cdef_n+0>
+   f4:  movslq %ebx, %rbx
+   f7:  leaq 0x10(%rsp), %rcx
+   fc:  movl $0, %edx   <str:"%s">
+  101:  xorl %eax, %eax
+  103:  movq %rbx, %rdi
+  106:  movl $0x20, %esi
+  10b:  shlq $5, %rdi
+  10f:  addq $0, %rdi   <var:cdef_src+0>
+  116:  callq snprintf+0
+  11b:  movq %rbp, %rdi
+  11e:  callq strlen+0
+  123:  leaq 1(%rax), %rdi
+  127:  callq xmalloc+0
+  12c:  movq %rbp, %rsi
+  12f:  movq %rax, %rdi
+  132:  movq %rax, (, %rbx, 8)   <var:cdef_dst+0>
+  13a:  callq strcpy+0
+  13f:  xorl %eax, %eax
+  141:  testq %r12, %r12
+  144:  je 0x14e
+  146:  movq %r12, %rdi
+  149:  callq dev_pos+0
+  14e:  movl %eax, (, %rbx, 4)   <var:cdef_fn+0>
+  155:  addq $0x38, %rsp
+  159:  popq %rbx
+  15a:  popq %rbp
+  15b:  popq %r12
+  15d:  popq %r13
+  15f:  popq %r14
+  161:  popq %r15
+  163:  retq
+  164:  nopl (%rax)
+  168:  addl $1, %ebx
+  16b:  jmp 0xc3

@@ -1,0 +1,17 @@
+# tr_pc  (static, 60 bytes, 16 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq 8(%rdi), %rax
+    8:  movq %rax, 8(%rsp)
+    d:  testq %rax, %rax
+   10:  je 0x30
+   12:  movl $0, %esi   <c_pc+0>
+   17:  leaq 8(%rsp), %rdi
+   1c:  callq charread+0
+   21:  testl %eax, %eax
+   23:  js 0x30
+   25:  addq $0x18, %rsp
+   29:  retq
+   2a:  nopw (%rax, %rax)
+   30:  movb $0, (%rip)   <c_pc+0>
+   37:  addq $0x18, %rsp
+   3b:  retq

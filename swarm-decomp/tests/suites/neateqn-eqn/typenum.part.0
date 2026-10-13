@@ -1,0 +1,91 @@
+# typenum.part.0  (static, 328 bytes, 90 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  cmpb $0x6f, (%rdi)
+    c:  jne 0x18
+    e:  cmpb $0x70, 1(%rdi)
+   12:  je 0x130
+   18:  movq %rbx, %rsi
+   1b:  movl $0, %edi   <str:"operator">
+   20:  movl $0x20, %ebp
+   25:  callq strcmp+0
+   2a:  testl %eax, %eax
+   2c:  je 0x11d
+   32:  movq %rbx, %rsi
+   35:  movl $0, %edi   <str:"bin">
+   3a:  movl $0x30, %ebp
+   3f:  callq strcmp+0
+   44:  testl %eax, %eax
+   46:  je 0x11d
+   4c:  movq %rbx, %rsi
+   4f:  movl $0, %edi   <str:"binary">
+   54:  callq strcmp+0
+   59:  testl %eax, %eax
+   5b:  je 0x11d
+   61:  movq %rbx, %rsi
+   64:  movl $0, %edi   <str:"rel">
+   69:  movl $0x40, %ebp
+   6e:  callq strcmp+0
+   73:  testl %eax, %eax
+   75:  je 0x11d
+   7b:  movq %rbx, %rsi
+   7e:  movl $0, %edi   <str:"relation">
+   83:  callq strcmp+0
+   88:  testl %eax, %eax
+   8a:  je 0x11d
+   90:  movq %rbx, %rsi
+   93:  movl $0, %edi   <str:"open">
+   98:  movl $0x50, %ebp
+   9d:  callq strcmp+0
+   a2:  testl %eax, %eax
+   a4:  je 0x11d
+   a6:  movq %rbx, %rsi
+   a9:  movl $0, %edi   <str:"opening">
+   ae:  callq strcmp+0
+   b3:  testl %eax, %eax
+   b5:  je 0x11d
+   b7:  movq %rbx, %rsi
+   ba:  movl $0, %edi   <str:"close">
+   bf:  movl $0x60, %ebp
+   c4:  callq strcmp+0
+   c9:  testl %eax, %eax
+   cb:  je 0x11d
+   cd:  movq %rbx, %rsi
+   d0:  movl $0, %edi   <str:"closing">
+   d5:  callq strcmp+0
+   da:  testl %eax, %eax
+   dc:  je 0x11d
+   de:  movq %rbx, %rsi
+   e1:  movl $0, %edi   <str:"punct">
+   e6:  movl $0x70, %ebp
+   eb:  callq strcmp+0
+   f0:  testl %eax, %eax
+   f2:  je 0x11d
+   f4:  movq %rbx, %rsi
+   f7:  movl $0, %edi   <str:"punctuation">
+   fc:  callq strcmp+0
+  101:  testl %eax, %eax
+  103:  je 0x11d
+  105:  movq %rbx, %rsi
+  108:  movl $0, %edi   <str:"inner">
+  10d:  callq strcmp+0
+  112:  cmpl $1, %eax
+  115:  sbbl %ebp, %ebp
+  117:  andl $0x70, %ebp
+  11a:  addl $0x10, %ebp
+  11d:  addq $8, %rsp
+  121:  movl %ebp, %eax
+  123:  popq %rbx
+  124:  popq %rbp
+  125:  retq
+  126:  nopw %cs:(%rax, %rax)
+  130:  cmpb $0, 2(%rdi)
+  134:  movl $0x20, %ebp
+  139:  jne 0x18
+  13f:  addq $8, %rsp
+  143:  movl %ebp, %eax
+  145:  popq %rbx
+  146:  popq %rbp
+  147:  retq

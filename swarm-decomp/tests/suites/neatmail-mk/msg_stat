@@ -1,0 +1,51 @@
+# msg_stat  (static, 155 bytes, 50 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movslq %edx, %r14
+    7:  movl $0, %edx   <str:"status:">
+    c:  pushq %r13
+    e:  movq %rdi, %r13
+   11:  pushq %r12
+   13:  movl %ecx, %r12d
+   16:  pushq %rbp
+   17:  movq %rsi, %rbp
+   1a:  pushq %rbx
+   1b:  subq $0x18, %rsp
+   1f:  callq msg_get+0
+   24:  testq %rax, %rax
+   27:  je 0x89
+   29:  leaq 7(%rax), %rbx
+   2d:  movq %rax, %r15
+   30:  addq %rbp, %r13
+   33:  leaq (%rbx, %r14), %rax
+   37:  movq %rax, 8(%rsp)
+   3c:  callq __ctype_b_loc+0
+   41:  movq 8(%rsp), %rdx
+   46:  leaq 8(%r15, %r14), %rcx
+   4b:  movq (%rax), %rsi
+   4e:  subq %rdx, %rcx
+   51:  cmpq %r13, %rdx
+   54:  jb 0x70
+   56:  jmp 0x7a
+   58:  nopl (%rax, %rax)
+   60:  addq $1, %rbx
+   64:  addq %rcx, %rdx
+   67:  leaq (%rbx, %r14), %rax
+   6b:  cmpq %r13, %rax
+   6e:  jae 0x7a
+   70:  movzbl (%rbx), %eax
+   73:  testb $0x20, 1(%rsi, %rax, 2)
+   78:  jne 0x60
+   7a:  movzbl (%rdx), %edx
+   7d:  movsbl %dl, %eax
+   80:  testb $4, 1(%rsi, %rdx, 2)
+   85:  cmovnel %eax, %r12d
+   89:  addq $0x18, %rsp
+   8d:  movl %r12d, %eax
+   90:  popq %rbx
+   91:  popq %rbp
+   92:  popq %r12
+   94:  popq %r13
+   96:  popq %r14
+   98:  popq %r15
+   9a:  retq

@@ -1,0 +1,51 @@
+# luaB_coresume  (static, 160 bytes, 50 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_tothread+0
+   13:  movq %rax, %rbp
+   16:  testq %rax, %rax
+   19:  je 0x60
+   1b:  movq %rbx, %rdi
+   1e:  callq lua_gettop+0
+   23:  movq %rbp, %rsi
+   26:  movq %rbx, %rdi
+   29:  leal -1(%rax), %edx
+   2c:  callq fn:auxresume+0
+   31:  movl %eax, %ebp
+   33:  testl %eax, %eax
+   35:  js 0x78
+   37:  movq %rbx, %rdi
+   3a:  movl $1, %esi
+   3f:  callq lua_pushboolean+0
+   44:  movl %ebp, %esi
+   46:  movq %rbx, %rdi
+   49:  movl $1, %edx
+   4e:  notl %esi
+   50:  callq lua_rotate+0
+   55:  addq $8, %rsp
+   59:  leal 1(%rbp), %eax
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  retq
+   5f:  nop
+   60:  movl $0, %edx   <str:"thread">
+   65:  movl $1, %esi
+   6a:  movq %rbx, %rdi
+   6d:  callq luaL_typeerror+0
+   72:  jmp 0x1b
+   74:  nopl (%rax)
+   78:  movq %rbx, %rdi
+   7b:  xorl %esi, %esi
+   7d:  callq lua_pushboolean+0
+   82:  movq %rbx, %rdi
+   85:  movl $1, %edx
+   8a:  movl $0xfffffffe, %esi
+   8f:  callq lua_rotate+0
+   94:  addq $8, %rsp
+   98:  movl $2, %eax
+   9d:  popq %rbx
+   9e:  popq %rbp
+   9f:  retq

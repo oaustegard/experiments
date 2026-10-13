@@ -1,0 +1,7 @@
+# drawmend  (global, 35 bytes, 6 instructions)
+    0:  movl $0, (%rip)   <var:draw_path+0>
+    a:  movq %rdi, %rsi
+    d:  xorl %eax, %eax
+    f:  movl $0, %edi   <str:"%s grestore\n">
+   14:  movl $0, (%rip)   <var:draw_point+0>
+   1e:  jmp fn:outf+0

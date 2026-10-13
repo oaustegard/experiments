@@ -1,0 +1,32 @@
+# luaO_arith  (global, 77 bytes, 31 instructions)
+    0:  pushq %r14
+    2:  movl %esi, %r14d
+    5:  pushq %r13
+    7:  movq %r8, %r13
+    a:  pushq %r12
+    c:  movq %rcx, %r12
+    f:  pushq %rbp
+   10:  movq %rdx, %rbp
+   13:  pushq %rbx
+   14:  movq %rdi, %rbx
+   17:  callq luaO_rawarith+0
+   1c:  testl %eax, %eax
+   1e:  je 0x30
+   20:  popq %rbx
+   21:  popq %rbp
+   22:  popq %r12
+   24:  popq %r13
+   26:  popq %r14
+   28:  retq
+   29:  nopl (%rax)
+   30:  leal 6(%r14), %r8d
+   34:  movq %r13, %rcx
+   37:  movq %r12, %rdx
+   3a:  movq %rbp, %rsi
+   3d:  movq %rbx, %rdi
+   40:  popq %rbx
+   41:  popq %rbp
+   42:  popq %r12
+   44:  popq %r13
+   46:  popq %r14
+   48:  jmp luaT_trybinTM+0

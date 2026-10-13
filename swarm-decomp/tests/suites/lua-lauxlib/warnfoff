@@ -1,0 +1,37 @@
+# warnfoff  (static, 97 bytes, 36 instructions)
+    0:  testl %edx, %edx
+    2:  jne 0x60
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  pushq %rbx
+    8:  cmpb $0x40, (%rsi)
+    b:  movq %rsi, %rbx
+    e:  je 0x18
+   10:  popq %rbx
+   11:  popq %rbp
+   12:  popq %r12
+   14:  retq
+   15:  nopl (%rax)
+   18:  leaq 1(%rsi), %r12
+   1c:  movq %rdi, %rbp
+   1f:  movl $0, %esi   <str:"off">
+   24:  movq %r12, %rdi
+   27:  callq strcmp+0
+   2c:  movq %rbp, %rdx
+   2f:  movl $0, %esi   <fn:warnfoff+0>
+   34:  testl %eax, %eax
+   36:  je 0x53
+   38:  cmpb $0x6f, 1(%rbx)
+   3c:  jne 0x10
+   3e:  cmpb $0x6e, 1(%r12)
+   44:  jne 0x10
+   46:  cmpb $0, 2(%r12)
+   4c:  jne 0x10
+   4e:  movl $0, %esi   <fn:warnfon+0>
+   53:  popq %rbx
+   54:  movq %rbp, %rdi
+   57:  popq %rbp
+   58:  popq %r12
+   5a:  jmp lua_setwarnf+0
+   5f:  nop
+   60:  retq

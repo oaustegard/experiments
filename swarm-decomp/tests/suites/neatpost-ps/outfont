@@ -1,0 +1,9 @@
+# outfont  (global, 21 bytes, 8 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %ebx
+    3:  callq 8   <dev_font+0>
+    8:  testq %rax, %rax
+    b:  je 0x13
+    d:  movl %ebx, (%rip)   <var:o_f+0>
+   13:  popq %rbx
+   14:  retq

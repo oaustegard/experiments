@@ -1,0 +1,41 @@
+# luaK_goiffalse  (global, 127 bytes, 40 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  callq luaK_dischargevars+0
+   11:  movl (%rbx), %ecx
+   13:  cmpl $3, %ecx
+   16:  je 0x78
+   18:  cmpl $0x10, %ecx
+   1b:  je 0x70
+   1d:  movl $0xffffffff, %edx
+   22:  cmpl $1, %ecx
+   25:  je 0x39
+   27:  movl $1, %edx
+   2c:  movq %rbx, %rsi
+   2f:  movq %rbp, %rdi
+   32:  callq fn:jumponcond+0
+   37:  movl %eax, %edx
+   39:  leaq 0x10(%rbx), %rsi
+   3d:  movq %rbp, %rdi
+   40:  callq luaK_concat+0
+   45:  movl 0x20(%rbp), %edx
+   48:  movl 0x14(%rbx), %esi
+   4b:  movq %rbp, %rdi
+   4e:  movl $0xff, %ecx
+   53:  movl %edx, 0x24(%rbp)
+   56:  movl %edx, %r8d
+   59:  callq fn:patchlistaux+0
+   5e:  movl $0xffffffff, 0x14(%rbx)
+   65:  addq $8, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  movl 8(%rbx), %edx
+   73:  jmp 0x39
+   75:  nopl (%rax)
+   78:  movl $0xffffffff, %edx
+   7d:  jmp 0x39

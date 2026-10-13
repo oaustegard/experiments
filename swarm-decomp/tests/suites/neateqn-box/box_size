@@ -1,0 +1,53 @@
+# box_size  (global, 156 bytes, 52 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movl 0x10(%rdi), %r12d
+    8:  testq %rsi, %rsi
+    b:  je 0x46
+    d:  movzbl (%rsi), %eax
+   10:  movq %rsi, %rbp
+   13:  testb %al, %al
+   15:  je 0x46
+   17:  movl 0x14(%rdi), %edx
+   1a:  movq %rdi, %rbx
+   1d:  testl %edx, %edx
+   1f:  je 0x80
+   21:  subl $0x2b, %eax
+   24:  testb $0xfd, %al
+   26:  je 0x50
+   28:  movl 0x10(%rbx), %edi
+   2b:  callq nregname+0
+   30:  movq %rbp, %rdx
+   33:  movl $0, %edi   <str:".nr %s %s\n">
+   38:  movq %rax, %rsi
+   3b:  xorl %eax, %eax
+   3d:  callq printf+0
+   42:  movl 0x10(%rbx), %r12d
+   46:  movl %r12d, %eax
+   49:  popq %rbx
+   4a:  popq %rbp
+   4b:  popq %r12
+   4d:  retq
+   4e:  nop
+   50:  movl %r12d, %edi
+   53:  callq nreg+0
+   58:  movl 0x10(%rbx), %edi
+   5b:  movq %rax, %r12
+   5e:  callq nregname+0
+   63:  movq %rbp, %rcx
+   66:  movq %r12, %rdx
+   69:  movl $0, %edi   <str:".nr %s %s%s\n">
+   6e:  movq %rax, %rsi
+   71:  xorl %eax, %eax
+   73:  callq printf+0
+   78:  jmp 0x42
+   7a:  nopw (%rax, %rax)
+   80:  movl $1, 0x14(%rdi)
+   87:  callq nregmk+0
+   8c:  movl %eax, 0x10(%rbx)
+   8f:  movzbl (%rbp), %eax
+   93:  subl $0x2b, %eax
+   96:  testb $0xfd, %al
+   98:  jne 0x28
+   9a:  jmp 0x50

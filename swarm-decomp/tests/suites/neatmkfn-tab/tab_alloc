@@ -1,0 +1,29 @@
+# tab_alloc  (global, 104 bytes, 28 instructions)
+    0:  pushq %r12
+    2:  movl $1, %esi
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movslq %edi, %rbx
+    c:  movl $0x420, %edi
+   11:  leaq (, %rbx, 8), %r12
+   19:  callq calloc+0
+   1e:  movq %r12, %rdi
+   21:  movq %rax, %rbp
+   24:  callq malloc+0
+   29:  movq %r12, %rdi
+   2c:  movq %rax, (%rbp)
+   30:  callq malloc+0
+   35:  leaq (, %rbx, 4), %rdi
+   3d:  movq %rax, 8(%rbp)
+   41:  callq malloc+0
+   46:  leaq 0x20(%rbp), %rdx
+   4a:  movl $0x80, %ecx
+   4f:  movq %rax, 0x18(%rbp)
+   53:  movq %rdx, %rdi
+   56:  movq $18446744073709551615, %rax
+   5d:  rep stosq %rax, (%rdi)
+   60:  movq %rbp, %rax
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  popq %r12
+   67:  retq

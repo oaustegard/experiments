@@ -1,0 +1,70 @@
+# luaH_get  (global, 207 bytes, 69 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $0x18, %rsp
+    c:  movzbl 8(%rsi), %eax
+   10:  andl $0x3f, %eax
+   13:  cmpb $4, %al
+   15:  je 0x70
+   17:  ja 0x30
+   19:  testb %al, %al
+   1b:  je 0x60
+   1d:  cmpb $3, %al
+   1f:  jne 0x48
+   21:  movq (%rsi), %rsi
+   24:  addq $0x18, %rsp
+   28:  popq %rbx
+   29:  popq %rbp
+   2a:  jmp luaH_getint+0
+   2f:  nop
+   30:  cmpb $0x13, %al
+   32:  jne 0x48
+   34:  movsd (%rsi), %xmm0
+   38:  leaq 8(%rsp), %rdi
+   3d:  xorl %esi, %esi
+   3f:  callq luaV_flttointeger+0
+   44:  testl %eax, %eax
+   46:  jne 0xc0
+   48:  addq $0x18, %rsp
+   4c:  movq %rbx, %rsi
+   4f:  movq %rbp, %rdi
+   52:  xorl %edx, %edx
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  jmp fn:getgeneric+0
+   5b:  nopl (%rax, %rax)
+   60:  movl $0, %eax   <var:absentkey+0>
+   65:  addq $0x18, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  movzbl 0xb(%rdi), %ecx
+   74:  movq (%rsi), %rsi
+   77:  movl $1, %eax
+   7c:  shll %cl, %eax
+   7e:  subl $1, %eax
+   81:  andl 0xc(%rsi), %eax
+   84:  cltq
+   86:  leaq (%rax, %rax, 2), %rdx
+   8a:  movq 0x18(%rdi), %rax
+   8e:  leaq (%rax, %rdx, 8), %rax
+   92:  jmp 0xa8
+   94:  nopl (%rax)
+   98:  movslq 0xc(%rax), %rdx
+   9c:  testl %edx, %edx
+   9e:  je 0x60
+   a0:  leaq (%rdx, %rdx, 2), %rdx
+   a4:  leaq (%rax, %rdx, 8), %rax
+   a8:  cmpb $0x44, 9(%rax)
+   ac:  jne 0x98
+   ae:  cmpq 0x10(%rax), %rsi
+   b2:  jne 0x98
+   b4:  jmp 0x65
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  movq 8(%rsp), %rsi
+   c5:  movq %rbp, %rdi
+   c8:  callq luaH_getint+0
+   cd:  jmp 0x65

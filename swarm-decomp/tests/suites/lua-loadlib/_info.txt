@@ -1,0 +1,49 @@
+# lua-loadlib: translation unit loadlib of lua
+# write each function as src/lua/loadlib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+findloader	static	324 bytes
+ll_require	static	361 bytes
+searchpath	static	431 bytes
+ll_searchpath	static	178 bytes
+lookforfunc	static	362 bytes
+ll_loadlib	static	143 bytes
+gctm	static	97 bytes
+loadfunc	static	175 bytes
+searcher_preload	static	121 bytes
+setpath	static	468 bytes
+findfile.constprop.0	static	116 bytes
+searcher_C	static	165 bytes
+searcher_Croot	static	258 bytes
+searcher_Lua	static	165 bytes
+luaopen_package	global	461 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+pk_funcs	static	128 bytes	.rodata.pk_funcs
+    +0     -> str:"loadlib"
+    +8     -> fn:ll_loadlib+0
+    +16    -> str:"searchpath"
+    +24    -> fn:ll_searchpath+0
+    +32    -> str:"preload"
+    +48    -> str:"cpath"
+    +64    -> str:"path"
+    +80    -> str:"searchers"
+    +96    -> str:"loaded"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+searchers.0	static	40 bytes	.rodata.searchers.0
+    +0     -> fn:searcher_preload+0
+    +8     -> fn:searcher_Lua+0
+    +16    -> fn:searcher_C+0
+    +24    -> fn:searcher_Croot+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00
+ll_funcs	static	32 bytes	.rodata.ll_funcs
+    +0     -> str:"require"
+    +8     -> fn:ll_require+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+dlclose dlerror dlopen dlsym fclose fopen64 getenv luaL_addgsub luaL_addlstring luaL_addstring luaL_addvalue luaL_buffinit luaL_checklstring luaL_checkversion_ luaL_error luaL_getsubtable luaL_gsub luaL_len luaL_loadfilex luaL_optlstring luaL_prepbuffsize luaL_pushresult luaL_setfuncs lua_callk lua_copy lua_createtable lua_getfield lua_isstring lua_pushboolean lua_pushcclosure lua_pushfstring lua_pushlightuserdata lua_pushlstring lua_pushnil lua_pushstring lua_pushvalue lua_rawgeti lua_rawseti lua_rotate lua_setfield lua_setmetatable lua_settop lua_toboolean lua_tolstring lua_touserdata lua_type strchr strlen strstr

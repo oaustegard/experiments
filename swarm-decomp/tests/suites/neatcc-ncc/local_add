@@ -1,0 +1,71 @@
+# local_add  (static, 253 bytes, 70 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rdi, %rbp
+    c:  pushq %rbx
+    d:  subq $0x18, %rsp
+   11:  movslq (%rip), %r14   <var:locals_n+0>
+   18:  movl (%rip), %eax   <var:locals_sz+0>
+   1e:  movq (%rip), %rbx   <var:locals+0>
+   25:  movq %r14, %r13
+   28:  cmpl %eax, %r14d
+   2b:  jge 0x88
+   2d:  leaq (%r14, %r14, 8), %rax
+   31:  addl $1, %r13d
+   35:  movq %rbp, %rsi
+   38:  shlq $5, %rax
+   3c:  movl %r13d, (%rip)   <var:locals_n+0>
+   43:  leaq (%rbx, %rax), %rcx
+   47:  movq (%rbp), %rax
+   4b:  leaq 8(%rcx), %rdi
+   4f:  movq %rax, (%rcx)
+   52:  movq 0x118(%rbp), %rax
+   59:  andq $0xfffffffffffffff8, %rdi
+   5d:  movq %rax, 0x118(%rcx)
+   64:  subq %rdi, %rcx
+   67:  subq %rcx, %rsi
+   6a:  addl $0x120, %ecx
+   70:  shrl $3, %ecx
+   73:  rep movsq (%rsi), (%rdi)
+   76:  addq $0x18, %rsp
+   7a:  popq %rbx
+   7b:  popq %rbp
+   7c:  popq %r12
+   7e:  popq %r13
+   80:  popq %r14
+   82:  popq %r15
+   84:  retq
+   85:  nopl (%rax)
+   88:  movl $0x80, %edx
+   8d:  addl %eax, %eax
+   8f:  cmpl %edx, %eax
+   91:  cmovll %edx, %eax
+   94:  movslq %eax, %r12
+   97:  movl %eax, (%rip)   <var:locals_sz+0>
+   9d:  leaq (%r12, %r12, 8), %rdi
+   a1:  shlq $5, %rdi
+   a5:  callq malloc+0
+   aa:  leaq (%r14, %r14, 8), %rcx
+   ae:  movq %rbx, %rsi
+   b1:  shlq $5, %rcx
+   b5:  movq %rax, %rdi
+   b8:  movq %rax, %r15
+   bb:  movq %rcx, %rdx
+   be:  movq %rcx, 8(%rsp)
+   c3:  callq memcpy+0
+   c8:  movq %r12, %rax
+   cb:  movq 8(%rsp), %rcx
+   d0:  xorl %esi, %esi
+   d2:  subq %r14, %rax
+   d5:  leaq (%rax, %rax, 8), %rdx
+   d9:  leaq (%r15, %rcx), %rdi
+   dd:  shlq $5, %rdx
+   e1:  callq memset+0
+   e6:  movq %rbx, %rdi
+   e9:  movq %r15, %rbx
+   ec:  callq free+0
+   f1:  movq %r15, (%rip)   <var:locals+0>
+   f8:  jmp 0x2d

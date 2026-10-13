@@ -1,0 +1,15 @@
+# nextskip  (static, 55 bytes, 14 instructions)
+    0:  pushq %rbx
+    1:  nopl (%rax)
+    8:  movq (%rip), %rdi   <stdin+0>
+    f:  callq getc+0
+   14:  movl %eax, %ebx
+   16:  callq __ctype_b_loc+0
+   1b:  movslq %ebx, %rdx
+   1e:  movq (%rax), %rax
+   21:  testb $0x20, 1(%rax, %rdx, 2)
+   26:  jne 8
+   28:  movq (%rip), %rsi   <stdin+0>
+   2f:  movl %ebx, %edi
+   31:  popq %rbx
+   32:  jmp ungetc+0

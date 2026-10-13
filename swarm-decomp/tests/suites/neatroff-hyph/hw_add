@@ -1,0 +1,77 @@
+# hw_add  (static, 250 bytes, 76 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  callq strlen+0
+   12:  movl (%rip), %r12d   <var:hw_n+0>
+   19:  addl $1, %eax
+   1c:  cmpl $0x4000, %r12d
+   23:  je 0x39
+   25:  movl (%rip), %r13d   <var:hwword_len+0>
+   2c:  leal (%r13, %rax), %edx
+   31:  cmpl $0x40000, %edx
+   37:  jbe 0x48
+   39:  addq $8, %rsp
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  popq %r12
+   41:  popq %r13
+   43:  retq
+   44:  nopl (%rax)
+   48:  movslq %r13d, %r8
+   4b:  movslq %eax, %rdx
+   4e:  xorl %esi, %esi
+   50:  leaq (%r8), %rbp   <var:hwword+0>
+   57:  addq $0, %r8   <var:hwhyph+0>
+   5e:  movq %r8, %rdi
+   61:  callq memset+0
+   66:  leaq 1(%rbx), %rdx
+   6a:  movq %rax, %r8
+   6d:  movzbl (%rbx), %eax
+   70:  movl %eax, %ecx
+   72:  testl %eax, %eax
+   74:  je 0xf0
+   76:  xorl %esi, %esi
+   78:  xorl %edi, %edi
+   7a:  jmp 0x98
+   7c:  nopl (%rax)
+   80:  addq $1, %rdx
+   84:  movb %cl, (%rbp, %rdi)
+   88:  addl $1, %esi
+   8b:  movzbl -1(%rdx), %eax
+   8f:  movslq %esi, %rdi
+   92:  movl %eax, %ecx
+   94:  testl %eax, %eax
+   96:  je 0xb0
+   98:  cmpl $0x2d, %eax
+   9b:  jne 0x80
+   9d:  addq $1, %rdx
+   a1:  movb $1, (%r8, %rdi)
+   a6:  movzbl -1(%rdx), %eax
+   aa:  movl %eax, %ecx
+   ac:  testl %eax, %eax
+   ae:  jne 0x98
+   b0:  addq %rbp, %rdi
+   b3:  leal 1(%rsi), %ebx
+   b6:  movb $0, (%rdi)
+   b9:  movq (%rip), %rdi   <var:hwpref+0>
+   c0:  movslq %r12d, %rax
+   c3:  movl %r12d, %edx
+   c6:  movq %rbp, %rsi
+   c9:  movl %r13d, (, %rax, 4)   <var:hwoff+0>
+   d1:  callq pref_put+0
+   d6:  addl %ebx, (%rip)   <var:hwword_len+0>
+   dc:  addl $1, (%rip)   <var:hw_n+0>
+   e3:  addq $8, %rsp
+   e7:  popq %rbx
+   e8:  popq %rbp
+   e9:  popq %r12
+   eb:  popq %r13
+   ed:  retq
+   ee:  nop
+   f0:  movq %rbp, %rdi
+   f3:  movl $1, %ebx
+   f8:  jmp 0xb6

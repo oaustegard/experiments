@@ -1,0 +1,32 @@
+# freestack.part.0  (static, 109 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  leaq 0x60(%rdi), %rax
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq 0x78(%rdi), %rbx
+   11:  movq %rax, 0x20(%rdi)
+   15:  movq $0, 0x78(%rdi)
+   1d:  testq %rbx, %rbx
+   20:  je 0x46
+   22:  nopw (%rax, %rax)
+   28:  movq %rbx, %rsi
+   2b:  movq 0x18(%rbx), %rbx
+   2f:  movl $0x40, %edx
+   34:  movq %rbp, %rdi
+   37:  callq luaM_free_+0
+   3c:  subw $1, 0xc(%rbp)
+   41:  testq %rbx, %rbx
+   44:  jne 0x28
+   46:  movq 0x30(%rbp), %rsi
+   4a:  movq 0x28(%rbp), %rdx
+   4e:  addq $8, %rsp
+   52:  movq %rbp, %rdi
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  subq %rsi, %rdx
+   5a:  sarq $4, %rdx
+   5e:  addl $5, %edx
+   61:  movslq %edx, %rdx
+   64:  shlq $4, %rdx
+   68:  jmp luaM_free_+0

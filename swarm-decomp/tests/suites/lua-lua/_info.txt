@@ -1,0 +1,24 @@
+# lua-lua: translation unit lua of lua
+# write each function as src/lua/lua/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+l_message	static	78 bytes
+lstop	static	31 bytes
+msghandler	static	134 bytes
+pushline	static	337 bytes
+laction	static	86 bytes
+docall	static	227 bytes
+doREPL	static	793 bytes
+dostring	static	144 bytes
+pmain	static	2128 bytes
+main	global	228 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+globalL	static	8 bytes	.bss.globalL
+    (zero-initialised)
+progname	static	8 bytes	.data.progname
+    +0     -> str:"lua"
+        0: 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+fflush fgets fprintf fputs fwrite getenv isatty luaL_callmeta luaL_checkstack luaL_checkversion_ luaL_error luaL_len luaL_loadbufferx luaL_loadfilex luaL_newstate luaL_openlibs luaL_tolstring luaL_traceback lua_close lua_concat lua_createtable lua_gc lua_getglobal lua_gettop lua_pcallk lua_pushboolean lua_pushcclosure lua_pushfstring lua_pushinteger lua_pushlightuserdata lua_pushlstring lua_pushstring lua_rawgeti lua_rawseti lua_rotate lua_setfield lua_setglobal lua_sethook lua_settop lua_toboolean lua_tointegerx lua_tolstring lua_touserdata lua_type lua_typename lua_warning sigaction sigemptyset stderr stdin stdout strchr strcmp strlen

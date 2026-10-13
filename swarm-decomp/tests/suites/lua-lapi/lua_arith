@@ -1,0 +1,21 @@
+# lua_arith  (global, 65 bytes, 20 instructions)
+    0:  leal -0xc(%rsi), %eax
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movq 0x10(%rdi), %rcx
+    b:  cmpl $1, %eax
+    e:  ja 0x27
+   10:  movq -0x10(%rcx), %rax
+   14:  addq $0x10, %rcx
+   18:  movq %rax, -0x10(%rcx)
+   1c:  movzbl -0x18(%rcx), %eax
+   20:  movb %al, -8(%rcx)
+   23:  movq %rcx, 0x10(%rdi)
+   27:  leaq -0x20(%rcx), %rdx
+   2b:  movq %rbx, %rdi
+   2e:  subq $0x10, %rcx
+   32:  movq %rdx, %r8
+   35:  callq luaO_arith+0
+   3a:  subq $0x10, 0x10(%rbx)
+   3f:  popq %rbx
+   40:  retq

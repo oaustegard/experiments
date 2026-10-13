@@ -1,0 +1,45 @@
+# lua-lparser: translation unit lparser of lua
+# write each function as src/lua/lparser/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+newlabelentry	static	131 bytes
+errorlimit	static	96 bytes
+allocupvalue	static	205 bytes
+new_localvar	static	138 bytes
+check_readonly	static	170 bytes
+error_expected	static	39 bytes
+check_match	static	109 bytes
+adjust_assign.isra.0	static	137 bytes
+singlevaraux.part.0	static	489 bytes
+fieldsel	static	116 bytes
+singlevar	static	215 bytes
+open_func	static	284 bytes
+adjustlocalvars	static	437 bytes
+createlabel	static	615 bytes
+leaveblock	static	707 bytes
+close_func	static	402 bytes
+statement	static	4504 bytes
+block	static	170 bytes
+forbody	static	416 bytes
+body	static	852 bytes
+subexpr	static	1075 bytes
+test_then_block	static	578 bytes
+recfield	static	270 bytes
+constructor	static	571 bytes
+funcargs	static	386 bytes
+suffixedexp	static	440 bytes
+restassign	static	622 bytes
+luaY_nvarstack	global	72 bytes
+luaY_parser	global	603 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+forprep.1	static	8 bytes	.rodata.forprep.1
+        0: 4a 00 00 00 4b 00 00 00
+forloop.0	static	8 bytes	.rodata.forloop.0
+        0: 49 00 00 00 4d 00 00 00
+priority	static	42 bytes	.rodata.priority
+        0: 0a 0a 0a 0a 0b 0b 0b 0b 0e 0d 0b 0b 0b 0b 06 06 04 04 05 05 07 07 07 07 09 08 03 03 03 03 03 03
+       32: 03 03 03 03 03 03 02 02 01 01
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_barrier_ luaC_step luaD_inctop luaE_incCstack luaF_newLclosure luaF_newproto luaH_new luaK_checkstack luaK_code luaK_codeABCk luaK_codeABx luaK_concat luaK_dischargevars luaK_exp2anyreg luaK_exp2anyregup luaK_exp2const luaK_exp2nextreg luaK_exp2val luaK_finish luaK_fixline luaK_getlabel luaK_goiffalse luaK_goiftrue luaK_indexed luaK_infix luaK_int luaK_jump luaK_nil luaK_patchlist luaK_patchtohere luaK_posfix luaK_prefix luaK_reserveregs luaK_ret luaK_self luaK_semerror luaK_setlist luaK_setoneret luaK_setreturns luaK_settablesize luaK_storevar luaM_growaux_ luaM_shrinkvector_ luaO_pushfstring luaS_new luaS_newlstr luaX_lookahead luaX_newstring luaX_next luaX_setinput luaX_syntaxerror luaX_token2str memmove memset strcmp

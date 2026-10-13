@@ -1,0 +1,44 @@
+# tr_ff  (static, 131 bytes, 43 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rbp
+    d:  testq %rbp, %rbp
+   10:  je 0x24
+   12:  movq %rbp, %rdi
+   15:  callq dev_pos+0
+   1a:  movl %eax, %edi
+   1c:  callq dev_font+0
+   21:  movq %rax, %rbp
+   24:  movq 0x10(%rbx), %rsi
+   28:  testq %rsi, %rsi
+   2b:  je 0x41
+   2d:  addq $0x18, %rbx
+   31:  testq %rbp, %rbp
+   34:  jne 0x74
+   36:  addq $8, %rbx
+   3a:  cmpq $0, -8(%rbx)
+   3f:  jne 0x36
+   41:  addq $8, %rsp
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  retq
+   48:  nopl (%rax, %rax)
+   50:  xorl %edx, %edx
+   52:  cmpb $0x2b, %al
+   54:  movq %rbp, %rdi
+   57:  sete %dl
+   5a:  addq $1, %rsi
+   5e:  callq font_feat+0
+   63:  nopl (%rax, %rax)
+   68:  movq (%rbx), %rsi
+   6b:  addq $8, %rbx
+   6f:  testq %rsi, %rsi
+   72:  je 0x41
+   74:  movzbl (%rsi), %eax
+   77:  testb %al, %al
+   79:  je 0x68
+   7b:  cmpb $0, 1(%rsi)
+   7f:  je 0x68
+   81:  jmp 0x50

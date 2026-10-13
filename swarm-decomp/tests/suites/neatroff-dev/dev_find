@@ -1,0 +1,67 @@
+# dev_find  (static, 186 bytes, 66 instructions)
+    0:  pushq %r14
+    2:  testl %edx, %edx
+    4:  movl $0, %eax   <font_glyph+0>
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  movq %rdi, %r12
+   10:  pushq %rbp
+   11:  movl $0, %ebp   <font_find+0>
+   16:  pushq %rbx
+   17:  movslq %esi, %rbx
+   1a:  cmovneq %rax, %rbp
+   1e:  movq %r12, %rsi
+   21:  movq (, %rbx, 8), %rdi   <var:fn_font+0>
+   29:  callq *%rbp
+   2b:  movq %rax, %r13
+   2e:  testq %rax, %rax
+   31:  je 0x40
+   33:  popq %rbx
+   34:  movq %r13, %rax
+   37:  popq %rbp
+   38:  popq %r12
+   3a:  popq %r13
+   3c:  popq %r14
+   3e:  retq
+   3f:  nop
+   40:  shlq $4, %rbx
+   44:  xorl %r14d, %r14d
+   47:  movslq (%rbx, %r14, 4), %rax   <var:fn_special+0>
+   4f:  testl %eax, %eax
+   51:  jle 0x76
+   53:  xorl %edi, %edi
+   55:  cmpl $0x1f, %eax
+   58:  ja 0x62
+   5a:  movq (, %rax, 8), %rdi   <var:fn_font+0>
+   62:  movq %r12, %rsi
+   65:  callq *%rbp
+   67:  testq %rax, %rax
+   6a:  jne 0xab
+   6c:  addq $1, %r14
+   70:  cmpq $4, %r14
+   74:  jne 0x47
+   76:  movl $0, %ebx   <var:fn_font+0>
+   7b:  jmp 0x8d
+   7d:  nopl (%rax)
+   80:  addq $8, %rbx
+   84:  cmpq $0, %rbx   <var:fn_font+256>
+   8b:  je 0x33
+   8d:  movq (%rbx), %rdi
+   90:  testq %rdi, %rdi
+   93:  je 0x80
+   95:  callq font_special+0
+   9a:  testl %eax, %eax
+   9c:  je 0x80
+   9e:  movq (%rbx), %rdi
+   a1:  movq %r12, %rsi
+   a4:  callq *%rbp
+   a6:  testq %rax, %rax
+   a9:  je 0x80
+   ab:  movq %rax, %r13
+   ae:  popq %rbx
+   af:  popq %rbp
+   b0:  movq %r13, %rax
+   b3:  popq %r12
+   b5:  popq %r13
+   b7:  popq %r14
+   b9:  retq

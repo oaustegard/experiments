@@ -1,0 +1,30 @@
+# tmp_str  (static, 98 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  movl $0, %edi   <var:name+0>
+    9:  pushq %rbx
+    a:  movl %esi, %ebx
+    c:  movl $0, %esi   <str:"__neatcc.s%d">
+   11:  subq $8, %rsp
+   15:  movl (%rip), %edx   <var:id+0>
+   1b:  leal 1(%rdx), %eax
+   1e:  movl %eax, (%rip)   <var:id+0>
+   24:  xorl %eax, %eax
+   26:  callq sprintf+0
+   2b:  movslq %ebx, %rax
+   2e:  addl $1, %ebx
+   31:  xorl %edx, %edx
+   33:  movb $0, (%rbp, %rax)
+   38:  movslq %ebx, %rbx
+   3b:  movl $0, %edi   <var:name+0>
+   40:  movq %rbx, %rsi
+   43:  callq o_dsnew+0
+   48:  movq %rbx, %rdx
+   4b:  movq %rbp, %rsi
+   4e:  movq %rax, %rdi
+   51:  callq o_dscpy+0
+   56:  addq $8, %rsp
+   5a:  movl $0, %eax   <var:name+0>
+   5f:  popq %rbx
+   60:  popq %rbp
+   61:  retq

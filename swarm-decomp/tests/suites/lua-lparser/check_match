@@ -1,0 +1,36 @@
+# check_match  (static, 109 bytes, 35 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x10, %rsp
+    b:  cmpl 0x10(%rdi), %esi
+    e:  je 0x58
+   10:  movl %esi, %ebp
+   12:  cmpl %ecx, 4(%rdi)
+   15:  je 0x68
+   17:  movl %edx, %esi
+   19:  movl %ecx, 0xc(%rsp)
+   1d:  callq luaX_token2str+0
+   22:  movl %ebp, %esi
+   24:  movq %rbx, %rdi
+   27:  movq %rax, %r12
+   2a:  callq luaX_token2str+0
+   2f:  movq 0x38(%rbx), %rdi
+   33:  movl 0xc(%rsp), %r8d
+   38:  movq %r12, %rcx
+   3b:  movq %rax, %rdx
+   3e:  movl $0, %esi   <str:"%s expected (to close %s at line %d)">
+   43:  xorl %eax, %eax
+   45:  callq luaO_pushfstring+0
+   4a:  movq %rbx, %rdi
+   4d:  movq %rax, %rsi
+   50:  callq luaX_syntaxerror+0
+   55:  nopl (%rax)
+   58:  addq $0x10, %rsp
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  popq %r12
+   60:  jmp luaX_next+0
+   65:  nopl (%rax)
+   68:  callq fn:error_expected+0

@@ -1,0 +1,16 @@
+# tr_nn  (static, 45 bytes, 15 instructions)
+    0:  pushq %rbx
+    1:  movq 8(%rdi), %rdi
+    5:  movl $1, %ebx
+    a:  testq %rdi, %rdi
+    d:  je 0x18
+    f:  xorl %esi, %esi
+   11:  callq eval+0
+   16:  movl %eax, %ebx
+   18:  movl $0, %edi   <str:".nn">
+   1d:  callq map+0
+   22:  movl %eax, %edi
+   24:  callq nreg+0
+   29:  movl %ebx, (%rax)
+   2b:  popq %rbx
+   2c:  retq

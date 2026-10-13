@@ -1,0 +1,55 @@
+# tr_hw  (global, 177 bytes, 54 instructions)
+    0:  pushq %r14
+    2:  leaq 0x100(%rdi), %r14
+    9:  pushq %r13
+    b:  leaq 8(%rdi), %r13
+    f:  pushq %r12
+   11:  movl $0x2d, %r12d
+   17:  pushq %rbp
+   18:  pushq %rbx
+   19:  subq $0x110, %rsp
+   20:  leaq 0x10(%rsp), %rbp
+   25:  nopl (%rax)
+   28:  movq (%r13), %rax
+   2c:  testq %rax, %rax
+   2f:  je 0xa1
+   31:  movq %rax, 8(%rsp)
+   36:  movq %rbp, %rbx
+   39:  jmp 0x67
+   3b:  nopl (%rax, %rax)
+   40:  movq %rsi, %rdi
+   43:  callq fn:hcode_mapchar.isra.0+0
+   48:  movq (%rsp), %rsi
+   4c:  movq %rbx, %rdi
+   4f:  callq hy_cput+0
+   54:  cltq
+   56:  addq %rax, %rbx
+   59:  movq %rbx, %rax
+   5c:  subq %rbp, %rax
+   5f:  cmpq $0xdf, %rax
+   65:  jg 0x90
+   67:  movq %rsp, %rsi
+   6a:  leaq 8(%rsp), %rdi
+   6f:  callq escread+0
+   74:  testl %eax, %eax
+   76:  jne 0x90
+   78:  movq (%rsp), %rsi
+   7c:  movzbl (%rsi), %eax
+   7f:  cmpl %eax, %r12d
+   82:  jne 0x40
+   84:  cmpb $0, 1(%rsi)
+   88:  je 0x4c
+   8a:  jmp 0x40
+   8c:  nopl (%rax)
+   90:  movq %rbp, %rdi
+   93:  addq $8, %r13
+   97:  callq fn:hw_add+0
+   9c:  cmpq %r14, %r13
+   9f:  jne 0x28
+   a1:  addq $0x110, %rsp
+   a8:  popq %rbx
+   a9:  popq %rbp
+   aa:  popq %r12
+   ac:  popq %r13
+   ae:  popq %r14
+   b0:  retq

@@ -1,0 +1,82 @@
+# classdef  (static, 278 bytes, 81 instructions)
+    0:  movq %rdi, %rcx
+    3:  pushq %rbp
+    4:  movq %rdx, %rdi
+    7:  pushq %rbx
+    8:  movzwl (%rcx), %eax
+    b:  rolw $8, %ax
+    f:  cmpw $1, %ax
+   13:  je 0xc0
+   19:  movzwl %ax, %edx
+   1c:  xorl %ebx, %ebx
+   1e:  cmpl $2, %edx
+   21:  jne 0xb3
+   27:  movzwl 2(%rcx), %edx
+   2b:  movl %edx, %eax
+   2d:  rolw $8, %ax
+   31:  testw %dx, %dx
+   34:  je 0xb3
+   36:  movzwl %ax, %eax
+   39:  leaq 4(%rcx), %r11
+   3d:  subl $1, %eax
+   40:  leaq (%rax, %rax, 2), %rax
+   44:  leaq 0xa(%rcx, %rax, 2), %rbp
+   49:  nopl (%rax)
+   50:  movzwl (%r11), %r9d
+   54:  movzwl 2(%r11), %r10d
+   59:  rolw $8, %r9w
+   5e:  rolw $8, %r10w
+   63:  movzwl %r9w, %r9d
+   67:  movzwl %r10w, %r10d
+   6b:  movl %r9d, %edx
+   6e:  cmpl %r10d, %r9d
+   71:  jg 0xaa
+   73:  movzwl 4(%r11), %ecx
+   78:  movslq %ebx, %rax
+   7b:  leal 1(%r10), %r8d
+   7f:  shlq $2, %rax
+   83:  rolw $8, %cx
+   87:  movzwl %cx, %ecx
+   8a:  nopw (%rax, %rax)
+   90:  movl %edx, (%rsi, %rax)
+   93:  addl $1, %edx
+   96:  movl %ecx, (%rdi, %rax)
+   99:  addq $4, %rax
+   9d:  cmpl %r8d, %edx
+   a0:  jne 0x90
+   a2:  leal 1(%rbx, %r10), %ebx
+   a7:  subl %r9d, %ebx
+   aa:  addq $6, %r11
+   ae:  cmpq %r11, %rbp
+   b1:  jne 0x50
+   b3:  movl %ebx, %eax
+   b5:  popq %rbx
+   b6:  popq %rbp
+   b7:  retq
+   b8:  nopl (%rax, %rax)
+   c0:  movzwl 4(%rcx), %ebx
+   c4:  movzwl 2(%rcx), %eax
+   c8:  rolw $8, %bx
+   cc:  movl %eax, %edx
+   ce:  movzwl %bx, %ebx
+   d1:  rolw $8, %dx
+   d5:  testl %ebx, %ebx
+   d7:  je 0xb3
+   d9:  movzwl %dx, %edx
+   dc:  leal 1(%rbx), %r9d
+   e0:  movl $1, %eax
+   e5:  leal -1(%rdx), %r8d
+   e9:  nopl (%rax)
+   f0:  leal (%r8, %rax), %edx
+   f4:  movl %edx, -4(%rsi, %rax, 4)
+   f8:  movzwl 4(%rcx, %rax, 2), %edx
+   fd:  rolw $8, %dx
+  101:  movzwl %dx, %edx
+  104:  movl %edx, -4(%rdi, %rax, 4)
+  108:  addq $1, %rax
+  10c:  cmpq %r9, %rax
+  10f:  jne 0xf0
+  111:  movl %ebx, %eax
+  113:  popq %rbx
+  114:  popq %rbp
+  115:  retq

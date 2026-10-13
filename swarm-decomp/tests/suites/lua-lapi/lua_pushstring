@@ -1,0 +1,31 @@
+# lua_pushstring  (global, 92 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  testq %rsi, %rsi
+    c:  je 0x50
+    e:  callq luaS_new+0
+   13:  movq 0x10(%rbx), %rdx
+   17:  leaq 0x18(%rax), %rbp
+   1b:  movq %rax, (%rdx)
+   1e:  movzbl 8(%rax), %ecx
+   22:  orl $0x40, %ecx
+   25:  movb %cl, 8(%rdx)
+   28:  movq 0x18(%rbx), %rax
+   2c:  addq $0x10, %rdx
+   30:  movq %rdx, 0x10(%rbx)
+   34:  cmpq $0, 0x18(%rax)
+   39:  jle 0x43
+   3b:  movq %rbx, %rdi
+   3e:  callq luaC_step+0
+   43:  addq $8, %rsp
+   47:  movq %rbp, %rax
+   4a:  popq %rbx
+   4b:  popq %rbp
+   4c:  retq
+   4d:  nopl (%rax)
+   50:  movq 0x10(%rdi), %rdx
+   54:  xorl %ebp, %ebp
+   56:  movb $0, 8(%rdx)
+   5a:  jmp 0x28

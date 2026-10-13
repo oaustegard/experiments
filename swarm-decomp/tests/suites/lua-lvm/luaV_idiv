@@ -1,0 +1,25 @@
+# luaV_idiv  (global, 73 bytes, 24 instructions)
+    0:  leaq 1(%rdx), %rax
+    4:  movq %rdx, %rcx
+    7:  cmpq $1, %rax
+    b:  jbe 0x30
+    d:  movq %rsi, %rax
+   10:  cqto
+   12:  idivq %rcx
+   15:  xorq %rsi, %rcx
+   18:  js 0x20
+   1a:  retq
+   1b:  nopl (%rax, %rax)
+   20:  cmpq $1, %rdx
+   24:  adcq $-1, %rax
+   28:  retq
+   29:  nopl (%rax)
+   30:  testq %rdx, %rdx
+   33:  je 0x3c
+   35:  movq %rsi, %rax
+   38:  negq %rax
+   3b:  retq
+   3c:  pushq %rax
+   3d:  movl $0, %esi   <str:"attempt to divide by zero">
+   42:  xorl %eax, %eax
+   44:  callq luaG_runerror+0

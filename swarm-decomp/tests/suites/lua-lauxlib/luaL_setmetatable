@@ -1,0 +1,10 @@
+# luaL_setmetatable  (global, 31 bytes, 9 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rdx
+    4:  movq %rdi, %rbx
+    7:  movl $0xfff0b9d8, %esi
+    c:  callq lua_getfield+0
+   11:  movq %rbx, %rdi
+   14:  movl $0xfffffffe, %esi
+   19:  popq %rbx
+   1a:  jmp lua_setmetatable+0

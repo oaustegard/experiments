@@ -1,0 +1,42 @@
+# convergeephemerons  (static, 135 bytes, 41 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  xorl %r12d, %r12d
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movq 0xa0(%rbx), %rbp
+   17:  movq $0, 0xa0(%rbx)
+   22:  testq %rbp, %rbp
+   25:  je 0x58
+   27:  xorl %r13d, %r13d
+   2a:  nopw (%rax, %rax)
+   30:  movq %rbp, %rsi
+   33:  movq 0x30(%rbp), %rbp
+   37:  movl %r12d, %edx
+   3a:  movq %rbx, %rdi
+   3d:  orb $0x20, 9(%rsi)
+   41:  callq fn:traverseephemeron+0
+   46:  testl %eax, %eax
+   48:  jne 0x70
+   4a:  testq %rbp, %rbp
+   4d:  jne 0x30
+   4f:  xorl $1, %r12d
+   53:  testl %r13d, %r13d
+   56:  jne 0x10
+   58:  addq $8, %rsp
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  popq %r12
+   60:  popq %r13
+   62:  retq
+   63:  nopl (%rax, %rax)
+   68:  movq %rbx, %rdi
+   6b:  callq fn:propagatemark+0
+   70:  cmpq $0, 0x88(%rbx)
+   78:  jne 0x68
+   7a:  movl $1, %r13d
+   80:  testq %rbp, %rbp
+   83:  jne 0x30
+   85:  jmp 0x4f

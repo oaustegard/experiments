@@ -1,0 +1,57 @@
+# sweepgen.isra.0  (static, 154 bytes, 56 instructions)
+    0:  pushq %r14
+    2:  movq %rdx, %r14
+    5:  pushq %r13
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movl %esi, %ebx
+    d:  movq (%rdx), %rsi
+   10:  andl $0x18, %ebx
+   13:  cmpq %rsi, %rcx
+   16:  je 0x8e
+   18:  movq %rdi, %rbp
+   1b:  movq %rcx, %r13
+   1e:  movq %r8, %r12
+   21:  jmp 0x41
+   23:  nopl (%rax, %rax)
+   28:  andl $0xc0, %ecx
+   2e:  orl $1, %ecx
+   31:  orl %ebx, %ecx
+   33:  movb %cl, 9(%rsi)
+   36:  movq %rsi, %r14
+   39:  movq (%r14), %rsi
+   3c:  cmpq %r13, %rsi
+   3f:  je 0x8e
+   41:  movzbl 9(%rsi), %ecx
+   45:  testb $0x18, %cl
+   48:  jne 0x78
+   4a:  movl %ecx, %eax
+   4c:  andl $7, %eax
+   4f:  je 0x28
+   51:  andl $7, %eax
+   54:  andl $0xfffffff8, %ecx
+   57:  orb (%rax), %cl   <var:nextage+0>
+   5d:  movb %cl, 9(%rsi)
+   60:  andl $7, %ecx
+   63:  cmpb $3, %cl
+   66:  jne 0x36
+   68:  cmpq $0, (%r12)
+   6d:  jne 0x36
+   6f:  movq %rsi, (%r12)
+   73:  jmp 0x36
+   75:  nopl (%rax)
+   78:  movq (%rsi), %rax
+   7b:  movq %rbp, %rdi
+   7e:  movq %rax, (%r14)
+   81:  callq fn:freeobj+0
+   86:  movq (%r14), %rsi
+   89:  cmpq %r13, %rsi
+   8c:  jne 0x41
+   8e:  popq %rbx
+   8f:  movq %r14, %rax
+   92:  popq %rbp
+   93:  popq %r12
+   95:  popq %r13
+   97:  popq %r14
+   99:  retq

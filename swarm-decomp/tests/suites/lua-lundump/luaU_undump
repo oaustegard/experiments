@@ -1,0 +1,146 @@
+# luaU_undump  (global, 593 bytes, 145 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movq %rsi, %rdi
+    a:  subq $0x50, %rsp
+    e:  movzbl (%rdx), %eax
+   11:  cmpb $0x40, %al
+   13:  je 0x68
+   15:  cmpb $0x3d, %al
+   17:  je 0x68
+   19:  cmpb $0x1b, %al
+   1b:  movl $0, %eax   <str:"binary string">
+   20:  cmoveq %rax, %rdx
+   24:  movq %rdx, 0x40(%rsp)
+   29:  leaq 0x18(%rsp), %rsi
+   2e:  movl $3, %edx
+   33:  movq %rbx, 0x30(%rsp)
+   38:  movq %rdi, 0x38(%rsp)
+   3d:  callq luaZ_read+0
+   42:  testq %rax, %rax
+   45:  jne 0x1e4
+   4b:  cmpw $0x754c, 0x18(%rsp)
+   52:  je 0x70
+   54:  movl $0, %esi   <str:"not a binary chunk">
+   59:  leaq 0x30(%rsp), %rdi
+   5e:  callq fn:error+0
+   63:  nopl (%rax, %rax)
+   68:  addq $1, %rdx
+   6c:  jmp 0x24
+   6e:  nop
+   70:  cmpb $0x61, 0x1a(%rsp)
+   75:  jne 0x54
+   77:  leaq 0x30(%rsp), %r12
+   7c:  movq %r12, %rdi
+   7f:  callq fn:loadByte+0
+   84:  cmpb $0x54, %al
+   86:  jne 0x203
+   8c:  movq %r12, %rdi
+   8f:  callq fn:loadByte+0
+   94:  testb %al, %al
+   96:  jne 0x1f6
+   9c:  movq 0x38(%rsp), %rdi
+   a1:  movl $6, %edx
+   a6:  leaq 0x24(%rsp), %rsi
+   ab:  callq luaZ_read+0
+   b0:  testq %rax, %rax
+   b3:  jne 0x1e9
+   b9:  cmpl $0xa0d9319, 0x24(%rsp)
+   c1:  je 0xd0
+   c3:  movl $0, %esi   <str:"corrupted chunk">
+   c8:  movq %r12, %rdi
+   cb:  callq fn:error+0
+   d0:  cmpw $0xa1a, 0x28(%rsp)
+   d7:  jne 0xc3
+   d9:  movq %r12, %rdi
+   dc:  callq fn:loadByte+0
+   e1:  cmpb $4, %al
+   e3:  jne 0x244
+   e9:  movq %r12, %rdi
+   ec:  callq fn:loadByte+0
+   f1:  cmpb $8, %al
+   f3:  jne 0x237
+   f9:  movq %r12, %rdi
+   fc:  callq fn:loadByte+0
+  101:  cmpb $8, %al
+  103:  jne 0x22a
+  109:  movq 0x38(%rsp), %rdi
+  10e:  movl $8, %edx
+  113:  leaq 0x10(%rsp), %rsi
+  118:  callq luaZ_read+0
+  11d:  testq %rax, %rax
+  120:  jne 0x1e9
+  126:  cmpq $0x5678, 0x10(%rsp)
+  12f:  jne 0x21d
+  135:  movq 0x38(%rsp), %rdi
+  13a:  movl $8, %edx
+  13f:  leaq 8(%rsp), %rsi
+  144:  callq luaZ_read+0
+  149:  testq %rax, %rax
+  14c:  jne 0x1e9
+  152:  movsd 8(%rsp), %xmm0
+  158:  ucomisd (%rip), %xmm0   <cst:0000000000287740>
+  160:  jp 0x210
+  166:  jne 0x210
+  16c:  movq %r12, %rdi
+  16f:  callq fn:loadByte+0
+  174:  movq %rbx, %rdi
+  177:  movzbl %al, %esi
+  17a:  callq luaF_newLclosure+0
+  17f:  movq %rbx, %rdi
+  182:  movq %rax, %rbp
+  185:  movq 0x10(%rbx), %rax
+  189:  movq %rbp, (%rax)
+  18c:  movb $0x46, 8(%rax)
+  190:  callq luaD_inctop+0
+  195:  movq %rbx, %rdi
+  198:  callq luaF_newproto+0
+  19d:  movq %rax, 0x18(%rbp)
+  1a1:  movq %rax, %rsi
+  1a4:  testb $0x20, 9(%rbp)
+  1a8:  je 0x1b0
+  1aa:  testb $0x18, 9(%rax)
+  1ae:  jne 0x1d0
+  1b0:  movq %r12, %rdi
+  1b3:  xorl %edx, %edx
+  1b5:  callq fn:loadFunction+0
+  1ba:  addq $0x50, %rsp
+  1be:  movq %rbp, %rax
+  1c1:  popq %rbx
+  1c2:  popq %rbp
+  1c3:  popq %r12
+  1c5:  retq
+  1c6:  nopw %cs:(%rax, %rax)
+  1d0:  movq %rbp, %rsi
+  1d3:  movq %rax, %rdx
+  1d6:  movq %rbx, %rdi
+  1d9:  callq luaC_barrier_+0
+  1de:  movq 0x18(%rbp), %rsi
+  1e2:  jmp 0x1b0
+  1e4:  leaq 0x30(%rsp), %r12
+  1e9:  movl $0, %esi   <str:"truncated chunk">
+  1ee:  movq %r12, %rdi
+  1f1:  callq fn:error+0
+  1f6:  movl $0, %esi   <str:"format mismatch">
+  1fb:  movq %r12, %rdi
+  1fe:  callq fn:error+0
+  203:  movl $0, %esi   <str:"version mismatch">
+  208:  movq %r12, %rdi
+  20b:  callq fn:error+0
+  210:  movl $0, %esi   <str:"float format mismatch">
+  215:  movq %r12, %rdi
+  218:  callq fn:error+0
+  21d:  movl $0, %esi   <str:"integer format mismatch">
+  222:  movq %r12, %rdi
+  225:  callq fn:error+0
+  22a:  movl $0, %esi   <str:"lua_Number">
+  22f:  movq %r12, %rdi
+  232:  callq fn:fchecksize.part.0+0
+  237:  movl $0, %esi   <str:"lua_Integer">
+  23c:  movq %r12, %rdi
+  23f:  callq fn:fchecksize.part.0+0
+  244:  movl $0, %esi   <str:"Instruction">
+  249:  movq %r12, %rdi
+  24c:  callq fn:fchecksize.part.0+0

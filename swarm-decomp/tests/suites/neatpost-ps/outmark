@@ -1,0 +1,103 @@
+# outmark  (global, 351 bytes, 102 instructions)
+    0:  pushq %r15
+    2:  movl %edi, %r15d
+    5:  pushq %r14
+    7:  pushq %r13
+    9:  movl $1, %r13d
+    f:  pushq %r12
+   11:  movq %r8, %r12
+   14:  pushq %rbp
+   15:  movq %rcx, %rbp
+   18:  pushq %rbx
+   19:  movq %rsi, %rbx
+   1c:  subq $0x18, %rsp
+   20:  movq %rdx, 8(%rsp)
+   25:  callq fn:o_flush+0
+   2a:  movslq %r15d, %rax
+   2d:  movq %rax, (%rsp)
+   31:  testl %r15d, %r15d
+   34:  jle 0x150
+   3a:  cmpl %r13d, %r15d
+   3d:  jle 0x116
+   43:  nopl (%rax, %rax)
+   48:  movl -4(%r12, %r13, 4), %esi
+   4d:  movq %r13, %rax
+   50:  xorl %r14d, %r14d
+   53:  leal 1(%rsi), %edi
+   56:  jmp 0x74
+   58:  nopl (%rax, %rax)
+   60:  cmpl %edx, %edi
+   62:  sete %dl
+   65:  addq $1, %rax
+   69:  movzbl %dl, %edx
+   6c:  addl %edx, %r14d
+   6f:  cmpl %eax, %r15d
+   72:  jle 0x7c
+   74:  movl (%r12, %rax, 4), %edx
+   78:  cmpl %esi, %edx
+   7a:  jg 0x60
+   7c:  movq %rbx, %rdi
+   7f:  callq pdftext_static+0
+   84:  movl $0, %edi   <str:"[ /Title %s">
+   89:  movq %rax, %rsi
+   8c:  xorl %eax, %eax
+   8e:  callq fn:outf+0
+   93:  movq 8(%rsp), %rax
+   98:  movl -4(%rax, %r13, 4), %esi
+   9d:  testl %esi, %esi
+   9f:  jle 0xad
+   a1:  movl $0, %edi   <str:" /Page %d">
+   a6:  xorl %eax, %eax
+   a8:  callq fn:outf+0
+   ad:  testl %r14d, %r14d
+   b0:  jle 0xc1
+   b2:  movl %r14d, %esi
+   b5:  movl $0, %edi   <str:" /Count %d">
+   ba:  xorl %eax, %eax
+   bc:  callq fn:outf+0
+   c1:  movl -4(%rbp, %r13, 4), %eax
+   c6:  testl %eax, %eax
+   c8:  jle 0xed
+   ca:  movl (%rip), %edx   <var:ps_height+0>
+   d0:  movl $0, %edi   <str:" /View [/XYZ null %d null]">
+   d5:  subl %eax, %edx
+   d7:  leal (%rdx, %rdx, 8), %eax
+   da:  shll $3, %eax
+   dd:  cltd
+   de:  idivl (%rip)   <dev_res+0>
+   e4:  movl %eax, %esi
+   e6:  xorl %eax, %eax
+   e8:  callq fn:outf+0
+   ed:  xorl %eax, %eax
+   ef:  movl $0, %edi   <str:" /OUT pdfmark\n">
+   f4:  addq $0x100, %rbx
+   fb:  callq fn:outf+0
+  100:  leaq 1(%r13), %rax
+  104:  cmpq %r13, (%rsp)
+  108:  je 0x150
+  10a:  movq %rax, %r13
+  10d:  cmpl %r13d, %r15d
+  110:  jg 0x48
+  116:  movq %rbx, %rdi
+  119:  callq pdftext_static+0
+  11e:  movl $0, %edi   <str:"[ /Title %s">
+  123:  movq %rax, %rsi
+  126:  xorl %eax, %eax
+  128:  callq fn:outf+0
+  12d:  movq 8(%rsp), %rax
+  132:  movl -4(%rax, %r13, 4), %esi
+  137:  testl %esi, %esi
+  139:  jle 0xc1
+  13b:  movl $0, %edi   <str:" /Page %d">
+  140:  xorl %eax, %eax
+  142:  callq fn:outf+0
+  147:  jmp 0xc1
+  14c:  nopl (%rax)
+  150:  addq $0x18, %rsp
+  154:  popq %rbx
+  155:  popq %rbp
+  156:  popq %r12
+  158:  popq %r13
+  15a:  popq %r14
+  15c:  popq %r15
+  15e:  retq

@@ -1,0 +1,94 @@
+# luaC_fullgc  (global, 346 bytes, 93 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq 0x18(%rdi), %r12
+    8:  movq %rdi, %rbx
+    b:  cmpb $0, 0x66(%r12)
+   11:  movb %sil, 0x6b(%r12)
+   16:  jne 0x110
+   1c:  movzbl 0x65(%r12), %eax
+   22:  movq %r12, %rbp
+   25:  cmpb $2, %al
+   27:  jbe 0x140
+   2d:  cmpb $8, %al
+   2f:  je 0x50
+   31:  nopl (%rax)
+   38:  movq %rbx, %rdi
+   3b:  callq fn:singlestep+0
+   40:  cmpb $8, 0x65(%rbp)
+   44:  jne 0x38
+   46:  movq 0x18(%rbx), %rbp
+   4a:  cmpb $0, 0x65(%rbp)
+   4e:  je 0x62
+   50:  movq %rbx, %rdi
+   53:  callq fn:singlestep+0
+   58:  cmpb $0, 0x65(%rbp)
+   5c:  jne 0x50
+   5e:  movq 0x18(%rbx), %rbp
+   62:  movb $1, 0x65(%r12)
+   68:  cmpb $7, 0x65(%rbp)
+   6c:  je 0x90
+   6e:  nop
+   70:  movq %rbx, %rdi
+   73:  callq fn:singlestep+0
+   78:  cmpb $7, 0x65(%rbp)
+   7c:  jne 0x70
+   7e:  movq 0x18(%rbx), %rbp
+   82:  cmpb $8, 0x65(%rbp)
+   86:  je 0x9e
+   88:  nopl (%rax, %rax)
+   90:  movq %rbx, %rdi
+   93:  callq fn:singlestep+0
+   98:  cmpb $8, 0x65(%rbp)
+   9c:  jne 0x90
+   9e:  movq 0x20(%r12), %rdx
+   a3:  movzbl 0x6c(%r12), %esi
+   a9:  movabsq $0x28f5c28f5c28f5c3, %rax
+   b3:  movabsq $0x7fffffffffffffff, %rdi
+   bd:  shrq $2, %rdx
+   c1:  shll $2, %esi
+   c4:  mulq %rdx
+   c7:  movq %rdi, %rax
+   ca:  movslq %esi, %rsi
+   cd:  movq %rdx, %rcx
+   d0:  cqto
+   d2:  shrq $2, %rcx
+   d6:  idivq %rcx
+   d9:  cmpq %rax, %rsi
+   dc:  jl 0x130
+   de:  movq %rdi, %rcx
+   e1:  movq 0x18(%r12), %rsi
+   e6:  addq 0x10(%r12), %rsi
+   eb:  xorl %eax, %eax
+   ed:  movq %r12, %rdi
+   f0:  subq %rcx, %rsi
+   f3:  testq %rsi, %rsi
+   f6:  cmovgq %rax, %rsi
+   fa:  callq luaE_setdebt+0
+   ff:  movb $0, 0x6b(%r12)
+  105:  popq %rbx
+  106:  popq %rbp
+  107:  popq %r12
+  109:  retq
+  10a:  nopw (%rax, %rax)
+  110:  movq %r12, %rdi
+  113:  movq %r12, %rsi
+  116:  callq fn:enterinc+0
+  11b:  movq %rbx, %rdi
+  11e:  callq fn:entergen+0
+  123:  movb $0, 0x6b(%r12)
+  129:  popq %rbx
+  12a:  popq %rbp
+  12b:  popq %r12
+  12d:  retq
+  12e:  nop
+  130:  imulq %rsi, %rcx
+  134:  jmp 0xe1
+  136:  nopw %cs:(%rax, %rax)
+  140:  callq fn:entersweep+0
+  145:  movq 0x18(%rbx), %rbp
+  149:  movzbl 0x65(%rbp), %eax
+  14d:  cmpb $8, %al
+  14f:  jne 0x38
+  155:  jmp 0x50

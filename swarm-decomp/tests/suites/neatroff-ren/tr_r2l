@@ -1,0 +1,22 @@
+# tr_r2l  (global, 87 bytes, 21 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rdi), %rax
+    7:  movl $1, (%rip)   <dir_do+0>
+   11:  movsbl (%rax), %eax
+   14:  cmpl (%rip), %eax   <c_cc+0>
+   1a:  je 0x50
+   1c:  movl $0, %edi   <str:".td">
+   21:  callq map+0
+   26:  movl %eax, %edi
+   28:  callq nreg+0
+   2d:  movl $0, %edi   <str:".cd">
+   32:  movl $1, (%rax)
+   38:  callq map+0
+   3d:  movl %eax, %edi
+   3f:  callq nreg+0
+   44:  movl $1, (%rax)
+   4a:  addq $8, %rsp
+   4e:  retq
+   4f:  nop
+   50:  callq fn:ren_br+0
+   55:  jmp 0x1c

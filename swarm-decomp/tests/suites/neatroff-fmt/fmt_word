@@ -1,0 +1,77 @@
+# fmt_word  (global, 253 bytes, 76 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  movq %rsi, %rdi
+    d:  callq wb_empty+0
+   12:  testl %eax, %eax
+   14:  je 0x20
+   16:  xorl %eax, %eax
+   18:  popq %rbx
+   19:  popq %rbp
+   1a:  popq %r12
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  movq %rbx, %rdi
+   23:  movl %eax, %r12d
+   26:  callq fn:fmt_confchanged+0
+   2b:  testl %eax, %eax
+   2d:  je 0x41
+   2f:  xorl %esi, %esi
+   31:  movq %rbx, %rdi
+   34:  callq fn:fmt_fillwords+0
+   39:  testl %eax, %eax
+   3b:  jne 0xe0
+   41:  movl $0, %edi   <str:".ce">
+   46:  callq map+0
+   4b:  movl %eax, %edi
+   4d:  callq nreg+0
+   52:  movl (%rax), %r8d
+   55:  testl %r8d, %r8d
+   58:  je 0xb0
+   5a:  movl 8(%rbx), %edi
+   5d:  testl %edi, %edi
+   5f:  je 0xf0
+   65:  movq %rbx, %rdi
+   68:  callq fn:fmt_wordgap+0
+   6d:  movq %rbp, %rdi
+   70:  movl %eax, 0x40(%rbx)
+   73:  callq wb_eos+0
+   78:  movl %eax, 0x5c(%rbx)
+   7b:  movl 0x58(%rbx), %eax
+   7e:  testl %eax, %eax
+   80:  jne 0x86
+   82:  movl 0x40(%rbx), %r12d
+   86:  movl %r12d, %edx
+   89:  movq %rbp, %rsi
+   8c:  movq %rbx, %rdi
+   8f:  callq fn:fmt_insertword+0
+   94:  movl $0, 0x58(%rbx)
+   9b:  movl $0, 0x48(%rbx)
+   a2:  movq $0, 0x40(%rbx)
+   aa:  jmp 0x16
+   af:  nop
+   b0:  movl $0x75, %edi
+   b5:  callq nreg+0
+   ba:  movl (%rax), %esi
+   bc:  testl %esi, %esi
+   be:  je 0x5a
+   c0:  movl 0x44(%rbx), %ecx
+   c3:  testl %ecx, %ecx
+   c5:  je 0x5a
+   c7:  movl 0x40(%rbx), %edx
+   ca:  testl %edx, %edx
+   cc:  je 0x5a
+   ce:  movq %rbx, %rdi
+   d1:  callq fn:fmt_flush+0
+   d6:  testl %eax, %eax
+   d8:  je 0x5a
+   da:  nopw (%rax, %rax)
+   e0:  movl $1, %eax
+   e5:  jmp 0x18
+   ea:  nopw (%rax, %rax)
+   f0:  movq %rbx, %rdi
+   f3:  callq fn:fmt_confupdate+0
+   f8:  jmp 0x65

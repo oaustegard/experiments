@@ -1,0 +1,510 @@
+# neatmkfn-otf: translation unit otf of neatmkfn
+# write each function as src/neatmkfn/otf/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+intcmp	static	5 bytes
+cff_op	static	340 bytes
+ggrp_find	static	125 bytes
+classdef	static	278 bytes
+lookupcmp	static	127 bytes
+coverage	static	251 bytes
+gctx_lookahead	static	129 bytes
+lookuptag	static	96 bytes
+otf_input.constprop.0	static	73 bytes
+cffdict_get.constprop.0	static	139 bytes
+otf_featrec.isra.0	static	372 bytes
+otf_lang.isra.0	static	209 bytes
+otf_gtab.isra.0	static	440 bytes
+otf_table.isra.0	static	125 bytes
+uwid	static	133 bytes
+valuerecord_small	static	101 bytes
+valuerecord_print	static	129 bytes
+otf_gsubtype3.part.0	static	590 bytes
+otf_gsubtype4.part.0	static	773 bytes
+ggrp_make.part.0	static	251 bytes
+ggrp_class	static	166 bytes
+cff_char	static	523 bytes
+otf_gsubtype1.isra.0	static	990 bytes
+otf_gsub.isra.0	static	1654 bytes
+otf_gpos.isra.0	static	6533 bytes
+otf_offsettable	global	3776 bytes
+otf_read	global	119 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+ggrp_n	static	4 bytes	.bss.ggrp_n
+    (zero-initialised)
+ggrp_len	static	8192 bytes	.bss.ggrp_len
+    (zero-initialised)
+ggrp_g	static	16384 bytes	.bss.ggrp_g
+    (zero-initialised)
+glyph_n	static	4 bytes	.bss.glyph_n
+    (zero-initialised)
+tag.7	static	16 bytes	.bss.tag.7
+    (zero-initialised)
+upm	static	4 bytes	.bss.upm
+    (zero-initialised)
+glyph_name	static	4194304 bytes	.bss.glyph_name
+    (zero-initialised)
+str.6	static	16 bytes	.bss.str.6
+    (zero-initialised)
+stdset	static	3128 bytes	.rodata.stdset
+    +0     -> str:".notdef"
+    +8     -> str:"space"
+    +16    -> str:"exclam"
+    +24    -> str:"quotedbl"
+    +32    -> str:"numbersign"
+    +40    -> str:"dollar"
+    +48    -> str:"percent"
+    +56    -> str:"ampersand"
+    +64    -> str:"quoteright"
+    +72    -> str:"parenleft"
+    +80    -> str:"parenright"
+    +88    -> str:"asterisk"
+    +96    -> str:"plus"
+    +104   -> str:"comma"
+    +112   -> str:"hyphen"
+    +120   -> str:"period"
+    +128   -> str:"slash"
+    +136   -> str:"zero"
+    +144   -> str:"one"
+    +152   -> str:"two"
+    +160   -> str:"three"
+    +168   -> str:"four"
+    +176   -> str:"five"
+    +184   -> str:"six"
+    +192   -> str:"seven"
+    +200   -> str:"eight"
+    +208   -> str:"nine"
+    +216   -> str:"colon"
+    +224   -> str:"semicolon"
+    +232   -> str:"less"
+    +240   -> str:"equal"
+    +248   -> str:"greater"
+    +256   -> str:"question"
+    +264   -> str:"at"
+    +272   -> str:"A"
+    +280   -> str:"B"
+    +288   -> str:"C"
+    +296   -> str:"D"
+    +304   -> str:"E"
+    +312   -> str:"F"
+    +320   -> str:"G"
+    +328   -> str:"H"
+    +336   -> str:"I"
+    +344   -> str:"J"
+    +352   -> str:"K"
+    +360   -> str:"L"
+    +368   -> str:"M"
+    +376   -> str:"N"
+    +384   -> str:"O"
+    +392   -> str:"P"
+    +400   -> str:"Q"
+    +408   -> str:"R"
+    +416   -> str:"S"
+    +424   -> str:"T"
+    +432   -> str:"U"
+    +440   -> str:"V"
+    +448   -> str:"W"
+    +456   -> str:"X"
+    +464   -> str:"Y"
+    +472   -> str:"Z"
+    +480   -> str:"bracketleft"
+    +488   -> str:"backslash"
+    +496   -> str:"bracketright"
+    +504   -> str:"asciicircum"
+    +512   -> str:"underscore"
+    +520   -> str:"quoteleft"
+    +528   -> str:"a"
+    +536   -> str:"b"
+    +544   -> str:"c"
+    +552   -> str:"d"
+    +560   -> str:"e"
+    +568   -> str:"f"
+    +576   -> str:"g"
+    +584   -> str:"h"
+    +592   -> str:"i"
+    +600   -> str:"j"
+    +608   -> str:"k"
+    +616   -> str:"l"
+    +624   -> str:"m"
+    +632   -> str:"n"
+    +640   -> str:"o"
+    +648   -> str:"p"
+    +656   -> str:"q"
+    +664   -> str:"r"
+    +672   -> str:"s"
+    +680   -> str:"t"
+    +688   -> str:"u"
+    +696   -> str:"v"
+    +704   -> str:"w"
+    +712   -> str:"x"
+    +720   -> str:"y"
+    +728   -> str:"z"
+    +736   -> str:"braceleft"
+    +744   -> str:"bar"
+    +752   -> str:"braceright"
+    +760   -> str:"asciitilde"
+    +768   -> str:"exclamdown"
+    +776   -> str:"cent"
+    +784   -> str:"sterling"
+    +792   -> str:"fraction"
+    +800   -> str:"yen"
+    +808   -> str:"florin"
+    +816   -> str:"section"
+    +824   -> str:"currency"
+    +832   -> str:"quotesingle"
+    +840   -> str:"quotedblleft"
+    +848   -> str:"guillemotleft"
+    +856   -> str:"guilsinglleft"
+    +864   -> str:"guilsinglright"
+    +872   -> str:"fi"
+    +880   -> str:"fl"
+    +888   -> str:"endash"
+    +896   -> str:"dagger"
+    +904   -> str:"daggerdbl"
+    +912   -> str:"periodcentered"
+    +920   -> str:"paragraph"
+    +928   -> str:"bullet"
+    +936   -> str:"quotesinglbase"
+    +944   -> str:"quotedblbase"
+    +952   -> str:"quotedblright"
+    +960   -> str:"guillemotright"
+    +968   -> str:"ellipsis"
+    +976   -> str:"perthousand"
+    +984   -> str:"questiondown"
+    +992   -> str:"grave"
+    +1000  -> str:"acute"
+    +1008  -> str:"circumflex"
+    +1016  -> str:"tilde"
+    +1024  -> str:"macron"
+    +1032  -> str:"breve"
+    +1040  -> str:"dotaccent"
+    +1048  -> str:"dieresis"
+    +1056  -> str:"ring"
+    +1064  -> str:"cedilla"
+    +1072  -> str:"hungarumlaut"
+    +1080  -> str:"ogonek"
+    +1088  -> str:"caron"
+    +1096  -> str:"emdash"
+    +1104  -> str:"AE"
+    +1112  -> str:"ordfeminine"
+    +1120  -> str:"Lslash"
+    +1128  -> str:"Oslash"
+    +1136  -> str:"OE"
+    +1144  -> str:"ordmasculine"
+    +1152  -> str:"ae"
+    +1160  -> str:"dotlessi"
+    +1168  -> str:"lslash"
+    +1176  -> str:"oslash"
+    +1184  -> str:"oe"
+    +1192  -> str:"germandbls"
+    +1200  -> str:"onesuperior"
+    +1208  -> str:"logicalnot"
+    +1216  -> str:"mu"
+    +1224  -> str:"trademark"
+    +1232  -> str:"Eth"
+    +1240  -> str:"onehalf"
+    +1248  -> str:"plusminus"
+    +1256  -> str:"Thorn"
+    +1264  -> str:"onequarter"
+    +1272  -> str:"divide"
+    +1280  -> str:"brokenbar"
+    +1288  -> str:"degree"
+    +1296  -> str:"thorn"
+    +1304  -> str:"threequarters"
+    +1312  -> str:"twosuperior"
+    +1320  -> str:"registered"
+    +1328  -> str:"minus"
+    +1336  -> str:"eth"
+    +1344  -> str:"multiply"
+    +1352  -> str:"threesuperior"
+    +1360  -> str:"copyright"
+    +1368  -> str:"Aacute"
+    +1376  -> str:"Acircumflex"
+    +1384  -> str:"Adieresis"
+    +1392  -> str:"Agrave"
+    +1400  -> str:"Aring"
+    +1408  -> str:"Atilde"
+    +1416  -> str:"Ccedilla"
+    +1424  -> str:"Eacute"
+    +1432  -> str:"Ecircumflex"
+    +1440  -> str:"Edieresis"
+    +1448  -> str:"Egrave"
+    +1456  -> str:"Iacute"
+    +1464  -> str:"Icircumflex"
+    +1472  -> str:"Idieresis"
+    +1480  -> str:"Igrave"
+    +1488  -> str:"Ntilde"
+    +1496  -> str:"Oacute"
+    +1504  -> str:"Ocircumflex"
+    +1512  -> str:"Odieresis"
+    +1520  -> str:"Ograve"
+    +1528  -> str:"Otilde"
+    +1536  -> str:"Scaron"
+    +1544  -> str:"Uacute"
+    +1552  -> str:"Ucircumflex"
+    +1560  -> str:"Udieresis"
+    +1568  -> str:"Ugrave"
+    +1576  -> str:"Yacute"
+    +1584  -> str:"Ydieresis"
+    +1592  -> str:"Zcaron"
+    ... 191 more pointers
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 2616 more bytes
+sec	static	4 bytes	.bss.sec
+    (zero-initialised)
+glyph_wid	static	262144 bytes	.bss.glyph_wid
+    (zero-initialised)
+cls1.4	static	262144 bytes	.bss.cls1.4
+    (zero-initialised)
+gl1.5	static	262144 bytes	.bss.gl1.5
+    (zero-initialised)
+cls2.2	static	262144 bytes	.bss.cls2.2
+    (zero-initialised)
+gl2.3	static	262144 bytes	.bss.gl2.3
+    (zero-initialised)
+grp1.1	static	262144 bytes	.bss.grp1.1
+    (zero-initialised)
+grp2.0	static	262144 bytes	.bss.grp2.0
+    (zero-initialised)
+glyph_bbox	static	1048576 bytes	.bss.glyph_bbox
+    (zero-initialised)
+glyph_code	static	262144 bytes	.bss.glyph_code
+    (zero-initialised)
+macset	static	2064 bytes	.rodata.macset
+    +0     -> str:".notdef"
+    +8     -> str:".null"
+    +16    -> str:"nonmarkingreturn"
+    +24    -> str:"space"
+    +32    -> str:"exclam"
+    +40    -> str:"quotedbl"
+    +48    -> str:"numbersign"
+    +56    -> str:"dollar"
+    +64    -> str:"percent"
+    +72    -> str:"ampersand"
+    +80    -> str:"quotesingle"
+    +88    -> str:"parenleft"
+    +96    -> str:"parenright"
+    +104   -> str:"asterisk"
+    +112   -> str:"plus"
+    +120   -> str:"comma"
+    +128   -> str:"hyphen"
+    +136   -> str:"period"
+    +144   -> str:"slash"
+    +152   -> str:"zero"
+    +160   -> str:"one"
+    +168   -> str:"two"
+    +176   -> str:"three"
+    +184   -> str:"four"
+    +192   -> str:"five"
+    +200   -> str:"six"
+    +208   -> str:"seven"
+    +216   -> str:"eight"
+    +224   -> str:"nine"
+    +232   -> str:"colon"
+    +240   -> str:"semicolon"
+    +248   -> str:"less"
+    +256   -> str:"equal"
+    +264   -> str:"greater"
+    +272   -> str:"question"
+    +280   -> str:"at"
+    +288   -> str:"A"
+    +296   -> str:"B"
+    +304   -> str:"C"
+    +312   -> str:"D"
+    +320   -> str:"E"
+    +328   -> str:"F"
+    +336   -> str:"G"
+    +344   -> str:"H"
+    +352   -> str:"I"
+    +360   -> str:"J"
+    +368   -> str:"K"
+    +376   -> str:"L"
+    +384   -> str:"M"
+    +392   -> str:"N"
+    +400   -> str:"O"
+    +408   -> str:"P"
+    +416   -> str:"Q"
+    +424   -> str:"R"
+    +432   -> str:"S"
+    +440   -> str:"T"
+    +448   -> str:"U"
+    +456   -> str:"V"
+    +464   -> str:"W"
+    +472   -> str:"X"
+    +480   -> str:"Y"
+    +488   -> str:"Z"
+    +496   -> str:"bracketleft"
+    +504   -> str:"backslash"
+    +512   -> str:"bracketright"
+    +520   -> str:"asciicircum"
+    +528   -> str:"underscore"
+    +536   -> str:"grave"
+    +544   -> str:"a"
+    +552   -> str:"b"
+    +560   -> str:"c"
+    +568   -> str:"d"
+    +576   -> str:"e"
+    +584   -> str:"f"
+    +592   -> str:"g"
+    +600   -> str:"h"
+    +608   -> str:"i"
+    +616   -> str:"j"
+    +624   -> str:"k"
+    +632   -> str:"l"
+    +640   -> str:"m"
+    +648   -> str:"n"
+    +656   -> str:"o"
+    +664   -> str:"p"
+    +672   -> str:"q"
+    +680   -> str:"r"
+    +688   -> str:"s"
+    +696   -> str:"t"
+    +704   -> str:"u"
+    +712   -> str:"v"
+    +720   -> str:"w"
+    +728   -> str:"x"
+    +736   -> str:"y"
+    +744   -> str:"z"
+    +752   -> str:"braceleft"
+    +760   -> str:"bar"
+    +768   -> str:"braceright"
+    +776   -> str:"asciitilde"
+    +784   -> str:"Adieresis"
+    +792   -> str:"Aring"
+    +800   -> str:"Ccedilla"
+    +808   -> str:"Eacute"
+    +816   -> str:"Ntilde"
+    +824   -> str:"Odieresis"
+    +832   -> str:"Udieresis"
+    +840   -> str:"aacute"
+    +848   -> str:"agrave"
+    +856   -> str:"acircumflex"
+    +864   -> str:"adieresis"
+    +872   -> str:"atilde"
+    +880   -> str:"aring"
+    +888   -> str:"ccedilla"
+    +896   -> str:"eacute"
+    +904   -> str:"egrave"
+    +912   -> str:"ecircumflex"
+    +920   -> str:"edieresis"
+    +928   -> str:"iacute"
+    +936   -> str:"igrave"
+    +944   -> str:"icircumflex"
+    +952   -> str:"idieresis"
+    +960   -> str:"ntilde"
+    +968   -> str:"oacute"
+    +976   -> str:"ograve"
+    +984   -> str:"ocircumflex"
+    +992   -> str:"odieresis"
+    +1000  -> str:"otilde"
+    +1008  -> str:"uacute"
+    +1016  -> str:"ugrave"
+    +1024  -> str:"ucircumflex"
+    +1032  -> str:"udieresis"
+    +1040  -> str:"dagger"
+    +1048  -> str:"degree"
+    +1056  -> str:"cent"
+    +1064  -> str:"sterling"
+    +1072  -> str:"section"
+    +1080  -> str:"bullet"
+    +1088  -> str:"paragraph"
+    +1096  -> str:"germandbls"
+    +1104  -> str:"registered"
+    +1112  -> str:"copyright"
+    +1120  -> str:"trademark"
+    +1128  -> str:"acute"
+    +1136  -> str:"dieresis"
+    +1144  -> str:"notequal"
+    +1152  -> str:"AE"
+    +1160  -> str:"Oslash"
+    +1168  -> str:"infinity"
+    +1176  -> str:"plusminus"
+    +1184  -> str:"lessequal"
+    +1192  -> str:"greaterequal"
+    +1200  -> str:"yen"
+    +1208  -> str:"mu"
+    +1216  -> str:"partialdiff"
+    +1224  -> str:"summation"
+    +1232  -> str:"product"
+    +1240  -> str:"pi"
+    +1248  -> str:"integral"
+    +1256  -> str:"ordfeminine"
+    +1264  -> str:"ordmasculine"
+    +1272  -> str:"Omega"
+    +1280  -> str:"ae"
+    +1288  -> str:"oslash"
+    +1296  -> str:"questiondown"
+    +1304  -> str:"exclamdown"
+    +1312  -> str:"logicalnot"
+    +1320  -> str:"radical"
+    +1328  -> str:"florin"
+    +1336  -> str:"approxequal"
+    +1344  -> str:"Delta"
+    +1352  -> str:"guillemotleft"
+    +1360  -> str:"guillemotright"
+    +1368  -> str:"ellipsis"
+    +1376  -> str:"nonbreakingspace"
+    +1384  -> str:"Agrave"
+    +1392  -> str:"Atilde"
+    +1400  -> str:"Otilde"
+    +1408  -> str:"OE"
+    +1416  -> str:"oe"
+    +1424  -> str:"endash"
+    +1432  -> str:"emdash"
+    +1440  -> str:"quotedblleft"
+    +1448  -> str:"quotedblright"
+    +1456  -> str:"quoteleft"
+    +1464  -> str:"quoteright"
+    +1472  -> str:"divide"
+    +1480  -> str:"lozenge"
+    +1488  -> str:"ydieresis"
+    +1496  -> str:"Ydieresis"
+    +1504  -> str:"fraction"
+    +1512  -> str:"currency"
+    +1520  -> str:"guilsinglleft"
+    +1528  -> str:"guilsinglright"
+    +1536  -> str:"fi"
+    +1544  -> str:"fl"
+    +1552  -> str:"daggerdbl"
+    +1560  -> str:"periodcentered"
+    +1568  -> str:"quotesinglbase"
+    +1576  -> str:"quotedblbase"
+    +1584  -> str:"perthousand"
+    +1592  -> str:"Acircumflex"
+    ... 58 more pointers
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 1552 more bytes
+
+## symbols this TU uses but does not define (other TUs, libc)
+fprintf fputc free fwrite malloc memcpy mkfn_byname mkfn_char mkfn_dry mkfn_featrank mkfn_font mkfn_header mkfn_kern mkfn_kmin mkfn_lang mkfn_res mkfn_script mkfn_warn printf putchar qsort read sbuf_done sbuf_make sbuf_mem snprintf sprintf stderr strchr strcmp strcpy strlen strncmp

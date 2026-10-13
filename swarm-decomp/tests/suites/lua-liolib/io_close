@@ -1,0 +1,38 @@
+# io_close  (static, 145 bytes, 37 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  callq lua_type+0
+   12:  cmpl $-1, %eax
+   15:  je 0x68
+   17:  movl $0, %edx   <str:"FILE*">
+   1c:  movl $1, %esi
+   21:  movq %rbx, %rdi
+   24:  callq luaL_checkudata+0
+   29:  cmpq $0, 8(%rax)
+   2e:  je 0x80
+   30:  movq %rbx, %rdi
+   33:  movl $0, %edx   <str:"FILE*">
+   38:  movl $1, %esi
+   3d:  callq luaL_checkudata+0
+   42:  movq %rbx, %rdi
+   45:  movq 8(%rax), %rdx
+   49:  movq $0, 8(%rax)
+   51:  movq %rdx, 8(%rsp)
+   56:  movq 8(%rsp), %rax
+   5b:  addq $0x10, %rsp
+   5f:  popq %rbx
+   60:  jmpq *%rax
+   62:  nopw (%rax, %rax)
+   68:  movl $0, %edx   <str:"_IO_output">
+   6d:  movl $0xfff0b9d8, %esi
+   72:  movq %rbx, %rdi
+   75:  callq lua_getfield+0
+   7a:  jmp 0x17
+   7c:  nopl (%rax)
+   80:  movl $0, %esi   <str:"attempt to use a closed file">
+   85:  movq %rbx, %rdi
+   88:  xorl %eax, %eax
+   8a:  callq luaL_error+0
+   8f:  jmp 0x30

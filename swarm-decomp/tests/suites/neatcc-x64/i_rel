@@ -1,0 +1,46 @@
+# i_rel  (static, 215 bytes, 45 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  movq (%rip), %rsi   <var:rel_n+0>
+   10:  cmpq (%rip), %rsi   <var:rel_sz+0>
+   17:  pushq %rbx
+   18:  movq %rdx, %rbx
+   1b:  je 0x50
+   1d:  movq (%rip), %rax   <var:rel_off+0>
+   24:  movq (%rip), %rdx   <var:rel_sym+0>
+   2b:  movq %r12, (%rdx, %rsi, 8)
+   2f:  movq (%rip), %rdx   <var:rel_flg+0>
+   36:  movq %rbp, (%rdx, %rsi, 8)
+   3a:  movq %rbx, (%rax, %rsi, 8)
+   3e:  addq $1, %rsi
+   42:  popq %rbx
+   43:  movq %rsi, (%rip)   <var:rel_n+0>
+   4a:  popq %rbp
+   4b:  popq %r12
+   4d:  retq
+   4e:  nop
+   50:  leaq (%rsi, %rsi), %rdx
+   54:  movl $0x80, %eax
+   59:  movl $8, %ecx
+   5e:  movq (%rip), %rdi   <var:rel_sym+0>
+   65:  cmpq %rax, %rdx
+   68:  cmovlq %rax, %rdx
+   6c:  movq %rdx, (%rip)   <var:rel_sz+0>
+   73:  callq mextend+0
+   78:  movq (%rip), %rdx   <var:rel_sz+0>
+   7f:  movl $8, %ecx
+   84:  movq (%rip), %rsi   <var:rel_n+0>
+   8b:  movq (%rip), %rdi   <var:rel_flg+0>
+   92:  movq %rax, (%rip)   <var:rel_sym+0>
+   99:  callq mextend+0
+   9e:  movq (%rip), %rsi   <var:rel_n+0>
+   a5:  movl $8, %ecx
+   aa:  movq (%rip), %rdx   <var:rel_sz+0>
+   b1:  movq (%rip), %rdi   <var:rel_off+0>
+   b8:  movq %rax, (%rip)   <var:rel_flg+0>
+   bf:  callq mextend+0
+   c4:  movq (%rip), %rsi   <var:rel_n+0>
+   cb:  movq %rax, (%rip)   <var:rel_off+0>
+   d2:  jmp 0x24

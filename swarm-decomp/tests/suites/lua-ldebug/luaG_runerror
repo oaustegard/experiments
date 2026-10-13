@@ -1,0 +1,63 @@
+# luaG_runerror  (global, 280 bytes, 62 instructions)
+    0:  pushq %r12
+    2:  pushq %rbx
+    3:  movq %rdi, %rbx
+    6:  subq $0xe8, %rsp
+    d:  movq %rdx, 0x40(%rsp)
+   12:  movq %rcx, 0x48(%rsp)
+   17:  movq %r8, 0x50(%rsp)
+   1c:  movq %r9, 0x58(%rsp)
+   21:  testb %al, %al
+   23:  je 0x5f
+   25:  movaps %xmm0, 0x60(%rsp)
+   2a:  movaps %xmm1, 0x70(%rsp)
+   2f:  movaps %xmm2, 0x80(%rsp)
+   37:  movaps %xmm3, 0x90(%rsp)
+   3f:  movaps %xmm4, 0xa0(%rsp)
+   47:  movaps %xmm5, 0xb0(%rsp)
+   4f:  movaps %xmm6, 0xc0(%rsp)
+   57:  movaps %xmm7, 0xd0(%rsp)
+   5f:  movq 0x18(%rbx), %rax
+   63:  movq 0x20(%rbx), %r12
+   67:  cmpq $0, 0x18(%rax)
+   6c:  jle 0x80
+   6e:  movq %rbx, %rdi
+   71:  movq %rsi, 8(%rsp)
+   76:  callq luaC_step+0
+   7b:  movq 8(%rsp), %rsi
+   80:  leaq 0x100(%rsp), %rax
+   88:  leaq 0x18(%rsp), %rdx
+   8d:  movq %rbx, %rdi
+   90:  movl $0x10, 0x18(%rsp)
+   98:  movq %rax, 0x20(%rsp)
+   9d:  leaq 0x30(%rsp), %rax
+   a2:  movl $0x30, 0x1c(%rsp)
+   aa:  movq %rax, 0x28(%rsp)
+   af:  callq luaO_pushvfstring+0
+   b4:  movq %rax, %r10
+   b7:  testb $2, 0x3e(%r12)
+   bd:  je 0xc7
+   bf:  movq %rbx, %rdi
+   c2:  callq luaG_errormsg+0
+   c7:  movq (%r12), %rax
+   cb:  movq 0x20(%r12), %rsi
+   d0:  movq (%rax), %rax
+   d3:  movq 0x18(%rax), %r11
+   d7:  subq 0x40(%r11), %rsi
+   db:  movq %r11, %rdi
+   de:  sarq $2, %rsi
+   e2:  subl $1, %esi
+   e5:  callq luaG_getfuncline+0
+   ea:  movq 0x70(%r11), %rdx
+   ee:  movq %r10, %rsi
+   f1:  movq %rbx, %rdi
+   f4:  movl %eax, %ecx
+   f6:  callq luaG_addinfo+0
+   fb:  movq 0x10(%rbx), %rax
+   ff:  movq -0x10(%rax), %rdx
+  103:  subq $0x10, %rax
+  107:  movq %rdx, -0x10(%rax)
+  10b:  movzbl 8(%rax), %edx
+  10f:  movb %dl, -8(%rax)
+  112:  movq %rax, 0x10(%rbx)
+  116:  jmp 0xbf

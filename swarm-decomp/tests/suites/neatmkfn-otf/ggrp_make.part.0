@@ -1,0 +1,72 @@
+# ggrp_make.part.0  (static, 251 bytes, 71 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movl (%rip), %r13d   <var:ggrp_n+0>
+    b:  pushq %r12
+    d:  movslq %esi, %r12
+   10:  pushq %rbp
+   11:  leal 1(%r13), %eax
+   15:  movq %rdi, %rbp
+   18:  pushq %rbx
+   19:  movq %r12, %rbx
+   1c:  shlq $2, %r12
+   20:  movq %r12, %rdi
+   23:  movl %eax, (%rip)   <var:ggrp_n+0>
+   29:  callq malloc+0
+   2e:  movq %rax, %rdi
+   31:  movslq %r13d, %rax
+   34:  movq %rdi, (, %rax, 8)   <var:ggrp_g+0>
+   3c:  movl %ebx, (, %rax, 4)   <var:ggrp_len+0>
+   43:  testl %ebx, %ebx
+   45:  jle 0xe8
+   4b:  movl %ebx, %edx
+   4d:  movq %rbp, %rsi
+   50:  addq %rbp, %r12
+   53:  shlq $2, %rdx
+   57:  callq memcpy+0
+   5c:  movl %ebx, %edx
+   5e:  movl %r13d, %esi
+   61:  movl $0, %edi   <str:"ggrp %d %d">
+   66:  xorl %eax, %eax
+   68:  callq printf+0
+   6d:  nopl (%rax)
+   70:  movslq (%rbp), %rbx
+   74:  movl (%rip), %eax   <mkfn_byname+0>
+   7a:  movq %rbx, %r14
+   7d:  shlq $6, %rbx
+   81:  addq $0, %rbx   <var:glyph_name+0>
+   88:  testl %eax, %eax
+   8a:  jne 0xb3
+   8c:  movq %rbx, %rdi
+   8f:  callq strlen+0
+   94:  cmpq $3, %rax
+   98:  jbe 0xb3
+   9a:  movl %r14d, %edx
+   9d:  movl $0, %esi   <str:"%d">
+   a2:  movl $0, %edi   <var:str+0>
+   a7:  xorl %eax, %eax
+   a9:  callq sprintf+0
+   ae:  movl $0, %ebx   <var:str+0>
+   b3:  movq %rbx, %rsi
+   b6:  movl $0, %edi   <str:" %s">
+   bb:  xorl %eax, %eax
+   bd:  addq $4, %rbp
+   c1:  callq printf+0
+   c6:  cmpq %rbp, %r12
+   c9:  jne 0x70
+   cb:  movl $0xa, %edi
+   d0:  callq putchar+0
+   d5:  popq %rbx
+   d6:  movl %r13d, %eax
+   d9:  popq %rbp
+   da:  popq %r12
+   dc:  popq %r13
+   de:  popq %r14
+   e0:  retq
+   e1:  nopl (%rax)
+   e8:  movl %ebx, %edx
+   ea:  movl %r13d, %esi
+   ed:  movl $0, %edi   <str:"ggrp %d %d">
+   f2:  xorl %eax, %eax
+   f4:  callq printf+0
+   f9:  jmp 0xcb

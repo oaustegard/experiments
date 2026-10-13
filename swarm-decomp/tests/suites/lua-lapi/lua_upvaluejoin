@@ -1,0 +1,40 @@
+# lua_upvaluejoin  (global, 137 bytes, 39 instructions)
+    0:  pushq %rbx
+    1:  movslq %edx, %r9
+    4:  movl %ecx, %r10d
+    7:  movl $0, %ebx   <var:nullup+0>
+    c:  callq fn:index2value+0
+   11:  movq (%rax), %r11
+   14:  testl %r9d, %r9d
+   17:  jle 0x23
+   19:  movq 0x18(%r11), %rax
+   1d:  cmpl 0x10(%rax), %r9d
+   21:  jle 0x70
+   23:  movl %r10d, %esi
+   26:  callq fn:index2value+0
+   2b:  xorl %edx, %edx
+   2d:  movq (%rax), %rax
+   30:  testl %r8d, %r8d
+   33:  jle 0x3f
+   35:  movq 0x18(%rax), %rcx
+   39:  cmpl 0x10(%rcx), %r8d
+   3d:  jle 0x58
+   3f:  movq %rdx, (%rbx)
+   42:  testb $0x20, 9(%r11)
+   47:  je 0x4f
+   49:  testb $0x18, 9(%rdx)
+   4d:  jne 0x80
+   4f:  popq %rbx
+   50:  retq
+   51:  nopl (%rax)
+   58:  subl $1, %r8d
+   5c:  movslq %r8d, %r8
+   5f:  movq 0x20(%rax, %r8, 8), %rdx
+   64:  jmp 0x3f
+   66:  nopw %cs:(%rax, %rax)
+   70:  leaq 0x18(%r11, %r9, 8), %rbx
+   75:  jmp 0x23
+   77:  nopw (%rax, %rax)
+   80:  movq %r11, %rsi
+   83:  popq %rbx
+   84:  jmp luaC_barrier_+0

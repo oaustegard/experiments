@@ -1,0 +1,38 @@
+# evaleq  (static, 149 bytes, 37 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evalcmp+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x30
+   14:  cmpl $0x3d3d00, %eax
+   19:  je 0x78
+   1b:  cmpl $0x213d00, %eax
+   20:  je 0x59
+   22:  movq %rbx, %rax
+   25:  popq %rbx
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  callq fn:eval_tok+0
+   35:  movl %eax, (%rip)   <var:enext+0>
+   3b:  cmpl $0x3d3d00, %eax
+   40:  je 0x78
+   42:  cmpl $-1, %eax
+   45:  jne 0x1b
+   47:  callq fn:eval_tok+0
+   4c:  movl %eax, (%rip)   <var:enext+0>
+   52:  cmpl $0x213d00, %eax
+   57:  jne 0x22
+   59:  movl $0xffffffff, (%rip)   <var:enext+0>
+   63:  callq fn:evalcmp+0
+   68:  cmpq %rbx, %rax
+   6b:  setne %bl
+   6e:  movzbl %bl, %ebx
+   71:  jmp 9
+   73:  nopl (%rax, %rax)
+   78:  movl $0xffffffff, (%rip)   <var:enext+0>
+   82:  callq fn:evalcmp+0
+   87:  cmpq %rbx, %rax
+   8a:  sete %bl
+   8d:  movzbl %bl, %ebx
+   90:  jmp 9

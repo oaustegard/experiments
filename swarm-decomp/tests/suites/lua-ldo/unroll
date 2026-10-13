@@ -1,0 +1,85 @@
+# unroll  (static, 262 bytes, 84 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  leaq 0x60(%rdi), %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movq 0x20(%rdi), %rbx
+   10:  cmpq %r12, %rbx
+   13:  je 0x66
+   15:  movq %rdi, %rbp
+   18:  movq %rbx, %r13
+   1b:  jmp 0x3f
+   1d:  nopl (%rax)
+   20:  testb $2, %ah
+   23:  je 0x70
+   25:  movl 0x38(%rbx), %edx
+   28:  movq %r13, %rsi
+   2b:  movq %rbp, %rdi
+   2e:  callq luaD_poscall+0
+   33:  movq 0x20(%rbp), %rbx
+   37:  movq %rbx, %r13
+   3a:  cmpq %r12, %rbx
+   3d:  je 0x66
+   3f:  movzwl 0x3e(%rbx), %eax
+   43:  testb $2, %al
+   45:  jne 0x20
+   47:  movq %rbp, %rdi
+   4a:  callq luaV_finishOp+0
+   4f:  movq %rbx, %rsi
+   52:  movq %rbp, %rdi
+   55:  callq luaV_execute+0
+   5a:  movq 0x20(%rbp), %rbx
+   5e:  movq %rbx, %r13
+   61:  cmpq %r12, %rbx
+   64:  jne 0x3f
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  popq %r12
+   6a:  popq %r13
+   6c:  popq %r14
+   6e:  retq
+   6f:  nop
+   70:  movl $1, %r14d
+   76:  testb $0x10, %al
+   78:  jne 0xa0
+   7a:  movq 0x10(%rbp), %rax
+   7e:  cmpq %rax, 8(%rbx)
+   82:  jae 0x88
+   84:  movq %rax, 8(%rbx)
+   88:  movq 0x30(%r13), %rdx
+   8c:  movl %r14d, %esi
+   8f:  movq %rbp, %rdi
+   92:  callq *0x20(%r13)
+   96:  movl %eax, %edx
+   98:  jmp 0x28
+   9a:  nopw (%rax, %rax)
+   a0:  movl %eax, %edx
+   a2:  shrw $0xa, %dx
+   a6:  andw $7, %dx
+   aa:  jne 0xc1
+   ac:  andl $0xffffffef, %eax
+   af:  movw %ax, 0x3e(%r13)
+   b4:  movq 0x28(%r13), %rax
+   b8:  movq %rax, 0xa8(%rbp)
+   bf:  jmp 0x7a
+   c1:  andl $1, %eax
+   c4:  movslq 0x38(%rbx), %rsi
+   c8:  movzwl %dx, %r14d
+   cc:  movl $1, %ecx
+   d1:  movb %al, 0xb(%rbp)
+   d4:  addq 0x30(%rbp), %rsi
+   d8:  movl %r14d, %edx
+   db:  movq %rbp, %rdi
+   de:  callq luaF_close+0
+   e3:  movl %r14d, %esi
+   e6:  movq %rbp, %rdi
+   e9:  movq %rax, %rdx
+   ec:  callq luaD_seterrorobj+0
+   f1:  movq %rbp, %rdi
+   f4:  callq luaD_shrinkstack+0
+   f9:  movzwl 0x3e(%rbx), %eax
+   fd:  movq 0x20(%rbp), %rbx
+  101:  andb $0xe3, %ah
+  104:  jmp 0xac

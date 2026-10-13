@@ -1,0 +1,49 @@
+# luaF_findupval  (global, 157 bytes, 48 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  leaq 0x38(%rdi), %rbp
+    a:  pushq %rbx
+    b:  movq 0x38(%rdi), %rax
+    f:  movq %rsi, %rbx
+   12:  testq %rax, %rax
+   15:  jne 0x2f
+   17:  jmp 0x35
+   19:  nopl (%rax)
+   20:  je 0x79
+   22:  leaq 0x18(%rax), %rbp
+   26:  movq 0x18(%rax), %rax
+   2a:  testq %rax, %rax
+   2d:  je 0x35
+   2f:  cmpq %rbx, 0x10(%rax)
+   33:  jae 0x20
+   35:  movl $0x28, %edx
+   3a:  movl $9, %esi
+   3f:  movq %r12, %rdi
+   42:  callq luaC_newobj+0
+   47:  movq (%rbp), %rdx
+   4b:  movq %rbx, %xmm0
+   50:  movq %rbp, 0x20(%rax)
+   54:  movq %rdx, %xmm1
+   59:  punpcklqdq %xmm1, %xmm0
+   5d:  movups %xmm0, 0x10(%rax)
+   61:  testq %rdx, %rdx
+   64:  je 0x6e
+   66:  leaq 0x18(%rax), %rcx
+   6a:  movq %rcx, 0x20(%rdx)
+   6e:  movq %rax, (%rbp)
+   72:  cmpq 0x50(%r12), %r12
+   77:  je 0x80
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  retq
+   7e:  nop
+   80:  movq 0x18(%r12), %rdx
+   85:  movq 0xf8(%rdx), %rcx
+   8c:  movq %rcx, 0x50(%r12)
+   91:  movq %r12, 0xf8(%rdx)
+   98:  popq %rbx
+   99:  popq %rbp
+   9a:  popq %r12
+   9c:  retq

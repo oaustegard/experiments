@@ -1,0 +1,12 @@
+# f_hpos  (global, 33 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <env_fmt+0>
+    6:  movq %rax, %rdi
+    9:  callq fmt_wid+0
+    e:  movl %eax, %ebx
+   10:  callq env_wb+0
+   15:  movq %rax, %rdi
+   18:  callq wb_wid+0
+   1d:  addl %ebx, %eax
+   1f:  popq %rbx
+   20:  retq

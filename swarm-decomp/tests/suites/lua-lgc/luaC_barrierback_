@@ -1,0 +1,40 @@
+# luaC_barrierback_  (global, 160 bytes, 39 instructions)
+    0:  movzbl 9(%rsi), %eax
+    4:  movq 0x18(%rdi), %rcx
+    8:  movl %eax, %edx
+    a:  andl $7, %edx
+    d:  cmpb $6, %dl
+   10:  je 0x46
+   12:  movzbl 8(%rsi), %edx
+   16:  movq 0x90(%rcx), %rdi
+   1d:  subl $5, %edx
+   20:  cmpb $0x21, %dl
+   23:  ja fn:luaC_barrierback_.cold+0
+   29:  movzbl %dl, %edx
+   2c:  jmpq *(, %rdx, 8)   <var:luaC_barrierback_+0>
+   33:  nopl (%rax, %rax)
+   38:  leaq 0x10(%rsi), %rdx
+   3c:  movq %rdi, (%rdx)
+   3f:  movq %rsi, 0x90(%rcx)
+   46:  andl $0xffffffc7, %eax
+   49:  movl %eax, %edx
+   4b:  andl $0xfffffff8, %edx
+   4e:  orl $5, %edx
+   51:  testb $6, %al
+   53:  cmovnel %edx, %eax
+   56:  movb %al, 9(%rsi)
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  leaq 0x30(%rsi), %rdx
+   64:  jmp 0x3c
+   66:  nopw %cs:(%rax, %rax)
+   70:  leaq 0x78(%rsi), %rdx
+   74:  jmp 0x3c
+   76:  nopw %cs:(%rax, %rax)
+   80:  leaq 0x48(%rsi), %rdx
+   84:  jmp 0x3c
+   86:  nopw %cs:(%rax, %rax)
+   90:  leaq 0x20(%rsi), %rdx
+   94:  jmp 0x3c
+   96:  movq %rdi, 0
+   9e:  ud2

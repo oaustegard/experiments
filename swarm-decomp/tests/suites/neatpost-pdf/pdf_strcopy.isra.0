@@ -1,0 +1,70 @@
+# pdf_strcopy.isra.0  (static, 201 bytes, 69 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movl %esi, %r13d
+    7:  pushq %r12
+    9:  movq %rcx, %r12
+    c:  movl $0, %ecx   <str:"/Length">
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  movl %edx, %ebx
+   18:  callq pdf_dval_val+0
+   1d:  testl %eax, %eax
+   1f:  js 0xc0
+   25:  cltq
+   27:  movl $0xa, %edx
+   2c:  xorl %esi, %esi
+   2e:  leaq (%rbp, %rax), %rdi
+   33:  callq strtol+0
+   38:  movl %ebx, %edx
+   3a:  movl %r13d, %esi
+   3d:  movq %rbp, %rdi
+   40:  movq %rax, %r14
+   43:  callq pdf_len+0
+   48:  movl %r13d, %esi
+   4b:  movq %rbp, %rdi
+   4e:  addl %eax, %ebx
+   50:  movl %ebx, %edx
+   52:  callq pdf_ws+0
+   57:  addl %ebx, %eax
+   59:  leal 0xe(%rax, %r14), %edx
+   5e:  cmpl %edx, %r13d
+   61:  jle 0xc0
+   63:  leal 6(%rax), %edx
+   66:  movslq %edx, %rcx
+   69:  cmpb $0xd, (%rbp, %rcx)
+   6e:  jne 0x73
+   70:  leal 7(%rax), %edx
+   73:  leal 1(%rdx, %r14), %edx
+   78:  movslq %edx, %rcx
+   7b:  movzbl (%rbp, %rcx), %ecx
+   80:  cmpb $0xd, %cl
+   83:  je 0xb0
+   85:  cmpb $0x20, %cl
+   88:  je 0xb0
+   8a:  cmpb $0xa, %cl
+   8d:  popq %rbx
+   8e:  movq %r12, %rdi
+   91:  sete %cl
+   94:  movzbl %cl, %ecx
+   97:  leal 0xa(%rdx, %rcx), %edx
+   9b:  subl %eax, %edx
+   9d:  cltq
+   9f:  leaq (%rbp, %rax), %rsi
+   a4:  popq %rbp
+   a5:  popq %r12
+   a7:  popq %r13
+   a9:  popq %r14
+   ab:  jmp sbuf_mem+0
+   b0:  addl $1, %edx
+   b3:  movslq %edx, %rcx
+   b6:  movzbl (%rbp, %rcx), %ecx
+   bb:  jmp 0x8a
+   bd:  nopl (%rax)
+   c0:  popq %rbx
+   c1:  popq %rbp
+   c2:  popq %r12
+   c4:  popq %r13
+   c6:  popq %r14
+   c8:  retq

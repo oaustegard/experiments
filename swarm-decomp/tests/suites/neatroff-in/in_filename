@@ -1,0 +1,18 @@
+# in_filename  (global, 62 bytes, 17 instructions)
+    0:  movq (%rip), %rax   <var:buf+0>
+    7:  testq %rax, %rax
+    a:  jne 0x1c
+    c:  jmp 0x38
+    e:  nop
+   10:  movq 0x4b0(%rax), %rax
+   17:  testq %rax, %rax
+   1a:  je 0x38
+   1c:  cmpq $0, 0x400(%rax)
+   24:  je 0x10
+   26:  cmpb $0, (%rax)
+   29:  movl $0, %edx   <str:"-">
+   2e:  cmoveq %rdx, %rax
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movl $0, %eax   <str:"-">
+   3d:  retq

@@ -1,0 +1,34 @@
+# zwid  (static, 103 bytes, 33 instructions)
+    0:  pushq %r12
+    2:  movl $0x66, %edi
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  callq nreg+0
+    e:  movl $0, %edi   <str:"0">
+   13:  movl (%rax), %esi
+   15:  callq dev_glyph+0
+   1a:  testq %rax, %rax
+   1d:  je 0x60
+   1f:  movl $0x73, %edi
+   24:  movswl 0x48(%rax), %r12d
+   29:  movq %rax, %rbx
+   2c:  callq nreg+0
+   31:  movl $0x66, %edi
+   36:  movl (%rax), %ebp
+   38:  callq nreg+0
+   3d:  movl (%rax), %edi
+   3f:  callq dev_font+0
+   44:  movq 0x40(%rbx), %rdi
+   48:  movl %r12d, %ecx
+   4b:  popq %rbx
+   4c:  movl %ebp, %edx
+   4e:  movq %rax, %rsi
+   51:  popq %rbp
+   52:  popq %r12
+   54:  jmp font_gwid+0
+   59:  nopl (%rax)
+   60:  popq %rbx
+   61:  xorl %eax, %eax
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq

@@ -1,0 +1,29 @@
+# outf  (static, 158 bytes, 28 instructions)
+    0:  subq $0xd8, %rsp
+    7:  movq %rsi, 0x28(%rsp)
+    c:  movq %rdx, 0x30(%rsp)
+   11:  movq %rcx, 0x38(%rsp)
+   16:  movq %r8, 0x40(%rsp)
+   1b:  movq %r9, 0x48(%rsp)
+   20:  testb %al, %al
+   22:  je 0x5b
+   24:  movaps %xmm0, 0x50(%rsp)
+   29:  movaps %xmm1, 0x60(%rsp)
+   2e:  movaps %xmm2, 0x70(%rsp)
+   33:  movaps %xmm3, 0x80(%rsp)
+   3b:  movaps %xmm4, 0x90(%rsp)
+   43:  movaps %xmm5, 0xa0(%rsp)
+   4b:  movaps %xmm6, 0xb0(%rsp)
+   53:  movaps %xmm7, 0xc0(%rsp)
+   5b:  leaq 0xe0(%rsp), %rax
+   63:  movq %rdi, %rsi
+   66:  movq (%rip), %rdi   <stdout+0>
+   6d:  leaq 8(%rsp), %rdx
+   72:  movq %rax, 0x10(%rsp)
+   77:  leaq 0x20(%rsp), %rax
+   7c:  movl $8, 8(%rsp)
+   84:  movl $0x30, 0xc(%rsp)
+   8c:  movq %rax, 0x18(%rsp)
+   91:  callq vfprintf+0
+   96:  addq $0xd8, %rsp
+   9d:  retq

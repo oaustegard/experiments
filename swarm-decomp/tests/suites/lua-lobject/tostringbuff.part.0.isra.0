@@ -1,0 +1,36 @@
+# tostringbuff.part.0.isra.0  (static, 105 bytes, 35 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"%.14g">
+    6:  movl $0x2c, %esi
+    b:  movl $1, %eax
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $8, %rsp
+   18:  callq snprintf+0
+   1d:  movl $0, %esi   <str:"-0123456789">
+   22:  movq %rbx, %rdi
+   25:  movl %eax, %ebp
+   27:  callq strspn+0
+   2c:  cmpb $0, (%rbx, %rax)
+   30:  je 0x40
+   32:  addq $8, %rsp
+   36:  movl %ebp, %eax
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  callq localeconv+0
+   45:  movq %rax, %rdx
+   48:  leal 1(%rbp), %eax
+   4b:  movq (%rdx), %rdx
+   4e:  cltq
+   50:  movzbl (%rdx), %ecx
+   53:  movslq %ebp, %rdx
+   56:  addl $2, %ebp
+   59:  movb %cl, (%rbx, %rdx)
+   5c:  movb $0x30, (%rbx, %rax)
+   60:  addq $8, %rsp
+   64:  movl %ebp, %eax
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq

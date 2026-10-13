@@ -1,0 +1,21 @@
+# tr_fmap  (static, 58 bytes, 20 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 8(%rdi), %rdi
+    8:  testq %rdi, %rdi
+    b:  je 0x38
+    d:  callq dev_pos+0
+   12:  movl %eax, %edi
+   14:  callq dev_font+0
+   19:  testq %rax, %rax
+   1c:  je 0x38
+   1e:  movq 0x10(%rbx), %rsi
+   22:  testq %rsi, %rsi
+   25:  je 0x38
+   27:  movq 0x18(%rbx), %rdx
+   2b:  movq %rax, %rdi
+   2e:  popq %rbx
+   2f:  jmp font_map+0
+   34:  nopl (%rax)
+   38:  popq %rbx
+   39:  retq

@@ -1,0 +1,15 @@
+# tr_popren  (global, 49 bytes, 14 instructions)
+    0:  movq 8(%rdi), %rdi
+    4:  testq %rdi, %rdi
+    7:  je 0x28
+    9:  subq $8, %rsp
+    d:  movl $0xa, %edx
+   12:  xorl %esi, %esi
+   14:  callq strtol+0
+   19:  movl %eax, (%rip)   <var:ren_level+0>
+   1f:  addq $8, %rsp
+   23:  retq
+   24:  nopl (%rax)
+   28:  xorl %eax, %eax
+   2a:  movl %eax, (%rip)   <var:ren_level+0>
+   30:  retq

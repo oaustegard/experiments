@@ -1,0 +1,38 @@
+# wb_drawxdot  (global, 130 bytes, 37 instructions)
+    0:  pushq %rbx
+    1:  movd %edx, %xmm2
+    5:  movd %esi, %xmm0
+    9:  movq %rdi, %rbx
+    c:  movl %edx, %ecx
+    e:  punpckldq %xmm2, %xmm0
+   12:  movl %esi, %edx
+   14:  xorl %eax, %eax
+   16:  movl $0, %esi   <str:" %du %du">
+   1b:  subq $0x10, %rsp
+   1f:  movq %xmm0, 8(%rsp)
+   25:  callq sbuf_printf+0
+   2a:  movl 0x14(%rbx), %eax
+   2d:  imull (%rip), %eax   <dev_res+0>
+   34:  movq 0x40(%rbx), %xmm1
+   39:  movq 8(%rsp), %xmm0
+   3f:  movslq %eax, %rdx
+   42:  paddd %xmm1, %xmm0
+   46:  sarl $0x1f, %eax
+   49:  imulq $0x38e38e39, %rdx, %rdx
+   50:  pshufd $0xe5, %xmm0, %xmm3
+   55:  movd %xmm3, %ecx
+   59:  movq %xmm0, 0x40(%rbx)
+   5e:  sarq $0x24, %rdx
+   62:  subl %edx, %eax
+   64:  movl 0x50(%rbx), %edx
+   67:  addl %ecx, %eax
+   69:  cmpl %edx, %eax
+   6b:  cmovgl %edx, %eax
+   6e:  movl %eax, 0x50(%rbx)
+   71:  movl 0x4c(%rbx), %eax
+   74:  cmpl %ecx, %eax
+   76:  cmovll %ecx, %eax
+   79:  movl %eax, 0x4c(%rbx)
+   7c:  addq $0x10, %rsp
+   80:  popq %rbx
+   81:  retq

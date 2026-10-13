@@ -1,0 +1,16 @@
+# neatroff-roff: translation unit roff of neatroff
+# write each function as src/neatroff/roff/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+cmdmac	static	199 bytes
+cmddef	static	279 bytes
+errmsg	global	158 bytes
+errdie	global	26 bytes
+mextend	global	125 bytes
+xmalloc	global	29 bytes
+main	global	843 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+access dev_close dev_open dir_done env_done env_init eval_re exit fprintf fputs free fwrite getenv hyph_done hyph_init in_queue malloc map map_done memcpy memset nreg num_set out render snprintf stderr str_set strchr tr_done tr_init vfprintf

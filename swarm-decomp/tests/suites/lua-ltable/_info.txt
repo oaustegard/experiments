@@ -1,0 +1,30 @@
+# lua-ltable: translation unit ltable of lua
+# write each function as src/lua/ltable/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+mainpositionTV.isra.0	static	444 bytes
+getgeneric	static	198 bytes
+luaH_realasize	global	62 bytes
+luaH_next	global	364 bytes
+luaH_new	global	72 bytes
+luaH_free	global	97 bytes
+luaH_getint	global	190 bytes
+luaH_getshortstr	global	78 bytes
+luaH_getstr	global	126 bytes
+luaH_get	global	207 bytes
+luaH_newkey	static	1194 bytes
+luaH_resize	global	915 bytes
+luaH_resizearray	global	27 bytes
+luaH_finishset	global	32 bytes
+luaH_set	global	91 bytes
+luaH_setint	global	87 bytes
+luaH_getn	global	558 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+absentkey	static	16 bytes	.rodata.absentkey
+        0: 00 00 00 00 00 00 00 00 20 00 00 00 00 00 00 00
+dummynode_	static	24 bytes	.rodata.dummynode_
+        0: 00 00 00 00 00 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+frexp luaC_barrierback_ luaC_newobj luaD_throw luaG_runerror luaM_free_ luaM_malloc_ luaM_realloc_ luaO_ceillog2 luaS_eqlngstr luaS_hashlongstr luaV_flttointeger

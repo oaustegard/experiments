@@ -1,0 +1,9 @@
+# tr_char  (static, 29 bytes, 8 instructions)
+    0:  movq 0x10(%rdi), %rdx
+    4:  movq 8(%rdi), %rsi
+    8:  xorl %edi, %edi
+    a:  testq %rdx, %rdx
+    d:  je 0x18
+    f:  jmp fn:cdef_add+0
+   14:  nopl (%rax)
+   18:  jmp fn:cdef_remove+0

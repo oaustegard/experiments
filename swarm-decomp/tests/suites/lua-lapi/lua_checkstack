@@ -1,0 +1,30 @@
+# lua_checkstack  (global, 84 bytes, 29 instructions)
+    0:  movq 0x10(%rdi), %rcx
+    4:  movq 0x28(%rdi), %rdx
+    8:  pushq %r12
+    a:  movl $1, %eax
+    f:  pushq %rbp
+   10:  movslq %esi, %rbp
+   13:  movq 0x20(%rdi), %r12
+   17:  subq %rcx, %rdx
+   1a:  pushq %rbx
+   1b:  sarq $4, %rdx
+   1f:  cmpq %rbp, %rdx
+   22:  jle 0x40
+   24:  shlq $4, %rbp
+   28:  addq %rbp, %rcx
+   2b:  cmpq %rcx, 8(%r12)
+   30:  jae 0x37
+   32:  movq %rcx, 8(%r12)
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  popq %r12
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  xorl %edx, %edx
+   42:  movq %rdi, %rbx
+   45:  callq luaD_growstack+0
+   4a:  testl %eax, %eax
+   4c:  je 0x37
+   4e:  movq 0x10(%rbx), %rcx
+   52:  jmp 0x24

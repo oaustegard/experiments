@@ -1,0 +1,51 @@
+# ren_ft  (static, 156 bytes, 50 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  testq %rdi, %rdi
+    c:  je 0x13
+    e:  cmpb $0, (%rdi)
+   11:  jne 0x60
+   13:  movl $0, %edi   <str:".f0">
+   18:  callq map+0
+   1d:  movl %eax, %edi
+   1f:  callq nreg+0
+   24:  movl (%rax), %ebp
+   26:  testl %ebp, %ebp
+   28:  js 0x73
+   2a:  movl $0x66, %edi
+   2f:  callq nreg+0
+   34:  movl $0, %edi   <str:".f0">
+   39:  movq %rax, %rbx
+   3c:  callq map+0
+   41:  movl %eax, %edi
+   43:  callq nreg+0
+   48:  movl (%rbx), %edx
+   4a:  movl $0x66, %edi
+   4f:  movl %edx, (%rax)
+   51:  callq nreg+0
+   56:  movl %ebp, (%rax)
+   58:  addq $8, %rsp
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  retq
+   5f:  nop
+   60:  cmpb $0x50, (%rdi)
+   63:  je 0x90
+   65:  movq %rbx, %rdi
+   68:  callq dev_pos+0
+   6d:  movl %eax, %ebp
+   6f:  testl %ebp, %ebp
+   71:  jns 0x2a
+   73:  addq $8, %rsp
+   77:  movq %rbx, %rsi
+   7a:  movl $0, %edi   <str:"neatroff: failed to mount <%s>\n">
+   7f:  xorl %eax, %eax
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  jmp errmsg+0
+   88:  nopl (%rax, %rax)
+   90:  cmpb $0, 1(%rdi)
+   94:  je 0x13
+   9a:  jmp 0x65

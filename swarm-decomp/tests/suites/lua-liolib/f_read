@@ -1,0 +1,24 @@
+# f_read  (static, 81 bytes, 23 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_checkudata+0
+   18:  cmpq $0, 8(%rax)
+   1d:  movq %rax, %rbp
+   20:  je 0x40
+   22:  movq (%rbp), %rsi
+   26:  addq $8, %rsp
+   2a:  movq %rbx, %rdi
+   2d:  movl $2, %edx
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  jmp fn:g_read+0
+   39:  nopl (%rax)
+   40:  movl $0, %esi   <str:"attempt to use a closed file">
+   45:  movq %rbx, %rdi
+   48:  xorl %eax, %eax
+   4a:  callq luaL_error+0
+   4f:  jmp 0x22

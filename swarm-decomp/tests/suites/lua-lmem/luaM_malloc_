@@ -1,0 +1,40 @@
+# luaM_malloc_  (global, 114 bytes, 39 instructions)
+    0:  testq %rsi, %rsi
+    3:  je 0x48
+    5:  pushq %r13
+    7:  movq %rsi, %rcx
+    a:  movq %rdi, %r13
+    d:  pushq %r12
+    f:  pushq %rbp
+   10:  movslq %edx, %rbp
+   13:  pushq %rbx
+   14:  movq %rbp, %rdx
+   17:  movq %rsi, %rbx
+   1a:  xorl %esi, %esi
+   1c:  subq $8, %rsp
+   20:  movq 0x18(%rdi), %r12
+   24:  movq 8(%r12), %rdi
+   29:  callq *(%r12)
+   2d:  testq %rax, %rax
+   30:  je 0x50
+   32:  addq %rbx, 0x18(%r12)
+   37:  addq $8, %rsp
+   3b:  popq %rbx
+   3c:  popq %rbp
+   3d:  popq %r12
+   3f:  popq %r13
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  xorl %eax, %eax
+   4a:  retq
+   4b:  nopl (%rax, %rax)
+   50:  xorl %esi, %esi
+   52:  movq %rbx, %rcx
+   55:  movq %rbp, %rdx
+   58:  movq %r13, %rdi
+   5b:  callq fn:tryagain+0
+   60:  testq %rax, %rax
+   63:  jne 0x32
+   65:  movl $4, %esi
+   6a:  movq %r13, %rdi
+   6d:  callq luaD_throw+0

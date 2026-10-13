@@ -1,0 +1,53 @@
+# g_iofile  (static, 177 bytes, 52 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  movl $1, %esi
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  callq lua_type+0
+   17:  testl %eax, %eax
+   19:  jg 0x38
+   1b:  movq %rbp, %rdx
+   1e:  movq %rbx, %rdi
+   21:  movl $0xfff0b9d8, %esi
+   26:  callq lua_getfield+0
+   2b:  popq %rbx
+   2c:  movl $1, %eax
+   31:  popq %rbp
+   32:  popq %r12
+   34:  retq
+   35:  nopl (%rax)
+   38:  movl $1, %esi
+   3d:  xorl %edx, %edx
+   3f:  movq %rbx, %rdi
+   42:  callq lua_tolstring+0
+   47:  movq %rax, %rsi
+   4a:  testq %rax, %rax
+   4d:  je 0x70
+   4f:  movq %r12, %rdx
+   52:  movq %rbx, %rdi
+   55:  callq fn:opencheck+0
+   5a:  movq %rbp, %rdx
+   5d:  movl $0xfff0b9d8, %esi
+   62:  movq %rbx, %rdi
+   65:  callq lua_setfield+0
+   6a:  jmp 0x1b
+   6c:  nopl (%rax)
+   70:  movl $0, %edx   <str:"FILE*">
+   75:  movl $1, %esi
+   7a:  movq %rbx, %rdi
+   7d:  callq luaL_checkudata+0
+   82:  cmpq $0, 8(%rax)
+   87:  je 0xa0
+   89:  movl $1, %esi
+   8e:  movq %rbx, %rdi
+   91:  callq lua_pushvalue+0
+   96:  jmp 0x5a
+   98:  nopl (%rax, %rax)
+   a0:  movl $0, %esi   <str:"attempt to use a closed file">
+   a5:  movq %rbx, %rdi
+   a8:  xorl %eax, %eax
+   aa:  callq luaL_error+0
+   af:  jmp 0x89

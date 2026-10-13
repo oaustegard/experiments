@@ -1,0 +1,34 @@
+# neatmail-mk: translation unit mk of neatmail
+# write each function as src/neatmail/mk/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+msgcmp_date	static	31 bytes
+readtok	static	136 bytes
+msgcmp_id	static	35 bytes
+datedate	static	502 bytes
+msg_stat	static	155 bytes
+put_msg	static	366 bytes
+mk	global	4552 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+months	static	96 bytes	.rodata.months
+    +0     -> str:"Jan"
+    +8     -> str:"Feb"
+    +16    -> str:"Mar"
+    +24    -> str:"Apr"
+    +32    -> str:"May"
+    +40    -> str:"Jun"
+    +48    -> str:"Jul"
+    +56    -> str:"Aug"
+    +64    -> str:"Sep"
+    +72    -> str:"Oct"
+    +80    -> str:"Nov"
+    +88    -> str:"Dec"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+num.0	static	32 bytes	.bss.num.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc calloc fprintf fputc free hdrlen localtime malloc mbox_free mbox_get mbox_len mbox_open mbox_pos memchr memcpy mktime msg_get msg_hdrdec printf putchar puts qsort sbuf_chr sbuf_done sbuf_make sbuf_mem snprintf sprintf startswith stderr strchr strcmp strftime strlen strncmp strtol

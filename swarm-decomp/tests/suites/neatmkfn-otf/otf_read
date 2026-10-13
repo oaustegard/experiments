@@ -1,0 +1,43 @@
+# otf_read  (global, 119 bytes, 42 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  callq 9   <fn:otf_input.constprop.0+0>
+    9:  movq %rax, %r12
+    c:  movl (%rax), %eax
+    e:  cmpl $0x100, %eax
+   13:  je 0x68
+   15:  cmpl $0x4f54544f, %eax
+   1a:  je 0x68
+   1c:  movl $1, %edx
+   21:  cmpl $0x66637474, %eax
+   26:  jne 0x5c
+   28:  movl 8(%r12), %eax
+   2d:  bswapl %eax
+   2f:  testl %eax, %eax
+   31:  jle 0x5a
+   33:  subl $1, %eax
+   36:  leaq 0xc(%r12), %rbx
+   3b:  leaq 0x10(%r12, %rax, 4), %rbp
+   40:  movl (%rbx), %esi
+   42:  movq %r12, %rdi
+   45:  addq $4, %rbx
+   49:  bswapl %esi
+   4b:  movl %esi, %esi
+   4d:  addq %r12, %rsi
+   50:  callq otf_offsettable+0
+   55:  cmpq %rbp, %rbx
+   58:  jne 0x40
+   5a:  xorl %edx, %edx
+   5c:  popq %rbx
+   5d:  movl %edx, %eax
+   5f:  popq %rbp
+   60:  popq %r12
+   62:  retq
+   63:  nopl (%rax, %rax)
+   68:  popq %rbx
+   69:  movq %r12, %rsi
+   6c:  movq %r12, %rdi
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  jmp otf_offsettable+0

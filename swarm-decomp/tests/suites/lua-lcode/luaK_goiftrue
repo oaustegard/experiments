@@ -1,0 +1,52 @@
+# luaK_goiftrue  (global, 168 bytes, 51 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  callq luaK_dischargevars+0
+   11:  movl (%rbx), %ecx
+   13:  cmpl $7, %ecx
+   16:  jbe 0x88
+   18:  cmpl $0x10, %ecx
+   1b:  jne 0x97
+   1d:  movq (%rbp), %rax
+   21:  movslq 8(%rbx), %rcx
+   25:  movq 0x40(%rax), %rax
+   29:  leaq (%rax, %rcx, 4), %rax
+   2d:  testl %ecx, %ecx
+   2f:  jle 0x46
+   31:  movl -4(%rax), %edx
+   34:  leaq -4(%rax), %rcx
+   38:  andl $0x7f, %edx
+   3b:  testb $0x10, (%rdx)   <luaP_opmodes+0>
+   42:  cmovneq %rcx, %rax
+   46:  xorl $0x8000, (%rax)
+   4c:  movl 8(%rbx), %edx
+   4f:  leaq 0x14(%rbx), %rsi
+   53:  movq %rbp, %rdi
+   56:  callq luaK_concat+0
+   5b:  movl 0x20(%rbp), %edx
+   5e:  movl 0x10(%rbx), %esi
+   61:  movq %rbp, %rdi
+   64:  movl $0xff, %ecx
+   69:  movl %edx, 0x24(%rbp)
+   6c:  movl %edx, %r8d
+   6f:  callq fn:patchlistaux+0
+   74:  movl $0xffffffff, 0x10(%rbx)
+   7b:  addq $8, %rsp
+   7f:  popq %rbx
+   80:  popq %rbp
+   81:  retq
+   82:  nopw (%rax, %rax)
+   88:  movl $0xffffffff, %edx
+   8d:  cmpl $3, %ecx
+   90:  ja 0x4f
+   92:  cmpl $2, %ecx
+   95:  je 0x4f
+   97:  xorl %edx, %edx
+   99:  movq %rbx, %rsi
+   9c:  movq %rbp, %rdi
+   9f:  callq fn:jumponcond+0
+   a4:  movl %eax, %edx
+   a6:  jmp 0x4f

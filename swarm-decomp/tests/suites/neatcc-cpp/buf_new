@@ -1,0 +1,26 @@
+# buf_new  (static, 126 bytes, 25 instructions)
+    0:  movslq (%rip), %rax   <var:bufs_n+0>
+    7:  testl %eax, %eax
+    9:  je 0x41
+    b:  leal -1(%rax), %ecx
+    e:  movq (%rip), %r8   <var:buf+0>
+   15:  movq (%rip), %xmm0   <var:len+0>
+   1d:  movslq %ecx, %rcx
+   20:  imulq $0x80b0, %rcx, %rcx
+   27:  movhps (%rip), %xmm0   <var:cur+0>
+   2e:  movq %r8, (%rcx)   <var:bufs+0>
+   35:  movups %xmm0, (%rcx)   <var:bufs+8>
+   3c:  cmpl $0x1f, %eax
+   3f:  jg 0x71
+   41:  leal 1(%rax), %ecx
+   44:  movq %rsi, (%rip)   <var:buf+0>
+   4b:  imulq $0x80b0, %rax, %rax
+   52:  movl %ecx, (%rip)   <var:bufs_n+0>
+   58:  movq $0, (%rip)   <var:cur+0>
+   63:  movq %rdx, (%rip)   <var:len+0>
+   6a:  movl %edi, (%rax)   <var:bufs+24>
+   70:  retq
+   71:  pushq %rax
+   72:  movl $0, %edi   <str:"nomem: NBUFS reached!\n">
+   77:  xorl %eax, %eax
+   79:  callq die+0

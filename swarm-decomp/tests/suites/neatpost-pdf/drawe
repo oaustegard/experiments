@@ -1,0 +1,29 @@
+# drawe  (global, 79 bytes, 28 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movl %esi, %ebp
+    7:  pushq %rbx
+    8:  movl %ebp, %r13d
+    b:  movl %edi, %ebx
+    d:  negl %r13d
+   10:  movl %ebx, %r12d
+   13:  negl %r12d
+   16:  subq $8, %rsp
+   1a:  callq fn:drawquad+0
+   1f:  movl %r13d, %esi
+   22:  movl %ebx, %edi
+   24:  callq fn:drawquad+0
+   29:  movl %r13d, %esi
+   2c:  movl %r12d, %edi
+   2f:  callq fn:drawquad+0
+   34:  movl %ebp, %esi
+   36:  movl %r12d, %edi
+   39:  callq fn:drawquad+0
+   3e:  addl %ebx, (%rip)   <var:o_h+0>
+   44:  addq $8, %rsp
+   48:  popq %rbx
+   49:  popq %rbp
+   4a:  popq %r12
+   4c:  popq %r13
+   4e:  retq

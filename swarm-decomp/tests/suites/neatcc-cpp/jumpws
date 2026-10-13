@@ -1,0 +1,40 @@
+# jumpws  (static, 129 bytes, 39 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq (%rip), %rbx   <var:cur+0>
+   11:  movq (%rip), %rbp   <var:len+0>
+   18:  movslq %ebx, %r12
+   1b:  cmpq %rbp, %rbx
+   1e:  jge 0x60
+   20:  callq __ctype_b_loc+0
+   25:  movq (%rip), %rcx   <var:buf+0>
+   2c:  xorl %edx, %edx
+   2e:  movq (%rax), %rsi
+   31:  jmp 0x49
+   33:  nopl (%rax, %rax)
+   38:  addq $1, %rbx
+   3c:  movl $1, %edx
+   41:  cmpq %rbp, %rbx
+   44:  je 0x78
+   46:  movq %rbx, %r13
+   49:  movsbq (%rcx, %rbx), %rax
+   4e:  testb $0x20, 1(%rsi, %rax, 2)
+   53:  jne 0x38
+   55:  testb %dl, %dl
+   57:  je 0x60
+   59:  movq %r13, (%rip)   <var:cur+0>
+   60:  xorl %eax, %eax
+   62:  cmpq %rbx, %r12
+   65:  sete %al
+   68:  addq $8, %rsp
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  popq %r12
+   70:  popq %r13
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  movq %rbx, (%rip)   <var:cur+0>
+   7f:  jmp 0x60

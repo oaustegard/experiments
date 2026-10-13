@@ -1,0 +1,94 @@
+# read_tilleol  (static, 332 bytes, 93 instructions)
+    0:  pushq %r14
+    2:  movq (%rip), %r14   <var:cur+0>
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  movq (%rip), %r12   <var:len+0>
+   14:  pushq %rbp
+   15:  movq %rdi, %rbp
+   18:  pushq %rbx
+   19:  cmpq %r12, %r14
+   1c:  jge 0x109
+   22:  callq __ctype_b_loc+0
+   27:  movq (%rip), %r13   <var:buf+0>
+   2e:  movq %r14, %rcx
+   31:  movq (%rax), %rdi
+   34:  xorl %eax, %eax
+   36:  jmp 0x50
+   38:  nopl (%rax, %rax)
+   40:  addq $1, %rcx
+   44:  cmpq %r12, %rcx
+   47:  je 0x138
+   4d:  movq %rcx, %rbx
+   50:  movzbl (%r13, %rcx), %esi
+   56:  movl %eax, %r8d
+   59:  movsbq %sil, %rax
+   5d:  movzwl (%rdi, %rax, 2), %edx
+   61:  shrw $0xd, %dx
+   65:  cmpb $0xa, %sil
+   69:  setne %al
+   6c:  andb %dl, %al
+   6e:  jne 0x40
+   70:  testb %r8b, %r8b
+   73:  je 0x130
+   79:  movq %rbx, (%rip)   <var:cur+0>
+   80:  cmpq %r12, %rbx
+   83:  jl 0xc4
+   85:  jmp 0x109
+   8a:  nopw (%rax, %rax)
+   90:  callq fn:jumpcomment+0
+   95:  movq (%rip), %rbx   <var:cur+0>
+   9c:  testl %eax, %eax
+   9e:  je 0xbf
+   a0:  movq (%rip), %rax   <var:cur+0>
+   a7:  addq $1, %rbp
+   ab:  leaq 1(%rax), %rbx
+   af:  movzbl (%r13, %rax), %eax
+   b5:  movq %rbx, (%rip)   <var:cur+0>
+   bc:  movb %al, -1(%rbp)
+   bf:  cmpq %rbx, %r12
+   c2:  jle 0x109
+   c4:  movzbl (%r13, %rbx), %eax
+   ca:  cmpb $0xa, %al
+   cc:  je 0x109
+   ce:  cmpb $0x5c, %al
+   d0:  jne 0xda
+   d2:  cmpb $0xa, 1(%r13, %rbx)
+   d8:  je 0x120
+   da:  callq fn:jumpstr+0
+   df:  testl %eax, %eax
+   e1:  jne 0x90
+   e3:  movslq %ebx, %rsi
+   e6:  movq (%rip), %rbx   <var:cur+0>
+   ed:  movq %rbp, %rdi
+   f0:  movq %rbx, %r14
+   f3:  subq %rsi, %r14
+   f6:  addq %r13, %rsi
+   f9:  movq %r14, %rdx
+   fc:  addq %r14, %rbp
+   ff:  callq memcpy+0
+  104:  cmpq %rbx, %r12
+  107:  jg 0xc4
+  109:  movb $0, (%rbp)
+  10d:  popq %rbx
+  10e:  popq %rbp
+  10f:  popq %r12
+  111:  popq %r13
+  113:  popq %r14
+  115:  retq
+  116:  nopw %cs:(%rax, %rax)
+  120:  addq $2, %rbx
+  124:  movq %rbx, (%rip)   <var:cur+0>
+  12b:  jmp 0xbf
+  12d:  nopl (%rax)
+  130:  movq %r14, %rbx
+  133:  jmp 0xc4
+  135:  nopl (%rax)
+  138:  movb $0, (%rbp)
+  13c:  popq %rbx
+  13d:  movq %rcx, (%rip)   <var:cur+0>
+  144:  popq %rbp
+  145:  popq %r12
+  147:  popq %r13
+  149:  popq %r14
+  14b:  retq

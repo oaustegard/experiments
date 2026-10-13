@@ -1,0 +1,206 @@
+# body  (static, 852 bytes, 205 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movl %ecx, %r13d
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $0x88, %rsp
+   1a:  movq 0x30(%rdi), %r14
+   1e:  movq 0x38(%rdi), %rax
+   22:  movl %edx, 0xc(%rsp)
+   26:  movq (%r14), %r15
+   29:  movl 0x30(%r14), %edx
+   2d:  movq %rax, (%rsp)
+   31:  movslq 0x20(%r15), %r12
+   35:  cmpl %r12d, %edx
+   38:  jge 0x238
+   3e:  movq (%rsp), %rdi
+   42:  callq luaF_newproto+0
+   47:  movq 0x48(%r15), %rdx
+   4b:  movq %rax, %r12
+   4e:  movslq 0x30(%r14), %rax
+   52:  leal 1(%rax), %ecx
+   55:  movl %ecx, 0x30(%r14)
+   59:  movq %r12, (%rdx, %rax, 8)
+   5d:  testb $0x20, 9(%r15)
+   62:  je 0x70
+   64:  testb $0x18, 9(%r12)
+   6a:  jne 0x2f0
+   70:  movl %r13d, 0x2c(%r12)
+   75:  leaq 0x10(%rsp), %rdx
+   7a:  leaq 0x30(%rsp), %rsi
+   7f:  movq %rbx, %rdi
+   82:  movq %r12, 0x30(%rsp)
+   87:  callq fn:open_func+0
+   8c:  cmpl $0x28, 0x10(%rbx)
+   90:  jne 0x347
+   96:  movq %rbx, %rdi
+   99:  callq luaX_next+0
+   9e:  movl 0xc(%rsp), %eax
+   a2:  testl %eax, %eax
+   a4:  jne 0x290
+   aa:  movq 0x30(%rbx), %r12
+   ae:  movl 0x10(%rbx), %eax
+   b1:  movq (%r12), %r14
+   b5:  cmpl $0x29, %eax
+   b8:  je 0x2ce
+   be:  xorl %r15d, %r15d
+   c1:  cmpl $0x118, %eax
+   c6:  je 0x1d0
+   cc:  cmpl $0x123, %eax
+   d1:  jne 0x32d
+   d7:  movq 0x18(%rbx), %rsi
+   db:  movq %rbx, %rdi
+   de:  addl $1, %r15d
+   e2:  movq %rsi, (%rsp)
+   e6:  callq luaX_next+0
+   eb:  movq (%rsp), %rsi
+   ef:  movq %rbx, %rdi
+   f2:  callq fn:new_localvar+0
+   f7:  cmpl $0x2c, 0x10(%rbx)
+   fb:  je 0x308
+  101:  movl %r15d, %esi
+  104:  movq %rbx, %rdi
+  107:  callq fn:adjustlocalvars+0
+  10c:  movzbl 0x42(%r12), %esi
+  112:  movb %sil, 0xa(%r14)
+  116:  movq %r12, %rdi
+  119:  callq luaK_reserveregs+0
+  11e:  cmpl $0x29, 0x10(%rbx)
+  122:  jne 0x33a
+  128:  movq %rbx, %rdi
+  12b:  movl $0x20020007, %r12d
+  131:  callq luaX_next+0
+  136:  movl 0x10(%rbx), %edx
+  139:  leal -0x103(%rdx), %eax
+  13f:  cmpl $0x1d, %eax
+  142:  ja 0x224
+  148:  btq %rax, %r12
+  14c:  jae 0x218
+  152:  movl 4(%rbx), %edx
+  155:  movq 0x30(%rsp), %rax
+  15a:  movl %r13d, %ecx
+  15d:  movq %rbx, %rdi
+  160:  movl $0x105, %esi
+  165:  movl %edx, 0x30(%rax)
+  168:  movl $0x108, %edx
+  16d:  callq fn:check_match+0
+  172:  movq 0x30(%rbx), %rax
+  176:  xorl %edx, %edx
+  178:  movl $0x4f, %esi
+  17d:  movq 8(%rax), %r12
+  181:  movl 0x30(%r12), %eax
+  186:  movq %r12, %rdi
+  189:  leal -1(%rax), %ecx
+  18c:  callq luaK_codeABx+0
+  191:  movq $18446744073709551615, 0x10(%rbp)
+  199:  movq %rbp, %rsi
+  19c:  movq %r12, %rdi
+  19f:  movl %eax, 8(%rbp)
+  1a2:  movl $0x11, (%rbp)
+  1a9:  callq luaK_exp2nextreg+0
+  1ae:  movq %rbx, %rdi
+  1b1:  callq fn:close_func+0
+  1b6:  addq $0x88, %rsp
+  1bd:  popq %rbx
+  1be:  popq %rbp
+  1bf:  popq %r12
+  1c1:  popq %r13
+  1c3:  popq %r14
+  1c5:  popq %r15
+  1c7:  retq
+  1c8:  nopl (%rax, %rax)
+  1d0:  movq %rbx, %rdi
+  1d3:  callq luaX_next+0
+  1d8:  movl %r15d, %esi
+  1db:  movq %rbx, %rdi
+  1de:  callq fn:adjustlocalvars+0
+  1e3:  movzbl 0x42(%r12), %edx
+  1e9:  xorl %r9d, %r9d
+  1ec:  xorl %ecx, %ecx
+  1ee:  movl $0x51, %esi
+  1f3:  xorl %r8d, %r8d
+  1f6:  movq %r12, %rdi
+  1f9:  movb %dl, 0xa(%r14)
+  1fd:  movq (%r12), %rax
+  201:  movb $1, 0xb(%rax)
+  205:  callq luaK_codeABCk+0
+  20a:  movzbl 0x42(%r12), %esi
+  210:  jmp 0x116
+  215:  nopl (%rax)
+  218:  cmpl $0x111, %edx
+  21e:  je 0x320
+  224:  movq %rbx, %rdi
+  227:  callq fn:statement+0
+  22c:  jmp 0x136
+  231:  nopl (%rax)
+  238:  subq $8, %rsp
+  23c:  movq 0x48(%r15), %rsi
+  240:  leaq 0x20(%r15), %rcx
+  244:  movl $0x1ffff, %r9d
+  24a:  pushq $0   <str:"functions">
+  24f:  movq 0x10(%rsp), %rdi
+  254:  movl $8, %r8d
+  25a:  callq luaM_growaux_+0
+  25f:  movl 0x20(%r15), %edx
+  263:  movq %rax, 0x48(%r15)
+  267:  popq %rcx
+  268:  popq %rsi
+  269:  cmpl %edx, %r12d
+  26c:  jge 0x3e
+  272:  subl $1, %edx
+  275:  leaq (%rax, %r12, 8), %rdi
+  279:  xorl %esi, %esi
+  27b:  subl %r12d, %edx
+  27e:  leaq 8(, %rdx, 8), %rdx
+  286:  callq memset+0
+  28b:  jmp 0x3e
+  290:  movl $4, %edx
+  295:  movl $0, %esi   <str:"self">
+  29a:  movq %rbx, %rdi
+  29d:  callq luaX_newstring+0
+  2a2:  movq %rbx, %rdi
+  2a5:  movq %rax, %rsi
+  2a8:  callq fn:new_localvar+0
+  2ad:  movl $1, %esi
+  2b2:  movq %rbx, %rdi
+  2b5:  callq fn:adjustlocalvars+0
+  2ba:  movq 0x30(%rbx), %r12
+  2be:  movl 0x10(%rbx), %eax
+  2c1:  movq (%r12), %r14
+  2c5:  cmpl $0x29, %eax
+  2c8:  jne 0xbe
+  2ce:  xorl %esi, %esi
+  2d0:  movq %rbx, %rdi
+  2d3:  callq fn:adjustlocalvars+0
+  2d8:  movzbl 0x42(%r12), %esi
+  2de:  movb %sil, 0xa(%r14)
+  2e2:  jmp 0x116
+  2e7:  nopw (%rax, %rax)
+  2f0:  movq (%rsp), %rdi
+  2f4:  movq %r12, %rdx
+  2f7:  movq %r15, %rsi
+  2fa:  callq luaC_barrier_+0
+  2ff:  jmp 0x70
+  304:  nopl (%rax)
+  308:  movq %rbx, %rdi
+  30b:  callq luaX_next+0
+  310:  movl 0x10(%rbx), %eax
+  313:  jmp 0xc1
+  318:  nopl (%rax, %rax)
+  320:  movq %rbx, %rdi
+  323:  callq fn:statement+0
+  328:  jmp 0x152
+  32d:  movl $0, %esi   <str:"<name> or '...' expected">
+  332:  movq %rbx, %rdi
+  335:  callq luaX_syntaxerror+0
+  33a:  movl $0x29, %esi
+  33f:  movq %rbx, %rdi
+  342:  callq fn:error_expected+0
+  347:  movl $0x28, %esi
+  34c:  movq %rbx, %rdi
+  34f:  callq fn:error_expected+0

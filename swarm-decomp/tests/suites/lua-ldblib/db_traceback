@@ -1,0 +1,62 @@
+# db_traceback  (static, 193 bytes, 61 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  callq lua_type+0
+   15:  cmpl $8, %eax
+   18:  je 0xa0
+   1e:  movq %rbx, %r13
+   21:  movl $1, %r14d
+   27:  xorl %r12d, %r12d
+   2a:  xorl %edx, %edx
+   2c:  movl %r14d, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq lua_tolstring+0
+   37:  movq %rax, %rbp
+   3a:  testq %rax, %rax
+   3d:  je 0x78
+   3f:  xorl %edx, %edx
+   41:  cmpq %r13, %rbx
+   44:  leal 2(%r12), %esi
+   49:  movq %rbx, %rdi
+   4c:  sete %dl
+   4f:  callq luaL_optinteger+0
+   54:  movq %rbp, %rdx
+   57:  movq %r13, %rsi
+   5a:  movq %rbx, %rdi
+   5d:  movl %eax, %ecx
+   5f:  callq luaL_traceback+0
+   64:  popq %rbx
+   65:  movl $1, %eax
+   6a:  popq %rbp
+   6b:  popq %r12
+   6d:  popq %r13
+   6f:  popq %r14
+   71:  retq
+   72:  nopw (%rax, %rax)
+   78:  movl %r14d, %esi
+   7b:  movq %rbx, %rdi
+   7e:  callq lua_type+0
+   83:  testl %eax, %eax
+   85:  jle 0x3f
+   87:  movl %r14d, %esi
+   8a:  movq %rbx, %rdi
+   8d:  callq lua_pushvalue+0
+   92:  popq %rbx
+   93:  movl $1, %eax
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  popq %r13
+   9d:  popq %r14
+   9f:  retq
+   a0:  movl $1, %esi
+   a5:  movq %rbx, %rdi
+   a8:  movl $2, %r14d
+   ae:  movl $1, %r12d
+   b4:  callq lua_tothread+0
+   b9:  movq %rax, %r13
+   bc:  jmp 0x2a

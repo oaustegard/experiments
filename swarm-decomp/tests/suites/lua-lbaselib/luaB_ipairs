@@ -1,0 +1,18 @@
+# luaB_ipairs  (static, 59 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  xorl %edx, %edx
+   10:  movq %rbx, %rdi
+   13:  movl $0, %esi   <fn:ipairsaux+0>
+   18:  callq lua_pushcclosure+0
+   1d:  movq %rbx, %rdi
+   20:  movl $1, %esi
+   25:  callq lua_pushvalue+0
+   2a:  movq %rbx, %rdi
+   2d:  xorl %esi, %esi
+   2f:  callq lua_pushinteger+0
+   34:  movl $3, %eax
+   39:  popq %rbx
+   3a:  retq

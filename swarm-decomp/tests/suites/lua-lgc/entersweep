@@ -1,0 +1,51 @@
+# entersweep  (static, 143 bytes, 50 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq 0x18(%rdi), %r13
+    e:  movzbl 0x64(%r13), %eax
+   13:  movq 0x70(%r13), %rsi
+   17:  movb $3, 0x65(%r13)
+   1c:  movl %eax, %ecx
+   1e:  xorl $0x18, %ecx
+   21:  testq %rsi, %rsi
+   24:  je 0x7e
+   26:  leaq 0x70(%r13), %r12
+   2a:  movq %rdi, %rbp
+   2d:  movq %r12, %rbx
+   30:  jmp 0x60
+   32:  nopw (%rax, %rax)
+   38:  andl $0x18, %eax
+   3b:  andl $0xffffffc0, %edx
+   3e:  movq %rsi, %rbx
+   41:  orl %edx, %eax
+   43:  movb %al, 9(%rsi)
+   46:  movq (%rbx), %rsi
+   49:  testq %rsi, %rsi
+   4c:  je 0x7e
+   4e:  cmpq %rbx, %r12
+   51:  jne 0x80
+   53:  movq 0x18(%rbp), %rax
+   57:  movzbl 0x64(%rax), %eax
+   5b:  movl %eax, %ecx
+   5d:  xorl $0x18, %ecx
+   60:  movzbl 9(%rsi), %edx
+   64:  movq (%rsi), %rdi
+   67:  testb %cl, %dl
+   69:  je 0x38
+   6b:  movq %rdi, (%rbx)
+   6e:  movq %rbp, %rdi
+   71:  callq fn:freeobj+0
+   76:  movq (%rbx), %rsi
+   79:  testq %rsi, %rsi
+   7c:  jne 0x4e
+   7e:  xorl %ebx, %ebx
+   80:  movq %rbx, 0x78(%r13)
+   84:  addq $8, %rsp
+   88:  popq %rbx
+   89:  popq %rbp
+   8a:  popq %r12
+   8c:  popq %r13
+   8e:  retq

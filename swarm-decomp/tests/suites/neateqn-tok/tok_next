@@ -1,0 +1,34 @@
+# tok_next  (static, 117 bytes, 33 instructions)
+    0:  movl (%rip), %eax   <var:tok_eqen+0>
+    6:  orl (%rip), %eax   <var:tok_line+0>
+    c:  pushq %rbx
+    d:  je 0x58
+    f:  callq src_next+0
+   14:  movl (%rip), %edx   <var:tok_eqen+0>
+   1a:  movl %eax, %ebx
+   1c:  testl %edx, %edx
+   1e:  je 0x25
+   20:  cmpl $0xa, %eax
+   23:  je 0x60
+   25:  movl (%rip), %eax   <var:tok_line+0>
+   2b:  testl %eax, %eax
+   2d:  jne 0x38
+   2f:  movl %ebx, %eax
+   31:  popq %rbx
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  callq src_top+0
+   3d:  testl %eax, %eax
+   3f:  je 0x2f
+   41:  cmpl %ebx, (%rip)   <var:eqn_end+0>
+   47:  jne 0x2f
+   49:  movl $0, (%rip)   <var:tok_line+0>
+   53:  nopl (%rax, %rax)
+   58:  xorl %ebx, %ebx
+   5a:  jmp 0x2f
+   5c:  nopl (%rax)
+   60:  callq fn:tok_req.constprop.0+0
+   65:  testl %eax, %eax
+   67:  je 0x25
+   69:  movl $0, (%rip)   <var:tok_eqen+0>
+   73:  jmp 0x25

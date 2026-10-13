@@ -1,0 +1,37 @@
+# pdf_ws  (global, 84 bytes, 36 instructions)
+    0:  cmpl %esi, %edx
+    2:  jge 0x51
+    4:  pushq %r12
+    6:  movq %rdi, %r12
+    9:  pushq %rbp
+    a:  movl %edx, %ebp
+    c:  pushq %rbx
+    d:  movl %esi, %ebx
+    f:  callq __ctype_b_loc+0
+   14:  movq (%rax), %rsi
+   17:  movslq %ebp, %rax
+   1a:  leaq (%r12, %rax), %rcx
+   1e:  movl %ebp, %eax
+   20:  jmp 0x33
+   22:  nopw (%rax, %rax)
+   28:  addl $1, %eax
+   2b:  addq $1, %rcx
+   2f:  cmpl %eax, %ebx
+   31:  je 0x48
+   33:  movzbl (%rcx), %edi
+   36:  testb $0x20, 1(%rsi, %rdi, 2)
+   3b:  jne 0x28
+   3d:  subl %ebp, %eax
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  popq %r12
+   43:  retq
+   44:  nopl (%rax)
+   48:  movl %ebx, %eax
+   4a:  popq %rbx
+   4b:  subl %ebp, %eax
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  retq
+   51:  xorl %eax, %eax
+   53:  retq

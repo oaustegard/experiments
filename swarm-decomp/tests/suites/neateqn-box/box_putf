@@ -1,0 +1,48 @@
+# box_putf  (global, 242 bytes, 47 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x4c0, %rsp
+    b:  movq %rdx, 0x420(%rsp)
+   13:  movq %rcx, 0x428(%rsp)
+   1b:  movq %r8, 0x430(%rsp)
+   23:  movq %r9, 0x438(%rsp)
+   2b:  testb %al, %al
+   2d:  je 0x6f
+   2f:  movaps %xmm0, 0x440(%rsp)
+   37:  movaps %xmm1, 0x450(%rsp)
+   3f:  movaps %xmm2, 0x460(%rsp)
+   47:  movaps %xmm3, 0x470(%rsp)
+   4f:  movaps %xmm4, 0x480(%rsp)
+   57:  movaps %xmm5, 0x490(%rsp)
+   5f:  movaps %xmm6, 0x4a0(%rsp)
+   67:  movaps %xmm7, 0x4b0(%rsp)
+   6f:  leaq 0x4d0(%rsp), %rax
+   77:  movq %rsi, %rdx
+   7a:  leaq 8(%rsp), %rcx
+   7f:  movl $0x3e8, %esi
+   84:  movq %rax, 0x10(%rsp)
+   89:  leaq 0x20(%rsp), %rdi
+   8e:  leaq 0x410(%rsp), %rax
+   96:  movl $0x10, 8(%rsp)
+   9e:  movl $0x30, 0xc(%rsp)
+   a6:  movq %rax, 0x18(%rsp)
+   ab:  callq vsnprintf+0
+   b0:  movq %rbx, %rdi
+   b3:  leaq 0x20(%rsp), %rsi
+   b8:  callq sbuf_append+0
+   bd:  movl 0x18(%rbx), %edi
+   c0:  testl %edi, %edi
+   c2:  jne 0xd0
+   c4:  addq $0x4c0, %rsp
+   cb:  popq %rbx
+   cc:  retq
+   cd:  nopl (%rax)
+   d0:  callq sregname+0
+   d5:  leaq 0x20(%rsp), %rdx
+   da:  movl $0, %edi   <str:".as %s \"%s\n">
+   df:  movq %rax, %rsi
+   e2:  xorl %eax, %eax
+   e4:  callq printf+0
+   e9:  addq $0x4c0, %rsp
+   f0:  popq %rbx
+   f1:  retq

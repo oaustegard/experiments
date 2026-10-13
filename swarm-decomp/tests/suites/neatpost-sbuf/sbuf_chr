@@ -1,0 +1,48 @@
+# sbuf_chr  (global, 136 bytes, 47 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movl %esi, %r12d
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movslq 8(%rdi), %rbp
+   14:  movl 0xc(%rdi), %eax
+   17:  leal 2(%rbp), %edx
+   1a:  cmpl %eax, %edx
+   1c:  jl 0x4c
+   1e:  leal (%rax, %rax), %edi
+   21:  cmpl %edi, %eax
+   23:  jge 0x68
+   25:  addl $0x7f, %edi
+   28:  andl $0xffffff80, %edi
+   2b:  movl %edi, 0xc(%rbx)
+   2e:  movslq %edi, %rdi
+   31:  movq (%rbx), %r13
+   34:  callq malloc+0
+   39:  movq %rax, (%rbx)
+   3c:  testl %ebp, %ebp
+   3e:  jne 0x78
+   40:  movq %r13, %rdi
+   43:  callq free+0
+   48:  movslq 8(%rbx), %rbp
+   4c:  movq (%rbx), %rax
+   4f:  leal 1(%rbp), %edx
+   52:  movl %edx, 8(%rbx)
+   55:  movb %r12b, (%rax, %rbp)
+   59:  addq $8, %rsp
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  popq %r13
+   63:  retq
+   64:  nopl (%rax)
+   68:  leal 0x80(%rax), %edi
+   6e:  andl $0xffffff80, %edi
+   71:  jmp 0x2b
+   73:  nopl (%rax, %rax)
+   78:  movslq %ebp, %rdx
+   7b:  movq %r13, %rsi
+   7e:  movq %rax, %rdi
+   81:  callq memcpy+0
+   86:  jmp 0x40

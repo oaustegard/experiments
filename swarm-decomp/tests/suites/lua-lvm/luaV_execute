@@ -1,0 +1,3712 @@
+# luaV_execute  (global, 15342 bytes, 3711 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x58, %rsp
+   14:  movl 0xc0(%r12), %r14d
+   1c:  movq %r15, %r13
+   1f:  nop
+   20:  movq (%r13), %rbp
+   24:  movq 0x20(%r13), %r15
+   28:  movq (%rbp), %rax
+   2c:  movq %rax, 0x10(%rsp)
+   31:  movq 0x18(%rax), %rax
+   35:  movq 0x38(%rax), %rax
+   39:  movq %rax, 8(%rsp)
+   3e:  testl %r14d, %r14d
+   41:  jne 0x2610
+   47:  addq $0x10, %rbp
+   4b:  nopl (%rax, %rax)
+   50:  movl (%r15), %r11d
+   53:  leaq 4(%r15), %rbx
+   57:  movl %r11d, %eax
+   5a:  andl $0x7f, %eax
+   5d:  jmpq *(, %rax, 8)   <var:disptab+0>
+   64:  nopl (%rax)
+   68:  movl %r11d, %ecx
+   6b:  movl %r11d, %r15d
+   6e:  shrl $7, %ecx
+   71:  shrl $0x10, %r15d
+   75:  movzbl %cl, %ecx
+   78:  movzbl %r15b, %r15d
+   7c:  shlq $4, %rcx
+   80:  shlq $4, %r15
+   84:  addq %rbp, %rcx
+   87:  addq %rbp, %r15
+   8a:  shrl $0x18, %r11d
+   8e:  movq 8(%rsp), %rax
+   93:  xorl %r8d, %r8d
+   96:  movl %r11d, %edx
+   99:  shlq $4, %rdx
+   9d:  addq %rax, %rdx
+   a0:  cmpb $0x45, 8(%r15)
+   a5:  movq (%rdx), %rsi
+   a8:  je 0x2379
+   ae:  movq 8(%r13), %rax
+   b2:  movq %rbx, 0x20(%r13)
+   b6:  movq %r15, %rsi
+   b9:  movq %r12, %rdi
+   bc:  movq %rax, 0x10(%r12)
+   c1:  callq luaV_finishget+0
+   c6:  movl 0x28(%r13), %r14d
+   ca:  nopw (%rax, %rax)
+   d0:  testl %r14d, %r14d
+   d3:  jne 0x128
+   d5:  movq %rbx, %rax
+   d8:  addq $4, %rbx
+   dc:  movl (%rax), %r11d
+   df:  movl %r11d, %eax
+   e2:  andl $0x7f, %eax
+   e5:  jmpq *(, %rax, 8)   <var:disptab+0>
+   ec:  nopl (%rax)
+   f0:  movl %r11d, %eax
+   f3:  shrl $0x10, %r11d
+   f7:  shrl $7, %eax
+   fa:  movzbl %r11b, %edx
+   fe:  movzbl %al, %eax
+  101:  shlq $4, %rdx
+  105:  shlq $4, %rax
+  109:  addq %rbp, %rdx
+  10c:  addq %rbp, %rax
+  10f:  movq (%rdx), %rcx
+  112:  movq %rcx, (%rax)
+  115:  movzbl 8(%rdx), %edx
+  119:  movb %dl, 8(%rax)
+  11c:  testl %r14d, %r14d
+  11f:  je 0xd5
+  121:  nopl (%rax)
+  128:  movq %rbx, %rsi
+  12b:  movq %r12, %rdi
+  12e:  callq luaG_traceexec+0
+  133:  movl %eax, %r14d
+  136:  movq (%r13), %rax
+  13a:  leaq 0x10(%rax), %rbp
+  13e:  jmp 0xd5
+  140:  movq 8(%r13), %rax
+  144:  movq %rbx, 0x20(%r13)
+  148:  movq %r12, %rdi
+  14b:  movl %r11d, 0x18(%rsp)
+  150:  movq %rax, 0x10(%r12)
+  155:  movl %r11d, %eax
+  158:  shrl $7, %eax
+  15b:  movzbl %al, %eax
+  15e:  shlq $4, %rax
+  162:  leaq 0x30(%rbp, %rax), %rsi
+  167:  callq luaF_newtbcupval+0
+  16c:  movl 0x18(%rsp), %r11d
+  171:  shrl $0xf, %r11d
+  175:  movl %r11d, %eax
+  178:  leaq (%rbx, %rax, 4), %rax
+  17c:  movl (%rax), %r11d
+  17f:  leaq 4(%rax), %rbx
+  183:  movl %r11d, %eax
+  186:  movl %r11d, %edx
+  189:  movq %r12, %rdi
+  18c:  shrl $7, %eax
+  18f:  shrl $0x18, %edx
+  192:  movzbl %al, %eax
+  195:  shlq $4, %rax
+  199:  addq %rbp, %rax
+  19c:  movdqu (%rax), %xmm5
+  1a0:  movdqu 0x10(%rax), %xmm6
+  1a5:  leaq 0x40(%rax), %rsi
+  1a9:  addq $0x70, %rax
+  1ad:  movups %xmm5, -0x30(%rax)
+  1b1:  movups %xmm6, 0x10(%rsi)
+  1b5:  movdqu -0x50(%rax), %xmm7
+  1ba:  movups %xmm7, 0x20(%rsi)
+  1be:  movq %rax, 0x10(%r12)
+  1c3:  movq %rbx, 0x20(%r13)
+  1c7:  callq luaD_call+0
+  1cc:  movl 0x28(%r13), %r14d
+  1d0:  testl %r14d, %r14d
+  1d3:  jne 0x2b23
+  1d9:  movl (%rbx), %r11d
+  1dc:  addq $4, %rbx
+  1e0:  movl %r11d, %eax
+  1e3:  shrl $7, %eax
+  1e6:  movzbl %al, %eax
+  1e9:  shlq $4, %rax
+  1ed:  addq %rbp, %rax
+  1f0:  movzbl 0x48(%rax), %edx
+  1f4:  testb $0xf, %dl
+  1f7:  je 0x212
+  1f9:  movq 0x40(%rax), %rcx
+  1fd:  shrl $0xf, %r11d
+  201:  movb %dl, 0x28(%rax)
+  204:  movq %rcx, 0x20(%rax)
+  208:  movl %r11d, %eax
+  20b:  shlq $2, %rax
+  20f:  subq %rax, %rbx
+  212:  testl %r14d, %r14d
+  215:  jne 0x813
+  21b:  movl (%rbx), %r11d
+  21e:  addq $4, %rbx
+  222:  movl %r11d, %eax
+  225:  andl $0x7f, %eax
+  228:  movq (, %rax, 8), %rax   <var:disptab+0>
+  230:  jmpq *%rax
+  232:  nopw (%rax, %rax)
+  238:  movl 0xc0(%r12), %eax
+  240:  testl %eax, %eax
+  242:  jne 0x2f10
+  248:  movswl 0x3c(%r13), %edx
+  24d:  movq 0x10(%r13), %rax
+  251:  leaq -0x10(%rbp), %rcx
+  255:  movq %rax, 0x20(%r12)
+  25a:  testl %edx, %edx
+  25c:  jne 0x2a4e
+  262:  movq %rcx, 0x10(%r12)
+  267:  nopw (%rax, %rax)
+  270:  testb $4, 0x3e(%r13)
+  275:  jne 0x30c
+  27b:  movq 0x10(%r13), %r13
+  27f:  jmp 0x20
+  284:  nopl (%rax)
+  288:  movl 0xc0(%r12), %eax
+  290:  testl %eax, %eax
+  292:  jne 0x308d
+  298:  movq 0x10(%r13), %rax
+  29c:  leaq -0x10(%rbp), %rcx
+  2a0:  movq %rcx, 0x10(%r12)
+  2a5:  movq %rax, 0x20(%r12)
+  2aa:  movswq 0x3c(%r13), %rax
+  2af:  movq %rax, %rdx
+  2b2:  testl %eax, %eax
+  2b4:  jle 0x270
+  2b6:  leal -1(%rax), %edi
+  2b9:  leaq -8(%rbp), %rsi
+  2bd:  movq %rdi, %rax
+  2c0:  shlq $4, %rdi
+  2c4:  leaq 0x18(%rcx, %rdi), %rdi
+  2c9:  movq %rdi, %r8
+  2cc:  subq %rsi, %r8
+  2cf:  andl $0x10, %r8d
+  2d3:  je 0x3812
+  2d9:  leaq 8(%rbp), %rsi
+  2dd:  movb $0, -8(%rbp)
+  2e1:  cmpq %rsi, %rdi
+  2e4:  jne 0x3812
+  2ea:  shlq $4, %rdx
+  2ee:  cltq
+  2f0:  addq %rcx, %rdx
+  2f3:  shlq $4, %rax
+  2f7:  movq %rdx, 0x10(%r12)
+  2fc:  movb $0, 8(%rcx, %rax)
+  301:  testb $4, 0x3e(%r13)
+  306:  je 0x27b
+  30c:  addq $0x58, %rsp
+  310:  popq %rbx
+  311:  popq %rbp
+  312:  popq %r12
+  314:  popq %r13
+  316:  popq %r14
+  318:  popq %r15
+  31a:  retq
+  31b:  nopl (%rax, %rax)
+  320:  movl %r11d, %r14d
+  323:  movl %r11d, %eax
+  326:  xorl %r15d, %r15d
+  329:  shrl $7, %r14d
+  32d:  shrl $0x10, %eax
+  330:  movzbl %r14b, %r14d
+  334:  movzbl %al, %edx
+  337:  movl %r11d, %eax
+  33a:  shlq $4, %r14
+  33e:  addq %rbp, %r14
+  341:  shrl $0x18, %eax
+  344:  je 0x34d
+  346:  addl 0x2c(%r13), %eax
+  34a:  movslq %eax, %r15
+  34d:  testl %edx, %edx
+  34f:  je 0x2454
+  355:  movl %edx, %eax
+  357:  movq %rax, %rcx
+  35a:  shlq $4, %rax
+  35e:  addq %r14, %rax
+  361:  andl $0x8000, %r11d
+  368:  movq %rax, 0x10(%r12)
+  36d:  movq %rbx, 0x20(%r13)
+  371:  jne 0x2473
+  377:  movq %r14, %rdx
+  37a:  movl %r15d, %r8d
+  37d:  movq %r13, %rsi
+  380:  movq %r12, %rdi
+  383:  callq luaD_pretailcall+0
+  388:  movl %eax, %edx
+  38a:  testl %eax, %eax
+  38c:  js 0x35b2
+  392:  shlq $4, %r15
+  396:  subq %r15, (%r13)
+  39a:  movq %r13, %rsi
+  39d:  movq %r12, %rdi
+  3a0:  callq luaD_poscall+0
+  3a5:  movl 0x28(%r13), %r14d
+  3a9:  jmp 0x270
+  3ae:  nop
+  3b0:  movl %r11d, %eax
+  3b3:  movl %r11d, %r8d
+  3b6:  shrl $7, %eax
+  3b9:  shrl $0x18, %r8d
+  3bd:  movzbl %al, %eax
+  3c0:  shlq $4, %rax
+  3c4:  movq %rax, %r15
+  3c7:  leaq (%rbp, %rax), %r14
+  3cc:  movl %r11d, %eax
+  3cf:  shrl $0x10, %eax
+  3d2:  movzbl %al, %eax
+  3d5:  leal -1(%rax), %r9d
+  3d9:  testl %eax, %eax
+  3db:  jne 0x3ec
+  3dd:  movq 0x10(%r12), %rax
+  3e2:  subq %r14, %rax
+  3e5:  sarq $4, %rax
+  3e9:  movl %eax, %r9d
+  3ec:  andl $0x8000, %r11d
+  3f3:  movq %rbx, 0x20(%r13)
+  3f7:  je 0x442
+  3f9:  movl %r9d, 0x38(%r13)
+  3fd:  movq 8(%r13), %rax
+  401:  cmpq %rax, 0x10(%r12)
+  406:  jae 0x40d
+  408:  movq %rax, 0x10(%r12)
+  40d:  movl $1, %ecx
+  412:  movl $0xffffffff, %edx
+  417:  movq %rbp, %rsi
+  41a:  movq %r12, %rdi
+  41d:  movl %r9d, 0x10(%rsp)
+  422:  movl %r8d, 8(%rsp)
+  427:  callq luaF_close+0
+  42c:  movl 0x28(%r13), %eax
+  430:  movl 8(%rsp), %r8d
+  435:  movl 0x10(%rsp), %r9d
+  43a:  testl %eax, %eax
+  43c:  jne 0x3484
+  442:  testl %r8d, %r8d
+  445:  je 0x458
+  447:  movl 0x2c(%r13), %eax
+  44b:  addl %r8d, %eax
+  44e:  cltq
+  450:  shlq $4, %rax
+  454:  subq %rax, (%r13)
+  458:  movslq %r9d, %rax
+  45b:  movl %r9d, %edx
+  45e:  movq %r13, %rsi
+  461:  movq %r12, %rdi
+  464:  shlq $4, %rax
+  468:  addq %rax, %r14
+  46b:  movq %r14, 0x10(%r12)
+  470:  callq luaD_poscall+0
+  475:  movl 0x28(%r13), %r14d
+  479:  jmp 0x270
+  47e:  nop
+  480:  movq 8(%r13), %rax
+  484:  movl %r11d, %ecx
+  487:  shrl $7, %r11d
+  48b:  movq %rbx, 0x20(%r13)
+  48f:  movzbl %r11b, %edx
+  493:  shrl $0x18, %ecx
+  496:  movq %r13, %rsi
+  499:  movq %r12, %rdi
+  49c:  movq %rax, 0x10(%r12)
+  4a1:  shlq $4, %rdx
+  4a5:  subl $1, %ecx
+  4a8:  addq %rbp, %rdx
+  4ab:  callq luaT_getvarargs+0
+  4b0:  movl 0x28(%r13), %r14d
+  4b4:  testl %r14d, %r14d
+  4b7:  je 0xd5
+  4bd:  jmp 0x128
+  4c2:  nopw (%rax, %rax)
+  4c8:  movl %r11d, %ecx
+  4cb:  movl %r11d, %edx
+  4ce:  movl %r11d, %eax
+  4d1:  shrl $7, %ecx
+  4d4:  shrl $0x10, %edx
+  4d7:  movzbl %cl, %ecx
+  4da:  shrl $0x18, %eax
+  4dd:  shlq $4, %rcx
+  4e1:  addq %rbp, %rcx
+  4e4:  movq (%rcx), %r15
+  4e7:  andl $0xff, %edx
+  4ed:  jne 0x2495
+  4f3:  movq 0x10(%r12), %r8
+  4f8:  subq %rcx, %r8
+  4fb:  sarq $4, %r8
+  4ff:  subl $1, %r8d
+  503:  movl %r8d, %edx
+  506:  addl %eax, %edx
+  508:  leaq 4(%rbx), %rax
+  50c:  andl $0x8000, %r11d
+  513:  movq %rax, 0x18(%rsp)
+  518:  je 0x248b
+  51e:  movl (%rbx), %eax
+  520:  shrl $7, %eax
+  523:  shll $8, %eax
+  526:  addl %eax, %edx
+  528:  movq %r15, %rdi
+  52b:  movq %rcx, 0x30(%rsp)
+  530:  movl %edx, 0x28(%rsp)
+  534:  movl %r8d, 0x20(%rsp)
+  539:  callq luaH_realasize+0
+  53e:  movl 0x28(%rsp), %edx
+  542:  movl 0x20(%rsp), %r8d
+  547:  movq 0x30(%rsp), %rcx
+  54c:  cmpl %edx, %eax
+  54e:  jb 0x2945
+  554:  testl %r8d, %r8d
+  557:  jle 0x5cc
+  559:  movslq %r8d, %rbx
+  55c:  movq %r13, 0x20(%rsp)
+  561:  movq %r12, %rdi
+  564:  movq %rbp, %r13
+  567:  shlq $4, %rbx
+  56b:  movq %r15, %rbp
+  56e:  movl %edx, %r15d
+  571:  addq %rcx, %rbx
+  574:  movl %edx, %ecx
+  576:  subl %r8d, %ecx
+  579:  movl %ecx, %r12d
+  57c:  nopl (%rax)
+  580:  movq (%rbx), %rdx
+  583:  leal -1(%r15), %eax
+  587:  movq %rax, %r15
+  58a:  shlq $4, %rax
+  58e:  addq 0x10(%rbp), %rax
+  592:  movq %rdx, (%rax)
+  595:  movzbl 8(%rbx), %edx
+  599:  movb %dl, 8(%rax)
+  59c:  andl $0x40, %edx
+  59f:  je 0x5b8
+  5a1:  testb $0x20, 9(%rbp)
+  5a5:  je 0x5b8
+  5a7:  movq (%rbx), %rax
+  5aa:  testb $0x18, 9(%rax)
+  5ae:  jne 0x241e
+  5b4:  nopl (%rax)
+  5b8:  subq $0x10, %rbx
+  5bc:  cmpl %r12d, %r15d
+  5bf:  jne 0x580
+  5c1:  movq %r13, %rbp
+  5c4:  movq 0x20(%rsp), %r13
+  5c9:  movq %rdi, %r12
+  5cc:  testl %r14d, %r14d
+  5cf:  jne 0x3070
+  5d5:  movq 0x18(%rsp), %rax
+  5da:  movl (%rax), %r11d
+  5dd:  leaq 4(%rax), %rbx
+  5e1:  movl %r11d, %eax
+  5e4:  andl $0x7f, %eax
+  5e7:  jmpq *(, %rax, 8)   <var:disptab+0>
+  5ee:  nop
+  5f0:  movq 0x10(%rsp), %rax
+  5f5:  movq %rbx, 0x20(%r13)
+  5f9:  shrl $7, %r11d
+  5fd:  movq %r13, %rdx
+  600:  movzbl %r11b, %esi
+  604:  movq %r12, %rdi
+  607:  movq 0x18(%rax), %rcx
+  60b:  callq luaT_adjustvarargs+0
+  610:  movl 0x28(%r13), %r14d
+  614:  testl %r14d, %r14d
+  617:  je 0x136
+  61d:  movq %r13, %rsi
+  620:  movq %r12, %rdi
+  623:  callq luaD_hookcall+0
+  628:  movl $1, 0xb4(%r12)
+  634:  jmp 0x128
+  639:  nopl (%rax)
+  640:  movq 0x10(%rsp), %rdi
+  645:  movl %r11d, %eax
+  648:  shrl $0xf, %r11d
+  64c:  shrl $7, %eax
+  64f:  movq 0x18(%rdi), %rdx
+  653:  movzbl %al, %eax
+  656:  addq $0x20, %rdi
+  65a:  shlq $4, %rax
+  65e:  movq %rdi, 0x30(%rsp)
+  663:  movq %r12, %rdi
+  666:  movq 0x48(%rdx), %rdx
+  66a:  addq %rbp, %rax
+  66d:  movq %rax, 0x20(%rsp)
+  672:  movl %r11d, %eax
+  675:  movq (%rdx, %rax, 8), %r15
+  679:  movq 8(%r13), %rax
+  67d:  movq %rbx, 0x20(%r13)
+  681:  movl 0x10(%r15), %edx
+  685:  movq 0x50(%r15), %r11
+  689:  movq %rax, 0x10(%r12)
+  68e:  movl %edx, %esi
+  690:  movq %r11, 0x28(%rsp)
+  695:  movl %edx, 0x18(%rsp)
+  699:  callq luaF_newLclosure+0
+  69e:  movq 0x28(%rsp), %r11
+  6a3:  movq %r15, 0x18(%rax)
+  6a7:  movq %rax, %r8
+  6aa:  movq 0x20(%rsp), %rax
+  6af:  xorl %r15d, %r15d
+  6b2:  movq %r8, (%rax)
+  6b5:  movb $0x46, 8(%rax)
+  6b9:  movslq 0x18(%rsp), %rax
+  6be:  movq %rax, %rdx
+  6c1:  shlq $3, %rax
+  6c5:  testl %edx, %edx
+  6c7:  jle 0x22fc
+  6cd:  movl %r14d, 0x28(%rsp)
+  6d2:  movq %rax, %r14
+  6d5:  movq %rbp, 0x18(%rsp)
+  6da:  movq %r15, %rbp
+  6dd:  movq 0x30(%rsp), %r15
+  6e2:  movq %rbx, 0x38(%rsp)
+  6e7:  movq %r11, %rbx
+  6ea:  movq %r13, 0x30(%rsp)
+  6ef:  movq %r8, %r13
+  6f2:  jmp 0x71f
+  6f4:  nopl (%rax)
+  6f8:  movq (%r15, %rsi, 8), %rax
+  6fc:  movq %rax, 0x20(%r13, %rbp)
+  701:  testb $0x20, 9(%r13)
+  706:  je 0x712
+  708:  testb $0x18, 9(%rax)
+  70c:  jne 0x22c8
+  712:  addq $8, %rbp
+  716:  cmpq %rbp, %r14
+  719:  je 0x22e8
+  71f:  cmpb $0, 8(%rbx, %rbp, 2)
+  724:  movzbl 9(%rbx, %rbp, 2), %esi
+  729:  je 0x6f8
+  72b:  movq 0x18(%rsp), %rax
+  730:  shlq $4, %rsi
+  734:  movq %r12, %rdi
+  737:  addq %rax, %rsi
+  73a:  callq luaF_findupval+0
+  73f:  jmp 0x6fc
+  741:  nopl (%rax)
+  748:  movq 8(%r13), %rax
+  74c:  movl %r11d, %esi
+  74f:  movq %rbx, 0x20(%r13)
+  753:  movq %r12, %rdi
+  756:  shrl $7, %esi
+  759:  movl %r11d, 0x18(%rsp)
+  75e:  movq %rbx, %r15
+  761:  movq %rax, 0x10(%r12)
+  766:  movzbl %sil, %esi
+  76a:  shlq $4, %rsi
+  76e:  addq %rbp, %rsi
+  771:  callq fn:forprep+0
+  776:  testl %eax, %eax
+  778:  je 0x790
+  77a:  movl 0x18(%rsp), %r11d
+  77f:  shrl $0xf, %r11d
+  783:  leal 1(%r11), %eax
+  787:  leaq (%rbx, %rax, 4), %r15
+  78b:  nopl (%rax, %rax)
+  790:  testl %r14d, %r14d
+  793:  je 0x50
+  799:  movq %r15, %rsi
+  79c:  movq %r12, %rdi
+  79f:  callq luaG_traceexec+0
+  7a4:  movl %eax, %r14d
+  7a7:  movq (%r13), %rax
+  7ab:  leaq 0x10(%rax), %rbp
+  7af:  jmp 0x50
+  7b4:  nopl (%rax)
+  7b8:  movl %r11d, %edx
+  7bb:  shrl $7, %edx
+  7be:  movzbl %dl, %edx
+  7c1:  shlq $4, %rdx
+  7c5:  addq %rbp, %rdx
+  7c8:  cmpb $3, 0x28(%rdx)
+  7cc:  jne 0x2535
+  7d2:  movq 0x10(%rdx), %rax
+  7d6:  testq %rax, %rax
+  7d9:  je 0x806
+  7db:  subq $1, %rax
+  7df:  movq (%rdx), %rcx
+  7e2:  shrl $0xf, %r11d
+  7e6:  movb $3, 0x38(%rdx)
+  7ea:  movq %rax, 0x10(%rdx)
+  7ee:  movq 0x20(%rdx), %rax
+  7f2:  addq %rcx, %rax
+  7f5:  movq %rax, (%rdx)
+  7f8:  movq %rax, 0x30(%rdx)
+  7fc:  movl %r11d, %eax
+  7ff:  shlq $2, %rax
+  803:  subq %rax, %rbx
+  806:  movl 0x28(%r13), %r14d
+  80a:  testl %r14d, %r14d
+  80d:  je 0x21b
+  813:  movq %rbx, %rsi
+  816:  movq %r12, %rdi
+  819:  callq luaG_traceexec+0
+  81e:  movl %eax, %r14d
+  821:  movq (%r13), %rax
+  825:  leaq 0x10(%rax), %rbp
+  829:  jmp 0x21b
+  82e:  nop
+  830:  movl %r11d, %eax
+  833:  shrl $7, %eax
+  836:  movzbl %al, %eax
+  839:  shlq $4, %rax
+  83d:  leaq (%rbp, %rax), %rsi
+  842:  movl %r11d, %eax
+  845:  shrl $0x18, %r11d
+  849:  shrl $0x10, %eax
+  84c:  leal -1(%r11), %edx
+  850:  andl $0xff, %eax
+  855:  je 0x865
+  857:  movl %eax, %eax
+  859:  shlq $4, %rax
+  85d:  addq %rsi, %rax
+  860:  movq %rax, 0x10(%r12)
+  865:  movq %rbx, 0x20(%r13)
+  869:  movq %r12, %rdi
+  86c:  callq luaD_precall+0
+  871:  testq %rax, %rax
+  874:  jne 0x3770
+  87a:  movl 0x28(%r13), %r14d
+  87e:  jmp 0xd0
+  883:  nopl (%rax, %rax)
+  888:  movl %r11d, %eax
+  88b:  movl $1, %esi
+  890:  shrl $7, %eax
+  893:  movzbl %al, %eax
+  896:  shlq $4, %rax
+  89a:  leaq (%rbp, %rax), %rdx
+  89f:  movl %r11d, %eax
+  8a2:  shrl $0x10, %eax
+  8a5:  movzbl %al, %eax
+  8a8:  shlq $4, %rax
+  8ac:  addq %rbp, %rax
+  8af:  movzbl 8(%rax), %ecx
+  8b3:  cmpb $1, %cl
+  8b6:  je 0x8bf
+  8b8:  testb $0xf, %cl
+  8bb:  sete %sil
+  8bf:  shrl $0xf, %r11d
+  8c3:  andl $1, %r11d
+  8c7:  cmpb %r11b, %sil
+  8ca:  je 0x925
+  8cc:  movq (%rax), %rax
+  8cf:  movb %cl, 8(%rdx)
+  8d2:  movq %rax, (%rdx)
+  8d5:  nopl (%rax)
+  8d8:  movl (%rbx), %eax
+  8da:  movl 0x28(%r13), %r14d
+  8de:  shrl $7, %eax
+  8e1:  leaq -0x3fffff8(%rbx, %rax, 4), %r15
+  8e9:  jmp 0x790
+  8ee:  nop
+  8f0:  movl %r11d, %eax
+  8f3:  shrl $7, %eax
+  8f6:  movzbl %al, %eax
+  8f9:  shlq $4, %rax
+  8fd:  movzbl 8(%rbp, %rax), %edx
+  902:  xorl %eax, %eax
+  904:  cmpb $1, %dl
+  907:  je 0x918
+  909:  xorl %eax, %eax
+  90b:  andl $0xf, %edx
+  90e:  setne %al
+  911:  nopl (%rax)
+  918:  shrl $0xf, %r11d
+  91c:  andl $1, %r11d
+  920:  cmpl %eax, %r11d
+  923:  je 0x8d8
+  925:  leaq 4(%rbx), %r15
+  929:  jmp 0x790
+  92e:  nop
+  930:  movl %r11d, %esi
+  933:  movl %r11d, %eax
+  936:  shrl $7, %esi
+  939:  shrl $0x10, %eax
+  93c:  movzbl %sil, %esi
+  940:  movzbl %al, %eax
+  943:  shlq $4, %rsi
+  947:  leal -0x7f(%rax), %edx
+  94a:  addq %rbp, %rsi
+  94d:  movzbl 8(%rsi), %eax
+  951:  cmpb $3, %al
+  953:  je 0x2870
+  959:  cmpb $0x13, %al
+  95b:  jne 0x29ca
+  961:  pxor %xmm0, %xmm0
+  965:  movsd (%rsi), %xmm1
+  969:  xorl %eax, %eax
+  96b:  cvtsi2sdl %edx, %xmm0
+  96f:  comisd %xmm0, %xmm1
+  973:  setae %al
+  976:  jmp 0x918
+  978:  nopl (%rax, %rax)
+  980:  movl %r11d, %esi
+  983:  movl %r11d, %eax
+  986:  shrl $7, %esi
+  989:  shrl $0x10, %eax
+  98c:  movzbl %sil, %esi
+  990:  movzbl %al, %eax
+  993:  shlq $4, %rsi
+  997:  leal -0x7f(%rax), %edx
+  99a:  addq %rbp, %rsi
+  99d:  movzbl 8(%rsi), %eax
+  9a1:  cmpb $3, %al
+  9a3:  je 0x2718
+  9a9:  cmpb $0x13, %al
+  9ab:  jne 0x2a1c
+  9b1:  pxor %xmm0, %xmm0
+  9b5:  movsd (%rsi), %xmm1
+  9b9:  xorl %eax, %eax
+  9bb:  cvtsi2sdl %edx, %xmm0
+  9bf:  comisd %xmm0, %xmm1
+  9c3:  seta %al
+  9c6:  jmp 0x918
+  9cb:  nopl (%rax, %rax)
+  9d0:  movl %r11d, %esi
+  9d3:  movl %r11d, %eax
+  9d6:  shrl $7, %esi
+  9d9:  shrl $0x10, %eax
+  9dc:  movzbl %sil, %esi
+  9e0:  movzbl %al, %eax
+  9e3:  shlq $4, %rsi
+  9e7:  leal -0x7f(%rax), %edx
+  9ea:  addq %rbp, %rsi
+  9ed:  movzbl 8(%rsi), %eax
+  9f1:  cmpb $3, %al
+  9f3:  je 0x2924
+  9f9:  cmpb $0x13, %al
+  9fb:  jne 0x2a04
+  a01:  pxor %xmm0, %xmm0
+  a05:  xorl %eax, %eax
+  a07:  cvtsi2sdl %edx, %xmm0
+  a0b:  comisd (%rsi), %xmm0
+  a0f:  setae %al
+  a12:  jmp 0x918
+  a17:  nopw (%rax, %rax)
+  a20:  movl %r11d, %eax
+  a23:  shrl $7, %eax
+  a26:  movzbl %al, %eax
+  a29:  shlq $4, %rax
+  a2d:  leaq (%rbp, %rax), %rdx
+  a32:  movl %r11d, %eax
+  a35:  shrl $0x18, %r11d
+  a39:  shrl $0x10, %eax
+  a3c:  movzbl %al, %eax
+  a3f:  shlq $4, %rax
+  a43:  addq %rbp, %rax
+  a46:  movzbl 8(%rax), %ecx
+  a4a:  cmpb $3, %cl
+  a4d:  jne 0x3130
+  a53:  movq (%rax), %rsi
+  a56:  movl $0x7f, %eax
+  a5b:  leaq 4(%rbx), %r15
+  a5f:  subl %r11d, %eax
+  a62:  js 0x262c
+  a68:  movl %eax, %ecx
+  a6a:  shlq %cl, %rsi
+  a6d:  cmpl $0x40, %eax
+  a70:  movl $0, %eax
+  a75:  cmovlq %rsi, %rax
+  a79:  movq %rax, (%rdx)
+  a7c:  movb $3, 8(%rdx)
+  a80:  jmp 0x790
+  a85:  nopl (%rax)
+  a88:  movl %r11d, %eax
+  a8b:  movl %r11d, %ecx
+  a8e:  shrl $0x18, %r11d
+  a92:  movq 8(%rsp), %rdi
+  a97:  shrl $0x10, %eax
+  a9a:  shrl $7, %ecx
+  a9d:  movl %r11d, %edx
+  aa0:  movzbl %al, %eax
+  aa3:  movzbl %cl, %ecx
+  aa6:  shlq $4, %rdx
+  aaa:  shlq $4, %rax
+  aae:  shlq $4, %rcx
+  ab2:  movq (%rdi, %rdx), %rdx
+  ab6:  addq %rbp, %rax
+  ab9:  addq %rbp, %rcx
+  abc:  movzbl 8(%rax), %esi
+  ac0:  cmpb $3, %sil
+  ac4:  jne 0x2c4d
+  aca:  movq (%rax), %rax
+  acd:  xorq %rax, %rdx
+  ad0:  movb $3, 8(%rcx)
+  ad4:  leaq 4(%rbx), %r15
+  ad8:  movq %rdx, (%rcx)
+  adb:  jmp 0x790
+  ae0:  movq 8(%r13), %rdx
+  ae4:  movl -8(%rbx), %eax
+  ae7:  movl %r11d, %esi
+  aea:  movq %rbx, 0x20(%r13)
+  aee:  shrl $7, %esi
+  af1:  movq 8(%rsp), %rdi
+  af6:  movl %r11d, %ecx
+  af9:  movl %r11d, %r9d
+  afc:  movq %rdx, 0x10(%r12)
+  b01:  movl %r11d, %edx
+  b04:  shrl $7, %eax
+  b07:  movzbl %sil, %esi
+  b0b:  shrl $0x10, %edx
+  b0e:  movzbl %al, %eax
+  b11:  shrl $0xf, %ecx
+  b14:  shlq $4, %rax
+  b18:  movzbl %dl, %edx
+  b1b:  shlq $4, %rsi
+  b1f:  andl $1, %ecx
+  b22:  shlq $4, %rdx
+  b26:  addq %rbp, %rsi
+  b29:  shrl $0x18, %r9d
+  b2d:  leaq (%rbp, %rax), %r8
+  b32:  addq %rdi, %rdx
+  b35:  movq %r12, %rdi
+  b38:  callq luaT_trybinassocTM+0
+  b3d:  movl 0x28(%r13), %r14d
+  b41:  testl %r14d, %r14d
+  b44:  je 0xd5
+  b4a:  jmp 0x128
+  b4f:  nop
+  b50:  movl %r11d, %r15d
+  b53:  movl %r11d, %edx
+  b56:  shrl $7, %r15d
+  b5a:  shrl $0x10, %edx
+  b5d:  movzbl %r15b, %r15d
+  b61:  movzbl %dl, %edx
+  b64:  shlq $4, %r15
+  b68:  shlq $4, %rdx
+  b6c:  addq %rbp, %r15
+  b6f:  addq %rbp, %rdx
+  b72:  testl $0x8000, %r11d
+  b79:  je 0x24a6
+  b7f:  shrl $0x18, %r11d
+  b83:  movq 8(%rsp), %rax
+  b88:  movl %r11d, %ecx
+  b8b:  shlq $4, %rcx
+  b8f:  addq %rax, %rcx
+  b92:  cmpb $3, 8(%rdx)
+  b96:  movzbl 8(%r15), %eax
+  b9b:  je 0x24c3
+  ba1:  xorl %r8d, %r8d
+  ba4:  cmpb $0x45, %al
+  ba6:  je 0x2bfa
+  bac:  movq 8(%r13), %rax
+  bb0:  movq %rbx, 0x20(%r13)
+  bb4:  movq %r15, %rsi
+  bb7:  movq %r12, %rdi
+  bba:  movq %rax, 0x10(%r12)
+  bbf:  callq luaV_finishset+0
+  bc4:  movl 0x28(%r13), %r14d
+  bc8:  jmp 0xd0
+  bcd:  nopl (%rax)
+  bd0:  movl %r11d, %eax
+  bd3:  movq 0x10(%rsp), %rdi
+  bd8:  shrl $7, %eax
+  bdb:  movzbl %al, %eax
+  bde:  movq 0x20(%rdi, %rax, 8), %rax
+  be3:  movq 0x10(%rax), %r15
+  be7:  movl %r11d, %edx
+  bea:  movq 8(%rsp), %rax
+  bef:  shrl $0x10, %edx
+  bf2:  movzbl %dl, %edx
+  bf5:  shlq $4, %rdx
+  bf9:  addq %rax, %rdx
+  bfc:  testl $0x8000, %r11d
+  c03:  je 0x2330
+  c09:  shrl $0x18, %r11d
+  c0d:  movl %r11d, %ecx
+  c10:  shlq $4, %rcx
+  c14:  addq %rax, %rcx
+  c17:  xorl %r8d, %r8d
+  c1a:  cmpb $0x45, 8(%r15)
+  c1f:  movq (%rdx), %rsi
+  c22:  jne 0xbac
+  c24:  movq %rdx, 0x20(%rsp)
+  c29:  movq %rcx, 0x18(%rsp)
+  c2e:  movq (%r15), %rdi
+  c31:  callq luaH_getshortstr+0
+  c36:  movq 0x18(%rsp), %rcx
+  c3b:  movq 0x20(%rsp), %rdx
+  c40:  testb $0xf, 8(%rax)
+  c44:  movq %rax, %r8
+  c47:  je 0xbac
+  c4d:  movq (%rcx), %rax
+  c50:  movq %rax, (%r8)
+  c53:  movzbl 8(%rcx), %eax
+  c57:  movb %al, 8(%r8)
+  c5b:  testb $0x40, %al
+  c5d:  je 0xd0
+  c63:  movq (%r15), %rsi
+  c66:  testb $0x20, 9(%rsi)
+  c6a:  je 0xd0
+  c70:  movq (%rcx), %rax
+  c73:  testb $0x18, 9(%rax)
+  c77:  je 0xd0
+  c7d:  movq %r12, %rdi
+  c80:  callq luaC_barrierback_+0
+  c85:  jmp 0xd0
+  c8a:  nopw (%rax, %rax)
+  c90:  movl %r11d, %r15d
+  c93:  movl %r11d, %ecx
+  c96:  shrl $0x18, %r11d
+  c9a:  shrl $0x10, %r15d
+  c9e:  shrl $7, %ecx
+  ca1:  movzbl %r15b, %r15d
+  ca5:  movzbl %cl, %ecx
+  ca8:  shlq $4, %r15
+  cac:  shlq $4, %rcx
+  cb0:  addq %rbp, %r15
+  cb3:  addq %rbp, %rcx
+  cb6:  cmpb $0x45, 8(%r15)
+  cbb:  jne 0x2343
+  cc1:  movq (%r15), %rdi
+  cc4:  movl %r11d, %esi
+  cc7:  leaq -1(%rsi), %rdx
+  ccb:  movl 0xc(%rdi), %eax
+  cce:  cmpq %rax, %rdx
+  cd1:  jae 0x2b61
+  cd7:  movq 0x10(%rdi), %rax
+  cdb:  shlq $4, %rsi
+  cdf:  leaq -0x10(%rax, %rsi), %r8
+  ce4:  movzbl 8(%r8), %eax
+  ce9:  testb $0xf, %al
+  ceb:  je 0x2346
+  cf1:  movq (%r8), %rdx
+  cf4:  movb %al, 8(%rcx)
+  cf7:  movq %rdx, (%rcx)
+  cfa:  jmp 0xd0
+  cff:  nop
+  d00:  movl %r11d, %ecx
+  d03:  movl %r11d, %r15d
+  d06:  shrl $0x18, %r11d
+  d0a:  shrl $7, %ecx
+  d0d:  shrl $0x10, %r15d
+  d11:  movl %r11d, %edx
+  d14:  shlq $4, %rdx
+  d18:  movzbl %cl, %ecx
+  d1b:  movzbl %r15b, %r15d
+  d1f:  shlq $4, %rcx
+  d23:  shlq $4, %r15
+  d27:  addq %rbp, %rdx
+  d2a:  addq %rbp, %rcx
+  d2d:  addq %rbp, %r15
+  d30:  cmpb $3, 8(%rdx)
+  d34:  je 0x27e6
+  d3a:  xorl %r8d, %r8d
+  d3d:  cmpb $0x45, 8(%r15)
+  d42:  jne 0xae
+  d48:  movq (%r15), %rdi
+  d4b:  movq %rdx, %rsi
+  d4e:  movq %rcx, 0x20(%rsp)
+  d53:  movq %rdx, 0x18(%rsp)
+  d58:  callq luaH_get+0
+  d5d:  movq 0x18(%rsp), %rdx
+  d62:  movq 0x20(%rsp), %rcx
+  d67:  testb $0xf, 8(%rax)
+  d6b:  movq %rax, %r8
+  d6e:  setne %al
+  d71:  testb %al, %al
+  d73:  je 0xae
+  d79:  movq (%r8), %rax
+  d7c:  movq %rax, (%rcx)
+  d7f:  movzbl 8(%r8), %eax
+  d84:  movb %al, 8(%rcx)
+  d87:  jmp 0xd0
+  d8c:  nopl (%rax)
+  d90:  movl %r11d, %eax
+  d93:  movq 0x10(%rsp), %rdi
+  d98:  shrl $0x10, %r11d
+  d9c:  shrl $7, %eax
+  d9f:  movzbl %r11b, %edx
+  da3:  movzbl %al, %eax
+  da6:  movq 0x20(%rdi, %rdx, 8), %rsi
+  dab:  shlq $4, %rax
+  daf:  addq %rbp, %rax
+  db2:  movq 0x10(%rsi), %rdx
+  db6:  movq (%rax), %rcx
+  db9:  movq %rcx, (%rdx)
+  dbc:  movzbl 8(%rax), %ecx
+  dc0:  movb %cl, 8(%rdx)
+  dc3:  testb $0x40, 8(%rax)
+  dc7:  je 0xd0
+  dcd:  testb $0x20, 9(%rsi)
+  dd1:  je 0xd0
+  dd7:  movq (%rax), %rdx
+  dda:  testb $0x18, 9(%rdx)
+  dde:  je 0xd0
+  de4:  movq %r12, %rdi
+  de7:  callq luaC_barrier_+0
+  dec:  jmp 0xd0
+  df1:  nopl (%rax)
+  df8:  movl %r11d, %eax
+  dfb:  movq 0x10(%rsp), %rdi
+  e00:  shrl $0x10, %r11d
+  e04:  shrl $7, %eax
+  e07:  movzbl %r11b, %edx
+  e0b:  movq 0x20(%rdi, %rdx, 8), %rdx
+  e10:  movzbl %al, %eax
+  e13:  shlq $4, %rax
+  e17:  movq 0x10(%rdx), %rdx
+  e1b:  addq %rbp, %rax
+  e1e:  jmp 0x10f
+  e23:  nopl (%rax, %rax)
+  e28:  movl %r11d, %eax
+  e2b:  movq 0x10(%rsp), %rdi
+  e30:  movl %r11d, %ecx
+  e33:  shrl $0x10, %eax
+  e36:  shrl $7, %ecx
+  e39:  movzbl %al, %eax
+  e3c:  movzbl %cl, %ecx
+  e3f:  movq 0x20(%rdi, %rax, 8), %rax
+  e44:  shlq $4, %rcx
+  e48:  addq %rbp, %rcx
+  e4b:  movq 0x10(%rax), %r15
+  e4f:  jmp 0x8a
+  e54:  nopl (%rax)
+  e58:  movl %r11d, %eax
+  e5b:  shrl $0x10, %r11d
+  e5f:  shrl $7, %eax
+  e62:  movzbl %r11b, %edx
+  e66:  movzbl %al, %eax
+  e69:  leaq 1(%rdx), %rcx
+  e6d:  shlq $4, %rax
+  e71:  shlq $4, %rcx
+  e75:  addq %rbp, %rax
+  e78:  leaq (%rax, %rcx), %rdx
+  e7c:  andl $0x10, %ecx
+  e7f:  je 0xe98
+  e81:  addq $0x10, %rax
+  e85:  movb $0, -8(%rax)
+  e89:  cmpq %rdx, %rax
+  e8c:  je 0xd0
+  e92:  nopw (%rax, %rax)
+  e98:  movb $0, 8(%rax)
+  e9c:  addq $0x20, %rax
+  ea0:  movb $0, -8(%rax)
+  ea4:  cmpq %rdx, %rax
+  ea7:  jne 0xe98
+  ea9:  jmp 0xd0
+  eae:  nop
+  eb0:  shrl $7, %r11d
+  eb4:  movzbl %r11b, %eax
+  eb8:  shlq $4, %rax
+  ebc:  movb $0x11, 8(%rbp, %rax)
+  ec1:  testl %r14d, %r14d
+  ec4:  je 0xd5
+  eca:  jmp 0x128
+  ecf:  nop
+  ed0:  shrl $7, %r11d
+  ed4:  leaq 4(%rbx), %r15
+  ed8:  movzbl %r11b, %eax
+  edc:  shlq $4, %rax
+  ee0:  movb $1, 8(%rbp, %rax)
+  ee5:  testl %r14d, %r14d
+  ee8:  je 0x50
+  eee:  jmp 0x799
+  ef3:  nopl (%rax, %rax)
+  ef8:  shrl $7, %r11d
+  efc:  movzbl %r11b, %eax
+  f00:  shlq $4, %rax
+  f04:  movb $1, 8(%rbp, %rax)
+  f09:  testl %r14d, %r14d
+  f0c:  je 0xd5
+  f12:  jmp 0x128
+  f17:  nopw (%rax, %rax)
+  f20:  movl (%rbx), %eax
+  f22:  movq 8(%rsp), %rdi
+  f27:  shrl $7, %r11d
+  f2b:  leaq 4(%rbx), %r15
+  f2f:  movzbl %r11b, %edx
+  f33:  shrl $7, %eax
+  f36:  shlq $4, %rdx
+  f3a:  shlq $4, %rax
+  f3e:  addq %rbp, %rdx
+  f41:  addq %rdi, %rax
+  f44:  movq (%rax), %rcx
+  f47:  movq %rcx, (%rdx)
+  f4a:  movzbl 8(%rax), %eax
+  f4e:  movb %al, 8(%rdx)
+  f51:  testl %r14d, %r14d
+  f54:  je 0x50
+  f5a:  jmp 0x799
+  f5f:  nop
+  f60:  movl %r11d, %eax
+  f63:  shrl $0xf, %r11d
+  f67:  movq 8(%rsp), %rdi
+  f6c:  shrl $7, %eax
+  f6f:  movl %r11d, %edx
+  f72:  movzbl %al, %eax
+  f75:  shlq $4, %rdx
+  f79:  shlq $4, %rax
+  f7d:  addq %rdi, %rdx
+  f80:  addq %rbp, %rax
+  f83:  jmp 0x10f
+  f88:  nopl (%rax, %rax)
+  f90:  movl %r11d, %eax
+  f93:  shrl $0xf, %r11d
+  f97:  pxor %xmm0, %xmm0
+  f9b:  leal -0xffff(%r11), %edx
+  fa2:  shrl $7, %eax
+  fa5:  cvtsi2sdl %edx, %xmm0
+  fa9:  movzbl %al, %eax
+  fac:  shlq $4, %rax
+  fb0:  addq %rbp, %rax
+  fb3:  movb $0x13, 8(%rax)
+  fb7:  movsd %xmm0, (%rax)
+  fbb:  testl %r14d, %r14d
+  fbe:  je 0xd5
+  fc4:  jmp 0x128
+  fc9:  nopl (%rax)
+  fd0:  movl %r11d, %eax
+  fd3:  shrl $0xf, %r11d
+  fd7:  shrl $7, %eax
+  fda:  leal -0xffff(%r11), %edx
+  fe1:  movzbl %al, %eax
+  fe4:  movslq %edx, %rdx
+  fe7:  shlq $4, %rax
+  feb:  addq %rbp, %rax
+  fee:  movq %rdx, (%rax)
+  ff1:  movb $3, 8(%rax)
+  ff5:  testl %r14d, %r14d
+  ff8:  je 0xd5
+  ffe:  jmp 0x128
+ 1003:  nopl (%rax, %rax)
+ 1008:  movl %r11d, %eax
+ 100b:  movl %r11d, %edx
+ 100e:  movq 8(%rsp), %rdi
+ 1013:  shrl $0x10, %eax
+ 1016:  shrl $0x18, %edx
+ 1019:  movzbl %al, %eax
+ 101c:  shlq $4, %rdx
+ 1020:  shlq $4, %rax
+ 1024:  leaq (%rdi, %rdx), %rcx
+ 1028:  addq %rbp, %rax
+ 102b:  shrl $7, %r11d
+ 102f:  movzbl 8(%rax), %esi
+ 1033:  movzbl %r11b, %edx
+ 1037:  shlq $4, %rdx
+ 103b:  addq %rbp, %rdx
+ 103e:  cmpb $3, %sil
+ 1042:  je 0x23a9
+ 1048:  leaq 4(%rbx), %r15
+ 104c:  cmpb $0x13, %sil
+ 1050:  je 0x2435
+ 1056:  nopw %cs:(%rax, %rax)
+ 1060:  testl %r14d, %r14d
+ 1063:  jne 0x1108
+ 1069:  movl (%rbx), %r11d
+ 106c:  movq %r15, %rbx
+ 106f:  movl %r11d, %eax
+ 1072:  andl $0x7f, %eax
+ 1075:  movq (, %rax, 8), %rax   <var:disptab+0>
+ 107d:  jmpq *%rax
+ 107f:  nop
+ 1080:  movl %r11d, %eax
+ 1083:  movl %r11d, %edx
+ 1086:  movq 8(%rsp), %rdi
+ 108b:  shrl $0x10, %eax
+ 108e:  shrl $0x18, %edx
+ 1091:  movzbl %al, %eax
+ 1094:  shlq $4, %rdx
+ 1098:  shlq $4, %rax
+ 109c:  leaq (%rdi, %rdx), %rcx
+ 10a0:  addq %rbp, %rax
+ 10a3:  shrl $7, %r11d
+ 10a7:  movzbl 8(%rax), %esi
+ 10ab:  movzbl %r11b, %edx
+ 10af:  shlq $4, %rdx
+ 10b3:  addq %rbp, %rdx
+ 10b6:  cmpb $3, %sil
+ 10ba:  je 0x23ed
+ 10c0:  leaq 4(%rbx), %r15
+ 10c4:  cmpb $0x13, %sil
+ 10c8:  jne 0x1060
+ 10ca:  movsd (%rax), %xmm0
+ 10ce:  movzbl 8(%rcx), %eax
+ 10d2:  cmpb $0x13, %al
+ 10d4:  je 0x2415
+ 10da:  cmpb $3, %al
+ 10dc:  jne 0x1060
+ 10de:  pxor %xmm1, %xmm1
+ 10e2:  cvtsi2sdq (%rcx), %xmm1
+ 10e7:  subsd %xmm1, %xmm0
+ 10eb:  movq %r15, %rbx
+ 10ee:  movb $0x13, 8(%rdx)
+ 10f2:  addq $4, %r15
+ 10f6:  movsd %xmm0, (%rdx)
+ 10fa:  testl %r14d, %r14d
+ 10fd:  je 0x1069
+ 1103:  nopl (%rax, %rax)
+ 1108:  movq %rbx, %rsi
+ 110b:  movq %r12, %rdi
+ 110e:  callq luaG_traceexec+0
+ 1113:  movl %eax, %r14d
+ 1116:  movq (%r13), %rax
+ 111a:  leaq 0x10(%rax), %rbp
+ 111e:  jmp 0x1069
+ 1123:  nopl (%rax, %rax)
+ 1128:  movl %r11d, %eax
+ 112b:  leaq 4(%rbx), %r15
+ 112f:  shrl $7, %eax
+ 1132:  movzbl %al, %eax
+ 1135:  shlq $4, %rax
+ 1139:  leaq (%rbp, %rax), %rdx
+ 113e:  movl %r11d, %eax
+ 1141:  shrl $0x18, %r11d
+ 1145:  shrl $0x10, %eax
+ 1148:  subl $0x7f, %r11d
+ 114c:  movzbl %al, %eax
+ 114f:  shlq $4, %rax
+ 1153:  addq %rbp, %rax
+ 1156:  movzbl 8(%rax), %ecx
+ 115a:  cmpb $3, %cl
+ 115d:  je 0x2850
+ 1163:  cmpb $0x13, %cl
+ 1166:  je 0x2af3
+ 116c:  movq %rbx, %r15
+ 116f:  jmp 0x790
+ 1174:  nopl (%rax)
+ 1178:  movl %r11d, %eax
+ 117b:  movl %r11d, %edx
+ 117e:  movq 8(%rsp), %rdi
+ 1183:  shrl $7, %r11d
+ 1187:  shrl $0x10, %eax
+ 118a:  shrl $0x18, %edx
+ 118d:  movzbl %al, %eax
+ 1190:  shlq $4, %rdx
+ 1194:  shlq $4, %rax
+ 1198:  leaq (%rdi, %rdx), %rcx
+ 119c:  movzbl %r11b, %edx
+ 11a0:  addq %rbp, %rax
+ 11a3:  shlq $4, %rdx
+ 11a7:  movzbl 8(%rax), %esi
+ 11ab:  addq %rbp, %rdx
+ 11ae:  cmpb $3, %sil
+ 11b2:  je 0x28be
+ 11b8:  leaq 4(%rbx), %r15
+ 11bc:  cmpb $0x13, %sil
+ 11c0:  jne 0x1060
+ 11c6:  movsd (%rax), %xmm1
+ 11ca:  movzbl 8(%rcx), %eax
+ 11ce:  cmpb $0x13, %al
+ 11d0:  je 0x28e6
+ 11d6:  cmpb $3, %al
+ 11d8:  jne 0x1060
+ 11de:  pxor %xmm0, %xmm0
+ 11e2:  cvtsi2sdq (%rcx), %xmm0
+ 11e7:  jmp 0x216b
+ 11ec:  nopl (%rax)
+ 11f0:  movq 8(%r13), %rax
+ 11f4:  shrl $7, %r11d
+ 11f8:  movq %rbx, 0x20(%r13)
+ 11fc:  movq %r12, %rdi
+ 11ff:  movzbl %r11b, %esi
+ 1203:  movq %rax, 0x10(%r12)
+ 1208:  shlq $4, %rsi
+ 120c:  addq %rbp, %rsi
+ 120f:  callq luaF_newtbcupval+0
+ 1214:  jmp 0xd0
+ 1219:  nopl (%rax)
+ 1220:  movl %r11d, %esi
+ 1223:  shrl $7, %r11d
+ 1227:  shrl $0x10, %esi
+ 122a:  movzbl %r11b, %eax
+ 122e:  movzbl %sil, %edx
+ 1232:  shlq $4, %rax
+ 1236:  movq %rdx, %rsi
+ 1239:  addq %rbp, %rax
+ 123c:  shlq $4, %rdx
+ 1240:  addq %rdx, %rax
+ 1243:  movq %rax, 0x10(%r12)
+ 1248:  movq %rbx, 0x20(%r13)
+ 124c:  cmpl $1, %esi
+ 124f:  je 0x1259
+ 1251:  movq %r12, %rdi
+ 1254:  callq fn:luaV_concat.part.0+0
+ 1259:  movq 0x18(%r12), %rax
+ 125e:  movl 0x28(%r13), %r14d
+ 1262:  cmpq $0, 0x18(%rax)
+ 1267:  jle 0xd0
+ 126d:  movq %rbx, 0x20(%r13)
+ 1271:  movq %r12, %rdi
+ 1274:  callq luaC_step+0
+ 1279:  jmp 0x87a
+ 127e:  nop
+ 1280:  movl %r11d, %eax
+ 1283:  shrl $7, %eax
+ 1286:  movzbl %al, %eax
+ 1289:  shlq $4, %rax
+ 128d:  leaq (%rbp, %rax), %rdx
+ 1292:  movl %r11d, %eax
+ 1295:  shrl $0x18, %r11d
+ 1299:  shrl $0x10, %eax
+ 129c:  movzbl %al, %eax
+ 129f:  shlq $4, %rax
+ 12a3:  addq %rbp, %rax
+ 12a6:  movzbl 8(%rax), %ecx
+ 12aa:  cmpb $0x13, %cl
+ 12ad:  je 0x27ab
+ 12b3:  cmpb $3, %cl
+ 12b6:  jne 0x212
+ 12bc:  pxor %xmm0, %xmm0
+ 12c0:  cvtsi2sdq (%rax), %xmm0
+ 12c5:  movq 8(%rsp), %rax
+ 12ca:  shlq $4, %r11
+ 12ce:  addq %r11, %rax
+ 12d1:  movzbl 8(%rax), %ecx
+ 12d5:  cmpb $0x13, %cl
+ 12d8:  je 0x2b30
+ 12de:  cmpb $3, %cl
+ 12e1:  jne 0x212
+ 12e7:  pxor %xmm1, %xmm1
+ 12eb:  cvtsi2sdq (%rax), %xmm1
+ 12f0:  divsd %xmm1, %xmm0
+ 12f4:  movb $0x13, 8(%rdx)
+ 12f8:  addq $4, %rbx
+ 12fc:  movsd %xmm0, (%rdx)
+ 1300:  jmp 0x212
+ 1305:  nopl (%rax)
+ 1308:  movl %r11d, %eax
+ 130b:  movl %r11d, %ecx
+ 130e:  shrl $0x18, %r11d
+ 1312:  movq 8(%rsp), %rdi
+ 1317:  shrl $0x10, %eax
+ 131a:  shrl $7, %ecx
+ 131d:  movl %r11d, %edx
+ 1320:  movzbl %al, %eax
+ 1323:  movzbl %cl, %ecx
+ 1326:  shlq $4, %rdx
+ 132a:  shlq $4, %rax
+ 132e:  shlq $4, %rcx
+ 1332:  movq (%rdi, %rdx), %rdx
+ 1336:  addq %rbp, %rax
+ 1339:  addq %rbp, %rcx
+ 133c:  movzbl 8(%rax), %esi
+ 1340:  cmpb $3, %sil
+ 1344:  jne 0x2e9f
+ 134a:  movq (%rax), %rax
+ 134d:  orq %rax, %rdx
+ 1350:  movb $3, 8(%rcx)
+ 1354:  leaq 4(%rbx), %r15
+ 1358:  movq %rdx, (%rcx)
+ 135b:  jmp 0x790
+ 1360:  movl %r11d, %eax
+ 1363:  shrl $7, %eax
+ 1366:  movzbl %al, %eax
+ 1369:  shlq $4, %rax
+ 136d:  leaq (%rbp, %rax), %r15
+ 1372:  movl %r11d, %eax
+ 1375:  shrl $0x18, %r11d
+ 1379:  shrl $0x10, %eax
+ 137c:  movzbl %al, %eax
+ 137f:  shlq $4, %rax
+ 1383:  addq %rbp, %rax
+ 1386:  movzbl 8(%rax), %edx
+ 138a:  cmpb $0x13, %dl
+ 138d:  je 0x28ef
+ 1393:  cmpb $3, %dl
+ 1396:  jne 0x212
+ 139c:  pxor %xmm0, %xmm0
+ 13a0:  cvtsi2sdq (%rax), %xmm0
+ 13a5:  movq 8(%rsp), %rax
+ 13aa:  shlq $4, %r11
+ 13ae:  addq %r11, %rax
+ 13b1:  movzbl 8(%rax), %edx
+ 13b5:  cmpb $0x13, %dl
+ 13b8:  je 0x2b39
+ 13be:  cmpb $3, %dl
+ 13c1:  jne 0x212
+ 13c7:  pxor %xmm1, %xmm1
+ 13cb:  cvtsi2sdq (%rax), %xmm1
+ 13d0:  addq $4, %rbx
+ 13d4:  ucomisd (%rip), %xmm1   <cst:0000000000000040>
+ 13dc:  jp 0x2b0d
+ 13e2:  jne 0x2b0d
+ 13e8:  mulsd %xmm0, %xmm0
+ 13ec:  movb $0x13, 8(%r15)
+ 13f1:  movsd %xmm0, (%r15)
+ 13f6:  jmp 0x212
+ 13fb:  nopl (%rax, %rax)
+ 1400:  movq 8(%r13), %rax
+ 1404:  movq %rbx, 0x20(%r13)
+ 1408:  movl %r11d, %edx
+ 140b:  shrl $0x18, %edx
+ 140e:  movq %rax, 0x10(%r12)
+ 1413:  movl %r11d, %eax
+ 1416:  shlq $4, %rdx
+ 141a:  shrl $0x10, %eax
+ 141d:  shrl $7, %r11d
+ 1421:  leaq (%rbp, %rdx), %rsi
+ 1426:  movzbl %al, %eax
+ 1429:  movzbl %r11b, %edx
+ 142d:  shlq $4, %rax
+ 1431:  shlq $4, %rdx
+ 1435:  addq %rbp, %rax
+ 1438:  leaq (%rbp, %rdx), %rcx
+ 143d:  movzbl 8(%rax), %edx
+ 1441:  cmpb $3, %dl
+ 1444:  je 0x2824
+ 144a:  leaq 4(%rbx), %r15
+ 144e:  cmpb $0x13, %dl
+ 1451:  jne 0x1060
+ 1457:  movsd (%rax), %xmm0
+ 145b:  movzbl 8(%rsi), %eax
+ 145f:  cmpb $0x13, %al
+ 1461:  je 0x2847
+ 1467:  cmpb $3, %al
+ 1469:  jne 0x1060
+ 146f:  pxor %xmm1, %xmm1
+ 1473:  cvtsi2sdq (%rsi), %xmm1
+ 1478:  divsd %xmm1, %xmm0
+ 147c:  movsd (%rip), %xmm1   <cst:ffffffffffffff7f0000000000000000>
+ 1484:  movsd (%rip), %xmm2   <cst:0000000000003043>
+ 148c:  movq %r15, %rbx
+ 148f:  andpd %xmm0, %xmm1
+ 1493:  ucomisd %xmm1, %xmm2
+ 1497:  jbe 0x1ba4
+ 149d:  cvttsd2si %xmm0, %rax
+ 14a2:  pxor %xmm1, %xmm1
+ 14a6:  movsd (%rip), %xmm3   <cst:000000000000f03f>
+ 14ae:  cvtsi2sdq %rax, %xmm1
+ 14b3:  movapd %xmm1, %xmm2
+ 14b7:  cmpnlesd %xmm0, %xmm2
+ 14bc:  andpd %xmm3, %xmm2
+ 14c0:  subsd %xmm2, %xmm1
+ 14c4:  movsd (%rip), %xmm2   <cst:ffffffffffffff7f0000000000000000>
+ 14cc:  andnpd %xmm0, %xmm2
+ 14d0:  orpd %xmm2, %xmm1
+ 14d4:  movapd %xmm1, %xmm0
+ 14d8:  jmp 0x1ba4
+ 14dd:  nopl (%rax)
+ 14e0:  movl %r11d, %eax
+ 14e3:  movl %r11d, %ecx
+ 14e6:  shrl $0x18, %r11d
+ 14ea:  shrl $0x10, %eax
+ 14ed:  shrl $7, %ecx
+ 14f0:  movl %r11d, %edx
+ 14f3:  movzbl %al, %eax
+ 14f6:  movzbl %cl, %ecx
+ 14f9:  shlq $4, %rdx
+ 14fd:  shlq $4, %rax
+ 1501:  shlq $4, %rcx
+ 1505:  addq %rbp, %rdx
+ 1508:  addq %rbp, %rax
+ 150b:  addq %rbp, %rcx
+ 150e:  movzbl 8(%rax), %esi
+ 1512:  cmpb $0x13, %sil
+ 1516:  je 0x27b4
+ 151c:  cmpb $3, %sil
+ 1520:  jne 0x212
+ 1526:  pxor %xmm0, %xmm0
+ 152a:  cvtsi2sdq (%rax), %xmm0
+ 152f:  movzbl 8(%rdx), %eax
+ 1533:  cmpb $0x13, %al
+ 1535:  je 0x27c4
+ 153b:  cmpb $3, %al
+ 153d:  jne 0x212
+ 1543:  pxor %xmm1, %xmm1
+ 1547:  cvtsi2sdq (%rdx), %xmm1
+ 154c:  divsd %xmm1, %xmm0
+ 1550:  movb $0x13, 8(%rcx)
+ 1554:  addq $4, %rbx
+ 1558:  movsd %xmm0, (%rcx)
+ 155c:  jmp 0x212
+ 1561:  nopl (%rax)
+ 1568:  movl %r11d, %ecx
+ 156b:  movl %r11d, %r15d
+ 156e:  shrl $7, %ecx
+ 1571:  shrl $0x10, %r15d
+ 1575:  movzbl %cl, %ecx
+ 1578:  movzbl %r15b, %r15d
+ 157c:  shlq $4, %rcx
+ 1580:  shlq $4, %r15
+ 1584:  addq %rbp, %rcx
+ 1587:  addq %rbp, %r15
+ 158a:  testl $0x8000, %r11d
+ 1591:  je 0x2501
+ 1597:  shrl $0x18, %r11d
+ 159b:  movq 8(%rsp), %rax
+ 15a0:  movl %r11d, %edx
+ 15a3:  shlq $4, %rdx
+ 15a7:  addq %rax, %rdx
+ 15aa:  movq (%r15), %rax
+ 15ad:  movq (%rdx), %rsi
+ 15b0:  xorl %r8d, %r8d
+ 15b3:  movq %rax, 0x10(%rcx)
+ 15b7:  movzbl 8(%r15), %eax
+ 15bc:  movb %al, 0x18(%rcx)
+ 15bf:  cmpb $0x45, 8(%r15)
+ 15c4:  jne 0xae
+ 15ca:  movq (%r15), %rdi
+ 15cd:  movq %rcx, 0x20(%rsp)
+ 15d2:  movq %rdx, 0x18(%rsp)
+ 15d7:  callq luaH_getstr+0
+ 15dc:  movq 0x18(%rsp), %rdx
+ 15e1:  movq 0x20(%rsp), %rcx
+ 15e6:  movq %rax, %r8
+ 15e9:  movzbl 8(%rax), %eax
+ 15ed:  testb $0xf, %al
+ 15ef:  je 0xae
+ 15f5:  jmp 0xcf1
+ 15fa:  nopw (%rax, %rax)
+ 1600:  movl %r11d, %edx
+ 1603:  movl %r11d, %eax
+ 1606:  movl %r11d, %r8d
+ 1609:  xorl %ecx, %ecx
+ 160b:  shrl $7, %edx
+ 160e:  shrl $0x10, %eax
+ 1611:  movzbl %dl, %edx
+ 1614:  shrl $0x18, %r8d
+ 1618:  shlq $4, %rdx
+ 161c:  addq %rbp, %rdx
+ 161f:  andl $0xff, %eax
+ 1624:  je 0x1632
+ 1626:  leal -1(%rax), %ecx
+ 1629:  movl $1, %eax
+ 162e:  shll %cl, %eax
+ 1630:  movl %eax, %ecx
+ 1632:  andl $0x8000, %r11d
+ 1639:  je 0x1646
+ 163b:  movl (%rbx), %eax
+ 163d:  shrl $7, %eax
+ 1640:  shll $8, %eax
+ 1643:  addl %eax, %r8d
+ 1646:  leaq 4(%rbx), %r15
+ 164a:  leaq 0x10(%rdx), %rbx
+ 164e:  movq %r12, %rdi
+ 1651:  movl %r8d, 0x28(%rsp)
+ 1656:  movq %rbx, 0x10(%r12)
+ 165b:  movl %ecx, 0x20(%rsp)
+ 165f:  movq %rdx, 0x18(%rsp)
+ 1664:  callq luaH_new+0
+ 1669:  movq 0x18(%rsp), %rdx
+ 166e:  movl 0x20(%rsp), %ecx
+ 1672:  movl 0x28(%rsp), %r8d
+ 1677:  movq %rax, %rsi
+ 167a:  movq %rax, (%rdx)
+ 167d:  movl %ecx, %eax
+ 167f:  orl %r8d, %eax
+ 1682:  movb $0x45, 8(%rdx)
+ 1686:  jne 0x2935
+ 168c:  movq 0x18(%r12), %rax
+ 1691:  cmpq $0, 0x18(%rax)
+ 1696:  jle 0x790
+ 169c:  movq %r15, 0x20(%r13)
+ 16a0:  movq %r12, %rdi
+ 16a3:  movq %rbx, 0x10(%r12)
+ 16a8:  callq luaC_step+0
+ 16ad:  movl 0x28(%r13), %r14d
+ 16b1:  jmp 0x790
+ 16b6:  nopw %cs:(%rax, %rax)
+ 16c0:  movl %r11d, %eax
+ 16c3:  movl %r11d, %edx
+ 16c6:  shrl $7, %eax
+ 16c9:  shrl $0x10, %edx
+ 16cc:  movzbl %al, %eax
+ 16cf:  movzbl %dl, %edx
+ 16d2:  shlq $4, %rax
+ 16d6:  shlq $4, %rdx
+ 16da:  leaq (%rbp, %rax), %rsi
+ 16df:  addq %rbp, %rdx
+ 16e2:  movzbl 8(%rsi), %eax
+ 16e6:  cmpb $3, %al
+ 16e8:  je 0x2666
+ 16ee:  andl $0xf, %eax
+ 16f1:  cmpb $3, %al
+ 16f3:  jne 0x2583
+ 16f9:  movzbl 8(%rdx), %eax
+ 16fd:  movl %eax, %ecx
+ 16ff:  andl $0xf, %ecx
+ 1702:  cmpb $3, %cl
+ 1705:  je 0x2f46
+ 170b:  movq 8(%r13), %rax
+ 170f:  movq %rbx, 0x20(%r13)
+ 1713:  movq %rax, 0x10(%r12)
+ 1718:  movl $0x15, %ecx
+ 171d:  movq %r12, %rdi
+ 1720:  movl %r11d, 0x18(%rsp)
+ 1725:  callq luaT_callorderTM+0
+ 172a:  movl 0x18(%rsp), %r11d
+ 172f:  movl 0x28(%r13), %r14d
+ 1733:  jmp 0x918
+ 1738:  nopl (%rax, %rax)
+ 1740:  movl %r11d, %eax
+ 1743:  movl %r11d, %ecx
+ 1746:  shrl $0x18, %r11d
+ 174a:  movq 8(%rsp), %rdi
+ 174f:  shrl $0x10, %eax
+ 1752:  shrl $7, %ecx
+ 1755:  movl %r11d, %edx
+ 1758:  movzbl %al, %eax
+ 175b:  movzbl %cl, %ecx
+ 175e:  shlq $4, %rdx
+ 1762:  shlq $4, %rax
+ 1766:  shlq $4, %rcx
+ 176a:  movq (%rdi, %rdx), %rdx
+ 176e:  addq %rbp, %rax
+ 1771:  addq %rbp, %rcx
+ 1774:  movzbl 8(%rax), %esi
+ 1778:  cmpb $3, %sil
+ 177c:  jne 0x2d38
+ 1782:  movq (%rax), %rax
+ 1785:  andq %rax, %rdx
+ 1788:  movb $3, 8(%rcx)
+ 178c:  leaq 4(%rbx), %r15
+ 1790:  movq %rdx, (%rcx)
+ 1793:  jmp 0x790
+ 1798:  nopl (%rax, %rax)
+ 17a0:  movl %r11d, %eax
+ 17a3:  movl %r11d, %ecx
+ 17a6:  shrl $0x18, %r11d
+ 17aa:  shrl $0x10, %eax
+ 17ad:  shrl $7, %ecx
+ 17b0:  movl %r11d, %edx
+ 17b3:  movzbl %al, %eax
+ 17b6:  movzbl %cl, %ecx
+ 17b9:  shlq $4, %rdx
+ 17bd:  shlq $4, %rax
+ 17c1:  shlq $4, %rcx
+ 17c5:  addq %rbp, %rdx
+ 17c8:  addq %rbp, %rax
+ 17cb:  addq %rbp, %rcx
+ 17ce:  movzbl 8(%rax), %esi
+ 17d2:  cmpb $3, %sil
+ 17d6:  jne 0x2df6
+ 17dc:  movq (%rax), %rax
+ 17df:  movzbl 8(%rdx), %esi
+ 17e3:  cmpb $3, %sil
+ 17e7:  jne 0x3300
+ 17ed:  movq (%rdx), %rdx
+ 17f0:  xorq %rdx, %rax
+ 17f3:  movb $3, 8(%rcx)
+ 17f7:  leaq 4(%rbx), %r15
+ 17fb:  movq %rax, (%rcx)
+ 17fe:  jmp 0x790
+ 1803:  nopl (%rax, %rax)
+ 1808:  movl %r11d, %r15d
+ 180b:  shrl $7, %r15d
+ 180f:  movzbl %r15b, %r15d
+ 1813:  shlq $4, %r15
+ 1817:  addq %rbp, %r15
+ 181a:  jmp 0xbe7
+ 181f:  nop
+ 1820:  movl %r11d, %r15d
+ 1823:  movl %r11d, %edx
+ 1826:  shrl $7, %r15d
+ 182a:  shrl $0x10, %edx
+ 182d:  movzbl %r15b, %r15d
+ 1831:  movzbl %dl, %edx
+ 1834:  shlq $4, %r15
+ 1838:  addq %rbp, %r15
+ 183b:  testl $0x8000, %r11d
+ 1842:  je 0x2514
+ 1848:  shrl $0x18, %r11d
+ 184c:  movq 8(%rsp), %rax
+ 1851:  movl %r11d, %ecx
+ 1854:  shlq $4, %rcx
+ 1858:  addq %rax, %rcx
+ 185b:  cmpb $0x45, 8(%r15)
+ 1860:  jne 0x252d
+ 1866:  movq (%r15), %rdi
+ 1869:  movl %edx, %esi
+ 186b:  leaq -1(%rsi), %r8
+ 186f:  movl 0xc(%rdi), %eax
+ 1872:  cmpq %rax, %r8
+ 1875:  jae 0x2b42
+ 187b:  movq 0x10(%rdi), %rax
+ 187f:  shlq $4, %rsi
+ 1883:  leaq -0x10(%rax, %rsi), %r8
+ 1888:  testb $0xf, 8(%r8)
+ 188d:  jne 0xc4d
+ 1893:  movl %edx, %eax
+ 1895:  movb $3, 0x48(%rsp)
+ 189a:  leaq 0x40(%rsp), %rdx
+ 189f:  movq %r15, %rsi
+ 18a2:  movq %rax, 0x40(%rsp)
+ 18a7:  movq 8(%r13), %rax
+ 18ab:  movq %r12, %rdi
+ 18ae:  movq %rbx, 0x20(%r13)
+ 18b2:  movq %rax, 0x10(%r12)
+ 18b7:  callq luaV_finishset+0
+ 18bc:  movl 0x28(%r13), %r14d
+ 18c0:  jmp 0xd0
+ 18c5:  nopl (%rax)
+ 18c8:  movq 8(%r13), %rax
+ 18cc:  movl %r11d, %edx
+ 18cf:  shrl $7, %r11d
+ 18d3:  movq %rbx, 0x20(%r13)
+ 18d7:  shrl $0x10, %edx
+ 18da:  movzbl %r11b, %esi
+ 18de:  movq %r12, %rdi
+ 18e1:  movq %rax, 0x10(%r12)
+ 18e6:  movzbl %dl, %edx
+ 18e9:  shlq $4, %rsi
+ 18ed:  shlq $4, %rdx
+ 18f1:  addq %rbp, %rsi
+ 18f4:  addq %rbp, %rdx
+ 18f7:  callq luaV_objlen+0
+ 18fc:  movl 0x28(%r13), %r14d
+ 1900:  testl %r14d, %r14d
+ 1903:  je 0xd5
+ 1909:  jmp 0x128
+ 190e:  nop
+ 1910:  movl %r11d, %ecx
+ 1913:  shrl $0x10, %r11d
+ 1917:  movzbl %r11b, %esi
+ 191b:  shrl $7, %ecx
+ 191e:  shlq $4, %rsi
+ 1922:  movzbl %cl, %ecx
+ 1925:  addq %rbp, %rsi
+ 1928:  shlq $4, %rcx
+ 192c:  movzbl 8(%rsi), %eax
+ 1930:  addq %rbp, %rcx
+ 1933:  cmpb $3, %al
+ 1935:  jne 0x2e70
+ 193b:  movq (%rsi), %rax
+ 193e:  notq %rax
+ 1941:  movb $3, 8(%rcx)
+ 1945:  movq %rax, (%rcx)
+ 1948:  jmp 0xd0
+ 194d:  nopl (%rax)
+ 1950:  movl %r11d, %eax
+ 1953:  shrl $0x10, %r11d
+ 1957:  shrl $7, %eax
+ 195a:  movzbl %r11b, %esi
+ 195e:  movzbl %al, %eax
+ 1961:  shlq $4, %rsi
+ 1965:  shlq $4, %rax
+ 1969:  addq %rbp, %rsi
+ 196c:  leaq (%rbp, %rax), %rcx
+ 1971:  movzbl 8(%rsi), %eax
+ 1975:  cmpb $3, %al
+ 1977:  je 0x2862
+ 197d:  cmpb $0x13, %al
+ 197f:  jne 0x29a3
+ 1985:  movsd (%rsi), %xmm0
+ 1989:  xorpd (%rip), %xmm0   <cst:00000000000000800000000000000000>
+ 1991:  movsd %xmm0, (%rcx)
+ 1995:  movb %al, 8(%rcx)
+ 1998:  jmp 0xd0
+ 199d:  nopl (%rax)
+ 19a0:  movq 8(%r13), %rax
+ 19a4:  movl %r11d, %edx
+ 19a7:  movq 8(%rsp), %rdi
+ 19ac:  movq %rbx, 0x20(%r13)
+ 19b0:  shrl $0x18, %edx
+ 19b3:  movq %rax, 0x10(%r12)
+ 19b8:  movl %r11d, %eax
+ 19bb:  shlq $4, %rdx
+ 19bf:  shrl $0x10, %eax
+ 19c2:  shrl $7, %r11d
+ 19c6:  leaq (%rdi, %rdx), %rsi
+ 19ca:  movzbl %al, %eax
+ 19cd:  movzbl %r11b, %edx
+ 19d1:  shlq $4, %rax
+ 19d5:  shlq $4, %rdx
+ 19d9:  addq %rbp, %rax
+ 19dc:  leaq (%rbp, %rdx), %rcx
+ 19e1:  movzbl 8(%rax), %edx
+ 19e5:  cmpb $3, %dl
+ 19e8:  je 0x2729
+ 19ee:  leaq 4(%rbx), %r15
+ 19f2:  cmpb $0x13, %dl
+ 19f5:  jne 0x1060
+ 19fb:  movsd (%rax), %xmm0
+ 19ff:  movzbl 8(%rsi), %eax
+ 1a03:  cmpb $0x13, %al
+ 1a05:  je 0x274c
+ 1a0b:  cmpb $3, %al
+ 1a0d:  jne 0x1060
+ 1a13:  pxor %xmm1, %xmm1
+ 1a17:  cvtsi2sdq (%rsi), %xmm1
+ 1a1c:  movsd %xmm1, 0x18(%rsp)
+ 1a22:  fldl 0x18(%rsp)
+ 1a26:  movq %r15, %rbx
+ 1a29:  movsd %xmm0, 0x18(%rsp)
+ 1a2f:  fldl 0x18(%rsp)
+ 1a33:  fprem
+ 1a35:  fnstsw %ax
+ 1a37:  testb $4, %ah
+ 1a3a:  jne 0x1a33
+ 1a3c:  fstp %st(1)
+ 1a3e:  jmp 0x1a42
+ 1a40:  fstp %st(1)
+ 1a42:  fstpl 0x18(%rsp)
+ 1a46:  movsd 0x18(%rsp), %xmm2
+ 1a4c:  ucomisd %xmm2, %xmm2
+ 1a50:  jp 0x3bb0
+ 1a56:  pxor %xmm0, %xmm0
+ 1a5a:  comisd %xmm0, %xmm2
+ 1a5e:  jbe 0x2a31
+ 1a64:  comisd %xmm1, %xmm0
+ 1a68:  ja 0x2a45
+ 1a6e:  movb $0x13, 8(%rcx)
+ 1a72:  addq $4, %r15
+ 1a76:  movsd %xmm2, (%rcx)
+ 1a7a:  jmp 0x1060
+ 1a7f:  nop
+ 1a80:  movl %r11d, %eax
+ 1a83:  movl %r11d, %edx
+ 1a86:  shrl $0x10, %eax
+ 1a89:  shrl $0x18, %edx
+ 1a8c:  movzbl %al, %eax
+ 1a8f:  shlq $4, %rdx
+ 1a93:  shlq $4, %rax
+ 1a97:  leaq (%rbp, %rdx), %rcx
+ 1a9c:  addq %rbp, %rax
+ 1a9f:  jmp 0x102b
+ 1aa4:  nopl (%rax)
+ 1aa8:  movl %r11d, %eax
+ 1aab:  movl %r11d, %edx
+ 1aae:  shrl $0x10, %eax
+ 1ab1:  shrl $0x18, %edx
+ 1ab4:  movzbl %al, %eax
+ 1ab7:  shlq $4, %rdx
+ 1abb:  shlq $4, %rax
+ 1abf:  leaq (%rbp, %rdx), %rcx
+ 1ac4:  addq %rbp, %rax
+ 1ac7:  jmp 0x10a3
+ 1acc:  nopl (%rax)
+ 1ad0:  movq 8(%r13), %rax
+ 1ad4:  movl %r11d, %edx
+ 1ad7:  movq 8(%rsp), %rdi
+ 1adc:  movq %rbx, 0x20(%r13)
+ 1ae0:  shrl $0x18, %edx
+ 1ae3:  movq %rax, 0x10(%r12)
+ 1ae8:  movl %r11d, %eax
+ 1aeb:  shlq $4, %rdx
+ 1aef:  shrl $0x10, %eax
+ 1af2:  shrl $7, %r11d
+ 1af6:  leaq (%rdi, %rdx), %rsi
+ 1afa:  movzbl %al, %eax
+ 1afd:  movzbl %r11b, %edx
+ 1b01:  shlq $4, %rax
+ 1b05:  shlq $4, %rdx
+ 1b09:  addq %rbp, %rax
+ 1b0c:  leaq (%rbp, %rdx), %rcx
+ 1b11:  movzbl 8(%rax), %edx
+ 1b15:  cmpb $3, %dl
+ 1b18:  je 0x2881
+ 1b1e:  leaq 4(%rbx), %r15
+ 1b22:  cmpb $0x13, %dl
+ 1b25:  jne 0x1060
+ 1b2b:  movsd (%rax), %xmm0
+ 1b2f:  movzbl 8(%rsi), %eax
+ 1b33:  cmpb $0x13, %al
+ 1b35:  je 0x28a4
+ 1b3b:  cmpb $3, %al
+ 1b3d:  jne 0x1060
+ 1b43:  pxor %xmm1, %xmm1
+ 1b47:  cvtsi2sdq (%rsi), %xmm1
+ 1b4c:  divsd %xmm1, %xmm0
+ 1b50:  movsd (%rip), %xmm2   <cst:ffffffffffffff7f0000000000000000>
+ 1b58:  movsd (%rip), %xmm3   <cst:0000000000003043>
+ 1b60:  movq %r15, %rbx
+ 1b63:  movapd %xmm0, %xmm1
+ 1b67:  andpd %xmm2, %xmm1
+ 1b6b:  ucomisd %xmm1, %xmm3
+ 1b6f:  jbe 0x1ba4
+ 1b71:  cvttsd2si %xmm0, %rax
+ 1b76:  pxor %xmm1, %xmm1
+ 1b7a:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 1b82:  andnpd %xmm0, %xmm2
+ 1b86:  cvtsi2sdq %rax, %xmm1
+ 1b8b:  movapd %xmm1, %xmm3
+ 1b8f:  cmpnlesd %xmm0, %xmm3
+ 1b94:  andpd %xmm4, %xmm3
+ 1b98:  subsd %xmm3, %xmm1
+ 1b9c:  orpd %xmm2, %xmm1
+ 1ba0:  movapd %xmm1, %xmm0
+ 1ba4:  movb $0x13, 8(%rcx)
+ 1ba8:  addq $4, %r15
+ 1bac:  movsd %xmm0, (%rcx)
+ 1bb0:  jmp 0x1060
+ 1bb5:  nopl (%rax)
+ 1bb8:  movl %r11d, %eax
+ 1bbb:  shrl $7, %eax
+ 1bbe:  movzbl %al, %eax
+ 1bc1:  shlq $4, %rax
+ 1bc5:  leaq (%rbp, %rax), %rdx
+ 1bca:  movl %r11d, %eax
+ 1bcd:  shrl $0x10, %eax
+ 1bd0:  movzbl 8(%rdx), %ecx
+ 1bd4:  movzbl %al, %eax
+ 1bd7:  subl $0x7f, %eax
+ 1bda:  cmpb $3, %cl
+ 1bdd:  je 0x2755
+ 1be3:  xorl %esi, %esi
+ 1be5:  cmpb $0x13, %cl
+ 1be8:  jne 0x1bfe
+ 1bea:  pxor %xmm0, %xmm0
+ 1bee:  cvtsi2sdl %eax, %xmm0
+ 1bf2:  xorl %eax, %eax
+ 1bf4:  ucomisd (%rdx), %xmm0
+ 1bf8:  setnp %al
+ 1bfb:  cmovel %eax, %esi
+ 1bfe:  shrl $0xf, %r11d
+ 1c02:  andl $1, %r11d
+ 1c06:  cmpl %esi, %r11d
+ 1c09:  jne 0x925
+ 1c0f:  jmp 0x8d8
+ 1c14:  nopl (%rax)
+ 1c18:  movl %r11d, %edx
+ 1c1b:  movl %r11d, %esi
+ 1c1e:  movq 8(%rsp), %rax
+ 1c23:  xorl %edi, %edi
+ 1c25:  shrl $0x10, %edx
+ 1c28:  shrl $7, %esi
+ 1c2b:  movl %r11d, 0x18(%rsp)
+ 1c30:  movzbl %dl, %edx
+ 1c33:  movzbl %sil, %esi
+ 1c37:  shlq $4, %rdx
+ 1c3b:  shlq $4, %rsi
+ 1c3f:  addq %rax, %rdx
+ 1c42:  addq %rbp, %rsi
+ 1c45:  callq luaV_equalobj+0
+ 1c4a:  movl 0x18(%rsp), %r11d
+ 1c4f:  shrl $0xf, %r11d
+ 1c53:  andl $1, %r11d
+ 1c57:  cmpl %eax, %r11d
+ 1c5a:  jne 0x925
+ 1c60:  jmp 0x8d8
+ 1c65:  nopl (%rax)
+ 1c68:  movl %r11d, %eax
+ 1c6b:  movl %r11d, %esi
+ 1c6e:  shrl $0x18, %r11d
+ 1c72:  shrl $0x10, %eax
+ 1c75:  shrl $7, %esi
+ 1c78:  movl %r11d, %edx
+ 1c7b:  movzbl %al, %eax
+ 1c7e:  movzbl %sil, %esi
+ 1c82:  shlq $4, %rdx
+ 1c86:  shlq $4, %rax
+ 1c8a:  shlq $4, %rsi
+ 1c8e:  addq %rbp, %rdx
+ 1c91:  addq %rbp, %rax
+ 1c94:  addq %rbp, %rsi
+ 1c97:  movzbl 8(%rax), %ecx
+ 1c9b:  cmpb $3, %cl
+ 1c9e:  jne 0x3000
+ 1ca4:  movq (%rax), %rax
+ 1ca7:  movzbl 8(%rdx), %ecx
+ 1cab:  cmpb $3, %cl
+ 1cae:  jne 0x33f0
+ 1cb4:  movq (%rdx), %rdx
+ 1cb7:  leaq 4(%rbx), %r15
+ 1cbb:  testq %rdx, %rdx
+ 1cbe:  js 0x265d
+ 1cc4:  movl %edx, %ecx
+ 1cc6:  shlq %cl, %rax
+ 1cc9:  cmpq $0x40, %rdx
+ 1ccd:  movl $0, %edx
+ 1cd2:  cmovgeq %rdx, %rax
+ 1cd6:  movq %rax, (%rsi)
+ 1cd9:  movb $3, 8(%rsi)
+ 1cdd:  jmp 0x790
+ 1ce2:  nopw (%rax, %rax)
+ 1ce8:  movl %r11d, %eax
+ 1ceb:  movl %r11d, %esi
+ 1cee:  shrl $0x18, %r11d
+ 1cf2:  shrl $0x10, %eax
+ 1cf5:  shrl $7, %esi
+ 1cf8:  movl %r11d, %edx
+ 1cfb:  movzbl %al, %eax
+ 1cfe:  movzbl %sil, %esi
+ 1d02:  shlq $4, %rdx
+ 1d06:  shlq $4, %rax
+ 1d0a:  shlq $4, %rsi
+ 1d0e:  addq %rbp, %rdx
+ 1d11:  addq %rbp, %rax
+ 1d14:  addq %rbp, %rsi
+ 1d17:  movzbl 8(%rax), %ecx
+ 1d1b:  cmpb $3, %cl
+ 1d1e:  jne 0x2f8c
+ 1d24:  movq (%rax), %rax
+ 1d27:  movzbl 8(%rdx), %ecx
+ 1d2b:  cmpb $3, %cl
+ 1d2e:  jne 0x3378
+ 1d34:  movq (%rdx), %rcx
+ 1d37:  movq %rcx, %rdx
+ 1d3a:  leaq 4(%rbx), %r15
+ 1d3e:  negq %rdx
+ 1d41:  jns 0x1cc4
+ 1d43:  shrq %cl, %rax
+ 1d46:  cmpq $-0x40, %rdx
+ 1d4a:  movl $0, %edx
+ 1d4f:  cmovleq %rdx, %rax
+ 1d53:  jmp 0x1cd6
+ 1d55:  nopl (%rax)
+ 1d58:  movq 8(%r13), %rdx
+ 1d5c:  movl -8(%rbx), %eax
+ 1d5f:  movl %r11d, %esi
+ 1d62:  movq %rbx, 0x20(%r13)
+ 1d66:  shrl $7, %esi
+ 1d69:  movl %r11d, %ecx
+ 1d6c:  movl %r11d, %r9d
+ 1d6f:  movq %r12, %rdi
+ 1d72:  movq %rdx, 0x10(%r12)
+ 1d77:  movl %r11d, %edx
+ 1d7a:  shrl $7, %eax
+ 1d7d:  movzbl %sil, %esi
+ 1d81:  shrl $0x10, %edx
+ 1d84:  movzbl %al, %eax
+ 1d87:  shrl $0xf, %ecx
+ 1d8a:  shlq $4, %rax
+ 1d8e:  movzbl %dl, %edx
+ 1d91:  shlq $4, %rsi
+ 1d95:  andl $1, %ecx
+ 1d98:  subl $0x7f, %edx
+ 1d9b:  addq %rbp, %rsi
+ 1d9e:  shrl $0x18, %r9d
+ 1da2:  leaq (%rbp, %rax), %r8
+ 1da7:  movslq %edx, %rdx
+ 1daa:  callq luaT_trybiniTM+0
+ 1daf:  movl 0x28(%r13), %r14d
+ 1db3:  testl %r14d, %r14d
+ 1db6:  je 0xd5
+ 1dbc:  jmp 0x128
+ 1dc1:  nopl (%rax)
+ 1dc8:  movl %r11d, %esi
+ 1dcb:  movl %r11d, %eax
+ 1dce:  shrl $7, %esi
+ 1dd1:  shrl $0x10, %eax
+ 1dd4:  movzbl %sil, %esi
+ 1dd8:  movzbl %al, %eax
+ 1ddb:  shlq $4, %rsi
+ 1ddf:  leal -0x7f(%rax), %edx
+ 1de2:  addq %rbp, %rsi
+ 1de5:  movzbl 8(%rsi), %eax
+ 1de9:  cmpb $3, %al
+ 1deb:  je 0x28ad
+ 1df1:  cmpb $0x13, %al
+ 1df3:  jne 0x296c
+ 1df9:  pxor %xmm0, %xmm0
+ 1dfd:  xorl %eax, %eax
+ 1dff:  cvtsi2sdl %edx, %xmm0
+ 1e03:  comisd (%rsi), %xmm0
+ 1e07:  seta %al
+ 1e0a:  jmp 0x918
+ 1e0f:  nop
+ 1e10:  movq 8(%r13), %rax
+ 1e14:  shrl $7, %r11d
+ 1e18:  movq %rbx, 0x20(%r13)
+ 1e1c:  xorl %edx, %edx
+ 1e1e:  movzbl %r11b, %esi
+ 1e22:  movl $1, %ecx
+ 1e27:  movq %r12, %rdi
+ 1e2a:  movq %rax, 0x10(%r12)
+ 1e2f:  shlq $4, %rsi
+ 1e33:  addq %rbp, %rsi
+ 1e36:  callq luaF_close+0
+ 1e3b:  movl 0x28(%r13), %r14d
+ 1e3f:  testl %r14d, %r14d
+ 1e42:  je 0xd5
+ 1e48:  jmp 0x128
+ 1e4d:  nopl (%rax)
+ 1e50:  movl %r11d, %eax
+ 1e53:  shrl $0x10, %r11d
+ 1e57:  movzbl %r11b, %edx
+ 1e5b:  shrl $7, %eax
+ 1e5e:  shlq $4, %rdx
+ 1e62:  movzbl %al, %eax
+ 1e65:  movzbl 8(%rbp, %rdx), %ecx
+ 1e6a:  shlq $4, %rax
+ 1e6e:  movl $0x11, %edx
+ 1e73:  addq %rbp, %rax
+ 1e76:  cmpb $1, %cl
+ 1e79:  je 0x1e89
+ 1e7b:  andl $0xf, %ecx
+ 1e7e:  cmpb $1, %cl
+ 1e81:  sbbl %edx, %edx
+ 1e83:  andl $0x10, %edx
+ 1e86:  addl $1, %edx
+ 1e89:  movb %dl, 8(%rax)
+ 1e8c:  testl %r14d, %r14d
+ 1e8f:  je 0xd5
+ 1e95:  jmp 0x128
+ 1e9a:  nopw (%rax, %rax)
+ 1ea0:  movq 8(%r13), %rax
+ 1ea4:  movl %r11d, %edx
+ 1ea7:  movl %r11d, %esi
+ 1eaa:  movq %rbx, 0x20(%r13)
+ 1eae:  shrl $0x10, %edx
+ 1eb1:  shrl $7, %esi
+ 1eb4:  movq %r12, %rdi
+ 1eb7:  movl %r11d, 0x18(%rsp)
+ 1ebc:  movq %rax, 0x10(%r12)
+ 1ec1:  movzbl %dl, %edx
+ 1ec4:  movzbl %sil, %esi
+ 1ec8:  shlq $4, %rdx
+ 1ecc:  shlq $4, %rsi
+ 1ed0:  addq %rbp, %rdx
+ 1ed3:  addq %rbp, %rsi
+ 1ed6:  callq luaV_equalobj+0
+ 1edb:  movl 0x28(%r13), %r14d
+ 1edf:  jmp 0x1c4a
+ 1ee4:  nopl (%rax)
+ 1ee8:  shrl $7, %r11d
+ 1eec:  movl 0x28(%r13), %r14d
+ 1ef0:  leal -0xffffff(%r11), %eax
+ 1ef7:  cltq
+ 1ef9:  leaq (%rbx, %rax, 4), %r15
+ 1efd:  testl %r14d, %r14d
+ 1f00:  je 0x50
+ 1f06:  jmp 0x799
+ 1f0b:  nopl (%rax, %rax)
+ 1f10:  movl %r11d, %eax
+ 1f13:  movl %r11d, %edx
+ 1f16:  shrl $7, %eax
+ 1f19:  shrl $0x10, %edx
+ 1f1c:  movzbl %al, %eax
+ 1f1f:  movzbl %dl, %edx
+ 1f22:  shlq $4, %rax
+ 1f26:  shlq $4, %rdx
+ 1f2a:  leaq (%rbp, %rax), %rsi
+ 1f2f:  addq %rbp, %rdx
+ 1f32:  movzbl 8(%rsi), %eax
+ 1f36:  cmpb $3, %al
+ 1f38:  je 0x26c0
+ 1f3e:  andl $0xf, %eax
+ 1f41:  cmpb $3, %al
+ 1f43:  jne 0x25cc
+ 1f49:  movzbl 8(%rdx), %eax
+ 1f4d:  movl %eax, %ecx
+ 1f4f:  andl $0xf, %ecx
+ 1f52:  cmpb $3, %cl
+ 1f55:  je 0x2db0
+ 1f5b:  movq 8(%r13), %rax
+ 1f5f:  movq %rbx, 0x20(%r13)
+ 1f63:  movq %rax, 0x10(%r12)
+ 1f68:  movl $0x14, %ecx
+ 1f6d:  movq %r12, %rdi
+ 1f70:  movl %r11d, 0x18(%rsp)
+ 1f75:  callq luaT_callorderTM+0
+ 1f7a:  movl 0x18(%rsp), %r11d
+ 1f7f:  jmp 0x172f
+ 1f84:  nopl (%rax)
+ 1f88:  movq 8(%r13), %rax
+ 1f8c:  movq %rbx, 0x20(%r13)
+ 1f90:  movl %r11d, %edx
+ 1f93:  shrl $0x18, %edx
+ 1f96:  movq %rax, 0x10(%r12)
+ 1f9b:  movl %r11d, %eax
+ 1f9e:  shlq $4, %rdx
+ 1fa2:  shrl $0x10, %eax
+ 1fa5:  shrl $7, %r11d
+ 1fa9:  leaq (%rbp, %rdx), %rsi
+ 1fae:  movzbl %al, %eax
+ 1fb1:  movzbl %r11b, %edx
+ 1fb5:  shlq $4, %rax
+ 1fb9:  shlq $4, %rdx
+ 1fbd:  addq %rbp, %rax
+ 1fc0:  leaq (%rbp, %rdx), %rcx
+ 1fc5:  movzbl 8(%rax), %edx
+ 1fc9:  cmpb $3, %dl
+ 1fcc:  je 0x28f8
+ 1fd2:  leaq 4(%rbx), %r15
+ 1fd6:  cmpb $0x13, %dl
+ 1fd9:  jne 0x1060
+ 1fdf:  movsd (%rax), %xmm0
+ 1fe3:  movzbl 8(%rsi), %eax
+ 1fe7:  cmpb $0x13, %al
+ 1fe9:  je 0x291b
+ 1fef:  cmpb $3, %al
+ 1ff1:  jne 0x1060
+ 1ff7:  pxor %xmm1, %xmm1
+ 1ffb:  cvtsi2sdq (%rsi), %xmm1
+ 2000:  movsd %xmm1, 0x18(%rsp)
+ 2006:  fldl 0x18(%rsp)
+ 200a:  movq %r15, %rbx
+ 200d:  movsd %xmm0, 0x18(%rsp)
+ 2013:  fldl 0x18(%rsp)
+ 2017:  fprem
+ 2019:  fnstsw %ax
+ 201b:  testb $4, %ah
+ 201e:  je 0x1a40
+ 2024:  jmp 0x2017
+ 2026:  nopw %cs:(%rax, %rax)
+ 2030:  movl %r11d, %eax
+ 2033:  movl %r11d, %ecx
+ 2036:  shrl $0x18, %r11d
+ 203a:  shrl $0x10, %eax
+ 203d:  shrl $7, %ecx
+ 2040:  movl %r11d, %edx
+ 2043:  movzbl %al, %eax
+ 2046:  movzbl %cl, %ecx
+ 2049:  shlq $4, %rdx
+ 204d:  shlq $4, %rax
+ 2051:  shlq $4, %rcx
+ 2055:  addq %rbp, %rdx
+ 2058:  addq %rbp, %rax
+ 205b:  addq %rbp, %rcx
+ 205e:  movzbl 8(%rax), %esi
+ 2062:  cmpb $3, %sil
+ 2066:  jne 0x2cc0
+ 206c:  movq (%rax), %rax
+ 206f:  movzbl 8(%rdx), %esi
+ 2073:  cmpb $3, %sil
+ 2077:  jne 0x3288
+ 207d:  movq (%rdx), %rdx
+ 2080:  orq %rdx, %rax
+ 2083:  movb $3, 8(%rcx)
+ 2087:  leaq 4(%rbx), %r15
+ 208b:  movq %rax, (%rcx)
+ 208e:  jmp 0x790
+ 2093:  nopl (%rax, %rax)
+ 2098:  movl %r11d, %eax
+ 209b:  movl %r11d, %ecx
+ 209e:  shrl $0x18, %r11d
+ 20a2:  shrl $0x10, %eax
+ 20a5:  shrl $7, %ecx
+ 20a8:  movl %r11d, %edx
+ 20ab:  movzbl %al, %eax
+ 20ae:  movzbl %cl, %ecx
+ 20b1:  shlq $4, %rdx
+ 20b5:  shlq $4, %rax
+ 20b9:  shlq $4, %rcx
+ 20bd:  addq %rbp, %rdx
+ 20c0:  addq %rbp, %rax
+ 20c3:  addq %rbp, %rcx
+ 20c6:  movzbl 8(%rax), %esi
+ 20ca:  cmpb $3, %sil
+ 20ce:  jne 0x30b8
+ 20d4:  movq (%rax), %rax
+ 20d7:  movzbl 8(%rdx), %esi
+ 20db:  cmpb $3, %sil
+ 20df:  jne 0x3210
+ 20e5:  movq (%rdx), %rdx
+ 20e8:  andq %rdx, %rax
+ 20eb:  movb $3, 8(%rcx)
+ 20ef:  leaq 4(%rbx), %r15
+ 20f3:  movq %rax, (%rcx)
+ 20f6:  jmp 0x790
+ 20fb:  nopl (%rax, %rax)
+ 2100:  movl %r11d, %eax
+ 2103:  movl %r11d, %edx
+ 2106:  shrl $7, %r11d
+ 210a:  shrl $0x10, %eax
+ 210d:  shrl $0x18, %edx
+ 2110:  movzbl %al, %eax
+ 2113:  shlq $4, %rdx
+ 2117:  shlq $4, %rax
+ 211b:  leaq (%rbp, %rdx), %rcx
+ 2120:  movzbl %r11b, %edx
+ 2124:  addq %rbp, %rax
+ 2127:  shlq $4, %rdx
+ 212b:  movzbl 8(%rax), %esi
+ 212f:  addq %rbp, %rdx
+ 2132:  cmpb $3, %sil
+ 2136:  je 0x2765
+ 213c:  leaq 4(%rbx), %r15
+ 2140:  cmpb $0x13, %sil
+ 2144:  jne 0x1060
+ 214a:  movsd (%rax), %xmm0
+ 214e:  movzbl 8(%rcx), %eax
+ 2152:  cmpb $0x13, %al
+ 2154:  je 0x2789
+ 215a:  cmpb $3, %al
+ 215c:  jne 0x1060
+ 2162:  pxor %xmm1, %xmm1
+ 2166:  cvtsi2sdq (%rcx), %xmm1
+ 216b:  addsd %xmm1, %xmm0
+ 216f:  movq %r15, %rbx
+ 2172:  movb $0x13, 8(%rdx)
+ 2176:  addq $4, %r15
+ 217a:  movsd %xmm0, (%rdx)
+ 217e:  jmp 0x1060
+ 2183:  nopl (%rax, %rax)
+ 2188:  movl %r11d, %eax
+ 218b:  shrl $7, %eax
+ 218e:  movzbl %al, %eax
+ 2191:  shlq $4, %rax
+ 2195:  leaq (%rbp, %rax), %rdx
+ 219a:  movl %r11d, %eax
+ 219d:  shrl $0x18, %r11d
+ 21a1:  shrl $0x10, %eax
+ 21a4:  subl $0x7f, %r11d
+ 21a8:  movzbl %al, %eax
+ 21ab:  shlq $4, %rax
+ 21af:  addq %rbp, %rax
+ 21b2:  movzbl 8(%rax), %ecx
+ 21b6:  cmpb $3, %cl
+ 21b9:  jne 0x31a0
+ 21bf:  movq (%rax), %rcx
+ 21c2:  leaq 4(%rbx), %r15
+ 21c6:  testq %rcx, %rcx
+ 21c9:  js 0x2644
+ 21cf:  movslq %r11d, %rax
+ 21d2:  xorl %esi, %esi
+ 21d4:  shlq %cl, %rax
+ 21d7:  cmpq $0x40, %rcx
+ 21db:  cmovlq %rax, %rsi
+ 21df:  movq %rsi, (%rdx)
+ 21e2:  movb $3, 8(%rdx)
+ 21e6:  jmp 0x790
+ 21eb:  nopl (%rax, %rax)
+ 21f0:  movl -8(%rbx), %ecx
+ 21f3:  movq 8(%r13), %rax
+ 21f7:  movl %r11d, %edx
+ 21fa:  movl %r11d, %esi
+ 21fd:  shrl $0x10, %edx
+ 2200:  shrl $7, %esi
+ 2203:  movq %rbx, 0x20(%r13)
+ 2207:  movl %r11d, %r8d
+ 220a:  shrl $7, %ecx
+ 220d:  movq %rax, 0x10(%r12)
+ 2212:  movzbl %dl, %edx
+ 2215:  movzbl %sil, %esi
+ 2219:  shlq $4, %rdx
+ 221d:  movzbl %cl, %ecx
+ 2220:  shlq $4, %rsi
+ 2224:  movq %r12, %rdi
+ 2227:  shlq $4, %rcx
+ 222b:  addq %rbp, %rdx
+ 222e:  addq %rbp, %rsi
+ 2231:  shrl $0x18, %r8d
+ 2235:  addq %rbp, %rcx
+ 2238:  callq luaT_trybinTM+0
+ 223d:  movl 0x28(%r13), %r14d
+ 2241:  testl %r14d, %r14d
+ 2244:  je 0xd5
+ 224a:  jmp 0x128
+ 224f:  nop
+ 2250:  movl %r11d, %eax
+ 2253:  movl %r11d, %r15d
+ 2256:  shrl $0x18, %r11d
+ 225a:  shrl $0x10, %eax
+ 225d:  shrl $7, %r15d
+ 2261:  movl %r11d, %edx
+ 2264:  movzbl %al, %eax
+ 2267:  movzbl %r15b, %r15d
+ 226b:  shlq $4, %rdx
+ 226f:  shlq $4, %rax
+ 2273:  shlq $4, %r15
+ 2277:  addq %rbp, %rdx
+ 227a:  addq %rbp, %rax
+ 227d:  addq %rbp, %r15
+ 2280:  movzbl 8(%rax), %ecx
+ 2284:  cmpb $0x13, %cl
+ 2287:  je 0x27cd
+ 228d:  cmpb $3, %cl
+ 2290:  jne 0x212
+ 2296:  pxor %xmm0, %xmm0
+ 229a:  cvtsi2sdq (%rax), %xmm0
+ 229f:  movzbl 8(%rdx), %eax
+ 22a3:  cmpb $0x13, %al
+ 22a5:  je 0x27dd
+ 22ab:  cmpb $3, %al
+ 22ad:  jne 0x212
+ 22b3:  pxor %xmm1, %xmm1
+ 22b7:  cvtsi2sdq (%rdx), %xmm1
+ 22bc:  jmp 0x13d0
+ 22c1:  nopl (%rax)
+ 22c8:  movq %rax, %rdx
+ 22cb:  movq %r13, %rsi
+ 22ce:  movq %r12, %rdi
+ 22d1:  addq $8, %rbp
+ 22d5:  callq luaC_barrier_+0
+ 22da:  cmpq %rbp, %r14
+ 22dd:  jne 0x71f
+ 22e3:  nopl (%rax, %rax)
+ 22e8:  movl 0x28(%rsp), %r14d
+ 22ed:  movq 0x18(%rsp), %rbp
+ 22f2:  movq 0x38(%rsp), %rbx
+ 22f7:  movq 0x30(%rsp), %r13
+ 22fc:  movq 0x18(%r12), %rax
+ 2301:  cmpq $0, 0x18(%rax)
+ 2306:  jle 0xd0
+ 230c:  movq 0x20(%rsp), %rax
+ 2311:  movq %rbx, 0x20(%r13)
+ 2315:  movq %r12, %rdi
+ 2318:  addq $0x10, %rax
+ 231c:  movq %rax, 0x10(%r12)
+ 2321:  callq luaC_step+0
+ 2326:  movl 0x28(%r13), %r14d
+ 232a:  jmp 0xd0
+ 232f:  nop
+ 2330:  shrl $0x18, %r11d
+ 2334:  movl %r11d, %ecx
+ 2337:  shlq $4, %rcx
+ 233b:  addq %rbp, %rcx
+ 233e:  jmp 0xc17
+ 2343:  xorl %r8d, %r8d
+ 2346:  movl %r11d, %eax
+ 2349:  movb $3, 0x48(%rsp)
+ 234e:  leaq 0x40(%rsp), %rdx
+ 2353:  movq %r15, %rsi
+ 2356:  movq %rax, 0x40(%rsp)
+ 235b:  movq 8(%r13), %rax
+ 235f:  movq %r12, %rdi
+ 2362:  movq %rbx, 0x20(%r13)
+ 2366:  movq %rax, 0x10(%r12)
+ 236b:  callq luaV_finishget+0
+ 2370:  movl 0x28(%r13), %r14d
+ 2374:  jmp 0xd0
+ 2379:  movq (%r15), %rdi
+ 237c:  movq %rdx, 0x20(%rsp)
+ 2381:  movq %rcx, 0x18(%rsp)
+ 2386:  callq luaH_getshortstr+0
+ 238b:  movq 0x18(%rsp), %rcx
+ 2390:  movq 0x20(%rsp), %rdx
+ 2395:  movq %rax, %r8
+ 2398:  movzbl 8(%rax), %eax
+ 239c:  testb $0xf, %al
+ 239e:  je 0xae
+ 23a4:  jmp 0xcf1
+ 23a9:  movzbl 8(%rcx), %esi
+ 23ad:  movq (%rax), %rax
+ 23b0:  leaq 4(%rbx), %r15
+ 23b4:  cmpb $3, %sil
+ 23b8:  je 0x2ac6
+ 23be:  cmpb $0x13, %sil
+ 23c2:  jne 0x1060
+ 23c8:  pxor %xmm1, %xmm1
+ 23cc:  cvtsi2sdq %rax, %xmm1
+ 23d1:  movsd (%rcx), %xmm0
+ 23d5:  mulsd %xmm1, %xmm0
+ 23d9:  movq %r15, %rbx
+ 23dc:  movb $0x13, 8(%rdx)
+ 23e0:  addq $4, %r15
+ 23e4:  movsd %xmm0, (%rdx)
+ 23e8:  jmp 0x1060
+ 23ed:  movzbl 8(%rcx), %esi
+ 23f1:  movq (%rax), %rax
+ 23f4:  leaq 4(%rbx), %r15
+ 23f8:  cmpb $3, %sil
+ 23fc:  je 0x2add
+ 2402:  cmpb $0x13, %sil
+ 2406:  jne 0x1060
+ 240c:  pxor %xmm0, %xmm0
+ 2410:  cvtsi2sdq %rax, %xmm0
+ 2415:  movsd (%rcx), %xmm1
+ 2419:  jmp 0x10e7
+ 241e:  movq %rbp, %rsi
+ 2421:  movq %rdi, 0x28(%rsp)
+ 2426:  callq luaC_barrierback_+0
+ 242b:  movq 0x28(%rsp), %rdi
+ 2430:  jmp 0x5b8
+ 2435:  movsd (%rax), %xmm1
+ 2439:  movzbl 8(%rcx), %eax
+ 243d:  cmpb $0x13, %al
+ 243f:  je 0x23d1
+ 2441:  cmpb $3, %al
+ 2443:  jne 0x1060
+ 2449:  pxor %xmm0, %xmm0
+ 244d:  cvtsi2sdq (%rcx), %xmm0
+ 2452:  jmp 0x23d5
+ 2454:  movq 0x10(%r12), %rax
+ 2459:  movq %rbx, 0x20(%r13)
+ 245d:  subq %r14, %rax
+ 2460:  sarq $4, %rax
+ 2464:  andl $0x8000, %r11d
+ 246b:  movl %eax, %ecx
+ 246d:  je 0x377
+ 2473:  movq %rbp, %rsi
+ 2476:  movq %r12, %rdi
+ 2479:  movl %ecx, 8(%rsp)
+ 247d:  callq luaF_closeupval+0
+ 2482:  movl 8(%rsp), %ecx
+ 2486:  jmp 0x377
+ 248b:  movq %rbx, 0x18(%rsp)
+ 2490:  jmp 0x528
+ 2495:  movq 8(%r13), %rdi
+ 2499:  movl %edx, %r8d
+ 249c:  movq %rdi, 0x10(%r12)
+ 24a1:  jmp 0x506
+ 24a6:  shrl $0x18, %r11d
+ 24aa:  movzbl 8(%r15), %eax
+ 24af:  movl %r11d, %ecx
+ 24b2:  shlq $4, %rcx
+ 24b6:  addq %rbp, %rcx
+ 24b9:  cmpb $3, 8(%rdx)
+ 24bd:  jne 0xba1
+ 24c3:  movq (%rdx), %rsi
+ 24c6:  xorl %r8d, %r8d
+ 24c9:  cmpb $0x45, %al
+ 24cb:  jne 0xbac
+ 24d1:  movq (%r15), %rdi
+ 24d4:  leaq -1(%rsi), %r8
+ 24d8:  movl 0xc(%rdi), %eax
+ 24db:  cmpq %rax, %r8
+ 24de:  jae 0x3492
+ 24e4:  movq 0x10(%rdi), %rax
+ 24e8:  shlq $4, %rsi
+ 24ec:  leaq -0x10(%rax, %rsi), %r8
+ 24f1:  testb $0xf, 8(%r8)
+ 24f6:  jne 0xc4d
+ 24fc:  jmp 0xbac
+ 2501:  shrl $0x18, %r11d
+ 2505:  movl %r11d, %edx
+ 2508:  shlq $4, %rdx
+ 250c:  addq %rbp, %rdx
+ 250f:  jmp 0x15aa
+ 2514:  shrl $0x18, %r11d
+ 2518:  movl %r11d, %ecx
+ 251b:  shlq $4, %rcx
+ 251f:  addq %rbp, %rcx
+ 2522:  cmpb $0x45, 8(%r15)
+ 2527:  je 0x1866
+ 252d:  xorl %r8d, %r8d
+ 2530:  jmp 0x1893
+ 2535:  movsd 0x20(%rdx), %xmm0
+ 253a:  pxor %xmm3, %xmm3
+ 253e:  movsd (%rdx), %xmm1
+ 2542:  movsd 0x10(%rdx), %xmm2
+ 2547:  comisd %xmm3, %xmm0
+ 254b:  addsd %xmm0, %xmm1
+ 254f:  jbe 0x2b17
+ 2555:  comisd %xmm1, %xmm2
+ 2559:  setae %al
+ 255c:  testb %al, %al
+ 255e:  je 0x806
+ 2564:  movl %r11d, %eax
+ 2567:  movb $0x13, 0x38(%rdx)
+ 256b:  shrl $0xf, %eax
+ 256e:  movsd %xmm1, (%rdx)
+ 2572:  shlq $2, %rax
+ 2576:  movsd %xmm1, 0x30(%rdx)
+ 257b:  subq %rax, %rbx
+ 257e:  jmp 0x806
+ 2583:  movq 8(%r13), %rcx
+ 2587:  movq %rbx, 0x20(%r13)
+ 258b:  movq %rcx, 0x10(%r12)
+ 2590:  cmpb $4, %al
+ 2592:  jne 0x1718
+ 2598:  movzbl 8(%rdx), %eax
+ 259c:  andl $0xf, %eax
+ 259f:  cmpb $4, %al
+ 25a1:  jne 0x1718
+ 25a7:  movq (%rdx), %rax
+ 25aa:  movq (%rsi), %rdi
+ 25ad:  movl %r11d, 0x18(%rsp)
+ 25b2:  movq %rax, %rsi
+ 25b5:  callq fn:l_strcmp+0
+ 25ba:  movl 0x18(%rsp), %r11d
+ 25bf:  testl %eax, %eax
+ 25c1:  setle %al
+ 25c4:  movzbl %al, %eax
+ 25c7:  jmp 0x172f
+ 25cc:  movq 8(%r13), %rcx
+ 25d0:  movq %rbx, 0x20(%r13)
+ 25d4:  movq %rcx, 0x10(%r12)
+ 25d9:  cmpb $4, %al
+ 25db:  jne 0x1f68
+ 25e1:  movzbl 8(%rdx), %eax
+ 25e5:  andl $0xf, %eax
+ 25e8:  cmpb $4, %al
+ 25ea:  jne 0x1f68
+ 25f0:  movq (%rdx), %rax
+ 25f3:  movq (%rsi), %rdi
+ 25f6:  movl %r11d, 0x18(%rsp)
+ 25fb:  movq %rax, %rsi
+ 25fe:  callq fn:l_strcmp+0
+ 2603:  movl 0x18(%rsp), %r11d
+ 2608:  shrl $0x1f, %eax
+ 260b:  jmp 0x172f
+ 2610:  movq %r12, %rdi
+ 2613:  callq luaG_tracecall+0
+ 2618:  movq (%r13), %rbp
+ 261c:  movl %eax, %r14d
+ 261f:  testl %eax, %eax
+ 2621:  je 0x47
+ 2627:  jmp 0x799
+ 262c:  movl %eax, %ecx
+ 262e:  negl %ecx
+ 2630:  shrq %cl, %rsi
+ 2633:  cmpl $-0x40, %eax
+ 2636:  movl $0, %eax
+ 263b:  cmovgq %rsi, %rax
+ 263f:  jmp 0xa79
+ 2644:  xorl %esi, %esi
+ 2646:  cmpq $-0x3f, %rcx
+ 264a:  jl 0x21df
+ 2650:  movslq %r11d, %rsi
+ 2653:  negl %ecx
+ 2655:  shrq %cl, %rsi
+ 2658:  jmp 0x21df
+ 265d:  movl %edx, %ecx
+ 265f:  negl %ecx
+ 2661:  jmp 0x1d43
+ 2666:  movzbl 8(%rdx), %eax
+ 266a:  cmpb $3, %al
+ 266c:  je 0x2c3c
+ 2672:  andl $0xf, %eax
+ 2675:  cmpb $3, %al
+ 2677:  jne 0x170b
+ 267d:  movq (%rsi), %rax
+ 2680:  movsd (%rdx), %xmm0
+ 2684:  movabsq $0x20000000000000, %rdx
+ 268e:  movabsq $0x40000000000000, %rcx
+ 2698:  addq %rax, %rdx
+ 269b:  cmpq %rdx, %rcx
+ 269e:  jb 0x365a
+ 26a4:  pxor %xmm1, %xmm1
+ 26a8:  cvtsi2sdq %rax, %xmm1
+ 26ad:  xorl %eax, %eax
+ 26af:  comisd %xmm1, %xmm0
+ 26b3:  setae %al
+ 26b6:  jmp 0x918
+ 26bb:  nopl (%rax, %rax)
+ 26c0:  movzbl 8(%rdx), %eax
+ 26c4:  cmpb $3, %al
+ 26c6:  je 0x2c2b
+ 26cc:  andl $0xf, %eax
+ 26cf:  cmpb $3, %al
+ 26d1:  jne 0x1f5b
+ 26d7:  movq (%rsi), %rax
+ 26da:  movsd (%rdx), %xmm0
+ 26de:  movabsq $0x20000000000000, %rdx
+ 26e8:  movabsq $0x40000000000000, %rcx
+ 26f2:  addq %rax, %rdx
+ 26f5:  cmpq %rdx, %rcx
+ 26f8:  jb 0x35ba
+ 26fe:  pxor %xmm1, %xmm1
+ 2702:  cvtsi2sdq %rax, %xmm1
+ 2707:  xorl %eax, %eax
+ 2709:  comisd %xmm1, %xmm0
+ 270d:  seta %al
+ 2710:  jmp 0x918
+ 2715:  nopl (%rax)
+ 2718:  movslq %edx, %rax
+ 271b:  cmpq %rax, (%rsi)
+ 271e:  setg %al
+ 2721:  movzbl %al, %eax
+ 2724:  jmp 0x918
+ 2729:  movzbl 8(%rsi), %edx
+ 272d:  leaq 4(%rbx), %r15
+ 2731:  cmpb $3, %dl
+ 2734:  je 0x2bbe
+ 273a:  cmpb $0x13, %dl
+ 273d:  jne 0x1060
+ 2743:  pxor %xmm0, %xmm0
+ 2747:  cvtsi2sdq (%rax), %xmm0
+ 274c:  movsd (%rsi), %xmm1
+ 2750:  jmp 0x1a1c
+ 2755:  xorl %esi, %esi
+ 2757:  cltq
+ 2759:  cmpq %rax, (%rdx)
+ 275c:  sete %sil
+ 2760:  jmp 0x1bfe
+ 2765:  movzbl 8(%rcx), %esi
+ 2769:  leaq 4(%rbx), %r15
+ 276d:  cmpb $3, %sil
+ 2771:  je 0x2792
+ 2773:  movq (%rax), %rax
+ 2776:  cmpb $0x13, %sil
+ 277a:  jne 0x1060
+ 2780:  pxor %xmm0, %xmm0
+ 2784:  cvtsi2sdq %rax, %xmm0
+ 2789:  movsd (%rcx), %xmm1
+ 278d:  jmp 0x216b
+ 2792:  movq (%rcx), %rcx
+ 2795:  addq (%rax), %rcx
+ 2798:  movq %r15, %rbx
+ 279b:  movb $3, 8(%rdx)
+ 279f:  movq %rcx, (%rdx)
+ 27a2:  leaq 4(%r15), %r15
+ 27a6:  jmp 0x1060
+ 27ab:  movsd (%rax), %xmm0
+ 27af:  jmp 0x12c5
+ 27b4:  movsd (%rax), %xmm0
+ 27b8:  movzbl 8(%rdx), %eax
+ 27bc:  cmpb $0x13, %al
+ 27be:  jne 0x153b
+ 27c4:  movsd (%rdx), %xmm1
+ 27c8:  jmp 0x154c
+ 27cd:  movsd (%rax), %xmm0
+ 27d1:  movzbl 8(%rdx), %eax
+ 27d5:  cmpb $0x13, %al
+ 27d7:  jne 0x22ab
+ 27dd:  movsd (%rdx), %xmm1
+ 27e1:  jmp 0x13d0
+ 27e6:  xorl %r8d, %r8d
+ 27e9:  cmpb $0x45, 8(%r15)
+ 27ee:  movq (%rdx), %rsi
+ 27f1:  jne 0xae
+ 27f7:  movq (%r15), %rdi
+ 27fa:  leaq -1(%rsi), %r8
+ 27fe:  movl 0xc(%rdi), %eax
+ 2801:  cmpq %rax, %r8
+ 2804:  jae 0x34b3
+ 280a:  movq 0x10(%rdi), %rax
+ 280e:  shlq $4, %rsi
+ 2812:  leaq -0x10(%rax, %rsi), %r8
+ 2817:  testb $0xf, 8(%r8)
+ 281c:  setne %al
+ 281f:  jmp 0xd71
+ 2824:  movzbl 8(%rsi), %edx
+ 2828:  leaq 4(%rbx), %r15
+ 282c:  cmpb $3, %dl
+ 282f:  je 0x2b82
+ 2835:  cmpb $0x13, %dl
+ 2838:  jne 0x1060
+ 283e:  pxor %xmm0, %xmm0
+ 2842:  cvtsi2sdq (%rax), %xmm0
+ 2847:  movsd (%rsi), %xmm1
+ 284b:  jmp 0x1478
+ 2850:  movslq %r11d, %r11
+ 2853:  addq (%rax), %r11
+ 2856:  movb $3, 8(%rdx)
+ 285a:  movq %r11, (%rdx)
+ 285d:  jmp 0x790
+ 2862:  movq (%rsi), %rdx
+ 2865:  negq %rdx
+ 2868:  movq %rdx, (%rcx)
+ 286b:  jmp 0x1995
+ 2870:  movslq %edx, %rax
+ 2873:  cmpq %rax, (%rsi)
+ 2876:  setge %al
+ 2879:  movzbl %al, %eax
+ 287c:  jmp 0x918
+ 2881:  movzbl 8(%rsi), %edx
+ 2885:  leaq 4(%rbx), %r15
+ 2889:  cmpb $3, %dl
+ 288c:  je 0x2b82
+ 2892:  cmpb $0x13, %dl
+ 2895:  jne 0x1060
+ 289b:  pxor %xmm0, %xmm0
+ 289f:  cvtsi2sdq (%rax), %xmm0
+ 28a4:  movsd (%rsi), %xmm1
+ 28a8:  jmp 0x1b4c
+ 28ad:  movslq %edx, %rax
+ 28b0:  cmpq %rax, (%rsi)
+ 28b3:  setl %al
+ 28b6:  movzbl %al, %eax
+ 28b9:  jmp 0x918
+ 28be:  movzbl 8(%rcx), %esi
+ 28c2:  leaq 4(%rbx), %r15
+ 28c6:  cmpb $3, %sil
+ 28ca:  je 0x2792
+ 28d0:  movq (%rax), %rax
+ 28d3:  cmpb $0x13, %sil
+ 28d7:  jne 0x1060
+ 28dd:  pxor %xmm1, %xmm1
+ 28e1:  cvtsi2sdq %rax, %xmm1
+ 28e6:  movsd (%rcx), %xmm0
+ 28ea:  jmp 0x216b
+ 28ef:  movsd (%rax), %xmm0
+ 28f3:  jmp 0x13a5
+ 28f8:  movzbl 8(%rsi), %edx
+ 28fc:  leaq 4(%rbx), %r15
+ 2900:  cmpb $3, %dl
+ 2903:  je 0x2bbe
+ 2909:  cmpb $0x13, %dl
+ 290c:  jne 0x1060
+ 2912:  pxor %xmm0, %xmm0
+ 2916:  cvtsi2sdq (%rax), %xmm0
+ 291b:  movsd (%rsi), %xmm1
+ 291f:  jmp 0x2000
+ 2924:  movslq %edx, %rax
+ 2927:  cmpq %rax, (%rsi)
+ 292a:  setle %al
+ 292d:  movzbl %al, %eax
+ 2930:  jmp 0x918
+ 2935:  movl %r8d, %edx
+ 2938:  movq %r12, %rdi
+ 293b:  callq luaH_resize+0
+ 2940:  jmp 0x168c
+ 2945:  movq %r15, %rsi
+ 2948:  movq %r12, %rdi
+ 294b:  movl %r8d, 0x28(%rsp)
+ 2950:  movl %edx, 0x20(%rsp)
+ 2954:  callq luaH_resizearray+0
+ 2959:  movl 0x20(%rsp), %edx
+ 295d:  movl 0x28(%rsp), %r8d
+ 2962:  movq 0x30(%rsp), %rcx
+ 2967:  jmp 0x554
+ 296c:  movq 8(%r13), %rax
+ 2970:  movq %rbx, 0x20(%r13)
+ 2974:  movl $0x14, %r9d
+ 297a:  movq %rax, 0x10(%r12)
+ 297f:  movl %r11d, %r8d
+ 2982:  xorl %ecx, %ecx
+ 2984:  movq %r12, %rdi
+ 2987:  movl %r11d, 0x18(%rsp)
+ 298c:  shrl $0x18, %r8d
+ 2990:  callq luaT_callorderiTM+0
+ 2995:  movl 0x28(%r13), %r14d
+ 2999:  movl 0x18(%rsp), %r11d
+ 299e:  jmp 0x918
+ 29a3:  movq 8(%r13), %rax
+ 29a7:  movq %rbx, 0x20(%r13)
+ 29ab:  movq %rsi, %rdx
+ 29ae:  movq %r12, %rdi
+ 29b1:  movl $0x12, %r8d
+ 29b7:  movq %rax, 0x10(%r12)
+ 29bc:  callq luaT_trybinTM+0
+ 29c1:  movl 0x28(%r13), %r14d
+ 29c5:  jmp 0xd0
+ 29ca:  movq 8(%r13), %rax
+ 29ce:  movq %rbx, 0x20(%r13)
+ 29d2:  movl $0x15, %r9d
+ 29d8:  movq %rax, 0x10(%r12)
+ 29dd:  movl %r11d, %r8d
+ 29e0:  movl $1, %ecx
+ 29e5:  movq %r12, %rdi
+ 29e8:  movl %r11d, 0x18(%rsp)
+ 29ed:  shrl $0x18, %r8d
+ 29f1:  callq luaT_callorderiTM+0
+ 29f6:  movl 0x28(%r13), %r14d
+ 29fa:  movl 0x18(%rsp), %r11d
+ 29ff:  jmp 0x918
+ 2a04:  movq 8(%r13), %rax
+ 2a08:  movq %rbx, 0x20(%r13)
+ 2a0c:  movl $0x15, %r9d
+ 2a12:  movq %rax, 0x10(%r12)
+ 2a17:  jmp 0x297f
+ 2a1c:  movq 8(%r13), %rax
+ 2a20:  movq %rbx, 0x20(%r13)
+ 2a24:  movl $0x14, %r9d
+ 2a2a:  movq %rax, 0x10(%r12)
+ 2a2f:  jmp 0x29dd
+ 2a31:  comisd %xmm2, %xmm0
+ 2a35:  jbe 0x1a6e
+ 2a3b:  comisd %xmm0, %xmm1
+ 2a3f:  jbe 0x1a6e
+ 2a45:  addsd %xmm1, %xmm2
+ 2a49:  jmp 0x1a6e
+ 2a4e:  movl %r11d, %eax
+ 2a51:  shrl $7, %eax
+ 2a54:  movzbl %al, %eax
+ 2a57:  shlq $4, %rax
+ 2a5b:  addq %rbp, %rax
+ 2a5e:  movq (%rax), %rsi
+ 2a61:  movq %rsi, -0x10(%rbp)
+ 2a65:  movzbl 8(%rax), %eax
+ 2a69:  movb %al, 8(%rcx)
+ 2a6c:  movq %rbp, 0x10(%r12)
+ 2a71:  cmpl $1, %edx
+ 2a74:  jle 0x270
+ 2a7a:  subl $2, %edx
+ 2a7d:  leaq 8(%rbp), %rax
+ 2a81:  movq %rdx, %rsi
+ 2a84:  shlq $4, %rsi
+ 2a88:  leaq 0x18(%rbp, %rsi), %rcx
+ 2a8d:  movq %rcx, %rdi
+ 2a90:  subq %rax, %rdi
+ 2a93:  andl $0x10, %edi
+ 2a96:  jne 0x379c
+ 2a9c:  movb $0, (%rax)
+ 2a9f:  addq $0x20, %rax
+ 2aa3:  movb $0, -0x10(%rax)
+ 2aa7:  cmpq %rax, %rcx
+ 2aaa:  jne 0x2a9c
+ 2aac:  leaq 1(%rdx), %rax
+ 2ab0:  shlq $4, %rax
+ 2ab4:  addq %rbp, %rax
+ 2ab7:  movq %rax, 0x10(%r12)
+ 2abc:  movb $0, 8(%rbp, %rsi)
+ 2ac1:  jmp 0x270
+ 2ac6:  imulq (%rcx), %rax
+ 2aca:  movq %r15, %rbx
+ 2acd:  movb $3, 8(%rdx)
+ 2ad1:  leaq 4(%r15), %r15
+ 2ad5:  movq %rax, (%rdx)
+ 2ad8:  jmp 0x1060
+ 2add:  subq (%rcx), %rax
+ 2ae0:  movq %r15, %rbx
+ 2ae3:  movb $3, 8(%rdx)
+ 2ae7:  leaq 4(%r15), %r15
+ 2aeb:  movq %rax, (%rdx)
+ 2aee:  jmp 0x1060
+ 2af3:  pxor %xmm0, %xmm0
+ 2af7:  cvtsi2sdl %r11d, %xmm0
+ 2afc:  addsd (%rax), %xmm0
+ 2b00:  movb $0x13, 8(%rdx)
+ 2b04:  movsd %xmm0, (%rdx)
+ 2b08:  jmp 0x790
+ 2b0d:  callq pow+0
+ 2b12:  jmp 0x13ec
+ 2b17:  comisd %xmm2, %xmm1
+ 2b1b:  setae %al
+ 2b1e:  jmp 0x255c
+ 2b23:  movq (%r13), %rax
+ 2b27:  leaq 0x10(%rax), %rbp
+ 2b2b:  jmp 0x1d9
+ 2b30:  movsd (%rax), %xmm1
+ 2b34:  jmp 0x12f0
+ 2b39:  movsd (%rax), %xmm1
+ 2b3d:  jmp 0x13d0
+ 2b42:  movl %edx, 0x20(%rsp)
+ 2b46:  movq %rcx, 0x18(%rsp)
+ 2b4b:  callq luaH_getint+0
+ 2b50:  movl 0x20(%rsp), %edx
+ 2b54:  movq 0x18(%rsp), %rcx
+ 2b59:  movq %rax, %r8
+ 2b5c:  jmp 0x1888
+ 2b61:  movq %rcx, 0x20(%rsp)
+ 2b66:  movl %r11d, 0x18(%rsp)
+ 2b6b:  callq luaH_getint+0
+ 2b70:  movq 0x20(%rsp), %rcx
+ 2b75:  movl 0x18(%rsp), %r11d
+ 2b7a:  movq %rax, %r8
+ 2b7d:  jmp 0xce4
+ 2b82:  movq (%rsi), %rsi
+ 2b85:  movq (%rax), %rdi
+ 2b88:  leaq 1(%rsi), %rax
+ 2b8c:  cmpq $1, %rax
+ 2b90:  jbe 0x3778
+ 2b96:  movq %rdi, %rax
+ 2b99:  cqto
+ 2b9b:  idivq %rsi
+ 2b9e:  xorq %rdi, %rsi
+ 2ba1:  jns 0x2bab
+ 2ba3:  cmpq $1, %rdx
+ 2ba7:  adcq $-1, %rax
+ 2bab:  movq %r15, %rbx
+ 2bae:  movq %rax, (%rcx)
+ 2bb1:  addq $4, %r15
+ 2bb5:  movb $3, 8(%rcx)
+ 2bb9:  jmp 0x1060
+ 2bbe:  movq (%rsi), %rsi
+ 2bc1:  movq (%rax), %rax
+ 2bc4:  leaq 1(%rsi), %rdx
+ 2bc8:  cmpq $1, %rdx
+ 2bcc:  jbe 0x378c
+ 2bd2:  cqto
+ 2bd4:  idivq %rsi
+ 2bd7:  testq %rdx, %rdx
+ 2bda:  je 0x2be7
+ 2bdc:  leaq (%rdx, %rsi), %rax
+ 2be0:  xorq %rdx, %rsi
+ 2be3:  cmovsq %rax, %rdx
+ 2be7:  movq %r15, %rbx
+ 2bea:  movq %rdx, (%rcx)
+ 2bed:  addq $4, %r15
+ 2bf1:  movb $3, 8(%rcx)
+ 2bf5:  jmp 0x1060
+ 2bfa:  movq (%r15), %rdi
+ 2bfd:  movq %rdx, %rsi
+ 2c00:  movq %rcx, 0x20(%rsp)
+ 2c05:  movq %rdx, 0x18(%rsp)
+ 2c0a:  callq luaH_get+0
+ 2c0f:  movq 0x18(%rsp), %rdx
+ 2c14:  movq 0x20(%rsp), %rcx
+ 2c19:  testb $0xf, 8(%rax)
+ 2c1d:  movq %rax, %r8
+ 2c20:  je 0xbac
+ 2c26:  jmp 0xc4d
+ 2c2b:  movq (%rdx), %rax
+ 2c2e:  cmpq %rax, (%rsi)
+ 2c31:  setl %al
+ 2c34:  movzbl %al, %eax
+ 2c37:  jmp 0x918
+ 2c3c:  movq (%rdx), %rax
+ 2c3f:  cmpq %rax, (%rsi)
+ 2c42:  setle %al
+ 2c45:  movzbl %al, %eax
+ 2c48:  jmp 0x918
+ 2c4d:  movq %rbx, %r15
+ 2c50:  cmpb $0x13, %sil
+ 2c54:  jne 0x790
+ 2c5a:  movsd (%rax), %xmm0
+ 2c5e:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2c66:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2c6e:  movapd %xmm0, %xmm1
+ 2c72:  movapd %xmm0, %xmm2
+ 2c76:  andpd %xmm3, %xmm1
+ 2c7a:  ucomisd %xmm1, %xmm4
+ 2c7e:  ja 0x3b78
+ 2c84:  ucomisd %xmm2, %xmm0
+ 2c88:  jp 0x116c
+ 2c8e:  jne 0x116c
+ 2c94:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2c9c:  jb 0x116c
+ 2ca2:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2caa:  comisd %xmm2, %xmm0
+ 2cae:  jbe 0x116c
+ 2cb4:  cvttsd2si %xmm2, %rax
+ 2cb9:  jmp 0xacd
+ 2cbe:  nop
+ 2cc0:  movq %rbx, %r15
+ 2cc3:  cmpb $0x13, %sil
+ 2cc7:  jne 0x790
+ 2ccd:  movsd (%rax), %xmm0
+ 2cd1:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2cd9:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2ce1:  movapd %xmm0, %xmm1
+ 2ce5:  movapd %xmm0, %xmm2
+ 2ce9:  andpd %xmm3, %xmm1
+ 2ced:  ucomisd %xmm1, %xmm4
+ 2cf1:  ja 0x3b40
+ 2cf7:  ucomisd %xmm2, %xmm0
+ 2cfb:  jp 0x116c
+ 2d01:  jne 0x116c
+ 2d07:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2d0f:  jb 0x116c
+ 2d15:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2d1d:  comisd %xmm2, %xmm0
+ 2d21:  jbe 0x116c
+ 2d27:  cvttsd2si %xmm2, %rax
+ 2d2c:  jmp 0x206f
+ 2d31:  nopl (%rax)
+ 2d38:  movq %rbx, %r15
+ 2d3b:  cmpb $0x13, %sil
+ 2d3f:  jne 0x790
+ 2d45:  movsd (%rax), %xmm0
+ 2d49:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2d51:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2d59:  movapd %xmm0, %xmm1
+ 2d5d:  movapd %xmm0, %xmm2
+ 2d61:  andpd %xmm3, %xmm1
+ 2d65:  ucomisd %xmm1, %xmm4
+ 2d69:  ja 0x3ad0
+ 2d6f:  ucomisd %xmm2, %xmm0
+ 2d73:  jp 0x116c
+ 2d79:  jne 0x116c
+ 2d7f:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2d87:  jb 0x116c
+ 2d8d:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2d95:  comisd %xmm2, %xmm0
+ 2d99:  jbe 0x116c
+ 2d9f:  cvttsd2si %xmm2, %rax
+ 2da4:  jmp 0x1785
+ 2da9:  nopl (%rax)
+ 2db0:  movsd (%rsi), %xmm0
+ 2db4:  cmpb $0x13, %al
+ 2db6:  je 0x3460
+ 2dbc:  movabsq $0x40000000000000, %rcx
+ 2dc6:  movq (%rdx), %rax
+ 2dc9:  movabsq $0x20000000000000, %rdx
+ 2dd3:  addq %rax, %rdx
+ 2dd6:  cmpq %rdx, %rcx
+ 2dd9:  jb 0x353d
+ 2ddf:  pxor %xmm1, %xmm1
+ 2de3:  cvtsi2sdq %rax, %xmm1
+ 2de8:  xorl %eax, %eax
+ 2dea:  comisd %xmm0, %xmm1
+ 2dee:  seta %al
+ 2df1:  jmp 0x918
+ 2df6:  movq %rbx, %r15
+ 2df9:  cmpb $0x13, %sil
+ 2dfd:  jne 0x790
+ 2e03:  movsd (%rax), %xmm0
+ 2e07:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2e0f:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2e17:  movapd %xmm0, %xmm1
+ 2e1b:  movapd %xmm0, %xmm2
+ 2e1f:  andpd %xmm3, %xmm1
+ 2e23:  ucomisd %xmm1, %xmm4
+ 2e27:  ja 0x3b08
+ 2e2d:  ucomisd %xmm2, %xmm0
+ 2e31:  jp 0x116c
+ 2e37:  jne 0x116c
+ 2e3d:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2e45:  jb 0x116c
+ 2e4b:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2e53:  comisd %xmm2, %xmm0
+ 2e57:  jbe 0x116c
+ 2e5d:  cvttsd2si %xmm2, %rax
+ 2e62:  jmp 0x17df
+ 2e67:  nopw (%rax, %rax)
+ 2e70:  cmpb $0x13, %al
+ 2e72:  je 0x37b2
+ 2e78:  movq 8(%r13), %rax
+ 2e7c:  movq %rbx, 0x20(%r13)
+ 2e80:  movq %rsi, %rdx
+ 2e83:  movq %r12, %rdi
+ 2e86:  movl $0x13, %r8d
+ 2e8c:  movq %rax, 0x10(%r12)
+ 2e91:  callq luaT_trybinTM+0
+ 2e96:  movl 0x28(%r13), %r14d
+ 2e9a:  jmp 0xd0
+ 2e9f:  movq %rbx, %r15
+ 2ea2:  cmpb $0x13, %sil
+ 2ea6:  jne 0x790
+ 2eac:  movsd (%rax), %xmm0
+ 2eb0:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2eb8:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2ec0:  movapd %xmm0, %xmm1
+ 2ec4:  movapd %xmm0, %xmm2
+ 2ec8:  andpd %xmm3, %xmm1
+ 2ecc:  ucomisd %xmm1, %xmm4
+ 2ed0:  ja 0x3868
+ 2ed6:  ucomisd %xmm2, %xmm0
+ 2eda:  jp 0x116c
+ 2ee0:  jne 0x116c
+ 2ee6:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2eee:  jb 0x116c
+ 2ef4:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2efc:  comisd %xmm2, %xmm0
+ 2f00:  jbe 0x116c
+ 2f06:  cvttsd2si %xmm2, %rax
+ 2f0b:  jmp 0x134d
+ 2f10:  movl %r11d, %eax
+ 2f13:  movl $1, %edx
+ 2f18:  movq %r13, %rsi
+ 2f1b:  movq %r12, %rdi
+ 2f1e:  shrl $7, %eax
+ 2f21:  movzbl %al, %eax
+ 2f24:  shlq $4, %rax
+ 2f28:  leaq 0x10(%rbp, %rax), %rax
+ 2f2d:  movq %rax, 0x10(%r12)
+ 2f32:  movq %rbx, 0x20(%r13)
+ 2f36:  callq luaD_poscall+0
+ 2f3b:  movl $1, %r14d
+ 2f41:  jmp 0x270
+ 2f46:  movsd (%rsi), %xmm0
+ 2f4a:  cmpb $0x13, %al
+ 2f4c:  je 0x3472
+ 2f52:  movabsq $0x40000000000000, %rcx
+ 2f5c:  movq (%rdx), %rax
+ 2f5f:  movabsq $0x20000000000000, %rdx
+ 2f69:  addq %rax, %rdx
+ 2f6c:  cmpq %rdx, %rcx
+ 2f6f:  jb 0x34d4
+ 2f75:  pxor %xmm1, %xmm1
+ 2f79:  cvtsi2sdq %rax, %xmm1
+ 2f7e:  xorl %eax, %eax
+ 2f80:  comisd %xmm0, %xmm1
+ 2f84:  setae %al
+ 2f87:  jmp 0x918
+ 2f8c:  movq %rbx, %r15
+ 2f8f:  cmpb $0x13, %cl
+ 2f92:  jne 0x790
+ 2f98:  movsd (%rax), %xmm0
+ 2f9c:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 2fa4:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 2fac:  movapd %xmm0, %xmm1
+ 2fb0:  movapd %xmm0, %xmm2
+ 2fb4:  andpd %xmm3, %xmm1
+ 2fb8:  ucomisd %xmm1, %xmm4
+ 2fbc:  ja 0x3a98
+ 2fc2:  ucomisd %xmm2, %xmm0
+ 2fc6:  jp 0x116c
+ 2fcc:  jne 0x116c
+ 2fd2:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 2fda:  jb 0x116c
+ 2fe0:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 2fe8:  comisd %xmm2, %xmm0
+ 2fec:  jbe 0x116c
+ 2ff2:  cvttsd2si %xmm2, %rax
+ 2ff7:  jmp 0x1d27
+ 2ffc:  nopl (%rax)
+ 3000:  movq %rbx, %r15
+ 3003:  cmpb $0x13, %cl
+ 3006:  jne 0x790
+ 300c:  movsd (%rax), %xmm0
+ 3010:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3018:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3020:  movapd %xmm0, %xmm1
+ 3024:  movapd %xmm0, %xmm2
+ 3028:  andpd %xmm3, %xmm1
+ 302c:  ucomisd %xmm1, %xmm4
+ 3030:  ja 0x3a60
+ 3036:  ucomisd %xmm2, %xmm0
+ 303a:  jp 0x116c
+ 3040:  jne 0x116c
+ 3046:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 304e:  jb 0x116c
+ 3054:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 305c:  comisd %xmm2, %xmm0
+ 3060:  jbe 0x116c
+ 3066:  cvttsd2si %xmm2, %rax
+ 306b:  jmp 0x1ca7
+ 3070:  movq 0x18(%rsp), %rsi
+ 3075:  movq %r12, %rdi
+ 3078:  callq luaG_traceexec+0
+ 307d:  movl %eax, %r14d
+ 3080:  movq (%r13), %rax
+ 3084:  leaq 0x10(%rax), %rbp
+ 3088:  jmp 0x5d5
+ 308d:  movl %r11d, %eax
+ 3090:  xorl %edx, %edx
+ 3092:  movq %r13, %rsi
+ 3095:  movq %r12, %rdi
+ 3098:  shrl $7, %eax
+ 309b:  movzbl %al, %eax
+ 309e:  shlq $4, %rax
+ 30a2:  addq %rbp, %rax
+ 30a5:  movq %rax, 0x10(%r12)
+ 30aa:  movq %rbx, 0x20(%r13)
+ 30ae:  callq luaD_poscall+0
+ 30b3:  jmp 0x2f3b
+ 30b8:  movq %rbx, %r15
+ 30bb:  cmpb $0x13, %sil
+ 30bf:  jne 0x790
+ 30c5:  movsd (%rax), %xmm0
+ 30c9:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 30d1:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 30d9:  movapd %xmm0, %xmm1
+ 30dd:  movapd %xmm0, %xmm2
+ 30e1:  andpd %xmm3, %xmm1
+ 30e5:  ucomisd %xmm1, %xmm4
+ 30e9:  ja 0x3a28
+ 30ef:  ucomisd %xmm2, %xmm0
+ 30f3:  jp 0x116c
+ 30f9:  jne 0x116c
+ 30ff:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 3107:  jb 0x116c
+ 310d:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 3115:  comisd %xmm2, %xmm0
+ 3119:  jbe 0x116c
+ 311f:  cvttsd2si %xmm2, %rax
+ 3124:  jmp 0x20d7
+ 3129:  nopl (%rax)
+ 3130:  movq %rbx, %r15
+ 3133:  cmpb $0x13, %cl
+ 3136:  jne 0x790
+ 313c:  movsd (%rax), %xmm0
+ 3140:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3148:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3150:  movapd %xmm0, %xmm1
+ 3154:  movapd %xmm0, %xmm2
+ 3158:  andpd %xmm3, %xmm1
+ 315c:  ucomisd %xmm1, %xmm4
+ 3160:  ja 0x39f0
+ 3166:  ucomisd %xmm2, %xmm0
+ 316a:  jp 0x116c
+ 3170:  jne 0x116c
+ 3176:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 317e:  jb 0x116c
+ 3184:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 318c:  comisd %xmm2, %xmm0
+ 3190:  jbe 0x116c
+ 3196:  cvttsd2si %xmm2, %rsi
+ 319b:  jmp 0xa56
+ 31a0:  movq %rbx, %r15
+ 31a3:  cmpb $0x13, %cl
+ 31a6:  jne 0x790
+ 31ac:  movsd (%rax), %xmm0
+ 31b0:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 31b8:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 31c0:  movapd %xmm0, %xmm1
+ 31c4:  movapd %xmm0, %xmm2
+ 31c8:  andpd %xmm3, %xmm1
+ 31cc:  ucomisd %xmm1, %xmm4
+ 31d0:  ja 0x39b8
+ 31d6:  ucomisd %xmm2, %xmm0
+ 31da:  jp 0x116c
+ 31e0:  jne 0x116c
+ 31e6:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 31ee:  jb 0x116c
+ 31f4:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 31fc:  comisd %xmm2, %xmm0
+ 3200:  jbe 0x116c
+ 3206:  cvttsd2si %xmm2, %rcx
+ 320b:  jmp 0x21c2
+ 3210:  movq %rbx, %r15
+ 3213:  cmpb $0x13, %sil
+ 3217:  jne 0x790
+ 321d:  movsd (%rdx), %xmm0
+ 3221:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3229:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3231:  movapd %xmm0, %xmm1
+ 3235:  movapd %xmm0, %xmm2
+ 3239:  andpd %xmm3, %xmm1
+ 323d:  ucomisd %xmm1, %xmm4
+ 3241:  ja 0x3980
+ 3247:  ucomisd %xmm2, %xmm0
+ 324b:  jp 0x116c
+ 3251:  jne 0x116c
+ 3257:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 325f:  jb 0x116c
+ 3265:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 326d:  comisd %xmm2, %xmm0
+ 3271:  jbe 0x116c
+ 3277:  cvttsd2si %xmm2, %rdx
+ 327c:  jmp 0x20e8
+ 3281:  nopl (%rax)
+ 3288:  movq %rbx, %r15
+ 328b:  cmpb $0x13, %sil
+ 328f:  jne 0x790
+ 3295:  movsd (%rdx), %xmm0
+ 3299:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 32a1:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 32a9:  movapd %xmm0, %xmm1
+ 32ad:  movapd %xmm0, %xmm2
+ 32b1:  andpd %xmm3, %xmm1
+ 32b5:  ucomisd %xmm1, %xmm4
+ 32b9:  ja 0x3948
+ 32bf:  ucomisd %xmm2, %xmm0
+ 32c3:  jp 0x116c
+ 32c9:  jne 0x116c
+ 32cf:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 32d7:  jb 0x116c
+ 32dd:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 32e5:  comisd %xmm2, %xmm0
+ 32e9:  jbe 0x116c
+ 32ef:  cvttsd2si %xmm2, %rdx
+ 32f4:  jmp 0x2080
+ 32f9:  nopl (%rax)
+ 3300:  movq %rbx, %r15
+ 3303:  cmpb $0x13, %sil
+ 3307:  jne 0x790
+ 330d:  movsd (%rdx), %xmm0
+ 3311:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3319:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3321:  movapd %xmm0, %xmm1
+ 3325:  movapd %xmm0, %xmm2
+ 3329:  andpd %xmm3, %xmm1
+ 332d:  ucomisd %xmm1, %xmm4
+ 3331:  ja 0x3910
+ 3337:  ucomisd %xmm2, %xmm0
+ 333b:  jp 0x116c
+ 3341:  jne 0x116c
+ 3347:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 334f:  jb 0x116c
+ 3355:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 335d:  comisd %xmm2, %xmm0
+ 3361:  jbe 0x116c
+ 3367:  cvttsd2si %xmm2, %rdx
+ 336c:  jmp 0x17f0
+ 3371:  nopl (%rax)
+ 3378:  movq %rbx, %r15
+ 337b:  cmpb $0x13, %cl
+ 337e:  jne 0x790
+ 3384:  movsd (%rdx), %xmm0
+ 3388:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3390:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3398:  movapd %xmm0, %xmm1
+ 339c:  movapd %xmm0, %xmm2
+ 33a0:  andpd %xmm3, %xmm1
+ 33a4:  ucomisd %xmm1, %xmm4
+ 33a8:  ja 0x38d8
+ 33ae:  ucomisd %xmm2, %xmm0
+ 33b2:  jp 0x116c
+ 33b8:  jne 0x116c
+ 33be:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 33c6:  jb 0x116c
+ 33cc:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 33d4:  comisd %xmm2, %xmm0
+ 33d8:  jbe 0x116c
+ 33de:  cvttsd2si %xmm2, %rcx
+ 33e3:  jmp 0x1d37
+ 33e8:  nopl (%rax, %rax)
+ 33f0:  movq %rbx, %r15
+ 33f3:  cmpb $0x13, %cl
+ 33f6:  jne 0x790
+ 33fc:  movsd (%rdx), %xmm0
+ 3400:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3408:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 3410:  movapd %xmm0, %xmm1
+ 3414:  movapd %xmm0, %xmm2
+ 3418:  andpd %xmm3, %xmm1
+ 341c:  ucomisd %xmm1, %xmm4
+ 3420:  ja 0x38a0
+ 3426:  ucomisd %xmm2, %xmm0
+ 342a:  jp 0x116c
+ 3430:  jne 0x116c
+ 3436:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 343e:  jb 0x116c
+ 3444:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 344c:  comisd %xmm2, %xmm0
+ 3450:  jbe 0x116c
+ 3456:  cvttsd2si %xmm2, %rdx
+ 345b:  jmp 0x1cb7
+ 3460:  movsd (%rdx), %xmm1
+ 3464:  xorl %eax, %eax
+ 3466:  comisd %xmm0, %xmm1
+ 346a:  seta %al
+ 346d:  jmp 0x918
+ 3472:  movsd (%rdx), %xmm1
+ 3476:  xorl %eax, %eax
+ 3478:  comisd %xmm0, %xmm1
+ 347c:  setae %al
+ 347f:  jmp 0x918
+ 3484:  movq (%r13), %rax
+ 3488:  leaq 0x10(%rax, %r15), %r14
+ 348d:  jmp 0x442
+ 3492:  movq %rcx, 0x20(%rsp)
+ 3497:  movq %rdx, 0x18(%rsp)
+ 349c:  callq luaH_getint+0
+ 34a1:  movq 0x20(%rsp), %rcx
+ 34a6:  movq 0x18(%rsp), %rdx
+ 34ab:  movq %rax, %r8
+ 34ae:  jmp 0x24f1
+ 34b3:  movq %rcx, 0x20(%rsp)
+ 34b8:  movq %rdx, 0x18(%rsp)
+ 34bd:  callq luaH_getint+0
+ 34c2:  movq 0x20(%rsp), %rcx
+ 34c7:  movq 0x18(%rsp), %rdx
+ 34cc:  movq %rax, %r8
+ 34cf:  jmp 0x2817
+ 34d4:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 34dc:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 34e4:  movapd %xmm0, %xmm1
+ 34e8:  movapd %xmm0, %xmm2
+ 34ec:  andpd %xmm3, %xmm1
+ 34f0:  ucomisd %xmm1, %xmm4
+ 34f4:  ja 0x3726
+ 34fa:  ucomisd %xmm2, %xmm0
+ 34fe:  movapd %xmm2, %xmm1
+ 3502:  jp 0x3707
+ 3508:  jne 0x3707
+ 350e:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+ 3516:  jb 0x35a0
+ 351c:  movsd (%rip), %xmm2   <cst:000000000000e043>
+ 3524:  comisd %xmm1, %xmm2
+ 3528:  jbe 0x35a0
+ 352a:  cvttsd2si %xmm1, %rdx
+ 352f:  cmpq %rdx, %rax
+ 3532:  setge %al
+ 3535:  movzbl %al, %eax
+ 3538:  jmp 0x918
+ 353d:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3545:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 354d:  movapd %xmm0, %xmm1
+ 3551:  movapd %xmm0, %xmm2
+ 3555:  andpd %xmm3, %xmm1
+ 3559:  ucomisd %xmm1, %xmm4
+ 355d:  jbe 0x3592
+ 355f:  cvttsd2si %xmm0, %rdx
+ 3564:  pxor %xmm1, %xmm1
+ 3568:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3570:  andnpd %xmm0, %xmm3
+ 3574:  cvtsi2sdq %rdx, %xmm1
+ 3579:  movapd %xmm1, %xmm2
+ 357d:  cmpnlesd %xmm0, %xmm2
+ 3582:  andpd %xmm4, %xmm2
+ 3586:  subsd %xmm2, %xmm1
+ 358a:  movapd %xmm3, %xmm2
+ 358e:  orpd %xmm1, %xmm2
+ 3592:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 359a:  jae 0x36e2
+ 35a0:  pxor %xmm1, %xmm1
+ 35a4:  xorl %eax, %eax
+ 35a6:  comisd %xmm0, %xmm1
+ 35aa:  seta %al
+ 35ad:  jmp 0x918
+ 35b2:  movq %r13, %r15
+ 35b5:  jmp 0x14
+ 35ba:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 35c2:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 35ca:  movapd %xmm0, %xmm1
+ 35ce:  movapd %xmm0, %xmm2
+ 35d2:  andpd %xmm3, %xmm1
+ 35d6:  ucomisd %xmm1, %xmm4
+ 35da:  jbe 0x360f
+ 35dc:  cvttsd2si %xmm0, %rdx
+ 35e1:  pxor %xmm1, %xmm1
+ 35e5:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 35ed:  andnpd %xmm0, %xmm3
+ 35f1:  cvtsi2sdq %rdx, %xmm1
+ 35f6:  movapd %xmm1, %xmm2
+ 35fa:  cmpnlesd %xmm0, %xmm2
+ 35ff:  andpd %xmm4, %xmm2
+ 3603:  subsd %xmm2, %xmm1
+ 3607:  movapd %xmm3, %xmm2
+ 360b:  orpd %xmm1, %xmm2
+ 360f:  ucomisd %xmm2, %xmm0
+ 3613:  movapd %xmm2, %xmm1
+ 3617:  jp 0x361b
+ 3619:  je 0x3627
+ 361b:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+ 3623:  movapd %xmm2, %xmm1
+ 3627:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+ 362f:  jb 0x375e
+ 3635:  movsd (%rip), %xmm2   <cst:000000000000e043>
+ 363d:  comisd %xmm1, %xmm2
+ 3641:  jbe 0x375e
+ 3647:  cvttsd2si %xmm1, %rdx
+ 364c:  cmpq %rdx, %rax
+ 364f:  setl %al
+ 3652:  movzbl %al, %eax
+ 3655:  jmp 0x918
+ 365a:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 3662:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 366a:  movapd %xmm0, %xmm1
+ 366e:  movapd %xmm0, %xmm2
+ 3672:  andpd %xmm3, %xmm1
+ 3676:  ucomisd %xmm1, %xmm4
+ 367a:  jbe 0x36af
+ 367c:  cvttsd2si %xmm0, %rdx
+ 3681:  pxor %xmm1, %xmm1
+ 3685:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 368d:  andnpd %xmm0, %xmm3
+ 3691:  cvtsi2sdq %rdx, %xmm1
+ 3696:  movapd %xmm1, %xmm2
+ 369a:  cmpnlesd %xmm0, %xmm2
+ 369f:  andpd %xmm4, %xmm2
+ 36a3:  subsd %xmm2, %xmm1
+ 36a7:  movapd %xmm3, %xmm2
+ 36ab:  orpd %xmm1, %xmm2
+ 36af:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 36b7:  jb 0x375e
+ 36bd:  movsd (%rip), %xmm1   <cst:000000000000e043>
+ 36c5:  comisd %xmm2, %xmm1
+ 36c9:  jbe 0x375e
+ 36cf:  cvttsd2si %xmm2, %rdx
+ 36d4:  cmpq %rdx, %rax
+ 36d7:  setle %al
+ 36da:  movzbl %al, %eax
+ 36dd:  jmp 0x918
+ 36e2:  movsd (%rip), %xmm1   <cst:000000000000e043>
+ 36ea:  comisd %xmm2, %xmm1
+ 36ee:  jbe 0x35a0
+ 36f4:  cvttsd2si %xmm2, %rdx
+ 36f9:  cmpq %rdx, %rax
+ 36fc:  setg %al
+ 36ff:  movzbl %al, %eax
+ 3702:  jmp 0x918
+ 3707:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+ 370f:  movapd %xmm2, %xmm1
+ 3713:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+ 371b:  jb 0x35a0
+ 3721:  jmp 0x351c
+ 3726:  cvttsd2si %xmm0, %rdx
+ 372b:  pxor %xmm1, %xmm1
+ 372f:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3737:  andnpd %xmm0, %xmm3
+ 373b:  cvtsi2sdq %rdx, %xmm1
+ 3740:  movapd %xmm1, %xmm2
+ 3744:  cmpnlesd %xmm0, %xmm2
+ 3749:  andpd %xmm4, %xmm2
+ 374d:  subsd %xmm2, %xmm1
+ 3751:  movapd %xmm3, %xmm2
+ 3755:  orpd %xmm1, %xmm2
+ 3759:  jmp 0x34fa
+ 375e:  pxor %xmm1, %xmm1
+ 3762:  xorl %eax, %eax
+ 3764:  comisd %xmm1, %xmm0
+ 3768:  seta %al
+ 376b:  jmp 0x918
+ 3770:  movq %rax, %r15
+ 3773:  jmp 0x14
+ 3778:  testq %rsi, %rsi
+ 377b:  je 0x3bdf
+ 3781:  movq %rdi, %rax
+ 3784:  negq %rax
+ 3787:  jmp 0x2bab
+ 378c:  testq %rsi, %rsi
+ 378f:  je 0x3bd0
+ 3795:  xorl %edx, %edx
+ 3797:  jmp 0x2be7
+ 379c:  leaq 0x18(%rbp), %rax
+ 37a0:  movb $0, 8(%rbp)
+ 37a4:  cmpq %rax, %rcx
+ 37a7:  je 0x2aac
+ 37ad:  jmp 0x2a9c
+ 37b2:  movsd (%rsi), %xmm0
+ 37b6:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+ 37be:  movsd (%rip), %xmm4   <cst:0000000000003043>
+ 37c6:  movapd %xmm0, %xmm1
+ 37ca:  movapd %xmm0, %xmm2
+ 37ce:  andpd %xmm3, %xmm1
+ 37d2:  ucomisd %xmm1, %xmm4
+ 37d6:  ja 0x3830
+ 37d8:  ucomisd %xmm2, %xmm0
+ 37dc:  jp 0x2e78
+ 37e2:  jne 0x2e78
+ 37e8:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+ 37f0:  jb 0x2e78
+ 37f6:  movsd (%rip), %xmm0   <cst:000000000000e043>
+ 37fe:  comisd %xmm2, %xmm0
+ 3802:  jbe 0x2e78
+ 3808:  cvttsd2si %xmm2, %rax
+ 380d:  jmp 0x193e
+ 3812:  movb $0, (%rsi)
+ 3815:  addq $0x20, %rsi
+ 3819:  movb $0, -0x10(%rsi)
+ 381d:  cmpq %rsi, %rdi
+ 3820:  je 0x2ea
+ 3826:  jmp 0x3812
+ 3828:  nopl (%rax, %rax)
+ 3830:  cvttsd2si %xmm0, %rax
+ 3835:  pxor %xmm1, %xmm1
+ 3839:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3841:  andnpd %xmm0, %xmm3
+ 3845:  cvtsi2sdq %rax, %xmm1
+ 384a:  movapd %xmm1, %xmm2
+ 384e:  cmpnlesd %xmm0, %xmm2
+ 3853:  andpd %xmm4, %xmm2
+ 3857:  subsd %xmm2, %xmm1
+ 385b:  movapd %xmm3, %xmm2
+ 385f:  orpd %xmm1, %xmm2
+ 3863:  jmp 0x37d8
+ 3868:  cvttsd2si %xmm0, %rax
+ 386d:  pxor %xmm1, %xmm1
+ 3871:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3879:  andnpd %xmm0, %xmm3
+ 387d:  cvtsi2sdq %rax, %xmm1
+ 3882:  movapd %xmm1, %xmm2
+ 3886:  cmpnlesd %xmm0, %xmm2
+ 388b:  andpd %xmm4, %xmm2
+ 388f:  subsd %xmm2, %xmm1
+ 3893:  movapd %xmm3, %xmm2
+ 3897:  orpd %xmm1, %xmm2
+ 389b:  jmp 0x2ed6
+ 38a0:  cvttsd2si %xmm0, %rdx
+ 38a5:  pxor %xmm1, %xmm1
+ 38a9:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 38b1:  andnpd %xmm0, %xmm3
+ 38b5:  cvtsi2sdq %rdx, %xmm1
+ 38ba:  movapd %xmm1, %xmm2
+ 38be:  cmpnlesd %xmm0, %xmm2
+ 38c3:  andpd %xmm4, %xmm2
+ 38c7:  subsd %xmm2, %xmm1
+ 38cb:  movapd %xmm3, %xmm2
+ 38cf:  orpd %xmm1, %xmm2
+ 38d3:  jmp 0x3426
+ 38d8:  cvttsd2si %xmm0, %rdx
+ 38dd:  pxor %xmm1, %xmm1
+ 38e1:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 38e9:  andnpd %xmm0, %xmm3
+ 38ed:  cvtsi2sdq %rdx, %xmm1
+ 38f2:  movapd %xmm1, %xmm2
+ 38f6:  cmpnlesd %xmm0, %xmm2
+ 38fb:  andpd %xmm4, %xmm2
+ 38ff:  subsd %xmm2, %xmm1
+ 3903:  movapd %xmm3, %xmm2
+ 3907:  orpd %xmm1, %xmm2
+ 390b:  jmp 0x33ae
+ 3910:  cvttsd2si %xmm0, %rdx
+ 3915:  pxor %xmm1, %xmm1
+ 3919:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3921:  andnpd %xmm0, %xmm3
+ 3925:  cvtsi2sdq %rdx, %xmm1
+ 392a:  movapd %xmm1, %xmm2
+ 392e:  cmpnlesd %xmm0, %xmm2
+ 3933:  andpd %xmm4, %xmm2
+ 3937:  subsd %xmm2, %xmm1
+ 393b:  movapd %xmm3, %xmm2
+ 393f:  orpd %xmm1, %xmm2
+ 3943:  jmp 0x3337
+ 3948:  cvttsd2si %xmm0, %rdx
+ 394d:  pxor %xmm1, %xmm1
+ 3951:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3959:  andnpd %xmm0, %xmm3
+ 395d:  cvtsi2sdq %rdx, %xmm1
+ 3962:  movapd %xmm1, %xmm2
+ 3966:  cmpnlesd %xmm0, %xmm2
+ 396b:  andpd %xmm4, %xmm2
+ 396f:  subsd %xmm2, %xmm1
+ 3973:  movapd %xmm3, %xmm2
+ 3977:  orpd %xmm1, %xmm2
+ 397b:  jmp 0x32bf
+ 3980:  cvttsd2si %xmm0, %rdx
+ 3985:  pxor %xmm1, %xmm1
+ 3989:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3991:  andnpd %xmm0, %xmm3
+ 3995:  cvtsi2sdq %rdx, %xmm1
+ 399a:  movapd %xmm1, %xmm2
+ 399e:  cmpnlesd %xmm0, %xmm2
+ 39a3:  andpd %xmm4, %xmm2
+ 39a7:  subsd %xmm2, %xmm1
+ 39ab:  movapd %xmm3, %xmm2
+ 39af:  orpd %xmm1, %xmm2
+ 39b3:  jmp 0x3247
+ 39b8:  cvttsd2si %xmm0, %rax
+ 39bd:  pxor %xmm1, %xmm1
+ 39c1:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 39c9:  andnpd %xmm0, %xmm3
+ 39cd:  cvtsi2sdq %rax, %xmm1
+ 39d2:  movapd %xmm1, %xmm2
+ 39d6:  cmpnlesd %xmm0, %xmm2
+ 39db:  andpd %xmm4, %xmm2
+ 39df:  subsd %xmm2, %xmm1
+ 39e3:  movapd %xmm3, %xmm2
+ 39e7:  orpd %xmm1, %xmm2
+ 39eb:  jmp 0x31d6
+ 39f0:  cvttsd2si %xmm0, %rax
+ 39f5:  pxor %xmm1, %xmm1
+ 39f9:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3a01:  andnpd %xmm0, %xmm3
+ 3a05:  cvtsi2sdq %rax, %xmm1
+ 3a0a:  movapd %xmm1, %xmm2
+ 3a0e:  cmpnlesd %xmm0, %xmm2
+ 3a13:  andpd %xmm4, %xmm2
+ 3a17:  subsd %xmm2, %xmm1
+ 3a1b:  movapd %xmm3, %xmm2
+ 3a1f:  orpd %xmm1, %xmm2
+ 3a23:  jmp 0x3166
+ 3a28:  cvttsd2si %xmm0, %rax
+ 3a2d:  pxor %xmm1, %xmm1
+ 3a31:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3a39:  andnpd %xmm0, %xmm3
+ 3a3d:  cvtsi2sdq %rax, %xmm1
+ 3a42:  movapd %xmm1, %xmm2
+ 3a46:  cmpnlesd %xmm0, %xmm2
+ 3a4b:  andpd %xmm4, %xmm2
+ 3a4f:  subsd %xmm2, %xmm1
+ 3a53:  movapd %xmm3, %xmm2
+ 3a57:  orpd %xmm1, %xmm2
+ 3a5b:  jmp 0x30ef
+ 3a60:  cvttsd2si %xmm0, %rax
+ 3a65:  pxor %xmm1, %xmm1
+ 3a69:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3a71:  andnpd %xmm0, %xmm3
+ 3a75:  cvtsi2sdq %rax, %xmm1
+ 3a7a:  movapd %xmm1, %xmm2
+ 3a7e:  cmpnlesd %xmm0, %xmm2
+ 3a83:  andpd %xmm4, %xmm2
+ 3a87:  subsd %xmm2, %xmm1
+ 3a8b:  movapd %xmm3, %xmm2
+ 3a8f:  orpd %xmm1, %xmm2
+ 3a93:  jmp 0x3036
+ 3a98:  cvttsd2si %xmm0, %rax
+ 3a9d:  pxor %xmm1, %xmm1
+ 3aa1:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3aa9:  andnpd %xmm0, %xmm3
+ 3aad:  cvtsi2sdq %rax, %xmm1
+ 3ab2:  movapd %xmm1, %xmm2
+ 3ab6:  cmpnlesd %xmm0, %xmm2
+ 3abb:  andpd %xmm4, %xmm2
+ 3abf:  subsd %xmm2, %xmm1
+ 3ac3:  movapd %xmm3, %xmm2
+ 3ac7:  orpd %xmm1, %xmm2
+ 3acb:  jmp 0x2fc2
+ 3ad0:  cvttsd2si %xmm0, %rax
+ 3ad5:  pxor %xmm1, %xmm1
+ 3ad9:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3ae1:  andnpd %xmm0, %xmm3
+ 3ae5:  cvtsi2sdq %rax, %xmm1
+ 3aea:  movapd %xmm1, %xmm2
+ 3aee:  cmpnlesd %xmm0, %xmm2
+ 3af3:  andpd %xmm4, %xmm2
+ 3af7:  subsd %xmm2, %xmm1
+ 3afb:  movapd %xmm3, %xmm2
+ 3aff:  orpd %xmm1, %xmm2
+ 3b03:  jmp 0x2d6f
+ 3b08:  cvttsd2si %xmm0, %rax
+ 3b0d:  pxor %xmm1, %xmm1
+ 3b11:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3b19:  andnpd %xmm0, %xmm3
+ 3b1d:  cvtsi2sdq %rax, %xmm1
+ 3b22:  movapd %xmm1, %xmm2
+ 3b26:  cmpnlesd %xmm0, %xmm2
+ 3b2b:  andpd %xmm4, %xmm2
+ 3b2f:  subsd %xmm2, %xmm1
+ 3b33:  movapd %xmm3, %xmm2
+ 3b37:  orpd %xmm1, %xmm2
+ 3b3b:  jmp 0x2e2d
+ 3b40:  cvttsd2si %xmm0, %rax
+ 3b45:  pxor %xmm1, %xmm1
+ 3b49:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3b51:  andnpd %xmm0, %xmm3
+ 3b55:  cvtsi2sdq %rax, %xmm1
+ 3b5a:  movapd %xmm1, %xmm2
+ 3b5e:  cmpnlesd %xmm0, %xmm2
+ 3b63:  andpd %xmm4, %xmm2
+ 3b67:  subsd %xmm2, %xmm1
+ 3b6b:  movapd %xmm3, %xmm2
+ 3b6f:  orpd %xmm1, %xmm2
+ 3b73:  jmp 0x2cf7
+ 3b78:  cvttsd2si %xmm0, %rax
+ 3b7d:  pxor %xmm1, %xmm1
+ 3b81:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+ 3b89:  andnpd %xmm0, %xmm3
+ 3b8d:  cvtsi2sdq %rax, %xmm1
+ 3b92:  movapd %xmm1, %xmm2
+ 3b96:  cmpnlesd %xmm0, %xmm2
+ 3b9b:  andpd %xmm4, %xmm2
+ 3b9f:  subsd %xmm2, %xmm1
+ 3ba3:  movapd %xmm3, %xmm2
+ 3ba7:  orpd %xmm1, %xmm2
+ 3bab:  jmp 0x2c84
+ 3bb0:  movq %rcx, 0x18(%rsp)
+ 3bb5:  movsd %xmm2, 0x20(%rsp)
+ 3bbb:  callq fmod+0
+ 3bc0:  movq 0x18(%rsp), %rcx
+ 3bc5:  movsd 0x20(%rsp), %xmm2
+ 3bcb:  jmp 0x1a6e
+ 3bd0:  movl $0, %esi   <str:"attempt to perform 'n%%0'">
+ 3bd5:  movq %r12, %rdi
+ 3bd8:  xorl %eax, %eax
+ 3bda:  callq luaG_runerror+0
+ 3bdf:  movl $0, %esi   <str:"attempt to divide by zero">
+ 3be4:  movq %r12, %rdi
+ 3be7:  xorl %eax, %eax
+ 3be9:  callq luaG_runerror+0

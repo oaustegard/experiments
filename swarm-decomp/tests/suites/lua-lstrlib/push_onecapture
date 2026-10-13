@@ -1,0 +1,61 @@
+# push_onecapture  (static, 194 bytes, 60 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x18, %rsp
+    9:  movzbl 0x24(%rdi), %eax
+    d:  cmpl %eax, %esi
+    f:  jl 0x30
+   11:  movq %rdx, %rbp
+   14:  testl %esi, %esi
+   16:  jne 0x88
+   18:  subq %rbp, %rcx
+   1b:  movq %rcx, %rdx
+   1e:  cmpq $-2, %rcx
+   22:  jne 0x73
+   24:  addq $0x18, %rsp
+   28:  popq %rbx
+   29:  popq %rbp
+   2a:  retq
+   2b:  nopl (%rax, %rax)
+   30:  movslq %esi, %rsi
+   33:  shlq $4, %rsi
+   37:  addq %rdi, %rsi
+   3a:  movq 0x18(%rdi), %rdi
+   3e:  movq 0x30(%rsi), %rdx
+   42:  movq 0x28(%rsi), %rbp
+   46:  cmpq $-1, %rdx
+   4a:  je 0x60
+   4c:  cmpq $-2, %rdx
+   50:  je 0xb0
+   52:  addq $0x18, %rsp
+   56:  movq %rbp, %rsi
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  jmp lua_pushlstring+0
+   60:  movl $0, %esi   <str:"unfinished capture">
+   65:  xorl %eax, %eax
+   67:  callq luaL_error+0
+   6c:  movq $18446744073709551615, %rdx
+   73:  movq 0x18(%rbx), %rdi
+   77:  addq $0x18, %rsp
+   7b:  movq %rbp, %rsi
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  jmp lua_pushlstring+0
+   85:  nopl (%rax)
+   88:  movq 0x18(%rdi), %rdi
+   8c:  leal 1(%rsi), %edx
+   8f:  xorl %eax, %eax
+   91:  movl $0, %esi   <str:"invalid capture index %%%d">
+   96:  movq %rcx, 8(%rsp)
+   9b:  callq luaL_error+0
+   a0:  movq 8(%rsp), %rcx
+   a5:  jmp 0x18
+   aa:  nopw (%rax, %rax)
+   b0:  subq (%rbx), %rbp
+   b3:  addq $0x18, %rsp
+   b7:  leaq 1(%rbp), %rsi
+   bb:  popq %rbx
+   bc:  popq %rbp
+   bd:  jmp lua_pushinteger+0

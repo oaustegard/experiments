@@ -1,0 +1,23 @@
+# mkargs_reg1  (static, 72 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  movl $0x43, %edi
+    a:  subq $8, %rsp
+    e:  callq nreg+0
+   13:  movl (%rax), %edi
+   15:  callq fn:read_name+0
+   1a:  movq %rbx, %rdi
+   1d:  movq %rax, %rsi
+   20:  movq %rax, %rbp
+   23:  callq sbuf_append+0
+   28:  movq %rbx, %rdi
+   2b:  xorl %esi, %esi
+   2d:  callq sbuf_add+0
+   32:  movq %rbp, %rdi
+   35:  callq free+0
+   3a:  addq $8, %rsp
+   3e:  movq %rbx, %rdi
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  jmp fn:mkargs_req+0

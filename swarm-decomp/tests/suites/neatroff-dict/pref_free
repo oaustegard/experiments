@@ -1,0 +1,12 @@
+# pref_free  (global, 39 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 0x10(%rdi), %rdi
+    8:  callq free+0
+    d:  movq 8(%rbx), %rdi
+   11:  callq free+0
+   16:  movq (%rbx), %rdi
+   19:  callq iset_free+0
+   1e:  movq %rbx, %rdi
+   21:  popq %rbx
+   22:  jmp free+0

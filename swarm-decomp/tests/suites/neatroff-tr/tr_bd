@@ -1,0 +1,44 @@
+# tr_bd  (static, 120 bytes, 43 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x68
+   12:  callq dev_pos+0
+   17:  movl %eax, %edi
+   19:  callq dev_font+0
+   1e:  movq %rax, %rbp
+   21:  movq 8(%rbx), %rax
+   25:  testq %rax, %rax
+   28:  je 0x68
+   2a:  movzbl (%rax), %ecx
+   2d:  movl $0x53, %edx
+   32:  subl %ecx, %edx
+   34:  je 0x70
+   36:  testq %rbp, %rbp
+   39:  je 0x68
+   3b:  testl %edx, %edx
+   3d:  je 0x68
+   3f:  movq 0x10(%rbx), %rdi
+   43:  xorl %esi, %esi
+   45:  testq %rdi, %rdi
+   48:  je 0x56
+   4a:  movl $0x75, %esi
+   4f:  callq eval+0
+   54:  movl %eax, %esi
+   56:  addq $8, %rsp
+   5a:  movq %rbp, %rdi
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  jmp font_setbd+0
+   64:  nopl (%rax)
+   68:  addq $8, %rsp
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  retq
+   6f:  nop
+   70:  movzbl 1(%rax), %edx
+   74:  negl %edx
+   76:  jmp 0x36

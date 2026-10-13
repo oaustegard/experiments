@@ -1,0 +1,19 @@
+# luaF_newproto  (global, 73 bytes, 18 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0x80, %edx
+    9:  movl $0xa, %esi
+    e:  callq luaC_newobj+0
+   13:  pxor %xmm0, %xmm0
+   17:  xorl %edx, %edx
+   19:  movups %xmm0, 0x10(%rax)
+   1d:  movups %xmm0, 0x20(%rax)
+   21:  pxor %xmm0, %xmm0
+   25:  movw %dx, 0xa(%rax)
+   29:  movb $0, 0xc(%rax)
+   2d:  movl $0, 0x30(%rax)
+   34:  movups %xmm0, 0x38(%rax)
+   38:  movups %xmm0, 0x48(%rax)
+   3c:  movups %xmm0, 0x58(%rax)
+   40:  movups %xmm0, 0x68(%rax)
+   44:  addq $8, %rsp
+   48:  retq

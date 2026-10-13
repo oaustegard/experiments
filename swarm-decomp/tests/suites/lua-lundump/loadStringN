@@ -1,0 +1,86 @@
+# loadStringN  (static, 275 bytes, 85 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rsi, %r12
+    9:  movq $18446744073709551615, %rsi
+   10:  pushq %rbp
+   11:  movq %rdi, %rbp
+   14:  pushq %rbx
+   15:  subq $0x30, %rsp
+   19:  movq (%rdi), %r13
+   1c:  callq fn:loadUnsigned+0
+   21:  testq %rax, %rax
+   24:  je 0xd0
+   2a:  leaq -1(%rax), %rbx
+   2e:  cmpq $0x28, %rbx
+   32:  jbe 0xa0
+   34:  movq %rbx, %rsi
+   37:  movq %r13, %rdi
+   3a:  callq luaS_createlngstrobj+0
+   3f:  movq 0x10(%r13), %rdx
+   43:  movq %r13, %rdi
+   46:  movq %rax, %r14
+   49:  movq %rax, (%rdx)
+   4c:  movzbl 8(%rax), %eax
+   50:  orl $0x40, %eax
+   53:  movb %al, 8(%rdx)
+   56:  callq luaD_inctop+0
+   5b:  movq 8(%rbp), %rdi
+   5f:  leaq 0x18(%r14), %rsi
+   63:  movq %rbx, %rdx
+   66:  callq luaZ_read+0
+   6b:  testq %rax, %rax
+   6e:  jne 0x106
+   74:  subq $0x10, 0x10(%r13)
+   79:  testb $0x20, 9(%r12)
+   7f:  je 0x88
+   81:  testb $0x18, 9(%r14)
+   86:  jne 0xe8
+   88:  addq $0x30, %rsp
+   8c:  movq %r14, %rax
+   8f:  popq %rbx
+   90:  popq %rbp
+   91:  popq %r12
+   93:  popq %r13
+   95:  popq %r14
+   97:  retq
+   98:  nopl (%rax, %rax)
+   a0:  movq 8(%rbp), %rdi
+   a4:  movq %rbx, %rdx
+   a7:  movq %rsp, %rsi
+   aa:  callq luaZ_read+0
+   af:  testq %rax, %rax
+   b2:  jne 0x106
+   b4:  movq %rbx, %rdx
+   b7:  movq %rsp, %rsi
+   ba:  movq %r13, %rdi
+   bd:  callq luaS_newlstr+0
+   c2:  movq %rax, %r14
+   c5:  jmp 0x79
+   c7:  nopw (%rax, %rax)
+   d0:  addq $0x30, %rsp
+   d4:  xorl %r14d, %r14d
+   d7:  popq %rbx
+   d8:  movq %r14, %rax
+   db:  popq %rbp
+   dc:  popq %r12
+   de:  popq %r13
+   e0:  popq %r14
+   e2:  retq
+   e3:  nopl (%rax, %rax)
+   e8:  movq %r14, %rdx
+   eb:  movq %r12, %rsi
+   ee:  movq %r13, %rdi
+   f1:  callq luaC_barrier_+0
+   f6:  addq $0x30, %rsp
+   fa:  movq %r14, %rax
+   fd:  popq %rbx
+   fe:  popq %rbp
+   ff:  popq %r12
+  101:  popq %r13
+  103:  popq %r14
+  105:  retq
+  106:  movl $0, %esi   <str:"truncated chunk">
+  10b:  movq %rbp, %rdi
+  10e:  callq fn:error+0

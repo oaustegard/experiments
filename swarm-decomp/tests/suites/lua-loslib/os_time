@@ -1,0 +1,98 @@
+# os_time  (static, 367 bytes, 97 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x48, %rsp
+    e:  callq lua_type+0
+   13:  testl %eax, %eax
+   15:  jle 0x140
+   1b:  movl $5, %edx
+   20:  movl $1, %esi
+   25:  movq %rbx, %rdi
+   28:  callq luaL_checktype+0
+   2d:  movl $1, %esi
+   32:  movq %rbx, %rdi
+   35:  callq lua_settop+0
+   3a:  movl $0x76c, %ecx
+   3f:  movl $0xffffffff, %edx
+   44:  movq %rbx, %rdi
+   47:  movl $0, %esi   <str:"year">
+   4c:  callq fn:getfield+0
+   51:  movl $1, %ecx
+   56:  movl $0xffffffff, %edx
+   5b:  movq %rbx, %rdi
+   5e:  movl $0, %esi   <str:"month">
+   63:  movl %eax, 0x14(%rsp)
+   67:  callq fn:getfield+0
+   6c:  xorl %ecx, %ecx
+   6e:  movl $0xffffffff, %edx
+   73:  movq %rbx, %rdi
+   76:  movl $0, %esi   <str:"day">
+   7b:  movl %eax, 0x10(%rsp)
+   7f:  callq fn:getfield+0
+   84:  xorl %ecx, %ecx
+   86:  movl $0xc, %edx
+   8b:  movq %rbx, %rdi
+   8e:  movl $0, %esi   <str:"hour">
+   93:  movl %eax, 0xc(%rsp)
+   97:  callq fn:getfield+0
+   9c:  xorl %ecx, %ecx
+   9e:  xorl %edx, %edx
+   a0:  movl $0, %esi   <str:"min">
+   a5:  movq %rbx, %rdi
+   a8:  movl %eax, 8(%rsp)
+   ac:  callq fn:getfield+0
+   b1:  xorl %edx, %edx
+   b3:  xorl %ecx, %ecx
+   b5:  movl $0, %esi   <str:"sec">
+   ba:  movq %rbx, %rdi
+   bd:  movl %eax, 4(%rsp)
+   c1:  callq fn:getfield+0
+   c6:  movl $0, %edx   <str:"isdst">
+   cb:  movl $0xffffffff, %esi
+   d0:  movq %rbx, %rdi
+   d3:  movl %eax, (%rsp)
+   d6:  callq lua_getfield+0
+   db:  testl %eax, %eax
+   dd:  je 0x168
+   e3:  movl $0xffffffff, %esi
+   e8:  movq %rbx, %rdi
+   eb:  callq lua_toboolean+0
+   f0:  movl %eax, %ebp
+   f2:  movl $0xfffffffe, %esi
+   f7:  movq %rbx, %rdi
+   fa:  callq lua_settop+0
+   ff:  movq %rsp, %rdi
+  102:  movl %ebp, 0x20(%rsp)
+  106:  callq mktime+0
+  10b:  movq %rsp, %rsi
+  10e:  movq %rbx, %rdi
+  111:  movq %rax, %rbp
+  114:  callq fn:setallfields+0
+  119:  cmpq $-1, %rbp
+  11d:  je 0x150
+  11f:  movq %rbp, %rsi
+  122:  movq %rbx, %rdi
+  125:  callq lua_pushinteger+0
+  12a:  addq $0x48, %rsp
+  12e:  movl $1, %eax
+  133:  popq %rbx
+  134:  popq %rbp
+  135:  retq
+  136:  nopw %cs:(%rax, %rax)
+  140:  xorl %edi, %edi
+  142:  callq time+0
+  147:  movq %rax, %rbp
+  14a:  cmpq $-1, %rbp
+  14e:  jne 0x11f
+  150:  addq $0x48, %rsp
+  154:  movq %rbx, %rdi
+  157:  movl $0, %esi   <str:"time result cannot be represented in this installation">
+  15c:  xorl %eax, %eax
+  15e:  popq %rbx
+  15f:  popq %rbp
+  160:  jmp luaL_error+0
+  165:  nopl (%rax)
+  168:  movl $0xffffffff, %ebp
+  16d:  jmp 0xf2

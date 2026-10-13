@@ -1,0 +1,59 @@
+# correctgraylist  (static, 228 bytes, 58 instructions)
+    0:  movq (%rdi), %rdx
+    3:  movq %rdi, %rax
+    6:  testq %rdx, %rdx
+    9:  je 0x67
+    b:  movzbl 8(%rdx), %r8d
+   10:  leal -5(%r8), %ecx
+   14:  cmpb $0x21, %cl
+   17:  ja 0x28
+   19:  movzbl %cl, %ecx
+   1c:  jmpq *(, %rcx, 8)   <var:correctgraylist+0>
+   23:  nopl (%rax, %rax)
+   28:  xorl %esi, %esi
+   2a:  movzbl 9(%rdx), %ecx
+   2e:  testb $0x18, %cl
+   31:  jne 0x5c
+   33:  movl %ecx, %r9d
+   36:  andl $7, %r9d
+   3a:  cmpb $5, %r9b
+   3e:  je 0xd0
+   44:  cmpb $8, %r8b
+   48:  je 0xc0
+   4a:  movl %ecx, %edi
+   4c:  xorl $2, %edi
+   4f:  cmpb $6, %r9b
+   53:  cmovel %edi, %ecx
+   56:  orl $0x20, %ecx
+   59:  movb %cl, 9(%rdx)
+   5c:  movq (%rsi), %rdx
+   5f:  movq %rdx, (%rax)
+   62:  testq %rdx, %rdx
+   65:  jne 0xb
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  leaq 0x10(%rdx), %rsi
+   74:  jmp 0x2a
+   76:  nopw %cs:(%rax, %rax)
+   80:  leaq 0x30(%rdx), %rsi
+   84:  jmp 0x2a
+   86:  nopw %cs:(%rax, %rax)
+   90:  leaq 0x48(%rdx), %rsi
+   94:  jmp 0x2a
+   96:  nopw %cs:(%rax, %rax)
+   a0:  leaq 0x20(%rdx), %rsi
+   a4:  jmp 0x2a
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  leaq 0x78(%rdx), %rsi
+   b4:  jmp 0x2a
+   b9:  nopl (%rax)
+   c0:  movq (%rsi), %rdx
+   c3:  movq %rsi, %rax
+   c6:  jmp 6
+   cb:  nopl (%rax, %rax)
+   d0:  orl $0x20, %ecx
+   d3:  movq %rsi, %rax
+   d6:  xorl $3, %ecx
+   d9:  movb %cl, 9(%rdx)
+   dc:  movq (%rsi), %rdx
+   df:  jmp 6

@@ -1,0 +1,67 @@
+# evalcmp  (static, 269 bytes, 66 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evalshift+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x40
+   14:  cmpl $0x3c, %eax
+   17:  je 0xb0
+   1d:  cmpl $0x3e, %eax
+   20:  je 0xd0
+   26:  cmpl $0x3c3d00, %eax
+   2b:  je 0xf0
+   31:  cmpl $0x3e3d00, %eax
+   36:  je 0x93
+   38:  movq %rbx, %rax
+   3b:  popq %rbx
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  callq fn:eval_tok+0
+   45:  movl %eax, (%rip)   <var:enext+0>
+   4b:  cmpl $0x3c, %eax
+   4e:  je 0xb0
+   50:  cmpl $-1, %eax
+   53:  jne 0x1d
+   55:  callq fn:eval_tok+0
+   5a:  movl %eax, (%rip)   <var:enext+0>
+   60:  cmpl $0x3e, %eax
+   63:  je 0xd0
+   65:  cmpl $-1, %eax
+   68:  jne 0x26
+   6a:  callq fn:eval_tok+0
+   6f:  movl %eax, (%rip)   <var:enext+0>
+   75:  cmpl $0x3c3d00, %eax
+   7a:  je 0xf0
+   7c:  cmpl $-1, %eax
+   7f:  jne 0x31
+   81:  callq fn:eval_tok+0
+   86:  movl %eax, (%rip)   <var:enext+0>
+   8c:  cmpl $0x3e3d00, %eax
+   91:  jne 0x38
+   93:  movl $0xffffffff, (%rip)   <var:enext+0>
+   9d:  callq fn:evalshift+0
+   a2:  cmpq %rbx, %rax
+   a5:  setle %bl
+   a8:  movzbl %bl, %ebx
+   ab:  jmp 9
+   b0:  movl $0xffffffff, (%rip)   <var:enext+0>
+   ba:  callq fn:evalshift+0
+   bf:  cmpq %rbx, %rax
+   c2:  setg %bl
+   c5:  movzbl %bl, %ebx
+   c8:  jmp 9
+   cd:  nopl (%rax)
+   d0:  movl $0xffffffff, (%rip)   <var:enext+0>
+   da:  callq fn:evalshift+0
+   df:  cmpq %rbx, %rax
+   e2:  setl %bl
+   e5:  movzbl %bl, %ebx
+   e8:  jmp 9
+   ed:  nopl (%rax)
+   f0:  movl $0xffffffff, (%rip)   <var:enext+0>
+   fa:  callq fn:evalshift+0
+   ff:  cmpq %rbx, %rax
+  102:  setge %bl
+  105:  movzbl %bl, %ebx
+  108:  jmp 9

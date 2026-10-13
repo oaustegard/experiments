@@ -1,0 +1,8 @@
+# lua_closethread  (global, 29 bytes, 7 instructions)
+    0:  xorl %eax, %eax
+    2:  testq %rsi, %rsi
+    5:  je 0xe
+    7:  movzwl 0xb0(%rsi), %eax
+    e:  movl %eax, 0xb0(%rdi)
+   14:  movzbl 0xa(%rdi), %esi
+   18:  jmp luaE_resetthread+0

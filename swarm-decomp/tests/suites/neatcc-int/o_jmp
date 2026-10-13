@@ -1,0 +1,29 @@
+# o_jmp  (global, 132 bytes, 28 instructions)
+    0:  movq (%rip), %rsi   <var:ic_n+0>
+    7:  cmpq (%rip), %rsi   <var:ic_sz+0>
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  movq (%rip), %rdi   <var:ic+0>
+   19:  je 0x50
+   1b:  leaq 1(%rsi), %rax
+   1f:  movdqa (%rip), %xmm0   <cst:00100000000000000000000000000000>
+   27:  movq %rax, (%rip)   <var:ic_n+0>
+   2e:  leaq (%rsi, %rsi, 4), %rax
+   32:  leaq (%rdi, %rax, 8), %rax
+   36:  movq $0, 0x10(%rax)
+   3e:  movq %rbx, 0x18(%rax)
+   42:  movups %xmm0, (%rax)
+   45:  popq %rbx
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  leaq (%rsi, %rsi), %rdx
+   54:  movl $0x80, %eax
+   59:  movl $0x28, %ecx
+   5e:  cmpq %rax, %rdx
+   61:  cmovlq %rax, %rdx
+   65:  movq %rdx, (%rip)   <var:ic_sz+0>
+   6c:  callq mextend+0
+   71:  movq (%rip), %rsi   <var:ic_n+0>
+   78:  movq %rax, (%rip)   <var:ic+0>
+   7f:  movq %rax, %rdi
+   82:  jmp 0x1b

@@ -1,0 +1,67 @@
+# o_dsnew  (global, 283 bytes, 66 instructions)
+    0:  pushq %r14
+    2:  movq (%rip), %r14   <var:ds_off+0>
+    9:  pushq %r13
+    b:  movl %edx, %r13d
+    e:  movq (%rip), %rdx   <var:ds_sz+0>
+   15:  pushq %r12
+   17:  movq %rdi, %r12
+   1a:  pushq %rbp
+   1b:  pushq %rbx
+   1c:  movq %rsi, %rbx
+   1f:  movq (%rip), %rsi   <var:ds_n+0>
+   26:  cmpq %rdx, %rsi
+   29:  jge 0xb8
+   2f:  movslq %esi, %rbp
+   32:  leaq 1(%rsi), %rax
+   36:  movq %r12, %rsi
+   39:  movq %rbp, %rdi
+   3c:  movq %rax, (%rip)   <var:ds_n+0>
+   43:  leaq (%r14, %rbp, 8), %r14
+   47:  shlq $7, %rdi
+   4b:  addq (%rip), %rdi   <var:ds_name+0>
+   52:  callq strcpy+0
+   57:  movl $0, %edi   <var:ds+0>
+   5c:  callq mem_len+0
+   61:  movl $0, %edi   <var:ds+0>
+   66:  movq %rax, (%r14)
+   69:  callq mem_len+0
+   6e:  cmpl $1, %r13d
+   72:  movq %rbx, %rcx
+   75:  movq %r12, %rdi
+   78:  sbbq %rsi, %rsi
+   7b:  movq %rax, %rdx
+   7e:  andq $0xfffffffffffffff0, %rsi
+   82:  addq $0x12, %rsi
+   86:  callq out_def+0
+   8b:  leaq 0xf(%rbx), %rsi
+   8f:  movl $0, %edi   <var:ds+0>
+   94:  andq $0xfffffffffffffff0, %rsi
+   98:  callq mem_putz+0
+   9d:  movq (%rip), %rax   <var:ds_off+0>
+   a4:  popq %rbx
+   a5:  movq (%rax, %rbp, 8), %rax
+   a9:  popq %rbp
+   aa:  popq %r12
+   ac:  popq %r13
+   ae:  popq %r14
+   b0:  retq
+   b1:  nopl (%rax)
+   b8:  movl $0x80, %eax
+   bd:  addq %rdx, %rdx
+   c0:  movl $0x80, %ecx
+   c5:  movq (%rip), %rdi   <var:ds_name+0>
+   cc:  cmpq %rax, %rdx
+   cf:  cmovlq %rax, %rdx
+   d3:  movq %rdx, (%rip)   <var:ds_sz+0>
+   da:  callq mextend+0
+   df:  movq (%rip), %rsi   <var:ds_n+0>
+   e6:  movl $8, %ecx
+   eb:  movq (%rip), %rdx   <var:ds_sz+0>
+   f2:  movq (%rip), %rdi   <var:ds_off+0>
+   f9:  movq %rax, (%rip)   <var:ds_name+0>
+  100:  callq mextend+0
+  105:  movq (%rip), %rsi   <var:ds_n+0>
+  10c:  movq %rax, (%rip)   <var:ds_off+0>
+  113:  movq %rax, %r14
+  116:  jmp 0x2f

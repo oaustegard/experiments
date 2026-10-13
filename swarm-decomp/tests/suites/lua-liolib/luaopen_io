@@ -1,0 +1,105 @@
+# luaopen_io  (global, 444 bytes, 104 instructions)
+    0:  pushq %r12
+    2:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+    a:  movl $0x88, %esi
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  callq luaL_checkversion_+0
+   19:  movq %rbx, %rdi
+   1c:  movl $0xb, %edx
+   21:  xorl %esi, %esi
+   23:  callq lua_createtable+0
+   28:  xorl %edx, %edx
+   2a:  movq %rbx, %rdi
+   2d:  movl $0, %esi   <var:iolib+0>
+   32:  callq luaL_setfuncs+0
+   37:  movq %rbx, %rdi
+   3a:  movl $0, %esi   <str:"FILE*">
+   3f:  callq luaL_newmetatable+0
+   44:  movq %rbx, %rdi
+   47:  xorl %edx, %edx
+   49:  movl $0, %esi   <var:metameth+0>
+   4e:  callq luaL_setfuncs+0
+   53:  movq %rbx, %rdi
+   56:  movl $7, %edx
+   5b:  xorl %esi, %esi
+   5d:  callq lua_createtable+0
+   62:  movq %rbx, %rdi
+   65:  xorl %edx, %edx
+   67:  movl $0, %esi   <var:meth+0>
+   6c:  callq luaL_setfuncs+0
+   71:  movl $0, %edx   <str:"__index">
+   76:  movq %rbx, %rdi
+   79:  movl $0xfffffffe, %esi
+   7e:  callq lua_setfield+0
+   83:  movq %rbx, %rdi
+   86:  movl $0xfffffffe, %esi
+   8b:  callq lua_settop+0
+   90:  xorl %edx, %edx
+   92:  movq %rbx, %rdi
+   95:  movl $0x10, %esi
+   9a:  movq (%rip), %r12   <stdin+0>
+   a1:  callq lua_newuserdatauv+0
+   a6:  movq %rbx, %rdi
+   a9:  movl $0, %esi   <str:"FILE*">
+   ae:  movq $0, 8(%rax)
+   b6:  movq %rax, %rbp
+   b9:  callq luaL_setmetatable+0
+   be:  movq %r12, (%rbp)
+   c2:  movq %rbx, %rdi
+   c5:  movl $0xffffffff, %esi
+   ca:  movq $0, 8(%rbp)   <fn:io_noclose+0>
+   d2:  callq lua_pushvalue+0
+   d7:  movq %rbx, %rdi
+   da:  movl $0, %edx   <str:"_IO_input">
+   df:  movl $0xfff0b9d8, %esi
+   e4:  callq lua_setfield+0
+   e9:  movq %rbx, %rdi
+   ec:  movl $0, %edx   <str:"stdin">
+   f1:  movl $0xfffffffe, %esi
+   f6:  callq lua_setfield+0
+   fb:  xorl %edx, %edx
+   fd:  movq %rbx, %rdi
+  100:  movl $0x10, %esi
+  105:  movq (%rip), %r12   <stdout+0>
+  10c:  callq lua_newuserdatauv+0
+  111:  movq %rbx, %rdi
+  114:  movl $0, %esi   <str:"FILE*">
+  119:  movq $0, 8(%rax)
+  121:  movq %rax, %rbp
+  124:  callq luaL_setmetatable+0
+  129:  movq %r12, (%rbp)
+  12d:  movq %rbx, %rdi
+  130:  movl $0xffffffff, %esi
+  135:  movq $0, 8(%rbp)   <fn:io_noclose+0>
+  13d:  callq lua_pushvalue+0
+  142:  movq %rbx, %rdi
+  145:  movl $0, %edx   <str:"_IO_output">
+  14a:  movl $0xfff0b9d8, %esi
+  14f:  callq lua_setfield+0
+  154:  movq %rbx, %rdi
+  157:  movl $0, %edx   <str:"stdout">
+  15c:  movl $0xfffffffe, %esi
+  161:  callq lua_setfield+0
+  166:  xorl %edx, %edx
+  168:  movq %rbx, %rdi
+  16b:  movl $0x10, %esi
+  170:  movq (%rip), %r12   <stderr+0>
+  177:  callq lua_newuserdatauv+0
+  17c:  movq %rbx, %rdi
+  17f:  movl $0, %esi   <str:"FILE*">
+  184:  movq $0, 8(%rax)
+  18c:  movq %rax, %rbp
+  18f:  callq luaL_setmetatable+0
+  194:  movq %r12, (%rbp)
+  198:  movq %rbx, %rdi
+  19b:  movl $0, %edx   <str:"stderr">
+  1a0:  movq $0, 8(%rbp)   <fn:io_noclose+0>
+  1a8:  movl $0xfffffffe, %esi
+  1ad:  callq lua_setfield+0
+  1b2:  popq %rbx
+  1b3:  movl $1, %eax
+  1b8:  popq %rbp
+  1b9:  popq %r12
+  1bb:  retq

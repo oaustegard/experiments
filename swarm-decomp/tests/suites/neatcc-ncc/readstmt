@@ -1,0 +1,807 @@
+# readstmt  (static, 3565 bytes, 806 instructions)
+    0:  pushq %r15
+    2:  movl $0xffffffff, %edi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  subq $0x18, %rsp
+   13:  callq o_tmpdrop+0
+   18:  movl $0, (%rip)   <var:nts+0>
+   22:  callq tok_see+0
+   27:  cmpb $0x7b, (%rax)
+   2a:  jne 0xe0
+   30:  cmpb $0, 1(%rax)
+   34:  jne 0xe0
+   3a:  callq tok_get+0
+   3f:  movl (%rip), %eax   <var:globals_n+0>
+   45:  movl (%rip), %r15d   <var:locals_n+0>
+   4c:  movl $0x7d, %ebx
+   51:  movl (%rip), %r14d   <var:enums_n+0>
+   58:  movl (%rip), %r13d   <var:typedefs_n+0>
+   5f:  movl (%rip), %r12d   <var:structs_n+0>
+   66:  movl (%rip), %ebp   <var:funcs_n+0>
+   6c:  movl %eax, (%rsp)
+   6f:  movl (%rip), %eax   <var:arrays_n+0>
+   75:  movl %eax, 0xc(%rsp)
+   79:  callq tok_see+0
+   7e:  movzbl (%rax), %edx
+   81:  cmpl %edx, %ebx
+   83:  jne 0x1d0
+   89:  cmpb $0, 1(%rax)
+   8d:  jne 0x1d0
+   93:  callq tok_get+0
+   98:  movl 0xc(%rsp), %eax
+   9c:  movl %r15d, (%rip)   <var:locals_n+0>
+   a3:  movl %r14d, (%rip)   <var:enums_n+0>
+   aa:  movl %eax, (%rip)   <var:arrays_n+0>
+   b0:  movl (%rsp), %eax
+   b3:  movl %r13d, (%rip)   <var:typedefs_n+0>
+   ba:  movl %r12d, (%rip)   <var:structs_n+0>
+   c1:  movl %ebp, (%rip)   <var:funcs_n+0>
+   c7:  movl %eax, (%rip)   <var:globals_n+0>
+   cd:  addq $0x18, %rsp
+   d1:  popq %rbx
+   d2:  popq %rbp
+   d3:  popq %r12
+   d5:  popq %r13
+   d7:  popq %r14
+   d9:  popq %r15
+   db:  retq
+   dc:  nopl (%rax)
+   e0:  xorl %esi, %esi
+   e2:  movl $0, %edi   <fn:localdef+0>
+   e7:  callq fn:readdefs+0
+   ec:  testl %eax, %eax
+   ee:  je 0x1f1
+   f4:  callq tok_see+0
+   f9:  movl $0, %edi   <str:"typedef">
+   fe:  movq %rax, %rsi
+  101:  callq strcmp+0
+  106:  testl %eax, %eax
+  108:  je 0x1e0
+  10e:  callq tok_see+0
+  113:  cmpb $0x69, (%rax)
+  116:  je 0x238
+  11c:  callq tok_see+0
+  121:  movl $0, %edi   <str:"while">
+  126:  movq %rax, %rsi
+  129:  callq strcmp+0
+  12e:  testl %eax, %eax
+  130:  jne 0x340
+  136:  callq tok_get+0
+  13b:  movl (%rip), %edi   <var:label+0>
+  141:  movl (%rip), %ebx   <var:l_cont+0>
+  147:  movl (%rip), %ebp   <var:l_break+0>
+  14d:  leal 1(%rdi), %eax
+  150:  addl $2, %edi
+  153:  movl %edi, (%rip)   <var:label+0>
+  159:  movl %edi, (%rip)   <var:l_cont+0>
+  15f:  movslq %edi, %rdi
+  162:  movl %eax, (%rip)   <var:l_break+0>
+  168:  callq o_label+0
+  16d:  callq tok_get+0
+  172:  cmpb $0x28, (%rax)
+  175:  jne 0x678
+  17b:  cmpb $0, 1(%rax)
+  17f:  jne 0x678
+  185:  movl $0x2c, %r12d
+  18b:  movl $0xffffffff, %edi
+  190:  callq o_tmpdrop+0
+  195:  movl $0, (%rip)   <var:nts+0>
+  19f:  callq fn:readexpr+0
+  1a4:  callq tok_see+0
+  1a9:  movzbl (%rax), %edx
+  1ac:  cmpl %edx, %r12d
+  1af:  jne 0x810
+  1b5:  cmpb $0, 1(%rax)
+  1b9:  jne 0x810
+  1bf:  callq tok_get+0
+  1c4:  jmp 0x18b
+  1c6:  nopw %cs:(%rax, %rax)
+  1d0:  callq 0
+  1d5:  jmp 0x79
+  1da:  nopw (%rax, %rax)
+  1e0:  callq tok_get+0
+  1e5:  xorl %esi, %esi
+  1e7:  movl $0, %edi   <fn:typedefdef+0>
+  1ec:  callq fn:readdefs+0
+  1f1:  callq tok_get+0
+  1f6:  cmpb $0x3b, (%rax)
+  1f9:  je 0x220
+  1fb:  movq %rax, %rdx
+  1fe:  addq $0x18, %rsp
+  202:  movl $0, %esi   <str:";">
+  207:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  20c:  xorl %eax, %eax
+  20e:  popq %rbx
+  20f:  popq %rbp
+  210:  popq %r12
+  212:  popq %r13
+  214:  popq %r14
+  216:  popq %r15
+  218:  jmp err+0
+  21d:  nopl (%rax)
+  220:  cmpb $0, 1(%rax)
+  224:  jne 0x1fb
+  226:  addq $0x18, %rsp
+  22a:  popq %rbx
+  22b:  popq %rbp
+  22c:  popq %r12
+  22e:  popq %r13
+  230:  popq %r14
+  232:  popq %r15
+  234:  retq
+  235:  nopl (%rax)
+  238:  cmpb $0x66, 1(%rax)
+  23c:  jne 0x11c
+  242:  cmpb $0, 2(%rax)
+  246:  jne 0x11c
+  24c:  callq tok_get+0
+  251:  movl (%rip), %ebx   <var:label+0>
+  257:  leal 2(%rbx), %ebp
+  25a:  movl %ebp, (%rip)   <var:label+0>
+  260:  callq tok_get+0
+  265:  cmpb $0x28, (%rax)
+  268:  je 0x640
+  26e:  movq %rax, %rdx
+  271:  movl $0, %esi   <str:"(">
+  276:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  27b:  xorl %eax, %eax
+  27d:  callq err+0
+  282:  movl $0x2c, %r12d
+  288:  movl $0xffffffff, %edi
+  28d:  callq o_tmpdrop+0
+  292:  movl $0, (%rip)   <var:nts+0>
+  29c:  callq fn:readexpr+0
+  2a1:  callq tok_see+0
+  2a6:  movzbl (%rax), %edx
+  2a9:  cmpl %edx, %r12d
+  2ac:  jne 0x2c0
+  2ae:  cmpb $0, 1(%rax)
+  2b2:  jne 0x2c0
+  2b4:  callq tok_get+0
+  2b9:  jmp 0x288
+  2bb:  nopl (%rax, %rax)
+  2c0:  callq tok_get+0
+  2c5:  cmpb $0x29, (%rax)
+  2c8:  je 0x338
+  2ca:  movq %rax, %rdx
+  2cd:  movl $0, %esi   <str:")">
+  2d2:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  2d7:  xorl %eax, %eax
+  2d9:  callq err+0
+  2de:  nop
+  2e0:  addl $1, %ebx
+  2e3:  movl $1, %edi
+  2e8:  callq fn:ts_de+0
+  2ed:  movslq %ebx, %rbx
+  2f0:  subl $1, (%rip)   <var:nts+0>
+  2f7:  movq %rbx, %rdi
+  2fa:  callq o_jz+0
+  2ff:  callq 0
+  304:  callq tok_see+0
+  309:  movl $0, %edi   <str:"else">
+  30e:  movq %rax, %rsi
+  311:  callq strcmp+0
+  316:  movq %rbx, %rdi
+  319:  testl %eax, %eax
+  31b:  je 0x650
+  321:  addq $0x18, %rsp
+  325:  popq %rbx
+  326:  popq %rbp
+  327:  popq %r12
+  329:  popq %r13
+  32b:  popq %r14
+  32d:  popq %r15
+  32f:  jmp o_label+0
+  334:  nopl (%rax)
+  338:  cmpb $0, 1(%rax)
+  33c:  je 0x2e0
+  33e:  jmp 0x2ca
+  340:  callq tok_see+0
+  345:  cmpb $0x64, (%rax)
+  348:  jne 0x480
+  34e:  cmpb $0x6f, 1(%rax)
+  352:  jne 0x480
+  358:  cmpb $0, 2(%rax)
+  35c:  jne 0x480
+  362:  callq tok_get+0
+  367:  movl (%rip), %eax   <var:label+0>
+  36d:  movl (%rip), %r13d   <var:l_break+0>
+  374:  movl (%rip), %r12d   <var:l_cont+0>
+  37b:  leal 2(%rax), %edx
+  37e:  movl %edx, (%rip)   <var:l_break+0>
+  384:  leal 3(%rax), %edx
+  387:  addl $1, %eax
+  38a:  movslq %eax, %rbx
+  38d:  movl %edx, (%rip)   <var:label+0>
+  393:  movq %rbx, %rdi
+  396:  movl %edx, (%rip)   <var:l_cont+0>
+  39c:  callq o_label+0
+  3a1:  callq 0
+  3a6:  callq tok_get+0
+  3ab:  movl $0, %edi   <str:"while">
+  3b0:  movq %rax, %rsi
+  3b3:  movq %rax, %rbp
+  3b6:  callq strcmp+0
+  3bb:  testl %eax, %eax
+  3bd:  jne 0xc92
+  3c3:  callq tok_get+0
+  3c8:  cmpb $0x28, (%rax)
+  3cb:  je 0xb34
+  3d1:  movq %rax, %rdx
+  3d4:  movl $0, %esi   <str:"(">
+  3d9:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  3de:  xorl %eax, %eax
+  3e0:  callq err+0
+  3e5:  movslq (%rip), %rdi   <var:l_cont+0>
+  3ec:  callq o_label+0
+  3f1:  callq fn:readexpr+0
+  3f6:  movl $1, %edi
+  3fb:  callq fn:ts_de+0
+  400:  movl $0x102, %edi
+  405:  subl $1, (%rip)   <var:nts+0>
+  40c:  callq o_uop+0
+  411:  movq %rbx, %rdi
+  414:  callq o_jz+0
+  419:  callq tok_get+0
+  41e:  cmpb $0x29, (%rax)
+  421:  je 0xb25
+  427:  movq %rax, %rdx
+  42a:  movl $0, %esi   <str:")">
+  42f:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  434:  xorl %eax, %eax
+  436:  callq err+0
+  43b:  movslq (%rip), %rdi   <var:l_break+0>
+  442:  callq o_label+0
+  447:  callq tok_get+0
+  44c:  cmpb $0x3b, (%rax)
+  44f:  je 0xb16
+  455:  movq %rax, %rdx
+  458:  movl $0, %esi   <str:";">
+  45d:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  462:  xorl %eax, %eax
+  464:  callq err+0
+  469:  movl %r13d, (%rip)   <var:l_break+0>
+  470:  movl %r12d, (%rip)   <var:l_cont+0>
+  477:  jmp 0xcd
+  47c:  nopl (%rax)
+  480:  callq tok_see+0
+  485:  movl $0, %edi   <str:"for">
+  48a:  movq %rax, %rsi
+  48d:  callq strcmp+0
+  492:  testl %eax, %eax
+  494:  je 0x698
+  49a:  callq tok_see+0
+  49f:  movl $0, %edi   <str:"switch">
+  4a4:  movq %rax, %rsi
+  4a7:  callq strcmp+0
+  4ac:  movl %eax, %ebp
+  4ae:  testl %eax, %eax
+  4b0:  jne 0xa09
+  4b6:  callq tok_get+0
+  4bb:  movl (%rip), %eax   <var:l_break+0>
+  4c1:  movl $8, %edi
+  4c6:  movl %eax, 0xc(%rsp)
+  4ca:  callq o_mklocal+0
+  4cf:  movl (%rip), %ebx   <var:label+0>
+  4d5:  movq %rax, %r15
+  4d8:  leal 3(%rbx), %eax
+  4db:  movl %eax, (%rip)   <var:label+0>
+  4e1:  movl %eax, (%rip)   <var:l_break+0>
+  4e7:  callq tok_get+0
+  4ec:  cmpb $0x28, (%rax)
+  4ef:  je 0xcab
+  4f5:  movq %rax, %rdx
+  4f8:  movl $0, %esi   <str:"(">
+  4fd:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  502:  xorl %eax, %eax
+  504:  callq err+0
+  509:  callq fn:readexpr+0
+  50e:  movl $1, %edi
+  513:  callq fn:ts_de+0
+  518:  movl (%rip), %eax   <var:nts+0>
+  51e:  movq %r15, %rdi
+  521:  subl $1, %eax
+  524:  movl %eax, (%rip)   <var:nts+0>
+  52a:  cltq
+  52c:  leaq (%rax, %rax, 4), %rax
+  530:  shlq $2, %rax
+  534:  movl (%rax), %r13d   <var:ts+8>
+  53b:  movl (%rax), %r12d   <var:ts+0>
+  542:  callq o_local+0
+  547:  callq o_tmpswap+0
+  54c:  testl %r13d, %r13d
+  54f:  movl $8, %eax
+  554:  cmovnel %eax, %r12d
+  558:  movl %r12d, %eax
+  55b:  movq %rax, %rdi
+  55e:  movq %rax, (%rsp)
+  562:  callq o_assign+0
+  567:  movl $1, %edi
+  56c:  callq o_tmpdrop+0
+  571:  callq tok_get+0
+  576:  cmpb $0x29, (%rax)
+  579:  je 0xd91
+  57f:  movq %rax, %rdx
+  582:  movl $0, %esi   <str:")">
+  587:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  58c:  xorl %eax, %eax
+  58e:  callq err+0
+  593:  callq tok_get+0
+  598:  cmpb $0x7b, (%rax)
+  59b:  je 0xd82
+  5a1:  movq %rax, %rdx
+  5a4:  movl $0, %esi   <str:"{">
+  5a9:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  5ae:  xorl %eax, %eax
+  5b0:  callq err+0
+  5b5:  leal 1(%rbx), %r12d
+  5b9:  xorl %r13d, %r13d
+  5bc:  addl $2, %ebx
+  5bf:  movl $0x7d, %r14d
+  5c5:  movslq %r12d, %r12
+  5c8:  nopl (%rax, %rax)
+  5d0:  callq tok_see+0
+  5d5:  movl %r14d, %ecx
+  5d8:  movzbl (%rax), %edx
+  5db:  subl %edx, %ecx
+  5dd:  jne 0x888
+  5e3:  movzbl 1(%rax), %ecx
+  5e7:  negl %ecx
+  5e9:  jne 0x888
+  5ef:  callq tok_get+0
+  5f4:  movl $8, %esi
+  5f9:  movq %r15, %rdi
+  5fc:  callq o_rmlocal+0
+  601:  movslq (%rip), %rdi   <var:l_break+0>
+  608:  callq o_jmp+0
+  60d:  movq %r12, %rdi
+  610:  callq o_label+0
+  615:  testl %ebp, %ebp
+  617:  jne 0xdc2
+  61d:  movslq (%rip), %rdi   <var:l_break+0>
+  624:  callq o_label+0
+  629:  movl 0xc(%rsp), %eax
+  62d:  movl %eax, (%rip)   <var:l_break+0>
+  633:  jmp 0xcd
+  638:  nopl (%rax, %rax)
+  640:  cmpb $0, 1(%rax)
+  644:  je 0x282
+  64a:  jmp 0x26e
+  64f:  nop
+  650:  callq tok_get+0
+  655:  movslq %ebp, %rbp
+  658:  movq %rbp, %rdi
+  65b:  callq o_jmp+0
+  660:  movq %rbx, %rdi
+  663:  callq o_label+0
+  668:  callq 0
+  66d:  movq %rbp, %rdi
+  670:  jmp 0x321
+  675:  nopl (%rax)
+  678:  movq %rax, %rdx
+  67b:  movl $0, %esi   <str:"(">
+  680:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  685:  xorl %eax, %eax
+  687:  callq err+0
+  68c:  jmp 0x185
+  691:  nopl (%rax)
+  698:  callq tok_get+0
+  69d:  movl (%rip), %ebx   <var:label+0>
+  6a3:  movl (%rip), %r13d   <var:l_cont+0>
+  6aa:  movl (%rip), %r14d   <var:l_break+0>
+  6b1:  leal 3(%rbx), %eax
+  6b4:  movl %eax, (%rip)   <var:l_cont+0>
+  6ba:  leal 4(%rbx), %eax
+  6bd:  movl %eax, (%rip)   <var:label+0>
+  6c3:  movl %eax, (%rip)   <var:l_break+0>
+  6c9:  callq tok_get+0
+  6ce:  cmpb $0x28, (%rax)
+  6d1:  je 0xb43
+  6d7:  movq %rax, %rdx
+  6da:  movl $0, %esi   <str:"(">
+  6df:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  6e4:  xorl %eax, %eax
+  6e6:  callq err+0
+  6eb:  callq tok_see+0
+  6f0:  cmpb $0x3b, (%rax)
+  6f3:  jne 0xb52
+  6f9:  cmpb $0, 1(%rax)
+  6fd:  jne 0xb52
+  703:  nopl (%rax, %rax)
+  708:  callq tok_get+0
+  70d:  cmpb $0x3b, (%rax)
+  710:  je 0xaac
+  716:  movq %rax, %rdx
+  719:  movl $0, %esi   <str:";">
+  71e:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  723:  xorl %eax, %eax
+  725:  callq err+0
+  72a:  leal 1(%rbx), %ebp
+  72d:  movslq %ebp, %rbp
+  730:  movq %rbp, %rdi
+  733:  callq o_label+0
+  738:  callq tok_see+0
+  73d:  cmpb $0x3b, (%rax)
+  740:  jne 0xbde
+  746:  cmpb $0, 1(%rax)
+  74a:  jne 0xbde
+  750:  callq tok_get+0
+  755:  cmpb $0x3b, (%rax)
+  758:  je 0xc83
+  75e:  movq %rax, %rdx
+  761:  movl $0, %esi   <str:";">
+  766:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  76b:  xorl %eax, %eax
+  76d:  callq err+0
+  772:  addl $2, %ebx
+  775:  movslq %ebx, %rbx
+  778:  movq %rbx, %rdi
+  77b:  callq o_jmp+0
+  780:  movslq (%rip), %rdi   <var:l_cont+0>
+  787:  callq o_label+0
+  78c:  callq tok_see+0
+  791:  cmpb $0x29, (%rax)
+  794:  jne 0xc42
+  79a:  cmpb $0, 1(%rax)
+  79e:  jne 0xc42
+  7a4:  nopl (%rax)
+  7a8:  callq tok_get+0
+  7ad:  cmpb $0x29, (%rax)
+  7b0:  je 0xa9d
+  7b6:  movq %rax, %rdx
+  7b9:  movl $0, %esi   <str:")">
+  7be:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  7c3:  xorl %eax, %eax
+  7c5:  callq err+0
+  7ca:  movq %rbp, %rdi
+  7cd:  callq o_jmp+0
+  7d2:  movq %rbx, %rdi
+  7d5:  callq o_label+0
+  7da:  callq 0
+  7df:  movslq (%rip), %rdi   <var:l_cont+0>
+  7e6:  callq o_jmp+0
+  7eb:  movslq (%rip), %rdi   <var:l_break+0>
+  7f2:  callq o_label+0
+  7f7:  movl %r14d, (%rip)   <var:l_break+0>
+  7fe:  movl %r13d, (%rip)   <var:l_cont+0>
+  805:  jmp 0xcd
+  80a:  nopw (%rax, %rax)
+  810:  callq tok_get+0
+  815:  cmpb $0x29, (%rax)
+  818:  je 0x980
+  81e:  movq %rax, %rdx
+  821:  movl $0, %esi   <str:")">
+  826:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  82b:  xorl %eax, %eax
+  82d:  callq err+0
+  832:  nopw (%rax, %rax)
+  838:  movl $1, %edi
+  83d:  callq fn:ts_de+0
+  842:  movslq (%rip), %rdi   <var:l_break+0>
+  849:  subl $1, (%rip)   <var:nts+0>
+  850:  callq o_jz+0
+  855:  callq 0
+  85a:  movslq (%rip), %rdi   <var:l_cont+0>
+  861:  callq o_jmp+0
+  866:  movslq (%rip), %rdi   <var:l_break+0>
+  86d:  callq o_label+0
+  872:  movl %ebp, (%rip)   <var:l_break+0>
+  878:  movl %ebx, (%rip)   <var:l_cont+0>
+  87e:  jmp 0xcd
+  883:  nopl (%rax, %rax)
+  888:  callq tok_see+0
+  88d:  movl $0, %edi   <str:"case">
+  892:  movq %rax, %rsi
+  895:  callq strcmp+0
+  89a:  testl %eax, %eax
+  89c:  jne 0x9a0
+  8a2:  testl %r13d, %r13d
+  8a5:  jne 0x9c8
+  8ab:  callq tok_get+0
+  8b0:  movl $0, %edi   <str:"case">
+  8b5:  movslq %ebx, %rbx
+  8b8:  movq %rax, %rsi
+  8bb:  callq strcmp+0
+  8c0:  testl %eax, %eax
+  8c2:  jne 0xa90
+  8c8:  movq %r12, %rdi
+  8cb:  callq o_label+0
+  8d0:  movl (%rip), %eax   <var:label+0>
+  8d6:  movl $1, (%rip)   <var:caseexpr+0>
+  8e0:  leal 1(%rax), %r12d
+  8e4:  movl %r12d, (%rip)   <var:label+0>
+  8eb:  movslq %r12d, %r12
+  8ee:  callq fn:readexpr+0
+  8f3:  movl $1, %edi
+  8f8:  callq fn:ts_de+0
+  8fd:  movq %r15, %rdi
+  900:  subl $1, (%rip)   <var:nts+0>
+  907:  movl $0, (%rip)   <var:caseexpr+0>
+  911:  callq o_local+0
+  916:  movq (%rsp), %rdi
+  91a:  callq o_deref+0
+  91f:  movl $0x82, %edi
+  924:  callq o_bop+0
+  929:  movq %r12, %rdi
+  92c:  callq o_jz+0
+  931:  movl $1, %edi
+  936:  callq o_tmpdrop+0
+  93b:  callq tok_get+0
+  940:  cmpb $0x3a, (%rax)
+  943:  je 0x990
+  945:  movq %rax, %rdx
+  948:  movl $0, %esi   <str:":">
+  94d:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  952:  xorl %eax, %eax
+  954:  callq err+0
+  959:  movq %rbx, %rdi
+  95c:  addl $1, %r13d
+  960:  callq o_label+0
+  965:  movl (%rip), %eax   <var:label+0>
+  96b:  leal 1(%rax), %ebx
+  96e:  movl %ebx, (%rip)   <var:label+0>
+  974:  jmp 0x5d0
+  979:  nopl (%rax)
+  980:  cmpb $0, 1(%rax)
+  984:  je 0x838
+  98a:  jmp 0x81e
+  98f:  nop
+  990:  cmpb $0, 1(%rax)
+  994:  je 0x959
+  996:  jmp 0x945
+  998:  nopl (%rax, %rax)
+  9a0:  callq tok_see+0
+  9a5:  movl $0, %edi   <str:"default">
+  9aa:  movq %rax, %rsi
+  9ad:  callq strcmp+0
+  9b2:  testl %eax, %eax
+  9b4:  je 0x8a2
+  9ba:  callq 0
+  9bf:  jmp 0x5d0
+  9c4:  nopl (%rax)
+  9c8:  movslq %ebx, %rbx
+  9cb:  movq %rbx, %rdi
+  9ce:  callq o_jmp+0
+  9d3:  callq tok_get+0
+  9d8:  movl $0, %edi   <str:"case">
+  9dd:  movq %rax, %rsi
+  9e0:  callq strcmp+0
+  9e5:  testl %eax, %eax
+  9e7:  je 0x8c8
+  9ed:  movl (%rip), %eax   <var:label+0>
+  9f3:  leal 1(%rax), %ebp
+  9f6:  movslq %ebp, %rdi
+  9f9:  movl %ebp, (%rip)   <var:label+0>
+  9ff:  callq o_label+0
+  a04:  jmp 0x93b
+  a09:  callq tok_see+0
+  a0e:  movl $0, %edi   <str:"return">
+  a13:  movq %rax, %rsi
+  a16:  callq strcmp+0
+  a1b:  testl %eax, %eax
+  a1d:  jne 0xabb
+  a23:  callq tok_get+0
+  a28:  movl $0x3b, %ebx
+  a2d:  callq tok_see+0
+  a32:  movzbl (%rax), %ecx
+  a35:  subl %ecx, %ebx
+  a37:  je 0xda0
+  a3d:  callq fn:readexpr+0
+  a42:  movl $1, %edi
+  a47:  callq fn:ts_de+0
+  a4c:  subl $1, (%rip)   <var:nts+0>
+  a53:  callq tok_get+0
+  a58:  cmpb $0x3b, (%rax)
+  a5b:  je 0xdb3
+  a61:  movq %rax, %rdx
+  a64:  movl $0, %esi   <str:";">
+  a69:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  a6e:  xorl %eax, %eax
+  a70:  callq err+0
+  a75:  xorl %edi, %edi
+  a77:  testl %ebx, %ebx
+  a79:  setne %dil
+  a7d:  addq $0x18, %rsp
+  a81:  popq %rbx
+  a82:  popq %rbp
+  a83:  popq %r12
+  a85:  popq %r13
+  a87:  popq %r14
+  a89:  popq %r15
+  a8b:  jmp o_ret+0
+  a90:  movq %r12, %rdi
+  a93:  callq o_jmp+0
+  a98:  jmp 0x9ed
+  a9d:  cmpb $0, 1(%rax)
+  aa1:  je 0x7ca
+  aa7:  jmp 0x7b6
+  aac:  cmpb $0, 1(%rax)
+  ab0:  je 0x72a
+  ab6:  jmp 0x716
+  abb:  callq tok_see+0
+  ac0:  movl $0, %edi   <str:"break">
+  ac5:  movq %rax, %rsi
+  ac8:  callq strcmp+0
+  acd:  testl %eax, %eax
+  acf:  jne 0xb91
+  ad5:  callq tok_get+0
+  ada:  callq tok_get+0
+  adf:  cmpb $0x3b, (%rax)
+  ae2:  je 0xdcf
+  ae8:  movq %rax, %rdx
+  aeb:  movl $0, %esi   <str:";">
+  af0:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  af5:  xorl %eax, %eax
+  af7:  callq err+0
+  afc:  movslq (%rip), %rdi   <var:l_break+0>
+  b03:  addq $0x18, %rsp
+  b07:  popq %rbx
+  b08:  popq %rbp
+  b09:  popq %r12
+  b0b:  popq %r13
+  b0d:  popq %r14
+  b0f:  popq %r15
+  b11:  jmp o_jmp+0
+  b16:  cmpb $0, 1(%rax)
+  b1a:  je 0x469
+  b20:  jmp 0x455
+  b25:  cmpb $0, 1(%rax)
+  b29:  je 0x43b
+  b2f:  jmp 0x427
+  b34:  cmpb $0, 1(%rax)
+  b38:  je 0x3e5
+  b3e:  jmp 0x3d1
+  b43:  cmpb $0, 1(%rax)
+  b47:  je 0x6eb
+  b4d:  jmp 0x6d7
+  b52:  movl $0x2c, %ebp
+  b57:  movl $0xffffffff, %edi
+  b5c:  callq o_tmpdrop+0
+  b61:  movl $0, (%rip)   <var:nts+0>
+  b6b:  callq fn:readexpr+0
+  b70:  callq tok_see+0
+  b75:  movzbl (%rax), %edx
+  b78:  cmpl %edx, %ebp
+  b7a:  jne 0x708
+  b80:  cmpb $0, 1(%rax)
+  b84:  jne 0x708
+  b8a:  callq tok_get+0
+  b8f:  jmp 0xb57
+  b91:  callq tok_see+0
+  b96:  movl $0, %edi   <str:"continue">
+  b9b:  movq %rax, %rsi
+  b9e:  callq strcmp+0
+  ba3:  testl %eax, %eax
+  ba5:  jne 0xcba
+  bab:  callq tok_get+0
+  bb0:  callq tok_get+0
+  bb5:  cmpb $0x3b, (%rax)
+  bb8:  je 0xdde
+  bbe:  movq %rax, %rdx
+  bc1:  movl $0, %esi   <str:";">
+  bc6:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  bcb:  xorl %eax, %eax
+  bcd:  callq err+0
+  bd2:  movslq (%rip), %rdi   <var:l_cont+0>
+  bd9:  jmp 0xb03
+  bde:  movl $0x2c, %r12d
+  be4:  movl $0xffffffff, %edi
+  be9:  callq o_tmpdrop+0
+  bee:  movl $0, (%rip)   <var:nts+0>
+  bf8:  callq fn:readexpr+0
+  bfd:  callq tok_see+0
+  c02:  movzbl (%rax), %edx
+  c05:  cmpl %edx, %r12d
+  c08:  jne 0xc20
+  c0a:  cmpb $0, 1(%rax)
+  c0e:  jne 0xc20
+  c10:  callq tok_get+0
+  c15:  jmp 0xbe4
+  c17:  nopw (%rax, %rax)
+  c20:  movl $1, %edi
+  c25:  callq fn:ts_de+0
+  c2a:  movslq (%rip), %rdi   <var:l_break+0>
+  c31:  subl $1, (%rip)   <var:nts+0>
+  c38:  callq o_jz+0
+  c3d:  jmp 0x750
+  c42:  movl $0x2c, %r12d
+  c48:  movl $0xffffffff, %edi
+  c4d:  callq o_tmpdrop+0
+  c52:  movl $0, (%rip)   <var:nts+0>
+  c5c:  callq fn:readexpr+0
+  c61:  callq tok_see+0
+  c66:  movzbl (%rax), %edx
+  c69:  cmpl %edx, %r12d
+  c6c:  jne 0x7a8
+  c72:  cmpb $0, 1(%rax)
+  c76:  jne 0x7a8
+  c7c:  callq tok_get+0
+  c81:  jmp 0xc48
+  c83:  cmpb $0, 1(%rax)
+  c87:  je 0x772
+  c8d:  jmp 0x75e
+  c92:  movq %rbp, %rdx
+  c95:  movl $0, %esi   <str:"while">
+  c9a:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  c9f:  xorl %eax, %eax
+  ca1:  callq err+0
+  ca6:  jmp 0x3c3
+  cab:  cmpb $0, 1(%rax)
+  caf:  je 0x509
+  cb5:  jmp 0x4f5
+  cba:  callq tok_see+0
+  cbf:  movl $0, %edi   <str:"goto">
+  cc4:  movl $0x2c, %ebx
+  cc9:  movq %rax, %rsi
+  ccc:  callq strcmp+0
+  cd1:  testl %eax, %eax
+  cd3:  jne 0xd10
+  cd5:  callq tok_get+0
+  cda:  callq tok_get+0
+  cdf:  movq %rax, %rdi
+  ce2:  callq fn:label_id+0
+  ce7:  movslq %eax, %rdi
+  cea:  callq o_jmp+0
+  cef:  callq tok_get+0
+  cf4:  cmpb $0x3b, (%rax)
+  cf7:  movq %rax, %rdx
+  cfa:  jne 0x1fe
+  d00:  cmpb $0, 1(%rdx)
+  d04:  je 0xcd
+  d0a:  jmp 0x1fe
+  d0f:  nop
+  d10:  movl $0xffffffff, %edi
+  d15:  callq o_tmpdrop+0
+  d1a:  movl $0, (%rip)   <var:nts+0>
+  d24:  callq fn:readexpr+0
+  d29:  callq tok_see+0
+  d2e:  movzbl (%rax), %edx
+  d31:  cmpl %edx, %ebx
+  d33:  jne 0xd48
+  d35:  cmpb $0, 1(%rax)
+  d39:  jne 0xd48
+  d3b:  callq tok_get+0
+  d40:  jmp 0xd10
+  d42:  nopw (%rax, %rax)
+  d48:  callq tok_see+0
+  d4d:  cmpb $0x3a, (%rax)
+  d50:  je 0xd65
+  d52:  callq tok_get+0
+  d57:  cmpb $0x3b, (%rax)
+  d5a:  movq %rax, %rdx
+  d5d:  jne 0x1fe
+  d63:  jmp 0xd00
+  d65:  cmpb $0, 1(%rax)
+  d69:  jne 0xd52
+  d6b:  callq tok_get+0
+  d70:  movl $0, %edi   <var:tok_previden+0>
+  d75:  callq fn:label_id+0
+  d7a:  movslq %eax, %rdi
+  d7d:  jmp 0x321
+  d82:  cmpb $0, 1(%rax)
+  d86:  je 0x5b5
+  d8c:  jmp 0x5a1
+  d91:  cmpb $0, 1(%rax)
+  d95:  je 0x593
+  d9b:  jmp 0x57f
+  da0:  movzbl 1(%rax), %edx
+  da4:  movl %edx, %ebx
+  da6:  negl %ebx
+  da8:  je 0xa53
+  dae:  jmp 0xa3d
+  db3:  cmpb $0, 1(%rax)
+  db7:  je 0xa75
+  dbd:  jmp 0xa61
+  dc2:  movslq %ebp, %rdi
+  dc5:  callq o_jmp+0
+  dca:  jmp 0x61d
+  dcf:  cmpb $0, 1(%rax)
+  dd3:  je 0xafc
+  dd9:  jmp 0xae8
+  dde:  cmpb $0, 1(%rax)
+  de2:  je 0xbd2
+  de8:  jmp 0xbbe

@@ -1,0 +1,35 @@
+# mem_extend  (static, 105 bytes, 34 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rax
+    d:  movq (%rdi), %rbp
+   10:  testq %rax, %rax
+   13:  je 0x40
+   15:  addq %rax, %rax
+   18:  movq %rax, %rdi
+   1b:  movq %rax, 8(%rbx)
+   1f:  callq malloc+0
+   24:  movq 0x10(%rbx), %rdx
+   28:  movq %rax, (%rbx)
+   2b:  testq %rdx, %rdx
+   2e:  jne 0x50
+   30:  addq $8, %rsp
+   34:  movq %rbp, %rdi
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  jmp free+0
+   3e:  nop
+   40:  movl $0x200, %edi
+   45:  movl $0x200, %eax
+   4a:  jmp 0x1b
+   4c:  nopl (%rax)
+   50:  movq %rbp, %rsi
+   53:  movq %rax, %rdi
+   56:  callq memcpy+0
+   5b:  addq $8, %rsp
+   5f:  movq %rbp, %rdi
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  jmp free+0

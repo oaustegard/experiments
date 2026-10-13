@@ -1,0 +1,17 @@
+# get2digits  (static, 49 bytes, 16 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <__ctype_b_loc+0>
+    9:  movzbl (%rbx), %edx
+    c:  movq (%rax), %rax
+    f:  testb $8, 1(%rax, %rdx, 2)
+   14:  je 0x2c
+   16:  movzbl 1(%rbx), %ecx
+   1a:  movq %rbx, %rdx
+   1d:  xorl %ebx, %ebx
+   1f:  testb $8, 1(%rax, %rcx, 2)
+   24:  setne %bl
+   27:  leaq 1(%rbx, %rdx), %rbx
+   2c:  movq %rbx, %rax
+   2f:  popq %rbx
+   30:  retq

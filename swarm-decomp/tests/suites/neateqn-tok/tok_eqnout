@@ -1,0 +1,31 @@
+# tok_eqnout  (global, 124 bytes, 30 instructions)
+    0:  movl (%rip), %eax   <var:tok_part+0>
+    6:  movq %rdi, %rcx
+    9:  testl %eax, %eax
+    b:  jne 0x60
+    d:  subq $8, %rsp
+   11:  movl $0, %edx   <str:"\\E*[.eqnbeg]\\R'.eqnfn0 \\En(.f'\\R'.eqnsz0 \\En(.s'">
+   16:  movl $0, %esi   <str:"10">
+   1b:  xorl %eax, %eax
+   1d:  movl $0, %r8d   <str:"\\f[\\En[.eqnfn0]]\\s[\\En[.eqnsz0]]\\E*[.eqnend]">
+   23:  movl $0, %edi   <str:".ds %s \"%s%s%s\n">
+   28:  callq printf+0
+   2d:  callq src_lineget+0
+   32:  movl $0, %edi   <str:".lf %d\n">
+   37:  leal -1(%rax), %esi
+   3a:  xorl %eax, %eax
+   3c:  callq printf+0
+   41:  movl $0, %edi   <str:"10">
+   46:  callq escarg+0
+   4b:  movl $0, %edi   <str:"\\&\\*%s\n">
+   50:  addq $8, %rsp
+   54:  movq %rax, %rsi
+   57:  xorl %eax, %eax
+   59:  jmp printf+0
+   5e:  nop
+   60:  movl $0, %r8d   <str:"\\f[\\En[.eqnfn0]]\\s[\\En[.eqnsz0]]\\E*[.eqnend]">
+   66:  movl $0, %edx   <str:"\\E*[.eqnbeg]\\R'.eqnfn0 \\En(.f'\\R'.eqnsz0 \\En(.s'">
+   6b:  movl $0, %esi   <str:"10">
+   70:  xorl %eax, %eax
+   72:  movl $0, %edi   <str:".as %s \"%s%s%s\n">
+   77:  jmp printf+0

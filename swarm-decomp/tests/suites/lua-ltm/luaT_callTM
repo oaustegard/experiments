@@ -1,0 +1,28 @@
+# luaT_callTM  (global, 101 bytes, 27 instructions)
+    0:  movq %rsi, %rax
+    3:  movq 0x10(%rdi), %rsi
+    7:  movq (%rax), %r9
+    a:  movq %r9, (%rsi)
+    d:  movzbl 8(%rax), %eax
+   11:  movb %al, 8(%rsi)
+   14:  movq (%rdx), %rax
+   17:  movq %rax, 0x10(%rsi)
+   1b:  movzbl 8(%rdx), %eax
+   1f:  xorl %edx, %edx
+   21:  movb %al, 0x18(%rsi)
+   24:  movq (%rcx), %rax
+   27:  movq %rax, 0x20(%rsi)
+   2b:  movzbl 8(%rcx), %eax
+   2f:  movb %al, 0x28(%rsi)
+   32:  movq (%r8), %rax
+   35:  movq %rax, 0x30(%rsi)
+   39:  movzbl 8(%r8), %eax
+   3e:  movb %al, 0x38(%rsi)
+   41:  leaq 0x40(%rsi), %rax
+   45:  movq %rax, 0x10(%rdi)
+   49:  movq 0x20(%rdi), %rax
+   4d:  testb $0xa, 0x3e(%rax)
+   51:  jne 0x60
+   53:  jmp luaD_call+0
+   58:  nopl (%rax, %rax)
+   60:  jmp luaD_callnoyield+0

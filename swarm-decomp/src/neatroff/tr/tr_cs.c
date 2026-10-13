@@ -1,0 +1,1 @@
+static void tr_cs(struct tr_args *a) { char *s = a->arg[0]; if (s) { void *f = dev_font(dev_pos(s)); if (f) { int e2 = a->arg[2] ? eval(a->arg[2], 0) : 0; int e1 = a->arg[1] ? eval(a->arg[1], 0) : 0; font_setcs(f, e1, e2); } } }

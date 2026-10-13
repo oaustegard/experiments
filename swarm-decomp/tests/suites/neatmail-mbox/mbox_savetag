@@ -1,0 +1,23 @@
+# mbox_savetag  (global, 75 bytes, 22 instructions)
+    0:  movslq %esi, %rax
+    3:  movl 0x1c0(%rdi, %rax, 4), %ecx
+    a:  movl 0x200(%rdi, %rax, 4), %edx
+   11:  cmpl %ecx, %edx
+   13:  jle 0x48
+   15:  movq 0x258(%rdi), %r8
+   1c:  movslq %ecx, %r9
+   1f:  subl %ecx, %edx
+   21:  addq %r9, %rdx
+   24:  leaq (%r8, %r9, 8), %rax
+   28:  leaq (%r8, %rdx, 8), %rdx
+   2c:  jmp 0x39
+   2e:  nop
+   30:  addq $8, %rax
+   34:  cmpq %rdx, %rax
+   37:  je 0x48
+   39:  cmpq $0, (%rax)
+   3d:  je 0x30
+   3f:  jmp fn:mbox_savetag.part.0+0
+   44:  nopl (%rax)
+   48:  xorl %eax, %eax
+   4a:  retq

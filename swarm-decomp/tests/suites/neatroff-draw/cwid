@@ -1,0 +1,18 @@
+# cwid  (static, 59 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x2070, %rsp
+    b:  movq %rsp, %rdi
+    e:  callq wb_init+0
+   13:  movq %rbx, %rsi
+   16:  movq %rsp, %rdi
+   19:  callq wb_putexpand+0
+   1e:  movq %rsp, %rdi
+   21:  callq wb_wid+0
+   26:  movq %rsp, %rdi
+   29:  movl %eax, %ebx
+   2b:  callq wb_done+0
+   30:  addq $0x2070, %rsp
+   37:  movl %ebx, %eax
+   39:  popq %rbx
+   3a:  retq

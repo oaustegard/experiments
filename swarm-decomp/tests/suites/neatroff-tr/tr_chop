@@ -1,0 +1,37 @@
+# tr_chop  (static, 119 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  subq $0x10, %rsp
+    5:  movq 8(%rdi), %rdi
+    9:  callq map+0
+    e:  movl %eax, %edi
+   10:  movl %eax, %ebx
+   12:  callq str_get+0
+   17:  testq %rax, %rax
+   1a:  je 0x4a
+   1c:  movq %rsp, %rdi
+   1f:  callq sbuf_init+0
+   24:  movl %ebx, %edi
+   26:  callq str_get+0
+   2b:  movq %rsp, %rdi
+   2e:  movq %rax, %rsi
+   31:  callq sbuf_append+0
+   36:  movq %rsp, %rdi
+   39:  callq sbuf_empty+0
+   3e:  testl %eax, %eax
+   40:  je 0x50
+   42:  movq %rsp, %rdi
+   45:  callq sbuf_done+0
+   4a:  addq $0x10, %rsp
+   4e:  popq %rbx
+   4f:  retq
+   50:  movq %rsp, %rdi
+   53:  callq sbuf_len+0
+   58:  movq %rsp, %rdi
+   5b:  leal -1(%rax), %esi
+   5e:  callq sbuf_cut+0
+   63:  movq %rsp, %rdi
+   66:  callq sbuf_buf+0
+   6b:  movl %ebx, %edi
+   6d:  movq %rax, %rsi
+   70:  callq str_set+0
+   75:  jmp 0x42

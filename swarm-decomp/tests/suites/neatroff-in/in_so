@@ -1,0 +1,78 @@
+# in_so  (global, 341 bytes, 77 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  testq %rdi, %rdi
+    c:  je 0xe0
+   12:  cmpb $0, (%rdi)
+   15:  jne 0xb0
+   1b:  movq (%rip), %rbp   <stdin+0>
+   22:  testq %rbp, %rbp
+   25:  je 0xc6
+   2b:  movl $0x4b8, %edi
+   30:  callq xmalloc+0
+   35:  movl $0, %edx   <str:"%s">
+   3a:  movl $0x400, %esi
+   3f:  leaq 8(%rax), %rdi
+   43:  movq %rax, %rcx
+   46:  movq $0, (%rax)
+   4d:  movq %rax, %r8
+   50:  movq $0, 0x4b0(%rax)
+   5b:  andq $0xfffffffffffffff8, %rdi
+   5f:  xorl %eax, %eax
+   61:  subq %rdi, %rcx
+   64:  addl $0x4b8, %ecx
+   6a:  shrl $3, %ecx
+   6d:  rep stosq %rax, (%rdi)
+   70:  movq %rbx, %rcx
+   73:  movq %r8, %rdi
+   76:  movq (%rip), %rax   <var:buf+0>
+   7d:  movq %rax, 0x4b0(%r8)
+   84:  xorl %eax, %eax
+   86:  movq %r8, (%rip)   <var:buf+0>
+   8d:  movq %rbp, 0x400(%r8)
+   94:  movl $1, 0x4a8(%r8)
+   9f:  addq $8, %rsp
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  jmp snprintf+0
+   aa:  nopw (%rax, %rax)
+   b0:  movl $0, %esi   <str:"r">
+   b5:  callq fopen+0
+   ba:  movq %rax, %rbp
+   bd:  testq %rax, %rax
+   c0:  jne 0x2b
+   c6:  addq $8, %rsp
+   ca:  movq %rbx, %rsi
+   cd:  movl $0, %edi   <str:"neatroff: failed to open <%s>\n">
+   d2:  xorl %eax, %eax
+   d4:  popq %rbx
+   d5:  popq %rbp
+   d6:  jmp errmsg+0
+   db:  nopl (%rax, %rax)
+   e0:  movq (%rip), %rbp   <stdin+0>
+   e7:  testq %rbp, %rbp
+   ea:  je 0xc6
+   ec:  movl $0x4b8, %edi
+   f1:  callq xmalloc+0
+   f6:  leaq 8(%rax), %rdi
+   fa:  movq %rax, %rcx
+   fd:  movq $0, (%rax)
+  104:  movq %rax, %rdx
+  107:  movq $0, 0x4b0(%rax)
+  112:  andq $0xfffffffffffffff8, %rdi
+  116:  movq %rbx, %rax
+  119:  subq %rdi, %rcx
+  11c:  addl $0x4b8, %ecx
+  122:  shrl $3, %ecx
+  125:  rep stosq %rax, (%rdi)
+  128:  movq %rbp, 0x400(%rdx)
+  12f:  movl $1, 0x4a8(%rdx)
+  139:  movq (%rip), %rax   <var:buf+0>
+  140:  movq %rdx, (%rip)   <var:buf+0>
+  147:  movq %rax, 0x4b0(%rdx)
+  14e:  addq $8, %rsp
+  152:  popq %rbx
+  153:  popq %rbp
+  154:  retq

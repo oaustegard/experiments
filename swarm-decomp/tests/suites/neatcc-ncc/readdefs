@@ -1,0 +1,66 @@
+# readdefs  (static, 228 bytes, 65 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rsi, %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  movl $1, %ebp
+   14:  pushq %rbx
+   15:  subq $0x158, %rsp
+   1c:  leaq 0xc(%rsp), %rsi
+   21:  leaq 0x10(%rsp), %rdi
+   26:  callq fn:basetype+0
+   2b:  testl %eax, %eax
+   2d:  je 0x48
+   2f:  addq $0x158, %rsp
+   36:  movl %ebp, %eax
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  popq %r12
+   3c:  popq %r13
+   3e:  popq %r14
+   40:  popq %r15
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  movl %eax, %ebp
+   4a:  callq tok_see+0
+   4f:  cmpb $0x3b, (%rax)
+   52:  jne 0x60
+   54:  cmpb $0, 1(%rax)
+   58:  je 0x2f
+   5a:  nopw (%rax, %rax)
+   60:  callq tok_see+0
+   65:  cmpb $0x7b, (%rax)
+   68:  je 0xd8
+   6a:  leaq 0x30(%rsp), %rbx
+   6f:  leaq 0x130(%rsp), %r15
+   77:  xorl %r14d, %r14d
+   7a:  nopw (%rax, %rax)
+   80:  movq %rbx, %rdi
+   83:  movl $0x24, %ecx
+   88:  leaq 0x30(%rsp), %rbx
+   8d:  movq %r14, %rax
+   90:  rep stosq %rax, (%rdi)
+   93:  leaq 0x10(%rsp), %rdx
+   98:  movq %rbx, %rsi
+   9b:  movq %r15, %rdi
+   9e:  callq fn:readname+0
+   a3:  testl %eax, %eax
+   a5:  jne 0x2f
+   a7:  movl 0xc(%rsp), %edx
+   ab:  movq %rbx, %rsi
+   ae:  movq %r13, %rdi
+   b1:  callq *%r12
+   b4:  callq tok_see+0
+   b9:  cmpb $0x2c, (%rax)
+   bc:  jne 0x2f
+   c2:  cmpb $0, 1(%rax)
+   c6:  jne 0x2f
+   cc:  callq tok_get+0
+   d1:  jmp 0x80
+   d3:  nopl (%rax, %rax)
+   d8:  cmpb $0, 1(%rax)
+   dc:  je 0x2f
+   e2:  jmp 0x6a

@@ -1,0 +1,49 @@
+# wb_hywid  (global, 143 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movl 0x10(%rdi), %esi
+   10:  movl $0, %edi   <str:"hy">
+   15:  callq dev_glyph+0
+   1a:  testq %rax, %rax
+   1d:  je 0x60
+   1f:  movl 0x24(%rbp), %r12d
+   23:  movswl 0x48(%rax), %r13d
+   28:  movq %rax, %rbx
+   2b:  testl %r12d, %r12d
+   2e:  js 0x80
+   30:  movl 0x20(%rbp), %edi
+   33:  testl %edi, %edi
+   35:  js 0x70
+   37:  callq dev_font+0
+   3c:  movq 0x40(%rbx), %rdi
+   40:  addq $8, %rsp
+   44:  movl %r13d, %ecx
+   47:  popq %rbx
+   48:  movl %r12d, %edx
+   4b:  popq %rbp
+   4c:  movq %rax, %rsi
+   4f:  popq %r12
+   51:  popq %r13
+   53:  jmp font_gwid+0
+   58:  nopl (%rax, %rax)
+   60:  addq $8, %rsp
+   64:  xorl %eax, %eax
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  popq %r12
+   6a:  popq %r13
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  movl $0x66, %edi
+   75:  callq nreg+0
+   7a:  movl (%rax), %edi
+   7c:  jmp 0x37
+   7e:  nop
+   80:  movl $0x73, %edi
+   85:  callq nreg+0
+   8a:  movl (%rax), %r12d
+   8d:  jmp 0x30

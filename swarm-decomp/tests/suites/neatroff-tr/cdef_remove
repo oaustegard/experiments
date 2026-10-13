@@ -1,0 +1,56 @@
+# cdef_remove  (static, 191 bytes, 55 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movl $0xffffffff, %r13d
+    a:  pushq %r12
+    c:  movq %rdi, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  subq $0x30, %rsp
+   15:  movq %rsi, 8(%rsp)
+   1a:  testq %rdi, %rdi
+   1d:  je 0x27
+   1f:  callq dev_pos+0
+   24:  movl %eax, %r13d
+   27:  cmpq $0, 8(%rsp)
+   2d:  je 0x8d
+   2f:  leaq 0x10(%rsp), %rsi
+   34:  leaq 8(%rsp), %rdi
+   39:  callq charread+0
+   3e:  testl %eax, %eax
+   40:  js 0x8d
+   42:  movslq (%rip), %r14   <var:cdef_n+0>
+   49:  movl $0, %ebp   <var:cdef_src+0>
+   4e:  xorl %ebx, %ebx
+   50:  testl %r14d, %r14d
+   53:  jle 0x8d
+   55:  nopl (%rax)
+   58:  leaq 0x10(%rsp), %rsi
+   5d:  movq %rbp, %rdi
+   60:  callq strcmp+0
+   65:  testl %eax, %eax
+   67:  jne 0x80
+   69:  testq %r12, %r12
+   6c:  je 0xa0
+   6e:  testl %r13d, %r13d
+   71:  jle 0x80
+   73:  cmpl %r13d, (, %rbx, 4)   <var:cdef_fn+0>
+   7b:  je 0xa0
+   7d:  nopl (%rax)
+   80:  addq $1, %rbx
+   84:  addq $0x20, %rbp
+   88:  cmpq %rbx, %r14
+   8b:  jne 0x58
+   8d:  addq $0x30, %rsp
+   91:  popq %rbx
+   92:  popq %rbp
+   93:  popq %r12
+   95:  popq %r13
+   97:  popq %r14
+   99:  retq
+   9a:  nopw (%rax, %rax)
+   a0:  movq (, %rbx, 8), %rdi   <var:cdef_dst+0>
+   a8:  callq free+0
+   ad:  movb $0, (%rbp)
+   b1:  movq $0, (, %rbx, 8)   <var:cdef_dst+0>
+   bd:  jmp 0x80

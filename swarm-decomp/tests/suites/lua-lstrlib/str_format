@@ -1,0 +1,473 @@
+# str_format  (static, 2002 bytes, 472 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rdi, %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movl $1, %ebp
+   11:  pushq %rbx
+   12:  subq $0x488, %rsp
+   19:  callq lua_gettop+0
+   1e:  leaq 0x20(%rsp), %rdx
+   23:  movl $1, %esi
+   28:  movq %r13, %rdi
+   2b:  movl %eax, 0x14(%rsp)
+   2f:  callq luaL_checklstring+0
+   34:  movq 0x20(%rsp), %rbx
+   39:  leaq 0x60(%rsp), %rsi
+   3e:  movq %r13, %rdi
+   41:  movq %rax, %r14
+   44:  addq %rax, %rbx
+   47:  callq luaL_buffinit+0
+   4c:  cmpq %rbx, %r14
+   4f:  jb 0x85
+   51:  jmp 0xc8
+   53:  nopl (%rax, %rax)
+   58:  movq 0x70(%rsp), %rax
+   5d:  cmpq 0x68(%rsp), %rax
+   62:  jae 0xf0
+   68:  leaq 1(%rax), %rdx
+   6c:  movq %rdx, 0x70(%rsp)
+   71:  movq 0x60(%rsp), %rdx
+   76:  movzbl (%r14), %ecx
+   7a:  movq %r15, %r14
+   7d:  movb %cl, (%rdx, %rax)
+   80:  cmpq %rbx, %r14
+   83:  jae 0xc8
+   85:  cmpb $0x25, (%r14)
+   89:  leaq 1(%r14), %r15
+   8d:  jne 0x58
+   8f:  cmpb $0x25, 1(%r14)
+   94:  jne 0x110
+   96:  movq 0x70(%rsp), %rax
+   9b:  cmpq 0x68(%rsp), %rax
+   a0:  jae 0x188
+   a6:  leaq 1(%rax), %rdx
+   aa:  addq $2, %r14
+   ae:  movq %rdx, 0x70(%rsp)
+   b3:  movq 0x60(%rsp), %rdx
+   b8:  movzbl -1(%r14), %ecx
+   bd:  movb %cl, (%rdx, %rax)
+   c0:  cmpq %rbx, %r14
+   c3:  jb 0x85
+   c5:  nopl (%rax)
+   c8:  leaq 0x60(%rsp), %rdi
+   cd:  callq luaL_pushresult+0
+   d2:  movl $1, %eax
+   d7:  addq $0x488, %rsp
+   de:  popq %rbx
+   df:  popq %rbp
+   e0:  popq %r12
+   e2:  popq %r13
+   e4:  popq %r14
+   e6:  popq %r15
+   e8:  retq
+   e9:  nopl (%rax)
+   f0:  movl $1, %esi
+   f5:  leaq 0x60(%rsp), %rdi
+   fa:  callq luaL_prepbuffsize+0
+   ff:  movq 0x70(%rsp), %rax
+  104:  jmp 0x68
+  109:  nopl (%rax)
+  110:  movl $0x78, %esi
+  115:  leaq 0x60(%rsp), %rdi
+  11a:  addl $1, %ebp
+  11d:  callq luaL_prepbuffsize+0
+  122:  movq %rax, 8(%rsp)
+  127:  cmpl %ebp, 0x14(%rsp)
+  12b:  jl 0x617
+  131:  movl $0, %esi   <str:"-+#0 123456789.">
+  136:  movq %r15, %rdi
+  139:  callq strspn+0
+  13e:  leaq 1(%rax), %r12
+  142:  movq %rax, %r14
+  145:  cmpq $0x15, %r12
+  149:  ja 0x1a8
+  14b:  movq %r15, %rsi
+  14e:  movq %r12, %rdx
+  151:  addq %r14, %r15
+  154:  movb $0x25, 0x40(%rsp)
+  159:  leaq 0x41(%rsp), %rdi
+  15e:  leaq 1(%r15), %r14
+  162:  callq memcpy+0
+  167:  movb $0, 0x41(%rsp, %r12)
+  16d:  movzbl (%r15), %eax
+  171:  subl $0x41, %eax
+  174:  cmpb $0x37, %al
+  176:  ja 0x1c0
+  178:  movzbl %al, %eax
+  17b:  jmpq *(, %rax, 8)   <var:str_format+0>
+  182:  nopw (%rax, %rax)
+  188:  movl $1, %esi
+  18d:  leaq 0x60(%rsp), %rdi
+  192:  callq luaL_prepbuffsize+0
+  197:  movq 0x70(%rsp), %rax
+  19c:  jmp 0xa6
+  1a1:  nopl (%rax)
+  1a8:  movl $0, %esi   <str:"invalid format (too long)">
+  1ad:  movq %r13, %rdi
+  1b0:  xorl %eax, %eax
+  1b2:  callq luaL_error+0
+  1b7:  jmp 0x14b
+  1b9:  nopl (%rax)
+  1c0:  leaq 0x40(%rsp), %rdx
+  1c5:  movl $0, %esi   <str:"invalid conversion '%s' to 'format'">
+  1ca:  movq %r13, %rdi
+  1cd:  xorl %eax, %eax
+  1cf:  callq luaL_error+0
+  1d4:  jmp 0xd7
+  1d9:  nopl (%rax)
+  1e0:  movl $0x78, %r15d
+  1e6:  movl %ebp, %esi
+  1e8:  movq %r13, %rdi
+  1eb:  callq luaL_checknumber+0
+  1f0:  movl $0, %edx   <str:"-+#0 ">
+  1f5:  movl $1, %ecx
+  1fa:  movq %r13, %rdi
+  1fd:  leaq 0x40(%rsp), %rsi
+  202:  movsd %xmm0, 0x18(%rsp)
+  208:  callq fn:checkformat+0
+  20d:  movl $0, %esi   <str:"">
+  212:  leaq 0x40(%rsp), %rdi
+  217:  callq fn:addlenmod+0
+  21c:  movsd 0x18(%rsp), %xmm0
+  222:  leaq 0x40(%rsp), %rdx
+  227:  movq %r15, %rsi
+  22a:  movq 8(%rsp), %rdi
+  22f:  movl $1, %eax
+  234:  callq snprintf+0
+  239:  cltq
+  23b:  addq 0x70(%rsp), %rax
+  240:  movq %rax, 0x70(%rsp)
+  245:  jmp 0x80
+  24a:  movl $0, %edx   <str:"-+#0 ">
+  24f:  movl $1, %ecx
+  254:  leaq 0x40(%rsp), %rsi
+  259:  movq %r13, %rdi
+  25c:  callq fn:checkformat+0
+  261:  movl $0, %esi   <str:"">
+  266:  leaq 0x40(%rsp), %rdi
+  26b:  callq fn:addlenmod+0
+  270:  movl %ebp, %esi
+  272:  movq %r13, %rdi
+  275:  callq luaL_checknumber+0
+  27a:  leaq 0x40(%rsp), %rdx
+  27f:  movl $0x78, %esi
+  284:  jmp 0x22a
+  286:  movl $0x1a2, %esi
+  28b:  leaq 0x60(%rsp), %rdi
+  290:  movl $0x1a2, %r15d
+  296:  callq luaL_prepbuffsize+0
+  29b:  movq %rax, 8(%rsp)
+  2a0:  jmp 0x1e6
+  2a5:  cmpb $0, 0x42(%rsp)
+  2aa:  jne 0x764
+  2b0:  movl %ebp, %esi
+  2b2:  movq %r13, %rdi
+  2b5:  callq lua_type+0
+  2ba:  cmpl $3, %eax
+  2bd:  je 0x65b
+  2c3:  jg 0x474
+  2c9:  cmpl $1, %eax
+  2cc:  ja 0x642
+  2d2:  xorl %edx, %edx
+  2d4:  movl %ebp, %esi
+  2d6:  movq %r13, %rdi
+  2d9:  callq luaL_tolstring+0
+  2de:  leaq 0x60(%rsp), %rdi
+  2e3:  callq luaL_addvalue+0
+  2e8:  movq 0x70(%rsp), %rax
+  2ed:  jmp 0x240
+  2f2:  movl %ebp, %esi
+  2f4:  movq %r13, %rdi
+  2f7:  leaq 0x40(%rsp), %r15
+  2fc:  callq lua_topointer+0
+  301:  xorl %ecx, %ecx
+  303:  movl $0, %edx   <str:"-">
+  308:  movq %r15, %rsi
+  30b:  movq %r13, %rdi
+  30e:  movq %rax, 0x18(%rsp)
+  313:  callq fn:checkformat+0
+  318:  movq 0x18(%rsp), %rax
+  31d:  testq %rax, %rax
+  320:  je 0x62b
+  326:  movq %rax, %rcx
+  329:  movq %r15, %rdx
+  32c:  movq 8(%rsp), %rdi
+  331:  movl $0x78, %esi
+  336:  xorl %eax, %eax
+  338:  callq snprintf+0
+  33d:  cltq
+  33f:  addq 0x70(%rsp), %rax
+  344:  jmp 0x240
+  349:  xorl %ecx, %ecx
+  34b:  movl $0, %edx   <str:"-">
+  350:  leaq 0x40(%rsp), %rsi
+  355:  movq %r13, %rdi
+  358:  callq fn:checkformat+0
+  35d:  movl %ebp, %esi
+  35f:  movq %r13, %rdi
+  362:  callq luaL_checkinteger+0
+  367:  movq 8(%rsp), %rdi
+  36c:  leaq 0x40(%rsp), %rdx
+  371:  movl $0x78, %esi
+  376:  movl %eax, %ecx
+  378:  xorl %eax, %eax
+  37a:  callq snprintf+0
+  37f:  cltq
+  381:  addq 0x70(%rsp), %rax
+  386:  jmp 0x240
+  38b:  movl $0, %r12d   <str:"-0">
+  391:  movl %ebp, %esi
+  393:  movq %r13, %rdi
+  396:  callq luaL_checkinteger+0
+  39b:  movl $1, %ecx
+  3a0:  movq %r12, %rdx
+  3a3:  movq %r13, %rdi
+  3a6:  leaq 0x40(%rsp), %rsi
+  3ab:  movq %rax, %r15
+  3ae:  callq fn:checkformat+0
+  3b3:  movl $0, %esi   <str:"ll">
+  3b8:  leaq 0x40(%rsp), %rdi
+  3bd:  callq fn:addlenmod+0
+  3c2:  movq %r15, %rcx
+  3c5:  leaq 0x40(%rsp), %rdx
+  3ca:  jmp 0x32c
+  3cf:  leaq 0x30(%rsp), %rdx
+  3d4:  movl %ebp, %esi
+  3d6:  movq %r13, %rdi
+  3d9:  callq luaL_tolstring+0
+  3de:  cmpb $0, 0x42(%rsp)
+  3e3:  movq %rax, %r12
+  3e6:  je 0x54b
+  3ec:  movq %rax, %rdi
+  3ef:  callq strlen+0
+  3f4:  cmpq 0x30(%rsp), %rax
+  3f9:  jne 0x746
+  3ff:  leaq 0x40(%rsp), %r15
+  404:  movq %r13, %rdi
+  407:  movl $1, %ecx
+  40c:  movl $0, %edx   <str:"-">
+  411:  movq %r15, %rsi
+  414:  callq fn:checkformat+0
+  419:  movl $0x2e, %esi
+  41e:  movq %r15, %rdi
+  421:  callq strchr+0
+  426:  testq %rax, %rax
+  429:  je 0x53f
+  42f:  movq 8(%rsp), %rdi
+  434:  movq %r12, %rcx
+  437:  movq %r15, %rdx
+  43a:  movl $0x78, %esi
+  43f:  xorl %eax, %eax
+  441:  callq snprintf+0
+  446:  movl $0xfffffffe, %esi
+  44b:  movq %r13, %rdi
+  44e:  movl %eax, %r12d
+  451:  callq lua_settop+0
+  456:  movslq %r12d, %rax
+  459:  jmp 0x33f
+  45e:  movl $0, %r12d   <str:"-#0">
+  464:  jmp 0x391
+  469:  movl $0, %r12d   <str:"-+0 ">
+  46f:  jmp 0x391
+  474:  cmpl $4, %eax
+  477:  jne 0x642
+  47d:  leaq 0x28(%rsp), %rdx
+  482:  movl %ebp, %esi
+  484:  movq %r13, %rdi
+  487:  callq lua_tolstring+0
+  48c:  movq 0x28(%rsp), %rdx
+  491:  movq %rax, %r15
+  494:  movq 0x70(%rsp), %rax
+  499:  cmpq 0x68(%rsp), %rax
+  49e:  jae 0x70a
+  4a4:  leaq 1(%rax), %rcx
+  4a8:  leaq (%r15, %rdx), %r12
+  4ac:  movq %rcx, 0x70(%rsp)
+  4b1:  movq 0x60(%rsp), %rcx
+  4b6:  movb $0x22, (%rcx, %rax)
+  4ba:  testq %rdx, %rdx
+  4bd:  je 0x5b0
+  4c3:  nopl (%rax, %rax)
+  4c8:  movzbl (%r15), %edx
+  4cc:  cmpb $0x22, %dl
+  4cf:  sete %al
+  4d2:  cmpb $0x5c, %dl
+  4d5:  sete %cl
+  4d8:  orb %cl, %al
+  4da:  jne 0x560
+  4e0:  cmpb $0xa, %dl
+  4e3:  je 0x560
+  4e5:  movb %dl, 8(%rsp)
+  4e9:  callq __ctype_b_loc+0
+  4ee:  movzbl 8(%rsp), %ecx
+  4f3:  movq (%rax), %rax
+  4f6:  testb $2, (%rax, %rcx, 2)
+  4fa:  je 0x5dc
+  500:  movzbl 1(%r15), %edx
+  505:  movzbl %cl, %ecx
+  508:  leaq 0x30(%rsp), %rdi
+  50d:  testb $8, 1(%rax, %rdx, 2)
+  512:  je 0x6be
+  518:  movl $0, %edx   <str:"\\%03d">
+  51d:  movl $0xa, %esi
+  522:  xorl %eax, %eax
+  524:  movq %rdi, 8(%rsp)
+  529:  callq snprintf+0
+  52e:  movq 8(%rsp), %rsi
+  533:  leaq 0x60(%rsp), %rdi
+  538:  callq luaL_addstring+0
+  53d:  jmp 0x5a3
+  53f:  cmpq $0x63, 0x30(%rsp)
+  545:  jbe 0x42f
+  54b:  leaq 0x60(%rsp), %rdi
+  550:  callq luaL_addvalue+0
+  555:  xorl %eax, %eax
+  557:  jmp 0x33f
+  55c:  nopl (%rax)
+  560:  movq 0x70(%rsp), %rax
+  565:  cmpq 0x68(%rsp), %rax
+  56a:  jae 0x5fe
+  570:  leaq 1(%rax), %rdx
+  574:  movq %rdx, 0x70(%rsp)
+  579:  movq 0x60(%rsp), %rdx
+  57e:  movb $0x5c, (%rdx, %rax)
+  582:  movq 0x70(%rsp), %rax
+  587:  cmpq 0x68(%rsp), %rax
+  58c:  jae 0x5e8
+  58e:  leaq 1(%rax), %rdx
+  592:  movq %rdx, 0x70(%rsp)
+  597:  movq 0x60(%rsp), %rdx
+  59c:  movzbl (%r15), %ecx
+  5a0:  movb %cl, (%rdx, %rax)
+  5a3:  addq $1, %r15
+  5a7:  cmpq %r12, %r15
+  5aa:  jne 0x4c8
+  5b0:  movq 0x70(%rsp), %rax
+  5b5:  cmpq 0x68(%rsp), %rax
+  5ba:  jae 0x72d
+  5c0:  leaq 1(%rax), %rdx
+  5c4:  movq %rdx, 0x70(%rsp)
+  5c9:  movq 0x60(%rsp), %rdx
+  5ce:  movb $0x22, (%rdx, %rax)
+  5d2:  movq 0x70(%rsp), %rax
+  5d7:  jmp 0x240
+  5dc:  movq 0x70(%rsp), %rax
+  5e1:  cmpq 0x68(%rsp), %rax
+  5e6:  jb 0x58e
+  5e8:  movl $1, %esi
+  5ed:  leaq 0x60(%rsp), %rdi
+  5f2:  callq luaL_prepbuffsize+0
+  5f7:  movq 0x70(%rsp), %rax
+  5fc:  jmp 0x58e
+  5fe:  movl $1, %esi
+  603:  leaq 0x60(%rsp), %rdi
+  608:  callq luaL_prepbuffsize+0
+  60d:  movq 0x70(%rsp), %rax
+  612:  jmp 0x570
+  617:  movl $0, %edx   <str:"no value">
+  61c:  movl %ebp, %esi
+  61e:  movq %r13, %rdi
+  621:  callq luaL_argerror+0
+  626:  jmp 0xd7
+  62b:  movq %r15, %rdi
+  62e:  callq strlen+0
+  633:  movb $0x73, 0x3f(%rsp, %rax)
+  638:  movl $0, %eax   <str:"(null)">
+  63d:  jmp 0x326
+  642:  movl $0, %edx   <str:"value has no literal form">
+  647:  movl %ebp, %esi
+  649:  movq %r13, %rdi
+  64c:  callq luaL_argerror+0
+  651:  movq 0x70(%rsp), %rax
+  656:  jmp 0x240
+  65b:  movl $0x78, %esi
+  660:  leaq 0x60(%rsp), %rdi
+  665:  callq luaL_prepbuffsize+0
+  66a:  movl %ebp, %esi
+  66c:  movq %r13, %rdi
+  66f:  movq %rax, %r12
+  672:  callq lua_isinteger+0
+  677:  xorl %edx, %edx
+  679:  movl %ebp, %esi
+  67b:  movq %r13, %rdi
+  67e:  testl %eax, %eax
+  680:  jne 0x6c8
+  682:  callq lua_tonumberx+0
+  687:  ucomisd (%rip), %xmm0   <cst:000000000000f07f>
+  68f:  jp 0x697
+  691:  je 0x75a
+  697:  ucomisd (%rip), %xmm0   <cst:000000000000f0ff>
+  69f:  jp 0x6a8
+  6a1:  movl $0, %ecx   <str:"-1e9999">
+  6a6:  je 0x6b7
+  6a8:  ucomisd %xmm0, %xmm0
+  6ac:  movl $0, %ecx   <str:"(0/0)">
+  6b1:  jnp 0x778
+  6b7:  movl $0, %edx   <str:"%s">
+  6bc:  jmp 0x6eb
+  6be:  movl $0, %edx   <str:"\\%d">
+  6c3:  jmp 0x51d
+  6c8:  callq lua_tointegerx+0
+  6cd:  movl $0, %edx   <str:"%lld">
+  6d2:  movq %rax, %rcx
+  6d5:  movabsq $9223372036854775808, %rax
+  6df:  cmpq %rax, %rcx
+  6e2:  movl $0, %eax   <str:"0x%llx">
+  6e7:  cmoveq %rax, %rdx
+  6eb:  movl $0x78, %esi
+  6f0:  movq %r12, %rdi
+  6f3:  xorl %eax, %eax
+  6f5:  callq snprintf+0
+  6fa:  movslq %eax, %r15
+  6fd:  movq 0x70(%rsp), %rax
+  702:  addq %r15, %rax
+  705:  jmp 0x240
+  70a:  movl $1, %esi
+  70f:  leaq 0x60(%rsp), %rdi
+  714:  movq %rdx, 8(%rsp)
+  719:  callq luaL_prepbuffsize+0
+  71e:  movq 0x70(%rsp), %rax
+  723:  movq 8(%rsp), %rdx
+  728:  jmp 0x4a4
+  72d:  movl $1, %esi
+  732:  leaq 0x60(%rsp), %rdi
+  737:  callq luaL_prepbuffsize+0
+  73c:  movq 0x70(%rsp), %rax
+  741:  jmp 0x5c0
+  746:  movl $0, %edx   <str:"string contains zeros">
+  74b:  movl %ebp, %esi
+  74d:  movq %r13, %rdi
+  750:  callq luaL_argerror+0
+  755:  jmp 0x3ff
+  75a:  movl $0, %ecx   <str:"1e9999">
+  75f:  jmp 0x6b7
+  764:  movl $0, %esi   <str:"specifier '%%q' cannot have modifiers">
+  769:  movq %r13, %rdi
+  76c:  xorl %eax, %eax
+  76e:  callq luaL_error+0
+  773:  jmp 0xd7
+  778:  movl $0, %edx   <str:"%a">
+  77d:  movl $0x78, %esi
+  782:  movq %r12, %rdi
+  785:  movl $1, %eax
+  78a:  callq snprintf+0
+  78f:  movl $0x2e, %esi
+  794:  movq %r12, %rdi
+  797:  movslq %eax, %r15
+  79a:  movq %r15, %rdx
+  79d:  callq memchr+0
+  7a2:  testq %rax, %rax
+  7a5:  jne 0x6fd
+  7ab:  callq localeconv+0
+  7b0:  movq %r15, %rdx
+  7b3:  movq %r12, %rdi
+  7b6:  movq (%rax), %rax
+  7b9:  movsbl (%rax), %esi
+  7bc:  callq memchr+0
+  7c1:  testq %rax, %rax
+  7c4:  je 0x6fd
+  7ca:  movb $0x2e, (%rax)
+  7cd:  jmp 0x6fd

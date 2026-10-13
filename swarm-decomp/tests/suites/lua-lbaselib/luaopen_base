@@ -1,0 +1,27 @@
+# luaopen_base  (global, 103 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movl $2, %edx
+    6:  movq %rdi, %rbx
+    9:  movl $0xfff0b9d8, %esi
+    e:  callq lua_rawgeti+0
+   13:  xorl %edx, %edx
+   15:  movq %rbx, %rdi
+   18:  movl $0, %esi   <var:base_funcs+0>
+   1d:  callq luaL_setfuncs+0
+   22:  movq %rbx, %rdi
+   25:  movl $0xffffffff, %esi
+   2a:  callq lua_pushvalue+0
+   2f:  movl $0, %edx   <str:"_G">
+   34:  movq %rbx, %rdi
+   37:  movl $0xfffffffe, %esi
+   3c:  callq lua_setfield+0
+   41:  movq %rbx, %rdi
+   44:  movl $0, %esi   <str:"Lua 5.4">
+   49:  callq lua_pushstring+0
+   4e:  movq %rbx, %rdi
+   51:  movl $0, %edx   <str:"_VERSION">
+   56:  movl $0xfffffffe, %esi
+   5b:  callq lua_setfield+0
+   60:  movl $1, %eax
+   65:  popq %rbx
+   66:  retq

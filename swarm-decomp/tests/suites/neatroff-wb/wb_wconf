@@ -1,0 +1,62 @@
+# wb_wconf  (global, 186 bytes, 61 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  movq %rdx, %r14
+    a:  pushq %r13
+    c:  movq %rcx, %r13
+    f:  pushq %r12
+   11:  movq %r8, %r12
+   14:  pushq %rbp
+   15:  movq %r9, %rbp
+   18:  pushq %rbx
+   19:  movq %rdi, %rbx
+   1c:  subq $8, %rsp
+   20:  movl 0x2068(%rdi), %edx
+   26:  testl %edx, %edx
+   28:  je 0x34
+   2a:  movl 0x206c(%rdi), %eax
+   30:  testl %eax, %eax
+   32:  jne 0xb0
+   34:  movl 0x48(%rbx), %eax
+   37:  movl %eax, (%r15)
+   3a:  movl 0x50(%rbx), %eax
+   3d:  negl %eax
+   3f:  movl %eax, (%r14)
+   42:  movl 0x4c(%rbx), %eax
+   45:  negl %eax
+   47:  movl %eax, (%r13)
+   4b:  movl 0x54(%rbx), %edx
+   4e:  xorl %eax, %eax
+   50:  cmpl $0x20000000, %edx
+   56:  cmovgel %eax, %edx
+   59:  movl %edx, (%r12)
+   5d:  movl 0x58(%rbx), %ecx
+   60:  movl %ecx, %edx
+   62:  negl %edx
+   64:  cmpl $0x20000000, %ecx
+   6a:  movq 0x40(%rsp), %rcx
+   6f:  cmovgel %eax, %edx
+   72:  movl %edx, (%rbp)
+   75:  movl 0x5c(%rbx), %edx
+   78:  cmpl $0xe0000000, %edx
+   7e:  cmovlel %eax, %edx
+   81:  movl %edx, (%rcx)
+   83:  movl 0x60(%rbx), %ecx
+   86:  movl %ecx, %edx
+   88:  negl %edx
+   8a:  cmpl $0xe0000000, %ecx
+   90:  cmovgl %edx, %eax
+   93:  movq 0x48(%rsp), %rdx
+   98:  movl %eax, (%rdx)
+   9a:  addq $8, %rsp
+   9e:  popq %rbx
+   9f:  popq %rbp
+   a0:  popq %r12
+   a2:  popq %r13
+   a4:  popq %r14
+   a6:  popq %r15
+   a8:  retq
+   a9:  nopl (%rax)
+   b0:  callq fn:wb_flushsub.part.0+0
+   b5:  jmp 0x34

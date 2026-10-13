@@ -1,0 +1,44 @@
+# luaL_optlstring  (global, 123 bytes, 43 instructions)
+    0:  pushq %r13
+    2:  movq %rcx, %r13
+    5:  pushq %r12
+    7:  movl %esi, %r12d
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  movq %rdx, %rbx
+   12:  subq $8, %rsp
+   16:  callq lua_type+0
+   1b:  testl %eax, %eax
+   1d:  jg 0x48
+   1f:  testq %r13, %r13
+   22:  je 0x37
+   24:  xorl %eax, %eax
+   26:  testq %rbx, %rbx
+   29:  je 0x33
+   2b:  movq %rbx, %rdi
+   2e:  callq strlen+0
+   33:  movq %rax, (%r13)
+   37:  addq $8, %rsp
+   3b:  movq %rbx, %rax
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  popq %r12
+   42:  popq %r13
+   44:  retq
+   45:  nopl (%rax)
+   48:  movq %r13, %rdx
+   4b:  movl %r12d, %esi
+   4e:  movq %rbp, %rdi
+   51:  callq lua_tolstring+0
+   56:  movq %rax, %rbx
+   59:  testq %rax, %rax
+   5c:  jne 0x37
+   5e:  movq %rbp, %rdi
+   61:  movl $4, %esi
+   66:  callq lua_typename+0
+   6b:  movl %r12d, %esi
+   6e:  movq %rbp, %rdi
+   71:  movq %rax, %rdx
+   74:  callq luaL_typeerror+0
+   79:  jmp 0x37

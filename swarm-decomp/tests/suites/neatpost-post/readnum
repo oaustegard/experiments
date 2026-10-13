@@ -1,0 +1,32 @@
+# readnum  (static, 105 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  nopl (%rax)
+   10:  movq (%rip), %rdi   <stdin+0>
+   17:  callq getc+0
+   1c:  movl %eax, %ebx
+   1e:  cmpl $0x20, %eax
+   21:  je 0x10
+   23:  movq (%rip), %rsi   <stdin+0>
+   2a:  movl %eax, %edi
+   2c:  callq ungetc+0
+   31:  movl $1, %eax
+   36:  cmpl $0x39, %ebx
+   39:  ja 0x4b
+   3b:  movabsq $0x3ff280000000000, %rdx
+   45:  btq %rbx, %rdx
+   49:  jb 0x58
+   4b:  addq $8, %rsp
+   4f:  popq %rbx
+   50:  popq %rbp
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  callq fn:nextnum+0
+   5d:  movl %eax, (%rbp)
+   60:  addq $8, %rsp
+   64:  xorl %eax, %eax
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq

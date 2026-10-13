@@ -1,0 +1,26 @@
+# iset_has  (global, 75 bytes, 25 instructions)
+    0:  xorl %eax, %eax
+    2:  testl %esi, %esi
+    4:  js 0x42
+    6:  cmpl %esi, 0x18(%rdi)
+    9:  jle 0x42
+    b:  movq 0x10(%rdi), %rcx
+    f:  movslq %esi, %rsi
+   12:  movslq (%rcx, %rsi, 4), %rcx
+   16:  testl %ecx, %ecx
+   18:  jle 0x42
+   1a:  movq (%rdi), %rax
+   1d:  movq (%rax, %rsi, 8), %rax
+   21:  leaq (%rax, %rcx, 4), %rcx
+   25:  jmp 0x39
+   27:  nopw (%rax, %rax)
+   30:  addq $4, %rax
+   34:  cmpq %rcx, %rax
+   37:  je 0x48
+   39:  cmpl %edx, (%rax)
+   3b:  jne 0x30
+   3d:  movl $1, %eax
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  xorl %eax, %eax
+   4a:  retq

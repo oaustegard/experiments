@@ -1,0 +1,11 @@
+# font_swid  (global, 28 bytes, 10 instructions)
+    0:  movl (%rip), %ecx   <dev_uwid+0>
+    6:  imull 0x880(%rdi), %esi
+    d:  movl %ecx, %eax
+    f:  shrl $0x1f, %eax
+   12:  addl %ecx, %eax
+   14:  sarl $1, %eax
+   16:  addl %esi, %eax
+   18:  cltd
+   19:  idivl %ecx
+   1b:  retq

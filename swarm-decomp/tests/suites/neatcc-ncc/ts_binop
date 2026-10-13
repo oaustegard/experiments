@@ -1,0 +1,63 @@
+# ts_binop  (static, 239 bytes, 62 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movl %edi, %r12d
+    9:  movl $1, %edi
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  callq fn:ts_de+0
+   15:  movl (%rip), %eax   <var:nts+0>
+   1b:  subl $1, %eax
+   1e:  movl %eax, (%rip)   <var:nts+0>
+   24:  cltq
+   26:  leaq (%rax, %rax, 4), %rax
+   2a:  shlq $2, %rax
+   2e:  movl (%rax), %ebx   <var:ts+0>
+   34:  movl (%rax), %r14d   <var:ts+8>
+   3b:  callq o_tmpswap+0
+   40:  movl $1, %edi
+   45:  callq fn:ts_de+0
+   4a:  movl (%rip), %eax   <var:nts+0>
+   50:  subl $1, %eax
+   53:  movl %eax, (%rip)   <var:nts+0>
+   59:  cltq
+   5b:  leaq (%rax, %rax, 4), %rax
+   5f:  shlq $2, %rax
+   63:  movl (%rax), %r13d   <var:ts+8>
+   6a:  movl (%rax), %ebp   <var:ts+0>
+   70:  callq o_tmpswap+0
+   75:  movl $8, %eax
+   7a:  testl %r14d, %r14d
+   7d:  cmovnel %eax, %ebx
+   80:  testl %r13d, %r13d
+   83:  cmovnel %eax, %ebp
+   86:  movl %ebx, %edi
+   88:  movl %ebp, %esi
+   8a:  callq fn:bt_op+0
+   8f:  movl %eax, %ebx
+   91:  leal -0x41(%r12), %eax
+   96:  cmpl $1, %eax
+   99:  ja 0xa3
+   9b:  andl $0xf, %ebx
+   9e:  andl $0x10, %ebp
+   a1:  orl %ebp, %ebx
+   a3:  movl %ebx, %edi
+   a5:  shll $0x18, %edi
+   a8:  orl %r12d, %edi
+   ab:  callq o_bop+0
+   b0:  movslq (%rip), %rax   <var:nts+0>
+   b7:  movq %rax, %rdx
+   ba:  leaq (%rax, %rax, 4), %rax
+   be:  shlq $2, %rax
+   c2:  addl $1, %edx
+   c5:  movl %ebx, (%rax)   <var:ts+0>
+   cb:  popq %rbx
+   cc:  movq $0, (%rax)   <var:ts+4>
+   d7:  popq %rbp
+   d8:  movl $0, (%rax)   <var:ts+16>
+   e2:  popq %r12
+   e4:  movl %edx, (%rip)   <var:nts+0>
+   ea:  popq %r13
+   ec:  popq %r14
+   ee:  retq

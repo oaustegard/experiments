@@ -1,0 +1,33 @@
+# luaK_exp2anyreg  (global, 92 bytes, 32 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  movq %rsi, %rbx
+    a:  callq luaK_dischargevars+0
+    f:  cmpl $8, (%rbx)
+   12:  jne 0x2d
+   14:  movl 8(%rbx), %r12d
+   18:  movl 0x14(%rbx), %eax
+   1b:  cmpl %eax, 0x10(%rbx)
+   1e:  je 0x3c
+   20:  movq %rbp, %rdi
+   23:  callq luaY_nvarstack+0
+   28:  cmpl %r12d, %eax
+   2b:  jle 0x48
+   2d:  movq %rbx, %rsi
+   30:  movq %rbp, %rdi
+   33:  callq luaK_exp2nextreg+0
+   38:  movl 8(%rbx), %r12d
+   3c:  movl %r12d, %eax
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  popq %r12
+   43:  retq
+   44:  nopl (%rax)
+   48:  movl 8(%rbx), %edx
+   4b:  movq %rbx, %rsi
+   4e:  movq %rbp, %rdi
+   51:  callq fn:exp2reg+0
+   56:  movl 8(%rbx), %r12d
+   5a:  jmp 0x3c

@@ -1,0 +1,16 @@
+# math_sqrt  (static, 50 bytes, 15 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checknumber+0
+    e:  pxor %xmm1, %xmm1
+   12:  ucomisd %xmm0, %xmm1
+   16:  ja 0x2b
+   18:  sqrtsd %xmm0, %xmm0
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_pushnumber+0
+   24:  movl $1, %eax
+   29:  popq %rbx
+   2a:  retq
+   2b:  callq sqrt+0
+   30:  jmp 0x1c

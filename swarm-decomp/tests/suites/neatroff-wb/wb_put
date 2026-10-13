@@ -1,0 +1,7 @@
+# wb_put  (global, 24 bytes, 6 instructions)
+    0:  cmpb $0xa, (%rsi)
+    3:  je 0x10
+    5:  jmp fn:wb_put.part.0+0
+    a:  nopw (%rax, %rax)
+   10:  movl $0, 0x30(%rdi)
+   17:  retq

@@ -1,0 +1,46 @@
+# isSCnumber  (static, 136 bytes, 45 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x10, %rsp
+    e:  movl (%rdi), %eax
+   10:  cmpl $6, %eax
+   13:  je 0x50
+   15:  cmpl $5, %eax
+   18:  je 0x28
+   1a:  addq $0x10, %rsp
+   1e:  xorl %eax, %eax
+   20:  popq %rbx
+   21:  popq %rbp
+   22:  popq %r12
+   24:  retq
+   25:  nopl (%rax)
+   28:  movsd 8(%rdi), %xmm0
+   2d:  xorl %esi, %esi
+   2f:  leaq 8(%rsp), %rdi
+   34:  movq %rdx, %rbp
+   37:  callq luaV_flttointeger+0
+   3c:  testl %eax, %eax
+   3e:  je 0x1a
+   40:  movl $1, (%rbp)
+   47:  jmp 0x59
+   49:  nopl (%rax)
+   50:  movq 8(%rdi), %rax
+   54:  movq %rax, 8(%rsp)
+   59:  movl 0x14(%rbx), %eax
+   5c:  cmpl %eax, 0x10(%rbx)
+   5f:  jne 0x1a
+   61:  movq 8(%rsp), %rax
+   66:  leaq 0x7f(%rax), %rdx
+   6a:  cmpq $0xff, %rdx
+   71:  ja 0x1a
+   73:  addl $0x7f, %eax
+   76:  movl %eax, (%r12)
+   7a:  addq $0x10, %rsp
+   7e:  movl $1, %eax
+   83:  popq %rbx
+   84:  popq %rbp
+   85:  popq %r12
+   87:  retq

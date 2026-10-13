@@ -1,0 +1,74 @@
+{
+ "suite": "neatroff-reg",
+ "functions": {
+  "num_set": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.9524,
+    "reason": "frame: stack frame layout differs in neatroff-reg"
+   },
+   "O1": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   },
+   "O2": {
+    "status": "FAIL",
+    "frac": 0.1667,
+    "reason": "call: unexpected call to nreg"
+   }
+  },
+  "str_rm": {
+   "O0": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   },
+   "O1": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   },
+   "O2": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   }
+  },
+  "num_setfmt": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.9867,
+    "reason": "ref: wrong reference sec in neatroff-reg"
+   },
+   "O1": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   },
+   "O2": {
+    "status": "PASS",
+    "frac": 1.0,
+    "reason": ""
+   }
+  },
+  "tr_ta": {
+   "O0": {
+    "status": "FAIL",
+    "frac": 0.8842,
+    "reason": "insn-delta: mid in neatroff-reg"
+   },
+   "O1": {
+    "status": "FAIL",
+    "frac": 0.9194,
+    "reason": "insn-delta: near in neatroff-reg"
+   },
+   "O2": {
+    "status": "FAIL",
+    "frac": 0.8264,
+    "reason": "insn-delta: mid in neatroff-reg"
+   }
+  }
+ },
+ "notes": "O0: num_set fails on frame (16 vs 8 bytes): gcc sizes the frame differently when nreg has no body in the TU, and that body belongs to another function. num_setfmt and tr_ta match in code but fail the .rodata ref check (O0 literals sit in plain .rodata, which objcmp compares by offset, so the TU's other literals decide it); tr_ta also differs in index evaluation order and a spilled r12. O1: num_set, num_setfmt and str_rm pass; tr_ta differs in register use and the folded prev-tab index. O2: num_set cannot match because gcc inlines nreg into the target, which needs nreg's body; tr_ta's loop is peeled differently. Harness: static variables that no function in this partial TU writes or reads were folded or dropped at O1/O2, so env and sregs_dat carry __attribute__((used)); this is a source deviation, disclosed here. Partial-TU effects dominate the O1/O2 numbers for this suite."
+}

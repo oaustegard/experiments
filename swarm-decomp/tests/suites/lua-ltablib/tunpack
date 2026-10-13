@@ -1,0 +1,77 @@
+# tunpack  (static, 250 bytes, 76 instructions)
+    0:  pushq %r13
+    2:  movl $2, %esi
+    7:  movl $1, %edx
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  movq %rdi, %rbp
+   12:  pushq %rbx
+   13:  subq $8, %rsp
+   17:  callq luaL_optinteger+0
+   1c:  movl $3, %esi
+   21:  movq %rbp, %rdi
+   24:  movq %rax, %rbx
+   27:  callq lua_type+0
+   2c:  testl %eax, %eax
+   2e:  jle 0xd0
+   34:  movl $3, %esi
+   39:  movq %rbp, %rdi
+   3c:  callq luaL_checkinteger+0
+   41:  movq %rax, %r12
+   44:  cmpq %rbx, %r12
+   47:  jl 0xe9
+   4d:  movq %r12, %rax
+   50:  subq %rbx, %rax
+   53:  cmpq $0x7ffffffe, %rax
+   59:  jbe 0x78
+   5b:  addq $8, %rsp
+   5f:  movq %rbp, %rdi
+   62:  movl $0, %esi   <str:"too many results to unpack">
+   67:  xorl %eax, %eax
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  popq %r12
+   6d:  popq %r13
+   6f:  jmp luaL_error+0
+   74:  nopl (%rax)
+   78:  leal 1(%rax), %r13d
+   7c:  movq %rbp, %rdi
+   7f:  movl %r13d, %esi
+   82:  callq lua_checkstack+0
+   87:  testl %eax, %eax
+   89:  je 0x5b
+   8b:  cmpq %rbx, %r12
+   8e:  jle 0xa9
+   90:  movq %rbx, %rdx
+   93:  movl $1, %esi
+   98:  movq %rbp, %rdi
+   9b:  addq $1, %rbx
+   9f:  callq lua_geti+0
+   a4:  cmpq %rbx, %r12
+   a7:  jne 0x90
+   a9:  movq %r12, %rdx
+   ac:  movq %rbp, %rdi
+   af:  movl $1, %esi
+   b4:  callq lua_geti+0
+   b9:  addq $8, %rsp
+   bd:  movl %r13d, %eax
+   c0:  popq %rbx
+   c1:  popq %rbp
+   c2:  popq %r12
+   c4:  popq %r13
+   c6:  retq
+   c7:  nopw (%rax, %rax)
+   d0:  movl $1, %esi
+   d5:  movq %rbp, %rdi
+   d8:  callq luaL_len+0
+   dd:  movq %rax, %r12
+   e0:  cmpq %rbx, %r12
+   e3:  jge 0x4d
+   e9:  addq $8, %rsp
+   ed:  xorl %r13d, %r13d
+   f0:  popq %rbx
+   f1:  movl %r13d, %eax
+   f4:  popq %rbp
+   f5:  popq %r12
+   f7:  popq %r13
+   f9:  retq

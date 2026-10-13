@@ -1,0 +1,27 @@
+# reg_mask  (global, 86 bytes, 26 instructions)
+    0:  movslq (%rip), %rdx   <var:rgn_n+0>
+    7:  testl %edx, %edx
+    9:  jle 0x50
+    b:  movq (%rip), %rax   <var:rgn+0>
+   12:  leaq (%rdx, %rdx, 4), %rdx
+   16:  xorl %esi, %esi
+   18:  movl $1, %r8d
+   1e:  addq $0x20, %rax
+   22:  leaq (%rax, %rdx, 8), %rdi
+   26:  nopw %cs:(%rax, %rax)
+   30:  movl (%rax), %ecx
+   32:  testl %ecx, %ecx
+   34:  js 0x41
+   36:  movl %r8d, %edx
+   39:  shll %cl, %edx
+   3b:  movslq %edx, %rdx
+   3e:  orq %rdx, %rsi
+   41:  addq $0x28, %rax
+   45:  cmpq %rax, %rdi
+   48:  jne 0x30
+   4a:  movq %rsi, %rax
+   4d:  retq
+   4e:  nop
+   50:  xorl %esi, %esi
+   52:  movq %rsi, %rax
+   55:  retq

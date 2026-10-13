@@ -1,0 +1,27 @@
+# outrotate  (global, 108 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %ebx
+    3:  callq 8   <fn:o_flush+0>
+    8:  movl (%rip), %edi   <var:o_f+0>
+    e:  callq fn:out_fontup+0
+   13:  movl (%rip), %esi   <var:o_rdeg+0>
+   19:  testl %esi, %esi
+   1b:  jne 0x50
+   1d:  movl (%rip), %edx   <var:o_h+0>
+   23:  movl (%rip), %ecx   <var:o_v+0>
+   29:  movl %ebx, %esi
+   2b:  xorl %eax, %eax
+   2d:  movl %ebx, (%rip)   <var:o_rdeg+0>
+   33:  movl $0, %edi   <str:"%d %d %d rot\n">
+   38:  popq %rbx
+   39:  movl %edx, (%rip)   <var:o_rh+0>
+   3f:  movl %ecx, (%rip)   <var:o_rv+0>
+   45:  jmp fn:outf+0
+   4a:  nopw (%rax, %rax)
+   50:  movl (%rip), %ecx   <var:o_rv+0>
+   56:  movl (%rip), %edx   <var:o_rh+0>
+   5c:  negl %esi
+   5e:  xorl %eax, %eax
+   60:  movl $0, %edi   <str:"%d %d %d rot\n">
+   65:  callq fn:outf+0
+   6a:  jmp 0x1d

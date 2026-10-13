@@ -1,0 +1,48 @@
+# afm_charfield  (static, 141 bytes, 47 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  movzbl (%rdi), %ebp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  callq __ctype_b_loc+0
+   12:  movq (%rax), %rdx
+   15:  movq %rdx, %rcx
+   18:  testb %bpl, %bpl
+   1b:  jne 0x3d
+   1d:  jmp 0x64
+   1f:  nop
+   20:  cmpb $0x3b, %bpl
+   24:  je 0x64
+   26:  addq $1, %rbx
+   2a:  movb %bpl, (%r12)
+   2e:  addq $1, %r12
+   32:  movzbl (%rbx), %ebp
+   35:  testb %bpl, %bpl
+   38:  je 0x88
+   3a:  movq (%rax), %rdx
+   3d:  movsbq %bpl, %rsi
+   41:  movq %rdx, %rcx
+   44:  testb $0x20, 1(%rdx, %rsi, 2)
+   49:  je 0x20
+   4b:  movsbq (%rbx), %rdx
+   4f:  movq %rdx, %rax
+   52:  testb $0x20, 1(%rcx, %rdx, 2)
+   57:  je 0x72
+   59:  nopl (%rax)
+   60:  addq $1, %rbx
+   64:  movsbq (%rbx), %rdx
+   68:  movq %rdx, %rax
+   6b:  testb $0x20, 1(%rcx, %rdx, 2)
+   70:  jne 0x60
+   72:  cmpb $0x3b, %al
+   74:  je 0x60
+   76:  movb $0, (%r12)
+   7b:  movq %rbx, %rax
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  popq %r12
+   82:  retq
+   83:  nopl (%rax, %rax)
+   88:  movq (%rax), %rcx
+   8b:  jmp 0x64

@@ -1,0 +1,80 @@
+# cpp_loc  (global, 303 bytes, 79 instructions)
+    0:  movslq (%rip), %rax   <var:bufs_n+0>
+    7:  pushq %r12
+    9:  movq %rdi, %rdx
+    c:  pushq %rbp
+    d:  leal -1(%rax), %ecx
+   10:  pushq %rbx
+   11:  testl %ecx, %ecx
+   13:  jle 0x123
+   19:  imulq $0x80b0, %rax, %rax
+   20:  movl %ecx, %ebx
+   22:  addq $0, %rax   <var:bufs+-32920>
+   28:  jmp 0x3b
+   2a:  nopw (%rax, %rax)
+   30:  subq $0x80b0, %rax
+   36:  subl $1, %ebx
+   39:  je 0x5b
+   3b:  movl (%rax), %esi
+   3d:  testl %esi, %esi
+   3f:  jne 0x30
+   41:  cmpl %ebx, %ecx
+   43:  sete %sil
+   47:  movslq (%rip), %rcx   <var:hunk_off+0>
+   4e:  movq %rcx, %rax
+   51:  cmpq %rdx, %rcx
+   54:  jg 0x5b
+   56:  testb %sil, %sil
+   59:  jne 0xd0
+   5b:  movslq %ebx, %rbx
+   5e:  movl $1, %ebp
+   63:  imulq $0x80b0, %rbx, %rax
+   6a:  movq (%rax), %rdi   <var:bufs+0>
+   71:  movslq (%rax), %r12   <var:bufs+16>
+   78:  addq %rdi, %r12
+   7b:  jmp 0x8c
+   7d:  nopl (%rax)
+   80:  testq %rax, %rax
+   83:  je 0x9b
+   85:  addl $1, %ebp
+   88:  leaq 1(%rax), %rdi
+   8c:  movl $0xa, %esi
+   91:  callq strchr+0
+   96:  cmpq %r12, %rax
+   99:  jb 0x80
+   9b:  imulq $0x80b0, %rbx, %rbx
+   a2:  movl %ebp, %ecx
+   a4:  movl $0, %esi   <str:"%s:%d">
+   a9:  xorl %eax, %eax
+   ab:  movl $0, %edi   <var:loc+0>
+   b0:  leaq (%rbx), %rdx   <var:bufs+28>
+   b7:  callq sprintf+0
+   bc:  popq %rbx
+   bd:  movl $0, %eax   <var:loc+0>
+   c2:  popq %rbp
+   c3:  popq %r12
+   c5:  retq
+   c6:  nopw %cs:(%rax, %rax)
+   d0:  movl (%rip), %r12d   <var:cur+0>
+   d7:  addl (%rip), %eax   <var:hunk_len+0>
+   dd:  movl $1, %ebp
+   e2:  movq (%rip), %rdi   <var:buf+0>
+   e9:  subl %eax, %r12d
+   ec:  addl %edx, %r12d
+   ef:  movslq %r12d, %r12
+   f2:  addq %rdi, %r12
+   f5:  jmp 0x10c
+   f7:  nopw (%rax, %rax)
+  100:  testq %rax, %rax
+  103:  je 0x11b
+  105:  addl $1, %ebp
+  108:  leaq 1(%rax), %rdi
+  10c:  movl $0xa, %esi
+  111:  callq strchr+0
+  116:  cmpq %r12, %rax
+  119:  jb 0x100
+  11b:  movslq %ebx, %rbx
+  11e:  jmp 0x9b
+  123:  movl %ecx, %ebx
+  125:  movl $1, %esi
+  12a:  jmp 0x47

@@ -1,0 +1,79 @@
+# luaG_findlocal  (global, 234 bytes, 78 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movq %rdi, %r13
+    7:  pushq %r12
+    9:  movq %rcx, %r12
+    c:  pushq %rbp
+    d:  movq %rsi, %rbp
+   10:  pushq %rbx
+   11:  movslq %edx, %rbx
+   14:  movq (%rsi), %r14
+   17:  testb $2, 0x3e(%rsi)
+   1b:  jne 0x50
+   1d:  movq (%r14), %rax
+   20:  movq 0x18(%rax), %rdi
+   24:  testl %ebx, %ebx
+   26:  js 0xc0
+   2c:  movq 0x20(%rsi), %rdx
+   30:  subq 0x40(%rdi), %rdx
+   34:  movl %ebx, %esi
+   36:  sarq $2, %rdx
+   3a:  subl $1, %edx
+   3d:  callq luaF_getlocalname+0
+   42:  testq %rax, %rax
+   45:  jne 0x86
+   47:  nopw (%rax, %rax)
+   50:  cmpq %rbp, 0x20(%r13)
+   54:  je 0xb0
+   56:  movq 0x18(%rbp), %rax
+   5a:  movq (%rax), %rax
+   5d:  leaq 0x10(%r14), %rdx
+   61:  subq %rdx, %rax
+   64:  movslq %ebx, %rdx
+   67:  sarq $4, %rax
+   6b:  cmpq %rdx, %rax
+   6e:  jl 0xa0
+   70:  testl %ebx, %ebx
+   72:  jle 0xa0
+   74:  testb $2, 0x3e(%rbp)
+   78:  movl $0, %eax   <str:"(C temporary)">
+   7d:  movl $0, %edx   <str:"(temporary)">
+   82:  cmoveq %rdx, %rax
+   86:  testq %r12, %r12
+   89:  je 0x96
+   8b:  shlq $4, %rbx
+   8f:  addq %rbx, %r14
+   92:  movq %r14, (%r12)
+   96:  popq %rbx
+   97:  popq %rbp
+   98:  popq %r12
+   9a:  popq %r13
+   9c:  popq %r14
+   9e:  retq
+   9f:  nop
+   a0:  popq %rbx
+   a1:  xorl %eax, %eax
+   a3:  popq %rbp
+   a4:  popq %r12
+   a6:  popq %r13
+   a8:  popq %r14
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  movq 0x10(%r13), %rax
+   b4:  jmp 0x5d
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  cmpb $0, 0xb(%rdi)
+   c4:  je 0xa0
+   c6:  movslq 0x2c(%rsi), %rax
+   ca:  movl %eax, %edx
+   cc:  negl %edx
+   ce:  cmpl %edx, %ebx
+   d0:  jl 0xa0
+   d2:  addq %rbx, %rax
+   d5:  shlq $4, %rax
+   d9:  subq %rax, %r14
+   dc:  leaq -0x10(%r14), %rax
+   e0:  movq %rax, (%rcx)
+   e3:  movl $0, %eax   <str:"(vararg)">
+   e8:  jmp 0x96

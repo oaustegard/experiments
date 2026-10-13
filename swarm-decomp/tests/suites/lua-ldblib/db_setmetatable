@@ -1,0 +1,24 @@
+# db_setmetatable  (static, 84 bytes, 23 instructions)
+    0:  pushq %rbx
+    1:  movl $2, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_type+0
+    e:  testl %eax, %eax
+   10:  je 0x17
+   12:  cmpl $5, %eax
+   15:  jne 0x40
+   17:  movq %rbx, %rdi
+   1a:  movl $2, %esi
+   1f:  callq lua_settop+0
+   24:  movq %rbx, %rdi
+   27:  movl $1, %esi
+   2c:  callq lua_setmetatable+0
+   31:  movl $1, %eax
+   36:  popq %rbx
+   37:  retq
+   38:  nopl (%rax, %rax)
+   40:  movl $0, %edx   <str:"nil or table">
+   45:  movl $2, %esi
+   4a:  movq %rbx, %rdi
+   4d:  callq luaL_typeerror+0
+   52:  jmp 0x17

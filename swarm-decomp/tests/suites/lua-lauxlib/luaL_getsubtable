@@ -1,0 +1,35 @@
+# luaL_getsubtable  (global, 103 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movq %rdx, %rbp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  callq lua_getfield+0
+   12:  movl %eax, %edx
+   14:  movl $1, %eax
+   19:  cmpl $5, %edx
+   1c:  je 0x62
+   1e:  movl $0xfffffffe, %esi
+   23:  movq %rbx, %rdi
+   26:  callq lua_settop+0
+   2b:  movl %r12d, %esi
+   2e:  movq %rbx, %rdi
+   31:  callq lua_absindex+0
+   36:  xorl %edx, %edx
+   38:  xorl %esi, %esi
+   3a:  movq %rbx, %rdi
+   3d:  movl %eax, %r12d
+   40:  callq lua_createtable+0
+   45:  movl $0xffffffff, %esi
+   4a:  movq %rbx, %rdi
+   4d:  callq lua_pushvalue+0
+   52:  movq %rbp, %rdx
+   55:  movl %r12d, %esi
+   58:  movq %rbx, %rdi
+   5b:  callq lua_setfield+0
+   60:  xorl %eax, %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq

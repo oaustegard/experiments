@@ -1,0 +1,93 @@
+# main  (global, 348 bytes, 92 instructions)
+    0:  pushq %rbp
+    1:  movl $0xd, %edi
+    6:  pushq %rbx
+    7:  movq %rsi, %rbx
+    a:  movl $1, %esi
+    f:  subq $0x98, %rsp
+   16:  callq signal+0
+   1b:  movq 8(%rbx), %rbp
+   1f:  testq %rbp, %rbp
+   22:  je 0xfc
+   28:  cmpb $0x6d, (%rbp)
+   2c:  je 0xd6
+   32:  movq %rbp, %rsi
+   35:  movl $0, %edi   <str:"ex">
+   3a:  callq strcmp+0
+   3f:  testl %eax, %eax
+   41:  je 0x114
+   47:  movq %rbp, %rsi
+   4a:  movl $0, %edi   <str:"pg">
+   4f:  callq strcmp+0
+   54:  testl %eax, %eax
+   56:  je 0x126
+   5c:  movq %rbp, %rsi
+   5f:  movl $0, %edi   <str:"me">
+   64:  callq strcmp+0
+   69:  testl %eax, %eax
+   6b:  je 0x138
+   71:  movq %rbp, %rsi
+   74:  movl $0, %edi   <str:"pn">
+   79:  callq strcmp+0
+   7e:  testl %eax, %eax
+   80:  je 0x14a
+   86:  movq %rbp, %rsi
+   89:  movl $0, %edi   <str:"ns">
+   8e:  addq $0x10, %rbx
+   92:  callq strcmp+0
+   97:  testl %eax, %eax
+   99:  je 0xcc
+   9b:  addq $0x98, %rsp
+   a2:  xorl %eax, %eax
+   a4:  popq %rbx
+   a5:  popq %rbp
+   a6:  retq
+   a7:  movq %rsp, %rsi
+   aa:  callq stat+0
+   af:  addl $1, %eax
+   b2:  je 0xc8
+   b4:  movq 0x48(%rsp), %rax
+   b9:  cmpq %rax, 0x58(%rsp)
+   be:  jle 0xc8
+   c0:  movq (%rbx), %rdi
+   c3:  callq puts+0
+   c8:  addq $8, %rbx
+   cc:  movq (%rbx), %rdi
+   cf:  testq %rdi, %rdi
+   d2:  jne 0xa7
+   d4:  jmp 0x9b
+   d6:  cmpb $0x6b, 1(%rbp)
+   da:  jne 0x32
+   e0:  cmpb $0, 2(%rbp)
+   e4:  jne 0x32
+   ea:  addq $0x98, %rsp
+   f1:  leaq 0x10(%rbx), %rdi
+   f5:  popq %rbx
+   f6:  popq %rbp
+   f7:  jmp mk+0
+   fc:  movl $0, %edi   <str:"usage: neatmail command [options]\n\ncommands:\n   ex  \texecute commands on an mbox\n   mk  \tlist the messages in an mbox\n   pg  \tpage a message of an mbox\n   me  \tencode mime message headers\n   pn  \tprune an mbox\n   ns  \tcheck mboxes for new mails">
+  101:  callq puts+0
+  106:  movq 8(%rbx), %rbp
+  10a:  testq %rbp, %rbp
+  10d:  je 0x9b
+  10f:  jmp 0x28
+  114:  addq $0x98, %rsp
+  11b:  leaq 0x10(%rbx), %rdi
+  11f:  popq %rbx
+  120:  popq %rbp
+  121:  jmp ex+0
+  126:  addq $0x98, %rsp
+  12d:  leaq 0x10(%rbx), %rdi
+  131:  popq %rbx
+  132:  popq %rbp
+  133:  jmp pg+0
+  138:  addq $0x98, %rsp
+  13f:  leaq 0x10(%rbx), %rdi
+  143:  popq %rbx
+  144:  popq %rbp
+  145:  jmp me+0
+  14a:  addq $0x98, %rsp
+  151:  leaq 0x10(%rbx), %rdi
+  155:  popq %rbx
+  156:  popq %rbp
+  157:  jmp pn+0

@@ -1,0 +1,32 @@
+# getnumlimit  (static, 94 bytes, 31 instructions)
+    0:  movq (%rsi), %rcx
+    3:  movl %edx, %eax
+    5:  movsbl (%rcx), %edx
+    8:  subl $0x30, %edx
+    b:  cmpl $9, %edx
+    e:  ja 0x44
+   10:  xorl %eax, %eax
+   12:  jmp 0x1f
+   14:  nopl (%rax)
+   18:  cmpl $0xccccccb, %eax
+   1d:  jg 0x3c
+   1f:  addq $1, %rcx
+   23:  leal (%rax, %rax, 4), %edx
+   26:  movq %rcx, (%rsi)
+   29:  movsbl -1(%rcx), %eax
+   2d:  leal -0x30(%rax, %rdx, 2), %eax
+   31:  movsbl (%rcx), %edx
+   34:  subl $0x30, %edx
+   37:  cmpl $9, %edx
+   3a:  jbe 0x18
+   3c:  leal -1(%rax), %edx
+   3f:  cmpl $0xf, %edx
+   42:  ja 0x48
+   44:  retq
+   45:  nopl (%rax)
+   48:  movq (%rdi), %rdi
+   4b:  movl %eax, %edx
+   4d:  movl $0x10, %ecx
+   52:  movl $0, %esi   <str:"integral size (%d) out of limits [1,%d]">
+   57:  xorl %eax, %eax
+   59:  jmp luaL_error+0

@@ -1,0 +1,9 @@
+# src_back  (global, 32 bytes, 8 instructions)
+    0:  testl %edi, %edi
+    2:  jle 0x1f
+    4:  movq (%rip), %rdx   <var:esrc+0>
+    b:  movslq 0xfb4(%rdx), %rax
+   12:  leal 1(%rax), %ecx
+   15:  movl %ecx, 0xfb4(%rdx)
+   1b:  movl %edi, 0x14(%rdx, %rax, 4)
+   1f:  retq

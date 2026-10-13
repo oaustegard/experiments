@@ -1,0 +1,34 @@
+# luaM_realloc_  (global, 88 bytes, 33 instructions)
+    0:  pushq %r14
+    2:  movq %rdi, %r14
+    5:  pushq %r13
+    7:  pushq %r12
+    9:  movq %rsi, %r12
+    c:  pushq %rbp
+    d:  movq %rdx, %rbp
+   10:  pushq %rbx
+   11:  movq 0x18(%rdi), %r13
+   15:  movq %rcx, %rbx
+   18:  movq 8(%r13), %rdi
+   1c:  callq *(%r13)
+   20:  testq %rax, %rax
+   23:  jne 0x2a
+   25:  testq %rbx, %rbx
+   28:  jne 0x40
+   2a:  subq %rbp, %rbx
+   2d:  addq %rbx, 0x18(%r13)
+   31:  popq %rbx
+   32:  popq %rbp
+   33:  popq %r12
+   35:  popq %r13
+   37:  popq %r14
+   39:  retq
+   3a:  nopw (%rax, %rax)
+   40:  movq %rbx, %rcx
+   43:  movq %rbp, %rdx
+   46:  movq %r12, %rsi
+   49:  movq %r14, %rdi
+   4c:  callq fn:tryagain+0
+   51:  testq %rax, %rax
+   54:  jne 0x2a
+   56:  jmp 0x31

@@ -1,0 +1,22 @@
+# utf8len  (global, 56 bytes, 21 instructions)
+    0:  movl %edi, %eax
+    2:  notl %eax
+    4:  testb $0xc0, %al
+    6:  jne 0x30
+    8:  movl $2, %eax
+    d:  testb $0x20, %dil
+   11:  je 0x2c
+   13:  movl $3, %eax
+   18:  testb $0x10, %dil
+   1c:  je 0x2c
+   1e:  andl $8, %edi
+   21:  cmpl $1, %edi
+   24:  sbbl %eax, %eax
+   26:  andl $3, %eax
+   29:  addl $1, %eax
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  xorl %eax, %eax
+   32:  testl %edi, %edi
+   34:  setg %al
+   37:  retq

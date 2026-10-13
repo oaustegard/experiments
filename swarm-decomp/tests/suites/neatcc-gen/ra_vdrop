@@ -1,0 +1,29 @@
+# ra_vdrop  (static, 104 bytes, 28 instructions)
+    0:  movl $0, %eax   <var:ra_live+0>
+    5:  nopl (%rax)
+    8:  cmpq %rdi, (%rax)
+    b:  jne 0x14
+    d:  movq $18446744073709551615, (%rax)
+   14:  addq $8, %rax
+   18:  cmpq $0, %rax   <var:ra_live+512>
+   1e:  jne 8
+   20:  movslq %edi, %rdi
+   23:  xorl %eax, %eax
+   25:  nopl (%rax)
+   28:  cmpq %rdi, (, %rax, 8)   <var:ra_vmap+0>
+   30:  je 0x3d
+   32:  addq $1, %rax
+   36:  cmpq $0x10, %rax
+   3a:  jne 0x28
+   3c:  retq
+   3d:  xorl %eax, %eax
+   3f:  nop
+   40:  cmpq %rdi, (, %rax, 8)   <var:ra_vmap+0>
+   48:  je 0x59
+   4a:  addq $1, %rax
+   4e:  cmpq $0x10, %rax
+   52:  jne 0x40
+   54:  movl $0xffffffff, %eax
+   59:  cltq
+   5b:  movq $18446744073709551615, (, %rax, 8)   <var:ra_vmap+0>
+   67:  retq

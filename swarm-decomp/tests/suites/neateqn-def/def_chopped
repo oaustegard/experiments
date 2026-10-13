@@ -1,0 +1,21 @@
+# def_chopped  (global, 55 bytes, 20 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %esi
+    3:  movl %edi, %ebx
+    5:  movl $0, %edi   <str:"\n {}">
+    a:  callq strchr+0
+    f:  movq %rax, %rdx
+   12:  movl $1, %eax
+   17:  testq %rdx, %rdx
+   1a:  je 0x20
+   1c:  popq %rbx
+   1d:  retq
+   1e:  nop
+   20:  movl %ebx, %esi
+   22:  movl $0, %edi   <var:chopped+0>
+   27:  callq strchr+0
+   2c:  popq %rbx
+   2d:  testq %rax, %rax
+   30:  setne %al
+   33:  movzbl %al, %eax
+   36:  retq

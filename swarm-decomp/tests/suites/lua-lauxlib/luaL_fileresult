@@ -1,0 +1,56 @@
+# luaL_fileresult  (global, 165 bytes, 55 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  movl %esi, %ebp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $8, %rsp
+   12:  callq __errno_location+0
+   17:  movl (%rax), %r12d
+   1a:  testl %ebp, %ebp
+   1c:  je 0x40
+   1e:  movq %rbx, %rdi
+   21:  movl $1, %esi
+   26:  callq lua_pushboolean+0
+   2b:  addq $8, %rsp
+   2f:  movl $1, %eax
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  popq %r12
+   38:  popq %r13
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  callq lua_pushnil+0
+   48:  movl $0, %ecx   <str:"(no extra info)">
+   4d:  testl %r12d, %r12d
+   50:  jne 0x88
+   52:  testq %r13, %r13
+   55:  je 0x98
+   57:  movq %r13, %rdx
+   5a:  movl $0, %esi   <str:"%s: %s">
+   5f:  movq %rbx, %rdi
+   62:  xorl %eax, %eax
+   64:  callq lua_pushfstring+0
+   69:  movslq %r12d, %rsi
+   6c:  movq %rbx, %rdi
+   6f:  callq lua_pushinteger+0
+   74:  addq $8, %rsp
+   78:  movl $3, %eax
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  popq %r12
+   81:  popq %r13
+   83:  retq
+   84:  nopl (%rax)
+   88:  movl %r12d, %edi
+   8b:  callq strerror+0
+   90:  movq %rax, %rcx
+   93:  testq %r13, %r13
+   96:  jne 0x57
+   98:  movq %rcx, %rsi
+   9b:  movq %rbx, %rdi
+   9e:  callq lua_pushstring+0
+   a3:  jmp 0x69

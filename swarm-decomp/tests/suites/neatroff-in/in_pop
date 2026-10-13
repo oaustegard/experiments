@@ -1,0 +1,39 @@
+# in_pop  (static, 152 bytes, 38 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq (%rip), %r12   <var:buf+0>
+   11:  movq 0x4b0(%r12), %rax
+   19:  movq 0x410(%r12), %r13
+   21:  movq %rax, (%rip)   <var:buf+0>
+   28:  testq %r13, %r13
+   2b:  je 0x5e
+   2d:  movq %r13, %rbx
+   30:  leaq 0x100(%r13), %rbp
+   37:  nopw (%rax, %rax)
+   40:  movq (%rbx), %rdi
+   43:  testq %rdi, %rdi
+   46:  je 0x4d
+   48:  callq free+0
+   4d:  addq $8, %rbx
+   51:  cmpq %rbp, %rbx
+   54:  jne 0x40
+   56:  movq %r13, %rdi
+   59:  callq free+0
+   5e:  movq 0x400(%r12), %rdi
+   66:  testq %rdi, %rdi
+   69:  je 0x79
+   6b:  cmpq (%rip), %rdi   <stdin+0>
+   72:  je 0x79
+   74:  callq fclose+0
+   79:  movq 0x408(%r12), %rdi
+   81:  callq free+0
+   86:  addq $8, %rsp
+   8a:  movq %r12, %rdi
+   8d:  popq %rbx
+   8e:  popq %rbp
+   8f:  popq %r12
+   91:  popq %r13
+   93:  jmp free+0

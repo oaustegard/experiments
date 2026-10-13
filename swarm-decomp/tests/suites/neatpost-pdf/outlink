@@ -1,0 +1,93 @@
+# outlink  (global, 367 bytes, 92 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movslq (%rip), %rbp   <var:ann_n+0>
+    e:  pushq %rbx
+    f:  cmpl $0x80, %ebp
+   15:  je 0x140
+   1b:  cmpl $1, (%rip)   <var:o_queued+0>
+   22:  movq %rdi, %r12
+   25:  movl %esi, %ebx
+   27:  movl %edx, %r14d
+   2a:  je 0x150
+   30:  movl $0, (%rip)   <var:o_queued+0>
+   3a:  leal 1(%rbp), %eax
+   3d:  movl %eax, (%rip)   <var:ann_n+0>
+   43:  callq fn:obj_map+0
+   48:  movl (%rip), %ecx   <var:pdf_pos+0>
+   4e:  movl $0, %edi   <str:"%d 0 obj\n">
+   53:  movslq %eax, %rdx
+   56:  movq (%rip), %rax   <var:obj_off+0>
+   5d:  movl %edx, %esi
+   5f:  movq %rdx, %r13
+   62:  movl %ecx, (%rax, %rdx, 4)
+   65:  xorl %eax, %eax
+   67:  callq fn:pdfout+0
+   6c:  xorl %eax, %eax
+   6e:  movl $0, %edi   <str:"<<\n">
+   73:  movl %r13d, (, %rbp, 4)   <var:ann+0>
+   7b:  callq fn:pdfout+0
+   80:  xorl %eax, %eax
+   82:  movl $0, %edi   <str:"  /Type /Annot\n">
+   87:  callq fn:pdfout+0
+   8c:  xorl %eax, %eax
+   8e:  movl $0, %edi   <str:"  /Subtype /Link\n">
+   93:  callq fn:pdfout+0
+   98:  imull $0x64, (%rip), %esi   <var:o_v+0>
+   9f:  imull $0x64, (%rip), %edi   <var:o_h+0>
+   a6:  callq fn:pdfpos00+0
+   ab:  movl $0, %edi   <str:"  /Rect [%s">
+   b0:  movq %rax, %rsi
+   b3:  xorl %eax, %eax
+   b5:  callq fn:pdfout+0
+   ba:  movl (%rip), %esi   <var:o_v+0>
+   c0:  addl (%rip), %ebx   <var:o_h+0>
+   c6:  imull $0x64, %ebx, %edi
+   c9:  addl %r14d, %esi
+   cc:  imull $0x64, %esi, %esi
+   cf:  callq fn:pdfpos00+0
+   d4:  movl $0, %edi   <str:" %s]\n">
+   d9:  movq %rax, %rsi
+   dc:  xorl %eax, %eax
+   de:  callq fn:pdfout+0
+   e3:  cmpb $0x23, (%r12)
+   e8:  je 0x128
+   ea:  movq %r12, %rdi
+   ed:  callq pdftext_static+0
+   f2:  movl $0, %edi   <str:"  /A << /S /URI /URI %s >>\n">
+   f7:  movq %rax, %rsi
+   fa:  xorl %eax, %eax
+   fc:  callq fn:pdfout+0
+  101:  movl $0, %edi   <str:">>\n">
+  106:  xorl %eax, %eax
+  108:  callq fn:pdfout+0
+  10d:  popq %rbx
+  10e:  movl $0, %edi   <str:"endobj\n\n">
+  113:  popq %rbp
+  114:  xorl %eax, %eax
+  116:  popq %r12
+  118:  popq %r13
+  11a:  popq %r14
+  11c:  jmp fn:pdfout+0
+  121:  nopl (%rax)
+  128:  leaq 1(%r12), %rsi
+  12d:  movl $0, %edi   <str:"  /A << /S /GoTo /D (%s) >>\n">
+  132:  xorl %eax, %eax
+  134:  callq fn:pdfout+0
+  139:  jmp 0x101
+  13b:  nopl (%rax, %rax)
+  140:  popq %rbx
+  141:  popq %rbp
+  142:  popq %r12
+  144:  popq %r13
+  146:  popq %r14
+  148:  retq
+  149:  nopl (%rax)
+  150:  movq (%rip), %rdi   <var:pg+0>
+  157:  movl $0, %esi   <str:">] TJ\n">
+  15c:  xorl %eax, %eax
+  15e:  callq sbuf_printf+0
+  163:  movslq (%rip), %rbp   <var:ann_n+0>
+  16a:  jmp 0x30

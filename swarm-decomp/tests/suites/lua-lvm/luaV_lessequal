@@ -1,0 +1,152 @@
+# luaV_lessequal  (global, 606 bytes, 151 instructions)
+    0:  movzbl 8(%rsi), %ecx
+    4:  movl %ecx, %eax
+    6:  andl $0xf, %eax
+    9:  cmpb $3, %al
+    b:  jne 0x80
+    d:  movzbl 8(%rdx), %eax
+   11:  movl %eax, %r8d
+   14:  andl $0xf, %r8d
+   18:  cmpb $3, %r8b
+   1c:  je 0x30
+   1e:  movl $0x15, %ecx
+   23:  jmp luaT_callorderTM+0
+   28:  nopl (%rax, %rax)
+   30:  cmpb $3, %cl
+   33:  je 0xb0
+   35:  movsd (%rsi), %xmm0
+   39:  cmpb $0x13, %al
+   3b:  je 0xf8
+   41:  movabsq $0x20000000000000, %rax
+   4b:  movq (%rdx), %rdx
+   4e:  movabsq $0x40000000000000, %rcx
+   58:  addq %rdx, %rax
+   5b:  cmpq %rax, %rcx
+   5e:  jb 0x198
+   64:  pxor %xmm1, %xmm1
+   68:  xorl %eax, %eax
+   6a:  cvtsi2sdq %rdx, %xmm1
+   6f:  comisd %xmm0, %xmm1
+   73:  setae %al
+   76:  retq
+   77:  nopw (%rax, %rax)
+   80:  cmpb $4, %al
+   82:  jne 0x1e
+   84:  movzbl 8(%rdx), %eax
+   88:  andl $0xf, %eax
+   8b:  cmpb $4, %al
+   8d:  jne 0x1e
+   8f:  subq $8, %rsp
+   93:  movq (%rdx), %rax
+   96:  movq (%rsi), %rdi
+   99:  movq %rax, %rsi
+   9c:  callq fn:l_strcmp+0
+   a1:  testl %eax, %eax
+   a3:  setle %al
+   a6:  addq $8, %rsp
+   aa:  movzbl %al, %eax
+   ad:  retq
+   ae:  nop
+   b0:  movq (%rsi), %rcx
+   b3:  movq (%rdx), %rdx
+   b6:  cmpb $3, %al
+   b8:  je 0x230
+   be:  movabsq $0x20000000000000, %rax
+   c8:  movq %rdx, %xmm0
+   cd:  movabsq $0x40000000000000, %rdx
+   d7:  addq %rcx, %rax
+   da:  cmpq %rax, %rdx
+   dd:  jb 0x110
+   df:  pxor %xmm1, %xmm1
+   e3:  xorl %eax, %eax
+   e5:  cvtsi2sdq %rcx, %xmm1
+   ea:  comisd %xmm1, %xmm0
+   ee:  setae %al
+   f1:  retq
+   f2:  nopw (%rax, %rax)
+   f8:  movsd (%rdx), %xmm1
+   fc:  xorl %eax, %eax
+   fe:  comisd %xmm0, %xmm1
+  102:  setae %al
+  105:  retq
+  106:  nopw %cs:(%rax, %rax)
+  110:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+  118:  movsd (%rip), %xmm4   <cst:0000000000003043>
+  120:  movapd %xmm0, %xmm1
+  124:  movapd %xmm0, %xmm2
+  128:  andpd %xmm3, %xmm1
+  12c:  ucomisd %xmm1, %xmm4
+  130:  jbe 0x165
+  132:  cvttsd2si %xmm0, %rax
+  137:  pxor %xmm1, %xmm1
+  13b:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+  143:  andnpd %xmm0, %xmm3
+  147:  cvtsi2sdq %rax, %xmm1
+  14c:  movapd %xmm1, %xmm2
+  150:  cmpnlesd %xmm0, %xmm2
+  155:  andpd %xmm4, %xmm2
+  159:  subsd %xmm2, %xmm1
+  15d:  movapd %xmm1, %xmm2
+  161:  orpd %xmm3, %xmm2
+  165:  comisd (%rip), %xmm2   <cst:000000000000e0c3>
+  16d:  jb 0x250
+  173:  movsd (%rip), %xmm1   <cst:000000000000e043>
+  17b:  comisd %xmm2, %xmm1
+  17f:  jbe 0x250
+  185:  cvttsd2si %xmm2, %rax
+  18a:  cmpq %rax, %rcx
+  18d:  setle %al
+  190:  movzbl %al, %eax
+  193:  retq
+  194:  nopl (%rax)
+  198:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+  1a0:  movsd (%rip), %xmm4   <cst:0000000000003043>
+  1a8:  movapd %xmm0, %xmm1
+  1ac:  movapd %xmm0, %xmm2
+  1b0:  andpd %xmm3, %xmm1
+  1b4:  ucomisd %xmm1, %xmm4
+  1b8:  jbe 0x1ed
+  1ba:  cvttsd2si %xmm0, %rax
+  1bf:  pxor %xmm1, %xmm1
+  1c3:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+  1cb:  andnpd %xmm0, %xmm3
+  1cf:  cvtsi2sdq %rax, %xmm1
+  1d4:  movapd %xmm1, %xmm2
+  1d8:  cmpnlesd %xmm0, %xmm2
+  1dd:  andpd %xmm4, %xmm2
+  1e1:  subsd %xmm2, %xmm1
+  1e5:  movapd %xmm1, %xmm2
+  1e9:  orpd %xmm3, %xmm2
+  1ed:  ucomisd %xmm2, %xmm0
+  1f1:  movapd %xmm2, %xmm1
+  1f5:  jp 0x1f9
+  1f7:  je 0x205
+  1f9:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+  201:  movapd %xmm2, %xmm1
+  205:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+  20d:  jb 0x240
+  20f:  movsd (%rip), %xmm2   <cst:000000000000e043>
+  217:  comisd %xmm1, %xmm2
+  21b:  jbe 0x240
+  21d:  cvttsd2si %xmm1, %rax
+  222:  cmpq %rax, %rdx
+  225:  setge %al
+  228:  movzbl %al, %eax
+  22b:  retq
+  22c:  nopl (%rax)
+  230:  xorl %eax, %eax
+  232:  cmpq %rdx, %rcx
+  235:  setle %al
+  238:  retq
+  239:  nopl (%rax)
+  240:  pxor %xmm1, %xmm1
+  244:  xorl %eax, %eax
+  246:  comisd %xmm0, %xmm1
+  24a:  seta %al
+  24d:  retq
+  24e:  nop
+  250:  pxor %xmm1, %xmm1
+  254:  xorl %eax, %eax
+  256:  comisd %xmm1, %xmm0
+  25a:  seta %al
+  25d:  retq

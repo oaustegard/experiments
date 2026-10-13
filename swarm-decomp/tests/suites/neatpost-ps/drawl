@@ -1,0 +1,29 @@
+# drawl  (global, 106 bytes, 28 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movl %edi, %ebx
+    6:  subq $8, %rsp
+    a:  movl (%rip), %eax   <var:draw_point+0>
+   10:  testl %eax, %eax
+   12:  je 0x50
+   14:  movl (%rip), %edx   <var:o_v+0>
+   1a:  addl (%rip), %ebx   <var:o_h+0>
+   20:  movl $0, %edi   <str:"%d %d drawl ">
+   25:  xorl %eax, %eax
+   27:  movl %ebx, (%rip)   <var:o_h+0>
+   2d:  movl %ebx, %esi
+   2f:  movl $1, (%rip)   <var:draw_point+0>
+   39:  addl %ebp, %edx
+   3b:  movl %edx, (%rip)   <var:o_v+0>
+   41:  addq $8, %rsp
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  jmp fn:outf+0
+   4c:  nopl (%rax)
+   50:  movl (%rip), %edx   <var:o_v+0>
+   56:  movl (%rip), %esi   <var:o_h+0>
+   5c:  movl $0, %edi   <str:"%d %d m ">
+   61:  xorl %eax, %eax
+   63:  callq fn:outf+0
+   68:  jmp 0x14

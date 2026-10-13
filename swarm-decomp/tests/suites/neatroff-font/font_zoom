@@ -1,0 +1,13 @@
+# font_zoom  (global, 38 bytes, 12 instructions)
+    0:  movl 0x54(%rdi), %edx
+    3:  movl %esi, %eax
+    5:  testl %edx, %edx
+    7:  je 0x25
+    9:  imull %esi, %edx
+    c:  addl $0x1f4, %edx
+   12:  movslq %edx, %rax
+   15:  sarl $0x1f, %edx
+   18:  imulq $0x10624dd3, %rax, %rax
+   1f:  sarq $0x26, %rax
+   23:  subl %edx, %eax
+   25:  retq

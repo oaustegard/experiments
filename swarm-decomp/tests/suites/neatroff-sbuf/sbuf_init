@@ -1,0 +1,14 @@
+# sbuf_init  (global, 42 bytes, 13 instructions)
+    0:  pxor %xmm0, %xmm0
+    4:  pushq %rbx
+    5:  movl $1, %ecx
+    a:  movq %rdi, %rbx
+    d:  movups %xmm0, (%rdi)
+   10:  movl $0x200, %edx
+   15:  xorl %esi, %esi
+   17:  movl $0x200, 8(%rdi)
+   1e:  xorl %edi, %edi
+   20:  callq mextend+0
+   25:  movq %rax, (%rbx)
+   28:  popq %rbx
+   29:  retq

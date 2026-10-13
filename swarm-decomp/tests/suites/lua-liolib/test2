@@ -1,0 +1,38 @@
+# test2  (static, 119 bytes, 37 instructions)
+    0:  pushq %rbx
+    1:  movsbl (%rsi), %edx
+    4:  movq %rdi, %rbx
+    7:  movl 8(%rdi), %eax
+    a:  cmpl %edx, %eax
+    c:  je 0x20
+    e:  movsbl 1(%rsi), %edx
+   12:  cmpl %edx, %eax
+   14:  je 0x20
+   16:  xorl %eax, %eax
+   18:  popq %rbx
+   19:  retq
+   1a:  nopw (%rax, %rax)
+   20:  movslq 0xc(%rbx), %rdx
+   24:  cmpl $0xc7, %edx
+   2a:  jg 0x60
+   2c:  leal 1(%rdx), %ecx
+   2f:  movl %ecx, 0xc(%rbx)
+   32:  movb %al, 0x10(%rbx, %rdx)
+   36:  movq (%rbx), %rdi
+   39:  movq 8(%rdi), %rax
+   3d:  cmpq 0x10(%rdi), %rax
+   41:  jae 0x70
+   43:  leaq 1(%rax), %rdx
+   47:  movq %rdx, 8(%rdi)
+   4b:  movzbl (%rax), %eax
+   4e:  movl %eax, 8(%rbx)
+   51:  movl $1, %eax
+   56:  popq %rbx
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  movb $0, 0x10(%rbx)
+   64:  xorl %eax, %eax
+   66:  jmp 0x18
+   68:  nopl (%rax, %rax)
+   70:  callq __uflow+0
+   75:  jmp 0x4e

@@ -1,0 +1,69 @@
+# src_push  (static, 254 bytes, 68 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rsi, %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $8, %rsp
+   14:  movl (%rip), %r13d   <var:esrc_depth+0>
+   1b:  cmpl $0x200, %r13d
+   22:  jg 0xe8
+   28:  movl $1, %esi
+   2d:  movl $0x1010, %edi
+   32:  callq calloc+0
+   37:  movq %rbx, %rdi
+   3a:  movq %rax, %r15
+   3d:  movq (%rip), %rax   <var:esrc+0>
+   44:  movq %rax, (%r15)
+   47:  callq strlen+0
+   4c:  leaq 1(%rax), %rbp
+   50:  movq %rbp, %rdi
+   53:  callq malloc+0
+   58:  movq %rbx, %rsi
+   5b:  movq %rbp, %rdx
+   5e:  xorl %ebx, %ebx
+   60:  movq %rax, %rdi
+   63:  callq memcpy+0
+   68:  movq %rax, 8(%r15)
+   6c:  xorl %eax, %eax
+   6e:  testq %r12, %r12
+   71:  setne %al
+   74:  movl %eax, 0x1008(%r15)
+   7b:  je 0xc0
+   7d:  nopl (%rax)
+   80:  movq (%r12, %rbx), %rbp
+   84:  testq %rbp, %rbp
+   87:  je 0xae
+   89:  movq %rbp, %rdi
+   8c:  callq strlen+0
+   91:  leaq 1(%rax), %r14
+   95:  movq %r14, %rdi
+   98:  callq malloc+0
+   9d:  movq %rbp, %rsi
+   a0:  movq %r14, %rdx
+   a3:  movq %rax, %rdi
+   a6:  callq memcpy+0
+   ab:  movq %rax, %rbp
+   ae:  movq %rbp, 0xfb8(%r15, %rbx)
+   b6:  addq $8, %rbx
+   ba:  cmpq $0x50, %rbx
+   be:  jne 0x80
+   c0:  addl $1, %r13d
+   c4:  movq %r15, (%rip)   <var:esrc+0>
+   cb:  movl %r13d, (%rip)   <var:esrc_depth+0>
+   d2:  addq $8, %rsp
+   d6:  popq %rbx
+   d7:  popq %rbp
+   d8:  popq %r12
+   da:  popq %r13
+   dc:  popq %r14
+   de:  popq %r15
+   e0:  retq
+   e1:  nopl (%rax)
+   e8:  movl $0, %edi   <str:"neateqn: macro recursion limit reached\n">
+   ed:  callq errdie+0
+   f2:  movl (%rip), %r13d   <var:esrc_depth+0>
+   f9:  jmp 0x28

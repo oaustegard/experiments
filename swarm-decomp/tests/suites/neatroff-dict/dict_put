@@ -1,0 +1,68 @@
+# dict_put  (global, 191 bytes, 67 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movl %edx, %r12d
+    9:  pushq %rbp
+    a:  movq %rsi, %rbp
+    d:  pushq %rbx
+    e:  movzbl 1(%rsi), %edx
+   12:  movq %rdi, %rbx
+   15:  movzbl (%rsi), %eax
+   18:  testb %dl, %dl
+   1a:  je 0x34
+   1c:  leaq 1(%rsi), %rcx
+   20:  movl %eax, %esi
+   22:  addq $1, %rcx
+   26:  shll $5, %esi
+   29:  addl %esi, %eax
+   2b:  addl %edx, %eax
+   2d:  movzbl (%rcx), %edx
+   30:  testb %dl, %dl
+   32:  jne 0x20
+   34:  xorl %edx, %edx
+   36:  movl 0x24(%rbx), %esi
+   39:  divl 0x28(%rbx)
+   3c:  movslq %edx, %r13
+   3f:  cmpl 0x20(%rbx), %esi
+   42:  jge 0x80
+   44:  movl 0x2c(%rbx), %eax
+   47:  testl %eax, %eax
+   49:  jne 0x95
+   4b:  movslq 0x24(%rbx), %rcx
+   4f:  movq 8(%rbx), %rsi
+   53:  leal 1(%rcx), %edx
+   56:  movl %edx, 0x24(%rbx)
+   59:  movq 0x10(%rbx), %rdx
+   5d:  movq %rbp, (%rdx, %rcx, 8)
+   61:  movq 0x18(%rbx), %rdx
+   65:  movl %r12d, (%rdx, %rcx, 4)
+   69:  movq (%rbx), %rdx
+   6c:  leaq (%rdx, %r13, 4), %rdx
+   70:  movl (%rdx), %edi
+   72:  movl %edi, (%rsi, %rcx, 4)
+   75:  movl %ecx, (%rdx)
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  popq %r13
+   7d:  popq %r14
+   7f:  retq
+   80:  addl $0x400, %esi
+   86:  movq %rbx, %rdi
+   89:  callq fn:dict_extend+0
+   8e:  movl 0x2c(%rbx), %eax
+   91:  testl %eax, %eax
+   93:  je 0x4b
+   95:  movq %rbp, %rdi
+   98:  callq strlen+0
+   9d:  leal 1(%rax), %r14d
+   a1:  movslq %r14d, %r14
+   a4:  movq %r14, %rdi
+   a7:  callq xmalloc+0
+   ac:  movq %rbp, %rsi
+   af:  movq %r14, %rdx
+   b2:  movq %rax, %rdi
+   b5:  callq memcpy+0
+   ba:  movq %rax, %rbp
+   bd:  jmp 0x4b

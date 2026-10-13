@@ -1,0 +1,56 @@
+# luaM_growaux_  (global, 165 bytes, 55 instructions)
+    0:  movl %edx, %eax
+    2:  movslq (%rcx), %rdx
+    5:  cmpl %eax, %edx
+    7:  jg 0x90
+    d:  movl %r9d, %eax
+   10:  pushq %r13
+   12:  shrl $0x1f, %eax
+   15:  pushq %r12
+   17:  movq %rdi, %r12
+   1a:  pushq %rbp
+   1b:  addl %r9d, %eax
+   1e:  movq %rcx, %rbp
+   21:  pushq %rbx
+   22:  sarl $1, %eax
+   24:  movl %r9d, %ebx
+   27:  subq $8, %rsp
+   2b:  cmpl %edx, %eax
+   2d:  jle 0x70
+   2f:  leal (%rdx, %rdx), %ebx
+   32:  movl $4, %eax
+   37:  cmpl %eax, %ebx
+   39:  cmovll %eax, %ebx
+   3c:  movslq %r8d, %r8
+   3f:  movslq %ebx, %r13
+   42:  movq %r12, %rdi
+   45:  imulq %r8, %r13
+   49:  imulq %r8, %rdx
+   4d:  movq %r13, %rcx
+   50:  callq luaM_realloc_+0
+   55:  testq %rax, %rax
+   58:  jne 0x5f
+   5a:  testq %r13, %r13
+   5d:  jne 0x98
+   5f:  movl %ebx, (%rbp)
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  popq %r12
+   6a:  popq %r13
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  cmpl %r9d, %edx
+   73:  jl 0x3c
+   75:  movq 0x30(%rsp), %rdx
+   7a:  movl %r9d, %ecx
+   7d:  movl $0, %esi   <str:"too many %s (limit is %d)">
+   82:  xorl %eax, %eax
+   84:  callq luaG_runerror+0
+   89:  nopl (%rax)
+   90:  movq %rsi, %rax
+   93:  retq
+   94:  nopl (%rax)
+   98:  movl $4, %esi
+   9d:  movq %r12, %rdi
+   a0:  callq luaD_throw+0

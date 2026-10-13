@@ -1,0 +1,6 @@
+# lua_atpanic  (global, 22 bytes, 5 instructions)
+    0:  movq 0x18(%rdi), %rax
+    4:  movq 0x100(%rax), %rdx
+    b:  movq %rsi, 0x100(%rax)
+   12:  movq %rdx, %rax
+   15:  retq

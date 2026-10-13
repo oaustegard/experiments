@@ -1,0 +1,36 @@
+# lua-ldo: translation unit ldo of lua
+# write each function as src/lua/ldo/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+correctstack	static	78 bytes
+closepaux	static	13 bytes
+luaD_seterrorobj	global	179 bytes
+luaD_throw	global	127 bytes
+f_parser	static	249 bytes
+luaD_rawrunprotected	global	128 bytes
+luaD_reallocstack	global	326 bytes
+luaD_growstack	global	157 bytes
+tryfuncTM	static	187 bytes
+luaD_shrinkstack	global	178 bytes
+luaD_inctop	global	78 bytes
+luaD_hook	global	311 bytes
+rethook	static	177 bytes
+luaD_hookcall	global	80 bytes
+luaD_poscall	global	536 bytes
+unroll	static	262 bytes
+luaD_pretailcall	global	677 bytes
+luaD_precall	global	671 bytes
+resume	static	284 bytes
+luaD_call	global	164 bytes
+luaD_callnoyield	global	164 bytes
+lua_resume	global	455 bytes
+lua_isyieldable	global	16 bytes
+lua_yieldk	global	115 bytes
+luaD_closeprotected	global	90 bytes
+luaD_pcall	global	165 bytes
+luaD_protectedparser	global	263 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+_longjmp _setjmp abort luaC_step luaE_checkcstack luaE_extendCI luaE_resetthread luaE_shrinkCI luaF_close luaF_initupvals luaG_callerror luaG_runerror luaM_free_ luaM_realloc_ luaM_saferealloc_ luaO_pushfstring luaS_new luaS_newlstr luaT_gettmbyobj luaU_undump luaV_execute luaV_finishOp luaY_parser luaZ_fill strchr

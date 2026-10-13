@@ -1,0 +1,1 @@
+static void tr_it(struct tr_args *a) { char *s2 = a->arg[1]; if (s2) { int *p = nreg(map(".it")); *p = map(s2); char *s1 = a->arg[0]; int *q = nreg(map(".itn")); *q = eval(s1, 0); } else { *nreg(map(".it")) = 0; } }

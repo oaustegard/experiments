@@ -1,0 +1,42 @@
+# hookf  (static, 135 bytes, 41 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"_HOOKKEY">
+    6:  movq %rsi, %rbp
+    9:  movl $0xfff0b9d8, %esi
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $8, %rsp
+   16:  callq lua_getfield+0
+   1b:  movq %rbx, %rdi
+   1e:  callq lua_pushthread+0
+   23:  movl $0xfffffffe, %esi
+   28:  movq %rbx, %rdi
+   2b:  callq lua_rawget+0
+   30:  cmpl $6, %eax
+   33:  je 0x40
+   35:  addq $8, %rsp
+   39:  popq %rbx
+   3a:  popq %rbp
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  movslq (%rbp), %rax
+   44:  movq %rbx, %rdi
+   47:  movq (, %rax, 8), %rsi   <var:hooknames+0>
+   4f:  callq lua_pushstring+0
+   54:  movslq 0x30(%rbp), %rsi
+   58:  movq %rbx, %rdi
+   5b:  testl %esi, %esi
+   5d:  js 0x80
+   5f:  callq lua_pushinteger+0
+   64:  addq $8, %rsp
+   68:  movq %rbx, %rdi
+   6b:  xorl %r8d, %r8d
+   6e:  xorl %ecx, %ecx
+   70:  popq %rbx
+   71:  xorl %edx, %edx
+   73:  movl $2, %esi
+   78:  popq %rbp
+   79:  jmp lua_callk+0
+   7e:  nop
+   80:  callq lua_pushnil+0
+   85:  jmp 0x64

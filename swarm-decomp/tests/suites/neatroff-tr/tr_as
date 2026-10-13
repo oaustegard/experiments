@@ -1,0 +1,53 @@
+# tr_as  (static, 169 bytes, 52 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq 8(%rdi), %rdi
+   11:  callq map+0
+   16:  movl %eax, %edi
+   18:  movl %eax, %ebp
+   1a:  callq str_get+0
+   1f:  testq %rax, %rax
+   22:  je 0x90
+   24:  movl %ebp, %edi
+   26:  callq str_get+0
+   2b:  movq %rax, %rdi
+   2e:  movq %rax, %r12
+   31:  callq strlen+0
+   36:  movq 0x10(%r13), %r13
+   3a:  movq %rax, %rbx
+   3d:  testq %r13, %r13
+   40:  je 0xa1
+   42:  movq %r13, %rdi
+   45:  callq strlen+0
+   4a:  addq %rax, %rbx
+   4d:  leaq 1(%rbx), %rdi
+   51:  callq xmalloc+0
+   56:  movq %r12, %rsi
+   59:  movq %rax, %rdi
+   5c:  movq %rax, %rbx
+   5f:  callq stpcpy+0
+   64:  movq %r13, %rsi
+   67:  movq %rax, %rdi
+   6a:  callq strcpy+0
+   6f:  movl %ebp, %edi
+   71:  movq %rbx, %rsi
+   74:  callq str_set+0
+   79:  addq $8, %rsp
+   7d:  movq %rbx, %rdi
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  jmp free+0
+   8b:  nopl (%rax, %rax)
+   90:  movq 0x10(%r13), %r13
+   94:  xorl %ebx, %ebx
+   96:  movl $0, %r12d   <str:"">
+   9c:  testq %r13, %r13
+   9f:  jne 0x42
+   a1:  movl $0, %r13d   <str:"">
+   a7:  jmp 0x4d

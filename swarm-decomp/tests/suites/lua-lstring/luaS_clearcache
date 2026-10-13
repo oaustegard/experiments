@@ -1,0 +1,18 @@
+# luaS_clearcache  (global, 66 bytes, 17 instructions)
+    0:  leaq 0x228(%rdi), %rax
+    7:  leaq 0x578(%rdi), %rcx
+    e:  nop
+   10:  movq (%rax), %rdx
+   13:  testb $0x18, 9(%rdx)
+   17:  je 0x23
+   19:  movq 0x110(%rdi), %rdx
+   20:  movq %rdx, (%rax)
+   23:  movq 8(%rax), %rdx
+   27:  testb $0x18, 9(%rdx)
+   2b:  je 0x38
+   2d:  movq 0x110(%rdi), %rdx
+   34:  movq %rdx, 8(%rax)
+   38:  addq $0x10, %rax
+   3c:  cmpq %rcx, %rax
+   3f:  jne 0x10
+   41:  retq

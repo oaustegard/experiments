@@ -1,0 +1,57 @@
+# luaV_tointegerns  (global, 223 bytes, 56 instructions)
+    0:  movzbl 8(%rdi), %eax
+    4:  cmpb $0x13, %al
+    6:  je 0x28
+    8:  xorl %ecx, %ecx
+    a:  cmpb $3, %al
+    c:  je 0x18
+    e:  movl %ecx, %eax
+   10:  retq
+   11:  nopl (%rax)
+   18:  movq (%rdi), %rax
+   1b:  movq %rax, (%rsi)
+   1e:  movl $1, %ecx
+   23:  jmp 0xe
+   25:  nopl (%rax)
+   28:  movsd (%rdi), %xmm0
+   2c:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+   34:  movsd (%rip), %xmm4   <cst:0000000000003043>
+   3c:  movapd %xmm0, %xmm1
+   40:  movapd %xmm0, %xmm2
+   44:  andpd %xmm3, %xmm1
+   48:  ucomisd %xmm1, %xmm4
+   4c:  jbe 0x81
+   4e:  cvttsd2si %xmm0, %rax
+   53:  pxor %xmm1, %xmm1
+   57:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   5f:  andnpd %xmm0, %xmm3
+   63:  cvtsi2sdq %rax, %xmm1
+   68:  movapd %xmm1, %xmm2
+   6c:  cmpnlesd %xmm0, %xmm2
+   71:  andpd %xmm4, %xmm2
+   75:  subsd %xmm2, %xmm1
+   79:  movapd %xmm1, %xmm2
+   7d:  orpd %xmm3, %xmm2
+   81:  ucomisd %xmm2, %xmm0
+   85:  movapd %xmm2, %xmm1
+   89:  jp 0x8d
+   8b:  je 0xb0
+   8d:  xorl %ecx, %ecx
+   8f:  testl %edx, %edx
+   91:  je 0xe
+   97:  cmpl $2, %edx
+   9a:  jne 0xb0
+   9c:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+   a4:  movapd %xmm2, %xmm1
+   a8:  nopl (%rax, %rax)
+   b0:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+   b8:  jb 0xd8
+   ba:  movsd (%rip), %xmm0   <cst:000000000000e043>
+   c2:  comisd %xmm1, %xmm0
+   c6:  jbe 0xd8
+   c8:  cvttsd2si %xmm1, %rax
+   cd:  movq %rax, (%rsi)
+   d0:  jmp 0x1e
+   d5:  nopl (%rax)
+   d8:  xorl %ecx, %ecx
+   da:  jmp 0xe

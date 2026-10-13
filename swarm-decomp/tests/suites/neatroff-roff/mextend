@@ -1,0 +1,43 @@
+# mextend  (global, 125 bytes, 42 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movslq %ecx, %r14
+    7:  pushq %r13
+    9:  movq %rsi, %r13
+    c:  pushq %r12
+    e:  movq %rdi, %r12
+   11:  movq %r14, %rdi
+   14:  pushq %rbp
+   15:  imulq %rdx, %rdi
+   19:  pushq %rbx
+   1a:  movq %rdx, %rbx
+   1d:  subq $8, %rsp
+   21:  callq malloc+0
+   26:  testq %rax, %rax
+   29:  je 0x73
+   2b:  movq %r14, %r15
+   2e:  movq %r12, %rsi
+   31:  subq %r13, %rbx
+   34:  movq %rax, %rdi
+   37:  imulq %r13, %r15
+   3b:  movq %rax, %rbp
+   3e:  movq %r15, %rdx
+   41:  callq memcpy+0
+   46:  movq %rbx, %rdx
+   49:  leaq (%rbp, %r15), %rdi
+   4e:  xorl %esi, %esi
+   50:  imulq %r14, %rdx
+   54:  callq memset+0
+   59:  movq %r12, %rdi
+   5c:  callq free+0
+   61:  addq $8, %rsp
+   65:  movq %rbp, %rax
+   68:  popq %rbx
+   69:  popq %rbp
+   6a:  popq %r12
+   6c:  popq %r13
+   6e:  popq %r14
+   70:  popq %r15
+   72:  retq
+   73:  movl $0, %edi   <str:"neatroff: malloc() failed\n">
+   78:  callq errdie+0

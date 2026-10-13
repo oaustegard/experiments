@@ -1,0 +1,61 @@
+# auxresume  (static, 197 bytes, 60 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movq %rsi, %rbx
+    d:  movl %edx, %esi
+    f:  movq %rbx, %rdi
+   12:  subq $0x10, %rsp
+   16:  callq lua_checkstack+0
+   1b:  testl %eax, %eax
+   1d:  je 0x78
+   1f:  movl %r12d, %edx
+   22:  movq %rbx, %rsi
+   25:  movq %rbp, %rdi
+   28:  callq lua_xmove+0
+   2d:  leaq 0xc(%rsp), %rcx
+   32:  movl %r12d, %edx
+   35:  movq %rbp, %rsi
+   38:  movq %rbx, %rdi
+   3b:  callq lua_resume+0
+   40:  cmpl $1, %eax
+   43:  ja 0x90
+   45:  movl 0xc(%rsp), %eax
+   49:  movq %rbp, %rdi
+   4c:  leal 1(%rax), %esi
+   4f:  callq lua_checkstack+0
+   54:  testl %eax, %eax
+   56:  je 0xa8
+   58:  movl 0xc(%rsp), %edx
+   5c:  movq %rbp, %rsi
+   5f:  movq %rbx, %rdi
+   62:  callq lua_xmove+0
+   67:  movl 0xc(%rsp), %eax
+   6b:  addq $0x10, %rsp
+   6f:  popq %rbx
+   70:  popq %rbp
+   71:  popq %r12
+   73:  retq
+   74:  nopl (%rax)
+   78:  movl $0, %esi   <str:"too many arguments to resume">
+   7d:  movq %rbp, %rdi
+   80:  callq lua_pushstring+0
+   85:  movl $0xffffffff, %eax
+   8a:  jmp 0x6b
+   8c:  nopl (%rax)
+   90:  movl $1, %edx
+   95:  movq %rbp, %rsi
+   98:  movq %rbx, %rdi
+   9b:  callq lua_xmove+0
+   a0:  jmp 0x85
+   a2:  nopw (%rax, %rax)
+   a8:  movl 0xc(%rsp), %esi
+   ac:  movq %rbx, %rdi
+   af:  notl %esi
+   b1:  callq lua_settop+0
+   b6:  movl $0, %esi   <str:"too many results to resume">
+   bb:  movq %rbp, %rdi
+   be:  callq lua_pushstring+0
+   c3:  jmp 0x85

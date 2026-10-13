@@ -1,0 +1,42 @@
+# luaL_error  (global, 193 bytes, 41 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $0xd8, %rsp
+    f:  movq %rdx, 0x30(%rsp)
+   14:  movq %rcx, 0x38(%rsp)
+   19:  movq %r8, 0x40(%rsp)
+   1e:  movq %r9, 0x48(%rsp)
+   23:  testb %al, %al
+   25:  je 0x5e
+   27:  movaps %xmm0, 0x50(%rsp)
+   2c:  movaps %xmm1, 0x60(%rsp)
+   31:  movaps %xmm2, 0x70(%rsp)
+   36:  movaps %xmm3, 0x80(%rsp)
+   3e:  movaps %xmm4, 0x90(%rsp)
+   46:  movaps %xmm5, 0xa0(%rsp)
+   4e:  movaps %xmm6, 0xb0(%rsp)
+   56:  movaps %xmm7, 0xc0(%rsp)
+   5e:  leaq 0xf0(%rsp), %rax
+   66:  movq %rbx, %rdi
+   69:  movl $1, %esi
+   6e:  movl $0x10, 8(%rsp)
+   76:  movq %rax, 0x10(%rsp)
+   7b:  leaq 0x20(%rsp), %rax
+   80:  movq %rax, 0x18(%rsp)
+   85:  movl $0x30, 0xc(%rsp)
+   8d:  callq luaL_where+0
+   92:  leaq 8(%rsp), %rdx
+   97:  movq %rbp, %rsi
+   9a:  movq %rbx, %rdi
+   9d:  callq lua_pushvfstring+0
+   a2:  movq %rbx, %rdi
+   a5:  movl $2, %esi
+   aa:  callq lua_concat+0
+   af:  movq %rbx, %rdi
+   b2:  callq lua_error+0
+   b7:  addq $0xd8, %rsp
+   be:  popq %rbx
+   bf:  popq %rbp
+   c0:  retq

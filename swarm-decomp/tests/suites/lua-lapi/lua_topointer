@@ -1,0 +1,79 @@
+# lua_topointer  (global, 253 bytes, 78 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x40
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jae 0x61
+   18:  movzbl 8(%rsi), %eax
+   1c:  movl %eax, %edx
+   1e:  andl $0x3f, %edx
+   21:  cmpb $7, %dl
+   24:  je 0x77
+   26:  cmpb $0x16, %dl
+   29:  je 0x36
+   2b:  cmpb $2, %dl
+   2e:  je 0x77
+   30:  xorl %edx, %edx
+   32:  testb $0x40, %al
+   34:  je 0x39
+   36:  movq (%rsi), %rdx
+   39:  movq %rdx, %rax
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  cmpl $0xfff0b9d9, %esi
+   46:  jge 0xe0
+   4c:  cmpl $0xfff0b9d8, %esi
+   52:  je 0xf0
+   58:  movq (%rax), %rax
+   5b:  cmpb $0x66, 8(%rax)
+   5f:  je 0xb0
+   61:  movq 0x18(%rdi), %rsi
+   65:  movzbl 0x58(%rsi), %eax
+   69:  addq $0x50, %rsi
+   6d:  movl %eax, %edx
+   6f:  andl $0x3f, %edx
+   72:  cmpb $7, %dl
+   75:  jne 0x26
+   77:  andl $0xf, %eax
+   7a:  movq (%rsi), %rdx
+   7d:  cmpb $2, %al
+   7f:  je 0x39
+   81:  cmpb $7, %al
+   83:  jne 0xa8
+   85:  movzwl 0xa(%rdx), %eax
+   89:  movl $0x20, %ecx
+   8e:  testw %ax, %ax
+   91:  je 0x9b
+   93:  shlq $4, %rax
+   97:  leaq 0x28(%rax), %rcx
+   9b:  addq %rcx, %rdx
+   9e:  movq %rdx, %rax
+   a1:  retq
+   a2:  nopw (%rax, %rax)
+   a8:  xorl %edx, %edx
+   aa:  movq %rdx, %rax
+   ad:  retq
+   ae:  nop
+   b0:  movq (%rax), %rdx
+   b3:  movl $0xfff0b9d8, %eax
+   b8:  subl %esi, %eax
+   ba:  movzbl 0xa(%rdx), %ecx
+   be:  cmpl %ecx, %eax
+   c0:  jg 0x61
+   c2:  movl $0xfff0b9d9, %eax
+   c7:  subl %esi, %eax
+   c9:  cltq
+   cb:  shlq $4, %rax
+   cf:  leaq (%rdx, %rax), %rsi
+   d3:  jmp 0x18
+   d8:  nopl (%rax, %rax)
+   e0:  movslq %esi, %rsi
+   e3:  shlq $4, %rsi
+   e7:  addq 0x10(%rdi), %rsi
+   eb:  jmp 0x18
+   f0:  movq 0x18(%rdi), %rsi
+   f4:  addq $0x40, %rsi
+   f8:  jmp 0x18

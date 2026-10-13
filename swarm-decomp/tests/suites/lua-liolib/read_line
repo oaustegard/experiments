@@ -1,0 +1,84 @@
+# read_line  (static, 296 bytes, 83 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rsi, %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  movl %edx, %ebp
+   11:  pushq %rbx
+   12:  subq $0x428, %rsp
+   19:  movq %rsp, %rsi
+   1c:  callq luaL_buffinit+0
+   21:  movl $0x400, %esi
+   26:  movq %rsp, %rdi
+   29:  xorl %ebx, %ebx
+   2b:  callq luaL_prepbuffsize+0
+   30:  movq %r13, %rdi
+   33:  movq %rax, %r15
+   36:  callq flockfile+0
+   3b:  jmp 0x65
+   3d:  nopl (%rax)
+   40:  leaq 1(%rax), %rdx
+   44:  movq %rdx, 8(%r13)
+   48:  movzbl (%rax), %eax
+   4b:  cmpl $0xa, %eax
+   4e:  je 0xc0
+   50:  movb %al, (%r15, %rbx)
+   54:  addq $1, %rbx
+   58:  cmpq $0x400, %rbx
+   5f:  je 0x103
+   65:  movq 8(%r13), %rax
+   69:  movslq %ebx, %r14
+   6c:  cmpq 0x10(%r13), %rax
+   70:  jb 0x40
+   72:  movq %r13, %rdi
+   75:  callq __uflow+0
+   7a:  cmpl $-1, %eax
+   7d:  jne 0x4b
+   7f:  movq %r13, %rdi
+   82:  callq funlockfile+0
+   87:  movq %rsp, %rdi
+   8a:  addq %r14, 0x10(%rsp)
+   8f:  callq luaL_pushresult+0
+   94:  movl $0xffffffff, %esi
+   99:  movq %r12, %rdi
+   9c:  callq lua_rawlen+0
+   a1:  testq %rax, %rax
+   a4:  setne %al
+   a7:  movzbl %al, %eax
+   aa:  addq $0x428, %rsp
+   b1:  popq %rbx
+   b2:  popq %rbp
+   b3:  popq %r12
+   b5:  popq %r13
+   b7:  popq %r14
+   b9:  popq %r15
+   bb:  retq
+   bc:  nopl (%rax)
+   c0:  movq %r13, %rdi
+   c3:  callq funlockfile+0
+   c8:  addq 0x10(%rsp), %r14
+   cd:  movq %r14, 0x10(%rsp)
+   d2:  cmpl $1, %ebp
+   d5:  je 0xf4
+   d7:  cmpq 8(%rsp), %r14
+   dc:  jae 0x119
+   de:  movq 0x10(%rsp), %rax
+   e3:  leaq 1(%rax), %rdx
+   e7:  movq %rdx, 0x10(%rsp)
+   ec:  movq (%rsp), %rdx
+   f0:  movb $0xa, (%rdx, %rax)
+   f4:  movq %rsp, %rdi
+   f7:  callq luaL_pushresult+0
+   fc:  movl $1, %eax
+  101:  jmp 0xaa
+  103:  movq %r13, %rdi
+  106:  callq funlockfile+0
+  10b:  addq $0x400, 0x10(%rsp)
+  114:  jmp 0x21
+  119:  movl $1, %esi
+  11e:  movq %rsp, %rdi
+  121:  callq luaL_prepbuffsize+0
+  126:  jmp 0xde

@@ -1,0 +1,5 @@
+# luaM_toobig  (global, 16 bytes, 4 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %esi   <str:"memory allocation error: block too big">
+    9:  xorl %eax, %eax
+    b:  callq luaG_runerror+0

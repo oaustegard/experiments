@@ -1,0 +1,37 @@
+# searcher_preload  (static, 121 bytes, 36 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq luaL_checklstring+0
+   15:  movl $0, %edx   <str:"_PRELOAD">
+   1a:  movl $0xfff0b9d8, %esi
+   1f:  movq %rbx, %rdi
+   22:  movq %rax, %rbp
+   25:  callq lua_getfield+0
+   2a:  movq %rbp, %rdx
+   2d:  movl $0xffffffff, %esi
+   32:  movq %rbx, %rdi
+   35:  callq lua_getfield+0
+   3a:  testl %eax, %eax
+   3c:  jne 0x60
+   3e:  movq %rbp, %rdx
+   41:  movq %rbx, %rdi
+   44:  movl $0, %esi   <str:"no field package.preload['%s']">
+   49:  callq lua_pushfstring+0
+   4e:  addq $8, %rsp
+   52:  movl $1, %eax
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  movq %rbx, %rdi
+   63:  movl $0, %esi   <str:":preload:">
+   68:  callq lua_pushstring+0
+   6d:  addq $8, %rsp
+   71:  movl $2, %eax
+   76:  popq %rbx
+   77:  popq %rbp
+   78:  retq

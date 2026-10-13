@@ -1,0 +1,93 @@
+# str_byte  (static, 308 bytes, 92 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  subq $0x10, %rsp
+   14:  leaq 8(%rsp), %rdx
+   19:  callq luaL_checklstring+0
+   1e:  movl $1, %edx
+   23:  movl $2, %esi
+   28:  movq %rbp, %rdi
+   2b:  movq %rax, %rbx
+   2e:  callq luaL_optinteger+0
+   33:  movq 8(%rsp), %r12
+   38:  movq %rax, %rdx
+   3b:  movq %rax, %r14
+   3e:  testq %rax, %rax
+   41:  jg 0x5d
+   43:  movl $1, %r14d
+   49:  je 0x5d
+   4b:  movq %r12, %rcx
+   4e:  leaq 1(%r12, %rax), %rax
+   53:  negq %rcx
+   56:  cmpq %rcx, %rdx
+   59:  cmovgeq %rax, %r14
+   5d:  movl $3, %esi
+   62:  movq %rbp, %rdi
+   65:  callq luaL_optinteger+0
+   6a:  cmpq %r12, %rax
+   6d:  jg 0xab
+   6f:  testq %rax, %rax
+   72:  jns 0xa8
+   74:  movq %r12, %rdx
+   77:  negq %rdx
+   7a:  cmpq %rdx, %rax
+   7d:  jge 0x118
+   83:  xorl %r13d, %r13d
+   86:  testq %r14, %r14
+   89:  jne 0x105
+   8b:  movl $0, %edx   <str:"string slice too long">
+   90:  movl $1, %esi
+   95:  movq %rbp, %rdi
+   98:  movl $1, %r13d
+   9e:  callq luaL_checkstack+0
+   a3:  jmp 0xde
+   a5:  nopl (%rax)
+   a8:  movq %rax, %r12
+   ab:  xorl %r13d, %r13d
+   ae:  cmpq %r14, %r12
+   b1:  jb 0x105
+   b3:  movq %r12, %rax
+   b6:  subq %r14, %rax
+   b9:  cmpq $0x7ffffffe, %rax
+   bf:  ja 0x120
+   c1:  subl %r14d, %r12d
+   c4:  movl $0, %edx   <str:"string slice too long">
+   c9:  movq %rbp, %rdi
+   cc:  leal 1(%r12), %r13d
+   d1:  movl %r13d, %esi
+   d4:  callq luaL_checkstack+0
+   d9:  testl %r13d, %r13d
+   dc:  jle 0x105
+   de:  addq %r14, %rbx
+   e1:  movslq %r13d, %r12
+   e4:  addq %rbx, %r12
+   e7:  nopw (%rax, %rax)
+   f0:  movzbl -1(%rbx), %esi
+   f4:  movq %rbp, %rdi
+   f7:  addq $1, %rbx
+   fb:  callq lua_pushinteger+0
+  100:  cmpq %rbx, %r12
+  103:  jne 0xf0
+  105:  addq $0x10, %rsp
+  109:  movl %r13d, %eax
+  10c:  popq %rbx
+  10d:  popq %rbp
+  10e:  popq %r12
+  110:  popq %r13
+  112:  popq %r14
+  114:  retq
+  115:  nopl (%rax)
+  118:  leaq 1(%r12, %rax), %r12
+  11d:  jmp 0xab
+  11f:  nop
+  120:  movl $0, %esi   <str:"string slice too long">
+  125:  movq %rbp, %rdi
+  128:  xorl %eax, %eax
+  12a:  callq luaL_error+0
+  12f:  movl %eax, %r13d
+  132:  jmp 0x105

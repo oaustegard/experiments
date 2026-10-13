@@ -1,0 +1,96 @@
+# ex_keyword  (static, 364 bytes, 95 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  movq %rbp, %rbx
+    a:  callq sbuf_make+0
+    f:  leaq 1(%rbp), %rdx
+   13:  movq %rax, %r12
+   16:  movzbl 1(%rbp), %eax
+   1a:  testb %al, %al
+   1c:  jne 0x3a
+   1e:  jmp 0x58
+   20:  movzbl (%rdx), %esi
+   23:  movq %rdx, %rbx
+   26:  movq %r12, %rdi
+   29:  callq sbuf_chr+0
+   2e:  movzbl 1(%rbx), %eax
+   32:  leaq 1(%rbx), %rdx
+   36:  testb %al, %al
+   38:  je 0x58
+   3a:  cmpb %al, (%rbp)
+   3d:  je 0x58
+   3f:  cmpb $0x5c, %al
+   41:  jne 0x20
+   43:  movzbl 2(%rbx), %esi
+   47:  addq $2, %rbx
+   4b:  testb %sil, %sil
+   4e:  jne 0x26
+   50:  jmp 0x20
+   52:  nopw (%rax, %rax)
+   58:  movq %r12, %rdi
+   5b:  callq sbuf_len+0
+   60:  testl %eax, %eax
+   62:  jne 0x80
+   64:  movq %r12, %rdi
+   67:  callq sbuf_free+0
+   6c:  xorl %eax, %eax
+   6e:  cmpb $0, (%rip)   <var:kwd+0>
+   75:  popq %rbx
+   76:  sete %al
+   79:  popq %rbp
+   7a:  popq %r12
+   7c:  retq
+   7d:  nopl (%rax)
+   80:  movq %r12, %rdi
+   83:  callq sbuf_buf+0
+   88:  movl $0, %edi   <var:kwd+0>
+   8d:  movq %rax, %rsi
+   90:  callq strcmp+0
+   95:  testl %eax, %eax
+   97:  je 0x64
+   99:  cmpb $0, (%rip)   <var:kwd+0>
+   a0:  jne 0x15d
+   a6:  movq %r12, %rdi
+   a9:  callq sbuf_buf+0
+   ae:  movl $0, %edx   <str:"%s">
+   b3:  movl $0x200, %esi
+   b8:  movl $0, %edi   <var:kwd+0>
+   bd:  movq %rax, %rcx
+   c0:  xorl %eax, %eax
+   c2:  callq snprintf+0
+   c7:  movl $5, %edx
+   cc:  movl $0, %esi   <var:kwd+0>
+   d1:  movl $0, %edi   <var:kwd_re+0>
+   d6:  callq regcomp+0
+   db:  testl %eax, %eax
+   dd:  je 0x103
+   df:  movb $0, (%rip)   <var:kwd+0>
+   e6:  movabsq $0x3a7463656a627573, %rax
+   f0:  movb $0, (%rip)   <var:kwd_hdr+8>
+   f7:  movq %rax, (%rip)   <var:kwd_hdr+0>
+   fe:  jmp 0x64
+  103:  cmpb $0x5e, (%rip)   <var:kwd+0>
+  10a:  jne 0xe6
+  10c:  callq __ctype_b_loc+0
+  111:  movzbl (%rip), %edx   <var:kwd+1>
+  118:  movq (%rax), %rax
+  11b:  testb $4, 1(%rax, %rdx, 2)
+  120:  je 0xe6
+  122:  movl $0x3a, %esi
+  127:  movl $0, %edi   <var:kwd+0>
+  12c:  callq strchr+0
+  131:  testq %rax, %rax
+  134:  je 0xe6
+  136:  subq $0, %rax   <var:kwd+0>
+  13c:  movl $0, %esi   <var:kwd+1>
+  141:  movl $0, %edi   <var:kwd_hdr+0>
+  146:  movslq %eax, %rbx
+  149:  movq %rbx, %rdx
+  14c:  callq memcpy+0
+  151:  movb $0, (%rbx)   <var:kwd_hdr+0>
+  158:  jmp 0x64
+  15d:  movl $0, %edi   <var:kwd_re+0>
+  162:  callq regfree+0
+  167:  jmp 0xa6

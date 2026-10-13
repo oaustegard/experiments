@@ -1,0 +1,80 @@
+# ren_page  (static, 319 bytes, 79 instructions)
+    0:  testl %edi, %edi
+    2:  jne 0x11
+    4:  cmpl $1, (%rip)   <var:bp_final+0>
+    b:  jg 0xc0
+   11:  pushq %rbx
+   12:  movl $0, %edi   <str:"nl">
+   17:  callq map+0
+   1c:  movl %eax, %edi
+   1e:  callq nreg+0
+   23:  movl $0x64, %edi
+   28:  movl $0, (%rax)
+   2e:  callq nreg+0
+   33:  movl $0x68, %edi
+   38:  movl $0, (%rax)
+   3e:  callq nreg+0
+   43:  movl (%rip), %ebx   <var:bp_next+0>
+   49:  movl $0, (%rax)
+   4f:  cmpl $0x40000000, %ebx
+   55:  je 0x118
+   5b:  movl $0, %edi   <str:"%">
+   60:  callq map+0
+   65:  movl %eax, %edi
+   67:  callq nreg+0
+   6c:  movl $0x25, %edi
+   71:  movl $0x40000000, (%rip)   <var:bp_next+0>
+   7b:  movl %ebx, (%rax)
+   7d:  callq nreg+0
+   82:  movl $0x25, %edi
+   87:  addl $1, (%rax)
+   8a:  callq nreg+0
+   8f:  movl $0, %edi   <str:"p%d\n">
+   94:  movl (%rax), %esi
+   96:  xorl %eax, %eax
+   98:  callq out+0
+   9d:  xorl %esi, %esi
+   9f:  movl $0, %edi   <str:"V%d\n">
+   a4:  xorl %eax, %eax
+   a6:  callq out+0
+   ab:  movl $0xffffffff, %edi
+   b0:  callq fn:trap_pos+0
+   b5:  testl %eax, %eax
+   b7:  je 0xc8
+   b9:  popq %rbx
+   ba:  retq
+   bb:  nopl (%rax, %rax)
+   c0:  retq
+   c1:  nopl (%rax)
+   c8:  movl $0xffffffff, %edi
+   cd:  callq fn:trap_first+0
+   d2:  movq (%rip), %rdx   <var:cdiv+0>
+   d9:  testq %rdx, %rdx
+   dc:  je 0x100
+   de:  movl 0x18(%rdx), %edi
+   e1:  testl %edi, %edi
+   e3:  je 0x138
+   e5:  movl 0x14(%rdx), %eax
+   e8:  testl %eax, %eax
+   ea:  movl $0xffffffff, %eax
+   ef:  cmovsl %eax, %edi
+   f2:  popq %rbx
+   f3:  jmp fn:trap_exec+0
+   f8:  nopl (%rax, %rax)
+  100:  testl %eax, %eax
+  102:  js 0x138
+  104:  cltq
+  106:  popq %rbx
+  107:  movl (, %rax, 4), %edi   <var:treg+0>
+  10e:  jmp fn:trap_exec+0
+  113:  nopl (%rax, %rax)
+  118:  movl $0, %edi   <str:"%">
+  11d:  callq map+0
+  122:  movl %eax, %edi
+  124:  callq nreg+0
+  129:  movl (%rax), %ebx
+  12b:  addl $1, %ebx
+  12e:  jmp 0x5b
+  133:  nopl (%rax, %rax)
+  138:  movl $0xffffffff, %edi
+  13d:  jmp 0xf2

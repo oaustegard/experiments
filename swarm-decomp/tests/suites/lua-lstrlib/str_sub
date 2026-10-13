@@ -1,0 +1,68 @@
+# str_sub  (static, 229 bytes, 67 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x18, %rsp
+   12:  leaq 8(%rsp), %rdx
+   17:  callq luaL_checklstring+0
+   1c:  movl $2, %esi
+   21:  movq %rbx, %rdi
+   24:  movq 8(%rsp), %rbp
+   29:  movq %rax, %r12
+   2c:  callq luaL_checkinteger+0
+   31:  movq %rax, %r13
+   34:  testq %rax, %rax
+   37:  jg 0x53
+   39:  movl $1, %r13d
+   3f:  je 0x53
+   41:  movq %rbp, %rcx
+   44:  leaq 1(%rbp, %rax), %rdx
+   49:  negq %rcx
+   4c:  cmpq %rcx, %rax
+   4f:  cmovgeq %rdx, %r13
+   53:  movq 8(%rsp), %rbp
+   58:  movq $18446744073709551615, %rdx
+   5f:  movl $3, %esi
+   64:  movq %rbx, %rdi
+   67:  callq luaL_optinteger+0
+   6c:  cmpq %rbp, %rax
+   6f:  jg 0x8d
+   71:  testq %rax, %rax
+   74:  jns 0xe0
+   76:  movq %rbp, %rdx
+   79:  leaq 1(%rbp, %rax), %rbp
+   7e:  negq %rdx
+   81:  cmpq %rdx, %rax
+   84:  movl $0, %eax
+   89:  cmovlq %rax, %rbp
+   8d:  cmpq %r13, %rbp
+   90:  jb 0xc0
+   92:  subq %r13, %rbp
+   95:  leaq -1(%r12, %r13), %rsi
+   9a:  movq %rbx, %rdi
+   9d:  leaq 1(%rbp), %rdx
+   a1:  callq lua_pushlstring+0
+   a6:  addq $0x18, %rsp
+   aa:  movl $1, %eax
+   af:  popq %rbx
+   b0:  popq %rbp
+   b1:  popq %r12
+   b3:  popq %r13
+   b5:  retq
+   b6:  nopw %cs:(%rax, %rax)
+   c0:  movq %rbx, %rdi
+   c3:  movl $0, %esi   <str:"">
+   c8:  callq lua_pushstring+0
+   cd:  addq $0x18, %rsp
+   d1:  movl $1, %eax
+   d6:  popq %rbx
+   d7:  popq %rbp
+   d8:  popq %r12
+   da:  popq %r13
+   dc:  retq
+   dd:  nopl (%rax)
+   e0:  movq %rax, %rbp
+   e3:  jmp 0x8d

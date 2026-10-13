@@ -1,0 +1,20 @@
+# o_deref  (global, 81 bytes, 19 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rax   <var:iv_n+0>
+    b:  xorl %ecx, %ecx
+    d:  xorl %edx, %edx
+    f:  shlq $0x18, %rdi
+   13:  subq $1, %rax
+   17:  orq $0x110000, %rdi
+   1e:  movslq (, %rax, 8), %rsi   <var:iv+0>
+   26:  movq %rax, (%rip)   <var:iv_n+0>
+   2d:  callq fn:ic_put+0
+   32:  movl $1, %edi
+   37:  callq opt+0
+   3c:  testl %eax, %eax
+   3e:  jne 0x48
+   40:  addq $8, %rsp
+   44:  retq
+   45:  nopl (%rax)
+   48:  addq $8, %rsp
+   4c:  jmp fn:io_loc.isra.0+0

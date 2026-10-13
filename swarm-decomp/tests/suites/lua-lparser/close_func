@@ -1,0 +1,106 @@
+# close_func  (static, 402 bytes, 105 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq 0x30(%rdi), %rbx
+   11:  movq 0x38(%rdi), %rbp
+   15:  movzbl 0x42(%rbx), %edx
+   19:  movq (%rbx), %r12
+   1c:  subl $1, %edx
+   1f:  jmp 0x4f
+   21:  nopl (%rax)
+   28:  movq 0x10(%rbx), %rax
+   2c:  movq 0x58(%rax), %rsi
+   30:  movl 0x38(%rbx), %eax
+   33:  addl %edx, %eax
+   35:  subl $1, %edx
+   38:  cltq
+   3a:  leaq (%rax, %rax, 2), %rcx
+   3e:  movq (%rsi), %rax
+   41:  leaq (%rax, %rcx, 8), %rax
+   45:  cmpb $3, 9(%rax)
+   49:  jne 0x170
+   4f:  cmpl $-1, %edx
+   52:  jne 0x28
+   54:  xorl %esi, %esi
+   56:  xorl %edx, %edx
+   58:  movq %rbx, %rdi
+   5b:  callq luaK_ret+0
+   60:  movq %rbx, %rdi
+   63:  callq fn:leaveblock+0
+   68:  movq %rbx, %rdi
+   6b:  callq luaK_finish+0
+   70:  movl 0x20(%rbx), %ecx
+   73:  movq 0x40(%r12), %rsi
+   78:  movq %rbp, %rdi
+   7b:  leaq 0x18(%r12), %rdx
+   80:  movl $4, %r8d
+   86:  callq luaM_shrinkvector_+0
+   8b:  movl 0x20(%rbx), %ecx
+   8e:  movq 0x58(%r12), %rsi
+   93:  movq %rbp, %rdi
+   96:  movq %rax, 0x40(%r12)
+   9b:  leaq 0x1c(%r12), %rdx
+   a0:  movl $1, %r8d
+   a6:  callq luaM_shrinkvector_+0
+   ab:  movl 0x34(%rbx), %ecx
+   ae:  movq 0x60(%r12), %rsi
+   b3:  movq %rbp, %rdi
+   b6:  movq %rax, 0x58(%r12)
+   bb:  leaq 0x28(%r12), %rdx
+   c0:  movl $8, %r8d
+   c6:  callq luaM_shrinkvector_+0
+   cb:  movl 0x2c(%rbx), %ecx
+   ce:  movq 0x38(%r12), %rsi
+   d3:  movq %rbp, %rdi
+   d6:  movq %rax, 0x60(%r12)
+   db:  leaq 0x14(%r12), %rdx
+   e0:  movl $0x10, %r8d
+   e6:  callq luaM_shrinkvector_+0
+   eb:  movl 0x30(%rbx), %ecx
+   ee:  movq 0x48(%r12), %rsi
+   f3:  movq %rbp, %rdi
+   f6:  movq %rax, 0x38(%r12)
+   fb:  leaq 0x20(%r12), %rdx
+  100:  movl $8, %r8d
+  106:  callq luaM_shrinkvector_+0
+  10b:  movswl 0x40(%rbx), %ecx
+  10f:  movq 0x68(%r12), %rsi
+  114:  leaq 0x24(%r12), %rdx
+  119:  movq %rax, 0x48(%r12)
+  11e:  movl $0x10, %r8d
+  124:  movq %rbp, %rdi
+  127:  callq luaM_shrinkvector_+0
+  12c:  movq 0x50(%r12), %rsi
+  131:  leaq 0x10(%r12), %rdx
+  136:  movq %rbp, %rdi
+  139:  movq %rax, 0x68(%r12)
+  13e:  movzbl 0x43(%rbx), %ecx
+  142:  movl $0x10, %r8d
+  148:  callq luaM_shrinkvector_+0
+  14d:  movq %rax, 0x50(%r12)
+  152:  movq 8(%rbx), %rax
+  156:  movq %rax, 0x30(%r13)
+  15a:  movq 0x18(%rbp), %rax
+  15e:  cmpq $0, 0x18(%rax)
+  163:  jg 0x180
+  165:  addq $8, %rsp
+  169:  popq %rbx
+  16a:  popq %rbp
+  16b:  popq %r12
+  16d:  popq %r13
+  16f:  retq
+  170:  movzbl 0xa(%rax), %esi
+  174:  addl $1, %esi
+  177:  jmp 0x56
+  17c:  nopl (%rax)
+  180:  addq $8, %rsp
+  184:  movq %rbp, %rdi
+  187:  popq %rbx
+  188:  popq %rbp
+  189:  popq %r12
+  18b:  popq %r13
+  18d:  jmp luaC_step+0

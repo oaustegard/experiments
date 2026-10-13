@@ -1,0 +1,66 @@
+# cp_raw  (static, 245 bytes, 65 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <in_top+0>
+    9:  testl %eax, %eax
+    b:  jns 0xec
+   11:  nopl (%rax)
+   18:  callq in_next+0
+   1d:  cmpl $4, %eax
+   20:  je 0x18
+   22:  cmpl %eax, (%rip)   <c_ec+0>
+   28:  jne 0x65
+   2a:  nopw (%rax, %rax)
+   30:  callq in_next+0
+   35:  cmpl $4, %eax
+   38:  je 0x30
+   3a:  cmpl $0x61, %eax
+   3d:  je 0xe0
+   43:  jg 0x70
+   45:  cmpl $0x2e, %eax
+   48:  je 0x65
+   4a:  cmpl $0x5c, %eax
+   4d:  je 0xd0
+   53:  cmpl $0xa, %eax
+   56:  je 4
+   58:  movl %eax, %edi
+   5a:  callq in_back+0
+   5f:  movl (%rip), %eax   <c_ec+0>
+   65:  addq $8, %rsp
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  cmpl $0x74, %eax
+   73:  je 0xb8
+   75:  cmpl $0x7d, %eax
+   78:  jne 0x8f
+   7a:  movl (%rip), %ecx   <var:cp_cpmode+0>
+   80:  testl %ecx, %ecx
+   82:  jne 0x58
+   84:  movl (%rip), %eax   <var:cp_blkdep+0>
+   8a:  subl $1, %eax
+   8d:  jmp 0xa7
+   8f:  cmpl $0x7b, %eax
+   92:  jne 0x58
+   94:  movl (%rip), %edx   <var:cp_cpmode+0>
+   9a:  testl %edx, %edx
+   9c:  jne 0x58
+   9e:  movl (%rip), %eax   <var:cp_blkdep+0>
+   a4:  addl $1, %eax
+   a7:  movl %eax, (%rip)   <var:cp_blkdep+0>
+   ad:  movl $0x20, %eax
+   b2:  jmp 0x65
+   b4:  nopl (%rax)
+   b8:  movl $9, %edi
+   bd:  callq in_back+0
+   c2:  movl $4, %eax
+   c7:  addq $8, %rsp
+   cb:  retq
+   cc:  nopl (%rax)
+   d0:  movl $0x5c, %edi
+   d5:  callq in_back+0
+   da:  jmp 0xc2
+   dc:  nopl (%rax)
+   e0:  movl $1, %edi
+   e5:  callq in_back+0
+   ea:  jmp 0xc2
+   ec:  addq $8, %rsp
+   f0:  jmp in_next+0

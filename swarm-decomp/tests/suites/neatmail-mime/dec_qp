@@ -1,0 +1,85 @@
+# dec_qp  (static, 247 bytes, 84 instructions)
+    0:  pushq %r13
+    2:  movl %ecx, %r13d
+    5:  pushq %r12
+    7:  xorl $1, %r13d
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  subq $8, %rsp
+   11:  cmpq %rdx, %rsi
+   14:  jae 0xb8
+   1a:  movq %rdi, %r12
+   1d:  movq %rsi, %rbx
+   20:  movq %rdx, %rbp
+   23:  jmp 0x4b
+   25:  nopl (%rax)
+   28:  testb $1, %r13b
+   2c:  jne 0x37
+   2e:  movl $0x20, %esi
+   33:  cmpb $0x5f, %al
+   35:  je 0x3a
+   37:  movzbl %al, %esi
+   3a:  movq %r12, %rdi
+   3d:  addq $1, %rbx
+   41:  callq sbuf_chr+0
+   46:  cmpq %rbp, %rbx
+   49:  jae 0xb8
+   4b:  movzbl (%rbx), %eax
+   4e:  cmpb $0x3d, %al
+   50:  jne 0x28
+   52:  movsbl 1(%rbx), %edx
+   56:  leaq 2(%rbx), %rcx
+   5a:  cmpb $0xa, %dl
+   5d:  je 0xc8
+   5f:  cmpq %rbp, %rcx
+   62:  jae 0x37
+   64:  leal -0x30(%rdx), %esi
+   67:  cmpl $9, %esi
+   6a:  jbe 0xd3
+   6c:  leal -0x41(%rdx), %eax
+   6f:  cmpl $5, %eax
+   72:  jbe 0xd0
+   74:  leal -0x61(%rdx), %eax
+   77:  subl $0x57, %edx
+   7a:  xorl %esi, %esi
+   7c:  shll $4, %edx
+   7f:  cmpl $6, %eax
+   82:  movsbl 2(%rbx), %eax
+   86:  cmovbl %edx, %esi
+   89:  leal -0x30(%rax), %edx
+   8c:  cmpl $9, %edx
+   8f:  jbe 0xe2
+   91:  leal -0x41(%rax), %edx
+   94:  cmpl $5, %edx
+   97:  jbe 0xf0
+   99:  leal -0x61(%rax), %edx
+   9c:  subl $0x57, %eax
+   9f:  orl %esi, %eax
+   a1:  cmpl $6, %edx
+   a4:  cmovbl %eax, %esi
+   a7:  movq %r12, %rdi
+   aa:  addq $3, %rbx
+   ae:  callq sbuf_chr+0
+   b3:  cmpq %rbp, %rbx
+   b6:  jb 0x4b
+   b8:  addq $8, %rsp
+   bc:  popq %rbx
+   bd:  popq %rbp
+   be:  popq %r12
+   c0:  popq %r13
+   c2:  retq
+   c3:  nopl (%rax, %rax)
+   c8:  movq %rcx, %rbx
+   cb:  jmp 0x46
+   d0:  leal -0x37(%rdx), %esi
+   d3:  movsbl 2(%rbx), %eax
+   d7:  shll $4, %esi
+   da:  leal -0x30(%rax), %edx
+   dd:  cmpl $9, %edx
+   e0:  ja 0x91
+   e2:  orl %edx, %esi
+   e4:  jmp 0xa7
+   e6:  nopw %cs:(%rax, %rax)
+   f0:  subl $0x37, %eax
+   f3:  orl %eax, %esi
+   f5:  jmp 0xa7

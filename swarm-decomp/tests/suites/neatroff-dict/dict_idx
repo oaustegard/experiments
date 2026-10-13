@@ -1,0 +1,57 @@
+# dict_idx  (global, 144 bytes, 56 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  movq %rdi, %r13
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movzbl 1(%rsi), %edx
+    f:  movq %rsi, %rbx
+   12:  movq (%rdi), %rdi
+   15:  movzbl (%rsi), %eax
+   18:  testb %dl, %dl
+   1a:  je 0x34
+   1c:  leaq 1(%rsi), %rcx
+   20:  movl %eax, %esi
+   22:  addq $1, %rcx
+   26:  shll $5, %esi
+   29:  addl %esi, %eax
+   2b:  addl %edx, %eax
+   2d:  movzbl (%rcx), %edx
+   30:  testb %dl, %dl
+   32:  jne 0x20
+   34:  xorl %edx, %edx
+   36:  divl 0x28(%r13)
+   3a:  movslq %edx, %rdx
+   3d:  movl (%rdi, %rdx, 4), %ebp
+   40:  testl %ebp, %ebp
+   42:  jle 0x80
+   44:  movq 0x10(%r13), %r14
+   48:  jmp 0x5c
+   4a:  nopw (%rax, %rax)
+   50:  movq 8(%r13), %rax
+   54:  movl (%rax, %r12, 4), %ebp
+   58:  testl %ebp, %ebp
+   5a:  jle 0x80
+   5c:  movslq %ebp, %r12
+   5f:  movq %rbx, %rdi
+   62:  movq (%r14, %r12, 8), %rsi
+   66:  callq strcmp+0
+   6b:  testl %eax, %eax
+   6d:  jne 0x50
+   6f:  popq %rbx
+   70:  movl %ebp, %eax
+   72:  popq %rbp
+   73:  popq %r12
+   75:  popq %r13
+   77:  popq %r14
+   79:  retq
+   7a:  nopw (%rax, %rax)
+   80:  movl $0xffffffff, %ebp
+   85:  popq %rbx
+   86:  movl %ebp, %eax
+   88:  popq %rbp
+   89:  popq %r12
+   8b:  popq %r13
+   8d:  popq %r14
+   8f:  retq

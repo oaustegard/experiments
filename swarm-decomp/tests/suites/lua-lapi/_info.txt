@@ -1,0 +1,101 @@
+# lua-lapi: translation unit lapi of lua
+# write each function as src/lua/lapi/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+index2value	static	129 bytes
+auxsetstr	static	185 bytes
+f_call	static	11 bytes
+lua_checkstack	global	84 bytes
+lua_xmove	global	124 bytes
+lua_atpanic	global	22 bytes
+lua_version	global	9 bytes
+lua_absindex	global	34 bytes
+lua_gettop	global	23 bytes
+lua_settop	global	166 bytes
+lua_closeslot	global	54 bytes
+lua_rotate	global	249 bytes
+lua_copy	global	432 bytes
+lua_pushvalue	global	162 bytes
+lua_type	global	170 bytes
+lua_typename	global	15 bytes
+lua_iscfunction	global	154 bytes
+lua_isinteger	global	146 bytes
+lua_isnumber	global	189 bytes
+lua_isstring	global	154 bytes
+lua_isuserdata	global	154 bytes
+lua_rawequal	global	87 bytes
+lua_arith	global	65 bytes
+lua_compare	global	140 bytes
+lua_stringtonumber	global	28 bytes
+lua_tonumberx	global	221 bytes
+lua_tointegerx	global	221 bytes
+lua_toboolean	global	157 bytes
+lua_tolstring	global	285 bytes
+lua_rawlen	global	221 bytes
+lua_tocfunction	global	189 bytes
+lua_touserdata	global	189 bytes
+lua_tothread	global	146 bytes
+lua_topointer	global	253 bytes
+lua_pushnil	global	17 bytes
+lua_pushnumber	global	22 bytes
+lua_pushinteger	global	20 bytes
+lua_pushlstring	global	98 bytes
+lua_pushstring	global	92 bytes
+lua_pushvfstring	global	48 bytes
+lua_pushfstring	global	183 bytes
+lua_pushcclosure	global	165 bytes
+lua_pushboolean	global	27 bytes
+lua_pushlightuserdata	global	20 bytes
+lua_pushthread	global	37 bytes
+lua_getglobal	global	174 bytes
+lua_gettable	global	134 bytes
+lua_getfield	global	160 bytes
+lua_geti	global	173 bytes
+lua_rawget	global	80 bytes
+lua_rawgeti	global	83 bytes
+lua_rawgetp	global	103 bytes
+lua_createtable	global	98 bytes
+lua_getmetatable	global	253 bytes
+lua_getiuservalue	global	238 bytes
+lua_setglobal	global	24 bytes
+lua_settable	global	150 bytes
+lua_setfield	global	138 bytes
+lua_seti	global	222 bytes
+lua_rawset	global	105 bytes
+lua_rawsetp	global	113 bytes
+lua_rawseti	global	97 bytes
+lua_setmetatable	global	234 bytes
+lua_setiuservalue	global	273 bytes
+lua_callk	global	131 bytes
+lua_pcallk	global	276 bytes
+lua_load	global	173 bytes
+lua_dump	global	41 bytes
+lua_status	global	5 bytes
+lua_gc	global	871 bytes
+lua_error	global	46 bytes
+lua_next	global	189 bytes
+lua_toclose	global	86 bytes
+lua_concat	global	101 bytes
+lua_len	global	154 bytes
+lua_getallocf	global	24 bytes
+lua_setallocf	global	12 bytes
+lua_setwarnf	global	19 bytes
+lua_warning	global	5 bytes
+lua_newuserdatauv	global	88 bytes
+lua_getupvalue	global	333 bytes
+lua_setupvalue	global	188 bytes
+lua_upvalueid	global	253 bytes
+lua_upvaluejoin	global	137 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+nullup.0	static	8 bytes	.rodata.nullup.0
+        0: 00 00 00 00 00 00 00 00
+lua_ident	global	129 bytes	.rodata.lua_ident
+        0: 24 4c 75 61 56 65 72 73 69 6f 6e 3a 20 4c 75 61 20 35 2e 34 2e 37 20 20 43 6f 70 79 72 69 67 68
+       32: 74 20 28 43 29 20 31 39 39 34 2d 32 30 32 34 20 4c 75 61 2e 6f 72 67 2c 20 50 55 43 2d 52 69 6f
+       64: 20 24 24 4c 75 61 41 75 74 68 6f 72 73 3a 20 52 2e 20 49 65 72 75 73 61 6c 69 6d 73 63 68 79 2c
+       96: 20 4c 2e 20 48 2e 20 64 65 20 46 69 67 75 65 69 72 65 64 6f 2c 20 57 2e 20 43 65 6c 65 73 20 24
+      128: 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_barrier_ luaC_barrierback_ luaC_changemode luaC_checkfinalizer luaC_fullgc luaC_step luaD_call luaD_callnoyield luaD_growstack luaD_pcall luaD_protectedparser luaD_throw luaE_setdebt luaE_warning luaF_close luaF_newCclosure luaF_newtbcupval luaG_errormsg luaH_get luaH_getint luaH_getn luaH_getstr luaH_new luaH_next luaH_resize luaH_set luaH_setint luaO_arith luaO_pushvfstring luaO_str2num luaO_tostring luaS_new luaS_newlstr luaS_newudata luaT_typenames_ luaU_dump luaV_concat luaV_equalobj luaV_finishget luaV_finishset luaV_lessequal luaV_lessthan luaV_objlen luaV_tointeger luaV_tonumber_ luaZ_init

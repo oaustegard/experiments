@@ -1,0 +1,300 @@
+# writedesc  (static, 1166 bytes, 299 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x418, %rsp
+   11:  movq %rdi, (%rsp)
+   15:  callq font_path+0
+   1a:  movq %rax, %rdi
+   1d:  callq fn:fonttype+0
+   22:  movl %eax, %ebp
+   24:  cmpl $0x31, %eax
+   27:  je 0x150
+   2d:  movl $0xffffffff, %r14d
+   33:  cmpl $0x74, %eax
+   36:  je 0x150
+   3c:  callq fn:obj_map+0
+   41:  movl (%rip), %ecx   <var:pdf_pos+0>
+   47:  movl $0, %edi   <str:"%d 0 obj\n">
+   4c:  movslq %eax, %rdx
+   4f:  movq (%rip), %rax   <var:obj_off+0>
+   56:  movl %edx, %esi
+   58:  movq %rdx, %rbx
+   5b:  movl %ecx, (%rax, %rdx, 4)
+   5e:  xorl %eax, %eax
+   60:  callq fn:pdfout+0
+   65:  xorl %eax, %eax
+   67:  movl $0, %edi   <str:"<<\n">
+   6c:  callq fn:pdfout+0
+   71:  xorl %eax, %eax
+   73:  movl $0, %edi   <str:"  /Type /FontDescriptor\n">
+   78:  callq fn:pdfout+0
+   7d:  movq (%rsp), %rdi
+   81:  callq font_name+0
+   86:  movl $0, %edi   <str:"  /FontName /%s\n">
+   8b:  movq %rax, %rsi
+   8e:  xorl %eax, %eax
+   90:  callq fn:pdfout+0
+   95:  xorl %eax, %eax
+   97:  movl $0, %edi   <str:"  /Flags 32\n">
+   9c:  callq fn:pdfout+0
+   a1:  xorl %eax, %eax
+   a3:  movl $0, %edi   <str:"  /FontBBox [-1000 -1000 1000 1000]\n">
+   a8:  callq fn:pdfout+0
+   ad:  xorl %eax, %eax
+   af:  movl $0, %edi   <str:"  /MissingWidth 1000\n">
+   b4:  callq fn:pdfout+0
+   b9:  xorl %eax, %eax
+   bb:  movl $0, %edi   <str:"  /StemV 100\n">
+   c0:  callq fn:pdfout+0
+   c5:  xorl %eax, %eax
+   c7:  movl $0, %edi   <str:"  /ItalicAngle 0\n">
+   cc:  callq fn:pdfout+0
+   d1:  xorl %eax, %eax
+   d3:  movl $0, %edi   <str:"  /CapHeight 100\n">
+   d8:  callq fn:pdfout+0
+   dd:  xorl %eax, %eax
+   df:  movl $0, %edi   <str:"  /Ascent 100\n">
+   e4:  callq fn:pdfout+0
+   e9:  xorl %eax, %eax
+   eb:  movl $0, %edi   <str:"  /Descent 100\n">
+   f0:  callq fn:pdfout+0
+   f5:  testl %r14d, %r14d
+   f8:  js 0x11a
+   fa:  cmpl $0x74, %ebp
+   fd:  movl $0, %eax   <str:"2">
+  102:  movl $0, %esi   <str:"">
+  107:  movl %r14d, %edx
+  10a:  cmoveq %rax, %rsi
+  10e:  movl $0, %edi   <str:"  /FontFile%s %d 0 R\n">
+  113:  xorl %eax, %eax
+  115:  callq fn:pdfout+0
+  11a:  movl $0, %edi   <str:">>\n">
+  11f:  xorl %eax, %eax
+  121:  callq fn:pdfout+0
+  126:  xorl %eax, %eax
+  128:  movl $0, %edi   <str:"endobj\n\n">
+  12d:  callq fn:pdfout+0
+  132:  addq $0x418, %rsp
+  139:  movl %ebx, %eax
+  13b:  popq %rbx
+  13c:  popq %rbp
+  13d:  popq %r12
+  13f:  popq %r13
+  141:  popq %r14
+  143:  popq %r15
+  145:  retq
+  146:  nopw %cs:(%rax, %rax)
+  150:  movq (%rsp), %rdi
+  154:  callq font_path+0
+  159:  xorl %esi, %esi
+  15b:  movq %rax, %rdi
+  15e:  xorl %eax, %eax
+  160:  callq open+0
+  165:  movl %eax, %r14d
+  168:  callq sbuf_make+0
+  16d:  movq %rax, %r13
+  170:  callq sbuf_make+0
+  175:  movq %rax, %rbx
+  178:  jmp 0x18d
+  17a:  nopw (%rax, %rax)
+  180:  leaq 0x10(%rsp), %rsi
+  185:  movq %r13, %rdi
+  188:  callq sbuf_mem+0
+  18d:  movl $0x400, %edx
+  192:  leaq 0x10(%rsp), %rsi
+  197:  movl %r14d, %edi
+  19a:  callq read+0
+  19f:  movl %eax, %edx
+  1a1:  testl %eax, %eax
+  1a3:  jg 0x180
+  1a5:  movl %r14d, %edi
+  1a8:  callq close+0
+  1ad:  movq %r13, %rdi
+  1b0:  callq sbuf_len+0
+  1b5:  movl $0, 0xc(%rsp)
+  1bd:  movl %eax, 8(%rsp)
+  1c1:  cmpl $0x31, %ebp
+  1c4:  je 0x380
+  1ca:  movq %r13, %rdi
+  1cd:  xorl %r12d, %r12d
+  1d0:  callq sbuf_len+0
+  1d5:  movq %r13, %rdi
+  1d8:  movl %eax, %r14d
+  1db:  callq sbuf_buf+0
+  1e0:  movq %rax, %r15
+  1e3:  testl %r14d, %r14d
+  1e6:  jle 0x255
+  1e8:  nopl (%rax, %rax)
+  1f0:  movzbl (%r15), %eax
+  1f4:  movq %rbx, %rdi
+  1f7:  shrb $4, %al
+  1fa:  andl $0xf, %eax
+  1fd:  movsbl (%rax), %esi   <var:hex+0>
+  204:  callq sbuf_chr+0
+  209:  movzbl (%r15), %eax
+  20d:  movq %rbx, %rdi
+  210:  andl $0xf, %eax
+  213:  movsbl (%rax), %esi   <var:hex+0>
+  21a:  callq sbuf_chr+0
+  21f:  movl %r12d, %eax
+  222:  movl $0xcccccccd, %ecx
+  227:  imulq %rcx, %rax
+  22b:  shrq $0x25, %rax
+  22f:  leal (%rax, %rax, 4), %esi
+  232:  movl %r12d, %eax
+  235:  addl $1, %r12d
+  239:  shll $3, %esi
+  23c:  subl %esi, %eax
+  23e:  cmpl $0x27, %eax
+  241:  je 0x250
+  243:  addq $1, %r15
+  247:  cmpl %r12d, %r14d
+  24a:  jne 0x1f0
+  24c:  jmp 0x255
+  24e:  nop
+  250:  cmpl %r12d, %r14d
+  253:  jg 0x288
+  255:  movl $0, %esi   <str:">\n">
+  25a:  movq %rbx, %rdi
+  25d:  movl $0xffffffff, %r14d
+  263:  callq sbuf_str+0
+  268:  movl 8(%rsp), %eax
+  26c:  testl %eax, %eax
+  26e:  jne 0x2a0
+  270:  movq %r13, %rdi
+  273:  callq sbuf_free+0
+  278:  movq %rbx, %rdi
+  27b:  callq sbuf_free+0
+  280:  jmp 0x3c
+  285:  nopl (%rax)
+  288:  movl $0xa, %esi
+  28d:  movq %rbx, %rdi
+  290:  addq $1, %r15
+  294:  callq sbuf_chr+0
+  299:  jmp 0x1f0
+  29e:  nop
+  2a0:  callq fn:obj_map+0
+  2a5:  movl (%rip), %ecx   <var:pdf_pos+0>
+  2ab:  movl $0, %edi   <str:"%d 0 obj\n">
+  2b0:  movslq %eax, %rdx
+  2b3:  movq (%rip), %rax   <var:obj_off+0>
+  2ba:  movl %edx, %esi
+  2bc:  movq %rdx, %r14
+  2bf:  movl %ecx, (%rax, %rdx, 4)
+  2c2:  xorl %eax, %eax
+  2c4:  callq fn:pdfout+0
+  2c9:  xorl %eax, %eax
+  2cb:  movl $0, %edi   <str:"<<\n">
+  2d0:  callq fn:pdfout+0
+  2d5:  xorl %eax, %eax
+  2d7:  movl $0, %edi   <str:"  /Filter /ASCIIHexDecode\n">
+  2dc:  callq fn:pdfout+0
+  2e1:  movq %rbx, %rdi
+  2e4:  callq sbuf_len+0
+  2e9:  movl $0, %edi   <str:"  /Length %d\n">
+  2ee:  movl %eax, %esi
+  2f0:  xorl %eax, %eax
+  2f2:  callq fn:pdfout+0
+  2f7:  movl 8(%rsp), %esi
+  2fb:  xorl %eax, %eax
+  2fd:  movl $0, %edi   <str:"  /Length1 %d\n">
+  302:  callq fn:pdfout+0
+  307:  cmpl $0x31, %ebp
+  30a:  je 0x449
+  310:  xorl %eax, %eax
+  312:  movl $0, %edi   <str:">>\n">
+  317:  callq fn:pdfout+0
+  31c:  xorl %eax, %eax
+  31e:  movl $0, %edi   <str:"stream\n">
+  323:  callq fn:pdfout+0
+  328:  movq %rbx, %rdi
+  32b:  callq sbuf_len+0
+  330:  movq %rbx, %rdi
+  333:  movl %eax, %r15d
+  336:  callq sbuf_buf+0
+  33b:  movq (%rip), %rcx   <stdout+0>
+  342:  movslq %r15d, %rsi
+  345:  movl $1, %edx
+  34a:  movq %rax, %rdi
+  34d:  callq fwrite+0
+  352:  xorl %eax, %eax
+  354:  movl $0, %edi   <str:"endstream\n">
+  359:  addl %r15d, (%rip)   <var:pdf_pos+0>
+  360:  callq fn:pdfout+0
+  365:  movl $0, %edi   <str:"endobj\n\n">
+  36a:  xorl %eax, %eax
+  36c:  callq fn:pdfout+0
+  371:  jmp 0x270
+  376:  nopw %cs:(%rax, %rax)
+  380:  movq %r13, %rdi
+  383:  callq sbuf_len+0
+  388:  movq %r13, %rdi
+  38b:  movl %eax, %r14d
+  38e:  callq sbuf_buf+0
+  393:  cmpl $5, %r14d
+  397:  jle 0x481
+  39d:  movq %rax, %rdx
+  3a0:  leal -5(%r14), %esi
+  3a4:  xorl %ecx, %ecx
+  3a6:  jmp 0x3bf
+  3a8:  nopl (%rax, %rax)
+  3b0:  addl $1, %ecx
+  3b3:  addq $1, %rdx
+  3b7:  cmpl %ecx, %esi
+  3b9:  je 0x46c
+  3bf:  cmpb $0x65, (%rdx)
+  3c2:  jne 0x3b0
+  3c4:  cmpl $0x65786565, (%rdx)
+  3ca:  jne 0x3b0
+  3cc:  cmpb $0x63, 4(%rdx)
+  3d0:  jne 0x3b0
+  3d2:  subq %rax, %rdx
+  3d5:  leal 1(%rcx), %r12d
+  3d9:  leal -0x200(%r14), %esi
+  3e0:  movl $0, 0xc(%rsp)
+  3e8:  movl %edx, 8(%rsp)
+  3ec:  movq %rdx, %r15
+  3ef:  movslq %r12d, %rdx
+  3f2:  addq %rdx, %rax
+  3f5:  cmpl %r12d, %esi
+  3f8:  jg 0x411
+  3fa:  jmp 0x1ca
+  3ff:  nop
+  400:  addl $1, %r12d
+  404:  addq $1, %rax
+  408:  cmpl %r12d, %esi
+  40b:  je 0x1ca
+  411:  cmpb $0x30, (%rax)
+  414:  jne 0x400
+  416:  cmpl $0x30303030, (%rax)
+  41c:  jne 0x400
+  41e:  cmpb $0x30, 4(%rax)
+  422:  jne 0x400
+  424:  subl %r12d, %r14d
+  427:  je 0x435
+  429:  leal (%r12, %r15), %esi
+  42d:  movq %r13, %rdi
+  430:  callq sbuf_cut+0
+  435:  movl %r15d, %eax
+  438:  movl %r12d, 0xc(%rsp)
+  43d:  subl %r14d, %eax
+  440:  movl %eax, 8(%rsp)
+  444:  jmp 0x1ca
+  449:  movl 0xc(%rsp), %esi
+  44d:  xorl %eax, %eax
+  44f:  movl $0, %edi   <str:"  /Length2 %d\n">
+  454:  callq fn:pdfout+0
+  459:  xorl %esi, %esi
+  45b:  movl $0, %edi   <str:"  /Length3 %d\n">
+  460:  xorl %eax, %eax
+  462:  callq fn:pdfout+0
+  467:  jmp 0x310
+  46c:  movl $0, 8(%rsp)
+  474:  movl $0, 0xc(%rsp)
+  47c:  jmp 0x1ca
+  481:  movl $0, 8(%rsp)
+  489:  jmp 0x1ca

@@ -1,0 +1,71 @@
+# ren_ocmd  (global, 260 bytes, 70 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  movq %rsi, %rdi
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x40e0, %rsp
+   11:  callq sstr_push+0
+   16:  movq %rsp, %rdi
+   19:  callq wb_init+0
+   1e:  leaq 0x2070(%rsp), %rdi
+   26:  callq wb_init+0
+   2b:  callq sstr_next+0
+   30:  testl %eax, %eax
+   32:  js 0x100
+   38:  movl %eax, %edi
+   3a:  xorl %ebp, %ebp
+   3c:  nopl (%rax)
+   40:  callq sstr_back+0
+   45:  movl $0, %edx   <sstr_back+0>
+   4a:  movl $0, %esi   <sstr_next+0>
+   4f:  leaq 0x2070(%rsp), %rdi
+   57:  callq ren_char+0
+   5c:  leaq 0x2070(%rsp), %rdi
+   64:  callq wb_wid+0
+   69:  movq %rsp, %rdi
+   6c:  cmpl %eax, %ebp
+   6e:  movl %eax, %ebx
+   70:  cmovll %eax, %ebp
+   73:  shrl $0x1f, %ebx
+   76:  addl %eax, %ebx
+   78:  sarl $1, %ebx
+   7a:  negl %ebx
+   7c:  movl %ebx, %esi
+   7e:  callq wb_hmov+0
+   83:  leaq 0x2070(%rsp), %rsi
+   8b:  movq %rsp, %rdi
+   8e:  callq wb_cat+0
+   93:  movq %rsp, %rdi
+   96:  movl %ebx, %esi
+   98:  callq wb_hmov+0
+   9d:  callq sstr_next+0
+   a2:  movl %eax, %edi
+   a4:  testl %eax, %eax
+   a6:  jns 0x40
+   a8:  movl %ebp, %ebx
+   aa:  shrl $0x1f, %ebx
+   ad:  addl %ebp, %ebx
+   af:  sarl $1, %ebx
+   b1:  callq sstr_pop+0
+   b6:  movl %ebx, %esi
+   b8:  movq %r12, %rdi
+   bb:  callq wb_hmov+0
+   c0:  movq %rsp, %rsi
+   c3:  movq %r12, %rdi
+   c6:  callq wb_cat+0
+   cb:  movl %ebx, %esi
+   cd:  movq %r12, %rdi
+   d0:  callq wb_hmov+0
+   d5:  leaq 0x2070(%rsp), %rdi
+   dd:  callq wb_done+0
+   e2:  movq %rsp, %rdi
+   e5:  callq wb_done+0
+   ea:  addq $0x40e0, %rsp
+   f1:  popq %rbx
+   f2:  popq %rbp
+   f3:  popq %r12
+   f5:  retq
+   f6:  nopw %cs:(%rax, %rax)
+  100:  xorl %ebx, %ebx
+  102:  jmp 0xb1

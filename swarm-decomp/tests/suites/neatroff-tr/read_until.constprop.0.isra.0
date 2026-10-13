@@ -1,0 +1,53 @@
+# read_until.constprop.0.isra.0  (static, 158 bytes, 52 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  pushq %rbx
+    a:  subq $0x40, %rsp
+    e:  callq cp_next+0
+   13:  movl %eax, %ebx
+   15:  testl %eax, %eax
+   17:  js 0x75
+   19:  cmpl $4, %ebx
+   1c:  je 0xe
+   1e:  movl %ebx, %edi
+   20:  callq in_back+0
+   25:  cmpl $0xa, %ebx
+   28:  je 0x75
+   2a:  testq %rbp, %rbp
+   2d:  je 0x80
+   2f:  movl $0, %esi   <cp_next+0>
+   34:  movq %rsp, %rdi
+   37:  movl $0, %edx   <in_back+0>
+   3c:  callq charnext+0
+   41:  movq %rsp, %rsi
+   44:  movq %rbp, %rdi
+   47:  callq strcmp+0
+   4c:  testl %eax, %eax
+   4e:  je 0x75
+   50:  movq %rsp, %rsi
+   53:  leaq 0x20(%rsp), %rdi
+   58:  callq charnext_str+0
+   5d:  leaq 0x20(%rsp), %rsi
+   62:  movq %r12, %rdi
+   65:  callq sbuf_append+0
+   6a:  callq cp_next+0
+   6f:  movl %eax, %ebx
+   71:  testl %eax, %eax
+   73:  jns 0x19
+   75:  addq $0x40, %rsp
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  retq
+   7e:  nop
+   80:  cmpl $0x20, %ebx
+   83:  je 0x75
+   85:  cmpl $9, %ebx
+   88:  je 0x75
+   8a:  movl $0, %edx   <in_back+0>
+   8f:  movl $0, %esi   <cp_next+0>
+   94:  movq %rsp, %rdi
+   97:  callq charnext+0
+   9c:  jmp 0x50

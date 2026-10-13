@@ -1,0 +1,47 @@
+# otf_table.isra.0  (static, 125 bytes, 46 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdx, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movzwl 4(%rsi), %edx
+   11:  movl %edx, %eax
+   13:  rolw $8, %ax
+   17:  testw %dx, %dx
+   1a:  je 0x70
+   1c:  movzwl %ax, %eax
+   1f:  movq %rdi, %r13
+   22:  leaq 0xc(%rsi), %rbx
+   26:  subl $1, %eax
+   29:  shlq $4, %rax
+   2d:  leaq 0x1c(%rsi, %rax), %r12
+   32:  jmp 0x41
+   34:  nopl (%rax)
+   38:  addq $0x10, %rbx
+   3c:  cmpq %r12, %rbx
+   3f:  je 0x70
+   41:  movl $4, %edx
+   46:  movq %rbp, %rsi
+   49:  movq %rbx, %rdi
+   4c:  callq strncmp+0
+   51:  testl %eax, %eax
+   53:  jne 0x38
+   55:  movl 8(%rbx), %eax
+   58:  addq $8, %rsp
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  bswapl %eax
+   60:  movl %eax, %eax
+   62:  popq %r12
+   64:  addq %r13, %rax
+   67:  popq %r13
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  addq $8, %rsp
+   74:  xorl %eax, %eax
+   76:  popq %rbx
+   77:  popq %rbp
+   78:  popq %r12
+   7a:  popq %r13
+   7c:  retq

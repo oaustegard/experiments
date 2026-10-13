@@ -1,0 +1,32 @@
+# luaB_yieldable  (static, 105 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  movq %rbx, %rbp
+    d:  subq $8, %rsp
+   11:  callq lua_type+0
+   16:  cmpl $-1, %eax
+   19:  jne 0x40
+   1b:  movq %rbp, %rdi
+   1e:  callq lua_isyieldable+0
+   23:  movq %rbx, %rdi
+   26:  movl %eax, %esi
+   28:  callq lua_pushboolean+0
+   2d:  addq $8, %rsp
+   31:  movl $1, %eax
+   36:  popq %rbx
+   37:  popq %rbp
+   38:  retq
+   39:  nopl (%rax)
+   40:  movl $1, %esi
+   45:  movq %rbx, %rdi
+   48:  callq lua_tothread+0
+   4d:  movq %rax, %rbp
+   50:  testq %rax, %rax
+   53:  jne 0x1b
+   55:  movl $0, %edx   <str:"thread">
+   5a:  movl $1, %esi
+   5f:  movq %rbx, %rdi
+   62:  callq luaL_typeerror+0
+   67:  jmp 0x1b

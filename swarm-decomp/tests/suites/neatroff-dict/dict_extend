@@ -1,0 +1,29 @@
+# dict_extend  (static, 94 bytes, 28 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %r12
+    5:  movl $4, %ecx
+    a:  pushq %rbp
+    b:  movq %r12, %rdx
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  movslq 0x20(%rdi), %rsi
+   16:  movq 8(%rdi), %rdi
+   1a:  callq mextend+0
+   1f:  movslq 0x20(%rbx), %rsi
+   23:  movq 0x10(%rbx), %rdi
+   27:  movq %r12, %rdx
+   2a:  movq %rax, 8(%rbx)
+   2e:  movl $8, %ecx
+   33:  callq mextend+0
+   38:  movslq 0x20(%rbx), %rsi
+   3c:  movq 0x18(%rbx), %rdi
+   40:  movq %r12, %rdx
+   43:  movq %rax, 0x10(%rbx)
+   47:  movl $4, %ecx
+   4c:  callq mextend+0
+   51:  movl %r12d, 0x20(%rbx)
+   55:  movq %rax, 0x18(%rbx)
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  popq %r12
+   5d:  retq

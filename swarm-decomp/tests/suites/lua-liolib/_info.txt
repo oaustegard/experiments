@@ -1,0 +1,117 @@
+# lua-liolib: translation unit liolib of lua
+# write each function as src/lua/liolib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+g_write	static	296 bytes
+io_type	static	103 bytes
+io_noclose	static	55 bytes
+io_fclose	static	71 bytes
+read_chars	static	87 bytes
+read_all	static	88 bytes
+test2	static	119 bytes
+read_line	static	296 bytes
+io_flush	static	118 bytes
+io_pclose	static	63 bytes
+aux_lines	static	140 bytes
+f_tostring	static	76 bytes
+readdigits	static	153 bytes
+g_read	static	1002 bytes
+io_readline	static	363 bytes
+io_tmpfile	static	111 bytes
+opencheck	static	147 bytes
+g_iofile	static	177 bytes
+io_output	static	15 bytes
+io_input	static	15 bytes
+io_read	static	102 bytes
+io_write	static	102 bytes
+io_popen	static	222 bytes
+io_open	static	275 bytes
+f_gc	static	89 bytes
+f_read	static	81 bytes
+f_lines	static	65 bytes
+f_write	static	97 bytes
+f_flush	static	105 bytes
+f_close	static	97 bytes
+f_setvbuf	static	172 bytes
+io_close	static	145 bytes
+f_seek	static	206 bytes
+io_lines	static	292 bytes
+luaopen_io	global	444 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+modenames.3	static	32 bytes	.rodata.modenames.3
+    +0     -> str:"no"
+    +8     -> str:"full"
+    +16    -> str:"line"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+mode.2	static	12 bytes	.rodata.mode.2
+        0: 02 00 00 00 00 00 00 00 01 00 00 00
+modenames.1	static	32 bytes	.rodata.modenames.1
+    +0     -> str:"set"
+    +8     -> str:"cur"
+    +16    -> str:"end"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+mode.0	static	12 bytes	.rodata.mode.0
+        0: 00 00 00 00 01 00 00 00 02 00 00 00
+iolib	static	192 bytes	.rodata.iolib
+    +0     -> str:"close"
+    +8     -> fn:io_close+0
+    +16    -> str:"flush"
+    +24    -> fn:io_flush+0
+    +32    -> str:"input"
+    +40    -> fn:io_input+0
+    +48    -> str:"lines"
+    +56    -> fn:io_lines+0
+    +64    -> str:"open"
+    +72    -> fn:io_open+0
+    +80    -> str:"output"
+    +88    -> fn:io_output+0
+    +96    -> str:"popen"
+    +104   -> fn:io_popen+0
+    +112   -> str:"read"
+    +120   -> fn:io_read+0
+    +128   -> str:"tmpfile"
+    +136   -> fn:io_tmpfile+0
+    +144   -> str:"type"
+    +152   -> fn:io_type+0
+    +160   -> str:"write"
+    +168   -> fn:io_write+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+metameth	static	80 bytes	.rodata.metameth
+    +0     -> str:"__index"
+    +16    -> str:"__gc"
+    +24    -> fn:f_gc+0
+    +32    -> str:"__close"
+    +40    -> fn:f_gc+0
+    +48    -> str:"__tostring"
+    +56    -> fn:f_tostring+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+meth	static	128 bytes	.rodata.meth
+    +0     -> str:"read"
+    +8     -> fn:f_read+0
+    +16    -> str:"write"
+    +24    -> fn:f_write+0
+    +32    -> str:"lines"
+    +40    -> fn:f_lines+0
+    +48    -> str:"flush"
+    +56    -> fn:f_flush+0
+    +64    -> str:"seek"
+    +72    -> fn:f_seek+0
+    +80    -> str:"close"
+    +88    -> fn:f_close+0
+    +96    -> str:"setvbuf"
+    +104   -> fn:f_setvbuf+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __errno_location __uflow clearerr fclose ferror fflush flockfile fopen64 fprintf fread fseeko64 ftello64 funlockfile fwrite getc localeconv luaL_argerror luaL_buffinit luaL_checkany luaL_checkinteger luaL_checklstring luaL_checkoption luaL_checkstack luaL_checkudata luaL_checkversion_ luaL_error luaL_execresult luaL_fileresult luaL_newmetatable luaL_optinteger luaL_optlstring luaL_prepbuffsize luaL_pushresult luaL_setfuncs luaL_setmetatable luaL_testudata lua_copy lua_createtable lua_getfield lua_gettop lua_isinteger lua_newuserdatauv lua_pushboolean lua_pushcclosure lua_pushfstring lua_pushinteger lua_pushnil lua_pushstring lua_pushvalue lua_rawlen lua_rotate lua_setfield lua_settop lua_stringtonumber lua_toboolean lua_tointegerx lua_tolstring lua_tonumberx lua_touserdata lua_type pclose popen setvbuf stderr stdin stdout strchr strerror strlen strspn tmpfile64 ungetc

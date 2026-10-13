@@ -1,0 +1,12 @@
+# lstop  (static, 31 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  xorl %esi, %esi
+    3:  movq %rdi, %rbx
+    6:  xorl %ecx, %ecx
+    8:  xorl %edx, %edx
+    a:  callq lua_sethook+0
+    f:  movq %rbx, %rdi
+   12:  movl $0, %esi   <str:"interrupted!">
+   17:  xorl %eax, %eax
+   19:  popq %rbx
+   1a:  jmp luaL_error+0

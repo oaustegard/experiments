@@ -1,0 +1,43 @@
+# luaS_init  (global, 175 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $0x400, %esi
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  movq 0x18(%rdi), %rbx
+   14:  callq luaM_malloc_+0
+   19:  movl $0x11, %edx
+   1e:  movl $0, %esi   <str:"not enough memory">
+   23:  leaq 8(%rax), %rdi
+   27:  movq %rax, 0x30(%rbx)
+   2b:  andq $0xfffffffffffffff8, %rdi
+   2f:  movq $0, (%rax)
+   36:  movq $0, 0x3f8(%rax)
+   41:  subq %rdi, %rax
+   44:  leal 0x400(%rax), %ecx
+   4a:  xorl %eax, %eax
+   4c:  shrl $3, %ecx
+   4f:  rep stosq %rax, (%rdi)
+   52:  movl $0x80, 0x3c(%rbx)
+   59:  movq %rbp, %rdi
+   5c:  callq fn:internshrstr+0
+   61:  movq %rbp, %rdi
+   64:  movq %rax, 0x110(%rbx)
+   6b:  movq %rax, %rsi
+   6e:  callq luaC_fix+0
+   73:  leaq 0x578(%rbx), %rdx
+   7a:  movq 0x110(%rbx), %xmm0
+   82:  leaq 0x238(%rbx), %rax
+   89:  punpcklqdq %xmm0, %xmm0
+   8d:  movups %xmm0, 0x228(%rbx)
+   94:  nopl (%rax)
+   98:  movups %xmm0, (%rax)
+   9b:  addq $0x20, %rax
+   9f:  movups %xmm0, -0x10(%rax)
+   a3:  cmpq %rax, %rdx
+   a6:  jne 0x98
+   a8:  addq $8, %rsp
+   ac:  popq %rbx
+   ad:  popq %rbp
+   ae:  retq

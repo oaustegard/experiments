@@ -1,0 +1,38 @@
+# luaH_getstr  (global, 126 bytes, 37 instructions)
+    0:  movzbl 8(%rsi), %eax
+    4:  cmpb $4, %al
+    6:  je 0x30
+    8:  subq $0x18, %rsp
+    c:  orl $0x40, %eax
+    f:  xorl %edx, %edx
+   11:  movq %rsi, (%rsp)
+   15:  movq %rsp, %rsi
+   18:  movb %al, 8(%rsp)
+   1c:  callq fn:getgeneric+0
+   21:  addq $0x18, %rsp
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  movzbl 0xb(%rdi), %ecx
+   34:  movl $1, %eax
+   39:  shll %cl, %eax
+   3b:  subl $1, %eax
+   3e:  andl 0xc(%rsi), %eax
+   41:  cltq
+   43:  leaq (%rax, %rax, 2), %rdx
+   47:  movq 0x18(%rdi), %rax
+   4b:  leaq (%rax, %rdx, 8), %rax
+   4f:  jmp 0x68
+   51:  nopl (%rax)
+   58:  movslq 0xc(%rax), %rdx
+   5c:  testl %edx, %edx
+   5e:  je 0x78
+   60:  leaq (%rdx, %rdx, 2), %rdx
+   64:  leaq (%rax, %rdx, 8), %rax
+   68:  cmpb $0x44, 9(%rax)
+   6c:  jne 0x58
+   6e:  cmpq 0x10(%rax), %rsi
+   72:  jne 0x58
+   74:  retq
+   75:  nopl (%rax)
+   78:  movl $0, %eax   <var:absentkey+0>
+   7d:  retq

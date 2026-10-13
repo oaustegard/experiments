@@ -1,0 +1,50 @@
+# tr_ne  (global, 170 bytes, 49 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 8(%rdi), %rdi
+    a:  testq %rdi, %rdi
+    d:  je 0x68
+    f:  movl $0x76, %esi
+   14:  callq eval+0
+   19:  movl %eax, %ebx
+   1b:  movl (%rip), %eax   <var:bp_first+0>
+   21:  testl %eax, %eax
+   23:  je 0x2f
+   25:  cmpq $0, (%rip)   <var:cdiv+0>
+   2d:  je 0x90
+   2f:  movl $0x64, %edi
+   34:  callq nreg+0
+   39:  movl $0x64, %edi
+   3e:  movl (%rax), %ebp
+   40:  callq nreg+0
+   45:  movl $1, %edx
+   4a:  addl %ebx, %ebp
+   4c:  movl (%rax), %edi
+   4e:  subl $1, %ebp
+   51:  movl %ebp, %esi
+   53:  callq fn:ren_traps+0
+   58:  testl %eax, %eax
+   5a:  je 0x80
+   5c:  addq $8, %rsp
+   60:  popq %rbx
+   61:  popq %rbp
+   62:  retq
+   63:  nopl (%rax, %rax)
+   68:  movl $0x76, %edi
+   6d:  callq nreg+0
+   72:  movl (%rax), %ebx
+   74:  jmp 0x1b
+   76:  nopw %cs:(%rax, %rax)
+   80:  addq $8, %rsp
+   84:  leal -1(%rbx), %edi
+   87:  popq %rbx
+   88:  popq %rbp
+   89:  jmp fn:ren_pagelimit+0
+   8e:  nop
+   90:  movl $0, (%rip)   <var:bp_first+0>
+   9a:  addq $8, %rsp
+   9e:  movl $1, %edi
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  jmp fn:ren_page+0

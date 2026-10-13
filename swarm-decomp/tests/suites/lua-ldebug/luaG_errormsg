@@ -1,0 +1,25 @@
+# luaG_errormsg  (global, 96 bytes, 24 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq 0xa8(%rdi), %rax
+    b:  testq %rax, %rax
+    e:  jne 0x1a
+   10:  movl $2, %esi
+   15:  callq luaD_throw+0
+   1a:  movq 0x10(%rdi), %rsi
+   1e:  addq 0x30(%rdi), %rax
+   22:  movq %rdi, 8(%rsp)
+   27:  movq -0x10(%rsi), %rdx
+   2b:  movq %rdx, (%rsi)
+   2e:  movzbl -8(%rsi), %edx
+   32:  movb %dl, 8(%rsi)
+   35:  movq (%rax), %rdx
+   38:  movq %rdx, -0x10(%rsi)
+   3c:  movzbl 8(%rax), %eax
+   40:  movl $1, %edx
+   45:  movb %al, -8(%rsi)
+   48:  leaq 0x10(%rsi), %rax
+   4c:  subq $0x10, %rsi
+   50:  movq %rax, 0x10(%rdi)
+   54:  callq luaD_callnoyield+0
+   59:  movq 8(%rsp), %rdi
+   5e:  jmp 0x10

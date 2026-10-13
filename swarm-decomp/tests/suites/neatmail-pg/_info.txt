@@ -1,0 +1,18 @@
+# neatmail-pg: translation unit pg of neatmail
+# write each function as src/neatmail/pg/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+put_id	static	110 bytes
+put_from_	static	116 bytes
+fileread	static	152 bytes
+put_body	static	488 bytes
+pg	global	5165 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+parts_n	static	4 bytes	.bss.parts_n
+    (zero-initialised)
+parts	static	128 bytes	.bss.parts
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc __errno_location __isoc99_sscanf base64 close free getenv hdrlen localtime mbox_free mbox_get mbox_ith mbox_len mbox_off mbox_open memchr memcmp msg_demime msg_get open puts read sbuf_buf sbuf_chr sbuf_done sbuf_free sbuf_len sbuf_make sbuf_mem sbuf_printf sbuf_str strchr strftime strlen strrchr strtol time xwrite

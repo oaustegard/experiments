@@ -1,0 +1,32 @@
+# box_italiccorrection  (static, 91 bytes, 31 instructions)
+    0:  pushq %rbx
+    1:  movl 0x1c(%rdi), %edx
+    4:  movq %rdi, %rbx
+    7:  movl 0x24(%rdi), %eax
+    a:  testl %edx, %edx
+    c:  je 0x13
+    e:  testb $1, %ah
+   11:  jne 0x20
+   13:  andb $0xfe, %ah
+   16:  movl %eax, 0x24(%rbx)
+   19:  popq %rbx
+   1a:  retq
+   1b:  nopl (%rax, %rax)
+   20:  movl $0, %esi   <str:"\\/">
+   25:  callq sbuf_append+0
+   2a:  movl 0x18(%rbx), %edi
+   2d:  testl %edi, %edi
+   2f:  jne 0x40
+   31:  movl 0x24(%rbx), %eax
+   34:  andb $0xfe, %ah
+   37:  movl %eax, 0x24(%rbx)
+   3a:  popq %rbx
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  callq sregname+0
+   45:  movl $0, %edx   <str:"\\/">
+   4a:  movl $0, %edi   <str:".as %s \"%s\n">
+   4f:  movq %rax, %rsi
+   52:  xorl %eax, %eax
+   54:  callq printf+0
+   59:  jmp 0x31

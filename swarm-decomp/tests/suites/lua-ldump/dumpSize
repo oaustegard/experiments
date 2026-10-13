@@ -1,0 +1,28 @@
+# dumpSize  (static, 86 bytes, 27 instructions)
+    0:  pushq %rbx
+    1:  movl $9, %eax
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  nopl (%rax)
+   10:  movl %esi, %edx
+   12:  movq %rax, %r8
+   15:  andl $0x7f, %edx
+   18:  movb %dl, 6(%rsp, %rax)
+   1c:  subq $1, %rax
+   20:  shrq $7, %rsi
+   24:  jne 0x10
+   26:  movl 0x1c(%rbx), %eax
+   29:  orb $0x80, 0xf(%rsp)
+   2e:  testl %eax, %eax
+   30:  jne 0x50
+   32:  leaq 6(%rsp), %rax
+   37:  movl $0xa, %edx
+   3c:  movq 0x10(%rbx), %rcx
+   40:  movq (%rbx), %rdi
+   43:  subq %r8, %rdx
+   46:  leaq (%rax, %r8), %rsi
+   4a:  callq *8(%rbx)
+   4d:  movl %eax, 0x1c(%rbx)
+   50:  addq $0x10, %rsp
+   54:  popq %rbx
+   55:  retq

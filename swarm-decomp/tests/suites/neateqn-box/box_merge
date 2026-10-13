@@ -1,0 +1,60 @@
+# box_merge  (global, 172 bytes, 59 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  movq %rsi, %rdi
+   10:  callq sbuf_buf+0
+   15:  cmpb $0, (%rax)
+   18:  jne 0x20
+   1a:  popq %rbx
+   1b:  popq %rbp
+   1c:  popq %r12
+   1e:  retq
+   1f:  nop
+   20:  movl 0x20(%rbp), %esi
+   23:  movl %r12d, %edx
+   26:  movq %rbx, %rdi
+   29:  callq fn:box_beforeput+0
+   2e:  movq %rbx, %rdi
+   31:  callq box_toreg+0
+   36:  movq %rbp, %rdi
+   39:  callq box_toreg+0
+   3e:  movq %rbx, %rdi
+   41:  movq %rax, %rsi
+   44:  movq %rax, %r12
+   47:  callq sbuf_append+0
+   4c:  movl 0x18(%rbx), %edi
+   4f:  testl %edi, %edi
+   51:  jne 0x80
+   53:  movl 0x20(%rbx), %eax
+   56:  testl %eax, %eax
+   58:  jne 0x60
+   5a:  movl 0x20(%rbp), %eax
+   5d:  movl %eax, 0x20(%rbx)
+   60:  movl 0x1c(%rbp), %eax
+   63:  movl 0x24(%rbp), %esi
+   66:  cmpl $1, %eax
+   69:  je 0xa0
+   6b:  addl %eax, 0x1c(%rbx)
+   6e:  movl %esi, 0x24(%rbx)
+   71:  popq %rbx
+   72:  popq %rbp
+   73:  popq %r12
+   75:  retq
+   76:  nopw %cs:(%rax, %rax)
+   80:  callq sregname+0
+   85:  movq %r12, %rdx
+   88:  movl $0, %edi   <str:".as %s \"%s\n">
+   8d:  movq %rax, %rsi
+   90:  xorl %eax, %eax
+   92:  callq printf+0
+   97:  jmp 0x53
+   99:  nopl (%rax)
+   a0:  movq %rbx, %rdi
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  popq %r12
+   a7:  jmp fn:box_afterput+0

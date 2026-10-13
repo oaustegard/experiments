@@ -1,0 +1,23 @@
+# io_num.isra.0  (static, 95 bytes, 22 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq (%rip), %rax   <var:iv_n+0>
+    b:  movq (%rip), %rdi   <var:ic+0>
+   12:  leaq 8(%rsp), %rdx
+   17:  leaq -1(%rax), %r8
+   1b:  movq (, %r8, 8), %rsi   <var:iv+0>
+   23:  callq ic_num+0
+   28:  testl %eax, %eax
+   2a:  je 0x38
+   2c:  addq $0x18, %rsp
+   30:  retq
+   31:  nopl (%rax)
+   38:  xorl %eax, %eax
+   3a:  testq %r8, %r8
+   3d:  movq 8(%rsp), %rsi
+   42:  movl $0x100400, %edi
+   47:  cmovsq %rax, %r8
+   4b:  xorl %ecx, %ecx
+   4d:  xorl %edx, %edx
+   4f:  movq %r8, (%rip)   <var:iv_n+0>
+   56:  addq $0x18, %rsp
+   5a:  jmp fn:ic_put+0

@@ -1,0 +1,89 @@
+# reg_region.isra.0  (static, 305 bytes, 88 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x38, %rsp
+    e:  testq %rdx, %rdx
+   11:  js 0x12c
+   17:  movq %rdi, 0x10(%rsp)
+   1c:  leaq (%rdx, %rdx, 4), %rax
+   20:  movq %rdx, %rbp
+   23:  movq %rcx, %r15
+   26:  movq %rsi, %r14
+   29:  leaq (%rdi, %rax, 8), %rdx
+   2d:  xorl %r12d, %r12d
+   30:  movq %r9, %rcx
+   33:  cmpq %rbp, (%r15)
+   36:  jle 0x3b
+   38:  movq %rbp, (%r15)
+   3b:  cmpq %rbp, (%r8)
+   3e:  jg 0x47
+   40:  leaq 1(%rbp), %rax
+   44:  movq %rax, (%r8)
+   47:  cmpb $0, (%rcx, %rbp)
+   4b:  jne 0x11a
+   51:  movb $1, (%rcx, %rbp)
+   55:  movq (%rdx), %rax
+   58:  movq %rdx, %rdi
+   5b:  andl $0xffffff, %eax
+   60:  cmpq $0x220000, %rax
+   66:  je 0x110
+   6c:  cmpq $0x210000, %rax
+   72:  jne 0x7e
+   74:  cmpq 8(%rdx), %r14
+   78:  jne 0x7e
+   7a:  addq $1, %r12
+   7e:  movq (%rip), %rax   <var:dst_head+0>
+   85:  movq (%rax, %rbp, 8), %rbx
+   89:  testq %rbx, %rbx
+   8c:  js 0xf7
+   8e:  movq %rdx, 0x18(%rsp)
+   93:  movq %r12, %rax
+   96:  movq (%rip), %r13   <var:dst_next+0>
+   9d:  movq %rbx, %r12
+   a0:  movq %rdi, 0x20(%rsp)
+   a5:  movq %rax, %rbx
+   a8:  movq %r8, 8(%rsp)
+   ad:  movq %rbp, 0x28(%rsp)
+   b2:  movq %rcx, %rbp
+   b5:  movq 8(%rsp), %r8
+   ba:  movq 0x10(%rsp), %rdi
+   bf:  movq %r12, %rdx
+   c2:  movq %rbp, %r9
+   c5:  movq %r15, %rcx
+   c8:  movq %r14, %rsi
+   cb:  callq 0
+   d0:  movq (%r13, %r12, 8), %r12
+   d5:  addq %rax, %rbx
+   d8:  testq %r12, %r12
+   db:  jns 0xb5
+   dd:  movq %rbp, %rcx
+   e0:  movq 0x18(%rsp), %rdx
+   e5:  movq 0x20(%rsp), %rdi
+   ea:  movq %rbx, %r12
+   ed:  movq 8(%rsp), %r8
+   f2:  movq 0x28(%rsp), %rbp
+   f7:  testq %rbp, %rbp
+   fa:  je 0x11a
+   fc:  subq $0x28, %rdx
+  100:  testb $0x10, -0x27(%rdi)
+  104:  jne 0x11a
+  106:  subq $1, %rbp
+  10a:  jmp 0x33
+  10f:  nop
+  110:  cmpq %r14, 0x10(%rdx)
+  114:  jne 0x7e
+  11a:  addq $0x38, %rsp
+  11e:  movq %r12, %rax
+  121:  popq %rbx
+  122:  popq %rbp
+  123:  popq %r12
+  125:  popq %r13
+  127:  popq %r14
+  129:  popq %r15
+  12b:  retq
+  12c:  xorl %r12d, %r12d
+  12f:  jmp 0x11a

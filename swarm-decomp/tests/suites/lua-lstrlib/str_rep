@@ -1,0 +1,92 @@
+# str_rep  (static, 327 bytes, 91 instructions)
+    0:  pushq %r15
+    2:  movl $1, %esi
+    7:  movq %rdi, %r15
+    a:  pushq %r14
+    c:  pushq %r13
+    e:  pushq %r12
+   10:  pushq %rbp
+   11:  pushq %rbx
+   12:  subq $0x438, %rsp
+   19:  movq %rsp, %rdx
+   1c:  callq luaL_checklstring+0
+   21:  movl $2, %esi
+   26:  movq %r15, %rdi
+   29:  movq %rax, %rbp
+   2c:  callq luaL_checkinteger+0
+   31:  leaq 8(%rsp), %rcx
+   36:  movl $0, %edx   <str:"">
+   3b:  movq %r15, %rdi
+   3e:  movq %rax, %r14
+   41:  movl $3, %esi
+   46:  callq luaL_optlstring+0
+   4b:  testq %r14, %r14
+   4e:  jle 0x138
+   54:  movq (%rsp), %r12
+   58:  movq 8(%rsp), %rcx
+   5d:  movq %r12, %rsi
+   60:  addq %rcx, %rsi
+   63:  jb 0x110
+   69:  movq %rax, %r13
+   6c:  xorl %edx, %edx
+   6e:  movl $0x7fffffff, %eax
+   73:  divq %r14
+   76:  cmpq %rsi, %rax
+   79:  jb 0x110
+   7f:  leaq -1(%r14), %rbx
+   83:  movq %r15, %rdi
+   86:  leaq 0x10(%rsp), %rsi
+   8b:  imulq %rbx, %rcx
+   8f:  imulq %r14, %r12
+   93:  addq %rcx, %r12
+   96:  movq %r12, %rdx
+   99:  callq luaL_buffinitsize+0
+   9e:  movq (%rsp), %rdx
+   a2:  movq %rax, %rdi
+   a5:  cmpq $1, %r14
+   a9:  jne 0xb6
+   ab:  jmp 0xef
+   ad:  nopl (%rax)
+   b0:  subq $1, %rbx
+   b4:  je 0xef
+   b6:  movq %rbp, %rsi
+   b9:  callq memcpy+0
+   be:  movq (%rsp), %rdx
+   c2:  movq %rax, %rdi
+   c5:  movq 8(%rsp), %rax
+   ca:  addq %rdx, %rdi
+   cd:  testq %rax, %rax
+   d0:  je 0xb0
+   d2:  movq %rax, %rdx
+   d5:  movq %r13, %rsi
+   d8:  callq memcpy+0
+   dd:  movq 8(%rsp), %rdi
+   e2:  movq (%rsp), %rdx
+   e6:  addq %rax, %rdi
+   e9:  subq $1, %rbx
+   ed:  jne 0xb6
+   ef:  movq %rbp, %rsi
+   f2:  callq memcpy+0
+   f7:  movq %r12, %rsi
+   fa:  leaq 0x10(%rsp), %rdi
+   ff:  callq luaL_pushresultsize+0
+  104:  movl $1, %eax
+  109:  jmp 0x11f
+  10b:  nopl (%rax, %rax)
+  110:  movl $0, %esi   <str:"resulting string too large">
+  115:  movq %r15, %rdi
+  118:  xorl %eax, %eax
+  11a:  callq luaL_error+0
+  11f:  addq $0x438, %rsp
+  126:  popq %rbx
+  127:  popq %rbp
+  128:  popq %r12
+  12a:  popq %r13
+  12c:  popq %r14
+  12e:  popq %r15
+  130:  retq
+  131:  nopl (%rax)
+  138:  movl $0, %esi   <str:"">
+  13d:  movq %r15, %rdi
+  140:  callq lua_pushstring+0
+  145:  jmp 0x104

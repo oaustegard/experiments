@@ -1,0 +1,164 @@
+# singlestep  (static, 666 bytes, 163 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  subq $0x10, %rsp
+    8:  movq 0x18(%rdi), %rbx
+    c:  cmpb $8, 0x65(%rbx)
+   10:  movb $1, 0x67(%rbx)
+   14:  ja 0x1e0
+   1a:  movzbl 0x65(%rbx), %eax
+   1e:  movq %rdi, %rbp
+   21:  jmpq *(, %rax, 8)   <var:singlestep+0>
+   28:  nopl (%rax, %rax)
+   30:  movq 0x108(%rbx), %rsi
+   37:  pxor %xmm0, %xmm0
+   3b:  movq $0, 0xa8(%rbx)
+   46:  movups %xmm0, 0x88(%rbx)
+   4d:  movups %xmm0, 0x98(%rbx)
+   54:  testb $0x18, 9(%rsi)
+   58:  jne 0x248
+   5e:  testb $0x40, 0x48(%rbx)
+   62:  je 0x72
+   64:  movq 0x40(%rbx), %rsi
+   68:  testb $0x18, 9(%rsi)
+   6c:  jne 0x238
+   72:  leaq 0x1e0(%rbx), %r8
+   79:  leaq 0x228(%rbx), %r9
+   80:  jmp 0x91
+   82:  nopw (%rax, %rax)
+   88:  addq $8, %r8
+   8c:  cmpq %r8, %r9
+   8f:  je 0xb0
+   91:  movq (%r8), %rsi
+   94:  testq %rsi, %rsi
+   97:  je 0x88
+   99:  testb $0x18, 9(%rsi)
+   9d:  je 0x88
+   9f:  movq %rbx, %rdi
+   a2:  addq $8, %r8
+   a6:  callq fn:reallymarkobject+0
+   ab:  cmpq %r8, %r9
+   ae:  jne 0x91
+   b0:  movq 0xb0(%rbx), %r8
+   b7:  testq %r8, %r8
+   ba:  jne 0xd4
+   bc:  jmp 0x1f0
+   c1:  nopl (%rax)
+   c8:  movq (%r8), %r8
+   cb:  testq %r8, %r8
+   ce:  je 0x1f0
+   d4:  testb $0x18, 9(%r8)
+   d9:  je 0xc8
+   db:  movq %r8, %rsi
+   de:  movq %rbx, %rdi
+   e1:  callq fn:reallymarkobject+0
+   e6:  jmp 0xc8
+   e8:  nopl (%rax, %rax)
+   f0:  cmpq $0, 0x88(%rbx)
+   f8:  je 0x200
+   fe:  movq %rbx, %rdi
+  101:  callq fn:propagatemark+0
+  106:  nopw %cs:(%rax, %rax)
+  110:  movb $0, 0x67(%rbx)
+  114:  addq $0x10, %rsp
+  118:  popq %rbx
+  119:  popq %rbp
+  11a:  popq %r12
+  11c:  retq
+  11d:  nopl (%rax)
+  120:  leaq 0xb0(%rbx), %rcx
+  127:  movl $5, %edx
+  12c:  movq %rbx, %rsi
+  12f:  callq fn:sweepstep.constprop.0+0
+  134:  cltq
+  136:  jmp 0x110
+  138:  nopl (%rax, %rax)
+  140:  callq fn:atomic+0
+  145:  movq %rbp, %rdi
+  148:  movq %rax, 8(%rsp)
+  14d:  callq fn:entersweep+0
+  152:  movq 0x18(%rbx), %rdx
+  156:  addq 0x10(%rbx), %rdx
+  15a:  movq %rdx, 0x20(%rbx)
+  15e:  movq 8(%rsp), %rax
+  163:  jmp 0x110
+  165:  nopl (%rax)
+  168:  leaq 0x80(%rbx), %rcx
+  16f:  movl $4, %edx
+  174:  movq %rbx, %rsi
+  177:  callq fn:sweepstep.constprop.0+0
+  17c:  cltq
+  17e:  jmp 0x110
+  180:  cmpb $0, 0x6b(%rbx)
+  184:  jne 0x199
+  186:  movl 0x3c(%rbx), %edx
+  189:  testl %edx, %edx
+  18b:  leal 3(%rdx), %eax
+  18e:  cmovnsl %edx, %eax
+  191:  sarl $2, %eax
+  194:  cmpl %eax, 0x38(%rbx)
+  197:  jl 0x210
+  199:  movl $7, %eax
+  19e:  jmp 0x1b9
+  1a0:  cmpq $0, 0xb0(%rbx)
+  1a8:  movl $8, %eax
+  1ad:  je 0x1b9
+  1af:  cmpb $0, 0x6b(%rbx)
+  1b3:  je 0x258
+  1b9:  movb %al, 0x65(%rbx)
+  1bc:  xorl %eax, %eax
+  1be:  jmp 0x110
+  1c3:  nopl (%rax, %rax)
+  1c8:  xorl %ecx, %ecx
+  1ca:  movl $6, %edx
+  1cf:  movq %rbx, %rsi
+  1d2:  callq fn:sweepstep.constprop.0+0
+  1d7:  cltq
+  1d9:  jmp 0x110
+  1de:  nop
+  1e0:  xorl %eax, %eax
+  1e2:  jmp 0x114
+  1e7:  nopw (%rax, %rax)
+  1f0:  movb $0, 0x65(%rbx)
+  1f4:  movl $1, %eax
+  1f9:  jmp 0x110
+  1fe:  nop
+  200:  movl $1, %eax
+  205:  jmp 0x1b9
+  207:  nopw (%rax, %rax)
+  210:  movl %edx, %esi
+  212:  movq 0x18(%rbx), %r12
+  216:  shrl $0x1f, %esi
+  219:  addl %edx, %esi
+  21b:  sarl $1, %esi
+  21d:  callq luaS_resize+0
+  222:  movq 0x18(%rbx), %rax
+  226:  subq %r12, %rax
+  229:  addq %rax, 0x20(%rbx)
+  22d:  jmp 0x199
+  232:  nopw (%rax, %rax)
+  238:  movq %rbx, %rdi
+  23b:  callq fn:reallymarkobject+0
+  240:  jmp 0x72
+  245:  nopl (%rax)
+  248:  movq %rbx, %rdi
+  24b:  callq fn:reallymarkobject+0
+  250:  jmp 0x5e
+  255:  nopl (%rax)
+  258:  movb $0, 0x67(%rbx)
+  25c:  xorl %r12d, %r12d
+  25f:  nop
+  260:  movq %rbp, %rdi
+  263:  addl $1, %r12d
+  267:  callq fn:GCTM+0
+  26c:  cmpl $0xa, %r12d
+  270:  je 0x290
+  272:  cmpq $0, 0xb0(%rbx)
+  27a:  jne 0x260
+  27c:  imull $0x32, %r12d, %eax
+  280:  cltq
+  282:  jmp 0x110
+  287:  nopw (%rax, %rax)
+  290:  movl $0x1f4, %eax
+  295:  jmp 0x110

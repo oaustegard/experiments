@@ -1,0 +1,31 @@
+# tr_args  (global, 83 bytes, 30 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movl %esi, %r12d
+    a:  pushq %rbp
+    b:  movq %rdx, %rbp
+    e:  pushq %rbx
+    f:  movq %rcx, %rbx
+   12:  subq $0x18, %rsp
+   16:  movq %rsp, %rdi
+   19:  callq sbuf_init+0
+   1e:  nop
+   20:  movq %rbx, %rcx
+   23:  movq %rbp, %rdx
+   26:  movl %r12d, %esi
+   29:  movq %rsp, %rdi
+   2c:  callq fn:macroarg+0
+   31:  testl %eax, %eax
+   33:  je 0x20
+   35:  movq %r13, %rsi
+   38:  movq %rsp, %rdi
+   3b:  callq fn:chopargs+0
+   40:  movq %rsp, %rdi
+   43:  callq sbuf_out+0
+   48:  addq $0x18, %rsp
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  popq %r13
+   52:  retq

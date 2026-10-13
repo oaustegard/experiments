@@ -1,0 +1,42 @@
+# pdfcolor  (static, 167 bytes, 41 instructions)
+    0:  movl %edi, %ecx
+    2:  movl $0x80808081, %edx
+    7:  movl %edi, %eax
+    9:  subq $8, %rsp
+    d:  sarl $0x10, %ecx
+   10:  movzbl %ah, %edi
+   13:  movzbl %al, %eax
+   16:  movzbl %cl, %ecx
+   19:  imull $0x3e8, %edi, %r9d
+   20:  imull $0x3e8, %ecx, %ecx
+   26:  imull $0x3e8, %eax, %eax
+   2c:  imulq %rdx, %r9
+   30:  imulq %rdx, %rcx
+   34:  imulq %rdx, %rax
+   38:  shrq $0x27, %r9
+   3c:  shrq $0x27, %rcx
+   40:  movl %r9d, %r8d
+   43:  movl %ecx, %edx
+   45:  shrq $0x27, %rax
+   49:  imulq $0x10624dd3, %r8, %r8
+   50:  imulq $0x10624dd3, %rdx, %rdx
+   57:  shrq $0x26, %r8
+   5b:  shrq $0x26, %rdx
+   5f:  imull $0x3e8, %r8d, %edi
+   66:  imull $0x3e8, %edx, %esi
+   6c:  subl %edi, %r9d
+   6f:  movq (%rip), %rdi   <var:pg+0>
+   76:  subl %esi, %ecx
+   78:  movl %eax, %esi
+   7a:  imulq $0x10624dd3, %rsi, %rsi
+   81:  shrq $0x26, %rsi
+   85:  imull $0x3e8, %esi, %r10d
+   8c:  subl %r10d, %eax
+   8f:  pushq %rax
+   90:  xorl %eax, %eax
+   92:  pushq %rsi
+   93:  movl $0, %esi   <str:"%d.%03d %d.%03d %d.%03d">
+   98:  callq sbuf_printf+0
+   9d:  movl $0, %eax   <var:buf+0>
+   a2:  addq $0x18, %rsp
+   a6:  retq

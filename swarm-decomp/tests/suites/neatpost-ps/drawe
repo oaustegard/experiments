@@ -1,0 +1,26 @@
+# drawe  (global, 90 bytes, 25 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movl %edi, %ebx
+    6:  subq $8, %rsp
+    a:  movl (%rip), %eax   <var:draw_point+0>
+   10:  testl %eax, %eax
+   12:  je 0x40
+   14:  addl %ebx, (%rip)   <var:o_h+0>
+   1a:  movl %ebp, %edx
+   1c:  movl %ebx, %esi
+   1e:  movl $0, %edi   <str:"%d %d drawe ">
+   23:  movl $1, (%rip)   <var:draw_point+0>
+   2d:  addq $8, %rsp
+   31:  xorl %eax, %eax
+   33:  popq %rbx
+   34:  popq %rbp
+   35:  jmp fn:outf+0
+   3a:  nopw (%rax, %rax)
+   40:  movl (%rip), %edx   <var:o_v+0>
+   46:  movl (%rip), %esi   <var:o_h+0>
+   4c:  movl $0, %edi   <str:"%d %d m ">
+   51:  xorl %eax, %eax
+   53:  callq fn:outf+0
+   58:  jmp 0x14

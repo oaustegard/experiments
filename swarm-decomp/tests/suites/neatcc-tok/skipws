@@ -1,0 +1,118 @@
+# skipws  (static, 491 bytes, 117 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  subq $0x10, %rsp
+    8:  movq (%rip), %rbp   <var:len+0>
+    f:  movq (%rip), %rbx   <var:off+0>
+   16:  cmpq %rbx, %rbp
+   19:  je 0xe0
+   1f:  jle 0x6d
+   21:  callq __ctype_b_loc+0
+   26:  movq (%rip), %rcx   <var:buf+0>
+   2d:  xorl %edx, %edx
+   2f:  movq (%rax), %rsi
+   32:  jmp 0x4d
+   34:  nopl (%rax)
+   38:  addq $1, %rbx
+   3c:  movl $1, %edx
+   41:  cmpq %rbp, %rbx
+   44:  je 0x160
+   4a:  movq %rbx, %r12
+   4d:  movsbq (%rcx, %rbx), %rax
+   52:  testb $0x20, 1(%rsi, %rax, 2)
+   57:  jne 0x38
+   59:  testb %dl, %dl
+   5b:  je 0x64
+   5d:  movq %r12, (%rip)   <var:off+0>
+   64:  cmpq %rbp, %rbx
+   67:  je 0x167
+   6d:  movq (%rip), %rax   <var:buf+0>
+   74:  movzbl (%rax, %rbx), %edx
+   78:  cmpb $0x5c, %dl
+   7b:  je 0x1d0
+   81:  cmpb $0x2f, %dl
+   84:  jne 0xa0
+   86:  movzbl 1(%rax, %rbx), %edx
+   8b:  movq (%rip), %rbx   <var:off+0>
+   92:  cmpb $0x2f, %dl
+   95:  je 0xc4
+   97:  cmpb $0x2a, %dl
+   9a:  je 0x178
+   a0:  addq $0x10, %rsp
+   a4:  xorl %eax, %eax
+   a6:  popq %rbx
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  movzbl (%rax, %rbx), %edx
+   b4:  cmpb $0xa, %dl
+   b7:  je 0xd0
+   b9:  addq $2, %rcx
+   bd:  cmpb $0x5c, %dl
+   c0:  cmoveq %rcx, %rbx
+   c4:  movq %rbx, %rcx
+   c7:  addq $1, %rbx
+   cb:  cmpq %rbp, %rbx
+   ce:  jl 0xb0
+   d0:  movq %rbx, (%rip)   <var:off+0>
+   d7:  cmpq %rbx, %rbp
+   da:  jne 0x1f
+   e0:  movq $0, (%rsp)
+   e8:  nopl (%rax, %rax)
+   f0:  movq %rsp, %rsi
+   f3:  leaq 8(%rsp), %rdi
+   f8:  callq cpp_read+0
+   fd:  testl %eax, %eax
+   ff:  jne 0x1dd
+  105:  movq (%rsp), %rdx
+  109:  testq %rdx, %rdx
+  10c:  je 0xf0
+  10e:  movq 8(%rsp), %rsi
+  113:  movl $0, %edi   <var:tok_mem+0>
+  118:  callq mem_put+0
+  11d:  movl $0, %edi   <var:tok_mem+0>
+  122:  callq mem_buf+0
+  127:  movl $0, %edi   <var:tok_mem+0>
+  12c:  movq %rax, (%rip)   <var:buf+0>
+  133:  callq mem_len+0
+  138:  movq (%rip), %rbx   <var:off+0>
+  13f:  movq %rax, (%rip)   <var:len+0>
+  146:  movq %rax, %rbp
+  149:  cmpq %rbx, %rax
+  14c:  jg 0x21
+  152:  jmp 0x64
+  157:  nopw (%rax, %rax)
+  160:  movq %rbp, (%rip)   <var:off+0>
+  167:  movq (%rip), %rbx   <var:off+0>
+  16e:  jmp 0x16
+  173:  nopl (%rax, %rax)
+  178:  movq (%rip), %rdi   <var:off+0>
+  17f:  leaq 1(%rdi), %rbx
+  183:  movq %rbx, (%rip)   <var:off+0>
+  18a:  cmpq %rbp, %rbx
+  18d:  jge 0x16
+  193:  cmpb $0x2a, (%rax, %rbx)
+  197:  je 0x1b3
+  199:  nopl (%rax)
+  1a0:  addq $1, %rbx
+  1a4:  cmpq %rbp, %rbx
+  1a7:  je 0xd0
+  1ad:  cmpb $0x2a, (%rax, %rbx)
+  1b1:  jne 0x1a0
+  1b3:  cmpb $0x2f, 1(%rax, %rbx)
+  1b8:  jne 0x1a0
+  1ba:  addq $2, %rbx
+  1be:  movq %rbx, (%rip)   <var:off+0>
+  1c5:  jmp 0x16
+  1ca:  nopw (%rax, %rax)
+  1d0:  cmpb $0xa, 1(%rax, %rbx)
+  1d5:  jne 0xa0
+  1db:  jmp 0x1ba
+  1dd:  addq $0x10, %rsp
+  1e1:  movl $1, %eax
+  1e6:  popq %rbx
+  1e7:  popq %rbp
+  1e8:  popq %r12
+  1ea:  retq

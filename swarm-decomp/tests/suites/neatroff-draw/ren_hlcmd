@@ -1,0 +1,49 @@
+# ren_hlcmd  (global, 157 bytes, 48 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $0x38, %rsp
+    9:  movq %rsi, 8(%rsp)
+    e:  leaq 8(%rsp), %rdi
+   13:  movl $0x6d, %esi
+   18:  callq eval_up+0
+   1d:  movq 8(%rsp), %rdx
+   22:  movl %eax, %ebx
+   24:  movsbl (%rdx), %ecx
+   27:  cmpl (%rip), %ecx   <c_ec+0>
+   2d:  movl %ecx, %eax
+   2f:  je 0x88
+   31:  testb %al, %al
+   33:  je 0x58
+   35:  leaq 0x10(%rsp), %rsi
+   3a:  leaq 8(%rsp), %rdi
+   3f:  callq charread+0
+   44:  testl %eax, %eax
+   46:  js 0x58
+   48:  testl %ebx, %ebx
+   4a:  jne 0x6b
+   4c:  addq $0x38, %rsp
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  movl $0x7572, %eax
+   5d:  movb $0, 0x12(%rsp)
+   62:  movw %ax, 0x10(%rsp)
+   67:  testl %ebx, %ebx
+   69:  je 0x4c
+   6b:  leaq 0x10(%rsp), %rdx
+   70:  movl %ebx, %esi
+   72:  movq %rbp, %rdi
+   75:  callq ren_hline+0
+   7a:  addq $0x38, %rsp
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  retq
+   81:  nopl (%rax)
+   88:  cmpb $0x26, 1(%rdx)
+   8c:  jne 0x31
+   8e:  leaq 2(%rdx), %rax
+   92:  movq %rax, 8(%rsp)
+   97:  movzbl 2(%rdx), %eax
+   9b:  jmp 0x31

@@ -1,0 +1,50 @@
+# luaG_getfuncline  (global, 142 bytes, 49 instructions)
+    0:  movq 0x58(%rdi), %rax
+    4:  testq %rax, %rax
+    7:  je 0x87
+    9:  movl 0x28(%rdi), %r8d
+    d:  testl %r8d, %r8d
+   10:  je 0x1b
+   12:  movq 0x60(%rdi), %r9
+   16:  cmpl (%r9), %esi
+   19:  jge 0x50
+   1b:  movl 0x2c(%rdi), %edx
+   1e:  xorl %ecx, %ecx
+   20:  movl $0xffffffff, %edi
+   25:  cmpl %edi, %esi
+   27:  jle 0x48
+   29:  movslq %ecx, %rdi
+   2c:  addq %rdi, %rax
+   2f:  leal -1(%rcx), %edi
+   32:  subl %eax, %edi
+   34:  nopl (%rax)
+   38:  movsbl (%rax), %ecx
+   3b:  addq $1, %rax
+   3f:  addl %ecx, %edx
+   41:  leal (%rdi, %rax), %ecx
+   44:  cmpl %ecx, %esi
+   46:  jg 0x38
+   48:  movl %edx, %eax
+   4a:  retq
+   4b:  nopl (%rax, %rax)
+   50:  movl %esi, %edx
+   52:  shrl $7, %edx
+   55:  subl $1, %edx
+   58:  movslq %edx, %rdx
+   5b:  jmp 0x6e
+   5d:  nopl (%rax)
+   60:  leaq 1(%rdx), %rcx
+   64:  cmpl 8(%r9, %rdx, 8), %esi
+   69:  jl 0x76
+   6b:  movq %rcx, %rdx
+   6e:  leal 1(%rdx), %ecx
+   71:  cmpl %ecx, %r8d
+   74:  jg 0x60
+   76:  movslq %edx, %rdx
+   79:  leaq (%r9, %rdx, 8), %rdx
+   7d:  movl (%rdx), %edi
+   7f:  movl 4(%rdx), %edx
+   82:  leal 1(%rdi), %ecx
+   85:  jmp 0x25
+   87:  movl $0xffffffff, %edx
+   8c:  jmp 0x48

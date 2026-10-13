@@ -1,0 +1,100 @@
+# readand.part.0  (static, 412 bytes, 99 instructions)
+    0:  pushq %r14
+    2:  movl $4, %edi
+    7:  movl $0x26, %r14d
+    d:  pushq %r13
+    f:  pushq %r12
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  callq o_mklocal+0
+   18:  movl (%rip), %ebp   <var:label+0>
+   1e:  movl $1, %edi
+   23:  movq %rax, %r12
+   26:  leal 1(%rbp), %r13d
+   2a:  addl $2, %ebp
+   2d:  movl %ebp, (%rip)   <var:label+0>
+   33:  movslq %ebp, %rbp
+   36:  callq fn:ts_de+0
+   3b:  movq %rbp, %rdi
+   3e:  subl $1, (%rip)   <var:nts+0>
+   45:  callq o_jz+0
+   4a:  callq tok_see+0
+   4f:  movzbl (%rax), %edx
+   52:  cmpl %edx, %r14d
+   55:  jne 0xcc
+   57:  nopw (%rax, %rax)
+   60:  movzbl 1(%rax), %edx
+   64:  cmpl %edx, %r14d
+   67:  jne 0xcc
+   69:  cmpb $0, 2(%rax)
+   6d:  jne 0xcc
+   6f:  callq tok_get+0
+   74:  movl $0x7c, %ebx
+   79:  callq fn:readxor+0
+   7e:  jmp 0x9a
+   80:  cmpb $0, 1(%rax)
+   84:  jne 0xa6
+   86:  callq tok_get+0
+   8b:  callq fn:readxor+0
+   90:  movl $0x13, %edi
+   95:  callq fn:ts_binop+0
+   9a:  callq tok_see+0
+   9f:  movzbl (%rax), %edx
+   a2:  cmpl %edx, %ebx
+   a4:  je 0x80
+   a6:  movl $1, %edi
+   ab:  callq fn:ts_de+0
+   b0:  movq %rbp, %rdi
+   b3:  subl $1, (%rip)   <var:nts+0>
+   ba:  callq o_jz+0
+   bf:  callq tok_see+0
+   c4:  movzbl (%rax), %edx
+   c7:  cmpl %edx, %r14d
+   ca:  je 0x60
+   cc:  movl $1, %edi
+   d1:  movslq %r13d, %r13
+   d4:  callq o_num+0
+   d9:  movq %r12, %rdi
+   dc:  callq o_local+0
+   e1:  callq o_tmpswap+0
+   e6:  movl $4, %edi
+   eb:  callq o_assign+0
+   f0:  movl $1, %edi
+   f5:  callq o_tmpdrop+0
+   fa:  movq %r13, %rdi
+   fd:  callq o_jmp+0
+  102:  movq %rbp, %rdi
+  105:  callq o_label+0
+  10a:  xorl %edi, %edi
+  10c:  callq o_num+0
+  111:  movq %r12, %rdi
+  114:  callq o_local+0
+  119:  callq o_tmpswap+0
+  11e:  movl $4, %edi
+  123:  callq o_assign+0
+  128:  movl $1, %edi
+  12d:  callq o_tmpdrop+0
+  132:  movq %r13, %rdi
+  135:  callq o_label+0
+  13a:  movq %r12, %rdi
+  13d:  callq o_local+0
+  142:  movl $0x14, %edi
+  147:  callq o_deref+0
+  14c:  movq %r12, %rdi
+  14f:  movl $0x14, %esi
+  154:  callq o_rmlocal+0
+  159:  movslq (%rip), %rax   <var:nts+0>
+  160:  popq %rbx
+  161:  popq %rbp
+  162:  popq %r12
+  164:  movq %rax, %rdx
+  167:  leaq (%rax, %rax, 4), %rax
+  16b:  popq %r13
+  16d:  popq %r14
+  16f:  shlq $2, %rax
+  173:  addl $1, %edx
+  176:  movl $0, (%rax)   <var:ts+8>
+  180:  movl $0, (%rax)   <var:ts+16>
+  18a:  movl %edx, (%rip)   <var:nts+0>
+  190:  movq $0x14, (%rax)   <var:ts+0>
+  19b:  retq

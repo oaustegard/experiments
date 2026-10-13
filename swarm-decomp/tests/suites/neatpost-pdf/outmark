@@ -1,0 +1,334 @@
+# outmark  (global, 1325 bytes, 333 instructions)
+    0:  pushq %r15
+    2:  movslq %edi, %rax
+    5:  pushq %r14
+    7:  movq %rax, %r14
+    a:  pushq %r13
+    c:  movq %r8, %r13
+    f:  pushq %r12
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  leaq (, %rax, 4), %rbx
+   1b:  movq %rbx, %rdi
+   1e:  subq $0x38, %rsp
+   22:  movq %rsi, (%rsp)
+   26:  movq %rdx, 0x20(%rsp)
+   2b:  movq %rcx, 0x28(%rsp)
+   30:  movq %rax, 0x18(%rsp)
+   35:  callq malloc+0
+   3a:  movq %rax, %rbp
+   3d:  callq fn:obj_map+0
+   42:  leaq (%rbx, %rbp), %r12
+   46:  movq %rbp, %r15
+   49:  movl %eax, (%rip)   <var:pdf_outline+0>
+   4f:  testl %r14d, %r14d
+   52:  jle 0x6a
+   54:  nopl (%rax)
+   58:  callq fn:obj_map+0
+   5d:  addq $4, %r15
+   61:  movl %eax, -4(%r15)
+   65:  cmpq %r15, %r12
+   68:  jne 0x58
+   6a:  cmpl $1, (%rip)   <var:o_queued+0>
+   71:  je 0x515
+   77:  movl $0, (%rip)   <var:o_queued+0>
+   81:  movl (%rip), %esi   <var:pdf_outline+0>
+   87:  testl %esi, %esi
+   89:  jle 0x509
+   8f:  movq (%rip), %rax   <var:obj_off+0>
+   96:  movl (%rip), %ecx   <var:pdf_pos+0>
+   9c:  movslq %esi, %rdx
+   9f:  leal -1(%r14), %r12d
+   a3:  movl $0, %edi   <str:"%d 0 obj\n">
+   a8:  movl %ecx, (%rax, %rdx, 4)
+   ab:  xorl %eax, %eax
+   ad:  callq fn:pdfout+0
+   b2:  movl $0, %edi   <str:"<<\n">
+   b7:  xorl %eax, %eax
+   b9:  callq fn:pdfout+0
+   be:  testl %r14d, %r14d
+   c1:  jle 0x43d
+   c7:  movl (%r13), %edi
+   cb:  movq %r13, %rax
+   ce:  leaq (%rbx, %r13), %rcx
+   d2:  xorl %esi, %esi
+   d4:  nopl (%rax)
+   d8:  xorl %edx, %edx
+   da:  cmpl (%rax), %edi
+   dc:  sete %dl
+   df:  addq $4, %rax
+   e3:  addl %edx, %esi
+   e5:  cmpq %rax, %rcx
+   e8:  jne 0xd8
+   ea:  xorl %eax, %eax
+   ec:  movl $0, %edi   <str:"  /Count %d\n">
+   f1:  callq fn:pdfout+0
+   f6:  movl (%rbp), %esi
+   f9:  xorl %eax, %eax
+   fb:  movl $0, %edi   <str:"  /First %d 0 R\n">
+  100:  callq fn:pdfout+0
+  105:  testl %r12d, %r12d
+  108:  je 0x4b5
+  10e:  movl (%r13), %eax
+  112:  subq $4, %rbx
+  116:  jmp 0x12e
+  118:  nopl (%rax, %rax)
+  120:  subq $4, %rbx
+  124:  subl $1, %r12d
+  128:  je 0x4b5
+  12e:  cmpl %eax, (%r13, %rbx)
+  133:  jg 0x120
+  135:  movl (%rbp, %rbx), %esi
+  139:  movl $0, %edi   <str:"  /Last %d 0 R\n">
+  13e:  xorl %eax, %eax
+  140:  movl $1, %r15d
+  146:  movl %r15d, %ebx
+  149:  callq fn:pdfout+0
+  14e:  movl $0, %edi   <str:">>\n">
+  153:  xorl %eax, %eax
+  155:  callq fn:pdfout+0
+  15a:  movl $0, %edi   <str:"endobj\n\n">
+  15f:  xorl %eax, %eax
+  161:  callq fn:pdfout+0
+  166:  movl %r15d, 8(%rsp)
+  16b:  cmpl %r14d, %r15d
+  16e:  jge 0x32b
+  174:  nopl (%rax)
+  178:  movl -4(%r13, %r15, 4), %edi
+  17d:  movq %r15, %rax
+  180:  xorl %r12d, %r12d
+  183:  leal 1(%rdi), %r11d
+  187:  jmp 0x1a7
+  189:  nopl (%rax)
+  190:  cmpl %esi, %r11d
+  193:  sete %sil
+  197:  addq $1, %rax
+  19b:  movzbl %sil, %esi
+  19f:  addl %esi, %r12d
+  1a2:  cmpl %eax, %r14d
+  1a5:  jle 0x1b0
+  1a7:  movl (%r13, %rax, 4), %esi
+  1ac:  cmpl %edi, %esi
+  1ae:  jg 0x190
+  1b0:  movl -4(%rbp, %r15, 4), %esi
+  1b5:  testl %esi, %esi
+  1b7:  jle 0x340
+  1bd:  movl (%rip), %r11d   <var:pdf_pos+0>
+  1c4:  movq (%rip), %rax   <var:obj_off+0>
+  1cb:  movslq %esi, %rdi
+  1ce:  movl %r11d, (%rax, %rdi, 4)
+  1d2:  movl $0, %edi   <str:"%d 0 obj\n">
+  1d7:  xorl %eax, %eax
+  1d9:  callq fn:pdfout+0
+  1de:  movl $0, %edi   <str:"<<\n">
+  1e3:  xorl %eax, %eax
+  1e5:  callq fn:pdfout+0
+  1ea:  movq (%rsp), %rdi
+  1ee:  callq pdftext_static+0
+  1f3:  movl $0, %edi   <str:"  /Title %s\n">
+  1f8:  movq %rax, %rsi
+  1fb:  xorl %eax, %eax
+  1fd:  callq fn:pdfout+0
+  202:  leal -2(%rbx), %eax
+  205:  movl %eax, 0xc(%rsp)
+  209:  cmpl $1, %ebx
+  20c:  je 0x4bc
+  212:  leaq -2(%r15), %r10
+  216:  movl -4(%r13, %r15, 4), %esi
+  21b:  movq %r10, %rax
+  21e:  jmp 0x22d
+  220:  subq $1, %rax
+  224:  cmpl $-1, %eax
+  227:  je 0x360
+  22d:  cmpl %esi, (%r13, %rax, 4)
+  232:  jge 0x220
+  234:  cltq
+  236:  movl (%rbp, %rax, 4), %esi
+  23a:  xorl %eax, %eax
+  23c:  movl $0, %edi   <str:"  /Parent %d 0 R\n">
+  241:  movq %r10, 0x10(%rsp)
+  246:  callq fn:pdfout+0
+  24b:  cmpl %r14d, 8(%rsp)
+  250:  movq 0x10(%rsp), %r10
+  255:  jge 0x29b
+  257:  movl -4(%r13, %r15, 4), %esi
+  25c:  movq %r15, %rax
+  25f:  jmp 0x275
+  261:  nopl (%rax)
+  268:  addq $1, %rax
+  26c:  cmpl %eax, %r14d
+  26f:  jle 0x350
+  275:  movl %eax, %edi
+  277:  cmpl %esi, (%r13, %rax, 4)
+  27c:  jg 0x268
+  27e:  cmpl %eax, %r14d
+  281:  jle 0x290
+  283:  cltq
+  285:  cmpl (%r13, %rax, 4), %esi
+  28a:  je 0x4a0
+  290:  cmpl $-1, 0xc(%rsp)
+  295:  je 0x2c5
+  297:  leaq -2(%r15), %r10
+  29b:  movl -4(%r13, %r15, 4), %esi
+  2a0:  movq %r10, %rax
+  2a3:  jmp 0x2b1
+  2a5:  nopl (%rax)
+  2a8:  subq $1, %rax
+  2ac:  cmpl $-1, %eax
+  2af:  je 0x2c5
+  2b1:  cmpl %esi, (%r13, %rax, 4)
+  2b6:  jg 0x2a8
+  2b8:  cltq
+  2ba:  cmpl (%r13, %rax, 4), %esi
+  2bf:  je 0x428
+  2c5:  testl %r12d, %r12d
+  2c8:  jne 0x3b0
+  2ce:  movq 0x20(%rsp), %rax
+  2d3:  movslq -4(%rax, %r15, 4), %rsi
+  2d8:  testl %esi, %esi
+  2da:  jle 0x2e8
+  2dc:  cmpl (%rip), %esi   <var:page_n+0>
+  2e2:  jle 0x370
+  2e8:  movl $0, %edi   <str:">>\n">
+  2ed:  xorl %eax, %eax
+  2ef:  callq fn:pdfout+0
+  2f4:  xorl %eax, %eax
+  2f6:  movl $0, %edi   <str:"endobj\n\n">
+  2fb:  callq fn:pdfout+0
+  300:  addq $0x100, (%rsp)
+  308:  leaq 1(%r15), %rax
+  30c:  cmpq %r15, 0x18(%rsp)
+  311:  je 0x482
+  317:  movq %rax, %r15
+  31a:  movl %r15d, 8(%rsp)
+  31f:  movl %r15d, %ebx
+  322:  cmpl %r14d, %r15d
+  325:  jl 0x178
+  32b:  movl -4(%rbp, %r15, 4), %esi
+  330:  xorl %r12d, %r12d
+  333:  testl %esi, %esi
+  335:  jg 0x1bd
+  33b:  nopl (%rax, %rax)
+  340:  callq fn:obj_map+0
+  345:  movl %eax, %esi
+  347:  jmp 0x1bd
+  34c:  nopl (%rax)
+  350:  leal 1(%rdi), %eax
+  353:  jmp 0x27e
+  358:  nopl (%rax, %rax)
+  360:  movl (%rip), %esi   <var:pdf_outline+0>
+  366:  jmp 0x23a
+  36b:  nopl (%rax, %rax)
+  370:  movq 0x28(%rsp), %rax
+  375:  movl $0, %edi   <str:"  /Dest [ %d 0 R /XYZ 0 %d 0 ]\n">
+  37a:  movl -4(%rax, %r15, 4), %eax
+  37f:  leal (%rax, %rax, 8), %eax
+  382:  shll $3, %eax
+  385:  cltd
+  386:  idivl (%rip)   <dev_res+0>
+  38c:  movl (%rip), %edx   <var:pdf_height+0>
+  392:  subl %eax, %edx
+  394:  movq (%rip), %rax   <var:page_id+0>
+  39b:  movl -4(%rax, %rsi, 4), %esi
+  39f:  xorl %eax, %eax
+  3a1:  callq fn:pdfout+0
+  3a6:  jmp 0x2e8
+  3ab:  nopl (%rax, %rax)
+  3b0:  xorl %eax, %eax
+  3b2:  movl %r12d, %esi
+  3b5:  movl $0, %edi   <str:"  /Count %d\n">
+  3ba:  callq fn:pdfout+0
+  3bf:  movl (%rbp, %r15, 4), %esi
+  3c4:  xorl %eax, %eax
+  3c6:  movl $0, %edi   <str:"  /First %d 0 R\n">
+  3cb:  callq fn:pdfout+0
+  3d0:  cmpl %r14d, 8(%rsp)
+  3d5:  jge 0x501
+  3db:  movl -4(%r13, %r15, 4), %edi
+  3e0:  movq %r15, %rax
+  3e3:  xorl %esi, %esi
+  3e5:  leal 1(%rdi), %r10d
+  3e9:  jmp 0x3ff
+  3eb:  nopl (%rax, %rax)
+  3f0:  cmpl %edx, %r10d
+  3f3:  cmovel %eax, %esi
+  3f6:  addq $1, %rax
+  3fa:  cmpl %eax, %r14d
+  3fd:  jle 0x408
+  3ff:  movl (%r13, %rax, 4), %edx
+  404:  cmpl %edi, %edx
+  406:  jg 0x3f0
+  408:  movslq %esi, %rsi
+  40b:  leaq (%rbp, %rsi, 4), %rax
+  410:  movl (%rax), %esi
+  412:  movl $0, %edi   <str:"  /Last %d 0 R\n">
+  417:  xorl %eax, %eax
+  419:  callq fn:pdfout+0
+  41e:  jmp 0x2ce
+  423:  nopl (%rax, %rax)
+  428:  movl (%rbp, %rax, 4), %esi
+  42c:  movl $0, %edi   <str:"  /Prev %d 0 R\n">
+  431:  xorl %eax, %eax
+  433:  callq fn:pdfout+0
+  438:  jmp 0x2c5
+  43d:  xorl %esi, %esi
+  43f:  movl $0, %edi   <str:"  /Count %d\n">
+  444:  xorl %eax, %eax
+  446:  callq fn:pdfout+0
+  44b:  movl (%rbp), %esi
+  44e:  movl $0, %edi   <str:"  /First %d 0 R\n">
+  453:  xorl %eax, %eax
+  455:  callq fn:pdfout+0
+  45a:  movl -4(%rbp, %rbx), %esi
+  45e:  movl $0, %edi   <str:"  /Last %d 0 R\n">
+  463:  xorl %eax, %eax
+  465:  callq fn:pdfout+0
+  46a:  movl $0, %edi   <str:">>\n">
+  46f:  xorl %eax, %eax
+  471:  callq fn:pdfout+0
+  476:  movl $0, %edi   <str:"endobj\n\n">
+  47b:  xorl %eax, %eax
+  47d:  callq fn:pdfout+0
+  482:  addq $0x38, %rsp
+  486:  movq %rbp, %rdi
+  489:  popq %rbx
+  48a:  popq %rbp
+  48b:  popq %r12
+  48d:  popq %r13
+  48f:  popq %r14
+  491:  popq %r15
+  493:  jmp free+0
+  498:  nopl (%rax, %rax)
+  4a0:  movl (%rbp, %rax, 4), %esi
+  4a4:  movl $0, %edi   <str:"  /Next %d 0 R\n">
+  4a9:  xorl %eax, %eax
+  4ab:  callq fn:pdfout+0
+  4b0:  jmp 0x290
+  4b5:  xorl %ebx, %ebx
+  4b7:  jmp 0x135
+  4bc:  movl (%rip), %esi   <var:pdf_outline+0>
+  4c2:  xorl %eax, %eax
+  4c4:  movl $0, %edi   <str:"  /Parent %d 0 R\n">
+  4c9:  callq fn:pdfout+0
+  4ce:  cmpl $1, %r14d
+  4d2:  jne 0x257
+  4d8:  testl %r12d, %r12d
+  4db:  je 0x2ce
+  4e1:  movl %r12d, %esi
+  4e4:  movl $0, %edi   <str:"  /Count %d\n">
+  4e9:  xorl %eax, %eax
+  4eb:  callq fn:pdfout+0
+  4f0:  movl (%rbp, %r15, 4), %esi
+  4f5:  movl $0, %edi   <str:"  /First %d 0 R\n">
+  4fa:  xorl %eax, %eax
+  4fc:  callq fn:pdfout+0
+  501:  movq %rbp, %rax
+  504:  jmp 0x410
+  509:  callq fn:obj_map+0
+  50e:  movl %eax, %esi
+  510:  jmp 0x8f
+  515:  movq (%rip), %rdi   <var:pg+0>
+  51c:  movl $0, %esi   <str:">] TJ\n">
+  521:  xorl %eax, %eax
+  523:  callq sbuf_printf+0
+  528:  jmp 0x77

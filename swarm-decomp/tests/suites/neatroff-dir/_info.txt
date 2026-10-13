@@ -1,0 +1,30 @@
+# neatroff-dir: translation unit dir of neatroff
+# write each function as src/neatroff/dir/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+dir_copy	static	240 bytes
+dir_flush	static	110 bytes
+dir_append	static	176 bytes
+dir_fix	global	1589 bytes
+dir_done	global	32 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+rbuf	static	8 bytes	.bss.rbuf
+    (zero-initialised)
+rbuf_sz	static	4 bytes	.bss.rbuf_sz
+    (zero-initialised)
+rbuf_n	static	4 bytes	.bss.rbuf_n
+    (zero-initialised)
+dbuf_sz	static	4 bytes	.bss.dbuf_sz
+    (zero-initialised)
+dbuf_n	static	4 bytes	.bss.dbuf_n
+    (zero-initialised)
+dbuf	static	8 bytes	.bss.dbuf
+    (zero-initialised)
+dir_cd	static	4 bytes	.bss.dir_cd
+    (zero-initialised)
+dir_do	global	4 bytes	.bss.dir_do
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+c_ec clr_get clr_str escread free map memcpy nreg sbuf_append sprintf strlen strtol xmalloc

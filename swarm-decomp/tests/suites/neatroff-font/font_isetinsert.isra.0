@@ -1,0 +1,43 @@
+# font_isetinsert.isra.0  (static, 106 bytes, 42 instructions)
+    0:  andl $8, %r8d
+    4:  pushq %r12
+    6:  movl %edx, %r12d
+    9:  pushq %rbp
+    a:  movq %rsi, %rbp
+    d:  pushq %rbx
+    e:  jne 0x30
+   10:  testl %ecx, %ecx
+   12:  jns 0x20
+   14:  popq %rbx
+   15:  popq %rbp
+   16:  popq %r12
+   18:  retq
+   19:  nopl (%rax)
+   20:  popq %rbx
+   21:  movq %rbp, %rdi
+   24:  movl %ecx, %esi
+   26:  popq %rbp
+   27:  popq %r12
+   29:  jmp iset_put+0
+   2e:  nop
+   30:  movq 0xac8(%rdi), %rdi
+   37:  movl %ecx, %esi
+   39:  callq iset_get+0
+   3e:  movq %rax, %rbx
+   41:  testq %rax, %rax
+   44:  je 0x14
+   46:  movl (%rax), %esi
+   48:  testl %esi, %esi
+   4a:  js 0x14
+   4c:  nopl (%rax)
+   50:  addq $4, %rbx
+   54:  movl %r12d, %edx
+   57:  movq %rbp, %rdi
+   5a:  callq iset_put+0
+   5f:  movl (%rbx), %esi
+   61:  testl %esi, %esi
+   63:  jns 0x50
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  popq %r12
+   69:  retq

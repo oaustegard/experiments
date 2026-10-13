@@ -1,0 +1,49 @@
+# f_setvbuf  (static, 172 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  movl $0, %edx   <str:"FILE*">
+    7:  movl $1, %esi
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $8, %rsp
+   17:  callq luaL_checkudata+0
+   1c:  cmpq $0, 8(%rax)
+   21:  movq %rax, %rbp
+   24:  je 0x98
+   26:  movl $0, %ecx   <var:modenames+0>
+   2b:  xorl %edx, %edx
+   2d:  movq %rbx, %rdi
+   30:  movl $2, %esi
+   35:  movq (%rbp), %r13
+   39:  callq luaL_checkoption+0
+   3e:  movq %rbx, %rdi
+   41:  movl $0x400, %edx
+   46:  movl $3, %esi
+   4b:  movslq %eax, %rbp
+   4e:  callq luaL_optinteger+0
+   53:  movq %rax, %r12
+   56:  callq __errno_location+0
+   5b:  xorl %esi, %esi
+   5d:  movq %r13, %rdi
+   60:  movq %r12, %rcx
+   63:  movl $0, (%rax)
+   69:  movl (, %rbp, 4), %edx   <var:mode+0>
+   70:  callq setvbuf+0
+   75:  xorl %esi, %esi
+   77:  movq %rbx, %rdi
+   7a:  testl %eax, %eax
+   7c:  sete %sil
+   80:  addq $8, %rsp
+   84:  xorl %edx, %edx
+   86:  popq %rbx
+   87:  popq %rbp
+   88:  popq %r12
+   8a:  popq %r13
+   8c:  jmp luaL_fileresult+0
+   91:  nopl (%rax)
+   98:  movl $0, %esi   <str:"attempt to use a closed file">
+   9d:  movq %rbx, %rdi
+   a0:  xorl %eax, %eax
+   a2:  callq luaL_error+0
+   a7:  jmp 0x26

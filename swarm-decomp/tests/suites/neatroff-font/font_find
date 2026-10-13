@@ -1,0 +1,28 @@
+# font_find  (global, 81 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movq 0x88(%rdi), %rdi
+   13:  callq dict_get+0
+   18:  cmpl $-1, %eax
+   1b:  je 0x40
+   1d:  xorl %edx, %edx
+   1f:  testl %eax, %eax
+   21:  js 0x35
+   23:  cltq
+   25:  leaq (%rax, %rax, 4), %rdx
+   29:  leaq (%rax, %rdx, 2), %rdx
+   2d:  movq 0x68(%rbx), %rax
+   31:  leaq (%rax, %rdx, 8), %rdx
+   35:  addq $8, %rsp
+   39:  movq %rdx, %rax
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  retq
+   3f:  nop
+   40:  movq 0x80(%rbx), %rdi
+   47:  movq %rbp, %rsi
+   4a:  callq dict_get+0
+   4f:  jmp 0x1d

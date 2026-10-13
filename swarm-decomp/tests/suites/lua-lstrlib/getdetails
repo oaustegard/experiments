@@ -1,0 +1,86 @@
+# getdetails  (static, 277 bytes, 85 instructions)
+    0:  pushq %r15
+    2:  movq %rdx, %r15
+    5:  movq %rcx, %rdx
+    8:  pushq %r14
+    a:  movq %r8, %r14
+    d:  pushq %r13
+    f:  movq %rsi, %r13
+   12:  movq %r15, %rsi
+   15:  pushq %r12
+   17:  movq %rdi, %r12
+   1a:  pushq %rbp
+   1b:  movq %rcx, %rbp
+   1e:  pushq %rbx
+   1f:  subq $0x28, %rsp
+   23:  callq fn:getoption+0
+   28:  movl (%rbp), %ecx
+   2b:  movl %eax, %ebx
+   2d:  movl %ecx, 0x1c(%rsp)
+   31:  cmpl $9, %eax
+   34:  je 0x60
+   36:  cmpl $1, %ecx
+   39:  jle 0x40
+   3b:  cmpl $5, %eax
+   3e:  jne 0x88
+   40:  xorl %ebp, %ebp
+   42:  movl %ebp, (%r14)
+   45:  addq $0x28, %rsp
+   49:  movl %ebx, %eax
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  popq %r12
+   4f:  popq %r13
+   51:  popq %r14
+   53:  popq %r15
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  movq (%r15), %rax
+   63:  cmpb $0, (%rax)
+   66:  jne 0xb0
+   68:  movq (%r12), %rdi
+   6c:  movl $0, %edx   <str:"invalid next option for option 'X'">
+   71:  movl $1, %esi
+   76:  movl %ecx, 0xc(%rsp)
+   7a:  callq luaL_argerror+0
+   7f:  movl 0xc(%rsp), %ecx
+   83:  cmpl $1, %ecx
+   86:  jle 0x40
+   88:  movl 0xc(%r12), %ebp
+   8d:  cmpl %ecx, %ebp
+   8f:  jge 0xa8
+   91:  leal -1(%rbp), %r15d
+   95:  testl %ebp, %r15d
+   98:  jne 0x100
+   9a:  andl %r15d, %r13d
+   9d:  subl %r13d, %ebp
+   a0:  andl %r15d, %ebp
+   a3:  jmp 0x42
+   a5:  nopl (%rax)
+   a8:  movl 0x1c(%rsp), %ebp
+   ac:  jmp 0x91
+   ae:  nop
+   b0:  leaq 0x1c(%rsp), %rdx
+   b5:  movq %r15, %rsi
+   b8:  movq %r12, %rdi
+   bb:  callq fn:getoption+0
+   c0:  movl 0x1c(%rsp), %ecx
+   c4:  cmpl $5, %eax
+   c7:  je 0x68
+   c9:  testl %ecx, %ecx
+   cb:  je 0xe0
+   cd:  cmpl $1, %ecx
+   d0:  jg 0x88
+   d2:  jmp 0x40
+   d7:  nopw (%rax, %rax)
+   e0:  movq (%r12), %rdi
+   e4:  movl $0, %edx   <str:"invalid next option for option 'X'">
+   e9:  movl $1, %esi
+   ee:  callq luaL_argerror+0
+   f3:  jmp 0x40
+   f8:  nopl (%rax, %rax)
+  100:  movq (%r12), %rdi
+  104:  movl $0, %edx   <str:"format asks for alignment not power of 2">
+  109:  movl $1, %esi
+  10e:  callq luaL_argerror+0
+  113:  jmp 0x9a

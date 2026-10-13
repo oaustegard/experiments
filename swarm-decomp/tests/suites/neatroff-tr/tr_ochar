@@ -1,0 +1,9 @@
+# tr_ochar  (static, 37 bytes, 8 instructions)
+    0:  movq 0x18(%rdi), %rdx
+    4:  movq 0x10(%rdi), %rsi
+    8:  movq 8(%rdi), %rdi
+    c:  testq %rdx, %rdx
+    f:  je 0x20
+   11:  jmp fn:cdef_add+0
+   16:  nopw %cs:(%rax, %rax)
+   20:  jmp fn:cdef_remove+0

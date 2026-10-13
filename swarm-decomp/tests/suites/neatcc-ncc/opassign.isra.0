@@ -1,0 +1,48 @@
+# opassign.isra.0  (static, 199 bytes, 47 instructions)
+    0:  pushq %rbx
+    1:  movl %edi, %ebx
+    3:  subq $0x20, %rsp
+    7:  movl (%rip), %eax   <var:nts+0>
+    d:  subl $1, %eax
+   10:  cltq
+   12:  leaq (%rax, %rax, 4), %rax
+   16:  shlq $2, %rax
+   1a:  movdqu (%rax), %xmm0   <var:ts+0>
+   22:  movl (%rax), %eax   <var:ts+16>
+   28:  movaps %xmm0, (%rsp)
+   2c:  movl %eax, 0x10(%rsp)
+   30:  callq o_tmpcopy+0
+   35:  movslq (%rip), %rax   <var:nts+0>
+   3c:  movdqa (%rsp), %xmm1
+   41:  leal 1(%rax), %edx
+   44:  leaq (%rax, %rax, 4), %rax
+   48:  movl %edx, (%rip)   <var:nts+0>
+   4e:  movl 0x10(%rsp), %edx
+   52:  shlq $2, %rax
+   56:  movups %xmm1, (%rax)   <var:ts+0>
+   5d:  movl %edx, (%rax)   <var:ts+16>
+   63:  callq fn:readexpr+0
+   68:  leal -0x10(%rbx), %eax
+   6b:  movl %ebx, %edi
+   6d:  cmpl $1, %eax
+   70:  jbe 0xc0
+   72:  callq fn:ts_binop+0
+   77:  movl (%rip), %eax   <var:nts+0>
+   7d:  movl $8, %edi
+   82:  subl $2, %eax
+   85:  cltq
+   87:  leaq (%rax, %rax, 4), %rax
+   8b:  shlq $2, %rax
+   8f:  movl (%rax), %edx   <var:ts+8>
+   95:  testl %edx, %edx
+   97:  jne 0x9f
+   99:  movl (%rax), %edi   <var:ts+0>
+   9f:  callq o_assign+0
+   a4:  subl $1, (%rip)   <var:nts+0>
+   ab:  addq $0x20, %rsp
+   af:  xorl %edi, %edi
+   b1:  popq %rbx
+   b2:  jmp fn:ts_de+0
+   b7:  nopw (%rax, %rax)
+   c0:  callq fn:ts_addop+0
+   c5:  jmp 0x77

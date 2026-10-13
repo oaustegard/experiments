@@ -1,0 +1,88 @@
+# struct_find  (static, 336 bytes, 87 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %esi, %r12d
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  subq $0x18, %rsp
+   14:  movl (%rip), %r13d   <var:structs_n+0>
+   1b:  movq (%rip), %r14   <var:structs+0>
+   22:  movslq %r13d, %rax
+   25:  movl %r13d, %r15d
+   28:  movq %rax, (%rsp)
+   2c:  subl $1, %r15d
+   30:  js 0x7a
+   32:  imulq $0x9090, %rax, %rax
+   39:  leaq -0x9090(%r14, %rax), %rbx
+   41:  nopl (%rax)
+   48:  cmpb $0, (%rbx)
+   4b:  je 0x69
+   4d:  movq %rbx, %rsi
+   50:  movq %rbp, %rdi
+   53:  callq strcmp+0
+   58:  testl %eax, %eax
+   5a:  jne 0x69
+   5c:  cmpl %r12d, 0x9084(%rbx)
+   63:  je 0x148
+   69:  subl $1, %r15d
+   6d:  subq $0x9090, %rbx
+   74:  cmpl $-1, %r15d
+   78:  jne 0x48
+   7a:  movl (%rip), %eax   <var:structs_sz+0>
+   80:  cmpl %eax, %r13d
+   83:  jge 0xd0
+   85:  imulq $0x9090, (%rsp), %r15
+   8d:  leal 1(%r13), %eax
+   91:  movl $0x9090, %edx
+   96:  xorl %esi, %esi
+   98:  movl %eax, (%rip)   <var:structs_n+0>
+   9e:  addq %r15, %r14
+   a1:  movq %r14, %rdi
+   a4:  callq memset+0
+   a9:  movq %rbp, %rsi
+   ac:  movq %r14, %rdi
+   af:  callq strcpy+0
+   b4:  movl %r12d, 0x9084(%r14)
+   bb:  addq $0x18, %rsp
+   bf:  movl %r13d, %eax
+   c2:  popq %rbx
+   c3:  popq %rbp
+   c4:  popq %r12
+   c6:  popq %r13
+   c8:  popq %r14
+   ca:  popq %r15
+   cc:  retq
+   cd:  nopl (%rax)
+   d0:  movl $0x80, %edx
+   d5:  addl %eax, %eax
+   d7:  cmpl %edx, %eax
+   d9:  cmovll %edx, %eax
+   dc:  movslq %eax, %rbx
+   df:  movl %eax, (%rip)   <var:structs_sz+0>
+   e5:  imulq $0x9090, %rbx, %rdi
+   ec:  callq malloc+0
+   f1:  imulq $0x9090, (%rsp), %r8
+   f9:  movq %r14, %rsi
+   fc:  movq %rax, %rdi
+   ff:  movq %rax, %r15
+  102:  movq %r8, %rdx
+  105:  movq %r8, 8(%rsp)
+  10a:  callq memcpy+0
+  10f:  movq (%rsp), %rcx
+  113:  movq 8(%rsp), %r8
+  118:  xorl %esi, %esi
+  11a:  subq %rcx, %rbx
+  11d:  leaq (%r15, %r8), %rdi
+  121:  imulq $0x9090, %rbx, %rdx
+  128:  callq memset+0
+  12d:  movq %r14, %rdi
+  130:  movq %r15, %r14
+  133:  callq free+0
+  138:  movq %r15, (%rip)   <var:structs+0>
+  13f:  jmp 0x85
+  144:  nopl (%rax)
+  148:  movl %r15d, %r13d
+  14b:  jmp 0xbb

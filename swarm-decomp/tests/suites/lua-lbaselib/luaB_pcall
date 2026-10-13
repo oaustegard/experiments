@@ -1,0 +1,36 @@
+# luaB_pcall  (static, 126 bytes, 35 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movl $1, %esi
+   13:  movq %rbx, %rdi
+   16:  callq lua_pushboolean+0
+   1b:  movl $1, %edx
+   20:  movl $1, %esi
+   25:  movq %rbx, %rdi
+   28:  callq lua_rotate+0
+   2d:  movq %rbx, %rdi
+   30:  callq lua_gettop+0
+   35:  xorl %r8d, %r8d
+   38:  xorl %ecx, %ecx
+   3a:  movl $0, %r9d   <fn:finishpcall+0>
+   40:  leal -2(%rax), %esi
+   43:  movl $0xffffffff, %edx
+   48:  movq %rbx, %rdi
+   4b:  callq lua_pcallk+0
+   50:  cmpl $1, %eax
+   53:  ja 0x60
+   55:  movq %rbx, %rdi
+   58:  popq %rbx
+   59:  jmp lua_gettop+0
+   5e:  nop
+   60:  movq %rbx, %rdi
+   63:  xorl %esi, %esi
+   65:  callq lua_pushboolean+0
+   6a:  movq %rbx, %rdi
+   6d:  movl $0xfffffffe, %esi
+   72:  callq lua_pushvalue+0
+   77:  movl $2, %eax
+   7c:  popq %rbx
+   7d:  retq

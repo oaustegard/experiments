@@ -1,0 +1,84 @@
+# cmddef  (static, 279 bytes, 83 instructions)
+    0:  pushq %r13
+    2:  pxor %xmm0, %xmm0
+    6:  pushq %r12
+    8:  movq %rdx, %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  movl $0x3d, %esi
+   14:  pushq %rbx
+   15:  movq %rdi, %rbx
+   18:  subq $0x88, %rsp
+   1f:  movaps %xmm0, (%rsp)
+   23:  movaps %xmm0, 0x10(%rsp)
+   28:  movaps %xmm0, 0x20(%rsp)
+   2d:  movaps %xmm0, 0x30(%rsp)
+   32:  movaps %xmm0, 0x40(%rsp)
+   37:  movaps %xmm0, 0x50(%rsp)
+   3c:  movaps %xmm0, 0x60(%rsp)
+   41:  movaps %xmm0, 0x70(%rsp)
+   46:  callq strchr+0
+   4b:  testq %rax, %rax
+   4e:  je 0x100
+   54:  movl $0x7f, %edx
+   59:  movq %rax, %r13
+   5c:  subq %rbx, %rax
+   5f:  movq %rsp, %r8
+   62:  cmpq %rdx, %rax
+   65:  movq %r8, %rdi
+   68:  cmovgq %rdx, %rax
+   6c:  cmpq $8, %rax
+   70:  jae 0xe0
+   72:  xorl %ecx, %ecx
+   74:  testb $4, %al
+   76:  jne 0xd0
+   78:  testb $2, %al
+   7a:  jne 0xb8
+   7c:  testb $1, %al
+   7e:  jne 0xa8
+   80:  movq %r8, %rdi
+   83:  callq map+0
+   88:  leaq 1(%r13), %rdx
+   8c:  movl %eax, (%rbp)
+   8f:  movq %rdx, (%r12)
+   93:  addq $0x88, %rsp
+   9a:  popq %rbx
+   9b:  popq %rbp
+   9c:  popq %r12
+   9e:  popq %r13
+   a0:  retq
+   a1:  nopl (%rax)
+   a8:  movzbl (%rbx, %rcx), %eax
+   ac:  movb %al, (%rdi, %rcx)
+   af:  jmp 0x80
+   b1:  nopl (%rax)
+   b8:  movzwl (%rbx, %rcx), %edx
+   bc:  movw %dx, (%rdi, %rcx)
+   c0:  addq $2, %rcx
+   c4:  testb $1, %al
+   c6:  je 0x80
+   c8:  jmp 0xa8
+   ca:  nopw (%rax, %rax)
+   d0:  movl (%rbx), %edx
+   d2:  movl $4, %ecx
+   d7:  movl %edx, (%rdi)
+   d9:  testb $2, %al
+   db:  je 0x7c
+   dd:  jmp 0xb8
+   df:  nop
+   e0:  movq %rax, %rcx
+   e3:  movq %rbx, %rsi
+   e6:  shrq $3, %rcx
+   ea:  rep movsq (%rsi), (%rdi)
+   ed:  xorl %ecx, %ecx
+   ef:  movq %rsi, %rbx
+   f2:  testb $4, %al
+   f4:  je 0x78
+   f6:  jmp 0xd0
+   f8:  nopl (%rax, %rax)
+  100:  movzbl (%rbx), %eax
+  103:  movq %rsp, %rdi
+  106:  movb %al, (%rsp)
+  109:  callq map+0
+  10e:  leaq 1(%rbx), %rdx
+  112:  jmp 0x8c

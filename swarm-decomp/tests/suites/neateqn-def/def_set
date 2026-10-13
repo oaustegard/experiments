@@ -1,0 +1,22 @@
+# def_set  (global, 56 bytes, 21 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movl $0, %ebx   <var:gvars+0>
+    f:  nop
+   10:  movq (%rbx), %rdi
+   13:  movq %rbp, %rsi
+   16:  callq strcmp+0
+   1b:  testl %eax, %eax
+   1d:  jne 0x26
+   1f:  movq 8(%rbx), %rax
+   23:  movl %r12d, (%rax)
+   26:  addq $0x10, %rbx
+   2a:  cmpq $0, %rbx   <var:gvars+480>
+   31:  jne 0x10
+   33:  popq %rbx
+   34:  popq %rbp
+   35:  popq %r12
+   37:  retq

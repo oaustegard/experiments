@@ -1,0 +1,38 @@
+# luaK_concat  (global, 130 bytes, 37 instructions)
+    0:  cmpl $-1, %edx
+    3:  je 0x65
+    5:  movl (%rsi), %eax
+    7:  cmpl $-1, %eax
+    a:  je 0x70
+    c:  movq (%rdi), %rcx
+    f:  movq %rdi, %r11
+   12:  movq 0x40(%rcx), %r10
+   16:  nopw %cs:(%rax, %rax)
+   20:  movslq %eax, %rcx
+   23:  leal 1(%rax), %r8d
+   27:  leaq (%r10, %rcx, 4), %rdi
+   2b:  movl (%rdi), %esi
+   2d:  movl %esi, %ecx
+   2f:  shrl $7, %ecx
+   32:  leal -0xffffff(%rcx), %r9d
+   39:  cmpl $0xfffffe, %ecx
+   3f:  je 0x4a
+   41:  leal (%r9, %r8), %eax
+   45:  cmpl $-1, %eax
+   48:  jne 0x20
+   4a:  subl %r8d, %edx
+   4d:  addl $0xffffff, %edx
+   53:  cmpl $0x1ffffff, %edx
+   59:  ja 0x73
+   5b:  andl $0x7f, %esi
+   5e:  shll $7, %edx
+   61:  orl %edx, %esi
+   63:  movl %esi, (%rdi)
+   65:  retq
+   66:  nopw %cs:(%rax, %rax)
+   70:  movl %edx, (%rsi)
+   72:  retq
+   73:  pushq %rax
+   74:  movq 0x10(%r11), %rdi
+   78:  movl $0, %esi   <str:"control structure too long">
+   7d:  callq luaX_syntaxerror+0

@@ -1,0 +1,9 @@
+# luaE_warning  (global, 33 bytes, 8 instructions)
+    0:  movq 0x18(%rdi), %rcx
+    4:  movq 0x578(%rcx), %rax
+    b:  testq %rax, %rax
+    e:  je 0x20
+   10:  movq 0x580(%rcx), %rdi
+   17:  jmpq *%rax
+   19:  nopl (%rax)
+   20:  retq

@@ -1,0 +1,22 @@
+# cp_blk  (global, 73 bytes, 21 instructions)
+    0:  subq $8, %rsp
+    4:  testl %edi, %edi
+    6:  jne 0x28
+    8:  nopl (%rax, %rax)
+   10:  callq cp_next+0
+   15:  cmpl $0x20, %eax
+   18:  je 0x10
+   1a:  movl %eax, %edi
+   1c:  addq $8, %rsp
+   20:  jmp in_back+0
+   25:  nopl (%rax)
+   28:  callq fn:cp_raw+0
+   2d:  testl %eax, %eax
+   2f:  js 0x44
+   31:  cmpl $0xa, %eax
+   34:  jne 0x28
+   36:  movl (%rip), %eax   <var:cp_reqdep+0>
+   3c:  cmpl %eax, (%rip)   <var:cp_blkdep+0>
+   42:  jg 0x28
+   44:  addq $8, %rsp
+   48:  retq

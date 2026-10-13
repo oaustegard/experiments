@@ -1,0 +1,30 @@
+# luaK_codek.isra.0  (static, 80 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %eax
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  shll $7, %eax
+    a:  movl %edx, %ebx
+    c:  subq $8, %rsp
+   10:  cmpl $0x1ffff, %edx
+   16:  jg 0x30
+   18:  shll $0xf, %ebx
+   1b:  addq $8, %rsp
+   1f:  movq %rbp, %rdi
+   22:  movl %ebx, %esi
+   24:  popq %rbx
+   25:  popq %rbp
+   26:  orl %eax, %esi
+   28:  orl $3, %esi
+   2b:  jmp luaK_code+0
+   30:  orl $4, %eax
+   33:  shll $7, %ebx
+   36:  movl %eax, %esi
+   38:  callq luaK_code+0
+   3d:  movl %ebx, %esi
+   3f:  addq $8, %rsp
+   43:  movq %rbp, %rdi
+   46:  popq %rbx
+   47:  orl $0x52, %esi
+   4a:  popq %rbp
+   4b:  jmp luaK_code+0

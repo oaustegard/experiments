@@ -1,0 +1,88 @@
+# ra_vmove  (static, 312 bytes, 87 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %rcx
+    5:  movslq %edi, %rdx
+    8:  xorl %eax, %eax
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  nop
+   10:  cmpq %rdx, (, %rax, 8)   <var:ra_vmap+0>
+   18:  je 0x130
+   1e:  addq $1, %rax
+   22:  cmpq $0x10, %rax
+   26:  jne 0x10
+   28:  movq $18446744073709551615, %rbx
+   2f:  movslq (%rip), %rsi   <var:func_regs+0>
+   36:  xorl %edx, %edx
+   38:  movl $1, %edi
+   3d:  orq $0xfc7, %rsi
+   44:  andq %rcx, %rsi
+   47:  xorl %ecx, %ecx
+   49:  nopl (%rax)
+   50:  cmpq $0, (, %rcx, 8)   <var:ra_lmap+0>
+   59:  js 0x64
+   5b:  movl %edi, %eax
+   5d:  shll %cl, %eax
+   5f:  cltq
+   61:  orq %rax, %rdx
+   64:  addq $1, %rcx
+   68:  cmpq $0x10, %rcx
+   6c:  jne 0x50
+   6e:  notq %rdx
+   71:  xorl %ecx, %ecx
+   73:  movl $1, %edi
+   78:  andq %rdx, %rsi
+   7b:  xorl %edx, %edx
+   7d:  nopl (%rax)
+   80:  cmpq $0, (, %rcx, 8)   <var:ra_vmap+0>
+   89:  js 0x94
+   8b:  movl %edi, %eax
+   8d:  shll %cl, %eax
+   8f:  cltq
+   91:  orq %rax, %rdx
+   94:  addq $1, %rcx
+   98:  cmpq $0x10, %rcx
+   9c:  jne 0x80
+   9e:  notq %rdx
+   a1:  movl $0, %r8d   <tmpregs+56>
+   a7:  movl $1, %edi
+   ac:  andq %rsi, %rdx
+   af:  movl $0, %esi   <tmpregs+0>
+   b4:  nopl (%rax)
+   b8:  movl (%rsi), %ecx
+   ba:  movl %edi, %eax
+   bc:  shll %cl, %eax
+   be:  cltq
+   c0:  testq %rdx, %rax
+   c3:  jne 0xf0
+   c5:  addq $4, %rsi
+   c9:  cmpq %rsi, %r8
+   cc:  jne 0xb8
+   ce:  movl %ebx, %esi
+   d0:  movq %rbp, %rdi
+   d3:  callq fn:val_tomem+0
+   d8:  movq $18446744073709551615, (, %rbx, 8)   <var:ra_vmap+0>
+   e4:  popq %rbx
+   e5:  popq %rbp
+   e6:  popq %r12
+   e8:  retq
+   e9:  nopl (%rax)
+   f0:  movslq %ecx, %r12
+   f3:  testq %r12, %r12
+   f6:  js 0xce
+   f8:  cmpq $0, (, %r12, 8)   <var:ra_vmap+0>
+  101:  jns 0xce
+  103:  cmpq $0, (, %r12, 8)   <var:ra_lmap+0>
+  10c:  jns 0xce
+  10e:  xorl %r8d, %r8d
+  111:  xorl %ecx, %ecx
+  113:  movq %rbx, %rdx
+  116:  movq %r12, %rsi
+  119:  movl $0x8000400, %edi
+  11e:  callq i_ins+0
+  123:  movq %rbp, (, %r12, 8)   <var:ra_vmap+0>
+  12b:  jmp 0xd8
+  12d:  nopl (%rax)
+  130:  movslq %eax, %rbx
+  133:  jmp 0x2f

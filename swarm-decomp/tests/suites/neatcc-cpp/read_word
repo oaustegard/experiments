@@ -1,0 +1,56 @@
+# read_word  (static, 170 bytes, 55 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  callq fn:jumpws+0
+   12:  movq (%rip), %rbp   <var:cur+0>
+   19:  movq (%rip), %r12   <var:len+0>
+   20:  cmpq %r12, %rbp
+   23:  jge 0x7d
+   25:  callq __ctype_b_loc+0
+   2a:  subq %rbp, %r12
+   2d:  movq (%rip), %r8   <var:buf+0>
+   34:  movq %rax, %rdi
+   37:  leaq (%rbx, %r12), %rsi
+   3b:  xorl %eax, %eax
+   3d:  jmp 0x43
+   3f:  nop
+   40:  movq %rbp, %r13
+   43:  movsbq (%r8, %rbp), %rcx
+   48:  movl %eax, %r9d
+   4b:  movq (%rdi), %rax
+   4e:  movzwl (%rax, %rcx, 2), %eax
+   52:  movq %rcx, %rdx
+   55:  shrw $3, %ax
+   59:  andl $1, %eax
+   5c:  cmpb $0x5f, %cl
+   5f:  sete %cl
+   62:  orb %cl, %al
+   64:  je 0x90
+   66:  addq $1, %rbx
+   6a:  addq $1, %rbp
+   6e:  movb %dl, -1(%rbx)
+   71:  cmpq %rsi, %rbx
+   74:  jne 0x40
+   76:  movq %rbp, (%rip)   <var:cur+0>
+   7d:  movb $0, (%rbx)
+   80:  addq $8, %rsp
+   84:  popq %rbx
+   85:  popq %rbp
+   86:  popq %r12
+   88:  popq %r13
+   8a:  retq
+   8b:  nopl (%rax, %rax)
+   90:  testb %r9b, %r9b
+   93:  je 0x7d
+   95:  movb $0, (%rbx)
+   98:  movq %r13, (%rip)   <var:cur+0>
+   9f:  addq $8, %rsp
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  popq %r12
+   a7:  popq %r13
+   a9:  retq

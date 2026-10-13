@@ -1,0 +1,131 @@
+# put_body  (static, 488 bytes, 130 instructions)
+    0:  pushq %r13
+    2:  xorl %eax, %eax
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rsi, %rbp
+    a:  movl $0, %esi   <str:"MIME-Version: 1.0\n">
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $0x18, %rsp
+   17:  callq sbuf_printf+0
+   1c:  movl (%rip), %edx   <var:parts_n+0>
+   22:  testl %edx, %edx
+   24:  jne 0x70
+   26:  movq %rbx, %rdi
+   29:  movl $0, %esi   <str:"Content-Type: text/plain; charset=utf-8\n">
+   2e:  xorl %eax, %eax
+   30:  callq sbuf_printf+0
+   35:  movq %rbx, %rdi
+   38:  movl $0, %esi   <str:"Content-Transfer-Encoding: 8bit\n">
+   3d:  xorl %eax, %eax
+   3f:  callq sbuf_printf+0
+   44:  movq %rbx, %rdi
+   47:  movl $0, %esi   <str:"\n">
+   4c:  xorl %eax, %eax
+   4e:  callq sbuf_printf+0
+   53:  addq $0x18, %rsp
+   57:  movq %rbp, %rsi
+   5a:  movq %rbx, %rdi
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  popq %r13
+   63:  jmp sbuf_str+0
+   68:  nopl (%rax, %rax)
+   70:  movl $0, %edx   <str:"neatmail-boundary">
+   75:  movl $0, %esi   <str:"Content-Type: multipart/mixed; boundary=%s\n">
+   7a:  movq %rbx, %rdi
+   7d:  xorl %eax, %eax
+   7f:  callq sbuf_printf+0
+   84:  movl $0, %esi   <str:"\nMulti-part MIME message.\n">
+   89:  movq %rbx, %rdi
+   8c:  xorl %eax, %eax
+   8e:  callq sbuf_printf+0
+   93:  movl $0, %edx   <str:"neatmail-boundary">
+   98:  movq %rbx, %rdi
+   9b:  xorl %eax, %eax
+   9d:  movl $0, %esi   <str:"--%s\n">
+   a2:  callq sbuf_printf+0
+   a7:  movl $0, %esi   <str:"Content-Type: text/plain; charset=utf-8\n">
+   ac:  movq %rbx, %rdi
+   af:  xorl %eax, %eax
+   b1:  callq sbuf_printf+0
+   b6:  movl $0, %esi   <str:"Content-Transfer-Encoding: 8bit\n">
+   bb:  movq %rbx, %rdi
+   be:  xorl %eax, %eax
+   c0:  callq sbuf_printf+0
+   c5:  xorl %eax, %eax
+   c7:  movl $0, %esi   <str:"\n">
+   cc:  movq %rbx, %rdi
+   cf:  callq sbuf_printf+0
+   d4:  movq %rbp, %rsi
+   d7:  movq %rbx, %rdi
+   da:  callq sbuf_str+0
+   df:  movl (%rip), %eax   <var:parts_n+0>
+   e5:  testl %eax, %eax
+   e7:  jle 0x1ca
+   ed:  xorl %r12d, %r12d
+   f0:  movl $0, %edx   <str:"neatmail-boundary">
+   f5:  xorl %eax, %eax
+   f7:  movl $0, %esi   <str:"--%s\n">
+   fc:  movq %rbx, %rdi
+   ff:  movl $0, 0xc(%rsp)
+  107:  callq sbuf_printf+0
+  10c:  xorl %eax, %eax
+  10e:  movl $0, %esi   <str:"Content-Type: application/octet-stream\n">
+  113:  movq %rbx, %rdi
+  116:  callq sbuf_printf+0
+  11b:  movq (, %r12, 8), %rbp   <var:parts+0>
+  123:  movl $0x2f, %esi
+  128:  movq %rbp, %rdi
+  12b:  callq strrchr+0
+  130:  movl $0, %esi   <str:"Content-Disposition: attachment; filename=\"%s\"\n">
+  135:  movq %rbx, %rdi
+  138:  testq %rax, %rax
+  13b:  leaq 1(%rax), %rdx
+  13f:  cmovneq %rdx, %rbp
+  143:  xorl %eax, %eax
+  145:  movq %rbp, %rdx
+  148:  callq sbuf_printf+0
+  14d:  movl $0, %esi   <str:"Content-Transfer-Encoding: base64\n">
+  152:  movq %rbx, %rdi
+  155:  xorl %eax, %eax
+  157:  callq sbuf_printf+0
+  15c:  movl $0, %esi   <str:"\n">
+  161:  movq %rbx, %rdi
+  164:  xorl %eax, %eax
+  166:  callq sbuf_printf+0
+  16b:  movq (, %r12, 8), %rdi   <var:parts+0>
+  173:  leaq 0xc(%rsp), %rsi
+  178:  callq fn:fileread+0
+  17d:  movq %rax, %rbp
+  180:  testq %rax, %rax
+  183:  je 0x1b1
+  185:  movl 0xc(%rsp), %esi
+  189:  movq %rax, %rdi
+  18c:  callq base64+0
+  191:  movq %rax, %rdi
+  194:  movq %rax, %r13
+  197:  callq strlen+0
+  19c:  movq %rbx, %rdi
+  19f:  movq %r13, %rsi
+  1a2:  movl %eax, %edx
+  1a4:  callq sbuf_mem+0
+  1a9:  movq %r13, %rdi
+  1ac:  callq free+0
+  1b1:  movq %rbp, %rdi
+  1b4:  addq $1, %r12
+  1b8:  callq free+0
+  1bd:  cmpl %r12d, (%rip)   <var:parts_n+0>
+  1c4:  jg 0xf0
+  1ca:  addq $0x18, %rsp
+  1ce:  movq %rbx, %rdi
+  1d1:  movl $0, %edx   <str:"neatmail-boundary">
+  1d6:  xorl %eax, %eax
+  1d8:  popq %rbx
+  1d9:  movl $0, %esi   <str:"--%s--\n">
+  1de:  popq %rbp
+  1df:  popq %r12
+  1e1:  popq %r13
+  1e3:  jmp sbuf_printf+0

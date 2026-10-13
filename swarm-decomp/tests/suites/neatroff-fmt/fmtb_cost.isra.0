@@ -1,0 +1,199 @@
+# fmtb_cost.isra.0  (static, 744 bytes, 198 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %r9d, %r12d
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  movl $0, %edi   <str:".hycost">
+   14:  pushq %rbx
+   15:  movq %r8, %rbx
+   18:  subq $0x38, %rsp
+   1c:  movl %esi, 4(%rsp)
+   20:  movl %edx, (%rsp)
+   23:  movl %ecx, 0x10(%rsp)
+   27:  callq map+0
+   2c:  movl %eax, %edi
+   2e:  callq nreg+0
+   33:  movl $0, %edi   <str:".hycost">
+   38:  movl (%rax), %eax
+   3a:  movl %eax, 0x24(%rsp)
+   3e:  callq map+0
+   43:  movl %eax, %edi
+   45:  callq nreg+0
+   4a:  movl $0, %edi   <str:".hycost2">
+   4f:  movl (%rax), %r13d
+   52:  callq map+0
+   57:  movl %eax, %edi
+   59:  callq nreg+0
+   5e:  movl $0, %edi   <str:".hycost">
+   63:  addl (%rax), %r13d
+   66:  movl %r13d, 0x28(%rsp)
+   6b:  callq map+0
+   70:  movl %eax, %edi
+   72:  callq nreg+0
+   77:  movl $0, %edi   <str:".hycost2">
+   7c:  movl (%rax), %r13d
+   7f:  callq map+0
+   84:  movl %eax, %edi
+   86:  callq nreg+0
+   8b:  movl $0, %edi   <str:".hycost3">
+   90:  addl (%rax), %r13d
+   93:  callq map+0
+   98:  movl %eax, %edi
+   9a:  callq nreg+0
+   9f:  movq $0, 8(%rsp)
+   a8:  movl (%rax), %r8d
+   ab:  addl %r13d, %r8d
+   ae:  testl %r12d, %r12d
+   b1:  je 0x1b9
+   b7:  xorl %r14d, %r14d
+   ba:  movl %r8d, 0x14(%rsp)
+   bf:  xorl %r13d, %r13d
+   c2:  xorl %edx, %edx
+   c4:  movl %r14d, %r15d
+   c7:  jmp 0xe8
+   c9:  nopl (%rax)
+   d0:  addq %r14, 8(%rsp)
+   d5:  movslq %r10d, %rdx
+   d8:  xorl %r13d, %r13d
+   db:  addq $4, %rbx
+   df:  cmpl %r15d, %r12d
+   e2:  je 0x1b9
+   e8:  movslq (%rbx), %rcx
+   eb:  movl (%rsp), %edi
+   ee:  leaq (, %rcx, 8), %rax
+   f6:  movq %rcx, %r10
+   f9:  subq %rcx, %rax
+   fc:  leaq -0x38(%rbp, %rax, 8), %r9
+  101:  leaq (, %rdx, 8), %rax
+  109:  subq %rdx, %rax
+  10c:  movl 0x28(%r9), %esi
+  110:  movl 0x2c(%r9), %edx
+  114:  leaq (%rbp, %rax, 8), %rax
+  119:  movl 0x30(%r9), %ecx
+  11d:  subl 0x28(%rax), %esi
+  120:  subl 0x2c(%rax), %edx
+  123:  addl 8(%rax), %esi
+  126:  subl 0x30(%rax), %ecx
+  129:  movl %r15d, %eax
+  12c:  addl $1, %r15d
+  130:  testl %edi, %edi
+  132:  je 0x141
+  134:  leal -1(%r12), %edi
+  139:  cmpl %eax, %edi
+  13b:  je 0x200
+  141:  testl %edx, %edx
+  143:  movl $1, %eax
+  148:  movl 4(%rsp), %edi
+  14c:  cmovel %eax, %edx
+  14f:  callq fn:FMT_COST+0
+  154:  movslq 0x20(%r9), %r14
+  158:  movl 0x18(%r9), %edx
+  15c:  addq %rax, %r14
+  15f:  testl %edx, %edx
+  161:  je 0xd0
+  167:  cmpl %r15d, 0x10(%rsp)
+  16c:  leaq 0x989680(%r14), %rax
+  173:  movl $0, %edi   <str:".hlm">
+  178:  cmoveq %rax, %r14
+  17c:  addl $1, %r13d
+  180:  callq map+0
+  185:  movl %eax, %edi
+  187:  callq nreg+0
+  18c:  movl (%rax), %eax
+  18e:  testl %eax, %eax
+  190:  jg 0x1d0
+  192:  cmpl $1, %r13d
+  196:  jbe 0x240
+  19c:  movslq 0x14(%rsp), %rax
+  1a1:  movslq (%rbx), %rdx
+  1a4:  addq %r14, %rax
+  1a7:  addq $4, %rbx
+  1ab:  addq %rax, 8(%rsp)
+  1b0:  cmpl %r15d, %r12d
+  1b3:  jne 0xe8
+  1b9:  movq 8(%rsp), %rax
+  1be:  addq $0x38, %rsp
+  1c2:  popq %rbx
+  1c3:  popq %rbp
+  1c4:  popq %r12
+  1c6:  popq %r13
+  1c8:  popq %r14
+  1ca:  popq %r15
+  1cc:  retq
+  1cd:  nopl (%rax)
+  1d0:  movl $0, %edi   <str:".hlm">
+  1d5:  callq map+0
+  1da:  movl %eax, %edi
+  1dc:  callq nreg+0
+  1e1:  cmpl (%rax), %r13d
+  1e4:  jl 0x192
+  1e6:  movq 8(%rsp), %rax
+  1eb:  leaq 0x989680(%r14, %rax), %rax
+  1f3:  movq %rax, 8(%rsp)
+  1f8:  jmp 0x233
+  1fa:  nopw (%rax, %rax)
+  200:  movl $0, %edi   <str:".pmll">
+  205:  movl %esi, 0x18(%rsp)
+  209:  callq map+0
+  20e:  movl %eax, %edi
+  210:  callq nreg+0
+  215:  movl $0, %edi   <str:".pmll">
+  21a:  movl (%rax), %r14d
+  21d:  callq map+0
+  222:  movl %eax, %edi
+  224:  callq nreg+0
+  229:  movl 0x18(%rsp), %esi
+  22d:  movl (%rax), %ecx
+  22f:  testl %ecx, %ecx
+  231:  jne 0x250
+  233:  movslq (%rbx), %rdx
+  236:  jmp 0xdb
+  23b:  nopl (%rax, %rax)
+  240:  movslq %r13d, %rax
+  243:  movslq 0x24(%rsp, %rax, 4), %rax
+  248:  jmp 0x1a1
+  24d:  nopl (%rax)
+  250:  movl $0, %edi   <str:".pmll">
+  255:  movl %esi, 0x18(%rsp)
+  259:  callq map+0
+  25e:  movl %eax, %edi
+  260:  callq nreg+0
+  265:  movl 4(%rsp), %edx
+  269:  movl 0x18(%rsp), %esi
+  26d:  imull (%rax), %edx
+  270:  movslq %edx, %rax
+  273:  sarl $0x1f, %edx
+  276:  imulq $0x51eb851f, %rax, %rax
+  27d:  sarq $0x25, %rax
+  281:  subl %edx, %eax
+  283:  cmpl %eax, %esi
+  285:  jge 0x233
+  287:  movl 4(%rsp), %eax
+  28b:  movl $0, %edi   <str:".pmllcost">
+  290:  movl %esi, 0x1c(%rsp)
+  294:  imull %eax, %r14d
+  298:  movslq %r14d, %rdx
+  29b:  sarl $0x1f, %r14d
+  29f:  imulq $0x51eb851f, %rdx, %rdx
+  2a6:  sarq $0x25, %rdx
+  2aa:  subl %r14d, %edx
+  2ad:  movl %edx, 0x18(%rsp)
+  2b1:  callq map+0
+  2b6:  movl %eax, %edi
+  2b8:  callq nreg+0
+  2bd:  movl 0x18(%rsp), %edx
+  2c1:  movl 0x1c(%rsp), %esi
+  2c5:  movslq (%rax), %rax
+  2c8:  movl %edx, %ecx
+  2ca:  subl %esi, %ecx
+  2cc:  movslq %ecx, %rcx
+  2cf:  imulq %rcx, %rax
+  2d3:  movslq %edx, %rcx
+  2d6:  cqto
+  2d8:  idivq %rcx
+  2db:  movslq (%rbx), %rdx
+  2de:  addq %rax, 8(%rsp)
+  2e3:  jmp 0xdb

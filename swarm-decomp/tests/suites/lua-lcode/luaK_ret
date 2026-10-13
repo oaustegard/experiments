@@ -1,0 +1,15 @@
+# luaK_ret  (global, 41 bytes, 14 instructions)
+    0:  movl %esi, %eax
+    2:  movl $0x47, %ecx
+    7:  testl %edx, %edx
+    9:  je 0x17
+    b:  xorl %ecx, %ecx
+    d:  cmpl $1, %edx
+   10:  sete %cl
+   13:  leal 0x46(%rcx, %rcx), %ecx
+   17:  leal 1(%rdx), %esi
+   1a:  shll $7, %eax
+   1d:  shll $0x10, %esi
+   20:  orl %eax, %esi
+   22:  orl %ecx, %esi
+   24:  jmp luaK_code+0

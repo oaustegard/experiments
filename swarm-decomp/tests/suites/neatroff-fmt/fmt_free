@@ -1,0 +1,28 @@
+# fmt_free  (global, 91 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movq 0x10(%rdi), %rdi
+    d:  callq free+0
+   12:  movl 8(%rbp), %ecx
+   15:  testl %ecx, %ecx
+   17:  jle 0x44
+   19:  xorl %ebx, %ebx
+   1b:  nopl (%rax, %rax)
+   20:  movq (%rbp), %rdx
+   24:  leaq (, %rbx, 8), %rax
+   2c:  subq %rbx, %rax
+   2f:  addq $1, %rbx
+   33:  leaq (%rdx, %rax, 8), %rax
+   37:  movq (%rax), %rdi
+   3a:  callq free+0
+   3f:  cmpl %ebx, 8(%rbp)
+   42:  jg 0x20
+   44:  movq (%rbp), %rdi
+   48:  callq free+0
+   4d:  addq $8, %rsp
+   51:  movq %rbp, %rdi
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  jmp free+0

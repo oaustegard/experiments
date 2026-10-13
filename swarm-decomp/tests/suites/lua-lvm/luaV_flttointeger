@@ -1,0 +1,44 @@
+# luaV_flttointeger  (global, 177 bytes, 43 instructions)
+    0:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+    8:  movsd (%rip), %xmm4   <cst:0000000000003043>
+   10:  movapd %xmm0, %xmm1
+   14:  movapd %xmm0, %xmm2
+   18:  andpd %xmm3, %xmm1
+   1c:  ucomisd %xmm1, %xmm4
+   20:  jbe 0x55
+   22:  cvttsd2si %xmm0, %rax
+   27:  pxor %xmm1, %xmm1
+   2b:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   33:  andnpd %xmm0, %xmm3
+   37:  cvtsi2sdq %rax, %xmm1
+   3c:  movapd %xmm1, %xmm2
+   40:  cmpnlesd %xmm0, %xmm2
+   45:  andpd %xmm4, %xmm2
+   49:  subsd %xmm2, %xmm1
+   4d:  movapd %xmm1, %xmm2
+   51:  orpd %xmm3, %xmm2
+   55:  ucomisd %xmm2, %xmm0
+   59:  movapd %xmm2, %xmm1
+   5d:  jp 0x98
+   5f:  jne 0x98
+   61:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+   69:  jb 0x90
+   6b:  movsd (%rip), %xmm0   <cst:000000000000e043>
+   73:  comisd %xmm1, %xmm0
+   77:  jbe 0x90
+   79:  cvttsd2si %xmm1, %rax
+   7e:  movq %rax, (%rdi)
+   81:  movl $1, %eax
+   86:  retq
+   87:  nopw (%rax, %rax)
+   90:  xorl %eax, %eax
+   92:  retq
+   93:  nopl (%rax, %rax)
+   98:  xorl %eax, %eax
+   9a:  testl %esi, %esi
+   9c:  je 0x92
+   9e:  cmpl $2, %esi
+   a1:  jne 0x61
+   a3:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+   ab:  movapd %xmm2, %xmm1
+   af:  jmp 0x61

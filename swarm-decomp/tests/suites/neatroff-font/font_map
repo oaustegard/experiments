@@ -1,0 +1,45 @@
+# font_map  (global, 138 bytes, 44 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  movq %rdx, %rbp
+    9:  movl $0xffffffff, %edx
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  testq %rbp, %rbp
+   15:  je 0x74
+   17:  movq 0x78(%rdi), %rdi
+   1b:  movq %rbp, %rsi
+   1e:  callq dict_get+0
+   23:  movl $0xfffffffe, %edx
+   28:  testl %eax, %eax
+   2a:  js 0x74
+   2c:  cltq
+   2e:  leaq (%rax, %rax, 4), %rcx
+   32:  leaq (%rax, %rcx, 2), %rcx
+   36:  movq 0x68(%rbx), %rax
+   3a:  leaq (%rax, %rcx, 8), %rax
+   3e:  testq %rax, %rax
+   41:  je 0x74
+   43:  movq 0x78(%rbx), %rdi
+   47:  movq %rbp, %rsi
+   4a:  callq dict_get+0
+   4f:  movq 0x68(%rbx), %rcx
+   53:  xorl %edx, %edx
+   55:  testl %eax, %eax
+   57:  js 0x67
+   59:  cltq
+   5b:  leaq (%rax, %rax, 4), %rdx
+   5f:  leaq (%rax, %rdx, 2), %rax
+   63:  leaq (%rcx, %rax, 8), %rdx
+   67:  subq %rcx, %rdx
+   6a:  sarq $3, %rdx
+   6e:  imull $0xba2e8ba3, %edx, %edx
+   74:  movq 0x88(%rbx), %rdi
+   7b:  movq %r12, %rsi
+   7e:  callq dict_put+0
+   83:  popq %rbx
+   84:  xorl %eax, %eax
+   86:  popq %rbp
+   87:  popq %r12
+   89:  retq

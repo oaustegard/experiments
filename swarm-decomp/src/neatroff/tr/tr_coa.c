@@ -1,0 +1,1 @@
+static void tr_coa(struct tr_args *a) { char *s1 = a->arg[0]; char *s2 = a->arg[1]; if (s1 && s2 && str_get(map(s1))) { struct sbuf sb; sbuf_init(&sb); if (str_get(map(s2))) sbuf_append(&sb, str_get(map(s2))); sbuf_append(&sb, str_get(map(s1))); char *r = sbuf_buf(&sb); str_set(map(s2), r); sbuf_done(&sb); } }

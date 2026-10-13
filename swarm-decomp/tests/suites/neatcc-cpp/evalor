@@ -1,0 +1,80 @@
+# evalor  (static, 317 bytes, 79 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evalbitor+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x30
+   14:  cmpl $0x262600, %eax
+   19:  je 0x48
+   1b:  cmpl $-1, %eax
+   1e:  je 0x70
+   20:  cmpl $0x7c7c00, %eax
+   25:  je 0x88
+   27:  movq %rbx, %rax
+   2a:  popq %rbx
+   2b:  retq
+   2c:  nopl (%rax)
+   30:  callq fn:eval_tok+0
+   35:  movl %eax, (%rip)   <var:enext+0>
+   3b:  cmpl $0x262600, %eax
+   40:  jne 0x1b
+   42:  nopw (%rax, %rax)
+   48:  movl $0xffffffff, (%rip)   <var:enext+0>
+   52:  testq %rbx, %rbx
+   55:  jne 0xb8
+   57:  callq fn:eval_tok+0
+   5c:  movl %eax, (%rip)   <var:enext+0>
+   62:  cmpl $0x262600, %eax
+   67:  jne 0x1b
+   69:  jmp 0x57
+   6b:  nopl (%rax, %rax)
+   70:  callq fn:eval_tok+0
+   75:  movl %eax, (%rip)   <var:enext+0>
+   7b:  cmpl $0x7c7c00, %eax
+   80:  jne 0x27
+   82:  nopw (%rax, %rax)
+   88:  movl $0xffffffff, (%rip)   <var:enext+0>
+   92:  testq %rbx, %rbx
+   95:  je 0xd0
+   97:  callq fn:eval_tok+0
+   9c:  movl %eax, (%rip)   <var:enext+0>
+   a2:  cmpl $0x7c7c00, %eax
+   a7:  je 0x97
+   a9:  movl $1, %ebx
+   ae:  jmp 0x27
+   b3:  nopl (%rax, %rax)
+   b8:  callq fn:evalbitor+0
+   bd:  xorl %ebx, %ebx
+   bf:  testq %rax, %rax
+   c2:  movl (%rip), %eax   <var:enext+0>
+   c8:  setne %bl
+   cb:  jmp 0xf
+   d0:  callq fn:evalbitor+0
+   d5:  movq %rax, %rbx
+   d8:  movl (%rip), %eax   <var:enext+0>
+   de:  cmpl $-1, %eax
+   e1:  je 0xf8
+   e3:  cmpl $0x262600, %eax
+   e8:  je 0x105
+   ea:  testq %rbx, %rbx
+   ed:  setne %bl
+   f0:  movzbl %bl, %ebx
+   f3:  jmp 0x1b
+   f8:  callq fn:eval_tok+0
+   fd:  movl %eax, (%rip)   <var:enext+0>
+  103:  jmp 0xe3
+  105:  movl $0xffffffff, (%rip)   <var:enext+0>
+  10f:  testq %rbx, %rbx
+  112:  jne 0x128
+  114:  callq fn:eval_tok+0
+  119:  movl %eax, (%rip)   <var:enext+0>
+  11f:  cmpl $0x262600, %eax
+  124:  jne 0xea
+  126:  jmp 0x114
+  128:  callq fn:evalbitor+0
+  12d:  xorl %ebx, %ebx
+  12f:  testq %rax, %rax
+  132:  movl (%rip), %eax   <var:enext+0>
+  138:  setne %bl
+  13b:  jmp 0xde

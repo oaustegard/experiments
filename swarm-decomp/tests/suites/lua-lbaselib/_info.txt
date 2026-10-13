@@ -1,0 +1,118 @@
+# lua-lbaselib: translation unit lbaselib of lua
+# write each function as src/lua/lbaselib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+pairscont	static	6 bytes
+dofilecont	static	17 bytes
+luaB_type	static	84 bytes
+luaB_tostring	static	36 bytes
+luaB_select	static	164 bytes
+luaB_setmetatable	static	157 bytes
+luaB_rawset	static	78 bytes
+luaB_rawget	static	65 bytes
+luaB_rawlen	static	76 bytes
+luaB_rawequal	static	62 bytes
+luaB_warn	static	149 bytes
+luaB_print	static	199 bytes
+luaB_ipairs	static	59 bytes
+luaB_next	static	79 bytes
+generic_reader	static	207 bytes
+ipairsaux	static	68 bytes
+luaB_error	static	128 bytes
+luaB_dofile	static	118 bytes
+finishpcall	static	70 bytes
+luaB_pairs	static	126 bytes
+load_aux	static	102 bytes
+luaB_load	static	237 bytes
+luaB_loadfile	static	112 bytes
+luaB_getmetatable	static	79 bytes
+luaB_assert	static	111 bytes
+luaB_tonumber	static	553 bytes
+luaB_collectgarbage	static	526 bytes
+luaB_pcall	static	126 bytes
+luaB_xpcall	static	179 bytes
+luaopen_base	global	103 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+opts.1	static	88 bytes	.rodata.opts.1
+    +0     -> str:"stop"
+    +8     -> str:"restart"
+    +16    -> str:"collect"
+    +24    -> str:"count"
+    +32    -> str:"step"
+    +40    -> str:"setpause"
+    +48    -> str:"setstepmul"
+    +56    -> str:"isrunning"
+    +64    -> str:"generational"
+    +72    -> str:"incremental"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+optsnum.0	static	40 bytes	.rodata.optsnum.0
+        0: 00 00 00 00 01 00 00 00 02 00 00 00 03 00 00 00 05 00 00 00 06 00 00 00 07 00 00 00 09 00 00 00
+       32: 0a 00 00 00 0b 00 00 00
+base_funcs	static	416 bytes	.rodata.base_funcs
+    +0     -> str:"assert"
+    +8     -> fn:luaB_assert+0
+    +16    -> str:"collectgarbage"
+    +24    -> fn:luaB_collectgarbage+0
+    +32    -> str:"dofile"
+    +40    -> fn:luaB_dofile+0
+    +48    -> str:"error"
+    +56    -> fn:luaB_error+0
+    +64    -> str:"getmetatable"
+    +72    -> fn:luaB_getmetatable+0
+    +80    -> str:"ipairs"
+    +88    -> fn:luaB_ipairs+0
+    +96    -> str:"loadfile"
+    +104   -> fn:luaB_loadfile+0
+    +112   -> str:"load"
+    +120   -> fn:luaB_load+0
+    +128   -> str:"next"
+    +136   -> fn:luaB_next+0
+    +144   -> str:"pairs"
+    +152   -> fn:luaB_pairs+0
+    +160   -> str:"pcall"
+    +168   -> fn:luaB_pcall+0
+    +176   -> str:"print"
+    +184   -> fn:luaB_print+0
+    +192   -> str:"warn"
+    +200   -> fn:luaB_warn+0
+    +208   -> str:"rawequal"
+    +216   -> fn:luaB_rawequal+0
+    +224   -> str:"rawlen"
+    +232   -> fn:luaB_rawlen+0
+    +240   -> str:"rawget"
+    +248   -> fn:luaB_rawget+0
+    +256   -> str:"rawset"
+    +264   -> fn:luaB_rawset+0
+    +272   -> str:"select"
+    +280   -> fn:luaB_select+0
+    +288   -> str:"setmetatable"
+    +296   -> fn:luaB_setmetatable+0
+    +304   -> str:"tonumber"
+    +312   -> fn:luaB_tonumber+0
+    +320   -> str:"tostring"
+    +328   -> fn:luaB_tostring+0
+    +336   -> str:"type"
+    +344   -> fn:luaB_type+0
+    +352   -> str:"xpcall"
+    +360   -> fn:luaB_xpcall+0
+    +368   -> str:"_G"
+    +384   -> str:"_VERSION"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_toupper_loc fflush fwrite luaL_argerror luaL_checkany luaL_checkinteger luaL_checklstring luaL_checkoption luaL_checkstack luaL_checktype luaL_error luaL_getmetafield luaL_loadbufferx luaL_loadfilex luaL_optinteger luaL_optlstring luaL_setfuncs luaL_tolstring luaL_typeerror luaL_where lua_callk lua_concat lua_copy lua_error lua_gc lua_geti lua_getmetatable lua_gettop lua_isstring lua_load lua_next lua_pcallk lua_pushboolean lua_pushcclosure lua_pushinteger lua_pushnil lua_pushnumber lua_pushstring lua_pushvalue lua_rawequal lua_rawget lua_rawgeti lua_rawlen lua_rawset lua_rotate lua_setfield lua_setmetatable lua_settop lua_setupvalue lua_stringtonumber lua_toboolean lua_tolstring lua_type lua_typename lua_warning stdout strspn

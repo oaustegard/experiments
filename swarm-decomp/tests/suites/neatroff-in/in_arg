@@ -1,0 +1,25 @@
+# in_arg  (global, 86 bytes, 24 instructions)
+    0:  movq (%rip), %rax   <var:buf+0>
+    7:  testq %rax, %rax
+    a:  jne 0x1c
+    c:  jmp 0x50
+    e:  nop
+   10:  movq 0x4b0(%rax), %rax
+   17:  testq %rax, %rax
+   1a:  je 0x50
+   1c:  cmpq $0, 0x410(%rax)
+   24:  je 0x10
+   26:  movq 0x410(%rax), %rax
+   2d:  cmpl $0x1f, %edi
+   30:  jg 0x50
+   32:  testq %rax, %rax
+   35:  je 0x50
+   37:  movslq %edi, %rdi
+   3a:  movl $0, %edx   <str:"">
+   3f:  movq (%rax, %rdi, 8), %rax
+   43:  testq %rax, %rax
+   46:  cmoveq %rdx, %rax
+   4a:  retq
+   4b:  nopl (%rax, %rax)
+   50:  movl $0, %eax   <str:"">
+   55:  retq

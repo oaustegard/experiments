@@ -1,0 +1,52 @@
+# luaC_freeallobjects  (global, 190 bytes, 51 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq 0x18(%rdi), %r13
+   11:  cmpb $0, 0x66(%r13)
+   16:  movb $4, 0x6a(%r13)
+   1b:  je 0x25
+   1d:  movq %r13, %rdi
+   20:  callq fn:enterinc+0
+   25:  movq $0, 0x28(%r13)
+   2d:  movl $1, %esi
+   32:  movq %r13, %rdi
+   35:  callq fn:separatetobefnz+0
+   3a:  movq 0x18(%rbp), %rbx
+   3e:  cmpq $0, 0xb0(%rbx)
+   46:  je 0x62
+   48:  nopl (%rax, %rax)
+   50:  movq %rbp, %rdi
+   53:  callq fn:GCTM+0
+   58:  cmpq $0, 0xb0(%rbx)
+   60:  jne 0x50
+   62:  movq 0x108(%r13), %r12
+   69:  movq 0x70(%r13), %rbx
+   6d:  cmpq %rbx, %r12
+   70:  je 0x8b
+   72:  nopw (%rax, %rax)
+   78:  movq %rbx, %rsi
+   7b:  movq (%rbx), %rbx
+   7e:  movq %rbp, %rdi
+   81:  callq fn:freeobj+0
+   86:  cmpq %rbx, %r12
+   89:  jne 0x78
+   8b:  movq 0xb8(%r13), %rbx
+   92:  testq %rbx, %rbx
+   95:  je 0xb3
+   97:  nopw (%rax, %rax)
+   a0:  movq %rbx, %rsi
+   a3:  movq (%rbx), %rbx
+   a6:  movq %rbp, %rdi
+   a9:  callq fn:freeobj+0
+   ae:  testq %rbx, %rbx
+   b1:  jne 0xa0
+   b3:  addq $8, %rsp
+   b7:  popq %rbx
+   b8:  popq %rbp
+   b9:  popq %r12
+   bb:  popq %r13
+   bd:  retq

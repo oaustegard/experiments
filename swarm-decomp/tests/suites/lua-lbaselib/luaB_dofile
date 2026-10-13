@@ -1,0 +1,38 @@
+# luaB_dofile  (static, 118 bytes, 37 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  xorl %ecx, %ecx
+    5:  movl $1, %esi
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $8, %rsp
+   12:  callq luaL_optlstring+0
+   17:  movl $1, %esi
+   1c:  movq %rbx, %rdi
+   1f:  movq %rax, %rbp
+   22:  callq lua_settop+0
+   27:  xorl %edx, %edx
+   29:  movq %rbp, %rsi
+   2c:  movq %rbx, %rdi
+   2f:  callq luaL_loadfilex+0
+   34:  testl %eax, %eax
+   36:  jne 0x68
+   38:  movq %rbx, %rdi
+   3b:  movl $0, %r8d   <fn:dofilecont+0>
+   41:  xorl %ecx, %ecx
+   43:  movl $0xffffffff, %edx
+   48:  xorl %esi, %esi
+   4a:  callq lua_callk+0
+   4f:  movq %rbx, %rdi
+   52:  callq lua_gettop+0
+   57:  addq $8, %rsp
+   5b:  subl $1, %eax
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  retq
+   61:  nopl (%rax)
+   68:  addq $8, %rsp
+   6c:  movq %rbx, %rdi
+   6f:  popq %rbx
+   70:  popq %rbp
+   71:  jmp lua_error+0

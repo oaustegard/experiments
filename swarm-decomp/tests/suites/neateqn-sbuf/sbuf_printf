@@ -1,0 +1,33 @@
+# sbuf_printf  (global, 190 bytes, 32 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x4c0, %rsp
+    b:  movq %rdx, 0x420(%rsp)
+   13:  movq %rcx, 0x428(%rsp)
+   1b:  movq %r8, 0x430(%rsp)
+   23:  movq %r9, 0x438(%rsp)
+   2b:  testb %al, %al
+   2d:  je 0x6f
+   2f:  movaps %xmm0, 0x440(%rsp)
+   37:  movaps %xmm1, 0x450(%rsp)
+   3f:  movaps %xmm2, 0x460(%rsp)
+   47:  movaps %xmm3, 0x470(%rsp)
+   4f:  movaps %xmm4, 0x480(%rsp)
+   57:  movaps %xmm5, 0x490(%rsp)
+   5f:  movaps %xmm6, 0x4a0(%rsp)
+   67:  movaps %xmm7, 0x4b0(%rsp)
+   6f:  leaq 0x4d0(%rsp), %rax
+   77:  leaq 8(%rsp), %rdx
+   7c:  movl $0x10, 8(%rsp)
+   84:  movq %rax, 0x10(%rsp)
+   89:  leaq 0x20(%rsp), %rdi
+   8e:  leaq 0x410(%rsp), %rax
+   96:  movl $0x30, 0xc(%rsp)
+   9e:  movq %rax, 0x18(%rsp)
+   a3:  callq vsprintf+0
+   a8:  leaq 0x20(%rsp), %rsi
+   ad:  movq %rbx, %rdi
+   b0:  callq sbuf_append+0
+   b5:  addq $0x4c0, %rsp
+   bc:  popq %rbx
+   bd:  retq

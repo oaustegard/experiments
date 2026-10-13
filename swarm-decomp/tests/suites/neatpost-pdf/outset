@@ -1,0 +1,49 @@
+# outset  (global, 167 bytes, 48 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  movq %rdi, %rsi
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movl $0, %edi   <str:"linewidth">
+   10:  subq $8, %rsp
+   14:  callq strcmp+0
+   19:  testl %eax, %eax
+   1b:  je 0x50
+   1d:  movq %rbx, %rsi
+   20:  movl $0, %edi   <str:"linecap">
+   25:  callq strcmp+0
+   2a:  testl %eax, %eax
+   2c:  je 0x90
+   2e:  movq %rbx, %rsi
+   31:  movl $0, %edi   <str:"linejoin">
+   36:  callq strcmp+0
+   3b:  testl %eax, %eax
+   3d:  je 0x70
+   3f:  addq $8, %rsp
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movl $0xa, %edx
+   55:  xorl %esi, %esi
+   57:  movq %rbp, %rdi
+   5a:  callq strtol+0
+   5f:  movl %eax, (%rip)   <var:pdf_linewid+0>
+   65:  jmp 0x1d
+   67:  nopw (%rax, %rax)
+   70:  movq %rbp, %rdi
+   73:  movl $0xa, %edx
+   78:  xorl %esi, %esi
+   7a:  callq strtol+0
+   7f:  movl %eax, (%rip)   <var:pdf_linejoin+0>
+   85:  addq $8, %rsp
+   89:  popq %rbx
+   8a:  popq %rbp
+   8b:  retq
+   8c:  nopl (%rax)
+   90:  movl $0xa, %edx
+   95:  xorl %esi, %esi
+   97:  movq %rbp, %rdi
+   9a:  callq strtol+0
+   9f:  movl %eax, (%rip)   <var:pdf_linecap+0>
+   a5:  jmp 0x2e

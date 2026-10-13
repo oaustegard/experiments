@@ -1,0 +1,57 @@
+# loadfunc  (static, 175 bytes, 56 instructions)
+    0:  pushq %r13
+    2:  movl $0, %ecx   <str:"_">
+    7:  movq %rsi, %r13
+    a:  movq %rdx, %rsi
+    d:  pushq %r12
+    f:  movl $0, %edx   <str:".">
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  movq %rdi, %rbx
+   19:  subq $8, %rsp
+   1d:  callq luaL_gsub+0
+   22:  movl $0x2d, %esi
+   27:  movq %rax, %rdi
+   2a:  movq %rax, %rbp
+   2d:  callq strchr+0
+   32:  testq %rax, %rax
+   35:  je 0x85
+   37:  movq %rax, %rdx
+   3a:  movq %rbp, %rsi
+   3d:  movq %rbx, %rdi
+   40:  movq %rax, %r12
+   43:  subq %rbp, %rdx
+   46:  callq lua_pushlstring+0
+   4b:  movl $0, %esi   <str:"luaopen_%s">
+   50:  movq %rbx, %rdi
+   53:  movq %rax, %rdx
+   56:  xorl %eax, %eax
+   58:  callq lua_pushfstring+0
+   5d:  movq %r13, %rsi
+   60:  movq %rbx, %rdi
+   63:  movq %rax, %rdx
+   66:  callq fn:lookforfunc+0
+   6b:  cmpl $2, %eax
+   6e:  je 0x80
+   70:  addq $8, %rsp
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  popq %r12
+   78:  popq %r13
+   7a:  retq
+   7b:  nopl (%rax, %rax)
+   80:  leaq 1(%r12), %rbp
+   85:  movq %rbp, %rdx
+   88:  movq %rbx, %rdi
+   8b:  movl $0, %esi   <str:"luaopen_%s">
+   90:  xorl %eax, %eax
+   92:  callq lua_pushfstring+0
+   97:  addq $8, %rsp
+   9b:  movq %r13, %rsi
+   9e:  movq %rbx, %rdi
+   a1:  movq %rax, %rdx
+   a4:  popq %rbx
+   a5:  popq %rbp
+   a6:  popq %r12
+   a8:  popq %r13
+   aa:  jmp fn:lookforfunc+0

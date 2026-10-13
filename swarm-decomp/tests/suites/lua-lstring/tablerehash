@@ -1,0 +1,44 @@
+# tablerehash  (static, 126 bytes, 43 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %r12
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movl %edx, %ebx
+    c:  cmpl %edx, %r12d
+    f:  jge 0x2d
+   11:  leal -1(%rdx), %eax
+   14:  xorl %esi, %esi
+   16:  subl %r12d, %eax
+   19:  leaq 8(, %rax, 8), %rdx
+   21:  movslq %r12d, %rax
+   24:  leaq (%rdi, %rax, 8), %rdi
+   28:  callq memset+0
+   2d:  testl %r12d, %r12d
+   30:  jle 0x79
+   32:  movq %rbp, %r8
+   35:  leaq (%rbp, %r12, 8), %r9
+   3a:  leal -1(%rbx), %edi
+   3d:  nopl (%rax)
+   40:  movq (%r8), %rax
+   43:  movq $0, (%r8)
+   4a:  testq %rax, %rax
+   4d:  je 0x70
+   4f:  nop
+   50:  movq %rax, %rdx
+   53:  movl %edi, %ecx
+   55:  movq 0x10(%rax), %rax
+   59:  andl 0xc(%rdx), %ecx
+   5c:  leaq (%rbp, %rcx, 8), %rcx
+   61:  movq (%rcx), %rsi
+   64:  movq %rsi, 0x10(%rdx)
+   68:  movq %rdx, (%rcx)
+   6b:  testq %rax, %rax
+   6e:  jne 0x50
+   70:  addq $8, %r8
+   74:  cmpq %r9, %r8
+   77:  jne 0x40
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  retq

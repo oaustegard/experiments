@@ -1,0 +1,30 @@
+# utf8one  (global, 81 bytes, 29 instructions)
+    0:  movzbl (%rdi), %ecx
+    3:  movl %ecx, %edx
+    5:  movl %ecx, %eax
+    7:  notl %edx
+    9:  andl $0xc0, %edx
+    f:  jne 0x40
+   11:  movl $2, %edx
+   16:  testb $0x20, %cl
+   19:  je 0x34
+   1b:  movl $3, %edx
+   20:  testb $0x10, %cl
+   23:  je 0x34
+   25:  andl $8, %eax
+   28:  cmpb $1, %al
+   2a:  sbbq %rdx, %rdx
+   2d:  andl $3, %edx
+   30:  addq $1, %rdx
+   34:  xorl %eax, %eax
+   36:  cmpb $0, (%rdi, %rdx)
+   3a:  sete %al
+   3d:  retq
+   3e:  nop
+   40:  xorl %edx, %edx
+   42:  testl %ecx, %ecx
+   44:  setg %dl
+   47:  xorl %eax, %eax
+   49:  cmpb $0, (%rdi, %rdx)
+   4d:  sete %al
+   50:  retq

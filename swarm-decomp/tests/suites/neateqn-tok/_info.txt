@@ -1,0 +1,111 @@
+# neateqn-tok: translation unit tok of neateqn
+# write each function as src/neateqn/tok/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+readchar	static	127 bytes
+tok_preview	static	212 bytes
+char_type.constprop.0	static	135 bytes
+tok_req.constprop.0	static	185 bytes
+tok_next	static	117 bytes
+tok_read.isra.0	static	1714 bytes
+tok_eqn	global	632 bytes
+tok_eqnout	global	124 bytes
+tok_get	global	22 bytes
+tok_type	global	18 bytes
+tok_chops	global	70 bytes
+tok_pop	global	50 bytes
+tok_poptext	global	159 bytes
+tok_jmp	global	178 bytes
+tok_delim	global	53 bytes
+tok_macro	global	153 bytes
+tok_inline	global	7 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+tok_line	static	4 bytes	.bss.tok_line
+    (zero-initialised)
+eqn_end	static	4 bytes	.bss.eqn_end
+    (zero-initialised)
+tok	static	1000 bytes	.bss.tok
+    (zero-initialised)
+tok_eqen	static	4 bytes	.bss.tok_eqen
+    (zero-initialised)
+tok_cursep	static	4 bytes	.bss.tok_cursep
+    (zero-initialised)
+tok_prevsep	static	4 bytes	.bss.tok_prevsep
+    (zero-initialised)
+kwds	static	408 bytes	.rodata.kwds
+    +0     -> str:"fwd"
+    +8     -> str:"down"
+    +16    -> str:"back"
+    +24    -> str:"up"
+    +32    -> str:"bold"
+    +40    -> str:"italic"
+    +48    -> str:"roman"
+    +56    -> str:"font"
+    +64    -> str:"fat"
+    +72    -> str:"size"
+    +80    -> str:"type"
+    +88    -> str:"bar"
+    +96    -> str:"dot"
+    +104   -> str:"dotdot"
+    +112   -> str:"dyad"
+    +120   -> str:"hat"
+    +128   -> str:"under"
+    +136   -> str:"vec"
+    +144   -> str:"tilde"
+    +152   -> str:"sub"
+    +160   -> str:"sup"
+    +168   -> str:"from"
+    +176   -> str:"to"
+    +184   -> str:"vcenter"
+    +192   -> str:"left"
+    +200   -> str:"right"
+    +208   -> str:"over"
+    +216   -> str:"sqrt"
+    +224   -> str:"pile"
+    +232   -> str:"lpile"
+    +240   -> str:"cpile"
+    +248   -> str:"rpile"
+    +256   -> str:"above"
+    +264   -> str:"matrix"
+    +272   -> str:"col"
+    +280   -> str:"ccol"
+    +288   -> str:"lcol"
+    +296   -> str:"rcol"
+    +304   -> str:"delim"
+    +312   -> str:"define"
+    +320   -> str:"gfont"
+    +328   -> str:"grfont"
+    +336   -> str:"gbfont"
+    +344   -> str:"gsize"
+    +352   -> str:"set"
+    +360   -> str:"chartype"
+    +368   -> str:"mark"
+    +376   -> str:"lineup"
+    +384   -> str:"bracketsizes"
+    +392   -> str:"bracketpieces"
+    +400   -> str:"breakcost"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+tok_curtype	static	4 bytes	.bss.tok_curtype
+    (zero-initialised)
+eqn_beg	static	4 bytes	.bss.eqn_beg
+    (zero-initialised)
+tok_part	static	4 bytes	.bss.tok_part
+    (zero-initialised)
+tok_prev	static	1000 bytes	.bss.tok_prev
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc def_chopped def_type escarg printf puts sbuf_add sbuf_buf sbuf_cut sbuf_done sbuf_init src_arg src_back src_define src_expand src_lineget src_lineset src_macro src_next src_top strcat strchr strcmp strcpy strlen strtol

@@ -1,0 +1,13 @@
+# luaO_ceillog2  (global, 40 bytes, 12 instructions)
+    0:  subl $1, %edi
+    3:  xorl %edx, %edx
+    5:  cmpl $0xff, %edi
+    b:  jbe 0x1e
+    d:  nopl (%rax)
+   10:  shrl $8, %edi
+   13:  addl $8, %edx
+   16:  cmpl $0xff, %edi
+   1c:  ja 0x10
+   1e:  movzbl (%rdi), %eax   <var:log_2+0>
+   25:  addl %edx, %eax
+   27:  retq

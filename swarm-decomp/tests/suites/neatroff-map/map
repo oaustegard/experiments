@@ -1,0 +1,51 @@
+# map  (global, 182 bytes, 50 instructions)
+    0:  movzbl (%rdi), %edx
+    3:  xorl %eax, %eax
+    5:  testb %dl, %dl
+    7:  je 0x50
+    9:  pushq %rbx
+    a:  movq %rdi, %rbx
+    d:  subq $0x10, %rsp
+   11:  cmpb $0x2e, %dl
+   14:  je 0x40
+   16:  movq (%rip), %rdi   <var:mapdict+0>
+   1d:  testq %rdi, %rdi
+   20:  je 0x98
+   22:  movq %rbx, %rsi
+   25:  callq dict_idx+0
+   2a:  testl %eax, %eax
+   2c:  js 0x58
+   2e:  addl $0x100, %eax
+   33:  addq $0x10, %rsp
+   37:  popq %rbx
+   38:  retq
+   39:  nopl (%rax)
+   40:  movzbl 1(%rdi), %eax
+   44:  testb %al, %al
+   46:  je 0x16
+   48:  cmpb $0, 2(%rdi)
+   4c:  jne 0x16
+   4e:  jmp 0x33
+   50:  retq
+   51:  nopl (%rax)
+   58:  movq (%rip), %rdi   <var:mapdict+0>
+   5f:  xorl %edx, %edx
+   61:  movq %rbx, %rsi
+   64:  callq dict_put+0
+   69:  movq (%rip), %rdi   <var:mapdict+0>
+   70:  movq %rbx, %rsi
+   73:  callq dict_idx+0
+   78:  cmpl $0x1eff, %eax
+   7d:  jle 0x2e
+   7f:  movl $0, %edi   <str:"neatroff: increase NREGS\n">
+   84:  movl %eax, 0xc(%rsp)
+   88:  callq errdie+0
+   8d:  movl 0xc(%rsp), %eax
+   91:  jmp 0x2e
+   93:  nopl (%rax, %rax)
+   98:  movl $0x1000, %edi
+   9d:  movl $1, %esi
+   a2:  callq dict_make+0
+   a7:  movq %rax, (%rip)   <var:mapdict+0>
+   ae:  movq %rax, %rdi
+   b1:  jmp 0x22

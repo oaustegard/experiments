@@ -1,0 +1,19 @@
+# neatmkfn-sbuf: translation unit sbuf of neatmkfn
+# write each function as src/neatmkfn/sbuf/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+sbuf_make	global	15 bytes
+sbuf_buf	global	93 bytes
+sbuf_done	global	101 bytes
+sbuf_free	global	21 bytes
+sbuf_chr	global	136 bytes
+sbuf_mem	global	136 bytes
+sbuf_str	global	152 bytes
+sbuf_len	global	4 bytes
+sbuf_cut	global	9 bytes
+sbuf_printf	global	210 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+calloc free malloc memcpy strlen vsnprintf

@@ -1,0 +1,346 @@
+# postcmd  (static, 1384 bytes, 345 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  pushq %rbx
+    8:  movl %edi, %ebx
+    a:  subq $0x100, %rsp
+   11:  callq __ctype_b_loc+0
+   16:  movslq %ebx, %rdx
+   19:  movq %rax, %rbp
+   1c:  movq (%rax), %rax
+   1f:  testb $8, 1(%rax, %rdx, 2)
+   24:  jne 0x68
+   26:  leal -0x23(%rbx), %eax
+   29:  cmpl $0x55, %eax
+   2c:  ja 0xd0
+   32:  jmpq *(, %rax, 8)   <var:postcmd+0>
+   39:  nopl (%rax)
+   40:  cmpl $0xa, %eax
+   43:  je 0x55
+   45:  movq (%rip), %rdi   <stdin+0>
+   4c:  callq getc+0
+   51:  testl %eax, %eax
+   53:  jns 0x40
+   55:  addq $0x100, %rsp
+   5c:  popq %rbx
+   5d:  popq %rbp
+   5e:  popq %r12
+   60:  popq %r13
+   62:  popq %r14
+   64:  retq
+   65:  nopl (%rax)
+   68:  movq (%rip), %rdi   <stdin+0>
+   6f:  callq getc+0
+   74:  leal -0xf0(%rbx, %rbx, 4), %edx
+   7b:  xorl %esi, %esi
+   7d:  leal -0x30(%rax, %rdx, 2), %edi
+   81:  callq outrel+0
+   86:  leaq 0x80(%rsp), %rdi
+   8e:  callq fn:nextutf8.isra.0+0
+   93:  leaq 0x80(%rsp), %rdi
+   9b:  callq outc+0
+   a0:  addq $0x100, %rsp
+   a7:  popq %rbx
+   a8:  popq %rbp
+   a9:  popq %r12
+   ab:  popq %r13
+   ad:  popq %r14
+   af:  retq
+   b0:  callq fn:nextnum+0
+   b5:  addq $0x100, %rsp
+   bc:  popq %rbx
+   bd:  popq %rbp
+   be:  popq %r12
+   c0:  popq %r13
+   c2:  popq %r14
+   c4:  jmp fn:nextnum+0
+   c9:  nopl (%rax)
+   d0:  movq (%rip), %rdi   <stderr+0>
+   d7:  movl %ebx, %edx
+   d9:  movl $0, %esi   <str:"neatpost: unknown command %c\n">
+   de:  xorl %eax, %eax
+   e0:  callq fprintf+0
+   e5:  jmp 0xf9
+   e7:  nopw (%rax, %rax)
+   f0:  cmpl $0xa, %eax
+   f3:  je 0x55
+   f9:  movq (%rip), %rdi   <stdin+0>
+  100:  callq getc+0
+  105:  testl %eax, %eax
+  107:  jns 0xf0
+  109:  jmp 0x55
+  10e:  callq fn:nextnum+0
+  113:  addq $0x100, %rsp
+  11a:  popq %rbx
+  11b:  movl %eax, %edi
+  11d:  popq %rbp
+  11e:  popq %r12
+  120:  popq %r13
+  122:  popq %r14
+  124:  jmp outv+0
+  129:  leaq 0x80(%rsp), %rdi
+  131:  callq fn:nextutf8.isra.0+0
+  136:  leaq 0x80(%rsp), %rdi
+  13e:  callq outc+0
+  143:  jmp 0x55
+  148:  callq fn:nextnum+0
+  14d:  addq $0x100, %rsp
+  154:  popq %rbx
+  155:  movl %eax, %edi
+  157:  popq %rbp
+  158:  popq %r12
+  15a:  popq %r13
+  15c:  popq %r14
+  15e:  jmp outfont+0
+  163:  callq fn:nextnum+0
+  168:  xorl %esi, %esi
+  16a:  movl %eax, %edi
+  16c:  addq $0x100, %rsp
+  173:  popq %rbx
+  174:  popq %rbp
+  175:  popq %r12
+  177:  popq %r13
+  179:  popq %r14
+  17b:  jmp outrel+0
+  180:  leaq 0x80(%rsp), %rdi
+  188:  callq fn:nextword+0
+  18d:  leaq 0x80(%rsp), %rdi
+  195:  callq outc+0
+  19a:  jmp 0x55
+  19f:  movq (%rip), %rdi   <stdin+0>
+  1a6:  callq getc+0
+  1ab:  movl %eax, %r12d
+  1ae:  callq drawbeg+0
+  1b3:  leal 0x80(%r12), %eax
+  1bb:  cmpl $0x17f, %eax
+  1c0:  jbe 0x200
+  1c2:  xorl %esi, %esi
+  1c4:  andl $0xffffffdf, %r12d
+  1c8:  xorl %edi, %edi
+  1ca:  cmpl $0x50, %r12d
+  1ce:  sete %dil
+  1d2:  callq drawend+0
+  1d7:  nopw (%rax, %rax)
+  1e0:  movq (%rip), %rdi   <stdin+0>
+  1e7:  callq getc+0
+  1ec:  testl %eax, %eax
+  1ee:  js 0x55
+  1f4:  cmpl $0xa, %eax
+  1f7:  jne 0x1e0
+  1f9:  jmp 0x55
+  1fe:  nop
+  200:  callq __ctype_tolower_loc+0
+  205:  movq %rax, %rdx
+  208:  movslq %r12d, %rax
+  20b:  movq (%rdx), %rdx
+  20e:  movl (%rdx, %rax, 4), %eax
+  211:  subl $0x61, %eax
+  214:  cmpl $0x1d, %eax
+  217:  ja 0x318
+  21d:  jmpq *(, %rax, 8)   <var:postcmd+688>
+  224:  movq %rsp, %rdi
+  227:  callq fn:nextword+0
+  22c:  movzbl (%rsp), %eax
+  230:  cmpb $0x66, %al
+  232:  je 0x4c2
+  238:  jg 0x480
+  23e:  cmpb $0x54, %al
+  240:  je 0x4f4
+  246:  cmpb $0x58, %al
+  248:  jne 0x250
+  24a:  callq fn:postps+0
+  24f:  nop
+  250:  movq (%rip), %rdi   <stdin+0>
+  257:  callq getc+0
+  25c:  testl %eax, %eax
+  25e:  js 0x55
+  264:  cmpl $0xa, %eax
+  267:  jne 0x250
+  269:  jmp 0x55
+  26e:  leaq 0x80(%rsp), %rdi
+  276:  callq fn:nextword+0
+  27b:  leaq 0x80(%rsp), %rdi
+  283:  callq clr_get+0
+  288:  movl %eax, %edi
+  28a:  callq outcolor+0
+  28f:  jmp 0x55
+  294:  movl (%rip), %edi   <var:o_pages+0>
+  29a:  testl %edi, %edi
+  29c:  jne 0x470
+  2a2:  callq fn:nextnum+0
+  2a7:  movl %eax, %edi
+  2a9:  movl %eax, (%rip)   <var:o_pages+0>
+  2af:  callq docpagebeg+0
+  2b4:  addq $0x100, %rsp
+  2bb:  popq %rbx
+  2bc:  popq %rbp
+  2bd:  popq %r12
+  2bf:  popq %r13
+  2c1:  popq %r14
+  2c3:  jmp outpage+0
+  2c8:  callq fn:nextnum+0
+  2cd:  addq $0x100, %rsp
+  2d4:  popq %rbx
+  2d5:  movl %eax, %edi
+  2d7:  popq %rbp
+  2d8:  popq %r12
+  2da:  popq %r13
+  2dc:  popq %r14
+  2de:  jmp outsize+0
+  2e3:  callq fn:nextnum+0
+  2e8:  addq $0x100, %rsp
+  2ef:  popq %rbx
+  2f0:  movl %eax, %edi
+  2f2:  popq %rbp
+  2f3:  popq %r12
+  2f5:  popq %r13
+  2f7:  popq %r14
+  2f9:  jmp outh+0
+  2fe:  callq fn:nextnum+0
+  303:  xorl %edi, %edi
+  305:  movl %eax, %esi
+  307:  jmp 0x16c
+  30c:  callq fn:postarc+0
+  311:  nopl (%rax)
+  318:  leal -0x43(%r12), %eax
+  31d:  cmpl $0xd, %eax
+  320:  ja 0x1c2
+  326:  movl $0x2005, %edx
+  32b:  movl $1, %esi
+  330:  btq %rax, %rdx
+  334:  jb 0x1c4
+  33a:  jmp 0x1c2
+  33f:  callq fn:nextnum+0
+  344:  movl %eax, %ebx
+  346:  callq fn:nextnum+0
+  34b:  movl %ebx, %edi
+  34d:  movl %eax, %esi
+  34f:  callq drawl+0
+  354:  jmp 0x318
+  356:  callq fn:postspline+0
+  35b:  jmp 0x318
+  35d:  callq fn:nextnum+0
+  362:  movl %eax, %ebx
+  364:  callq fn:nextnum+0
+  369:  movl %ebx, %edi
+  36b:  movl %eax, %esi
+  36d:  callq drawe+0
+  372:  jmp 0x318
+  374:  callq fn:nextnum+0
+  379:  movl %eax, %edi
+  37b:  callq drawc+0
+  380:  jmp 0x318
+  382:  movq (%rip), %rdi   <stdin+0>
+  389:  movl $0x6c, %r13d
+  38f:  movl $0x20000801, %r14d
+  395:  nopl (%rax)
+  398:  callq getc+0
+  39d:  movq (%rip), %rdi   <stdin+0>
+  3a4:  movl %eax, %ebx
+  3a6:  cmpl $0x20, %eax
+  3a9:  je 0x398
+  3ab:  movq %rdi, %rsi
+  3ae:  movl %eax, %edi
+  3b0:  callq ungetc+0
+  3b5:  cmpl $0xa, %ebx
+  3b8:  je 0x318
+  3be:  leal -0x61(%r13), %eax
+  3c2:  cmpl $0x1d, %eax
+  3c5:  ja 0x318
+  3cb:  btq %rax, %r14
+  3cf:  jae 0x318
+  3d5:  nopl (%rax)
+  3d8:  movq (%rip), %rdi   <stdin+0>
+  3df:  callq getc+0
+  3e4:  movl %eax, %ebx
+  3e6:  cmpl $0x20, %eax
+  3e9:  je 0x3d8
+  3eb:  movq (%rip), %rsi   <stdin+0>
+  3f2:  movl %eax, %edi
+  3f4:  callq ungetc+0
+  3f9:  leal -0x2b(%rbx), %eax
+  3fc:  andl $0xfffffffd, %eax
+  3ff:  je 0x40d
+  401:  leal -0x30(%rbx), %eax
+  404:  cmpl $9, %eax
+  407:  ja 0x50d
+  40d:  cmpl $0x6c, %r13d
+  411:  je 0x458
+  413:  cmpl $0x7e, %r13d
+  417:  je 0x503
+  41d:  callq fn:postarc+0
+  422:  movl $0x61, %r13d
+  428:  movq (%rip), %rdi   <stdin+0>
+  42f:  jmp 0x398
+  434:  nopl (%rax)
+  438:  leaq 0x80(%rsp), %rdi
+  440:  callq fn:readnum+0
+  445:  testl %eax, %eax
+  447:  jne 0x464
+  449:  movl 0x80(%rsp), %esi
+  450:  movl (%rsp), %edi
+  453:  callq drawl+0
+  458:  movq %rsp, %rdi
+  45b:  callq fn:readnum+0
+  460:  testl %eax, %eax
+  462:  je 0x438
+  464:  movq (%rip), %rdi   <stdin+0>
+  46b:  jmp 0x398
+  470:  callq docpageend+0
+  475:  jmp 0x2a2
+  47a:  nopw (%rax, %rax)
+  480:  cmpb $0x69, %al
+  482:  jne 0x250
+  488:  movl $0, %esi   <var:postdev+0>
+  48d:  movl $0, %edi   <var:postdir+0>
+  492:  callq dev_open+0
+  497:  testl %eax, %eax
+  499:  jne 0x546
+  49f:  movl (%rip), %ecx   <var:ps_linewidth+0>
+  4a5:  movl (%rip), %edx   <var:ps_pageheight+0>
+  4ab:  movl (%rip), %esi   <var:ps_pagewidth+0>
+  4b1:  movq (%rip), %rdi   <var:ps_title+0>
+  4b8:  callq docheader+0
+  4bd:  jmp 0x250
+  4c2:  callq fn:nextnum+0
+  4c7:  leaq 0x80(%rsp), %rdi
+  4cf:  movl %eax, %ebx
+  4d1:  callq fn:nextword+0
+  4d6:  leaq 0x80(%rsp), %rdx
+  4de:  movl %ebx, %edi
+  4e0:  movq %rdx, %rsi
+  4e3:  callq dev_mnt+0
+  4e8:  movl %ebx, %edi
+  4ea:  callq outmnt+0
+  4ef:  jmp 0x250
+  4f4:  movl $0, %edi   <var:postdev+0>
+  4f9:  callq fn:nextword+0
+  4fe:  jmp 0x250
+  503:  callq fn:postspline+0
+  508:  jmp 0x464
+  50d:  movl %ebx, %eax
+  50f:  testl %ebx, %ebx
+  511:  jns 0x521
+  513:  jmp 0x53d
+  515:  nopl (%rax)
+  518:  callq getc+0
+  51d:  testl %eax, %eax
+  51f:  js 0x53d
+  521:  movq (%rbp), %rdx
+  525:  cltq
+  527:  movq (%rip), %rdi   <stdin+0>
+  52e:  testb $0x20, 1(%rdx, %rax, 2)
+  533:  je 0x518
+  535:  movl %ebx, %r13d
+  538:  jmp 0x398
+  53d:  movq (%rip), %rdi   <stdin+0>
+  544:  jmp 0x535
+  546:  movq (%rip), %rdi   <stderr+0>
+  54d:  movl $0, %edx   <var:postdev+0>
+  552:  movl $0, %esi   <str:"neatpost: cannot open device %s\n">
+  557:  xorl %eax, %eax
+  559:  callq fprintf+0
+  55e:  movl $1, %edi
+  563:  callq exit+0

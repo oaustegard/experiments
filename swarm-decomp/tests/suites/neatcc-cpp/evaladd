@@ -1,0 +1,34 @@
+# evaladd  (static, 124 bytes, 33 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evalmul+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x28
+   14:  cmpl $0x2b, %eax
+   17:  je 0x68
+   19:  cmpl $0x2d, %eax
+   1c:  je 0x4d
+   1e:  movq %rbx, %rax
+   21:  popq %rbx
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  callq fn:eval_tok+0
+   2d:  movl %eax, (%rip)   <var:enext+0>
+   33:  cmpl $0x2b, %eax
+   36:  je 0x68
+   38:  cmpl $-1, %eax
+   3b:  jne 0x19
+   3d:  callq fn:eval_tok+0
+   42:  movl %eax, (%rip)   <var:enext+0>
+   48:  cmpl $0x2d, %eax
+   4b:  jne 0x1e
+   4d:  movl $0xffffffff, (%rip)   <var:enext+0>
+   57:  callq fn:evalmul+0
+   5c:  subq %rax, %rbx
+   5f:  jmp 9
+   61:  nopl (%rax)
+   68:  movl $0xffffffff, (%rip)   <var:enext+0>
+   72:  callq fn:evalmul+0
+   77:  addq %rax, %rbx
+   7a:  jmp 9

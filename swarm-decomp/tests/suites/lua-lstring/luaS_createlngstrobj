@@ -1,0 +1,19 @@
+# luaS_createlngstrobj  (global, 58 bytes, 18 instructions)
+    0:  pushq %rbp
+    1:  leaq 0x19(%rsi), %rdx
+    5:  pushq %rbx
+    6:  movq %rsi, %rbx
+    9:  movl $0x14, %esi
+    e:  subq $8, %rsp
+   12:  movq 0x18(%rdi), %rax
+   16:  movl 0x60(%rax), %ebp
+   19:  callq luaC_newobj+0
+   1e:  movl $0xffffff00, %edx
+   23:  movl %ebp, 0xc(%rax)
+   26:  movb $0, 0x18(%rax, %rbx)
+   2b:  movq %rbx, 0x10(%rax)
+   2f:  movw %dx, 0xa(%rax)
+   33:  addq $8, %rsp
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  retq

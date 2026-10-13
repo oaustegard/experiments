@@ -1,0 +1,11 @@
+# sstr_next  (global, 38 bytes, 10 instructions)
+    0:  movq (%rip), %rdx   <var:sstr_s+0>
+    7:  movzbl (%rdx), %eax
+    a:  testb %al, %al
+    c:  je 0x20
+    e:  addq $1, %rdx
+   12:  movq %rdx, (%rip)   <var:sstr_s+0>
+   19:  retq
+   1a:  nopw (%rax, %rax)
+   20:  movl $0xffffffff, %eax
+   25:  retq

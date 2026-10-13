@@ -1,0 +1,83 @@
+# freeobj  (static, 305 bytes, 82 instructions)
+    0:  movzbl 8(%rsi), %eax
+    4:  subl $4, %eax
+    7:  cmpb $0x22, %al
+    9:  ja 0x130
+    f:  pushq %rbx
+   10:  movzbl %al, %eax
+   13:  movq %rdi, %rbx
+   16:  subq $0x10, %rsp
+   1a:  jmpq *(, %rax, 8)   <var:freeobj+0>
+   21:  nopl (%rax)
+   28:  addq $0x10, %rsp
+   2c:  popq %rbx
+   2d:  retq
+   2e:  nop
+   30:  movq %rsi, 8(%rsp)
+   35:  callq luaS_remove+0
+   3a:  movq 8(%rsp), %rsi
+   3f:  movq %rbx, %rdi
+   42:  movzbl 0xb(%rsi), %edx
+   46:  addq $0x10, %rsp
+   4a:  popq %rbx
+   4b:  addq $0x19, %rdx
+   4f:  jmp luaM_free_+0
+   54:  nopl (%rax)
+   58:  addq $0x10, %rsp
+   5c:  popq %rbx
+   5d:  jmp luaH_free+0
+   62:  nopw (%rax, %rax)
+   68:  movzbl 0xa(%rsi), %eax
+   6c:  addq $0x10, %rsp
+   70:  popq %rbx
+   71:  leaq 0x20(, %rax, 8), %rdx
+   79:  jmp luaM_free_+0
+   7e:  nop
+   80:  movzwl 0xa(%rsi), %eax
+   84:  movl $0x20, %edx
+   89:  testw %ax, %ax
+   8c:  je 0x96
+   8e:  shlq $4, %rax
+   92:  leaq 0x28(%rax), %rdx
+   96:  addq 0x10(%rsi), %rdx
+   9a:  addq $0x10, %rsp
+   9e:  movq %rbx, %rdi
+   a1:  popq %rbx
+   a2:  jmp luaM_free_+0
+   a7:  nopw (%rax, %rax)
+   b0:  addq $0x10, %rsp
+   b4:  popq %rbx
+   b5:  jmp luaE_freethread+0
+   ba:  nopw (%rax, %rax)
+   c0:  leaq 0x18(%rsi), %rax
+   c4:  cmpq %rax, 0x10(%rsi)
+   c8:  je 0xdc
+   ca:  movq %rsi, %rdi
+   cd:  movq %rsi, 8(%rsp)
+   d2:  callq luaF_unlinkupval+0
+   d7:  movq 8(%rsp), %rsi
+   dc:  addq $0x10, %rsp
+   e0:  movq %rbx, %rdi
+   e3:  movl $0x28, %edx
+   e8:  popq %rbx
+   e9:  jmp luaM_free_+0
+   ee:  nop
+   f0:  addq $0x10, %rsp
+   f4:  popq %rbx
+   f5:  jmp luaF_freeproto+0
+   fa:  nopw (%rax, %rax)
+  100:  movq 0x10(%rsi), %rax
+  104:  addq $0x10, %rsp
+  108:  popq %rbx
+  109:  leaq 0x19(%rax), %rdx
+  10d:  jmp luaM_free_+0
+  112:  nopw (%rax, %rax)
+  118:  movzbl 0xa(%rsi), %edx
+  11c:  addq $0x10, %rsp
+  120:  popq %rbx
+  121:  addl $2, %edx
+  124:  shll $4, %edx
+  127:  movslq %edx, %rdx
+  12a:  jmp luaM_free_+0
+  12f:  nop
+  130:  retq

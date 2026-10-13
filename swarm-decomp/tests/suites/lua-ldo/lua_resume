@@ -1,0 +1,131 @@
+# lua_resume  (global, 455 bytes, 130 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rcx, %rbx
+    8:  subq $0x18, %rsp
+    c:  movzbl 0xa(%rdi), %eax
+   10:  movl %edx, 0xc(%rsp)
+   14:  testb %al, %al
+   16:  jne 0xb8
+   1c:  movq 0x20(%rdi), %rcx
+   20:  movslq %edx, %rax
+   23:  leaq 0x60(%rdi), %rdi
+   27:  movq -0x50(%rdi), %rdx
+   2b:  cmpq %rdi, %rcx
+   2e:  jne 0xd7
+   34:  movq %rdx, %rdi
+   37:  subq (%rcx), %rdi
+   3a:  movq %rdi, %rcx
+   3d:  subq $0x10, %rcx
+   41:  sarq $4, %rcx
+   45:  cmpq %rax, %rcx
+   48:  je 0x186
+   4e:  testq %rsi, %rsi
+   51:  je 0xec
+   57:  movzwl 0xb0(%rsi), %eax
+   5e:  movl %eax, 0xb0(%rbp)
+   64:  cmpl $0xc7, %eax
+   69:  jbe 0x177
+   6f:  movslq 0xc(%rsp), %rax
+   74:  movq 0x10(%rbp), %rbx
+   78:  movl $0, %esi   <str:"C stack overflow">
+   7d:  shlq $4, %rax
+   81:  subq %rax, %rbx
+   84:  movq %rbx, 0x10(%rbp)
+   88:  movq %rbp, %rdi
+   8b:  callq luaS_new+0
+   90:  movq %rax, (%rbx)
+   93:  movzbl 8(%rax), %eax
+   97:  orl $0x40, %eax
+   9a:  movb %al, 8(%rbx)
+   9d:  movq 0x10(%rbp), %rax
+   a1:  addq $0x10, %rax
+   a5:  movq %rax, 0x10(%rbp)
+   a9:  addq $0x18, %rsp
+   ad:  movl $2, %eax
+   b2:  popq %rbx
+   b3:  popq %rbp
+   b4:  retq
+   b5:  nopl (%rax)
+   b8:  cmpb $1, %al
+   ba:  je 0x4e
+   bc:  movslq 0xc(%rsp), %rax
+   c1:  movq 0x10(%rdi), %rbx
+   c5:  movl $0, %esi   <str:"cannot resume dead coroutine">
+   ca:  shlq $4, %rax
+   ce:  subq %rax, %rbx
+   d1:  movq %rbx, 0x10(%rdi)
+   d5:  jmp 0x88
+   d7:  shlq $4, %rax
+   db:  movq %rdx, %rbx
+   de:  movl $0, %esi   <str:"cannot resume non-suspended coroutine">
+   e3:  subq %rax, %rbx
+   e6:  movq %rbx, 0x10(%rbp)
+   ea:  jmp 0x88
+   ec:  movl $1, %eax
+   f1:  movl %eax, 0xb0(%rbp)
+   f7:  leaq 0xc(%rsp), %rdx
+   fc:  movl $0, %esi   <fn:resume+0>
+  101:  movq %rbp, %rdi
+  104:  callq luaD_rawrunprotected+0
+  109:  cmpl $1, %eax
+  10c:  jle 0x156
+  10e:  nop
+  110:  movq 0x20(%rbp), %rdx
+  114:  testq %rdx, %rdx
+  117:  jne 0x129
+  119:  jmp 0x1a0
+  11e:  nop
+  120:  movq 0x10(%rdx), %rdx
+  124:  testq %rdx, %rdx
+  127:  je 0x1a0
+  129:  movzwl 0x3e(%rdx), %ecx
+  12d:  testb $0x10, %cl
+  130:  je 0x120
+  132:  andb $0xe3, %ch
+  135:  shll $0xa, %eax
+  138:  movq %rdx, 0x20(%rbp)
+  13c:  movl $0, %esi   <fn:unroll+0>
+  141:  orl %eax, %ecx
+  143:  movq %rbp, %rdi
+  146:  movw %cx, 0x3e(%rdx)
+  14a:  xorl %edx, %edx
+  14c:  callq luaD_rawrunprotected+0
+  151:  cmpl $1, %eax
+  154:  jg 0x110
+  156:  movq 0x20(%rbp), %rcx
+  15a:  cmpl $1, %eax
+  15d:  je 0x17f
+  15f:  movq 0x10(%rbp), %rdx
+  163:  subq (%rcx), %rdx
+  166:  subq $0x10, %rdx
+  16a:  sarq $4, %rdx
+  16e:  movl %edx, (%rbx)
+  170:  addq $0x18, %rsp
+  174:  popq %rbx
+  175:  popq %rbp
+  176:  retq
+  177:  addl $1, %eax
+  17a:  jmp 0xf1
+  17f:  movl 0x38(%rcx), %edx
+  182:  movl %edx, (%rbx)
+  184:  jmp 0x170
+  186:  shlq $4, %rcx
+  18a:  movq %rdx, %rbx
+  18d:  movl $0, %esi   <str:"cannot resume dead coroutine">
+  192:  subq %rcx, %rbx
+  195:  movq %rbx, 0x10(%rbp)
+  199:  jmp 0x88
+  19e:  nop
+  1a0:  movb %al, 0xa(%rbp)
+  1a3:  movq 0x10(%rbp), %rdx
+  1a7:  movl %eax, %esi
+  1a9:  movq %rbp, %rdi
+  1ac:  movl %eax, 8(%rsp)
+  1b0:  callq luaD_seterrorobj+0
+  1b5:  movq 0x20(%rbp), %rcx
+  1b9:  movq 0x10(%rbp), %rdx
+  1bd:  movl 8(%rsp), %eax
+  1c1:  movq %rdx, 8(%rcx)
+  1c5:  jmp 0x163

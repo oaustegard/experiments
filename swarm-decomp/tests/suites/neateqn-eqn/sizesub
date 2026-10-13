@@ -1,0 +1,55 @@
+# sizesub  (static, 171 bytes, 54 instructions)
+    0:  pushq %r13
+    2:  sarl $4, %edx
+    5:  sarl $4, %ecx
+    8:  pushq %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movl %edi, %ebx
+    e:  movl %esi, %edi
+   10:  subq $8, %rsp
+   14:  cmpl %ecx, %edx
+   16:  jle 0x80
+   18:  callq nreg+0
+   1d:  movl %ebx, %edi
+   1f:  movq %rax, %rbp
+   22:  callq nregname+0
+   27:  movq %rbp, %rdx
+   2a:  movl $0, %edi   <str:".nr %s %s*7/10\n">
+   2f:  movq %rax, %rsi
+   32:  xorl %eax, %eax
+   34:  callq printf+0
+   39:  movl %ebx, %edi
+   3b:  movl (%rip), %r13d   <e_minimumsize+0>
+   42:  callq nregname+0
+   47:  movl (%rip), %r12d   <e_minimumsize+0>
+   4e:  movl %ebx, %edi
+   50:  movq %rax, %rbp
+   53:  callq nreg+0
+   58:  addq $8, %rsp
+   5c:  movl %r13d, %r8d
+   5f:  movq %rbp, %rcx
+   62:  popq %rbx
+   63:  movq %rax, %rsi
+   66:  popq %rbp
+   67:  movl %r12d, %edx
+   6a:  movl $0, %edi   <str:".if %s<%d .nr %s %d\n">
+   6f:  popq %r12
+   71:  xorl %eax, %eax
+   73:  popq %r13
+   75:  jmp printf+0
+   7a:  nopw (%rax, %rax)
+   80:  callq nreg+0
+   85:  movl %ebx, %edi
+   87:  movq %rax, %rbp
+   8a:  callq nregname+0
+   8f:  addq $8, %rsp
+   93:  movq %rbp, %rdx
+   96:  movl $0, %edi   <str:".nr %s %s\n">
+   9b:  popq %rbx
+   9c:  movq %rax, %rsi
+   9f:  popq %rbp
+   a0:  xorl %eax, %eax
+   a2:  popq %r12
+   a4:  popq %r13
+   a6:  jmp printf+0

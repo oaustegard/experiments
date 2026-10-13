@@ -1,0 +1,7 @@
+# ic_free  (global, 25 bytes, 6 instructions)
+    0:  testq $0x200, (%rdi)
+    7:  jne 0x10
+    9:  retq
+    a:  nopw (%rax, %rax)
+   10:  movq 0x20(%rdi), %rdi
+   14:  jmp free+0

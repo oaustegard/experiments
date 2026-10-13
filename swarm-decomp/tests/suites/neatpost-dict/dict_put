@@ -1,0 +1,81 @@
+# dict_put  (global, 276 bytes, 80 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movl %edx, %r12d
+    9:  pushq %rbp
+    a:  movq %rdi, %rbp
+    d:  pushq %rbx
+    e:  movq %rsi, %rbx
+   11:  movl 0x1c(%rdi), %eax
+   14:  movslq 0x18(%rdi), %rsi
+   18:  cmpl %esi, %eax
+   1a:  jge 0xa0
+   20:  movl 0x28(%rbp), %eax
+   23:  testl %eax, %eax
+   25:  jne 0xe7
+   2b:  movl 0x1c(%rbp), %r8d
+   2f:  movq 8(%rbp), %rdx
+   33:  leal 1(%r8), %eax
+   37:  movl %eax, 0x1c(%rbp)
+   3a:  movslq %r8d, %rax
+   3d:  movq %rbx, (%rdx, %rax, 8)
+   41:  movq 0x10(%rbp), %rdx
+   45:  movl %r12d, (%rdx, %rax, 4)
+   49:  movl 0x24(%rbp), %eax
+   4c:  leaq 1(%rbx), %rdx
+   50:  movzbl (%rbx), %esi
+   53:  cmpl $1, %eax
+   56:  jle 0x7d
+   58:  leaq (%rbx, %rax), %rdi
+   5c:  jmp 0x76
+   5e:  nop
+   60:  movq %rsi, %rcx
+   63:  addq $1, %rdx
+   67:  shlq $5, %rcx
+   6b:  addq %rcx, %rsi
+   6e:  addq %rax, %rsi
+   71:  cmpq %rdx, %rdi
+   74:  je 0x7d
+   76:  movzbl (%rdx), %eax
+   79:  testb %al, %al
+   7b:  jne 0x60
+   7d:  movq (%rbp), %rdi
+   81:  popq %rbx
+   82:  andl $0x3ff, %esi
+   88:  movl %r8d, %edx
+   8b:  popq %rbp
+   8c:  popq %r12
+   8e:  popq %r13
+   90:  popq %r14
+   92:  jmp iset_put+0
+   97:  nopw (%rax, %rax)
+   a0:  leal 0x400(%rax), %r13d
+   a7:  movq 8(%rdi), %rdi
+   ab:  movl $8, %ecx
+   b0:  movslq %r13d, %r14
+   b3:  movq %r14, %rdx
+   b6:  callq mextend+0
+   bb:  movslq 0x18(%rbp), %rsi
+   bf:  movq 0x10(%rbp), %rdi
+   c3:  movq %r14, %rdx
+   c6:  movq %rax, 8(%rbp)
+   ca:  movl $4, %ecx
+   cf:  callq mextend+0
+   d4:  movl %r13d, 0x18(%rbp)
+   d8:  movq %rax, 0x10(%rbp)
+   dc:  movl 0x28(%rbp), %eax
+   df:  testl %eax, %eax
+   e1:  je 0x2b
+   e7:  movq %rbx, %rdi
+   ea:  callq strlen+0
+   ef:  leal 1(%rax), %r13d
+   f3:  movslq %r13d, %r13
+   f6:  movq %r13, %rdi
+   f9:  callq malloc+0
+   fe:  movq %rbx, %rsi
+  101:  movq %r13, %rdx
+  104:  movq %rax, %rdi
+  107:  callq memcpy+0
+  10c:  movq %rax, %rbx
+  10f:  jmp 0x2b

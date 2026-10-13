@@ -1,0 +1,93 @@
+# cff_op  (static, 340 bytes, 92 instructions)
+    0:  movq %rdx, %rcx
+    3:  movslq %esi, %rdx
+    6:  movq %rdi, %r8
+    9:  leaq (%rdi, %rdx), %rdi
+    d:  movzbl (%rdi), %eax
+   10:  leal -0x20(%rax), %esi
+   13:  cmpl $0xd6, %esi
+   19:  jbe 0x58
+   1b:  leal -0xf7(%rax), %esi
+   21:  cmpl $3, %esi
+   24:  jbe 0x98
+   26:  leal -0xfb(%rax), %esi
+   2c:  cmpl $3, %esi
+   2f:  jbe 0x70
+   31:  cmpl $0x1c, %eax
+   34:  je 0xf0
+   3a:  cmpl $0x1d, %eax
+   3d:  je 0x110
+   43:  movl $1, %esi
+   48:  cmpl $0x1e, %eax
+   4b:  je 0xb0
+   4d:  movl %eax, (%rcx)
+   4f:  movl %esi, %eax
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  subl $0x8b, %eax
+   5d:  movl $1, %esi
+   62:  movl %eax, (%rcx)
+   64:  movl %esi, %eax
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  movl $0xfb, %esi
+   75:  movzbl 1(%r8, %rdx), %edx
+   7b:  subl %eax, %esi
+   7d:  movl %esi, %eax
+   7f:  movl $2, %esi
+   84:  shll $8, %eax
+   87:  subl %edx, %eax
+   89:  subl $0x6c, %eax
+   8c:  movl %eax, (%rcx)
+   8e:  movl %esi, %eax
+   90:  retq
+   91:  nopl (%rax)
+   98:  movzbl 1(%r8, %rdx), %eax
+   9e:  shll $8, %esi
+   a1:  leal 0x6c(%rax, %rsi), %eax
+   a5:  movl $2, %esi
+   aa:  movl %eax, (%rcx)
+   ac:  movl %esi, %eax
+   ae:  retq
+   af:  nop
+   b0:  movl $2, %edx
+   b5:  jmp 0xd0
+   b7:  nopw (%rax, %rax)
+   c0:  notl %eax
+   c2:  testb $0xf0, %al
+   c4:  je 0xe3
+   c6:  addq $1, %rdx
+   ca:  cmpq $0x21, %rdx
+   ce:  je 0x148
+   d0:  movzbl -1(%rdi, %rdx), %eax
+   d5:  movl %edx, %esi
+   d7:  movl %eax, %r8d
+   da:  notl %r8d
+   dd:  andl $0xf, %r8d
+   e1:  jne 0xc0
+   e3:  xorl %eax, %eax
+   e5:  jmp 0x4d
+   ea:  nopw (%rax, %rax)
+   f0:  movzbl 1(%r8, %rdx), %eax
+   f6:  movzbl 2(%r8, %rdx), %edx
+   fc:  movl $3, %esi
+  101:  shll $8, %eax
+  104:  orl %edx, %eax
+  106:  jmp 0x4d
+  10b:  nopl (%rax, %rax)
+  110:  movzbl 1(%r8, %rdx), %eax
+  116:  movzbl 2(%r8, %rdx), %esi
+  11c:  shll $0x18, %eax
+  11f:  shll $0x10, %esi
+  122:  orl %esi, %eax
+  124:  movzbl 4(%r8, %rdx), %esi
+  12a:  movzbl 3(%r8, %rdx), %edx
+  130:  orl %esi, %eax
+  132:  shll $8, %edx
+  135:  movl $5, %esi
+  13a:  orl %edx, %eax
+  13c:  jmp 0x4d
+  141:  nopl (%rax)
+  148:  movl $0x21, %esi
+  14d:  xorl %eax, %eax
+  14f:  jmp 0x4d

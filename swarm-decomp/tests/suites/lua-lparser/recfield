@@ -1,0 +1,68 @@
+# recfield  (static, 270 bytes, 67 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rsi, %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x60, %rsp
+   12:  movq 0x30(%rdi), %r12
+   16:  cmpl $0x123, 0x10(%rdi)
+   1d:  movzbl 0x44(%r12), %r13d
+   23:  je 0xd0
+   29:  callq luaX_next+0
+   2e:  xorl %edx, %edx
+   30:  leaq 0x20(%rsp), %rsi
+   35:  movq %rbx, %rdi
+   38:  callq fn:subexpr+0
+   3d:  movq 0x30(%rbx), %rdi
+   41:  leaq 0x20(%rsp), %rsi
+   46:  callq luaK_exp2val+0
+   4b:  cmpl $0x5d, 0x10(%rbx)
+   4f:  jne 0x101
+   55:  movq %rbx, %rdi
+   58:  callq luaX_next+0
+   5d:  addl $1, 0x20(%rbp)
+   61:  cmpl $0x3d, 0x10(%rbx)
+   65:  jne 0xf4
+   6b:  movq %rbx, %rdi
+   6e:  callq luaX_next+0
+   73:  movq 0x18(%rbp), %rax
+   77:  movq %rsp, %rsi
+   7a:  movq %r12, %rdi
+   7d:  leaq 0x20(%rsp), %rdx
+   82:  movdqu (%rax), %xmm0
+   86:  movaps %xmm0, (%rsp)
+   8a:  movq 0x10(%rax), %rax
+   8e:  movq %rax, 0x10(%rsp)
+   93:  callq luaK_indexed+0
+   98:  leaq 0x40(%rsp), %rsi
+   9d:  movq %rbx, %rdi
+   a0:  xorl %edx, %edx
+   a2:  callq fn:subexpr+0
+   a7:  leaq 0x40(%rsp), %rdx
+   ac:  movq %rsp, %rsi
+   af:  movq %r12, %rdi
+   b2:  callq luaK_storevar+0
+   b7:  movb %r13b, 0x44(%r12)
+   bc:  addq $0x60, %rsp
+   c0:  popq %rbx
+   c1:  popq %rbp
+   c2:  popq %r12
+   c4:  popq %r13
+   c6:  popq %r14
+   c8:  retq
+   c9:  nopl (%rax)
+   d0:  movq 0x18(%rdi), %r14
+   d4:  callq luaX_next+0
+   d9:  movl $7, 0x20(%rsp)
+   e1:  movq $18446744073709551615, 0x30(%rsp)
+   ea:  movq %r14, 0x28(%rsp)
+   ef:  jmp 0x5d
+   f4:  movl $0x3d, %esi
+   f9:  movq %rbx, %rdi
+   fc:  callq fn:error_expected+0
+  101:  movl $0x5d, %esi
+  106:  movq %rbx, %rdi
+  109:  callq fn:error_expected+0

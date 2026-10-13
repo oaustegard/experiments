@@ -1,0 +1,5 @@
+# dothecall  (static, 15 bytes, 4 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  xorl %edx, %edx
+    6:  leaq -0x20(%rax), %rsi
+    a:  jmp luaD_callnoyield+0

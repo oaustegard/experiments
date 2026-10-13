@@ -1,0 +1,21 @@
+# os_difftime  (static, 66 bytes, 20 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq luaL_checkinteger+0
+   13:  movq %rbx, %rdi
+   16:  movl $2, %esi
+   1b:  movq %rax, %rbp
+   1e:  callq luaL_checkinteger+0
+   23:  movq %rbp, %rdi
+   26:  movq %rax, %rsi
+   29:  callq difftime+0
+   2e:  movq %rbx, %rdi
+   31:  callq lua_pushnumber+0
+   36:  addq $8, %rsp
+   3a:  movl $1, %eax
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  retq

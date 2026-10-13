@@ -1,0 +1,92 @@
+# iset_put  (global, 319 bytes, 91 instructions)
+    0:  cmpl $0xfffff, %esi
+    6:  ja 0xb0
+    c:  pushq %r15
+    e:  pushq %r14
+   10:  movl %edx, %r14d
+   13:  pushq %r13
+   15:  pushq %r12
+   17:  movslq %esi, %r12
+   1a:  pushq %rbp
+   1b:  leaq (, %r12, 4), %r15
+   23:  movl %esi, %ebp
+   25:  leaq (, %r12, 8), %r13
+   2d:  pushq %rbx
+   2e:  movq %rdi, %rbx
+   31:  subq $0x18, %rsp
+   35:  cmpl %esi, 0x18(%rdi)
+   38:  jle 0x60
+   3a:  movq 0x10(%rbx), %rcx
+   3e:  movq 8(%rbx), %rdx
+   42:  addq %r15, %rcx
+   45:  movl (%rdx, %r12, 4), %edx
+   49:  movslq (%rcx), %rax
+   4c:  leal 1(%rax), %esi
+   4f:  cmpl %edx, %esi
+   51:  jge 0xb8
+   53:  movq (%rbx), %rdx
+   56:  movq (%rdx, %r12, 8), %rbp
+   5a:  jmp 0x8a
+   5c:  nopl (%rax)
+   60:  leal 0x400(%rsi), %esi
+   66:  andl $0xfffffc00, %esi
+   6c:  callq fn:iset_extend+0
+   71:  cmpl %ebp, 0x18(%rbx)
+   74:  jg 0x3a
+   76:  movq 0x10(%rbx), %rcx
+   7a:  movq (%rbx), %rax
+   7d:  addq %r15, %rcx
+   80:  movq (%rax, %r12, 8), %rbp
+   84:  movslq (%rcx), %rax
+   87:  leal 1(%rax), %esi
+   8a:  movl %esi, (%rcx)
+   8c:  movl %r14d, (%rbp, %rax, 4)
+   91:  movslq (%rcx), %rax
+   94:  movl $0xffffffff, (%rbp, %rax, 4)
+   9c:  addq $0x18, %rsp
+   a0:  popq %rbx
+   a1:  popq %rbp
+   a2:  popq %r12
+   a4:  popq %r13
+   a6:  popq %r14
+   a8:  popq %r15
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  retq
+   b1:  nopl (%rax)
+   b8:  testl %edx, %edx
+   ba:  je 0x130
+   bc:  leal (%rdx, %rdx), %eax
+   bf:  movl %eax, 8(%rsp)
+   c3:  movslq %eax, %rdi
+   c6:  shlq $2, %rdi
+   ca:  movl %edx, 0xc(%rsp)
+   ce:  callq xmalloc+0
+   d3:  movq %rax, %rbp
+   d6:  movq (%rbx), %rax
+   d9:  addq %r13, %rax
+   dc:  movq (%rax), %rsi
+   df:  testq %rsi, %rsi
+   e2:  je 0x107
+   e4:  movslq 0xc(%rsp), %rdx
+   e9:  movq %rbp, %rdi
+   ec:  shlq $2, %rdx
+   f0:  callq memcpy+0
+   f5:  movq (%rbx), %rax
+   f8:  movq (%rax, %r12, 8), %rdi
+   fc:  callq free+0
+  101:  movq (%rbx), %rax
+  104:  addq %r13, %rax
+  107:  movq 8(%rbx), %rdx
+  10b:  movl 8(%rsp), %edi
+  10f:  movl %edi, (%rdx, %r12, 4)
+  113:  movq %rbp, (%rax)
+  116:  movq 0x10(%rbx), %rcx
+  11a:  addq %r15, %rcx
+  11d:  movslq (%rcx), %rax
+  120:  leal 1(%rax), %esi
+  123:  jmp 0x8a
+  128:  nopl (%rax, %rax)
+  130:  movl $8, 8(%rsp)
+  138:  movl $0x20, %edi
+  13d:  jmp 0xca

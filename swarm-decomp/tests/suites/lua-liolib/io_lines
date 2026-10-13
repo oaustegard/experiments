@@ -1,0 +1,74 @@
+# io_lines  (static, 292 bytes, 73 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_type+0
+    e:  cmpl $-1, %eax
+   11:  je 0x100
+   17:  movl $1, %esi
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_type+0
+   24:  testl %eax, %eax
+   26:  jne 0x90
+   28:  movl $0, %edx   <str:"_IO_input">
+   2d:  movl $0xfff0b9d8, %esi
+   32:  movq %rbx, %rdi
+   35:  callq lua_getfield+0
+   3a:  movl $1, %edx
+   3f:  movl $0xffffffff, %esi
+   44:  movq %rbx, %rdi
+   47:  callq lua_copy+0
+   4c:  movl $0xfffffffe, %esi
+   51:  movq %rbx, %rdi
+   54:  callq lua_settop+0
+   59:  movl $0, %edx   <str:"FILE*">
+   5e:  movl $1, %esi
+   63:  movq %rbx, %rdi
+   66:  callq luaL_checkudata+0
+   6b:  cmpq $0, 8(%rax)
+   70:  je 0x110
+   76:  movq %rbx, %rdi
+   79:  xorl %esi, %esi
+   7b:  callq fn:aux_lines+0
+   80:  movl $1, %eax
+   85:  popq %rbx
+   86:  retq
+   87:  nopw (%rax, %rax)
+   90:  movq %rbx, %rdi
+   93:  xorl %edx, %edx
+   95:  movl $1, %esi
+   9a:  callq luaL_checklstring+0
+   9f:  movq %rbx, %rdi
+   a2:  movl $0, %edx   <str:"r">
+   a7:  movq %rax, %rsi
+   aa:  callq fn:opencheck+0
+   af:  movl $1, %edx
+   b4:  movq %rbx, %rdi
+   b7:  movl $0xffffffff, %esi
+   bc:  callq lua_copy+0
+   c1:  movq %rbx, %rdi
+   c4:  movl $0xfffffffe, %esi
+   c9:  callq lua_settop+0
+   ce:  movl $1, %esi
+   d3:  movq %rbx, %rdi
+   d6:  callq fn:aux_lines+0
+   db:  movq %rbx, %rdi
+   de:  callq lua_pushnil+0
+   e3:  movq %rbx, %rdi
+   e6:  callq lua_pushnil+0
+   eb:  movq %rbx, %rdi
+   ee:  movl $1, %esi
+   f3:  callq lua_pushvalue+0
+   f8:  movl $4, %eax
+   fd:  popq %rbx
+   fe:  retq
+   ff:  nop
+  100:  movq %rbx, %rdi
+  103:  callq lua_pushnil+0
+  108:  jmp 0x17
+  10d:  nopl (%rax)
+  110:  movl $0, %esi   <str:"attempt to use a closed file">
+  115:  movq %rbx, %rdi
+  118:  xorl %eax, %eax
+  11a:  callq luaL_error+0
+  11f:  jmp 0x76

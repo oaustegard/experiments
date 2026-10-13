@@ -1,0 +1,33 @@
+# out  (global, 168 bytes, 32 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0xd0, %rsp
+    b:  movq %rsi, 0x28(%rsp)
+   10:  movq %rdx, 0x30(%rsp)
+   15:  movq %rcx, 0x38(%rsp)
+   1a:  movq %r8, 0x40(%rsp)
+   1f:  movq %r9, 0x48(%rsp)
+   24:  testb %al, %al
+   26:  je 0x5f
+   28:  movaps %xmm0, 0x50(%rsp)
+   2d:  movaps %xmm1, 0x60(%rsp)
+   32:  movaps %xmm2, 0x70(%rsp)
+   37:  movaps %xmm3, 0x80(%rsp)
+   3f:  movaps %xmm4, 0x90(%rsp)
+   47:  movaps %xmm5, 0xa0(%rsp)
+   4f:  movaps %xmm6, 0xb0(%rsp)
+   57:  movaps %xmm7, 0xc0(%rsp)
+   5f:  callq fn:o_flush+0
+   64:  leaq 0xe0(%rsp), %rax
+   6c:  leaq 8(%rsp), %rdx
+   71:  movq %rbx, %rsi
+   74:  movq (%rip), %rdi   <stdout+0>
+   7b:  movq %rax, 0x10(%rsp)
+   80:  leaq 0x20(%rsp), %rax
+   85:  movl $8, 8(%rsp)
+   8d:  movl $0x30, 0xc(%rsp)
+   95:  movq %rax, 0x18(%rsp)
+   9a:  callq vfprintf+0
+   9f:  addq $0xd0, %rsp
+   a6:  popq %rbx
+   a7:  retq

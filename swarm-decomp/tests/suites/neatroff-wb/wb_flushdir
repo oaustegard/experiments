@@ -1,0 +1,71 @@
+# wb_flushdir  (global, 213 bytes, 70 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl 0x2c(%rdi), %eax
+    c:  movl 0x1c(%rdi), %ebp
+    f:  testl %eax, %eax
+   11:  js 0x78
+   13:  cmpl %eax, %ebp
+   15:  jne 0x20
+   17:  addq $8, %rsp
+   1b:  popq %rbx
+   1c:  popq %rbp
+   1d:  retq
+   1e:  nop
+   20:  movl 0x2068(%rbx), %edi
+   26:  testl %edi, %edi
+   28:  je 0x34
+   2a:  movl 0x206c(%rbx), %esi
+   30:  testl %esi, %esi
+   32:  jne 0x90
+   34:  movl (%rip), %ecx   <dir_do+0>
+   3a:  testl %ecx, %ecx
+   3c:  je 0x61
+   3e:  movl 0x2c(%rbx), %edx
+   41:  testl %edx, %edx
+   43:  js 0xa0
+   45:  jne 0xb7
+   47:  movl $0x3e, %ecx
+   4c:  movl (%rip), %edx   <c_ec+0>
+   52:  movl $0, %esi   <str:"%c%c">
+   57:  movq %rbx, %rdi
+   5a:  xorl %eax, %eax
+   5c:  callq sbuf_printf+0
+   61:  movl 0x2c(%rbx), %eax
+   64:  testl %eax, %eax
+   66:  js 0xc0
+   68:  movl %eax, 0x1c(%rbx)
+   6b:  addq $8, %rsp
+   6f:  popq %rbx
+   70:  popq %rbp
+   71:  retq
+   72:  nopw (%rax, %rax)
+   78:  movl $0, %edi   <str:".cd">
+   7d:  callq map+0
+   82:  movl %eax, %edi
+   84:  callq nreg+0
+   89:  movl (%rax), %eax
+   8b:  jmp 0x13
+   8d:  nopl (%rax)
+   90:  movq %rbx, %rdi
+   93:  callq fn:wb_flushsub.part.0+0
+   98:  jmp 0x34
+   9a:  nopw (%rax, %rax)
+   a0:  movl $0, %edi   <str:".cd">
+   a5:  callq map+0
+   aa:  movl %eax, %edi
+   ac:  callq nreg+0
+   b1:  movl (%rax), %eax
+   b3:  testl %eax, %eax
+   b5:  jle 0x47
+   b7:  movl $0x3c, %ecx
+   bc:  jmp 0x4c
+   be:  nop
+   c0:  movl $0, %edi   <str:".cd">
+   c5:  callq map+0
+   ca:  movl %eax, %edi
+   cc:  callq nreg+0
+   d1:  movl (%rax), %eax
+   d3:  jmp 0x68

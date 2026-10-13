@@ -1,0 +1,22 @@
+# obj_map  (static, 98 bytes, 21 instructions)
+    0:  movl (%rip), %eax   <var:obj_n+0>
+    6:  cmpl (%rip), %eax   <var:obj_sz+0>
+    c:  je 0x20
+    e:  leal 1(%rax), %edx
+   11:  movl %edx, (%rip)   <var:obj_n+0>
+   17:  retq
+   18:  nopl (%rax, %rax)
+   20:  subq $8, %rsp
+   24:  leal 0x400(%rax), %edx
+   2a:  movslq %eax, %rsi
+   2d:  movq (%rip), %rdi   <var:obj_off+0>
+   34:  movl %edx, (%rip)   <var:obj_sz+0>
+   3a:  movl $4, %ecx
+   3f:  movslq %edx, %rdx
+   42:  callq mextend+0
+   47:  movq %rax, (%rip)   <var:obj_off+0>
+   4e:  movl (%rip), %eax   <var:obj_n+0>
+   54:  leal 1(%rax), %edx
+   57:  movl %edx, (%rip)   <var:obj_n+0>
+   5d:  addq $8, %rsp
+   61:  retq

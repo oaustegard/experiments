@@ -1,0 +1,27 @@
+# lab_add  (static, 109 bytes, 26 instructions)
+    0:  movq (%rip), %rsi   <var:lab_sz+0>
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movq (%rip), %rdi   <var:lab_loc+0>
+   12:  cmpq %rsi, %rbx
+   15:  jl 0x5a
+   17:  nopw (%rax, %rax)
+   20:  leaq (%rsi, %rsi), %rdx
+   24:  movl $0x80, %eax
+   29:  movslq %esi, %rsi
+   2c:  movl $8, %ecx
+   31:  cmpq %rax, %rdx
+   34:  cmovlq %rax, %rdx
+   38:  movq %rdx, (%rip)   <var:lab_sz+0>
+   3f:  callq mextend+0
+   44:  movq (%rip), %rsi   <var:lab_sz+0>
+   4b:  movq %rax, (%rip)   <var:lab_loc+0>
+   52:  movq %rax, %rdi
+   55:  cmpq %rbx, %rsi
+   58:  jle 0x20
+   5a:  leaq (%rdi, %rbx, 8), %rbx
+   5e:  movl $0, %edi   <var:cs+0>
+   63:  callq mem_len+0
+   68:  movq %rax, (%rbx)
+   6b:  popq %rbx
+   6c:  retq

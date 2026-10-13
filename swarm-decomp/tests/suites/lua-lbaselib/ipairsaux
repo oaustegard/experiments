@@ -1,0 +1,22 @@
+# ipairsaux  (static, 68 bytes, 21 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq luaL_checkinteger+0
+   13:  movq %rbx, %rdi
+   16:  leaq 1(%rax), %rbp
+   1a:  movq %rbp, %rsi
+   1d:  callq lua_pushinteger+0
+   22:  movq %rbp, %rdx
+   25:  movq %rbx, %rdi
+   28:  movl $1, %esi
+   2d:  callq lua_geti+0
+   32:  cmpl $1, %eax
+   35:  movl $1, %eax
+   3a:  sbbl $-1, %eax
+   3d:  addq $8, %rsp
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  retq

@@ -1,0 +1,150 @@
+# box_bracket  (static, 592 bytes, 149 instructions)
+    0:  pushq %r15
+    2:  pxor %xmm0, %xmm0
+    6:  movq %rsi, %r15
+    9:  pushq %r14
+    b:  movl %edx, %r14d
+    e:  pushq %r13
+   10:  movq %rdi, %r13
+   13:  pushq %r12
+   15:  pushq %rbp
+   16:  pushq %rbx
+   17:  subq $0x98, %rsp
+   1e:  movaps %xmm0, 0x50(%rsp)
+   23:  movaps %xmm0, 0x60(%rsp)
+   28:  movaps %xmm0, 0x70(%rsp)
+   2d:  movaps %xmm0, 0x80(%rsp)
+   35:  movl %ecx, (%rsp)
+   38:  movq $0, 0x20(%rsp)
+   41:  movq $0, 0x28(%rsp)
+   4a:  movq $0, 0x30(%rsp)
+   53:  movq $0, 0x38(%rsp)
+   5c:  callq sregmk+0
+   61:  movl %eax, %ebp
+   63:  callq nregmk+0
+   68:  movl %eax, %ebx
+   6a:  callq nregmk+0
+   6f:  movl (%rsp), %edx
+   72:  movl %ebx, %edi
+   74:  movl %ebx, 0x18(%rsp)
+   78:  movl %r14d, %esi
+   7b:  leaq 0x50(%rsp), %rbx
+   80:  movl %eax, %r12d
+   83:  callq fn:roff_max+0
+   88:  movq %rbx, %rsi
+   8b:  movq %r15, %rdi
+   8e:  callq def_sizes+0
+   93:  movl %ebp, %edi
+   95:  callq sregname+0
+   9a:  movl $0, %edi   <str:".ds %s \"\n">
+   9f:  movq %rax, %rsi
+   a2:  xorl %eax, %eax
+   a4:  callq printf+0
+   a9:  leaq 0x28(%rsp), %rax
+   ae:  leaq 0x38(%rsp), %r8
+   b3:  movq %r15, %rdi
+   b6:  movq %rax, %rdx
+   b9:  leaq 0x30(%rsp), %rcx
+   be:  leaq 0x20(%rsp), %rsi
+   c3:  callq def_pieces+0
+   c8:  cmpq $0, 0x28(%rsp)
+   ce:  movl (%rsp), %edx
+   d1:  movl %ebp, %edi
+   d3:  sete %r8b
+   d7:  movl $1, %r9d
+   dd:  movq %rbx, %rcx
+   e0:  movl %r14d, %esi
+   e3:  movzbl %r8b, %r8d
+   e7:  callq fn:box_bracketsel+0
+   ec:  cmpq $0, 0x28(%rsp)
+   f2:  je 0x133
+   f4:  movl %ebp, %edi
+   f6:  callq sreg+0
+   fb:  movl $0, %edi   <str:".if '%s'' \\{\\\n">
+  100:  movq %rax, %rsi
+  103:  xorl %eax, %eax
+  105:  callq printf+0
+  10a:  movq 0x38(%rsp), %r9
+  10f:  movl 0x18(%rsp), %esi
+  113:  movl %ebp, %edi
+  115:  movq 0x30(%rsp), %r8
+  11a:  movq 0x28(%rsp), %rcx
+  11f:  movq 0x20(%rsp), %rdx
+  124:  callq fn:box_bracketmk+0
+  129:  movl $0, %edi   <str:".  \\}">
+  12e:  callq puts+0
+  133:  movl %ebp, %edi
+  135:  leaq 0x40(%rsp), %r14
+  13a:  callq sreg+0
+  13f:  movq %r14, %r15
+  142:  movq %rax, (%rsp)
+  146:  callq nregmk+0
+  14b:  addq $4, %r15
+  14f:  movl %eax, -4(%r15)
+  153:  cmpq %rbx, %r15
+  156:  jne 0x146
+  158:  movl 0x4c(%rsp), %r9d
+  15d:  movl 0x48(%rsp), %ecx
+  161:  movl 0x44(%rsp), %edx
+  165:  movl 0x40(%rsp), %esi
+  169:  movq (%rsp), %rdi
+  16d:  movl %r9d, %r8d
+  170:  movl %r9d, 0x1c(%rsp)
+  175:  movl %ecx, 8(%rsp)
+  179:  callq fn:tok_len+0
+  17e:  movl 0x10(%r13), %edi
+  182:  movl (%rip), %r15d   <e_axisheight+0>
+  189:  callq nreg+0
+  18e:  movl 8(%rsp), %edi
+  192:  movq %rax, 0x10(%rsp)
+  197:  callq nreg+0
+  19c:  movl 0x1c(%rsp), %edi
+  1a0:  movq %rax, 8(%rsp)
+  1a5:  callq nreg+0
+  1aa:  movl %r12d, %edi
+  1ad:  movq %rax, (%rsp)
+  1b1:  callq nregname+0
+  1b6:  movq 0x10(%rsp), %r8
+  1bb:  movq 8(%rsp), %rcx
+  1c0:  movl %r15d, %r9d
+  1c3:  movq (%rsp), %rdx
+  1c7:  movq %rax, %rsi
+  1ca:  movl $0, %edi   <str:".nr %s 0-%s+%s/2-(%sp*%du/100u)\n">
+  1cf:  xorl %eax, %eax
+  1d1:  callq printf+0
+  1d6:  movl %r12d, %edi
+  1d9:  callq nreg+0
+  1de:  movl %ebp, %edi
+  1e0:  movq %rax, %r15
+  1e3:  callq sreg+0
+  1e8:  movl %r12d, %edi
+  1eb:  movq %rax, (%rsp)
+  1ef:  callq nreg+0
+  1f4:  movq (%rsp), %rcx
+  1f8:  movq %r13, %rdi
+  1fb:  movq %r15, %r8
+  1fe:  movq %rax, %rdx
+  201:  movl $0, %esi   <str:"\\f[\\n(.f]\\s[\\n(.s]\\v'%su'%s\\v'-%su'">
+  206:  xorl %eax, %eax
+  208:  callq box_putf+0
+  20d:  movq %r13, %rdi
+  210:  callq box_toreg+0
+  215:  movl (%r14), %edi
+  218:  addq $4, %r14
+  21c:  callq nregrm+0
+  221:  cmpq %rbx, %r14
+  224:  jne 0x215
+  226:  movl %ebp, %edi
+  228:  callq sregrm+0
+  22d:  movl 0x18(%rsp), %edi
+  231:  callq nregrm+0
+  236:  movl %r12d, %edi
+  239:  callq nregrm+0
+  23e:  addq $0x98, %rsp
+  245:  popq %rbx
+  246:  popq %rbp
+  247:  popq %r12
+  249:  popq %r13
+  24b:  popq %r14
+  24d:  popq %r15
+  24f:  retq

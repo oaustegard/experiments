@@ -1,0 +1,47 @@
+# addstr2buff  (static, 147 bytes, 46 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  movq %rdx, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  movslq 0xc(%rdi), %rdx
+   17:  cmpq $0xc7, %rbp
+   1e:  ja 0x50
+   20:  movl $0xc7, %ecx
+   25:  leaq 0x10(%rdi), %r13
+   29:  subl %edx, %ecx
+   2b:  cmpl %ecx, %ebp
+   2d:  jg 0x80
+   2f:  leaq (%r13, %rdx), %rdi
+   34:  movq %r12, %rsi
+   37:  movq %rbp, %rdx
+   3a:  callq memcpy+0
+   3f:  addl %ebp, 0xc(%rbx)
+   42:  addq $8, %rsp
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  popq %r12
+   4a:  popq %r13
+   4c:  retq
+   4d:  nopl (%rax)
+   50:  leaq 0x10(%rdi), %rsi
+   54:  callq fn:pushstr+0
+   59:  movq %rbp, %rdx
+   5c:  movq %r12, %rsi
+   5f:  movq %rbx, %rdi
+   62:  movl $0, 0xc(%rbx)
+   69:  addq $8, %rsp
+   6d:  popq %rbx
+   6e:  popq %rbp
+   6f:  popq %r12
+   71:  popq %r13
+   73:  jmp fn:pushstr+0
+   78:  nopl (%rax, %rax)
+   80:  movq %r13, %rsi
+   83:  callq fn:pushstr+0
+   88:  movl $0, 0xc(%rbx)
+   8f:  xorl %edx, %edx
+   91:  jmp 0x2f

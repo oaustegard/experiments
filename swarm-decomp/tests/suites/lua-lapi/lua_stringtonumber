@@ -1,0 +1,11 @@
+# lua_stringtonumber  (global, 28 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq %rsi, %rdi
+    7:  movq 0x10(%rbx), %rsi
+    b:  callq luaO_str2num+0
+   10:  testq %rax, %rax
+   13:  je 0x1a
+   15:  addq $0x10, 0x10(%rbx)
+   1a:  popq %rbx
+   1b:  retq

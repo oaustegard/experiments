@@ -1,0 +1,32 @@
+# getF  (static, 97 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movq %rdx, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  movslq (%rsi), %rax
+    f:  testl %eax, %eax
+   11:  jle 0x30
+   13:  movq %rax, (%rdx)
+   16:  addq $0x10, %rbx
+   1a:  movl $0, (%rsi)
+   20:  movq %rbx, %rax
+   23:  addq $8, %rsp
+   27:  popq %rbx
+   28:  popq %rbp
+   29:  retq
+   2a:  nopw (%rax, %rax)
+   30:  movq 8(%rsi), %rdi
+   34:  callq feof+0
+   39:  movl %eax, %edx
+   3b:  xorl %eax, %eax
+   3d:  testl %edx, %edx
+   3f:  jne 0x23
+   41:  movq 8(%rbx), %rcx
+   45:  addq $0x10, %rbx
+   49:  movl $0x2000, %edx
+   4e:  movl $1, %esi
+   53:  movq %rbx, %rdi
+   56:  callq fread+0
+   5b:  movq %rax, (%rbp)
+   5f:  jmp 0x20

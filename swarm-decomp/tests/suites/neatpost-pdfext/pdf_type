@@ -1,0 +1,156 @@
+# pdf_type  (global, 548 bytes, 155 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  movl %esi, %ebp
+    a:  pushq %rbx
+    b:  movl %edx, %ebx
+    d:  subq $8, %rsp
+   11:  cmpl %edx, %esi
+   13:  jle 0x1a3
+   19:  callq __ctype_b_loc+0
+   1e:  movq (%rax), %rcx
+   21:  movslq %ebx, %rax
+   24:  jmp 0x3c
+   26:  nopw %cs:(%rax, %rax)
+   30:  addq $1, %rax
+   34:  cmpl %eax, %ebp
+   36:  jle 0x1a0
+   3c:  movzbl (%r13, %rax), %edx
+   42:  movl %eax, %ebx
+   44:  movq %rdx, %r12
+   47:  testb $0x20, 1(%rcx, %rdx, 2)
+   4c:  jne 0x30
+   4e:  cmpb $0x2f, %r12b
+   52:  je 0x1b6
+   58:  cmpb $0x28, %r12b
+   5c:  je 0x210
+   62:  cmpb $0x3c, %r12b
+   66:  je 0x1e8
+   6c:  movl $0x6c, %esi
+   71:  cmpb $0x5b, %r12b
+   75:  je 0x18f
+   7b:  movzbl %r12b, %esi
+   7f:  movl $0, %edi   <str:"0123456789+-.">
+   84:  callq strchr+0
+   89:  testq %rax, %rax
+   8c:  je 0x21a
+   92:  callq __ctype_b_loc+0
+   97:  movl $0x6e, %esi
+   9c:  movq (%rax), %rdx
+   9f:  movzwl (%rdx, %r12, 2), %eax
+   a4:  testb $8, %ah
+   a7:  je 0x18f
+   ad:  movslq %ebx, %rcx
+   b0:  leaq 1(%r13, %rcx), %rcx
+   b5:  cmpl %ebp, %ebx
+   b7:  jl 0xd6
+   b9:  jmp 0x18f
+   be:  nop
+   c0:  movzbl (%rcx), %eax
+   c3:  addl $1, %ebx
+   c6:  addq $1, %rcx
+   ca:  movzwl (%rdx, %rax, 2), %eax
+   ce:  cmpl %ebx, %ebp
+   d0:  je 0x1d0
+   d6:  testb $8, %ah
+   d9:  jne 0xc0
+   db:  cmpl %ebx, %ebp
+   dd:  jle 0x1d0
+   e3:  movslq %ebx, %rcx
+   e6:  leaq 1(%r13, %rcx), %rcx
+   eb:  jmp 0x106
+   ed:  nopl (%rax)
+   f0:  movzbl (%rcx), %eax
+   f3:  addl $1, %ebx
+   f6:  addq $1, %rcx
+   fa:  movzwl (%rdx, %rax, 2), %eax
+   fe:  cmpl %ebx, %ebp
+  100:  je 0x1d0
+  106:  testb $0x20, %ah
+  109:  jne 0xf0
+  10b:  testb $8, %ah
+  10e:  je 0x1d0
+  114:  cmpl %ebx, %ebp
+  116:  jle 0x1d0
+  11c:  leal 1(%rbx), %ecx
+  11f:  movslq %ecx, %rcx
+  122:  addq %r13, %rcx
+  125:  jmp 0x146
+  127:  nopw (%rax, %rax)
+  130:  addl $1, %ebx
+  133:  cmpl %ebx, %ebp
+  135:  je 0x1d0
+  13b:  movzbl (%rcx), %eax
+  13e:  addq $1, %rcx
+  142:  movzwl (%rdx, %rax, 2), %eax
+  146:  testb $8, %ah
+  149:  jne 0x130
+  14b:  cmpl %ebx, %ebp
+  14d:  jle 0x1d0
+  153:  movslq %ebx, %rax
+  156:  addq %r13, %rax
+  159:  jmp 0x16b
+  15b:  nopl (%rax, %rax)
+  160:  addl $1, %ebx
+  163:  addq $1, %rax
+  167:  cmpl %ebx, %ebp
+  169:  je 0x1d0
+  16b:  movzbl (%rax), %ecx
+  16e:  testb $0x20, 1(%rdx, %rcx, 2)
+  173:  jne 0x160
+  175:  cmpl %ebp, %ebx
+  177:  jge 0x1d0
+  179:  movslq %ebx, %rbx
+  17c:  xorl %esi, %esi
+  17e:  cmpb $0x52, (%r13, %rbx)
+  184:  sete %sil
+  188:  leal 0x6e(, %rsi, 4), %esi
+  18f:  addq $8, %rsp
+  193:  movl %esi, %eax
+  195:  popq %rbx
+  196:  popq %rbp
+  197:  popq %r12
+  199:  popq %r13
+  19b:  retq
+  19c:  nopl (%rax)
+  1a0:  addl $1, %ebx
+  1a3:  movslq %ebx, %rax
+  1a6:  movzbl (%r13, %rax), %r12d
+  1ac:  cmpb $0x2f, %r12b
+  1b0:  jne 0x58
+  1b6:  addq $8, %rsp
+  1ba:  movl $0x2f, %esi
+  1bf:  popq %rbx
+  1c0:  movl %esi, %eax
+  1c2:  popq %rbp
+  1c3:  popq %r12
+  1c5:  popq %r13
+  1c7:  retq
+  1c8:  nopl (%rax, %rax)
+  1d0:  addq $8, %rsp
+  1d4:  movl $0x6e, %esi
+  1d9:  popq %rbx
+  1da:  movl %esi, %eax
+  1dc:  popq %rbp
+  1dd:  popq %r12
+  1df:  popq %r13
+  1e1:  retq
+  1e2:  nopw (%rax, %rax)
+  1e8:  cmpb $0x3c, 1(%r13, %rax)
+  1ee:  movl $0x73, %esi
+  1f3:  movl $0x64, %eax
+  1f8:  cmovel %eax, %esi
+  1fb:  addq $8, %rsp
+  1ff:  popq %rbx
+  200:  popq %rbp
+  201:  movl %esi, %eax
+  203:  popq %r12
+  205:  popq %r13
+  207:  retq
+  208:  nopl (%rax, %rax)
+  210:  movl $0x73, %esi
+  215:  jmp 0x18f
+  21a:  movl $0xffffffff, %esi
+  21f:  jmp 0x18f

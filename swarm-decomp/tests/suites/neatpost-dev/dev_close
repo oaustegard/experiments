@@ -1,0 +1,14 @@
+# dev_close  (global, 51 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %ebx   <var:fn_font+0>
+    6:  nopw %cs:(%rax, %rax)
+   10:  movq (%rbx), %rdi
+   13:  testq %rdi, %rdi
+   16:  je 0x1d
+   18:  callq font_close+0
+   1d:  movq $0, (%rbx)
+   24:  addq $8, %rbx
+   28:  cmpq $0, %rbx   <var:fn_font+8192>
+   2f:  jne 0x10
+   31:  popq %rbx
+   32:  retq

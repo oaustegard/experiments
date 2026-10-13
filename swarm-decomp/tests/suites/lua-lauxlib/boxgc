@@ -1,0 +1,8 @@
+# boxgc  (static, 23 bytes, 7 instructions)
+    0:  subq $8, %rsp
+    4:  xorl %edx, %edx
+    6:  movl $1, %esi
+    b:  callq fn:resizebox+0
+   10:  xorl %eax, %eax
+   12:  addq $8, %rsp
+   16:  retq

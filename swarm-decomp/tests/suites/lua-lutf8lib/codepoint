@@ -1,0 +1,143 @@
+# codepoint  (static, 523 bytes, 142 instructions)
+    0:  pushq %r15
+    2:  movl $1, %esi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  movq %rdi, %r13
+    e:  pushq %r12
+   10:  pushq %rbp
+   11:  pushq %rbx
+   12:  subq $0x18, %rsp
+   16:  leaq 8(%rsp), %rdx
+   1b:  callq luaL_checklstring+0
+   20:  movl $1, %edx
+   25:  movl $2, %esi
+   2a:  movq %r13, %rdi
+   2d:  movq 8(%rsp), %rbx
+   32:  movq %rax, %r14
+   35:  callq luaL_optinteger+0
+   3a:  movq %rax, %rbp
+   3d:  testq %rax, %rax
+   40:  jns 0xe5
+   46:  negq %rax
+   49:  cmpq %rax, %rbx
+   4c:  jae 0xe0
+   52:  xorl %edx, %edx
+   54:  movl $3, %esi
+   59:  movq %r13, %rdi
+   5c:  movq 8(%rsp), %rbp
+   61:  callq luaL_optinteger+0
+   66:  movq %rax, %rbx
+   69:  testq %rax, %rax
+   6c:  jns 0x7f
+   6e:  negq %rax
+   71:  cmpq %rax, %rbp
+   74:  jb 0x1f2
+   7a:  leaq 1(%rbx, %rbp), %rbx
+   7f:  movl $4, %esi
+   84:  movq %r13, %rdi
+   87:  xorl %ebp, %ebp
+   89:  callq lua_toboolean+0
+   8e:  movl %eax, %r15d
+   91:  movl $0, %edx   <str:"out of bounds">
+   96:  movl $2, %esi
+   9b:  movq %r13, %rdi
+   9e:  callq luaL_argerror+0
+   a3:  cmpq %rbx, 8(%rsp)
+   a8:  jge 0x13a
+   ae:  nop
+   b0:  movl $0, %edx   <str:"out of bounds">
+   b5:  movl $3, %esi
+   ba:  movq %r13, %rdi
+   bd:  callq luaL_argerror+0
+   c2:  cmpq %rbp, %rbx
+   c5:  jge 0x13f
+   c7:  nopw (%rax, %rax)
+   d0:  xorl %ebp, %ebp
+   d2:  jmp 0x1e1
+   d7:  nopw (%rax, %rax)
+   e0:  leaq 1(%rbx, %rbp), %rbp
+   e5:  movq %rbp, %rdx
+   e8:  movl $3, %esi
+   ed:  movq %r13, %rdi
+   f0:  movq 8(%rsp), %r12
+   f5:  callq luaL_optinteger+0
+   fa:  movq %rax, %rbx
+   fd:  testq %rax, %rax
+  100:  jns 0x116
+  102:  negq %rax
+  105:  leaq 1(%r12, %rbx), %rbx
+  10a:  cmpq %rax, %r12
+  10d:  movl $0, %eax
+  112:  cmovbq %rax, %rbx
+  116:  movl $4, %esi
+  11b:  movq %r13, %rdi
+  11e:  callq lua_toboolean+0
+  123:  movl %eax, %r15d
+  126:  testq %rbp, %rbp
+  129:  jle 0x91
+  12f:  cmpq %rbx, 8(%rsp)
+  134:  jl 0xb0
+  13a:  cmpq %rbp, %rbx
+  13d:  jl 0xd0
+  13f:  movq %rbx, %rax
+  142:  subq %rbp, %rax
+  145:  cmpq $0x7ffffffe, %rax
+  14b:  jg 0x1d0
+  151:  movl %ebx, %esi
+  153:  movl $0, %edx   <str:"string slice too long">
+  158:  leaq (%r14, %rbx), %r12
+  15c:  movq %r13, %rdi
+  15f:  subl %ebp, %esi
+  161:  leaq -1(%r14, %rbp), %rbx
+  166:  addl $1, %esi
+  169:  callq luaL_checkstack+0
+  16e:  cmpq %r12, %rbx
+  171:  jae 0xd0
+  177:  xorl %r14d, %r14d
+  17a:  testl %r15d, %r15d
+  17d:  sete %r14b
+  181:  xorl %ebp, %ebp
+  183:  jmp 0x19c
+  185:  nopl (%rax)
+  188:  movl 4(%rsp), %esi
+  18c:  movq %r13, %rdi
+  18f:  addl $1, %ebp
+  192:  callq lua_pushinteger+0
+  197:  cmpq %r12, %rbx
+  19a:  jae 0x1e1
+  19c:  movq %rbx, %rdi
+  19f:  movl %r14d, %edx
+  1a2:  leaq 4(%rsp), %rsi
+  1a7:  callq fn:utf8_decode+0
+  1ac:  movq %rax, %rbx
+  1af:  testq %rax, %rax
+  1b2:  jne 0x188
+  1b4:  movl $0, %esi   <str:"invalid UTF-8 code">
+  1b9:  movq %r13, %rdi
+  1bc:  xorl %eax, %eax
+  1be:  callq luaL_error+0
+  1c3:  movl %eax, %ebp
+  1c5:  jmp 0x1e1
+  1c7:  nopw (%rax, %rax)
+  1d0:  movl $0, %esi   <str:"string slice too long">
+  1d5:  movq %r13, %rdi
+  1d8:  xorl %eax, %eax
+  1da:  callq luaL_error+0
+  1df:  movl %eax, %ebp
+  1e1:  addq $0x18, %rsp
+  1e5:  movl %ebp, %eax
+  1e7:  popq %rbx
+  1e8:  popq %rbp
+  1e9:  popq %r12
+  1eb:  popq %r13
+  1ed:  popq %r14
+  1ef:  popq %r15
+  1f1:  retq
+  1f2:  movl $4, %esi
+  1f7:  movq %r13, %rdi
+  1fa:  xorl %ebp, %ebp
+  1fc:  xorl %ebx, %ebx
+  1fe:  callq lua_toboolean+0
+  203:  movl %eax, %r15d
+  206:  jmp 0x91

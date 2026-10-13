@@ -1,0 +1,88 @@
+# tr_nextreq_exec  (static, 306 bytes, 87 instructions)
+    0:  pushq %r13
+    2:  xorl %eax, %eax
+    4:  movl $0x23, %ecx
+    9:  movl %edx, %r13d
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $0x138, %rsp
+   1a:  leaq 0x10(%rsp), %r12
+   1f:  movq %r12, %rdi
+   22:  rep stosq %rax, (%rdi)
+   25:  movq %rbx, %rdi
+   28:  movq %rsi, 0x10(%rsp)
+   2d:  callq map+0
+   32:  movl %eax, %edi
+   34:  callq str_dget+0
+   39:  movq %rbx, %rdi
+   3c:  movq %rax, %rbp
+   3f:  callq map+0
+   44:  movl %eax, %edi
+   46:  callq str_get+0
+   4b:  movq %rsp, %rdi
+   4e:  movq %rax, %rbx
+   51:  callq sbuf_init+0
+   56:  testl %r13d, %r13d
+   59:  je 0xb0
+   5b:  testq %rbp, %rbp
+   5e:  je 0xc8
+   60:  movq 0x10(%rbp), %rax
+   64:  movq %rsp, %rdi
+   67:  testq %rax, %rax
+   6a:  je 0x128
+   70:  callq *%rax
+   72:  cmpq $0, 0x10(%rbp)
+   77:  je 0x120
+   7d:  leaq 0x18(%rsp), %rsi
+   82:  movq %rsp, %rdi
+   85:  callq fn:chopargs+0
+   8a:  testq %rbx, %rbx
+   8d:  je 0xba
+   8f:  movq %r12, %rsi
+   92:  movq %rbx, %rdi
+   95:  callq in_push+0
+   9a:  movq %rsp, %rdi
+   9d:  callq sbuf_done+0
+   a2:  addq $0x138, %rsp
+   a9:  popq %rbx
+   aa:  popq %rbp
+   ab:  popq %r12
+   ad:  popq %r13
+   af:  retq
+   b0:  testq %rbx, %rbx
+   b3:  jne 0x8f
+   b5:  testq %rbp, %rbp
+   b8:  je 0x9a
+   ba:  movq %r12, %rdi
+   bd:  callq *8(%rbp)
+   c0:  jmp 0x9a
+   c2:  nopw (%rax, %rax)
+   c8:  movl $1, %edi
+   cd:  callq cp_copymode+0
+   d2:  movl $0, %ecx   <in_back+0>
+   d7:  movl $0, %edx   <cp_next+0>
+   dc:  movl $0xffffffff, %esi
+   e1:  movq %rsp, %rdi
+   e4:  callq fn:macroarg+0
+   e9:  testl %eax, %eax
+   eb:  je 0xd2
+   ed:  nopl (%rax)
+   f0:  callq cp_next+0
+   f5:  testl %eax, %eax
+   f7:  js 0xfe
+   f9:  cmpl $0xa, %eax
+   fc:  jne 0xf0
+   fe:  xorl %edi, %edi
+  100:  callq cp_copymode+0
+  105:  leaq 0x18(%rsp), %rsi
+  10a:  movq %rsp, %rdi
+  10d:  callq fn:chopargs+0
+  112:  testq %rbx, %rbx
+  115:  jne 0x8f
+  11b:  jmp 0x9a
+  120:  movq %rsp, %rdi
+  123:  nopl (%rax, %rax)
+  128:  callq fn:mkargs_req+0
+  12d:  jmp 0x7d

@@ -1,0 +1,27 @@
+# os_tmpname  (static, 93 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x20, %rsp
+    8:  movdqa (%rip), %xmm0   <cst:2f746d702f6c75615f58585858585800>
+   10:  movq %rsp, %rdi
+   13:  movaps %xmm0, (%rsp)
+   17:  callq mkstemp64+0
+   1c:  cmpl $-1, %eax
+   1f:  jne 0x40
+   21:  movq %rbx, %rdi
+   24:  movl $0, %esi   <str:"unable to generate a unique filename">
+   29:  xorl %eax, %eax
+   2b:  callq luaL_error+0
+   30:  addq $0x20, %rsp
+   34:  popq %rbx
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  movl %eax, %edi
+   42:  callq close+0
+   47:  movq %rsp, %rsi
+   4a:  movq %rbx, %rdi
+   4d:  callq lua_pushstring+0
+   52:  addq $0x20, %rsp
+   56:  movl $1, %eax
+   5b:  popq %rbx
+   5c:  retq

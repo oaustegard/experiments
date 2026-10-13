@@ -1,0 +1,50 @@
+# ic_regcnt  (global, 139 bytes, 49 instructions)
+    0:  movq (%rdi), %rax
+    3:  testb $0xf0, %al
+    5:  jne 0x70
+    7:  testb $1, %ah
+    a:  jne 0x60
+    c:  testb $2, %ah
+    f:  jne 0x60
+   11:  testb $4, %ah
+   14:  jne 0x60
+   16:  movl $3, %edx
+   1b:  testb $8, %ah
+   1e:  jne 0x6a
+   20:  xorl %edx, %edx
+   22:  testb $0x10, %ah
+   25:  jne 0x6a
+   27:  movl $1, %edx
+   2c:  testb $0x20, %ah
+   2f:  jne 0x6a
+   31:  testb $0x40, %ah
+   34:  jne 0x70
+   36:  testb $0x80, %ah
+   39:  jne 0x6a
+   3b:  testl $0x10000, %eax
+   40:  jne 0x80
+   42:  xorl %edx, %edx
+   44:  testl $0x20000, %eax
+   49:  je 0x6a
+   4b:  xorl %edx, %edx
+   4d:  testl $0x100000, %eax
+   52:  setne %dl
+   55:  addl $1, %edx
+   58:  jmp 0x6a
+   5a:  nopw (%rax, %rax)
+   60:  xorl %edx, %edx
+   62:  testl $0x700000, %eax
+   67:  sete %dl
+   6a:  movl %edx, %eax
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  xorl %edx, %edx
+   72:  testl $0x700000, %eax
+   77:  sete %dl
+   7a:  addl $1, %edx
+   7d:  movl %edx, %eax
+   7f:  retq
+   80:  shrq $0x14, %rax
+   84:  movl %eax, %edx
+   86:  andl $1, %edx
+   89:  jmp 0x6a

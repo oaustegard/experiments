@@ -1,0 +1,30 @@
+# tr_fzoom  (static, 87 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 8(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x50
+   12:  callq dev_pos+0
+   17:  movl %eax, %edi
+   19:  callq dev_font+0
+   1e:  movq %rax, %rbp
+   21:  testq %rax, %rax
+   24:  je 0x50
+   26:  movq 0x10(%rbx), %rdi
+   2a:  xorl %esi, %esi
+   2c:  testq %rdi, %rdi
+   2f:  je 0x38
+   31:  callq eval+0
+   36:  movl %eax, %esi
+   38:  addq $8, %rsp
+   3c:  movq %rbp, %rdi
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  jmp font_setzoom+0
+   46:  nopw %cs:(%rax, %rax)
+   50:  addq $8, %rsp
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  retq

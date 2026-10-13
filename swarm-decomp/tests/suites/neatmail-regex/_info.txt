@@ -1,0 +1,53 @@
+# neatmail-regex: translation unit regex of neatmail
+# write each function as src/neatmail/regex/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+uc_len	static	90 bytes
+uc_dec	static	150 bytes
+brk_len	static	121 bytes
+rnode_count	static	219 bytes
+brk_match	static	662 bytes
+rnode_emit	static	345 bytes
+rnode_emitnorep	static	388 bytes
+rnode_grpnum	static	1086 bytes
+rnode_free	static	664 bytes
+rnode_seq	static	1000 bytes
+rnode_parse	static	111 bytes
+regcomp	global	557 bytes
+regfree	global	99 bytes
+regexec	global	2359 bytes
+regerror	global	3 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+brk_classes	static	176 bytes	.rodata.brk_classes
+    +0     -> str:":alnum:"
+    +8     -> str:"a-zA-Z0-9"
+    +16    -> str:":alpha:"
+    +24    -> str:"a-zA-Z"
+    +32    -> str:":blank:"
+    +40    -> str:" \t"
+    +48    -> str:":digit:"
+    +56    -> str:"0-9"
+    +64    -> str:":lower:"
+    +72    -> str:"a-z"
+    +80    -> str:":print:"
+    +88    -> str:" -~"
+    +96    -> str:":punct:"
+    +104   -> str:"][!\"#$%&'()*+,./:;<=>?@\\^_`{|}~-"
+    +112   -> str:":space:"
+    +120   -> str:" \t\r\n\x0b\x0c"
+    +128   -> str:":upper:"
+    +136   -> str:"A-Z"
+    +144   -> str:":word:"
+    +152   -> str:"a-zA-Z0-9_"
+    +160   -> str:":xdigit:"
+    +168   -> str:"a-fA-F0-9"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc calloc free malloc memcpy strchr strlen strncmp

@@ -1,0 +1,73 @@
+# readfunc.isra.0  (static, 361 bytes, 72 instructions)
+    0:  pushq %r13
+    2:  movslq %edi, %r13
+    5:  movl $0, %edi   <var:func_name+0>
+    a:  pushq %r12
+    c:  imulq $0x131c, %r13, %r13
+   13:  pushq %rbp
+   14:  pushq %rbx
+   15:  movl %esi, %ebx
+   17:  subq $0x128, %rsp
+   1e:  addq (%rip), %r13   <var:funcs+0>
+   25:  leaq 0x129c(%r13), %rsi
+   2c:  callq strcpy+0
+   31:  movl %ebx, %edx
+   33:  movl $0, %edi   <var:func_name+0>
+   38:  movl 0x298(%r13), %ecx
+   3f:  movl 0x294(%r13), %esi
+   46:  notl %edx
+   48:  andl $1, %edx
+   4b:  callq o_func_beg+0
+   50:  movl 0x294(%r13), %eax
+   57:  testl %eax, %eax
+   59:  jle 0x12c
+   5f:  movq %r13, %rbp
+   62:  leaq 0x29c(%r13), %r12
+   69:  xorl %ebx, %ebx
+   6b:  nopl (%rax, %rax)
+   70:  pxor %xmm0, %xmm0
+   74:  movl %ebx, %edi
+   76:  addq $0x14, %rbp
+   7a:  addl $1, %ebx
+   7d:  movaps %xmm0, (%rsp)
+   81:  movaps %xmm0, 0x10(%rsp)
+   86:  movaps %xmm0, 0x20(%rsp)
+   8b:  movaps %xmm0, 0x30(%rsp)
+   90:  movaps %xmm0, 0x40(%rsp)
+   95:  movaps %xmm0, 0x50(%rsp)
+   9a:  movaps %xmm0, 0x60(%rsp)
+   9f:  movaps %xmm0, 0x70(%rsp)
+   a4:  movaps %xmm0, 0x80(%rsp)
+   ac:  movaps %xmm0, 0x90(%rsp)
+   b4:  movaps %xmm0, 0xa0(%rsp)
+   bc:  movaps %xmm0, 0xb0(%rsp)
+   c4:  movaps %xmm0, 0xc0(%rsp)
+   cc:  movaps %xmm0, 0xd0(%rsp)
+   d4:  movaps %xmm0, 0xe0(%rsp)
+   dc:  movaps %xmm0, 0xf0(%rsp)
+   e4:  movdqu -0x14(%rbp), %xmm1
+   e9:  movaps %xmm1, 0x100(%rsp)
+   f1:  movl -4(%rbp), %eax
+   f4:  movl %eax, 0x110(%rsp)
+   fb:  callq o_arg2loc+0
+  100:  movq %r12, %rsi
+  103:  movq %rsp, %rdi
+  106:  subq $-0x80, %r12
+  10a:  movq %rax, 0x118(%rsp)
+  112:  callq strcpy+0
+  117:  movq %rsp, %rdi
+  11a:  callq fn:local_add+0
+  11f:  cmpl 0x294(%r13), %ebx
+  126:  jl 0x70
+  12c:  movl $0, (%rip)   <var:label+0>
+  136:  movl $0, (%rip)   <var:label_n+0>
+  140:  callq fn:readstmt+0
+  145:  callq o_func_end+0
+  14a:  movb $0, (%rip)   <var:func_name+0>
+  151:  movl $0, (%rip)   <var:locals_n+0>
+  15b:  addq $0x128, %rsp
+  162:  popq %rbx
+  163:  popq %rbp
+  164:  popq %r12
+  166:  popq %r13
+  168:  retq

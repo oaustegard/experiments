@@ -1,0 +1,58 @@
+# luaZ_read  (global, 161 bytes, 57 instructions)
+    0:  testq %rdx, %rdx
+    3:  je 0x9e
+    9:  pushq %r13
+    b:  movq %rsi, %r13
+    e:  pushq %r12
+   10:  movq %rdx, %r12
+   13:  pushq %rbp
+   14:  pushq %rbx
+   15:  movq %rdi, %rbx
+   18:  subq $8, %rsp
+   1c:  movq (%rdi), %rdx
+   1f:  jmp 0x53
+   21:  nopl (%rax)
+   28:  movq 8(%rbx), %rsi
+   2c:  cmpq %r12, %rdx
+   2f:  movq %r13, %rdi
+   32:  cmovaq %r12, %rdx
+   36:  movq %rdx, %rbp
+   39:  callq memcpy+0
+   3e:  movq (%rbx), %rdx
+   41:  addq %rbp, 8(%rbx)
+   45:  addq %rbp, %r13
+   48:  subq %rbp, %rdx
+   4b:  movq %rdx, (%rbx)
+   4e:  subq %rbp, %r12
+   51:  je 0x80
+   53:  testq %rdx, %rdx
+   56:  jne 0x28
+   58:  movq %rbx, %rdi
+   5b:  callq luaZ_fill+0
+   60:  cmpl $-1, %eax
+   63:  je 0x90
+   65:  movq (%rbx), %rax
+   68:  leaq 1(%rax), %rdx
+   6c:  movq 8(%rbx), %rax
+   70:  movq %rdx, (%rbx)
+   73:  leaq -1(%rax), %rsi
+   77:  movq %rsi, 8(%rbx)
+   7b:  jmp 0x2c
+   7d:  nopl (%rax)
+   80:  addq $8, %rsp
+   84:  xorl %eax, %eax
+   86:  popq %rbx
+   87:  popq %rbp
+   88:  popq %r12
+   8a:  popq %r13
+   8c:  retq
+   8d:  nopl (%rax)
+   90:  addq $8, %rsp
+   94:  movq %r12, %rax
+   97:  popq %rbx
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  popq %r13
+   9d:  retq
+   9e:  xorl %eax, %eax
+   a0:  retq

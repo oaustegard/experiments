@@ -1,0 +1,38 @@
+# tr_cs  (static, 101 bytes, 37 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movq 8(%rdi), %rdi
+    b:  testq %rdi, %rdi
+    e:  je 0x60
+   10:  callq dev_pos+0
+   15:  movl %eax, %edi
+   17:  callq dev_font+0
+   1c:  movq %rax, %rbp
+   1f:  testq %rax, %rax
+   22:  je 0x60
+   24:  movq 0x18(%rbx), %rdi
+   28:  xorl %r12d, %r12d
+   2b:  testq %rdi, %rdi
+   2e:  je 0x3a
+   30:  xorl %esi, %esi
+   32:  callq eval+0
+   37:  movl %eax, %r12d
+   3a:  movq 0x10(%rbx), %rdi
+   3e:  xorl %esi, %esi
+   40:  testq %rdi, %rdi
+   43:  je 0x4c
+   45:  callq eval+0
+   4a:  movl %eax, %esi
+   4c:  popq %rbx
+   4d:  movl %r12d, %edx
+   50:  movq %rbp, %rdi
+   53:  popq %rbp
+   54:  popq %r12
+   56:  jmp font_setcs+0
+   5b:  nopl (%rax, %rax)
+   60:  popq %rbx
+   61:  popq %rbp
+   62:  popq %r12
+   64:  retq

@@ -1,0 +1,94 @@
+# exp2reg  (static, 325 bytes, 93 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movl %edx, %r12d
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %rsi, %rbx
+   13:  subq $8, %rsp
+   17:  callq fn:discharge2reg+0
+   1c:  cmpl $0x10, (%rbx)
+   1f:  je 0x110
+   25:  movl 0x10(%rbx), %esi
+   28:  movl 0x14(%rbx), %r9d
+   2c:  cmpl %r9d, %esi
+   2f:  jne 0x58
+   31:  movq $18446744073709551615, 0x10(%rbx)
+   39:  movl %r12d, 8(%rbx)
+   3d:  movl $8, (%rbx)
+   43:  addq $8, %rsp
+   47:  popq %rbx
+   48:  popq %rbp
+   49:  popq %r12
+   4b:  popq %r13
+   4d:  popq %r14
+   4f:  popq %r15
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  movq %r14, %rdi
+   5b:  callq fn:need_value+0
+   60:  testl %eax, %eax
+   62:  je 0x128
+   68:  cmpl $0x10, (%rbx)
+   6b:  movl $0xffffffff, %r15d
+   71:  je 0x83
+   73:  movl $0x7fffff38, %esi
+   78:  movq %r14, %rdi
+   7b:  callq luaK_code+0
+   80:  movl %eax, %r15d
+   83:  movl 0x20(%r14), %eax
+   87:  movl %r12d, %ebp
+   8a:  movq %r14, %rdi
+   8d:  shll $7, %ebp
+   90:  movl %eax, 0x24(%r14)
+   94:  movl %ebp, %esi
+   96:  orl $6, %esi
+   99:  callq luaK_code+0
+   9e:  movl %ebp, %esi
+   a0:  movq %r14, %rdi
+   a3:  movl %eax, %r13d
+   a6:  movl 0x20(%r14), %eax
+   aa:  orl $7, %esi
+   ad:  movl %eax, 0x24(%r14)
+   b1:  callq luaK_code+0
+   b6:  movl 0x20(%r14), %edx
+   ba:  movl %r15d, %esi
+   bd:  movq %r14, %rdi
+   c0:  movl $0xff, %ecx
+   c5:  movl %eax, %ebp
+   c7:  movl %edx, 0x24(%r14)
+   cb:  movl %edx, %r8d
+   ce:  callq fn:patchlistaux+0
+   d3:  movl 0x14(%rbx), %r9d
+   d7:  movl 0x20(%r14), %r15d
+   db:  movl %r13d, %r8d
+   de:  movl %r12d, %ecx
+   e1:  movl %r9d, %esi
+   e4:  movq %r14, %rdi
+   e7:  movl %r15d, 0x24(%r14)
+   eb:  movl %r15d, %edx
+   ee:  callq fn:patchlistaux+0
+   f3:  movl 0x10(%rbx), %esi
+   f6:  movl %ebp, %r8d
+   f9:  movl %r12d, %ecx
+   fc:  movl %r15d, %edx
+   ff:  movq %r14, %rdi
+  102:  callq fn:patchlistaux+0
+  107:  jmp 0x31
+  10c:  nopl (%rax)
+  110:  movl 8(%rbx), %edx
+  113:  leaq 0x10(%rbx), %rsi
+  117:  movq %r14, %rdi
+  11a:  callq luaK_concat+0
+  11f:  jmp 0x25
+  124:  nopl (%rax)
+  128:  movl %r9d, %esi
+  12b:  callq fn:need_value+0
+  130:  testl %eax, %eax
+  132:  jne 0x68
+  138:  movl $0xffffffff, %ebp
+  13d:  movl $0xffffffff, %r13d
+  143:  jmp 0xd7

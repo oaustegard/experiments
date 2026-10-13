@@ -1,0 +1,111 @@
+# tr_evc  (global, 657 bytes, 110 instructions)
+    0:  movq 8(%rdi), %rdi
+    4:  testq %rdi, %rdi
+    7:  je 0x290
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  subq $8, %rsp
+   13:  callq map+0
+   18:  testl %eax, %eax
+   1a:  js 0x280
+   20:  cltq
+   22:  movq (, %rax, 8), %rbp   <var:envs+0>
+   2a:  testq %rbp, %rbp
+   2d:  je 0x280
+   33:  movl $0x2298, %edi
+   38:  callq xmalloc+0
+   3d:  movl $0x2298, %edx
+   42:  xorl %esi, %esi
+   44:  movq %rax, %rbx
+   47:  movq %rax, %rdi
+   4a:  callq memset+0
+   4f:  leaq 0x1a8(%rbx), %rdi
+   56:  callq wb_init+0
+   5b:  callq fmt_alloc+0
+   60:  movq %rbx, (%rip)   <var:env+0>
+   67:  movq %rax, 0x1a0(%rbx)
+   6e:  movdqu (%rbp), %xmm0
+   73:  movups %xmm0, (%rbx)
+   76:  movdqu 0x10(%rbp), %xmm1
+   7b:  movups %xmm1, 0x10(%rbx)
+   7f:  movdqu 0x20(%rbp), %xmm2
+   84:  movups %xmm2, 0x20(%rbx)
+   88:  movdqu 0x30(%rbp), %xmm3
+   8d:  movups %xmm3, 0x30(%rbx)
+   91:  movdqu 0x40(%rbp), %xmm4
+   96:  movups %xmm4, 0x40(%rbx)
+   9a:  movdqu 0x50(%rbp), %xmm5
+   9f:  movups %xmm5, 0x50(%rbx)
+   a3:  movdqu 0x60(%rbp), %xmm6
+   a8:  movups %xmm6, 0x60(%rbx)
+   ac:  movdqu 0x70(%rbp), %xmm7
+   b1:  movups %xmm7, 0x70(%rbx)
+   b5:  movdqu 0x80(%rbp), %xmm0
+   bd:  movups %xmm0, 0x80(%rbx)
+   c4:  movdqu 0x90(%rbp), %xmm1
+   cc:  movups %xmm1, 0x90(%rbx)
+   d3:  movdqu 0xa0(%rbp), %xmm2
+   db:  movups %xmm2, 0xa0(%rbx)
+   e2:  movdqu 0xb0(%rbp), %xmm3
+   ea:  movups %xmm3, 0xb0(%rbx)
+   f1:  movdqu 0xc0(%rbp), %xmm4
+   f9:  movups %xmm4, 0xc0(%rbx)
+  100:  movdqu 0xd0(%rbp), %xmm5
+  108:  movups %xmm5, 0xd0(%rbx)
+  10f:  movdqu 0xe0(%rbp), %xmm6
+  117:  movups %xmm6, 0xe0(%rbx)
+  11e:  movdqu 0xf0(%rbp), %xmm7
+  126:  movups %xmm7, 0xf0(%rbx)
+  12d:  movdqu 0x100(%rbp), %xmm0
+  135:  movups %xmm0, 0x100(%rbx)
+  13c:  movdqu 0x110(%rbp), %xmm1
+  144:  movups %xmm1, 0x110(%rbx)
+  14b:  movdqu 0x120(%rbp), %xmm2
+  153:  movups %xmm2, 0x120(%rbx)
+  15a:  movdqu 0x130(%rbp), %xmm3
+  162:  movups %xmm3, 0x130(%rbx)
+  169:  movdqu 0x140(%rbp), %xmm4
+  171:  movups %xmm4, 0x140(%rbx)
+  178:  movdqu 0x150(%rbp), %xmm5
+  180:  movups %xmm5, 0x150(%rbx)
+  187:  movdqu 0x160(%rbp), %xmm6
+  18f:  movups %xmm6, 0x160(%rbx)
+  196:  movdqu 0x170(%rbp), %xmm7
+  19e:  movups %xmm7, 0x170(%rbx)
+  1a5:  movdqu 0x180(%rbp), %xmm0
+  1ad:  movups %xmm0, 0x180(%rbx)
+  1b4:  movdqu 0x190(%rbp), %xmm1
+  1bc:  movups %xmm1, 0x190(%rbx)
+  1c3:  movdqu 0x2218(%rbp), %xmm2
+  1cb:  movups %xmm2, 0x2218(%rbx)
+  1d2:  movdqu 0x2228(%rbp), %xmm3
+  1da:  movups %xmm3, 0x2228(%rbx)
+  1e1:  movdqu 0x2238(%rbp), %xmm4
+  1e9:  movups %xmm4, 0x2238(%rbx)
+  1f0:  movdqu 0x2248(%rbp), %xmm5
+  1f8:  movups %xmm5, 0x2248(%rbx)
+  1ff:  movdqu 0x2258(%rbp), %xmm6
+  207:  movups %xmm6, 0x2258(%rbx)
+  20e:  movdqu 0x2268(%rbp), %xmm7
+  216:  movslq (%rip), %rax   <var:env_id+0>
+  21d:  movups %xmm7, 0x2268(%rbx)
+  224:  movdqu 0x2278(%rbp), %xmm0
+  22c:  movups %xmm0, 0x2278(%rbx)
+  233:  movdqu 0x2288(%rbp), %xmm1
+  23b:  movups %xmm1, 0x2288(%rbx)
+  242:  movq (, %rax, 8), %rbx   <var:envs+0>
+  24a:  movq 0x1a0(%rbx), %rdi
+  251:  callq fmt_free+0
+  256:  leaq 0x1a8(%rbx), %rdi
+  25d:  callq wb_done+0
+  262:  movq %rbx, %rdi
+  265:  callq free+0
+  26a:  movslq (%rip), %rax   <var:env_id+0>
+  271:  movq (%rip), %rdx   <var:env+0>
+  278:  movq %rdx, (, %rax, 8)   <var:envs+0>
+  280:  addq $8, %rsp
+  284:  popq %rbx
+  285:  popq %rbp
+  286:  retq
+  287:  nopw (%rax, %rax)
+  290:  retq

@@ -1,0 +1,49 @@
+# pdf_obj  (global, 135 bytes, 48 instructions)
+    0:  pushq %r15
+    2:  movq %rcx, %r15
+    5:  pushq %r14
+    7:  pushq %r13
+    9:  movq %r8, %r13
+    c:  pushq %r12
+    e:  movl %esi, %r12d
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  movl %edx, %ebx
+   18:  subq $8, %rsp
+   1c:  callq pdf_type+0
+   21:  cmpl $0x72, %eax
+   24:  jne 0x80
+   26:  movslq %ebx, %r14
+   29:  movl $0xa, %edx
+   2e:  xorl %esi, %esi
+   30:  addq %rbp, %r14
+   33:  movq %r14, %rdi
+   36:  callq strtol+0
+   3b:  movl %eax, (%r15)
+   3e:  cmpl %ebx, %r12d
+   41:  jle 0x5a
+   43:  movl %ebx, %edx
+   45:  movl %r12d, %esi
+   48:  movq %rbp, %rdi
+   4b:  callq fn:pdf_len.part.0+0
+   50:  addl %eax, %ebx
+   52:  movslq %ebx, %rbx
+   55:  leaq (%rbp, %rbx), %r14
+   5a:  movl $0xa, %edx
+   5f:  xorl %esi, %esi
+   61:  movq %r14, %rdi
+   64:  callq strtol+0
+   69:  movl %eax, (%r13)
+   6d:  xorl %eax, %eax
+   6f:  addq $8, %rsp
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  popq %r12
+   77:  popq %r13
+   79:  popq %r14
+   7b:  popq %r15
+   7d:  retq
+   7e:  nop
+   80:  movl $0xffffffff, %eax
+   85:  jmp 0x6f

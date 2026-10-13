@@ -1,0 +1,44 @@
+# neatcc-out: translation unit out of neatcc
+# write each function as src/neatcc/out/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+symstr_add	static	146 bytes
+put_sym	static	233 bytes
+out_init	global	10 bytes
+out_def	global	104 bytes
+out_sym	global	39 bytes
+out_rel	global	302 bytes
+out_write	global	1430 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+symstr_n	static	8 bytes	.bss.symstr_n
+    (zero-initialised)
+symstr_sz	static	8 bytes	.bss.symstr_sz
+    (zero-initialised)
+symstr	static	8 bytes	.bss.symstr
+    (zero-initialised)
+syms_n	static	8 bytes	.bss.syms_n
+    (zero-initialised)
+syms	static	8 bytes	.bss.syms
+    (zero-initialised)
+syms_sz	static	8 bytes	.bss.syms_sz
+    (zero-initialised)
+dsrel_n	static	8 bytes	.bss.dsrel_n
+    (zero-initialised)
+dsrel_sz	static	8 bytes	.bss.dsrel_sz
+    (zero-initialised)
+dsrel	static	8 bytes	.bss.dsrel
+    (zero-initialised)
+csrel_n	static	8 bytes	.bss.csrel_n
+    (zero-initialised)
+csrel_sz	static	8 bytes	.bss.csrel_sz
+    (zero-initialised)
+csrel	static	8 bytes	.bss.csrel
+    (zero-initialised)
+shdr	static	512 bytes	.bss.shdr
+    (zero-initialised)
+ehdr	static	64 bytes	.bss.ehdr
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+free malloc mextend strcmp strcpy strlen write

@@ -1,0 +1,37 @@
+# err  (global, 216 bytes, 36 instructions)
+    0:  subq $0x2d8, %rsp
+    7:  movq %rsi, 0x228(%rsp)
+    f:  movq %rdx, 0x230(%rsp)
+   17:  movq %rcx, 0x238(%rsp)
+   1f:  movq %r8, 0x240(%rsp)
+   27:  movq %r9, 0x248(%rsp)
+   2f:  testb %al, %al
+   31:  je 0x73
+   33:  movaps %xmm0, 0x250(%rsp)
+   3b:  movaps %xmm1, 0x260(%rsp)
+   43:  movaps %xmm2, 0x270(%rsp)
+   4b:  movaps %xmm3, 0x280(%rsp)
+   53:  movaps %xmm4, 0x290(%rsp)
+   5b:  movaps %xmm5, 0x2a0(%rsp)
+   63:  movaps %xmm6, 0x2b0(%rsp)
+   6b:  movaps %xmm7, 0x2c0(%rsp)
+   73:  leaq 0x2e0(%rsp), %rax
+   7b:  leaq 8(%rsp), %rdx
+   80:  movq %rdi, %rsi
+   83:  movl $8, 8(%rsp)
+   8b:  leaq 0x20(%rsp), %rdi
+   90:  movq %rax, 0x10(%rsp)
+   95:  leaq 0x220(%rsp), %rax
+   9d:  movl $0x30, 0xc(%rsp)
+   a5:  movq %rax, 0x18(%rsp)
+   aa:  callq vsprintf+0
+   af:  callq tok_addr+0
+   b4:  movq %rax, %rdi
+   b7:  callq cpp_loc+0
+   bc:  leaq 0x20(%rsp), %rdx
+   c1:  movl $0, %edi   <str:"%s: %s">
+   c6:  movq %rax, %rsi
+   c9:  xorl %eax, %eax
+   cb:  callq die+0
+   d0:  addq $0x2d8, %rsp
+   d7:  retq

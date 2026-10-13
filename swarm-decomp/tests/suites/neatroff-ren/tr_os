@@ -1,0 +1,24 @@
+# tr_os  (global, 90 bytes, 23 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %edi   <str:".sv">
+    9:  callq map+0
+    e:  movl %eax, %edi
+   10:  callq nreg+0
+   15:  movl (%rax), %eax
+   17:  testl %eax, %eax
+   19:  jne 0x40
+   1b:  movl $0, %edi   <str:".sv">
+   20:  callq map+0
+   25:  movl %eax, %edi
+   27:  callq nreg+0
+   2c:  movl $0, (%rax)
+   32:  addq $8, %rsp
+   36:  retq
+   37:  nopw (%rax, %rax)
+   40:  movl $0, %edi   <str:".sv">
+   45:  callq map+0
+   4a:  movl %eax, %edi
+   4c:  callq nreg+0
+   51:  movl (%rax), %edi
+   53:  callq fn:down+0
+   58:  jmp 0x1b

@@ -1,0 +1,15 @@
+# drawbeg  (global, 56 bytes, 14 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <fn:o_flush+0>
+    9:  movl (%rip), %edi   <var:o_f+0>
+    f:  callq fn:out_fontup+0
+   14:  movl (%rip), %eax   <var:draw_path+0>
+   1a:  testl %eax, %eax
+   1c:  je 0x28
+   1e:  addq $8, %rsp
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  movl $0, %edi   <str:"newpath ">
+   2d:  xorl %eax, %eax
+   2f:  addq $8, %rsp
+   33:  jmp fn:outf+0

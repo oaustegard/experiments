@@ -1,0 +1,55 @@
+# rethook  (static, 177 bytes, 54 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  movl 0xc0(%rdi), %eax
+    d:  movq %rsi, %rbx
+   10:  testb $2, %al
+   12:  je 0x53
+   14:  movq 0x10(%rdi), %rcx
+   18:  movslq %edx, %rax
+   1b:  movl %edx, %r8d
+   1e:  xorl %r12d, %r12d
+   21:  shlq $4, %rax
+   25:  subq %rax, %rcx
+   28:  movq (%rsi), %rax
+   2b:  testb $2, 0x3e(%rsi)
+   2f:  je 0x88
+   31:  subq %rax, %rcx
+   34:  movq %rax, (%rbx)
+   37:  movl $0xffffffff, %edx
+   3c:  movl $1, %esi
+   41:  sarq $4, %rcx
+   45:  movq %rbp, %rdi
+   48:  movzwl %cx, %ecx
+   4b:  callq luaD_hook+0
+   50:  addq %r12, (%rbx)
+   53:  movq 0x10(%rbx), %rax
+   57:  testb $2, 0x3e(%rax)
+   5b:  jne 0x7c
+   5d:  movq (%rax), %rdx
+   60:  movq 0x20(%rax), %rax
+   64:  movq (%rdx), %rdx
+   67:  movq 0x18(%rdx), %rdx
+   6b:  subq 0x40(%rdx), %rax
+   6f:  sarq $2, %rax
+   73:  subl $1, %eax
+   76:  movl %eax, 0xb4(%rbp)
+   7c:  popq %rbx
+   7d:  popq %rbp
+   7e:  popq %r12
+   80:  retq
+   81:  nopl (%rax)
+   88:  movq (%rax), %rdx
+   8b:  movq 0x18(%rdx), %rdx
+   8f:  cmpb $0, 0xb(%rdx)
+   93:  je 0x31
+   95:  movzbl 0xa(%rdx), %r12d
+   9a:  addl 0x2c(%rsi), %r12d
+   9e:  addl $1, %r12d
+   a2:  movslq %r12d, %r12
+   a5:  shlq $4, %r12
+   a9:  addq %r12, %rax
+   ac:  negq %r12
+   af:  jmp 0x31

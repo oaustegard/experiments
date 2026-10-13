@@ -1,0 +1,59 @@
+# eqn_box  (static, 178 bytes, 58 instructions)
+    0:  pushq %r15
+    2:  movzwl %di, %r15d
+    6:  pushq %r14
+    8:  movq %rsi, %r14
+    b:  pushq %r13
+    d:  movl %edx, %r13d
+   10:  pushq %r12
+   12:  pushq %rbp
+   13:  pushq %rbx
+   14:  subq $0x18, %rsp
+   18:  movq %rcx, (%rsp)
+   1c:  callq fn:eqn_left+0
+   21:  movq %rax, %r12
+   24:  movl %r15d, %eax
+   27:  orl $1, %eax
+   2a:  movl %eax, 0xc(%rsp)
+   2e:  jmp 0x90
+   30:  movq (%rsp), %rcx
+   34:  movl 0xc(%rsp), %edi
+   38:  movl %r13d, %edx
+   3b:  xorl %esi, %esi
+   3d:  callq fn:eqn_left+0
+   42:  movq %rax, %rbp
+   45:  testq %r14, %r14
+   48:  je 0x4e
+   4a:  movl 0x24(%r14), %ebx
+   4e:  movl %r15d, %edx
+   51:  movl %ebx, %esi
+   53:  movl %r13d, %edi
+   56:  callq box_alloc+0
+   5b:  movl $0, %esi   <var:grfont+0>
+   60:  movl $0, %edi   <str:".ft %s\n">
+   65:  movq %rax, %rbx
+   68:  xorl %eax, %eax
+   6a:  callq printf+0
+   6f:  movq %r12, %rsi
+   72:  movq %rbp, %rdx
+   75:  movq %rbx, %rdi
+   78:  callq box_over+0
+   7d:  movq %r12, %rdi
+   80:  movq %rbx, %r12
+   83:  callq box_free+0
+   88:  movq %rbp, %rdi
+   8b:  callq box_free+0
+   90:  movl $0, %edi   <str:"over">
+   95:  callq tok_jmp+0
+   9a:  movl %eax, %ebx
+   9c:  testl %eax, %eax
+   9e:  je 0x30
+   a0:  addq $0x18, %rsp
+   a4:  movq %r12, %rax
+   a7:  popq %rbx
+   a8:  popq %rbp
+   a9:  popq %r12
+   ab:  popq %r13
+   ad:  popq %r14
+   af:  popq %r15
+   b1:  retq

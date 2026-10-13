@@ -1,0 +1,19 @@
+# luaS_eqlngstr  (global, 62 bytes, 18 instructions)
+    0:  movl $1, %eax
+    5:  cmpq %rsi, %rdi
+    8:  je 0x16
+    a:  movq 0x10(%rdi), %rdx
+    e:  xorl %eax, %eax
+   10:  cmpq %rdx, 0x10(%rsi)
+   14:  je 0x20
+   16:  retq
+   17:  nopw (%rax, %rax)
+   20:  subq $8, %rsp
+   24:  addq $0x18, %rsi
+   28:  addq $0x18, %rdi
+   2c:  callq memcmp+0
+   31:  testl %eax, %eax
+   33:  sete %al
+   36:  addq $8, %rsp
+   3a:  movzbl %al, %eax
+   3d:  retq

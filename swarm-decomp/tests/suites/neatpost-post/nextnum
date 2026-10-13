@@ -1,0 +1,54 @@
+# nextnum  (static, 161 bytes, 53 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  xorl %r12d, %r12d
+    9:  pushq %rbp
+    a:  xorl %ebp, %ebp
+    c:  pushq %rbx
+    d:  callq fn:nextskip+0
+   12:  nopw (%rax, %rax)
+   18:  movq (%rip), %rdi   <stdin+0>
+   1f:  callq getc+0
+   24:  movl %eax, %ebx
+   26:  leal -0x2b(%rax), %eax
+   29:  andl $0xfffffffd, %eax
+   2c:  orl %ebp, %eax
+   2e:  je 0x90
+   30:  callq __ctype_b_loc+0
+   35:  movslq %ebx, %r14
+   38:  movq %rax, %r13
+   3b:  movq (%rax), %rax
+   3e:  testb $8, 1(%rax, %r14, 2)
+   44:  je 0x58
+   46:  testl %ebx, %ebx
+   48:  js 0x76
+   4a:  leal (%rbp, %rbp, 4), %eax
+   4e:  leal -0x30(%rbx, %rax, 2), %ebp
+   52:  jmp 0x18
+   54:  nopl (%rax)
+   58:  movq (%rip), %rsi   <stdin+0>
+   5f:  movl %ebx, %edi
+   61:  callq ungetc+0
+   66:  testl %ebx, %ebx
+   68:  js 0x76
+   6a:  movq (%r13), %rax
+   6e:  testb $8, 1(%rax, %r14, 2)
+   74:  jne 0x4a
+   76:  movl %ebp, %eax
+   78:  popq %rbx
+   79:  negl %eax
+   7b:  testl %r12d, %r12d
+   7e:  cmovnel %eax, %ebp
+   81:  movl %ebp, %eax
+   83:  popq %rbp
+   84:  popq %r12
+   86:  popq %r13
+   88:  popq %r14
+   8a:  retq
+   8b:  nopl (%rax, %rax)
+   90:  xorl %r12d, %r12d
+   93:  cmpl $0x2d, %ebx
+   96:  sete %r12b
+   9a:  xorl %ebp, %ebp
+   9c:  jmp 0x18

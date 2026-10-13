@@ -1,0 +1,39 @@
+# hdr_nextfield  (static, 111 bytes, 38 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  jmp 0x18
+    6:  nopw %cs:(%rax, %rax)
+   10:  addq $1, %rdi
+   14:  cmpb $0x22, %al
+   16:  je 0x40
+   18:  testq %rdi, %rdi
+   1b:  je 0x60
+   1d:  cmpq %rbx, %rdi
+   20:  jae 0x68
+   22:  movzbl (%rdi), %eax
+   25:  cmpb $0x3b, %al
+   27:  jne 0x10
+   29:  leaq 2(%rdi), %rdx
+   2d:  leaq 1(%rdi), %rax
+   31:  cmpq %rbx, %rdx
+   34:  movl $0, %edx
+   39:  popq %rbx
+   3a:  cmovaeq %rdx, %rax
+   3e:  retq
+   3f:  nop
+   40:  movq %rbx, %rdx
+   43:  movl $0x22, %esi
+   48:  subq %rdi, %rdx
+   4b:  callq memchr+0
+   50:  movq %rax, %rdi
+   53:  cmpq $1, %rax
+   57:  sbbq $-1, %rdi
+   5b:  testq %rdi, %rdi
+   5e:  jne 0x1d
+   60:  xorl %eax, %eax
+   62:  popq %rbx
+   63:  retq
+   64:  nopl (%rax)
+   68:  testq %rdi, %rdi
+   6b:  jne 0x29
+   6d:  jmp 0x60

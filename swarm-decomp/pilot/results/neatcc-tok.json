@@ -1,0 +1,26 @@
+{
+  "suite": "neatcc-tok",
+  "functions": {
+    "tok_addr": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "tok_jump": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "tok_get": {
+      "O0": {"status": "FAIL", "frac": 0.8667, "reason": "call: expected call to tok_read (same-TU static, not defined in this tree); also the \"\" literal is sec:.rodata+134 in the target and +17 here, an O0 offset that depends on other functions' literals"},
+      "O1": {"status": "FAIL", "frac": 0.9231, "reason": "call: expected call to tok_read (same-TU static, not defined in this tree); body otherwise identical"},
+      "O2": {"status": "FAIL", "frac": 0.9333, "reason": "call: expected call to tok_read (same-TU static, not defined in this tree); body otherwise identical"}
+    },
+    "tok_num": {
+      "O0": {"status": "FAIL", "frac": 0.9917, "reason": "call: expected call to esc_char (same-TU static, not defined in this tree); body otherwise identical"},
+      "O1": {"status": "FAIL", "frac": 0.9907, "reason": "call: expected call to esc_char (same-TU static, not defined in this tree); body otherwise identical"},
+      "O2": {"status": "FAIL", "frac": 0.9367, "reason": "call: expected call to esc_char.part.0; gcc at -O2 split esc_char and inlined its head into tok_num (cmpb $0x5c on s[1]), which cannot be reproduced without esc_char's source"}
+    }
+  },
+  "notes": "tok_addr and tok_jump are trivial and match at all three levels. tok_get and tok_num match everywhere except for the calls to same-TU statics (tok_read, esc_char) that are not written in this tree: the runner renders an undefined callee without the fn: prefix, so those calls never match in isolation; at O0 the \"\" literal in tok_get is compared by .rodata offset (sec:), which depends on the other functions' strings, while at O1/O2 it is content-addressed (str:). At O2 gcc split esc_char and inlined part of it into tok_num, so tok_num at O2 depends on esc_char's source. Harness notes: is_stub() treats any .c without '{' as a stub, so variable-only files are silently dropped and variables were placed in types/ headers instead; the pinned-flag set and the O2 split of same-TU statics would both need addressing before a swarm relies on per-function isolation."
+}

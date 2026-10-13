@@ -1,0 +1,84 @@
+# resume  (static, 284 bytes, 83 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x18, %rsp
+    9:  movslq (%rsi), %rcx
+    c:  movq 0x10(%rdi), %rax
+   10:  movq 0x20(%rdi), %rbp
+   14:  movq %rcx, %rdx
+   17:  movq %rax, %rsi
+   1a:  shlq $4, %rcx
+   1e:  subq %rcx, %rsi
+   21:  cmpb $0, 0xa(%rdi)
+   25:  je 0x90
+   27:  movb $0, 0xa(%rdi)
+   2b:  testb $2, 0x3e(%rbp)
+   2f:  je 0x68
+   31:  movq 0x20(%rbp), %rax
+   35:  testq %rax, %rax
+   38:  je 0x47
+   3a:  movq 0x30(%rbp), %rdx
+   3e:  movl $1, %esi
+   43:  callq *%rax
+   45:  movl %eax, %edx
+   47:  movq %rbp, %rsi
+   4a:  movq %rbx, %rdi
+   4d:  callq luaD_poscall+0
+   52:  addq $0x18, %rsp
+   56:  movq %rbx, %rdi
+   59:  xorl %esi, %esi
+   5b:  popq %rbx
+   5c:  popq %rbp
+   5d:  jmp fn:unroll+0
+   62:  nopw (%rax, %rax)
+   68:  subq $4, 0x20(%rbp)
+   6d:  movq %rsi, 0x10(%rdi)
+   71:  movq %rbp, %rsi
+   74:  callq luaV_execute+0
+   79:  addq $0x18, %rsp
+   7d:  movq %rbx, %rdi
+   80:  xorl %esi, %esi
+   82:  popq %rbx
+   83:  popq %rbp
+   84:  jmp fn:unroll+0
+   89:  nopl (%rax)
+   90:  subq $0x10, %rsi
+   94:  cmpw $0xc7, 0xb0(%rdi)
+   9d:  ja 0xe0
+   9f:  movl $0xffffffff, %edx
+   a4:  movq %rbx, %rdi
+   a7:  callq luaD_precall+0
+   ac:  testq %rax, %rax
+   af:  je 0xd0
+   b1:  movl $4, %edx
+   b6:  movq %rbx, %rdi
+   b9:  movq %rax, %rsi
+   bc:  movw %dx, 0x3e(%rax)
+   c0:  addq $0x18, %rsp
+   c4:  popq %rbx
+   c5:  popq %rbp
+   c6:  jmp luaV_execute+0
+   cb:  nopl (%rax, %rax)
+   d0:  addq $0x18, %rsp
+   d4:  popq %rbx
+   d5:  popq %rbp
+   d6:  retq
+   d7:  nopw (%rax, %rax)
+   e0:  movq 0x28(%rdi), %rdx
+   e4:  subq %rax, %rdx
+   e7:  testq %rdx, %rdx
+   ea:  jle 0x100
+   ec:  movq %rbx, %rdi
+   ef:  movq %rsi, 8(%rsp)
+   f4:  callq luaE_checkcstack+0
+   f9:  movq 8(%rsp), %rsi
+   fe:  jmp 0x9f
+  100:  subq 0x30(%rdi), %rsi
+  104:  movl $1, %edx
+  109:  movq %rsi, %rbp
+  10c:  xorl %esi, %esi
+  10e:  callq luaD_growstack+0
+  113:  movq 0x30(%rbx), %rsi
+  117:  addq %rbp, %rsi
+  11a:  jmp 0xec

@@ -1,0 +1,175 @@
+# evalexpr  (static, 650 bytes, 174 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  callq fn:evalatom+0
+    c:  movq (%rbp), %rcx
+   10:  movq %rax, %rbx
+   13:  nopl (%rax, %rax)
+   18:  movzbl (%rcx), %edx
+   1b:  testb %dl, %dl
+   1d:  je 0x5a
+   1f:  subl $0x25, %edx
+   22:  cmpb $0x19, %dl
+   25:  ja 0x38
+   27:  movzbl %dl, %edx
+   2a:  jmpq *(, %rdx, 8)   <var:evalexpr+0>
+   31:  nopl (%rax)
+   38:  movq (%rbp), %rax
+   3c:  movzbl (%rax), %edx
+   3f:  cmpb $0x3d, %dl
+   42:  je 0x1e0
+   48:  cmpb $0x26, %dl
+   4b:  je 0x1f0
+   51:  cmpb $0x3a, %dl
+   54:  je 0x228
+   5a:  movq %rbx, %rax
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  popq %r12
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  leaq 1(%rcx), %rax
+   6c:  movq %rax, (%rbp)
+   70:  cmpb $0x3d, 1(%rcx)
+   74:  je 0x240
+   7a:  movq %rbp, %rdi
+   7d:  callq fn:evalatom+0
+   82:  movq (%rbp), %rcx
+   86:  cmpq %rbx, %rax
+   89:  setl %bl
+   8c:  movzbl %bl, %ebx
+   8f:  jmp 0x18
+   91:  nopl (%rax)
+   98:  leaq 1(%rcx), %rax
+   9c:  movq %rax, (%rbp)
+   a0:  cmpb $0x3d, 1(%rcx)
+   a4:  je 0x1e0
+   aa:  movq %rbp, %rdi
+   ad:  callq fn:evalatom+0
+   b2:  movq (%rbp), %rcx
+   b6:  cmpq %rbx, %rax
+   b9:  sete %bl
+   bc:  movzbl %bl, %ebx
+   bf:  jmp 0x18
+   c4:  nopl (%rax)
+   c8:  leaq 1(%rcx), %rax
+   cc:  movq %rax, (%rbp)
+   d0:  cmpb $0x3d, 1(%rcx)
+   d4:  je 0x268
+   da:  movq %rbp, %rdi
+   dd:  callq fn:evalatom+0
+   e2:  movq (%rbp), %rcx
+   e6:  cmpq %rbx, %rax
+   e9:  setg %bl
+   ec:  movzbl %bl, %ebx
+   ef:  jmp 0x18
+   f4:  nopl (%rax)
+   f8:  addq $1, %rcx
+   fc:  movq %rbp, %rdi
+   ff:  movq %rcx, (%rbp)
+  103:  callq fn:evalatom+0
+  108:  movq %rax, %r12
+  10b:  testl %eax, %eax
+  10d:  je 0x1d0
+  113:  movq %rbx, %rax
+  116:  movslq %r12d, %rcx
+  119:  cqto
+  11b:  idivq %rcx
+  11e:  movq (%rbp), %rcx
+  122:  movq %rax, %rbx
+  125:  jmp 0x18
+  12a:  nopw (%rax, %rax)
+  130:  addq $1, %rcx
+  134:  movq %rbp, %rdi
+  137:  movq %rcx, (%rbp)
+  13b:  callq fn:evalatom+0
+  140:  movq (%rbp), %rcx
+  144:  subq %rax, %rbx
+  147:  jmp 0x18
+  14c:  nopl (%rax)
+  150:  addq $1, %rcx
+  154:  movq %rbp, %rdi
+  157:  movq %rcx, (%rbp)
+  15b:  callq fn:evalatom+0
+  160:  movq (%rbp), %rcx
+  164:  addq %rax, %rbx
+  167:  jmp 0x18
+  16c:  nopl (%rax)
+  170:  addq $1, %rcx
+  174:  movq %rbp, %rdi
+  177:  movq %rcx, (%rbp)
+  17b:  callq fn:evalatom+0
+  180:  movq (%rbp), %rcx
+  184:  imulq %rax, %rbx
+  188:  jmp 0x18
+  18d:  nopl (%rax)
+  190:  addq $1, %rcx
+  194:  movq %rbp, %rdi
+  197:  movq %rcx, (%rbp)
+  19b:  callq fn:evalatom+0
+  1a0:  movq %rax, %r12
+  1a3:  testl %eax, %eax
+  1a5:  je 0x1c0
+  1a7:  movq %rbx, %rax
+  1aa:  movslq %r12d, %rsi
+  1ad:  movq (%rbp), %rcx
+  1b1:  cqto
+  1b3:  idivq %rsi
+  1b6:  movq %rdx, %rbx
+  1b9:  jmp 0x18
+  1be:  nop
+  1c0:  movl $0, %edi   <str:"neatroff: divide by zero\n">
+  1c5:  callq errdie+0
+  1ca:  jmp 0x1a7
+  1cc:  nopl (%rax)
+  1d0:  movl $0, %edi   <str:"neatroff: divide by zero\n">
+  1d5:  callq errdie+0
+  1da:  jmp 0x113
+  1df:  nop
+  1e0:  addq $1, %rax
+  1e4:  movq %rax, (%rbp)
+  1e8:  jmp 0xaa
+  1ed:  nopl (%rax)
+  1f0:  leaq 1(%rax), %rcx
+  1f4:  movq %rcx, (%rbp)
+  1f8:  testq %rbx, %rbx
+  1fb:  jg 0x208
+  1fd:  xorl %ebx, %ebx
+  1ff:  jmp 0x18
+  204:  nopl (%rax)
+  208:  movq %rbp, %rdi
+  20b:  xorl %ebx, %ebx
+  20d:  callq fn:evalatom+0
+  212:  movq (%rbp), %rcx
+  216:  testq %rax, %rax
+  219:  setg %bl
+  21c:  jmp 0x18
+  221:  nopl (%rax)
+  228:  leaq 1(%rax), %rcx
+  22c:  movq %rcx, (%rbp)
+  230:  testq %rbx, %rbx
+  233:  jle 0x208
+  235:  movl $1, %ebx
+  23a:  jmp 0x18
+  23f:  nop
+  240:  addq $2, %rcx
+  244:  movq %rbp, %rdi
+  247:  movq %rcx, (%rbp)
+  24b:  callq fn:evalatom+0
+  250:  movq (%rbp), %rcx
+  254:  cmpq %rbx, %rax
+  257:  setle %bl
+  25a:  movzbl %bl, %ebx
+  25d:  jmp 0x18
+  262:  nopw (%rax, %rax)
+  268:  addq $2, %rcx
+  26c:  movq %rbp, %rdi
+  26f:  movq %rcx, (%rbp)
+  273:  callq fn:evalatom+0
+  278:  movq (%rbp), %rcx
+  27c:  cmpq %rbx, %rax
+  27f:  setge %bl
+  282:  movzbl %bl, %ebx
+  285:  jmp 0x18

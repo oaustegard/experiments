@@ -1,0 +1,47 @@
+# lua_settable  (global, 150 bytes, 46 instructions)
+    0:  pushq %rbp
+    1:  xorl %r8d, %r8d
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq fn:index2value+0
+   11:  movq 0x10(%rdi), %rdx
+   15:  cmpb $0x45, 8(%rax)
+   19:  movq %rax, %rbp
+   1c:  je 0x48
+   1e:  leaq -0x10(%rdx), %rcx
+   22:  movq %rbp, %rsi
+   25:  subq $0x20, %rdx
+   29:  movq %rbx, %rdi
+   2c:  callq luaV_finishset+0
+   31:  movq 0x10(%rbx), %rdx
+   35:  subq $0x20, %rdx
+   39:  movq %rdx, 0x10(%rbx)
+   3d:  addq $8, %rsp
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  retq
+   44:  nopl (%rax)
+   48:  movq (%rax), %rdi
+   4b:  leaq -0x20(%rdx), %rsi
+   4f:  callq luaH_get+0
+   54:  movq 0x10(%rbx), %rdx
+   58:  testb $0xf, 8(%rax)
+   5c:  movq %rax, %r8
+   5f:  je 0x1e
+   61:  movq -0x10(%rdx), %rax
+   65:  movq %rax, (%r8)
+   68:  movzbl -8(%rdx), %eax
+   6c:  movb %al, 8(%r8)
+   70:  testb $0x40, %al
+   72:  je 0x35
+   74:  movq (%rbp), %rsi
+   78:  testb $0x20, 9(%rsi)
+   7c:  je 0x35
+   7e:  movq -0x10(%rdx), %rax
+   82:  testb $0x18, 9(%rax)
+   86:  je 0x35
+   88:  movq %rbx, %rdi
+   8b:  callq luaC_barrierback_+0
+   90:  movq 0x10(%rbx), %rdx
+   94:  jmp 0x35

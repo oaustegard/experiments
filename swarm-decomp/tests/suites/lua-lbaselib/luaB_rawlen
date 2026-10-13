@@ -1,0 +1,23 @@
+# luaB_rawlen  (static, 76 bytes, 22 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_type+0
+    e:  subl $4, %eax
+   11:  cmpl $1, %eax
+   14:  ja 0x38
+   16:  movq %rbx, %rdi
+   19:  movl $1, %esi
+   1e:  callq lua_rawlen+0
+   23:  movq %rbx, %rdi
+   26:  movq %rax, %rsi
+   29:  callq lua_pushinteger+0
+   2e:  movl $1, %eax
+   33:  popq %rbx
+   34:  retq
+   35:  nopl (%rax)
+   38:  movl $0, %edx   <str:"table or string">
+   3d:  movl $1, %esi
+   42:  movq %rbx, %rdi
+   45:  callq luaL_typeerror+0
+   4a:  jmp 0x16

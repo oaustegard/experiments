@@ -1,0 +1,137 @@
+# db_sethook  (static, 496 bytes, 136 instructions)
+    0:  pushq %r15
+    2:  movl $1, %esi
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $0x18, %rsp
+   16:  callq lua_type+0
+   1b:  cmpl $8, %eax
+   1e:  je 0x1d0
+   24:  movq %rbx, %r12
+   27:  movl $1, %r13d
+   2d:  xorl %ebp, %ebp
+   2f:  movl %r13d, %esi
+   32:  movq %rbx, %rdi
+   35:  callq lua_type+0
+   3a:  testl %eax, %eax
+   3c:  jle 0x170
+   42:  leal 2(%rbp), %esi
+   45:  xorl %edx, %edx
+   47:  movq %rbx, %rdi
+   4a:  callq luaL_checklstring+0
+   4f:  movl $6, %edx
+   54:  movl %r13d, %esi
+   57:  movq %rbx, %rdi
+   5a:  movq %rax, %r14
+   5d:  callq luaL_checktype+0
+   62:  xorl %edx, %edx
+   64:  leal 3(%rbp), %esi
+   67:  movq %rbx, %rdi
+   6a:  callq luaL_optinteger+0
+   6f:  movq %r14, %rdi
+   72:  movl $0x63, %esi
+   77:  xorl %ebp, %ebp
+   79:  movq %rax, 8(%rsp)
+   7e:  movl %eax, %r15d
+   81:  callq strchr+0
+   86:  movq %r14, %rdi
+   89:  movl $0x72, %esi
+   8e:  testq %rax, %rax
+   91:  setne %bpl
+   95:  callq strchr+0
+   9a:  movq %r14, %rdi
+   9d:  movl $0x6c, %esi
+   a2:  movl $0, %r14d   <fn:hookf+0>
+   a8:  movq %rax, %rcx
+   ab:  movl %ebp, %eax
+   ad:  orl $2, %eax
+   b0:  testq %rcx, %rcx
+   b3:  cmovnel %eax, %ebp
+   b6:  callq strchr+0
+   bb:  movq 8(%rsp), %rdx
+   c0:  movq %rax, %rcx
+   c3:  movl %ebp, %eax
+   c5:  orl $4, %eax
+   c8:  testq %rcx, %rcx
+   cb:  cmovnel %eax, %ebp
+   ce:  movl %ebp, %eax
+   d0:  orl $8, %ebp
+   d3:  testl %edx, %edx
+   d5:  cmovlel %eax, %ebp
+   d8:  movl $0, %edx   <str:"_HOOKKEY">
+   dd:  movl $0xfff0b9d8, %esi
+   e2:  movq %rbx, %rdi
+   e5:  callq luaL_getsubtable+0
+   ea:  testl %eax, %eax
+   ec:  je 0x190
+   f2:  cmpq %r12, %rbx
+   f5:  je 0x115
+   f7:  movl $1, %esi
+   fc:  movq %r12, %rdi
+   ff:  callq lua_checkstack+0
+  104:  testl %eax, %eax
+  106:  jne 0x115
+  108:  movl $0, %esi   <str:"stack overflow">
+  10d:  movq %rbx, %rdi
+  110:  callq luaL_error+0
+  115:  movq %r12, %rdi
+  118:  callq lua_pushthread+0
+  11d:  movl $1, %edx
+  122:  movq %rbx, %rsi
+  125:  movq %r12, %rdi
+  128:  callq lua_xmove+0
+  12d:  movl %r13d, %esi
+  130:  movq %rbx, %rdi
+  133:  callq lua_pushvalue+0
+  138:  movq %rbx, %rdi
+  13b:  movl $0xfffffffd, %esi
+  140:  callq lua_rawset+0
+  145:  movl %r15d, %ecx
+  148:  movl %ebp, %edx
+  14a:  movq %r14, %rsi
+  14d:  movq %r12, %rdi
+  150:  callq lua_sethook+0
+  155:  addq $0x18, %rsp
+  159:  xorl %eax, %eax
+  15b:  popq %rbx
+  15c:  popq %rbp
+  15d:  popq %r12
+  15f:  popq %r13
+  161:  popq %r14
+  163:  popq %r15
+  165:  retq
+  166:  nopw %cs:(%rax, %rax)
+  170:  movl %r13d, %esi
+  173:  movq %rbx, %rdi
+  176:  xorl %r14d, %r14d
+  179:  xorl %r15d, %r15d
+  17c:  callq lua_settop+0
+  181:  xorl %ebp, %ebp
+  183:  jmp 0xd8
+  188:  nopl (%rax, %rax)
+  190:  movq %rbx, %rdi
+  193:  movl $0, %esi   <str:"k">
+  198:  callq lua_pushstring+0
+  19d:  movl $0, %edx   <str:"__mode">
+  1a2:  movq %rbx, %rdi
+  1a5:  movl $0xfffffffe, %esi
+  1aa:  callq lua_setfield+0
+  1af:  movq %rbx, %rdi
+  1b2:  movl $0xffffffff, %esi
+  1b7:  callq lua_pushvalue+0
+  1bc:  movl $0xfffffffe, %esi
+  1c1:  movq %rbx, %rdi
+  1c4:  callq lua_setmetatable+0
+  1c9:  jmp 0xf2
+  1ce:  nop
+  1d0:  movl $1, %esi
+  1d5:  movq %rbx, %rdi
+  1d8:  movl $2, %r13d
+  1de:  movl $1, %ebp
+  1e3:  callq lua_tothread+0
+  1e8:  movq %rax, %r12
+  1eb:  jmp 0x2f

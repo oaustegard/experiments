@@ -1,0 +1,37 @@
+# luaK_numberK  (static, 142 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  xorl %esi, %esi
+    3:  movq %rdi, %rbx
+    6:  subq $0x40, %rsp
+    a:  leaq 0x18(%rsp), %rdi
+    f:  movsd %xmm0, 0x20(%rsp)
+   15:  movsd %xmm0, 8(%rsp)
+   1b:  movb $0x13, 0x28(%rsp)
+   20:  callq luaV_flttointeger+0
+   25:  movsd 8(%rsp), %xmm0
+   2b:  testl %eax, %eax
+   2d:  je 0x78
+   2f:  cmpq $0, 0x18(%rsp)
+   35:  movsd (%rip), %xmm1   <cst:000000000000b03c>
+   3d:  jne 0x68
+   3f:  leaq 0x20(%rsp), %rdx
+   44:  leaq 0x30(%rsp), %rsi
+   49:  movq %rbx, %rdi
+   4c:  movb $0x13, 0x38(%rsp)
+   51:  movsd %xmm1, 0x30(%rsp)
+   57:  callq fn:addk+0
+   5c:  addq $0x40, %rsp
+   60:  popq %rbx
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  mulsd %xmm0, %xmm1
+   6c:  addsd %xmm0, %xmm1
+   70:  jmp 0x3f
+   72:  nopw (%rax, %rax)
+   78:  leaq 0x20(%rsp), %rdx
+   7d:  movq %rbx, %rdi
+   80:  movq %rdx, %rsi
+   83:  callq fn:addk+0
+   88:  addq $0x40, %rsp
+   8c:  popq %rbx
+   8d:  retq

@@ -1,0 +1,56 @@
+# font_close  (global, 244 bytes, 55 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl 0xaa0(%rdi), %edi
+    f:  testl %edi, %edi
+   11:  jle 0x3c
+   13:  xorl %ebp, %ebp
+   15:  nopl (%rax)
+   18:  movq 0xa98(%rbx), %rsi
+   1f:  leaq (%rbp, %rbp, 2), %rax
+   24:  addq $1, %rbp
+   28:  leaq (%rsi, %rax, 8), %rax
+   2c:  movq (%rax), %rdi
+   2f:  callq free+0
+   34:  cmpl %ebp, 0xaa0(%rbx)
+   3a:  jg 0x18
+   3c:  movl 0xab0(%rbx), %ecx
+   42:  testl %ecx, %ecx
+   44:  jle 0x74
+   46:  xorl %ebp, %ebp
+   48:  nopl (%rax, %rax)
+   50:  movq 0xaa8(%rbx), %rdx
+   57:  leaq (%rbp, %rbp, 2), %rax
+   5c:  addq $1, %rbp
+   60:  leaq (%rdx, %rax, 8), %rax
+   64:  movq (%rax), %rdi
+   67:  callq free+0
+   6c:  cmpl %ebp, 0xab0(%rbx)
+   72:  jg 0x50
+   74:  movq 0x78(%rbx), %rdi
+   78:  callq dict_free+0
+   7d:  movq 0x80(%rbx), %rdi
+   84:  callq dict_free+0
+   89:  movq 0x88(%rbx), %rdi
+   90:  callq dict_free+0
+   95:  movq 0xab8(%rbx), %rdi
+   9c:  callq iset_free+0
+   a1:  movq 0xac0(%rbx), %rdi
+   a8:  callq iset_free+0
+   ad:  movq 0xac8(%rbx), %rdi
+   b4:  callq iset_free+0
+   b9:  movq 0xad0(%rbx), %rdi
+   c0:  callq iset_free+0
+   c5:  movq 0xa98(%rbx), %rdi
+   cc:  callq free+0
+   d1:  movq 0xaa8(%rbx), %rdi
+   d8:  callq free+0
+   dd:  movq 0x68(%rbx), %rdi
+   e1:  callq free+0
+   e6:  addq $8, %rsp
+   ea:  movq %rbx, %rdi
+   ed:  popq %rbx
+   ee:  popq %rbp
+   ef:  jmp free+0

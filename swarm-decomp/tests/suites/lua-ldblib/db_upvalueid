@@ -1,0 +1,34 @@
+# db_upvalueid  (static, 108 bytes, 33 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq luaL_checkinteger+0
+   13:  movl $6, %edx
+   18:  movl $1, %esi
+   1d:  movq %rbx, %rdi
+   20:  movq %rax, %rbp
+   23:  callq luaL_checktype+0
+   28:  movl %ebp, %edx
+   2a:  movl $1, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq lua_upvalueid+0
+   37:  testq %rax, %rax
+   3a:  je 0x58
+   3c:  movq %rax, %rsi
+   3f:  movq %rbx, %rdi
+   42:  callq lua_pushlightuserdata+0
+   47:  addq $8, %rsp
+   4b:  movl $1, %eax
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  movq %rbx, %rdi
+   5b:  callq lua_pushnil+0
+   60:  addq $8, %rsp
+   64:  movl $1, %eax
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq

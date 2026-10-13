@@ -1,0 +1,68 @@
+# toutf8  (static, 198 bytes, 67 instructions)
+    0:  pushq %r14
+    2:  movl %ecx, %r14d
+    5:  pushq %r13
+    7:  pushq %r12
+    9:  pushq %rbp
+    a:  movq %rsi, %rbp
+    d:  pushq %rbx
+    e:  movq %rdx, %rbx
+   11:  testq %rdi, %rdi
+   14:  je 0xb0
+   1a:  movq %rdi, %rsi
+   1d:  movq %rdi, %r12
+   20:  movl $0, %edi   <str:"windows-1256">
+   25:  callq strcmp+0
+   2a:  movq %r12, %rsi
+   2d:  movl $0, %edi   <str:"iso-8859-6">
+   32:  movl %eax, %r13d
+   35:  callq strcmp+0
+   3a:  testl %r13d, %r13d
+   3d:  jne 0xa0
+   3f:  testl %eax, %eax
+   41:  movl $0, %r12d   <var:iso8859_6+0>
+   47:  movl $0, %eax   <var:cp1256+0>
+   4c:  cmovneq %rax, %r12
+   50:  movslq %r14d, %r13
+   53:  addq %rbx, %r13
+   56:  testl %r14d, %r14d
+   59:  jg 0x74
+   5b:  jmp 0x94
+   5d:  nopl (%rax)
+   60:  movq %rax, %rsi
+   63:  movq %rbp, %rdi
+   66:  addq $1, %rbx
+   6a:  callq sbuf_str+0
+   6f:  cmpq %rbx, %r13
+   72:  je 0x94
+   74:  movzbl (%rbx), %eax
+   77:  movq %rax, %rsi
+   7a:  movq (%r12, %rax, 8), %rax
+   7e:  testq %rax, %rax
+   81:  jne 0x60
+   83:  movq %rbp, %rdi
+   86:  addq $1, %rbx
+   8a:  callq sbuf_chr+0
+   8f:  cmpq %rbx, %r13
+   92:  jne 0x74
+   94:  popq %rbx
+   95:  popq %rbp
+   96:  popq %r12
+   98:  popq %r13
+   9a:  popq %r14
+   9c:  retq
+   9d:  nopl (%rax)
+   a0:  testl %eax, %eax
+   a2:  jne 0xb0
+   a4:  movl $0, %r12d   <var:iso8859_6+0>
+   aa:  jmp 0x50
+   ac:  nopl (%rax)
+   b0:  movl %r14d, %edx
+   b3:  movq %rbx, %rsi
+   b6:  movq %rbp, %rdi
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  popq %r12
+   bd:  popq %r13
+   bf:  popq %r14
+   c1:  jmp sbuf_mem+0

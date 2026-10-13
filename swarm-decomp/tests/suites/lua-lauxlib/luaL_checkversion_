@@ -1,0 +1,35 @@
+# luaL_checkversion_  (global, 110 bytes, 34 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $0x18, %rsp
+    c:  movsd %xmm0, 8(%rsp)
+   12:  callq lua_version+0
+   17:  cmpq $0x88, %rbp
+   1e:  jne 0x38
+   20:  ucomisd 8(%rsp), %xmm0
+   26:  movapd %xmm0, %xmm1
+   2a:  jp 0x50
+   2c:  jne 0x50
+   2e:  addq $0x18, %rsp
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  retq
+   35:  nopl (%rax)
+   38:  addq $0x18, %rsp
+   3c:  movq %rbx, %rdi
+   3f:  movl $0, %esi   <str:"core and library have incompatible numeric types">
+   44:  xorl %eax, %eax
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  jmp luaL_error+0
+   4d:  nopl (%rax)
+   50:  movsd 8(%rsp), %xmm0
+   56:  addq $0x18, %rsp
+   5a:  movq %rbx, %rdi
+   5d:  movl $0, %esi   <str:"version mismatch: app. needs %f, Lua core provides %f">
+   62:  popq %rbx
+   63:  movl $2, %eax
+   68:  popq %rbp
+   69:  jmp luaL_error+0

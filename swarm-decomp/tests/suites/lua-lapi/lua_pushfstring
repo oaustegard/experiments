@@ -1,0 +1,37 @@
+# lua_pushfstring  (global, 183 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0xe0, %rsp
+    b:  movq %rdx, 0x40(%rsp)
+   10:  movq %rcx, 0x48(%rsp)
+   15:  movq %r8, 0x50(%rsp)
+   1a:  movq %r9, 0x58(%rsp)
+   1f:  testb %al, %al
+   21:  je 0x5d
+   23:  movaps %xmm0, 0x60(%rsp)
+   28:  movaps %xmm1, 0x70(%rsp)
+   2d:  movaps %xmm2, 0x80(%rsp)
+   35:  movaps %xmm3, 0x90(%rsp)
+   3d:  movaps %xmm4, 0xa0(%rsp)
+   45:  movaps %xmm5, 0xb0(%rsp)
+   4d:  movaps %xmm6, 0xc0(%rsp)
+   55:  movaps %xmm7, 0xd0(%rsp)
+   5d:  leaq 0xf0(%rsp), %rax
+   65:  leaq 0x18(%rsp), %rdx
+   6a:  movq %rbx, %rdi
+   6d:  movl $0x10, 0x18(%rsp)
+   75:  movq %rax, 0x20(%rsp)
+   7a:  leaq 0x30(%rsp), %rax
+   7f:  movl $0x30, 0x1c(%rsp)
+   87:  movq %rax, 0x28(%rsp)
+   8c:  callq luaO_pushvfstring+0
+   91:  movq 0x18(%rbx), %rdx
+   95:  cmpq $0, 0x18(%rdx)
+   9a:  jle 0xae
+   9c:  movq %rbx, %rdi
+   9f:  movq %rax, 8(%rsp)
+   a4:  callq luaC_step+0
+   a9:  movq 8(%rsp), %rax
+   ae:  addq $0xe0, %rsp
+   b5:  popq %rbx
+   b6:  retq

@@ -1,0 +1,31 @@
+# outpage  (global, 160 bytes, 30 instructions)
+    0:  subq $8, %rsp
+    4:  movl (%rip), %eax   <var:o_qtype+0>
+    a:  cmpl $1, %eax
+    d:  je 0x60
+    f:  cmpl $2, %eax
+   12:  je 0x83
+   14:  movl $0, (%rip)   <var:o_qtype+0>
+   1e:  movl $0, (%rip)   <var:o_v+0>
+   28:  movl $0, (%rip)   <var:o_h+0>
+   32:  movl $0, (%rip)   <var:p_s+0>
+   3c:  movl $0, (%rip)   <var:p_f+0>
+   46:  movl $0, (%rip)   <var:p_m+0>
+   50:  movl $0, (%rip)   <var:o_rdeg+0>
+   5a:  addq $8, %rsp
+   5e:  retq
+   5f:  nop
+   60:  movl (%rip), %edx   <var:o_qv+0>
+   66:  movl (%rip), %esi   <var:o_qh+0>
+   6c:  xorl %eax, %eax
+   6e:  movl $0, %edi   <str:") %d %d w\n">
+   73:  callq fn:outf+0
+   78:  movl (%rip), %eax   <var:o_qtype+0>
+   7e:  cmpl $2, %eax
+   81:  jne 0x14
+   83:  movl (%rip), %edx   <var:o_qv+0>
+   89:  movl (%rip), %esi   <var:o_qh+0>
+   8f:  movl $0, %edi   <str:"] %d %d g\n">
+   94:  xorl %eax, %eax
+   96:  callq fn:outf+0
+   9b:  jmp 0x14

@@ -1,0 +1,24 @@
+# luaY_nvarstack  (global, 72 bytes, 23 instructions)
+    0:  movzbl 0x42(%rdi), %edx
+    4:  subl $1, %edx
+    7:  jmp 0x33
+    9:  nopl (%rax)
+   10:  movq 0x10(%rdi), %rax
+   14:  movq 0x58(%rax), %rsi
+   18:  movl 0x38(%rdi), %eax
+   1b:  addl %edx, %eax
+   1d:  subl $1, %edx
+   20:  cltq
+   22:  leaq (%rax, %rax, 2), %rcx
+   26:  movq (%rsi), %rax
+   29:  leaq (%rax, %rcx, 8), %rax
+   2d:  cmpb $3, 9(%rax)
+   31:  jne 0x40
+   33:  cmpl $-1, %edx
+   36:  jne 0x10
+   38:  xorl %eax, %eax
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movzbl 0xa(%rax), %eax
+   44:  addl $1, %eax
+   47:  retq

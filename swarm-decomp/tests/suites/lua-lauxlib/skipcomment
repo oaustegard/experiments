@@ -1,0 +1,45 @@
+# skipcomment  (static, 137 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq getc+0
+   11:  cmpl $0xef, %eax
+   16:  je 0x50
+   18:  movl %eax, (%rbp)
+   1b:  cmpl $0x23, %eax
+   1e:  jne 0x66
+   20:  movq %rbx, %rdi
+   23:  callq getc+0
+   28:  cmpl $-1, %eax
+   2b:  je 0x32
+   2d:  cmpl $0xa, %eax
+   30:  jne 0x20
+   32:  movq %rbx, %rdi
+   35:  callq getc+0
+   3a:  movl %eax, (%rbp)
+   3d:  addq $8, %rsp
+   41:  movl $1, %eax
+   46:  popq %rbx
+   47:  popq %rbp
+   48:  retq
+   49:  nopl (%rax)
+   50:  movq %rbx, %rdi
+   53:  callq getc+0
+   58:  cmpl $0xbb, %eax
+   5d:  je 0x70
+   5f:  movl $0xef, (%rbp)
+   66:  addq $8, %rsp
+   6a:  xorl %eax, %eax
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  retq
+   6f:  nop
+   70:  movq %rbx, %rdi
+   73:  callq getc+0
+   78:  cmpl $0xbf, %eax
+   7d:  jne 0x5f
+   7f:  movq %rbx, %rdi
+   82:  callq getc+0
+   87:  jmp 0x18

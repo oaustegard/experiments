@@ -1,0 +1,72 @@
+# f_parser  (static, 249 bytes, 71 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  movq %rsi, %rbx
+    c:  subq $8, %rsp
+   10:  movq (%rsi), %rdi
+   13:  movq (%rdi), %rax
+   16:  leaq -1(%rax), %rdx
+   1a:  movq %rdx, (%rdi)
+   1d:  testq %rax, %rax
+   20:  je 0xc0
+   26:  movq 8(%rdi), %rax
+   2a:  leaq 1(%rax), %rdx
+   2e:  movq %rdx, 8(%rdi)
+   32:  movzbl (%rax), %r12d
+   36:  movq 0x50(%rbx), %r13
+   3a:  cmpl $0x1b, %r12d
+   3e:  je 0x90
+   40:  testq %r13, %r13
+   43:  je 0x57
+   45:  movl $0x74, %esi
+   4a:  movq %r13, %rdi
+   4d:  callq strchr+0
+   52:  testq %rax, %rax
+   55:  je 0xcd
+   57:  movq (%rbx), %rsi
+   5a:  movq 0x58(%rbx), %r8
+   5e:  leaq 0x20(%rbx), %rcx
+   62:  leaq 8(%rbx), %rdx
+   66:  movl %r12d, %r9d
+   69:  movq %rbp, %rdi
+   6c:  callq luaY_parser+0
+   71:  movq %rax, %rsi
+   74:  addq $8, %rsp
+   78:  movq %rbp, %rdi
+   7b:  popq %rbx
+   7c:  popq %rbp
+   7d:  popq %r12
+   7f:  popq %r13
+   81:  jmp luaF_initupvals+0
+   86:  nopw %cs:(%rax, %rax)
+   90:  testq %r13, %r13
+   93:  je 0xa7
+   95:  movl $0x62, %esi
+   9a:  movq %r13, %rdi
+   9d:  callq strchr+0
+   a2:  testq %rax, %rax
+   a5:  je 0xef
+   a7:  movq (%rbx), %rsi
+   aa:  movq 0x58(%rbx), %rdx
+   ae:  movq %rbp, %rdi
+   b1:  callq luaU_undump+0
+   b6:  movq %rax, %rsi
+   b9:  jmp 0x74
+   bb:  nopl (%rax, %rax)
+   c0:  callq luaZ_fill+0
+   c5:  movl %eax, %r12d
+   c8:  jmp 0x36
+   cd:  movq %r13, %rcx
+   d0:  movl $0, %edx   <str:"text">
+   d5:  movl $0, %esi   <str:"attempt to load a %s chunk (mode is '%s')">
+   da:  movq %rbp, %rdi
+   dd:  callq luaO_pushfstring+0
+   e2:  movl $3, %esi
+   e7:  movq %rbp, %rdi
+   ea:  callq luaD_throw+0
+   ef:  movq %r13, %rcx
+   f2:  movl $0, %edx   <str:"binary">
+   f7:  jmp 0xd5

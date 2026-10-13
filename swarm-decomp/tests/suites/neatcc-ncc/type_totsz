@@ -1,0 +1,35 @@
+# type_totsz  (static, 119 bytes, 34 instructions)
+    0:  movl 8(%rdi), %ecx
+    3:  testl %ecx, %ecx
+    5:  jne 0x71
+    7:  movq (%rip), %rcx   <var:arrays+0>
+    e:  movl $1, %eax
+   13:  jmp 0x2f
+   15:  nopl (%rax)
+   18:  movslq 0xc(%rdi), %rdx
+   1c:  leaq (%rdx, %rdx, 2), %rdx
+   20:  leaq (%rcx, %rdx, 8), %rdi
+   24:  movl 8(%rdi), %edx
+   27:  imull 0x14(%rdi), %eax
+   2b:  testl %edx, %edx
+   2d:  jne 0x60
+   2f:  movl 4(%rdi), %edx
+   32:  testb $1, %dl
+   35:  jne 0x18
+   37:  andl $2, %edx
+   3a:  je 0x68
+   3c:  movslq 0xc(%rdi), %rdx
+   40:  imulq $0x9090, %rdx, %rdx
+   47:  addq (%rip), %rdx   <var:structs+0>
+   4e:  imull 0x9088(%rdx), %eax
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  shll $3, %eax
+   63:  retq
+   64:  nopl (%rax)
+   68:  movl (%rdi), %edx
+   6a:  andl $0xf, %edx
+   6d:  imull %edx, %eax
+   70:  retq
+   71:  movl $8, %eax
+   76:  retq

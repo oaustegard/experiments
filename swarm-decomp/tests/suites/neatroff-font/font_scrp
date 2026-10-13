@@ -1,0 +1,10 @@
+# font_scrp  (global, 27 bytes, 9 instructions)
+    0:  pushq %rbx
+    1:  movl $0xffffffff, %eax
+    6:  movq %rdi, %rbx
+    9:  testq %rsi, %rsi
+    c:  je 0x13
+    e:  callq fn:font_findscrp+0
+   13:  movl %eax, 0x890(%rbx)
+   19:  popq %rbx
+   1a:  retq

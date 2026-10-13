@@ -1,0 +1,22 @@
+# mem_putc  (global, 59 bytes, 21 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movq 0x10(%rdi), %rax
+    f:  leaq 2(%rax), %rdx
+   13:  cmpq 8(%rdi), %rdx
+   17:  jge 0x30
+   19:  movq (%rbx), %rdx
+   1c:  leaq 1(%rax), %rcx
+   20:  movq %rcx, 0x10(%rbx)
+   24:  movb %bpl, (%rdx, %rax)
+   28:  addq $8, %rsp
+   2c:  popq %rbx
+   2d:  popq %rbp
+   2e:  retq
+   2f:  nop
+   30:  callq fn:mem_extend+0
+   35:  movq 0x10(%rbx), %rax
+   39:  jmp 0x19

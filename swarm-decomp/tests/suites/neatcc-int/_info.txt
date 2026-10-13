@@ -1,0 +1,62 @@
+# neatcc-int: translation unit int of neatcc
+# write each function as src/neatcc/int/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+ic_load	static	104 bytes
+ic_put	static	183 bytes
+o_num	global	159 bytes
+o_local	global	159 bytes
+o_sym	global	171 bytes
+o_tmpdrop	global	35 bytes
+o_tmpswap	global	30 bytes
+o_tmpcopy	global	35 bytes
+o_memcpy	global	164 bytes
+o_memset	global	164 bytes
+o_ret	global	191 bytes
+o_label	global	172 bytes
+o_jmp	global	132 bytes
+o_jz	global	357 bytes
+o_mark	global	8 bytes
+o_back	global	96 bytes
+ic_free	global	25 bytes
+ic_num	global	724 bytes
+ic_off	static	302 bytes
+io_loc.isra.0	static	486 bytes
+o_deref	global	81 bytes
+o_assign	global	257 bytes
+o_popnum	global	74 bytes
+io_num.isra.0	static	95 bytes
+o_bop	global	1928 bytes
+o_cast	global	97 bytes
+o_uop	global	178 bytes
+ic_sym	global	277 bytes
+o_popsym	global	82 bytes
+o_call	global	473 bytes
+ic_regcnt	global	139 bytes
+ic_get	global	1051 bytes
+ic_lastuse	global	293 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+ic	static	8 bytes	.bss.ic
+    (zero-initialised)
+ic_n	static	8 bytes	.bss.ic_n
+    (zero-initialised)
+ic_sz	static	8 bytes	.bss.ic_sz
+    (zero-initialised)
+iv_n	static	8 bytes	.bss.iv_n
+    (zero-initialised)
+iv	static	512 bytes	.bss.iv
+    (zero-initialised)
+lab_sz	static	8 bytes	.bss.lab_sz
+    (zero-initialised)
+lab_loc	static	8 bytes	.bss.lab_loc
+    (zero-initialised)
+lab_n	static	8 bytes	.bss.lab_n
+    (zero-initialised)
+lab_last	static	8 bytes	.bss.lab_last
+    (zero-initialised)
+cond.0	static	24 bytes	.rodata.cond.0
+        0: 05 00 00 00 04 00 00 00 02 00 00 00 03 00 00 00 01 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+calloc free i_imm i_reg malloc memcpy memset mextend opt out_sym

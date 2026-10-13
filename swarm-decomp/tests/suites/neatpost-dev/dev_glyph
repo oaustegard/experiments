@@ -1,0 +1,24 @@
+# dev_glyph  (global, 79 bytes, 23 instructions)
+    0:  pushq %rbp
+    1:  movl $4, %edx
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movslq %esi, %rbx
+    d:  movq %rdi, %rsi
+   10:  movl $0, %edi   <str:"GID=">
+   15:  subq $8, %rsp
+   19:  callq strncmp+0
+   1e:  movq (, %rbx, 8), %rdi   <var:fn_font+0>
+   26:  testl %eax, %eax
+   28:  je 0x40
+   2a:  addq $8, %rsp
+   2e:  movq %rbp, %rsi
+   31:  popq %rbx
+   32:  popq %rbp
+   33:  jmp font_find+0
+   38:  nopl (%rax, %rax)
+   40:  addq $8, %rsp
+   44:  leaq 4(%rbp), %rsi
+   48:  popq %rbx
+   49:  popq %rbp
+   4a:  jmp font_glyph+0

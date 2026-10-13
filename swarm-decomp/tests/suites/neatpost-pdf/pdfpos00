@@ -1,0 +1,53 @@
+# pdfpos00  (static, 183 bytes, 52 instructions)
+    0:  movslq %edi, %rdi
+    3:  subq $8, %rsp
+    7:  movslq %esi, %rsi
+    a:  movl $0, %r11d   <str:"-">
+   10:  leaq (%rdi, %rdi, 8), %rax
+   14:  movslq (%rip), %r8   <dev_res+0>
+   1b:  movq %r11, %r9
+   1e:  shlq $3, %rax
+   22:  imull $0x64, (%rip), %ecx   <var:pdf_height+0>
+   29:  cqto
+   2b:  idivq %r8
+   2e:  movq %rax, %rdi
+   31:  leaq (%rsi, %rsi, 8), %rax
+   35:  shlq $3, %rax
+   39:  cqto
+   3b:  idivq %r8
+   3e:  movl %edi, %r8d
+   41:  subl %eax, %ecx
+   43:  movl %ecx, %edx
+   45:  negl %edx
+   47:  cmovsl %ecx, %edx
+   4a:  movl %edx, %eax
+   4c:  imulq $0x51eb851f, %rax, %rax
+   53:  movq %rax, %rsi
+   56:  shrq $0x25, %rax
+   5a:  shrq $0x25, %rsi
+   5e:  imull $0x64, %esi, %esi
+   61:  subl %esi, %edx
+   63:  testl %ecx, %ecx
+   65:  movl %edx, %r10d
+   68:  movl $0, %edx   <str:"">
+   6d:  cmovnsq %rdx, %r9
+   71:  negl %r8d
+   74:  pushq %r10
+   76:  cmovsl %edi, %r8d
+   7a:  pushq %rax
+   7b:  movl %r8d, %ecx
+   7e:  imulq $0x51eb851f, %rcx, %rcx
+   85:  movq %rcx, %rsi
+   88:  shrq $0x25, %rcx
+   8c:  shrq $0x25, %rsi
+   90:  imull $0x64, %esi, %esi
+   93:  testl %edi, %edi
+   95:  movl $0, %edi   <var:buf+0>
+   9a:  cmovsq %r11, %rdx
+   9e:  xorl %eax, %eax
+   a0:  subl %esi, %r8d
+   a3:  movl $0, %esi   <str:"%s%d.%02d %s%d.%02d">
+   a8:  callq sprintf+0
+   ad:  movl $0, %eax   <var:buf+0>
+   b2:  addq $0x18, %rsp
+   b6:  retq

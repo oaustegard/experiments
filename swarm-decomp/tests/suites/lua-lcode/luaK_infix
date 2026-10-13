@@ -1,0 +1,78 @@
+# luaK_infix  (global, 235 bytes, 77 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movq %rdx, %rbp
+    9:  pushq %rbx
+    a:  movl %esi, %ebx
+    c:  movq %rdx, %rsi
+    f:  subq $0x10, %rsp
+   13:  callq luaK_dischargevars+0
+   18:  cmpl $0x14, %ebx
+   1b:  ja 0x3e
+   1d:  jmpq *(, %rbx, 8)   <var:luaK_infix+0>
+   24:  nopl (%rax)
+   28:  leaq 0xc(%rsp), %rdx
+   2d:  leaq 8(%rsp), %rsi
+   32:  movq %rbp, %rdi
+   35:  callq fn:isSCnumber+0
+   3a:  testl %eax, %eax
+   3c:  je 0x63
+   3e:  addq $0x10, %rsp
+   42:  popq %rbx
+   43:  popq %rbp
+   44:  popq %r12
+   46:  retq
+   47:  nopw (%rax, %rax)
+   50:  movl 0x14(%rbp), %eax
+   53:  cmpl %eax, 0x10(%rbp)
+   56:  jne 0x63
+   58:  movl (%rbp), %eax
+   5b:  subl $5, %eax
+   5e:  cmpl $1, %eax
+   61:  jbe 0x3e
+   63:  addq $0x10, %rsp
+   67:  movq %rbp, %rsi
+   6a:  movq %r12, %rdi
+   6d:  popq %rbx
+   6e:  popq %rbp
+   6f:  popq %r12
+   71:  jmp luaK_exp2anyreg+0
+   76:  nopw %cs:(%rax, %rax)
+   80:  movl 0x14(%rbp), %eax
+   83:  cmpl %eax, 0x10(%rbp)
+   86:  jne 0x93
+   88:  movl (%rbp), %eax
+   8b:  subl $5, %eax
+   8e:  cmpl $1, %eax
+   91:  jbe 0x3e
+   93:  movq %rbp, %rsi
+   96:  movq %r12, %rdi
+   99:  callq fn:luaK_exp2K+0
+   9e:  testl %eax, %eax
+   a0:  jne 0x3e
+   a2:  jmp 0x63
+   a4:  nopl (%rax)
+   a8:  addq $0x10, %rsp
+   ac:  movq %rbp, %rsi
+   af:  movq %r12, %rdi
+   b2:  popq %rbx
+   b3:  popq %rbp
+   b4:  popq %r12
+   b6:  jmp luaK_goiffalse+0
+   bb:  nopl (%rax, %rax)
+   c0:  addq $0x10, %rsp
+   c4:  movq %rbp, %rsi
+   c7:  movq %r12, %rdi
+   ca:  popq %rbx
+   cb:  popq %rbp
+   cc:  popq %r12
+   ce:  jmp luaK_exp2nextreg+0
+   d3:  nopl (%rax, %rax)
+   d8:  addq $0x10, %rsp
+   dc:  movq %rbp, %rsi
+   df:  movq %r12, %rdi
+   e2:  popq %rbx
+   e3:  popq %rbp
+   e4:  popq %r12
+   e6:  jmp luaK_goiftrue+0

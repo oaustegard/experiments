@@ -1,0 +1,29 @@
+# in_lf  (global, 98 bytes, 28 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  subq $8, %rsp
+    8:  movq (%rip), %rbx   <var:buf+0>
+    f:  testq %rbx, %rbx
+   12:  jne 0x2c
+   14:  jmp 0x36
+   16:  nopw %cs:(%rax, %rax)
+   20:  movq 0x4b0(%rbx), %rbx
+   27:  testq %rbx, %rbx
+   2a:  je 0x36
+   2c:  cmpq $0, 0x400(%rbx)
+   34:  je 0x20
+   36:  testq %rdi, %rdi
+   39:  je 0x52
+   3b:  movq %rdi, %rcx
+   3e:  movl $0, %edx   <str:"%s">
+   43:  movl $0x400, %esi
+   48:  movq %rbx, %rdi
+   4b:  xorl %eax, %eax
+   4d:  callq snprintf+0
+   52:  subl $1, %ebp
+   55:  movl %ebp, 0x4a8(%rbx)
+   5b:  addq $8, %rsp
+   5f:  popq %rbx
+   60:  popq %rbp
+   61:  retq

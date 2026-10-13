@@ -1,0 +1,21 @@
+# math_pow  (static, 73 bytes, 20 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  subq $8, %rsp
+    f:  callq luaL_checknumber+0
+   14:  movq %rbx, %rdi
+   17:  movl $2, %esi
+   1c:  movq %xmm0, %r14
+   21:  callq luaL_checknumber+0
+   26:  movapd %xmm0, %xmm1
+   2a:  movq %r14, %xmm0
+   2f:  callq pow+0
+   34:  movq %rbx, %rdi
+   37:  callq lua_pushnumber+0
+   3c:  addq $8, %rsp
+   40:  movl $1, %eax
+   45:  popq %rbx
+   46:  popq %r14
+   48:  retq

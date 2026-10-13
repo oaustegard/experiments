@@ -1,0 +1,80 @@
+# readfield  (static, 334 bytes, 79 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  subq $0x20, %rsp
+    8:  movl (%rip), %eax   <var:nts+0>
+    e:  subl $1, %eax
+   11:  movl %eax, (%rip)   <var:nts+0>
+   17:  cltq
+   19:  leaq (%rax, %rax, 4), %rax
+   1d:  shlq $2, %rax
+   21:  movdqu (%rax), %xmm0   <var:ts+0>
+   29:  movl (%rax), %eax   <var:ts+16>
+   2f:  movaps %xmm0, (%rsp)
+   33:  movl %eax, 0x10(%rsp)
+   37:  testb $1, 4(%rsp)
+   3c:  je 0x4a
+   3e:  movl 8(%rsp), %eax
+   42:  testl %eax, %eax
+   44:  je 0x108
+   4a:  callq tok_get+0
+   4f:  movslq 0xc(%rsp), %rbx
+   54:  movq %rax, %r12
+   57:  imulq $0x9090, %rbx, %rbx
+   5e:  addq (%rip), %rbx   <var:structs+0>
+   65:  movslq 0x9080(%rbx), %rax
+   6c:  testl %eax, %eax
+   6e:  jle 0x135
+   74:  leaq (%rax, %rax, 8), %rbp
+   78:  subq $-0x80, %rbx
+   7c:  shlq $5, %rbp
+   80:  addq %rbx, %rbp
+   83:  jmp 0x98
+   85:  nopl (%rax)
+   88:  addq $0x120, %rbx
+   8f:  cmpq %rbx, %rbp
+   92:  je 0x135
+   98:  movq %rbx, %rsi
+   9b:  movq %r12, %rdi
+   9e:  callq strcmp+0
+   a3:  testl %eax, %eax
+   a5:  jne 0x88
+   a7:  movq 0x118(%rbx), %rdi
+   ae:  testq %rdi, %rdi
+   b1:  jne 0xf0
+   b3:  movslq (%rip), %rax   <var:nts+0>
+   ba:  movdqu 0x100(%rbx), %xmm1
+   c2:  leal 1(%rax), %edx
+   c5:  leaq (%rax, %rax, 4), %rax
+   c9:  shlq $2, %rax
+   cd:  movl %edx, (%rip)   <var:nts+0>
+   d3:  movl $1, (%rax)   <var:ts+16>
+   dd:  movups %xmm1, (%rax)   <var:ts+0>
+   e4:  addq $0x20, %rsp
+   e8:  popq %rbx
+   e9:  popq %rbp
+   ea:  popq %r12
+   ec:  retq
+   ed:  nopl (%rax)
+   f0:  callq o_num+0
+   f5:  movl $0x10, %edi
+   fa:  callq o_bop+0
+   ff:  jmp 0xb3
+  101:  nopl (%rax)
+  108:  movslq 0xc(%rsp), %rax
+  10d:  leaq (%rax, %rax, 2), %rdx
+  111:  movq (%rip), %rax   <var:arrays+0>
+  118:  leaq (%rax, %rdx, 8), %rax
+  11c:  movdqu (%rax), %xmm2
+  120:  movl 0x10(%rax), %eax
+  123:  movaps %xmm2, (%rsp)
+  127:  movl %eax, 0x10(%rsp)
+  12b:  addl $1, 8(%rsp)
+  130:  jmp 0x4a
+  135:  xorl %eax, %eax
+  137:  movq %r12, %rsi
+  13a:  movl $0, %edi   <str:"unknown field <%s>\n">
+  13f:  callq err+0
+  144:  movq 0x118, %rax
+  14c:  ud2

@@ -1,0 +1,35 @@
+# luaK_code  (global, 107 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  movl $0x7fffffff, %r9d
+    b:  movl $4, %r8d
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  movq (%rdi), %rbp
+   16:  movq %rdi, %rbx
+   19:  movq 0x10(%rdi), %rax
+   1d:  movl 0x20(%rdi), %edx
+   20:  movq 0x40(%rbp), %rsi
+   24:  leaq 0x18(%rbp), %rcx
+   28:  subq $8, %rsp
+   2c:  movq 0x38(%rax), %rdi
+   30:  pushq $0   <str:"opcodes">
+   35:  callq luaM_growaux_+0
+   3a:  movslq 0x20(%rbx), %rdx
+   3e:  movq %rbp, %rsi
+   41:  movq %rbx, %rdi
+   44:  movq %rax, 0x40(%rbp)
+   48:  leal 1(%rdx), %ecx
+   4b:  movl %ecx, 0x20(%rbx)
+   4e:  movl %r12d, (%rax, %rdx, 4)
+   52:  movq 0x10(%rbx), %rax
+   56:  movl 8(%rax), %edx
+   59:  callq fn:savelineinfo+0
+   5e:  movl 0x20(%rbx), %eax
+   61:  popq %rdx
+   62:  popq %rcx
+   63:  popq %rbx
+   64:  subl $1, %eax
+   67:  popq %rbp
+   68:  popq %r12
+   6a:  retq

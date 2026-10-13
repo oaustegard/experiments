@@ -1,0 +1,23 @@
+# drawc  (global, 59 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  movl %edi, %esi
+    3:  pushq %rbx
+    4:  movl %edi, %ebx
+    6:  movl %ebx, %ebp
+    8:  negl %ebp
+    a:  subq $8, %rsp
+    e:  callq fn:drawquad+0
+   13:  movl %ebp, %esi
+   15:  movl %ebx, %edi
+   17:  callq fn:drawquad+0
+   1c:  movl %ebp, %esi
+   1e:  movl %ebp, %edi
+   20:  callq fn:drawquad+0
+   25:  movl %ebx, %esi
+   27:  movl %ebp, %edi
+   29:  callq fn:drawquad+0
+   2e:  addl %ebx, (%rip)   <var:o_h+0>
+   34:  addq $8, %rsp
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  retq

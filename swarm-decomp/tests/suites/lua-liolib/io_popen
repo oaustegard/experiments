@@ -1,0 +1,66 @@
+# io_popen  (static, 222 bytes, 65 instructions)
+    0:  pushq %r13
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $8, %rsp
+   14:  callq luaL_checklstring+0
+   19:  xorl %ecx, %ecx
+   1b:  movl $0, %edx   <str:"r">
+   20:  movq %rbx, %rdi
+   23:  movl $2, %esi
+   28:  movq %rax, %r13
+   2b:  callq luaL_optlstring+0
+   30:  xorl %edx, %edx
+   32:  movl $0x10, %esi
+   37:  movq %rbx, %rdi
+   3a:  movq %rax, %r12
+   3d:  callq lua_newuserdatauv+0
+   42:  movl $0, %esi   <str:"FILE*">
+   47:  movq %rbx, %rdi
+   4a:  movq $0, 8(%rax)
+   52:  movq %rax, %rbp
+   55:  callq luaL_setmetatable+0
+   5a:  movzbl (%r12), %eax
+   5f:  cmpb $0x72, %al
+   61:  je 0xc0
+   63:  cmpb $0x77, %al
+   65:  je 0xc0
+   67:  movl $0, %edx   <str:"invalid mode">
+   6c:  movl $2, %esi
+   71:  movq %rbx, %rdi
+   74:  callq luaL_argerror+0
+   79:  callq __errno_location+0
+   7e:  xorl %edi, %edi
+   80:  movl $0, (%rax)
+   86:  callq fflush+0
+   8b:  movq %r12, %rsi
+   8e:  movq %r13, %rdi
+   91:  callq popen+0
+   96:  movq $0, 8(%rbp)   <fn:io_pclose+0>
+   9e:  movq %rax, (%rbp)
+   a2:  testq %rax, %rax
+   a5:  je 0xca
+   a7:  addq $8, %rsp
+   ab:  movl $1, %eax
+   b0:  popq %rbx
+   b1:  popq %rbp
+   b2:  popq %r12
+   b4:  popq %r13
+   b6:  retq
+   b7:  nopw (%rax, %rax)
+   c0:  cmpb $0, 1(%r12)
+   c6:  je 0x79
+   c8:  jmp 0x67
+   ca:  popq %rax
+   cb:  movq %r13, %rdx
+   ce:  movq %rbx, %rdi
+   d1:  xorl %esi, %esi
+   d3:  popq %rbx
+   d4:  popq %rbp
+   d5:  popq %r12
+   d7:  popq %r13
+   d9:  jmp luaL_fileresult+0

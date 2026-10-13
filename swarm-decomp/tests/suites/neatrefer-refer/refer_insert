@@ -1,0 +1,25 @@
+# refer_insert  (static, 81 bytes, 24 instructions)
+    0:  testl %esi, %esi
+    2:  jle 0x50
+    4:  pushq %rbp
+    5:  movslq %esi, %rsi
+    8:  pushq %rbx
+    9:  leaq (%rdi, %rsi, 4), %rbp
+    d:  movq %rdi, %rbx
+   10:  subq $8, %rsp
+   14:  nopl (%rax)
+   18:  movl (%rip), %eax   <var:inserted+0>
+   1e:  addq $4, %rbx
+   22:  leal 1(%rax), %esi
+   25:  movslq -4(%rbx), %rax
+   29:  movl %esi, (%rip)   <var:inserted+0>
+   2f:  movq (, %rax, 8), %rdi   <var:cites+0>
+   37:  callq fn:ref_ins+0
+   3c:  cmpq %rbp, %rbx
+   3f:  jne 0x18
+   41:  addq $8, %rsp
+   45:  popq %rbx
+   46:  popq %rbp
+   47:  retq
+   48:  nopl (%rax, %rax)
+   50:  retq

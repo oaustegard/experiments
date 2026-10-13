@@ -1,0 +1,415 @@
+# ren_put  (static, 1580 bytes, 414 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdi, %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rsi, %rbx
+   10:  subq $0x98, %rsp
+   17:  movsbl (%rsi), %ebp
+   1a:  cmpb $0x20, %bpl
+   1e:  je 0xd0
+   24:  cmpb $0xa, %bpl
+   28:  je 0xd0
+   2e:  movl %ebp, %eax
+   30:  movq %rdx, %r13
+   33:  movq %rcx, %r14
+   36:  andl $0xfffffff7, %eax
+   39:  cmpb $1, %al
+   3b:  je 0xf0
+   41:  cmpb $0, (%rip)   <var:c_fa+0>
+   48:  jne 0xa0
+   4a:  cmpl (%rip), %ebp   <c_ec+0>
+   50:  je 0x130
+   56:  movl (%rip), %eax   <var:ren_div+0>
+   5c:  testl %eax, %eax
+   5e:  jne 0x1f0
+   64:  movl $0x66, %edi
+   69:  callq nreg+0
+   6e:  movq %rbx, %rdi
+   71:  movl (%rax), %esi
+   73:  callq cdef_map+0
+   78:  testq %rax, %rax
+   7b:  je 0xd0
+   7d:  addq $0x98, %rsp
+   84:  movq %rbx, %rsi
+   87:  movq %r12, %rdi
+   8a:  popq %rbx
+   8b:  popq %rbp
+   8c:  popq %r12
+   8e:  popq %r13
+   90:  popq %r14
+   92:  popq %r15
+   94:  jmp wb_putexpand+0
+   99:  nopl (%rax)
+   a0:  movl $0, %edi   <var:c_fa+0>
+   a5:  callq strcmp+0
+   aa:  testl %eax, %eax
+   ac:  jne 0x4a
+   ae:  addq $0x98, %rsp
+   b5:  movq %r14, %rdx
+   b8:  movq %r13, %rsi
+   bb:  movq %r12, %rdi
+   be:  popq %rbx
+   bf:  popq %rbp
+   c0:  popq %r12
+   c2:  popq %r13
+   c4:  popq %r14
+   c6:  popq %r15
+   c8:  jmp fn:ren_field+0
+   cd:  nopl (%rax)
+   d0:  addq $0x98, %rsp
+   d7:  movq %rbx, %rsi
+   da:  movq %r12, %rdi
+   dd:  popq %rbx
+   de:  popq %rbp
+   df:  popq %r12
+   e1:  popq %r13
+   e3:  popq %r14
+   e5:  popq %r15
+   e7:  jmp wb_put+0
+   ec:  nopl (%rax)
+   f0:  cmpb $9, %bpl
+   f4:  je 0x120
+   f6:  callq env_lc+0
+   fb:  movq %rax, %rsi
+   fe:  addq $0x98, %rsp
+  105:  movq %r14, %rcx
+  108:  movq %r13, %rdx
+  10b:  movq %r12, %rdi
+  10e:  popq %rbx
+  10f:  popq %rbp
+  110:  popq %r12
+  112:  popq %r13
+  114:  popq %r14
+  116:  popq %r15
+  118:  jmp fn:ren_tab+0
+  11d:  nopl (%rax)
+  120:  callq env_tc+0
+  125:  movq %rax, %rsi
+  128:  jmp 0xfe
+  12a:  nopw (%rax, %rax)
+  130:  movzbl 1(%rbx), %ebp
+  134:  cmpb $0x7a, %bpl
+  138:  je 0x5a0
+  13e:  movsbl %bpl, %r15d
+  142:  movl $0, %edi   <str:" bCcDdefHhjkLlmNoprSsuvXxZz0^|!{}&/,<>">
+  147:  movl %r15d, %esi
+  14a:  callq strchr+0
+  14f:  testq %rax, %rax
+  152:  je 0x56
+  158:  movl %r15d, %esi
+  15b:  movl $0, %edi   <str:"*fgkmns">
+  160:  callq strchr+0
+  165:  movq %rax, 8(%rsp)
+  16a:  testq %rax, %rax
+  16d:  je 0x18a
+  16f:  movl %r15d, %edi
+  172:  movq %r14, %rdx
+  175:  movq %r13, %rsi
+  178:  callq unquotednext+0
+  17d:  movsbl 1(%rbx), %r15d
+  182:  movq %rax, 8(%rsp)
+  187:  movl %r15d, %ebp
+  18a:  movl %r15d, %esi
+  18d:  movl $0, %edi   <str:"bCDhHjlLNoRSvwxXZ?">
+  192:  callq strchr+0
+  197:  testq %rax, %rax
+  19a:  je 0x1b0
+  19c:  movq %r14, %rsi
+  19f:  movq %r13, %rdi
+  1a2:  callq quotednext+0
+  1a7:  movzbl 1(%rbx), %ebp
+  1ab:  movq %rax, 8(%rsp)
+  1b0:  cmpb $0x65, %bpl
+  1b4:  je 0x578
+  1ba:  cmpb $0x4e, %bpl
+  1be:  jne 0x210
+  1c0:  movq 8(%rsp), %rcx
+  1c5:  movl $0, %edx   <str:"GID=%s">
+  1ca:  movq %rbx, %rdi
+  1cd:  xorl %eax, %eax
+  1cf:  movl $0x20, %esi
+  1d4:  callq snprintf+0
+  1d9:  movq 8(%rsp), %rdi
+  1de:  callq free+0
+  1e3:  jmp 0x56
+  1e8:  nopl (%rax, %rax)
+  1f0:  addq $0x98, %rsp
+  1f7:  movq %rbx, %rsi
+  1fa:  movq %r12, %rdi
+  1fd:  popq %rbx
+  1fe:  popq %rbp
+  1ff:  popq %r12
+  201:  popq %r13
+  203:  popq %r14
+  205:  popq %r15
+  207:  jmp wb_putraw+0
+  20c:  nopl (%rax)
+  210:  leal -0x20(%rbp), %eax
+  213:  cmpb $0x5c, %al
+  215:  ja 0x251
+  217:  movzbl %al, %eax
+  21a:  jmpq *(, %rax, 8)   <var:ren_put+0>
+  221:  movl $0x73, %edi
+  226:  callq nreg+0
+  22b:  movl (%rax), %eax
+  22d:  imull (%rip), %eax   <dev_res+0>
+  234:  movslq %eax, %rdx
+  237:  imulq $0x38e38e39, %rdx, %rdx
+  23e:  sarq $0x25, %rdx
+  242:  sarl $0x1f, %eax
+  245:  movq %r12, %rdi
+  248:  subl %edx, %eax
+  24a:  movl %eax, %esi
+  24c:  callq wb_vmov+0
+  251:  movq 8(%rsp), %rdi
+  256:  addq $0x98, %rsp
+  25d:  popq %rbx
+  25e:  popq %rbp
+  25f:  popq %r12
+  261:  popq %r13
+  263:  popq %r14
+  265:  popq %r15
+  267:  jmp free+0
+  26c:  movl $0, %edi   <str:".cd">
+  271:  callq map+0
+  276:  movl %eax, %edi
+  278:  callq nreg+0
+  27d:  xorl %edx, %edx
+  27f:  cmpb $0x3c, %bpl
+  283:  movq %r12, %rdi
+  286:  sete %dl
+  289:  movl %edx, (%rax)
+  28b:  callq wb_flushdir+0
+  290:  jmp 0x251
+  292:  movq 8(%rsp), %rsi
+  297:  movq %r12, %rdi
+  29a:  callq ren_dcmd+0
+  29f:  jmp 0x251
+  2a1:  movq 8(%rsp), %rdi
+  2a6:  callq fn:ren_ps+0
+  2ab:  jmp 0x251
+  2ad:  movl $0x73, %edi
+  2b2:  callq nreg+0
+  2b7:  movl (%rax), %eax
+  2b9:  imull (%rip), %eax   <dev_res+0>
+  2c0:  movslq %eax, %rdx
+  2c3:  imulq $0x38e38e39, %rdx, %rdx
+  2ca:  sarq $0x24, %rdx
+  2ce:  jmp 0x242
+  2d3:  callq env_wb+0
+  2d8:  cmpq %rax, %r12
+  2db:  jne 0x251
+  2e1:  callq env_fmt+0
+  2e6:  movq %rax, %rdi
+  2e9:  callq fmt_fillreq+0
+  2ee:  testl %eax, %eax
+  2f0:  je 0x251
+  2f6:  callq env_fmt+0
+  2fb:  movq %rax, %rbx
+  2fe:  nop
+  300:  movq %rbx, %rdi
+  303:  callq fmt_morelines+0
+  308:  testl %eax, %eax
+  30a:  je 0x2e1
+  30c:  movq %rbx, %rdi
+  30f:  callq fn:ren_passline+0
+  314:  jmp 0x300
+  316:  movq 8(%rsp), %rsi
+  31b:  movq %r12, %rdi
+  31e:  callq ren_ocmd+0
+  323:  jmp 0x251
+  328:  movq 8(%rsp), %rdi
+  32d:  callq fn:ren_cl+0
+  332:  jmp 0x251
+  337:  movq 8(%rsp), %rsi
+  33c:  movq %r12, %rdi
+  33f:  callq ren_hlcmd+0
+  344:  jmp 0x251
+  349:  callq env_wb+0
+  34e:  cmpq %rax, %r12
+  351:  je 0x5f6
+  357:  movq %r12, %rdi
+  35a:  callq wb_wid+0
+  35f:  movl %eax, %ebx
+  361:  movq 8(%rsp), %rdi
+  366:  callq map+0
+  36b:  movl %ebx, %esi
+  36d:  movl %eax, %edi
+  36f:  callq num_set+0
+  374:  jmp 0x251
+  379:  movq 8(%rsp), %rdi
+  37e:  xorl %esi, %esi
+  380:  callq eval+0
+  385:  movq %r12, %rdi
+  388:  movl %eax, %esi
+  38a:  callq wb_setcost+0
+  38f:  jmp 0x251
+  394:  movq 8(%rsp), %rdi
+  399:  callq fn:ren_ft+0
+  39e:  jmp 0x251
+  3a3:  movl $0x73, %edi
+  3a8:  callq nreg+0
+  3ad:  movq %r12, %rdi
+  3b0:  movl (%rax), %eax
+  3b2:  imull (%rip), %eax   <dev_res+0>
+  3b9:  movslq %eax, %rsi
+  3bc:  sarl $0x1f, %eax
+  3bf:  imulq $0x38e38e39, %rsi, %rsi
+  3c6:  sarq $0x25, %rsi
+  3ca:  subl %eax, %esi
+  3cc:  callq wb_vmov+0
+  3d1:  jmp 0x251
+  3d6:  movq 8(%rsp), %rdi
+  3db:  movl $0x6d, %esi
+  3e0:  callq eval+0
+  3e5:  movq %r12, %rdi
+  3e8:  movl %eax, %esi
+  3ea:  callq wb_hmov+0
+  3ef:  jmp 0x251
+  3f4:  movq 8(%rsp), %rdi
+  3f9:  movl $0x76, %esi
+  3fe:  callq eval+0
+  403:  movq %r12, %rdi
+  406:  movl %eax, %esi
+  408:  callq wb_els+0
+  40d:  jmp 0x251
+  412:  movq 8(%rsp), %rdi
+  417:  movl $0x76, %esi
+  41c:  callq eval+0
+  421:  movq %r12, %rdi
+  424:  movl %eax, %esi
+  426:  callq wb_vmov+0
+  42b:  jmp 0x251
+  430:  movq 8(%rsp), %rsi
+  435:  movq %r12, %rdi
+  438:  callq wb_etc+0
+  43d:  jmp 0x251
+  442:  movq 8(%rsp), %rsi
+  447:  movq %r12, %rdi
+  44a:  callq ren_vlcmd+0
+  44f:  jmp 0x251
+  454:  movq %r12, %rdi
+  457:  callq wb_setpart+0
+  45c:  jmp 0x251
+  461:  movq 8(%rsp), %rsi
+  466:  movq %r12, %rdi
+  469:  callq ren_bcmd+0
+  46e:  jmp 0x251
+  473:  movl $0x73, %edi
+  478:  callq nreg+0
+  47d:  movq %r12, %rdi
+  480:  movl (%rax), %eax
+  482:  imull (%rip), %eax   <dev_res+0>
+  489:  movslq %eax, %rsi
+  48c:  sarl $0x1f, %eax
+  48f:  imulq $0x4bda12f7, %rsi, %rsi
+  496:  sarq $0x28, %rsi
+  49a:  subl %eax, %esi
+  49c:  callq wb_hmov+0
+  4a1:  jmp 0x251
+  4a6:  movq 8(%rsp), %rsi
+  4ab:  movq %r12, %rdi
+  4ae:  callq ren_zcmd+0
+  4b3:  jmp 0x251
+  4b8:  movl $0x73, %edi
+  4bd:  callq nreg+0
+  4c2:  movq %r12, %rdi
+  4c5:  movl (%rax), %eax
+  4c7:  imull (%rip), %eax   <dev_res+0>
+  4ce:  movslq %eax, %rsi
+  4d1:  sarl $0x1f, %eax
+  4d4:  imulq $0x4bda12f7, %rsi, %rsi
+  4db:  sarq $0x27, %rsi
+  4df:  subl %eax, %esi
+  4e1:  callq wb_hmov+0
+  4e6:  jmp 0x251
+  4eb:  movl $0, %edi   <str:".ss">
+  4f0:  callq map+0
+  4f5:  movl %eax, %edi
+  4f7:  callq nreg+0
+  4fc:  movl $0x73, %edi
+  501:  movl (%rax), %r13d
+  504:  callq nreg+0
+  509:  movl $0x66, %edi
+  50e:  movl (%rax), %ebx
+  510:  callq nreg+0
+  515:  movl (%rax), %edi
+  517:  callq dev_font+0
+  51c:  movl %ebx, %esi
+  51e:  movl %r13d, %edx
+  521:  movq %rax, %rdi
+  524:  callq font_swid+0
+  529:  movq %r12, %rdi
+  52c:  movl %eax, %esi
+  52e:  callq wb_hmov+0
+  533:  jmp 0x251
+  538:  callq fn:zwid+0
+  53d:  movq %r12, %rdi
+  540:  movl %eax, %esi
+  542:  callq wb_hmov+0
+  547:  jmp 0x251
+  54c:  movq %r12, %rdi
+  54f:  callq wb_italiccorrection+0
+  554:  jmp 0x251
+  559:  movq %r12, %rdi
+  55c:  callq wb_italiccorrectionleft+0
+  561:  jmp 0x251
+  566:  xorl %esi, %esi
+  568:  movq %r12, %rdi
+  56b:  callq wb_hmov+0
+  570:  jmp 0x251
+  575:  nopl (%rax)
+  578:  movl (%rip), %ecx   <c_ec+0>
+  57e:  movl $0, %edx   <str:"%c%c">
+  583:  movq %rbx, %rdi
+  586:  xorl %eax, %eax
+  588:  movl $0x20, %esi
+  58d:  movl %ecx, %r8d
+  590:  callq snprintf+0
+  595:  jmp 0x1d9
+  59a:  nopw (%rax, %rax)
+  5a0:  movq %r12, %rdi
+  5a3:  callq wb_wid+0
+  5a8:  movq %r14, %rdx
+  5ab:  movq %r13, %rsi
+  5ae:  leaq 0x10(%rsp), %rdi
+  5b3:  movl %eax, %ebx
+  5b5:  callq charnext+0
+  5ba:  testl %eax, %eax
+  5bc:  js 0x5d1
+  5be:  movq %r14, %rcx
+  5c1:  movq %r13, %rdx
+  5c4:  leaq 0x10(%rsp), %rsi
+  5c9:  movq %r12, %rdi
+  5cc:  callq 0
+  5d1:  movq %r12, %rdi
+  5d4:  callq wb_wid+0
+  5d9:  addq $0x98, %rsp
+  5e0:  movq %r12, %rdi
+  5e3:  subl %eax, %ebx
+  5e5:  movl %ebx, %esi
+  5e7:  popq %rbx
+  5e8:  popq %rbp
+  5e9:  popq %r12
+  5eb:  popq %r13
+  5ed:  popq %r14
+  5ef:  popq %r15
+  5f1:  jmp wb_hmov+0
+  5f6:  callq env_fmt+0
+  5fb:  movq %rax, %rdi
+  5fe:  callq fmt_wid+0
+  603:  movl %eax, %ebx
+  605:  callq env_wb+0
+  60a:  movq %rax, %rdi
+  60d:  callq wb_wid+0
+  612:  movl $0, %edi   <str:".b0">
+  617:  addl %eax, %ebx
+  619:  callq map+0
+  61e:  movl %eax, %edi
+  620:  callq nreg+0
+  625:  subl (%rax), %ebx
+  627:  jmp 0x361

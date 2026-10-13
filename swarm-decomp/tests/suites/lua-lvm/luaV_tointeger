@@ -1,0 +1,94 @@
+# luaV_tointeger  (global, 361 bytes, 93 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  movl %edx, %ebp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $0x18, %rsp
+   12:  movzbl 8(%rdi), %eax
+   16:  movl %eax, %edx
+   18:  andl $0xf, %edx
+   1b:  cmpb $4, %dl
+   1e:  je 0x50
+   20:  cmpb $0x13, %al
+   22:  je 0x86
+   24:  xorl %edx, %edx
+   26:  cmpb $3, %al
+   28:  je 0x40
+   2a:  addq $0x18, %rsp
+   2e:  movl %edx, %eax
+   30:  popq %rbx
+   31:  popq %rbp
+   32:  popq %r12
+   34:  popq %r13
+   36:  retq
+   37:  nopw (%rax, %rax)
+   40:  movq (%rbx), %rax
+   43:  movq %rax, (%r12)
+   47:  movl $1, %edx
+   4c:  jmp 0x2a
+   4e:  nop
+   50:  movq (%rdi), %r13
+   53:  movq %rsp, %rsi
+   56:  leaq 0x18(%r13), %rdi
+   5a:  callq luaO_str2num+0
+   5f:  movzbl 0xb(%r13), %edx
+   64:  cmpb $0xff, %dl
+   67:  je 0x140
+   6d:  addq $1, %rdx
+   71:  cmpq %rdx, %rax
+   74:  jne 0x160
+   7a:  movzbl 8(%rsp), %eax
+   7f:  movq %rsp, %rbx
+   82:  cmpb $0x13, %al
+   84:  jne 0x24
+   86:  movsd (%rbx), %xmm0
+   8a:  movsd (%rip), %xmm3   <cst:ffffffffffffff7f0000000000000000>
+   92:  movsd (%rip), %xmm4   <cst:0000000000003043>
+   9a:  movapd %xmm0, %xmm1
+   9e:  movapd %xmm0, %xmm2
+   a2:  andpd %xmm3, %xmm1
+   a6:  ucomisd %xmm1, %xmm4
+   aa:  jbe 0xdf
+   ac:  cvttsd2si %xmm0, %rax
+   b1:  pxor %xmm1, %xmm1
+   b5:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   bd:  andnpd %xmm0, %xmm3
+   c1:  cvtsi2sdq %rax, %xmm1
+   c6:  movapd %xmm1, %xmm2
+   ca:  cmpnlesd %xmm0, %xmm2
+   cf:  andpd %xmm4, %xmm2
+   d3:  subsd %xmm2, %xmm1
+   d7:  movapd %xmm1, %xmm2
+   db:  orpd %xmm3, %xmm2
+   df:  ucomisd %xmm2, %xmm0
+   e3:  movapd %xmm2, %xmm1
+   e7:  jp 0xeb
+   e9:  je 0x110
+   eb:  xorl %edx, %edx
+   ed:  testl %ebp, %ebp
+   ef:  je 0x2a
+   f5:  cmpl $2, %ebp
+   f8:  jne 0x110
+   fa:  addsd (%rip), %xmm2   <cst:000000000000f03f>
+  102:  movapd %xmm2, %xmm1
+  106:  nopw %cs:(%rax, %rax)
+  110:  comisd (%rip), %xmm1   <cst:000000000000e0c3>
+  118:  jb 0x150
+  11a:  movsd (%rip), %xmm0   <cst:000000000000e043>
+  122:  comisd %xmm1, %xmm0
+  126:  jbe 0x150
+  128:  cvttsd2si %xmm1, %rax
+  12d:  movq %rax, (%r12)
+  131:  jmp 0x47
+  136:  nopw %cs:(%rax, %rax)
+  140:  movq 0x10(%r13), %rdx
+  144:  jmp 0x6d
+  149:  nopl (%rax)
+  150:  xorl %edx, %edx
+  152:  jmp 0x2a
+  157:  nopw (%rax, %rax)
+  160:  movzbl 8(%rbx), %eax
+  164:  jmp 0x20

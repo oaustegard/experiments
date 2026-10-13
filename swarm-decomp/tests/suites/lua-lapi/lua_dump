@@ -1,0 +1,13 @@
+# lua_dump  (global, 41 bytes, 12 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  cmpb $0x46, -8(%rax)
+    8:  je 0x10
+    a:  movl $1, %eax
+    f:  retq
+   10:  movq -0x10(%rax), %rax
+   14:  movl %ecx, %r8d
+   17:  movq %rdx, %rcx
+   1a:  movq %rsi, %rdx
+   1d:  movq 0x18(%rax), %rax
+   21:  movq %rax, %rsi
+   24:  jmp luaU_dump+0

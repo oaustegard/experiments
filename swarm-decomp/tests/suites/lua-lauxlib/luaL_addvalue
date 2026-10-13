@@ -1,0 +1,30 @@
+# luaL_addvalue  (global, 101 bytes, 29 instructions)
+    0:  pushq %r12
+    2:  movl $0xffffffff, %esi
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $0x10, %rsp
+   10:  movq 0x18(%rdi), %r12
+   14:  leaq 8(%rsp), %rdx
+   19:  movq %r12, %rdi
+   1c:  callq lua_tolstring+0
+   21:  movq 8(%rsp), %rsi
+   26:  movq %rbx, %rdi
+   29:  movl $0xfffffffe, %edx
+   2e:  movq %rax, %rbp
+   31:  callq fn:prepbuffsize+0
+   36:  movq 8(%rsp), %rdx
+   3b:  movq %rbp, %rsi
+   3e:  movq %rax, %rdi
+   41:  callq memcpy+0
+   46:  movq 8(%rsp), %rax
+   4b:  addq %rax, 0x10(%rbx)
+   4f:  movq %r12, %rdi
+   52:  movl $0xfffffffe, %esi
+   57:  callq lua_settop+0
+   5c:  addq $0x10, %rsp
+   60:  popq %rbx
+   61:  popq %rbp
+   62:  popq %r12
+   64:  retq

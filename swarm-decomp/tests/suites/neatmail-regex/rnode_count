@@ -1,0 +1,68 @@
+# rnode_count  (static, 219 bytes, 67 instructions)
+    0:  testq %rdi, %rdi
+    3:  je 0xa8
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  subq $8, %rsp
+   12:  movl 0x2c(%rdi), %edx
+   15:  cmpl $0x63, %edx
+   18:  je 0xc0
+   1e:  cmpl $0x7c, %edx
+   21:  je 0x88
+   23:  movl $1, %eax
+   28:  cmpl $0x28, %edx
+   2b:  jne 0x39
+   2d:  movq 0x10(%rdi), %rdi
+   31:  callq 0
+   36:  addl $2, %eax
+   39:  movq 0x20(%rbx), %rdx
+   3d:  testq %rdx, %rdx
+   40:  je 0x78
+   42:  movabsq $0x100000001, %rcx
+   4c:  cmpq %rcx, %rdx
+   4f:  je 0x6c
+   51:  movl 0x24(%rbx), %ecx
+   54:  movl 0x20(%rbx), %edx
+   57:  testl %ecx, %ecx
+   59:  js 0xb0
+   5b:  leal (%rcx, %rdx), %esi
+   5e:  imull %eax, %esi
+   61:  leal (%rsi, %rcx), %eax
+   64:  subl %edx, %eax
+   66:  cmpl $1, %edx
+   69:  adcl $0, %eax
+   6c:  addq $8, %rsp
+   70:  popq %rbx
+   71:  popq %rbp
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  addq $8, %rsp
+   7c:  xorl %eax, %eax
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  retq
+   81:  nopl (%rax)
+   88:  movq 0x10(%rdi), %rdi
+   8c:  callq 0
+   91:  movq 0x18(%rbx), %rdi
+   95:  movl %eax, %ebp
+   97:  callq 0
+   9c:  leal 2(%rbp, %rax), %eax
+   a0:  jmp 0x39
+   a2:  nopw (%rax, %rax)
+   a8:  xorl %eax, %eax
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  leal 1(%rdx), %ecx
+   b3:  imull %ecx, %eax
+   b6:  addl $2, %eax
+   b9:  jmp 0x66
+   bb:  nopl (%rax, %rax)
+   c0:  movq 0x10(%rdi), %rdi
+   c4:  callq 0
+   c9:  movq 0x18(%rbx), %rdi
+   cd:  movl %eax, %ebp
+   cf:  callq 0
+   d4:  addl %ebp, %eax
+   d6:  jmp 0x39

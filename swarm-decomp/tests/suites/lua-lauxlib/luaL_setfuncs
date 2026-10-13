@@ -1,0 +1,66 @@
+# luaL_setfuncs  (global, 211 bytes, 65 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rsi, %r13
+    9:  movl %edx, %esi
+    b:  pushq %r12
+    d:  movl %edx, %r12d
+   10:  pushq %rbp
+   11:  movq %rdi, %rbp
+   14:  pushq %rbx
+   15:  subq $8, %rsp
+   19:  callq lua_checkstack+0
+   1e:  testl %eax, %eax
+   20:  je 0xbc
+   26:  movl $0xfffffffe, %r15d
+   2c:  movl %r12d, %r14d
+   2f:  subl %r12d, %r15d
+   32:  negl %r14d
+   35:  cmpq $0, (%r13)
+   3a:  je 0x8c
+   3c:  nopl (%rax)
+   40:  movq 8(%r13), %rsi
+   44:  testq %rsi, %rsi
+   47:  je 0xb0
+   49:  xorl %ebx, %ebx
+   4b:  testl %r12d, %r12d
+   4e:  jle 0x67
+   50:  movl %r14d, %esi
+   53:  movq %rbp, %rdi
+   56:  addl $1, %ebx
+   59:  callq lua_pushvalue+0
+   5e:  cmpl %ebx, %r12d
+   61:  jne 0x50
+   63:  movq 8(%r13), %rsi
+   67:  movl %r12d, %edx
+   6a:  movq %rbp, %rdi
+   6d:  callq lua_pushcclosure+0
+   72:  movq (%r13), %rdx
+   76:  movl %r15d, %esi
+   79:  movq %rbp, %rdi
+   7c:  addq $0x10, %r13
+   80:  callq lua_setfield+0
+   85:  cmpq $0, (%r13)
+   8a:  jne 0x40
+   8c:  addq $8, %rsp
+   90:  movl %r12d, %esi
+   93:  movq %rbp, %rdi
+   96:  popq %rbx
+   97:  notl %esi
+   99:  popq %rbp
+   9a:  popq %r12
+   9c:  popq %r13
+   9e:  popq %r14
+   a0:  popq %r15
+   a2:  jmp lua_settop+0
+   a7:  nopw (%rax, %rax)
+   b0:  xorl %esi, %esi
+   b2:  movq %rbp, %rdi
+   b5:  callq lua_pushboolean+0
+   ba:  jmp 0x72
+   bc:  movl $0, %edx   <str:"too many upvalues">
+   c1:  movl $0, %esi   <str:"stack overflow (%s)">
+   c6:  movq %rbp, %rdi
+   c9:  callq luaL_error+0
+   ce:  jmp 0x26

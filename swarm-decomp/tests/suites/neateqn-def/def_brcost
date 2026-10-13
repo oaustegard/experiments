@@ -1,0 +1,22 @@
+# def_brcost  (global, 72 bytes, 21 instructions)
+    0:  movslq (%rip), %rdx   <var:brcost_n+0>
+    7:  testl %edx, %edx
+    9:  jle 0x40
+    b:  shlq $2, %rdx
+    f:  xorl %eax, %eax
+   11:  jmp 0x21
+   13:  nopl (%rax, %rax)
+   18:  addq $4, %rax
+   1c:  cmpq %rdx, %rax
+   1f:  je 0x40
+   21:  cmpl %edi, (%rax)   <var:brcost_type+0>
+   27:  jne 0x18
+   29:  movl (%rax), %ecx   <var:brcost_cost+0>
+   2f:  testl %ecx, %ecx
+   31:  jle 0x18
+   33:  movl %ecx, %eax
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  movl $0x186a0, %ecx
+   45:  movl %ecx, %eax
+   47:  retq

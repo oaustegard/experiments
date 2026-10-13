@@ -1,0 +1,12 @@
+# tok_pop  (global, 50 bytes, 11 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %esi   <var:tok+0>
+    9:  movl $0, %edi   <var:tok_prev+0>
+    e:  callq strcpy+0
+   13:  callq fn:tok_read.isra.0+0
+   18:  movl $0, %eax   <var:tok_prev+0>
+   1d:  movl $0, %edx
+   22:  cmpb $0, (%rip)   <var:tok_prev+0>
+   29:  cmoveq %rdx, %rax
+   2d:  addq $8, %rsp
+   31:  retq

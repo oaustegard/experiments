@@ -1,0 +1,16 @@
+# font_glyph  (global, 42 bytes, 15 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 0x78(%rdi), %rdi
+    8:  callq dict_get+0
+    d:  xorl %edx, %edx
+    f:  testl %eax, %eax
+   11:  js 0x25
+   13:  cltq
+   15:  leaq (%rax, %rax, 4), %rdx
+   19:  leaq (%rax, %rdx, 2), %rdx
+   1d:  movq 0x68(%rbx), %rax
+   21:  leaq (%rax, %rdx, 8), %rdx
+   25:  movq %rdx, %rax
+   28:  popq %rbx
+   29:  retq

@@ -1,0 +1,33 @@
+# bt_op  (static, 84 bytes, 32 instructions)
+    0:  movl %edi, %eax
+    2:  movl %esi, %ecx
+    4:  movl %esi, %r8d
+    7:  andl $0xf, %eax
+    a:  andl $0xf, %ecx
+    d:  cmpl %ecx, %eax
+    f:  movl %ecx, %edx
+   11:  cmovael %eax, %edx
+   14:  andl $0x10, %r8d
+   18:  testb $0x10, %dil
+   1c:  je 0x40
+   1e:  cmpl %eax, %ecx
+   20:  jb 0x27
+   22:  testl %r8d, %r8d
+   25:  je 0x49
+   27:  movl %edi, %eax
+   29:  movl $4, %ecx
+   2e:  orl %esi, %eax
+   30:  andl $0x10, %eax
+   33:  cmpl %ecx, %edx
+   35:  cmovbl %ecx, %edx
+   38:  orl %edx, %eax
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  cmpl %ecx, %eax
+   42:  jb 0x27
+   44:  testl %r8d, %r8d
+   47:  je 0x27
+   49:  movl $4, %eax
+   4e:  cmpl %eax, %edx
+   50:  cmovgel %edx, %eax
+   53:  retq

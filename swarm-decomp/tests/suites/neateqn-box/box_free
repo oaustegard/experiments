@@ -1,0 +1,22 @@
+# box_free  (global, 62 bytes, 21 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl 0x18(%rdi), %edi
+    7:  testl %edi, %edi
+    9:  jne 0x28
+    b:  movl 0x14(%rbx), %eax
+    e:  testl %eax, %eax
+   10:  jne 0x34
+   12:  movq %rbx, %rdi
+   15:  callq sbuf_done+0
+   1a:  movq %rbx, %rdi
+   1d:  popq %rbx
+   1e:  jmp free+0
+   23:  nopl (%rax, %rax)
+   28:  callq sregrm+0
+   2d:  movl 0x14(%rbx), %eax
+   30:  testl %eax, %eax
+   32:  je 0x12
+   34:  movl 0x10(%rbx), %edi
+   37:  callq nregrm+0
+   3c:  jmp 0x12

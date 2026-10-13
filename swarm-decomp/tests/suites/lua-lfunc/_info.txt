@@ -1,0 +1,20 @@
+# lua-lfunc: translation unit lfunc of lua
+# write each function as src/lua/lfunc/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+luaF_newCclosure	global	27 bytes
+luaF_newLclosure	global	85 bytes
+luaF_initupvals	global	121 bytes
+luaF_findupval	global	157 bytes
+luaF_newtbcupval	global	183 bytes
+luaF_unlinkupval	global	25 bytes
+luaF_closeupval	global	133 bytes
+luaF_close	global	328 bytes
+luaF_newproto	global	73 bytes
+luaF_freeproto	global	167 bytes
+luaF_getlocalname	global	64 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_barrier_ luaC_newobj luaD_call luaD_callnoyield luaD_seterrorobj luaG_findlocal luaG_runerror luaM_free_ luaT_gettmbyobj memset

@@ -1,0 +1,17 @@
+# tr_rchar  (static, 49 bytes, 16 instructions)
+    0:  movq 8(%rdi), %rsi
+    4:  testq %rsi, %rsi
+    7:  je 0x30
+    9:  pushq %rbx
+    a:  leaq 0x10(%rdi), %rbx
+    e:  nop
+   10:  xorl %edi, %edi
+   12:  addq $8, %rbx
+   16:  callq fn:cdef_remove+0
+   1b:  movq -8(%rbx), %rsi
+   1f:  testq %rsi, %rsi
+   22:  jne 0x10
+   24:  popq %rbx
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  retq

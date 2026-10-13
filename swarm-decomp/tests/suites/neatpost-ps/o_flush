@@ -1,0 +1,27 @@
+# o_flush  (static, 114 bytes, 26 instructions)
+    0:  subq $8, %rsp
+    4:  movl (%rip), %eax   <var:o_qtype+0>
+    a:  cmpl $1, %eax
+    d:  je 0x28
+    f:  cmpl $2, %eax
+   12:  je 0x4b
+   14:  movl $0, (%rip)   <var:o_qtype+0>
+   1e:  addq $8, %rsp
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  movl (%rip), %edx   <var:o_qv+0>
+   2e:  movl (%rip), %esi   <var:o_qh+0>
+   34:  xorl %eax, %eax
+   36:  movl $0, %edi   <str:") %d %d w\n">
+   3b:  callq fn:outf+0
+   40:  movl (%rip), %eax   <var:o_qtype+0>
+   46:  cmpl $2, %eax
+   49:  jne 0x14
+   4b:  movl (%rip), %edx   <var:o_qv+0>
+   51:  movl (%rip), %esi   <var:o_qh+0>
+   57:  movl $0, %edi   <str:"] %d %d g\n">
+   5c:  xorl %eax, %eax
+   5e:  callq fn:outf+0
+   63:  movl $0, (%rip)   <var:o_qtype+0>
+   6d:  addq $8, %rsp
+   71:  retq

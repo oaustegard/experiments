@@ -1,0 +1,42 @@
+# luaT_objtypename  (global, 137 bytes, 41 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rsi, %rbx
+    5:  subq $8, %rsp
+    9:  movzbl 8(%rsi), %eax
+    d:  cmpb $0x45, %al
+    f:  je 0x68
+   11:  cmpb $0x47, %al
+   13:  je 0x30
+   15:  andl $0xf, %eax
+   18:  movq (, %rax, 8), %rax   <luaT_typenames_+8>
+   20:  addq $8, %rsp
+   24:  popq %rbx
+   25:  popq %rbp
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  movq (%rsi), %rdx
+   33:  movq 0x18(%rdx), %rbp
+   37:  testq %rbp, %rbp
+   3a:  je 0x15
+   3c:  movl $0, %esi   <str:"__name">
+   41:  callq luaS_new+0
+   46:  movq %rbp, %rdi
+   49:  movq %rax, %rsi
+   4c:  callq luaH_getshortstr+0
+   51:  movzbl 8(%rax), %edx
+   55:  andl $0xf, %edx
+   58:  cmpb $4, %dl
+   5b:  je 0x80
+   5d:  movzbl 8(%rbx), %eax
+   61:  jmp 0x15
+   63:  nopl (%rax, %rax)
+   68:  movq (%rsi), %rdx
+   6b:  movq 0x28(%rdx), %rbp
+   6f:  testq %rbp, %rbp
+   72:  jne 0x3c
+   74:  jmp 0x15
+   76:  nopw %cs:(%rax, %rax)
+   80:  movq (%rax), %rax
+   83:  addq $0x18, %rax
+   87:  jmp 0x20

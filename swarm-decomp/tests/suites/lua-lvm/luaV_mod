@@ -1,0 +1,24 @@
+# luaV_mod  (global, 70 bytes, 23 instructions)
+    0:  movq %rdx, %rcx
+    3:  addq $1, %rdx
+    7:  cmpq $1, %rdx
+    b:  jbe 0x30
+    d:  movq %rsi, %rax
+   10:  cqto
+   12:  idivq %rcx
+   15:  testq %rdx, %rdx
+   18:  je 0x25
+   1a:  leaq (%rdx, %rcx), %rax
+   1e:  xorq %rdx, %rcx
+   21:  cmovsq %rax, %rdx
+   25:  movq %rdx, %rax
+   28:  retq
+   29:  nopl (%rax)
+   30:  testq %rcx, %rcx
+   33:  je 0x39
+   35:  xorl %edx, %edx
+   37:  jmp 0x25
+   39:  pushq %rax
+   3a:  movl $0, %esi   <str:"attempt to perform 'n%%0'">
+   3f:  xorl %eax, %eax
+   41:  callq luaG_runerror+0

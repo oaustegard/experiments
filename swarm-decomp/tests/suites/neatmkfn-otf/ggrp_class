@@ -1,0 +1,59 @@
+# ggrp_class  (static, 166 bytes, 58 instructions)
+    0:  pushq %r15
+    2:  movq %rdi, %r15
+    5:  pushq %r14
+    7:  pushq %r13
+    9:  movl %ecx, %r13d
+    c:  pushq %r12
+    e:  movq %rsi, %r12
+   11:  pushq %rbp
+   12:  pushq %rbx
+   13:  movslq %edx, %rbx
+   16:  movq %rbx, %rbp
+   19:  shlq $2, %rbx
+   1d:  movq %rbx, %rdi
+   20:  subq $8, %rsp
+   24:  callq malloc+0
+   29:  movq %rax, %r14
+   2c:  testl %ebp, %ebp
+   2e:  jle 0xa0
+   30:  xorl %eax, %eax
+   32:  xorl %ebp, %ebp
+   34:  nopl (%rax)
+   38:  cmpl %r13d, (%r12, %rax)
+   3c:  jne 0x4c
+   3e:  movl (%r15, %rax), %ecx
+   42:  movslq %ebp, %rdx
+   45:  addl $1, %ebp
+   48:  movl %ecx, (%r14, %rdx, 4)
+   4c:  addq $4, %rax
+   50:  cmpq %rax, %rbx
+   53:  jne 0x38
+   55:  movslq %ebp, %rsi
+   58:  movl $0, %ecx   <fn:intcmp+0>
+   5d:  movl $4, %edx
+   62:  movq %r14, %rdi
+   65:  callq qsort+0
+   6a:  movl %ebp, %esi
+   6c:  movq %r14, %rdi
+   6f:  callq fn:ggrp_find+0
+   74:  movl %eax, %ebx
+   76:  testl %eax, %eax
+   78:  jns 0x81
+   7a:  callq fn:ggrp_make.part.0+0
+   7f:  movl %eax, %ebx
+   81:  movq %r14, %rdi
+   84:  callq free+0
+   89:  addq $8, %rsp
+   8d:  movl %ebx, %eax
+   8f:  popq %rbx
+   90:  popq %rbp
+   91:  popq %r12
+   93:  popq %r13
+   95:  popq %r14
+   97:  popq %r15
+   99:  retq
+   9a:  nopw (%rax, %rax)
+   a0:  xorl %esi, %esi
+   a2:  xorl %ebp, %ebp
+   a4:  jmp 0x58

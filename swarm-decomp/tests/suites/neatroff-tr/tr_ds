@@ -1,0 +1,17 @@
+# tr_ds  (static, 49 bytes, 16 instructions)
+    0:  movq 8(%rdi), %rax
+    4:  testq %rax, %rax
+    7:  je 0x30
+    9:  pushq %rbx
+    a:  movq 0x10(%rdi), %rbx
+    e:  movl $0, %edx   <str:"">
+   13:  movq %rax, %rdi
+   16:  testq %rbx, %rbx
+   19:  cmoveq %rdx, %rbx
+   1d:  callq map+0
+   22:  movl %eax, %edi
+   24:  movq %rbx, %rsi
+   27:  popq %rbx
+   28:  jmp str_set+0
+   2d:  nopl (%rax)
+   30:  retq

@@ -1,0 +1,1 @@
+int dev_res;

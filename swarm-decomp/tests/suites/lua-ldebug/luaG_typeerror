@@ -1,0 +1,21 @@
+# luaG_typeerror  (global, 62 bytes, 20 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdx, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq fn:varinfo+0
+   18:  movq %rbp, %rsi
+   1b:  movq %rbx, %rdi
+   1e:  movq %rax, %r13
+   21:  callq luaT_objtypename+0
+   26:  movq %r13, %r8
+   29:  movq %r12, %rdx
+   2c:  movl $0, %esi   <str:"attempt to %s a %s value%s">
+   31:  movq %rax, %rcx
+   34:  movq %rbx, %rdi
+   37:  xorl %eax, %eax
+   39:  callq luaG_runerror+0

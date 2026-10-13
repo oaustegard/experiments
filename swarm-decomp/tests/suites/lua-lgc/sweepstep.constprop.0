@@ -1,0 +1,76 @@
+# sweepstep.constprop.0  (static, 231 bytes, 75 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rsi, %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  subq $0x18, %rsp
+   11:  movq 0x78(%rsi), %r12
+   15:  testq %r12, %r12
+   18:  je 0xa8
+   1e:  movq 0x18(%rsi), %rax
+   22:  movq (%r12), %rsi
+   26:  movq %rdi, %r15
+   29:  movq %rax, 8(%rsp)
+   2e:  movq 0x18(%rdi), %rax
+   32:  movzbl 0x64(%rax), %r14d
+   37:  movl %r14d, %ebp
+   3a:  andl $0x18, %r14d
+   3e:  xorl $0x18, %ebp
+   41:  testq %rsi, %rsi
+   44:  je 0xde
+   4a:  xorl %ebx, %ebx
+   4c:  jmp 0x6d
+   4e:  nop
+   50:  andl $0xffffffc0, %eax
+   53:  movq %rsi, %r12
+   56:  addl $1, %ebx
+   59:  orl %r14d, %eax
+   5c:  movb %al, 9(%rsi)
+   5f:  movq (%r12), %rsi
+   63:  testq %rsi, %rsi
+   66:  je 0x91
+   68:  cmpl $0x64, %ebx
+   6b:  je 0xc8
+   6d:  movzbl 9(%rsi), %eax
+   71:  movq (%rsi), %rdx
+   74:  testb %al, %bpl
+   77:  je 0x50
+   79:  movq %rdx, (%r12)
+   7d:  movq %r15, %rdi
+   80:  addl $1, %ebx
+   83:  callq fn:freeobj+0
+   88:  movq (%r12), %rsi
+   8c:  testq %rsi, %rsi
+   8f:  jne 0x68
+   91:  movq 0x18(%r13), %rax
+   95:  movq 8(%rsp), %rdi
+   9a:  xorl %r12d, %r12d
+   9d:  subq %rdi, %rax
+   a0:  jmp 0xd4
+   a2:  nopw (%rax, %rax)
+   a8:  movb %dl, 0x65(%rsi)
+   ab:  xorl %ebx, %ebx
+   ad:  movq %rcx, 0x78(%rsi)
+   b1:  addq $0x18, %rsp
+   b5:  movl %ebx, %eax
+   b7:  popq %rbx
+   b8:  popq %rbp
+   b9:  popq %r12
+   bb:  popq %r13
+   bd:  popq %r14
+   bf:  popq %r15
+   c1:  retq
+   c2:  nopw (%rax, %rax)
+   c8:  movq 0x18(%r13), %rax
+   cc:  movq 8(%rsp), %rcx
+   d1:  subq %rcx, %rax
+   d4:  addq %rax, 0x20(%r13)
+   d8:  movq %r12, 0x78(%r13)
+   dc:  jmp 0xb1
+   de:  xorl %r12d, %r12d
+   e1:  xorl %eax, %eax
+   e3:  xorl %ebx, %ebx
+   e5:  jmp 0xd4

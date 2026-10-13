@@ -1,0 +1,51 @@
+# str_char  (static, 171 bytes, 50 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdi, %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  subq $0x438, %rsp
+   14:  callq lua_gettop+0
+   19:  leaq 0x10(%rsp), %rsi
+   1e:  movq %r12, %rdi
+   21:  movslq %eax, %r15
+   24:  movq %r15, %rdx
+   27:  callq luaL_buffinitsize+0
+   2c:  testl %r15d, %r15d
+   2f:  jle 0x63
+   31:  movq %r15, %r13
+   34:  movq %rax, %r14
+   37:  movl $1, %ebx
+   3c:  nopl (%rax)
+   40:  movl %ebx, %esi
+   42:  movq %r12, %rdi
+   45:  callq luaL_checkinteger+0
+   4a:  movq %rax, %rcx
+   4d:  cmpq $0xff, %rax
+   53:  ja 0x90
+   55:  movb %cl, -1(%r14, %rbx)
+   5a:  addq $1, %rbx
+   5e:  cmpl %ebx, %r13d
+   61:  jge 0x40
+   63:  movq %r15, %rsi
+   66:  leaq 0x10(%rsp), %rdi
+   6b:  callq luaL_pushresultsize+0
+   70:  addq $0x438, %rsp
+   77:  movl $1, %eax
+   7c:  popq %rbx
+   7d:  popq %rbp
+   7e:  popq %r12
+   80:  popq %r13
+   82:  popq %r14
+   84:  popq %r15
+   86:  retq
+   87:  nopw (%rax, %rax)
+   90:  movl $0, %edx   <str:"value out of range">
+   95:  movl %ebx, %esi
+   97:  movq %r12, %rdi
+   9a:  movq %rax, 8(%rsp)
+   9f:  callq luaL_argerror+0
+   a4:  movq 8(%rsp), %rcx
+   a9:  jmp 0x55

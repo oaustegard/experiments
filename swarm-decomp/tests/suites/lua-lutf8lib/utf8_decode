@@ -1,0 +1,57 @@
+# utf8_decode  (static, 173 bytes, 56 instructions)
+    0:  movzbl (%rdi), %ecx
+    3:  movl %edx, %r10d
+    6:  movq %rdi, %rax
+    9:  movq %rsi, %r9
+    c:  movl %ecx, %edx
+    e:  testb %cl, %cl
+   10:  jns 0xa0
+   16:  andl $0x40, %edx
+   19:  je 0x4f
+   1b:  movl $1, %edi
+   20:  xorl %esi, %esi
+   22:  jmp 0x3e
+   24:  nopl (%rax)
+   28:  andl $0x3f, %edx
+   2b:  shll $6, %esi
+   2e:  addl %ecx, %ecx
+   30:  orl %edx, %esi
+   32:  leaq 1(%rdi), %rdx
+   36:  testb $0x40, %cl
+   39:  je 0x58
+   3b:  movq %rdx, %rdi
+   3e:  movzbl (%rax, %rdi), %edx
+   42:  movl %edx, %r8d
+   45:  andl $0xffffffc0, %r8d
+   49:  cmpb $0x80, %r8b
+   4d:  je 0x28
+   4f:  xorl %eax, %eax
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  andl $0x7f, %ecx
+   5b:  movl %ecx, %edx
+   5d:  leal (%rdi, %rdi, 4), %ecx
+   60:  shll %cl, %edx
+   62:  movl %edx, %ecx
+   64:  orl %esi, %ecx
+   66:  cmpl $5, %edi
+   69:  jg 0x4f
+   6b:  testl %ecx, %ecx
+   6d:  js 0x4f
+   6f:  movslq %edi, %rdx
+   72:  cmpl (, %rdx, 4), %ecx   <var:limits+0>
+   79:  jb 0x4f
+   7b:  addq %rdx, %rax
+   7e:  testl %r10d, %r10d
+   81:  je 0xa0
+   83:  leal -0xd800(%rcx), %edx
+   89:  cmpl $0x7ff, %edx
+   8f:  jbe 0x4f
+   91:  cmpl $0x10ffff, %ecx
+   97:  ja 0x4f
+   99:  nopl (%rax)
+   a0:  testq %r9, %r9
+   a3:  je 0xa8
+   a5:  movl %ecx, (%r9)
+   a8:  addq $1, %rax
+   ac:  retq

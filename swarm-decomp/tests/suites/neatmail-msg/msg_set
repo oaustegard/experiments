@@ -1,0 +1,98 @@
+# msg_set  (global, 338 bytes, 97 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rcx, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  movq %r9, %rbp
+   12:  pushq %rbx
+   13:  movq %rsi, %rbx
+   16:  leaq (%r12, %rbx), %r15
+   1a:  subq $0x28, %rsp
+   1e:  movq %rdx, 8(%rsp)
+   23:  movq %r8, %rdx
+   26:  movq %r9, (%rsp)
+   2a:  callq msg_get+0
+   2f:  testq %rax, %rax
+   32:  je 0xf8
+   38:  movq %r15, %rsi
+   3b:  movq %rax, %rdi
+   3e:  movq %rax, %r13
+   41:  subq %rax, %rsi
+   44:  callq hdrlen+0
+   49:  movq %rbp, %rdi
+   4c:  movl %eax, %r15d
+   4f:  movl %eax, 0x14(%rsp)
+   53:  callq strlen+0
+   58:  movslq %eax, %rbp
+   5b:  movslq %r15d, %rax
+   5e:  movq %rax, %rcx
+   61:  movq %rax, 0x18(%rsp)
+   66:  movq %rbx, %rax
+   69:  subq %rcx, %rax
+   6c:  movq %r13, %r15
+   6f:  leaq (%rbp, %rax), %r13
+   74:  movq %r13, (%r14)
+   77:  leaq 1(%r13), %rdi
+   7b:  subq %r12, %r15
+   7e:  callq malloc+0
+   83:  movq %rax, %r14
+   86:  movq 8(%rsp), %rax
+   8b:  movq %r14, (%rax)
+   8e:  testq %r14, %r14
+   91:  je 0x14b
+   97:  movslq %r15d, %r15
+   9a:  movq %r12, %rsi
+   9d:  movq %r14, %rdi
+   a0:  movq %r15, %rdx
+   a3:  subq %r15, %rbx
+   a6:  callq memcpy+0
+   ab:  movq (%rsp), %rsi
+   af:  movq %rbp, %rdx
+   b2:  leaq (%r14, %r15), %rdi
+   b6:  addq %r15, %rbp
+   b9:  callq memcpy+0
+   be:  movq 0x18(%rsp), %rax
+   c3:  leaq (%r14, %rbp), %rdi
+   c7:  subq %rax, %rbx
+   ca:  movslq 0x14(%rsp), %rax
+   cf:  leaq 1(%rbx), %rdx
+   d3:  addq %r15, %rax
+   d6:  leaq (%r12, %rax), %rsi
+   da:  callq memcpy+0
+   df:  movb $0, (%r14, %r13)
+   e4:  xorl %eax, %eax
+   e6:  addq $0x28, %rsp
+   ea:  popq %rbx
+   eb:  popq %rbp
+   ec:  popq %r12
+   ee:  popq %r13
+   f0:  popq %r14
+   f2:  popq %r15
+   f4:  retq
+   f5:  nopl (%rax)
+   f8:  movq %r12, %rax
+   fb:  nopl (%rax, %rax)
+  100:  movq %r15, %rsi
+  103:  movq %rax, %rdi
+  106:  movq %rax, %r13
+  109:  callq fn:hdrnext+0
+  10e:  testq %rax, %rax
+  111:  jne 0x100
+  113:  movq (%rsp), %rdi
+  117:  callq strlen+0
+  11c:  movq %r15, %rsi
+  11f:  movq %r13, %rdi
+  122:  subq %r13, %rsi
+  125:  movslq %eax, %rbp
+  128:  callq hdrlen+0
+  12d:  movl $0, 0x14(%rsp)
+  135:  movq $0, 0x18(%rsp)
+  13e:  cltq
+  140:  addq %rax, %r13
+  143:  movq %rbx, %rax
+  146:  jmp 0x6c
+  14b:  movl $1, %eax
+  150:  jmp 0xe6

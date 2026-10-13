@@ -1,0 +1,35 @@
+# val_tomem  (static, 130 bytes, 34 instructions)
+    0:  pushq %rbx
+    1:  xorl %eax, %eax
+    3:  movl %esi, %ebx
+    5:  jmp 0x1a
+    7:  nopw (%rax, %rax)
+   10:  addq $1, %rax
+   14:  cmpq $0x40, %rax
+   18:  je 0x70
+   1a:  cmpq (, %rax, 8), %rdi   <var:ra_live+0>
+   22:  jne 0x10
+   24:  cltq
+   26:  leaq (, %rax, 8), %rcx
+   2e:  movslq (%rip), %rdi   <var:ra_vmax+0>
+   35:  leal 1(%rax), %esi
+   38:  movq $18446744073709551608, %r8
+   3f:  cmpq %rax, %rdi
+   42:  movq %rdi, %rdx
+   45:  movq (%rip), %rax   <var:loc_pos+0>
+   4c:  movl $0x8120000, %edi
+   51:  cmovlel %esi, %edx
+   54:  xorl %esi, %esi
+   56:  addq %rcx, %rax
+   59:  movl $5, %ecx
+   5e:  movl %edx, (%rip)   <var:ra_vmax+0>
+   64:  subq %rax, %r8
+   67:  movslq %ebx, %rdx
+   6a:  popq %rbx
+   6b:  jmp i_ins+0
+   70:  xorl %eax, %eax
+   72:  movl $0, %edi   <str:"neatcc: the specified value is not live\n">
+   77:  callq die+0
+   7c:  xorl %ecx, %ecx
+   7e:  xorl %eax, %eax
+   80:  jmp 0x2e

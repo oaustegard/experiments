@@ -1,0 +1,159 @@
+# eqn_matrix  (static, 623 bytes, 158 instructions)
+    0:  pushq %r15
+    2:  xorl %eax, %eax
+    4:  movl $0x400, %ecx
+    9:  pushq %r14
+    b:  pushq %r13
+    d:  movq %rdx, %r13
+   10:  pushq %r12
+   12:  movq %rdi, %r12
+   15:  pushq %rbp
+   16:  movl %esi, %ebp
+   18:  pushq %rbx
+   19:  subq $0x2098, %rsp
+   20:  leaq 0x90(%rsp), %r15
+   28:  movq %r15, %rdi
+   2b:  rep stosq %rax, (%rdi)
+   2e:  movl $0, %edi   <str:"{">
+   33:  callq tok_jmp+0
+   38:  movl %eax, 0xc(%rsp)
+   3c:  testl %eax, %eax
+   3e:  jne 0x1a5
+   44:  movl $0, 8(%rsp)
+   4c:  xorl %r14d, %r14d
+   4f:  nop
+   50:  movl $0, %edi   <str:"col">
+   55:  callq tok_jmp+0
+   5a:  testl %eax, %eax
+   5c:  jne 0x158
+   62:  movl $0x63, %eax
+   67:  movl $0, %edi   <str:"{">
+   6c:  movl %eax, 0x10(%rsp, %r14, 4)
+   71:  callq tok_jmp+0
+   76:  testl %eax, %eax
+   78:  jne 0xf0
+   7a:  movq %r14, %rbx
+   7d:  shlq $8, %rbx
+   81:  addq %r15, %rbx
+   84:  nopl (%rax)
+   88:  callq tok_get+0
+   8d:  testq %rax, %rax
+   90:  je 0x19b
+   96:  movl 0x28(%r12), %edx
+   9b:  xorl %esi, %esi
+   9d:  movl %ebp, %edi
+   9f:  addq $8, %rbx
+   a3:  callq box_alloc+0
+   a8:  movl $0, %ecx   <str:"above">
+   ad:  movq %r13, %rdx
+   b0:  movl %ebp, %esi
+   b2:  movq %rax, -8(%rbx)
+   b6:  movq %rax, %rdi
+   b9:  callq fn:eqn_boxuntil+0
+   be:  testl %eax, %eax
+   c0:  je 0x88
+   c2:  movl $0, %edi   <str:"}">
+   c7:  addq $1, %r14
+   cb:  callq tok_jmp+0
+   d0:  testl %eax, %eax
+   d2:  je 0x50
+   d8:  callq tok_get+0
+   dd:  movl $0, %edx   <str:"}">
+   e2:  movq %rax, %rcx
+   e5:  jmp 0x135
+   e7:  nopw (%rax, %rax)
+   f0:  movl $1, %edi
+   f5:  callq tok_poptext+0
+   fa:  xorl %esi, %esi
+   fc:  movl $0xa, %edx
+  101:  movq %rax, %rdi
+  104:  callq strtol+0
+  109:  movl 8(%rsp), %ecx
+  10d:  movl $0, %edi   <str:"{">
+  112:  cmpl %eax, %ecx
+  114:  cmovgel %ecx, %eax
+  117:  movl %eax, 8(%rsp)
+  11b:  callq tok_jmp+0
+  120:  testl %eax, %eax
+  122:  je 0x7a
+  128:  callq tok_get+0
+  12d:  movl $0, %edx   <str:"{">
+  132:  movq %rax, %rcx
+  135:  movq (%rip), %rdi   <stderr+0>
+  13c:  movl $0, %esi   <str:"neateqn: expected %s bot got %s\n">
+  141:  xorl %eax, %eax
+  143:  callq fprintf+0
+  148:  movl $1, %edi
+  14d:  callq exit+0
+  152:  nopw (%rax, %rax)
+  158:  movl $0, %edi   <str:"ccol">
+  15d:  callq tok_jmp+0
+  162:  testl %eax, %eax
+  164:  je 0x62
+  16a:  movl $0, %edi   <str:"lcol">
+  16f:  callq tok_jmp+0
+  174:  movl %eax, %edx
+  176:  movl $0x6c, %eax
+  17b:  testl %edx, %edx
+  17d:  je 0x67
+  183:  movl $0, %edi   <str:"rcol">
+  188:  callq tok_jmp+0
+  18d:  testl %eax, %eax
+  18f:  jne 0x1e0
+  191:  movl $0x72, %eax
+  196:  jmp 0x67
+  19b:  movl $0, %edi   <str:"neateqn: unterminated matrix col\n">
+  1a0:  callq errdie+0
+  1a5:  movl $1, %edi
+  1aa:  callq tok_poptext+0
+  1af:  xorl %esi, %esi
+  1b1:  movl $0xa, %edx
+  1b6:  movq %rax, %rdi
+  1b9:  callq strtol+0
+  1be:  movl $0, %edi   <str:"{">
+  1c3:  movl %eax, 0xc(%rsp)
+  1c7:  callq tok_jmp+0
+  1cc:  testl %eax, %eax
+  1ce:  je 0x44
+  1d4:  movl $0, %edi   <str:"{">
+  1d9:  callq fn:tok_expect.part.0+0
+  1de:  nop
+  1e0:  movl $0, %edi   <str:"}">
+  1e5:  callq tok_jmp+0
+  1ea:  testl %eax, %eax
+  1ec:  jne 0x265
+  1ee:  movl 8(%rsp), %r9d
+  1f3:  movl 0xc(%rsp), %r8d
+  1f8:  movl %r14d, %esi
+  1fb:  movq %r15, %rdx
+  1fe:  leaq 0x10(%rsp), %rcx
+  203:  movq %r12, %rdi
+  206:  callq box_matrix+0
+  20b:  testl %r14d, %r14d
+  20e:  je 0x253
+  210:  movslq %r14d, %rbx
+  213:  leaq 0x190(%rsp), %r12
+  21b:  shlq $8, %rbx
+  21f:  addq %r12, %rbx
+  222:  leaq -0x100(%r12), %rbp
+  22a:  nopw (%rax, %rax)
+  230:  movq (%rbp), %rdi
+  234:  testq %rdi, %rdi
+  237:  je 0x23e
+  239:  callq box_free+0
+  23e:  addq $8, %rbp
+  242:  cmpq %r12, %rbp
+  245:  jne 0x230
+  247:  addq $0x100, %r12
+  24e:  cmpq %rbx, %r12
+  251:  jne 0x222
+  253:  addq $0x2098, %rsp
+  25a:  popq %rbx
+  25b:  popq %rbp
+  25c:  popq %r12
+  25e:  popq %r13
+  260:  popq %r14
+  262:  popq %r15
+  264:  retq
+  265:  movl $0, %edi   <str:"}">
+  26a:  callq fn:tok_expect.part.0+0

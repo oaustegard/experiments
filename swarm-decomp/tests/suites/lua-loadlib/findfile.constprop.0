@@ -1,0 +1,36 @@
+# findfile.constprop.0  (static, 116 bytes, 35 instructions)
+    0:  pushq %r13
+    2:  movq %rsi, %r13
+    5:  movl $0xfff0b9d7, %esi
+    a:  pushq %r12
+    c:  movq %rdx, %r12
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  movq %rdi, %rbx
+   14:  subq $8, %rsp
+   18:  callq lua_getfield+0
+   1d:  xorl %edx, %edx
+   1f:  movl $0xffffffff, %esi
+   24:  movq %rbx, %rdi
+   27:  callq lua_tolstring+0
+   2c:  movq %rax, %rbp
+   2f:  testq %rax, %rax
+   32:  je 0x60
+   34:  addq $8, %rsp
+   38:  movq %rbp, %rdx
+   3b:  movq %r13, %rsi
+   3e:  movq %rbx, %rdi
+   41:  movl $0, %r8d   <str:"/">
+   47:  popq %rbx
+   48:  movl $0, %ecx   <str:".">
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  popq %r13
+   52:  jmp fn:searchpath+0
+   57:  nopw (%rax, %rax)
+   60:  movq %r12, %rdx
+   63:  movl $0, %esi   <str:"'package.%s' must be a string">
+   68:  movq %rbx, %rdi
+   6b:  xorl %eax, %eax
+   6d:  callq luaL_error+0
+   72:  jmp 0x34

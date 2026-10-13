@@ -1,0 +1,71 @@
+# out_rel  (global, 302 bytes, 70 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  andl $2, %esi
+    8:  pushq %rbp
+    9:  movq %rdx, %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  je 0x80
+   12:  movq (%rip), %rsi   <var:dsrel_n+0>
+   19:  movq (%rip), %rdx   <var:dsrel_sz+0>
+   20:  movq (%rip), %rdi   <var:dsrel+0>
+   27:  cmpq %rdx, %rsi
+   2a:  jge 0xf8
+   30:  leaq 1(%rsi), %rax
+   34:  movq %rax, (%rip)   <var:dsrel_n+0>
+   3b:  leaq (%rsi, %rsi, 2), %rax
+   3f:  shlq $0x20, %rbx
+   43:  leaq (%rdi, %rax, 8), %rdx
+   47:  movl $2, %eax
+   4c:  movq %rbp, (%rdx)
+   4f:  testb $0x20, %r12b
+   53:  jne 0x70
+   55:  movl $1, %eax
+   5a:  testl $0x800, %r12d
+   61:  je 0x70
+   63:  xorl %eax, %eax
+   65:  andl $0x40, %r12d
+   69:  setne %al
+   6c:  addq $0xa, %rax
+   70:  addq %rax, %rbx
+   73:  movq %rbx, 8(%rdx)
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  retq
+   7c:  nopl (%rax)
+   80:  movq (%rip), %rsi   <var:csrel_n+0>
+   87:  movq (%rip), %rdx   <var:csrel_sz+0>
+   8e:  movq (%rip), %rdi   <var:csrel+0>
+   95:  cmpq %rdx, %rsi
+   98:  jge 0xb0
+   9a:  leaq 1(%rsi), %rax
+   9e:  movq %rax, (%rip)   <var:csrel_n+0>
+   a5:  jmp 0x3b
+   a7:  nopw (%rax, %rax)
+   b0:  movl $0x80, %eax
+   b5:  addq %rdx, %rdx
+   b8:  movl $0x18, %ecx
+   bd:  cmpq %rax, %rdx
+   c0:  cmovlq %rax, %rdx
+   c4:  movq %rdx, (%rip)   <var:csrel_sz+0>
+   cb:  callq mextend+0
+   d0:  movq (%rip), %rsi   <var:csrel_n+0>
+   d7:  movq %rax, (%rip)   <var:csrel+0>
+   de:  movq %rax, %rdi
+   e1:  leaq 1(%rsi), %rax
+   e5:  movq %rax, (%rip)   <var:csrel_n+0>
+   ec:  jmp 0x3b
+   f1:  nopl (%rax)
+   f8:  movl $0x80, %eax
+   fd:  addq %rdx, %rdx
+  100:  movl $0x18, %ecx
+  105:  cmpq %rax, %rdx
+  108:  cmovlq %rax, %rdx
+  10c:  movq %rdx, (%rip)   <var:dsrel_sz+0>
+  113:  callq mextend+0
+  118:  movq (%rip), %rsi   <var:dsrel_n+0>
+  11f:  movq %rax, (%rip)   <var:dsrel+0>
+  126:  movq %rax, %rdi
+  129:  jmp 0x30

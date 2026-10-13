@@ -1,0 +1,28 @@
+# lua-lstate: translation unit lstate of lua
+# write each function as src/lua/lstate/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+stack_init	static	147 bytes
+f_luaopen	static	128 bytes
+freestack.part.0	static	109 bytes
+close_state	static	113 bytes
+lua_newstate	global	601 bytes
+luaE_setdebt	global	40 bytes
+lua_setcstacklimit	global	6 bytes
+luaE_extendCI	global	50 bytes
+luaE_shrinkCI	global	85 bytes
+luaE_checkcstack	global	52 bytes
+luaE_incCstack	global	82 bytes
+lua_newthread	global	257 bytes
+luaE_freethread	global	61 bytes
+luaE_resetthread	global	152 bytes
+lua_closethread	global	29 bytes
+lua_resetthread	global	19 bytes
+lua_close	global	16 bytes
+luaE_warning	global	33 bytes
+luaE_warnerror	global	229 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_freeallobjects luaC_newobjdt luaC_step luaD_closeprotected luaD_rawrunprotected luaD_reallocstack luaD_seterrorobj luaD_throw luaF_closeupval luaG_runerror luaH_new luaH_resize luaM_free_ luaM_malloc_ luaS_hash luaS_init luaT_init luaX_init time

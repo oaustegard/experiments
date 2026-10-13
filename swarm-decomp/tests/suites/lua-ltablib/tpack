@@ -1,0 +1,48 @@
+# tpack  (static, 158 bytes, 47 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  callq lua_gettop+0
+   12:  movl $1, %edx
+   17:  movq %rbp, %rdi
+   1a:  movl %eax, %esi
+   1c:  movl %eax, %r12d
+   1f:  callq lua_createtable+0
+   24:  movl $1, %edx
+   29:  movq %rbp, %rdi
+   2c:  movslq %r12d, %r13
+   2f:  movl $1, %esi
+   34:  callq lua_rotate+0
+   39:  testl %r12d, %r12d
+   3c:  jle 0x71
+   3e:  leaq -1(%r13), %rbx
+   42:  leal -1(%r12), %eax
+   47:  movq %r13, %rdx
+   4a:  movq %rbx, %r12
+   4d:  subq %rax, %r12
+   50:  jmp 0x5c
+   52:  nopw (%rax, %rax)
+   58:  subq $1, %rbx
+   5c:  movl $1, %esi
+   61:  movq %rbp, %rdi
+   64:  callq lua_seti+0
+   69:  movq %rbx, %rdx
+   6c:  cmpq %r12, %rbx
+   6f:  jne 0x58
+   71:  movq %r13, %rsi
+   74:  movq %rbp, %rdi
+   77:  callq lua_pushinteger+0
+   7c:  movq %rbp, %rdi
+   7f:  movl $0, %edx   <str:"n">
+   84:  movl $1, %esi
+   89:  callq lua_setfield+0
+   8e:  addq $8, %rsp
+   92:  movl $1, %eax
+   97:  popq %rbx
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  popq %r13
+   9d:  retq

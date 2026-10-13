@@ -1,0 +1,36 @@
+# def_typeput  (global, 109 bytes, 35 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  pushq %r12
+    7:  movq %rdi, %r12
+    a:  pushq %rbp
+    b:  xorl %ebp, %ebp
+    d:  pushq %rbx
+    e:  movl $0, %ebx   <var:gtypes+0>
+   13:  subq $8, %rsp
+   17:  jmp 0x3e
+   19:  nopl (%rax)
+   20:  movq %rbx, %rsi
+   23:  movq %r12, %rdi
+   26:  callq strcmp+0
+   2b:  testl %eax, %eax
+   2d:  je 0x43
+   2f:  addl $1, %ebp
+   32:  addq $0x24, %rbx
+   36:  cmpl $0x80, %ebp
+   3c:  je 0x62
+   3e:  cmpb $0, (%rbx)
+   41:  jne 0x20
+   43:  movslq %ebp, %rbp
+   46:  movq %r12, %rsi
+   49:  leaq (%rbp, %rbp, 8), %rax
+   4e:  leaq (, %rax, 4), %rdx   <var:gtypes+0>
+   56:  movq %rdx, %rdi
+   59:  callq strcpy+0
+   5e:  movl %r13d, 0x20(%rax)
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  popq %r12
+   6a:  popq %r13
+   6c:  retq

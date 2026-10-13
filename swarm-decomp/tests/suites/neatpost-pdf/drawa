@@ -1,0 +1,17 @@
+# drawa  (global, 69 bytes, 16 instructions)
+    0:  subq $8, %rsp
+    4:  addl %edx, %edi
+    6:  addl %ecx, %esi
+    8:  addl (%rip), %edi   <var:o_h+0>
+    e:  addl (%rip), %esi   <var:o_v+0>
+   14:  movl %edi, (%rip)   <var:o_h+0>
+   1a:  imull $0x64, %edi, %edi
+   1d:  movl %esi, (%rip)   <var:o_v+0>
+   23:  imull $0x64, %esi, %esi
+   26:  callq fn:pdfpos00+0
+   2b:  movq (%rip), %rdi   <var:pg+0>
+   32:  movl $0, %esi   <str:"%s l\n">
+   37:  addq $8, %rsp
+   3b:  movq %rax, %rdx
+   3e:  xorl %eax, %eax
+   40:  jmp sbuf_printf+0

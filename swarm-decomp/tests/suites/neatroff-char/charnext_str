@@ -1,0 +1,59 @@
+# charnext_str  (global, 169 bytes, 58 instructions)
+    0:  movzbl (%rsi), %eax
+    3:  movl (%rip), %r8d   <c_ec+0>
+    a:  movl %eax, %edx
+    c:  cmpl %eax, %r8d
+    f:  je 0x80
+   11:  cmpl $4, %eax
+   14:  je 0x80
+   16:  cmpb $0, 1(%rsi)
+   1a:  je 0x80
+   1c:  movl %eax, %ecx
+   1e:  notl %ecx
+   20:  andl $0xc0, %ecx
+   26:  movl %ecx, %r9d
+   29:  jne 0xa0
+   2b:  movl $2, %ecx
+   30:  testb $0x20, %al
+   32:  je 0x4f
+   34:  movl $3, %ecx
+   39:  testb $0x10, %al
+   3b:  je 0x4f
+   3d:  movl %eax, %ecx
+   3f:  andl $8, %ecx
+   42:  cmpb $1, %cl
+   45:  sbbq %rcx, %rcx
+   48:  andl $3, %ecx
+   4b:  addq $1, %rcx
+   4f:  cmpb $0, (%rsi, %rcx)
+   53:  je 0x80
+   55:  cmpb $0, 2(%rsi)
+   59:  jne 0x8c
+   5b:  testl %r9d, %r9d
+   5e:  jne 0x88
+   60:  movl %edx, %eax
+   62:  notl %eax
+   64:  testb $0x30, %al
+   66:  jne 0x8c
+   68:  andl $8, %edx
+   6b:  je 0x8c
+   6d:  movq %rsi, %rcx
+   70:  movl %r8d, %edx
+   73:  movl $0, %esi   <str:"%c(%s">
+   78:  xorl %eax, %eax
+   7a:  jmp sprintf+0
+   7f:  nop
+   80:  jmp strcpy+0
+   85:  nopl (%rax)
+   88:  testl %eax, %eax
+   8a:  jne 0x6d
+   8c:  movq %rsi, %rcx
+   8f:  movl %r8d, %edx
+   92:  movl $0, %esi   <str:"%cC'%s'">
+   97:  xorl %eax, %eax
+   99:  jmp sprintf+0
+   9e:  nop
+   a0:  xorl %ecx, %ecx
+   a2:  testl %eax, %eax
+   a4:  setg %cl
+   a7:  jmp 0x4f

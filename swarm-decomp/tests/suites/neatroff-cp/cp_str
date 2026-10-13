@@ -1,0 +1,58 @@
+# cp_str  (static, 212 bytes, 57 instructions)
+    0:  pushq %rbp
+    1:  xorl %eax, %eax
+    3:  movl $0x22, %ecx
+    8:  xorl %ebp, %ebp
+    a:  pushq %rbx
+    b:  subq $0x198, %rsp
+   12:  leaq 0x80(%rsp), %rbx
+   1a:  movq %rbx, %rdi
+   1d:  rep stosq %rax, (%rdi)
+   20:  movq %rsp, %rdi
+   23:  movq %rsp, 0x80(%rsp)
+   2b:  callq fn:cparg.constprop.0+0
+   30:  testl %eax, %eax
+   32:  jne 0x78
+   34:  movq %rsp, %rdi
+   37:  callq map+0
+   3c:  movl %eax, %edi
+   3e:  callq str_get+0
+   43:  testq %rax, %rax
+   46:  je 0xb0
+   48:  movq %rsp, %rdi
+   4b:  callq map+0
+   50:  movl %eax, %edi
+   52:  callq str_get+0
+   57:  movq %rbx, %rsi
+   5a:  movq %rax, %rdi
+   5d:  callq in_push+0
+   62:  movq %rbp, %rdi
+   65:  callq free+0
+   6a:  addq $0x198, %rsp
+   71:  popq %rbx
+   72:  popq %rbp
+   73:  retq
+   74:  nopl (%rax)
+   78:  movl $0, %ecx   <in_back+0>
+   7d:  movl $0, %edx   <fn:cp_noninext+0>
+   82:  movl $0x5d, %esi
+   87:  leaq 0x88(%rsp), %rdi
+   8f:  callq tr_args+0
+   94:  movq %rax, %rbp
+   97:  nopw (%rax, %rax)
+   a0:  callq cp_next+0
+   a5:  cmpl $4, %eax
+   a8:  je 0xa0
+   aa:  jmp 0x34
+   ac:  nopl (%rax)
+   b0:  movl $0x43, %edi
+   b5:  callq nreg+0
+   ba:  movl (%rax), %eax
+   bc:  testl %eax, %eax
+   be:  jne 0x62
+   c0:  movq %rsp, %rdi
+   c3:  callq map+0
+   c8:  movq %rbx, %rsi
+   cb:  movl %eax, %edi
+   cd:  callq tr_req+0
+   d2:  jmp 0x62

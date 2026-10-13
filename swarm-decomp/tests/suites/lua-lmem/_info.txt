@@ -1,0 +1,17 @@
+# lua-lmem: translation unit lmem of lua
+# write each function as src/lua/lmem/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+tryagain	static	93 bytes
+luaM_toobig	global	16 bytes
+luaM_free_	global	32 bytes
+luaM_realloc_	global	88 bytes
+luaM_shrinkvector_	global	85 bytes
+luaM_growaux_	global	165 bytes
+luaM_saferealloc_	global	53 bytes
+luaM_malloc_	global	114 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_fullgc luaD_throw luaG_runerror

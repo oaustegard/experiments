@@ -1,0 +1,59 @@
+# tr_de  (static, 193 bytes, 58 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x18, %rsp
+    9:  movq 8(%rdi), %rdi
+    d:  testq %rdi, %rdi
+   10:  je 0x8b
+   12:  callq map+0
+   17:  movq %rsp, %rdi
+   1a:  movl %eax, %ebp
+   1c:  callq sbuf_init+0
+   21:  movq (%rbx), %rax
+   24:  cmpb $0x61, 1(%rax)
+   28:  je 0x98
+   2a:  movq 0x10(%rbx), %rsi
+   2e:  movl $0, %eax   <str:".">
+   33:  movq %rsp, %rdi
+   36:  testq %rsi, %rsi
+   39:  cmoveq %rax, %rsi
+   3d:  callq fn:macrobody+0
+   42:  movq %rsp, %rdi
+   45:  callq sbuf_buf+0
+   4a:  movl %ebp, %edi
+   4c:  movq %rax, %rsi
+   4f:  callq str_set+0
+   54:  movq %rsp, %rdi
+   57:  callq sbuf_done+0
+   5c:  movl $0x43, %edi
+   61:  callq nreg+0
+   66:  movl (%rax), %eax
+   68:  testl %eax, %eax
+   6a:  jne 0x8b
+   6c:  movq 0x18(%rbx), %rdi
+   70:  testq %rdi, %rdi
+   73:  je 0x8b
+   75:  callq map+0
+   7a:  movl %eax, %edi
+   7c:  callq str_dget+0
+   81:  movl %ebp, %edi
+   83:  movq %rax, %rsi
+   86:  callq str_dset+0
+   8b:  addq $0x18, %rsp
+   8f:  popq %rbx
+   90:  popq %rbp
+   91:  retq
+   92:  nopw (%rax, %rax)
+   98:  cmpb $0x6d, 2(%rax)
+   9c:  jne 0x2a
+   9e:  movl %ebp, %edi
+   a0:  callq str_get+0
+   a5:  testq %rax, %rax
+   a8:  je 0x2a
+   aa:  movl %ebp, %edi
+   ac:  callq str_get+0
+   b1:  movq %rsp, %rdi
+   b4:  movq %rax, %rsi
+   b7:  callq sbuf_append+0
+   bc:  jmp 0x2a

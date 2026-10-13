@@ -1,0 +1,66 @@
+# l_strcmp  (static, 182 bytes, 65 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  leaq 0x18(%rdi), %rbp
+    b:  pushq %rbx
+    c:  movzbl 0xb(%rdi), %r13d
+   11:  cmpb $0xff, %r13b
+   15:  jne 0x1b
+   17:  movq 0x10(%rdi), %r13
+   1b:  movzbl 0xb(%rsi), %r14d
+   20:  leaq 0x18(%rsi), %r12
+   24:  cmpb $0xff, %r14b
+   28:  jne 0x71
+   2a:  movq 0x10(%rsi), %r14
+   2e:  movq %rbp, %rdi
+   31:  movq %r12, %rsi
+   34:  callq strcoll+0
+   39:  testl %eax, %eax
+   3b:  jne 0x80
+   3d:  nopl (%rax)
+   40:  movq %rbp, %rdi
+   43:  callq strlen+0
+   48:  movq %r12, %rdi
+   4b:  movq %rax, %rbx
+   4e:  callq strlen+0
+   53:  cmpq %rax, %r14
+   56:  je 0x90
+   58:  cmpq %rbx, %r13
+   5b:  je 0xa8
+   5d:  addq $1, %rbx
+   61:  addq $1, %rax
+   65:  addq %rbx, %rbp
+   68:  subq %rbx, %r13
+   6b:  addq %rax, %r12
+   6e:  subq %rax, %r14
+   71:  movq %r12, %rsi
+   74:  movq %rbp, %rdi
+   77:  callq strcoll+0
+   7c:  testl %eax, %eax
+   7e:  je 0x40
+   80:  popq %rbx
+   81:  popq %rbp
+   82:  popq %r12
+   84:  popq %r13
+   86:  popq %r14
+   88:  retq
+   89:  nopl (%rax)
+   90:  xorl %eax, %eax
+   92:  cmpq %rbx, %r13
+   95:  popq %rbx
+   96:  popq %rbp
+   97:  setne %al
+   9a:  popq %r12
+   9c:  popq %r13
+   9e:  popq %r14
+   a0:  retq
+   a1:  nopl (%rax)
+   a8:  popq %rbx
+   a9:  movl $0xffffffff, %eax
+   ae:  popq %rbp
+   af:  popq %r12
+   b1:  popq %r13
+   b3:  popq %r14
+   b5:  retq

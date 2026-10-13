@@ -1,0 +1,50 @@
+# warnfon  (static, 149 bytes, 49 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  movl %edx, %ebp
+    8:  pushq %rbx
+    9:  movq %rsi, %rbx
+    c:  testl %edx, %edx
+    e:  jne 0x15
+   10:  cmpb $0x40, (%rsi)
+   13:  je 0x50
+   15:  movl $0xd, %edx
+   1a:  movl $1, %esi
+   1f:  movl $0, %edi   <str:"Lua warning: ">
+   24:  movq (%rip), %rcx   <stderr+0>
+   2b:  callq fwrite+0
+   30:  movq (%rip), %rdi   <stderr+0>
+   37:  callq fflush+0
+   3c:  movl %ebp, %edx
+   3e:  movq %rbx, %rsi
+   41:  movq %r12, %rdi
+   44:  popq %rbx
+   45:  popq %rbp
+   46:  popq %r12
+   48:  jmp fn:warnfcont+0
+   4d:  nopl (%rax)
+   50:  leaq 1(%rsi), %rbp
+   54:  movl $0, %esi   <str:"off">
+   59:  movq %rbp, %rdi
+   5c:  callq strcmp+0
+   61:  movq %r12, %rdx
+   64:  movl $0, %esi   <fn:warnfoff+0>
+   69:  testl %eax, %eax
+   6b:  je 0x84
+   6d:  cmpb $0x6f, 1(%rbx)
+   71:  jne 0x90
+   73:  cmpb $0x6e, 1(%rbp)
+   77:  jne 0x90
+   79:  cmpb $0, 2(%rbp)
+   7d:  jne 0x90
+   7f:  movl $0, %esi   <fn:warnfon+0>
+   84:  popq %rbx
+   85:  movq %r12, %rdi
+   88:  popq %rbp
+   89:  popq %r12
+   8b:  jmp lua_setwarnf+0
+   90:  popq %rbx
+   91:  popq %rbp
+   92:  popq %r12
+   94:  retq

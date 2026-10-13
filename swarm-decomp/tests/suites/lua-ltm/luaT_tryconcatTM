@@ -1,0 +1,23 @@
+# luaT_tryconcatTM  (global, 62 bytes, 22 instructions)
+    0:  pushq %r12
+    2:  movl $0x16, %r8d
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  movq 0x10(%rdi), %rax
+    e:  movq %rdi, %rbx
+   11:  leaq -0x20(%rax), %r12
+   15:  leaq -0x10(%rax), %rbp
+   19:  movq %r12, %rcx
+   1c:  movq %rbp, %rdx
+   1f:  movq %r12, %rsi
+   22:  callq fn:callbinTM+0
+   27:  testl %eax, %eax
+   29:  je 0x30
+   2b:  popq %rbx
+   2c:  popq %rbp
+   2d:  popq %r12
+   2f:  retq
+   30:  movq %rbp, %rdx
+   33:  movq %r12, %rsi
+   36:  movq %rbx, %rdi
+   39:  callq luaG_concaterror+0

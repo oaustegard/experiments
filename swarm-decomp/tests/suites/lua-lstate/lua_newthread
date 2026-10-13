@@ -1,0 +1,53 @@
+# lua_newthread  (global, 257 bytes, 52 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  movq 0x18(%rdi), %r12
+    b:  cmpq $0, 0x18(%r12)
+   11:  jle 0x18
+   13:  callq luaC_step+0
+   18:  movq %rbp, %rdi
+   1b:  movl $8, %ecx
+   20:  movl $0xd0, %edx
+   25:  movl $8, %esi
+   2a:  callq luaC_newobjdt+0
+   2f:  movl $0x100, %edx
+   34:  movq %rbp, %rsi
+   37:  movq %rax, %rbx
+   3a:  movq 0x10(%rbp), %rax
+   3e:  movq %rbx, %rdi
+   41:  movb $0x48, 8(%rax)
+   45:  addq $0x10, %rax
+   49:  movq %rbx, -0x10(%rax)
+   4d:  movq %rax, 0x10(%rbp)
+   51:  xorl %eax, %eax
+   53:  movq $0, 0xa0(%rbx)
+   5e:  movw %dx, 0xa(%rbx)
+   62:  movl $0, 0xc0(%rbx)
+   6c:  movq $0, 0xb4(%rbx)
+   77:  movw %ax, 0xc(%rbx)
+   7b:  movl 0xc0(%rbp), %eax
+   81:  movq %r12, 0x18(%rbx)
+   85:  movl %eax, 0xc0(%rbx)
+   8b:  movl 0xb8(%rbp), %eax
+   91:  movq 0xa0(%rbp), %rdx
+   98:  movq $0, 0x30(%rbx)
+   a0:  movl %eax, 0xb8(%rbx)
+   a6:  movl %eax, 0xbc(%rbx)
+   ac:  movq 0x108(%r12), %rax
+   b4:  movq $0, 0x20(%rbx)
+   bc:  movq %rbx, 0x50(%rbx)
+   c0:  movl $0, 0xb0(%rbx)
+   ca:  movq $0, 0x58(%rbx)
+   d2:  movq $0, 0x38(%rbx)
+   da:  movq $0, 0xa8(%rbx)
+   e5:  movq %rdx, 0xa0(%rbx)
+   ec:  movq -8(%rax), %rax
+   f0:  movq %rax, -8(%rbx)
+   f4:  callq fn:stack_init+0
+   f9:  movq %rbx, %rax
+   fc:  popq %rbx
+   fd:  popq %rbp
+   fe:  popq %r12
+  100:  retq

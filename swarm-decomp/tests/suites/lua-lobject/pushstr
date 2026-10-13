@@ -1,0 +1,29 @@
+# pushstr  (static, 81 bytes, 28 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq (%rdi), %rbp
+    7:  movq %rdi, %rbx
+    a:  movq 0x10(%rbp), %r12
+    e:  movq %rbp, %rdi
+   11:  callq luaS_newlstr+0
+   16:  movq %rax, (%r12)
+   1a:  movzbl 8(%rax), %eax
+   1e:  orl $0x40, %eax
+   21:  movb %al, 8(%r12)
+   26:  movl 8(%rbx), %eax
+   29:  addq $0x10, 0x10(%rbp)
+   2e:  testl %eax, %eax
+   30:  jne 0x40
+   32:  movl $1, 8(%rbx)
+   39:  popq %rbx
+   3a:  popq %rbp
+   3b:  popq %r12
+   3d:  retq
+   3e:  nop
+   40:  popq %rbx
+   41:  movq %rbp, %rdi
+   44:  movl $2, %esi
+   49:  popq %rbp
+   4a:  popq %r12
+   4c:  jmp luaV_concat+0

@@ -1,0 +1,57 @@
+# tok_len  (static, 165 bytes, 56 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  movl %esi, %edi
+    7:  pushq %r12
+    9:  movl %edx, %r12d
+    c:  pushq %rbp
+    d:  movl %r8d, %ebp
+   10:  pushq %rbx
+   11:  movl %ecx, %ebx
+   13:  subq $8, %rsp
+   17:  callq nregname+0
+   1c:  movq %r13, %rdx
+   1f:  movl $0, %edi   <str:".nr %s 0\\w'%s'\n">
+   24:  movq %rax, %rsi
+   27:  xorl %eax, %eax
+   29:  callq printf+0
+   2e:  testl %r12d, %r12d
+   31:  jne 0x50
+   33:  testl %ebp, %ebp
+   35:  jne 0x6b
+   37:  testl %ebx, %ebx
+   39:  jne 0x85
+   3b:  addq $8, %rsp
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  popq %r12
+   43:  popq %r13
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movl %r12d, %edi
+   53:  callq nregname+0
+   58:  movl $0, %edi   <str:".nr %s 0\\n[bblly]-\\n[bbury]-2\n">
+   5d:  movq %rax, %rsi
+   60:  xorl %eax, %eax
+   62:  callq printf+0
+   67:  testl %ebp, %ebp
+   69:  je 0x37
+   6b:  movl %ebp, %edi
+   6d:  callq nregname+0
+   72:  movl $0, %edi   <str:".nr %s 0\\n[bblly]-1\n">
+   77:  movq %rax, %rsi
+   7a:  xorl %eax, %eax
+   7c:  callq printf+0
+   81:  testl %ebx, %ebx
+   83:  je 0x3b
+   85:  movl %ebx, %edi
+   87:  callq nregname+0
+   8c:  addq $8, %rsp
+   90:  movl $0, %edi   <str:".nr %s 0-\\n[bbury]-1\n">
+   95:  popq %rbx
+   96:  movq %rax, %rsi
+   99:  popq %rbp
+   9a:  xorl %eax, %eax
+   9c:  popq %r12
+   9e:  popq %r13
+   a0:  jmp printf+0

@@ -1,0 +1,39 @@
+# l_str2dloc  (static, 124 bytes, 38 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $0x18, %rsp
+    c:  leaq 8(%rsp), %rsi
+   11:  callq strtod+0
+   16:  movq 8(%rsp), %rsi
+   1b:  movsd %xmm0, (%rbp)
+   20:  cmpq %rbx, %rsi
+   23:  je 0x70
+   25:  movzbl (%rsi), %ecx
+   28:  leaq 1(%rsi), %rax
+   2c:  movq %rcx, %rdx
+   2f:  testb $8, (%rcx)   <luai_ctype_+1>
+   36:  je 0x5b
+   38:  nopl (%rax, %rax)
+   40:  movq %rax, 8(%rsp)
+   45:  movzbl (%rax), %ecx
+   48:  movq %rax, %rsi
+   4b:  addq $1, %rax
+   4f:  movq %rcx, %rdx
+   52:  testb $8, (%rcx)   <luai_ctype_+1>
+   59:  jne 0x40
+   5b:  testb %dl, %dl
+   5d:  jne 0x70
+   5f:  addq $0x18, %rsp
+   63:  movq %rsi, %rax
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq
+   69:  nopl (%rax)
+   70:  addq $0x18, %rsp
+   74:  xorl %esi, %esi
+   76:  movq %rsi, %rax
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  retq

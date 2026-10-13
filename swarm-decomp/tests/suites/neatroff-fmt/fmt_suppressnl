@@ -1,0 +1,8 @@
+# fmt_suppressnl  (global, 21 bytes, 7 instructions)
+    0:  movl 0x44(%rdi), %eax
+    3:  testl %eax, %eax
+    5:  je 0x14
+    7:  subl $1, %eax
+    a:  movl $1, 0x48(%rdi)
+   11:  movl %eax, 0x44(%rdi)
+   14:  retq

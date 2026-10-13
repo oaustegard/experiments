@@ -1,0 +1,27 @@
+# math_toint  (static, 88 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  leaq 0xc(%rsp), %rdx
+   12:  callq lua_tointegerx+0
+   17:  movl 0xc(%rsp), %edx
+   1b:  testl %edx, %edx
+   1d:  je 0x38
+   1f:  movq %rax, %rsi
+   22:  movq %rbx, %rdi
+   25:  callq lua_pushinteger+0
+   2a:  addq $0x10, %rsp
+   2e:  movl $1, %eax
+   33:  popq %rbx
+   34:  retq
+   35:  nopl (%rax)
+   38:  movq %rbx, %rdi
+   3b:  movl $1, %esi
+   40:  callq luaL_checkany+0
+   45:  movq %rbx, %rdi
+   48:  callq lua_pushnil+0
+   4d:  addq $0x10, %rsp
+   51:  movl $1, %eax
+   56:  popq %rbx
+   57:  retq

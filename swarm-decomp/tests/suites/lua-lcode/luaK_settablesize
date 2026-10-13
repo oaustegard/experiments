@@ -1,0 +1,42 @@
+# luaK_settablesize  (global, 112 bytes, 41 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %rsi
+    5:  pushq %rbp
+    6:  movl %ecx, %ebp
+    8:  pushq %rbx
+    9:  movq (%rdi), %rax
+    c:  movl %edx, %ebx
+    e:  movq 0x40(%rax), %rax
+   12:  leaq (%rax, %rsi, 4), %r12
+   16:  xorl %eax, %eax
+   18:  testl %r8d, %r8d
+   1b:  jne 0x60
+   1d:  shll $7, %ebx
+   20:  orl %eax, %ebx
+   22:  movl %ebp, %eax
+   24:  shll $0x18, %eax
+   27:  orl %eax, %ebx
+   29:  xorl %eax, %eax
+   2b:  cmpl $0xff, %ebp
+   31:  setg %al
+   34:  shll $0xf, %eax
+   37:  orl %eax, %ebx
+   39:  leal 0xff(%rbp), %eax
+   3f:  orl $0x13, %ebx
+   42:  testl %ebp, %ebp
+   44:  cmovnsl %ebp, %eax
+   47:  movl %ebx, (%r12)
+   4b:  sarl $8, %eax
+   4e:  shll $7, %eax
+   51:  orl $0x52, %eax
+   54:  movl %eax, 4(%r12)
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  popq %r12
+   5d:  retq
+   5e:  nop
+   60:  movl %r8d, %edi
+   63:  callq luaO_ceillog2+0
+   68:  addl $1, %eax
+   6b:  shll $0x10, %eax
+   6e:  jmp 0x1d

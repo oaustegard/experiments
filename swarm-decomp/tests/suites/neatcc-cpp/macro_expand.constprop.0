@@ -1,0 +1,170 @@
+# macro_expand.constprop.0  (static, 705 bytes, 169 instructions)
+    0:  pushq %r15
+    2:  movl $0, %edi   <var:seen_name+0>
+    7:  pushq %r14
+    9:  pushq %r13
+    b:  pushq %r12
+    d:  pushq %rbp
+    e:  pushq %rbx
+    f:  subq $0x18, %rsp
+   13:  callq fn:buf_arg_find+0
+   18:  testl %eax, %eax
+   1a:  jns 0x1f0
+   20:  movzbl (%rip), %eax   <var:seen_name+0>
+   27:  movslq (, %rax, 4), %rbx   <var:mhead+0>
+   2f:  testl %ebx, %ebx
+   31:  jle 0x6e
+   33:  nopl (%rax, %rax)
+   38:  imulq $0x188c, %rbx, %rdx
+   3f:  movl $0, %edi   <var:seen_name+0>
+   44:  leaq (%rdx), %r15   <var:macros+0>
+   4b:  movq %r15, %rsi
+   4e:  callq strcmp+0
+   53:  testl %eax, %eax
+   55:  jne 0x62
+   57:  movl 0x1888(%r15), %edx
+   5e:  testl %edx, %edx
+   60:  je 0x7b
+   62:  movslq (, %rbx, 4), %rbx   <var:mnext+0>
+   6a:  testl %ebx, %ebx
+   6c:  jg 0x38
+   6e:  movl $0, %r15d   <var:macros+-6284>
+   74:  movq $18446744073709551615, %rbx
+   7b:  imulq $0x188c, %rbx, %rax
+   82:  movl (%rax), %eax   <var:macros+6276>
+   88:  testl %eax, %eax
+   8a:  je 0x1d1
+   90:  callq fn:jumpws+0
+   95:  movq (%rip), %r12   <var:buf+0>
+   9c:  movq (%rip), %rax   <var:cur+0>
+   a3:  cmpb $0x28, (%r12, %rax)
+   a8:  je 0xb9
+   aa:  addq $0x18, %rsp
+   ae:  popq %rbx
+   af:  popq %rbp
+   b0:  popq %r12
+   b2:  popq %r13
+   b4:  popq %r14
+   b6:  popq %r15
+   b8:  retq
+   b9:  movslq (%rip), %rbp   <var:bufs_n+0>
+   c0:  addq $1, %rax
+   c4:  movq %rax, (%rip)   <var:cur+0>
+   cb:  movl %ebp, 0xc(%rsp)
+   cf:  callq fn:jumpws+0
+   d4:  movq (%rip), %rcx   <var:cur+0>
+   db:  movq (%rip), %r14   <var:len+0>
+   e2:  movq %rcx, %rax
+   e5:  cmpq %rcx, %r14
+   e8:  jle 0x2b9
+   ee:  imulq $0x80b0, %rbp, %rbp
+   f5:  xorl %r13d, %r13d
+   f8:  addq $0, %rbp   <var:bufs+168>
+   ff:  jmp 0x14d
+  101:  nopl (%rax)
+  108:  movq %rbp, %rdi
+  10b:  addl $1, %r13d
+  10f:  callq fn:readarg+0
+  114:  callq fn:jumpws+0
+  119:  movq (%rip), %rax   <var:cur+0>
+  120:  cmpb $0x2c, (%r12, %rax)
+  125:  jne 0x157
+  127:  addq $1, %rax
+  12b:  addq $0x400, %rbp
+  132:  movq %rax, (%rip)   <var:cur+0>
+  139:  callq fn:jumpws+0
+  13e:  movq (%rip), %rcx   <var:cur+0>
+  145:  movq %rcx, %rax
+  148:  cmpq %rcx, %r14
+  14b:  jle 0x157
+  14d:  cmpb $0x29, (%r12, %rcx)
+  152:  jne 0x108
+  154:  movq %rcx, %rax
+  157:  imulq $0x188c, %rbx, %rbx
+  15e:  movl (%rbx), %esi   <var:macros+6272>
+  164:  cmpl %r13d, %esi
+  167:  jle 0x1c6
+  169:  movslq 0xc(%rsp), %rdi
+  16e:  movslq %r13d, %r8
+  171:  subl %r13d, %esi
+  174:  addq %r8, %rsi
+  177:  movq %r8, %rcx
+  17a:  imulq $0x80b0, %rdi, %rdi
+  181:  shlq $0xa, %rsi
+  185:  shlq $0xa, %rcx
+  189:  leaq (%rdi, %rsi), %rsi   <var:bufs+168>
+  191:  leaq (%rdi, %rcx), %rcx   <var:bufs+168>
+  199:  movq %rsi, %rdi
+  19c:  subq %rcx, %rdi
+  19f:  testl $0x400, %edi
+  1a5:  jne 0x2a1
+  1ab:  nopl (%rax, %rax)
+  1b0:  movb $0, (%rcx)
+  1b3:  addq $0x800, %rcx
+  1ba:  movb $0, -0x400(%rcx)
+  1c1:  cmpq %rcx, %rsi
+  1c4:  jne 0x1b0
+  1c6:  addq $1, %rax
+  1ca:  movq %rax, (%rip)   <var:cur+0>
+  1d1:  addq $0x18, %rsp
+  1d5:  movq %r15, %rdi
+  1d8:  popq %rbx
+  1d9:  popq %rbp
+  1da:  popq %r12
+  1dc:  popq %r13
+  1de:  popq %r14
+  1e0:  popq %r15
+  1e2:  jmp fn:buf_macro+0
+  1e7:  nopw (%rax, %rax)
+  1f0:  movslq %eax, %r13
+  1f3:  movl %eax, %r12d
+  1f6:  imulq $0x80b0, %r13, %rax
+  1fd:  movq (%rax), %rbx   <var:bufs+160>
+  204:  movslq 0x1880(%rbx), %r14
+  20b:  testl %r14d, %r14d
+  20e:  jle 0x298
+  214:  addq $0x880, %rbx
+  21b:  xorl %ebp, %ebp
+  21d:  jmp 0x22d
+  21f:  nop
+  220:  addq $1, %rbp
+  224:  subq $-0x80, %rbx
+  228:  cmpq %rbp, %r14
+  22b:  je 0x298
+  22d:  movq %rbx, %rsi
+  230:  movl $0, %edi   <var:seen_name+0>
+  235:  callq strcmp+0
+  23a:  testl %eax, %eax
+  23c:  jne 0x220
+  23e:  shlq $0xa, %rbp
+  242:  imulq $0x80b0, %r13, %r13
+  249:  leaq (%rbp, %r13), %rbx   <var:bufs+168>
+  251:  movq %rbx, %rdi
+  254:  callq strlen+0
+  259:  movq %rbx, %rsi
+  25c:  movl $2, %edi
+  261:  movq %rax, %rdx
+  264:  callq fn:buf_new+0
+  269:  movl (%rip), %eax   <var:bufs_n+0>
+  26f:  subl $1, %eax
+  272:  cltq
+  274:  imulq $0x80b0, %rax, %rax
+  27b:  movl %r12d, (%rax)   <var:bufs+32936>
+  282:  addq $0x18, %rsp
+  286:  popq %rbx
+  287:  popq %rbp
+  288:  popq %r12
+  28a:  popq %r13
+  28c:  popq %r14
+  28e:  popq %r15
+  290:  retq
+  291:  nopl (%rax)
+  298:  movq $18446744073709550592, %rbp
+  29f:  jmp 0x242
+  2a1:  movb $0, (%rcx)
+  2a4:  addq $0x400, %rcx
+  2ab:  cmpq %rcx, %rsi
+  2ae:  jne 0x1b0
+  2b4:  jmp 0x1c6
+  2b9:  xorl %r13d, %r13d
+  2bc:  jmp 0x157

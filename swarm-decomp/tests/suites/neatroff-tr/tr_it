@@ -1,0 +1,40 @@
+# tr_it  (static, 124 bytes, 39 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq 0x10(%rdi), %r12
+    8:  testq %r12, %r12
+    b:  je 0x60
+    d:  movq %rdi, %rbx
+   10:  movl $0, %edi   <str:".it">
+   15:  callq map+0
+   1a:  movl %eax, %edi
+   1c:  callq nreg+0
+   21:  movq %r12, %rdi
+   24:  movq %rax, %rbp
+   27:  callq map+0
+   2c:  movl $0, %edi   <str:".itn">
+   31:  movl %eax, (%rbp)
+   34:  movq 8(%rbx), %rbp
+   38:  callq map+0
+   3d:  movl %eax, %edi
+   3f:  callq nreg+0
+   44:  movq %rbp, %rdi
+   47:  xorl %esi, %esi
+   49:  movq %rax, %rbx
+   4c:  callq eval+0
+   51:  movl %eax, (%rbx)
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  popq %r12
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  movl $0, %edi   <str:".it">
+   65:  callq map+0
+   6a:  movl %eax, %edi
+   6c:  callq nreg+0
+   71:  movl $0, (%rax)
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  retq

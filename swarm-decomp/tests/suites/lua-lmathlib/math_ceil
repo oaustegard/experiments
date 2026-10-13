@@ -1,0 +1,49 @@
+# math_ceil  (static, 196 bytes, 48 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq lua_isinteger+0
+    e:  movl $1, %esi
+   13:  movq %rbx, %rdi
+   16:  testl %eax, %eax
+   18:  je 0x30
+   1a:  callq lua_settop+0
+   1f:  movl $1, %eax
+   24:  popq %rbx
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  callq luaL_checknumber+0
+   35:  movsd (%rip), %xmm2   <cst:ffffffffffffff7f0000000000000000>
+   3d:  movsd (%rip), %xmm3   <cst:0000000000003043>
+   45:  movapd %xmm0, %xmm1
+   49:  andpd %xmm2, %xmm1
+   4d:  ucomisd %xmm1, %xmm3
+   51:  jbe 0x86
+   53:  cvttsd2si %xmm0, %rax
+   58:  pxor %xmm1, %xmm1
+   5c:  movapd %xmm0, %xmm3
+   60:  movsd (%rip), %xmm4   <cst:000000000000f03f>
+   68:  andnpd %xmm0, %xmm2
+   6c:  cvtsi2sdq %rax, %xmm1
+   71:  cmpnlesd %xmm1, %xmm3
+   76:  andpd %xmm4, %xmm3
+   7a:  addsd %xmm3, %xmm1
+   7e:  orpd %xmm2, %xmm1
+   82:  movapd %xmm1, %xmm0
+   86:  comisd (%rip), %xmm0   <cst:000000000000e0c3>
+   8e:  jb 0x9e
+   90:  movsd (%rip), %xmm1   <cst:000000000000e043>
+   98:  comisd %xmm0, %xmm1
+   9c:  ja 0xb0
+   9e:  movq %rbx, %rdi
+   a1:  callq lua_pushnumber+0
+   a6:  movl $1, %eax
+   ab:  popq %rbx
+   ac:  retq
+   ad:  nopl (%rax)
+   b0:  cvttsd2si %xmm0, %rsi
+   b5:  movq %rbx, %rdi
+   b8:  callq lua_pushinteger+0
+   bd:  movl $1, %eax
+   c2:  popq %rbx
+   c3:  retq

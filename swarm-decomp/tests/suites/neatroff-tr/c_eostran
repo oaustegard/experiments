@@ -1,0 +1,31 @@
+# c_eostran  (global, 79 bytes, 30 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movslq (%rip), %rbp   <var:eos_trancnt+0>
+    a:  pushq %rbx
+    b:  testl %ebp, %ebp
+    d:  jle 0x48
+    f:  movl $0, %ebx   <var:eos_tran+0>
+   14:  shlq $5, %rbp
+   18:  movq %rdi, %r12
+   1b:  addq %rbx, %rbp
+   1e:  jmp 0x29
+   20:  addq $0x20, %rbx
+   24:  cmpq %rbp, %rbx
+   27:  je 0x48
+   29:  movq %r12, %rsi
+   2c:  movq %rbx, %rdi
+   2f:  callq strcmp+0
+   34:  testl %eax, %eax
+   36:  jne 0x20
+   38:  popq %rbx
+   39:  movl $1, %eax
+   3e:  popq %rbp
+   3f:  popq %r12
+   41:  retq
+   42:  nopw (%rax, %rax)
+   48:  popq %rbx
+   49:  xorl %eax, %eax
+   4b:  popq %rbp
+   4c:  popq %r12
+   4e:  retq

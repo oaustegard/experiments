@@ -1,0 +1,41 @@
+{
+  "neat": {
+    "role": "obscure",
+    "license": "ISC (notice in each program's main file)",
+    "note": "Ali Gholami Rudi's troff suite and companions; GitHub stars 13-180 on 2026-10-13 (neatvi, 400 stars, excluded). neatroff's last commit is 2026-08-04, after the model's training cutoff. sha256 is of `git archive --format=tar <commit>` with git 2.43.0.",
+    "projects": {
+      "neatroff":  {"url": "https://github.com/aligrudi/neatroff",  "commit": "fdf7a49cc75fce64e8f2c4033dfbd37af0f3031c", "sha256": "da9b3d93719d669331dc2c2baf2ee10480b52e885591cf6c2d42a7e070217a57",
+                    "files": ["roff", "dev", "font", "in", "cp", "tr", "ren", "out", "reg", "sbuf", "fmt", "eval", "draw", "wb", "hyph", "map", "clr", "char", "dict", "iset", "dir"],
+                    "defines": ["-DTROFFFDIR=\"/neatroff/font\"", "-DTROFFMDIR=\"/neatroff/tmac\""]},
+      "neatpost":  {"url": "https://github.com/aligrudi/neatpost",  "commit": "48dc8a09e823b8a1606953ded621e6b60ecc28a1", "sha256": "a8f100f255789f0149091ca772d90c9ea83978dcb859fb01733c304d0803cd1f",
+                    "files": ["post", "ps", "pdf", "pdfext", "txt", "font", "dev", "clr", "dict", "iset", "sbuf"],
+                    "defines": ["-DTROFFFDIR=\"/neatroff/font\""]},
+      "neatmkfn":  {"url": "https://github.com/aligrudi/neatmkfn",  "commit": "0bc55057f9ec80a46ee784c98c0843676200452b", "sha256": "a0d6c6580e57c24243e53c741ce335c1f921557784faf54ad6980d3c29910d1a",
+                    "files": ["mkfn", "trfn", "sbuf", "tab", "afm", "otf"], "defines": []},
+      "neateqn":   {"url": "https://github.com/aligrudi/neateqn",   "commit": "d182414457da5bee66996d6ea92a368b1718ccbd", "sha256": "13ce6bcb928810b802fb98fe49d62ee460e129bc4f93083adb097b78d4d551f3",
+                    "files": ["eqn", "tok", "src", "def", "box", "reg", "sbuf"], "defines": []},
+      "neatrefer": {"url": "https://github.com/aligrudi/neatrefer", "commit": "0cc4ee1f7206ea0b9218d2ce798ea50344b537f4", "sha256": "ad134aa0ce85f3d4574fd96d23711836922c8a6cb4a0006e99bb4b2f89ee5122",
+                    "files": ["refer"], "defines": []},
+      "neatcc":    {"url": "https://github.com/aligrudi/neatcc",    "commit": "3472e4b5aca9e4543f0149015babb329943197db", "sha256": "3bfa4fd57f249f6fe49a32edf7e89e4a4449d9216c43b1424eb425cf1434658c",
+                    "files": ["ncc", "tok", "out", "cpp", "gen", "int", "reg", "mem", "x64"], "defines": ["-DNEATCC_X64"]},
+      "neatld":    {"url": "https://github.com/aligrudi/neatld",    "commit": "636239ab7e038a692302daa6b3504d845b544cdb", "sha256": "22d85b806bc8acf1023abeda14d4f90cf49e11ff5179c3aa116cfeb61b5a1ae2",
+                    "files": ["nld"], "defines": []},
+      "neatmail":  {"url": "https://github.com/aligrudi/neatmail",  "commit": "5eac6d2640cd7777bb449fec46b242f2116b556b", "sha256": "c94e8a0a0e80e67a8ed2d9da7d2317187232972d7612a7892fd93b7fee8d5d1b",
+                    "files": ["mail", "ex", "mk", "pg", "me", "pn", "mbox", "msg", "mime", "util", "sbuf", "regex"], "defines": []}
+    }
+  },
+  "lua": {
+    "role": "famous",
+    "license": "MIT",
+    "projects": {
+      "lua": {"url": "https://www.lua.org/ftp/lua-5.4.7.tar.gz", "version": "5.4.7",
+              "sha256": "9fbf5e28ef86c69858f6d3d34eccc32e911c1a28b4120ff3e84aaa70cfbf1e30", "subdir": "lua-5.4.7/src",
+              "files": ["lapi", "lcode", "lctype", "ldebug", "ldo", "ldump", "lfunc", "lgc", "llex", "lmem", "lobject",
+                        "lopcodes", "lparser", "lstate", "lstring", "ltable", "ltm", "lundump", "lvm", "lzio",
+                        "lauxlib", "lbaselib", "lcorolib", "ldblib", "liolib", "lmathlib", "loadlib", "loslib",
+                        "lstrlib", "ltablib", "lutf8lib", "linit", "lua"],
+              "defines": ["-DLUA_COMPAT_5_3", "-DLUA_USE_LINUX"],
+              "public_headers": ["lua.h", "luaconf.h", "lualib.h", "lauxlib.h"]}
+    }
+  }
+}

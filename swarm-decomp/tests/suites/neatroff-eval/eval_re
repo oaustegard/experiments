@@ -1,0 +1,35 @@
+# eval_re  (global, 109 bytes, 34 instructions)
+    0:  pushq %rbx
+    1:  movl %esi, %ebx
+    3:  movl %edx, %esi
+    5:  subq $0x10, %rsp
+    9:  movq %rdi, 8(%rsp)
+    e:  movzbl (%rdi), %edx
+   11:  leal -0x2b(%rdx), %ecx
+   14:  andl $0xfd, %ecx
+   1a:  je 0x30
+   1c:  leaq 8(%rsp), %rdi
+   21:  callq eval_up+0
+   26:  addq $0x10, %rsp
+   2a:  popq %rbx
+   2b:  retq
+   2c:  nopl (%rax)
+   30:  movq %rdi, %rax
+   33:  leaq 8(%rsp), %rdi
+   38:  addq $1, %rax
+   3c:  movq %rax, 8(%rsp)
+   41:  cmpb $0x2b, %dl
+   44:  je 0x60
+   46:  callq eval_up+0
+   4b:  addq $0x10, %rsp
+   4f:  movl %eax, %edx
+   51:  movl %ebx, %eax
+   53:  popq %rbx
+   54:  subl %edx, %eax
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  callq eval_up+0
+   65:  addq $0x10, %rsp
+   69:  addl %ebx, %eax
+   6b:  popq %rbx
+   6c:  retq

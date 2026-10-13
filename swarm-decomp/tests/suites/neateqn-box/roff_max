@@ -1,0 +1,46 @@
+# roff_max  (static, 132 bytes, 45 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movl %esi, %r12d
+    b:  pushq %rbp
+    c:  movl %edx, %ebp
+    e:  pushq %rbx
+    f:  movl %edi, %ebx
+   11:  movl %esi, %edi
+   13:  subq $8, %rsp
+   17:  callq nreg+0
+   1c:  movl %ebx, %edi
+   1e:  movq %rax, %r15
+   21:  callq nregname+0
+   26:  movl %ebp, %edi
+   28:  movq %rax, %r14
+   2b:  callq nreg+0
+   30:  movl %r12d, %edi
+   33:  movq %rax, %r13
+   36:  callq nreg+0
+   3b:  movq %r13, %rdx
+   3e:  movq %r15, %r8
+   41:  movq %r14, %rcx
+   44:  movq %rax, %rsi
+   47:  movl $0, %edi   <str:".ie %s>=%s .nr %s 0+%s\n">
+   4c:  xorl %eax, %eax
+   4e:  callq printf+0
+   53:  movl %ebp, %edi
+   55:  callq nreg+0
+   5a:  movl %ebx, %edi
+   5c:  movq %rax, %rbp
+   5f:  callq nregname+0
+   64:  addq $8, %rsp
+   68:  movq %rbp, %rdx
+   6b:  movl $0, %edi   <str:".el .nr %s 0+%s\n">
+   70:  popq %rbx
+   71:  movq %rax, %rsi
+   74:  popq %rbp
+   75:  xorl %eax, %eax
+   77:  popq %r12
+   79:  popq %r13
+   7b:  popq %r14
+   7d:  popq %r15
+   7f:  jmp printf+0

@@ -1,0 +1,62 @@
+# def_pieces  (global, 217 bytes, 61 instructions)
+    0:  pushq %r15
+    2:  movq %rdi, %r15
+    5:  pushq %r14
+    7:  movq %rsi, %r14
+    a:  pushq %r13
+    c:  movq %r8, %r13
+    f:  pushq %r12
+   11:  movq %rcx, %r12
+   14:  pushq %rbp
+   15:  movq %rdx, %rbp
+   18:  pushq %rbx
+   19:  xorl %ebx, %ebx
+   1b:  subq $8, %rsp
+   1f:  jmp 0x36
+   21:  nopl (%rax)
+   28:  addq $1, %rbx
+   2c:  cmpq $0x20, %rbx
+   30:  je 0xb8
+   36:  movq %rbx, %rdi
+   39:  movq %r15, %rsi
+   3c:  shlq $9, %rdi
+   40:  addq $0, %rdi   <var:bracketpieces+0>
+   47:  callq strcmp+0
+   4c:  testl %eax, %eax
+   4e:  jne 0x28
+   50:  movslq %ebx, %rax
+   53:  movslq %ebx, %rbx
+   56:  xorl %ecx, %ecx
+   58:  shlq $9, %rbx
+   5c:  cmpb $0, (%rbx)   <var:bracketpieces+64>
+   63:  leaq (%rbx), %rdx   <var:bracketpieces+64>
+   6a:  cmoveq %rcx, %rdx
+   6e:  movq %rdx, (%r14)
+   71:  cmpb $0, (%rbx)   <var:bracketpieces+128>
+   78:  movq %rbx, %rdx
+   7b:  je 0x84
+   7d:  leaq (%rdx), %rcx   <var:bracketpieces+128>
+   84:  movq %rcx, (%rbp)
+   88:  movq %rax, %rcx
+   8b:  xorl %edx, %edx
+   8d:  shlq $9, %rcx
+   91:  cmpb $0, (%rcx)   <var:bracketpieces+192>
+   98:  je 0xa1
+   9a:  leaq (%rcx), %rdx   <var:bracketpieces+192>
+   a1:  shlq $9, %rax
+   a5:  movq %rdx, (%r12)
+   a9:  xorl %edx, %edx
+   ab:  cmpb $0, (%rax)   <var:bracketpieces+256>
+   b2:  jne 0xd0
+   b4:  movq %rdx, (%r13)
+   b8:  addq $8, %rsp
+   bc:  popq %rbx
+   bd:  popq %rbp
+   be:  popq %r12
+   c0:  popq %r13
+   c2:  popq %r14
+   c4:  popq %r15
+   c6:  retq
+   c7:  nopw (%rax, %rax)
+   d0:  leaq (%rax), %rdx   <var:bracketpieces+256>
+   d7:  jmp 0xb4

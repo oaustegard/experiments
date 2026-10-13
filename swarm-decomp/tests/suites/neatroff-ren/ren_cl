@@ -1,0 +1,33 @@
+# ren_cl  (static, 105 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  testq %rdi, %rdi
+    9:  je 0x10
+    b:  cmpb $0, (%rdi)
+    e:  jne 0x60
+   10:  movl $0, %edi   <str:".m0">
+   15:  callq map+0
+   1a:  movl %eax, %edi
+   1c:  callq nreg+0
+   21:  movl (%rax), %ebp
+   23:  movl $0x6d, %edi
+   28:  callq nreg+0
+   2d:  movl $0, %edi   <str:".m0">
+   32:  movq %rax, %rbx
+   35:  callq map+0
+   3a:  movl %eax, %edi
+   3c:  callq nreg+0
+   41:  movl (%rbx), %edx
+   43:  movl $0x6d, %edi
+   48:  movl %edx, (%rax)
+   4a:  callq nreg+0
+   4f:  movl %ebp, (%rax)
+   51:  addq $8, %rsp
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  callq clr_get+0
+   65:  movl %eax, %ebp
+   67:  jmp 0x23

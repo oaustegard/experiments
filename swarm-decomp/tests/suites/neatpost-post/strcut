@@ -1,0 +1,55 @@
+# strcut  (static, 159 bytes, 54 instructions)
+    0:  movzbl (%rsi), %edx
+    3:  movq %rsi, %rax
+    6:  cmpb $0x20, %dl
+    9:  jne 0x1d
+    b:  nopl (%rax, %rax)
+   10:  movzbl 1(%rax), %edx
+   14:  addq $1, %rax
+   18:  cmpb $0x20, %dl
+   1b:  je 0x10
+   1d:  cmpb $0xa, %dl
+   20:  je 0x10
+   22:  cmpb $0x22, %dl
+   25:  jne 0x3f
+   27:  jmp 0x50
+   29:  nopl (%rax)
+   30:  cmpb $0xa, %dl
+   33:  je 0x47
+   35:  movb %dl, (%rdi)
+   37:  addq $1, %rdi
+   3b:  addq $1, %rax
+   3f:  movzbl (%rax), %edx
+   42:  testb $0xdf, %dl
+   45:  jne 0x30
+   47:  movb $0, (%rdi)
+   4a:  retq
+   4b:  nopl (%rax, %rax)
+   50:  leaq 1(%rax), %rdx
+   54:  movzbl 1(%rax), %eax
+   58:  testb %al, %al
+   5a:  jne 0x78
+   5c:  jmp 0x90
+   5e:  nop
+   60:  movzbl (%rdx), %ecx
+   63:  movq %rdx, %rax
+   66:  leaq 1(%rax), %rdx
+   6a:  movb %cl, (%rdi)
+   6c:  movzbl 1(%rax), %eax
+   70:  addq $1, %rdi
+   74:  testb %al, %al
+   76:  je 0x90
+   78:  cmpb $0x22, %al
+   7a:  jne 0x60
+   7c:  movzbl 1(%rdx), %ecx
+   80:  cmpb $0x22, %cl
+   83:  jne 0x97
+   85:  leaq 1(%rdx), %rax
+   89:  jmp 0x66
+   8b:  nopl (%rax, %rax)
+   90:  movb $0, (%rdi)
+   93:  movq %rdx, %rax
+   96:  retq
+   97:  movb $0, (%rdi)
+   9a:  leaq 1(%rdx), %rax
+   9e:  retq

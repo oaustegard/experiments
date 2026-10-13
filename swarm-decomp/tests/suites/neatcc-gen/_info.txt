@@ -1,0 +1,80 @@
+# neatcc-gen: translation unit gen of neatcc
+# write each function as src/neatcc/gen/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+ra_vdrop	static	104 bytes
+ra_regget	static	676 bytes
+val_tomem	static	130 bytes
+loc_isread.isra.0	static	94 bytes
+ra_vmove	static	312 bytes
+ra_spill	static	167 bytes
+ra_vload	static	320 bytes
+ra_bbend	static	230 bytes
+o_mklocal	global	126 bytes
+o_rmlocal	global	1 bytes
+o_arg2loc	global	4 bytes
+o_bsnew	global	50 bytes
+o_dsnew	global	283 bytes
+o_dscpy	global	19 bytes
+o_dsset	global	251 bytes
+o_func_beg	global	288 bytes
+o_code	global	61 bytes
+o_func_end	global	6405 bytes
+o_write	global	151 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+ra_live	static	512 bytes	.bss.ra_live
+    (zero-initialised)
+ra_vmap	static	128 bytes	.bss.ra_vmap
+    (zero-initialised)
+ra_lmap	static	128 bytes	.bss.ra_lmap
+    (zero-initialised)
+ra_vmax	static	4 bytes	.bss.ra_vmax
+    (zero-initialised)
+loc_pos	static	8 bytes	.bss.loc_pos
+    (zero-initialised)
+ic_i	static	8 bytes	.bss.ic_i
+    (zero-initialised)
+ic_n	static	8 bytes	.bss.ic_n
+    (zero-initialised)
+ic	static	8 bytes	.bss.ic
+    (zero-initialised)
+ic_bbeg	static	8 bytes	.bss.ic_bbeg
+    (zero-initialised)
+func_regs	static	4 bytes	.bss.func_regs
+    (zero-initialised)
+loc_mem	static	8 bytes	.bss.loc_mem
+    (zero-initialised)
+loc_off	static	8 bytes	.bss.loc_off
+    (zero-initialised)
+loc_n	static	8 bytes	.bss.loc_n
+    (zero-initialised)
+loc_sz	static	8 bytes	.bss.loc_sz
+    (zero-initialised)
+bsslen	static	8 bytes	.bss.bsslen
+    (zero-initialised)
+ds_off	static	8 bytes	.bss.ds_off
+    (zero-initialised)
+ds_sz	static	8 bytes	.bss.ds_sz
+    (zero-initialised)
+ds_n	static	8 bytes	.bss.ds_n
+    (zero-initialised)
+ds_name	static	8 bytes	.bss.ds_name
+    (zero-initialised)
+ds	static	24 bytes	.bss.ds
+    (zero-initialised)
+func_varg	static	4 bytes	.bss.func_varg
+    (zero-initialised)
+func_argc	static	4 bytes	.bss.func_argc
+    (zero-initialised)
+cs	static	24 bytes	.bss.cs
+    (zero-initialised)
+ra_gmask	static	8 bytes	.bss.ra_gmask
+    (zero-initialised)
+func_maxargs	static	4 bytes	.bss.func_maxargs
+    (zero-initialised)
+ic_luse	static	8 bytes	.bss.ic_luse
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+argregs calloc die err free i_code i_done i_ins i_label i_reg i_wrap ic_free ic_get ic_lastuse ic_regcnt mem_buf mem_cpy mem_done mem_len mem_put mem_putz mextend o_back o_popnum o_popsym o_tmpdrop out_def out_rel out_write reg_done reg_init reg_lmap reg_mask reg_rmap reg_safe strcmp strcpy tmpregs

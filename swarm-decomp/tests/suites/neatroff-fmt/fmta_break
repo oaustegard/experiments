@@ -1,0 +1,56 @@
+# fmta_break  (static, 134 bytes, 55 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdx, %r12
+    7:  pushq %rbp
+    8:  movl %ecx, %ebp
+    a:  pushq %rbx
+    b:  movl %esi, %ebx
+    d:  subq $8, %rsp
+   11:  testl %esi, %esi
+   13:  jle 0x60
+   15:  movslq %esi, %rax
+   18:  movl (%rdi, %rax, 4), %r13d
+   1c:  testl %r13d, %r13d
+   1f:  jg 0x40
+   21:  movl $1, %eax
+   26:  testl %ecx, %ecx
+   28:  je 0x31
+   2a:  subl %r13d, %ebx
+   2d:  movl %ebx, (%r12)
+   31:  addq $8, %rsp
+   35:  popq %rbx
+   36:  popq %rbp
+   37:  popq %r12
+   39:  popq %r13
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  movl %r13d, %esi
+   43:  callq 0
+   48:  cmpl %eax, %ebp
+   4a:  jle 0x78
+   4c:  movslq %eax, %rdx
+   4f:  subl %r13d, %ebx
+   52:  addl $1, %eax
+   55:  leaq (%r12, %rdx, 4), %r12
+   59:  movl %ebx, (%r12)
+   5d:  jmp 0x31
+   5f:  nop
+   60:  testl %ecx, %ecx
+   62:  je 0x68
+   64:  movl %esi, (%r12)
+   68:  addq $8, %rsp
+   6c:  xorl %eax, %eax
+   6e:  popq %rbx
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  retq
+   75:  nopl (%rax)
+   78:  addq $8, %rsp
+   7c:  addl $1, %eax
+   7f:  popq %rbx
+   80:  popq %rbp
+   81:  popq %r12
+   83:  popq %r13
+   85:  retq

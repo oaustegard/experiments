@@ -1,0 +1,60 @@
+# luaK_exp2const  (global, 220 bytes, 59 instructions)
+    0:  movl 0x14(%rsi), %ecx
+    3:  xorl %eax, %eax
+    5:  cmpl %ecx, 0x10(%rsi)
+    8:  jne 0x34
+    a:  movl (%rsi), %ecx
+    c:  cmpl $0xb, %ecx
+    f:  ja 0x20
+   11:  movl %ecx, %eax
+   13:  jmpq *(, %rax, 8)   <var:luaK_exp2const+0>
+   1a:  nopw (%rax, %rax)
+   20:  cmpl $5, %ecx
+   23:  je 0xc8
+   29:  xorl %eax, %eax
+   2b:  cmpl $6, %ecx
+   2e:  je 0xb0
+   34:  retq
+   35:  nopl (%rax)
+   38:  movq 0x10(%rdi), %rax
+   3c:  movq 0x58(%rax), %rdi
+   40:  movslq 8(%rsi), %rax
+   44:  leaq (%rax, %rax, 2), %rcx
+   48:  movq (%rdi), %rax
+   4b:  leaq (%rax, %rcx, 8), %rax
+   4f:  movq (%rax), %rcx
+   52:  movq %rcx, (%rdx)
+   55:  movzbl 8(%rax), %eax
+   59:  movb %al, 8(%rdx)
+   5c:  movl $1, %eax
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movq 8(%rsi), %rax
+   6c:  movq %rax, (%rdx)
+   6f:  movzbl 8(%rax), %eax
+   73:  orl $0x40, %eax
+   76:  movb %al, 8(%rdx)
+   79:  jmp 0x5c
+   7b:  nopl (%rax, %rax)
+   80:  movb $1, 8(%rdx)
+   84:  jmp 0x5c
+   86:  nopw %cs:(%rax, %rax)
+   90:  movb $0x11, 8(%rdx)
+   94:  jmp 0x5c
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movb $0, 8(%rdx)
+   a4:  jmp 0x5c
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  testq %rdx, %rdx
+   b3:  je 0x5c
+   b5:  movq 8(%rsi), %rax
+   b9:  movb $3, 8(%rdx)
+   bd:  movq %rax, (%rdx)
+   c0:  jmp 0x5c
+   c2:  nopw (%rax, %rax)
+   c8:  testq %rdx, %rdx
+   cb:  je 0x5c
+   cd:  movsd 8(%rsi), %xmm0
+   d2:  movb $0x13, 8(%rdx)
+   d6:  movsd %xmm0, (%rdx)
+   da:  jmp 0x5c

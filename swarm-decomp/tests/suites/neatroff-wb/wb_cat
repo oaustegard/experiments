@@ -1,0 +1,69 @@
+# wb_cat  (global, 269 bytes, 68 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rsi, %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $0x18, %rsp
+   10:  movl 0x2068(%rsi), %ecx
+   16:  testl %ecx, %ecx
+   18:  je 0x28
+   1a:  movl 0x206c(%rsi), %edx
+   20:  testl %edx, %edx
+   22:  jne 0x100
+   28:  movl 0x2068(%rbx), %eax
+   2e:  movl 0x206c(%rbx), %r12d
+   35:  testl %eax, %eax
+   37:  je 0x42
+   39:  testl %r12d, %r12d
+   3c:  jne 0xe8
+   42:  movl $0, 0x206c(%rbx)
+   4c:  movq %rbp, %rdi
+   4f:  callq sbuf_buf+0
+   54:  movq %rax, (%rsp)
+   58:  jmp 0x6d
+   5a:  nopw (%rax, %rax)
+   60:  movq 8(%rsp), %rdx
+   65:  movq %rbx, %rdi
+   68:  callq fn:wb_putc+0
+   6d:  leaq 8(%rsp), %rsi
+   72:  movq %rsp, %rdi
+   75:  callq escread+0
+   7a:  movl %eax, %esi
+   7c:  testl %eax, %eax
+   7e:  jns 0x60
+   80:  pcmpeqd %xmm0, %xmm0
+   84:  movl 0x30(%rbp), %r13d
+   88:  movq %rbp, %rdi
+   8b:  movups %xmm0, 0x20(%rbx)
+   8f:  callq sbuf_done+0
+   94:  movq %rbp, %rdi
+   97:  movl $0x2070, %edx
+   9c:  xorl %esi, %esi
+   9e:  callq memset+0
+   a3:  movq %rbp, %rdi
+   a6:  callq sbuf_init+0
+   ab:  pcmpeqd %xmm0, %xmm0
+   af:  movl %r13d, 0x30(%rbp)
+   b3:  movups %xmm0, 0x10(%rbp)
+   b7:  movups %xmm0, 0x20(%rbp)
+   bb:  movdqa (%rip), %xmm0   <cst:0000002000000020000000e0000000e0>
+   c3:  movl $1, 0x206c(%rbp)
+   cd:  movups %xmm0, 0x54(%rbp)
+   d1:  movl %r12d, 0x206c(%rbx)
+   d8:  addq $0x18, %rsp
+   dc:  popq %rbx
+   dd:  popq %rbp
+   de:  popq %r12
+   e0:  popq %r13
+   e2:  retq
+   e3:  nopl (%rax, %rax)
+   e8:  movq %rbx, %rdi
+   eb:  callq fn:wb_flushsub.part.0+0
+   f0:  movl 0x206c(%rbx), %r12d
+   f7:  jmp 0x42
+   fc:  nopl (%rax)
+  100:  movq %rsi, %rdi
+  103:  callq fn:wb_flushsub.part.0+0
+  108:  jmp 0x28

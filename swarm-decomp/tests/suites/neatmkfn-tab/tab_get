@@ -1,0 +1,46 @@
+# tab_get  (global, 110 bytes, 45 instructions)
+    0:  movzbl (%rsi), %eax
+    3:  movl 0x20(%rdi, %rax, 4), %eax
+    7:  testl %eax, %eax
+    9:  js 0x6b
+    b:  pushq %r14
+    d:  pushq %r13
+    f:  pushq %r12
+   11:  movq %rsi, %r12
+   14:  pushq %rbp
+   15:  movq %rdi, %rbp
+   18:  pushq %rbx
+   19:  movzbl 1(%rsi), %r14d
+   1e:  movq (%rdi), %r13
+   21:  jmp 0x33
+   23:  nopl (%rax, %rax)
+   28:  movq 0x18(%rbp), %rax
+   2c:  movl (%rax, %rbx, 4), %eax
+   2f:  testl %eax, %eax
+   31:  js 0x60
+   33:  movslq %eax, %rbx
+   36:  movq (%r13, %rbx, 8), %rsi
+   3b:  cmpb 1(%rsi), %r14b
+   3f:  jne 0x28
+   41:  movq %r12, %rdi
+   44:  callq strcmp+0
+   49:  testl %eax, %eax
+   4b:  jne 0x28
+   4d:  movq 8(%rbp), %rax
+   51:  movq (%rax, %rbx, 8), %rax
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  popq %r12
+   59:  popq %r13
+   5b:  popq %r14
+   5d:  retq
+   5e:  nop
+   60:  popq %rbx
+   61:  xorl %eax, %eax
+   63:  popq %rbp
+   64:  popq %r12
+   66:  popq %r13
+   68:  popq %r14
+   6a:  retq
+   6b:  xorl %eax, %eax
+   6d:  retq

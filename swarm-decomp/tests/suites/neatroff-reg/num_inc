@@ -1,0 +1,20 @@
+# num_inc  (global, 72 bytes, 19 instructions)
+    0:  movslq %edi, %rdi
+    3:  movslq (, %rdi, 4), %rax   <var:eregs_idx+0>
+    b:  testl %eax, %eax
+    d:  jne 0x38
+    f:  movl (, %rdi, 4), %edx   <var:nregs+0>
+   16:  leaq (, %rdi, 4), %rcx   <var:nregs+0>
+   1e:  movl (, %rdi, 4), %eax   <var:nregs_inc+0>
+   25:  movl %eax, %edi
+   27:  negl %edi
+   29:  testl %esi, %esi
+   2b:  cmovlel %edi, %eax
+   2e:  addl %edx, %eax
+   30:  movl %eax, (%rcx)
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movq (%rip), %rdx   <var:env+0>
+   3f:  leaq (%rdx, %rax, 4), %rcx
+   43:  movl (%rdx, %rax, 4), %edx
+   46:  jmp 0x1e

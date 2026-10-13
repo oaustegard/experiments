@@ -1,0 +1,127 @@
+# neatmkfn-mkfn: translation unit mkfn of neatmkfn
+# write each function as src/neatmkfn/mkfn/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+mkfn_script	global	213 bytes
+mkfn_lang	global	140 bytes
+mkfn_font	global	182 bytes
+mkfn_featrank	global	146 bytes
+mkfn_header	global	174 bytes
+main	global	618 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+mkfn_scripts	static	8 bytes	.bss.mkfn_scripts
+    (zero-initialised)
+mkfn_langs	static	8 bytes	.bss.mkfn_langs
+    (zero-initialised)
+idx.1	static	4 bytes	.bss.idx.1
+    (zero-initialised)
+mkfn_subfont	static	8 bytes	.bss.mkfn_subfont
+    (zero-initialised)
+order.0	static	8 bytes	.bss.order.0
+    (zero-initialised)
+scriptorder	static	480 bytes	.data.scriptorder
+    +0     -> str:"latn"
+    +8     -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +16    -> str:"cyrl"
+    +24    -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +32    -> str:"grek"
+    +40    -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +48    -> str:"armn"
+    +56    -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +64    -> str:"geor"
+    +72    -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +80    -> str:"runr"
+    +88    -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +96    -> str:"ogam"
+    +104   -> str:"ccmp,liga,clig,dist,kern,mark,mkmk"
+    +112   -> str:"arab"
+    +120   -> str:"ccmp,isol,fina,medi,init,rlig,calt,liga,dlig,cswh,mset,curs,kern,mark,mkmk"
+    +128   -> str:"bugi"
+    +136   -> str:"locl,ccmp,rlig,liga,clig,calt,kern,dist,mark,mkmk"
+    +144   -> str:"hang"
+    +152   -> str:"ccmp,ljmo,vjmo,tjmo"
+    +160   -> str:"hebr"
+    +168   -> str:"ccmp,dlig,kern,mark"
+    +176   -> str:"bng2"
+    +184   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +192   -> str:"dev2"
+    +200   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +208   -> str:"gjr2"
+    +216   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +224   -> str:"gur2"
+    +232   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +240   -> str:"knd2"
+    +248   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +256   -> str:"mlym"
+    +264   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +272   -> str:"ory2"
+    +280   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +288   -> str:"tml2"
+    +296   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +304   -> str:"tml2"
+    +312   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +320   -> str:"telu"
+    +328   -> str:"locl,nukt,akhn,rphf,blwf,half,pstf,vatu,cjct,init,pres,abvs,blws,psts,haln,calt,kern,dist,abvm,blwm"
+    +336   -> str:"java"
+    +344   -> str:"locl,pref,abvf,blwf,pstf,pres,abvs,blws,psts,ccmp,rlig,liga,clig,calt,kern,dist,mark,mkmk"
+    +352   -> str:"khmr"
+    +360   -> str:"pref,blwf,abvf,pstf,pres,blws,abvs,psts,clig,dist,blwm,abvm,mkmk"
+    +368   -> str:"lao "
+    +376   -> str:"ccmp,kern,mark,mkmk"
+    +384   -> str:"mym2"
+    +392   -> str:"locl,rphf,pref,blwf,pstf,pres,abvs,blws,psts,kern,dist,mark,mkmk"
+    +400   -> str:"sinh"
+    +408   -> str:"locl,ccmp,akhn,rphf,vatu,pstf,pres,abvs,blws,psts,kern,dist,abvm,blwm"
+    +416   -> str:"syrc"
+    +424   -> str:"stch,ccmp,isol,fina,fin2,fin3,medi,med2,init,rlig,calt,liga,dlig,kern,mark,mkmk"
+    +432   -> str:"thaa"
+    +440   -> str:"kern,mark"
+    +448   -> str:"thai"
+    +456   -> str:"ccmp,kern,mark,mkmk"
+    +464   -> str:"tibt"
+    +472   -> str:"ccmp,abvs,blws,calt,liga,kern,abvm,blwm,mkmk"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+mkfn_trname	static	8 bytes	.bss.mkfn_trname
+    (zero-initialised)
+mkfn_psname	static	8 bytes	.bss.mkfn_psname
+    (zero-initialised)
+mkfn_path	static	8 bytes	.bss.mkfn_path
+    (zero-initialised)
+mkfn_dry	global	4 bytes	.bss.mkfn_dry
+    (zero-initialised)
+mkfn_special	global	4 bytes	.bss.mkfn_special
+    (zero-initialised)
+mkfn_warn	global	4 bytes	.bss.mkfn_warn
+    (zero-initialised)
+mkfn_res	global	4 bytes	.data.mkfn_res
+        0: d0 02 00 00
+mkfn_pos	global	4 bytes	.data.mkfn_pos
+        0: 01 00 00 00
+mkfn_noligs	global	4 bytes	.bss.mkfn_noligs
+    (zero-initialised)
+mkfn_kmin	global	4 bytes	.bss.mkfn_kmin
+    (zero-initialised)
+mkfn_byname	global	4 bytes	.bss.mkfn_byname
+    (zero-initialised)
+mkfn_bbox	global	4 bytes	.bss.mkfn_bbox
+    (zero-initialised)
+mkfn_swid	global	4 bytes	.bss.mkfn_swid
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc afm_read fwrite otf_read printf puts stderr strchr strcmp strstr strtol trfn_cdefs trfn_done trfn_header trfn_init

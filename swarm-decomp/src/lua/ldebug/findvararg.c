@@ -1,0 +1,13 @@
+#include "lstate.h"
+#include "LClosure.h"
+
+static const char *findvararg (CallInfo *ci, int n, StkId *pos) {
+  if (((LClosure *)(ci->func->value_.gc))->p->is_vararg) {
+    int nextra = ci->u.l.nextraargs;
+    if (n >= -nextra) {  /* 'n' is negative */
+      *pos = ci->func - nextra - (n + 1);
+      return "(vararg)";  /* generic name for any vararg */
+    }
+  }
+  return NULL;  /* no such vararg */
+}

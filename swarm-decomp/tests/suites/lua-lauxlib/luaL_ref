@@ -1,0 +1,76 @@
+# luaL_ref  (global, 253 bytes, 75 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movl %esi, %ebp
+    7:  movl $0xffffffff, %esi
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $8, %rsp
+   14:  callq lua_type+0
+   19:  testl %eax, %eax
+   1b:  je 0xe8
+   21:  movl %ebp, %esi
+   23:  movq %rbx, %rdi
+   26:  callq lua_absindex+0
+   2b:  movl $3, %edx
+   30:  movq %rbx, %rdi
+   33:  movl %eax, %esi
+   35:  movl %eax, %ebp
+   37:  callq lua_rawgeti+0
+   3c:  testl %eax, %eax
+   3e:  je 0xa8
+   40:  xorl %edx, %edx
+   42:  movl $0xffffffff, %esi
+   47:  movq %rbx, %rdi
+   4a:  callq lua_tointegerx+0
+   4f:  movl $0xfffffffe, %esi
+   54:  movq %rbx, %rdi
+   57:  movq %rax, %r12
+   5a:  movl %eax, %r13d
+   5d:  callq lua_settop+0
+   62:  testl %r12d, %r12d
+   65:  je 0xce
+   67:  movslq %r12d, %r12
+   6a:  movl %ebp, %esi
+   6c:  movq %rbx, %rdi
+   6f:  movq %r12, %rdx
+   72:  callq lua_rawgeti+0
+   77:  movl $3, %edx
+   7c:  movl %ebp, %esi
+   7e:  movq %rbx, %rdi
+   81:  callq lua_rawseti+0
+   86:  movq %r12, %rdx
+   89:  movl %ebp, %esi
+   8b:  movq %rbx, %rdi
+   8e:  callq lua_rawseti+0
+   93:  addq $8, %rsp
+   97:  movl %r13d, %eax
+   9a:  popq %rbx
+   9b:  popq %rbp
+   9c:  popq %r12
+   9e:  popq %r13
+   a0:  retq
+   a1:  nopl (%rax)
+   a8:  xorl %esi, %esi
+   aa:  movq %rbx, %rdi
+   ad:  callq lua_pushinteger+0
+   b2:  movl %ebp, %esi
+   b4:  movq %rbx, %rdi
+   b7:  movl $3, %edx
+   bc:  callq lua_rawseti+0
+   c1:  movl $0xfffffffe, %esi
+   c6:  movq %rbx, %rdi
+   c9:  callq lua_settop+0
+   ce:  movl %ebp, %esi
+   d0:  movq %rbx, %rdi
+   d3:  callq lua_rawlen+0
+   d8:  leal 1(%rax), %r13d
+   dc:  movslq %r13d, %r12
+   df:  jmp 0x86
+   e1:  nopl (%rax)
+   e8:  movl $0xfffffffe, %esi
+   ed:  movq %rbx, %rdi
+   f0:  movl $0xffffffff, %r13d
+   f6:  callq lua_settop+0
+   fb:  jmp 0x93

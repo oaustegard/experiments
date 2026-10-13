@@ -1,0 +1,46 @@
+# hyph_readexceptions  (static, 142 bytes, 45 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $0x108, %rsp
+    c:  movzbl (%rdi), %ebp
+    f:  testb %bpl, %bpl
+   12:  je 0x84
+   14:  nopl (%rax)
+   18:  callq __ctype_b_loc+0
+   1d:  movq (%rax), %rcx
+   20:  movq %rsp, %rax
+   23:  jmp 0x3b
+   25:  nopl (%rax)
+   28:  addq $1, %rbx
+   2c:  movb %bpl, (%rax)
+   2f:  addq $1, %rax
+   33:  movzbl (%rbx), %ebp
+   36:  testb %bpl, %bpl
+   39:  je 0x46
+   3b:  movzbl %bpl, %edx
+   3f:  testb $0x20, 1(%rcx, %rdx, 2)
+   44:  je 0x28
+   46:  movb $0, (%rax)
+   49:  movq %rsp, %rdi
+   4c:  callq fn:hw_add+0
+   51:  movzbl (%rbx), %ebp
+   54:  testb %bpl, %bpl
+   57:  je 0x84
+   59:  callq __ctype_b_loc+0
+   5e:  movq (%rax), %rax
+   61:  jmp 0x75
+   63:  nopl (%rax, %rax)
+   68:  movzbl 1(%rbx), %ebp
+   6c:  addq $1, %rbx
+   70:  testb %bpl, %bpl
+   73:  je 0x84
+   75:  testb $0x20, 1(%rax, %rbp, 2)
+   7a:  jne 0x68
+   7c:  movzbl (%rbx), %ebp
+   7f:  testb %bpl, %bpl
+   82:  jne 0x18
+   84:  addq $0x108, %rsp
+   8b:  popq %rbx
+   8c:  popq %rbp
+   8d:  retq

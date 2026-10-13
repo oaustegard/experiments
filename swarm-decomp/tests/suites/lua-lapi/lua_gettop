@@ -1,0 +1,8 @@
+# lua_gettop  (global, 23 bytes, 7 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  movq (%rax), %rdx
+    7:  movq 0x10(%rdi), %rax
+    b:  addq $0x10, %rdx
+    f:  subq %rdx, %rax
+   12:  sarq $4, %rax
+   16:  retq

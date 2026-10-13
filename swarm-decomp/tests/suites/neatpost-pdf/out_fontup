@@ -1,0 +1,66 @@
+# out_fontup  (static, 314 bytes, 65 instructions)
+    0:  subq $0x18, %rsp
+    4:  movl (%rip), %edi   <var:o_m+0>
+    a:  cmpl (%rip), %edi   <var:p_m+0>
+   10:  jne 0xa0
+   16:  movslq (%rip), %rdx   <var:o_i+0>
+   1d:  testl %edx, %edx
+   1f:  js 0x9b
+   21:  cmpl (%rip), %edx   <var:p_i+0>
+   27:  jne 0x37
+   29:  movl (%rip), %eax   <var:p_s+0>
+   2f:  cmpl %eax, (%rip)   <var:o_s+0>
+   35:  je 0x9b
+   37:  imulq $0x898, %rdx, %rdx
+   3e:  addq (%rip), %rdx   <var:pfonts+0>
+   45:  cmpl $1, (%rip)   <var:o_queued+0>
+   4c:  je 0x118
+   52:  movl 0x894(%rdx), %eax
+   58:  movl (%rip), %r8d   <var:o_s+0>
+   5f:  movl $0, (%rip)   <var:o_queued+0>
+   69:  movq (%rip), %rdi   <var:pg+0>
+   70:  testl %eax, %eax
+   72:  je 0xe0
+   74:  movl %r8d, %ecx
+   77:  movl $0, %esi   <str:"/%s %d Tf\n">
+   7c:  xorl %eax, %eax
+   7e:  callq sbuf_printf+0
+   83:  movl (%rip), %eax   <var:o_i+0>
+   89:  movl %eax, (%rip)   <var:p_i+0>
+   8f:  movl (%rip), %eax   <var:o_s+0>
+   95:  movl %eax, (%rip)   <var:p_s+0>
+   9b:  addq $0x18, %rsp
+   9f:  retq
+   a0:  cmpl $1, (%rip)   <var:o_queued+0>
+   a7:  je 0xf8
+   a9:  movl $0, (%rip)   <var:o_queued+0>
+   b3:  callq fn:pdfcolor+0
+   b8:  movq (%rip), %rdi   <var:pg+0>
+   bf:  movl $0, %esi   <str:"%s rg\n">
+   c4:  movq %rax, %rdx
+   c7:  xorl %eax, %eax
+   c9:  callq sbuf_printf+0
+   ce:  movl (%rip), %eax   <var:o_m+0>
+   d4:  movl %eax, (%rip)   <var:p_m+0>
+   da:  jmp 0x16
+   df:  nop
+   e0:  movl 0x888(%rdx), %ecx
+   e6:  movl $0, %esi   <str:"/%s.%d %d Tf\n">
+   eb:  xorl %eax, %eax
+   ed:  callq sbuf_printf+0
+   f2:  jmp 0x83
+   f4:  nopl (%rax)
+   f8:  movq (%rip), %rdi   <var:pg+0>
+   ff:  movl $0, %esi   <str:">] TJ\n">
+  104:  xorl %eax, %eax
+  106:  callq sbuf_printf+0
+  10b:  movl (%rip), %edi   <var:o_m+0>
+  111:  jmp 0xa9
+  113:  nopl (%rax, %rax)
+  118:  movq (%rip), %rdi   <var:pg+0>
+  11f:  movl $0, %esi   <str:">] TJ\n">
+  124:  xorl %eax, %eax
+  126:  movq %rdx, 8(%rsp)
+  12b:  callq sbuf_printf+0
+  130:  movq 8(%rsp), %rdx
+  135:  jmp 0x52

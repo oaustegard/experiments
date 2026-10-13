@@ -1,0 +1,46 @@
+# cffdict_get.constprop.0  (static, 139 bytes, 45 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %r10
+    4:  movl %esi, %r11d
+    7:  xorl %r9d, %r9d
+    a:  pushq %rbx
+    b:  movl %edx, %ebx
+    d:  subq $0x10, %rsp
+   11:  movl $0, 0xc(%rsp)
+   19:  jmp 0x24
+   1b:  nopl (%rax, %rax)
+   20:  cmpl %eax, %ebx
+   22:  je 0x6d
+   24:  cmpl %r11d, %r9d
+   27:  jge 0x80
+   29:  movl %r9d, %esi
+   2c:  leaq 0xc(%rsp), %rdx
+   31:  movq %r10, %rdi
+   34:  movl 0xc(%rsp), %ebp
+   38:  callq fn:cff_op+0
+   3d:  addl %eax, %r9d
+   40:  movl 0xc(%rsp), %eax
+   44:  cmpl $0xc, %eax
+   47:  jne 0x20
+   49:  movl %r9d, %esi
+   4c:  leaq 0xc(%rsp), %rdx
+   51:  movq %r10, %rdi
+   54:  callq fn:cff_op+0
+   59:  addl %eax, %r9d
+   5c:  movl 0xc(%rsp), %eax
+   60:  addl $0x4b0, %eax
+   65:  movl %eax, 0xc(%rsp)
+   69:  cmpl %eax, %ebx
+   6b:  jne 0x24
+   6d:  addq $0x10, %rsp
+   71:  movl %ebp, %eax
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  retq
+   76:  nopw %cs:(%rax, %rax)
+   80:  xorl %ebp, %ebp
+   82:  addq $0x10, %rsp
+   86:  movl %ebp, %eax
+   88:  popq %rbx
+   89:  popq %rbp
+   8a:  retq

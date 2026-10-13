@@ -1,0 +1,11 @@
+# fchecksize.part.0  (static, 33 bytes, 10 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq (%rdi), %rdi
+    7:  movq %rsi, %rdx
+    a:  xorl %eax, %eax
+    c:  movl $0, %esi   <str:"%s size mismatch">
+   11:  callq luaO_pushfstring+0
+   16:  movq %rbx, %rdi
+   19:  movq %rax, %rsi
+   1c:  callq fn:error+0

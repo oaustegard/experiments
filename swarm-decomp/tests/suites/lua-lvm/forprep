@@ -1,0 +1,169 @@
+# forprep  (static, 683 bytes, 168 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  leaq 0x10(%rsi), %r12
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  movq %rsi, %rbx
+   12:  subq $0x20, %rsp
+   16:  cmpb $3, 8(%rsi)
+   1a:  je 0x148
+   20:  cmpb $0x13, 0x18(%rbx)
+   24:  jne 0xc8
+   2a:  movsd 0x10(%rbx), %xmm0
+   2f:  movsd %xmm0, 0x10(%rsp)
+   35:  cmpb $0x13, 0x28(%rbx)
+   39:  jne 0xf0
+   3f:  movsd 0x20(%rbx), %xmm0
+   44:  movsd %xmm0, 0x18(%rsp)
+   4a:  cmpb $0x13, 8(%rbx)
+   4e:  jne 0x120
+   54:  movsd (%rbx), %xmm0
+   58:  movsd %xmm0, 8(%rsp)
+   5e:  movsd 0x18(%rsp), %xmm0
+   64:  pxor %xmm1, %xmm1
+   68:  ucomisd %xmm1, %xmm0
+   6c:  jp 0x74
+   6e:  je 0x29c
+   74:  pxor %xmm3, %xmm3
+   78:  movsd 8(%rsp), %xmm1
+   7e:  movsd 0x10(%rsp), %xmm2
+   84:  comisd %xmm3, %xmm0
+   88:  jbe 0x1c0
+   8e:  comisd %xmm2, %xmm1
+   92:  ja 0x1ca
+   98:  movb $0x13, 0x18(%rbx)
+   9c:  xorl %eax, %eax
+   9e:  movb $0x13, 0x28(%rbx)
+   a2:  movb $0x13, 8(%rbx)
+   a6:  movb $0x13, 0x38(%rbx)
+   aa:  movsd %xmm2, 0x10(%rbx)
+   af:  movsd %xmm0, 0x20(%rbx)
+   b4:  movsd %xmm1, (%rbx)
+   b8:  movsd %xmm1, 0x30(%rbx)
+   bd:  jmp 0x1cf
+   c2:  nopw (%rax, %rax)
+   c8:  leaq 0x10(%rsp), %rsi
+   cd:  movq %r12, %rdi
+   d0:  callq luaV_tonumber_+0
+   d5:  testl %eax, %eax
+   d7:  jne 0x35
+   dd:  movl $0, %edx   <str:"limit">
+   e2:  movq %r12, %rsi
+   e5:  movq %rbp, %rdi
+   e8:  callq luaG_forerror+0
+   ed:  nopl (%rax)
+   f0:  leaq 0x20(%rbx), %r12
+   f4:  leaq 0x18(%rsp), %rsi
+   f9:  movq %r12, %rdi
+   fc:  callq luaV_tonumber_+0
+  101:  testl %eax, %eax
+  103:  jne 0x4a
+  109:  movl $0, %edx   <str:"step">
+  10e:  movq %r12, %rsi
+  111:  movq %rbp, %rdi
+  114:  callq luaG_forerror+0
+  119:  nopl (%rax)
+  120:  leaq 8(%rsp), %rsi
+  125:  movq %rbx, %rdi
+  128:  callq luaV_tonumber_+0
+  12d:  testl %eax, %eax
+  12f:  jne 0x5e
+  135:  movl $0, %edx   <str:"initial value">
+  13a:  movq %rbx, %rsi
+  13d:  movq %rbp, %rdi
+  140:  callq luaG_forerror+0
+  145:  nopl (%rax)
+  148:  cmpb $3, 0x28(%rsi)
+  14c:  jne 0x20
+  152:  movq 0x20(%rsi), %r13
+  156:  movq (%rsi), %r14
+  159:  testq %r13, %r13
+  15c:  je 0x29c
+  162:  movq %r14, 0x30(%rsi)
+  166:  movb $3, 0x38(%rsi)
+  16a:  js 0x210
+  170:  movl $1, %edx
+  175:  leaq 0x10(%rsp), %rsi
+  17a:  movq %r12, %rdi
+  17d:  callq luaV_tointeger+0
+  182:  testl %eax, %eax
+  184:  jne 0x250
+  18a:  cmpb $0x13, 0x18(%rbx)
+  18e:  jne 0x1e0
+  190:  movsd 0x10(%rbx), %xmm1
+  195:  pxor %xmm0, %xmm0
+  199:  comisd %xmm0, %xmm1
+  19d:  jbe 0x1ca
+  19f:  movabsq $0x7fffffffffffffff, %rax
+  1a9:  subq %r14, %rax
+  1ac:  xorl %edx, %edx
+  1ae:  divq %r13
+  1b1:  movq %rax, 0x10(%rbx)
+  1b5:  movb $3, 0x18(%rbx)
+  1b9:  xorl %eax, %eax
+  1bb:  jmp 0x1cf
+  1bd:  nopl (%rax)
+  1c0:  comisd %xmm1, %xmm2
+  1c4:  jbe 0x98
+  1ca:  movl $1, %eax
+  1cf:  addq $0x20, %rsp
+  1d3:  popq %rbx
+  1d4:  popq %rbp
+  1d5:  popq %r12
+  1d7:  popq %r13
+  1d9:  popq %r14
+  1db:  retq
+  1dc:  nopl (%rax)
+  1e0:  leaq 0x18(%rsp), %rsi
+  1e5:  movq %r12, %rdi
+  1e8:  callq luaV_tonumber_+0
+  1ed:  testl %eax, %eax
+  1ef:  je 0xdd
+  1f5:  movsd 0x18(%rsp), %xmm1
+  1fb:  pxor %xmm0, %xmm0
+  1ff:  comisd %xmm0, %xmm1
+  203:  jbe 0x268
+  205:  testq %r13, %r13
+  208:  js 0x1ca
+  20a:  jmp 0x19f
+  20c:  nopl (%rax)
+  210:  movl $2, %edx
+  215:  leaq 0x10(%rsp), %rsi
+  21a:  movq %r12, %rdi
+  21d:  callq luaV_tointeger+0
+  222:  testl %eax, %eax
+  224:  je 0x27d
+  226:  movq 0x10(%rsp), %rax
+  22b:  movq %rax, %rdx
+  22e:  cmpq %r14, %rax
+  231:  jg 0x1ca
+  233:  movq %r14, %rax
+  236:  negq %r13
+  239:  subq %rdx, %rax
+  23c:  xorl %edx, %edx
+  23e:  divq %r13
+  241:  jmp 0x1b1
+  246:  nopw %cs:(%rax, %rax)
+  250:  movq 0x10(%rsp), %rax
+  255:  cmpq %rax, %r14
+  258:  jg 0x1ca
+  25e:  jmp 0x1a9
+  263:  nopl (%rax, %rax)
+  268:  testq %r13, %r13
+  26b:  jg 0x1ca
+  271:  movabsq $9223372036854775808, %rdx
+  27b:  jmp 0x233
+  27d:  cmpb $0x13, 0x18(%rbx)
+  281:  jne 0x1e0
+  287:  movsd 0x10(%rbx), %xmm1
+  28c:  pxor %xmm0, %xmm0
+  290:  comisd %xmm0, %xmm1
+  294:  ja 0x1ca
+  29a:  jmp 0x271
+  29c:  movl $0, %esi   <str:"'for' step is zero">
+  2a1:  movq %rbp, %rdi
+  2a4:  xorl %eax, %eax
+  2a6:  callq luaG_runerror+0

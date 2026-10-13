@@ -1,0 +1,35 @@
+# wb_swid  (global, 97 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movl $0, %edi   <str:".ss">
+    c:  callq map+0
+   11:  movl %eax, %edi
+   13:  callq nreg+0
+   18:  movl 0x24(%rbx), %ebp
+   1b:  movl (%rax), %r12d
+   1e:  testl %ebp, %ebp
+   20:  js 0x40
+   22:  movl 0x20(%rbx), %edi
+   25:  testl %edi, %edi
+   27:  js 0x53
+   29:  callq dev_font+0
+   2e:  popq %rbx
+   2f:  movl %r12d, %edx
+   32:  movl %ebp, %esi
+   34:  movq %rax, %rdi
+   37:  popq %rbp
+   38:  popq %r12
+   3a:  jmp font_swid+0
+   3f:  nop
+   40:  movl $0x73, %edi
+   45:  callq nreg+0
+   4a:  movl 0x20(%rbx), %edi
+   4d:  movl (%rax), %ebp
+   4f:  testl %edi, %edi
+   51:  jns 0x29
+   53:  movl $0x66, %edi
+   58:  callq nreg+0
+   5d:  movl (%rax), %edi
+   5f:  jmp 0x29

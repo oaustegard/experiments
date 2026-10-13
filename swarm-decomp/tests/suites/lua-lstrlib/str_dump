@@ -1,0 +1,39 @@
+# str_dump  (static, 137 bytes, 38 instructions)
+    0:  pushq %rbp
+    1:  movl $2, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x438, %rsp
+   11:  callq lua_toboolean+0
+   16:  movl $6, %edx
+   1b:  movl $1, %esi
+   20:  movq %rbx, %rdi
+   23:  movl %eax, %ebp
+   25:  callq luaL_checktype+0
+   2a:  movl $1, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq lua_settop+0
+   37:  movl %ebp, %ecx
+   39:  movq %rsp, %rdx
+   3c:  movl $0, %esi   <fn:writer+0>
+   41:  movq %rbx, %rdi
+   44:  movl $0, (%rsp)
+   4b:  callq lua_dump+0
+   50:  testl %eax, %eax
+   52:  jne 0x70
+   54:  leaq 8(%rsp), %rdi
+   59:  callq luaL_pushresult+0
+   5e:  addq $0x438, %rsp
+   65:  movl $1, %eax
+   6a:  popq %rbx
+   6b:  popq %rbp
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  movq %rbx, %rdi
+   73:  movl $0, %esi   <str:"unable to dump given function">
+   78:  xorl %eax, %eax
+   7a:  callq luaL_error+0
+   7f:  addq $0x438, %rsp
+   86:  popq %rbx
+   87:  popq %rbp
+   88:  retq

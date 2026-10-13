@@ -1,0 +1,105 @@
+# evalbitor  (static, 432 bytes, 104 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  callq 9   <fn:evaleq+0>
+    9:  movq %rax, %rbx
+    c:  movl (%rip), %eax   <var:enext+0>
+   12:  cmpl $-1, %eax
+   15:  je 0x40
+   17:  cmpl $0x26, %eax
+   1a:  je 0x50
+   1c:  cmpl $-1, %eax
+   1f:  je 0xc0
+   25:  cmpl $0x5e, %eax
+   28:  je 0xd4
+   2e:  cmpl $-1, %eax
+   31:  je 0x68
+   33:  cmpl $0x7c, %eax
+   36:  je 0x78
+   38:  movq %rbx, %rax
+   3b:  popq %rbx
+   3c:  popq %rbp
+   3d:  popq %r12
+   3f:  retq
+   40:  callq fn:eval_tok+0
+   45:  movl %eax, (%rip)   <var:enext+0>
+   4b:  cmpl $0x26, %eax
+   4e:  jne 0x1c
+   50:  movl $0xffffffff, (%rip)   <var:enext+0>
+   5a:  callq fn:evaleq+0
+   5f:  andq %rax, %rbx
+   62:  jmp 0xc
+   64:  nopl (%rax)
+   68:  callq fn:eval_tok+0
+   6d:  movl %eax, (%rip)   <var:enext+0>
+   73:  cmpl $0x7c, %eax
+   76:  jne 0x38
+   78:  movl $0xffffffff, (%rip)   <var:enext+0>
+   82:  callq fn:evaleq+0
+   87:  movq %rax, %rbp
+   8a:  movl (%rip), %eax   <var:enext+0>
+   90:  cmpl $-1, %eax
+   93:  je 0x120
+   99:  cmpl $0x26, %eax
+   9c:  je 0x178
+   a2:  cmpl $-1, %eax
+   a5:  je 0x110
+   a7:  cmpl $0x5e, %eax
+   aa:  je 0x148
+   b0:  orq %rbp, %rbx
+   b3:  jmp 0x2e
+   b8:  nopl (%rax, %rax)
+   c0:  callq fn:eval_tok+0
+   c5:  movl %eax, (%rip)   <var:enext+0>
+   cb:  cmpl $0x5e, %eax
+   ce:  jne 0x2e
+   d4:  movl $0xffffffff, (%rip)   <var:enext+0>
+   de:  callq fn:evaleq+0
+   e3:  movq %rax, %rbp
+   e6:  movl (%rip), %eax   <var:enext+0>
+   ec:  cmpl $-1, %eax
+   ef:  je 0x100
+   f1:  cmpl $0x26, %eax
+   f4:  je 0x130
+   f6:  xorq %rbp, %rbx
+   f9:  jmp 0x1c
+   fe:  nop
+  100:  callq fn:eval_tok+0
+  105:  movl %eax, (%rip)   <var:enext+0>
+  10b:  jmp 0xf1
+  10d:  nopl (%rax)
+  110:  callq fn:eval_tok+0
+  115:  movl %eax, (%rip)   <var:enext+0>
+  11b:  jmp 0xa7
+  11d:  nopl (%rax)
+  120:  callq fn:eval_tok+0
+  125:  movl %eax, (%rip)   <var:enext+0>
+  12b:  jmp 0x99
+  130:  movl $0xffffffff, (%rip)   <var:enext+0>
+  13a:  callq fn:evaleq+0
+  13f:  andq %rax, %rbp
+  142:  jmp 0xe6
+  144:  nopl (%rax)
+  148:  movl $0xffffffff, (%rip)   <var:enext+0>
+  152:  callq fn:evaleq+0
+  157:  movq %rax, %r12
+  15a:  movl (%rip), %eax   <var:enext+0>
+  160:  cmpl $-1, %eax
+  163:  je 0x18f
+  165:  cmpl $0x26, %eax
+  168:  je 0x19c
+  16a:  xorq %r12, %rbp
+  16d:  jmp 0xa2
+  172:  nopw (%rax, %rax)
+  178:  movl $0xffffffff, (%rip)   <var:enext+0>
+  182:  callq fn:evaleq+0
+  187:  andq %rax, %rbp
+  18a:  jmp 0x8a
+  18f:  callq fn:eval_tok+0
+  194:  movl %eax, (%rip)   <var:enext+0>
+  19a:  jmp 0x165
+  19c:  movl $0xffffffff, (%rip)   <var:enext+0>
+  1a6:  callq fn:evaleq+0
+  1ab:  andq %rax, %r12
+  1ae:  jmp 0x15a

@@ -1,0 +1,43 @@
+# readchar  (static, 127 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  callq src_next+0
+    e:  xorl %edx, %edx
+   10:  testl %eax, %eax
+   12:  movb %al, (%rbx)
+   14:  setg %dl
+   17:  cmpl $0x5c, %eax
+   1a:  je 0x28
+   1c:  addq $8, %rsp
+   20:  movl %edx, %eax
+   22:  popq %rbx
+   23:  popq %rbp
+   24:  retq
+   25:  nopl (%rax)
+   28:  callq src_next+0
+   2d:  movb %al, 1(%rbx)
+   30:  cmpl $0x28, %eax
+   33:  je 0x68
+   35:  movl $2, %edx
+   3a:  cmpl $0x5b, %eax
+   3d:  jne 0x1c
+   3f:  movl $3, %ebp
+   44:  nopl (%rax)
+   48:  callq src_next+0
+   4d:  movq %rbp, %rdx
+   50:  movb %al, -1(%rbx, %rbp)
+   54:  addq $1, %rbp
+   58:  testl %eax, %eax
+   5a:  jle 0x1c
+   5c:  cmpl $0x5d, %eax
+   5f:  jne 0x48
+   61:  jmp 0x1c
+   63:  nopl (%rax, %rax)
+   68:  callq src_next+0
+   6d:  movb %al, 2(%rbx)
+   70:  callq src_next+0
+   75:  movl $4, %edx
+   7a:  movb %al, 3(%rbx)
+   7d:  jmp 0x1c

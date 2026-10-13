@@ -1,0 +1,17 @@
+# luaV_shiftl  (global, 42 bytes, 16 instructions)
+    0:  testq %rsi, %rsi
+    3:  js 0x18
+    5:  movl %esi, %ecx
+    7:  xorl %eax, %eax
+    9:  shlq %cl, %rdi
+    c:  cmpq $0x40, %rsi
+   10:  cmovlq %rdi, %rax
+   14:  retq
+   15:  nopl (%rax)
+   18:  movl %esi, %ecx
+   1a:  xorl %eax, %eax
+   1c:  negl %ecx
+   1e:  shrq %cl, %rdi
+   21:  cmpq $-0x40, %rsi
+   25:  cmovgq %rdi, %rax
+   29:  retq

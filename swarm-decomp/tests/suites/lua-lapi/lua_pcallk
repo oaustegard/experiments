@@ -1,0 +1,78 @@
+# lua_pcallk  (global, 276 bytes, 77 instructions)
+    0:  pushq %r12
+    2:  movslq %esi, %rax
+    5:  pushq %rbp
+    6:  movl %edx, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $0x20, %rsp
+   10:  movq 0x30(%rdi), %rdi
+   14:  movq 0x10(%rbx), %rdx
+   18:  movq %r8, 8(%rsp)
+   1d:  xorl %r8d, %r8d
+   20:  testl %ecx, %ecx
+   22:  je 0x40
+   24:  movslq %ecx, %rsi
+   27:  shlq $4, %rsi
+   2b:  leaq (%rdx, %rsi), %r8
+   2f:  testl %ecx, %ecx
+   31:  jle 0x3d
+   33:  movq 0x20(%rbx), %rcx
+   37:  addq (%rcx), %rsi
+   3a:  movq %rsi, %r8
+   3d:  subq %rdi, %r8
+   40:  shlq $4, %rax
+   44:  subq %rax, %rdx
+   47:  leaq -0x10(%rdx), %rsi
+   4b:  movq %rsi, %rcx
+   4e:  movq %rsi, 0x10(%rsp)
+   53:  subq %rdi, %rcx
+   56:  testq %r9, %r9
+   59:  je 0x67
+   5b:  cmpl $0xffff, 0xb0(%rbx)
+   65:  jbe 0xb0
+   67:  leaq 0x10(%rsp), %rdx
+   6c:  movl $0, %esi   <fn:f_call+0>
+   71:  movq %rbx, %rdi
+   74:  movl %ebp, 0x18(%rsp)
+   78:  callq luaD_pcall+0
+   7d:  testl %ebp, %ebp
+   7f:  js 0x90
+   81:  addq $0x20, %rsp
+   85:  popq %rbx
+   86:  popq %rbp
+   87:  popq %r12
+   89:  retq
+   8a:  nopw (%rax, %rax)
+   90:  movq 0x20(%rbx), %rdx
+   94:  movq 0x10(%rbx), %rcx
+   98:  cmpq %rcx, 8(%rdx)
+   9c:  jae 0x81
+   9e:  movq %rcx, 8(%rdx)
+   a2:  addq $0x20, %rsp
+   a6:  popq %rbx
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  movq 0xa8(%rbx), %xmm0
+   b8:  movq 0x20(%rbx), %r12
+   bc:  movq %rbx, %rdi
+   bf:  movzwl 0x3e(%r12), %eax
+   c5:  movhps 8(%rsp), %xmm0
+   ca:  movq %r9, 0x20(%r12)
+   cf:  movl %ecx, 0x38(%r12)
+   d4:  movups %xmm0, 0x28(%r12)
+   da:  movzbl 0xb(%rbx), %edx
+   de:  andl $0xfffffffe, %eax
+   e1:  movq %r8, 0xa8(%rbx)
+   e8:  orl %edx, %eax
+   ea:  movl %ebp, %edx
+   ec:  orl $0x10, %eax
+   ef:  movw %ax, 0x3e(%r12)
+   f5:  callq luaD_call+0
+   fa:  movq 0x28(%r12), %rax
+   ff:  andw $0xffef, 0x3e(%r12)
+  106:  movq %rax, 0xa8(%rbx)
+  10d:  xorl %eax, %eax
+  10f:  jmp 0x7d

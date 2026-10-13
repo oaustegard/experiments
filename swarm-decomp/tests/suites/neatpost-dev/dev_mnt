@@ -1,0 +1,43 @@
+# dev_mnt  (global, 130 bytes, 42 instructions)
+    0:  cmpl $0x3ff, %edi
+    6:  jg 0x7e
+    8:  pushq %r14
+    a:  pushq %r13
+    c:  movq %rsi, %r13
+    f:  pushq %r12
+   11:  pushq %rbp
+   12:  movq %rdx, %rbp
+   15:  pushq %rbx
+   16:  movl %edi, %ebx
+   18:  movq %rdx, %rdi
+   1b:  callq dev_fontopen+0
+   20:  movq %rax, %r12
+   23:  testq %rax, %rax
+   26:  je 0x77
+   28:  movslq %ebx, %r14
+   2b:  movq (, %r14, 8), %rdi   <var:fn_font+0>
+   33:  testq %rdi, %rdi
+   36:  je 0x3d
+   38:  callq font_close+0
+   3d:  movq %r14, %rdi
+   40:  shlq $6, %rdi
+   44:  addq $0, %rdi   <var:fn_name+0>
+   4b:  cmpq %rbp, %rdi
+   4e:  je 0x64
+   50:  movq %r13, %rcx
+   53:  movl $0, %edx   <str:"%s">
+   58:  movl $0x40, %esi
+   5d:  xorl %eax, %eax
+   5f:  callq snprintf+0
+   64:  movq %r12, (, %r14, 8)   <var:fn_font+0>
+   6c:  movl %ebx, %eax
+   6e:  popq %rbx
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  popq %r14
+   76:  retq
+   77:  movl $0xffffffff, %eax
+   7c:  jmp 0x6e
+   7e:  orl $0xffffffff, %eax
+   81:  retq

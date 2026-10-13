@@ -1,0 +1,37 @@
+# addfield  (static, 112 bytes, 36 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  movl $1, %esi
+    a:  pushq %rbp
+    b:  movq %rdx, %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  callq lua_geti+0
+   17:  movl $0xffffffff, %esi
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_isstring+0
+   24:  testl %eax, %eax
+   26:  je 0x38
+   28:  popq %rbx
+   29:  movq %r12, %rdi
+   2c:  popq %rbp
+   2d:  popq %r12
+   2f:  jmp luaL_addvalue+0
+   34:  nopl (%rax)
+   38:  movq %rbx, %rdi
+   3b:  movl $0xffffffff, %esi
+   40:  callq lua_type+0
+   45:  movq %rbx, %rdi
+   48:  movl %eax, %esi
+   4a:  callq lua_typename+0
+   4f:  movq %rbx, %rdi
+   52:  movq %rbp, %rcx
+   55:  movl $0, %esi   <str:"invalid value (%s) at index %I in table for 'concat'">
+   5a:  movq %rax, %rdx
+   5d:  xorl %eax, %eax
+   5f:  callq luaL_error+0
+   64:  popq %rbx
+   65:  movq %r12, %rdi
+   68:  popq %rbp
+   69:  popq %r12
+   6b:  jmp luaL_addvalue+0

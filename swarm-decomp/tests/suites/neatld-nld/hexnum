@@ -1,0 +1,49 @@
+# hexnum  (static, 163 bytes, 48 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  cmpb $0x30, (%rdi)
+   10:  je 0x90
+   12:  callq __ctype_b_loc+0
+   17:  movsbq (%rbp), %r12
+   1c:  xorl %ebx, %ebx
+   1e:  movq (%rax), %r13
+   21:  movq %r12, %rdx
+   24:  movzwl (%r13, %r12, 2), %ecx
+   2a:  testb $0xc, %ch
+   2d:  jne 0x58
+   2f:  jmp 0x78
+   31:  nopl (%rax)
+   38:  subl $0x30, %edx
+   3b:  movslq %edx, %rdx
+   3e:  addq $1, %rbp
+   42:  orq %rdx, %rbx
+   45:  movsbl (%rbp), %edx
+   49:  movsbq %dl, %r12
+   4d:  movzwl (%r13, %r12, 2), %ecx
+   53:  testb $0xc, %ch
+   56:  je 0x78
+   58:  shlq $4, %rbx
+   5c:  andb $8, %ch
+   5f:  jne 0x38
+   61:  callq __ctype_tolower_loc+0
+   66:  movq (%rax), %rax
+   69:  movl (%rax, %r12, 4), %edx
+   6d:  subl $0x57, %edx
+   70:  jmp 0x3b
+   72:  nopw (%rax, %rax)
+   78:  addq $8, %rsp
+   7c:  movq %rbx, %rax
+   7f:  popq %rbx
+   80:  popq %rbp
+   81:  popq %r12
+   83:  popq %r13
+   85:  retq
+   86:  nopw %cs:(%rax, %rax)
+   90:  cmpb $0x78, 1(%rdi)
+   94:  jne 0x12
+   9a:  addq $2, %rbp
+   9e:  jmp 0x12

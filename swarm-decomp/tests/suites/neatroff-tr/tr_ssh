@@ -1,0 +1,26 @@
+# tr_ssh  (static, 76 bytes, 25 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  subq $8, %rsp
+    8:  cmpq $0, 8(%rdi)
+    d:  je 0x32
+    f:  movq %rdi, %rbx
+   12:  movl $0, %edi   <str:".ssh">
+   17:  callq map+0
+   1c:  movl %eax, %edi
+   1e:  callq nreg+0
+   23:  movq 8(%rbx), %rdi
+   27:  xorl %edx, %edx
+   29:  movl (%rax), %esi
+   2b:  callq eval_re+0
+   30:  movl %eax, %ebp
+   32:  movl $0, %edi   <str:".ssh">
+   37:  callq map+0
+   3c:  movl %eax, %edi
+   3e:  callq nreg+0
+   43:  movl %ebp, (%rax)
+   45:  addq $8, %rsp
+   49:  popq %rbx
+   4a:  popq %rbp
+   4b:  retq

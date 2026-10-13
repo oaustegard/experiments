@@ -1,0 +1,36 @@
+# luaH_set  (global, 91 bytes, 35 instructions)
+    0:  pushq %r13
+    2:  movq %rdi, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movq %rsi, %rbp
+    e:  movq %rdx, %rsi
+   11:  pushq %rbx
+   12:  movq %rbp, %rdi
+   15:  movq %rcx, %rbx
+   18:  subq $8, %rsp
+   1c:  callq luaH_get+0
+   21:  cmpb $0x20, 8(%rax)
+   25:  je 0x40
+   27:  movq (%rbx), %rdx
+   2a:  movq %rdx, (%rax)
+   2d:  movzbl 8(%rbx), %edx
+   31:  movb %dl, 8(%rax)
+   34:  addq $8, %rsp
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  popq %r12
+   3c:  popq %r13
+   3e:  retq
+   3f:  nop
+   40:  addq $8, %rsp
+   44:  movq %rbx, %rcx
+   47:  movq %r12, %rdx
+   4a:  movq %rbp, %rsi
+   4d:  popq %rbx
+   4e:  movq %r13, %rdi
+   51:  popq %rbp
+   52:  popq %r12
+   54:  popq %r13
+   56:  jmp fn:luaH_newkey+0

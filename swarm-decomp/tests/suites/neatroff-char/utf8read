@@ -1,0 +1,60 @@
+# utf8read  (global, 191 bytes, 59 instructions)
+    0:  movq (%rdi), %rax
+    3:  movzbl (%rax), %ecx
+    6:  movl %ecx, %edx
+    8:  movl %ecx, %eax
+    a:  notl %edx
+    c:  andl $0xc0, %edx
+   12:  jne 0x40
+   14:  testb $0x20, %cl
+   17:  je 0x90
+   19:  testb $0x10, %cl
+   1c:  je 0x58
+   1e:  testb $8, %cl
+   21:  je 0xb2
+   27:  movl $1, %r8d
+   2d:  movl $1, %ecx
+   32:  movb %al, (%rsi)
+   34:  movb $0, (%rsi, %r8)
+   39:  movl %ecx, %eax
+   3b:  addq %r8, (%rdi)
+   3e:  retq
+   3f:  nop
+   40:  testl %ecx, %ecx
+   42:  jg 0x27
+   44:  xorl %r8d, %r8d
+   47:  xorl %ecx, %ecx
+   49:  movb $0, (%rsi, %r8)
+   4e:  movl %ecx, %eax
+   50:  addq %r8, (%rdi)
+   53:  retq
+   54:  nopl (%rax)
+   58:  movl $3, %ecx
+   5d:  movl $3, %r8d
+   63:  movb %al, (%rsi)
+   65:  movl $1, %eax
+   6a:  nopw (%rax, %rax)
+   70:  movq (%rdi), %rdx
+   73:  movzbl (%rdx, %rax), %edx
+   77:  movb %dl, (%rsi, %rax)
+   7a:  addq $1, %rax
+   7e:  cmpl %eax, %ecx
+   80:  jg 0x70
+   82:  movb $0, (%rsi, %r8)
+   87:  movl %ecx, %eax
+   89:  addq %r8, (%rdi)
+   8c:  retq
+   8d:  nopl (%rax)
+   90:  movb %cl, (%rsi)
+   92:  movq (%rdi), %rax
+   95:  movl $2, %r8d
+   9b:  movl $2, %ecx
+   a0:  movzbl 1(%rax), %eax
+   a4:  movb %al, 1(%rsi)
+   a7:  movl %ecx, %eax
+   a9:  movb $0, (%rsi, %r8)
+   ae:  addq %r8, (%rdi)
+   b1:  retq
+   b2:  movl $4, %ecx
+   b7:  movl $4, %r8d
+   bd:  jmp 0x63

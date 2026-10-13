@@ -1,0 +1,19 @@
+# luaC_changemode  (global, 58 bytes, 18 instructions)
+    0:  pushq %rbx
+    1:  movq 0x18(%rdi), %rbx
+    5:  movzbl 0x66(%rbx), %eax
+    9:  cmpl %esi, %eax
+    b:  je 0x1a
+    d:  cmpl $1, %esi
+   10:  je 0x28
+   12:  movq %rbx, %rdi
+   15:  callq fn:enterinc+0
+   1a:  movq $0, 0x28(%rbx)
+   22:  popq %rbx
+   23:  retq
+   24:  nopl (%rax)
+   28:  movq %rbx, %rsi
+   2b:  callq fn:entergen+0
+   30:  movq $0, 0x28(%rbx)
+   38:  popq %rbx
+   39:  retq

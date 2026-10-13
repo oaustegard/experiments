@@ -1,0 +1,19 @@
+# io_pclose  (static, 63 bytes, 18 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  movl $0, %edx   <str:"FILE*">
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_checkudata+0
+   18:  movq %rax, %rbp
+   1b:  callq __errno_location+0
+   20:  movq (%rbp), %rdi
+   24:  movl $0, (%rax)
+   2a:  callq pclose+0
+   2f:  addq $8, %rsp
+   33:  movq %rbx, %rdi
+   36:  movl %eax, %esi
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  jmp luaL_execresult+0

@@ -1,0 +1,20 @@
+# luaK_fixline  (global, 65 bytes, 19 instructions)
+    0:  movl 0x20(%rdi), %eax
+    3:  movl %esi, %edx
+    5:  movq (%rdi), %rsi
+    8:  subl $1, %eax
+    b:  movq 0x58(%rsi), %rcx
+    f:  cltq
+   11:  movsbl (%rcx, %rax), %eax
+   15:  cmpb $0x80, %al
+   17:  je 0x30
+   19:  subl %eax, 0x28(%rdi)
+   1c:  movzbl 0x45(%rdi), %eax
+   20:  subl $1, %eax
+   23:  movb %al, 0x45(%rdi)
+   26:  jmp fn:savelineinfo+0
+   2b:  nopl (%rax, %rax)
+   30:  movl $0xffffff81, %eax
+   35:  subl $1, 0x34(%rdi)
+   39:  movb %al, 0x45(%rdi)
+   3c:  jmp fn:savelineinfo+0

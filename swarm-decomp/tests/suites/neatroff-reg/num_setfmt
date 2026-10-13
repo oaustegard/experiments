@@ -1,0 +1,52 @@
+# num_setfmt  (global, 164 bytes, 51 instructions)
+    0:  pushq %r13
+    2:  movq %rsi, %r13
+    5:  pushq %r12
+    7:  movslq %edi, %r12
+    a:  movl $0, %edi   <str:"iIaA">
+    f:  pushq %rbp
+   10:  pushq %rbx
+   11:  subq $8, %rsp
+   15:  movsbl (%rsi), %ebp
+   18:  movl %ebp, %esi
+   1a:  callq strchr+0
+   1f:  testq %rax, %rax
+   22:  je 0x40
+   24:  movl %ebp, (, %r12, 4)   <var:nregs_fmt+0>
+   2c:  addq $8, %rsp
+   30:  popq %rbx
+   31:  popq %rbp
+   32:  popq %r12
+   34:  popq %r13
+   36:  retq
+   37:  nopw (%rax, %rax)
+   40:  callq __ctype_b_loc+0
+   45:  movl %ebp, %ebx
+   47:  movq (%rax), %rcx
+   4a:  movzbl %bpl, %eax
+   4e:  testb $8, 1(%rcx, %rax, 2)
+   53:  je 0xa0
+   55:  movl $1, %eax
+   5a:  nopw (%rax, %rax)
+   60:  movzbl (%r13, %rax), %edx
+   66:  movq %rax, %rbp
+   69:  addq $1, %rax
+   6d:  movq %rdx, %rbx
+   70:  testb $8, 1(%rcx, %rdx, 2)
+   75:  jne 0x60
+   77:  movl %ebx, %eax
+   79:  andl $0xffffffdf, %eax
+   7c:  cmpb $0x58, %al
+   7e:  jne 0x90
+   80:  addl $1, %ebp
+   83:  movsbl %bl, %ebx
+   86:  shll $8, %ebp
+   89:  orl %ebx, %ebp
+   8b:  jmp 0x24
+   8d:  nopl (%rax)
+   90:  shll $8, %ebp
+   93:  orl $0x30, %ebp
+   96:  jmp 0x24
+   98:  nopl (%rax, %rax)
+   a0:  xorl %ebp, %ebp
+   a2:  jmp 0x77

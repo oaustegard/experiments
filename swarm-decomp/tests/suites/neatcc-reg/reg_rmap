@@ -1,0 +1,24 @@
+# reg_rmap  (global, 78 bytes, 23 instructions)
+    0:  movslq (%rip), %rdx   <var:rgn_n+0>
+    7:  testl %edx, %edx
+    9:  jle 0x48
+    b:  movq (%rip), %rax   <var:rgn+0>
+   12:  leaq (%rdx, %rdx, 4), %rdx
+   16:  leaq (%rax, %rdx, 8), %rcx
+   1a:  jmp 0x29
+   1c:  nopl (%rax)
+   20:  addq $0x28, %rax
+   24:  cmpq %rcx, %rax
+   27:  je 0x48
+   29:  movslq 0x20(%rax), %rdx
+   2d:  cmpq %rsi, %rdx
+   30:  jne 0x20
+   32:  cmpq %rdi, 8(%rax)
+   36:  jg 0x20
+   38:  cmpq %rdi, 0x10(%rax)
+   3c:  jle 0x20
+   3e:  movl (%rax), %eax
+   40:  retq
+   41:  nopl (%rax)
+   48:  movl $0xffffffff, %eax
+   4d:  retq

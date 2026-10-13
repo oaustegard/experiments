@@ -1,0 +1,23 @@
+# luaD_hookcall  (global, 80 bytes, 22 instructions)
+    0:  movl $0, 0xb4(%rdi)
+    a:  movl 0xc0(%rdi), %eax
+   10:  testb $1, %al
+   12:  jne 0x18
+   14:  retq
+   15:  nopl (%rax)
+   18:  pushq %rbx
+   19:  movq %rsi, %rbx
+   1c:  movzwl 0x3e(%rsi), %esi
+   20:  movl $1, %ecx
+   25:  movq (%rbx), %rax
+   28:  movl $0xffffffff, %edx
+   2d:  sarl $3, %esi
+   30:  movq (%rax), %rax
+   33:  andl $4, %esi
+   36:  movq 0x18(%rax), %rax
+   3a:  addq $4, 0x20(%rbx)
+   3f:  movzbl 0xa(%rax), %r8d
+   44:  callq luaD_hook+0
+   49:  subq $4, 0x20(%rbx)
+   4e:  popq %rbx
+   4f:  retq

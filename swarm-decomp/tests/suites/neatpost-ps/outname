@@ -1,0 +1,51 @@
+# outname  (global, 161 bytes, 50 instructions)
+    0:  pushq %r13
+    2:  movslq %edi, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movq %rcx, %rbp
+    e:  pushq %rbx
+    f:  movq %rsi, %rbx
+   12:  subq $8, %rsp
+   16:  callq fn:o_flush+0
+   1b:  testl %r13d, %r13d
+   1e:  jle 0x96
+   20:  shlq $6, %r13
+   24:  addq %rbx, %r13
+   27:  nopw (%rax, %rax)
+   30:  movq %rbx, %rsi
+   33:  movl $0, %edi   <str:"[ /Dest /%s">
+   38:  xorl %eax, %eax
+   3a:  callq fn:outf+0
+   3f:  movl (%r12), %esi
+   43:  xorl %eax, %eax
+   45:  movl $0, %edi   <str:" /Page %d">
+   4a:  callq fn:outf+0
+   4f:  movl (%rbp), %eax
+   52:  testl %eax, %eax
+   54:  jle 0x79
+   56:  movl (%rip), %edx   <var:ps_height+0>
+   5c:  movl $0, %edi   <str:" /View [/XYZ null %d null]">
+   61:  subl %eax, %edx
+   63:  leal (%rdx, %rdx, 8), %eax
+   66:  shll $3, %eax
+   69:  cltd
+   6a:  idivl (%rip)   <dev_res+0>
+   70:  movl %eax, %esi
+   72:  xorl %eax, %eax
+   74:  callq fn:outf+0
+   79:  movl $0, %edi   <str:" /DEST pdfmark\n">
+   7e:  xorl %eax, %eax
+   80:  addq $0x40, %rbx
+   84:  addq $4, %r12
+   88:  callq fn:outf+0
+   8d:  addq $4, %rbp
+   91:  cmpq %r13, %rbx
+   94:  jne 0x30
+   96:  addq $8, %rsp
+   9a:  popq %rbx
+   9b:  popq %rbp
+   9c:  popq %r12
+   9e:  popq %r13
+   a0:  retq

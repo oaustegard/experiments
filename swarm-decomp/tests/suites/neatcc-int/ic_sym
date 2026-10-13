@@ -1,0 +1,81 @@
+# ic_sym  (global, 277 bytes, 80 instructions)
+    0:  pushq %r13
+    2:  leaq (%rsi, %rsi, 4), %rax
+    6:  movq %rdx, %r13
+    9:  pushq %r12
+    b:  movq %rcx, %r12
+    e:  pushq %rbp
+    f:  leaq (%rdi, %rax, 8), %rbp
+   13:  pushq %rbx
+   14:  subq $0x18, %rsp
+   18:  movq (%rbp), %rax
+   1c:  movq %rax, %rdx
+   1f:  notq %rax
+   22:  andl $0xffffff, %edx
+   28:  testl $0x400400, %eax
+   2d:  je 0x58
+   2f:  movq %rdi, %rbx
+   32:  cmpq $0x10, %rdx
+   36:  je 0x70
+   38:  cmpq $0x11, %rdx
+   3c:  je 0xd8
+   42:  movl $1, %eax
+   47:  addq $0x18, %rsp
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  popq %r12
+   4f:  popq %r13
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  movq 8(%rbp), %rax
+   5c:  movq %rax, (%r13)
+   60:  movq 0x10(%rbp), %rax
+   64:  movq %rax, (%rcx)
+   67:  xorl %eax, %eax
+   69:  jmp 0x47
+   6b:  nopl (%rax, %rax)
+   70:  movq 8(%rbp), %rsi
+   74:  movq %r13, %rdx
+   77:  callq ic_sym+0
+   7c:  movq 0x10(%rbp), %r8
+   80:  testl %eax, %eax
+   82:  jne 0x98
+   84:  leaq 8(%rsp), %rdx
+   89:  movq %r8, %rsi
+   8c:  movq %rbx, %rdi
+   8f:  callq ic_num+0
+   94:  testl %eax, %eax
+   96:  je 0xc2
+   98:  movq %r12, %rcx
+   9b:  movq %r13, %rdx
+   9e:  movq %r8, %rsi
+   a1:  movq %rbx, %rdi
+   a4:  callq ic_sym+0
+   a9:  testl %eax, %eax
+   ab:  jne 0x42
+   ad:  movq 8(%rbp), %rsi
+   b1:  leaq 8(%rsp), %rdx
+   b6:  movq %rbx, %rdi
+   b9:  callq ic_num+0
+   be:  testl %eax, %eax
+   c0:  jne 0x42
+   c2:  movq 8(%rsp), %rax
+   c7:  addq %rax, (%r12)
+   cb:  xorl %eax, %eax
+   cd:  jmp 0x47
+   d2:  nopw (%rax, %rax)
+   d8:  movq 8(%rbp), %rsi
+   dc:  movq %r13, %rdx
+   df:  callq ic_sym+0
+   e4:  testl %eax, %eax
+   e6:  jne 0x42
+   ec:  movq 0x10(%rbp), %rsi
+   f0:  leaq 8(%rsp), %rdx
+   f5:  movq %rbx, %rdi
+   f8:  callq ic_num+0
+   fd:  testl %eax, %eax
+   ff:  jne 0x42
+  105:  movq 8(%rsp), %rax
+  10a:  subq %rax, (%r12)
+  10e:  xorl %eax, %eax
+  110:  jmp 0x47

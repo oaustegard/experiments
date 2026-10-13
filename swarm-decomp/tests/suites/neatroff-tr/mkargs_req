@@ -1,0 +1,76 @@
+# mkargs_req  (static, 230 bytes, 75 instructions)
+    0:  pushq %r12
+    2:  xorl %r12d, %r12d
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  callq cp_next+0
+    f:  movl %eax, %ebx
+   11:  nopl (%rax)
+   18:  cmpl $9, %ebx
+   1b:  je 0x28
+   1d:  cmpl $0x20, %ebx
+   20:  jne 0x39
+   22:  nopw (%rax, %rax)
+   28:  callq cp_next+0
+   2d:  movl %eax, %ebx
+   2f:  cmpl $0x20, %eax
+   32:  je 0x28
+   34:  cmpl $9, %eax
+   37:  je 0x28
+   39:  testl %ebx, %ebx
+   3b:  js 0xdf
+   41:  cmpl $0xa, %ebx
+   44:  je 0xbf
+   46:  nopw %cs:(%rax, %rax)
+   50:  cmpl $4, %ebx
+   53:  je 0x5f
+   55:  movl %ebx, %esi
+   57:  movq %rbp, %rdi
+   5a:  callq sbuf_add+0
+   5f:  callq cp_next+0
+   64:  movl %eax, %ebx
+   66:  leal -9(%rax), %eax
+   69:  cmpl $1, %eax
+   6c:  jbe 0xb0
+   6e:  testl %ebx, %ebx
+   70:  js 0xb0
+   72:  cmpl $0x20, %ebx
+   75:  jne 0x50
+   77:  xorl %esi, %esi
+   79:  movq %rbp, %rdi
+   7c:  addl $1, %r12d
+   80:  callq sbuf_add+0
+   85:  cmpl $0x20, %r12d
+   89:  jne 0x18
+   8b:  callq cp_next+0
+   90:  testl %eax, %eax
+   92:  js 0xa6
+   94:  nopl (%rax)
+   98:  cmpl $0xa, %eax
+   9b:  je 0xa6
+   9d:  callq cp_next+0
+   a2:  testl %eax, %eax
+   a4:  jns 0x98
+   a6:  popq %rbx
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  retq
+   ab:  nopl (%rax, %rax)
+   b0:  xorl %esi, %esi
+   b2:  movq %rbp, %rdi
+   b5:  callq sbuf_add+0
+   ba:  cmpl $0xa, %ebx
+   bd:  jne 0xd0
+   bf:  movl $0xa, %edi
+   c4:  callq in_back+0
+   c9:  jmp 0x9d
+   cb:  nopl (%rax, %rax)
+   d0:  testl %ebx, %ebx
+   d2:  js 0x9d
+   d4:  addl $1, %r12d
+   d8:  movl $9, %ebx
+   dd:  jmp 0x85
+   df:  cmpl $0xa, %ebx
+   e2:  jne 0x9d
+   e4:  jmp 0xbf

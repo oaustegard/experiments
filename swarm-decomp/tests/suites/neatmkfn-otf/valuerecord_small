@@ -1,0 +1,37 @@
+# valuerecord_small  (static, 101 bytes, 36 instructions)
+    0:  movl (%rip), %r10d   <mkfn_kmin+0>
+    7:  movl $1, %eax
+    c:  pushq %rbp
+    d:  movq %rsi, %r11
+   10:  pushq %rbx
+   11:  movl %edi, %ebp
+   13:  testl %r10d, %r10d
+   16:  cmovlel %eax, %r10d
+   1a:  xorl %r9d, %r9d
+   1d:  xorl %ebx, %ebx
+   1f:  nop
+   20:  btl %r9d, %ebp
+   24:  jae 0x49
+   26:  movslq %ebx, %rax
+   29:  movzwl (%r11, %rax), %edi
+   2e:  rolw $8, %di
+   32:  movswl %di, %edi
+   35:  callq fn:uwid+0
+   3a:  movl %eax, %edx
+   3c:  negl %eax
+   3e:  cmovsl %edx, %eax
+   41:  cmpl %r10d, %eax
+   44:  jge 0x60
+   46:  addl $2, %ebx
+   49:  addl $1, %r9d
+   4d:  cmpl $8, %r9d
+   51:  jne 0x20
+   53:  movl $1, %eax
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  xorl %eax, %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  retq

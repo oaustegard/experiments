@@ -1,0 +1,42 @@
+# charread_delim  (global, 158 bytes, 41 instructions)
+    0:  pushq %r13
+    2:  movq %rdx, %r13
+    5:  pushq %r12
+    7:  movq %rsi, %r12
+    a:  movl $0, %esi   <sstr_next+0>
+    f:  pushq %rbp
+   10:  movq %rdi, %rbp
+   13:  pushq %rbx
+   14:  subq $8, %rsp
+   18:  movslq (%rip), %rax   <var:sstr_n+0>
+   1f:  movq (%rdi), %rdx
+   22:  movq %r12, %rdi
+   25:  leal 1(%rax), %ecx
+   28:  movl %ecx, (%rip)   <var:sstr_n+0>
+   2e:  movq (%rip), %rcx   <var:sstr_s+0>
+   35:  movq %rdx, (%rip)   <var:sstr_s+0>
+   3c:  movl $0, %edx   <sstr_back+0>
+   41:  movq %rcx, (, %rax, 8)   <var:sstr_bufs+0>
+   49:  callq charnext+0
+   4e:  movq %r13, %rsi
+   51:  movq %r12, %rdi
+   54:  movl %eax, %ebx
+   56:  callq strcmp+0
+   5b:  movl (%rip), %ecx   <var:sstr_n+0>
+   61:  testl %eax, %eax
+   63:  movl $0xffffffff, %eax
+   68:  leal -1(%rcx), %edx
+   6b:  cmovel %eax, %ebx
+   6e:  movq (%rip), %rax   <var:sstr_s+0>
+   75:  movl %edx, (%rip)   <var:sstr_n+0>
+   7b:  movslq %edx, %rdx
+   7e:  movq (, %rdx, 8), %rdx   <var:sstr_bufs+0>
+   86:  movq %rax, (%rbp)
+   8a:  movl %ebx, %eax
+   8c:  movq %rdx, (%rip)   <var:sstr_s+0>
+   93:  addq $8, %rsp
+   97:  popq %rbx
+   98:  popq %rbp
+   99:  popq %r12
+   9b:  popq %r13
+   9d:  retq

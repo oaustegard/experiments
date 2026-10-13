@@ -1,0 +1,22 @@
+# os_remove  (static, 68 bytes, 21 instructions)
+    0:  pushq %rbp
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq luaL_checklstring+0
+   15:  movq %rax, %rbp
+   18:  callq __errno_location+0
+   1d:  movq %rbp, %rdi
+   20:  movl $0, (%rax)
+   26:  callq remove+0
+   2b:  xorl %esi, %esi
+   2d:  movq %rbp, %rdx
+   30:  movq %rbx, %rdi
+   33:  testl %eax, %eax
+   35:  sete %sil
+   39:  addq $8, %rsp
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  jmp luaL_fileresult+0

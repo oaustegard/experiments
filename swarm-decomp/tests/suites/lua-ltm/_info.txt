@@ -1,0 +1,75 @@
+# lua-ltm: translation unit ltm of lua
+# write each function as src/lua/ltm/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+luaT_init	global	83 bytes
+luaT_gettm	global	53 bytes
+luaT_gettmbyobj	global	81 bytes
+luaT_objtypename	global	137 bytes
+luaT_callTM	global	101 bytes
+luaT_callTMres	global	151 bytes
+callbinTM	static	188 bytes
+luaT_trybinTM	global	142 bytes
+luaT_tryconcatTM	global	62 bytes
+luaT_trybinassocTM	global	40 bytes
+luaT_trybiniTM	global	61 bytes
+luaT_callorderTM	global	176 bytes
+luaT_callorderiTM	global	78 bytes
+luaT_adjustvarargs	global	242 bytes
+luaT_getvarargs	global	297 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+luaT_eventname.0	static	200 bytes	.rodata.luaT_eventname.0
+    +0     -> str:"__index"
+    +8     -> str:"__newindex"
+    +16    -> str:"__gc"
+    +24    -> str:"__mode"
+    +32    -> str:"__len"
+    +40    -> str:"__eq"
+    +48    -> str:"__add"
+    +56    -> str:"__sub"
+    +64    -> str:"__mul"
+    +72    -> str:"__mod"
+    +80    -> str:"__pow"
+    +88    -> str:"__div"
+    +96    -> str:"__idiv"
+    +104   -> str:"__band"
+    +112   -> str:"__bor"
+    +120   -> str:"__bxor"
+    +128   -> str:"__shl"
+    +136   -> str:"__shr"
+    +144   -> str:"__unm"
+    +152   -> str:"__bnot"
+    +160   -> str:"__lt"
+    +168   -> str:"__le"
+    +176   -> str:"__concat"
+    +184   -> str:"__call"
+    +192   -> str:"__close"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00
+udatatypename	static	9 bytes	.rodata.udatatypename
+        0: 75 73 65 72 64 61 74 61 00
+luaT_typenames_	global	96 bytes	.rodata.luaT_typenames_
+    +0     -> str:"no value"
+    +8     -> str:"nil"
+    +16    -> str:"boolean"
+    +24    -> var:udatatypename+0
+    +32    -> str:"number"
+    +40    -> str:"string"
+    +48    -> str:"table"
+    +56    -> str:"function"
+    +64    -> var:udatatypename+0
+    +72    -> str:"thread"
+    +80    -> str:"upvalue"
+    +88    -> str:"proto"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_fix luaC_step luaD_call luaD_callnoyield luaD_growstack luaG_concaterror luaG_opinterror luaG_ordererror luaG_tointerror luaH_getshortstr luaS_new

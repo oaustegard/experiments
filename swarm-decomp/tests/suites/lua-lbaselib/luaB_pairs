@@ -1,0 +1,36 @@
+# luaB_pairs  (static, 126 bytes, 35 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movl $0, %edx   <str:"__pairs">
+   13:  movl $1, %esi
+   18:  movq %rbx, %rdi
+   1b:  callq luaL_getmetafield+0
+   20:  testl %eax, %eax
+   22:  jne 0x50
+   24:  xorl %edx, %edx
+   26:  movq %rbx, %rdi
+   29:  movl $0, %esi   <fn:luaB_next+0>
+   2e:  callq lua_pushcclosure+0
+   33:  movq %rbx, %rdi
+   36:  movl $1, %esi
+   3b:  callq lua_pushvalue+0
+   40:  movq %rbx, %rdi
+   43:  callq lua_pushnil+0
+   48:  movl $3, %eax
+   4d:  popq %rbx
+   4e:  retq
+   4f:  nop
+   50:  movq %rbx, %rdi
+   53:  movl $1, %esi
+   58:  callq lua_pushvalue+0
+   5d:  movq %rbx, %rdi
+   60:  movl $0, %r8d   <fn:pairscont+0>
+   66:  xorl %ecx, %ecx
+   68:  movl $3, %edx
+   6d:  movl $1, %esi
+   72:  callq lua_callk+0
+   77:  movl $3, %eax
+   7c:  popq %rbx
+   7d:  retq

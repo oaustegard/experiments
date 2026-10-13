@@ -1,0 +1,86 @@
+# ic_lastuse  (global, 293 bytes, 85 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  movl $8, %esi
+    d:  movq %rbx, %rdi
+   10:  subq $8, %rsp
+   14:  callq calloc+0
+   19:  movq %rax, %r8
+   1c:  subl $1, %ebx
+   1f:  js 0xfd
+   25:  movl %ebx, %ebx
+   27:  leaq (%rbx, %rbx, 4), %rax
+   2b:  leaq (%rbp, %rax, 8), %rsi
+   30:  jmp 0x8a
+   32:  nopw (%rax, %rax)
+   38:  testl %eax, %eax
+   3a:  jle 0x79
+   3c:  movq 8(%rsi), %rdx
+   40:  leaq (%r8, %rdx, 8), %rdx
+   44:  cmpq $0, (%rdx)
+   48:  jne 0x4d
+   4a:  movq %rbx, (%rdx)
+   4d:  cmpl $1, %eax
+   50:  je 0x79
+   52:  movq 0x10(%rsi), %rdx
+   56:  leaq (%r8, %rdx, 8), %rdx
+   5a:  cmpq $0, (%rdx)
+   5e:  jne 0x63
+   60:  movq %rbx, (%rdx)
+   63:  cmpl $2, %eax
+   66:  je 0x79
+   68:  movq 0x18(%rsi), %rax
+   6c:  leaq (%r8, %rax, 8), %rax
+   70:  cmpq $0, (%rax)
+   74:  jne 0x79
+   76:  movq %rbx, (%rax)
+   79:  testq %rdi, %rdi
+   7c:  jne 0xc2
+   7e:  subq $1, %rbx
+   82:  subq $0x28, %rsi
+   86:  testl %ebx, %ebx
+   88:  js 0xfd
+   8a:  movq %rsi, %rdi
+   8d:  callq ic_regcnt+0
+   92:  movq (%rsi), %rdx
+   95:  movq %rdx, %rdi
+   98:  andl $0x200, %edi
+   9e:  cmpq $0, (%r8, %rbx, 8)
+   a3:  jne 0x38
+   a5:  testl $0x107f0, %edx
+   ab:  je 0x110
+   ad:  testq %rdi, %rdi
+   b0:  je 0x7e
+   b2:  movq $18446744073709551615, (%r8, %rbx, 8)
+   ba:  testl %eax, %eax
+   bc:  jg 0x3c
+   c2:  movq 0x18(%rsi), %rdx
+   c6:  testq %rdx, %rdx
+   c9:  jle 0x7e
+   cb:  movq 0x20(%rsi), %rax
+   cf:  leaq (%rax, %rdx, 8), %rdi
+   d3:  nopl (%rax, %rax)
+   d8:  movq (%rax), %rdx
+   db:  leaq (%r8, %rdx, 8), %rdx
+   df:  cmpq $0, (%rdx)
+   e3:  jne 0xe8
+   e5:  movq %rbx, (%rdx)
+   e8:  addq $8, %rax
+   ec:  cmpq %rax, %rdi
+   ef:  jne 0xd8
+   f1:  subq $1, %rbx
+   f5:  subq $0x28, %rsi
+   f9:  testl %ebx, %ebx
+   fb:  jns 0x8a
+   fd:  addq $8, %rsp
+  101:  movq %r8, %rax
+  104:  popq %rbx
+  105:  popq %rbp
+  106:  retq
+  107:  nopw (%rax, %rax)
+  110:  movq $18446744073709551615, (%r8, %rbx, 8)
+  118:  testl %eax, %eax
+  11a:  jg 0x3c
+  120:  jmp 0x7e

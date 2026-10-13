@@ -1,0 +1,23 @@
+# luaG_tracecall  (global, 81 bytes, 22 instructions)
+    0:  movq 0x20(%rdi), %rsi
+    4:  movq (%rsi), %rax
+    7:  movq (%rax), %rax
+    a:  movq 0x18(%rax), %rax
+    e:  movl $1, 0x28(%rsi)
+   15:  movq 0x40(%rax), %rcx
+   19:  cmpq %rcx, 0x20(%rsi)
+   1d:  je 0x30
+   1f:  movl $1, %edx
+   24:  movl %edx, %eax
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  xorl %edx, %edx
+   32:  cmpb $0, 0xb(%rax)
+   36:  jne 0x24
+   38:  testb $0x40, 0x3e(%rsi)
+   3c:  jne 0x1f
+   3e:  subq $8, %rsp
+   42:  callq luaD_hookcall+0
+   47:  movl $1, %eax
+   4c:  addq $8, %rsp
+   50:  retq

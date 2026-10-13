@@ -1,0 +1,14 @@
+# wb_empty  (global, 38 bytes, 13 instructions)
+    0:  movl 0x2068(%rdi), %eax
+    6:  testl %eax, %eax
+    8:  je 0x10
+    a:  xorl %eax, %eax
+    c:  retq
+    d:  nopl (%rax)
+   10:  subq $8, %rsp
+   14:  callq sbuf_empty+0
+   19:  testl %eax, %eax
+   1b:  setne %al
+   1e:  addq $8, %rsp
+   22:  movzbl %al, %eax
+   25:  retq

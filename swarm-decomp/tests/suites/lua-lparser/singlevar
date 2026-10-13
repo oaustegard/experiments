@@ -1,0 +1,60 @@
+# singlevar  (static, 215 bytes, 59 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $0x28, %rsp
+    d:  cmpl $0x123, 0x10(%rdi)
+   14:  jne 0xcd
+   1a:  movq 0x18(%rdi), %r13
+   1e:  movq %rsi, %rbp
+   21:  callq luaX_next+0
+   26:  movq 0x30(%rbx), %r12
+   2a:  testq %r12, %r12
+   2d:  je 0x58
+   2f:  movl $1, %ecx
+   34:  movq %rbp, %rdx
+   37:  movq %r13, %rsi
+   3a:  movq %r12, %rdi
+   3d:  callq fn:singlevaraux.part.0+0
+   42:  movl (%rbp), %eax
+   45:  testl %eax, %eax
+   47:  je 0xb0
+   49:  addq $0x28, %rsp
+   4d:  popq %rbx
+   4e:  popq %rbp
+   4f:  popq %r12
+   51:  popq %r13
+   53:  retq
+   54:  nopl (%rax)
+   58:  movq (%rip), %rbx   <cst:ffffffffffffffff>
+   5f:  movl $0, (%rbp)
+   66:  movl $0, 8(%rbp)
+   6d:  movq %rbx, 0x10(%rbp)
+   71:  movq %rbp, %rsi
+   74:  movq %r12, %rdi
+   77:  callq luaK_exp2anyregup+0
+   7c:  movq %rsp, %rdx
+   7f:  movq %rbp, %rsi
+   82:  movq %r12, %rdi
+   85:  movq %rbx, 0x10(%rsp)
+   8a:  movq %r13, 8(%rsp)
+   8f:  movl $7, (%rsp)
+   96:  callq luaK_indexed+0
+   9b:  addq $0x28, %rsp
+   9f:  popq %rbx
+   a0:  popq %rbp
+   a1:  popq %r12
+   a3:  popq %r13
+   a5:  retq
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movq 0x68(%rbx), %rsi
+   b4:  movl $1, %ecx
+   b9:  movq %rbp, %rdx
+   bc:  movq %r12, %rdi
+   bf:  callq fn:singlevaraux.part.0+0
+   c4:  movq (%rip), %rbx   <cst:ffffffffffffffff>
+   cb:  jmp 0x71
+   cd:  movl $0x123, %esi
+   d2:  callq fn:error_expected+0

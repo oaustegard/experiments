@@ -1,0 +1,61 @@
+# cmdmac  (static, 199 bytes, 60 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %r8
+    4:  movq %rdi, %rcx
+    7:  xorl %eax, %eax
+    9:  pushq %rbx
+    a:  movq %rsi, %rbp
+    d:  movq %rdi, %rbx
+   10:  movl $0x400, %esi
+   15:  movl $0, %edx   <str:"%s/%s.tmac">
+   1a:  subq $0x408, %rsp
+   21:  movq %rsp, %rdi
+   24:  callq snprintf+0
+   29:  movl $4, %esi
+   2e:  movq %rsp, %rdi
+   31:  callq access+0
+   36:  testl %eax, %eax
+   38:  jne 0xa8
+   3a:  movl $4, %esi
+   3f:  movq %rsp, %rdi
+   42:  callq access+0
+   47:  testl %eax, %eax
+   49:  jne 0x88
+   4b:  movl $4, %esi
+   50:  movq %rsp, %rdi
+   53:  callq access+0
+   58:  movl %eax, %ebx
+   5a:  testl %eax, %eax
+   5c:  je 0x70
+   5e:  movl $1, %ebx
+   63:  addq $0x408, %rsp
+   6a:  movl %ebx, %eax
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  retq
+   6f:  nop
+   70:  movq %rsp, %rdi
+   73:  callq in_queue+0
+   78:  addq $0x408, %rsp
+   7f:  movl %ebx, %eax
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  retq
+   84:  nopl (%rax)
+   88:  movq %rbp, %r8
+   8b:  movq %rbx, %rcx
+   8e:  movl $0, %edx   <str:"%s/%s">
+   93:  movl $0x400, %esi
+   98:  movq %rsp, %rdi
+   9b:  xorl %eax, %eax
+   9d:  callq snprintf+0
+   a2:  jmp 0x4b
+   a4:  nopl (%rax)
+   a8:  movq %rbp, %r8
+   ab:  movq %rbx, %rcx
+   ae:  movl $0, %edx   <str:"%s/tmac.%s">
+   b3:  movl $0x400, %esi
+   b8:  movq %rsp, %rdi
+   bb:  xorl %eax, %eax
+   bd:  callq snprintf+0
+   c2:  jmp 0x3a

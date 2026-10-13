@@ -1,0 +1,6 @@
+# o_tmpswap  (global, 30 bytes, 5 instructions)
+    0:  movq (%rip), %rax   <var:iv_n+0>
+    7:  movdqu (, %rax, 8), %xmm0   <var:iv+-16>
+   10:  shufpd $1, %xmm0, %xmm0
+   15:  movups %xmm0, (, %rax, 8)   <var:iv+-16>
+   1d:  retq

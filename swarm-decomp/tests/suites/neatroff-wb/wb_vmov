@@ -1,0 +1,23 @@
+# wb_vmov  (global, 81 bytes, 22 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  subq $0x10, %rsp
+    7:  movl 0x2068(%rdi), %edx
+    d:  testl %edx, %edx
+    f:  je 0x1b
+   11:  movl 0x206c(%rdi), %eax
+   17:  testl %eax, %eax
+   19:  jne 0x40
+   1b:  addl %ebp, 0x44(%rdi)
+   1e:  movl (%rip), %edx   <c_ec+0>
+   24:  addq $0x10, %rsp
+   28:  movl %ebp, %ecx
+   2a:  movl $0, %esi   <str:"%cv'%du'">
+   2f:  xorl %eax, %eax
+   31:  popq %rbp
+   32:  jmp sbuf_printf+0
+   37:  nopw (%rax, %rax)
+   40:  movq %rdi, 8(%rsp)
+   45:  callq fn:wb_flushsub.part.0+0
+   4a:  movq 8(%rsp), %rdi
+   4f:  jmp 0x1b

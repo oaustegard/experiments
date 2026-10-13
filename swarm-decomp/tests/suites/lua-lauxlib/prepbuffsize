@@ -1,0 +1,101 @@
+# prepbuffsize  (static, 344 bytes, 100 instructions)
+    0:  pushq %r13
+    2:  movl %edx, %r13d
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  movq 8(%rdi), %rdx
+   14:  movq 0x10(%rdi), %rax
+   18:  movq %rdx, %rcx
+   1b:  subq %rax, %rcx
+   1e:  cmpq %rsi, %rcx
+   21:  jb 0x38
+   23:  addq (%rdi), %rax
+   26:  addq $8, %rsp
+   2a:  popq %rbx
+   2b:  popq %rbp
+   2c:  popq %r12
+   2e:  popq %r13
+   30:  retq
+   31:  nopl (%rax)
+   38:  movq %rdx, %rcx
+   3b:  andq $0xfffffffffffffffe, %rdx
+   3f:  movq 0x18(%rdi), %r12
+   43:  shrq $1, %rcx
+   46:  addq %rcx, %rdx
+   49:  addq %rax, %rsi
+   4c:  jb 0x141
+   52:  cmpq %rdx, %rsi
+   55:  cmovaeq %rsi, %rdx
+   59:  movq %rdx, %rbp
+   5c:  leaq 0x20(%rbx), %rax
+   60:  cmpq %rax, (%rbx)
+   63:  je 0x90
+   65:  movq %rbp, %rdx
+   68:  movl %r13d, %esi
+   6b:  movq %r12, %rdi
+   6e:  callq fn:resizebox+0
+   73:  movq %rax, %rcx
+   76:  movq 0x10(%rbx), %rax
+   7a:  movq %rcx, (%rbx)
+   7d:  movq %rbp, 8(%rbx)
+   81:  addq $8, %rsp
+   85:  popq %rbx
+   86:  addq %rcx, %rax
+   89:  popq %rbp
+   8a:  popq %r12
+   8c:  popq %r13
+   8e:  retq
+   8f:  nop
+   90:  movl $0xffffffff, %edx
+   95:  movl %r13d, %esi
+   98:  movq %r12, %rdi
+   9b:  callq lua_rotate+0
+   a0:  movl $0xfffffffe, %esi
+   a5:  movq %r12, %rdi
+   a8:  callq lua_settop+0
+   ad:  xorl %edx, %edx
+   af:  movl $0x10, %esi
+   b4:  movq %r12, %rdi
+   b7:  callq lua_newuserdatauv+0
+   bc:  movl $0, %esi   <str:"_UBOX*">
+   c1:  movq %r12, %rdi
+   c4:  movq $0, (%rax)
+   cb:  movq $0, 8(%rax)
+   d3:  callq luaL_newmetatable+0
+   d8:  testl %eax, %eax
+   da:  jne 0x130
+   dc:  movl $0xfffffffe, %esi
+   e1:  movq %r12, %rdi
+   e4:  callq lua_setmetatable+0
+   e9:  movl $1, %edx
+   ee:  movl %r13d, %esi
+   f1:  movq %r12, %rdi
+   f4:  callq lua_rotate+0
+   f9:  movl %r13d, %esi
+   fc:  movq %r12, %rdi
+   ff:  callq lua_toclose+0
+  104:  movq %rbp, %rdx
+  107:  movl %r13d, %esi
+  10a:  movq %r12, %rdi
+  10d:  callq fn:resizebox+0
+  112:  movq (%rbx), %rsi
+  115:  movq 0x10(%rbx), %rdx
+  119:  movq %rax, %rdi
+  11c:  callq memcpy+0
+  121:  movq %rax, %rcx
+  124:  jmp 0x76
+  129:  nopl (%rax)
+  130:  xorl %edx, %edx
+  132:  movl $0, %esi   <var:boxmt+0>
+  137:  movq %r12, %rdi
+  13a:  callq luaL_setfuncs+0
+  13f:  jmp 0xdc
+  141:  movl $0, %esi   <str:"buffer too large">
+  146:  movq %r12, %rdi
+  149:  xorl %eax, %eax
+  14b:  callq luaL_error+0
+  150:  movslq %eax, %rbp
+  153:  jmp 0x5c

@@ -1,0 +1,7 @@
+# o_tmpcopy  (global, 35 bytes, 6 instructions)
+    0:  movq (%rip), %rax   <var:iv_n+0>
+    7:  movq (, %rax, 8), %rdx   <var:iv+-8>
+    f:  movq %rdx, (, %rax, 8)   <var:iv+0>
+   17:  addq $1, %rax
+   1b:  movq %rax, (%rip)   <var:iv_n+0>
+   22:  retq

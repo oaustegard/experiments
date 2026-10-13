@@ -1,0 +1,54 @@
+# lua_load  (global, 173 bytes, 53 instructions)
+    0:  pushq %r12
+    2:  movl $0, %eax   <str:"?">
+    7:  movq %r8, %r12
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  movq %rcx, %rbx
+   12:  subq $0x40, %rsp
+   16:  testq %rcx, %rcx
+   19:  movq %rdx, %rcx
+   1c:  movq %rsi, %rdx
+   1f:  cmoveq %rax, %rbx
+   23:  leaq 0x10(%rsp), %rsi
+   28:  callq luaZ_init+0
+   2d:  movq %r12, %rcx
+   30:  leaq 0x10(%rsp), %rsi
+   35:  movq %rbp, %rdi
+   38:  movq %rbx, %rdx
+   3b:  callq luaD_protectedparser+0
+   40:  testl %eax, %eax
+   42:  jne 0x89
+   44:  movq 0x10(%rbp), %rdx
+   48:  movq -0x10(%rdx), %rdx
+   4c:  cmpb $0, 0xa(%rdx)
+   50:  je 0x89
+   52:  movq 0x18(%rbp), %rcx
+   56:  movq 0x20(%rdx), %rdi
+   5a:  movq 0x40(%rcx), %rcx
+   5e:  movq 0x10(%rdi), %rsi
+   62:  movq 0x10(%rcx), %rcx
+   66:  movq 0x10(%rcx), %rdx
+   6a:  movq %rdx, (%rsi)
+   6d:  movzbl 0x18(%rcx), %edx
+   71:  movb %dl, 8(%rsi)
+   74:  andl $0x40, %edx
+   77:  je 0x89
+   79:  testb $0x20, 9(%rdi)
+   7d:  je 0x89
+   7f:  movq 0x10(%rcx), %rdx
+   83:  testb $0x18, 9(%rdx)
+   87:  jne 0x98
+   89:  addq $0x40, %rsp
+   8d:  popq %rbx
+   8e:  popq %rbp
+   8f:  popq %r12
+   91:  retq
+   92:  nopw (%rax, %rax)
+   98:  movq %rdi, %rsi
+   9b:  movq %rbp, %rdi
+   9e:  movl %eax, 0xc(%rsp)
+   a2:  callq luaC_barrier_+0
+   a7:  movl 0xc(%rsp), %eax
+   ab:  jmp 0x89

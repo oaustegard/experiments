@@ -1,0 +1,44 @@
+# luaS_newlstr  (global, 149 bytes, 43 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rsi, %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdx, %rbx
+    c:  subq $8, %rsp
+   10:  cmpq $0x28, %rdx
+   14:  jbe 0x78
+   16:  movabsq $0x7fffffffffffffde, %rax
+   20:  cmpq %rdx, %rax
+   23:  jb 0x90
+   25:  movq 0x18(%rdi), %rax
+   29:  leaq 0x19(%rdx), %rdx
+   2d:  movl $0x14, %esi
+   32:  movl 0x60(%rax), %r13d
+   36:  callq luaC_newobj+0
+   3b:  movq %rbx, %rdx
+   3e:  movq %r12, %rsi
+   41:  movl %r13d, 0xc(%rax)
+   45:  movq %rax, %rbp
+   48:  movb $0, 0x18(%rax, %rbx)
+   4d:  leaq 0x18(%rbp), %rdi
+   51:  movq %rbx, 0x10(%rax)
+   55:  movl $0xffffff00, %eax
+   5a:  movw %ax, 0xa(%rbp)
+   5e:  callq memcpy+0
+   63:  addq $8, %rsp
+   67:  movq %rbp, %rax
+   6a:  popq %rbx
+   6b:  popq %rbp
+   6c:  popq %r12
+   6e:  popq %r13
+   70:  retq
+   71:  nopl (%rax)
+   78:  addq $8, %rsp
+   7c:  popq %rbx
+   7d:  popq %rbp
+   7e:  popq %r12
+   80:  popq %r13
+   82:  jmp fn:internshrstr+0
+   87:  nopw (%rax, %rax)
+   90:  callq luaM_toobig+0

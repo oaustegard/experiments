@@ -1,0 +1,79 @@
+# open_func  (static, 284 bytes, 78 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %xmm2
+    7:  xorl %ecx, %ecx
+    9:  pushq %rbp
+    a:  movq %rdx, %rbp
+    d:  pushq %rbx
+    e:  movq 0x30(%rdi), %xmm0
+   13:  movq %rsi, %rbx
+   16:  movq (%rsi), %r12
+   19:  punpcklqdq %xmm2, %xmm0
+   1d:  movups %xmm0, 8(%rsi)
+   21:  movl 0x2c(%r12), %eax
+   26:  movq %rsi, 0x30(%rdi)
+   2a:  movl $0, 0x42(%rsi)
+   31:  movb $0, 0x46(%rsi)
+   35:  movl %eax, 0x28(%rsi)
+   38:  movq 0x58(%rdi), %rax
+   3c:  movq $0, 0x20(%rsi)
+   44:  movq $0, 0x30(%rsi)
+   4c:  movl 8(%rax), %edx
+   4f:  movw %cx, 0x40(%rsi)
+   53:  movl 0x28(%rax), %ecx
+   56:  movl %edx, 0x38(%rsi)
+   59:  movq 0x60(%rdi), %rdx
+   5d:  movl $0, 0x2c(%rsi)
+   64:  movl %ecx, 0x3c(%rsi)
+   67:  movq $0, 0x18(%rsi)
+   6f:  movq %rdx, 0x70(%r12)
+   74:  testb $0x20, 9(%r12)
+   7a:  jne 0xb8
+   7c:  movb $2, 0xc(%r12)
+   82:  movd 0x18(%rax), %xmm0
+   87:  movd %ecx, %xmm1
+   8b:  xorl %eax, %eax
+   8d:  movb $0, 0x12(%rbp)
+   91:  xorl %edx, %edx
+   93:  punpckldq %xmm0, %xmm1
+   97:  movw %ax, 0x10(%rbp)
+   9b:  xorl %eax, %eax
+   9d:  movq %xmm1, 8(%rbp)
+   a2:  movb %dl, 0x13(%rbp)
+   a5:  movq %rax, (%rbp)
+   a9:  movq %rbp, 0x18(%rbx)
+   ad:  popq %rbx
+   ae:  popq %rbp
+   af:  popq %r12
+   b1:  retq
+   b2:  nopw (%rax, %rax)
+   b8:  testb $0x18, 9(%rdx)
+   bc:  je 0x7c
+   be:  movq 0x38(%rdi), %rdi
+   c2:  movq %r12, %rsi
+   c5:  callq luaC_barrier_+0
+   ca:  movq 0x10(%rbx), %rax
+   ce:  movzbl 0x42(%rbx), %ecx
+   d2:  movq 0x58(%rax), %rdx
+   d6:  movq 0x18(%rbx), %rax
+   da:  movd 0x28(%rdx), %xmm0
+   df:  movb $2, 0xc(%r12)
+   e5:  movb %cl, 0x10(%rbp)
+   e8:  movd 0x18(%rdx), %xmm1
+   ed:  xorl %edx, %edx
+   ef:  movw %dx, 0x11(%rbp)
+   f3:  punpckldq %xmm1, %xmm0
+   f7:  movq %xmm0, 8(%rbp)
+   fc:  testq %rax, %rax
+   ff:  je 0x118
+  101:  cmpb $0, 0x13(%rax)
+  105:  movq %rax, (%rbp)
+  109:  setne %dl
+  10c:  movb %dl, 0x13(%rbp)
+  10f:  movq %rbp, 0x18(%rbx)
+  113:  popq %rbx
+  114:  popq %rbp
+  115:  popq %r12
+  117:  retq
+  118:  xorl %edx, %edx
+  11a:  jmp 0xa2

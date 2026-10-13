@@ -1,0 +1,39 @@
+# luaB_error  (static, 128 bytes, 38 instructions)
+    0:  pushq %r12
+    2:  movl $1, %edx
+    7:  movl $2, %esi
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  movq %rdi, %rbx
+   11:  callq luaL_optinteger+0
+   16:  movl $1, %esi
+   1b:  movq %rbx, %rdi
+   1e:  movq %rax, %rbp
+   21:  callq lua_settop+0
+   26:  movl $1, %esi
+   2b:  movq %rbx, %rdi
+   2e:  callq lua_type+0
+   33:  testl %ebp, %ebp
+   35:  jle 0x3c
+   37:  cmpl $4, %eax
+   3a:  je 0x50
+   3c:  movq %rbx, %rdi
+   3f:  popq %rbx
+   40:  popq %rbp
+   41:  popq %r12
+   43:  jmp lua_error+0
+   48:  nopl (%rax, %rax)
+   50:  movl %ebp, %esi
+   52:  movq %rbx, %rdi
+   55:  callq luaL_where+0
+   5a:  movq %rbx, %rdi
+   5d:  movl $1, %esi
+   62:  callq lua_pushvalue+0
+   67:  movq %rbx, %rdi
+   6a:  movl $2, %esi
+   6f:  callq lua_concat+0
+   74:  movq %rbx, %rdi
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  popq %r12
+   7b:  jmp lua_error+0

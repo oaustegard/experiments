@@ -1,0 +1,45 @@
+# FMT_COST  (static, 149 bytes, 44 instructions)
+    0:  subl %esi, %edi
+    2:  movslq %ecx, %r8
+    5:  movslq %edi, %rdi
+    8:  leaq (%rdi, %rdi, 4), %rax
+    c:  leaq (%rax, %rax, 4), %rax
+   10:  shlq $2, %rax
+   14:  testl %edx, %edx
+   16:  je 0x20
+   18:  movslq %edx, %rcx
+   1b:  cqto
+   1d:  idivq %rcx
+   20:  movq %rax, %rdi
+   23:  negq %rdi
+   26:  cmovsq %rax, %rdi
+   2a:  cmpq $0xfa0, %rdi
+   31:  jle 0x6f
+   33:  subq $0xfa0, %rdi
+   3a:  xorl %eax, %eax
+   3c:  xorl %esi, %esi
+   3e:  nop
+   40:  leal (%rsi, %rsi), %ecx
+   43:  movq %rdi, %rdx
+   46:  sarq %cl, %rdx
+   49:  leal 3(%rsi), %ecx
+   4c:  addl $1, %esi
+   4f:  andl $3, %edx
+   52:  shlq %cl, %rdx
+   55:  addq %rdx, %rax
+   58:  cmpl $0xe, %esi
+   5b:  jne 0x40
+   5d:  movl $0x2000, %edx
+   62:  cmpq %rdx, %rax
+   65:  cmovgq %rdx, %rax
+   69:  addq $0xfa0, %rax
+   6f:  movabsq $0x28f5c28f5c28f5c3, %rdx
+   79:  imulq %rax, %rax
+   7d:  shrq $2, %rax
+   81:  mulq %rdx
+   84:  movq %rdx, %rax
+   87:  shrq $2, %rax
+   8b:  testl %r8d, %r8d
+   8e:  je 0x94
+   90:  imulq %r8, %rax
+   94:  retq

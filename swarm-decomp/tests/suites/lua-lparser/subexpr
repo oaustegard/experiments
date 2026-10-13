@@ -1,0 +1,238 @@
+# subexpr  (static, 1075 bytes, 237 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movl %edx, %r14d
+    7:  pushq %r13
+    9:  movq %rsi, %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  movq %rdi, %rbx
+   13:  subq $0x28, %rsp
+   17:  movq 0x38(%rdi), %rdi
+   1b:  callq luaE_incCstack+0
+   20:  movl 0x10(%rbx), %eax
+   23:  cmpl $0x7e, %eax
+   26:  je 0x130
+   2c:  jg 0x108
+   32:  cmpl $0x23, %eax
+   35:  je 0xa0
+   37:  xorl %ebp, %ebp
+   39:  cmpl $0x2d, %eax
+   3c:  jne 0x140
+   42:  movq %rbx, %rdi
+   45:  movl 4(%rbx), %r12d
+   49:  callq luaX_next+0
+   4e:  movl $0xc, %edx
+   53:  movq %r13, %rsi
+   56:  movq %rbx, %rdi
+   59:  callq 0
+   5e:  movq 0x30(%rbx), %rdi
+   62:  movl %r12d, %ecx
+   65:  movq %r13, %rdx
+   68:  movl %ebp, %esi
+   6a:  callq luaK_prefix+0
+   6f:  movl 0x10(%rbx), %edx
+   72:  cmpl $0x7e, %edx
+   75:  je 0x406
+   7b:  jg 0xf0
+   7d:  cmpl $0x5e, %edx
+   80:  jg 0xb0
+   82:  cmpl $0x24, %edx
+   85:  jle 0xc8
+   87:  subl $0x25, %edx
+   8a:  cmpl $0x39, %edx
+   8d:  ja 0xc8
+   8f:  jmpq *(, %rdx, 8)   <var:subexpr+0>
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movl $3, %ebp
+   a5:  jmp 0x42
+   a7:  nopw (%rax, %rax)
+   b0:  movl $4, %eax
+   b5:  movl $8, %r12d
+   bb:  cmpl $0x7c, %edx
+   be:  je 0x168
+   c4:  nopl (%rax)
+   c8:  movl $0x15, %r12d
+   ce:  movq 0x38(%rbx), %rax
+   d2:  subl $1, 0xb0(%rax)
+   d9:  addq $0x28, %rsp
+   dd:  movl %r12d, %eax
+   e0:  popq %rbx
+   e1:  popq %rbp
+   e2:  popq %r12
+   e4:  popq %r13
+   e6:  popq %r14
+   e8:  popq %r15
+   ea:  retq
+   eb:  nopl (%rax, %rax)
+   f0:  subl $0x100, %edx
+   f6:  cmpl $0x1e, %edx
+   f9:  ja 0xc8
+   fb:  jmpq *(, %rdx, 8)   <var:subexpr+464>
+  102:  nopw (%rax, %rax)
+  108:  movl $2, %ebp
+  10d:  cmpl $0x10e, %eax
+  112:  je 0x42
+  118:  subl $0x106, %eax
+  11d:  cmpl $0x1e, %eax
+  120:  ja 0x149
+  122:  jmpq *(, %rax, 8)   <var:subexpr+712>
+  129:  nopl (%rax)
+  130:  movl $1, %ebp
+  135:  jmp 0x42
+  13a:  nopw (%rax, %rax)
+  140:  cmpl $0x7b, %eax
+  143:  je 0x416
+  149:  movq %r13, %rsi
+  14c:  movq %rbx, %rdi
+  14f:  callq fn:suffixedexp+0
+  154:  jmp 0x6f
+  159:  movl $3, %eax
+  15e:  movl $0x12, %r12d
+  164:  nopl (%rax)
+  168:  cmpl %r14d, %eax
+  16b:  jle 0xce
+  171:  movq %rbx, %rdi
+  174:  movl 4(%rbx), %r15d
+  178:  callq luaX_next+0
+  17d:  movq 0x30(%rbx), %rdi
+  181:  movq %r13, %rdx
+  184:  movl %r12d, %esi
+  187:  callq luaK_infix+0
+  18c:  movl %r12d, %eax
+  18f:  movq %rsp, %rsi
+  192:  movq %rbx, %rdi
+  195:  movzbl (%rax, %rax), %edx   <var:priority+1>
+  19d:  callq 0
+  1a2:  movq 0x30(%rbx), %rdi
+  1a6:  movl %r15d, %r8d
+  1a9:  movq %rsp, %rcx
+  1ac:  movl %eax, %ebp
+  1ae:  movq %r13, %rdx
+  1b1:  movl %r12d, %esi
+  1b4:  callq luaK_posfix+0
+  1b9:  cmpl $0x15, %ebp
+  1bc:  je 0xc8
+  1c2:  movl %ebp, %eax
+  1c4:  movl %ebp, %r12d
+  1c7:  movzbl (%rax, %rax), %eax   <var:priority+0>
+  1cf:  cmpl %r14d, %eax
+  1d2:  jg 0x171
+  1d4:  jmp 0xce
+  1d9:  movl $0xb, %eax
+  1de:  movl $6, %r12d
+  1e4:  jmp 0x168
+  1e6:  movl $3, %eax
+  1eb:  movl $0xf, %r12d
+  1f1:  jmp 0x168
+  1f6:  movl $3, %eax
+  1fb:  movl $0x10, %r12d
+  201:  jmp 0x168
+  206:  movl $7, %eax
+  20b:  movl $0xa, %r12d
+  211:  jmp 0x168
+  216:  movl $7, %eax
+  21b:  movl $0xb, %r12d
+  221:  jmp 0x168
+  226:  movl $3, %eax
+  22b:  movl $0xd, %r12d
+  231:  jmp 0x168
+  236:  movl $9, %eax
+  23b:  movl $0xc, %r12d
+  241:  jmp 0x168
+  246:  movl $1, %eax
+  24b:  movl $0x14, %r12d
+  251:  jmp 0x168
+  256:  movl $2, %eax
+  25b:  movl $0x13, %r12d
+  261:  jmp 0x168
+  266:  movq 0x18(%rbx), %rax
+  26a:  movq $18446744073709551615, 0x10(%r13)
+  272:  movl $7, (%r13)
+  27a:  movq %rax, 8(%r13)
+  27e:  nop
+  280:  movq %rbx, %rdi
+  283:  callq luaX_next+0
+  288:  jmp 0x6f
+  28d:  movq 0x18(%rbx), %rax
+  291:  movq $18446744073709551615, 0x10(%r13)
+  299:  movl $6, (%r13)
+  2a1:  movq %rax, 8(%r13)
+  2a5:  jmp 0x280
+  2a7:  movsd 0x18(%rbx), %xmm0
+  2ac:  movq $18446744073709551615, 0x10(%r13)
+  2b4:  movl $5, (%r13)
+  2bc:  movsd %xmm0, 8(%r13)
+  2c2:  jmp 0x280
+  2c4:  movq 0x30(%rbx), %rdi
+  2c8:  movq (%rdi), %rax
+  2cb:  cmpb $0, 0xb(%rax)
+  2cf:  je 0x426
+  2d5:  xorl %r9d, %r9d
+  2d8:  movl $1, %r8d
+  2de:  xorl %ecx, %ecx
+  2e0:  xorl %edx, %edx
+  2e2:  movl $0x50, %esi
+  2e7:  callq luaK_codeABCk+0
+  2ec:  movq $18446744073709551615, 0x10(%r13)
+  2f4:  movl $0x13, (%r13)
+  2fc:  movl %eax, 8(%r13)
+  300:  jmp 0x280
+  305:  movq $18446744073709551615, 0x10(%r13)
+  30d:  movl $2, (%r13)
+  315:  movl $0, 8(%r13)
+  31d:  jmp 0x280
+  322:  movq %rbx, %rdi
+  325:  callq luaX_next+0
+  32a:  movl 4(%rbx), %ecx
+  32d:  xorl %edx, %edx
+  32f:  movq %r13, %rsi
+  332:  movq %rbx, %rdi
+  335:  callq fn:body+0
+  33a:  jmp 0x6f
+  33f:  movq $18446744073709551615, 0x10(%r13)
+  347:  movl $3, (%r13)
+  34f:  movl $0, 8(%r13)
+  357:  jmp 0x280
+  35c:  movq $18446744073709551615, 0x10(%r13)
+  364:  movl $1, (%r13)
+  36c:  movl $0, 8(%r13)
+  374:  jmp 0x280
+  379:  movl $3, %eax
+  37e:  movl $0xe, %r12d
+  384:  jmp 0x168
+  389:  movl $0xe, %eax
+  38e:  movl $4, %r12d
+  394:  jmp 0x168
+  399:  movl $0xb, %eax
+  39e:  movl $3, %r12d
+  3a4:  jmp 0x168
+  3a9:  movl $6, %eax
+  3ae:  movl $7, %r12d
+  3b4:  jmp 0x168
+  3b9:  movl $0xa, %eax
+  3be:  xorl %r12d, %r12d
+  3c1:  jmp 0x168
+  3c6:  movl $0xa, %eax
+  3cb:  movl $1, %r12d
+  3d1:  jmp 0x168
+  3d6:  movl $0xb, %eax
+  3db:  movl $5, %r12d
+  3e1:  jmp 0x168
+  3e6:  movl $0xb, %eax
+  3eb:  movl $2, %r12d
+  3f1:  jmp 0x168
+  3f6:  movl $3, %eax
+  3fb:  movl $0x11, %r12d
+  401:  jmp 0x168
+  406:  movl $5, %eax
+  40b:  movl $9, %r12d
+  411:  jmp 0x168
+  416:  movq %r13, %rsi
+  419:  movq %rbx, %rdi
+  41c:  callq fn:constructor+0
+  421:  jmp 0x6f
+  426:  movl $0, %esi   <str:"cannot use '...' outside a vararg function">
+  42b:  movq %rbx, %rdi
+  42e:  callq luaX_syntaxerror+0

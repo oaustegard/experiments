@@ -1,0 +1,30 @@
+# font_wid  (global, 75 bytes, 29 instructions)
+    0:  movl 0x54(%rdi), %eax
+    3:  testl %eax, %eax
+    5:  je 0x23
+    7:  imull %eax, %esi
+    a:  leal 0x1f4(%rsi), %eax
+   10:  movslq %eax, %rsi
+   13:  sarl $0x1f, %eax
+   16:  imulq $0x10624dd3, %rsi, %rsi
+   1d:  sarq $0x26, %rsi
+   21:  subl %eax, %esi
+   23:  movl (%rip), %ecx   <dev_uwid+0>
+   29:  movl %ecx, %eax
+   2b:  shrl $0x1f, %eax
+   2e:  addl %ecx, %eax
+   30:  sarl $1, %eax
+   32:  testl %edx, %edx
+   34:  js 0x40
+   36:  imull %esi, %edx
+   39:  addl %edx, %eax
+   3b:  cltd
+   3c:  idivl %ecx
+   3e:  retq
+   3f:  nop
+   40:  imull %esi, %edx
+   43:  subl %edx, %eax
+   45:  cltd
+   46:  idivl %ecx
+   48:  negl %eax
+   4a:  retq

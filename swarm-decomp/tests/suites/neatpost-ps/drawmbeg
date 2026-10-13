@@ -1,0 +1,12 @@
+# drawmbeg  (global, 46 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <fn:o_flush+0>
+    9:  movl (%rip), %edi   <var:o_f+0>
+    f:  callq fn:out_fontup+0
+   14:  movq %rbx, %rsi
+   17:  movl $0, %edi   <str:"gsave newpath %s\n">
+   1c:  xorl %eax, %eax
+   1e:  movl $1, (%rip)   <var:draw_path+0>
+   28:  popq %rbx
+   29:  jmp fn:outf+0

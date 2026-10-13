@@ -1,0 +1,90 @@
+# odiv_end  (global, 414 bytes, 89 instructions)
+    0:  movl (%rip), %eax   <var:nodivs+0>
+    6:  pushq %rbx
+    7:  movl $0, %edx   <var:nregs+408>
+    c:  leal -1(%rax), %ebx
+    f:  movslq (%rip), %rax   <var:eregs_idx+408>
+   16:  movl %ebx, (%rip)   <var:nodivs+0>
+   1c:  testl %eax, %eax
+   1e:  je 0x2b
+   20:  movq (%rip), %rdx   <var:env+0>
+   27:  leaq (%rdx, %rax, 4), %rdx
+   2b:  movslq %ebx, %rbx
+   2e:  leaq (, %rbx, 8), %rax
+   36:  subq %rbx, %rax
+   39:  movl (, %rax, 4), %eax   <var:odivs+0>
+   40:  movl %eax, (%rdx)
+   42:  movslq (%rip), %rax   <var:eregs_idx+460>
+   49:  movl $0, %edx   <var:nregs+460>
+   4e:  testl %eax, %eax
+   50:  je 0x5d
+   52:  movq (%rip), %rdx   <var:env+0>
+   59:  leaq (%rdx, %rax, 4), %rdx
+   5d:  leaq (, %rbx, 8), %rax
+   65:  subq %rbx, %rax
+   68:  movl (, %rax, 4), %eax   <var:odivs+4>
+   6f:  movl %eax, (%rdx)
+   71:  movslq (%rip), %rax   <var:eregs_idx+436>
+   78:  movl $0, %edx   <var:nregs+436>
+   7d:  testl %eax, %eax
+   7f:  je 0x8c
+   81:  movq (%rip), %rdx   <var:env+0>
+   88:  leaq (%rdx, %rax, 4), %rdx
+   8c:  leaq (, %rbx, 8), %rax
+   94:  movl $0, %edi   <str:".f0">
+   99:  subq %rbx, %rax
+   9c:  movl (, %rax, 4), %eax   <var:odivs+8>
+   a3:  movl %eax, (%rdx)
+   a5:  callq map+0
+   aa:  cltq
+   ac:  movslq (, %rax, 4), %rdx   <var:eregs_idx+0>
+   b4:  leaq (, %rax, 4), %rcx   <var:nregs+0>
+   bc:  testl %edx, %edx
+   be:  je 0xcb
+   c0:  movq (%rip), %rax   <var:env+0>
+   c7:  leaq (%rax, %rdx, 4), %rcx
+   cb:  leaq (, %rbx, 8), %rax
+   d3:  movl $0, %edi   <str:".s0">
+   d8:  subq %rbx, %rax
+   db:  movl (, %rax, 4), %eax   <var:odivs+12>
+   e2:  movl %eax, (%rcx)
+   e4:  callq map+0
+   e9:  cltq
+   eb:  movslq (, %rax, 4), %rdx   <var:eregs_idx+0>
+   f3:  leaq (, %rax, 4), %rcx   <var:nregs+0>
+   fb:  testl %edx, %edx
+   fd:  je 0x10a
+   ff:  movq (%rip), %rax   <var:env+0>
+  106:  leaq (%rax, %rdx, 4), %rcx
+  10a:  leaq (, %rbx, 8), %rax
+  112:  movl $0, %edi   <str:".m0">
+  117:  subq %rbx, %rax
+  11a:  movl (, %rax, 4), %eax   <var:odivs+16>
+  121:  movl %eax, (%rcx)
+  123:  callq map+0
+  128:  cltq
+  12a:  movslq (, %rax, 4), %rdx   <var:eregs_idx+0>
+  132:  leaq (, %rax, 4), %rcx   <var:nregs+0>
+  13a:  testl %edx, %edx
+  13c:  je 0x149
+  13e:  movq (%rip), %rax   <var:env+0>
+  145:  leaq (%rax, %rdx, 4), %rcx
+  149:  leaq (, %rbx, 8), %rax
+  151:  movl $0, %edi   <str:".cd">
+  156:  subq %rbx, %rax
+  159:  movl (, %rax, 4), %eax   <var:odivs+20>
+  160:  movl %eax, (%rcx)
+  162:  callq map+0
+  167:  cltq
+  169:  movslq (, %rax, 4), %rdx   <var:eregs_idx+0>
+  171:  leaq (, %rax, 4), %rcx   <var:nregs+0>
+  179:  testl %edx, %edx
+  17b:  je 0x188
+  17d:  movq (%rip), %rax   <var:env+0>
+  184:  leaq (%rax, %rdx, 4), %rcx
+  188:  leaq (, %rbx, 8), %rax
+  190:  subq %rbx, %rax
+  193:  movl (, %rax, 4), %eax   <var:odivs+24>
+  19a:  movl %eax, (%rcx)
+  19c:  popq %rbx
+  19d:  retq

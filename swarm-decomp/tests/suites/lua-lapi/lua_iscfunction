@@ -1,0 +1,48 @@
+# lua_iscfunction  (global, 154 bytes, 47 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x40
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jb 0x20
+   18:  movq 0x18(%rdi), %rsi
+   1c:  addq $0x50, %rsi
+   20:  movzbl 8(%rsi), %edx
+   24:  cmpb $0x16, %dl
+   27:  sete %al
+   2a:  cmpb $0x66, %dl
+   2d:  sete %dl
+   30:  orl %edx, %eax
+   32:  movzbl %al, %eax
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  cmpl $0xfff0b9d9, %esi
+   46:  jge 0x80
+   48:  cmpl $0xfff0b9d8, %esi
+   4e:  je 0x90
+   50:  movq (%rax), %rax
+   53:  cmpb $0x66, 8(%rax)
+   57:  jne 0x18
+   59:  movq (%rax), %rdx
+   5c:  movl $0xfff0b9d8, %eax
+   61:  subl %esi, %eax
+   63:  movzbl 0xa(%rdx), %ecx
+   67:  cmpl %ecx, %eax
+   69:  jg 0x18
+   6b:  movl $0xfff0b9d9, %eax
+   70:  subl %esi, %eax
+   72:  cltq
+   74:  shlq $4, %rax
+   78:  leaq (%rdx, %rax), %rsi
+   7c:  jmp 0x20
+   7e:  nop
+   80:  movslq %esi, %rsi
+   83:  shlq $4, %rsi
+   87:  addq 0x10(%rdi), %rsi
+   8b:  jmp 0x20
+   8d:  nopl (%rax)
+   90:  movq 0x18(%rdi), %rsi
+   94:  addq $0x40, %rsi
+   98:  jmp 0x20

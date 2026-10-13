@@ -1,0 +1,60 @@
+# ra_bbend  (static, 230 bytes, 59 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  xorl %ebx, %ebx
+    4:  subq $8, %rsp
+    8:  nopl (%rax, %rax)
+   10:  cmpq $0, (, %rbx, 8)   <var:ra_vmap+0>
+   19:  js 0x22
+   1b:  movl %ebx, %edi
+   1d:  callq fn:ra_spill+0
+   22:  addq $1, %rbx
+   26:  cmpq $0x10, %rbx
+   2a:  jne 0x10
+   2c:  xorl %ebx, %ebx
+   2e:  nop
+   30:  movq (%rip), %rdi   <var:ic_i+0>
+   37:  movq %rbx, %rsi
+   3a:  movq (, %rbx, 8), %rbp   <var:ra_lmap+0>
+   42:  callq reg_rmap+0
+   47:  cltq
+   49:  cmpq %rax, %rbp
+   4c:  je 0x60
+   4e:  cmpq $0, (, %rbx, 8)   <var:ra_lmap+0>
+   57:  js 0x60
+   59:  movl %ebx, %edi
+   5b:  callq fn:ra_spill+0
+   60:  addq $1, %rbx
+   64:  cmpq $0x10, %rbx
+   68:  jne 0x30
+   6a:  xorl %ebx, %ebx
+   6c:  nopl (%rax)
+   70:  movq (%rip), %rdi   <var:ic_i+0>
+   77:  movq %rbx, %rsi
+   7a:  movq (, %rbx, 8), %rbp   <var:ra_lmap+0>
+   82:  callq reg_rmap+0
+   87:  cltq
+   89:  cmpq %rax, %rbp
+   8c:  je 0xd5
+   8e:  movq (%rip), %rdi   <var:ic_i+0>
+   95:  movq %rbx, %rsi
+   98:  callq reg_rmap+0
+   9d:  xorl %r8d, %r8d
+   a0:  movq %rbx, %rsi
+   a3:  movl $0x8110000, %edi
+   a8:  movq (%rip), %rdx   <var:loc_mem+0>
+   af:  cltq
+   b1:  movq %rax, (, %rbx, 8)   <var:ra_lmap+0>
+   b9:  addl $1, (%rdx, %rax, 4)
+   bd:  movq (%rip), %rdx   <var:loc_off+0>
+   c4:  movq (%rdx, %rax, 8), %rcx
+   c8:  movl $5, %edx
+   cd:  negq %rcx
+   d0:  callq i_ins+0
+   d5:  addq $1, %rbx
+   d9:  cmpq $0x10, %rbx
+   dd:  jne 0x70
+   df:  addq $8, %rsp
+   e3:  popq %rbx
+   e4:  popq %rbp
+   e5:  retq

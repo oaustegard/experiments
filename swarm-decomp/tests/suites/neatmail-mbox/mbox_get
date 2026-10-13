@@ -1,0 +1,28 @@
+# mbox_get  (global, 96 bytes, 27 instructions)
+    0:  movq %rdi, %rax
+    3:  movl $1, %edi
+    8:  testl %esi, %esi
+    a:  js 0x3a
+    c:  cmpl %esi, 0x26c(%rax)
+   12:  jle 0x3a
+   14:  movq 0x258(%rax), %rdi
+   1b:  movslq %esi, %rsi
+   1e:  movq (%rdi, %rsi, 8), %rdi
+   22:  testq %rdi, %rdi
+   25:  je 0x40
+   27:  movq 0x260(%rax), %rax
+   2e:  movq %rdi, (%rdx)
+   31:  xorl %edi, %edi
+   33:  movq (%rax, %rsi, 8), %rax
+   37:  movq %rax, (%rcx)
+   3a:  movl %edi, %eax
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  movq 0x248(%rax), %rdi
+   47:  movq 0x250(%rax), %rax
+   4e:  movq (%rdi, %rsi, 8), %rdi
+   52:  movq (%rax, %rsi, 8), %rax
+   56:  movq %rdi, (%rdx)
+   59:  xorl %edi, %edi
+   5b:  movq %rax, (%rcx)
+   5e:  jmp 0x3a

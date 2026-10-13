@@ -1,0 +1,33 @@
+# outelf_sym  (static, 121 bytes, 32 instructions)
+    0:  pushq %rbx
+    1:  movslq 0x27ca0(%rdi), %rdx
+    8:  movq %rdi, %rbx
+    b:  movl 0x27ca4(%rdi), %eax
+   11:  movq 0x27c98(%rdi), %rdi
+   18:  cmpl %eax, %edx
+   1a:  jl 0x4b
+   1c:  testl %eax, %eax
+   1e:  jne 0x60
+   20:  movl $0x1800, %esi
+   25:  movl $0x100, %eax
+   2a:  movl %eax, 0x27ca4(%rbx)
+   30:  callq realloc+0
+   35:  movq %rax, 0x27c98(%rbx)
+   3c:  movq %rax, %rdi
+   3f:  testq %rax, %rax
+   42:  je 0x6f
+   44:  movslq 0x27ca0(%rbx), %rdx
+   4b:  leal 1(%rdx), %eax
+   4e:  movl %eax, 0x27ca0(%rbx)
+   54:  leaq (%rdx, %rdx, 2), %rax
+   58:  popq %rbx
+   59:  leaq (%rdi, %rax, 8), %rax
+   5d:  retq
+   5e:  nop
+   60:  addl %eax, %eax
+   62:  movslq %eax, %rdx
+   65:  leaq (%rdx, %rdx, 2), %rsi
+   69:  shlq $3, %rsi
+   6d:  jmp 0x2a
+   6f:  movl $0, %edi   <str:"neatld: failed to allocate oe->sysm">
+   74:  callq fn:die+0

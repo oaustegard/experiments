@@ -1,0 +1,21 @@
+# luaB_rawset  (static, 78 bytes, 20 instructions)
+    0:  pushq %rbx
+    1:  movl $5, %edx
+    6:  movq %rdi, %rbx
+    9:  movl $1, %esi
+    e:  callq luaL_checktype+0
+   13:  movq %rbx, %rdi
+   16:  movl $2, %esi
+   1b:  callq luaL_checkany+0
+   20:  movq %rbx, %rdi
+   23:  movl $3, %esi
+   28:  callq luaL_checkany+0
+   2d:  movq %rbx, %rdi
+   30:  movl $3, %esi
+   35:  callq lua_settop+0
+   3a:  movq %rbx, %rdi
+   3d:  movl $1, %esi
+   42:  callq lua_rawset+0
+   47:  movl $1, %eax
+   4c:  popq %rbx
+   4d:  retq

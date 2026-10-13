@@ -1,0 +1,101 @@
+# luaV_finishget  (global, 323 bytes, 100 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  movq %rcx, %r14
+    a:  pushq %r13
+    c:  movq %rdx, %r13
+    f:  pushq %r12
+   11:  movq %rdi, %r12
+   14:  pushq %rbp
+   15:  movl $0x7d0, %ebp
+   1a:  pushq %rbx
+   1b:  subq $8, %rsp
+   1f:  testq %r8, %r8
+   22:  je 0x12f
+   28:  movq (%r15), %rax
+   2b:  movq 0x28(%rax), %rdi
+   2f:  testq %rdi, %rdi
+   32:  je 0xf8
+   38:  testb $1, 0xa(%rdi)
+   3c:  jne 0xf8
+   42:  movq 0x18(%r12), %rax
+   47:  xorl %esi, %esi
+   49:  movq 0x118(%rax), %rdx
+   50:  callq luaT_gettm+0
+   55:  movq %rax, %rbx
+   58:  testq %rax, %rax
+   5b:  je 0xf8
+   61:  movzbl 8(%rax), %edx
+   65:  movl %edx, %ecx
+   67:  andl $0xf, %ecx
+   6a:  cmpb $6, %cl
+   6d:  je 0xa0
+   6f:  cmpb $0x45, %dl
+   72:  je 0xc8
+   74:  subl $1, %ebp
+   77:  je 0x120
+   7d:  xorl %edx, %edx
+   7f:  movq %rbx, %rsi
+   82:  movq %r12, %rdi
+   85:  callq luaT_gettmbyobj+0
+   8a:  movzbl 8(%rax), %edx
+   8e:  movl %edx, %ecx
+   90:  andl $0xf, %ecx
+   93:  je 0x110
+   95:  movq %rbx, %r15
+   98:  movq %rax, %rbx
+   9b:  cmpb $6, %cl
+   9e:  jne 0x6f
+   a0:  addq $8, %rsp
+   a4:  movq %r14, %r8
+   a7:  movq %r13, %rcx
+   aa:  movq %r15, %rdx
+   ad:  movq %rbx, %rsi
+   b0:  movq %r12, %rdi
+   b3:  popq %rbx
+   b4:  popq %rbp
+   b5:  popq %r12
+   b7:  popq %r13
+   b9:  popq %r14
+   bb:  popq %r15
+   bd:  jmp luaT_callTMres+0
+   c2:  nopw (%rax, %rax)
+   c8:  movq (%rbx), %rdi
+   cb:  movq %r13, %rsi
+   ce:  callq luaH_get+0
+   d3:  movzbl 8(%rax), %edx
+   d7:  testb $0xf, %dl
+   da:  jne 0x137
+   dc:  subl $1, %ebp
+   df:  je 0x120
+   e1:  movq %rbx, %r15
+   e4:  movq (%r15), %rax
+   e7:  movq 0x28(%rax), %rdi
+   eb:  testq %rdi, %rdi
+   ee:  jne 0x38
+   f4:  nopl (%rax)
+   f8:  movb $0, 8(%r14)
+   fd:  addq $8, %rsp
+  101:  popq %rbx
+  102:  popq %rbp
+  103:  popq %r12
+  105:  popq %r13
+  107:  popq %r14
+  109:  popq %r15
+  10b:  retq
+  10c:  nopl (%rax)
+  110:  movl $0, %edx   <str:"index">
+  115:  movq %rbx, %rsi
+  118:  movq %r12, %rdi
+  11b:  callq luaG_typeerror+0
+  120:  movl $0, %esi   <str:"'__index' chain too long; possible loop">
+  125:  movq %r12, %rdi
+  128:  xorl %eax, %eax
+  12a:  callq luaG_runerror+0
+  12f:  movq %rsi, %rbx
+  132:  jmp 0x7d
+  137:  movq (%rax), %rax
+  13a:  movb %dl, 8(%r14)
+  13e:  movq %rax, (%r14)
+  141:  jmp 0xfd

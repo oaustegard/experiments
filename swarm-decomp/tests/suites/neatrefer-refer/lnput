@@ -1,0 +1,12 @@
+# lnput  (static, 33 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movslq %esi, %rdx
+    4:  movq %rdi, %rbx
+    7:  testl %esi, %esi
+    9:  jns 0x13
+    b:  callq strlen+0
+   10:  movq %rax, %rdx
+   13:  movq %rbx, %rsi
+   16:  movl $1, %edi
+   1b:  popq %rbx
+   1c:  jmp write+0

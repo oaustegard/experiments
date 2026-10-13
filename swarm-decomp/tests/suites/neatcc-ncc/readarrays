@@ -1,0 +1,88 @@
+# readarrays  (static, 342 bytes, 87 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  xorl %r12d, %r12d
+    7:  pushq %rbp
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  movl $0x5b, %ebx
+   11:  subq $0x98, %rsp
+   18:  jmp 0x5f
+   1a:  nopw (%rax, %rax)
+   20:  cmpb $0, 1(%rax)
+   24:  jne 0x6b
+   26:  callq tok_get+0
+   2b:  movq $0, 8(%rsp)
+   34:  callq tok_see+0
+   39:  cmpb $0x5d, (%rax)
+   3c:  jne 0xd0
+   42:  cmpb $0, 1(%rax)
+   46:  jne 0xd0
+   4c:  callq tok_get+0
+   51:  movq 8(%rsp), %rax
+   56:  movq %rax, 0x10(%rsp, %r12, 8)
+   5b:  addq $1, %r12
+   5f:  callq tok_see+0
+   64:  movzbl (%rax), %edx
+   67:  cmpl %edx, %ebx
+   69:  je 0x20
+   6b:  leal -1(%r12), %ebx
+   70:  testl %r12d, %r12d
+   73:  je 0x130
+   79:  movq (%rip), %r12   <cst:0800000001000000>
+   80:  movslq %ebx, %rbx
+   83:  xorl %r13d, %r13d
+   86:  jmp 0xa8
+   88:  nopl (%rax, %rax)
+   90:  subq $1, %rbx
+   94:  movq %r12, (%rbp)
+   98:  movl $0, 8(%rbp)
+   9f:  cmpl $-1, %ebx
+   a2:  je 0x133
+   a8:  movl 0x10(%rsp, %rbx, 8), %esi
+   ac:  movq %rbp, %rdi
+   af:  callq fn:array_add+0
+   b4:  movl %eax, 0xc(%rbp)
+   b7:  testq %r13, %r13
+   ba:  jne 0x90
+   bc:  cltq
+   be:  leaq (%rax, %rax, 2), %rdx
+   c2:  movq (%rip), %rax   <var:arrays+0>
+   c9:  leaq (%rax, %rdx, 8), %r13
+   cd:  jmp 0x90
+   cf:  nop
+   d0:  callq fn:readexpr+0
+   d5:  movl $1, %edi
+   da:  callq fn:ts_de+0
+   df:  leaq 8(%rsp), %rdi
+   e4:  subl $1, (%rip)   <var:nts+0>
+   eb:  callq o_popnum+0
+   f0:  testl %eax, %eax
+   f2:  jne 0x148
+   f4:  callq tok_get+0
+   f9:  cmpb $0x5d, (%rax)
+   fc:  je 0x120
+   fe:  movq %rax, %rdx
+  101:  movl $0, %esi   <str:"]">
+  106:  movl $0, %edi   <str:"syntax error (expected <%s> but got <%s>)\n">
+  10b:  xorl %eax, %eax
+  10d:  callq err+0
+  112:  jmp 0x51
+  117:  nopw (%rax, %rax)
+  120:  cmpb $0, 1(%rax)
+  124:  je 0x51
+  12a:  jmp 0xfe
+  12c:  nopl (%rax)
+  130:  xorl %r13d, %r13d
+  133:  addq $0x98, %rsp
+  13a:  movq %r13, %rax
+  13d:  popq %rbx
+  13e:  popq %rbp
+  13f:  popq %r12
+  141:  popq %r13
+  143:  retq
+  144:  nopl (%rax)
+  148:  movl $0, %edi   <str:"const expr expected\n">
+  14d:  xorl %eax, %eax
+  14f:  callq err+0
+  154:  jmp 0xf4

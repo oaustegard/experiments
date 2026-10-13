@@ -1,0 +1,46 @@
+# cdef_map  (global, 128 bytes, 45 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movslq (%rip), %rbp   <var:cdef_n+0>
+   11:  testl %ebp, %ebp
+   13:  jle 0x53
+   15:  movq %rdi, %r12
+   18:  movl %esi, %r13d
+   1b:  xorl %ebx, %ebx
+   1d:  nopl (%rax)
+   20:  movl (, %rbx, 4), %eax   <var:cdef_fn+0>
+   27:  testl %eax, %eax
+   29:  je 0x30
+   2b:  cmpl %eax, %r13d
+   2e:  jne 0x4a
+   30:  movq %rbx, %rdi
+   33:  movq %r12, %rsi
+   36:  shlq $5, %rdi
+   3a:  addq $0, %rdi   <var:cdef_src+0>
+   41:  callq strcmp+0
+   46:  testl %eax, %eax
+   48:  je 0x60
+   4a:  addq $1, %rbx
+   4e:  cmpq %rbx, %rbp
+   51:  jne 0x20
+   53:  addq $8, %rsp
+   57:  xorl %eax, %eax
+   59:  popq %rbx
+   5a:  popq %rbp
+   5b:  popq %r12
+   5d:  popq %r13
+   5f:  retq
+   60:  movl (%rip), %eax   <var:cdef_expanding+0>
+   66:  testl %eax, %eax
+   68:  jne 0x53
+   6a:  movslq %ebx, %rbx
+   6d:  movq (, %rbx, 8), %rax   <var:cdef_dst+0>
+   75:  addq $8, %rsp
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  popq %r12
+   7d:  popq %r13
+   7f:  retq

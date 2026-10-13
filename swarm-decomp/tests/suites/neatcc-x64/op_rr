@@ -1,0 +1,20 @@
+# op_rr  (static, 61 bytes, 19 instructions)
+    0:  pushq %rbp
+    1:  movl %edx, %ebp
+    3:  pushq %rbx
+    4:  movl %esi, %ebx
+    6:  andl $7, %ebp
+    9:  shll $3, %ebx
+    c:  andl $0x38, %ebx
+    f:  orl %ebp, %ebx
+   11:  subq $8, %rsp
+   15:  callq fn:op_x+0
+   1a:  orb $0xc0, %bl
+   1d:  movl $1, %edx
+   22:  movl $0, %esi   <var:buf+0>
+   27:  movb %bl, (%rip)   <var:buf+0>
+   2d:  addq $8, %rsp
+   31:  movl $0, %edi   <var:cs+0>
+   36:  popq %rbx
+   37:  popq %rbp
+   38:  jmp mem_put+0

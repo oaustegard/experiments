@@ -1,0 +1,14 @@
+# luaE_checkcstack  (global, 52 bytes, 13 instructions)
+    0:  subq $8, %rsp
+    4:  movzwl 0xb0(%rdi), %eax
+    b:  cmpl $0xc8, %eax
+   10:  je 0x1e
+   12:  cmpl $0xdb, %eax
+   17:  ja 0x2a
+   19:  addq $8, %rsp
+   1d:  retq
+   1e:  movl $0, %esi   <str:"C stack overflow">
+   23:  xorl %eax, %eax
+   25:  callq luaG_runerror+0
+   2a:  movl $5, %esi
+   2f:  callq luaD_throw+0

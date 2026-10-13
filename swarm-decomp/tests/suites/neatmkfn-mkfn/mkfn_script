@@ -1,0 +1,58 @@
+# mkfn_script  (global, 213 bytes, 57 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq (%rip), %rbp   <var:mkfn_scripts+0>
+   10:  testq %rbp, %rbp
+   13:  je 0x80
+   15:  movq %rbp, %rsi
+   18:  movl $0, %edi   <str:"list">
+   1d:  callq strcmp+0
+   22:  testl %eax, %eax
+   24:  je 0x60
+   26:  movl $0x20, %esi
+   2b:  movq %rbx, %rdi
+   2e:  callq strchr+0
+   33:  testq %rax, %rax
+   36:  je 0x3b
+   38:  movb $0, (%rax)
+   3b:  movq %rbx, %rsi
+   3e:  movq %rbp, %rdi
+   41:  callq strstr+0
+   46:  testq %rax, %rax
+   49:  setne %al
+   4c:  addq $8, %rsp
+   50:  movzbl %al, %eax
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  testq %rbx, %rbx
+   63:  movl $0, %edi   <str:"">
+   68:  cmovneq %rbx, %rdi
+   6c:  callq puts+0
+   71:  movq (%rip), %rbp   <var:mkfn_scripts+0>
+   78:  jmp 0x26
+   7a:  nopw (%rax, %rax)
+   80:  cmpl $1, %esi
+   83:  je 0xb0
+   85:  testq %rdi, %rdi
+   88:  je 0xb0
+   8a:  movq %rdi, %rsi
+   8d:  movl $0, %edi   <str:"DFLT">
+   92:  callq strcmp+0
+   97:  testl %eax, %eax
+   99:  jne 0xc0
+   9b:  movq $0, (%rip)   <var:mkfn_scripts+0, str:"DFLT">
+   a6:  movl $0, %ebp   <str:"DFLT">
+   ab:  jmp 0x26
+   b0:  addq $8, %rsp
+   b4:  movl $1, %eax
+   b9:  popq %rbx
+   ba:  popq %rbp
+   bb:  retq
+   bc:  nopl (%rax)
+   c0:  movq $0, (%rip)   <var:mkfn_scripts+0, str:"latn">
+   cb:  movl $0, %ebp   <str:"latn">
+   d0:  jmp 0x26

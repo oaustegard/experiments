@@ -1,0 +1,45 @@
+# ts_de  (static, 175 bytes, 44 instructions)
+    0:  movl (%rip), %eax   <var:nts+0>
+    6:  pushq %rbx
+    7:  leal -1(%rax), %ebx
+    a:  movslq %ebx, %rbx
+    d:  leaq (%rbx, %rbx, 4), %rax
+   11:  shlq $2, %rax
+   15:  testb $1, (%rax)   <var:ts+4>
+   1c:  je 0x28
+   1e:  movl (%rax), %esi   <var:ts+8>
+   24:  testl %esi, %esi
+   26:  je 0x70
+   28:  testl %edi, %edi
+   2a:  je 0x5c
+   2c:  leaq (%rbx, %rbx, 4), %rax
+   30:  shlq $2, %rax
+   34:  movl (%rax), %ecx   <var:ts+16>
+   3a:  testl %ecx, %ecx
+   3c:  je 0x5c
+   3e:  movl (%rax), %edx   <var:ts+8>
+   44:  testl %edx, %edx
+   46:  jne 0xa8
+   48:  testb $4, (%rax)   <var:ts+4>
+   4f:  jne 0x5c
+   51:  movl (%rax), %edi   <var:ts+0>
+   57:  callq o_deref+0
+   5c:  leaq (%rbx, %rbx, 4), %rax
+   60:  popq %rbx
+   61:  movl $0, (, %rax, 4)   <var:ts+16>
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  movslq (%rax), %rcx   <var:ts+12>
+   77:  leaq (%rax), %rdx   <var:ts+0>
+   7e:  leaq (%rcx, %rcx, 2), %rsi
+   82:  movq (%rip), %rcx   <var:arrays+0>
+   89:  leaq (%rcx, %rsi, 8), %rcx
+   8d:  movdqu (%rcx), %xmm0
+   91:  movups %xmm0, (%rax)   <var:ts+0>
+   98:  movl 0x10(%rcx), %eax
+   9b:  addl $1, 8(%rdx)
+   9f:  movl %eax, 0x10(%rdx)
+   a2:  jmp 0x28
+   a4:  nopl (%rax)
+   a8:  movl $8, %edi
+   ad:  jmp 0x57

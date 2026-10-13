@@ -1,0 +1,31 @@
+# luaK_int  (global, 102 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  leaq 0xffff(%rdx), %rax
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  movl %esi, %ebx
+    e:  subq $0x18, %rsp
+   12:  cmpq $0x1ffff, %rax
+   18:  ja 0x40
+   1a:  leal 0xffff(%rdx), %esi
+   20:  shll $7, %ebx
+   23:  addq $0x18, %rsp
+   27:  shll $0xf, %esi
+   2a:  orl %ebx, %esi
+   2c:  popq %rbx
+   2d:  popq %rbp
+   2e:  orl $1, %esi
+   31:  jmp luaK_code+0
+   36:  nopw %cs:(%rax, %rax)
+   40:  movq %rdx, (%rsp)
+   44:  movq %rsp, %rsi
+   47:  movq %rsp, %rdx
+   4a:  movb $3, 8(%rsp)
+   4f:  callq fn:addk+0
+   54:  addq $0x18, %rsp
+   58:  movl %ebx, %esi
+   5a:  movq %rbp, %rdi
+   5d:  popq %rbx
+   5e:  movl %eax, %edx
+   60:  popq %rbp
+   61:  jmp fn:luaK_codek.isra.0+0

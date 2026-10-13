@@ -1,0 +1,31 @@
+# io_type  (static, 103 bytes, 30 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movl $0, %edx   <str:"FILE*">
+   13:  movl $1, %esi
+   18:  movq %rbx, %rdi
+   1b:  callq luaL_testudata+0
+   20:  testq %rax, %rax
+   23:  je 0x58
+   25:  cmpq $0, 8(%rax)
+   2a:  je 0x40
+   2c:  movq %rbx, %rdi
+   2f:  movl $0, %esi   <str:"file">
+   34:  callq lua_pushstring+0
+   39:  movl $1, %eax
+   3e:  popq %rbx
+   3f:  retq
+   40:  movq %rbx, %rdi
+   43:  movl $0, %esi   <str:"closed file">
+   48:  callq lua_pushstring+0
+   4d:  movl $1, %eax
+   52:  popq %rbx
+   53:  retq
+   54:  nopl (%rax)
+   58:  movq %rbx, %rdi
+   5b:  callq lua_pushnil+0
+   60:  movl $1, %eax
+   65:  popq %rbx
+   66:  retq

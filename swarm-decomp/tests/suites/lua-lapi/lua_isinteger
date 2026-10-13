@@ -1,0 +1,47 @@
+# lua_isinteger  (global, 146 bytes, 46 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x30
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jb 0x20
+   18:  movq 0x18(%rdi), %rsi
+   1c:  addq $0x50, %rsi
+   20:  xorl %eax, %eax
+   22:  cmpb $3, 8(%rsi)
+   26:  sete %al
+   29:  retq
+   2a:  nopw (%rax, %rax)
+   30:  cmpl $0xfff0b9d9, %esi
+   36:  jge 0x70
+   38:  cmpl $0xfff0b9d8, %esi
+   3e:  je 0x88
+   40:  movq (%rax), %rax
+   43:  cmpb $0x66, 8(%rax)
+   47:  jne 0x18
+   49:  movq (%rax), %rdx
+   4c:  movl $0xfff0b9d8, %eax
+   51:  subl %esi, %eax
+   53:  movzbl 0xa(%rdx), %ecx
+   57:  cmpl %ecx, %eax
+   59:  jg 0x18
+   5b:  movl $0xfff0b9d9, %eax
+   60:  subl %esi, %eax
+   62:  cltq
+   64:  shlq $4, %rax
+   68:  leaq (%rdx, %rax), %rsi
+   6c:  jmp 0x20
+   6e:  nop
+   70:  movslq %esi, %rsi
+   73:  xorl %eax, %eax
+   75:  shlq $4, %rsi
+   79:  addq 0x10(%rdi), %rsi
+   7d:  cmpb $3, 8(%rsi)
+   81:  sete %al
+   84:  retq
+   85:  nopl (%rax)
+   88:  movq 0x18(%rdi), %rsi
+   8c:  addq $0x40, %rsi
+   90:  jmp 0x20

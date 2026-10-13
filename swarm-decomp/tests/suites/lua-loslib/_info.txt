@@ -1,0 +1,63 @@
+# lua-loslib: translation unit loslib of lua
+# write each function as src/lua/loslib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+getfield	static	239 bytes
+os_setlocale	static	89 bytes
+os_rename	static	84 bytes
+os_remove	static	68 bytes
+os_getenv	static	42 bytes
+os_exit	static	129 bytes
+os_execute	static	89 bytes
+os_difftime	static	66 bytes
+os_clock	static	41 bytes
+os_tmpname	static	93 bytes
+setallfields	static	319 bytes
+os_time	static	367 bytes
+os_date	static	686 bytes
+luaopen_os	global	59 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+catnames.1	static	56 bytes	.rodata.catnames.1
+    +0     -> str:"all"
+    +8     -> str:"collate"
+    +16    -> str:"ctype"
+    +24    -> str:"monetary"
+    +32    -> str:"numeric"
+    +40    -> str:"time"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+cat.0	static	24 bytes	.rodata.cat.0
+        0: 06 00 00 00 03 00 00 00 00 00 00 00 04 00 00 00 01 00 00 00 02 00 00 00
+syslib	static	192 bytes	.rodata.syslib
+    +0     -> str:"clock"
+    +8     -> fn:os_clock+0
+    +16    -> str:"date"
+    +24    -> fn:os_date+0
+    +32    -> str:"difftime"
+    +40    -> fn:os_difftime+0
+    +48    -> str:"execute"
+    +56    -> fn:os_execute+0
+    +64    -> str:"exit"
+    +72    -> fn:os_exit+0
+    +80    -> str:"getenv"
+    +88    -> fn:os_getenv+0
+    +96    -> str:"remove"
+    +104   -> fn:os_remove+0
+    +112   -> str:"rename"
+    +120   -> fn:os_rename+0
+    +128   -> str:"setlocale"
+    +136   -> fn:os_setlocale+0
+    +144   -> str:"time"
+    +152   -> fn:os_time+0
+    +160   -> str:"tmpname"
+    +168   -> fn:os_tmpname+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__errno_location clock close difftime exit getenv gmtime_r localtime_r luaL_argerror luaL_buffinit luaL_checkinteger luaL_checklstring luaL_checkoption luaL_checktype luaL_checkversion_ luaL_error luaL_execresult luaL_fileresult luaL_optinteger luaL_optlstring luaL_prepbuffsize luaL_pushresult luaL_setfuncs lua_close lua_createtable lua_getfield lua_pushboolean lua_pushfstring lua_pushinteger lua_pushnumber lua_pushstring lua_setfield lua_settop lua_toboolean lua_tointegerx lua_type memcmp memcpy mkstemp64 mktime remove rename setlocale strftime system time

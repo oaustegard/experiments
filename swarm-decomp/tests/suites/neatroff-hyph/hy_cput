@@ -1,0 +1,33 @@
+# hy_cput  (global, 106 bytes, 32 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x10, %rsp
+    8:  cmpb $0, (%rsi)
+    b:  je 0x13
+    d:  cmpb $0, 1(%rsi)
+   11:  jne 0x30
+   13:  movq %rbx, %rdi
+   16:  callq strcpy+0
+   1b:  movq %rbx, %rdi
+   1e:  callq strlen+0
+   23:  addq $0x10, %rsp
+   27:  popq %rbx
+   28:  retq
+   29:  nopl (%rax)
+   30:  movq %rsi, %rdi
+   33:  movq %rsi, 8(%rsp)
+   38:  callq utf8one+0
+   3d:  movq 8(%rsp), %rsi
+   42:  testl %eax, %eax
+   44:  jne 0x13
+   46:  cmpb $0x5c, (%rsi)
+   49:  je 0x13
+   4b:  cmpb $0, 2(%rsi)
+   4f:  jne 0x1b
+   51:  movq %rsi, %rcx
+   54:  movl $0, %edx   <str:"\\[%s]">
+   59:  movl $0x20, %esi
+   5e:  movq %rbx, %rdi
+   61:  xorl %eax, %eax
+   63:  callq snprintf+0
+   68:  jmp 0x1b

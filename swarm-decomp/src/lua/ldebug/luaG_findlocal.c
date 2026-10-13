@@ -1,0 +1,29 @@
+#include "lstate.h"
+#include "LClosure.h"
+#include "fn_luaF_getlocalname.h"
+
+#define isLua(ci)	(!((ci)->callstatus & 2))
+#define currentpc(ci)	((int)((ci)->u.l.savedpc - ((LClosure *)((ci)->func->value_.gc))->p->code) - 1)
+
+const char *luaG_findlocal (lua_State *L, CallInfo *ci, int n, StkId *pos) {
+  StkId base = ci->func + 1;
+  const char *name = NULL;
+  if (isLua(ci)) {
+    if (n < 0)  /* access to vararg values? */
+      return findvararg(ci, n, pos);
+    else
+      name = luaF_getlocalname(((LClosure *)(ci->func->value_.gc))->p, n, currentpc(ci));
+  }
+  if (name == NULL) {  /* no 'standard' name? */
+    StkId limit = (ci == L->ci) ? L->top : ci->next->func;
+    if (limit - base >= n && n > 0) {  /* is 'n' inside 'ci' stack? */
+      /* generic name for any valid slot */
+      name = isLua(ci) ? "(temporary)" : "(C temporary)";
+    }
+    else
+      return NULL;  /* no name */
+  }
+  if (pos)
+    *pos = base + (n - 1);
+  return name;
+}

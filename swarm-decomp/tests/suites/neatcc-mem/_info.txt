@@ -1,0 +1,20 @@
+# neatcc-mem: translation unit mem of neatcc
+# write each function as src/neatcc/mem/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+mem_extend	static	105 bytes
+mem_init	global	16 bytes
+mem_done	global	29 bytes
+mem_cut	global	16 bytes
+mem_cpy	global	191 bytes
+mem_put	global	180 bytes
+mem_putc	global	59 bytes
+mem_putz	global	159 bytes
+mem_buf	global	30 bytes
+mem_len	global	5 bytes
+mem_get	global	42 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+free malloc memcpy memset

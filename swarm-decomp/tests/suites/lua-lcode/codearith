@@ -1,0 +1,71 @@
+# codearith  (static, 206 bytes, 70 instructions)
+    0:  pushq %r15
+    2:  movq %rdx, %r15
+    5:  pushq %r14
+    7:  leal 6(%rsi), %r14d
+    b:  pushq %r13
+    d:  movl %r9d, %r13d
+   10:  pushq %r12
+   12:  movq %rdi, %r12
+   15:  pushq %rbp
+   16:  movl %esi, %ebp
+   18:  pushq %rbx
+   19:  movq %rcx, %rbx
+   1c:  subq $0x38, %rsp
+   20:  movl 0x14(%rcx), %eax
+   23:  cmpl %eax, 0x10(%rcx)
+   26:  jne 0x48
+   28:  movl (%rcx), %eax
+   2a:  subl $5, %eax
+   2d:  cmpl $1, %eax
+   30:  ja 0x48
+   32:  movq %rcx, %rsi
+   35:  movl %r8d, 0xc(%rsp)
+   3a:  callq fn:luaK_exp2K+0
+   3f:  movl 0xc(%rsp), %r8d
+   44:  testl %eax, %eax
+   46:  jne 0xb8
+   48:  testl %r8d, %r8d
+   4b:  jne 0x90
+   4d:  movq %rbx, %rsi
+   50:  movq %r12, %rdi
+   53:  callq luaK_exp2anyreg+0
+   58:  subq $8, %rsp
+   5c:  leal 0x22(%rbp), %ecx
+   5f:  xorl %r9d, %r9d
+   62:  pushq %r14
+   64:  movl %eax, %r8d
+   67:  pushq $0x2e
+   69:  pushq %r13
+   6b:  movq %rbx, %rdx
+   6e:  movq %r15, %rsi
+   71:  movq %r12, %rdi
+   74:  callq fn:finishbinexpval+0
+   79:  addq $0x20, %rsp
+   7d:  addq $0x38, %rsp
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  popq %r12
+   85:  popq %r13
+   87:  popq %r14
+   89:  popq %r15
+   8b:  retq
+   8c:  nopl (%rax)
+   90:  movdqu (%rbx), %xmm1
+   94:  movdqu (%r15), %xmm0
+   99:  movq 0x10(%r15), %rax
+   9d:  movups %xmm1, (%r15)
+   a1:  movq 0x10(%rbx), %rdx
+   a5:  movq %rdx, 0x10(%r15)
+   a9:  movq %rax, 0x10(%rbx)
+   ad:  movups %xmm0, (%rbx)
+   b0:  jmp 0x4d
+   b2:  nopw (%rax, %rax)
+   b8:  subq $8, %rsp
+   bc:  movl %r8d, %r9d
+   bf:  leal 0x16(%rbp), %ecx
+   c2:  pushq %r14
+   c4:  pushq $0x30
+   c6:  pushq %r13
+   c8:  movl 8(%rbx), %r8d
+   cc:  jmp 0x6b

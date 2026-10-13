@@ -1,0 +1,45 @@
+# mkfn_featrank  (global, 146 bytes, 44 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movq (%rip), %rbx   <var:order+0>
+   11:  testq %rbx, %rbx
+   14:  je 0x22
+   16:  movq (%rbx), %rsi
+   19:  callq strcmp+0
+   1e:  testl %eax, %eax
+   20:  je 0x67
+   22:  movq $0, (%rip)   <var:order+0>
+   2d:  movl $0, %ebx   <var:scriptorder+0>
+   32:  nopw (%rax, %rax)
+   38:  movq (%rbx), %rsi
+   3b:  movq %rbp, %rdi
+   3e:  callq strcmp+0
+   43:  testl %eax, %eax
+   45:  jne 0x4e
+   47:  movq %rbx, (%rip)   <var:order+0>
+   4e:  addq $0x10, %rbx
+   52:  cmpq $0, %rbx   <var:scriptorder+480>
+   59:  jne 0x38
+   5b:  movq (%rip), %rbx   <var:order+0>
+   62:  testq %rbx, %rbx
+   65:  je 0x88
+   67:  movq 8(%rbx), %rbx
+   6b:  movq %r12, %rsi
+   6e:  movq %rbx, %rdi
+   71:  callq strstr+0
+   76:  testq %rax, %rax
+   79:  je 0x88
+   7b:  subl %ebx, %eax
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  popq %r12
+   81:  retq
+   82:  nopw (%rax, %rax)
+   88:  popq %rbx
+   89:  movl $0x3e8, %eax
+   8e:  popq %rbp
+   8f:  popq %r12
+   91:  retq

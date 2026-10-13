@@ -1,0 +1,32 @@
+# sbuf_buf  (global, 93 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq (%rdi), %rcx
+    c:  testq %rcx, %rcx
+    f:  je 0x28
+   11:  movslq 8(%rdi), %rbp
+   15:  movb $0, (%rcx, %rbp)
+   19:  movq (%rbx), %rax
+   1c:  addq $8, %rsp
+   20:  popq %rbx
+   21:  popq %rbp
+   22:  retq
+   23:  nopl (%rax, %rax)
+   28:  movl $1, 0xc(%rdi)
+   2f:  movl $1, %edi
+   34:  xorl %ebp, %ebp
+   36:  callq malloc+0
+   3b:  movq %rax, (%rbx)
+   3e:  movq %rax, %rcx
+   41:  movl 8(%rbx), %eax
+   44:  testl %eax, %eax
+   46:  je 0x15
+   48:  movslq %eax, %rbp
+   4b:  movq %rcx, %rdi
+   4e:  xorl %esi, %esi
+   50:  movq %rbp, %rdx
+   53:  callq memcpy+0
+   58:  movq %rax, %rcx
+   5b:  jmp 0x15

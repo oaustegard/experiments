@@ -1,0 +1,140 @@
+# utflen  (static, 539 bytes, 139 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  movq %rdi, %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x10, %rsp
+   14:  leaq 8(%rsp), %rdx
+   19:  callq luaL_checklstring+0
+   1e:  movl $1, %edx
+   23:  movl $2, %esi
+   28:  movq %r12, %rdi
+   2b:  movq 8(%rsp), %rbp
+   30:  movq %rax, %rbx
+   33:  callq luaL_optinteger+0
+   38:  movq %rax, %r14
+   3b:  testq %rax, %rax
+   3e:  jns 0x135
+   44:  negq %rax
+   47:  cmpq %rax, %rbp
+   4a:  jae 0x130
+   50:  movq $18446744073709551615, %rdx
+   57:  movl $3, %esi
+   5c:  movq %r12, %rdi
+   5f:  movq 8(%rsp), %r13
+   64:  callq luaL_optinteger+0
+   69:  movq %rax, %rbp
+   6c:  testq %rax, %rax
+   6f:  jns 0x1e0
+   75:  negq %rax
+   78:  cmpq %rax, %r13
+   7b:  jb 0x1fc
+   81:  movl $4, %esi
+   86:  movq %r12, %rdi
+   89:  addq %r13, %rbp
+   8c:  xorl %r14d, %r14d
+   8f:  callq lua_toboolean+0
+   94:  movl %eax, %r13d
+   97:  nopw (%rax, %rax)
+   a0:  movl $0, %edx   <str:"initial position out of bounds">
+   a5:  movl $2, %esi
+   aa:  movq %r12, %rdi
+   ad:  callq luaL_argerror+0
+   b2:  movq 8(%rsp), %rax
+   b7:  cmpq %rbp, %rax
+   ba:  jle 0x1a4
+   c0:  cmpq %rbp, %r14
+   c3:  jg 0x1bb
+   c9:  testl %r13d, %r13d
+   cc:  sete %r13b
+   d0:  xorl %r11d, %r11d
+   d3:  movzbl %r13b, %r13d
+   d7:  jmp 0xf3
+   d9:  nopl (%rax)
+   e0:  subq %rbx, %rax
+   e3:  addq $1, %r11
+   e7:  movq %rax, %r14
+   ea:  cmpq %rbp, %rax
+   ed:  jg 0x1be
+   f3:  xorl %esi, %esi
+   f5:  leaq (%rbx, %r14), %rdi
+   f9:  movl %r13d, %edx
+   fc:  callq fn:utf8_decode+0
+  101:  testq %rax, %rax
+  104:  jne 0xe0
+  106:  movq %r12, %rdi
+  109:  callq lua_pushnil+0
+  10e:  leaq 1(%r14), %rsi
+  112:  movq %r12, %rdi
+  115:  callq lua_pushinteger+0
+  11a:  addq $0x10, %rsp
+  11e:  movl $2, %eax
+  123:  popq %rbx
+  124:  popq %rbp
+  125:  popq %r12
+  127:  popq %r13
+  129:  popq %r14
+  12b:  retq
+  12c:  nopl (%rax)
+  130:  leaq 1(%rbp, %r14), %r14
+  135:  movq $18446744073709551615, %rdx
+  13c:  movl $3, %esi
+  141:  movq %r12, %rdi
+  144:  movq 8(%rsp), %r13
+  149:  callq luaL_optinteger+0
+  14e:  leaq -1(%rax), %rbp
+  152:  testq %rax, %rax
+  155:  jns 0x170
+  157:  movq %rax, %rdx
+  15a:  leaq (%r13, %rax), %rbp
+  15f:  movq $18446744073709551615, %rax
+  166:  negq %rdx
+  169:  cmpq %rdx, %r13
+  16c:  cmovbq %rax, %rbp
+  170:  movl $4, %esi
+  175:  movq %r12, %rdi
+  178:  callq lua_toboolean+0
+  17d:  movl %eax, %r13d
+  180:  testq %r14, %r14
+  183:  jle 0xa0
+  189:  movq 8(%rsp), %rax
+  18e:  subq $1, %r14
+  192:  cmpq %r14, %rax
+  195:  jl 0xa0
+  19b:  cmpq %rbp, %rax
+  19e:  jg 0xc0
+  1a4:  movl $0, %edx   <str:"final position out of bounds">
+  1a9:  movl $3, %esi
+  1ae:  movq %r12, %rdi
+  1b1:  callq luaL_argerror+0
+  1b6:  jmp 0xc0
+  1bb:  xorl %r11d, %r11d
+  1be:  movq %r12, %rdi
+  1c1:  movq %r11, %rsi
+  1c4:  callq lua_pushinteger+0
+  1c9:  addq $0x10, %rsp
+  1cd:  movl $1, %eax
+  1d2:  popq %rbx
+  1d3:  popq %rbp
+  1d4:  popq %r12
+  1d6:  popq %r13
+  1d8:  popq %r14
+  1da:  retq
+  1db:  nopl (%rax, %rax)
+  1e0:  movl $4, %esi
+  1e5:  movq %r12, %rdi
+  1e8:  subq $1, %rbp
+  1ec:  xorl %r14d, %r14d
+  1ef:  callq lua_toboolean+0
+  1f4:  movl %eax, %r13d
+  1f7:  jmp 0xa0
+  1fc:  movl $4, %esi
+  201:  movq %r12, %rdi
+  204:  movq $18446744073709551615, %rbp
+  20b:  xorl %r14d, %r14d
+  20e:  callq lua_toboolean+0
+  213:  movl %eax, %r13d
+  216:  jmp 0xa0

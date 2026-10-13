@@ -1,0 +1,79 @@
+# i_jmp  (static, 314 bytes, 78 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl %esi, %ebx
+    4:  subq $0x18, %rsp
+    8:  testl $0x2000, %edi
+    e:  je 0xa0
+   14:  andl $0xffffff, %edi
+   1a:  movl $0xf, %ecx
+   1f:  cmpq $0x2000, %rdi
+   26:  movw %cx, 0xe(%rsp)
+   2b:  setne %al
+   2e:  subl $0x7c, %eax
+   31:  cmpl $1, %esi
+   34:  je 0xd3
+   3a:  movl $2, %edx
+   3f:  leaq 0xe(%rsp), %rsi
+   44:  movl $0, %edi   <var:cs+0>
+   49:  movb %al, 0xf(%rsp)
+   4d:  callq mem_put+0
+   52:  movslq %ebx, %rbp
+   55:  testl %ebx, %ebx
+   57:  jle 0x77
+   59:  leal -1(%rbx), %edx
+   5c:  movl $1, %eax
+   61:  movl $0, %edi   <var:buf+0>
+   66:  addq $1, %rdx
+   6a:  testl %ebx, %ebx
+   6c:  cmovleq %rax, %rdx
+   70:  xorl %esi, %esi
+   72:  callq memset+0
+   77:  movq %rbp, %rdx
+   7a:  movl $0, %esi   <var:buf+0>
+   7f:  movl $0, %edi   <var:cs+0>
+   84:  callq mem_put+0
+   89:  movl $0, %edi   <var:cs+0>
+   8e:  callq mem_len+0
+   93:  addq $0x18, %rsp
+   97:  subq %rbp, %rax
+   9a:  popq %rbx
+   9b:  popq %rbp
+   9c:  retq
+   9d:  nopl (%rax)
+   a0:  testl $0x4000, %edi
+   a6:  je 0x100
+   a8:  movq %rdi, %rax
+   ab:  andl $0xf, %eax
+   ae:  testl $0x10000000, %edi
+   b4:  jne 0x120
+   b6:  movl (, %rax, 4), %eax   <var:ucond+0>
+   bd:  movl $0xf, %edx
+   c2:  andl $0xffffffef, %eax
+   c5:  movw %dx, 0xe(%rsp)
+   ca:  cmpl $1, %ebx
+   cd:  jne 0x3a
+   d3:  andl $0xf, %eax
+   d6:  movl $1, %edx
+   db:  leaq 0xe(%rsp), %rsi
+   e0:  movl $0, %edi   <var:cs+0>
+   e5:  orl $0x70, %eax
+   e8:  movb %al, 0xe(%rsp)
+   ec:  callq mem_put+0
+   f1:  movl $1, %ebp
+   f6:  jmp 0x59
+   fb:  nopl (%rax, %rax)
+  100:  movl $1, %edx
+  105:  cmpl $1, %esi
+  108:  je 0x129
+  10a:  movl $0, %esi   <str:"\xe9">
+  10f:  movl $0, %edi   <var:cs+0>
+  114:  callq mem_put+0
+  119:  jmp 0x52
+  11e:  nop
+  120:  movl (, %rax, 4), %eax   <var:scond+0>
+  127:  jmp 0xbd
+  129:  movl $0, %esi   <str:"\xeb">
+  12e:  movl $0, %edi   <var:cs+0>
+  133:  callq mem_put+0
+  138:  jmp 0xf1

@@ -1,0 +1,34 @@
+# neatroff-fmt: translation unit fmt of neatroff
+# write each function as src/neatroff/fmt/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+FMT_COST	static	149 bytes
+fmta_break	static	134 bytes
+fmt_confchanged	static	190 bytes
+fmt_confupdate	static	190 bytes
+fmt_safelines	static	96 bytes
+fmt_keshideh	static	382 bytes
+fmt_wordgap	static	354 bytes
+fmt_wb2word	static	418 bytes
+fmt_insertword	static	1047 bytes
+fmtb_cost.isra.0	static	744 bytes
+fmt_extractline	static	1148 bytes
+fmt_fillwords	static	3436 bytes
+fmt_flush	static	160 bytes
+fmt_nextline	global	83 bytes
+fmt_newline	global	152 bytes
+fmt_fill	global	5 bytes
+fmt_space	global	77 bytes
+fmt_fillreq	global	50 bytes
+fmt_word	global	253 bytes
+fmt_alloc	global	65 bytes
+fmt_free	global	91 bytes
+fmt_wid	global	49 bytes
+fmt_morewords	global	27 bytes
+fmt_morelines	global	13 bytes
+fmt_suppressnl	global	21 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+c_ec c_hydash dev_font env_hc escread f_nexttrap font_swid free map memcpy memmove memset mextend nreg sbuf_append sbuf_init sbuf_out sbuf_printf strcmp strcpy strlen wb_buf wb_catstr wb_cost wb_done wb_empty wb_eos wb_fnszget wb_fnszset wb_hywid wb_init wb_keshideh wb_reset wb_swid wb_wid xmalloc

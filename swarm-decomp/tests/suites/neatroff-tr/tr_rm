@@ -1,0 +1,19 @@
+# tr_rm  (static, 57 bytes, 18 instructions)
+    0:  movq %rdi, %rax
+    3:  movq 8(%rdi), %rdi
+    7:  testq %rdi, %rdi
+    a:  je 0x38
+    c:  pushq %rbx
+    d:  leaq 0x10(%rax), %rbx
+   11:  nopl (%rax)
+   18:  callq map+0
+   1d:  addq $8, %rbx
+   21:  movl %eax, %edi
+   23:  callq str_rm+0
+   28:  movq -8(%rbx), %rdi
+   2c:  testq %rdi, %rdi
+   2f:  jne 0x18
+   31:  popq %rbx
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  retq

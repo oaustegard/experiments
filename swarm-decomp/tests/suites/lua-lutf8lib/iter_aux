@@ -1,0 +1,66 @@
+# iter_aux  (static, 216 bytes, 65 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  movl $1, %esi
+    a:  pushq %rbp
+    b:  movq %rdi, %rbp
+    e:  pushq %rbx
+    f:  subq $0x10, %rsp
+   13:  leaq 8(%rsp), %rdx
+   18:  callq luaL_checklstring+0
+   1d:  xorl %edx, %edx
+   1f:  movl $2, %esi
+   24:  movq %rbp, %rdi
+   27:  movq %rax, %rbx
+   2a:  callq lua_tointegerx+0
+   2f:  movq 8(%rsp), %rdx
+   34:  movq %rax, %r11
+   37:  xorl %eax, %eax
+   39:  cmpq %rdx, %r11
+   3c:  jae 0xb6
+   3e:  leaq (%rbx, %r11), %rdi
+   42:  movsbl (%rdi), %eax
+   45:  andl $0xc0, %eax
+   4a:  cmpl $0x80, %eax
+   4f:  jne 0x78
+   51:  nopl (%rax)
+   58:  addq $1, %r11
+   5c:  movsbl (%rbx, %r11), %eax
+   61:  andl $0xc0, %eax
+   66:  cmpl $0x80, %eax
+   6b:  je 0x58
+   6d:  xorl %eax, %eax
+   6f:  cmpq %rdx, %r11
+   72:  jae 0xb6
+   74:  leaq (%rbx, %r11), %rdi
+   78:  movl %r12d, %edx
+   7b:  leaq 4(%rsp), %rsi
+   80:  callq fn:utf8_decode+0
+   85:  testq %rax, %rax
+   88:  je 0xc0
+   8a:  movsbl (%rax), %eax
+   8d:  andl $0xc0, %eax
+   92:  cmpl $0x80, %eax
+   97:  je 0xc0
+   99:  leaq 1(%r11), %rsi
+   9d:  movq %rbp, %rdi
+   a0:  callq lua_pushinteger+0
+   a5:  movl 4(%rsp), %esi
+   a9:  movq %rbp, %rdi
+   ac:  callq lua_pushinteger+0
+   b1:  movl $2, %eax
+   b6:  addq $0x10, %rsp
+   ba:  popq %rbx
+   bb:  popq %rbp
+   bc:  popq %r12
+   be:  retq
+   bf:  nop
+   c0:  movq %rbp, %rdi
+   c3:  movl $0, %esi   <str:"invalid UTF-8 code">
+   c8:  xorl %eax, %eax
+   ca:  callq luaL_error+0
+   cf:  addq $0x10, %rsp
+   d3:  popq %rbx
+   d4:  popq %rbp
+   d5:  popq %r12
+   d7:  retq

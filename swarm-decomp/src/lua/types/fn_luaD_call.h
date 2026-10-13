@@ -1,0 +1,5 @@
+#pragma once
+#include "lstate.h"
+
+void luaD_call (lua_State *L, StkId func, int nResults);
+void luaD_callnoyield (lua_State *L, StkId func, int nResults);

@@ -1,0 +1,16 @@
+# neatroff-map: translation unit map of neatroff
+# write each function as src/neatroff/map/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+map	global	182 bytes
+map_name	global	58 bytes
+map_done	global	25 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+mapdict	static	8 bytes	.bss.mapdict
+    (zero-initialised)
+map_buf.0	static	128 bytes	.bss.map_buf.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+dict_free dict_idx dict_key dict_make dict_put errdie

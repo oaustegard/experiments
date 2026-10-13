@@ -1,0 +1,130 @@
+# lua-lvm: translation unit lvm of lua
+# write each function as src/lua/lvm/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+l_strcmp	static	182 bytes
+luaV_concat.part.0	static	903 bytes
+luaV_tonumber_	global	137 bytes
+luaV_flttointeger	global	177 bytes
+luaV_tointegerns	global	223 bytes
+luaV_tointeger	global	361 bytes
+forprep	static	683 bytes
+luaV_finishget	global	323 bytes
+luaV_finishset	global	468 bytes
+luaV_lessthan	global	606 bytes
+luaV_lessequal	global	606 bytes
+luaV_equalobj	global	803 bytes
+luaV_concat	global	11 bytes
+luaV_objlen	global	264 bytes
+luaV_idiv	global	73 bytes
+luaV_mod	global	70 bytes
+luaV_modf	global	138 bytes
+luaV_shiftl	global	42 bytes
+luaV_finishOp	global	385 bytes
+luaV_execute	global	15342 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+disptab.0	static	664 bytes	.rodata.disptab.0
+    +0     -> fn:luaV_execute+240
+    +8     -> fn:luaV_execute+4048
+    +16    -> fn:luaV_execute+3984
+    +24    -> fn:luaV_execute+3936
+    +32    -> fn:luaV_execute+3872
+    +40    -> fn:luaV_execute+3832
+    +48    -> fn:luaV_execute+3792
+    +56    -> fn:luaV_execute+3760
+    +64    -> fn:luaV_execute+3672
+    +72    -> fn:luaV_execute+3576
+    +80    -> fn:luaV_execute+3472
+    +88    -> fn:luaV_execute+3624
+    +96    -> fn:luaV_execute+3328
+    +104   -> fn:luaV_execute+3216
+    +112   -> fn:luaV_execute+104
+    +120   -> fn:luaV_execute+3024
+    +128   -> fn:luaV_execute+2896
+    +136   -> fn:luaV_execute+6176
+    +144   -> fn:luaV_execute+6152
+    +152   -> fn:luaV_execute+5632
+    +160   -> fn:luaV_execute+5480
+    +168   -> fn:luaV_execute+4392
+    +176   -> fn:luaV_execute+4472
+    +184   -> fn:luaV_execute+4224
+    +192   -> fn:luaV_execute+4104
+    +200   -> fn:luaV_execute+6560
+    +208   -> fn:luaV_execute+4960
+    +216   -> fn:luaV_execute+4736
+    +224   -> fn:luaV_execute+6864
+    +232   -> fn:luaV_execute+5952
+    +240   -> fn:luaV_execute+4872
+    +248   -> fn:luaV_execute+2696
+    +256   -> fn:luaV_execute+2592
+    +264   -> fn:luaV_execute+8584
+    +272   -> fn:luaV_execute+8448
+    +280   -> fn:luaV_execute+6824
+    +288   -> fn:luaV_execute+6784
+    +296   -> fn:luaV_execute+8072
+    +304   -> fn:luaV_execute+8784
+    +312   -> fn:luaV_execute+5344
+    +320   -> fn:luaV_execute+5120
+    +328   -> fn:luaV_execute+8344
+    +336   -> fn:luaV_execute+8240
+    +344   -> fn:luaV_execute+6048
+    +352   -> fn:luaV_execute+7272
+    +360   -> fn:luaV_execute+7400
+    +368   -> fn:luaV_execute+8688
+    +376   -> fn:luaV_execute+7512
+    +384   -> fn:luaV_execute+2784
+    +392   -> fn:luaV_execute+6480
+    +400   -> fn:luaV_execute+6416
+    +408   -> fn:luaV_execute+7760
+    +416   -> fn:luaV_execute+6344
+    +424   -> fn:luaV_execute+4640
+    +432   -> fn:luaV_execute+7696
+    +440   -> fn:luaV_execute+4592
+    +448   -> fn:luaV_execute+7912
+    +456   -> fn:luaV_execute+7840
+    +464   -> fn:luaV_execute+7952
+    +472   -> fn:luaV_execute+5824
+    +480   -> fn:luaV_execute+7192
+    +488   -> fn:luaV_execute+7096
+    +496   -> fn:luaV_execute+7624
+    +504   -> fn:luaV_execute+2512
+    +512   -> fn:luaV_execute+2432
+    +520   -> fn:luaV_execute+2352
+    +528   -> fn:luaV_execute+2288
+    +536   -> fn:luaV_execute+2184
+    +544   -> fn:luaV_execute+2096
+    +552   -> fn:luaV_execute+800
+    +560   -> fn:luaV_execute+944
+    +568   -> fn:luaV_execute+648
+    +576   -> fn:luaV_execute+568
+    +584   -> fn:luaV_execute+1976
+    +592   -> fn:luaV_execute+1864
+    +600   -> fn:luaV_execute+320
+    +608   -> fn:luaV_execute+387
+    +616   -> fn:luaV_execute+480
+    +624   -> fn:luaV_execute+1224
+    +632   -> fn:luaV_execute+1600
+    +640   -> fn:luaV_execute+1152
+    +648   -> fn:luaV_execute+1520
+    +656   -> fn:luaV_execute+208
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 152 more bytes
+
+## symbols this TU uses but does not define (other TUs, libc)
+fmod luaC_barrier_ luaC_barrierback_ luaC_step luaD_call luaD_hookcall luaD_poscall luaD_precall luaD_pretailcall luaF_close luaF_closeupval luaF_findupval luaF_newLclosure luaF_newtbcupval luaG_forerror luaG_runerror luaG_tracecall luaG_traceexec luaG_typeerror luaH_finishset luaH_get luaH_getint luaH_getn luaH_getshortstr luaH_getstr luaH_new luaH_realasize luaH_resize luaH_resizearray luaO_str2num luaO_tostring luaS_createlngstrobj luaS_eqlngstr luaS_newlstr luaT_adjustvarargs luaT_callTM luaT_callTMres luaT_callorderTM luaT_callorderiTM luaT_gettm luaT_gettmbyobj luaT_getvarargs luaT_trybinTM luaT_trybinassocTM luaT_trybiniTM luaT_tryconcatTM memcpy pow strcoll strlen

@@ -1,0 +1,58 @@
+# inclinenumber  (static, 184 bytes, 57 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl (%rdi), %ebp
+    b:  movq 0x40(%rdi), %rdi
+    f:  movq (%rdi), %rax
+   12:  leaq -1(%rax), %rdx
+   16:  movq %rdx, (%rdi)
+   19:  testq %rax, %rax
+   1c:  je 0x90
+   1e:  movq 8(%rdi), %rax
+   22:  leaq 1(%rax), %rdx
+   26:  movq %rdx, 8(%rdi)
+   2a:  movzbl (%rax), %eax
+   2d:  cmpl $0xa, %eax
+   30:  movl %eax, (%rbx)
+   32:  sete %dl
+   35:  cmpl $0xd, %eax
+   38:  sete %cl
+   3b:  orb %cl, %dl
+   3d:  je 0x43
+   3f:  cmpl %ebp, %eax
+   41:  jne 0x60
+   43:  movl 4(%rbx), %eax
+   46:  addl $1, %eax
+   49:  movl %eax, 4(%rbx)
+   4c:  cmpl $0x7fffffff, %eax
+   51:  je 0xa9
+   53:  addq $8, %rsp
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  movq 0x40(%rbx), %rdi
+   64:  movq (%rdi), %rax
+   67:  leaq -1(%rax), %rdx
+   6b:  movq %rdx, (%rdi)
+   6e:  testq %rax, %rax
+   71:  je 0xa0
+   73:  movq 8(%rdi), %rax
+   77:  leaq 1(%rax), %rdx
+   7b:  movq %rdx, 8(%rdi)
+   7f:  movzbl (%rax), %eax
+   82:  movl %eax, (%rbx)
+   84:  jmp 0x43
+   86:  nopw %cs:(%rax, %rax)
+   90:  callq luaZ_fill+0
+   95:  jmp 0x2d
+   97:  nopw (%rax, %rax)
+   a0:  callq luaZ_fill+0
+   a5:  movl %eax, (%rbx)
+   a7:  jmp 0x43
+   a9:  xorl %edx, %edx
+   ab:  movl $0, %esi   <str:"chunk has too many lines">
+   b0:  movq %rbx, %rdi
+   b3:  callq fn:lexerror+0

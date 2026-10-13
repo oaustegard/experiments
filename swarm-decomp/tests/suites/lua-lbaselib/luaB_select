@@ -1,0 +1,52 @@
+# luaB_select  (static, 164 bytes, 51 instructions)
+    0:  pushq %r12
+    2:  movq %rdi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  callq lua_gettop+0
+    c:  movl $1, %esi
+   11:  movq %r12, %rdi
+   14:  movl %eax, %ebp
+   16:  callq lua_type+0
+   1b:  cmpl $4, %eax
+   1e:  jne 0x34
+   20:  xorl %edx, %edx
+   22:  movl $1, %esi
+   27:  movq %r12, %rdi
+   2a:  callq lua_tolstring+0
+   2f:  cmpb $0x23, (%rax)
+   32:  je 0x70
+   34:  movl $1, %esi
+   39:  movq %r12, %rdi
+   3c:  callq luaL_checkinteger+0
+   41:  movslq %ebp, %rdx
+   44:  cmpq %rax, %rdx
+   47:  leaq (%rdx, %rax), %rcx
+   4b:  cmovgq %rax, %rdx
+   4f:  testq %rax, %rax
+   52:  cmovnsq %rdx, %rcx
+   56:  movq %rcx, %rbx
+   59:  testq %rcx, %rcx
+   5c:  jle 0x90
+   5e:  movl %ebp, %eax
+   60:  subl %ebx, %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  leal -1(%rbp), %esi
+   73:  movq %r12, %rdi
+   76:  movslq %esi, %rsi
+   79:  callq lua_pushinteger+0
+   7e:  popq %rbx
+   7f:  movl $1, %eax
+   84:  popq %rbp
+   85:  popq %r12
+   87:  retq
+   88:  nopl (%rax, %rax)
+   90:  movl $0, %edx   <str:"index out of range">
+   95:  movl $1, %esi
+   9a:  movq %r12, %rdi
+   9d:  callq luaL_argerror+0
+   a2:  jmp 0x5e

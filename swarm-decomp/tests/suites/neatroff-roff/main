@@ -1,0 +1,205 @@
+# main  (global, 843 bytes, 204 instructions)
+    0:  pushq %r15
+    2:  movl $1, %r15d
+    8:  pushq %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  movl %edi, %ebp
+   11:  movl $0, %edi   <str:"NEATROFF_F">
+   16:  pushq %rbx
+   17:  movq %rsi, %rbx
+   1a:  subq $0x28, %rsp
+   1e:  callq getenv+0
+   23:  movl $0, %edi   <str:"NEATROFF_M">
+   28:  movq %rax, %r13
+   2b:  callq getenv+0
+   30:  movl $0, %edi   <str:"NEATROFF_T">
+   35:  movq %rax, %r14
+   38:  callq getenv+0
+   3d:  testq %rax, %rax
+   40:  movq %rax, %r12
+   43:  movl $0, %eax   <str:"utf">
+   48:  cmoveq %rax, %r12
+   4c:  testq %r13, %r13
+   4f:  movl $0, %eax   <str:"/neatroff/font">
+   54:  cmoveq %rax, %r13
+   58:  testq %r14, %r14
+   5b:  movl $0, %eax   <str:"/neatroff/tmac">
+   60:  cmoveq %rax, %r14
+   64:  cmpl $1, %ebp
+   67:  jle 0x135
+   6d:  nopl (%rax)
+   70:  movslq %r15d, %rax
+   73:  movq (%rbx, %rax, 8), %rdi
+   77:  leaq (, %rax, 8), %rdx
+   7f:  cmpb $0x2d, (%rdi)
+   82:  jne 0x135
+   88:  movzbl 1(%rdi), %eax
+   8c:  testb %al, %al
+   8e:  je 0x135
+   94:  subl $0x43, %eax
+   97:  cmpb $0x2f, %al
+   99:  ja 0xa5
+   9b:  movzbl %al, %eax
+   9e:  jmpq *(, %rax, 8)   <var:main+0>
+   a5:  movl $0x127, %edx
+   aa:  movl $1, %esi
+   af:  movl $0, %edi   <str:"Usage: neatroff [options] input\n\nOptions:\n  -mx   \tinclude macro x\n  -rx=y \tset number register x to y\n  -dx=y \tdefine string register x as y\n  -C    \tenable compatibility mode\n  -Tdev \tset output device\n  -Fdir \tset font directory (/neatroff/font)\n  -Mdir \tset macro directory (/neatroff/tmac)\n">
+   b4:  movq (%rip), %rcx   <stderr+0>
+   bb:  callq fwrite+0
+   c0:  movl $1, %ebx
+   c5:  addq $0x28, %rsp
+   c9:  movl %ebx, %eax
+   cb:  popq %rbx
+   cc:  popq %rbp
+   cd:  popq %r12
+   cf:  popq %r13
+   d1:  popq %r14
+   d3:  popq %r15
+   d5:  retq
+   d6:  cmpb $0, 2(%rdi)
+   da:  jne 0x2e1
+   e0:  movq 8(%rbx, %rdx), %rdi
+   e5:  addl $1, %r15d
+   e9:  leaq 0x18(%rsp), %rdx
+   ee:  leaq 0x14(%rsp), %rsi
+   f3:  callq fn:cmddef+0
+   f8:  movl 0x14(%rsp), %ecx
+   fc:  movl %ecx, %edi
+   fe:  movl %ecx, 8(%rsp)
+  102:  callq nreg+0
+  107:  movq 0x18(%rsp), %rdi
+  10c:  movl $0x75, %edx
+  111:  movl (%rax), %esi
+  113:  callq eval_re+0
+  118:  movl 8(%rsp), %edi
+  11c:  movl %eax, %esi
+  11e:  callq num_set+0
+  123:  nopl (%rax, %rax)
+  128:  addl $1, %r15d
+  12c:  cmpl %r15d, %ebp
+  12f:  jg 0x70
+  135:  movq %r12, %rsi
+  138:  movq %r13, %rdi
+  13b:  callq dev_open+0
+  140:  testl %eax, %eax
+  142:  jne 0x324
+  148:  callq hyph_init+0
+  14d:  callq env_init+0
+  152:  callq tr_init+0
+  157:  cmpl %r15d, %ebp
+  15a:  je 0x33f
+  160:  jle 0x1a3
+  162:  movslq %r15d, %rax
+  165:  subl %r15d, %ebp
+  168:  addq %rax, %rbp
+  16b:  leaq (%rbx, %rax, 8), %r12
+  16f:  leaq (%rbx, %rbp, 8), %rbp
+  173:  movl $0x2d, %ebx
+  178:  nopl (%rax, %rax)
+  180:  movq (%r12), %rdi
+  184:  movzbl (%rdi), %eax
+  187:  cmpl %eax, %ebx
+  189:  jne 0x195
+  18b:  xorl %eax, %eax
+  18d:  cmpb $0, 1(%rdi)
+  191:  cmoveq %rax, %rdi
+  195:  callq in_queue+0
+  19a:  addq $8, %r12
+  19e:  cmpq %rbp, %r12
+  1a1:  jne 0x180
+  1a3:  movl $0x73, %edi
+  1a8:  callq nreg+0
+  1ad:  movl $0, %edi   <str:"s%d\n">
+  1b2:  movl (%rax), %esi
+  1b4:  xorl %eax, %eax
+  1b6:  callq out+0
+  1bb:  movl $0x66, %edi
+  1c0:  callq nreg+0
+  1c5:  movl $0, %edi   <str:"f%d\n">
+  1ca:  movl (%rax), %esi
+  1cc:  xorl %eax, %eax
+  1ce:  callq out+0
+  1d3:  callq render+0
+  1d8:  movl $0x70, %edi
+  1dd:  movl %eax, %ebx
+  1df:  callq nreg+0
+  1e4:  movl $0, %edi   <str:"V%d\n">
+  1e9:  movl (%rax), %esi
+  1eb:  xorl %eax, %eax
+  1ed:  callq out+0
+  1f2:  callq hyph_done+0
+  1f7:  callq tr_done+0
+  1fc:  callq env_done+0
+  201:  callq dev_close+0
+  206:  callq map_done+0
+  20b:  callq dir_done+0
+  210:  jmp 0xc5
+  215:  leaq 2(%rdi), %rax
+  219:  movl $0x2f, %esi
+  21e:  movq %rax, %rdi
+  221:  movq %rax, 8(%rsp)
+  226:  callq strchr+0
+  22b:  testq %rax, %rax
+  22e:  je 0x2f3
+  234:  movq 8(%rsp), %rdi
+  239:  callq in_queue+0
+  23e:  jmp 0x128
+  243:  cmpb $0, 2(%rdi)
+  247:  jne 0x2ea
+  24d:  movq 8(%rbx, %rdx), %rdi
+  252:  addl $1, %r15d
+  256:  leaq 0x14(%rsp), %rsi
+  25b:  leaq 0x18(%rsp), %rdx
+  260:  callq fn:cmddef+0
+  265:  movq 0x18(%rsp), %rsi
+  26a:  movl 0x14(%rsp), %edi
+  26e:  callq str_set+0
+  273:  jmp 0x128
+  278:  cmpb $0, 2(%rdi)
+  27c:  leaq 2(%rdi), %r12
+  280:  jne 0x128
+  286:  movq 8(%rbx, %rdx), %r12
+  28b:  addl $1, %r15d
+  28f:  jmp 0x128
+  294:  cmpb $0, 2(%rdi)
+  298:  leaq 2(%rdi), %r14
+  29c:  jne 0x128
+  2a2:  movq 8(%rbx, %rdx), %r14
+  2a7:  addl $1, %r15d
+  2ab:  jmp 0x128
+  2b0:  cmpb $0, 2(%rdi)
+  2b4:  leaq 2(%rdi), %r13
+  2b8:  jne 0x128
+  2be:  movq 8(%rbx, %rdx), %r13
+  2c3:  addl $1, %r15d
+  2c7:  jmp 0x128
+  2cc:  movl $0x43, %edi
+  2d1:  callq nreg+0
+  2d6:  movl $1, (%rax)
+  2dc:  jmp 0x128
+  2e1:  addq $2, %rdi
+  2e5:  jmp 0xe9
+  2ea:  addq $2, %rdi
+  2ee:  jmp 0x256
+  2f3:  movq 8(%rsp), %rsi
+  2f8:  movq %r14, %rdi
+  2fb:  callq fn:cmdmac+0
+  300:  testl %eax, %eax
+  302:  je 0x128
+  308:  movq 8(%rsp), %rsi
+  30d:  movl $0, %edi   <str:".">
+  312:  callq fn:cmdmac+0
+  317:  testl %eax, %eax
+  319:  jne 0x234
+  31f:  jmp 0x128
+  324:  movq (%rip), %rdi   <stderr+0>
+  32b:  movq %r12, %rdx
+  32e:  movl $0, %esi   <str:"neatroff: cannot open device %s\n">
+  333:  xorl %eax, %eax
+  335:  callq fprintf+0
+  33a:  jmp 0xc0
+  33f:  xorl %edi, %edi
+  341:  callq in_queue+0
+  346:  jmp 0x1a3

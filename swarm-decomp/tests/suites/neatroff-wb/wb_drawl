@@ -1,0 +1,67 @@
+# wb_drawl  (global, 245 bytes, 66 instructions)
+    0:  pushq %r14
+    2:  movd %edx, %xmm1
+    6:  movl %edx, %r8d
+    9:  movd %ecx, %xmm3
+    d:  pushq %rbp
+    e:  punpckldq %xmm3, %xmm1
+   12:  movl %esi, %ebp
+   14:  movl %ecx, %r9d
+   17:  pushq %rbx
+   18:  movq %xmm1, %r14
+   1d:  movq %rdi, %rbx
+   20:  subq $0x10, %rsp
+   24:  movl 0x2068(%rdi), %edx
+   2a:  testl %edx, %edx
+   2c:  je 0x3c
+   2e:  movl 0x206c(%rdi), %eax
+   34:  testl %eax, %eax
+   36:  jne 0xd8
+   3c:  movq %rbx, %rdi
+   3f:  movl %r9d, 0xc(%rsp)
+   44:  movl %r8d, 8(%rsp)
+   49:  callq wb_flushdir+0
+   4e:  movq %rbx, %rdi
+   51:  callq fn:wb_flushfont+0
+   56:  movl 0xc(%rsp), %r9d
+   5b:  movl %ebp, %ecx
+   5d:  xorl %eax, %eax
+   5f:  movl 8(%rsp), %r8d
+   64:  movl (%rip), %edx   <c_ec+0>
+   6a:  movq %rbx, %rdi
+   6d:  movl $0, %esi   <str:"%cD'%c %du %du'">
+   72:  callq sbuf_printf+0
+   77:  movl 0x14(%rbx), %eax
+   7a:  movq 0x40(%rbx), %xmm0
+   7f:  movq %r14, %xmm2
+   84:  imull (%rip), %eax   <dev_res+0>
+   8b:  paddd %xmm0, %xmm2
+   8f:  movslq %eax, %rdx
+   92:  sarl $0x1f, %eax
+   95:  imulq $0x38e38e39, %rdx, %rdx
+   9c:  pshufd $0xe5, %xmm2, %xmm4
+   a1:  movd %xmm4, %ecx
+   a5:  movq %xmm2, 0x40(%rbx)
+   aa:  sarq $0x24, %rdx
+   ae:  subl %edx, %eax
+   b0:  movl 0x50(%rbx), %edx
+   b3:  addl %ecx, %eax
+   b5:  cmpl %edx, %eax
+   b7:  cmovgl %edx, %eax
+   ba:  movl %eax, 0x50(%rbx)
+   bd:  movl 0x4c(%rbx), %eax
+   c0:  cmpl %ecx, %eax
+   c2:  cmovll %ecx, %eax
+   c5:  movl %eax, 0x4c(%rbx)
+   c8:  addq $0x10, %rsp
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  popq %r14
+   d0:  retq
+   d1:  nopl (%rax)
+   d8:  movl %r8d, 8(%rsp)
+   dd:  movl %ecx, 0xc(%rsp)
+   e1:  callq fn:wb_flushsub.part.0+0
+   e6:  movl 0xc(%rsp), %r9d
+   eb:  movl 8(%rsp), %r8d
+   f0:  jmp 0x3c

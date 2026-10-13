@@ -1,0 +1,46 @@
+# luaF_freeproto  (global, 167 bytes, 45 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rsi, %rbx
+    8:  subq $8, %rsp
+    c:  movslq 0x18(%rsi), %rdx
+   10:  movq 0x40(%rsi), %rsi
+   14:  shlq $2, %rdx
+   18:  callq luaM_free_+0
+   1d:  movslq 0x20(%rbx), %rdx
+   21:  movq 0x48(%rbx), %rsi
+   25:  movq %rbp, %rdi
+   28:  shlq $3, %rdx
+   2c:  callq luaM_free_+0
+   31:  movslq 0x14(%rbx), %rdx
+   35:  movq 0x38(%rbx), %rsi
+   39:  movq %rbp, %rdi
+   3c:  shlq $4, %rdx
+   40:  callq luaM_free_+0
+   45:  movslq 0x1c(%rbx), %rdx
+   49:  movq 0x58(%rbx), %rsi
+   4d:  movq %rbp, %rdi
+   50:  callq luaM_free_+0
+   55:  movslq 0x28(%rbx), %rdx
+   59:  movq 0x60(%rbx), %rsi
+   5d:  movq %rbp, %rdi
+   60:  shlq $3, %rdx
+   64:  callq luaM_free_+0
+   69:  movslq 0x24(%rbx), %rdx
+   6d:  movq 0x68(%rbx), %rsi
+   71:  movq %rbp, %rdi
+   74:  shlq $4, %rdx
+   78:  callq luaM_free_+0
+   7d:  movslq 0x10(%rbx), %rdx
+   81:  movq 0x50(%rbx), %rsi
+   85:  movq %rbp, %rdi
+   88:  shlq $4, %rdx
+   8c:  callq luaM_free_+0
+   91:  addq $8, %rsp
+   95:  movq %rbx, %rsi
+   98:  movq %rbp, %rdi
+   9b:  popq %rbx
+   9c:  movl $0x80, %edx
+   a1:  popq %rbp
+   a2:  jmp luaM_free_+0

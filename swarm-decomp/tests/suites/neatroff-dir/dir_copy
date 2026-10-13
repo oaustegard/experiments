@@ -1,0 +1,78 @@
+# dir_copy  (static, 240 bytes, 77 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movl %r8d, %r14d
+    7:  pushq %r13
+    9:  movq %rsi, %r13
+    c:  pushq %r12
+    e:  movq %rdx, %r12
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  subq $0x18, %rsp
+   1a:  movslq (%rsi), %rax
+   1d:  movl (%rdx), %ebx
+   1f:  movq %rcx, 8(%rsp)
+   24:  leal (%rax, %r8), %edx
+   28:  movl %r9d, 4(%rsp)
+   2d:  cmpl %ebx, %edx
+   2f:  jl 0xa0
+   31:  testl %ebx, %ebx
+   33:  jne 0x86
+   35:  movl $0x201, %edi
+   3a:  movl $0x200, %ebx
+   3f:  callq xmalloc+0
+   44:  movslq (%r12), %rdx
+   48:  movq %rax, %r15
+   4b:  testl %edx, %edx
+   4d:  je 0x69
+   4f:  nop
+   50:  movl 4(%rsp), %r8d
+   55:  leaq (%rax, %rdx), %rdi
+   59:  movq (%rbp), %rsi
+   5d:  testl %r8d, %r8d
+   60:  cmoveq %rax, %rdi
+   64:  callq memcpy+0
+   69:  movq (%rbp), %rdi
+   6d:  callq free+0
+   72:  movl %ebx, (%r12)
+   76:  movslq (%r13), %rax
+   7a:  movq %r15, (%rbp)
+   7e:  leal (%rax, %r14), %edx
+   82:  cmpl %ebx, %edx
+   84:  jl 0xa8
+   86:  addl %ebx, %ebx
+   88:  leal 1(%rbx), %edi
+   8b:  movslq %edi, %rdi
+   8e:  callq xmalloc+0
+   93:  movslq (%r12), %rdx
+   97:  movq %rax, %r15
+   9a:  testl %edx, %edx
+   9c:  je 0x69
+   9e:  jmp 0x50
+   a0:  movq (%rdi), %r15
+   a3:  nopl (%rax, %rax)
+   a8:  movl 4(%rsp), %ecx
+   ac:  movslq %r14d, %rdx
+   af:  testl %ecx, %ecx
+   b1:  jle 0xe0
+   b3:  movslq %ebx, %rdi
+   b6:  movq 8(%rsp), %rsi
+   bb:  subq %rdx, %rdi
+   be:  subq %rax, %rdi
+   c1:  addq %r15, %rdi
+   c4:  callq memcpy+0
+   c9:  addl %r14d, (%r13)
+   cd:  addq $0x18, %rsp
+   d1:  popq %rbx
+   d2:  popq %rbp
+   d3:  popq %r12
+   d5:  popq %r13
+   d7:  popq %r14
+   d9:  popq %r15
+   db:  retq
+   dc:  nopl (%rax)
+   e0:  movq 8(%rsp), %rsi
+   e5:  leaq (%r15, %rax), %rdi
+   e9:  callq memcpy+0
+   ee:  jmp 0xc9

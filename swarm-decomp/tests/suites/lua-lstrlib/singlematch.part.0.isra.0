@@ -1,0 +1,24 @@
+# singlematch.part.0.isra.0  (static, 74 bytes, 23 instructions)
+    0:  movzbl (%rsi), %eax
+    3:  movzbl %dil, %ecx
+    7:  cmpb $0x2e, %al
+    9:  je 0x30
+    b:  cmpb $0x5b, %al
+    d:  je 0x20
+    f:  cmpb $0x25, %al
+   11:  jne 0x40
+   13:  movzbl 1(%rsi), %esi
+   17:  movl %ecx, %edi
+   19:  jmp fn:match_class+0
+   1e:  nop
+   20:  subq $1, %rdx
+   24:  movl %ecx, %edi
+   26:  jmp fn:matchbracketclass+0
+   2b:  nopl (%rax, %rax)
+   30:  movl $1, %eax
+   35:  retq
+   36:  nopw %cs:(%rax, %rax)
+   40:  cmpb %dil, %al
+   43:  sete %al
+   46:  movzbl %al, %eax
+   49:  retq

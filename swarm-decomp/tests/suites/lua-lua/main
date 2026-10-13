@@ -1,0 +1,70 @@
+# main  (global, 228 bytes, 69 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  movl %edi, %ebp
+    8:  pushq %rbx
+    9:  callq luaL_newstate+0
+    e:  testq %rax, %rax
+   11:  je 0xcf
+   17:  movq %rax, %rbx
+   1a:  movq %rax, %rdi
+   1d:  xorl %esi, %esi
+   1f:  xorl %eax, %eax
+   21:  callq lua_gc+0
+   26:  xorl %edx, %edx
+   28:  movl $0, %esi   <fn:pmain+0>
+   2d:  movq %rbx, %rdi
+   30:  callq lua_pushcclosure+0
+   35:  movslq %ebp, %rsi
+   38:  movq %rbx, %rdi
+   3b:  callq lua_pushinteger+0
+   40:  movq %r12, %rsi
+   43:  movq %rbx, %rdi
+   46:  callq lua_pushlightuserdata+0
+   4b:  xorl %r9d, %r9d
+   4e:  xorl %r8d, %r8d
+   51:  xorl %ecx, %ecx
+   53:  movl $1, %edx
+   58:  movl $2, %esi
+   5d:  movq %rbx, %rdi
+   60:  callq lua_pcallk+0
+   65:  movl $0xffffffff, %esi
+   6a:  movq %rbx, %rdi
+   6d:  movl %eax, %ebp
+   6f:  callq lua_toboolean+0
+   74:  movl %eax, %r12d
+   77:  testl %ebp, %ebp
+   79:  jne 0x98
+   7b:  movq %rbx, %rdi
+   7e:  callq lua_close+0
+   83:  testl %r12d, %r12d
+   86:  sete %al
+   89:  testl %ebp, %ebp
+   8b:  setne %dl
+   8e:  orl %edx, %eax
+   90:  movzbl %al, %eax
+   93:  popq %rbx
+   94:  popq %rbp
+   95:  popq %r12
+   97:  retq
+   98:  orl $0xffffffff, %esi
+   9b:  xorl %edx, %edx
+   9d:  movq %rbx, %rdi
+   a0:  callq lua_tolstring+0
+   a5:  movq %rax, %rsi
+   a8:  testq %rax, %rax
+   ab:  je 0xc8
+   ad:  movq (%rip), %rdi   <var:progname+0>
+   b4:  callq fn:l_message+0
+   b9:  movl $0xfffffffe, %esi
+   be:  movq %rbx, %rdi
+   c1:  callq lua_settop+0
+   c6:  jmp 0x7b
+   c8:  movl $0, %esi   <str:"(error message not a string)">
+   cd:  jmp 0xad
+   cf:  movq (%r12), %rdi
+   d3:  movl $0, %esi   <str:"cannot create state: not enough memory">
+   d8:  callq fn:l_message+0
+   dd:  movl $1, %eax
+   e2:  jmp 0x93

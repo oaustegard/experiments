@@ -1,0 +1,68 @@
+# array_add  (static, 243 bytes, 67 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movl %esi, %r14d
+    7:  pushq %r13
+    9:  movq %rdi, %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x18, %rsp
+   14:  movslq (%rip), %r15   <var:arrays_n+0>
+   1b:  movl (%rip), %eax   <var:arrays_sz+0>
+   21:  movq (%rip), %rbx   <var:arrays+0>
+   28:  movq %r15, %r12
+   2b:  cmpl %eax, %r15d
+   2e:  jge 0x78
+   30:  leal 1(%r12), %eax
+   35:  movdqu (%r13), %xmm0
+   3b:  movl %eax, (%rip)   <var:arrays_n+0>
+   41:  leaq (%r15, %r15, 2), %rax
+   45:  shlq $3, %rax
+   49:  leaq (%rbx, %rax), %rdx
+   4d:  sarq $3, %rax
+   51:  movups %xmm0, (%rdx)
+   54:  movl 0x10(%r13), %ecx
+   58:  imull $0xaaaaaaab, %eax, %eax
+   5e:  movl %r14d, 0x14(%rdx)
+   62:  movl %ecx, 0x10(%rdx)
+   65:  addq $0x18, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  popq %r12
+   6d:  popq %r13
+   6f:  popq %r14
+   71:  popq %r15
+   73:  retq
+   74:  nopl (%rax)
+   78:  movl $0x80, %edx
+   7d:  addl %eax, %eax
+   7f:  cmpl %edx, %eax
+   81:  cmovll %edx, %eax
+   84:  movslq %eax, %r8
+   87:  movl %eax, (%rip)   <var:arrays_sz+0>
+   8d:  leaq (%r8, %r8, 2), %rdi
+   91:  movq %r8, 8(%rsp)
+   96:  shlq $3, %rdi
+   9a:  callq malloc+0
+   9f:  leaq (%r15, %r15, 2), %rcx
+   a3:  movq %rbx, %rsi
+   a6:  shlq $3, %rcx
+   aa:  movq %rax, %rdi
+   ad:  movq %rax, %rbp
+   b0:  movq %rcx, %rdx
+   b3:  movq %rcx, (%rsp)
+   b7:  callq memcpy+0
+   bc:  movq 8(%rsp), %rax
+   c1:  movq (%rsp), %rcx
+   c5:  xorl %esi, %esi
+   c7:  subq %r15, %rax
+   ca:  leaq (%rbp, %rcx), %rdi
+   cf:  leaq (%rax, %rax, 2), %rdx
+   d3:  shlq $3, %rdx
+   d7:  callq memset+0
+   dc:  movq %rbx, %rdi
+   df:  movq %rbp, %rbx
+   e2:  callq free+0
+   e7:  movq %rbp, (%rip)   <var:arrays+0>
+   ee:  jmp 0x30

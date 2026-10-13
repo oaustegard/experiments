@@ -1,0 +1,49 @@
+# readxor  (static, 178 bytes, 48 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movl $0x26, %ebx
+    7:  subq $8, %rsp
+    b:  callq fn:readeq+0
+   10:  jmp 0x32
+   12:  nopw (%rax, %rax)
+   18:  cmpb $0, 1(%rax)
+   1c:  jne 0x3e
+   1e:  callq tok_get+0
+   23:  callq fn:readeq+0
+   28:  movl $0x12, %edi
+   2d:  callq fn:ts_binop+0
+   32:  callq tok_see+0
+   37:  movzbl (%rax), %edx
+   3a:  cmpl %edx, %ebx
+   3c:  je 0x18
+   3e:  movl $0x5e, %ebp
+   43:  nopl (%rax, %rax)
+   48:  callq tok_see+0
+   4d:  movzbl (%rax), %edx
+   50:  cmpl %edx, %ebp
+   52:  je 0x60
+   54:  addq $8, %rsp
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  cmpb $0, 1(%rax)
+   64:  jne 0x54
+   66:  callq tok_get+0
+   6b:  movl $0x26, %ebx
+   70:  callq fn:readeq+0
+   75:  jmp 0x9a
+   77:  nopw (%rax, %rax)
+   80:  cmpb $0, 1(%rax)
+   84:  jne 0xa6
+   86:  callq tok_get+0
+   8b:  callq fn:readeq+0
+   90:  movl $0x12, %edi
+   95:  callq fn:ts_binop+0
+   9a:  callq tok_see+0
+   9f:  movzbl (%rax), %edx
+   a2:  cmpl %edx, %ebx
+   a4:  je 0x80
+   a6:  movl $0x14, %edi
+   ab:  callq fn:ts_binop+0
+   b0:  jmp 0x48

@@ -1,0 +1,32 @@
+# tr_sv  (global, 102 bytes, 31 instructions)
+    0:  pushq %rbx
+    1:  movq 8(%rdi), %rdi
+    5:  testq %rdi, %rdi
+    8:  je 0x58
+    a:  movl $0x76, %esi
+    f:  callq eval+0
+   14:  movl %eax, %ebx
+   16:  movl $0, %edi   <str:".sv">
+   1b:  callq map+0
+   20:  movl %eax, %edi
+   22:  callq nreg+0
+   27:  movl $0, (%rax)
+   2d:  callq f_nexttrap+0
+   32:  cmpl %ebx, %eax
+   34:  jl 0x40
+   36:  movl %ebx, %edi
+   38:  popq %rbx
+   39:  jmp fn:down+0
+   3e:  nop
+   40:  movl $0, %edi   <str:".sv">
+   45:  callq map+0
+   4a:  movl %eax, %edi
+   4c:  callq nreg+0
+   51:  movl %ebx, (%rax)
+   53:  popq %rbx
+   54:  retq
+   55:  nopl (%rax)
+   58:  movl $0x76, %edi
+   5d:  callq nreg+0
+   62:  movl (%rax), %ebx
+   64:  jmp 0x16

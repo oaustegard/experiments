@@ -1,0 +1,32 @@
+# tr_br  (global, 107 bytes, 31 instructions)
+    0:  movq (%rdi), %rax
+    3:  movsbl (%rax), %eax
+    6:  cmpl (%rip), %eax   <c_cc+0>
+    c:  je 0x66
+    e:  pushq %rbx
+    f:  callq env_fmt+0
+   14:  movq %rax, %rbx
+   17:  nopw (%rax, %rax)
+   20:  xorl %esi, %esi
+   22:  movq %rbx, %rdi
+   25:  callq fmt_fill+0
+   2a:  testl %eax, %eax
+   2c:  je 0x58
+   2e:  nop
+   30:  movq %rbx, %rdi
+   33:  callq fmt_morelines+0
+   38:  testl %eax, %eax
+   3a:  je 0x20
+   3c:  movq %rbx, %rdi
+   3f:  callq fn:ren_passline+0
+   44:  jmp 0x30
+   46:  nopw %cs:(%rax, %rax)
+   50:  movq %rbx, %rdi
+   53:  callq fn:ren_passline+0
+   58:  movq %rbx, %rdi
+   5b:  callq fmt_morelines+0
+   60:  testl %eax, %eax
+   62:  jne 0x50
+   64:  popq %rbx
+   65:  retq
+   66:  jmp fn:ren_br+0

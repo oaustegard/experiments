@@ -1,0 +1,12 @@
+# error_expected  (static, 39 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <luaX_token2str+0>
+    9:  movq 0x38(%rbx), %rdi
+    d:  movl $0, %esi   <str:"%s expected">
+   12:  movq %rax, %rdx
+   15:  xorl %eax, %eax
+   17:  callq luaO_pushfstring+0
+   1c:  movq %rbx, %rdi
+   1f:  movq %rax, %rsi
+   22:  callq luaX_syntaxerror+0

@@ -1,0 +1,22 @@
+# finishpcall  (static, 70 bytes, 21 instructions)
+    0:  pushq %rbx
+    1:  subq $0x10, %rsp
+    5:  cmpl $1, %esi
+    8:  ja 0x20
+    a:  movq %rdx, %rbx
+    d:  callq lua_gettop+0
+   12:  addq $0x10, %rsp
+   16:  subl %ebx, %eax
+   18:  popq %rbx
+   19:  retq
+   1a:  nopw (%rax, %rax)
+   20:  xorl %esi, %esi
+   22:  movq %rdi, 8(%rsp)
+   27:  callq lua_pushboolean+0
+   2c:  movq 8(%rsp), %rdi
+   31:  movl $0xfffffffe, %esi
+   36:  callq lua_pushvalue+0
+   3b:  addq $0x10, %rsp
+   3f:  movl $2, %eax
+   44:  popq %rbx
+   45:  retq

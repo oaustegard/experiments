@@ -1,0 +1,12 @@
+# luaB_tostring  (static, 36 bytes, 11 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movq %rbx, %rdi
+   11:  xorl %edx, %edx
+   13:  movl $1, %esi
+   18:  callq luaL_tolstring+0
+   1d:  movl $1, %eax
+   22:  popq %rbx
+   23:  retq

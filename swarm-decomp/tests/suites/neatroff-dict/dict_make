@@ -1,0 +1,28 @@
+# dict_make  (global, 93 bytes, 27 instructions)
+    0:  pushq %r12
+    2:  movl %esi, %r12d
+    5:  pushq %rbp
+    6:  movl %edi, %ebp
+    8:  movl $0x30, %edi
+    d:  pushq %rbx
+    e:  callq xmalloc+0
+   13:  pxor %xmm0, %xmm0
+   17:  movslq %ebp, %rdi
+   1a:  movl $4, %esi
+   1f:  movups %xmm0, 0x18(%rax)
+   23:  movq %rax, %rbx
+   26:  movq $0, 0x28(%rax)
+   2e:  movl $1, 0x24(%rax)
+   35:  movups %xmm0, 8(%rax)
+   39:  callq calloc+0
+   3e:  movl %ebp, 0x28(%rbx)
+   41:  movq %rbx, %rdi
+   44:  movl $0x400, %esi
+   49:  movq %rax, (%rbx)
+   4c:  movl %r12d, 0x2c(%rbx)
+   50:  callq fn:dict_extend+0
+   55:  movq %rbx, %rax
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  popq %r12
+   5c:  retq

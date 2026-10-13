@@ -1,0 +1,28 @@
+# dir_flush  (static, 110 bytes, 27 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edi   <str:".td">
+    6:  movq (%rip), %rbx   <var:rbuf+0>
+    d:  callq map+0
+   12:  movl %eax, %edi
+   14:  callq nreg+0
+   19:  movl (%rax), %eax
+   1b:  testl %eax, %eax
+   1d:  jg 0x30
+   1f:  movl (%rip), %eax   <var:rbuf_sz+0>
+   25:  subl (%rip), %eax   <var:rbuf_n+0>
+   2b:  cltq
+   2d:  addq %rax, %rbx
+   30:  movl $0, %edi   <str:".td">
+   35:  callq map+0
+   3a:  movl %eax, %edi
+   3c:  callq nreg+0
+   41:  movl (%rip), %r8d   <var:rbuf_n+0>
+   48:  movq %rbx, %rcx
+   4b:  movl $0, %edx   <var:dbuf_sz+0>
+   50:  movl (%rax), %r9d
+   53:  movl $0, %esi   <var:dbuf_n+0>
+   58:  movl $0, %edi   <var:dbuf+0>
+   5d:  callq fn:dir_copy+0
+   62:  popq %rbx
+   63:  movl $0, (%rip)   <var:rbuf_n+0>
+   6d:  retq

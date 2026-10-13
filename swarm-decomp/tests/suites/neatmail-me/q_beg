@@ -1,0 +1,13 @@
+# q_beg  (static, 61 bytes, 12 instructions)
+    0:  movslq (%rip), %rdx   <var:out_n+0>
+    7:  movq (%rip), %rcx   <cst:3d3f5554462d383f>
+    e:  movl $1, (%rip)   <var:out_mime+0>
+   18:  movq %rdx, %rax
+   1b:  movq %rcx, (%rdx)   <var:out+0>
+   22:  leal 0xa(%rdx), %edx
+   25:  addl $8, %eax
+   28:  movl %edx, (%rip)   <var:out_n+0>
+   2e:  movl $0x3f42, %edx
+   33:  cltq
+   35:  movw %dx, (%rax)   <var:out+0>
+   3c:  retq

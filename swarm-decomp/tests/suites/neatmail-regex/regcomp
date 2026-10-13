@@ -1,0 +1,152 @@
+# regcomp  (global, 557 bytes, 151 instructions)
+    0:  pushq %r15
+    2:  movl %edx, %r15d
+    5:  pushq %r14
+    7:  movq %rdi, %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x18, %rsp
+   14:  leaq 8(%rsp), %rdi
+   19:  movq %rsi, 8(%rsp)
+   1e:  callq fn:rnode_parse+0
+   23:  movq %rax, %rdi
+   26:  movq %rax, %r12
+   29:  callq fn:rnode_count+0
+   2e:  movl %eax, 4(%rsp)
+   32:  movl $1, %eax
+   37:  testq %r12, %r12
+   3a:  je 0x21e
+   40:  movq %r12, %rbx
+   43:  movl $1, %r13d
+   49:  xorl %ebp, %ebp
+   4b:  cmpl $0x28, 0x2c(%rbx)
+   4f:  movl %r13d, %esi
+   52:  jne 0x61
+   54:  movl %r13d, 0x28(%rbx)
+   58:  leal 1(%r13), %esi
+   5c:  movl $1, %ebp
+   61:  movq 0x10(%rbx), %rdi
+   65:  callq fn:rnode_grpnum+0
+   6a:  movq 0x18(%rbx), %rbx
+   6e:  addl %eax, %ebp
+   70:  addl %ebp, %r13d
+   73:  testq %rbx, %rbx
+   76:  jne 0x49
+   78:  movl $0x10, %edi
+   7d:  callq malloc+0
+   82:  movl 4(%rsp), %edi
+   86:  movl $1, %esi
+   8b:  movl $0, 0xc(%rax)
+   92:  movq %rax, %rbx
+   95:  addl $3, %edi
+   98:  movslq %edi, %rdi
+   9b:  shlq $5, %rdi
+   9f:  callq calloc+0
+   a4:  movl $1, 8(%rbx)
+   ab:  movq %rbx, %rsi
+   ae:  movq %r12, %rdi
+   b1:  movq %rax, (%rbx)
+   b4:  movl $0x6d, 0x10(%rax)
+   bb:  movl $0, 0x18(%rax)
+   c2:  callq fn:rnode_emit+0
+   c7:  movslq 8(%rbx), %rax
+   cb:  movq (%rbx), %rcx
+   ce:  movq 0x10(%r12), %rbp
+   d3:  movq %rax, %rdx
+   d6:  shlq $5, %rax
+   da:  leaq (%rcx, %rax), %rsi
+   de:  addl $2, %edx
+   e1:  movl $0x6d, 0x10(%rsi)
+   e8:  movl $1, 0x18(%rsi)
+   ef:  movl %edx, 8(%rbx)
+   f2:  movl $0x71, 0x30(%rcx, %rax)
+   fa:  testq %rbp, %rbp
+   fd:  je 0x17c
+   ff:  movq 0x10(%rbp), %r13
+  103:  testq %r13, %r13
+  106:  je 0x135
+  108:  movq 0x10(%r13), %rdi
+  10c:  testq %rdi, %rdi
+  10f:  je 0x116
+  111:  callq fn:rnode_free+0
+  116:  movq 0x18(%r13), %rdi
+  11a:  testq %rdi, %rdi
+  11d:  je 0x124
+  11f:  callq fn:rnode_free+0
+  124:  movq 8(%r13), %rdi
+  128:  callq free+0
+  12d:  movq %r13, %rdi
+  130:  callq free+0
+  135:  movq 0x18(%rbp), %r13
+  139:  testq %r13, %r13
+  13c:  je 0x16b
+  13e:  movq 0x10(%r13), %rdi
+  142:  testq %rdi, %rdi
+  145:  je 0x14c
+  147:  callq fn:rnode_free+0
+  14c:  movq 0x18(%r13), %rdi
+  150:  testq %rdi, %rdi
+  153:  je 0x15a
+  155:  callq fn:rnode_free+0
+  15a:  movq 8(%r13), %rdi
+  15e:  callq free+0
+  163:  movq %r13, %rdi
+  166:  callq free+0
+  16b:  movq 8(%rbp), %rdi
+  16f:  callq free+0
+  174:  movq %rbp, %rdi
+  177:  callq free+0
+  17c:  movq 0x18(%r12), %rbp
+  181:  testq %rbp, %rbp
+  184:  je 0x203
+  186:  movq 0x10(%rbp), %r13
+  18a:  testq %r13, %r13
+  18d:  je 0x1bc
+  18f:  movq 0x10(%r13), %rdi
+  193:  testq %rdi, %rdi
+  196:  je 0x19d
+  198:  callq fn:rnode_free+0
+  19d:  movq 0x18(%r13), %rdi
+  1a1:  testq %rdi, %rdi
+  1a4:  je 0x1ab
+  1a6:  callq fn:rnode_free+0
+  1ab:  movq 8(%r13), %rdi
+  1af:  callq free+0
+  1b4:  movq %r13, %rdi
+  1b7:  callq free+0
+  1bc:  movq 0x18(%rbp), %r13
+  1c0:  testq %r13, %r13
+  1c3:  je 0x1f2
+  1c5:  movq 0x10(%r13), %rdi
+  1c9:  testq %rdi, %rdi
+  1cc:  je 0x1d3
+  1ce:  callq fn:rnode_free+0
+  1d3:  movq 0x18(%r13), %rdi
+  1d7:  testq %rdi, %rdi
+  1da:  je 0x1e1
+  1dc:  callq fn:rnode_free+0
+  1e1:  movq 8(%r13), %rdi
+  1e5:  callq free+0
+  1ea:  movq %r13, %rdi
+  1ed:  callq free+0
+  1f2:  movq 8(%rbp), %rdi
+  1f6:  callq free+0
+  1fb:  movq %rbp, %rdi
+  1fe:  callq free+0
+  203:  movq 8(%r12), %rdi
+  208:  callq free+0
+  20d:  movq %r12, %rdi
+  210:  callq free+0
+  215:  movl %r15d, 0xc(%rbx)
+  219:  xorl %eax, %eax
+  21b:  movq %rbx, (%r14)
+  21e:  addq $0x18, %rsp
+  222:  popq %rbx
+  223:  popq %rbp
+  224:  popq %r12
+  226:  popq %r13
+  228:  popq %r14
+  22a:  popq %r15
+  22c:  retq

@@ -1,0 +1,32 @@
+# tr_ti2  (global, 103 bytes, 31 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq (%rdi), %rax
+    7:  movq %rdi, %rbx
+    a:  movsbl (%rax), %eax
+    d:  cmpl (%rip), %eax   <c_cc+0>
+   13:  je 0x60
+   15:  cmpq $0, 8(%rbx)
+   1a:  je 0x53
+   1c:  movl $0x49, %edi
+   21:  callq nreg+0
+   26:  movl $0, %edi   <str:".tI">
+   2b:  movq 8(%rbx), %rbp
+   2f:  movl (%rax), %r12d
+   32:  callq map+0
+   37:  movl %eax, %edi
+   39:  callq nreg+0
+   3e:  movl $0x6d, %edx
+   43:  movl %r12d, %esi
+   46:  movq %rbp, %rdi
+   49:  movq %rax, %rbx
+   4c:  callq eval_re+0
+   51:  movl %eax, (%rbx)
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  popq %r12
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  callq fn:ren_br+0
+   65:  jmp 0x15

@@ -1,0 +1,36 @@
+# hdrlen  (global, 94 bytes, 35 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  nopl (%rax)
+   10:  movl $0xa, %esi
+   15:  movq %rbx, %rdi
+   18:  callq strchr+0
+   1d:  testq %rax, %rax
+   20:  je 0x48
+   22:  leaq 1(%rax), %rbx
+   26:  movzbl 1(%rax), %eax
+   2a:  testb %al, %al
+   2c:  je 0x36
+   2e:  cmpb $0x20, %al
+   30:  je 0x10
+   32:  cmpb $9, %al
+   34:  je 0x10
+   36:  movl %ebx, %eax
+   38:  addq $8, %rsp
+   3c:  subl %ebp, %eax
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  retq
+   41:  nopl (%rax)
+   48:  movq %rbx, %rdi
+   4b:  callq strlen+0
+   50:  addq $8, %rsp
+   54:  addq %rax, %rbx
+   57:  movl %ebx, %eax
+   59:  popq %rbx
+   5a:  subl %ebp, %eax
+   5c:  popq %rbp
+   5d:  retq

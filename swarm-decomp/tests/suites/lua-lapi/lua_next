@@ -1,0 +1,57 @@
+# lua_next  (global, 189 bytes, 56 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq 0x20(%rdi), %rax
+    8:  movq 0x10(%rdi), %rdx
+    c:  testl %esi, %esi
+    e:  jle 0x48
+   10:  movslq %esi, %rsi
+   13:  shlq $4, %rsi
+   17:  addq (%rax), %rsi
+   1a:  cmpq %rdx, %rsi
+   1d:  jae 0x61
+   1f:  movq (%rsi), %rsi
+   22:  subq $0x10, %rdx
+   26:  movq %rbx, %rdi
+   29:  callq luaH_next+0
+   2e:  movq 0x10(%rbx), %rcx
+   32:  leaq 0x10(%rcx), %rdx
+   36:  testl %eax, %eax
+   38:  jne 0x3e
+   3a:  leaq -0x10(%rcx), %rdx
+   3e:  movq %rdx, 0x10(%rbx)
+   42:  popq %rbx
+   43:  retq
+   44:  nopl (%rax)
+   48:  cmpl $0xfff0b9d9, %esi
+   4e:  jge 0x98
+   50:  cmpl $0xfff0b9d8, %esi
+   56:  je 0xb0
+   58:  movq (%rax), %rax
+   5b:  cmpb $0x66, 8(%rax)
+   5f:  je 0x70
+   61:  movq 0x18(%rbx), %rax
+   65:  leaq 0x50(%rax), %rsi
+   69:  jmp 0x1f
+   6b:  nopl (%rax, %rax)
+   70:  movq (%rax), %rcx
+   73:  movl $0xfff0b9d8, %eax
+   78:  subl %esi, %eax
+   7a:  movzbl 0xa(%rcx), %edi
+   7e:  cmpl %edi, %eax
+   80:  jg 0x61
+   82:  movl $0xfff0b9d9, %eax
+   87:  subl %esi, %eax
+   89:  cltq
+   8b:  shlq $4, %rax
+   8f:  leaq (%rcx, %rax), %rsi
+   93:  jmp 0x1f
+   95:  nopl (%rax)
+   98:  movslq %esi, %rsi
+   9b:  shlq $4, %rsi
+   9f:  addq %rdx, %rsi
+   a2:  jmp 0x1f
+   a7:  nopw (%rax, %rax)
+   b0:  movq 0x18(%rdi), %rax
+   b4:  leaq 0x40(%rax), %rsi
+   b8:  jmp 0x1f

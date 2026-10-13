@@ -1,0 +1,11 @@
+# i_done  (global, 56 bytes, 10 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rdi   <var:jmp_off+0>
+    b:  callq free+0
+   10:  movq (%rip), %rdi   <var:jmp_dst+0>
+   17:  callq free+0
+   1c:  movq (%rip), %rdi   <var:jmp_op+0>
+   23:  callq free+0
+   28:  movq (%rip), %rdi   <var:lab_loc+0>
+   2f:  addq $8, %rsp
+   33:  jmp free+0

@@ -1,0 +1,53 @@
+# tr_mc  (static, 192 bytes, 52 instructions)
+    0:  pushq %rbx
+    1:  subq $0x10, %rsp
+    5:  movq 8(%rdi), %rax
+    9:  movq %rax, 8(%rsp)
+    e:  testq %rax, %rax
+   11:  je 0x2c
+   13:  movq %rdi, %rbx
+   16:  callq env_mc+0
+   1b:  leaq 8(%rsp), %rdi
+   20:  movq %rax, %rsi
+   23:  callq charread+0
+   28:  testl %eax, %eax
+   2a:  jns 0x50
+   2c:  movl $0, %edi   <str:".mc">
+   31:  callq map+0
+   36:  movl %eax, %edi
+   38:  callq nreg+0
+   3d:  movl $0, (%rax)
+   43:  addq $0x10, %rsp
+   47:  popq %rbx
+   48:  retq
+   49:  nopl (%rax)
+   50:  movl $0, %edi   <str:".mc">
+   55:  callq map+0
+   5a:  movl %eax, %edi
+   5c:  callq nreg+0
+   61:  movq 0x10(%rbx), %rdi
+   65:  movl $1, (%rax)
+   6b:  testq %rdi, %rdi
+   6e:  je 0x98
+   70:  movl $0x6d, %esi
+   75:  callq eval+0
+   7a:  movl %eax, %ebx
+   7c:  movl $0, %edi   <str:".mcn">
+   81:  callq map+0
+   86:  movl %eax, %edi
+   88:  callq nreg+0
+   8d:  movl %ebx, (%rax)
+   8f:  addq $0x10, %rsp
+   93:  popq %rbx
+   94:  retq
+   95:  nopl (%rax)
+   98:  movl $0x73, %edi
+   9d:  callq nreg+0
+   a2:  movl (%rax), %eax
+   a4:  imull (%rip), %eax   <dev_res+0>
+   ab:  movslq %eax, %rbx
+   ae:  sarl $0x1f, %eax
+   b1:  imulq $0x38e38e39, %rbx, %rbx
+   b8:  sarq $0x24, %rbx
+   bc:  subl %eax, %ebx
+   be:  jmp 0x7c

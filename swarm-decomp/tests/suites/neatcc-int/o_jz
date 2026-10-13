@@ -1,0 +1,78 @@
+# o_jz  (global, 357 bytes, 77 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq (%rip), %rax   <var:iv_n+0>
+   10:  movq (%rip), %rsi   <var:ic_n+0>
+   17:  movq (%rip), %rdi   <var:ic+0>
+   1e:  subq $1, %rax
+   22:  cmpq (%rip), %rsi   <var:ic_sz+0>
+   29:  movq %rax, (%rip)   <var:iv_n+0>
+   30:  movq (, %rax, 8), %rbp   <var:iv+0>
+   38:  je 0x110
+   3e:  leaq 1(%rsi), %rax
+   42:  movq %rax, (%rip)   <var:ic_n+0>
+   49:  leaq (%rsi, %rsi, 4), %rax
+   4d:  leaq (%rdi, %rax, 8), %rax
+   51:  movl $1, %edi
+   56:  movq $0x2000, (%rax)
+   5d:  movq %rbp, 8(%rax)
+   61:  movq $0, 0x10(%rax)
+   69:  movq %rbx, 0x18(%rax)
+   6d:  callq opt+0
+   72:  testl %eax, %eax
+   74:  jne 0x80
+   76:  addq $8, %rsp
+   7a:  popq %rbx
+   7b:  popq %rbp
+   7c:  retq
+   7d:  nopl (%rax)
+   80:  movq (%rip), %rax   <var:ic_n+0>
+   87:  movq (%rip), %rcx   <var:ic+0>
+   8e:  leaq (%rax, %rax, 4), %rax
+   92:  leaq -0x28(%rcx, %rax, 8), %rdx
+   97:  movq (%rdx), %rax
+   9a:  testb $0x20, %ah
+   9d:  je 0x76
+   9f:  movq 8(%rdx), %rsi
+   a3:  leaq (%rsi, %rsi, 4), %rsi
+   a7:  leaq (%rcx, %rsi, 8), %rsi
+   ab:  movq (%rsi), %rcx
+   ae:  movq %rcx, %rdi
+   b1:  andl $0xffffff, %edi
+   b7:  cmpq $0x102, %rdi
+   be:  je 0x150
+   c4:  testb $0x80, %cl
+   c7:  je 0x76
+   c9:  andq $0xffffffffffffbf7f, %rcx
+   d0:  andl $0xffffff, %eax
+   d5:  movq %rcx, %rdi
+   d8:  xorq $0x4001, %rcx
+   df:  orq $0x4000, %rdi
+   e6:  cmpq $0x2000, %rax
+   ec:  movq 0x10(%rsi), %rax
+   f0:  cmoveq %rcx, %rdi
+   f4:  movq %rax, 0x10(%rdx)
+   f8:  movq %rdi, %xmm0
+   fd:  movhps 8(%rsi), %xmm0
+  101:  movups %xmm0, (%rdx)
+  104:  jmp 0x76
+  109:  nopl (%rax)
+  110:  leaq (%rsi, %rsi), %rdx
+  114:  movl $0x80, %eax
+  119:  movl $0x28, %ecx
+  11e:  cmpq %rax, %rdx
+  121:  cmovlq %rax, %rdx
+  125:  movq %rdx, (%rip)   <var:ic_sz+0>
+  12c:  callq mextend+0
+  131:  movq (%rip), %rsi   <var:ic_n+0>
+  138:  movq %rax, (%rip)   <var:ic+0>
+  13f:  movq %rax, %rdi
+  142:  jmp 0x3e
+  147:  nopw (%rax, %rax)
+  150:  xorq $1, %rax
+  154:  movq %rax, %xmm0
+  159:  movhps 8(%rsi), %xmm0
+  15d:  movups %xmm0, (%rdx)
+  160:  jmp 0x76

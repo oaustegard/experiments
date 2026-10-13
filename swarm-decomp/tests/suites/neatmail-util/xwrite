@@ -1,0 +1,49 @@
+# xwrite  (global, 128 bytes, 48 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $8, %rsp
+    e:  testq %rdx, %rdx
+   11:  jle 0x7b
+   13:  movl %edi, %r13d
+   16:  movq %rsi, %r14
+   19:  movq %rdx, %rbp
+   1c:  xorl %ebx, %ebx
+   1e:  xorl %r12d, %r12d
+   21:  xorl %r15d, %r15d
+   24:  jmp 0x41
+   26:  nopw %cs:(%rax, %rax)
+   30:  testl %eax, %eax
+   32:  js 0x69
+   34:  addl %eax, %ebx
+   36:  movslq %ebx, %r15
+   39:  movq %r15, %r12
+   3c:  cmpq %rbp, %r15
+   3f:  jge 0x69
+   41:  movq %rbp, %rdx
+   44:  leaq (%r14, %r15), %rsi
+   48:  movl %r13d, %edi
+   4b:  subq %r12, %rdx
+   4e:  callq write+0
+   53:  cmpl $-1, %eax
+   56:  jne 0x30
+   58:  callq __errno_location+0
+   5d:  movl (%rax), %eax
+   5f:  cmpl $0xb, %eax
+   62:  je 0x39
+   64:  cmpl $4, %eax
+   67:  je 0x39
+   69:  addq $8, %rsp
+   6d:  movq %r12, %rax
+   70:  popq %rbx
+   71:  popq %rbp
+   72:  popq %r12
+   74:  popq %r13
+   76:  popq %r14
+   78:  popq %r15
+   7a:  retq
+   7b:  xorl %r12d, %r12d
+   7e:  jmp 0x69

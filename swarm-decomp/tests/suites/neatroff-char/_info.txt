@@ -1,0 +1,33 @@
+# neatroff-char: translation unit char of neatroff
+# write each function as src/neatroff/char/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+sstr_next	global	38 bytes
+sstr_back	global	9 bytes
+utf8len	global	56 bytes
+utf8one	global	81 bytes
+utf8read	global	191 bytes
+utf8next	global	238 bytes
+unquotednext	global	287 bytes
+charnext_str	global	169 bytes
+quotednext	global	134 bytes
+charnext	global	343 bytes
+charnext_delim	global	45 bytes
+charread	global	108 bytes
+charread_delim	global	158 bytes
+escread	global	649 bytes
+sstr_push	global	39 bytes
+sstr_pop	global	43 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+sstr_s	static	8 bytes	.bss.sstr_s
+    (zero-initialised)
+sstr_n	static	4 bytes	.bss.sstr_n
+    (zero-initialised)
+sstr_bufs	static	256 bytes	.bss.sstr_bufs
+    (zero-initialised)
+buf.0	static	4096 bytes	.bss.buf.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc c_ec free nreg sbuf_add sbuf_append sbuf_init sbuf_out snprintf sprintf strchr strcmp strcpy strlen

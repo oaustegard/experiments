@@ -1,0 +1,59 @@
+# lua_setupvalue  (global, 188 bytes, 58 instructions)
+    0:  pushq %rbx
+    1:  movslq %edx, %r8
+    4:  callq 9   <fn:index2value+0>
+    9:  movq (%rax), %rdx
+    c:  movzbl 8(%rax), %eax
+   10:  andl $0x3f, %eax
+   13:  cmpb $6, %al
+   15:  je 0x78
+   17:  xorl %ebx, %ebx
+   19:  cmpb $0x26, %al
+   1b:  jne 0x6e
+   1d:  movzbl 0xa(%rdx), %eax
+   21:  leal -1(%r8), %ecx
+   25:  cmpl %eax, %ecx
+   27:  jae 0x6e
+   29:  movslq %r8d, %rcx
+   2c:  movq %rdx, %rsi
+   2f:  movl $0, %ebx   <str:"">
+   34:  addq $1, %rcx
+   38:  shlq $4, %rcx
+   3c:  addq %rdx, %rcx
+   3f:  movq 0x10(%rdi), %rax
+   43:  leaq -0x10(%rax), %rdx
+   47:  movq %rdx, 0x10(%rdi)
+   4b:  movq -0x10(%rax), %rdx
+   4f:  movq %rdx, (%rcx)
+   52:  movzbl -8(%rax), %eax
+   56:  movb %al, 8(%rcx)
+   59:  testb $0x40, %al
+   5b:  je 0x6e
+   5d:  testb $0x20, 9(%rsi)
+   61:  je 0x6e
+   63:  testb $0x18, 9(%rdx)
+   67:  je 0x6e
+   69:  callq luaC_barrier_+0
+   6e:  movq %rbx, %rax
+   71:  popq %rbx
+   72:  retq
+   73:  nopl (%rax, %rax)
+   78:  movq 0x18(%rdx), %r9
+   7c:  leal -1(%r8), %eax
+   80:  cmpl 0x10(%r9), %eax
+   84:  jae 0xb8
+   86:  cltq
+   88:  shlq $4, %r8
+   8c:  addq 0x50(%r9), %r8
+   90:  movq 0x20(%rdx, %rax, 8), %rdx
+   95:  movq -0x10(%r8), %rax
+   99:  leaq 0x18(%rax), %rbx
+   9d:  testq %rax, %rax
+   a0:  movl $0, %eax   <str:"(no name)">
+   a5:  movq 0x10(%rdx), %rcx
+   a9:  cmoveq %rax, %rbx
+   ad:  movq %rdx, %rsi
+   b0:  jmp 0x3f
+   b2:  nopw (%rax, %rax)
+   b8:  xorl %ebx, %ebx
+   ba:  jmp 0x6e

@@ -1,0 +1,18 @@
+# fmt_alloc  (global, 65 bytes, 17 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0x68, %edi
+    9:  callq xmalloc+0
+    e:  leaq 8(%rax), %rdi
+   12:  movq %rax, %rcx
+   15:  movq %rax, %rdx
+   18:  movq $0, (%rax)
+   1f:  andq $0xfffffffffffffff8, %rdi
+   23:  movq $0, 0x60(%rax)
+   2b:  xorl %eax, %eax
+   2d:  subq %rdi, %rcx
+   30:  addl $0x68, %ecx
+   33:  shrl $3, %ecx
+   36:  rep stosq %rax, (%rdi)
+   39:  movq %rdx, %rax
+   3c:  addq $8, %rsp
+   40:  retq

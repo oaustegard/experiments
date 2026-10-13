@@ -1,0 +1,19 @@
+# charnext_delim  (global, 45 bytes, 18 instructions)
+    0:  pushq %r12
+    2:  movq %rcx, %r12
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  callq charnext+0
+    f:  movq %r12, %rsi
+   12:  movq %rbp, %rdi
+   15:  movl %eax, %ebx
+   17:  callq strcmp+0
+   1c:  testl %eax, %eax
+   1e:  movl $0xffffffff, %eax
+   23:  cmovel %eax, %ebx
+   26:  movl %ebx, %eax
+   28:  popq %rbx
+   29:  popq %rbp
+   2a:  popq %r12
+   2c:  retq

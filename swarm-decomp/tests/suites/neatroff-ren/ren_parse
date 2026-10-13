@@ -1,0 +1,37 @@
+# ren_parse  (global, 129 bytes, 36 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $0x88, %rsp
+    f:  callq odiv_beg+0
+   14:  movq %rbp, %rdi
+   17:  callq sstr_push+0
+   1c:  callq sstr_next+0
+   21:  testl %eax, %eax
+   23:  js 0x6b
+   25:  movl %eax, %edi
+   27:  nopw (%rax, %rax)
+   30:  callq sstr_back+0
+   35:  movl $0, %edx   <sstr_back+0>
+   3a:  movl $0, %esi   <sstr_next+0>
+   3f:  movq %rsp, %rdi
+   42:  callq charnext+0
+   47:  testl %eax, %eax
+   49:  js 0x6b
+   4b:  movq %rbx, %rdi
+   4e:  movl $0, %ecx   <sstr_back+0>
+   53:  movl $0, %edx   <sstr_next+0>
+   58:  movq %rsp, %rsi
+   5b:  callq fn:ren_put+0
+   60:  callq sstr_next+0
+   65:  movl %eax, %edi
+   67:  testl %eax, %eax
+   69:  jns 0x30
+   6b:  callq sstr_pop+0
+   70:  callq odiv_end+0
+   75:  addq $0x88, %rsp
+   7c:  xorl %eax, %eax
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  retq

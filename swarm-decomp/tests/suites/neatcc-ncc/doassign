@@ -1,0 +1,42 @@
+# doassign  (static, 175 bytes, 41 instructions)
+    0:  subq $0x28, %rsp
+    4:  movl (%rip), %eax   <var:nts+0>
+    a:  leal -1(%rax), %edx
+    d:  movslq %edx, %rax
+   10:  leaq (%rax, %rax, 4), %rax
+   14:  shlq $2, %rax
+   18:  movdqu (%rax), %xmm0   <var:ts+0>
+   20:  movl (%rax), %eax   <var:ts+16>
+   26:  movaps %xmm0, (%rsp)
+   2a:  movl 8(%rsp), %ecx
+   2e:  movl %eax, 0x10(%rsp)
+   32:  testl %ecx, %ecx
+   34:  jne 0x3d
+   36:  testb $2, 4(%rsp)
+   3b:  jne 0x90
+   3d:  movl $1, %edi
+   42:  callq fn:ts_de+0
+   47:  movl (%rip), %eax   <var:nts+0>
+   4d:  movl $8, %edi
+   52:  leal -1(%rax), %edx
+   55:  subl $2, %eax
+   58:  cltq
+   5a:  movl %edx, (%rip)   <var:nts+0>
+   60:  leaq (%rax, %rax, 4), %rax
+   64:  shlq $2, %rax
+   68:  movl (%rax), %edx   <var:ts+8>
+   6e:  testl %edx, %edx
+   70:  jne 0x78
+   72:  movl (%rax), %edi   <var:ts+0>
+   78:  callq o_assign+0
+   7d:  xorl %edi, %edi
+   7f:  addq $0x28, %rsp
+   83:  jmp fn:ts_de+0
+   88:  nopl (%rax, %rax)
+   90:  movq %rsp, %rdi
+   93:  movl %edx, (%rip)   <var:nts+0>
+   99:  callq fn:type_totsz+0
+   9e:  movslq %eax, %rdi
+   a1:  callq o_num+0
+   a6:  addq $0x28, %rsp
+   aa:  jmp o_memcpy+0

@@ -1,0 +1,37 @@
+# gctx_lookahead  (static, 129 bytes, 36 instructions)
+    0:  testq %rdi, %rdi
+    3:  je 0x80
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  subq $8, %rsp
+    e:  movl 0xcc(%rdi), %ebx
+   14:  addl %esi, %ebx
+   16:  cmpl 0xc4(%rdi), %ebx
+   1c:  jge 0x44
+   1e:  movslq %ebx, %rbx
+   21:  nopl (%rax)
+   28:  movl 0x40(%rbp, %rbx, 4), %esi
+   2c:  movl $0, %edi   <str:" =@%d">
+   31:  xorl %eax, %eax
+   33:  addq $1, %rbx
+   37:  callq printf+0
+   3c:  cmpl %ebx, 0xc4(%rbp)
+   42:  jg 0x28
+   44:  movl 0xc8(%rbp), %eax
+   4a:  testl %eax, %eax
+   4c:  jle 0x6f
+   4e:  xorl %ebx, %ebx
+   50:  movl 0x80(%rbp, %rbx, 4), %esi
+   57:  movl $0, %edi   <str:" =@%d">
+   5c:  xorl %eax, %eax
+   5e:  addq $1, %rbx
+   62:  callq printf+0
+   67:  cmpl %ebx, 0xc8(%rbp)
+   6d:  jg 0x50
+   6f:  addq $8, %rsp
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  retq
+   76:  nopw %cs:(%rax, %rax)
+   80:  retq

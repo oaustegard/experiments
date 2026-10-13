@@ -1,0 +1,53 @@
+# lua_getfield  (global, 160 bytes, 52 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r8
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  callq fn:index2value+0
+    f:  movq %r8, %rsi
+   12:  movq %rax, %rbp
+   15:  callq luaS_new+0
+   1a:  xorl %r8d, %r8d
+   1d:  cmpb $0x45, 8(%rbp)
+   21:  movq %rax, %r12
+   24:  je 0x68
+   26:  movq 0x10(%rbx), %rdx
+   2a:  movq %rbp, %rsi
+   2d:  movq %rbx, %rdi
+   30:  movq %r12, (%rdx)
+   33:  movzbl 8(%r12), %eax
+   39:  movq %rdx, %rcx
+   3c:  orl $0x40, %eax
+   3f:  movb %al, 8(%rdx)
+   42:  leaq 0x10(%rdx), %rax
+   46:  movq %rax, 0x10(%rbx)
+   4a:  callq luaV_finishget+0
+   4f:  movq 0x10(%rbx), %rax
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  popq %r12
+   57:  movzbl -8(%rax), %edx
+   5b:  andl $0xf, %edx
+   5e:  movzbl %dl, %eax
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movq (%rbp), %rdi
+   6c:  movq %rax, %rsi
+   6f:  callq luaH_getstr+0
+   74:  movq %rax, %r8
+   77:  movzbl 8(%rax), %eax
+   7b:  movl %eax, %edx
+   7d:  andl $0xf, %edx
+   80:  je 0x26
+   82:  movq 0x10(%rbx), %rcx
+   86:  movq (%r8), %rsi
+   89:  addq $0x10, %rcx
+   8d:  movb %al, -8(%rcx)
+   90:  movzbl %dl, %eax
+   93:  movq %rsi, -0x10(%rcx)
+   97:  movq %rcx, 0x10(%rbx)
+   9b:  popq %rbx
+   9c:  popq %rbp
+   9d:  popq %r12
+   9f:  retq

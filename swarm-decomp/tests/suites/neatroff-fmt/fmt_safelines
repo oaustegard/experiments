@@ -1,0 +1,31 @@
+# fmt_safelines  (static, 96 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  movl $0x4c, %edi
+    6:  movl $1, %ebp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq nreg+0
+   15:  cmpl $1, (%rax)
+   18:  jle 0x26
+   1a:  movl $0x4c, %edi
+   1f:  callq nreg+0
+   24:  movl (%rax), %ebp
+   26:  movl $0x76, %edi
+   2b:  callq nreg+0
+   30:  movl $0x76, %edi
+   35:  movl (%rax), %ebx
+   37:  callq nreg+0
+   3c:  movq %rax, %rdx
+   3f:  movl $0x3e8, %eax
+   44:  movl (%rdx), %edx
+   46:  testl %edx, %edx
+   48:  jle 0x59
+   4a:  callq f_nexttrap+0
+   4f:  imull %ebp, %ebx
+   52:  leal -1(%rbx, %rax), %eax
+   56:  cltd
+   57:  idivl %ebx
+   59:  addq $8, %rsp
+   5d:  popq %rbx
+   5e:  popq %rbp
+   5f:  retq

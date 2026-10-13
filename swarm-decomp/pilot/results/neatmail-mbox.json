@@ -1,0 +1,26 @@
+{
+  "suite": "neatmail-mbox",
+  "functions": {
+    "mbox_len": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "mbox_pos": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": ""}
+    },
+    "mbox_get": {
+      "O0": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O1": {"status": "PASS", "frac": 1.0, "reason": ""},
+      "O2": {"status": "PASS", "frac": 1.0, "reason": "source differs at O2: types/mbox.h pointer arrays typed long *, mbox_get.c casts to char *"}
+    },
+    "mbox_ith": {
+      "O0": {"status": "FAIL", "frac": 0.9692, "reason": "call: expected call to filesize"},
+      "O1": {"status": "FAIL", "frac": 0.9081, "reason": "call: expected call to fstat"},
+      "O2": {"status": "FAIL", "frac": 0.8108, "reason": "call: expected call to fstat"}
+    }
+  },
+  "notes": "mbox_len, mbox_pos and mbox_get are matched; the three O0/O1 sources are identical, and O2 needed two changes to mbox_get (long * pointer arrays and casts): with char * the O2 build kept the else-branch stores in source order instead of hoisting the element loads. mbox_ith matches apart from callees outside the four functions. At O0 the only differences are the calls to the static helpers filesize and mbox_from_, which I declared rather than defined, so the call targets are undefined symbols instead of section references. At O1 and O2 gcc inlines filesize into mbox_ith (fstat call), which cannot match without writing filesize, out of scope under the brief; the frac values for mbox_ith therefore say nothing about its own body. Local declaration order was needed to reproduce the O0 stack slots, and the fallback is dat + size rather than end."
+}

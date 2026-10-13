@@ -1,0 +1,24 @@
+# luaB_next  (static, 79 bytes, 23 instructions)
+    0:  pushq %rbx
+    1:  movl $5, %edx
+    6:  movq %rdi, %rbx
+    9:  movl $1, %esi
+    e:  callq luaL_checktype+0
+   13:  movl $2, %esi
+   18:  movq %rbx, %rdi
+   1b:  callq lua_settop+0
+   20:  movl $1, %esi
+   25:  movq %rbx, %rdi
+   28:  callq lua_next+0
+   2d:  movl %eax, %edx
+   2f:  movl $2, %eax
+   34:  testl %edx, %edx
+   36:  je 0x40
+   38:  popq %rbx
+   39:  retq
+   3a:  nopw (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  callq lua_pushnil+0
+   48:  movl $1, %eax
+   4d:  popq %rbx
+   4e:  retq

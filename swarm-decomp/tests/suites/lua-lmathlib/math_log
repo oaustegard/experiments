@@ -1,0 +1,52 @@
+# math_log  (static, 196 bytes, 51 instructions)
+    0:  pushq %r14
+    2:  movl $1, %esi
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  subq $0x18, %rsp
+    f:  callq luaL_checknumber+0
+   14:  movl $2, %esi
+   19:  movq %rbx, %rdi
+   1c:  movq %xmm0, %r14
+   21:  callq lua_type+0
+   26:  testl %eax, %eax
+   28:  jle 0x60
+   2a:  movl $2, %esi
+   2f:  movq %rbx, %rdi
+   32:  callq luaL_checknumber+0
+   37:  ucomisd (%rip), %xmm0   <cst:0000000000000040>
+   3f:  movapd %xmm0, %xmm2
+   43:  jp 0x47
+   45:  je 0xb8
+   47:  ucomisd (%rip), %xmm2   <cst:0000000000002440>
+   4f:  jp 0x80
+   51:  jne 0x80
+   53:  movq %r14, %xmm0
+   58:  callq log10+0
+   5d:  jmp 0x6a
+   5f:  nop
+   60:  movq %r14, %xmm0
+   65:  callq log+0
+   6a:  movq %rbx, %rdi
+   6d:  callq lua_pushnumber+0
+   72:  addq $0x18, %rsp
+   76:  movl $1, %eax
+   7b:  popq %rbx
+   7c:  popq %r14
+   7e:  retq
+   7f:  nop
+   80:  movq %r14, %xmm0
+   85:  movsd %xmm2, 8(%rsp)
+   8b:  callq log+0
+   90:  movsd 8(%rsp), %xmm2
+   96:  movsd %xmm0, (%rsp)
+   9b:  movapd %xmm2, %xmm0
+   9f:  callq log+0
+   a4:  movsd (%rsp), %xmm1
+   a9:  divsd %xmm0, %xmm1
+   ad:  movapd %xmm1, %xmm0
+   b1:  jmp 0x6a
+   b3:  nopl (%rax, %rax)
+   b8:  movq %r14, %xmm0
+   bd:  callq log2+0
+   c2:  jmp 0x6a

@@ -1,0 +1,76 @@
+# esc_char.part.0  (static, 295 bytes, 75 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rsi, %rbp
+    c:  pushq %rbx
+    d:  subq $0x18, %rsp
+   11:  movzbl 1(%rsi), %ebx
+   15:  movq %rdi, 8(%rsp)
+   1a:  movl $0, %edi   <str:"abefnrtv">
+   1f:  movl %ebx, %esi
+   21:  callq strchr+0
+   26:  testq %rax, %rax
+   29:  jne 0xf0
+   2f:  callq __ctype_b_loc+0
+   34:  movq %rax, %rdx
+   37:  movsbq %bl, %rax
+   3b:  movq (%rdx), %rdx
+   3e:  testb $8, 1(%rdx, %rax, 2)
+   43:  jne 0x70
+   45:  movl $2, %eax
+   4a:  cmpb $0x78, %bl
+   4d:  je 0x110
+   53:  movq 8(%rsp), %rcx
+   58:  movl %ebx, (%rcx)
+   5a:  addq $0x18, %rsp
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  popq %r12
+   62:  popq %r13
+   64:  popq %r14
+   66:  popq %r15
+   68:  retq
+   69:  nopl (%rax)
+   70:  cmpb $0x78, %bl
+   73:  sete %r13b
+   77:  sete %r14b
+   7b:  sete %r12b
+   7f:  movzbl %r14b, %r14d
+   83:  movzbl %r12b, %r12d
+   87:  movzbl %r13b, %r13d
+   8b:  leaq 8(, %r14, 8), %r14
+   93:  addl $1, %r12d
+   97:  leal 8(, %r13, 8), %r13d
+   9f:  callq __ctype_tolower_loc+0
+   a4:  movslq %r12d, %r12
+   a7:  xorl %ebx, %ebx
+   a9:  movq (%rax), %r15
+   ac:  jmp 0xbf
+   ae:  nop
+   b0:  imull %r13d, %ebx
+   b4:  subq $0, %rax   <str:"0123456789abcdef">
+   ba:  movq %rdx, %r12
+   bd:  addl %eax, %ebx
+   bf:  movsbq (%rbp, %r12), %rax
+   c5:  movq %r14, %rdx
+   c8:  movl $0, %edi   <str:"0123456789abcdef">
+   cd:  movl (%r15, %rax, 4), %esi
+   d1:  callq memchr+0
+   d6:  leaq 1(%r12), %rdx
+   db:  testq %rax, %rax
+   de:  jne 0xb0
+   e0:  movl %r12d, %eax
+   e3:  jmp 0x53
+   e8:  nopl (%rax, %rax)
+   f0:  subq $0, %rax   <str:"abefnrtv">
+   f6:  movsbl (%rax), %ebx   <str:"\x07\x08\x1b\x0c\n\r\t\x0b">
+   fd:  movl $2, %eax
+  102:  jmp 0x53
+  107:  nopw (%rax, %rax)
+  110:  movl $0x10, %r14d
+  116:  movl $2, %r12d
+  11c:  movl $0x10, %r13d
+  122:  jmp 0x9f

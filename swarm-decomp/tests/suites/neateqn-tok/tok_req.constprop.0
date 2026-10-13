@@ -1,0 +1,56 @@
+# tok_req.constprop.0  (static, 185 bytes, 55 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $0xfa8, %rsp
+    d:  callq src_next+0
+   12:  movl %eax, (%rsp)
+   15:  cmpl $0x2e, %eax
+   18:  je 0x58
+   1a:  movl $1, %ebx
+   1f:  xorl %r12d, %r12d
+   22:  movq %rsp, %rbp
+   25:  movslq %ebx, %rbx
+   28:  nopl (%rax, %rax)
+   30:  movl -4(%rbp, %rbx, 4), %edi
+   34:  subq $1, %rbx
+   38:  callq src_back+0
+   3d:  testl %ebx, %ebx
+   3f:  jne 0x30
+   41:  addq $0xfa8, %rsp
+   48:  movl %r12d, %eax
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  popq %r12
+   4f:  popq %r13
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  callq src_next+0
+   5d:  movl %eax, 4(%rsp)
+   61:  cmpl $0x20, %eax
+   64:  jne 0xaf
+   66:  movl $3, %r12d
+   6c:  movq %rsp, %rbp
+   6f:  nop
+   70:  callq src_next+0
+   75:  movq %r12, %rbx
+   78:  movl %eax, -4(%rbp, %r12, 4)
+   7d:  addq $1, %r12
+   81:  cmpl $0x20, %eax
+   84:  je 0x70
+   86:  xorl %r12d, %r12d
+   89:  cmpl $0x45, %eax
+   8c:  jne 0x25
+   8e:  callq src_next+0
+   93:  leal 1(%rbx), %r13d
+   97:  xorl %r12d, %r12d
+   9a:  movslq %ebx, %rbx
+   9d:  cmpl $0x4e, %eax
+   a0:  movl %eax, (%rsp, %rbx, 4)
+   a3:  movl %r13d, %ebx
+   a6:  sete %r12b
+   aa:  jmp 0x25
+   af:  movl $2, %ebx
+   b4:  movq %rsp, %rbp
+   b7:  jmp 0x86

@@ -1,0 +1,40 @@
+# lua_setfield  (global, 138 bytes, 39 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x28
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jb 0x20
+   18:  movq 0x18(%rdi), %rax
+   1c:  leaq 0x50(%rax), %rsi
+   20:  jmp fn:auxsetstr+0
+   25:  nopl (%rax)
+   28:  cmpl $0xfff0b9d9, %esi
+   2e:  jge 0x70
+   30:  cmpl $0xfff0b9d8, %esi
+   36:  je 0x80
+   38:  movq (%rax), %rax
+   3b:  cmpb $0x66, 8(%rax)
+   3f:  jne 0x18
+   41:  movq (%rax), %rcx
+   44:  movl $0xfff0b9d8, %eax
+   49:  subl %esi, %eax
+   4b:  movzbl 0xa(%rcx), %r8d
+   50:  cmpl %r8d, %eax
+   53:  jg 0x18
+   55:  movl $0xfff0b9d9, %eax
+   5a:  subl %esi, %eax
+   5c:  cltq
+   5e:  shlq $4, %rax
+   62:  leaq (%rcx, %rax), %rsi
+   66:  jmp 0x20
+   68:  nopl (%rax, %rax)
+   70:  movslq %esi, %rsi
+   73:  shlq $4, %rsi
+   77:  addq 0x10(%rdi), %rsi
+   7b:  jmp fn:auxsetstr+0
+   80:  movq 0x18(%rdi), %rax
+   84:  leaq 0x40(%rax), %rsi
+   88:  jmp 0x20

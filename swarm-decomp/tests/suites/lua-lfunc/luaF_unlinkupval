@@ -1,0 +1,9 @@
+# luaF_unlinkupval  (global, 25 bytes, 8 instructions)
+    0:  movq 0x20(%rdi), %rdx
+    4:  movq 0x18(%rdi), %rax
+    8:  movq %rax, (%rdx)
+    b:  testq %rax, %rax
+    e:  je 0x18
+   10:  movq 0x20(%rdi), %rdx
+   14:  movq %rdx, 0x20(%rax)
+   18:  retq

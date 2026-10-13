@@ -1,0 +1,20 @@
+# o_popnum  (global, 74 bytes, 19 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rax   <var:iv_n+0>
+    b:  movq %rdi, %rdx
+    e:  movq (%rip), %rdi   <var:ic+0>
+   15:  leaq -1(%rax), %r8
+   19:  movq (, %r8, 8), %rsi   <var:iv+0>
+   21:  callq ic_num+0
+   26:  testl %eax, %eax
+   28:  jne 0x40
+   2a:  xorl %edx, %edx
+   2c:  testq %r8, %r8
+   2f:  cmovsq %rdx, %r8
+   33:  movq %r8, (%rip)   <var:iv_n+0>
+   3a:  addq $8, %rsp
+   3e:  retq
+   3f:  nop
+   40:  movl $1, %eax
+   45:  addq $8, %rsp
+   49:  retq

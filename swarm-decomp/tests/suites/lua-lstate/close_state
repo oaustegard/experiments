@@ -1,0 +1,34 @@
+# close_state  (static, 113 bytes, 33 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movq 0x18(%rdi), %rbp
+    d:  testb $0xf, 0x58(%rbp)
+   11:  jne 0x27
+   13:  leaq 0x60(%rdi), %rax
+   17:  xorl %edx, %edx
+   19:  movl $1, %esi
+   1e:  movq %rax, 0x20(%rdi)
+   22:  callq luaD_closeprotected+0
+   27:  movq %rbx, %rdi
+   2a:  callq luaC_freeallobjects+0
+   2f:  movq 0x18(%rbx), %rax
+   33:  movq %rbx, %rdi
+   36:  movslq 0x3c(%rax), %rdx
+   3a:  movq 0x30(%rax), %rsi
+   3e:  shlq $3, %rdx
+   42:  callq luaM_free_+0
+   47:  cmpq $0, 0x30(%rbx)
+   4c:  je 0x56
+   4e:  movq %rbx, %rdi
+   51:  callq fn:freestack.part.0+0
+   56:  movq 8(%rbp), %rdi
+   5a:  movq (%rbp), %rax
+   5e:  addq $8, %rsp
+   62:  leaq -8(%rbx), %rsi
+   66:  xorl %ecx, %ecx
+   68:  popq %rbx
+   69:  movl $0x658, %edx
+   6e:  popq %rbp
+   6f:  jmpq *%rax

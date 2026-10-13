@@ -1,0 +1,69 @@
+# luaK_finish  (global, 240 bytes, 68 instructions)
+    0:  movl 0x20(%rdi), %edx
+    3:  movq (%rdi), %r10
+    6:  testl %edx, %edx
+    8:  jle 0x95
+    e:  movq 0x40(%r10), %r8
+   12:  movq %rdi, %r9
+   15:  xorl %esi, %esi
+   17:  movq %r8, %rdi
+   1a:  nopw (%rax, %rax)
+   20:  movl (%rdi), %eax
+   22:  movl %esi, %edx
+   24:  addl $1, %esi
+   27:  movl %eax, %r11d
+   2a:  andl $0x7f, %r11d
+   2e:  cmpl $0x46, %r11d
+   32:  ja 0xa0
+   34:  cmpl $0x44, %r11d
+   38:  ja 0xc0
+   3e:  movl $0x64, %ecx
+   43:  cmpl $0x38, %r11d
+   47:  je 0x66
+   49:  jmp 0x8b
+   4b:  nopl (%rax, %rax)
+   50:  shrl $7, %eax
+   53:  leal -0xfffffe(%rdx, %rax), %edx
+   5a:  subl $1, %ecx
+   5d:  je 0x73
+   5f:  movslq %edx, %rax
+   62:  movl (%r8, %rax, 4), %eax
+   66:  movl %eax, %r11d
+   69:  andl $0x7f, %r11d
+   6d:  cmpl $0x38, %r11d
+   71:  je 0x50
+   73:  subl %esi, %edx
+   75:  addl $0xffffff, %edx
+   7b:  cmpl $0x1ffffff, %edx
+   81:  ja 0xe1
+   83:  shll $7, %edx
+   86:  orl $0x38, %edx
+   89:  movl %edx, (%rdi)
+   8b:  addq $4, %rdi
+   8f:  cmpl %esi, 0x20(%r9)
+   93:  jg 0x20
+   95:  retq
+   96:  nopw %cs:(%rax, %rax)
+   a0:  subl $0x47, %r11d
+   a4:  cmpl $1, %r11d
+   a8:  ja 0x8b
+   aa:  cmpb $0, 0x46(%r9)
+   af:  jne 0xb8
+   b1:  cmpb $0, 0xb(%r10)
+   b6:  je 0x8b
+   b8:  andl $0xffffff80, %eax
+   bb:  orl $0x46, %eax
+   be:  movl %eax, (%rdi)
+   c0:  cmpb $0, 0x46(%r9)
+   c5:  je 0xcd
+   c7:  orl $0x8000, (%rdi)
+   cd:  cmpb $0, 0xb(%r10)
+   d2:  je 0x8b
+   d4:  movzbl 0xa(%r10), %eax
+   d9:  addl $1, %eax
+   dc:  movb %al, 3(%rdi)
+   df:  jmp 0x8b
+   e1:  pushq %rax
+   e2:  movq 0x10(%r9), %rdi
+   e6:  movl $0, %esi   <str:"control structure too long">
+   eb:  callq luaX_syntaxerror+0

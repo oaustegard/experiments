@@ -1,0 +1,64 @@
+# mov_r2r  (static, 205 bytes, 63 instructions)
+    0:  cmpl %esi, %edi
+    2:  je 0x40
+    4:  cmpl $4, %edx
+    7:  je 0x50
+    9:  movl %edx, %ecx
+    b:  andl $0xf, %ecx
+    e:  cmpl $4, %ecx
+   11:  je 0xb4
+   17:  cmpl $2, %ecx
+   1a:  je 0x90
+   1c:  movl $8, %r8d
+   22:  movl $0x8b, %eax
+   27:  cmpl $1, %ecx
+   2a:  je 0x70
+   2c:  movl %esi, %edx
+   2e:  movl %r8d, %ecx
+   31:  movl %edi, %esi
+   33:  movl %eax, %edi
+   35:  jmp fn:op_rr+0
+   3a:  nopw (%rax, %rax)
+   40:  movl %edx, %eax
+   42:  andl $0xf, %eax
+   45:  cmpl $8, %eax
+   48:  jne 4
+   4a:  retq
+   4b:  nopl (%rax, %rax)
+   50:  movl $4, %r8d
+   56:  movl $0x8b, %eax
+   5b:  movl %esi, %edx
+   5d:  movl %edi, %esi
+   5f:  movl %r8d, %ecx
+   62:  movl %eax, %edi
+   64:  jmp fn:op_rr+0
+   69:  nopl (%rax)
+   70:  andl $0x10, %edx
+   73:  movl %r8d, %ecx
+   76:  cmpl $1, %edx
+   79:  movl %esi, %edx
+   7b:  movl %edi, %esi
+   7d:  sbbl %eax, %eax
+   7f:  andl $0xfffffff8, %eax
+   82:  addl $0x10fbe, %eax
+   87:  movl %eax, %edi
+   89:  jmp fn:op_rr+0
+   8e:  nop
+   90:  andl $0x10, %edx
+   93:  movl $8, %r8d
+   99:  cmpl $1, %edx
+   9c:  movl %r8d, %ecx
+   9f:  movl %esi, %edx
+   a1:  movl %edi, %esi
+   a3:  sbbl %eax, %eax
+   a5:  andl $0xfffffff8, %eax
+   a8:  addl $0x10fbf, %eax
+   ad:  movl %eax, %edi
+   af:  jmp fn:op_rr+0
+   b4:  andl $0x10, %edx
+   b7:  movl $8, %r8d
+   bd:  cmpl $1, %edx
+   c0:  sbbl %eax, %eax
+   c2:  andl $0x28, %eax
+   c5:  addl $0x63, %eax
+   c8:  jmp 0x2c

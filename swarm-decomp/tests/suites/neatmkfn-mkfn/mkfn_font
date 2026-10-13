@@ -1,0 +1,55 @@
+# mkfn_font  (global, 182 bytes, 54 instructions)
+    0:  movl (%rip), %eax   <var:idx+0>
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  movq (%rip), %rbx   <var:mkfn_subfont+0>
+   11:  addl $1, %eax
+   14:  movl %eax, (%rip)   <var:idx+0>
+   1a:  testq %rbx, %rbx
+   1d:  je 0xa8
+   23:  movq %rdi, %rbp
+   26:  movq %rbx, %rsi
+   29:  movl $0, %edi   <str:"list">
+   2e:  callq strcmp+0
+   33:  testl %eax, %eax
+   35:  je 0x90
+   37:  movzbl (%rbx), %r12d
+   3b:  testb %r12b, %r12b
+   3e:  jne 0x60
+   40:  movq %rbp, %rsi
+   43:  movq %rbx, %rdi
+   46:  callq strcmp+0
+   4b:  testl %eax, %eax
+   4d:  sete %al
+   50:  movzbl %al, %eax
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  popq %r12
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  callq __ctype_b_loc+0
+   65:  movq (%rax), %rax
+   68:  testb $8, 1(%rax, %r12, 2)
+   6e:  je 0x40
+   70:  xorl %esi, %esi
+   72:  movl $0xa, %edx
+   77:  movq %rbx, %rdi
+   7a:  callq strtol+0
+   7f:  cmpl %eax, (%rip)   <var:idx+0>
+   85:  jne 0x40
+   87:  movl $1, %eax
+   8c:  jmp 0x53
+   8e:  nop
+   90:  movq %rbp, %rdi
+   93:  callq puts+0
+   98:  movq (%rip), %rbx   <var:mkfn_subfont+0>
+   9f:  jmp 0x37
+   a1:  nopl (%rax)
+   a8:  cmpl $1, %eax
+   ab:  popq %rbx
+   ac:  popq %rbp
+   ad:  sete %al
+   b0:  popq %r12
+   b2:  movzbl %al, %eax
+   b5:  retq

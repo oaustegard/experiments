@@ -1,0 +1,173 @@
+# tr_if  (static, 662 bytes, 172 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  subq $0x40, %rsp
+    b:  nopl (%rax, %rax)
+   10:  callq cp_next+0
+   15:  movl %eax, %ebx
+   17:  cmpl $0x20, %eax
+   1a:  je 0x10
+   1c:  cmpl $9, %eax
+   1f:  je 0x10
+   21:  cmpl $0x21, %eax
+   24:  je 0x150
+   2a:  movl %eax, %edi
+   2c:  xorl %r12d, %r12d
+   2f:  callq in_back+0
+   34:  movl %ebx, %esi
+   36:  movl $0, %edi   <str:"oetn">
+   3b:  callq strchr+0
+   40:  testq %rax, %rax
+   43:  je 0xb8
+   45:  callq cp_next+0
+   4a:  cmpl $0x6f, %eax
+   4d:  je 0x1d0
+   53:  cmpl $0x74, %eax
+   56:  je 0x208
+   5c:  cmpl $0x65, %eax
+   5f:  je 0x1a0
+   65:  movq (%rbp), %rdx
+   69:  movl %r12d, %edi
+   6c:  movl %r12d, %eax
+   6f:  xorl $1, %edi
+   72:  cmpb $0x69, 1(%rdx)
+   76:  jne 0x139
+   7c:  nopl (%rax)
+   80:  cmpb $0x65, 2(%rdx)
+   84:  jne 0x139
+   8a:  movslq (%rip), %rdx   <var:ie_depth+0>
+   91:  cmpl $0x7f, %edx
+   94:  jg 0x139
+   9a:  leal 1(%rdx), %ecx
+   9d:  movl %eax, (, %rdx, 4)   <var:ie_cond+0>
+   a4:  movl %ecx, (%rip)   <var:ie_depth+0>
+   aa:  jmp 0x139
+   af:  movl $1, %r12d
+   b5:  nopl (%rax)
+   b8:  callq __ctype_b_loc+0
+   bd:  movq %rax, %rdx
+   c0:  movslq %ebx, %rax
+   c3:  movq (%rdx), %rdx
+   c6:  testb $8, 1(%rdx, %rax, 2)
+   cb:  jne 0xe2
+   cd:  movl %ebx, %esi
+   cf:  movl $0, %edi   <str:"-+*/%<=>&:.|()">
+   d4:  callq strchr+0
+   d9:  testq %rax, %rax
+   dc:  je 0x216
+   e2:  leaq 0x20(%rsp), %rdi
+   e7:  xorl %ebx, %ebx
+   e9:  callq sbuf_init+0
+   ee:  xorl %esi, %esi
+   f0:  leaq 0x20(%rsp), %rdi
+   f5:  callq fn:read_until.constprop.0.isra.0+0
+   fa:  leaq 0x20(%rsp), %rdi
+   ff:  callq sbuf_buf+0
+  104:  xorl %esi, %esi
+  106:  movq %rax, %rdi
+  109:  callq eval+0
+  10e:  leaq 0x20(%rsp), %rdi
+  113:  testl %eax, %eax
+  115:  setg %bl
+  118:  callq sbuf_done+0
+  11d:  xorl %edi, %edi
+  11f:  movl %r12d, %eax
+  122:  cmpl %ebx, %r12d
+  125:  sete %dil
+  129:  xorl %ebx, %eax
+  12b:  movq (%rbp), %rdx
+  12f:  cmpb $0x69, 1(%rdx)
+  133:  je 0x80
+  139:  addq $0x40, %rsp
+  13d:  popq %rbx
+  13e:  popq %rbp
+  13f:  popq %r12
+  141:  jmp cp_blk+0
+  146:  nopw %cs:(%rax, %rax)
+  150:  callq cp_next+0
+  155:  movl %eax, %ebx
+  157:  movl %eax, %edi
+  159:  callq in_back+0
+  15e:  movl %ebx, %esi
+  160:  movl $0, %edi   <str:"oetn">
+  165:  callq strchr+0
+  16a:  testq %rax, %rax
+  16d:  je 0x188
+  16f:  movl $1, %r12d
+  175:  callq cp_next+0
+  17a:  cmpl $0x6f, %eax
+  17d:  jne 0x53
+  183:  jmp 0x1d0
+  185:  nopl (%rax)
+  188:  cmpl $0x20, %ebx
+  18b:  jne 0xaf
+  191:  movl $1, %eax
+  196:  xorl %edi, %edi
+  198:  jmp 0x12b
+  19a:  nopw (%rax, %rax)
+  1a0:  movl $0, %edi   <str:"%">
+  1a5:  callq map+0
+  1aa:  movl %eax, %edi
+  1ac:  callq nreg+0
+  1b1:  xorl %edi, %edi
+  1b3:  movl (%rax), %eax
+  1b5:  notl %eax
+  1b7:  andl $1, %eax
+  1ba:  cmpl %eax, %r12d
+  1bd:  sete %dil
+  1c1:  xorl %r12d, %eax
+  1c4:  jmp 0x12b
+  1c9:  nopl (%rax)
+  1d0:  movl $0, %edi   <str:"%">
+  1d5:  callq map+0
+  1da:  movl %eax, %edi
+  1dc:  callq nreg+0
+  1e1:  xorl %edi, %edi
+  1e3:  movl (%rax), %eax
+  1e5:  movl %eax, %edx
+  1e7:  shrl $0x1f, %edx
+  1ea:  addl %edx, %eax
+  1ec:  andl $1, %eax
+  1ef:  subl %edx, %eax
+  1f1:  cmpl %eax, %r12d
+  1f4:  setne %al
+  1f7:  sete %dil
+  1fb:  movzbl %al, %eax
+  1fe:  jmp 0x12b
+  203:  nopl (%rax, %rax)
+  208:  movl %r12d, %eax
+  20b:  movl %r12d, %edi
+  20e:  xorl $1, %eax
+  211:  jmp 0x12b
+  216:  movl $0, %edx   <in_back+0>
+  21b:  movl $0, %esi   <cp_next+0>
+  220:  leaq 0x20(%rsp), %rdi
+  225:  callq charnext+0
+  22a:  movq %rsp, %rdi
+  22d:  callq sbuf_init+0
+  232:  leaq 0x10(%rsp), %rdi
+  237:  callq sbuf_init+0
+  23c:  leaq 0x20(%rsp), %rsi
+  241:  movq %rsp, %rdi
+  244:  callq fn:read_until.constprop.0.isra.0+0
+  249:  leaq 0x20(%rsp), %rsi
+  24e:  leaq 0x10(%rsp), %rdi
+  253:  callq fn:read_until.constprop.0.isra.0+0
+  258:  callq cp_reqbeg+0
+  25d:  leaq 0x10(%rsp), %rdi
+  262:  callq sbuf_buf+0
+  267:  movq %rsp, %rdi
+  26a:  movq %rax, %rbx
+  26d:  callq sbuf_buf+0
+  272:  movq %rbx, %rsi
+  275:  xorl %ebx, %ebx
+  277:  movq %rax, %rdi
+  27a:  callq strcmp+0
+  27f:  movq %rsp, %rdi
+  282:  testl %eax, %eax
+  284:  sete %bl
+  287:  callq sbuf_done+0
+  28c:  leaq 0x10(%rsp), %rdi
+  291:  jmp 0x118

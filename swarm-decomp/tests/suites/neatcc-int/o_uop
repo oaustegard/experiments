@@ -1,0 +1,42 @@
+# o_uop  (global, 178 bytes, 41 instructions)
+    0:  subq $8, %rsp
+    4:  movq (%rip), %rax   <var:iv_n+0>
+    b:  xorl %ecx, %ecx
+    d:  xorl %edx, %edx
+    f:  subq $1, %rax
+   13:  movslq (, %rax, 8), %rsi   <var:iv+0>
+   1b:  movq %rax, (%rip)   <var:iv_n+0>
+   22:  callq fn:ic_put+0
+   27:  movl $1, %edi
+   2c:  callq opt+0
+   31:  testl %eax, %eax
+   33:  jne 0x40
+   35:  addq $8, %rsp
+   39:  retq
+   3a:  nopw (%rax, %rax)
+   40:  callq fn:io_num.isra.0+0
+   45:  movq (%rip), %rax   <var:iv_n+0>
+   4c:  movq (%rip), %rcx   <var:ic+0>
+   53:  subq $1, %rax
+   57:  movq (, %rax, 8), %rdx   <var:iv+0>
+   5f:  leaq (%rdx, %rdx, 4), %rdx
+   63:  leaq (%rcx, %rdx, 8), %rdx
+   67:  movq 8(%rdx), %rsi
+   6b:  movq (%rdx), %rdx
+   6e:  andl $0xffffff, %edx
+   74:  cmpq $0x102, %rdx
+   7b:  jne 0x35
+   7d:  leaq (%rsi, %rsi, 4), %rdx
+   81:  leaq (%rcx, %rdx, 8), %rcx
+   85:  movq (%rcx), %rdx
+   88:  testb $0x80, %dl
+   8b:  je 0x35
+   8d:  xorl %edi, %edi
+   8f:  testq %rax, %rax
+   92:  cmovsq %rdi, %rax
+   96:  xorq $1, %rdx
+   9a:  movq %rdx, (%rcx)
+   9d:  leaq 1(%rax), %rdx
+   a1:  movq %rsi, (, %rax, 8)   <var:iv+0>
+   a9:  movq %rdx, (%rip)   <var:iv_n+0>
+   b0:  jmp 0x35

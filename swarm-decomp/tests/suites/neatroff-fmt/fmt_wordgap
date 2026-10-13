@@ -1,0 +1,110 @@
+# fmt_wordgap  (static, 354 bytes, 109 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  movl 0x44(%rdi), %r9d
+   11:  testl %r9d, %r9d
+   14:  jne 0xd0
+   1a:  movl 0x48(%rdi), %r12d
+   1e:  movl $0, %edi   <str:".ss">
+   23:  callq map+0
+   28:  movl %eax, %edi
+   2a:  callq nreg+0
+   2f:  movl $0x73, %edi
+   34:  movl (%rax), %r13d
+   37:  callq nreg+0
+   3c:  movl $0x66, %edi
+   41:  movl (%rax), %ebp
+   43:  callq nreg+0
+   48:  movl (%rax), %edi
+   4a:  callq dev_font+0
+   4f:  movl %ebp, %esi
+   51:  movl %r13d, %edx
+   54:  movq %rax, %rdi
+   57:  callq font_swid+0
+   5c:  movl 0x5c(%rbx), %r8d
+   60:  movl %eax, %ebp
+   62:  testl %r8d, %r8d
+   65:  je 0x138
+   6b:  movl 8(%rbx), %edi
+   6e:  testl %edi, %edi
+   70:  je 0x138
+   76:  movl 0x40(%rbx), %eax
+   79:  testl %r12d, %r12d
+   7c:  jne 0x159
+   82:  leal (%rbp, %rbp), %edx
+   86:  cmpl %eax, %edx
+   88:  jne 0x128
+   8e:  movl $0, %edi   <str:".sss">
+   93:  callq map+0
+   98:  movl %eax, %edi
+   9a:  callq nreg+0
+   9f:  movl $0x73, %edi
+   a4:  movl (%rax), %r12d
+   a7:  callq nreg+0
+   ac:  movl $0x66, %edi
+   b1:  movl (%rax), %ebx
+   b3:  callq nreg+0
+   b8:  movl (%rax), %edi
+   ba:  callq dev_font+0
+   bf:  movl %r12d, %edx
+   c2:  movl %ebx, %esi
+   c4:  movq %rax, %rdi
+   c7:  callq font_swid+0
+   cc:  addl %ebp, %eax
+   ce:  jmp 0x128
+   d0:  movl $0, %edi   <str:".ss">
+   d5:  callq map+0
+   da:  movl %eax, %edi
+   dc:  callq nreg+0
+   e1:  movl $0x73, %edi
+   e6:  movl (%rax), %r12d
+   e9:  callq nreg+0
+   ee:  movl $0x66, %edi
+   f3:  movl (%rax), %ebp
+   f5:  callq nreg+0
+   fa:  movl (%rax), %edi
+   fc:  callq dev_font+0
+  101:  movl %ebp, %esi
+  103:  movl %r12d, %edx
+  106:  movq %rax, %rdi
+  109:  callq font_swid+0
+  10e:  movl 0x5c(%rbx), %esi
+  111:  movl 0x40(%rbx), %edx
+  114:  movl %eax, %ebp
+  116:  testl %esi, %esi
+  118:  jne 0x150
+  11a:  movl %edx, %eax
+  11c:  testl %edx, %edx
+  11e:  jne 0x128
+  120:  movl 8(%rbx), %eax
+  123:  testl %eax, %eax
+  125:  cmovnel %ebp, %eax
+  128:  addq $8, %rsp
+  12c:  popq %rbx
+  12d:  popq %rbp
+  12e:  popq %r12
+  130:  popq %r13
+  132:  retq
+  133:  nopl (%rax, %rax)
+  138:  movl 0x40(%rbx), %edx
+  13b:  movl %edx, %eax
+  13d:  testl %r12d, %r12d
+  140:  jne 0x11a
+  142:  addq $8, %rsp
+  146:  popq %rbx
+  147:  popq %rbp
+  148:  popq %r12
+  14a:  popq %r13
+  14c:  retq
+  14d:  nopl (%rax)
+  150:  movl 8(%rbx), %ecx
+  153:  movl %edx, %eax
+  155:  testl %ecx, %ecx
+  157:  je 0x11a
+  159:  testl %eax, %eax
+  15b:  jne 0x128
+  15d:  jmp 0x8e

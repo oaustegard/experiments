@@ -1,0 +1,10 @@
+# lua_pushboolean  (global, 27 bytes, 9 instructions)
+    0:  cmpl $1, %esi
+    3:  movq 0x10(%rdi), %rdx
+    7:  sbbl %eax, %eax
+    9:  andl $0xfffffff0, %eax
+    c:  addq $0x10, %rdx
+   10:  addl $0x11, %eax
+   13:  movb %al, -8(%rdx)
+   16:  movq %rdx, 0x10(%rdi)
+   1a:  retq

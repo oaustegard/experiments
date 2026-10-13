@@ -1,0 +1,28 @@
+# f_write  (static, 97 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq luaL_checkudata+0
+   18:  cmpq $0, 8(%rax)
+   1d:  movq %rax, %rbp
+   20:  je 0x50
+   22:  movq (%rbp), %rbp
+   26:  movq %rbx, %rdi
+   29:  movl $1, %esi
+   2e:  callq lua_pushvalue+0
+   33:  addq $8, %rsp
+   37:  movq %rbx, %rdi
+   3a:  movl $2, %edx
+   3f:  movq %rbp, %rsi
+   42:  popq %rbx
+   43:  popq %rbp
+   44:  jmp fn:g_write+0
+   49:  nopl (%rax)
+   50:  movl $0, %esi   <str:"attempt to use a closed file">
+   55:  movq %rbx, %rdi
+   58:  xorl %eax, %eax
+   5a:  callq luaL_error+0
+   5f:  jmp 0x22

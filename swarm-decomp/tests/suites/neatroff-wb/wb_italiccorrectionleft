@@ -1,0 +1,17 @@
+# wb_italiccorrectionleft  (global, 54 bytes, 16 instructions)
+    0:  movl 0x2068(%rdi), %edx
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  testl %edx, %edx
+    c:  je 0x18
+    e:  movl 0x206c(%rdi), %eax
+   14:  testl %eax, %eax
+   16:  jne 0x28
+   18:  movl $1, 0x64(%rbx)
+   1f:  popq %rbx
+   20:  retq
+   21:  nopl (%rax)
+   28:  callq fn:wb_flushsub.part.0+0
+   2d:  movl $1, 0x64(%rbx)
+   34:  popq %rbx
+   35:  retq

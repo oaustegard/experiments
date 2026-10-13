@@ -1,0 +1,40 @@
+# draws  (global, 138 bytes, 39 instructions)
+    0:  pushq %r13
+    2:  movl %edx, %r13d
+    5:  pushq %r12
+    7:  movl %edi, %r12d
+    a:  pushq %rbp
+    b:  movl %esi, %ebp
+    d:  pushq %rbx
+    e:  movl %ecx, %ebx
+   10:  subq $8, %rsp
+   14:  movl (%rip), %eax   <var:draw_point+0>
+   1a:  testl %eax, %eax
+   1c:  je 0x70
+   1e:  movl (%rip), %edx   <var:o_v+0>
+   24:  subq $8, %rsp
+   28:  movl $0, %edi   <str:"%d %d %d %d %d %d draws ">
+   2d:  xorl %eax, %eax
+   2f:  movl $1, (%rip)   <var:draw_point+0>
+   39:  movl (%rip), %esi   <var:o_h+0>
+   3f:  leal (%rdx, %rbp), %r8d
+   43:  addl %r8d, %ebx
+   46:  leal (%rsi, %r12), %ecx
+   4a:  pushq %rbx
+   4b:  leal (%rcx, %r13), %r9d
+   4f:  callq fn:outf+0
+   54:  addl %r12d, (%rip)   <var:o_h+0>
+   5b:  addl %ebp, (%rip)   <var:o_v+0>
+   61:  addq $0x18, %rsp
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  popq %r12
+   69:  popq %r13
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  movl (%rip), %edx   <var:o_v+0>
+   76:  movl (%rip), %esi   <var:o_h+0>
+   7c:  movl $0, %edi   <str:"%d %d m ">
+   81:  xorl %eax, %eax
+   83:  callq fn:outf+0
+   88:  jmp 0x1e

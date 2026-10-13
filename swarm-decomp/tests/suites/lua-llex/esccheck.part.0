@@ -1,0 +1,31 @@
+# esccheck.part.0  (static, 97 bytes, 30 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movl (%rdi), %esi
+    e:  cmpl $-1, %esi
+   11:  jne 0x28
+   13:  movl $0x124, %edx
+   18:  movq %rbp, %rsi
+   1b:  movq %rbx, %rdi
+   1e:  callq fn:lexerror+0
+   23:  nopl (%rax, %rax)
+   28:  callq fn:save+0
+   2d:  movq 0x40(%rbx), %rdi
+   31:  movq (%rdi), %rax
+   34:  leaq -1(%rax), %rdx
+   38:  movq %rdx, (%rdi)
+   3b:  testq %rax, %rax
+   3e:  je 0x58
+   40:  movq 8(%rdi), %rax
+   44:  leaq 1(%rax), %rdx
+   48:  movq %rdx, 8(%rdi)
+   4c:  movzbl (%rax), %eax
+   4f:  movl %eax, (%rbx)
+   51:  jmp 0x13
+   53:  nopl (%rax, %rax)
+   58:  callq luaZ_fill+0
+   5d:  movl %eax, (%rbx)
+   5f:  jmp 0x13

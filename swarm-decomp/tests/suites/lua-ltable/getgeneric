@@ -1,0 +1,67 @@
+# getgeneric  (static, 198 bytes, 66 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  movq %rsi, %rbp
+    9:  xorl $1, %r12d
+    d:  pushq %rbx
+    e:  movzbl 8(%rsi), %edx
+   12:  movq (%rsi), %rsi
+   15:  callq fn:mainpositionTV.isra.0+0
+   1a:  movq %rax, %rbx
+   1d:  jmp 0x4c
+   1f:  nop
+   20:  cmpb $0xb, %cl
+   23:  jne 0x3c
+   25:  testb $1, %r12b
+   29:  jne 0x3c
+   2b:  testb $0x40, %al
+   2d:  je 0x3c
+   2f:  xorl %eax, %eax
+   31:  cmpq %rdi, 0x10(%rbx)
+   35:  sete %al
+   38:  testl %eax, %eax
+   3a:  jne 0x81
+   3c:  movslq 0xc(%rbx), %rax
+   40:  testl %eax, %eax
+   42:  je 0xbc
+   44:  leaq (%rax, %rax, 2), %rax
+   48:  leaq (%rbx, %rax, 8), %rbx
+   4c:  movzbl 8(%rbp), %eax
+   50:  movzbl 9(%rbx), %ecx
+   54:  movq (%rbp), %rdi
+   58:  cmpb %cl, %al
+   5a:  jne 0x20
+   5c:  cmpb $0x16, %al
+   5e:  ja 0x70
+   60:  jmpq *(, %rax, 8)   <var:getgeneric+0>
+   67:  nopw (%rax, %rax)
+   70:  cmpb $0x54, %al
+   72:  jne 0x2f
+   74:  movq 0x10(%rbx), %rsi
+   78:  callq luaS_eqlngstr+0
+   7d:  testl %eax, %eax
+   7f:  je 0x3c
+   81:  movq %rbx, %rax
+   84:  popq %rbx
+   85:  popq %rbp
+   86:  popq %r12
+   88:  retq
+   89:  nopl (%rax)
+   90:  xorl %eax, %eax
+   92:  cmpq 0x10(%rbx), %rdi
+   96:  sete %al
+   99:  jmp 0x38
+   9b:  nopl (%rax, %rax)
+   a0:  xorl %eax, %eax
+   a2:  movq %rdi, %xmm0
+   a7:  movl $0, %edx
+   ac:  ucomisd 0x10(%rbx), %xmm0
+   b1:  setnp %al
+   b4:  cmovnel %edx, %eax
+   b7:  jmp 0x38
+   bc:  popq %rbx
+   bd:  movl $0, %eax   <var:absentkey+0>
+   c2:  popq %rbp
+   c3:  popq %r12
+   c5:  retq

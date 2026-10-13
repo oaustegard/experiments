@@ -1,0 +1,12 @@
+# hyph_init  (global, 52 bytes, 11 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <pref_make+0>
+    9:  movq %rax, (%rip)   <var:hwpref+0>
+   10:  callq pref_make+0
+   15:  xorl %esi, %esi
+   17:  movl $0x400, %edi
+   1c:  movq %rax, (%rip)   <var:hypref+0>
+   23:  callq dict_make+0
+   28:  movq %rax, (%rip)   <var:hcodedict+0>
+   2f:  addq $8, %rsp
+   33:  retq

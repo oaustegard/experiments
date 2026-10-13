@@ -1,0 +1,37 @@
+# mbox_from_  (static, 102 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  movq %rsi, %rbx
+    4:  testq %rdi, %rdi
+    7:  je 0x35
+    9:  leaq 6(%rdi), %rax
+    d:  cmpq %rbx, %rax
+   10:  jae 0x35
+   12:  cmpb $0x46, (%rdi)
+   15:  je 0x40
+   17:  movq %rbx, %rdx
+   1a:  movl $0xa, %esi
+   1f:  subq %rdi, %rdx
+   22:  callq memchr+0
+   27:  testq %rax, %rax
+   2a:  je 0x37
+   2c:  leaq 7(%rax), %rdx
+   30:  cmpq %rbx, %rdx
+   33:  jb 0x60
+   35:  xorl %eax, %eax
+   37:  popq %rbx
+   38:  retq
+   39:  nopl (%rax)
+   40:  cmpb $0x72, 1(%rdi)
+   44:  jne 0x17
+   46:  cmpb $0x6f, 2(%rdi)
+   4a:  jne 0x17
+   4c:  cmpb $0x6d, 3(%rdi)
+   50:  jne 0x17
+   52:  cmpb $0x20, 4(%rdi)
+   56:  jne 0x17
+   58:  movq %rdi, %rax
+   5b:  popq %rbx
+   5c:  retq
+   5d:  nopl (%rax)
+   60:  leaq 1(%rax), %rdi
+   64:  jmp 4

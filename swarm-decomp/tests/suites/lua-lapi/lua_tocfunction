@@ -1,0 +1,57 @@
+# lua_tocfunction  (global, 189 bytes, 56 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  testl %esi, %esi
+    6:  jle 0x38
+    8:  movslq %esi, %rsi
+    b:  shlq $4, %rsi
+    f:  addq (%rax), %rsi
+   12:  cmpq 0x10(%rdi), %rsi
+   16:  jae 0x51
+   18:  movzbl 8(%rsi), %eax
+   1c:  cmpb $0x16, %al
+   1e:  je 0x61
+   20:  xorl %edx, %edx
+   22:  cmpb $0x66, %al
+   24:  jne 0x2d
+   26:  movq (%rsi), %rax
+   29:  movq 0x18(%rax), %rdx
+   2d:  movq %rdx, %rax
+   30:  retq
+   31:  nopl (%rax)
+   38:  cmpl $0xfff0b9d9, %esi
+   3e:  jge 0x98
+   40:  cmpl $0xfff0b9d8, %esi
+   46:  je 0xb0
+   48:  movq (%rax), %rax
+   4b:  cmpb $0x66, 8(%rax)
+   4f:  je 0x70
+   51:  movq 0x18(%rdi), %rsi
+   55:  movzbl 0x58(%rsi), %eax
+   59:  addq $0x50, %rsi
+   5d:  cmpb $0x16, %al
+   5f:  jne 0x20
+   61:  movq (%rsi), %rdx
+   64:  movq %rdx, %rax
+   67:  retq
+   68:  nopl (%rax, %rax)
+   70:  movq (%rax), %rdx
+   73:  movl $0xfff0b9d8, %eax
+   78:  subl %esi, %eax
+   7a:  movzbl 0xa(%rdx), %ecx
+   7e:  cmpl %ecx, %eax
+   80:  jg 0x51
+   82:  movl $0xfff0b9d9, %eax
+   87:  subl %esi, %eax
+   89:  cltq
+   8b:  shlq $4, %rax
+   8f:  leaq (%rdx, %rax), %rsi
+   93:  jmp 0x18
+   95:  nopl (%rax)
+   98:  movslq %esi, %rsi
+   9b:  shlq $4, %rsi
+   9f:  addq 0x10(%rdi), %rsi
+   a3:  jmp 0x18
+   a8:  nopl (%rax, %rax)
+   b0:  movq 0x18(%rdi), %rsi
+   b4:  addq $0x40, %rsi
+   b8:  jmp 0x18

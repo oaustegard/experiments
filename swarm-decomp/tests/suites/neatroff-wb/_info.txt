@@ -1,0 +1,89 @@
+# neatroff-wb: translation unit wb of neatroff
+# write each function as src/neatroff/wb/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+wb_flushfont	static	577 bytes
+wb_putbuf	static	1076 bytes
+wb_flushsub.part.0	static	1591 bytes
+wb_init	global	60 bytes
+wb_done	global	5 bytes
+wb_flushdir	global	213 bytes
+wb_put.part.0	static	949 bytes
+wb_putc	static	644 bytes
+wb_hmov	global	81 bytes
+wb_vmov	global	81 bytes
+wb_els	global	89 bytes
+wb_etc	global	87 bytes
+wb_put	global	24 bytes
+wb_putraw	global	139 bytes
+wb_putexpand	global	94 bytes
+wb_part	global	4 bytes
+wb_setpart	global	8 bytes
+wb_cost	global	4 bytes
+wb_setcost	global	4 bytes
+wb_drawl	global	245 bytes
+wb_drawc	global	95 bytes
+wb_drawe	global	111 bytes
+wb_drawa	global	234 bytes
+wb_drawxbeg	global	87 bytes
+wb_drawxdot	global	130 bytes
+wb_drawxcmd	global	15 bytes
+wb_drawxend	global	12 bytes
+wb_reset	global	68 bytes
+wb_buf	global	60 bytes
+wb_cat	global	269 bytes
+wb_wid	global	42 bytes
+wb_hpos	global	42 bytes
+wb_vpos	global	42 bytes
+wb_empty	global	38 bytes
+wb_eos	global	100 bytes
+wb_wconf	global	186 bytes
+wb_italiccorrection	global	162 bytes
+wb_italiccorrectionleft	global	54 bytes
+wb_fnszget	global	87 bytes
+wb_fnszset	global	34 bytes
+wb_catstr	global	142 bytes
+wb_hywid	global	143 bytes
+wb_swid	global	97 bytes
+wb_keshideh	global	547 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+keshideh_chars	static	224 bytes	.rodata.keshideh_chars
+    +0     -> str:"\xef\xba\x92"
+    +8     -> str:"\xef\xba\x91"
+    +16    -> str:"\xef\xad\x99"
+    +24    -> str:"\xef\xad\x98"
+    +32    -> str:"\xef\xba\x98"
+    +40    -> str:"\xef\xba\x97"
+    +48    -> str:"\xef\xba\x9c"
+    +56    -> str:"\xef\xba\x9b"
+    +64    -> str:"\xef\xba\xb4"
+    +72    -> str:"\xef\xba\xb3"
+    +80    -> str:"\xef\xba\xb8"
+    +88    -> str:"\xef\xba\xb7"
+    +96    -> str:"\xef\xbb\x94"
+    +104   -> str:"\xef\xbb\x93"
+    +112   -> str:"\xef\xbb\x98"
+    +120   -> str:"\xef\xbb\x97"
+    +128   -> str:"\xef\xae\x91"
+    +136   -> str:"\xef\xae\x90"
+    +144   -> str:"\xef\xae\x95"
+    +152   -> str:"\xef\xae\x94"
+    +160   -> str:"\xef\xbb\xa4"
+    +168   -> str:"\xef\xbb\xa3"
+    +176   -> str:"\xef\xbb\xa8"
+    +184   -> str:"\xef\xbb\xa7"
+    +192   -> str:"\xef\xbb\xac"
+    +200   -> str:"\xef\xbb\xab"
+    +208   -> str:"\xef\xaf\xbf"
+    +216   -> str:"\xef\xaf\xbe"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+c_ec c_eossent c_eostran c_hymark c_hystop cdef_expand clr_get clr_str dev_font dev_glyph dev_res dir_do env_hc escread font_find font_gwid font_layout font_swid font_wid hy_cput hyphenate map memmove memset nreg ren_dcmd sbuf_append sbuf_buf sbuf_done sbuf_empty sbuf_init sbuf_printf strcmp strcpy strlen strtol utf8one

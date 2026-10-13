@@ -1,0 +1,57 @@
+# tr_coa  (static, 176 bytes, 56 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $0x18, %rsp
+    6:  movq 8(%rdi), %rbx
+    a:  movq 0x10(%rdi), %rbp
+    e:  testq %rbx, %rbx
+   11:  je 0x18
+   13:  testq %rbp, %rbp
+   16:  jne 0x20
+   18:  addq $0x18, %rsp
+   1c:  popq %rbx
+   1d:  popq %rbp
+   1e:  retq
+   1f:  nop
+   20:  movq %rbx, %rdi
+   23:  callq map+0
+   28:  movl %eax, %edi
+   2a:  callq str_get+0
+   2f:  testq %rax, %rax
+   32:  je 0x18
+   34:  movq %rsp, %rdi
+   37:  callq sbuf_init+0
+   3c:  movq %rbp, %rdi
+   3f:  callq map+0
+   44:  movl %eax, %edi
+   46:  callq str_get+0
+   4b:  testq %rax, %rax
+   4e:  je 0x6a
+   50:  movq %rbp, %rdi
+   53:  callq map+0
+   58:  movl %eax, %edi
+   5a:  callq str_get+0
+   5f:  movq %rsp, %rdi
+   62:  movq %rax, %rsi
+   65:  callq sbuf_append+0
+   6a:  movq %rbx, %rdi
+   6d:  callq map+0
+   72:  movl %eax, %edi
+   74:  callq str_get+0
+   79:  movq %rsp, %rdi
+   7c:  movq %rax, %rsi
+   7f:  callq sbuf_append+0
+   84:  movq %rsp, %rdi
+   87:  callq sbuf_buf+0
+   8c:  movq %rbp, %rdi
+   8f:  movq %rax, %rbx
+   92:  callq map+0
+   97:  movq %rbx, %rsi
+   9a:  movl %eax, %edi
+   9c:  callq str_set+0
+   a1:  movq %rsp, %rdi
+   a4:  callq sbuf_done+0
+   a9:  addq $0x18, %rsp
+   ad:  popq %rbx
+   ae:  popq %rbp
+   af:  retq

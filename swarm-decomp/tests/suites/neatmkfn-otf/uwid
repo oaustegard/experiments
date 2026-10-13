@@ -1,0 +1,47 @@
+# uwid  (static, 133 bytes, 46 instructions)
+    0:  movl $0x11940, %eax
+    5:  xorl %edx, %edx
+    7:  movl (%rip), %r8d   <var:upm+0>
+    e:  idivl (%rip)   <mkfn_res+0>
+   14:  movl %r8d, %edx
+   17:  imull $0x3e8, %edi, %ecx
+   1d:  shrl $0x1f, %edx
+   20:  movl %eax, %esi
+   22:  testl %edi, %edi
+   24:  js 0x58
+   26:  leal (%rdx, %r8), %eax
+   2a:  sarl $1, %eax
+   2c:  leal (%rax, %rcx), %eax
+   2f:  movl %esi, %ecx
+   31:  cltd
+   32:  sarl $0x1f, %ecx
+   35:  idivl %r8d
+   38:  movslq %esi, %rdx
+   3b:  imulq $0x66666667, %rdx, %rdx
+   42:  sarq $0x23, %rdx
+   46:  subl %ecx, %edx
+   48:  addl %edx, %eax
+   4a:  leal (%rax, %rax, 4), %eax
+   4d:  addl %eax, %eax
+   4f:  cltd
+   50:  idivl %esi
+   52:  retq
+   53:  nopl (%rax, %rax)
+   58:  addl %r8d, %edx
+   5b:  movl %ecx, %eax
+   5d:  movl %esi, %ecx
+   5f:  sarl $1, %edx
+   61:  sarl $0x1f, %ecx
+   64:  subl %edx, %eax
+   66:  cltd
+   67:  idivl %r8d
+   6a:  movslq %esi, %rdx
+   6d:  imulq $0x66666667, %rdx, %rdx
+   74:  sarq $0x23, %rdx
+   78:  subl %edx, %ecx
+   7a:  addl %ecx, %eax
+   7c:  leal (%rax, %rax, 4), %eax
+   7f:  addl %eax, %eax
+   81:  cltd
+   82:  idivl %esi
+   84:  retq

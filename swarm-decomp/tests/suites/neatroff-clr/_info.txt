@@ -1,0 +1,26 @@
+# neatroff-clr: translation unit clr of neatroff
+# write each function as src/neatroff/clr/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+clr_str	global	64 bytes
+clr_get	global	852 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+clr_buf.1	static	32 bytes	.bss.clr_buf.1
+    (zero-initialised)
+colors	static	128 bytes	.rodata.colors
+    +0     -> str:"black"
+    +16    -> str:"red"
+    +32    -> str:"green"
+    +48    -> str:"yellow"
+    +64    -> str:"blue"
+    +80    -> str:"magenta"
+    +96    -> str:"cyan"
+    +112   -> str:"white"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff ff 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 ff ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff ff ff 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc __ctype_tolower_loc sprintf strchr strcmp strlen strtol

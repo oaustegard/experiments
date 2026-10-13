@@ -1,0 +1,9 @@
+# trfn_cdefs  (global, 32 bytes, 8 instructions)
+    0:  pushq %rbx
+    1:  movq (%rip), %rdi   <var:sbuf_char+0>
+    8:  movq (%rip), %rbx   <stdout+0>
+    f:  callq sbuf_buf+0
+   14:  movq %rbx, %rsi
+   17:  popq %rbx
+   18:  movq %rax, %rdi
+   1b:  jmp fputs+0

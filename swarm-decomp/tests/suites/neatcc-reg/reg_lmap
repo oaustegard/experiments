@@ -1,0 +1,23 @@
+# reg_lmap  (global, 70 bytes, 22 instructions)
+    0:  movslq (%rip), %rdx   <var:rgn_n+0>
+    7:  testl %edx, %edx
+    9:  jle 0x40
+    b:  movq (%rip), %rax   <var:rgn+0>
+   12:  leaq (%rdx, %rdx, 4), %rdx
+   16:  leaq (%rax, %rdx, 8), %rdx
+   1a:  jmp 0x29
+   1c:  nopl (%rax)
+   20:  addq $0x28, %rax
+   24:  cmpq %rdx, %rax
+   27:  je 0x40
+   29:  cmpq %rsi, (%rax)
+   2c:  jne 0x20
+   2e:  cmpq %rdi, 8(%rax)
+   32:  jg 0x20
+   34:  cmpq %rdi, 0x10(%rax)
+   38:  jle 0x20
+   3a:  movl 0x20(%rax), %eax
+   3d:  retq
+   3e:  nop
+   40:  movl $0xffffffff, %eax
+   45:  retq

@@ -1,0 +1,45 @@
+# lastname  (static, 127 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movzbl (%rdi), %ebp
+    c:  testb %bpl, %bpl
+    f:  je 0x72
+   11:  callq __ctype_b_loc+0
+   16:  movq %rbx, %rcx
+   19:  movq (%rax), %rsi
+   1c:  movl %ebp, %eax
+   1e:  nop
+   20:  testb $2, 1(%rsi, %rbp, 2)
+   25:  cmoveq %rbx, %rcx
+   29:  jmp 0x3f
+   2b:  nopl (%rax, %rax)
+   30:  leaq 1(%rbx), %rdx
+   34:  cmpb $0x5c, %al
+   36:  je 0x68
+   38:  movzbl 1(%rbx), %eax
+   3c:  movq %rdx, %rbx
+   3f:  testb $0xdf, %al
+   41:  jne 0x30
+   43:  cmpb $0x20, %al
+   45:  jne 0x75
+   47:  nopw (%rax, %rax)
+   50:  movzbl 1(%rbx), %eax
+   54:  addq $1, %rbx
+   58:  cmpb $0x20, %al
+   5a:  je 0x50
+   5c:  testb %al, %al
+   5e:  je 0x75
+   60:  movzbl (%rcx), %ebp
+   63:  jmp 0x20
+   65:  nopl (%rax)
+   68:  movzbl 2(%rbx), %eax
+   6c:  addq $2, %rbx
+   70:  jmp 0x3f
+   72:  movq %rdi, %rcx
+   75:  addq $8, %rsp
+   79:  movq %rcx, %rax
+   7c:  popq %rbx
+   7d:  popq %rbp
+   7e:  retq

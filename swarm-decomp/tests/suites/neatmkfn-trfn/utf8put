@@ -1,0 +1,53 @@
+# utf8put  (static, 159 bytes, 52 instructions)
+    0:  movq (%rdi), %rcx
+    3:  movq %rdi, %rdx
+    6:  leaq 1(%rcx), %r8
+    a:  cmpl $0xffff, %esi
+   10:  jle 0x50
+   12:  movl %esi, %eax
+   14:  movl $2, %edi
+   19:  sarl $0x12, %eax
+   1c:  orl $0xfffffff0, %eax
+   1f:  movq %r8, (%rdx)
+   22:  movb %al, (%rcx)
+   24:  leal (%rdi, %rdi, 2), %ecx
+   27:  addl %ecx, %ecx
+   29:  movq (%rdx), %rdi
+   2c:  leaq 1(%rdi), %rax
+   30:  movq %rax, (%rdx)
+   33:  movl %esi, %eax
+   35:  sarl %cl, %eax
+   37:  subl $6, %ecx
+   3a:  andl $0x3f, %eax
+   3d:  orl $0xffffff80, %eax
+   40:  movb %al, (%rdi)
+   42:  cmpl $-6, %ecx
+   45:  jne 0x29
+   47:  movq (%rdx), %rax
+   4a:  movb $0, (%rax)
+   4d:  retq
+   4e:  nop
+   50:  cmpl $0x7ff, %esi
+   56:  jle 0x70
+   58:  movl %esi, %eax
+   5a:  movl $1, %edi
+   5f:  sarl $0xc, %eax
+   62:  orl $0xffffffe0, %eax
+   65:  jmp 0x1f
+   67:  nopw (%rax, %rax)
+   70:  cmpl $0x7f, %esi
+   73:  jle 0x88
+   75:  movl %esi, %eax
+   77:  xorl %edi, %edi
+   79:  sarl $6, %eax
+   7c:  orl $0xffffffc0, %eax
+   7f:  jmp 0x1f
+   81:  nopl (%rax)
+   88:  movl $0x20, %eax
+   8d:  testl %esi, %esi
+   8f:  movq %r8, (%rdi)
+   92:  cmovlel %eax, %esi
+   95:  movb %sil, (%rcx)
+   98:  movq (%rdx), %rax
+   9b:  movb $0, (%rax)
+   9e:  retq

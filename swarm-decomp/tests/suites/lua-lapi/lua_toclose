@@ -1,0 +1,28 @@
+# lua_toclose  (global, 86 bytes, 27 instructions)
+    0:  pushq %rbp
+    1:  movslq %esi, %rsi
+    4:  pushq %rbx
+    5:  movq %rsi, %rax
+    8:  movq %rdi, %rbx
+    b:  shlq $4, %rsi
+    f:  subq $8, %rsp
+   13:  movq 0x20(%rdi), %rdx
+   17:  testl %eax, %eax
+   19:  jle 0x50
+   1b:  addq (%rdx), %rsi
+   1e:  movzwl 0x3c(%rdx), %ebp
+   22:  movq %rbx, %rdi
+   25:  callq luaF_newtbcupval+0
+   2a:  cmpw $-1, %bp
+   2e:  jl 0x3f
+   30:  movq 0x20(%rbx), %rdx
+   34:  movl $0xfffffffd, %eax
+   39:  subl %ebp, %eax
+   3b:  movw %ax, 0x3c(%rdx)
+   3f:  addq $8, %rsp
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  addq 0x10(%rdi), %rsi
+   54:  jmp 0x1e

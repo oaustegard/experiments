@@ -1,0 +1,36 @@
+# evalshift  (static, 134 bytes, 35 instructions)
+    0:  pushq %rbx
+    1:  callq 6   <fn:evaladd+0>
+    6:  movq %rax, %rbx
+    9:  movl (%rip), %eax   <var:enext+0>
+    f:  cmpl $-1, %eax
+   12:  je 0x30
+   14:  cmpl $0x3c3c00, %eax
+   19:  je 0x70
+   1b:  cmpl $0x3e3e00, %eax
+   20:  je 0x59
+   22:  movq %rbx, %rax
+   25:  popq %rbx
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  callq fn:eval_tok+0
+   35:  movl %eax, (%rip)   <var:enext+0>
+   3b:  cmpl $0x3c3c00, %eax
+   40:  je 0x70
+   42:  cmpl $-1, %eax
+   45:  jne 0x1b
+   47:  callq fn:eval_tok+0
+   4c:  movl %eax, (%rip)   <var:enext+0>
+   52:  cmpl $0x3e3e00, %eax
+   57:  jne 0x22
+   59:  movl $0xffffffff, (%rip)   <var:enext+0>
+   63:  callq fn:evaladd+0
+   68:  movl %eax, %ecx
+   6a:  sarq %cl, %rbx
+   6d:  jmp 9
+   6f:  nop
+   70:  movl $0xffffffff, (%rip)   <var:enext+0>
+   7a:  callq fn:evaladd+0
+   7f:  movl %eax, %ecx
+   81:  shlq %cl, %rbx
+   84:  jmp 9

@@ -1,0 +1,16 @@
+# i_imm  (global, 40 bytes, 15 instructions)
+    0:  leal -1(%rdi), %ecx
+    3:  movl $1, %eax
+    8:  xorl %edx, %edx
+    a:  shll %cl, %eax
+    c:  subl $1, %eax
+    f:  cltq
+   11:  cmpq %rsi, %rax
+   14:  jl 0x25
+   16:  addq $1, %rsi
+   1a:  negq %rax
+   1d:  xorl %edx, %edx
+   1f:  cmpq %rax, %rsi
+   22:  setge %dl
+   25:  movl %edx, %eax
+   27:  retq

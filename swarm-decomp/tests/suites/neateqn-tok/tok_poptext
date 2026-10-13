@@ -1,0 +1,41 @@
+# tok_poptext  (global, 159 bytes, 40 instructions)
+    0:  cmpb $0, (%rip)   <var:tok+0>
+    7:  pushq %rbx
+    8:  movl %edi, %ebx
+    a:  jne 0x70
+    c:  movb $0, (%rip)   <var:tok_prev+0>
+   13:  nopl (%rax, %rax)
+   18:  movl $0, %edi   <var:tok_prev+0>
+   1d:  movl $0, %esi   <var:tok+0>
+   22:  callq strcat+0
+   27:  callq fn:tok_read.isra.0+0
+   2c:  movzbl (%rip), %edi   <var:tok+0>
+   33:  testb %dil, %dil
+   36:  je 0x56
+   38:  cmpl $3, (%rip)   <var:tok_curtype+0>
+   3f:  je 0x56
+   41:  testl %ebx, %ebx
+   43:  jne 0x90
+   45:  movl %edi, %esi
+   47:  movl $0, %edi   <str:"^~{}(),\"\n\t =:|.+-*/\\,()[]<>!">
+   4c:  callq strchr+0
+   51:  testq %rax, %rax
+   54:  je 0x18
+   56:  cmpb $0, (%rip)   <var:tok_prev+0>
+   5d:  movl $0, %eax   <var:tok_prev+0>
+   62:  movl $0, %edx
+   67:  popq %rbx
+   68:  cmoveq %rdx, %rax
+   6c:  retq
+   6d:  nopl (%rax)
+   70:  cmpl $1, (%rip)   <var:tok_curtype+0>
+   77:  jne 0xc
+   79:  callq fn:tok_read.isra.0+0
+   7e:  cmpb $0, (%rip)   <var:tok+0>
+   85:  je 0xc
+   87:  jmp 0x70
+   89:  nopl (%rax)
+   90:  callq def_chopped+0
+   95:  testl %eax, %eax
+   97:  je 0x18
+   9d:  jmp 0x56

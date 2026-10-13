@@ -1,0 +1,40 @@
+# q_put  (static, 163 bytes, 39 instructions)
+    0:  movl (%rip), %eax   <var:out_mlen+0>
+    6:  leal 1(%rax), %edx
+    9:  movl (%rip), %eax   <var:out_mbuf+0>
+    f:  movl %edx, (%rip)   <var:out_mlen+0>
+   15:  shll $8, %eax
+   18:  orl %edi, %eax
+   1a:  movl %eax, (%rip)   <var:out_mbuf+0>
+   20:  cmpl $3, %edx
+   23:  je 0x30
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  movl %eax, %edi
+   32:  movl %eax, %ecx
+   34:  movl %eax, %esi
+   36:  andl $0x3f, %eax
+   39:  shrl $6, %edi
+   3c:  movzbl (%rax), %eax   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   43:  shrl $0xc, %esi
+   46:  movl (%rip), %edx   <var:out_n+0>
+   4c:  andl $0x3f, %edi
+   4f:  andl $0x3f, %esi
+   52:  shrl $0x12, %ecx
+   55:  movl $0, (%rip)   <var:out_mlen+0>
+   5f:  movzbl (%rdi), %edi   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   66:  shll $8, %eax
+   69:  movzbl (%rsi), %esi   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   70:  andl $0x3f, %ecx
+   73:  movzbl (%rcx), %ecx   <str:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/">
+   7a:  movl $0, (%rip)   <var:out_mbuf+0>
+   84:  orl %edi, %eax
+   86:  shll $8, %eax
+   89:  orl %esi, %eax
+   8b:  shll $8, %eax
+   8e:  orl %ecx, %eax
+   90:  movslq %edx, %rcx
+   93:  addl $4, %edx
+   96:  movl %eax, (%rcx)   <var:out+0>
+   9c:  movl %edx, (%rip)   <var:out_n+0>
+   a2:  retq

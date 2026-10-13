@@ -1,0 +1,137 @@
+# luaV_finishset  (global, 468 bytes, 136 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdi, %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  pushq %rbx
+   10:  subq $0x18, %rsp
+   14:  movq %rdx, (%rsp)
+   18:  movq %rcx, 8(%rsp)
+   1d:  testq %r8, %r8
+   20:  je 0x187
+   26:  movq (%rbp), %r14
+   2a:  movq %r8, %r13
+   2d:  movl $0x7d0, %ebx
+   32:  movq 0x28(%r14), %rdi
+   36:  testq %rdi, %rdi
+   39:  je 0x118
+   3f:  testb $2, 0xa(%rdi)
+   43:  jne 0x118
+   49:  movq 0x18(%r12), %rax
+   4e:  movl $1, %esi
+   53:  movq 0x120(%rax), %rdx
+   5a:  callq luaT_gettm+0
+   5f:  movq %rax, %r15
+   62:  testq %rax, %rax
+   65:  je 0x118
+   6b:  movzbl 8(%rax), %edx
+   6f:  movl %edx, %ecx
+   71:  andl $0xf, %ecx
+   74:  cmpb $6, %cl
+   77:  je 0xb1
+   79:  cmpb $0x45, %dl
+   7c:  je 0xe0
+   7e:  subl $1, %ebx
+   81:  je 0x178
+   87:  movl $1, %edx
+   8c:  movq %r15, %rsi
+   8f:  movq %r12, %rdi
+   92:  callq luaT_gettmbyobj+0
+   97:  movzbl 8(%rax), %edx
+   9b:  movl %edx, %ecx
+   9d:  andl $0xf, %ecx
+   a0:  je 0x168
+   a6:  movq %r15, %rbp
+   a9:  movq %rax, %r15
+   ac:  cmpb $6, %cl
+   af:  jne 0x79
+   b1:  movq 8(%rsp), %r8
+   b6:  movq (%rsp), %rcx
+   ba:  addq $0x18, %rsp
+   be:  movq %rbp, %rdx
+   c1:  popq %rbx
+   c2:  movq %r15, %rsi
+   c5:  popq %rbp
+   c6:  movq %r12, %rdi
+   c9:  popq %r12
+   cb:  popq %r13
+   cd:  popq %r14
+   cf:  popq %r15
+   d1:  jmp luaT_callTM+0
+   d6:  nopw %cs:(%rax, %rax)
+   e0:  movq (%r15), %rdi
+   e3:  movq (%rsp), %rsi
+   e7:  callq luaH_get+0
+   ec:  movq %rax, %r13
+   ef:  testb $0xf, 8(%rax)
+   f3:  jne 0x194
+   f9:  subl $1, %ebx
+   fc:  je 0x178
+   fe:  movq %r15, %rbp
+  101:  movq (%rbp), %r14
+  105:  movq 0x28(%r14), %rdi
+  109:  testq %rdi, %rdi
+  10c:  jne 0x3f
+  112:  nopw (%rax, %rax)
+  118:  movq 8(%rsp), %rbx
+  11d:  movq (%rsp), %rdx
+  121:  movq %r13, %rcx
+  124:  movq %r14, %rsi
+  127:  movq %r12, %rdi
+  12a:  movq %rbx, %r8
+  12d:  callq luaH_finishset+0
+  132:  andb $0xc0, 0xa(%r14)
+  137:  testb $0x40, 8(%rbx)
+  13b:  je 0x155
+  13d:  testb $0x20, 9(%r14)
+  142:  je 0x155
+  144:  movq 8(%rsp), %rax
+  149:  movq %r14, %rsi
+  14c:  movq (%rax), %rax
+  14f:  testb $0x18, 9(%rax)
+  153:  jne 0x1be
+  155:  addq $0x18, %rsp
+  159:  popq %rbx
+  15a:  popq %rbp
+  15b:  popq %r12
+  15d:  popq %r13
+  15f:  popq %r14
+  161:  popq %r15
+  163:  retq
+  164:  nopl (%rax)
+  168:  movl $0, %edx   <str:"index">
+  16d:  movq %r15, %rsi
+  170:  movq %r12, %rdi
+  173:  callq luaG_typeerror+0
+  178:  movl $0, %esi   <str:"'__newindex' chain too long; possible loop">
+  17d:  movq %r12, %rdi
+  180:  xorl %eax, %eax
+  182:  callq luaG_runerror+0
+  187:  movq %rsi, %r15
+  18a:  movl $0x7d0, %ebx
+  18f:  jmp 0x87
+  194:  movq 8(%rsp), %rbx
+  199:  movq (%rbx), %rax
+  19c:  movq %rax, (%r13)
+  1a0:  movzbl 8(%rbx), %eax
+  1a4:  movb %al, 8(%r13)
+  1a8:  testb $0x40, %al
+  1aa:  je 0x155
+  1ac:  movq (%r15), %rsi
+  1af:  testb $0x20, 9(%rsi)
+  1b3:  je 0x155
+  1b5:  movq (%rbx), %rax
+  1b8:  testb $0x18, 9(%rax)
+  1bc:  je 0x155
+  1be:  addq $0x18, %rsp
+  1c2:  movq %r12, %rdi
+  1c5:  popq %rbx
+  1c6:  popq %rbp
+  1c7:  popq %r12
+  1c9:  popq %r13
+  1cb:  popq %r14
+  1cd:  popq %r15
+  1cf:  jmp luaC_barrierback_+0

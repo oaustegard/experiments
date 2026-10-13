@@ -1,0 +1,49 @@
+# luaL_typeerror  (global, 150 bytes, 48 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  callq lua_getmetatable+0
+   11:  testl %eax, %eax
+   13:  jne 0x70
+   15:  movl %ebp, %esi
+   17:  movq %rbx, %rdi
+   1a:  callq lua_type+0
+   1f:  movl $0, %ecx   <str:"light userdata">
+   24:  cmpl $2, %eax
+   27:  jne 0x50
+   29:  movq %r12, %rdx
+   2c:  movq %rbx, %rdi
+   2f:  movl $0, %esi   <str:"%s expected, got %s">
+   34:  xorl %eax, %eax
+   36:  callq lua_pushfstring+0
+   3b:  movl %ebp, %esi
+   3d:  movq %rbx, %rdi
+   40:  popq %rbx
+   41:  movq %rax, %rdx
+   44:  popq %rbp
+   45:  popq %r12
+   47:  jmp luaL_argerror+0
+   4c:  nopl (%rax)
+   50:  movl %ebp, %esi
+   52:  movq %rbx, %rdi
+   55:  callq lua_type+0
+   5a:  movq %rbx, %rdi
+   5d:  movl %eax, %esi
+   5f:  callq lua_typename+0
+   64:  movq %rax, %rcx
+   67:  jmp 0x29
+   69:  nopl (%rax)
+   70:  movl $0, %esi   <str:"__name">
+   75:  movq %rbx, %rdi
+   78:  callq fn:luaL_getmetafield.part.0+0
+   7d:  cmpl $4, %eax
+   80:  jne 0x15
+   82:  xorl %edx, %edx
+   84:  movl $0xffffffff, %esi
+   89:  movq %rbx, %rdi
+   8c:  callq lua_tolstring+0
+   91:  movq %rax, %rcx
+   94:  jmp 0x29

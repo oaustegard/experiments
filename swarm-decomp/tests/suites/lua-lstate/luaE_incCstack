@@ -1,0 +1,21 @@
+# luaE_incCstack  (global, 82 bytes, 20 instructions)
+    0:  movl 0xb0(%rdi), %eax
+    6:  addl $1, %eax
+    9:  movl %eax, 0xb0(%rdi)
+    f:  cmpw $0xc7, %ax
+   13:  ja 0x20
+   15:  retq
+   16:  nopw %cs:(%rax, %rax)
+   20:  movzwl %ax, %edx
+   23:  subq $8, %rsp
+   27:  cmpl $0xc8, %edx
+   2d:  je 0x3c
+   2f:  cmpl $0xdb, %edx
+   35:  ja 0x48
+   37:  addq $8, %rsp
+   3b:  retq
+   3c:  movl $0, %esi   <str:"C stack overflow">
+   41:  xorl %eax, %eax
+   43:  callq luaG_runerror+0
+   48:  movl $5, %esi
+   4d:  callq luaD_throw+0

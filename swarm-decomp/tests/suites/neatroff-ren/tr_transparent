@@ -1,0 +1,14 @@
+# tr_transparent  (global, 47 bytes, 13 instructions)
+    0:  movq %rdi, %rax
+    3:  movq (%rip), %rdi   <var:cdiv+0>
+    a:  movq 8(%rax), %rdx
+    e:  testq %rdi, %rdi
+   11:  je 0x20
+   13:  movl $0, %esi   <str:"%s\n">
+   18:  xorl %eax, %eax
+   1a:  jmp sbuf_printf+0
+   1f:  nop
+   20:  movq %rdx, %rsi
+   23:  movl $0, %edi   <str:"%s\n">
+   28:  xorl %eax, %eax
+   2a:  jmp out+0

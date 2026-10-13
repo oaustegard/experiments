@@ -1,0 +1,20 @@
+# neatroff-dict: translation unit dict of neatroff
+# write each function as src/neatroff/dict/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+dict_extend	static	94 bytes
+dict_make	global	93 bytes
+dict_free	global	103 bytes
+dict_put	global	191 bytes
+dict_idx	global	144 bytes
+dict_key	global	12 bytes
+dict_get	global	39 bytes
+pref_make	global	106 bytes
+pref_free	global	39 bytes
+pref_put	global	197 bytes
+pref_prefix	global	198 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+
+## symbols this TU uses but does not define (other TUs, libc)
+calloc free iset_free iset_get iset_make iset_put memcpy mextend strcmp strlen strncmp xmalloc

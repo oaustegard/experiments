@@ -1,0 +1,91 @@
+# luaT_getvarargs  (global, 297 bytes, 90 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rsi, %rbp
+    a:  pushq %rbx
+    b:  movl 0x2c(%rsi), %ebx
+    e:  testl %ecx, %ecx
+   10:  js 0xc0
+   16:  cmpl %ecx, %ebx
+   18:  movl %ecx, %r9d
+   1b:  movl %ecx, %edi
+   1d:  cmovlel %ebx, %r9d
+   21:  testl %r9d, %r9d
+   24:  jle 0xf1
+   2a:  movslq %ebx, %rcx
+   2d:  movslq %r9d, %r8
+   30:  xorl %eax, %eax
+   32:  negq %rcx
+   35:  shlq $4, %r8
+   39:  shlq $4, %rcx
+   3d:  addq (%rbp), %rcx
+   41:  nopl (%rax)
+   48:  movq (%rcx, %rax), %rsi
+   4c:  movq %rsi, (%rdx, %rax)
+   50:  movzbl 8(%rcx, %rax), %esi
+   55:  movb %sil, 8(%rdx, %rax)
+   5a:  addq $0x10, %rax
+   5e:  cmpq %r8, %rax
+   61:  jne 0x48
+   63:  cmpl %r9d, %edi
+   66:  jle 0xb1
+   68:  movslq %r9d, %rcx
+   6b:  subl %r9d, %edi
+   6e:  addq %rcx, %rdi
+   71:  movq %rcx, %rax
+   74:  shlq $4, %rax
+   78:  shlq $4, %rdi
+   7c:  addq %rdx, %rax
+   7f:  addq %rdi, %rdx
+   82:  movq %rdx, %rcx
+   85:  subq %rax, %rcx
+   88:  andl $0x10, %ecx
+   8b:  je 0xa0
+   8d:  movb $0, 8(%rax)
+   91:  addq $0x10, %rax
+   95:  cmpq %rdx, %rax
+   98:  je 0xb1
+   9a:  nopw (%rax, %rax)
+   a0:  movb $0, 8(%rax)
+   a4:  addq $0x20, %rax
+   a8:  movb $0, -8(%rax)
+   ac:  cmpq %rdx, %rax
+   af:  jne 0xa0
+   b1:  popq %rbx
+   b2:  popq %rbp
+   b3:  popq %r12
+   b5:  popq %r13
+   b7:  popq %r14
+   b9:  retq
+   ba:  nopw (%rax, %rax)
+   c0:  movq 0x28(%rdi), %rax
+   c4:  subq 0x10(%rdi), %rax
+   c8:  movslq %ebx, %r13
+   cb:  movq %rdi, %r12
+   ce:  sarq $4, %rax
+   d2:  cmpq %r13, %rax
+   d5:  jle 0xf9
+   d7:  shlq $4, %r13
+   db:  movl %ebx, %r9d
+   de:  movl %ebx, %edi
+   e0:  addq %rdx, %r13
+   e3:  movq %r13, 0x10(%r12)
+   e8:  testl %r9d, %r9d
+   eb:  jg 0x2a
+   f1:  xorl %r9d, %r9d
+   f4:  jmp 0x63
+   f9:  movq 0x18(%rdi), %rax
+   fd:  subq 0x30(%rdi), %rdx
+  101:  movq %rdx, %r14
+  104:  cmpq $0, 0x18(%rax)
+  109:  jle 0x110
+  10b:  callq luaC_step+0
+  110:  movl $1, %edx
+  115:  movl %ebx, %esi
+  117:  movq %r12, %rdi
+  11a:  callq luaD_growstack+0
+  11f:  movq 0x30(%r12), %rdx
+  124:  addq %r14, %rdx
+  127:  jmp 0xd7

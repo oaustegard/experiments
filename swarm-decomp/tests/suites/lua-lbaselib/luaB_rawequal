@@ -1,0 +1,18 @@
+# luaB_rawequal  (static, 62 bytes, 17 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movq %rbx, %rdi
+   11:  movl $2, %esi
+   16:  callq luaL_checkany+0
+   1b:  movq %rbx, %rdi
+   1e:  movl $2, %edx
+   23:  movl $1, %esi
+   28:  callq lua_rawequal+0
+   2d:  movq %rbx, %rdi
+   30:  movl %eax, %esi
+   32:  callq lua_pushboolean+0
+   37:  movl $1, %eax
+   3c:  popq %rbx
+   3d:  retq

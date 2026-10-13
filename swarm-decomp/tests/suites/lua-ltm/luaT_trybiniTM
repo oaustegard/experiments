@@ -1,0 +1,19 @@
+# luaT_trybiniTM  (global, 61 bytes, 18 instructions)
+    0:  subq $0x18, %rsp
+    4:  movl %ecx, %eax
+    6:  movq %r8, %rcx
+    9:  movl %r9d, %r8d
+    c:  movq %rdx, (%rsp)
+   10:  movb $3, 8(%rsp)
+   15:  testl %eax, %eax
+   17:  je 0x30
+   19:  movq %rsi, %rdx
+   1c:  movq %rsp, %rsi
+   1f:  callq luaT_trybinTM+0
+   24:  addq $0x18, %rsp
+   28:  retq
+   29:  nopl (%rax)
+   30:  movq %rsp, %rdx
+   33:  callq luaT_trybinTM+0
+   38:  addq $0x18, %rsp
+   3c:  retq

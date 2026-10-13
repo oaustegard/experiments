@@ -1,0 +1,38 @@
+# luaV_modf  (global, 138 bytes, 37 instructions)
+    0:  subq $0x28, %rsp
+    4:  movsd %xmm0, 0x10(%rsp)
+    a:  movsd %xmm1, 8(%rsp)
+   10:  fldl 8(%rsp)
+   14:  fldl 0x10(%rsp)
+   18:  fprem
+   1a:  fnstsw %ax
+   1c:  testb $4, %ah
+   1f:  jne 0x18
+   21:  fstp %st(1)
+   23:  fstpl 0x18(%rsp)
+   27:  movsd 0x18(%rsp), %xmm2
+   2d:  ucomisd %xmm2, %xmm2
+   31:  jp 0x71
+   33:  pxor %xmm0, %xmm0
+   37:  comisd %xmm0, %xmm2
+   3b:  jbe 0x50
+   3d:  comisd 8(%rsp), %xmm0
+   43:  ja 0x62
+   45:  movapd %xmm2, %xmm0
+   49:  addq $0x28, %rsp
+   4d:  retq
+   4e:  nop
+   50:  comisd %xmm2, %xmm0
+   54:  jbe 0x45
+   56:  movsd 8(%rsp), %xmm5
+   5c:  comisd %xmm0, %xmm5
+   60:  jbe 0x45
+   62:  addsd 8(%rsp), %xmm2
+   68:  addq $0x28, %rsp
+   6c:  movapd %xmm2, %xmm0
+   70:  retq
+   71:  movsd 8(%rsp), %xmm1
+   77:  movsd 0x10(%rsp), %xmm0
+   7d:  callq fmod+0
+   82:  movsd 0x18(%rsp), %xmm2
+   88:  jmp 0x45

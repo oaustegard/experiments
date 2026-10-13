@@ -1,0 +1,44 @@
+# checkupval  (static, 122 bytes, 43 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movl %edx, %r13d
+    9:  pushq %r12
+    b:  movq %rcx, %r12
+    e:  pushq %rbp
+    f:  movl %esi, %ebp
+   11:  movl %edx, %esi
+   13:  pushq %rbx
+   14:  movq %rdi, %rbx
+   17:  subq $8, %rsp
+   1b:  callq luaL_checkinteger+0
+   20:  movl %ebp, %esi
+   22:  movl $6, %edx
+   27:  movq %rbx, %rdi
+   2a:  movq %rax, %r14
+   2d:  callq luaL_checktype+0
+   32:  movl %ebp, %esi
+   34:  movl %r14d, %edx
+   37:  movq %rbx, %rdi
+   3a:  callq lua_upvalueid+0
+   3f:  movq %rax, %rbp
+   42:  testq %r12, %r12
+   45:  je 0x50
+   47:  testq %rax, %rax
+   4a:  je 0x68
+   4c:  movl %r14d, (%r12)
+   50:  addq $8, %rsp
+   54:  movq %rbp, %rax
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  popq %r12
+   5b:  popq %r13
+   5d:  popq %r14
+   5f:  popq %r15
+   61:  retq
+   62:  nopw (%rax, %rax)
+   68:  movl $0, %edx   <str:"invalid upvalue index">
+   6d:  movl %r13d, %esi
+   70:  movq %rbx, %rdi
+   73:  callq luaL_argerror+0
+   78:  jmp 0x4c

@@ -1,0 +1,15 @@
+# mem_get  (global, 42 bytes, 14 instructions)
+    0:  movq (%rdi), %rax
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  testq %rax, %rax
+    a:  je 0x20
+    c:  pxor %xmm0, %xmm0
+   10:  movq $0, 0x10(%rbx)
+   18:  movups %xmm0, (%rbx)
+   1b:  popq %rbx
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  callq fn:mem_extend+0
+   25:  movq (%rbx), %rax
+   28:  jmp 0xc

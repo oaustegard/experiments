@@ -1,0 +1,34 @@
+# luaO_utf8esc  (global, 107 bytes, 33 instructions)
+    0:  movq %rdi, %r9
+    3:  movq %rsi, %rdx
+    6:  cmpq $0x7f, %rsi
+    a:  ja 0x20
+    c:  movb %sil, 7(%rdi)
+   10:  movl $1, %eax
+   15:  retq
+   16:  nopw %cs:(%rax, %rax)
+   20:  leaq 7(%rdi), %rax
+   24:  movl $0x3f, %edi
+   29:  movq %rax, %rcx
+   2c:  nopl (%rax)
+   30:  movl %edx, %esi
+   32:  shrl $1, %edi
+   34:  movq %rcx, %r8
+   37:  subq $1, %rcx
+   3b:  andl $0x3f, %esi
+   3e:  shrq $6, %rdx
+   42:  orl $0xffffff80, %esi
+   45:  movb %sil, 1(%rcx)
+   49:  movl %edi, %esi
+   4b:  cmpq %rdx, %rsi
+   4e:  jb 0x30
+   50:  addl $2, %eax
+   53:  movl $8, %ecx
+   58:  notl %edi
+   5a:  subl %r8d, %eax
+   5d:  addl %edi, %edi
+   5f:  subl %eax, %ecx
+   61:  orl %edx, %edi
+   63:  movslq %ecx, %rcx
+   66:  movb %dil, (%r9, %rcx)
+   6a:  retq

@@ -1,0 +1,93 @@
+# rgn_add  (static, 313 bytes, 92 instructions)
+    0:  pushq %r14
+    2:  movq %rcx, %r14
+    5:  pushq %r13
+    7:  movq %rsi, %r13
+    a:  pushq %r12
+    c:  movq %rdx, %r12
+    f:  movl (%rip), %edx   <var:rgn_n+0>
+   15:  pushq %rbp
+   16:  movq %rdi, %rbp
+   19:  movq (%rip), %rdi   <var:rgn+0>
+   20:  pushq %rbx
+   21:  testl %edx, %edx
+   23:  jle 0x130
+   29:  movslq %edx, %r9
+   2c:  movq %rdi, %rax
+   2f:  leaq (%r9, %r9, 4), %rcx
+   33:  leaq (%rdi, %rcx, 8), %rcx
+   37:  jmp 0x49
+   39:  nopl (%rax)
+   40:  addq $0x28, %rax
+   44:  cmpq %rcx, %rax
+   47:  je 0x88
+   49:  cmpq %rbp, (%rax)
+   4c:  jne 0x40
+   4e:  movq 8(%rax), %rsi
+   52:  cmpq %r12, %rsi
+   55:  jge 0x40
+   57:  movq 0x10(%rax), %r8
+   5b:  cmpq %r13, %r8
+   5e:  jle 0x40
+   60:  cmpq %rsi, %r13
+   63:  movq $18446744073709551615, (%rax)
+   6a:  cmovgq %rsi, %r13
+   6e:  cmpq %r8, %r12
+   71:  cmovlq %r8, %r12
+   75:  addq 0x18(%rax), %r14
+   79:  addq $0x28, %rax
+   7d:  cmpq %rcx, %rax
+   80:  jne 0x49
+   82:  nopw (%rax, %rax)
+   88:  xorl %ebx, %ebx
+   8a:  xorl %eax, %eax
+   8c:  jmp 0x9b
+   8e:  nop
+   90:  addl $1, %eax
+   93:  addq $0x28, %rbx
+   97:  cmpl %edx, %eax
+   99:  je 0xd0
+   9b:  cmpq $0, (%rdi, %rbx)
+   a0:  jns 0x90
+   a2:  cmpl %eax, %edx
+   a4:  je 0xd8
+   a6:  addq %rbx, %rdi
+   a9:  movq %rbp, (%rdi)
+   ac:  movq %r13, 8(%rdi)
+   b0:  movq %r12, 0x10(%rdi)
+   b4:  movq %r14, 0x18(%rdi)
+   b8:  movl $0xffffffff, 0x20(%rdi)
+   bf:  popq %rbx
+   c0:  popq %rbp
+   c1:  popq %r12
+   c3:  popq %r13
+   c5:  popq %r14
+   c7:  retq
+   c8:  nopl (%rax, %rax)
+   d0:  leaq (%r9, %r9, 4), %rbx
+   d4:  shlq $3, %rbx
+   d8:  movl (%rip), %eax   <var:rgn_sz+0>
+   de:  cmpl %edx, %eax
+   e0:  jle 0xf0
+   e2:  addl $1, %edx
+   e5:  movl %edx, (%rip)   <var:rgn_n+0>
+   eb:  jmp 0xa6
+   ed:  nopl (%rax)
+   f0:  movl $0x10, %ecx
+   f5:  addl %eax, %eax
+   f7:  movslq %edx, %rsi
+   fa:  cmpl %ecx, %eax
+   fc:  cmovll %ecx, %eax
+   ff:  movl $0x28, %ecx
+  104:  movl %eax, (%rip)   <var:rgn_sz+0>
+  10a:  cltq
+  10c:  movq %rax, %rdx
+  10f:  callq mextend+0
+  114:  movl (%rip), %edx   <var:rgn_n+0>
+  11a:  movq %rax, (%rip)   <var:rgn+0>
+  121:  movq %rax, %rdi
+  124:  jmp 0xe2
+  126:  nopw %cs:(%rax, %rax)
+  130:  xorl %ebx, %ebx
+  132:  xorl %eax, %eax
+  134:  jmp 0xa2

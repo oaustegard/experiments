@@ -1,0 +1,31 @@
+# ic_load  (static, 104 bytes, 30 instructions)
+    0:  movq (%rip), %rsi   <var:ic+0>
+    7:  leaq (%rdi, %rdi, 4), %rax
+    b:  xorl %edx, %edx
+    d:  movq (%rsi, %rax, 8), %rax
+   11:  testl $0x10000, %eax
+   16:  je 0x58
+   18:  testl $0x700000, %eax
+   1d:  je 0x58
+   1f:  leal 1(%rdi), %eax
+   22:  movq (%rip), %rcx   <var:ic_n+0>
+   29:  cltq
+   2b:  cmpq %rcx, %rax
+   2e:  jge 0x60
+   30:  leaq (%rax, %rax, 4), %rdx
+   34:  leaq (%rsi, %rdx, 8), %rdx
+   38:  jmp 0x4d
+   3a:  nopw (%rax, %rax)
+   40:  addq $1, %rax
+   44:  addq $0x28, %rdx
+   48:  cmpq %rcx, %rax
+   4b:  je 0x60
+   4d:  testq $0x20000, (%rdx)
+   54:  je 0x40
+   56:  xorl %edx, %edx
+   58:  movl %edx, %eax
+   5a:  retq
+   5b:  nopl (%rax, %rax)
+   60:  movl $1, %edx
+   65:  movl %edx, %eax
+   67:  retq

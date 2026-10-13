@@ -1,0 +1,53 @@
+# lua_type  (global, 170 bytes, 52 instructions)
+    0:  movq 0x20(%rdi), %rax
+    4:  movq %rdi, %rdx
+    7:  testl %esi, %esi
+    9:  jle 0x60
+    b:  movslq %esi, %rsi
+    e:  shlq $4, %rsi
+   12:  addq (%rax), %rsi
+   15:  cmpq 0x10(%rdi), %rsi
+   19:  jb 0x3b
+   1b:  movq 0x18(%rdx), %rax
+   1f:  movzbl 0x58(%rax), %eax
+   23:  andl $0xf, %eax
+   26:  je 0x51
+   28:  movzbl %al, %eax
+   2b:  retq
+   2c:  nopl (%rax)
+   30:  movslq %esi, %rsi
+   33:  shlq $4, %rsi
+   37:  addq 0x10(%rdi), %rsi
+   3b:  movzbl 8(%rsi), %eax
+   3f:  andl $0xf, %eax
+   42:  jne 0x28
+   44:  movq 0x18(%rdx), %rdx
+   48:  addq $0x50, %rdx
+   4c:  cmpq %rdx, %rsi
+   4f:  jne 0x28
+   51:  movl $0xffffffff, %eax
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  cmpl $0xfff0b9d9, %esi
+   66:  jge 0x30
+   68:  cmpl $0xfff0b9d8, %esi
+   6e:  je 0xa0
+   70:  movq (%rax), %rax
+   73:  cmpb $0x66, 8(%rax)
+   77:  jne 0x1b
+   79:  movq (%rax), %rcx
+   7c:  movl $0xfff0b9d8, %eax
+   81:  subl %esi, %eax
+   83:  movzbl 0xa(%rcx), %edi
+   87:  cmpl %edi, %eax
+   89:  jg 0x1b
+   8b:  movl $0xfff0b9d9, %eax
+   90:  subl %esi, %eax
+   92:  cltq
+   94:  shlq $4, %rax
+   98:  leaq (%rcx, %rax), %rsi
+   9c:  jmp 0x3b
+   9e:  nop
+   a0:  movq 0x18(%rdi), %rax
+   a4:  leaq 0x40(%rax), %rsi
+   a8:  jmp 0x3b

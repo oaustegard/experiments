@@ -1,0 +1,41 @@
+# msghandler  (static, 134 bytes, 40 instructions)
+    0:  pushq %rbx
+    1:  xorl %edx, %edx
+    3:  movl $1, %esi
+    8:  movq %rdi, %rbx
+    b:  callq lua_tolstring+0
+   10:  movq %rax, %rdx
+   13:  testq %rax, %rax
+   16:  je 0x30
+   18:  movl $1, %ecx
+   1d:  movq %rbx, %rsi
+   20:  movq %rbx, %rdi
+   23:  callq luaL_traceback+0
+   28:  movl $1, %eax
+   2d:  popq %rbx
+   2e:  retq
+   2f:  nop
+   30:  movl $0, %edx   <str:"__tostring">
+   35:  movl $1, %esi
+   3a:  movq %rbx, %rdi
+   3d:  callq luaL_callmeta+0
+   42:  testl %eax, %eax
+   44:  je 0x58
+   46:  movl $0xffffffff, %esi
+   4b:  movq %rbx, %rdi
+   4e:  callq lua_type+0
+   53:  cmpl $4, %eax
+   56:  je 0x28
+   58:  movl $1, %esi
+   5d:  movq %rbx, %rdi
+   60:  callq lua_type+0
+   65:  movq %rbx, %rdi
+   68:  movl %eax, %esi
+   6a:  callq lua_typename+0
+   6f:  movl $0, %esi   <str:"(error object is a %s value)">
+   74:  movq %rbx, %rdi
+   77:  movq %rax, %rdx
+   7a:  xorl %eax, %eax
+   7c:  callq lua_pushfstring+0
+   81:  movq %rax, %rdx
+   84:  jmp 0x18

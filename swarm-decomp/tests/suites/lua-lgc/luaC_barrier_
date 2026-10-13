@@ -1,0 +1,29 @@
+# luaC_barrier_  (global, 98 bytes, 28 instructions)
+    0:  movq 0x18(%rdi), %rdi
+    4:  movq %rsi, %r8
+    7:  cmpb $2, 0x65(%rdi)
+    b:  jbe 0x38
+    d:  cmpb $0, 0x66(%rdi)
+   11:  jne 0x30
+   13:  movzbl 9(%rsi), %eax
+   17:  movzbl 0x64(%rdi), %edx
+   1b:  andl $0xffffffc7, %eax
+   1e:  andl $0x18, %edx
+   21:  orl %edx, %eax
+   23:  movb %al, 9(%rsi)
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  retq
+   31:  nopl (%rax)
+   38:  subq $8, %rsp
+   3c:  movq %rdx, %rsi
+   3f:  movq %rdx, %r9
+   42:  callq fn:reallymarkobject+0
+   47:  testb $6, 9(%r8)
+   4c:  je 0x5d
+   4e:  movzbl 9(%r9), %eax
+   53:  andl $0xfffffff8, %eax
+   56:  orl $2, %eax
+   59:  movb %al, 9(%r9)
+   5d:  addq $8, %rsp
+   61:  retq

@@ -1,0 +1,38 @@
+# fonttype  (static, 118 bytes, 37 instructions)
+    0:  pushq %rbp
+    1:  movl $0x2e, %esi
+    6:  movl $0x31, %ebp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq strrchr+0
+   15:  testq %rax, %rax
+   18:  je 0x6d
+   1a:  movq %rax, %rsi
+   1d:  movl $0, %edi   <str:".ttf">
+   22:  movq %rax, %rbx
+   25:  movl $0x74, %ebp
+   2a:  callq strcmp+0
+   2f:  testl %eax, %eax
+   31:  je 0x6d
+   33:  movq %rbx, %rsi
+   36:  movl $0, %edi   <str:".otf">
+   3b:  callq strcmp+0
+   40:  testl %eax, %eax
+   42:  je 0x6d
+   44:  movq %rbx, %rsi
+   47:  movl $0, %edi   <str:".ttc">
+   4c:  callq strcmp+0
+   51:  testl %eax, %eax
+   53:  je 0x6d
+   55:  movq %rbx, %rsi
+   58:  movl $0, %edi   <str:".otc">
+   5d:  callq strcmp+0
+   62:  cmpl $1, %eax
+   65:  sbbl %ebp, %ebp
+   67:  andl $0x43, %ebp
+   6a:  addl $0x31, %ebp
+   6d:  addq $8, %rsp
+   71:  movl %ebp, %eax
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  retq

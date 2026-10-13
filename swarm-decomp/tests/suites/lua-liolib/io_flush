@@ -1,0 +1,35 @@
+# io_flush  (static, 118 bytes, 34 instructions)
+    0:  pushq %rbp
+    1:  movl $0, %edx   <str:"_IO_output">
+    6:  movl $0xfff0b9d8, %esi
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $8, %rsp
+   13:  callq lua_getfield+0
+   18:  movl $0xffffffff, %esi
+   1d:  movq %rbx, %rdi
+   20:  callq lua_touserdata+0
+   25:  cmpq $0, 8(%rax)
+   2a:  movq %rax, %rbp
+   2d:  je 0x60
+   2f:  callq __errno_location+0
+   34:  movq (%rbp), %rbp
+   38:  movl $0, (%rax)
+   3e:  movq %rbp, %rdi
+   41:  callq fflush+0
+   46:  xorl %esi, %esi
+   48:  movq %rbx, %rdi
+   4b:  testl %eax, %eax
+   4d:  sete %sil
+   51:  addq $8, %rsp
+   55:  xorl %edx, %edx
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  jmp luaL_fileresult+0
+   5e:  nop
+   60:  movl $0, %edx   <str:"output">
+   65:  movl $0, %esi   <str:"default %s file is closed">
+   6a:  movq %rbx, %rdi
+   6d:  xorl %eax, %eax
+   6f:  callq luaL_error+0
+   74:  jmp 0x2f

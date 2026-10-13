@@ -1,0 +1,35 @@
+# luaG_callerror  (global, 121 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $0x10, %rsp
+    e:  movq 0x20(%rdi), %rsi
+   12:  movq $0, 8(%rsp)
+   1b:  leaq 8(%rsp), %rdx
+   20:  callq fn:funcnamefromcall+0
+   25:  testq %rax, %rax
+   28:  je 0x69
+   2a:  movq 8(%rsp), %rcx
+   2f:  movq %rax, %rdx
+   32:  movl $0, %esi   <str:" (%s '%s')">
+   37:  movq %rbx, %rdi
+   3a:  xorl %eax, %eax
+   3c:  callq luaO_pushfstring+0
+   41:  movq %rax, %r12
+   44:  movq %rbp, %rsi
+   47:  movq %rbx, %rdi
+   4a:  callq luaT_objtypename+0
+   4f:  movq %r12, %r8
+   52:  movl $0, %edx   <str:"call">
+   57:  movq %rbx, %rdi
+   5a:  movq %rax, %rcx
+   5d:  movl $0, %esi   <str:"attempt to %s a %s value%s">
+   62:  xorl %eax, %eax
+   64:  callq luaG_runerror+0
+   69:  movq %rbp, %rsi
+   6c:  movq %rbx, %rdi
+   6f:  callq fn:varinfo+0
+   74:  movq %rax, %r12
+   77:  jmp 0x44

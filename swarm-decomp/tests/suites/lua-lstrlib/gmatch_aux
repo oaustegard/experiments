@@ -1,0 +1,84 @@
+# gmatch_aux  (static, 244 bytes, 83 instructions)
+    0:  pushq %r14
+    2:  movl $0xfff0b9d5, %esi
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  callq lua_touserdata+0
+   15:  movq %rbx, 0x30(%rax)
+   19:  movq (%rax), %r12
+   1c:  cmpq %r12, 0x20(%rax)
+   20:  jb 0x5b
+   22:  movq %rax, %rbp
+   25:  leaq 0x18(%rax), %r13
+   29:  nopl (%rax)
+   30:  movb $0, 0x3c(%rbp)
+   34:  movq 8(%rbp), %rdx
+   38:  movq %r12, %rsi
+   3b:  movq %r13, %rdi
+   3e:  callq fn:match+0
+   43:  movq %rax, %rbx
+   46:  testq %rax, %rax
+   49:  je 0x51
+   4b:  cmpq %rax, 0x10(%rbp)
+   4f:  jne 0x70
+   51:  addq $1, %r12
+   55:  cmpq %r12, 0x20(%rbp)
+   59:  jae 0x30
+   5b:  xorl %r14d, %r14d
+   5e:  popq %rbx
+   5f:  popq %rbp
+   60:  movl %r14d, %eax
+   63:  popq %r12
+   65:  popq %r13
+   67:  popq %r14
+   69:  retq
+   6a:  nopw (%rax, %rax)
+   70:  movzbl 0x3c(%rbp), %r14d
+   75:  movq %rax, 0x10(%rbp)
+   79:  movl $0, %edx   <str:"too many captures">
+   7e:  movq %rax, (%rbp)
+   82:  movq 0x30(%rbp), %rdi
+   86:  testb %r14b, %r14b
+   89:  jne 0xc0
+   8b:  testq %r12, %r12
+   8e:  je 0xc0
+   90:  movl $1, %esi
+   95:  movl $1, %r14d
+   9b:  callq luaL_checkstack+0
+   a0:  movq %rbx, %rcx
+   a3:  movq %r12, %rdx
+   a6:  movq %r13, %rdi
+   a9:  xorl %esi, %esi
+   ab:  callq fn:push_onecapture+0
+   b0:  popq %rbx
+   b1:  movl %r14d, %eax
+   b4:  popq %rbp
+   b5:  popq %r12
+   b7:  popq %r13
+   b9:  popq %r14
+   bb:  retq
+   bc:  nopl (%rax)
+   c0:  movl %r14d, %esi
+   c3:  callq luaL_checkstack+0
+   c8:  testl %r14d, %r14d
+   cb:  je 0x5b
+   cd:  xorl %ebp, %ebp
+   cf:  nop
+   d0:  movl %ebp, %esi
+   d2:  movq %rbx, %rcx
+   d5:  movq %r12, %rdx
+   d8:  movq %r13, %rdi
+   db:  callq fn:push_onecapture+0
+   e0:  addl $1, %ebp
+   e3:  cmpl %ebp, %r14d
+   e6:  jne 0xd0
+   e8:  popq %rbx
+   e9:  movl %r14d, %eax
+   ec:  popq %rbp
+   ed:  popq %r12
+   ef:  popq %r13
+   f1:  popq %r14
+   f3:  retq

@@ -1,0 +1,37 @@
+# lua-linit: translation unit linit of lua
+# write each function as src/lua/linit/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+luaL_openlibs	global	73 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+loadedlibs	static	176 bytes	.rodata.loadedlibs
+    +0     -> str:"_G"
+    +8     -> luaopen_base+0
+    +16    -> str:"package"
+    +24    -> luaopen_package+0
+    +32    -> str:"coroutine"
+    +40    -> luaopen_coroutine+0
+    +48    -> str:"table"
+    +56    -> luaopen_table+0
+    +64    -> str:"io"
+    +72    -> luaopen_io+0
+    +80    -> str:"os"
+    +88    -> luaopen_os+0
+    +96    -> str:"string"
+    +104   -> luaopen_string+0
+    +112   -> str:"math"
+    +120   -> luaopen_math+0
+    +128   -> str:"utf8"
+    +136   -> luaopen_utf8+0
+    +144   -> str:"debug"
+    +152   -> luaopen_debug+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaL_requiref lua_settop luaopen_base luaopen_coroutine luaopen_debug luaopen_io luaopen_math luaopen_os luaopen_package luaopen_string luaopen_table luaopen_utf8

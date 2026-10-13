@@ -1,0 +1,28 @@
+# sbuf_rep  (global, 67 bytes, 27 instructions)
+    0:  movq %rdi, %rax
+    3:  pushq %r12
+    5:  movl %edx, %r12d
+    8:  pushq %rbp
+    9:  movl %esi, %ebp
+    b:  pushq %rbx
+    c:  movq (%rdi), %rdi
+    f:  movslq 8(%rax), %rbx
+   13:  addq %rdi, %rbx
+   16:  cmpq %rbx, %rdi
+   19:  jb 0x2c
+   1b:  jmp 0x3e
+   1d:  nopl (%rax)
+   20:  leaq 1(%rax), %rdi
+   24:  movb %r12b, (%rax)
+   27:  cmpq %rbx, %rdi
+   2a:  jae 0x3e
+   2c:  movq %rbx, %rdx
+   2f:  movl %ebp, %esi
+   31:  subq %rdi, %rdx
+   34:  callq memchr+0
+   39:  testq %rax, %rax
+   3c:  jne 0x20
+   3e:  popq %rbx
+   3f:  popq %rbp
+   40:  popq %r12
+   42:  retq

@@ -1,0 +1,23 @@
+# luaC_newobjdt  (global, 58 bytes, 22 instructions)
+    0:  pushq %r12
+    2:  movq %rcx, %r12
+    5:  pushq %rbp
+    6:  movq 0x18(%rdi), %rbp
+    a:  pushq %rbx
+    b:  movl %esi, %ebx
+    d:  movq %rdx, %rsi
+   10:  movl %ebx, %edx
+   12:  andl $0xf, %edx
+   15:  callq luaM_malloc_+0
+   1a:  movzbl 0x64(%rbp), %edx
+   1e:  addq %r12, %rax
+   21:  andl $0x18, %edx
+   24:  movb %bl, 8(%rax)
+   27:  movb %dl, 9(%rax)
+   2a:  movq 0x70(%rbp), %rdx
+   2e:  movq %rdx, (%rax)
+   31:  movq %rax, 0x70(%rbp)
+   35:  popq %rbx
+   36:  popq %rbp
+   37:  popq %r12
+   39:  retq

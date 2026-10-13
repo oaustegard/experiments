@@ -1,0 +1,24 @@
+# luaF_getlocalname  (global, 64 bytes, 23 instructions)
+    0:  movslq 0x24(%rdi), %rcx
+    4:  testl %ecx, %ecx
+    6:  jle 0x30
+    8:  movq 0x68(%rdi), %rax
+    c:  shlq $4, %rcx
+   10:  addq %rax, %rcx
+   13:  jmp 0x2b
+   15:  nopl (%rax)
+   18:  cmpl %edx, 0xc(%rax)
+   1b:  jle 0x22
+   1d:  subl $1, %esi
+   20:  je 0x38
+   22:  addq $0x10, %rax
+   26:  cmpq %rcx, %rax
+   29:  je 0x30
+   2b:  cmpl %edx, 8(%rax)
+   2e:  jle 0x18
+   30:  xorl %eax, %eax
+   32:  retq
+   33:  nopl (%rax, %rax)
+   38:  movq (%rax), %rax
+   3b:  addq $0x18, %rax
+   3f:  retq

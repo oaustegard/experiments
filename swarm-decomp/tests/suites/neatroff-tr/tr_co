@@ -1,0 +1,34 @@
+# tr_co  (static, 94 bytes, 33 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 8(%rdi), %rbx
+    a:  movq 0x10(%rdi), %rbp
+    e:  testq %rbx, %rbx
+   11:  je 0x18
+   13:  testq %rbp, %rbp
+   16:  jne 0x20
+   18:  addq $8, %rsp
+   1c:  popq %rbx
+   1d:  popq %rbp
+   1e:  retq
+   1f:  nop
+   20:  movq %rbx, %rdi
+   23:  callq map+0
+   28:  movl %eax, %edi
+   2a:  callq str_get+0
+   2f:  testq %rax, %rax
+   32:  je 0x18
+   34:  movq %rbx, %rdi
+   37:  callq map+0
+   3c:  movl %eax, %edi
+   3e:  callq str_get+0
+   43:  movq %rbp, %rdi
+   46:  movq %rax, %rbx
+   49:  callq map+0
+   4e:  addq $8, %rsp
+   52:  movq %rbx, %rsi
+   55:  movl %eax, %edi
+   57:  popq %rbx
+   58:  popq %rbp
+   59:  jmp str_set+0

@@ -1,0 +1,90 @@
+# ex_lineno  (static, 316 bytes, 89 instructions)
+    0:  pushq %r12
+    2:  movl (%rip), %r12d   <var:pos+0>
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  movzbl (%rdi), %ebp
+   11:  callq __ctype_b_loc+0
+   16:  movsbq %bpl, %rdx
+   1a:  movq (%rax), %rax
+   1d:  testb $8, 1(%rax, %rdx, 2)
+   22:  jne 0xc0
+   28:  cmpb $0x24, %bpl
+   2c:  je 0xdf
+   32:  cmpb $0x2d, %bpl
+   36:  je 0xa0
+   38:  cmpb $0x2b, %bpl
+   3c:  je 0x58
+   3e:  cmpb $0x2f, %bpl
+   42:  jne 0x86
+   44:  cmpb $0, 1(%rbx)
+   48:  jne 0x78
+   4a:  movl %r12d, %eax
+   4d:  popq %rbx
+   4e:  popq %rbp
+   4f:  popq %r12
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  cmpb $0, 1(%rbx)
+   5c:  jne 0x100
+   62:  movl (%rip), %eax   <var:pos+0>
+   68:  popq %rbx
+   69:  popq %rbp
+   6a:  leal 1(%rax), %r12d
+   6e:  movl %r12d, %eax
+   71:  popq %r12
+   73:  retq
+   74:  nopl (%rax)
+   78:  movq %rbx, %rdi
+   7b:  callq fn:ex_search+0
+   80:  movzbl (%rbx), %ebp
+   83:  movl %eax, %r12d
+   86:  cmpb $0x3f, %bpl
+   8a:  jne 0x4a
+   8c:  cmpb $0, 1(%rbx)
+   90:  je 0x4a
+   92:  movq %rbx, %rdi
+   95:  popq %rbx
+   96:  popq %rbp
+   97:  popq %r12
+   99:  jmp fn:ex_search+0
+   9e:  nop
+   a0:  cmpb $0, 1(%rbx)
+   a4:  movl (%rip), %r12d   <var:pos+0>
+   ab:  jne 0x128
+   ad:  subl $1, %r12d
+   b1:  popq %rbx
+   b2:  popq %rbp
+   b3:  movl %r12d, %eax
+   b6:  popq %r12
+   b8:  retq
+   b9:  nopl (%rax)
+   c0:  movl $0xa, %edx
+   c5:  xorl %esi, %esi
+   c7:  movq %rbx, %rdi
+   ca:  callq strtol+0
+   cf:  movzbl (%rbx), %ebp
+   d2:  movl %eax, %r12d
+   d5:  cmpb $0x24, %bpl
+   d9:  jne 0x32
+   df:  movq (%rip), %rdi   <var:mbox+0>
+   e6:  callq mbox_len+0
+   eb:  movzbl (%rbx), %ebp
+   ee:  leal -1(%rax), %r12d
+   f2:  jmp 0x32
+   f7:  nopw (%rax, %rax)
+  100:  leaq 1(%rbx), %rdi
+  104:  callq 0
+  109:  movzbl (%rbx), %ebp
+  10c:  addl (%rip), %eax   <var:pos+0>
+  112:  movl %eax, %r12d
+  115:  cmpb $0x2f, %bpl
+  119:  je 0x44
+  11f:  jmp 0x86
+  124:  nopl (%rax)
+  128:  leaq 1(%rbx), %rdi
+  12c:  callq 0
+  131:  movzbl (%rbx), %ebp
+  134:  subl %eax, %r12d
+  137:  jmp 0x38

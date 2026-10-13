@@ -1,0 +1,29 @@
+# put_from_  (static, 116 bytes, 28 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x90, %rsp
+    b:  leaq 8(%rsp), %rdi
+   10:  callq time+0
+   15:  leaq 8(%rsp), %rdi
+   1a:  callq localtime+0
+   1f:  movl $0, %edx   <str:"%a %b %d %H:%M:%S %Y">
+   24:  movl $0x80, %esi
+   29:  leaq 0x10(%rsp), %rdi
+   2e:  movq %rax, %rcx
+   31:  callq strftime+0
+   36:  movl $0, %edi   <str:"LOGNAME">
+   3b:  callq getenv+0
+   40:  movl $0, %edx   <str:"me">
+   45:  testq %rax, %rax
+   48:  je 0x57
+   4a:  movl $0, %edi   <str:"LOGNAME">
+   4f:  callq getenv+0
+   54:  movq %rax, %rdx
+   57:  leaq 0x10(%rsp), %rcx
+   5c:  movq %rbx, %rdi
+   5f:  movl $0, %esi   <str:"From %s %s\n">
+   64:  xorl %eax, %eax
+   66:  callq sbuf_printf+0
+   6b:  addq $0x90, %rsp
+   72:  popq %rbx
+   73:  retq

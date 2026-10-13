@@ -1,0 +1,7 @@
+# lua_setglobal  (global, 24 bytes, 6 instructions)
+    0:  movq 0x18(%rdi), %rax
+    4:  movq %rsi, %rdx
+    7:  movq 0x40(%rax), %rax
+    b:  movq 0x10(%rax), %rax
+    f:  leaq 0x10(%rax), %rsi
+   13:  jmp fn:auxsetstr+0

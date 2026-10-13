@@ -1,0 +1,29 @@
+# tr_fc  (global, 115 bytes, 28 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq 8(%rdi), %rax
+    8:  movq 0x10(%rdi), %rdx
+    c:  movq %rax, (%rsp)
+   10:  movq %rdx, 8(%rsp)
+   15:  testq %rax, %rax
+   18:  je 0x60
+   1a:  movl $0, %esi   <var:c_fa+0>
+   1f:  movq %rsp, %rdi
+   22:  callq charread+0
+   27:  testl %eax, %eax
+   29:  js 0x60
+   2b:  cmpq $0, 8(%rsp)
+   31:  je 0x46
+   33:  movl $0, %esi   <var:c_fb+0>
+   38:  leaq 8(%rsp), %rdi
+   3d:  callq charread+0
+   42:  testl %eax, %eax
+   44:  jns 0x6e
+   46:  movl $0x20, %eax
+   4b:  movw %ax, (%rip)   <var:c_fb+0>
+   52:  addq $0x18, %rsp
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  movb $0, (%rip)   <var:c_fa+0>
+   67:  movb $0, (%rip)   <var:c_fb+0>
+   6e:  addq $0x18, %rsp
+   72:  retq

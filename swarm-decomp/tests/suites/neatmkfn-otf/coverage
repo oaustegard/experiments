@@ -1,0 +1,79 @@
+# coverage  (static, 251 bytes, 78 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movq %rdi, %r12
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  movzwl (%rdi), %r13d
+   14:  movzwl 2(%rdi), %ebx
+   18:  movslq (%rip), %rdi   <var:glyph_n+0>
+   1f:  rolw $8, %r13w
+   24:  rolw $8, %bx
+   28:  shlq $2, %rdi
+   2c:  movzwl %r13w, %r13d
+   30:  movzwl %bx, %ebx
+   33:  callq malloc+0
+   38:  movq %rax, %r8
+   3b:  cmpl $1, %r13d
+   3f:  je 0xd0
+   45:  cmpl $2, %r13d
+   49:  jne 0xb0
+   4b:  testl %ebx, %ebx
+   4d:  je 0xb2
+   4f:  leal -1(%rbx), %eax
+   52:  leaq 4(%r12), %r9
+   57:  xorl %ebx, %ebx
+   59:  leaq (%rax, %rax, 2), %rax
+   5d:  leaq 0xa(%r12, %rax, 2), %r10
+   62:  nopw (%rax, %rax)
+   68:  movzwl (%r9), %esi
+   6c:  movzwl 2(%r9), %edi
+   71:  rolw $8, %si
+   75:  rolw $8, %di
+   79:  movzwl %si, %esi
+   7c:  movzwl %di, %edi
+   7f:  movl %esi, %eax
+   81:  cmpl %edi, %esi
+   83:  jg 0xa3
+   85:  movslq %ebx, %rdx
+   88:  leal 1(%rdi), %ecx
+   8b:  leaq (%r8, %rdx, 4), %rdx
+   8f:  nop
+   90:  movl %eax, (%rdx)
+   92:  addl $1, %eax
+   95:  addq $4, %rdx
+   99:  cmpl %ecx, %eax
+   9b:  jne 0x90
+   9d:  leal 1(%rbx, %rdi), %ebx
+   a1:  subl %esi, %ebx
+   a3:  addq $6, %r9
+   a7:  cmpq %r9, %r10
+   aa:  jne 0x68
+   ac:  jmp 0xb2
+   ae:  nop
+   b0:  xorl %ebx, %ebx
+   b2:  testq %rbp, %rbp
+   b5:  je 0xba
+   b7:  movl %ebx, (%rbp)
+   ba:  addq $8, %rsp
+   be:  movq %r8, %rax
+   c1:  popq %rbx
+   c2:  popq %rbp
+   c3:  popq %r12
+   c5:  popq %r13
+   c7:  retq
+   c8:  nopl (%rax, %rax)
+   d0:  testl %ebx, %ebx
+   d2:  je 0xb2
+   d4:  xorl %edx, %edx
+   d6:  nopw %cs:(%rax, %rax)
+   e0:  movzwl 4(%r12, %rdx, 2), %eax
+   e6:  rolw $8, %ax
+   ea:  movzwl %ax, %eax
+   ed:  movl %eax, (%r8, %rdx, 4)
+   f1:  addq $1, %rdx
+   f5:  cmpl %edx, %ebx
+   f7:  jg 0xe0
+   f9:  jmp 0xb2

@@ -1,0 +1,40 @@
+# o_write  (global, 151 bytes, 39 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movl %edi, %ebx
+    8:  subq $8, %rsp
+    c:  callq i_done+0
+   11:  movl $0, %edi   <var:ds+0>
+   16:  callq mem_len+0
+   1b:  movl $0, %edi   <var:ds+0>
+   20:  movq %rax, %r13
+   23:  callq mem_buf+0
+   28:  movl $0, %edi   <var:cs+0>
+   2d:  movq %rax, %r12
+   30:  callq mem_len+0
+   35:  movl $0, %edi   <var:cs+0>
+   3a:  movq %rax, %rbp
+   3d:  callq mem_buf+0
+   42:  movq %r13, %r8
+   45:  movq %r12, %rcx
+   48:  movq %rbp, %rdx
+   4b:  movq %rax, %rsi
+   4e:  movl %ebx, %edi
+   50:  callq out_write+0
+   55:  movq (%rip), %rdi   <var:loc_off+0>
+   5c:  callq free+0
+   61:  movq (%rip), %rdi   <var:ds_name+0>
+   68:  callq free+0
+   6d:  movq (%rip), %rdi   <var:ds_off+0>
+   74:  callq free+0
+   79:  movl $0, %edi   <var:cs+0>
+   7e:  callq mem_done+0
+   83:  addq $8, %rsp
+   87:  movl $0, %edi   <var:ds+0>
+   8c:  popq %rbx
+   8d:  popq %rbp
+   8e:  popq %r12
+   90:  popq %r13
+   92:  jmp mem_done+0

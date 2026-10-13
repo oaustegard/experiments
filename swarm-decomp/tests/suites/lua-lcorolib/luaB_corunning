@@ -1,0 +1,10 @@
+# luaB_corunning  (static, 26 bytes, 9 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  callq 9   <lua_pushthread+0>
+    9:  movq %rbx, %rdi
+    c:  movl %eax, %esi
+    e:  callq lua_pushboolean+0
+   13:  movl $2, %eax
+   18:  popq %rbx
+   19:  retq

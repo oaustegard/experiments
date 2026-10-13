@@ -1,0 +1,25 @@
+# luaopen_utf8  (global, 95 bytes, 24 instructions)
+    0:  pushq %rbx
+    1:  movsd (%rip), %xmm0   <cst:0000000000807f40>
+    9:  movq %rdi, %rbx
+    c:  movl $0x88, %esi
+   11:  callq luaL_checkversion_+0
+   16:  movq %rbx, %rdi
+   19:  movl $6, %edx
+   1e:  xorl %esi, %esi
+   20:  callq lua_createtable+0
+   25:  movq %rbx, %rdi
+   28:  xorl %edx, %edx
+   2a:  movl $0, %esi   <var:funcs+0>
+   2f:  callq luaL_setfuncs+0
+   34:  movq %rbx, %rdi
+   37:  movl $0xe, %edx
+   3c:  movl $0, %esi   <sec:.rodata+0>
+   41:  callq lua_pushlstring+0
+   46:  movq %rbx, %rdi
+   49:  movl $0, %edx   <str:"charpattern">
+   4e:  movl $0xfffffffe, %esi
+   53:  callq lua_setfield+0
+   58:  movl $1, %eax
+   5d:  popq %rbx
+   5e:  retq

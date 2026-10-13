@@ -1,0 +1,133 @@
+# readexpr  (static, 519 bytes, 132 instructions)
+    0:  subq $8, %rsp
+    4:  callq 9   <fn:readcexpr+0>
+    9:  callq tok_see+0
+    e:  cmpb $0x3d, (%rax)
+   11:  jne 0x30
+   13:  cmpb $0, 1(%rax)
+   17:  jne 0x30
+   19:  callq tok_get+0
+   1e:  callq 0
+   23:  addq $8, %rsp
+   27:  jmp fn:doassign+0
+   2c:  nopl (%rax)
+   30:  callq tok_see+0
+   35:  cmpb $0x2b, (%rax)
+   38:  je 0x68
+   3a:  callq tok_see+0
+   3f:  cmpb $0x2d, (%rax)
+   42:  jne 0x90
+   44:  cmpb $0x3d, 1(%rax)
+   48:  jne 0x90
+   4a:  cmpb $0, 2(%rax)
+   4e:  jne 0x90
+   50:  callq tok_get+0
+   55:  movl $0x11, %edi
+   5a:  addq $8, %rsp
+   5e:  jmp fn:opassign.isra.0+0
+   63:  nopl (%rax, %rax)
+   68:  cmpb $0x3d, 1(%rax)
+   6c:  jne 0x3a
+   6e:  cmpb $0, 2(%rax)
+   72:  jne 0x3a
+   74:  callq tok_get+0
+   79:  movl $0x10, %edi
+   7e:  addq $8, %rsp
+   82:  jmp fn:opassign.isra.0+0
+   87:  nopw (%rax, %rax)
+   90:  callq tok_see+0
+   95:  cmpb $0x2a, (%rax)
+   98:  jne 0xc0
+   9a:  cmpb $0x3d, 1(%rax)
+   9e:  jne 0xc0
+   a0:  cmpb $0, 2(%rax)
+   a4:  jne 0xc0
+   a6:  callq tok_get+0
+   ab:  movl $0x40, %edi
+   b0:  addq $8, %rsp
+   b4:  jmp fn:opassign.isra.0+0
+   b9:  nopl (%rax)
+   c0:  callq tok_see+0
+   c5:  cmpb $0x2f, (%rax)
+   c8:  jne 0xd4
+   ca:  cmpb $0x3d, 1(%rax)
+   ce:  je 0x158
+   d4:  callq tok_see+0
+   d9:  cmpb $0x25, (%rax)
+   dc:  jne 0x100
+   de:  cmpb $0x3d, 1(%rax)
+   e2:  jne 0x100
+   e4:  cmpb $0, 2(%rax)
+   e8:  jne 0x100
+   ea:  callq tok_get+0
+   ef:  movl $0x42, %edi
+   f4:  addq $8, %rsp
+   f8:  jmp fn:opassign.isra.0+0
+   fd:  nopl (%rax)
+  100:  callq tok_see+0
+  105:  movl $0, %edi   <str:"<<=">
+  10a:  movq %rax, %rsi
+  10d:  callq strcmp+0
+  112:  testl %eax, %eax
+  114:  je 0x178
+  116:  callq tok_see+0
+  11b:  movl $0, %edi   <str:">>=">
+  120:  movq %rax, %rsi
+  123:  callq strcmp+0
+  128:  testl %eax, %eax
+  12a:  je 0x190
+  12c:  callq tok_see+0
+  131:  cmpb $0x26, (%rax)
+  134:  jne 0x1a8
+  136:  cmpb $0x3d, 1(%rax)
+  13a:  jne 0x1a8
+  13c:  cmpb $0, 2(%rax)
+  140:  jne 0x1a8
+  142:  callq tok_get+0
+  147:  movl $0x12, %edi
+  14c:  addq $8, %rsp
+  150:  jmp fn:opassign.isra.0+0
+  155:  nopl (%rax)
+  158:  cmpb $0, 2(%rax)
+  15c:  jne 0xd4
+  162:  callq tok_get+0
+  167:  movl $0x41, %edi
+  16c:  addq $8, %rsp
+  170:  jmp fn:opassign.isra.0+0
+  175:  nopl (%rax)
+  178:  callq tok_get+0
+  17d:  movl $0x20, %edi
+  182:  addq $8, %rsp
+  186:  jmp fn:opassign.isra.0+0
+  18b:  nopl (%rax, %rax)
+  190:  callq tok_get+0
+  195:  movl $0x21, %edi
+  19a:  addq $8, %rsp
+  19e:  jmp fn:opassign.isra.0+0
+  1a3:  nopl (%rax, %rax)
+  1a8:  callq tok_see+0
+  1ad:  cmpb $0x7c, (%rax)
+  1b0:  jne 0x1d8
+  1b2:  cmpb $0x3d, 1(%rax)
+  1b6:  jne 0x1d8
+  1b8:  cmpb $0, 2(%rax)
+  1bc:  jne 0x1d8
+  1be:  callq tok_get+0
+  1c3:  movl $0x13, %edi
+  1c8:  addq $8, %rsp
+  1cc:  jmp fn:opassign.isra.0+0
+  1d1:  nopl (%rax)
+  1d8:  callq tok_see+0
+  1dd:  cmpb $0x5e, (%rax)
+  1e0:  je 0x1e8
+  1e2:  popq %rax
+  1e3:  retq
+  1e4:  nopl (%rax)
+  1e8:  cmpb $0x3d, 1(%rax)
+  1ec:  jne 0x1e2
+  1ee:  cmpb $0, 2(%rax)
+  1f2:  jne 0x1e2
+  1f4:  callq tok_get+0
+  1f9:  movl $0x14, %edi
+  1fe:  addq $8, %rsp
+  202:  jmp fn:opassign.isra.0+0

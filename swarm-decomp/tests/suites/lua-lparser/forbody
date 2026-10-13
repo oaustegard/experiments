@@ -1,0 +1,117 @@
+# forbody  (static, 416 bytes, 116 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  movq %rdi, %r12
+    b:  pushq %rbp
+    c:  pushq %rbx
+    d:  subq $0x38, %rsp
+   11:  cmpl $0x102, 0x10(%rdi)
+   18:  movq 0x30(%rdi), %r14
+   1c:  movl %esi, 8(%rsp)
+   20:  movl %edx, 0xc(%rsp)
+   24:  jne 0x196
+   2a:  movl %r8d, %r13d
+   2d:  movl %ecx, %ebp
+   2f:  callq luaX_next+0
+   34:  movslq %r13d, %r15
+   37:  movl 8(%rsp), %edx
+   3b:  xorl %ecx, %ecx
+   3d:  movl (, %r15, 4), %esi   <var:forprep+0>
+   45:  movq %r14, %rdi
+   48:  callq luaK_codeABx+0
+   4d:  xorl %edx, %edx
+   4f:  movl %eax, %ebx
+   51:  movzbl 0x42(%r14), %eax
+   56:  movb %al, 0x20(%rsp)
+   5a:  movq 0x10(%r14), %rax
+   5e:  movq 0x58(%rax), %rax
+   62:  movd 0x28(%rax), %xmm0
+   67:  movd 0x18(%rax), %xmm1
+   6c:  xorl %eax, %eax
+   6e:  movw %ax, 0x21(%rsp)
+   73:  movq 0x18(%r14), %rax
+   77:  punpckldq %xmm1, %xmm0
+   7b:  movq %xmm0, 0x18(%rsp)
+   81:  testq %rax, %rax
+   84:  je 0x8d
+   86:  cmpb $0, 0x13(%rax)
+   8a:  setne %dl
+   8d:  movq %rax, 0x10(%rsp)
+   92:  leaq 0x10(%rsp), %rax
+   97:  movl %ebp, %esi
+   99:  movq %r12, %rdi
+   9c:  movq %rax, 0x18(%r14)
+   a0:  movb %dl, 0x23(%rsp)
+   a4:  callq fn:adjustlocalvars+0
+   a9:  movl %ebp, %esi
+   ab:  movq %r14, %rdi
+   ae:  callq luaK_reserveregs+0
+   b3:  movq %r12, %rdi
+   b6:  callq fn:block+0
+   bb:  movq %r14, %rdi
+   be:  callq fn:leaveblock+0
+   c3:  movq %r14, %rdi
+   c6:  callq luaK_getlabel+0
+   cb:  movq (%r14), %rcx
+   ce:  movslq %ebx, %rdx
+   d1:  movq 0x40(%rcx), %rcx
+   d5:  leaq (%rcx, %rdx, 4), %rcx
+   d9:  leal 1(%rbx), %edx
+   dc:  subl %edx, %eax
+   de:  cmpl $0x1ffff, %eax
+   e3:  jg 0x188
+   e9:  movl (%rcx), %edx
+   eb:  shll $0xf, %eax
+   ee:  andl $0x7fff, %edx
+   f4:  orl %edx, %eax
+   f6:  movl %eax, (%rcx)
+   f8:  testl %r13d, %r13d
+   fb:  jne 0x158
+   fd:  movl 8(%rsp), %edx
+  101:  movl (, %r15, 4), %esi   <var:forloop+0>
+  109:  xorl %ecx, %ecx
+  10b:  movq %r14, %rdi
+  10e:  callq luaK_codeABx+0
+  113:  movq (%r14), %rdx
+  116:  movslq %eax, %rcx
+  119:  subl %ebx, %eax
+  11b:  movq 0x40(%rdx), %rdx
+  11f:  leaq (%rdx, %rcx, 4), %rcx
+  123:  cmpl $0x1ffff, %eax
+  128:  jg 0x188
+  12a:  movl (%rcx), %edx
+  12c:  shll $0xf, %eax
+  12f:  movl 0xc(%rsp), %esi
+  133:  movq %r14, %rdi
+  136:  andl $0x7fff, %edx
+  13c:  orl %edx, %eax
+  13e:  movl %eax, (%rcx)
+  140:  callq luaK_fixline+0
+  145:  addq $0x38, %rsp
+  149:  popq %rbx
+  14a:  popq %rbp
+  14b:  popq %r12
+  14d:  popq %r13
+  14f:  popq %r14
+  151:  popq %r15
+  153:  retq
+  154:  nopl (%rax)
+  158:  movl 8(%rsp), %edx
+  15c:  movq %r14, %rdi
+  15f:  xorl %r9d, %r9d
+  162:  movl %ebp, %r8d
+  165:  xorl %ecx, %ecx
+  167:  movl $0x4c, %esi
+  16c:  callq luaK_codeABCk+0
+  171:  movl 0xc(%rsp), %esi
+  175:  movq %r14, %rdi
+  178:  callq luaK_fixline+0
+  17d:  jmp 0xfd
+  182:  nopw (%rax, %rax)
+  188:  movq 0x10(%r14), %rdi
+  18c:  movl $0, %esi   <str:"control structure too long">
+  191:  callq luaX_syntaxerror+0
+  196:  movl $0x102, %esi
+  19b:  callq fn:error_expected+0

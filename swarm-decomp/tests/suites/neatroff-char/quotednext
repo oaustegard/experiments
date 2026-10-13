@@ -1,0 +1,40 @@
+# quotednext  (global, 134 bytes, 39 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %rdx
+    5:  movq %rsi, %r12
+    8:  movq %rdi, %rsi
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  pushq %rbx
+   10:  subq $0x70, %rsp
+   14:  leaq 0x10(%rsp), %rdi
+   19:  callq charnext+0
+   1e:  movq %rsp, %rdi
+   21:  callq sbuf_init+0
+   26:  jmp 0x50
+   28:  nopl (%rax, %rax)
+   30:  testl %ebx, %ebx
+   32:  js 0x75
+   34:  leaq 0x30(%rsp), %rsi
+   39:  leaq 0x50(%rsp), %rdi
+   3e:  callq charnext_str+0
+   43:  leaq 0x50(%rsp), %rsi
+   48:  movq %rsp, %rdi
+   4b:  callq sbuf_append+0
+   50:  movq %rbp, %rsi
+   53:  leaq 0x30(%rsp), %rdi
+   58:  movq %r12, %rdx
+   5b:  callq charnext+0
+   60:  leaq 0x10(%rsp), %rsi
+   65:  leaq 0x30(%rsp), %rdi
+   6a:  movl %eax, %ebx
+   6c:  callq strcmp+0
+   71:  testl %eax, %eax
+   73:  jne 0x30
+   75:  movq %rsp, %rdi
+   78:  callq sbuf_out+0
+   7d:  addq $0x70, %rsp
+   81:  popq %rbx
+   82:  popq %rbp
+   83:  popq %r12
+   85:  retq

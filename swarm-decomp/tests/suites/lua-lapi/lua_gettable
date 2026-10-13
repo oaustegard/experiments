@@ -1,0 +1,45 @@
+# lua_gettable  (global, 134 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  xorl %r8d, %r8d
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  callq fn:index2value+0
+   11:  movq 0x10(%rdi), %rdx
+   15:  cmpb $0x45, 8(%rax)
+   19:  movq %rax, %rbp
+   1c:  je 0x48
+   1e:  subq $0x10, %rdx
+   22:  movq %rbp, %rsi
+   25:  movq %rbx, %rdi
+   28:  movq %rdx, %rcx
+   2b:  callq luaV_finishget+0
+   30:  movq 0x10(%rbx), %rax
+   34:  movzbl -8(%rax), %edx
+   38:  addq $8, %rsp
+   3c:  popq %rbx
+   3d:  popq %rbp
+   3e:  andl $0xf, %edx
+   41:  movzbl %dl, %eax
+   44:  retq
+   45:  nopl (%rax)
+   48:  movq (%rax), %rdi
+   4b:  leaq -0x10(%rdx), %rsi
+   4f:  callq luaH_get+0
+   54:  movq %rax, %r8
+   57:  movzbl 8(%rax), %eax
+   5b:  movl %eax, %edx
+   5d:  andl $0xf, %edx
+   60:  je 0x80
+   62:  movq 0x10(%rbx), %rcx
+   66:  movq (%r8), %rsi
+   69:  movb %al, -8(%rcx)
+   6c:  movzbl %dl, %eax
+   6f:  movq %rsi, -0x10(%rcx)
+   73:  addq $8, %rsp
+   77:  popq %rbx
+   78:  popq %rbp
+   79:  retq
+   7a:  nopw (%rax, %rax)
+   80:  movq 0x10(%rbx), %rdx
+   84:  jmp 0x1e

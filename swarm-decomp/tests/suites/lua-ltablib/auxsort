@@ -1,0 +1,267 @@
+# auxsort  (static, 1016 bytes, 266 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x28, %rsp
+    e:  movl %esi, 0xc(%rsp)
+   12:  movl %edx, 0x18(%rsp)
+   16:  movl %ecx, 0x1c(%rsp)
+   1a:  cmpl %edx, %esi
+   1c:  jae 0x2f0
+   22:  movq %rdi, %rbp
+   25:  movl 0xc(%rsp), %r13d
+   2a:  movl $1, %esi
+   2f:  movq %rbp, %rdi
+   32:  movq %r13, %rdx
+   35:  callq lua_geti+0
+   3a:  movl 0x18(%rsp), %r14d
+   3f:  movl $1, %esi
+   44:  movq %rbp, %rdi
+   47:  movq %r14, %rdx
+   4a:  callq lua_geti+0
+   4f:  movl $0xfffffffe, %edx
+   54:  movl $0xffffffff, %esi
+   59:  movq %rbp, %rdi
+   5c:  callq fn:sort_comp+0
+   61:  testl %eax, %eax
+   63:  je 0x314
+   69:  movq %r13, %rdx
+   6c:  movl $1, %esi
+   71:  movq %rbp, %rdi
+   74:  callq lua_seti+0
+   79:  movq %r14, %rdx
+   7c:  movl $1, %esi
+   81:  movq %rbp, %rdi
+   84:  callq lua_seti+0
+   89:  movl 0x18(%rsp), %r12d
+   8e:  movl 0xc(%rsp), %eax
+   92:  subl %eax, %r12d
+   95:  cmpl $1, %r12d
+   99:  je 0x2f0
+   9f:  cmpl $0x63, %r12d
+   a3:  jbe 0xb1
+   a5:  movl 0x1c(%rsp), %eax
+   a9:  testl %eax, %eax
+   ab:  jne 0x3a7
+   b1:  movl 0xc(%rsp), %eax
+   b5:  movl 0x18(%rsp), %ecx
+   b9:  leal (%rax, %rcx), %ebx
+   bc:  shrl $1, %ebx
+   be:  movq %rbx, %rdx
+   c1:  movl $1, %esi
+   c6:  movq %rbp, %rdi
+   c9:  callq lua_geti+0
+   ce:  movq %r13, %rdx
+   d1:  movl $1, %esi
+   d6:  movq %rbp, %rdi
+   d9:  callq lua_geti+0
+   de:  movl $0xffffffff, %edx
+   e3:  movl $0xfffffffe, %esi
+   e8:  movq %rbp, %rdi
+   eb:  callq fn:sort_comp+0
+   f0:  testl %eax, %eax
+   f2:  je 0x326
+   f8:  movq %rbx, %rdx
+   fb:  movl $1, %esi
+  100:  movq %rbp, %rdi
+  103:  callq lua_seti+0
+  108:  movq %r13, %rdx
+  10b:  movl $1, %esi
+  110:  movq %rbp, %rdi
+  113:  callq lua_seti+0
+  118:  cmpl $2, %r12d
+  11c:  je 0x2f0
+  122:  movq %rbx, %rdx
+  125:  movl $1, %esi
+  12a:  movq %rbp, %rdi
+  12d:  callq lua_geti+0
+  132:  movl $0xffffffff, %esi
+  137:  movq %rbp, %rdi
+  13a:  callq lua_pushvalue+0
+  13f:  movl 0x18(%rsp), %eax
+  143:  movl $1, %esi
+  148:  movq %rbp, %rdi
+  14b:  subl $1, %eax
+  14e:  movq %rax, %rdx
+  151:  movq %rax, %r15
+  154:  movl %eax, 8(%rsp)
+  158:  movq %rax, 0x10(%rsp)
+  15d:  callq lua_geti+0
+  162:  movq %rbx, %rdx
+  165:  movl $1, %esi
+  16a:  movq %rbp, %rdi
+  16d:  callq lua_seti+0
+  172:  movq %r15, %rdx
+  175:  movl $1, %esi
+  17a:  movq %rbp, %rdi
+  17d:  callq lua_seti+0
+  182:  movl %r15d, %ebx
+  185:  movl 0xc(%rsp), %r15d
+  18a:  jmp 0x1ab
+  18c:  nopl (%rax)
+  190:  cmpl %r13d, 8(%rsp)
+  195:  je 0x300
+  19b:  movl $0xfffffffe, %esi
+  1a0:  movq %rbp, %rdi
+  1a3:  callq lua_settop+0
+  1a8:  movl %r13d, %r15d
+  1ab:  leal 1(%r15), %r14d
+  1af:  movl $1, %esi
+  1b4:  movq %rbp, %rdi
+  1b7:  movq %r14, %rdx
+  1ba:  movq %r14, %r13
+  1bd:  callq lua_geti+0
+  1c2:  movl $0xfffffffe, %edx
+  1c7:  movl $0xffffffff, %esi
+  1cc:  movq %rbp, %rdi
+  1cf:  callq fn:sort_comp+0
+  1d4:  testl %eax, %eax
+  1d6:  jne 0x190
+  1d8:  jmp 0x1f2
+  1da:  nopw (%rax, %rax)
+  1e0:  cmpl %r13d, %ebx
+  1e3:  jb 0x250
+  1e5:  movl $0xfffffffe, %esi
+  1ea:  movq %rbp, %rdi
+  1ed:  callq lua_settop+0
+  1f2:  leal -1(%rbx), %r12d
+  1f6:  movl $1, %esi
+  1fb:  movq %rbp, %rdi
+  1fe:  movq %r12, %rdx
+  201:  movq %r12, %rbx
+  204:  callq lua_geti+0
+  209:  movl $0xffffffff, %edx
+  20e:  movl $0xfffffffd, %esi
+  213:  movq %rbp, %rdi
+  216:  callq fn:sort_comp+0
+  21b:  testl %eax, %eax
+  21d:  jne 0x1e0
+  21f:  cmpl %r13d, %r12d
+  222:  jb 0x268
+  224:  movq %r14, %rdx
+  227:  movq %rbp, %rdi
+  22a:  movl $1, %esi
+  22f:  callq lua_seti+0
+  234:  movq %r12, %rdx
+  237:  movl $1, %esi
+  23c:  movq %rbp, %rdi
+  23f:  callq lua_seti+0
+  244:  jmp 0x1a8
+  249:  nopl (%rax)
+  250:  movl $0, %esi   <str:"invalid order function for sorting">
+  255:  movq %rbp, %rdi
+  258:  xorl %eax, %eax
+  25a:  callq luaL_error+0
+  25f:  jmp 0x1e5
+  261:  nopl (%rax)
+  268:  movl $0xfffffffe, %esi
+  26d:  movq %rbp, %rdi
+  270:  movl %r13d, %ebx
+  273:  callq lua_settop+0
+  278:  movq 0x10(%rsp), %rdx
+  27d:  movl $1, %esi
+  282:  movq %rbp, %rdi
+  285:  callq lua_seti+0
+  28a:  movq %r14, %rdx
+  28d:  movl $1, %esi
+  292:  movq %rbp, %rdi
+  295:  callq lua_seti+0
+  29a:  movl 0xc(%rsp), %eax
+  29e:  movl 0x18(%rsp), %r12d
+  2a3:  subl %eax, %ebx
+  2a5:  subl %r13d, %r12d
+  2a8:  leal 2(%r15), %r13d
+  2ac:  cmpl %r12d, %ebx
+  2af:  jae 0x3d8
+  2b5:  movl 0x1c(%rsp), %ecx
+  2b9:  movl 0xc(%rsp), %esi
+  2bd:  movl %r15d, %edx
+  2c0:  movq %rbp, %rdi
+  2c3:  callq 0
+  2c8:  movl %r13d, 0xc(%rsp)
+  2cd:  movl 0x18(%rsp), %eax
+  2d1:  movl 0xc(%rsp), %ecx
+  2d5:  subl %ecx, %eax
+  2d7:  shrl $7, %eax
+  2da:  cmpl %eax, %ebx
+  2dc:  jb 0x37e
+  2e2:  movl 0x18(%rsp), %ecx
+  2e6:  cmpl %ecx, 0xc(%rsp)
+  2ea:  jb 0x25
+  2f0:  addq $0x28, %rsp
+  2f4:  popq %rbx
+  2f5:  popq %rbp
+  2f6:  popq %r12
+  2f8:  popq %r13
+  2fa:  popq %r14
+  2fc:  popq %r15
+  2fe:  retq
+  2ff:  nop
+  300:  movl $0, %esi   <str:"invalid order function for sorting">
+  305:  movq %rbp, %rdi
+  308:  xorl %eax, %eax
+  30a:  callq luaL_error+0
+  30f:  jmp 0x19b
+  314:  movl $0xfffffffd, %esi
+  319:  movq %rbp, %rdi
+  31c:  callq lua_settop+0
+  321:  jmp 0x89
+  326:  movl $0xfffffffe, %esi
+  32b:  movq %rbp, %rdi
+  32e:  callq lua_settop+0
+  333:  movq %r14, %rdx
+  336:  movl $1, %esi
+  33b:  movq %rbp, %rdi
+  33e:  callq lua_geti+0
+  343:  movl $0xfffffffe, %edx
+  348:  movl $0xffffffff, %esi
+  34d:  movq %rbp, %rdi
+  350:  callq fn:sort_comp+0
+  355:  testl %eax, %eax
+  357:  je 0x3c6
+  359:  movq %rbx, %rdx
+  35c:  movq %rbp, %rdi
+  35f:  movl $1, %esi
+  364:  callq lua_seti+0
+  369:  movq %r14, %rdx
+  36c:  movl $1, %esi
+  371:  movq %rbp, %rdi
+  374:  callq lua_seti+0
+  379:  jmp 0x118
+  37e:  callq clock+0
+  383:  xorl %edi, %edi
+  385:  movq %rax, %rbx
+  388:  callq time+0
+  38d:  movq %rbx, %rdx
+  390:  shrq $0x20, %rdx
+  394:  addl %ebx, %edx
+  396:  addl %eax, %edx
+  398:  shrq $0x20, %rax
+  39c:  addl %edx, %eax
+  39e:  movl %eax, 0x1c(%rsp)
+  3a2:  jmp 0x2e2
+  3a7:  movl %r12d, %ecx
+  3aa:  movl 0x1c(%rsp), %eax
+  3ae:  xorl %edx, %edx
+  3b0:  shrl $2, %ecx
+  3b3:  leal (%rcx, %rcx), %esi
+  3b6:  divl %esi
+  3b8:  movl 0xc(%rsp), %eax
+  3bc:  addl %eax, %ecx
+  3be:  leal (%rdx, %rcx), %ebx
+  3c1:  jmp 0xbe
+  3c6:  movl $0xfffffffd, %esi
+  3cb:  movq %rbp, %rdi
+  3ce:  callq lua_settop+0
+  3d3:  jmp 0x118
+  3d8:  movl 0x1c(%rsp), %ecx
+  3dc:  movl 0x18(%rsp), %edx
+  3e0:  movl %r13d, %esi
+  3e3:  movq %rbp, %rdi
+  3e6:  movl %r12d, %ebx
+  3e9:  callq 0
+  3ee:  movl %r15d, 0x18(%rsp)
+  3f3:  jmp 0x2cd

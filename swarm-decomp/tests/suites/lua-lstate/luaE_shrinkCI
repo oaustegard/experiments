@@ -1,0 +1,31 @@
+# luaE_shrinkCI  (global, 85 bytes, 30 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq 0x20(%rdi), %rax
+    8:  movq 0x18(%rax), %rbx
+    c:  testq %rbx, %rbx
+    f:  je 0x50
+   11:  movq 0x18(%rbx), %rsi
+   15:  movq %rdi, %rbp
+   18:  testq %rsi, %rsi
+   1b:  jne 0x2d
+   1d:  jmp 0x50
+   1f:  nop
+   20:  movq 0x18(%rbx), %rsi
+   24:  movq %r12, 0x10(%rbx)
+   28:  testq %rsi, %rsi
+   2b:  je 0x50
+   2d:  movq %rbx, %r12
+   30:  movq 0x18(%rsi), %rbx
+   34:  movl $0x40, %edx
+   39:  movq %rbp, %rdi
+   3c:  movq %rbx, 0x18(%r12)
+   41:  subw $1, 0xc(%rbp)
+   46:  callq luaM_free_+0
+   4b:  testq %rbx, %rbx
+   4e:  jne 0x20
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  popq %r12
+   54:  retq

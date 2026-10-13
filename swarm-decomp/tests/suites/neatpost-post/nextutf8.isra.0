@@ -1,0 +1,66 @@
+# nextutf8.isra.0  (static, 237 bytes, 65 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq (%rip), %rdi   <stdin+0>
+   14:  callq getc+0
+   19:  movl %eax, %edx
+   1b:  notl %edx
+   1d:  andl $0xc0, %edx
+   23:  jne 0x60
+   25:  testb $0x20, %al
+   27:  je 0xc0
+   2d:  testb $0x10, %al
+   2f:  je 0x78
+   31:  testb $8, %al
+   33:  je 0xd8
+   39:  testl %eax, %eax
+   3b:  js 0x4c
+   3d:  movb %al, (%rbp)
+   40:  movl $1, %r13d
+   46:  movb $0, (%rbp, %r13)
+   4c:  addq $8, %rsp
+   50:  popq %rbx
+   51:  popq %rbp
+   52:  popq %r12
+   54:  popq %r13
+   56:  retq
+   57:  nopw (%rax, %rax)
+   60:  testl %eax, %eax
+   62:  js 0x4c
+   64:  setg %r13b
+   68:  movb %al, (%rbp)
+   6b:  movzbl %r13b, %r13d
+   6f:  jmp 0x46
+   71:  nopl (%rax)
+   78:  testl %eax, %eax
+   7a:  js 0x4c
+   7c:  movl $3, %r13d
+   82:  movl $3, %edx
+   87:  movb %al, (%rbp)
+   8a:  leal -2(%rdx), %eax
+   8d:  leaq 1(%rbp), %rbx
+   91:  leaq 2(%rbp, %rax), %r12
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movq (%rip), %rdi   <stdin+0>
+   a7:  addq $1, %rbx
+   ab:  callq getc+0
+   b0:  movb %al, -1(%rbx)
+   b3:  cmpq %r12, %rbx
+   b6:  jne 0xa0
+   b8:  jmp 0x46
+   ba:  nopw (%rax, %rax)
+   c0:  testl %eax, %eax
+   c2:  js 0x4c
+   c4:  movl $2, %r13d
+   ca:  movl $2, %edx
+   cf:  jmp 0x87
+   d1:  nopl (%rax)
+   d8:  testl %eax, %eax
+   da:  js 0x4c
+   e0:  movl $4, %r13d
+   e6:  movl $4, %edx
+   eb:  jmp 0x87

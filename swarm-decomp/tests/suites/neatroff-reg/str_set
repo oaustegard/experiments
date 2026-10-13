@@ -1,0 +1,26 @@
+# str_set  (global, 89 bytes, 25 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  pushq %rbx
+    7:  movslq %edi, %rbx
+    a:  movq %rsi, %rdi
+    d:  callq strlen+0
+   12:  movq (, %rbx, 8), %rdi   <var:sregs+0>
+   1a:  leal 1(%rax), %ebp
+   1d:  testq %rdi, %rdi
+   20:  je 0x27
+   22:  callq free+0
+   27:  movslq %ebp, %rbp
+   2a:  movq %rbp, %rdi
+   2d:  callq xmalloc+0
+   32:  movq %rbp, %rdx
+   35:  movq %r12, %rsi
+   38:  movq %rax, %rdi
+   3b:  movq %rax, (, %rbx, 8)   <var:sregs+0>
+   43:  callq memcpy+0
+   48:  movq $0, (, %rbx, 8)   <var:sregs_dat+0>
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  popq %r12
+   58:  retq

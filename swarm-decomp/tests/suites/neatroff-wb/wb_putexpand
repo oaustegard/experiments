@@ -1,0 +1,33 @@
+# wb_putexpand  (global, 94 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  movq %rsi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdi, %rbx
+    8:  subq $8, %rsp
+    c:  movl 0x20(%rdi), %edx
+    f:  testl %edx, %edx
+   11:  js 0x50
+   13:  movq %rbp, %rsi
+   16:  movq %rbx, %rdi
+   19:  callq cdef_expand+0
+   1e:  testl %eax, %eax
+   20:  je 0x47
+   22:  cmpb $0xa, (%rbp)
+   26:  je 0x40
+   28:  addq $8, %rsp
+   2c:  movq %rbp, %rsi
+   2f:  movq %rbx, %rdi
+   32:  popq %rbx
+   33:  popq %rbp
+   34:  jmp fn:wb_put.part.0+0
+   39:  nopl (%rax)
+   40:  movl $0, 0x30(%rbx)
+   47:  addq $8, %rsp
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  retq
+   4e:  nop
+   50:  movl $0x66, %edi
+   55:  callq nreg+0
+   5a:  movl (%rax), %edx
+   5c:  jmp 0x13

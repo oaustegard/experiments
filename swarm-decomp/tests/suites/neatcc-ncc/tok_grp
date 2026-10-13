@@ -1,0 +1,36 @@
+# tok_grp  (static, 103 bytes, 35 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  callq tok_see+0
+    b:  movzbl (%rax), %ebx
+    e:  cmpb $0x22, %bl
+   11:  je 0x3a
+   13:  cmpl $0x27, %ebx
+   16:  je 0x48
+   18:  callq __ctype_b_loc+0
+   1d:  movq (%rax), %rax
+   20:  movzwl (%rax, %rbx, 2), %eax
+   24:  testb $8, %ah
+   27:  jne 0x48
+   29:  cmpl $0x5f, %ebx
+   2c:  je 0x60
+   2e:  andw $0x400, %ax
+   32:  negw %ax
+   35:  sbbl %ebx, %ebx
+   37:  andl $0x61, %ebx
+   3a:  addq $8, %rsp
+   3e:  movl %ebx, %eax
+   40:  popq %rbx
+   41:  popq %rbp
+   42:  retq
+   43:  nopl (%rax, %rax)
+   48:  movl $0x30, %ebx
+   4d:  addq $8, %rsp
+   51:  movl %ebx, %eax
+   53:  popq %rbx
+   54:  popq %rbp
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  movl $0x61, %ebx
+   65:  jmp 0x3a

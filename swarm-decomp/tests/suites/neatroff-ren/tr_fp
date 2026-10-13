@@ -1,0 +1,43 @@
+# tr_fp  (global, 134 bytes, 42 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  movq 0x10(%rdi), %rbp
+    a:  testq %rbp, %rbp
+    d:  je 0x47
+    f:  movq %rdi, %rbx
+   12:  callq __ctype_b_loc+0
+   17:  movl $0xffffffff, %edi
+   1c:  movq %rax, %rdx
+   1f:  movq 8(%rbx), %rax
+   23:  movq (%rdx), %rdx
+   26:  movzbl (%rax), %ecx
+   29:  testb $8, 1(%rdx, %rcx, 2)
+   2e:  jne 0x50
+   30:  movq 0x18(%rbx), %rdx
+   34:  movq %rbp, %rsi
+   37:  testq %rdx, %rdx
+   3a:  cmoveq %rbp, %rdx
+   3e:  callq dev_mnt+0
+   43:  testl %eax, %eax
+   45:  js 0x70
+   47:  addq $8, %rsp
+   4b:  popq %rbx
+   4c:  popq %rbp
+   4d:  retq
+   4e:  nop
+   50:  movq %rax, %rdi
+   53:  movl $0xa, %edx
+   58:  xorl %esi, %esi
+   5a:  callq strtol+0
+   5f:  movq 0x10(%rbx), %rbp
+   63:  movl %eax, %edi
+   65:  jmp 0x30
+   67:  nopw (%rax, %rax)
+   70:  movq 0x10(%rbx), %rsi
+   74:  addq $8, %rsp
+   78:  movl $0, %edi   <str:"neatroff: failed to mount <%s>\n">
+   7d:  xorl %eax, %eax
+   7f:  popq %rbx
+   80:  popq %rbp
+   81:  jmp errmsg+0

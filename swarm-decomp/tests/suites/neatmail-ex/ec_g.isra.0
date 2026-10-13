@@ -1,0 +1,61 @@
+# ec_g.isra.0  (static, 184 bytes, 60 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %esi, %ebp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  callq __ctype_b_loc+0
+    e:  movzbl (%rbx), %edx
+   11:  movq (%rax), %rcx
+   14:  testb $0x20, 1(%rcx, %rdx, 2)
+   19:  je 0xb0
+   1f:  nop
+   20:  movzbl 1(%rbx), %edx
+   24:  addq $1, %rbx
+   28:  movq %rdx, %rax
+   2b:  testb $0x20, 1(%rcx, %rdx, 2)
+   30:  jne 0x20
+   32:  cmpb $0x2f, %al
+   34:  je 0x40
+   36:  popq %rbx
+   37:  popq %rbp
+   38:  popq %r12
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  callq fn:ex_keyword+0
+   48:  testl %eax, %eax
+   4a:  jne 0x36
+   4c:  movzbl 1(%rbx), %eax
+   50:  leaq 1(%rbx), %r12
+   54:  testb %al, %al
+   56:  jne 0x6e
+   58:  jmp 0x72
+   5a:  nopw (%rax, %rax)
+   60:  movzbl 1(%r12), %eax
+   66:  addq $1, %r12
+   6a:  testb %al, %al
+   6c:  je 0x72
+   6e:  cmpb $0x2f, %al
+   70:  jne 0x60
+   72:  cmpb $0, (%rip)   <var:kwd+0>
+   79:  je 0x36
+   7b:  cmpb $0x2f, %al
+   7d:  jne 0x36
+   7f:  movl (%rip), %edi   <var:pos+0>
+   85:  callq fn:ex_match+0
+   8a:  testl %eax, %eax
+   8c:  movl %ebp, %eax
+   8e:  setne %dl
+   91:  xorl $1, %eax
+   94:  andl $1, %eax
+   97:  cmpb %al, %dl
+   99:  je 0x36
+   9b:  popq %rbx
+   9c:  leaq 1(%r12), %rdi
+   a1:  popq %rbp
+   a2:  popq %r12
+   a4:  jmp fn:ex_exec.isra.0+0
+   a9:  nopl (%rax)
+   b0:  movq %rdx, %rax
+   b3:  jmp 0x32

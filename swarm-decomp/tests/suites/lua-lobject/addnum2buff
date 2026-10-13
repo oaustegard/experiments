@@ -1,0 +1,41 @@
+# addnum2buff  (static, 121 bytes, 40 instructions)
+    0:  pushq %r12
+    2:  movl $0xc7, %eax
+    7:  pushq %rbp
+    8:  movq %rsi, %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  movslq 0xc(%rdi), %rdi
+   13:  leaq 0x10(%rbx), %r12
+   17:  subl %edi, %eax
+   19:  cmpl $0x2b, %eax
+   1c:  jle 0x60
+   1e:  addq %r12, %rdi
+   21:  cmpb $3, 8(%rbp)
+   25:  je 0x40
+   27:  movsd (%rbp), %xmm0
+   2c:  callq fn:tostringbuff.part.0.isra.0+0
+   31:  addl %eax, 0xc(%rbx)
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  popq %r12
+   38:  retq
+   39:  nopl (%rax)
+   40:  movq (%rbp), %rcx
+   44:  movl $0, %edx   <str:"%lld">
+   49:  movl $0x2c, %esi
+   4e:  xorl %eax, %eax
+   50:  callq snprintf+0
+   55:  addl %eax, 0xc(%rbx)
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  popq %r12
+   5c:  retq
+   5d:  nopl (%rax)
+   60:  movq %rdi, %rdx
+   63:  movq %r12, %rsi
+   66:  movq %rbx, %rdi
+   69:  callq fn:pushstr+0
+   6e:  movl $0, 0xc(%rbx)
+   75:  xorl %edi, %edi
+   77:  jmp 0x1e

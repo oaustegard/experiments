@@ -1,0 +1,20 @@
+# f_lines  (static, 65 bytes, 19 instructions)
+    0:  pushq %rbx
+    1:  movl $0, %edx   <str:"FILE*">
+    6:  movl $1, %esi
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checkudata+0
+   13:  cmpq $0, 8(%rax)
+   18:  je 0x30
+   1a:  movq %rbx, %rdi
+   1d:  xorl %esi, %esi
+   1f:  callq fn:aux_lines+0
+   24:  movl $1, %eax
+   29:  popq %rbx
+   2a:  retq
+   2b:  nopl (%rax, %rax)
+   30:  movl $0, %esi   <str:"attempt to use a closed file">
+   35:  movq %rbx, %rdi
+   38:  xorl %eax, %eax
+   3a:  callq luaL_error+0
+   3f:  jmp 0x1a

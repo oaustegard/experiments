@@ -1,0 +1,79 @@
+# tr_wh  (global, 285 bytes, 78 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $8, %rsp
+    d:  movq 8(%rdi), %rdi
+   11:  testq %rdi, %rdi
+   14:  je 0xc8
+   1a:  movl $0x76, %esi
+   1f:  callq eval+0
+   24:  movl (%rip), %edx   <var:ntraps+0>
+   2a:  movl %eax, %r12d
+   2d:  testl %edx, %edx
+   2f:  jle 0x5e
+   31:  xorl %ebx, %ebx
+   33:  movl (, %rbx, 4), %eax   <var:treg+0>
+   3a:  testl %eax, %eax
+   3c:  js 0x52
+   3e:  movl (, %rbx, 4), %eax   <var:tpos+0>
+   45:  testl %eax, %eax
+   47:  js 0xd8
+   4d:  cmpl %eax, %r12d
+   50:  je 0xa8
+   52:  addq $1, %rbx
+   56:  cmpl %ebx, (%rip)   <var:ntraps+0>
+   5c:  jg 0x33
+   5e:  movq 0x10(%rbp), %rdi
+   62:  testq %rdi, %rdi
+   65:  je 0xc8
+   67:  callq map+0
+   6c:  movl (%rip), %r13d   <var:ntraps+0>
+   73:  xorl %edx, %edx
+   75:  movslq %r13d, %rcx
+   78:  testl %r13d, %r13d
+   7b:  jle 0x97
+   7d:  nopl (%rax)
+   80:  cmpl $-1, (, %rdx, 4)   <var:treg+0>
+   88:  je 0x118
+   8e:  addq $1, %rdx
+   92:  cmpq %rdx, %rcx
+   95:  jne 0x80
+   97:  addl $1, %r13d
+   9b:  movl %r13d, (%rip)   <var:ntraps+0>
+   a2:  jmp 0xb9
+   a4:  nopl (%rax)
+   a8:  movq 0x10(%rbp), %rdi
+   ac:  testq %rdi, %rdi
+   af:  je 0xf8
+   b1:  callq map+0
+   b6:  movslq %ebx, %rcx
+   b9:  movl %r12d, (, %rcx, 4)   <var:tpos+0>
+   c1:  movl %eax, (, %rcx, 4)   <var:treg+0>
+   c8:  addq $8, %rsp
+   cc:  popq %rbx
+   cd:  popq %rbp
+   ce:  popq %r12
+   d0:  popq %r13
+   d2:  retq
+   d3:  nopl (%rax, %rax)
+   d8:  movl $0x70, %edi
+   dd:  callq nreg+0
+   e2:  movl (, %rbx, 4), %edx   <var:tpos+0>
+   e9:  addl (%rax), %edx
+   eb:  movl %edx, %eax
+   ed:  jmp 0x4d
+   f2:  nopw (%rax, %rax)
+   f8:  movslq %ebx, %rbx
+   fb:  movl $0xffffffff, (, %rbx, 4)   <var:treg+0>
+  106:  addq $8, %rsp
+  10a:  popq %rbx
+  10b:  popq %rbp
+  10c:  popq %r12
+  10e:  popq %r13
+  110:  retq
+  111:  nopl (%rax)
+  118:  movslq %edx, %rcx
+  11b:  jmp 0xb9

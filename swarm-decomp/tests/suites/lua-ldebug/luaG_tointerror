@@ -1,0 +1,22 @@
+# luaG_tointerror  (global, 67 bytes, 21 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  xorl %edx, %edx
+    7:  pushq %rbp
+    8:  movq %rdi, %rbp
+    b:  pushq %rbx
+    c:  movq %rsi, %rbx
+    f:  movq %rbx, %rdi
+   12:  subq $0x10, %rsp
+   16:  leaq 8(%rsp), %rsi
+   1b:  callq luaV_tointegerns+0
+   20:  movq %rbp, %rdi
+   23:  testl %eax, %eax
+   25:  cmovneq %r12, %rbx
+   29:  movq %rbx, %rsi
+   2c:  callq fn:varinfo+0
+   31:  movl $0, %esi   <str:"number%s has no integer representation">
+   36:  movq %rbp, %rdi
+   39:  movq %rax, %rdx
+   3c:  xorl %eax, %eax
+   3e:  callq luaG_runerror+0

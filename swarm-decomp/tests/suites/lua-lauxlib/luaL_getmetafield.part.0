@@ -1,0 +1,33 @@
+# luaL_getmetafield.part.0  (static, 104 bytes, 32 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  callq lua_pushstring+0
+    e:  movl $0xfffffffe, %esi
+   13:  movq %rbx, %rdi
+   16:  callq lua_rawget+0
+   1b:  movl %eax, %ebp
+   1d:  testl %eax, %eax
+   1f:  jne 0x40
+   21:  movq %rbx, %rdi
+   24:  movl $0xfffffffd, %esi
+   29:  callq lua_settop+0
+   2e:  addq $8, %rsp
+   32:  movl %ebp, %eax
+   34:  popq %rbx
+   35:  popq %rbp
+   36:  retq
+   37:  nopw (%rax, %rax)
+   40:  movq %rbx, %rdi
+   43:  movl $0xffffffff, %edx
+   48:  movl $0xfffffffe, %esi
+   4d:  callq lua_rotate+0
+   52:  movq %rbx, %rdi
+   55:  movl $0xfffffffe, %esi
+   5a:  callq lua_settop+0
+   5f:  addq $8, %rsp
+   63:  movl %ebp, %eax
+   65:  popq %rbx
+   66:  popq %rbp
+   67:  retq

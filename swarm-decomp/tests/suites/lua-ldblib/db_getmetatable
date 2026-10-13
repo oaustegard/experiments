@@ -1,0 +1,19 @@
+# db_getmetatable  (static, 63 bytes, 18 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  callq luaL_checkany+0
+    e:  movl $1, %esi
+   13:  movq %rbx, %rdi
+   16:  callq lua_getmetatable+0
+   1b:  testl %eax, %eax
+   1d:  je 0x30
+   1f:  movl $1, %eax
+   24:  popq %rbx
+   25:  retq
+   26:  nopw %cs:(%rax, %rax)
+   30:  movq %rbx, %rdi
+   33:  callq lua_pushnil+0
+   38:  movl $1, %eax
+   3d:  popq %rbx
+   3e:  retq

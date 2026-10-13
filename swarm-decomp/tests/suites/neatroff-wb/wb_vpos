@@ -1,0 +1,17 @@
+# wb_vpos  (global, 42 bytes, 16 instructions)
+    0:  movl 0x2068(%rdi), %edx
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  testl %edx, %edx
+    c:  je 0x18
+    e:  movl 0x206c(%rdi), %eax
+   14:  testl %eax, %eax
+   16:  jne 0x20
+   18:  movl 0x44(%rbx), %eax
+   1b:  popq %rbx
+   1c:  retq
+   1d:  nopl (%rax)
+   20:  callq fn:wb_flushsub.part.0+0
+   25:  movl 0x44(%rbx), %eax
+   28:  popq %rbx
+   29:  retq

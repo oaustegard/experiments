@@ -1,0 +1,10 @@
+# tr_el  (static, 38 bytes, 9 instructions)
+    0:  movl (%rip), %eax   <var:ie_depth+0>
+    6:  movl $1, %edi
+    b:  testl %eax, %eax
+    d:  jle 0x21
+    f:  subl $1, %eax
+   12:  movl %eax, (%rip)   <var:ie_depth+0>
+   18:  cltq
+   1a:  movl (, %rax, 4), %edi   <var:ie_cond+0>
+   21:  jmp cp_blk+0

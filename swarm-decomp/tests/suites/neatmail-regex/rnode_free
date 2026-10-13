@@ -1,0 +1,178 @@
+# rnode_free  (static, 664 bytes, 177 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  movq 0x10(%rdi), %rbp
+   11:  testq %rbp, %rbp
+   14:  je 0x145
+   1a:  movq 0x10(%rbp), %r12
+   1e:  testq %r12, %r12
+   21:  je 0xa7
+   27:  movq 0x10(%r12), %r13
+   2c:  testq %r13, %r13
+   2f:  je 0x5e
+   31:  movq 0x10(%r13), %rdi
+   35:  testq %rdi, %rdi
+   38:  je 0x3f
+   3a:  callq 0
+   3f:  movq 0x18(%r13), %rdi
+   43:  testq %rdi, %rdi
+   46:  je 0x4d
+   48:  callq 0
+   4d:  movq 8(%r13), %rdi
+   51:  callq free+0
+   56:  movq %r13, %rdi
+   59:  callq free+0
+   5e:  movq 0x18(%r12), %r13
+   63:  testq %r13, %r13
+   66:  je 0x95
+   68:  movq 0x10(%r13), %rdi
+   6c:  testq %rdi, %rdi
+   6f:  je 0x76
+   71:  callq 0
+   76:  movq 0x18(%r13), %rdi
+   7a:  testq %rdi, %rdi
+   7d:  je 0x84
+   7f:  callq 0
+   84:  movq 8(%r13), %rdi
+   88:  callq free+0
+   8d:  movq %r13, %rdi
+   90:  callq free+0
+   95:  movq 8(%r12), %rdi
+   9a:  callq free+0
+   9f:  movq %r12, %rdi
+   a2:  callq free+0
+   a7:  movq 0x18(%rbp), %r12
+   ab:  testq %r12, %r12
+   ae:  je 0x134
+   b4:  movq 0x10(%r12), %r13
+   b9:  testq %r13, %r13
+   bc:  je 0xeb
+   be:  movq 0x10(%r13), %rdi
+   c2:  testq %rdi, %rdi
+   c5:  je 0xcc
+   c7:  callq 0
+   cc:  movq 0x18(%r13), %rdi
+   d0:  testq %rdi, %rdi
+   d3:  je 0xda
+   d5:  callq 0
+   da:  movq 8(%r13), %rdi
+   de:  callq free+0
+   e3:  movq %r13, %rdi
+   e6:  callq free+0
+   eb:  movq 0x18(%r12), %r13
+   f0:  testq %r13, %r13
+   f3:  je 0x122
+   f5:  movq 0x10(%r13), %rdi
+   f9:  testq %rdi, %rdi
+   fc:  je 0x103
+   fe:  callq 0
+  103:  movq 0x18(%r13), %rdi
+  107:  testq %rdi, %rdi
+  10a:  je 0x111
+  10c:  callq 0
+  111:  movq 8(%r13), %rdi
+  115:  callq free+0
+  11a:  movq %r13, %rdi
+  11d:  callq free+0
+  122:  movq 8(%r12), %rdi
+  127:  callq free+0
+  12c:  movq %r12, %rdi
+  12f:  callq free+0
+  134:  movq 8(%rbp), %rdi
+  138:  callq free+0
+  13d:  movq %rbp, %rdi
+  140:  callq free+0
+  145:  movq 0x18(%rbx), %rbp
+  149:  testq %rbp, %rbp
+  14c:  je 0x27d
+  152:  movq 0x10(%rbp), %r12
+  156:  testq %r12, %r12
+  159:  je 0x1df
+  15f:  movq 0x10(%r12), %r13
+  164:  testq %r13, %r13
+  167:  je 0x196
+  169:  movq 0x10(%r13), %rdi
+  16d:  testq %rdi, %rdi
+  170:  je 0x177
+  172:  callq 0
+  177:  movq 0x18(%r13), %rdi
+  17b:  testq %rdi, %rdi
+  17e:  je 0x185
+  180:  callq 0
+  185:  movq 8(%r13), %rdi
+  189:  callq free+0
+  18e:  movq %r13, %rdi
+  191:  callq free+0
+  196:  movq 0x18(%r12), %r13
+  19b:  testq %r13, %r13
+  19e:  je 0x1cd
+  1a0:  movq 0x10(%r13), %rdi
+  1a4:  testq %rdi, %rdi
+  1a7:  je 0x1ae
+  1a9:  callq 0
+  1ae:  movq 0x18(%r13), %rdi
+  1b2:  testq %rdi, %rdi
+  1b5:  je 0x1bc
+  1b7:  callq 0
+  1bc:  movq 8(%r13), %rdi
+  1c0:  callq free+0
+  1c5:  movq %r13, %rdi
+  1c8:  callq free+0
+  1cd:  movq 8(%r12), %rdi
+  1d2:  callq free+0
+  1d7:  movq %r12, %rdi
+  1da:  callq free+0
+  1df:  movq 0x18(%rbp), %r12
+  1e3:  testq %r12, %r12
+  1e6:  je 0x26c
+  1ec:  movq 0x10(%r12), %r13
+  1f1:  testq %r13, %r13
+  1f4:  je 0x223
+  1f6:  movq 0x10(%r13), %rdi
+  1fa:  testq %rdi, %rdi
+  1fd:  je 0x204
+  1ff:  callq 0
+  204:  movq 0x18(%r13), %rdi
+  208:  testq %rdi, %rdi
+  20b:  je 0x212
+  20d:  callq 0
+  212:  movq 8(%r13), %rdi
+  216:  callq free+0
+  21b:  movq %r13, %rdi
+  21e:  callq free+0
+  223:  movq 0x18(%r12), %r13
+  228:  testq %r13, %r13
+  22b:  je 0x25a
+  22d:  movq 0x10(%r13), %rdi
+  231:  testq %rdi, %rdi
+  234:  je 0x23b
+  236:  callq 0
+  23b:  movq 0x18(%r13), %rdi
+  23f:  testq %rdi, %rdi
+  242:  je 0x249
+  244:  callq 0
+  249:  movq 8(%r13), %rdi
+  24d:  callq free+0
+  252:  movq %r13, %rdi
+  255:  callq free+0
+  25a:  movq 8(%r12), %rdi
+  25f:  callq free+0
+  264:  movq %r12, %rdi
+  267:  callq free+0
+  26c:  movq 8(%rbp), %rdi
+  270:  callq free+0
+  275:  movq %rbp, %rdi
+  278:  callq free+0
+  27d:  movq 8(%rbx), %rdi
+  281:  callq free+0
+  286:  addq $8, %rsp
+  28a:  movq %rbx, %rdi
+  28d:  popq %rbx
+  28e:  popq %rbp
+  28f:  popq %r12
+  291:  popq %r13
+  293:  jmp free+0

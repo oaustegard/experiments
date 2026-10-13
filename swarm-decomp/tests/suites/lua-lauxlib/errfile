@@ -1,0 +1,49 @@
+# errfile  (static, 151 bytes, 48 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rsi, %r12
+    9:  pushq %rbp
+    a:  movl %edx, %ebp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  callq __errno_location+0
+   15:  xorl %edx, %edx
+   17:  movl %ebp, %esi
+   19:  movq %rbx, %rdi
+   1c:  movl (%rax), %r14d
+   1f:  callq lua_tolstring+0
+   24:  leaq 1(%rax), %r13
+   28:  testl %r14d, %r14d
+   2b:  je 0x80
+   2d:  movl %r14d, %edi
+   30:  callq strerror+0
+   35:  movq %r13, %rcx
+   38:  movq %r12, %rdx
+   3b:  movl $0, %esi   <str:"cannot %s %s: %s">
+   40:  movq %rax, %r8
+   43:  movq %rbx, %rdi
+   46:  xorl %eax, %eax
+   48:  callq lua_pushfstring+0
+   4d:  movl %ebp, %esi
+   4f:  movq %rbx, %rdi
+   52:  movl $0xffffffff, %edx
+   57:  callq lua_rotate+0
+   5c:  movq %rbx, %rdi
+   5f:  movl $0xfffffffe, %esi
+   64:  callq lua_settop+0
+   69:  popq %rbx
+   6a:  movl $6, %eax
+   6f:  popq %rbp
+   70:  popq %r12
+   72:  popq %r13
+   74:  popq %r14
+   76:  retq
+   77:  nopw (%rax, %rax)
+   80:  movq %r13, %rcx
+   83:  movq %r12, %rdx
+   86:  movl $0, %esi   <str:"cannot %s %s">
+   8b:  movq %rbx, %rdi
+   8e:  xorl %eax, %eax
+   90:  callq lua_pushfstring+0
+   95:  jmp 0x4d

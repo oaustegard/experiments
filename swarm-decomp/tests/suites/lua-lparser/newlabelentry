@@ -1,0 +1,44 @@
+# newlabelentry  (static, 131 bytes, 43 instructions)
+    0:  pushq %r15
+    2:  movl $0x7fff, %r9d
+    8:  movq %rdx, %r15
+    b:  pushq %r14
+    d:  movl %ecx, %r14d
+   10:  leaq 0xc(%rsi), %rcx
+   14:  pushq %r13
+   16:  movl %r8d, %r13d
+   19:  movl $0x18, %r8d
+   1f:  pushq %r12
+   21:  movq %rdi, %r12
+   24:  pushq %rbp
+   25:  pushq %rbx
+   26:  movq %rsi, %rbx
+   29:  subq $0x10, %rsp
+   2d:  movl 8(%rsi), %ebp
+   30:  movq 0x38(%rdi), %rdi
+   34:  movq (%rsi), %rsi
+   37:  pushq $0   <str:"labels/gotos">
+   3c:  movl %ebp, %edx
+   3e:  callq luaM_growaux_+0
+   43:  movslq %ebp, %rdx
+   46:  leaq (%rdx, %rdx, 2), %rdx
+   4a:  movq %rax, (%rbx)
+   4d:  leaq (%rax, %rdx, 8), %rax
+   51:  movq 0x30(%r12), %rdx
+   56:  movq %r15, (%rax)
+   59:  movl %r14d, 0xc(%rax)
+   5d:  movzbl 0x42(%rdx), %edx
+   61:  movb $0, 0x11(%rax)
+   65:  movb %dl, 0x10(%rax)
+   68:  movl %r13d, 8(%rax)
+   6c:  leal 1(%rbp), %eax
+   6f:  movl %eax, 8(%rbx)
+   72:  addq $0x18, %rsp
+   76:  movl %ebp, %eax
+   78:  popq %rbx
+   79:  popq %rbp
+   7a:  popq %r12
+   7c:  popq %r13
+   7e:  popq %r14
+   80:  popq %r15
+   82:  retq

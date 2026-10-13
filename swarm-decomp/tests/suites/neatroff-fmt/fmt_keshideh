@@ -1,0 +1,104 @@
+# fmt_keshideh  (static, 382 bytes, 103 instructions)
+    0:  pushq %r15
+    2:  leal -1(%rsi), %eax
+    5:  movq %rdi, %r15
+    8:  pushq %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  movl %edx, %r12d
+   11:  movslq %eax, %rdx
+   14:  pushq %rbp
+   15:  pushq %rbx
+   16:  subq $0x20a8, %rsp
+   1d:  movl %eax, 0x28(%rsp)
+   21:  leaq (, %rdx, 8), %rax
+   29:  subq %rdx, %rax
+   2c:  movl %esi, 0x2c(%rsp)
+   30:  shlq $3, %rax
+   34:  movq %rax, 0x20(%rsp)
+   39:  leal -3(%rsi), %eax
+   3c:  movl %eax, 0x1c(%rsp)
+   40:  movl 0x28(%rsp), %eax
+   44:  xorl %r14d, %r14d
+   47:  movl %eax, 0x18(%rsp)
+   4b:  movq 0x20(%rsp), %rax
+   50:  movq %rax, 0x10(%rsp)
+   55:  movl 0x18(%rsp), %eax
+   59:  testl %eax, %eax
+   5b:  js 0x116
+   61:  shrl $1, %eax
+   63:  movq 0x10(%rsp), %rbx
+   68:  movl %eax, %edx
+   6a:  leaq (, %rdx, 8), %rax
+   72:  leaq -0x70(%rbx), %r13
+   76:  subq %rdx, %rax
+   79:  shlq $4, %rax
+   7d:  subq %rax, %r13
+   80:  movq (%r15), %rbp
+   83:  leaq 0x30(%rsp), %rdi
+   88:  callq wb_init+0
+   8d:  movl %r12d, %edx
+   90:  leaq 0x30(%rsp), %rsi
+   95:  addq %rbx, %rbp
+   98:  movq (%rbp), %rdi
+   9c:  callq wb_keshideh+0
+   a1:  testl %eax, %eax
+   a3:  movl %eax, 0xc(%rsp)
+   a7:  jle 0xff
+   a9:  movq (%rbp), %rdi
+   ad:  addl $1, %r14d
+   b1:  callq free+0
+   b6:  leaq 0x30(%rsp), %rdi
+   bb:  callq wb_buf+0
+   c0:  movq %rax, %rdi
+   c3:  callq strlen+0
+   c8:  leaq 1(%rax), %rdi
+   cc:  callq xmalloc+0
+   d1:  leaq 0x30(%rsp), %rdi
+   d6:  movq %rax, (%rbp)
+   da:  callq wb_buf+0
+   df:  movq (%rbp), %rdi
+   e3:  movq %rax, %rsi
+   e6:  callq strcpy+0
+   eb:  leaq 0x30(%rsp), %rdi
+   f0:  callq wb_wid+0
+   f5:  movl 0xc(%rsp), %edx
+   f9:  movl %eax, 8(%rbp)
+   fc:  subl %edx, %r12d
+   ff:  leaq 0x30(%rsp), %rdi
+  104:  subq $0x70, %rbx
+  108:  callq wb_done+0
+  10d:  cmpq %r13, %rbx
+  110:  jne 0x80
+  116:  subl $1, 0x18(%rsp)
+  11b:  movl 0x1c(%rsp), %ecx
+  11f:  movl 0x18(%rsp), %eax
+  123:  subq $0x38, 0x10(%rsp)
+  129:  cmpl %ecx, %eax
+  12b:  jne 0x55
+  131:  testl %r14d, %r14d
+  134:  jne 0x40
+  13a:  movl 0x2c(%rsp), %eax
+  13e:  testl %eax, %eax
+  140:  jle 0x16c
+  142:  movq (%r15), %rax
+  145:  xorl %edx, %edx
+  147:  addq $8, %rax
+  14b:  jmp 0x154
+  14d:  nopl (%rax)
+  150:  movl -0x18(%rax), %r14d
+  154:  addl (%rax), %r14d
+  157:  addl 0xc(%rax), %r14d
+  15b:  addl $1, %edx
+  15e:  addq $0x38, %rax
+  162:  movl %r14d, -0x18(%rax)
+  166:  cmpl %edx, 0x2c(%rsp)
+  16a:  jne 0x150
+  16c:  addq $0x20a8, %rsp
+  173:  popq %rbx
+  174:  popq %rbp
+  175:  popq %r12
+  177:  popq %r13
+  179:  popq %r14
+  17b:  popq %r15
+  17d:  retq

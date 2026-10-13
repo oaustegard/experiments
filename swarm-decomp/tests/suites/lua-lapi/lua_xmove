@@ -1,0 +1,37 @@
+# lua_xmove  (global, 124 bytes, 36 instructions)
+    0:  cmpq %rsi, %rdi
+    3:  je 0x7b
+    5:  movq 0x10(%rdi), %rax
+    9:  movslq %edx, %rcx
+    c:  shlq $4, %rcx
+   10:  subq %rcx, %rax
+   13:  movq %rax, 0x10(%rdi)
+   17:  testl %edx, %edx
+   19:  jle 0x7b
+   1b:  movq 0x10(%rsi), %rcx
+   1f:  movq (%rax), %r8
+   22:  movq %r8, (%rcx)
+   25:  movzbl 8(%rax), %eax
+   29:  movb %al, 8(%rcx)
+   2c:  leaq 0x10(%rcx), %rax
+   30:  movq %rax, 0x10(%rsi)
+   34:  cmpl $1, %edx
+   37:  je 0x7b
+   39:  subl $2, %edx
+   3c:  movq $18446744073709551600, %r8
+   43:  leaq 0x20(%rcx), %rax
+   47:  shlq $4, %rdx
+   4b:  subq %rcx, %r8
+   4e:  leaq 0x30(%rcx, %rdx), %r9
+   53:  nopl (%rax, %rax)
+   58:  leaq (%r8, %rax), %rdx
+   5c:  addq 0x10(%rdi), %rdx
+   60:  movq (%rdx), %rcx
+   63:  movq %rcx, -0x10(%rax)
+   67:  movzbl 8(%rdx), %edx
+   6b:  movb %dl, -8(%rax)
+   6e:  movq %rax, 0x10(%rsi)
+   72:  addq $0x10, %rax
+   76:  cmpq %r9, %rax
+   79:  jne 0x58
+   7b:  retq

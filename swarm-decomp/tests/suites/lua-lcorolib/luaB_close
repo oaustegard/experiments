@@ -1,0 +1,57 @@
+# luaB_close  (static, 199 bytes, 56 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  subq $8, %rsp
+    e:  callq lua_tothread+0
+   13:  movq %rax, %rbp
+   16:  testq %rax, %rax
+   19:  je 0xb0
+   1f:  movq %rbp, %rsi
+   22:  movq %rbx, %rdi
+   25:  callq fn:auxstatus+0
+   2a:  leal -1(%rax), %edx
+   2d:  cmpl $1, %edx
+   30:  jbe 0x58
+   32:  cltq
+   34:  movq %rbx, %rdi
+   37:  movl $0, %esi   <str:"cannot close a %s coroutine">
+   3c:  movq (, %rax, 8), %rdx   <var:statname+0>
+   44:  addq $8, %rsp
+   48:  xorl %eax, %eax
+   4a:  popq %rbx
+   4b:  popq %rbp
+   4c:  jmp luaL_error+0
+   51:  nopl (%rax)
+   58:  movq %rbx, %rsi
+   5b:  movq %rbp, %rdi
+   5e:  callq lua_closethread+0
+   63:  testl %eax, %eax
+   65:  jne 0x80
+   67:  movq %rbx, %rdi
+   6a:  movl $1, %esi
+   6f:  callq lua_pushboolean+0
+   74:  addq $8, %rsp
+   78:  movl $1, %eax
+   7d:  popq %rbx
+   7e:  popq %rbp
+   7f:  retq
+   80:  movq %rbx, %rdi
+   83:  xorl %esi, %esi
+   85:  callq lua_pushboolean+0
+   8a:  movq %rbx, %rsi
+   8d:  movq %rbp, %rdi
+   90:  movl $1, %edx
+   95:  callq lua_xmove+0
+   9a:  addq $8, %rsp
+   9e:  movl $2, %eax
+   a3:  popq %rbx
+   a4:  popq %rbp
+   a5:  retq
+   a6:  nopw %cs:(%rax, %rax)
+   b0:  movl $0, %edx   <str:"thread">
+   b5:  movl $1, %esi
+   ba:  movq %rbx, %rdi
+   bd:  callq luaL_typeerror+0
+   c2:  jmp 0x1f

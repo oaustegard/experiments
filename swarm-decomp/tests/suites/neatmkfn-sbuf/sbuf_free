@@ -1,0 +1,8 @@
+# sbuf_free  (global, 21 bytes, 7 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movq (%rdi), %rdi
+    7:  callq free+0
+    c:  movq %rbx, %rdi
+    f:  popq %rbx
+   10:  jmp free+0

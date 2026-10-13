@@ -1,0 +1,51 @@
+# dir_append  (static, 176 bytes, 50 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movl $0, %edi   <str:".td">
+    c:  subq $8, %rsp
+   10:  movl (%rip), %edx   <var:dir_cd+0>
+   16:  testl %edx, %edx
+   18:  setg %bpl
+   1c:  callq map+0
+   21:  movl %eax, %edi
+   23:  callq nreg+0
+   28:  cmpl %ebp, (%rax)
+   2a:  je 0x70
+   2c:  movl $0, %edi   <str:".td">
+   31:  callq map+0
+   36:  movl %eax, %edi
+   38:  callq nreg+0
+   3d:  movq %rbx, %rdi
+   40:  cmpl %ebp, (%rax)
+   42:  je 0x88
+   44:  callq strlen+0
+   49:  addq $8, %rsp
+   4d:  movl %ebp, %r9d
+   50:  movq %rbx, %rcx
+   53:  movl %eax, %r8d
+   56:  popq %rbx
+   57:  movl $0, %edx   <var:rbuf_sz+0>
+   5c:  movl $0, %esi   <var:rbuf_n+0>
+   61:  movl $0, %edi   <var:rbuf+0>
+   66:  popq %rbp
+   67:  jmp fn:dir_copy+0
+   6c:  nopl (%rax)
+   70:  movl (%rip), %eax   <var:rbuf_n+0>
+   76:  testl %eax, %eax
+   78:  je 0x2c
+   7a:  callq fn:dir_flush+0
+   7f:  jmp 0x2c
+   81:  nopl (%rax)
+   88:  callq strlen+0
+   8d:  addq $8, %rsp
+   91:  movl %ebp, %r9d
+   94:  movq %rbx, %rcx
+   97:  movl %eax, %r8d
+   9a:  popq %rbx
+   9b:  movl $0, %edx   <var:dbuf_sz+0>
+   a0:  movl $0, %esi   <var:dbuf_n+0>
+   a5:  movl $0, %edi   <var:dbuf+0>
+   aa:  popq %rbp
+   ab:  jmp fn:dir_copy+0

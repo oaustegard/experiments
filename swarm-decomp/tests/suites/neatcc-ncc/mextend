@@ -1,0 +1,39 @@
+# mextend  (global, 110 bytes, 38 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rcx, %r14
+    7:  pushq %r13
+    9:  movq %r14, %r15
+    c:  movq %rsi, %r13
+    f:  pushq %r12
+   11:  movq %rdi, %r12
+   14:  imulq %r13, %r15
+   18:  movq %rdx, %rdi
+   1b:  pushq %rbp
+   1c:  imulq %rcx, %rdi
+   20:  pushq %rbx
+   21:  movq %rdx, %rbx
+   24:  subq %r13, %rbx
+   27:  subq $8, %rsp
+   2b:  callq malloc+0
+   30:  movq %r15, %rdx
+   33:  movq %r12, %rsi
+   36:  movq %rax, %rdi
+   39:  movq %rax, %rbp
+   3c:  callq memcpy+0
+   41:  movq %rbx, %rdx
+   44:  leaq (%rbp, %r15), %rdi
+   49:  xorl %esi, %esi
+   4b:  imulq %r14, %rdx
+   4f:  callq memset+0
+   54:  movq %r12, %rdi
+   57:  callq free+0
+   5c:  addq $8, %rsp
+   60:  movq %rbp, %rax
+   63:  popq %rbx
+   64:  popq %rbp
+   65:  popq %r12
+   67:  popq %r13
+   69:  popq %r14
+   6b:  popq %r15
+   6d:  retq

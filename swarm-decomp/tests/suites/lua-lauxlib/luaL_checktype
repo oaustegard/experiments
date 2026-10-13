@@ -1,0 +1,25 @@
+# luaL_checktype  (global, 60 bytes, 24 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  callq lua_type+0
+   11:  cmpl %r12d, %eax
+   14:  jne 0x20
+   16:  popq %rbx
+   17:  popq %rbp
+   18:  popq %r12
+   1a:  retq
+   1b:  nopl (%rax, %rax)
+   20:  movl %r12d, %esi
+   23:  movq %rbx, %rdi
+   26:  callq lua_typename+0
+   2b:  movl %ebp, %esi
+   2d:  movq %rbx, %rdi
+   30:  popq %rbx
+   31:  movq %rax, %rdx
+   34:  popq %rbp
+   35:  popq %r12
+   37:  jmp luaL_typeerror+0

@@ -1,0 +1,16 @@
+# tr_next  (global, 49 bytes, 15 instructions)
+    0:  subq $8, %rsp
+    4:  nopl (%rax)
+    8:  callq tr_nextreq+0
+    d:  testl %eax, %eax
+    f:  je 8
+   11:  callq cp_next+0
+   16:  cmpl $0xa, %eax
+   19:  movl %eax, %ecx
+   1b:  sete %dl
+   1e:  shrl $0x1f, %ecx
+   21:  orl %ecx, %edx
+   23:  movzbl %dl, %edx
+   26:  movl %edx, (%rip)   <var:tr_nl+0>
+   2c:  addq $8, %rsp
+   30:  retq

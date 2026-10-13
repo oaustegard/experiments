@@ -1,0 +1,68 @@
+# luaB_load  (static, 237 bytes, 67 instructions)
+    0:  pushq %r13
+    2:  movl $1, %esi
+    7:  pushq %r12
+    9:  xorl %r12d, %r12d
+    c:  pushq %rbp
+    d:  pushq %rbx
+    e:  movq %rdi, %rbx
+   11:  subq $0x18, %rsp
+   15:  leaq 8(%rsp), %rdx
+   1a:  callq lua_tolstring+0
+   1f:  xorl %ecx, %ecx
+   21:  movl $0, %edx   <str:"bt">
+   26:  movq %rbx, %rdi
+   29:  movl $3, %esi
+   2e:  movq %rax, %rbp
+   31:  callq luaL_optlstring+0
+   36:  movl $4, %esi
+   3b:  movq %rbx, %rdi
+   3e:  movq %rax, %r13
+   41:  callq lua_type+0
+   46:  cmpl $-1, %eax
+   49:  setne %r12b
+   4d:  xorl %ecx, %ecx
+   4f:  shll $2, %r12d
+   53:  testq %rbp, %rbp
+   56:  je 0xa0
+   58:  movq %rbp, %rdx
+   5b:  movl $2, %esi
+   60:  movq %rbx, %rdi
+   63:  callq luaL_optlstring+0
+   68:  movq 8(%rsp), %rdx
+   6d:  movq %rbp, %rsi
+   70:  movq %r13, %r8
+   73:  movq %rax, %rcx
+   76:  movq %rbx, %rdi
+   79:  callq luaL_loadbufferx+0
+   7e:  movl %eax, %esi
+   80:  movl %r12d, %edx
+   83:  movq %rbx, %rdi
+   86:  callq fn:load_aux+0
+   8b:  addq $0x18, %rsp
+   8f:  popq %rbx
+   90:  popq %rbp
+   91:  popq %r12
+   93:  popq %r13
+   95:  retq
+   96:  nopw %cs:(%rax, %rax)
+   a0:  movl $0, %edx   <str:"=(load)">
+   a5:  movl $2, %esi
+   aa:  movq %rbx, %rdi
+   ad:  callq luaL_optlstring+0
+   b2:  movl $6, %edx
+   b7:  movl $1, %esi
+   bc:  movq %rbx, %rdi
+   bf:  movq %rax, %rbp
+   c2:  callq luaL_checktype+0
+   c7:  movl $5, %esi
+   cc:  movq %rbx, %rdi
+   cf:  callq lua_settop+0
+   d4:  movl $0, %esi   <fn:generic_reader+0>
+   d9:  movq %r13, %r8
+   dc:  movq %rbp, %rcx
+   df:  xorl %edx, %edx
+   e1:  movq %rbx, %rdi
+   e4:  callq lua_load+0
+   e9:  movl %eax, %esi
+   eb:  jmp 0x80

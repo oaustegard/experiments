@@ -1,0 +1,65 @@
+# otf_lang.isra.0  (static, 209 bytes, 64 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  movq %r8, %r14
+    a:  pushq %r13
+    c:  movq %rcx, %r13
+    f:  pushq %r12
+   11:  pushq %rbp
+   12:  movq %rdi, %rbp
+   15:  pushq %rbx
+   16:  subq $0x18, %rsp
+   1a:  movzwl 6(%rdi), %ebx
+   1e:  movzwl 2(%rsi), %eax
+   22:  movzwl 4(%rsi), %r12d
+   27:  movq %rdx, (%rsp)
+   2b:  rolw $8, %bx
+   2f:  rolw $8, %ax
+   33:  movzwl %bx, %ebx
+   36:  movl %r12d, %r11d
+   39:  movzwl %ax, %eax
+   3c:  addq %rdi, %rbx
+   3f:  rolw $8, %r11w
+   44:  cmpl $0xffff, %eax
+   49:  je 0x6a
+   4b:  leal (%rax, %rax, 2), %eax
+   4e:  movl %r11d, 0xc(%rsp)
+   53:  leal 2(%rax, %rax), %esi
+   57:  movslq %esi, %rsi
+   5a:  addq %rbx, %rsi
+   5d:  callq fn:otf_featrec.isra.0+0
+   62:  movl 0xc(%rsp), %r11d
+   67:  movl %eax, %r9d
+   6a:  testw %r12w, %r12w
+   6e:  je 0xbf
+   70:  movzwl %r11w, %r11d
+   74:  leaq 6(%r15), %r12
+   78:  leal -1(%r11), %eax
+   7c:  leaq 8(%r15, %rax, 2), %r15
+   81:  nopl (%rax)
+   88:  movzwl (%r12), %edx
+   8d:  movq %r14, %r8
+   90:  movq %r13, %rcx
+   93:  movq %rbp, %rdi
+   96:  addq $2, %r12
+   9a:  rolw $8, %dx
+   9e:  movzwl %dx, %edx
+   a1:  leal (%rdx, %rdx, 2), %eax
+   a4:  movq (%rsp), %rdx
+   a8:  leal 2(%rax, %rax), %esi
+   ac:  movslq %esi, %rsi
+   af:  addq %rbx, %rsi
+   b2:  callq fn:otf_featrec.isra.0+0
+   b7:  movl %eax, %r9d
+   ba:  cmpq %r12, %r15
+   bd:  jne 0x88
+   bf:  addq $0x18, %rsp
+   c3:  movl %r9d, %eax
+   c6:  popq %rbx
+   c7:  popq %rbp
+   c8:  popq %r12
+   ca:  popq %r13
+   cc:  popq %r14
+   ce:  popq %r15
+   d0:  retq

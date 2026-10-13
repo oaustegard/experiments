@@ -1,0 +1,27 @@
+# pref_make  (global, 106 bytes, 26 instructions)
+    0:  pushq %rbx
+    1:  movl $0x20, %edi
+    6:  callq xmalloc+0
+    b:  pxor %xmm0, %xmm0
+    f:  movups %xmm0, 0x10(%rax)
+   13:  movq %rax, %rbx
+   16:  movl $1, 0x1c(%rax)
+   1d:  movups %xmm0, (%rax)
+   20:  callq iset_make+0
+   25:  movslq 0x18(%rbx), %rsi
+   29:  movq 8(%rbx), %rdi
+   2d:  movl $8, %ecx
+   32:  movq %rax, (%rbx)
+   35:  movl $0x400, %edx
+   3a:  callq mextend+0
+   3f:  movslq 0x18(%rbx), %rsi
+   43:  movq 0x10(%rbx), %rdi
+   47:  movl $4, %ecx
+   4c:  movq %rax, 8(%rbx)
+   50:  movl $0x400, %edx
+   55:  callq mextend+0
+   5a:  movl $0x400, 0x18(%rbx)
+   61:  movq %rax, 0x10(%rbx)
+   65:  movq %rbx, %rax
+   68:  popq %rbx
+   69:  retq

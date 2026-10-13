@@ -1,0 +1,332 @@
+# dumpFunction  (static, 1190 bytes, 331 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  movq %rsi, %rbp
+    c:  pushq %rbx
+    d:  movq %rdi, %rbx
+   10:  subq $0x18, %rsp
+   14:  movl 0x18(%rdi), %r14d
+   18:  testl %r14d, %r14d
+   1b:  jne 0x30
+   1d:  movq 0x70(%rsi), %rsi
+   21:  cmpq %rdx, %rsi
+   24:  je 0x30
+   26:  callq fn:dumpString+0
+   2b:  jmp 0x3a
+   2d:  nopl (%rax)
+   30:  xorl %esi, %esi
+   32:  movq %rbx, %rdi
+   35:  callq fn:dumpSize+0
+   3a:  movslq 0x2c(%rbp), %rsi
+   3e:  movq %rbx, %rdi
+   41:  callq fn:dumpSize+0
+   46:  movslq 0x30(%rbp), %rsi
+   4a:  movq %rbx, %rdi
+   4d:  callq fn:dumpSize+0
+   52:  movzbl 0xa(%rbp), %eax
+   56:  movl 0x1c(%rbx), %r13d
+   5a:  movb %al, 8(%rsp)
+   5e:  testl %r13d, %r13d
+   61:  jne 0xc0
+   63:  movl $1, %edx
+   68:  movq 0x10(%rbx), %rcx
+   6c:  movq (%rbx), %rdi
+   6f:  leaq 8(%rsp), %rsi
+   74:  callq *8(%rbx)
+   77:  movl %eax, 0x1c(%rbx)
+   7a:  movzbl 0xb(%rbp), %edx
+   7e:  movb %dl, 8(%rsp)
+   82:  testl %eax, %eax
+   84:  jne 0xc0
+   86:  movl $1, %edx
+   8b:  movq 0x10(%rbx), %rcx
+   8f:  movq (%rbx), %rdi
+   92:  leaq 8(%rsp), %rsi
+   97:  callq *8(%rbx)
+   9a:  movl %eax, 0x1c(%rbx)
+   9d:  movzbl 0xc(%rbp), %edx
+   a1:  movb %dl, 8(%rsp)
+   a5:  testl %eax, %eax
+   a7:  jne 0xc0
+   a9:  movq 0x10(%rbx), %rcx
+   ad:  movq (%rbx), %rdi
+   b0:  movl $1, %edx
+   b5:  leaq 8(%rsp), %rsi
+   ba:  callq *8(%rbx)
+   bd:  movl %eax, 0x1c(%rbx)
+   c0:  movslq 0x18(%rbp), %rsi
+   c4:  movq %rbx, %rdi
+   c7:  callq fn:dumpSize+0
+   cc:  movslq 0x18(%rbp), %rdx
+   d0:  movl 0x1c(%rbx), %r12d
+   d4:  shlq $2, %rdx
+   d8:  testl %r12d, %r12d
+   db:  jne 0xe6
+   dd:  testq %rdx, %rdx
+   e0:  jne 0x490
+   e6:  movslq 0x14(%rbp), %r15
+   ea:  movq %rbx, %rdi
+   ed:  xorl %r13d, %r13d
+   f0:  movq %r15, %rsi
+   f3:  movq %r15, %r12
+   f6:  shlq $4, %r15
+   fa:  callq fn:dumpSize+0
+   ff:  testl %r12d, %r12d
+  102:  jg 0x134
+  104:  jmp 0x188
+  109:  nopl (%rax)
+  110:  cmpb $3, %r12b
+  114:  je 0x308
+  11a:  cmpb $4, %r12b
+  11e:  jne 0x12b
+  120:  movq (%r14), %rsi
+  123:  movq %rbx, %rdi
+  126:  callq fn:dumpString+0
+  12b:  addq $0x10, %r13
+  12f:  cmpq %r13, %r15
+  132:  je 0x188
+  134:  movq 0x38(%rbp), %r14
+  138:  movl 0x1c(%rbx), %r11d
+  13c:  addq %r13, %r14
+  13f:  movzbl 8(%r14), %r12d
+  144:  andl $0x3f, %r12d
+  148:  movb %r12b, 8(%rsp)
+  14d:  testl %r11d, %r11d
+  150:  jne 0x169
+  152:  movq 0x10(%rbx), %rcx
+  156:  movq (%rbx), %rdi
+  159:  movl $1, %edx
+  15e:  leaq 8(%rsp), %rsi
+  163:  callq *8(%rbx)
+  166:  movl %eax, 0x1c(%rbx)
+  169:  cmpb $0x13, %r12b
+  16d:  je 0x340
+  173:  jbe 0x110
+  175:  cmpb $0x14, %r12b
+  179:  je 0x120
+  17b:  addq $0x10, %r13
+  17f:  cmpq %r13, %r15
+  182:  jne 0x134
+  184:  nopl (%rax)
+  188:  movslq 0x10(%rbp), %r13
+  18c:  movq %rbx, %rdi
+  18f:  xorl %r12d, %r12d
+  192:  movq %r13, %rsi
+  195:  movq %r13, %r14
+  198:  shlq $4, %r13
+  19c:  callq fn:dumpSize+0
+  1a1:  testl %r14d, %r14d
+  1a4:  jle 0x23f
+  1aa:  nopw (%rax, %rax)
+  1b0:  movq 0x50(%rbp), %rax
+  1b4:  movl 0x1c(%rbx), %r8d
+  1b8:  movzbl 8(%rax, %r12), %eax
+  1be:  movb %al, 8(%rsp)
+  1c2:  testl %r8d, %r8d
+  1c5:  jne 0x232
+  1c7:  movl $1, %edx
+  1cc:  movq 0x10(%rbx), %rcx
+  1d0:  movq (%rbx), %rdi
+  1d3:  leaq 8(%rsp), %rsi
+  1d8:  callq *8(%rbx)
+  1db:  movq 0x50(%rbp), %rdx
+  1df:  movl %eax, 0x1c(%rbx)
+  1e2:  addq %r12, %rdx
+  1e5:  movzbl 9(%rdx), %edx
+  1e9:  movb %dl, 8(%rsp)
+  1ed:  testl %eax, %eax
+  1ef:  jne 0x232
+  1f1:  movl $1, %edx
+  1f6:  movq 0x10(%rbx), %rcx
+  1fa:  movq (%rbx), %rdi
+  1fd:  leaq 8(%rsp), %rsi
+  202:  callq *8(%rbx)
+  205:  movq 0x50(%rbp), %rdx
+  209:  movl %eax, 0x1c(%rbx)
+  20c:  addq %r12, %rdx
+  20f:  movzbl 0xa(%rdx), %edx
+  213:  movb %dl, 8(%rsp)
+  217:  testl %eax, %eax
+  219:  jne 0x232
+  21b:  movq 0x10(%rbx), %rcx
+  21f:  movq (%rbx), %rdi
+  222:  movl $1, %edx
+  227:  leaq 8(%rsp), %rsi
+  22c:  callq *8(%rbx)
+  22f:  movl %eax, 0x1c(%rbx)
+  232:  addq $0x10, %r12
+  236:  cmpq %r12, %r13
+  239:  jne 0x1b0
+  23f:  movslq 0x20(%rbp), %r13
+  243:  movq %rbx, %rdi
+  246:  xorl %r12d, %r12d
+  249:  movq %r13, %rsi
+  24c:  movq %r13, %r14
+  24f:  shlq $3, %r13
+  253:  callq fn:dumpSize+0
+  258:  testl %r14d, %r14d
+  25b:  jle 0x27d
+  25d:  nopl (%rax)
+  260:  movq 0x48(%rbp), %rax
+  264:  movq 0x70(%rbp), %rdx
+  268:  movq %rbx, %rdi
+  26b:  movq (%rax, %r12), %rsi
+  26f:  addq $8, %r12
+  273:  callq 0
+  278:  cmpq %r13, %r12
+  27b:  jne 0x260
+  27d:  movl 0x18(%rbx), %edi
+  280:  testl %edi, %edi
+  282:  jne 0x360
+  288:  movslq 0x1c(%rbp), %r12
+  28c:  movq %rbx, %rdi
+  28f:  movq %r12, %rsi
+  292:  callq fn:dumpSize+0
+  297:  movl 0x1c(%rbx), %esi
+  29a:  testl %esi, %esi
+  29c:  jne 0x2b7
+  29e:  testq %r12, %r12
+  2a1:  je 0x2b7
+  2a3:  movq 0x10(%rbx), %rcx
+  2a7:  movq 0x58(%rbp), %rsi
+  2ab:  movq %r12, %rdx
+  2ae:  movq (%rbx), %rdi
+  2b1:  callq *8(%rbx)
+  2b4:  movl %eax, 0x1c(%rbx)
+  2b7:  movl 0x18(%rbx), %ecx
+  2ba:  testl %ecx, %ecx
+  2bc:  je 0x375
+  2c2:  xorl %esi, %esi
+  2c4:  movq %rbx, %rdi
+  2c7:  callq fn:dumpSize+0
+  2cc:  movl 0x18(%rbx), %edx
+  2cf:  testl %edx, %edx
+  2d1:  je 0x420
+  2d7:  xorl %esi, %esi
+  2d9:  movq %rbx, %rdi
+  2dc:  callq fn:dumpSize+0
+  2e1:  movl 0x18(%rbx), %eax
+  2e4:  testl %eax, %eax
+  2e6:  je 0x3d0
+  2ec:  addq $0x18, %rsp
+  2f0:  movq %rbx, %rdi
+  2f3:  xorl %esi, %esi
+  2f5:  popq %rbx
+  2f6:  popq %rbp
+  2f7:  popq %r12
+  2f9:  popq %r13
+  2fb:  popq %r14
+  2fd:  popq %r15
+  2ff:  jmp fn:dumpSize+0
+  304:  nopl (%rax)
+  308:  movq (%r14), %rax
+  30b:  movl 0x1c(%rbx), %r9d
+  30f:  movq %rax, 8(%rsp)
+  314:  testl %r9d, %r9d
+  317:  jne 0x12b
+  31d:  movq 0x10(%rbx), %rcx
+  321:  movq (%rbx), %rdi
+  324:  movl $8, %edx
+  329:  leaq 8(%rsp), %rsi
+  32e:  callq *8(%rbx)
+  331:  movl %eax, 0x1c(%rbx)
+  334:  jmp 0x12b
+  339:  nopl (%rax)
+  340:  movsd (%r14), %xmm0
+  345:  movl 0x1c(%rbx), %r10d
+  349:  movsd %xmm0, 8(%rsp)
+  34f:  testl %r10d, %r10d
+  352:  jne 0x12b
+  358:  jmp 0x31d
+  35a:  nopw (%rax, %rax)
+  360:  xorl %esi, %esi
+  362:  movq %rbx, %rdi
+  365:  callq fn:dumpSize+0
+  36a:  movl 0x18(%rbx), %ecx
+  36d:  testl %ecx, %ecx
+  36f:  jne 0x2c2
+  375:  movslq 0x28(%rbp), %r13
+  379:  movq %rbx, %rdi
+  37c:  xorl %r12d, %r12d
+  37f:  movq %r13, %rsi
+  382:  movq %r13, %r14
+  385:  shlq $3, %r13
+  389:  callq fn:dumpSize+0
+  38e:  testl %r14d, %r14d
+  391:  jle 0x2cc
+  397:  nopw (%rax, %rax)
+  3a0:  movq 0x60(%rbp), %rax
+  3a4:  movq %rbx, %rdi
+  3a7:  movslq (%rax, %r12), %rsi
+  3ab:  callq fn:dumpSize+0
+  3b0:  movq 0x60(%rbp), %rax
+  3b4:  movq %rbx, %rdi
+  3b7:  movslq 4(%rax, %r12), %rsi
+  3bc:  addq $8, %r12
+  3c0:  callq fn:dumpSize+0
+  3c5:  cmpq %r13, %r12
+  3c8:  jne 0x3a0
+  3ca:  jmp 0x2cc
+  3cf:  nop
+  3d0:  movslq 0x10(%rbp), %r13
+  3d4:  movq %rbx, %rdi
+  3d7:  xorl %r12d, %r12d
+  3da:  movq %r13, %rsi
+  3dd:  movq %r13, %r14
+  3e0:  shlq $4, %r13
+  3e4:  callq fn:dumpSize+0
+  3e9:  testl %r14d, %r14d
+  3ec:  jle 0x409
+  3ee:  nop
+  3f0:  movq 0x50(%rbp), %rax
+  3f4:  movq %rbx, %rdi
+  3f7:  movq (%rax, %r12), %rsi
+  3fb:  addq $0x10, %r12
+  3ff:  callq fn:dumpString+0
+  404:  cmpq %r13, %r12
+  407:  jne 0x3f0
+  409:  addq $0x18, %rsp
+  40d:  popq %rbx
+  40e:  popq %rbp
+  40f:  popq %r12
+  411:  popq %r13
+  413:  popq %r14
+  415:  popq %r15
+  417:  retq
+  418:  nopl (%rax, %rax)
+  420:  movslq 0x24(%rbp), %r13
+  424:  movq %rbx, %rdi
+  427:  xorl %r12d, %r12d
+  42a:  movq %r13, %rsi
+  42d:  movq %r13, %r14
+  430:  shlq $4, %r13
+  434:  callq fn:dumpSize+0
+  439:  testl %r14d, %r14d
+  43c:  jle 0x2e1
+  442:  nopw (%rax, %rax)
+  448:  movq 0x68(%rbp), %rax
+  44c:  movq %rbx, %rdi
+  44f:  movq (%rax, %r12), %rsi
+  453:  callq fn:dumpString+0
+  458:  movq 0x68(%rbp), %rax
+  45c:  movq %rbx, %rdi
+  45f:  movslq 8(%rax, %r12), %rsi
+  464:  callq fn:dumpSize+0
+  469:  movq 0x68(%rbp), %rax
+  46d:  movq %rbx, %rdi
+  470:  movslq 0xc(%rax, %r12), %rsi
+  475:  addq $0x10, %r12
+  479:  callq fn:dumpSize+0
+  47e:  cmpq %r13, %r12
+  481:  jne 0x448
+  483:  jmp 0x2e1
+  488:  nopl (%rax, %rax)
+  490:  movq 0x10(%rbx), %rcx
+  494:  movq 0x40(%rbp), %rsi
+  498:  movq (%rbx), %rdi
+  49b:  callq *8(%rbx)
+  49e:  movl %eax, 0x1c(%rbx)
+  4a1:  jmp 0xe6

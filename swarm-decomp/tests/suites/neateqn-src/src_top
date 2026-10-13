@@ -1,0 +1,6 @@
+# src_top  (global, 18 bytes, 5 instructions)
+    0:  movq (%rip), %rax   <var:esrc+0>
+    7:  cmpq $0, (%rax)
+    b:  sete %al
+    e:  movzbl %al, %eax
+   11:  retq

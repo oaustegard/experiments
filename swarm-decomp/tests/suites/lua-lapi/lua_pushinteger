@@ -1,0 +1,7 @@
+# lua_pushinteger  (global, 20 bytes, 6 instructions)
+    0:  movq 0x10(%rdi), %rax
+    4:  movq %rsi, (%rax)
+    7:  addq $0x10, %rax
+    b:  movb $3, -8(%rax)
+    f:  movq %rax, 0x10(%rdi)
+   13:  retq

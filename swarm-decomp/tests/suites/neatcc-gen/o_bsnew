@@ -1,0 +1,15 @@
+# o_bsnew  (global, 50 bytes, 14 instructions)
+    0:  cmpl $1, %edx
+    3:  pushq %rbx
+    4:  movq %rsi, %rbx
+    7:  movq (%rip), %rdx   <var:bsslen+0>
+    e:  sbbq %rsi, %rsi
+   11:  movq %rbx, %rcx
+   14:  addq $0xf, %rbx
+   18:  andq $0xfffffffffffffff0, %rsi
+   1c:  andq $0xfffffffffffffff0, %rbx
+   20:  addq $0x14, %rsi
+   24:  callq out_def+0
+   29:  addq %rbx, (%rip)   <var:bsslen+0>
+   30:  popq %rbx
+   31:  retq

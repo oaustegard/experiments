@@ -1,0 +1,34 @@
+# luaL_gsub  (global, 114 bytes, 33 instructions)
+    0:  pushq %r13
+    2:  movq %rcx, %r13
+    5:  pushq %r12
+    7:  movq %rdx, %r12
+    a:  pushq %rbp
+    b:  movq %rsi, %rbp
+    e:  pushq %rbx
+    f:  movq %rdi, %rbx
+   12:  subq $0x428, %rsp
+   19:  movdqa (%rip), %xmm0   <cst:00040000000000000000000000000000>
+   21:  leaq 0x20(%rsp), %rax
+   26:  movq %rsp, %rsi
+   29:  movq %rdi, 0x18(%rsp)
+   2e:  movq %rax, (%rsp)
+   32:  movups %xmm0, 8(%rsp)
+   37:  callq lua_pushlightuserdata+0
+   3c:  movq %r13, %rcx
+   3f:  movq %r12, %rdx
+   42:  movq %rbp, %rsi
+   45:  movq %rsp, %rdi
+   48:  callq luaL_addgsub+0
+   4d:  movq %rsp, %rdi
+   50:  callq luaL_pushresult+0
+   55:  movq %rbx, %rdi
+   58:  xorl %edx, %edx
+   5a:  movl $0xffffffff, %esi
+   5f:  callq lua_tolstring+0
+   64:  addq $0x428, %rsp
+   6b:  popq %rbx
+   6c:  popq %rbp
+   6d:  popq %r12
+   6f:  popq %r13
+   71:  retq

@@ -1,0 +1,134 @@
+# neatroff-reg: translation unit reg of neatroff
+# write each function as src/neatroff/reg/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+nf_roman	static	227 bytes
+env_set.part.0	static	1296 bytes
+nreg	global	38 bytes
+num_str	global	1462 bytes
+num_set	global	59 bytes
+num_setinc	global	11 bytes
+num_inc	global	72 bytes
+num_del	global	63 bytes
+str_set	global	89 bytes
+str_get	global	12 bytes
+str_dget	global	12 bytes
+str_dset	global	12 bytes
+str_rm	global	48 bytes
+str_rn	global	141 bytes
+env_init	global	908 bytes
+env_done	global	108 bytes
+tr_ev	global	158 bytes
+tr_evc	global	657 bytes
+env_fmt	global	15 bytes
+env_wb	global	14 bytes
+env_hc	global	14 bytes
+env_mc	global	14 bytes
+env_tc	global	14 bytes
+env_lc	global	14 bytes
+odiv_beg	global	431 bytes
+odiv_end	global	414 bytes
+tr_ta	global	227 bytes
+tab_next	global	51 bytes
+tab_type	global	70 bytes
+num_getfmt	global	143 bytes
+num_setfmt	global	164 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+envs	static	65536 bytes	.bss.envs
+    (zero-initialised)
+eregs_idx	static	32768 bytes	.bss.eregs_idx
+    (zero-initialised)
+env	static	8 bytes	.bss.env
+    (zero-initialised)
+nregs	static	32768 bytes	.bss.nregs
+    (zero-initialised)
+nregs_fmt	static	32768 bytes	.bss.nregs_fmt
+    (zero-initialised)
+numbuf.3	static	128 bytes	.bss.numbuf.3
+    (zero-initialised)
+tabs.1	static	512 bytes	.bss.tabs.1
+    (zero-initialised)
+env_id	static	4 bytes	.bss.env_id
+    (zero-initialised)
+dst.2	static	1024 bytes	.bss.dst.2
+    (zero-initialised)
+nregs_inc	static	32768 bytes	.bss.nregs_inc
+    (zero-initialised)
+sregs	static	65536 bytes	.bss.sregs
+    (zero-initialised)
+sregs_dat	static	65536 bytes	.bss.sregs_dat
+    (zero-initialised)
+eregs	static	376 bytes	.rodata.eregs
+    +0     -> str:"ln"
+    +8     -> str:".f"
+    +16    -> str:".i"
+    +24    -> str:".j"
+    +32    -> str:".l"
+    +40    -> str:".L"
+    +48    -> str:".nI"
+    +56    -> str:".nm"
+    +64    -> str:".nM"
+    +72    -> str:".nn"
+    +80    -> str:".nS"
+    +88    -> str:".m"
+    +96    -> str:".s"
+    +104   -> str:".u"
+    +112   -> str:".v"
+    +120   -> str:".it"
+    +128   -> str:".itn"
+    +136   -> str:".mc"
+    +144   -> str:".mcn"
+    +152   -> str:".ce"
+    +160   -> str:".na"
+    +168   -> str:".f0"
+    +176   -> str:".i0"
+    +184   -> str:".l0"
+    +192   -> str:".hy"
+    +200   -> str:".hycost"
+    +208   -> str:".hycost2"
+    +216   -> str:".hycost3"
+    +224   -> str:".hlm"
+    +232   -> str:".L0"
+    +240   -> str:".m0"
+    +248   -> str:".n0"
+    +256   -> str:".s0"
+    +264   -> str:".ss"
+    +272   -> str:".ssh"
+    +280   -> str:".sss"
+    +288   -> str:".pmll"
+    +296   -> str:".pmllcost"
+    +304   -> str:".ti"
+    +312   -> str:".lt"
+    +320   -> str:".lt0"
+    +328   -> str:".v0"
+    +336   -> str:".I"
+    +344   -> str:".I0"
+    +352   -> str:".tI"
+    +360   -> str:".td"
+    +368   -> str:".cd"
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+nenv	static	4 bytes	.bss.nenv
+    (zero-initialised)
+oenv	static	64 bytes	.bss.oenv
+    (zero-initialised)
+nodivs	static	4 bytes	.bss.nodivs
+    (zero-initialised)
+odivs	static	448 bytes	.bss.odivs
+    (zero-initialised)
+fmtbuf.0	static	128 bytes	.bss.fmtbuf.0
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc dev_font dev_res eval_re f_divreg f_hpos f_nexttrap fmt_alloc fmt_free font_getbd free getpid in_filename in_lnum in_nargs localtime map map_name memcpy memset snprintf sprintf stpcpy strchr strcmp strlen strrchr time wb_done wb_init xmalloc

@@ -1,0 +1,9 @@
+# ts_sub  (global, 23 bytes, 8 instructions)
+    0:  sarl $4, %edi
+    3:  movl $1, %eax
+    8:  testl %edi, %edi
+    a:  cmovgl %eax, %edi
+    d:  leal 1(%rdi), %eax
+   10:  shll $4, %eax
+   13:  orl $1, %eax
+   16:  retq

@@ -1,0 +1,16 @@
+# tab_put  (global, 50 bytes, 15 instructions)
+    0:  movslq 0x10(%rdi), %rax
+    4:  movq (%rdi), %rcx
+    7:  movq %rsi, (%rcx, %rax, 8)
+    b:  movq 8(%rdi), %rcx
+    f:  movq %rdx, (%rcx, %rax, 8)
+   13:  movzbl (%rsi), %edx
+   16:  movl 0x20(%rdi, %rdx, 4), %ecx
+   1a:  movq 0x18(%rdi), %rdx
+   1e:  movl %ecx, (%rdx, %rax, 4)
+   21:  movl 0x10(%rdi), %eax
+   24:  movzbl (%rsi), %edx
+   27:  movl %eax, 0x20(%rdi, %rdx, 4)
+   2b:  addl $1, %eax
+   2e:  movl %eax, 0x10(%rdi)
+   31:  retq

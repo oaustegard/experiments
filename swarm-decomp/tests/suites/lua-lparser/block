@@ -1,0 +1,50 @@
+# block  (static, 170 bytes, 49 instructions)
+    0:  pushq %r12
+    2:  xorl %edx, %edx
+    4:  pushq %rbp
+    5:  movq %rdi, %rbp
+    8:  pushq %rbx
+    9:  subq $0x20, %rsp
+    d:  movq 0x30(%rdi), %rbx
+   11:  movzbl 0x42(%rbx), %eax
+   15:  movb %al, 0x10(%rsp)
+   19:  movq 0x10(%rbx), %rax
+   1d:  movq 0x58(%rax), %rax
+   21:  movd 0x28(%rax), %xmm0
+   26:  movd 0x18(%rax), %xmm1
+   2b:  xorl %eax, %eax
+   2d:  movw %ax, 0x11(%rsp)
+   32:  movq 0x18(%rbx), %rax
+   36:  punpckldq %xmm1, %xmm0
+   3a:  movq %xmm0, 8(%rsp)
+   40:  testq %rax, %rax
+   43:  je 0x4c
+   45:  cmpb $0, 0x13(%rax)
+   49:  setne %dl
+   4c:  movb %dl, 0x13(%rsp)
+   50:  movl $0x20020007, %r12d
+   56:  movq %rax, (%rsp)
+   5a:  movq %rsp, 0x18(%rbx)
+   5e:  movl 0x10(%rbp), %edx
+   61:  leal -0x103(%rdx), %eax
+   67:  cmpl $0x1d, %eax
+   6a:  ja 0x90
+   6c:  btq %rax, %r12
+   70:  jae 0x88
+   72:  movq %rbx, %rdi
+   75:  callq fn:leaveblock+0
+   7a:  addq $0x20, %rsp
+   7e:  popq %rbx
+   7f:  popq %rbp
+   80:  popq %r12
+   82:  retq
+   83:  nopl (%rax, %rax)
+   88:  cmpl $0x111, %edx
+   8e:  je 0xa0
+   90:  movq %rbp, %rdi
+   93:  callq fn:statement+0
+   98:  jmp 0x5e
+   9a:  nopw (%rax, %rax)
+   a0:  movq %rbp, %rdi
+   a3:  callq fn:statement+0
+   a8:  jmp 0x72

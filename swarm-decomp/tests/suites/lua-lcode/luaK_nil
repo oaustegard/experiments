@@ -1,0 +1,51 @@
+# luaK_nil  (global, 156 bytes, 50 instructions)
+    0:  movl %edx, %eax
+    2:  movl %esi, %ecx
+    4:  movslq 0x20(%rdi), %rdx
+    8:  cmpl 0x24(%rdi), %edx
+    b:  jle 0x4d
+    d:  movq (%rdi), %rsi
+   10:  movq 0x40(%rsi), %rsi
+   14:  leaq -4(%rsi, %rdx, 4), %r10
+   19:  movl (%r10), %esi
+   1c:  movl %esi, %edx
+   1e:  andl $0x7f, %edx
+   21:  cmpl $8, %edx
+   24:  jne 0x4d
+   26:  movl %esi, %edx
+   28:  movl %esi, %r8d
+   2b:  leal (%rcx, %rax), %r9d
+   2f:  shrl $7, %edx
+   32:  shrl $0x10, %r8d
+   36:  movzbl %dl, %edx
+   39:  movzbl %r8b, %r8d
+   3d:  addl %edx, %r8d
+   40:  cmpl %edx, %ecx
+   42:  jl 0x60
+   44:  leal 1(%r8), %r11d
+   48:  cmpl %ecx, %r11d
+   4b:  jge 0x65
+   4d:  leal -1(%rax), %esi
+   50:  shll $7, %ecx
+   53:  shll $0x10, %esi
+   56:  orl %ecx, %esi
+   58:  orl $8, %esi
+   5b:  jmp luaK_code+0
+   60:  cmpl %edx, %r9d
+   63:  jl 0x4d
+   65:  cmpl %edx, %ecx
+   67:  cmovlel %ecx, %edx
+   6a:  andl $0xff00807f, %esi
+   70:  subl $1, %r9d
+   74:  movl %edx, %eax
+   76:  shll $7, %eax
+   79:  andl $0x7f80, %eax
+   7e:  orl %eax, %esi
+   80:  cmpl %r8d, %r9d
+   83:  cmovll %r8d, %r9d
+   87:  subl %edx, %r9d
+   8a:  shll $0x10, %r9d
+   8e:  andl $0xff0000, %r9d
+   95:  orl %r9d, %esi
+   98:  movl %esi, (%r10)
+   9b:  retq

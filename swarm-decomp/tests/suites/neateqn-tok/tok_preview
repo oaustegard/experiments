@@ -1,0 +1,73 @@
+# tok_preview  (static, 212 bytes, 72 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  pushq %r12
+    7:  movq %rdi, %r12
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  subq $8, %rsp
+   10:  callq src_next+0
+   15:  movl %eax, %ebx
+   17:  testl %eax, %eax
+   19:  jg 0x38
+   1b:  movl %ebx, %edi
+   1d:  callq src_back+0
+   22:  movb $0, (%r12)
+   27:  addq $8, %rsp
+   2b:  popq %rbx
+   2c:  popq %rbp
+   2d:  popq %r12
+   2f:  popq %r13
+   31:  retq
+   32:  nopw (%rax, %rax)
+   38:  movl %eax, %edi
+   3a:  xorl $1, %r13d
+   3e:  callq def_chopped+0
+   43:  movl %eax, %ebp
+   45:  testl %eax, %eax
+   47:  je 0x95
+   49:  jmp 0xb0
+   4b:  nopl (%rax, %rax)
+   50:  testb $1, %r13b
+   54:  jne 0x5b
+   56:  cmpl $0x28, %ebx
+   59:  je 0xa0
+   5b:  movl (%rip), %eax   <var:tok_line+0>
+   61:  testl %eax, %eax
+   63:  je 0x76
+   65:  callq src_top+0
+   6a:  testl %eax, %eax
+   6c:  je 0x76
+   6e:  cmpl %ebx, (%rip)   <var:eqn_end+0>
+   74:  je 0xa0
+   76:  movl %ebx, %edi
+   78:  callq src_back+0
+   7d:  movslq %ebp, %rdi
+   80:  addq %r12, %rdi
+   83:  callq fn:readchar+0
+   88:  addl %eax, %ebp
+   8a:  callq src_next+0
+   8f:  movl %eax, %ebx
+   91:  testl %eax, %eax
+   93:  jle 0xa0
+   95:  movl %ebx, %edi
+   97:  callq def_chopped+0
+   9c:  testl %eax, %eax
+   9e:  je 0x50
+   a0:  movslq %ebp, %rbp
+   a3:  addq %rbp, %r12
+   a6:  jmp 0x1b
+   ab:  nopl (%rax, %rax)
+   b0:  movl %ebx, %edi
+   b2:  callq src_back+0
+   b7:  movq %r12, %rdi
+   ba:  callq fn:readchar+0
+   bf:  cltq
+   c1:  addq %rax, %r12
+   c4:  movb $0, (%r12)
+   c9:  addq $8, %rsp
+   cd:  popq %rbx
+   ce:  popq %rbp
+   cf:  popq %r12
+   d1:  popq %r13
+   d3:  retq

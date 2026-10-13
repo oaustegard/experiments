@@ -1,0 +1,38 @@
+# genlink  (static, 127 bytes, 37 instructions)
+    0:  movzbl 9(%rsi), %eax
+    4:  movl %eax, %edx
+    6:  andl $7, %edx
+    9:  cmpb $5, %dl
+    c:  je 0x20
+    e:  cmpb $6, %dl
+   11:  je 0x18
+   13:  retq
+   14:  nopl (%rax)
+   18:  xorl $2, %eax
+   1b:  movb %al, 9(%rsi)
+   1e:  retq
+   1f:  nop
+   20:  movzbl 8(%rsi), %edx
+   24:  movq 0x90(%rdi), %rcx
+   2b:  subl $5, %edx
+   2e:  cmpb $0x21, %dl
+   31:  ja fn:genlink.cold+0
+   37:  movzbl %dl, %edx
+   3a:  jmpq *(, %rdx, 8)   <var:genlink+0>
+   41:  nopl (%rax)
+   48:  leaq 0x10(%rsi), %rdx
+   4c:  andl $0xffffffc7, %eax
+   4f:  movq %rcx, (%rdx)
+   52:  movq %rsi, 0x90(%rdi)
+   59:  movb %al, 9(%rsi)
+   5c:  retq
+   5d:  leaq 0x30(%rsi), %rdx
+   61:  jmp 0x4c
+   63:  leaq 0x20(%rsi), %rdx
+   67:  jmp 0x4c
+   69:  leaq 0x48(%rsi), %rdx
+   6d:  jmp 0x4c
+   6f:  leaq 0x78(%rsi), %rdx
+   73:  jmp 0x4c
+   75:  movq %rcx, 0
+   7d:  ud2

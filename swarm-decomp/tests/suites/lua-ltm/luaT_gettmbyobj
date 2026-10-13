@@ -1,0 +1,25 @@
+# luaT_gettmbyobj  (global, 81 bytes, 24 instructions)
+    0:  movzbl 8(%rsi), %ecx
+    4:  movq 0x18(%rdi), %rax
+    8:  andl $0xf, %ecx
+    b:  cmpb $5, %cl
+    e:  je 0x48
+   10:  cmpb $7, %cl
+   13:  jne 0x30
+   15:  movq (%rsi), %rcx
+   18:  movq 0x18(%rcx), %rdi
+   1c:  testq %rdi, %rdi
+   1f:  je 0x40
+   21:  movl %edx, %edx
+   23:  movq 0x118(%rax, %rdx, 8), %rsi
+   2b:  jmp luaH_getshortstr+0
+   30:  andl $0xf, %ecx
+   33:  movq 0x1e0(%rax, %rcx, 8), %rdi
+   3b:  testq %rdi, %rdi
+   3e:  jne 0x21
+   40:  addq $0x50, %rax
+   44:  retq
+   45:  nopl (%rax)
+   48:  movq (%rsi), %rcx
+   4b:  movq 0x28(%rcx), %rdi
+   4f:  jmp 0x1c

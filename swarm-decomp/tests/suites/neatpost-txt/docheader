@@ -1,0 +1,52 @@
+# docheader  (global, 189 bytes, 51 instructions)
+    0:  subq $8, %rsp
+    4:  movl %edx, %r9d
+    7:  movl %esi, %eax
+    9:  movl (%rip), %edx   <var:c_wdpt+0>
+    f:  movl (%rip), %esi   <dev_res+0>
+   15:  imull %esi, %edx
+   18:  imull %esi, %eax
+   1b:  movslq %edx, %r8
+   1e:  sarl $0x1f, %edx
+   21:  imulq $0x38e38e39, %r8, %r8
+   28:  movslq %eax, %rdi
+   2b:  imulq $-0x7efdfbf7, %rdi, %rdi
+   32:  sarq $0x24, %r8
+   36:  subl %edx, %r8d
+   39:  movl (%rip), %edx   <var:c_htpt+0>
+   3f:  shrq $0x20, %rdi
+   43:  addl %eax, %edi
+   45:  sarl $0x1f, %eax
+   48:  movl %r8d, (%rip)   <var:c_wd+0>
+   4f:  imull %esi, %edx
+   52:  sarl $7, %edi
+   55:  subl %eax, %edi
+   57:  imull %r9d, %esi
+   5b:  movl %edi, %eax
+   5d:  movslq %edx, %rcx
+   60:  sarl $0x1f, %edx
+   63:  imulq $0x38e38e39, %rcx, %rcx
+   6a:  sarq $0x24, %rcx
+   6e:  subl %edx, %ecx
+   70:  cltd
+   71:  idivl %r8d
+   74:  movl %ecx, (%rip)   <var:c_ht+0>
+   7a:  movl %eax, (%rip)   <var:p_cwd+0>
+   80:  movl %eax, %edi
+   82:  movslq %esi, %rax
+   85:  movq %rax, %rdx
+   88:  imulq $-0x7efdfbf7, %rax, %rax
+   8f:  shrq $0x20, %rax
+   93:  addl %edx, %eax
+   95:  sarl $0x1f, %edx
+   98:  sarl $7, %eax
+   9b:  subl %edx, %eax
+   9d:  cltd
+   9e:  idivl %ecx
+   a0:  imull %eax, %edi
+   a3:  movl %eax, (%rip)   <var:p_cht+0>
+   a9:  movslq %edi, %rdi
+   ac:  callq malloc+0
+   b1:  movq %rax, (%rip)   <var:o_pg+0>
+   b8:  addq $8, %rsp
+   bc:  retq

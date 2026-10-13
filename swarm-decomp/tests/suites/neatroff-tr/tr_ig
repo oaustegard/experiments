@@ -1,0 +1,7 @@
+# tr_ig  (static, 23 bytes, 6 instructions)
+    0:  movq 8(%rdi), %rsi
+    4:  movl $0, %eax   <str:".">
+    9:  testq %rsi, %rsi
+    c:  cmoveq %rax, %rsi
+   10:  xorl %edi, %edi
+   12:  jmp fn:macrobody+0

@@ -1,0 +1,42 @@
+# luaK_exp2nextreg  (global, 123 bytes, 41 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rsi, %rbp
+    6:  pushq %rbx
+    7:  movq %rdi, %rbx
+    a:  callq luaK_dischargevars+0
+    f:  cmpl $8, (%rbp)
+   13:  je 0x50
+   15:  movzbl 0x44(%rbx), %eax
+   19:  movq (%rbx), %rsi
+   1c:  movzbl %al, %edx
+   1f:  leal 1(%rdx), %ecx
+   22:  movzbl 0xc(%rsi), %edi
+   26:  cmpl %edi, %ecx
+   28:  jg 0x40
+   2a:  addl $1, %eax
+   2d:  movb %al, 0x44(%rbx)
+   30:  movq %rbp, %rsi
+   33:  movq %rbx, %rdi
+   36:  popq %rbx
+   37:  popq %rbp
+   38:  popq %r12
+   3a:  jmp fn:exp2reg+0
+   3f:  nop
+   40:  cmpl $0xfe, %ecx
+   46:  jg 0x6d
+   48:  addl $1, %eax
+   4b:  movb %al, 0xc(%rsi)
+   4e:  jmp 0x2d
+   50:  movl 8(%rbp), %r12d
+   54:  movq %rbx, %rdi
+   57:  callq luaY_nvarstack+0
+   5c:  cmpl %eax, %r12d
+   5f:  movzbl 0x44(%rbx), %eax
+   63:  jl 0x19
+   65:  subl $1, %eax
+   68:  movb %al, 0x44(%rbx)
+   6b:  jmp 0x19
+   6d:  movq 0x10(%rbx), %rdi
+   71:  movl $0, %esi   <str:"function or expression needs too many registers">
+   76:  callq luaX_syntaxerror+0

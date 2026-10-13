@@ -1,0 +1,32 @@
+# escarg  (global, 110 bytes, 31 instructions)
+    0:  subq $8, %rsp
+    4:  movsbl 1(%rdi), %ecx
+    8:  testb %cl, %cl
+    a:  je 0x50
+    c:  cmpb $0, 2(%rdi)
+   10:  je 0x30
+   12:  movq %rdi, %rdx
+   15:  movl $0, %esi   <str:"[%s]">
+   1a:  movl $0, %edi   <var:buf+0>
+   1f:  xorl %eax, %eax
+   21:  callq sprintf+0
+   26:  movl $0, %eax   <var:buf+0>
+   2b:  addq $8, %rsp
+   2f:  retq
+   30:  movsbl (%rdi), %edx
+   33:  movl $0, %esi   <str:"(%c%c">
+   38:  movl $0, %edi   <var:buf+0>
+   3d:  xorl %eax, %eax
+   3f:  callq sprintf+0
+   44:  movl $0, %eax   <var:buf+0>
+   49:  addq $8, %rsp
+   4d:  retq
+   4e:  nop
+   50:  movsbl (%rdi), %edx
+   53:  movl $0, %esi   <str:"%c">
+   58:  movl $0, %edi   <var:buf+0>
+   5d:  xorl %eax, %eax
+   5f:  callq sprintf+0
+   64:  movl $0, %eax   <var:buf+0>
+   69:  addq $8, %rsp
+   6d:  retq

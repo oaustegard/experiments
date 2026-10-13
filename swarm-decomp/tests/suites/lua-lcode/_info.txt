@@ -1,0 +1,63 @@
+# lua-lcode: translation unit lcode of lua
+# write each function as src/lua/lcode/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+savelineinfo	static	226 bytes
+addk	static	422 bytes
+luaK_numberK	static	142 bytes
+luaK_exp2K	static	288 bytes
+isSCnumber	static	136 bytes
+need_value	static	99 bytes
+removevalues	static	116 bytes
+freeexps	static	144 bytes
+patchlistaux	static	341 bytes
+constfolding	static	473 bytes
+luaK_semerror	global	16 bytes
+luaK_exp2const	global	220 bytes
+luaK_concat	global	130 bytes
+luaK_getlabel	global	7 bytes
+luaK_patchlist	global	13 bytes
+luaK_patchtohere	global	19 bytes
+luaK_code	global	107 bytes
+luaK_jump	global	10 bytes
+luaK_nil	global	156 bytes
+luaK_ret	global	41 bytes
+luaK_codek.isra.0	static	80 bytes
+luaK_codeABCk	global	33 bytes
+luaK_codeABx	global	17 bytes
+luaK_checkstack	global	43 bytes
+luaK_reserveregs	global	52 bytes
+luaK_int	global	102 bytes
+luaK_setreturns	global	130 bytes
+luaK_setoneret	global	80 bytes
+luaK_dischargevars	global	606 bytes
+discharge2reg	static	425 bytes
+exp2reg	static	325 bytes
+jumponcond	static	329 bytes
+luaK_exp2nextreg	global	123 bytes
+luaK_exp2anyreg	global	92 bytes
+codeABRK	static	103 bytes
+luaK_exp2anyregup	global	25 bytes
+luaK_exp2val	global	21 bytes
+luaK_storevar	global	315 bytes
+luaK_self	global	206 bytes
+luaK_goiftrue	global	168 bytes
+luaK_goiffalse	global	127 bytes
+luaK_indexed	global	388 bytes
+luaK_infix	global	235 bytes
+luaK_fixline	global	65 bytes
+luaK_prefix	global	518 bytes
+finishbinexpval	static	195 bytes
+finishbinexpneg	static	156 bytes
+codearith	static	206 bytes
+luaK_posfix	global	1868 bytes
+luaK_settablesize	global	112 bytes
+luaK_setlist	global	115 bytes
+luaK_finish	global	240 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+ef.0	static	24 bytes	.rodata.ef.0
+        0: 06 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff ff ff ff
+
+## symbols this TU uses but does not define (other TUs, libc)
+luaC_barrier_ luaH_finishset luaH_get luaM_growaux_ luaO_ceillog2 luaO_rawarith luaP_opmodes luaV_equalobj luaV_flttointeger luaV_tointegerns luaX_syntaxerror luaY_nvarstack

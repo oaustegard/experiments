@@ -1,0 +1,32 @@
+# warnfcont  (static, 115 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movl %edx, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  movq %rsi, %rdi
+    a:  subq $8, %rsp
+    e:  movq (%rip), %rsi   <stderr+0>
+   15:  callq fputs+0
+   1a:  movq (%rip), %rdi   <stderr+0>
+   21:  callq fflush+0
+   26:  testl %ebp, %ebp
+   28:  je 0x40
+   2a:  addq $8, %rsp
+   2e:  movq %rbx, %rdx
+   31:  movq %rbx, %rdi
+   34:  movl $0, %esi   <fn:warnfcont+0>
+   39:  popq %rbx
+   3a:  popq %rbp
+   3b:  jmp lua_setwarnf+0
+   40:  movq (%rip), %rsi   <stderr+0>
+   47:  movl $0xa, %edi
+   4c:  callq fputc+0
+   51:  movq (%rip), %rdi   <stderr+0>
+   58:  callq fflush+0
+   5d:  addq $8, %rsp
+   61:  movq %rbx, %rdx
+   64:  movq %rbx, %rdi
+   67:  movl $0, %esi   <fn:warnfon+0>
+   6c:  popq %rbx
+   6d:  popq %rbp
+   6e:  jmp lua_setwarnf+0

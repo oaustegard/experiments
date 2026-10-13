@@ -1,0 +1,18 @@
+# neatroff-eval: translation unit eval of neatroff
+# write each function as src/neatroff/eval/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+evalatom	static	844 bytes
+evalexpr	static	650 bytes
+eval_up	global	151 bytes
+eval_re	global	109 bytes
+eval	global	152 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+abspos	static	4 bytes	.bss.abspos
+    (zero-initialised)
+defunit	static	4 bytes	.bss.defunit
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc dev_res env_wb errdie f_hpos map nreg strchr wb_vpos

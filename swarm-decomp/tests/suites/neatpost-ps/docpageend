@@ -1,0 +1,12 @@
+# docpageend  (global, 44 bytes, 11 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0, %edi   <str:"cleartomark\n">
+    9:  xorl %eax, %eax
+    b:  callq out+0
+   10:  movl $0, %edi   <str:"showpage\n">
+   15:  xorl %eax, %eax
+   17:  callq out+0
+   1c:  movl $0, %edi   <str:"saveobj restore\n">
+   21:  xorl %eax, %eax
+   23:  addq $8, %rsp
+   27:  jmp out+0

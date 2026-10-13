@@ -1,0 +1,199 @@
+# doREPL  (static, 793 bytes, 198 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  movl $0, %r12d   <str:"(error message not a string)">
+    a:  pushq %rbp
+    b:  pushq %rbx
+    c:  movq %rdi, %rbx
+    f:  subq $0x18, %rsp
+   13:  movq (%rip), %r13   <var:progname+0>
+   1a:  movq $0, (%rip)   <var:progname+0>
+   25:  nopl (%rax)
+   28:  xorl %esi, %esi
+   2a:  movq %rbx, %rdi
+   2d:  callq lua_settop+0
+   32:  movl $1, %esi
+   37:  movq %rbx, %rdi
+   3a:  callq fn:pushline+0
+   3f:  testl %eax, %eax
+   41:  je 0x186
+   47:  xorl %edx, %edx
+   49:  movl $0xffffffff, %esi
+   4e:  movq %rbx, %rdi
+   51:  callq lua_tolstring+0
+   56:  movl $0, %esi   <str:"return %s;">
+   5b:  movq %rbx, %rdi
+   5e:  movq %rax, %rdx
+   61:  xorl %eax, %eax
+   63:  callq lua_pushfstring+0
+   68:  movq %rax, %rdi
+   6b:  movq %rax, %rbp
+   6e:  callq strlen+0
+   73:  xorl %r8d, %r8d
+   76:  movl $0, %ecx   <str:"=stdin">
+   7b:  movq %rbp, %rsi
+   7e:  movq %rax, %rdx
+   81:  movq %rbx, %rdi
+   84:  callq luaL_loadbufferx+0
+   89:  testl %eax, %eax
+   8b:  jne 0x120
+   91:  movl $0xffffffff, %edx
+   96:  movl $0xfffffffe, %esi
+   9b:  movq %rbx, %rdi
+   9e:  callq lua_rotate+0
+   a3:  movl $0xfffffffe, %esi
+   a8:  movq %rbx, %rdi
+   ab:  callq lua_settop+0
+   b0:  movl $1, %esi
+   b5:  movq %rbx, %rdi
+   b8:  movl $0xffffffff, %edx
+   bd:  callq lua_rotate+0
+   c2:  movl $0xfffffffe, %esi
+   c7:  movq %rbx, %rdi
+   ca:  callq lua_settop+0
+   cf:  xorl %esi, %esi
+   d1:  movl $0xffffffff, %edx
+   d6:  movq %rbx, %rdi
+   d9:  callq fn:docall+0
+   de:  testl %eax, %eax
+   e0:  je 0x278
+   e6:  xorl %edx, %edx
+   e8:  movq %rbx, %rdi
+   eb:  movl $0xffffffff, %esi
+   f0:  callq lua_tolstring+0
+   f5:  movq (%rip), %rdi   <var:progname+0>
+   fc:  movq %rax, %rsi
+   ff:  testq %rax, %rax
+  102:  cmoveq %r12, %rsi
+  106:  callq fn:l_message+0
+  10b:  movl $0xfffffffe, %esi
+  110:  movq %rbx, %rdi
+  113:  callq lua_settop+0
+  118:  jmp 0x28
+  11d:  nopl (%rax)
+  120:  movl $0xfffffffd, %esi
+  125:  movq %rbx, %rdi
+  128:  callq lua_settop+0
+  12d:  nopl (%rax)
+  130:  movq %rsp, %rdx
+  133:  movl $1, %esi
+  138:  movq %rbx, %rdi
+  13b:  callq lua_tolstring+0
+  140:  movq (%rsp), %rdx
+  144:  xorl %r8d, %r8d
+  147:  movq %rbx, %rdi
+  14a:  movq %rax, %rsi
+  14d:  movl $0, %ecx   <str:"=stdin">
+  152:  callq luaL_loadbufferx+0
+  157:  movl %eax, %ebp
+  159:  cmpl $3, %eax
+  15c:  je 0x1d0
+  15e:  movl $1, %esi
+  163:  movq %rbx, %rdi
+  166:  movl $0xffffffff, %edx
+  16b:  callq lua_rotate+0
+  170:  movl $0xfffffffe, %esi
+  175:  movq %rbx, %rdi
+  178:  callq lua_settop+0
+  17d:  cmpl $-1, %ebp
+  180:  jne 0x30c
+  186:  movq %rbx, %rdi
+  189:  xorl %esi, %esi
+  18b:  callq lua_settop+0
+  190:  movl $1, %edx
+  195:  movl $1, %esi
+  19a:  movq (%rip), %rcx   <stdout+0>
+  1a1:  movl $0, %edi   <str:"\n">
+  1a6:  callq fwrite+0
+  1ab:  movq (%rip), %rdi   <stdout+0>
+  1b2:  callq fflush+0
+  1b7:  movq %r13, (%rip)   <var:progname+0>
+  1be:  addq $0x18, %rsp
+  1c2:  popq %rbx
+  1c3:  popq %rbp
+  1c4:  popq %r12
+  1c6:  popq %r13
+  1c8:  retq
+  1c9:  nopl (%rax)
+  1d0:  leaq 8(%rsp), %rdx
+  1d5:  movl $0xffffffff, %esi
+  1da:  movq %rbx, %rdi
+  1dd:  callq lua_tolstring+0
+  1e2:  movq 8(%rsp), %rdx
+  1e7:  cmpq $4, %rdx
+  1eb:  jbe 0x200
+  1ed:  leaq -5(%rax, %rdx), %rdi
+  1f2:  movl $0, %esi   <str:"<eof>">
+  1f7:  callq strcmp+0
+  1fc:  testl %eax, %eax
+  1fe:  je 0x228
+  200:  movq %rbx, %rdi
+  203:  movl $0xffffffff, %edx
+  208:  movl $1, %esi
+  20d:  callq lua_rotate+0
+  212:  movl $0xfffffffe, %esi
+  217:  movq %rbx, %rdi
+  21a:  callq lua_settop+0
+  21f:  jmp 0xe6
+  224:  nopl (%rax)
+  228:  movl $0xfffffffe, %esi
+  22d:  movq %rbx, %rdi
+  230:  callq lua_settop+0
+  235:  xorl %esi, %esi
+  237:  movq %rbx, %rdi
+  23a:  callq fn:pushline+0
+  23f:  testl %eax, %eax
+  241:  je 0x200
+  243:  movq %rbx, %rdi
+  246:  movl $0, %esi   <str:"\n">
+  24b:  callq lua_pushstring+0
+  250:  movq %rbx, %rdi
+  253:  movl $1, %edx
+  258:  movl $0xfffffffe, %esi
+  25d:  callq lua_rotate+0
+  262:  movl $3, %esi
+  267:  movq %rbx, %rdi
+  26a:  callq lua_concat+0
+  26f:  jmp 0x130
+  274:  nopl (%rax)
+  278:  movq %rbx, %rdi
+  27b:  callq lua_gettop+0
+  280:  movl %eax, %ebp
+  282:  testl %eax, %eax
+  284:  jle 0x28
+  28a:  movl $0, %edx   <str:"too many results to print">
+  28f:  movl $0x14, %esi
+  294:  movq %rbx, %rdi
+  297:  callq luaL_checkstack+0
+  29c:  movl $0, %esi   <str:"print">
+  2a1:  movq %rbx, %rdi
+  2a4:  callq lua_getglobal+0
+  2a9:  movl $1, %edx
+  2ae:  movl $1, %esi
+  2b3:  movq %rbx, %rdi
+  2b6:  callq lua_rotate+0
+  2bb:  xorl %r9d, %r9d
+  2be:  xorl %r8d, %r8d
+  2c1:  xorl %ecx, %ecx
+  2c3:  xorl %edx, %edx
+  2c5:  movl %ebp, %esi
+  2c7:  movq %rbx, %rdi
+  2ca:  callq lua_pcallk+0
+  2cf:  testl %eax, %eax
+  2d1:  je 0x28
+  2d7:  xorl %edx, %edx
+  2d9:  movq %rbx, %rdi
+  2dc:  movl $0xffffffff, %esi
+  2e1:  callq lua_tolstring+0
+  2e6:  movq %rbx, %rdi
+  2e9:  movl $0, %esi   <str:"error calling 'print' (%s)">
+  2ee:  movq %rax, %rdx
+  2f1:  xorl %eax, %eax
+  2f3:  callq lua_pushfstring+0
+  2f8:  movq (%rip), %rdi   <var:progname+0>
+  2ff:  movq %rax, %rsi
+  302:  callq fn:l_message+0
+  307:  jmp 0x28
+  30c:  testl %ebp, %ebp
+  30e:  jne 0xe6
+  314:  jmp 0xcf

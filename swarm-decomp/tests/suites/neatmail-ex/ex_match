@@ -1,0 +1,57 @@
+# ex_match  (static, 177 bytes, 56 instructions)
+    0:  pushq %r12
+    2:  movl %edi, %esi
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $0x10, %rsp
+    a:  movq (%rip), %rdi   <var:mbox+0>
+   11:  leaq 8(%rsp), %rcx
+   16:  movq %rsp, %rdx
+   19:  callq mbox_get+0
+   1e:  testl %eax, %eax
+   20:  je 0x30
+   22:  addq $0x10, %rsp
+   26:  movl $1, %eax
+   2b:  popq %rbx
+   2c:  popq %rbp
+   2d:  popq %r12
+   2f:  retq
+   30:  movq 8(%rsp), %rsi
+   35:  movq (%rsp), %rdi
+   39:  movl $0, %edx   <var:kwd_hdr+0>
+   3e:  callq msg_get+0
+   43:  movq %rax, %rbx
+   46:  testq %rax, %rax
+   49:  je 0x22
+   4b:  movq 8(%rsp), %rsi
+   50:  addq (%rsp), %rsi
+   54:  movq %rax, %rdi
+   57:  subq %rax, %rsi
+   5a:  callq hdrlen+0
+   5f:  movslq %eax, %rbp
+   62:  leal 1(%rbp), %edi
+   65:  movslq %edi, %rdi
+   68:  callq malloc+0
+   6d:  movq %rbp, %rdx
+   70:  movq %rbx, %rsi
+   73:  movq %rax, %r12
+   76:  movq %rax, %rdi
+   79:  callq memcpy+0
+   7e:  movb $0, (%r12, %rbp)
+   83:  xorl %r8d, %r8d
+   86:  xorl %ecx, %ecx
+   88:  xorl %edx, %edx
+   8a:  movq %r12, %rsi
+   8d:  movl $0, %edi   <var:kwd_re+0>
+   92:  callq regexec+0
+   97:  movq %r12, %rdi
+   9a:  movl %eax, %ebx
+   9c:  callq free+0
+   a1:  xorl %eax, %eax
+   a3:  testl %ebx, %ebx
+   a5:  setne %al
+   a8:  addq $0x10, %rsp
+   ac:  popq %rbx
+   ad:  popq %rbp
+   ae:  popq %r12
+   b0:  retq

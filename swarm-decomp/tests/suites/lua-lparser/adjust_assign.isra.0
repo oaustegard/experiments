@@ -1,0 +1,52 @@
+# adjust_assign.isra.0  (static, 137 bytes, 51 instructions)
+    0:  pushq %rbp
+    1:  subl %edx, %esi
+    3:  pushq %rbx
+    4:  movl %esi, %ebp
+    6:  movq %rdi, %rbx
+    9:  subq $8, %rsp
+    d:  movl (%rcx), %eax
+    f:  leal -0x12(%rax), %edx
+   12:  cmpl $1, %edx
+   15:  jbe 0x68
+   17:  testl %eax, %eax
+   19:  jne 0x50
+   1b:  movzbl 0x44(%rbx), %esi
+   1f:  testl %ebp, %ebp
+   21:  jg 0x30
+   23:  addb %bpl, 0x44(%rbx)
+   27:  addq $8, %rsp
+   2b:  popq %rbx
+   2c:  popq %rbp
+   2d:  retq
+   2e:  nop
+   30:  movl %ebp, %edx
+   32:  movq %rbx, %rdi
+   35:  callq luaK_nil+0
+   3a:  addq $8, %rsp
+   3e:  movl %ebp, %esi
+   40:  movq %rbx, %rdi
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  jmp luaK_reserveregs+0
+   4a:  nopw (%rax, %rax)
+   50:  movq %rcx, %rsi
+   53:  callq luaK_exp2nextreg+0
+   58:  movzbl 0x44(%rbx), %esi
+   5c:  testl %ebp, %ebp
+   5e:  jle 0x23
+   60:  jmp 0x30
+   62:  nopw (%rax, %rax)
+   68:  leal 1(%rsi), %edx
+   6b:  xorl %eax, %eax
+   6d:  movq %rcx, %rsi
+   70:  testl %edx, %edx
+   72:  cmovsl %eax, %edx
+   75:  callq luaK_setreturns+0
+   7a:  testl %ebp, %ebp
+   7c:  jg 0x3a
+   7e:  addb %bpl, 0x44(%rbx)
+   82:  addq $8, %rsp
+   86:  popq %rbx
+   87:  popq %rbp
+   88:  retq

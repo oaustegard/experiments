@@ -1,0 +1,9 @@
+# luaL_loadbufferx  (global, 31 bytes, 8 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq %rsi, (%rsp)
+    8:  movl $0, %esi   <fn:getS+0>
+    d:  movq %rdx, 8(%rsp)
+   12:  movq %rsp, %rdx
+   15:  callq lua_load+0
+   1a:  addq $0x18, %rsp
+   1e:  retq

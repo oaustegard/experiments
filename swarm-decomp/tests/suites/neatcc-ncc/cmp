@@ -1,0 +1,87 @@
+# cmp  (static, 350 bytes, 86 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movl $0x3c, %ebp
+    c:  pushq %rbx
+    d:  movl %edi, %ebx
+    f:  callq fn:readadd+0
+   14:  callq tok_see+0
+   19:  movzbl (%rax), %edx
+   1c:  cmpl %edx, %ebp
+   1e:  jne 0x2c
+   20:  movzbl 1(%rax), %edx
+   24:  cmpl %edx, %ebp
+   26:  je 0x140
+   2c:  callq tok_see+0
+   31:  cmpb $0x3e, (%rax)
+   34:  jne 0x60
+   36:  movzbl 1(%rax), %edx
+   3a:  movl $0x3e, %ecx
+   3f:  cmpl %edx, %ecx
+   41:  jne 0x60
+   43:  cmpb $0, 2(%rax)
+   47:  jne 0x60
+   49:  callq tok_get+0
+   4e:  movl $0x21, %edi
+   53:  callq fn:shift+0
+   58:  jmp 0x14
+   5a:  nopw (%rax, %rax)
+   60:  movl $1, %edi
+   65:  callq fn:ts_de+0
+   6a:  movl (%rip), %eax   <var:nts+0>
+   70:  subl $1, %eax
+   73:  movl %eax, (%rip)   <var:nts+0>
+   79:  cltq
+   7b:  leaq (%rax, %rax, 4), %rax
+   7f:  shlq $2, %rax
+   83:  movl (%rax), %r13d   <var:ts+8>
+   8a:  movl (%rax), %ebp   <var:ts+0>
+   90:  callq o_tmpswap+0
+   95:  movl $1, %edi
+   9a:  callq fn:ts_de+0
+   9f:  movl (%rip), %eax   <var:nts+0>
+   a5:  subl $1, %eax
+   a8:  movl %eax, (%rip)   <var:nts+0>
+   ae:  cltq
+   b0:  leaq (%rax, %rax, 4), %rax
+   b4:  shlq $2, %rax
+   b8:  movl (%rax), %r14d   <var:ts+8>
+   bf:  movl (%rax), %r12d   <var:ts+0>
+   c6:  callq o_tmpswap+0
+   cb:  movl $8, %eax
+   d0:  testl %r14d, %r14d
+   d3:  cmovnel %eax, %r12d
+   d7:  testl %r13d, %r13d
+   da:  cmovnel %eax, %ebp
+   dd:  movl %r12d, %esi
+   e0:  movl %ebp, %edi
+   e2:  callq fn:bt_op+0
+   e7:  shll $0x18, %eax
+   ea:  movl %eax, %edi
+   ec:  orl %ebx, %edi
+   ee:  movslq %edi, %rdi
+   f1:  callq o_bop+0
+   f6:  movslq (%rip), %rax   <var:nts+0>
+   fd:  popq %rbx
+   fe:  popq %rbp
+   ff:  popq %r12
+  101:  movq %rax, %rdx
+  104:  leaq (%rax, %rax, 4), %rax
+  108:  popq %r13
+  10a:  popq %r14
+  10c:  shlq $2, %rax
+  110:  addl $1, %edx
+  113:  movl $0, (%rax)   <var:ts+8>
+  11d:  movl $0, (%rax)   <var:ts+16>
+  127:  movl %edx, (%rip)   <var:nts+0>
+  12d:  movq $0x14, (%rax)   <var:ts+0>
+  138:  retq
+  139:  nopl (%rax)
+  140:  cmpb $0, 2(%rax)
+  144:  jne 0x2c
+  14a:  callq tok_get+0
+  14f:  movl $0x20, %edi
+  154:  callq fn:shift+0
+  159:  jmp 0x14

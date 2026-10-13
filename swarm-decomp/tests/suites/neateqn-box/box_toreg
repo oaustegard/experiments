@@ -1,0 +1,30 @@
+# box_toreg  (global, 91 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  movq %rdi, %rbx
+    5:  subq $8, %rsp
+    9:  movl 0x18(%rdi), %edi
+    c:  testl %edi, %edi
+    e:  je 0x20
+   10:  addq $8, %rsp
+   14:  popq %rbx
+   15:  popq %rbp
+   16:  jmp sreg+0
+   1b:  nopl (%rax, %rax)
+   20:  callq sregmk+0
+   25:  movq %rbx, %rdi
+   28:  movl %eax, 0x18(%rbx)
+   2b:  callq sbuf_buf+0
+   30:  movl 0x18(%rbx), %edi
+   33:  movq %rax, %rbp
+   36:  callq sregname+0
+   3b:  movq %rbp, %rdx
+   3e:  movl $0, %edi   <str:".ds %s \"%s\n">
+   43:  movq %rax, %rsi
+   46:  xorl %eax, %eax
+   48:  callq printf+0
+   4d:  movl 0x18(%rbx), %edi
+   50:  addq $8, %rsp
+   54:  popq %rbx
+   55:  popq %rbp
+   56:  jmp sreg+0

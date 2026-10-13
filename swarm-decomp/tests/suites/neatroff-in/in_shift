@@ -1,0 +1,26 @@
+# in_shift  (global, 104 bytes, 25 instructions)
+    0:  pushq %rbx
+    1:  movq (%rip), %rbx   <var:buf+0>
+    8:  testq %rbx, %rbx
+    b:  jne 0x1c
+    d:  jmp 0x66
+    f:  nop
+   10:  movq 0x4b0(%rbx), %rbx
+   17:  testq %rbx, %rbx
+   1a:  je 0x66
+   1c:  cmpq $0, 0x410(%rbx)
+   24:  je 0x10
+   26:  movq 0x410(%rbx), %rax
+   2d:  testq %rax, %rax
+   30:  je 0x66
+   32:  movq 8(%rax), %rdi
+   36:  callq free+0
+   3b:  movq 0x410(%rbx), %rdi
+   42:  movl $0xf0, %edx
+   47:  leaq 0x10(%rdi), %rsi
+   4b:  addq $8, %rdi
+   4f:  callq memmove+0
+   54:  movq 0x410(%rbx), %rax
+   5b:  movq $0, 0xf8(%rax)
+   66:  popq %rbx
+   67:  retq

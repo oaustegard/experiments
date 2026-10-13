@@ -1,0 +1,40 @@
+# lua-ltablib: translation unit ltablib of lua
+# write each function as src/lua/ltablib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+tunpack	static	250 bytes
+tpack	static	158 bytes
+addfield	static	112 bytes
+sort_comp	static	143 bytes
+checktab.part.0	static	260 bytes
+auxsort	static	1016 bytes
+sort	static	172 bytes
+tremove	static	263 bytes
+tconcat	static	247 bytes
+tinsert	static	255 bytes
+tmove	static	487 bytes
+luaopen_table	global	59 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+tab_funcs	static	128 bytes	.rodata.tab_funcs
+    +0     -> str:"concat"
+    +8     -> fn:tconcat+0
+    +16    -> str:"insert"
+    +24    -> fn:tinsert+0
+    +32    -> str:"pack"
+    +40    -> fn:tpack+0
+    +48    -> str:"unpack"
+    +56    -> fn:tunpack+0
+    +64    -> str:"remove"
+    +72    -> fn:tremove+0
+    +80    -> str:"move"
+    +88    -> fn:tmove+0
+    +96    -> str:"sort"
+    +104   -> fn:sort+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+clock luaL_addlstring luaL_addvalue luaL_argerror luaL_buffinit luaL_checkinteger luaL_checktype luaL_checkversion_ luaL_error luaL_len luaL_optinteger luaL_optlstring luaL_pushresult luaL_setfuncs lua_callk lua_checkstack lua_compare lua_createtable lua_geti lua_getmetatable lua_gettop lua_isstring lua_pushinteger lua_pushnil lua_pushstring lua_pushvalue lua_rawget lua_rotate lua_setfield lua_seti lua_settop lua_toboolean lua_type lua_typename time

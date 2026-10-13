@@ -1,0 +1,49 @@
+# dev_glyph  (global, 156 bytes, 48 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  subq $8, %rsp
+    8:  movsbl (%rdi), %ecx
+    b:  movl (%rip), %edx   <c_ec+0>
+   11:  cmpb $4, %cl
+   14:  je 0x50
+   16:  cmpl %edx, %ecx
+   18:  je 0x50
+   1a:  callq cmap_map+0
+   1f:  movl $4, %edx
+   24:  movl $0, %edi   <str:"GID=">
+   29:  movq %rax, %rsi
+   2c:  movq %rax, %rbx
+   2f:  callq strncmp+0
+   34:  testl %eax, %eax
+   36:  je 0x70
+   38:  addq $8, %rsp
+   3c:  movl %ebp, %esi
+   3e:  movq %rbx, %rdi
+   41:  xorl %edx, %edx
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  jmp fn:dev_find+0
+   4a:  nopw (%rax, %rax)
+   50:  movsbl 1(%rdi), %eax
+   54:  cmpl %eax, %edx
+   56:  je 0x90
+   58:  cmpl %edx, %ecx
+   5a:  jne 0x1a
+   5c:  cmpb $0x28, 1(%rdi)
+   60:  jne 0x1a
+   62:  addq $2, %rdi
+   66:  jmp 0x1a
+   68:  nopl (%rax, %rax)
+   70:  addq $8, %rsp
+   74:  leaq 4(%rbx), %rdi
+   78:  movl %ebp, %esi
+   7a:  movl $1, %edx
+   7f:  popq %rbx
+   80:  popq %rbp
+   81:  jmp fn:dev_find+0
+   86:  nopw %cs:(%rax, %rax)
+   90:  addq $1, %rdi
+   94:  cmpb $0x28, 1(%rdi)
+   98:  jne 0x1a
+   9a:  jmp 0x62

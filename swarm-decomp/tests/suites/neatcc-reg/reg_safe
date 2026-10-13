@@ -1,0 +1,11 @@
+# reg_safe  (global, 33 bytes, 10 instructions)
+    0:  movslq (%rip), %rdx   <var:loc_n+0>
+    7:  xorl %eax, %eax
+    9:  cmpq %rdi, %rdx
+    c:  jle 0x20
+    e:  movq (%rip), %rax   <var:loc_ptr+0>
+   15:  movl (%rax, %rdi, 4), %eax
+   18:  testl %eax, %eax
+   1a:  sete %al
+   1d:  movzbl %al, %eax
+   20:  retq

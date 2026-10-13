@@ -1,0 +1,37 @@
+# valuerecord_print  (static, 129 bytes, 36 instructions)
+    0:  pushq %rbx
+    1:  pxor %xmm0, %xmm0
+    5:  movl %edi, %r11d
+    8:  movq %rsi, %rbx
+    b:  xorl %r9d, %r9d
+    e:  xorl %r10d, %r10d
+   11:  subq $0x20, %rsp
+   15:  movaps %xmm0, (%rsp)
+   19:  nopl (%rax)
+   20:  btl %r9d, %r11d
+   24:  jae 0x41
+   26:  movslq %r10d, %rax
+   29:  addl $2, %r10d
+   2d:  movzwl (%rbx, %rax), %edi
+   31:  rolw $8, %di
+   35:  movswl %di, %edi
+   38:  callq fn:uwid+0
+   3d:  movl %eax, (%rsp, %r9, 4)
+   41:  addq $1, %r9
+   45:  cmpq $8, %r9
+   49:  jne 0x20
+   4b:  testl %r11d, %r11d
+   4e:  jne 0x60
+   50:  addq $0x20, %rsp
+   54:  popq %rbx
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  movl 0xc(%rsp), %r8d
+   65:  movl 8(%rsp), %ecx
+   69:  movl $0, %edi   <str:":%+d%+d%+d%+d">
+   6e:  xorl %eax, %eax
+   70:  movl 4(%rsp), %edx
+   74:  movl (%rsp), %esi
+   77:  addq $0x20, %rsp
+   7b:  popq %rbx
+   7c:  jmp printf+0

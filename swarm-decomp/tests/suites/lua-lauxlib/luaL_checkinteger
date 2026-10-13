@@ -1,0 +1,39 @@
+# luaL_checkinteger  (global, 108 bytes, 38 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movl %esi, %ebp
+    5:  pushq %rbx
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  leaq 0xc(%rsp), %rdx
+   12:  callq lua_tointegerx+0
+   17:  movq %rax, %r12
+   1a:  movl 0xc(%rsp), %eax
+   1e:  testl %eax, %eax
+   20:  je 0x30
+   22:  addq $0x10, %rsp
+   26:  movq %r12, %rax
+   29:  popq %rbx
+   2a:  popq %rbp
+   2b:  popq %r12
+   2d:  retq
+   2e:  nop
+   30:  movl %ebp, %esi
+   32:  movq %rbx, %rdi
+   35:  callq lua_isnumber+0
+   3a:  testl %eax, %eax
+   3c:  je 0x50
+   3e:  movl $0, %edx   <str:"number has no integer representation">
+   43:  movl %ebp, %esi
+   45:  movq %rbx, %rdi
+   48:  callq luaL_argerror+0
+   4d:  jmp 0x22
+   4f:  nop
+   50:  movq %rbx, %rdi
+   53:  movl $3, %esi
+   58:  callq lua_typename+0
+   5d:  movl %ebp, %esi
+   5f:  movq %rbx, %rdi
+   62:  movq %rax, %rdx
+   65:  callq luaL_typeerror+0
+   6a:  jmp 0x22

@@ -1,0 +1,51 @@
+# mbox_copy  (global, 180 bytes, 50 instructions)
+    0:  pushq %r13
+    2:  xorl %eax, %eax
+    4:  movl $0x180, %edx
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rdi, %rbp
+    f:  movq %rsi, %rdi
+   12:  movl $0x241, %esi
+   17:  pushq %rbx
+   18:  subq $8, %rsp
+   1c:  callq open+0
+   21:  testl %eax, %eax
+   23:  js 0xad
+   29:  movl 0x1c0(%rbp), %r12d
+   30:  movl %eax, %r13d
+   33:  cmpl %r12d, 0x200(%rbp)
+   3a:  jle 0x98
+   3c:  movslq %r12d, %rbx
+   3f:  shlq $3, %rbx
+   43:  jmp 0x6c
+   45:  nopl (%rax)
+   48:  movq 0x260(%rbp), %rax
+   4f:  movq (%rax, %rbx), %rdx
+   53:  movl %r13d, %edi
+   56:  addl $1, %r12d
+   5a:  addq $8, %rbx
+   5e:  callq xwrite+0
+   63:  cmpl %r12d, 0x200(%rbp)
+   6a:  jle 0x98
+   6c:  movq 0x258(%rbp), %rax
+   73:  movq (%rax, %rbx), %rsi
+   77:  testq %rsi, %rsi
+   7a:  jne 0x48
+   7c:  movq 0x248(%rbp), %rax
+   83:  movq (%rax, %rbx), %rsi
+   87:  movq 0x250(%rbp), %rax
+   8e:  movq (%rax, %rbx), %rdx
+   92:  jmp 0x53
+   94:  nopl (%rax)
+   98:  movl %r13d, %edi
+   9b:  callq close+0
+   a0:  xorl %eax, %eax
+   a2:  addq $8, %rsp
+   a6:  popq %rbx
+   a7:  popq %rbp
+   a8:  popq %r12
+   aa:  popq %r13
+   ac:  retq
+   ad:  movl $0xffffffff, %eax
+   b2:  jmp 0xa2

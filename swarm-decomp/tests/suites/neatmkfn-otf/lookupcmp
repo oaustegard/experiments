@@ -1,0 +1,53 @@
+# lookupcmp  (static, 127 bytes, 52 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  pushq %rbp
+    7:  movq %rdi, %rbp
+    a:  pushq %rbx
+    b:  movq %rsi, %rbx
+    e:  callq strcmp+0
+   13:  testl %eax, %eax
+   15:  je 0x20
+   17:  popq %rbx
+   18:  popq %rbp
+   19:  popq %r12
+   1b:  popq %r13
+   1d:  popq %r14
+   1f:  retq
+   20:  leaq 0x10(%rbp), %r14
+   24:  movq %rbp, %rdi
+   27:  leaq 0x10(%rbx), %r13
+   2b:  movq %r14, %rsi
+   2e:  callq mkfn_featrank+0
+   33:  movq %r13, %rsi
+   36:  movq %rbp, %rdi
+   39:  movl %eax, %r12d
+   3c:  callq mkfn_featrank+0
+   41:  cmpl %eax, %r12d
+   44:  jne 0x58
+   46:  movl 0x18(%rbp), %eax
+   49:  subl 0x18(%rbx), %eax
+   4c:  popq %rbx
+   4d:  popq %rbp
+   4e:  popq %r12
+   50:  popq %r13
+   52:  popq %r14
+   54:  retq
+   55:  nopl (%rax)
+   58:  movq %r14, %rsi
+   5b:  movq %rbp, %rdi
+   5e:  callq mkfn_featrank+0
+   63:  movq %r13, %rsi
+   66:  movq %rbp, %rdi
+   69:  movl %eax, %ebx
+   6b:  callq mkfn_featrank+0
+   70:  movl %eax, %edx
+   72:  movl %ebx, %eax
+   74:  popq %rbx
+   75:  popq %rbp
+   76:  subl %edx, %eax
+   78:  popq %r12
+   7a:  popq %r13
+   7c:  popq %r14
+   7e:  retq

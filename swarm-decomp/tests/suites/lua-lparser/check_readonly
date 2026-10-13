@@ -1,0 +1,52 @@
+# check_readonly  (static, 170 bytes, 51 instructions)
+    0:  pushq %rbx
+    1:  movl (%rsi), %eax
+    3:  movq %rdi, %rbx
+    6:  movq 0x30(%rdi), %rdx
+    a:  cmpl $0xa, %eax
+    d:  je 0x90
+   13:  cmpl $0xb, %eax
+   16:  je 0x50
+   18:  cmpl $9, %eax
+   1b:  jne 0x48
+   1d:  movq 0x10(%rdx), %rax
+   21:  movq 0x58(%rax), %rcx
+   25:  movzwl 0xa(%rsi), %eax
+   29:  addl 0x38(%rdx), %eax
+   2c:  cltq
+   2e:  leaq (%rax, %rax, 2), %rdx
+   32:  movq (%rcx), %rax
+   35:  leaq (%rax, %rdx, 8), %rax
+   39:  cmpb $0, 9(%rax)
+   3d:  je 0x48
+   3f:  movq 0x10(%rax), %rax
+   43:  testq %rax, %rax
+   46:  jne 0x6c
+   48:  popq %rbx
+   49:  retq
+   4a:  nopw (%rax, %rax)
+   50:  movq 0x58(%rdi), %rdx
+   54:  movslq 8(%rsi), %rax
+   58:  movq (%rdx), %rcx
+   5b:  leaq (%rax, %rax, 2), %rax
+   5f:  leaq (%rcx, %rax, 8), %rax
+   63:  movq 0x10(%rax), %rax
+   67:  testq %rax, %rax
+   6a:  je 0x48
+   6c:  movq 0x38(%rbx), %rdi
+   70:  leaq 0x18(%rax), %rdx
+   74:  movl $0, %esi   <str:"attempt to assign to const variable '%s'">
+   79:  xorl %eax, %eax
+   7b:  callq luaO_pushfstring+0
+   80:  movq %rbx, %rdi
+   83:  movq %rax, %rsi
+   86:  callq luaK_semerror+0
+   8b:  nopl (%rax, %rax)
+   90:  movq (%rdx), %rdx
+   93:  movslq 8(%rsi), %rax
+   97:  shlq $4, %rax
+   9b:  addq 0x50(%rdx), %rax
+   9f:  cmpb $0, 0xa(%rax)
+   a3:  je 0x48
+   a5:  movq (%rax), %rax
+   a8:  jmp 0x67

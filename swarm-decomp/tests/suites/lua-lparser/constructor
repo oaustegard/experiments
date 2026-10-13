@@ -1,0 +1,148 @@
+# constructor  (static, 571 bytes, 147 instructions)
+    0:  pushq %r15
+    2:  xorl %r9d, %r9d
+    5:  xorl %r8d, %r8d
+    8:  xorl %ecx, %ecx
+    a:  pushq %r14
+    c:  xorl %edx, %edx
+    e:  pushq %r13
+   10:  pushq %r12
+   12:  pushq %rbp
+   13:  movq %rsi, %rbp
+   16:  movl $0x13, %esi
+   1b:  pushq %rbx
+   1c:  movq %rdi, %rbx
+   1f:  subq $0x38, %rsp
+   23:  movq 0x30(%rdi), %r12
+   27:  movl 4(%rdi), %r14d
+   2b:  movq %r12, %rdi
+   2e:  callq luaK_codeABCk+0
+   33:  xorl %esi, %esi
+   35:  movq %r12, %rdi
+   38:  movl %eax, %r13d
+   3b:  callq luaK_code+0
+   40:  movzbl 0x44(%r12), %eax
+   46:  movl $1, %esi
+   4b:  movq %r12, %rdi
+   4e:  movq (%rip), %r15   <cst:ffffffffffffffff>
+   55:  movl $8, (%rbp)
+   5c:  movl %eax, 8(%rbp)
+   5f:  movq %r15, 0x10(%rbp)
+   63:  movl $0, 0x28(%rsp)
+   6b:  movq $0, 0x20(%rsp)
+   74:  movq %rbp, 0x18(%rsp)
+   79:  callq luaK_reserveregs+0
+   7e:  cmpl $0x7b, 0x10(%rbx)
+   82:  movq %r15, 0x10(%rsp)
+   87:  movl $0, (%rsp)
+   8e:  movl $0, 8(%rsp)
+   96:  jne 0x22e
+   9c:  movq %rbx, %rdi
+   9f:  callq luaX_next+0
+   a4:  cmpl $0x7d, 0x10(%rbx)
+   a8:  je 0x104
+   aa:  movl (%rsp), %eax
+   ad:  testl %eax, %eax
+   af:  je 0xce
+   b1:  movq %rsp, %rsi
+   b4:  movq %r12, %rdi
+   b7:  callq luaK_exp2nextreg+0
+   bc:  cmpl $0x32, 0x28(%rsp)
+   c1:  movl $0, (%rsp)
+   c8:  je 0x200
+   ce:  movl 0x10(%rbx), %eax
+   d1:  cmpl $0x5b, %eax
+   d4:  je 0x191
+   da:  cmpl $0x123, %eax
+   df:  je 0x180
+   e5:  xorl %edx, %edx
+   e7:  movq %rsp, %rsi
+   ea:  movq %rbx, %rdi
+   ed:  callq fn:subexpr+0
+   f2:  addl $1, 0x28(%rsp)
+   f7:  movl 0x10(%rbx), %eax
+   fa:  cmpl $0x2c, %eax
+   fd:  je 0x9c
+   ff:  cmpl $0x3b, %eax
+  102:  je 0x9c
+  104:  movl %r14d, %ecx
+  107:  movl $0x7b, %edx
+  10c:  movl $0x7d, %esi
+  111:  movq %rbx, %rdi
+  114:  callq fn:check_match+0
+  119:  movl 0x28(%rsp), %ecx
+  11d:  testl %ecx, %ecx
+  11f:  je 0x1a8
+  125:  movl (%rsp), %eax
+  128:  leal -0x12(%rax), %edx
+  12b:  cmpl $1, %edx
+  12e:  jbe 0x1b0
+  134:  testl %eax, %eax
+  136:  jne 0x1e8
+  13c:  movq 0x18(%rsp), %rax
+  141:  movl 0x24(%rsp), %edx
+  145:  movq %r12, %rdi
+  148:  movl 8(%rax), %esi
+  14b:  callq luaK_setlist+0
+  150:  movl 0x24(%rsp), %ecx
+  154:  addl 0x28(%rsp), %ecx
+  158:  movl %ecx, 0x24(%rsp)
+  15c:  movl 8(%rbp), %edx
+  15f:  movl 0x20(%rsp), %r8d
+  164:  movl %r13d, %esi
+  167:  movq %r12, %rdi
+  16a:  callq luaK_settablesize+0
+  16f:  addq $0x38, %rsp
+  173:  popq %rbx
+  174:  popq %rbp
+  175:  popq %r12
+  177:  popq %r13
+  179:  popq %r14
+  17b:  popq %r15
+  17d:  retq
+  17e:  nop
+  180:  movq %rbx, %rdi
+  183:  callq luaX_lookahead+0
+  188:  cmpl $0x3d, %eax
+  18b:  jne 0xe5
+  191:  movq %rsp, %rsi
+  194:  movq %rbx, %rdi
+  197:  callq fn:recfield+0
+  19c:  jmp 0xf7
+  1a1:  nopl (%rax)
+  1a8:  movl 0x24(%rsp), %ecx
+  1ac:  jmp 0x15c
+  1ae:  nop
+  1b0:  movl $0xffffffff, %edx
+  1b5:  movq %rsp, %rsi
+  1b8:  movq %r12, %rdi
+  1bb:  callq luaK_setreturns+0
+  1c0:  movq 0x18(%rsp), %rax
+  1c5:  movl 0x24(%rsp), %edx
+  1c9:  movq %r12, %rdi
+  1cc:  movl $0xffffffff, %ecx
+  1d1:  movl 8(%rax), %esi
+  1d4:  callq luaK_setlist+0
+  1d9:  movl 0x24(%rsp), %eax
+  1dd:  leal -1(%rax), %ecx
+  1e0:  jmp 0x154
+  1e5:  nopl (%rax)
+  1e8:  movq %rsp, %rsi
+  1eb:  movq %r12, %rdi
+  1ee:  callq luaK_exp2nextreg+0
+  1f3:  movl 0x28(%rsp), %ecx
+  1f7:  jmp 0x13c
+  1fc:  nopl (%rax)
+  200:  movq 0x18(%rsp), %rax
+  205:  movl 0x24(%rsp), %edx
+  209:  movl $0x32, %ecx
+  20e:  movq %r12, %rdi
+  211:  movl 8(%rax), %esi
+  214:  callq luaK_setlist+0
+  219:  movl 0x28(%rsp), %eax
+  21d:  addl %eax, 0x24(%rsp)
+  221:  movl $0, 0x28(%rsp)
+  229:  jmp 0xce
+  22e:  movl $0x7b, %esi
+  233:  movq %rbx, %rdi
+  236:  callq fn:error_expected+0

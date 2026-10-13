@@ -1,0 +1,31 @@
+# f_nexttrap  (global, 94 bytes, 30 instructions)
+    0:  pushq %rbx
+    1:  movl $0x64, %edi
+    6:  callq nreg+0
+    b:  movl (%rax), %edi
+    d:  callq fn:trap_pos+0
+   12:  cmpq $0, (%rip)   <var:cdiv+0>
+   1a:  movl %eax, %ebx
+   1c:  je 0x30
+   1e:  testl %eax, %eax
+   20:  movl $0x3fffffff, %eax
+   25:  cmovsl %eax, %ebx
+   28:  movl %ebx, %eax
+   2a:  popq %rbx
+   2b:  retq
+   2c:  nopl (%rax)
+   30:  testl %eax, %eax
+   32:  js 0x42
+   34:  movl $0x70, %edi
+   39:  callq nreg+0
+   3e:  cmpl %ebx, (%rax)
+   40:  jg 0x4e
+   42:  movl $0x70, %edi
+   47:  callq nreg+0
+   4c:  movl (%rax), %ebx
+   4e:  movl $0x64, %edi
+   53:  callq nreg+0
+   58:  subl (%rax), %ebx
+   5a:  movl %ebx, %eax
+   5c:  popq %rbx
+   5d:  retq

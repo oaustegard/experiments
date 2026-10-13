@@ -1,0 +1,42 @@
+# o_label  (global, 172 bytes, 41 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movq (%rip), %rdx   <var:lab_sz+0>
+   10:  movq (%rip), %rbx   <var:lab_loc+0>
+   17:  cmpq %rdx, %rdi
+   1a:  jl 0x60
+   1c:  nopl (%rax)
+   20:  movl $0x80, %eax
+   25:  addq %rdx, %rdx
+   28:  movq %rbx, %rdi
+   2b:  movl $8, %ecx
+   30:  cmpq %rax, %rdx
+   33:  movq (%rip), %rsi   <var:lab_n+0>
+   3a:  cmovlq %rax, %rdx
+   3e:  movq %rdx, (%rip)   <var:lab_sz+0>
+   45:  callq mextend+0
+   4a:  movq (%rip), %rdx   <var:lab_sz+0>
+   51:  movq %rax, (%rip)   <var:lab_loc+0>
+   58:  movq %rax, %rbx
+   5b:  cmpq %rbp, %rdx
+   5e:  jle 0x20
+   60:  movq (%rip), %rax   <var:lab_n+0>
+   67:  cmpq %rax, %rbp
+   6a:  jl 0x93
+   6c:  movq %rbp, %rdx
+   6f:  leaq (%rbx, %rax, 8), %rdi
+   73:  movl $0xff, %esi
+   78:  subq %rax, %rdx
+   7b:  leaq 8(, %rdx, 8), %rdx
+   83:  callq memset+0
+   88:  leaq 1(%rbp), %rax
+   8c:  movq %rax, (%rip)   <var:lab_n+0>
+   93:  movq (%rip), %rax   <var:ic_n+0>
+   9a:  movq %rax, (%rbx, %rbp, 8)
+   9e:  movq %rax, (%rip)   <var:lab_last+0>
+   a5:  addq $8, %rsp
+   a9:  popq %rbx
+   aa:  popq %rbp
+   ab:  retq

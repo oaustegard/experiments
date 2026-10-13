@@ -1,0 +1,76 @@
+# lua-lauxlib: translation unit lauxlib of lua
+# write each function as src/lua/lauxlib/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+getS	static	35 bytes
+findfield	static	239 bytes
+errfile	static	151 bytes
+resizebox	static	119 bytes
+boxgc	static	23 bytes
+getF	static	97 bytes
+panic	static	84 bytes
+l_alloc	static	32 bytes
+skipcomment	static	137 bytes
+warnfcont	static	115 bytes
+warnfon	static	149 bytes
+luaL_getmetafield.part.0	static	104 bytes
+warnfoff	static	97 bytes
+luaL_where	global	109 bytes
+luaL_error	global	193 bytes
+pushglobalfuncname	static	295 bytes
+luaL_argerror	global	244 bytes
+luaL_typeerror	global	150 bytes
+luaL_fileresult	global	165 bytes
+luaL_execresult	global	207 bytes
+luaL_newmetatable	global	131 bytes
+luaL_setmetatable	global	31 bytes
+luaL_testudata	global	136 bytes
+luaL_checkudata	global	76 bytes
+luaL_checkoption	global	184 bytes
+luaL_checkstack	global	85 bytes
+luaL_checktype	global	60 bytes
+luaL_checkany	global	53 bytes
+luaL_checklstring	global	67 bytes
+luaL_optlstring	global	123 bytes
+luaL_checknumber	global	85 bytes
+luaL_optnumber	global	111 bytes
+luaL_checkinteger	global	108 bytes
+luaL_optinteger	global	46 bytes
+luaL_pushresult	global	87 bytes
+luaL_pushresultsize	global	9 bytes
+luaL_buffinit	global	28 bytes
+luaL_ref	global	253 bytes
+luaL_unref	global	87 bytes
+luaL_loadfilex	global	656 bytes
+luaL_loadbufferx	global	31 bytes
+luaL_loadstring	global	58 bytes
+luaL_getmetafield	global	49 bytes
+luaL_callmeta	global	106 bytes
+luaL_len	global	89 bytes
+luaL_tolstring	global	563 bytes
+luaL_setfuncs	global	211 bytes
+prepbuffsize	static	344 bytes
+luaL_prepbuffsize	global	10 bytes
+luaL_addstring	global	75 bytes
+luaL_addvalue	global	101 bytes
+luaL_buffinitsize	global	62 bytes
+luaL_addlstring	global	65 bytes
+luaL_traceback	global	994 bytes
+luaL_getsubtable	global	103 bytes
+luaL_requiref	global	258 bytes
+luaL_addgsub	global	274 bytes
+luaL_gsub	global	114 bytes
+luaL_newstate	global	55 bytes
+luaL_checkversion_	global	110 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+boxmt	static	48 bytes	.rodata.boxmt
+    +0     -> str:"__gc"
+    +8     -> fn:boxgc+0
+    +16    -> str:"__close"
+    +24    -> fn:boxgc+0
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__errno_location fclose feof ferror fflush fopen64 fprintf fputc fputs fread free freopen64 fwrite getc lua_absindex lua_atpanic lua_callk lua_checkstack lua_closeslot lua_concat lua_copy lua_createtable lua_error lua_getallocf lua_getfield lua_getinfo lua_getmetatable lua_getstack lua_gettop lua_isinteger lua_isnumber lua_isstring lua_len lua_load lua_newstate lua_newuserdatauv lua_next lua_pushboolean lua_pushcclosure lua_pushfstring lua_pushinteger lua_pushlightuserdata lua_pushlstring lua_pushnil lua_pushstring lua_pushvalue lua_pushvfstring lua_rawequal lua_rawget lua_rawgeti lua_rawlen lua_rawseti lua_rotate lua_setfield lua_setglobal lua_setmetatable lua_settop lua_setwarnf lua_toboolean lua_toclose lua_tointegerx lua_tolstring lua_tonumberx lua_topointer lua_touserdata lua_type lua_typename lua_version memcpy realloc stderr stdin strcmp strerror strlen strstr

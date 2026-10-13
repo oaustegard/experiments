@@ -1,0 +1,72 @@
+# box_puttext  (global, 319 bytes, 71 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x4c8, %rsp
+    e:  movq %rcx, 0x428(%rsp)
+   16:  movq %r8, 0x430(%rsp)
+   1e:  movq %r9, 0x438(%rsp)
+   26:  testb %al, %al
+   28:  je 0x6a
+   2a:  movaps %xmm0, 0x440(%rsp)
+   32:  movaps %xmm1, 0x450(%rsp)
+   3a:  movaps %xmm2, 0x460(%rsp)
+   42:  movaps %xmm3, 0x470(%rsp)
+   4a:  movaps %xmm4, 0x480(%rsp)
+   52:  movaps %xmm5, 0x490(%rsp)
+   5a:  movaps %xmm6, 0x4a0(%rsp)
+   62:  movaps %xmm7, 0x4b0(%rsp)
+   6a:  movl $0x3e8, %esi
+   6f:  leaq 0x20(%rsp), %rdi
+   74:  leaq 0x4e0(%rsp), %rax
+   7c:  movl $0x18, 8(%rsp)
+   84:  movq %rax, 0x10(%rsp)
+   89:  leaq 8(%rsp), %rcx
+   8e:  leaq 0x410(%rsp), %rax
+   96:  movl $0x30, 0xc(%rsp)
+   9e:  movq %rax, 0x18(%rsp)
+   a3:  callq vsnprintf+0
+   a8:  xorl %edx, %edx
+   aa:  movl %ebp, %esi
+   ac:  movq %rbx, %rdi
+   af:  callq fn:box_beforeput+0
+   b4:  testb $1, 0x25(%rbx)
+   b8:  jne 0xc2
+   ba:  testl $0x100, %ebp
+   c0:  jne 0x110
+   c2:  movq %rbx, %rdi
+   c5:  leaq 0x20(%rsp), %rsi
+   ca:  callq sbuf_append+0
+   cf:  movl 0x18(%rbx), %edi
+   d2:  testl %edi, %edi
+   d4:  jne 0xf0
+   d6:  movl %ebp, %esi
+   d8:  movq %rbx, %rdi
+   db:  callq fn:box_afterput+0
+   e0:  addq $0x4c8, %rsp
+   e7:  popq %rbx
+   e8:  popq %rbp
+   e9:  retq
+   ea:  nopw (%rax, %rax)
+   f0:  callq sregname+0
+   f5:  leaq 0x20(%rsp), %rdx
+   fa:  movl $0, %edi   <str:".as %s \"%s\n">
+   ff:  movq %rax, %rsi
+  102:  xorl %eax, %eax
+  104:  callq printf+0
+  109:  jmp 0xd6
+  10b:  nopl (%rax, %rax)
+  110:  movq %rbx, %rdi
+  113:  movl $0, %esi   <str:"\\,">
+  118:  callq sbuf_append+0
+  11d:  movl 0x18(%rbx), %edi
+  120:  testl %edi, %edi
+  122:  je 0xc2
+  124:  callq sregname+0
+  129:  movl $0, %edx   <str:"\\,">
+  12e:  movl $0, %edi   <str:".as %s \"%s\n">
+  133:  movq %rax, %rsi
+  136:  xorl %eax, %eax
+  138:  callq printf+0
+  13d:  jmp 0xc2

@@ -1,0 +1,49 @@
+# dostring  (static, 144 bytes, 48 instructions)
+    0:  pushq %r12
+    2:  movq %rdx, %r12
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  movq %rsi, %rdi
+    c:  pushq %rbx
+    d:  movq %rsi, %rbx
+   10:  callq strlen+0
+   15:  xorl %r8d, %r8d
+   18:  movq %r12, %rcx
+   1b:  movq %rbx, %rsi
+   1e:  movq %rax, %rdx
+   21:  movq %rbp, %rdi
+   24:  callq luaL_loadbufferx+0
+   29:  testl %eax, %eax
+   2b:  jne 0x50
+   2d:  xorl %edx, %edx
+   2f:  xorl %esi, %esi
+   31:  movq %rbp, %rdi
+   34:  callq fn:docall+0
+   39:  movl %eax, %ebx
+   3b:  testl %eax, %eax
+   3d:  jne 0x52
+   3f:  movl %ebx, %eax
+   41:  popq %rbx
+   42:  popq %rbp
+   43:  popq %r12
+   45:  retq
+   46:  nopw %cs:(%rax, %rax)
+   50:  movl %eax, %ebx
+   52:  xorl %edx, %edx
+   54:  movq %rbp, %rdi
+   57:  movl $0xffffffff, %esi
+   5c:  callq lua_tolstring+0
+   61:  movq (%rip), %rdi   <var:progname+0>
+   68:  testq %rax, %rax
+   6b:  movq %rax, %rsi
+   6e:  movl $0, %eax   <str:"(error message not a string)">
+   73:  cmoveq %rax, %rsi
+   77:  callq fn:l_message+0
+   7c:  movq %rbp, %rdi
+   7f:  movl $0xfffffffe, %esi
+   84:  callq lua_settop+0
+   89:  movl %ebx, %eax
+   8b:  popq %rbx
+   8c:  popq %rbp
+   8d:  popq %r12
+   8f:  retq

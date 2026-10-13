@@ -1,0 +1,16 @@
+# tok_get  (global, 58 bytes, 15 instructions)
+    0:  subq $8, %rsp
+    4:  movl (%rip), %eax   <var:tok_set+0>
+    a:  testl %eax, %eax
+    c:  jne 0x17
+    e:  callq fn:tok_read+0
+   13:  testl %eax, %eax
+   15:  jne 0x30
+   17:  movl $0, (%rip)   <var:tok_set+0>
+   21:  movl $0, %edi   <var:tok+0>
+   26:  addq $8, %rsp
+   2a:  jmp mem_buf+0
+   2f:  nop
+   30:  movl $0, %eax   <str:"">
+   35:  addq $8, %rsp
+   39:  retq

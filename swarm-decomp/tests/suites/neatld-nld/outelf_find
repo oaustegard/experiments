@@ -1,0 +1,70 @@
+# outelf_find  (static, 234 bytes, 69 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  pushq %r12
+    8:  pushq %rbp
+    9:  pushq %rbx
+    a:  subq $0x28, %rsp
+    e:  movl 0x17c50(%rdi), %r14d
+   15:  movq %rdi, 8(%rsp)
+   1a:  movq %rdx, 0x10(%rsp)
+   1f:  movq %rcx, 0x18(%rsp)
+   24:  testl %r14d, %r14d
+   27:  jle 0x93
+   29:  movq %rsi, %r12
+   2c:  leaq 0x16068(%rdi), %rbp
+   33:  xorl %r13d, %r13d
+   36:  nopw %cs:(%rax, %rax)
+   40:  movslq 8(%rbp), %rax
+   44:  testl %eax, %eax
+   46:  jle 0x86
+   48:  movq (%rbp), %r15
+   4c:  leaq (%rax, %rax, 2), %rax
+   50:  leaq (%r15, %rax, 8), %rbx
+   54:  nopl (%rax)
+   58:  movzbl 4(%r15), %eax
+   5d:  shrb $4, %al
+   60:  je 0x7d
+   62:  cmpw $0, 6(%r15)
+   68:  je 0x7d
+   6a:  movl (%r15), %esi
+   6d:  movq %r12, %rdi
+   70:  addq 0x10(%rbp), %rsi
+   74:  callq strcmp+0
+   79:  testl %eax, %eax
+   7b:  je 0xb0
+   7d:  addq $0x18, %r15
+   81:  cmpq %r15, %rbx
+   84:  jne 0x58
+   86:  addl $1, %r13d
+   8a:  addq $0x38, %rbp
+   8e:  cmpl %r14d, %r13d
+   91:  jne 0x40
+   93:  addq $0x28, %rsp
+   97:  movl $1, %eax
+   9c:  popq %rbx
+   9d:  popq %rbp
+   9e:  popq %r12
+   a0:  popq %r13
+   a2:  popq %r14
+   a4:  popq %r15
+   a6:  retq
+   a7:  nopw (%rax, %rax)
+   b0:  movslq %r13d, %r13
+   b3:  movq 8(%rsp), %rdx
+   b8:  leaq (, %r13, 8), %rcx
+   c0:  subq %r13, %rcx
+   c3:  leaq 0x16050(%rdx, %rcx, 8), %rcx
+   cb:  movq 0x10(%rsp), %rdx
+   d0:  movq %rcx, (%rdx)
+   d3:  movq 0x18(%rsp), %rdx
+   d8:  movq %r15, (%rdx)
+   db:  addq $0x28, %rsp
+   df:  popq %rbx
+   e0:  popq %rbp
+   e1:  popq %r12
+   e3:  popq %r13
+   e5:  popq %r14
+   e7:  popq %r15
+   e9:  retq

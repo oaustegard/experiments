@@ -1,0 +1,35 @@
+# ex_search  (static, 103 bytes, 34 instructions)
+    0:  pushq %r12
+    2:  movl (%rip), %r12d   <var:pos+0>
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  cmpb $0x2f, (%rdi)
+    e:  movl $1, %ebx
+   13:  sete %bpl
+   17:  callq fn:ex_keyword+0
+   1c:  testl %eax, %eax
+   1e:  jne 0x60
+   20:  movzbl %bpl, %ebp
+   24:  movl %r12d, %ebx
+   27:  leal -1(%rbp, %rbp), %ebp
+   2b:  addl %ebp, %ebx
+   2d:  jns 0x4a
+   2f:  jmp 0x5a
+   31:  nopl (%rax)
+   38:  movl %ebx, %edi
+   3a:  callq fn:ex_match+0
+   3f:  testl %eax, %eax
+   41:  je 0x60
+   43:  addl %ebp, %ebx
+   45:  cmpl $-1, %ebx
+   48:  je 0x5a
+   4a:  movq (%rip), %rdi   <var:mbox+0>
+   51:  callq mbox_len+0
+   56:  cmpl %ebx, %eax
+   58:  jg 0x38
+   5a:  movl (%rip), %ebx   <var:pos+0>
+   60:  movl %ebx, %eax
+   62:  popq %rbx
+   63:  popq %rbp
+   64:  popq %r12
+   66:  retq

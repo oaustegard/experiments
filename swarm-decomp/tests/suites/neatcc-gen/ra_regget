@@ -1,0 +1,191 @@
+# ra_regget  (static, 676 bytes, 190 instructions)
+    0:  movq %rsi, %r8
+    3:  movq %rcx, %rsi
+    6:  movslq %edi, %rdi
+    9:  xorl %eax, %eax
+    b:  notq %rsi
+    e:  andq %rdx, %rsi
+   11:  andq %rsi, %r8
+   14:  nopl (%rax)
+   18:  cmpq %rdi, (, %rax, 8)   <var:ra_vmap+0>
+   20:  je 0x170
+   26:  addq $1, %rax
+   2a:  cmpq $0x10, %rax
+   2e:  jne 0x18
+   30:  xorl %ecx, %ecx
+   32:  xorl %eax, %eax
+   34:  pushq %rbx
+   35:  movl $1, %edi
+   3a:  nopw (%rax, %rax)
+   40:  cmpq $0, (, %rcx, 8)   <var:ra_vmap+0>
+   49:  js 0x55
+   4b:  movl %edi, %edx
+   4d:  shll %cl, %edx
+   4f:  movslq %edx, %rdx
+   52:  orq %rdx, %rax
+   55:  addq $1, %rcx
+   59:  cmpq $0x10, %rcx
+   5d:  jne 0x40
+   5f:  xorl %ecx, %ecx
+   61:  xorl %edi, %edi
+   63:  movl $1, %r9d
+   69:  nopl (%rax)
+   70:  cmpq $0, (, %rcx, 8)   <var:ra_lmap+0>
+   79:  js 0x86
+   7b:  movl %r9d, %edx
+   7e:  shll %cl, %edx
+   80:  movslq %edx, %rdx
+   83:  orq %rdx, %rdi
+   86:  addq $1, %rcx
+   8a:  cmpq $0x10, %rcx
+   8e:  jne 0x70
+   90:  notq %rax
+   93:  notq %rdi
+   96:  movl $0, %r9d   <tmpregs+0>
+   9c:  movl $1, %ebx
+   a1:  movq %rax, %r11
+   a4:  movq %rdi, %r10
+   a7:  andq %r8, %r11
+   aa:  andq %rdi, %r11
+   ad:  movq %r9, %rdi
+   b0:  movl (%rdi), %ecx
+   b2:  movl %ebx, %edx
+   b4:  shll %cl, %edx
+   b6:  movslq %edx, %rdx
+   b9:  testq %r11, %rdx
+   bc:  jne 0x1d0
+   c2:  addq $4, %rdi
+   c6:  cmpq $0, %rdi   <tmpregs+56>
+   cd:  jne 0xb0
+   cf:  andq %rsi, %rax
+   d2:  movl $0, %edi   <tmpregs+0>
+   d7:  andq %r10, %rax
+   da:  movl $1, %r10d
+   e0:  movl (%rdi), %ecx
+   e2:  movl %r10d, %edx
+   e5:  shll %cl, %edx
+   e7:  movslq %edx, %rdx
+   ea:  testq %rax, %rdx
+   ed:  jne 0x210
+   f3:  addq $4, %rdi
+   f7:  cmpq $0, %rdi   <tmpregs+56>
+   fe:  jne 0xe0
+  100:  movl $0, %edx   <tmpregs+0>
+  105:  movl $1, %edi
+  10a:  nopw (%rax, %rax)
+  110:  movl (%rdx), %ecx
+  112:  movl %edi, %eax
+  114:  shll %cl, %eax
+  116:  cltq
+  118:  testq %r8, %rax
+  11b:  jne 0x23e
+  121:  addq $4, %rdx
+  125:  cmpq $0, %rdx   <tmpregs+56>
+  12c:  jne 0x110
+  12e:  movl $0, %edx   <tmpregs+0>
+  133:  movl $1, %edi
+  138:  nopl (%rax, %rax)
+  140:  movl (%rdx), %ecx
+  142:  movl %edi, %eax
+  144:  shll %cl, %eax
+  146:  cltq
+  148:  testq %rsi, %rax
+  14b:  jne 0x270
+  151:  addq $4, %rdx
+  155:  cmpq $0, %rdx   <tmpregs+56>
+  15c:  jne 0x140
+  15e:  xorl %eax, %eax
+  160:  movl $0, %edi   <str:"neatcc: cannot allocate an acceptable register\n">
+  165:  callq die+0
+  16a:  xorl %eax, %eax
+  16c:  popq %rbx
+  16d:  retq
+  16e:  nop
+  170:  xorl %ecx, %ecx
+  172:  nopw (%rax, %rax)
+  178:  cmpq %rdi, (, %rcx, 8)   <var:ra_vmap+0>
+  180:  je 0x191
+  182:  addq $1, %rcx
+  186:  cmpq $0x10, %rcx
+  18a:  jne 0x178
+  18c:  movl $0xffffffff, %ecx
+  191:  movl $1, %eax
+  196:  shll %cl, %eax
+  198:  xorl %ecx, %ecx
+  19a:  cltq
+  19c:  andq %rsi, %rax
+  19f:  je 0x34
+  1a5:  xorl %eax, %eax
+  1a7:  nopw (%rax, %rax)
+  1b0:  cmpq %rdi, (, %rax, 8)   <var:ra_vmap+0>
+  1b8:  je 0x26d
+  1be:  addq $1, %rax
+  1c2:  cmpq $0x10, %rax
+  1c6:  jne 0x1b0
+  1c8:  movq $18446744073709551615, %rax
+  1cf:  retq
+  1d0:  movl $1, %edx
+  1d5:  testl %ecx, %ecx
+  1d7:  js 0xcf
+  1dd:  nopl (%rax)
+  1e0:  movl (%r9), %ecx
+  1e3:  movl %edx, %eax
+  1e5:  shll %cl, %eax
+  1e7:  cltq
+  1e9:  testq %r11, %rax
+  1ec:  jne 0x208
+  1ee:  addq $4, %r9
+  1f2:  cmpq $0, %r9   <tmpregs+56>
+  1f9:  jne 0x1e0
+  1fb:  movq $18446744073709551615, %rax
+  202:  popq %rbx
+  203:  retq
+  204:  nopl (%rax)
+  208:  movslq %ecx, %rax
+  20b:  popq %rbx
+  20c:  retq
+  20d:  nopl (%rax)
+  210:  movl $1, %edi
+  215:  testl %ecx, %ecx
+  217:  js 0x100
+  21d:  nopl (%rax)
+  220:  movl (%r9), %ecx
+  223:  movl %edi, %edx
+  225:  shll %cl, %edx
+  227:  movslq %edx, %rdx
+  22a:  testq %rax, %rdx
+  22d:  jne 0x208
+  22f:  addq $4, %r9
+  233:  cmpq $0, %r9   <tmpregs+56>
+  23a:  jne 0x220
+  23c:  jmp 0x1fb
+  23e:  movl $1, %edx
+  243:  testl %ecx, %ecx
+  245:  js 0x12e
+  24b:  nopl (%rax, %rax)
+  250:  movl (%r9), %ecx
+  253:  movl %edx, %eax
+  255:  shll %cl, %eax
+  257:  cltq
+  259:  testq %r8, %rax
+  25c:  jne 0x208
+  25e:  addq $4, %r9
+  262:  cmpq $0, %r9   <tmpregs+56>
+  269:  jne 0x250
+  26b:  jmp 0x1fb
+  26d:  cltq
+  26f:  retq
+  270:  testl %ecx, %ecx
+  272:  js 0x15e
+  278:  movl $1, %edx
+  27d:  nopl (%rax)
+  280:  movl (%r9), %ecx
+  283:  movl %edx, %eax
+  285:  shll %cl, %eax
+  287:  cltq
+  289:  testq %rsi, %rax
+  28c:  jne 0x208
+  292:  addq $4, %r9
+  296:  cmpq $0, %r9   <tmpregs+56>
+  29d:  jne 0x280
+  29f:  jmp 0x1fb

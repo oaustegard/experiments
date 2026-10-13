@@ -1,0 +1,81 @@
+# searcher_Croot  (static, 258 bytes, 80 instructions)
+    0:  pushq %r12
+    2:  xorl %edx, %edx
+    4:  movl $1, %esi
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  callq luaL_checklstring+0
+   13:  movl $0x2e, %esi
+   18:  movq %rax, %rdi
+   1b:  movq %rax, %rbp
+   1e:  callq strchr+0
+   23:  testq %rax, %rax
+   26:  je 0xc0
+   2c:  subq %rbp, %rax
+   2f:  movq %rbp, %rsi
+   32:  movq %rbx, %rdi
+   35:  movq %rax, %rdx
+   38:  callq lua_pushlstring+0
+   3d:  xorl %edx, %edx
+   3f:  movl $0xffffffff, %esi
+   44:  movq %rbx, %rdi
+   47:  callq lua_tolstring+0
+   4c:  movl $0, %edx   <str:"cpath">
+   51:  movq %rbx, %rdi
+   54:  movq %rax, %rsi
+   57:  callq fn:findfile.constprop.0+0
+   5c:  movq %rax, %r12
+   5f:  testq %rax, %rax
+   62:  je 0xe5
+   68:  movq %rbp, %rdx
+   6b:  movq %rax, %rsi
+   6e:  movq %rbx, %rdi
+   71:  callq fn:loadfunc+0
+   76:  testl %eax, %eax
+   78:  je 0xf0
+   7a:  cmpl $2, %eax
+   7d:  je 0xd0
+   7f:  movq %rbx, %rdi
+   82:  xorl %edx, %edx
+   84:  movl $0xffffffff, %esi
+   89:  callq lua_tolstring+0
+   8e:  movq %rbx, %rdi
+   91:  xorl %edx, %edx
+   93:  movl $1, %esi
+   98:  movq %rax, %rbp
+   9b:  callq lua_tolstring+0
+   a0:  movq %rbp, %r8
+   a3:  movq %r12, %rcx
+   a6:  movq %rbx, %rdi
+   a9:  movq %rax, %rdx
+   ac:  popq %rbx
+   ad:  movl $0, %esi   <str:"error loading module '%s' from file '%s':\n\t%s">
+   b2:  popq %rbp
+   b3:  xorl %eax, %eax
+   b5:  popq %r12
+   b7:  jmp luaL_error+0
+   bc:  nopl (%rax)
+   c0:  xorl %eax, %eax
+   c2:  popq %rbx
+   c3:  popq %rbp
+   c4:  popq %r12
+   c6:  retq
+   c7:  nopw (%rax, %rax)
+   d0:  movq %r12, %rcx
+   d3:  movq %rbp, %rdx
+   d6:  movl $0, %esi   <str:"no module '%s' in file '%s'">
+   db:  movq %rbx, %rdi
+   de:  xorl %eax, %eax
+   e0:  callq lua_pushfstring+0
+   e5:  popq %rbx
+   e6:  movl $1, %eax
+   eb:  popq %rbp
+   ec:  popq %r12
+   ee:  retq
+   ef:  nop
+   f0:  movq %r12, %rsi
+   f3:  movq %rbx, %rdi
+   f6:  callq lua_pushstring+0
+   fb:  movl $2, %eax
+  100:  jmp 0xc2

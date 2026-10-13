@@ -1,0 +1,13 @@
+#pragma once
+
+typedef enum BinOpr {
+  OPR_ADD, OPR_SUB, OPR_MUL, OPR_MOD, OPR_POW,
+  OPR_DIV, OPR_IDIV,
+  OPR_BAND, OPR_BOR, OPR_BXOR,
+  OPR_SHL, OPR_SHR,
+  OPR_CONCAT,
+  OPR_EQ, OPR_LT, OPR_LE,
+  OPR_NE, OPR_GT, OPR_GE,
+  OPR_AND, OPR_OR,
+  OPR_NOBINOPR
+} BinOpr;

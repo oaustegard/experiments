@@ -1,0 +1,114 @@
+# localdef  (static, 413 bytes, 113 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq %rsi, %rbx
+    7:  testb $2, %dl
+    a:  jne 0xf6
+   10:  movl 0x104(%rsi), %eax
+   16:  movq %rdi, %r12
+   19:  movl %edx, %ebp
+   1b:  testb $4, %al
+   1d:  jne 0xe8
+   23:  testb $1, %bpl
+   27:  jne 0x128
+   2d:  testb $1, %al
+   2f:  je 0x60
+   31:  movl 0x108(%rbx), %ecx
+   37:  testl %ecx, %ecx
+   39:  jne 0x60
+   3b:  movslq 0x10c(%rbx), %rax
+   42:  leaq (%rax, %rax, 2), %rdx
+   46:  movq (%rip), %rax   <var:arrays+0>
+   4d:  leaq (%rax, %rdx, 8), %rbp
+   51:  movl 0x14(%rbp), %edx
+   54:  testl %edx, %edx
+   56:  je 0x190
+   5c:  nopl (%rax)
+   60:  leaq 0x100(%rbx), %rbp
+   67:  movq %rbp, %rdi
+   6a:  callq fn:type_totsz+0
+   6f:  movslq %eax, %rdi
+   72:  callq o_mklocal+0
+   77:  movq %rbx, %rdi
+   7a:  movq %rax, 0x118(%rbx)
+   81:  callq fn:local_add+0
+   86:  callq tok_see+0
+   8b:  cmpb $0x3d, (%rax)
+   8e:  jne 0x108
+   90:  cmpb $0, 1(%rax)
+   94:  jne 0x108
+   96:  callq tok_get+0
+   9b:  testb $3, 0x104(%rbx)
+   a2:  je 0xb2
+   a4:  movl 0x108(%rbx), %eax
+   aa:  testl %eax, %eax
+   ac:  je 0x158
+   b2:  callq tok_see+0
+   b7:  addq $0x118, %rbx
+   be:  cmpb $0x7b, (%rax)
+   c1:  jne 0x110
+   c3:  cmpb $0, 1(%rax)
+   c7:  jne 0x110
+   c9:  callq tok_get+0
+   ce:  movq %rbx, %rdx
+   d1:  movq %rbp, %rdi
+   d4:  popq %rbx
+   d5:  movl $0, %ecx   <fn:localinit+0>
+   da:  popq %rbp
+   db:  xorl %esi, %esi
+   dd:  popq %r12
+   df:  jmp fn:initexpr.part.0+0
+   e4:  nopl (%rax)
+   e8:  movl 0x108(%rsi), %esi
+   ee:  testl %esi, %esi
+   f0:  jne 0x23
+   f6:  movq %rbx, %rdi
+   f9:  popq %rbx
+   fa:  popq %rbp
+   fb:  popq %r12
+   fd:  jmp fn:global_add+0
+  102:  nopw (%rax, %rax)
+  108:  popq %rbx
+  109:  popq %rbp
+  10a:  popq %r12
+  10c:  retq
+  10d:  nopl (%rax)
+  110:  movq %rbp, %rdx
+  113:  movq %rbx, %rdi
+  116:  xorl %esi, %esi
+  118:  popq %rbx
+  119:  popq %rbp
+  11a:  popq %r12
+  11c:  jmp fn:localinit+0
+  121:  nopl (%rax)
+  128:  movq %rbx, %rcx
+  12b:  movl $0, %edx   <var:func_name+0>
+  130:  movl $0, %esi   <str:"__neatcc.%s.%s">
+  135:  xorl %eax, %eax
+  137:  leaq 0x80(%rbx), %rdi
+  13e:  callq sprintf+0
+  143:  movl %ebp, %edx
+  145:  movq %rbx, %rsi
+  148:  movq %r12, %rdi
+  14b:  popq %rbx
+  14c:  popq %rbp
+  14d:  popq %r12
+  14f:  jmp fn:globaldef+0
+  154:  nopl (%rax)
+  158:  movq 0x118(%rbx), %rdi
+  15f:  callq o_local+0
+  164:  xorl %edi, %edi
+  166:  callq o_num+0
+  16b:  movq %rbp, %rdi
+  16e:  callq fn:type_totsz+0
+  173:  movslq %eax, %rdi
+  176:  callq o_num+0
+  17b:  callq o_memset+0
+  180:  movl $1, %edi
+  185:  callq o_tmpdrop+0
+  18a:  jmp 0xb2
+  18f:  nop
+  190:  callq fn:initsize+0
+  195:  movl %eax, 0x14(%rbp)
+  198:  jmp 0x60

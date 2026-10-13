@@ -1,0 +1,35 @@
+# tryagain  (static, 93 bytes, 34 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq 0x18(%rdi), %rbx
+    e:  testb $0xf, 0x58(%rbx)
+   12:  jne 0x50
+   14:  cmpb $0, 0x67(%rbx)
+   18:  jne 0x50
+   1a:  movq %rsi, %rbp
+   1d:  movl $1, %esi
+   22:  movq %rdx, %r12
+   25:  movq %rcx, %r13
+   28:  callq luaC_fullgc+0
+   2d:  movq 8(%rbx), %rdi
+   31:  movq (%rbx), %rax
+   34:  addq $8, %rsp
+   38:  popq %rbx
+   39:  movq %r13, %rcx
+   3c:  movq %r12, %rdx
+   3f:  movq %rbp, %rsi
+   42:  popq %rbp
+   43:  popq %r12
+   45:  popq %r13
+   47:  jmpq *%rax
+   49:  nopl (%rax)
+   50:  addq $8, %rsp
+   54:  xorl %eax, %eax
+   56:  popq %rbx
+   57:  popq %rbp
+   58:  popq %r12
+   5a:  popq %r13
+   5c:  retq

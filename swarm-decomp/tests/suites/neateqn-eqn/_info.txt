@@ -1,0 +1,36 @@
+# neateqn-eqn: translation unit eqn of neateqn
+# write each function as src/neateqn/eqn/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+eqn_gaps	static	168 bytes
+sizesub	static	171 bytes
+typenum.part.0	static	328 bytes
+tok_expect.part.0	static	44 bytes
+tok_quotes	static	68 bytes
+eqn_commands	static	2182 bytes
+errdie	global	26 bytes
+eqn_matrix	static	623 bytes
+eqn_left	static	2999 bytes
+eqn_box	static	178 bytes
+eqn_boxuntil	static	169 bytes
+eqn_pile	static	308 bytes
+main	global	811 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+grfont	static	32 bytes	.data.grfont
+        0: 31 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+gfont	static	32 bytes	.data.gfont
+        0: 32 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+gbfont	static	32 bytes	.data.gbfont
+        0: 33 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+gsize	static	32 bytes	.data.gsize
+        0: 5c 6e 5b 2e 65 71 6e 73 7a 5d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+eqn_mk	static	4 bytes	.bss.eqn_mk
+    (zero-initialised)
+eqn_lineupreg	static	4 bytes	.bss.eqn_lineupreg
+    (zero-initialised)
+eqn_lineup	static	128 bytes	.bss.eqn_lineup
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+box_accent box_alloc box_bar box_empty box_free box_from box_markpos box_matrix box_merge box_move box_over box_pile box_putf box_puttext box_size box_sqrt box_sub box_toreg box_under box_vcenter box_vertspace box_wrap def_brcostput def_choppedset def_macros def_piecesput def_set def_sizesput def_typeput e_minimumsize e_thickspace e_thinspace escarg exit fprintf fputs fwrite nreg nregmk nregname nregrm printf reg_reset snprintf sprintf src_define src_done src_lineget stderr strcmp strcpy strlen strtol tok_chops tok_delim tok_eqn tok_eqnout tok_get tok_inline tok_jmp tok_macro tok_pop tok_poptext tok_type ts_sub ts_sup

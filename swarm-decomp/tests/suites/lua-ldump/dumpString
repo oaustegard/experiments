@@ -1,0 +1,41 @@
+# dumpString  (static, 107 bytes, 40 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  movq %rdi, %rbp
+    6:  pushq %rbx
+    7:  testq %rsi, %rsi
+    a:  je 0x60
+    c:  movzbl 0xb(%rsi), %r12d
+   11:  movq %rsi, %rbx
+   14:  cmpb $0xff, %r12b
+   18:  jne 0x1e
+   1a:  movq 0x10(%rsi), %r12
+   1e:  leaq 1(%r12), %rsi
+   23:  movq %rbp, %rdi
+   26:  callq fn:dumpSize+0
+   2b:  movl 0x1c(%rbp), %eax
+   2e:  testl %eax, %eax
+   30:  jne 0x37
+   32:  testq %r12, %r12
+   35:  jne 0x40
+   37:  popq %rbx
+   38:  popq %rbp
+   39:  popq %r12
+   3b:  retq
+   3c:  nopl (%rax)
+   40:  movq 0x10(%rbp), %rcx
+   44:  movq (%rbp), %rdi
+   48:  leaq 0x18(%rbx), %rsi
+   4c:  movq %r12, %rdx
+   4f:  callq *8(%rbp)
+   52:  movl %eax, 0x1c(%rbp)
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  popq %r12
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  popq %rbx
+   61:  xorl %esi, %esi
+   63:  popq %rbp
+   64:  popq %r12
+   66:  jmp fn:dumpSize+0

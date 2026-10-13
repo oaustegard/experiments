@@ -1,0 +1,42 @@
+# dict_make  (global, 147 bytes, 41 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  movl $1, %esi
+    a:  pushq %r12
+    c:  movl %edi, %r12d
+    f:  movl $0x30, %edi
+   14:  pushq %rbp
+   15:  movl %edx, %ebp
+   17:  pushq %rbx
+   18:  subq $8, %rsp
+   1c:  callq calloc+0
+   21:  testl %ebp, %ebp
+   23:  movq %rax, %rbx
+   26:  movl $1, 0x1c(%rax)
+   2d:  movl $0x20, %eax
+   32:  cmovel %eax, %ebp
+   35:  movl %r13d, 0x28(%rbx)
+   39:  movl %r12d, 0x20(%rbx)
+   3d:  movl %ebp, 0x24(%rbx)
+   40:  callq iset_make+0
+   45:  movslq 0x18(%rbx), %rsi
+   49:  movq 8(%rbx), %rdi
+   4d:  movl $8, %ecx
+   52:  movq %rax, (%rbx)
+   55:  movl $0x400, %edx
+   5a:  callq mextend+0
+   5f:  movslq 0x18(%rbx), %rsi
+   63:  movq 0x10(%rbx), %rdi
+   67:  movl $4, %ecx
+   6c:  movq %rax, 8(%rbx)
+   70:  movl $0x400, %edx
+   75:  callq mextend+0
+   7a:  movl $0x400, 0x18(%rbx)
+   81:  movq %rax, 0x10(%rbx)
+   85:  addq $8, %rsp
+   89:  movq %rbx, %rax
+   8c:  popq %rbx
+   8d:  popq %rbp
+   8e:  popq %r12
+   90:  popq %r13
+   92:  retq

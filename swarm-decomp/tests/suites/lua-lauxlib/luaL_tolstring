@@ -1,0 +1,162 @@
+# luaL_tolstring  (global, 563 bytes, 161 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rdx, %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  movq %rdi, %rbx
+    e:  callq lua_absindex+0
+   13:  movl $0, %edx   <str:"__tostring">
+   18:  movq %rbx, %rdi
+   1b:  movl %eax, %esi
+   1d:  movl %eax, %ebp
+   1f:  callq luaL_callmeta+0
+   24:  testl %eax, %eax
+   26:  je 0x58
+   28:  movl $0xffffffff, %esi
+   2d:  movq %rbx, %rdi
+   30:  callq lua_isstring+0
+   35:  testl %eax, %eax
+   37:  je 0xa0
+   39:  movq %r12, %rdx
+   3c:  movq %rbx, %rdi
+   3f:  movl $0xffffffff, %esi
+   44:  popq %rbx
+   45:  popq %rbp
+   46:  popq %r12
+   48:  popq %r13
+   4a:  popq %r14
+   4c:  jmp lua_tolstring+0
+   51:  nopl (%rax)
+   58:  movl %ebp, %esi
+   5a:  movq %rbx, %rdi
+   5d:  callq lua_type+0
+   62:  cmpl $3, %eax
+   65:  je 0x130
+   6b:  jg 0xc8
+   6d:  testl %eax, %eax
+   6f:  je 0xb0
+   71:  cmpl $1, %eax
+   74:  jne 0xe0
+   76:  movl %ebp, %esi
+   78:  movq %rbx, %rdi
+   7b:  callq lua_toboolean+0
+   80:  movl $0, %esi   <str:"false">
+   85:  movq %rbx, %rdi
+   88:  testl %eax, %eax
+   8a:  movl $0, %eax   <str:"true">
+   8f:  cmovneq %rax, %rsi
+   93:  callq lua_pushstring+0
+   98:  jmp 0x39
+   9a:  nopw (%rax, %rax)
+   a0:  movl $0, %esi   <str:"'__tostring' must return a string">
+   a5:  movq %rbx, %rdi
+   a8:  callq luaL_error+0
+   ad:  jmp 0x39
+   af:  nop
+   b0:  movl $0, %esi   <str:"nil">
+   b5:  movq %rbx, %rdi
+   b8:  callq lua_pushstring+0
+   bd:  jmp 0x39
+   c2:  nopw (%rax, %rax)
+   c8:  cmpl $4, %eax
+   cb:  jne 0xe0
+   cd:  movl %ebp, %esi
+   cf:  movq %rbx, %rdi
+   d2:  callq lua_pushvalue+0
+   d7:  jmp 0x39
+   dc:  nopl (%rax)
+   e0:  movl %ebp, %esi
+   e2:  movq %rbx, %rdi
+   e5:  callq lua_getmetatable+0
+   ea:  testl %eax, %eax
+   ec:  jne 0x188
+   f2:  movl %ebp, %esi
+   f4:  movq %rbx, %rdi
+   f7:  callq lua_type+0
+   fc:  movq %rbx, %rdi
+   ff:  movl %eax, %esi
+  101:  callq lua_typename+0
+  106:  movl %ebp, %esi
+  108:  movq %rbx, %rdi
+  10b:  movq %rax, %r13
+  10e:  callq lua_topointer+0
+  113:  movq %r13, %rdx
+  116:  movl $0, %esi   <str:"%s: %p">
+  11b:  movq %rbx, %rdi
+  11e:  movq %rax, %rcx
+  121:  xorl %eax, %eax
+  123:  callq lua_pushfstring+0
+  128:  jmp 0x39
+  12d:  nopl (%rax)
+  130:  movl %ebp, %esi
+  132:  movq %rbx, %rdi
+  135:  callq lua_isinteger+0
+  13a:  xorl %edx, %edx
+  13c:  movl %ebp, %esi
+  13e:  movq %rbx, %rdi
+  141:  testl %eax, %eax
+  143:  je 0x168
+  145:  callq lua_tointegerx+0
+  14a:  movl $0, %esi   <str:"%I">
+  14f:  movq %rbx, %rdi
+  152:  movq %rax, %rdx
+  155:  xorl %eax, %eax
+  157:  callq lua_pushfstring+0
+  15c:  jmp 0x39
+  161:  nopl (%rax)
+  168:  callq lua_tonumberx+0
+  16d:  movl $0, %esi   <str:"%f">
+  172:  movq %rbx, %rdi
+  175:  movl $1, %eax
+  17a:  callq lua_pushfstring+0
+  17f:  jmp 0x39
+  184:  nopl (%rax)
+  188:  movl $0, %esi   <str:"__name">
+  18d:  movq %rbx, %rdi
+  190:  callq fn:luaL_getmetafield.part.0+0
+  195:  movl %eax, %r13d
+  198:  cmpl $4, %eax
+  19b:  jne 0x1f2
+  19d:  xorl %edx, %edx
+  19f:  movl $0xffffffff, %esi
+  1a4:  movq %rbx, %rdi
+  1a7:  callq lua_tolstring+0
+  1ac:  movl %ebp, %esi
+  1ae:  movq %rbx, %rdi
+  1b1:  movq %rax, %r13
+  1b4:  callq lua_topointer+0
+  1b9:  movq %r13, %rdx
+  1bc:  movl $0, %esi   <str:"%s: %p">
+  1c1:  movq %rbx, %rdi
+  1c4:  movq %rax, %rcx
+  1c7:  xorl %eax, %eax
+  1c9:  callq lua_pushfstring+0
+  1ce:  movq %rbx, %rdi
+  1d1:  movl $0xffffffff, %edx
+  1d6:  movl $0xfffffffe, %esi
+  1db:  callq lua_rotate+0
+  1e0:  movl $0xfffffffe, %esi
+  1e5:  movq %rbx, %rdi
+  1e8:  callq lua_settop+0
+  1ed:  jmp 0x39
+  1f2:  movl %ebp, %esi
+  1f4:  movq %rbx, %rdi
+  1f7:  callq lua_type+0
+  1fc:  movq %rbx, %rdi
+  1ff:  movl %eax, %esi
+  201:  callq lua_typename+0
+  206:  movl %ebp, %esi
+  208:  movq %rbx, %rdi
+  20b:  movq %rax, %r14
+  20e:  callq lua_topointer+0
+  213:  movq %r14, %rdx
+  216:  movl $0, %esi   <str:"%s: %p">
+  21b:  movq %rbx, %rdi
+  21e:  movq %rax, %rcx
+  221:  xorl %eax, %eax
+  223:  callq lua_pushfstring+0
+  228:  testl %r13d, %r13d
+  22b:  je 0x39
+  231:  jmp 0x1ce

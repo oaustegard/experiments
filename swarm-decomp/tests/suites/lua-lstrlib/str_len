@@ -1,0 +1,14 @@
+# str_len  (static, 47 bytes, 13 instructions)
+    0:  pushq %rbx
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbx
+    9:  subq $0x10, %rsp
+    d:  leaq 8(%rsp), %rdx
+   12:  callq luaL_checklstring+0
+   17:  movq 8(%rsp), %rsi
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_pushinteger+0
+   24:  addq $0x10, %rsp
+   28:  movl $1, %eax
+   2d:  popq %rbx
+   2e:  retq

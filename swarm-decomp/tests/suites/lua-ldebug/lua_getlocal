@@ -1,0 +1,38 @@
+# lua_getlocal  (global, 133 bytes, 37 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  movl %edx, %edi
+    6:  subq $0x10, %rsp
+    a:  testq %rsi, %rsi
+    d:  je 0x60
+    f:  movq 0x80(%rsi), %rsi
+   16:  leaq 8(%rsp), %rcx
+   1b:  movq %rbx, %rdi
+   1e:  movq $0, 8(%rsp)
+   27:  callq luaG_findlocal+0
+   2c:  testq %rax, %rax
+   2f:  je 0x50
+   31:  movq 8(%rsp), %rcx
+   36:  movq 0x10(%rbx), %rdx
+   3a:  movq (%rcx), %rsi
+   3d:  addq $0x10, %rdx
+   41:  movq %rsi, -0x10(%rdx)
+   45:  movzbl 8(%rcx), %ecx
+   49:  movb %cl, -8(%rdx)
+   4c:  movq %rdx, 0x10(%rbx)
+   50:  addq $0x10, %rsp
+   54:  popq %rbx
+   55:  retq
+   56:  nopw %cs:(%rax, %rax)
+   60:  movq 0x10(%rbx), %rdx
+   64:  xorl %eax, %eax
+   66:  cmpb $0x46, -8(%rdx)
+   6a:  jne 0x50
+   6c:  movq -0x10(%rdx), %rax
+   70:  movl %edi, %esi
+   72:  xorl %edx, %edx
+   74:  movq 0x18(%rax), %rax
+   78:  addq $0x10, %rsp
+   7c:  popq %rbx
+   7d:  movq %rax, %rdi
+   80:  jmp luaF_getlocalname+0

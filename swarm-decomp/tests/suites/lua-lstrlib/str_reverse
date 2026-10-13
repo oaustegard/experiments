@@ -1,0 +1,32 @@
+# str_reverse  (static, 114 bytes, 31 instructions)
+    0:  pushq %rbp
+    1:  movl $1, %esi
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  subq $0x438, %rsp
+   11:  leaq 8(%rsp), %rdx
+   16:  callq luaL_checklstring+0
+   1b:  movq 8(%rsp), %rdx
+   20:  leaq 0x10(%rsp), %rsi
+   25:  movq %rbp, %rdi
+   28:  movq %rax, %rbx
+   2b:  callq luaL_buffinitsize+0
+   30:  movq 8(%rsp), %rsi
+   35:  testq %rsi, %rsi
+   38:  je 0x59
+   3a:  xorl %edx, %edx
+   3c:  nopl (%rax)
+   40:  subq %rdx, %rsi
+   43:  movzbl -1(%rbx, %rsi), %ecx
+   48:  movb %cl, (%rax, %rdx)
+   4b:  movq 8(%rsp), %rsi
+   50:  addq $1, %rdx
+   54:  cmpq %rsi, %rdx
+   57:  jb 0x40
+   59:  leaq 0x10(%rsp), %rdi
+   5e:  callq luaL_pushresultsize+0
+   63:  addq $0x438, %rsp
+   6a:  movl $1, %eax
+   6f:  popq %rbx
+   70:  popq %rbp
+   71:  retq

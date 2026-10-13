@@ -1,0 +1,28 @@
+# lua_rawgeti  (global, 83 bytes, 27 instructions)
+    0:  pushq %rbx
+    1:  movq %rdx, %r8
+    4:  movq %rdi, %rbx
+    7:  callq fn:index2value+0
+    c:  movq %r8, %rsi
+    f:  movq (%rax), %rdi
+   12:  callq luaH_getint+0
+   17:  movq 0x10(%rbx), %rdx
+   1b:  movzbl 8(%rax), %ecx
+   1f:  movq (%rax), %rsi
+   22:  movl %ecx, %eax
+   24:  andl $0xf, %eax
+   27:  jne 0x40
+   29:  movb $0, 8(%rdx)
+   2d:  addq $0x10, %rdx
+   31:  xorl %eax, %eax
+   33:  movq %rdx, 0x10(%rbx)
+   37:  popq %rbx
+   38:  retq
+   39:  nopl (%rax)
+   40:  movq %rsi, (%rdx)
+   43:  addq $0x10, %rdx
+   47:  movzbl %al, %eax
+   4a:  movb %cl, -8(%rdx)
+   4d:  movq %rdx, 0x10(%rbx)
+   51:  popq %rbx
+   52:  retq

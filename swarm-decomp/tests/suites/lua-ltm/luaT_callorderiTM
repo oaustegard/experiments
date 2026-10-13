@@ -1,0 +1,24 @@
+# luaT_callorderiTM  (global, 78 bytes, 23 instructions)
+    0:  movl %ecx, %eax
+    2:  subq $0x18, %rsp
+    6:  movl %r9d, %ecx
+    9:  testl %r8d, %r8d
+    c:  je 0x40
+    e:  pxor %xmm0, %xmm0
+   12:  cvtsi2sdl %edx, %xmm0
+   16:  movl $0x13, %edx
+   1b:  movsd %xmm0, (%rsp)
+   20:  movb %dl, 8(%rsp)
+   24:  movq %rsp, %rdx
+   27:  testl %eax, %eax
+   29:  je 0x31
+   2b:  movq %rsi, %rdx
+   2e:  movq %rsp, %rsi
+   31:  callq luaT_callorderTM+0
+   36:  addq $0x18, %rsp
+   3a:  retq
+   3b:  nopl (%rax, %rax)
+   40:  movslq %edx, %rdx
+   43:  movq %rdx, (%rsp)
+   47:  movl $3, %edx
+   4c:  jmp 0x20

@@ -1,0 +1,44 @@
+# brk_len  (static, 121 bytes, 43 instructions)
+    0:  xorl %edx, %edx
+    2:  cmpb $0x5e, 1(%rdi)
+    6:  sete %dl
+    9:  sete %al
+    c:  movzbl 1(%rdi, %rdx), %edx
+   11:  movzbl %al, %eax
+   14:  addl $1, %eax
+   17:  cmpb $0x5d, %dl
+   1a:  je 0x2a
+   1c:  testb %dl, %dl
+   1e:  je 0x38
+   20:  cmpb $0x5d, %dl
+   23:  je 0x3d
+   25:  cmpb $0x5b, %dl
+   28:  je 0x48
+   2a:  addl $1, %eax
+   2d:  movslq %eax, %rdx
+   30:  movzbl (%rdi, %rdx), %edx
+   34:  testb %dl, %dl
+   36:  jne 0x20
+   38:  cmpb $0x5d, %dl
+   3b:  jne 0x40
+   3d:  addl $1, %eax
+   40:  retq
+   41:  nopl (%rax)
+   48:  movslq %eax, %rcx
+   4b:  leaq 1(%rcx), %rdx
+   4f:  movzbl 1(%rdi, %rcx), %ecx
+   54:  cmpb $0x3a, %cl
+   57:  je 0x60
+   59:  cmpb $0x3d, %cl
+   5c:  jne 0x2a
+   5e:  nop
+   60:  movzbl (%rdi, %rdx), %ecx
+   64:  movq %rdx, %rax
+   67:  addq $1, %rdx
+   6b:  testb %cl, %cl
+   6d:  je 0x74
+   6f:  cmpb $0x5d, %cl
+   72:  jne 0x60
+   74:  testb %cl, %cl
+   76:  jne 0x2a
+   78:  retq

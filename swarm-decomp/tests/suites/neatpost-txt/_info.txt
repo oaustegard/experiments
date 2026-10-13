@@ -1,0 +1,61 @@
+# neatpost-txt: translation unit txt of neatpost
+# write each function as src/neatpost/txt/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+outgname	global	1 bytes
+outpage	global	21 bytes
+out	global	158 bytes
+outc	global	101 bytes
+outh	global	7 bytes
+outv	global	7 bytes
+outrel	global	13 bytes
+outfont	global	21 bytes
+outmnt	global	1 bytes
+outsize	global	1 bytes
+outcolor	global	1 bytes
+outrotate	global	1 bytes
+drawmbeg	global	1 bytes
+drawmend	global	1 bytes
+drawbeg	global	1 bytes
+drawend	global	1 bytes
+drawl	global	13 bytes
+drawc	global	7 bytes
+drawe	global	7 bytes
+drawa	global	17 bytes
+draws	global	13 bytes
+outeps	global	1 bytes
+outpdf	global	1 bytes
+outlink	global	1 bytes
+outname	global	1 bytes
+outmark	global	1 bytes
+outinfo	global	1 bytes
+outset	global	108 bytes
+docpagebeg	global	61 bytes
+docpageend	global	282 bytes
+doctrailer	global	12 bytes
+docheader	global	189 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+o_v	static	4 bytes	.bss.o_v
+    (zero-initialised)
+o_h	static	4 bytes	.bss.o_h
+    (zero-initialised)
+o_f	static	4 bytes	.bss.o_f
+    (zero-initialised)
+c_ht	static	4 bytes	.bss.c_ht
+    (zero-initialised)
+c_wd	static	4 bytes	.bss.c_wd
+    (zero-initialised)
+p_cwd	static	4 bytes	.bss.p_cwd
+    (zero-initialised)
+p_cht	static	4 bytes	.bss.p_cht
+    (zero-initialised)
+o_pg	static	8 bytes	.bss.o_pg
+    (zero-initialised)
+c_htpt	static	4 bytes	.data.c_htpt
+        0: 0c 00 00 00
+c_wdpt	static	4 bytes	.data.c_wdpt
+        0: 0a 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+dev_font dev_glyph dev_res free malloc memset putchar stdout strcmp strtol vfprintf

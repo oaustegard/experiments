@@ -1,0 +1,40 @@
+# tr_ls  (static, 133 bytes, 39 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  cmpq $0, 8(%rdi)
+    b:  je 0x70
+    d:  movq %rdi, %rbx
+   10:  movl $0x4c, %edi
+   15:  callq nreg+0
+   1a:  movq 8(%rbx), %rdi
+   1e:  xorl %edx, %edx
+   20:  movl (%rax), %esi
+   22:  callq eval_re+0
+   27:  movl %eax, %ebx
+   29:  movl $0x4c, %edi
+   2e:  callq nreg+0
+   33:  movl $0, %edi   <str:".L0">
+   38:  movq %rax, %rbp
+   3b:  callq map+0
+   40:  movl %eax, %edi
+   42:  callq nreg+0
+   47:  movl (%rbp), %edx
+   4a:  movl $0x4c, %edi
+   4f:  movl %edx, (%rax)
+   51:  callq nreg+0
+   56:  testl %ebx, %ebx
+   58:  movl $1, %edx
+   5d:  cmovlel %edx, %ebx
+   60:  movl %ebx, (%rax)
+   62:  addq $8, %rsp
+   66:  popq %rbx
+   67:  popq %rbp
+   68:  retq
+   69:  nopl (%rax)
+   70:  movl $0, %edi   <str:".L0">
+   75:  callq map+0
+   7a:  movl %eax, %edi
+   7c:  callq nreg+0
+   81:  movl (%rax), %ebx
+   83:  jmp 0x29

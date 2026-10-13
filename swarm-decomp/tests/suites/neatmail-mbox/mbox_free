@@ -1,0 +1,45 @@
+# mbox_free  (global, 178 bytes, 44 instructions)
+    0:  pushq %rbp
+    1:  xorl %ebp, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movl 0x240(%rdi), %ecx
+   11:  testl %ecx, %ecx
+   13:  jle 0x3a
+   15:  nopl (%rax)
+   18:  movq (%rbx, %rbp, 8), %rdi
+   1c:  callq free+0
+   21:  movq 0x80(%rbx, %rbp, 8), %rdi
+   29:  addq $1, %rbp
+   2d:  callq free+0
+   32:  cmpl %ebp, 0x240(%rbx)
+   38:  jg 0x18
+   3a:  movq 0x258(%rbx), %rax
+   41:  testq %rax, %rax
+   44:  je 0x74
+   46:  movl 0x26c(%rbx), %edx
+   4c:  testl %edx, %edx
+   4e:  jle 0x74
+   50:  xorl %ebp, %ebp
+   52:  jmp 0x5f
+   54:  nopl (%rax)
+   58:  movq 0x258(%rbx), %rax
+   5f:  movq (%rax, %rbp, 8), %rdi
+   63:  addq $1, %rbp
+   67:  callq free+0
+   6c:  cmpl %ebp, 0x26c(%rbx)
+   72:  jg 0x58
+   74:  movq 0x248(%rbx), %rdi
+   7b:  callq free+0
+   80:  movq 0x250(%rbx), %rdi
+   87:  callq free+0
+   8c:  movq 0x258(%rbx), %rdi
+   93:  callq free+0
+   98:  movq 0x260(%rbx), %rdi
+   9f:  callq free+0
+   a4:  addq $8, %rsp
+   a8:  movq %rbx, %rdi
+   ab:  popq %rbx
+   ac:  popq %rbp
+   ad:  jmp free+0

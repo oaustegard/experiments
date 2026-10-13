@@ -1,0 +1,56 @@
+# in_next  (global, 249 bytes, 55 instructions)
+    0:  subq $8, %rsp
+    4:  jmp 0x28
+    6:  nopw %cs:(%rax, %rax)
+   10:  movslq 0x49c(%rax), %rdx
+   17:  cmpl 0x4a0(%rax), %edx
+   1d:  jl 0xe0
+   23:  callq fn:in_pop+0
+   28:  movq (%rip), %rax   <var:buf+0>
+   2f:  testq %rax, %rax
+   32:  je 0xa5
+   34:  movl 0x498(%rax), %edx
+   3a:  testl %edx, %edx
+   3c:  jne 0xc0
+   42:  cmpq $0, 0x408(%rax)
+   4a:  jne 0x10
+   4c:  movq 0x400(%rax), %rdi
+   53:  callq getc+0
+   58:  testl %eax, %eax
+   5a:  js 0x23
+   5c:  movq (%rip), %rdx   <var:buf+0>
+   63:  cmpl $0xa, 0x4a4(%rdx)
+   6a:  jne 0x73
+   6c:  addl $1, 0x4a8(%rdx)
+   73:  movl %eax, 0x4a4(%rdx)
+   79:  addq $8, %rsp
+   7d:  retq
+   7e:  nop
+   80:  leal 1(%rdi), %eax
+   83:  shlq $0xa, %rdi
+   87:  addq $0, %rdi   <var:files+0>
+   8e:  movl %eax, (%rip)   <var:cfile+0>
+   94:  callq in_so+0
+   99:  movq (%rip), %rax   <var:buf+0>
+   a0:  testq %rax, %rax
+   a3:  jne 0x34
+   a5:  movslq (%rip), %rdi   <var:cfile+0>
+   ac:  cmpl (%rip), %edi   <var:nfiles+0>
+   b2:  jl 0x80
+   b4:  movl $0xffffffff, %eax
+   b9:  addq $8, %rsp
+   bd:  retq
+   be:  nop
+   c0:  subl $1, %edx
+   c3:  movl %edx, 0x498(%rax)
+   c9:  movslq %edx, %rdx
+   cc:  movl 0x418(%rax, %rdx, 4), %eax
+   d3:  addq $8, %rsp
+   d7:  retq
+   d8:  nopl (%rax, %rax)
+   e0:  movq 0x408(%rax), %rcx
+   e7:  leal 1(%rdx), %esi
+   ea:  movl %esi, 0x49c(%rax)
+   f0:  movzbl (%rcx, %rdx), %eax
+   f4:  addq $8, %rsp
+   f8:  retq

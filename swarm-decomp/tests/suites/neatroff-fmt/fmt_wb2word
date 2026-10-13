@@ -1,0 +1,113 @@
+# fmt_wb2word  (static, 418 bytes, 112 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movl %edx, %r14d
+    7:  pushq %r13
+    9:  movq %rdi, %r13
+    c:  movq %rsi, %rdi
+    f:  pushq %r12
+   11:  movl %r8d, %r12d
+   14:  pushq %rbp
+   15:  movl %ecx, %ebp
+   17:  pushq %rbx
+   18:  movq %rsi, %rbx
+   1b:  subq $0x18, %rsp
+   1f:  movl %r9d, 4(%rsp)
+   24:  callq wb_buf+0
+   29:  movq %rax, %rdi
+   2c:  callq strlen+0
+   31:  movslq 8(%r13), %rsi
+   35:  movq %rax, %r8
+   38:  cmpl 0xc(%r13), %esi
+   3c:  je 0x170
+   42:  movq (%r13), %rax
+   46:  leaq (, %rsi, 8), %rdx
+   4e:  leal 1(%rsi), %edi
+   51:  subq %rsi, %rdx
+   54:  movl %edi, 8(%r13)
+   58:  shlq $3, %rdx
+   5c:  leaq (%rax, %rdx), %r15
+   60:  leaq -0x38(%rax, %rdx), %r13
+   65:  xorl %eax, %eax
+   67:  cmpl $1, %edi
+   6a:  leal 1(%r8), %edx
+   6e:  cmovleq %rax, %r13
+   72:  movslq %edx, %rdx
+   75:  movq %rdx, %rdi
+   78:  movq %rdx, 8(%rsp)
+   7d:  callq xmalloc+0
+   82:  movq %rbx, %rdi
+   85:  movq %rax, (%r15)
+   88:  callq wb_buf+0
+   8d:  movq (%r15), %rdi
+   90:  movq 8(%rsp), %rdx
+   95:  movq %rax, %rsi
+   98:  callq memcpy+0
+   9d:  movq %rbx, %rdi
+   a0:  callq wb_wid+0
+   a5:  movd 0x38(%rbx), %xmm2
+   aa:  movd %eax, %xmm0
+   ae:  punpckldq %xmm2, %xmm0
+   b2:  movq %xmm0, 8(%r15)
+   b8:  movl 0x3c(%rbx), %eax
+   bb:  movl %eax, 0x10(%r15)
+   bf:  testl %r14d, %r14d
+   c2:  jne 0x138
+   c4:  movd 4(%rsp), %xmm3
+   ca:  movd %r14d, %xmm4
+   cf:  movd %ebp, %xmm1
+   d3:  movq %rbx, %rdi
+   d6:  movd %r12d, %xmm0
+   db:  punpckldq %xmm3, %xmm1
+   df:  punpckldq %xmm4, %xmm0
+   e3:  punpcklqdq %xmm1, %xmm0
+   e7:  movups %xmm0, 0x14(%r15)
+   ec:  callq wb_swid+0
+   f1:  movl %eax, 0x24(%r15)
+   f5:  testq %r13, %r13
+   f8:  je 0x150
+   fa:  movl 8(%r15), %eax
+   fe:  addl 0x28(%r13), %eax
+  102:  addl 0x14(%r15), %eax
+  106:  movl %eax, 0x28(%r15)
+  10a:  movl 0x2c(%r13), %eax
+  10e:  addl %eax, %r12d
+  111:  testl %ebp, %ebp
+  113:  cmovnel %r12d, %eax
+  117:  addl 0x30(%r13), %ebp
+  11b:  movl %eax, 0x2c(%r15)
+  11f:  movl %ebp, 0x30(%r15)
+  123:  addq $0x18, %rsp
+  127:  popq %rbx
+  128:  popq %rbp
+  129:  popq %r12
+  12b:  popq %r13
+  12d:  popq %r14
+  12f:  popq %r15
+  131:  retq
+  132:  nopw (%rax, %rax)
+  138:  movq %rbx, %rdi
+  13b:  callq wb_hywid+0
+  140:  movl %eax, %r14d
+  143:  jmp 0xc4
+  148:  nopl (%rax, %rax)
+  150:  movl 0x14(%r15), %eax
+  154:  addl 8(%r15), %eax
+  158:  movl %eax, 0x28(%r15)
+  15c:  xorl %eax, %eax
+  15e:  testl %ebp, %ebp
+  160:  cmovel %eax, %r12d
+  164:  movl %r12d, 0x2c(%r15)
+  168:  jmp 0x11f
+  16a:  nopw (%rax, %rax)
+  170:  leal 0x100(%rsi), %edx
+  176:  movq (%r13), %rdi
+  17a:  movl $0x38, %ecx
+  17f:  movq %rax, 8(%rsp)
+  184:  movl %edx, 0xc(%r13)
+  188:  movslq %edx, %rdx
+  18b:  callq mextend+0
+  190:  movslq 8(%r13), %rsi
+  194:  movq 8(%rsp), %r8
+  199:  movq %rax, (%r13)
+  19d:  jmp 0x46

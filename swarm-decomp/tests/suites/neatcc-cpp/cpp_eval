@@ -1,0 +1,45 @@
+# cpp_eval  (static, 200 bytes, 44 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  subq $0x410, %rsp
+    b:  leaq 0x10(%rsp), %rdi
+   10:  callq fn:read_tilleol+0
+   15:  leaq 0x10(%rsp), %rdi
+   1a:  callq strlen+0
+   1f:  leaq 0x10(%rsp), %rsi
+   24:  movl $3, %edi
+   29:  movq %rax, %rdx
+   2c:  callq fn:buf_new+0
+   31:  movl (%rip), %eax   <var:bufs_n+0>
+   37:  movl (%rip), %r12d   <var:bufs_limit+0>
+   3e:  movl $0, (%rip)   <var:elen+0>
+   48:  movl $0, (%rip)   <var:ecur+0>
+   52:  movl %eax, (%rip)   <var:bufs_limit+0>
+   58:  jmp 0x8a
+   5a:  nopw (%rax, %rax)
+   60:  movslq (%rip), %rdi   <var:elen+0>
+   67:  movq (%rsp), %rbp
+   6b:  movq 8(%rsp), %rsi
+   70:  movq %rdi, %rbx
+   73:  movq %rbp, %rdx
+   76:  addq $0, %rdi   <var:ebuf+0>
+   7d:  callq memcpy+0
+   82:  addl %ebp, %ebx
+   84:  movl %ebx, (%rip)   <var:elen+0>
+   8a:  movq %rsp, %rsi
+   8d:  leaq 8(%rsp), %rdi
+   92:  callq cpp_read+0
+   97:  testl %eax, %eax
+   99:  je 0x60
+   9b:  movl %r12d, (%rip)   <var:bufs_limit+0>
+   a2:  movl $0xffffffff, (%rip)   <var:enext+0>
+   ac:  callq fn:evalcexpr+0
+   b1:  movq %rax, %rbx
+   b4:  callq fn:buf_pop+0
+   b9:  addq $0x410, %rsp
+   c0:  movq %rbx, %rax
+   c3:  popq %rbx
+   c4:  popq %rbp
+   c5:  popq %r12
+   c7:  retq

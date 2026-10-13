@@ -1,0 +1,46 @@
+# tr_lt  (static, 149 bytes, 45 instructions)
+    0:  pushq %rbp
+    1:  pushq %rbx
+    2:  subq $8, %rsp
+    6:  cmpq $0, 8(%rdi)
+    b:  je 0x80
+    d:  movq %rdi, %rbx
+   10:  movl $0, %edi   <str:".lt">
+   15:  callq map+0
+   1a:  movl %eax, %edi
+   1c:  callq nreg+0
+   21:  movq 8(%rbx), %rdi
+   25:  movl $0x6d, %edx
+   2a:  movl (%rax), %esi
+   2c:  callq eval_re+0
+   31:  movl %eax, %ebx
+   33:  movl $0, %edi   <str:".lt">
+   38:  callq map+0
+   3d:  movl %eax, %edi
+   3f:  callq nreg+0
+   44:  movl $0, %edi   <str:".lt0">
+   49:  movq %rax, %rbp
+   4c:  callq map+0
+   51:  movl %eax, %edi
+   53:  callq nreg+0
+   58:  movl (%rbp), %edx
+   5b:  movl $0, %edi   <str:".lt">
+   60:  movl %edx, (%rax)
+   62:  callq map+0
+   67:  movl %eax, %edi
+   69:  callq nreg+0
+   6e:  xorl %edx, %edx
+   70:  testl %ebx, %ebx
+   72:  cmovsl %edx, %ebx
+   75:  movl %ebx, (%rax)
+   77:  addq $8, %rsp
+   7b:  popq %rbx
+   7c:  popq %rbp
+   7d:  retq
+   7e:  nop
+   80:  movl $0, %edi   <str:".lt0">
+   85:  callq map+0
+   8a:  movl %eax, %edi
+   8c:  callq nreg+0
+   91:  movl (%rax), %ebx
+   93:  jmp 0x33

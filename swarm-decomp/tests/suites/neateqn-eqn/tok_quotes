@@ -1,0 +1,21 @@
+# tok_quotes  (static, 68 bytes, 20 instructions)
+    0:  testq %rdi, %rdi
+    3:  je 0x10
+    5:  cmpb $0x22, (%rdi)
+    8:  je 0x20
+    a:  movq %rdi, %rax
+    d:  retq
+    e:  nop
+   10:  movl $0, %edi   <str:"">
+   15:  movq %rdi, %rax
+   18:  retq
+   19:  nopl (%rax)
+   20:  subq $0x18, %rsp
+   24:  movq %rdi, 8(%rsp)
+   29:  callq strlen+0
+   2e:  movq 8(%rsp), %rdi
+   33:  movb $0, -1(%rdi, %rax)
+   38:  addq $1, %rdi
+   3c:  addq $0x18, %rsp
+   40:  movq %rdi, %rax
+   43:  retq

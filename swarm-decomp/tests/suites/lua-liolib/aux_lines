@@ -1,0 +1,41 @@
+# aux_lines  (static, 140 bytes, 40 instructions)
+    0:  pushq %r13
+    2:  movl %esi, %r13d
+    5:  pushq %r12
+    7:  pushq %rbp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  subq $8, %rsp
+   10:  callq lua_gettop+0
+   15:  leal -1(%rax), %r12d
+   19:  movl %eax, %ebp
+   1b:  cmpl $0xfa, %r12d
+   22:  jg 0x78
+   24:  movq %rbx, %rdi
+   27:  movl $1, %esi
+   2c:  callq lua_pushvalue+0
+   31:  movslq %r12d, %rsi
+   34:  movq %rbx, %rdi
+   37:  callq lua_pushinteger+0
+   3c:  movl %r13d, %esi
+   3f:  movq %rbx, %rdi
+   42:  callq lua_pushboolean+0
+   47:  movq %rbx, %rdi
+   4a:  movl $3, %edx
+   4f:  movl $2, %esi
+   54:  callq lua_rotate+0
+   59:  addq $8, %rsp
+   5d:  leal 2(%rbp), %edx
+   60:  movq %rbx, %rdi
+   63:  movl $0, %esi   <fn:io_readline+0>
+   68:  popq %rbx
+   69:  popq %rbp
+   6a:  popq %r12
+   6c:  popq %r13
+   6e:  jmp lua_pushcclosure+0
+   73:  nopl (%rax, %rax)
+   78:  movl $0, %edx   <str:"too many arguments">
+   7d:  movl $0xfc, %esi
+   82:  movq %rbx, %rdi
+   85:  callq luaL_argerror+0
+   8a:  jmp 0x24

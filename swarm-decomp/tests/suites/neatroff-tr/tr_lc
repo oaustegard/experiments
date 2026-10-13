@@ -1,0 +1,19 @@
+# tr_lc  (static, 61 bytes, 18 instructions)
+    0:  subq $0x18, %rsp
+    4:  movq 8(%rdi), %rax
+    8:  movq %rax, 8(%rsp)
+    d:  testq %rax, %rax
+   10:  je 0x30
+   12:  callq env_lc+0
+   17:  leaq 8(%rsp), %rdi
+   1c:  movq %rax, %rsi
+   1f:  callq charread+0
+   24:  testl %eax, %eax
+   26:  js 0x30
+   28:  addq $0x18, %rsp
+   2c:  retq
+   2d:  nopl (%rax)
+   30:  callq env_lc+0
+   35:  movb $0, (%rax)
+   38:  addq $0x18, %rsp
+   3c:  retq

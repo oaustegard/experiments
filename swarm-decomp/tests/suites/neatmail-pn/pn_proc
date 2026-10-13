@@ -1,0 +1,201 @@
+# pn_proc  (static, 899 bytes, 200 instructions)
+    0:  pushq %r14
+    2:  pushq %r13
+    4:  pushq %r12
+    6:  movq %rdi, %r12
+    9:  pushq %rbp
+    a:  pushq %rbx
+    b:  testq %rdi, %rdi
+    e:  je 0x350
+   14:  movl $0, %esi   <str:"r">
+   19:  callq fopen+0
+   1e:  movq %rax, (%rip)   <var:pn_fp+0>
+   25:  testq %rax, %rax
+   28:  je 0x379
+   2e:  movq %r12, (%rip)   <var:pn_path+0>
+   35:  movq $0, (%rip)   <var:pn_pos+0>
+   40:  movl $0, (%rip)   <var:pn_num+0>
+   4a:  movb $0, (%rip)   <var:pn_buf+0>
+   51:  jmp 0x78
+   53:  nopl (%rax, %rax)
+   58:  movb $0, (%rip)   <var:pn_rev+0>
+   5f:  movl $0, %ebx   <var:pn_buf+0>
+   64:  movq (%rip), %rsi   <stdout+0>
+   6b:  movq %rbx, %rdi
+   6e:  callq fputs+0
+   73:  cmpb $0xa, (%rbx)
+   76:  jne 0xf0
+   78:  cmpb $0, (%rip)   <var:pn_rev+0>
+   7f:  jne 0x58
+   81:  movl $0, %edi   <var:pn_buf+0>
+   86:  callq strlen+0
+   8b:  movl $0x1000, %esi
+   90:  movq (%rip), %rdx   <var:pn_fp+0>
+   97:  movl $0, %edi   <var:pn_buf+0>
+   9c:  addq %rax, (%rip)   <var:pn_pos+0>
+   a3:  callq fgets+0
+   a8:  movq %rax, %rbx
+   ab:  testq %rax, %rax
+   ae:  jne 0x64
+   b0:  testq %r12, %r12
+   b3:  je 0x368
+   b9:  movq (%rip), %rdi   <var:pn_fp+0>
+   c0:  callq fclose+0
+   c5:  movl (%rip), %ecx   <var:pn_num+0>
+   cb:  movq (%rip), %rdi   <stderr+0>
+   d2:  movq %r12, %rdx
+   d5:  movl $0, %esi   <str:"%s: %d messages\n">
+   da:  xorl %eax, %eax
+   dc:  callq fprintf+0
+   e1:  xorl %eax, %eax
+   e3:  popq %rbx
+   e4:  popq %rbp
+   e5:  popq %r12
+   e7:  popq %r13
+   e9:  popq %r14
+   eb:  retq
+   ec:  nopl (%rax)
+   f0:  movq (%rip), %r13   <var:pn_pos+0>
+   f7:  xorl %ebx, %ebx
+   f9:  cmpb $0, (%rip)   <var:pn_rev+0>
+  100:  je 0x147
+  102:  nopw (%rax, %rax)
+  108:  movb $0, (%rip)   <var:pn_rev+0>
+  10f:  movl $0, %ebp   <var:pn_buf+0>
+  114:  movzbl (%rbp), %eax
+  118:  cmpb $0x46, %al
+  11a:  je 0x258
+  120:  cmpb $0xa, %al
+  122:  je 0x2c8
+  128:  cmpb $0x20, %al
+  12a:  je 0x134
+  12c:  cmpb $9, %al
+  12e:  jne 0x25e
+  134:  testl %ebx, %ebx
+  136:  jne 0x294
+  13c:  xorl %ebx, %ebx
+  13e:  cmpb $0, (%rip)   <var:pn_rev+0>
+  145:  jne 0x108
+  147:  movl $0, %edi   <var:pn_buf+0>
+  14c:  callq strlen+0
+  151:  movl $0x1000, %esi
+  156:  movq (%rip), %rdx   <var:pn_fp+0>
+  15d:  movl $0, %edi   <var:pn_buf+0>
+  162:  addq %rax, (%rip)   <var:pn_pos+0>
+  169:  callq fgets+0
+  16e:  movq %rax, %rbp
+  171:  testq %rax, %rax
+  174:  jne 0x114
+  176:  movzbl (%rip), %eax   <var:pn_rev+0>
+  17d:  movq (%rip), %rbp   <var:pn_pos+0>
+  184:  jmp 0x1e4
+  186:  nopw %cs:(%rax, %rax)
+  190:  movb $0, (%rip)   <var:pn_rev+0>
+  197:  movl $0, %ebx   <var:pn_buf+0>
+  19c:  cmpb $0x46, (%rbx)
+  19f:  je 0x2e0
+  1a5:  movslq (%rip), %r14   <var:maxlen+0>
+  1ac:  testl %r14d, %r14d
+  1af:  js 0x1ce
+  1b1:  movq %rbx, %rdi
+  1b4:  callq strlen+0
+  1b9:  movq %rax, %rdx
+  1bc:  movq (%rip), %rax   <var:pn_pos+0>
+  1c3:  subq %rbp, %rax
+  1c6:  addq %rdx, %rax
+  1c9:  cmpq %r14, %rax
+  1cc:  jae 0x1dd
+  1ce:  movq (%rip), %rsi   <stdout+0>
+  1d5:  movq %rbx, %rdi
+  1d8:  callq fputs+0
+  1dd:  movzbl (%rip), %eax   <var:pn_rev+0>
+  1e4:  testb %al, %al
+  1e6:  jne 0x190
+  1e8:  movl $0, %edi   <var:pn_buf+0>
+  1ed:  callq strlen+0
+  1f2:  movl $0x1000, %esi
+  1f7:  movq (%rip), %rdx   <var:pn_fp+0>
+  1fe:  movl $0, %edi   <var:pn_buf+0>
+  203:  addq %rax, (%rip)   <var:pn_pos+0>
+  20a:  callq fgets+0
+  20f:  movq %rax, %rbx
+  212:  testq %rax, %rax
+  215:  jne 0x19c
+  217:  movq (%rip), %rdx   <var:pn_path+0>
+  21e:  movslq (%rip), %rax   <var:maxlen+0>
+  225:  testq %rdx, %rdx
+  228:  je 0x232
+  22a:  testl %eax, %eax
+  22c:  je 0x314
+  232:  testl %eax, %eax
+  234:  js 0x249
+  236:  movq (%rip), %rdx   <var:pn_pos+0>
+  23d:  subq %rbp, %rdx
+  240:  cmpq %rax, %rdx
+  243:  jge 0x33a
+  249:  addl $1, (%rip)   <var:pn_num+0>
+  250:  jmp 0x78
+  255:  nopl (%rax)
+  258:  cmpb $0x72, 1(%rbp)
+  25c:  je 0x2b0
+  25e:  movl (%rip), %eax   <var:hdrs_n+0>
+  264:  xorl %ebx, %ebx
+  266:  testl %eax, %eax
+  268:  jg 0x280
+  26a:  jmp 0x13c
+  26f:  nop
+  270:  addq $1, %rbx
+  274:  cmpl %ebx, (%rip)   <var:hdrs_n+0>
+  27a:  jle 0x13c
+  280:  movq (, %rbx, 8), %rsi   <var:hdrs+0>
+  288:  movq %rbp, %rdi
+  28b:  callq startswith+0
+  290:  testl %eax, %eax
+  292:  je 0x270
+  294:  movq (%rip), %rsi   <stdout+0>
+  29b:  movq %rbp, %rdi
+  29e:  movl $1, %ebx
+  2a3:  callq fputs+0
+  2a8:  jmp 0xf9
+  2ad:  nopl (%rax)
+  2b0:  cmpb $0x6f, 2(%rbp)
+  2b4:  jne 0x25e
+  2b6:  cmpb $0x6d, 3(%rbp)
+  2ba:  jne 0x25e
+  2bc:  cmpb $0x20, 4(%rbp)
+  2c0:  jne 0x25e
+  2c2:  nopw (%rax, %rax)
+  2c8:  movb $1, (%rip)   <var:pn_rev+0>
+  2cf:  movl $1, %eax
+  2d4:  jmp 0x17d
+  2d9:  nopl (%rax)
+  2e0:  cmpb $0x72, 1(%rbx)
+  2e4:  jne 0x1a5
+  2ea:  cmpb $0x6f, 2(%rbx)
+  2ee:  jne 0x1a5
+  2f4:  cmpb $0x6d, 3(%rbx)
+  2f8:  jne 0x1a5
+  2fe:  cmpb $0x20, 4(%rbx)
+  302:  jne 0x1a5
+  308:  movb $1, (%rip)   <var:pn_rev+0>
+  30f:  jmp 0x217
+  314:  movq (%rip), %r8   <var:pn_pos+0>
+  31b:  movl (%rip), %esi   <var:pn_num+0>
+  321:  movq %r13, %rcx
+  324:  movl $0, %edi   <str:"Neatmail-Source: %d@%s %ld %ld\n">
+  329:  callq printf+0
+  32e:  movslq (%rip), %rax   <var:maxlen+0>
+  335:  jmp 0x232
+  33a:  movq (%rip), %rsi   <stdout+0>
+  341:  movl $0xa, %edi
+  346:  callq fputc+0
+  34b:  jmp 0x249
+  350:  movq (%rip), %rax   <stdin+0>
+  357:  movq %rax, (%rip)   <var:pn_fp+0>
+  35e:  jmp 0x2e
+  363:  nopl (%rax, %rax)
+  368:  movl (%rip), %ecx   <var:pn_num+0>
+  36e:  movl $0, %r12d   <str:"stdin">
+  374:  jmp 0xcb
+  379:  movl $1, %eax
+  37e:  jmp 0xe3

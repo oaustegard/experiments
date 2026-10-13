@@ -1,0 +1,13 @@
+# msgcmp_id  (static, 35 bytes, 12 instructions)
+    0:  movq (%rdi), %rcx
+    3:  movq (%rsi), %rsi
+    6:  movl 0x18(%rcx), %edx
+    9:  movl 0x18(%rsi), %eax
+    c:  cmpl %edx, %eax
+    e:  jne 0x20
+   10:  movq 0x10(%rsi), %rsi
+   14:  movq 0x10(%rcx), %rdi
+   18:  movslq %eax, %rdx
+   1b:  jmp strncmp+0
+   20:  subl %edx, %eax
+   22:  retq

@@ -1,0 +1,55 @@
+# lua_isnumber  (global, 189 bytes, 54 instructions)
+    0:  movq 0x20(%rdi), %rdx
+    4:  movq %rdi, %rax
+    7:  testl %esi, %esi
+    9:  jle 0x30
+    b:  movslq %esi, %rdi
+    e:  shlq $4, %rdi
+   12:  addq (%rdx), %rdi
+   15:  cmpq 0x10(%rax), %rdi
+   19:  jae 0x49
+   1b:  cmpb $0x13, 8(%rdi)
+   1f:  movl $1, %eax
+   24:  jne 0x5c
+   26:  retq
+   27:  nopw (%rax, %rax)
+   30:  cmpl $0xfff0b9d9, %esi
+   36:  jge 0x98
+   38:  cmpl $0xfff0b9d8, %esi
+   3e:  je 0xb0
+   40:  movq (%rdx), %rdx
+   43:  cmpb $0x66, 8(%rdx)
+   47:  je 0x70
+   49:  movq 0x18(%rax), %rdi
+   4d:  movl $1, %eax
+   52:  addq $0x50, %rdi
+   56:  cmpb $0x13, 8(%rdi)
+   5a:  je 0x26
+   5c:  subq $0x18, %rsp
+   60:  leaq 8(%rsp), %rsi
+   65:  callq luaV_tonumber_+0
+   6a:  addq $0x18, %rsp
+   6e:  retq
+   6f:  nop
+   70:  movq (%rdx), %rcx
+   73:  movl $0xfff0b9d8, %edx
+   78:  subl %esi, %edx
+   7a:  movzbl 0xa(%rcx), %edi
+   7e:  cmpl %edi, %edx
+   80:  jg 0x49
+   82:  movl $0xfff0b9d9, %eax
+   87:  subl %esi, %eax
+   89:  cltq
+   8b:  shlq $4, %rax
+   8f:  leaq (%rcx, %rax), %rdi
+   93:  jmp 0x1b
+   95:  nopl (%rax)
+   98:  movslq %esi, %rsi
+   9b:  shlq $4, %rsi
+   9f:  addq 0x10(%rdi), %rsi
+   a3:  movq %rsi, %rdi
+   a6:  jmp 0x1b
+   ab:  nopl (%rax, %rax)
+   b0:  movq 0x18(%rdi), %rdi
+   b4:  addq $0x40, %rdi
+   b8:  jmp 0x1b

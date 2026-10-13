@@ -1,0 +1,30 @@
+# tr_hystop  (static, 113 bytes, 29 instructions)
+    0:  movl $0, (%rip)   <var:hy_stopcnt+0>
+    a:  movq 8(%rdi), %rax
+    e:  testq %rax, %rax
+   11:  je 0x70
+   13:  subq $0x18, %rsp
+   17:  movq %rax, 8(%rsp)
+   1c:  jmp 0x50
+   1e:  nop
+   20:  movslq (%rip), %rsi   <var:hy_stopcnt+0>
+   27:  leaq 8(%rsp), %rdi
+   2c:  shlq $5, %rsi
+   30:  addq $0, %rsi   <var:hy_stop+0>
+   37:  callq charread+0
+   3c:  testl %eax, %eax
+   3e:  js 0x55
+   40:  movl (%rip), %edx   <var:hy_stopcnt+0>
+   46:  movq 8(%rsp), %rax
+   4b:  cmpl $0x1e, %edx
+   4e:  jle 0x60
+   50:  testq %rax, %rax
+   53:  jne 0x20
+   55:  addq $0x18, %rsp
+   59:  retq
+   5a:  nopw (%rax, %rax)
+   60:  addl $1, %edx
+   63:  movl %edx, (%rip)   <var:hy_stopcnt+0>
+   69:  jmp 0x50
+   6b:  nopl (%rax, %rax)
+   70:  retq

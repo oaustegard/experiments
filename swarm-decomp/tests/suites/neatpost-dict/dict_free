@@ -1,0 +1,30 @@
+# dict_free  (global, 95 bytes, 29 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  subq $8, %rsp
+    9:  movl 0x28(%rdi), %edx
+    c:  testl %edx, %edx
+    e:  je 0x36
+   10:  movl 0x18(%rdi), %eax
+   13:  testl %eax, %eax
+   15:  jle 0x36
+   17:  xorl %ebx, %ebx
+   19:  nopl (%rax)
+   20:  movq 8(%rbp), %rax
+   24:  movq (%rax, %rbx, 8), %rdi
+   28:  addq $1, %rbx
+   2c:  callq free+0
+   31:  cmpl %ebx, 0x18(%rbp)
+   34:  jg 0x20
+   36:  movq 0x10(%rbp), %rdi
+   3a:  callq free+0
+   3f:  movq 8(%rbp), %rdi
+   43:  callq free+0
+   48:  movq (%rbp), %rdi
+   4c:  callq iset_free+0
+   51:  addq $8, %rsp
+   55:  movq %rbp, %rdi
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  jmp free+0

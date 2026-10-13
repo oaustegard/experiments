@@ -1,0 +1,38 @@
+# tonum  (static, 110 bytes, 37 instructions)
+    0:  pushq %rbp
+    1:  movl %esi, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $0x18, %rsp
+    b:  callq lua_type+0
+   10:  cmpl $3, %eax
+   13:  je 0x58
+   15:  movl %ebp, %esi
+   17:  leaq 8(%rsp), %rdx
+   1c:  movq %rbx, %rdi
+   1f:  callq lua_tolstring+0
+   24:  movq %rax, %rsi
+   27:  xorl %eax, %eax
+   29:  testq %rsi, %rsi
+   2c:  je 0x4b
+   2e:  movq %rbx, %rdi
+   31:  callq lua_stringtonumber+0
+   36:  movq %rax, %rdx
+   39:  movq 8(%rsp), %rax
+   3e:  addq $1, %rax
+   42:  cmpq %rdx, %rax
+   45:  sete %al
+   48:  movzbl %al, %eax
+   4b:  addq $0x18, %rsp
+   4f:  popq %rbx
+   50:  popq %rbp
+   51:  retq
+   52:  nopw (%rax, %rax)
+   58:  movl %ebp, %esi
+   5a:  movq %rbx, %rdi
+   5d:  callq lua_pushvalue+0
+   62:  addq $0x18, %rsp
+   66:  movl $1, %eax
+   6b:  popq %rbx
+   6c:  popq %rbp
+   6d:  retq

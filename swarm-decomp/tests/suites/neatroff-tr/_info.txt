@@ -1,0 +1,443 @@
+# neatroff-tr: translation unit tr of neatroff
+# write each function as src/neatroff/tr/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+tr_ec	static	24 bytes
+tr_cc	static	24 bytes
+tr_c2	static	24 bytes
+tr_eo	static	11 bytes
+mkargs_null	static	1 bytes
+macroarg	static	341 bytes
+chopargs	static	117 bytes
+mkargs_eol	static	85 bytes
+read_name	static	182 bytes
+tr_lsm	static	44 bytes
+tr_blm	static	44 bytes
+tr_nh	static	32 bytes
+tr_na	static	32 bytes
+tr_vs	static	133 bytes
+tr_ssh	static	76 bytes
+tr_po	static	133 bytes
+tr_pmll	static	139 bytes
+tr_pl	static	65 bytes
+tr_lt	static	149 bytes
+tr_ls	static	133 bytes
+tr_hycost	static	196 bytes
+tr_hy	static	79 bytes
+tr_hlm	static	76 bytes
+tr_pc	static	60 bytes
+tr_hystop	static	113 bytes
+tr_hydash	static	113 bytes
+tr_eos	static	211 bytes
+tr_tm	static	35 bytes
+tr_tl	static	75 bytes
+cdef_remove	static	191 bytes
+tr_rchar	static	49 bytes
+tr_nn	static	45 bytes
+tr_lg	static	55 bytes
+tr_kn	static	55 bytes
+tr_it	static	124 bytes
+tr_tkf	static	137 bytes
+tr_sy	static	9 bytes
+tr_so	static	17 bytes
+tr_cp	static	53 bytes
+tr_shift	static	101 bytes
+tr_rr	static	57 bytes
+tr_rn	static	63 bytes
+tr_rm	static	57 bytes
+macrobody	static	248 bytes
+tr_ig	static	23 bytes
+cdef_add	static	368 bytes
+tr_nx	static	9 bytes
+tr_lf	static	34 bytes
+tr_el	static	38 bytes
+tr_ad	static	573 bytes
+tr_fzoom	static	87 bytes
+tr_ffsc	static	79 bytes
+tr_fmap	static	58 bytes
+tr_ff	static	131 bytes
+tr_ex	static	5 bytes
+tr_dv	static	17 bytes
+tr_ds	static	49 bytes
+tr_coa	static	176 bytes
+tr_co	static	94 bytes
+tr_de	static	193 bytes
+tr_cs	static	101 bytes
+tr_coo	static	119 bytes
+tr_coi	static	173 bytes
+tr_chop	static	119 bytes
+tr_bd	static	120 bytes
+tr_as	static	169 bytes
+tr_af	static	34 bytes
+tr_ss	static	189 bytes
+tr_hc	static	70 bytes
+tr_tc	static	61 bytes
+tr_ochar	static	37 bytes
+tr_char	static	29 bytes
+tr_nr	static	113 bytes
+tr_mc	static	192 bytes
+tr_lc	static	61 bytes
+read_until.constprop.0.isra.0	static	158 bytes
+tr_if	static	662 bytes
+mkargs_req	static	230 bytes
+tr_nextreq_exec	static	306 bytes
+mkargs_reg1	static	72 bytes
+mkargs_ds	static	247 bytes
+mkargs_ochar	static	62 bytes
+tr_nm	static	549 bytes
+c_eossent	global	79 bytes
+c_eostran	global	79 bytes
+c_hydash	global	79 bytes
+c_hystop	global	79 bytes
+c_hymark	global	59 bytes
+cmap_add	global	178 bytes
+tr_tr	static	109 bytes
+cmap_map	global	42 bytes
+cdef_map	global	128 bytes
+cdef_expand	global	169 bytes
+tr_args	global	83 bytes
+tr_req	global	34 bytes
+tr_nextreq	global	621 bytes
+tr_next	global	49 bytes
+tr_init	global	68 bytes
+tr_done	global	84 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+tr_sm	static	4 bytes	.data.tr_sm
+        0: ff ff ff ff
+tr_bm	static	4 bytes	.data.tr_bm
+        0: ff ff ff ff
+hy_stopcnt	static	4 bytes	.data.hy_stopcnt
+        0: 01 00 00 00
+hy_stop	static	1024 bytes	.data.hy_stop
+        0: 5c 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+hy_dashcnt	static	4 bytes	.data.hy_dashcnt
+        0: 07 00 00 00
+hy_dash	static	1024 bytes	.data.hy_dash
+        0: 5c 3a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 2d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 65 6d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 65 6e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 5c 2d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 2d 2d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 68 79 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+eos_sentcnt	static	4 bytes	.data.eos_sentcnt
+        0: 03 00 00 00
+eos_trancnt	static	4 bytes	.data.eos_trancnt
+        0: 05 00 00 00
+eos_sent	static	1024 bytes	.data.eos_sent
+        0: 2e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+eos_tran	static	1024 bytes	.data.eos_tran
+        0: 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 22 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 29 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 5d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 2a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 512 more bytes
+cdef_n	static	4 bytes	.bss.cdef_n
+    (zero-initialised)
+cdef_src	static	4096 bytes	.bss.cdef_src
+    (zero-initialised)
+cdef_fn	static	512 bytes	.bss.cdef_fn
+    (zero-initialised)
+cdef_dst	static	1024 bytes	.bss.cdef_dst
+    (zero-initialised)
+ie_depth	static	4 bytes	.bss.ie_depth
+    (zero-initialised)
+ie_cond	static	512 bytes	.bss.ie_cond
+    (zero-initialised)
+cmap	static	8 bytes	.bss.cmap
+    (zero-initialised)
+cmap_n	static	4 bytes	.bss.cmap_n
+    (zero-initialised)
+cmap_dst	static	16384 bytes	.bss.cmap_dst
+    (zero-initialised)
+cmap_src	static	16384 bytes	.bss.cmap_src
+    (zero-initialised)
+cdef_expanding	static	4 bytes	.bss.cdef_expanding
+    (zero-initialised)
+tr_nl	static	4 bytes	.data.tr_nl
+        0: 01 00 00 00
+cmds	static	2832 bytes	.data.cmds
+    +0     -> str:"\x07<"
+    +8     -> tr_divbeg+0
+    +24    -> str:"\x07>"
+    +32    -> tr_divend+0
+    +48    -> str:"\x07V"
+    +56    -> tr_divvs+0
+    +72    -> str:"\x07P"
+    +80    -> tr_popren+0
+    +96    -> str:">>"
+    +104   -> tr_l2r+0
+    +120   -> str:"<<"
+    +128   -> tr_r2l+0
+    +144   -> str:"ab"
+    +152   -> tr_ab+0
+    +160   -> fn:mkargs_eol+0
+    +168   -> str:"ad"
+    +176   -> fn:tr_ad+0
+    +192   -> str:"af"
+    +200   -> fn:tr_af+0
+    +216   -> str:"am"
+    +224   -> fn:tr_de+0
+    +232   -> fn:mkargs_reg1+0
+    +240   -> str:"as"
+    +248   -> fn:tr_as+0
+    +256   -> fn:mkargs_ds+0
+    +264   -> str:"bd"
+    +272   -> fn:tr_bd+0
+    +288   -> str:"blm"
+    +296   -> fn:tr_blm+0
+    +312   -> str:"bp"
+    +320   -> tr_bp+0
+    +336   -> str:"br"
+    +344   -> tr_br+0
+    +360   -> str:"c2"
+    +368   -> fn:tr_c2+0
+    +384   -> str:"cc"
+    +392   -> fn:tr_cc+0
+    +408   -> str:"ce"
+    +416   -> tr_ce+0
+    +432   -> str:"ch"
+    +440   -> tr_ch+0
+    +456   -> str:"char"
+    +464   -> fn:tr_char+0
+    +472   -> fn:mkargs_ds+0
+    +480   -> str:"chop"
+    +488   -> fn:tr_chop+0
+    +496   -> fn:mkargs_reg1+0
+    +504   -> str:"cl"
+    +512   -> tr_cl+0
+    +528   -> str:"co"
+    +536   -> fn:tr_co+0
+    +552   -> str:"co+"
+    +560   -> fn:tr_coa+0
+    +576   -> str:"co<"
+    +584   -> fn:tr_coi+0
+    +592   -> fn:mkargs_ds+0
+    +600   -> str:"co>"
+    +608   -> fn:tr_coo+0
+    +616   -> fn:mkargs_ds+0
+    +624   -> str:"cp"
+    +632   -> fn:tr_cp+0
+    +648   -> str:"cs"
+    +656   -> fn:tr_cs+0
+    +672   -> str:"da"
+    +680   -> tr_di+0
+    +696   -> str:"de"
+    +704   -> fn:tr_de+0
+    +712   -> fn:mkargs_reg1+0
+    +720   -> str:"di"
+    +728   -> tr_di+0
+    +744   -> str:"ds"
+    +752   -> fn:tr_ds+0
+    +760   -> fn:mkargs_ds+0
+    +768   -> str:"dt"
+    +776   -> tr_dt+0
+    +792   -> str:"dv"
+    +800   -> fn:tr_dv+0
+    +808   -> fn:mkargs_eol+0
+    +816   -> str:"ec"
+    +824   -> fn:tr_ec+0
+    +840   -> str:"el"
+    +848   -> fn:tr_el+0
+    +856   -> fn:mkargs_null+0
+    +864   -> str:"em"
+    +872   -> tr_em+0
+    +888   -> str:"eo"
+    +896   -> fn:tr_eo+0
+    +912   -> str:"eos"
+    +920   -> fn:tr_eos+0
+    +936   -> str:"ev"
+    +944   -> tr_ev+0
+    +960   -> str:"evc"
+    +968   -> tr_evc+0
+    +984   -> str:"ex"
+    +992   -> fn:tr_ex+0
+    +1008  -> str:"fc"
+    +1016  -> tr_fc+0
+    +1032  -> str:"ff"
+    +1040  -> fn:tr_ff+0
+    +1056  -> str:"fi"
+    +1064  -> tr_fi+0
+    +1080  -> str:"fl"
+    +1088  -> tr_br+0
+    +1104  -> str:"fmap"
+    +1112  -> fn:tr_fmap+0
+    +1128  -> str:"fp"
+    +1136  -> tr_fp+0
+    +1152  -> str:"ffsc"
+    +1160  -> fn:tr_ffsc+0
+    +1176  -> str:"fspecial"
+    +1184  -> tr_fspecial+0
+    +1200  -> str:"ft"
+    +1208  -> tr_ft+0
+    +1224  -> str:"fzoom"
+    +1232  -> fn:tr_fzoom+0
+    +1248  -> str:"hc"
+    +1256  -> fn:tr_hc+0
+    +1272  -> str:"hcode"
+    +1280  -> tr_hcode+0
+    +1296  -> str:"hlm"
+    +1304  -> fn:tr_hlm+0
+    +1320  -> str:"hpf"
+    +1328  -> tr_hpf+0
+    +1344  -> str:"hpfa"
+    +1352  -> tr_hpfa+0
+    +1368  -> str:"hy"
+    +1376  -> fn:tr_hy+0
+    +1392  -> str:"hycost"
+    +1400  -> fn:tr_hycost+0
+    +1416  -> str:"hydash"
+    +1424  -> fn:tr_hydash+0
+    +1440  -> str:"hystop"
+    +1448  -> fn:tr_hystop+0
+    +1464  -> str:"hw"
+    +1472  -> tr_hw+0
+    +1488  -> str:"ie"
+    +1496  -> fn:tr_if+0
+    +1504  -> fn:mkargs_null+0
+    +1512  -> str:"if"
+    +1520  -> fn:tr_if+0
+    +1528  -> fn:mkargs_null+0
+    +1536  -> str:"ig"
+    +1544  -> fn:tr_ig+0
+    +1560  -> str:"in"
+    +1568  -> tr_in+0
+    +1584  -> str:"in2"
+    +1592  -> tr_in2+0
+    +1608  -> str:"it"
+    +1616  -> fn:tr_it+0
+    +1632  -> str:"kn"
+    +1640  -> fn:tr_kn+0
+    +1656  -> str:"lc"
+    +1664  -> fn:tr_lc+0
+    +1680  -> str:"lf"
+    +1688  -> fn:tr_lf+0
+    +1704  -> str:"lg"
+    +1712  -> fn:tr_lg+0
+    +1728  -> str:"ll"
+    +1736  -> tr_ll+0
+    +1752  -> str:"ls"
+    +1760  -> fn:tr_ls+0
+    +1776  -> str:"lsm"
+    +1784  -> fn:tr_lsm+0
+    +1800  -> str:"lt"
+    +1808  -> fn:tr_lt+0
+    +1824  -> str:"mc"
+    +1832  -> fn:tr_mc+0
+    +1848  -> str:"mk"
+    +1856  -> tr_mk+0
+    +1872  -> str:"na"
+    +1880  -> fn:tr_na+0
+    +1896  -> str:"ne"
+    +1904  -> tr_ne+0
+    +1920  -> str:"nf"
+    +1928  -> tr_nf+0
+    +1944  -> str:"nh"
+    +1952  -> fn:tr_nh+0
+    +1968  -> str:"nm"
+    +1976  -> fn:tr_nm+0
+    +1992  -> str:"nn"
+    +2000  -> fn:tr_nn+0
+    +2016  -> str:"nr"
+    +2024  -> fn:tr_nr+0
+    +2032  -> fn:mkargs_reg1+0
+    +2040  -> str:"ns"
+    +2048  -> tr_ns+0
+    +2064  -> str:"nx"
+    +2072  -> fn:tr_nx+0
+    +2088  -> str:"ochar"
+    +2096  -> fn:tr_ochar+0
+    +2104  -> fn:mkargs_ochar+0
+    +2112  -> str:"os"
+    +2120  -> tr_os+0
+    +2136  -> str:"pc"
+    +2144  -> fn:tr_pc+0
+    +2160  -> str:"pl"
+    +2168  -> fn:tr_pl+0
+    +2184  -> str:"pmll"
+    +2192  -> fn:tr_pmll+0
+    +2208  -> str:"pn"
+    ... 55 more pointers
+        0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+       96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    ... 2320 more bytes
+c_ec	global	4 bytes	.data.c_ec
+        0: 5c 00 00 00
+c_cc	global	4 bytes	.data.c_cc
+        0: 2e 00 00 00
+c_c2	global	4 bytes	.data.c_c2
+        0: 27 00 00 00
+c_pc	global	32 bytes	.data.c_pc
+        0: 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+## symbols this TU uses but does not define (other TUs, libc)
+__ctype_b_loc charnext charnext_str charread cp_blk cp_copymode cp_next cp_reqbeg dev_font dev_pos dev_res dict_free dict_get dict_make dict_put env_hc env_lc env_mc env_tc eval eval_re fclose fgets font_feat font_lang font_map font_scrp font_setbd font_setcs font_setzoom font_track fopen fprintf fputs free in_back in_ex in_lf in_nx in_push in_shift in_so map map_name memchr nreg num_del num_set num_setfmt num_setinc out_x ren_parse ren_tl sbuf_add sbuf_append sbuf_buf sbuf_cut sbuf_done sbuf_empty sbuf_init sbuf_len sbuf_out snprintf stderr stpcpy str_dget str_dset str_get str_rm str_rn str_set strchr strcmp strcpy strlen strpbrk strtol system tr_ab tr_bp tr_br tr_ce tr_ch tr_cl tr_di tr_divbeg tr_divend tr_divvs tr_dt tr_em tr_ev tr_evc tr_fc tr_fi tr_fp tr_fspecial tr_ft tr_hcode tr_hpf tr_hpfa tr_hw tr_in tr_in2 tr_l2r tr_ll tr_mk tr_ne tr_nf tr_ns tr_os tr_pn tr_popren tr_ps tr_r2l tr_rs tr_rt tr_sp tr_sv tr_ta tr_ti tr_ti2 tr_transparent tr_wh xmalloc

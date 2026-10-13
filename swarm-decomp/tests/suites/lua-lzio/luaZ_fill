@@ -1,0 +1,24 @@
+# luaZ_fill  (global, 71 bytes, 23 instructions)
+    0:  pushq %rbx
+    1:  movq %rdi, %rbx
+    4:  subq $0x10, %rsp
+    8:  movq 0x18(%rdi), %rsi
+    c:  movq 0x20(%rdi), %rdi
+   10:  leaq 8(%rsp), %rdx
+   15:  callq *0x10(%rbx)
+   18:  testq %rax, %rax
+   1b:  je 0x40
+   1d:  movq 8(%rsp), %rdx
+   22:  testq %rdx, %rdx
+   25:  je 0x40
+   27:  subq $1, %rdx
+   2b:  movq %rdx, (%rbx)
+   2e:  leaq 1(%rax), %rdx
+   32:  movq %rdx, 8(%rbx)
+   36:  movzbl (%rax), %eax
+   39:  addq $0x10, %rsp
+   3d:  popq %rbx
+   3e:  retq
+   3f:  nop
+   40:  movl $0xffffffff, %eax
+   45:  jmp 0x39

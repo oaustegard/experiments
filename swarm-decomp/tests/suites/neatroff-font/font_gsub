@@ -1,0 +1,64 @@
+# font_gsub  (static, 236 bytes, 63 instructions)
+    0:  pushq %r15
+    2:  movq %rdi, %r15
+    5:  pushq %r14
+    7:  movl %edx, %r14d
+    a:  movslq %esi, %rdx
+    d:  pushq %r13
+    f:  shlq $4, %rdx
+   13:  movl %r8d, %r13d
+   16:  pushq %r12
+   18:  movq %rdx, %rdi
+   1b:  movl %ecx, %r12d
+   1e:  pushq %rbp
+   1f:  movl %esi, %ebp
+   21:  pushq %rbx
+   22:  subq $0x18, %rsp
+   26:  movl %r9d, 4(%rsp)
+   2b:  movq %rdx, 8(%rsp)
+   30:  callq xmalloc+0
+   35:  movq 8(%rsp), %rdx
+   3a:  xorl %esi, %esi
+   3c:  movq %rax, %rdi
+   3f:  movq %rax, %rbx
+   42:  callq memset+0
+   47:  movslq 0xaa0(%r15), %rsi
+   4e:  cmpl 0xaa4(%r15), %esi
+   55:  je 0xb8
+   57:  movq 0xa98(%r15), %rax
+   5e:  leal 1(%rsi), %edx
+   61:  movzwl %r13w, %r13d
+   65:  movzwl %r12w, %r12d
+   69:  movzwl %bp, %ebp
+   6c:  movl %edx, 0xaa0(%r15)
+   73:  leaq (%rsi, %rsi, 2), %rdx
+   77:  leaq (%rax, %rdx, 8), %rdx
+   7b:  movzwl 4(%rsp), %eax
+   80:  movq %rbx, (%rdx)
+   83:  shlq $0x10, %rax
+   87:  movl %r14d, 8(%rdx)
+   8b:  orq %r13, %rax
+   8e:  shlq $0x10, %rax
+   92:  orq %r12, %rax
+   95:  shlq $0x10, %rax
+   99:  orq %rbp, %rax
+   9c:  movq %rax, 0xc(%rdx)
+   a0:  addq $0x18, %rsp
+   a4:  movq %rdx, %rax
+   a7:  popq %rbx
+   a8:  popq %rbp
+   a9:  popq %r12
+   ab:  popq %r13
+   ad:  popq %r14
+   af:  popq %r15
+   b1:  retq
+   b2:  nopw (%rax, %rax)
+   b8:  leal 0x400(%rsi), %edx
+   be:  movq 0xa98(%r15), %rdi
+   c5:  movl $0x18, %ecx
+   ca:  movl %edx, 0xaa4(%r15)
+   d1:  movslq %edx, %rdx
+   d4:  callq mextend+0
+   d9:  movslq 0xaa0(%r15), %rsi
+   e0:  movq %rax, 0xa98(%r15)
+   e7:  jmp 0x5e

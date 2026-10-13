@@ -1,0 +1,68 @@
+# lua_getiuservalue  (global, 238 bytes, 67 instructions)
+    0:  movq %rdi, %rcx
+    3:  movl %edx, %eax
+    5:  movq 0x20(%rdi), %rdi
+    9:  movq 0x10(%rcx), %rdx
+    d:  testl %esi, %esi
+    f:  jle 0x68
+   11:  movslq %esi, %rsi
+   14:  shlq $4, %rsi
+   18:  addq (%rdi), %rsi
+   1b:  cmpq %rdx, %rsi
+   1e:  jae 0x81
+   20:  testl %eax, %eax
+   22:  jle 0xe0
+   28:  movq (%rsi), %rsi
+   2b:  movzwl 0xa(%rsi), %edi
+   2f:  cmpl %eax, %edi
+   31:  jl 0xe0
+   37:  subl $1, %eax
+   3a:  cltq
+   3c:  addq $2, %rax
+   40:  shlq $4, %rax
+   44:  addq %rax, %rsi
+   47:  movq 8(%rsi), %rax
+   4b:  movq %rax, (%rdx)
+   4e:  movzbl 0x10(%rsi), %eax
+   52:  movb %al, 8(%rdx)
+   55:  andl $0xf, %eax
+   58:  addq $0x10, %rdx
+   5c:  movq %rdx, 0x10(%rcx)
+   60:  retq
+   61:  nopl (%rax)
+   68:  cmpl $0xfff0b9d9, %esi
+   6e:  jge 0xc0
+   70:  cmpl $0xfff0b9d8, %esi
+   76:  je 0xd0
+   78:  movq (%rdi), %rdi
+   7b:  cmpb $0x66, 8(%rdi)
+   7f:  je 0x90
+   81:  movq 0x18(%rcx), %rdi
+   85:  leaq 0x50(%rdi), %rsi
+   89:  jmp 0x20
+   8b:  nopl (%rax, %rax)
+   90:  movq (%rdi), %r8
+   93:  movl $0xfff0b9d8, %edi
+   98:  subl %esi, %edi
+   9a:  movzbl 0xa(%r8), %r9d
+   9f:  cmpl %r9d, %edi
+   a2:  jg 0x81
+   a4:  movl $0xfff0b9d9, %edi
+   a9:  subl %esi, %edi
+   ab:  movslq %edi, %rsi
+   ae:  shlq $4, %rsi
+   b2:  addq %r8, %rsi
+   b5:  jmp 0x20
+   ba:  nopw (%rax, %rax)
+   c0:  movslq %esi, %rsi
+   c3:  shlq $4, %rsi
+   c7:  addq %rdx, %rsi
+   ca:  jmp 0x20
+   cf:  nop
+   d0:  movq 0x18(%rcx), %rdi
+   d4:  leaq 0x40(%rdi), %rsi
+   d8:  jmp 0x20
+   dd:  nopl (%rax)
+   e0:  movb $0, 8(%rdx)
+   e4:  movl $0xffffffff, %eax
+   e9:  jmp 0x58

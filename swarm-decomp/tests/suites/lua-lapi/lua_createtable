@@ -1,0 +1,37 @@
+# lua_createtable  (global, 98 bytes, 36 instructions)
+    0:  pushq %r12
+    2:  movl %edx, %r12d
+    5:  pushq %rbp
+    6:  movl %esi, %ebp
+    8:  pushq %rbx
+    9:  movq %rdi, %rbx
+    c:  callq luaH_new+0
+   11:  movq 0x10(%rbx), %rdi
+   15:  movq %rax, (%rdi)
+   18:  addq $0x10, %rdi
+   1c:  movb $0x45, -8(%rdi)
+   20:  movq %rdi, 0x10(%rbx)
+   24:  testl %ebp, %ebp
+   26:  jg 0x50
+   28:  testl %r12d, %r12d
+   2b:  jg 0x50
+   2d:  movq 0x18(%rbx), %rax
+   31:  cmpq $0, 0x18(%rax)
+   36:  jg 0x40
+   38:  popq %rbx
+   39:  popq %rbp
+   3a:  popq %r12
+   3c:  retq
+   3d:  nopl (%rax)
+   40:  movq %rbx, %rdi
+   43:  popq %rbx
+   44:  popq %rbp
+   45:  popq %r12
+   47:  jmp luaC_step+0
+   4c:  nopl (%rax)
+   50:  movl %r12d, %ecx
+   53:  movl %ebp, %edx
+   55:  movq %rax, %rsi
+   58:  movq %rbx, %rdi
+   5b:  callq luaH_resize+0
+   60:  jmp 0x2d

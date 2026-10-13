@@ -1,0 +1,36 @@
+# tr_shift  (static, 101 bytes, 35 instructions)
+    0:  movq 8(%rdi), %rdi
+    4:  testq %rdi, %rdi
+    7:  je 0x60
+    9:  pushq %rbp
+    a:  movl $0xa, %edx
+    f:  xorl %esi, %esi
+   11:  pushq %rbx
+   12:  subq $8, %rsp
+   16:  callq strtol+0
+   1b:  movq %rax, %rbp
+   1e:  testl %eax, %eax
+   20:  jg 0x29
+   22:  addq $8, %rsp
+   26:  popq %rbx
+   27:  popq %rbp
+   28:  retq
+   29:  leal -1(%rax), %ebx
+   2c:  testb $1, %al
+   2e:  je 0x40
+   30:  callq in_shift+0
+   35:  leal -2(%rbp), %ebx
+   38:  cmpl $1, %ebp
+   3b:  je 0x22
+   3d:  nopl (%rax)
+   40:  callq in_shift+0
+   45:  subl $2, %ebx
+   48:  callq in_shift+0
+   4d:  cmpl $-1, %ebx
+   50:  jne 0x40
+   52:  addq $8, %rsp
+   56:  popq %rbx
+   57:  popq %rbp
+   58:  retq
+   59:  nopl (%rax)
+   60:  jmp in_shift+0

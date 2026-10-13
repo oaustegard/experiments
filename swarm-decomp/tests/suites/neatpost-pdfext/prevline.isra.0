@@ -1,0 +1,33 @@
+# prevline.isra.0  (static, 102 bytes, 32 instructions)
+    0:  testl %esi, %esi
+    2:  jle 0x60
+    4:  movslq %esi, %rsi
+    7:  leaq -1(%rdi, %rsi), %rax
+    c:  jmp 0x1c
+    e:  nop
+   10:  leaq -1(%rax), %rdx
+   14:  cmpq %rdi, %rax
+   17:  je 0x60
+   19:  movq %rdx, %rax
+   1c:  cmpb $0xa, (%rax)
+   1f:  jne 0x10
+   21:  cmpq %rax, %rdi
+   24:  jae 0x60
+   26:  subq %rdi, %rax
+   29:  cmpq $1, %rax
+   2d:  je 0x60
+   2f:  leaq -2(%rdi, %rax), %rax
+   34:  jmp 0x4c
+   36:  nopw %cs:(%rax, %rax)
+   40:  leaq -1(%rax), %rdx
+   44:  cmpq %rdi, %rax
+   47:  je 0x60
+   49:  movq %rdx, %rax
+   4c:  cmpb $0xa, (%rax)
+   4f:  jne 0x40
+   51:  subq %rdi, %rax
+   54:  addl $1, %eax
+   57:  retq
+   58:  nopl (%rax, %rax)
+   60:  movl $0xffffffff, %eax
+   65:  retq

@@ -1,0 +1,73 @@
+# utf8next  (global, 238 bytes, 72 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  movq %rdi, %r14
+    7:  pushq %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rsi, %rbp
+    f:  pushq %rbx
+   10:  subq $8, %rsp
+   14:  callq *%rsi
+   16:  movl %eax, %r12d
+   19:  notl %r12d
+   1c:  andl $0xc0, %r12d
+   23:  jne 0x68
+   25:  testb $0x20, %al
+   27:  je 0xc0
+   2d:  testb $0x10, %al
+   2f:  je 0x88
+   31:  testb $8, %al
+   33:  je 0xd8
+   39:  testl %eax, %eax
+   3b:  js 0x51
+   3d:  movb %al, (%r14)
+   40:  movl $1, %r15d
+   46:  movl $1, %r12d
+   4c:  movb $0, (%r14, %r15)
+   51:  addq $8, %rsp
+   55:  movl %r12d, %eax
+   58:  popq %rbx
+   59:  popq %rbp
+   5a:  popq %r12
+   5c:  popq %r13
+   5e:  popq %r14
+   60:  popq %r15
+   62:  retq
+   63:  nopl (%rax, %rax)
+   68:  xorl %r12d, %r12d
+   6b:  testl %eax, %eax
+   6d:  js 0x51
+   6f:  setg %r12b
+   73:  setg %r15b
+   77:  movb %al, (%r14)
+   7a:  movzbl %r12b, %r12d
+   7e:  movzbl %r15b, %r15d
+   82:  jmp 0x4c
+   84:  nopl (%rax)
+   88:  testl %eax, %eax
+   8a:  js 0x51
+   8c:  movl $3, %r15d
+   92:  movl $3, %r12d
+   98:  movb %al, (%r14)
+   9b:  leal -2(%r12), %eax
+   a0:  leaq 1(%r14), %rbx
+   a4:  leaq 2(%r14, %rax), %r13
+   a9:  nopl (%rax)
+   b0:  callq *%rbp
+   b2:  addq $1, %rbx
+   b6:  movb %al, -1(%rbx)
+   b9:  cmpq %r13, %rbx
+   bc:  jne 0xb0
+   be:  jmp 0x4c
+   c0:  testl %eax, %eax
+   c2:  js 0x51
+   c4:  movl $2, %r15d
+   ca:  movl $2, %r12d
+   d0:  jmp 0x98
+   d2:  nopw (%rax, %rax)
+   d8:  testl %eax, %eax
+   da:  js 0x51
+   e0:  movl $4, %r15d
+   e6:  movl $4, %r12d
+   ec:  jmp 0x98

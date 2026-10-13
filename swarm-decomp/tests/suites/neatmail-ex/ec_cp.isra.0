@@ -1,0 +1,32 @@
+# ec_cp.isra.0  (static, 122 bytes, 31 instructions)
+    0:  pushq %rbx
+    1:  subq $0x210, %rsp
+    8:  leaq 0x10(%rsp), %rsi
+    d:  callq fn:ex_arg+0
+   12:  movl (%rip), %esi   <var:pos+0>
+   18:  leaq 8(%rsp), %rcx
+   1d:  movq %rsp, %rdx
+   20:  movq (%rip), %rdi   <var:mbox+0>
+   27:  callq mbox_get+0
+   2c:  testl %eax, %eax
+   2e:  je 0x40
+   30:  addq $0x210, %rsp
+   37:  popq %rbx
+   38:  retq
+   39:  nopl (%rax)
+   40:  movl $0x180, %edx
+   45:  movl $0x441, %esi
+   4a:  leaq 0x10(%rsp), %rdi
+   4f:  callq open+0
+   54:  movl %eax, %ebx
+   56:  testl %eax, %eax
+   58:  js 0x30
+   5a:  movq 8(%rsp), %rdx
+   5f:  movq (%rsp), %rsi
+   63:  movl %eax, %edi
+   65:  callq xwrite+0
+   6a:  movl %ebx, %edi
+   6c:  callq close+0
+   71:  addq $0x210, %rsp
+   78:  popq %rbx
+   79:  retq

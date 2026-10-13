@@ -1,0 +1,43 @@
+# new_localvar  (static, 138 bytes, 42 instructions)
+    0:  pushq %r12
+    2:  pushq %rbp
+    3:  pushq %rbx
+    4:  movq 0x58(%rdi), %rbx
+    8:  movq 0x30(%rdi), %r12
+    c:  movq 0x38(%rdi), %r10
+   10:  movl 8(%rbx), %eax
+   13:  leal 1(%rax), %edx
+   16:  movl %edx, %eax
+   18:  subl 0x38(%r12), %eax
+   1d:  cmpl $0xc8, %eax
+   22:  jg 0x78
+   24:  subq $8, %rsp
+   28:  movq %rsi, %rbp
+   2b:  movq (%rbx), %rsi
+   2e:  leaq 0xc(%rbx), %rcx
+   32:  pushq $0   <str:"local variables">
+   37:  movl $0xffff, %r9d
+   3d:  movl $0x18, %r8d
+   43:  movq %r10, %rdi
+   46:  callq luaM_growaux_+0
+   4b:  movl 8(%rbx), %edx
+   4e:  movq %rax, (%rbx)
+   51:  leal 1(%rdx), %ecx
+   54:  movl %ecx, 8(%rbx)
+   57:  movslq %edx, %rcx
+   5a:  leaq (%rcx, %rcx, 2), %rcx
+   5e:  leaq (%rax, %rcx, 8), %rax
+   62:  movb $0, 9(%rax)
+   66:  movq %rbp, 0x10(%rax)
+   6a:  movl %edx, %eax
+   6c:  popq %rdx
+   6d:  subl 0x38(%r12), %eax
+   72:  popq %rcx
+   73:  popq %rbx
+   74:  popq %rbp
+   75:  popq %r12
+   77:  retq
+   78:  movl $0, %edx   <str:"local variables">
+   7d:  movl $0xc8, %esi
+   82:  movq %r12, %rdi
+   85:  callq fn:errorlimit+0

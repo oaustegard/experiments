@@ -1,0 +1,57 @@
+# luaD_seterrorobj  (global, 179 bytes, 56 instructions)
+    0:  pushq %rbp
+    1:  movq %rdi, %rbp
+    4:  pushq %rbx
+    5:  movq %rdx, %rbx
+    8:  subq $8, %rsp
+    c:  cmpl $4, %esi
+    f:  je 0x70
+   11:  cmpl $5, %esi
+   14:  je 0x40
+   16:  testl %esi, %esi
+   18:  je 0xa0
+   1e:  movq 0x10(%rdi), %rax
+   22:  addq $0x10, %rbx
+   26:  movq -0x10(%rax), %rdx
+   2a:  movq %rdx, -0x10(%rbx)
+   2e:  movzbl -8(%rax), %eax
+   32:  movb %al, -8(%rbx)
+   35:  movq %rbx, 0x10(%rbp)
+   39:  addq $8, %rsp
+   3d:  popq %rbx
+   3e:  popq %rbp
+   3f:  retq
+   40:  movl $0x17, %edx
+   45:  movl $0, %esi   <str:"error in error handling">
+   4a:  addq $0x10, %rbx
+   4e:  callq luaS_newlstr+0
+   53:  movq %rax, -0x10(%rbx)
+   57:  movzbl 8(%rax), %eax
+   5b:  orl $0x40, %eax
+   5e:  movb %al, -8(%rbx)
+   61:  movq %rbx, 0x10(%rbp)
+   65:  addq $8, %rsp
+   69:  popq %rbx
+   6a:  popq %rbp
+   6b:  retq
+   6c:  nopl (%rax)
+   70:  movq 0x18(%rdi), %rax
+   74:  addq $0x10, %rbx
+   78:  movq 0x110(%rax), %rax
+   7f:  movq %rax, (%rdx)
+   82:  movzbl 8(%rax), %eax
+   86:  orl $0x40, %eax
+   89:  movb %al, 8(%rdx)
+   8c:  movq %rbx, 0x10(%rbp)
+   90:  addq $8, %rsp
+   94:  popq %rbx
+   95:  popq %rbp
+   96:  retq
+   97:  nopw (%rax, %rax)
+   a0:  addq $0x10, %rbx
+   a4:  movb $0, 8(%rdx)
+   a8:  movq %rbx, 0x10(%rbp)
+   ac:  addq $8, %rsp
+   b0:  popq %rbx
+   b1:  popq %rbp
+   b2:  retq

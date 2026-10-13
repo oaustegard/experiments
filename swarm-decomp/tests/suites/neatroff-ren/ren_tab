@@ -1,0 +1,110 @@
+# ren_tab  (static, 406 bytes, 109 instructions)
+    0:  pushq %r15
+    2:  pushq %r14
+    4:  pushq %r13
+    6:  movq %rdi, %r13
+    9:  pushq %r12
+    b:  pushq %rbp
+    c:  movq %rdx, %rbp
+    f:  pushq %rbx
+   10:  movq %rcx, %rbx
+   13:  subq $0x2108, %rsp
+   1a:  movq %rsi, 8(%rsp)
+   1f:  callq env_wb+0
+   24:  cmpq %rax, %r13
+   27:  je 0x140
+   2d:  movq %r13, %rdi
+   30:  callq wb_wid+0
+   35:  movl %eax, %r12d
+   38:  movl %r12d, %edi
+   3b:  callq tab_next+0
+   40:  movl %r12d, %edi
+   43:  movl %eax, %r14d
+   46:  callq tab_type+0
+   4b:  leaq 0x90(%rsp), %rdi
+   53:  movl %eax, %r15d
+   56:  callq wb_init+0
+   5b:  cmpl $0x52, %r15d
+   5f:  je 0xee
+   65:  cmpl $0x43, %r15d
+   69:  je 0xee
+   6f:  movq 8(%rsp), %rax
+   74:  movl %r14d, %esi
+   77:  subl %r12d, %esi
+   7a:  cmpb $0, (%rax)
+   7d:  je 0x88
+   7f:  cmpl %r12d, %r14d
+   82:  jg 0x128
+   88:  movq %r13, %rdi
+   8b:  callq wb_hmov+0
+   90:  leaq 0x90(%rsp), %rsi
+   98:  movq %r13, %rdi
+   9b:  callq wb_cat+0
+   a0:  leaq 0x90(%rsp), %rdi
+   a8:  callq wb_done+0
+   ad:  addq $0x2108, %rsp
+   b4:  popq %rbx
+   b5:  popq %rbp
+   b6:  popq %r12
+   b8:  popq %r13
+   ba:  popq %r14
+   bc:  popq %r15
+   be:  retq
+   bf:  nop
+   c0:  callq *%rbx
+   c2:  movq %rbx, %rdx
+   c5:  movq %rbp, %rsi
+   c8:  leaq 0x10(%rsp), %rdi
+   cd:  callq charnext+0
+   d2:  testl %eax, %eax
+   d4:  js 0xee
+   d6:  movq %rbx, %rcx
+   d9:  movq %rbp, %rdx
+   dc:  leaq 0x10(%rsp), %rsi
+   e1:  leaq 0x90(%rsp), %rdi
+   e9:  callq fn:ren_put+0
+   ee:  callq *%rbp
+   f0:  movl %eax, %edi
+   f2:  leal -9(%rax), %eax
+   f5:  cmpl $1, %eax
+   f8:  jbe 0x108
+   fa:  testl %edi, %edi
+   fc:  js 0x108
+   fe:  cmpl $1, %edi
+  101:  jne 0xc0
+  103:  movl $1, %edi
+  108:  callq *%rbx
+  10a:  leaq 0x90(%rsp), %rdi
+  112:  cmpl $0x43, %r15d
+  116:  je 0x180
+  118:  callq wb_wid+0
+  11d:  subl %eax, %r14d
+  120:  jmp 0x6f
+  125:  nopl (%rax)
+  128:  movq 8(%rsp), %rdx
+  12d:  movq %r13, %rdi
+  130:  callq ren_hline+0
+  135:  jmp 0x90
+  13a:  nopw (%rax, %rax)
+  140:  callq env_fmt+0
+  145:  movq %rax, %rdi
+  148:  callq fmt_wid+0
+  14d:  movl %eax, %r12d
+  150:  callq env_wb+0
+  155:  movq %rax, %rdi
+  158:  callq wb_wid+0
+  15d:  movl $0, %edi   <str:".b0">
+  162:  addl %eax, %r12d
+  165:  callq map+0
+  16a:  movl %eax, %edi
+  16c:  callq nreg+0
+  171:  subl (%rax), %r12d
+  174:  jmp 0x38
+  179:  nopl (%rax)
+  180:  callq wb_wid+0
+  185:  movl %eax, %edx
+  187:  shrl $0x1f, %edx
+  18a:  addl %edx, %eax
+  18c:  sarl $1, %eax
+  18e:  subl %eax, %r14d
+  191:  jmp 0x6f

@@ -1,0 +1,48 @@
+# mkfn_header  (global, 174 bytes, 47 instructions)
+    0:  movl (%rip), %edx   <mkfn_dry+0>
+    6:  testl %edx, %edx
+    8:  jne 0x90
+    e:  movq (%rip), %rsi   <var:mkfn_trname+0>
+   15:  pushq %rbx
+   16:  movq %rdi, %rbx
+   19:  testq %rsi, %rsi
+   1c:  je 0x2a
+   1e:  movl $0, %edi   <str:"name %s\n">
+   23:  xorl %eax, %eax
+   25:  callq printf+0
+   2a:  movq (%rip), %rsi   <var:mkfn_psname+0>
+   31:  testq %rsi, %rsi
+   34:  je 0x49
+   36:  movl $0, %edi   <str:"fontname %s\n">
+   3b:  xorl %eax, %eax
+   3d:  callq printf+0
+   42:  movq (%rip), %rsi   <var:mkfn_psname+0>
+   49:  testq %rbx, %rbx
+   4c:  je 0x53
+   4e:  testq %rsi, %rsi
+   51:  je 0x98
+   53:  movq (%rip), %rsi   <var:mkfn_path+0>
+   5a:  testq %rsi, %rsi
+   5d:  je 0x6b
+   5f:  movl $0, %edi   <str:"fontpath %s\n">
+   64:  xorl %eax, %eax
+   66:  callq printf+0
+   6b:  callq trfn_header+0
+   70:  movl (%rip), %eax   <mkfn_special+0>
+   76:  testl %eax, %eax
+   78:  jne 0x80
+   7a:  popq %rbx
+   7b:  jmp trfn_cdefs+0
+   80:  movl $0, %edi   <str:"special">
+   85:  callq puts+0
+   8a:  popq %rbx
+   8b:  jmp trfn_cdefs+0
+   90:  retq
+   91:  nopl (%rax)
+   98:  cmpb $0, (%rbx)
+   9b:  je 0x53
+   9d:  movq %rbx, %rsi
+   a0:  movl $0, %edi   <str:"fontname %s\n">
+   a5:  xorl %eax, %eax
+   a7:  callq printf+0
+   ac:  jmp 0x53

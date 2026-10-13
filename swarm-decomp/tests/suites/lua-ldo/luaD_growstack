@@ -1,0 +1,52 @@
+# luaD_growstack  (global, 157 bytes, 51 instructions)
+    0:  pushq %rbp
+    1:  movl %edx, %ebp
+    3:  pushq %rbx
+    4:  movq %rdi, %rbx
+    7:  subq $8, %rsp
+    b:  movq 0x30(%rdi), %rcx
+    f:  movq 0x28(%rdi), %rax
+   13:  subq %rcx, %rax
+   16:  sarq $4, %rax
+   1a:  cmpl $0xf4240, %eax
+   1f:  jg 0x80
+   21:  cmpl $0xf423f, %esi
+   27:  jg 0x60
+   29:  movq 0x10(%rdi), %rdx
+   2d:  addl %eax, %eax
+   2f:  subq %rcx, %rdx
+   32:  sarq $4, %rdx
+   36:  addl %edx, %esi
+   38:  movl $0xf4240, %edx
+   3d:  cmpl %edx, %eax
+   3f:  cmovgl %edx, %eax
+   42:  cmpl %eax, %esi
+   44:  cmovll %eax, %esi
+   47:  cmpl $0xf4240, %esi
+   4d:  jg 0x60
+   4f:  addq $8, %rsp
+   53:  movl %ebp, %edx
+   55:  popq %rbx
+   56:  popq %rbp
+   57:  jmp luaD_reallocstack+0
+   5c:  nopl (%rax)
+   60:  movl %ebp, %edx
+   62:  movl $0xf4308, %esi
+   67:  movq %rbx, %rdi
+   6a:  callq luaD_reallocstack+0
+   6f:  testl %ebp, %ebp
+   71:  jne 0x8e
+   73:  addq $8, %rsp
+   77:  xorl %eax, %eax
+   79:  popq %rbx
+   7a:  popq %rbp
+   7b:  retq
+   7c:  nopl (%rax)
+   80:  testl %edx, %edx
+   82:  je 0x73
+   84:  movl $5, %esi
+   89:  callq luaD_throw+0
+   8e:  movl $0, %esi   <str:"stack overflow">
+   93:  movq %rbx, %rdi
+   96:  xorl %eax, %eax
+   98:  callq luaG_runerror+0

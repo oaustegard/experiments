@@ -1,0 +1,24 @@
+# charread  (global, 108 bytes, 23 instructions)
+    0:  movslq (%rip), %rax   <var:sstr_n+0>
+    7:  pushq %rbx
+    8:  movq %rdi, %rbx
+    b:  movq %rsi, %rdi
+    e:  movq (%rbx), %rdx
+   11:  movl $0, %esi   <sstr_next+0>
+   16:  leal 1(%rax), %ecx
+   19:  movl %ecx, (%rip)   <var:sstr_n+0>
+   1f:  movq (%rip), %rcx   <var:sstr_s+0>
+   26:  movq %rdx, (%rip)   <var:sstr_s+0>
+   2d:  movl $0, %edx   <sstr_back+0>
+   32:  movq %rcx, (, %rax, 8)   <var:sstr_bufs+0>
+   3a:  callq charnext+0
+   3f:  movl (%rip), %esi   <var:sstr_n+0>
+   45:  movq (%rip), %rcx   <var:sstr_s+0>
+   4c:  leal -1(%rsi), %edx
+   4f:  movq %rcx, (%rbx)
+   52:  popq %rbx
+   53:  movl %edx, (%rip)   <var:sstr_n+0>
+   59:  movslq %edx, %rdx
+   5c:  movq (, %rdx, 8), %rdx   <var:sstr_bufs+0>
+   64:  movq %rdx, (%rip)   <var:sstr_s+0>
+   6b:  retq

@@ -1,0 +1,84 @@
+# o_dsset  (global, 251 bytes, 83 instructions)
+    0:  pushq %r15
+    2:  movq %rsi, %r15
+    5:  pushq %r14
+    7:  movq %rdx, %r14
+    a:  pushq %r13
+    c:  pushq %r12
+    e:  pushq %rbp
+    f:  pushq %rbx
+   10:  subq $0x28, %rsp
+   14:  movq (%rip), %r13   <var:ds_n+0>
+   1b:  testq %r13, %r13
+   1e:  jle 0x5a
+   20:  movq (%rip), %rbp   <var:ds_name+0>
+   27:  movq %rdi, %r12
+   2a:  xorl %ebx, %ebx
+   2c:  jmp 0x3d
+   2e:  nop
+   30:  addq $1, %rbx
+   34:  subq $-0x80, %rbp
+   38:  cmpq %rbx, %r13
+   3b:  je 0x5a
+   3d:  movq %rbp, %rsi
+   40:  movq %r12, %rdi
+   43:  callq strcmp+0
+   48:  testl %eax, %eax
+   4a:  jne 0x30
+   4c:  movq (%rip), %rax   <var:ds_off+0>
+   53:  movslq (%rax, %rbx, 8), %rax
+   57:  addq %rax, %r15
+   5a:  leaq 8(%rsp), %rdi
+   5f:  callq o_popnum+0
+   64:  testl %eax, %eax
+   66:  jne 0x90
+   68:  movq %r14, %rcx
+   6b:  leaq 8(%rsp), %rdx
+   70:  movq %r15, %rsi
+   73:  movl $0, %edi   <var:ds+0>
+   78:  andl $0xf, %ecx
+   7b:  callq mem_cpy+0
+   80:  addq $0x28, %rsp
+   84:  popq %rbx
+   85:  popq %rbp
+   86:  popq %r12
+   88:  popq %r13
+   8a:  popq %r14
+   8c:  popq %r15
+   8e:  retq
+   8f:  nop
+   90:  leaq 0x10(%rsp), %rsi
+   95:  leaq 0x18(%rsp), %rdi
+   9a:  callq o_popsym+0
+   9f:  testl %eax, %eax
+   a1:  jne 0xe0
+   a3:  movq 0x18(%rsp), %rdi
+   a8:  movq %r15, %rdx
+   ab:  movl $2, %esi
+   b0:  callq out_rel+0
+   b5:  movq %r14, %rcx
+   b8:  leaq 0x10(%rsp), %rdx
+   bd:  movq %r15, %rsi
+   c0:  andl $0xf, %ecx
+   c3:  movl $0, %edi   <var:ds+0>
+   c8:  callq mem_cpy+0
+   cd:  addq $0x28, %rsp
+   d1:  popq %rbx
+   d2:  popq %rbp
+   d3:  popq %r12
+   d5:  popq %r13
+   d7:  popq %r14
+   d9:  popq %r15
+   db:  retq
+   dc:  nopl (%rax)
+   e0:  movl $0, %edi   <str:"illegal assignment to static variables\n">
+   e5:  xorl %eax, %eax
+   e7:  callq err+0
+   ec:  addq $0x28, %rsp
+   f0:  popq %rbx
+   f1:  popq %rbp
+   f2:  popq %r12
+   f4:  popq %r13
+   f6:  popq %r14
+   f8:  popq %r15
+   fa:  retq

@@ -1,0 +1,587 @@
+# propagatemark  (static, 2166 bytes, 586 instructions)
+    0:  pushq %r13
+    2:  pushq %r12
+    4:  pushq %rbp
+    5:  pushq %rbx
+    6:  subq $8, %rsp
+    a:  movq 0x88(%rdi), %rbx
+   11:  movzbl 9(%rbx), %edx
+   15:  movl %edx, %eax
+   17:  orl $0x20, %eax
+   1a:  movb %al, 9(%rbx)
+   1d:  movzbl 8(%rbx), %eax
+   21:  subl $5, %eax
+   24:  cmpb $0x21, %al
+   26:  ja 0x38
+   28:  movzbl %al, %eax
+   2b:  movq %rdi, %rbp
+   2e:  jmpq *(, %rax, 8)   <var:propagatemark+0>
+   35:  nopl (%rax)
+   38:  movq 0, %rax
+   40:  ud2
+   42:  nopw (%rax, %rax)
+   48:  movq 0x10(%rbx), %rax
+   4c:  xorl %r9d, %r9d
+   4f:  leaq 0x20(%rbx), %r8
+   53:  movq %rax, 0x88(%rdi)
+   5a:  cmpb $0, 0xa(%rbx)
+   5e:  jne 0x7d
+   60:  jmp 0x700
+   65:  nopl (%rax)
+   68:  movzbl 0xa(%rbx), %eax
+   6c:  addl $1, %r9d
+   70:  addq $0x10, %r8
+   74:  cmpl %eax, %r9d
+   77:  jge 0x360
+   7d:  testb $0x40, 8(%r8)
+   82:  je 0x68
+   84:  movq (%r8), %rsi
+   87:  testb $0x18, 9(%rsi)
+   8b:  je 0x68
+   8d:  movq %rbp, %rdi
+   90:  callq fn:reallymarkobject+0
+   95:  jmp 0x68
+   97:  nopw (%rax, %rax)
+   a0:  movq 0x78(%rbx), %rax
+   a4:  movq 0x70(%rbx), %rsi
+   a8:  movq %rax, 0x88(%rdi)
+   af:  testq %rsi, %rsi
+   b2:  je 0xbe
+   b4:  testb $0x18, 9(%rsi)
+   b8:  jne 0x6f0
+   be:  movl 0x14(%rbx), %r9d
+   c2:  testl %r9d, %r9d
+   c5:  jle 0x110
+   c7:  movq 0x38(%rbx), %r8
+   cb:  movslq %r9d, %r10
+   ce:  shlq $4, %r10
+   d2:  addq %r8, %r10
+   d5:  jmp 0xe9
+   d7:  nopw (%rax, %rax)
+   e0:  addq $0x10, %r8
+   e4:  cmpq %r8, %r10
+   e7:  je 0x110
+   e9:  testb $0x40, 8(%r8)
+   ee:  je 0xe0
+   f0:  movq (%r8), %rsi
+   f3:  testb $0x18, 9(%rsi)
+   f7:  je 0xe0
+   f9:  movq %rbp, %rdi
+   fc:  addq $0x10, %r8
+  100:  callq fn:reallymarkobject+0
+  105:  cmpq %r8, %r10
+  108:  jne 0xe9
+  10a:  nopw (%rax, %rax)
+  110:  movl 0x10(%rbx), %r10d
+  114:  testl %r10d, %r10d
+  117:  jle 0x158
+  119:  movq 0x50(%rbx), %r8
+  11d:  movslq %r10d, %r11
+  120:  shlq $4, %r11
+  124:  addq %r8, %r11
+  127:  jmp 0x139
+  129:  nopl (%rax)
+  130:  addq $0x10, %r8
+  134:  cmpq %r8, %r11
+  137:  je 0x158
+  139:  movq (%r8), %rsi
+  13c:  testq %rsi, %rsi
+  13f:  je 0x130
+  141:  testb $0x18, 9(%rsi)
+  145:  je 0x130
+  147:  movq %rbp, %rdi
+  14a:  addq $0x10, %r8
+  14e:  callq fn:reallymarkobject+0
+  153:  cmpq %r8, %r11
+  156:  jne 0x139
+  158:  movl 0x20(%rbx), %r11d
+  15c:  testl %r11d, %r11d
+  15f:  jle 0x198
+  161:  movq 0x48(%rbx), %r8
+  165:  movslq %r11d, %rax
+  168:  leaq (%r8, %rax, 8), %r12
+  16c:  jmp 0x179
+  16e:  nop
+  170:  addq $8, %r8
+  174:  cmpq %r8, %r12
+  177:  je 0x198
+  179:  movq (%r8), %rsi
+  17c:  testq %rsi, %rsi
+  17f:  je 0x170
+  181:  testb $0x18, 9(%rsi)
+  185:  je 0x170
+  187:  movq %rbp, %rdi
+  18a:  addq $8, %r8
+  18e:  callq fn:reallymarkobject+0
+  193:  cmpq %r8, %r12
+  196:  jne 0x179
+  198:  movl 0x24(%rbx), %r12d
+  19c:  testl %r12d, %r12d
+  19f:  jle 0x1e0
+  1a1:  movq 0x68(%rbx), %r8
+  1a5:  movslq %r12d, %rbx
+  1a8:  shlq $4, %rbx
+  1ac:  addq %r8, %rbx
+  1af:  jmp 0x1c1
+  1b1:  nopl (%rax)
+  1b8:  addq $0x10, %r8
+  1bc:  cmpq %rbx, %r8
+  1bf:  je 0x1e0
+  1c1:  movq (%r8), %rsi
+  1c4:  testq %rsi, %rsi
+  1c7:  je 0x1b8
+  1c9:  testb $0x18, 9(%rsi)
+  1cd:  je 0x1b8
+  1cf:  movq %rbp, %rdi
+  1d2:  addq $0x10, %r8
+  1d6:  callq fn:reallymarkobject+0
+  1db:  cmpq %rbx, %r8
+  1de:  jne 0x1c1
+  1e0:  leal 1(%r9, %r10), %eax
+  1e5:  addq $8, %rsp
+  1e9:  addl %r11d, %eax
+  1ec:  popq %rbx
+  1ed:  popq %rbp
+  1ee:  addl %r12d, %eax
+  1f1:  popq %r12
+  1f3:  popq %r13
+  1f5:  cltq
+  1f7:  retq
+  1f8:  nopl (%rax, %rax)
+  200:  movq 0x30(%rbx), %rax
+  204:  movq %rax, 0x88(%rdi)
+  20b:  movq 0x28(%rbx), %rdi
+  20f:  testq %rdi, %rdi
+  212:  je 0x228
+  214:  testb $8, 0xa(%rdi)
+  218:  je 0x630
+  21e:  testb $0x18, 9(%rdi)
+  222:  jne 0x540
+  228:  movzbl 0xb(%rbx), %ecx
+  22c:  movl $1, %eax
+  231:  movq %rbx, %rdi
+  234:  shll %cl, %eax
+  236:  cltq
+  238:  leaq (%rax, %rax, 2), %rdx
+  23c:  movq 0x18(%rbx), %rax
+  240:  leaq (%rax, %rdx, 8), %r12
+  244:  callq luaH_realasize+0
+  249:  testl %eax, %eax
+  24b:  je 0x290
+  24d:  movq 0x10(%rbx), %r8
+  251:  movl %eax, %eax
+  253:  shlq $4, %rax
+  257:  leaq (%rax, %r8), %r9
+  25b:  jmp 0x269
+  25d:  nopl (%rax)
+  260:  addq $0x10, %r8
+  264:  cmpq %r9, %r8
+  267:  je 0x290
+  269:  testb $0x40, 8(%r8)
+  26e:  je 0x260
+  270:  movq (%r8), %rsi
+  273:  testb $0x18, 9(%rsi)
+  277:  je 0x260
+  279:  movq %rbp, %rdi
+  27c:  addq $0x10, %r8
+  280:  callq fn:reallymarkobject+0
+  285:  cmpq %r9, %r8
+  288:  jne 0x269
+  28a:  nopw (%rax, %rax)
+  290:  movq 0x18(%rbx), %r8
+  294:  cmpq %r12, %r8
+  297:  jb 0x2b6
+  299:  jmp 0x4e0
+  29e:  nop
+  2a0:  testb %al, %al
+  2a2:  je 0x2a9
+  2a4:  movb $0xb, 9(%r8)
+  2a9:  addq $0x18, %r8
+  2ad:  cmpq %r12, %r8
+  2b0:  jae 0x4e0
+  2b6:  movzbl 9(%r8), %eax
+  2bb:  movzbl 8(%r8), %edx
+  2c0:  andl $0x40, %eax
+  2c3:  testb $0xf, %dl
+  2c6:  je 0x2a0
+  2c8:  testb %al, %al
+  2ca:  je 0x2da
+  2cc:  movq 0x10(%r8), %rsi
+  2d0:  testb $0x18, 9(%rsi)
+  2d4:  jne 0x528
+  2da:  andl $0x40, %edx
+  2dd:  je 0x2a9
+  2df:  movq (%r8), %rsi
+  2e2:  testb $0x18, 9(%rsi)
+  2e6:  je 0x2a9
+  2e8:  movq %rbp, %rdi
+  2eb:  callq fn:reallymarkobject+0
+  2f0:  jmp 0x2a9
+  2f2:  nopw (%rax, %rax)
+  2f8:  movq 0x10(%rbx), %rax
+  2fc:  movq 0x18(%rbx), %rsi
+  300:  movq %rax, 0x88(%rdi)
+  307:  testq %rsi, %rsi
+  30a:  je 0x316
+  30c:  testb $0x18, 9(%rsi)
+  310:  jne 0x6e0
+  316:  xorl %r8d, %r8d
+  319:  cmpb $0, 0xa(%rbx)
+  31d:  jne 0x335
+  31f:  jmp 0x700
+  324:  nopl (%rax)
+  328:  movzbl 0xa(%rbx), %eax
+  32c:  addq $1, %r8
+  330:  cmpl %r8d, %eax
+  333:  jle 0x360
+  335:  movq 0x20(%rbx, %r8, 8), %rsi
+  33a:  testq %rsi, %rsi
+  33d:  je 0x328
+  33f:  testb $0x18, 9(%rsi)
+  343:  je 0x328
+  345:  movq %rbp, %rdi
+  348:  addq $1, %r8
+  34c:  callq fn:reallymarkobject+0
+  351:  movzbl 0xa(%rbx), %eax
+  355:  cmpl %r8d, %eax
+  358:  jg 0x335
+  35a:  nopw (%rax, %rax)
+  360:  addl $1, %eax
+  363:  cltq
+  365:  addq $8, %rsp
+  369:  popq %rbx
+  36a:  popq %rbp
+  36b:  popq %r12
+  36d:  popq %r13
+  36f:  retq
+  370:  movq 0x20(%rbx), %rax
+  374:  movq 0x18(%rbx), %rsi
+  378:  movq %rax, 0x88(%rdi)
+  37f:  testq %rsi, %rsi
+  382:  je 0x38e
+  384:  testb $0x18, 9(%rsi)
+  388:  jne 0x6d0
+  38e:  xorl %r10d, %r10d
+  391:  cmpw $0, 0xa(%rbx)
+  396:  leaq 0x28(%rbx), %r9
+  39a:  jne 0x3be
+  39c:  jmp 0x4c0
+  3a1:  nopl (%rax)
+  3a8:  movzwl 0xa(%rbx), %r8d
+  3ad:  addl $1, %r10d
+  3b1:  addq $0x10, %r9
+  3b5:  cmpl %r8d, %r10d
+  3b8:  jge 0x4c3
+  3be:  testb $0x40, 8(%r9)
+  3c3:  je 0x3a8
+  3c5:  movq (%r9), %rsi
+  3c8:  testb $0x18, 9(%rsi)
+  3cc:  je 0x3a8
+  3ce:  movq %rbp, %rdi
+  3d1:  callq fn:reallymarkobject+0
+  3d6:  jmp 0x3a8
+  3d8:  nopl (%rax, %rax)
+  3e0:  movq 0x48(%rbx), %rax
+  3e4:  movq 0x30(%rbx), %r10
+  3e8:  movq %rax, 0x88(%rdi)
+  3ef:  testb $6, %dl
+  3f2:  jne 0x4a0
+  3f8:  cmpb $0, 0x65(%rdi)
+  3fc:  je 0x4a0
+  402:  testq %r10, %r10
+  405:  je 0x710
+  40b:  movq 0x10(%rbx), %r9
+  40f:  movq %r10, %r8
+  412:  cmpq %r9, %r10
+  415:  jb 0x429
+  417:  jmp 0x450
+  419:  nopl (%rax)
+  420:  addq $0x10, %r8
+  424:  cmpq %r9, %r8
+  427:  jae 0x450
+  429:  testb $0x40, 8(%r8)
+  42e:  je 0x420
+  430:  movq (%r8), %rsi
+  433:  testb $0x18, 9(%rsi)
+  437:  je 0x420
+  439:  movq %rbp, %rdi
+  43c:  addq $0x10, %r8
+  440:  callq fn:reallymarkobject+0
+  445:  cmpq %r9, %r8
+  448:  jb 0x429
+  44a:  nopw (%rax, %rax)
+  450:  movq 0x38(%rbx), %r8
+  454:  testq %r8, %r8
+  457:  jne 0x469
+  459:  jmp 0x484
+  45b:  nopl (%rax, %rax)
+  460:  movq 0x18(%r8), %r8
+  464:  testq %r8, %r8
+  467:  je 0x484
+  469:  testb $0x18, 9(%r8)
+  46e:  je 0x460
+  470:  movq %r8, %rsi
+  473:  movq %rbp, %rdi
+  476:  callq fn:reallymarkobject+0
+  47b:  movq 0x18(%r8), %r8
+  47f:  testq %r8, %r8
+  482:  jne 0x469
+  484:  cmpb $2, 0x65(%rbp)
+  488:  je 0x5b0
+  48e:  movq 0x28(%rbx), %rax
+  492:  subq %r10, %rax
+  495:  sarq $4, %rax
+  499:  jmp 0x360
+  49e:  nop
+  4a0:  movq 0x90(%rbp), %rax
+  4a7:  andl $0xffffffc7, %edx
+  4aa:  movq %rax, 0x48(%rbx)
+  4ae:  movq %rbx, 0x90(%rbp)
+  4b5:  movb %dl, 9(%rbx)
+  4b8:  jmp 0x402
+  4bd:  nopl (%rax)
+  4c0:  xorl %r8d, %r8d
+  4c3:  movq %rbx, %rsi
+  4c6:  movq %rbp, %rdi
+  4c9:  callq fn:genlink+0
+  4ce:  addq $8, %rsp
+  4d2:  leal 1(%r8), %eax
+  4d6:  popq %rbx
+  4d7:  cltq
+  4d9:  popq %rbp
+  4da:  popq %r12
+  4dc:  popq %r13
+  4de:  retq
+  4df:  nop
+  4e0:  movzbl 9(%rbx), %eax
+  4e4:  movl %eax, %edx
+  4e6:  andl $7, %edx
+  4e9:  cmpb $5, %dl
+  4ec:  je 0x550
+  4ee:  cmpb $6, %dl
+  4f1:  jne 0x4f9
+  4f3:  xorl $2, %eax
+  4f6:  movb %al, 9(%rbx)
+  4f9:  movl 0xc(%rbx), %r8d
+  4fd:  xorl %eax, %eax
+  4ff:  cmpq $0, 0x20(%rbx)
+  504:  je 0x511
+  506:  movzbl 0xb(%rbx), %ecx
+  50a:  movl $2, %eax
+  50f:  shll %cl, %eax
+  511:  addq $8, %rsp
+  515:  leal 1(%rax, %r8), %eax
+  51a:  popq %rbx
+  51b:  popq %rbp
+  51c:  popq %r12
+  51e:  popq %r13
+  520:  retq
+  521:  nopl (%rax)
+  528:  movq %rbp, %rdi
+  52b:  callq fn:reallymarkobject+0
+  530:  movzbl 8(%r8), %edx
+  535:  jmp 0x2da
+  53a:  nopw (%rax, %rax)
+  540:  movq %rdi, %rsi
+  543:  movq %rbp, %rdi
+  546:  callq fn:reallymarkobject+0
+  54b:  jmp 0x228
+  550:  movzbl 8(%rbx), %edi
+  554:  movq 0x90(%rbp), %rcx
+  55b:  leal -5(%rdi), %edx
+  55e:  cmpb $0x21, %dl
+  561:  ja fn:propagatemark.cold+0
+  567:  movzbl %dl, %edx
+  56a:  jmpq *(, %rdx, 8)   <var:propagatemark+272>
+  571:  leaq 0x10(%rbx), %rdx
+  575:  andl $0xffffffc7, %eax
+  578:  movq %rcx, (%rdx)
+  57b:  movl 0xc(%rbx), %r8d
+  57f:  movq %rbx, 0x90(%rbp)
+  586:  movb %al, 9(%rbx)
+  589:  jmp 0x4fd
+  58e:  leaq 0x30(%rbx), %rdx
+  592:  jmp 0x575
+  594:  leaq 0x78(%rbx), %rdx
+  598:  jmp 0x575
+  59a:  leaq 0x48(%rbx), %rdx
+  59e:  jmp 0x575
+  5a0:  leaq 0x20(%rbx), %rdx
+  5a4:  jmp 0x575
+  5a6:  nopw %cs:(%rax, %rax)
+  5b0:  cmpb $0, 0x6b(%rbp)
+  5b4:  je 0x720
+  5ba:  movq 0x28(%rbx), %rax
+  5be:  leaq 0x50(%rax), %rdx
+  5c2:  cmpq %rdx, %r9
+  5c5:  jae 0x613
+  5c7:  movq %r9, %rcx
+  5ca:  movb $0, 8(%r9)
+  5cf:  addq $0x10, %r9
+  5d3:  notq %rcx
+  5d6:  addq %rdx, %rcx
+  5d9:  shrq $4, %rcx
+  5dd:  andl $1, %ecx
+  5e0:  cmpq %rdx, %r9
+  5e3:  jae 0x613
+  5e5:  testq %rcx, %rcx
+  5e8:  je 0x600
+  5ea:  movb $0, 8(%r9)
+  5ef:  addq $0x10, %r9
+  5f3:  cmpq %rdx, %r9
+  5f6:  jae 0x613
+  5f8:  nopl (%rax, %rax)
+  600:  movb $0, 8(%r9)
+  605:  addq $0x20, %r9
+  609:  movb $0, -8(%r9)
+  60e:  cmpq %rdx, %r9
+  611:  jb 0x600
+  613:  cmpq 0x50(%rbx), %rbx
+  617:  je 0x731
+  61d:  movq 0x30(%rbx), %r10
+  621:  jmp 0x492
+  626:  nopw %cs:(%rax, %rax)
+  630:  movq 0x130(%rbp), %rdx
+  637:  movl $3, %esi
+  63c:  callq luaT_gettm+0
+  641:  movq 0x28(%rbx), %rsi
+  645:  movq %rax, %r8
+  648:  testq %rsi, %rsi
+  64b:  je 0x657
+  64d:  testb $0x18, 9(%rsi)
+  651:  jne 0x753
+  657:  testq %r8, %r8
+  65a:  je 0x228
+  660:  cmpb $0x44, 8(%r8)
+  665:  jne 0x228
+  66b:  movq (%r8), %r12
+  66e:  movl $0x6b, %esi
+  673:  addq $0x18, %r12
+  677:  movq %r12, %rdi
+  67a:  callq strchr+0
+  67f:  movl $0x76, %esi
+  684:  movq %r12, %rdi
+  687:  movq %rax, %r13
+  68a:  callq strchr+0
+  68f:  movq %rax, %rcx
+  692:  orq %r13, %rcx
+  695:  je 0x228
+  69b:  testq %r13, %r13
+  69e:  je 0x760
+  6a4:  testq %rax, %rax
+  6a7:  je 0x81c
+  6ad:  movq 0xa8(%rbp), %rax
+  6b4:  movl 0xc(%rbx), %r8d
+  6b8:  movq %rax, 0x30(%rbx)
+  6bc:  movq %rbx, 0xa8(%rbp)
+  6c3:  andb $0xc7, 9(%rbx)
+  6c7:  jmp 0x4fd
+  6cc:  nopl (%rax)
+  6d0:  callq fn:reallymarkobject+0
+  6d5:  jmp 0x38e
+  6da:  nopw (%rax, %rax)
+  6e0:  callq fn:reallymarkobject+0
+  6e5:  jmp 0x316
+  6ea:  nopw (%rax, %rax)
+  6f0:  callq fn:reallymarkobject+0
+  6f5:  jmp 0xbe
+  6fa:  nopw (%rax, %rax)
+  700:  xorl %eax, %eax
+  702:  jmp 0x360
+  707:  nopw (%rax, %rax)
+  710:  movl $1, %eax
+  715:  jmp 0x365
+  71a:  nopw (%rax, %rax)
+  720:  movq %rbx, %rdi
+  723:  callq luaD_shrinkstack+0
+  728:  movq 0x10(%rbx), %r9
+  72c:  jmp 0x5ba
+  731:  cmpq $0, 0x38(%rbx)
+  736:  je 0x61d
+  73c:  movq 0xf8(%rbp), %rdx
+  743:  movq %rdx, 0x50(%rbx)
+  747:  movq %rbx, 0xf8(%rbp)
+  74e:  jmp 0x61d
+  753:  movq %rbp, %rdi
+  756:  callq fn:reallymarkobject+0
+  75b:  jmp 0x657
+  760:  movzbl 0xb(%rbx), %ecx
+  764:  movl $1, %eax
+  769:  movq 0x18(%rbx), %r9
+  76d:  xorl %r11d, %r11d
+  770:  movl 0xc(%rbx), %r8d
+  774:  shll %cl, %eax
+  776:  cltq
+  778:  testl %r8d, %r8d
+  77b:  leaq (%rax, %rax, 2), %rax
+  77f:  setne %r11b
+  783:  leaq (%r9, %rax, 8), %r10
+  787:  cmpq %r10, %r9
+  78a:  jb 0x7a2
+  78c:  jmp 0x7f0
+  78e:  nop
+  790:  testb %al, %al
+  792:  je 0x799
+  794:  movb $0xb, 9(%r9)
+  799:  addq $0x18, %r9
+  79d:  cmpq %r10, %r9
+  7a0:  jae 0x7f0
+  7a2:  movzbl 9(%r9), %eax
+  7a7:  andl $0x40, %eax
+  7aa:  testb $0xf, 8(%r9)
+  7af:  je 0x790
+  7b1:  testb %al, %al
+  7b3:  je 0x7bf
+  7b5:  movq 0x10(%r9), %rsi
+  7b9:  testb $0x18, 9(%rsi)
+  7bd:  jne 0x832
+  7bf:  testl %r11d, %r11d
+  7c2:  jne 0x799
+  7c4:  testb $0x40, 8(%r9)
+  7c9:  je 0x799
+  7cb:  movq (%r9), %rsi
+  7ce:  testq %rsi, %rsi
+  7d1:  je 0x799
+  7d3:  movzbl 8(%rsi), %eax
+  7d7:  movzbl 9(%rsi), %edx
+  7db:  andl $0xf, %eax
+  7de:  andl $0x18, %edx
+  7e1:  cmpb $4, %al
+  7e3:  je 0x83c
+  7e5:  xorl %r11d, %r11d
+  7e8:  testb %dl, %dl
+  7ea:  setne %r11b
+  7ee:  jmp 0x799
+  7f0:  cmpb $2, 0x65(%rbp)
+  7f4:  jne 0x7fb
+  7f6:  testl %r11d, %r11d
+  7f9:  jne 0x851
+  7fb:  movq 0x90(%rbp), %rax
+  802:  movq %rax, 0x30(%rbx)
+  806:  movq %rbx, 0x90(%rbp)
+  80d:  movzbl 9(%rbx), %eax
+  811:  andl $0xffffffc7, %eax
+  814:  movb %al, 9(%rbx)
+  817:  jmp 0x4fd
+  81c:  xorl %edx, %edx
+  81e:  movq %rbx, %rsi
+  821:  movq %rbp, %rdi
+  824:  callq fn:traverseephemeron+0
+  829:  movl 0xc(%rbx), %r8d
+  82d:  jmp 0x4fd
+  832:  movq %rbp, %rdi
+  835:  callq fn:reallymarkobject+0
+  83a:  jmp 0x7bf
+  83c:  testb %dl, %dl
+  83e:  je 0x799
+  844:  movq %rbp, %rdi
+  847:  callq fn:reallymarkobject+0
+  84c:  jmp 0x799
+  851:  movq 0x98(%rbp), %rax
+  858:  movq %rax, 0x30(%rbx)
+  85c:  movq %rbx, 0x98(%rbp)
+  863:  movzbl 9(%rbx), %eax
+  867:  andl $0xffffffc7, %eax
+  86a:  jmp 0x814
+  86c:  movq %rcx, 0
+  874:  ud2

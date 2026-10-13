@@ -1,0 +1,61 @@
+# classend  (static, 186 bytes, 60 instructions)
+    0:  pushq %r12
+    2:  movq %rsi, %r12
+    5:  pushq %rbp
+    6:  movq %rdi, %rbp
+    9:  pushq %rbx
+    a:  movzbl (%rsi), %eax
+    d:  leaq 1(%rsi), %rbx
+   11:  cmpb $0x25, %al
+   13:  je 0x90
+   15:  cmpb $0x5b, %al
+   17:  jne 0x84
+   19:  cmpb $0x5e, 1(%rsi)
+   1d:  jne 0x58
+   1f:  leaq 2(%rsi), %rbx
+   23:  cmpq %rbx, 0x10(%rbp)
+   27:  jne 0x5e
+   29:  nopl (%rax)
+   30:  movq 0x18(%rbp), %rdi
+   34:  xorl %eax, %eax
+   36:  movl $0, %esi   <str:"malformed pattern (missing ']')">
+   3b:  callq luaL_error+0
+   40:  cmpb $0x25, (%rbx)
+   43:  leaq 1(%rbx), %rax
+   47:  je 0x67
+   49:  nopl (%rax)
+   50:  movq %rax, %rbx
+   53:  cmpb $0x5d, (%rbx)
+   56:  je 0x80
+   58:  cmpq %rbx, 0x10(%rbp)
+   5c:  je 0x30
+   5e:  cmpb $0x25, (%rbx)
+   61:  leaq 1(%rbx), %rax
+   65:  jne 0x50
+   67:  addq $2, %rbx
+   6b:  cmpq 0x10(%rbp), %rax
+   6f:  jae 0x50
+   71:  cmpb $0x5d, (%rbx)
+   74:  jne 0x58
+   76:  nopw %cs:(%rax, %rax)
+   80:  addq $1, %rbx
+   84:  movq %rbx, %rax
+   87:  popq %rbx
+   88:  popq %rbp
+   89:  popq %r12
+   8b:  retq
+   8c:  nopl (%rax)
+   90:  cmpq %rbx, 0x10(%rdi)
+   94:  je 0xa8
+   96:  leaq 2(%r12), %rbx
+   9b:  movq %rbx, %rax
+   9e:  popq %rbx
+   9f:  popq %rbp
+   a0:  popq %r12
+   a2:  retq
+   a3:  nopl (%rax, %rax)
+   a8:  movq 0x18(%rdi), %rdi
+   ac:  movl $0, %esi   <str:"malformed pattern (ends with '%%')">
+   b1:  xorl %eax, %eax
+   b3:  callq luaL_error+0
+   b8:  jmp 0x96

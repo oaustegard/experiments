@@ -1,0 +1,116 @@
+# luaO_rawarith  (global, 387 bytes, 115 instructions)
+    0:  pushq %r13
+    2:  movq %r8, %r13
+    5:  pushq %r12
+    7:  movq %rdi, %r12
+    a:  movq %rdx, %rdi
+    d:  pushq %rbx
+    e:  movl %esi, %ebx
+   10:  subq $0x20, %rsp
+   14:  movzbl 8(%rdx), %eax
+   18:  cmpl $0xb, %esi
+   1b:  jg 0x70
+   1d:  cmpl $6, %esi
+   20:  jg 0x75
+   22:  leal -4(%rsi), %edx
+   25:  cmpl $1, %edx
+   28:  ja 0xc0
+   2e:  cmpb $0x13, %al
+   30:  je 0x120
+   36:  xorl %edx, %edx
+   38:  cmpb $3, %al
+   3a:  jne 0xb4
+   3c:  pxor %xmm0, %xmm0
+   40:  cvtsi2sdq (%rdi), %xmm0
+   45:  movzbl 8(%rcx), %eax
+   49:  cmpb $0x13, %al
+   4b:  je 0x11a
+   51:  xorl %edx, %edx
+   53:  cmpb $3, %al
+   55:  je 0xda
+   5b:  addq $0x20, %rsp
+   5f:  movl %edx, %eax
+   61:  popq %rbx
+   62:  popq %r12
+   64:  popq %r13
+   66:  retq
+   67:  nopw (%rax, %rax)
+   70:  cmpl $0xd, %esi
+   73:  jne 0xc0
+   75:  cmpb $3, %al
+   77:  jne 0x130
+   7d:  movq (%rdi), %rax
+   80:  movq %rax, 0x10(%rsp)
+   85:  cmpb $3, 8(%rcx)
+   89:  jne 0x158
+   8f:  movq (%rcx), %rcx
+   92:  movq %rcx, 0x18(%rsp)
+   97:  movq 0x10(%rsp), %rdx
+   9c:  movl %ebx, %esi
+   9e:  movq %r12, %rdi
+   a1:  callq fn:intarith+0
+   a6:  movb $3, 8(%r13)
+   ab:  movq %rax, (%r13)
+   af:  movl $1, %edx
+   b4:  addq $0x20, %rsp
+   b8:  movl %edx, %eax
+   ba:  popq %rbx
+   bb:  popq %r12
+   bd:  popq %r13
+   bf:  retq
+   c0:  cmpb $3, %al
+   c2:  je 0x100
+   c4:  xorl %edx, %edx
+   c6:  cmpb $0x13, %al
+   c8:  jne 0xb4
+   ca:  movzbl 8(%rcx), %eax
+   ce:  movsd (%rdi), %xmm0
+   d2:  cmpb $0x13, %al
+   d4:  je 0x11a
+   d6:  cmpb $3, %al
+   d8:  jne 0xb4
+   da:  pxor %xmm1, %xmm1
+   de:  cvtsi2sdq (%rcx), %xmm1
+   e3:  movl %ebx, %esi
+   e5:  movq %r12, %rdi
+   e8:  callq fn:numarith+0
+   ed:  movb $0x13, 8(%r13)
+   f2:  movsd %xmm0, (%r13)
+   f8:  jmp 0xaf
+   fa:  nopw (%rax, %rax)
+  100:  movzbl 8(%rcx), %eax
+  104:  movq (%rdi), %rsi
+  107:  cmpb $3, %al
+  109:  je 0x178
+  10b:  xorl %edx, %edx
+  10d:  cmpb $0x13, %al
+  10f:  jne 0xb4
+  111:  pxor %xmm0, %xmm0
+  115:  cvtsi2sdq %rsi, %xmm0
+  11a:  movsd (%rcx), %xmm1
+  11e:  jmp 0xe3
+  120:  movsd (%rdi), %xmm0
+  124:  jmp 0x45
+  129:  nopl (%rax)
+  130:  xorl %edx, %edx
+  132:  leaq 0x10(%rsp), %rsi
+  137:  movq %rcx, 8(%rsp)
+  13c:  callq luaV_tointegerns+0
+  141:  movq 8(%rsp), %rcx
+  146:  testl %eax, %eax
+  148:  jne 0x85
+  14e:  xorl %edx, %edx
+  150:  jmp 0xb4
+  155:  nopl (%rax)
+  158:  xorl %edx, %edx
+  15a:  leaq 0x18(%rsp), %rsi
+  15f:  movq %rcx, %rdi
+  162:  callq luaV_tointegerns+0
+  167:  testl %eax, %eax
+  169:  je 0x14e
+  16b:  movq 0x18(%rsp), %rcx
+  170:  jmp 0x97
+  175:  nopl (%rax)
+  178:  movq (%rcx), %rcx
+  17b:  movq %rsi, %rdx
+  17e:  jmp 0x9c

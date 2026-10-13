@@ -1,0 +1,14 @@
+# luaH_new  (global, 72 bytes, 13 instructions)
+    0:  subq $8, %rsp
+    4:  movl $0x38, %edx
+    9:  movl $5, %esi
+    e:  callq luaC_newobj+0
+   13:  movl $0x3f, %edx
+   18:  movq $0, 0x28(%rax)
+   20:  movq $0, 0x10(%rax)
+   28:  movl $0, 0xc(%rax)
+   2f:  movq $0, 0x18(%rax)   <var:dummynode_+0>
+   37:  movw %dx, 0xa(%rax)
+   3b:  movq $0, 0x20(%rax)
+   43:  addq $8, %rsp
+   47:  retq

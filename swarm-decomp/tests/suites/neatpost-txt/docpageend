@@ -1,0 +1,86 @@
+# docpageend  (global, 282 bytes, 85 instructions)
+    0:  movl (%rip), %r9d   <var:p_cht+0>
+    7:  testl %r9d, %r9d
+    a:  jle 0x119
+   10:  movslq (%rip), %r8   <var:p_cwd+0>
+   17:  pushq %r14
+   19:  xorl %edi, %edi
+   1b:  xorl %esi, %esi
+   1d:  movq (%rip), %r10   <var:o_pg+0>
+   24:  pushq %r13
+   26:  movq %r8, %rax
+   29:  pushq %r12
+   2b:  addq %r10, %r8
+   2e:  pushq %rbp
+   2f:  pushq %rbx
+   30:  xorl %ebx, %ebx
+   32:  nopw (%rax, %rax)
+   38:  movslq %edi, %rcx
+   3b:  addl $1, %esi
+   3e:  leaq (%r10, %rcx), %rdx
+   42:  addq %r8, %rcx
+   45:  testl %eax, %eax
+   47:  jle 0x5f
+   49:  nopl (%rax)
+   50:  cmpb $0, (%rdx)
+   53:  cmovnel %esi, %ebx
+   56:  addq $1, %rdx
+   5a:  cmpq %rdx, %rcx
+   5d:  jne 0x50
+   5f:  addl %eax, %edi
+   61:  cmpl %esi, %r9d
+   64:  jne 0x38
+   66:  xorl %ebp, %ebp
+   68:  testl %ebx, %ebx
+   6a:  jle 0x110
+   70:  testl %eax, %eax
+   72:  jle 0xed
+   74:  movl %eax, %edi
+   76:  movq (%rip), %rcx   <var:o_pg+0>
+   7d:  movslq %eax, %r8
+   80:  xorl %r14d, %r14d
+   83:  imull %ebp, %edi
+   86:  movl $1, %edx
+   8b:  movslq %edi, %rdi
+   8e:  addq %rcx, %rdi
+   91:  jmp 0x9b
+   93:  nopl (%rax, %rax)
+   98:  movq %rsi, %rdx
+   9b:  cmpb $0, -1(%rdi, %rdx)
+   a0:  leaq 1(%rdx), %rsi
+   a4:  cmovnel %edx, %r14d
+   a8:  cmpq %r8, %rdx
+   ab:  jne 0x98
+   ad:  testl %r14d, %r14d
+   b0:  jle 0xed
+   b2:  xorl %r13d, %r13d
+   b5:  movl $0x20, %r12d
+   bb:  jmp 0xcd
+   bd:  nopl (%rax)
+   c0:  movq (%rip), %rcx   <var:o_pg+0>
+   c7:  movl (%rip), %eax   <var:p_cwd+0>
+   cd:  imull %ebp, %eax
+   d0:  addl %r13d, %eax
+   d3:  cltq
+   d5:  movsbl (%rcx, %rax), %edi
+   d9:  testl %edi, %edi
+   db:  cmovel %r12d, %edi
+   df:  addl $1, %r13d
+   e3:  callq putchar+0
+   e8:  cmpl %r13d, %r14d
+   eb:  jne 0xc0
+   ed:  movl $0xa, %edi
+   f2:  addl $1, %ebp
+   f5:  callq putchar+0
+   fa:  cmpl %ebx, %ebp
+   fc:  je 0x110
+   fe:  movl (%rip), %eax   <var:p_cwd+0>
+  104:  jmp 0x70
+  109:  nopl (%rax)
+  110:  popq %rbx
+  111:  popq %rbp
+  112:  popq %r12
+  114:  popq %r13
+  116:  popq %r14
+  118:  retq
+  119:  retq

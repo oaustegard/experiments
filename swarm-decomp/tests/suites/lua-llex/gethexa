@@ -1,0 +1,29 @@
+# gethexa  (static, 94 bytes, 28 instructions)
+    0:  pushq %rbx
+    1:  movl (%rdi), %esi
+    3:  movq %rdi, %rbx
+    6:  callq fn:save+0
+    b:  movq 0x40(%rbx), %rdi
+    f:  movq (%rdi), %rax
+   12:  leaq -1(%rax), %rdx
+   16:  movq %rdx, (%rdi)
+   19:  testq %rax, %rax
+   1c:  je 0x48
+   1e:  movq 8(%rdi), %rax
+   22:  leaq 1(%rax), %rdx
+   26:  movq %rdx, 8(%rdi)
+   2a:  movzbl (%rax), %edi
+   2d:  leal 1(%rdi), %eax
+   30:  movl %edi, (%rbx)
+   32:  cltq
+   34:  testb $0x10, (%rax)   <luai_ctype_+0>
+   3b:  je 0x51
+   3d:  popq %rbx
+   3e:  jmp luaO_hexavalue+0
+   43:  nopl (%rax, %rax)
+   48:  callq luaZ_fill+0
+   4d:  movl %eax, %edi
+   4f:  jmp 0x2d
+   51:  movl $0, %esi   <str:"hexadecimal digit expected">
+   56:  movq %rbx, %rdi
+   59:  callq fn:esccheck.part.0+0

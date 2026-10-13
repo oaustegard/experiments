@@ -1,0 +1,29 @@
+# neatmail-pn: translation unit pn of neatmail
+# write each function as src/neatmail/pn/<function>.c (see CONTRACT.md)
+
+## functions, in definition order (static = file-local)
+pn_proc	static	899 bytes
+pn	global	1164 bytes
+
+## data objects defined in this TU (name, linkage, size, section; contents)
+pn_fp	static	8 bytes	.bss.pn_fp
+    (zero-initialised)
+pn_path	static	8 bytes	.bss.pn_path
+    (zero-initialised)
+pn_pos	static	8 bytes	.bss.pn_pos
+    (zero-initialised)
+pn_num	static	4 bytes	.bss.pn_num
+    (zero-initialised)
+pn_buf	static	4096 bytes	.bss.pn_buf
+    (zero-initialised)
+pn_rev	static	1 bytes	.bss.pn_rev
+    (zero-initialised)
+maxlen	static	4 bytes	.data.maxlen
+        0: ff ff ff ff
+hdrs_n	static	4 bytes	.bss.hdrs_n
+    (zero-initialised)
+hdrs	static	1024 bytes	.bss.hdrs
+    (zero-initialised)
+
+## symbols this TU uses but does not define (other TUs, libc)
+fclose fgets fopen fprintf fputc fputs printf puts startswith stderr stdin stdout strlen strtol

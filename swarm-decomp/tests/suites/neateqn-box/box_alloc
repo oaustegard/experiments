@@ -1,0 +1,28 @@
+# box_alloc  (global, 80 bytes, 27 instructions)
+    0:  pushq %r13
+    2:  movl %edi, %r13d
+    5:  movl $0x38, %edi
+    a:  pushq %r12
+    c:  movl %edx, %r12d
+    f:  pushq %rbp
+   10:  movl %esi, %ebp
+   12:  movl $1, %esi
+   17:  pushq %rbx
+   18:  subq $8, %rsp
+   1c:  callq calloc+0
+   21:  movq %rax, %rbx
+   24:  movq %rax, %rdi
+   27:  callq sbuf_init+0
+   2c:  movl %r13d, 0x10(%rbx)
+   30:  movl $0, 0x1c(%rbx)
+   37:  movl %r12d, 0x28(%rbx)
+   3b:  testl %ebp, %ebp
+   3d:  je 0x42
+   3f:  movl %ebp, 0x24(%rbx)
+   42:  addq $8, %rsp
+   46:  movq %rbx, %rax
+   49:  popq %rbx
+   4a:  popq %rbp
+   4b:  popq %r12
+   4d:  popq %r13
+   4f:  retq
