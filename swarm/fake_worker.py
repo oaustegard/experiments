@@ -89,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
         p = a.cwd / "tests" / "HACK.txt"
         p.write_text("cheating\n")
         changed.append("tests/HACK.txt")
-    status = "failed" if mode == "noop" else "fixed"
+    status = {"noop": "failed", "stale": "stale"}.get(mode, "fixed")
     out = {"status": status, "test_ids_fixed": tests if status == "fixed" else [],
            "files_changed": changed, "root_cause": f"fake {mode}: {', '.join(tests)}"[:72],
            "notes": f"fake worker mode={mode}"}
