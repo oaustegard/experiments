@@ -4,13 +4,12 @@ static char *readtok(unsigned char *s, char *buf) {
 	c = *s;
 	while (c <= 58 && ((0x0400010100000600ULL >> c) & 1)) {
 		if (c == '(') {
-			do {
-				c = *++s;
-				if (c == 0) {
-					*buf = 0;
-					return (char *)s;
-				}
-			} while (c != ')');
+			while ((c = *++s) != ')' && c != 0)
+				;
+			if (c == 0) {
+				*buf = 0;
+				return (char *)s;
+			}
 		}
 		c = *++s;
 	}

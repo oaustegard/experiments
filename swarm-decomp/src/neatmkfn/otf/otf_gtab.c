@@ -25,8 +25,6 @@ otf_gtab(const unsigned char *t, struct otf_feat *ents, int unused)
 			if (mkfn_lang(0, nlang + 1))
 				cnt = otf_lang(t, sp + U16(sp), stag, "", ents, cnt, sp[1]);
 		}
-		if (nlang == 0)
-			continue;
 		for (j = 0; j < nlang; j++) {
 			lr = sp + 4 + 6 * j;
 			memcpy(ltag, lr, 4);

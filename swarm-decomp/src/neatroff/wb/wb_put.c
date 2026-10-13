@@ -1,3 +1,4 @@
+#include <string.h>
 #include "wb.h"
 #include "c_ec.h"
 #include "wb_flushdir.h"
@@ -17,26 +18,30 @@
 void wb_put(struct wb *w, char *s)
 {
 	if (*s != '\n') {
-	int fam, fn, sz, ms, saved;
+	int fam, fn, sz, ms, saved, cur;
 	void *f;
 
-	if (*s == '\n') {
-		w->part = 0;
-		return;
-	}
-	fam = w->f20[3] < 0 ? *nreg(map(".cd")) : w->f20[3];
-	if (w->f10[3] != fam)
+	fam = w->f20[3];
+	cur = w->f10[3];
+	if (fam < 0)
+		fam = *nreg(map(".cd"));
+	if (cur != fam) {
 		wb_flushdir(w);
+		if (*s == ' ')
+			goto space;
+	}
 	if (*s == ' ') {
+space:
 		if (w->f2068 && w->f206c)
 			wb_flushsub(w);
 		{
 			int ss = *nreg(map(".ss"));
 			int sz = w->f20[1];
-			int fn2 = w->f20[0];
+			int fn2;
 
 			if (sz < 0)
 				sz = *nreg('s');
+			fn2 = w->f20[0];
 			if (fn2 < 0)
 				fn2 = *nreg('f');
 			fn = font_swid(dev_font(fn2), sz, ss);
@@ -64,13 +69,22 @@ void wb_put(struct wb *w, char *s)
 		}
 		return;
 	}
-	fn = w->f20[0] < 0 ? *nreg('f') : w->f20[0];
-	if (w->f10[0] == fn) {
-		sz = w->f20[1] < 0 ? *nreg('s') : w->f20[1];
-		if (sz == w->f10[1]) {
+	fn = w->f20[0];
+	cur = w->f10[0];
+	if (fn < 0)
+		fn = *nreg('f');
+	if (cur == fn) {
+		sz = w->f20[1];
+		cur = w->f10[1];
+		if (sz < 0)
+			sz = *nreg('s');
+		if (sz == cur) {
 			if (!*nreg('C')) {
-				ms = w->f20[2] < 0 ? *nreg('m') : w->f20[2];
-				if (ms != w->f10[2])
+				ms = w->f20[2];
+				cur = w->f10[2];
+				if (ms < 0)
+					ms = *nreg('m');
+				if (ms != cur)
 					goto flush;
 			}
 			if (w->f2068 == 0x100)

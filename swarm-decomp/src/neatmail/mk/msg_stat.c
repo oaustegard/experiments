@@ -10,11 +10,11 @@ static int msg_stat(char *s, size_t n, int len, int dflt) {
 	if (!p)
 		return dflt;
 	b = p + 7;
-	e = s + n;
 	q = b + l;
+	e = s + n;
 	while (q < e && isspace((unsigned char)*b)) {
 		b++;
-		q++;
+		q = b + l;
 	}
 	return isalpha((unsigned char)*q) ? *q : dflt;
 }

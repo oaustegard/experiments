@@ -53,7 +53,7 @@ otf_gsub(const unsigned char *t, int unused)
 			}
 			switch (ty) {
 			case 1:
-				otf_gsubtype1(sub, NULL);
+				otf_gsubtype1(sub, NULL, type);
 				break;
 			case 3:
 				otf_gsubtype3(sub, NULL);
@@ -96,7 +96,7 @@ otf_gsub(const unsigned char *t, int unused)
 								}
 								switch (ty2) {
 								case 1:
-									otf_gsubtype1(sub2, &c);
+									otf_gsubtype1(sub2, &c, type2);
 									break;
 								case 3:
 									otf_gsubtype3(sub2, &c);

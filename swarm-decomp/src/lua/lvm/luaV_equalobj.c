@@ -16,18 +16,20 @@
 #define pvalue(o) ((o)->value_.p)
 #define fvalue(o) ((o)->value_.f)
 #define uvalue(o) ((Udata *)(o)->value_.gc)
+/* fasttm(L, et, TM_EQ): gfasttm with tmname[TM_EQ] at l_G+0x140 */
+#define EQ_FASTTM(L, et) ((et) == NULL ? NULL : ((et)->flags & (1u << TM_EQ)) ? NULL : luaT_gettm(et, TM_EQ, ((TString **)((char *)(L)->l_G + 0x118))[TM_EQ]))
 #define l_isfalse(o) (((o)->tt_ == LUA_VFALSE) || (((o)->tt_ & 0xf) == 0))
 
 int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
   const TValue *tm;
-  if (ttypetag(t1) != ttypetag(t2)) {
+  if (ttypetag(t1) != ttypetag(t2)) {  /* not the same variant? */
     if (ttype(t1) != ttype(t2) || ttype(t1) != LUA_TNUMBER)
-      return 0;
-    else {
+      return 0;  /* only numbers can be equal with different variants */
+    else {  /* two numbers with different variants */
       lua_Integer i1, i2;
       return (luaV_tointegerns(t1, &i1, 0) &&
               luaV_tointegerns(t2, &i2, 0) &&
-              i2 == i1);
+              i1 == i2);
     }
   }
   switch (ttypetag(t1)) {
@@ -50,9 +52,9 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
         return 1;
       else if (L == NULL)
         return 0;
-      tm = fasttm(L, uvalue(t1)->metatable, TM_EQ);
+      tm = EQ_FASTTM(L, uvalue(t1)->metatable);
       if (tm == NULL)
-        tm = fasttm(L, uvalue(t2)->metatable, TM_EQ);
+        tm = EQ_FASTTM(L, uvalue(t2)->metatable);
       break;
     }
     case 5: /* table */ {
@@ -60,18 +62,18 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
         return 1;
       else if (L == NULL)
         return 0;
-      tm = fasttm(L, hvalue(t1)->metatable, TM_EQ);
+      tm = EQ_FASTTM(L, hvalue(t1)->metatable);
       if (tm == NULL)
-        tm = fasttm(L, hvalue(t2)->metatable, TM_EQ);
+        tm = EQ_FASTTM(L, hvalue(t2)->metatable);
       break;
     }
     default:
       return gcvalue(t1) == gcvalue(t2);
   }
-  if (tm == NULL)
-    return 0;
+  if (tm == NULL)  /* no TM? */
+    return 0;  /* objects are different */
   else {
-    luaT_callTMres(L, tm, t1, t2, L->top);
+    luaT_callTMres(L, tm, t1, t2, L->top);  /* call TM */
     return !l_isfalse(L->top);
   }
 }

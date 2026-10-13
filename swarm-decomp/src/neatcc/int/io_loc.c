@@ -8,44 +8,46 @@ static int io_loc(void)
 {
 	struct ic_ent *e = &ic[ic_n - 1];
 	struct ic_ent *f;
-	long x, y, p1, p2, p3, p4, p5;
-	int r;
+	long x, y, p[5];
+	long yy;
 	long lr;
 
 	if ((e->op & 0x110000) == 0x110000) {
-		r = ic_off(ic, e->a, &x, &y);
+		int r = ic_off(ic, e->a, &x, &y);
 		if (r)
 			return r;
+		yy = y;
 		f = &ic[x];
-		if ((f->op & 0x200400) == 0x200400) {
+		if (!(~f->op & 0x200400)) {
 			e->op = (e->op & ~0x300000) | 0x200000;
 			e->a = f->a;
-			e->b += y + f->b;
+			e->b += yy + f->b;
 			return 0;
 		}
-		lr = i_reg(e->op | 0x100000, &p1, &p2, &p3, &p4, &p5);
+		lr = i_reg(e->op | 0x100000, &p[0], &p[1], &p[2], &p[3], &p[4]);
 		if (lr)
 			return lr;
-		if (!i_imm(p3, y))
+		if (!i_imm(p[2], yy))
 			return 0;
 		e->a = x;
 		return e->b = y + e->b;
 	}
 	if ((e->op & 0x120000) == 0x120000) {
-		r = ic_off(ic, e->b, &x, &y);
+		int r = ic_off(ic, e->b, &x, &y);
 		if (r)
 			return r;
+		yy = y;
 		f = &ic[x];
-		if ((f->op & 0x200400) == 0x200400) {
+		if (!(~f->op & 0x200400)) {
 			e->op = (e->op & ~0x300000) | 0x200000;
 			e->b = f->a;
-			e->c += y + f->b;
+			e->c += yy + f->b;
 			return 0;
 		}
-		lr = i_reg(e->op | 0x100000, &p1, &p2, &p3, &p4, &p5);
+		lr = i_reg(e->op | 0x100000, &p[0], &p[1], &p[2], &p[3], &p[4]);
 		if (lr)
 			return lr;
-		if (!i_imm(p4, y))
+		if (!i_imm(p[3], yy))
 			return 0;
 		e->b = x;
 		return e->c = y + e->c;

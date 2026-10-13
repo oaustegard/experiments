@@ -11,7 +11,7 @@ static int char_type(const unsigned char *s)
 		if (t >= 0)
 			return t;
 		t = 0x14;
-		if ((c & ~0x20) != '^') {
+		if ((c & 0xdf) != '^') {
 			t = 0x11;
 			if (ispunct(c)) {
 				t = 0x10;

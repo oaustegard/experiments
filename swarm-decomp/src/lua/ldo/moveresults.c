@@ -44,7 +44,7 @@ static void moveresults (lua_State *L, StkId res, int nres, int wanted) {
   if (nres > wanted)
     nres = wanted;
   for (i = 0; i < nres; i++)
-    copyobj(res + i, firstresult + i);
+    setobjs2s(L, res + i, firstresult + i);
   for (; i < wanted; i++)
     setnilvalue(res + i);
   L->top = res + wanted;

@@ -11,7 +11,6 @@ static int eqn_boxuntil(struct box *b, int ps, char *text, char *until)
 {
 	struct box *x = NULL;
 	char *t;
-	int c;
 
 	for (;;) {
 		if (tok_get() == NULL)
@@ -19,8 +18,7 @@ static int eqn_boxuntil(struct box *b, int ps, char *text, char *until)
 		if (tok_jmp(until) == 0)
 			return 0;
 		t = tok_get();
-		c = (unsigned char) t[0];
-		if (c == '}' && t[1] == '\0')
+		if (strcmp("}", t) == 0)
 			return 1;
 		x = eqn_box(b->col, x ? b : NULL, ps, text);
 		box_merge(b, x, 0);

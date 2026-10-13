@@ -49,6 +49,9 @@
 #include "new_localvar.h"
 #include "newlabelentry.h"
 #include "LocVar.h"
+#include "reglevel.h"
+#include "labelstat.h"
+#include "testnext.h"
 #include <string.h>
 
 static void statement (LexState *ls) {
@@ -60,6 +63,7 @@ static void statement (LexState *ls) {
       break;
     }
     case 0x10a: {  /* IF */
+      FuncState *fs = ls->fs;
       int escapelist = -1;
       test_then_block(ls, &escapelist);
       while (ls->t.token == 0x104)
@@ -69,7 +73,7 @@ static void statement (LexState *ls) {
         block(ls);
       }
       check_match(ls, 0x105, 0x10a, line);
-      luaK_patchtohere(ls->fs, escapelist);
+      luaK_patchtohere(fs, escapelist);
       break;
     }
     case 0x101: {  /* BREAK */
@@ -99,6 +103,7 @@ static void statement (LexState *ls) {
       luaX_next(ls);
       switch (ls->t.token) {
         case '=': {  /* fornum */
+          FuncState *fs = ls->fs;
           expdesc e;
           base = fs->freereg;
           new_localvar(ls, luaX_newstring(ls, "(for state)", 11));
@@ -109,16 +114,16 @@ static void statement (LexState *ls) {
             error_expected(ls, '=');
           luaX_next(ls);
           subexpr(ls, &e, 0);
-          luaK_exp2nextreg(fs, &e);
+          luaK_exp2nextreg(ls->fs, &e);
           if (ls->t.token != ',')
             error_expected(ls, ',');
           luaX_next(ls);
           subexpr(ls, &e, 0);
-          luaK_exp2nextreg(fs, &e);
+          luaK_exp2nextreg(ls->fs, &e);
           if (ls->t.token == ',') {
             luaX_next(ls);
             subexpr(ls, &e, 0);
-            luaK_exp2nextreg(fs, &e);
+            luaK_exp2nextreg(ls->fs, &e);
           }
           else {
             luaK_int(fs, fs->freereg, 1);
@@ -129,8 +134,10 @@ static void statement (LexState *ls) {
           break;
         }
         case ',': case 0x10b: {  /* forlist */
+          FuncState *fs = ls->fs;
           expdesc e;
           int nvars = 5;
+          int line;
           int n;
           base = fs->freereg;
           new_localvar(ls, luaX_newstring(ls, "(for state)", 11));
@@ -138,13 +145,14 @@ static void statement (LexState *ls) {
           new_localvar(ls, luaX_newstring(ls, "(for state)", 11));
           new_localvar(ls, luaX_newstring(ls, "(for state)", 11));
           new_localvar(ls, varname);
-          while (ls->t.token == ',') {
-            luaX_next(ls);
+          while (testnext(ls, ',')) {
+            TString *name;
             if (ls->t.token != 0x123)
               error_expected(ls, 0x123);
-            new_localvar(ls, ls->t.seminfo.ts);
-            luaX_next(ls);
+            name = ls->t.seminfo.ts;
             nvars++;
+            luaX_next(ls);
+            new_localvar(ls, name);
           }
           if (ls->t.token != 0x10b)
             error_expected(ls, 0x10b);
@@ -152,9 +160,8 @@ static void statement (LexState *ls) {
           line = ls->linenumber;
           n = 1;
           subexpr(ls, &e, 0);
-          while (ls->t.token == ',') {
-            luaK_exp2nextreg(fs, &e);
-            luaX_next(ls);
+          while (testnext(ls, ',')) {
+            luaK_exp2nextreg(ls->fs, &e);
             subexpr(ls, &e, 0);
             n++;
           }
@@ -187,10 +194,13 @@ static void statement (LexState *ls) {
         luaX_next(ls);
         if (ls->t.token != 0x123)
           error_expected(ls, 0x123);
-        key.u.strval = ls->t.seminfo.ts;
-        luaX_next(ls);
-        key.f = key.t = -1;
-        key.k = VKSTR;
+        {
+          TString *name = ls->t.seminfo.ts;
+          luaX_next(ls);
+          key.f = key.t = -1;
+          key.u.strval = name;
+          key.k = VKSTR;
+        }
         luaK_indexed(fs, &v, &key);
       }
       if (ls->t.token == ':') {
@@ -204,34 +214,32 @@ static void statement (LexState *ls) {
       break;
     }
     case 0x109: {  /* GOTO */
-      FuncState *fs = ls->fs;
+      FuncState *fs;
+      int line;
       TString *name;
       Labeldesc *lb = NULL;
       int i;
       luaX_next(ls);
+      fs = ls->fs;
+      line = ls->linenumber;
       if (ls->t.token != 0x123)
         error_expected(ls, 0x123);
       name = ls->t.seminfo.ts;
       luaX_next(ls);
-      for (i = fs->firstlabel; i < ls->dyd->label.n; i++) {
-        if (ls->dyd->label.arr[i].name == name) {
-          lb = &ls->dyd->label.arr[i];
-          break;
+      {
+        Dyndata *dyd = ls->dyd;
+        for (i = ls->fs->firstlabel; i < dyd->label.n; i++) {
+          if (dyd->label.arr[i].name == name) {
+            lb = &dyd->label.arr[i];
+            break;
+          }
         }
       }
       if (lb == NULL) {
         newlabelentry(ls, &ls->dyd->gt, name, line, luaK_jump(fs));
       }
       else {
-        int lblevel = 0;
-        int nvar = lb->nactvar;
-        while (nvar-- > 0) {
-          Vardesc *vd = &ls->dyd->actvar.arr[fs->firstlocal + nvar];
-          if (vd->vd.kind != 3) {
-            lblevel = vd->vd.ridx + 1;
-            break;
-          }
-        }
+        int lblevel = reglevel(fs, lb->nactvar);
         if (luaY_nvarstack(fs) > lblevel)
           luaK_codeABCk(fs, 0x36, lblevel, 0, 0, 0);
         luaK_patchlist(fs, luaK_jump(fs), lb->pc);
@@ -373,7 +381,7 @@ static void statement (LexState *ls) {
         subexpr(ls, &v, 0);
         if (v.k == VNIL)
           v.k = VFALSE;
-        luaK_goiftrue(fs, &v);
+        luaK_goiftrue(ls->fs, &v);
         condexit = v.f;
       }
       leaveblock(fs);
@@ -398,99 +406,22 @@ static void statement (LexState *ls) {
       break;
     }
     case 0x111: {  /* RETURN */
-      FuncState *fs = ls->fs;
-      expdesc e;
-      int nret;
-      int first = luaY_nvarstack(fs);
       luaX_next(ls);
-      if (block_follow(ls, 1) || ls->t.token == ';') {
-        nret = 0;
-      }
-      else {
-        nret = 1;
-        subexpr(ls, &e, 0);
-        while (ls->t.token == ',') {
-          luaK_exp2nextreg(fs, &e);
-          luaX_next(ls);
-          subexpr(ls, &e, 0);
-          nret++;
-        }
-        if (e.k == VCALL || e.k == VVARARG) {
-          luaK_setreturns(fs, &e, -1);
-          if (e.k == VCALL && nret == 1 && !fs->bl->insidetbc) {
-            fs->f->code[e.u.info] = (fs->f->code[e.u.info] & 0xffffff80) | 0x45;
-          }
-          nret = -1;
-        }
-        else {
-          if (nret == 1)
-            first = luaK_exp2anyreg(fs, &e);
-          else
-            luaK_exp2nextreg(fs, &e);
-        }
-      }
-      luaK_ret(fs, first, nret);
-      if (ls->t.token == ';')
-        luaX_next(ls);
+      retstat(ls);
       break;
     }
     case 0x115: {  /* WHILE */
-      FuncState *fs = ls->fs;
-      int whileinit;
-      int condexit;
-      BlockCnt bl;
-      luaX_next(ls);
-      whileinit = luaK_getlabel(fs);
-      {
-        expdesc v;
-        subexpr(ls, &v, 0);
-        if (v.k == VNIL)
-          v.k = VFALSE;
-        luaK_goiftrue(fs, &v);
-        condexit = v.f;
-      }
-      enterblock(fs, &bl, 1);
-      if (ls->t.token != 0x102)
-        error_expected(ls, 0x102);
-      luaX_next(ls);
-      block(ls);
-      luaK_patchlist(fs, luaK_jump(fs), whileinit);
-      check_match(ls, 0x105, 0x115, line);
-      leaveblock(fs);
-      luaK_patchtohere(fs, condexit);
+      whilestat(ls, line);
       break;
     }
     case 0x11f: {  /* DBCOLON: label */
       TString *name;
-      FuncState *fs;
       luaX_next(ls);
       if (ls->t.token != 0x123)
         error_expected(ls, 0x123);
       name = ls->t.seminfo.ts;
       luaX_next(ls);
-      if (ls->t.token != 0x11f)
-        error_expected(ls, 0x11f);
-      luaX_next(ls);
-      while (ls->t.token == ';' || ls->t.token == 0x11f)
-        statement(ls);
-      fs = ls->fs;
-      {
-        int i;
-        for (i = fs->firstlabel; i < ls->dyd->label.n; i++) {
-          Labeldesc *lb = &ls->dyd->label.arr[i];
-          if (lb->name == name) {
-            luaK_semerror(ls, luaO_pushfstring(ls->L,
-                "label '%s' already defined on line %d", name->contents, lb->line));
-          }
-        }
-      }
-      {
-        int last = 0;
-        int t = ls->t.token;
-        if (t == 0x103 || t == 0x104 || t == 0x105 || t == 0x120)
-          last = 1;
-        createlabel(ls, name, line, last);
-      }
+      labelstat(ls, name, line);
       break;
     }
     default: {  /* exprstat */

@@ -114,7 +114,7 @@ def main() -> int:
     import matplotlib.pyplot as plt
     plt.rcParams.update({"font.size": 10, "axes.edgecolor": GRID, "axes.labelcolor": INK2,
                          "xtick.color": INK2, "ytick.color": INK2, "text.color": INK})
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7.2), sharex=True, facecolor=SURFACE,
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9.6), sharex=True, facecolor=SURFACE,
                                    gridspec_kw={"height_ratios": [3, 2], "hspace": 0.12})
     for ax in (ax1, ax2):
         ax.set_facecolor(SURFACE)
@@ -147,7 +147,7 @@ def main() -> int:
     ax2.set_xlabel("minutes since the first launch (09:46Z, 2026-10-13)")
     fig.text(0.01, 0.005, "\n".join(f"{i}: {e['text'][:110]}".replace("$", r"\$") for i, e in enumerate(marks, 1)),
              fontsize=7.5, color=INK2, va="bottom")
-    fig.subplots_adjust(bottom=0.2, right=0.9)
+    fig.subplots_adjust(bottom=0.27, right=0.9)
     fig.savefig(out / "timeline.png", dpi=150, facecolor=SURFACE)
     plt.close(fig)
 
@@ -178,6 +178,57 @@ def main() -> int:
     fig.subplots_adjust(right=0.82, bottom=0.14)
     fig.savefig(out / "per_dollar.png", dpi=150, facecolor=SURFACE)
     plt.close(fig)
+
+    # what Haiku can and cannot do: solve rate by function size, and cost per flip by effort rung
+    feats_f, rungs_f = out / "features.json", out / "rungs.json"
+    if feats_f.exists() and rungs_f.exists():
+        feats = json.loads(feats_f.read_text())
+        edges = [16, 48, 128, 384]
+        labels = ["<16", "16-47", "48-127", "128-383", ">=384"]
+        def bi(n):
+            return next((i for i, e in enumerate(edges) if n < e), len(edges))
+        fig, (ax, bx) = plt.subplots(1, 2, figsize=(12, 4.6), facecolor=SURFACE, gridspec_kw={"wspace": 0.35})
+        width = 0.38
+        for j, t in enumerate(TARGETS):
+            n = [0] * 5
+            s_ = [0] * 5
+            for r in feats:
+                if r["target"] == t:
+                    k = bi(r["insns"])
+                    n[k] += 1
+                    s_[k] += r["status"] == "PASS"
+            rate = [100 * a / b if b else 0 for a, b in zip(s_, n)]
+            xs = [i + (j - 0.5) * width for i in range(5)]
+            bars = ax.bar(xs, rate, width=width - 0.04, color=COLOR[t], label=TARGETS[t])
+            for x, r_, nn in zip(xs, rate, n):
+                ax.text(x, r_ + 1.5, f"{r_:.0f}%", ha="center", fontsize=8, color=INK)
+                ax.text(x, -9, f"n={nn}", ha="center", fontsize=7, color=INK2)
+        ax.set_xticks(range(5), labels)
+        ax.set_xlabel("function size (instructions at -O2)")
+        ax.set_ylabel("matched (%)")
+        ax.set_ylim(-12, 110)
+        ax.set_title("Solve rate by function size", loc="left", color=INK, fontsize=11)
+        ax.legend(loc="upper right", frameon=False, fontsize=8)
+        rungs = json.loads(rungs_f.read_text())
+        order = ["haiku/default", "haiku/high", "haiku/high/feature", "haiku/xhigh", "haiku/max"]
+        names = ["default", "high", "high +\nfeature", "xhigh", "max"]
+        vals = [rungs[k]["usd"] / rungs[k]["flips"] if rungs.get(k, {}).get("flips") else 0 for k in order]
+        bx.bar(range(len(order)), vals, color=COLOR["neat"], width=0.6)
+        for i, (v, k) in enumerate(zip(vals, order)):
+            bx.text(i, v * 1.12, f"${v:.2f}\n({rungs[k]['flips']} flips)", ha="center", fontsize=8, color=INK)
+        bx.set_yscale("log")
+        bx.set_ylim(0.02, 20)
+        bx.set_xticks(range(len(order)), names)
+        bx.set_xlabel("Haiku 5.5 effort rung")
+        bx.set_ylabel("USD per function flipped (log)")
+        bx.set_title("Cost per flip by effort, both targets", loc="left", color=INK, fontsize=11)
+        for a_ in (ax, bx):
+            a_.set_facecolor(SURFACE)
+            a_.grid(axis="y", color=GRID, linewidth=0.8)
+            a_.spines[["top", "right"]].set_visible(False)
+        fig.subplots_adjust(bottom=0.16, left=0.07, right=0.98)
+        fig.savefig(out / "haiku_limits.png", dpi=150, facecolor=SURFACE)
+        plt.close(fig)
     print(json.dumps({t: {k: v for k, v in r.items() if not isinstance(v, dict)} for t, r in rep.items()}, indent=1))
     return 0
 

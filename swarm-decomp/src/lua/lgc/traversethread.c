@@ -1,6 +1,6 @@
 #include "traversethread.h"
 #include "fn_luaD_shrinkstack.h"
-#define LINKGRAY(o, pnext, list) do { GCObject *lg_o_ = (GCObject *)(o); set2gray(lg_o_); *(pnext) = *(list); *(list) = lg_o_; } while (0)
+#define LINKGRAY(o, pnext, list) do { GCObject *lg_o_ = (GCObject *)(o); *(pnext) = *(list); *(list) = lg_o_; set2gray(lg_o_); } while (0)
 #include "reallymarkobject.h"
 
 #define EXTRA_STACK 5
@@ -21,7 +21,7 @@ static int traversethread(global_State *g, lua_State *th) {
       luaD_shrinkstack(th);
     for (o = th->top; o < th->stack_last + EXTRA_STACK; o++)
       setnilvalue(s2v(o));
-    if (th->twups != th && th->openupval != NULL) {
+    if (th->twups == th && th->openupval != NULL) {
       th->twups = g->twups;
       g->twups = th;
     }

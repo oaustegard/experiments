@@ -23,6 +23,7 @@ static int fmt_fillwords(struct fmt *f, int force)
 	long *costs;
 	long cost, c;
 	int *B, *C;
+	int brk[0x40], nbrk;
 
 	ce = *nreg(map(".ce"));
 	if (ce)
@@ -100,10 +101,13 @@ hy_done:
 		if (nl > 0)
 			memset(B + 1, 0xff, nl * 4);
 		/* the line-breaking DP over the words is not yet written */
-		cost = fmtb_cost(w, width, avail, lim, C, nl);
+		cost = fmtb_cost(w, width, avail, lim, C, nl, nofill);
+		nbrk = fmta_break(B, nl, brk, lim);
 		free(costs);
 		free(C);
 		free(B);
+		if (cost < 0)	/* placeholder: the DP compares costs here */
+			return 0;
 	}
 	(void)a74;
 	(void)a78;
@@ -113,7 +117,7 @@ hy_done:
 	if (fmt_confchanged(f))
 		fmt_confupdate(f);
 	if (force)
-		cost = fmtb_cost(w, width, avail, lim, C, nl);
+		cost = fmtb_cost(w, width, avail, lim, C, nl, nofill);
 
 	cost = 0;
 	nl = 0;

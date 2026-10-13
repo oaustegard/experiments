@@ -9,18 +9,13 @@ static int font_rulematch(struct font *f, struct frule *r, int *in, int nin, int
 		return 0;
 	if (f->feat[r->feat] == 0)
 		return 0;
-	if (r->n <= 0)
-		return pos >= 0;
-	for (i = 0; i < r->n; i++)
-		if (!(e[i].flags & 4))
-			break;
+	for (i = 0; i < r->n && (e[i].flags & 4); i++)
+		;
 	if (pos < i)
 		return 0;
-	if (i != r->n) {
-		k = 0;
-		for (j = i; j < r->n; j++) {
-			if (e[j].flags & 2)
-				continue;
+	k = 0;
+	for (j = i; j < r->n; j++) {
+		if (!(e[j].flags & 2)) {
 			if (k >= nin)
 				return 0;
 			if (e[j].flags & 8) {

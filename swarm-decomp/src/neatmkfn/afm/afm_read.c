@@ -12,10 +12,9 @@ afm_read(void)
 	char lig1[256] = {0}, lig2[256] = {0};
 	char wx[256] = {0};
 	char key[256] = {0};
-	char bb[4][256] = {{"0"}, {"0"}, {"0"}, {"0"}};
+	char bb0[256] = {"0"}, bb1[256] = {"0"}, bb2[256] = {"0"}, bb3[256] = {"0"};
 	char line[1024];
 	char *p;
-	int k, n, c, cnt;
 
 	for (;;) {
 		if (fgets(line, 1024, stdin) == NULL)
@@ -46,8 +45,10 @@ afm_read(void)
 			} else if (key[0] == 'N' && key[1] == 0) {
 				p = afm_charfield(p, name);
 			} else if (key[0] == 'B' && key[1] == 0) {
-				for (n = 0; n < 4; n++)
-					p = afm_charfield(p, bb[n]);
+				p = afm_charfield(p, bb0);
+				p = afm_charfield(p, bb1);
+				p = afm_charfield(p, bb2);
+				p = afm_charfield(p, bb3);
 			} else if (key[0] == 'L' && key[1] == 0) {
 				p = afm_charfield(p, lig1);
 				p = afm_charfield(p, lig2);
@@ -57,13 +58,8 @@ afm_read(void)
 		}
 		if (name[0] == 0 || code[0] == 0 || wx[0] == 0)
 			continue;
-		k = 72000 / mkfn_res;
-		c = (int)strtol(code, NULL, 10);
-		cnt = (int)strtol(wx, NULL, 10);
-		cnt = 10 * (cnt + k / 20) / k;
-		mkfn_char(name, -1, c, cnt,
-			(int)strtol(bb[0], NULL, 10), (int)strtol(bb[1], NULL, 10),
-			(int)strtol(bb[2], NULL, 10), (int)strtol(bb[3], NULL, 10));
+		mkfn_char(name, (int)strtol(code, NULL, 10), 0, afm_units(wx),
+			afm_units(bb0), afm_units(bb1), afm_units(bb2), afm_units(bb3));
 	}
 	mkfn_header(fontname);
 	for (;;) {
@@ -83,10 +79,7 @@ afm_read(void)
 			return 0;
 		if (sscanf(line, "KPX %s %s %s", lig1, lig2, wx) != 3)
 			continue;
-		k = 72000 / mkfn_res;
-		cnt = (int)strtol(wx, NULL, 10);
-		cnt = 10 * (cnt + k / 20) / k;
-		mkfn_kern(lig1, lig2, cnt);
+		mkfn_kern(lig1, lig2, afm_units(wx));
 	}
 	return 0;
 }

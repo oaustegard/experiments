@@ -6,35 +6,37 @@
 
 static int skipws(void)
 {
+	long n;
 	char *s;
-	long n, p, q;
-	int nl;
+	long p, q;
+	unsigned char nl;
 	unsigned char c;
 
 top:
-	if (off == len)
+	if (len == off)
 		goto refill;
 	if (len <= off)
 		goto chk;
 ws:
+	if (off == len)
+		goto refill;
 	nl = 0;
 	p = off;
-	goto test;
-loop:
-	p++;
-	nl = 1;
-	if (p == len) {
-		off = len;
-		goto top;
+	while (isspace(buf[p])) {
+		p++;
+		nl = 1;
+		if (p == len) {
+			off = len;
+			goto top;
+		}
+		q = p;
 	}
-	q = p;
-test:
-	if (isspace(buf[p]))
-		goto loop;
 	if (nl)
 		off = q;
-	if (p == len)
+	if (p == len) {
+		off = p;
 		goto top;
+	}
 chk:
 	c = buf[off];
 	if (c == '\\') {
@@ -46,6 +48,17 @@ chk:
 	if (c != '/')
 		return 0;
 	c = buf[off + 1];
+	if (c == '*') {
+		off++;
+		for (p = off; p < len; p++) {
+			if (buf[p] == '*' && buf[p + 1] == '/') {
+				off = p + 2;
+				goto top;
+			}
+		}
+		off = p;
+		goto top;
+	}
 	if (c == '/') {
 		for (p = off + 1; p < len; p++) {
 			if (buf[p] == '\n')
@@ -56,23 +69,7 @@ chk:
 		off = p;
 		goto top;
 	}
-	if (c != '*')
-		return 0;
-	off++;
-	if (off >= len)
-		goto top;
-	p = off;
-	for (;;) {
-		if (buf[p] == '*' && buf[p + 1] == '/') {
-			off = p + 2;
-			goto top;
-		}
-		p++;
-		if (p == len) {
-			off = p;
-			goto top;
-		}
-	}
+	return 0;
 
 refill:
 	n = 0;

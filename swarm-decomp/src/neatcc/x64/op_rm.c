@@ -1,10 +1,10 @@
 static void op_rm(int op, int r, int m, int disp, int sz)
 {
-	int mod = ((char) disp != disp) + 1;
-	int n = (char) disp != disp ? 4 : 1;
-	int rm = m & 7;
-	int r8 = (r << 3) & 0x38;
-	int reg = r8 | rm;
+	long mod = ((char) disp != disp) + 1;
+	long n = (char) disp != disp ? 4 : 1;
+	long rm = m & 7;
+	long r8 = (r << 3) & 0x38;
+	long reg = r8 | rm;
 
 	if (disp == 0 && rm != 5) {
 		op_x(op, r, m, sz);

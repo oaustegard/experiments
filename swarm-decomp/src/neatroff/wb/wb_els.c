@@ -5,8 +5,7 @@
 
 void wb_els(struct wb *w, int n)
 {
-	if (w->f2068 && w->f206c)
-		wb_flushsub(w);
+	wb_flushsub(w);
 	if (w->a38[1] < n)
 		w->a38[1] = n;
 	if (w->a38[0] > n)

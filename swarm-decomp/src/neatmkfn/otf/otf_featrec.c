@@ -1,7 +1,7 @@
 #include <string.h>
 #include "otf_feat.h"
 
-#define U16(p) (((p)[0] << 8) | (p)[1])
+#define U16(p) ((int)__builtin_bswap16(*(const unsigned short *)(p)))
 
 static int
 otf_featrec(const unsigned char *t, const unsigned char *rec, const char *name,

@@ -23,8 +23,6 @@ int main(int argc, char **argv)
 {
 	int i, fd = 0;
 	char oname[128] = {0};
-	int ebp;
-	unsigned char c;
 
 	cpp_define("__STDC__", "");
 	cpp_define("__linux__", "");
@@ -43,28 +41,26 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] != '-')
 			break;
-		c = argv[i][1];
-		if (c == 'I') {
-			if (!argv[i][2]) {
+		if (argv[i][1] == 'I') {
+			if (argv[i][2]) {
+				cpp_path(argv[i] + 2);
+			} else {
 				i++;
 				cpp_path(argv[i]);
-			} else {
-				cpp_path(argv[i] + 2);
 			}
-			c = argv[i][1];
 		}
-		if (c == 'O') {
-			if (!argv[i][2])
+		if (argv[i][1] == 'O') {
+			if (!argv[i][2]) {
 				ncc_opt = 2;
-			else
-				ncc_opt = strtol(argv[i] + 2, 0, 10);
-			continue;
+				continue;
+			}
+			ncc_opt = strtol(argv[i] + 2, 0, 10);
 		}
-		if (c == 'E') {
+		if (argv[i][1] == 'E') {
 			fd = 1;
 			continue;
 		}
-		if (c == 'D') {
+		if (argv[i][1] == 'D') {
 			char *name = argv[i] + 2;
 			char *val = strchr(name, '=');
 			if (val) {
@@ -74,18 +70,16 @@ int main(int argc, char **argv)
 				val = "";
 			}
 			cpp_define(name, val);
-			c = argv[i][1];
 		}
-		if (c == 'o') {
+		if (argv[i][1] == 'o') {
 			char *arg = argv[i] + 2;
 			if (!argv[i][2]) {
 				i++;
 				arg = argv[i];
 			}
 			strcpy(oname, arg);
-			c = argv[i][1];
 		}
-		if (c == 'h') {
+		if (argv[i][1] == 'h') {
 			printf("Usage: %s [options] source\n", argv[0]);
 			__builtin_putchar(10);
 			puts("Options:");
@@ -118,7 +112,7 @@ int main(int argc, char **argv)
 
 	out_init(0);
 	while (*tok_see()) {
-		if (strcmp(tok_see(), "typedef") == 0) {
+		if (strcmp("typedef", tok_see()) == 0) {
 			char *tk;
 			tok_get();
 			readdefs(typedefdef, 0);
@@ -130,6 +124,7 @@ int main(int argc, char **argv)
 		}
 		int storage = 0;
 		struct type t;
+		int ebp;
 
 		ebp = basetype(&t, &storage);
 		if (ebp) {
@@ -144,7 +139,7 @@ int main(int argc, char **argv)
 				struct decl d;
 
 				memset(&d, 0, sizeof d);
-				if (readname(d.name, &d, &t))
+				if (readname(&d.t, d.name, &t))
 					break;
 				if (ebp && tok_grp() == 'a')
 					err("type missing!\n");
@@ -158,11 +153,12 @@ int main(int argc, char **argv)
 		if (*tok_see() == ';' && !tok_see()[1])
 			tok_get();
 	}
+	tok_get();
 
 	if (!oname[0]) {
 		char *p = argv[i];
 		char *b = strrchr(p, '/');
-		int len;
+		long len;
 		if (b)
 			p = b + 1;
 		len = stpcpy(oname, p) - oname;

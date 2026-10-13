@@ -15,12 +15,9 @@ long *ic_lastuse(struct ic_ent *tab, long n)
 		op = e->op;
 		d = op & 0x200;
 		if (!use[i]) {
-			if (op & 0x107f0) {
-				if (!d)
-					continue;
-				use[i] = -1;
-			} else
-				use[i] = -1;
+			if (!d && (op & 0x107f0))
+				continue;
+			use[i] = -1;
 		}
 		if (k > 0) {
 			if (!use[e->a])

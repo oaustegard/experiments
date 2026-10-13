@@ -2427,6 +2427,32 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A byte-matching decompilation runner has to compare relocations by target, and has to be
+  validated on the original source.** Compile with `-ffunction-sections -fdata-sections` so every
+  function and variable has its own section, zero the relocation fields, and compare each
+  relocation by what it points at (named symbol, string contents, constant bytes, variable name),
+  never by address; otherwise a reordered string literal fails a correct function. Then feed the
+  original source through the same TU generator: swarm-decomp matched 2,699/2,699 at `-O0` and
+  1,768/1,768 at `-O2`, and `-O1` source against `-O2` targets matched 139/1,768 as a negative
+  control. (`swarm-decomp/tests/lib/objcmp.py`, `swarm-decomp/README.md` Method)
+
+- **When tests depend on each other, a gate that merges only flips throws away the progress.** In
+  decompilation a caller matches only once its static callees exist, and gcc emits a static only
+  once something calls it; a flip-only gate discarded 125 partial workers, 39% of spend, 103 of
+  them blocked on a missing callee. Emit a continuous per-test measure (byte-match fraction) and
+  merge a no-flip candidate that raises it with zero regressions (`swarming-failing-tests`
+  `gate.partial_credit`). Expect workers to force the dependency instead: within 17 minutes 31
+  files carried `__attribute__((used))`/`noinline`/`noipa`; reject compiler-steering attributes in
+  the runner from the start. (`swarm-decomp/README.md` Findings 7, 8)
+
+- **To tell memory from decompilation, compare only what the binary does not fix.** Code bytes fix
+  control flow, operations and symbol names; they do not fix local names, struct and field names,
+  comments or formatting, and string contents come from `.rodata`. Collapse literals to `""`,
+  drop symbol names, then measure verbatim lines, free-identifier recall and copied comments, with
+  an obscure target as the control. Lua 5.4.7 against neat*: 249/673 vs 5/796 matched functions
+  flagged, 44 vs 0 with upstream comments, free-identifier recall 0.689 vs 0.303; the 5 neat*
+  flags were all dictated by the binary. (`swarm-decomp/pipeline/contamination.py`)
+
 - **Run a closed-book arm before scoring document QA on a Wikipedia-derived
   set.** On 20 hard HotpotQA questions with no document, Opus 5.5 answered 17
   and Sonnet 5 answered 15, so only 3 to 5 questions tested reading at all, and

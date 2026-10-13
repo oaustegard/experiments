@@ -21,6 +21,7 @@
 static void pdf_dictcopy(unsigned char *s, int end, int i, struct sbuf *sb)
 {
 	struct sbuf *sb2;
+	char *q;
 	int n, k, v, ref, id, len;
 
 	n = 0;
@@ -46,7 +47,8 @@ static void pdf_dictcopy(unsigned char *s, int end, int i, struct sbuf *sb)
 					obj_off[id] = pdf_pos;
 					pdfout("%d 0 obj\n", id);
 					len = sbuf_len(sb2);
-					fwrite(sbuf_buf(sb2), len, 1, stdout);
+					q = sbuf_buf(sb2);
+					fwrite(q, len, 1, stdout);
 					pdf_pos += len;
 					pdfout("endobj\n\n");
 					sbuf_free(sb2);

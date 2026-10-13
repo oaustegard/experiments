@@ -13,10 +13,9 @@ static char *afm_charfield(char *s, char *d)
 		*d++ = c;
 		c = *++p;
 	}
-	for (;;) {
-		while (isspace(*p))
-			p++;
-		if (*p != ';')
+	while (1) {
+		c = *p;
+		if (!isspace(c) && c != ';')
 			break;
 		p++;
 	}

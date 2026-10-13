@@ -12,6 +12,8 @@ static int jumpstr(void)
 			if (buf[i] == '\\')
 				i++;
 		}
+		cur = i + 1;
+		return 0;
 	} else if (buf[cur] == '"') {
 		i = cur;
 		while (++i < len) {
@@ -20,8 +22,8 @@ static int jumpstr(void)
 			if (buf[i] == '\\')
 				i++;
 		}
-	} else
-		return 1;
-	cur = i + 1;
-	return 0;
+		cur = i + 1;
+		return 0;
+	}
+	return 1;
 }

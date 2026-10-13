@@ -12,7 +12,7 @@ int dict_prefix(struct dict *d, const char *key, int *pn)
 
 	p = key + 1;
 	h = (unsigned char)*key;
-	if (d->maxlen > 1) {
+	if ((int)d->maxlen > 1) {
 		e = key + (unsigned int)d->maxlen;
 		while (*p) {
 			h = h * 33 + (unsigned char)*p;
@@ -22,13 +22,15 @@ int dict_prefix(struct dict *d, const char *key, int *pn)
 		}
 	}
 	r = iset_get(d->set, h & 0x3ff);
-	if (!r)
-		return d->dflt;
-	for (;;) {
+	while (r) {
+		int n;
+
 		i = r[++*pn];
 		if (i < 0)
-			return d->dflt;
-		if (strncmp(d->keys[i], key, strlen(d->keys[i])) == 0)
+			break;
+		n = strlen(d->keys[i]);
+		if (strncmp(d->keys[i], key, n) == 0)
 			return d->vals[i];
 	}
+	return d->dflt;
 }

@@ -6,11 +6,13 @@
 #include "entersweep.h"
 #include "setpause.h"
 
-static void stepgenfull(lua_State *L, global_State *g) {
+static void stepgenfull(lua_State *L, global_State *g, lu_mem lastatomic) {
   lu_mem newatomic;
-  lu_mem lastatomic = g->lastatomic;
-  while (g->gcstate != GCSpropagate)
-    singlestep(L);
+  {
+    global_State *gl = G(L);
+    while (gl->gcstate != GCSpropagate)
+      singlestep(L);
+  }
   newatomic = atomic(L);
   if (newatomic < lastatomic + (lastatomic >> 3)) {
     atomic2gen(L, g);

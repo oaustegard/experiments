@@ -9,7 +9,9 @@ static int
 ggrp_make(int *g, int n)
 {
 	static char str[16];
+	char *s;
 	int k, i;
+	int *p;
 
 	k = ggrp_find(g, n);
 	if (k >= 0)
@@ -20,9 +22,13 @@ ggrp_make(int *g, int n)
 	if (n > 0) {
 		memcpy(ggrp_g[k], g, n * sizeof *g);
 		printf("ggrp %d %d", k, n);
-		for (i = 0; i < n; i++) {
-			printf(" %s", (!mkfn_byname && strlen(glyph_name[g[i]]) > 3
-			    ? (sprintf(str, "%d", g[i]), str) : glyph_name[g[i]]));
+		for (i = 0, p = g; i < n; i++, p++) {
+			s = glyph_name[*p];
+			if (!mkfn_byname && strlen(s) > 3) {
+				sprintf(str, "%d", *p);
+				s = str;
+			}
+			printf(" %s", s);
 		}
 	} else
 		printf("ggrp %d %d", k, n);

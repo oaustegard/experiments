@@ -8,8 +8,7 @@ int tok_eqn(void)
 
 	tok_cursep = 1;
 	sbuf_init(&sb);
-	c = src_next();
-	while (c > 0) {
+	while ((c = src_next()) > 0) {
 		if (c == eqn_beg) {
 			puts(".eo");
 			s = (unsigned char *)sbuf_buf(&sb);
@@ -21,42 +20,44 @@ int tok_eqn(void)
 			return 0;
 		}
 		sbuf_add(&sb, c);
-		if (c == '\n') {
-			if (tok_part) {
-				printf(".lf %d\n", src_lineget());
-				s = (unsigned char *)sbuf_buf(&sb);
-				printf("\\*%s%s", escarg("10"), s);
-				tok_part = 0;
-			} else {
-				printf("%s", sbuf_buf(&sb));
-				s = (unsigned char *)sbuf_buf(&sb);
-				if (*s == '.') {
-					p = s + 1;
-					while (isspace(*p))
-						p++;
-					if (*p == 'l' && p[1] == 'f') {
-						q = p + 2;
-						while (isspace(*q))
-							q++;
-						if (isdigit(*q))
-							src_lineset(strtol((char *)q, 0, 10));
-					}
-				}
-				s = (unsigned char *)sbuf_buf(&sb);
-				if (*s == '.') {
-					p = s + 1;
-					while (isspace(*p))
-						p++;
-					if (*p == 'E' && p[1] == 'Q' && tok_req(0) == 0) {
-						tok_eqen = 1;
-						sbuf_done(&sb);
-						return 0;
-					}
+		if (c != '\n')
+			continue;
+		if (!tok_part) {
+			printf("%s", sbuf_buf(&sb));
+			s = (unsigned char *)sbuf_buf(&sb);
+			if (*s != '.')
+				goto nodot;
+			p = s + 1;
+			while (isspace(*p))
+				p++;
+			if (*p == 'l' && p[1] == 'f') {
+				q = p + 2;
+				while (isspace(*q))
+					q++;
+				if (isdigit(*q))
+					src_lineset(strtol((char *)q, 0, 10));
+			}
+nodot:
+			;
+			s = (unsigned char *)sbuf_buf(&sb);
+			if (*s == '.') {
+				p = s + 1;
+				while (isspace(*p))
+					p++;
+				if (*p == 'E' && p[1] == 'Q' && tok_req(0) == 0) {
+					tok_eqen = 1;
+					sbuf_done(&sb);
+					return 0;
 				}
 			}
-			sbuf_cut(&sb, 0);
 		}
-		c = src_next();
+		if (tok_part) {
+			printf(".lf %d\n", src_lineget());
+			s = (unsigned char *)sbuf_buf(&sb);
+			printf("\\*%s%s", escarg("10"), s);
+			tok_part = 0;
+		}
+		sbuf_cut(&sb, 0);
 	}
 	sbuf_done(&sb);
 	return 1;

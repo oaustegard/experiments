@@ -6,7 +6,7 @@
 #include "fn_luaT_gettm.h"
 #include <string.h>
 
-static int traversetable(global_State *g, Table *h) {
+static unsigned int traversetable(global_State *g, Table *h) {
   const char *weakkey, *weakvalue;
   const TValue *mode = (h->metatable == NULL || (h->metatable->flags & (1u << TM_MODE)))
                          ? NULL

@@ -20,7 +20,7 @@ void luaC_checkfinalizer (lua_State *L, GCObject *o, Table *mt) {
     if (g->gcstate >= GCSswpallgc && g->gcstate <= GCSswpend) {
       makewhite(g, o);
       if (g->sweepgc == &o->next)
-        g->sweepgc = sweeptolive(L, g->sweepgc);
+        g->sweepgc = sweeptolive_fin(L, g->sweepgc);
     }
     else
       correctpointers(g, o);

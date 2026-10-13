@@ -8,17 +8,13 @@ in_nargs(void)
 	char **a;
 	int n = 0, i;
 
-	if (p == NULL)
-		return 0;
-	while (p->args == NULL) {
+	while (p && p->args == NULL)
 		p = p->prev;
-		if (p == NULL)
-			return 0;
-	}
+	if (p == NULL)
+		return n;
 	a = p->args;
-	if (a == NULL)
-		return 0;
-	for (i = 1; a[i - 1]; i++)
+	i = 0;
+	while (a != NULL && a[++i - 1])
 		n = i;
 	return n;
 }

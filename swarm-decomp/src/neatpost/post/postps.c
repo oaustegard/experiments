@@ -2,12 +2,12 @@
 
 static void postps(void)
 {
-	char word[2048];
+	char word[1008];
 	char line[1008];
-	char arg[128];
+	char arg[4096];
 	char *p;
 	int *ip;
-	int c, n, sz, r, n1, n2;
+	int c, n, sz, r;
 
 	nextword(word);
 	p = line;
@@ -23,23 +23,26 @@ static void postps(void)
 		out("%s\n", line);
 	} else if (strcmp(word, "ps") == 0) {
 		out("%s\n", line);
-	} else if (strcmp(word, "rotate") == 0) {
+	}
+	if (strcmp(word, "rotate") == 0) {
 		outrotate(strtol(line, NULL, 10));
-	} else if (strcmp(word, "eps") == 0 || strcmp(word, "pdf") == 0) {
+	}
+	if (strcmp(word, "eps") == 0 || strcmp(word, "pdf") == 0) {
+		int n1, n2;
+
 		r = sscanf(strcut(arg, line), "%d %d", &n1, &n2);
-		if (r <= 0) {
+		if (r <= 0)
 			n1 = 0;
+		if (r <= 1)
 			n2 = 0;
-		} else if (r == 1) {
-			n2 = 0;
-		}
 		if (arg[0]) {
 			if (strcmp(word, "eps") == 0)
 				outeps(arg, n1, n2);
 			else if (strcmp(word, "pdf") == 0)
 				outpdf(arg, n1, n2);
 		}
-	} else if (strcmp(word, "name") == 0) {
+	}
+	if (strcmp(word, "name") == 0) {
 		n = name_n;
 		if (n == name_sz) {
 			sz = n ? 2 * n : 128;
@@ -64,7 +67,8 @@ static void postps(void)
 		r = sscanf(strcut(p, line), "%d %d", name_page + n, name_offset + n);
 		if (*p && r > 0)
 			name_n = n + 1;
-	} else if (strcmp(word, "mark") == 0) {
+	}
+	if (strcmp(word, "mark") == 0) {
 		n = mark_n;
 		if (n == mark_sz) {
 			sz = n ? 2 * n : 128;
@@ -94,11 +98,15 @@ static void postps(void)
 		r = sscanf(strcut(p, line), "%d %d %d", mark_page + n, mark_offset + n, mark_level + n);
 		if (*p && r > 0)
 			mark_n = n + 1;
-	} else if (strcmp(word, "link") == 0) {
+	}
+	if (strcmp(word, "link") == 0) {
+		int n1, n2;
+
 		r = sscanf(strcut(arg, line), "%d %d", &n1, &n2);
 		if (arg[0] && r == 2)
 			outlink(arg, n1, n2);
-	} else if (strcmp(word, "info") == 0) {
+	}
+	if (strcmp(word, "info") == 0) {
 		p = line;
 		while (*p == ' ')
 			p++;
@@ -112,15 +120,18 @@ static void postps(void)
 		while (*p == ' ')
 			p++;
 		outinfo(arg);
-	} else if (strcmp(word, "set") == 0) {
+	}
+	if (strcmp(word, "set") == 0) {
 		char key[128];
 
 		r = sscanf(line, "%127s %127s", key, arg);
 		if (r == 2)
 			outset(key, arg);
-	} else if (strcmp(word, "BeginObject") == 0) {
+	}
+	if (strcmp(word, "BeginObject") == 0) {
 		drawmbeg(line);
-	} else if (strcmp(word, "EndObject") == 0) {
+	}
+	if (strcmp(word, "EndObject") == 0) {
 		drawmend(line);
 	}
 }

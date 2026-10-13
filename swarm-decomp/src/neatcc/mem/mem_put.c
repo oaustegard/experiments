@@ -4,8 +4,13 @@ void mem_put(struct mem *m, char *s, long n)
 {
 	long off = m->len;
 
-	while (m->len + off + n + 1 >= m->cap)
+	for (;;) {
+		long len = m->len;
+
+		if (len + off + n + 1 < m->cap)
+			break;
 		mem_extend(m);
+	}
 	memcpy(m->buf + off, s, n);
 	m->len += n;
 }

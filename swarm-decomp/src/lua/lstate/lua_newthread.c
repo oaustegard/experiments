@@ -1,3 +1,4 @@
+#include <string.h>
 #include "lua.h"
 #include "lstate.h"
 #include "fn_luaC_newobjdt.h"
@@ -33,7 +34,7 @@ lua_State *lua_newthread (lua_State *L) {
   L1->basehookcount = L->basehookcount;
   L1->hook = L->hook;
   L1->hookcount = L1->basehookcount;
-  *((void **)((char *)L1 - sizeof(void *))) = *((void **)((char *)g->mainthread - sizeof(void *)));
+  memcpy(lua_getextraspace(L1), lua_getextraspace(g->mainthread), LUA_EXTRASPACE);
   stack_init(L1, L);
   return L1;
 }

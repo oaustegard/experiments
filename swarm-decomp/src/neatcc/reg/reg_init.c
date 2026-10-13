@@ -8,9 +8,10 @@
 void reg_init(struct ic_ent *tab, long n)
 {
 	struct ic_ent *p;
-	long i, j, k, q, s, a, b, x, c, lo, hi, key, w, mask, count;
-	int nl = loc_n, grew = 0, *pref, *order, regs[4], nregs = 0, r10, start, t;
-	char *seen, ok = 1;
+	long i, j, k, q, a, b, x, c, lo, hi, key, w, mask, count;
+	int nl = loc_n, grew = 0, *pref, *order, regs[4], nregs = 0, r10, start, t, s;
+	char *seen;
+	int ok = 1;
 
 	if (n > 0) {
 		for (i = 0; i < n; i++) {
@@ -38,7 +39,7 @@ void reg_init(struct ic_ent *tab, long n)
 		for (i = 0; i < loc_n; i++)
 			loc_ptr[i] = !opt(1);
 	if (n > 0) {
-		for (p = tab; p != tab + n; p++) {
+		for (p = tab; p < tab + n; p++) {
 			k = p->op & 0xffffff;
 			if (k == 0x210000 || k == 0x200400) {
 				a = p->a;
@@ -63,15 +64,17 @@ void reg_init(struct ic_ent *tab, long n)
 	free(pref);
 	ok = 1;
 	if (n > 0) {
-		for (p = tab; p != tab + n; p++)
+		for (i = 0; i < n; i++) {
+			p = tab + i;
 			if (p->op & 0x200)
 				ok = 0;
+		}
 	}
 	dst_head = malloc(n * 8);
 	dst_next = malloc(n * 8);
-	memset(dst_head, 0xff, n * 8);
-	memset(dst_next, 0xff, n * 8);
 	if (n > 0) {
+		memset(dst_head, 0xff, n * 8);
+		memset(dst_next, 0xff, n * 8);
 		for (p = tab, i = 0; i < n; i++, p++) {
 			if (p->op & 0x7000) {
 				c = p->c;
@@ -81,44 +84,45 @@ void reg_init(struct ic_ent *tab, long n)
 			}
 		}
 	}
-	if (loc_n > 0) {
-		for (i = 0; i < loc_n; i++) {
-			if (loc_ptr[i])
-				continue;
-			if (opt(2)) {
-				seen = calloc(n, 1);
-				for (k = 0; k < n; k++) {
-					p = tab + k;
-					if ((p->op & 0xffffff) != 0x210000 || p->a != i || seen[k])
-						continue;
-					lo = k;
-					hi = k + 1;
-					count = reg_region(tab, i, k, &lo, &hi, seen, n);
-					rgn_add(i, lo, hi, count);
-				}
-				for (k = 0; k < n; k++) {
-					p = tab + k;
-					if ((p->op & 0xffffff) != 0x220000 || p->b != i || seen[k])
-						continue;
-					rgn_add(i, k, k + 1, 1);
-				}
-				free(seen);
+	for (i = 0; i < loc_n; i++) {
+		if (loc_ptr[i])
+			continue;
+		if (opt(2)) {
+			long lo, hi;
+
+			seen = calloc(n, 1);
+			for (k = 0; k < n; k++) {
+				p = tab + k;
+				if ((p->op & 0xffffff) != 0x210000 || p->a != i || seen[k])
+					continue;
+				lo = k;
+				hi = k + 1;
+				count = reg_region(tab, i, k, &lo, &hi, seen, n);
+				rgn_add(i, lo, hi, count);
 			}
-			if (loc_ptr[i])
-				continue;
-			if (opt(2))
-				continue;
-			count = 0;
-			for (p = tab; p != tab + n; p++) {
-				if ((p->op & 0xffffff) == 0x210000) {
-					if (p->a == i)
-						count++;
-				} else if ((p->op & 0xffffff) == 0x220000 && p->b == i) {
-					count++;
-				}
+			for (k = 0; k < n; k++) {
+				p = tab + k;
+				if ((p->op & 0xffffff) != 0x220000 || p->b != i || seen[k])
+					continue;
+				rgn_add(i, k, k + 1, 1);
 			}
-			rgn_add(i, 0, n, count);
+			free(seen);
 		}
+		if (loc_ptr[i])
+			continue;
+		if (opt(2))
+			continue;
+		count = 0;
+		for (k = 0; k < n; k++) {
+			p = tab + k;
+			if ((p->op & 0xffffff) == 0x210000) {
+				if (p->a == i)
+					count++;
+			} else if ((p->op & 0xffffff) == 0x220000 && p->b == i) {
+				count++;
+			}
+		}
+		rgn_add(i, 0, n, count);
 	}
 	if (ok) {
 		start = 1;
@@ -133,6 +137,8 @@ void reg_init(struct ic_ent *tab, long n)
 	order = malloc(rgn_n * 4);
 	if (rgn_n > 0) {
 		for (j = 0; j < rgn_n; j++) {
+			int k;
+
 			w = rgn[j].weight;
 			for (k = j - 1; k >= 0 && w > rgn[order[k]].weight; k--)
 				order[k + 1] = order[k];
@@ -159,11 +165,11 @@ void reg_init(struct ic_ent *tab, long n)
 				for (k = 0; k < rgn_n; k++)
 					if (rgn[k].reg == regs[s] && hi > rgn[k].lo && lo < rgn[k].hi)
 						break;
-				if (k == rgn_n) {
-					rgn[q].reg = regs[s];
+				if (k == rgn_n)
 					break;
-				}
 			}
+			if (s < nregs)
+				rgn[q].reg = regs[s];
 		}
 	}
 	free(order);

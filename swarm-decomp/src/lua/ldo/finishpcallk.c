@@ -5,7 +5,7 @@
 
 static int finishpcallk (lua_State *L, CallInfo *ci) {
   int status = (ci->callstatus >> 10) & 7;
-  if (status == 0)
+  if (__builtin_expect(status == 0, 1))
     status = 1;
   else {
     StkId func = (StkId)((char *)L->stack + ci->u2.funcidx);

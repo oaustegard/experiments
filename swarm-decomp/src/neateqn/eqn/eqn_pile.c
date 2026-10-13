@@ -12,8 +12,7 @@
 static void eqn_pile(struct box *b, int ps, char *text, int align)
 {
 	struct box *items[32] = {0};
-	struct box **p, **end;
-	long n, next;
+	unsigned long n, next, i;
 	int vs, r;
 
 	vs = tok_jmp("{");
@@ -27,15 +26,13 @@ static void eqn_pile(struct box *b, int ps, char *text, int align)
 			errdie("neateqn: unterminated pile\n");
 		items[n] = box_alloc(ps, 0, b->col);
 		r = eqn_boxuntil(items[n], ps, text, "above");
+		next = n + 1;
 		if (r != 0)
 			break;
-		n++;
+		n = next;
 	}
 	tok_expect("}");
 	box_pile(b, items, align, vs);
-	end = &items[n + 1];
-	p = items;
-	do {
-		box_free(*p++);
-	} while (p != end);
+	for (i = 0; i <= n; i++)
+		box_free(items[i]);
 }

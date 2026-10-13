@@ -12,7 +12,7 @@ int dict_idx(struct dict *d, const char *key)
 
 	h = (unsigned char)*key;
 	p = key + 1;
-	if (d->maxlen > 1) {
+	if ((int)d->maxlen > 1) {
 		e = key + (unsigned int)d->maxlen;
 		while (*p) {
 			h = h * 33 + (unsigned char)*p;

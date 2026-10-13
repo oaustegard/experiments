@@ -13,15 +13,35 @@
 #include "suffixedexp.h"
 #include "adjust_assign.h"
 #include "OpCode.h"
+#include "testnext.h"
+#include "init_exp.h"
 
 static void restassign (LexState *ls, struct LHS_assign *lh, int nvars) {
   expdesc e;
   if (!(VLOCAL <= lh->v.k && lh->v.k <= VINDEXSTR))
     luaX_syntaxerror(ls, "syntax error");
   check_readonly(ls, &lh->v);
-  if (ls->t.token == ',') {
-    struct LHS_assign nv;
+  if (!testnext(ls, ',')) {
+    int nexps;
+    if (ls->t.token != '=')
+      error_expected(ls, '=');
     luaX_next(ls);
+    nexps = 1;
+    subexpr(ls, &e, 0);
+    while (testnext(ls, ',')) {
+      luaK_exp2nextreg(ls->fs, &e);
+      subexpr(ls, &e, 0);
+      nexps++;
+    }
+    if (nexps == nvars) {
+      luaK_setoneret(ls->fs, &e);
+      luaK_storevar(ls->fs, &lh->v, &e);
+      return;
+    }
+    adjust_assign(ls, nvars, nexps, &e);
+  }
+  else {
+    struct LHS_assign nv;
     nv.prev = lh;
     suffixedexp(ls, &nv.v);
     if (!(VINDEXED <= nv.v.k && nv.v.k <= VINDEXSTR))
@@ -30,29 +50,6 @@ static void restassign (LexState *ls, struct LHS_assign *lh, int nvars) {
     restassign(ls, &nv, nvars + 1);
     ls->L->nCcalls--;
   }
-  else {
-    int nexps;
-    if (ls->t.token != '=')
-      error_expected(ls, '=');
-    luaX_next(ls);
-    nexps = 1;
-    subexpr(ls, &e, 0);
-    while (ls->t.token == ',') {
-      nexps++;
-      luaX_next(ls);
-      luaK_exp2nextreg(ls->fs, &e);
-      subexpr(ls, &e, 0);
-    }
-    if (nexps != nvars)
-      adjust_assign(ls, nvars, nexps, &e);
-    else {
-      luaK_setoneret(ls->fs, &e);
-      luaK_storevar(ls->fs, &lh->v, &e);
-      return;
-    }
-  }
-  e.f = e.t = NO_JUMP;
-  e.k = VNONRELOC;
-  e.u.info = ls->fs->freereg - 1;
+  init_exp(&e, VNONRELOC, ls->fs->freereg - 1);
   luaK_storevar(ls->fs, &lh->v, &e);
 }

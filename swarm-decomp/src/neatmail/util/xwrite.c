@@ -4,23 +4,22 @@
 long
 xwrite(int fd, char *buf, long n)
 {
-	int r, tot = 0;
-	long done = 0, pos;
+	int r;
+	long done = 0;
+	int tot = 0;
+	long pos = 0;
 
-	while (n > 0) {
+	while (pos - n < 0) {
 		pos = tot;
 		r = write(fd, buf + pos, n - done);
-		if (r == -1) {
-			if (errno != EAGAIN && errno != EINTR)
-				break;
-		} else if (r < 0)
+		if (r == -1 && (errno == EAGAIN || errno == EINTR))
+			;
+		else if (r < 0)
 			break;
 		else
 			tot += r;
 		pos = tot;
 		done = pos;
-		if (pos >= n)
-			break;
 	}
 	return done;
 }

@@ -3,7 +3,7 @@
 static int buf_arg_find(char *name)
 {
 	int i;
-	int n;
+	unsigned n;
 	struct macro *m;
 
 	for (i = bufs_n - 1; i >= 0; i--) {

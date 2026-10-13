@@ -24,20 +24,15 @@ void outc(const char *s)
 		return;
 	}
 	out_fontup(dev_fontid(g->font));
-	if (g->code <= 0) {
-		if (o_h != o_qend)
-			goto Q;
-		if (o_qtype != 2)
-			goto Q;
-		goto V;
-	}
-	type = 2 - (o_gname == 0);
+	if (g->code <= 0)
+		type = 2;
+	else
+		type = 2 - (o_gname == 0);
 	if (type != o_qtype)
 		goto O;
-	if (o_h != o_qend)
+	if (o_qend != o_h)
 		goto O;
-V:
-	if (o_v != o_qv)
+	if (o_qv != o_v)
 		goto O;
 	goto E;
 O:
@@ -48,15 +43,6 @@ O:
 		type = 2;
 		str = "[";
 	}
-	o_qv = o_v;
-	o_qtype = type;
-	outf(str);
-	goto E;
-Q:
-	o_flush();
-	o_qh = o_h;
-	type = 2;
-	str = "[";
 	o_qv = o_v;
 	o_qtype = type;
 	outf(str);

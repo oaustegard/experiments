@@ -1,3 +1,3 @@
 #pragma once
 #include "decl.h"
-static int readdefs(void (*fn)(int, struct decl *, int), int local);
+static int readdefs(void (*fn)(long, struct decl *, int), long local);

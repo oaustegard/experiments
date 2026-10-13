@@ -3,6 +3,7 @@ void tr_wh(struct tr_args *a)
 	int pos;
 	int m;
 	int i;
+	int j;
 	int n;
 
 	if (!a->arg[0])
@@ -16,24 +17,28 @@ void tr_wh(struct tr_args *a)
 		t = tpos[i];
 		if (t < 0)
 			t = *nreg('p') + tpos[i];
-		if (t == pos) {
-			if (!a->arg[1]) {
-				treg[i] = -1;
-				return;
-			}
-			m = map(a->arg[1]);
-			goto set;
-		}
+		if (t != pos)
+			continue;
+		goto found;
 	}
 	if (!a->arg[1])
 		return;
 	m = map(a->arg[1]);
 	n = ntraps;
-	for (i = 0; i < n; i++)
-		if (treg[i] == -1)
-			break;
-	if (i == n)
-		ntraps = n + 1;
+	for (j = 0; j < n; j++)
+		if (treg[j] == -1) {
+			i = j;
+			goto set;
+		}
+	i = n;
+	ntraps = n + 1;
+	goto set;
+found:
+	if (!a->arg[1]) {
+		treg[i] = -1;
+		return;
+	}
+	m = map(a->arg[1]);
 set:
 	tpos[i] = pos;
 	treg[i] = m;

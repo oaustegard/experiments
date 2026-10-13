@@ -3,7 +3,7 @@
 static void postcmd(int c)
 {
 	char w[128], u[128];
-	int ch, n, a, b, cmd;
+	int ch, n, cmd;
 
 	if (isdigit(c)) {
 		n = (c - '0') * 10 + (getc(stdin) - '0');
@@ -21,7 +21,9 @@ static void postcmd(int c)
 		nextword(u);
 		outc(u);
 		return;
-	case 'D':
+	case 'D': {
+		int a, b;
+
 		ch = getc(stdin);
 		drawbeg();
 		switch (tolower(ch)) {
@@ -51,7 +53,7 @@ static void postcmd(int c)
 					c = getc(stdin);
 				while (c == ' ');
 				ungetc(c, stdin);
-				if (c == '\n' || (unsigned)(cmd - 'a') > 29 || !((0x20000801u >> (cmd - 'a')) & 1))
+				if (c == '\n' || (unsigned)(cmd - 'a') > 29 || !((0x20000801ul >> (cmd - 'a')) & 1))
 					break;
 				do
 					c = getc(stdin);
@@ -83,6 +85,7 @@ static void postcmd(int c)
 		}
 		drawend((ch & ~0x20) == 'P', ch == 'C' || ch == 'E' || ch == 'P');
 		goto eol;
+	}
 	case 'H':
 		outh(nextnum());
 		return;
@@ -99,10 +102,13 @@ static void postcmd(int c)
 	case 'f':
 		outfont(nextnum());
 		return;
-	case 'h':
+	case 'h': {
+		int a;
+
 		a = nextnum();
 		outrel(a, 0);
 		return;
+	}
 	case 'm':
 		nextword(u);
 		outcolor(clr_get(u));
@@ -121,10 +127,13 @@ static void postcmd(int c)
 	case 's':
 		outsize(nextnum());
 		return;
-	case 'v':
+	case 'v': {
+		int a;
+
 		a = nextnum();
 		outrel(0, a);
 		return;
+	}
 	case 'w':
 		return;
 	case 'x':
@@ -154,7 +163,9 @@ static void postcmd(int c)
 		goto eol;
 	default:
 		fprintf(stderr, "neatpost: unknown command %c\n", c);
-		goto eol;
+		while ((ch = getc(stdin)) >= 0 && ch != '\n')
+			;
+		return;
 	}
 eol:
 	for (;;) {

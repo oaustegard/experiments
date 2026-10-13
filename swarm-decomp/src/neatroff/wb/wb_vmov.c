@@ -5,8 +5,7 @@
 
 void wb_vmov(struct wb *w, int n)
 {
-	if (w->f2068 && w->f206c)
-		wb_flushsub(w);
+	wb_flushsub(w);
 	w->vpos += n;
 	sbuf_printf(&w->buf, "%cv'%du'", c_ec, n);
 }

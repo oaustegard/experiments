@@ -15,7 +15,11 @@ int tok_jmp(char *s)
 			return 1;
 		if (strcmp(s, tok) != 0)
 			return 1;
-	} else if (strcmp(s, tok) != 0)
+		strcpy(tok_prev, tok);
+		tok_read();
+		return 0;
+	}
+	if (strcmp(s, tok) != 0)
 		return 1;
 	strcpy(tok_prev, tok);
 	tok_read();

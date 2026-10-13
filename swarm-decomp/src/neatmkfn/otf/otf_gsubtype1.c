@@ -7,25 +7,24 @@
 #include "str16.h"
 #include "otf_gsubtype1.h"
 
-#define U16(p) ((int)__builtin_bswap16(*(const unsigned short *)(p)))
+#define U16(p) ({ unsigned short w_ = *(const unsigned short *)(p); (int)(unsigned short)((w_ << 8) | (w_ >> 8)); })
 
 #define GNAME(g) \
 	(!mkfn_byname && strlen(glyph_name[g]) > 3 \
 	    ? (sprintf(str, "%d", (g)), str) : glyph_name[g])
 
 static void
-otf_gsubtype1(const unsigned char *t, struct otf_chain *c)
+otf_gsubtype1(const unsigned char *t, struct otf_chain *c, int unused)
 {
 	int *g;
 	int fmt, n, i, j, v, ng;
 
-	fmt = U16(t);
+	fmt = ((t[0] << 8) | t[1]);
 	g = coverage(t + U16(t + 2), &n);
-	if (fmt == 1) {
-		int delta = (short)U16(t + 4);
-
+	switch (fmt) {
+	case 1:
 		for (i = 0; i < n; i++) {
-			v = g[i] + delta;
+			v = g[i] + (short)U16(t + 4);
 			if (v >= glyph_n || v < 0)
 				continue;
 			if (c) {
@@ -41,9 +40,9 @@ otf_gsubtype1(const unsigned char *t, struct otf_chain *c)
 			gctx_lookahead(c, 1);
 			putchar('\n');
 		}
-	} else if (fmt == 2) {
-		ng = U16(t + 4);
-		for (i = 0; i < ng; i++) {
+		break;
+	case 2:
+		for (i = 0; i < ((t[4] << 8) | t[5]); i++) {
 			if (c) {
 				printf("%d", c->ni + c->nb + c->nl + 1);
 				for (j = 0; j < c->nb; j++)
@@ -57,6 +56,7 @@ otf_gsubtype1(const unsigned char *t, struct otf_chain *c)
 			gctx_lookahead(c, 1);
 			putchar('\n');
 		}
+		break;
 	}
 	free(g);
 }

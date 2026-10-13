@@ -2,7 +2,7 @@
 #include "mextend.h"
 
 /* append an entry; op bits 0x107f0 push its index on iv */
-static void ic_put(long op, long a, long b, long c)
+static struct ic_ent *ic_put(long op, long a, long b, long c)
 {
 	struct ic_ent *e;
 	long n, sz;
@@ -23,4 +23,5 @@ static void ic_put(long op, long a, long b, long c)
 	if (op & 0x107f0) {
 		iv[iv_n++] = n;
 	}
+	return e;
 }

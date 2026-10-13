@@ -13,7 +13,7 @@ struct mbox *mbox_open(char **argv)
 {
 	struct mbox *m;
 	char **ap;
-	char *s, *buf, *end, *p, *q, *np;
+	char *s, *buf, *end, *p, *q, *np, *name;
 	int i, fd, l, nc, inc;
 	int size;
 	struct stat st;
@@ -22,7 +22,7 @@ struct mbox *mbox_open(char **argv)
 	m = calloc(sizeof *m, 1);
 	if (!m)
 		return 0;
-	for (ap = argv, s = *ap; s; s = *++ap) {
+	for (ap = argv; ap && (s = *ap); ap++) {
 		i = m->n;
 		if (i > 14)
 			continue;
@@ -39,22 +39,22 @@ struct mbox *mbox_open(char **argv)
 		size = st.st_size;
 		m->off[i] = size;
 		m->name[i + 16] = malloc(size + 1);
-		buf = m->name[i + 16];
-		if (!buf)
+		if (!m->name[i + 16])
 			goto fail;
-		xread(fd, buf, size);
-		buf[m->off[i]] = 0;
+		xread(fd, m->name[i + 16], size);
+		m->name[i + 16][m->off[i]] = 0;
 		close(fd);
-		stat(m->name[i], &st);
+		name = m->name[i];
+		stat(name, &st);
 		ut.actime = time(0);
 		ut.modtime = st.st_mtime;
-		utime(m->name[i], &ut);
+		utime(name, &ut);
 		nc = m->nc;
 		m->start[i] = nc;
 		buf = m->name[i + 16];
 		end = buf + m->off[i];
 		p = mbox_from_(buf, end);
-		if (p && p < end) {
+		if (p < end && p) {
 			for (;;) {
 				if (m->pad268 == nc) {
 					inc = nc ? nc : 256;
@@ -65,8 +65,8 @@ struct mbox *mbox_open(char **argv)
 					free(m->c248);
 					m->c248 = (char **)np;
 					np = malloc((long)m->pad268 * 8);
-					memcpy(np, m->c250, nc * 8);
-					memset(np + nc * 8, 0, (m->pad268 - nc) * 8);
+					memcpy(np, m->c250, m->nc * 8);
+					memset(np + m->nc * 8, 0, (m->pad268 - m->nc) * 8);
 					free(m->c250);
 					m->c250 = (long *)np;
 					if (!m->c248)

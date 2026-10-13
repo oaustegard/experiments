@@ -6,5 +6,5 @@ struct secent {
     Elf64_Shdr *shdr;       /* +0x00 */
     struct objent *obj;     /* +0x08 */
     long base;              /* +0x10 output address */
-    long pad;               /* +0x18 */
+    long off;               /* +0x18 file offset */
 };

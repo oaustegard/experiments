@@ -8,27 +8,26 @@
 
 void wb_flushdir(struct wb *w)
 {
-	int cur, cur0, d;
+	int cur, d;
+	unsigned cur0;
 	char c;
 
-	cur0 = w->f10[3];
 	cur = w->f20[3];
+	cur0 = w->f10[3];
 	if (cur < 0)
 		cur = *nreg(map(".cd"));
-	if (cur0 == cur)
-		return;
-	if (w->f2068 && w->f206c)
+	if (cur != cur0) {
 		wb_flushsub(w);
-	if (dir_do) {
-		d = w->f20[3];
-		c = '>';
-		if (d < 0) {
-			if (*nreg(map(".cd")) > 0)
-				c = '<';
-		} else if (d != 0) {
+		if (dir_do) {
+			d = w->f20[3];
 			c = '<';
+			if (d < 0) {
+				if (*nreg(map(".cd")) <= 0)
+					c = '>';
+			} else if (d == 0)
+				c = '>';
+			sbuf_printf(&w->buf, "%c%c", c_ec, c);
 		}
-		sbuf_printf(&w->buf, "%c%c", c_ec, c);
+		w->f10[3] = w->f20[3] < 0 ? *nreg(map(".cd")) : w->f20[3];
 	}
-	w->f10[3] = w->f20[3] < 0 ? *nreg(map(".cd")) : w->f20[3];
 }

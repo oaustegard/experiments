@@ -7,11 +7,7 @@ static Node *mainpositionTV (const Table *t, const TValue *key) {
   switch (key->tt_ & 0x3f) {
     case 0x03: {  /* LUA_VNUMINT */
       lua_Integer i = kvl->i;
-      lua_Unsigned ui = (lua_Unsigned)i;
-      if (ui <= (unsigned int)INT_MAX)
-        return &t->node[((int)ui) % (((1 << t->lsizenode) - 1) | 1)];
-      else
-        return &t->node[ui % (((1 << t->lsizenode) - 1) | 1)];
+      return hashint(t, i);
     }
     case 0x13:  /* LUA_VNUMFLT */
       return &t->node[l_hashfloat(kvl->n) % (((1 << t->lsizenode) - 1) | 1)];

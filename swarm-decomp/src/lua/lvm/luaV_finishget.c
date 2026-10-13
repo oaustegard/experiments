@@ -11,26 +11,22 @@
 
 #define MAXTAGLOOP 2000
 
-/* fasttm(L, mt, TM_INDEX) with tmname[0] at l_G+0x118 */
-static const TValue *fasttm_index (lua_State *L, Table *mt) {
-  if (mt == NULL || (mt->flags & (1u << 0)))
-    return NULL;
-  return luaT_gettm(mt, 0, ((TString **)((char *)L->l_G + 0x118))[0]);
-}
-
 void luaV_finishget (lua_State *L, const TValue *t, TValue *key, StkId val,
                       const TValue *slot) {
   int loop;
   const TValue *tm;
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
-    if (slot == NULL) {
+    if (slot == NULL) {  /* 't' is not a table? */
       tm = luaT_gettmbyobj(L, t, 0);
-      if (ttisnil(tm))
+      if (__builtin_expect(ttisnil(tm) != 0, 0))  /* no metamethod */
         luaG_typeerror(L, t, "index");
     }
-    else {
-      tm = fasttm_index(L, hvalue(t)->metatable);
-      if (tm == NULL) {
+    else {  /* 't' is a table: fasttm(L, mt, TM_INDEX) */
+      Table *et = hvalue(t)->metatable;
+      tm = (et == NULL) ? NULL
+         : (et->flags & (1u << 0)) ? NULL
+         : luaT_gettm(et, 0, ((TString **)((char *)L->l_G + 0x118))[0]);
+      if (tm == NULL) {  /* no metamethod? */
         setnilvalue(val);
         return;
       }

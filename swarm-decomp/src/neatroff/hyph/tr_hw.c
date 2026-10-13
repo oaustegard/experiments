@@ -18,9 +18,9 @@ void tr_hw(struct tr_args *a)
 		for (;;) {
 			if (escread(&cur, &tmp))
 				break;
-			if (*tmp != '-')
+			if (*tmp == '-' && tmp[1])
 				hcode_mapchar(tmp);
-			else if (tmp[1])
+			else if (*tmp != '-')
 				hcode_mapchar(tmp);
 			q += hy_cput(q, tmp);
 			if (q - buf > 0xdf)

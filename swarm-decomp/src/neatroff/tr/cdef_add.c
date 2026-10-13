@@ -18,9 +18,12 @@ static void cdef_add(char *dev, char *s, char *val) {
     pos = dev_pos(dev);
   n = cdef_n;
   if (n > 0) {
-    for (i = 0; i < n; i++)
+    i = 0;
+    do {
       if ((cdef_fn[i] == pos || cdef_fn[i] == 0) && strcmp(cdef_src[i], buf) == 0)
         goto found;
+    } while (++i < n);
+    i = 0;
     for (i = 0; i < n && cdef_dst[i]; i++)
       ;
   } else {
@@ -28,12 +31,13 @@ static void cdef_add(char *dev, char *s, char *val) {
       return;
     i = 0;
   }
-  if (i == n) {
-    if (n == 128)
-      return;
+  if (i == n && n != 128) {
     n++;
     cdef_n = n;
   }
+  if (i < n)
+    goto found;
+  return;
 found:
   snprintf(cdef_src[i], 32, "%s", buf);
   cdef_dst[i] = xmalloc(strlen(val) + 1);

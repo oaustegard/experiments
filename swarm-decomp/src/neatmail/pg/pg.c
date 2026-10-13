@@ -19,6 +19,19 @@
 #include "put_id.h"
 #include "put_from_.h"
 
+#define NEATMAIL_USAGE "usage: neatmail pg [options] [address]\n\noptions:\n" \
+	"   -h hdr  \tspecify headers to include\n" \
+	"   -m      \tdecode mime message\n" \
+	"   -r      \tgenerate a reply\n" \
+	"   -f      \tgenerate a forward\n" \
+	"   -n      \tgenerate a new message\n" \
+	"   -a file \tadd an attachment\n" \
+	"   -s      \tfollow neatmail-source: header\n\n" \
+	"address:\n" \
+	"   mbox msgnum \tpage msgnum-th message in mbox\n" \
+	"   mbox =msgid \tpage the message with the given message-id\n" \
+	"   msgnum@mbox \tsame as mbox msgnum"
+
 int pg(char **argv)
 {
 	char *boxes[16] = {0};
@@ -29,45 +42,31 @@ int pg(char **argv)
 	int i, n = -1;
 	char *msg = NULL;
 	long len = 0;
-	char *arg;
 
-	for (i = 1; argv[i] && argv[i][0] == '-'; i++) {
-		arg = argv[i];
-		switch (arg[1]) {
-		case 'm':
+	for (i = 0; argv[i] && argv[i][0] == '-'; i++) {
+		if (argv[i][1] == 'm')
 			mime = 1;
-			break;
-		case 'r':
+		else if (argv[i][1] == 'r')
 			reply = 1;
-			break;
-		case 'n':
+		else if (argv[i][1] == 'n')
 			newm = 1;
-			break;
-		case 'f':
+		else if (argv[i][1] == 'f')
 			fwd = 1;
-			break;
-		case 's':
+		else if (argv[i][1] == 's')
 			src = 1;
-			break;
-		case 'b':
-		case 'h':
-		case 'a':
-		case 'i': {
-			char *v = arg[2] ? arg + 2 : argv[++i];
-			if (!v)
-				break;
-			if (arg[1] == 'b')
-				boxes[nbox++] = v;
-			else if (arg[1] == 'h') {
-				if (nhdr < 127)
-					hdrs[nhdr++] = v;
-			} else if (arg[1] == 'a') {
-				if (parts_n <= 15)
-					parts[parts_n++] = v;
-			} else
-				addr = v;
-			break;
-		}
+		else if (argv[i][1] == 'b') {
+			char *v = argv[i][2] ? argv[i] + 2 : argv[++i];
+			boxes[nbox++] = v;
+		} else if (argv[i][1] == 'i') {
+			addr = argv[i][2] ? argv[i] + 2 : argv[++i];
+		} else if (argv[i][1] == 'h') {
+			char *v = argv[i][2] ? argv[i] + 2 : argv[++i];
+			if (nhdr < 127)
+				hdrs[nhdr++] = v;
+		} else if (argv[i][1] == 'a') {
+			char *v = argv[i][2] ? argv[i] + 2 : argv[++i];
+			if (parts_n <= 15)
+				parts[parts_n++] = v;
 		}
 	}
 	if (newm) {
@@ -79,11 +78,10 @@ int pg(char **argv)
 		sbuf_printf(sb, "To: \n");
 		sbuf_printf(sb, "Subject: \n");
 		put_id(sb);
-		now = time(NULL);
+		time(&now);
 		strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z", localtime(&now));
 		sbuf_printf(sb, "Date: %s\n", buf);
 		sbuf_printf(sb, "User-Agent: Neatmail/1.1 (https://github.com/aligrudi/neatmail)\n");
-		sbuf_printf(sb, "MAIL BODY...\n");
 		put_body(sb, "MAIL BODY...\n");
 		sbuf_chr(sb, '\n');
 		len = sbuf_len(sb);
@@ -92,41 +90,23 @@ int pg(char **argv)
 		free(msg);
 		return 0;
 	}
-	if (!nbox && argv[i])
-		boxes[nbox++] = argv[i++];
+	if (!boxes[0] && argv[i])
+		boxes[0] = argv[i++];
 	if (!addr && argv[i])
 		addr = argv[i];
-	if (!boxes[0] || !addr) {
-		puts("usage: neatmail pg [options] [address]\n\noptions:\n"
-		     "   -h hdr  \tspecify headers to include\n"
-		     "   -m      \tdecode mime message\n"
-		     "   -r      \tgenerate a reply\n"
-		     "   -f      \tgenerate a forward\n"
-		     "   -n      \tgenerate a new message\n"
-		     "   -a file \tadd an attachment\n"
-		     "   -s      \tfollow neatmail-source: header\n\n"
-		     "address:\n"
-		     "   mbox msgnum \tpage msgnum-th message in mbox\n"
-		     "   mbox =msgid \tpage the message with the given message-id\n"
-		     "   msgnum@mbox \tsame as mbox msgnum");
-		return 1;
-	}
-	{
-		char *at = strchr(addr, '@');
-		if (at) {
-			*at = 0;
-			boxes[0] = at + 1;
-		}
-	}
+	if (!addr)
+		goto usage;
 	if (addr[0] == '=') {
-		struct mbox *m = mbox_open(boxes[0]);
+		struct mbox *m;
 		char *id = addr + 1;
-		int k, total;
+		int k;
+		if (!boxes[0])
+			goto usage;
+		m = mbox_open(boxes);
 		if (!m)
 			return 1;
-		total = mbox_len(m);
-		for (k = 0; k < total; k++) {
-			char *s, *p, *lt, *gt;
+		for (k = 0; k < mbox_len(m); k++) {
+			char *s = NULL, *p, *lt, *gt;
 			long sl;
 			if (mbox_get(m, k, &s, &sl))
 				continue;
@@ -147,6 +127,13 @@ int pg(char **argv)
 		}
 		mbox_free(m);
 	} else {
+		char *at = strchr(addr, '@');
+		if (at) {
+			*at = 0;
+			boxes[0] = at + 1;
+		}
+		if (!boxes[0])
+			goto usage;
 		n = strtol(addr, NULL, 10);
 	}
 	if (n < 0)
@@ -155,26 +142,22 @@ int pg(char **argv)
 		return 1;
 	if (src) {
 		char *hdr = msg_get(msg, len, "Neatmail-Source:");
-		char name[0x100];
+		char name[0x200];
 		int num = 0;
 		long off = 0, l = 0;
 		if (hdr) {
-			while (*hdr == ' ' || *hdr == '\t')
+			while (*hdr && *hdr != ' ')
 				hdr++;
-			if (sscanf(hdr, "%d@%s %ld %ld", &num, name, &off, &l) == 4) {
-				char *nm = NULL;
-				long nl = 0;
-				free(msg);
-				if (!mbox_off(name, off, l, &nm, &nl)) {
-					msg = nm;
-					len = nl;
-				}
-			}
+			if (sscanf(hdr, "%d@%s %ld %ld", &num, name, &off, &l) != 4)
+				return 1;
+			free(msg);
+			if (mbox_off(name, off, l, &msg, &len))
+				return 1;
 		}
 	}
 	if (mime) {
-		char *out = NULL;
-		long outn = 0;
+		char *out;
+		long outn;
 		if (!msg_demime(msg, len, &out, &outn)) {
 			free(msg);
 			msg = out;
@@ -183,10 +166,10 @@ int pg(char **argv)
 	}
 	if (reply) {
 		struct sbuf *sb = sbuf_make();
-		char *from = msg_get(msg, len, "From:");
-		char *subj = msg_get(msg, len, "Subject:");
 		char *mid = msg_get(msg, len, "Message-ID:");
 		char *refs = msg_get(msg, len, "References:");
+		char *from = msg_get(msg, len, "From:");
+		char *subj = msg_get(msg, len, "Subject:");
 		char *to = msg_get(msg, len, "To:");
 		char *cc = msg_get(msg, len, "CC:");
 		char *rto = msg_get(msg, len, "Reply-To:");
@@ -194,87 +177,129 @@ int pg(char **argv)
 		time_t now;
 		char buf[0x80];
 		put_from_(sb);
-		now = time(NULL);
+		time(&now);
 		strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z", localtime(&now));
 		sbuf_printf(sb, "Date: %s\n", buf);
 		sbuf_printf(sb, "From: \n");
 		if (dst) {
-			char *c = strchr(dst, ':');
-			char *v = c ? c + 1 : dst;
+			char *v = strchr(dst, ':') + 1;
 			int vl;
-			while (*v == ' ')
+			while (isspace(*v))
 				v++;
-			vl = hdrlen(v, 0x400);
+			vl = pg_vlen(v);
 			sbuf_str(sb, "To: ");
 			sbuf_mem(sb, v, vl);
 			sbuf_str(sb, "\n");
 		}
-		(void)to;
-		(void)cc;
+		if (to || cc) {
+			int cnt = 0;
+			sbuf_str(sb, "Cc: ");
+			if (to) {
+				char *v = strchr(to, ':') + 1;
+				int vl;
+				while (isspace(*v))
+					v++;
+				vl = pg_vlen(v);
+				sbuf_mem(sb, v, vl);
+				cnt = 1;
+			}
+			if (from && rto) {
+				char *v = strchr(from, ':') + 1;
+				int vl;
+				if (cnt)
+					sbuf_str(sb, ",\n\t");
+				cnt++;
+				while (isspace(*v))
+					v++;
+				vl = pg_vlen(v);
+				sbuf_mem(sb, v, vl);
+			}
+			if (cc) {
+				char *v = strchr(cc, ':') + 1;
+				int vl;
+				while (isspace(*v))
+					v++;
+				vl = pg_vlen(v);
+				if (cnt)
+					sbuf_str(sb, ",\n\t");
+				sbuf_mem(sb, v, vl);
+			}
+			sbuf_str(sb, "\n");
+		}
 		if (subj) {
-			char *c = strchr(subj, ':');
-			char *v = c ? c + 1 : subj;
-			while (isspace((unsigned char)*v))
+			char *v = strchr(subj, ':') + 1;
+			while (isspace(*v))
 				v++;
 			sbuf_str(sb, "Subject: ");
-			if (!(tolower((unsigned char)v[0]) == 'r' && tolower((unsigned char)v[1]) == 'e'))
+			if (!(tolower(v[0]) == 'r' && tolower(v[1]) == 'e'))
 				sbuf_str(sb, "Re: ");
-			sbuf_mem(sb, v, hdrlen(v, 0x400));
+			sbuf_mem(sb, v, pg_vlen(v));
 			sbuf_str(sb, "\n");
 		}
 		put_id(sb);
 		if (mid) {
-			char *c = strchr(mid, ':');
-			char *v = c ? c + 1 : mid;
-			while (isspace((unsigned char)*v))
+			char *v = strchr(mid, ':') + 1;
+			while (isspace(*v))
 				v++;
 			sbuf_str(sb, "In-Reply-To: ");
-			sbuf_mem(sb, v, hdrlen(v, 0x400));
+			sbuf_mem(sb, v, pg_vlen(v));
 			sbuf_str(sb, "\n");
-		}
-		if (refs) {
-			char *c = strchr(refs, ':');
-			char *v = c ? c + 1 : refs;
-			while (isspace((unsigned char)*v))
-				v++;
 			sbuf_str(sb, "References: ");
-			sbuf_mem(sb, v, hdrlen(v, 0x400));
-			sbuf_str(sb, "\n\t");
-			if (mid)
-				sbuf_str(sb, mid);
+			if (refs) {
+				char *r = strchr(refs, ':') + 1;
+				while (isspace(*r))
+					r++;
+				sbuf_mem(sb, r, pg_vlen(r));
+				sbuf_str(sb, "\n\t");
+			}
+			sbuf_mem(sb, v, pg_vlen(v));
 			sbuf_str(sb, "\n");
 		}
 		sbuf_printf(sb, "User-Agent: Neatmail/1.1 (https://github.com/aligrudi/neatmail)\n");
 		{
-			char *body = msg;
-			char *end = msg + len;
-			char *q = msg;
 			struct sbuf *qb = sbuf_make();
-			char *qs;
-			while (q < end && !(q[-1] == '\n' && *q == '\n' && q > msg))
-				q++;
-			body = q;
-			sbuf_str(qb, "\n");
-			(void)body;
-			qs = sbuf_buf(qb);
-			(void)qs;
-			sbuf_free(qb);
-			sbuf_str(sb, "\n");
+			char *qfrom = msg_get(msg, len, "From:");
+			char *end = msg + len;
+			char *body = msg + 1;
+			while (body < end && !(body[-1] == '\n' && *body == '\n'))
+				body++;
+			body++;
+			sbuf_chr(qb, '\n');
+			if (qfrom) {
+				char *v = strchr(qfrom, ':') + 1;
+				while (isspace(*v))
+					v++;
+				sbuf_mem(qb, v, pg_vlen(v));
+				sbuf_str(qb, " wrote:\n");
+			}
+			while (body < end) {
+				char *nl = memchr(body, '\n', end - body);
+				if (!nl)
+					break;
+				sbuf_str(qb, "> ");
+				sbuf_mem(qb, body, nl - body + 1);
+				body = nl + 1;
+			}
+			{
+				char *q = sbuf_done(qb);
+				put_body(sb, q);
+				free(q);
+			}
 		}
-		put_body(sb, msg);
-		len = sbuf_len(sb);
-		free(msg);
-		msg = sbuf_done(sb);
-		xwrite(1, msg, len);
-		free(msg);
-		return 0;
+		{
+			long nl = sbuf_len(sb);
+			char *nm = sbuf_done(sb);
+			free(msg);
+			msg = nm;
+			len = nl;
+		}
 	}
 	if (nhdr) {
 		struct sbuf *sb = sbuf_make();
 		char *end = msg + len;
 		char *q;
 		int k;
-		for (k = 0; k < nhdr && hdrs[k]; k++) {
+		for (k = 0; hdrs[k]; k++) {
 			char *p = msg_get(msg, len, hdrs[k]);
 			if (p)
 				sbuf_mem(sb, p, hdrlen(p, end - p));
@@ -283,9 +308,13 @@ int pg(char **argv)
 		while (q < end && !(q[-1] == '\n' && *q == '\n'))
 			q++;
 		sbuf_mem(sb, q, end - q);
-		len = sbuf_len(sb);
-		free(msg);
-		msg = sbuf_done(sb);
+		{
+			long nl = sbuf_len(sb);
+			char *nm = sbuf_done(sb);
+			free(msg);
+			msg = nm;
+			len = nl;
+		}
 	}
 	if (fwd) {
 		struct sbuf *sb = sbuf_make();
@@ -294,23 +323,18 @@ int pg(char **argv)
 		time_t now;
 		char buf[0x80];
 		put_from_(sb);
-		now = time(NULL);
+		time(&now);
 		strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z", localtime(&now));
 		sbuf_printf(sb, "Date: %s\n", buf);
 		sbuf_printf(sb, "From: \n");
 		sbuf_printf(sb, "To: \n");
-		if (subj) {
-			char *c = strchr(subj, ':');
-			char *v = c + 1;
-			while (isspace((unsigned char)*v))
+		{
+			char *v = strchr(subj, ':') + 1;
+			while (isspace(*v))
 				v++;
 			sbuf_str(sb, "Subject: ");
 			sbuf_str(sb, "Fwd: ");
-			sbuf_mem(sb, v, hdrlen(v, 0x400));
-			sbuf_str(sb, "\n");
-		} else {
-			sbuf_str(sb, "Subject: ");
-			sbuf_str(sb, "Fwd: ");
+			sbuf_mem(sb, v, pg_vlen(v));
 			sbuf_str(sb, "\n");
 		}
 		put_id(sb);
@@ -319,11 +343,19 @@ int pg(char **argv)
 		sbuf_mem(sbo, msg, len);
 		put_body(sb, sbuf_buf(sbo));
 		sbuf_free(sbo);
-		len = sbuf_len(sb);
-		free(msg);
-		msg = sbuf_done(sb);
+		{
+			long nl = sbuf_len(sb);
+			char *nm = sbuf_done(sb);
+			free(msg);
+			msg = nm;
+			len = nl;
+		}
 	}
 	xwrite(1, msg, len);
 	free(msg);
 	return 0;
+
+usage:
+	puts(NEATMAIL_USAGE);
+	return 1;
 }

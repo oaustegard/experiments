@@ -3,8 +3,10 @@ static void tok_preview(char *s, int f)
 	int c, n;
 
 	c = src_next();
-	if (c <= 0)
-		goto done;
+	if (c > 0)
+		goto cont;
+	goto done;
+cont:
 	if (def_chopped(c)) {
 		src_back(c);
 		s += readchar(s);

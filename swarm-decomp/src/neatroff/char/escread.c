@@ -50,8 +50,7 @@ int escread(char **p, char **t)
 					d = buf;
 					*d++ = s[1];
 					*d++ = s[2];
-					*d = 0;
-					*p = s + 3;
+					s += 3;
 				} else if (*nreg('C') == 0 && *s == '[') {
 					d = buf;
 					c = s[1];
@@ -60,22 +59,22 @@ int escread(char **p, char **t)
 						*d++ = c;
 						c = *++s;
 					}
-					*d = 0;
 					if (c == ']')
 						s++;
-					*p = s;
 				} else {
-					buf[0] = *s;
-					buf[1] = 0;
-					*p = s + 1;
+					d = buf;
+					*d++ = *s;
+					s++;
 				}
+				*d = 0;
+				*p = s;
 			}
 			if (strchr("bCDhHjlLNoRSvwxXZ?", kind)) {
 				c1 = **p;
 				d = buf;
 				s = *p + 1;
 				c = *s;
-				while (c != c1 && c != 0) {
+				while (c != 0 && c != c1) {
 					*d++ = c;
 					c = *++s;
 				}

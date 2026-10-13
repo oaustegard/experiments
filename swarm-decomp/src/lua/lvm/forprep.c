@@ -36,11 +36,11 @@ static int forprep (lua_State *L, TValue *ra) {
     lua_Number init;
     lua_Number flimit;
     lua_Number step;
-    if (!(ttisfloat(plimit) ? (flimit = fltvalue(plimit), 1) : luaV_tonumber_(plimit, &flimit)))
+    if (__builtin_expect(!(ttisfloat(plimit) ? (flimit = fltvalue(plimit), 1) : luaV_tonumber_(plimit, &flimit)), 0))
       luaG_forerror(L, plimit, "limit");
-    if (!(ttisfloat(pstep) ? (step = fltvalue(pstep), 1) : luaV_tonumber_(pstep, &step)))
+    if (__builtin_expect(!(ttisfloat(pstep) ? (step = fltvalue(pstep), 1) : luaV_tonumber_(pstep, &step)), 0))
       luaG_forerror(L, pstep, "step");
-    if (!(ttisfloat(pinit) ? (init = fltvalue(pinit), 1) : luaV_tonumber_(pinit, &init)))
+    if (__builtin_expect(!(ttisfloat(pinit) ? (init = fltvalue(pinit), 1) : luaV_tonumber_(pinit, &init)), 0))
       luaG_forerror(L, pinit, "initial value");
     if (step == 0)
       luaG_runerror(L, "'for' step is zero");

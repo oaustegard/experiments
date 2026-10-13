@@ -22,14 +22,14 @@ otf_gsubtype3(const unsigned char *t, struct otf_chain *c)
 	if (U16(t) == 1) {
 		g = coverage(t + U16(t + 2), NULL);
 		n = U16(t + 4);
-		for (i = 0; i < n; i++) {
+		for (i = 0; i != n; i++) {
 			sub = t + U16(t + 6 + 2 * i);
 			cnt = U16(sub);
 			if (cnt == 0)
 				continue;
-			for (p = sub + 2; p < sub + 2 + 2 * cnt; p += 2) {
+			for (p = sub + 2; p != sub + 2 + 2 * cnt; p += 2) {
 				if (c) {
-					printf("%d", c->ni + c->nb + c->nl + 1);
+					printf("%d", c->nb + c->ni + c->nl + 1);
 					for (j = 0; j < c->nb; j++)
 						printf(" =@%d", c->bt[j]);
 					for (j = 0; j < c->seq; j++)

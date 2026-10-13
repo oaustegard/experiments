@@ -6,20 +6,23 @@
 
 void luaC_step(lua_State *L) {
   global_State *g = G(L);
-  if (g->gcstp != 0)
+  lu_mem lastatomic;
+  if (g->gcstp != 0) {
     luaE_setdebt(g, -2000);
-  else {
-    if (g->gckind == KGC_GEN) {
-      if (g->lastatomic == 0) {
-        genstep(L, g);
-        return;
-      }
-      enterinc(g);
+    return;
+  }
+  lastatomic = g->lastatomic;
+  if (g->gckind == KGC_GEN) {
+    if (lastatomic == 0) {
+      genstep(L, g);
+      return;
     }
-    else if (g->lastatomic == 0) {
+    enterinc(g);
+  } else {
+    if (lastatomic == 0) {
       incstep(L, g);
       return;
     }
-    stepgenfull(L, g);
   }
+  stepgenfull(L, g, lastatomic);
 }

@@ -25,8 +25,6 @@ int mbox_ith(char *name, int i, char **s, long *n)
 	buf[size] = 0;
 	close(fd);
 	p = mbox_from_(buf, end);
-	if (!p)
-		goto fail;
 	for (j = 0; p && j < i; j++)
 		p = mbox_from_(p + 1, end);
 	if (!p)

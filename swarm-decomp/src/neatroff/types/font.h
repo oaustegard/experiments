@@ -50,8 +50,10 @@ struct font {
 	int lang;		/* 0xa94: current language index */
 	struct frule *gsub;	/* 0xa98: entries, freed by font_close */
 	int ngsub;		/* 0xaa0 */
+	int capgsub;		/* 0xaa4: allocated gsub rules */
 	struct frule *gpos;	/* 0xaa8: entries, freed by font_close */
 	int ngpos;		/* 0xab0 */
+	int capgpos;		/* 0xab4: allocated gpos rules */
 	struct iset *iab8;	/* 0xab8 */
 	struct iset *iac0;	/* 0xac0 */
 	struct iset *iac8;	/* 0xac8 */

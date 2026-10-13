@@ -25,8 +25,7 @@ static void ren_sp(int n, int f)
 		r12 = n;
 	}
 	*nreg('d') += r12;
-	r12 = *nreg('d');
-	if (r12 > *nreg('h')) {
+	if (*nreg('d') > *nreg('h')) {
 		int *p = nreg('d');
 		*nreg('h') = *p;
 	}
@@ -40,9 +39,9 @@ static void ren_sp(int n, int f)
 				sbuf_printf(&cdiv->buf, "%csp %du\n", c_cc, r13);
 			}
 		}
-		if (cdiv)
-			return;
 	}
+	if (cdiv)
+		return;
 	{
 		int *p = nreg('d');
 		*nreg(map("nl")) = *p;

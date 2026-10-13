@@ -14,7 +14,7 @@ int mbox_savetag(struct mbox *m, int i)
 
 	if (!mbox_find(m, i))
 		return 0;
-	for (j = m->start[i], end = m->end[i]; j < end; j++) {
+	for (j = m->start[i]; j < m->end[i]; j++) {
 		if (m->c258[j])
 			break;
 		total += m->c250[j];
@@ -29,14 +29,18 @@ int mbox_savetag(struct mbox *m, int i)
 		xread(fd, buf, extra);
 	}
 	ftruncate(fd, lseek(fd, total, SEEK_SET));
-	for (k = j; k < end; k++) {
+	for (k = j; k < m->end[i]; k++) {
+		char *p;
+		long n;
 		if (m->c258[k]) {
-			lseek(fd, 0, SEEK_END);
-			xwrite(fd, m->c258[k], m->c260[k]);
+			p = m->c258[k];
+			n = m->c260[k];
 		} else {
-			lseek(fd, 0, SEEK_END);
-			xwrite(fd, m->c248[k], m->c250[k]);
+			p = m->c248[k];
+			n = m->c250[k];
 		}
+		lseek(fd, 0, SEEK_END);
+		xwrite(fd, p, n);
 	}
 	if (extra > 0) {
 		lseek(fd, 0, SEEK_END);

@@ -2,7 +2,7 @@ static int render_rec(int lim)
 {
 	int olddiv = ren_div;
 	int c;
-	int nl = 0;
+	int nl;
 	char s[128];
 	struct wb *w;
 	void *f;
@@ -42,7 +42,8 @@ static int render_rec(int lim)
 			continue;
 		}
 		ren_partial = c != '\n';
-		if (c == ' ' || c == '\n') {
+		nl = c == ' ' || c == '\n';
+		if (nl) {
 			if (wb_part(env_wb())) {
 				nl = c == '\n';
 			} else {

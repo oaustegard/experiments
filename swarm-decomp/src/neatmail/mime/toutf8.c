@@ -6,7 +6,7 @@ static void toutf8(const char *cs, struct sbuf *sb, const char *s, int n)
 	char **tbl;
 	const char *t;
 	unsigned char c;
-	int i;
+	size_t i;
 	int w, m;
 
 	if (!cs) {

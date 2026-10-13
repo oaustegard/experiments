@@ -17,9 +17,12 @@ static void fmt_keshideh(struct fmt *f, int n, int a3)
 
 	do {
 		count = 0;
-		for (i = n - 1; i != n - 3; i--) {
-			if (i < 0)
+		i = n - 1;
+		while (i != n - 3) {
+			if (i < 0) {
+				i--;
 				continue;
+			}
 			m = (unsigned int)i / 2 + 1;
 			j = i;
 			do {
@@ -37,6 +40,7 @@ static void fmt_keshideh(struct fmt *f, int n, int a3)
 				wb_done(&w);
 				j -= 2;
 			} while (--m > 0);
+			i--;
 		}
 	} while (count != 0);
 	if (n > 0) {

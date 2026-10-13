@@ -21,31 +21,43 @@ int dev_open(char *dir, char *dev)
 			do {
 				c = getc(f);
 			} while (c != '\n' && c != EOF);
-		} else if (strcmp(word, "fonts") == 0) {
+			continue;
+		}
+		if (strcmp(word, "fonts") == 0) {
 			fscanf(f, "%d", &fn_n);
 			for (i = 0; i < fn_n; i++)
 				fscanf(f, "%s", fn_name[i + 1]);
 			fn_n++;
-		} else if (strcmp(word, "sizes") == 0) {
+			continue;
+		}
+		if (strcmp(word, "sizes") == 0) {
 			do {
 				if (fscanf(f, "%127s", word) != 1)
 					break;
 			} while (strcmp(word, "0") != 0);
-		} else if (strcmp(word, "res") == 0) {
-			fscanf(f, "%d", &dev_res);
-		} else if (strcmp(word, "unitwidth") == 0) {
-			fscanf(f, "%d", &dev_uwid);
-		} else if (strcmp(word, "hor") == 0) {
-			fscanf(f, "%d", &dev_hor);
-		} else if (strcmp(word, "vert") == 0) {
-			fscanf(f, "%d", &dev_vert);
-		} else if (strcmp(word, "charset") == 0) {
-			break;
-		} else {
-			do {
-				c = getc(f);
-			} while (c != '\n' && c != EOF);
+			continue;
 		}
+		if (strcmp(word, "res") == 0) {
+			fscanf(f, "%d", &dev_res);
+			continue;
+		}
+		if (strcmp(word, "unitwidth") == 0) {
+			fscanf(f, "%d", &dev_uwid);
+			continue;
+		}
+		if (strcmp(word, "hor") == 0) {
+			fscanf(f, "%d", &dev_hor);
+			continue;
+		}
+		if (strcmp(word, "vert") == 0) {
+			fscanf(f, "%d", &dev_vert);
+			continue;
+		}
+		if (strcmp(word, "charset") == 0)
+			break;
+		do {
+			c = getc(f);
+		} while (c != '\n' && c != EOF);
 	}
 	fclose(f);
 	out("x T %s\n", dev_dev);

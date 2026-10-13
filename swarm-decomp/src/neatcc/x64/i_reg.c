@@ -1,4 +1,4 @@
-long i_reg(long r, long *p1, long *p2, long *p3, long *p4, long *p5)
+long i_reg(unsigned long r, long *p1, long *p2, long *p3, long *p4, long *p5)
 {
 	int k = r & 0xffffff;
 	long ret, x;
@@ -36,7 +36,7 @@ long i_reg(long r, long *p1, long *p2, long *p3, long *p4, long *p5)
 	if (r & 0x40) {
 		ret = 1;
 		if (r & 0x100000)
-			return ret;
+			goto out;
 		if (k == 0x42) {
 			*p1 = 4;
 			*p2 = 1;
@@ -55,7 +55,10 @@ long i_reg(long r, long *p1, long *p2, long *p3, long *p4, long *p5)
 		goto tail;
 	}
 	if (r & 0x100) {
-		*p2 = k == 0x102 ? 1 : 0xffcf;
+		if (k == 0x102)
+			*p2 = 1;
+		else
+			*p2 = 0xffcf;
 		goto zero;
 	}
 	if (k == 0x800) {
@@ -103,11 +106,13 @@ long i_reg(long r, long *p1, long *p2, long *p3, long *p4, long *p5)
 	}
 	ret = k != 0x1000;
 	if (!(r & 0x4000))
-		return ret;
+		goto out;
 tail:
 	t = r & 0x100000;
 	*p2 = 0xffcf;
 	*p3 = t ? 8 : 0xffcf;
 zero:
-	return 0;
+	ret = 0;
+out:
+	return ret;
 }

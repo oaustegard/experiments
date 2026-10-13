@@ -39,10 +39,10 @@ xpipe(char *cmd, char *in, long n, char **out, long *outn)
 			execvp(argv[0], argv);
 			exit(1);
 		}
-		if (in)
-			close(a[0]);
 		if (out)
 			close(b[1]);
+		if (in)
+			close(a[0]);
 		if (pid < 0) {
 			if (in)
 				close(a[1]);
@@ -50,11 +50,11 @@ xpipe(char *cmd, char *in, long n, char **out, long *outn)
 				close(b[0]);
 			return 1;
 		}
-		wfd = in ? a[1] : -1;
 		rfd = out ? b[0] : -1;
+		wfd = in ? a[1] : -1;
 	}
 	sb = out ? sbuf_make() : NULL;
-	fcntl(wfd, F_SETFL, fcntl(wfd, F_GETFL, 0) | O_NONBLOCK, 0);
+	fcntl(wfd, F_SETFL, fcntl(wfd, F_GETFL, 0) | O_NONBLOCK);
 	{
 		struct pollfd fds[2];
 		char buf[512];
@@ -65,7 +65,7 @@ xpipe(char *cmd, char *in, long n, char **out, long *outn)
 		fds[1].fd = wfd;
 		fds[1].events = POLLOUT;
 		off = 0;
-		while ((fds[0].fd & fds[1].fd) >= 0) {
+		while (fds[0].fd >= 0 || fds[1].fd >= 0) {
 			if (poll(fds, 2, 200) < 0)
 				break;
 			if (fds[0].revents & POLLIN) {

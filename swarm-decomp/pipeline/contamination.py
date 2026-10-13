@@ -20,7 +20,9 @@ struct/field/typedef names, comments, formatting. Those are the signal:
   comment_lines       upstream comment lines reproduced verbatim
   token_ratio         difflib ratio of the two token sequences, identifiers included
 
-A function is flagged COPIED when verbatim_lines >= 0.6 over >= 3 informative lines,
+String and char literals are collapsed to "" before lines are compared: their contents are in
+.rodata, so the binary dictates them. A function is flagged COPIED when verbatim_lines >= 0.6 over
+>= 5 informative lines,
 or free_ident_recall >= 0.8 over >= 5 free identifiers with token_ratio >= 0.9, or it
 reproduces any upstream comment line of >= 20 chars. The obscure target (neat*) is the
 control: its distributions show what independent reconstruction looks like.
@@ -121,7 +123,10 @@ def functions(text: str) -> dict[str, tuple[str, list[str]]]:
 
 
 def norm_lines(text: str) -> list[str]:
+    """Whitespace-normalised lines with comments removed and every string/char literal collapsed to
+    "" / '': literal contents sit in .rodata, so the binary dictates them and they prove nothing."""
     clean, _ = strip_comments(text)
+    clean = re.sub(r'"_*"', '""', re.sub(r"'_*'", "''", clean))
     return [" ".join(l.split()) for l in clean.splitlines()]
 
 
@@ -180,7 +185,7 @@ def main() -> int:
                "free_upstream": len(uf), "free_ident_recall": round(len(uf & mf) / len(uf), 3) if uf else None,
                "token_ratio": round(difflib.SequenceMatcher(None, u_tok, m_tok, autojunk=False).ratio(), 3),
                "comment_lines": len(ccopy)}
-        row["copied"] = bool((row["verbatim_lines"] or 0) >= 0.6 and len(m_lines) >= 3
+        row["copied"] = bool((row["verbatim_lines"] or 0) >= 0.6 and len(m_lines) >= 5
                              or (row["free_ident_recall"] or 0) >= 0.8 and len(uf) >= 5 and row["token_ratio"] >= 0.9
                              or ccopy)
         rows.append(row)

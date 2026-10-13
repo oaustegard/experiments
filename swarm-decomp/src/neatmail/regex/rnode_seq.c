@@ -19,86 +19,89 @@ static struct rnode *rnode_seq(char **s)
 		goto out;
 	if (c == '|' || c == ')')
 		goto out;
-	if (c != '(') {
-		n = calloc(sizeof(struct rnode), 1);
-		n->min = 1;
-		n->max = 1;
-		switch (*p) {
-		case '[':
-			len = brk_len(p);
-			n->c00 = '[';
-			goto copy;
-		case '$':
-			p++;
-			n->c00 = '$';
+	if (c == '(')
+		goto paren;
+	n = calloc(sizeof(struct rnode), 1);
+	n->min = 1;
+	n->max = 1;
+	switch (*p) {
+	case '[':
+		len = brk_len(p);
+		n->c00 = '[';
+		goto copy;
+	case '$':
+		p++;
+		n->c00 = '$';
+		*s = p;
+		break;
+	case '.':
+		p++;
+		n->c00 = '.';
+		*s = p;
+		break;
+	case '\\':
+		if ((p[1] & ~2) == '<') {
+			n->c00 = p[1] == '<' ? '<' : '>';
+			p += 2;
 			*s = p;
 			break;
-		case '.':
-			p++;
-			n->c00 = '.';
-			*s = p;
-			break;
-		case '\\':
-			if ((p[1] & ~2) == '<') {
-				n->c00 = p[1] == '<' ? '<' : '>';
-				p += 2;
-				*s = p;
-				break;
-			}
-			p++;
-			*s = p;
-			goto literal;
-		case '^':
-			p++;
-			n->c00 = '^';
-			*s = p;
-			break;
-		default:
-			goto literal;
 		}
-		goto quant;
-	literal:
-		q = p;
-		do {
-			if (q == p) {
-				q = p + uc_len(p);
-				continue;
-			}
-			if (strchr(".^$[(|)*?+{\\", *q))
+		p++;
+		*s = p;
+		goto literal;
+	case '^':
+		p++;
+		n->c00 = '^';
+		*s = p;
+		break;
+	default:
+		goto literal;
+	}
+	goto quant;
+literal:
+	q = p;
+	do {
+		if (q == p) {
+			e = p + uc_len(p);
+		} else {
+			c = *q;
+			if (strchr(".^$[(|)*?+{\\", c))
 				break;
 			e = q + uc_len(q);
-			if (*e && strchr("*?+{", *e))
+			c = *e;
+			if (c && strchr("*?+{", c))
 				break;
-			q = e;
-		} while (q != p);
-		len = q - p;
-	copy:
-		n->str = malloc(len + 1);
-		memcpy(n->str, p, len);
-		p += len;
-		*s = p;
-		n->str[len] = 0;
-	} else {
-		*s = p + 1;
-		if (p[1] == ')') {
-			r = NULL;
-		} else {
-			r = rnode_parse(s);
-			if (!r)
-				goto out;
-			if (**s != ')') {
-				rnode_free(r);
-				goto out;
-			}
 		}
-		p = *s + 1;
-		*s = p;
-		n = calloc(sizeof(struct rnode), 1);
-		n->left = r;
-		n->type = '(';
-		n->min = 1;
-		n->max = 1;
+		q = e;
+	} while (q != p);
+	len = q - p;
+copy:
+	n->str = malloc(len + 1);
+	memcpy(n->str, p, len);
+	n->str[len] = 0;
+	p += len;
+	*s = p;
+	goto quant;
+paren:
+	*s = p + 1;
+	if (p[1] == ')') {
+		r = NULL;
+	} else {
+		r = rnode_parse(s);
+		if (!r)
+			goto out;
+		if (**s != ')') {
+			rnode_free(r);
+			goto out;
+		}
 	}
+	p = *s + 1;
+	*s = p;
+	n = calloc(sizeof(struct rnode), 1);
+	n->left = r;
+	n->type = '(';
+	n->min = 1;
+	n->max = 1;
 quant:
 	c = *p;
 	if (c == '*' || c == '?') {
@@ -150,11 +153,11 @@ concat:
 	if (m) {
 		r = calloc(sizeof(struct rnode), 1);
 		r->left = n;
-		r->right = m;
-		r->type = 'c';
-		r->min = 1;
-		r->max = 1;
 		n = r;
+		n->type = 'c';
+		n->right = m;
+		n->min = 1;
+		n->max = 1;
 	}
 out:
 	return n;

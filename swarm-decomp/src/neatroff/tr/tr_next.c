@@ -9,4 +9,5 @@ int tr_next(void)
 		;
 	c = cp_next();
 	tr_nl = c == 10 || c < 0;
+	return c;
 }

@@ -25,30 +25,42 @@ int dev_open(const char *dir, const char *dev)
 				if (c == '\n' || c == EOF)
 					break;
 			}
-		} else if (strcmp(word, "fonts") == 0) {
+			continue;
+		}
+		if (strcmp(word, "fonts") == 0) {
 			fscanf(f, "%d", &fn_n);
 			for (i = 0; i < fn_n; i++)
 				fscanf(f, "%s", fn_name[i + 1]);
 			fn_n++;
-		} else if (strcmp(word, "sizes") == 0) {
+			continue;
+		}
+		if (strcmp(word, "sizes") == 0) {
 			while (fscanf(f, "%127s", word) == 1 && strcmp(word, "0") != 0)
 				;
-		} else if (strcmp(word, "res") == 0) {
+			continue;
+		}
+		if (strcmp(word, "res") == 0) {
 			fscanf(f, "%d", &dev_res);
-		} else if (strcmp(word, "unitwidth") == 0) {
+			continue;
+		}
+		if (strcmp(word, "unitwidth") == 0) {
 			fscanf(f, "%d", &dev_uwid);
-		} else if (strcmp(word, "hor") == 0) {
+			continue;
+		}
+		if (strcmp(word, "hor") == 0) {
 			fscanf(f, "%d", &dev_hor);
-		} else if (strcmp(word, "vert") == 0) {
+			continue;
+		}
+		if (strcmp(word, "vert") == 0) {
 			fscanf(f, "%d", &dev_vert);
-		} else if (strcmp(word, "charset") == 0) {
+			continue;
+		}
+		if (strcmp(word, "charset") == 0)
 			break;
-		} else {
-			for (;;) {
-				c = getc(f);
-				if (c == '\n' || c == EOF)
-					break;
-			}
+		for (;;) {
+			c = getc(f);
+			if (c == '\n' || c == EOF)
+				break;
 		}
 	}
 	fclose(f);

@@ -37,14 +37,13 @@ void ren_vlcmd(struct wb *w, char *s)
 		r = len;
 		goto check;
 	}
-	if (h > len) {
+	if (h <= len) {
+		goto divide;
+	} else {
 		wb_vmov(w, len / 2 - h);
 		q = 1;
-	} else {
-		goto divide;
 	}
-loop:
-	for (i = 0; i < q; i++) {
+loop:	for (i = 0; i < q; i++) {
 		wb_vmov(w, h);
 		wb_putexpand(w, buf);
 		wb_hmov(w, -wid);

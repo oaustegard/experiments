@@ -1,15 +1,13 @@
 #include "ic_ent.h"
 static int loc_isread(int reg)
 {
-	int i = ic_i + 1;
-	long k;
-	struct ic_ent *p = ic;
+	int i;
 
-	for (k = i; k < ic_n; k++) {
-		if (ic_bbeg[k])
+	for (i = ic_i + 1; i < ic_n; i++) {
+		if (ic_bbeg[i])
 			return 0;
-		if (p[k].op & 0x200000)
-			return p[k].op & 0x10000;
+		if (ic[i].op & 0x200000)
+			return ic[i].op & 0x10000;
 	}
 	return 0;
 }

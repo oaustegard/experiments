@@ -31,7 +31,7 @@ void dict_put(struct dict *d, const char *key, int val)
 
 	h = (unsigned char)*kk;
 	p = kk + 1;
-	if (d->maxlen > 1) {
+	if ((int)d->maxlen > 1) {
 		e = key + (unsigned int)d->maxlen;
 		while (*p) {
 			h = h * 33 + (unsigned char)*p;

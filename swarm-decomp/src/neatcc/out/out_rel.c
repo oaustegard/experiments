@@ -8,8 +8,12 @@ out_rel(long sym, long type, long off)
 	struct rel *r;
 	long n;
 	long k;
-	long info;
-
+	if (type & 0x20)
+		k = 2;
+	else if (type & 0x800)
+		k = 10 + ((type & 0x40) != 0);
+	else
+		k = 1;
 	if (type & 2) {
 		if (dsrel_n >= dsrel_sz) {
 			long sz = dsrel_sz * 2;
@@ -35,11 +39,5 @@ out_rel(long sym, long type, long off)
 	}
 	r = &t[n];
 	r->off = off;
-	if (type & 0x20)
-		k = 2;
-	else if (type & 0x800)
-		k = 10 + ((type & 0x40) != 0);
-	else
-		k = 1;
 	r->info = (sym << 32) + k;
 }

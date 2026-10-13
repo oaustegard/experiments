@@ -15,15 +15,21 @@ static void readarg(char *d)
 		if (jumpcomment() == 0)
 			continue;
 		c = buf[cur++];
-		if (c == ']' || c == ')')
+		switch (c) {
+		case ']':
+		case ')':
+		case '}':
 			depth--;
-		else if (c == '[' || c == '(' || c == '{')
+			break;
+		case '[':
+		case '(':
+		case '{':
 			depth++;
-		else if (c == '}')
-			depth--;
+			break;
+		}
 	}
+	n = cur - start;
 	if (d) {
-		n = cur - start;
 		memcpy(d, buf + start, n);
 		d[n] = 0;
 	}

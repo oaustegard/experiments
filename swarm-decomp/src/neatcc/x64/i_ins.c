@@ -3,7 +3,7 @@
 #include "op_rr.h"
 #include "op_x.h"
 
-static void i_div(int op, int c);
+static void i_div(int op, long unused, int c);
 static void mov_r2r(int a, int b, int t);
 
 int i_ins(long op, long a, long b, long c, long d)
@@ -84,8 +84,14 @@ L80:
 	if (t)
 		goto L1d5;
 L89:
-	if (op & 0x40)
-		goto L233;
+	if (op & 0x40) {
+		if (k == 0x40)
+			goto L4c0;
+		if ((unsigned long) (k - 0x41) > 1)
+			return 0;
+		i_div((int) op, b, (int) c);
+		return 0;
+	}
 L92:
 	if (op & 0x80)
 		goto L3d8;
@@ -138,7 +144,7 @@ L233:
 		goto L4c0;
 	if ((unsigned long) (k - 0x41) > 1)
 		return 0;
-	i_div((int) op, (int) c);
+	i_div((int) op, b, (int) c);
 	return 0;
 
 L2c3:
@@ -281,8 +287,9 @@ L7d2:
 		int m = x & 0xf;
 
 		if (x & 0x10)
-			m |= 0x10;
-		mov_r2r(a, b, m);
+			mov_r2r(a, b, m | 0x10);
+		else
+			mov_r2r(a, b, m);
 	}
 	return 0;
 

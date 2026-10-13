@@ -18,7 +18,7 @@ static void jumpifs(int taken)
 		read_word(name);
 		if (!strcmp(name, "else") && !(taken | depth))
 			return;
-		if (!strcmp(name, "elif") && !(taken | depth)) {
+		if (!strcmp("elif", name) && !(taken | depth)) {
 			if (cpp_eval())
 				return;
 		}

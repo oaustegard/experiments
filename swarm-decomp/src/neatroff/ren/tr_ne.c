@@ -13,6 +13,8 @@ void tr_ne(struct tr_args *a)
 		return;
 	}
 	d = *nreg('d');
-	if (!ren_traps(*nreg('d'), d + n - 1, 1))
+	if (ren_traps(*nreg('d'), d + n - 1, 1) == 0) {
 		ren_pagelimit(n - 1);
+		return;
+	}
 }

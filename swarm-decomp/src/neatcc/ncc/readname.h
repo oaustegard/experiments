@@ -1,4 +1,3 @@
 #pragma once
-#include "decl.h"
 #include "type.h"
-static int readname(char *name, struct decl *d, struct type *t);
+static int readname(struct type *out, char *name, struct type *base);

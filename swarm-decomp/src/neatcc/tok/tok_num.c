@@ -17,10 +17,9 @@ long tok_num(char *p, long *out)
 	}
 	if (!strchr("0123456789abcdef", tolower(c))) {
 		if (c == '\'') {
+			x = (unsigned char)p[1];
 			if (p[1] == '\\')
 				esc_char(&x, p + 1);
-			else
-				x = (unsigned char)p[1];
 			*out = x;
 			return type;
 		}
@@ -40,12 +39,9 @@ long tok_num(char *p, long *out)
 	c = *p;
 	while (c) {
 		t = tolower(c);
-		if (t == 'u')
-			type &= ~0x10;
-		else if (t == 'l')
-			type = (type & 0x10) | 8;
-		else
+		if (t != 'u' && t != 'l')
 			break;
+		type = t != 'u' ? (type & 0x10) | 8 : type & ~0x10;
 		c = p[1];
 		p++;
 	}

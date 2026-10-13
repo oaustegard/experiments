@@ -8,17 +8,15 @@ lua_Unsigned luaH_getn (Table *t) {
   unsigned int limit = t->alimit;
   if (limit > 0 && (t->array[limit - 1].tt_ & 0xf) == 0) {
     if (limit >= 2 && (t->array[limit - 2].tt_ & 0xf) != 0) {
-      if ((!(t->flags & 0x80) || (t->alimit & (t->alimit - 1)) == 0) && ((limit - 1) & (limit - 2)) != 0) {
+      if (((t->flags & 0x80) || (t->alimit & (t->alimit - 1)) == 0) && ((limit - 1) & (limit - 2)) != 0) {
         t->alimit = limit - 1;
         t->flags |= 0x80;
-        return t->alimit;
       }
-      else
-        return limit - 1;
+      return limit - 1;
     }
     else {
       unsigned int border = binsearch(t->array, 0, limit);
-      if ((!(t->flags & 0x80) || (t->alimit & (t->alimit - 1)) == 0) && border > luaH_realasize(t) / 2) {
+      if (((t->flags & 0x80) || (t->alimit & (t->alimit - 1)) == 0) && border > luaH_realasize(t) / 2) {
         t->alimit = border;
         t->flags |= 0x80;
       }

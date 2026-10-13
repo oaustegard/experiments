@@ -3,7 +3,7 @@
 static unsigned char *obj_add(struct outelf *oe, char *fname)
 {
     struct stat st;
-    int fd, size, len, n, i, j, k, count, off, nfound, want, def, base;
+    int fd, size, len, n, i, j, count, off, nfound, want, def, base;
     unsigned char *buf, *hdr, *data;
     char *names;
     struct objent *o;
@@ -34,8 +34,7 @@ static unsigned char *obj_add(struct outelf *oe, char *fname)
                         for (i = 0; i < count; i++) {
                             want = 0;
                             def = 0;
-                            for (k = 0; !def && k < oe->nobjs; k++) {
-                                o = &oe->objs[k];
+                            for (o = oe->objs; !def && o < oe->objs + oe->nobjs; o++) {
                                 for (j = 0; j < o->nsyms; j++) {
                                     Elf64_Sym *s = &o->syms[j];
                                     if (ELF64_ST_BIND(s->st_info) && strcmp(names, o->strtab + s->st_name) == 0) {

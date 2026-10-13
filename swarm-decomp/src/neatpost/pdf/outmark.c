@@ -18,7 +18,8 @@
 void outmark(int n, char (*names)[256], int *pages, int *ys, int *levels)
 {
 	int *ids;
-	int i, j, id, cnt, last, prev;
+	int j, id, cnt;
+	long i, last, prev;
 
 	ids = malloc(n * sizeof(int));
 	pdf_outline = obj_map();

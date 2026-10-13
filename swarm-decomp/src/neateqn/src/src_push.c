@@ -16,11 +16,11 @@ src_push(char *s, char **args)
 	if (args != NULL)
 		for (i = 0; i < 10; i++) {
 			p = args[i];
+			e->arg[i] = p;
 			if (p != NULL) {
 				n = strlen(p) + 1;
-				p = memcpy(malloc(n), p, n);
+				e->arg[i] = memcpy(malloc(n), p, n);
 			}
-			e->arg[i] = p;
 		}
 	esrc_depth++;
 	esrc = e;

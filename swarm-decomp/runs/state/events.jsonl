@@ -1,0 +1,45 @@
+{"kind": "refresh", "text": "full refresh at 395118e01e", "time": 1791884722.0233247}
+{"kind": "note", "text": "launch obscure target (neat*) at -O2, concurrency 16", "time": 1791884762.7035425}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat* --concurrency 16 --max-usd 33 --max-minutes 110 --batch 6 --sample 0", "time": 1791884779.540393}
+{"kind": "loop", "text": "loop stopped", "time": 1791885874.8448029}
+{"kind": "note", "text": "runner rejects gcc-steering attributes (used/noinline/noipa); stripped from 31 files, 14 matches lost", "time": 1791885912.1448228}
+{"kind": "refresh", "text": "full refresh at 57181ebc3c", "time": 1791885912.3100452}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat* --concurrency 16 --max-usd 33 --max-minutes 110 --batch 6 --sample 0", "time": 1791885942.527588}
+{"kind": "loop", "text": "loop stopped", "time": 1791889196.1923141}
+{"kind": "note", "text": "partial-credit gate on (frac, min gain 0.05): 125 partials (39% of spend) had been discarded", "time": 1791889520.3052568}
+{"kind": "refresh", "text": "full refresh at e66e329087", "time": 1791889520.4845634}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat* --concurrency 16 --max-usd 36 --max-minutes 110 --batch 6 --sample 0", "time": 1791889560.8740923}
+{"kind": "note", "text": "neat phase ended ($41.12); lua phase starts, cap $54.5 cumulative", "time": 1791892706.3667367}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only lua* --concurrency 16 --max-usd 54.5 --max-minutes 110 --batch 6 --sample 0", "time": 1791892714.805699}
+{"kind": "loop", "text": "loop stopped", "time": 1791894514.491288}
+{"kind": "note", "text": "Oskar lifts the $60 cap: both targets run together, soft cap $150 cumulative", "time": 1791894514.5811653}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 150 --max-minutes 110 --batch 6 --sample 0", "time": 1791894519.5875971}
+{"kind": "refresh", "text": "full refresh at 0e58625018", "time": 1791895037.9402914}
+{"kind": "loop", "text": "loop exit at --max-minutes (relaunch to continue)", "time": 1791901151.304556}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 145 --max-minutes 110 --batch 6 --sample 0", "time": 1791901160.9826274}
+{"kind": "refresh", "text": "full refresh at ec02193b5e", "time": 1791901306.4124546}
+{"kind": "loop", "text": "loop stopped", "time": 1791905489.253463}
+{"kind": "note", "text": "Oskar: run until neat stalls (spend cap lifted)", "time": 1791905489.402318}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791905494.2141256}
+{"kind": "unpark", "text": "attempt epoch: parked tests unparked", "time": 1791908636.7722268}
+{"kind": "note", "text": "unpark: queue at 24 items; attempts before partial credit (11:05) discarded progress", "time": 1791908637.1584938}
+{"kind": "loop", "text": "loop exit at --max-minutes (relaunch to continue)", "time": 1791912123.6332455}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791912129.1629145}
+{"kind": "loop", "text": "loop stopped", "time": 1791913805.5549695}
+{"kind": "unpark", "text": "attempt epoch: parked tests unparked", "time": 1791913805.760733}
+{"kind": "note", "text": "tail phase A: Haiku at xhigh for every attempt (harness 0.4.0 effort ladder); unpark", "time": 1791913806.0912101}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791913811.600916}
+{"kind": "refresh", "text": "full refresh at c3c046c914", "time": 1791914391.0720983}
+{"kind": "loop", "text": "loop exit at --max-minutes (relaunch to continue)", "time": 1791920413.515748}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791920424.0194368}
+{"kind": "loop", "text": "loop stopped", "time": 1791920855.1497672}
+{"kind": "unpark", "text": "attempt epoch: parked tests unparked", "time": 1791920855.23674}
+{"kind": "note", "text": "tail phase B: Haiku max for every attempt; unpark (xhigh phase: 295 workers, 28 flips, $41.38)", "time": 1791920855.4698985}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791920859.4515781}
+{"kind": "loop", "text": "loop stopped", "time": 1791926225.287762}
+{"kind": "note", "text": "paused 21:17 for 45 min (quota); 21 in-flight max workers terminated", "time": 1791926240.534934}
+{"kind": "note", "text": "resumed after quota pause (22:05)", "time": 1791929103.8038316}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --concurrency 20 --max-usd 1000 --max-minutes 110 --batch 6 --sample 0", "time": 1791929107.6697314}
+{"kind": "loop", "text": "loop stopped", "time": 1791930871.65043}
+{"kind": "note", "text": "Oskar 22:20: stop at Haiku max, no Sonnet; launches end, in-flight max workers drain (--no-launch)", "time": 1791930871.7587569}
+{"kind": "loop", "text": "loop start: run --config swarm/swarm.toml --only neat*,lua* --no-launch --concurrency 20 --max-minutes 60 --batch 6 --sample 0", "time": 1791930879.2724626}

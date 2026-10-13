@@ -6,15 +6,12 @@ static void ren_ps(char *s)
 	int *q;
 	int *p;
 
-	if (s == 0 || *s == 0) {
+	if (s == 0 || *s == 0 || strcmp(s, "0") == 0) {
 		q = nreg(map(".s0"));
 		n = dev_res / 72 * *q;
-	} else if (*s != '0' || s[1] != 0) {
+	} else {
 		q = nreg('s');
 		n = eval_re(s, dev_res / 72 * *q, 'p');
-	} else {
-		q = nreg(map(".s0"));
-		n = dev_res / 72 * *q;
 	}
 	p = nreg('s');
 	q = nreg(map(".s0"));

@@ -1,8 +1,9 @@
 static void box_bracketsel(int a, int b, int c, char **s, int d, int e)
 {
-	int i = 0;
+	int i = -1;
 
 	if (s[0]) {
+		i = 0;
 		do {
 			printf(".if '%s'' ", sreg(a));
 			printf(".if \\w'%s' ", s[i]);
@@ -15,9 +16,11 @@ static void box_bracketsel(int a, int b, int c, char **s, int d, int e)
 			printf(".ds %s \"%s\n", sregname(a), s[i]);
 			i++;
 		} while (s[i]);
+		i--;
 	}
-	if (d && s[0]) {
-		for (; i >= 0; i--)
-			printf(".if '%s'' .if \\w'%s' .ds %s \"%s\n", sreg(a), s[i], sregname(a), s[i]);
+	if (d) {
+		if (i >= 0)
+			for (; i >= 0; i--)
+				printf(".if '%s'' .if \\w'%s' .ds %s \"%s\n", sreg(a), s[i], sregname(a), s[i]);
 	}
 }

@@ -1,7 +1,7 @@
 static int down(int n)
 {
 	int d = *nreg('d');
-	int k = n ? n : *nreg('v');
+	int k = down_amt(n);
 
 	if (ren_traps(*nreg('d'), d + k, 1))
 		return 1;

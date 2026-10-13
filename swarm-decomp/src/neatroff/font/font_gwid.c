@@ -5,11 +5,11 @@ int font_gwid(void *gf, void *ff, int n, int s)
 	int w, a;
 
 	if (f == NULL) {
-		f = g;
-		if (f->cs[0] == 0) {
+		if (g->cs[0] == 0) {
 			w = font_wid(gf, n, s);
 			goto bd;
 		}
+		f = g;
 	}
 	if (f->cs[0] != 0) {
 		a = f->cs[1] ? f->cs[1] : n;

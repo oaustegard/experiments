@@ -15,10 +15,9 @@ in_next(void)
 				buf->nback--;
 				return buf->back[buf->nback];
 			}
-			if (buf->name != NULL) {
-				if (buf->pos < buf->len)
-					return (unsigned char)buf->name[buf->pos++];
-			} else {
+			if (buf->name != NULL && buf->pos < buf->len)
+				return (unsigned char)buf->name[buf->pos++];
+			if (buf->name == NULL) {
 				c = getc(buf->fp);
 				if (c >= 0) {
 					if (buf->last == '\n')

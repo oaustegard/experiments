@@ -80,19 +80,19 @@ struct font *font_open(char *name)
 		} else if (strcmp(buf, "gsub") == 0) {
 			if (fscanf(fp, "%127s %d", buf, &b) == 2) {
 				font_readfeat(f, buf, &fi, &sc, &lg);
-				font_readgsub(f, fp, b, sec, fi, sc, lg);
+				font_readgsub(f, fp, &b, &sec, &fi, &sc, &lg);
 			}
 		} else if (strcmp(buf, "gpos") == 0) {
 			if (fscanf(fp, "%127s %d", buf, &b) == 2) {
 				font_readfeat(f, buf, &fi, &sc, &lg);
-				font_readgpos(f, fp, b, sec, fi, sc, lg);
+				font_readgpos(f, fp, &b, &sec, &fi, &sc, &lg);
 			}
 		} else if (isdigit((unsigned char)buf[0])) {
 			n = strtol(buf, NULL, 10);
 			if (sel)
-				font_readgpos(f, fp, n, sec, fi, sc, lg);
+				font_readgpos(f, fp, &n, &sec, &fi, &sc, &lg);
 			else
-				font_readgsub(f, fp, n, sec, fi, sc, lg);
+				font_readgsub(f, fp, &n, &sec, &fi, &sc, &lg);
 		} else if (strcmp(buf, "ggrp") == 0) {
 			int n2, cnt;
 			char w2[128];
@@ -196,7 +196,7 @@ struct font *font_open(char *name)
 	for (i = 0; i < f->ngsub; i++) {
 		for (j = 0; j < f->gsub[i].n; j++) {
 			if (!(f->gsub[i].ent[j].flags & 6)) {
-				font_isetinsert(f, f->iab8, i, f->gsub[i].ent[j].code);
+				font_isetinsert(f, f->iab8, i, &f->gsub[i].ent[j]);
 				break;
 			}
 		}
@@ -204,7 +204,7 @@ struct font *font_open(char *name)
 	for (i = 0; i < f->ngpos; i++) {
 		for (j = 0; j < f->gpos[i].n; j++) {
 			if (!(f->gpos[i].ent[j].flags & 6)) {
-				font_isetinsert(f, f->iac0, i, f->gpos[i].ent[j].code);
+				font_isetinsert(f, f->iac0, i, &f->gpos[i].ent[j]);
 				break;
 			}
 		}

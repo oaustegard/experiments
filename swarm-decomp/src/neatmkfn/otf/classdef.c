@@ -1,4 +1,4 @@
-#define U16(p) (((p)[0] << 8) | (p)[1])
+#define U16(p) ((int)__builtin_bswap16(*(const unsigned short *)(p)))
 
 int
 classdef(const unsigned char *t, int *gl, int *cls)
@@ -21,15 +21,13 @@ classdef(const unsigned char *t, int *gl, int *cls)
 	if (fmt != 2)
 		return cnt;
 	n = U16(t + 2);
-	for (i = 0, r = t + 4; i < n; i++, r += 6) {
+	for (i = 0; i < n; i++) {
+		r = t + 4 + 6 * i;
 		s = U16(r);
 		e = U16(r + 2);
-		c = U16(r + 4);
-		if (s > e)
-			continue;
 		for (j = s; j <= e; j++) {
 			gl[cnt] = j;
-			cls[cnt] = c;
+			cls[cnt] = U16(r + 4);
 			cnt++;
 		}
 	}

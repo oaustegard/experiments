@@ -5,6 +5,9 @@
 static lua_State *getthread (lua_State *L, int *arg);
 static void checkstack (lua_State *L, lua_State *L1, int n);
 static void treatstackoption (lua_State *L, lua_State *L1, const char *fname);
+static void settabss (lua_State *L, const char *k, const char *v);
+static void settabsi (lua_State *L, const char *k, int v);
+static void settabsb (lua_State *L, const char *k, int v);
 
 static int db_getinfo (lua_State *L) {
   lua_Debug ar;
@@ -30,56 +33,33 @@ static int db_getinfo (lua_State *L) {
   if (strchr(options, 'S')) {
     lua_pushlstring(L, ar.source, ar.srclen);
     lua_setfield(L, -2, "source");
-    lua_pushstring(L, ar.short_src);
-    lua_setfield(L, -2, "short_src");
-    lua_pushinteger(L, ar.linedefined);
-    lua_setfield(L, -2, "linedefined");
-    lua_pushinteger(L, ar.lastlinedefined);
-    lua_setfield(L, -2, "lastlinedefined");
-    lua_pushstring(L, ar.what);
-    lua_setfield(L, -2, "what");
+    settabss(L, "short_src", ar.short_src);
+    settabsi(L, "linedefined", ar.linedefined);
+    settabsi(L, "lastlinedefined", ar.lastlinedefined);
+    settabss(L, "what", ar.what);
   }
   if (strchr(options, 'l')) {
-    lua_pushinteger(L, ar.currentline);
-    lua_setfield(L, -2, "currentline");
+    settabsi(L, "currentline", ar.currentline);
   }
   if (strchr(options, 'u')) {
-    lua_pushinteger(L, ar.nups);
-    lua_setfield(L, -2, "nups");
-    lua_pushinteger(L, ar.nparams);
-    lua_setfield(L, -2, "nparams");
-    lua_pushboolean(L, ar.isvararg);
-    lua_setfield(L, -2, "isvararg");
+    settabsi(L, "nups", ar.nups);
+    settabsi(L, "nparams", ar.nparams);
+    settabsb(L, "isvararg", ar.isvararg);
   }
   if (strchr(options, 'n')) {
-    lua_pushstring(L, ar.name);
-    lua_setfield(L, -2, "name");
-    lua_pushstring(L, ar.namewhat);
-    lua_setfield(L, -2, "namewhat");
+    settabss(L, "name", ar.name);
+    settabss(L, "namewhat", ar.namewhat);
   }
   if (strchr(options, 'r')) {
-    lua_pushinteger(L, ar.ftransfer);
-    lua_setfield(L, -2, "ftransfer");
-    lua_pushinteger(L, ar.ntransfer);
-    lua_setfield(L, -2, "ntransfer");
+    settabsi(L, "ftransfer", ar.ftransfer);
+    settabsi(L, "ntransfer", ar.ntransfer);
   }
   if (strchr(options, 't')) {
-    lua_pushboolean(L, ar.istailcall);
-    lua_setfield(L, -2, "istailcall");
+    settabsb(L, "istailcall", ar.istailcall);
   }
-  if (strchr(options, 'L')) {
-    if (L1 == L)
-      lua_rotate(L1, -2, 1);
-    else
-      lua_xmove(L1, L, 1);
-    lua_setfield(L, -2, "activelines");
-  }
-  if (strchr(options, 'f')) {
-    if (L1 == L)
-      lua_rotate(L, -2, 1);
-    else
-      lua_xmove(L1, L, 1);
-    lua_setfield(L, -2, "func");
-  }
+  if (strchr(options, 'L'))
+    treatstackoption(L, L1, "activelines");
+  if (strchr(options, 'f'))
+    treatstackoption(L, L1, "func");
   return 1;
 }

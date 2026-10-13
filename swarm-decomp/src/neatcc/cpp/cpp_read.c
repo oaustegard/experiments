@@ -3,7 +3,7 @@
 
 int cpp_read(char **buf_out, long *len_out)
 {
-	char name[128];
+	char name[127];
 	int start;
 	int end;
 	int k;

@@ -17,11 +17,13 @@
 void luaV_finishset (lua_State *L, const TValue *t, TValue *key, TValue *val,
                      const TValue *slot) {
   int loop = MAXTAGLOOP;
+  const TValue *tm;
   do {
-    const TValue *tm;
     if (slot != NULL) {
       Table *h = hvalue(t);
-      tm = fasttm(L, h->metatable, TM_NEWINDEX);
+      tm = (h->metatable == NULL) ? NULL
+         : (h->metatable->flags & (1u << TM_NEWINDEX)) ? NULL
+         : luaT_gettm(h->metatable, TM_NEWINDEX, ((TString **)((char *)L->l_G + 0x118))[TM_NEWINDEX]);
       if (tm == NULL) {
         luaH_finishset(L, h, key, slot, val);
         h->flags &= ~maskflags;
@@ -32,7 +34,7 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key, TValue *val,
     }
     else {
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
-      if (ttisnil(tm))
+      if (__builtin_expect(ttisnil(tm) != 0, 0))
         luaG_typeerror(L, t, "index");
     }
     if (ttisfunction(tm)) {

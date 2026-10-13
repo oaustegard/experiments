@@ -1,13 +1,12 @@
 int
 src_macro(char *name)
 {
-	int i, n;
+	int i;
 
-	n = nmacros;
-	for (i = 0; i < n; i++)
+	for (i = 0; i < nmacros; i++)
 		if (strcmp(macros[i].name, name) == 0)
 			return 1;
-	if (i == n)
+	if (i == nmacros)
 		return 0;
 	return 1;
 }

@@ -23,10 +23,11 @@ void num_setfmt(int r, char *s)
 	} else {
 		k = 0;
 	}
-	f = (k << 8) | '0';
-	if ((char)(ch & ~0x20) == 'X') {
+	if (ch == 'x' || ch == 'X') {
 		k++;
 		f = (k << 8) | (char)ch;
+	} else {
+		f = (k << 8) | '0';
 	}
 	nregs_fmt[r] = f;
 }

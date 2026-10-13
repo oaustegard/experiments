@@ -3,8 +3,10 @@
 
 void wb_wconf(struct wb *w, int *a, int *b, int *c, int *d, int *e, int *f, int *g)
 {
-	if (w->f2068 && w->f206c)
-		wb_flushsub(w);
+	if (w->f2068 == 0 || w->f206c == 0)
+		goto skip;
+	wb_flushsub(w);
+skip:
 	*a = w->a48[0];
 	*b = -w->a48[2];
 	*c = -w->a48[1];

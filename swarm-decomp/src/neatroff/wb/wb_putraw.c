@@ -6,14 +6,23 @@ void wb_putraw(struct wb *w, char *s)
 {
 	int saved = w->f206c;
 
-	if (w->f2068 && w->f206c) {
-		wb_flushsub(w);
-		saved = w->f206c;
-	}
+	if (w->f2068 && w->f206c)
+		goto flush;
+skip:
 	w->f206c = 0;
 	if (*s == '\n')
-		w->part = 0;
-	else
-		wb_put(w, s);
+		goto part0;
+put:
+	wb_put(w, s);
+	w->f206c = saved;
+	return;
+flush:
+	wb_flushsub(w);
+	saved = w->f206c;
+	w->f206c = 0;
+	if (*s != '\n')
+		goto put;
+part0:
+	w->part = 0;
 	w->f206c = saved;
 }

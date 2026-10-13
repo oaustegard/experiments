@@ -20,36 +20,33 @@ int ex(char **argv)
 	char buf[512];
 	char cmd[512];
 	char *p, *s, *t;
-	char c;
+	int c;
 	int j, k, i, lo, hi;
 	char st = 0;
+	int ch2;
 	char *ms, *out;
 	long mn, outlen;
 	char tmp[16];
 
 	memset(av, 0, sizeof av);
 	j = 0;
+	k = 0;
 	if (!argv[0]) {
 		puts("usage: neatmail ex [mbox] <cmds");
 		return 1;
 	}
-	k = 0;
 	while (argv[j]) {
 		if (argv[j][0] != '-') {
-			while (argv[j]) {
-				av[k++] = argv[j];
-				j++;
-			}
+			while (argv[j])
+				av[k++] = argv[j++];
 			break;
 		}
 		if (argv[j][1] == 'b') {
 			char *a;
-			if (argv[j][2]) {
+			if (argv[j][2])
 				a = argv[j] + 2;
-			} else {
-				j++;
-				a = argv[j];
-			}
+			else
+				a = argv[++j];
 			av[k++] = a;
 		}
 		j++;
@@ -60,14 +57,13 @@ int ex(char **argv)
 		return 1;
 	}
 	while (fgets(buf, 512, stdin)) {
-		if (isupper((unsigned char)buf[0]) && buf[1]) {
-			char ch2;
+		ch2 = buf[1];
+		if (isupper((unsigned char)buf[0]) && ch2) {
 			char *q, *end;
 			int start, num, r, st2;
-			if ((unsigned char)buf[0] - 'A' < 26)
+			if (isupper((unsigned char)buf[0]))
 				st = buf[0];
-			if ((unsigned char)buf[1] - 'A' < 26) {
-				ch2 = buf[1];
+			if ((unsigned char)(ch2 - 'A') < 26) {
 				start = 2;
 			} else {
 				ch2 = 0;
@@ -87,8 +83,8 @@ int ex(char **argv)
 					char *ps, *r8;
 					char nx;
 					pos = num;
-					st2 = 'N';
 					ps = msg_get(ms, mn, "status:");
+					st2 = 'N';
 					if (ps) {
 						q = ps + 7;
 						end = ms + mn;
@@ -158,7 +154,7 @@ int ex(char **argv)
 					if (lo != hi)
 						hi = lo + 1;
 				}
-				if (lo < 0 || lo > hi || lo >= mbox_len(mbox) || mbox_len(mbox) < hi)
+				if (lo < 0 || lo >= mbox_len(mbox) || lo > hi || mbox_len(mbox) < hi)
 					ok = 0;
 			}
 			if (ok) {

@@ -1,8 +1,8 @@
 static void op_rr(int op, int r, int m, int sz)
 {
-	int mod = ((r << 3) & 0x38) | (m & 7);
+	int rm = m & 7;
+	int reg = (r << 3) & 0x38;
 
 	op_x(op, r, m, sz);
-	mod |= 0xc0;
-	op_put((char) mod, 1);
+	op_put((char) (reg | rm) | 0xc0, 1);
 }

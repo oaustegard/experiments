@@ -29,12 +29,11 @@ void outpdf(char *s, int w, int h)
 	struct sbuf *sb, *sb2;
 	char buf[4096];
 	char *data;
-	char *fk[2];
+	int y, wf, i, idx, hf, k, j, x, id, wi, hi, c, fr, v, sc;
 	char *rk[4];
 	int bb[4];
 	int fd, n, end, tr, root, pages, kids, lv, ref, contents, lenv, res, len, mb;
-	int id, idx, i, j, k, c, v, fr, sc, x, y, wi, wf, hi, hf;
-
+	char *fk[2];
 	sb = sbuf_make();
 	fd = open(s, 0);
 	while ((n = read(fd, buf, sizeof buf)) > 0)

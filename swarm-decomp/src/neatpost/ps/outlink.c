@@ -11,12 +11,14 @@ void outlink(char *dest, int x, int y)
 
 	o_flush();
 	c = (unsigned char)*dest;
-	if (c == '#') {
-		dest++;
-		prefix = "/Dest /";
-	} else if (!isdigit(c)) {
+	if (c != '#') {
+		if (isdigit(c))
+			goto common;
 		outf("[ /Rect [ %d %d t %d %d t ] /Action << /Subtype /URI /URI %s >> /Open true /Subtype /Link /LNK pdfmark\n", o_h, o_v, o_h + x, o_v + y, pdftext_static(dest));
 		return;
 	}
+	dest++;
+	prefix = "/Dest /";
+common:
 	outf("[ /Rect [ %d %d t %d %d t ] %s%s /Subtype /Link /LNK pdfmark\n", o_h, o_v, o_h + x, o_v + y, prefix, dest);
 }

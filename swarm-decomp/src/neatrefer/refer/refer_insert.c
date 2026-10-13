@@ -9,5 +9,5 @@ static void refer_insert(int *ids, int n)
 		inserted++;
 		ref_ins(cites[*ids], inserted);
 		ids++;
-	} while (end != ids);
+	} while ((long)ids != (long)end);
 }

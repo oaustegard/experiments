@@ -15,11 +15,10 @@ int pdf_dkey(unsigned char *s, int end, int i, int n)
 			pos++;
 		if (k == n)
 			return pos;
-		if (pos < end) {
+		if (pos < end)
 			pos += pdf_len(s, end, pos);
-			if (pos < end)
-				pos += pdf_len(s, end, pos);
-		}
+		if (pos < end)
+			pos += pdf_len(s, end, pos);
 		while (pos < end && isspace(s[pos]))
 			pos++;
 		k++;

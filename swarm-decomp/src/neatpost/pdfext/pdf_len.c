@@ -19,53 +19,52 @@ int pdf_len(unsigned char *s, int end, int i)
 		pos++;
 		while (pos < end && strchr("0123456789.", s[pos]))
 			pos++;
-		return pos - i;
-	}
-	if (c == '(') {
-		pos++;
-		if (end > pos) {
-			depth = 1;
-			do {
-				c = s[pos];
-				if (c == '(')
-					depth++;
-				else if (c == ')')
-					depth--;
-				else if (c == '\\')
-					pos++;
-				pos++;
-			} while (depth > 0 && pos < end);
-		}
-		return pos - i;
 	}
 	if (c == '<') {
 		if (end > pos + 1 && s[pos + 1] == '<') {
 			pos += 2;
-			while (pos < end && !(s[pos] == '>' && pos + 1 < end && s[pos + 1] == '>'))
+			while (pos + 2 < end) {
+				if (s[pos] == '>' && s[pos + 1] == '>') {
+					if (pos + 2 < end)
+						pos += 2;
+					break;
+				}
+				pos += pdf_len(s, end, pos);
+				if (pos < end)
+					pos += pdf_len(s, end, pos);
+				while (pos < end && isspace(s[pos]))
+					pos++;
+			}
+		} else {
+			while (pos < end && s[pos] != '>')
 				pos++;
 			if (pos < end)
-				pos += 2;
-			return pos - i;
+				pos++;
 		}
-		while (pos < end && s[pos] != '>')
+	} else if (c == '[') {
+		pos++;
+		while (pos < end && s[pos] != ']') {
+			pos += pdf_len(s, end, pos);
+			while (pos < end && isspace(s[pos]))
+				pos++;
+		}
+		pos++;
+	} else if (c == '(') {
+		pos++;
+		depth = 1;
+		while (pos < end && depth > 0) {
+			if (s[pos] == '(')
+				depth++;
+			else if (s[pos] == ')')
+				depth--;
+			else if (s[pos] == '\\')
+				pos++;
 			pos++;
-		if (pos < end)
-			pos++;
-		return pos - i;
-	}
-	if (c == '/') {
+		}
+	} else if (c == '/') {
 		pos++;
 		while (pos < end && !strchr(" \t\r\n\f()<>[]{}/%", s[pos]))
 			pos++;
-		return pos - i;
-	}
-	if (c == '[') {
-		pos++;
-		while (pos < end && s[pos] != ']')
-			pos += pdf_len(s, end, pos);
-		if (pos < end)
-			pos++;
-		return pos - i;
 	}
 	return pos - i;
 }

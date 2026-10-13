@@ -14,6 +14,7 @@
 #include "newlabelentry.h"
 #include "error_expected.h"
 #include "statement.h"
+#include "testnext.h"
 
 static void test_then_block (LexState *ls, int *escapelist) {
   BlockCnt bl;
@@ -27,12 +28,12 @@ static void test_then_block (LexState *ls, int *escapelist) {
   luaX_next(ls);
   if (ls->t.token == 0x101) {  /* if x then break */
     int line = ls->linenumber;
-    luaK_goiffalse(fs, &v);
+    luaK_goiffalse(ls->fs, &v);
     luaX_next(ls);
     enterblock(fs, &bl, 0);
     newlabelentry(ls, &ls->dyd->gt, luaS_newlstr(ls->L, "break", 5), line, v.t);
-    while (ls->t.token == ';')
-      luaX_next(ls);
+    while (testnext(ls, ';'))
+      ;
     if (block_follow(ls, 0)) {
       leaveblock(fs);
       return;
@@ -41,7 +42,7 @@ static void test_then_block (LexState *ls, int *escapelist) {
       jf = luaK_jump(fs);
   }
   else {
-    luaK_goiftrue(fs, &v);
+    luaK_goiftrue(ls->fs, &v);
     enterblock(fs, &bl, 0);
     jf = v.f;
   }

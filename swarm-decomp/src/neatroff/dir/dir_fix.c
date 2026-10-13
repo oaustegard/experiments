@@ -9,18 +9,23 @@
 
 void dir_fix(struct sbuf *b, char *s)
 {
-	char *start, *q;
-	char *p;
+	char *start;
+	char *q;
 	char *t;
+	char *p;
 	char tmp[32];
 	char buf[1032];
-	int font = -1, color = -1, size = -1;
-	int c, n;
+	int size;
+	int font;
+	int color;
+	int c;
+	int n;
 	long len;
 
-	dir_cd = *nreg(map(".td"));
-	p = s;
 	start = s;
+	size = color = font = -1;
+	p = s;
+	dir_cd = *nreg(map(".td"));
 	for (;;) {
 		c = escread(&p, &t);
 		if (c < 0)

@@ -12,20 +12,32 @@ static long evalbitor(void)
 			v &= evaleq();
 			continue;
 		}
+		break;
+	}
+	for (;;) {
+		if (enext == -1)
+			enext = eval_tok();
 		if (enext == '^') {
 			enext = -1;
 			r = evaleq();
-			while (enext == -1 || enext == '&') {
+			for (;;) {
 				if (enext == -1)
 					enext = eval_tok();
-				if (enext != '&')
-					break;
-				enext = -1;
-				r &= evaleq();
+				if (enext == '&') {
+					enext = -1;
+					r &= evaleq();
+					continue;
+				}
+				break;
 			}
 			v ^= r;
 			continue;
 		}
+		break;
+	}
+	for (;;) {
+		if (enext == -1)
+			enext = eval_tok();
 		if (enext == '|') {
 			enext = -1;
 			r = evaleq();
@@ -37,18 +49,23 @@ static long evalbitor(void)
 					r &= evaleq();
 					continue;
 				}
+				break;
+			}
+			for (;;) {
 				if (enext == -1)
 					enext = eval_tok();
 				if (enext == '^') {
 					enext = -1;
 					s = evaleq();
-					while (enext == -1 || enext == '&') {
+					for (;;) {
 						if (enext == -1)
 							enext = eval_tok();
-						if (enext != '&')
-							break;
-						enext = -1;
-						s &= evaleq();
+						if (enext == '&') {
+							enext = -1;
+							s &= evaleq();
+							continue;
+						}
+						break;
 					}
 					r ^= s;
 					continue;
@@ -58,6 +75,7 @@ static long evalbitor(void)
 			v |= r;
 			continue;
 		}
-		return v;
+		break;
 	}
+	return v;
 }

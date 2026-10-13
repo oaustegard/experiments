@@ -12,31 +12,36 @@ static int ex_lineno(char *s)
 
 	n = pos;
 	c = *s;
-	if (isdigit(c))
+	if (isdigit(c)) {
 		n = strtol(s, 0, 10);
+		c = *s;
+	}
 	if (c == '$') {
 		n = mbox_len(mbox) - 1;
 		c = *s;
 	}
 	if (c == '-') {
-		if (s[1]) {
-			n = pos - ex_lineno(s + 1);
-			c = *s;
-		} else
+		if (!s[1])
 			return pos - 1;
-	}
-	if (c == '+') {
-		if (s[1]) {
-			n = ex_lineno(s + 1) + pos;
-			c = *s;
-		} else
-			return pos + 1;
-	}
-	if (c == '/' && s[1]) {
-		n = ex_search(s);
+		n = pos - ex_lineno(s + 1);
 		c = *s;
 	}
-	if (c == '?' && s[1])
+	if (c == '+') {
+		if (!s[1])
+			return pos + 1;
+		n = ex_lineno(s + 1) + pos;
+		c = *s;
+	}
+	if (c == '/') {
+		if (s[1]) {
+			n = ex_search(s);
+			c = *s;
+			if (c == '?' && s[1])
+				return ex_search(s);
+		}
+		return n;
+	}
+	else if (c == '?' && s[1])
 		return ex_search(s);
 	return n;
 }

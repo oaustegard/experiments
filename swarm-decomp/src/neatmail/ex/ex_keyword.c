@@ -14,8 +14,9 @@ static int ex_keyword(char *s)
 	char c;
 	int n;
 
+	p = s;
 	sb = sbuf_make();
-	for (p = s + 1; (c = *p) && c != *s; p++) {
+	while ((c = *++p) && c != *s) {
 		if (c == '\\' && p[1])
 			p++;
 		sbuf_chr(sb, (unsigned char)*p);
@@ -24,17 +25,14 @@ static int ex_keyword(char *s)
 		if (kwd[0])
 			regfree(&kwd_re);
 		snprintf(kwd, 512, "%s", sbuf_buf(sb));
-		if (regcomp(&kwd_re, kwd, 5) == 0) {
-			if (kwd[0] == '^' && isalpha((unsigned char)kwd[1]) && (p = strchr(kwd, ':')) != 0) {
-				n = p - kwd;
-				memcpy(kwd_hdr, kwd + 1, n);
-				kwd_hdr[n] = 0;
-			} else
-				strcpy(kwd_hdr, "subject:");
-		} else {
+		if (regcomp(&kwd_re, kwd, 5) != 0)
 			kwd[0] = 0;
+		if (kwd[0] == '^' && isalpha((unsigned char)kwd[1]) && (p = strchr(kwd, ':')) != 0) {
+			n = p - kwd;
+			memcpy(kwd_hdr, kwd + 1, n);
+			kwd_hdr[n] = 0;
+		} else
 			strcpy(kwd_hdr, "subject:");
-		}
 	}
 	sbuf_free(sb);
 	return kwd[0] == 0;

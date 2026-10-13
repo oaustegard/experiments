@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	} else {
 		for (; i < argc; i++) {
 			s = argv[i];
-			if (strcmp(s, "-") == 0)
+			if (strcmp("-", s) == 0)
 				s = NULL;
 			in_queue(s);
 		}

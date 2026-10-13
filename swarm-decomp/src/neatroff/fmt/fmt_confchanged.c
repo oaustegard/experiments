@@ -6,22 +6,22 @@
    1 when the configuration changed (fmt_confupdate records it again) */
 static int fmt_confchanged(struct fmt *f)
 {
-	int a, b;
+	struct { int v; } a, b;
 
 	if (f->f50 == *nreg('l')) {
-		a = f->f4c;
+		a.v = f->f4c;
 		if (*nreg(map(".ti")) < 0)
-			b = *nreg('i');
+			b.v = *nreg('i');
 		else
-			b = *nreg(map(".ti"));
-		if (b == a) {
-			a = f->f54;
-			if (*nreg(map(".tI")) < 0)
-				b = *nreg('I');
-			else
-				b = *nreg(map(".tI"));
-			return b != a;
-		}
+			b.v = *nreg(map(".ti"));
+		if (a.v != b.v)
+			return 1;
+		a.v = f->f54;
+		if (*nreg(map(".tI")) < 0)
+			b.v = *nreg('I');
+		else
+			b.v = *nreg(map(".tI"));
+		return a.v != b.v;
 	}
 	return 1;
 }

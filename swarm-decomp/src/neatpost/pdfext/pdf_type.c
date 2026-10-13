@@ -21,41 +21,20 @@ int pdf_type(unsigned char *s, int end, int i)
 		return -1;
 	if (!isdigit(c))
 		return 'n';
-	while (pos < end) {
+	while (pos < end && isdigit(s[pos]))
 		pos++;
-		if (pos >= end)
-			return 'n';
-		if (!isdigit(s[pos]))
-			break;
-	}
 	if (pos >= end)
 		return 'n';
-	while (pos < end) {
-		if (!isspace(s[pos]))
-			break;
+	while (pos < end && isspace(s[pos]))
 		pos++;
-		if (pos >= end)
-			return 'n';
-	}
 	if (!isdigit(s[pos]) || pos >= end)
 		return 'n';
-	pos++;
-	while (pos < end) {
+	while (pos < end && isdigit(s[pos]))
 		pos++;
-		if (pos >= end)
-			return 'n';
-		if (!isdigit(s[pos]))
-			break;
-	}
 	if (pos >= end)
 		return 'n';
-	while (pos < end) {
-		if (!isspace(s[pos]))
-			break;
+	while (pos < end && isspace(s[pos]))
 		pos++;
-		if (pos >= end)
-			return 'n';
-	}
 	if (pos >= end)
 		return 'n';
 	return s[pos] == 'R' ? 'r' : 'n';

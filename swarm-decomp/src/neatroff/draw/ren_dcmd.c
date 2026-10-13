@@ -66,28 +66,26 @@ void ren_dcmd(struct wb *w, char *s)
 				t++;
 			u = t;
 			m = eval_up(&t, 'm');
-			if (t == u)
-				break;
-			while (*t == ' ' || *t == '\t')
-				t++;
-			u = t;
-			v = eval_up(&t, 'v');
-			if (t == u)
-				break;
-			wb_drawxdot(w, m, v);
+			if (t != u) {
+				while (*t == ' ' || *t == '\t')
+					t++;
+				u = t;
+				v = eval_up(&t, 'v');
+				if (t != u) {
+					wb_drawxdot(w, m, v);
+					continue;
+				}
+			}
+			i = 0;
+			while (*t & 0xdf) {
+				buf[i++] = *t++;
+				if (i == 63)
+					break;
+			}
+			buf[i] = 0;
+			wb_drawxcmd(w, buf);
 		}
-		if (*t == 0) {
-			wb_drawxend(w);
-			return;
-		}
-		i = 0;
-		while (*t & 0xdf) {
-			buf[i++] = *t++;
-			if (i == 63)
-				break;
-		}
-		buf[i] = 0;
-		wb_drawxcmd(w, buf);
+		wb_drawxend(w);
 		return;
 	default:
 		return;

@@ -104,7 +104,7 @@ struct lua_State {
   CallInfo *ci;
   StkId stack_last;
   StkId stack;
-  void *openupval;
+  struct UpVal *openupval;
   StkId tbclist;
   GCObject *gclist;
   struct lua_State *twups;

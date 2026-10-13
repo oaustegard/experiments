@@ -8,9 +8,9 @@ static char *mbox_from_(char *p, char *end)
 		q = memchr(p, '\n', end - p);
 		if (!q)
 			return 0;
+		p = q + 1;
 		if (q + 7 >= end)
 			return 0;
-		p = q + 1;
 		continue;
 	}
 	return 0;

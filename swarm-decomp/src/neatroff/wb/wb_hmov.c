@@ -5,8 +5,7 @@
 
 void wb_hmov(struct wb *w, int n)
 {
-	if (w->f2068 && w->f206c)
-		wb_flushsub(w);
+	wb_flushsub(w);
 	w->hpos += n;
 	sbuf_printf(&w->buf, "%ch'%du'", c_ec, n);
 }

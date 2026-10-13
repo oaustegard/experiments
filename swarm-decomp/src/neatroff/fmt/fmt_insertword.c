@@ -20,8 +20,10 @@ static void fmt_insertword(struct fmt *f, struct wb *w, int sp)
 	int brk[32];
 	int hyf[32] = {0};
 	int spc[32] = {0};
-	int n, i, r, bpl, last, hy, a4, a5, a6;
+	int n, i, r, bpl, last;
+	int hy, a4, a5, a6;
 	char *st, *en;
+	int a, b, c, d;
 
 	s = wb_buf(w);
 	{
@@ -33,9 +35,9 @@ static void fmt_insertword(struct fmt *f, struct wb *w, int sp)
 			r = escread(&p, &tok);
 		while (r > 0);
 		if (r != 0)
-			goto whole;
+			{ fmt_wb2word(f, w, 0, 1, sp, wb_cost(w)); return; };
 		if (strcmp(env_hc(), tok) == 0)
-			goto whole;
+			goto whole;;
 		n = 0;
 		last = 0;
 	outer:
@@ -67,18 +69,17 @@ static void fmt_insertword(struct fmt *f, struct wb *w, int sp)
 		goto outer;
 	d3:
 		if (n <= 0)
-			goto whole;
+			{ fmt_wb2word(f, w, 0, 1, sp, wb_cost(w)); return; };
 		while (brk[n - 1] == last) {
 			n--;
 			if (n == 0)
-				goto whole;
+				{ fmt_wb2word(f, w, 0, 1, sp, wb_cost(w)); return; };
 		}
 		if (f->fillreq == f->nwords + 1)
 			f->fillreq += n;
 	}
 	{
 		struct wb x;
-		int a, b, c, d;
 
 		wb_init(&x);
 		for (i = 0; i <= n;) {
