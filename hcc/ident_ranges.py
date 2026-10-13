@@ -15,6 +15,17 @@ _C11_D1 = (
           for base in range(0x10000, 0xE0000, 0x10000)) + ((0xE0000, 0xEFFFD),)
 
 
+# C11 Annex D.2: D.1 characters that may not begin an identifier (combining marks)
+_C11_D2 = ((0x300, 0x36F), (0x1DC0, 0x1DFF), (0x20D0, 0x20FF), (0xFE20, 0xFE2F))
+
+
+def c11_identifier_start(c: str) -> bool:
+    """True if c may begin an identifier under C11 Annex D (D.1 minus D.2). gcc 13 accepts
+    these as the first character before C23 (`int ² = 42;`, `int 😀x;` in -std=c99..gnu17)."""
+    o = ord(c)
+    return in_c11_identifier_range(c) and not any(lo <= o <= hi for lo, hi in _C11_D2)
+
+
 def in_c11_identifier_range(c: str) -> bool:
     """True if character c may appear in an identifier after the first character (C11 D.1)."""
     o = ord(c)

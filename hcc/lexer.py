@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 
 from hcc import diag
-from hcc.ident_ranges import in_c11_identifier_range
+from hcc.ident_ranges import c11_identifier_start, in_c11_identifier_range
 from hcc.tokens import Loc, Token, TokenKind
 
 PUNCTUATORS = [
@@ -98,15 +98,17 @@ def _decode_ucns(s: str) -> str:
 _UCN_TAIL_RE = re.compile(r"\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}")
 
 
-def _xid_ok(c: str, start: bool) -> bool:
-    """C23 6.4.2.1 / XID_Start, XID_Continue: may character c begin/continue an identifier."""
+def _xid_ok(c: str, start: bool, c23: bool = True) -> bool:
+    """C23 6.4.2.1 / XID_Start, XID_Continue: may character c begin/continue an identifier.
+    Before C23, gcc also lets a C11 Annex D character begin one (gcc-dg/ucnid-15-utf8.c);
+    C23 is strict XID (reject-gcc-dg/cpp/ucnid-16-utf8.c, -std=c23)."""
     if start:
-        return c.isidentifier()
+        return c.isidentifier() or (not c23 and c11_identifier_start(c))
     # Continuation: XID_Continue, or the C11 Annex D.1 ranges gcc accepts (e.g. `a¾`).
     return ("a" + c).isidentifier() or in_c11_identifier_range(c)
 
 
-def _split_id(s: str) -> list[tuple[str, str]]:
+def _split_id(s: str, c23: bool = True) -> list[tuple[str, str]]:
     """Split a raw identifier match into (kind, text) pieces. Non-ASCII characters
     that are not XID characters end the identifier and become single stray tokens
     (GCC: `int ² = 42;` says "stray '\\302' in program")."""
@@ -123,7 +125,7 @@ def _split_id(s: str) -> list[tuple[str, str]]:
                 cur += m.group()
                 i = m.end()
                 continue
-        if ord(c) < 0x80 or _xid_ok(c, start=(cur == "")):
+        if ord(c) < 0x80 or _xid_ok(c, start=(cur == ""), c23=c23):
             cur += c
         else:
             if cur:
@@ -213,7 +215,7 @@ def tokenize(text: str, path: str, line_comments: bool = True,
         if kind == "ubc":
             diag.error(loc, "unterminated comment", "preprocess")
         s = m.group()
-        pieces = _split_id(s) if kind == "id" else [(kind, s)]
+        pieces = _split_id(s, c23=bool(u8_chars)) if kind == "id" else [(kind, s)]
         for idx, (pkind, s) in enumerate(pieces):
             spell = None
             if pkind == "punct" and s in DIGRAPHS:
