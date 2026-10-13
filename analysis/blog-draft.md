@@ -207,6 +207,6 @@ the conclusion, as could a class of clusters that only Sonnet solves.
 
 The harness is now a skill, `swarming-failing-tests`, in
 [claude-skills](https://github.com/oaustegard/claude-skills/tree/main/swarming-failing-tests),
-with a catalogue of 47 harness failures from this run and the check that catches each. The
+with a catalogue of 50 harness failures from this run and the check that catches each. The
 compiler, logs and full results are in
 [experiments/haiku-cc](https://github.com/oaustegard/experiments/tree/main/haiku-cc).
