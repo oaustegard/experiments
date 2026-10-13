@@ -1,36 +1,37 @@
 {
- "as_of": "2026-10-12T18:19+00:00",
- "hub_running": true,
- "hub_head": "9f2d24a1",
+ "as_of": "2026-10-13T02:52+00:00",
+ "hub_running": false,
+ "hub_head": "5c1d6d81",
  "fetch_failed": [],
- "elapsed_h": 15.39,
+ "elapsed_h": 21.86,
  "hub": {
-  "workers": 869,
+  "workers": 1070,
   "status": {
-   "merged": 369,
-   "rejected": 245,
-   "failed": 239,
-   "launched": 8,
-   "finished": 7,
-   "reverted": 1
+   "merged": 427,
+   "rejected": 315,
+   "failed": 301,
+   "stale": 18,
+   "launched": 7,
+   "reverted": 1,
+   "finished": 1
   },
-  "spend_usd": 24.33,
-  "merges_on_main": 460,
+  "spend_usd": 26.84,
+  "merges_on_main": 518,
   "merges_on_main_by_source": {
-   "hub": 370,
+   "hub": 428,
    "s1": 72,
    "s3": 9,
    "esc3": 9
   },
   "reverts": 1,
   "runner_tokens": {
-   "in": 29330,
-   "cache_write": 22797331,
-   "cache_read": 535461701,
-   "out_tok": 10376946,
-   "turns": 15778
+   "in": 34930,
+   "cache_write": 26947441,
+   "cache_read": 613479409,
+   "out_tok": 12090477,
+   "turns": 18827
   },
-  "last_activity": "2026-10-12T18:19+00:00"
+  "last_activity": "2026-10-13T00:47+00:00"
  },
  "siblings": {
   "s1": {
@@ -96,9 +97,9 @@
   }
  },
  "total": {
-  "workers": 1235,
-  "spend_usd": 37.99,
-  "merges_on_main": 460,
+  "workers": 1436,
+  "spend_usd": 40.5,
+  "merges_on_main": 518,
   "sibling_local_merges": 113,
   "siblings_counted": [
    "s1",
@@ -224,26 +225,28 @@
    "neither": []
   }
  },
- "hub_workers": 869,
- "merges": 460,
- "spend_usd": 24.33,
+ "hub_workers": 1070,
+ "merges": 518,
+ "spend_usd": 26.84,
  "workers_by_kind": {
   "standard": {
-   "rejected": 169,
-   "merged": 283,
-   "failed": 224,
+   "rejected": 213,
+   "merged": 331,
+   "failed": 241,
    "reverted": 1,
-   "finished": 7,
-   "launched": 8
+   "finished": 1,
+   "launched": 3
   },
   "feature": {
-   "rejected": 28,
-   "failed": 9,
-   "merged": 9
+   "rejected": 52,
+   "failed": 54,
+   "merged": 9,
+   "launched": 4,
+   "stale": 18
   },
   "rebase": {
-   "rejected": 48,
-   "merged": 77,
+   "rejected": 50,
+   "merged": 87,
    "failed": 6
   },
   "sibling (ingested)": {
@@ -252,36 +255,36 @@
   },
   "escalation (ingested)": {
    "merged": 9,
-   "finished": 1
+   "rejected": 1
   }
  },
  "runner": {
-  "in": 29330,
-  "cache_write": 22797331,
-  "cache_read": 535461701,
-  "out_tok": 10376946,
-  "turns": 15778
+  "in": 34930,
+  "cache_write": 26947441,
+  "cache_read": 613479409,
+  "out_tok": 12090477,
+  "turns": 18827
  },
  "top_loss_reasons": [
   [
    "worker reported failed",
-   194
+   236
   ],
   [
    "conflict applying onto main",
-   176
+   182
   ],
   [
    "empty diff (no changes under hcc/)",
-   64
+   122
   ],
   [
    "worker reported partial",
-   43
+   63
   ],
   [
    "no target test flipped to PASS",
-   2
+   8
   ],
   [
    "no result",
@@ -296,8 +299,8 @@
    1
   ]
  ],
- "tests_tracked": 42358,
- "tests_passing": 42181,
+ "tests_tracked": 38451,
+ "tests_passing": 38451,
  "suites": {
   "bzip2": {
    "pass": 48,
@@ -308,7 +311,7 @@
    "total": 220
   },
   "chibicc": {
-   "pass": 40,
+   "pass": 41,
    "total": 41
   },
   "chibicc-self": {
@@ -340,8 +343,8 @@
    "total": 2269
   },
   "gcc-dg-compile": {
-   "pass": 7918,
-   "total": 7919
+   "pass": 3300,
+   "total": 3300
   },
   "gcc-torture": {
    "pass": 1632,
@@ -356,19 +359,19 @@
    "total": 122
   },
   "mbedtls": {
-   "pass": 11950,
+   "pass": 11970,
    "total": 11970
   },
   "quickjs": {
-   "pass": 4508,
+   "pass": 4510,
    "total": 4510
   },
   "redis": {
-   "pass": 2375,
+   "pass": 2475,
    "total": 2475
   },
   "reject-gcc-dg": {
-   "pass": 835,
+   "pass": 888,
    "total": 888
   },
   "smoke": {
@@ -376,8 +379,8 @@
    "total": 34
   },
   "sqlite": {
-   "pass": 1273,
-   "total": 1273
+   "pass": 1985,
+   "total": 1985
   },
   "tcc": {
    "pass": 333,
@@ -388,6 +391,6 @@
    "total": 81
   }
  },
- "hcc_lines": 21536,
- "selftests": 630
+ "hcc_lines": 22644,
+ "selftests": 718
 }

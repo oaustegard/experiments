@@ -15,6 +15,7 @@ from hcc.parser.bitfield_width import bitfield_width_value
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.vector_limits import vector_of_checked
+from hcc.parser.aggregate_size_limit import check_aggregate_size
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -51,9 +52,6 @@ class StructMixin:
         ty = None
         if tag is not None:
             prev = self.scopes[-1].tags.get(tag.text)
-            if prev is not None and prev.is_complete and prev.kind == kind:
-                kw = "struct" if kind == T.TypeKind.STRUCT else "union"
-                self.error(f"redefinition of '{kw} {tag.text}'", tag)
             # body still open in this scope (`struct s { struct s {..} *p; }`); a body
             # open in an enclosing scope is shadowed by a new tag, not redefined
             open_prev = self.scopes[-1].tags.get(tag.text)
@@ -87,11 +85,14 @@ class StructMixin:
         ty.members = members
         ty.is_packed = attr.is_packed
         ty.is_ms_struct = attr.is_ms_struct
+        if attr.is_unavailable:      # struct {...} __attribute__((unavailable)): the type is unavailable
+            ty.unavail_msg = attr.unavail_msg or ""
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
             layout_struct(ty)
         else:
             layout_union(ty)
+        check_aggregate_size(self, ty, self.toks[brace_pos])
         if attr.align:
             ty.align = max(ty.align, attr.align)
             ty.size = T.align_to(ty.size, ty.align)
@@ -172,8 +173,8 @@ class StructMixin:
                     m.bit_width = bitfield_width_value(self.conditional(), name, self.toks[start])
                     check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
-                if mattr.warn_if_not_aligned:
-                    self.error("'warn_if_not_aligned' may not be specified for '%s'" % (name.text if name else ''), name or self.toks[start])
+                # GCC accepts warn_if_not_aligned on fields (it only warns about the
+                # offset); the attribute is accepted and otherwise has no effect here.
                 if m.is_bitfield:
                     check_bitfield_type(m, name, self.toks[start], mattr.vector_size)
                 m.explicit_align = max(m.explicit_align, mattr.align)

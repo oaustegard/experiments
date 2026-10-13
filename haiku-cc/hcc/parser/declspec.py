@@ -22,6 +22,19 @@ from hcc.parser.complex import complex_decl_type
 from hcc.parser.vector_limits import vector_of_checked
 
 
+def auto_qualified(ty, attr):
+    """C23 `auto x = e;`: the type is the initializer's type after lvalue conversion
+    (top-level qualifiers dropped); `const auto` / `volatile auto` add them back."""
+    if ty is None:
+        return ty
+    ty = ty.unqual()
+    if attr.auto_const or attr.auto_volatile:
+        ty = ty.copy()
+        ty.is_const |= attr.auto_const
+        ty.is_volatile |= attr.auto_volatile
+    return ty
+
+
 def constexpr_type(ty):
     """C23 `constexpr` object: the object's own (top-level) type is const-qualified,
     e.g. `constexpr int *p` is `int *const p` (not `const int *`)."""
@@ -155,6 +168,7 @@ class DeclSpecMixin:
         is_const = is_volatile = is_atomic = is_complex = is_restrict = False
         seen_storage = set()  # storage class specifiers seen in this declaration
         tag_hit = None        # struct/union tag of an empty declaration (see StructMixin.struct_decl)
+        fwd_enum = None       # tag of a bodyless `enum e : T` (see EnumMixin.enum_specifier)
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -166,12 +180,16 @@ class DeclSpecMixin:
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")
-                if s in STORAGE_CLASSES:
+                c23_auto = s == "auto" and self.c23_mode()   # C23 type inference, not a storage class
+                if c23_auto:
+                    if auto_infer:
+                        self.error("duplicate 'auto'")
+                elif s in STORAGE_CLASSES:
                     if s in seen_storage:
                         self.error(f"duplicate '{s}'")
                     if seen_storage & STORAGE_CLASSES:
                         self.error("multiple storage classes in declaration specifiers")
-                if s not in ("inline", "_Noreturn"):
+                if s not in ("inline", "_Noreturn") and not c23_auto:
                     seen_storage.add(s)
                 self.next()
                 if s == "typedef":
@@ -252,9 +270,12 @@ class DeclSpecMixin:
                 self.next()
                 if spec is not None:
                     self.empty_tag_hit = None
+                    self.enum_fixed_fwd = None
                     ty = spec(self, tok, attr)
                     tag_hit = self.empty_tag_hit or tag_hit
                     self.empty_tag_hit = None
+                    fwd_enum = self.enum_fixed_fwd or fwd_enum
+                    self.enum_fixed_fwd = None
                 elif is_floatn:
                     ty = NAMED_SCALAR_TYPES[s]
                 else:
@@ -270,15 +291,22 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+            if counter == CHAR and getattr(self.opts, "char_unsigned", False):
+                ty = T.TY_UCHAR          # -funsigned-char: plain char is unsigned
         if tag_hit is not None:
             _check_empty_tag_decl(self, tag_hit, is_const or is_volatile or is_restrict, seen_storage - {"typedef"})
+        if fwd_enum is not None and attr is not None and self.at(";"):
+            _check_empty_enum_fixed(self, attr, seen_storage, is_const or is_volatile or is_restrict or is_atomic)
         if attr is not None and attr.is_tls:
             # __thread (_Thread_local) only applies to objects with static storage or extern
             bads = ("typedef", "register") if self.c23_mode() else ("typedef", "auto", "register")
             for bad in bads:      # C23 `auto` is type inference, not a storage class
                 if bad in seen_storage:
                     self.error(f"'__thread' used with '{bad}'")
-        if auto_infer and counter == 0 and attr is not None:
+        # GNU `const __auto_type x = e;` also yields no type here (ty is None): keep its qualifiers.
+        if attr is not None and (auto_infer and counter == 0 or ty is None and counter == OTHER):
+            attr.auto_const = is_const          # qualifiers of `const auto x = e;` (see auto_qualified)
+            attr.auto_volatile = is_volatile
             return None         # type comes from the initializer, as for __auto_type
         if is_complex:
             ty = complex_decl_type(self, ty)
@@ -310,7 +338,13 @@ class DeclSpecMixin:
     def typeof_specifier(self, unqual=False):
         self.expect("(")
         if self.is_typename():
-            ty = self.scoped_typename()
+            # a VM type operand of typeof is not an object declaration (C23 6.7.2.5p2)
+            prev = getattr(self, "in_typeof_operand", False)
+            self.in_typeof_operand = True
+            try:
+                ty = self.scoped_typename()
+            finally:
+                self.in_typeof_operand = prev
         else:
             node = self.expr()
             add_type(node)
@@ -347,6 +381,24 @@ def check_empty_inline(self, attr) -> None:
     """`int inline;` has no declarator: GCC rejects the function specifier there."""
     if attr is not None and attr.is_inline and self.at(";"):
         self.error("'inline' in empty declaration", self.tok.loc)
+
+
+def _check_empty_enum_fixed(self, attr, storage: set, quals: bool) -> None:
+    """C23 6.7.2.2: `extern enum e : int;` is an empty declaration; storage classes,
+    qualifiers and alignment are not allowed on it (GCC: 'in empty declaration')."""
+    tail = "with 'enum' underlying type"
+    for s in ("extern", "static", "_Thread_local"):
+        if s in storage:
+            self.error(f"'{s}' in empty declaration {tail}")
+    for s in ("register", "auto"):      # allowed in block scope
+        if s in storage and len(self.scopes) == 1:
+            self.error(f"'{s}' in file-scope empty declaration")
+    if attr.is_noreturn:
+        self.error(f"'_Noreturn' in empty declaration {tail}")
+    if attr.alignas_min:
+        self.error(f"'alignas' in empty declaration {tail}")
+    if quals:
+        self.error(f"type qualifier in empty declaration {tail}")
 
 
 def _check_empty_tag_decl(self, tag_hit, quals: bool, storage: set) -> None:

@@ -38,3 +38,20 @@ def check_redecl(p, scope, name, kind: str, block_obj: bool = False) -> None:
             p.error(f"'{name.text}' redeclared", name)
         return
     p.error(f"'{name.text}' redeclared as different kind of symbol", name)
+
+
+def drop_block_extern_var(scope, name: str) -> None:
+    """A file-scope typedef clashes with nothing when the only file-scope entry
+    is an object created by a block-scope `extern` (C11 6.2.2p4): that
+    declaration is lexically block-scoped, so the entry is replaced."""
+    vs = scope.vars.get(name)
+    if vs is not None and isinstance(vs.var, N.Var) and getattr(vs.var, "block_decl_only", False):
+        del scope.vars[name]
+
+
+def clear_block_extern_var(scope, name: str) -> None:
+    """A later file-scope object declaration makes a block-scope `extern`
+    object an ordinary file-scope declaration (same object, same linkage)."""
+    vs = scope.vars.get(name)
+    if vs is not None and isinstance(vs.var, N.Var):
+        vs.var.block_decl_only = False

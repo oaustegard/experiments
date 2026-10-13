@@ -44,6 +44,25 @@ def widen_type(ty):
     return T.TY_INT if ty.size < 4 else T.TY_LONG
 
 
+# byte widths of the integer machine modes an enum may be given
+ENUM_MODE_BYTES = {"QI": 1, "byte": 1, "HI": 2, "SI": 4, "DI": 8, "word": 8, "TI": 16}
+
+
+def packed_enum_size(ty, lo, hi):
+    """GCC: a packed enum (no fixed type) takes the smallest of 1/2/4/8 bytes that holds
+    every enumerator value, with alignment 1."""
+    for n in (1, 2, 4, 8):
+        bits = n * 8
+        if ty.is_unsigned:
+            fits = 0 <= lo and hi < (1 << bits)
+        else:
+            fits = -(1 << (bits - 1)) <= lo and hi < (1 << (bits - 1))
+        if fits:
+            ty.size = n
+            ty.align = 1
+            return
+
+
 class EnumMixin:
 
     def enum_specifier(self, attr=None):
@@ -56,7 +75,14 @@ class EnumMixin:
         if tag is not None and fixed is not None:
             self.check_fwd_fixed(tag)
         if tag is not None and not self.at("{"):
-            ty = self.find_tag(tag.text)
+            if fixed is not None:
+                self.enum_fixed_fwd = tag     # bodyless `enum e : T`: an empty declaration
+            # C23 `enum e : T ;` is a declaration of a tag in the current scope
+            # (like `struct s;`): it never refers to an outer `enum e`.
+            if fixed is not None and self.at(";"):
+                ty = self.scopes[-1].tags.get(tag.text)
+            else:
+                ty = self.find_tag(tag.text)
             if ty is None:
                 self.check_tag_in_auto_init(tag)
                 ty = T.enum_type()
@@ -106,6 +132,7 @@ class EnumMixin:
         if fixed is not None:
             self.apply_fixed_underlying(ty, fixed)
         consts = []
+        entries = []
         val = 0
         cty = T.TY_INT
         while not self.accept("}"):
@@ -129,27 +156,47 @@ class EnumMixin:
             vs.enum_ty = ty
             vs.enum_val = val
             vs.enum_cty = cty
+            entries.append(vs)
             consts.append(val)
             val += 1
         if not consts:
             self.error("empty enum is invalid", self.toks[self.pos - 1])
         lo = min(consts, default=0)
         hi = max(consts, default=0)
-        if fixed is not None:
-            pass
-        elif tag is not None:
-            self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
-        elif lo < 0:
-            if lo < -(1 << 31) or hi >= 1 << 31:
+        if fixed is None:
+            if tag is not None:     # keeps ty alive: no id reuse
+                self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty
+            if lo < 0:              # tagged or not: negative values make the type signed
+                if lo < -(1 << 31) or hi >= 1 << 31:
+                    ty.size = ty.align = 8
+                ty.is_unsigned = False
+            elif hi >= 1 << 32:
                 ty.size = ty.align = 8
-            ty.is_unsigned = False
-        elif hi >= 1 << 32:
-            ty.size = ty.align = 8
-        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
+        self.parse_attributes(attr if attr is not None else VarAttr(), ty)   # `enum {..} __attribute__((mode(word)))`
+        if fixed is None and (ty.is_packed or getattr(self.opts, "short_enums", False)):
+            packed_enum_size(ty, lo, hi)     # `__attribute__((packed))`: smallest integer that fits
         self.check_designated_init(attr, False, self.toks[self.pos - 1])
+        self.check_enum_mode_fits(attr, lo, hi, self.toks[self.pos - 1])
+        if fixed is not None or any(not -2**31 <= v < 2**31 for v in consts):
+            for vs in entries:          # C23 6.7.2.2: when a value does not fit in int, or the
+                vs.enum_cty = ty        # underlying type is fixed, the constants (used after the
+                                        # body) have the enum's type; otherwise they stay int
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
+
+    def check_enum_mode_fits(self, attr, lo, hi, where) -> None:
+        """`__attribute__((mode(QI)))` etc. on an enum body: every enumerator
+        must fit the mode's width (GCC: hard error otherwise)."""
+        if attr is None or not attr.mode:
+            return
+        width = ENUM_MODE_BYTES.get(attr.mode)
+        if width is None:
+            return
+        bits = width * 8
+        fits = (0 <= lo and hi < (1 << bits)) or (-(1 << (bits - 1)) <= lo and hi < (1 << (bits - 1)))
+        if not fits:
+            self.error("specified mode too small for enumerated values", where)
 
     def fixed_underlying(self):
         """C23 `enum e : type`: consume `: type-specifiers` if a type follows.

@@ -232,11 +232,26 @@ def part(p, operand, which, loc):
                 _part(p, tmp, which, loc))
 
 
+def _is_object_form(node) -> bool:
+    """True for expression forms that designate an object (C11 6.3p3)."""
+    if isinstance(node, (N.VarRef, N.Deref)):
+        return True
+    if isinstance(node, N.Comma):
+        return bool(node.lvalue)           # compound literal
+    if isinstance(node, N.Member_):
+        return _is_object_form(node.operand)
+    return False
+
+
 def truth(p, node):
     """A complex value used as a condition: true if either part is nonzero."""
     if not node.ty.is_complex:
         if node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
             p.error(f"used {node.ty.kind.value} type value where scalar is required", node.loc)
+        if node.ty.kind == TypeKind.ARRAY and not _is_object_form(node):
+            # C11 6.3.2.1: only an lvalue array decays; an rvalue array (e.g. a member of a
+            # function's struct result) cannot become a pointer, so it is not a scalar.
+            p.error("used array that cannot be converted to pointer where scalar is required", node.loc)
         return node
     loc = node.loc
     tmp = p.new_temp(node.ty, loc)

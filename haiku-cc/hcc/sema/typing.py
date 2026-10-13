@@ -13,7 +13,8 @@ from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.void_value import require_value
 from hcc.sema.incomplete import check_value_operands
-from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, Type, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to,
+                         type_str)
 
 
 def add_type(node) -> None:
@@ -24,6 +25,14 @@ def add_type(node) -> None:
         diag.error(node, f"sema: cannot type {type(node).__name__}", "sema")
     check_value_operands(node)
     h(node)
+
+
+def _rvalue(t: Type) -> Type:
+    """Type of a non-lvalue result: lvalue conversion drops qualifiers of scalars (C11 6.3.2.1p2)."""
+    if t is None or t.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VLA,
+                               TypeKind.VOID):
+        return t
+    return t.unqual()
 
 
 def _var(n: N.VarRef):
@@ -45,7 +54,7 @@ def _unary(n: N.Unary):
     if n.op == "~" and not is_integer(t):
         diag.error(n, "wrong type argument to bit-complement", "sema")
     n.operand = new_cast(n.operand, int_promote(t))
-    n.ty = n.operand.ty
+    n.ty = _rvalue(n.operand.ty)
 
 
 def _addr(n: N.AddrOf):
@@ -140,7 +149,7 @@ def _assign(n: N.Assign):
     _check_struct_scalar_mix(n, lt, _func_decay(n.rhs.ty))
     if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION) and not lt.is_vector:
         n.rhs = new_cast(n.rhs, lt)
-    n.ty = lt
+    n.ty = _rvalue(lt)      # the value of an assignment is an rvalue (qualifiers dropped)
 
 
 def _check_struct_scalar_mix(n, lt, rt):
@@ -152,12 +161,23 @@ def _check_struct_scalar_mix(n, lt, rt):
     l_scalar = lt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
     r_scalar = rt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
     if (l_agg and r_scalar) or (r_agg and l_scalar):
-        diag.error(n, "incompatible types when assigning to this type from this type", "sema")
+        diag.error(n, f"incompatible types when assigning to type '{type_str(lt)}' "
+                      f"from type '{type_str(rt)}'", "sema")
 
 
 def _is_null_const(node) -> bool:
-    """True for an integer constant expression 0 (possibly cast to a pointer)."""
-    return (is_integer(node.ty) or node.ty.kind == TypeKind.PTR) and try_eval_const(node) == 0
+    """True for an integer constant expression 0, or such an expression cast to `void *`
+    (C11 6.3.2.3p3). A zero cast to another pointer type is not a null pointer constant."""
+    if node.ty.kind == TypeKind.PTR:
+        # only the cast spelling counts: a void * object that happens to fold to 0 does not
+        if node.ty.base is None or node.ty.base.kind != TypeKind.VOID or not isinstance(node, N.Cast):
+            return False
+        if node.nullptr_const:
+            return True
+        node = node.operand
+    elif not is_integer(node.ty):
+        return False
+    return try_eval_const(node) == 0
 
 
 def _func_decay(t):
@@ -192,12 +212,12 @@ def _cond(n: N.Cond):
     require_value(n.cond)
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
-        if a.kind != b.kind:
-            diag.error(n, "type mismatch in conditional expression", "sema")
+        # GCC extension (also accepted by gcc for pointer/scalar/struct partners):
+        # if either operand is void, the result is void.
         n.ty = TY_VOID
     elif is_numeric(a) and is_numeric(b):
         n.then, n.els = usual_arith_conv(n.then, n.els)
-        n.ty = n.then.ty
+        n.ty = _rvalue(n.then.ty)
     elif a.kind in (TypeKind.STRUCT, TypeKind.UNION):
         n.ty = a
     elif a.base is not None or b.base is not None:
@@ -215,10 +235,11 @@ def _cond(n: N.Cond):
             n.ty = a if a.base is not None else b
     else:
         n.ty = a
+    n.ty = _rvalue(n.ty)
 
 
 def _comma(n: N.Comma):
-    n.ty = n.rhs.ty
+    n.ty = _rvalue(n.rhs.ty)
 
 
 def _member(n: N.Member_):
@@ -246,7 +267,8 @@ def _stmt_expr(n: N.StmtExpr):
 
 
 def _call(n: N.Call):
-    n.ty = n.func_ty.return_ty
+    # a call yields an rvalue: top-level qualifiers of a scalar return type are dropped (6.5.2.2p5)
+    n.ty = _rvalue(n.func_ty.return_ty)
 
 
 def _void(n):

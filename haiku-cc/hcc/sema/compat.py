@@ -23,11 +23,42 @@ def _root(t: Type) -> Type:
     return t
 
 
+def _ret_unqualified(t: Type) -> Type:
+    """Return type with top-level const/volatile dropped (no copy when none present)."""
+    if t is None or not (t.is_const or t.is_volatile):
+        return t
+    t = t.copy()
+    t.is_const = t.is_volatile = False
+    return t
+
+
 def _enum_as_int(t: Type) -> Type:
     """An enum type is compatible with its underlying integer type (C11 6.7.2.2):
-    the signed/unsigned int or long of the same size and signedness."""
-    kind = TypeKind.LONG if t.size == 8 else TypeKind.INT
+    the signed/unsigned integer type of the same size (char, short, int or long)."""
+    kind = {1: TypeKind.CHAR, 2: TypeKind.SHORT, 8: TypeKind.LONG}.get(t.size, TypeKind.INT)
     return Type(kind, t.size, t.align, bool(t.is_unsigned))
+
+
+def _param_compatible(x: Type, y: Type) -> bool:
+    """Parameter types of compatible functions. A transparent union parameter is
+    compatible with its first member's type (GCC: the union is passed as that member)."""
+    x = x.unqual()
+    y = y.unqual()
+    if x.kind == TypeKind.UNION and x.is_transparent_union and y.kind != TypeKind.UNION and x.members:
+        x = x.members[0].ty.unqual()
+    elif y.kind == TypeKind.UNION and y.is_transparent_union and x.kind != TypeKind.UNION and y.members:
+        y = y.members[0].ty.unqual()
+    return is_compatible(x, y)
+
+
+def _enum_compat_int(e: Type, other: Type) -> bool:
+    """An enum is compatible with its underlying integer type. The implementation picks that
+    type from the enumerator values, so a 64-bit enum also matches either long or long long
+    of the same signedness."""
+    if is_compatible(_enum_as_int(e), other):
+        return True
+    return (other.kind in (TypeKind.LONG, TypeKind.LLONG) and e.size == 8 and other.size == 8
+            and bool(other.is_unsigned) == bool(e.is_unsigned))
 
 
 def is_compatible(a: Type, b: Type) -> bool:
@@ -44,9 +75,9 @@ def is_compatible(a: Type, b: Type) -> bool:
         return a.array_len < 0 or b.array_len < 0 or a.array_len == b.array_len
     if a.kind != b.kind:
         if a.kind == TypeKind.ENUM and b.kind != TypeKind.ENUM:
-            return is_compatible(_enum_as_int(a), b)
+            return _enum_compat_int(a, b)
         if b.kind == TypeKind.ENUM and a.kind != TypeKind.ENUM:
-            return is_compatible(a, _enum_as_int(b))
+            return _enum_compat_int(b, a)
         return False
     if a.is_complex or b.is_complex:      # _Complex T: compatible iff the element types are
         return a.is_complex and b.is_complex and is_compatible(a.base, b.base)
@@ -60,7 +91,9 @@ def is_compatible(a: Type, b: Type) -> bool:
     if k == TypeKind.PTR:
         return is_compatible(a.base, b.base)
     if k == TypeKind.FUNC:
-        if not is_compatible(a.return_ty, b.return_ty):
+        # GCC ignores top-level const/volatile on a function's return type
+        # (`int f(); const int f() {...}` is a valid redeclaration); _Atomic is kept.
+        if not is_compatible(_ret_unqualified(a.return_ty), _ret_unqualified(b.return_ty)):
             return False
         if not a.has_proto or not b.has_proto:
             # Unprototyped vs prototyped (C11 6.7.6.3p15): the prototype must not be
@@ -71,7 +104,7 @@ def is_compatible(a: Type, b: Type) -> bool:
             return not proto.is_variadic and all(_promotion_stable(p) for p in proto.params)
         if a.is_variadic != b.is_variadic or len(a.params) != len(b.params):
             return False
-        return all(is_compatible(x.unqual(), y.unqual()) for x, y in zip(a.params, b.params))
+        return all(_param_compatible(x, y) for x, y in zip(a.params, b.params))
     if k == TypeKind.ARRAY:
         if not is_compatible(a.base, b.base):
             return False

@@ -68,7 +68,10 @@ def main(argv: list[str] | None = None) -> int:
         (a.cwd / "docs").mkdir(exist_ok=True)
         (a.cwd / "docs" / "STATUS.md").write_text(f"done by {task['id']}\n")
         changed.append("docs/STATUS.md")
-    if mode in ("fix", "break", "conflict", "docs", "syntax"):
+    if mode == "selftest":   # fixes its targets but breaks a compiler selftest (the gate must reject it)
+        (a.cwd / "hcc" / "_fake_selftest_break.txt").write_text(task["id"] + "\n")
+        changed.append("hcc/_fake_selftest_break.txt")
+    if mode in ("fix", "break", "conflict", "docs", "syntax", "selftest"):
         fixdir.mkdir(parents=True, exist_ok=True)
         for t in tests:
             p = fixdir / t.replace("/", "__")
@@ -86,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
         p = a.cwd / "tests" / "HACK.txt"
         p.write_text("cheating\n")
         changed.append("tests/HACK.txt")
-    status = "failed" if mode == "noop" else "fixed"
+    status = {"noop": "failed", "stale": "stale"}.get(mode, "fixed")
     out = {"status": status, "test_ids_fixed": tests if status == "fixed" else [],
            "files_changed": changed, "root_cause": f"fake {mode}: {', '.join(tests)}"[:72],
            "notes": f"fake worker mode={mode}"}

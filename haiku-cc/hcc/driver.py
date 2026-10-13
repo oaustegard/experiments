@@ -75,6 +75,8 @@ def parse_args(argv: list[str]) -> Options:
             o.trigraphs = True
         elif a == "-pedantic-errors":
             o.pedantic_errors = True
+        elif a == "-fpermissive":
+            o.permissive = True
         elif a == "-fgnu89-inline":
             o.gnu89_inline = True
         elif a == "-fno-asm":
@@ -89,6 +91,8 @@ def parse_args(argv: list[str]) -> Options:
             o.char_unsigned = a == "-funsigned-char"
         elif a in ("-fwrapv", "-fno-wrapv"):
             o.wrapv = a == "-fwrapv"
+        elif a in ("-fshort-enums", "-fno-short-enums"):
+            o.short_enums = a == "-fshort-enums"
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic"):

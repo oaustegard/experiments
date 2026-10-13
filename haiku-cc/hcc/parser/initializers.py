@@ -23,6 +23,9 @@ from hcc.diag import CompileError
 from hcc import typesys as T
 from hcc.sema.compat import is_compatible
 
+# PTRDIFF_MAX on x86-64: the largest object GCC accepts (same limit as declarator.py)
+_MAX_OBJECT_SIZE = (1 << 63) - 1
+
 
 def new_initializer(ty, is_flexible: bool) -> N.Initializer:
     init = N.Initializer(ty)
@@ -134,6 +137,10 @@ class InitializerMixin:
         if i < 0:
             return False
         if init.is_flexible:
+            # an object may not exceed PTRDIFF_MAX bytes (LP64); reject before
+            # materializing up to `i` children (`[0x8000000000000000] = x`)
+            if (i + 1) * max(init.ty.base.size, 1) > _MAX_OBJECT_SIZE:
+                return False
             while len(init.children) <= i:
                 init.children.append(new_initializer(init.ty.base, False))
             return True
@@ -233,7 +240,11 @@ class InitializerMixin:
             check_scalar(self, init)
         if T.is_integer(init.ty) and init.ty.kind != T.TypeKind.BOOL and init.expr.ty.kind == T.TypeKind.ARRAY:
             # `char c = "abc";` / `int x = arr;`: an array decays to a pointer, not an integer
-            diag.error(init.expr, "initialization of integer object from an array (pointer)")
+            msg = "initialization of integer object from an array (pointer)"
+            if getattr(self.opts, "permissive", False):    # -fpermissive: gcc-style warning
+                diag.warn(init.expr, msg)
+            else:
+                diag.error(init.expr, msg)
         if init.ty.is_complex or init.expr.ty.is_complex:
             if self.fn is None or self.in_static_init:    # file scope or static local
                 CC.set_global_init(self, init)
@@ -272,6 +283,14 @@ class InitializerMixin:
                 self.peek().text in ("}", ","):
             # `char s[] = {"foo"};`: braces around a string literal initialize the array
             self.string_initializer(init)
+            self._consume_end()
+            return
+        if self.at("(") and T.is_integer(init.ty.base) and self.peek().kind == TokenKind.STRING and \
+                self.peek(2).text == ")" and self.peek(3).text in ("}", ","):
+            # `char s[] = {("foo")};`: a parenthesized string literal also initializes the array
+            self.next()
+            self.string_initializer(init)
+            self.expect(")")
             self._consume_end()
             return
         i = 0

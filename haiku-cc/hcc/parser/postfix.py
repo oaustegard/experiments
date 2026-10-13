@@ -21,12 +21,14 @@ from hcc.parser.structs import find_member, complete_struct
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
 from hcc.parser import complex as CPX
+from hcc.parser.complex_incdec import complex_inc_dec
 from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
 from hcc.parser.incdec_check import check_incdec_operand
-from hcc.parser.call_arg_check import check_struct_arg
+from hcc.parser.call_arg_check import check_pointer_float_arg, check_struct_arg
+from hcc.parser.transparent_union import wrap_transparent_arg
 
 
 def _array_chain_is_vla(ty):
@@ -126,7 +128,10 @@ class PostfixMixin:
             elif s in ("++", "--") and t.kind.name == "PUNCT":
                 self.next()
                 check_incdec_operand(self, node, t)
-                node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
+                if self.typed(node).ty.is_complex:
+                    node = complex_inc_dec(self, node, 1 if s == "++" else -1, True, t.loc)
+                else:
+                    node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
             else:
                 return node
 
@@ -191,7 +196,12 @@ class PostfixMixin:
                 continue
             if i < len(params):
                 pty = params[i]
+                wrapped = wrap_transparent_arg(self, pty, a, loc)
+                if wrapped is not None:
+                    conv.append(wrapped)
+                    continue
                 check_struct_arg(self, fn, i, pty, a.ty, loc)
+                check_pointer_float_arg(self, fn, i, pty, a.ty, loc)
                 if pty.is_complex or a.ty.is_complex:
                     a = CPX.convert(self, a, pty, loc)
                 elif not is_struct_like(pty):

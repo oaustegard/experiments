@@ -32,7 +32,7 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
    Also run the selftests of the area you touched: `python3 -m hcc.selftest -k <area> -j 2` (all must pass). If you also tried the "other cluster members" listed in the task, note which now pass.
 7. **Write the result JSON** to the out path given in the task (it is outside your worktree; use the Write tool) and stop:
    ```json
-   {"status": "fixed | partial | failed",
+   {"status": "fixed | partial | failed | stale",
     "test_ids_fixed": ["<suite>/<path>", "..."],
     "files_changed": ["hcc/....py"],
     "root_cause": "one line, imperative, <= 72 chars: what was wrong / what you changed",
@@ -40,6 +40,9 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
    ```
    - `fixed`: at least one representative test now passes and smoke is clean.
    - `partial`: progress (e.g. it now fails at a later stage) but no test flips to PASS. Still write a good root_cause.
+   - `stale`: your representative tests already PASS at your base before you change anything (the
+     orchestrator's record is out of date). Make no edits; say in notes which tests you ran. The
+     orchestrator re-measures the whole cluster at main.
    - `failed`: you could not make progress. Revert your edits (`git diff` to check; restore files by editing them back) and explain in notes what you learned; that is valuable too.
    - `root_cause` becomes the git commit message, so make it specific, e.g. "parser: accept abstract declarators in casts to function pointers".
 

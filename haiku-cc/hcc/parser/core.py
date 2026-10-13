@@ -150,6 +150,12 @@ class ParserBase:
         if vs is not None and (vs.unavailable or (vs.var is not None and vs.var.is_unavailable)):
             self.error(f"'{name}' is unavailable", tok)
 
+    def check_unavailable_type(self, ty, tok) -> None:
+        """Error if an object of unavailable type (struct with unavailable attribute) is used."""
+        if ty is not None and ty.unavail_msg is not None:
+            msg = ty.unavail_msg
+            self.error("type is unavailable" + (": " + msg if msg else ""), tok)
+
     def find_typedef(self, tok: Token) -> Type | None:
         if tok.kind != TokenKind.IDENT:
             return None

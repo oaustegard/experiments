@@ -27,6 +27,40 @@ def _has_tag(t: Type, depth: int = 0) -> bool:
     return False
 
 
+def has_anon_aggregate_param(t: Type) -> bool:
+    """True for a function type with an untagged struct/union parameter.
+
+    GCC's old extension: `int f(union { int a; });` is not truly compatible with a
+    later `int f(int)`, but it is accepted with a warning, not an error. A
+    transparent_union parameter is untagged too, but it is an error (transparent-union-2)."""
+    if t is None or t.kind != TypeKind.FUNC:
+        return False
+    return any(p is not None and p.kind in (TypeKind.STRUCT, TypeKind.UNION) and p.tag is None
+               and not p.is_transparent_union
+               for p in t.params)
+
+
+# C89/C99 modes: a top-level qualifier on a function's return type is part of the
+# function type. C11 and later drop it (sema/compat.py _ret_unqualified).
+PRE_C11_STDS = ("c89", "c90", "iso9899:1990", "gnu89", "gnu90",
+                "c99", "c9x", "iso9899:1999", "gnu99", "gnu9x")
+
+
+def ret_qual_conflicts(prev: Type, new: Type, std) -> bool:
+    """True when two function declarations differ only by a top-level const/volatile on a
+    non-void return type and the language mode is C89/C99 (GCC: `int f(); const int f() {}`
+    is "conflicting types" under -std=gnu99 but valid under -std=gnu11). A void return
+    only draws a warning from GCC, so it is not a conflict here."""
+    if (std or "").lower() not in PRE_C11_STDS:
+        return False
+    if prev is None or new is None or prev.kind != TypeKind.FUNC or new.kind != TypeKind.FUNC:
+        return False
+    a, b = prev.return_ty, new.return_ty
+    if a is None or b is None or TypeKind.VOID in (a.kind, b.kind):
+        return False
+    return bool(a.is_const) != bool(b.is_const) or bool(a.is_volatile) != bool(b.is_volatile)
+
+
 def redecl_conflicts(prev: Type, new: Type) -> bool:
     """True when two declarations of one object name cannot describe the same object."""
     if prev is new or _has_tag(prev) or _has_tag(new):

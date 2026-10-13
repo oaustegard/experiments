@@ -211,6 +211,8 @@ def reap(ctx: Ctx, rec: dict) -> dict:
     if not rec["result"]:
         why = rows[-1].get("reason") if rows else "runner produced no ledger"
         rec.update(status="failed", reason=f"no result: {why}")
+    elif rec["result"].get("status") == "stale":
+        rec.update(status="stale", reason="worker found its tests already pass at its base")
     elif rec["result"].get("status") != "fixed":
         rec.update(status="failed", reason=f"worker reported {rec['result'].get('status')}")
     else:
@@ -220,6 +222,11 @@ def reap(ctx: Ctx, rec: dict) -> dict:
     # The worker's /tmp/<task id>/ scratch is never needed after it exits; 600 workers' worth
     # (up to 170 MB each) filled the disk on 2026-10-12.
     shutil.rmtree(f"/tmp/{rec['id']}", ignore_errors=True)
+    # Claude Code keeps each session's background-task output under /tmp/claude-<uid>/<cwd with
+    # '/' -> '-'>; one runaway worker wrote 4.3 GB there on 2026-10-12.
+    enc = "-" + str(ctx.worktree(rec["id"])).strip("/").replace("/", "-")
+    for d in Path("/tmp").glob(f"claude-*/{enc}"):
+        shutil.rmtree(d, ignore_errors=True)
     if rec["status"] == "failed":
         remove_worktree(ctx, ctx.worktree(rec["id"]))
     return rec
@@ -361,13 +368,28 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 refreshing = True
             idle_tree = tree or idle_tree
         if not refreshing:                    # the gate tree and known.json belong to refresh
+            stale = [r for r in ledger(ctx).values() if r["status"] == "stale" and not r.get("rechecked")]
+            if stale:
+                # a worker found its targets already passing: the known state is out of date for
+                # that cluster, so re-measure every known-failing member at main (not an attempt)
+                main = head(ctx)
+                merge.recheck_clusters(ctx, merge.prepare_gate(ctx, main), main, stale)
+                for r in stale:
+                    r["rechecked"] = main
+                    ledger_put(ctx, r)
             for i in range(0, len(finished), ctx.batch):
                 batch = finished[i:i + ctx.batch]
                 merge.merge_batch(ctx, batch)
                 for r in batch:
                     remove_worktree(ctx, ctx.worktree(r["id"]))
-            if (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0) >= ctx.full_every:
+            cnt = read_json(ctx.state / "counters.json", {}) or {}
+            if cnt.get("merges_since_full", 0) >= ctx.full_every:
                 refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
+                refresher.start()
+                refreshing = True
+            elif a.quick_every and cnt.get("merges_since_quick", 0) >= a.quick_every:
+                quick = [x for x in a.quick_suites.split(",") if x]
+                refresher = threading.Thread(target=merge.quick_refresh, args=(ctx, quick), daemon=True)
                 refresher.start()
                 refreshing = True
         if (a.federate or a.sibling) and (time.time() - last_pub >= 60 or head(ctx) != pub_head):
@@ -392,6 +414,14 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 if tree and tree != idle_tree:
                     idle_tree = tree
                     log(f"queue empty; tests/ tree {tree[:10]} not yet baselined, refreshing")
+                    merge.refresh(ctx)
+                    idle_since = None
+                    continue
+                n = (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0)
+                if n:
+                    # Merges since the last full refresh were checked only against the gate's
+                    # sample; regressions they hid would otherwise ship with the idle tree.
+                    log(f"queue empty; {n} merges since the last full refresh, refreshing")
                     merge.refresh(ctx)
                     idle_since = None
                     continue
@@ -483,6 +513,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--sample", type=int, default=150)
     ap.add_argument("--full-every", type=int, default=100)
+    ap.add_argument("--quick-every", type=int, default=25,
+                    help="merges between quick refreshes of --quick-suites (0 = off)")
+    ap.add_argument("--quick-suites", default="smoke,c-testsuite,chibicc,gcc-torture")
     ap.add_argument("--final-refresh", action="store_true", help="full run after the loop ends")
     ap.add_argument("--suites", default="", help="comma list; default every dir in tests/suites")
     ap.add_argument("--poll", type=float, default=POLL_SECS)

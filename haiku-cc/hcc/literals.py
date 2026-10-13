@@ -369,7 +369,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
             out.append(t)
             i = j
             continue
-        elif k == TokenKind.PUNCT and t.text in ("\\", "@", "`", "$", "'", '"'):
+        elif k == TokenKind.PUNCT and (t.text in ("\\", "@", "`", "$", "'", '"')
+                                       or (len(t.text) == 1 and ord(t.text) > 0x7F)):
             diag.error(t, f"stray '{t.text}' in program")
         out.append(t)
         i += 1

@@ -11,9 +11,11 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.sema.atomic_rmw import atomic_rmw
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.compat import is_compatible
 from hcc.sema.dyn_struct_size import dyn_struct_bytes
+from hcc.sema.compound_order import has_call
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.sema.void_value import require_value
@@ -200,6 +202,13 @@ def compound_assign(op, lhs, rhs, loc, new_temp):
     add_type(rhs)
     require_value(lhs)
     require_value(rhs)
+    rmw = atomic_rmw(op, lhs, rhs, loc, want_old=False)
+    if rmw is not None:
+        return rmw
+    if has_call(rhs):                       # gcc: the rhs call runs before lhs is read
+        rtmp = new_temp(rhs.ty.unqual())
+        first = _t(N.Assign(loc, _t(N.VarRef(loc, rtmp)), rhs))
+        return _t(N.Comma(loc, first, compound_assign(op, lhs, _t(N.VarRef(loc, rtmp)), loc, new_temp)))
     if isinstance(lhs, N.VarRef):           # simple variable: no temp needed
         return _t(N.Assign(loc, lhs, _binop_buf(op, lhs, rhs, loc, new_temp)))
     if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
@@ -248,7 +257,15 @@ def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
     add_type(lhs)
     one = N.IntLit(loc, delta, ty=TY_INT)
     if not is_post:
-        return compound_assign("+", lhs, one, loc, new_temp)
+        res = compound_assign("+", lhs, one, loc, new_temp)
+        if res.ty is not None and (res.ty.is_const or res.ty.is_volatile or res.ty.is_atomic) \
+                and res.ty.kind not in (TypeKind.STRUCT, TypeKind.UNION):
+            # the value of ++x is an rvalue: qualifiers of the scalar are dropped (6.3.2.1p2)
+            res = _t(N.Cast(loc, res, ty=res.ty.unqual()))
+        return res
+    rmw = atomic_rmw("+", lhs, one, loc, want_old=True)
+    if rmw is not None:
+        return rmw
     if isinstance(lhs, N.VarRef):
         pre, make_place = [], (lambda: lhs)
     else:

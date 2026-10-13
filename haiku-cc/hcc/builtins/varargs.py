@@ -11,7 +11,10 @@ from hcc.sema.incomplete import is_incomplete_object
 
 @builtin_parser("__builtin_va_start")
 def _parse_va_start(self, tok):
+    # va_start(ap) and va_start(ap, last) are both accepted; the second is ignored
     args = self._args()
+    if not args:
+        self.error("too few arguments to function '__builtin_va_start'", tok.loc)
     return self._call(tok, "va_start", args[:1], T.TY_VOID)
 
 

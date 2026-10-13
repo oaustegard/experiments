@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
+from hcc.parser.libc_builtins import float128_libm_call
 from hcc.parser.libc_builtins import POWI_HELPERS, libc_param_types, libc_return_type, libm_param_types
 from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
@@ -71,6 +72,7 @@ class PrimaryMixin:
             self.check_unavailable(name, t)
             if vs.var is not None:
                 self.check_block_func_visible(name, vs.var, t, self.at("("))
+                self.check_unavailable_type(vs.var.ty, t)
                 return self.typed(N.VarRef(t.loc, vs.var))
             if vs.enum_ty is not None:
                 v = vs.enum_val
@@ -91,8 +93,10 @@ class PrimaryMixin:
             return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID),
                           nullptr_const=True)
         is_call = self.at("(")
+        spelled = ""                     # the __builtin_<fn> spelling, when this is one
         if name.startswith("__builtin_"):
             bname = name[len("__builtin_"):]
+            spelled = bname
             if is_call and bname in POWI_HELPERS:
                 return self.typed(N.VarRef(t.loc, self.powi_helper(t, bname)))
             if is_call or libc_return_type(bname) is not None:
@@ -110,6 +114,10 @@ class PrimaryMixin:
                     return self.typed(N.VarRef(t.loc, vs.var))
                 return self.typed(N.VarRef(t.loc, self.implicit_function(bname, t, T.TY_INT)))
         if is_call:
+            f128 = float128_libm_call(spelled) if spelled else None
+            if f128 is not None:
+                name, rty, params = f128
+                return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
             rty = libc_return_type(name)
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")
@@ -117,7 +125,9 @@ class PrimaryMixin:
             params = libm_param_types(name, rty)
             if params is None:
                 params = libc_param_types(name)
-            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
+            fn = self.implicit_function(name, t, rty, params)
+            fn.implicit_decl = params is None       # a later declaration may conflict (warning)
+            return self.typed(N.VarRef(t.loc, fn))
         self.error(f"'{name}' undeclared", t)
 
     def c23_mode(self):
@@ -127,11 +137,13 @@ class PrimaryMixin:
     def string_var(self, tok):
         """Storage for a string literal. Identical literals in one translation
         unit share one object (GCC merges string constants, so `"Hello" + 1`
-        and `p + 1` with `p = "Hello"` compare equal)."""
+        and `p + 1` with `p = "Hello"` compare equal). Only literals with the same
+        element type are merged: L"\xffffffff" (int) and U"\xffffffff" (unsigned) differ."""
         pool = getattr(self, "_string_pool", None)
         if pool is None:
             pool = self._string_pool = {}
-        key = (tok.ty.size, bytes(tok.value))
+        elem = tok.ty.base
+        key = (tok.ty.size, bytes(tok.value), elem.kind, elem.size, elem.is_unsigned)
         var = pool.get(key)
         if var is None:
             var = self.new_anon_gvar(tok.ty, tok.loc)

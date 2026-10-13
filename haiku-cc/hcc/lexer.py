@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 
 from hcc import diag
+from hcc.ident_ranges import c11_identifier_start, in_c11_identifier_range
 from hcc.tokens import Loc, Token, TokenKind
 
 PUNCTUATORS = [
@@ -94,8 +95,52 @@ def _decode_ucns(s: str) -> str:
     return _UCN_RE.sub(lambda m: chr(int(m.group(1) or m.group(2), 16)), s)
 
 
+_UCN_TAIL_RE = re.compile(r"\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}")
+
+
+def _xid_ok(c: str, start: bool, c23: bool = True) -> bool:
+    """C23 6.4.2.1 / XID_Start, XID_Continue: may character c begin/continue an identifier.
+    Before C23, gcc also lets a C11 Annex D character begin one (gcc-dg/ucnid-15-utf8.c);
+    C23 is strict XID (reject-gcc-dg/cpp/ucnid-16-utf8.c, -std=c23)."""
+    if start:
+        return c.isidentifier() or (not c23 and c11_identifier_start(c))
+    # Continuation: XID_Continue, or the C11 Annex D.1 ranges gcc accepts (e.g. `a¾`).
+    return ("a" + c).isidentifier() or in_c11_identifier_range(c)
+
+
+def _split_id(s: str, c23: bool = True) -> list[tuple[str, str]]:
+    """Split a raw identifier match into (kind, text) pieces. Non-ASCII characters
+    that are not XID characters end the identifier and become single stray tokens
+    (GCC: `int ² = 42;` says "stray '\\302' in program")."""
+    if s.isascii():
+        return [("id", _decode_ucns(s))]
+    out: list[tuple[str, str]] = []
+    cur = ""
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if c == "\\":
+            m = _UCN_TAIL_RE.match(s, i)
+            if m:
+                cur += m.group()
+                i = m.end()
+                continue
+        if ord(c) < 0x80 or _xid_ok(c, start=(cur == ""), c23=c23):
+            cur += c
+        else:
+            if cur:
+                out.append(("id", _decode_ucns(cur)))
+                cur = ""
+            out.append(("other", c))
+        i += 1
+    if cur:
+        out.append(("id", _decode_ucns(cur)))
+    return out
+
+
 _KIND = {"num": TokenKind.NUMBER, "str": TokenKind.STRING, "chr": TokenKind.CHAR,
-         "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT}
+         "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT,
+         "bad": TokenKind.PUNCT}
 
 
 def remove_splices(text: str) -> str:
@@ -156,9 +201,7 @@ def tokenize(text: str, path: str, line_comments: bool = True,
             bol = True
             space = False
             continue
-        if kind in ("ws", "lc", "bad"):
-            # "bad" = a byte that is not valid UTF-8 outside a literal or comment
-            # (surrogateescape): GCC treats it as a stray token that vanishes.
+        if kind in ("ws", "lc"):
             space = True
             continue
         if kind == "bc":
@@ -172,15 +215,16 @@ def tokenize(text: str, path: str, line_comments: bool = True,
         if kind == "ubc":
             diag.error(loc, "unterminated comment", "preprocess")
         s = m.group()
-        spell = None
-        if kind == "punct" and s in DIGRAPHS:
-            spell = s
-            s = DIGRAPHS[s]
-        elif kind == "id":
-            s = _decode_ucns(s)
-        tok = Token(_KIND[kind], s, loc, bol, space)
-        tok.spell = spell
-        toks.append(tok)
+        pieces = _split_id(s, c23=bool(u8_chars)) if kind == "id" else [(kind, s)]
+        for idx, (pkind, s) in enumerate(pieces):
+            spell = None
+            if pkind == "punct" and s in DIGRAPHS:
+                spell = s
+                s = DIGRAPHS[s]
+            tok = Token(_KIND[pkind], s, loc, bol if idx == 0 else False,
+                        space if idx == 0 else False)
+            tok.spell = spell
+            toks.append(tok)
         bol = False
         space = False
     toks.append(Token(TokenKind.EOF, "", Loc(path, line, 1), True, False))

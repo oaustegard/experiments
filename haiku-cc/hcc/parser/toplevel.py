@@ -9,25 +9,39 @@ Redeclarations reuse the first Obj, so `extern int x; int x = 1;` is one Var.
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc import nodes as N
 from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
-from hcc.parser.declspec import constexpr_type, check_empty_inline
+from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts, typedef_conflicts
+from hcc.parser.redecl_types import has_anon_aggregate_param, ret_qual_conflicts
 from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
+from hcc.parser.transparent_union import apply_transparent_union
 from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
+from hcc.parser.pragma_ivdep import at_ivdep_marker, consume_ivdep_marker
 from hcc.parser.knr_check import knr_param_index
-from hcc.parser.redecl import check_redecl
-from hcc.parser.libc_protos import libc_prototype
+from hcc.parser.redecl import check_redecl, drop_block_extern_var, clear_block_extern_var
+from hcc.parser.libc_protos import builtin_shape_matches, libc_prototype
 from hcc.parser.vector_limits import vector_of_checked
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
+
+
+def is_incomplete_object(ty) -> bool:
+    """True for a type that cannot name an object's storage: an incomplete
+    struct/union, or an enum that was only forward-declared (`enum E;`)."""
+    if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return not ty.is_complete
+    if ty.kind == T.TypeKind.ENUM:
+        return ty.enum_consts == "fwd"
+    return False
 
 
 class TopLevelMixin:
@@ -41,6 +55,9 @@ class TopLevelMixin:
                 continue
             if at_sso_marker(self):
                 consume_sso_marker(self)
+                continue
+            if at_ivdep_marker(self):       # file-scope `#pragma GCC ivdep` has no loop: ignored
+                consume_ivdep_marker(self)
                 continue
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -97,11 +114,13 @@ class TopLevelMixin:
                 ty = vector_of_checked(self, ty, dattr.vector_size)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
+            ty = apply_transparent_union(ty, attr, dattr)
             if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:
                 self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr, name)      # `T x __attribute__((aligned(N)))`
             unavail = attr.is_unavailable or dattr.is_unavailable
+            self.check_unavailable_declarator(ty, name)
             if (attr.is_weakref or dattr.is_weakref) and not attr.is_typedef and not attr.is_static:
                 # GCC: a weakref alias must be an internal (static) symbol
                 self.error(f"'weakref' symbol '{name.text}' must have static linkage", name.loc)
@@ -111,6 +130,7 @@ class TopLevelMixin:
                 if prev_td is not None and prev_td.type_def is not None \
                         and typedef_conflicts(prev_td.type_def, ty):
                     self.error(f"conflicting types for '{name.text}'", name.loc)
+                drop_block_extern_var(self.scopes[0], name.text)
                 check_redecl(self, self.scopes[0], name, "typedef")
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty, unavailable=unavail)
             elif ty.kind == T.TypeKind.FUNC:
@@ -130,6 +150,7 @@ class TopLevelMixin:
                     self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
             else:
+                clear_block_extern_var(self.scopes[0], name.text)
                 check_redecl(self, self.scopes[0], name, "var")
                 if attr.is_register and not (dattr.asm_name or attr.asm_name):
                     # GCC: a file-scope `register` variable needs a register name
@@ -156,6 +177,7 @@ class TopLevelMixin:
         ty = self.typed(self.assign()).ty
         if ty.kind == T.TypeKind.ARRAY:
             ty = T.pointer_to(ty.base)
+        ty = auto_qualified(ty, attr)
         if attr.is_constexpr:
             ty = constexpr_type(ty)
         self.pos = start                    # re-parse the initializer with the real type
@@ -182,8 +204,11 @@ class TopLevelMixin:
         vs = self.scopes[0].vars.get(name.text)
         fn = vs.var if vs is not None and isinstance(vs.var, N.Function) else None
         builtin = libc_prototype(name.text)
-        if builtin is not None and ty.has_proto and not is_compatible(builtin, ty):
-            self.error(f"conflicting types for '{name.text}'", name.loc)
+        if builtin is not None and ty.has_proto and not builtin_shape_matches(builtin, ty):
+            if builtin.is_variadic != ty.is_variadic or len(builtin.params) != len(ty.params):
+                self.error(f"conflicting types for '{name.text}'", name.loc)
+            # GCC: a different return/parameter kind only warns (-Wbuiltin-declaration-mismatch)
+            diag.warn(name.loc, f"conflicting types for built-in function '{name.text}'")
         if fn is None:
             fn = N.Function(name.text, ty, loc=name.loc)
             self.scopes[0].vars[name.text] = VarScope(var=fn)
@@ -194,13 +219,38 @@ class TopLevelMixin:
             self.implicit_protos.discard(id(fn))
             fn.ty = ty
         else:
-            if not is_compatible(fn.ty, ty):
-                self.error(f"conflicting types for '{name.text}'", name.loc)
+            # A K&R definition's parameter types are checked against the prototype
+            # by knr_params (before default promotion), not by the plain compat rule.
+            # GCC: a block-scope declaration that conflicts with an earlier implicit
+            # declaration (`g(); { void g(); }`) is a warning and keeps the implicit type.
+            implicit_block = len(self.scopes) > 1 and getattr(fn, "implicit_decl", False)
+            if ty.enum_consts != "knr" and (not is_compatible(fn.ty, ty)
+                                            or ret_qual_conflicts(fn.ty, ty, getattr(self.opts, "std", None))):
+                msg = f"conflicting types for '{name.text}'"
+                if implicit_block or getattr(self.opts, "permissive", False):    # -fpermissive: permerror
+                    diag.warn(name.loc, msg)
+                elif has_anon_aggregate_param(fn.ty) or has_anon_aggregate_param(ty):
+                    # old GCC extension: an untagged struct/union parameter is only a warning
+                    diag.warn(name.loc, f"'{name.text}' is not truly compatible with its earlier declaration")
+                else:
+                    self.error(msg, name.loc)
             self.check_proto_after_knr_def(fn, ty, name)
+            # C11 6.2.2p7: a file-scope `static` declaration may not follow a
+            # declaration with external linkage (a previous non-static one). A gnu89
+            # `extern inline` body (body kept, is_definition False) has no external
+            # symbol, so GCC accepts a `static` redeclaration after it.
+            gnu89_inline_only = fn.body is not None and not fn.is_definition
+            if len(self.scopes) == 1 and (attr.is_static or dattr.is_static) and not fn.is_static \
+                    and not gnu89_inline_only:
+                self.error(f"static declaration of '{name.text}' follows non-static declaration", name.loc)
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
                 self.error(f"redefinition of '{name.text}'", name.loc)
-            if ty.has_proto or not fn.ty.has_proto:
+            # GCC: a weak declaration cannot be applied to an existing static definition
+            if (attr.is_weak or dattr.is_weak) and fn.is_static and fn.is_definition:
+                self.error(f"weak declaration of '{name.text}' being applied to a already "
+                           f"existing, static definition", name.loc)
+            if not implicit_block and (ty.has_proto or not fn.ty.has_proto):
                 fn.ty = ty
         if len(self.scopes) == 1:
             fn.block_decl_only = False       # a file-scope declaration makes it visible
@@ -234,11 +284,17 @@ class TopLevelMixin:
         else:
             if not is_compatible(var.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
+            # GCC: thread-local-ness must agree across all file-scope declarations.
+            if bool(attr.is_tls) != bool(var.is_tls):
+                kind = "thread-local" if attr.is_tls else "non-thread-local"
+                prev = "thread-local" if var.is_tls else "non-thread-local"
+                self.error(f"{kind} declaration of '{name.text}' follows {prev} declaration", name.loc)
             if ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
                     var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
                 var.ty = ty
             var.ty = composite_redecl(var.ty, ty)
         var.is_static |= attr.is_static
+        var.is_constexpr |= attr.is_constexpr
         var.is_tls |= attr.is_tls
         var.is_weak |= attr.is_weak or dattr.is_weak
         var.is_nocommon |= attr.is_nocommon or dattr.is_nocommon
@@ -260,6 +316,10 @@ class TopLevelMixin:
         for o in self.objs:
             if isinstance(o, N.Var) and not o.is_local and o.init_data is None:
                 if o.is_tentative and not o.is_extern:
+                    # C11 6.9.2p2: a tentative definition must have a complete type
+                    # by the end of the translation unit (gcc: "storage size isn't known").
+                    if is_incomplete_object(o.ty):
+                        self.error(f"storage size of '{o.name}' isn't known", o.loc)
                     o.is_definition = True
                     if o.ty.kind == T.TypeKind.ARRAY and o.ty.array_len < 0:
                         o.ty = T.array_of(o.ty.base, 1)
@@ -309,8 +369,10 @@ class TopLevelMixin:
                 saved_pdecl = self.in_param_decl
                 self.in_param_decl = True   # GNU: no braced-group in a parameter's array size
                 try:
+                    self.param_outer_array = True   # K&R parameter: outermost array
                     ty, name = self.declarator(basety)
                 finally:
+                    self.param_outer_array = False
                     self.in_param_decl = saved_pdecl
                 dattr = VarAttr()           # `int foo __attribute__((unused));`
                 self.parse_attributes(dattr)
@@ -329,7 +391,7 @@ class TopLevelMixin:
         declared = [decls.get(n.text, T.TY_INT) for n in fty.param_names]
         if proto is not None and proto.has_proto:
             if len(proto.params) != len(declared):
-                self.error("conflicting types for function definition")
+                self.error("number of arguments doesn't match prototype")
             i = knr_param_index(proto, declared)
             if i is not None:
                 pname = fty.param_names[i]
@@ -347,6 +409,10 @@ class TopLevelMixin:
         `void f(a) int a; {}`) must declare the same number of parameters
         (C11 6.9.1p7; gcc: 'declares more/fewer arguments than previous old-style')."""
         if not fn.is_definition or fn.ty.has_proto or not ty.has_proto:
+            return
+        if self.fn is fn:
+            # A block-scope declaration inside the body of the old-style
+            # definition itself (GCC accepts `void f(int);` in `void f() {...}`).
             return
         have = len(fn.ty.param_names)
         if len(ty.params) > have:
@@ -460,6 +526,8 @@ class TopLevelMixin:
         self.leave_scope()
         for g, msg in self.jump_scope.violations():
             self.error(msg, g)
+        for c in self.jump_scope.se_cases:
+            self.error("switch jumps into statement expression", c)
         for c in self.jump_scope.case_violations():
             self.error("switch jumps into scope of identifier with variably modified type", c)
         self.jump_scope = saved_jumps

@@ -24,14 +24,16 @@ if __name__ == "__main__":
     import _boot  # noqa: F401
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
-from swarm.common import read_jsonl
+from swarm.common import read_json, read_jsonl, write_json
 
 HERE = Path(__file__).resolve().parent
 
@@ -194,6 +196,13 @@ def main(argv: list[str] | None = None) -> int:
     root.mkdir()
     build_repo(root)
     failures = []
+    # the gate's hcc selftest stand-in (the real 710 take minutes): one fake selftest that fails
+    # while the tree carries hcc/_fake_selftest_break.txt
+    fake_st = tmp / "fake_selftest.py"
+    fake_st.write_text("import os\nbad = os.path.exists('hcc/_fake_selftest_break.txt')\n"
+                       "print('FAIL fake_selftest.c: broken') if bad else None\n"
+                       "print(f'{1 - bad}/1 passed')\n")
+    os.environ["SWARM_SELFTEST"] = f"{sys.executable} {fake_st}"
 
     def check(name: str, out: str, want: dict[str, str]) -> None:
         got = statuses(root)
@@ -244,6 +253,58 @@ def main(argv: list[str] | None = None) -> int:
     if "Oskar Austegard" not in log:
         failures.append("author")
     print(f"{'ok  ' if 'Oskar Austegard' in log else 'FAIL'} merge commits authored by Oskar Austegard")
+    # quick refresh: a merge triggers it (--quick-every 1); it must run the quick suites and finish
+    out = run(root, wt, "--max-workers", "1", "--concurrency", "1", "--full-every", "99",
+              "--quick-every", "1", "--quick-suites", "smoke,c-testsuite")
+    ok = "quick refresh at" in out and "quick refresh done" in out
+    print(f"{'ok  ' if ok else 'FAIL'} quick refresh runs after a merge and completes")
+    if not ok:
+        failures.append("quick refresh")
+        print(out[-2000:])
+    # selftest gate: a candidate that fixes its targets but breaks an hcc selftest is rejected
+    before = set(records(root))
+    os.environ["SWARM_ATTEMPT_EPOCH"] = str(time.time())   # earlier cases parked what is left
+    out = run(root, wt, "--fake-mode", "selftest", "--max-workers", "1", "--concurrency", "1", "--full-every", "99")
+    del os.environ["SWARM_ATTEMPT_EPOCH"]
+    new = [r for k, r in records(root).items() if k not in before]
+    ok = bool(new) and new[0].get("status") == "rejected" and \
+        str(new[0].get("reason", "")).startswith("selftest regressions (1): fake_selftest.c")
+    print(f"{'ok  ' if ok else 'FAIL'} a candidate that breaks an hcc selftest -> rejected")
+    if not ok:
+        failures.append("selftest gate")
+        print(out[-2000:])
+    # stale: main already fixes a test that known.json still marks FAIL; a worker reports "stale"
+    # and the loop re-measures the cluster at main instead of counting a failed attempt
+    k = json.loads((root / "swarm" / "state" / "known.json").read_text())
+    stale_t = sorted(t for t, v in k.items() if v.get("status") != "PASS")[0]
+    fixdir = root / "hcc" / "_fake_fixes"
+    fixdir.mkdir(parents=True, exist_ok=True)
+    (fixdir / stale_t.replace("/", "__")).write_text("fixed\n")
+    sh(root, "git", "add", "-A")
+    sh(root, "git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "fix outside the swarm")
+    before = set(records(root))
+    os.environ["SWARM_ATTEMPT_EPOCH"] = str(time.time())
+    out = run(root, wt, "--fake-mode", "stale", "--only", stale_t, "--max-workers", "1", "--concurrency", "1",
+              "--full-every", "99")
+    del os.environ["SWARM_ATTEMPT_EPOCH"]
+    new = [r for k2, r in records(root).items() if k2 not in before]
+    k = json.loads((root / "swarm" / "state" / "known.json").read_text())
+    ok = bool(new) and new[0].get("status") == "stale" and k.get(stale_t, {}).get("status") == "PASS"
+    print(f"{'ok  ' if ok else 'FAIL'} worker reports stale -> cluster re-measured at main, test now PASS")
+    if not ok:
+        failures.append("stale recheck")
+        print(out[-2000:])
+    # idle refresh: once the queue drains, merges since the last full refresh get one
+    cf = root / "swarm" / "state" / "counters.json"
+    c = read_json(cf, {}) or {}
+    c["merges_since_full"] = 3          # merges the gate checked only against its sample
+    write_json(cf, c)
+    out = run(root, wt, "--max-workers", "50", "--concurrency", "2", "--full-every", "99")
+    ok = "merges since the last full refresh, refreshing" in out
+    print(f"{'ok  ' if ok else 'FAIL'} empty queue with unrefreshed merges -> full refresh")
+    if not ok:
+        failures.append("idle refresh")
+        print(out[-2000:])
     print(f"{len(failures)} failures" + (f": {failures}" if failures else ""))
     if a.keep:
         print(f"kept {tmp}")

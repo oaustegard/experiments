@@ -11,14 +11,16 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.scope import VarAttr
-from hcc.parser.declspec import constexpr_type, check_empty_inline
+from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
-from hcc.parser.vla import vla_slot_type
+from hcc.parser.transparent_union import apply_transparent_union
+from hcc.parser.vla import vla_slot_type, _has_vla as _has_vla_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import redecl_conflicts, typedef_conflicts
 from hcc.parser.redecl import check_redecl
+from hcc.parser.toplevel import is_incomplete_object
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -83,6 +85,7 @@ class LocalDeclMixin:
                 ty = e.ty
                 if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)
+                ty = auto_qualified(ty, attr)
                 if attr.is_constexpr:
                     ty = constexpr_type(ty)
                 var = self.new_lvar(name.text, ty, name.loc)
@@ -113,6 +116,7 @@ class LocalDeclMixin:
                 self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
+            ty = apply_transparent_union(ty, attr, dattr)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr, name)      # `T x __attribute__((aligned(N)))`
             if attr.is_typedef:
@@ -132,6 +136,11 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.FUNC and ty.enum_consts == "knr" \
                     and not self.at(";") and not self.at(","):
                 self.knr_params(ty)              # GNU nested K&R definition
+            if ty.kind == T.TypeKind.FUNC and not self.at("{") and name is not None \
+                    and _has_vla_type(ty.return_ty):
+                # C11 6.7.5.2p2 / GCC: a block-scope function declaration (not a
+                # nested function definition) may not return a variably modified type
+                self.error("non-nested function with variably modified type", name)
             if ty.kind == T.TypeKind.FUNC and self.at("{"):
                 self.nested_function(ty, name, attr, dattr)
                 return items
@@ -156,6 +165,13 @@ class LocalDeclMixin:
                     # C11 6.2.2p4: the visible prior declaration has no linkage (a
                     # block-scope object), so this extern names a new identifier
                     # with its own declared type; the file-scope object is not reused.
+                    # GCC still links such an extern to the file-scope object, so an
+                    # internal-linkage file-scope object of the same name is a conflict.
+                    file_obj = self.scopes[0].vars.get(name.text)
+                    if file_obj is not None and isinstance(file_obj.var, N.Var) \
+                            and file_obj.var.is_static and not file_obj.var.is_local:
+                        self.error(f"variable '{name.text}' previously declared 'static' "
+                                   f"redeclared 'extern'", name)
                     var = N.Var(name.text, ty, loc=name.loc, align=ty.align)
                     var.is_extern = True
                     var.is_definition = False
@@ -163,7 +179,10 @@ class LocalDeclMixin:
                     continue
                 self.check_extern_completes_tentative(prior, ty, name)
                 check_redecl(self, self.scopes[-1], name, "var")
+                file_before = self.scopes[0].vars.get(name.text)
                 var = self.declare_global_var(ty, name, attr, dattr)
+                if file_before is None:
+                    var.block_decl_only = True      # external, but lexically block-scoped
                 self.push_scope_entry(name.text).var = var
                 continue
             if (attr.is_weak or dattr.is_weak) and not attr.is_extern:
@@ -225,7 +244,9 @@ class LocalDeclMixin:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
             check_redecl(self, self.scopes[-1], name, "var", block_obj=True)
+            self.check_unavailable_declarator(ty, name)
             var = self.new_lvar(name.text, ty, name.loc)
+            var.is_constexpr = attr.is_constexpr
             var.is_register = attr.is_register
             var.is_unavailable = attr.is_unavailable or dattr.is_unavailable
             reg = (dattr.asm_name or "").lstrip("%")
@@ -240,7 +261,7 @@ class LocalDeclMixin:
                     self.error("variable-sized object may not be initialized except with an empty initializer", name)
                 e = self.local_initializer(var, is_constexpr=attr.is_constexpr)
                 items.append(N.ExprStmt(name.loc, e))
-            if not var.ty.is_complete or var.ty.size < 0:
+            if not var.ty.is_complete or var.ty.size < 0 or is_incomplete_object(var.ty):
                 self.error(f"storage size of '{name.text}' isn't known", name)
             if cleanup:
                 items.append(self.cleanup_decl(var, cleanup, name))

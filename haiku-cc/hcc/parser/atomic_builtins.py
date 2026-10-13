@@ -53,6 +53,33 @@ _GENERIC_PTR_ARGS = {
 }
 
 
+# Exact argument counts (gcc: "too few/too many arguments to function").
+_ARITY = {
+    "__atomic_load_n": 2, "__atomic_store_n": 3, "__atomic_exchange_n": 3,
+    "__atomic_compare_exchange_n": 6, "__atomic_load": 3, "__atomic_store": 3,
+    "__atomic_exchange": 4, "__atomic_compare_exchange": 6,
+    "__atomic_test_and_set": 2, "__atomic_clear": 2,
+    "__atomic_thread_fence": 1, "__atomic_signal_fence": 1,
+    "__atomic_is_lock_free": 2, "__atomic_always_lock_free": 2,
+    "__sync_lock_release": 1, "__sync_synchronize": 0,
+    "__sync_lock_test_and_set": 2, "__sync_val_compare_and_swap": 3,
+    "__sync_bool_compare_and_swap": 3,
+}
+for _o in _RMW_OPS:
+    _ARITY[f"__atomic_fetch_{_o}"] = 3
+    _ARITY[f"__atomic_{_o}_fetch"] = 3
+    _ARITY[f"__sync_fetch_and_{_o}"] = 2
+    _ARITY[f"__sync_{_o}_and_fetch"] = 2
+
+
+def _check_arity(name, args, tok, parser):
+    want = _ARITY.get(name)
+    if want is None or len(args) == want:
+        return
+    which = "few" if len(args) < want else "many"
+    parser.error(f"too {which} arguments to function '{name}'", tok)
+
+
 def _check_operand_pointers(parser, name, args, tok):
     """gcc: argument 1 must be a non-void pointer; the other pointer operands of the
     generic __atomic_* forms must be pointers."""
@@ -73,17 +100,12 @@ def atomic_call(parser, tok):
     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
     name = tok.text
     args = parser._args()
+    _check_arity(name, args, tok, parser)
     if name in ("__atomic_thread_fence", "__atomic_signal_fence"):
-        if len(args) != 1:
-            parser.error(f"'{name}' expects 1 argument", tok)
         ty = T.TY_VOID
     elif name == "__sync_synchronize":
-        if args:
-            parser.error(f"'{name}' expects no arguments", tok)
         ty = T.TY_VOID
     elif name in _LOCK_FREE_NAMES:
-        if len(args) != 2:
-            parser.error(f"'{name}' expects 2 arguments", tok)
         ty = T.TY_BOOL
     elif name in _FLAG_BOOL_RET:
         if not args or not T.is_pointer_like(args[0].ty):

@@ -7,12 +7,14 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
 """
 from __future__ import annotations
 
+import bisect
 from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser.asm_output_check import check_asm_output_writable
+from hcc.parser.pragma_ivdep import at_ivdep_marker, consume_ivdep_marker, take_ivdep
 from hcc.parser.assign_struct_check import check_struct_assign
 from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const, wrap
@@ -67,6 +69,9 @@ class StatementMixin:
     def stmt(self) -> N.Stmt:
         if self.at_std_attribute():
             self.skip_std_attributes()
+        if at_ivdep_marker(self):
+            consume_ivdep_marker(self)      # `#pragma GCC ivdep` applies to the next loop
+            return self.stmt()
         t = self.tok
         if t.kind == TokenKind.KEYWORD and t.text in STMT_KEYWORDS:
             return getattr(self, "_stmt_" + t.text)(self.next())
@@ -105,7 +110,7 @@ class StatementMixin:
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         require_value(e)
-        check_struct_assign(self, rty, e.ty, t)     # struct/union <-> scalar is never a valid return
+        check_struct_assign(self, rty, e.ty, t, site="return")     # struct/union <-> scalar is never a valid return
         if rty.is_complex or e.ty.is_complex:
             e = CPX.convert(self, e, rty, t.loc)
             return N.Return(t.loc, e)
@@ -131,7 +136,8 @@ class StatementMixin:
         self.expect("(")
         cond = self.typed(self.expr())
         require_value(cond)
-        cond = CPX.truth(self, cond)
+        if not T.is_integer(cond.ty):
+            self.error("switch quantity not an integer", t)
         self.expect(")")
         from hcc.sema.conversions import int_promote
         cond = new_cast(cond, int_promote(cond.ty))
@@ -159,6 +165,7 @@ class StatementMixin:
         c = N.Case(t.loc, lo, hi, None, self.new_label())
         if lo <= hi:      # an empty range matches nothing: keep only its label
             self.cur_switch.cases.append(c)
+            bisect.insort(self.cur_switch.case_index, (lo, hi))
         c.body = None if self.at("}") else self.stmt()
         return c
 
@@ -167,9 +174,12 @@ class StatementMixin:
         Empty ranges (lo > hi) match nothing and never conflict."""
         if lo > hi:
             return
-        for prev in self.cur_switch.cases:
-            if prev.lo <= hi and lo <= prev.hi:
-                self.error("duplicate (or overlapping) case value", t)
+        # accepted ranges are disjoint and sorted by lo: only the last one starting at or
+        # before hi can overlap [lo, hi] (binary search keeps N labels O(N log N)).
+        idx = self.cur_switch.case_index
+        i = bisect.bisect_right(idx, (hi, float("inf")))
+        if i > 0 and idx[i - 1][1] >= lo:
+            self.error("duplicate (or overlapping) case value", t)
 
     def _stmt_default(self, t):
         if self.cur_switch is None:
@@ -228,6 +238,7 @@ class StatementMixin:
             i += 1
 
     def _stmt_for(self, t):
+        ivdep = take_ivdep(self)
         self.expect("(")
         self.skip_std_attributes()  # `for ([[]] int i = 0; ...)`
         self.enter_scope()
@@ -245,6 +256,8 @@ class StatementMixin:
             cond = self.typed(self.expr())
             require_value(cond)
             cond = CPX.truth(self, cond)
+        if cond is None and ivdep:
+            self.error("missing loop condition in loop with 'GCC ivdep' pragma before ';' token")
         self.expect(";")
         inc = None if self.at(")") else self.typed(self.expr())
         self.expect(")")

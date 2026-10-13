@@ -6,7 +6,7 @@ lower_extended(cg, node) lowers `asm(tpl : outs : ins : clobbers)`:
      memory-operand addresses are pushed, then popped into their registers,
   3. the template is emitted with %N / %kN / %wN / %bN / %qN / %cN / %% expanded,
   4. output registers are pushed and stored back through the saved addresses.
-Constraints: GPR letters (r q g R l x ...), fixed a c d S D, memory (m o V),
+Constraints: GPR letters (r q g R l x ...), fixed a b c d S D, memory (m o V),
 immediate (i n ...) for constant operands, matching digits, and =, +, &.
 x87 operands (t/u/f; float, double or long double): inputs are converted to long
 double, staged as 16-byte slots and loaded onto the FPU before the template; outputs
@@ -27,7 +27,7 @@ _POOL = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
 # Callee-saved GPRs: used only when the caller-saved pool runs out, and then
 # preserved around the template (see lower_extended).
 _CALLEE_SAVED = ["rbx", "r12", "r13", "r14", "r15"]
-_FIXED = {"a": "rax", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}
+_FIXED = {"a": "rax", "b": "rbx", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}   # b: callee-saved, preserved below
 _LEGACY = {"rax": "ax", "rcx": "cx", "rdx": "dx", "rsi": "si", "rdi": "di", "rbx": "bx"}
 _LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil", "rbx": "bl"}
 _REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
@@ -418,7 +418,9 @@ def lower_extended(cg, node) -> None:
         pushes.append(op)
     for op in reversed(pushes):
         cg.pop("%" + op.reg)
-        if op.pair:
+        # Only register pairs were pushed as two slots; a complex operand
+        # passed by address ("m") is a single slot.
+        if op.pair and op.kind == "reg":
             cg.pop("%" + op.reg2)
     # Phase 2c: load x87 inputs; the deepest st(N) goes first.
     for idx, op in sorted(enumerate(x87_in), key=lambda p: -p[1].reg):

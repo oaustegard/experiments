@@ -7,6 +7,7 @@ declaration is always fine. libc_prototype(name) -> Type | None.
 from __future__ import annotations
 
 from hcc import typesys as T
+from hcc.typesys import FLOAT_KINDS, INTEGER_KINDS, Type, TypeKind
 
 
 def _const_ptr(base: T.Type) -> T.Type:
@@ -36,3 +37,27 @@ _PROTOS = {
 def libc_prototype(name: str):
     """The builtin prototype of `name` (shared, do not mutate), or None."""
     return _PROTOS.get(name)
+
+
+def _shape_class(t: Type) -> object:
+    """Coarse class of a parameter/return type: all integers agree, all floats
+    agree, all pointers agree (pointee and qualifiers ignored)."""
+    if t.kind in INTEGER_KINDS:
+        return "int"
+    if t.kind in FLOAT_KINDS:
+        return "float"
+    if t.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA):
+        return "ptr"
+    return t.kind
+
+
+def builtin_shape_matches(builtin: Type, ty: Type) -> bool:
+    """GCC only warns (-Wbuiltin-declaration-mismatch) when a file-scope prototype
+    differs from a builtin in pointee qualifiers or integer signedness; it is an
+    error only when the arity, variadicity or the kind of a return/parameter
+    differs. True when `ty` is not such a mismatch against `builtin`."""
+    if builtin.is_variadic != ty.is_variadic or len(builtin.params) != len(ty.params):
+        return False
+    if _shape_class(builtin.return_ty) != _shape_class(ty.return_ty):
+        return False
+    return all(_shape_class(x) == _shape_class(y) for x, y in zip(builtin.params, ty.params))

@@ -15,6 +15,7 @@ from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, 
 from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
 from hcc.sema.constexpr import eval_const
 from hcc.sema.incomplete import is_incomplete_object
+from hcc.sema.const_members import has_const_member
 from hcc.sema.strict_overflow import simplify_mul_div
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
@@ -25,6 +26,7 @@ from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser.incdec_check import check_incdec_operand
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
+from hcc.parser.complex_incdec import complex_inc_dec
 from hcc.parser.dyn_struct_ret import dyn_struct_assign
 from hcc.parser.assign_struct_check import check_struct_assign
 
@@ -41,7 +43,9 @@ def _comma_result_type(t):
         return pointer_to(t)
     if t.kind == TypeKind.ARRAY and not t.is_vector:
         return pointer_to(t.base)
-    return t
+    if t.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.VOID):
+        return t
+    return t.unqual()        # lvalue conversion: the result of a comma is never qualified
 
 
 def _side_effect_free(node) -> bool:
@@ -55,10 +59,19 @@ def _side_effect_free(node) -> bool:
 def _is_readonly(node) -> bool:
     """True if the lvalue `node` has a const-qualified type (a member of a
     const struct is const too)."""
-    if node.ty is not None and node.ty.is_const:
-        return True
+    if node.ty is not None and (node.ty.is_const or has_const_member(node.ty)):
+        return True     # a struct/union with a const member is not modifiable (C11 6.3.2.1p1)
+    return _in_const_aggregate(node)
+
+
+def _in_const_aggregate(node) -> bool:
+    """True if `node` is a member of a const-qualified struct/union (only the
+    qualifier of the enclosing object counts, not its const members)."""
     if isinstance(node, N.Member_):
-        return _is_readonly(node.operand)
+        op = node.operand
+        if op.ty is not None and op.ty.is_const:
+            return True
+        return _in_const_aggregate(op)
     return False
 
 
@@ -66,9 +79,11 @@ def _plus_result(parser, operand, loc):
     """Unary '+' yields an rvalue: an lvalue operand gets an explicit (promoting) cast so that
     `+x = 1` and `&+x` are rejected like any other non-lvalue expression."""
     t = parser.typed(operand).ty
-    if isinstance(operand, (N.VarRef, N.Deref, N.Member_)) and is_scalar(t) \
-            and not t.is_complex and not t.is_vector:
-        return parser.typed(N.Cast(loc, operand, ty=int_promote(t).unqual()))
+    if is_scalar(t) and not t.is_complex and not t.is_vector:
+        promoted = int_promote(t)
+        if isinstance(operand, (N.VarRef, N.Deref, N.Member_)) or promoted is not t:
+            # an enum/short-sized rvalue (e.g. an enumerator) still promotes to int
+            return parser.typed(N.Cast(loc, operand, ty=promoted.unqual()))
     return operand
 
 
@@ -266,6 +281,8 @@ class ExpressionMixin:
                 self.next()
                 operand = self.unary()
                 check_incdec_operand(self, operand, t)
+                if self.typed(operand).ty.is_complex:
+                    return complex_inc_dec(self, operand, 1 if s == "++" else -1, False, t.loc)
                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
             if s == "&&":                        # GNU label address
                 self.next()

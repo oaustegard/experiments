@@ -11,7 +11,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.incomplete import check_value_operands
-from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_decimal,
+from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_LONG, TY_ULONG, TY_UINT, Type, TypeKind, is_decimal,
                        is_flonum, is_integer, pointer_to)
 
 _FLOAT_RANK = {TypeKind.FLOAT16: 1, TypeKind.FLOAT: 2, TypeKind.DOUBLE: 3, TypeKind.LDOUBLE: 4,
@@ -23,6 +23,10 @@ _DEC_RANK = {TypeKind.DEC32: 1, TypeKind.DEC64: 2, TypeKind.DEC128: 3}
 
 def int_promote(ty: Type) -> Type:
     if ty.kind == TypeKind.ENUM:
+        if ty.size > 4:      # an enum with a 64-bit underlying type keeps that width
+            return TY_ULONG if ty.is_unsigned else TY_LONG
+        if ty.size < 4:      # underlying char/short/bool: every value fits in int (6.3.1.1p2)
+            return TY_INT
         return TY_UINT if ty.is_unsigned else TY_INT
     if is_integer(ty) and ty.size < 4:
         return TY_INT
