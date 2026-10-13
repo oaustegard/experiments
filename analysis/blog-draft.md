@@ -174,8 +174,18 @@ unsigned, so `i >= FOO` never went false, and the TinyCC that hcc built failed 2
 tests. Eight of the compiler's 710 unit tests were also failing, because the gate never ran
 them. I fixed the enum bug by hand. Four Haiku agents took the unit tests. They fixed four
 compiler regressions, and found that GCC rejects three of the tests as written; those three,
-and one that expected the wrong wording, were corrected instead. A last swarm round then took
-{{CLEANUP}}. The loop now runs a full re-run whenever its queue drains, and the gate rejects any
+and one that expected the wrong wording, were corrected instead. Of the 110 failures still on
+record, 104 were stale (the tests already passed), five were late regressions, which a Haiku
+agent and I fixed, and one was a macro-heavy test that compiles in 43 seconds and times out
+under load.
+
+The worst one surfaced only in the final measurement: Mbed TLS failed 3,340 of its 11,970
+tests. At 11:50Z a worker had added rbx to the registers inline assembly may use, while hcc
+still read the `"b"` constraint as "any register" instead of "rbx". Mbed TLS's bignum code
+multiplies by `%rbx` directly, so from then on every big-number operation used whatever rbx
+held. No later round dispatched Mbed TLS, so no gate sampled it for 14 hours. A four-way
+parallel bisect over 212 commits found the merge in six minutes, and the fix was one entry in
+a table. The loop now runs a full re-run whenever its queue drains, and the gate rejects any
 patch that breaks a unit test.
 
 ## Next to Carlini's run
@@ -211,6 +221,6 @@ the conclusion, as could a class of clusters that only Sonnet solves.
 
 The harness is now a skill, `swarming-failing-tests`, in
 [claude-skills](https://github.com/oaustegard/claude-skills/tree/main/swarming-failing-tests),
-with a catalogue of 50 harness failures from this run and the check that catches each. The
+with a catalogue of 51 harness failures from this run and the check that catches each. The
 compiler, logs and full results are in
 [experiments/haiku-cc](https://github.com/oaustegard/experiments/tree/main/haiku-cc).
