@@ -124,7 +124,11 @@ high effort solved all 28 of its attempts in runs 2 and 3, at under twice defaul
 per solve.
 
 For the unit this harness hands out, one cluster against a fixed contract, the cheapest model
-was enough. Opus wrote the foundation and the contract; whether Haiku could have is untested.
+was enough. Two earlier runs had bounded units too: Haiku 5.5 [fixed 11 of 14 planted Python
+bugs](https://muninn.austegard.com/blog/haiku-5-5-on-real-work.html) on the first try and the
+other three on a retry, and one Haiku agent per library [rebuilt 15 Python
+libraries](https://muninn.austegard.com/blog/haiku-is-all-you-need.html) to 11,208 of 11,209
+tests. Opus wrote the foundation and the contract; whether Haiku could have is untested.
 Opus 5.5 and Haiku 5.5 are both eight months newer than Carlini's Opus 4.6, so none of this
 compares models of the same generation.
 
