@@ -16,7 +16,7 @@ from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts, typedef_conflicts
-from hcc.parser.redecl_types import has_anon_aggregate_param
+from hcc.parser.redecl_types import has_anon_aggregate_param, ret_qual_conflicts
 from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
@@ -224,7 +224,8 @@ class TopLevelMixin:
             # GCC: a block-scope declaration that conflicts with an earlier implicit
             # declaration (`g(); { void g(); }`) is a warning and keeps the implicit type.
             implicit_block = len(self.scopes) > 1 and getattr(fn, "implicit_decl", False)
-            if ty.enum_consts != "knr" and not is_compatible(fn.ty, ty):
+            if ty.enum_consts != "knr" and (not is_compatible(fn.ty, ty)
+                                            or ret_qual_conflicts(fn.ty, ty, getattr(self.opts, "std", None))):
                 msg = f"conflicting types for '{name.text}'"
                 if implicit_block or getattr(self.opts, "permissive", False):    # -fpermissive: permerror
                     diag.warn(name.loc, msg)

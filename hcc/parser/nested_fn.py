@@ -9,6 +9,7 @@ enclosing block's names; codegen reaches outer locals through a static link
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.parser.redecl_types import ret_qual_conflicts
 from hcc.sema.compat import is_compatible
 
 
@@ -28,8 +29,11 @@ class NestedFnMixin:
                 # a plain block-scope declaration has external linkage; the nested
                 # definition is static (GCC: "static declaration follows non-static")
                 self.error(f"static declaration of '{name.text}' follows non-static declaration", name.loc)
-            elif not is_compatible(prior.var.ty, self.block_func_composite(ty, name.text)):
-                self.error(f"conflicting types for '{name.text}'", name.loc)
+            else:
+                composite = self.block_func_composite(ty, name.text)
+                if not is_compatible(prior.var.ty, composite) \
+                        or ret_qual_conflicts(prior.var.ty, composite, getattr(self.opts, "std", None)):
+                    self.error(f"conflicting types for '{name.text}'", name.loc)
         self.anon_count += 1
         fn = N.Function(name.text, ty, loc=name.loc)
         fn.is_static = True
