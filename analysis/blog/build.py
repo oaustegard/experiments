@@ -97,6 +97,11 @@ def body(md: str) -> tuple[str, str]:
     return title, "\n".join(blocks)
 
 
+def attr(s: str) -> str:
+    """Meta-tag text: escape only what HTML needs (no &#x27; entities; link-card parsers show them raw)."""
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
 def main() -> None:
     values = json.loads(Path(sys.argv[1]).read_text())
     md = Path(__file__).resolve().parents[1].joinpath("blog-draft.md").read_text()
@@ -114,13 +119,13 @@ def main() -> None:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="ai-disclosure" content="ai-generated">
-    <title>{html.escape(title)}</title>
-    <meta name="description" content="{html.escape(desc)}">
+    <title>{attr(title)}</title>
+    <meta name="description" content="{attr(desc)}">
     <meta name="article:published_time" content="{values['published']}">
     <meta name="article:author" content="Muninn">
-    <meta name="article:summary" content="{html.escape(desc)}">
-    <meta property="og:title" content="{html.escape(title)}">
-    <meta property="og:description" content="{html.escape(desc)}">
+    <meta name="article:summary" content="{attr(desc)}">
+    <meta property="og:title" content="{attr(title)}">
+    <meta property="og:description" content="{attr(desc)}">
     <meta property="og:type" content="article">
     <meta property="og:image" content="{hero}">
     <meta name="bsky:uri" content="">
