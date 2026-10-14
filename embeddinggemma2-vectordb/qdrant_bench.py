@@ -117,9 +117,16 @@ class Server:
                    QDRANT__SERVICE__GRPC_PORT=str(self.grpc),
                    QDRANT__TELEMETRY_DISABLED="true",
                    QDRANT__LOG_LEVEL="WARN")
-        pre = in_cgroup_hook(self.cgroup) if self.cgroup else os.setsid
-        self.proc = subprocess.Popen([QD_BIN], env=env, cwd=str(DATA), stdout=logf,
-                                     stderr=subprocess.STDOUT, preexec_fn=pre)
+        if self.cgroup:
+            # born inside the cgroup: the shell writes its pid to cgroup.procs, then exec()s qdrant
+            # (same pid), so no page is ever charged to the root group first
+            procs = CG_ROOT / self.cgroup / "cgroup.procs"
+            cmd = ["sh", "-c", f'echo $$ > "{procs}" && exec "{QD_BIN}"']
+            self.proc = subprocess.Popen(cmd, env=env, cwd=str(DATA), stdout=logf,
+                                         stderr=subprocess.STDOUT, start_new_session=True)
+        else:
+            self.proc = subprocess.Popen([QD_BIN], env=env, cwd=str(DATA), stdout=logf,
+                                         stderr=subprocess.STDOUT, preexec_fn=os.setsid)
         _servers.append(self)
         self.wait_ready()
 
@@ -274,7 +281,7 @@ def recall_at_k(ids_per_query, truth):
     return hits / (len(truth) * K)
 
 
-def sweep(client, name, Q, truth, quant, rescore, efs, reps=REPS):
+def sweep(client, name, Q, truth, quant, rescore, efs, reps=REPS, srv=None):
     qlist = [q.tolist() for q in Q]
     pts = []
     for ef in efs:
@@ -296,7 +303,9 @@ def sweep(client, name, Q, truth, quant, rescore, efs, reps=REPS):
             return time.perf_counter() - t0, lats, ids
 
         run_once(qlist[:min(WARMUP, len(qlist))])  # warm-up, not timed
+        mf0 = majflt(srv.proc.pid) if srv is not None else None
         runs = [run_once(qlist) for _ in range(reps)]
+        mf1 = majflt(srv.proc.pid) if srv is not None else None
         best_total, best_lats, _ = min(runs, key=lambda r: r[0])
         recall = recall_at_k(runs[0][2], truth)
         lat_ms = np.array(best_lats) * 1000
@@ -304,7 +313,8 @@ def sweep(client, name, Q, truth, quant, rescore, efs, reps=REPS):
                   rescore=rescore, hnsw_ef=ef, recall_at_10=round(recall, 4),
                   qps=round(len(qlist) / best_total, 1),
                   p50_ms=round(float(np.percentile(lat_ms, 50)), 3),
-                  p99_ms=round(float(np.percentile(lat_ms, 99)), 3), nq=len(qlist), reps=reps)
+                  p99_ms=round(float(np.percentile(lat_ms, 99)), 3), nq=len(qlist), reps=reps,
+                  major_faults=(mf1 - mf0) if srv is not None else None)
         pts.append(pt)
         log(f"    {name} rescore={rescore} ef={ef}: recall@10={pt['recall_at_10']} "
             f"qps={pt['qps']} p50={pt['p50_ms']} p99={pt['p99_ms']}")
@@ -414,8 +424,56 @@ def probe_page_cache(cg, cap_mb=64, file_mb=256):
     return res
 
 
+def majflt(pid):
+    """Major page faults of a process (/proc/<pid>/stat field 12, counted from the ')' of comm)."""
+    parts = open(f"/proc/{pid}/stat").read().rsplit(")", 1)[1].split()
+    return int(parts[9])  # parts[0] is field 3 (state), so field 12 is parts[9]
+
+
+def drop_caches():
+    r = subprocess.run(["sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"], capture_output=True, text=True)
+    return dict(permitted=r.returncode == 0, stderr=r.stderr.strip()[:200])
+
+
+def reset_cg_counters(cg):
+    for name in ("memory.max_usage_in_bytes", "memory.failcnt"):
+        (CG_ROOT / cg / name).write_text("0")
+
+
+def fresh_rss(storage, tag, coll, window_s=15):
+    """Peak anonymous RSS while a freshly started server loads and serves its first query.
+    The cap has to cover this peak: a cgroup OOM during startup kills the server (measured: 100k fp32
+    is OOM-killed under 107 MB, starts under 200 MB, anon about 141 MB after load). Collections load
+    lazily, so one query triggers the load; samples are taken over a window after it."""
+    srv = Server(storage, tag=tag)
+    srv.start()
+    try:
+        peak = srv.rss_detail()
+        if coll is not None:
+            c = srv.client()
+            dim = c.get_collection(coll).config.params.vectors.size
+            c.query_points(coll, query=[1.0] + [0.0] * (dim - 1), limit=10, with_payload=False)
+            c.close()
+        for _ in range(window_s):
+            time.sleep(1)
+            d = srv.rss_detail()
+            if d["anon"] > peak["anon"]:
+                peak = d
+        peak = dict(peak)
+        peak["window_s"] = window_s
+        log(f"  fresh {tag}: peak anon {peak['anon']} MB, file {peak['file']} MB")
+        return peak
+    finally:
+        srv.stop()
+
+
 def run_ram_cap(args, out):
+    UNCAPPED = 2 ** 40
+    WARM_PASS = 100
+    SLACK_MB = 32
+    MARGIN_MB = 150
     base, Q, truth = load_data(args.shards, args.heldout, args.nq)
+    qs = truncate(Q, DIM)
     cg = f"qdbench-{os.getpid()}"
     cg_path = CG_ROOT / cg
     doc = load_doc(out)
@@ -426,75 +484,101 @@ def run_ram_cap(args, out):
         save_doc(out, doc)
         log(f"cgroup unavailable: {e}")
         return
-    store = DATA / "qdrant" / f"cap_store_{os.getpid()}"
-    cap = dict(status="ran", cgroup=cg_path.as_posix())
+    tag = os.getpid()
+    st_fp = DATA / "qdrant" / f"cap_fp32_{tag}"
+    st_bq = DATA / "qdrant" / f"cap_bq2_{tag}"
+    cap = dict(status="ran", cgroup=cg_path.as_posix(), slack_mb=SLACK_MB, margin_required_mb=MARGIN_MB)
     try:
+        # belt and braces: charge moves on immigrate if the kernel allows it (the server is started in the group anyway)
+        try:
+            (cg_path / "memory.move_charge_at_immigrate").write_text("3")
+            cap["move_charge_at_immigrate"] = 3
+        except OSError as e:
+            cap["move_charge_at_immigrate"] = f"not writable: {e}"
+            log(f"move_charge_at_immigrate not writable: {e}")
         cap["page_cache_probe"] = probe_page_cache(cg)
         log(f"page cache probe: counted={cap['page_cache_probe'].get('page_cache_counted')}")
-        set_limit(cg, 2 ** 40)  # uncapped for the build and baseline
+        set_limit(cg, UNCAPPED)
 
-        srv = Server(DATA / "qdrant" / f"cap_empty_{os.getpid()}", tag="cap_empty")
+        # builds: one storage per collection, uncapped, outside the cgroup
+        srv = Server(st_fp, tag="cap_build_fp32")
         srv.start()
-        cap["baseline_empty_rss_mb"] = srv.rss_mb()
+        c = srv.client()
+        cap["builds"] = {"fp32_d768_disk": build(c, "fp32_d768_disk", base, None, disk_vectors=True)}
+        c.close()
         srv.stop()
-        shutil.rmtree(DATA / "qdrant" / f"cap_empty_{os.getpid()}", ignore_errors=True)
-        log(f"baseline empty RSS {cap['baseline_empty_rss_mb']} MB")
-
-        # build the two collections (originals on_disk) without the cap
-        srv = Server(store, tag="cap_build")
+        srv = Server(st_bq, tag="cap_build_bq2")
         srv.start()
-        client = srv.client()
-        cap["builds"] = {}
-        cap["builds"]["fp32_d768_disk"] = build(client, "fp32_d768_disk", base, None, disk_vectors=True)
-        cap["builds"]["bq2_d768"] = build(client, "bq2_d768", base, "bq2")
-        client.close()
+        c = srv.client()
+        cap["builds"]["bq2_d768"] = build(c, "bq2_d768", base, "bq2")
+        c.close()
         srv.stop()
 
-        srv = Server(store, tag="cap_idle")
-        srv.start()
-        idle = srv.rss_detail()
-        cap["loaded_idle_rss_mb"], cap["loaded_idle_anon_mb"], cap["loaded_idle_file_mb"] = idle["rss"], idle["anon"], idle["file"]
-        srv.stop()
-        log(f"loaded idle RSS {idle['rss']} MB (anon {idle['anon']}, file {idle['file']})")
-
+        # measured numbers for the cap
+        cap["baseline_empty_rss_mb"] = fresh_rss(DATA / "qdrant" / f"cap_empty_{tag}", "cap_empty", None)["rss"]
+        bq = fresh_rss(st_bq, "cap_fresh_bq2", "bq2_d768")
+        fp = fresh_rss(st_fp, "cap_fresh_fp32", "fp32_d768_disk")
         fp32_mb = base.nbytes / 2 ** 20
-        # auto cap: anonymous RSS of the loaded server + 64 MB. File-backed mmap pages (the
-        # on_disk fp32 originals) are evictable under the cap and are not counted here.
-        cap_mb = args.ram_cap_mb or math.ceil(idle["anon"] + 64)
-        cap["cap_mb"] = cap_mb
-        cap["fp32_vectors_mb"] = round(fp32_mb, 1)
-        cap["cap_excludes_fp32"] = cap_mb < cap["baseline_empty_rss_mb"] + fp32_mb
-        if not cap["cap_excludes_fp32"]:
-            log(f"WARNING cap {cap_mb} MB does not exclude fp32 vectors (baseline + {fp32_mb:.0f} MB)")
+        cap.update(fresh_bq2_anon_mb=bq["anon"], fresh_bq2_file_mb=bq["file"],
+                   fresh_fp32_anon_mb=fp["anon"], fp32_vectors_mb=round(fp32_mb, 1))
+        need_fp32 = fp["anon"] + fp32_mb
+        # the cap must let each phase's own server start: fp32 storage also has anon RSS (HNSW links,
+        # segment state), so take the larger of the two anon figures plus slack
+        auto_cap = math.ceil(max(bq["anon"], fp["anon"]) + SLACK_MB)
+        cap_mb = args.ram_cap_mb or auto_cap
+        margin = need_fp32 - cap_mb
+        cap.update(cap_mb=cap_mb, cap_auto=not args.ram_cap_mb,
+                   fp32_need_mb=round(need_fp32, 1), margin_mb=round(margin, 1),
+                   margin_ok=margin >= MARGIN_MB)
+        log(f"cap {cap_mb} MB (max anon bq2 {bq['anon']} / fp32 {fp['anon']} + {SLACK_MB}); fp32 needs {need_fp32:.0f} MB; margin {margin:.0f} MB")
+        if margin < MARGIN_MB:
+            msg = f"cap {cap_mb} MB is only {margin:.0f} MB below fp32 need ({need_fp32:.0f} MB); need >= {MARGIN_MB}"
+            if not args.ram_cap_mb:
+                raise RuntimeError(msg)
+            log("WARNING " + msg + " (explicit --ram-cap-mb, continuing)")
 
-        srv = Server(store, tag="cap_run", cgroup=cg)
-        set_limit(cg, 2 ** 40)
-        srv.start()  # started in the cgroup; the loaded collections are read at startup
-        client = srv.client()
         cap["runs"] = []
-        plan = [("fp32_d768_disk", None, None), ("bq2_d768", "bq2", False), ("bq2_d768", "bq2", True)]
-        for coll, quant, rescore in plan:
-            for phase, lim in (("uncapped_control", 2 ** 40), ("capped", cap_mb)):
+        plan = [("fp32_d768_disk", st_fp, None, None),
+                ("bq2_d768", st_bq, "bq2", False),
+                ("bq2_d768", st_bq, "bq2", True)]
+        for coll, storage, quant, rescore in plan:
+            for phase, lim in (("uncapped_control", UNCAPPED), ("capped", cap_mb)):
                 if phase == "uncapped_control" and args.no_cap_control:
                     continue
                 set_limit(cg, lim)
-                log(f"  {phase}: {coll} rescore={rescore} limit={'none' if lim > 2**30 else str(lim)+'MB'}")
-                pts = sweep(client, coll, truncate(Q, DIM), truth, quant, rescore, args.efs)
-                cap["runs"].append(dict(phase=phase, collection=coll, rescore=rescore,
-                                        limit_mb=None if lim > 2 ** 30 else lim,
-                                        points=pts, cgroup=cg_stat(cg), rss_mb=srv.rss_mb()))
+                reset_cg_counters(cg)
+                dc = drop_caches()
+                log(f"  {phase}: {coll} rescore={rescore} limit={'none' if lim == UNCAPPED else str(lim) + 'MB'} drop_caches={dc['permitted']}")
+                srv = Server(storage, tag=f"cap_{phase}", cgroup=cg)
+                srv.start()
+                mf_start = majflt(srv.proc.pid)
+                client = srv.client()
+                sp = (qm.SearchParams(hnsw_ef=64, quantization=qm.QuantizationSearchParams(
+                        rescore=rescore, oversampling=OVERSAMPLE)) if quant
+                      else qm.SearchParams(hnsw_ef=64))
+                for q in qs[:WARM_PASS]:  # untimed warm-up pass
+                    client.query_points(coll, query=q.tolist(), limit=K, search_params=sp,
+                                        with_payload=False, with_vectors=False)
+                pts = sweep(client, coll, qs, truth, quant, rescore, args.efs, srv=srv)
+                cap["runs"].append(dict(
+                    phase=phase, collection=coll, rescore=rescore,
+                    limit_mb=None if lim == UNCAPPED else lim, drop_caches=dc,
+                    cgroup=cg_stat(cg), rss=srv.rss_detail(),
+                    major_faults_total=majflt(srv.proc.pid) - mf_start, points=pts))
+                client.close()
+                srv.stop()
                 save_doc(out, dict(doc, ram_cap=cap))
-        client.close()
-        srv.stop()
     except Exception as e:
         cap["status"] = f"error: {type(e).__name__}: {e}"
         log(cap["status"])
         raise
     finally:
         stop_all()
-        shutil.rmtree(store, ignore_errors=True)
+        shutil.rmtree(st_fp, ignore_errors=True)
+        shutil.rmtree(st_bq, ignore_errors=True)
+        shutil.rmtree(DATA / "qdrant" / f"cap_empty_{tag}", ignore_errors=True)
         try:
-            set_limit(cg, 2 ** 40)
+            set_limit(cg, UNCAPPED)
             (cg_path / "memory.force_empty").write_text("0")
         except OSError:
             pass
