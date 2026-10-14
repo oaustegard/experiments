@@ -1,0 +1,1222 @@
+{
+ "meta": {
+  "script": "remex_flat.py",
+  "shards": 10,
+  "n_base": 100000,
+  "n_queries": 1000,
+  "threads": 1,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "faiss_train_max": 20000,
+  "faiss_version": "1.15.1",
+  "wall_s": 890.2,
+  "cpu_s": 1064.7
+ },
+ "rows": [
+  {
+   "arm": "remex 1-bit d=256",
+   "family": "remex",
+   "dim": 256,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 32.0,
+   "recall10": 0.5909,
+   "recall10_min": 0.5871,
+   "recall10_max": 0.5954,
+   "recall100": 0.5164,
+   "recall100_min": 0.5131,
+   "recall100_max": 0.5209,
+   "encode_s": 0.367,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.5903,
+    0.5871,
+    0.5954
+   ],
+   "recall100_by_seed": [
+    0.5152,
+    0.5131,
+    0.5209
+   ],
+   "encode_s_by_seed": [
+    0.382,
+    0.351,
+    0.369
+   ]
+  },
+  {
+   "arm": "remex centered 1-bit d=256",
+   "family": "remex-c",
+   "dim": 256,
+   "bits": 1,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 32.0,
+   "recall10": 0.6731,
+   "recall10_min": 0.6704,
+   "recall10_max": 0.6749,
+   "recall100": 0.6168,
+   "recall100_min": 0.6134,
+   "recall100_max": 0.6203,
+   "encode_s": 0.873,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.6749,
+    0.6704,
+    0.6741
+   ],
+   "recall100_by_seed": [
+    0.6168,
+    0.6134,
+    0.6203
+   ],
+   "encode_s_by_seed": [
+    0.869,
+    0.872,
+    0.878
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 1-bit d=256",
+   "family": "faiss-rabitq",
+   "dim": 256,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 40.0,
+   "recall10": 0.7038,
+   "recall10_min": 0.7038,
+   "recall10_max": 0.7038,
+   "recall100": 0.664,
+   "recall100_min": 0.664,
+   "recall100_max": 0.664,
+   "encode_s": 0.32,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.7038
+   ],
+   "recall100_by_seed": [
+    0.664
+   ],
+   "encode_s_by_seed": [
+    0.32
+   ]
+  },
+  {
+   "arm": "remex 1-bit d=512",
+   "family": "remex",
+   "dim": 512,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 64.0,
+   "recall10": 0.7093,
+   "recall10_min": 0.7054,
+   "recall10_max": 0.7145,
+   "recall100": 0.6572,
+   "recall100_min": 0.6529,
+   "recall100_max": 0.6622,
+   "encode_s": 0.985,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.7145,
+    0.7081,
+    0.7054
+   ],
+   "recall100_by_seed": [
+    0.6622,
+    0.6529,
+    0.6565
+   ],
+   "encode_s_by_seed": [
+    1.167,
+    0.937,
+    0.85
+   ]
+  },
+  {
+   "arm": "remex 2-bit d=256",
+   "family": "remex",
+   "dim": 256,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 64.0,
+   "recall10": 0.7453,
+   "recall10_min": 0.7427,
+   "recall10_max": 0.7485,
+   "recall100": 0.7011,
+   "recall100_min": 0.6996,
+   "recall100_max": 0.7027,
+   "encode_s": 0.418,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.7447,
+    0.7485,
+    0.7427
+   ],
+   "recall100_by_seed": [
+    0.7009,
+    0.6996,
+    0.7027
+   ],
+   "encode_s_by_seed": [
+    0.368,
+    0.422,
+    0.463
+   ]
+  },
+  {
+   "arm": "remex centered 1-bit d=512",
+   "family": "remex-c",
+   "dim": 512,
+   "bits": 1,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 64.0,
+   "recall10": 0.7673,
+   "recall10_min": 0.7658,
+   "recall10_max": 0.7695,
+   "recall100": 0.7333,
+   "recall100_min": 0.7313,
+   "recall100_max": 0.7349,
+   "encode_s": 1.956,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.7665,
+    0.7658,
+    0.7695
+   ],
+   "recall100_by_seed": [
+    0.7313,
+    0.7349,
+    0.7336
+   ],
+   "encode_s_by_seed": [
+    1.873,
+    2.021,
+    1.973
+   ]
+  },
+  {
+   "arm": "remex centered 2-bit d=256",
+   "family": "remex-c",
+   "dim": 256,
+   "bits": 2,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 64.0,
+   "recall10": 0.7924,
+   "recall10_min": 0.7913,
+   "recall10_max": 0.7933,
+   "recall100": 0.754,
+   "recall100_min": 0.7539,
+   "recall100_max": 0.7541,
+   "encode_s": 0.918,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.7926,
+    0.7933,
+    0.7913
+   ],
+   "recall100_by_seed": [
+    0.7539,
+    0.7539,
+    0.7541
+   ],
+   "encode_s_by_seed": [
+    0.988,
+    0.863,
+    0.904
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 1-bit d=512",
+   "family": "faiss-rabitq",
+   "dim": 512,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 72.0,
+   "recall10": 0.7955,
+   "recall10_min": 0.7955,
+   "recall10_max": 0.7955,
+   "recall100": 0.7706,
+   "recall100_min": 0.7706,
+   "recall100_max": 0.7706,
+   "encode_s": 0.628,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.7955
+   ],
+   "recall100_by_seed": [
+    0.7706
+   ],
+   "encode_s_by_seed": [
+    0.628
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 2-bit d=256",
+   "family": "faiss-rabitq",
+   "dim": 256,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 84.0,
+   "recall10": 0.8046,
+   "recall10_min": 0.8046,
+   "recall10_max": 0.8046,
+   "recall100": 0.7668,
+   "recall100_min": 0.7668,
+   "recall100_max": 0.7668,
+   "encode_s": 2.924,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.8046
+   ],
+   "recall100_by_seed": [
+    0.7668
+   ],
+   "encode_s_by_seed": [
+    2.924
+   ]
+  },
+  {
+   "arm": "remex 1-bit d=768",
+   "family": "remex",
+   "dim": 768,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 96.0,
+   "recall10": 0.7634,
+   "recall10_min": 0.7599,
+   "recall10_max": 0.7662,
+   "recall100": 0.7223,
+   "recall100_min": 0.719,
+   "recall100_max": 0.7264,
+   "encode_s": 1.969,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.764,
+    0.7599,
+    0.7662
+   ],
+   "recall100_by_seed": [
+    0.719,
+    0.7214,
+    0.7264
+   ],
+   "encode_s_by_seed": [
+    3.107,
+    1.455,
+    1.345
+   ]
+  },
+  {
+   "arm": "remex 8->1-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 1,
+   "centered": false,
+   "nested": true,
+   "bytes_per_vector": 96.0,
+   "recall10": 0.7634,
+   "recall10_min": 0.7599,
+   "recall10_max": 0.7662,
+   "recall100": 0.7223,
+   "recall100_min": 0.719,
+   "recall100_max": 0.7264,
+   "encode_s": 1.685,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.764,
+    0.7599,
+    0.7662
+   ],
+   "recall100_by_seed": [
+    0.719,
+    0.7214,
+    0.7264
+   ],
+   "encode_s_by_seed": [
+    1.717,
+    1.653,
+    1.685
+   ]
+  },
+  {
+   "arm": "remex centered 1-bit d=768",
+   "family": "remex-c",
+   "dim": 768,
+   "bits": 1,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 96.0,
+   "recall10": 0.8106,
+   "recall10_min": 0.8069,
+   "recall10_max": 0.8126,
+   "recall100": 0.7883,
+   "recall100_min": 0.7873,
+   "recall100_max": 0.7896,
+   "encode_s": 2.843,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8126,
+    0.8123,
+    0.8069
+   ],
+   "recall100_by_seed": [
+    0.7896,
+    0.7873,
+    0.788
+   ],
+   "encode_s_by_seed": [
+    2.829,
+    2.788,
+    2.912
+   ]
+  },
+  {
+   "arm": "remex centered 8->1-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 1,
+   "centered": true,
+   "nested": true,
+   "bytes_per_vector": 96.0,
+   "recall10": 0.8106,
+   "recall10_min": 0.8069,
+   "recall10_max": 0.8126,
+   "recall100": 0.7883,
+   "recall100_min": 0.7873,
+   "recall100_max": 0.7896,
+   "encode_s": 3.331,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8126,
+    0.8123,
+    0.8069
+   ],
+   "recall100_by_seed": [
+    0.7896,
+    0.7873,
+    0.788
+   ],
+   "encode_s_by_seed": [
+    3.302,
+    3.318,
+    3.373
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 1-bit d=768",
+   "family": "faiss-rabitq",
+   "dim": 768,
+   "bits": 1,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 104.0,
+   "recall10": 0.8334,
+   "recall10_min": 0.8334,
+   "recall10_max": 0.8334,
+   "recall100": 0.8197,
+   "recall100_min": 0.8197,
+   "recall100_max": 0.8197,
+   "encode_s": 1.048,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.8334
+   ],
+   "recall100_by_seed": [
+    0.8197
+   ],
+   "encode_s_by_seed": [
+    1.048
+   ]
+  },
+  {
+   "arm": "remex 2-bit d=512",
+   "family": "remex",
+   "dim": 512,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 128.0,
+   "recall10": 0.828,
+   "recall10_min": 0.8278,
+   "recall10_max": 0.8283,
+   "recall100": 0.8082,
+   "recall100_min": 0.8071,
+   "recall100_max": 0.8089,
+   "encode_s": 0.849,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8283,
+    0.8278,
+    0.8278
+   ],
+   "recall100_by_seed": [
+    0.8086,
+    0.8089,
+    0.8071
+   ],
+   "encode_s_by_seed": [
+    0.866,
+    0.837,
+    0.842
+   ]
+  },
+  {
+   "arm": "remex 4-bit d=256",
+   "family": "remex",
+   "dim": 256,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 128.0,
+   "recall10": 0.8382,
+   "recall10_min": 0.8368,
+   "recall10_max": 0.8403,
+   "recall100": 0.8041,
+   "recall100_min": 0.8033,
+   "recall100_max": 0.8049,
+   "encode_s": 0.413,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8368,
+    0.8374,
+    0.8403
+   ],
+   "recall100_by_seed": [
+    0.8033,
+    0.804,
+    0.8049
+   ],
+   "encode_s_by_seed": [
+    0.428,
+    0.386,
+    0.425
+   ]
+  },
+  {
+   "arm": "remex centered 2-bit d=512",
+   "family": "remex-c",
+   "dim": 512,
+   "bits": 2,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 128.0,
+   "recall10": 0.8679,
+   "recall10_min": 0.8673,
+   "recall10_max": 0.8685,
+   "recall100": 0.8524,
+   "recall100_min": 0.8516,
+   "recall100_max": 0.8535,
+   "encode_s": 1.938,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8685,
+    0.868,
+    0.8673
+   ],
+   "recall100_by_seed": [
+    0.8516,
+    0.8535,
+    0.852
+   ],
+   "encode_s_by_seed": [
+    1.875,
+    1.907,
+    2.031
+   ]
+  },
+  {
+   "arm": "remex centered 4-bit d=256",
+   "family": "remex-c",
+   "dim": 256,
+   "bits": 4,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 128.0,
+   "recall10": 0.8454,
+   "recall10_min": 0.8447,
+   "recall10_max": 0.8458,
+   "recall100": 0.8108,
+   "recall100_min": 0.8106,
+   "recall100_max": 0.8111,
+   "encode_s": 0.98,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8457,
+    0.8447,
+    0.8458
+   ],
+   "recall100_by_seed": [
+    0.8111,
+    0.8108,
+    0.8106
+   ],
+   "encode_s_by_seed": [
+    1.005,
+    0.943,
+    0.991
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 2-bit d=512",
+   "family": "faiss-rabitq",
+   "dim": 512,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 148.0,
+   "recall10": 0.8745,
+   "recall10_min": 0.8745,
+   "recall10_max": 0.8745,
+   "recall100": 0.8651,
+   "recall100_min": 0.8651,
+   "recall100_max": 0.8651,
+   "encode_s": 5.541,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.8745
+   ],
+   "recall100_by_seed": [
+    0.8651
+   ],
+   "encode_s_by_seed": [
+    5.541
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 4-bit d=256",
+   "family": "faiss-rabitq",
+   "dim": 256,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 148.0,
+   "recall10": 0.8452,
+   "recall10_min": 0.8452,
+   "recall10_max": 0.8452,
+   "recall100": 0.8114,
+   "recall100_min": 0.8114,
+   "recall100_max": 0.8114,
+   "encode_s": 4.792,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.8452
+   ],
+   "recall100_by_seed": [
+    0.8114
+   ],
+   "encode_s_by_seed": [
+    4.792
+   ]
+  },
+  {
+   "arm": "remex 2-bit d=768",
+   "family": "remex",
+   "dim": 768,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 192.0,
+   "recall10": 0.8667,
+   "recall10_min": 0.8636,
+   "recall10_max": 0.8689,
+   "recall100": 0.8576,
+   "recall100_min": 0.8574,
+   "recall100_max": 0.8578,
+   "encode_s": 1.334,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8689,
+    0.8675,
+    0.8636
+   ],
+   "recall100_by_seed": [
+    0.8574,
+    0.8575,
+    0.8578
+   ],
+   "encode_s_by_seed": [
+    1.408,
+    1.372,
+    1.223
+   ]
+  },
+  {
+   "arm": "remex 8->2-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 2,
+   "centered": false,
+   "nested": true,
+   "bytes_per_vector": 192.0,
+   "recall10": 0.8327,
+   "recall10_min": 0.8301,
+   "recall10_max": 0.8347,
+   "recall100": 0.8181,
+   "recall100_min": 0.8171,
+   "recall100_max": 0.819,
+   "encode_s": 1.616,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8347,
+    0.8301,
+    0.8332
+   ],
+   "recall100_by_seed": [
+    0.8171,
+    0.819,
+    0.8184
+   ],
+   "encode_s_by_seed": [
+    1.483,
+    1.789,
+    1.575
+   ]
+  },
+  {
+   "arm": "remex centered 2-bit d=768",
+   "family": "remex-c",
+   "dim": 768,
+   "bits": 2,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 192.0,
+   "recall10": 0.9036,
+   "recall10_min": 0.903,
+   "recall10_max": 0.9046,
+   "recall100": 0.8986,
+   "recall100_min": 0.8984,
+   "recall100_max": 0.899,
+   "encode_s": 2.982,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9046,
+    0.9032,
+    0.903
+   ],
+   "recall100_by_seed": [
+    0.899,
+    0.8984,
+    0.8985
+   ],
+   "encode_s_by_seed": [
+    3.109,
+    2.917,
+    2.92
+   ]
+  },
+  {
+   "arm": "remex centered 8->2-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 2,
+   "centered": true,
+   "nested": true,
+   "bytes_per_vector": 192.0,
+   "recall10": 0.8847,
+   "recall10_min": 0.8832,
+   "recall10_max": 0.8865,
+   "recall100": 0.8778,
+   "recall100_min": 0.877,
+   "recall100_max": 0.8783,
+   "encode_s": 3.302,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.8865,
+    0.8845,
+    0.8832
+   ],
+   "recall100_by_seed": [
+    0.877,
+    0.8781,
+    0.8783
+   ],
+   "encode_s_by_seed": [
+    3.238,
+    3.3,
+    3.368
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 2-bit d=768",
+   "family": "faiss-rabitq",
+   "dim": 768,
+   "bits": 2,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 212.0,
+   "recall10": 0.9122,
+   "recall10_min": 0.9122,
+   "recall10_max": 0.9122,
+   "recall100": 0.9101,
+   "recall100_min": 0.9101,
+   "recall100_max": 0.9101,
+   "encode_s": 8.508,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.9122
+   ],
+   "recall100_by_seed": [
+    0.9101
+   ],
+   "encode_s_by_seed": [
+    8.508
+   ]
+  },
+  {
+   "arm": "remex 4-bit d=512",
+   "family": "remex",
+   "dim": 512,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 256.0,
+   "recall10": 0.9122,
+   "recall10_min": 0.9114,
+   "recall10_max": 0.9135,
+   "recall100": 0.9038,
+   "recall100_min": 0.9033,
+   "recall100_max": 0.9043,
+   "encode_s": 0.97,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9118,
+    0.9135,
+    0.9114
+   ],
+   "recall100_by_seed": [
+    0.9033,
+    0.9043,
+    0.9038
+   ],
+   "encode_s_by_seed": [
+    0.826,
+    0.923,
+    1.16
+   ]
+  },
+  {
+   "arm": "remex centered 4-bit d=512",
+   "family": "remex-c",
+   "dim": 512,
+   "bits": 4,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 256.0,
+   "recall10": 0.9194,
+   "recall10_min": 0.9186,
+   "recall10_max": 0.9202,
+   "recall100": 0.9103,
+   "recall100_min": 0.9098,
+   "recall100_max": 0.9105,
+   "encode_s": 2.046,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9186,
+    0.9202,
+    0.9193
+   ],
+   "recall100_by_seed": [
+    0.9105,
+    0.9098,
+    0.9105
+   ],
+   "encode_s_by_seed": [
+    2.081,
+    2.102,
+    1.957
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 4-bit d=512",
+   "family": "faiss-rabitq",
+   "dim": 512,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 276.0,
+   "recall10": 0.9215,
+   "recall10_min": 0.9215,
+   "recall10_max": 0.9215,
+   "recall100": 0.9106,
+   "recall100_min": 0.9106,
+   "recall100_max": 0.9106,
+   "encode_s": 10.467,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.9215
+   ],
+   "recall100_by_seed": [
+    0.9106
+   ],
+   "encode_s_by_seed": [
+    10.467
+   ]
+  },
+  {
+   "arm": "remex 4-bit d=768",
+   "family": "remex",
+   "dim": 768,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 384.0,
+   "recall10": 0.9573,
+   "recall10_min": 0.9556,
+   "recall10_max": 0.959,
+   "recall100": 0.9587,
+   "recall100_min": 0.9584,
+   "recall100_max": 0.9591,
+   "encode_s": 1.521,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9556,
+    0.9572,
+    0.959
+   ],
+   "recall100_by_seed": [
+    0.9584,
+    0.9591,
+    0.9587
+   ],
+   "encode_s_by_seed": [
+    1.597,
+    1.442,
+    1.522
+   ]
+  },
+  {
+   "arm": "remex 8->4-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 4,
+   "centered": false,
+   "nested": true,
+   "bytes_per_vector": 384.0,
+   "recall10": 0.9504,
+   "recall10_min": 0.9494,
+   "recall10_max": 0.9513,
+   "recall100": 0.953,
+   "recall100_min": 0.9519,
+   "recall100_max": 0.9538,
+   "encode_s": 1.518,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9513,
+    0.9494,
+    0.9506
+   ],
+   "recall100_by_seed": [
+    0.9519,
+    0.9538,
+    0.9533
+   ],
+   "encode_s_by_seed": [
+    1.516,
+    1.56,
+    1.479
+   ]
+  },
+  {
+   "arm": "remex centered 4-bit d=768",
+   "family": "remex-c",
+   "dim": 768,
+   "bits": 4,
+   "centered": true,
+   "nested": false,
+   "bytes_per_vector": 384.0,
+   "recall10": 0.9704,
+   "recall10_min": 0.9693,
+   "recall10_max": 0.9715,
+   "recall100": 0.972,
+   "recall100_min": 0.9716,
+   "recall100_max": 0.9725,
+   "encode_s": 2.976,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9693,
+    0.9715,
+    0.9703
+   ],
+   "recall100_by_seed": [
+    0.972,
+    0.9716,
+    0.9725
+   ],
+   "encode_s_by_seed": [
+    3.066,
+    2.893,
+    2.968
+   ]
+  },
+  {
+   "arm": "remex centered 8->4-bit nested d=768",
+   "family": "remex-nested",
+   "dim": 768,
+   "bits": 4,
+   "centered": true,
+   "nested": true,
+   "bytes_per_vector": 384.0,
+   "recall10": 0.9674,
+   "recall10_min": 0.9671,
+   "recall10_max": 0.9677,
+   "recall100": 0.9684,
+   "recall100_min": 0.9682,
+   "recall100_max": 0.9686,
+   "encode_s": 3.193,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "recall10_by_seed": [
+    0.9671,
+    0.9675,
+    0.9677
+   ],
+   "recall100_by_seed": [
+    0.9682,
+    0.9685,
+    0.9686
+   ],
+   "encode_s_by_seed": [
+    3.262,
+    3.187,
+    3.131
+   ]
+  },
+  {
+   "arm": "faiss RaBitQ 4-bit d=768",
+   "family": "faiss-rabitq",
+   "dim": 768,
+   "bits": 4,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 404.0,
+   "recall10": 0.9698,
+   "recall10_min": 0.9698,
+   "recall10_max": 0.9698,
+   "recall100": 0.9716,
+   "recall100_min": 0.9716,
+   "recall100_max": 0.9716,
+   "encode_s": 16.218,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.9698
+   ],
+   "recall100_by_seed": [
+    0.9716
+   ],
+   "encode_s_by_seed": [
+    16.218
+   ]
+  },
+  {
+   "arm": "fp32 d=128",
+   "family": "fp32",
+   "dim": 128,
+   "bits": 32,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 512.0,
+   "recall10": 0.7145,
+   "recall10_min": 0.7145,
+   "recall10_max": 0.7145,
+   "recall100": 0.6358,
+   "recall100_min": 0.6358,
+   "recall100_max": 0.6358,
+   "encode_s": 0.0,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.7145
+   ],
+   "recall100_by_seed": [
+    0.6358
+   ],
+   "encode_s_by_seed": [
+    0.0
+   ]
+  },
+  {
+   "arm": "fp32 d=256",
+   "family": "fp32",
+   "dim": 256,
+   "bits": 32,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 1024.0,
+   "recall10": 0.8504,
+   "recall10_min": 0.8504,
+   "recall10_max": 0.8504,
+   "recall100": 0.8159,
+   "recall100_min": 0.8159,
+   "recall100_max": 0.8159,
+   "encode_s": 0.0,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.8504
+   ],
+   "recall100_by_seed": [
+    0.8159
+   ],
+   "encode_s_by_seed": [
+    0.0
+   ]
+  },
+  {
+   "arm": "fp32 d=512",
+   "family": "fp32",
+   "dim": 512,
+   "bits": 32,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 2048.0,
+   "recall10": 0.9263,
+   "recall10_min": 0.9263,
+   "recall10_max": 0.9263,
+   "recall100": 0.9164,
+   "recall100_min": 0.9164,
+   "recall100_max": 0.9164,
+   "encode_s": 0.0,
+   "seeds": null,
+   "recall10_by_seed": [
+    0.9263
+   ],
+   "recall100_by_seed": [
+    0.9164
+   ],
+   "encode_s_by_seed": [
+    0.0
+   ]
+  },
+  {
+   "arm": "fp32 d=768",
+   "family": "fp32",
+   "dim": 768,
+   "bits": 32,
+   "centered": false,
+   "nested": false,
+   "bytes_per_vector": 3072.0,
+   "recall10": 1.0,
+   "recall10_min": 1.0,
+   "recall10_max": 1.0,
+   "recall100": 1.0,
+   "recall100_min": 1.0,
+   "recall100_max": 1.0,
+   "encode_s": 0.0,
+   "seeds": null,
+   "recall10_by_seed": [
+    1.0
+   ],
+   "recall100_by_seed": [
+    1.0
+   ],
+   "encode_s_by_seed": [
+    0.0
+   ]
+  }
+ ]
+}
