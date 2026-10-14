@@ -4156,6 +4156,15 @@ cost hours before it was fixed. (`haiku-cc/RESULTS.md`)
   new file, removed that; the failure review traced at least 58 of 128 conflicts to such
   lists. Do not shard a fully concrete signature either: the shards write the same fix.
   (`haiku-cc/hcc/registry.py`)
+- **Conflict nearness is only worth computing where the diffs do not exist yet.** Replaying
+  536 commits onto stale bases, changed lines within 3 of each other caught every textual
+  conflict (file overlap flags about twice as many patches), and git's trial merge gives
+  the same answer for free once a diff exists. At dispatch, a test failure's signature
+  predicted nothing about which files a worker would touch. A rebase task's files are
+  known: 72% of rebases launched beside a live worker editing them conflicted again, 9%
+  otherwise, so hold those. The number of merges during a worker's run is the other
+  lever: 4% conflicted at 1 to 5 merges, 80% at 21 to 60. (`nearness-lanes`,
+  `swarming-failing-tests` `nearness.py`)
 - **Parallelism has two dimensions: agents per container and containers.** When each
   worker compiles and runs tests, one container's 4 vCPU caps the swarm however the
   workers are launched; the hub ran about 8 hours at load 10 to 22. Plan sibling
