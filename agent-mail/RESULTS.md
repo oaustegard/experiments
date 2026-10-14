@@ -192,8 +192,11 @@ suggests the seeded obligations and the `owe` instructions also prevent the
 - `mail.py`, `hook.py`: the mechanism
 - `task/`, `harness/`, `runs/r1/`: round 1 task, reference, grader, brief
   builder and team outputs
+- `team-member.md`: the custom agent definition (copy to `.claude/agents/`);
+  `harness2/team-member-r3.md` is the round-3 version, which acknowledged with
+  a plain `ok <rule>` reply instead of the brief's ack command
 - `task2/`, `harness2/`: round 2/3 task, rule-toggling reference and grader,
-  `team-member.md`, headless launcher
+  headless launchers
 - `gate.py`: the owe/ack/ship gate
 - `runs/r2/`, `runs/r3/`, `runs/r4/`, `runs/r2-r4-grades.txt`: team code,
   mailbox logs, headless result JSON, round-4 obligations, grades
