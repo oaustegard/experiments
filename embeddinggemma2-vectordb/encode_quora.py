@@ -55,6 +55,7 @@ def main():
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--shard", type=int, default=10000)
     ap.add_argument("--batch", type=int, default=32)
+    ap.add_argument("--max-shards", type=int, default=None, help="stop after the first N shards (corpus-order prefix), then encode queries")
     ap.add_argument("--tag", default=None, help="output subdir under data/ (default: quora, or quora_limitN)")
     a = ap.parse_args()
     import torch
@@ -77,6 +78,8 @@ def main():
     m = rq.load_model()
     say(f"docs={len(docs)}/{n_total} queries={len(qids)} threads={a.threads} shard={a.shard} batch={a.batch} model={rq.MODEL}")
     nsh = (len(docs) + a.shard - 1) // a.shard
+    if a.max_shards:
+        nsh = min(nsh, a.max_shards)
     t0 = time.time(); done_docs = 0
     for s in range(nsh):
         f = out / "shards" / f"docs_{s:05d}.npy"
