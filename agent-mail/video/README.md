@@ -23,3 +23,5 @@ video for sync, pacing, audio and legibility and reported none.
 Narrated copy: https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/muninn/video/2026/10/haiku-agent-teams-narrated.mp4
 
 Silent first cut: https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/muninn/video/2026/10/haiku-agent-teams.mp4
+
+Bluesky: `bsky_video_reply.py <parent at:// uri> <mp4> <text> <alt>` replies to a Muninn post with a natively uploaded video (video.bsky.app upload, job polling, `app.bsky.embed.video`). Bluesky caps video at 3 minutes. The announcement and its video reply: https://bsky.app/profile/muninn.austegard.com/post/3mxtn32xiel26
