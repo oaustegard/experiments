@@ -11,7 +11,11 @@ HERE = Path(__file__).parent
 BOARDS = Path(sys.argv[1])          # .../arms2
 OUT = sys.argv[2]
 W, H, FPS = 1280, 720, 30
-SLOT = 1.5                          # seconds per message
+MIN_SLOT = 1.8                      # seconds per message, at least
+NARR = json.load(open(HERE / "narration.json")) if (HERE / "narration.json").exists() else None
+DUR = json.load(open(HERE / "vo" / "durations.json")) if NARR else {}
+CUES = []                           # (clip key, start frame)
+FRAME = [0]
 
 PAPER = (245, 240, 232); INK = (30, 42, 74); CORAL = (168, 69, 47); SAGE = (74, 111, 78)
 MUTED = (102, 96, 79); LINE = (213, 207, 195); RED = (176, 48, 40); CARD = (250, 247, 241)
@@ -191,8 +195,11 @@ def frame_base(run):
     return img, d
 
 
-def title_card(lines, secs, ff):
+def title_card(lines, secs, ff, cue=None):
+    if cue and cue in DUR:
+        CUES.append((cue, FRAME[0] + int(0.3 * FPS))); secs = max(secs, DUR[cue] + 0.9)
     for _ in range(int(secs * FPS)):
+        FRAME[0] += 1
         img = Image.new("RGB", (W, H), PAPER); d = ImageDraw.Draw(img)
         y = H / 2 - 40 * (len(lines) - 1)
         for i, (t, f, c) in enumerate(lines):
@@ -207,13 +214,23 @@ def run_scene(run, ff):
         m["rule"] = m["seq"] in rule_seqs
     t0 = msgs[0]["ts"]; span = msgs[-1]["ts"] - t0
     st = {n: "none" for n in BOX}; lit = set(); gate = "idle"
-    title_card([(run["title"], BIG, INK), (run["sub"], SERIF_L, MUTED)], 2.5, ff)
-    per = int(SLOT * FPS)
+    ri_ = RUNS.index(run)
+    title_card([(run["title"], BIG, INK), (run["sub"], SERIF_L, MUTED)], 2.5, ff, cue=f"r{ri_}-title")
+    slot = {}
+    for bi, b in enumerate(NARR["runs"][ri_]["beats"] if NARR else []):
+        seqs = list(range(b["msgs"][0], b["msgs"][1] + 1))
+        total = max(DUR.get(f"r{ri_}-b{bi}", 0) + 0.7, len(seqs) * MIN_SLOT)
+        for k in seqs: slot[k] = total / len(seqs)
+        slot[("cue", seqs[0])] = f"r{ri_}-b{bi}"
     for idx, m in enumerate(msgs):
         targets = [n for n in BOX if n != m["from"]] if m["to"] == "all" else [t for t in m["to"].split(",") if t in BOX]
+        per = int(slot.get(m["seq"], MIN_SLOT) * FPS)
+        travel = min(int(0.9 * FPS), int(per * 0.55)); flip = min(int(1.0 * FPS), int(per * 0.6))
+        if ("cue", m["seq"]) in slot: CUES.append((slot[("cue", m["seq"])], FRAME[0] + int(0.15 * FPS)))
         for f in range(per):
-            p = f / per
-            if f == int(per * 0.6):
+            FRAME[0] += 1
+            p = f / travel if travel else 1
+            if f == flip:
                 for (who, state, ri) in run["events"].get(m["seq"], []):
                     if who == "GATE": gate = state
                     else: st[who] = state
@@ -224,9 +241,9 @@ def run_scene(run, ff):
             draw_gate(d, run, gate)
             draw_feed(d, msgs, idx + 1, min(1, f / 8))
             col = RED if m["text"].startswith("SHIP blocked") else SAGE if m["text"].strip() == "SHIP" else CORAL
-            if p < 0.55:
-                q = ease(min(1, p / 0.27)) if p < 0.27 else ease((p - 0.27) / 0.28)
-                if p < 0.27:
+            if p < 1:
+                q = ease(min(1, p / 0.5)) if p < 0.5 else ease((p - 0.5) / 0.5)
+                if p < 0.5:
                     (ax, ay), (bx, by) = center(m["from"]), center("mailbox")
                     draw_env(d, ax + (bx - ax) * q, ay + (by - ay) * q, col)
                 else:
@@ -238,7 +255,10 @@ def run_scene(run, ff):
             ff.stdin.write(img.tobytes())
     if not run["gate"]:
         gate = "never"
-    for f in range(int(4.5 * FPS)):
+    endkey = f"r{RUNS.index(run)}-end"
+    CUES.append((endkey, FRAME[0] + int(0.5 * FPS)))
+    for f in range(int(max(4.5, DUR.get(endkey, 0) + 1.6) * FPS)):
+        FRAME[0] += 1
         img, d = frame_base(run)
         draw_static(d, run, st, lit); draw_boxes(d, st, set()); draw_gate(d, run, gate)
         draw_feed(d, msgs, len(msgs), 1)
@@ -257,8 +277,21 @@ ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "
                        "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
 title_card([("Four Haiku agents, one mailbox", BIG, INK),
             ("Each brief holds one rule that belongs in a teammate's file.", SERIF_L, MUTED),
-            ("Two real runs, replayed from their message logs.", SERIF_L, MUTED)], 3.5, ff)
+            ("Two real runs, replayed from their message logs.", SERIF_L, MUTED)], 3.5, ff, cue="intro")
 for run in RUNS:
     run_scene(run, ff)
 ff.stdin.close(); ff.wait()
-print("wrote", OUT)
+if NARR:
+    import numpy as np, soundfile as sf
+    total = FRAME[0] / FPS
+    mix = np.zeros(int(total * 24000) + 24000, dtype="float32")
+    for key, fr in CUES:
+        x, sr = sf.read(HERE / "vo" / f"{key}.wav", dtype="float32")
+        if x.ndim > 1: x = x.mean(axis=1)
+        i = int(fr / FPS * sr); mix[i:i + len(x)] += x[: len(mix) - i]
+    sf.write(HERE / "vo" / "mix.wav", mix[: int(total * 24000)], 24000)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", OUT, "-i", str(HERE / "vo" / "mix.wav"), "-c:v", "copy",
+                    "-c:a", "aac", "-b:a", "96k", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-shortest",
+                    "-movflags", "+faststart", OUT.replace(".mp4", "-vo.mp4")], check=True)
+    json.dump(CUES, open(HERE / "vo" / "cues.json", "w"))
+print("wrote", OUT, FRAME[0] / FPS, "s")

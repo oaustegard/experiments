@@ -1,0 +1,102 @@
+{
+ "style": "calm, dry documentary narrator; clear and unhurried but not slow; no dramatic pauses",
+ "intro": "Four Claude Haiku agents share one mailbox. Each agent's brief holds a rule that belongs in a teammate's file. These are two real runs, replayed from their message logs.",
+ "runs": [
+  {
+   "title": "Run one has no team charter.",
+   "beats": [
+    {
+     "msgs": [
+      1,
+      10
+     ],
+     "text": "First the agents agree on how their files fit together, and announce they are done."
+    },
+    {
+     "msgs": [
+      11,
+      13
+     ],
+     "text": "Alice sends Bob the gift rule. Bob refuses: it is not in his part of the spec. Alice insists."
+    },
+    {
+     "msgs": [
+      14,
+      17
+     ],
+     "text": "Dave sends Alice the order ID rule. Bob gives in and adds the gift rule, but Alice refuses Dave's rule, because her brief does not mention it."
+    },
+    {
+     "msgs": [
+      18,
+      22
+     ],
+     "text": "Dave will not confirm the gift rule, so Bob takes it out. Carol sends Dave the status line rule, and Dave refuses it too."
+    },
+    {
+     "msgs": [
+      23,
+      28
+     ],
+     "text": "Alice vouches for the gift rule, Bob puts it back, Dave vetoes it again, and Bob removes it a second time."
+    },
+    {
+     "msgs": [
+      29,
+      30
+     ],
+     "text": "Carol insists the status line is not optional. Nobody on the team can settle it."
+    }
+   ],
+   "end": "Fourteen of sixty tests. None of the four rules reached the code, Bob never sent his own reserve rule, and Dave never shipped."
+  },
+  {
+   "title": "Run two is the same task, with a team charter in every agent's instructions, and a gate on shipping.",
+   "beats": [
+    {
+     "msgs": [
+      1,
+      2
+     ],
+     "text": "Alice and Bob send their rules first, each with a test case attached."
+    },
+    {
+     "msgs": [
+      3,
+      8
+     ],
+     "text": "Carol sends Dave the status line rule. Bob acknowledges the gift rule and implements it."
+    },
+    {
+     "msgs": [
+      9,
+      14
+     ],
+     "text": "Dave sends the order ID rule. Carol, Alice and Dave each acknowledge theirs."
+    },
+    {
+     "msgs": [
+      15,
+      15
+     ],
+     "text": "Dave tries to ship. The gate runs every rule's test, and Alice's gift test fails: the invoice still shows the catalog price."
+    },
+    {
+     "msgs": [
+      16,
+      17
+     ],
+     "text": "Bob traces the price to Dave's report, and tells him."
+    },
+    {
+     "msgs": [
+      18,
+      20
+     ],
+     "text": "Dave fixes it, the gate passes, and SHIP goes out."
+    }
+   ],
+   "end": "Sixty of sixty tests, and all four rules. The gate held SHIP once, for a rule that had been acknowledged but only half implemented."
+  }
+ ]
+}
