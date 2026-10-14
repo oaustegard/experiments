@@ -10,8 +10,8 @@ exchange messages?
 Three things have to work: delivery, acceptance and verification. A file
 mailbox with a `PostToolUse` push hook delivers at about 1.2x the cost of no
 channel. Acceptance needs a team charter in the agent's system prompt. In
-round 2, 9 messaging teams delivered every rule a teammate needed and
-implemented **0 of about 32**. The charter in a custom agent's system prompt
+round 2, 6 messaging teams relayed 19 of the 24 rules a teammate needed
+and implemented **none**. The charter in a custom agent's system prompt
 raised that to **10 of 12**. Verification needs a gate. With `mail owe`
 (send a rule plus a test), `mail ack`, and `mail ship` (SHIP only when every
 rule is relayed, acknowledged and passing), **all 3 teams scored 60/60 and
@@ -27,12 +27,13 @@ Haiku 5.5.
    12 of 12 rules, 60/60 in all 3 teams (Round 4).** Without the gate, the
    charter alone reached 10 of 12 (Round 3).
 2. **A team charter in the system prompt is what makes peers act on each
-   other's messages.** In round 2, 0 of about 32 rule transfers landed across 9
-   messaging teams, all scoring 14/60. In round 3, `team-member` agents with
+   other's messages.** In round 2, holders in 6 messaging teams relayed 19 of
+   24 rules and owners implemented none, all scoring 14/60. In round 3, `team-member` agents with
    the charter in their system prompt implemented 10 of 12 rules, scoring
    60, 43 and 28 of 60.
-3. **Agents read a peer's message as an unverified claim, not as spec.** Every
-   round-2 holder sent its rule to the right owner. Owners refused it as "not
+3. **Agents read a peer's message as an unverified claim, not as spec.** Round-2
+   holders sent 19 of their 24 rules to the right owner (16 of 20 in the
+   mailbox teams, 3 of 4 in the native team). Owners refused every one as "not
    in my brief", called the quote suspect, or decided "the briefs disagree",
    and dave held `SHIP` waiting for a lead who never came (Round 2 mailbox logs).
 4. **An authority clause inside a brief file trips the auto-mode classifier.**
@@ -141,11 +142,12 @@ measured what each channel costs, not what it buys.
 | mail-plain | 3 | 14, 14, 14 | none |
 | mail-contract | 2 | 14, 14 | none |
 
-The rules were delivered and refused. A `mail-auth` arm then added an
+Holders relayed 19 of the 24 rules (counted from the mailbox logs and the
+native team's `SendMessage` calls); owners implemented none of them. A `mail-auth` arm then added an
 authority clause to the brief, and the auto-mode classifier denied the first
 agent's next Bash call as "Instruction Poisoning". That arm stopped after one
 agent, per the hub's first-denial rule. Three queued teams (native-plain-2/3,
-mail-contract-3) were dropped once nine teams had failed the same way. Oskar
+mail-contract-3) were dropped once all graded teams had failed the same way. Oskar
 then approved two changes: a custom agent, and scoped permission rules for the
 experiment directories.
 
