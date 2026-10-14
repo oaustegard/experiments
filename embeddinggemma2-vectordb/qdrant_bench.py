@@ -50,6 +50,8 @@ FP32_MB = None  # set in prepare()
 CONFIGS = [
     dict(name="fp32_d768", dim=768, quant=None, rescore=[None]),
     dict(name="fp32_d128", dim=128, quant=None, rescore=[None]),
+    dict(name="fp32_d256", dim=256, quant=None, rescore=[None]),
+    dict(name="fp32_d512", dim=512, quant=None, rescore=[None]),
     dict(name="int8_d768", dim=768, quant="int8", rescore=[False, True]),
     dict(name="bq2_d768", dim=768, quant="bq2", rescore=[False, True]),
     dict(name="bq2_d512", dim=512, quant="bq2", rescore=[False, True]),

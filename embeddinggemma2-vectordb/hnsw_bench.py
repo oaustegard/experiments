@@ -57,6 +57,8 @@ SEED = 42
 CONFIGS = [
     dict(name="fp32_d768", dim=768, kind="hnsw", quant="fp32", remex=False),
     dict(name="fp32_d128", dim=128, kind="hnsw", quant="fp32", remex=False),
+    dict(name="fp32_d256", dim=256, kind="hnsw", quant="fp32", remex=False),
+    dict(name="fp32_d512", dim=512, kind="hnsw", quant="fp32", remex=False),
     dict(name="sq8_d768", dim=768, kind="hnsw", quant="sq8", remex=False),
     dict(name="sq4_d768", dim=768, kind="hnsw", quant="sq4", remex=False),
     dict(name="sq4_d768_remex", dim=768, kind="hnsw", quant="sq4", remex=True),
@@ -70,6 +72,8 @@ CONFIGS = [
     dict(name="hnswrq2_d768_rot", dim=768, kind="hnsw_rq", quant="rq", nb_bits=2, remex=True),
     dict(name="hnswrq2_d512", dim=512, kind="hnsw_rq", quant="rq", nb_bits=2, remex=False),
     dict(name="hnswrq2_d512_rot", dim=512, kind="hnsw_rq", quant="rq", nb_bits=2, remex=True),
+    dict(name="hnswrq2_d256", dim=256, kind="hnsw_rq", quant="rq", nb_bits=2, remex=False),
+    dict(name="hnswrq1_d512", dim=512, kind="hnsw_rq", quant="rq", nb_bits=1, remex=False),
     dict(name="hnswrq1_d768", dim=768, kind="hnsw_rq", quant="rq", nb_bits=1, remex=False),
     dict(name="hnswrq1_d768_rot", dim=768, kind="hnsw_rq", quant="rq", nb_bits=1, remex=True),
 ]
@@ -310,6 +314,7 @@ def main():
                     help="2 shards, 100 held-out base vectors as queries, ef/nprobe 32/128")
     ap.add_argument("--heldout", action="store_true",
                     help="take queries from the base (removed from it) instead of q_dense.npy")
+    ap.add_argument("--configs", default=None, help="comma-separated config names to run (default: all)")
     ap.add_argument("--out", default=str(HERE / "results_hnsw.json"))
     args = ap.parse_args()
 
@@ -335,7 +340,7 @@ def main():
     log(f"ground truth done in {time.perf_counter() - t_start:.1f}s")
 
     results = []
-    for cfg in CONFIGS:
+    for cfg in [c for c in CONFIGS if not args.configs or c['name'] in args.configs.split(',')]:
         if cfg["remex"]:
             same = check_remex_ranking(cfg, base, Q)
             log(f"[{cfg['name']}] remex ranking check: top-10 sets identical to uncentred "
