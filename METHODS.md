@@ -659,6 +659,13 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`np.savez`/`np.savez_compressed` truncate the destination when they
+  open it, before writing.** Overwriting a checkpoint or index in place and
+  being killed mid-write leaves 0 bytes and no old copy (a 109 MB file, SIGKILL
+  at 150 ms). Write to a temporary name in the same directory, then
+  `os.replace`; give the temporary name a `.npz` suffix or NumPy appends one.
+  The same holds for any `open(path, "wb")` writer. `_lib/pipeline.save_json`
+  already does this for JSON. (`remex-product-description/bug-triage.md` B-02)
 - **A Commit0 stub commit is a child of its reference commit, in all 16
   lite repos.** In a clone, `git diff HEAD~1` prints the original library. Give
   agents a one-commit repository built from `git archive` of the stub. Clearing

@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "remex": "2.0.0",
+    "python": "3.13.16",
+    "numpy": "2.5.2"
+  },
+  "results": {
+    "NPZ-01": {
+      "result": "pass",
+      "note": "codes, norms, top-10 ids and scores identical"
+    },
+    "NPZ-02": {
+      "result": "pass",
+      "note": "['index.npz']"
+    },
+    "NPZ-03": {
+      "result": "pass",
+      "note": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpb9qfc2zb/index'"
+    },
+    "NPZ-04": {
+      "result": "pass",
+      "note": "['INDEX.NPZ.npz']"
+    },
+    "NPZ-05": {
+      "result": "pass",
+      "note": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpuo9s9pzh/nodir/x.npz'"
+    },
+    "NPZ-06": {
+      "result": "pass",
+      "note": "KeyError: 'd is not a file in the archive'"
+    },
+    "NPZ-07": {
+      "result": "pass",
+      "note": "EOFError: No data left in file | BadZipFile: File is not a zip file | ValueError: This file contains pickled (object) data. If you trust the file you can load it unsafely u"
+    },
+    "NPZ-08": {
+      "result": "pass",
+      "note": "109154649 bytes before, 0 after; load: EOFError: No data left in file"
+    },
+    "NPZ-09": {
+      "result": "pass",
+      "note": "['bits', 'd', 'n', 'norms', 'packed_indices', 'rotation']"
+    },
+    "NPZ-10": {
+      "result": "pass",
+      "note": "no norms entry; loads with norms None"
+    },
+    "NPZ-11": {
+      "result": "pass",
+      "note": "mean, mean_dots written; decode equal"
+    },
+    "NPZ-12": {
+      "result": "pass",
+      "note": "loaded as 'haar'; ValueError: rotation mismatch: these codes were encoded with 'haar' but this Quantizer uses 'rht'. Reb"
+    },
+    "NPZ-13": {
+      "result": "pass",
+      "note": "ValueError: these centred codes have no mean_dots column: they were written by remex < 2.0, whose cent"
+    },
+    "NPZ-14": {
+      "result": "pass",
+      "note": "source had a cache, loaded container has none"
+    },
+    "NPZ-15": {
+      "result": "pass",
+      "note": "n=0"
+    },
+    "NPZ-16": {
+      "result": "pass",
+      "note": "ValueError: unknown rotation 'bogus'; expected one of ['haar', 'none', 'rht']."
+    },
+    "NPZ-17": {
+      "result": "pass",
+      "note": "BytesIO and Path both round-trip"
+    },
+    "NPZ-18": {
+      "result": "pass",
+      "note": "nbytes 1800, file 2938"
+    },
+    "NPZ-19": {
+      "result": "pass",
+      "note": "entries identical with and without REMEX_NO_NATIVE"
+    },
+    "CONTRACT-01": {
+      "result": "pass",
+      "note": "ValueError: rotation mismatch: these codes were encoded with 'rht' but this Quantizer uses 'haar'. Reb"
+    },
+    "CONTRACT-02": {
+      "result": "pass",
+      "note": "ValueError: mode mismatch: these codes were encoded with normalize=True but this Quantizer uses normal"
+    },
+    "CONTRACT-03": {
+      "result": "pass",
+      "note": "ValueError: bits mismatch: these codes are 4-bit but this Quantizer is 8-bit. Read them with the quant"
+    },
+    "CONTRACT-04": {
+      "result": "pass",
+      "note": "ValueError: mean mismatch: these codes were encoded with no mean but this Quantizer uses a corpus mean | ValueError: mean mismatch: these codes were encoded against a different corpus mean. Decoding against "
+    },
+    "CONTRACT-05": {
+      "result": "pass",
+      "note": "no error; mean cosine -0.017 wrong seed vs 0.995 right seed"
+    },
+    "CONTRACT-06": {
+      "result": "pass",
+      "note": "no error; decoded values off by a factor of 2.000"
+    },
+    "CONTRACT-07": {
+      "result": "pass",
+      "note": "rht: ValueError; haar: ValueError; none: returned (200, 64)"
+    },
+    "CONTRACT-08": {
+      "result": "pass",
+      "note": "ValueError: bits=5 is not supported. Use one of [1, 2, 3, 4, 8]. 5-7 bit widths offer negligible benef | ValueError: d=63 is odd; the randomized Hadamard construction needs an even dimension. Use rotation='h | ValueError: scale is only meaningful with normalize=False. The normalizing path quantizes unit vectors"
+    },
+    "CONTRACT-09": {
+      "result": "pass",
+      "note": "d=64 -> rht, d=63 -> haar"
+    },
+    "CONTRACT-10": {
+      "result": "pass",
+      "note": "renorm=False reads the codes without error and returns different vectors"
+    },
+    "CONTRACT-11": {
+      "result": "pass",
+      "note": "no decode cache after a refused search"
+    }
+  }
+}
