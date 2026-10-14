@@ -21,7 +21,7 @@ predictor is how many merges land during a worker's run: 4% conflicted with 1–
 merges, 80% with 21–60.
 
 So the harness gained one rule: hold a rebase while a near peer is live, for at most
-20 minutes. The rule is in `swarming-failing-tests` 0.6.0. The counterfactual is
+20 minutes. The rule is in `swarming-to-green` 0.6.0. The counterfactual is
 not measured. A live swarm with the hold on is what would change this answer: if
 held rebases still conflict at near 72%, the rule is wrong.
 
@@ -112,7 +112,7 @@ and finer granularity raised precision. The prediction that failed was my own,
 made before the run: that the signature's stage would stand in for files at
 dispatch. It does not.
 
-Added to `swarming-failing-tests` (0.6.0):
+Added to `swarming-to-green` (0.6.0):
 - `scripts/swarmkit/nearness.py`;
 - a `HOLD` step in the dispatch loop;
 - the `queue.near_hold_s` setting (default 1200);

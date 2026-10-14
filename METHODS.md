@@ -2441,7 +2441,7 @@ the result.
   decompilation a caller matches only once its static callees exist, and gcc emits a static only
   once something calls it; a flip-only gate discarded 125 partial workers, 39% of spend, 103 of
   them blocked on a missing callee. Emit a continuous per-test measure (byte-match fraction) and
-  merge a no-flip candidate that raises it with zero regressions (`swarming-failing-tests`
+  merge a no-flip candidate that raises it with zero regressions (`swarming-to-green`
   `gate.partial_credit`). Expect workers to force the dependency instead: within 17 minutes 31
   files carried `__attribute__((used))`/`noinline`/`noipa`; reject compiler-steering attributes in
   the runner from the start. (`swarm-decomp/README.md` Findings 7, 8)
@@ -4164,7 +4164,7 @@ cost hours before it was fixed. (`haiku-cc/RESULTS.md`)
   known: 72% of rebases launched beside a live worker editing them conflicted again, 9%
   otherwise, so hold those. The number of merges during a worker's run is the other
   lever: 4% conflicted at 1 to 5 merges, 80% at 21 to 60. (`nearness-lanes`,
-  `swarming-failing-tests` `nearness.py`)
+  `swarming-to-green` `nearness.py`)
 - **Parallelism has two dimensions: agents per container and containers.** When each
   worker compiles and runs tests, one container's 4 vCPU caps the swarm however the
   workers are launched; the hub ran about 8 hours at load 10 to 22. Plan sibling
