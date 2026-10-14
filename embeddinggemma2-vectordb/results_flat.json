@@ -1,0 +1,1553 @@
+{
+  "meta": {
+    "script": "flatscan_bench.py",
+    "date_utc": "2026-10-14T00:33:46+00:00",
+    "faiss_version": "1.15.1",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "nproc": 4,
+    "python": "3.13.16",
+    "sizes_mb": [
+      16,
+      64,
+      256,
+      1024,
+      4096
+    ],
+    "threads": [
+      1,
+      4
+    ],
+    "reps": 3,
+    "k": 10,
+    "nq": 32,
+    "train_n": 20000,
+    "pool_n": 100000,
+    "vectors": "synthetic unit Gaussian, pool cycled to N",
+    "bytes_per_vector": "IndexX.sa_code_size() (includes RaBitQ per-vector factors)",
+    "ns_per_vector": "best search wall time / (nq * ntotal) * 1e9",
+    "maxrss_note": "maxrss_mb is the process peak so far (ru_maxrss)"
+  },
+  "points": [
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 5461,
+      "bytes_per_vector": 3072,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 127.493,
+      "best_search_s": 0.02228,
+      "search_s_all": [
+        0.02314,
+        0.02269,
+        0.02228
+      ],
+      "add_s": 0.02,
+      "maxrss_mb": 408.8
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 5461,
+      "bytes_per_vector": 3072,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 43.492,
+      "best_search_s": 0.0076,
+      "search_s_all": [
+        0.00866,
+        0.0076,
+        0.00772
+      ],
+      "add_s": 0.02,
+      "maxrss_mb": 408.8
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 21845,
+      "bytes_per_vector": 3072,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 125.053,
+      "best_search_s": 0.08742,
+      "search_s_all": [
+        0.09439,
+        0.08775,
+        0.08742
+      ],
+      "add_s": 0.06,
+      "maxrss_mb": 495.6
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 21845,
+      "bytes_per_vector": 3072,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 38.677,
+      "best_search_s": 0.02704,
+      "search_s_all": [
+        0.02805,
+        0.02704,
+        0.02847
+      ],
+      "add_s": 0.06,
+      "maxrss_mb": 495.6
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 87381,
+      "bytes_per_vector": 3072,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 265.148,
+      "best_search_s": 0.7414,
+      "search_s_all": [
+        0.85563,
+        0.77142,
+        0.7414
+      ],
+      "add_s": 0.44,
+      "maxrss_mb": 895.6
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 87381,
+      "bytes_per_vector": 3072,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 57.728,
+      "best_search_s": 0.16142,
+      "search_s_all": [
+        0.17723,
+        0.16768,
+        0.16142
+      ],
+      "add_s": 0.44,
+      "maxrss_mb": 895.6
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 349525,
+      "bytes_per_vector": 3072,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 280.252,
+      "best_search_s": 3.13456,
+      "search_s_all": [
+        3.16585,
+        3.27388,
+        3.13456
+      ],
+      "add_s": 1.77,
+      "maxrss_mb": 2067.4
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 349525,
+      "bytes_per_vector": 3072,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 65.911,
+      "best_search_s": 0.7372,
+      "search_s_all": [
+        0.7372,
+        0.76157,
+        0.76349
+      ],
+      "add_s": 1.77,
+      "maxrss_mb": 2067.4
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 1398101,
+      "bytes_per_vector": 3072,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 267.469,
+      "best_search_s": 11.96637,
+      "search_s_all": [
+        12.37943,
+        11.96637,
+        12.30374
+      ],
+      "add_s": 18.61,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d768",
+      "d": 768,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 1398101,
+      "bytes_per_vector": 3072,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 69.731,
+      "best_search_s": 3.11973,
+      "search_s_all": [
+        3.11973,
+        3.36511,
+        3.15016
+      ],
+      "add_s": 18.61,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 32768,
+      "bytes_per_vector": 512,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 21.741,
+      "best_search_s": 0.0228,
+      "search_s_all": [
+        0.0228,
+        0.02299,
+        0.02313
+      ],
+      "add_s": 0.01,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 32768,
+      "bytes_per_vector": 512,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 6.027,
+      "best_search_s": 0.00632,
+      "search_s_all": [
+        0.00675,
+        0.00632,
+        0.0064
+      ],
+      "add_s": 0.01,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 131072,
+      "bytes_per_vector": 512,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 25.348,
+      "best_search_s": 0.10632,
+      "search_s_all": [
+        0.11652,
+        0.10632,
+        0.10863
+      ],
+      "add_s": 0.18,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 131072,
+      "bytes_per_vector": 512,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 7.052,
+      "best_search_s": 0.02958,
+      "search_s_all": [
+        0.03274,
+        0.03031,
+        0.02958
+      ],
+      "add_s": 0.18,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 524288,
+      "bytes_per_vector": 512,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 47.125,
+      "best_search_s": 0.79063,
+      "search_s_all": [
+        0.85136,
+        0.79063,
+        0.82599
+      ],
+      "add_s": 0.48,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 524288,
+      "bytes_per_vector": 512,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 9.832,
+      "best_search_s": 0.16496,
+      "search_s_all": [
+        0.17997,
+        0.25985,
+        0.16496
+      ],
+      "add_s": 0.48,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 2097152,
+      "bytes_per_vector": 512,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 47.233,
+      "best_search_s": 3.16973,
+      "search_s_all": [
+        3.45891,
+        3.2294,
+        3.16973
+      ],
+      "add_s": 1.56,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 2097152,
+      "bytes_per_vector": 512,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 11.71,
+      "best_search_s": 0.78587,
+      "search_s_all": [
+        0.81381,
+        0.78587,
+        0.81952
+      ],
+      "add_s": 1.56,
+      "maxrss_mb": 5654.2
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 8388608,
+      "bytes_per_vector": 512,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 46.568,
+      "best_search_s": 12.50057,
+      "search_s_all": [
+        12.50057,
+        12.55341,
+        12.5656
+      ],
+      "add_s": 23.55,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "fp32_d128",
+      "d": 128,
+      "kind": "flat",
+      "nb_bits": null,
+      "N": 8388608,
+      "bytes_per_vector": 512,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 10.868,
+      "best_search_s": 2.91747,
+      "search_s_all": [
+        3.03651,
+        2.91747,
+        3.17647
+      ],
+      "add_s": 23.55,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 21845,
+      "bytes_per_vector": 768,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 102.768,
+      "best_search_s": 0.07184,
+      "search_s_all": [
+        0.07184,
+        0.1109,
+        0.11283
+      ],
+      "add_s": 0.08,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 21845,
+      "bytes_per_vector": 768,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 34.836,
+      "best_search_s": 0.02435,
+      "search_s_all": [
+        0.03277,
+        0.02435,
+        0.02517
+      ],
+      "add_s": 0.08,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 87381,
+      "bytes_per_vector": 768,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 84.84,
+      "best_search_s": 0.23723,
+      "search_s_all": [
+        0.30113,
+        0.23723,
+        0.24321
+      ],
+      "add_s": 0.19,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 87381,
+      "bytes_per_vector": 768,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 27.091,
+      "best_search_s": 0.07575,
+      "search_s_all": [
+        0.07969,
+        0.08488,
+        0.07575
+      ],
+      "add_s": 0.19,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 349525,
+      "bytes_per_vector": 768,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 177.356,
+      "best_search_s": 1.98369,
+      "search_s_all": [
+        1.98917,
+        1.98369,
+        2.00389
+      ],
+      "add_s": 0.78,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 349525,
+      "bytes_per_vector": 768,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 41.449,
+      "best_search_s": 0.4636,
+      "search_s_all": [
+        0.50593,
+        0.56712,
+        0.4636
+      ],
+      "add_s": 0.78,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 1398101,
+      "bytes_per_vector": 768,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 176.697,
+      "best_search_s": 7.90531,
+      "search_s_all": [
+        7.9691,
+        7.90531,
+        7.92691
+      ],
+      "add_s": 2.62,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 1398101,
+      "bytes_per_vector": 768,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 42.344,
+      "best_search_s": 1.89444,
+      "search_s_all": [
+        1.89444,
+        2.12418,
+        2.24234
+      ],
+      "add_s": 2.62,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 5592405,
+      "bytes_per_vector": 768,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 170.799,
+      "best_search_s": 30.56562,
+      "search_s_all": [
+        30.69664,
+        30.56562,
+        30.96251
+      ],
+      "add_s": 22.39,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq8_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 8,
+      "N": 5592405,
+      "bytes_per_vector": 768,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 42.303,
+      "best_search_s": 7.57034,
+      "search_s_all": [
+        8.14372,
+        8.04998,
+        7.57034
+      ],
+      "add_s": 22.39,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 43690,
+      "bytes_per_vector": 384,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 122.547,
+      "best_search_s": 0.17133,
+      "search_s_all": [
+        0.18032,
+        0.17402,
+        0.17133
+      ],
+      "add_s": 0.22,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 43690,
+      "bytes_per_vector": 384,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 33.064,
+      "best_search_s": 0.04623,
+      "search_s_all": [
+        0.04623,
+        0.05113,
+        0.07187
+      ],
+      "add_s": 0.22,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 174762,
+      "bytes_per_vector": 384,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 168.765,
+      "best_search_s": 0.9438,
+      "search_s_all": [
+        0.96836,
+        0.9438,
+        1.10894
+      ],
+      "add_s": 0.33,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 174762,
+      "bytes_per_vector": 384,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 42.172,
+      "best_search_s": 0.23584,
+      "search_s_all": [
+        0.23584,
+        0.24204,
+        0.28626
+      ],
+      "add_s": 0.33,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 699050,
+      "bytes_per_vector": 384,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 173.088,
+      "best_search_s": 3.87191,
+      "search_s_all": [
+        4.06361,
+        3.95056,
+        3.87191
+      ],
+      "add_s": 1.45,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 699050,
+      "bytes_per_vector": 384,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 43.466,
+      "best_search_s": 0.97232,
+      "search_s_all": [
+        1.04309,
+        0.99284,
+        0.97232
+      ],
+      "add_s": 1.45,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 2796202,
+      "bytes_per_vector": 384,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 177.682,
+      "best_search_s": 15.89871,
+      "search_s_all": [
+        16.13179,
+        16.1225,
+        15.89871
+      ],
+      "add_s": 5.45,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 2796202,
+      "bytes_per_vector": 384,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 45.091,
+      "best_search_s": 4.03463,
+      "search_s_all": [
+        4.03463,
+        4.0871,
+        4.15639
+      ],
+      "add_s": 5.45,
+      "maxrss_mb": 6777.8
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 11184810,
+      "bytes_per_vector": 384,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 175.586,
+      "best_search_s": 62.84473,
+      "search_s_all": [
+        63.17511,
+        62.84473,
+        63.68715
+      ],
+      "add_s": 40.66,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "sq4_d768",
+      "d": 768,
+      "kind": "sq",
+      "nb_bits": 4,
+      "N": 11184810,
+      "bytes_per_vector": 384,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 46.729,
+      "best_search_s": 16.72492,
+      "search_s_all": [
+        19.76231,
+        21.77256,
+        16.72492
+      ],
+      "add_s": 40.66,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 161319,
+      "bytes_per_vector": 104,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 21.22,
+      "best_search_s": 0.10954,
+      "search_s_all": [
+        0.11392,
+        0.10954,
+        0.11259
+      ],
+      "add_s": 0.62,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 161319,
+      "bytes_per_vector": 104,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 8.068,
+      "best_search_s": 0.04165,
+      "search_s_all": [
+        0.04165,
+        0.04247,
+        0.04508
+      ],
+      "add_s": 0.62,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 645277,
+      "bytes_per_vector": 104,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 40.771,
+      "best_search_s": 0.84187,
+      "search_s_all": [
+        0.84187,
+        0.86942,
+        0.85396
+      ],
+      "add_s": 1.52,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 645277,
+      "bytes_per_vector": 104,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 7.392,
+      "best_search_s": 0.15263,
+      "search_s_all": [
+        0.16139,
+        0.15522,
+        0.15263
+      ],
+      "add_s": 1.52,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 2581110,
+      "bytes_per_vector": 104,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 41.579,
+      "best_search_s": 3.4342,
+      "search_s_all": [
+        3.4342,
+        3.51667,
+        3.47532
+      ],
+      "add_s": 6.17,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 2581110,
+      "bytes_per_vector": 104,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 8.506,
+      "best_search_s": 0.70254,
+      "search_s_all": [
+        0.70254,
+        0.82585,
+        0.86183
+      ],
+      "add_s": 6.17,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 10324440,
+      "bytes_per_vector": 104,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 38.078,
+      "best_search_s": 12.58043,
+      "search_s_all": [
+        13.16293,
+        12.58043,
+        12.79187
+      ],
+      "add_s": 25.48,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 10324440,
+      "bytes_per_vector": 104,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 8.05,
+      "best_search_s": 2.65951,
+      "search_s_all": [
+        3.09923,
+        2.98605,
+        2.65951
+      ],
+      "add_s": 25.48,
+      "maxrss_mb": 7761.5
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 41297762,
+      "bytes_per_vector": 104,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 38.589,
+      "best_search_s": 50.997,
+      "search_s_all": [
+        51.10294,
+        50.997,
+        51.5389
+      ],
+      "add_s": 119.62,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq1_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 1,
+      "N": 41297762,
+      "bytes_per_vector": 104,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 9.564,
+      "best_search_s": 12.63893,
+      "search_s_all": [
+        13.30128,
+        12.63893,
+        12.95597
+      ],
+      "add_s": 119.62,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 79137,
+      "bytes_per_vector": 212,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 29.085,
+      "best_search_s": 0.07366,
+      "search_s_all": [
+        0.07366,
+        0.11412,
+        0.10324
+      ],
+      "add_s": 1.79,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 79137,
+      "bytes_per_vector": 212,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 7.185,
+      "best_search_s": 0.0182,
+      "search_s_all": [
+        0.02572,
+        0.02257,
+        0.0182
+      ],
+      "add_s": 1.79,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 316551,
+      "bytes_per_vector": 212,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 27.883,
+      "best_search_s": 0.28245,
+      "search_s_all": [
+        0.33757,
+        0.36525,
+        0.28245
+      ],
+      "add_s": 5.11,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 316551,
+      "bytes_per_vector": 212,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 7.233,
+      "best_search_s": 0.07327,
+      "search_s_all": [
+        0.07327,
+        0.08183,
+        0.0881
+      ],
+      "add_s": 5.11,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 1266204,
+      "bytes_per_vector": 212,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 51.411,
+      "best_search_s": 2.08308,
+      "search_s_all": [
+        2.133,
+        2.08308,
+        2.12302
+      ],
+      "add_s": 19.56,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 1266204,
+      "bytes_per_vector": 212,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 10.486,
+      "best_search_s": 0.42488,
+      "search_s_all": [
+        0.46435,
+        0.42488,
+        0.49208
+      ],
+      "add_s": 19.56,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 5064819,
+      "bytes_per_vector": 212,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 53.378,
+      "best_search_s": 8.65113,
+      "search_s_all": [
+        8.65113,
+        8.74344,
+        8.76936
+      ],
+      "add_s": 76.98,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 5064819,
+      "bytes_per_vector": 212,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 10.279,
+      "best_search_s": 1.66588,
+      "search_s_all": [
+        1.70094,
+        1.75312,
+        1.66588
+      ],
+      "add_s": 76.98,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 20259279,
+      "bytes_per_vector": 212,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 54.413,
+      "best_search_s": 35.27602,
+      "search_s_all": [
+        35.44336,
+        35.30707,
+        35.27602
+      ],
+      "add_s": 329.0,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2_d768",
+      "d": 768,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 20259279,
+      "bytes_per_vector": 212,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 11.144,
+      "best_search_s": 7.22453,
+      "search_s_all": [
+        8.68757,
+        7.22453,
+        7.37696
+      ],
+      "add_s": 329.0,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 79137,
+      "bytes_per_vector": 212,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 20.827,
+      "best_search_s": 0.05274,
+      "search_s_all": [
+        0.11389,
+        0.05274,
+        0.053
+      ],
+      "add_s": 1.98,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 79137,
+      "bytes_per_vector": 212,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 5.028,
+      "best_search_s": 0.01273,
+      "search_s_all": [
+        0.01366,
+        0.01273,
+        0.01283
+      ],
+      "add_s": 1.98,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 316551,
+      "bytes_per_vector": 212,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 16.697,
+      "best_search_s": 0.16914,
+      "search_s_all": [
+        0.16914,
+        0.17992,
+        0.1789
+      ],
+      "add_s": 4.96,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 316551,
+      "bytes_per_vector": 212,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 4.232,
+      "best_search_s": 0.04286,
+      "search_s_all": [
+        0.04538,
+        0.04614,
+        0.04286
+      ],
+      "add_s": 4.96,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 1266204,
+      "bytes_per_vector": 212,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 15.672,
+      "best_search_s": 0.63499,
+      "search_s_all": [
+        0.63499,
+        0.66779,
+        0.64963
+      ],
+      "add_s": 19.74,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 1266204,
+      "bytes_per_vector": 212,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 3.633,
+      "best_search_s": 0.14721,
+      "search_s_all": [
+        0.18942,
+        0.19916,
+        0.14721
+      ],
+      "add_s": 19.74,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 5064819,
+      "bytes_per_vector": 212,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 13.848,
+      "best_search_s": 2.24442,
+      "search_s_all": [
+        2.38488,
+        2.24442,
+        2.24635
+      ],
+      "add_s": 79.75,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 5064819,
+      "bytes_per_vector": 212,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 4.031,
+      "best_search_s": 0.65339,
+      "search_s_all": [
+        0.65448,
+        0.65339,
+        0.67924
+      ],
+      "add_s": 79.75,
+      "maxrss_mb": 7993.8
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 20259279,
+      "bytes_per_vector": 212,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 13.879,
+      "best_search_s": 8.99744,
+      "search_s_all": [
+        9.8161,
+        9.26391,
+        8.99744
+      ],
+      "add_s": 342.34,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2fs_d768",
+      "d": 768,
+      "kind": "rabitq_fs",
+      "nb_bits": 2,
+      "N": 20259279,
+      "bytes_per_vector": 212,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 3.863,
+      "best_search_s": 2.50466,
+      "search_s_all": [
+        2.62609,
+        2.81561,
+        2.50466
+      ],
+      "add_s": 342.34,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 113359,
+      "bytes_per_vector": 148,
+      "code_mb": 16.0,
+      "threads": 1,
+      "ns_per_vector": 17.235,
+      "best_search_s": 0.06252,
+      "search_s_all": [
+        0.08856,
+        0.07766,
+        0.06252
+      ],
+      "add_s": 1.65,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 113359,
+      "bytes_per_vector": 148,
+      "code_mb": 16.0,
+      "threads": 4,
+      "ns_per_vector": 5.698,
+      "best_search_s": 0.02067,
+      "search_s_all": [
+        0.02067,
+        0.02355,
+        0.02357
+      ],
+      "add_s": 1.65,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 453438,
+      "bytes_per_vector": 148,
+      "code_mb": 64.0,
+      "threads": 1,
+      "ns_per_vector": 17.816,
+      "best_search_s": 0.25851,
+      "search_s_all": [
+        0.29716,
+        0.27507,
+        0.25851
+      ],
+      "add_s": 4.55,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 453438,
+      "bytes_per_vector": 148,
+      "code_mb": 64.0,
+      "threads": 4,
+      "ns_per_vector": 5.075,
+      "best_search_s": 0.07363,
+      "search_s_all": [
+        0.12206,
+        0.07363,
+        0.07366
+      ],
+      "add_s": 4.55,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 1813753,
+      "bytes_per_vector": 148,
+      "code_mb": 256.0,
+      "threads": 1,
+      "ns_per_vector": 37.444,
+      "best_search_s": 2.17324,
+      "search_s_all": [
+        2.23694,
+        2.17604,
+        2.17324
+      ],
+      "add_s": 18.16,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 1813753,
+      "bytes_per_vector": 148,
+      "code_mb": 256.0,
+      "threads": 4,
+      "ns_per_vector": 7.365,
+      "best_search_s": 0.42748,
+      "search_s_all": [
+        0.44824,
+        0.4475,
+        0.42748
+      ],
+      "add_s": 18.16,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 7255012,
+      "bytes_per_vector": 148,
+      "code_mb": 1024.0,
+      "threads": 1,
+      "ns_per_vector": 37.905,
+      "best_search_s": 8.80014,
+      "search_s_all": [
+        8.80014,
+        9.01195,
+        9.02697
+      ],
+      "add_s": 75.07,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 7255012,
+      "bytes_per_vector": 148,
+      "code_mb": 1024.0,
+      "threads": 4,
+      "ns_per_vector": 7.476,
+      "best_search_s": 1.73563,
+      "search_s_all": [
+        1.77115,
+        1.83783,
+        1.73563
+      ],
+      "add_s": 75.07,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 29020049,
+      "bytes_per_vector": 148,
+      "code_mb": 4096.0,
+      "threads": 1,
+      "ns_per_vector": 38.806,
+      "best_search_s": 36.03664,
+      "search_s_all": [
+        36.62396,
+        36.03664,
+        36.18282
+      ],
+      "add_s": 311.08,
+      "maxrss_mb": 8774.2
+    },
+    {
+      "format": "rabitq2_d512",
+      "d": 512,
+      "kind": "rabitq",
+      "nb_bits": 2,
+      "N": 29020049,
+      "bytes_per_vector": 148,
+      "code_mb": 4096.0,
+      "threads": 4,
+      "ns_per_vector": 7.443,
+      "best_search_s": 6.91153,
+      "search_s_all": [
+        6.91153,
+        8.54909,
+        8.30887
+      ],
+      "add_s": 311.08,
+      "maxrss_mb": 8774.2
+    }
+  ],
+  "errors": []
+}
