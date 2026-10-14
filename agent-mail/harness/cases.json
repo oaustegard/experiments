@@ -1,0 +1,1765 @@
+[
+ {
+  "text": "order_id,sku,qty\nA1,WIDGET,3\nA1,GADGET,5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 10,
+   "GADGET": 3
+  },
+  "expect": "ORDER A1\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  GADGET Gadget x3 @ 10.00 = 30.00 (backorder 2)\n  subtotal 37.50\n  tax 3.09\n  shipping 5.00\n  total 45.59"
+ },
+ {
+  "text": "",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {},
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "# only\n\n",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 1
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "# orders export\norder_id,sku,qty\nA10,WIDGET,3\nA1,LAMP,3\nA1,GADGET,10\nb7,WIDGET,2.5\nA1,LAMP,1\n\nb7,CABLE,x\nA10,GADGET,2.5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 3,
+   "BOLT": 12,
+   "LAMP": 200,
+   "CABLE": 0
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x4 @ 19.99 = 79.96\n  GADGET Gadget x3 @ 10.00 = 30.00 (backorder 7)\n  subtotal 109.96\n  tax 9.07\n  shipping 0.00\n  total 119.03\n\nORDER A10\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nREJECTED\n  line 6: bad qty\n  line 9: bad qty\n  line 10: bad qty"
+ },
+ {
+  "text": "# orders export\nC3,NOPE,0\nB7, lamp , 4 \nA10,LAMP,3\nb7, lamp , 4 \nA2,GADGET,3\nA10,GHOST,5\n,WIDGET,25",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 8,
+   "BOLT": 0,
+   "LAMP": 40,
+   "CABLE": 200
+  },
+  "expect": "ORDER A10\n  LAMP Desk Lamp x3 @ 19.99 = 59.97\n  subtotal 59.97\n  tax 4.95\n  shipping 0.00\n  total 64.92\n\nORDER A2\n  GADGET Gadget x3 @ 10.00 = 30.00\n  subtotal 30.00\n  tax 2.48\n  shipping 5.00\n  total 37.48\n\nORDER B7\n  LAMP Desk Lamp x4 @ 19.99 = 79.96\n  subtotal 79.96\n  tax 6.60\n  shipping 0.00\n  total 86.56\n\nORDER b7\n  LAMP Desk Lamp x4 @ 19.99 = 79.96\n  subtotal 79.96\n  tax 6.60\n  shipping 0.00\n  total 86.56\n\nREJECTED\n  line 2: bad qty\n  line 7: unknown sku\n  line 8: bad format"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nA1,CABLE,-2",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 40,
+   "GADGET": 40,
+   "BOLT": 8,
+   "LAMP": 8,
+   "CABLE": 200
+  },
+  "expect": "REJECTED\n  line 2: bad qty"
+ },
+ {
+  "text": "A2,widget,25\nB7,GHOST,5\nB7,WIDGET,10\nA10,LAMP,0\nB7,GADGET,5\nb7,CABLE,5\nb7,CABLE,0",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 0,
+   "GADGET": 0,
+   "BOLT": 200,
+   "LAMP": 200,
+   "CABLE": 8
+  },
+  "expect": "ORDER A2\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 25)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER B7\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 10)\n  GADGET Gadget x0 @ 10.00 = 0.00 (backorder 5)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER b7\n  CABLE USB Cable x5 @ 4.45 = 22.25\n  subtotal 22.25\n  tax 1.84\n  shipping 5.00\n  total 29.09\n\nREJECTED\n  line 2: unknown sku\n  line 4: bad qty\n  line 7: bad qty"
+ },
+ {
+  "text": "# orders export",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 12,
+   "BOLT": 3,
+   "LAMP": 3,
+   "CABLE": 0
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "\nORDER_ID,SKU,QTY\nA2,BOLT,x\nC3,WIDGET,-2\nC3,NOPE,0\nB7,GADGET,-2\nA1,LAMP,3\nB7,BOLT,3\nA1,GADGET,1\nb7,GADGET, 4 \nA1,LAMP,2.5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 40,
+   "BOLT": 3,
+   "LAMP": 8,
+   "CABLE": 8
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x3 @ 19.99 = 59.97\n  GADGET Gadget x1 @ 10.00 = 10.00\n  subtotal 69.97\n  tax 5.77\n  shipping 0.00\n  total 75.74\n\nORDER B7\n  BOLT Hex Bolt x3 @ 0.35 = 1.05\n  subtotal 1.05\n  tax 0.09\n  shipping 5.00\n  total 6.14\n\nORDER b7\n  GADGET Gadget x4 @ 10.00 = 40.00\n  subtotal 40.00\n  tax 3.30\n  shipping 5.00\n  total 48.30\n\nREJECTED\n  line 3: bad qty\n  line 4: bad qty\n  line 5: bad qty\n  line 6: bad qty\n  line 11: bad qty"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\n, lamp ,12\nA1,GHOST,12\nC3,BOLT\nb7,GHOST,5\nA1,NOPE,12\nA1,CABLE,x\nA10,GHOST,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 8,
+   "BOLT": 8,
+   "LAMP": 40,
+   "CABLE": 8
+  },
+  "expect": "REJECTED\n  line 2: bad format\n  line 3: unknown sku\n  line 4: bad format\n  line 5: unknown sku\n  line 6: unknown sku\n  line 7: bad qty\n  line 8: unknown sku"
+ },
+ {
+  "text": "  # note\nA2,WIDGET,1\nB7,CABLE,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 40,
+   "GADGET": 8,
+   "BOLT": 200,
+   "LAMP": 3,
+   "CABLE": 40
+  },
+  "expect": "ORDER A2\n  WIDGET Blue Widget x1 @ 2.50 = 2.50\n  subtotal 2.50\n  tax 0.21\n  shipping 5.00\n  total 7.71\n\nORDER B7\n  CABLE USB Cable x10 @ 4.45 = 40.05\n  subtotal 40.05\n  tax 3.30\n  shipping 5.00\n  total 48.35"
+ },
+ {
+  "text": "# orders export\norder_id,sku,qty\nA10, lamp ,2.5\nb7,WIDGET,-2\nA2,GADGET,25,extra\nB7,LAMP,-2\nB7,GHOST,3",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 12,
+   "BOLT": 200,
+   "LAMP": 8,
+   "CABLE": 8
+  },
+  "expect": "REJECTED\n  line 3: bad qty\n  line 4: bad qty\n  line 5: bad format\n  line 6: bad qty\n  line 7: unknown sku"
+ },
+ {
+  "text": "A10,WIDGET,5\nB7,BOLT,2.5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 12,
+   "BOLT": 12,
+   "LAMP": 12,
+   "CABLE": 200
+  },
+  "expect": "ORDER A10\n  WIDGET Blue Widget x5 @ 2.50 = 12.50\n  subtotal 12.50\n  tax 1.03\n  shipping 5.00\n  total 18.53\n\nREJECTED\n  line 2: bad qty"
+ },
+ {
+  "text": "ORDER_ID,SKU,QTY\nb7,BOLT,0",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 200,
+   "BOLT": 8,
+   "LAMP": 3,
+   "CABLE": 40
+  },
+  "expect": "REJECTED\n  line 2: bad qty"
+ },
+ {
+  "text": "# orders export\nA2,NOPE,0\nA1,GHOST,-2\nb7,widget,x,extra\nA10,NOPE\nB7,BOLT",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 3,
+   "BOLT": 0,
+   "LAMP": 8,
+   "CABLE": 3
+  },
+  "expect": "REJECTED\n  line 2: bad qty\n  line 3: bad qty\n  line 4: bad format\n  line 5: bad format\n  line 6: bad format"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nb7,NOPE,-2\nA1,NOPE,1\nA2,WIDGET,3\nb7,WIDGET,3\nb7,NOPE,2.5\nC3,CABLE,-2\nB7,NOPE,10\nA2,NOPE,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 3,
+   "BOLT": 3,
+   "LAMP": 12,
+   "CABLE": 40
+  },
+  "expect": "ORDER A2\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nORDER b7\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 3)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 2: bad qty\n  line 3: unknown sku\n  line 6: bad qty\n  line 7: bad qty\n  line 8: unknown sku\n  line 9: unknown sku"
+ },
+ {
+  "text": "A1,LAMP,25\nA1,BOLT,25\nA10,CABLE,5\nA10,GADGET,0\nA10,LAMP,5\nb7,widget, 4 ",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 12,
+   "BOLT": 0,
+   "LAMP": 12,
+   "CABLE": 12
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x12 @ 19.99 = 215.89 (backorder 13)\n  BOLT Hex Bolt x0 @ 0.35 = 0.00 (backorder 25)\n  subtotal 215.89\n  tax 17.81\n  shipping 0.00\n  total 233.70\n\nORDER A10\n  CABLE USB Cable x5 @ 4.45 = 22.25\n  LAMP Desk Lamp x0 @ 19.99 = 0.00 (backorder 5)\n  subtotal 22.25\n  tax 1.84\n  shipping 5.00\n  total 29.09\n\nORDER b7\n  WIDGET Blue Widget x3 @ 2.50 = 7.50 (backorder 1)\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nREJECTED\n  line 4: bad qty"
+ },
+ {
+  "text": "\norder_id,sku,qty\nA2,NOPE,2.5\nA1,GADGET,10\nA1,GADGET,12\nA10,CABLE,5\n   \n, lamp , 4 ",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 8,
+   "BOLT": 0,
+   "LAMP": 200,
+   "CABLE": 8
+  },
+  "expect": "ORDER A1\n  GADGET Gadget x8 @ 10.00 = 80.00 (backorder 14)\n  subtotal 80.00\n  tax 6.60\n  shipping 0.00\n  total 86.60\n\nORDER A10\n  CABLE USB Cable x5 @ 4.45 = 22.25\n  subtotal 22.25\n  tax 1.84\n  shipping 5.00\n  total 29.09\n\nREJECTED\n  line 3: bad qty\n  line 8: bad format"
+ },
+ {
+  "text": "# orders export\nA1,LAMP,3\nA1, lamp ,1\nb7,widget,12\nA1,NOPE,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 0,
+   "GADGET": 200,
+   "BOLT": 3,
+   "LAMP": 12,
+   "CABLE": 0
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x4 @ 19.99 = 79.96\n  subtotal 79.96\n  tax 6.60\n  shipping 0.00\n  total 86.56\n\nORDER b7\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 12)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 5: unknown sku"
+ },
+ {
+  "text": "A10,CABLE,-2\nA10,CABLE, 4 \nA2,WIDGET\nb7,NOPE,10\nA10, lamp ,3\nC3,widget,25\nB7,NOPE,12\nA10,GHOST,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 8,
+   "BOLT": 0,
+   "LAMP": 3,
+   "CABLE": 3
+  },
+  "expect": "ORDER A10\n  CABLE USB Cable x3 @ 4.45 = 13.35 (backorder 1)\n  LAMP Desk Lamp x3 @ 19.99 = 59.97\n  subtotal 73.32\n  tax 6.05\n  shipping 0.00\n  total 79.37\n\nORDER C3\n  WIDGET Blue Widget x3 @ 2.50 = 7.50 (backorder 22)\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nREJECTED\n  line 1: bad qty\n  line 3: bad format\n  line 4: unknown sku\n  line 7: unknown sku\n  line 8: unknown sku"
+ },
+ {
+  "text": "A1,GADGET,25\nA2,widget",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 200,
+   "BOLT": 200,
+   "LAMP": 3,
+   "CABLE": 12
+  },
+  "expect": "ORDER A1\n  GADGET Gadget x25 @ 10.00 = 225.00\n  subtotal 225.00\n  tax 18.56\n  shipping 0.00\n  total 243.56\n\nREJECTED\n  line 2: bad format"
+ },
+ {
+  "text": "",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 12,
+   "BOLT": 40,
+   "LAMP": 200,
+   "CABLE": 8
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "\nA2,LAMP,1\n  # note\nB7,GADGET,-2\nC3,LAMP,10\nA1,GADGET,12\nA10,widget\nA1,CABLE,12\nA1,NOPE,5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 3,
+   "BOLT": 3,
+   "LAMP": 8,
+   "CABLE": 12
+  },
+  "expect": "ORDER A1\n  GADGET Gadget x3 @ 10.00 = 30.00 (backorder 9)\n  CABLE USB Cable x12 @ 4.45 = 48.06\n  subtotal 78.06\n  tax 6.44\n  shipping 0.00\n  total 84.50\n\nORDER A2\n  LAMP Desk Lamp x1 @ 19.99 = 19.99\n  subtotal 19.99\n  tax 1.65\n  shipping 5.00\n  total 26.64\n\nORDER C3\n  LAMP Desk Lamp x7 @ 19.99 = 139.93 (backorder 3)\n  subtotal 139.93\n  tax 11.54\n  shipping 0.00\n  total 151.47\n\nREJECTED\n  line 4: bad qty\n  line 7: bad format\n  line 9: unknown sku"
+ },
+ {
+  "text": "ORDER_ID,SKU,QTY\nC3,BOLT,1\nC3,NOPE,25\nC3,NOPE,5\nb7,WIDGET,25\nC3,LAMP\nA10,GHOST,3\nB7,NOPE,1\nC3,NOPE,25\nA2,WIDGET,-2",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 40,
+   "BOLT": 12,
+   "LAMP": 8,
+   "CABLE": 200
+  },
+  "expect": "ORDER C3\n  BOLT Hex Bolt x1 @ 0.35 = 0.35\n  subtotal 0.35\n  tax 0.03\n  shipping 5.00\n  total 5.38\n\nORDER b7\n  WIDGET Blue Widget x25 @ 2.50 = 56.25\n  subtotal 56.25\n  tax 4.64\n  shipping 0.00\n  total 60.89\n\nREJECTED\n  line 3: unknown sku\n  line 6: bad format\n  line 7: unknown sku\n  line 8: unknown sku\n  line 10: bad qty"
+ },
+ {
+  "text": "A2,GADGET,12\nA10,LAMP,25\nB7,widget,3\nC3,CABLE,1\nC3,LAMP,3\nA2,CABLE,25\nA2,BOLT,1",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 40,
+   "BOLT": 40,
+   "LAMP": 0,
+   "CABLE": 200
+  },
+  "expect": "ORDER A10\n  LAMP Desk Lamp x0 @ 19.99 = 0.00 (backorder 25)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER A2\n  GADGET Gadget x12 @ 10.00 = 108.00\n  CABLE USB Cable x25 @ 4.45 = 100.13\n  BOLT Hex Bolt x1 @ 0.35 = 0.35\n  subtotal 208.48\n  tax 17.20\n  shipping 0.00\n  total 225.68\n\nORDER B7\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nORDER C3\n  CABLE USB Cable x1 @ 4.45 = 4.45\n  LAMP Desk Lamp x0 @ 19.99 = 0.00 (backorder 3)\n  subtotal 4.45\n  tax 0.37\n  shipping 5.00\n  total 9.82"
+ },
+ {
+  "text": "\nORDER_ID,SKU,QTY\nB7, lamp ,-2\nb7,LAMP,12\nB7,WIDGET,12\nb7, lamp ,12",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 8,
+   "BOLT": 200,
+   "LAMP": 0,
+   "CABLE": 200
+  },
+  "expect": "ORDER B7\n  WIDGET Blue Widget x12 @ 2.50 = 27.00\n  subtotal 27.00\n  tax 2.23\n  shipping 5.00\n  total 34.23\n\nORDER b7\n  LAMP Desk Lamp x0 @ 19.99 = 0.00 (backorder 24)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 3: bad qty"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nb7,NOPE,12\nC3,GHOST,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 0,
+   "BOLT": 40,
+   "LAMP": 0,
+   "CABLE": 3
+  },
+  "expect": "REJECTED\n  line 2: unknown sku\n  line 3: unknown sku"
+ },
+ {
+  "text": "A2,BOLT,0\nA2,GADGET\nA2,widget,3\nA10,WIDGET,12\nA1,widget,0\nb7,GADGET, 4 ",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 12,
+   "BOLT": 0,
+   "LAMP": 3,
+   "CABLE": 0
+  },
+  "expect": "ORDER A10\n  WIDGET Blue Widget x9 @ 2.50 = 22.50 (backorder 3)\n  subtotal 22.50\n  tax 1.86\n  shipping 5.00\n  total 29.36\n\nORDER A2\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nORDER b7\n  GADGET Gadget x4 @ 10.00 = 40.00\n  subtotal 40.00\n  tax 3.30\n  shipping 5.00\n  total 48.30\n\nREJECTED\n  line 1: bad qty\n  line 2: bad format\n  line 5: bad qty"
+ },
+ {
+  "text": "order_id,sku,qty\nA2,widget,x\nA2,widget,1\nC3,widget,x",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 0,
+   "BOLT": 8,
+   "LAMP": 0,
+   "CABLE": 0
+  },
+  "expect": "ORDER A2\n  WIDGET Blue Widget x1 @ 2.50 = 2.50\n  subtotal 2.50\n  tax 0.21\n  shipping 5.00\n  total 7.71\n\nREJECTED\n  line 2: bad qty\n  line 4: bad qty"
+ },
+ {
+  "text": "B7,WIDGET,x,extra\nB7,widget, 4 \nA2,CABLE,0\nA2, lamp ,x",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 0,
+   "BOLT": 0,
+   "LAMP": 200,
+   "CABLE": 12
+  },
+  "expect": "ORDER B7\n  WIDGET Blue Widget x4 @ 2.50 = 10.00\n  subtotal 10.00\n  tax 0.83\n  shipping 5.00\n  total 15.83\n\nREJECTED\n  line 1: bad format\n  line 3: bad qty\n  line 4: bad qty"
+ },
+ {
+  "text": "\nOrder_ID, SKU, Qty\nB7,widget,5\nA10,GADGET,5\nA1,GHOST,10\nb7,LAMP,1\nB7,widget,0",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 0,
+   "GADGET": 3,
+   "BOLT": 200,
+   "LAMP": 3,
+   "CABLE": 0
+  },
+  "expect": "ORDER A10\n  GADGET Gadget x3 @ 10.00 = 30.00 (backorder 2)\n  subtotal 30.00\n  tax 2.48\n  shipping 5.00\n  total 37.48\n\nORDER B7\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 5)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER b7\n  LAMP Desk Lamp x1 @ 19.99 = 19.99\n  subtotal 19.99\n  tax 1.65\n  shipping 5.00\n  total 26.64\n\nREJECTED\n  line 5: unknown sku\n  line 7: bad qty"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nC3,NOPE,x\nA10,GADGET,12",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 12,
+   "BOLT": 8,
+   "LAMP": 8,
+   "CABLE": 0
+  },
+  "expect": "ORDER A10\n  GADGET Gadget x12 @ 10.00 = 108.00\n  subtotal 108.00\n  tax 8.91\n  shipping 0.00\n  total 116.91\n\nREJECTED\n  line 2: bad qty"
+ },
+ {
+  "text": "",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 12,
+   "BOLT": 200,
+   "LAMP": 12,
+   "CABLE": 12
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "order_id,sku,qty\nb7, lamp ,-2\n   \nA1, lamp ,3\nA1,WIDGET,5\nA1,CABLE,5\n,widget,3",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 0,
+   "BOLT": 12,
+   "LAMP": 200,
+   "CABLE": 12
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x3 @ 19.99 = 59.97\n  WIDGET Blue Widget x3 @ 2.50 = 7.50 (backorder 2)\n  CABLE USB Cable x5 @ 4.45 = 22.25\n  subtotal 89.72\n  tax 7.40\n  shipping 0.00\n  total 97.12\n\nREJECTED\n  line 2: bad qty\n  line 7: bad format"
+ },
+ {
+  "text": "# orders export\nOrder_ID, SKU, Qty\nA2,GHOST,25\nA10, lamp ,x\nA10,WIDGET,0\n   \nC3,widget,3\nC3,widget, 4 \nA1,GHOST,0",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 40,
+   "BOLT": 40,
+   "LAMP": 3,
+   "CABLE": 12
+  },
+  "expect": "ORDER C3\n  WIDGET Blue Widget x7 @ 2.50 = 17.50\n  subtotal 17.50\n  tax 1.44\n  shipping 5.00\n  total 23.94\n\nREJECTED\n  line 3: unknown sku\n  line 4: bad qty\n  line 5: bad qty\n  line 9: bad qty"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nA2,LAMP,10\nA2,CABLE,3\nB7,BOLT,10",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 3,
+   "BOLT": 0,
+   "LAMP": 8,
+   "CABLE": 200
+  },
+  "expect": "ORDER A2\n  LAMP Desk Lamp x8 @ 19.99 = 159.92 (backorder 2)\n  CABLE USB Cable x3 @ 4.45 = 13.35\n  subtotal 173.27\n  tax 14.29\n  shipping 0.00\n  total 187.56\n\nORDER B7\n  BOLT Hex Bolt x0 @ 0.35 = 0.00 (backorder 10)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00"
+ },
+ {
+  "text": "# orders export\n  # note\nC3,GHOST,3",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 0,
+   "BOLT": 40,
+   "LAMP": 3,
+   "CABLE": 12
+  },
+  "expect": "REJECTED\n  line 3: unknown sku"
+ },
+ {
+  "text": "",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 8,
+   "BOLT": 3,
+   "LAMP": 3,
+   "CABLE": 200
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "order_id,sku,qty",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 200,
+   "BOLT": 200,
+   "LAMP": 12,
+   "CABLE": 8
+  },
+  "expect": "NO ORDERS"
+ },
+ {
+  "text": "order_id,sku,qty\n,CABLE,0\nC3, lamp ,10\nB7,LAMP, 4 \nB7,WIDGET,25\nC3,widget,1\nB7,GADGET,1",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 0,
+   "GADGET": 8,
+   "BOLT": 0,
+   "LAMP": 8,
+   "CABLE": 12
+  },
+  "expect": "ORDER B7\n  LAMP Desk Lamp x0 @ 19.99 = 0.00 (backorder 4)\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 25)\n  GADGET Gadget x1 @ 10.00 = 10.00\n  subtotal 10.00\n  tax 0.83\n  shipping 5.00\n  total 15.83\n\nORDER C3\n  LAMP Desk Lamp x8 @ 19.99 = 159.92 (backorder 2)\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 1)\n  subtotal 159.92\n  tax 13.19\n  shipping 0.00\n  total 173.11\n\nREJECTED\n  line 2: bad format"
+ },
+ {
+  "text": "# orders export\nORDER_ID,SKU,QTY\nA2,CABLE,1\nb7,GADGET,1\nA1, lamp ,-2\nB7,CABLE,0\nA10, lamp ",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 0,
+   "BOLT": 40,
+   "LAMP": 8,
+   "CABLE": 8
+  },
+  "expect": "ORDER A2\n  CABLE USB Cable x1 @ 4.45 = 4.45\n  subtotal 4.45\n  tax 0.37\n  shipping 5.00\n  total 9.82\n\nORDER b7\n  GADGET Gadget x0 @ 10.00 = 0.00 (backorder 1)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 5: bad qty\n  line 6: bad qty\n  line 7: bad format"
+ },
+ {
+  "text": "\nORDER_ID,SKU,QTY\nb7,LAMP,0",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 8,
+   "BOLT": 200,
+   "LAMP": 3,
+   "CABLE": 40
+  },
+  "expect": "REJECTED\n  line 3: bad qty"
+ },
+ {
+  "text": "order_id,sku,qty\nA1,GADGET,12\nA10,GADGET,0\nC3, lamp ,5\nB7, lamp ,2.5\nA10,NOPE,25\nA2,CABLE,12",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 12,
+   "BOLT": 0,
+   "LAMP": 200,
+   "CABLE": 0
+  },
+  "expect": "ORDER A1\n  GADGET Gadget x12 @ 10.00 = 108.00\n  subtotal 108.00\n  tax 8.91\n  shipping 0.00\n  total 116.91\n\nORDER A2\n  CABLE USB Cable x0 @ 4.45 = 0.00 (backorder 12)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER C3\n  LAMP Desk Lamp x5 @ 19.99 = 99.95\n  subtotal 99.95\n  tax 8.25\n  shipping 0.00\n  total 108.20\n\nREJECTED\n  line 3: bad qty\n  line 5: bad qty\n  line 6: unknown sku"
+ },
+ {
+  "text": "order_id,sku,qty\n,LAMP, 4 \nA2,LAMP,x",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 8,
+   "GADGET": 8,
+   "BOLT": 200,
+   "LAMP": 8,
+   "CABLE": 3
+  },
+  "expect": "REJECTED\n  line 2: bad format\n  line 3: bad qty"
+ },
+ {
+  "text": "\nB7,GHOST,1\n   \nA10,GADGET, 4 ",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 200,
+   "GADGET": 0,
+   "BOLT": 200,
+   "LAMP": 12,
+   "CABLE": 0
+  },
+  "expect": "ORDER A10\n  GADGET Gadget x0 @ 10.00 = 0.00 (backorder 4)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 2: unknown sku"
+ },
+ {
+  "text": "ORDER_ID,SKU,QTY\nA2,LAMP,1\nA10,WIDGET,10\nA1,LAMP,1\nB7,GHOST,5\nA1,LAMP,1\nb7, lamp ,3\nB7,NOPE,5\nA1,BOLT,0\nB7,CABLE,25",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 3,
+   "GADGET": 12,
+   "BOLT": 40,
+   "LAMP": 8,
+   "CABLE": 200
+  },
+  "expect": "ORDER A1\n  LAMP Desk Lamp x2 @ 19.99 = 39.98\n  subtotal 39.98\n  tax 3.30\n  shipping 5.00\n  total 48.28\n\nORDER A10\n  WIDGET Blue Widget x3 @ 2.50 = 7.50 (backorder 7)\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nORDER A2\n  LAMP Desk Lamp x1 @ 19.99 = 19.99\n  subtotal 19.99\n  tax 1.65\n  shipping 5.00\n  total 26.64\n\nORDER B7\n  CABLE USB Cable x25 @ 4.45 = 100.13\n  subtotal 100.13\n  tax 8.26\n  shipping 0.00\n  total 108.39\n\nORDER b7\n  LAMP Desk Lamp x3 @ 19.99 = 59.97\n  subtotal 59.97\n  tax 4.95\n  shipping 0.00\n  total 64.92\n\nREJECTED\n  line 5: unknown sku\n  line 8: unknown sku\n  line 9: bad qty"
+ },
+ {
+  "text": "Order_ID, SKU, Qty\nB7,widget,10\nB7,BOLT,0,extra\nA1,widget,2.5",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 0,
+   "GADGET": 8,
+   "BOLT": 200,
+   "LAMP": 40,
+   "CABLE": 8
+  },
+  "expect": "ORDER B7\n  WIDGET Blue Widget x0 @ 2.50 = 0.00 (backorder 10)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nREJECTED\n  line 3: bad format\n  line 4: bad qty"
+ },
+ {
+  "text": "  # note\n\nA1,widget,-2\nA10,CABLE,5\nA1, lamp \nC3,widget,3",
+  "catalog": {
+   "WIDGET": {
+    "name": "Blue Widget",
+    "price": "2.50"
+   },
+   "GADGET": {
+    "name": "Gadget",
+    "price": "10.00"
+   },
+   "BOLT": {
+    "name": "Hex Bolt",
+    "price": "0.35"
+   },
+   "LAMP": {
+    "name": "Desk Lamp",
+    "price": "19.99"
+   },
+   "CABLE": {
+    "name": "USB Cable",
+    "price": "4.45"
+   },
+   "GHOST": {
+    "name": "Ghost",
+    "price": "1.00"
+   }
+  },
+  "stock": {
+   "WIDGET": 12,
+   "GADGET": 3,
+   "BOLT": 3,
+   "LAMP": 0,
+   "CABLE": 0
+  },
+  "expect": "ORDER A10\n  CABLE USB Cable x0 @ 4.45 = 0.00 (backorder 5)\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n\nORDER C3\n  WIDGET Blue Widget x3 @ 2.50 = 7.50\n  subtotal 7.50\n  tax 0.62\n  shipping 5.00\n  total 13.12\n\nREJECTED\n  line 3: bad qty\n  line 5: bad format"
+ }
+]

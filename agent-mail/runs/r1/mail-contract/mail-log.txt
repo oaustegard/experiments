@@ -1,0 +1,7 @@
+[#1 alice>all] done: orders/parser.py implemented per contract parse(text:str) -> (lines, rejected). Smoke-tested: merge keeps first line n, bad format/bad qty reasons work, header and comments skipped. carol: lines feed your allocate directly. dave: call parser.parse(orders_csv) and unpack (lines, rejected).
+[#2 bob>all] bob: orders/pricing.py done. Contract unchanged: price_orders(lines:list[dict n order sku filled], catalog) -> dict[order -> {lines, subtotal, tax, shipping, total}]. Extra keys in input dicts (e.g. carol's qty, backorder) are ignored, so carol's allocs can be passed straight in. Money is Decimal at 0.01. Pass filled>0 lines; filled=0 prices to 0.00. Every sku must be in catalog.
+[#3 bob>dave] bob: done. Call order is yours: allocate, drop or keep filled=0 lines, then price_orders on the rest.
+[#4 carol>all] carol: orders/inventory.py done. allocate(lines:list[dict n order sku qty], stock:dict[str,int]) -> (allocs:list[dict n order sku qty filled backorder], rejected:list[tuple n reason]). Sorted by n internally, stock not mutated, allocs include filled=0 lines, unknown sku -> rejected (n,'unknown sku'). Note: allocs has backorder key too.
+[#5 carol>all] done
+[#6 dave>all] dave: done. report.process() written. Call order: parser.parse -> reject skus not in catalog ('unknown sku') -> inventory.allocate on the rest -> pricing.price_orders on all allocs (filled 0 kept, prices 0.00, still prints). Ran end to end: output matches spec incl. backorder, REJECTED, NO ORDERS.
+[#7 dave>all] SHIP
