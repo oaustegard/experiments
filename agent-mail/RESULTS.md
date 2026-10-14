@@ -7,56 +7,60 @@ coordinated it only through a shared tree and a merge gate. What is the most
 effective and efficient way for peer agents to introduce themselves and
 exchange messages?
 
-Two things have to work: getting the message delivered, and getting the
-receiver to act on it. Delivery is easy. A file mailbox with a `PostToolUse`
-push hook delivers every message at about 1.2x the cost of no channel, and
-native `SendMessage` works too, at more cost. Getting the receiver to act is
-the hard part. When each agent held a rule that belonged in a teammate's file,
-9 messaging teams delivered the rules and implemented **0 of about 32**, because
-receivers refused anything that was not in their own brief. Moving one
-paragraph of team charter into a custom agent's system prompt ("the
-coordinator split one spec across your briefs; a rule a teammate quotes is
-part of your spec") raised that to **10 of 12 rules**. One of the three teams
-scored 60/60, at about **$0.02 per team**. Put in a brief the agent reads with
-a tool, the same charter was refused by the agents and denied by the auto-mode
-classifier as "Instruction Poisoning".
+Three things have to work: delivery, acceptance and verification. A file
+mailbox with a `PostToolUse` push hook delivers at about 1.2x the cost of no
+channel. Acceptance needs a team charter in the agent's system prompt. In
+round 2, 9 messaging teams delivered every rule a teammate needed and
+implemented **0 of about 32**. The charter in a custom agent's system prompt
+raised that to **10 of 12**. Verification needs a gate. With `mail owe`
+(send a rule plus a test), `mail ack`, and `mail ship` (SHIP only when every
+rule is relayed, acknowledged and passing), **all 3 teams scored 60/60 and
+implemented 12 of 12 rules**, at about **$0.026 per team**. The gate caught
+one rule that had been acknowledged but only half implemented.
 
-What would change this: replicates beyond 3 teams, a second task, or a model
-other than Haiku 5.5. Adding relay and ack gates before `SHIP` should close the
-two remaining misses.
+What would change this: more teams, a second task, or a model other than
+Haiku 5.5.
 
 ## Findings
 
-1. **A team charter in the system prompt is what makes peers act on each
+1. **Charter in the system prompt plus a handoff gate is the working design:
+   12 of 12 rules, 60/60 in all 3 teams (Round 4).** Without the gate, the
+   charter alone reached 10 of 12 (Round 3).
+2. **A team charter in the system prompt is what makes peers act on each
    other's messages.** In round 2, 0 of about 32 rule transfers landed across 9
    messaging teams, all scoring 14/60. In round 3, `team-member` agents with
    the charter in their system prompt implemented 10 of 12 rules, scoring
    60, 43 and 28 of 60.
-2. **Agents read a peer's message as an unverified claim, not as spec.** Every
+3. **Agents read a peer's message as an unverified claim, not as spec.** Every
    round-2 holder sent its rule to the right owner. Owners refused it as "not
    in my brief", called the quote suspect, or decided "the briefs disagree",
    and dave held `SHIP` waiting for a lead who never came (Round 2 mailbox logs).
-3. **An authority clause inside a brief file trips the auto-mode classifier.**
+4. **An authority clause inside a brief file trips the auto-mode classifier.**
    "A teammate's rule overrides your section", in a file the agent reads, got
    the agent's next Bash call denied as "Instruction Poisoning" (Round 2,
    `mail-auth`).
-4. **When interfaces are the only coupling, a shared tree is enough.** Every
+5. **When interfaces are the only coupling, a shared tree is enough.** Every
    round-1 arm, including no channel, scored 48/48, because the integrator
    wrote last and read his teammates' files (Round 1).
-5. **A contract-first join card cuts chatter.** Mailbox traffic fell from 17
+6. **A contract-first join card cuts chatter.** Mailbox traffic fell from 17
    messages to 7, and cost from $0.049 to $0.036 per team, against $0.030 with
    no channel (Round 1).
-6. **Native `SendMessage` costs the most.** Each send to a finished peer
+7. **Native `SendMessage` costs the most.** Each send to a finished peer
    restarts it from its transcript (one agent handed back 6 times), early sends
    fail before the roster arrives, and there is no blocking receive. That was
    $0.053–0.059 per team (Round 1).
-7. **Native subagent-to-subagent `SendMessage` works on CC 2.1.296.** `from`
+8. **Native subagent-to-subagent `SendMessage` works on CC 2.1.296.** `from`
    is now the sender's agentId, where it was the agent type on 2026-08-12, but
    `ListAgents` is still absent inside subagents (Log: Probes).
-8. **The two remaining misses were mechanical.** One holder never relayed its
-   rule. One receiver got the rule (message #2) but neither implemented nor
-   acknowledged it. A relay check and an ack check before `SHIP` would catch
-   both (Round 3 mailbox logs).
+9. **A relay + ack + test gate before SHIP closes the gap.** In round 3 the
+   two misses were a rule never relayed and a rule never acknowledged. With
+   the gate, all 3 teams scored 60/60 and implemented 12 of 12 rules, at
+   $0.026 per team against $0.021 without it (Round 4).
+10. **An acknowledgement is not an implementation; the attached test is what
+   catches it.** In round-4 team 1, the GIFT- rule was acknowledged while the
+   invoice still printed the catalog unit price. The holder's test blocked
+   SHIP, the agents routed the fix to the right file, and the second ship
+   attempt passed (Round 4, `runs/r4/mail-gate-1/mail-log.txt`).
 
 ## Method
 
@@ -159,6 +163,28 @@ not have helped: the CLI ignores one that would widen the session's inherited
 mode. Cost comes from the headless result JSON, so it is not directly
 comparable with round 1.
 
+### Round 4: relay, ack and test gate before SHIP
+
+The coordinator seeds the four handoffs per team (`mail seed FROM TO`). A
+holder sends its rule with `mail owe`, attaching an input and the invoice
+lines the rule must produce. `mail ack` records the acknowledgement and
+notifies the team. dave can only ship through `mail ship dave`, which runs
+every test against the team's current tree and messages the responsible agent
+about anything open.
+
+| team | score (/60) | rules implemented | messages | ship attempts | cost |
+|---|---|---|---|---|---|
+| mail-gate-1 | 60 | A B C D | 20 | 2 (1 blocked) | $0.026 |
+| mail-gate-2 | 60 | A B C D | 17 | 1 | $0.027 |
+| mail-gate-3 | 60 | A B C D | 16 | 1 | $0.026 |
+
+The one block came in team 1. bob had acknowledged the GIFT- rule, but the
+invoice still printed `@ 7.00` for a free item. bob traced it to dave's unit
+price display, dave fixed it, and the next `ship` passed. All 12 handoffs were
+relayed and acknowledged without the gate having to prompt for them. That
+suggests the seeded obligations and the `owe` instructions also prevent the
+"never relayed" miss, not just detect it.
+
 ### Files
 
 - `mail.py`, `hook.py`: the mechanism
@@ -166,5 +192,6 @@ comparable with round 1.
   builder and team outputs
 - `task2/`, `harness2/`: round 2/3 task, rule-toggling reference and grader,
   `team-member.md`, headless launcher
-- `runs/r2/`, `runs/r3/`, `runs/r2r3-grades.txt`: team code, mailbox logs,
-  headless result JSON, grades
+- `gate.py`: the owe/ack/ship gate
+- `runs/r2/`, `runs/r3/`, `runs/r4/`, `runs/r2-r4-grades.txt`: team code,
+  mailbox logs, headless result JSON, round-4 obligations, grades

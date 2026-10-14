@@ -1,0 +1,20 @@
+[#1 alice>bob] RULE o1 for your file: Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says.  |  test: {"csv": "order_id,sku,qty\n1,GIFT-MUG,2", "stock": {"GIFT-MUG": 10}, "expect": ["GIFT-MUG", "0.00"], "absent": ["14.00", "7.00"]}  |  implement it, then run: mail ack bob o1
+[#2 bob>carol] RULE o2 for your file: Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.  |  test: {"csv": "O1,WIDGET,4", "stock": {"WIDGET": 5}, "expect": ["7.50"], "absent": ["10.00"]}  |  implement it, then run: mail ack carol o2
+[#3 bob>all] done: pricing.py implemented (price_line, price_order per contract card)
+[#4 alice>all] done: orders/parser.py implemented per contract parse(text)->(lines,rejected). Note: lines are dicts n/order/sku/qty; rejected are (n,reason).
+[#5 carol>dave] RULE o3 for your file: Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`.  |  test: {"csv": "O1,WIDGET,4", "stock": {"WIDGET": 3}, "expect": ["  status PARTIAL"], "absent": ["  status COMPLETE"]}  |  implement it, then run: mail ack dave o3
+[#6 carol>dave] inventory.allocate(lines, stock) -> (allocs:list[dict n order sku qty filled backorder], rejected:list[tuple n:int reason:str]). Ignore my earlier card's ambiguity: this is the final shape. Known skus only in allocs; unknown -> rejected 'unknown sku'.
+[#7 bob>all] ack o1
+[#8 bob>all] done: o1 (GIFT- sku free) implemented in pricing.py
+[#9 dave>alice] RULE o4 for your file: order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge).  |  test: {"csv": "b7,WIDGET,2\nB7,WIDGET,3", "stock": {"WIDGET": 10}, "expect": ["ORDER B7", "  WIDGET Blue Widget x5 @ 2.50 = 12.50"], "absent": ["ORDER b7"]}  |  implement it, then run: mail ack alice o4
+[#10 carol>all] ack o2
+[#11 carol>all] done: orders/inventory.py implemented (allocate per contract, reserve-2 rule o2 acked). Relayed o3 to dave.
+[#12 alice>all] ack o4
+[#13 dave>all] ack o3
+[#14 dave>all] done: orders/report.py implemented. process() calls parse -> allocate -> price_order/price_line; status line (o3) added. Owe o4 sent to alice (case-insensitive order_id).
+[#15 dave>bob] SHIP blocked: o1: test for alice's rule fails: expected [] absent ['7.00']; got: 'ORDER 1\n  GIFT-MUG Gift Mug x2 @ 7.00 = 0.00\n  subtotal 0.00\n  tax 0.00\n  shipping 0.00\n  total 0.00\n  status COMPLETE\n'
+[#16 bob>dave] o1 SHIP fail: invoice shows 'GIFT-MUG ... x2 @ 7.00' — the unit price printed is the catalog price. Per o1 the unit price is 0.00 for GIFT- skus, so report.py should print the unit price as 0.00 (pricing.price_line already returns 0.00). pricing.py is correct; this is in report.py.
+[#17 bob>alice] o1 test: 'absent 7.00' fails because report prints '@ 7.00' unit price; I've asked dave to show 0.00 for GIFT- unit price. pricing is correct.
+[#18 dave>all] SHIP
+[#19 alice>bob,dave] o1 test is correct: the rule says unit price is 0.00, so '7.00' must be absent. Dave's report must print the free unit price for GIFT- lines. Test stands.
+[#20 dave>all] SHIP

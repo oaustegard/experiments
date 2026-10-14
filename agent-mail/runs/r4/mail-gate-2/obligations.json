@@ -1,0 +1,82 @@
+{
+ "o1": {
+  "from": "alice",
+  "to": "bob",
+  "rule": "Any sku that starts with GIFT- is free: its unit price is 0.00 whatever the catalog says.",
+  "test": {
+   "csv": "order_id,sku,qty\nO1,GIFT-MUG,2\nO1,WIDGET,1",
+   "stock": {
+    "GIFT-MUG": 10,
+    "WIDGET": 5
+   },
+   "expect": [
+    "GIFT-MUG",
+    "0.00"
+   ],
+   "absent": [
+    "14.00"
+   ]
+  },
+  "msg": 1,
+  "acked": true
+ },
+ "o2": {
+  "from": "bob",
+  "to": "carol",
+  "rule": "Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.",
+  "test": {
+   "csv": "order_id,sku,qty\nO1,WIDGET,5",
+   "stock": {
+    "WIDGET": 5
+   },
+   "expect": [
+    "WIDGET",
+    "7.50"
+   ],
+   "absent": [
+    "12.50"
+   ]
+  },
+  "msg": 3,
+  "acked": true
+ },
+ "o3": {
+  "from": "carol",
+  "to": "dave",
+  "rule": "Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`.",
+  "test": {
+   "csv": "order,sku,qty\nA100,WIDGET,3\n",
+   "stock": {
+    "WIDGET": 1
+   },
+   "expect": [
+    "  status PARTIAL"
+   ],
+   "absent": [
+    "  status COMPLETE"
+   ]
+  },
+  "msg": 4,
+  "acked": true
+ },
+ "o4": {
+  "from": "dave",
+  "to": "alice",
+  "rule": "order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge).",
+  "test": {
+   "csv": "order_id,sku,qty\nb7,widget,2\nB7,widget,1\n",
+   "stock": {
+    "WIDGET": 5
+   },
+   "expect": [
+    "ORDER B7",
+    "  WIDGET Blue Widget x3 @ 2.50 = 7.50"
+   ],
+   "absent": [
+    "ORDER b7"
+   ]
+  },
+  "msg": 9,
+  "acked": true
+ }
+}

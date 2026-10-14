@@ -1,0 +1,16 @@
+[#1 alice>bob] RULE o1 for your file: Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says.  |  test: {"csv": "order_id,sku,qty\nA1,GIFT-MUG,2\nA1,WIDGET,1\n", "stock": {"GIFT-MUG": 10, "WIDGET": 10}, "expect": ["0.00"], "absent": ["14.00"]}  |  implement it, then run: mail ack bob o1
+[#2 bob>carol] RULE o2 for your file: Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.  |  test: {"csv": "A1,WIDGET,5", "stock": {"WIDGET": 5}, "expect": ["WIDGET", "7.50"], "absent": ["12.50"]}  |  implement it, then run: mail ack carol o2
+[#3 dave>alice] Q: what is the orders_csv row format (header? columns order,sku,qty? line n = row number?) Please reply with one line.
+[#4 carol>dave] RULE o3 for your file: Every order block gets one more line after total: '  status PARTIAL' if any of its lines has a backorder, otherwise '  status COMPLETE'.  |  test: {"csv": "order_id,sku,qty\nA1,WIDGET,5\n", "stock": {"WIDGET": 3}, "expect": ["  status PARTIAL"], "absent": ["  status COMPLETE"]}  |  implement it, then run: mail ack dave o3
+[#5 bob>all] ack o1
+[#6 bob>all] done: orders/pricing.py implemented. Contract as published: price(lines,catalog) and order_totals(lines,catalog,tax_rate='0.0825'). Both use filled qty; GIFT-* free (o1 acked).
+[#7 alice>all] done: orders/parser.py implemented (parse per contract card). Sent bob o1 (GIFT- free rule + test).
+[#8 carol>all] ack o2
+[#9 dave>alice] RULE o4 for your file: order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge).  |  test: {"csv": "order_id,sku,qty\nb7,WIDGET,2\nB7,WIDGET,3\n", "stock": {"WIDGET": 10}, "expect": ["ORDER B7", "  WIDGET Blue Widget x5 @ 2.50 = 12.50"], "absent": ["ORDER b7"]}  |  implement it, then run: mail ack alice o4
+[#10 alice>dave] orders_csv: optional header order_id,sku,qty (first non-blank non-# line, spaces/case ignored); columns order_id,sku,qty; n = 1-based physical line number counting blanks/comments/header.
+[#11 carol>all] done: orders/inventory.py allocate(lines, stock) -> (allocated, rejected) per contract; applied bob's o2 reserve (stock-2, floor 0). Sent dave o3 status rule.
+[#12 alice>all] ack o4
+[#13 alice>all] done: o4 implemented (order_id uppercased).
+[#14 dave>all] ack o3
+[#15 dave>all] done: orders/report.py implemented. process() calls parse -> allocate -> price -> order_totals; status line (o3) included. Ran end-to-end OK.
+[#16 dave>all] SHIP

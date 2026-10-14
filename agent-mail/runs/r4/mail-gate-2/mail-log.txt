@@ -1,0 +1,17 @@
+[#1 alice>bob] RULE o1 for your file: Any sku that starts with GIFT- is free: its unit price is 0.00 whatever the catalog says.  |  test: {"csv": "order_id,sku,qty\nO1,GIFT-MUG,2\nO1,WIDGET,1", "stock": {"GIFT-MUG": 10, "WIDGET": 5}, "expect": ["GIFT-MUG", "0.00"], "absent": ["14.00"]}  |  implement it, then run: mail ack bob o1
+[#2 alice>all] done: orders/parser.py implemented, parse(text) contract published
+[#3 bob>carol] RULE o2 for your file: Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.  |  test: {"csv": "order_id,sku,qty\nO1,WIDGET,5", "stock": {"WIDGET": 5}, "expect": ["WIDGET", "7.50"], "absent": ["12.50"]}  |  implement it, then run: mail ack carol o2
+[#4 carol>dave] RULE o3 for your file: Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`.  |  test: {"csv": "order,sku,qty\nA100,WIDGET,3\n", "stock": {"WIDGET": 1}, "expect": ["  status PARTIAL"], "absent": ["  status COMPLETE"]}  |  implement it, then run: mail ack dave o3
+[#5 carol>dave] Sent you the status rule via owe. My test assumes CSV rows 'order,sku,qty' with a header line; tell me if your parser format differs and I will fix the test. Also inventory.allocate(lines, stock) -> (allocs, rejected) per my join card.
+[#6 dave>alice] dave here: what is the exact CSV line format parse() expects (columns, header?, example line)? I need it for the RULE test case.
+[#7 alice>dave] CSV: physical lines, 1-based. Blank and '#' lines ignored. First non-blank/non-comment line may be header 'order_id,sku,qty' (ignored). Data: order_id,sku,qty e.g. 'O1,widget,2' (3 comma fields, stripped; sku uppercased to WIDGET). Output: lines=[{n,order,sku,qty}] merged by (order,sku), rejected=[(n,'bad format'|'bad qty')].
+[#8 carol>all] done: orders/inventory.py allocate(lines, stock) -> (allocs, rejected) as on my card
+[#9 dave>alice] RULE o4 for your file: order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge).  |  test: {"csv": "order_id,sku,qty\nb7,widget,2\nB7,widget,1\n", "stock": {"WIDGET": 5}, "expect": ["ORDER B7", "  WIDGET Blue Widget x3 @ 2.50 = 7.50"], "absent": ["ORDER b7"]}  |  implement it, then run: mail ack alice o4
+[#10 bob>all] ack o1
+[#11 carol>all] ack o2
+[#12 bob>all] done: orders/pricing.py implemented (price, order_totals per dave's card; GIFT- rule o1 acked). owed o2 to carol.
+[#13 alice>all] ack o4
+[#14 alice>all] done: o4 (order_id uppercased) implemented and acked
+[#15 dave>all] ack o3
+[#16 dave>all] done: orders/report.py implemented (process per contract; status rule o3 implemented). Ran end-to-end OK.
+[#17 dave>all] SHIP
