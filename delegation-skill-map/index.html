@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delegation skill map</title>
+<meta name="description" content="Inventory of the agent, delegation and orchestration skills in claude-skills, with frontmatter, boundaries and a decision path.">
+<style>
+:root{--bg:#fafaf7;--fg:#1c1c1a;--mut:#6b6b64;--line:#dcdcd3;--card:#fff;--acc:#2f5d8a;--warn:#a4452c;--ok:#3b6b3a;--chip:#eceee6}
+@media (prefers-color-scheme:dark){:root{--bg:#161715;--fg:#e8e8e2;--mut:#9a9a90;--line:#33352f;--card:#1e201d;--acc:#8ab4dc;--warn:#e08a70;--ok:#8cc08a;--chip:#2a2c27}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:2rem 16px 4rem}
+h1{font-size:1.9rem;margin:.2em 0}
+h2{font-size:1.3rem;margin:2.4em 0 .5em;border-bottom:1px solid var(--line);padding-bottom:.25em}
+h3{font-size:1.02rem;margin:1.4em 0 .3em}
+p,li{max-width:74ch}
+.sub{color:var(--mut);margin:0 0 1.5rem}
+code{font:.88em ui-monospace,Menlo,monospace;background:var(--chip);padding:.05em .35em;border-radius:3px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:.5rem .65rem;border-bottom:1px solid var(--line)}
+th{background:var(--chip);position:sticky;top:0;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n{font-weight:600;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:.72rem;padding:.05em .5em;border-radius:99px;background:var(--chip);margin:.1em .15em .1em 0;white-space:nowrap}
+.tag.warn{color:var(--warn)} .tag.ok{color:var(--ok)} .tag.acc{color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.8rem 1rem}
+.card h3{margin-top:0}
+.q{counter-reset:q;list-style:none;padding:0;margin:0}
+.q li{counter-increment:q;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.6rem .9rem .6rem 3rem;margin:0 0 8px;position:relative;max-width:none}
+.q li::before{content:counter(q);position:absolute;left:.9rem;top:.55rem;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--acc);color:var(--bg);font-weight:700;text-align:center;line-height:1.6rem;font-size:.85rem}
+.q b.go{color:var(--acc)}
+.axis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.mut{color:var(--mut)}
+.small{font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Delegation skill map</h1>
+<p class="sub">Snapshot 2026-10-14 of <code>/mnt/skills/user/</code> (115 directories), plus the agent types, tools and docs that sit beside them. Frontmatter fields, lengths and versions are read from the files; the groupings and the overlap verdicts are my judgment.</p>
+
+<h2>Summary</h2>
+<p>Fourteen skills touch agents or delegation. They answer <b>six different questions</b>, and most of the apparent overlap is two pairs of near-duplicates plus one shim:</p>
+<ul>
+<li><b>Where does the work run?</b> <code>dispatching-subagents</code> (Claude Code: Agent tool vs Workflow vs headless <code>claude -p</code>), <code>orchestrating-chat-agents</code> (claude.ai, no subagent tools), <code>swarming-failing-tests</code> (hours-long swarm), <code>create_session</code> (outlives the container; documented in <code>docs/delegation.md</code>, not a skill).</li>
+<li><b>What does the child know?</b> <code>delegating-with-context</code> (hook appends transcript chunks to the prompt).</li>
+<li><b>Which model and effort?</b> <code>agent-routing</code>.</li>
+<li><b>What shape is the task?</b> <code>flowing</code> (fixed DAG, no model between steps), <code>tiling-tree</code> (MECE exploration), <code>convening-experts</code> (panel), <code>challenging</code> (adversarial review), <code>deciding-with-confidence</code> (classification).</li>
+<li><b>Which other vendor's agent?</b> <code>invoking-gemini</code>, <code>invoking-antigravity</code>.</li>
+<li><b>Legacy:</b> <code>orchestrating-agents</code> (deprecated alias), <code>orchestrating-skills</code> (claude.ai-only in practice).</li>
+</ul>
+<p>The four skills Oskar originally meant (<code>dispatching-subagents</code>, <code>agent-routing</code>, <code>delegating-with-context</code>, <code>orchestrating-*</code>) are distinct once you fix the surface and the question. They look alike because all four descriptions open with "subagent" vocabulary. Descriptions already route them well: 173 of 174 correct picks in <a href="../subagent-skill-choice/RESULTS.md"><code>subagent-skill-choice</code></a>, against 55–85% on names alone.</p>
+
+<h2>Decision path</h2>
+<p>Take the first yes.</p>
+<ol class="q">
+<li><b>Are you in claude.ai chat or the bare API, with no <code>Agent</code>/<code>Workflow</code> tool?</b> → <b class="go">orchestrating-chat-agents</b> (Claude fan-out over httpx) or <b class="go">invoking-gemini</b> (cheaper, any surface).</li>
+<li><b>Is the procedure a fixed sequence with no model judgment between steps?</b> → <b class="go">flowing</b>. No agents involved.</li>
+<li><b>Is it one classify / route / yes-no / score call per item?</b> → Muninn <code>decide</code> (Jev), then <b class="go">deciding-with-confidence</b>, then the <code>decider</code> agent. Per-item subagents cost ~32.5K tokens of overhead each.</li>
+<li><b>Must the work outlive this container, or run a different main-loop model with hooks?</b> → <code>create_session</code>, per <code>docs/delegation.md</code> (no skill).</li>
+<li><b>Hundreds of failing tests, hours of runtime, merge gate needed?</b> → <b class="go">swarming-failing-tests</b>.</li>
+<li><b>Fan-out in Claude Code?</b> → <b class="go">dispatching-subagents</b> picks the mechanism (Agent tool, Workflow, headless). Then write the prompt with <b class="go">delegating-with-context</b> when using Agent or <code>create_session</code>, and choose model and effort with <b class="go">agent-routing</b>.</li>
+<li><b>Want a particular thinking method rather than throughput?</b> → <b class="go">tiling-tree</b> (exhaustive partition), <b class="go">convening-experts</b> (named perspectives), <b class="go">challenging</b> (attack a finished deliverable).</li>
+<li><b>Want a non-Claude agent?</b> → <b class="go">invoking-antigravity</b> (<code>agy</code> CLI).</li>
+</ol>
+
+<h2>Axes that separate them</h2>
+<div class="axis">
+<div class="card"><h3>Surface</h3><p class="small">claude.ai chat: <code>orchestrating-chat-agents</code>. Claude Code / CCotw: everything else. <code>orchestrating-skills</code> and <code>tiling-tree</code> run through the chat-agents path and say to use the native runtime in Claude Code.</p></div>
+<div class="card"><h3>Decision type</h3><p class="small">Mechanism (<code>dispatching</code>), model/effort (<code>agent-routing</code>), prompt content (<code>delegating-with-context</code>), method (<code>tiling-tree</code>, <code>convening-experts</code>, <code>challenging</code>).</p></div>
+<div class="card"><h3>Scale</h3><p class="small">One question: Agent tool directly, no skill. Under 10: Agent tool. 10+: headless. Hundreds for hours with a gate: <code>swarming-failing-tests</code>.</p></div>
+<div class="card"><h3>Determinism</h3><p class="small">No model between steps: <code>flowing</code>. Model judgment between steps: Agent tool or Workflow.</p></div>
+</div>
+
+<h2>Inventory</h2>
+<p class="small mut">Frontmatter keys are <code>name</code>, <code>description</code>, <code>metadata.version</code> for every skill below; only <code>agent-routing</code> adds <code>compatibility</code>, and only <code>tiling-tree</code> (and <code>orchestrating-skills</code>, as an empty list) sets <code>metadata.depends_on</code>. "Desc" is description length in characters; "Lines" is SKILL.md length.</p>
+<div class="scroll"><table>
+<thead><tr><th>Skill</th><th>Ver</th><th class="num">Desc</th><th class="num">Lines</th><th>Question it answers</th><th>Surface</th><th>Its own "not this, use that" pointers</th></tr></thead>
+<tbody>
+<tr><td class="n">dispatching-subagents</td><td>0.2.1</td><td class="num">727</td><td class="num">200</td><td>Agent tool, Workflow or headless <code>claude -p</code> for this fan-out? Runs the headless runner, with a cost ledger and resume.</td><td><span class="tag acc">Claude Code</span></td><td>model/effort → agent-routing; chat → orchestrating-chat-agents; per-item volume → invoking-gemini; fixed pipeline → flowing; outlives session → create_session; test swarm → swarming-failing-tests</td></tr>
+<tr><td class="n">delegating-with-context</td><td>0.2.2</td><td class="num">397</td><td class="num">188</td><td>How do I write the Agent or <code>create_session</code> prompt? Write only the task; a PreToolUse hook appends transcript chunks selected through Jev.</td><td><span class="tag acc">Claude Code</span> hook</td><td>no context needed → <code>[no-context]</code>; whole session → <code>fork</code>; per-item labels → Jev/Gemini; model choice → agent-routing; chat → orchestrating-chat-agents; running tally across relays → state file</td></tr>
+<tr><td class="n">agent-routing</td><td>2.7.1</td><td class="num">885</td><td class="num">509</td><td>Which model, effort and escalation cascade? Routes on measured cost per completed task, not per-token price.</td><td><span class="tag acc">Claude Code</span> (<code>compatibility</code> field)</td><td>Not applicable to claude.ai chat. Cascades need a verifier.</td></tr>
+<tr><td class="n">swarming-failing-tests</td><td>0.5.1</td><td class="num">1010</td><td class="num">321</td><td>Drive hundreds or thousands of failing tests green with a long Haiku swarm, clustered fixes, worktrees, serial no-regression merge gate, federation across containers.</td><td><span class="tag acc">Claude Code</span></td><td>&lt;10 tasks → Agent tool; one-off fan-out → dispatching-subagents; model choice → agent-routing; fixed pipeline → flowing</td></tr>
+<tr><td class="n">orchestrating-chat-agents</td><td>1.0.0</td><td class="num">510</td><td class="num">487</td><td>Parallel Claude calls over the API with shared cached context, streaming, threads and agent pools. Also Gemini via the Cloudflare gateway.</td><td><span class="tag">claude.ai</span> <span class="tag">any (Gemini)</span></td><td>Has a "SURFACE ROUTING" block: with native subagents, use those.</td></tr>
+<tr><td class="n">orchestrating-agents</td><td>0.9.0</td><td class="num">314</td><td class="num">32</td><td>Nothing. Deprecated alias of <code>orchestrating-chat-agents</code>; its modules re-export the new ones.</td><td>—</td><td>Names both replacements in its description.</td></tr>
+<tr><td class="n">orchestrating-skills</td><td>0.4.1</td><td class="num">456</td><td class="num">227</td><td>Decompose a task into skill-typed subtasks, give each a context subset, run in parallel, synthesize. Self-answers trivial lookups.</td><td><span class="tag">claude.ai</span> (own routing block says use native runtime in Claude Code)</td><td>Single-skill tasks; tool use or code execution; streaming. Description mentions orchestrating-chat-agents as the thing it improves on.</td></tr>
+<tr><td class="n">flowing</td><td>1.5.0</td><td class="num">993</td><td class="num">118</td><td>Enforce ordering, branching and retries for a 3+ step procedure as a Python DAG (<code>depends_on</code>, <code>when=</code>, <code>validate=</code>, <code>retry_until=</code>, <code>detached=</code>, <code>journal_path=</code>).</td><td>any</td><td>Single call; steps needing reasoning; async/distributed; check audit → gating; many-agent fan-out → dynamic workflow</td></tr>
+<tr><td class="n">tiling-tree</td><td>1.1.1</td><td class="num">481</td><td class="num">83</td><td>Exhaustive MECE partition of a solution space by recursive parallel subagents, then leaf scoring.</td><td><span class="tag">claude.ai</span> (<code>depends_on: orchestrating-chat-agents</code>)</td><td>Carries the same "use the native runtime" block as orchestrating-skills.</td></tr>
+<tr><td class="n">convening-experts</td><td>1.2.1</td><td class="num">281</td><td class="num">223</td><td>Panel of 3–5 expert personas (MECE, DMAIC, RAPID, Socratic…), single- or multi-round, ending in a synthesis with attribution.</td><td>any</td><td>Same routing block; "give a direct answer instead of manufacturing perspectives."</td></tr>
+<tr><td class="n">challenging</td><td>0.13.0</td><td class="num">299</td><td class="num">220</td><td>Adversarial review of a finished deliverable: subagent (Claude Code), API (Gemini/Claude), or self path. Includes a 5-Whys <code>drill</code>.</td><td>any, three paths</td><td>—</td></tr>
+<tr><td class="n">deciding-with-confidence</td><td>0.1.1</td><td class="num">718</td><td class="num">181</td><td>Route, triage, flag or rate text with a probability per option, in OpenAI Decisions API shapes, run on Haiku.</td><td>any</td><td>Muninn <code>decide</code> (Jev) is faster, cheaper and more accurate when present.</td></tr>
+<tr><td class="n">invoking-gemini</td><td>0.9.0</td><td class="num">316</td><td class="num">382</td><td>Gemini for structured output, images, TTS, multimodal, cheap parallel processing.</td><td>any</td><td>—</td></tr>
+<tr><td class="n">invoking-antigravity</td><td>0.1.1</td><td class="num">264</td><td class="num">70</td><td>Drive Google's <code>agy</code> CLI as a non-interactive sub-agent.</td><td>any with <code>agy</code></td><td>Interactive local use → run <code>agy</code> directly.</td></tr>
+</tbody></table></div>
+
+<h2>Beyond skills</h2>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Kind</th><th>Frontmatter / interface</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td class="n"><code>Agent</code> tool</td><td>tool</td><td><code>subagent_type</code>, <code>model</code>, <code>prompt</code>, <code>isolation</code></td><td>Sets the subagent's model. Cannot set effort. Each launch and completion is a parent turn.</td></tr>
+<tr><td class="n"><code>Workflow</code> tool</td><td>tool</td><td>script with <code>meta</code>, <code>agent()</code>, <code>parallel()</code>, <code>pipeline()</code></td><td>Sets per-agent effort. Needs explicit user opt-in. Load <code>workflow-authoring</code> first.</td></tr>
+<tr><td class="n">headless <code>claude -p</code></td><td>mechanism</td><td><code>headless_fanout.py</code>, <code>scripts/fanout.py</code></td><td>Volume without parent turns; no MCP connectors or transcript hook.</td></tr>
+<tr><td class="n"><code>create_session</code></td><td>tool</td><td><code>source_url</code>, <code>prompt</code>, <code>model</code></td><td>Outlives the container. Always pass <code>source_url</code> or the child starts bare.</td></tr>
+<tr><td class="n">auditor</td><td>agent type</td><td><code>tools: Bash, Read, Grep, Glob, Write</code>, <code>model: haiku</code></td><td>Read-only checker; Bash gated by <code>guard_readonly_agent.py</code>; writes only the <code>OUTPUT:</code> path.</td></tr>
+<tr><td class="n">decider</td><td>agent type</td><td><code>tools: Read</code>, <code>model: claude-haiku-5-5</code></td><td>Fallback for <code>decide</code>; JSON probabilities, no prose.</td></tr>
+<tr><td class="n">team-member</td><td>agent type</td><td><code>tools: Bash, Read, Edit, Write, Glob, Grep</code>, <code>model: haiku</code>, <code>maxTurns: 80</code></td><td>Agent-mail team experiments only.</td></tr>
+<tr><td class="n"><code>docs/delegation.md</code></td><td>doc (claude-workspace)</td><td>—</td><td>The ladder: driver script → subagents → headless → sibling session. Duplicates part of <code>dispatching-subagents</code>'s decision rule.</td></tr>
+</tbody></table></div>
+
+<h2>Pairs people confuse</h2>
+<div class="grid">
+<div class="card"><h3>dispatching-subagents vs agent-routing</h3><p class="small"><code>dispatching</code> decides <i>how to launch</i> (mechanism, concurrency, ledger). <code>agent-routing</code> decides <i>what each child runs on</i> (model, effort, cascade). You typically need both, in that order. The one misrouted request in the earlier test, "fan out 300 tests, which model?", contains both questions.</p></div>
+<div class="card"><h3>dispatching-subagents vs delegating-with-context</h3><p class="small">One chooses the launcher; the other writes the prompt. <code>delegating-with-context</code> only applies to the Agent tool and <code>create_session</code>, because headless children have no hook and need their context written into the task file.</p></div>
+<div class="card"><h3>dispatching-subagents vs swarming-failing-tests</h3><p class="small">One-off independent tasks with no merging vs a multi-hour loop with clustering, worktrees and a merge gate. The swarm reuses the dispatcher's headless runner per worker.</p></div>
+<div class="card"><h3>orchestrating-chat-agents vs orchestrating-agents vs orchestrating-skills</h3><p class="small">Same job (httpx fan-out for surfaces without subagents), three directories. <code>orchestrating-agents</code> is a redirect. <code>orchestrating-skills</code> adds skill-typed planning and context slicing but has its own text telling Claude Code users to go native.</p></div>
+<div class="card"><h3>tiling-tree vs convening-experts vs challenging</h3><p class="small">Tiling tree spawns real parallel agents to cover a space exhaustively. Convening experts runs a persona panel toward one synthesized recommendation. Challenging attacks one finished artifact from a fresh context. Different outputs: an option map, a recommendation, a verdict with severities.</p></div>
+<div class="card"><h3>flowing vs a Workflow script</h3><p class="small"><code>flowing</code> enforces a fixed DAG of plain functions and cannot reason between steps. A Workflow script orchestrates agents and needs user opt-in. Both give phases, retries and resume; the difference is whether a model sits inside the steps.</p></div>
+<div class="card"><h3>deciding-with-confidence vs decider vs Jev</h3><p class="small">One capability, three implementations, in preference order: Muninn <code>decide</code>, then the skill's script, then the <code>decider</code> agent. Each says the others are slower or less accurate.</p></div>
+<div class="card"><h3>invoking-gemini vs invoking-antigravity</h3><p class="small">API calls to a model vs a full agent harness (<code>agy</code>) that can use tools in its own sandbox.</p></div>
+</div>
+
+<h2>Where the nuance can be cut</h2>
+<ol>
+<li><b>Delete <code>orchestrating-agents</code>.</b> A 32-line redirect whose description starts "DEPRECATED". It still costs a catalogue slot and was the most misleading name in the earlier test (10 of 45 dispatch picks). It also exists in the plugin copy under <code>plugins/ai-and-reasoning/</code>. The condition for deleting: nothing imports its scripts. Check with <code>xr</code> first.</li>
+<li><b>Fold <code>orchestrating-skills</code> and <code>tiling-tree</code> behind <code>orchestrating-chat-agents</code>.</b> Both carry a block telling Claude Code users to use something else, so they only apply in claude.ai, where this inventory's other skills mostly don't. Keep them, but mark the surface in the first words of the description ("claude.ai only:") so a Claude Code session never loads them.</li>
+<li><b>Make <code>docs/delegation.md</code> point at <code>dispatching-subagents</code> instead of restating its rule 4–5.</b> Two places hold the Agent-vs-headless threshold; they will drift. The doc keeps the <code>create_session</code> rules, which no skill covers.</li>
+<li><b>Descriptions run 264–1010 characters with no common shape.</b> Only <code>flowing</code>, <code>dispatching-subagents</code>, <code>swarming-failing-tests</code> and <code>agent-routing</code> list quoted trigger phrases and negative cases in the description itself. A fixed template (verb phrase, "Use for", "Not for → X") would let the pairs above separate on the first line.</li>
+<li><b>Surface is the cheapest discriminator and is inconsistent.</b> Only <code>agent-routing</code> has the <code>compatibility</code> field; the rest encode surface in prose. Setting <code>compatibility</code> on all fourteen would make "claude.ai vs Claude Code" machine-readable.</li>
+<li><b>Leave alone:</b> <code>flowing</code>, <code>challenging</code>, <code>convening-experts</code>, <code>invoking-*</code>, <code>deciding-with-confidence</code>. They answer questions no other skill does; they sit near the delegation cluster by vocabulary, not by function.</li>
+</ol>
+<p class="small mut">Not measured here: whether people (rather than a model reading skill bodies) pick correctly. The earlier experiment left that open too.</p>
+</main>
+</body>
+</html>
