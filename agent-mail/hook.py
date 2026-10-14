@@ -24,7 +24,7 @@ BINDS = Path.home() / ".claude" / "agent-mail" / "binds"
 
 
 def run(payload: dict) -> dict | None:
-    agent = payload.get("agent_id")
+    agent = payload.get("agent_id") or payload.get("session_id")  # subagent, or a headless child
     if not agent:
         return None
     bind = BINDS / f"{agent}.json"

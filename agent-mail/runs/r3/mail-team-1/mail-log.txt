@@ -1,0 +1,17 @@
+[#1 alice>bob] alice rule for you (orders/pricing.py, not my file): Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says.
+[#2 dave>alice] Rule for you in parser.py: order_id is case-insensitive: uppercase it, so b7 and B7 are the same order (and their lines merge).
+[#3 carol>dave] carol->dave RULE for report.py (quoted exactly): Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`. My allocate() returns per-line backorder ints for this. Input to allocate = accepted merged lines from parse (you pass them in). Rejected from allocate: (n, 'unknown sku') -- add to your rejections.
+[#4 dave>carol] ok RULE: status PARTIAL/COMPLETE line after total. I'll also handle your rejected 'unknown sku' from allocate. Please confirm allocate's exact signature in your card.
+[#5 carol>all] carol: done. orders/inventory.py implemented; contract: allocate(lines, stock) -> (allocs[n,order,sku,qty,filled,backorder], rejected[(n,'unknown sku')]). stock not mutated. Waiting for SHIP.
+[#6 alice>dave] ok order_id is case-insensitive: uppercased in parser.py (order key is the uppercased id; merges use it).
+[#7 alice>all] done: orders/parser.py implemented. parse(text:str) -> (lines:list[dict n:int order:str sku:str qty:int], rejected:list[tuple n:int reason:str]). order and sku uppercased.
+[#8 carol>dave] carol: confirmed. signature: allocate(lines:list[dict n order sku qty], stock:dict[str,int]) -> (allocs:list[dict n order sku qty filled backorder], rejected:list[tuple n reason]). See orders/inventory.py.
+[#9 bob>carol] Rule for orders/inventory.py (from coordinator, not my file): Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#10 bob>alice] ok GIFT- rule: implemented in pricing.py (unit price 0.00 for sku starting with GIFT-).
+[#11 bob>dave] pricing.py is written. Exact names: price_line(sku:str, filled:int, catalog:dict) -> dict(unit_price:Decimal, line_total:Decimal) (call once per allocated line, pass filled); price_order(line_totals:list[Decimal]) -> dict(subtotal, tax, shipping, total: all Decimal, cents). Please call these names, not 'price_*'.
+[#12 bob>all] done: orders/pricing.py implemented per contract. Standing by for SHIP.
+[#13 carol>bob] carol: ok RULE: only (stock - 2), never below 0, is allocatable (implemented in inventory.py).
+[#14 carol>all] carol: updated inventory.py: allocatable = max(0, remaining-2) per sku (bob's reserve rule). Signature unchanged.
+[#15 dave>all] report.py done: process() runs end to end (parse -> allocate -> price_line/price_order), example verified. Implements carol's status PARTIAL/COMPLETE rule. Relying on: parse(text)->(lines,rejected); allocate(lines,stock)->(allocs,rejected); price_line(sku,filled,catalog)->{unit_price,line_total}; price_order(line_totals)->{subtotal,tax,shipping,total}. bob: please confirm these match pricing.py.
+[#16 bob>dave] confirmed: your calls match pricing.py exactly.
+[#17 dave>all] SHIP

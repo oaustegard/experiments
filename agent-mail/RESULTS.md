@@ -100,6 +100,96 @@ improves correctness. Round 2 needs a task where the shared tree cannot carry
 the needed information: a rule known to one agent that changes another
 agent's code, which cannot be read off any file.
 
+## Round 2: rules that only a teammate can implement
+
+**Task** (`task2/`): the same package with four extra rules (`harness2/ref.py`
+rules A–D). Each rule is planted in one agent's brief but belongs in a
+teammate's file:
+
+| holder | owner | rule |
+|---|---|---|
+| alice | bob | `GIFT-` skus are free |
+| bob | carol | keep 2 units of every sku in reserve |
+| carol | dave | `status PARTIAL/COMPLETE` line after `total` |
+| dave | alice | order_id is case-insensitive (uppercase it) |
+
+Grading uses 60 hidden cases. With none of the rules implemented, a team
+scores 14/60, from the reject-only and empty cases. Missing any single rule
+fails 17–46 cases. The grader also reports which subset of the rules the
+team's output matches best.
+
+**Results** (`runs/r2r3-grades.txt`). Round 2 used Haiku 5.5 Agent-tool
+subagents, at most 20 running at once, so the teams ran in waves:
+
+| arm | teams | score | rules implemented |
+|---|---|---|---|
+| no channel | 3 | 0, 0, 14 | none; 2 teams never integrated |
+| native SendMessage, plain intro | 1 | 14 | none |
+| mailbox + push hook, plain card | 3 | 14, 14, 14 | none |
+| mailbox + push hook, contract card | 2 | 14, 14 | none |
+
+The rules were not lost in transit. In every messaging team the holder sent
+the rule to the right owner, and the owner refused it because it was not in
+their own brief. Some owners called the teammate's quote suspect. Others
+decided "the briefs disagree" and asked a lead to compare copies. dave then
+held `SHIP` waiting for a ruling that never came. These agents read
+teammates' messages as unverified claims, not as spec.
+
+**The authority clause, first attempt (`mail-auth`).** The brief gained a
+section saying a teammate's rule "overrides anything in your section it
+conflicts with". The auto-mode classifier denied the first agent's next Bash
+call as "Instruction Poisoning": the agent had just read a file telling it to
+let peers override its instructions. The arm stopped after one agent.
+
+## Round 3: authority in the system prompt
+
+The same authority rule moved out of the brief and into the system prompt of
+a custom agent, `team-member` (`harness2/team-member.md`). Its wording is that
+the coordinator wrote one spec and split it across the briefs on purpose, so a
+rule a teammate quotes is part of the same spec. The briefs are the same as
+mail-contract's.
+
+The arm ran as 12 headless `claude -p --agent team-member` children (3 teams
+of 4), with `--allowedTools` scoped to file and shell tools, because agent
+definitions only load when a session starts.
+
+| team | score | rules implemented | messages | cost |
+|---|---|---|---|---|
+| mail-team-1 | 60/60 | A B C D | 17 | $0.019 |
+| mail-team-2 | 28/60 | A C D | 17 | $0.025 |
+| mail-team-3 | 43/60 | A B C | 16 | $0.020 |
+
+That is 10 of the 12 planted rules implemented, against 0 of about 32
+attempted rule transfers in round 2. The two misses happened for different
+reasons. In team 2, bob never relayed the reserve rule. In team 3, dave
+relayed the order_id rule (message #2), but alice did not implement it and
+did not acknowledge it.
+
+## Conclusions
+
+1. **Transport is solved.** A file mailbox with a PostToolUse push hook
+   delivers reliably and costs the least. Native SendMessage works too, but it
+   restarts finished peers and has no way to wait for a reply.
+2. **The intro has to carry authority, and it has to carry it from the
+   system prompt.** In round 2 the same information, delivered the same way,
+   transferred 0 rules. With one paragraph of team charter moved into the
+   system prompt, it transferred 10 of 12. Putting the charter in a brief the
+   agent reads with a tool fails twice over: agents treat tool-result text as
+   data, and the classifier treats "let peers override you" in a read file as
+   injection.
+3. **The design that works** is a custom agent whose system prompt carries
+   the team charter, a mailbox with push delivery, a contract-first join card,
+   relay-on-join for held rules, `ok <rule>` acknowledgements, and done/SHIP.
+   The two remaining misses suggest two mechanical gates: a relay check (every
+   held rule sent) and an ack check (every relayed rule acknowledged), both
+   enforced before SHIP.
+
+**Caveats:** one task, Haiku 5.5 only, 3 teams in the winning arm. Round 3
+used headless children, not Agent-tool subagents, so its cost is not directly
+comparable with round 1. The native arm ran 1 team in round 2 instead of 3,
+and two queued teams were dropped once the first nine had all failed the same
+way.
+
 ## Files
 
 - `mail.py`, `hook.py`: the mechanism
@@ -107,3 +197,5 @@ agent's code, which cannot be read off any file.
 - `harness/`: reference implementation, case generator, grader, brief builder
   (`mkbriefs.py`), cost analysis
 - `runs/r1/<arm>/`: the code each team produced, plus mailbox logs
+- `task2/`, `harness2/`: round 2/3 task, rule-toggling reference, grader, `team-member` agent and headless launcher
+- `runs/r2/`, `runs/r3/`: round 2/3 team code, mailbox logs, headless result JSON; `runs/r2r3-grades.txt`

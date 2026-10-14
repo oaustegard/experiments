@@ -1,0 +1,5 @@
+[#1 alice>bob] Rule for pricing.py (from alice): any sku that starts with GIFT- is free: its unit price is 0.00 whatever the catalog says.
+[#2 bob>carol] Rule for inventory.py (from bob's brief): keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#3 bob>alice] ok GIFT- rule: unit price 0.00 for any sku starting with GIFT-, implemented in pricing.py
+[#4 bob>all] CONTRACT CHANGE: pricing.py now exposes price_orders(lines, catalog) -> dict keyed by order name (one entry per order, with subtotal/tax/shipping/total/lines). Call it once with all lines; the earlier single-order price_order is gone.
+[#5 bob>all] done (pricing.py). Contract: price_orders(lines, catalog) -> dict keyed by order (subtotal/tax/shipping/total strings + lines). Includes GIFT- rule from alice.
