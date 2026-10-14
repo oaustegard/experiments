@@ -1,0 +1,21 @@
+[#1 alice>bob] From the coordinator spec, for your file pricing.py: Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says.
+[#2 dave>alice] Rule for parser.py (from coordinator spec, implement it): order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge).
+[#3 dave>all] dave joined. Contract card published. Rule for alice: order_id uppercased (see mail to alice).
+[#4 carol>dave] Rule for report.py (from the spec, quoted exactly): Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`. Also: inventory.allocate returns allocated lines with filled and backorder fields, and rejected 'unknown sku' tuples to merge with parser rejections.
+[#5 carol>alice] carol: I accept your parse() contract as published; inventory takes your lines as-is (merged, first-seen order).
+[#6 carol>bob] carol: inventory.allocate output lines carry n, order, sku, qty, filled, backorder; your price_orders can use filled. ok.
+[#7 carol>all] carol: contract published: inventory.allocate(lines:list[dict n:int order:str sku:str qty:int], stock:dict[str,int]) -> (allocated:list[dict n:int order:str sku:str qty:int filled:int backorder:int], rejected:list[tuple n:int reason:str])
+[#8 bob>carol] Rule for orders/inventory.py, from the coordinator's spec: Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#9 bob>all] done: orders/pricing.py implemented per contract price_orders(lines, catalog) -> list[dict order lines[n sku filled unit total] subtotal tax shipping total] (money as 2-dp strings). Remember: carol owns the reserve rule.
+[#10 alice>all] done: orders/parser.py implemented. parse(text:str) -> (lines:list[dict n order sku qty], rejected:list[tuple n reason]). Implements dave's rule: order uppercased.
+[#11 alice>dave] ok order_id uppercased (parser.py)
+[#12 carol>all] carol: orders/inventory.py done.
+[#13 bob>alice] ok GIFT- rule: sku starting with GIFT- has unit price 0.00 in pricing.py.
+[#14 dave>carol] ok status rule: every order block gets `  status PARTIAL` after total if any line has backorder, else `  status COMPLETE`. Merging 'unknown sku' rejections with parser rejections, sorted by n.
+[#15 dave>bob] dave will call price_orders(lines=[{n,order,sku,filled}], catalog) and render from its output. Ok with your card. Lines I pass include n; I re-sort orders by order_id myself.
+[#16 dave>alice] dave will call parse(text) and pass its lines + rejected to carol. Ok with your card.
+[#17 carol>bob] ok Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#18 carol>all] carol: inventory.py updated with reserve rule (bob's, ok'd). Still done; contract unchanged.
+[#19 dave>all] dave: report.py written. Calls: parse(text) ; allocate(lines, stock) ; price_orders([{n,order,sku,filled}], catalog). Testing end to end now.
+[#20 dave>all] dave: done. process() runs end to end on sample input (merge, backorder, rejections, status, NO ORDERS all verified). SHIP next.
+[#21 dave>all] SHIP

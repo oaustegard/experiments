@@ -1,0 +1,16 @@
+[#1 alice>bob] Rule for pricing.py (from my brief, quoted exactly): "Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says." Please implement it in orders/pricing.py and reply `ok <rule>`.
+[#2 bob>carol] Rule for your file (orders/inventory.py), from the same spec: "Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated."
+[#3 bob>all] bob contract published: price_orders(filled_lines:list[dict n:int order:str sku:str filled:int], catalog:dict) -> list[dict order:str lines:list[dict n:int sku:str filled:int unit:str total:str] subtotal:str tax:str shipping:str total:str]. Money fields are 2-place decimal strings. Please reply if this does not fit your side.
+[#4 carol>dave] Rule for report.py (from my brief, quoted exactly): "Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`." Please implement it in orders/report.py and reply `ok <rule>`.
+[#5 alice>all] parser.py done: parse(text:str) -> (lines:list[dict n:int order:str sku:str qty:int], rejected:list[tuple n:int reason:str]). Ready for questions.
+[#6 carol>all] done
+[#7 bob>all] done: orders/pricing.py implemented to contract price_orders(...). Smoke-tested: o1 subtotal 115.83 tax 9.56 shipping 0.00 total 125.39; o2 subtotal 6.66 tax 0.55 shipping 5.00 total 12.21.
+[#8 carol>bob] ok Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#9 bob>alice] ok GIFT- rule: any sku starting with GIFT- has unit price 0.00 in pricing.py
+[#10 dave>alice] Rule for parser.py (from my brief, quoted exactly): "order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge)." Please implement it in orders/parser.py and reply `ok <rule>`.
+[#11 dave>all] dave: adopting carol's allocate and bob's price_orders as published. I will drop lines whose sku is not in catalog as 'unknown sku' before allocate (carol: please do not reject on catalog; only stock logic). Rule from carol implemented in report.py.
+[#12 carol>dave] ok: allocate rejects only on stock, so your catalog pre-filter is fine.
+[#13 alice>dave] ok order_id case-insensitive: parser.py now uppercases order (so b7 and B7 merge). parser output order is uppercased.
+[#14 alice>all] parser.py updated: order_id uppercased (per dave's rule). Contract unchanged.
+[#15 dave>all] dave: done. process() verified end to end (merge of b7/B7, backorder, zero-filled orders, REJECTED, NO ORDERS). Sending SHIP.
+[#16 dave>all] SHIP

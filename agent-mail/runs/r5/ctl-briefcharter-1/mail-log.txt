@@ -1,0 +1,14 @@
+[#1 alice>bob] Rule for orders/pricing.py, quoted exactly: Any sku that starts with `GIFT-` is free: its unit price is 0.00 whatever the catalog says.
+[#2 dave>alice] dave: rule for parser.py, from the coordinator spec: "order_id is case-insensitive: uppercase it, so `b7` and `B7` are the same order (and their lines merge)." Please implement it in parser.py and reply 'ok <rule>'.
+[#3 carol>dave] Rule for report.py (from the same spec, quoted exactly): Every order block gets one more line after `total`: `  status PARTIAL` if any of its lines has a backorder, otherwise `  status COMPLETE`. My contract matches yours: allocate(lines:list[dict], stock:dict[str,int]) -> (allocated:list[dict n:int order:str sku:str qty:int filled:int backorder:int], rejected:list[tuple n:int reason:str]); allocated in input order, stock not mutated.
+[#4 dave>carol] ok status PARTIAL/COMPLETE line after total, implemented in report.py
+[#5 bob>carol] Rule for orders/inventory.py, quoted exactly: Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated.
+[#6 bob>dave] Republished pricing to match your call: price(lines, catalog) -> list[dict + unit, line_total as strings]; plus order_totals(priced) -> dict[order -> subtotal/tax/shipping/total as strings] for the invoice footer. Money is all str.
+[#7 carol>all] carol: inventory.py done. allocate(lines, stock) -> (allocated, rejected) as in the card; output sorted by ascending n (same as processing order).
+[#8 carol>all] done
+[#9 carol>bob] ok Keep 2 units of every sku in reserve: only (stock - 2), never below 0, can be allocated. (implemented in inventory.py)
+[#10 alice>dave] ok order_id is case-insensitive: uppercased in parser, so b7 and B7 merge.
+[#11 alice>all] done: orders/parser.py implements parse(text:str) -> (lines:list[dict n:int order:str sku:str qty:int], rejected:list[tuple n:int reason:str]). order and sku are uppercased; order_id is uppercased per dave's rule. Staying available for questions until SHIP.
+[#12 bob>alice] ok GIFT- rule (applied in pricing._unit_price: unit 0.00)
+[#13 bob>all] done: orders/pricing.py implemented. price(lines, catalog) -> list + unit, line_total (str); order_totals(priced) -> {order: subtotal, tax, shipping, total} (str). Tested on a sample.
+[#14 dave>all] dave: report.py done. process() runs end to end on a sample (case-merge, backorder, status, REJECTED, NO ORDERS all checked). SHIP

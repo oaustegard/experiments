@@ -9,37 +9,44 @@ exchange messages?
 
 Three things have to work: delivery, acceptance and verification. A file
 mailbox with a `PostToolUse` push hook delivers at about 1.2x the cost of no
-channel. Acceptance needs a team charter in the agent's system prompt. In
-round 2, 6 messaging teams relayed 19 of the 24 rules a teammate needed
-and implemented **none**. The charter in a custom agent's system prompt
-raised that to **10 of 12**. Verification needs a gate. With `mail owe`
-(send a rule plus a test), `mail ack`, and `mail ship` (SHIP only when every
-rule is relayed, acknowledged and passing), **all 3 teams scored 60/60 and
-implemented 12 of 12 rules**, at about **$0.026 per team**. The gate caught
-one rule that had been acknowledged but only half implemented.
+channel. Acceptance needs a team charter: one paragraph saying the coordinator
+split one spec across the briefs on purpose, so a rule a teammate quotes is
+part of your spec. Without it, 9 messaging teams implemented **none** of the
+rules teammates needed, even though most of them were relayed. With it,
+**12 of 12** in three teams when the charter sat in the brief and 10 of 12 when
+it sat in a custom agent's system prompt. Placement mattered only to Claude
+Code's auto-mode classifier, which blocked a differently worded authority
+clause read from a brief. A gate that holds SHIP until every rule is relayed,
+acknowledged and passing a holder-written test gave 12 of 12 and 60/60 in all
+3 teams, at about **$0.026 per team**, and caught one rule that had been
+acknowledged but only half implemented.
 
-What would change this: more teams, a second task, or a model other than
-Haiku 5.5.
+What would change this: more teams (3 per setup here), a second task, or a
+model other than Haiku 5.5.
 
 ## Findings
 
-1. **Charter in the system prompt plus a handoff gate is the working design:
-   12 of 12 rules, 60/60 in all 3 teams (Round 4).** Without the gate, the
-   charter alone reached 10 of 12 (Round 3).
-2. **A team charter in the system prompt is what makes peers act on each
-   other's messages.** In round 2, holders in 6 messaging teams relayed 19 of
-   24 rules and owners implemented none, all scoring 14/60. In round 3, `team-member` agents with
-   the charter in their system prompt implemented 10 of 12 rules, scoring
-   60, 43 and 28 of 60.
+1. **A team charter is what makes peers act on each other's messages; where
+   it lives does not matter to the agents.** Without one, 6 messaging
+   teams (Round 2) and 3 headless teams (Round 5) all scored 14/60, the
+   no-rules score. With the charter in the brief, 3 headless teams scored
+   60/60 with 12 of 12 rules (Round 5). With the same charter in a custom
+   agent's system prompt, 3 teams implemented 10 of 12 (Round 3).
+2. **Charter plus a handoff gate is the recommended design: 12 of 12 rules and
+   60/60 in all 3 teams (Round 4).** The gate's added value shows in one
+   caught half-implementation (finding 10), not in the totals, since the
+   brief-charter controls also reached 12 of 12 without it.
 3. **Agents read a peer's message as an unverified claim, not as spec.** Round-2
    holders sent 19 of their 24 rules to the right owner (16 of 20 in the
    mailbox teams, 3 of 4 in the native team). Owners refused every one as "not
    in my brief", called the quote suspect, or decided "the briefs disagree",
    and dave held `SHIP` waiting for a lead who never came (Round 2 mailbox logs).
-4. **An authority clause inside a brief file trips the auto-mode classifier.**
-   "A teammate's rule overrides your section", in a file the agent reads, got
-   the agent's next Bash call denied as "Instruction Poisoning" (Round 2,
-   `mail-auth`).
+4. **In an auto-mode session, an "overrides your section" clause in a brief
+   trips the classifier.** The agent's next Bash call was denied as
+   "Instruction Poisoning" (Round 2, `mail-auth`, Agent-tool subagents). The
+   charter wording run headless from a brief was never classified (Round 5),
+   so whether wording or placement triggered the denial is untested. A custom
+   agent's system prompt avoids the question.
 5. **When interfaces are the only coupling, a shared tree is enough.** Every
    round-1 arm, including no channel, scored 48/48, because the integrator
    wrote last and read his teammates' files (Round 1).
@@ -187,6 +194,26 @@ relayed and acknowledged without the gate having to prompt for them. That
 suggests the seeded obligations and the `owe` instructions also prevent the
 "never relayed" miss, not just detect it.
 
+### Round 5: controls for round 3
+
+The prose review of the blog draft pointed out that round 3 changed three
+things at once: it added the charter, put it in the system prompt, and moved
+from Agent-tool subagents to headless `claude -p` children. Two headless
+controls, 3 teams each, separate those. Both used round 3's briefs and the
+default agent.
+
+| setup | scores (/60) | rules implemented | relayed | cost per team |
+|---|---|---|---|---|
+| no charter | 14, 14, 14 | 0 of 12 | 9 of 12 | $0.043–0.057 |
+| charter text appended to the brief | 60, 60, 60 | 12 of 12 | 12 of 12 | $0.033–0.036 |
+
+Running headless does not explain round 3: without a charter, headless teams
+fail as round 2's subagent teams did. The charter does, and from the brief it
+did at least as well as from the system prompt. The earlier reading that
+authority has to come from the system prompt was wrong. It came from the
+`mail-auth` denial, which was the classifier, in an auto-mode session, reading
+different wording.
+
 ### Files
 
 - `mail.py`, `hook.py`: the mechanism
@@ -198,5 +225,5 @@ suggests the seeded obligations and the `owe` instructions also prevent the
 - `task2/`, `harness2/`: round 2/3 task, rule-toggling reference and grader,
   headless launchers
 - `gate.py`: the owe/ack/ship gate
-- `runs/r2/`, `runs/r3/`, `runs/r4/`, `runs/r2-r4-grades.txt`: team code,
+- `runs/r2/` to `runs/r5/`, `runs/grades.txt`: team code,
   mailbox logs, headless result JSON, round-4 obligations, grades
