@@ -57,6 +57,8 @@ QUERY_FILE = HERE / "data" / "quora" / "q_dense.npy"
 SMOKE_OUT = Path("/tmp/claude-0/-home-user-claude-workspace/cb6fdb49-c401-521e-8359-7842aa851e70/scratchpad/results_remex_flat_smoke.json")
 K1, K2 = 10, 100
 SEEDS = (0, 1, 2)
+import remex as _remex  # noqa: E402
+REMEX2 = int(_remex.__version__.split('.')[0]) >= 2  # 2.x centred search is the RaBitQ estimator, not q . decode(x)
 FAISS_TRAIN_MAX = 20000
 
 
@@ -112,10 +114,16 @@ def run_remex(X, Q, gt10, gt100, d, bits, centered, seed, mu, nested=False):
     if nested:
         enc = Quantizer(d, bits=8, seed=seed, rotation="rht", mean=mu)
         t = time.perf_counter(); cv = enc.encode(X); te = time.perf_counter() - t
+        if REMEX2 and centered:
+            top, _ = enc.search_batch(cv, Q, k=K2, precision=bits)
+            return recall(top, gt10, K1), recall(top, gt100, K2), te
         Xhat = enc.decode(cv, precision=bits)
     else:
         enc = Quantizer(d, bits=bits, seed=seed, rotation="rht", mean=mu)
         t = time.perf_counter(); cv = enc.encode(X); te = time.perf_counter() - t
+        if REMEX2 and centered:
+            top, _ = enc.search_batch(cv, Q, k=K2)
+            return recall(top, gt10, K1), recall(top, gt100, K2), te
         Xhat = enc.decode(cv)
     # Asymmetric: float query against decoded (dequantized) codes, as bench.py does.
     top = exact_topk(Q, Xhat, K2)
@@ -152,7 +160,7 @@ def main():
         pass
     if a.smoke:
         a.shards, a.nq = 1, 50
-    out = Path(a.out) if a.out else (SMOKE_OUT if a.smoke else HERE / "results_remex_flat.json")
+    out = Path(a.out) if a.out else (SMOKE_OUT if a.smoke else HERE / ("results_remex2_flat.json" if REMEX2 else "results_remex_flat.json"))
     out.parent.mkdir(parents=True, exist_ok=True)
 
     t0 = time.time(); c0 = time.process_time()
@@ -186,7 +194,7 @@ def main():
                     r10.append(x10); r100.append(x100); es.append(te)
                 name = f"remex{' centered' if centered else ''} {bits}-bit d={d}"
                 log(make_row(name, "remex-c" if centered else "remex", d, bits, centered, False,
-                             d * bits / 8, r10, r100, es, list(SEEDS)))
+                             d * bits / 8 + (8 if REMEX2 and centered else 0), r10, r100, es, list(SEEDS)))
 
     for centered in (False, True):
         d = 768
@@ -199,7 +207,7 @@ def main():
                 r10.append(x10); r100.append(x100); es.append(te)
             name = f"remex{' centered' if centered else ''} 8->{bits}-bit nested d={d}"
             log(make_row(name, "remex-nested", d, bits, centered, True,
-                         d * bits / 8, r10, r100, es, list(SEEDS)))
+                         d * bits / 8 + (8 if REMEX2 and centered else 0), r10, r100, es, list(SEEDS)))
 
     for d in (768, 512, 256):
         Xd, Qd = trunc(X, d), trunc(Q, d)
