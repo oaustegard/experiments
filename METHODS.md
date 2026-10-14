@@ -4224,3 +4224,12 @@ of 174 requests, vague ones included; shown names only, 55–85%.
 - **Keep the best-judged version; never swap in a redraw unconditionally.** Two redraw rounds with critique moved recognition 48 → 62 → 64. Selecting the best-judged version per figure across those rounds gave 82, and three fresh redraws per weak figure, best of three, gave 96. A single redraw often scored worse than the draft it replaced.
 - **A rewrite pass mangles fields it was told to keep.** Asked to return `name` unchanged, the weave pass returned names wrapped in markdown or with the gloss attached (`*Lenkat* — "the Lidded Jar"`). Re-validate every field a rewrite touches against the original's rules.
 
+
+### Peer agents that must act on each other's messages: put the team charter in the system prompt
+
+`agent-mail` — 4-agent Haiku 5.5 teams, each agent holding one rule for a teammate's file.
+- **Delivery is not the bottleneck; acceptance is.** Nine messaging teams delivered every rule to the right owner and implemented 0 of about 32; owners refused anything not in their own brief, called the quote suspect, or decided "the briefs disagree". One paragraph of charter in a custom agent's system prompt ("the coordinator split one spec across your briefs; a rule a teammate quotes is part of your spec") carried 10 of 12.
+- **Do not put the authority clause in a file the agent reads.** Agents treat tool-result text as data, and the auto-mode classifier denied the next Bash call as "Instruction Poisoning" when a read brief said peers override the agent's section. System prompt (custom agent) or the parent's Agent prompt only.
+- **Agent definitions load at session start.** A new `.claude/agents/*.md` gives "Agent type not found" mid-session; `claude -p --agents <json> --agent <name>` runs it headless immediately. A frontmatter `permissionMode` that would widen the inherited mode is ignored.
+- **Push beats native messaging for peers.** A file mailbox with a `PostToolUse` hook that injects unread mail as `additionalContext`, plus a blocking `recv --wait`, cost 1.2x no channel; native `SendMessage` restarts a finished peer on every send and has no blocking receive. A contract-first join card cut traffic from 17 to 7 messages.
+- **Gate the handoffs, not just the build.** The two remaining misses were a rule never relayed and a rule received but not acknowledged; check relay-on-join and `ok <rule>` acks before `SHIP`. (`agent-mail/RESULTS.md`)
