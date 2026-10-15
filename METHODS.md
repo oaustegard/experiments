@@ -659,6 +659,14 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Python `ssl`: one thread per `SSLSocket`, and no verify callback.** OpenSSL does not support
+  reading and writing one connection from two threads at once; a blocking reader thread plus
+  writers elsewhere failed about one run in thirty with an `EBADF` and a lost message. Own the
+  socket with one I/O thread (non-blocking, `select`, a socketpair to wake it, `pending()` after
+  each recv) or hold one lock over both recv and send. For a test server that must accept a
+  self-signed client key it then pins, load that certificate as the CA with
+  `verify_flags |= ssl.VERIFY_X509_PARTIAL_CHAIN`; a client pins by `CERT_NONE` plus
+  `getpeercert(binary_form=True)` checked before the first send. (`sill-agent/RESULTS.md` F5)
 - **`np.savez`/`np.savez_compressed` truncate the destination when they
   open it, before writing.** Overwriting a checkpoint or index in place and
   being killed mid-write leaves 0 bytes and no old copy (a 109 MB file, SIGKILL
