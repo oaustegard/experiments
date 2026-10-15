@@ -10,6 +10,8 @@ The method's value came mostly from the fixed interrupt table. Four of the six d
 
 ## Findings
 
+Findings 1–3 are fixed in remex `8d37933` (Log, 2026-10-15).
+
 1. **remex: a different seed decodes without error to unrelated vectors.** Mean cosine −0.017 against 0.995; `seed` is neither recorded in a container nor checked, even though `_check_rotation`'s docstring gives the reason a mismatch must be refused (`bug-triage.md` B-01; `run_pass.py` CONTRACT-05).
 2. **remex: every writer truncates its destination before writing.** A SIGKILL 150 ms into overwriting a 109 MB file left 0 bytes (`bug-triage.md` B-02; `run_pass.py` NPZ-08). `save_pq`, `save_arrow` and `RemexIndex.save` have the same pattern, read from code.
 3. **remex: `scale` is not recorded and `d` is recorded but never compared.** Wrong `scale` decodes off by exactly the ratio; wrong `d` fails with three unrelated messages depending on the rotation, and silently under `rotation="none"` in scalar mode (`bug-triage.md` B-03, B-06).
@@ -38,3 +40,12 @@ The probes before drafting found B-01, B-04 and B-05 directly. Filling the inter
 The first pass showed 30/30 passing, but NPZ-07's expectation was empty: it passed on any exception. Once tightened, it showed that a non-archive file raises `ValueError: This file contains pickled (object) data`, not the `BadZipFile` the pilot claimed. The pilot was corrected and the pass rerun: 30/30.
 
 Checkers: `check_structure.py` 0 errors on two feature documents; `check_links.py` 8 "broken" links, all to planned documents. Wall clock about 2 hours including the remex probes; no API cost beyond the session.
+
+### 2026-10-15: the six remex defects fixed
+
+Asked: "Fix the remex bugs".
+
+Ran: oaustegard/remex `8d37933`. Containers record `seed` and scalar `scale`; every read path checks them and `d`; all six writers go through a write-temp-then-rename helper; `load` finds `save`'s `.npz` name; damaged and foreign files raise a `ValueError` naming them. `tests/test_integrity.py` adds 28 tests, 24 of which fail on 2.0.0; the full suite is 604 passed, 1 skipped.
+
+Then `verification/run_pass.py`, unchanged, against the fixed package: 22 pass and exactly the eight items that had confirmed defects on 2.0.0 now fail (NPZ-03, NPZ-06, NPZ-08, NPZ-09, NPZ-16, CONTRACT-05, CONTRACT-06, CONTRACT-07); NPZ-08 now reads 109,154,831 bytes before and after the kill. The checklist describes `b3a0ed9` and stays as written; a revision of the two documents against `8d37933` would flip those rows.
+

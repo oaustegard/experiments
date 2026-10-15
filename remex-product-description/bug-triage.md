@@ -1,6 +1,6 @@
 # Bug triage
 
-A consolidated list of the defects and inconsistencies the two drafted documents raised, in their bodies and in their "Open questions and verification" sections. Each entry was read from oaustegard/remex at `b3a0ed9` and confirmed against the installed 2.0.0 package by the automated pass in [`verification/`](verification/README.md); every entry carries a **Status** line. None has been filed upstream. The list exists so the maintainer can decide, item by item, whether to fix, document as intended, or leave.
+A consolidated list of the defects and inconsistencies the two drafted documents raised, in their bodies and in their "Open questions and verification" sections. Each entry was read from oaustegard/remex at `b3a0ed9` and confirmed against the installed 2.0.0 package by the automated pass in [`verification/`](verification/README.md); every entry carries a **Status** line. None was filed upstream; all six were fixed directly in oaustegard/remex `8d37933` (2026-10-15), each with a Status line saying so. The list exists so the maintainer can decide, item by item, whether to fix, document as intended, or leave.
 
 ## Summary
 
@@ -27,6 +27,7 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `product call`. Either record the seed in `CompressedVectors` and every format and refuse a mismatch (an absent record meaning "unknown, do not check", so old files keep loading), or document that the caller owns the seed and give `load` a way to say which seed a file expects.
 - **Raised by:** [The encoding contract](foundations/the-encoding-contract.md#open-questions-and-verification), [`.npz` files](persistence/npz-files.md#open-questions-and-verification), [`.npz` files: the simple case](persistence/npz-files.md#the-simple-case)
 - **Status:** confirmed 2026-10-14 by `run_pass.py`, CONTRACT-05 and NPZ-09.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
 
 ### B-02: An interrupted save destroys the file it was overwriting
 
@@ -51,6 +52,7 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `product call`. Record and check `scale` alongside the mode, or document that scalar-mode callers own it.
 - **Raised by:** [The encoding contract](foundations/the-encoding-contract.md#what-a-container-does-not-record), [`.npz` files](persistence/npz-files.md#open-questions-and-verification)
 - **Status:** confirmed 2026-10-14 by `run_pass.py`, CONTRACT-06.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
 
 ### B-06: A dimension mismatch is not guarded
 
@@ -75,6 +77,7 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `fix`. Either have `save` return the path it wrote, or have `load` try `path + ".npz"` when `path` does not exist.
 - **Raised by:** [`.npz` files: the call is made](persistence/npz-files.md#the-call-is-made)
 - **Status:** confirmed 2026-10-14 by `run_pass.py`, NPZ-02 to NPZ-04.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
 
 ### B-05: Small error-message and validation slips
 
@@ -90,3 +93,4 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `fix`. Check for the expected entries and raise "not a remex container file"; catch `ValueError`/`BadZipFile`/`EOFError` from `np.load` and raise "file is damaged or not an .npz archive"; validate `rotation` on assignment or in `save`.
 - **Raised by:** [`.npz` files: refused at once](persistence/npz-files.md#refused-at-once), [`.npz` files: edge cases](persistence/npz-files.md#edge-cases)
 - **Status:** confirmed 2026-10-14 by `run_pass.py`, NPZ-06, NPZ-07, NPZ-16. The `bits` messages and the `CLAUDE.md` repetition were read, not run.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
