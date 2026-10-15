@@ -39,6 +39,7 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `fix`. Write to a temporary file in the destination directory and `os.replace` it over the destination after the write completes, in each of the four writers. Note that `np.savez_compressed` appends `.npz` to the temporary name unless it already ends in `.npz` (see B-04).
 - **Raised by:** [`.npz` files: the first effect](persistence/npz-files.md#the-first-effect), [`.npz` files: cancel and interrupt](persistence/npz-files.md#cancel-and-interrupt), [`.npz` files: open questions](persistence/npz-files.md#open-questions-and-verification)
 - **Status:** confirmed 2026-10-14 for `.npz` by `run_pass.py`, NPZ-08 (109,154,649 bytes before, 0 after). The other three writers were read from code, not exercised.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
 
 ## Medium
 
@@ -64,6 +65,7 @@ Eleven items were raised across the two documents; they merge to six entries. Tw
 - **Decision needed:** `fix`. Add a `_check_d` beside `_check_bits`.
 - **Raised by:** [The encoding contract](foundations/the-encoding-contract.md#what-a-container-does-not-record)
 - **Status:** confirmed 2026-10-14 by `run_pass.py`, CONTRACT-07.
+- **Fixed:** oaustegard/remex `8d37933`, covered by `tests/test_integrity.py`; the 2.0.0 checklist items for it now fail against that commit, as they should.
 
 ## Low
 
