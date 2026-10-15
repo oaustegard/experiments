@@ -27,13 +27,13 @@ what the harness does with a failed attempt.
 | rust/acronym | fail | fail | **PASS** |
 | rust/doubly-linked-list | PASS | PASS | PASS |
 | rust/variable-length-quantity | PASS | PASS | PASS |
-| | **3/12** | **8/12** | **11/12** |
+| | **3/12** | **8/12** | **11/12** | <!-- @evidence[[results/summary.json#arms.oneshot.rate]] --> <!-- @evidence[[results/summary.json#arms.agentic.rate]] --> <!-- @evidence[[results/summary.json#arms.toolloop.rate]] -->
 
 | comparison | recovered | regressed | exact McNemar, two-sided |
 |---|---|---|---|
-| oneshot → +1 retry | 5 | 0 | p = 0.0625 |
-| +1 retry → tool loop | 3 | 0 | p = 0.2500 |
-| oneshot → tool loop | 8 | 0 | p = 0.0078 |
+| oneshot → +1 retry | 5 | 0 | p = 0.0625 | <!-- @evidence[[results/summary.json#mcnemar.oneshot->agentic.p]] -->
+| +1 retry → tool loop | 3 | 0 | p = 0.2500 | <!-- @evidence[[results/summary.json#mcnemar.agentic->toolloop.p]] -->
+| oneshot → tool loop | 8 | 0 | p = 0.0078 | <!-- @evidence[[results/summary.json#mcnemar.oneshot->toolloop.p]] -->
 
 No task regressed under a richer harness, in any comparison. No agent in any arm
 wrote a file outside the solution set the exercise declares.
@@ -74,8 +74,8 @@ exercises, 10 each python/go/rust, certified the same way, run at Opus 5.
 
 | arm | protocol | score | Wilson 95% CI | P(X ≥ k \| p = 0.880) |
 |---|---|---|---|---|
-| `opus-oneshot` | write the file, no test access, no iteration | **29/30** = 0.967 | [0.833, 0.994] | 0.110 |
-| `opus-toolloop` | agent runs the hidden suite, ≤ 6 checks | **30/30** = 1.000 | [0.886, 1.000] | 0.022 |
+| `opus-oneshot` | write the file, no test access, no iteration | **29/30** = 0.967 | [0.833, 0.994] | 0.110 | <!-- @evidence[[results/summary.json#arms.opus-oneshot.rate]] --> <!-- @evidence[[results/summary.json#arms.opus-oneshot.wilson95.0]] --> <!-- @evidence[[results/summary.json#arms.opus-oneshot.wilson95.1]] --> <!-- @evidence[[results/summary.json#arms.opus-oneshot.p_tail_vs_ref]] -->
+| `opus-toolloop` | agent runs the hidden suite, ≤ 6 checks | **30/30** = 1.000 | [0.886, 1.000] | 0.022 | <!-- @evidence[[results/summary.json#arms.opus-toolloop.wilson95.0]] --> <!-- @evidence[[results/summary.json#arms.opus-toolloop.p_tail_vs_ref]] -->
 
 The reference is aider 0.86.0 + gpt-5.2 at 0.880 over all 225 tasks.
 
@@ -87,7 +87,7 @@ passed on the first check run; the arm spent 31 checks against a budget of 180.
 **30/30 exhausts the task set.** The ceiling stop that did not fire at Haiku
 fires here in the other direction: a set the harness sweeps cannot measure how
 much better than 0.880 the stack is, only that it is not worse. The interval is
-the honest statement — at least 0.886 with 95% confidence, and no upper
+the honest statement — at least 0.886 with 95% confidence, and no upper <!-- @evidence[[results/summary.json#arms.opus-toolloop.wilson95.0]] -->
 resolution. Reading 1.000 as a leaderboard score would repeat the mistake this
 file's Limits section already names, with 30 tasks against 225 and three
 languages against six.
@@ -152,10 +152,10 @@ difference from a task bank we authored ourselves.
 access, no iteration. Of the three arms, this one is shaped like aider's
 protocol, so it is the one to put next to the leaderboard.
 
-**182/203 = 0.897**, Wilson 95% CI [0.847, 0.931].
+**182/203 = 0.897**, Wilson 95% CI [0.847, 0.931]. <!-- @evidence[[results/summary.json#arms.full-oneshot.rate]] --> <!-- @evidence[[results/summary.json#arms.full-oneshot.wilson95.0]] --> <!-- @evidence[[results/summary.json#arms.full-oneshot.wilson95.1]] -->
 
 Against aider 0.86.0 + gpt-5.2 at 0.880 over all 225 tasks:
-P(X ≥ 182 | p = 0.880, n = 203) = 0.274. The two are not separable at this
+P(X ≥ 182 | p = 0.880, n = 203) = 0.274. The two are not separable at this <!-- @evidence[[results/summary.json#arms.full-oneshot.p_tail_vs_ref]] -->
 sample size. At par is the claim the data supports.
 
 | language | score | | language | score |

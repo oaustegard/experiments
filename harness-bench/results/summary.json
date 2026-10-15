@@ -1,0 +1,82 @@
+{
+  "reference_p": 0.88,
+  "arms": {
+    "oneshot": {
+      "passed": 3,
+      "n": 12,
+      "rate": 0.25,
+      "wilson95": [
+        0.088942,
+        0.532305
+      ],
+      "p_tail_vs_ref": 1.0
+    },
+    "agentic": {
+      "passed": 8,
+      "n": 12,
+      "rate": 0.666667,
+      "wilson95": [
+        0.390622,
+        0.86188
+      ],
+      "p_tail_vs_ref": 0.990501
+    },
+    "toolloop": {
+      "passed": 11,
+      "n": 12,
+      "rate": 0.916667,
+      "wilson95": [
+        0.64612,
+        0.985135
+      ],
+      "p_tail_vs_ref": 0.568588
+    },
+    "opus-oneshot": {
+      "passed": 29,
+      "n": 30,
+      "rate": 0.966667,
+      "wilson95": [
+        0.833296,
+        0.994091
+      ],
+      "p_tail_vs_ref": 0.10997
+    },
+    "opus-toolloop": {
+      "passed": 30,
+      "n": 30,
+      "rate": 1.0,
+      "wilson95": [
+        0.886487,
+        1.0
+      ],
+      "p_tail_vs_ref": 0.021601
+    },
+    "full-oneshot": {
+      "passed": 182,
+      "n": 203,
+      "rate": 0.896552,
+      "wilson95": [
+        0.847036,
+        0.931338
+      ],
+      "p_tail_vs_ref": 0.274106
+    }
+  },
+  "mcnemar": {
+    "oneshot->agentic": {
+      "recovered": 5,
+      "regressed": 0,
+      "p": 0.0625
+    },
+    "agentic->toolloop": {
+      "recovered": 3,
+      "regressed": 0,
+      "p": 0.25
+    },
+    "oneshot->toolloop": {
+      "recovered": 8,
+      "regressed": 0,
+      "p": 0.0078125
+    }
+  }
+}

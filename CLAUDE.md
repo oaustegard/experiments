@@ -159,7 +159,10 @@ other 86 predate the rule and fail the lint until retrofitted.
 
 1. Results into `RESULTS.md` in the shape above — including what broke, and
    costs/wall-clock. Negative results are reported as results, not quietly
-   dropped. Run `python3 _lib/results_lint.py <dir>/RESULTS.md`.
+   dropped. Run `python3 _lib/results_lint.py <dir>/RESULTS.md`. Put
+   `<!-- @evidence[[results/x.json#key]] -->` after each number in Answer and
+   Findings and run `python3 _lib/evidence.py <dir>/RESULTS.md`; it fails when a
+   cited file or key is missing or the stored value disagrees with the line.
 2. A row in the `README.md` index table plus a section under
    "Per-experiment notes".
 3. **An entry in `METHODS.md`** for anything that would change what a

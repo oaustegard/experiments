@@ -18,23 +18,23 @@ metrics: [`scores.json`](scores.json) · Chart:
 | Metric | Vanilla | Down-skilled |
 |---|---:|---:|
 | **Task 1 — Triage** (80 classifications: 4 tickets × 20 runs) | | |
-| Per-rubric accuracy | 75/80 (94%) | **80/80 (100%)** |
-| Tight schema compliance | 0% | **100%** |
+| Per-rubric accuracy | 75/80 (94%) | **80/80 (100%)** | <!-- @evidence[[scores.json#task1_vanilla.summary.strict_accuracy]] -->
+| Tight schema compliance | 0% | **100%** | <!-- @evidence[[scores.json#task1_downskilled.summary.tight_schema_rate]] -->
 | No markdown drift | 0% | **100%** |
-| Ticket B classification: QUESTION (rubric) / FEATURE_REQUEST | 15 / 5 | **20 / 0** |
-| Mean output length (chars) | 800 | 339 |
+| Ticket B classification: QUESTION (rubric) / FEATURE_REQUEST | 15 / 5 | **20 / 0** | <!-- @evidence[[scores.json#task1_vanilla.summary.B_distribution.QUESTION]] -->
+| Mean output length (chars) | 800 | 339 | <!-- @evidence[[scores.json#task1_vanilla.summary.avg_chars]] -->
 | **Task 2 — Code review** | | |
-| Found mutation bug | **100%** | **100%** |
+| Found mutation bug | **100%** | **100%** | <!-- @evidence[[scores.json#task2_vanilla.summary.found_mutation_rate]] -->
 | No unsolicited fix section | 0% | **100%** |
 | Output ≤400 chars | 0% | 90% |
-| Flagged None-skip as false-positive bug | 0% | 0% |
-| Mean output length (chars) | 1320 | 384 |
+| Flagged None-skip as false-positive bug | 0% | 0% | <!-- @evidence[[scores.json#task2_downskilled.summary.flagged_none_rate]] -->
+| Mean output length (chars) | 1320 | 384 | <!-- @evidence[[scores.json#task2_downskilled.summary.avg_chars]] -->
 | **Task 3 — Voice rewrite** | | |
 | No banned hype words | 85% | **100%** |
 | No soft-promotional residue | 80% | **100%** |
-| Length in spec (60–90 words) | 40% | **0%** |
+| Length in spec (60–90 words) | 40% | **0%** | <!-- @evidence[[scores.json#task3_vanilla.summary.in_length_rate]] -->
 | **No invented architectural details** | 80% | **5%** |
-| Mean word count (spec: 60–90) | 84 | 43 |
+| Mean word count (spec: 60–90) | 84 | 43 | <!-- @evidence[[scores.json#task3_downskilled.summary.avg_word_count]] -->
 
 ## What stays true from the n=1 writeup
 

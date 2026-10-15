@@ -14,21 +14,21 @@ Headline, in the order the numbers should be trusted:
 
 - **The zero-shot gate is negative, and fine-tuning fixes it.** Pleias-RAG-350M
   produces **0 usable commands in 40** handed the right source every time; after
-  600 rows and **25.5 minutes on 4 CPU cores** it reaches **0.923 on the
-  non-`find` slice, where a constant answer scores 0.000**. The failure was
+  600 rows and **25.5 minutes on 4 CPU cores** it reaches **0.923 on the <!-- @evidence[[results_finetune.json#minutes]] --> <!-- @evidence[[results_ablation.json#arms.fine-tuned (RAG).utility_nonfind]] -->
+  non-`find` slice, where a constant answer scores 0.000**. The failure was <!-- @evidence[[results_gate_comparison.json#constant_prior_always_find.utility_acc_non_find]] -->
   output shape, not capability.
 - **The premise that chose this model did not survive, and the ablation confirms
-  it**: verbatim rate is 0.000 before *and* after, and the RAG-less sibling
-  fine-tunes to **0.846 non-`find` against the RAG model's 0.923** — one example
+  it**: verbatim rate is 0.000 before *and* after, and the RAG-less sibling <!-- @evidence[[results_ablation.json#arms.fine-tuned (RAG).verbatim]] -->
+  fine-tunes to **0.846 non-`find` against the RAG model's 0.923** — one example <!-- @evidence[[results_ablation.json#arms.fine-tuned (non-RAG).utility_nonfind]] --> <!-- @evidence[[results_ablation.json#arms.fine-tuned (RAG).utility_nonfind]] -->
   out of 13. The source-quoting the model was chosen for is used by neither; the
   model choice was not the important decision (§7).
-- **Retrieval is now the bottleneck**: **0.233 recall@5** on the deployment
+- **Retrieval is now the bottleneck**: **0.233 recall@5** on the deployment <!-- @evidence[[results_verify.json#check_5a_utility_name_in_prompt.per_slice.non_find_unnamed.recall@5]] -->
   slice, and a query-*independent* frequency prior beats the naive headline.
-- **Parameter extraction works**: 0.971 precision held out — but only 37.4% of
-  requests contain every operand, and only 53% of correct extractions are a
+- **Parameter extraction works**: 0.971 precision held out — but only 37.4% of <!-- @evidence[[results_extract.json#holdout.precision_substring]] --> <!-- @evidence[[results_extract.json#cue_presence.fraction]] -->
+  requests contain every operand, and only 53% of correct extractions are a <!-- @evidence[[results_extract.json#holdout.precision_token_exact]] -->
   whole command token.
 - **Rule iteration neither degrades nor transfers**: strictly monotone
-  (McNemar 125–0), and wild accuracy sat at 0.540 across all three rounds.
+  (McNemar 125–0), and wild accuracy sat at 0.540 across all three rounds. <!-- @evidence[[results_claude_iteration.json#mcnemar.0.b_only]] --> <!-- @evidence[[results_claude_iteration.json#arms.claude-iter3.splits.wild.label_acc]] -->
 
 Everything below that was measured by one agent was recomputed by another
 instructed to break it. Where the two disagree, the correction is stated inline
@@ -43,7 +43,7 @@ chunks come from the manuals installed in the build container and carry each
 package's own licence. This note was missing until 2026-08-20 and is the
 attribution CC-BY requires wherever the content travels.
 
-## 1. The corpus — 31,169 chunks over 4,698 utilities
+## 1. The corpus — 31,169 chunks over 4,698 utilities <!-- @evidence[[results_retrieval.json#corpus.chunks]] --> <!-- @evidence[[results_retrieval.json#corpus.utilities]] -->
 
 `build_corpus.py` turns tldr pages and roff man pages into three chunk kinds:
 
@@ -261,7 +261,7 @@ not because feedback degrades the rules, but because it does not carry past the
 rows it was computed on. And the one round that helps is the first: round 2 was
 +0.000 everywhere, round 3 was a no-op the model declined to make.
 
-## 5. The retrieval tier: 0.233 recall@5 where it counts, and the reason is corpus breadth
+## 5. The retrieval tier: 0.233 recall@5 where it counts, and the reason is corpus breadth <!-- @evidence[[results_verify.json#check_5a_utility_name_in_prompt.per_slice.non_find_unnamed.recall@5]] -->
 
 `retrieve.py` builds a BM25 index with code-aware tokenization — a compound
 token emits the whole token and its parts, which is what made

@@ -77,5 +77,29 @@ for line in prose.splitlines():
         stated = "PASS" in cell.upper()
         check(arms[arm][key]["passed"] == stated, f"table cell {key} / {arm}")
 
+
+
+def wilson(k, n, z=1.959964):
+    c = k / n + z * z / (2 * n)
+    h = z * math.sqrt(k * (n - k) / n + z * z / 4) / n
+    return [round((c - h) / (1 + z * z / n), 6), round((c + h) / (1 + z * z / n), 6)]
+
+
+def tail(k, n, p):
+    return round(sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k, n + 1)), 6)
+
+
+# Derived statistics, written so RESULTS.md can cite them with @evidence refs
+# (checked by `python3 _lib/evidence.py harness-bench/RESULTS.md`).
+REF_P = 0.880  # aider 0.86.0 + gpt-5.2 over all 225
+summary = {"reference_p": REF_P, "arms": {}}
+for name, d in [*arms.items(), *opus.items(), ("full-oneshot", full)]:
+    k, n = sum(v["passed"] for v in d.values()), len(d)
+    summary["arms"][name] = {"passed": k, "n": n, "rate": round(k / n, 6),
+                             "wilson95": wilson(k, n), "p_tail_vs_ref": tail(k, n, REF_P)}
+summary["mcnemar"] = {f"{a}->{b}": dict(zip(("recovered", "regressed", "p"), mcnemar(arms[a], arms[b])))
+                      for a, b in (("oneshot", "agentic"), ("agentic", "toolloop"), ("oneshot", "toolloop"))}
+(R / "results/summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+
 print(f"\n{'PASS' if not fail else str(len(fail)) + ' MISMATCH'}")
 sys.exit(1 if fail else 0)

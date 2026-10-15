@@ -15,10 +15,10 @@ Findings here are qualitative.
 > **Update (same day):** Scaled to n=20 per cell — see
 > [`n20/RESULTS-n20.md`](n20/RESULTS-n20.md) for the larger sample and a
 > [comparison chart](n20/comparison.png). The Task-3 hallucination
-> finding strengthens dramatically at scale (1/5 → 19/20). The Task-2
-> scope-creep pattern holds at 100% in both directions
+> finding strengthens dramatically at scale (1/5 → 19/20). The Task-2 <!-- @evidence[[n20/scores.json#task3_downskilled.summary.any_hallucination_rate]] -->
+> scope-creep pattern holds at 100% in both directions <!-- @evidence[[n20/scores.json#task2_vanilla.summary.added_fix_rate]] -->
 > (vanilla always adds a fix; down-skilled never does). Task-1
-> per-rubric accuracy at n=20: vanilla 94%, down-skilled 100%.
+> per-rubric accuracy at n=20: vanilla 94%, down-skilled 100%. <!-- @evidence[[n20/scores.json#task1_vanilla.summary.strict_accuracy]] --> <!-- @evidence[[n20/scores.json#task1_downskilled.summary.strict_accuracy]] -->
 
 Prompts: [`prompts/`](prompts/) · Outputs: [`outputs/`](outputs/)
 
