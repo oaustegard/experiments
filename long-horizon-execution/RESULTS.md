@@ -19,7 +19,7 @@ Claude workers ran as native Agent-tool subagents (general-purpose, default thin
 | 1000 | 3/3 | 3/3 | | |
 | 2000 | 1/3 | 3/3 | | |
 
-- gemini-3.8-flash at budget 8192: K=200 2/2. Budget 0 is not "no thinking" on Gemini 3.x: the model chose ~180 thinking tokens at K=10, ~930 at K=50, and 0 to 2.9k at K=200; the run with 0 thinking tokens was wrong.
+- gemini-3.8-flash at budget 8192: K=200 2/2. Budget 0 is not "no thinking" on Gemini 3.x: the model chose ~180 thinking tokens at K=10, ~930 at K=50, and 0 to 4.8k at K=200. The three wrong K=200 runs used 0, 2,273 and 2,923 thinking tokens; the two right ones used 4,774 and 2,811.
 - Haiku's two K=2000 misses are budget exhaustion, reported as incomplete with a partial sum rather than a guessed total. One partial was already wrong at key 400 (−1123 vs −1115). Its K=500 miss was off by 3.
 - Muse's K=500 miss (−951 vs −1071) cannot be fully separated from a transcription error: the Muse and Gemini arms are reachable only through an MCP tool that takes the prompt inline, so key lists were copied into the call by hand. Muse reasoning tokens: ~1k at K=50, 1.7–4.4k at K=200, 5.8–27.9k at K=500.
 - The paper's 2025 single-turn ceilings (Claude Sonnet 4: 432 steps; GPT-5: 2,176) are superseded for these workers.
