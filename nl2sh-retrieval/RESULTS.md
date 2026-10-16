@@ -13,7 +13,7 @@ runs the one test that decides whether the small-model component exists at all.
 Headline, in the order the numbers should be trusted:
 
 - **The zero-shot gate is negative, and fine-tuning fixes it.** Pleias-RAG-350M
-  produces **0 usable commands in 40** handed the right source every time; after
+  produces **1 of 40, by accident** <!-- @evidence[[results_gate_comparison.json#base_model.all.command_rate]] --> handed the right source every time; after
   600 rows and **25.5 minutes on 4 CPU cores** it reaches **0.923 on the <!-- @evidence[[results_finetune.json#minutes]] --> <!-- @evidence[[results_ablation.json#arms.fine-tuned (RAG).utility_nonfind]] -->
   non-`find` slice, where a constant answer scores 0.000**. The failure was <!-- @evidence[[results_gate_comparison.json#constant_prior_always_find.utility_acc_non_find]] -->
   output shape, not capability.
