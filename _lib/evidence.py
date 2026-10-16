@@ -10,7 +10,7 @@ of four states:
 
   resolved   the target and key exist, and the value matches a number in the
              claim text at that number's displayed precision (a percentage
-             also matches a stored fraction, and `a/b` matches a stored a/b)
+             also matches a stored fraction, and `a/b`, `a of b` or `a in b` matches a stored a/b)
   anchored   the target exists but there is nothing to compare: no locator, a
              line-range or unknown locator, a non-numeric or container value,
              or a claim with no number in it
@@ -45,7 +45,7 @@ from pathlib import Path
 REF = re.compile(r"@evidence\[\[([^\]#]+?)(?:#([^\]]*))?\]\]")
 COMMENT_WITH_REF = re.compile(r"<!--[^>]*?@evidence\[\[[^\]]*\]\][^>]*?-->")
 NUMBER = re.compile(r"(?<![\w.])[-−]?\d[\d,]*(?:\.\d+)?(%?)")
-FRACTION = re.compile(r"(?<![\w.])(\d+)\s*/\s*(\d+)(?![\w.])")
+FRACTION = re.compile(r"(?<![\w.])(\d+)\s*(?:/|\bof\b|\bin\b)\s*(\d+)(?![\w.])")
 ROW = re.compile(r"^row\((.*)\)\.(.+)$")
 LINES = re.compile(r"^L(\d+)(?:-L?(\d+))?$")
 FAILING = ("dangling", "mismatch")

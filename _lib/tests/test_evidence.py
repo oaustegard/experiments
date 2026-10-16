@@ -68,7 +68,8 @@ def test_count_fraction_matches_stored_rate():
 def test_bare_integer_does_not_absorb_a_small_rate():
     files = {"m.json": json.dumps({"rate": 0.025, "zero": 0.0})}
     assert statuses("0 usable commands in 40 <!-- @evidence[[m.json#rate]] -->", files) == ["mismatch"]
-    assert statuses("1 of 40 <!-- @evidence[[m.json#rate]] -->", files) == ["mismatch"]
+    assert statuses("1 of 40 <!-- @evidence[[m.json#rate]] -->", files) == ["resolved"]
+    assert statuses("2 of 40 <!-- @evidence[[m.json#rate]] -->", files) == ["mismatch"]
     assert statuses("1/40 runs <!-- @evidence[[m.json#rate]] -->", files) == ["resolved"]
     assert statuses("0 of 40 <!-- @evidence[[m.json#zero]] -->", files) == ["resolved"]
 
