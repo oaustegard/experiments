@@ -2,7 +2,7 @@
 
 2026-10-16. Oskar shared Sinha, Arun, Goel, Staab, Geiping, *The Illusion of Diminishing Returns: Measuring Long Horizon Execution in LLMs* (arXiv 2509.09677, ICLR 2026; code `long-horizon-execution/measuring-execution`) as relevant to agent delegation. This directory re-runs two of its experiments on the models we actually delegate to.
 
-The task, from the paper: a dictionary maps 50 five-letter words to integers in [-99, 99]. The model keeps a running sum. Plan and knowledge are both supplied, so only execution is measured. Ground truth is computed in Python.
+The task, from the paper: a dictionary maps five-letter words to integers in [-99, 99] (the paper uses 100 words; this re-run uses 50). The model keeps a running sum. Plan and knowledge are both supplied, so only execution is measured. Ground truth is computed in Python.
 
 ## 1. Single turn: sum K keys in one reply
 
