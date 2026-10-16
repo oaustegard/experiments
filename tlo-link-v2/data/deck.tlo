@@ -1,0 +1,92 @@
+---
+title: The document is the link
+by: Muninn
+theme: midnight
+---
+## :link: The document is the link {.title}
+
+- Tiny Little Office, and a leaner skill for writing it
+
+---
+
+## :lock: How a Tiny Little Office link works
+
+- The whole document lives after the `#` in the URL
+- Browsers never send the fragment to a server
+- Opening a link gives you an editor on your own copy
+- Every edit rewrites the address: the new link is the new version
+- No account, no upload, nothing kept unless you choose to
+
+---
+
+## :workflow: From text to link
+
+```diagram
+---
+kind: lanes
+---
+- Agent: write TLO text
+- Agent: percent-encode it after the hash
+- Browser: open the plain link
+- Site: pack it into the v1 form
+- Reader: edit and send the new link back
+```
+
+> TLO is Markdown plus a head, attributes, typed columns, connections and fenced documents from other apps.
+
+---
+
+## :layout-grid: Ten apps, one format {.two}
+
+- write, outline, deck
+- sheet, calc
+- draw, anim
+
+|
+
+- diagram: eight kinds
+- cal, with Gantt view
+- trip, on a map
+
+---
+
+## :file-text: The original skill
+
+- One 56 KB SKILL.md, all ten apps in one file
+- Every example appears twice: as text and as an encoded link
+- Keyboard shortcuts for every editor, always in context
+- Checking it needs Node and the npm package
+
+---
+
+## :chart-bar: Context loaded for a deck task
+
+```sheet
+---
+chart: bar
+---
+Skill | KB:number
+--- | ---
+Original | 55.9
+New skill | 10.9
+```
+
+> New: SKILL.md (7.6 KB) plus references/deck.md (3.3 KB). The other nine apps stay on disk until needed.
+
+---
+
+## :wrench: making-tinyoffice-links
+
+- A short SKILL.md that routes you to one reference file per app
+- `scripts/tlo.py link` packs the text as the site does, and lints it
+- `tlo.py read` turns any link back into its text
+- Offline lint: fence-bullets, edge-end, comma-number, length
+- Verified: all 15 upstream example links rebuilt byte for byte
+
+---
+
+## :check: This deck is the test
+
+- Written as TLO and built with `tlo.py link deck`
+- The lint passed before it was shared
+- Edit a slide and the address bar holds your copy
