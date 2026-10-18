@@ -42,7 +42,10 @@ docstring.
 Expressions: int and float literals, bool literals, names, `+ - * /` (`/` is Python
 true division and always gives f32), `//` and `%` on int operands only, unary `- + not`,
 single comparisons `< <= > >= == !=`, `and`/`or` over bool operands, `list[index]`
-loads, and the calls `min(a, b)`, `max(a, b)`, `sqrt(x)`, `float(x)` and `int(x)`.
+loads, and the calls `min(a, b)`, `max(a, b)`, `abs(x)`, `float(x)` and `int(x)`, plus the
+math functions `sqrt`, `sin`, `cos`, `tan`, `exp`, `log`, `atan2(y, x)`, `pow(x, y)` (all f32) and
+`floor(x)`, which returns an int as `math.floor` does. A kernel module imports the math names from
+`math` so it still runs as plain Python (added 2026-10-18 for the austegard.com demos).
 
 Beyond the list in the task: `float()` and `int()` casts, `//` and `%` on ints,
 `continue`, and annotated locals. `int()` truncates toward zero, as Python does.

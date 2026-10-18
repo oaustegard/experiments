@@ -269,6 +269,43 @@ def test_error_line_numbers_are_file_relative():
         raise AssertionError("lambda accepted")
 
 
+# ---- math builtins ------------------------------------------------------------
+
+def test_float_math_builtins_coerce_ints_and_return_f32():
+    s = _spec("x = sin(gid) + cos(1.0) + exp(0.5) + log(2.0) + tan(0.1)\n"
+              "y = atan2(gid, n) + pow(2.0, 3)\nout[gid] = x + y")
+    w = s.wgsl
+    assert "var x: f32" in w and "var y: f32" in w
+    assert "sin(f32(gid))" in w and "atan2(f32(gid), f32(pk_params.n))" in w
+    assert "pow(2.0f, 3.0f)" in w or "pow(2.0f, f32(3i))" in w
+
+
+def test_floor_returns_int_like_math_floor():
+    s = _spec("k = floor(2.5 * float(gid))\nout[gid] = float(k)")
+    assert "var k: i32" in s.wgsl and "i32(floor(" in s.wgsl
+
+
+def test_abs_keeps_its_argument_type():
+    s = _spec("a = abs(gid - n)\nb = abs(-0.5)\nout[gid] = float(a) + b")
+    assert "var a: i32" in s.wgsl and "var b: f32" in s.wgsl
+
+
+def test_math_builtin_arity_and_unknown_names():
+    _rejects(_ks("out[gid] = atan2(1.0)"), "atan2() takes 2")
+    _rejects(_ks("out[gid] = hypot(1.0, 2.0)"), "hypot")
+
+
+def test_math_builtins_run_as_python():
+    """The kernel source stays plain Python: importing math makes it executable."""
+    from math import atan2, cos, exp, floor, log, sin
+    out = [0.0] * 4
+    def k(gid, out, n):
+        out[gid] = sin(gid) + cos(1.0) + exp(0.5) + log(2.0) + atan2(gid, n) + float(floor(1.5))
+    for g in range(4):
+        k(g, out, 4)
+    assert abs(out[1] - (0.8414709848 + 0.5403023059 + 1.6487212707 + 0.6931471806
+                         + 0.2449786631 + 1.0)) < 1e-9
+
 # ---- the real kernels -------------------------------------------------------------
 
 def test_kernels_gpu_translate():

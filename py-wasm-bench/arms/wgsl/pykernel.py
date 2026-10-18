@@ -33,7 +33,12 @@ _I32_MIN, _I32_MAX = -(2 ** 31), 2 ** 31 - 1
 _F32_MAX = 3.4028234663852886e38
 _ZERO = {I32: "0i", F32: "0.0f", BOOL: "false"}
 _PYNAME = {I32: "int", F32: "float", BOOL: "bool"}
-_BUILTINS = {"min": 2, "max": 2, "sqrt": 1, "float": 1, "int": 1}
+_BUILTINS = {"min": 2, "max": 2, "sqrt": 1, "float": 1, "int": 1, "abs": 1, "floor": 1,
+             "sin": 1, "cos": 1, "tan": 1, "exp": 1, "log": 1, "atan2": 2, "pow": 2}
+# f32 -> f32 in both languages; the kernel module imports them from math so it also runs
+# as plain Python. floor() is separate: math.floor returns an int.
+_FLOAT_FNS = ("sqrt", "sin", "cos", "tan", "exp", "log", "atan2", "pow")
+_BUILTIN_LIST = ", ".join(_BUILTINS)
 _CMP = {ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">", ast.GtE: ">=", ast.Eq: "==", ast.NotEq: "!="}
 _ARITH = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*"}
 _OP_SYMBOL = {ast.FloorDiv: "//", ast.Mod: "%"}
@@ -745,13 +750,13 @@ class _Translator:
             raise self.unsupported(node, "*args are not in the subset")
         f = node.func
         if not isinstance(f, ast.Name):
-            raise self.unsupported(f, "calls must name a builtin: min, max, sqrt, float, int")
+            raise self.unsupported(f, f"calls must name a builtin: {_BUILTIN_LIST}")
         name = f.id
         if name == "range":
             raise self.err(node, "range() is only allowed as the iterable of a for loop")
         if name not in _BUILTINS:
             raise self.err(node, f"call to {name!r} is not in the subset "
-                                 "(builtins: min, max, sqrt, float, int)")
+                                 f"(builtins: {_BUILTIN_LIST})")
         if len(node.args) != _BUILTINS[name]:
             raise self.err(node, f"{name}() takes {_BUILTINS[name]} argument(s)")
         args = [self.expr(a) for a in node.args]
@@ -760,9 +765,17 @@ class _Translator:
         if name in ("min", "max"):
             (a, b), t = self.numeric(node, args[0], args[1])
             return f"{name}({a}, {b})", t
+        if name in _FLOAT_FNS:
+            cs = [self.coerce(a, c, t, F32) for a, (c, t) in zip(node.args, args)]
+            return f"{name}({', '.join(cs)})", F32
         c, t = args[0]
-        if name == "sqrt":
-            return f"sqrt({self.coerce(node.args[0], c, t, F32)})", F32
+        if name == "abs":
+            if t == BOOL:
+                raise self.err(node, "abs() of a bool is not in the subset")
+            return f"abs({c})", t
+        if name == "floor":
+            # math.floor returns an int; WGSL floor() returns f32, so convert back
+            return f"i32(floor({self.coerce(node.args[0], c, t, F32)}))", I32
         if name == "float":
             return self.coerce(node.args[0], c, t, F32), F32
         # int(): WGSL i32() truncates toward zero, as Python's int() does
