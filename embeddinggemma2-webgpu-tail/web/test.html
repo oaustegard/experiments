@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>remex tail on WebGPU: test</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<pre id="log">loading</pre>
+<script type="module">
+import { RemexTail } from './tail.js';
+
+const FX = '../fixtures/';
+const D = 768;
+const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
+
+async function fetchBytes(name) {
+  const r = await fetch(FX + name);
+  if (!r.ok) throw new Error(`fetch ${name}: ${r.status}`);
+  return r.arrayBuffer();
+}
+const f32 = async (name) => new Float32Array(await fetchBytes(name));
+const u32 = async (name) => new Uint32Array(await fetchBytes(name));
+
+function toBase64(buf) {
+  const u = new Uint8Array(buf);
+  let s = '';
+  const CH = 0x8000;
+  for (let i = 0; i < u.length; i += CH) s += String.fromCharCode.apply(null, u.subarray(i, i + CH));
+  return btoa(s);
+}
+
+function gpuBuffer(device, typed) {
+  const buf = device.createBuffer({
+    size: Math.max(16, typed.byteLength),
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+  });
+  device.queue.writeBuffer(buf, 0, typed);
+  return buf;
+}
+
+async function runTail() {
+  if (!navigator.gpu) throw new Error('navigator.gpu missing (page must be served from http://127.0.0.1)');
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  if (!adapter) throw new Error('no WebGPU adapter');
+  const device = await adapter.requestDevice({
+    requiredLimits: {
+      maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
+      maxBufferSize: adapter.limits.maxBufferSize,
+    },
+  });
+  const errors = [];
+  device.addEventListener('uncapturederror', (e) => errors.push(e.error.message));
+  device.lost.then((i) => errors.push(`device lost: ${i.reason} ${i.message}`));
+
+  let info = adapter.info ?? null;
+  if (!info && adapter.requestAdapterInfo) info = await adapter.requestAdapterInfo();
+  const adapterInfo = info ? { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } : null;
+
+  const timings = {};
+  const T = (name, t0) => { timings[name] = +(performance.now() - t0).toFixed(3); };
+  const done = () => device.queue.onSubmittedWorkDone();
+
+  const P = await (await fetch(FX + 'params.json')).json();
+  const n = P.n_docs, nq = P.n_queries, k = P.k, cap = P.capacity;
+  const R = await f32('R.f32');
+  const Rmu = await f32('Rmu.f32');
+  const mu = await f32('mu.f32');
+  const docsIn = await f32('docs_in.f32');
+  const docsUnit = await f32('docs_unit.f32');
+  const queriesIn = await f32('queries_in.f32');
+  const hidden = await f32('hidden.f32');
+  const mask = await u32('mask.u32');
+
+  let t0 = performance.now();
+  const tail = await RemexTail.create(device, {
+    R, Rmu, mu, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+  });
+  tail.setMean(mu);
+  await done();
+  T('create_pipelines_ms', t0);
+
+  // colsum: the mean of the unit docs, declared on the GPU; checked against mu.f32
+  t0 = performance.now();
+  const docsUnitBuf = gpuBuffer(device, docsUnit);
+  const accBuf = device.createBuffer({ size: D * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+  tail.colsum(docsUnitBuf, n, accBuf);
+  const acc = new Float32Array(await tail.readBuffer(accBuf, D * 4));
+  let colsumMaxErr = 0;
+  for (let j = 0; j < D; j++) colsumMaxErr = Math.max(colsumMaxErr, Math.abs(acc[j] / n - mu[j]));
+  T('colsum_ms', t0);
+
+  // encode docs_in in uneven batches, normalize on
+  t0 = performance.now();
+  const docsBuf = gpuBuffer(device, docsIn);
+  const corpus = tail.allocCorpus(cap);
+  let start = 0;
+  for (const count of P.batches) {
+    tail.encode(docsBuf, count, corpus, start, { normalize: true, inputOffsetRows: start });
+    start += count;
+  }
+  await done();
+  T('encode_ms', t0);
+
+  // pool
+  t0 = performance.now();
+  const hiddenBuf = gpuBuffer(device, hidden);
+  const maskBuf = gpuBuffer(device, mask);
+  const poolOut = tail.pool(hiddenBuf, maskBuf, P.pool_b, P.pool_s);
+  const pooled = new Float32Array(await tail.readBuffer(poolOut, P.pool_b * D * 4));
+  T('pool_ms', t0);
+
+  // search, readScores, topk, readCorpus
+  t0 = performance.now();
+  const qBuf = gpuBuffer(device, queriesIn);
+  const scoresBuf = tail.search(qBuf, nq, corpus, { normalize: true });
+  const scores = await tail.readScores(scoresBuf, nq, corpus, n);
+  T('search_scores_ms', t0);
+
+  t0 = performance.now();
+  const top = await tail.topk(qBuf, nq, corpus, n, k, { normalize: true });
+  const topkFlat = new Int32Array(nq * k);
+  for (let q = 0; q < nq; q++) topkFlat.set(top[q].idx, q * k);
+  T('topk_ms', t0);
+
+  t0 = performance.now();
+  const corp = await tail.readCorpus(corpus, n);
+  T('readCorpus_ms', t0);
+
+  await done();
+  const files = {
+    'packed.u8': toBase64(corp.packed.buffer),
+    'scale.f32': toBase64(corp.scale.buffer),
+    'bias.f32': toBase64(corp.bias.buffer),
+    'len.f32': toBase64(corp.len.buffer),
+    'mdot.f32': toBase64(corp.mdot.buffer),
+    'scores.f32': toBase64(scores.buffer),
+    'topk.i32': toBase64(topkFlat.buffer),
+    'pooled.f32': toBase64(pooled.buffer),
+  };
+  log(`done: n=${n} nq=${nq} capacity=${cap} filled=${corpus.filled}`);
+  return {
+    files,
+    n, nq, k, capacity: cap,
+    timings_ms: timings,
+    adapter: adapterInfo,
+    colsum_mu_max_abs_err: colsumMaxErr,
+    uncaptured_errors: errors,
+  };
+}
+
+window.runTail = runTail;
+window.tailReady = true;
+</script>
+</body>
+</html>
