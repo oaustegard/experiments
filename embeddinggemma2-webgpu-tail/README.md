@@ -15,7 +15,7 @@ embedding goes from ORT's output buffer to a packed code with no readback.
 | `web/tail.js` — WGSL kernels + host | passes the checker on SwiftShader: 2 of 3.1M codes flip, both within 1e-5 of a boundary; scores within 3.5e-7 |
 | `web/tail_ref.js` — CPU reference | passes the checker |
 | `interop/` — ORT 1.30.0 gpu-buffer output fed straight to the tail | passes the checker; 0 `getData` calls on the encode path |
-| `web/demo.html` — real EG2 q4 page with startup gate, search, bench | written, not verified: the `?model=dummy` smoke run (`run/run_demo.py`) had not finished; the real-model path has never run |
+| `web/demo.html` — real EG2 q4 page with startup gate, search, bench | `?local=1&model=dummy` smoke run passes (gate 0/24,576 code mismatches, 10 hits, bench numbers, no page errors); the real-model path has never run; the scan bench's agreement check reads 0.005 max abs error (see the handoff issue) |
 
 Fixtures are synthetic EG2-shaped vectors (‖mean‖ ratio 0.852, pair cosine 0.724;
 EG2 on SciFact measured 0.845 and 0.72). The session that built this could not

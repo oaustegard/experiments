@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>interop: ORT gpu-buffer to remex tail</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<pre id="log">loading</pre>
+<script type="module">
+// Interop test: onnxruntime-web's gpu-buffer outputs feed RemexTail on ORT's own GPUDevice.
+// Served from the project root by run/run_interop.py (paths below are relative to this file).
+import * as ort from './node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs';
+import { RemexTail } from '../web/tail.js';
+
+const FX = '../fixtures/';
+const D = 768;
+const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
+
+// Count every CPU download of an ORT tensor (Tensor.getData on a gpu-buffer tensor downloads it).
+let getDataCalls = 0;
+{
+  const orig = ort.Tensor.prototype.getData;
+  ort.Tensor.prototype.getData = function (release) {
+    getDataCalls++;
+    return orig.call(this, release);
+  };
+}
+
+async function fetchBytes(name) {
+  const r = await fetch(FX + name);
+  if (!r.ok) throw new Error(`fetch ${name}: ${r.status}`);
+  return r.arrayBuffer();
+}
+const f32 = async (name) => new Float32Array(await fetchBytes(name));
+const u32 = async (name) => new Uint32Array(await fetchBytes(name));
+
+function toBase64(buf) {
+  const u = new Uint8Array(buf);
+  let s = '';
+  const CH = 0x8000;
+  for (let i = 0; i < u.length; i += CH) s += String.fromCharCode.apply(null, u.subarray(i, i + CH));
+  return btoa(s);
+}
+
+function gpuBuffer(device, typed) {
+  const buf = device.createBuffer({
+    size: Math.max(16, typed.byteLength),
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+  });
+  device.queue.writeBuffer(buf, 0, typed);
+  return buf;
+}
+
+async function runInterop() {
+  ort.env.wasm.wasmPaths = new URL('./node_modules/onnxruntime-web/dist/', location.href).href;
+  ort.env.wasm.numThreads = 1;
+
+  const sess = await ort.InferenceSession.create('./dummy_eg2.onnx', {
+    executionProviders: ['webgpu'],
+    preferredOutputLocation: { sentence_embedding: 'gpu-buffer', last_hidden_state: 'gpu-buffer' },
+  });
+  log(`session inputs=${sess.inputNames} outputs=${sess.outputNames}`);
+  const device = await ort.env.webgpu.device;   // the GPUDevice ORT uses
+  const errors = [];
+  device.addEventListener('uncapturederror', (e) => errors.push(e.error.message));
+  device.lost.then((i) => errors.push(`device lost: ${i.reason} ${i.message}`));
+
+  const adapter = await navigator.gpu.requestAdapter();
+  const info = adapter?.info ?? null;
+  const adapterInfo = info ? { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } : null;
+
+  const P = await (await fetch(FX + 'params.json')).json();
+  const n = P.n_docs, nq = P.n_queries, k = P.k, cap = P.capacity;
+  const R = await f32('R.f32');
+  const Rmu = await f32('Rmu.f32');
+  const mu = await f32('mu.f32');
+  const docsIn = await f32('docs_in.f32');
+  const queriesIn = await f32('queries_in.f32');
+  const hidden = await f32('hidden.f32');
+  const mask = await u32('mask.u32');
+
+  const timings = {};
+  const T = (name, t0) => { timings[name] = +(performance.now() - t0).toFixed(3); };
+
+  const tail = await RemexTail.create(device, {
+    R, Rmu, mu, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+  });
+  tail.setMean(mu);
+  const corpus = tail.allocCorpus(cap);
+
+  // ---- encode: ORT output buffer -> RemexTail, no readback
+  const getDataBeforeEncode = getDataCalls;
+  let t0 = performance.now();
+  let start = 0;
+  for (const b of P.batches) {
+    const x = new Float32Array(docsIn.subarray(start * D, (start + b) * D));
+    const m = new Float32Array(b).fill(1);
+    const res = await sess.run({
+      x: new ort.Tensor('float32', x, [b, 1, D]),
+      mask: new ort.Tensor('float32', m, [b, 1]),
+    });
+    const emb = res.sentence_embedding;
+    tail.encode(emb.gpuBuffer, b, corpus, start, { normalize: true });
+    await device.queue.onSubmittedWorkDone();
+    for (const t of Object.values(res)) t.dispose();
+    start += b;
+  }
+  const getDataAfterEncode = getDataCalls;
+  T('encode_ms', t0);
+  if (start !== n) throw new Error(`batches cover ${start} rows, expected ${n}`);
+
+  // ---- pool: ORT last_hidden_state buffer -> tail.pool
+  t0 = performance.now();
+  const hB = P.pool_b, sS = P.pool_s;
+  const hx = new ort.Tensor('float32', hidden, [hB, sS, D]);
+  const hm = new ort.Tensor('float32', Float32Array.from(mask), [hB, sS]);
+  const pres = await sess.run({ x: hx, mask: hm });
+  const poolOut = tail.pool(pres.last_hidden_state.gpuBuffer, gpuBuffer(device, mask), hB, sS);
+  const pooled = new Float32Array(await tail.readBuffer(poolOut, hB * D * 4));
+  await device.queue.onSubmittedWorkDone();
+  for (const t of Object.values(pres)) t.dispose();
+  T('pool_ms', t0);
+
+  // ---- search: queries uploaded to the same device
+  t0 = performance.now();
+  const qBuf = gpuBuffer(device, queriesIn);
+  const scoresBuf = tail.search(qBuf, nq, corpus, { normalize: true });
+  const scores = await tail.readScores(scoresBuf, nq, corpus, n);
+  T('search_scores_ms', t0);
+
+  t0 = performance.now();
+  const top = await tail.topk(qBuf, nq, corpus, n, k, { normalize: true });
+  const topkFlat = new Int32Array(nq * k);
+  for (let q = 0; q < nq; q++) topkFlat.set(top[q].idx, q * k);
+  T('topk_ms', t0);
+
+  t0 = performance.now();
+  const corp = await tail.readCorpus(corpus, n);
+  T('readCorpus_ms', t0);
+
+  await device.queue.onSubmittedWorkDone();
+  const files = {
+    'packed.u8': toBase64(corp.packed.buffer),
+    'scale.f32': toBase64(corp.scale.buffer),
+    'bias.f32': toBase64(corp.bias.buffer),
+    'len.f32': toBase64(corp.len.buffer),
+    'mdot.f32': toBase64(corp.mdot.buffer),
+    'scores.f32': toBase64(scores.buffer),
+    'topk.i32': toBase64(topkFlat.buffer),
+    'pooled.f32': toBase64(pooled.buffer),
+  };
+  log(`done: n=${n} nq=${nq} capacity=${cap} filled=${corpus.filled}`);
+  return {
+    files,
+    n, nq, k, capacity: cap,
+    timings_ms: timings,
+    adapter: adapterInfo,
+    session_inputs: sess.inputNames,
+    session_outputs: sess.outputNames,
+    getdata_calls: {
+      before_encode: getDataBeforeEncode,
+      during_encode: getDataAfterEncode - getDataBeforeEncode,
+      total: getDataCalls,
+    },
+    uncaptured_errors: errors,
+  };
+}
+
+window.runInterop = runInterop;
+window.interopReady = true;
+</script>
+</body>
+</html>
