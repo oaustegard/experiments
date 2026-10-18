@@ -1,0 +1,45 @@
+"""Mandelbrot escape counts on an n x n grid. SPy port of kernels/mandelbrot.py.
+
+Dialect changes: SPy has no f64(i64) and no i32(i64), so the two counters are f64.
+Both stay below 2**53 (inside <= n*n, total <= 50*n*n), so every addition is exact and
+the final value equals Python's float(inside * 10**6 + total % 10**6).
+"""
+from time import time
+
+
+def run(n: i32) -> f64:
+    max_iter = 50
+    fn = f64(n)
+    inside = 0.0
+    total = 0.0
+    for py in range(n):
+        ci = 2.0 * f64(py) / fn - 1.0
+        for px in range(n):
+            cr = 2.0 * f64(px) / fn - 1.5
+            zr = 0.0
+            zi = 0.0
+            k = 0
+            while k < max_iter:
+                zr2 = zr * zr
+                zi2 = zi * zi
+                if zr2 + zi2 > 4.0:
+                    break
+                zi = 2.0 * zr * zi + ci
+                zr = zr2 - zi2 + cr
+                k += 1
+            total += f64(k)
+            if k == max_iter:
+                inside += 1.0
+    return inside * 1000000.0 + total % 1000000.0
+
+
+def main(argv: list[str]) -> i32:
+    n = 500
+    if len(argv) > 1:
+        n = int(argv[1])
+    t0 = time()
+    r = run(n)
+    t1 = time()
+    print('{"kernel": "mandelbrot", "n": ' + str(n) + ', "checksum": ' + str(r)
+          + ', "seconds": ' + str(t1 - t0) + '}')
+    return 0

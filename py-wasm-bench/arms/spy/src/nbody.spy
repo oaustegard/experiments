@@ -1,0 +1,122 @@
+"""N-body (benchmarks-game shape, 5 bodies). SPy port of kernels/nbody.py.
+
+Dialect changes: nested list[list[f64]] becomes one flat list[f64] of 7 fields per
+body (x, y, z, vx, vy, vz, mass), because SPy rejects augmented assignment through
+a nested subscript. Every floating-point expression keeps the Python operand order.
+"""
+from time import time
+
+PI = 3.141592653589793
+SOLAR_MASS = 4.0 * PI * PI
+DAYS_PER_YEAR = 365.24
+
+
+def _push(bodies: list[f64], x: f64, y: f64, z: f64,
+          vx: f64, vy: f64, vz: f64, m: f64) -> None:
+    bodies.append(x)
+    bodies.append(y)
+    bodies.append(z)
+    bodies.append(vx)
+    bodies.append(vy)
+    bodies.append(vz)
+    bodies.append(m)
+
+
+def make_bodies() -> list[f64]:
+    bodies: list[f64] = []
+    _push(bodies, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, SOLAR_MASS)
+    _push(bodies,
+          4.84143144246472090e+00, -1.16032004402742839e+00, -1.03622044471123109e-01,
+          1.66007664274403694e-03 * DAYS_PER_YEAR, 7.69901118419740425e-03 * DAYS_PER_YEAR,
+          -6.90460016972063023e-05 * DAYS_PER_YEAR, 9.54791938424326609e-04 * SOLAR_MASS)
+    _push(bodies,
+          8.34336671824457987e+00, 4.12479856412430479e+00, -4.03523417114321381e-01,
+          -2.76742510726862411e-03 * DAYS_PER_YEAR, 4.99852801234917238e-03 * DAYS_PER_YEAR,
+          2.30417297573763929e-05 * DAYS_PER_YEAR, 2.85885980666130812e-04 * SOLAR_MASS)
+    _push(bodies,
+          1.28943695621391310e+01, -1.51111514016986312e+01, -2.23307578892655734e-01,
+          2.96460137564761618e-03 * DAYS_PER_YEAR, 2.37847173959480950e-03 * DAYS_PER_YEAR,
+          -2.96589568540237556e-05 * DAYS_PER_YEAR, 4.36624404335156298e-05 * SOLAR_MASS)
+    _push(bodies,
+          1.53796971148509165e+01, -2.59193146099879641e+01, 1.79258772950371181e-01,
+          2.68067772490389322e-03 * DAYS_PER_YEAR, 1.62824170038242295e-03 * DAYS_PER_YEAR,
+          -9.51592254519715870e-05 * DAYS_PER_YEAR, 5.15138902046611451e-05 * SOLAR_MASS)
+    return bodies
+
+
+def offset_momentum(bodies: list[f64]) -> None:
+    px = 0.0
+    py = 0.0
+    pz = 0.0
+    nb = len(bodies) // 7
+    for i in range(nb):
+        b = 7 * i
+        px += bodies[b + 3] * bodies[b + 6]
+        py += bodies[b + 4] * bodies[b + 6]
+        pz += bodies[b + 5] * bodies[b + 6]
+    bodies[3] = -px / SOLAR_MASS
+    bodies[4] = -py / SOLAR_MASS
+    bodies[5] = -pz / SOLAR_MASS
+
+
+def energy(bodies: list[f64]) -> f64:
+    e = 0.0
+    nb = len(bodies) // 7
+    for i in range(nb):
+        b = 7 * i
+        e += 0.5 * bodies[b + 6] * (bodies[b + 3] * bodies[b + 3]
+                                    + bodies[b + 4] * bodies[b + 4]
+                                    + bodies[b + 5] * bodies[b + 5])
+        for j in range(i + 1, nb):
+            c = 7 * j
+            dx = bodies[b] - bodies[c]
+            dy = bodies[b + 1] - bodies[c + 1]
+            dz = bodies[b + 2] - bodies[c + 2]
+            e -= (bodies[b + 6] * bodies[c + 6]) / (dx * dx + dy * dy + dz * dz) ** 0.5
+    return e
+
+
+def advance(bodies: list[f64], dt: f64, steps: i32) -> None:
+    nb = len(bodies) // 7
+    for _s in range(steps):
+        for i in range(nb):
+            b = 7 * i
+            for j in range(i + 1, nb):
+                c = 7 * j
+                dx = bodies[b] - bodies[c]
+                dy = bodies[b + 1] - bodies[c + 1]
+                dz = bodies[b + 2] - bodies[c + 2]
+                d2 = dx * dx + dy * dy + dz * dz
+                mag = dt / (d2 * d2 ** 0.5)
+                bm = bodies[b + 6] * mag
+                cm = bodies[c + 6] * mag
+                bodies[b + 3] -= dx * cm
+                bodies[b + 4] -= dy * cm
+                bodies[b + 5] -= dz * cm
+                bodies[c + 3] += dx * bm
+                bodies[c + 4] += dy * bm
+                bodies[c + 5] += dz * bm
+        for i in range(nb):
+            b = 7 * i
+            bodies[b] += dt * bodies[b + 3]
+            bodies[b + 1] += dt * bodies[b + 4]
+            bodies[b + 2] += dt * bodies[b + 5]
+
+
+def run(n: i32) -> f64:
+    bodies = make_bodies()
+    offset_momentum(bodies)
+    advance(bodies, 0.01, n)
+    return energy(bodies)
+
+
+def main(argv: list[str]) -> i32:
+    n = 200000
+    if len(argv) > 1:
+        n = int(argv[1])
+    t0 = time()
+    r = run(n)
+    t1 = time()
+    print('{"kernel": "nbody", "n": ' + str(n) + ', "checksum": ' + str(r)
+          + ', "seconds": ' + str(t1 - t0) + '}')
+    return 0

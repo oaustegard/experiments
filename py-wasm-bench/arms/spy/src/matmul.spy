@@ -1,0 +1,53 @@
+"""Dense n x n float matmul, naive i-k-j order. SPy port of kernels/matmul.py.
+
+Dialect change: list-of-lists becomes one row-major list[f64] (SPy rejects augmented
+assignment through a nested subscript). Element (i, j) is at i*n + j; the accumulation
+order over k and j is the Python order.
+"""
+from time import time
+
+
+def make(n: i32, seed: i32) -> list[f64]:
+    m: list[f64] = []
+    for i in range(n):
+        for j in range(n):
+            m.append(f64((i * 31 + j * 17 + seed) % 97) / 97.0)
+    return m
+
+
+def matmul(a: list[f64], b: list[f64], n: i32) -> list[f64]:
+    c: list[f64] = []
+    for _z in range(n * n):
+        c.append(0.0)
+    for i in range(n):
+        ai = i * n
+        ci = i * n
+        for k in range(n):
+            aik = a[ai + k]
+            bk = k * n
+            for j in range(n):
+                c[ci + j] += aik * b[bk + j]
+    return c
+
+
+def run(n: i32) -> f64:
+    a = make(n, 1)
+    b = make(n, 2)
+    c = matmul(a, b, n)
+    s = 0.0
+    for i in range(n):
+        for j in range(n):
+            s += c[i * n + j] * f64((i + j) % 5 + 1)
+    return s
+
+
+def main(argv: list[str]) -> i32:
+    n = 200
+    if len(argv) > 1:
+        n = int(argv[1])
+    t0 = time()
+    r = run(n)
+    t1 = time()
+    print('{"kernel": "matmul", "n": ' + str(n) + ', "checksum": ' + str(r)
+          + ', "seconds": ' + str(t1 - t0) + '}')
+    return 0

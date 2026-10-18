@@ -3,7 +3,10 @@
 Run 2026-10-18 on a CCotw container (4 vCPU, nothing else running), 5 reps per cell,
 median reported. Every timed cell first matched the native CPython 3.11 checksum to
 1e-9 relative. Full tables: `results/report.md`; raw: `results/wasmtime.json`,
-`results/node.json`.
+`results/node.json`, `results/spy-wasmtime.json`. The SPy row was timed later the same
+day, after the `jail_route` guard fix; a re-run of three arms alongside it
+(`results/recheck.json`) came within 10% of the first run except c-ceiling nbody
+(0.091s against 0.125s).
 
 ## Speed against native CPython 3.11
 
@@ -20,11 +23,12 @@ native CPython 3.11. Wasm rows are wasmtime 39 / node 22 (V8).
 | cython-wasi, wasmtime | 1.91s (0.86x) | 0.18s (4.74x) | 1.42s (0.35x) | 1.69s (0.41x) |
 | mypyc-wasi, wasmtime | 2.67s (0.62x) | 0.042s (20.3x) | 0.64s (0.77x) | 1.62s (0.43x) |
 | mypyc-wasi, node | 2.14s (0.77x) | 0.044s (19.5x) | 0.69s (0.72x) | 1.64s (0.43x) |
+| spy, wasmtime | 0.181s (9.1x) | 0.030s (29.0x) | 0.111s (4.5x) | 0.368s (1.9x) |
 | c-ceiling, wasmtime | 0.125s (13.2x) | 0.027s (32.0x) | 0.012s (41.9x) | 0.031s (22.4x) |
 | c-ceiling, node | 0.099s (16.6x) | 0.033s (26.3x) | 0.018s (27.3x) | 0.034s (20.5x) |
 | c-native (gcc -O2) | 0.072s (22.7x) | 0.026s (32.6x) | 0.010s (50.7x) | 0.016s (43.1x) |
 
-Shipped size per kernel: c-ceiling 33–43 KB; cpython-wasi, mypyc-wasi and cython-wasi
+Shipped size per kernel: c-ceiling 33–43 KB; spy 1.03–1.10 MB; cpython-wasi, mypyc-wasi and cython-wasi
 6.8–6.9 MB plus a stdlib tree that is mapped in, not counted; py2wasm 27 MB,
 self-contained.
 
@@ -51,24 +55,35 @@ self-contained.
    is value representation: flat `f64` arrays instead of lists of boxed floats.
    dictwords' ceiling is optimistic, since the C uses a purpose-built hash table; a
    compiler would need a general `str`/`dict` runtime there.
-5. **Python → WGSL works for the data-parallel kernels.** `arms/wgsl/pykernel.py`
+5. **SPy reaches 6–63x cpython-wasi and 1.9–29x native CPython, with no libpython.**
+   SPy (commit a39950ca, release build at `-O3`, compiled with zig 0.13's clang) runs
+   within 1.1–1.5x of the C ceiling on mandelbrot and nbody. It falls 9–12x short of the
+   ceiling on matmul and dictwords, where the time goes to its list and dict runtime
+   rather than arithmetic. All four kernels ported, with these changes:
+   list-of-lists became one flat `list[f64]` (SPy rejects `+=` through a nested
+   subscript; c-ceiling makes the same change), the dictwords LCG runs in `u32` masked
+   to 2^31, and `sorted(...)[:10]` became a hand-written top-10 insertion with the same
+   `(-count, word)` ordering, which does less work than a full sort. nbody's checksum
+   differs from CPython's by 4e-14 (musl's `pow` against glibc's). The build used
+   `SPY_GC_NONE`: nothing is ever freed, which flatters the allocation-heavy dictwords.
+6. **Python → WGSL works for the data-parallel kernels.** `arms/wgsl/pykernel.py`
    (~800 lines, stdlib `ast`) translates `@kernel` functions to compute shaders. In
    headless Chromium on SwiftShader, mandelbrot matched a numpy float32 model on all
    250,000 pixels and matmul matched it exactly. Relative error against the f64 Python
    checksum is 4.0e-5 and 4.3e-8 (f32 precision). The 27–114 ms GPU times are software
    rendering and say nothing about real-GPU speed.
 
-The route that closes the gap is a compiler whose typed subset lowers `list[float]` to
-a flat typed buffer and `int` to `i64`, and that does not link libpython for the hot
-code. That is SPy's design; mypyc and Cython keep the CPython object model and inherit
-its cost.
+A compiler whose typed subset lowers `list[float]` to a flat typed buffer and `int` to
+`i64`, without libpython in the hot code, closes most of the gap: SPy, the one arm built
+that way, is the fastest Python-derived arm on every kernel, 4–15x ahead of mypyc
+outside mandelbrot. mypyc and Cython keep the CPython object model and inherit its
+cost. SPy's remaining gap to C is in its container runtime, and its dialect differs
+from Python enough that each kernel needed hand changes.
 
 ## Not measured
 
-- **SPy.** Blocked: SPy's dependencies must come from PyPI outside the jail (it has no
-  network), and the `jail_route` guard refuses any `python`/`pip` command naming
-  `/tmp/jail/`, which contradicts `scripts/jail.sh`'s documented install step.
-  `arms/spy/NOTES.md` holds what was learned from reading its source.
+- SPy under node (its output came from a jailed compiler, so it ran only under
+  wasmtime, a real sandbox), and SPy with a garbage collector enabled.
 - Real-GPU WebGPU timing; browser-side wasm startup and download cost.
 - Cython with `cdef` typed memoryviews, and mypyc with `native_class`/`i64`
   annotations. Both would narrow finding 3, at the price of code that is no longer
@@ -88,5 +103,12 @@ its cost.
   `libpython3.11.a` reports 3.11.8+ and works as a stock CPython-for-WASI link target.
 - **A CPython guest writes `.pyc` into a mapped stdlib dir** even with
   `PYTHONDONTWRITEBYTECODE=1`; `PYTHONPYCACHEPREFIX` redirects it.
+- **SPy needed a guard fix to install at all.** Its dependencies come from PyPI
+  outside the jail (the jail has no network), and the `jail_route` guard refused every
+  `python`/`pip` command naming `/tmp/jail/`. claude-workspace cc01d9e admits one form:
+  `python3 -I -m pip install --only-binary=:all: --target /tmp/jail/<name>/.deps ...`
+  into a fresh dir, before the checkout is chowned to `nobody`. SPy build options must
+  precede the source file, and `--release` links fail on `-flto` until it is stripped
+  from `build.ninja` (`arms/spy/NOTES.md`).
 - **Headless Chromium exposes `navigator.gpu` only on an http(s) page,** not on a
   `setContent` page.

@@ -7,7 +7,7 @@ optimized."* The working hypothesis from that conversation: py2wasm's ceiling is
 CPython's object model, so the gain lives in type-specialised compilation of hot
 functions (wasm) and a `@kernel` → WGSL path (WebGPU), not in tuning Nuitka.
 
-Status: **done, except SPy** (blocked, see `RESULTS.md`). Results: [`RESULTS.md`](RESULTS.md). Reproduce with `./run_all.sh`.
+Status: **done**. Results: [`RESULTS.md`](RESULTS.md). Reproduce with `./run_all.sh`.
 
 ## Kernels
 

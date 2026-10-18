@@ -1,0 +1,95 @@
+"""Dynamic-Python workload: string building, dict counting, top-10 selection.
+SPy port of kernels/dictwords.py.
+
+Dialect changes, all forced by the SPy stdlib at this commit:
+  - LCG: Python computes (x * 1103515245 + 12345) % 2**31 on Python ints. SPy has no
+    i32(i64) and no i64 -> i32 index path, so the step runs in u32 with wraparound and
+    is masked with 0x7fffffff. This is exact: the low 31 bits of a product depend only
+    on the low 32 bits of its operands, and 2**31 divides 2**32. The state stays below
+    2**31 after every step, so it is also a valid list index once cast to i32.
+  - sorted(counts.items(), key=(-count, word))[:10] becomes a hand-written top-10
+    insertion keeping the list ordered by (count desc, word asc). That order is total
+    over distinct words, so the first ten entries are exactly Python's.
+  - acc * 100000 + len(counts) is computed in f64; all values are integers well below
+    2**53, so the result is exact (SPy has no f64(i64)).
+"""
+from time import time
+
+DEFAULT_N = 500000
+MULT = u32(1103515245)
+INC = u32(12345)
+MASK = u32(2147483647)
+SEVEN = u32(7)
+
+
+def make_syllables() -> list[str]:
+    # A module-level list is a prebuilt constant that redshift cannot yet emit (SPy WIP),
+    # so the table is built inside run() and passed down.
+    return ["ka", "ri", "mo", "tu", "le", "sa", "no", "vi", "da", "pe", "zo", "hu"]
+
+
+def make_word(x0: u32, syllables: list[str]) -> str:
+    parts: list[str] = []
+    x = x0
+    k = 1 + i32(x % u32(4))
+    for _ in range(k):
+        parts.append(syllables[i32(x % u32(12))])
+        x = (x * MULT + INC) & MASK
+        x = x // SEVEN
+    return "".join(parts)
+
+
+def beats(c1: i32, w1: str, c2: i32, w2: str) -> bool:
+    # Python's sort key is (-count, word): higher count first, then word ascending.
+    if c1 != c2:
+        return c1 > c2
+    return w1 < w2
+
+
+def run(n: i32) -> f64:
+    counts: dict[str, i32] = {}
+    syllables = make_syllables()
+    x = u32(42)
+    for _ in range(n):
+        x = (x * MULT + INC) & MASK
+        w = make_word(x, syllables)
+        counts[w] = counts.get(w, 0) + 1
+
+    top_w: list[str] = []
+    top_c: list[i32] = []
+    for w in counts:
+        c = counts[w]
+        pos = -1
+        if len(top_w) < 10:
+            top_w.append(w)
+            top_c.append(c)
+            pos = len(top_w) - 1
+        elif beats(c, w, top_c[9], top_w[9]):
+            top_w[9] = w
+            top_c[9] = c
+            pos = 9
+        while pos > 0 and beats(top_c[pos], top_w[pos], top_c[pos - 1], top_w[pos - 1]):
+            tw = top_w[pos]
+            top_w[pos] = top_w[pos - 1]
+            top_w[pos - 1] = tw
+            tc = top_c[pos]
+            top_c[pos] = top_c[pos - 1]
+            top_c[pos - 1] = tc
+            pos -= 1
+
+    acc: i32 = 0
+    for i in range(len(top_w)):
+        acc += (i + 1) * top_c[i] + len(top_w[i])
+    return f64(acc) * 100000.0 + f64(len(counts))
+
+
+def main(argv: list[str]) -> i32:
+    n = DEFAULT_N
+    if len(argv) > 1:
+        n = int(argv[1])
+    t0 = time()
+    r = run(n)
+    t1 = time()
+    print('{"kernel": "dictwords", "n": ' + str(n) + ', "checksum": ' + str(r)
+          + ', "seconds": ' + str(t1 - t0) + '}')
+    return 0
