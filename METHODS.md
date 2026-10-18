@@ -659,6 +659,16 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **clang turns `pow(x, 0.5)` into `sqrt` without `-ffast-math`.** A C port of Python code that
+  writes `** 0.5` then differs in the last bits and runs faster than the code it models (nbody: 5e-14,
+  about 3x). `-fno-builtin-pow` keeps the libm call. (`py-wasm-bench/arms/c-ceiling/NOTES.md`)
+- **mypyc cross-compiled to wasm32 reads pointer size from the build host.** List literals get
+  8-byte strides and silently hold garbage floats. Pin `sysconfig` `SIZEOF_SIZE_T=4` before mypyc is
+  imported. (`py-wasm-bench/arms/mypyc-wasi/gen_c.py`)
+- **py2wasm's sdist ships a prebuilt `libpython3.11.a` for wasm32-wasi** (wasi-sdk 21): a
+  ready link target for stock CPython-on-WASI or for statically linked C extensions. py2wasm downloads
+  wasi-sdk on any invocation unless `WASI_SDK_DIR` is set. GitHub release assets download fine from
+  CCotw even where `github.com` pages return 403. (`py-wasm-bench/`)
 - **Python `ssl`: one thread per `SSLSocket`, and no verify callback.** OpenSSL does not support
   reading and writing one connection from two threads at once; a blocking reader thread plus
   writers elsewhere failed about one run in thirty with an `EBADF` and a lost message. Own the

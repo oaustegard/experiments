@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>pykernel WGSL runner</title>
+</head>
+<body>
+<script>
+// Runs one translated kernel on WebGPU. Called by run_gpu.js through page.evaluate.
+// Never throws: every failure comes back as {ok:false, stage, error, ...} so the caller
+// always gets navigator.gpu and the adapter state, even when there is no adapter.
+const BU = GPUBufferUsage, MU = GPUMapMode, SU = GPUShaderStage;
+
+function b64ToBytes(s) {
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function bytesToB64(u8) {
+  let s = "";
+  const CH = 0x8000;
+  for (let i = 0; i < u8.length; i += CH) {
+    s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+  }
+  return btoa(s);
+}
+
+window.runKernel = async function (job) {
+  const info = { navigator_gpu: !!navigator.gpu, user_agent: navigator.userAgent };
+  const fail = (stage, error, extra) => Object.assign({ ok: false, stage, error: String(error && error.message || error) }, info, extra || {});
+  if (!navigator.gpu) return fail("navigator.gpu", "navigator.gpu is undefined");
+
+  let adapter = null;
+  try {
+    adapter = await navigator.gpu.requestAdapter();
+  } catch (e) {
+    return fail("requestAdapter", e);
+  }
+  if (!adapter) return fail("requestAdapter", "requestAdapter() resolved to null");
+  try {
+    const ai = adapter.info || (adapter.requestAdapterInfo ? await adapter.requestAdapterInfo() : {});
+    info.adapter = { vendor: ai.vendor, architecture: ai.architecture, device: ai.device, description: ai.description, isFallbackAdapter: adapter.isFallbackAdapter };
+  } catch (e) {
+    info.adapter = { error: String(e) };
+  }
+
+  let device;
+  const deviceErrors = [];
+  try {
+    device = await adapter.requestDevice();
+  } catch (e) {
+    return fail("requestDevice", e, { adapter: info.adapter });
+  }
+  device.addEventListener("uncapturederror", (ev) => deviceErrors.push(ev.error.message));
+
+  // Compile, then fail on any error in getCompilationInfo(). Warnings and infos are returned.
+  const module = device.createShaderModule({ code: job.wgsl });
+  const ci = await module.getCompilationInfo();
+  const messages = ci.messages.map((m) => ({ type: m.type, line: m.lineNum, column: m.linePos, text: m.message }));
+  const errors = messages.filter((m) => m.type === "error");
+  if (errors.length) return fail("getCompilationInfo", errors.map((m) => `${m.line}:${m.column} ${m.text}`).join("; "), { messages, adapter: info.adapter });
+
+  const spec = job.spec;
+  const layoutEntries = spec.buffers.map((b) => ({
+    binding: b.binding,
+    visibility: SU.COMPUTE,
+    buffer: { type: b.access === "read" ? "read-only-storage" : "storage" },
+  }));
+  layoutEntries.push({ binding: spec.uniform_binding, visibility: SU.COMPUTE, buffer: { type: "uniform" } });
+  const bgl = device.createBindGroupLayout({ entries: layoutEntries });
+
+  device.pushErrorScope("validation");
+  const pipeline = device.createComputePipeline({
+    layout: device.createPipelineLayout({ bindGroupLayouts: [bgl] }),
+    compute: { module, entryPoint: spec.entry },
+  });
+  const pipeErr = await device.popErrorScope();
+  if (pipeErr) return fail("createComputePipeline", pipeErr.message, { messages, adapter: info.adapter });
+
+  const buffers = {};
+  for (const b of spec.buffers) {
+    const size = b.length * 4;
+    const buf = device.createBuffer({ size, usage: BU.STORAGE | BU.COPY_SRC | BU.COPY_DST });
+    if (b.file) device.queue.writeBuffer(buf, 0, b64ToBytes(job.inputs[b.name]));
+    buffers[b.name] = buf;
+  }
+
+  const uni = new ArrayBuffer(spec.uniform_size);
+  const dv = new DataView(uni);
+  for (const u of spec.uniforms) {
+    if (u.type === "i32") dv.setInt32(u.offset, u.value, true);
+    else dv.setFloat32(u.offset, u.value, true);
+  }
+  const ubuf = device.createBuffer({ size: uni.byteLength, usage: BU.UNIFORM | BU.COPY_DST });
+  device.queue.writeBuffer(ubuf, 0, uni);
+
+  const bindGroup = device.createBindGroup({
+    layout: bgl,
+    entries: [
+      ...spec.buffers.map((b) => ({ binding: b.binding, resource: { buffer: buffers[b.name] } })),
+      { binding: spec.uniform_binding, resource: { buffer: ubuf } },
+    ],
+  });
+
+  const readbacks = {};
+  for (const name of spec.outputs) {
+    const size = spec.buffers.find((b) => b.name === name).length * 4;
+    readbacks[name] = device.createBuffer({ size, usage: BU.COPY_DST | BU.MAP_READ });
+  }
+
+  // One dispatch: encode, submit, read back. Timed from dispatch to the readback mapping.
+  const once = async () => {
+    const t0 = performance.now();
+    const enc = device.createCommandEncoder();
+    const pass = enc.beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(spec.workgroups);
+    pass.end();
+    for (const name of spec.outputs) {
+      const size = spec.buffers.find((b) => b.name === name).length * 4;
+      enc.copyBufferToBuffer(buffers[name], 0, readbacks[name], 0, size);
+    }
+    device.queue.submit([enc.finish()]);
+    await Promise.all(spec.outputs.map((name) => readbacks[name].mapAsync(MU.READ)));
+    const t1 = performance.now();
+    const outputs = {};
+    for (const name of spec.outputs) {
+      const copy = new Uint8Array(readbacks[name].getMappedRange().slice(0));
+      readbacks[name].unmap();
+      outputs[name] = bytesToB64(copy);
+    }
+    return { ms: t1 - t0, outputs };
+  };
+
+  const times = [];
+  let last;
+  try {
+    await once(); // warm-up: first dispatch pays one-time costs; not timed
+    for (let r = 0; r < job.runs; r++) {
+      last = await once();
+      times.push(last.ms);
+    }
+  } catch (e) {
+    return fail("dispatch", e, { messages, adapter: info.adapter });
+  }
+  if (deviceErrors.length) return fail("device", deviceErrors.join("; "), { messages, adapter: info.adapter });
+  return { ok: true, ...info, adapter: info.adapter, messages, times_ms: times, outputs: last.outputs };
+};
+</script>
+</body>
+</html>
