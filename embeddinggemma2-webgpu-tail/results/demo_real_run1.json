@@ -1,0 +1,163 @@
+{
+ "variant": "real",
+ "url": "/web/demo.html?model=real&hf=/out/hfmirror/&bench_reps=2&scan_reps=1",
+ "startup": {
+  "phase": "ready",
+  "error": null,
+  "mode": {
+   "local": false,
+   "model": "real",
+   "forcePool": false
+  },
+  "inputs": [
+   "input_ids",
+   "attention_mask",
+   "image_features",
+   "video_features",
+   "audio_features"
+  ],
+  "outputs": [
+   "last_hidden_state",
+   "sentence_embedding"
+  ],
+  "path": "sentence_embedding",
+  "gate": {
+   "passed": true,
+   "reasons": [],
+   "docs": 32,
+   "codes": {
+    "mismatch": 0,
+    "allowed": 12,
+    "total": 24576
+   },
+   "scale_max_abs_err": 1.7881393432617188e-07,
+   "bias_max_abs_err": 9.406358003616333e-08,
+   "score": {
+    "query": "how do I make bread rise properly",
+    "n": 32,
+    "bad": 0,
+    "max_abs_err": 1.7881393432617188e-07
+   },
+   "spread_mean_offdiag_cos": 0.6154653733193397
+  }
+ },
+ "reference": {
+  "browser_scores": [
+   0.6845,
+   0.8542,
+   0.7517,
+   0.7833
+  ],
+  "cpu_scores": [
+   0.6845,
+   0.8542,
+   0.7517,
+   0.7833
+  ],
+  "card_scores": [
+   0.684,
+   0.854,
+   0.752,
+   0.783
+  ],
+  "cos_to_cpu": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ "search": {
+  "query": "who won the match in the last minute",
+  "n_hits": 10,
+  "recall_at_10": 0.9,
+  "top3": [
+   {
+    "doc": "The striker curled the ball into the far corner to win the match in stoppage time.",
+    "gpu": 0.80162113904953,
+    "exact": 0.8005881905555725
+   },
+   {
+    "doc": "The quarterback threw a long pass into the end zone just before the clock ran out.",
+    "gpu": 0.7540139555931091,
+    "exact": 0.7566169500350952
+   },
+   {
+    "doc": "The goalkeeper dived to his left and palmed the penalty kick away from the net.",
+    "gpu": 0.7017620801925659,
+    "exact": 0.7041931748390198
+   }
+  ]
+ },
+ "bench": {
+  "docs_per_batch": 32,
+  "reps": 2,
+  "path": "sentence_embedding",
+  "embed_only_ms": {
+   "median": 137828.05,
+   "runs": [
+    142168.5,
+    133487.6
+   ]
+  },
+  "embed_readback_encodeRef_ms": {
+   "median": 136800.9,
+   "runs": [
+    137033.3,
+    136568.5
+   ]
+  },
+  "embed_gpu_encode_ms": {
+   "median": 137102.7,
+   "runs": [
+    140501,
+    133704.4
+   ]
+  },
+  "scan_fill_ms": 224468.7,
+  "scan_agreement_max_abs_err": 8.940696716308594e-07,
+  "scan_encode_vs_cpu": {
+   "code_flips": 1,
+   "codes": 7680000,
+   "rows_with_flip": 1,
+   "rows": 10000,
+   "score_max_abs_diff_rows_with_flip": 0.0048615457490086555,
+   "score_max_abs_diff_rows_without_flip": 1.1324882507324219e-06
+  },
+  "scan": {
+   "n": 100000,
+   "nq": 20,
+   "reps": 1,
+   "gpu_ms_median": 8126.6,
+   "cpu_ms_median_10k": 534.1,
+   "cpu_ms_scaled_100k": 5341,
+   "gpu_over_cpu_scaled_speedup": 0.66,
+   "gpu_ms_all": [
+    8126.6
+   ],
+   "cpu_ms_all_10k": [
+    534.1
+   ]
+  }
+ },
+ "bench_error": null,
+ "bench_panel_text": "{\n  \"docs_per_batch\": 32,\n  \"reps\": 2,\n  \"path\": \"sentence_embedding\",\n  \"embed_only_ms\": {\n    \"median\": 137828.05,\n    \"runs\": [\n      142168.5,\n      133487.6\n    ]\n  },\n  \"embed_readback_encodeRef_ms\": {\n    \"median\": 136800.9,\n    \"runs\": [\n      137033.3,\n      136568.5\n    ]\n  },\n  \"embed_gpu_encode_ms\": {\n    \"median\": 137102.7,\n    \"runs\": [\n      140501,\n      133704.4\n    ]\n  },\n  \"scan",
+ "gate_panel_text": "Startup gate passed (32 docs, 0/24576 code mismatches, 0 score mismatches).",
+ "screenshot": "/home/user/experiments/embeddinggemma2-webgpu-tail/out/demo/real.png",
+ "wall_clock_s": 2348.1,
+ "page_errors": [],
+ "console_errors": [
+  "[error] \u001b[0;93m2026-10-18 22:49:25.205599 [W:onnxruntime:, session_state.cc:1397 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.\u001b[m",
+  "[error] \u001b[0;93m2026-10-18 22:49:25.207399 [W:onnxruntime:, session_state.cc:1399 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.\u001b[m"
+ ],
+ "checks": {
+  "startup_gate_passed": true,
+  "search_returned_10_hits": true,
+  "bench_produced_numbers": true,
+  "zero_page_errors": false,
+  "card_example_scores": true,
+  "matches_cpu_reference": true
+ },
+ "PASS": false
+}

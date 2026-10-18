@@ -5,9 +5,15 @@ direction, ||mean|| / mean ||x|| ~ 0.85 and random-pair cosine ~ 0.72 (EG2 on
 SciFact measured 0.845 and 0.72), plus 64 clusters so top-k is meaningful.
 The kernel's correctness does not depend on the model, only on the numbers.
 
-Usage: python3 -I oracle/make_fixtures.py OUTDIR [--n 4096] [--q 32]
+--vectors DIR swaps the synthetic rows for real EG2 vectors: an embstore set
+(`scripts/embstore.py get quora/embeddinggemma-2/fp32-768-first100k DIR`), whose
+first n docs and q queries are used, and whose mean over every doc in the set
+(100k) is the declared mu.
+
+Usage: python3 -I oracle/make_fixtures.py OUTDIR [--n 4096] [--q 32] [--vectors DIR]
 """
 import argparse
+import glob
 import json
 import os
 
@@ -32,6 +38,27 @@ def make_vectors(rng, n, centers, m, c=0.85, spread=0.55):
     return unit(c * m + np.sqrt(1 - c * c) * g)
 
 
+def load_vectors(vdir, n, q):
+    """First n docs and q queries of an embstore set, plus the mean over all its docs."""
+    shards = sorted(glob.glob(os.path.join(vdir, "shards", "docs_*.npy")))
+    if not shards:
+        raise SystemExit(f"no shards/docs_*.npy under {vdir}")
+    total = np.zeros(D, np.float64)
+    count = 0
+    head = []
+    for path in shards:
+        x = np.load(path).astype(np.float64)
+        total += x.sum(0)
+        count += len(x)
+        if sum(map(len, head)) < n:
+            head.append(x)
+    docs = np.concatenate(head)[:n]
+    if len(docs) < n:
+        raise SystemExit(f"{vdir} has {len(docs)} docs, asked for {n}")
+    queries = np.load(os.path.join(vdir, "q_dense.npy")).astype(np.float64)[:q]
+    return unit(docs), unit(queries), (total / count).astype(np.float32), count
+
+
 def write(path, arr):
     np.ascontiguousarray(arr).tofile(path)
 
@@ -43,20 +70,27 @@ def main():
     ap.add_argument("--q", type=int, default=32)
     ap.add_argument("--pool-b", type=int, default=6)
     ap.add_argument("--pool-s", type=int, default=37)
+    ap.add_argument("--vectors", help="embstore set directory with real EG2 vectors")
     a = ap.parse_args()
     rng = np.random.default_rng(20261018)
     os.makedirs(os.path.join(a.out, "expect"), exist_ok=True)
 
-    m = unit(rng.standard_normal(D))
-    centers = unit(rng.standard_normal((64, D)))
-    docs64 = make_vectors(rng, a.n, centers, m)
-    # queries: perturbed copies of random docs, so each has real neighbours
-    src = rng.integers(0, a.n, a.q)
-    queries64 = unit(docs64[src] + 0.35 * unit(rng.standard_normal((a.q, D))))
+    if a.vectors:
+        docs64, queries64, mu, mu_rows = load_vectors(a.vectors, a.n, a.q)
+        docs = docs64.astype(np.float32)
+        queries = queries64.astype(np.float32)
+    else:
+        m = unit(rng.standard_normal(D))
+        centers = unit(rng.standard_normal((64, D)))
+        docs64 = make_vectors(rng, a.n, centers, m)
+        # queries: perturbed copies of random docs, so each has real neighbours
+        src = rng.integers(0, a.n, a.q)
+        queries64 = unit(docs64[src] + 0.35 * unit(rng.standard_normal((a.q, D))))
 
-    docs = docs64.astype(np.float32)          # what remex encodes (unit)
-    queries = queries64.astype(np.float32)
-    mu = remex.corpus_mean(docs).astype(np.float32)
+        docs = docs64.astype(np.float32)          # what remex encodes (unit)
+        queries = queries64.astype(np.float32)
+        mu = remex.corpus_mean(docs).astype(np.float32)
+        mu_rows = a.n
 
     # GPU input: the same rows times a random positive factor, so the
     # kernel's normalize step is exercised. remex sees the unit rows.
@@ -123,6 +157,8 @@ def main():
         "boundaries": [float(v) for v in qz.boundaries],
         "centroids": [float(v) for v in qz.centroids],
         "n_docs": a.n, "n_queries": a.q, "k": K,
+        "source": os.path.abspath(a.vectors) if a.vectors else "synthetic",
+        "mu_rows": mu_rows,
         "pool_b": B, "pool_s": S,
         "batches": [1000, 2000, a.n - 3000],  # encode in uneven batches
         "capacity": a.n + 904,                # > n, so offsets and padding matter

@@ -1,0 +1,49 @@
+{
+ "remex_version": "2.1.0",
+ "d": 768,
+ "bits": 2,
+ "seed": 42,
+ "rotation": "rht",
+ "words_per_vec": 48,
+ "bytes_per_vec": 192,
+ "kappa": 0.939556031386107,
+ "boundaries": [
+  -0.03542039543390274,
+  0.0,
+  0.03542039543390274
+ ],
+ "centroids": [
+  -0.05450250208377838,
+  -0.016338292509317398,
+  0.016338292509317398,
+  0.05450250208377838
+ ],
+ "n_docs": 4096,
+ "n_queries": 32,
+ "k": 10,
+ "source": "/home/user/experiments/embeddinggemma2-webgpu-tail/out/eg2q",
+ "mu_rows": 100000,
+ "pool_b": 6,
+ "pool_s": 37,
+ "batches": [
+  1000,
+  2000,
+  1096
+ ],
+ "capacity": 5000,
+ "files": {
+  "R": "R.f32",
+  "Rmu": "Rmu.f32",
+  "mu": "mu.f32",
+  "docs_in": "docs_in.f32 [n_docs, d], NOT unit: encode with normalize=true",
+  "queries_in": "queries_in.f32 [n_queries, d], NOT unit: search with normalize=true",
+  "hidden": "hidden.f32 [pool_b, pool_s, d]",
+  "mask": "mask.u32 [pool_b, pool_s]"
+ },
+ "stats": {
+  "mean_norm_ratio": 0.7877713265477657,
+  "pair_cos": 0.6218153318170034,
+  "min_margin": 3.8903964494352294e-09,
+  "coords_margin_lt_1e-5": 1534
+ }
+}

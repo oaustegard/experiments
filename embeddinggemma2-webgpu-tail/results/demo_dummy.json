@@ -1,0 +1,128 @@
+{
+ "variant": "dummy",
+ "url": "/web/demo.html?local=1&model=dummy&bench_reps=2&scan_reps=1",
+ "startup": {
+  "phase": "ready",
+  "error": null,
+  "mode": {
+   "local": true,
+   "model": "dummy",
+   "forcePool": false
+  },
+  "inputs": [
+   "x",
+   "mask"
+  ],
+  "outputs": [
+   "sentence_embedding",
+   "last_hidden_state"
+  ],
+  "path": "sentence_embedding",
+  "gate": {
+   "passed": true,
+   "reasons": [],
+   "docs": 32,
+   "codes": {
+    "mismatch": 0,
+    "allowed": 12,
+    "total": 24576
+   },
+   "scale_max_abs_err": 1.1920928955078125e-07,
+   "bias_max_abs_err": 3.166496753692627e-08,
+   "score": {
+    "query": "how do I make bread rise properly",
+    "n": 32,
+    "bad": 0,
+    "max_abs_err": 5.960464477539063e-08
+   },
+   "spread_mean_offdiag_cos": 0.2516988697244467
+  }
+ },
+ "search": {
+  "query": "who won the match in the last minute",
+  "n_hits": 10,
+  "recall_at_10": 0.9,
+  "top3": [
+   {
+    "doc": "The striker curled the ball into the far corner to win the match in stoppage time.",
+    "gpu": 0.450194388628006,
+    "exact": 0.4472777843475342
+   },
+   {
+    "doc": "The city's subway network is one of the busiest in the world.",
+    "gpu": 0.4138450622558594,
+    "exact": 0.4200432598590851
+   },
+   {
+    "doc": "Carbon dioxide traps heat in the atmosphere, which warms the surface of the planet.",
+    "gpu": 0.40228980779647827,
+    "exact": 0.4068143665790558
+   }
+  ]
+ },
+ "bench": {
+  "docs_per_batch": 32,
+  "reps": 2,
+  "path": "sentence_embedding",
+  "embed_only_ms": {
+   "median": 47.15,
+   "runs": [
+    48.4,
+    45.9
+   ]
+  },
+  "embed_readback_encodeRef_ms": {
+   "median": 70.85,
+   "runs": [
+    61.3,
+    80.4
+   ]
+  },
+  "embed_gpu_encode_ms": {
+   "median": 173.85,
+   "runs": [
+    165.3,
+    182.4
+   ]
+  },
+  "scan_fill_ms": 339935.7,
+  "scan_agreement_max_abs_err": 7.152557373046875e-07,
+  "scan_encode_vs_cpu": {
+   "code_flips": 3,
+   "codes": 7680000,
+   "rows_with_flip": 3,
+   "rows": 10000,
+   "score_max_abs_diff_rows_with_flip": 0.005002632737159729,
+   "score_max_abs_diff_rows_without_flip": 8.344650268554688e-07
+  },
+  "scan": {
+   "n": 100000,
+   "nq": 20,
+   "reps": 1,
+   "gpu_ms_median": 14583.6,
+   "cpu_ms_median_10k": 789.1,
+   "cpu_ms_scaled_100k": 7891,
+   "gpu_over_cpu_scaled_speedup": 0.54,
+   "gpu_ms_all": [
+    14583.6
+   ],
+   "cpu_ms_all_10k": [
+    789.1
+   ]
+  }
+ },
+ "bench_error": null,
+ "bench_panel_text": "{\n  \"docs_per_batch\": 32,\n  \"reps\": 2,\n  \"path\": \"sentence_embedding\",\n  \"embed_only_ms\": {\n    \"median\": 47.15,\n    \"runs\": [\n      48.4,\n      45.9\n    ]\n  },\n  \"embed_readback_encodeRef_ms\": {\n    \"median\": 70.85,\n    \"runs\": [\n      61.3,\n      80.4\n    ]\n  },\n  \"embed_gpu_encode_ms\": {\n    \"median\": 173.85,\n    \"runs\": [\n      165.3,\n      182.4\n    ]\n  },\n  \"scan_fill_ms\": 339935.7,\n  \"scan_",
+ "gate_panel_text": "Startup gate passed (32 docs, 0/24576 code mismatches, 0 score mismatches).",
+ "screenshot": "/home/user/experiments/embeddinggemma2-webgpu-tail/out/demo/dummy.png",
+ "wall_clock_s": 399.9,
+ "page_errors": [],
+ "console_errors": [],
+ "checks": {
+  "startup_gate_passed": true,
+  "search_returned_10_hits": true,
+  "bench_produced_numbers": true,
+  "zero_page_errors": true
+ },
+ "PASS": true
+}

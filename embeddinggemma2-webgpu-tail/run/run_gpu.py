@@ -1,11 +1,12 @@
 """Run web/test.html in Chromium (SwiftShader WebGPU) and write out/gpu/.
 
-Usage: python3 -I run/run_gpu.py
+Usage: python3 -I run/run_gpu.py [--fixtures fixtures] [--out out/gpu]
 
 Starts `python3 -m http.server` on a free port (cwd = project root), loads
 /web/test.html, awaits window.runTail(), decodes the base64 outputs into
 out/gpu/, and writes out/gpu/meta.json. The server is stopped by PID.
 """
+import argparse
 import base64
 import json
 import os
@@ -19,7 +20,6 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "out" / "gpu"
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 CHROME_ARGS = [
     "--no-sandbox",
@@ -51,6 +51,11 @@ def wait_for_server(port: int, timeout: float = 20.0) -> None:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--fixtures", default="fixtures", help="fixture directory, relative to the project root")
+    ap.add_argument("--out", default="out/gpu", help="output directory, relative to the project root")
+    args = ap.parse_args()
+    OUT = ROOT / args.out
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
@@ -62,7 +67,7 @@ def main() -> int:
     console_errors: list[str] = []
     try:
         wait_for_server(port)
-        url = f"http://127.0.0.1:{port}/web/test.html"
+        url = f"http://127.0.0.1:{port}/web/test.html?fx={args.fixtures}"
         t0 = time.time()
         with sync_playwright() as p:
             browser = p.chromium.launch(executable_path=CHROME, args=CHROME_ARGS)

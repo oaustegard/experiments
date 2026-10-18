@@ -1,17 +1,24 @@
-"""Smoke-run web/demo.html in Chromium (SwiftShader WebGPU) with the dummy model.
+"""Smoke-run web/demo.html in Chromium (SwiftShader WebGPU), with the dummy model or the real one.
 
-Usage: python3 -I run/run_demo.py [--pool] [--bench-reps N] [--scan-reps N]
+Usage: python3 -I run/run_demo.py [--real] [--pool] [--bench-reps N] [--scan-reps N]
 
-Loads /web/demo.html?local=1&model=dummy (plus &pool=1 with --pool, which forces the
-last_hidden_state + tail.pool path), waits for the startup to finish, runs one search,
-clicks the bench button, and checks:
+Default loads /web/demo.html?local=1&model=dummy. --real loads the hosted page (model=real, no
+local=1). Chromium here has no route to the egress proxy, so jsDelivr requests are answered by this
+script from a disk cache under out/netcache/, fetched through Python, and the model files come from
+the out/hf/ mirror that run/ref_real.py fills, via &hf= (route.fulfill of the 174 MB weights crashed
+the browser).
+--pool adds &pool=1, which forces the last_hidden_state + tail.pool path. The script waits for
+the startup to finish, runs one search, clicks the bench button, and checks:
   - the startup gate passed,
   - a search returned 10 hits,
   - the bench panel produced numbers,
-  - zero page errors (uncaught exceptions and console errors).
+  - zero page errors (uncaught exceptions and console errors),
+  - with --real: the model card's example scores within 0.01 of the card, and every browser
+    embedding at cosine >= 0.999 to the CPU reference from run/ref_real.py.
 Writes out/demo/<variant>.json and exits nonzero if any check fails.
 """
 import argparse
+import hashlib
 import json
 import socket
 import subprocess
@@ -33,6 +40,32 @@ CHROME_ARGS = [
     "--enable-features=Vulkan",
 ]
 SEARCH_TEXT = "who won the match in the last minute"
+NETCACHE = ROOT / "out" / "netcache"
+REF = ROOT / "out" / "ref_real" / "ref.json"
+CTYPES = {".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm",
+          ".json": "application/json"}
+
+
+def serve_from_cache(route) -> None:
+    """Answers a cross-origin GET from a disk cache, filling it through Python's own HTTPS stack."""
+    url = route.request.url
+    key = hashlib.sha256(url.encode()).hexdigest()[:24]
+    body_path = NETCACHE / key
+    if not body_path.exists():
+        NETCACHE.mkdir(parents=True, exist_ok=True)
+        tmp = body_path.with_suffix(".part")
+        with urllib.request.urlopen(url, timeout=600) as r, open(tmp, "wb") as f:
+            while chunk := r.read(1 << 20):
+                f.write(chunk)
+        tmp.rename(body_path)
+    suffix = Path(url.split("?")[0]).suffix
+    # body= rather than path=: with path= Playwright infers the type from the cache file's
+    # (extensionless) name and overrides the header.
+    route.fulfill(
+        status=200, body=body_path.read_bytes(),
+        content_type=CTYPES.get(suffix, "application/octet-stream"),
+        headers={"access-control-allow-origin": "*"},
+    )
 
 
 def free_port() -> int:
@@ -56,13 +89,28 @@ def wait_for_server(url: str, timeout: float = 20.0) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--real", action="store_true", help="hosted page with the real EG2 q4 model")
     ap.add_argument("--pool", action="store_true", help="force the last_hidden_state + tail.pool path")
     ap.add_argument("--bench-reps", type=int, default=3)
     ap.add_argument("--scan-reps", type=int, default=2)
     args = ap.parse_args()
 
-    variant = "dummy-pool" if args.pool else "dummy"
-    query = f"/web/demo.html?local=1&model=dummy&bench_reps={args.bench_reps}&scan_reps={args.scan_reps}"
+    variant = ("real" if args.real else "dummy") + ("-pool" if args.pool else "")
+    query = "/web/demo.html?" + ("model=real&hf=/out/hfmirror/" if args.real else "local=1&model=dummy")
+    query += f"&bench_reps={args.bench_reps}&scan_reps={args.scan_reps}"
+    ref = None
+    if args.real:
+        if not REF.exists():
+            raise SystemExit(f"{REF} missing: run python3 -I run/ref_real.py first")
+        ref = json.loads(REF.read_text())
+        mirror = ROOT / "out" / "hfmirror"
+        (mirror / "onnx").mkdir(parents=True, exist_ok=True)
+        hf = ROOT / "out" / "hf"
+        for name, sub in [("model_q4.onnx", "onnx"), ("model_q4.onnx_data", "onnx"),
+                          ("tokenizer.json", ""), ("tokenizer_config.json", "")]:
+            link = mirror / sub / name
+            if not link.exists():
+                link.symlink_to(hf / name)
     if args.pool:
         query += "&pool=1"
 
@@ -91,6 +139,8 @@ def main() -> int:
                     if m.type == "error" else None,
                 )
                 page.on("pageerror", lambda e: page_errors.append(str(e)))
+                if args.real:
+                    page.route("https://cdn.jsdelivr.net/**", serve_from_cache)
                 page.goto(base + query, wait_until="load", timeout=60_000)
 
                 page.wait_for_function(
@@ -103,6 +153,16 @@ def main() -> int:
                     "inputs": st["inputs"], "outputs": st["outputs"], "path": st.get("pathUsed"),
                     "gate": st["gate"],
                 }
+                if ref is not None and st["phase"] == "ready":
+                    got = page.evaluate("(t) => window.demoEmbed(t)", ref["texts"])
+                    cos_cpu = [sum(a * b for a, b in zip(g, w)) for g, w in zip(got, ref["embeddings"])]
+                    scores = [sum(a * b for a, b in zip(got[0], d)) for d in got[1:]]
+                    summary["reference"] = {
+                        "browser_scores": [round(x, 4) for x in scores],
+                        "cpu_scores": [round(x, 4) for x in ref["cpu_scores"]],
+                        "card_scores": ref["card_scores"],
+                        "cos_to_cpu": [round(x, 6) for x in cos_cpu],
+                    }
                 if st["phase"] == "ready" and st["gate"] and st["gate"]["passed"]:
                     page.fill("#q", SEARCH_TEXT)
                     page.click("#search-btn")
@@ -149,6 +209,11 @@ def main() -> int:
         "zero_page_errors": not page_errors and not console_errors and not summary.get("bench_error")
             and not summary.get("startup", {}).get("error"),
     }
+    if ref is not None:
+        r = summary.get("reference")
+        checks["card_example_scores"] = bool(r) and all(
+            abs(a - b) <= 0.01 for a, b in zip(r["browser_scores"], r["card_scores"]))
+        checks["matches_cpu_reference"] = bool(r) and min(r["cos_to_cpu"]) >= 0.999
     summary["checks"] = checks
     summary["PASS"] = all(checks.values())
 

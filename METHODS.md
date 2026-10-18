@@ -659,6 +659,40 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **onnxruntime-web outputs that stay on the GPU: `preferredOutputLocation` plus ORT's own device.**
+  `InferenceSession.create(url, { executionProviders: ['webgpu'], preferredOutputLocation:
+  { name: 'gpu-buffer' } })` returns tensors whose `.gpuBuffer` is a live `GPUBuffer`; `await
+  ort.env.webgpu.device` (after the session exists) is the `GPUDevice` that owns it, and your own
+  pipelines on that device can bind it directly. Zero `getData` calls on the encode path; dispose the
+  tensors only after `queue.onSubmittedWorkDone()`. (`embeddinggemma2-webgpu-tail/interop/`)
+- **Headless Chromium WebGPU needs an `http://127.0.0.1` page.** `about:blank` and `file://` have no
+  `navigator.gpu`; serve the directory with `python3 -m http.server` and launch Chromium with
+  `--enable-unsafe-webgpu --use-angle=swiftshader --use-webgpu-adapter=swiftshader
+  --enable-features=Vulkan`. SwiftShader is a software rasterizer: correct, and 10-1000x off real-GPU
+  timings. (`embeddinggemma2-webgpu-tail/run/run_gpu.py`)
+- **WebGPU: one uniform buffer per dispatch, not `queue.writeBuffer` into a shared one.** A
+  `writeBuffer` lands before the whole submit, so several dispatches recorded into one command
+  encoder all see the last value written. Create each uniform `mappedAtCreation` and destroy it right
+  after the submit; destruction waits for the submitted work. (`embeddinggemma2-webgpu-tail/web/tail.js`)
+- **`npm install --ignore-scripts` for onnxruntime-web.** `@huggingface/transformers` pulls
+  onnxruntime-node, whose postinstall downloads native binaries the sandbox blocks; the browser builds
+  need no install script. (`embeddinggemma2-webgpu-tail/interop/package.json`)
+- **Playwright `route.fulfill` is no way to serve a model.** With `path=` it infers the content type
+  from the file name and overrides your header, so an extensionless cache file served as an ES module
+  fails the strict MIME check; with `body=` a 174 MB weights file killed the browser. Serve large files
+  from the local http.server and point the page at them; route only small CDN scripts (`body=`,
+  `content_type=`, `access-control-allow-origin: *`). Chromium here also has no route to the egress
+  proxy, so CDN requests have to be answered by the driver. (`embeddinggemma2-webgpu-tail/run/run_demo.py`)
+- **onnxruntime-web logs warnings through `console.error`.** The EG2 q4 graph prints two
+  `VerifyEachNodeIsAssignedToAnEp` warnings at session creation, which fail any zero-console-errors
+  check. Set `ort.env.logLevel = 'error'`. (`embeddinggemma2-webgpu-tail/web/demo.js`)
+- **A model card's worked example is a free end-to-end check.** EmbeddingGemma 2's card prints four
+  cosine scores for a query and four documents; the q4 graph on CPU onnxruntime and in the browser on
+  WebGPU both reproduce them to 3 places (0.684 / 0.854 / 0.752 / 0.783), which validates tokenizer,
+  prompts, feeds and pooling at once. EG2 q4 ONNX inputs, for the record: `input_ids`,
+  `attention_mask` (int64), `image/video/audio_features` (empty `[0, 512]` float32 for text);
+  `sentence_embedding` is already unit and equals the normalized masked mean of `last_hidden_state`.
+  (`embeddinggemma2-webgpu-tail/run/ref_real.py`)
 - **clang turns `pow(x, 0.5)` into `sqrt` without `-ffast-math`.** A C port of Python code that
   writes `** 0.5` then differs in the last bits and runs faster than the code it models (nbody: 5e-14,
   about 3x). `-fno-builtin-pow` keeps the libm call. (`py-wasm-bench/arms/c-ceiling/NOTES.md`)

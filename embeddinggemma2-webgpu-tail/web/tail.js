@@ -318,7 +318,8 @@ function toF32(a, n, name) {
 
 // Per-dispatch uniform. Each call returns a fresh buffer that is filled at
 // creation, so no queue.writeBuffer ordering can leak values between
-// dispatches recorded into the same submit.
+// dispatches recorded into the same submit. Callers destroy it right after the
+// submit (_submit); destruction waits for the submitted work.
 function uniform(device, typed) {
   const size = Math.max(16, Math.ceil(typed.byteLength / 16) * 16);
   const buf = device.createBuffer({ size, usage: USAGE.UNIFORM, mappedAtCreation: true });
@@ -427,6 +428,11 @@ export class RemexTail {
     });
   }
 
+  _submit(enc, temps) {
+    this.device.queue.submit([enc.finish()]);
+    for (const b of temps) b.destroy();
+  }
+
   _dispatch(enc, pipe, buffers, dims) {
     const pass = enc.beginComputePass();
     pass.setPipeline(pipe);
@@ -441,13 +447,15 @@ export class RemexTail {
     const inRow0 = opts.inputOffsetRows ?? 0;
     if (start + count > corpus.capacity) throw new Error(`encode: ${start}+${count} exceeds capacity ${corpus.capacity}`);
     const enc = this.device.createCommandEncoder();
+    const temps = [];
     for (let base = 0; base < count; base += MAX_DIM) {
       const n = Math.min(MAX_DIM, count - base);
       const u = uniform(this.device, new Uint32Array([inRow0 + base, start + base, corpus.capacity, normalize]));
+      temps.push(u);
       this._dispatch(enc, this.pipes.encode,
         [u, inputBuf, this.rmat, this.rmu, this.cst, corpus.words, corpus.aux], [n, 1, 1]);
     }
-    this.device.queue.submit([enc.finish()]);
+    this._submit(enc, temps);
     corpus.filled = Math.max(corpus.filled, start + count);
   }
 
@@ -455,12 +463,14 @@ export class RemexTail {
   pool(hiddenBuf, maskBuf, B, S) {
     const out = storageBuf(this.device, B * D * 4);
     const enc = this.device.createCommandEncoder();
+    const temps = [];
     for (let base = 0; base < B; base += MAX_DIM) {
       const n = Math.min(MAX_DIM, B - base);
       const u = uniform(this.device, new Uint32Array([S, base, 0, 0]));
+      temps.push(u);
       this._dispatch(enc, this.pipes.pool, [u, hiddenBuf, maskBuf, out], [3, n, 1]);
     }
-    this.device.queue.submit([enc.finish()]);
+    this._submit(enc, temps);
     return out;
   }
 
@@ -474,21 +484,23 @@ export class RemexTail {
     const lut = storageBuf(dev, nq * LUT_STRIDE * 4);
     const scores = storageBuf(dev, nq * corpus.capacity * 4);
     const enc = dev.createCommandEncoder();
+    const temps = [lut];
     for (let qb = 0; qb < nq; qb += MAX_DIM) {
       const nqq = Math.min(MAX_DIM, nq - qb);
       const u = uniform(dev, new Uint32Array([normalize, qb, LUT_STRIDE, 0]));
+      temps.push(u);
       this._dispatch(enc, this.pipes.prep, [u, queryBuf, this.rmat, this.mu, this.cst, lut], [nqq, 1, 1]);
     }
     if (n > 0) {
       for (let qb = 0; qb < nq; qb += MAX_DIM) {
         const nqq = Math.min(MAX_DIM, nq - qb);
         const u = uniform(dev, new Uint32Array([n, corpus.capacity, qb, LUT_STRIDE]));
+        temps.push(u);
         this._dispatch(enc, this.pipes.scan,
           [u, corpus.words, corpus.aux, lut, scores], [Math.ceil(n / 256), nqq, 1]);
       }
     }
-    dev.queue.submit([enc.finish()]);
-    lut.destroy();   // destruction is deferred until the submitted work finishes
+    this._submit(enc, temps);
     return scores;
   }
 
@@ -497,7 +509,7 @@ export class RemexTail {
     const enc = this.device.createCommandEncoder();
     const u = uniform(this.device, new Uint32Array([count, 0, 0, 0]));
     this._dispatch(enc, this.pipes.colsum, [u, inputBuf, accBuf], [3, 1, 1]);
-    this.device.queue.submit([enc.finish()]);
+    this._submit(enc, [u]);
   }
 
   // Copies a GPU buffer of `bytes` bytes to an ArrayBuffer.
@@ -551,12 +563,27 @@ export class RemexTail {
     const s = await this.readScores(scoresBuf, nq, corpus, n);
     scoresBuf.destroy();
     const res = [];
+    const kk = Math.min(k, n);
     for (let q = 0; q < nq; q++) {
       const row = s.subarray(q * n, (q + 1) * n);
-      const order = Array.from({ length: n }, (_, i) => i);
-      order.sort((a, b) => (row[b] - row[a]) || (a - b));
-      const top = order.slice(0, k);
-      res.push({ idx: Int32Array.from(top), score: Float32Array.from(top, (i) => row[i]) });
+      // Partial select: a sorted window of the best kk so far. Docs arrive in index order, so a
+      // strict > keeps the lower index on ties.
+      const idx = new Int32Array(kk);
+      const score = new Float32Array(kk);
+      let m = 0;
+      for (let i = 0; i < n; i++) {
+        const v = row[i];
+        if (m === kk && !(v > score[kk - 1])) continue;
+        let p = m < kk ? m++ : kk - 1;
+        while (p > 0 && v > score[p - 1]) {
+          score[p] = score[p - 1];
+          idx[p] = idx[p - 1];
+          p--;
+        }
+        score[p] = v;
+        idx[p] = i;
+      }
+      res.push({ idx, score });
     }
     return res;
   }

@@ -10,7 +10,7 @@
 <script type="module">
 import { RemexTail } from './tail.js';
 
-const FX = '../fixtures/';
+const FX = '../' + (new URLSearchParams(location.search).get('fx') || 'fixtures') + '/';
 const D = 768;
 const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
 

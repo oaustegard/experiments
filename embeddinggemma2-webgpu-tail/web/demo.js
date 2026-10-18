@@ -43,7 +43,9 @@ const CFG = LOCAL
       tokModule: 'https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs',
       dummyModel: null,
     };
-const HF = 'https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/';
+// ?hf=<base> points the model files at a mirror with the same layout (run/run_demo.py --real serves one).
+const HF = Q.get('hf') ? new URL(Q.get('hf'), location.href).href
+  : 'https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/';
 const REAL = {
   model: HF + 'onnx/model_q4.onnx',
   data: HF + 'onnx/model_q4.onnx_data',
@@ -351,14 +353,35 @@ async function scanBench(bench) {
   const qbuf = gpuBuffer(qHost);
   const cpuEnc = encodeRef(head, SCAN_CPU_N, cpuParams, { normalize: true });
 
-  // one-time agreement check on the first SCAN_CPU_N rows
+  // One-time agreement check on the first SCAN_CPU_N rows. The scan is checked against searchRef on
+  // the GPU's own codes, scale and bias (as check_tail.py does), so encode differences cannot leak
+  // into it; the float32-GPU vs float64-CPU encode differences are reported separately.
   const sCheck = tail.search(qbuf, SCAN_NQ, syn, { n: SCAN_CPU_N, normalize: true });
   const gChk = await tail.readScores(sCheck, SCAN_NQ, syn, SCAN_CPU_N);
   sCheck.destroy();
-  const cChk = searchRef(qHost, SCAN_NQ, cpuEnc, cpuParams, { normalize: true });
-  let maxErr = 0;
-  for (let i = 0; i < gChk.length; i++) maxErr = Math.max(maxErr, Math.abs(gChk[i] - cChk[i]));
+  const gEnc = await tail.readCorpus(syn, SCAN_CPU_N);
+  const gCodes = new Uint8Array(SCAN_CPU_N * D);
+  for (let i = 0; i < SCAN_CPU_N * D; i++) gCodes[i] = (gEnc.packed[i >> 2] >> (6 - 2 * (i & 3))) & 3;
+  const flipRow = new Uint8Array(SCAN_CPU_N);
+  let flips = 0;
+  for (let i = 0; i < SCAN_CPU_N * D; i++) {
+    if (gCodes[i] !== cpuEnc.codes[i]) { flips++; flipRow[(i / D) | 0] = 1; }
+  }
+  const cOwn = searchRef(qHost, SCAN_NQ, { codes: gCodes, scale: gEnc.scale, bias: gEnc.bias }, cpuParams, { normalize: true });
+  const cCpu = searchRef(qHost, SCAN_NQ, cpuEnc, cpuParams, { normalize: true });
+  let maxErr = 0, maxFlip = 0, maxClean = 0;
+  for (let k = 0; k < gChk.length; k++) {
+    maxErr = Math.max(maxErr, Math.abs(gChk[k] - cOwn[k]));
+    const e = Math.abs(gChk[k] - cCpu[k]);
+    if (flipRow[k % SCAN_CPU_N]) maxFlip = Math.max(maxFlip, e); else maxClean = Math.max(maxClean, e);
+  }
   bench.scan_agreement_max_abs_err = maxErr;
+  bench.scan_encode_vs_cpu = {
+    code_flips: flips, codes: SCAN_CPU_N * D,
+    rows_with_flip: flipRow.reduce((a, b) => a + b, 0), rows: SCAN_CPU_N,
+    score_max_abs_diff_rows_with_flip: maxFlip,
+    score_max_abs_diff_rows_without_flip: maxClean,
+  };
 
   const gpuT = [];
   for (let r = 0; r <= SCAN_REPS; r++) {          // first pass is a warm-up
@@ -449,6 +472,7 @@ async function startup() {
   ort = await import(abs(CFG.ortModule));
   ort.env.wasm.wasmPaths = abs(CFG.ortDist);
   ort.env.wasm.numThreads = 1;
+  ort.env.logLevel = 'error';   // the real graph logs node-placement warnings through console.error
   log(`onnxruntime-web ${ort.env?.versions?.web ?? '1.30.0'} loaded`);
 
   if (MODEL === 'real') {
@@ -657,6 +681,14 @@ $('bench-btn').addEventListener('click', async () => {
     setBusy(false);
   }
 });
+
+// Test hook for run/run_demo.py: texts -> unit rows (plain arrays), through the same session path as the corpus.
+window.demoEmbed = async (texts) => {
+  const e = await embedBatch(texts);
+  const raw = new Float32Array(await tail.readBuffer(e.emb, e.B * D * 4));
+  await release(e);
+  return Array.from({ length: e.B }, (_, i) => Array.from(normalizeRow(raw, i * D)));
+};
 
 window.addEventListener('error', (e) => { state.error = String(e.message); });
 window.addEventListener('unhandledrejection', (e) => { state.error = String(e.reason?.message ?? e.reason); });

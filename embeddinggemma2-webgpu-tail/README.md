@@ -4,22 +4,22 @@ WebGPU kernels for everything after EmbeddingGemma 2's transformer: pooling,
 normalization, centring, rotation, 2-bit remex codes, packing, and the ADC scan
 over the packed corpus. They run on onnxruntime-web's own `GPUDevice`, so an
 embedding goes from ORT's output buffer to a packed code with no readback.
-`SPEC.md` is the contract.
+`SPEC.md` is the contract; `RESULTS.md` has the answer.
 
-## Status (2026-10-18)
+## Status (2026-10-18, round 2)
 
 | piece | state |
 |---|---|
 | `SPEC.md` | done |
-| `oracle/` — fixtures from remex 2.1.0, checker, float32 numpy model | done; checker goes red on wrong bit order, missing kappa, dropped score offset, top-k swap |
-| `web/tail.js` — WGSL kernels + host | passes the checker on SwiftShader: 2 of 3.1M codes flip, both within 1e-5 of a boundary; scores within 3.5e-7 |
+| `oracle/` — fixtures from remex 2.1.0, checker, float32 numpy model | done; checker goes red on wrong bit order, missing kappa, dropped score offset, top-k swap; `--vectors` builds fixtures from real EG2 Quora vectors |
+| `web/tail.js` — WGSL kernels + host | passes the checker on SwiftShader: synthetic, 2 of 3.1M codes flip; real EG2 vectors, 6 of 3.1M; all within 1e-5 of a boundary; scores within 3.5e-7 |
 | `web/tail_ref.js` — CPU reference | passes the checker |
 | `interop/` — ORT 1.30.0 gpu-buffer output fed straight to the tail | passes the checker; 0 `getData` calls on the encode path |
-| `web/demo.html` — real EG2 q4 page with startup gate, search, bench | `?local=1&model=dummy` smoke run passes (gate 0/24,576 code mismatches, 10 hits, bench numbers, no page errors); the real-model path has never run; the scan bench's agreement check reads 0.005 max abs error (see the handoff issue) |
+| `web/demo.html` — real EG2 q4 page with startup gate, search, bench | passes with the real model in headless Chromium (embeddings at cosine 1.0 to CPU onnxruntime, model-card scores reproduced, gate 0/24,576) and with the dummy graph; scan check 7.2e-7 on the GPU's own codes; all timings SwiftShader |
+| real-GPU numbers | not measured |
 
-Fixtures are synthetic EG2-shaped vectors (‖mean‖ ratio 0.852, pair cosine 0.724;
-EG2 on SciFact measured 0.845 and 0.72). The session that built this could not
-reach Hugging Face's file CDN or the R2 embedding store.
+The default fixtures are synthetic EG2-shaped vectors (‖mean‖ ratio 0.852, pair
+cosine 0.724); `fixtures_eg2/` holds 4,096 real EG2 Quora vectors (0.788, 0.622).
 
 ## Regenerate and check
 
@@ -33,6 +33,14 @@ python3 -I run/run_gpu.py && python3 -I oracle/check_tail.py fixtures out/gpu
 python3 -I run/run_interop.py && python3 -I oracle/check_tail.py fixtures out/interop
 python3 -I run/prep_assets.py                        # writes web/assets/R.f32.txt (binary, 2.36 MB)
 python3 -I run/run_demo.py                           # ?local=1&model=dummy smoke run
+
+# real EG2 vectors (R2 embstore, public read) and the real model
+python3 <claude-workspace>/scripts/embstore.py get quora/embeddinggemma-2/fp32-768-first100k out/eg2q
+python3 -I oracle/make_fixtures.py fixtures_eg2 --vectors out/eg2q
+python3 -I run/run_gpu.py --fixtures fixtures_eg2 --out out/gpu_eg2 && python3 -I oracle/check_tail.py fixtures_eg2 out/gpu_eg2
+pip install onnxruntime tokenizers
+python3 -I run/ref_real.py                           # CPU q4 reference; downloads 175 MB into out/hf/
+python3 -I run/run_demo.py --real                    # hosted page, real model: ~40 min on SwiftShader
 ```
 
 The Playwright scripts use Chromium at
