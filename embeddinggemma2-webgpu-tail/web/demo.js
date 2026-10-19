@@ -509,7 +509,7 @@ async function startup() {
 
   device = await ort.env.webgpu.device;
   tail = await RemexTail.create(device, {
-    R, mu: new Float32Array(D), boundaries: params.boundaries, centroids: params.centroids, kappa: params.kappa,
+    R, rht: params.rht, mu: new Float32Array(D), boundaries: params.boundaries, centroids: params.centroids, kappa: params.kappa,
   });
   log('RemexTail created on onnxruntime-web\'s GPUDevice');
 

@@ -6,14 +6,16 @@
 <link rel="icon" href="data:,">
 </head>
 <body>
-<p>Times the WebGPU tail at the sizes of <code>run/native_bench.py</code>: encode (tiled and the
-untiled kernel it replaced), a scan of 100k codes &times; 20 queries, and top-10 on the GPU and on the
+<p>Times the WebGPU tail at the sizes of <code>run/native_bench.py</code>: encode with the
+randomized Hadamard rotation, with the dense rotation it replaced, and with the untiled dense kernel
+before that, a scan of 100k codes &times; 20 queries, and top-10 on the GPU and on the
 host. Takes a few seconds on a real GPU. Parameters: <code>?n=100000&amp;n_enc=16384&amp;reps=3</code>.</p>
 <p><button id="run" disabled>Run bench</button> <button id="copy" disabled>Copy JSON</button></p>
 <pre id="log">loading</pre>
 <pre id="out"></pre>
 <script type="module">
-// Tail-only timings at the sizes of run/native_bench.py: encode, scan of 100k x 20 queries, top-10
+// Tail-only timings at the sizes of run/native_bench.py: encode (RHT rotation, the dense rotation,
+// and the untiled dense kernel before both), scan of 100k x 20 queries, top-10
 // on the GPU and on the host. ?untiled=<module url> also times that module's encode (the one-vector
 // kernel kept in out/tail_untiled.js by the round-3 run). Rows are random: no kernel's cost depends
 // on the values. Every timing waits for queue.onSubmittedWorkDone.
@@ -61,7 +63,7 @@ async function runBench() {
   const info = adapter.info ?? {};
   const P = await (await fetch('assets/params.json')).json();
   const R = new Float32Array(await (await fetch('assets/R.f32.txt')).arrayBuffer());
-  const params = { R, mu: new Float32Array(D), boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa };
+  const params = { R, rht: P.rht, mu: new Float32Array(D), boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa };
   const tail = await RemexTail.create(device, params);
 
   const rng = mulberry32(1);
@@ -79,12 +81,15 @@ async function runBench() {
                 n: N, n_enc: N_ENC, nq: NQ, k: K, reps: REPS };
   const small = tail.allocCorpus(N_ENC);
   out.encode_tiled_ms = await time(() => tail.encode(xbuf, N_ENC, small, 0), REPS, device);
-  log(`encode tiled ${N_ENC}: ${out.encode_tiled_ms.median} ms`);
+  log(`encode tiled, RHT rotation ${N_ENC}: ${out.encode_tiled_ms.median} ms`);
+  const dense = await RemexTail.create(device, { ...params, rotation: 'dense' });
+  out.encode_tiled_dense_ms = await time(() => dense.encode(xbuf, N_ENC, small, 0), REPS, device);
+  log(`encode tiled, dense rotation ${N_ENC}: ${out.encode_tiled_dense_ms.median} ms`);
   if (UNTILED) {
     const { RemexTail: Old } = await import(new URL(UNTILED, location.href).href);
-    const old = await Old.create(device, params);
+    const old = await Old.create(device, { ...params, rht: undefined });
     out.encode_untiled_ms = await time(() => old.encode(xbuf, N_ENC, small, 0), REPS, device);
-    log(`encode untiled ${N_ENC}: ${out.encode_untiled_ms.median} ms`);
+    log(`encode untiled, dense rotation ${N_ENC}: ${out.encode_untiled_ms.median} ms`);
   }
   small.words.destroy(); small.aux.destroy();
 
@@ -93,7 +98,7 @@ async function runBench() {
   tail.encode(xbuf, N, corpus, 0);
   await device.queue.onSubmittedWorkDone();
   out.encode_full_ms = +(performance.now() - t0).toFixed(1);
-  log(`encode tiled ${N}: ${out.encode_full_ms} ms`);
+  log(`encode tiled, RHT rotation ${N}: ${out.encode_full_ms} ms`);
 
   out.scan_ms = await time(() => { tail.search(qbuf, NQ, corpus).destroy(); }, REPS, device);
   log(`scan ${N} x ${NQ}: ${out.scan_ms.median} ms`);

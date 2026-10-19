@@ -74,7 +74,13 @@ host. A second GPU, and a Hadamard-transform rotation in place of the dense
    One flip moves a score by `scale · 0.033 · qr_j`, as the handoff predicted.
 8. On the 150-document demo corpus, the GPU 2-bit ranking finds 90% <!-- @evidence[[results/demo_real_run1.json#search.recall_at_10]] -->
    of the fp32-cosine top 10 for the test query.
-9. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
+9. The randomized Hadamard rotation (remex's own transform, applied in WGSL)
+   passes the checker with fewer flips than the dense product: 2 <!-- @evidence[[results/check_gpu_eg2_rht.json#codes.mismatch]] -->
+   of 3.1M codes on real EG2 vectors (dense: 6) and 1 <!-- @evidence[[results/check_gpu_synthetic_rht.json#codes.mismatch]] -->
+   on the synthetic set (dense: 2), because in float32 it rotates bit-identically
+   to remex's operator. A one-round mutant fails 2.27M codes. Real-GPU timing
+   pending.
+10. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
    per 32 documents (250× Metal), and the GPU top-k is slower than the host
    path (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
    for search plus top-10), the reverse of Metal.
@@ -191,4 +197,29 @@ the embed held (+0.9%); the GPU top-k reversing on real bandwidth held (18.8 vs
 The demo's startup gate and the scan agreement passed on Metal. Wall clock: a
 few minutes of Oskar's time against about 40 min per SwiftShader run of the
 real model.
+
+### 2026-10-19 — round 5: RHT rotation kernel
+
+Oskar: "build the RHT rotation kernel".
+
+remex rotates with `RHTOperator`: for d = 768, block size 256 and 2 rounds; for
+r = 1, 0, an unnormalized Walsh-Hadamard transform over each 256-wide block,
+then `z[perm_r[i]] = y[i] · sign_r[i] / 16`. A float32 numpy re-implementation
+of that reading matched remex's operator bit for bit, and a float64 one matched
+the dense R to 2e-15, before any WGSL.
+
+- `tail.js` takes `rotation: 'rht'` (the default when `params.rht` is given)
+  or `'dense'`. The RHT variants of ENCODE and PREP run the transform in
+  workgroup memory (8 barrier-separated butterfly stages per round, then a
+  register-staged signed scatter); the 2.36 MB R is no longer uploaded.
+  `setMean` computes Rmu with a host RHT in float64.
+- The plan (two permutations, two sign vectors) travels in `params.json`
+  (fixtures and `web/assets/`), 25 KB with the rest of the parameters.
+- Checks: both fixture sets pass with 1 and 2 flips; `--rot dense` output is
+  byte-identical to round 3; interop still makes 0 `getData` calls; the top-k
+  edge cases and the dummy demo pass. Mutant (one round instead of two): 2.27M
+  unexcused flips, red.
+- Timing: no SwiftShader bench this round. Oskar runs `bench_tail.html`, which
+  now times the RHT encode, the dense tiled encode and the untiled dense
+  kernel side by side.
 

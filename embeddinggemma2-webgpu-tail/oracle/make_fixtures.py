@@ -20,6 +20,7 @@ import os
 import numpy as np
 import remex
 from remex.packing import pack
+from remex.rotation import rht_plan
 
 D, BITS, SEED, K = 768, 2, 42, 10
 
@@ -57,6 +58,12 @@ def load_vectors(vdir, n, q):
         raise SystemExit(f"{vdir} has {len(docs)} docs, asked for {n}")
     queries = np.load(os.path.join(vdir, "q_dense.npy")).astype(np.float64)[:q]
     return unit(docs), unit(queries), (total / count).astype(np.float32), count
+
+
+def rht_json(d, seed):
+    B, rounds, perms, signs = rht_plan(d, seed)
+    return {"B": int(B), "rounds": int(rounds), "perms": perms.tolist(),
+            "signs": [[int(v) for v in sg] for sg in signs]}
 
 
 def write(path, arr):
@@ -160,6 +167,9 @@ def main():
         "source": os.path.abspath(a.vectors) if a.vectors else "synthetic",
         "mu_rows": mu_rows,
         "pool_b": B, "pool_s": S,
+        # the structure of R (rotation "rht"): rounds of block FWHT then z[perm[i]] = y[i] * sign[i] / sqrt(B),
+        # applied for r = rounds-1 .. 0 (remex RHTOperator.rotate_rows)
+        "rht": rht_json(D, SEED),
         "batches": [1000, 2000, a.n - 3000],  # encode in uneven batches
         "capacity": a.n + 904,                # > n, so offsets and padding matter
         "files": {

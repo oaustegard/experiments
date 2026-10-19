@@ -1,6 +1,6 @@
 """Run web/test.html in Chromium (SwiftShader WebGPU) and write out/gpu/.
 
-Usage: python3 -I run/run_gpu.py [--fixtures fixtures] [--out out/gpu]
+Usage: python3 -I run/run_gpu.py [--fixtures fixtures] [--out out/gpu] [--rot rht|dense]
 
 Starts `python3 -m http.server` on a free port (cwd = project root), loads
 /web/test.html, awaits window.runTail(), decodes the base64 outputs into
@@ -54,6 +54,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--fixtures", default="fixtures", help="fixture directory, relative to the project root")
     ap.add_argument("--out", default="out/gpu", help="output directory, relative to the project root")
+    ap.add_argument("--rot", default="rht", choices=["rht", "dense"], help="rotation the kernels apply")
     args = ap.parse_args()
     OUT = ROOT / args.out
     port = free_port()
@@ -67,7 +68,7 @@ def main() -> int:
     console_errors: list[str] = []
     try:
         wait_for_server(port)
-        url = f"http://127.0.0.1:{port}/web/test.html?fx={args.fixtures}"
+        url = f"http://127.0.0.1:{port}/web/test.html?fx={args.fixtures}&rot={args.rot}"
         t0 = time.time()
         with sync_playwright() as p:
             browser = p.chromium.launch(executable_path=CHROME, args=CHROME_ARGS)
@@ -105,6 +106,7 @@ def main() -> int:
         "adapter": result["adapter"],
         "colsum_mu_max_abs_err": result["colsum_mu_max_abs_err"],
         "topk_gpu_host_mismatch": result["topk_gpu_host_mismatch"],
+        "rotation": result["rotation"],
         "uncaptured_errors": result["uncaptured_errors"],
         "page_errors": page_errors,
         "console_errors": console_errors,

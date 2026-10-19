@@ -20,7 +20,8 @@ against remex, not against itself.
 | `boundaries` | 3 f32, from `params.json` |
 | `centroids` | 4 f32, from `params.json` |
 | `kappa` | f32, `q._cosine_factor()` = 0.939556… |
-| `R` | f32 `[D*D]` row-major: rotated_j = Σ_k R[j*D+k] · x_k |
+| `R` | f32 `[D*D]` row-major: rotated_j = Σ_k R[j*D+k] · x_k (dense rotation only) |
+| `rht` | remex's plan for R: `B` = 256, `rounds` = 2, `perms` and `signs` `[rounds][D]` (`remex.rotation.rht_plan`) |
 | `Rmu` | f32 `[D]` = R·mu |
 | `mu` | f32 `[D]` corpus mean (caller-declared) |
 
@@ -33,7 +34,12 @@ Input `x` (one row of `[B, D]`), optional normalize flag.
 
 1. If normalize: `x = x / max(sqrt(Σ x²), 1e-8)`. (EG2's `sentence_embedding`
    is already unit; the flag also serves the pooled path.)
-2. `t_j = Σ_k R[j,k] x_k − Rmu_j` — the rotated residual `R(x − mu)`.
+2. `t_j = (R x)_j − Rmu_j` — the rotated residual `R(x − mu)`. The default
+   rotation applies R as remex's `RHTOperator.rotate_rows` does: for
+   `r = rounds−1 … 0`, an unnormalized Walsh–Hadamard transform over each
+   256-wide block (pairs `(i, i+h)`, `h = 1, 2, …, 128`), then
+   `z[perm_r[i]] = y[i] · sign_r[i] / 16`. In float32 this is bit-identical to
+   remex's operator. The `dense` rotation computes `Σ_k R[j,k] x_k` instead.
 3. `len = sqrt(Σ t_j²)` — remex `norms` (= ‖x − mu‖).
 4. `mdot = Σ Rmu_j t_j` — remex `mean_dots` (= mu·(x − mu)).
 5. `u_j = t_j / max(len, 1e-8)`.

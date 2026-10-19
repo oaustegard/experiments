@@ -73,8 +73,9 @@ async function runTail() {
   const mask = await u32('mask.u32');
 
   let t0 = performance.now();
+  const rotation = new URLSearchParams(location.search).get('rot') || 'rht';
   const tail = await RemexTail.create(device, {
-    R, Rmu, mu, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+    R, Rmu, mu, rht: P.rht, rotation, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
   });
   tail.setMean(mu);
   await done();
@@ -152,6 +153,7 @@ async function runTail() {
     timings_ms: timings,
     adapter: adapterInfo,
     colsum_mu_max_abs_err: colsumMaxErr,
+    rotation,
     topk_gpu_host_mismatch: topkGpuHostMismatch,
     uncaptured_errors: errors,
   };

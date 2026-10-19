@@ -36,7 +36,7 @@ async function runTopk() {
   const P = await (await fetch('assets/params.json')).json();
   const R = new Float32Array(await (await fetch('assets/R.f32.txt')).arrayBuffer());
   const tail = await RemexTail.create(device, {
-    R, mu: new Float32Array(D), boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+    R, rht: P.rht, mu: new Float32Array(D), boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
   });
   const rng = mulberry32(7);
   const cases = [];

@@ -3,7 +3,7 @@
 Usage: python3 -I run/prep_assets.py
 
 Writes web/assets/params.json (d, bits, seed, rotation, kappa, boundaries,
-centroids) and web/assets/R.f32.txt (raw little-endian float32 bytes of R,
+centroids, and the RHT plan the GPU kernels rotate with) and web/assets/R.f32.txt (raw little-endian float32 bytes of R,
 row-major). The .txt extension is deliberate: the GitHub Pages builder drops
 .f32 and .bin files. R is remex seed-42 'rht' for d=768 and does not depend
 on the data, so the demo never reads fixtures/ at runtime.
@@ -37,6 +37,7 @@ def main() -> int:
         "kappa": p["kappa"],
         "boundaries": p["boundaries"],
         "centroids": p["centroids"],
+        "rht": p["rht"],
         "R": {"file": "R.f32.txt", "dtype": "float32-le", "shape": [D, D], "layout": "row-major"},
     }
     (ASSETS / "params.json").write_text(json.dumps(out, indent=1) + "\n")

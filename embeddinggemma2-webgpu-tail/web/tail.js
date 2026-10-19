@@ -433,10 +433,75 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid:
 }
 `;
 
+// Randomized Hadamard rotation, remex's RHTOperator.rotate_rows for d = 768: for r = rounds-1 .. 0,
+// an unnormalized FWHT over each 256-wide block (pairs (i, i+h) for h = 1, 2, .., 128, in remex's
+// order), then z[perm_r[i]] = y[i] * sign_r[i] / 16. Adds, subtracts and one exact power-of-two
+// scale, so in float32 it is bit-identical to remex's operator. About 6k add/subs per round instead
+// of the dense product's 590k multiply-adds, and no 2.36 MB matrix to read. `arr` is a 768-entry
+// workgroup array (f32 or vec4<f32>); rperm and rsign hold the plan, rounds x 768 each.
+function rhtWgsl(arr, rounds) {
+  return /* wgsl */ `
+fn rht_rotate_${arr}(tid: u32) {
+  for (var rr: u32 = ${rounds}u; rr > 0u; rr -= 1u) {
+    let r = rr - 1u;
+    for (var h: u32 = 1u; h < 256u; h = h << 1u) {
+      for (var p: u32 = tid; p < 384u; p += 256u) {
+        let q = p % 128u;
+        let i = (p / 128u) * 256u + (q / h) * 2u * h + q % h;
+        let a = ${arr}[i];
+        let b = ${arr}[i + h];
+        ${arr}[i] = a + b;
+        ${arr}[i + h] = a - b;
+      }
+      workgroupBarrier();
+    }
+    let y0 = ${arr}[tid];
+    let y1 = ${arr}[tid + 256u];
+    let y2 = ${arr}[tid + 512u];
+    workgroupBarrier();
+    let o = r * 768u;
+    ${arr}[rperm[o + tid]] = y0 * rsign[o + tid];
+    ${arr}[rperm[o + tid + 256u]] = y1 * rsign[o + tid + 256u];
+    ${arr}[rperm[o + tid + 512u]] = y2 * rsign[o + tid + 512u];
+    workgroupBarrier();
+  }
+}
+`;
+}
+
+// The two rotation variants of ENCODE and PREP. 'dense' reads R^T (rmat); 'rht' applies the plan.
+function encodeShader(rotation, rounds) {
+  if (rotation === 'dense') return ENCODE;
+  const out = ENCODE
+    .replace('@group(0) @binding(2) var<storage, read> rmat: array<f32>;',
+      '@group(0) @binding(2) var<storage, read> rperm: array<u32>;\n@group(0) @binding(7) var<storage, read> rsign: array<f32>;')
+    .replace(/\/\/ rmat holds R transposed[^]*?\n}\n/, rhtWgsl('xs4', rounds))
+    .replace(`  let t0 = dot_row4(tid) - r0;
+  let t1 = dot_row4(tid + 256u) - r1;
+  let t2 = dot_row4(tid + 512u) - r2;`, `  rht_rotate_xs4(tid);
+  let t0 = xs4[tid] - r0;
+  let t1 = xs4[tid + 256u] - r1;
+  let t2 = xs4[tid + 512u] - r2;`);
+  if (out.includes('rmat') || out.includes('dot_row4')) throw new Error('encodeShader: rht substitution failed');
+  return out;
+}
+
+function prepShader(rotation, rounds) {
+  const head = '@group(0) @binding(0) var<uniform> pq';
+  if (rotation === 'dense') return PREP.replace(head, REDUCE + '\n' + DOT_ROW + '\n' + head);
+  const decl = 'const D: u32 = 768u;\nvar<workgroup> xs: array<f32, 768>;\n';
+  const out = PREP
+    .replace(head, REDUCE + '\n' + decl + head)
+    .replace('@group(0) @binding(2) var<storage, read> rmat: array<f32>;',
+      '@group(0) @binding(2) var<storage, read> rperm: array<u32>;\n@group(0) @binding(6) var<storage, read> rsign: array<f32>;\n' + rhtWgsl('xs', rounds))
+    .replace('  // lut[j*4 + c] = (R q)_j * centroid[c]\n', '  rht_rotate_xs(tid);\n\n  // lut[j*4 + c] = (R q)_j * centroid[c]\n')
+    .replace('    let qr = dot_row(j);', '    let qr = xs[j];');
+  if (out.includes('rmat') || out.includes('dot_row')) throw new Error('prepShader: rht substitution failed');
+  return out;
+}
+
 const SHADERS = {
-  encode: ENCODE,
   pool: POOL,
-  prep: PREP.replace('@group(0) @binding(0) var<uniform> pq', REDUCE + '\n' + DOT_ROW + '\n@group(0) @binding(0) var<uniform> pq'),
   scan: SCAN,
   colsum: COLSUM,
   topk: TOPK,
@@ -472,6 +537,30 @@ function storageBuf(device, bytes, extra = 0) {
   return device.createBuffer({ size: Math.max(4, bytes), usage: USAGE.STORAGE | USAGE.COPY_SRC | USAGE.COPY_DST | extra });
 }
 
+// R x on the host in float64, from the RHT plan (same transform as rhtWgsl).
+function rhtHost(x, plan) {
+  let y = Float64Array.from(x);
+  const B = plan.B, inv = 1 / Math.sqrt(B);
+  for (let r = plan.rounds - 1; r >= 0; r--) {
+    for (let base = 0; base < D; base += B) {
+      for (let h = 1; h < B; h <<= 1) {
+        for (let i = base; i < base + B; i += 2 * h) {
+          for (let k = i; k < i + h; k++) {
+            const a = y[k], b = y[k + h];
+            y[k] = a + b;
+            y[k + h] = a - b;
+          }
+        }
+      }
+    }
+    const z = new Float64Array(D);
+    const perm = plan.perms[r], sign = plan.signs[r];
+    for (let i = 0; i < D; i++) z[perm[i]] = y[i] * sign[i] * inv;
+    y = z;
+  }
+  return y;
+}
+
 const LITTLE_ENDIAN = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;
 
 // ---------------------------------------------------------------- class
@@ -490,11 +579,36 @@ export class RemexTail {
   async _init(params) {
     if (!LITTLE_ENDIAN) throw new Error('RemexTail requires a little-endian host');
     const dev = this.device;
-    this.R = toF32(params.R, D * D, 'R');
-    this.rmat = storageBuf(dev, D * D * 4);
-    const RT = new Float32Array(D * D);           // upload R^T, see DOT_ROW
-    for (let j = 0; j < D; j++) for (let k = 0; k < D; k++) RT[k * D + j] = this.R[j * D + k];
-    dev.queue.writeBuffer(this.rmat, 0, RT);
+    // rotation: 'rht' (default when the plan is given) applies remex's randomized Hadamard transform;
+    // 'dense' multiplies by R. Both are R; they differ in float rounding and in cost.
+    this.rotation = params.rotation ?? (params.rht ? 'rht' : 'dense');
+    if (this.rotation === 'rht') {
+      const plan = params.rht;
+      if (!plan || plan.B !== 256 || plan.perms.length !== plan.rounds || plan.perms[0].length !== D) {
+        throw new Error('rotation rht needs params.rht = { B: 256, rounds, perms: [rounds][768], signs: [rounds][768] }');
+      }
+      this.plan = plan;
+      const perm = new Uint32Array(plan.rounds * D);
+      const sign = new Float32Array(plan.rounds * D);
+      for (let r = 0; r < plan.rounds; r++) {
+        for (let i = 0; i < D; i++) {
+          perm[r * D + i] = plan.perms[r][i];
+          sign[r * D + i] = plan.signs[r][i] / 16;     // 1/sqrt(B), exact
+        }
+      }
+      this.rperm = storageBuf(dev, perm.byteLength);
+      this.rsign = storageBuf(dev, sign.byteLength);
+      dev.queue.writeBuffer(this.rperm, 0, perm);
+      dev.queue.writeBuffer(this.rsign, 0, sign);
+    } else if (this.rotation === 'dense') {
+      this.R = toF32(params.R, D * D, 'R');
+      this.rmat = storageBuf(dev, D * D * 4);
+      const RT = new Float32Array(D * D);           // upload R^T, see DOT_ROW
+      for (let j = 0; j < D; j++) for (let k = 0; k < D; k++) RT[k * D + j] = this.R[j * D + k];
+      dev.queue.writeBuffer(this.rmat, 0, RT);
+    } else {
+      throw new Error(`unknown rotation ${this.rotation}`);
+    }
     this.rmu = storageBuf(dev, D * 4);
     this.mu = storageBuf(dev, D * 4);
 
@@ -519,9 +633,9 @@ export class RemexTail {
       return dev.createComputePipelineAsync({ layout: 'auto', compute: { module, entryPoint: 'main' }, label });
     };
     this.pipes = {
-      encode: await mk('encode', SHADERS.encode),
+      encode: await mk('encode', encodeShader(this.rotation, this.plan?.rounds)),
       pool: await mk('pool', SHADERS.pool),
-      prep: await mk('prep', SHADERS.prep),
+      prep: await mk('prep', prepShader(this.rotation, this.plan?.rounds)),
       scan: await mk('scan', SHADERS.scan),
       colsum: await mk('colsum', SHADERS.colsum),
       topk: await mk('topk', SHADERS.topk),
@@ -536,15 +650,17 @@ export class RemexTail {
     }
   }
 
-  // Recomputes Rmu = R mu on the host (float64 accumulate) and uploads mu and Rmu.
+  // Recomputes Rmu = R mu on the host (float64) and uploads mu and Rmu.
   setMean(mu) {
     const m = toF32(mu, D, 'mu');
-    const rmu = new Float32Array(D);
-    for (let j = 0; j < D; j++) {
-      let a = 0;
-      const base = j * D;
-      for (let k = 0; k < D; k++) a += this.R[base + k] * m[k];
-      rmu[j] = a;
+    const rmu = this.rotation === 'rht' ? Float32Array.from(rhtHost(m, this.plan)) : new Float32Array(D);
+    if (this.rotation === 'dense') {
+      for (let j = 0; j < D; j++) {
+        let a = 0;
+        const base = j * D;
+        for (let k = 0; k < D; k++) a += this.R[base + k] * m[k];
+        rmu[j] = a;
+      }
     }
     this.device.queue.writeBuffer(this.mu, 0, m);
     this.device.queue.writeBuffer(this.rmu, 0, rmu);
@@ -567,6 +683,19 @@ export class RemexTail {
       layout: pipe.getBindGroupLayout(0),
       entries: buffers.map((b, i) => ({ binding: i, resource: { buffer: b } })),
     });
+  }
+
+  // Fills binding 2 with the rotation's buffer (R^T, or the RHT permutations) and, for rht, appends
+  // the signs as the last binding.
+  _rot(buffers) {
+    const b = buffers.slice();
+    if (this.rotation === 'rht') {
+      b[2] = this.rperm;
+      b.push(this.rsign);
+    } else {
+      b[2] = this.rmat;
+    }
+    return b;
   }
 
   _submit(enc, temps) {
@@ -595,7 +724,7 @@ export class RemexTail {
       const u = uniform(this.device, new Uint32Array([inRow0 + base, start + base, corpus.capacity, normalize, n]));
       temps.push(u);
       this._dispatch(enc, this.pipes.encode,
-        [u, inputBuf, this.rmat, this.rmu, this.cst, corpus.words, corpus.aux], [Math.ceil(n / ENC_TILE), 1, 1]);
+        this._rot([u, inputBuf, null, this.rmu, this.cst, corpus.words, corpus.aux]), [Math.ceil(n / ENC_TILE), 1, 1]);
     }
     this._submit(enc, temps);
     corpus.filled = Math.max(corpus.filled, start + count);
@@ -631,7 +760,7 @@ export class RemexTail {
       const nqq = Math.min(MAX_DIM, nq - qb);
       const u = uniform(dev, new Uint32Array([normalize, qb, LUT_STRIDE, 0]));
       temps.push(u);
-      this._dispatch(enc, this.pipes.prep, [u, queryBuf, this.rmat, this.mu, this.cst, lut], [nqq, 1, 1]);
+      this._dispatch(enc, this.pipes.prep, this._rot([u, queryBuf, null, this.mu, this.cst, lut]), [nqq, 1, 1]);
     }
     if (n > 0) {
       for (let qb = 0; qb < nq; qb += MAX_DIM) {

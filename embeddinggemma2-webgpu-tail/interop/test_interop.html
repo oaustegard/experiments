@@ -84,7 +84,7 @@ async function runInterop() {
   const T = (name, t0) => { timings[name] = +(performance.now() - t0).toFixed(3); };
 
   const tail = await RemexTail.create(device, {
-    R, Rmu, mu, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+    R, Rmu, mu, rht: P.rht, boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
   });
   tail.setMean(mu);
   const corpus = tail.allocCorpus(cap);
