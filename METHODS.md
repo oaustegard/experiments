@@ -719,6 +719,12 @@ survives exactly the sanity checks people run.
   from the local http.server and point the page at them; route only small CDN scripts (`body=`,
   `content_type=`, `access-control-allow-origin: *`). Chromium here also has no route to the egress
   proxy, so CDN requests have to be answered by the driver. (`embeddinggemma2-webgpu-tail/run/run_demo.py`)
+- **The Pages builder ships only listed web extensions: binary data must be `.txt`.** `_lib/pages_site.py`
+  copies html/js/css/json/images/fonts/wasm/media/.txt and silently skips `.bin`, `.f32` and the like, so
+  the page gets the 404 page's bytes and fails far away ("Length out of range of buffer"). Name binary
+  files `*.u8.txt` / `*.f32.txt`, check `r.ok` and the byte count before viewing the buffer, and add
+  the experiment's data path to `.github/workflows/pages.yml`, whose push filter also ignores
+  `.json`/`.txt`. (`embeddinggemma2-webgpu-tail/web/map.js`, hit twice)
 - **WGSL rejects non-finite constants, including ones made with `bitcast`.** A const-evaluated
   `bitcast<f32>(0xff800000u)` is -inf and fails shader creation ("cannot be represented as 'f32'"),
   and so does a `-3.40282347e38` literal. Use `bitcast<f32>(0xff7fffffu)` (-FLT_MAX) as a sort
