@@ -107,6 +107,7 @@ def main() -> int:
         "colsum_mu_max_abs_err": result["colsum_mu_max_abs_err"],
         "topk_gpu_host_mismatch": result["topk_gpu_host_mismatch"],
         "rotation": result["rotation"],
+        "load_codes_score_mismatch": result["load_codes_score_mismatch"],
         "uncaptured_errors": result["uncaptured_errors"],
         "page_errors": page_errors,
         "console_errors": console_errors,

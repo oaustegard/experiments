@@ -797,6 +797,31 @@ export class RemexTail {
     return out;
   }
 
+  // Loads precomputed remex codes into corpus rows start..start+n-1: packed is remex.pack's byte
+  // stream (n x 192, doc-major), scaleBias is n x 2 float32 (remex _score_norms, _row_bias). The
+  // inverse of readCorpus, so codes encoded natively by remex search here unchanged. len and mdot
+  // are not needed to score and are written as 0.
+  loadCodes(corpus, packed, scaleBias, start = 0) {
+    const n = scaleBias.length / 2;
+    if (packed.length !== n * 192) throw new Error(`loadCodes: ${packed.length} bytes for ${n} docs`);
+    if (start + n > corpus.capacity) throw new Error(`loadCodes: ${start}+${n} exceeds capacity ${corpus.capacity}`);
+    const cap = corpus.capacity;
+    const src = new Uint32Array(packed.buffer, packed.byteOffset, n * WORDS);
+    const dev = this.device;
+    const row = new Uint32Array(n);
+    for (let w = 0; w < WORDS; w++) {
+      for (let i = 0; i < n; i++) row[i] = src[i * WORDS + w];
+      dev.queue.writeBuffer(corpus.words, (w * cap + start) * 4, row);
+    }
+    const aux = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      aux[i * 4] = scaleBias[i * 2];
+      aux[i * 4 + 1] = scaleBias[i * 2 + 1];
+    }
+    dev.queue.writeBuffer(corpus.aux, start * 16, aux);
+    corpus.filled = Math.max(corpus.filled, start + n);
+  }
+
   // Doc-major remex bytes plus per-doc floats for the first n docs.
   async readCorpus(corpus, n) {
     const cap = corpus.capacity;

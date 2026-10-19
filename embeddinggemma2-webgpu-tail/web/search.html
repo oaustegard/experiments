@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI List Search</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1c1a; --muted: #6b6861; --line: #d9d5cc;
+    --panel: #ffffff; --ok: #1f6f3f; --ok-bg: #e7f4ec; --bad: #9b2a1c; --bad-bg: #fbe9e6;
+    --accent: #2f5fa7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --fg: #ecebe6; --muted: #a09d95; --line: #3a3935;
+      --panel: #1f1e1b; --ok: #7fd39a; --ok-bg: #173223; --bad: #ff9a8a; --bad-bg: #3a1d18;
+      --accent: #8ab4f0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --fg: #ecebe6; --muted: #a09d95; --line: #3a3935;
+    --panel: #1f1e1b; --ok: #7fd39a; --ok-bg: #173223; --bad: #ff9a8a; --bad-bg: #3a1d18;
+    --accent: #8ab4f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 820px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 6px; }
+  .muted { color: var(--muted); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+  input[type="search"] { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; font-size: 16px; }
+  input:disabled { opacity: 0.5; }
+  .status { padding: 9px 12px; border-radius: 6px; border: 1px solid var(--line); margin-top: 10px; font-size: 14px; }
+  .status.ok { background: var(--ok-bg); color: var(--ok); }
+  .status.bad { background: var(--bad-bg); color: var(--bad); }
+  .timing { font: 12.5px ui-monospace, monospace; color: var(--muted); margin-top: 8px; min-height: 1.2em; }
+  ol.hits { list-style: none; padding: 0; margin: 10px 0 0; }
+  ol.hits li { border-top: 1px solid var(--line); padding: 10px 0; }
+  ol.hits li:first-child { border-top: 0; }
+  .meta { font-size: 13px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  .text { white-space: pre-wrap; word-break: break-word; margin-top: 3px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font: 12px/1.45 ui-monospace, monospace; margin: 8px 0 0; }
+  button { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: inherit; font-size: 14px; cursor: pointer; margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Search the AI list, on your GPU</h1>
+  <p class="muted" id="lede">Semantic search over recent posts by the members of the
+    <a href="https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f">Artificial (and real) Intelligence</a> list.
+    EmbeddingGemma 2 embeds your query in the browser, and a WebGPU scan ranks the posts' 2-bit codes.
+    Nothing leaves this page except the requests that fetch the matching posts from Bluesky.</p>
+
+  <section>
+    <input type="search" id="q" placeholder="Loading…" autocomplete="off" disabled>
+    <div class="timing" id="timing"></div>
+    <div class="status" id="status">Starting…</div>
+    <ol class="hits" id="hits"></ol>
+  </section>
+
+  <section>
+    <details>
+      <summary>Load log, parity check and timings</summary>
+      <pre id="log"></pre>
+      <button id="copy" type="button">Copy JSON</button>
+    </details>
+  </section>
+</main>
+<script type="module" src="search.js"></script>
+</body>
+</html>

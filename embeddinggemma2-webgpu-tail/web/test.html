@@ -135,6 +135,17 @@ async function runTail() {
   const corp = await tail.readCorpus(corpus, n);
   T('readCorpus_ms', t0);
 
+  // loadCodes round trip: the read-back codes and scale/bias, loaded into a fresh corpus at an
+  // offset, must score identically (rows offset by 7)
+  const sb = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) { sb[i * 2] = corp.scale[i]; sb[i * 2 + 1] = corp.bias[i]; }
+  const loaded = tail.allocCorpus(n + 7);
+  tail.loadCodes(loaded, corp.packed, sb, 7);
+  const sLoaded = tail.search(qBuf, nq, loaded, { normalize: true });
+  const scoresLoaded = await tail.readScores(sLoaded, nq, loaded, n + 7);
+  let loadMismatch = 0;
+  for (let q = 0; q < nq; q++) for (let i = 0; i < n; i++) if (scoresLoaded[q * (n + 7) + 7 + i] !== scores[q * n + i]) loadMismatch++;
+
   await done();
   const files = {
     'packed.u8': toBase64(corp.packed.buffer),
@@ -154,6 +165,7 @@ async function runTail() {
     adapter: adapterInfo,
     colsum_mu_max_abs_err: colsumMaxErr,
     rotation,
+    load_codes_score_mismatch: loadMismatch,
     topk_gpu_host_mismatch: topkGpuHostMismatch,
     uncaptured_errors: errors,
   };
