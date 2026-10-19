@@ -18,6 +18,7 @@ import json
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -43,9 +44,13 @@ def bsky_passthrough(route):
 def embedder_passthrough(route):
     req = urllib.request.Request(route.request.url, data=route.request.post_data_buffer,
                                  method=route.request.method,
-                                 headers={"Content-Type": "application/json", "Origin": "https://austegard.com"})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        body, code = r.read(), r.status
+                                 headers={"Content-Type": "application/json", "Origin": "https://austegard.com",
+                                          "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/141.0 Safari/537.36"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            body, code = r.read(), r.status
+    except urllib.error.HTTPError as e:      # pass 4xx/5xx through: the page handles them
+        body, code = e.read(), e.code
     route.fulfill(status=code, body=body, content_type="application/json",
                   headers={"access-control-allow-origin": "*"})
 
