@@ -1,11 +1,13 @@
 """Correctness run of web/search.html in Chromium (SwiftShader WebGPU) with the real model.
 
-Usage: python3 -I run/run_search.py [--query TEXT]
+Usage: python3 -I run/run_search.py [--query TEXT] [--members 3] [--per 20]
 
 Serves the project root, answers jsDelivr and Bluesky requests through Python (Chromium here
 has no route to the egress proxy), points the page at the out/hfmirror/ model files with &hf=,
-waits for startup, checks that the remex parity check passed, types one query and checks that
-10 hits rendered with post text. Writes out/search/run.json; exits nonzero on any failed check.
+and loads it with &members=N&per=M&compare=1: the page fetches those members' posts from
+Bluesky, embeds and encodes them on the GPU, then cross-checks against the CPU-built reference
+in web/bsky/ (code agreement on shared posts, remex parity of the reference's test queries).
+Then it types one query and checks that 10 hits rendered. Writes out/search/run.json; exits nonzero on any failed check.
 Timings from this run are SwiftShader's and mean nothing; real timings come from a browser.
 """
 import argparse
@@ -38,6 +40,8 @@ def bsky_passthrough(route):
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--query", default="what do people think about AI safety research")
+    ap.add_argument("--members", type=int, default=3)
+    ap.add_argument("--per", type=int, default=20)
     a = ap.parse_args()
     for name, sub in [("model_q4.onnx", "onnx"), ("model_q4.onnx_data", "onnx"),
                       ("tokenizer.json", ""), ("tokenizer_config.json", "")]:
@@ -62,18 +66,19 @@ def main() -> int:
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 page.route("https://cdn.jsdelivr.net/**", serve_from_cache)
                 page.route("https://public.api.bsky.app/**", bsky_passthrough)
-                page.goto(base + "/web/search.html?hf=/out/hfmirror/", wait_until="load", timeout=60_000)
+                page.goto(base + f"/web/search.html?hf=/out/hfmirror/&members={a.members}&per={a.per}&compare=1",
+                          wait_until="load", timeout=60_000)
                 page.wait_for_function("window.searchState && window.searchState.phase !== 'loading'",
                                        timeout=60 * 60_000, polling=1000)
                 st = page.evaluate("() => window.searchState")
-                summary["startup"] = {k: st[k] for k in ("phase", "error", "adapter", "index", "load_ms", "parity")}
+                summary["startup"] = {k: st[k] for k in ("phase", "error", "adapter", "source", "build", "compare")}
                 if st["phase"] == "ready":
                     page.fill("#q", a.query)
                     page.wait_for_function("window.searchState.queries.length >= 1", timeout=30 * 60_000, polling=500)
                     page.wait_for_function("document.querySelectorAll('#hits li').length === 10", timeout=60_000)
                     texts = page.eval_on_selector_all("#hits li .text", "els => els.map(e => e.textContent)")
                     summary["query"] = a.query
-                    summary["hits_with_text"] = sum(1 for t in texts if not t.startswith("(post no longer"))
+                    summary["hits"] = len(texts)
                     summary["top3"] = texts[:3]
                 page.screenshot(path=str(ROOT / "out" / "search.png"), full_page=True)
             finally:
@@ -83,10 +88,13 @@ def main() -> int:
         server.terminate()
         server.wait(timeout=10)
     summary["errors"] = errors
+    cmp = summary.get("startup", {}).get("compare") or {}
     checks = {
         "ready": summary.get("startup", {}).get("phase") == "ready",
-        "parity_passed": bool(summary.get("startup", {}).get("parity", {}).get("passed")),
-        "ten_hits_with_text": summary.get("hits_with_text", 0) >= 8,
+        "shared_posts_with_reference": cmp.get("shared_posts", 0) > 0,
+        "code_agreement_ge_0.999": cmp.get("code_agreement", 0) >= 0.999,
+        "remex_parity_ge_0.9": cmp.get("parity_overlap_with_remex", 0) >= 0.9,
+        "ten_hits": summary.get("hits") == 10,
         "no_errors": not errors,
     }
     summary["checks"] = checks

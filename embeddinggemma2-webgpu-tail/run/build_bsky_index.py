@@ -76,8 +76,29 @@ def session():
     return ort.InferenceSession(str(HF / "model_q4.onnx"), so, providers=["CPUExecutionProvider"])
 
 
+def special_strings(tok_path):
+    """Every added special token's text. A post containing one (a real post has "<|image|>")
+    would otherwise tokenize to the image token, and the graph's multimodal merge then fails
+    looking for image features. Stripped from documents and queries alike; search.js does the same."""
+    t = json.loads(Path(tok_path).read_text())
+    return sorted((a["content"] for a in t["added_tokens"] if a.get("special")), key=len, reverse=True)
+
+
+SPECIALS = None
+
+
+def clean(text):
+    global SPECIALS
+    if SPECIALS is None:
+        SPECIALS = special_strings(HF / "tokenizer.json")
+    for sp in SPECIALS:
+        if sp in text:
+            text = text.replace(sp, " ")
+    return text
+
+
 def embed(sess, tok, texts, max_tokens):
-    enc = [tok.encode(t).ids[:max_tokens] for t in texts]
+    enc = [tok.encode(clean(t)).ids[:max_tokens] for t in texts]
     S = max(map(len, enc))
     ids = np.zeros((len(enc), S), np.int64)
     attn = np.zeros((len(enc), S), np.int64)

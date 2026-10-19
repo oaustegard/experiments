@@ -51,8 +51,9 @@
   <h1>Search the AI list, on your GPU</h1>
   <p class="muted" id="lede">Semantic search over recent posts by the members of the
     <a href="https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f">Artificial (and real) Intelligence</a> list.
-    EmbeddingGemma 2 embeds your query in the browser, and a WebGPU scan ranks the posts' 2-bit codes.
-    Nothing leaves this page except the requests that fetch the matching posts from Bluesky.</p>
+    The page fetches the posts from Bluesky, embeds every one with EmbeddingGemma 2 on your GPU,
+    encodes them to 2-bit codes on the GPU, and keeps the index in this browser. No server is involved.
+    The first visit takes a while; search works as soon as the first posts are indexed.</p>
 
   <section>
     <input type="search" id="q" placeholder="Loading…" autocomplete="off" disabled>
