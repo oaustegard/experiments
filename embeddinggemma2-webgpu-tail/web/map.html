@@ -57,6 +57,13 @@
   #share { width: 100%; height: 120px; display: block; margin-top: 6px; }
   #share text { fill: var(--text-secondary); font-size: 10px; }
   .note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  #qtopics .qt { display: grid; grid-template-columns: 1fr 70px 34px; gap: 6px; align-items: center; font-size: 12.5px; margin: 3px 0; }
+  #qtopics .bar { height: 6px; border-radius: 3px; background: var(--series-1); }
+  #qtopics .pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #qhits { list-style: none; padding: 0; margin: 8px 0 0; }
+  #qhits li { border-top: 1px solid var(--line); padding: 6px 0; font-size: 12.5px; cursor: pointer; }
+  #qhits li .who { color: var(--text-secondary); }
+  #qhits li .t { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; }
   @media (max-width: 760px) { #app { grid-template-columns: 1fr; grid-template-rows: auto 60vh; } aside { border-right: 0; border-bottom: 1px solid var(--line); max-height: 45vh; } }
 </style>
 </head>
@@ -65,6 +72,12 @@
   <aside>
     <h1>The AI list, mapped</h1>
     <div class="muted" id="summary">Loading…</div>
+
+    <label class="lbl" for="q">Search the posts (Enter)</label>
+    <input type="search" id="q" placeholder="e.g. do LLMs reason or pattern-match?" autocomplete="off">
+    <div class="muted" id="qstatus" style="font-size:12px;margin-top:4px"></div>
+    <div id="qtopics"></div>
+    <ol id="qhits"></ol>
 
     <div class="row seg" id="view">
       <button data-v="2d" aria-pressed="true">2D</button>

@@ -3,6 +3,7 @@
 // rendering is deck.gl on WebGL, with the time window applied on the GPU (DataFilterExtension).
 // Post text is fetched from Bluesky when a point is clicked; the map files hold none.
 const { Deck, OrthographicView, OrbitView, ScatterplotLayer, TextLayer, DataFilterExtension } = deck;
+import { RemexTail } from './tail.js';
 
 const $ = (id) => document.getElementById(id);
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -13,7 +14,7 @@ const SEQ = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '
 
 const st = { view: '2d', colour: 'topics', sel: [], author: null, tEnd: null, width: 0, playing: false, hover: null };
 let M, n, xy, xyz, tsec, topic, posts, authors, deckgl;
-let pos2, pos3, filt, ageDays, sortedT, nd, colours;   // filt = a post's rank in time order
+let pos2, pos3, filt, ageDays, sortedT, nd, colours, radii;   // filt = a post's rank in time order
 
 async function load() {
   const [map, bin, postList, index] = await Promise.all([
@@ -52,6 +53,7 @@ async function load() {
   dated.forEach((i, r) => { filt[i] = r; sortedT[r] = tsec[i]; });
   scaleCentroids();
   colours = new Uint8Array(n * 4);
+  radii = new Float32Array(n).fill(1.7);
   st.tEnd = nd - 1;
   st.width = 0;
 }
@@ -115,6 +117,25 @@ function recolour() {
   const seq = (darkSurface ? [...SEQ].reverse() : SEQ).map(hex);
   const span = (M.time_max - M.time_min) / DAY;
   const dim = st.sel.length ? 38 : 120;        // alpha of unselected topics
+  radii.fill(1.7);
+  if (st.colour === 'search' && Q.rank) {
+    // relevance on one sequential ramp: the strongest matches carry the most contrast and size;
+    // posts outside the top HITS fade back in their topic hue
+    for (let i = 0; i < n; i++) {
+      const r = Q.rank[i];
+      let c;
+      if (r < HITS) {
+        const f = 1 - r / HITS;                         // 1 = best
+        const s = seq[Math.min(seq.length - 1, Math.floor((0.35 + 0.65 * f) * seq.length))];
+        c = [...s, 160 + Math.round(95 * f)];
+        radii[i] = r < 10 ? 4.5 : 1.9 + 1.6 * f;
+      } else {
+        c = [...hues[topic[i]], 16];
+      }
+      colours.set(c, i * 4);
+    }
+    return;
+  }
   for (let i = 0; i < n; i++) {
     let c = [...hues[topic[i]], dim];
     if (st.colour === 'topics') {
@@ -148,18 +169,20 @@ function layers() {
     data: { length: n, attributes: {
       getPosition: { value: is3 ? pos3 : pos2, size: 3 },
       getFillColor: { value: colours, size: 4, normalized: true },
+      getRadius: { value: radii, size: 1 },
       getFilterValue: { value: filt, size: 1 },
     } },
-    radiusUnits: 'pixels', getRadius: 1.7, radiusMinPixels: 1, stroked: false, billboard: true,
+    radiusUnits: 'pixels', radiusMinPixels: 1, stroked: false, billboard: true,
     pickable: true, autoHighlight: true, highlightColor: [...hex(css('--text-primary')), 255],
     extensions: [new DataFilterExtension({ filterSize: 1 })],
     filterRange: [a, b], filterSoftRange: soft ? [a + soft, b] : [a, b], filterTransformColor: true, filterTransformSize: true,
-    updateTriggers: { getFillColor: [st.colour, st.sel.join(), st.author] },
+    updateTriggers: { getFillColor: [st.colour, st.sel.join(), st.author, Q.version], getRadius: [Q.version, st.colour] },
     onHover: (info) => tip(info), onClick: (info) => showPost(info),
   });
   const labels = new TextLayer({
     id: 'labels',
-    data: M.topics.filter((t) => st.colour !== 'topics' || !st.sel.length || st.sel.includes(t.id)),
+    data: M.topics.filter((t) => st.colour === 'search' ? (Q.topicHits?.[t.id] ?? 0) >= 0.05 * HITS
+      : st.colour !== 'topics' || !st.sel.length || st.sel.includes(t.id)),
     getPosition: (t) => (is3 ? t.p3 : t.p2),
     getText: (t) => t.words.slice(0, 2).join(' · '),
     getSize: 11.5, sizeUnits: 'pixels', billboard: true,
@@ -177,6 +200,7 @@ function render() {
   const props = { views: view, layers: layers() };
   if (!deckgl) {
     deckgl = new Deck({ parent: $('deck'), ...props, controller: true,
+      onViewStateChange: ({ viewState }) => { st.vs = viewState; },
       initialViewState: initialState(is3), getCursor: ({ isHovering }) => (isHovering ? 'pointer' : 'grab') });
   } else {
     deckgl.setProps(props);
@@ -287,7 +311,15 @@ function shareChart() {
   // months with too few posts to give a share are skipped
   const ok = months.map((_, j) => tot[j] >= 200);
   const series = ['--series-1', '--series-2', '--series-3'];
-  const lines = st.sel.map((id) => M.topics[id].monthly.map((c, j) => (ok[j] ? c / tot[j] : null)));
+  const searching = st.colour === 'search' && Q.rank;
+  let qMonthly = null;
+  if (searching) {
+    const mi = new Map(months.map((m, j) => [m, j]));
+    qMonthly = new Array(months.length).fill(0);
+    for (let k = 0; k < HITS; k++) { const i = Q.order[k]; if (tsec[i]) qMonthly[mi.get(fmtDate(tsec[i]).slice(0, 7))]++; }
+  }
+  const lines = searching ? [qMonthly.map((c, j) => (ok[j] ? c / tot[j] : null))]
+    : st.sel.map((id) => M.topics[id].monthly.map((c, j) => (ok[j] ? c / tot[j] : null)));
   const ymax = Math.max(0.05, ...lines.flat().filter((v) => v !== null)) * 1.1;
   // from the month after which every month has enough posts
   let j0 = months.length - 1;
@@ -312,7 +344,8 @@ function shareChart() {
   const endMonth = new Date(rankTime(st.tEnd) * 1000).toISOString().slice(0, 7);
   const je = months.indexOf(endMonth);
   if (je >= 0) mk('line', { x1: x(je), x2: x(je), y1: T, y2: H - B, stroke: 'var(--text-secondary)', 'stroke-width': 1, 'stroke-dasharray': '2 3' });
-  if (!st.sel.length) { const tx = mk('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle' }); tx.textContent = 'click topics below to compare'; }
+  if (!searching && !st.sel.length) { const tx = mk('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle' }); tx.textContent = 'click topics below to compare'; }
+  if (searching) { const tx = mk('text', { x: L + 4, y: T + 9 }); tx.textContent = `top ${HITS} matches, share of each month's posts`; }
   // hover: month, and each selected topic's share
   const hit = mk('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'transparent' });
   const tipEl = $('tip');
@@ -320,10 +353,139 @@ function shareChart() {
     const r = svg.getBoundingClientRect();
     const j = j0 + Math.round(((ev.clientX - r.left) * (W / r.width) - L) / (W - L - R) * (months.length - 1 - j0));
     if (j < j0 || j >= months.length) return;
-    tipEl.textContent = `${months[j]}: ` + (ok[j] ? st.sel.map((id, k) => `${M.topics[id].words[0]} ${((lines[k][j] ?? 0) * 100).toFixed(1)}%`).join(' · ') || `${tot[j]} posts` : `${tot[j]} posts, too few for a share`);
+    tipEl.textContent = `${months[j]}: ` + (ok[j] && searching ? `${qMonthly[j]} of the top ${HITS} matches, ${((lines[0][j] ?? 0) * 100).toFixed(2)}% of ${tot[j]} posts`
+      : ok[j] ? st.sel.map((id, k) => `${M.topics[id].words[0]} ${((lines[k][j] ?? 0) * 100).toFixed(1)}%`).join(' · ') || `${tot[j]} posts` : `${tot[j]} posts, too few for a share`);
     tipEl.style.display = 'block'; tipEl.style.left = `${ev.clientX - $('deck').getBoundingClientRect().left + 10}px`; tipEl.style.top = `${ev.clientY - 30}px`;
   });
   hit.addEventListener('mouseleave', () => { tipEl.style.display = 'none'; });
+}
+
+
+// ---------------------------------------------------------------- search
+
+// Queries are embedded by the hosted EG2 embedder (the same q4 graph and prompt that embedded the
+// posts) and scored against all posts' 2-bit codes with RemexTail on WebGPU. Every post's score is
+// read back, so the whole map can light up, not just the top ten.
+const EMBEDDER = 'https://eg2-query-embedder.austegard.workers.dev/';
+const HITS = 500;
+const Q = { version: 0, rank: null, scores: null, topicHits: null, text: '' };
+let tail = null, corpus = null, gdevice = null, qbuf = null, searchReady = null, warmed = false;
+
+function initSearch() {
+  if (searchReady) return searchReady;
+  if (!warmed) { warmed = true; fetch(EMBEDDER + 'warm', { method: 'POST' }).catch(() => {}); }
+  searchReady = (async () => {
+    if (!navigator.gpu) throw new Error('this browser has no WebGPU, so the scan cannot run');
+    $('qstatus').textContent = 'Loading the 2-bit index onto the GPU…';
+    const index = await fetch('bsky/index.json').then((r) => r.json());
+    const [codes, aux, params] = await Promise.all([
+      fetch('bsky/' + index.files.codes).then((r) => r.arrayBuffer()),
+      fetch('bsky/' + index.files.aux).then((r) => r.arrayBuffer()),
+      fetch('assets/params.json').then((r) => r.json()),
+    ]);
+    if (index.n !== n) throw new Error(`index has ${index.n} posts, the map ${n}`);
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    gdevice = await adapter.requestDevice({ requiredLimits: {
+      maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+    tail = await RemexTail.create(gdevice, { rht: params.rht, mu: new Float32Array(index.mu),
+      boundaries: params.boundaries, centroids: params.centroids, kappa: params.kappa });
+    corpus = tail.allocCorpus(n);
+    tail.loadCodes(corpus, new Uint8Array(codes), new Float32Array(aux), 0);
+    qbuf = gdevice.createBuffer({ size: 768 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    await gdevice.queue.onSubmittedWorkDone();
+    $('qstatus').textContent = 'Ready.';
+  })();
+  return searchReady;
+}
+
+async function runSearch(text) {
+  const t0 = performance.now();
+  await initSearch();
+  $('qstatus').textContent = 'Embedding the query…';
+  const r = await fetch(EMBEDDER + 'embed', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text: text.slice(0, 512), dims: 768 }) });
+  if (!r.ok) throw new Error(r.status === 429 ? 'the query embedder is rate-limited (about 20 a minute); try again shortly'
+                                              : `the query embedder answered HTTP ${r.status}`);
+  const d = await r.json();
+  const t1 = performance.now();
+  gdevice.queue.writeBuffer(qbuf, 0, new Float32Array(d.embedding));
+  const sb = tail.search(qbuf, 1, corpus, { n });
+  const scores = await tail.readScores(sb, 1, corpus, n);
+  sb.destroy();
+  const t2 = performance.now();
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => scores[b] - scores[a]);
+  const rank = new Uint32Array(n);
+  order.forEach((i, k) => { rank[i] = k; });
+  const topicHits = new Array(M.topics.length).fill(0);
+  for (let k = 0; k < HITS; k++) topicHits[topic[order[k]]]++;
+  Object.assign(Q, { version: Q.version + 1, rank, scores, order, topicHits, text });
+  st.colour = 'search';
+  syncControls(); recolour(); render(); shareChart();
+  queryTopics(); flyToHits(order);
+  $('qstatus').textContent = `embed ${(t1 - t0).toFixed(0)} ms · scan of ${n.toLocaleString()} on the GPU ${(t2 - t1).toFixed(1)} ms` +
+    (d.cached ? ' (cached query)' : '');
+  await queryHits(order.slice(0, 10));
+}
+
+function queryTopics() {
+  const box = $('qtopics');
+  box.textContent = '';
+  const ranked = M.topics.map((t) => [t, Q.topicHits[t.id]]).filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const head = document.createElement('div'); head.className = 'muted'; head.style.cssText = 'font-size:12px;margin-top:8px';
+  head.textContent = `Topics of the top ${HITS} matches`;
+  box.append(head);
+  for (const [t, c] of ranked) {
+    const row = document.createElement('div'); row.className = 'qt';
+    const name = document.createElement('span'); name.textContent = t.label;
+    const barWrap = document.createElement('span');
+    const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = `${(c / ranked[0][1]) * 100}%`;
+    barWrap.append(bar);
+    const pct = document.createElement('span'); pct.className = 'pct'; pct.textContent = `${Math.round((c / HITS) * 100)}%`;
+    row.append(name, barWrap, pct);
+    box.append(row);
+  }
+}
+
+async function queryHits(idx) {
+  const ol = $('qhits');
+  ol.textContent = '';
+  const uris = idx.map((i) => `at://${authors[posts[i][0]].did}/app.bsky.feed.post/${posts[i][1]}`);
+  let byUri = new Map();
+  try {
+    const d = await fetch(API + '?' + uris.map((u) => 'uris=' + encodeURIComponent(u)).join('&')).then((r) => r.json());
+    byUri = new Map(d.posts.map((p) => [p.uri, p]));
+  } catch { /* text stays blank */ }
+  idx.forEach((i, k) => {
+    const p = byUri.get(uris[k]);
+    const li = document.createElement('li');
+    const who = document.createElement('div'); who.className = 'who';
+    who.textContent = `${p?.author?.displayName || '@' + authors[posts[i][0]].handle} · ${tsec[i] ? fmtDate(tsec[i]) : ''} · ${Q.scores[i].toFixed(3)}`;
+    const t = document.createElement('div'); t.className = 't'; t.textContent = p ? p.record.text : '(post no longer available)';
+    li.append(who, t);
+    li.onclick = () => flyTo(i);
+    ol.append(li);
+  });
+}
+
+function centreOf(ids) {
+  const pos = st.view === '3d' ? pos3 : pos2;
+  const c = [0, 0, 0];
+  for (const i of ids) for (let d = 0; d < 3; d++) c[d] += pos[i * 3 + d] / ids.length;
+  return c;
+}
+function flyToHits(order) { flyTarget(centreOf(order.slice(0, 50)), 0.6); }
+function flyTo(i) { flyTarget(centreOf([i]), 2); }
+function flyTarget(target, dz) {
+  const base = initialState(st.view === '3d');
+  const cur = st.vs || base;
+  deckgl.setProps({ initialViewState: { ...cur, target, zoom: base.zoom + dz, transitionDuration: 900 } });
+}
+
+function clearSearch() {
+  Object.assign(Q, { version: Q.version + 1, rank: null, scores: null, order: null, topicHits: null, text: '' });
+  $('qtopics').textContent = ''; $('qhits').textContent = ''; $('qstatus').textContent = '';
+  st.colour = 'topics';
+  syncControls(); recolour(); render(); shareChart();
 }
 
 // ---------------------------------------------------------------- controls
@@ -391,6 +553,14 @@ function wire() {
   $('tend').addEventListener('input', (e) => setEnd((Number(e.target.value) / 1000) * (nd - 1)));
   $('twidth').addEventListener('change', (e) => { st.width = Number(e.target.value); setEnd(st.tEnd); });
   $('play').addEventListener('click', play);
+  $('q').addEventListener('focus', () => { initSearch().catch((e) => { $('qstatus').textContent = e.message; }); });
+  $('q').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const v = e.target.value.trim();
+    if (!v) { clearSearch(); return; }
+    runSearch(v).catch((err) => { $('qstatus').textContent = `Search failed: ${err.message}`; });
+  });
+  $('q').addEventListener('search', (e) => { if (!e.target.value.trim()) clearSearch(); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { recolour(); topicList(); render(); });
 }
 
