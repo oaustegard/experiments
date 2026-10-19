@@ -16,6 +16,8 @@ on:
       - '**.js'
       - '**.mjs'
       - '**.css'
+      # data files a page fetches (.json, .txt) ship only when listed here
+      - 'embeddinggemma2-webgpu-tail/web/**'
   workflow_dispatch:
 
 permissions:
