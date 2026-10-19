@@ -2,7 +2,7 @@
 // run/map_bsky.py (UMAP of the EmbeddingGemma 2 embeddings, k-means topics, c-TF-IDF words);
 // rendering is deck.gl on WebGL, with the time window applied on the GPU (DataFilterExtension).
 // Post text is fetched from Bluesky when a point is clicked; the map files hold none.
-const { Deck, OrthographicView, OrbitView, ScatterplotLayer, TextLayer, DataFilterExtension } = deck;
+const { Deck, OrthographicView, OrbitView, ScatterplotLayer, TextLayer, DataFilterExtension, CollisionFilterExtension } = deck;
 
 const $ = (id) => document.getElementById(id);
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -28,23 +28,46 @@ async function load() {
   xyz = new Float32Array(bin, o, n * 3); o += n * 12;
   tsec = new Uint32Array(bin, o, n); o += n * 4;
   topic = new Uint8Array(bin, o, n);
-  const S = 600;           // world units for the [-1, 1] layout
+  // robust scaling: each axis's 1st..99th percentile maps to [-S, S]; a few far-out posts would
+  // otherwise shrink the map to a dot. Outliers are pinned 10% past the edge.
   pos2 = new Float32Array(n * 3);
   pos3 = new Float32Array(n * 3);
   filt = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    pos2[i * 3] = xy[i * 2] * S; pos2[i * 3 + 1] = -xy[i * 2 + 1] * S;
-    pos3[i * 3] = xyz[i * 3] * S; pos3[i * 3 + 1] = xyz[i * 3 + 1] * S; pos3[i * 3 + 2] = xyz[i * 3 + 2] * S;
-    filt[i] = tsec[i] ? (tsec[i] - M.time_min) / DAY : -1;
-  }
+  scaleAxes(xy, 2, pos2, [1, -1]);
+  scaleAxes(xyz, 3, pos3, [1, 1, 1]);
+  for (let i = 0; i < n; i++) filt[i] = tsec[i] ? (tsec[i] - M.time_min) / DAY : -1;
+  scaleCentroids();
   colours = new Uint8Array(n * 4);
   st.tEnd = (M.time_max - M.time_min) / DAY;
+}
+
+const S = 600;             // world units for the scaled layout
+const fits = {};
+function scaleAxes(src, dims, dst, flip) {
+  const f = [];
+  for (let d = 0; d < dims; d++) {
+    const v = Array.from({ length: n }, (_, i) => src[i * dims + d]).sort((a, b) => a - b);
+    const lo = v[Math.floor(n * 0.01)], hi = v[Math.floor(n * 0.99)];
+    const mid = (lo + hi) / 2, half = (hi - lo) / 2;
+    f.push([mid, half]);
+    for (let i = 0; i < n; i++) {
+      const u = Math.max(-1.1, Math.min(1.1, (src[i * dims + d] - mid) / half));
+      dst[i * 3 + d] = u * S * flip[d];
+    }
+  }
+  fits[dims] = { f, flip };
+}
+function scaleCentroids() {
+  for (const t of M.topics) {
+    t.p2 = [0, 1].map((d) => ((t.c2[d] - fits[2].f[d][0]) / fits[2].f[d][1]) * S * fits[2].flip[d]).concat(0);
+    t.p3 = [0, 1, 2].map((d) => ((t.c3[d] - fits[3].f[d][0]) / fits[3].f[d][1]) * S * fits[3].flip[d]);
+  }
 }
 
 // ---------------------------------------------------------------- colour
 
 function recolour() {
-  const point = [...hex(css('--point')), 110];
+  const point = [...hex(css('--point')), 55];      // translucent, so density reads as tone
   const series = ['--series-1', '--series-2', '--series-3'].map((v) => [...hex(css(v)), 230]);
   // newest = most contrast against the surface: light->dark on a light surface, reversed on dark
   const surf = hex(css('--surface-1'));
@@ -96,12 +119,15 @@ function layers() {
   const labels = new TextLayer({
     id: 'labels',
     data: M.topics.filter((t) => st.colour !== 'topics' || !st.sel.length || st.sel.includes(t.id)),
-    getPosition: (t) => is3 ? t.c3.map((v) => v * 600) : [t.c2[0] * 600, -t.c2[1] * 600, 0],
+    getPosition: (t) => (is3 ? t.p3 : t.p2),
     getText: (t) => t.words.slice(0, 2).join(' · '),
     getSize: 12, sizeUnits: 'pixels', billboard: true,
     getColor: [...hex(css('--text-primary')), 220],
     outlineWidth: 3, outlineColor: [...hex(css('--surface-1')), 230], fontSettings: { sdf: true },
     fontFamily: 'system-ui, sans-serif', getTextAnchor: 'middle', getAlignmentBaseline: 'center',
+    // a label shows only where it fits; bigger topics win
+    extensions: [new CollisionFilterExtension()], getCollisionPriority: (t) => t.size,
+    collisionTestProps: { sizeScale: 1.3 },
   });
   return [pts, labels];
 }
@@ -120,8 +146,9 @@ function render() {
 }
 
 function initialState(is3) {
-  return is3 ? { target: [0, 0, 0], rotationX: 15, rotationOrbit: 30, zoom: -0.6, minZoom: -3, maxZoom: 6 }
-             : { target: [0, 0, 0], zoom: -0.5, minZoom: -3, maxZoom: 8 };
+  const fit = Math.log2(Math.min($('deck').clientWidth, $('deck').clientHeight) / (2.4 * S));
+  return is3 ? { target: [0, 0, 0], rotationX: 15, rotationOrbit: 30, zoom: fit - 0.2, minZoom: -4, maxZoom: 6 }
+             : { target: [0, 0, 0], zoom: fit, minZoom: -4, maxZoom: 8 };
 }
 
 function switchView(v) {
@@ -220,13 +247,14 @@ function shareChart() {
   const series = ['--series-1', '--series-2', '--series-3'];
   const lines = st.sel.map((id) => M.topics[id].monthly.map((c, j) => (ok[j] ? c / tot[j] : null)));
   const ymax = Math.max(0.05, ...lines.flat().filter((v) => v !== null)) * 1.1;
-  const x = (j) => L + (j / Math.max(1, months.length - 1)) * (W - L - R);
+  const j0 = Math.max(0, months.findIndex((_, j) => ok[j]));
+  const x = (j) => L + ((j - j0) / Math.max(1, months.length - 1 - j0)) * (W - L - R);
   const y = (v) => T + (1 - v / ymax) * (H - T - B);
   for (const v of [0, ymax / 2]) {
     mk('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--line)', 'stroke-width': 1 });
     const tx = mk('text', { x: L - 4, y: y(v) + 3, 'text-anchor': 'end' }); tx.textContent = `${Math.round(v * 100)}%`;
   }
-  const first = months.findIndex((_, j) => ok[j]);
+  const first = j0;
   for (const j of [first, months.length - 1]) {
     if (j < 0) continue;
     const tx = mk('text', { x: x(j), y: H - 4, 'text-anchor': j === first ? 'start' : 'end' }); tx.textContent = months[j];
@@ -246,8 +274,8 @@ function shareChart() {
   const tipEl = $('tip');
   hit.addEventListener('mousemove', (ev) => {
     const r = svg.getBoundingClientRect();
-    const j = Math.round(((ev.clientX - r.left) * (W / r.width) - L) / (W - L - R) * (months.length - 1));
-    if (j < 0 || j >= months.length) return;
+    const j = j0 + Math.round(((ev.clientX - r.left) * (W / r.width) - L) / (W - L - R) * (months.length - 1 - j0));
+    if (j < j0 || j >= months.length) return;
     tipEl.textContent = `${months[j]}: ` + (ok[j] ? st.sel.map((id, k) => `${M.topics[id].words[0]} ${((lines[k][j] ?? 0) * 100).toFixed(1)}%`).join(' · ') || `${tot[j]} posts` : `${tot[j]} posts, too few for a share`);
     tipEl.style.display = 'block'; tipEl.style.left = `${ev.clientX - $('deck').getBoundingClientRect().left + 10}px`; tipEl.style.top = `${ev.clientY - 30}px`;
   });

@@ -1,11 +1,12 @@
 """2D and 3D maps of the Bluesky corpus for web/map.html: UMAP layouts, topics, labels, time.
 
-Usage: python3 -I run/map_bsky.py [--topics 32]
+Usage: python3 -I run/map_bsky.py [--topics 32] [--neighbors 15] [--min-dist 0.02]
 
 Input: out/bsky/emb.npy and out/bsky/posts.jsonl (run/build_bsky_index.py's order, which is
 web/bsky/posts.json's order). Steps:
   1. PCA to 50 dims of the unit embeddings (keeps cosine geometry, makes UMAP fast).
-  2. UMAP to 2D and, separately, to 3D (n_neighbors 30, min_dist 0.05, seed 42).
+  2. UMAP to 2D and, separately, to 3D (cosine, seed 42; 15 neighbours and min_dist 0.02 by default,
+     which separates topics more than 30 / 0.05 did on this corpus).
   3. k-means topics on the 50-dim PCA; each topic labelled by its top c-TF-IDF words
      (a word's frequency in the topic over its frequency in the corpus).
   4. Monthly post counts per topic, for the share-over-time view.
@@ -20,7 +21,7 @@ import math
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -47,6 +48,7 @@ you'd you'll you're you've your yours yourself yourselves just like get got one 
 going even much way make see said say also still now well yeah yes lot good new time want need go use using used
 https http www com bsky app social would could it's i'm don't that's can't they're doesn't didn't isn't there's
 re ve ll amp via lol oh ok okay maybe actually pretty right since many every something someone anything back first
+will org great today day exist
 """.split())
 WORD = re.compile(r"[a-z][a-z0-9'\-]{2,}")
 
@@ -81,6 +83,8 @@ def label_topics(texts, topic, k, top=4):
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--topics", type=int, default=32)
+    ap.add_argument("--neighbors", type=int, default=15)
+    ap.add_argument("--min-dist", type=float, default=0.02)
     a = ap.parse_args()
     rows, authors = load_posts()
     X = np.load(SRC / "emb.npy").astype(np.float32)
@@ -91,7 +95,7 @@ def main() -> int:
     layouts = {}
     for dims in (2, 3):
         t0 = time.time()
-        Y = umap.UMAP(n_components=dims, n_neighbors=30, min_dist=0.05, metric="cosine",
+        Y = umap.UMAP(n_components=dims, n_neighbors=a.neighbors, min_dist=a.min_dist, metric="cosine",
                       random_state=42, low_memory=True).fit_transform(P)
         Y = (Y - Y.mean(0)) / np.abs(Y - Y.mean(0)).max()       # centred, in [-1, 1]
         layouts[dims] = Y.astype(np.float32)
@@ -102,12 +106,12 @@ def main() -> int:
     ts = np.array([int(datetime.fromisoformat(r["created_at"].replace("Z", "+00:00")).timestamp())
                    if r.get("created_at") else 0 for r in rows], np.int64)
     ts = np.clip(ts, 0, 2**32 - 1).astype(np.uint32)
-    months = sorted({datetime.utcfromtimestamp(int(t)).strftime("%Y-%m") for t in ts if t})
+    months = sorted({datetime.fromtimestamp(int(t), timezone.utc).strftime("%Y-%m") for t in ts if t})
     midx = {m: i for i, m in enumerate(months)}
     monthly = np.zeros((a.topics, len(months)), np.int64)
     for t, c in zip(ts, topic):
         if t:
-            monthly[c, midx[datetime.utcfromtimestamp(int(t)).strftime("%Y-%m")]] += 1
+            monthly[c, midx[datetime.fromtimestamp(int(t), timezone.utc).strftime("%Y-%m")]] += 1
 
     topics = []
     for c in range(a.topics):
@@ -126,7 +130,7 @@ def main() -> int:
     (WEB / "map.json").write_text(json.dumps({
         "n": len(rows), "topics": topics, "months": months, "month_totals": monthly.sum(0).tolist(),
         "time_min": int(valid.min()), "time_max": int(valid.max()),
-        "layout": {"pca": 50, "umap": {"n_neighbors": 30, "min_dist": 0.05, "metric": "cosine", "seed": 42},
+        "layout": {"pca": 50, "umap": {"n_neighbors": a.neighbors, "min_dist": a.min_dist, "metric": "cosine", "seed": 42},
                    "kmeans_k": a.topics},
         "binary": "float32 xy[n*2], float32 xyz[n*3], uint32 time_s[n], uint8 topic[n], little-endian",
         "order": "same rows as posts.json",
