@@ -83,12 +83,12 @@
       <div style="display:flex;justify-content:space-between"><span id="age0"></span><span id="age1"></span></div>
     </div>
 
-    <label class="lbl">Time window <span id="when"></span></label>
+    <label class="lbl">Time window, by post count <span id="when"></span></label>
     <input type="range" id="tend" min="0" max="1000" value="1000" aria-label="window end">
     <div class="row">
       <select id="twidth" aria-label="window width" style="width:auto">
-        <option value="7">1 week</option><option value="30">1 month</option>
-        <option value="90">3 months</option><option value="0" selected>everything</option>
+        <option value="2000">2,000 posts</option><option value="5000">5,000 posts</option>
+        <option value="10000">10,000 posts</option><option value="0" selected>everything</option>
       </select>
       <div class="seg"><button id="play" aria-pressed="false">▶ Play</button></div>
     </div>

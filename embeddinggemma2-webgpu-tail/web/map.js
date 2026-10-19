@@ -13,7 +13,7 @@ const SEQ = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '
 
 const st = { view: '2d', colour: 'topics', sel: [], author: null, tEnd: null, width: 0, playing: false, hover: null };
 let M, n, xy, xyz, tsec, topic, posts, authors, deckgl;
-let pos2, pos3, filt, colours;
+let pos2, pos3, filt, ageDays, sortedT, nd, colours;   // filt = a post's rank in time order
 
 async function load() {
   const [map, bin, postList, index] = await Promise.all([
@@ -37,10 +37,23 @@ async function load() {
   filt = new Float32Array(n);
   scaleAxes(xy, 2, pos2, [1, -1]);
   scaleAxes(xyz, 3, pos3, [1, 1, 1]);
-  for (let i = 0; i < n; i++) filt[i] = tsec[i] ? (tsec[i] - M.time_min) / DAY : -1;
+  // The time window counts posts, not days: posts are rank-ordered by time and a window is N
+  // consecutive ranks, so every frame holds the same number of posts however sparse the month.
+  ageDays = new Float32Array(n);
+  const dated = [];
+  for (let i = 0; i < n; i++) {
+    ageDays[i] = tsec[i] ? (tsec[i] - M.time_min) / DAY : -1;
+    if (tsec[i]) dated.push(i);
+  }
+  dated.sort((x, y) => tsec[x] - tsec[y]);
+  nd = dated.length;
+  sortedT = new Uint32Array(nd);
+  filt.fill(-1);
+  dated.forEach((i, r) => { filt[i] = r; sortedT[r] = tsec[i]; });
   scaleCentroids();
   colours = new Uint8Array(n * 4);
-  st.tEnd = (M.time_max - M.time_min) / DAY;
+  st.tEnd = nd - 1;
+  st.width = 0;
 }
 
 const S = 600;             // world units for the scaled layout
@@ -108,7 +121,7 @@ function recolour() {
       const k = st.sel.indexOf(topic[i]);
       if (k >= 0) c = series[k];
     } else if (st.colour === 'age') {
-      const f = filt[i] < 0 ? 0 : filt[i] / span;
+      const f = ageDays[i] < 0 ? 0 : ageDays[i] / span;
       const s = seq[Math.min(seq.length - 1, Math.floor(f * seq.length))];
       c = [...s, 200];
     } else if (st.colour === 'author') {
@@ -122,14 +135,14 @@ function recolour() {
 
 function windowRange() {
   const end = st.tEnd;
-  const start = st.width ? end - st.width : -2;
+  const start = st.width ? end - st.width : -2;      // -2 also admits undated posts (rank -1)
   return [start, end];
 }
 
 function layers() {
   const is3 = st.view === '3d';
   const [a, b] = windowRange();
-  const soft = st.width ? Math.max(1, st.width * 0.3) : 0;
+  const soft = st.width ? Math.max(1, st.width * 0.15) : 0;   // the newest 15% of the window fades in
   const pts = new ScatterplotLayer({
     id: 'posts',
     data: { length: n, attributes: {
@@ -296,7 +309,7 @@ function shareChart() {
     mk('path', { d, fill: 'none', stroke: `var(${series[k]})`, 'stroke-width': 2, 'stroke-linejoin': 'round' });
   });
   // the window's end, so the map and the chart read together
-  const endMonth = new Date((M.time_min + st.tEnd * DAY) * 1000).toISOString().slice(0, 7);
+  const endMonth = new Date(rankTime(st.tEnd) * 1000).toISOString().slice(0, 7);
   const je = months.indexOf(endMonth);
   if (je >= 0) mk('line', { x1: x(je), x2: x(je), y1: T, y2: H - B, stroke: 'var(--text-secondary)', 'stroke-width': 1, 'stroke-dasharray': '2 3' });
   if (!st.sel.length) { const tx = mk('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle' }); tx.textContent = 'click topics below to compare'; }
@@ -329,12 +342,14 @@ function syncControls() {
   }
   if (st.author !== null) $('author').value = String(st.author);
   const [a, b] = windowRange();
-  $('when').textContent = st.width ? `${fmtDate(M.time_min + Math.max(0, a) * DAY)} – ${fmtDate(M.time_min + b * DAY)}` : `all, to ${fmtDate(M.time_min + b * DAY)}`;
+  $('when').textContent = st.width ? `${fmtDate(rankTime(a))} – ${fmtDate(rankTime(b))}` : `all, to ${fmtDate(rankTime(b))}`;
 }
 
-function setEnd(days) {
-  st.tEnd = days;
-  $('tend').value = String(Math.round((days / ((M.time_max - M.time_min) / DAY)) * 1000));
+function rankTime(r) { return sortedT[Math.max(0, Math.min(nd - 1, Math.round(r)))]; }
+
+function setEnd(rank) {
+  st.tEnd = Math.max(st.width ? Math.min(st.width, nd - 1) : 0, Math.min(nd - 1, rank));
+  $('tend').value = String(Math.round((st.tEnd / (nd - 1)) * 1000));
   syncControls(); render(); shareChart();
 }
 
@@ -344,16 +359,13 @@ function play() {
   $('play').setAttribute('aria-pressed', String(st.playing));
   $('play').textContent = st.playing ? '❚❚ Pause' : '▶ Play';
   if (!st.playing) { cancelAnimationFrame(raf); return; }
-  if (!st.width) { st.width = 30; $('twidth').value = '30'; }
-  const span = (M.time_max - M.time_min) / DAY;
-  // start where the corpus gets dense enough to watch (the first month with 200+ posts)
-  const first = M.months.findIndex((_, j) => M.month_totals[j] >= 200);
-  const startDay = first > 0 ? (Date.parse(M.months[first] + '-01T00:00:00Z') / 1000 - M.time_min) / DAY : 0;
-  if (st.tEnd >= span - 0.5) st.tEnd = startDay + st.width;
+  if (!st.width) { st.width = 5000; $('twidth').value = '5000'; }
+  const span = nd - 1;
+  if (st.tEnd >= span - 0.5) st.tEnd = st.width;
   let last = performance.now();
   const step = (t) => {
     const dt = (t - last) / 1000; last = t;
-    const next = st.tEnd + dt * 10;            // 10 days per second
+    const next = st.tEnd + dt * span / 60;     // the whole corpus in about a minute
     if (next >= span) { setEnd(span); play(); return; }
     setEnd(next);
     raf = requestAnimationFrame(step);
@@ -376,8 +388,8 @@ function wire() {
     const o = document.createElement('option'); o.value = String(a); o.textContent = `@${authors[a].handle} (${c})`; sel.append(o);
   }
   sel.addEventListener('change', () => { st.author = Number(sel.value); recolour(); render(); });
-  $('tend').addEventListener('input', (e) => setEnd((Number(e.target.value) / 1000) * ((M.time_max - M.time_min) / DAY)));
-  $('twidth').addEventListener('change', (e) => { st.width = Number(e.target.value); syncControls(); render(); });
+  $('tend').addEventListener('input', (e) => setEnd((Number(e.target.value) / 1000) * (nd - 1)));
+  $('twidth').addEventListener('change', (e) => { st.width = Number(e.target.value); setEnd(st.tEnd); });
   $('play').addEventListener('click', play);
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { recolour(); topicList(); render(); });
 }
