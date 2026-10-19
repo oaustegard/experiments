@@ -79,7 +79,9 @@ model cached.
    On Cloudflare the instance ran from 04:03Z until `destroy()` (SIGKILL) at
    11:40Z, through idle stretches well past the 10-minute `sleepAfter`. With v2
    deployed, SIGTERM stops it on Cloudflare in about 3 s
-   (2960 ms). <!-- @evidence[[results/live_v2.json#sigterm.stopped_after_ms]] -->
+   (2960 ms), <!-- @evidence[[results/live_v2.json#sigterm.stopped_after_ms]] -->
+   and `sleepAfter` works: started by one query at 11:53:10Z, the container
+   stopped itself 10.0 minutes later. <!-- @evidence[[results/sleep_after_v2.json#idle_to_stop_minutes]] -->
    (`results/sigterm.json`, `results/instance_state_0457.json`, `results/live_v2.json`)
 9. The Durable Object behind a container keeps running the code it started
    with. A Worker deploy does not reach it while its container is alive: new
@@ -201,3 +203,11 @@ container in about 3 s (`results/live_v2.json`). The earlier warm figures were
 likely taken without `THREADS=1`, which the stale object would not have passed
 to the container. One query at 11:53:10Z started the container for an
 unattended `sleepAfter` check.
+
+### 2026-10-19 12:10Z — sleepAfter verified on v2
+
+Read without waking it: the Durable Object reported `stopped` with its last
+change at 12:03:10.766Z, exactly 10 minutes after the single query at
+11:53:10Z, and the application had no active instance. Worker analytics show no
+request after 11:53Z (`results/sleep_after_v2.json`). With the SIGTERM handler
+and a Durable Object running current code, the container now scales to zero.
