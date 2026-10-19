@@ -1,9 +1,9 @@
 """Run web/bench_tail.html in Chromium (SwiftShader WebGPU) and write results/bench_tail_swiftshader.json.
 
-Usage: python3 -I run/run_bench.py [--n 100000] [--n-enc 16384] [--reps 3] [--untiled out/tail_untiled.js]
+Usage: python3 -I run/run_bench.py [--n 100000] [--n-enc 16384] [--reps 3] [--untiled web/tail_untiled.js]
 
 --untiled times an older tail.js's encode next to the current one (path relative to the project
-root). SwiftShader is a software rasterizer: these are not GPU timings. On a machine with a GPU,
+root; the page itself defaults to web/tail_untiled.js, this runner to none). SwiftShader is a software rasterizer: these are not GPU timings. On a machine with a GPU,
 open /web/bench_tail.html in a browser and read the log instead.
 """
 import argparse
@@ -27,7 +27,7 @@ def main() -> int:
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--untiled")
     a = ap.parse_args()
-    q = f"?n={a.n}&n_enc={a.n_enc}&reps={a.reps}" + (f"&untiled=/{a.untiled}" if a.untiled else "")
+    q = f"?n={a.n}&n_enc={a.n_enc}&reps={a.reps}&untiled=" + (f"/{a.untiled}" if a.untiled else "")
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],

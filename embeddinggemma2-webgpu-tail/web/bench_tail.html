@@ -6,7 +6,12 @@
 <link rel="icon" href="data:,">
 </head>
 <body>
+<p>Times the WebGPU tail at the sizes of <code>run/native_bench.py</code>: encode (tiled and the
+untiled kernel it replaced), a scan of 100k codes &times; 20 queries, and top-10 on the GPU and on the
+host. Takes a few seconds on a real GPU. Parameters: <code>?n=100000&amp;n_enc=16384&amp;reps=3</code>.</p>
+<p><button id="run" disabled>Run bench</button> <button id="copy" disabled>Copy JSON</button></p>
 <pre id="log">loading</pre>
+<pre id="out"></pre>
 <script type="module">
 // Tail-only timings at the sizes of run/native_bench.py: encode, scan of 100k x 20 queries, top-10
 // on the GPU and on the host. ?untiled=<module url> also times that module's encode (the one-vector
@@ -20,6 +25,7 @@ const N = Number(Q.get('n') || 100000);
 const N_ENC = Number(Q.get('n_enc') || 16384);
 const NQ = 20, K = 10;
 const REPS = Number(Q.get('reps') || 3);
+const UNTILED = Q.get('untiled') ?? './tail_untiled.js';   // ?untiled= (empty) skips it
 const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; };
 
@@ -67,13 +73,15 @@ async function runBench() {
   device.queue.writeBuffer(qbuf, 0, X.subarray(0, NQ * D));
   await device.queue.onSubmittedWorkDone();
 
-  const out = { adapter: { vendor: info.vendor, architecture: info.architecture, device: info.device },
+  const out = { adapter: { vendor: info.vendor, architecture: info.architecture, device: info.device,
+                           description: info.description },
+                user_agent: navigator.userAgent, when: new Date().toISOString(),
                 n: N, n_enc: N_ENC, nq: NQ, k: K, reps: REPS };
   const small = tail.allocCorpus(N_ENC);
   out.encode_tiled_ms = await time(() => tail.encode(xbuf, N_ENC, small, 0), REPS, device);
   log(`encode tiled ${N_ENC}: ${out.encode_tiled_ms.median} ms`);
-  if (Q.get('untiled')) {
-    const { RemexTail: Old } = await import(new URL(Q.get('untiled'), location.href).href);
+  if (UNTILED) {
+    const { RemexTail: Old } = await import(new URL(UNTILED, location.href).href);
     const old = await Old.create(device, params);
     out.encode_untiled_ms = await time(() => old.encode(xbuf, N_ENC, small, 0), REPS, device);
     log(`encode untiled ${N_ENC}: ${out.encode_untiled_ms.median} ms`);
@@ -98,6 +106,25 @@ async function runBench() {
 }
 window.runBench = runBench;
 window.benchReady = true;
+
+const runBtn = document.getElementById('run');
+const copyBtn = document.getElementById('copy');
+const outEl = document.getElementById('out');
+if (!navigator.gpu) log('navigator.gpu is missing: this browser has no WebGPU (or the page is not on https / localhost).');
+else { runBtn.disabled = false; log('ready'); }
+runBtn.addEventListener('click', async () => {
+  runBtn.disabled = true;
+  try {
+    const r = await runBench();
+    outEl.textContent = JSON.stringify(r, null, 1);
+    copyBtn.disabled = false;
+  } catch (e) {
+    log('ERROR: ' + (e?.stack ?? e));
+  } finally {
+    runBtn.disabled = false;
+  }
+});
+copyBtn.addEventListener('click', () => navigator.clipboard.writeText(outEl.textContent));
 </script>
 </body>
 </html>
