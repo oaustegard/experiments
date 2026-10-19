@@ -700,6 +700,18 @@ survives exactly the sanity checks people run.
   `--enable-unsafe-webgpu --use-angle=swiftshader --use-webgpu-adapter=swiftshader
   --enable-features=Vulkan`. SwiftShader is a software rasterizer: correct, and 10-1000x off real-GPU
   timings. (`embeddinggemma2-webgpu-tail/run/run_gpu.py`)
+- **A WebGPU canvas in headless Chromium also needs `--use-vulkan=swiftshader`.** With only the
+  compute-oriented flags above, compute and buffer readback work, but the first frame that presents
+  to a canvas loses the device ("A valid external Instance reference no longer exists") and every
+  later submit is a silent no-op: frames keep counting and every readback returns zero. Adding
+  `--use-vulkan=swiftshader` fixes it; `WebGPUService`, `--headless=new` and
+  `--enable-unsafe-swiftshader` do not. Listen on `device.lost`, or a dead device reads as a page
+  that renders nothing. (`navier-stokes-explainer/run/verify.mjs`)
+- **SwiftShader charges ~3 ms per compute dispatch regardless of size.** A stable-fluids step of
+  ~50 dispatches on a 320 x 108 grid took 165 ms; the same step is about 1 ms on a laptop GPU. A
+  simulation that needs a thousand steps to develop (a cylinder wake) cannot be watched in real
+  time headless: step it in-page in a loop with `await queue.onSubmittedWorkDone()` every few dozen
+  steps, then screenshot. (`navier-stokes-explainer/run/verify.mjs` `ff`)
 - **SwiftShader timings can reverse a GPU conclusion; have a person run an instrumented page.** On
   SwiftShader a GPU top-k was slower than reading 2M scores back and selecting on the host (8.8 s vs
   7.0 s); on a Mac's Metal GPU it was faster (18.8 ms vs 23.5 ms), and the real model ran 250x faster.

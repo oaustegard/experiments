@@ -172,6 +172,7 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`specter2-gap-issue-87/`](specter2-gap-issue-87/) | 2026-05-23 | done | embeddings JSON | [#87](https://github.com/oaustegard/claude-workspace/issues/87) (remex#69 phase-0 gap fill) |
 | [`muninn-kb-issue-76/`](muninn-kb-issue-76/README.md) | 2026-05-13 | done (reproducible) | [`README.md`](muninn-kb-issue-76/README.md) (build recipe) | [#76](https://github.com/oaustegard/claude-workspace/issues/76) |
 | [`py-wasm-bench/`](py-wasm-bench/RESULTS.md) | 2026-10-18 | **done — py2wasm runs 0.85–1.26x plain CPython-in-wasm (not the claimed 2.5–3x); mypyc-on-WASI hits 20x native CPython only where values stay in locals, and stays below 1x on `list[float]` kernels; hand C→wasm is 13–42x native CPython; SPy reaches 1.9–29x native CPython without libpython; a Python→WGSL `@kernel` prototype is correct on SwiftShader** | [`RESULTS.md`](py-wasm-bench/RESULTS.md) + [`bench.py`](py-wasm-bench/bench.py) + [`arms/wgsl/pykernel.py`](py-wasm-bench/arms/wgsl/pykernel.py) | Oskar: *"Could we improve on current platform tooling for converting code to run under wasm and/or webgpu?"* Nine arms × four checksum-verified kernels under wasmtime and node. The gap to the ceiling is value representation (boxed list elements), and SPy, which lowers typed lists to flat buffers, is the fastest Python-derived arm on every kernel. |
+| [`navier-stokes-explainer/`](navier-stokes-explainer/README.md) | 2026-10-19 | done — interactive page | [`web/index.html`](navier-stokes-explainer/web/index.html) ([live](https://austegard.com/experiments/navier-stokes-explainer/web/)) + [`run/verify.mjs`](navier-stokes-explainer/run/verify.mjs) | [#101](https://github.com/oaustegard/experiments/issues/101). Five-chapter WebGPU explainer: toggleable NS terms, a cylinder wake under a Reynolds slider, 2D vs 3D vortex stretching (filament rings), the Beale–Kato–Majda integral with a live energy spectrum, and the 2026 blowup results. The OpenAI result is forced (Clay C, D as corollary); the unforced alternatives stay open. |
 | [`reviews/`](reviews/) | 2026-04-21 | done | the `.md` files are the results | freeform repo reviews |
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
@@ -1594,6 +1595,14 @@ deliverable; no separate `RESULTS.md`.
 ### `snooker-break/` — apex vs Murphy break-strike simulator
 
 Interactive HTML simulator. Open `snooker-break.html` in a browser.
+
+### `navier-stokes-explainer/` — interactive Navier–Stokes explainer on WebGPU
+
+A static page with five chapters, each built on a WGSL compute-shader solver: a stable-fluids 2D
+solver (MacCormack advection, Jacobi viscosity and pressure) and a 3D vortex-filament model with
+all-pairs Biot–Savart. `run/verify.mjs` drives every chapter in headless Chromium and screenshots
+it. Headless WebGPU canvases need `--use-vulkan=swiftshader` (METHODS.md). Chapter 5 corrects
+Muninn memory c43844eb: the 2026 OpenAI blowup is forced.
 
 ## Adding a new experiment
 

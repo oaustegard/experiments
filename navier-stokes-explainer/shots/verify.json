@@ -1,0 +1,108 @@
+{
+ "checks": [
+  {
+   "name": "webgpu device",
+   "ok": true,
+   "detail": {}
+  },
+  {
+   "name": "ch1 steps and carries momentum",
+   "ok": true,
+   "detail": {
+    "maxVort": 4.3030571937561035,
+    "energy": 0.8146647135416667,
+    "frame": 73,
+    "time": 69,
+    "frames": 73
+   }
+  },
+  {
+   "name": "ch1 pressure toggle",
+   "ok": true,
+   "detail": {
+    "pressure": false,
+    "note": true,
+    "eqOff": true
+   }
+  },
+  {
+   "name": "ch2 channel flow runs",
+   "ok": true,
+   "detail": {
+    "maxVort": 0.4429349899291992,
+    "energy": 0.1489357277199074,
+    "frame": 1742,
+    "time": 1734,
+    "re": 158.48931924611142,
+    "frames": 221,
+    "regime": "The wake oscillates and sheds a von Kármán street."
+   }
+  },
+  {
+   "name": "ch3 2D max vorticity never exceeds its start",
+   "ok": true,
+   "detail": {
+    "samples": 33,
+    "max": 1,
+    "last": 0.39962583759826553
+   }
+  },
+  {
+   "name": "ch3 3D stretching raises vorticity",
+   "ok": true,
+   "detail": {
+    "samples": 25,
+    "maxStretch": 3.751445770263672,
+    "tLast": 7.200000000000015
+   }
+  },
+  {
+   "name": "ch3 tilted preset runs",
+   "ok": true,
+   "detail": {
+    "samples": 6,
+    "maxStretch": 4.723394870758057
+   }
+  },
+  {
+   "name": "ch4 toy verdict follows alpha",
+   "ok": true,
+   "detail": "With α = 1.20 the integral diverges at T*. This is the growt"
+  },
+  {
+   "name": "ch4 spectrum and BKM trace",
+   "ok": true,
+   "detail": {
+    "specLen": 128,
+    "hist": 10,
+    "E1": 0.0000805917240562125,
+    "E64": 2.884249033030024e-8,
+    "E128": 2.986944187105248e-10
+   }
+  },
+  {
+   "name": "ch5 scaling window drag updates verdict",
+   "ok": true,
+   "detail": {
+    "before": "T* = 1.250. μ ≤ λ², so the Reynolds number does not fall from layer to layer and",
+    "after": "T* = 4.000. μ > λ², so each layer's Reynolds number is 2.57× smaller than the la",
+    "mu": 0.75
+   }
+  },
+  {
+   "name": "no page or WebGPU errors",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "fallback message without WebGPU",
+   "ok": true,
+   "detail": {
+    "gpu": false,
+    "nogpu": true,
+    "errors": []
+   }
+  }
+ ],
+ "errors": []
+}
