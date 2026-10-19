@@ -145,3 +145,15 @@ at 04:03:00Z, state `running`, location `mia04` (`results/instance_state_0426.js
 it had not slept after about 14 idle minutes. Next: read the instance state
 again after a longer idle period, without sending a request, before timing a
 cold start.
+
+### 2026-10-19 04:57Z — sleep check, no request sent
+
+The Cloudflare containers API at 04:57:40Z still showed the instance started at
+04:03:00Z as `running` in `mia04`. Worker analytics show requests at 04:13Z (2)
+and 04:42Z (2) that did not come from this session, so the container's idle
+stretches were 13 minutes before the 04:26Z probe and 15 minutes before this
+check. Both exceed the 10-minute `sleepAfter`, and the instance never restarted
+(`results/instance_state_0457.json`). Either `sleepAfter` is not stopping the
+container, or the API reports a placed instance whose process has stopped. The
+warm 980 ms answer at 04:26Z points to the first. Not yet resolved; finding 8
+stands.
