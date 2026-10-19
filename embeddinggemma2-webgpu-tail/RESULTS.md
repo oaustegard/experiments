@@ -13,16 +13,15 @@ a packed code? Yes, and it is cheap next to the model. On a Mac's Metal GPU in
 Chrome, embedding 32 documents with the real q4 model takes 549.5 ms; <!-- @evidence[[results/demo_bench_apple_metal3.json#embed_only_ms.median]] -->
 encoding them on the GPU adds 5.0 ms, <!-- @evidence[[results/demo_bench_apple_metal3.json#derived.gpu_encode_added_ms]] -->
 and reading them back for the JS reference encode adds 45.6 ms. <!-- @evidence[[results/demo_bench_apple_metal3.json#derived.readback_encodeRef_added_ms]] -->
-The scan of 100k codes × 20 queries takes 13.1 ms <!-- @evidence[[results/bench_tail_apple_metal3.json#scan_ms.median]] -->
-and encoding 100k vectors 203.4 ms. <!-- @evidence[[results/bench_tail_apple_metal3.json#encode_full_ms]] -->
-The codes agree with remex: 6 of 3.1M flip on real EG2 vectors, all at a boundary.
+The scan of 100k codes × 20 queries takes 13.1 ms, <!-- @evidence[[results/bench_tail_apple_metal3.json#scan_ms.median]] -->
+and encoding 100k vectors with remex's Hadamard rotation 38.3 ms. <!-- @evidence[[results/bench_tail_apple_metal3_rht.json#encode_full_ms]] -->
+The codes agree with remex: 2 of 3.1M flip on real EG2 vectors, all at a boundary.
 
 The JS reference is slow on purpose (float64, dense), so the 45.6 ms
 overstates what readback costs; a native-speed CPU encode of 32 vectors would
 take under 1 ms. What the GPU path buys is the scan, about 580× remex's
 codes-only ADC search on a 4-core Xeon, and no embedding ever crossing to the
-host. A second GPU, and a Hadamard-transform rotation in place of the dense
-768 × 768 product, would change these numbers most.
+host. A second GPU would change these numbers most.
 
 ## Findings
 
@@ -74,12 +73,15 @@ host. A second GPU, and a Hadamard-transform rotation in place of the dense
    One flip moves a score by `scale · 0.033 · qr_j`, as the handoff predicted.
 8. On the 150-document demo corpus, the GPU 2-bit ranking finds 90% <!-- @evidence[[results/demo_real_run1.json#search.recall_at_10]] -->
    of the fp32-cosine top 10 for the test query.
-9. The randomized Hadamard rotation (remex's own transform, applied in WGSL)
-   passes the checker with fewer flips than the dense product: 2 <!-- @evidence[[results/check_gpu_eg2_rht.json#codes.mismatch]] -->
+9. The randomized Hadamard rotation (remex's own transform, in WGSL) encodes
+   16,384 vectors on Metal in 9.1 ms, <!-- @evidence[[results/bench_tail_apple_metal3_rht.json#encode_tiled_ms.median]] -->
+   against 33 ms for the dense tiled kernel <!-- @evidence[[results/bench_tail_apple_metal3_rht.json#encode_tiled_dense_ms.median]] -->
+   and 95.7 ms untiled; <!-- @evidence[[results/bench_tail_apple_metal3_rht.json#encode_untiled_ms.median]] -->
+   100k take 38.3 ms, 50× remex's native encode on the Xeon. It also passes
+   the checker with fewer flips than the dense product: 2 <!-- @evidence[[results/check_gpu_eg2_rht.json#codes.mismatch]] -->
    of 3.1M codes on real EG2 vectors (dense: 6) and 1 <!-- @evidence[[results/check_gpu_synthetic_rht.json#codes.mismatch]] -->
    on the synthetic set (dense: 2), because in float32 it rotates bit-identically
-   to remex's operator. A one-round mutant fails 2.27M codes. Real-GPU timing
-   pending.
+   to remex's operator. A one-round mutant fails 2.27M codes.
 10. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
    per 32 documents (250× Metal), and the GPU top-k is slower than the host
    path (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
@@ -222,4 +224,18 @@ the dense R to 2e-15, before any WGSL.
 - Timing: no SwiftShader bench this round. Oskar runs `bench_tail.html`, which
   now times the RHT encode, the dense tiled encode and the untiled dense
   kernel side by side.
+
+Oskar's Metal run of the round-5 bench (`results/bench_tail_apple_metal3_rht.json`):
+
+| encode, Metal 3 | 16,384 vectors | 100k vectors |
+|---|---|---|
+| RHT, tiled | 9.1 ms | 38.3 ms |
+| dense, tiled | 33 ms | 203.4 ms (round 4) |
+| dense, untiled | 95.7 ms | — |
+
+The 590k → 12k drop in arithmetic per vector gave 3.6×, not 50×. Probably,
+not measured: at 9 ms the RHT encode is bound by its 16 barrier-separated
+butterfly stages and the scatters rather than by arithmetic. Scan (13.4 ms) and GPU top-k (18.1 ms against
+26.7 ms) are unchanged, as expected. Encoding 100k now costs about 3× one scan
+of them, against 15× before.
 

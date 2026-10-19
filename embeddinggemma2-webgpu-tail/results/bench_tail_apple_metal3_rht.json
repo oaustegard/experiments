@@ -1,0 +1,66 @@
+{
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": ""
+ },
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+ "when": "2026-10-19T01:47:52.308Z",
+ "n": 100000,
+ "n_enc": 16384,
+ "nq": 20,
+ "k": 10,
+ "reps": 3,
+ "encode_tiled_ms": {
+  "median": 9.1,
+  "runs": [
+   9.1,
+   9.8,
+   6.2
+  ]
+ },
+ "encode_tiled_dense_ms": {
+  "median": 33,
+  "runs": [
+   33,
+   33,
+   33
+  ]
+ },
+ "encode_untiled_ms": {
+  "median": 95.7,
+  "runs": [
+   95.7,
+   95.8,
+   95.7
+  ]
+ },
+ "encode_full_ms": 38.3,
+ "scan_ms": {
+  "median": 13.4,
+  "runs": [
+   14.1,
+   12.6,
+   13.4
+  ]
+ },
+ "topk_gpu_ms": {
+  "median": 18.1,
+  "runs": [
+   18.1,
+   18,
+   18.1
+  ]
+ },
+ "topk_host_ms": {
+  "median": 26.7,
+  "runs": [
+   26.7,
+   22.2,
+   29.6
+  ]
+ },
+ "errors": [],
+ "note": "Round 5 (fb70f850, RHT rotation default): run by Oskar on his Mac (Chrome 154, Metal 3) from https://austegard.com/experiments/embeddinggemma2-webgpu-tail/web/bench_tail.html; JSON pasted into the session. encode_tiled_ms is the RHT encode; encode_full_ms is RHT over 100k."
+}
