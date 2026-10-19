@@ -66,16 +66,42 @@ function scaleCentroids() {
 
 // ---------------------------------------------------------------- colour
 
+// OKLCH -> sRGB bytes (Björn Ottosson's OKLab)
+function oklch(L, C, h) {
+  const a = C * Math.cos(h), b = C * Math.sin(h);
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+  const l = l_ ** 3, m = m_ ** 3, s = s_ ** 3;
+  const lin = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+               -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+               -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+  return lin.map((v) => {
+    const c = Math.max(0, Math.min(1, v));
+    return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055));
+  });
+}
+
+// Each topic's hue is the angle of its centre around the middle of the 2D map, so neighbouring
+// regions get neighbouring hues and the colour repeats the position. Identity is carried by the
+// labels, not by telling hues apart.
+function topicHues(darkSurface) {
+  const L = darkSurface ? 0.72 : 0.62, C = 0.12;
+  return M.topics.map((t) => oklch(L, C, Math.atan2(t.p2[1], t.p2[0])));
+}
+
 function recolour() {
-  const point = [...hex(css('--point')), 55];      // translucent, so density reads as tone
-  const series = ['--series-1', '--series-2', '--series-3'].map((v) => [...hex(css(v)), 230]);
+  const surf0 = hex(css('--surface-1'));
+  const hues = topicHues(surf0[0] + surf0[1] + surf0[2] < 384);
+  const series = ['--series-1', '--series-2', '--series-3'].map((v) => [...hex(css(v)), 235]);
   // newest = most contrast against the surface: light->dark on a light surface, reversed on dark
   const surf = hex(css('--surface-1'));
   const darkSurface = surf[0] + surf[1] + surf[2] < 384;
   const seq = (darkSurface ? [...SEQ].reverse() : SEQ).map(hex);
   const span = (M.time_max - M.time_min) / DAY;
+  const dim = st.sel.length ? 38 : 120;        // alpha of unselected topics
   for (let i = 0; i < n; i++) {
-    let c = point;
+    let c = [...hues[topic[i]], dim];
     if (st.colour === 'topics') {
       const k = st.sel.indexOf(topic[i]);
       if (k >= 0) c = series[k];
@@ -84,7 +110,7 @@ function recolour() {
       const s = seq[Math.min(seq.length - 1, Math.floor(f * seq.length))];
       c = [...s, 200];
     } else if (st.colour === 'author') {
-      if (st.author !== null && posts[i][0] === st.author) c = series[0];
+      c = st.author !== null && posts[i][0] === st.author ? series[0] : [...hues[topic[i]], 30];
     }
     colours.set(c, i * 4);
   }
@@ -210,7 +236,10 @@ async function showPost(info) {
 
 // ---------------------------------------------------------------- topics list and share chart
 
+let HUES = [];
 function topicList() {
+  const surf0 = hex(css('--surface-1'));
+  HUES = topicHues(surf0[0] + surf0[1] + surf0[2] < 384);
   const ul = $('topics');
   ul.textContent = '';
   const series = ['--series-1', '--series-2', '--series-3'];
@@ -219,7 +248,7 @@ function topicList() {
     const k = st.sel.indexOf(t.id);
     li.setAttribute('aria-selected', String(k >= 0));
     const sw = document.createElement('span'); sw.className = 'sw';
-    if (k >= 0) sw.style.background = `var(${series[k]})`;
+    sw.style.background = k >= 0 ? `var(${series[k]})` : `rgb(${HUES[t.id].join(',')})`;
     const name = document.createElement('span'); name.textContent = t.label;
     const cnt = document.createElement('span'); cnt.className = 'n'; cnt.textContent = t.size.toLocaleString();
     li.append(sw, name, cnt);
@@ -348,7 +377,7 @@ function wire() {
   $('tend').addEventListener('input', (e) => setEnd((Number(e.target.value) / 1000) * ((M.time_max - M.time_min) / DAY)));
   $('twidth').addEventListener('change', (e) => { st.width = Number(e.target.value); syncControls(); render(); });
   $('play').addEventListener('click', play);
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { recolour(); render(); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { recolour(); topicList(); render(); });
 }
 
 (async () => {
