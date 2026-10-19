@@ -659,6 +659,12 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A Cloudflare Container's Durable Object keeps its old code while the container runs.** A Worker
+  deploy updates the Worker, but the Durable Object instance that owns a live container keeps
+  executing the class it started with: new RPC methods fail with "The RPC receiver does not
+  implement the method", overridden methods are not called, and class fields such as `envVars` and
+  `sleepAfter` stay at their old values. Stop or `destroy()` the container to get the new code.
+  (`eg2-query-embedder/RESULTS.md`, finding 9)
 - **Node (or any runtime) as PID 1 in a container ignores SIGTERM unless it installs a handler.**
   The kernel gives PID 1 no default signal actions, so `docker stop`, a platform's idle shutdown
   (Cloudflare Containers' `sleepAfter`, the Container class's `stop()`) and rollouts all fall

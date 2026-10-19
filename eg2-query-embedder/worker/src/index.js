@@ -15,6 +15,16 @@ export class Embedder extends Container {
   // onnxruntime defaults to one thread per visible core; under a 1-vCPU quota that thrashes and
   // doubles warm latency (203 vs 110 ms in RESULTS.md).
   envVars = { THREADS: '1' };
+
+  // Operator RPC (via /admin/stop). The library's stop() signals only when ctx.container.running
+  // is true, so report that flag and allow signalling regardless of it.
+  async adminStatus() {
+    return { running: Boolean(this.ctx.container?.running), state: await this.getState() };
+  }
+  async adminSignal(signo) {
+    if (this.ctx.container?.running) this.ctx.container.signal(signo);
+    return this.adminStatus();
+  }
 }
 
 const MAX_CHARS = 512;
@@ -51,10 +61,12 @@ export default {
       if (!env.ADMIN_TOKEN || request.headers.get('x-admin-token') !== env.ADMIN_TOKEN) return reply(404, { error: 'not found' }, {});
       // RPC to the Container class's own methods; a fetch would be proxied to the container.
       const stub = getContainer(env.EMBEDDER);
-      const before = await stub.getState();
-      // ?destroy=1 sends SIGKILL, for a process that ignores SIGTERM.
-      if (url.searchParams.get('destroy') === '1') await stub.destroy(); else await stub.stop();
-      return reply(200, { stopped: true, destroyed: url.searchParams.get('destroy') === '1', before }, {});
+      try {
+      // ?status=1 only reports; ?destroy=1 sends SIGKILL; otherwise SIGTERM.
+      if (url.searchParams.get('status') === '1') return reply(200, await stub.adminStatus(), {});
+      if (url.searchParams.get('destroy') === '1') { await stub.destroy(); return reply(200, { destroyed: true, after: await stub.adminStatus() }, {}); }
+      return reply(200, { signalled: 'SIGTERM', after: await stub.adminSignal(15) }, {});
+      } catch (e) { return reply(500, { error: String(e?.stack ?? e) }, {}); }
     }
     const ch = cors(env, request);
     if (!ch) return reply(403, { error: 'origin not allowed' }, {});

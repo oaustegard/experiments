@@ -1,0 +1,23 @@
+{
+ "note": "v2 image on Cloudflare after the Durable Object reloaded current code (2026-10-19 ~11:52Z). Cold = first uncached query after destroy(); warm = three uncached queries right after; then SIGTERM via adminSignal(15) and status 8 s later.",
+ "cold_roundtrip_ms": 5776,
+ "cold_server_ms": 238.7,
+ "warm_roundtrip_ms": [
+  536,
+  506,
+  440
+ ],
+ "warm_server_ms": [
+  232.1,
+  220.6,
+  212.9
+ ],
+ "sigterm": {
+  "before": "healthy",
+  "after_8s": "stopped",
+  "stopped_after_ms": 2960
+ },
+ "stale_do": {
+  "note": "Before the reload, the Durable Object ran the first deploy's code: RPC to new methods failed with 'The RPC receiver does not implement the method', and a fetch override added later was bypassed. destroy() let it reload."
+ }
+}

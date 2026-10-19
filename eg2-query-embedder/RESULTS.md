@@ -77,8 +77,20 @@ model cached.
    8391 ms); <!-- @evidence[[results/sigterm.json#v1.stop_ms]] -->
    the v2 image, with a SIGTERM handler, exits cleanly (exit code 0). <!-- @evidence[[results/sigterm.json#v2.exit_code]] -->
    On Cloudflare the instance ran from 04:03Z until `destroy()` (SIGKILL) at
-   11:40Z, through idle stretches well past the 10-minute `sleepAfter`.
-   (`results/sigterm.json`, `results/instance_state_0457.json`)
+   11:40Z, through idle stretches well past the 10-minute `sleepAfter`. With v2
+   deployed, SIGTERM stops it on Cloudflare in about 3 s
+   (2960 ms). <!-- @evidence[[results/live_v2.json#sigterm.stopped_after_ms]] -->
+   (`results/sigterm.json`, `results/instance_state_0457.json`, `results/live_v2.json`)
+9. The Durable Object behind a container keeps running the code it started
+   with. A Worker deploy does not reach it while its container is alive: new
+   RPC methods failed with "The RPC receiver does not implement the method",
+   and a `fetch` override was bypassed, until `destroy()` let it reload. A
+   container config change made through the class (`envVars`, `sleepAfter`)
+   therefore takes effect only after the container stops. (`results/live_v2.json`)
+10. A cold start on Cloudflare, from a stopped v2 container to the first answer,
+    took 5,776 ms round trip; <!-- @evidence[[results/live_v2.json#cold_roundtrip_ms]] -->
+    warm queries then took 440–536 ms, with 213–239 ms of inference.
+    (`results/live_v2.json`)
 
 ## Method
 
@@ -176,3 +188,16 @@ SIGTERM, from `sleepAfter` or from `stop()`, was ignored
 (`results/sigterm.json`). `server.cjs` now exits on SIGTERM and SIGINT; built
 as `eg2-query-embedder:v2` on top of v1 (Docker Hub still answered 429 for
 the base image), card check passing. v2 is not deployed yet.
+
+### 2026-10-19 11:47–11:53Z — v2 deployed and checked
+
+Oskar: "Yes deploy v2". Pushed `eg2-query-embedder:v2` and redeployed; the
+rolling update moved the application to v2 by 11:49Z. A SIGTERM through the
+old route still left the container `healthy`, and new RPC methods were
+missing: the Durable Object was still the one from the first deploy. After
+`destroy()` it reloaded current code. Then: a cold start of 5,776 ms, warm
+queries of 440–536 ms (213–239 ms of inference), and SIGTERM stopping the
+container in about 3 s (`results/live_v2.json`). The earlier warm figures were
+likely taken without `THREADS=1`, which the stale object would not have passed
+to the container. One query at 11:53:10Z started the container for an
+unattended `sleepAfter` check.
