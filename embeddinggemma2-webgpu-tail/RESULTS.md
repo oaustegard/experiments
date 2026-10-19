@@ -9,66 +9,75 @@ Contract in [`SPEC.md`](SPEC.md); regenerate-and-check commands in
 Can everything after EmbeddingGemma 2's transformer (rotation, 2-bit remex
 codes, packing, the ADC scan, top-k) run as WebGPU kernels on
 onnxruntime-web's own device, so an embedding never leaves the GPU before it is
-a packed code? Yes, and the codes agree with remex. With the real q4 model in
-headless Chromium, embeddings match CPU onnxruntime at
-cosine 1.0 <!-- @evidence[[results/demo_real_run1.json#reference.cos_to_cpu.0]] -->
-and reproduce the model card's score of 0.8542. <!-- @evidence[[results/demo_real_run1.json#reference.browser_scores.1]] -->
-On 4,096 real EG2 Quora vectors the kernels flip 6 <!-- @evidence[[results/check_gpu_eg2.json#codes.mismatch]] -->
-of 3.1M codes, all near a boundary.
+a packed code? Yes, and it is cheap next to the model. On a Mac's Metal GPU in
+Chrome, embedding 32 documents with the real q4 model takes 549.5 ms; <!-- @evidence[[results/demo_bench_apple_metal3.json#embed_only_ms.median]] -->
+encoding them on the GPU adds 5.0 ms, <!-- @evidence[[results/demo_bench_apple_metal3.json#derived.gpu_encode_added_ms]] -->
+and reading them back for the JS reference encode adds 45.6 ms. <!-- @evidence[[results/demo_bench_apple_metal3.json#derived.readback_encodeRef_added_ms]] -->
+The scan of 100k codes × 20 queries takes 13.1 ms <!-- @evidence[[results/bench_tail_apple_metal3.json#scan_ms.median]] -->
+and encoding 100k vectors 203.4 ms. <!-- @evidence[[results/bench_tail_apple_metal3.json#encode_full_ms]] -->
+The codes agree with remex: 6 of 3.1M flip on real EG2 vectors, all at a boundary.
 
-On the same 4-core CPU, native code beats the browser everywhere but the scan,
-which says little: SwiftShader, the only WebGPU here, is software on those cores. onnxruntime embeds 32 documents in 817 ms <!-- @evidence[[results/native_bench.json#embed_ms_all_cores.median]] -->
-against 138 s in the browser; remex encodes 100k vectors in 1,919 ms <!-- @evidence[[results/native_bench.json#encode_ms.median]] -->
-against 81,406 ms; <!-- @evidence[[results/bench_tail_swiftshader.json#encode_full_ms]] -->
-the codes-only scan of 100k × 20 queries ties, 7,544 ms native <!-- @evidence[[results/native_bench.json#scan_search_adc_ms.median]] -->
-and 7,145 ms browser. <!-- @evidence[[results/bench_tail_swiftshader.json#scan_ms.median]] -->
-Only a real GPU can say if the tail beats readback plus CPU encode. remex
-rotates with a fast Hadamard transform (about 12k add/subs per vector); the
-kernel uses a dense product (590k multiply-adds).
+The JS reference is slow on purpose (float64, dense), so the 45.6 ms
+overstates what readback costs; a native-speed CPU encode of 32 vectors would
+take under 1 ms. What the GPU path buys is the scan, about 580× remex's
+codes-only ADC search on a 4-core Xeon, and no embedding ever crossing to the
+host. A second GPU, and a Hadamard-transform rotation in place of the dense
+768 × 768 product, would change these numbers most.
 
 ## Findings
 
-1. The real EG2 q4 graph matches every guess in `demo.js`: inputs `input_ids`
+1. Real GPU, real model (Oskar's Mac, Metal 3, Chrome 154; `demo.html`
+   bench): the three arms take 549.5, 554.5 <!-- @evidence[[results/demo_bench_apple_metal3.json#embed_gpu_encode_ms.median]] -->
+   and 595.1 ms <!-- @evidence[[results/demo_bench_apple_metal3.json#embed_readback_encodeRef_ms.median]] -->
+   per 32 documents (embed only, + GPU encode, + readback and JS encode). The
+   scan agreement holds on Metal: 1 <!-- @evidence[[results/demo_bench_apple_metal3.json#scan_encode_vs_cpu.code_flips]] -->
+   of 7.68M codes flips against the float64 CPU encode, and the scan agrees with
+   `searchRef` on the GPU's own codes to 0.00000077. <!-- @evidence[[results/demo_bench_apple_metal3.json#scan_agreement_max_abs_err]] -->
+2. The tail on Metal against native CPU code (different machines: the Mac
+   against this 4-core Xeon container, `run/native_bench.py`): encode 100k in
+   203.4 ms against remex's 1,919 ms; <!-- @evidence[[results/native_bench.json#encode_ms.median]] -->
+   scan 100k × 20 in 13.1 ms against remex `search_adc` at 7,544 ms, <!-- @evidence[[results/native_bench.json#scan_search_adc_ms.median]] -->
+   remex `search_batch` at 43 ms (which scores a cached 300 MB dequantized
+   float matrix) <!-- @evidence[[results/native_bench.json#scan_search_batch_ms.median]] -->
+   and an fp32 matrix product over the raw vectors at 35 ms. <!-- @evidence[[results/native_bench.json#scan_fp32_matmul_ms.median]] -->
+   Native onnxruntime embeds 32 documents in 817 ms on the Xeon. <!-- @evidence[[results/native_bench.json#embed_ms_all_cores.median]] -->
+3. Encode tiling (4 vectors per workgroup in `vec4` lanes) is bit-identical to
+   the one-vector kernel on both fixture sets and 3.2× faster on Metal: 16,384
+   vectors in 33 ms <!-- @evidence[[results/bench_tail_apple_metal3.json#encode_tiled_ms.median]] -->
+   against 104.3 ms. <!-- @evidence[[results/bench_tail_apple_metal3.json#encode_untiled_ms.median]] -->
+   The 16 KB default workgroup-memory limit caps the tile at 4, and ORT creates
+   the device, so a larger limit cannot be requested.
+4. GPU top-k (bitonic sort of 1024-score chunks, repeated passes) beats readback
+   plus host select on Metal: search plus top-10 takes 18.8 ms <!-- @evidence[[results/bench_tail_apple_metal3.json#topk_gpu_ms.median]] -->
+   against 23.5 ms. <!-- @evidence[[results/bench_tail_apple_metal3.json#topk_host_ms.median]] -->
+   It matches the host top-k on 10 edge cases with 0 mismatches each, <!-- @evidence[[results/topk_edge.json#cases.9.mismatches]] -->
+   including duplicated rows, n < k and a three-pass n, and goes red on exactly
+   the four duplicate cases when the tie rule is flipped.
+5. The real EG2 q4 graph matches every guess in `demo.js`: inputs `input_ids`
    and `attention_mask` (int64), `image/video/audio_features` that accept an
    empty `[0, 512]` float32, outputs `last_hidden_state` and a unit
-   `sentence_embedding`, pad id 0. Browser embeddings sit at cosine 1.0 to the
-   CPU run. <!-- @evidence[[results/demo_real_run1.json#reference.cos_to_cpu.4]] --> (`out/demo/real.json`, `run/ref_real.py`)
-2. Real EG2 vectors pass the same checker as the synthetic fixtures: 6 flips,
+   `sentence_embedding`, pad id 0. Browser embeddings sit at cosine 1.0 to CPU
+   onnxruntime <!-- @evidence[[results/demo_real_run1.json#reference.cos_to_cpu.0]] -->
+   and reproduce the model card's score of 0.8542. <!-- @evidence[[results/demo_real_run1.json#reference.browser_scores.1]] -->
+   (`run/ref_real.py`)
+6. Real EG2 vectors pass the same checker as the synthetic fixtures: 6 flips,
    <!-- @evidence[[results/check_gpu_eg2.json#codes.excused]] -->
    all excused. The real corpus is less anisotropic than the synthetic stand-in,
    ‖mean‖ ratio 0.788 <!-- @evidence[[results/fixtures_eg2_params.json#stats.mean_norm_ratio]] -->
    and pair cosine 0.622 <!-- @evidence[[results/fixtures_eg2_params.json#stats.pair_cos]] -->
    against the synthetic set's 0.852 and 0.724. (`make_fixtures.py --vectors`)
-3. The scan bench's 0.005 disagreement came from the encode. Scored on the
+7. The scan bench's 0.005 disagreement came from the encode. Scored on the
    GPU's own codes, the scan agrees with `searchRef` to 0.00000072. <!-- @evidence[[results/demo_dummy.json#bench.scan_agreement_max_abs_err]] -->
    Against a float64 CPU encode, 3 <!-- @evidence[[results/demo_dummy.json#bench.scan_encode_vs_cpu.code_flips]] -->
    of 7.68M codes flip; rows holding a flip differ by up to 0.0050 <!-- @evidence[[results/demo_dummy.json#bench.scan_encode_vs_cpu.score_max_abs_diff_rows_with_flip]] -->
    and the other rows by at most 0.00000083. <!-- @evidence[[results/demo_dummy.json#bench.scan_encode_vs_cpu.score_max_abs_diff_rows_without_flip]] -->
    One flip moves a score by `scale · 0.033 · qr_j`, as the handoff predicted.
-4. On the 150-document demo corpus, the GPU 2-bit ranking finds 90% <!-- @evidence[[results/demo_real_run1.json#search.recall_at_10]] -->
+8. On the 150-document demo corpus, the GPU 2-bit ranking finds 90% <!-- @evidence[[results/demo_real_run1.json#search.recall_at_10]] -->
    of the fp32-cosine top 10 for the test query.
-5. Native CPU against SwiftShader on the same machine (`run/native_bench.py`,
-   `run/run_bench.py`): embedding 32 documents takes 817 ms in onnxruntime on 4
-   threads and 137,828 ms in the browser. <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
-   remex's ADC search over 100k codes for 20 queries takes 7,544 ms and the
-   browser's scan 7,145 ms; remex's `search_batch` takes 43 ms, <!-- @evidence[[results/native_bench.json#scan_search_batch_ms.median]] -->
-   but it scores against a cached dequantized float matrix (300 MB at 100k),
-   and a plain fp32 matrix product over the raw vectors takes 35 ms. <!-- @evidence[[results/native_bench.json#scan_fp32_matmul_ms.median]] -->
-   The tail adds nothing measurable to the embed time: the three demo bench arms'
-   medians sit within 1 s of each other.
-6. Tiling 4 vectors per encode workgroup (vec4 lanes) gives bit-identical codes
-   and floats to the one-vector kernel on both fixture sets, and cuts the
-   SwiftShader encode of 16,384 vectors from 39,479 ms <!-- @evidence[[results/bench_tail_swiftshader.json#encode_untiled_ms.median]] -->
-   to 13,705 ms. <!-- @evidence[[results/bench_tail_swiftshader.json#encode_tiled_ms.median]] -->
-   The 16 KB default workgroup-memory limit caps the tile at 4, and ORT creates
-   the device, so a larger limit cannot be requested.
-7. The GPU top-k (bitonic sort of 1024-score chunks, repeated passes) matches
-   the host top-k on 10 edge cases with 0 mismatches each, <!-- @evidence[[results/topk_edge.json#cases.9.mismatches]] -->
-   including duplicated rows, n < k and a three-pass n, and goes red on exactly
-   the four duplicate cases when the tie rule is flipped. It reads back 200
-   pairs instead of 2M scores, and on SwiftShader it is slower than readback plus
-   host select (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
-   for search plus top-10), which a real GPU's bandwidth would reverse or not.
+9. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
+   per 32 documents (250× Metal), and the GPU top-k is slower than the host
+   path (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
+   for search plus top-10), the reverse of Metal.
 
 ## Method
 
@@ -159,4 +168,27 @@ native?"
   than native onnxruntime here; that measures SwiftShader, not WebGPU.
 - **Not done:** an RHT rotation kernel to match remex's work per vector, and any
   real-GPU number.
+
+### 2026-10-19 — round 4: real GPU (Oskar's Mac)
+
+Oskar ran both pages from Pages on his Mac (Chrome 154, adapter `apple` /
+`metal-3`) and pasted the JSON of a second run each:
+`results/bench_tail_apple_metal3.json` and `results/demo_bench_apple_metal3.json`.
+
+| | Metal 3 | SwiftShader | native CPU (Xeon, 4 cores) |
+|---|---|---|---|
+| embed 32 docs | 549.5 ms | 137,828 ms | 817 ms (onnxruntime) |
+| + GPU encode of those 32 | +5.0 ms | +<1 s (noise) | — |
+| + readback and JS `encodeRef` | +45.6 ms | — | — |
+| encode 16,384, tiled / untiled | 33 / 104.3 ms | 13,705 / 39,479 ms | — |
+| encode 100k | 203.4 ms | 81,406 ms | 1,919 ms (remex, RHT) |
+| scan 100k × 20 | 13.1 ms | 7,145 ms | 7,544 ms `search_adc`, 43 ms `search_batch` |
+| search + top-10, GPU / host | 18.8 / 23.5 ms | 8,814 / 7,031 ms | — |
+
+Predictions from round 3 against these: the tail "adds nothing measurable" to
+the embed held (+0.9%); the GPU top-k reversing on real bandwidth held (18.8 vs
+23.5 ms); the tiling gain grew slightly (2.9× on SwiftShader, 3.2× on Metal).
+The demo's startup gate and the scan agreement passed on Metal. Wall clock: a
+few minutes of Oskar's time against about 40 min per SwiftShader run of the
+real model.
 

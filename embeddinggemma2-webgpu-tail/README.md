@@ -6,7 +6,7 @@ over the packed corpus. They run on onnxruntime-web's own `GPUDevice`, so an
 embedding goes from ORT's output buffer to a packed code with no readback.
 `SPEC.md` is the contract; `RESULTS.md` has the answer.
 
-## Status (2026-10-19, round 3)
+## Status (2026-10-19, round 4)
 
 | piece | state |
 |---|---|
@@ -17,7 +17,7 @@ embedding goes from ORT's output buffer to a packed code with no readback.
 | `interop/` — ORT 1.30.0 gpu-buffer output fed straight to the tail | passes the checker; 0 `getData` calls on the encode path |
 | `web/demo.html` — real EG2 q4 page with startup gate, search, bench | passes with the real model in headless Chromium (embeddings at cosine 1.0 to CPU onnxruntime, model-card scores reproduced, gate 0/24,576) and with the dummy graph; scan check 7.2e-7 on the GPU's own codes; all timings SwiftShader |
 | native comparison | `run/native_bench.py` vs `run/run_bench.py` on one 4-core CPU: see `RESULTS.md` finding 5 |
-| real-GPU numbers | not measured; open `web/bench_tail.html` on a GPU machine |
+| real-GPU numbers | Metal 3 (Oskar's Mac, Chrome 154): embed 32 docs 549.5 ms, + GPU encode 5.0 ms; scan 100k × 20 in 13.1 ms; see `RESULTS.md` |
 
 The default fixtures are synthetic EG2-shaped vectors (‖mean‖ ratio 0.852, pair
 cosine 0.724); `fixtures_eg2/` holds 4,096 real EG2 Quora vectors (0.788, 0.622).

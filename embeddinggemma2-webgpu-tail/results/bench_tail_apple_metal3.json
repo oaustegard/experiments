@@ -1,0 +1,58 @@
+{
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": ""
+ },
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+ "when": "2026-10-19T01:19:20.495Z",
+ "n": 100000,
+ "n_enc": 16384,
+ "nq": 20,
+ "k": 10,
+ "reps": 3,
+ "encode_tiled_ms": {
+  "median": 33,
+  "runs": [
+   33.6,
+   33,
+   33
+  ]
+ },
+ "encode_untiled_ms": {
+  "median": 104.3,
+  "runs": [
+   104.3,
+   97.4,
+   114.3
+  ]
+ },
+ "encode_full_ms": 203.4,
+ "scan_ms": {
+  "median": 13.1,
+  "runs": [
+   13.1,
+   12.6,
+   13.5
+  ]
+ },
+ "topk_gpu_ms": {
+  "median": 18.8,
+  "runs": [
+   18.4,
+   18.9,
+   18.8
+  ]
+ },
+ "topk_host_ms": {
+  "median": 23.5,
+  "runs": [
+   28.6,
+   23.5,
+   22.3
+  ]
+ },
+ "errors": [],
+ "note": "Run by Oskar on his Mac (Chrome 154, WebGPU on Metal 3) from https://austegard.com/experiments/embeddinggemma2-webgpu-tail/web/bench_tail.html, second of two runs; JSON pasted into the session."
+}

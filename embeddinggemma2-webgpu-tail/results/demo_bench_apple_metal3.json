@@ -1,0 +1,69 @@
+{
+ "docs_per_batch": 32,
+ "reps": 5,
+ "path": "sentence_embedding",
+ "embed_only_ms": {
+  "median": 549.5,
+  "runs": [
+   548.8,
+   549.5,
+   547.7,
+   568.4,
+   555.3
+  ]
+ },
+ "embed_readback_encodeRef_ms": {
+  "median": 595.1,
+  "runs": [
+   594.3,
+   593.7,
+   595.1,
+   610,
+   602.1
+  ]
+ },
+ "embed_gpu_encode_ms": {
+  "median": 554.5,
+  "runs": [
+   548.5,
+   547.9,
+   566,
+   554.7,
+   554.5
+  ]
+ },
+ "scan_fill_ms": 1311.5,
+ "scan_agreement_max_abs_err": 7.748603820800781e-07,
+ "scan_encode_vs_cpu": {
+  "code_flips": 1,
+  "codes": 7680000,
+  "rows_with_flip": 1,
+  "rows": 10000,
+  "score_max_abs_diff_rows_with_flip": 0.003959184512495995,
+  "score_max_abs_diff_rows_without_flip": 1.0132789611816406e-06
+ },
+ "scan": {
+  "n": 100000,
+  "nq": 20,
+  "reps": 3,
+  "gpu_ms_median": 12.2,
+  "cpu_ms_median_10k": 206.5,
+  "cpu_ms_scaled_100k": 2065,
+  "gpu_over_cpu_scaled_speedup": 169.26,
+  "gpu_ms_all": [
+   11.2,
+   12.2,
+   12.8
+  ],
+  "cpu_ms_all_10k": [
+   206.6,
+   206.5,
+   205.7
+  ]
+ },
+ "derived": {
+  "gpu_encode_added_ms": 5.0,
+  "readback_encodeRef_added_ms": 45.6
+ },
+ "note": "Bench panel of https://austegard.com/experiments/embeddinggemma2-webgpu-tail/web/demo.html with the real model_q4.onnx, run by Oskar on the same Mac (Metal 3, Chrome 154); JSON pasted into the session. derived = arm medians minus embed_only median."
+}

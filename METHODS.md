@@ -670,6 +670,12 @@ survives exactly the sanity checks people run.
   `--enable-unsafe-webgpu --use-angle=swiftshader --use-webgpu-adapter=swiftshader
   --enable-features=Vulkan`. SwiftShader is a software rasterizer: correct, and 10-1000x off real-GPU
   timings. (`embeddinggemma2-webgpu-tail/run/run_gpu.py`)
+- **SwiftShader timings can reverse a GPU conclusion; have a person run an instrumented page.** On
+  SwiftShader a GPU top-k was slower than reading 2M scores back and selecting on the host (8.8 s vs
+  7.0 s); on a Mac's Metal GPU it was faster (18.8 ms vs 23.5 ms), and the real model ran 250x faster.
+  Ship the bench as a Pages page with a Run button and a Copy JSON button that records the adapter and
+  user agent, and ask Oskar to paste a second run: minutes of his time against ~40 min per software run.
+  (`embeddinggemma2-webgpu-tail/web/bench_tail.html`, `RESULTS.md` round 4)
 - **WebGPU: one uniform buffer per dispatch, not `queue.writeBuffer` into a shared one.** A
   `writeBuffer` lands before the whole submit, so several dispatches recorded into one command
   encoder all see the last value written. Create each uniform `mappedAtCreation` and destroy it right
