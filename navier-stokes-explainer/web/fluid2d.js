@@ -19,6 +19,7 @@ struct Params {
 @group(0) @binding(3) var srcC: texture_2d<f32>;
 @group(0) @binding(4) var srcD: texture_2d<f32>;
 @group(0) @binding(5) var dst: texture_storage_2d<rgba32float, write>;
+@group(0) @binding(6) var mask: texture_2d<f32>; // x > 0.5 marks a solid cell
 
 fn dims() -> vec2i { return vec2i(i32(P.a.x), i32(P.a.y)); }
 fn bc() -> u32 { return u32(P.b.x); }
@@ -32,7 +33,7 @@ fn outside(c: vec2i) -> bool {
   return bc() != 1u && (c.x < 0 || c.y < 0 || c.x >= s.x || c.y >= s.y);
 }
 fn solid(c: vec2i) -> bool {
-  return P.obst.w > 0.5 && distance(vec2f(c) + 0.5, P.obst.xy) < P.obst.z;
+  return P.obst.w > 0.5 && textureLoad(mask, clamp(c, vec2i(0), dims() - 1), 0).x > 0.5;
 }
 fn ldA(c: vec2i) -> vec4f { return textureLoad(srcA, wrapc(c), 0); }
 fn ldB(c: vec2i) -> vec4f { return textureLoad(srcB, wrapc(c), 0); }
@@ -237,6 +238,7 @@ struct D { a: vec4f /* W, H, mode, gain */, obst: vec4f, b: vec4f /* bc, 0,0,0 *
 @group(0) @binding(0) var<uniform> U: D;
 @group(0) @binding(1) var dye: texture_2d<f32>;
 @group(0) @binding(2) var vel: texture_2d<f32>;
+@group(0) @binding(3) var mask: texture_2d<f32>;
 struct VO { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
 @vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
   var p = array<vec2f, 3>(vec2f(-1.0, -1.0), vec2f(3.0, -1.0), vec2f(-1.0, 3.0));
@@ -279,7 +281,7 @@ fn diverging(t: f32) -> vec3f {
   let s = vec2f(dims());
   let p = vec2f(i.uv.x, 1.0 - i.uv.y) * s;
   let mode = u32(U.a.z); let gain = U.a.w;
-  if (U.obst.w > 0.5 && distance(p, U.obst.xy) < U.obst.z) { return vec4f(0.32, 0.34, 0.38, 1.0); }
+  if (U.obst.w > 0.5 && textureLoad(mask, clamp(vec2i(floor(p)), vec2i(0), dims() - 1), 0).x > 0.5) { return vec4f(0.32, 0.34, 0.38, 1.0); }
   let v = sampleF(p, mode);
   var col: vec3f;
   if (mode == 0u) { col = vec3f(0.035, 0.04, 0.06) + (1.0 - exp(-v.rgb * gain)); }
@@ -334,12 +336,14 @@ export class Fluid2D {
     this.t1 = this._tex('t1');
     this.t2 = this._tex('t2');
     this.vrhs = this._tex('vrhs');
+    this.mask = this._tex('mask');
     this.params = d.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     this.layout = d.createBindGroupLayout({
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
         ...[1, 2, 3, 4].map((b) => ({ binding: b, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'unfilterable-float' } })),
         { binding: 5, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'write-only', format: 'rgba32float' } },
+        { binding: 6, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'unfilterable-float' } },
       ],
     });
     const mod = d.createShaderModule({ code: SIM_WGSL });
@@ -365,10 +369,6 @@ export class Fluid2D {
       primitive: { topology: 'triangle-list' },
     });
     this.drawU = d.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    this.drawBG = [0, 1].map((i) => d.createBindGroup({
-      layout: this.drawPipe.getBindGroupLayout(0),
-      entries: [{ binding: 0, resource: { buffer: this.drawU } }, { binding: 1, resource: this.dye[i].createView() }, { binding: 2, resource: this.vel[i].createView() }],
-    }));
     this.vi = 0; this.di = 0;
   }
 
@@ -383,6 +383,7 @@ export class Fluid2D {
           { binding: 1, resource: a.createView() }, { binding: 2, resource: b.createView() },
           { binding: 3, resource: c.createView() }, { binding: 4, resource: dd.createView() },
           { binding: 5, resource: dst.createView() },
+          { binding: 6, resource: this.mask.createView() },
         ],
       });
       this.bgCache.set(key, bg);
@@ -399,6 +400,15 @@ export class Fluid2D {
     p.end();
   }
 
+  // Solid cells: a W*H array, nonzero where solid. Enables the obstacle.
+  setMask(solid) {
+    const m = new Float32Array(this.W * this.H * 4);
+    for (let i = 0; i < this.W * this.H; i++) m[i * 4] = solid[i] ? 1 : 0;
+    this.device.queue.writeTexture({ texture: this.mask }, m, { bytesPerRow: this.W * 16 }, [this.W, this.H]);
+    this.solid = solid;
+    this.obst = [0, 0, 0, 1];
+  }
+
   // Upload an initial velocity (and optional dye) field: Float32Array of W*H*4.
   setFields(vel, dye) {
     const q = this.device.queue;
@@ -411,7 +421,7 @@ export class Fluid2D {
 
   clear() {
     const z = new Float32Array(this.W * this.H * 4);
-    if (this.bc === 2) for (let i = 0; i < this.W * this.H; i++) z[i * 4] = this.inflow;
+    if (this.bc === 2) for (let i = 0; i < this.W * this.H; i++) if (!this.solid?.[i]) z[i * 4] = this.inflow;
     this.setFields(z, new Float32Array(this.W * this.H * 4));
   }
 
@@ -541,8 +551,7 @@ export class Fluid2D {
     const enc = d.createCommandEncoder();
     const rp = enc.beginRenderPass({ colorAttachments: [{ view: this.ctx.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }] });
     rp.setPipeline(this.drawPipe);
-    // drawBG[i] pairs dye[i] with vel[i]; pick the one holding the current velocity
-    // and re-create when dye and velocity parity differ.
+    // One cached bind group per (dye, velocity) parity pair.
     rp.setBindGroup(0, this._drawGroup());
     rp.draw(3); rp.end();
     d.queue.submit([enc.finish()]);
@@ -555,7 +564,7 @@ export class Fluid2D {
     if (!g) {
       g = this.device.createBindGroup({
         layout: this.drawPipe.getBindGroupLayout(0),
-        entries: [{ binding: 0, resource: { buffer: this.drawU } }, { binding: 1, resource: this.dye[this.di].createView() }, { binding: 2, resource: this.vel[this.vi].createView() }],
+        entries: [{ binding: 0, resource: { buffer: this.drawU } }, { binding: 1, resource: this.dye[this.di].createView() }, { binding: 2, resource: this.vel[this.vi].createView() }, { binding: 3, resource: this.mask.createView() }],
       });
       this._dg.set(key, g);
     }

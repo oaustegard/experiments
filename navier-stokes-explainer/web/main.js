@@ -78,22 +78,67 @@ function chapter1(device) {
 }
 
 // ---------- chapter 2: Reynolds number ----------
-function chapter2(device) {
-  const cv = $('#c2'); sizeCanvas(cv);
-  const W = 320, H = 108, U = 0.5, R = 11;
-  const f = new Fluid2D(device, cv, { W, H, bc: 2, dt: 1, inflow: U, obst: [W * 0.2, H / 2 + 0.6, R, 1], dyeDecay: 0.9995, maccormack: true, diffuseIters: 40, pressureIters: 40, mode: 0, gain: 1.4 });
-  NS.sims.c2 = f;
-  f.clear(); f.attachPointer({ radius: 4, strength: 0.6 });
-  const D = 2 * R;
-  const regime = (re) => re < 5 ? 'Flow stays attached and wraps round the cylinder.'
+// Solid masks in grid cells. Each shape reports the length its Reynolds number is based on.
+function shapeMask(W, H, kind, aoaDeg) {
+  const m = new Uint8Array(W * H);
+  const cx = W * 0.2, cy = H / 2 + 0.6; // the 0.6-cell offset breaks top/bottom symmetry
+  let inside, L;
+  if (kind === 'cylinder') { const r = 11; L = 2 * r; inside = (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < r * r; }
+  else if (kind === 'square') { const h = 10; L = 2 * h; inside = (x, y) => Math.abs(x - cx) < h && Math.abs(y - cy) < h; }
+  else if (kind === 'plate') { L = 24; inside = (x, y) => Math.abs(x - cx) < 1.5 && Math.abs(y - cy) < L / 2; }
+  else {
+    // NACA 2412, chord 64 cells, pitched nose-up by the angle of attack about the quarter chord.
+    const c = 64, t = 0.12, mc = 0.02, pc = 0.4;
+    L = c;
+    const x0 = W * 0.14, a = (aoaDeg * Math.PI) / 180, qx = x0 + 0.25 * c;
+    inside = (x, y) => {
+      // Screen y grows downward, so a nose-up pitch rotates the point the other way.
+      const dx = x - qx, dy = -(y - cy);
+      const u = (dx * Math.cos(a) - dy * Math.sin(a)) / c + 0.25;
+      const v = (dx * Math.sin(a) + dy * Math.cos(a)) / c;
+      if (u < 0 || u > 1) return false;
+      const yt = 5 * t * (0.2969 * Math.sqrt(u) - 0.126 * u - 0.3516 * u * u + 0.2843 * u ** 3 - 0.1036 * u ** 4);
+      const yc = u < pc ? (mc / pc ** 2) * (2 * pc * u - u * u) : (mc / (1 - pc) ** 2) * (1 - 2 * pc + 2 * pc * u - u * u);
+      return Math.abs(v - yc) <= yt;
+    };
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) m[y * W + x] = inside(x + 0.5, y + 0.5) ? 1 : 0;
+  return { m, L, cx, cy };
+}
+
+const SHAPE_NOTES = {
+  cylinder: (re) => re < 5 ? 'Flow stays attached and wraps round the cylinder.'
     : re < 47 ? 'Two standing eddies sit behind the cylinder.'
       : re < 190 ? 'The wake oscillates and sheds a von Kármán street.'
-        : 'In a real wake, the street itself turns three-dimensional and turbulent here. This grid is 2D and too coarse to follow.';
-  slider('#c2-re', (v) => `${Math.round(10 ** v)}`, (v) => {
-    const re = 10 ** v; f.nu = (U * D) / re; $('#c2-regime').textContent = regime(re); NS.re = re;
-  });
+        : 'In a real wake, the street itself turns three-dimensional and turbulent here. This grid is 2D and too coarse to follow.',
+  square: () => 'A square cylinder. At all but the lowest Reynolds numbers the flow leaves the body at its sharp front corners, so the separation points stay put as Re changes; on a round cylinder they move.',
+  plate: () => 'A flat plate across the flow. The flow separates at the two edges at every Reynolds number, and the wake is as wide as the plate or wider. Its drag coefficient at high Re is about 2, against about 1.2 for a cylinder of the same height.',
+  airfoil: (re, aoa) => aoa <= 8
+    ? `NACA 2412 at ${aoa}°, with Re based on the chord. At small angles the flow follows both surfaces and leaves the trailing edge smoothly.`
+    : `NACA 2412 at ${aoa}°. At high angles the flow separates from the upper surface and the airfoil sheds vortices: it has stalled. Real wings fly at Reynolds numbers in the millions, far above this grid, and stall at different angles.`,
+};
+
+function chapter2(device) {
+  const cv = $('#c2'); sizeCanvas(cv);
+  const W = 320, H = 108, U = 0.5;
+  const f = new Fluid2D(device, cv, { W, H, bc: 2, dt: 1, inflow: U, dyeDecay: 0.9995, maccormack: true, diffuseIters: 40, pressureIters: 40, mode: 0, gain: 1.4 });
+  NS.sims.c2 = f;
+  f.attachPointer({ radius: 4, strength: 0.6 });
+  let shape = 'cylinder', aoa = 4, re = 150, geo = null;
+  const note = () => { $('#c2-regime').textContent = SHAPE_NOTES[shape](Math.round(re), aoa); };
+  const setNu = () => { f.nu = (U * geo.L) / re; };
+  // An impulsively started flow past a nearly symmetric body can sit in an unstable
+  // symmetric wake for a long time. A brief sideways push behind the body sets it
+  // going within a shedding period or two, on every start and restart.
+  const kick = () => { for (let k = 0; k < 6; k++) f.splat(geo.cx + geo.L * 0.9, geo.cy, 0, 0.05, [0, 0, 0], 5); };
+  const restart = () => { geo = shapeMask(W, H, shape, aoa); f.setMask(geo.m); setNu(); f.clear(); kick(); note(); };
+  slider('#c2-re', (v) => `${Math.round(10 ** v)}`, (v) => { re = 10 ** v; NS.re = re; if (geo) { setNu(); note(); } });
+  slider('#c2-aoa', (v) => `${v}°`, (v) => { aoa = v; if (geo && shape === 'airfoil') restart(); });
+  seg($('#c2-shape'), (v) => { shape = v; $('#c2-aoa-wrap').hidden = v !== 'airfoil'; restart(); });
   seg($('#c2-view'), (v) => { f.mode = +v; f.gain = +v === 1 ? 8 : 1.4; });
-  $('#c2-reset').addEventListener('click', () => f.clear());
+  $('#c2-reset').addEventListener('click', restart);
+  restart();
+  NS.c2 = { restart, setShape: (v) => $(`#c2-shape button[data-v="${v}"]`).click() };
   onFrame('ch2', () => { sizeCanvas(cv); f.step(); f.step(); f.render(); });
 }
 

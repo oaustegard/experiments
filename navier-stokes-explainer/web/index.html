@@ -72,10 +72,14 @@
 <section id="ch2">
   <h2><span class="num">2</span>Reynolds number</h2>
   <div class="prose">
-    <p>Fluid enters from the left at speed <span class="mth">U</span> and flows past a cylinder of diameter <span class="mth">D</span>. How the wake behaves depends on one number, the Reynolds number <span class="mth">Re = UD/ν</span>: the ratio of the advection term to the viscous term at the cylinder's scale. A bacterium swimming and a tanker wake at the same Reynolds number look alike.</p>
+    <p>Fluid enters from the left at speed <span class="mth">U</span> and flows past an obstacle of size <span class="mth">D</span>: a cylinder's diameter, a plate's height, an airfoil's chord. How the wake behaves depends on one number, the Reynolds number <span class="mth">Re = UD/ν</span>: the ratio of the advection term to the viscous term at the obstacle's scale. A bacterium swimming and a tanker wake at the same Reynolds number look alike.</p>
   </div>
   <figure>
     <div class="stage gpu r3x1"><canvas id="c2"></canvas><div class="nogpu">This simulation needs WebGPU.</div></div>
+    <div class="controls">
+      <span class="seg" id="c2-shape"><button data-v="cylinder" aria-pressed="true">cylinder</button><button data-v="square" aria-pressed="false">square</button><button data-v="plate" aria-pressed="false">flat plate</button><button data-v="airfoil" aria-pressed="false">airfoil</button></span>
+      <label id="c2-aoa-wrap" hidden>angle of attack <input type="range" id="c2-aoa" min="-4" max="20" step="1" value="4"><span class="val" id="c2-aoa-v"></span></label>
+    </div>
     <div class="controls">
       <label>Re <input type="range" id="c2-re" min="0" max="3" step="0.01" value="2.18"><span class="val" id="c2-re-v"></span></label>
       <span class="seg" id="c2-view"><button data-v="0" aria-pressed="true">dye</button><button data-v="1" aria-pressed="false">vorticity</button></span>
@@ -85,7 +89,7 @@
   </figure>
   <div class="prose">
     <p>Experiments on a cylinder find attached flow below a Reynolds number of about 5, a pair of standing eddies up to about 47, and periodic vortex shedding, the von Kármán street, above that. At around 190 the street becomes three-dimensional, and turbulence follows. A shed vortex takes a few hundred time steps to form here, so give the wake time after moving the slider.</p>
-    <p>This grid puts 22 cells across the cylinder. At high Reynolds numbers the solver's own numerical diffusion, not ν, sets how fast small eddies decay, so the top of the slider shows a 2D flow at an effective Reynolds number well below the label. Resolving a real high-Reynolds flow takes a grid fine enough to reach the scale where viscosity takes over. In 3D that costs roughly <span class="mth">Re<sup>9/4</sup></span> grid points.</p>
+    <p>This grid puts 22 cells across the cylinder and 64 along the airfoil's chord. At high Reynolds numbers the solver's own numerical diffusion, not ν, sets how fast small eddies decay, so the top of the slider shows a 2D flow at an effective Reynolds number well below the label. Resolving a real high-Reynolds flow takes a grid fine enough to reach the scale where viscosity takes over. In 3D that costs roughly <span class="mth">Re<sup>9/4</sup></span> grid points.</p>
   </div>
 </section>
 
