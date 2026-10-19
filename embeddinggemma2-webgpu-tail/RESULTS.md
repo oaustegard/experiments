@@ -82,7 +82,15 @@ host. A second GPU would change these numbers most.
    of 3.1M codes on real EG2 vectors (dense: 6) and 1 <!-- @evidence[[results/check_gpu_synthetic_rht.json#codes.mismatch]] -->
    on the synthetic set (dense: 2), because in float32 it rotates bit-identically
    to remex's operator. A one-round mutant fails 2.27M codes.
-10. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
+10. Truncating to 512 dims is not free for nearest-neighbour recall, though it
+    was close to free for nDCG in `embeddinggemma2-remex-quant`. On 100k Quora
+    vectors and 1,000 queries, recall@10 against exact 768-dim search is 0.915 <!-- @evidence[[results/dim512.json#recall_at_10_vs_fp32_768.rx2_768]] -->
+    for 2-bit codes at d=768 (192 B) and 0.874 <!-- @evidence[[results/dim512.json#recall_at_10_vs_fp32_768.rx2_512]] -->
+    at d=512 (128 B), a difference of −0.041 <!-- @evidence[[results/dim512.json#rx2_512_minus_rx2_768_vs_fp32_768.mean]] -->
+    (95% CI −0.048 to −0.035). Truncation alone, in fp32, keeps 0.926 <!-- @evidence[[results/dim512.json#recall_at_10_vs_fp32_768.fp32_512]] -->
+    of the neighbours; the two code widths share 0.855 of their top 10. <!-- @evidence[[results/dim512.json#overlap_rx2_512_with_rx2_768]] -->
+    (`run/eval_512.py`)
+11. SwiftShader is no stand-in for a GPU: on it the real model takes 137,828 ms <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
    per 32 documents (250× Metal), and the GPU top-k is slower than the host
    path (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
    for search plus top-10), the reverse of Metal.
@@ -238,4 +246,35 @@ not measured: at 9 ms the RHT encode is bound by its 16 barrier-separated
 butterfly stages and the scatters rather than by arithmetic. Scan (13.4 ms) and GPU top-k (18.1 ms against
 26.7 ms) are unchanged, as expected. Encoding 100k now costs about 3× one scan
 of them, against 15× before.
+
+### 2026-10-19 — round 6: d=512
+
+A sibling session relayed Oskar's suggestion to encode at 512 dims (EG2 is
+Matryoshka-trained); Oskar: "test 512". Since the RHT encode is now ~0.4 µs per
+vector on Metal, 512 would buy storage (128 B against 192 B per vector) and a
+scan reading two thirds as much, not visible speed, so it was tested offline
+before any kernel work. remex accepts d=512 (one 512-wide block, 2 rounds).
+
+`run/eval_512.py`: 100k EG2 Quora docs, 1,000 test queries, top-10. Docs and
+queries truncated to 512 and renormalized; the d=512 quantizer takes the mean of
+the truncated docs. remex `search_adc` (codes only, as the GPU scans).
+
+| arm | bytes | recall@10 vs fp32 768 | vs fp32 512 |
+|---|---|---|---|
+| fp32, d=512 | 2048 | 0.926 | 1 |
+| remex 2-bit, d=768 | 192 | 0.915 | — |
+| remex 2-bit, d=512 | 128 | 0.874 | 0.893 |
+
+rx2_512 − rx2_768: −0.041 (paired bootstrap 95% CI −0.048 to −0.035); the two
+code widths share 0.855 of their top 10. Native encode of 100k: 2.86 s at 768,
+1.49 s at 512.
+
+Reading: the earlier "512 is free" result measured nDCG@10 against human
+relevance labels on SciFact and NFCorpus, where swapping a few near-tied
+neighbours costs nothing. Against the 768-dim model's own neighbours, truncation
+moves 7.4% of the top 10 before quantization does anything, and the 2-bit code
+on 512 dims adds more error than on 768. Whether that matters for search
+quality needs a labelled set, which the 100k prefix lacks (most Quora qrels fall
+outside it). No GPU d=512 path built: a third off storage for 4 points of
+recall is a trade to make for a specific corpus, not a default.
 

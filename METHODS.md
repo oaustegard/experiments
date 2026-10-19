@@ -699,6 +699,12 @@ survives exactly the sanity checks people run.
   the same order, so codes and floats match byte for byte, and SwiftShader ran 2.9x faster. The 16 KB
   default workgroup-memory limit set the tile at 4 (12 KB activations + 4 KB reduction), and a device
   onnxruntime-web created cannot be asked for more. (`embeddinggemma2-webgpu-tail/web/tail.js` ENCODE)
+- **Matryoshka truncation can be free for nDCG and still cost nearest-neighbour recall.** EG2 at
+  512 of 768 dims was within 0.001 nDCG@10 on SciFact/NFCorpus (`embeddinggemma2-remex-quant`), but
+  on 100k Quora vectors exact 512-dim search keeps only 0.926 of the 768-dim top 10, and 2-bit remex
+  codes at 512 recall 0.874 against 0.915 at 768 (−0.041, CI ±0.006). Measure the metric the use
+  case needs: labels for search quality, the full-width neighbours for an ANN index that must agree
+  with its float version. (`embeddinggemma2-webgpu-tail/run/eval_512.py`)
 - **remex `search_batch` is not an ADC scan.** It scores against a cached dequantized float matrix
   (100k x 768 fp32, ~300 MB) and ran 20 queries over 100k in 43 ms; the codes-only `search_adc` took
   7.5 s for the same work. Compare a codes-only implementation (a GPU scan, a WASM scan) with
