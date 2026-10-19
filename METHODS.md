@@ -685,7 +685,8 @@ survives exactly the sanity checks people run.
   proxy, so CDN requests have to be answered by the driver. (`embeddinggemma2-webgpu-tail/run/run_demo.py`)
 - **onnxruntime-web logs warnings through `console.error`.** The EG2 q4 graph prints two
   `VerifyEachNodeIsAssignedToAnEp` warnings at session creation, which fail any zero-console-errors
-  check. Set `ort.env.logLevel = 'error'`. (`embeddinggemma2-webgpu-tail/web/demo.js`)
+  check. They come from the native logger: `ort.env.logLevel = 'error'` does not silence them (tried);
+  the session option `logSeverityLevel: 3` in `InferenceSession.create` does. (`embeddinggemma2-webgpu-tail/web/demo.js`)
 - **A model card's worked example is a free end-to-end check.** EmbeddingGemma 2's card prints four
   cosine scores for a query and four documents; the q4 graph on CPU onnxruntime and in the browser on
   WebGPU both reproduce them to 3 places (0.684 / 0.854 / 0.752 / 0.783), which validates tokenizer,

@@ -472,7 +472,6 @@ async function startup() {
   ort = await import(abs(CFG.ortModule));
   ort.env.wasm.wasmPaths = abs(CFG.ortDist);
   ort.env.wasm.numThreads = 1;
-  ort.env.logLevel = 'error';   // the real graph logs node-placement warnings through console.error
   log(`onnxruntime-web ${ort.env?.versions?.web ?? '1.30.0'} loaded`);
 
   if (MODEL === 'real') {
@@ -490,6 +489,9 @@ async function startup() {
   const opts = {
     executionProviders: ['webgpu'],
     preferredOutputLocation: { sentence_embedding: 'gpu-buffer', last_hidden_state: 'gpu-buffer' },
+    // The real graph logs node-placement warnings through console.error. They come from the native
+    // logger, which ort.env.logLevel does not reach; 3 = errors only.
+    logSeverityLevel: 3,
   };
   if (MODEL === 'real') opts.externalData = [{ path: 'model_q4.onnx_data', data: REAL.data }];
   log(`loading session: ${modelUrl}`);

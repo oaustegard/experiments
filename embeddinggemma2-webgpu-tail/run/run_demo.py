@@ -1,6 +1,6 @@
 """Smoke-run web/demo.html in Chromium (SwiftShader WebGPU), with the dummy model or the real one.
 
-Usage: python3 -I run/run_demo.py [--real] [--pool] [--bench-reps N] [--scan-reps N]
+Usage: python3 -I run/run_demo.py [--real] [--pool] [--no-bench] [--bench-reps N] [--scan-reps N]
 
 Default loads /web/demo.html?local=1&model=dummy. --real loads the hosted page (model=real, no
 local=1). Chromium here has no route to the egress proxy, so jsDelivr requests are answered by this
@@ -11,7 +11,7 @@ the browser).
 the startup to finish, runs one search, clicks the bench button, and checks:
   - the startup gate passed,
   - a search returned 10 hits,
-  - the bench panel produced numbers,
+  - the bench panel produced numbers (skipped with --no-bench, which saves ~20 min with --real),
   - zero page errors (uncaught exceptions and console errors),
   - with --real: the model card's example scores within 0.01 of the card, and every browser
     embedding at cosine >= 0.999 to the CPU reference from run/ref_real.py.
@@ -91,6 +91,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--real", action="store_true", help="hosted page with the real EG2 q4 model")
     ap.add_argument("--pool", action="store_true", help="force the last_hidden_state + tail.pool path")
+    ap.add_argument("--no-bench", action="store_true", help="skip the bench (startup, gate and search only)")
     ap.add_argument("--bench-reps", type=int, default=3)
     ap.add_argument("--scan-reps", type=int, default=2)
     args = ap.parse_args()
@@ -177,15 +178,16 @@ def main() -> int:
                         "top3": [{"doc": h["doc"], "gpu": h["gpu"], "exact": h["exact"]} for h in hits["hits"][:3]],
                     }
 
-                    page.click("#bench-btn")
-                    page.wait_for_function(
-                        "window.demoState.bench !== null || window.demoState.error !== null",
-                        timeout=180 * 60_000, polling=1000,
-                    )
-                    st = page.evaluate("() => window.demoState")
-                    summary["bench"] = st["bench"]
-                    summary["bench_error"] = st["error"]
-                    summary["bench_panel_text"] = page.inner_text("#bench-out")[:400]
+                    if not args.no_bench:
+                        page.click("#bench-btn")
+                        page.wait_for_function(
+                            "window.demoState.bench !== null || window.demoState.error !== null",
+                            timeout=180 * 60_000, polling=1000,
+                        )
+                        st = page.evaluate("() => window.demoState")
+                        summary["bench"] = st["bench"]
+                        summary["bench_error"] = st["error"]
+                        summary["bench_panel_text"] = page.inner_text("#bench-out")[:400]
                 summary["gate_panel_text"] = page.inner_text("#gate")
                 shot = OUT / f"{variant}.png"
                 OUT.mkdir(parents=True, exist_ok=True)
@@ -204,8 +206,8 @@ def main() -> int:
     checks = {
         "startup_gate_passed": bool(summary.get("startup", {}).get("gate", {}) and summary["startup"]["gate"]["passed"]),
         "search_returned_10_hits": summary.get("search", {}).get("n_hits") == 10,
-        "bench_produced_numbers": bool(summary.get("bench")) and summary["bench"].get("embed_only_ms") is not None
-            and summary["bench"].get("scan") is not None,
+        "bench_produced_numbers": args.no_bench or (bool(summary.get("bench"))
+            and summary["bench"].get("embed_only_ms") is not None and summary["bench"].get("scan") is not None),
         "zero_page_errors": not page_errors and not console_errors and not summary.get("bench_error")
             and not summary.get("startup", {}).get("error"),
     }

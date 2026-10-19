@@ -41,6 +41,7 @@ python3 -I run/run_gpu.py --fixtures fixtures_eg2 --out out/gpu_eg2 && python3 -
 pip install onnxruntime tokenizers
 python3 -I run/ref_real.py                           # CPU q4 reference; downloads 175 MB into out/hf/
 python3 -I run/run_demo.py --real                    # hosted page, real model: ~40 min on SwiftShader
+python3 -I run/run_demo.py --real --no-bench         # startup, gate, search only: ~12 min
 ```
 
 The Playwright scripts use Chromium at

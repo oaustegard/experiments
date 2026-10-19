@@ -101,7 +101,10 @@ Items 1-4 and 7 of the handoff, plus two of the three performance gaps in item 6
   browser. The runner now serves the model files from a local mirror via
   `&hf=`, and only jsDelivr goes through the route. The real run passed every
   check except zero console errors: ORT prints its node-placement warnings
-  through `console.error`. `demo.js` now sets `ort.env.logLevel = 'error'`.
+  through `console.error`. Setting `ort.env.logLevel = 'error'` did not stop
+  them (a second 30-min run); the session option `logSeverityLevel: 3` targets
+  the native logger they come from, and with it a `--real --no-bench` run passed
+  every check, zero console errors included, in 12 min (`results/demo_real_nobench.json`).
   Wall clock 39 min on SwiftShader.
 - **Real vectors.** `make_fixtures.py --vectors DIR`; `test.html?fx=` and
   `run_gpu.py --fixtures/--out` select the fixture set. All arms pass on it.
