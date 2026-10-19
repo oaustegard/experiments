@@ -70,6 +70,12 @@ model cached.
    That blocks scripts too unless they send an allowed origin, which they can;
    the origin list is a courtesy to browsers, and the rate limit, the 512-character
    cap and the cache are what bound cost. (`results/live_first_deploy.json`)
+8. The container did not sleep on schedule. After about 14 idle minutes against
+   a 10-minute `sleepAfter`, the instance started at 04:03Z was still running, and
+   the next query took 980 ms round trip, <!-- @evidence[[results/live_cold_after_idle.json#first.roundtrip_ms]] -->
+   a warm answer. So no cold start after an idle sleep has been measured on
+   Cloudflare yet, and an instance may bill for longer than `sleepAfter`
+   suggests. (`results/live_cold_after_idle.json`, `results/instance_state_0426.json`)
 
 ## Method
 
@@ -126,3 +132,16 @@ threads. After findings 3 and 4 it was redeployed on 1 vCPU / 3 GiB with
 redeploy reached a container that was still warm (921 ms first query,
 `results/live_after_redeploy.json`); spot checks put inference at 155–210 ms
 and the round trip from this session at about 500 ms.
+
+### 2026-10-19 04:26Z — idle cold-start probe
+
+Asked: time a cold start on Cloudflare after the container's 10-minute idle
+sleep. The last request had been at 04:11Z (7.8 s round trip, 145 ms inference;
+not explained, since the Cloudflare API shows the same instance running since
+04:03Z). At 04:26Z, `live_check.mjs --skip-ratelimit` got its first answer in
+980 ms with 227.7 ms of inference, warm median 293 ms, cache hit 88 ms
+(`results/live_cold_after_idle.json`). The API then showed the instance started
+at 04:03:00Z, state `running`, location `mia04` (`results/instance_state_0426.json`):
+it had not slept after about 14 idle minutes. Next: read the instance state
+again after a longer idle period, without sending a request, before timing a
+cold start.
