@@ -1,12 +1,19 @@
-// Semantic search over a Bluesky list's posts, built and searched entirely on this GPU.
-// The page fetches the list's members and their recent posts from Bluesky's public API,
-// embeds every post with EmbeddingGemma 2 (onnxruntime-web, WebGPU), keeps the embeddings on the
-// GPU, encodes them to 2-bit remex codes with RemexTail on the same GPUDevice (no readback), and
-// scans the codes for each query. The finished index is saved in this browser (IndexedDB).
+// Semantic search over a Bluesky list's posts on this GPU. Two modes:
 //
-// URL options: ?per=200 posts per member, ?members=N first N members only (tests), ?rebuild=1
-// ignore the saved index, ?compare=1 cross-check against the CPU-built reference in bsky/,
-// ?hf=<base> and ?local=1 as in demo.html.
+// default    Loads the prebuilt index in bsky/ (remex 2-bit codes, built by run/build_bsky_index.py)
+//            onto a WebGPU device of its own, and embeds each query with the hosted EG2 query
+//            embedder (same q4 graph and prompt), so no model is downloaded. The scan and top-10 run
+//            on the GPU; the matching posts' text comes from Bluesky. If the embedder refuses
+//            (rate limit, origin), the page loads the model and embeds locally from then on.
+// ?build=1   Builds the index here: fetches the list's members and posts from Bluesky, embeds
+//            every post with EmbeddingGemma 2 (onnxruntime-web, WebGPU), keeps the embeddings on
+//            the GPU, encodes them with RemexTail on the same GPUDevice (no readback), and saves
+//            the index in this browser (IndexedDB).
+//
+// URL options: ?parity=1 checks the prebuilt index against remex's own top-10 for its test
+// queries; with ?build=1: ?per=200 posts per member, ?members=N first N members (tests),
+// ?rebuild=1 ignore the saved index, ?compare=1 cross-check against bsky/. ?hf=<base> and
+// ?local=1 as in demo.html.
 import { RemexTail } from './tail.js';
 
 const D = 768;
@@ -21,7 +28,10 @@ const LIST = 'at://did:plc:r2whjvupgfw55mllpksnombn/app.bsky.graph.list/3lankcdr
 const API = 'https://public.api.bsky.app/xrpc/';
 const DB_KEY = 'ai-list-v1';
 
+const EMBEDDER = 'https://eg2-query-embedder.austegard.workers.dev/';
 const Q = new URLSearchParams(location.search);
+const BUILD = Q.get('build') === '1';
+const PARITY = Q.get('parity') === '1';
 const PER = Number(Q.get('per') || 200);
 const MAX_MEMBERS = Q.get('members') ? Number(Q.get('members')) : Infinity;
 const REBUILD = Q.get('rebuild') === '1';
@@ -47,8 +57,9 @@ const status = (text, cls = '') => { const s = $('status'); s.textContent = text
 
 const state = window.searchState = {
   phase: 'loading', error: null, adapter: null, user_agent: navigator.userAgent,
+  mode: BUILD ? 'build' : 'prebuilt',
   options: { per: PER, members: Number.isFinite(MAX_MEMBERS) ? MAX_MEMBERS : null, compare: COMPARE },
-  source: null, build: null, compare: null, queries: [],
+  source: null, load_ms: {}, build: null, compare: null, parity: null, queries: [],
 };
 
 let ort, session, tok, specials, tail, device;
@@ -277,17 +288,103 @@ async function restore(saved) {
 
 // ---------------------------------------------------------------- search
 
-async function search(text) {
+async function searchLocal(text) {
   const t0 = now();
   return withSession(async () => {
     const res = await embedTexts([QUERY + text]);
-    await device.queue.onSubmittedWorkDone();
+    let qb = res.sentence_embedding.gpuBuffer;
+    if (!BUILD) {
+      // fallback session in prebuilt mode: it may sit on onnxruntime's own device, so hand the
+      // 768 floats across instead of the buffer
+      qbuf ??= device.createBuffer({ size: D * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+      device.queue.writeBuffer(qbuf, 0, await res.sentence_embedding.getData());
+      qb = qbuf;
+    } else {
+      await device.queue.onSubmittedWorkDone();
+    }
     const t1 = now();
-    const [top] = await tail.topk(res.sentence_embedding.gpuBuffer, 1, corpus, filled, K);
+    const [top] = await tail.topk(qb, 1, corpus, filled, K);
     const t2 = now();
     for (const t of Object.values(res)) t.dispose();
-    return { idx: Array.from(top.idx), score: Array.from(top.score), embed_ms: t1 - t0, search_ms: t2 - t1 };
+    return { idx: Array.from(top.idx), score: Array.from(top.score), embed_ms: t1 - t0, search_ms: t2 - t1, path: 'local' };
   });
+}
+
+// ---------------------------------------------------------------- hosted query embedder
+
+const vecCache = new Map();
+let lastWarm = -Infinity, embedderDown = null, localLoading = null;
+function warm() {
+  if (BUILD || embedderDown || now() - lastWarm < 9 * 60_000) return;
+  lastWarm = now();
+  fetch(EMBEDDER + 'warm', { method: 'POST' }).catch(() => {});
+}
+
+async function serverEmbed(text) {
+  const key = text.slice(0, 512);
+  if (vecCache.has(key)) return { vec: vecCache.get(key), path: 'client-cache', server_ms: 0 };
+  const r = await fetch(EMBEDDER + 'embed', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text: key, dims: D }),
+  });
+  if (!r.ok) throw Object.assign(new Error(`query embedder HTTP ${r.status}`), { http: r.status });
+  const d = await r.json();
+  const vec = new Float32Array(d.embedding);
+  vecCache.set(key, vec);
+  lastWarm = now();
+  return { vec, path: d.cached ? 'server-cached' : 'server', server_ms: d.ms };
+}
+
+let qbuf = null;
+async function searchServer(text) {
+  const t0 = now();
+  const e = await serverEmbed(text);
+  const t1 = now();
+  qbuf ??= device.createBuffer({ size: D * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(qbuf, 0, e.vec);
+  const [top] = await tail.topk(qbuf, 1, corpus, filled, K);
+  const t2 = now();
+  // a cold container answers in seconds, a warm one in about half a second
+  const path = e.path === 'server' && t1 - t0 > 2000 ? 'server-cold' : e.path;
+  return { idx: Array.from(top.idx), score: Array.from(top.score), embed_ms: t1 - t0, search_ms: t2 - t1,
+           path, server_ms: e.server_ms };
+}
+
+async function search(text) {
+  if (BUILD || embedderDown) {
+    if (!session) {
+      localLoading ??= loadModel().then(() => log('local model ready; queries now embed in this browser'));
+      await localLoading;
+    }
+    return searchLocal(text);
+  }
+  try {
+    return await searchServer(text);
+  } catch (err) {
+    embedderDown = err.message;
+    log(`${err.message}: loading the model to embed queries here instead`);
+    status(`The query embedder said no (${err.message}); loading the model locally, this takes a while the first time…`);
+    return search(text);
+  }
+}
+
+async function fetchTexts(idxs) {
+  const need = idxs.filter((i) => posts[i].text == null);
+  if (!need.length) return;
+  const uris = need.map((i) => `at://${authors[posts[i].a].did}/app.bsky.feed.post/${posts[i].rkey}`);
+  try {
+    const r = await fetch(API + 'app.bsky.feed.getPosts?' + uris.map((u) => 'uris=' + encodeURIComponent(u)).join('&'));
+    const d = r.ok ? await r.json() : { posts: [] };
+    const byUri = new Map(d.posts.map((p) => [p.uri, p]));
+    need.forEach((i, j) => {
+      const p = byUri.get(uris[j]);
+      posts[i].text = p ? p.record.text : '(post no longer available)';
+      posts[i].created_at = p?.record?.createdAt;
+      if (p?.author?.displayName) authors[posts[i].a].name = p.author.displayName;
+    });
+  } catch (e) {
+    log(`Bluesky fetch failed: ${e.message}`);
+  }
 }
 
 function render(res) {
@@ -312,7 +409,7 @@ function render(res) {
     meta.append(who, when, sc);
     const t = document.createElement('div');
     t.className = 'text';
-    t.textContent = p.text;
+    t.textContent = p.text ?? '(Bluesky did not answer)';
     li.append(meta, t);
     ol.append(li);
   });
@@ -324,10 +421,15 @@ async function runQuery(text) {
   running = true;
   try {
     const res = await search(text);
+    const tf = now();
+    await fetchTexts(res.idx);
+    const fetchMs = now() - tf;
     render(res);
-    state.queries.push({ embed_ms: +res.embed_ms.toFixed(1), search_ms: +res.search_ms.toFixed(1), n: filled });
+    state.queries.push({ path: res.path, embed_ms: +res.embed_ms.toFixed(1), server_ms: res.server_ms ?? null,
+                         search_ms: +res.search_ms.toFixed(1), fetch_ms: +fetchMs.toFixed(1), n: filled });
     const e = state.queries.map((q) => q.embed_ms), s = state.queries.map((q) => q.search_ms);
-    $('timing').textContent = `embed ${res.embed_ms.toFixed(0)} ms · scan + top-10 of ${filled.toLocaleString()} ${res.search_ms.toFixed(1)} ms` +
+    $('timing').textContent = `embed ${res.embed_ms.toFixed(0)} ms (${res.path}) · scan + top-10 of ${filled.toLocaleString()} ${res.search_ms.toFixed(1)} ms` +
+      (fetchMs > 1 ? ` · Bluesky ${fetchMs.toFixed(0)} ms` : '') +
       (state.queries.length > 1 ? `  (medians over ${state.queries.length}: ${median(e).toFixed(0)} / ${median(s).toFixed(1)} ms)` : '');
   } catch (err) {
     state.error = String(err?.stack ?? err);
@@ -409,33 +511,93 @@ async function compare(chunks) {
 
 // ---------------------------------------------------------------- startup
 
-async function startup() {
-  let t = now();
+// Loads onnxruntime-web, the tokenizer and EG2. In build mode the tail then runs on onnxruntime's
+// device; in prebuilt mode (embedder fallback) the tail keeps its own device.
+async function loadModel() {
+  const t = now();
   ort = await import(abs(CFG.ortModule));
   ort.env.wasm.wasmPaths = abs(CFG.ortDist);
   ort.env.wasm.numThreads = 1;
   const { Tokenizer } = await import(abs(CFG.tokModule));
-  const [tj, tc, params] = await Promise.all([
+  const [tj, tc] = await Promise.all([
     fetch(HF + 'tokenizer.json').then((r) => r.json()),
     fetch(HF + 'tokenizer_config.json').then((r) => r.json()),
-    fetch(abs('assets/params.json')).then((r) => r.json()),
   ]);
   tok = new Tokenizer(tj, tc);
   specials = tj.added_tokens.filter((a) => a.special).map((a) => a.content).sort((x, y) => y.length - x.length);
-  status('Loading EmbeddingGemma 2 (175 MB the first time, then cached by the browser)…');
   session = await ort.InferenceSession.create(HF + 'onnx/model_q4.onnx', {
     executionProviders: ['webgpu'],
     preferredOutputLocation: { sentence_embedding: 'gpu-buffer', last_hidden_state: 'gpu-buffer' },
     externalData: [{ path: 'model_q4.onnx_data', data: HF + 'onnx/model_q4.onnx_data' }],
     logSeverityLevel: 3,
   });
-  device = await ort.env.webgpu.device;
-  const info = device.adapterInfo ?? {};
+  device ??= await ort.env.webgpu.device;
+  state.load_ms.model = Math.round(now() - t);
+  log(`model loaded in ${(state.load_ms.model / 1000).toFixed(1)} s`);
+}
+
+function noteAdapter(info = {}) {
   state.adapter = { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description };
-  tail = await RemexTail.create(device, {
-    rht: params.rht, mu: new Float32Array(D), boundaries: params.boundaries, centroids: params.centroids, kappa: params.kappa,
+}
+
+async function makeTail(params, mu) {
+  return RemexTail.create(device, {
+    rht: params.rht, mu, boundaries: params.boundaries, centroids: params.centroids, kappa: params.kappa,
   });
-  log(`model loaded in ${((now() - t) / 1000).toFixed(1)} s on ${state.adapter.vendor} ${state.adapter.architecture}`);
+}
+
+async function startupPrebuilt() {
+  let t = now();
+  const index = await (await fetch(abs('bsky/index.json'))).json();
+  const [codes, aux, postList, params] = await Promise.all([
+    fetch(abs('bsky/' + index.files.codes)).then((r) => r.arrayBuffer()),
+    fetch(abs('bsky/' + index.files.aux)).then((r) => r.arrayBuffer()),
+    fetch(abs('bsky/' + index.files.posts)).then((r) => r.json()),
+    fetch(abs('assets/params.json')).then((r) => r.json()),
+  ]);
+  state.load_ms.index_fetch = Math.round(now() - t);
+  t = now();
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  if (!adapter) throw new Error('no WebGPU adapter');
+  device = await adapter.requestDevice({ requiredLimits: {
+    maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize,
+  } });
+  noteAdapter(adapter.info ?? device.adapterInfo);
+  tail = await makeTail(params, new Float32Array(index.mu));
+  authors = index.authors.map((a) => ({ ...a, name: '' }));
+  posts = postList.map(([a, rkey]) => ({ a, rkey, text: null, created_at: null }));
+  corpus = tail.allocCorpus(index.n);
+  tail.loadCodes(corpus, new Uint8Array(codes), new Float32Array(aux), 0);
+  await device.queue.onSubmittedWorkDone();
+  filled = index.n;
+  state.load_ms.codes_to_gpu = Math.round(now() - t);
+  state.source = { ...index.source, posts: index.n, members: index.authors.length, built: index.built };
+  log(`prebuilt index: ${index.n.toLocaleString()} posts by ${index.authors.length} people (${(codes.byteLength / 1e6).toFixed(1)} MB of codes), ` +
+      `fetched in ${state.load_ms.index_fetch} ms, on the GPU in ${state.load_ms.codes_to_gpu} ms (${state.adapter.vendor} ${state.adapter.architecture})`);
+  if (PARITY) {
+    const parity = await (await fetch(abs('bsky/' + index.files.parity))).json();
+    let overlap = 0;
+    for (const p of parity) {
+      const r = await searchServer(p.query);
+      overlap += r.idx.filter((i) => p.remex_top10.includes(i)).length / K;
+    }
+    state.parity = { queries: parity.length, overlap_with_remex: overlap / parity.length };
+    log(`parity with remex over ${parity.length} test queries: ${(state.parity.overlap_with_remex * 100).toFixed(0)}% top-10 overlap`);
+  }
+  enableSearch();
+  warm();
+  const span = `${index.source.first_post?.slice(0, 10)} to ${index.source.last_post?.slice(0, 10)}`;
+  return `Ready: ${index.n.toLocaleString()} posts by ${index.authors.length} people (${span}). ` +
+         'Queries are embedded by the hosted EG2 embedder; the scan runs on your GPU.';
+}
+
+async function startup() {
+  if (!BUILD) return startupPrebuilt();
+  status('Loading EmbeddingGemma 2 (175 MB the first time, then cached by the browser)…');
+  await loadModel();
+  noteAdapter(device.adapterInfo);
+  const params = await (await fetch(abs('assets/params.json'))).json();
+  tail = await makeTail(params, new Float32Array(D));
 
   const saved = REBUILD || COMPARE ? null : await idbGet(DB_KEY).catch(() => null);
   if (saved && saved.options?.per === PER && (saved.options?.members ?? null) === state.options.members) {
@@ -460,9 +622,11 @@ $('q').addEventListener('input', (() => {
     clearTimeout(timer);
     const v = ev.target.value.trim();
     if (v.length < 3) return;
-    timer = setTimeout(() => runQuery(v), 200);
+    timer = setTimeout(() => runQuery(v), BUILD || embedderDown ? 200 : 450);   // the embedder allows ~20/min
   };
 })());
+
+$('q').addEventListener('focus', warm);
 
 $('copy').addEventListener('click', () => {
   const e = state.queries.map((q) => q.embed_ms), s = state.queries.map((q) => q.search_ms);
