@@ -6,22 +6,25 @@ Contract in [`SPEC.md`](SPEC.md); regenerate-and-check commands in
 
 ## Answer
 
-Can everything after EmbeddingGemma 2's transformer (normalize, centre, rotate,
-2-bit remex codes, packing, the ADC scan) run as WebGPU kernels on
+Can everything after EmbeddingGemma 2's transformer (rotation, 2-bit remex
+codes, packing, the ADC scan, top-k) run as WebGPU kernels on
 onnxruntime-web's own device, so an embedding never leaves the GPU before it is
-a packed code? Yes, and the codes agree with remex. With the real
-`model_q4.onnx` in headless Chromium, browser embeddings match a CPU
-onnxruntime run of the same graph at cosine 1.0 <!-- @evidence[[results/demo_real_run1.json#reference.cos_to_cpu.0]] -->
-and reproduce the model card's example score of 0.8542 <!-- @evidence[[results/demo_real_run1.json#reference.browser_scores.1]] -->
-(card: 0.854). The startup gate saw 0 code mismatches <!-- @evidence[[results/demo_real_run1.json#startup.gate.codes.mismatch]] -->
-against the CPU reference over 32 real documents. On 4,096 real EG2 Quora
-vectors the kernels flip 6 <!-- @evidence[[results/check_gpu_eg2.json#codes.mismatch]] -->
-of 3.1M codes, each within 1e-5 of a boundary, and scores agree with a float64
-recomputation to 0.00000034. <!-- @evidence[[results/check_gpu_eg2.json#scores_vs_own_codes.max_abs_err]] -->
+a packed code? Yes, and the codes agree with remex. With the real q4 model in
+headless Chromium, embeddings match CPU onnxruntime at
+cosine 1.0 <!-- @evidence[[results/demo_real_run1.json#reference.cos_to_cpu.0]] -->
+and reproduce the model card's score of 0.8542. <!-- @evidence[[results/demo_real_run1.json#reference.browser_scores.1]] -->
+On 4,096 real EG2 Quora vectors the kernels flip 6 <!-- @evidence[[results/check_gpu_eg2.json#codes.mismatch]] -->
+of 3.1M codes, all near a boundary.
 
-Every timing here is SwiftShader, a software rasterizer, so no number says
-whether the GPU tail is faster than a readback and a CPU encode. A run on a real
-GPU would answer that; the bench in `demo.html` is ready for one.
+On the same 4-core CPU, native code beats the browser everywhere but the scan,
+which says little: SwiftShader, the only WebGPU here, is software on those cores. onnxruntime embeds 32 documents in 817 ms <!-- @evidence[[results/native_bench.json#embed_ms_all_cores.median]] -->
+against 138 s in the browser; remex encodes 100k vectors in 1,919 ms <!-- @evidence[[results/native_bench.json#encode_ms.median]] -->
+against 81,406 ms; <!-- @evidence[[results/bench_tail_swiftshader.json#encode_full_ms]] -->
+the codes-only scan of 100k × 20 queries ties, 7,544 ms native <!-- @evidence[[results/native_bench.json#scan_search_adc_ms.median]] -->
+and 7,145 ms browser. <!-- @evidence[[results/bench_tail_swiftshader.json#scan_ms.median]] -->
+Only a real GPU can say if the tail beats readback plus CPU encode. remex
+rotates with a fast Hadamard transform (about 12k add/subs per vector); the
+kernel uses a dense product (590k multiply-adds).
 
 ## Findings
 
@@ -44,13 +47,28 @@ GPU would answer that; the bench in `demo.html` is ready for one.
    One flip moves a score by `scale · 0.033 · qr_j`, as the handoff predicted.
 4. On the 150-document demo corpus, the GPU 2-bit ranking finds 90% <!-- @evidence[[results/demo_real_run1.json#search.recall_at_10]] -->
    of the fp32-cosine top 10 for the test query.
-5. SwiftShader cost of the real model: one batch of 32 documents takes a median
-   137,828 ms to embed. <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
-   The tail adds nothing measurable on top; the three bench arms' medians sit
-   within 1 s of each other.
-   A software-rendered scan of 100k × 20 queries is slower than the CPU
-   reference (speedup 0.66). <!-- @evidence[[results/demo_real_run1.json#bench.scan.gpu_over_cpu_scaled_speedup]] -->
-   Neither number says anything about a real GPU.
+5. Native CPU against SwiftShader on the same machine (`run/native_bench.py`,
+   `run/run_bench.py`): embedding 32 documents takes 817 ms in onnxruntime on 4
+   threads and 137,828 ms in the browser. <!-- @evidence[[results/demo_real_run1.json#bench.embed_only_ms.median]] -->
+   remex's ADC search over 100k codes for 20 queries takes 7,544 ms and the
+   browser's scan 7,145 ms; remex's `search_batch` takes 43 ms, <!-- @evidence[[results/native_bench.json#scan_search_batch_ms.median]] -->
+   but it scores against a cached dequantized float matrix (300 MB at 100k),
+   and a plain fp32 matrix product over the raw vectors takes 35 ms. <!-- @evidence[[results/native_bench.json#scan_fp32_matmul_ms.median]] -->
+   The tail adds nothing measurable to the embed time: the three demo bench arms'
+   medians sit within 1 s of each other.
+6. Tiling 4 vectors per encode workgroup (vec4 lanes) gives bit-identical codes
+   and floats to the one-vector kernel on both fixture sets, and cuts the
+   SwiftShader encode of 16,384 vectors from 39,479 ms <!-- @evidence[[results/bench_tail_swiftshader.json#encode_untiled_ms.median]] -->
+   to 13,705 ms. <!-- @evidence[[results/bench_tail_swiftshader.json#encode_tiled_ms.median]] -->
+   The 16 KB default workgroup-memory limit caps the tile at 4, and ORT creates
+   the device, so a larger limit cannot be requested.
+7. The GPU top-k (bitonic sort of 1024-score chunks, repeated passes) matches
+   the host top-k on 10 edge cases with 0 mismatches each, <!-- @evidence[[results/topk_edge.json#cases.9.mismatches]] -->
+   including duplicated rows, n < k and a three-pass n, and goes red on exactly
+   the four duplicate cases when the tie rule is flipped. It reads back 200
+   pairs instead of 2M scores, and on SwiftShader it is slower than readback plus
+   host select (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
+   for search plus top-10), which a real GPU's bandwidth would reverse or not.
 
 ## Method
 
@@ -117,3 +135,28 @@ Items 1-4 and 7 of the handoff, plus two of the three performance gaps in item 6
   both agree. Not done: tiling several vectors per `encode` workgroup so R is
   read once per tile, and a GPU top-k.
 - **Not done: real-GPU numbers.** This container has no GPU.
+
+### 2026-10-19 — round 3: encode tiling, GPU top-k, native comparison
+
+Oskar: "do the encode tiling and GPU top-k, also, how does performance compare to
+native?"
+
+- **Encode tiling.** `ENCODE` now takes 4 vectors per workgroup in `vec4`
+  lanes: R is read once per tile, reductions are `vec4` tree reductions, and
+  after the rotation the 12 KB activation buffer is reused for the codes. The
+  outputs on both fixture sets are byte-identical to the one-vector kernel
+  (`cmp` on every output file). SwiftShader, 16,384 vectors: 39,479 ms → 13,705 ms.
+- **GPU top-k.** New `TOPK` kernel and `tail.topk` passes; the old host path is
+  `tail.topkHost`. The first build failed to compile: WGSL constant-evaluates
+  `bitcast<f32>(0xff800000u)` to -inf and rejects it, and rejects a
+  `-3.40282347e38` literal as unrepresentable; `bitcast<f32>(0xff7fffffu)`
+  (-FLT_MAX) works. `run/run_topk_edge.py` checks 10 edge cases against
+  `topkHost`; flipping the tie rule fails the four duplicate-row cases. The
+  checker's top-10 on both fixture sets still matches remex.
+- **Native comparison.** `run/native_bench.py` (remex 2.1.0 numpy, onnxruntime
+  1.30.0 CPU) and `run/run_bench.py` (`web/bench_tail.html`, SwiftShader) at
+  the same sizes. Finding 5 has the numbers. The browser's embed is 169× slower
+  than native onnxruntime here; that measures SwiftShader, not WebGPU.
+- **Not done:** an RHT rotation kernel to match remex's work per vector, and any
+  real-GPU number.
+

@@ -683,6 +683,20 @@ survives exactly the sanity checks people run.
   from the local http.server and point the page at them; route only small CDN scripts (`body=`,
   `content_type=`, `access-control-allow-origin: *`). Chromium here also has no route to the egress
   proxy, so CDN requests have to be answered by the driver. (`embeddinggemma2-webgpu-tail/run/run_demo.py`)
+- **WGSL rejects non-finite constants, including ones made with `bitcast`.** A const-evaluated
+  `bitcast<f32>(0xff800000u)` is -inf and fails shader creation ("cannot be represented as 'f32'"),
+  and so does a `-3.40282347e38` literal. Use `bitcast<f32>(0xff7fffffu)` (-FLT_MAX) as a sort
+  sentinel, with an index that loses every tie. (`embeddinggemma2-webgpu-tail/web/tail.js` TOPK)
+- **Tile vectors through `vec4` lanes to cut a matrix's reads 4x with bit-identical output.** A
+  per-vector WGSL kernel (one workgroup per vector, R read in full each time) becomes one workgroup per
+  4 vectors with every activation and reduction as `vec4<f32>`: each lane does the same operations in
+  the same order, so codes and floats match byte for byte, and SwiftShader ran 2.9x faster. The 16 KB
+  default workgroup-memory limit set the tile at 4 (12 KB activations + 4 KB reduction), and a device
+  onnxruntime-web created cannot be asked for more. (`embeddinggemma2-webgpu-tail/web/tail.js` ENCODE)
+- **remex `search_batch` is not an ADC scan.** It scores against a cached dequantized float matrix
+  (100k x 768 fp32, ~300 MB) and ran 20 queries over 100k in 43 ms; the codes-only `search_adc` took
+  7.5 s for the same work. Compare a codes-only implementation (a GPU scan, a WASM scan) with
+  `search_adc`, and say which one you used. (`embeddinggemma2-webgpu-tail/run/native_bench.py`)
 - **onnxruntime-web logs warnings through `console.error`.** The EG2 q4 graph prints two
   `VerifyEachNodeIsAssignedToAnEp` warnings at session creation, which fail any zero-console-errors
   check. They come from the native logger: `ort.env.logLevel = 'error'` does not silence them (tried);

@@ -1,0 +1,62 @@
+{
+ "machine": {
+  "cpu": "x86_64",
+  "cores": 4,
+  "numpy": "2.5.2",
+  "remex": "2.1.0",
+  "onnxruntime": "1.30.0"
+ },
+ "n": 100000,
+ "nq": 20,
+ "k": 10,
+ "encode_ms": {
+  "median": 1918.52,
+  "runs": [
+   2018.51,
+   1702.94,
+   1918.52
+  ]
+ },
+ "scan_search_adc_ms": {
+  "median": 7543.6,
+  "runs": [
+   7564.49,
+   7430.44,
+   7543.6
+  ]
+ },
+ "scan_search_batch_ms": {
+  "median": 43.31,
+  "runs": [
+   35.66,
+   43.31,
+   45.16
+  ]
+ },
+ "scan_fp32_matmul_ms": {
+  "median": 35.22,
+  "runs": [
+   33.04,
+   35.22,
+   37.94
+  ]
+ },
+ "batch": 32,
+ "seq_len": 28,
+ "embed_ms_all_cores": {
+  "median": 817.17,
+  "runs": [
+   880.24,
+   817.17,
+   810.16
+  ]
+ },
+ "embed_ms_one_thread": {
+  "median": 2623.36,
+  "runs": [
+   2732.07,
+   2623.36,
+   2601.46
+  ]
+ }
+}

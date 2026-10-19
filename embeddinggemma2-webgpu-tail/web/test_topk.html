@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>remex tail on WebGPU: top-k edge cases</title>
+<link rel="icon" href="data:,">
+</head>
+<body>
+<pre id="log">loading</pre>
+<script type="module">
+// GPU top-k against the host top-k on corpora that hit its edges: n < k, n at and around the
+// 1024 chunk, n that needs three passes, and duplicated rows, which score identically and so test
+// the lower-index tie rule. Rows are random; R is a random orthogonal-ish matrix (the top-k does
+// not depend on R being remex's).
+import { RemexTail } from './tail.js';
+
+const D = 768;
+const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+async function runTopk() {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice({
+    requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize },
+  });
+  const errors = [];
+  device.addEventListener('uncapturederror', (e) => errors.push(e.error.message));
+  const P = await (await fetch('assets/params.json')).json();
+  const R = new Float32Array(await (await fetch('assets/R.f32.txt')).arrayBuffer());
+  const tail = await RemexTail.create(device, {
+    R, mu: new Float32Array(D), boundaries: P.boundaries, centroids: P.centroids, kappa: P.kappa,
+  });
+  const rng = mulberry32(7);
+  const cases = [];
+  for (const [n, k, dupEvery] of [[5, 10, 0], [10, 10, 2], [1023, 10, 0], [1024, 10, 3], [1025, 10, 0],
+                                   [4096, 1, 0], [4096, 256, 0], [5000, 32, 4], [120000, 10, 0], [120000, 10, 5]]) {
+    const X = new Float32Array(n * D);
+    for (let i = 0; i < n; i++) {
+      if (dupEvery && i % dupEvery !== 0) X.copyWithin(i * D, (i - 1) * D, i * D);   // copy of the row above
+      else for (let j = 0; j < D; j++) X[i * D + j] = rng() * 2 - 1;
+    }
+    const buf = device.createBuffer({ size: X.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(buf, 0, X);
+    const corpus = tail.allocCorpus(n + 3);
+    tail.encode(buf, n, corpus, 0, { normalize: true });
+    const nq = 3;
+    const Q = X.slice(0, nq * D);
+    const qbuf = device.createBuffer({ size: Q.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(qbuf, 0, Q);
+    const g = await tail.topk(qbuf, nq, corpus, n, k);
+    const h = await tail.topkHost(qbuf, nq, corpus, n, k);
+    let bad = 0, len = 0;
+    for (let q = 0; q < nq; q++) {
+      len += g[q].idx.length;
+      if (g[q].idx.length !== h[q].idx.length) { bad++; continue; }
+      for (let j = 0; j < g[q].idx.length; j++) if (g[q].idx[j] !== h[q].idx[j] || g[q].score[j] !== h[q].score[j]) bad++;
+    }
+    cases.push({ n, k, dupEvery, returned: len, expected: nq * Math.min(k, n), mismatches: bad });
+    log(`n=${n} k=${k} dup=${dupEvery}: ${bad} mismatches`);
+    buf.destroy(); qbuf.destroy(); corpus.words.destroy(); corpus.aux.destroy();
+  }
+  return { cases, errors };
+}
+window.runTopk = runTopk;
+window.topkReady = true;
+</script>
+</body>
+</html>

@@ -104,6 +104,7 @@ def main() -> int:
         "timings_ms": result["timings_ms"],
         "adapter": result["adapter"],
         "colsum_mu_max_abs_err": result["colsum_mu_max_abs_err"],
+        "topk_gpu_host_mismatch": result["topk_gpu_host_mismatch"],
         "uncaptured_errors": result["uncaptured_errors"],
         "page_errors": page_errors,
         "console_errors": console_errors,

@@ -5,6 +5,9 @@ const D = 768;
 const WORDS = 48;              // u32 words per packed vector (192 bytes)
 const LUT_STRIDE = 3073;       // 768*4 LUT entries, then the query offset
 const MAX_DIM = 65535;         // max workgroups per dispatch dimension
+const TOPK_CHUNK = 1024;       // (score, index) pairs per top-k workgroup
+const TOPK_MAX = 256;          // k limit, so each top-k pass shrinks the input at least 4x
+const ENC_TILE = 4;            // vectors per encode workgroup (the vec4 lanes in ENCODE)
 
 // ---------------------------------------------------------------- WGSL
 
@@ -45,12 +48,20 @@ fn dot_row(j: u32) -> f32 {
 }
 `;
 
+// Encode, TILE = 4 vectors per workgroup in the four lanes of a vec4, so each R element is read once
+// per tile instead of once per vector. Every lane does the same products in the same order as a
+// one-vector kernel, and the vec4 tree reduction is four scalar tree reductions, so the codes and
+// floats are identical to one vector per workgroup. Workgroup memory: xs4 12 KB + red4 4 KB = the
+// 16 KB default limit; after the rotation xs4 is reused to hold the codes.
 const ENCODE = /* wgsl */ `
+const D: u32 = 768u;
+const TILE: u32 = 4u;
 struct EncP {
   in_row: u32,
   out_row: u32,
   capacity: u32,
   normalize: u32,
+  count: u32,
 }
 @group(0) @binding(0) var<uniform> ep: EncP;
 @group(0) @binding(1) var<storage, read> xin: array<f32>;
@@ -60,7 +71,31 @@ struct EncP {
 @group(0) @binding(5) var<storage, read_write> wout: array<u32>;
 @group(0) @binding(6) var<storage, read_write> aux: array<f32>;
 
-var<workgroup> cds: array<u32, 768>;
+var<workgroup> xs4: array<vec4<f32>, 768>;
+var<workgroup> red4: array<vec4<f32>, 256>;
+
+fn reduce4(tid: u32, v: vec4<f32>) -> vec4<f32> {
+  red4[tid] = v;
+  workgroupBarrier();
+  for (var s: u32 = 128u; s > 0u; s = s >> 1u) {
+    if (tid < s) {
+      red4[tid] = red4[tid] + red4[tid + s];
+    }
+    workgroupBarrier();
+  }
+  let r = red4[0];
+  workgroupBarrier();
+  return r;
+}
+
+// rmat holds R transposed, so at each k the 256 lanes read adjacent floats (see DOT_ROW).
+fn dot_row4(j: u32) -> vec4<f32> {
+  var a = vec4<f32>(0.0);
+  for (var k: u32 = 0u; k < D; k += 1u) {
+    a += rmat[k * D + j] * xs4[k];
+  }
+  return a;
+}
 
 fn code_of(u: f32) -> u32 {
   var c: u32 = 0u;
@@ -70,67 +105,93 @@ fn code_of(u: f32) -> u32 {
   return c;
 }
 
+fn codes4(t: vec4<f32>, den: vec4<f32>) -> vec4<u32> {
+  let u = t / den;
+  return vec4<u32>(code_of(u.x), code_of(u.y), code_of(u.z), code_of(u.w));
+}
+
+fn cent4(c: vec4<u32>) -> vec4<f32> {
+  return vec4<f32>(cst[4u + c.x], cst[4u + c.y], cst[4u + c.z], cst[4u + c.w]);
+}
+
+fn load(v: u32, j: u32) -> f32 {
+  let r = ep.in_row + v;
+  if (v >= ep.count) {
+    return 0.0;
+  }
+  return xin[r * D + j];
+}
+
 @compute @workgroup_size(256)
 fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
   let tid = lid.x;
-  let doc = ep.out_row + wg.x;
-  let rowb = (ep.in_row + wg.x) * D;
+  let v0 = wg.x * TILE;          // first vector of this tile, relative to in_row / out_row
 
-  var x0 = xin[rowb + tid];
-  var x1 = xin[rowb + tid + 256u];
-  var x2 = xin[rowb + tid + 512u];
-  let ss = reduce_sum(tid, x0 * x0 + x1 * x1 + x2 * x2);
+  var x0 = vec4<f32>(load(v0, tid), load(v0 + 1u, tid), load(v0 + 2u, tid), load(v0 + 3u, tid));
+  var x1 = vec4<f32>(load(v0, tid + 256u), load(v0 + 1u, tid + 256u), load(v0 + 2u, tid + 256u), load(v0 + 3u, tid + 256u));
+  var x2 = vec4<f32>(load(v0, tid + 512u), load(v0 + 1u, tid + 512u), load(v0 + 2u, tid + 512u), load(v0 + 3u, tid + 512u));
+  let ss = reduce4(tid, x0 * x0 + x1 * x1 + x2 * x2);
   if (ep.normalize != 0u) {
-    let nrm = max(sqrt(ss), 1e-8);
+    let nrm = max(sqrt(ss), vec4<f32>(1e-8));
     x0 = x0 / nrm;
     x1 = x1 / nrm;
     x2 = x2 / nrm;
   }
-  xs[tid] = x0;
-  xs[tid + 256u] = x1;
-  xs[tid + 512u] = x2;
+  xs4[tid] = x0;
+  xs4[tid + 256u] = x1;
+  xs4[tid + 512u] = x2;
   workgroupBarrier();
 
-  // t = R x - Rmu, for the three rows this thread owns
-  let t0 = dot_row(tid) - rmu[tid];
-  let t1 = dot_row(tid + 256u) - rmu[tid + 256u];
-  let t2 = dot_row(tid + 512u) - rmu[tid + 512u];
-  let ln = sqrt(reduce_sum(tid, t0 * t0 + t1 * t1 + t2 * t2));
-  let md = reduce_sum(tid, rmu[tid] * t0 + rmu[tid + 256u] * t1 + rmu[tid + 512u] * t2);
+  // t = R x - Rmu, for the three rows this thread owns, four vectors at once
+  let r0 = rmu[tid];
+  let r1 = rmu[tid + 256u];
+  let r2 = rmu[tid + 512u];
+  let t0 = dot_row4(tid) - r0;
+  let t1 = dot_row4(tid + 256u) - r1;
+  let t2 = dot_row4(tid + 512u) - r2;
+  let ln = sqrt(reduce4(tid, t0 * t0 + t1 * t1 + t2 * t2));
+  let md = reduce4(tid, r0 * t0 + r1 * t1 + r2 * t2);
 
-  // codes from u = t / len, strict > against the boundaries
-  let den = max(ln, 1e-8);
-  let c0 = code_of(t0 / den);
-  let c1 = code_of(t1 / den);
-  let c2 = code_of(t2 / den);
-  cds[tid] = c0;
-  cds[tid + 256u] = c1;
-  cds[tid + 512u] = c2;
+  let den = max(ln, vec4<f32>(1e-8));
+  let c0 = codes4(t0, den);
+  let c1 = codes4(t1, den);
+  let c2 = codes4(t2, den);
 
-  // vlen = |c[code]|, vmu = c[code] . Rmu
-  let v0 = cst[4u + c0];
-  let v1 = cst[4u + c1];
-  let v2 = cst[4u + c2];
-  let vl = sqrt(reduce_sum(tid, v0 * v0 + v1 * v1 + v2 * v2));
-  let vm = reduce_sum(tid, v0 * rmu[tid] + v1 * rmu[tid + 256u] + v2 * rmu[tid + 512u]);
-  let scale = ln / (max(vl, 1e-12) * cst[8]);
+  let e0 = cent4(c0);
+  let e1 = cent4(c1);
+  let e2 = cent4(c2);
+  let vl = sqrt(reduce4(tid, e0 * e0 + e1 * e1 + e2 * e2));
+  let vm = reduce4(tid, e0 * r0 + e1 * r1 + e2 * r2);
+  let scale = ln / (max(vl, vec4<f32>(1e-12)) * cst[8]);
   let bias = md - scale * vm;
 
-  // word w holds codes 16w..16w+15; code 16w+4bb+m at shift 8bb+6-2m
-  if (tid < 48u) {
-    var word: u32 = 0u;
-    for (var bb: u32 = 0u; bb < 4u; bb += 1u) {
-      for (var m: u32 = 0u; m < 4u; m += 1u) {
-        word = word | (cds[16u * tid + 4u * bb + m] << (8u * bb + 6u - 2u * m));
+  // xs4 is free now (every read of it finished before the reductions' barriers): hold the codes
+  xs4[tid] = bitcast<vec4<f32>>(c0);
+  xs4[tid + 256u] = bitcast<vec4<f32>>(c1);
+  xs4[tid + 512u] = bitcast<vec4<f32>>(c2);
+  workgroupBarrier();
+
+  // word w holds codes 16w..16w+15; code 16w+4bb+m at shift 8bb+6-2m. 192 lanes: 48 words x 4 vectors.
+  if (tid < 192u) {
+    let w = tid % 48u;
+    let v = tid / 48u;
+    if (v0 + v < ep.count) {
+      var word: u32 = 0u;
+      for (var bb: u32 = 0u; bb < 4u; bb += 1u) {
+        for (var m: u32 = 0u; m < 4u; m += 1u) {
+          let c = bitcast<vec4<u32>>(xs4[16u * w + 4u * bb + m])[v];
+          word = word | (c << (8u * bb + 6u - 2u * m));
+        }
       }
+      wout[w * ep.capacity + ep.out_row + v0 + v] = word;
     }
-    wout[tid * ep.capacity + doc] = word;
   }
-  if (tid == 0u) {
-    aux[doc * 4u] = scale;
-    aux[doc * 4u + 1u] = bias;
-    aux[doc * 4u + 2u] = ln;
-    aux[doc * 4u + 3u] = md;
+  if (tid < TILE && v0 + tid < ep.count) {
+    let doc = ep.out_row + v0 + tid;
+    aux[doc * 4u] = scale[tid];
+    aux[doc * 4u + 1u] = bias[tid];
+    aux[doc * 4u + 2u] = ln[tid];
+    aux[doc * 4u + 3u] = md[tid];
   }
 }
 `;
@@ -294,12 +355,91 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid:
 }
 `;
 
+// Top-k, one pass: each workgroup bitonic-sorts a chunk of 1024 (score, index) pairs in workgroup
+// memory and writes its best k. Order: higher score first, lower index on ties (the topkRef order).
+// Pass 1 reads scores [nq, capacity] with implicit indices; later passes read the previous pass's
+// candidates. The host repeats passes until one chunk remains. Padding: -FLT_MAX with index
+// 0xffffffff, which sorts after every finite score (WGSL rejects a -inf constant).
+const TOPK = /* wgsl */ `
+struct TopP {
+  n: u32,          // valid entries per query in the input
+  in_stride: u32,  // input row stride per query
+  out_stride: u32, // output row stride per query (= chunks * k)
+  k: u32,
+  implicit: u32,   // 1: index = position in the row (pass 1)
+  pad0: u32,
+  pad1: u32,
+  pad2: u32,
+}
+@group(0) @binding(0) var<uniform> tp: TopP;
+@group(0) @binding(1) var<storage, read> sin: array<f32>;
+@group(0) @binding(2) var<storage, read> iin: array<u32>;
+@group(0) @binding(3) var<storage, read_write> sout: array<f32>;
+@group(0) @binding(4) var<storage, read_write> iout: array<u32>;
+
+const CH: u32 = 1024u;
+var<workgroup> ks: array<f32, 1024>;
+var<workgroup> ki: array<u32, 1024>;
+
+fn before(sa: f32, ia: u32, sb: f32, ib: u32) -> bool {
+  return sa > sb || (sa == sb && ia < ib);
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
+  let tid = lid.x;
+  let q = wg.y;
+  let base = wg.x * CH;
+  for (var t: u32 = tid; t < CH; t += 256u) {
+    let p = base + t;
+    if (p < tp.n) {
+      ks[t] = sin[q * tp.in_stride + p];
+      if (tp.implicit != 0u) {
+        ki[t] = p;
+      } else {
+        ki[t] = iin[q * tp.in_stride + p];
+      }
+    } else {
+      ks[t] = bitcast<f32>(0xff7fffffu);   // -FLT_MAX
+      ki[t] = 0xffffffffu;
+    }
+  }
+  workgroupBarrier();
+
+  for (var size: u32 = 2u; size <= CH; size = size << 1u) {
+    for (var stride: u32 = size >> 1u; stride > 0u; stride = stride >> 1u) {
+      for (var h: u32 = 0u; h < 2u; h += 1u) {
+        let pr = tid + 256u * h;                       // pair 0..511
+        let i = 2u * stride * (pr / stride) + pr % stride;
+        let j = i + stride;
+        let si = ks[i]; let ii = ki[i];
+        let sj = ks[j]; let ij = ki[j];
+        // blocks with (i & size) == 0 end best-first, the others worst-first; the last size is all best-first
+        let want_first = (i & size) == 0u;
+        if (before(sj, ij, si, ii) == want_first) {
+          ks[i] = sj; ki[i] = ij;
+          ks[j] = si; ki[j] = ii;
+        }
+      }
+      workgroupBarrier();
+    }
+  }
+
+  for (var t: u32 = tid; t < tp.k; t += 256u) {
+    let o = q * tp.out_stride + wg.x * tp.k + t;
+    sout[o] = ks[t];
+    iout[o] = ki[t];
+  }
+}
+`;
+
 const SHADERS = {
-  encode: ENCODE.replace('var<workgroup> cds', REDUCE + '\n' + DOT_ROW + '\nvar<workgroup> cds'),
+  encode: ENCODE,
   pool: POOL,
   prep: PREP.replace('@group(0) @binding(0) var<uniform> pq', REDUCE + '\n' + DOT_ROW + '\n@group(0) @binding(0) var<uniform> pq'),
   scan: SCAN,
   colsum: COLSUM,
+  topk: TOPK,
 };
 
 // ---------------------------------------------------------------- host helpers
@@ -384,6 +524,7 @@ export class RemexTail {
       prep: await mk('prep', SHADERS.prep),
       scan: await mk('scan', SHADERS.scan),
       colsum: await mk('colsum', SHADERS.colsum),
+      topk: await mk('topk', SHADERS.topk),
     };
 
     if (params.Rmu) {
@@ -448,12 +589,13 @@ export class RemexTail {
     if (start + count > corpus.capacity) throw new Error(`encode: ${start}+${count} exceeds capacity ${corpus.capacity}`);
     const enc = this.device.createCommandEncoder();
     const temps = [];
-    for (let base = 0; base < count; base += MAX_DIM) {
-      const n = Math.min(MAX_DIM, count - base);
-      const u = uniform(this.device, new Uint32Array([inRow0 + base, start + base, corpus.capacity, normalize]));
+    const perDispatch = MAX_DIM * ENC_TILE;
+    for (let base = 0; base < count; base += perDispatch) {
+      const n = Math.min(perDispatch, count - base);
+      const u = uniform(this.device, new Uint32Array([inRow0 + base, start + base, corpus.capacity, normalize, n]));
       temps.push(u);
       this._dispatch(enc, this.pipes.encode,
-        [u, inputBuf, this.rmat, this.rmu, this.cst, corpus.words, corpus.aux], [n, 1, 1]);
+        [u, inputBuf, this.rmat, this.rmu, this.cst, corpus.words, corpus.aux], [Math.ceil(n / ENC_TILE), 1, 1]);
     }
     this._submit(enc, temps);
     corpus.filled = Math.max(corpus.filled, start + count);
@@ -557,8 +699,46 @@ export class RemexTail {
     return out;
   }
 
-  // Top-k on the host from GPU scores. Ties broken by lower doc index.
+  // Top-k on the GPU: search, then bitonic chunk passes until one 1024-chunk per query remains;
+  // reads back only nq*k (score, index) pairs. Ties go to the lower doc index. k <= 256.
   async topk(queryBuf, nq, corpus, n, k, opts = {}) {
+    if (k < 1 || k > TOPK_MAX) throw new Error(`topk: k=${k} outside 1..${TOPK_MAX}`);
+    if (nq > MAX_DIM) throw new Error(`topk: nq=${nq} exceeds ${MAX_DIM}`);
+    const dev = this.device;
+    const scoresBuf = this.search(queryBuf, nq, corpus, { ...opts, n });
+    const enc = dev.createCommandEncoder();
+    const temps = [scoresBuf];
+    let sIn = scoresBuf, iIn = scoresBuf, m = n, inStride = corpus.capacity, implicit = 1;
+    let sOut, iOut;
+    for (;;) {
+      const chunks = Math.max(1, Math.ceil(m / TOPK_CHUNK));
+      if (chunks > MAX_DIM) throw new Error(`topk: ${chunks} chunks exceed ${MAX_DIM}`);
+      const outStride = chunks * k;
+      sOut = storageBuf(dev, nq * outStride * 4);
+      iOut = storageBuf(dev, nq * outStride * 4);
+      const u = uniform(dev, new Uint32Array([m, inStride, outStride, k, implicit, 0, 0, 0]));
+      temps.push(u);
+      this._dispatch(enc, this.pipes.topk, [u, sIn, iIn, sOut, iOut], [chunks, nq, 1]);
+      if (chunks === 1) break;
+      if (sIn !== scoresBuf) temps.push(sIn, iIn);
+      sIn = sOut; iIn = iOut; m = outStride; inStride = outStride; implicit = 0;
+    }
+    if (sIn !== scoresBuf) temps.push(sIn, iIn);
+    this._submit(enc, temps);
+    const sc = new Float32Array(await this.readBuffer(sOut, nq * k * 4));
+    const ix = new Uint32Array(await this.readBuffer(iOut, nq * k * 4));
+    sOut.destroy();
+    iOut.destroy();
+    const kk = Math.min(k, n);
+    const res = [];
+    for (let q = 0; q < nq; q++) {
+      res.push({ idx: Int32Array.from(ix.subarray(q * k, q * k + kk)), score: sc.slice(q * k, q * k + kk) });
+    }
+    return res;
+  }
+
+  // Top-k on the host from read-back GPU scores (the pre-GPU path, kept for comparison).
+  async topkHost(queryBuf, nq, corpus, n, k, opts = {}) {
     const scoresBuf = this.search(queryBuf, nq, corpus, { ...opts, n });
     const s = await this.readScores(scoresBuf, nq, corpus, n);
     scoresBuf.destroy();

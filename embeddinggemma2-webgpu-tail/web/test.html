@@ -123,6 +123,13 @@ async function runTail() {
   for (let q = 0; q < nq; q++) topkFlat.set(top[q].idx, q * k);
   T('topk_ms', t0);
 
+  // the host path on the same scores, for timing and as a second check on the GPU top-k
+  t0 = performance.now();
+  const topH = await tail.topkHost(qBuf, nq, corpus, n, k, { normalize: true });
+  T('topk_host_ms', t0);
+  let topkGpuHostMismatch = 0;
+  for (let q = 0; q < nq; q++) for (let j = 0; j < k; j++) if (top[q].idx[j] !== topH[q].idx[j]) topkGpuHostMismatch++;
+
   t0 = performance.now();
   const corp = await tail.readCorpus(corpus, n);
   T('readCorpus_ms', t0);
@@ -145,6 +152,7 @@ async function runTail() {
     timings_ms: timings,
     adapter: adapterInfo,
     colsum_mu_max_abs_err: colsumMaxErr,
+    topk_gpu_host_mismatch: topkGpuHostMismatch,
     uncaptured_errors: errors,
   };
 }

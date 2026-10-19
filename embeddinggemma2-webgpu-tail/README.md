@@ -6,17 +6,18 @@ over the packed corpus. They run on onnxruntime-web's own `GPUDevice`, so an
 embedding goes from ORT's output buffer to a packed code with no readback.
 `SPEC.md` is the contract; `RESULTS.md` has the answer.
 
-## Status (2026-10-18, round 2)
+## Status (2026-10-19, round 3)
 
 | piece | state |
 |---|---|
 | `SPEC.md` | done |
 | `oracle/` — fixtures from remex 2.1.0, checker, float32 numpy model | done; checker goes red on wrong bit order, missing kappa, dropped score offset, top-k swap; `--vectors` builds fixtures from real EG2 Quora vectors |
-| `web/tail.js` — WGSL kernels + host | passes the checker on SwiftShader: synthetic, 2 of 3.1M codes flip; real EG2 vectors, 6 of 3.1M; all within 1e-5 of a boundary; scores within 3.5e-7 |
+| `web/tail.js` — WGSL kernels + host | passes the checker on SwiftShader: synthetic, 2 of 3.1M codes flip; real EG2 vectors, 6 of 3.1M; all within 1e-5 of a boundary; scores within 3.5e-7. Encode tiles 4 vectors per workgroup (bit-identical to one, 2.9x faster on SwiftShader); top-k runs on the GPU (`run/run_topk_edge.py`: 10 edge cases) |
 | `web/tail_ref.js` — CPU reference | passes the checker |
 | `interop/` — ORT 1.30.0 gpu-buffer output fed straight to the tail | passes the checker; 0 `getData` calls on the encode path |
 | `web/demo.html` — real EG2 q4 page with startup gate, search, bench | passes with the real model in headless Chromium (embeddings at cosine 1.0 to CPU onnxruntime, model-card scores reproduced, gate 0/24,576) and with the dummy graph; scan check 7.2e-7 on the GPU's own codes; all timings SwiftShader |
-| real-GPU numbers | not measured |
+| native comparison | `run/native_bench.py` vs `run/run_bench.py` on one 4-core CPU: see `RESULTS.md` finding 5 |
+| real-GPU numbers | not measured; open `web/bench_tail.html` on a GPU machine |
 
 The default fixtures are synthetic EG2-shaped vectors (‖mean‖ ratio 0.852, pair
 cosine 0.724); `fixtures_eg2/` holds 4,096 real EG2 Quora vectors (0.788, 0.622).
@@ -42,6 +43,12 @@ pip install onnxruntime tokenizers
 python3 -I run/ref_real.py                           # CPU q4 reference; downloads 175 MB into out/hf/
 python3 -I run/run_demo.py --real                    # hosted page, real model: ~40 min on SwiftShader
 python3 -I run/run_demo.py --real --no-bench         # startup, gate, search only: ~12 min
+
+# top-k edge cases, and the bench against native CPU
+python3 -I run/run_topk_edge.py
+git show a6fa2213:embeddinggemma2-webgpu-tail/web/tail.js > out/tail_untiled.js   # the one-vector encode
+python3 -I run/run_bench.py --untiled out/tail_untiled.js   # ~10 min on SwiftShader
+python3 -I run/native_bench.py
 ```
 
 The Playwright scripts use Chromium at

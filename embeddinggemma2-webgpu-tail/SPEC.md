@@ -75,12 +75,20 @@ by several encode calls at increasing offsets.
 1. **pool** — `[B, S, D]` hidden states + `[B, S]` u32 mask → `[B, D]` masked
    mean (sum of rows with mask≠0, divided by their count; count 0 → zeros).
    No normalization here; `encode` normalizes.
-2. **encode** — one workgroup per vector. Steps 1–9 above. Reductions are
-   workgroup tree reductions in a fixed order. Writes packed words and aux.
+2. **encode** — one workgroup per tile of 4 vectors, held in the lanes of a
+   `vec4`, so each element of R is read once per tile. Steps 1–9 above.
+   Reductions are workgroup tree reductions in a fixed order; every lane does
+   the same operations in the same order as a one-vector kernel, so the output
+   is bit-identical to one. Workgroup memory is exactly the 16 KB default limit.
+   Writes packed words and aux.
 3. **prep_query** — one workgroup per query. Writes the LUT and `offset`.
 4. **scan** — one invocation per (doc, query); the query's LUT loaded into
    workgroup memory. Writes `scores[q * capacity + i]` for `i < n`.
-5. **colsum** — sums a `[B, D]` batch into a `[D]` f32 accumulator, one
+5. **topk** — one workgroup per (chunk of 1024 scores, query): a bitonic sort
+   in workgroup memory, best `k` written out. Order: higher score first, lower
+   index on ties. The host repeats passes over the candidates until one chunk
+   remains, so only `nq · k` pairs are read back. `k ≤ 256`.
+6. **colsum** — sums a `[B, D]` batch into a `[D]` f32 accumulator, one
    invocation per column. The host turns it into `mu` (divide by row count) and
    computes `Rmu` itself. This is how the demo declares a mean without reading
    embeddings back.
@@ -100,7 +108,8 @@ tail.encode(inputBuf, count, corpus, start, { normalize: true, inputOffsetRows: 
 tail.search(queryBuf, nq, corpus, { normalize: true }) -> GPUBuffer scores [nq*capacity]
 await tail.readCorpus(corpus, n)  -> { packed: Uint8Array(n*192), scale, bias, len, mdot }
 await tail.readScores(buf, nq, corpus, n) -> Float32Array [nq*n]
-await tail.topk(queryBuf, nq, corpus, n, k) -> [{ idx: Int32Array(k), score: Float32Array(k) }] (readback + CPU top-k)
+await tail.topk(queryBuf, nq, corpus, n, k) -> [{ idx: Int32Array(k), score: Float32Array(k) }] (GPU top-k, k <= 256)
+await tail.topkHost(queryBuf, nq, corpus, n, k) -> same, from a full score readback and a host partial select
 tail.colsum(inputBuf, count, accBuf)
 ```
 

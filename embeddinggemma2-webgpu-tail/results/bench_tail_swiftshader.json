@@ -1,0 +1,55 @@
+{
+ "adapter": {
+  "vendor": "google",
+  "architecture": "swiftshader",
+  "device": ""
+ },
+ "n": 100000,
+ "n_enc": 16384,
+ "nq": 20,
+ "k": 10,
+ "reps": 3,
+ "encode_tiled_ms": {
+  "median": 13704.8,
+  "runs": [
+   13903.9,
+   13247.3,
+   13704.8
+  ]
+ },
+ "encode_untiled_ms": {
+  "median": 39478.8,
+  "runs": [
+   31493.5,
+   39666.4,
+   39478.8
+  ]
+ },
+ "encode_full_ms": 81405.6,
+ "scan_ms": {
+  "median": 7144.5,
+  "runs": [
+   7201.6,
+   7144.5,
+   6792
+  ]
+ },
+ "topk_gpu_ms": {
+  "median": 8814.2,
+  "runs": [
+   8551.8,
+   8842,
+   8814.2
+  ]
+ },
+ "topk_host_ms": {
+  "median": 7031.2,
+  "runs": [
+   7243.6,
+   6960.7,
+   7031.2
+  ]
+ },
+ "errors": [],
+ "note": "SwiftShader (software) WebGPU on this machine's CPU: not GPU timings."
+}
