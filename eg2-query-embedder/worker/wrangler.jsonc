@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "eg2-query-embedder",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": true,
+  "vars": {
+    // Comma-separated origins allowed to call the Worker from a browser; "*" allows any.
+    "ALLOWED_ORIGINS": "https://austegard.com,https://muninn.austegard.com,https://oaustegard.github.io",
+    // Part of the cache key, so a model change never serves vectors from the old one.
+    "MODEL_REV": "embeddinggemma-2-ONNX@daa72c51/q4"
+  },
+  "containers": [
+    {
+      "class_name": "Embedder",
+      "image": "../server/Dockerfile",
+      "image_build_context": "../server",
+      // 1 vCPU at the 3 GiB minimum: half a vCPU doubles both cold start and warm latency
+      // (RESULTS.md), and memory is billed on the provisioned size while the container is awake.
+      "instance_type": { "vcpu": 1, "memory_mib": 3072, "disk_mb": 4000 },
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "EMBEDDER", "class_name": "Embedder" }]
+  },
+  "exports": {
+    "Embedder": { "type": "durable-object", "storage": "sqlite" }
+  },
+  // Per-IP limit checked before the cache or the container.
+  "ratelimits": [
+    { "name": "EMBED_RL", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }
+  ]
+}

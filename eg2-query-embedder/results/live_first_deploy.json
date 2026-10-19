@@ -1,0 +1,13 @@
+{
+ "note": "Transcribed from the first live_check.mjs run at 03:55Z on 2026-10-19, right after the first deploy (standard-1, 4 onnxruntime threads). The first query includes Cloudflare's first fetch of the image, so it is not a representative cold start.",
+ "first": {"status": 200, "roundtrip_ms": 21795, "server_ms": 203.9},
+ "warm_roundtrip_median_ms": 273,
+ "cache": {"cached": true, "roundtrip_ms": 54},
+ "query_head": [0.030746, 0.019241, 0.018281, -0.045727],
+ "local_query_head": [0.030746, 0.019241, 0.018281, -0.045727],
+ "no_origin_status": 403,
+ "bad_origin_status": 403,
+ "dims512_len": 512,
+ "ratelimit": {"requests_before_burst": 9, "first_429_at_burst_index": 12, "first_429_at_request": 21,
+   "codes": "200,200,200,200,200,200,200,200,200,200,200,200,429,200,429,200,429,200,429,200,429,200,429,200,429"}
+}

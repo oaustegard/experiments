@@ -1,0 +1,49 @@
+{
+ "reps": 3,
+ "docker": "eg2-query-embedder:v1",
+ "cpus": "1",
+ "memory": "6g",
+ "drop_caches": true,
+ "threads": "1",
+ "listening_ms": 3141,
+ "first_embed_ms": 3267,
+ "warm_roundtrip_median_ms": 109.8,
+ "runs": [
+  {
+   "listening_ms": 3141,
+   "first_embed_ms": 3267,
+   "first_inference_ms": 116.1,
+   "warm_roundtrip_median_ms": 109.8,
+   "server": {
+    "tokenizer_load": 2149,
+    "session_create": 2515,
+    "first_inference": 104,
+    "ready": 2620
+   }
+  },
+  {
+   "listening_ms": 3085,
+   "first_embed_ms": 3198,
+   "first_inference_ms": 108.1,
+   "warm_roundtrip_median_ms": 103.4,
+   "server": {
+    "tokenizer_load": 2034,
+    "session_create": 2415,
+    "first_inference": 111,
+    "ready": 2527
+   }
+  },
+  {
+   "listening_ms": 3166,
+   "first_embed_ms": 3270,
+   "first_inference_ms": 98.9,
+   "warm_roundtrip_median_ms": 117.2,
+   "server": {
+    "tokenizer_load": 2140,
+    "session_create": 2536,
+    "first_inference": 111,
+    "ready": 2649
+   }
+  }
+ ]
+}

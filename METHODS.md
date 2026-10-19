@@ -659,6 +659,23 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Docker `ADD --chmod=644` makes the directory it creates unenterable.** The mode also applies to
+  the parent directory ADD creates (`drw-r--r--`), so a non-root `USER` gets EACCES on every file in
+  it. Use 755, and run any build-time check *after* `USER`, or a root-run check passes an image that
+  cannot read its own files. (`eg2-query-embedder/server/Dockerfile`)
+- **`docker build` here cannot reach npm unless you pass the proxy in.** `--network host --build-arg
+  HTTPS_PROXY="$HTTPS_PROXY"` plus the CA as a build secret
+  (`--secret id=ca,src=/root/.ccr/ca-bundle.crt`, then `RUN --mount=type=secret,id=ca,target=/tmp/ca.crt
+  NODE_EXTRA_CA_CERTS=/tmp/ca.crt npm_config_cafile=/tmp/ca.crt npm ci`); without it npm dies with
+  "Exit handler never called!". `wrangler deploy` runs a plain build and hits the same wall: build
+  locally, `wrangler containers push`, point `image` at the registry ref. `dockerd` is installed but not
+  running; start it yourself. (`eg2-query-embedder/README.md`)
+- **Benchmarking `docker run`: time out the readiness probe and remove the container by name.**
+  Docker's port proxy accepts the TCP connection before the server inside listens, so a `fetch`
+  without a timeout hangs forever; and killing the `docker run` client leaves the container running
+  and holding the port for the next rep. `AbortSignal.timeout(500)` per probe, `--name`, then
+  `docker rm -f`. (`eg2-query-embedder/server/bench_cold.mjs`)
+
 - **onnxruntime-web outputs that stay on the GPU: `preferredOutputLocation` plus ORT's own device.**
   `InferenceSession.create(url, { executionProviders: ['webgpu'], preferredOutputLocation:
   { name: 'gpu-buffer' } })` returns tensors whose `.gpuBuffer` is a live `GPUBuffer`; `await
@@ -1208,6 +1225,17 @@ the result.
   Python fallback. (`mojo-port-haiku/`)
 
 ## Numerical / ML gotchas
+
+- **A Gemma-family tokenizer, not the model, dominates a CPU cold start.** EmbeddingGemma 2's
+  `tokenizer.json` (32 MB, 262,144 vocab, 514,906 merges) takes ~1.4 s to parse and build in
+  `@huggingface/tokenizers`, against 0.4 s to create the onnxruntime session for the 174 MB q4 model.
+  Native Rust `tokenizers` (npm 0.23.2) takes the same 1.37 s; a V8 startup snapshot of the built
+  tokenizer saves only ~0.4 s for a 98 MB blob. Budget cold start from the tokenizer. Under a
+  0.25-vCPU quota the whole start takes 16 s. (`eg2-query-embedder/RESULTS.md`)
+- **Set onnxruntime's `intraOpNumThreads` to the CPU quota, not the visible cores.** Inside a
+  container limited to 1 vCPU on a 4-core host, the default four threads made a short EG2 query take
+  203 ms; one thread, 110 ms. At half a vCPU, 494 vs 207 ms. Cloud container platforms (Cloudflare
+  Containers, Cloud Run, Fargate) all impose CPU by quota. (`eg2-query-embedder/RESULTS.md`)
 
 - **A centered quantizer scored by inner product should multiply its error by `||q-mu||`, not `||q||`, and store `<mu,r>` exactly.** With `x = mu + r`, `<q,x> = <q,mu> + <mu,r> + <q-mu, r>`; only the last term needs the codes. Reading `<mu,r>` off the quantized residual and scoring `<q, r_hat>` with the raw query puts the quantization noise under `||q||` (21.7 on SPECTER2) instead of `||q-mu||` (8.4). faiss `IndexRaBitQ` does it the right way (`q.mu + <mu,r> + ||r|| <q-mu, o_bar> / c`, centred on the corpus mean); remex's centered mode did not. Porting only that formula to remex's centered Lloyd-Max codes (store fp32 `||r||` and fp16 `<mu,r>`, +2 B, plus one per-width constant `E[c]` = mean `cos(u_hat,u)`) moved SPECTER2 broad R@10 from .689 / .853 / .917 / .953 to .812 / .903 / .943 / .967 at 1-4 bits and tied faiss RaBitQ (.809 / .903 / .944 / .971) with every CI spanning zero. Dividing by a stored per-vector `<u_hat,u>` (the RaBitQ `<o_bar,o>` correction) does not do this: it is unbiased and ranks worse than remex centered by 0.04-0.17. `1/E[c]` matters only at 1 bit (+0.038). remex's centered `norms` column is neither `||x||` nor `||x-mu||` (it solves `||mu + m u_hat|| = ||x||`), so `||r||` and `<mu,r>` need their own storage. `<mu,r>` computed from the codes collapses to R@10 .59. (`rabitq-vs-remex/RESULTS.md`)
 - **Verifier cosine under different quantization conditions is on different
