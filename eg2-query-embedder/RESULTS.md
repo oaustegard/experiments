@@ -70,12 +70,15 @@ model cached.
    That blocks scripts too unless they send an allowed origin, which they can;
    the origin list is a courtesy to browsers, and the rate limit, the 512-character
    cap and the cache are what bound cost. (`results/live_first_deploy.json`)
-8. The container did not sleep on schedule. After about 14 idle minutes against
-   a 10-minute `sleepAfter`, the instance started at 04:03Z was still running, and
-   the next query took 980 ms round trip, <!-- @evidence[[results/live_cold_after_idle.json#first.roundtrip_ms]] -->
-   a warm answer. So no cold start after an idle sleep has been measured on
-   Cloudflare yet, and an instance may bill for longer than `sleepAfter`
-   suggests. (`results/live_cold_after_idle.json`, `results/instance_state_0426.json`)
+8. The container never slept, because node ran as PID 1 and ignored SIGTERM.
+   Cloudflare's idle stop (`sleepAfter`) and the Container class's `stop()` both
+   send SIGTERM; a PID 1 process without a handler ignores it. Locally, `docker
+   stop` on the v1 image waited out the timeout and SIGKILLed it (exit code 137,
+   8391 ms); <!-- @evidence[[results/sigterm.json#v1.stop_ms]] -->
+   the v2 image, with a SIGTERM handler, exits cleanly (exit code 0). <!-- @evidence[[results/sigterm.json#v2.exit_code]] -->
+   On Cloudflare the instance ran from 04:03Z until `destroy()` (SIGKILL) at
+   11:40Z, through idle stretches well past the 10-minute `sleepAfter`.
+   (`results/sigterm.json`, `results/instance_state_0457.json`)
 
 ## Method
 
@@ -157,3 +160,19 @@ check. Both exceed the 10-minute `sleepAfter`, and the instance never restarted
 container, or the API reports a placed instance whose process has stopped. The
 warm 980 ms answer at 04:26Z points to the first. Not yet resolved; finding 8
 stands.
+
+### 2026-10-19 11:40Z — stopped, and the cause
+
+Oskar: "Stop the container". The Worker gained `POST /admin/stop`, gated by a
+Worker secret `ADMIN_TOKEN`, which calls the Container class's `stop()` over RPC
+(a `fetch` override on the class was bypassed: the request reached the
+container's own server). `stop()` left the container `healthy`; `?destroy=1`
+(SIGKILL) stopped it, and the application's active instance count went from 1
+to 0. The containers API's instance list still shows its placement as
+`running`, so read the application's `health.instances.active` instead.
+
+Cause: `node server.cjs` is PID 1 and had no SIGTERM handler, so every
+SIGTERM, from `sleepAfter` or from `stop()`, was ignored
+(`results/sigterm.json`). `server.cjs` now exits on SIGTERM and SIGINT; built
+as `eg2-query-embedder:v2` on top of v1 (Docker Hub still answered 429 for
+the base image), card check passing. v2 is not deployed yet.

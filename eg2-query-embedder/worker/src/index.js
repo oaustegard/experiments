@@ -45,6 +45,17 @@ async function sha256(s) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Operator route: stop the container now. The token is a Worker secret (ADMIN_TOKEN); without
+    // it the route does not exist.
+    if (url.pathname === '/admin/stop' && request.method === 'POST') {
+      if (!env.ADMIN_TOKEN || request.headers.get('x-admin-token') !== env.ADMIN_TOKEN) return reply(404, { error: 'not found' }, {});
+      // RPC to the Container class's own methods; a fetch would be proxied to the container.
+      const stub = getContainer(env.EMBEDDER);
+      const before = await stub.getState();
+      // ?destroy=1 sends SIGKILL, for a process that ignores SIGTERM.
+      if (url.searchParams.get('destroy') === '1') await stub.destroy(); else await stub.stop();
+      return reply(200, { stopped: true, destroyed: url.searchParams.get('destroy') === '1', before }, {});
+    }
     const ch = cors(env, request);
     if (!ch) return reply(403, { error: 'origin not allowed' }, {});
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: ch });

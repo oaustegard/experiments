@@ -118,4 +118,8 @@ const ready = load().then(() => {
 });
 ready.catch((e) => { console.error(e); process.exit(1); });
 
+// As PID 1 in a container, node gets no default SIGTERM handling and ignores the signal, so
+// Cloudflare's idle stop (sleepAfter) never took effect and the container ran until killed.
+for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => process.exit(0));
+
 module.exports = { embed, ready };

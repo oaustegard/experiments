@@ -659,6 +659,13 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Node (or any runtime) as PID 1 in a container ignores SIGTERM unless it installs a handler.**
+  The kernel gives PID 1 no default signal actions, so `docker stop`, a platform's idle shutdown
+  (Cloudflare Containers' `sleepAfter`, the Container class's `stop()`) and rollouts all fall
+  through to SIGKILL, or, where the platform never escalates, leave the container running and
+  billing indefinitely. Add `process.on('SIGTERM', () => process.exit(0))`, or run under
+  `tini`/`docker run --init`. Test with `docker stop -t 8`: exit code 137 after the full timeout
+  means the signal was ignored. (`eg2-query-embedder/RESULTS.md`, finding 8)
 - **Docker `ADD --chmod=644` makes the directory it creates unenterable.** The mode also applies to
   the parent directory ADD creates (`drw-r--r--`), so a non-root `USER` gets EACCES on every file in
   it. Use 755, and run any build-time check *after* `USER`, or a root-run check passes an image that

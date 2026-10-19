@@ -1,0 +1,20 @@
+{
+ "note": "docker stop -t 8 on a container started 6 s earlier, 2026-10-19 ~11:45Z. v1 = node server.cjs as PID 1 with no signal handler; v2 = same image plus process.on('SIGTERM'|'SIGINT', exit 0).",
+ "v1": {
+  "pid1": "node server.cjs",
+  "stop_ms": 8391,
+  "exit_code": 137
+ },
+ "v2": {
+  "stop_ms": 3698,
+  "exit_code": 0
+ },
+ "cloudflare": {
+  "stop_rpc_state_after": "healthy",
+  "destroy_rpc_state_after": "stopped",
+  "app_active_after_destroy": 0,
+  "app_active_before": 1,
+  "instance_ran_from": "2026-10-19T04:03:00Z",
+  "destroyed_at": "2026-10-19T11:40Z"
+ }
+}
