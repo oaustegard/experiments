@@ -18,11 +18,13 @@ let pos2, pos3, filt, colours;
 async function load() {
   const [map, bin, postList, index] = await Promise.all([
     fetch('bsky/map.json').then((r) => r.json()),
-    fetch('bsky/map.bin').then((r) => r.arrayBuffer()),
+    fetch('bsky/map.u8.txt').then((r) => { if (!r.ok) throw new Error(`bsky/map.u8.txt: HTTP ${r.status}`); return r.arrayBuffer(); }),
     fetch('bsky/posts.json').then((r) => r.json()),
     fetch('bsky/index.json').then((r) => r.json()),
   ]);
   M = map; n = map.n; posts = postList; authors = index.authors;
+  if (bin.byteLength !== n * 25) throw new Error(`map data is ${bin.byteLength} bytes, expected ${n * 25} for ${n} posts`);
+  if (posts.length !== n) throw new Error(`posts.json has ${posts.length} posts, map.json ${n}`);
   let o = 0;
   xy = new Float32Array(bin, o, n * 2); o += n * 8;
   xyz = new Float32Array(bin, o, n * 3); o += n * 12;

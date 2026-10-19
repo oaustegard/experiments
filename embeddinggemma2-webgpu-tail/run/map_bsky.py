@@ -10,8 +10,8 @@ web/bsky/posts.json's order). Steps:
   3. k-means topics on the 50-dim PCA; each topic labelled by its top c-TF-IDF words
      (a word's frequency in the topic over its frequency in the corpus).
   4. Monthly post counts per topic, for the share-over-time view.
-Writes web/bsky/map.bin (float32 xy[n,2], float32 xyz[n,3], uint32 time[n] in seconds,
-uint8 topic[n], little-endian, in that order) and web/bsky/map.json. No post text is written;
+Writes web/bsky/map.u8.txt (float32 xy[n,2], float32 xyz[n,3], uint32 time[n] in seconds,
+uint8 topic[n], little-endian, in that order; .txt because the Pages builder does not ship .bin) and web/bsky/map.json. No post text is written;
 the labels are aggregate keywords.
 """
 import argparse
@@ -121,7 +121,7 @@ def main() -> int:
                        "c3": [round(float(v), 4) for v in np.median(layouts[3][m], 0)],
                        "monthly": monthly[c].tolist()})
     WEB.mkdir(parents=True, exist_ok=True)
-    with open(WEB / "map.bin", "wb") as f:
+    with open(WEB / "map.u8.txt", "wb") as f:
         f.write(layouts[2].astype("<f4").tobytes())
         f.write(layouts[3].astype("<f4").tobytes())
         f.write(ts.astype("<u4").tobytes())
