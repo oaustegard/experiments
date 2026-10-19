@@ -2,7 +2,7 @@
 // run/map_bsky.py (UMAP of the EmbeddingGemma 2 embeddings, k-means topics, c-TF-IDF words);
 // rendering is deck.gl on WebGL, with the time window applied on the GPU (DataFilterExtension).
 // Post text is fetched from Bluesky when a point is clicked; the map files hold none.
-const { Deck, OrthographicView, OrbitView, ScatterplotLayer, TextLayer, DataFilterExtension, CollisionFilterExtension } = deck;
+const { Deck, OrthographicView, OrbitView, ScatterplotLayer, TextLayer, DataFilterExtension } = deck;
 
 const $ = (id) => document.getElementById(id);
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -147,13 +147,11 @@ function layers() {
     data: M.topics.filter((t) => st.colour !== 'topics' || !st.sel.length || st.sel.includes(t.id)),
     getPosition: (t) => (is3 ? t.p3 : t.p2),
     getText: (t) => t.words.slice(0, 2).join(' · '),
-    getSize: 12, sizeUnits: 'pixels', billboard: true,
+    getSize: 11.5, sizeUnits: 'pixels', billboard: true,
     getColor: [...hex(css('--text-primary')), 220],
     outlineWidth: 3, outlineColor: [...hex(css('--surface-1')), 230], fontSettings: { sdf: true },
-    fontFamily: 'system-ui, sans-serif', getTextAnchor: 'middle', getAlignmentBaseline: 'center',
-    // a label shows only where it fits; bigger topics win
-    extensions: [new CollisionFilterExtension()], getCollisionPriority: (t) => t.size,
-    collisionTestProps: { sizeScale: 1.3 },
+    fontFamily: 'system-ui, sans-serif', fontWeight: 600, characterSet: 'auto',   // '·' is outside the default ASCII atlas
+    getTextAnchor: 'middle', getAlignmentBaseline: 'center',
   });
   return [pts, labels];
 }
@@ -173,7 +171,7 @@ function render() {
 
 function initialState(is3) {
   const fit = Math.log2(Math.min($('deck').clientWidth, $('deck').clientHeight) / (2.4 * S));
-  return is3 ? { target: [0, 0, 0], rotationX: 15, rotationOrbit: 30, zoom: fit - 0.2, minZoom: -4, maxZoom: 6 }
+  return is3 ? { target: [0, 0, 0], rotationX: 15, rotationOrbit: 30, zoom: fit - 0.6, minZoom: -4, maxZoom: 6 }
              : { target: [0, 0, 0], zoom: fit, minZoom: -4, maxZoom: 8 };
 }
 
@@ -276,7 +274,9 @@ function shareChart() {
   const series = ['--series-1', '--series-2', '--series-3'];
   const lines = st.sel.map((id) => M.topics[id].monthly.map((c, j) => (ok[j] ? c / tot[j] : null)));
   const ymax = Math.max(0.05, ...lines.flat().filter((v) => v !== null)) * 1.1;
-  const j0 = Math.max(0, months.findIndex((_, j) => ok[j]));
+  // from the month after which every month has enough posts
+  let j0 = months.length - 1;
+  while (j0 > 0 && ok[j0 - 1]) j0--;
   const x = (j) => L + ((j - j0) / Math.max(1, months.length - 1 - j0)) * (W - L - R);
   const y = (v) => T + (1 - v / ymax) * (H - T - B);
   for (const v of [0, ymax / 2]) {
@@ -290,7 +290,7 @@ function shareChart() {
   }
   lines.forEach((ln, k) => {
     let d = '', pen = false;
-    ln.forEach((v, j) => { if (v === null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${x(j).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
+    ln.forEach((v, j) => { if (v === null || j < j0) { pen = false; return; } d += `${pen ? 'L' : 'M'}${x(j).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
     mk('path', { d, fill: 'none', stroke: `var(${series[k]})`, 'stroke-width': 2, 'stroke-linejoin': 'round' });
   });
   // the window's end, so the map and the chart read together
