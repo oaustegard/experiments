@@ -89,9 +89,22 @@ try {
   await ff(page, 'c2', 1300);
   const s2 = { ...(await measured(page, 'c2')), ...(await ns(page, () => ({ re: window.__ns.re, frames: window.__ns.frames.ch2, regime: document.querySelector('#c2-regime').textContent }))) };
   check('ch2 channel flow runs', s2.frames > 10 && s2.energy > 0.05 && s2.maxVort > 0, s2);
+  const wake = (page) => page.evaluate(() => window.__ns.c2.wakeRms());
+  const w1 = await wake(page);
+  check('ch2 cylinder wake sheds', w1 > 0.05, { vrms: w1 });
+  await page.evaluate(() => window.__ns.c2.restart());
+  await ff(page, 'c2', 1000);
+  const w2 = await wake(page);
+  check('ch2 wake sheds again after restart', w2 > 0.05, { vrms: w2 });
   await page.click('#c2-view button[data-v="1"]');
   await sleep(600);
   await page.locator('#ch2').screenshot({ path: `${SHOTS}/02-reynolds.png` });
+  await page.evaluate(() => window.__ns.c2.setShape('airfoil'));
+  await ff(page, 'c2', 1300);
+  const w3 = await wake(page);
+  const a3 = await ns(page, () => ({ re: window.__ns.re, aoa: +document.querySelector('#c2-aoa').value }));
+  check('ch2 airfoil stalls at high angle', w3 > 0.05 && a3.re > 900, { vrms: w3, ...a3 });
+  await page.locator('#ch2 figure').screenshot({ path: `${SHOTS}/02b-airfoil.png` });
 
   // ---- chapter 3
   await page.locator('#ch3 .two').scrollIntoViewIfNeeded();

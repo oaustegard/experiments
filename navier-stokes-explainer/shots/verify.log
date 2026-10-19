@@ -1,13 +1,16 @@
 PASS webgpu device {}
-PASS ch1 steps and carries momentum {"maxVort":4.3030571937561035,"energy":0.8146647135416667,"frame":73,"time":69,"frames":73}
+PASS ch1 steps and carries momentum {"maxVort":5.1557488441467285,"energy":1.737051052517361,"frame":96,"time":92,"frames":96}
 PASS ch1 pressure toggle {"pressure":false,"note":true,"eqOff":true}
-PASS ch2 channel flow runs {"maxVort":0.4429349899291992,"energy":0.1489357277199074,"frame":1742,"time":1734,"re":158.48931924611142,"frames":221,"regime":"The wake oscillates and sheds a von Kármán street."}
-PASS ch3 2D max vorticity never exceeds its start {"samples":33,"max":1,"last":0.39962583759826553}
-PASS ch3 3D stretching raises vorticity {"samples":25,"maxStretch":3.751445770263672,"tLast":7.200000000000015}
+PASS ch2 channel flow runs {"maxVort":0.42214715480804443,"energy":0.14141529224537036,"frame":1742,"time":1734,"re":158.48931924611142,"frames":221,"regime":"The wake oscillates and sheds a von Kármán street."}
+PASS ch2 cylinder wake sheds {"vrms":0.28914646169238645}
+PASS ch2 wake sheds again after restart {"vrms":0.2774231780991365}
+PASS ch2 airfoil stalls at high angle {"vrms":0.2581734659936777,"re":1000,"aoa":15}
+PASS ch3 2D max vorticity never exceeds its start {"samples":107,"max":1,"last":0.38758614618830006}
+PASS ch3 3D stretching raises vorticity {"samples":10,"maxStretch":2.0373733043670654,"tLast":5.580000000000002}
 PASS ch3 tilted preset runs {"samples":6,"maxStretch":4.723394870758057}
 PASS ch4 toy verdict follows alpha "With α = 1.20 the integral diverges at T*. This is the growt"
-PASS ch4 spectrum and BKM trace {"specLen":128,"hist":10,"E1":0.0000805917240562125,"E64":2.884249033030024e-8,"E128":2.986944187105248e-10}
+PASS ch4 spectrum and BKM trace {"specLen":128,"hist":12,"E1":0.00010312434197475245,"E64":3.106149562902752e-8,"E128":2.0315382063154614e-10}
 PASS ch5 scaling window drag updates verdict {"before":"T* = 1.250. μ ≤ λ², so the Reynolds number does not fall from layer to layer and","after":"T* = 4.000. μ > λ², so each layer's Reynolds number is 2.57× smaller than the la","mu":0.75}
 PASS no page or WebGPU errors []
 PASS fallback message without WebGPU {"gpu":false,"nogpu":true,"errors":[]}
-12/12 checks passed
+15/15 checks passed

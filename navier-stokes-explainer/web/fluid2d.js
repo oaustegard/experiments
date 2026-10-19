@@ -251,6 +251,7 @@ fn wr(c: vec2i) -> vec2i {
   return clamp(c, vec2i(0), s - 1);
 }
 fn V(c: vec2i) -> vec2f { return textureLoad(vel, wr(c), 0).xy; }
+fn M(c: vec2i) -> f32 { return textureLoad(mask, clamp(c, vec2i(0), dims() - 1), 0).x; }
 fn vort(c: vec2i) -> f32 { return 0.5 * ((V(c + vec2i(1, 0)).y - V(c - vec2i(1, 0)).y) - (V(c + vec2i(0, 1)).x - V(c - vec2i(0, 1)).x)); }
 fn divg(c: vec2i) -> f32 { return 0.5 * ((V(c + vec2i(1, 0)).x - V(c - vec2i(1, 0)).x) + (V(c + vec2i(0, 1)).y - V(c - vec2i(0, 1)).y)); }
 fn field(c: vec2i, mode: u32) -> vec4f {
@@ -281,7 +282,12 @@ fn diverging(t: f32) -> vec3f {
   let s = vec2f(dims());
   let p = vec2f(i.uv.x, 1.0 - i.uv.y) * s;
   let mode = u32(U.a.z); let gain = U.a.w;
-  if (U.obst.w > 0.5 && textureLoad(mask, clamp(vec2i(floor(p)), vec2i(0), dims() - 1), 0).x > 0.5) { return vec4f(0.32, 0.34, 0.38, 1.0); }
+  if (U.obst.w > 0.5) {
+    // Bilinear mask, thresholded: smooths the staircase the cell mask draws.
+    let q = p - 0.5; let i = vec2i(floor(q)); let fq = q - floor(q);
+    let m = mix(mix(M(i), M(i + vec2i(1, 0)), fq.x), mix(M(i + vec2i(0, 1)), M(i + vec2i(1, 1)), fq.x), fq.y);
+    if (m > 0.5) { return vec4f(0.32, 0.34, 0.38, 1.0); }
+  }
   let v = sampleF(p, mode);
   var col: vec3f;
   if (mode == 0u) { col = vec3f(0.035, 0.04, 0.06) + (1.0 - exp(-v.rgb * gain)); }

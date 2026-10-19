@@ -115,7 +115,9 @@ const SHAPE_NOTES = {
   plate: () => 'A flat plate across the flow. The flow separates at the two edges at every Reynolds number, and the wake is as wide as the plate or wider. Its drag coefficient at high Re is about 2, against about 1.2 for a cylinder of the same height.',
   airfoil: (re, aoa) => aoa <= 8
     ? `NACA 2412 at ${aoa}°, with Re based on the chord. At small angles the flow follows both surfaces and leaves the trailing edge smoothly.`
-    : `NACA 2412 at ${aoa}°. At high angles the flow separates from the upper surface and the airfoil sheds vortices: it has stalled. Real wings fly at Reynolds numbers in the millions, far above this grid, and stall at different angles.`,
+    : re < 500
+      ? `NACA 2412 at ${aoa}°. At this Reynolds number viscosity holds even a steep wake steady; on this grid the airfoil at 16° stays steady at Re 150 and stalls at Re 1000.`
+      : `NACA 2412 at ${aoa}°. At high angles the flow separates from the upper surface and the airfoil sheds vortices: it has stalled. Real wings fly at Reynolds numbers in the millions, far above this grid, and stall at different angles.`,
 };
 
 function chapter2(device) {
@@ -124,7 +126,7 @@ function chapter2(device) {
   const f = new Fluid2D(device, cv, { W, H, bc: 2, dt: 1, inflow: U, dyeDecay: 0.9995, maccormack: true, diffuseIters: 40, pressureIters: 40, mode: 0, gain: 1.4 });
   NS.sims.c2 = f;
   f.attachPointer({ radius: 4, strength: 0.6 });
-  let shape = 'cylinder', aoa = 4, re = 150, geo = null;
+  let shape = 'cylinder', aoa = 15, re = 150, geo = null;
   const note = () => { $('#c2-regime').textContent = SHAPE_NOTES[shape](Math.round(re), aoa); };
   const setNu = () => { f.nu = (U * geo.L) / re; };
   // An impulsively started flow past a nearly symmetric body can sit in an unstable
@@ -134,11 +136,31 @@ function chapter2(device) {
   const restart = () => { geo = shapeMask(W, H, shape, aoa); f.setMask(geo.m); setNu(); f.clear(); kick(); note(); };
   slider('#c2-re', (v) => `${Math.round(10 ** v)}`, (v) => { re = 10 ** v; NS.re = re; if (geo) { setNu(); note(); } });
   slider('#c2-aoa', (v) => `${v}°`, (v) => { aoa = v; if (geo && shape === 'airfoil') restart(); });
-  seg($('#c2-shape'), (v) => { shape = v; $('#c2-aoa-wrap').hidden = v !== 'airfoil'; restart(); });
+  // Unsteadiness of the wake: the time standard deviation of cross-stream velocity at
+  // probe points 60% down the channel, sampled over ~one shedding period. One snapshot
+  // is not enough: its value depends on where the street is in its cycle.
+  const wakeRms = async (span = 300, samples = 6) => {
+    const x = Math.floor(W * 0.6), ys = [0.3, 0.4, 0.5, 0.6, 0.7].map((q) => Math.floor(H * q));
+    const series = ys.map(() => []);
+    for (let k = 0; k < samples; k++) {
+      for (let i = 0; i < span / samples; i++) { f.step(); if (i % 25 === 24) await f.device.queue.onSubmittedWorkDone(); }
+      const v = await f.readVelocity(); if (!v) return null;
+      ys.forEach((y, j) => series[j].push(v[(y * W + x) * 4 + 1]));
+    }
+    const sd = (a) => { const m = a.reduce((p, q) => p + q, 0) / a.length; return Math.sqrt(a.reduce((p, q) => p + (q - m) ** 2, 0) / a.length); };
+    return Math.max(...series.map(sd));
+  };
+
+  seg($('#c2-shape'), (v) => {
+    shape = v; $('#c2-aoa-wrap').hidden = v !== 'airfoil';
+    // A chord is three times a cylinder's diameter; at the cylinder's Re the airfoil never stalls.
+    if (v === 'airfoil' && re < 1000) { const el = $('#c2-re'); el.value = 3; el.dispatchEvent(new Event('input')); }
+    restart();
+  });
   seg($('#c2-view'), (v) => { f.mode = +v; f.gain = +v === 1 ? 8 : 1.4; });
   $('#c2-reset').addEventListener('click', restart);
   restart();
-  NS.c2 = { restart, setShape: (v) => $(`#c2-shape button[data-v="${v}"]`).click() };
+  NS.c2 = { restart, wakeRms, setShape: (v) => $(`#c2-shape button[data-v="${v}"]`).click() };
   onFrame('ch2', () => { sizeCanvas(cv); f.step(); f.step(); f.render(); });
 }
 
