@@ -10,13 +10,19 @@ dimension, simulated in fp32 ("fake quant"), and runs the bench. Method:
   rtn    round to nearest, min/max per block
   gptq   GPTQ (Frantar et al. 2022): column-by-column rounding with the error spread over the
          columns not yet rounded, from each layer's input Hessian on calibration queries
-Bytes use onnxruntime MatMulNBits' layout: b bits per weight, an fp32 scale and a b-bit zero
-point per block, plus the q4 table and tokenizer. Writes results/quant_full.json.
+  higgs  HIGGS-style (Malinovskii et al. 2024; the lineage in remex-vs-higgs-ablation): a
+         seeded randomized Hadamard rotation along the input dimension, then per block the
+         Lloyd-Max levels of N(0,1) times a scale picked by MSE, then the rotation undone.
+         It is a download format: decoded to q4 or fp16 at load, so no runtime kernel needed
+Bytes for rtn/gptq use onnxruntime MatMulNBits' layout (b bits per weight, an fp32 scale and a
+b-bit zero point per block); for higgs b bits per weight and an fp16 scale per block. Plus the
+q4 table and tokenizer. Writes results/quant_full.json.
 """
 import argparse
 import json
 import sys
 import time
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -78,6 +84,48 @@ def gptq(w, H, bits, block, damp=0.01):
     return Q.float()
 
 
+def lloyd_max(bits, iters=200):
+    """MSE-optimal scalar levels for N(0,1) (Max 1960), by Lloyd iteration on the density."""
+    from math import erf, exp, pi, sqrt
+    pdf = lambda x: exp(-x * x / 2) / sqrt(2 * pi)  # noqa: E731
+    cdf = lambda x: 0.5 * (1 + erf(x / sqrt(2)))  # noqa: E731
+    n = 2 ** bits
+    lv = np.linspace(-2, 2, n)
+    for _ in range(iters):
+        edges = np.concatenate([[-np.inf], (lv[1:] + lv[:-1]) / 2, [np.inf]])
+        lv = np.array([(pdf(a) - pdf(b)) / max(cdf(b) - cdf(a), 1e-12) for a, b in zip(edges[:-1], edges[1:])])
+    return torch.tensor(lv, dtype=torch.float32)
+
+
+def rht(n, seed):
+    """Randomized Hadamard: H_n diag(signs) / sqrt(n), n a power of two; orthogonal."""
+    H = torch.ones(1, 1)
+    while H.shape[0] < n:
+        H = torch.cat([torch.cat([H, H], 1), torch.cat([H, -H], 1)], 0)
+    signs = torch.from_numpy(np.random.default_rng(seed).choice([-1.0, 1.0], n)).float()
+    return H * signs / n ** 0.5
+
+
+def higgs(w, bits, block, seed):
+    out, cols = w.shape
+    R = rht(cols, seed)
+    Wr = (w @ R.T).reshape(out, cols // block, block)  # rotated weights, blocks along input
+    lv = lloyd_max(bits)
+    rms = Wr.pow(2).mean(-1, keepdim=True).sqrt().clamp(min=1e-12)
+    best, best_err = None, None
+    for f in np.linspace(0.6, 1.4, 17):  # per-block scale by MSE over a small grid
+        sc = (rms * f).half().float()  # stored as fp16
+        q = lv[(Wr / sc).unsqueeze(-1).sub(lv).abs().argmin(-1)] * sc
+        err = (q - Wr).pow(2).sum(-1, keepdim=True)
+        if best is None:
+            best, best_err = q, err
+        else:
+            better = err < best_err
+            best = torch.where(better, q, best)
+            best_err = torch.minimum(err, best_err)
+    return best.reshape(out, cols) @ R
+
+
 def hessians(m, enc, batch=64):
     """X^T X of each target Linear's input over the calibration tokens (padding excluded)."""
     H, hooks, mask_now = {}, [], {}
@@ -97,12 +145,13 @@ def hessians(m, enc, batch=64):
     return H
 
 
-def nbytes(m, bits, block):
-    """MatMulNBits bytes for the quantized Linears (b-bit weights, fp32 scale, b-bit zp per block)."""
+def nbytes(m, bits, block, method="rtn"):
+    """rtn/gptq: MatMulNBits bytes (b-bit weights, fp32 scale, b-bit zp per block);
+    higgs: b-bit codes and an fp16 scale per block."""
     total = 0
     for _, mod in targets(m):
         n = mod.weight.numel()
-        total += n * bits / 8 + n / block * (4 + bits / 8)
+        total += n * bits / 8 + n / block * (2 if method == "higgs" else 4 + bits / 8)
     return int(total)
 
 
@@ -146,10 +195,17 @@ def main():
         with torch.no_grad():
             for n, mod in targets(m):
                 w = orig[n]
-                mod.weight.data.copy_(rtn(w, bits, block) if method == "rtn" else gptq(w, H[n], bits, block))
+                if method == "rtn":
+                    q = rtn(w, bits, block)
+                elif method == "gptq":
+                    q = gptq(w, H[n], bits, block)
+                else:
+                    q = higgs(w, bits, block, seed=zlib.crc32(n.encode()))  # stable across runs, unlike hash()
+                mod.weight.data.copy_(q)
         r, _ = B.score({t: embed(m, enc[t]) for t in TESTS})
-        res[cfg] = {"method": method, "bits": bits, "block": block, "bytes": fixed + nbytes(m, bits, block),
-                    "mb": round((fixed + nbytes(m, bits, block)) / 1e6, 1), **r, "seconds": round(time.time() - t0)}
+        nb = fixed + nbytes(m, bits, block, method)
+        res[cfg] = {"method": method, "bits": bits, "block": block, "bytes": nb,
+                    "mb": round(nb / 1e6, 1), **r, "seconds": round(time.time() - t0)}
         print(cfg, f"{res[cfg]['mb']} MB", json.dumps({t: round(r[t]["overlap@10"][0], 3) for t in TESTS}),
               "hit", round(r["synth_test"]["hit@10"][0], 3), flush=True)
         out.write_text(json.dumps(res, indent=1))
