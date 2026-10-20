@@ -19,7 +19,7 @@ from tokenizers import Tokenizer
 from transformers import AutoTokenizer
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from a1_linear import fit  # noqa: E402
+from a1_linear import fit  # noqa: E402  (ridge, same closed form as the A1 arm)
 from common import OUT, Index, Teacher, boot_ci, overlap  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -80,19 +80,30 @@ def main():
         preds[f"A4 pruned EG2 K={k}"] = ({t: P.embed([x["q"] for x in data[t]]) for t in TESTS},
                                          r["onnx_bytes"] + r["tokenizer_gz_bytes"])
 
+    per_query = {}
     res = {"EG2 (teacher)": {"bytes": a4["full"]["onnx_bytes"] + a4["full"]["tokenizer_gz_bytes"],
                              "synth_test": {"hit@10": boot_ci(hit_t)}}}
     for name, (P, nbytes) in preds.items():
         r = {"bytes": nbytes}
         for t in TESTS:
             top = ix.topk(P[t])
-            r[t] = {"overlap@10": boot_ci(overlap(top, top_t[t]))}
+            ov = overlap(top, top_t[t])
+            per_query[(name, t)] = ov
+            r[t] = {"overlap@10": boot_ci(ov)}
             if t == "synth_test":
                 h = (top == src[:, None]).any(1).astype(float)
                 r[t]["hit@10"] = boot_ci(h)
                 r[t]["hit@10_minus_eg2"] = paired(h, hit_t)
         res[name] = r
         print(name, json.dumps(r), flush=True)
+    # Paired: same queries, so the CI is on the per-query difference.
+    pairs = {"data_vs_epochs": ("A3 leaf_cont165k epoch0 int8", "A3 leaf_cont54k epoch3 int8"),
+             "leaf_vs_minilm": ("A3 mdbr-leaf-mt epoch5 int8", "A3 all-MiniLM-L6-v2 epoch5 int8")}
+    res["paired"] = {}
+    for k, (x, y) in pairs.items():
+        if all((n, "real_test") in per_query for n in (x, y)):
+            res["paired"][k] = {"a": x, "b": y, **{t: paired(per_query[(x, t)], per_query[(y, t)]) for t in TESTS}}
+            print(k, json.dumps(res["paired"][k]))
     (ROOT / "results" / "final.json").write_text(json.dumps(res, indent=1))
 
 

@@ -2976,6 +2976,28 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **A small student distilled onto a frozen embedder's query vectors plateaus
+  near half its top 10, and more data does not fix it.** leaf-mt (23M) trained on
+  EmbeddingGemma 2 targets reached 0.48 top-10 overlap with EG2 on a 61,686-post
+  index after 10 epochs; one epoch over three times the in-domain data matched
+  four more epochs on the original set (paired difference 0.001). Before
+  distilling a student from scratch, try the teacher itself pruned (next item) or
+  a student initialised from the teacher's layers. (`eg2-query-student/RESULTS.md`
+  Findings 1, 2)
+- **Top-10 overlap with a teacher is a much stricter metric than task quality.**
+  EG2 pruned to 8K tokens agrees on only 0.77 of the top 10, yet finds a query's
+  source post at 0.009 below full EG2; students at 0.48 agreement lose 0.125. Report
+  both: an overlap number alone overstates the cost of a near-faithful encoder and
+  says little about an unfaithful one. (`eg2-query-student/RESULTS.md` Finding 4)
+- **Vocabulary pruning is exact where tokenization survives, and capped by the
+  table's share of the model.** Slicing `embed_tokens` to the top-K corpus tokens
+  (closed under the BPE merges that build them, merges to cut tokens dropped, byte
+  fallback on) leaves every query that tokenizes identically at cosine 0.9999998
+  to the full model. For EG2 q4 the table is 86 of 174 MB, so K=32K gives 0.93
+  agreement at 103 MB: check where the bytes live before promising a small model.
+  `eg2-query-student/run/a4_prune.py` does it for any GatherBlockQuantized embedding
+  table. (`eg2-query-student/RESULTS.md` Findings 3, 5)
+
 - **Verbatim overlap with a library's source is not, by itself, evidence of
   memorisation.** Haiku 5.5's rebuild of vstg, released after its training,
   shared 42% of its informative lines verbatim with the original; the eight

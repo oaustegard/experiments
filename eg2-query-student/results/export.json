@@ -74,5 +74,81 @@
    ],
    "cos": 0.9035962224006653
   }
+ },
+ "out/a3/leaf_cont165k/epoch0": {
+  "ckpt": "out/a3/leaf_cont165k/epoch0",
+  "prompt": "Represent this sentence for searching relevant passages: ",
+  "fp32_bytes": 95112110,
+  "int8_bytes": 24182521,
+  "int8_gz_bytes": 18557757,
+  "tokenizer_gz_bytes": {
+   "tokenizer.json": 206000
+  },
+  "real_test": {
+   "n": 1000,
+   "overlap@10": [
+    0.4816999999999999,
+    0.4692974999999999,
+    0.4938024999999999
+   ],
+   "cos": 0.8998502492904663,
+   "overlap@10[ai]": [
+    0.5432773109243698,
+    0.5184768907563024,
+    0.56890756302521
+   ],
+   "overlap@10[tech]": [
+    0.4624671916010498,
+    0.44920931758530175,
+    0.4751968503937008
+   ]
+  },
+  "synth_test": {
+   "n": 1498,
+   "overlap@10": [
+    0.5126835781041389,
+    0.5032693591455273,
+    0.5219008678237649
+   ],
+   "cos": 0.9103862047195435
+  }
+ },
+ "out/a3/leaf_cont54k/epoch3": {
+  "ckpt": "out/a3/leaf_cont54k/epoch3",
+  "prompt": "Represent this sentence for searching relevant passages: ",
+  "fp32_bytes": 95112110,
+  "int8_bytes": 24182521,
+  "int8_gz_bytes": 18557176,
+  "tokenizer_gz_bytes": {
+   "tokenizer.json": 206000
+  },
+  "real_test": {
+   "n": 1000,
+   "overlap@10": [
+    0.481,
+    0.4692974999999999,
+    0.49269999999999997
+   ],
+   "cos": 0.9019910097122192,
+   "overlap@10[ai]": [
+    0.5302521008403361,
+    0.5042016806722689,
+    0.5563025210084033
+   ],
+   "overlap@10[tech]": [
+    0.4656167979002624,
+    0.4523556430446195,
+    0.47848097112860893
+   ]
+  },
+  "synth_test": {
+   "n": 1498,
+   "overlap@10": [
+    0.5024032042723632,
+    0.49279038718291057,
+    0.5115487316421895
+   ],
+   "cos": 0.9076351523399353
+  }
  }
 }
