@@ -17,11 +17,32 @@ RUNS=${RUNS:-"4 2 8"}
 EPOCHS=${EPOCHS:-10}
 export PYTORCH_ENABLE_MPS_FALLBACK=1   # any op MPS lacks runs on CPU instead of failing
 
+base_python() {
+  # torch publishes macOS arm64 wheels for a bounded range of Python versions; a newer
+  # Homebrew python3 (or an x86 one under Rosetta) gets "from versions: none".
+  for v in python3.13 python3.12 python3.11; do
+    if command -v "$v" >/dev/null && [ "$("$v" -c 'import platform; print(platform.machine())')" = arm64 ]; then
+      echo "$v"; return
+    fi
+  done
+  return 1
+}
+
 setup() {
-  if [ ! -x "$PY" ]; then
-    python3 -m venv .venv
-    .venv/bin/pip install -q --upgrade pip
-    .venv/bin/pip install -q -r requirements-mac.txt
+  if ! "$PY" -c "import torch, transformers" 2>/dev/null; then
+    if [ "$PY" != "$HERE/.venv/bin/python" ]; then
+      echo "PY=$PY lacks torch/transformers; pip install -r requirements-mac.txt into it" >&2; exit 1
+    fi
+    rm -rf .venv
+    if command -v uv >/dev/null; then
+      uv venv -q --python 3.12 .venv           # uv fetches a managed 3.12 if none is installed
+      uv pip install -q --python .venv/bin/python -r requirements-mac.txt
+    else
+      base=$(base_python) || { echo "need an arm64 python3.11-3.13 (brew install python@3.12) or uv" >&2; exit 1; }
+      "$base" -m venv .venv
+      .venv/bin/pip install -q --upgrade pip
+      .venv/bin/pip install -q -r requirements-mac.txt
+    fi
   fi
   "$PY" -c "import torch; print('torch', torch.__version__, 'mps', torch.backends.mps.is_available())"
   "$PY" -I run/fetch_data.py
