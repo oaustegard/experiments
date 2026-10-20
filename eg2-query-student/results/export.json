@@ -36,5 +36,43 @@
    ],
    "cos": 0.8920417428016663
   }
+ },
+ "out/a3/mdbr-leaf-mt/epoch5": {
+  "ckpt": "out/a3/mdbr-leaf-mt/epoch5",
+  "prompt": "Represent this sentence for searching relevant passages: ",
+  "fp32_bytes": 95112110,
+  "int8_bytes": 24182521,
+  "int8_gz_bytes": 18553162,
+  "tokenizer_gz_bytes": {
+   "tokenizer.json": 206000
+  },
+  "real_test": {
+   "n": 1000,
+   "overlap@10": [
+    0.4619,
+    0.4501974999999999,
+    0.4734
+   ],
+   "cos": 0.8980847001075745,
+   "overlap@10[ai]": [
+    0.49999999999999994,
+    0.47603991596638645,
+    0.5252100840336135
+   ],
+   "overlap@10[tech]": [
+    0.44999999999999996,
+    0.4368766404199475,
+    0.4622080052493437
+   ]
+  },
+  "synth_test": {
+   "n": 1498,
+   "overlap@10": [
+    0.483845126835781,
+    0.47456608811748996,
+    0.4931241655540721
+   ],
+   "cos": 0.9035962224006653
+  }
  }
 }
