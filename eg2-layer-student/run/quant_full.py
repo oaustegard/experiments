@@ -1,0 +1,161 @@
+"""Full EG2 (all 24 layers, 32K vocabulary cut) with its transformer weights quantized below
+4 bits: does it keep EG2's space at a smaller download?
+
+Usage: python3 -I run/quant_full.py [--configs rtn:4:32 rtn:3:32 rtn:2:32 rtn:2:16 ...]
+
+Start: the q4 teacher's own weights (run/model.py), so rtn:4:32 should reproduce EG2. Each
+config re-quantizes every Linear in the layers, the PLE projection and the output projection
+(the token table stays at the teacher's q4) as asymmetric blockwise weights along the input
+dimension, simulated in fp32 ("fake quant"), and runs the bench. Method:
+  rtn    round to nearest, min/max per block
+  gptq   GPTQ (Frantar et al. 2022): column-by-column rounding with the error spread over the
+         columns not yet rounded, from each layer's input Hessian on calibration queries
+Bytes use onnxruntime MatMulNBits' layout: b bits per weight, an fp32 scale and a b-bit zero
+point per block, plus the q4 table and tokenizer. Writes results/quant_full.json.
+"""
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+import torch
+from tokenizers import Tokenizer
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bench import TESTS, Bench  # noqa: E402
+from l1_distill import train_texts  # noqa: E402
+from model import ROOT, Student, batches, embed, tokenize  # noqa: E402
+from common import Teacher  # noqa: E402
+
+VOCAB = ROOT / "out" / "vocab" / "k32000"
+
+
+def targets(m):
+    return [(n, mod) for n, mod in m.tm.named_modules()
+            if isinstance(mod, torch.nn.Linear) and n != "embed_tokens"]
+
+
+def rtn(w, bits, block):
+    out, cols = w.shape
+    W = w.reshape(out, cols // block, block)
+    lo, hi = W.min(-1, keepdim=True).values, W.max(-1, keepdim=True).values
+    qmax = 2 ** bits - 1
+    scale = ((hi - lo) / qmax).clamp(min=1e-12)
+    zp = torch.round(-lo / scale).clamp(0, qmax)
+    q = torch.clamp(torch.round(W / scale) + zp, 0, qmax)
+    return ((q - zp) * scale).reshape(out, cols)
+
+
+def gptq(w, H, bits, block, damp=0.01):
+    """GPTQ with per-block (along columns) asymmetric grids fixed when a block starts."""
+    W = w.clone().double()
+    cols = W.shape[1]
+    H = H.double().clone()
+    dead = torch.diag(H) == 0
+    H[dead, dead] = 1
+    W[:, dead] = 0
+    H += damp * torch.mean(torch.diag(H)) * torch.eye(cols, dtype=H.dtype)
+    Hinv = torch.linalg.cholesky(torch.cholesky_inverse(torch.linalg.cholesky(H)), upper=True)
+    qmax = 2 ** bits - 1
+    Q = torch.zeros_like(W)
+    for c0 in range(0, cols, block):
+        c1 = c0 + block
+        Wb = W[:, c0:c1]
+        lo, hi = Wb.min(1, keepdim=True).values, Wb.max(1, keepdim=True).values
+        scale = ((hi - lo) / qmax).clamp(min=1e-12)
+        zp = torch.round(-lo / scale).clamp(0, qmax)
+        Err = torch.zeros_like(Wb)
+        for j in range(block):
+            col = Wb[:, j:j + 1]
+            q = (torch.clamp(torch.round(col / scale) + zp, 0, qmax) - zp) * scale
+            Q[:, c0 + j] = q[:, 0]
+            e = (col - q) / Hinv[c0 + j, c0 + j]
+            Wb[:, j:] -= e @ Hinv[c0 + j:c0 + j + 1, c0 + j:c1]
+            Err[:, j] = e[:, 0]
+        W[:, c1:] -= Err @ Hinv[c0:c1, c1:]
+    return Q.float()
+
+
+def hessians(m, enc, batch=64):
+    """X^T X of each target Linear's input over the calibration tokens (padding excluded)."""
+    H, hooks, mask_now = {}, [], {}
+    for n, mod in targets(m):
+        H[n] = torch.zeros(mod.in_features, mod.in_features, dtype=torch.float64)
+
+        def hook(mod, inp, out, n=n):
+            x = inp[0].reshape(-1, inp[0].shape[-1])[mask_now["m"]].double()
+            H[n] += x.T @ x
+        hooks.append(mod.register_forward_hook(hook))
+    with torch.no_grad():
+        for _, ids, mask in batches(enc, batch):
+            mask_now["m"] = mask.reshape(-1).bool()
+            m(ids, mask)
+    for h in hooks:
+        h.remove()
+    return H
+
+
+def nbytes(m, bits, block):
+    """MatMulNBits bytes for the quantized Linears (b-bit weights, fp32 scale, b-bit zp per block)."""
+    total = 0
+    for _, mod in targets(m):
+        n = mod.weight.numel()
+        total += n * bits / 8 + n / block * (4 + bits / 8)
+    return int(total)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--configs", nargs="+",
+                    default=["rtn:4:32", "rtn:3:32", "rtn:2:32", "rtn:2:16", "gptq:3:32", "gptq:2:32", "gptq:2:16"])
+    ap.add_argument("--calib", type=int, default=2048, help="training queries for the GPTQ Hessians")
+    a = ap.parse_args()
+    torch.set_num_threads(4)
+    T, B = Teacher(), Bench()
+    rows = json.loads((VOCAB / "rows.json").read_text())
+    tok = Tokenizer.from_file(str(VOCAB / "tokenizer.json"))
+    m = Student(24, rows)
+    m.eval()
+    orig = {n: mod.weight.detach().clone() for n, mod in targets(m)}
+    enc = {t: tokenize(T, B.texts(t), remap=tok) for t in TESTS}
+    out = ROOT / "results" / "quant_full.json"
+    res = json.loads(out.read_text()) if out.exists() else {}
+    # Fixed sizes from the measured k = 24 q4 file components: the q4 32K table (13.69 MB,
+    # results/sizes.json), norms, graph and gzip tokenizer (about 1 MB together).
+    sizes = json.loads((ROOT / "results" / "sizes.json").read_text())["l2_k4"]
+    fixed = sizes["embed_tokens"]["bytes"] + sizes["tokenizer_gz"]["bytes"] + 1_000_000
+    H = None
+    if "unquantized (q4 teacher weights)" not in res:
+        r, _ = B.score({t: embed(m, enc[t]) for t in TESTS})
+        res["unquantized (q4 teacher weights)"] = {"bytes": fixed + nbytes(m, 4, 32), **r}
+        out.write_text(json.dumps(res, indent=1))
+    for cfg in a.configs:
+        if cfg in res:
+            continue
+        method, bits, block = cfg.split(":")
+        bits, block = int(bits), int(block)
+        t0 = time.time()
+        if method == "gptq" and H is None:
+            calib, _ = train_texts(["synth_train", "msmarco_train"])
+            pick = np.random.default_rng(0).choice(len(calib), a.calib, replace=False)
+            for n, mod in targets(m):
+                mod.weight.data.copy_(orig[n])
+            H = hessians(m, tokenize(T, [calib[i] for i in pick], remap=tok))
+        with torch.no_grad():
+            for n, mod in targets(m):
+                w = orig[n]
+                mod.weight.data.copy_(rtn(w, bits, block) if method == "rtn" else gptq(w, H[n], bits, block))
+        r, _ = B.score({t: embed(m, enc[t]) for t in TESTS})
+        res[cfg] = {"method": method, "bits": bits, "block": block, "bytes": fixed + nbytes(m, bits, block),
+                    "mb": round((fixed + nbytes(m, bits, block)) / 1e6, 1), **r, "seconds": round(time.time() - t0)}
+        print(cfg, f"{res[cfg]['mb']} MB", json.dumps({t: round(r[t]["overlap@10"][0], 3) for t in TESTS}),
+              "hit", round(r["synth_test"]["hit@10"][0], 3), flush=True)
+        out.write_text(json.dumps(res, indent=1))
+    for n, mod in targets(m):
+        mod.weight.data.copy_(orig[n])
+
+
+if __name__ == "__main__":
+    main()
