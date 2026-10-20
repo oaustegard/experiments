@@ -66,6 +66,8 @@ def main():
     ap.add_argument("--tau", type=float, default=0.01)
     ap.add_argument("--init", help="start from this checkpoint instead of base + ridge head")
     ap.add_argument("--tag", help="name for out/a3/<tag> and results/a3_<tag>.json")
+    ap.add_argument("--save-every", type=int, default=400,
+                    help="steps between mid-epoch checkpoints (model, optimizer, position) in out/a3/<tag>/last")
     a = ap.parse_args()
     tag = a.tag or a.base + (f"_rank{a.rank_weight:g}" if a.rank_weight else "")
     torch.set_num_threads(4)
@@ -74,7 +76,13 @@ def main():
     Y = np.concatenate([np.load(Q / f"{t}.eg2.npy") for t in a.train])
     work = ROOT / "out" / "a3" / tag
     done = sorted(work.glob("epoch*"), key=lambda p: int(p.name[5:]))
-    if done:
+    mid = json.loads((work / "last" / "pos.json").read_text()) if (work / "last" / "pos.json").exists() else None
+    start_step = 0
+    if mid and (not done or mid["epoch"] > int(done[-1].name[5:])):
+        # A mid-epoch checkpoint newer than the last finished epoch: resume at its step.
+        m = SentenceTransformer(str(work / "last"), device="cpu")
+        start, start_step = mid["epoch"], mid["step"]
+    elif done:
         m = SentenceTransformer(str(done[-1]), device="cpu")
         start = int(done[-1].name[5:]) + 1
     elif a.init:
@@ -125,14 +133,16 @@ def main():
     steps = (len(texts) + a.batch - 1) // a.batch
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt, lambda s: min(1.0, (s + 1) / 200) * max(0.0, 1 - s / (steps * a.epochs)))
-    for _ in range(start * steps):
+    if start_step and (work / "last" / "opt.pt").exists():
+        opt.load_state_dict(torch.load(work / "last" / "opt.pt"))
+    for _ in range(start * steps + start_step):
         sched.step()
     Yt = torch.from_numpy(Y)
     for ep in range(start, a.epochs):
         m.train()
         perm = np.random.default_rng(ep).permutation(len(texts))
         t0, tot = time.time(), 0.0
-        for s in range(steps):
+        for s in range(start_step if ep == start else 0, steps):
             b = perm[s * a.batch:(s + 1) * a.batch]
             feats = m.tokenize([prompt + texts[i] for i in b])
             out = m(feats)["sentence_embedding"]
@@ -147,6 +157,10 @@ def main():
             tot += loss.item()
             if s % 200 == 0:
                 print(f"ep{ep} {s}/{steps} loss {tot / (s + 1):.4f} {time.time() - t0:.0f}s", flush=True)
+            if a.save_every and (s + 1) % a.save_every == 0 and s + 1 < steps:
+                m.save(str(work / "last"))
+                torch.save(opt.state_dict(), work / "last" / "opt.pt")
+                (work / "last" / "pos.json").write_text(json.dumps({"epoch": ep, "step": s + 1}))
         m.eval()
         m.save(str(work / f"epoch{ep}"))
         evaluate(f"epoch{ep}")
