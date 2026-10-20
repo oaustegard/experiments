@@ -64,19 +64,24 @@ def main():
     ap.add_argument("--train", nargs="+", default=["msmarco_train", "synth_train"])
     ap.add_argument("--rank-weight", type=float, default=0.0)
     ap.add_argument("--tau", type=float, default=0.01)
+    ap.add_argument("--init", help="start from this checkpoint instead of base + ridge head")
+    ap.add_argument("--tag", help="name for out/a3/<tag> and results/a3_<tag>.json")
     a = ap.parse_args()
-    tag = a.base + (f"_rank{a.rank_weight:g}" if a.rank_weight else "")
+    tag = a.tag or a.base + (f"_rank{a.rank_weight:g}" if a.rank_weight else "")
     torch.set_num_threads(4)
     torch.manual_seed(0)
     texts = sum((load_texts(t) for t in a.train), [])
     Y = np.concatenate([np.load(Q / f"{t}.eg2.npy") for t in a.train])
-    X = np.concatenate([np.load(ROOT / "out" / "student" / a.base / f"{t}.npy") for t in a.train])
     work = ROOT / "out" / "a3" / tag
     done = sorted(work.glob("epoch*"), key=lambda p: int(p.name[5:]))
     if done:
         m = SentenceTransformer(str(done[-1]), device="cpu")
         start = int(done[-1].name[5:]) + 1
+    elif a.init:
+        m = SentenceTransformer(str(ROOT / a.init), device="cpu")
+        start = 0
     else:
+        X = np.concatenate([np.load(ROOT / "out" / "student" / a.base / f"{t}.npy") for t in a.train])
         m = build(a.base, X, Y)
         start = 0
     base_cfg = SentenceTransformer(str(ROOT / "out" / "models" / a.base), device="cpu").prompts or {}
@@ -84,7 +89,7 @@ def main():
     ix = Index()
     resp = ROOT / "results" / f"a3_{tag}.json"
     res = json.loads(resp.read_text()) if resp.exists() else {"base": a.base, "train": a.train,
-                                                               "n_train": len(texts), "rank_weight": a.rank_weight,
+                                                               "n_train": len(texts), "rank_weight": a.rank_weight, "init": a.init,
                                                                "tau": a.tau, "epochs": {}}
     if a.rank_weight:
         top_p = work / "teacher_top50.npy"
