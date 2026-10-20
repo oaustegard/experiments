@@ -50,7 +50,7 @@ def main():
     server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
                               cwd=REPO, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        wait_for_server(port)
+        wait_for_server(f"http://127.0.0.1:{port}/eg2-query-student/web/index.html")
         with sync_playwright() as p:
             b = p.chromium.launch(executable_path=CHROME, args=CHROME_ARGS)
             ctx = b.new_context(accept_downloads=True)
