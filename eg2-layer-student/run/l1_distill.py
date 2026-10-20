@@ -74,6 +74,7 @@ def main():
     ap.add_argument("--train-embed", action="store_true", help="train embed_tokens too (implied by --vocab)")
     ap.add_argument("--init", help="start from this state dict (e.g. out/l1/k4/final.pt) instead of the teacher's weights")
     ap.add_argument("--seed", type=int, default=0, help="offset for the batch order (a continuation should not replay it)")
+    ap.add_argument("--device", default="cpu", help="cpu, mps (Apple GPU) or cuda; auto picks the best present")
     ap.add_argument("--tag")
     ap.add_argument("--save-every", type=int, default=300)
     ap.add_argument("--eval-every", type=int, default=1000)
@@ -82,6 +83,9 @@ def main():
     tag = a.tag or f"k{a.k}"
     torch.set_num_threads(4)
     torch.manual_seed(0)
+    if a.device == "auto":
+        a.device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    dev = torch.device(a.device)
     T = Teacher()
     rows = tok = None
     if a.vocab:
@@ -97,6 +101,7 @@ def main():
         assert not m.load_state_dict(sd, strict=False).unexpected_keys
     train_embed = a.train_embed or bool(a.vocab)
     m.tm.embed_tokens.weight.requires_grad_(train_embed)
+    m.to(dev)
     texts, Y = train_texts(a.train)
     enc = tokenize(T, texts, remap=tok)
     B = Bench()
@@ -106,7 +111,7 @@ def main():
     resp = ROOT / "results" / f"l1_{tag}.json"
     res = json.loads(resp.read_text()) if resp.exists() else {
         "k": a.k, "train": a.train, "n_train": len(texts), "lr": a.lr, "batch": a.batch,
-        "epochs": a.epochs, "vocab": a.vocab, "init": a.init, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
+        "epochs": a.epochs, "vocab": a.vocab, "init": a.init, "device": a.device, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
         "evals": {}}
     params = [p for p in m.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=a.lr, weight_decay=0.0)
@@ -116,9 +121,9 @@ def main():
         opt, lambda s: min(1.0, (s + 1) / 100) * max(0.0, 1 - s / total))
     step = 0
     if (work / "last" / "pos.json").exists():
-        sd = torch.load(work / "last" / "weights.pt")
+        sd = torch.load(work / "last" / "weights.pt", map_location=dev)
         m.load_state_dict(sd, strict=False)
-        opt.load_state_dict(torch.load(work / "last" / "opt.pt"))
+        opt.load_state_dict(torch.load(work / "last" / "opt.pt", map_location=dev))
         step = json.loads((work / "last" / "pos.json").read_text())["step"]
         for _ in range(step):
             sched.step()
@@ -133,13 +138,13 @@ def main():
 
     def save():
         (work / "last").mkdir(exist_ok=True)
-        torch.save({n: p.detach() for n, p in m.named_parameters() if p.requires_grad}, work / "last" / "weights.pt")
+        torch.save({n: p.detach().cpu() for n, p in m.named_parameters() if p.requires_grad}, work / "last" / "weights.pt")
         torch.save(opt.state_dict(), work / "last" / "opt.pt")
         (work / "last" / "pos.json").write_text(json.dumps({"step": step}))
 
     if step == 0 and "step0" not in res["evals"]:
         evaluate("step0")
-    Yt = torch.from_numpy(Y)
+    Yt = torch.from_numpy(Y).to(dev)
     lens = np.array([len(e) for e in enc])
     plan = {}
     stop = min(total, a.max_steps or total)
@@ -151,8 +156,8 @@ def main():
         b = plan[ep][s]
         m.train()
         _, ids, mask = next(batches(enc, len(b), order=b))
-        out = m(ids, mask)
-        loss = (1 - (out * Yt[b]).sum(1)).mean()
+        out = m(ids.to(dev), mask.to(dev))
+        loss = (1 - (out * Yt[torch.as_tensor(b, device=dev)]).sum(1)).mean()
         opt.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(params, 1.0)
@@ -168,7 +173,7 @@ def main():
         if step % a.eval_every == 0 or step == stop:
             evaluate(f"step{step}")
     if step >= total:
-        torch.save(m.state_dict(), work / "final.pt")
+        torch.save({n: t.cpu() for n, t in m.state_dict().items()}, work / "final.pt")
         print("done", flush=True)
 
 

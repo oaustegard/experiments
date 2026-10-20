@@ -162,8 +162,9 @@ def tokenize(T, texts, prompt=QUERY, max_tokens=128, remap=None):
 def embed(model, enc, batch=128):
     model.eval()
     out = np.empty((len(enc), 768), np.float32)
+    dev = next(model.parameters()).device
     for rows, ids, mask in batches(enc, batch):
-        out[rows] = model(ids, mask).numpy()
+        out[rows] = model(ids.to(dev), mask.to(dev)).cpu().numpy()
     return out
 
 
