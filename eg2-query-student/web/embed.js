@@ -12,7 +12,7 @@
 // length in code points (0 for queries). run/read_shards.py reads it.
 //
 // URL options: ?shard=k starts at shard k; ?limit=n keeps only the first n items (smoke
-// tests); ?parity_n=n checks only n parity queries; ?items=<file> reads another items file; ?hf=<base> loads the model from a mirror.
+// tests); ?per=n sets items per shard file (default 30,000); ?parity_n=n checks only n parity queries; ?items=<file> reads another items file; ?hf=<base> loads the model from a mirror.
 
 const Q = new URLSearchParams(location.search);
 const HF = Q.get('hf') ? new URL(Q.get('hf'), location.href).href
@@ -200,7 +200,8 @@ async function run() {
       state.phase = 'parity_failed';
       return;
     }
-    const { shard: SHARD, items: all } = await fetch(Q.get('items') || 'items.json').then((r) => r.json());
+    const { shard: SHARD0, items: all } = await fetch(Q.get('items') || 'items.json').then((r) => r.json());
+    const SHARD = Q.get('per') ? Number(Q.get('per')) : SHARD0;
     const items = Q.get('limit') ? all.slice(0, Number(Q.get('limit'))) : all;
     const meta = await fetch(TAIL + 'index.json').then((r) => r.json());
     const posts = await fetch(TAIL + 'posts.json').then((r) => r.json());
