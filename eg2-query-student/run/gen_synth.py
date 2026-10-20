@@ -4,6 +4,9 @@ Usage:
   python3 -I run/gen_synth.py tasks            # writes out/synth/tasks.jsonl
   python3 $HEADLESS run out/synth/tasks.jsonl --work out/synth/run --model haiku --tools "" ...
   python3 -I run/gen_synth.py collect          # writes out/queries/synth_{train,test}.jsonl
+  python3 -I run/gen_synth.py tasks_more       # out/synth_more/tasks.jsonl: one more query for
+                                               # every eligible post outside the test pool
+  python3 -I run/gen_synth.py collect_more     # writes out/queries/synth_more.jsonl
 
 Posts are split once (seed 0) into disjoint train and test pools, so no test query comes
 from a post a training query came from. One query per post, 50 posts per child. Posts
@@ -63,12 +66,29 @@ def tasks():
     print(json.dumps({k: len(v) for k, v in split.items()}))
 
 
-def collect():
-    tasks_ = {json.loads(l)["id"]: json.loads(l) for l in (SYN / "tasks.jsonl").open()}
-    out = {"train": [], "test": []}
+def tasks_more():
+    """Round 2 for the GPU-embedded training set: every post >= 40 chars that is not in the
+    test pool gets one more query (a second one for the 24,000 round-1 train posts)."""
+    rows = posts()
+    random.Random(0).shuffle(rows)
+    test = {r["i"] for r in rows[N_TRAIN:N_TRAIN + N_TEST]}
+    pool = [r for r in rows if r["i"] not in test]
+    dst = ROOT / "out" / "synth_more"
+    dst.mkdir(parents=True, exist_ok=True)
+    with (dst / "tasks.jsonl").open("w") as f:
+        for b in range(0, len(pool), PER):
+            body = "\n\n".join(f"[{r['i']}] {r['text'][:600]}" for r in pool[b:b + PER])
+            f.write(json.dumps({"id": f"more-{b // PER:04d}", "system_prompt": SYSTEM,
+                                "json_schema": SCHEMA, "prompt": "Posts:\n\n" + body}) + "\n")
+    print(json.dumps({"more": len(pool), "excluded_test_posts": len(test)}))
+
+
+def collect(syn=SYN):
+    tasks_ = {json.loads(l)["id"]: json.loads(l) for l in (syn / "tasks.jsonl").open()}
+    out = {"train": [], "test": []} if syn == SYN else {"more": []}
     bad = 0
     for tid, t in tasks_.items():
-        p = SYN / "run" / "results" / f"{tid}.json"
+        p = syn / "run" / "results" / f"{tid}.json"
         if not p.exists():
             bad += 1
             continue
@@ -88,4 +108,5 @@ def collect():
 
 
 if __name__ == "__main__":
-    {"tasks": tasks, "collect": collect}[sys.argv[1]]()
+    {"tasks": tasks, "collect": collect, "tasks_more": tasks_more,
+     "collect_more": lambda: collect(ROOT / "out" / "synth_more")}[sys.argv[1]]()
