@@ -722,6 +722,19 @@ survives exactly the sanity checks people run.
   `writeBuffer` lands before the whole submit, so several dispatches recorded into one command
   encoder all see the last value written. Create each uniform `mappedAtCreation` and destroy it right
   after the submit; destruction waits for the submitted work. (`embeddinggemma2-webgpu-tail/web/tail.js`)
+- **transformers' EmbeddingGemma 2 config rewrites the last layer of a cut model.**
+  `EmbeddingGemma2TextConfig.__post_init__` forces the last entry of `layer_types` to
+  `full_attention`, editing the list you passed in place, so a model cut after a sliding
+  layer silently gets RoPE theta 1e6 on its last layer. Copy the list, build the config,
+  then assign the copy. (`eg2-layer-student/ERRORS.md` 3)
+- **`onnx.save` with external data appends to an existing data file.** Re-exporting into
+  the same directory doubles the data file and the model still loads; delete the old
+  files first. `quantize_dynamic` names its data `model.onnx.data`, `onnx.save`
+  `model.onnx_data`: count both. (`eg2-layer-student/ERRORS.md` 4, 5)
+- **onnxruntime-web 1.30's wasm backend has no GatherBlockQuantized kernel.** A q4 model
+  whose token table is GatherBlockQuantized (EG2's own q4 graph, or any
+  `MatMulNBitsQuantizer` output with Gather quantized) runs on WebGPU only; wasm fails at
+  session creation. (`eg2-layer-student/run/smoke_web.py`)
 - **`npm install --ignore-scripts` for onnxruntime-web.** `@huggingface/transformers` pulls
   onnxruntime-node, whose postinstall downloads native binaries the sandbox blocks; the browser builds
   need no install script. (`embeddinggemma2-webgpu-tail/interop/package.json`)
@@ -1257,6 +1270,17 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A quantized teacher's published full-precision weights are a different teacher.**
+  EmbeddingGemma 2's bf16 release agrees with its own q4 ONNX on only 0.87 of the top 10
+  (cosine 0.990). When targets or an index came from the q4 file, initialise any student
+  or reference from that file's weights, dequantized: MatMulNBits is 4-bit, block 32,
+  low nibble first; fused qkv and gate/up split by the per-layer head sizes; and the
+  GatherBlockQuantized token table has the sqrt(hidden) embedding scale folded in.
+  `eg2-layer-student/run/model.py` `q4_weights()`. (`eg2-layer-student/ERRORS.md` 1, 2)
+- **Random batches of short texts pad to the batch maximum.** 165K queries and snippets
+  averaging 26 tokens padded to 69 per row in random 64-row batches; sorting inside
+  random 50-batch chunks cut a CPU training step from 5.0 to about 1.7 s.
+  (`eg2-layer-student/run/l1_distill.py` `epoch_batches`)
 - **A Gemma-family tokenizer, not the model, dominates a CPU cold start.** EmbeddingGemma 2's
   `tokenizer.json` (32 MB, 262,144 vocab, 514,906 merges) takes ~1.4 s to parse and build in
   `@huggingface/tokenizers`, against 0.4 s to create the onnxruntime session for the 174 MB q4 model.
@@ -2997,6 +3021,13 @@ the result.
   agreement at 103 MB: check where the bytes live before promising a small model.
   `eg2-query-student/run/a4_prune.py` does it for any GatherBlockQuantized embedding
   table. (`eg2-query-student/RESULTS.md` Findings 3, 5)
+- **A teacher cut to its first layers is useless untrained and strong once distilled.**
+  EG2's first k layers plus its own norm, projection and pooling agree with EG2 on 0.014
+  of the top 10 or less up to k = 8 (0.41 at k = 20); trained on 1 − cos for one epoch,
+  k = 4 reaches 0.57, and two layers at 21.8 MB beat an unrelated 24 MB student on every
+  metric. Use a far higher learning rate than for a pretrained student (3e-3 against
+  1e-4: 0.34 against 0.10 after 300 steps), and spend compute on epochs before depth: two
+  epochs at k = 4 tie one at k = 8. (`eg2-layer-student/RESULTS.md` Findings 1-3)
 
 - **Verbatim overlap with a library's source is not, by itself, evidence of
   memorisation.** Haiku 5.5's rebuild of vstg, released after its training,
