@@ -18,9 +18,9 @@ EPOCHS=${EPOCHS:-10}
 export PYTORCH_ENABLE_MPS_FALLBACK=1   # any op MPS lacks runs on CPU instead of failing
 
 base_python() {
-  # torch publishes macOS arm64 wheels for a bounded range of Python versions; a newer
+  # torch 2.14.1 publishes macOS arm64 wheels for Python 3.10-3.14 only; a newer
   # Homebrew python3 (or an x86 one under Rosetta) gets "from versions: none".
-  for v in python3.13 python3.12 python3.11; do
+  for v in python3.14 python3.13 python3.12 python3.11; do
     if command -v "$v" >/dev/null && [ "$("$v" -c 'import platform; print(platform.machine())')" = arm64 ]; then
       echo "$v"; return
     fi
@@ -35,10 +35,10 @@ setup() {
     fi
     rm -rf .venv
     if command -v uv >/dev/null; then
-      uv venv -q --python 3.12 .venv           # uv fetches a managed 3.12 if none is installed
+      uv venv -q --python 3.14 .venv           # uv fetches a managed 3.14 if none is installed
       uv pip install -q --python .venv/bin/python -r requirements-mac.txt
     else
-      base=$(base_python) || { echo "need an arm64 python3.11-3.13 (brew install python@3.12) or uv" >&2; exit 1; }
+      base=$(base_python) || { echo "need an arm64 python3.11-3.14 (brew install python@3.14) or uv; torch 2.14 has no 3.15 wheels" >&2; exit 1; }
       "$base" -m venv .venv
       .venv/bin/pip install -q --upgrade pip
       .venv/bin/pip install -q -r requirements-mac.txt
