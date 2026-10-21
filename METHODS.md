@@ -739,6 +739,11 @@ survives exactly the sanity checks people run.
   0.9999998) and runs on both; MatMulNBits itself has a wasm kernel.
   `eg2-layer-student/run/export.py` `unpack_gather()`, checked by `run/smoke_web.py --file
   model_q4w.onnx`. (`ettin-native/run/export.py` builds int4/int8 tables the same way.)
+- **onnxruntime-web's WebGPU Gather on an fp16 tensor needs `shader-f16`.** Gathering fp16
+  scales failed on SwiftShader WebGPU ("Program Gather requires f16 but the device does not
+  support it") while wasm ran the same file. Cast an fp16 initializer to fp32 *before* the
+  Gather: ORT folds the Cast at load, the stored bytes stay fp16, and no f16 kernel runs.
+  (`eg2-layer-student/run/export.py` `table_nbit()`, ERRORS 10)
 - **`npm install --ignore-scripts` for onnxruntime-web.** `@huggingface/transformers` pulls
   onnxruntime-node, whose postinstall downloads native binaries the sandbox blocks; the browser builds
   need no install script. (`embeddinggemma2-webgpu-tail/interop/package.json`)

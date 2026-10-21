@@ -41,3 +41,12 @@ What broke, what it cost, and what changed because of it.
    held `k4_ep2` unbracketed in an `rm` path, so it matched the wrapper shell and
    killed the edit that followed. The k4 continuation was relaunched with a
    fresh batch order (`--seed 1`) instead of replaying epoch 1's.
+10. **onnxruntime-web's WebGPU Gather needs shader-f16 for an fp16 tensor.** The first 3- and
+    2-bit table builds gathered fp16 scales and failed on SwiftShader WebGPU ("Program Gather
+    requires f16 but the device does not support it"); wasm ran them. Many real GPUs expose
+    shader-f16, but a build should not depend on it: the scales are now cast to fp32 before
+    the Gather, which ORT folds at load, and every build runs on both backends.
+11. **A protobuf `append` returned the message, not `None`.** The first wasm unpack used
+    `initializer.append(...) or name`, which handed a tensor to `make_node` as an input name
+    and raised a TypeError on every build.
+

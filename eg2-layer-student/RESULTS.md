@@ -9,21 +9,19 @@ API spend. What broke is in [`ERRORS.md`](ERRORS.md).
 
 Can EmbeddingGemma 2 (EG2) cut to its first k layers be the browser query encoder for
 EG2-indexed posts? For retrieval, yes. Its first 4 layers, distilled for 10 epochs on a
-32K-token vocabulary and shipped as q4 ONNX, download as 29.0 MB <!-- @evidence[[results/final.json#/L2 mac_k4 q4/mb]] -->
-and find a synthetic query's source post 90.7% of the time <!-- @evidence[[results/final.json#/L2 mac_k4 q4/synth_test/hit@10/0]] -->
+32K-token vocabulary, with q4 layers and a 3-bit token table, download as 25.4 MB <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/mb]] -->
+and find a synthetic query's source post 90.7% of the time <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/synth_test/hit@10/0]] -->
 against EG2's 91.9%. <!-- @evidence[[results/final.json#/#102 EG2 (teacher)/synth_test/hit@10/0]] -->
-On real queries it shares 0.630 of EG2's top 10. <!-- @evidence[[results/final.json#/L2 mac_k4 q4/real_test/overlap@10/0]] -->
+On real queries it shares 0.623 of EG2's top 10. <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/real_test/overlap@10/0]] -->
 It runs in onnxruntime-web on wasm and WebGPU. Four layers is the elbow: eight add 15 MB
 for +0.020 agreement <!-- @evidence[[results/pairs.json#mac_k8_vs_k4_10ep.real_test.0]] -->
-and no measurable hit@10.
+and no measurable hit@10. The smallest build, 2 layers with a 2-bit table, is 15.50 MB <!-- @evidence[[results/final.json#/L2 mac_k2 t2w/mb]] -->
+at hit@10 0.890. <!-- @evidence[[results/final.json#/L2 mac_k2 t2w/synth_test/hit@10/0]] -->
 
-Full EG2 keeps more of its ranking but stays large. With its layers at 3 bits it is
-75.2 MB <!-- @evidence[[results/quant_full.json#/gq:3:32/mb]] -->
-at 0.780 agreement; <!-- @evidence[[results/quant_full.json#/gq:3:32/real_test/overlap@10/0]] -->
-pruned at q4, 102.9 MB at 0.932.
+Full EG2 keeps more of its ranking but stays large: with 3-bit layers it is 75.2 MB at
+0.780 agreement. <!-- @evidence[[results/quant_full.json#/gq:3:32/real_test/overlap@10/0]] -->
 
-What would change this: a smaller token table (13.7 MB of the 29 MB), or a cut that keeps
-EG2's last layer.
+What would change this: a cut that keeps EG2's last layer, or a smaller vocabulary.
 
 ## Findings
 
@@ -69,12 +67,18 @@ EG2's last layer.
    (k = 2: 33.7 MB <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k int8/mb]] -->
    at minimum cosine 0.987 <!-- @evidence[[results/export_l2_k2_ep2_v32k.json#formats.int8.cos_to_pytorch.min]] -->
    against q4's 0.992). (`run/sizes.py`)
-9. **A standard-op table unpack makes the q4 file run on wasm.** onnxruntime-web 1.30's wasm
+9. **The token table goes to 3 bits for free and 2 bits for a few tenths of a point.** k = 4:
+   a 3-bit table saves 3.7 MB at hit@10 0.9065 against q4's 0.9072; <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/synth_test/hit@10/0]] -->
+   2-bit, 22.7 MB, <!-- @evidence[[results/final.json#/L2 mac_k4 t2w/mb]] -->
+   hit@10 0.904 and agreement 0.606. <!-- @evidence[[results/final.json#/L2 mac_k4 t2w/real_test/overlap@10/0]] -->
+   The `embeddinggemma-vocab-prune` session measured the same (0.906 and 0.903) and found
+   training with the quantized table no better than quantizing after. (Round 8)
+10. **A standard-op table unpack makes the file run on wasm.** onnxruntime-web 1.30's wasm
    backend has no GatherBlockQuantized kernel, the op EG2's own q4 graph uses. The same
    bytes unpacked with Gather/BitwiseAnd/BitShift/Cast/Sub/Mul (`model_q4w.onnx`) run on
    wasm with minimum cosine 0.9999999 to CPU, <!-- @evidence[[results/smoke_web_l2_mac_k4_model_q4w.json#wasm.cos_to_cpu_min]] -->
-   and on WebGPU. (Round 7, `run/export.py --wasm`)
-10. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
+   and on WebGPU. The 2- and 3-bit tables use the same approach. (Rounds 7–8, `run/export.py`)
+11. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
     that built the index on 0.87 of the top 10; the student starts from the q4 weights,
     dequantized, which reproduce it exactly. (ERRORS 1)
 
@@ -251,4 +255,26 @@ The embed-coord board (#104) pointed out that only GatherBlockQuantized lacks a 
 ≥ 0.9999998 on the test sets, and on onnxruntime-web 1.30 wasm and WebGPU both k = 4 and
 k = 8 match CPU at minimum cosine 0.9999999. Per-query hit arrays for the board are in
 `results/*_perquery.json`.
+
+### Round 8: 3- and 2-bit token tables (2026-10-21)
+
+The vocab session found a 3-bit table free on hit@10 for these students. `run/export.py
+--table-bits B` quantizes each Mac student's trained table (asymmetric, groups of 32, fp16
+scales, uint8 zero points), packs 8 values into B bytes, and unpacks with Gather, Cast,
+Mul, ReduceSum, BitShift, BitwiseAnd, Sub and Mul. Layers stay MatMulNBits q4.
+
+| build | download | real | synthetic | hit@10 |
+|---|---|---|---|---|
+| k = 2, 3-bit table | 18.17 MB | 0.574 | 0.682 | 0.898 |
+| k = 2, 2-bit table | 15.50 MB | 0.552 | 0.661 | 0.890 |
+| k = 4, 3-bit table | 25.35 MB | 0.623 | 0.717 | 0.907 |
+| k = 4, 2-bit table | 22.68 MB | 0.606 | 0.699 | 0.904 |
+| k = 8, 3-bit table | 40.39 MB | 0.647 | 0.744 | 0.911 |
+| k = 8, 2-bit table | 37.72 MB | 0.643 | 0.727 | 0.909 |
+
+Predicted from fp16 scales before the run: k = 4 at 3 bits about 25.3 MB; measured 25.35.
+The first WebGPU run failed: ORT's WebGPU Gather on an fp16 tensor needs shader-f16, which
+SwiftShader lacks (ERRORS 10). Casting the scale table to fp32 before the Gather fixed it;
+every build tested (k = 2 t2/t3, k = 4 t2/t3, k = 8 t3) then matched CPU on wasm and WebGPU at
+minimum cosine 0.9999999.
 
