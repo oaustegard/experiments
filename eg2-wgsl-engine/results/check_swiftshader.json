@@ -2,14 +2,14 @@
  "phase": "done",
  "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
  "reps": 2,
- "model": "http://127.0.0.1:45917/eg2-wgsl-engine/out/model/",
+ "model": "http://127.0.0.1:38287/eg2-wgsl-engine/out/model/",
  "adapter": {
   "vendor": "google",
   "architecture": "swiftshader",
   "device": "",
   "description": ""
  },
- "engine_init_ms": 865,
+ "engine_init_ms": 1180.8,
  "wgsl": {
   "cos_single": [
    1,
@@ -30,87 +30,243 @@
   "ms_per_query": [
    {
     "tokens": 19,
-    "median": 2144.55,
-    "min": 2116.1,
-    "max": 2173
+    "median": 2815.7,
+    "min": 2555.8,
+    "max": 3075.6
    },
    {
     "tokens": 14,
-    "median": 1323.5,
-    "min": 1303.2,
-    "max": 1343.8
+    "median": 1694.35,
+    "min": 1635.8,
+    "max": 1752.9
    },
    {
     "tokens": 14,
-    "median": 1364.55,
-    "min": 1336.5,
-    "max": 1392.6
+    "median": 1662.9,
+    "min": 1500.2,
+    "max": 1825.6
    },
    {
     "tokens": 14,
-    "median": 1406.6,
-    "min": 1340.9,
-    "max": 1472.3
+    "median": 1517.1,
+    "min": 1477.2,
+    "max": 1557
    },
    {
     "tokens": 13,
-    "median": 1636.75,
-    "min": 1577.2,
-    "max": 1696.3
+    "median": 1556.35,
+    "min": 1527.5,
+    "max": 1585.2
    },
    {
     "tokens": 15,
-    "median": 1448.9,
-    "min": 1368.1,
-    "max": 1529.7
+    "median": 1497.7,
+    "min": 1431,
+    "max": 1564.4
    },
    {
     "tokens": 14,
-    "median": 1486.4,
-    "min": 1432.5,
-    "max": 1540.3
+    "median": 1752.35,
+    "min": 1736.8,
+    "max": 1767.9
    },
    {
     "tokens": 13,
-    "median": 1823,
-    "min": 1784.9,
-    "max": 1861.1
+    "median": 1911.9,
+    "min": 1694,
+    "max": 2129.8
    },
    {
     "tokens": 17,
-    "median": 2477.1,
-    "min": 2341.5,
-    "max": 2612.7
+    "median": 2244.85,
+    "min": 2244,
+    "max": 2245.7
    },
    {
     "tokens": 10,
-    "median": 1604.8,
-    "min": 1540.5,
-    "max": 1669.1
+    "median": 1660.4,
+    "min": 1605.1,
+    "max": 1715.7
    },
    {
     "tokens": 40,
-    "median": 3681.1,
-    "min": 3615.9,
-    "max": 3746.3
+    "median": 3429.35,
+    "min": 3296.4,
+    "max": 3562.3
    },
    {
     "tokens": 118,
-    "median": 10548.05,
-    "min": 10502.2,
-    "max": 10593.9
+    "median": 10644.45,
+    "min": 9652.3,
+    "max": 11636.6
    }
   ],
   "ms_batch12": {
-   "median": 27977.45,
-   "min": 27809.8,
-   "max": 28145.1
+   "median": 24004.05,
+   "min": 23868.7,
+   "max": 24139.4
   }
  },
+ "ort_webgpu": {
+  "init_ms": 8645.6,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 744.75,
+    "min": 726.9,
+    "max": 762.6
+   },
+   {
+    "tokens": 14,
+    "median": 438.25,
+    "min": 413.7,
+    "max": 462.8
+   },
+   {
+    "tokens": 14,
+    "median": 410.15,
+    "min": 400,
+    "max": 420.3
+   },
+   {
+    "tokens": 14,
+    "median": 481.9,
+    "min": 469.9,
+    "max": 493.9
+   },
+   {
+    "tokens": 13,
+    "median": 438.4,
+    "min": 399.3,
+    "max": 477.5
+   },
+   {
+    "tokens": 15,
+    "median": 562.7,
+    "min": 544.1,
+    "max": 581.3
+   },
+   {
+    "tokens": 14,
+    "median": 424.8,
+    "min": 393.8,
+    "max": 455.8
+   },
+   {
+    "tokens": 13,
+    "median": 426.15,
+    "min": 410.8,
+    "max": 441.5
+   },
+   {
+    "tokens": 17,
+    "median": 759.4,
+    "min": 690.5,
+    "max": 828.3
+   },
+   {
+    "tokens": 10,
+    "median": 482,
+    "min": 412,
+    "max": 552
+   },
+   {
+    "tokens": 40,
+    "median": 1181.25,
+    "min": 1098.1,
+    "max": 1264.4
+   },
+   {
+    "tokens": 118,
+    "median": 3481.7,
+    "min": 3388.5,
+    "max": 3574.9
+   }
+  ]
+ },
+ "ort_wasm": {
+  "init_ms": 296.5,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 158.1,
+    "min": 134.5,
+    "max": 181.7
+   },
+   {
+    "tokens": 14,
+    "median": 112.3,
+    "min": 111.6,
+    "max": 113
+   },
+   {
+    "tokens": 14,
+    "median": 120.9,
+    "min": 114.3,
+    "max": 127.5
+   },
+   {
+    "tokens": 14,
+    "median": 141.9,
+    "min": 137.1,
+    "max": 146.7
+   },
+   {
+    "tokens": 13,
+    "median": 100.95,
+    "min": 99.6,
+    "max": 102.3
+   },
+   {
+    "tokens": 15,
+    "median": 139.05,
+    "min": 132.3,
+    "max": 145.8
+   },
+   {
+    "tokens": 14,
+    "median": 106.15,
+    "min": 103.9,
+    "max": 108.4
+   },
+   {
+    "tokens": 13,
+    "median": 101.35,
+    "min": 99.2,
+    "max": 103.5
+   },
+   {
+    "tokens": 17,
+    "median": 108.5,
+    "min": 108.3,
+    "max": 108.7
+   },
+   {
+    "tokens": 10,
+    "median": 100.4,
+    "min": 99.4,
+    "max": 101.4
+   },
+   {
+    "tokens": 40,
+    "median": 148.65,
+    "min": 141.1,
+    "max": 156.2
+   },
+   {
+    "tokens": 118,
+    "median": 300.3,
+    "min": 277.3,
+    "max": 323.3
+   }
+  ]
+ },
  "summary": {
-  "wgsl_ms": 1545.6,
-  "ort_webgpu_ms": null,
-  "ort_wasm_ms": null,
+  "wgsl_ms": 1678.625,
+  "ort_webgpu_ms": 460.15,
+  "ort_wasm_ms": 110.4,
   "note": "median over the 10 queries of <= 20 tokens of each query's median ms, readback included"
  },
  "console_errors": []

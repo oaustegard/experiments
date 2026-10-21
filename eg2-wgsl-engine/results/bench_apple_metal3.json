@@ -1,0 +1,278 @@
+{
+ "phase": "done",
+ "source": "Oskar's Mac, Chrome 155, pasted 2026-10-21T16:45Z",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+ "reps": 20,
+ "model": "https://austegard.com/bsky/image-search/model/",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": ""
+ },
+ "engine_init_ms": 37.5,
+ "wgsl": {
+  "cos_single": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "cos_batch_min": 1,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 0.8,
+    "min": 0.7,
+    "max": 0.9
+   },
+   {
+    "tokens": 14,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.9
+   },
+   {
+    "tokens": 14,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 14,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 13,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 15,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 14,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 13,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 17,
+    "median": 0.8,
+    "min": 0.7,
+    "max": 0.9
+   },
+   {
+    "tokens": 10,
+    "median": 0.7,
+    "min": 0.6,
+    "max": 0.8
+   },
+   {
+    "tokens": 40,
+    "median": 0.8,
+    "min": 0.7,
+    "max": 0.9
+   },
+   {
+    "tokens": 118,
+    "median": 1.7,
+    "min": 1.6,
+    "max": 1.8
+   }
+  ],
+  "ms_batch12": {
+   "median": 3.3,
+   "min": 3.1,
+   "max": 3.3
+  }
+ },
+ "ort_webgpu": {
+  "init_ms": 163.5,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 4.9,
+    "min": 4.7,
+    "max": 7.7
+   },
+   {
+    "tokens": 14,
+    "median": 4.9,
+    "min": 4.6,
+    "max": 6.2
+   },
+   {
+    "tokens": 14,
+    "median": 4.8,
+    "min": 4.7,
+    "max": 5.3
+   },
+   {
+    "tokens": 14,
+    "median": 4.8,
+    "min": 4.7,
+    "max": 12.6
+   },
+   {
+    "tokens": 13,
+    "median": 4.8,
+    "min": 4.7,
+    "max": 5.1
+   },
+   {
+    "tokens": 15,
+    "median": 4.8,
+    "min": 4.6,
+    "max": 5.1
+   },
+   {
+    "tokens": 14,
+    "median": 4.9,
+    "min": 4.6,
+    "max": 5
+   },
+   {
+    "tokens": 13,
+    "median": 4.95,
+    "min": 4.6,
+    "max": 5.7
+   },
+   {
+    "tokens": 17,
+    "median": 4.95,
+    "min": 4.7,
+    "max": 5.3
+   },
+   {
+    "tokens": 10,
+    "median": 4.85,
+    "min": 4.7,
+    "max": 5.4
+   },
+   {
+    "tokens": 40,
+    "median": 5,
+    "min": 4.6,
+    "max": 18.7
+   },
+   {
+    "tokens": 118,
+    "median": 5.45,
+    "min": 5.2,
+    "max": 5.7
+   }
+  ]
+ },
+ "ort_wasm": {
+  "init_ms": 87.5,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 42.5,
+    "min": 42,
+    "max": 43.7
+   },
+   {
+    "tokens": 14,
+    "median": 38.7,
+    "min": 38.4,
+    "max": 39.3
+   },
+   {
+    "tokens": 14,
+    "median": 38.15,
+    "min": 37.8,
+    "max": 38.7
+   },
+   {
+    "tokens": 14,
+    "median": 38.05,
+    "min": 37.9,
+    "max": 38.7
+   },
+   {
+    "tokens": 13,
+    "median": 38.95,
+    "min": 36.9,
+    "max": 43.1
+   },
+   {
+    "tokens": 15,
+    "median": 40.5,
+    "min": 40.3,
+    "max": 40.8
+   },
+   {
+    "tokens": 14,
+    "median": 39.6,
+    "min": 38.3,
+    "max": 39.9
+   },
+   {
+    "tokens": 13,
+    "median": 37.3,
+    "min": 37,
+    "max": 38.2
+   },
+   {
+    "tokens": 17,
+    "median": 40.3,
+    "min": 40.1,
+    "max": 40.9
+   },
+   {
+    "tokens": 10,
+    "median": 35,
+    "min": 34.8,
+    "max": 35.2
+   },
+   {
+    "tokens": 40,
+    "median": 58.1,
+    "min": 57.9,
+    "max": 59.1
+   },
+   {
+    "tokens": 118,
+    "median": 121.2,
+    "min": 120.7,
+    "max": 121.5
+   }
+  ]
+ },
+ "summary": {
+  "wgsl_ms": 0.7,
+  "ort_webgpu_ms": 4.875,
+  "ort_wasm_ms": 38.825,
+  "note": "median over the 10 queries of <= 20 tokens of each query's median ms, readback included"
+ },
+ "derived": {
+  "speedup_vs_ort_webgpu": 7.0,
+  "speedup_vs_ort_wasm": 55.5,
+  "speedup_118_tokens_vs_ort_webgpu": 3.2
+ }
+}
