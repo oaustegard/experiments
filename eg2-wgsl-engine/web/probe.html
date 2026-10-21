@@ -1,0 +1,12 @@
+<!DOCTYPE html><meta charset="utf-8"><title>EG2 Engine Probe</title>
+<script type="module">
+import { Eg2Engine } from "./engine.js";
+window.ready = (async () => {
+  const manifest = await fetch("./manifest.json").then((r) => r.json());
+  const data = new Uint8Array(await (await fetch(new URL(new URLSearchParams(location.search).get("model") || "../out/model/", location.href) + manifest.data)).arrayBuffer());
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  window.eng = await Eg2Engine.create(device, manifest, data, { maxTokens: 512, maxSeqs: 16 });
+  window.steps = eng.steps.map((s) => s.kind);
+  return true;
+})();
+</script>

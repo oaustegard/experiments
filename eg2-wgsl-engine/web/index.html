@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EG2 WGSL Engine Bench</title>
+<style>
+  :root { --bg: #f6f7f9; --fg: #15191f; --muted: #5d6673; --line: #d9dee5; --accent: #0a66d6; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0e1217; --fg: #e5e9ef; --muted: #95a0ae; --line: #27303b; --accent: #6aa8f7; --bad: #f2867c; } }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; display: grid; gap: 14px; }
+  h1 { margin: 0; font-size: 26px; }
+  p { margin: 0; color: var(--muted); max-width: 70ch; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { font: 600 15px system-ui; padding: 8px 16px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { font: 13px ui-monospace, monospace; color: var(--muted); }
+  #status.bad { color: var(--bad); }
+  table { border-collapse: collapse; font: 13px ui-monospace, monospace; }
+  td, th { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  pre { font: 12px ui-monospace, monospace; white-space: pre-wrap; word-break: break-all; border: 1px solid var(--line); padding: 10px; border-radius: 8px; max-height: 300px; overflow: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>EG2 WGSL engine bench</h1>
+  <p>Embeds 12 test queries with the 4-layer EmbeddingGemma 2 cut three ways: the hand-written WGSL engine,
+    onnxruntime-web on WebGPU, and onnxruntime-web on wasm. Each vector is checked against onnxruntime on CPU.
+    Close other GPU-heavy tabs, press Run, then Copy JSON.</p>
+  <div class="row"><button id="run">Run</button><button id="copy" disabled>Copy JSON</button></div>
+  <div id="status">idle</div>
+  <table id="table"></table>
+  <pre id="json"></pre>
+</main>
+<script type="module" src="./bench.js"></script>
+</body>
+</html>

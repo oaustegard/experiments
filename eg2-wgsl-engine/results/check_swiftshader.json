@@ -1,0 +1,117 @@
+{
+ "phase": "done",
+ "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+ "reps": 2,
+ "model": "http://127.0.0.1:45917/eg2-wgsl-engine/out/model/",
+ "adapter": {
+  "vendor": "google",
+  "architecture": "swiftshader",
+  "device": "",
+  "description": ""
+ },
+ "engine_init_ms": 865,
+ "wgsl": {
+  "cos_single": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "cos_batch_min": 1,
+  "cos_single_min": 1,
+  "ms_per_query": [
+   {
+    "tokens": 19,
+    "median": 2144.55,
+    "min": 2116.1,
+    "max": 2173
+   },
+   {
+    "tokens": 14,
+    "median": 1323.5,
+    "min": 1303.2,
+    "max": 1343.8
+   },
+   {
+    "tokens": 14,
+    "median": 1364.55,
+    "min": 1336.5,
+    "max": 1392.6
+   },
+   {
+    "tokens": 14,
+    "median": 1406.6,
+    "min": 1340.9,
+    "max": 1472.3
+   },
+   {
+    "tokens": 13,
+    "median": 1636.75,
+    "min": 1577.2,
+    "max": 1696.3
+   },
+   {
+    "tokens": 15,
+    "median": 1448.9,
+    "min": 1368.1,
+    "max": 1529.7
+   },
+   {
+    "tokens": 14,
+    "median": 1486.4,
+    "min": 1432.5,
+    "max": 1540.3
+   },
+   {
+    "tokens": 13,
+    "median": 1823,
+    "min": 1784.9,
+    "max": 1861.1
+   },
+   {
+    "tokens": 17,
+    "median": 2477.1,
+    "min": 2341.5,
+    "max": 2612.7
+   },
+   {
+    "tokens": 10,
+    "median": 1604.8,
+    "min": 1540.5,
+    "max": 1669.1
+   },
+   {
+    "tokens": 40,
+    "median": 3681.1,
+    "min": 3615.9,
+    "max": 3746.3
+   },
+   {
+    "tokens": 118,
+    "median": 10548.05,
+    "min": 10502.2,
+    "max": 10593.9
+   }
+  ],
+  "ms_batch12": {
+   "median": 27977.45,
+   "min": 27809.8,
+   "max": 28145.1
+  }
+ },
+ "summary": {
+  "wgsl_ms": 1545.6,
+  "ort_webgpu_ms": null,
+  "ort_wasm_ms": null,
+  "note": "median over the 10 queries of <= 20 tokens of each query's median ms, readback included"
+ },
+ "console_errors": []
+}
