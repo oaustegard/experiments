@@ -188,8 +188,10 @@ def table_nbit(model, W, bits, block=32):
         helper.make_node("Cast", [p + "z"], [p + "zf"], to=TensorProto.FLOAT),
         helper.make_node("Unsqueeze", [p + "zf", ax], [p + "z1"]),
         helper.make_node("Sub", [p + "vf", p + "z1"], [p + "d"]),
-        helper.make_node("Gather", [scl, ids], [p + "s"], axis=0),
-        helper.make_node("Cast", [p + "s"], [p + "sf"], to=TensorProto.FLOAT),
+        # Cast the fp16 scale table before the Gather, not after: ORT folds a Cast of an
+        # initializer at load, so no fp16 kernel runs (WebGPU's Gather needs shader-f16).
+        helper.make_node("Cast", [scl], [p + "sf32"], to=TensorProto.FLOAT),
+        helper.make_node("Gather", [p + "sf32", ids], [p + "sf"], axis=0),
         helper.make_node("Unsqueeze", [p + "sf", ax], [p + "s1"]),
         helper.make_node("Mul", [p + "d", p + "s1"], [p + "m"]),
         helper.make_node("Reshape", [p + "m", c("shh", np.array([0, 0, H], np.int64))], [out])]
