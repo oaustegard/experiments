@@ -6,7 +6,7 @@ Usage: python3 -I run/build_index.py [--budget 70] [--eval 1000]
 2. Quantize: remex Quantizer(768, bits=2, seed=42, mean=X.mean) as the Bluesky text index did
    (embeddinggemma2-webgpu-tail/run/build_bsky_index.py): 192 B codes + (scale, bias) per image.
    Writes out/index/{codes.u8.bin, aux.f32.bin, rows.json, index.json}; rows.json carries only
-   what the page shows (cid, did, rkey, handle, likes, thumb, aspect), never alt or post text.
+   what the page shows (author did + handle, rkey, image cid, likes), never alt or post text.
 3. Eval (--eval N > 0): N images whose alt text is 25-300 characters; the alt text, with EG2's
    query prompt, is the query and its own image the one relevant result. Query vectors from EG2
    q4 text ONNX on CPU (the same graph the page would run). hit@10 and MRR@10 over fp32 vectors
@@ -78,8 +78,15 @@ def main():
     d.mkdir(exist_ok=True)
     (d / "codes.u8.bin").write_bytes(np.ascontiguousarray(pack(cv.indices.astype(np.uint8), 2).reshape(len(X), 192)).tobytes())
     (d / "aux.f32.bin").write_bytes(np.stack([scale, bias], 1).astype("<f4").tobytes())
-    keep = ["cid", "did", "rkey", "handle", "likes", "thumb", "aspect"]
-    (d / "rows.json").write_text(json.dumps([{k: rows[i][k] for k in keep} for i in idx], separators=(",", ":")))
+    # Compact rows for the page: thumbnails are always cdn.bsky.app/img/feed_thumbnail/plain/{did}/{cid},
+    # so store [author index, rkey, cid, likes] per image plus one [did, handle] per author.
+    authors, aidx = [], {}
+    for i in idx:
+        if rows[i]["did"] not in aidx:
+            aidx[rows[i]["did"]] = len(authors)
+            authors.append([rows[i]["did"], rows[i]["handle"]])
+    (d / "rows.json").write_text(json.dumps({"authors": authors, "rows": [[aidx[rows[i]["did"]], rows[i]["rkey"], rows[i]["cid"], rows[i]["likes"]] for i in idx]},
+                                            separators=(",", ":")))
     (d / "index.json").write_text(json.dumps({"n": len(X), "d": 768, "bits": 2, "seed": 42, "rotation": "rht",
         "remex_version": remex.__version__, "model": "onnx-community/embeddinggemma-2-ONNX q4 (vision_encoder + model), transformers.js 4.3.1 WebGPU",
         "vision_soft_tokens": a.budget,

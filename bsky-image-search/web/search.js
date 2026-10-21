@@ -33,7 +33,9 @@ async function start() {
   device = await adapter.requestDevice();
   tail = await RemexTail.create(device, { rht: params.rht, mu: new Float32Array(index.mu), boundaries: params.boundaries,
                                           centroids: params.centroids, kappa: params.kappa });
-  n = index.n; rows = list;
+  n = index.n;
+  rows = list.rows.map(([a, rkey, cid, likes]) => ({ did: list.authors[a][0], handle: list.authors[a][1], rkey, likes,
+                                                    thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${list.authors[a][0]}/${cid}` }));
   corpus = tail.allocCorpus(n);
   tail.loadCodes(corpus, new Uint8Array(codes), new Float32Array(aux), 0);
   await device.queue.onSubmittedWorkDone();
