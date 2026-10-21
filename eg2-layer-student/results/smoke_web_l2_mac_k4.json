@@ -1,0 +1,14 @@
+{
+ "tag": "l2_mac_k4",
+ "file": "model_q4.onnx",
+ "n": 32,
+ "wasm": {
+  "phase": "error",
+  "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/tm/embed_tokens/Gather_Q4'\n    at S (https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.webgpu.min.mjs:6:26300)\n    at _e (https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.webgpu.min.mjs:7:22292)\n    at async Ke.loadModel (https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.webgpu.min.mjs:7:34990)\n    at async Qe.createInferenceSessionHandler (https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.webgpu.min.mjs:7:36699)\n    at async t.create (https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.webgpu.min.mjs:6:19889)\n    at async http://127.0.0.1:54385/eg2-layer-student/web/smoke.html?model=/eg2-layer-student/out/export/l2_mac_k4/&ids=/eg2-layer-student/out/export/l2_mac_k4/smoke_ids.json&ep=wasm&file=model_q4.onnx:18:16"
+ },
+ "webgpu": {
+  "phase": "done",
+  "cos_to_cpu_min": 0.9999999403953552,
+  "cos_to_cpu_mean": 1.0
+ }
+}
