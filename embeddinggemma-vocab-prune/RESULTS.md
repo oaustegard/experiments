@@ -145,6 +145,84 @@ own q4 encoder scores 0.865 against fp32. If the deployment's real reference is 
 corpus encoder rather than fp32, re-score the 3-bit variants against `real_test.eg2.npy` /
 `synth_test.eg2.npy` (the q4 targets in the embedding store) before ruling them out.
 
+## Follow-up: table bits on the cut students (experiments#103), with QAT
+
+Run 2026-10-21, 4 vCPU, about 3.5 h. Question: if EG2 is already cut to 2–8 layers, the
+41,741-row table (#102's 32K cut) is 47–63% of the download. Can it go below 4 bits there, and does
+quantization-aware training (QAT) help? Metric is the board's `ASYM` one (experiments#104):
+the query encoder varies and the doc side stays EG2 q4's committed 2-bit codes. The reference
+is the q4 teacher. It is scored with #103's `run/bench.py`: top-10 overlap with EG2 on
+1,000 real_test queries, and synth_test source-post hit@10 on 1,498 queries. Tables are
+asymmetric min/max in groups of 32 (GatherBlockQuantized's layout). "q4 layers" fake-quantizes
+every transformer linear to 4 bits in groups of 32, round-to-nearest. That reproduces #103's
+shipped q4 files to within 0.001 (k=2 2-epoch: 0.5463 / 0.6680 / 0.8885 against the shipped
+0.5463 / 0.6674 / 0.8892).
+
+### QAT does not help
+
+`run/qat.py`, on k=2 reproduced from #103 (2 epochs, 0.546 / 0.6723 / 0.8865, exact match).
+Each arm gets one more epoch: lr 1e-3, batch order seed 2, the same 164,588 targets. The control
+uses a float table. The QAT arms use a fake-quantized table with a straight-through estimator.
+All rows below have q4 layers. The file is `results/qat_k2_<arm>.json`.
+
+| arm | table | real overlap | synth overlap | hit@10 |
+|---|---|---|---|---|
+| control (+1 epoch, float table) | float | 0.568 | 0.678 | 0.899 |
+| control | 3-bit after training | 0.564 | 0.675 | 0.896 |
+| QAT 3-bit | 3-bit | 0.564 | 0.679 | 0.899 |
+| control | 2-bit after training | 0.548 | 0.662 | 0.894 |
+| QAT 2-bit | 2-bit | 0.549 | 0.667 | 0.887 |
+
+Paired differences, bootstrap 95% CI. Overlap CIs come from `.work`; hit@10 CIs come from
+`results/k2_*_perquery.json`:
+
+| comparison | real overlap | synth overlap | hit@10 |
+|---|---|---|---|
+| 2 bits after training vs float | −0.020 [−0.025, −0.015] | −0.016 [−0.020, −0.013] | −0.005 [−0.010, 0.000] |
+| 2-bit QAT vs 2 bits after training | +0.001 [−0.005, +0.006] | +0.005 [+0.001, +0.010] | −0.007 [−0.014, −0.001] |
+| 3 bits after training vs float | −0.005 [−0.008, −0.002] | −0.004 [−0.006, −0.001] | −0.003 [−0.006, 0.000] |
+| 3-bit QAT vs 3 bits after training | +0.000 [−0.004, +0.004] | +0.004 [+0.001, +0.007] | +0.003 [−0.002, +0.007] |
+
+QAT recovers none of the real-query loss and about a quarter of the synthetic one. At
+2 bits it costs hit@10. The likely reason is that the student already trains its table, so the
+rows that matter have been fitted, and quantizing them afterwards is close to what QAT finds.
+I tried one QAT recipe (a single epoch at lr 1e-3, STE on min/max groups), so this does not
+rule out a longer or learned-scale QAT.
+
+### Quantizing the table after training, on the 10-epoch Mac builds
+
+Checkpoints are from release `eg2-layer-mac-20261020` (`out/l1/mac_k{2,4,8}_v32k/final.pt`),
+files `results/qat_mac_k*.json`. All rows have q4 layers. Download is #103's q4 file size, minus
+the table bits saved. A 41,741 × 512 table saves 2.67 MB per bit.
+
+| k | table | download | real overlap | synth overlap | hit@10 |
+|---|---|---|---|---|---|
+| 2 | 4-bit (as shipped) | 21.8 MB | 0.577 | 0.686 | 0.898 |
+| 2 | 3-bit | ~19.1 MB | 0.572 | 0.684 | 0.898 |
+| 2 | 2-bit | ~16.5 MB | 0.554 | 0.661 | 0.893 |
+| 4 | 4-bit (as shipped) | 29.0 MB | 0.629 | 0.721 | 0.906 |
+| 4 | 3-bit | ~26.3 MB | 0.624 | 0.718 | 0.906 |
+| 4 | 2-bit | ~23.7 MB | 0.607 | 0.702 | 0.903 |
+| 8 | 4-bit (as shipped) | ~44 MB | 0.653 | 0.747 | 0.911 |
+| 8 | 3-bit | ~41.4 MB | 0.649 | 0.747 | 0.910 |
+| 8 | 2-bit | ~38.8 MB | 0.641 | 0.734 | 0.907 |
+
+The same pattern holds at every depth. 3 bits costs about 0.005 real overlap and nothing
+measurable on hit@10. 2 bits costs 0.012–0.023 real overlap and 0.003–0.006 hit@10. The 2-bit
+loss is the same at k=2 and k=4 (−0.023) and about half that at k=8 (−0.012). The 32K cut keeps the full tokenization of 84.1% of real_test and
+83.0% of synth_test (`results/perquery_summary.json`). The rest are re-split, and the student is
+trained on the cut tokenizer. There is no fallback.
+
+### Verdict on the theory
+
+On a cut student, the table goes to 3 bits for free on the task metric, saving 2.7 MB
+(k=2: 21.8 → 19.1 MB). 2 bits saves 5.3 MB for about −0.005 hit@10 and −0.02 top-10 agreement.
+That is a real trade. It is smaller than the full-EG2 result, where 2 bits lost 17% of the
+top 10, because a 2–8 layer student has less depth to amplify table error and was trained on its
+table. QAT is not the lever. Quantizing after training does as well. These are download
+formats: a 3- or 2-bit table needs a standard-op unpack to run on onnxruntime-web wasm
+(GatherBlockQuantized covers 4 and 8 bits), which is not built yet.
+
 ## Method notes
 
 - No corpus re-embedding. The doc side is the committed 2-bit codes of
@@ -167,4 +245,7 @@ for f in real_test synth_test; do curl -sSfA x -o .work/queries/$f.eg2.npy $B/$f
 python3 -c "from huggingface_hub import snapshot_download as s; s('google/embeddinggemma-2', local_dir='.work/hf')"
 python3 -I run/hydrate_posts.py      # ~3 min
 python3 -I run/arms.py               # ~25 min on 4 vCPU
+# follow-up (needs eg2-layer-student's run/fetch_data.py, run/vocab.py and a checkpoint):
+python3 -I run/qat.py --k 2 --init ../eg2-layer-student/out/l1/k2_ep2_v32k/final.pt --bits 2 --tag k2_b2
+python3 -I run/perquery.py
 ```
