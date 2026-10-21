@@ -731,10 +731,14 @@ survives exactly the sanity checks people run.
   the same directory doubles the data file and the model still loads; delete the old
   files first. `quantize_dynamic` names its data `model.onnx.data`, `onnx.save`
   `model.onnx_data`: count both. (`eg2-layer-student/ERRORS.md` 4, 5)
-- **onnxruntime-web 1.30's wasm backend has no GatherBlockQuantized kernel.** A q4 model
-  whose token table is GatherBlockQuantized (EG2's own q4 graph, or any
-  `MatMulNBitsQuantizer` output with Gather quantized) runs on WebGPU only; wasm fails at
-  session creation. (`eg2-layer-student/run/smoke_web.py`)
+- **onnxruntime-web 1.30's wasm backend has no GatherBlockQuantized kernel; unpack the table
+  with standard ops instead.** A q4 graph whose token table is GatherBlockQuantized (EG2's own
+  q4, or `MatMulNBitsQuantizer` with Gather quantized) fails at session creation on wasm and
+  runs on WebGPU. Replacing that one node by Gather of the packed uint8 rows, zero points and
+  scales, BitwiseAnd/BitShift, Cast, Sub and Mul keeps the bytes and the vectors (cos ≥
+  0.9999998) and runs on both; MatMulNBits itself has a wasm kernel.
+  `eg2-layer-student/run/export.py` `unpack_gather()`, checked by `run/smoke_web.py --file
+  model_q4w.onnx`. (`ettin-native/run/export.py` builds int4/int8 tables the same way.)
 - **`npm install --ignore-scripts` for onnxruntime-web.** `@huggingface/transformers` pulls
   onnxruntime-node, whose postinstall downloads native binaries the sandbox blocks; the browser builds
   need no install script. (`embeddinggemma2-webgpu-tail/interop/package.json`)
@@ -1277,6 +1281,14 @@ the result.
   low nibble first; fused qkv and gate/up split by the per-layer head sizes; and the
   GatherBlockQuantized token table has the sqrt(hidden) embedding scale folded in.
   `eg2-layer-student/run/model.py` `q4_weights()`. (`eg2-layer-student/ERRORS.md` 1, 2)
+- **Below 4 bits, quantize weights onto a rotated Gaussian codebook with GPTQ, not a uniform
+  grid.** Full EG2's 24 layers (32K vocabulary): at 3 bits, round-to-nearest keeps 0.642 top-10
+  agreement, GPTQ 0.742, a randomized-Hadamard rotation plus Lloyd-Max levels with fp16 block
+  scales 0.690 at 10 MB less, and GPTQ rounding onto that rotated grid 0.780 (75 MB, hit@10
+  −0.004). At 2 bits: 0.041, 0.390, 0.176 and 0.591. The remex/HIGGS vector-quantization
+  result (codebook shape matters most at 2–3 bits) carries to weights, and calibration adds
+  more on top. fp32 block scales cost a full bit per weight at block 32; use fp16.
+  (`eg2-layer-student/run/quant_full.py`, RESULTS Round 5)
 - **Random batches of short texts pad to the batch maximum.** 165K queries and snippets
   averaging 26 tokens padded to 69 per row in random 64-row batches; sorting inside
   random 50-batch chunks cut a CPU training step from 5.0 to about 1.7 s.
