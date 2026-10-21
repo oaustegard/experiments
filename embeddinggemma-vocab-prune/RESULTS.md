@@ -223,6 +223,53 @@ table. QAT is not the lever. Quantizing after training does as well. These are d
 formats: a 3- or 2-bit table needs a standard-op unpack to run on onnxruntime-web wasm
 (GatherBlockQuantized covers 4 and 8 bits), which is not built yet.
 
+### 3-bit and 2-bit tables that run on onnxruntime-web wasm
+
+`run/table_lowbit.py --k 4 --smoke`, on the 10-epoch k=4 Mac build. The export is the one
+eg2-layer-student/run/export.py makes (fp32 ONNX, then MatMulNBits q4 with a
+GatherBlockQuantized table). It reproduces #103's `export_l2_mac_k4.json` to the byte:
+28,322,480 ONNX bytes, real overlap 0.6301, hit@10 0.9072. The table is then requantized from
+the fp32 export's own table and swapped in.
+
+**Layout.**
+- Codes are asymmetric, groups of 32, with an fp16 scale and an fp16 minimum per group.
+- Stored as bit planes: bits 0–1 four to a byte (128 bytes a row), and for 3 bits, bit 2 eight
+  to a byte (64 bytes a row).
+- Unpack uses only uint8 Gather, BitShift (broadcast shift vector) and BitwiseAnd, then Cast,
+  Mul and Add. These are the op families ettin's `t4` and #103's `model_q4w.onnx` already run on
+  wasm.
+- The transformer stays MatMulNBits block 32.
+- The unpack alone matches a numpy dequantization of the same bytes exactly (max abs error
+  0.0, 64 × 33 random ids).
+
+| build (k=4, 10 epochs) | download | table | real overlap | synth overlap | hit@10 | cos to q4 (min) | wasm vs CPU, 32 queries |
+|---|---|---|---|---|---|---|---|
+| q4 (#103's shipped layout) | 29.0 MB | 4-bit GatherBlockQuantized | 0.630 | 0.721 | 0.9072 | — | (#103: 0.9999999) |
+| `model_t3w.onnx` | 26.0 MB | 3-bit planes, 10.7 MB | 0.625 | 0.718 | 0.9065 | 0.9919 | min cos 0.9999999 |
+| `model_t2w.onnx` | 23.3 MB | 2-bit plane, 8.0 MB | 0.608 | 0.703 | 0.9072 | 0.9742 | min cos 0.9999999 |
+
+Download is the ONNX graph plus external data plus the gzip `tokenizer.json`. The wasm column
+is onnxruntime-web 1.30 in headless Chromium, using #103's `web/smoke.html`, against
+onnxruntime CPU on the same file. These are ASYM numbers from the exported files, not from
+simulation. They agree with the simulated grid above (k=4 3-bit 0.624 / 0.906, 2-bit 0.607 /
+0.903). The exported 2-bit file's hit@10 is 0.0040 higher than simulated, which is inside the
+noise of 1,498 queries.
+
+**What ships.** A 3-bit table takes the k=4 build from 29.0 to 26.0 MB, and a 2-bit table to
+23.3 MB, with hit@10 unchanged at both. The 2-bit build gives up 0.022 top-10 agreement with
+EG2. Both run on wasm without GatherBlockQuantized. I didn't measure browser latency:
+SwiftShader on cloud vCPUs gives meaningless timings. The unpack adds three ops per plane on
+a gather of a few dozen rows, so its cost should be negligible next to the layers. That
+cost is an estimate.
+
+### Per-query arrays for the Mac builds
+
+`results/mac_k{2,4,8}_t{4,3,2}_perquery.json` hold `synth_hit10` (1,498 bools in synth_test
+order) and `real_overlap10` (1,000 floats in real_test order). These are the same keys as
+`eg2-layer-student/results/l2_mac_k*_perquery.json`, so they pair query by query (ASYM).
+Layers are q4 round-to-nearest (simulated) and tables are quantized after training.
+Summary: `results/perquery_mac_summary.json`.
+
 ## Method notes
 
 - No corpus re-embedding. The doc side is the committed 2-bit codes of
@@ -248,4 +295,6 @@ python3 -I run/arms.py               # ~25 min on 4 vCPU
 # follow-up (needs eg2-layer-student's run/fetch_data.py, run/vocab.py and a checkpoint):
 python3 -I run/qat.py --k 2 --init ../eg2-layer-student/out/l1/k2_ep2_v32k/final.pt --bits 2 --tag k2_b2
 python3 -I run/perquery.py
+python3 -I run/perquery_mac.py                     # needs .work/mac from release eg2-layer-mac-20261020
+python3 -I run/table_lowbit.py --k 4 --bits 3 2 --smoke
 ```
