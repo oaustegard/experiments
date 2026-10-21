@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embedder cold start</title>
+<style>
+  :root { --bg: #fff; --fg: #1a1a1a; --muted: #666; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #161616; --fg: #e8e8e8; --muted: #999; } }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, Menlo, monospace; margin: 16px; }
+  #log { white-space: pre-wrap; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1 style="font-size:16px">Embedder cold start (onnxruntime-web wasm, 1 thread)</h1>
+<div id="status">loading</div>
+<pre id="log"></pre>
+<script type="module">
+// ?m=<dir with model.onnx + tokenizer.json + meta.json>  &ep=wasm|webgpu  &n=<warm runs>
+// Times every cold-start stage separately; window.bench holds the result for the driver.
+const Q = new URLSearchParams(location.search);
+const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/';
+const TOK = 'https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs';
+const dir = Q.get('m'), ep = Q.get('ep') || 'wasm', N = +(Q.get('n') || 30);
+const PARITY = ['claude coding agent costs', 'do LLMs actually reason or just pattern match?',
+  'posts about copyright lawsuits against AI labs', 'bluesky custom feeds', 'why are data centers making my electricity bills go up?'];
+const QUERIES = ['open weights model release', 'how do embeddings work', 'atproto app view', 'is scaling over',
+  'best local LLM for a laptop', 'AI art copyright', 'agents that browse the web', 'GPU shortage prices'];
+const log = (m) => { document.getElementById('log').textContent += m + '\n'; };
+const now = () => performance.now();
+const b = window.bench = { dir, ep, done: false };
+try {
+  let t = now();
+  const ort = await import(ORT + (ep === 'webgpu' ? 'ort.webgpu.min.mjs' : 'ort.wasm.min.mjs'));
+  ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
+  const { Tokenizer } = await import(TOK);
+  b.runtime_import_ms = now() - t;
+  t = now();
+  const [mb, tj, meta] = await Promise.all([fetch(dir + '/model.onnx').then(r => r.arrayBuffer()),
+    fetch(dir + '/tokenizer.json').then(r => r.text()), fetch(dir + '/meta.json').then(r => r.json())]);
+  b.fetch_local_ms = now() - t; b.model_bytes = mb.byteLength; b.tokenizer_bytes = tj.length;
+  t = now();
+  const tok = new Tokenizer(JSON.parse(tj), {});
+  b.tokenizer_ms = now() - t;
+  t = now();
+  const sess = await ort.InferenceSession.create(new Uint8Array(mb), { executionProviders: [ep], graphOptimizationLevel: 'all' });
+  b.session_ms = now() - t;
+  const qp = meta.query_prompt ?? (meta.prompts || {}).query ?? '';
+  const embed = async (text) => {
+    const ids = tok.encode(qp + text).ids.slice(0, 128);
+    const S = ids.length;
+    const feeds = { input_ids: new ort.Tensor('int64', BigInt64Array.from(ids.map(BigInt)), [1, S]),
+                    attention_mask: new ort.Tensor('int64', new BigInt64Array(S).fill(1n), [1, S]) };
+    if (sess.inputNames.includes('token_type_ids')) feeds.token_type_ids = new ort.Tensor('int64', new BigInt64Array(S), [1, S]);
+    const out = await sess.run(feeds);
+    const v = out[sess.outputNames.includes('sentence_embedding') ? 'sentence_embedding' : sess.outputNames[0]].data;
+    let n = 0; for (const x of v) n += x * x; n = Math.sqrt(n);
+    return Array.from(v, x => x / n);
+  };
+  t = now();
+  b.parity = [await embed(PARITY[0])];
+  b.first_query_ms = now() - t;
+  for (const p of PARITY.slice(1)) b.parity.push(await embed(p));
+  const lat = [];
+  for (let i = 0; i < N; i++) { const s = now(); await embed(QUERIES[i % QUERIES.length] + ' ' + i); lat.push(now() - s); }
+  lat.sort((x, y) => x - y);
+  b.warm_ms_median = lat[lat.length >> 1];
+  b.cold_ms_excl_download = b.tokenizer_ms + b.session_ms + b.first_query_ms;
+  b.done = true;
+  document.getElementById('status').textContent = 'done';
+  log(JSON.stringify({ ...b, parity: undefined }, null, 1));
+} catch (e) {
+  b.error = String(e && e.stack || e); b.done = true;
+  document.getElementById('status').textContent = 'error';
+  log(b.error);
+}
+</script>
+</body>
+</html>

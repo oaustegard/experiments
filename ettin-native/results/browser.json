@@ -1,0 +1,13 @@
+{
+ "setup": "web/bench.html, onnxruntime-web 1.30 wasm, 1 thread, Chrome (Claude desktop browser pane), M1 MacBook Air, uncontended (ettin held cpu.lock), 2026-10-21 08:50-09:00 EDT. Files served from localhost, so download time is excluded; cold_ms = tokenizer construct + InferenceSession.create + first query. warm = median of 30 single queries. Browser vs Python ORT vectors: cos >= 0.99979 (e17c t4-w8L63), >= 0.99990 (leafirc t4-w8L63) on 5 parity queries.",
+ "runs": {
+  "e17c/t4-w8L63": [{"tokenizer_ms": 37.9, "session_ms": 522.0, "first_query_ms": 11.1, "warm_ms": 9.6, "note": "first iframe of the page, includes wasm compile"}, {"tokenizer_ms": 32.9, "session_ms": 167.4, "first_query_ms": 10.0, "warm_ms": 9.0}, {"tokenizer_ms": 41.4, "session_ms": 167.8, "first_query_ms": 10.7, "warm_ms": 8.9}],
+  "e17c/t8-w8": [{"tokenizer_ms": 38.9, "session_ms": 183.3, "first_query_ms": 11.1, "warm_ms": 9.4}, {"tokenizer_ms": 41.3, "session_ms": 158.9, "first_query_ms": 9.9, "warm_ms": 9.2}],
+  "e17c/t3-w8L63": [{"tokenizer_ms": 44.9, "session_ms": 248.6, "first_query_ms": 16.9, "warm_ms": 9.5}],
+  "e17c/t2-w8L63": [{"tokenizer_ms": 39.6, "session_ms": 169.9, "first_query_ms": 10.6, "warm_ms": 9.0}],
+  "e17c/k16000-t4-w8L63": [{"tokenizer_ms": 12.9, "session_ms": 167.0, "first_query_ms": 12.4, "warm_ms": 9.5}, {"tokenizer_ms": 14.7, "session_ms": 169.9, "first_query_ms": 10.2, "warm_ms": 9.4}],
+  "leafirc/t4-w8L63": [{"tokenizer_ms": 13.1, "session_ms": 136.7, "first_query_ms": 24.6, "warm_ms": 24.2}, {"tokenizer_ms": 12.5, "session_ms": 139.1, "first_query_ms": 23.9, "warm_ms": 24.7}],
+  "leafirc/t8-w8": [{"tokenizer_ms": 15.3, "session_ms": 139.6, "first_query_ms": 24.1, "warm_ms": 24.0}, {"tokenizer_ms": 13.1, "session_ms": 138.5, "first_query_ms": 24.1, "warm_ms": 24.3}]
+ },
+ "ort_wasm_runtime_brotli_mb": 3.07
+}
