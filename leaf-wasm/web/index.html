@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>leaf-wasm bench</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --muted: #666; --ok: #17803d; --bad: #b42318; --card: #f4f4f2; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #151515; --fg: #e8e8e6; --muted: #9a9a9a; --ok: #4ac26b; --bad: #f97066; --card: #222; } }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 16px; }
+  button { font: inherit; padding: 6px 14px; margin-right: 8px; }
+  #status { margin: 12px 0; font-weight: 600; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  pre { background: var(--card); padding: 12px; overflow-x: auto; font-size: 13px; }
+  input { font: inherit; width: 100%; box-sizing: border-box; padding: 6px; margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1>leaf-wasm bench</h1>
+<p>mdbr-leaf-ir with no inference runtime: WordPiece tokenizer + JS forward pass + one WASM SIMD matmul kernel.
+Run measures cold start stage by stage, checks 24 fixtures against ORT fp32, then times warm queries on one thread.</p>
+<button id="run">Run</button><button id="copy" disabled>Copy JSON</button>
+<div id="status"></div>
+<input id="q" placeholder="Embed a query (after Run)" disabled>
+<pre id="out"></pre>
+<script type="module">
+import { createLeaf, QUERY_PROMPT } from "./leaf.js";
+
+const params = new URLSearchParams(location.search);
+const WEIGHTS = params.get("w") || "../out/leaf-ir-i8.bin";
+const VOCAB = params.get("v") || "../out/hf/vocab.txt";
+const N = +(params.get("n") || 30);
+const $ = (id) => document.getElementById(id);
+const status = (t, cls = "") => { $("status").textContent = t; $("status").className = cls; };
+let result = null, leaf = null;
+
+async function fetchTimed(url, kind) {
+  const t0 = performance.now();
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+  const body = kind === "text" ? await r.text() : kind === "json" ? await r.json() : await r.arrayBuffer();
+  return { body, ms: performance.now() - t0, bytes: +(r.headers.get("content-length") || 0) };
+}
+
+async function run() {
+  $("run").disabled = true;
+  status("running…");
+  const res = { user_agent: navigator.userAgent, weights: WEIGHTS, threads: 1, ms: {}, bytes: {} };
+  const t0 = performance.now();
+  const [w, v, kf, k, fx, qs] = await Promise.all([
+    fetchTimed(WEIGHTS), fetchTimed(VOCAB, "text"), fetchTimed("./kernel-fma.wasm"), fetchTimed("./kernel.wasm"),
+    fetchTimed("./fixtures.json", "json"), fetchTimed("./queries.json", "json")]);
+  res.ms.fetch_all = performance.now() - t0;
+  res.ms.fetch_weights = w.ms;
+  res.bytes = { weights: w.body.byteLength, vocab: v.bytes || v.body.length, kernel: kf.body.byteLength + k.body.byteLength };
+  let t = performance.now();
+  const forcePlain = params.has("plain");
+  leaf = await createLeaf({ weights: w.body, vocab: v.body, wasm: forcePlain ? [k.body] : [kf.body, k.body] });
+  res.ms.init = performance.now() - t;
+  res.kernel = forcePlain || leaf.kernel === 1 ? "plain (mul+add)" : "relaxed-simd fma";
+  t = performance.now();
+  leaf.embed(qs.body[0], { query: true });
+  res.ms.first_query = performance.now() - t;
+  res.ms.cold_total = performance.now() - t0;
+
+  // Parity gate: 24 fixtures (queries + edge cases) vs ORT fp32 vectors.
+  const cos = fx.body.map(({ t: text, emb }) => {
+    const e = leaf.forward(leaf.tokenize(text));
+    let c = 0; for (let i = 0; i < e.length; i++) c += e[i] * emb[i]; return c;
+  });
+  res.parity = { n: cos.length, min_cos: Math.min(...cos), mean_cos: cos.reduce((a, b) => a + b) / cos.length };
+  res.parity.pass = res.parity.min_cos > 0.995;
+
+  const times = [], toks = [];
+  for (let i = 0; i < N; i++) {
+    const q = qs.body[(i + 1) % qs.body.length];
+    toks.push(leaf.tokenize(QUERY_PROMPT + q).length);
+    const s = performance.now(); leaf.embed(q, { query: true }); times.push(performance.now() - s);
+  }
+  times.sort((a, b) => a - b);
+  res.warm = { n: N, median_ms: times[N >> 1], p90_ms: times[Math.floor(N * 0.9)], median_tokens: toks.sort((a, b) => a - b)[N >> 1] };
+  for (const s of [16, 32, 64, 128]) {
+    const ids = [101, ...Array(s - 2).fill(2023), 102];
+    for (let i = 0; i < 2; i++) leaf.forward(ids);
+    const ts = []; for (let i = 0; i < 9; i++) { const a = performance.now(); leaf.forward(ids); ts.push(performance.now() - a); }
+    ts.sort((a, b) => a - b); (res.by_tokens_ms ||= {})[s] = +ts[4].toFixed(2);
+  }
+  for (const k in res.ms) res.ms[k] = +res.ms[k].toFixed(1);
+  result = res;
+  window.bench = res;
+  $("out").textContent = JSON.stringify(res, null, 1);
+  status(res.parity.pass ? `parity OK (min cos ${res.parity.min_cos.toFixed(5)}), warm ${res.warm.median_ms.toFixed(1)} ms/query`
+                         : `PARITY FAILED: min cos ${res.parity.min_cos.toFixed(5)}`, res.parity.pass ? "ok" : "bad");
+  $("copy").disabled = false;
+  $("q").disabled = false;
+  $("run").disabled = false;
+}
+
+$("run").onclick = () => run().catch((e) => { status(String(e), "bad"); $("run").disabled = false; });
+$("copy").onclick = () => navigator.clipboard.writeText(JSON.stringify(result, null, 1));
+$("q").onchange = (e) => {
+  const s = performance.now(), v = leaf.embed(e.target.value, { query: true }), ms = performance.now() - s;
+  $("out").textContent = `${ms.toFixed(1)} ms, ${leaf.tokenize(QUERY_PROMPT + e.target.value).length} tokens\n[${Array.from(v.slice(0, 8), (x) => x.toFixed(4)).join(", ")}, …]`;
+};
+if (params.has("auto")) $("run").click();
+</script>
+</body>
+</html>

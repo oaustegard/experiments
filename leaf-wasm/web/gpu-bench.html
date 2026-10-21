@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>leaf-gpu bench</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --muted: #666; --ok: #17803d; --bad: #b42318; --card: #f4f4f2; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #151515; --fg: #e8e8e6; --muted: #9a9a9a; --ok: #4ac26b; --bad: #f97066; --card: #222; } }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } p { color: var(--muted); margin: 0 0 16px; }
+  button { font: inherit; padding: 6px 14px; margin-right: 8px; }
+  #status { margin: 12px 0; font-weight: 600; } .ok { color: var(--ok); } .bad { color: var(--bad); }
+  pre { background: var(--card); padding: 12px; overflow-x: auto; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>leaf-gpu bench</h1>
+<p>WebGPU engine (leaf-gpu.js) against the WASM engine (leaf.js), same int8 weights, same page, same session.
+?mode=latency,batch,corpus picks the parts; corpus encodes all 61,686 posts and 1,498 queries and uploads the
+vectors to run/serve.py for run/score_vectors.py. Run only while holding embed-coord's cpu.lock.</p>
+<button id="run">Run</button><button id="copy" disabled>Copy JSON</button>
+<div id="status"></div>
+<pre id="out"></pre>
+<script type="module">
+import { createLeaf, QUERY_PROMPT } from "./leaf.js";
+import { createLeafGPU } from "./leaf-gpu.js";
+
+const params = new URLSearchParams(location.search);
+const MODES = (params.get("mode") || "latency,batch").split(",");
+const ROWS = +(params.get("rows") || 8192);
+const $ = (id) => document.getElementById(id);
+const say = (t, cls = "") => { $("status").textContent = t; $("status").className = cls; };
+const get = async (u, kind) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u}: ${r.status}`); return r[kind](); };
+const med = (a) => { const s = [...a].sort((x, y) => x - y); return +s[s.length >> 1].toFixed(2); };
+const p90 = (a) => { const s = [...a].sort((x, y) => x - y); return +s[Math.floor(s.length * 0.9)].toFixed(2); };
+let result = null;
+
+async function timeIt(fn, warm = 3, n = 15) {
+  for (let i = 0; i < warm; i++) await fn();
+  const t = [];
+  for (let i = 0; i < n; i++) { const a = performance.now(); await fn(); t.push(performance.now() - a); }
+  return t;
+}
+
+async function run() {
+  $("run").disabled = true;
+  const res = { user_agent: navigator.userAgent, max_rows: ROWS, modes: MODES };
+  const adapter = await navigator.gpu.requestAdapter();
+  res.adapter = { vendor: adapter.info?.vendor, architecture: adapter.info?.architecture };
+  const [weights, vocab, kf, k, queries] = await Promise.all([get("../out/leaf-ir-i8.bin", "arrayBuffer"),
+    get("../out/hf/vocab.txt", "text"), get("./kernel-fma.wasm", "arrayBuffer"), get("./kernel.wasm", "arrayBuffer"), get("./queries.json", "json")]);
+  let t = performance.now();
+  const gpu = await createLeafGPU({ weights: weights.slice(0), vocab, maxRows: ROWS });
+  res.gpu_init_ms = +(performance.now() - t).toFixed(1);
+  t = performance.now();
+  await gpu.forwardBatch([gpu.tokenize(QUERY_PROMPT + queries[0])]);
+  res.gpu_first_query_ms = +(performance.now() - t).toFixed(1); // pipeline compile + first submit
+  const cpu = await createLeaf({ weights: weights.slice(0), vocab, wasm: [kf, k] });
+  res.wasm_kernel = cpu.kernel === 0 ? "relaxed-simd fma" : "plain";
+
+  if (MODES.includes("latency")) {
+    say("latency…");
+    res.latency_ms = { gpu: {}, wasm: {} };
+    for (const n of [16, 32, 64, 128]) {
+      const ids = [101, ...Array(n - 2).fill(2023), 102];
+      res.latency_ms.gpu[n] = med(await timeIt(() => gpu.forwardBatch([ids])));
+      res.latency_ms.wasm[n] = med(await timeIt(async () => cpu.forward(ids)));
+    }
+    const qids = queries.map((q) => gpu.tokenize(QUERY_PROMPT + q));
+    let i = 0;
+    const g = await timeIt(() => gpu.forwardBatch([qids[i++ % qids.length]]), 3, 30);
+    i = 0;
+    const w = await timeIt(async () => cpu.forward(qids[i++ % qids.length]), 3, 30);
+    res.real_queries = { n: 30, gpu_median_ms: med(g), gpu_p90_ms: p90(g), wasm_median_ms: med(w), wasm_p90_ms: p90(w) };
+  }
+
+  let posts = null;
+  if (MODES.includes("batch") || MODES.includes("corpus")) {
+    say("loading posts…");
+    posts = (await get("../out/posts.jsonl", "text")).trim().split("\n").map((l) => JSON.parse(l).text || "");
+  }
+  if (MODES.includes("batch")) {
+    say("batch…");
+    const long = posts.map((p) => gpu.tokenize(p)).filter((x) => x.length === 128).slice(0, 64);
+    res.batch = { n: long.length, tokens_each: 128 };
+    const g = await timeIt(() => gpu.forwardBatch(long), 2, 7);
+    const w = await timeIt(async () => { for (const ids of long) cpu.forward(ids); }, 1, 3);
+    res.batch.gpu_ms = med(g); res.batch.wasm_ms = med(w);
+    res.batch.gpu_docs_per_s = +(long.length / (res.batch.gpu_ms / 1000)).toFixed(1);
+    res.batch.wasm_docs_per_s = +(long.length / (res.batch.wasm_ms / 1000)).toFixed(1);
+  }
+  if (MODES.includes("corpus")) {
+    say("corpus: tokenizing…");
+    t = performance.now();
+    const ids = posts.map((p) => gpu.tokenize(p));
+    res.corpus = { n: ids.length, tokenize_ms: +(performance.now() - t).toFixed(0),
+                   mean_tokens: +(ids.reduce((a, x) => a + x.length, 0) / ids.length).toFixed(1) };
+    say("corpus: GPU encoding…");
+    t = performance.now();
+    const vs = await gpu.forwardBatch(ids);
+    res.corpus.gpu_encode_s = +((performance.now() - t) / 1000).toFixed(2);
+    res.corpus.gpu_docs_per_s = +(ids.length / res.corpus.gpu_encode_s).toFixed(0);
+    // WASM on a fixed 1,000-post sample (every 61st post), extrapolated: the full run is ~30 min.
+    const sample = ids.filter((_, i) => i % 61 === 0).slice(0, 1000);
+    t = performance.now();
+    for (const x of sample) cpu.forward(x);
+    const ws = (performance.now() - t) / 1000;
+    res.corpus.wasm_sample = { n: sample.length, s: +ws.toFixed(2), docs_per_s: +(sample.length / ws).toFixed(1),
+                               est_full_s: +(ids.length * ws / sample.length).toFixed(0) };
+    say("corpus: queries + upload…");
+    const synth = (await get("../out/q/synth_test.jsonl", "text")).trim().split("\n").map((l) => JSON.parse(l).q);
+    const qv = await gpu.embedBatch(synth, { query: true });
+    const flat = (arr) => { const f = new Float32Array(arr.length * 768); arr.forEach((v, i) => f.set(v, i * 768)); return f; };
+    for (const [name, data] of [["leafgpu.docs.f32", flat(vs)], ["leafgpu.queries.f32", flat(qv)]]) {
+      const r = await fetch(`/upload/${name}`, { method: "PUT", body: data });
+      if (!r.ok) throw new Error(`upload ${name}: ${r.status}`);
+    }
+    res.corpus.uploaded = ["out/gpu/leafgpu.docs.f32", "out/gpu/leafgpu.queries.f32"];
+  }
+  result = res;
+  window.gpuBench = res;
+  $("out").textContent = JSON.stringify(res, null, 1);
+  say("done", "ok");
+  $("copy").disabled = false;
+  $("run").disabled = false;
+}
+$("run").onclick = () => run().catch((e) => { say(String(e.stack || e), "bad"); window.gpuBench = { error: String(e) }; $("run").disabled = false; });
+$("copy").onclick = () => navigator.clipboard.writeText(JSON.stringify(result, null, 1));
+if (params.has("auto")) $("run").click();
+</script>
+</body>
+</html>
