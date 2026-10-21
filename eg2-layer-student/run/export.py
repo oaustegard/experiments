@@ -90,7 +90,10 @@ def unpack_gather(model):
         cols = I[q].dims[1] * 2
         nb = cols // block
         p = n.name.replace("/", "_") + "_u"
-        c = lambda name, arr: g.initializer.append(numpy_helper.from_array(np.array(arr), p + name)) or p + name  # noqa: E731
+
+        def c(name, arr):
+            g.initializer.append(numpy_helper.from_array(np.array(arr), p + name))  # returns the message, not None
+            return p + name
         k15, k4 = c("15", np.uint8(15)), c("4", np.uint8(4))
         sh_cols, sh_blk, sh_nb = c("shc", np.array([0, 0, cols], np.int64)), \
             c("shb", np.array([0, 0, nb, block], np.int64)), c("shn", np.array([0, 0, nb], np.int64))
