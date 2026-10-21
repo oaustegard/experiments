@@ -763,6 +763,19 @@ survives exactly the sanity checks people run.
   `bitcast<f32>(0xff800000u)` is -inf and fails shader creation ("cannot be represented as 'f32'"),
   and so does a `-3.40282347e38` literal. Use `bitcast<f32>(0xff7fffffu)` (-FLT_MAX) as a sort
   sentinel, with an index that loses every tie. (`embeddinggemma2-webgpu-tail/web/tail.js` TOPK)
+- **Initialize a WGSL accumulator declared inside a loop; don't rely on the zero default.** A
+  `var part: array<f32, 8>;` in a loop body kept its previous iteration's values on Chromium's
+  Tint/SwiftShader, so a blockwise q4 matmul summed each block into the next and the 4-layer EG2
+  cut came out at cosine 0.94 to onnxruntime instead of 1.0. `var part = array<f32, 8>(0.0, ...)`
+  fixed it. Found by bisecting: run the first n dispatches, copy one activation buffer back and compare
+  it with a NumPy forward pass step by step (`Eg2Engine.probe`). Give activation buffers `COPY_SRC`,
+  or the probe's copy fails validation silently and every buffer reads as zeros. (`eg2-wgsl-engine/web/engine.js`)
+- **A custom WebGPU engine can read onnxruntime's external-data file directly.** Walk the ONNX
+  graph once in Python, name each initializer by role, and write its byte offset and length in
+  `*.onnx_data` to a JSON manifest. Upload the whole data file as one storage buffer and pass word
+  offsets in uniforms. The engine and an onnxruntime-web fallback then share one download and one
+  HTTP cache entry, and the ORT JS and wasm (~10 MB+) load only if the engine fails.
+  (`eg2-wgsl-engine/run/manifest.py`)
 - **Tile vectors through `vec4` lanes to cut a matrix's reads 4x with bit-identical output.** A
   per-vector WGSL kernel (one workgroup per vector, R read in full each time) becomes one workgroup per
   4 vectors with every activation and reduction as `vec4<f32>`: each lane does the same operations in
