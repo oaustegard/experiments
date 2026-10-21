@@ -32,16 +32,17 @@ from run_demo import CHROME, CHROME_ARGS, free_port, serve_from_cache, wait_for_
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tag", default="l2_k4_ep2_v32k")
+    ap.add_argument("--file", default="model_q4.onnx", help="model_q4w.onnx: the standard-op table unpack")
     a = ap.parse_args()
     d = ROOT / "out" / "export" / a.tag
     T, B = Teacher(), Bench()
     enc = tokenize(T, B.texts("synth_test")[:32], remap=Tokenizer.from_file(str(d / "tokenizer.json")))
     (d / "smoke_ids.json").write_text(json.dumps(enc))
-    ref = ort_embed(d / "model_q4.onnx", enc)
+    ref = ort_embed(d / a.file, enc)
     port = free_port()
     server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
                               cwd=REPO, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    res = {"tag": a.tag, "n": len(enc)}
+    res = {"tag": a.tag, "file": a.file, "n": len(enc)}
     rel = f"/eg2-layer-student/out/export/{a.tag}/"
     try:
         wait_for_server(f"http://127.0.0.1:{port}/eg2-layer-student/web/smoke.html")
@@ -51,7 +52,7 @@ def main():
                 page = b.new_page()
                 page.route("https://cdn.jsdelivr.net/**", serve_from_cache)
                 page.goto(f"http://127.0.0.1:{port}/eg2-layer-student/web/smoke.html"
-                          f"?model={rel}&ids={rel}smoke_ids.json&ep={ep}")
+                          f"?model={rel}&ids={rel}smoke_ids.json&ep={ep}&file={a.file}")
                 page.wait_for_function("window.result.phase !== 'loading'", timeout=900_000)
                 st = page.evaluate("window.result")
                 if st["phase"] == "done":
@@ -65,7 +66,8 @@ def main():
             b.close()
     finally:
         server.terminate()
-    (ROOT / "results" / f"smoke_web_{a.tag}.json").write_text(json.dumps(res, indent=1))
+    suffix = "" if a.file == "model_q4.onnx" else "_" + a.file.split(".")[0]
+    (ROOT / "results" / f"smoke_web_{a.tag}{suffix}.json").write_text(json.dumps(res, indent=1))
 
 
 if __name__ == "__main__":

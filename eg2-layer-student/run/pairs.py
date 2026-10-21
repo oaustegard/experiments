@@ -24,6 +24,10 @@ PAIRS = {
     "k8_vs_k4_one_epoch": ("l2_k8", "l2_k4"),
     "k4_vs_k2_one_epoch": ("l2_k4", "l2_k2"),
     "k2_second_epoch_on_cut": ("l2_k2_ep2_v32k", "l2_k2"),
+    "mac_k4_10ep_vs_cpu_2ep": ("l2_mac_k4", "l2_k4_ep2_v32k"),
+    "mac_k2_10ep_vs_cpu_2ep": ("l2_mac_k2", "l2_k2_ep2_v32k"),
+    "mac_k8_vs_k4_10ep": ("l2_mac_k8", "l2_mac_k4"),
+    "mac_k4_vs_k2_10ep": ("l2_mac_k4", "l2_mac_k2"),
 }
 
 

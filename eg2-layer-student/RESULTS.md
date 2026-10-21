@@ -1,70 +1,82 @@
 # RESULTS: a query encoder cut from EmbeddingGemma 2's own first layers
 
 Issue: [#103](https://github.com/oaustegard/experiments/issues/103), following
-[#102](../eg2-query-student/RESULTS.md). Run 2026-10-20 in a 4-vCPU CCotw container, about
-8 hours of CPU training, no GPU and no API spend. What broke is in [`ERRORS.md`](ERRORS.md).
+[#102](../eg2-query-student/RESULTS.md). Run 2026-10-20 to 10-21: about 8 hours of CPU
+training in a 4-vCPU CCotw container, then about 3 hours of training on Oskar's M5 GPU; no
+API spend. What broke is in [`ERRORS.md`](ERRORS.md).
 
 ## Answer
 
 Can EmbeddingGemma 2 (EG2) cut to its first k layers be the browser query encoder for
-EG2-indexed posts? For retrieval, mostly. Its first 4 layers, distilled for two epochs and
-shipped as q4 ONNX with a 32K-token vocabulary, download as 29.0 MB <!-- @evidence[[results/final.json#/L2 k4_ep2_v32k q4/mb]] -->
-and find a synthetic query's source post 90% of the time <!-- @evidence[[results/final.json#/L2 k4_ep2_v32k q4/synth_test/hit@10/0]] -->
-against EG2's 91.9%, a paired change of -0.019. <!-- @evidence[[results/final.json#/L2 k4_ep2_v32k q4/synth_test/hit@10_minus_eg2/0]] -->
-On real queries it shares 0.588 of EG2's top 10. <!-- @evidence[[results/final.json#/L2 k4_ep2_v32k q4/real_test/overlap@10/0]] -->
-The 2-layer build is 21.8 MB <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k q4/mb]] -->
-with hit@10 0.889 <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k q4/synth_test/hit@10/0]] -->
-and agreement 0.546, <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k q4/real_test/overlap@10/0]] -->
-smaller and better on all three than #102's best student
-(24.4 MB, 0.794, 0.482). <!-- @evidence[[results/final.json#/#102 A3 leaf_cont165k epoch0 int8/real_test/overlap@10/0]] -->
+EG2-indexed posts? For retrieval, yes. Its first 4 layers, distilled for 10 epochs on a
+32K-token vocabulary and shipped as q4 ONNX, download as 29.0 MB <!-- @evidence[[results/final.json#/L2 mac_k4 q4/mb]] -->
+and find a synthetic query's source post 90.7% of the time <!-- @evidence[[results/final.json#/L2 mac_k4 q4/synth_test/hit@10/0]] -->
+against EG2's 91.9%. <!-- @evidence[[results/final.json#/#102 EG2 (teacher)/synth_test/hit@10/0]] -->
+On real queries it shares 0.630 of EG2's top 10. <!-- @evidence[[results/final.json#/L2 mac_k4 q4/real_test/overlap@10/0]] -->
+It runs in onnxruntime-web on wasm and WebGPU. Four layers is the elbow: eight add 15 MB
+for +0.020 agreement <!-- @evidence[[results/pairs.json#mac_k8_vs_k4_10ep.real_test.0]] -->
+and no measurable hit@10.
 
-Agreement stays far below pruned EG2's 0.932 (102.9 MB). <!-- @evidence[[results/final.json#/#102 A4 pruned EG2 K=32000/real_test/overlap@10/0]] -->
-Training had not converged: a second epoch added 0.036 at k = 4. <!-- @evidence[[results/pairs.json#second_epoch_k4.real_test.0]] -->
+Full EG2 keeps more of its ranking but stays large. With its layers at 3 bits it is
+75.2 MB <!-- @evidence[[results/quant_full.json#/gq:3:32/mb]] -->
+at 0.780 agreement; <!-- @evidence[[results/quant_full.json#/gq:3:32/real_test/overlap@10/0]] -->
+pruned at q4, 102.9 MB at 0.932.
+
+What would change this: a smaller token table (13.7 MB of the 29 MB), or a cut that keeps
+EG2's last layer.
 
 ## Findings
 
-1. **A cut of EG2 beats an unrelated student at the same size.** k = 2, q4, 21.8 MB:
-   0.546 real, 0.667 synthetic, hit@10 0.889; <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k q4/synth_test/overlap@10/0]] -->
-   #102's leaf-mt student, int8, 24.4 MB: 0.482, 0.513, 0.794. <!-- @evidence[[results/final.json#/#102 A3 leaf_cont165k epoch0 int8/synth_test/hit@10/0]] -->
-   (Round 3, `run/final.py`)
-2. **Untrained, the cut is useless.** Top-10 agreement is 0.014 or less for every k up to 8,
+1. **A 4-layer cut, trained long enough, is within about a point of EG2 at retrieval.**
+   q4, 29.0 MB: hit@10 change against EG2 −0.012, <!-- @evidence[[results/final.json#/L2 mac_k4 q4/synth_test/hit@10_minus_eg2/0]] -->
+   agreement 0.630. Two layers, 21.8 MB: hit@10 0.897, <!-- @evidence[[results/final.json#/L2 mac_k2 q4/synth_test/hit@10/0]] -->
+   agreement 0.577. <!-- @evidence[[results/final.json#/L2 mac_k2 q4/real_test/overlap@10/0]] -->
+   #102's best unrelated student, 24.4 MB: 0.794 and 0.482. (Round 6)
+2. **The elbow is at k = 4.** Paired, 10 epochs each: k = 4 over k = 2 +0.053 real, <!-- @evidence[[results/pairs.json#mac_k4_vs_k2_10ep.real_test.0]] -->
+   +0.011 hit@10; <!-- @evidence[[results/pairs.json#mac_k4_vs_k2_10ep.hit@10.0]] -->
+   k = 8 over k = 4 +0.020 real for 15 MB more, hit@10 +0.004 [−0.003, +0.011]. <!-- @evidence[[results/pairs.json#mac_k8_vs_k4_10ep.hit@10.0]] -->
+   (Round 6, `run/pairs.py`)
+3. **Untrained, the cut is useless.** Top-10 agreement is 0.014 or less for every k up to 8,
    0.411 at k = 20, <!-- @evidence[[results/l0.json#/20/real_test/overlap@10/0]] -->
-   and 1.000 only at k = 24. The intermediate layers are not in the output space; the
-   training does the work: k = 4 went from 0.003 to 0.573 in one epoch. <!-- @evidence[[results/l1_k4.json#/evals/step2572/real_test/overlap@10/0]] -->
-   (Round 1, Round 2)
-3. **Training time is worth more than depth.** With one epoch each, k = 8 beats k = 4 by
-   0.032 on real queries; <!-- @evidence[[results/pairs.json#k8_vs_k4_one_epoch.real_test.0]] -->
-   k = 4 with two epochs against k = 8 with one: +0.004 [−0.002, +0.011], <!-- @evidence[[results/pairs.json#k4_two_epochs_vs_k8_one.real_test.0]] -->
-   at 29.0 against 44.1 MB. <!-- @evidence[[results/final.json#/L2 k8 q4/mb]] -->
-   (Round 3, `run/pairs.py`)
-4. **The remaining error is structured.** The best student, k = 4 after two epochs in fp32,
-   reaches cosine 0.948 to EG2 <!-- @evidence[[results/final.json#/L1 k4_ep2 step2572/real_test/cos_to_eg2]] -->
+   and 1.000 only at k = 24. EG2's output space forms in its last layers; the training
+   does the work. (Round 1)
+4. **Epochs matter more than the first runs showed.** At k = 4, 10 epochs beat 2 by
+   +0.042 real, <!-- @evidence[[results/pairs.json#mac_k4_10ep_vs_cpu_2ep.real_test.0]] -->
+   and the curve is flat by epoch 8 (0.631, then 0.632). <!-- @evidence[[results/l1_mac_k4_v32k.json#/evals/step20576/real_test/overlap@10/0]] -->
+   After one epoch each, two epochs at k = 4 had tied one at k = 8; with 10 each, depth
+   pays again (finding 2). (Round 3, Round 6)
+5. **Full EG2 holds to 3 bits only with a rotated codebook and calibration.** All 24 layers,
+   32K vocabulary: GPTQ rounding onto a randomized-Hadamard + Lloyd-Max grid, 75.2 MB,
+   hit@10 change −0.004; <!-- @evidence[[results/quant_full.json#/gq:3:32/synth_test/hit@10_minus_eg2/0]] -->
+   plain 3-bit GPTQ 0.742 agreement at 85.3 MB; <!-- @evidence[[results/quant_full.json#/gptq:3:32/real_test/overlap@10/0]] -->
+   2-bit round-to-nearest collapses to 0.041. <!-- @evidence[[results/quant_full.json#/rtn:2:32/real_test/overlap@10/0]] -->
+   At 2 bits the best is 0.591 at 58.1 MB, <!-- @evidence[[results/quant_full.json#/gq:2:32/real_test/overlap@10/0]] -->
+   no better than the 29 MB cut. Simulated; the load-time decoder is not built. (Round 5,
+   `run/quant_full.py`)
+6. **The remaining error is structured.** The k = 4 cut after two epochs in fp32 reaches
+   cosine 0.948 to EG2 <!-- @evidence[[results/final.json#/L1 k4_ep2 step2572/real_test/cos_to_eg2]] -->
    and 0.608 agreement; <!-- @evidence[[results/final.json#/L1 k4_ep2 step2572/real_test/overlap@10/0]] -->
-   in #102, isotropic noise at cosine 0.958 kept 0.81. The student errs along the
-   directions that decide this corpus's ranking. (Round 3)
-5. **Training on the cut vocabulary wins back part of what the cut costs.** Cutting the
-   32K vocabulary after training costs 0.028 real (0.608 to 0.580). <!-- @evidence[[results/final.json#/L2 k4_ep2 q4/real_test/overlap@10/0]] -->
-   Training the second epoch on the cut tokenizer instead: +0.008 [+0.002, +0.015] real, <!-- @evidence[[results/pairs.json#train_on_cut_vs_cut_after.real_test.0]] -->
-   +0.016 synthetic, <!-- @evidence[[results/pairs.json#train_on_cut_vs_cut_after.synth_test.0]] -->
-   +0.010 hit@10. <!-- @evidence[[results/pairs.json#train_on_cut_vs_cut_after.hit@10.0]] -->
+   in #102, isotropic noise at cosine 0.958 kept 0.81. (Round 3)
+7. **Training on the cut vocabulary wins back part of what the cut costs.** Cutting after
+   training costs 0.028 real (0.608 to 0.580); <!-- @evidence[[results/final.json#/L2 k4_ep2 q4/real_test/overlap@10/0]] -->
+   training the second epoch on the cut tokenizer: +0.008 [+0.002, +0.015]. <!-- @evidence[[results/pairs.json#train_on_cut_vs_cut_after.real_test.0]] -->
    (Round 3)
-6. **The bytes are the token table plus 3.4 MB a layer.** At q4 the 41,741-row table is
-   13.69 MB, <!-- @evidence[[results/sizes.json#/l2_k2/embed_tokens/mb]] -->
-   two layers 6.74 MB, <!-- @evidence[[results/sizes.json#/l2_k2/layers/mb]] -->
-   four 13.48 MB. <!-- @evidence[[results/sizes.json#/l2_k4/layers/mb]] -->
-   So k = 2 at 32K tokens is near the floor; a smaller vocabulary is the next lever, at
-   #102's measured cost (16K cost full EG2 0.08 agreement). (`run/sizes.py`)
-7. **q4 is smaller and closer than int8.** k = 2: q4 21.8 MB at minimum cosine 0.992 to the
-   fp32 student; int8 33.7 MB <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k int8/mb]] -->
-   at 0.987. <!-- @evidence[[results/export_l2_k2_ep2_v32k.json#formats.int8.cos_to_pytorch.min]] -->
-   The weights start on EG2's q4 grid, which q4 reproduces. (Round 3)
-8. **The shipped file runs on WebGPU, not wasm.** onnxruntime-web 1.30 on SwiftShader WebGPU
-   returns the CPU vectors (minimum cosine 0.9999999); <!-- @evidence[[results/smoke_web_l2_k4_ep2_v32k.json#webgpu.cos_to_cpu_min]] -->
-   its wasm backend has no GatherBlockQuantized kernel, the op EG2's own q4 graph also uses
-   for its token table. (Round 4, `run/smoke_web.py`)
-9. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
-   that built the index on 0.87 of the top 10; the student starts from the q4 weights,
-   dequantized, which reproduce it exactly. (ERRORS 1)
+8. **The bytes are the token table plus 3.4 MB a layer, and q4 beats int8.** At q4 the
+   41,741-row table is 13.69 MB, <!-- @evidence[[results/sizes.json#/l2_k2/embed_tokens/mb]] -->
+   four layers 13.48 MB, <!-- @evidence[[results/sizes.json#/l2_k4/layers/mb]] -->
+   eight 27.64 MB. <!-- @evidence[[results/sizes.json#/l2_mac_k8/layers/mb]] -->
+   For a student started on EG2's q4 grid, int8 is larger and further from fp32
+   (k = 2: 33.7 MB <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k int8/mb]] -->
+   at minimum cosine 0.987 <!-- @evidence[[results/export_l2_k2_ep2_v32k.json#formats.int8.cos_to_pytorch.min]] -->
+   against q4's 0.992). (`run/sizes.py`)
+9. **A standard-op table unpack makes the q4 file run on wasm.** onnxruntime-web 1.30's wasm
+   backend has no GatherBlockQuantized kernel, the op EG2's own q4 graph uses. The same
+   bytes unpacked with Gather/BitwiseAnd/BitShift/Cast/Sub/Mul (`model_q4w.onnx`) run on
+   wasm with minimum cosine 0.9999999 to CPU, <!-- @evidence[[results/smoke_web_l2_mac_k4_model_q4w.json#wasm.cos_to_cpu_min]] -->
+   and on WebGPU. (Round 7, `run/export.py --wasm`)
+10. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
+    that built the index on 0.87 of the top 10; the student starts from the q4 weights,
+    dequantized, which reproduce it exactly. (ERRORS 1)
 
 ## Method
 
@@ -103,6 +115,26 @@ onnxruntime. Download = ONNX graph + external data + gzip `tokenizer.json`.
 **Metrics.** As #102: top-10 overlap with EG2 on the 2-bit codes, bootstrap 95% CIs (2,000
 resamples); synth_test source-post hit@10 with the paired difference to EG2; paired CIs
 between builds on the same queries (`run/pairs.py`).
+
+**Mac training (Round 6).** `mac_run.sh` on Oskar's 128 GB M5 (PyTorch MPS): k = 2, 4, 8,
+each 10 epochs (25,720 steps) from the teacher's weights, trained on the 32K cut tokenizer
+from step 0 with the cut table trainable, lr 3e-3 with linear decay, eval every epoch. A k = 4
+step took 0.12 s against about 1.7 s on 4 vCPUs. Checkpoints came back as release
+`eg2-layer-mac-20261020` and were exported and scored here.
+
+**Full-EG2 layer quantization (Round 5).** `run/quant_full.py`: all 24 layers, the 32K cut,
+the table kept at the teacher's q4. Every Linear in the layers, the PLE projection and the
+output projection is re-quantized blockwise along its input dimension and simulated in fp32:
+round-to-nearest (rtn), GPTQ (Hessians from 2,048 training queries, unquantized
+activations), HIGGS-style (seeded randomized Hadamard rotation, Lloyd-Max levels of N(0,1),
+per-block fp16 scale chosen by MSE) and gq (GPTQ rounding onto the higgs grid in the rotated
+basis). Bytes: ORT MatMulNBits layout for rtn/gptq; b-bit codes plus fp16 scales for
+higgs/gq, a download format that needs a load-time decoder.
+
+**wasm variant (Round 7).** `run/export.py --wasm` rewrites the q4 file's GatherBlockQuantized
+into standard ops on the same bytes (`model_q4w.onnx`); `run/smoke_web.py --file` runs it in
+onnxruntime-web 1.30 (headless Chromium) on wasm and SwiftShader WebGPU against
+onnxruntime CPU on 32 queries.
 
 ## Log
 
@@ -170,3 +202,53 @@ after two epochs, still rising.
 WebGPU (SwiftShader): 32 queries, minimum cosine 0.9999999 to onnxruntime CPU, for both
 the k = 4 and k = 2 builds. wasm: session creation fails, "Could not find an implementation
 for GatherBlockQuantized(1)", before and after repacking the table to EG2's uint8 layout.
+
+### Round 5: full EG2 below 4 bits (2026-10-20)
+
+Asked by Oskar mid-run: could EG2 itself be quantized further instead of cut? Real overlap,
+hit@10 and download, 32K vocabulary, table at q4:
+
+| method | 4-bit | 3-bit, block 32 | 3-bit, block 64 | 2-bit, block 32 | 2-bit, block 16 |
+|---|---|---|---|---|---|
+| none (q4 teacher) | 0.932 / 0.917 / 103.0 MB | | | | |
+| rtn | 0.928 / 0.916 | 0.642 / 0.903 / 85.3 | | 0.041 / 0.163 / 67.7 | 0.163 / 0.593 / 85.9 |
+| gptq | | 0.742 / 0.910 / 85.3 | | 0.390 / 0.792 / 67.7 | 0.509 / 0.872 / 85.9 |
+| higgs | | 0.690 / 0.908 / 75.2 | 0.679 / 0.910 / 70.9 | 0.176 / 0.658 / 58.1 | 0.340 / 0.784 / 66.7 |
+| gq | | 0.780 / 0.915 / 75.2 | 0.770 / 0.909 / 70.9 | 0.591 / 0.886 / 58.1 | 0.610 / 0.886 / 66.7 |
+
+The vector-quantization result from `remex-vs-higgs-ablation` (a Gaussian-optimal codebook
+matters most at 2–3 bits) carries to weights; calibration matters more, and the two
+combine. On a synthetic layer before the run, output error at 2 bits was 0.155 (GPTQ),
+0.103 (higgs) and 0.083 (gq). A second session (`embeddinggemma-vocab-prune`) measured the
+token table separately: it holds to 4 bits and loses agreement below.
+
+### Round 6: 10 epochs on the Mac (2026-10-20 to 10-21)
+
+Real overlap by epoch (fp32 PyTorch, cut vocabulary):
+
+| k | 2 | 4 | 6 | 8 | 10 | hit@10 at 10 |
+|---|---|---|---|---|---|---|
+| 2 | 0.505 | 0.548 | 0.574 | 0.576 | 0.581 | 0.897 |
+| 4 | 0.563 | 0.594 | 0.619 | 0.631 | 0.632 | 0.907 |
+| 8 | 0.569 | 0.609 | 0.641 | 0.653 | 0.656 | 0.911 |
+
+Shipped q4 (`run/export.py`):
+
+| build | download | real | synthetic | hit@10 | vs EG2 |
+|---|---|---|---|---|---|
+| k = 2 | 21.8 MB | 0.577 | 0.688 | 0.897 | −0.023 |
+| k = 4 | 29.0 MB | 0.630 | 0.721 | 0.907 | −0.012 |
+| k = 8 | 44.1 MB | 0.650 | 0.746 | 0.911 | −0.008 |
+
+Prediction given to Oskar after epoch 2 at k = 4: 0.62–0.66 final; measured 0.632. At epoch
+2 the k = 4 run was behind the 2-epoch CPU run (0.563 against 0.591) because its learning
+rate was still near peak; it passed it by epoch 4.
+
+### Round 7: wasm (2026-10-21)
+
+The embed-coord board (#104) pointed out that only GatherBlockQuantized lacks a wasm kernel.
+`model_q4w.onnx` unpacks the table with standard ops: same size, cosine to the q4 file
+≥ 0.9999998 on the test sets, and on onnxruntime-web 1.30 wasm and WebGPU both k = 4 and
+k = 8 match CPU at minimum cosine 0.9999999. Per-query hit arrays for the board are in
+`results/*_perquery.json`.
+

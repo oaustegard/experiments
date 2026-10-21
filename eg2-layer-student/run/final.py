@@ -44,7 +44,7 @@ def main():
         for f, v in r["formats"].items():
             if f == "fp32":
                 continue
-            res[f"L2 {p.stem[10:]} {f}"] = row(v, v["bytes"], cos_to_pytorch=v["cos_to_pytorch"],
+            res[f"L2 {p.stem[10:]} {f}"] = row(v, v["bytes"], cos_to_pytorch=v.get("cos_to_pytorch"), cos_to_q4=v.get("cos_to_q4"),
                                                weights=r["weights"], vocab=r["vocab"])
     (R / "final.json").write_text(json.dumps(res, indent=1))
     for n, v in res.items():
