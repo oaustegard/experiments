@@ -16,7 +16,7 @@
 <h1>EG2 image indexer</h1>
 <p>Embeds Bluesky images (out/images.jsonl) with EmbeddingGemma 2 q4 (vision encoder + text model) on WebGPU and
 uploads float32 vectors to run/serve.py (out/emb/). Gate first: the model card's cats image must score
-0.740 / 0.462 / 0.508 against its three queries (within 0.02). Params: ?start=0&n=100&batch=8&auto. Hold cpu.lock.</p>
+0.740 / 0.462 / 0.508 against its three queries (within 0.02). Params: ?start=0&n=100&batch=8&budget=70&auto. Hold cpu.lock.</p>
 <div id="status">idle</div>
 <pre id="out"></pre>
 <script type="module">
@@ -37,6 +37,13 @@ async function main() {
   const model = await AutoModel.from_pretrained(id, { device: "webgpu", dtype: "q4" });
   st.load_s = +((performance.now() - t) / 1000).toFixed(1);
   const embed = async (...inputs) => (await model(await processor(...inputs))).sentence_embedding;
+  // Vision token budget (soft tokens per image; card range 70-1120, default 280). The model call
+  // scales with it: on an M1, 280 -> 0.34 img/s, 140 -> 0.81, 70 -> 1.63 (web/profile.html).
+  const BUDGET = +(params.get("budget") || 280);
+  const ip = processor.image_processor;
+  ip.config.max_soft_tokens = ip.max_soft_tokens = ip.config.image_seq_length = ip.image_seq_length = BUDGET;
+  processor.image_seq_length = BUDGET;
+  st.budget = BUDGET;
 
   st.phase = "gate"; show("gate…");
   const q = await embed(["task: search result | query: cats sleeping on a couch",
@@ -57,7 +64,7 @@ async function main() {
     if (!buf.length) return;
     const flat = new Float32Array(buf.length * 768);
     buf.forEach((v, i) => flat.set(v, i * 768));
-    const name = `img_${fileStart}_${fileStart + buf.length}`;
+    const name = `img_b${st.budget}_${fileStart}_${fileStart + buf.length}`;
     for (const [f, body] of [[`${name}.f32`, flat], [`${name}.idx.json`, JSON.stringify(bufIdx)]]) {
       const r = await fetch(`/upload/${f}`, { method: "PUT", body });
       if (!r.ok) throw new Error(`upload ${f}: ${r.status}`);

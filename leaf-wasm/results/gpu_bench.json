@@ -1,0 +1,22 @@
+{
+ "source": "web/gpu-bench.html?mode=latency,batch,corpus&rows=8192, 2026-10-21 02:30-02:33 EDT, embed-coord cpu.lock held, Browser pane hidden",
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/3.1623.0 Chrome/152.0.7977.167 Safari/537.36",
+ "machine": "MacBook Air M1, 8 GB",
+ "adapter": { "vendor": "apple", "architecture": "metal-3" },
+ "max_rows": 8192,
+ "gpu_init_ms": 53.6,
+ "gpu_first_query_ms": 77.2,
+ "wasm_kernel": "relaxed-simd fma",
+ "latency_ms": {
+  "gpu": { "16": 4.8, "32": 5.0, "64": 5.5, "128": 7.9 },
+  "wasm": { "16": 10.7, "32": 18.8, "64": 35.9, "128": 73.7 }
+ },
+ "real_queries": { "n": 30, "gpu_median_ms": 5.0, "gpu_p90_ms": 5.2, "wasm_median_ms": 10.8, "wasm_p90_ms": 12.8 },
+ "batch": { "n": 64, "tokens_each": 128, "gpu_ms": 311.2, "wasm_ms": 4738.8, "gpu_docs_per_s": 205.7, "wasm_docs_per_s": 13.5 },
+ "corpus": {
+  "n": 61686, "tokenize_ms": 1670, "mean_tokens": 45.5,
+  "gpu_encode_s": 101.76, "gpu_docs_per_s": 606,
+  "wasm_sample": { "n": 1000, "s": 27.31, "docs_per_s": 36.6, "est_full_s": 1685 },
+  "scored": "results/leafgpu.json"
+ }
+}

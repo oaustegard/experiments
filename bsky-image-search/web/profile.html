@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>EG2 image profile</title></head>
+<body style="font:14px system-ui;padding:16px">
+<h1>EG2 image embedding profile</h1>
+<p>Times preprocessing and the model separately per batch, at several vision token budgets
+(max_soft_tokens), and checks each budget against the 280-token vectors (cosine) and the card's
+cats gate. ?budgets=280,140,70&batch=8&rows=8</p>
+<pre id="out">running…</pre>
+<script type="module">
+import { AutoModel, AutoProcessor, load_image } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1";
+const P = new URLSearchParams(location.search);
+const BUDGETS = (P.get("budgets") || "280,140,70").split(",").map(Number);
+const BATCH = +(P.get("batch") || 8);
+const res = { batch: BATCH, budgets: {} };
+window.profile = null;
+const id = "onnx-community/embeddinggemma-2-ONNX";
+const processor = await AutoProcessor.from_pretrained(id);
+const model = await AutoModel.from_pretrained(id, { device: "webgpu", dtype: "q4" });
+const rows = (await (await fetch("../out/images.jsonl")).text()).trim().split("\n").slice(300, 300 + BATCH).map((l) => JSON.parse(l));
+window.onunhandledrejection = (e) => { document.getElementById("out").textContent = "ERROR " + (e.reason?.stack || e.reason); };
+const loadRetry = async (u) => { for (let a = 0; a < 5; a++) { try { return await load_image(u); } catch { await new Promise((r) => setTimeout(r, 500 * 2 ** a)); } } throw new Error("image failed: " + u); };
+const imgs = await Promise.all(rows.map((r) => loadRetry(`/img?u=${encodeURIComponent(r.thumb)}`)));
+const cats = await load_image("https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/cats.jpg");
+const q = (await model(await processor(["task: search result | query: cats sleeping on a couch"]))).sentence_embedding.tolist()[0];
+const ip = processor.image_processor;
+let ref = null;
+for (const b of BUDGETS) {
+  ip.config.max_soft_tokens = b; ip.max_soft_tokens = b;
+  ip.config.image_seq_length = b; ip.image_seq_length = b;
+  processor.image_seq_length = b; if (processor.config) processor.config.image_seq_length = b;
+  const runs = [];
+  let vecs = null;
+  for (let rep = 0; rep < 3; rep++) {
+    const t0 = performance.now();
+    const inputs = await processor(null, imgs.map((im) => [im]));
+    const t1 = performance.now();
+    const out = await model(inputs);
+    vecs = out.sentence_embedding.tolist();
+    const t2 = performance.now();
+    runs.push({ pre_ms: Math.round(t1 - t0), model_ms: Math.round(t2 - t1), tokens: inputs.input_ids.dims[1] });
+  }
+  const c = (await model(await processor(null, cats))).sentence_embedding.tolist()[0];
+  const gate = +c.reduce((a, x, i) => a + x * q[i], 0).toFixed(3);
+  if (!ref) ref = vecs;
+  const cosRef = vecs.map((v, i) => v.reduce((a, x, j) => a + x * ref[i][j], 0));
+  const best = runs.slice(1).sort((a, b2) => a.model_ms - b2.model_ms)[0];
+  res.budgets[b] = { runs, imgs_per_s: +(BATCH / ((best.pre_ms + best.model_ms) / 1000)).toFixed(2),
+                     cats_query_score: gate, min_cos_vs_first_budget: +Math.min(...cosRef).toFixed(4) };
+  document.getElementById("out").textContent = JSON.stringify(res, null, 1);
+}
+window.profile = res;
+</script>
+</body>
+</html>

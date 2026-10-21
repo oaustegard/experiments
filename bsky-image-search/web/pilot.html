@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>EG2 vision budget pilot</title></head>
+<body style="font:14px system-ui;padding:16px">
+<h1>Vision token budget pilot</h1>
+<p>Coord #46: the first ?n=200 harvested images (likes order) whose alt text is 25-300 characters, embedded at
+each budget in ?budgets=70,140,280 (EG2 q4, transformers.js, WebGPU). Each image's alt text, with EG2's query
+prompt and EG2's text model, is the query; its own image is the one relevant result among the n.
+Reports hit@1 / hit@10, paired hit@10 difference against the largest budget (bootstrap 95% CI),
+min/median cosine of each budget's vectors to the largest budget's, and img/s. Uploads results/pilot.json.</p>
+<pre id="out">running…</pre>
+<script type="module">
+import { AutoModel, AutoProcessor, load_image } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1";
+const P = new URLSearchParams(location.search);
+const N = +(P.get("n") || 200), BATCH = +(P.get("batch") || 8);
+const BUDGETS = (P.get("budgets") || "70,140,280").split(",").map(Number);
+const out = (o) => { document.getElementById("out").textContent = typeof o === "string" ? o : JSON.stringify(o, null, 1); };
+window.onunhandledrejection = (e) => { out("ERROR " + (e.reason?.stack || e.reason)); window.pilot = { error: String(e.reason) }; };
+const res = { n: N, batch: BATCH, budgets: {}, query: "alt text, EG2 q4 text + 'task: search result | query: '" };
+window.pilot = null;
+
+const id = "onnx-community/embeddinggemma-2-ONNX";
+const processor = await AutoProcessor.from_pretrained(id);
+const model = await AutoModel.from_pretrained(id, { device: "webgpu", dtype: "q4" });
+const all = (await (await fetch("../out/images.jsonl")).text()).trim().split("\n").map((l) => JSON.parse(l));
+const rows = all.map((r, i) => ({ ...r, i })).filter((r) => r.alt.trim().length >= 25 && r.alt.trim().length <= 300).slice(0, N);
+res.rows = rows.map((r) => r.i);
+const loadRetry = async (u) => { for (let a = 0; a < 5; a++) { try { return await load_image(u); } catch { await new Promise((r) => setTimeout(r, 500 * 2 ** a)); } } throw new Error("image failed: " + u); };
+out(`loading ${rows.length} images…`);
+const imgs = [];
+for (let i = 0; i < rows.length; i += 8) imgs.push(...await Promise.all(rows.slice(i, i + 8).map((r) => loadRetry(`/img?u=${encodeURIComponent(r.thumb)}`))));
+
+// queries: alt texts through the text model
+const Q = [];
+for (let i = 0; i < rows.length; i += 32) {
+  const e = (await model(await processor(rows.slice(i, i + 32).map((r) => "task: search result | query: " + r.alt.trim())))).sentence_embedding.tolist();
+  Q.push(...e);
+}
+const ip = processor.image_processor;
+const V = {};
+for (const b of BUDGETS) {
+  ip.config.max_soft_tokens = ip.max_soft_tokens = ip.config.image_seq_length = ip.image_seq_length = b;
+  processor.image_seq_length = b;
+  const t0 = performance.now();
+  const vs = [];
+  for (let i = 0; i < imgs.length; i += BATCH) {
+    vs.push(...(await model(await processor(null, imgs.slice(i, i + BATCH).map((im) => [im])))).sentence_embedding.tolist());
+    out(`budget ${b}: ${vs.length}/${imgs.length}`);
+  }
+  V[b] = vs;
+  res.budgets[b] = { imgs_per_s: +(imgs.length / ((performance.now() - t0) / 1000)).toFixed(2) };
+}
+const dot = (a, c) => a.reduce((s, x, k) => s + x * c[k], 0);
+const ref = Math.max(...BUDGETS);
+const hits = {};
+for (const b of BUDGETS) {
+  const rank = Q.map((q, i) => { const own = dot(q, V[b][i]); return V[b].filter((v, j) => j !== i && dot(q, v) > own).length; });
+  hits[b] = rank.map((r) => (r < 10 ? 1 : 0));
+  const cos = V[b].map((v, i) => dot(v, V[ref][i])).sort((x, y) => x - y);
+  Object.assign(res.budgets[b], { hit1: rank.filter((r) => r < 1).length / rank.length, hit10: hits[b].reduce((s, x) => s + x, 0) / rank.length,
+                                  cos_vs_ref_min: +cos[0].toFixed(4), cos_vs_ref_median: +cos[cos.length >> 1].toFixed(4) });
+}
+// paired bootstrap of hit@10 differences vs the reference budget
+let seed = 1; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+for (const b of BUDGETS) {
+  if (b === ref) continue;
+  const d = hits[b].map((h, i) => h - hits[ref][i]);
+  const ms = [];
+  for (let k = 0; k < 2000; k++) { let s = 0; for (let j = 0; j < d.length; j++) s += d[Math.floor(rnd() * d.length)]; ms.push(s / d.length); }
+  ms.sort((x, y) => x - y);
+  res.budgets[b].hit10_minus_ref = [+(d.reduce((s, x) => s + x, 0) / d.length).toFixed(4), +ms[50].toFixed(4), +ms[1949].toFixed(4)];
+}
+await fetch("/upload/pilot.json", { method: "PUT", body: JSON.stringify(res, null, 1) });
+window.pilot = res;
+out(res);
+</script>
+</body>
+</html>

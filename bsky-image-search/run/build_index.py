@@ -1,6 +1,6 @@
 """Turn the browser-computed EG2 image vectors into the page's 2-bit index, and score text->image search.
 
-Usage: python3 -I run/build_index.py [--eval 1000]
+Usage: python3 -I run/build_index.py [--budget 70] [--eval 1000]
 
 1. Assemble: out/emb/img_<a>_<b>.f32 + .idx.json (row numbers into out/images.jsonl) -> X [n,768].
 2. Quantize: remex Quantizer(768, bits=2, seed=42, mean=X.mean) as the Bluesky text index did
@@ -29,10 +29,10 @@ EXP = ROOT.parent
 QUERY = "task: search result | query: "
 
 
-def assemble():
+def assemble(budget):
     rows = [json.loads(l) for l in (OUT / "images.jsonl").open()]
     vec, idx = [], []
-    for f in sorted((OUT / "emb").glob("img_*.f32")):
+    for f in sorted((OUT / "emb").glob(f"img_b{budget}_*.f32")):  # one vision token budget per index
         v = np.fromfile(f, np.float32).reshape(-1, 768)
         ids = json.loads(f.with_suffix(".idx.json").read_text())
         assert len(ids) == len(v), f
@@ -67,8 +67,9 @@ def text_encoder():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--eval", type=int, default=1000)
+    ap.add_argument("--budget", type=int, default=70, help="vision soft tokens the vectors were made with")
     a = ap.parse_args()
-    X, idx, rows = assemble()
+    X, idx, rows = assemble(a.budget)
     print(f"{len(X)} image vectors (of {len(rows)} rows)", flush=True)
     qz = remex.Quantizer(768, bits=2, seed=42, mean=X.mean(0).astype(np.float32))
     cv = qz.encode(X)
@@ -81,6 +82,7 @@ def main():
     (d / "rows.json").write_text(json.dumps([{k: rows[i][k] for k in keep} for i in idx], separators=(",", ":")))
     (d / "index.json").write_text(json.dumps({"n": len(X), "d": 768, "bits": 2, "seed": 42, "rotation": "rht",
         "remex_version": remex.__version__, "model": "onnx-community/embeddinggemma-2-ONNX q4 (vision_encoder + model), transformers.js 4.3.1 WebGPU",
+        "vision_soft_tokens": a.budget,
         "query_prompt": QUERY, "mu": [float(v) for v in X.mean(0)]}, separators=(",", ":")))
     print("index written:", {f.name: f.stat().st_size for f in d.iterdir()}, flush=True)
     if not a.eval:
