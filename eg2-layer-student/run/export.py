@@ -72,6 +72,55 @@ def pack_gather(model):
     return model
 
 
+def unpack_gather(model):
+    """Replace each GatherBlockQuantized (no onnxruntime-web wasm kernel) by standard ops on
+    the same bytes: Gather the packed rows, zero points and scales, split nibbles with
+    BitwiseAnd/BitShift (low nibble = even column), Cast, subtract the zero point, multiply by
+    the block scale. Reshape uses 0 to copy the dynamic batch and sequence dims."""
+    from onnx import helper, TensorProto
+    g = model.graph
+    I = {i.name: i for i in g.initializer}
+    out_nodes = []
+    for n in g.node:
+        if n.op_type != "GatherBlockQuantized":
+            out_nodes.append(n)
+            continue
+        q, ids, sc, zp = n.input
+        block = next(a.i for a in n.attribute if a.name == "block_size")
+        cols = I[q].dims[1] * 2
+        nb = cols // block
+        p = n.name.replace("/", "_") + "_u"
+        c = lambda name, arr: g.initializer.append(numpy_helper.from_array(np.array(arr), p + name)) or p + name  # noqa: E731
+        k15, k4 = c("15", np.uint8(15)), c("4", np.uint8(4))
+        sh_cols, sh_blk, sh_nb = c("shc", np.array([0, 0, cols], np.int64)), \
+            c("shb", np.array([0, 0, nb, block], np.int64)), c("shn", np.array([0, 0, nb], np.int64))
+        ax = c("ax", np.array([-1], np.int64))
+
+        def nibbles(src, shape, tag):
+            g_ = p + tag
+            return [helper.make_node("Gather", [src, ids], [g_ + "g"], axis=0),
+                    helper.make_node("BitwiseAnd", [g_ + "g", k15], [g_ + "lo"]),
+                    helper.make_node("BitShift", [g_ + "g", k4], [g_ + "hi"], direction="RIGHT"),
+                    helper.make_node("Unsqueeze", [g_ + "lo", ax], [g_ + "lo1"]),
+                    helper.make_node("Unsqueeze", [g_ + "hi", ax], [g_ + "hi1"]),
+                    helper.make_node("Concat", [g_ + "lo1", g_ + "hi1"], [g_ + "cat"], axis=-1),
+                    helper.make_node("Reshape", [g_ + "cat", shape], [g_ + "r"]),
+                    helper.make_node("Cast", [g_ + "r"], [g_ + "f"], to=TensorProto.FLOAT)], g_ + "f"
+        nq, vq = nibbles(q, sh_cols, "q")
+        nz, vz = nibbles(zp, sh_nb, "z")
+        out_nodes += nq + nz + [
+            helper.make_node("Reshape", [vq, sh_blk], [p + "vb"]),
+            helper.make_node("Unsqueeze", [vz, ax], [p + "z1"]),
+            helper.make_node("Sub", [p + "vb", p + "z1"], [p + "d"]),
+            helper.make_node("Gather", [sc, ids], [p + "s"], axis=0),
+            helper.make_node("Unsqueeze", [p + "s", ax], [p + "s1"]),
+            helper.make_node("Mul", [p + "d", p + "s1"], [p + "m"]),
+            helper.make_node("Reshape", [p + "m", sh_cols], [n.output[0]])]
+    del g.node[:]
+    g.node.extend(out_nodes)
+    return model
+
+
 def ort_embed(path, enc, batch=128):
     so = ort.SessionOptions()
     so.intra_op_num_threads = 4
@@ -88,6 +137,29 @@ def ort_embed(path, enc, batch=128):
             mask[b, :len(enc[r])] = 1
         out[rows] = sess.run(["embedding"], {"input_ids": ids, "attention_mask": mask})[0]
     return out / np.linalg.norm(out, axis=1, keepdims=True)
+
+
+def wasm_variant(a):
+    d = ROOT / "out" / "export" / a.tag
+    src, dst = d / "model_q4.onnx", d / "model_q4w.onnx"
+    for old in d.glob("model_q4w.onnx*"):
+        old.unlink()
+    save(unpack_gather(onnx.load(str(src))), dst)
+    T, B = Teacher(), Bench()
+    tok = Tokenizer.from_file(str(d / "tokenizer.json"))
+    res = json.loads((ROOT / "results" / f"export_{a.tag}.json").read_text())
+    enc = {t: tokenize(T, B.texts(t), remap=tok) for t in TESTS}
+    P = {t: ort_embed(dst, enc[t]) for t in TESTS}
+    ref = {t: ort_embed(src, enc[t]) for t in TESTS}
+    cos = np.concatenate([(P[t] * ref[t]).sum(1) for t in TESTS])
+    r, _ = B.score(P)
+    tok_gz = res["tokenizer_gz_bytes"]
+    res["formats"]["q4w"] = {"onnx_bytes": onnx_bytes(dst), "bytes": onnx_bytes(dst) + tok_gz,
+                             "cos_to_q4": {"mean": float(cos.mean()), "min": float(cos.min())},
+                             "note": "model_q4.onnx with GatherBlockQuantized replaced by standard ops (unpack_gather)", **r}
+    (ROOT / "results" / f"export_{a.tag}.json").write_text(json.dumps(res, indent=1))
+    print(a.tag, "q4w", f"{(onnx_bytes(dst) + tok_gz) / 1e6:.1f} MB", f"cos to q4 min {cos.min():.7f}",
+          json.dumps({t: r[t]["overlap@10"][0] for t in TESTS}), "hit", round(r["synth_test"]["hit@10"][0], 4))
 
 
 def repack(a):
@@ -115,11 +187,15 @@ def main():
     ap.add_argument("--weights")
     ap.add_argument("--tag", required=True)
     ap.add_argument("--formats", nargs="+", default=["fp32", "q4", "int8"])
+    ap.add_argument("--wasm", action="store_true",
+                    help="write out/export/<tag>/model_q4w.onnx: model_q4.onnx with the table unpacked by standard ops")
     ap.add_argument("--repack", action="store_true",
                     help="only repack an existing out/export/<tag>/model_q4.onnx (pack_gather) and check it")
     a = ap.parse_args()
     if a.repack:
         return repack(a)
+    if a.wasm:
+        return wasm_variant(a)
     torch.set_num_threads(4)
     rows = tok = None
     tok_path = HF / "tokenizer.json"
