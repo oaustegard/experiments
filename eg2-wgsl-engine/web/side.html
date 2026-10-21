@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EG2 Query Path Side by Side</title>
+<style>
+  :root { --bg: #f6f7f9; --fg: #15191f; --muted: #5d6673; --line: #d9dee5; --accent: #0a66d6; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0e1217; --fg: #e5e9ef; --muted: #95a0ae; --line: #27303b; --accent: #6aa8f7; --bad: #f2867c; } }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; display: grid; gap: 14px; }
+  h1 { margin: 0; font-size: 26px; }
+  p { margin: 0; color: var(--muted); max-width: 72ch; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { font: 600 15px system-ui; padding: 8px 16px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { font: 13px ui-monospace, monospace; color: var(--muted); }
+  #status.bad { color: var(--bad); }
+  table { border-collapse: collapse; font: 13px ui-monospace, monospace; }
+  td, th { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  pre { font: 12px ui-monospace, monospace; white-space: pre-wrap; word-break: break-all; border: 1px solid var(--line); padding: 10px; border-radius: 8px; max-height: 300px; overflow: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Image-search query path, side by side</h1>
+  <p>Runs the live image-search page's query step (tokenize, then embed) for each arm, the way the page times it,
+    on the page's own model files. Arms are interleaved query by query, so neither gets a warmer GPU.
+    Press Run, then Copy JSON.</p>
+  <div class="row"><button id="run">Run</button><button id="copy" disabled>Copy JSON</button></div>
+  <div id="status">idle</div>
+  <table id="table"></table>
+  <pre id="json"></pre>
+</main>
+<script type="module">
+import { Eg2Engine } from "./engine.js";
+const P = new URLSearchParams(location.search);
+const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
+const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.min.mjs";
+const MODEL = new URL(P.get("model") || (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/" : "../out/model/"), location.href);
+const QUERY = "task: search result | query: ";
+const ROUNDS = +(P.get("rounds") || 10);
+const TEXTS = ["a cat asleep in a sunbeam", "foggy mountains at dawn", "watercolor of a city street", "a bird in the snow",
+               "neon signs at night", "moss on a tree trunk", "a dog at the beach", "an old film camera"];
+const $ = (id) => document.getElementById(id);
+const status = (t, bad = false) => { $("status").textContent = t; $("status").className = bad ? "bad" : ""; };
+const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+const r2 = (x) => +x.toFixed(2);
+window.result = { phase: "idle" };
+
+async function run() {
+  $("run").disabled = true;
+  const res = window.result = { phase: "loading", ua: navigator.userAgent, rounds: ROUNDS };
+  try {
+    status("loading…");
+    const [manifest, graph, data, tj, { Tokenizer }, ort] = await Promise.all([
+      fetch(new URL("manifest.json", MODEL)).then((r) => r.json()),
+      fetch(new URL("model_t3w.onnx", MODEL)).then((r) => r.arrayBuffer()),
+      fetch(new URL("model_t3w.onnx_data", MODEL)).then((r) => r.arrayBuffer()),
+      fetch(new URL("tokenizer.json", MODEL)).then((r) => r.json()), import(TOKENIZERS), import(ORT + "ort.webgpu.min.mjs")]);
+    ort.env.wasm.wasmPaths = ORT;
+    const tokenizer = new Tokenizer(tj, {});
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    const info = adapter.info || {};
+    res.adapter = { vendor: info.vendor, architecture: info.architecture };
+    const device = await adapter.requestDevice();
+    const qbuf = device.createBuffer({ size: 768 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    const eng = await Eg2Engine.create(device, manifest, data, { maxTokens: 128, maxSeqs: 1 });
+    const session = await ort.InferenceSession.create(new Uint8Array(graph), {
+      executionProviders: ["webgpu"], logSeverityLevel: 3, externalData: [{ path: "model_t3w.onnx_data", data: new Uint8Array(data) }] });
+    const tok = (t) => tokenizer.encode(QUERY + t).ids.slice(0, 128);
+    const arms = {
+      "tokenize only": async (t) => { tok(t); },
+      "WGSL, wait onSubmittedWorkDone (live page before fix)": async (t) => eng.embedTo([tok(t)], qbuf, 0, "done"),
+      "WGSL, wait by mapping 16 bytes (fix)": async (t) => eng.embedTo([tok(t)], qbuf, 0, "map"),
+      "WGSL, read the vector back": async (t) => { await eng.embed([tok(t)]); },
+      "ORT-web WebGPU (session.run + writeBuffer)": async (t) => {
+        const ids = tok(t), shape = [1, ids.length];
+        const out = await session.run({ input_ids: new ort.Tensor("int64", BigInt64Array.from(ids, BigInt), shape),
+                                        attention_mask: new ort.Tensor("int64", new BigInt64Array(ids.length).fill(1n), shape) });
+        device.queue.writeBuffer(qbuf, 0, new Float32Array(out.embedding.data));
+      },
+    };
+    const ms = Object.fromEntries(Object.keys(arms).map((k) => [k, []]));
+    const first = {};
+    for (let r = 0; r < ROUNDS; r++) {
+      status(`round ${r + 1} of ${ROUNDS}…`);
+      for (const t of TEXTS) {
+        for (const [k, fn] of Object.entries(arms)) {
+          const t0 = performance.now();
+          await fn(t + (r ? "" : " "));
+          const dt = performance.now() - t0;
+          if (first[k] === undefined) first[k] = r2(dt); else ms[k].push(dt);
+        }
+      }
+    }
+    res.arms = Object.fromEntries(Object.entries(ms).map(([k, a]) => [k, { first_ms: first[k], median_ms: r2(median(a)), min_ms: r2(Math.min(...a)), max_ms: r2(Math.max(...a)) }]));
+    res.phase = "done";
+    status("done");
+    $("table").replaceChildren(...[["arm", "first ms", "median ms", "min", "max"],
+      ...Object.entries(res.arms).map(([k, v]) => [k, v.first_ms, v.median_ms, v.min_ms, v.max_ms])].map((row, i) => {
+      const tr = document.createElement("tr");
+      tr.append(...row.map((c) => Object.assign(document.createElement(i ? "td" : "th"), { textContent: c })));
+      return tr;
+    }));
+  } catch (e) {
+    res.phase = "error"; res.error = String(e?.stack || e); status(String(e?.message || e), true);
+  }
+  $("json").textContent = JSON.stringify(res, null, 1);
+  $("copy").disabled = false; $("run").disabled = false;
+}
+$("run").onclick = run;
+$("copy").onclick = () => navigator.clipboard.writeText($("json").textContent);
+if (P.get("auto") === "1") run();
+</script>
+</body>
+</html>
