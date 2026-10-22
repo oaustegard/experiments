@@ -1,8 +1,10 @@
 # ARTIFACTS: large files not in git
 
-Built by the scripts in `run/` (see RESULTS.md, Reproduce). Location: **not yet published**;
-the R2 embstore upload needs CF_ACCOUNT_ID/CF_API_TOKEN, which this Mac does not hold.
-Until then they live in `out/` on Oskar's MacBook Air. sha256 below identifies each file.
+Built by the scripts in `run/` (see RESULTS.md, Reproduce). Published as GitHub release
+[`ettin-native-20261021`](https://github.com/oaustegard/experiments/releases/tag/ettin-native-20261021):
+each ONNX build and checkpoint directory below is one zip (named in the release notes), the
+teacher vectors are `teacher-arctic-m-v1.5.f16.npy` and `teacher-train.jsonl.gz`, and
+`SHA256SUMS` covers the release files. The per-file sha256 below are of the unzipped files.
 
 ## ONNX builds (browser-ready: model.onnx + tokenizer.json + meta.json)
 

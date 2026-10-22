@@ -33,6 +33,30 @@ runtime. Matmuls in every row are weight-only int8 per output column with codes 
 −0.024 [−0.035, −0.013]. Sources: `results/onnx_{e17c,leafirc}.json`,
 `results/browser.json`, `results/pareto.json`, per-query arrays in `results/*_perquery.json`.
 
+## Against the 4-layer EG2 cut (eg2-layer-student, release eg2-layer-onnx-20261021)
+
+Paired on the same 1,498 queries; per-query arrays from both experiments. The cut is ASYM: it
+embeds queries into EG2's own index, so the corpus is still encoded by full EG2 offline. Ettin
+is SYM, using its own index at the same 200 B/doc.
+
+| | download (brotli + 3.07 MB ORT) | hit@10 | minus k=4 cut, paired | real-query top-10 overlap with EG2 | per query |
+|---|---|---|---|---|---|
+| EG2 k=4 cut, 3-bit table (`model_t3w`, what image search ships) | 25.8 (22.7 without ORT, WGSL engine) | 0.907 | — | 0.62 | 38.8 ms ORT wasm; 0.7 ms WGSL on Metal |
+| EG2 k=4 cut, q4 (`model_q4w`) | 29.5 | 0.907 | — | 0.63 | — |
+| Ettin-17m tuned, int4 table | 13.2 | 0.918 | +0.011 [−0.005, +0.025] | 0.23 | 9.0 ms ORT wasm |
+| Ettin-17m tuned, 3-bit table | 12.2 | 0.910 | +0.003 [−0.013, +0.017] | 0.23 | 9.5 ms ORT wasm |
+| Ettin-17m tuned, 2-bit table | 10.3 | 0.883 | −0.025 [−0.041, −0.008] | 0.20 | 9.0 ms ORT wasm |
+| leaf-ir tuned, int4 table | 19.1 | 0.942 | +0.035 [+0.021, +0.048] | 0.26 | 24.4 ms ORT wasm |
+
+For text search over these posts, Ettin-17m with an int4 or 3-bit table statistically ties
+the cut. It does so at half the download and about 4× faster on wasm (9 vs 38.8 ms). Its
+index is also cheap to rebuild: Ettin encodes the 61,686 posts in about 90 s on the M1 CPU.
+The cut wins where staying in EG2's space matters. Its real-query rankings overlap EG2's
+0.62 against Ettin's 0.23. It can query an EG2 index that is already built, including the
+multimodal image index (though text→image hit@10 drops from 0.803 to 0.563, wasm #62). On a
+GPU, the WGSL engine makes it the fastest arm here at 0.7 ms. leaf-ir tuned beats both
+(+0.035 over the cut) at 19.1 MB.
+
 ## Findings
 
 1. **No off-the-shelf Ettin embedder is competitive.** Screened 17M/32M/68M community

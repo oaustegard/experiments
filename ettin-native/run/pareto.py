@@ -4,7 +4,7 @@ Usage: .venv/bin/python -I run/pareto.py      -> results/pareto.png, results/par
 
 Download = model + tokenizer at brotli-11 + 3.07 MB onnxruntime-web wasm runtime (ORT route).
 SYM arms (own 2-bit index) are filled; EG2 layer cuts are ASYM (EG2-indexed docs, from
-eg2-layer-student/results/final.json and its 3-bit-table commit) and drawn hollow, a different
+eg2-layer-student/results/final.json 10-epoch Mac builds, release eg2-layer-onnx-20261021, brotli measured here) and drawn hollow, a different
 metric family. Vocab-pruned arms are drawn hollow too: their out-of-domain query cosines
 collapse (min 0.33-0.51), so they are not general-purpose. Palette: dataviz reference slots
 1-4, validated (contrast WARN -> every point is direct-labelled and listed in RESULTS.md).
@@ -40,9 +40,8 @@ def main():
     pts += [
         {"family": "leaf", "arm": "leaf-ir stock int8 (MongoDB ONNX, no in-domain tuning)", "mb": round(15.85 + 0.25 + ORT, 2), "hit10": 0.889, "pruned": False, "sym": True},
         {"family": "eg2", "arm": "EG2 q4 (WebGPU only)", "mb": 179.9, "hit10": 0.918, "pruned": False, "sym": True},
-        {"family": "cut", "arm": "EG2 cut k=2 q4, 32K vocab (ASYM)", "mb": 21.8, "hit10": 0.889, "pruned": True, "sym": False},
-        {"family": "cut", "arm": "EG2 cut k=4 q4, 32K vocab (ASYM)", "mb": 29.0, "hit10": 0.901, "pruned": True, "sym": False},
-        {"family": "cut", "arm": "EG2 cut k=4, 3-bit table (ASYM)", "mb": 25.4, "hit10": 0.907, "pruned": True, "sym": False},
+        {"family": "cut", "arm": "EG2 k=4 cut, 3-bit table (ASYM)", "mb": 25.80, "hit10": 0.907, "pruned": True, "sym": False},
+        {"family": "cut", "arm": "EG2 k=4 cut, q4 (ASYM)", "mb": 29.51, "hit10": 0.907, "pruned": True, "sym": False},
     ]
     (ROOT / "results" / "pareto.json").write_text(json.dumps(pts, indent=1))
 
@@ -76,8 +75,8 @@ def main():
                 break
         lab = lab.replace(" (MongoDB ONNX, no in-domain tuning)", ", untuned").replace(" (WebGPU only)", "").replace(" (ASYM)", "")
         off = {"leaf-ir int8 table": (7, -12), "leaf-ir int4 table": (-20, 9), "leaf-ir 16K vocab": (-60, -14),
-               "Ettin-17m int4 table": (-40, 9), "Ettin-17m int8 table": (7, -13), "EG2 cut k=4 q4, 32K vocab": (7, -12),
-               "leaf-ir stock int8, untuned": (-75, 8), "EG2 cut k=2 q4, 32K vocab": (7, -12), "Ettin-17m 16K vocab": (7, -12)}.get(lab, (7, 6))
+               "Ettin-17m int4 table": (-40, 9), "Ettin-17m int8 table": (7, -13), "EG2 k=4 cut, q4": (7, -12),
+               "leaf-ir stock int8, untuned": (-75, 8), "Ettin-17m 16K vocab": (7, -12)}.get(lab, (7, 6))
         ax.annotate(lab, (p["mb"], p["hit10"]), textcoords="offset points", xytext=off, fontsize=7.5, color=INK)
     ax.axhline(0.918, color=C["eg2"], lw=1, alpha=0.5, zorder=1)
     ax.set_xscale("log")
