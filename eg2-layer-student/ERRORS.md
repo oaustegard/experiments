@@ -49,4 +49,11 @@ What broke, what it cost, and what changed because of it.
 11. **A protobuf `append` returned the message, not `None`.** The first wasm unpack used
     `initializer.append(...) or name`, which handed a tensor to `make_node` as an input name
     and raised a TypeError on every build.
+12. **`pkill -f` killed its own shell a second time.** `pkill -f '[i]mg_harvest2'` sat in a
+    command whose heredoc also named `img_harvest2.py`, so the pattern matched the wrapper
+    shell (ERRORS 9 again). Kill by PID, or run the kill as a command of its own.
+13. **A module global swapped across threads.** The first `img_harvest2.py` pointed
+    `img_harvest.API` at getFollows inside six worker threads and restored it after each call;
+    interleaved threads would have sent requests to the wrong endpoint and left it pointing at
+    getFollows. Stopped before it wrote anything; `get()` now takes the endpoint as an argument.
 
