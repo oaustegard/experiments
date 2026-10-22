@@ -2,7 +2,7 @@
 
 Usage: out/imgenv/bin/python -I run/img_teacher.py
 
-Writes out/img/teacher_{eval_all,train_alt,train_post,extra_alt}.npy (extra_alt from run/img_harvest.py) with matching .json text lists.
+Writes out/img/teacher_{eval_all,train_alt,train_post,extra_alt,extra_alt2}.npy (extra_alt from run/img_harvest.py, extra_alt2 from run/img_harvest2.py) with matching .json text lists.
 """
 import json
 import sys
@@ -20,7 +20,9 @@ def main():
     ev, _ = eval_queries()
     alts, posts = train_texts()
     extra = json.loads((IMG / "extra_alt.json").read_text()) if (IMG / "extra_alt.json").exists() else []
-    for name, texts in [("eval_all", ev), ("train_alt", alts), ("train_post", posts), ("extra_alt", extra)]:
+    extra2 = json.loads((IMG / "extra_alt2.json").read_text()) if (IMG / "extra_alt2.json").exists() else []
+    for name, texts in [("eval_all", ev), ("train_alt", alts), ("train_post", posts), ("extra_alt", extra),
+                        ("extra_alt2", extra2)]:
         if not texts:
             continue
         p = IMG / f"teacher_{name}.npy"

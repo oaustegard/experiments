@@ -83,7 +83,8 @@ def main():
                     help="add the image-search caption targets (run/img_teacher.py): train-split alt texts repeated "
                          "this many times plus train-split post texts once")
     ap.add_argument("--bluesky-n", type=int, help="keep a fixed random subset of this many Bluesky targets")
-    ap.add_argument("--img-extra", action="store_true", help="also add the harvested extra alt texts (run/img_harvest.py) once")
+    ap.add_argument("--img-extra", nargs="*", default=None,
+                    help="also add harvested alt texts once: names of out/img/teacher_<name> sets (default extra_alt)")
     a = ap.parse_args()
     tag = a.tag or f"k{a.k}"
     torch.set_num_threads(4)
@@ -113,7 +114,7 @@ def main():
         texts, Y = [texts[i] for i in keep], Y[keep]
     if a.img_mix:
         img = ROOT / "out" / "img"
-        for name, rep in (("train_alt", a.img_mix), ("train_post", 1)) + ((("extra_alt", 1),) if a.img_extra else ()):
+        for name, rep in (("train_alt", a.img_mix), ("train_post", 1)) + tuple((n, 1) for n in (a.img_extra or ["extra_alt"]) if a.img_extra is not None):
             t = json.loads((img / f"teacher_{name}.json").read_text())
             texts += t * rep
             Y = np.concatenate([Y] + [np.load(img / f"teacher_{name}.npy")] * rep)
