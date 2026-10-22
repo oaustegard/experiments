@@ -1307,6 +1307,16 @@ the result.
   result (codebook shape matters most at 2–3 bits) carries to weights, and calibration adds
   more on top. fp32 block scales cost a full bit per weight at block 32; use fp16.
   (`eg2-layer-student/run/quant_full.py`, RESULTS Round 5)
+- **A query student distilled on one text domain does not carry to another use of the same
+  space; distil on that domain's text, which can be noisy.** EG2's 4-layer cut, at hit@10
+  within 0.012 of EG2 on Bluesky post search, fell 0.248 behind on text-to-image search over EG2
+  image vectors (alt-text queries). Fine-tuning on EG2 text vectors of caption-style strings,
+  with the original targets mixed in, cut the gap to 0.098 at 215K alt texts (0.150 at 4.7K,
+  0.100 at 65K) with the original benchmark unchanged. The target is the teacher's vector for
+  the same string, so commentary written as alt text is still a correct training pair; noise
+  only matters for the eval, which should therefore lead with top-k overlap against the
+  teacher. Split by image (and exclude the test images' authors from any harvest).
+  (`eg2-layer-student/RESULTS.md` Round 9)
 - **Random batches of short texts pad to the batch maximum.** 165K queries and snippets
   averaging 26 tokens padded to 69 per row in random 64-row batches; sorting inside
   random 50-batch chunks cut a CPU training step from 5.0 to about 1.7 s.

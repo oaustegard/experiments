@@ -15,13 +15,14 @@ against EG2's 91.9%. <!-- @evidence[[results/final.json#/#102 EG2 (teacher)/synt
 On real queries it shares 0.623 of EG2's top 10. <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/real_test/overlap@10/0]] -->
 It runs in onnxruntime-web on wasm and WebGPU. Four layers is the elbow: eight add 15 MB
 for +0.020 agreement <!-- @evidence[[results/pairs.json#mac_k8_vs_k4_10ep.real_test.0]] -->
-and no measurable hit@10. The smallest build, 2 layers with a 2-bit table, is 15.50 MB <!-- @evidence[[results/final.json#/L2 mac_k2 t2w/mb]] -->
-at hit@10 0.890. <!-- @evidence[[results/final.json#/L2 mac_k2 t2w/synth_test/hit@10/0]] -->
+and no measurable hit@10.
 
-Full EG2 keeps more of its ranking but stays large: with 3-bit layers it is 75.2 MB at
-0.780 agreement. <!-- @evidence[[results/quant_full.json#/gq:3:32/real_test/overlap@10/0]] -->
+Text-to-image search needed one more step. The cut transferred badly
+(hit@10 0.561 against EG2's 0.810 on held-out images); fine-tuned on about 215,000 Bluesky
+alt texts, it reaches 0.712 <!-- @evidence[[results/img_eval_runC.json#imgC_t3w.test.hit@10.0]] -->
+and is now the austegard.com image-search default.
 
-What would change this: a cut that keeps EG2's last layer, or a smaller vocabulary.
+What would change this: a vocabulary that covers caption text, or a deeper cut.
 
 ## Findings
 
@@ -34,16 +35,25 @@ What would change this: a cut that keeps EG2's last layer, or a smaller vocabula
    +0.011 hit@10; <!-- @evidence[[results/pairs.json#mac_k4_vs_k2_10ep.hit@10.0]] -->
    k = 8 over k = 4 +0.020 real for 15 MB more, hit@10 +0.004 [−0.003, +0.011]. <!-- @evidence[[results/pairs.json#mac_k8_vs_k4_10ep.hit@10.0]] -->
    (Round 6, `run/pairs.py`)
-3. **Untrained, the cut is useless.** Top-10 agreement is 0.014 or less for every k up to 8,
+3. **Text-to-image needs caption-domain distillation, and more caption text keeps paying.** On
+   1,035 alt-text queries whose images were held out, the shipped cut's hit@10 change against
+   EG2 is −0.248; <!-- @evidence[[results/img_eval_runC.json#k4_t3w.test.hit10_minus_eg2.0]] -->
+   fine-tuned on 4,750 train-split alt texts −0.150, on 65K −0.100, on 215K −0.098, <!-- @evidence[[results/img_eval_runC.json#imgC_t3w.test.hit10_minus_eg2.0]] -->
+   with top-10 overlap with EG2 0.374, 0.519, 0.588, 0.605 <!-- @evidence[[results/img_eval_runC.json#imgC_t3w.test.overlap@10_vs_eg2.0]] -->
+   and the Bluesky benchmark unchanged. The target is EG2's vector for the same string, so alt
+   text written as commentary rather than description still trains correctly. The 32K cut
+   tokenizes 19.6% of alt text intact. <!-- @evidence[[results/img_eval_runC.json#intact_tokenization_share_32k]] -->
+   (Round 9, `run/img_*.py`)
+4. **Untrained, the cut is useless.** Top-10 agreement is 0.014 or less for every k up to 8,
    0.411 at k = 20, <!-- @evidence[[results/l0.json#/20/real_test/overlap@10/0]] -->
    and 1.000 only at k = 24. EG2's output space forms in its last layers; the training
    does the work. (Round 1)
-4. **Epochs matter more than the first runs showed.** At k = 4, 10 epochs beat 2 by
+5. **Epochs matter more than the first runs showed.** At k = 4, 10 epochs beat 2 by
    +0.042 real, <!-- @evidence[[results/pairs.json#mac_k4_10ep_vs_cpu_2ep.real_test.0]] -->
    and the curve is flat by epoch 8 (0.631, then 0.632). <!-- @evidence[[results/l1_mac_k4_v32k.json#/evals/step20576/real_test/overlap@10/0]] -->
    After one epoch each, two epochs at k = 4 had tied one at k = 8; with 10 each, depth
    pays again (finding 2). (Round 3, Round 6)
-5. **Full EG2 holds to 3 bits only with a rotated codebook and calibration.** All 24 layers,
+6. **Full EG2 holds to 3 bits only with a rotated codebook and calibration.** All 24 layers,
    32K vocabulary: GPTQ rounding onto a randomized-Hadamard + Lloyd-Max grid, 75.2 MB,
    hit@10 change −0.004; <!-- @evidence[[results/quant_full.json#/gq:3:32/synth_test/hit@10_minus_eg2/0]] -->
    plain 3-bit GPTQ 0.742 agreement at 85.3 MB; <!-- @evidence[[results/quant_full.json#/gptq:3:32/real_test/overlap@10/0]] -->
@@ -51,15 +61,15 @@ What would change this: a cut that keeps EG2's last layer, or a smaller vocabula
    At 2 bits the best is 0.591 at 58.1 MB, <!-- @evidence[[results/quant_full.json#/gq:2:32/real_test/overlap@10/0]] -->
    no better than the 29 MB cut. Simulated; the load-time decoder is not built. (Round 5,
    `run/quant_full.py`)
-6. **The remaining error is structured.** The k = 4 cut after two epochs in fp32 reaches
+7. **The remaining error is structured.** The k = 4 cut after two epochs in fp32 reaches
    cosine 0.948 to EG2 <!-- @evidence[[results/final.json#/L1 k4_ep2 step2572/real_test/cos_to_eg2]] -->
    and 0.608 agreement; <!-- @evidence[[results/final.json#/L1 k4_ep2 step2572/real_test/overlap@10/0]] -->
    in #102, isotropic noise at cosine 0.958 kept 0.81. (Round 3)
-7. **Training on the cut vocabulary wins back part of what the cut costs.** Cutting after
+8. **Training on the cut vocabulary wins back part of what the cut costs.** Cutting after
    training costs 0.028 real (0.608 to 0.580); <!-- @evidence[[results/final.json#/L2 k4_ep2 q4/real_test/overlap@10/0]] -->
    training the second epoch on the cut tokenizer: +0.008 [+0.002, +0.015]. <!-- @evidence[[results/pairs.json#train_on_cut_vs_cut_after.real_test.0]] -->
    (Round 3)
-8. **The bytes are the token table plus 3.4 MB a layer, and q4 beats int8.** At q4 the
+9. **The bytes are the token table plus 3.4 MB a layer, and q4 beats int8.** At q4 the
    41,741-row table is 13.69 MB, <!-- @evidence[[results/sizes.json#/l2_k2/embed_tokens/mb]] -->
    four layers 13.48 MB, <!-- @evidence[[results/sizes.json#/l2_k4/layers/mb]] -->
    eight 27.64 MB. <!-- @evidence[[results/sizes.json#/l2_mac_k8/layers/mb]] -->
@@ -67,18 +77,18 @@ What would change this: a cut that keeps EG2's last layer, or a smaller vocabula
    (k = 2: 33.7 MB <!-- @evidence[[results/final.json#/L2 k2_ep2_v32k int8/mb]] -->
    at minimum cosine 0.987 <!-- @evidence[[results/export_l2_k2_ep2_v32k.json#formats.int8.cos_to_pytorch.min]] -->
    against q4's 0.992). (`run/sizes.py`)
-9. **The token table goes to 3 bits for free and 2 bits for a few tenths of a point.** k = 4:
+10. **The token table goes to 3 bits for free and 2 bits for a few tenths of a point.** k = 4:
    a 3-bit table saves 3.7 MB at hit@10 0.9065 against q4's 0.9072; <!-- @evidence[[results/final.json#/L2 mac_k4 t3w/synth_test/hit@10/0]] -->
    2-bit, 22.7 MB, <!-- @evidence[[results/final.json#/L2 mac_k4 t2w/mb]] -->
    hit@10 0.904 and agreement 0.606. <!-- @evidence[[results/final.json#/L2 mac_k4 t2w/real_test/overlap@10/0]] -->
    The `embeddinggemma-vocab-prune` session measured the same (0.906 and 0.903) and found
    training with the quantized table no better than quantizing after. (Round 8)
-10. **A standard-op table unpack makes the file run on wasm.** onnxruntime-web 1.30's wasm
+11. **A standard-op table unpack makes the file run on wasm.** onnxruntime-web 1.30's wasm
    backend has no GatherBlockQuantized kernel, the op EG2's own q4 graph uses. The same
    bytes unpacked with Gather/BitwiseAnd/BitShift/Cast/Sub/Mul (`model_q4w.onnx`) run on
    wasm with minimum cosine 0.9999999 to CPU, <!-- @evidence[[results/smoke_web_l2_mac_k4_model_q4w.json#wasm.cos_to_cpu_min]] -->
    and on WebGPU. The 2- and 3-bit tables use the same approach. (Rounds 7–8, `run/export.py`)
-11. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
+12. **The bf16 release is not the teacher.** EG2's bf16 weights agree with the q4 teacher
     that built the index on 0.87 of the top 10; the student starts from the q4 weights,
     dequantized, which reproduce it exactly. (ERRORS 1)
 
@@ -119,6 +129,16 @@ onnxruntime. Download = ONNX graph + external data + gzip `tokenizer.json`.
 **Metrics.** As #102: top-10 overlap with EG2 on the 2-bit codes, bootstrap 95% CIs (2,000
 resamples); synth_test source-post hit@10 with the paired difference to EG2; paired CIs
 between builds on the same queries (`run/pairs.py`).
+
+**Text-to-image benchmark (Round 9).** `run/img_common.py`: the austegard.com bsky
+image-search index as the site serves it (16,878 EG2 q4 image vectors at vision budget 70, remex
+2-bit codes, `rotation="rht"`, scored with remex 2.1 in `out/imgenv`), alt text recovered by
+cid with `getPosts` (`run/img_hydrate.py`). Queries: alt text of 25-300 characters with the
+query prompt, the image as the one relevant result, as `bsky-image-search/run/eval_query_encoder.py`.
+Split by image, test = sha1(cid) % 5 == 0; training never sees a test image's post, and the
+harvested alt text (`run/img_harvest.py`, `run/img_harvest2.py`) skips every author with a test
+image. Metrics: hit@1, hit@10, and top-10 overlap with full EG2 text over the images, which does
+not depend on whether an alt text describes its image.
 
 **Mac training (Round 6).** `mac_run.sh` on Oskar's 128 GB M5 (PyTorch MPS): k = 2, 4, 8,
 each 10 epochs (25,720 steps) from the teacher's weights, trained on the 32K cut tokenizer
@@ -277,4 +297,33 @@ The first WebGPU run failed: ORT's WebGPU Gather on an fp16 tensor needs shader-
 SwiftShader lacks (ERRORS 10). Casting the scale table to fp32 before the Gather fixed it;
 every build tested (k = 2 t2/t3, k = 4 t2/t3, k = 8 t3) then matched CPU on wasm and WebGPU at
 minimum cosine 0.9999999.
+
+### Round 9: text-to-image (2026-10-22)
+
+The bsky image-search demo (`bsky-image-search/`, wasm session) measured the shipped cut at
+hit@10 0.563 against EG2's 0.803 on 5,248 alt-text queries over its image index. Oskar asked
+for a retrain and noted that Bluesky alt text is often commentary rather than description.
+Rebuilt here from the site's own files: 5,239 of the 5,248 queries (9 posts deleted), EG2
+0.8026 and the cut 0.5595, matching. On the cut's 32K vocabulary only 19.6% of alt-text queries
+tokenize intact; those reach 0.449 top-10 overlap with EG2, the rest 0.360, and overlap falls
+with length (0.414 under 20 tokens, 0.338 over 60), so vocabulary is part of the gap and domain
+the larger part.
+
+Fine-tunes from the 10-epoch k = 4 cut, lr 1e-3, 32K vocabulary, loss 1 − cos to EG2 q4 text
+vectors with the query prompt, 30K Bluesky targets mixed in. Held-out images (1,035 queries),
+3-bit-table builds, 25.35 MB:
+
+| run | caption training text | epochs | hit@1 | hit@10 | vs EG2 | overlap | Bluesky hit@10 |
+|---|---|---|---|---|---|---|---|
+| shipped cut | none | | 0.301 | 0.561 | −0.248 | 0.374 | 0.9065 |
+| A | 4,750 train alt (×4) + 10,510 post texts | 3 | 0.386 | 0.660 | −0.150 | 0.519 | 0.9065 |
+| B | A + 60,083 alt texts from non-test index authors | 2 | 0.414 | 0.709 | −0.100 | 0.588 | 0.9059 |
+| C | B + 150,001 alt texts from their follows | 1 | 0.426 | 0.712 | −0.098 | 0.605 | 0.9072 |
+| EG2 text | | | 0.573 | 0.810 | | | 0.9192 |
+
+Run A overfit (overlap 0.73 on train-split queries, 0.52 held out); more text closed most of
+that, with diminishing returns from B to C. Run C shipped to austegard.com/bsky/image-search
+(oaustegard.github.io e5edc70): only `model_t3w.onnx_data` changes, since the graph, tokenizer
+and the WGSL engine's manifest come out byte-identical, and `eg2-wgsl-engine/run/check.py`
+passes on the new weights.
 
