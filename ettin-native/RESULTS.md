@@ -82,6 +82,31 @@ Findings:
 5. Not measured: non-Apple GPUs, Safari, and the engine on a real network cold start. Startup
    once cached is 0.15–0.45 s, mostly pipeline compilation and the int8 transpose.
 
+## Demo: the three models side by side, offline
+
+`web/demo/` compares Ettin-17m, leaf-ir and the EG2 4-layer cut on the 61,686 posts. One search
+box runs all three: each embeds the query on its WebGPU engine and scans its 2-bit index on the
+GPU with RemexTail (embeddinggemma2-webgpu-tail). Ettin and leaf-ir search indexes of the posts
+they embedded themselves (`run/build_demo_index.py`, same layout as the EG2 index). The cut
+searches the full-EG2 index it was trained against. Result cards show each post's text, author
+and date (decoded from the record key), mark posts the other models also found, and report
+top-10 overlap. A per-model "Cold launch" button re-reads the model from the offline cache or,
+when ticked, from the network. It then times file read, engine start, first embedding and the
+scan, and estimates the real first-visit download from the model's brotli size.
+
+**Offline.** "Make available offline" copies all 34 files (page, engines, three models, three
+indexes, post texts, tokenizer library, onnxruntime-web fallback) into the Cache API, and
+`sw.js` serves them cache first. Tested by stopping the web server: the page reloaded, loaded
+all three models and indexes, and answered queries. Cold launches from the cache took
+129–215 ms to results. A cold launch from the network fails with a message.
+
+Run it: `python3 -m http.server 8777 --directory experiments`, then open
+`http://localhost:8777/ettin-native/web/demo/`. It needs `web/demo/data/corpus.json` and
+`web/demo/eg2cut/` from `run/build_demo_data.py`, the two indexes from
+`run/build_demo_index.py` (or the release's `demo-index-*.zip`), and the two model packages
+(`web-*.zip`). The post texts are not published: they are other people's posts, rebuilt
+locally from the hydrated corpus.
+
 ## Against the 4-layer EG2 cut (eg2-layer-student, release eg2-layer-onnx-20261021)
 
 Paired on the same 1,498 queries; per-query arrays from both experiments. The cut is ASYM: it
