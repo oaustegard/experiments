@@ -79,6 +79,10 @@ def main():
     ap.add_argument("--save-every", type=int, default=300)
     ap.add_argument("--eval-every", type=int, default=1000)
     ap.add_argument("--max-steps", type=int, help="stop after this many steps (lr probes)")
+    ap.add_argument("--img-mix", type=int, default=0,
+                    help="add the image-search caption targets (run/img_teacher.py): train-split alt texts repeated "
+                         "this many times plus train-split post texts once")
+    ap.add_argument("--bluesky-n", type=int, help="keep a fixed random subset of this many Bluesky targets")
     a = ap.parse_args()
     tag = a.tag or f"k{a.k}"
     torch.set_num_threads(4)
@@ -103,6 +107,15 @@ def main():
     m.tm.embed_tokens.weight.requires_grad_(train_embed)
     m.to(dev)
     texts, Y = train_texts(a.train)
+    if a.bluesky_n:
+        keep = np.sort(np.random.default_rng(7).choice(len(texts), a.bluesky_n, replace=False))
+        texts, Y = [texts[i] for i in keep], Y[keep]
+    if a.img_mix:
+        img = ROOT / "out" / "img"
+        for name, rep in (("train_alt", a.img_mix), ("train_post", 1)):
+            t = json.loads((img / f"teacher_{name}.json").read_text())
+            texts += t * rep
+            Y = np.concatenate([Y] + [np.load(img / f"teacher_{name}.npy")] * rep)
     enc = tokenize(T, texts, remap=tok)
     B = Bench()
     test_enc = {t: tokenize(T, B.texts(t), remap=tok) for t in TESTS}
@@ -111,7 +124,7 @@ def main():
     resp = ROOT / "results" / f"l1_{tag}.json"
     res = json.loads(resp.read_text()) if resp.exists() else {
         "k": a.k, "train": a.train, "n_train": len(texts), "lr": a.lr, "batch": a.batch,
-        "epochs": a.epochs, "vocab": a.vocab, "init": a.init, "device": a.device, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
+        "epochs": a.epochs, "img_mix": a.img_mix, "bluesky_n": a.bluesky_n, "vocab": a.vocab, "init": a.init, "device": a.device, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
         "evals": {}}
     params = [p for p in m.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=a.lr, weight_decay=0.0)
