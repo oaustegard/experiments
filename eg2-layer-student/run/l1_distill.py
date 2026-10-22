@@ -83,6 +83,7 @@ def main():
                     help="add the image-search caption targets (run/img_teacher.py): train-split alt texts repeated "
                          "this many times plus train-split post texts once")
     ap.add_argument("--bluesky-n", type=int, help="keep a fixed random subset of this many Bluesky targets")
+    ap.add_argument("--img-extra", action="store_true", help="also add the harvested extra alt texts (run/img_harvest.py) once")
     a = ap.parse_args()
     tag = a.tag or f"k{a.k}"
     torch.set_num_threads(4)
@@ -112,7 +113,7 @@ def main():
         texts, Y = [texts[i] for i in keep], Y[keep]
     if a.img_mix:
         img = ROOT / "out" / "img"
-        for name, rep in (("train_alt", a.img_mix), ("train_post", 1)):
+        for name, rep in (("train_alt", a.img_mix), ("train_post", 1)) + ((("extra_alt", 1),) if a.img_extra else ()):
             t = json.loads((img / f"teacher_{name}.json").read_text())
             texts += t * rep
             Y = np.concatenate([Y] + [np.load(img / f"teacher_{name}.npy")] * rep)
@@ -124,7 +125,7 @@ def main():
     resp = ROOT / "results" / f"l1_{tag}.json"
     res = json.loads(resp.read_text()) if resp.exists() else {
         "k": a.k, "train": a.train, "n_train": len(texts), "lr": a.lr, "batch": a.batch,
-        "epochs": a.epochs, "img_mix": a.img_mix, "bluesky_n": a.bluesky_n, "vocab": a.vocab, "init": a.init, "device": a.device, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
+        "epochs": a.epochs, "img_mix": a.img_mix, "img_extra": a.img_extra, "bluesky_n": a.bluesky_n, "vocab": a.vocab, "init": a.init, "device": a.device, "seed": a.seed, "trains": "all but embed_tokens" if not train_embed else "all",
         "evals": {}}
     params = [p for p in m.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=a.lr, weight_decay=0.0)
