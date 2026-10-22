@@ -28,8 +28,8 @@ def is_test(cid):
     return int(hashlib.sha1(cid.encode()).hexdigest(), 16) % 5 == 0
 
 
-def get(q):
-    req = urllib.request.Request(API + urllib.parse.urlencode(q), headers={"User-Agent": "muninn-experiments"})
+def get(q, api=None):
+    req = urllib.request.Request((api or API) + urllib.parse.urlencode(q), headers={"User-Agent": "muninn-experiments"})
     for attempt in range(5):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
