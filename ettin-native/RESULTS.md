@@ -94,6 +94,8 @@ top-10 overlap. A per-model "Cold launch" button re-reads the model from the off
 when ticked, from the network. It then times file read, engine start, first embedding and the
 scan, and estimates the real first-visit download from the model's brotli size.
 
+**Live at https://austegard.com/bsky/embedders/** (site repo `bsky/embedders/`, built by `run/publish_site.py`; post texts ship gzipped, the EG2 cut is shared with `bsky/image-search/`).
+
 **Offline.** "Make available offline" copies all 34 files (page, engines, three models, three
 indexes, post texts, tokenizer library, onnxruntime-web fallback) into the Cache API, and
 `sw.js` serves them cache first. Tested by stopping the web server: the page reloaded, loaded

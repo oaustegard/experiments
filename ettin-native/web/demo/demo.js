@@ -8,11 +8,18 @@
 // copies every file into the Cache API; sw.js serves them from there (cache first).
 // onnxruntime-web is each model's fallback if its WGSL engine fails on this GPU.
 
+// --- paths: run/publish_site.py rewrites this block for austegard.com/bsky/embedders/ ---
 import { RemexTail } from "../../../embeddinggemma2-webgpu-tail/web/tail.js";
 import { SmallEngine } from "../engine.js";
 import { Eg2Engine } from "../../../eg2-wgsl-engine/web/engine.js";
-
-const TAIL = "../../../embeddinggemma2-webgpu-tail/web/";
+const P = {
+  tail: "../../../embeddinggemma2-webgpu-tail/web/tail.js", smallEngine: "../engine.js", eg2Engine: "../../../eg2-wgsl-engine/web/engine.js",
+  params: "../../../embeddinggemma2-webgpu-tail/web/assets/params.json", corpus: "data/corpus.json",
+  ettinModel: "../models/e17c-t4-w8L63/", ettinIndex: "index/e17c-t4-w8L63/",
+  leafModel: "../models/leafirc-t4-w8L63/", leafIndex: "index/leafirc-t4-w8L63/",
+  eg2Model: "eg2cut/", eg2Index: "../../../embeddinggemma2-webgpu-tail/web/bsky/", codes: "codes.u8.txt", aux: "aux.f32.txt",
+};
+// --- end paths ---
 const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs";
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
 const CACHE = "ettin-demo-v1";
@@ -22,20 +29,19 @@ const EXAMPLES = ["claude coding agent costs", "do LLMs actually reason?", "copy
   "best local model for a laptop", "bluesky custom feeds", "why are data centers raising electricity bills"];
 
 const MODELS = [
-  { id: "ettin", name: "Ettin-17m", color: "var(--ettin)", kind: "small", dir: "../models/e17c-t4-w8L63/",
-    model: "model.onnx", index: "index/e17c-t4-w8L63/", hit: 0.918, mb: 10.2, note: "int4 token table, own index" },
-  { id: "leaf", name: "leaf-ir", color: "var(--leaf)", kind: "small", dir: "../models/leafirc-t4-w8L63/",
-    model: "model.onnx", index: "index/leafirc-t4-w8L63/", hit: 0.942, mb: 16.1, note: "int4 token table, own index" },
-  { id: "eg2", name: "EG2 4-layer cut", color: "var(--eg2)", kind: "eg2", dir: "eg2cut/",
-    model: "model_t3w.onnx_data", index: TAIL + "bsky/", hit: 0.907, mb: 22.7, note: "3-bit table, queries the full-EG2 index" },
+  { id: "ettin", name: "Ettin-17m", color: "var(--ettin)", kind: "small", dir: P.ettinModel,
+    model: "model.onnx", index: P.ettinIndex, hit: 0.918, mb: 10.2, note: "int4 token table, own index" },
+  { id: "leaf", name: "leaf-ir", color: "var(--leaf)", kind: "small", dir: P.leafModel,
+    model: "model.onnx", index: P.leafIndex, hit: 0.942, mb: 16.1, note: "int4 token table, own index" },
+  { id: "eg2", name: "EG2 4-layer cut", color: "var(--eg2)", kind: "eg2", dir: P.eg2Model,
+    model: "model_t3w.onnx_data", index: P.eg2Index, hit: 0.907, mb: 22.7, note: "3-bit table, queries the full-EG2 index" },
 ];
 const modelFiles = (m) => m.kind === "small"
   ? ["manifest.json", "meta.json", "tokenizer.json", "model.onnx"].map((f) => m.dir + f)
-  : ["manifest.json", "meta.json", "tokenizer.json", "model_t3w.onnx", "model_t3w.onnx_data"].map((f) => m.dir + f);
-const indexFiles = (m) => ["index.json", "codes.u8.txt", "aux.f32.txt"].map((f) => m.index + f);
+  : ["manifest.json", "tokenizer.json", "model_t3w.onnx", "model_t3w.onnx_data"].map((f) => m.dir + f);
+const indexFiles = (m) => ["index.json", P.codes, P.aux].map((f) => m.index + f);
 const ASSETS = [
-  "./", "index.html", "demo.js", "../engine.js", "../../../eg2-wgsl-engine/web/engine.js", TAIL + "tail.js",
-  TAIL + "assets/params.json", "data/corpus.json", TOKENIZERS,
+  "./", "index.html", "demo.js", P.smallEngine, P.eg2Engine, P.tail, P.params, P.corpus, TOKENIZERS,
   ORT + "ort.wasm.min.mjs", ORT + "ort-wasm-simd-threaded.mjs", ORT + "ort-wasm-simd-threaded.wasm",
   ...MODELS.flatMap((m) => [...modelFiles(m), ...indexFiles(m)]),
 ];
@@ -67,8 +73,10 @@ function cleanEg2(tj, text) {
 async function loadModel(m, net) {
   const t0 = now();
   const files = modelFiles(m);
-  const [manifest, meta, tj, ...bins] = await Promise.all([
-    get(files[0], net, "json"), get(files[1], net, "json"), get(files[2], net, "json"), ...files.slice(3).map((f) => get(f, net))]);
+  const small = m.kind === "small";
+  const [manifest, meta, tj, ...bins] = small
+    ? await Promise.all([get(files[0], net, "json"), get(files[1], net, "json"), get(files[2], net, "json"), get(files[3], net)])
+    : await Promise.all([get(files[0], net, "json"), null, get(files[1], net, "json"), get(files[2], net), get(files[3], net)]);
   Tok ??= (await import(TOKENIZERS)).Tokenizer;
   const fetchMs = now() - t0;
   const bytes = bins.reduce((s, b) => s + b.byteLength, 0) + JSON.stringify(tj).length;
@@ -108,6 +116,15 @@ async function loadModel(m, net) {
     };
     return { m, encode, backend: "onnxruntime-web (fallback)", embed, destroy: () => session.release(), fetchMs, initMs: now() - t1, bytes };
   }
+}
+
+// corpus.json, or corpus.json.gz (gzip bytes, decompressed here; a server that already sent it with
+// Content-Encoding: gzip hands fetch plain JSON, which is detected by the missing gzip magic bytes)
+async function loadCorpus() {
+  const buf = new Uint8Array(await get(P.corpus, false));
+  if (buf[0] !== 0x1f || buf[1] !== 0x8b) return JSON.parse(new TextDecoder().decode(buf));
+  const ds = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return JSON.parse(await new Response(ds).text());
 }
 
 // ---------------------------------------------------------------- indexes
@@ -315,7 +332,7 @@ async function start() {
     maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
   status("loading the corpus and the three indexes…");
   const t0 = now();
-  [corpus, params] = await Promise.all([get("data/corpus.json", false, "json"), get(TAIL + "assets/params.json", false, "json")]);
+  [corpus, params] = await Promise.all([loadCorpus(), get(P.params, false, "json")]);
   for (const m of MODELS) state.models[m.id] = { index: await loadIndex(m) };
   await device.queue.onSubmittedWorkDone();
   const mb = MODELS.reduce((s, m) => s + state.models[m.id].index.bytes, 0) / 1e6;
