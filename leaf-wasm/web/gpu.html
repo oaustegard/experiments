@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>leaf-gpu parity</title>
+<style>
+  :root { --bg: #fff; --fg: #1b1b1b; --muted: #666; --ok: #17803d; --bad: #b42318; --card: #f4f4f2; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #151515; --fg: #e8e8e6; --muted: #9a9a9a; --ok: #4ac26b; --bad: #f97066; --card: #222; } }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } p { color: var(--muted); margin: 0 0 16px; }
+  #status { margin: 12px 0; font-weight: 600; } .ok { color: var(--ok); } .bad { color: var(--bad); }
+  pre { background: var(--card); padding: 12px; overflow-x: auto; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>leaf-gpu parity</h1>
+<p>WebGPU forward pass (leaf-gpu.js) vs the JS + WASM engine (leaf.js) on the same int8 weights, and vs ORT fp32,
+on the 460 fixtures from run/ref.py. Served from the leaf-wasm root (needs out/).</p>
+<div id="status">running…</div>
+<pre id="out"></pre>
+<script type="module">
+import { createLeaf } from "./leaf.js";
+import { createLeafGPU } from "./leaf-gpu.js";
+
+const $ = (id) => document.getElementById(id);
+const get = async (u, kind) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u}: ${r.status}`); return r[kind](); };
+const cos = (a, b) => { let c = 0; for (let i = 0; i < a.length; i++) c += a[i] * b[i]; return c; };
+const stats = (xs) => { const s = [...xs].sort((a, b) => a - b); return { min: s[0], p01: s[Math.floor(s.length * 0.01)], median: s[s.length >> 1] }; };
+
+async function main() {
+  const [weights, vocab, fx, kf, k] = await Promise.all([get("../out/leaf-ir-i8.bin", "arrayBuffer"), get("../out/hf/vocab.txt", "text"),
+    get("../out/ref/fixtures.json", "json"), get("./kernel-fma.wasm", "arrayBuffer"), get("./kernel.wasm", "arrayBuffer")]);
+  const res = {};
+  let t = performance.now();
+  const gpu = await createLeafGPU({ weights: weights.slice(0), vocab });
+  res.gpu_init_ms = +(performance.now() - t).toFixed(1);
+  const cpu = await createLeaf({ weights: weights.slice(0), vocab, wasm: [kf, k] });
+
+  t = performance.now();
+  const G = await gpu.forwardBatch(fx.map((f) => f.ids));
+  res.gpu_batched_460_ms = +(performance.now() - t).toFixed(1);
+  const C = fx.map((f) => cpu.forward(f.ids));
+  res.vs_js_int8 = stats(G.map((g, i) => cos(g, C[i])));
+  res.vs_ort_fp32 = stats(G.map((g, i) => cos(g, fx[i].emb)));
+  res.js_int8_vs_ort_fp32 = stats(C.map((c, i) => cos(c, fx[i].emb)));
+  let worst = 0;
+  for (let i = 0; i < 40; i++) {
+    const [one] = await gpu.forwardBatch([fx[i].ids]);
+    for (let d = 0; d < one.length; d++) worst = Math.max(worst, Math.abs(one[d] - G[i][d]));
+  }
+  res.batch_vs_single_max_abs_diff_40 = worst;
+  res.pass = res.vs_js_int8.min >= 0.9995;
+  window.gpuParity = res;
+  $("out").textContent = JSON.stringify(res, null, 1);
+  $("status").textContent = res.pass ? `PASS: min cos vs JS int8 ${res.vs_js_int8.min.toFixed(6)}` : `FAIL: min cos vs JS int8 ${res.vs_js_int8.min.toFixed(6)}`;
+  $("status").className = res.pass ? "ok" : "bad";
+}
+main().catch((e) => { $("status").textContent = String(e.stack || e); $("status").className = "bad"; window.gpuParity = { error: String(e) }; });
+</script>
+</body>
+</html>

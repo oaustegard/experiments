@@ -47,6 +47,9 @@ ARMS = {  # name: (dir, onnx file, query prompt, doc prompt, pooled output or No
     # not the 23.76 MB leaf-ir-i8.bin the browser downloads.
     "leaf-ir-fp32": ("../../leaf-wasm/out/hf", "onnx/model.onnx", LEAF_Q, "", "sentence_embedding"),
     "leaf-ir-wasm-i8": ("../../leaf-wasm/out/onnx-i8deq", "onnx/model.onnx", LEAF_Q, "", "sentence_embedding"),
+    # the same with int8 codes limited to +-63 / +-31 levels (smaller brotli; leaf-wasm results/levels.json)
+    "leaf-ir-wasm-L63": ("../../leaf-wasm/out/onnx-i8L63", "onnx/model.onnx", LEAF_Q, "", "sentence_embedding"),
+    "leaf-ir-wasm-L31": ("../../leaf-wasm/out/onnx-i8L31", "onnx/model.onnx", LEAF_Q, "", "sentence_embedding"),
 }
 
 

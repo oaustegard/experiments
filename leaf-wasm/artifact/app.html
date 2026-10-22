@@ -1,0 +1,238 @@
+<title>Leaf Encoder Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one reading column; a load strip, then three instrument panels (check, speed, try). */
+  :root {
+    --bg: #f6f7f4; --panel: #ffffff; --fg: #1d221c; --muted: #5d6659; --line: #d9ddd3;
+    --accent: #2f6b3a; --accent-fg: #ffffff; --ok: #217a3b; --bad: #b3261e; --warn: #9a6a00; --bar: #8fb996;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #141713; --panel: #1c201b; --fg: #e5e9e1; --muted: #9aa494; --line: #2f352d;
+    --accent: #7fc28c; --accent-fg: #10140f; --ok: #6fcf86; --bad: #f2867c; --warn: #e3b44f; --bar: #4f7f58; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #141713; --panel: #1c201b; --fg: #e5e9e1; --muted: #9aa494; --line: #2f352d;
+    --accent: #7fc28c; --accent-fg: #10140f; --ok: #6fcf86; --bad: #f2867c; --warn: #e3b44f; --bar: #4f7f58; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans);
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+  main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+  h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+  h2 { font-size: 16px; font-weight: 600; margin: 0; }
+  p { margin: 0; max-width: 65ch; }
+  .lede { color: var(--muted); }
+  .label { font: 600 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button { font: 500 14px var(--sans); padding: 8px 14px; border-radius: 7px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 12px var(--mono); padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.ok { color: var(--ok); border-color: currentColor; } .chip.bad { color: var(--bad); border-color: currentColor; } .chip.warn { color: var(--warn); border-color: currentColor; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-weight: 600; color: var(--muted); }
+  .bars { display: grid; gap: 6px; }
+  .bar { display: grid; grid-template-columns: 9.5em 1fr 5.5em; gap: 8px; align-items: center; font: 12px var(--mono); }
+  .bar .track { height: 10px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--bar); }
+  .bar .fill.gpu { background: var(--accent); }
+  .bar .v { text-align: right; font-variant-numeric: tabular-nums; }
+  textarea { font: 14px var(--sans); width: 100%; box-sizing: border-box; min-height: 64px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--fg); resize: vertical; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } .bar { grid-template-columns: 7.5em 1fr 5em; } }
+  .score { font: 600 30px var(--mono); font-variant-numeric: tabular-nums; }
+  .note { font-size: 13px; color: var(--muted); }
+  pre { font: 12px var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 10px; overflow-x: auto; margin: 0; max-height: 260px; }
+  @media (prefers-reduced-motion: no-preference) { .fill { transition: width 0.4s ease; } }
+</style>
+
+<main>
+  <header style="display:grid;gap:8px">
+    <span class="label">mdbr-leaf-ir · 6 layers · 384 hidden · int8</span>
+    <h1>Leaf Encoder Lab</h1>
+    <p class="lede">A 23 M-parameter search embedder running in this browser with no inference runtime: a 90-line WordPiece tokenizer,
+      a JavaScript forward pass with a 1.3 KB WebAssembly SIMD matmul, and a separate WebGPU version in five WGSL shaders.
+      Both read the same int8 weights. Load the model, check both engines against reference vectors, then time them.</p>
+  </header>
+
+  <section>
+    <div class="row" style="justify-content:space-between">
+      <h2>Model</h2>
+      <button id="load">Load model (23.8 MB)</button>
+    </div>
+    <div class="chips" id="loadChips"><span class="chip">not loaded</span></div>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between">
+      <h2>Correctness</h2>
+      <button id="check" disabled>Run check</button>
+    </div>
+    <p class="note">24 fixtures (12 real search queries, 12 hard edge cases: accents, CJK, emoji, control characters, literal [SEP])
+      against vectors from MongoDB's own fp32 ONNX model. int8 costs about 0.001 of cosine; the two engines should agree with each other almost exactly.</p>
+    <div class="table-wrap"><table id="checkTable">
+      <thead><tr><th>Comparison</th><th>min cosine</th><th>mean cosine</th><th>result</th></tr></thead>
+      <tbody><tr><td>WASM vs fp32 reference</td><td>–</td><td>–</td><td>–</td></tr>
+             <tr><td>WebGPU vs fp32 reference</td><td>–</td><td>–</td><td>–</td></tr>
+             <tr><td>WebGPU vs WASM</td><td>–</td><td>–</td><td>–</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between">
+      <h2>Speed</h2>
+      <button id="speed" disabled>Time both engines</button>
+    </div>
+    <p class="note">One query at a time at four lengths (a typical search query is about 15 tokens with the prompt), then a batch of 64 passages at 128 tokens.
+      Median of 15 runs after warm-up, one CPU thread for WASM. Close other heavy tabs for a fair number.</p>
+    <div class="bars" id="bars"><p class="note">No timings yet.</p></div>
+  </section>
+
+  <section>
+    <h2>Try it</h2>
+    <div class="pair">
+      <div style="display:grid;gap:6px;min-width:0"><label class="label" for="qa">Search query</label>
+        <textarea id="qa">how do small embedding models run in the browser</textarea></div>
+      <div style="display:grid;gap:6px;min-width:0"><label class="label" for="qb">Passage</label>
+        <textarea id="qb">We compiled a tiny BERT encoder to WebAssembly SIMD and WebGPU so pages can embed text without a server.</textarea></div>
+    </div>
+    <div class="row">
+      <button id="sim" disabled>Compare</button>
+      <span class="score" id="simScore">–</span>
+      <span class="note" id="simNote">cosine similarity, query prompt on the left side only</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between">
+      <h2>Results</h2>
+      <button class="ghost" id="copy" disabled>Copy JSON</button>
+    </div>
+    <pre id="json">{}</pre>
+  </section>
+</main>
+
+<script type="module">
+/*__ENGINE__*/
+
+const $ = (id) => document.getElementById(id);
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const KERNEL_FMA = b64("/*__KERNEL_FMA__*/"), KERNEL_PLAIN = b64("/*__KERNEL_PLAIN__*/");
+const QUERIES = /*__QUERIES__*/;
+const report = { page: "Leaf Encoder Lab", user_agent: navigator.userAgent };
+let cpu = null, gpu = null, gpuError = null;
+
+function chips(el, items) { el.replaceChildren(...items.map(([t, cls]) => Object.assign(document.createElement("span"), { className: "chip " + (cls || ""), textContent: t }))); }
+function show() { $("json").textContent = JSON.stringify(report, null, 1); $("copy").disabled = false; }
+const cos = (a, b) => { let c = 0; for (let i = 0; i < a.length; i++) c += a[i] * b[i]; return c; };
+const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; };
+async function times(fn, warm = 3, n = 15) { for (let i = 0; i < warm; i++) await fn(); const t = []; for (let i = 0; i < n; i++) { const a = performance.now(); await fn(); t.push(performance.now() - a); } return t; }
+
+$("load").onclick = async () => {
+  $("load").disabled = true;
+  chips($("loadChips"), [["downloading…"]]);
+  try {
+    const t0 = performance.now();
+    const [p0, p1, vocab] = await Promise.all(["leaf-ir-i8.part0.wasm", "leaf-ir-i8.part1.wasm", "vocab.txt"].map(async (u, i) => {
+      const r = await fetch(u); if (!r.ok) throw new Error(`${u}: HTTP ${r.status}`); return i < 2 ? new Uint8Array(await r.arrayBuffer()) : r.text(); }));
+    const weights = new Uint8Array(p0.length + p1.length); weights.set(p0); weights.set(p1, p0.length);
+    const tFetch = performance.now() - t0;
+    let t = performance.now();
+    cpu = await createLeaf({ weights: weights.buffer.slice(0), vocab, wasm: [KERNEL_FMA, KERNEL_PLAIN] });
+    const tCpu = performance.now() - t;
+    const items = [[`downloaded ${(weights.length / 1e6).toFixed(1)} MB in ${(tFetch / 1000).toFixed(1)} s`, "ok"],
+                   [`WASM ready in ${tCpu.toFixed(0)} ms (${cpu.kernel === 0 ? "FMA kernel" : "plain kernel"})`, "ok"]];
+    report.load = { weights_mb: +(weights.length / 1e6).toFixed(2), fetch_ms: +tFetch.toFixed(0), wasm_init_ms: +tCpu.toFixed(0), wasm_kernel: cpu.kernel === 0 ? "relaxed-simd fma" : "plain" };
+    if (!navigator.gpu) { gpuError = "WebGPU is not available in this browser"; }
+    else {
+      try {
+        t = performance.now();
+        gpu = await createLeafGPU({ weights: weights.buffer.slice(0), vocab, maxRows: 8192 });
+        await gpu.forwardBatch([gpu.tokenize(QUERY_PROMPT + QUERIES[0])]);
+        report.load.gpu_init_ms = +(performance.now() - t).toFixed(0);
+        const info = (await navigator.gpu.requestAdapter())?.info || {};
+        report.load.gpu = `${info.vendor || "?"} ${info.architecture || ""}`.trim();
+        items.push([`WebGPU ready in ${report.load.gpu_init_ms} ms (${report.load.gpu})`, "ok"]);
+      } catch (e) { gpuError = String(e.message || e); gpu = null; }
+    }
+    if (gpuError) { items.push([`WebGPU unavailable: ${gpuError}`, "warn"]); report.load.gpu_error = gpuError; }
+    chips($("loadChips"), items);
+    for (const id of ["check", "speed", "sim"]) $(id).disabled = false;
+    show();
+  } catch (e) { chips($("loadChips"), [[String(e.message || e), "bad"]]); $("load").disabled = false; }
+};
+
+$("check").onclick = async () => {
+  $("check").disabled = true;
+  const fx = await (await fetch("fixtures.json")).json();
+  const C = fx.map((f) => cpu.embed(f.t));
+  const G = gpu ? await gpu.forwardBatch(fx.map((f) => gpu.tokenize(f.t))) : null;
+  const stat = (xs) => ({ min: Math.min(...xs), mean: xs.reduce((a, b) => a + b) / xs.length });
+  const rows = [["WASM vs fp32 reference", stat(C.map((v, i) => cos(v, fx[i].emb))), 0.995],
+                ["WebGPU vs fp32 reference", G && stat(G.map((v, i) => cos(v, fx[i].emb))), 0.995],
+                ["WebGPU vs WASM", G && stat(G.map((v, i) => cos(v, C[i]))), 0.9995]];
+  report.check = {};
+  $("checkTable").tBodies[0].replaceChildren(...rows.map(([name, s, gate]) => {
+    const tr = document.createElement("tr");
+    const pass = s && s.min >= gate;
+    const cells = s ? [name, s.min.toFixed(6), s.mean.toFixed(6), pass ? "pass" : "FAIL"] : [name, "–", "–", "no WebGPU"];
+    cells.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; if (i === 3) td.style.color = s ? (pass ? "var(--ok)" : "var(--bad)") : "var(--muted)"; tr.append(td); });
+    if (s) report.check[name] = { min_cos: s.min, mean_cos: s.mean, gate, pass };
+    return tr;
+  }));
+  $("check").disabled = false;
+  show();
+};
+
+$("speed").onclick = async () => {
+  $("speed").disabled = true;
+  $("bars").replaceChildren(Object.assign(document.createElement("p"), { className: "note", textContent: "timing… (about 20 s)" }));
+  const res = { single_query_ms: {}, batch64x128: {} };
+  for (const n of [16, 32, 64, 128]) {
+    const ids = [101, ...Array(n - 2).fill(2023), 102];
+    res.single_query_ms[n] = { wasm: median(await times(async () => cpu.forward(ids))) };
+    if (gpu) res.single_query_ms[n].webgpu = median(await times(() => gpu.forwardBatch([ids])));
+  }
+  const batch = Array.from({ length: 64 }, (_, i) => [101, ...Array(126).fill(2023 + (i % 50)), 102]);
+  const tw = median(await times(async () => { for (const ids of batch) cpu.forward(ids); }, 1, 3));
+  res.batch64x128.wasm = { ms: tw, passages_per_s: 64 / (tw / 1000) };
+  if (gpu) { const tg = median(await times(() => gpu.forwardBatch(batch), 2, 7)); res.batch64x128.webgpu = { ms: tg, passages_per_s: 64 / (tg / 1000) }; }
+  report.speed = res;
+  const max = Math.max(...Object.values(res.single_query_ms).flatMap((r) => Object.values(r)));
+  const rows = [];
+  for (const [n, r] of Object.entries(res.single_query_ms))
+    for (const [eng, ms] of Object.entries(r)) rows.push([`${n} tok · ${eng}`, ms / max, `${ms.toFixed(1)} ms`, eng === "webgpu"]);
+  const bmax = Math.max(...Object.values(res.batch64x128).map((x) => x.passages_per_s));
+  for (const [eng, x] of Object.entries(res.batch64x128)) rows.push([`batch · ${eng}`, x.passages_per_s / bmax, `${x.passages_per_s.toFixed(0)}/s`, eng === "webgpu"]);
+  $("bars").replaceChildren(...rows.map(([label, frac, val, isGpu]) => {
+    const d = document.createElement("div"); d.className = "bar";
+    d.innerHTML = `<span></span><span class="track"><span class="fill${isGpu ? " gpu" : ""}"></span></span><span class="v"></span>`;
+    d.children[0].textContent = label; d.children[2].textContent = val;
+    requestAnimationFrame(() => (d.querySelector(".fill").style.width = `${Math.max(2, frac * 100)}%`));
+    return d;
+  }));
+  $("speed").disabled = false;
+  show();
+};
+
+$("sim").onclick = async () => {
+  const q = $("qa").value, p = $("qb").value;
+  const t = performance.now();
+  const [vq, vp] = gpu ? await gpu.forwardBatch([gpu.tokenize(QUERY_PROMPT + q), gpu.tokenize(p)]) : [cpu.embed(q, { query: true }), cpu.embed(p)];
+  $("simScore").textContent = cos(vq, vp).toFixed(3);
+  $("simNote").textContent = `${gpu ? "WebGPU" : "WASM"}, ${(performance.now() - t).toFixed(1)} ms for both`;
+};
+
+$("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(JSON.stringify(report, null, 1)); $("copy").textContent = "Copied"; }
+  catch { const r = document.createRange(); r.selectNodeContents($("json")); getSelection().removeAllRanges(); getSelection().addRange(r); $("copy").textContent = "Selected, copy it"; }
+  setTimeout(() => ($("copy").textContent = "Copy JSON"), 2000);
+};
+</script>
