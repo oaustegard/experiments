@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WGSL embedder check</title>
+<style>
+  :root { --bg: #fcfcfb; --fg: #1a1a19; --muted: #6b6a64; --line: #e6e5e0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; --line: #34332f; } }
+  :root[data-theme="dark"] { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; --line: #34332f; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, Menlo, monospace; margin: 16px; }
+  table { border-collapse: collapse; margin: 12px 0; } td, th { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; } #log { white-space: pre-wrap; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1 style="font-size:16px">WGSL engine vs onnxruntime-web vs NumPy reference</h1>
+<p id="status">running</p>
+<table id="t"><thead><tr><th>package</th><th>backend</th><th>init ms</th><th>cos vs ref (min)</th><th>first q ms</th><th>warm ms (median of 30)</th><th>batch 16 ms</th></tr></thead><tbody></tbody></table>
+<pre id="log"></pre>
+<script type="module">
+// ?pkgs=a,b  ?backends=webgpu,ort   Results land in window.check for the driver.
+import { loadEmbedder } from "./embedder.js";
+const Q = new URLSearchParams(location.search);
+const pkgs = (Q.get("pkgs") || "e17c-t4-w8L63,e17c-t3-w8L63,leafirc-t4-w8L63").split(",");
+const backends = (Q.get("backends") || "webgpu,ort").split(",");
+const QUERIES = ["open weights model release", "how do embeddings work", "atproto app view", "is scaling over",
+  "best local LLM for a laptop", "AI art copyright", "agents that browse the web", "GPU shortage prices"];
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
+const now = () => performance.now();
+const res = window.check = { rows: [], done: false };
+for (const pkg of pkgs) {
+  const fx = await fetch(`models/${pkg}/fixtures.json`).then((r) => r.json());
+  for (const be of backends) {
+    try {
+      const e = await loadEmbedder(`models/${pkg}/`, { backend: be === "ort" ? "ort" : "webgpu" });
+      // parity: the fixture's own token ids, so tokenization is not part of the comparison
+      let t = now();
+      const first = await e.embedIds([fx[0].ids]);
+      const firstMs = now() - t;
+      const cos = [];
+      for (const f of fx) {
+        const v = await e.embedIds([f.ids]);
+        let d = 0; for (let i = 0; i < 768; i++) d += v[i] * f.vec[i];
+        cos.push(d);
+      }
+      // tokenizer parity against the Python ids
+      const tokOk = fx.every((f) => JSON.stringify(e.encode(f.text)) === JSON.stringify(f.ids));
+      const lat = [];
+      for (let i = 0; i < 30; i++) { const s = now(); await e.embed([QUERIES[i % QUERIES.length] + " " + i]); lat.push(now() - s); }
+      lat.sort((a, b) => a - b);
+      t = now(); await e.embed(Array.from({ length: 16 }, (_, i) => QUERIES[i % 8] + " batch " + i)); const b16 = now() - t;
+      const row = { pkg, backend: e.backend, initMs: e.info.initMs, fetchMs: e.info.fetchMs, cosMin: Math.min(...cos), cos,
+                    tokenizerMatchesPython: tokOk, firstMs, warmMs: lat[15], batch16Ms: b16, engineError: e.info.engineError };
+      res.rows.push(row);
+      document.querySelector("#t tbody").insertAdjacentHTML("beforeend",
+        `<tr><td>${pkg}</td><td>${e.backend}</td><td>${row.initMs.toFixed(0)}</td><td>${row.cosMin.toFixed(6)}</td><td>${firstMs.toFixed(1)}</td><td>${row.warmMs.toFixed(2)}</td><td>${b16.toFixed(1)}</td></tr>`);
+      log(`${pkg} ${e.backend}: tokenizer ${tokOk ? "matches" : "DIFFERS from"} Python; cos per fixture ${cos.map((c) => c.toFixed(6)).join(" ")}`);
+      e.engine?.destroy();
+      await e.session?.release();  // live onnxruntime sessions slow later ones on the same page (leaf-ir 24 -> 116 ms)
+    } catch (err) {
+      res.rows.push({ pkg, backend: be, error: String(err && err.stack || err) });
+      log(`${pkg} ${be}: ERROR ${err}`);
+    }
+  }
+}
+res.done = true;
+document.getElementById("status").textContent = "done";
+</script>
+</body>
+</html>

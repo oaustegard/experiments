@@ -74,3 +74,11 @@ teacher vectors are `teacher-arctic-m-v1.5.f16.npy` and `teacher-train.jsonl.gz`
 |---|---|---|
 | `out/data/snowflake-arctic-embed-m-v1.5.f16.npy` | 533,753,984 | `b6508e5b121f4f3e…` |
 | `out/data/train.jsonl` | 66,866,193 | `a049e5ce306e9d6f…` |
+
+## Browser packages (WGSL engine + onnxruntime-web fallback)
+
+Release assets `web-e17c-t4-w8L63.zip`, `web-e17c-t3-w8L63.zip`, `web-leafirc-t4-w8L63.zip`
+(sha256 in `SHA256SUMS-web`). Each unzips to `web/models/<pkg>/` with `model.onnx`, which git
+ignores because it is over 10 MB. The small files (`manifest.json`, `meta.json`,
+`tokenizer.json`, `fixtures.json`) are committed. Unzip into `ettin-native/web/models/` to run
+`web/wgsl.html`, or rebuild with `run/webexport.py` + `run/ref.py`.

@@ -1,0 +1,22 @@
+{
+ "setup": "web/wgsl.html and web/embedder.js, Chrome (Claude desktop browser pane, visible), M1 MacBook Air, Metal, cpu.lock held, 2026-10-21 ~22:00-22:40 EDT. Files from localhost (download excluded). Parity uses each fixture's Python token ids; the JS tokenizer reproduces those ids for every fixture in every package.",
+ "parity_cos_min_vs_numpy_reference": {
+  "note": "6 fixtures per package, 11 to 128 tokens (128 exercises Ettin's local attention window); single sequences and one packed batch of all 6",
+  "webgpu": {"e17c-t4-w8L63": 0.9999999, "e17c-t3-w8L63": 1.0, "leafirc-t4-w8L63": 0.9999999},
+  "ort_wasm_all": {"e17c-t4-w8L63": 1.0, "e17c-t3-w8L63": 1.0, "leafirc-t4-w8L63": 1.0}
+ },
+ "webgpu_engine": {
+  "gpu_ms_per_forward_pass": {"e17c-t4-w8L63": 1.345, "e17c-t3-w8L63": 1.455, "leafirc-t4-w8L63": 2.675},
+  "gpu_note": "21 passes in one submit minus 1, /20; ~14-token query",
+  "end_to_end_ms_median": {"e17c-t4-w8L63": [2.4, 3.4], "e17c-t3-w8L63": [2.5, 4.8], "leafirc-t4-w8L63": [3.8, 4.2]},
+  "end_to_end_note": "tokenize + write + dispatch + mapAsync readback, two runs",
+  "batch16_ms": {"e17c-t4-w8L63": 19.1, "e17c-t3-w8L63": 19.5, "leafirc-t4-w8L63": 27.3},
+  "init_ms": {"e17c-t4-w8L63": [147, 336], "e17c-t3-w8L63": [168, 190], "leafirc-t4-w8L63": [298, 454]},
+  "init_note": "pipeline compile + aligned weight copy + int8 transpose to [N, K]; range over runs",
+  "before_kernel_rewrite_gpu_ms": {"e17c-t4-w8L63": 5.0, "leafirc-t4-w8L63": 12.6}
+ },
+ "ort_wasm_fallback": {
+  "warm_ms_median": {"e17c-t4-w8L63": 8.7, "e17c-t3-w8L63": 8.6, "leafirc-t4-w8L63": 24.1},
+  "note": "single-file model.onnx, graphOptimizationLevel 'all', 1 thread. leaf-ir measured alone on a fresh page: on a page that already ran other onnxruntime sessions it took 116-178 ms even after release(). With the weights in external data onnxruntime-web ran 4x slower (Ettin 37-58 ms), which is why packages ship a single-file model.onnx."
+ }
+}

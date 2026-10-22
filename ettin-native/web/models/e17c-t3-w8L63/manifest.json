@@ -1,0 +1,799 @@
+{
+ "source": "e17c/t3-w8L63",
+ "checkpoint": "out/contrast/e17-cap-c/epoch1",
+ "dim": 768,
+ "table": {
+  "bits": 3,
+  "V": 50368,
+  "H": 256,
+  "codes": {
+   "offset": 4337752,
+   "length": 4835328,
+   "dims": [
+    50368,
+    96
+   ],
+   "dtype": "uint8"
+  },
+  "scales": {
+   "offset": 9173124,
+   "length": 805888,
+   "dims": [
+    50368,
+    8
+   ],
+   "dtype": "float16"
+  },
+  "zp": {
+   "offset": 9979052,
+   "length": 402944,
+   "dims": [
+    50368,
+    8
+   ],
+   "dtype": "uint8"
+  }
+ },
+ "arch": "modernbert",
+ "hidden": 256,
+ "heads": 4,
+ "inter": 384,
+ "eps": 1e-05,
+ "window": 128,
+ "global_every": 3,
+ "theta_global": 160000.0,
+ "theta_local": 160000.0,
+ "emb_norm": {
+  "offset": 163172,
+  "length": 1024,
+  "dims": [
+   256
+  ],
+  "dtype": "float32"
+ },
+ "final_norm": {
+  "offset": 178179,
+  "length": 1024,
+  "dims": [
+   256
+  ],
+  "dtype": "float32"
+ },
+ "layers": [
+  {
+   "attn_norm": null,
+   "Wqkv": {
+    "q": {
+     "offset": 179241,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 375883,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 378993,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 444563,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 164244,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 445625,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 642267,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 645377,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 743715,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": true
+  },
+  {
+   "attn_norm": {
+    "offset": 165317,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 744777,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 941419,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 944529,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1010099,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 166389,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 1011161,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1207803,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 1210913,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1309251,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": false
+  },
+  {
+   "attn_norm": {
+    "offset": 167462,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 1310313,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1506955,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 1510065,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1575635,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 168534,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 1576697,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1773339,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 1776449,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 1874787,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": false
+  },
+  {
+   "attn_norm": {
+    "offset": 169607,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 1875849,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2072491,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 2075601,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2141171,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 170679,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 2142233,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2338875,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 2341985,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2440323,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": true
+  },
+  {
+   "attn_norm": {
+    "offset": 171752,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 2441385,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2638027,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 2641137,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2706707,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 172824,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 2707769,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 2904411,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 2907521,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3005859,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": false
+  },
+  {
+   "attn_norm": {
+    "offset": 173897,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 3006921,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3203563,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 3206673,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3272243,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 174969,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 3273305,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3469947,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 3473057,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3571395,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": false
+  },
+  {
+   "attn_norm": {
+    "offset": 176042,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wqkv": {
+    "q": {
+     "offset": 3572457,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3769099,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo": {
+    "q": {
+     "offset": 3772209,
+     "length": 65536,
+     "dims": [
+      256,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 3837779,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 256
+   },
+   "mlp_norm": {
+    "offset": 177114,
+    "length": 1024,
+    "dims": [
+     256
+    ],
+    "dtype": "float32"
+   },
+   "Wi": {
+    "q": {
+     "offset": 3838841,
+     "length": 196608,
+     "dims": [
+      256,
+      768
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 4035483,
+     "length": 3072,
+     "dims": [
+      768
+     ],
+     "dtype": "float32"
+    },
+    "K": 256,
+    "N": 768
+   },
+   "Wo_mlp": {
+    "q": {
+     "offset": 4038593,
+     "length": 98304,
+     "dims": [
+      384,
+      256
+     ],
+     "dtype": "int8"
+    },
+    "s": {
+     "offset": 4136931,
+     "length": 1024,
+     "dims": [
+      256
+     ],
+     "dtype": "float32"
+    },
+    "K": 384,
+    "N": 256
+   },
+   "global": true
+  }
+ ],
+ "dense": {
+  "q": {
+   "offset": 4137993,
+   "length": 196608,
+   "dims": [
+    256,
+    768
+   ],
+   "dtype": "int8"
+  },
+  "s": {
+   "offset": 4334635,
+   "length": 3072,
+   "dims": [
+    768
+   ],
+   "dtype": "float32"
+  },
+  "K": 256,
+  "N": 768
+ }
+}
