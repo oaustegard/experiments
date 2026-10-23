@@ -1,0 +1,11 @@
+Uncovered pixels: background rect repainted #f0f, rendered with rsvg-convert, magenta share.
+"no stroke" sets the stroke=fill gap cover to 0, so it shows what the geometry alone covers.
+
+dog.jpg (pytorch/hub sample, 1546x1213 -> 1000x785), K=56
+  before (per-region DP, eps = max(0.75, 0.002 * loop corner coords))  552 KB  0.811% uncovered, 1.678% with no stroke
+  after  (shared arcs, eps = 1 px)                                       506 KB  0.000%, 0.000% with no stroke
+  Python image-to-svg 1.9.0, painting                                    1142 KB  1.980% uncovered
+  after, error vs source 7.16/255
+
+starry.jpg, K=56
+  after   903 KB  0.000%, 0.000% with no stroke, error vs source 24.44/255  (before: 991 KB, 24.53)

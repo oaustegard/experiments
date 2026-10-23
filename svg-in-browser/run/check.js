@@ -1,8 +1,8 @@
 // Runs web/trace.js headless on both backends and writes the SVGs + stats.
-// Usage: node run/check.js <out_dir> [K] [side]
+// Usage: node run/check.js <out_dir> [K] [side] [image under web/]
 const { chromium } = require("playwright");
 const http = require("http"), fs = require("fs"), path = require("path");
-const [outDir, K = "56", side = "1000"] = process.argv.slice(2);
+const [outDir, K = "56", side = "1000", image = "starry.jpg"] = process.argv.slice(2);
 const root = path.join(__dirname, "..", "web");
 const types = { ".html": "text/html", ".js": "text/javascript", ".jpg": "image/jpeg" };
 const server = http.createServer((req, res) => {
@@ -23,6 +23,7 @@ const server = http.createServer((req, res) => {
   page.on("console", (m) => m.type() === "error" && console.error("page:", m.text()));
   await page.goto(`http://127.0.0.1:${port}/index.html?manual`);
   await page.waitForFunction(() => window.imageToSvg && document.getElementById("src").complete);
+  await page.evaluate(async (image) => { const img = document.getElementById("src"); img.src = image; await img.decode(); }, image);
   fs.mkdirSync(outDir, { recursive: true });
   for (const backend of ["webgpu", "js"]) {
     const r = await page.evaluate(async ({ backend, K, side }) => {

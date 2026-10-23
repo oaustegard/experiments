@@ -1296,6 +1296,15 @@ the result.
   the CSS in `<![CDATA[ ]]>`, which both parsers accept. Also, `var()` works
   in CSS but not in presentation attributes (`fill="var(--b)"` is black), so
   put it in a class. (`svg-palette-cycle/`)
+- **Simplify shared boundaries once, not per region, or vectorized images tear.**
+  Douglas–Peucker run on each region's outline separately moves the two sides of a
+  shared edge differently, and the background shows through the slivers between
+  them (0.8–2% of pixels on a photo; a stroke=fill cover hides only part of it). Cut
+  every outline at junctions (vertices where 3+ regions meet, or diagonal saddles;
+  both are decided by the vertex's four pixels, so both sides agree), simplify each
+  arc once through a cache keyed by its first edge, and give the neighbor the
+  reversed points: 0.000% uncovered even with no stroke, and a smaller file. Same
+  idea as TopoJSON / mapshaper arcs. (`svg-in-browser/`)
 
 ## Numerical / ML gotchas
 

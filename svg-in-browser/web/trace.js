@@ -239,10 +239,12 @@ function absorbSmall(labels, w, h, minArea) {
 const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];  // right, down, left, up (y grows down)
 
 /**
- * Closed boundary loops of every label, along pixel edges with the region on the right.
- * Holes come out as loops of the opposite orientation, so one evenodd path per label
- * reproduces the region exactly. At a saddle the trace turns right, which keeps
- * diagonal-only neighbors apart (4-connectivity).
+ * Closed boundary loops of every label, along pixel edges with the region on the right,
+ * as lists of vertex ids (v = y * (w + 1) + x). Holes come out as loops of the opposite
+ * orientation, so one evenodd path per label reproduces the region exactly. At a saddle
+ * the trace turns right, which keeps diagonal-only neighbors apart (4-connectivity).
+ * Only corners and junctions are kept; both are properties of the vertex, so the two
+ * regions on either side of an edge keep the same vertices.
  */
 function traceLoops(labels, w, h, K) {
   const V = (w + 1) * (h + 1);
@@ -276,43 +278,106 @@ function traceLoops(labels, w, h, K) {
           else take = a;
           if (take === a) { slotA[v] = slotB[v]; slotB[v] = 0; } else slotB[v] = 0;
           const x = v % (w + 1), y = (v - x) / (w + 1);
-          if (take !== d) loop.push(x, y);  // keep corners only
+          if (take !== d || isJunction(labels, w, h, x, y)) loop.push(v);
           d = take;
           v = (y + DY[d]) * (w + 1) + x + DX[d];
         }
-        if (loop.length >= 6) out[L].push(loop);
+        if (loop.length >= 3) out[L].push(loop);
       }
     }
   }
   return out;
 }
 
-/** Douglas–Peucker on a closed loop of [x0, y0, x1, y1, ...]. */
-function simplifyLoop(loop, eps) {
-  const n = loop.length / 2;
-  if (n <= 4) return loop;
-  // Anchor at vertex 0 and the vertex farthest from it.
-  let far = 0, fd = -1;
-  for (let i = 1; i < n; i++) {
-    const d = (loop[i * 2] - loop[0]) ** 2 + (loop[i * 2 + 1] - loop[1]) ** 2;
-    if (d > fd) { fd = d; far = i; }
-  }
+/**
+ * A vertex where three or more regions meet (the image edge counts as one), or a
+ * diagonal saddle. Junctions are where shared boundaries begin and end.
+ */
+function isJunction(labels, w, h, x, y) {
+  const at = (xx, yy) => (xx < 0 || yy < 0 || xx >= w || yy >= h ? -1 : labels[yy * w + xx]);
+  const a = at(x - 1, y - 1), b = at(x, y - 1), c = at(x - 1, y), d = at(x, y);
+  if (a === d && b === c) return a !== b;  // diagonal saddle
+  let n = 1;
+  if (b !== a) n++;
+  if (c !== a && c !== b) n++;
+  if (d !== a && d !== b && d !== c) n++;
+  return n >= 3;
+}
+
+/** Douglas–Peucker with fixed endpoints over vertex ids; returns the kept ids. */
+function simplifyOpen(ids, W, eps) {
+  const n = ids.length;
+  if (n <= 2) return ids.slice();
+  const X = (v) => v % W, Y = (v) => (v - (v % W)) / W;
   const keep = new Uint8Array(n);
-  keep[0] = keep[far] = 1;
-  const stack = [[0, far], [far, n]];
+  keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]];
   while (stack.length) {
     const [a, b] = stack.pop();
-    const ax = loop[a * 2], ay = loop[a * 2 + 1], bi = b % n, bx = loop[bi * 2], by = loop[bi * 2 + 1];
-    const len = Math.hypot(bx - ax, by - ay) || 1;
+    const ax = X(ids[a]), ay = Y(ids[a]), bx = X(ids[b]), by = Y(ids[b]);
+    const len = Math.hypot(bx - ax, by - ay);
     let worst = -1, wd = eps;
     for (let i = a + 1; i < b; i++) {
-      const d = Math.abs((bx - ax) * (ay - loop[i * 2 + 1]) - (ax - loop[i * 2]) * (by - ay)) / len;
+      const px = X(ids[i]), py = Y(ids[i]);
+      const d = len ? Math.abs((bx - ax) * (ay - py) - (ax - px) * (by - ay)) / len : Math.hypot(px - ax, py - ay);
       if (d > wd) { wd = d; worst = i; }
     }
     if (worst >= 0) { keep[worst] = 1; stack.push([a, worst], [worst, b]); }
   }
+  return ids.filter((_, i) => keep[i]);
+}
+
+/** Index of the vertex farthest from ids[0], ties to the smaller id, so either traversal picks it. */
+function farthest(ids, W) {
+  const x0 = ids[0] % W, y0 = (ids[0] - x0) / W;
+  let best = -1, bd = -1;
+  for (let i = 1; i < ids.length; i++) {
+    const x = ids[i] % W, y = (ids[i] - x) / W, d = (x - x0) ** 2 + (y - y0) ** 2;
+    if (d > bd || (d === bd && ids[i] < ids[best])) { bd = d; best = i; }
+  }
+  return best;
+}
+
+/**
+ * Simplify one arc (open, from junction to junction) through a cache shared by every
+ * region, so the region on the other side, which walks the same arc backwards, gets
+ * exactly the same points. That is what keeps neighboring paths from pulling apart.
+ */
+function simplifyArc(arc, W, eps, cache) {
+  const n = arc.length;
+  if (arc[0] === arc[n - 1]) {
+    // Closed on itself: split at the farthest vertex, which both traversals agree on.
+    const f = farthest(arc.slice(0, n - 1), W);
+    const first = simplifyArc(arc.slice(0, f + 1), W, eps, cache);
+    return first.concat(simplifyArc(arc.slice(f), W, eps, cache).slice(1));
+  }
+  const reversed = arc[0] > arc[n - 1];
+  const oriented = reversed ? arc.slice().reverse() : arc;
+  const key = oriented[0] * 4294967296 + oriented[1];  // first edge identifies the arc
+  let out = cache.get(key);
+  if (!out) { out = simplifyOpen(oriented, W, eps); cache.set(key, out); }
+  return reversed ? out.slice().reverse() : out;
+}
+
+/** Simplify a closed loop of vertex ids by splitting it into arcs at its junctions. */
+function simplifyLoop(loop, junction, W, eps, cache) {
+  const n = loop.length;
+  let cuts = [];
+  for (let i = 0; i < n; i++) if (junction(loop[i])) cuts.push(i);
+  if (!cuts.length) {
+    // A boundary between exactly two regions: anchor at the smallest id, which both share.
+    let m = 0;
+    for (let i = 1; i < n; i++) if (loop[i] < loop[m]) m = i;
+    cuts = [m];
+  }
   const out = [];
-  for (let i = 0; i < n; i++) if (keep[i]) out.push(loop[i * 2], loop[i * 2 + 1]);
+  for (let c = 0; c < cuts.length; c++) {
+    const a = cuts[c], b = cuts[(c + 1) % cuts.length];
+    const arc = [];
+    for (let i = a; ; i = (i + 1) % n) { arc.push(loop[i]); if (arc.length > 1 && i === b) break; }
+    const simple = simplifyArc(arc, W, eps, cache);
+    for (let i = 0; i < simple.length - 1; i++) out.push(simple[i]);
+  }
   return out;
 }
 
@@ -361,11 +426,12 @@ function pathData(loops, scale, precision) {
 /**
  * @param {ImageData} image
  * @param {{K?: number, width?: number, precision?: number, minArea?: number, iters?: number,
- *          device?: GPUDevice|null, seed?: number}} opts
+ *          device?: GPUDevice|null, seed?: number, eps?: number}} opts  eps: simplification
+ *          tolerance in source pixels; shared boundaries stay shared at any value
  * @returns {Promise<{svg: string, stats: object}>}
  */
 export async function imageToSvg(image, opts = {}) {
-  const { K = 56, width = 1000, precision = 1, minArea = 40, iters = 20, device = null, seed = 1 } = opts;
+  const { K = 56, width = 1000, precision = 1, minArea = 40, iters = 20, device = null, seed = 1, eps = 1 } = opts;
   const { width: w, height: h, data } = image;
   const t = { start: performance.now() };
   let s = seed >>> 0;
@@ -383,12 +449,16 @@ export async function imageToSvg(image, opts = {}) {
   t.trace = performance.now();
 
   const scale = width / w, height = Math.round(h * scale * 10) / 10;
+  const W = w + 1, arcs = new Map();
+  const junction = (v) => isJunction(labels, w, h, v % W, (v - (v % W)) / W);
   const area = new Float64Array(K);
   for (const l of labels) area[l]++;
   const order = [...Array(K).keys()].filter((k) => area[k] > 0).sort((a, b) => area[b] - area[a]);
   const colors = new Map(), classOf = new Map(), paths = [];
   for (const L of order) {
-    const loopsL = loops[L].map((loop) => simplifyLoop(loop, Math.max(0.75, 0.002 * loop.length)));
+    const loopsL = loops[L].map((loop) => simplifyLoop(loop, junction, W, eps, arcs))
+      .filter((ids) => ids.length >= 3)
+      .map((ids) => ids.flatMap((v) => [v % W, (v - (v % W)) / W]));
     const d = pathData(loopsL, scale, precision);
     if (!d) continue;
     const c = shortHex(hex(centers.subarray(L * 4, L * 4 + 3)));
