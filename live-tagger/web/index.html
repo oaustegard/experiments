@@ -29,9 +29,45 @@
   #status { color: var(--dim); font-size: 13px; margin: 0 0 6px; }
   input[type=file] { display: none; }
   a { color: #8fb6ff; }
+  #boot { position: fixed; inset: 0; z-index: 10; background: var(--bg); display: grid; place-items: center; padding: 24px 16px; }
+  #boot .card { width: min(420px, 100%); }
+  #boot h1 { font-size: 22px; margin: 0 0 4px; }
+  #boot .sub { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+  .stage { margin: 0 0 14px; }
+  .stage .head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+  .stage .head span:last-child { color: var(--dim); font-variant-numeric: tabular-nums; }
+  .stage .track { height: 6px; border-radius: 3px; background: #26262b; overflow: hidden; }
+  .stage .bar { height: 100%; width: 0; background: var(--bar); transition: width 0.2s; }
+  .stage.done .bar { background: #3fbf6f; width: 100%; }
+  .stage.busy .bar.indet { width: 30%; animation: slide 1.1s ease-in-out infinite; }
+  @keyframes slide { from { margin-left: -30%; } to { margin-left: 100%; } }
+  #note { color: #f0b35a; font-size: 13px; min-height: 1.2em; margin: 6px 0 14px; }
+  #err { color: #ff7a7a; font-size: 13px; white-space: pre-wrap; margin: 0 0 14px; }
+  #start { width: 100%; padding: 12px; font-size: 16px; background: var(--bar); }
+  #start[hidden], #boot[hidden] { display: none; }
 </style>
 </head>
 <body>
+<div id="boot">
+  <div class="card">
+    <h1>Live tagger</h1>
+    <p class="sub">MobileCLIP-S0 on your GPU, 4,585 tags. About 51 MB on first visit, cached after.</p>
+    <div class="stage busy" id="st-runtime"><div class="head"><span>Runtime (transformers.js)</span><span></span></div><div class="track"><div class="bar indet"></div></div></div>
+    <div class="stage" id="st-tags"><div class="head"><span>Tag bank</span><span>4.7 MB</span></div><div class="track"><div class="bar"></div></div></div>
+    <div class="stage" id="st-model"><div class="head"><span>Vision model</span><span>46 MB</span></div><div class="track"><div class="bar"></div></div></div>
+    <div class="stage" id="st-warm"><div class="head"><span>Compile GPU shaders</span><span></span></div><div class="track"><div class="bar"></div></div></div>
+    <p id="note"></p>
+    <p id="err"></p>
+    <button id="start" hidden>Start camera</button>
+  </div>
+</div>
+<script>
+  // Plain script: reports a runtime that never arrives (the module below cannot run without it).
+  setTimeout(() => { if (!window.tagger) document.getElementById("note").textContent =
+    "Still fetching the runtime from cdn.jsdelivr.net after 20 s. A slow or filtered network?"; }, 20000);
+  addEventListener("error", (e) => { document.getElementById("err").textContent = "Error: " + (e.message || e.type); });
+  addEventListener("unhandledrejection", (e) => { document.getElementById("err").textContent = "Error: " + (e.reason && e.reason.message || e.reason); });
+</script>
 <div id="stage">
   <video id="video" playsinline muted autoplay></video>
   <img id="still" alt="">

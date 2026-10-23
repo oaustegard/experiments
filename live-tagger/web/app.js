@@ -30,11 +30,45 @@ function f16ToF32(u16) {
   return out;
 }
 
+// Loading screen: one row per stage, byte progress where there are bytes, a note when nothing moves.
+const MB = (b) => (b / 1e6).toFixed(1);
+let lastProgress = performance.now();
+function stage(id, state, frac, label) {
+  const el = $("st-" + id), bar = el.querySelector(".bar");
+  el.className = "stage " + state;
+  bar.classList.toggle("indet", state === "busy" && frac == null);
+  if (frac != null) bar.style.width = `${(100 * frac).toFixed(1)}%`;
+  if (label != null) el.querySelector(".head span:last-child").textContent = label;
+  lastProgress = performance.now();
+}
+const stallTimer = setInterval(() => {
+  const idle = (performance.now() - lastProgress) / 1000;
+  $("note").textContent = idle > 15 ? `No progress for ${idle.toFixed(0)} s. Still trying; a slow network shows here.` : "";
+}, 1000);
+
+async function fetchWithProgress(url, onBytes) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+  const total = +r.headers.get("content-length") || 0;
+  if (!r.body) return r.arrayBuffer();
+  const reader = r.body.getReader(), parts = []; let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); got += value.length; onBytes(got, total);
+  }
+  const out = new Uint8Array(got); let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out.buffer;
+}
+
 async function loadBank() {
+  stage("tags", "busy", 0);
   const [meta, bin] = await Promise.all([
     fetch("tags.json").then((r) => r.json()),
-    fetch("tags.f16.bin").then((r) => r.arrayBuffer()),
+    fetchWithProgress("tags.f16.bin", (g, t) => stage("tags", "busy", t ? g / t : null, `${MB(g)} / ${t ? MB(t) : "4.7"} MB`)),
   ]);
+  stage("tags", "done", 1, "4.7 MB");
   tags = meta.tags; dim = meta.dim;
   bank = f16ToF32(new Uint16Array(bin));
 }
@@ -42,7 +76,17 @@ async function loadBank() {
 async function loadModel() {
   device = "gpu" in navigator && (await navigator.gpu.requestAdapter().catch(() => null)) ? "webgpu" : "wasm";
   // fp32 on WebGPU: METHODS.md records transformers.js int8 on webgpu collapsing embeddings.
-  model = await CLIPVisionModelWithProjection.from_pretrained(MODEL_ID, { device, dtype: device === "webgpu" ? "fp32" : "q8" });
+  stage("model", "busy", 0);
+  const progress_callback = (e) => {
+    if (e.status === "progress" && /\.onnx/.test(e.file)) {
+      const frac = e.total ? e.loaded / e.total : null;  // no content-length: show bytes on an indeterminate bar
+      stage("model", "busy", frac, e.total ? `${MB(e.loaded)} / ${MB(e.total)} MB` : `${MB(e.loaded)} MB`);
+    } else if (e.status === "done" && /\.onnx/.test(e.file)) {
+      stage("model", "busy", 1, "preparing GPU session");
+    } else if (e.status === "initiate" || e.status === "download") lastProgress = performance.now();
+  };
+  model = await CLIPVisionModelWithProjection.from_pretrained(MODEL_ID, { device, dtype: device === "webgpu" ? "fp32" : "q8", progress_callback });
+  stage("model", "done", 1, device === "webgpu" ? "46 MB · WebGPU" : "12 MB · CPU (no WebGPU)");
 }
 
 // PIL's BILINEAR resample as a 1-D filter: for each output index, the first input index and weights.
@@ -179,20 +223,31 @@ $("file").onchange = (e) => { const f = e.target.files[0]; if (f) showStill(URL.
 function camFail(err) { statusEl.textContent = `No camera (${err.name || err.message}). Pick a photo instead.`; }
 
 window.tagger = { tagImage, ready: null };
+stage("runtime", "done", 1, "loaded");
 window.tagger.ready = (async () => {
   try {
-    statusEl.textContent = "Loading model (46 MB) and 4,585 tags (4.7 MB)…";
     const t0 = performance.now();
     await Promise.all([loadBank(), loadModel()]);
     // Warm-up pass: the first WebGPU run compiles shaders.
+    stage("warm", "busy", null, "first run");
     await embed(src2d.canvas, SIZE, SIZE);
+    stage("warm", "done", 1, `${(timing.model / 1000).toFixed(1)} s`);
+    clearInterval(stallTimer); $("note").textContent = "";
     statusEl.textContent = `Ready in ${((performance.now() - t0) / 1000).toFixed(1)} s · MobileCLIP-S0 on ${device} · ${tags.length.toLocaleString()} tags`;
     $("pause").disabled = $("flip").disabled = false;
+    requestAnimationFrame(tick);
     const q = new URLSearchParams(location.search).get("img");
-    if (q) await showStill(q);
-    else { await startCamera().catch(camFail); requestAnimationFrame(tick); }
-    if (q) requestAnimationFrame(tick);
+    if (q) { $("boot").hidden = true; await showStill(q); return; }
+    // Camera starts on a tap: iOS wants a gesture for the permission prompt, and the user sees it coming.
+    $("start").hidden = false;
+    $("start").onclick = async () => {
+      $("start").disabled = true; $("start").textContent = "Starting camera…";
+      await startCamera().catch(camFail);
+      $("boot").hidden = true;
+    };
   } catch (err) {
-    console.error(err); statusEl.textContent = `Failed: ${err.message}`; throw err;
+    console.error(err); clearInterval(stallTimer);
+    $("err").textContent = `Failed: ${err.message}`; statusEl.textContent = `Failed: ${err.message}`;
+    throw err;
   }
 })();

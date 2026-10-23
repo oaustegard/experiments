@@ -52,6 +52,9 @@ which says nothing about a phone GPU.
 - **Preprocessing.** Center square crop at integer offsets, PIL-style bilinear resize to 256,
   divided by 255 with no mean or std normalization, per `preprocessor_config.json`. Camera
   frames over 1,024 px are halved on a canvas first.
+- **Loading screen.** A full-screen card lists four stages (runtime, tag bank, vision model,
+  shader compile) with byte progress, warns after 15 s without progress, shows errors, and ends
+  with a Start camera button, so the iOS permission prompt follows a tap.
 - **Live loop.** One frame in flight at a time. The image embedding is smoothed with an EMA (0.5
   on the newest frame), renormalized and scored. The page shows fps and per-stage milliseconds.
 - **Checks.** `run/ref_tags.py` produces onnxruntime CPU embeddings and top tags for six COCO
@@ -102,6 +105,9 @@ Hub correction sweep, 500 COCO images:
 
 β 0.25 gains 0.003 caption precision and loses 0.006 object recall, which is within noise and not
 worth a second file on the page. Shipped raw cosine.
+
+Follow-up the same day: Oskar's first phone visit showed only a caption and nothing loading
+after a minute on unknown Wi-Fi. Added the loading screen above; the stall cause is not known yet.
 
 Open: phone fps and per-stage timings (the stats line shows them), MobileCLIP2-S0 (71.5% against
 S0 v1's 67.8% zero-shot IN-1k) once an ONNX export that transformers.js loads exists, and the WGSL
