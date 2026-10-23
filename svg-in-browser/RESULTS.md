@@ -10,7 +10,7 @@ Timing on this container's CPU in headless Chromium: 3.3 s total, of which k-mea
 
 ## How it works
 
-`web/trace.js`, about 370 lines, no dependencies:
+`web/trace.js`, about 400 lines, no dependencies:
 
 1. **Blur**: a 5-tap binomial blur, standing in for the pipeline's bilateral and Gaussian filters.
 2. **k-means**: k-means++ seeding on 20k sampled pixels, then up to 20 Lloyd iterations. On WebGPU each iteration is one WGSL dispatch that assigns every pixel and accumulates per-cluster sums in workgroup memory, then 896 bytes (K × 16) read back for the center update. Otherwise the same loop runs in JS.
