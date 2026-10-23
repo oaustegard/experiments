@@ -1308,6 +1308,15 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Canvas `drawImage` is not an image-model resize.** Chromium's 2D canvas downscales
+  without a low-pass filter (SwiftShader ignores `imageSmoothingQuality = "high"`), so a
+  480 px crop drawn to 256 px matches naive bilinear sampling, not PIL's antialiased resize
+  that model preprocessors use: MobileCLIP-S0 embeddings fell to cosine 0.975-0.996 against
+  onnxruntime on the PIL pipeline and the top 5 tags changed on 4 of 6 images. Draw the crop
+  1:1, resample in JS with PIL's separable triangle filter, and crop at integer offsets
+  (`Math.floor((w - s) / 2)`, as PIL does; a half-pixel shift alone cost 0.002). Result
+  0.99994+. Check any browser preprocessing against the Python pipeline before blaming the
+  model backend. (`live-tagger/web/app.js` `pixels()`, `live-tagger/RESULTS.md`)
 - **A quantized teacher's published full-precision weights are a different teacher.**
   EmbeddingGemma 2's bf16 release agrees with its own q4 ONNX on only 0.87 of the top 10
   (cosine 0.990). When targets or an index came from the q4 file, initialise any student
@@ -3056,6 +3065,12 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **Hub correction (CSLS or per-tag mean) does not improve zero-shot tagging with a large
+  CLIP tag bank.** MobileCLIP-S0 against 4,585 RAM++ tags, bias fitted on 995 Bluesky
+  images, scored on 500 COCO images: object recall@5 0.255 raw, 0.244 with full CSLS, 0.221
+  with full mean subtraction; caption precision@5 moved +0.003 at best. Generic hub tags
+  ("dot", "dolly") are visible but removing them costs more than it gains.
+  (`live-tagger/RESULTS.md`)
 - **A small student distilled onto a frozen embedder's query vectors plateaus
   near half its top 10, and more data does not fix it.** leaf-mt (23M) trained on
   EmbeddingGemma 2 targets reached 0.48 top-10 overlap with EG2 on a 61,686-post

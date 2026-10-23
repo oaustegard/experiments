@@ -1,6 +1,12 @@
 {
- "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
+ "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
  "pages": [
+  {
+   "title": "Live camera tagger",
+   "experiment": "live-tagger",
+   "path": "live-tagger/web",
+   "blurb": "Point your phone camera at something: MobileCLIP-S0 on WebGPU tags each frame against 4,585 tags embedded ahead of time, with no text model in the page"
+  },
   {
    "title": "Image to SVG in the browser",
    "experiment": "svg-in-browser",
