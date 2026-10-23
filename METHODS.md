@@ -1317,6 +1317,16 @@ the result.
   times from its first (fall = f(start)) or interning stops paying: independent
   start/fall pairs gave 1,835 keyframes, tied ones 205. Put a blur filter on an
   un-animated inner `<g>` and animate opacity on the outer one. (`svg-timeline/`)
+- **In SVG, animate inherited properties on big groups, not `opacity` or
+  `transform`.** Chromium composites a group with a running `opacity` or
+  `transform` animation as its own layer on every frame, even while the value
+  holds at 1 / `none`. 59 full-canvas paint groups held that way played a
+  traced image at 9 fps headless; with no animation on them, 50–57. Animating
+  `fill-opacity`, `stroke-opacity` and `stroke-width` (inherited, no layer)
+  gave 19–60 across the loop. On a few *small* groups the reverse holds:
+  six twinkling glow groups ran at 56 fps on `opacity` and 12 on
+  custom-property `calc()` fill-opacity. Blur filters were the other cost;
+  radial-gradient circles replace them. Measure both ways. (`svg-timeline/`)
 - **Simplify shared boundaries once, not per region, or vectorized images tear.**
   Douglas–Peucker run on each region's outline separately moves the two sides of a
   shared edge differently, and the background shows through the slivers between

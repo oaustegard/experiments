@@ -6,6 +6,24 @@
 
 It answers [saiashirwad/svjeez](https://github.com/saiashirwad/svjeez)'s `minecraft.svg`, which compiles a hand-authored TSX scene into the same kind of file. svjeez has no raster input, so everything in its scenes is built from primitives. Here the scene's material is a traced painting, and the authored part is the timeline.
 
+## In the browser, on any picture
+
+[`web/index.html`](web/index.html) is the same scene as a tool page: pick or drop a picture and it builds the animated SVG on the page and offers it as a download. It has a scrubber with the beats marked, and nothing is uploaded. It is one self-contained file. `python3 web/bundle.py` builds it from [`web/scene.js`](web/scene.js) (the timeline compiler and scene, ported from `timeline.py` and `build.py`), [`web/page.html`](web/page.html), and the tracer internals sliced from [`svg-in-browser/web/trace.js`](../svg-in-browser/web/trace.js). It is published as austegard.com/fun-and-games/self-painting.html.
+
+The port changes four things:
+
+- **Regions.** The browser tracer follows pixel edges with shared, once-simplified boundaries, so its regions tile the canvas exactly. Each 4-connected component is traced as its own label, which gives per-region shapes for the time slots with no pinholes, so the ground layer is gone. Paths are quadratic curves, not polygons.
+- **No layer-forcing animation on the paint.** An animated `opacity` or `transform` on a group makes Chromium composite that group separately on every frame, even while the value holds at 1 or `none`. With 59 paint groups covering the canvas, night ran at 9 fps. The same file with those animations removed ran at 50–57. The paint groups now animate only inherited properties (`fill-opacity`, `stroke-opacity`, `stroke-width`). A patch lands as a fat stroke that thins to the 1-unit seam cover (9 → 1), and falls by thinning to nothing.
+- **Glow.** The glow is now radial-gradient halos at the centroids of small bright regions, not blurred copies. On the glow's six small groups, plain `opacity` was the fast option: 56 fps, against 12 when twinkle and envelope were custom properties multiplied in `calc()`.
+- **Which colors glow.** A color counts as lamplight only if it is bright and warm and more than half its area sits in regions under 0.2% of the picture. Without that rule a white dog glowed at night.
+
+| headless Chromium, SwiftShader | t=8 paint | t=20 hold | t=24 dusk | t=26 night | t=33 dawn | t=43 fall |
+|---|---|---|---|---|---|---|
+| Starry Night, 17,523 regions, 1,081 KB / 287 KB gz | 19 | 40 | 49 | 60 | 33 | 52 |
+| dog photo, 10,434 regions, 843 KB / 225 KB gz | 26 | 43 | 50 | 60 | 37 | 54 |
+
+The trace takes 2.5–3.5 s in JavaScript k-means at 1000 px on this container. WebGPU wasn't available to measure here.
+
 ## Pieces
 
 | file | lines | what |
