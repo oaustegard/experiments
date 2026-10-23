@@ -1,6 +1,6 @@
 """NumPy forward pass of the k-layer EG2 cut, read through web/manifest.json, against onnxruntime.
 
-Usage: python3 -I run/ref.py
+Usage: python3 -I run/ref.py [--full]
 
 This is the engine's algorithm in float32 NumPy, step for step (pool before the output
 projection, as the engine does), so a mismatch in the browser can be bisected against it. It
@@ -8,6 +8,7 @@ also writes out/queries.json: the test queries tokenized exactly as the page doe
 onnxruntime CPU vectors, which run/check.py compares the browser against.
 """
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,6 @@ import onnxruntime as ort
 from tokenizers import Tokenizer
 
 ROOT = Path(__file__).resolve().parent.parent
-MODEL = ROOT / "out" / "model"
 QUERY = "task: search result | query: "
 TEXTS = ["a cat asleep in a sunbeam", "foggy mountains at dawn", "watercolor of a city street", "a bird in the snow",
          "neon signs at night", "moss on a tree trunk", "a dog at the beach", "an old film camera",
@@ -53,6 +53,17 @@ def table_rows(data, tbl, ids):
     return ((v - zp[..., None]) * sc[..., None]).reshape(S, 512)
 
 
+def table_rows_q4(data, tbl, ids):
+    """4-bit GatherBlockQuantized table: 2 values per byte, low nibble first, f32 scales, packed zp."""
+    q = tensor(data, tbl["codes"])[ids]  # [S, 256]
+    S = len(ids)
+    v = np.stack([q & 15, q >> 4], -1).reshape(S, 16, 32).astype(np.float32)
+    z = tensor(data, tbl["zp"])[ids]
+    z = np.stack([z & 15, z >> 4], -1).reshape(S, 16).astype(np.float32)
+    s = tensor(data, tbl["scales"])[ids].astype(np.float32)
+    return ((v - z[..., None]) * s[..., None]).reshape(S, 512)
+
+
 def rms(x, w=None, eps=1e-6):
     y = x * np.power((x * x).mean(-1, keepdims=True) + np.float32(eps), -0.5)
     return y if w is None else y * w
@@ -75,17 +86,24 @@ class Ref:
     def __call__(self, ids):
         m, eps = self.m, self.m["eps"]
         S = len(ids)
-        x = table_rows(self.d, m["table"], np.asarray(ids)) * np.float32(m["embed_scale"])
+        E = lambda spec: spec.get("eps", eps)  # noqa: E731
+        rows = table_rows_q4 if m["table"].get("kind") == "q4" else table_rows
+        x = rows(self.d, m["table"], np.asarray(ids)) * np.float32(m["embed_scale"])
         ple = (x @ self.w("ple", m["ple"]).T) * np.float32(m["ple_scale"])
-        ple = rms(ple.reshape(S, m["ple_layers"], m["ple_dim"]), self.w("pln", m["per_layer_projection_norm"]), eps)
-        pos = np.arange(S, dtype=np.float32)[:, None] * np.asarray(m["inv_freq"], np.float32)
-        ang = np.concatenate([pos, pos], -1)
-        cos, sin = np.cos(ang), np.sin(ang)
+        pln = m["per_layer_projection_norm"]
+        ple = rms(ple.reshape(S, m["ple_layers"], m["ple_dim"]), self.w("pln", pln), E(pln))
+        freqs = m.get("rope") or {"default": m["inv_freq"]}
+        tables = {}
+        for kind, f in freqs.items():
+            pos = np.arange(S, dtype=np.float32)[:, None] * np.asarray(f, np.float32)
+            ang = np.concatenate([pos, pos], -1)
+            tables[kind] = np.cos(ang), np.sin(ang)
         h = x
         for i, L in enumerate(m["layers"]):
             W = lambda n: self.w(f"{i}.{n}", L[n])  # noqa: E731
             hd, nh, nkv = L["head_dim"], L["n_heads"], L["n_kv_heads"]
-            a = rms(h, W("input_layernorm"), eps)
+            cos, sin = tables[L.get("rope", "default")]
+            a = rms(h, W("input_layernorm"), E(L["input_layernorm"]))
             q = (a @ W("q_proj").T).reshape(S, nh, hd)
             k = (a @ W("k_proj").T).reshape(S, nkv, hd)
             v = (a @ W("v_proj").T).reshape(S, nkv, hd)
@@ -101,21 +119,24 @@ class Ref:
                 p /= p.sum(-1, keepdims=True)
                 o[:, hh] = p @ v[:, kv]
             t = o.reshape(S, nh * hd) @ W("o_proj").T
-            h = h + rms(t, W("post_attention_layernorm"), eps)
-            a = rms(h, W("pre_feedforward_layernorm"), eps)
+            h = h + rms(t, W("post_attention_layernorm"), E(L["post_attention_layernorm"]))
+            a = rms(h, W("pre_feedforward_layernorm"), E(L["pre_feedforward_layernorm"]))
             f = gelu(a @ W("gate_proj").T) * (a @ W("up_proj").T)
-            h = h + rms(f @ W("down_proj").T, W("post_feedforward_layernorm"), eps)
+            h = h + rms(f @ W("down_proj").T, W("post_feedforward_layernorm"), E(L["post_feedforward_layernorm"]))
             p = gelu(h @ W("per_layer_input_gate").T) * ple[:, i]
-            h = (h + rms(p @ W("per_layer_projection").T, W("post_per_layer_input_norm"), eps)) * np.float32(L["layer_scalar"])
-        pooled = rms(h, self.w("norm", m["norm"]), eps).mean(0)
+            h = (h + rms(p @ W("per_layer_projection").T, W("post_per_layer_input_norm"), E(L["post_per_layer_input_norm"]))) * np.float32(L["layer_scalar"])
+        pooled = rms(h, self.w("norm", m["norm"]), E(m["norm"])).mean(0)
         e = self.w("proj", m["embedding_projection"]) @ pooled
         return e / max(np.linalg.norm(e), 1e-12)
 
 
 def main():
-    man = json.loads((ROOT / "web" / "manifest.json").read_text())
-    data = (MODEL / man["data"]).read_bytes()
-    tok = Tokenizer.from_file(str(MODEL / "tokenizer.json"))
+    full = "--full" in sys.argv  # the 24-layer model: out/full, web/manifest_full.json, web/queries_full.json
+    model = ROOT / "out" / ("full" if full else "model")
+    sfx = "_full" if full else ""
+    man = json.loads((ROOT / "web" / f"manifest{sfx}.json").read_text())
+    data = (model / man["data"]).read_bytes()
+    tok = Tokenizer.from_file(str(model / "tokenizer.json"))
     specials = sorted((t.content for t in tok.get_added_tokens_decoder().values() if t.special), key=len, reverse=True)
 
     def clean(t):
@@ -123,16 +144,18 @@ def main():
             t = t.replace(sp, " ")
         return t
     ids = [tok.encode(QUERY + clean(t)).ids[:128] for t in TEXTS]
-    sess = ort.InferenceSession(str(MODEL / man["source"]), providers=["CPUExecutionProvider"])
+    sess = ort.InferenceSession(str(model / man["source"]), providers=["CPUExecutionProvider"])
+    extra = {f"{k}_features": np.zeros((0, 512), np.float32) for k in ("image", "video", "audio")} if full else {}
+    oname = "sentence_embedding" if full else "embedding"
     R = Ref(man, data)
     out = []
     for t, x in zip(TEXTS, ids):
         a = np.asarray(x, np.int64)[None]
-        o = sess.run(["embedding"], {"input_ids": a, "attention_mask": np.ones_like(a)})[0][0]
+        o = sess.run([oname], {"input_ids": a, "attention_mask": np.ones_like(a), **extra})[0][0]
         r = R(x)
         out.append({"text": t, "ids": x, "ort": o.tolist()})
         print(f"S={len(x):3d} cos(ref, ort)={float(r @ o / np.linalg.norm(o)):.7f}  {t[:40]!r}")
-    (ROOT / "web" / "queries.json").write_text(json.dumps(out))
+    (ROOT / "web" / f"queries{sfx}.json").write_text(json.dumps(out))
 
 
 if __name__ == "__main__":

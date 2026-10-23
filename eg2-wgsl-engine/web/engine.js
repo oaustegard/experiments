@@ -13,6 +13,11 @@
 // then rms(h)*w, mean over the sequence, the 512->768 projection (q4) and L2 normalization. The
 // projection is linear, so it runs once per sequence after pooling instead of once per token.
 // Several sequences run in one pass, packed back to back; attention stays inside each sequence.
+//
+// The same engine runs the full 24-layer model (onnx-community/embeddinggemma-2-ONNX model_q4.onnx,
+// manifest from run/manifest_full.py): a 4-bit token table, full-attention layers with head_dim 512
+// and one KV head on their own RoPE table, and per-norm eps. Its 174 MB weight file is one buffer,
+// and each dispatch binds the window of it that holds its tensors.
 
 const WG_MM = 256; // matmul: 32 output columns x 8 k-splits, 8 tokens per workgroup
 const MAX_SEQ = 128;
@@ -50,6 +55,29 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_id) lid
   let s = unpack2x16float(W[p.a.y + id * 8u + blk / 2u])[blk % 2u];
   for (var i = 0u; i < 8u; i++) {
     y[t * 512u + g * 8u + i] = (f32((word >> (3u * i)) & 7u) - z) * s * p.f.x;
+  }
+}`,
+
+  // 4-bit token table (onnxruntime GatherBlockQuantized: 2 values per byte, low nibble first, f32
+  // scales [V, 16], packed 4-bit zero points [V, 8]). One workgroup per token, one thread per word.
+  // p.a = (codes, scales, zp) offsets in words; p.f.x = embedding scale.
+  embed_q4: HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
+@group(0) @binding(4) var<storage, read_write> y: array<f32>;
+${BYTE}
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
+  let t = wid.x;
+  if (t >= dn.n.x) { return; }
+  let id = tok[t].x;
+  let g = lid.x;
+  let word = W[p.a.x + id * 64u + g];
+  let blk = g / 4u;
+  let z = f32((wbyte(p.a.z * 4u + id * 8u + blk / 2u) >> (4u * (blk % 2u))) & 15u);
+  let s = bitcast<f32>(W[p.a.y + id * 16u + blk]) * p.f.x;
+  for (var i = 0u; i < 8u; i++) {
+    y[t * 512u + g * 8u + i] = (f32((word >> (4u * i)) & 15u) - z) * s;
   }
 }`,
 
@@ -178,8 +206,9 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 
   // Per-head RMSNorm of q, k (with weights) and v (without), then RoPE on q and k. One workgroup
   // per (token, head slot): slots [0, nh) are q heads, [nh, nh+nkv) k heads, the rest v heads.
-  // Head dim 256: thread i holds elements i and i + 128, the pair rotate_half mixes.
-  // p.a = (nh, nkv, q_norm offset, k_norm offset); p.f.x = eps.
+  // Head dim hd = 256 or 512: thread i holds elements i + 128 j and i + 128 j + hd / 2 (the pairs
+  // rotate_half mixes) for j < hd / 256.
+  // p.a = (nh, nkv, q_norm offset, k_norm offset); p.b = (hd, RoPE table offset in floats); p.f.x = eps.
   prep: HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> W: array<u32>;
 @group(0) @binding(3) var<storage, read> rope: array<f32>;
@@ -193,35 +222,47 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   let t = wid.x; let slot = wid.y;
   if (t >= dn.n.x) { return; }
   let nh = p.a.x; let nkv = p.a.y;
+  let hd = p.b.x; let half = hd / 2u; let np = hd / 256u;
   var kind = 0u; var base = 0u;
-  if (slot < nh) { base = (t * nh + slot) * 256u; }
-  else if (slot < nh + nkv) { kind = 1u; base = (t * nkv + slot - nh) * 256u; }
-  else { kind = 2u; base = (t * nkv + slot - nh - nkv) * 256u; }
-  var x0: f32; var x1: f32;
-  if (kind == 0u) { x0 = q[base + i]; x1 = q[base + i + 128u]; }
-  else if (kind == 1u) { x0 = k[base + i]; x1 = k[base + i + 128u]; }
-  else { x0 = v[base + i]; x1 = v[base + i + 128u]; }
-  red[i] = x0 * x0 + x1 * x1;
+  if (slot < nh) { base = (t * nh + slot) * hd; }
+  else if (slot < nh + nkv) { kind = 1u; base = (t * nkv + slot - nh) * hd; }
+  else { kind = 2u; base = (t * nkv + slot - nh - nkv) * hd; }
+  var x0 = array<f32, 2>(0.0, 0.0); var x1 = array<f32, 2>(0.0, 0.0);
+  var ss = 0.0;
+  for (var j = 0u; j < np; j++) {
+    let e = base + i + 128u * j;
+    if (kind == 0u) { x0[j] = q[e]; x1[j] = q[e + half]; }
+    else if (kind == 1u) { x0[j] = k[e]; x1[j] = k[e + half]; }
+    else { x0[j] = v[e]; x1[j] = v[e + half]; }
+    ss += x0[j] * x0[j] + x1[j] * x1[j];
+  }
+  red[i] = ss;
   workgroupBarrier();
   for (var s = 64u; s > 0u; s >>= 1u) {
     if (i < s) { red[i] += red[i + s]; }
     workgroupBarrier();
   }
-  let inv = 1.0 / sqrt(red[0] / 256.0 + p.f.x);
-  x0 *= inv; x1 *= inv;
-  if (kind == 2u) { v[base + i] = x0; v[base + i + 128u] = x1; return; }
+  let inv = 1.0 / sqrt(red[0] / f32(hd) + p.f.x);
   let wo = select(p.a.w, p.a.z, kind == 0u);
-  x0 *= bitcast<f32>(W[wo + i]); x1 *= bitcast<f32>(W[wo + i + 128u]);
   let pos = tok[t].y;
-  let c = rope[pos * 128u + i]; let sn = rope[${MAX_SEQ * 128}u + pos * 128u + i];
-  let y0 = x0 * c - x1 * sn; let y1 = x1 * c + x0 * sn;
-  if (kind == 0u) { q[base + i] = y0; q[base + i + 128u] = y1; }
-  else { k[base + i] = y0; k[base + i + 128u] = y1; }
+  let ro = p.b.y + pos * half;
+  for (var j = 0u; j < np; j++) {
+    let d = i + 128u * j;
+    let e = base + d;
+    var a = x0[j] * inv; var b = x1[j] * inv;
+    if (kind == 2u) { v[e] = a; v[e + half] = b; continue; }
+    a *= bitcast<f32>(W[wo + d]); b *= bitcast<f32>(W[wo + d + half]);
+    let c = rope[ro + d]; let sn = rope[ro + ${MAX_SEQ}u * half + d];
+    let y0 = a * c - b * sn; let y1 = b * c + a * sn;
+    if (kind == 0u) { q[e] = y0; q[e + half] = y1; }
+    else { k[e] = y0; k[e + half] = y1; }
+  }
 }`,
 
   // Bidirectional attention inside each packed sequence. One workgroup per (token, query head);
-  // thread j scores key j (sequences are at most 128 tokens), then threads i, i + 128 sum the values.
-  // p.a = (nh, nkv); p.f.x = score scale.
+  // thread j scores key j (sequences are at most 128 tokens), then thread i sums the values of
+  // elements i + 128 j, j < hd / 128.
+  // p.a = (nh, nkv, hd); p.f.x = score scale.
   attn: HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> tok: array<vec4<u32>>;
 @group(0) @binding(3) var<storage, read> seqs: array<vec4<u32>>;
@@ -229,25 +270,25 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 @group(0) @binding(5) var<storage, read> k: array<vec4<f32>>;
 @group(0) @binding(6) var<storage, read> v: array<f32>;
 @group(0) @binding(7) var<storage, read_write> o: array<f32>;
-var<workgroup> qs: array<vec4<f32>, 64>;
+var<workgroup> qs: array<vec4<f32>, 128>;
 var<workgroup> pr: array<f32, 128>;
 var<workgroup> red: array<f32, 128>;
 @compute @workgroup_size(128)
 fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
   let t = wid.x; let h = wid.y;
   if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let nkv = p.a.y;
+  let nh = p.a.x; let nkv = p.a.y; let hd = p.a.z; let hd4 = hd / 4u;
   let kvh = h / (nh / nkv);
   let sq = seqs[tok[t].z];
   let start = sq.x; let len = sq.y;
-  let qb = (t * nh + h) * 256u;
-  if (i < 64u) { qs[i] = vec4<f32>(q[qb + 4u * i], q[qb + 4u * i + 1u], q[qb + 4u * i + 2u], q[qb + 4u * i + 3u]); }
+  let qb = (t * nh + h) * hd;
+  if (i < hd4) { qs[i] = vec4<f32>(q[qb + 4u * i], q[qb + 4u * i + 1u], q[qb + 4u * i + 2u], q[qb + 4u * i + 3u]); }
   workgroupBarrier();
   var sc = -3.0e38;
   if (i < len) {
-    let kb = ((start + i) * nkv + kvh) * 64u;
+    let kb = ((start + i) * nkv + kvh) * hd4;
     var d = 0.0;
-    for (var j = 0u; j < 64u; j++) { d += dot(qs[j], k[kb + j]); }
+    for (var j = 0u; j < hd4; j++) { d += dot(qs[j], k[kb + j]); }
     sc = d * p.f.x;
   }
   red[i] = sc;
@@ -267,12 +308,13 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
     workgroupBarrier();
   }
   let inv = 1.0 / red[0];
-  var a0 = 0.0; var a1 = 0.0;
+  let ne = hd / 128u;
+  var acc = array<f32, 4>(0.0, 0.0, 0.0, 0.0);
   for (var j = 0u; j < len; j++) {
-    let vb = ((start + j) * nkv + kvh) * 256u;
-    a0 += pr[j] * v[vb + i]; a1 += pr[j] * v[vb + i + 128u];
+    let vb = ((start + j) * nkv + kvh) * hd + i;
+    for (var e = 0u; e < ne; e++) { acc[e] += pr[j] * v[vb + 128u * e]; }
   }
-  o[qb + i] = a0 * inv; o[qb + i + 128u] = a1 * inv;
+  for (var e = 0u; e < ne; e++) { o[qb + i + 128u * e] = acc[e] * inv; }
 }`,
 
   // a[r, j] = gelu_tanh(a[r, j]) * b[r * bStride + bOff + j] for r < tokens, j < D.
@@ -350,34 +392,57 @@ export class Eg2Engine {
 
   async _init(bytes) {
     const dev = this.device, m = this.m, T = this.maxTokens, B = this.maxSeqs;
+    // RoPE inverse frequencies per attention kind (the cut has one table, the full model two).
+    const freqs = m.rope ?? { default: m.inv_freq };
+    const tbl = m.table.kind ?? "t3";
     for (const L of m.layers) {
-      if (L.head_dim !== 256 || L.n_heads % L.n_kv_heads) throw new Error("engine expects head_dim 256 and grouped heads");
+      const f = freqs[L.rope ?? "default"];
+      if (![256, 512].includes(L.head_dim) || L.n_heads % L.n_kv_heads || !f || f.length * 2 !== L.head_dim) {
+        throw new Error("engine expects head_dim 256 or 512, grouped heads and a matching RoPE table");
+      }
     }
-    const rhq = m.table.kind === "rhq";
-    if (m.hidden !== 512 || (!rhq && m.table.bits !== 3) || m.inv_freq.length !== 128) throw new Error("unexpected manifest shape");
-    // The whole weight file in one storage buffer; every tensor is addressed by its word offset.
+    if (m.hidden !== 512 || !["t3", "rhq", "q4"].includes(tbl) || (tbl === "t3" && m.table.bits !== 3)) throw new Error("unexpected manifest shape");
+    // The whole weight file in one storage buffer; every tensor is addressed by its word offset
+    // inside the window of the buffer its dispatch binds (the full model's 174 MB exceed the
+    // default 128 MiB binding limit; the whole file stays under the 256 MiB buffer limit).
     const size = Math.ceil(bytes.byteLength / 4) * 4;
+    if (size > dev.limits.maxBufferSize) throw new Error(`weights (${size} B) exceed this device's maxBufferSize`);
     this.W = dev.createBuffer({ size, usage: U.STORAGE | U.COPY_DST, label: "weights" });
     const padded = bytes.byteLength === size ? bytes : (() => { const b = new Uint8Array(size); b.set(bytes); return b; })();
     dev.queue.writeBuffer(this.W, 0, padded);
+    const lim = dev.limits.maxStorageBufferBindingSize, align = dev.limits.minStorageBufferOffsetAlignment;
+    const win = (...ts) => {
+      if (size <= lim) return { base: 0, res: this.W };
+      const lo = Math.min(...ts.map((x) => x.offset)), hi = Math.max(...ts.map((x) => x.offset + x.length));
+      const base = Math.floor(lo / align) * align, n = Math.ceil((hi - base) / 4) * 4;
+      if (n > lim) throw new Error(`a dispatch needs ${n} B of weights in one binding, over the ${lim} B limit`);
+      return { base, res: { buffer: this.W, offset: base, size: n } };
+    };
 
-    const rope = new Float32Array(2 * MAX_SEQ * 128);
-    for (let pos = 0; pos < MAX_SEQ; pos++) {
-      for (let i = 0; i < 128; i++) {
-        const ang = Math.fround(pos * m.inv_freq[i]); // the graph forms the angle in float32
-        rope[pos * 128 + i] = Math.cos(ang);
-        rope[MAX_SEQ * 128 + pos * 128 + i] = Math.sin(ang);
+    const ropeOff = {};
+    let nRope = 0;
+    for (const [k, f] of Object.entries(freqs)) { ropeOff[k] = nRope; nRope += 2 * MAX_SEQ * f.length; }
+    const rope = new Float32Array(nRope);
+    for (const [k, f] of Object.entries(freqs)) {
+      const o = ropeOff[k], half = f.length;
+      for (let pos = 0; pos < MAX_SEQ; pos++) {
+        for (let i = 0; i < half; i++) {
+          const ang = Math.fround(pos * f[i]); // the graph forms the angle in float32
+          rope[o + pos * half + i] = Math.cos(ang);
+          rope[o + MAX_SEQ * half + pos * half + i] = Math.sin(ang);
+        }
       }
     }
     const buf = (n, label, extra = 0) => dev.createBuffer({ size: Math.max(16, n * 4), usage: U.STORAGE | U.COPY_SRC | extra, label });
     this.rope = buf(rope.length, "rope", U.COPY_DST);
     dev.queue.writeBuffer(this.rope, 0, rope);
-    const nh = m.layers[0].n_heads, nkv = m.layers[0].n_kv_heads;
+    const most = (f) => Math.max(...m.layers.map(f));
+    const qN = most((L) => L.n_heads * L.head_dim), kN = most((L) => L.n_kv_heads * L.head_dim), ff = most((L) => L.gate_proj.N);
     const B_ = {
       tok: buf(T * 4, "tok", U.COPY_DST), seqs: buf(B * 4, "seqs", U.COPY_DST),
       h: buf(T * 512, "h"), a: buf(T * 512, "a"), t: buf(T * 512, "t"),
-      q: buf(T * nh * 256, "q"), k: buf(T * nkv * 256, "k"), v: buf(T * nkv * 256, "v"), o: buf(T * nh * 256, "o"),
-      g: buf(T * 2048, "g"), u: buf(T * 2048, "u"),
+      q: buf(T * qN, "q"), k: buf(T * kN, "k"), v: buf(T * kN, "v"), o: buf(T * qN, "o"),
+      g: buf(T * ff, "g"), u: buf(T * Math.max(ff, m.ple_dim), "u"),
       pleRaw: buf(T * m.ple_layers * m.ple_dim, "pleRaw"), ple: buf(T * m.ple_layers * m.ple_dim, "ple"),
       pooled: buf(B * 512, "pooled"), e: buf(B * 768, "e"), out: buf(B * 768, "out", U.COPY_SRC),
     };
@@ -396,7 +461,10 @@ export class Eg2Engine {
     this.pipes = pipes;
 
     // Every dispatch gets its own static uniform and bind group; only `dyn` changes per run.
-    const W = (t) => t.offset / 4;
+    const W = (t, base) => {
+      if (t.offset % 4) throw new Error("tensor offset not word-aligned");
+      return (t.offset - base) / 4;
+    };
     this.steps = [];
     const step = (kind, params, bufs, grid) => {
       const u = new ArrayBuffer(48);
@@ -405,35 +473,44 @@ export class Eg2Engine {
       const ub = dev.createBuffer({ size: 48, usage: U.UNIFORM | U.COPY_DST, label: kind });
       dev.queue.writeBuffer(ub, 0, u);
       const entries = [{ binding: 0, resource: { buffer: ub } }, { binding: 1, resource: { buffer: this.dyn } }]
-        .concat(bufs.map((b, i) => ({ binding: i + 2, resource: { buffer: b } })));
+        .concat(bufs.map((b, i) => ({ binding: i + 2, resource: b.buffer ? b : { buffer: b } })));
       this.steps.push({ kind, bg: dev.createBindGroup({ layout: pipes[kind].getBindGroupLayout(0), entries }), grid });
     };
     const eps = m.eps;
     const mm = (w, X, Y, rowsSel = 0, alpha = 1) => {
       if (w.N % 32 || w.K % 256 || w.block !== 32 || w.bits !== 4) throw new Error("matmul shape");
-      step("matmul", { a: [W(w.q), W(w.scales), W(w.zp), w.N], b: [w.K, rowsSel], f: [alpha] }, [this.W, X, Y],
+      const { base, res } = win(w.q, w.scales, w.zp);
+      step("matmul", { a: [W(w.q, base), W(w.scales, base), W(w.zp, base), w.N], b: [w.K, rowsSel], f: [alpha] }, [res, X, Y],
            (n) => [w.N / 32, Math.ceil(n[rowsSel] / 8)]);
     };
-    const norm = (w, X, Y, D, mode = 0, scalar = 1, rowsSel = 0, mult = 1) =>
-      step("norm", { a: [D, W(w), mode, rowsSel], b: [mult], f: [eps, scalar] }, [this.W, X, Y], (n) => split(n[rowsSel] * mult));
+    const norm = (w, X, Y, D, mode = 0, scalar = 1, rowsSel = 0, mult = 1) => {
+      const { base, res } = win(w);
+      step("norm", { a: [D, W(w, base), mode, rowsSel], b: [mult], f: [w.eps ?? eps, scalar] }, [res, X, Y], (n) => split(n[rowsSel] * mult));
+    };
     const gelumul = (A, Bf, D, bStride, bOff) =>
       step("gelumul", { a: [D, bStride, bOff] }, [A, Bf], (n) => split(Math.ceil(n[0] * D / 256)));
 
     const t = m.table;
-    if (rhq) {
-      step("embed_rhq", { a: [W(t.codes3), W(t.codes2), W(t.scales), t.n3], b: [W(t.signs), W(t.levels3), W(t.levels2)], f: [m.embed_scale] },
-           [this.W, B_.tok, B_.h], (n) => [n[0]]);
+    if (tbl === "rhq") {
+      const { base, res } = win(t.codes3, t.codes2, t.scales, t.signs, t.levels3, t.levels2);
+      step("embed_rhq", { a: [W(t.codes3, base), W(t.codes2, base), W(t.scales, base), t.n3],
+                          b: [W(t.signs, base), W(t.levels3, base), W(t.levels2, base)], f: [m.embed_scale] },
+           [res, B_.tok, B_.h], (n) => [n[0]]);
     } else {
-      step("embed", { a: [W(t.codes), W(t.scales), W(t.zp)], f: [m.embed_scale] }, [this.W, B_.tok, B_.h], (n) => [n[0]]);
+      const { base, res } = win(t.codes, t.scales, t.zp);
+      step(tbl === "q4" ? "embed_q4" : "embed", { a: [W(t.codes, base), W(t.scales, base), W(t.zp, base)], f: [m.embed_scale] },
+           [res, B_.tok, B_.h], (n) => [n[0]]);
     }
     mm(m.ple, B_.h, B_.pleRaw, 0, m.ple_scale);
     norm(m.per_layer_projection_norm, B_.pleRaw, B_.ple, m.ple_dim, 0, 1, 0, m.ple_layers);
     m.layers.forEach((L, i) => {
       norm(L.input_layernorm, B_.h, B_.a, 512);
       mm(L.q_proj, B_.a, B_.q); mm(L.k_proj, B_.a, B_.k); mm(L.v_proj, B_.a, B_.v);
-      step("prep", { a: [L.n_heads, L.n_kv_heads, W(L.q_norm), W(L.k_norm)], f: [eps] },
-           [this.W, this.rope, B_.tok, B_.q, B_.k, B_.v], (n) => [n[0], L.n_heads + 2 * L.n_kv_heads]);
-      step("attn", { a: [L.n_heads, L.n_kv_heads], f: [L.attn_scale] }, [B_.tok, B_.seqs, B_.q, B_.k, B_.v, B_.o],
+      const pw = win(L.q_norm, L.k_norm);
+      step("prep", { a: [L.n_heads, L.n_kv_heads, W(L.q_norm, pw.base), W(L.k_norm, pw.base)], b: [L.head_dim, ropeOff[L.rope ?? "default"]],
+                     f: [L.q_norm.eps ?? eps] },
+           [pw.res, this.rope, B_.tok, B_.q, B_.k, B_.v], (n) => [n[0], L.n_heads + 2 * L.n_kv_heads]);
+      step("attn", { a: [L.n_heads, L.n_kv_heads, L.head_dim], f: [L.attn_scale] }, [B_.tok, B_.seqs, B_.q, B_.k, B_.v, B_.o],
            (n) => [n[0], L.n_heads]);
       mm(L.o_proj, B_.o, B_.t);
       norm(L.post_attention_layernorm, B_.t, B_.h, 512, 1);

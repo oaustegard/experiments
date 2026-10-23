@@ -27,7 +27,8 @@
   <h1>EG2 WGSL engine bench</h1>
   <p>Embeds 12 test queries with the 4-layer EmbeddingGemma 2 cut three ways: the hand-written WGSL engine,
     onnxruntime-web on WebGPU, and onnxruntime-web on wasm. Each vector is checked against onnxruntime on CPU.
-    Close other GPU-heavy tabs, press Run, then Copy JSON.</p>
+    Close other GPU-heavy tabs, press Run, then Copy JSON.
+    <a href="?full=1">The full 24-layer model</a> runs the same comparison; it downloads 174 MB of weights from Hugging Face first.</p>
   <div class="row"><button id="run">Run</button><button id="copy" disabled>Copy JSON</button></div>
   <div id="status">idle</div>
   <table id="table"></table>

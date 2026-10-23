@@ -776,6 +776,16 @@ survives exactly the sanity checks people run.
   offsets in uniforms. The engine and an onnxruntime-web fallback then share one download and one
   HTTP cache entry, and the ORT JS and wasm (~10 MB+) load only if the engine fails.
   (`eg2-wgsl-engine/run/manifest.py`)
+- **Weights over 128 MiB: bind windows of one buffer, and undo the exporter's folds.** WebGPU's
+  default `maxStorageBufferBindingSize` is 128 MiB, but `maxBufferSize` is 256 MiB. The full
+  EmbeddingGemma 2 q4 file (174 MB) therefore fits in one buffer. Each dispatch binds
+  `{offset, size}` around its own tensors, with the offset aligned to
+  `minStorageBufferOffsetAlignment`, and passes word offsets relative to that window. This needs no
+  repacking and no raised device limits, so a device shared with other work still runs it.
+  onnx-community's exports also fold constants into neighbouring ops. A layer scalar becomes the next
+  RMSNorm's epsilon, through rms(s·x, ε) = rms(x, ε/s²); the last layer's scalar has no tensor at
+  all. A per-layer-input scale goes into its norm's epsilon in the same way. An engine that reads
+  the weights has to read epsilons per node, not one config eps. (`eg2-wgsl-engine/run/manifest_full.py`)
 - **Tile vectors through `vec4` lanes to cut a matrix's reads 4x with bit-identical output.** A
   per-vector WGSL kernel (one workgroup per vector, R read in full each time) becomes one workgroup per
   4 vectors with every activation and reduction as `vec4<f32>`: each lane does the same operations in

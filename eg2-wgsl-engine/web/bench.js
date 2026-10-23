@@ -1,12 +1,18 @@
 // Bench and parity check for the WGSL engine against onnxruntime-web (WebGPU and wasm) on the same
 // model file. Query token ids and their onnxruntime CPU vectors come from queries.json (run/ref.py),
 // so tokenization is out of the measurement. Params: ?model=<dir with model_t3w.onnx[_data]>,
-// &reps=N, &ort=0 to skip onnxruntime-web, &auto=1 to run on load (the headless check uses it).
+// &reps=N, &time=0 for parity only, &ort=0 to skip onnxruntime-web, &auto=1 to run on load (the headless check uses it).
+// ?full=1 runs the full 24-layer model instead (manifest_full.json, queries_full.json), whose
+// 174 MB model_q4.onnx_data comes from Hugging Face unless ?model= names another directory.
 import { Eg2Engine } from "./engine.js";
 
 const P = new URLSearchParams(location.search);
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
-const MODEL = new URL(P.get("model") || (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/" : "../out/model/"), location.href);
+const FULL = P.get("full") === "1";
+const HF_FULL = "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/onnx/";
+const MODEL = new URL(P.get("model") || (FULL ? (location.hostname.endsWith("austegard.com") ? HF_FULL : "../out/full/")
+  : (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/" : "../out/model/")), location.href);
+const SFX = FULL ? "_full" : "";
 const REPS = +(P.get("reps") || 20);
 const $ = (id) => document.getElementById(id);
 const status = (t, bad = false) => { $("status").textContent = t; $("status").className = bad ? "bad" : ""; };
@@ -32,11 +38,11 @@ async function time(fn) {
 
 async function run() {
   $("run").disabled = true;
-  const res = window.result = { phase: "loading", ua: navigator.userAgent, reps: REPS, model: MODEL.href };
+  const res = window.result = { phase: "loading", ua: navigator.userAgent, reps: REPS, model: MODEL.href, full: FULL };
   try {
     status("loading model, manifest and queries…");
     const [manifest, queries] = await Promise.all([
-      fetch("./manifest.json").then((r) => r.json()), fetch("./queries.json").then((r) => r.json())]);
+      fetch(`./manifest${SFX}.json`).then((r) => r.json()), fetch(`./queries${SFX}.json`).then((r) => r.json())]);
     const [graph, data] = await Promise.all([fetchBytes(new URL(manifest.source, MODEL)), fetchBytes(new URL(manifest.data, MODEL))]);
     const adapter = await navigator.gpu?.requestAdapter({ powerPreference: "high-performance" });
     if (!adapter) throw new Error("no WebGPU adapter");
@@ -59,10 +65,12 @@ async function run() {
       cos_batch_min: round(Math.min(...ids.map((_, i) => cos(batch.subarray(i * 768, (i + 1) * 768), ref[i]))), 7),
     };
     res.wgsl.cos_single_min = Math.min(...res.wgsl.cos_single);
-    status("WGSL engine: timing…");
     res.wgsl.ms_per_query = [];
-    for (const x of ids) res.wgsl.ms_per_query.push({ tokens: x.length, ...(await time(() => eng.embed([x]))) });
-    res.wgsl.ms_batch12 = await time(() => eng.embed(ids));
+    if (P.get("time") !== "0") {  // &time=0: parity only (the headless check of the full model)
+      status("WGSL engine: timing…");
+      for (const x of ids) res.wgsl.ms_per_query.push({ tokens: x.length, ...(await time(() => eng.embed([x]))) });
+      res.wgsl.ms_batch12 = await time(() => eng.embed(ids));
+    }
 
     if (P.get("ort") !== "0") {
       status("onnxruntime-web: loading…");
@@ -74,10 +82,12 @@ async function run() {
         const session = await ort.InferenceSession.create(graph, {
           executionProviders: [ep], logSeverityLevel: 3, externalData: [{ path: manifest.data, data }] });
         const r = res["ort_" + ep] = { init_ms: round(performance.now() - t0, 1) };
+        const media = FULL ? Object.fromEntries(["image", "video", "audio"].map((k) =>
+          [`${k}_features`, new ort.Tensor("float32", new Float32Array(0), [0, 512])])) : {};
         const feed = (x) => ({
           input_ids: new ort.Tensor("int64", BigInt64Array.from(x, BigInt), [1, x.length]),
-          attention_mask: new ort.Tensor("int64", new BigInt64Array(x.length).fill(1n), [1, x.length]) });
-        const vec = async (x) => new Float32Array((await session.run(feed(x))).embedding.data);
+          attention_mask: new ort.Tensor("int64", new BigInt64Array(x.length).fill(1n), [1, x.length]), ...media });
+        const vec = async (x) => new Float32Array((await session.run(feed(x)))[FULL ? "sentence_embedding" : "embedding"].data);
         const vs = [];
         for (const x of ids) vs.push(await vec(x));
         r.cos_single_min = round(Math.min(...vs.map((v, i) => cos(v, ref[i]))), 7);

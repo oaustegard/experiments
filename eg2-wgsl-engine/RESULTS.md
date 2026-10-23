@@ -20,6 +20,10 @@ test queries, run singly and in a batch. <!-- @evidence[[results/bench_apple_met
 The engine reads the same `model_t3w.onnx_data` that onnxruntime-web uses, so a page that keeps
 onnxruntime-web as a fallback downloads the weights only once.
 
+The same engine also runs the full 24-layer EmbeddingGemma 2 (`model_q4.onnx`, 174 MB), again at
+cosine 1 to onnxruntime CPU in headless Chromium. <!-- @evidence[[results/check_swiftshader_full.json#wgsl.cos_single_min]] -->
+Its speed on a real GPU has not been measured yet.
+
 Two things could change this: a GPU that is not Apple's, or Safari. Neither has been measured.
 
 ## Findings
@@ -42,6 +46,16 @@ Two things could change this: a GPU that is not Apple's, or Safari. Neither has 
    cosine 0.94, because `var part: array<f32, 8>;` inside the block loop kept the previous block's
    sums on Tint/SwiftShader. Probing each buffer against the NumPy reference found the bug in the
    first matmul.
+
+5. **The full model needs no new kernel design, only generality.** The full model fuses q/k/v and
+   gate/up. Its layers 5, 11, 17 and 23 use full attention with head_dim 512, one KV head and their
+   own RoPE table (θ 1e6). Its token table is 4-bit, with 262K rows. Its 174 MB weight file is more
+   than the 128 MiB a storage binding allows by default. The manifest turns each fused matmul into
+   row slices. Each dispatch binds only the window of the weight buffer that holds its tensors. The
+   exporter folds each layer scalar into the next norm's epsilon (rms(s·x, ε) = rms(x, ε/s²)), so the
+   manifest converts every epsilon back to the engine's scaled input. In headless Chromium, every
+   test query, run singly and in a batch, comes out at cosine 1. <!-- @evidence[[results/check_swiftshader_full.json#wgsl.cos_batch_min]] -->
+   (Round 2)
 
 ## Method
 
@@ -94,3 +108,32 @@ The site change is on branch `wgsl-engine` of oaustegard.github.io (55f49c3). Th
 index's own device and writes the query vector straight into the scan's buffer. Onnxruntime-web
 loads only if the engine fails, and `?engine=ort` forces it. Headless, it returned the same top 36
 as the onnxruntime-web path.
+
+### Round 2, 2026-10-23: the full 24-layer model
+
+Oskar asked whether the engine works for the full model as well, then said to try it. The source
+is onnx-community/embeddinggemma-2-ONNX `onnx/model_q4.onnx`, text inputs only (the image, video
+and audio features are empty).
+
+- `run/manifest_full.py` reads that graph into the same manifest schema. q/k/v and gate/up become
+  row slices of the fused MatMulNBits weights; that works because each output column's blocks,
+  scales and zero points are contiguous. The q and k norm weights are tiled over heads, and v's are
+  all ones; the script checks both. Layer 23's scalar has no tensor, because it is folded into the
+  final norm's epsilon (7.6e-5), so the engine uses 1 and that epsilon. Every other norm comes out
+  at ε = 1e-6 on the engine's scaled input.
+- `run/ref.py --full`: NumPy against onnxruntime CPU, cosine 1.0000000 on all 12 queries (10 to 118
+  tokens).
+- `web/engine.js` changes:
+  - an `embed_q4` gather;
+  - prep and attention take head_dim 256 or 512 per layer;
+  - one RoPE table per attention kind;
+  - norm epsilons per tensor;
+  - weight windows, each aligned to `minStorageBufferOffsetAlignment` and kept under
+    `maxStorageBufferBindingSize`.
+
+  The largest window is the token table's 86 MB.
+- `run/check.py --full` (parity only; SwiftShader takes minutes per timed pass): cosine 1 single
+  and batched. The 4-layer cut still passes at cosine 1.
+- Bench: `web/index.html?full=1` fetches the 174 MB weight file from Hugging Face, which sends CORS
+  headers, and compares the engine with onnxruntime-web on WebGPU and wasm. A Metal run is pending.
+

@@ -1,6 +1,6 @@
 """Run web/index.html (the bench) in headless Chromium (SwiftShader WebGPU) and check the engine's vectors.
 
-Usage: python3 -I run/check.py [--reps 2] [--ort]
+Usage: python3 -I run/check.py [--reps 2] [--ort] [--full]
 
 Serves the experiments repo, answers jsDelivr from a disk cache (headless Chromium has no route
 to the egress proxy), opens index.html?auto=1 and waits for it. Passes when every WGSL vector,
@@ -25,11 +25,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reps", type=int, default=2)
     ap.add_argument("--ort", action="store_true", help="also run onnxruntime-web (slow on SwiftShader)")
+    ap.add_argument("--full", action="store_true", help="the full 24-layer model (out/full, run/manifest_full.py)")
     a = ap.parse_args()
     port = free_port()
     server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
                               cwd=REPO, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    url = f"http://127.0.0.1:{port}/{ROOT.name}/web/index.html?auto=1&reps={a.reps}&ort={int(a.ort)}"
+    url = f"http://127.0.0.1:{port}/{ROOT.name}/web/index.html?auto=1&reps={a.reps}&ort={int(a.ort)}&full={int(a.full)}&time={int(not a.full)}"
     errors = []
     try:
         wait_for_server(url)
@@ -46,7 +47,7 @@ def main():
     finally:
         server.terminate()
     res["console_errors"] = errors
-    (ROOT / "results" / "check_swiftshader.json").write_text(json.dumps(res, indent=1))
+    (ROOT / "results" / f"check_swiftshader{'_full' if a.full else ''}.json").write_text(json.dumps(res, indent=1))
     if res["phase"] != "done":
         print(res.get("error"), errors)
         return 1
