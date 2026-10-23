@@ -1306,6 +1306,17 @@ the result.
   the CSS in `<![CDATA[ ]]>`, which both parsers accept. Also, `var()` works
   in CSS but not in presentation attributes (`fill="var(--b)"` is black), so
   put it in a class. (`svg-palette-cycle/`)
+- **Animate time-slot groups, not shapes, in a keyframed SVG.** Every element
+  with a running CSS animation is restyled each frame even while it holds a
+  value, so 4,751 individually animated traced paths played at 1–7 fps in
+  headless Chromium where svjeez's minecraft.svg ran 18–24. Quantize start
+  times to a 0.2 s grid, wrap each slot's shapes in one animated `<g>` and
+  merge same-color paths inside it: 76 animated groups, 1,748 paths, 20–55 fps.
+  A k-means trace is a near-partition (holes cut by evenodd), so leaving
+  largest-first stacking order costs nothing visible. Derive a shape's later
+  times from its first (fall = f(start)) or interning stops paying: independent
+  start/fall pairs gave 1,835 keyframes, tied ones 205. Put a blur filter on an
+  un-animated inner `<g>` and animate opacity on the outer one. (`svg-timeline/`)
 - **Simplify shared boundaries once, not per region, or vectorized images tear.**
   Douglas–Peucker run on each region's outline separately moves the two sides of a
   shared edge differently, and the background shows through the slivers between
