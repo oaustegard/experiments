@@ -1289,6 +1289,13 @@ the result.
   with `Stemmer.Stemmer(lang, 0)` or repeated words flatter C. jellyfish's
   Rust `jaro_similarity` compares grapheme clusters on non-ASCII, unlike its
   Python fallback. (`mojo-port-haiku/`)
+- **CSS inside an SVG `<style>` needs CDATA once it contains `<`.**
+  `@property --x{syntax:'<color>'}` is invalid XML in a standalone .svg, and
+  inlined in HTML the parser reads `<color>` as an element: the stylesheet
+  ends up with zero rules and every fill renders black, with no error. Wrap
+  the CSS in `<![CDATA[ ]]>`, which both parsers accept. Also, `var()` works
+  in CSS but not in presentation attributes (`fill="var(--b)"` is black), so
+  put it in a class. (`svg-palette-cycle/`)
 
 ## Numerical / ML gotchas
 
