@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Self-Painting SVG</title>
-<meta name="description" content="Turn any picture into an animated SVG that sketches itself, paints itself in, goes through night and dawn, then falls apart. Runs in your browser; nothing is uploaded.">
+<meta name="description" content="Turn any picture into an animated SVG that sketches itself in charcoal, paints itself in, then falls apart. Runs in your browser; nothing is uploaded.">
 <meta property="og:title" content="Self-Painting SVG">
-<meta property="og:description" content="Turn any picture into one animated SVG that sketches itself, paints itself in, goes through night and dawn, then falls apart. Runs in your browser.">
+<meta property="og:description" content="Turn any picture into one animated SVG that sketches itself in charcoal, paints itself in, then falls apart. Runs in your browser.">
 <meta property="og:url" content="https://austegard.com/fun-and-games/self-painting.html">
 <meta property="og:image" content="https://austegard.com/images/self-painting-og.jpg">
 <meta property="og:image:width" content="1200">
@@ -48,12 +48,12 @@
 <body>
 <main>
   <h1>Self-Painting SVG</h1>
-  <p>Pick a picture. It gets traced into flat patches of color, and each patch gets a place on a timeline. The result is a single SVG file that sketches itself in charcoal, paints itself in, goes through night and dawn, then falls apart and starts over. It runs in your browser, and nothing is uploaded. The file plays anywhere an SVG does, with no JavaScript.</p>
+  <p>Pick a picture. It gets traced into flat patches of color, and each patch gets a place on a timeline. The result is a single SVG file that sketches itself in charcoal, paints itself in, holds, then falls apart and starts over. It runs in your browser, and nothing is uploaded. The file plays anywhere an SVG does, with no JavaScript.</p>
   <div class="bar">
     <label class="file">Choose a picture<input type="file" id="file" accept="image/*"></label>
     <button id="sample">Starry Night</button>
     <label>Detail <select id="detail"><option value="24">low</option><option value="40" selected>medium</option><option value="56">high</option></select></label>
-    <label>Loop <select id="loop"><option value="36">36 s</option><option value="48" selected>48 s</option><option value="64">64 s</option></select></label>
+    <label>Loop <select id="loop"><option value="26">26 s</option><option value="34" selected>34 s</option><option value="44">44 s</option></select></label>
     <label>Size <select id="side"><option value="700">small</option><option value="1000" selected>medium</option><option value="1400">large</option></select></label>
     <button id="go" class="primary">Paint it</button>
     <button id="save" disabled>Download .svg</button>
@@ -61,7 +61,7 @@
   <div class="stage" id="stage"><div id="out"></div><div class="busy" id="busy">Drop a picture here</div></div>
   <div class="transport">
     <button id="play" disabled>Pause</button>
-    <input type="range" id="scrub" min="0" max="48" step="0.05" value="0" disabled aria-label="Timeline position">
+    <input type="range" id="scrub" min="0" max="34" step="0.05" value="0" disabled aria-label="Timeline position">
     <output id="clock">0.0 s</output>
   </div>
   <div class="beats" id="beats"></div>
@@ -85,7 +85,7 @@ async function gpu() {
   catch { device = null; }
   return device;
 }
-let img = null, name = "starry-night", result = null, playing = true, loopLen = 48;
+let img = null, name = "starry-night", result = null, playing = true, loopLen = 34;
 
 async function load(url, n) {
   const im = new Image();
@@ -132,7 +132,7 @@ async function run() {
   $("go").disabled = false;
 }
 function beats() {
-  const marks = [[0, "sketch"], [2, "paint"], [17, "painted"], [22, "night"], [29, "dawn"], [34.5, "day"], [38.5, "fall"], [45.2, "erase"], [48, ""]];
+  const marks = [[0, "sketch"], [2, "paint"], [17, "painted"], [24, "fall"], [30.7, "erase"], [34, ""]];
   $("beats").innerHTML = marks.slice(0, -1).map(([t, n], i) => `<span style="flex:${marks[i + 1][0] - t}">${n}</span>`).join("");
 }
 function tick() {
