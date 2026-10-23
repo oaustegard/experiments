@@ -723,12 +723,18 @@ export async function imageToSvg(image, opts = {}) {
 
 // ---------- Warhol palette cycle ----------
 
-const WARHOL_PALETTES = [
-  ["#1a0a1a", "#7a0f3a", "#e8173e", "#ff5c8a", "#ff9f43", "#ffe14c"],  // hot
-  ["#0a1a0a", "#145c22", "#1b9a3b", "#5ce65c", "#b6f04a", "#f4ff9a"],  // jungle
-  ["#0a0a2e", "#10288a", "#1f5fe0", "#4c99ff", "#7fd0ff", "#d6f2ff"],  // ocean
-  ["#2a0a3a", "#5e1680", "#8b24aa", "#cc66ff", "#ff8ad8", "#ffd6f5"],  // grape
-];
+/** Six tone bands each, darkest to lightest. */
+export const WARHOL_PRESETS = {
+  hot:    ["#1a0a1a", "#7a0f3a", "#e8173e", "#ff5c8a", "#ff9f43", "#ffe14c"],
+  jungle: ["#0a1a0a", "#145c22", "#1b9a3b", "#5ce65c", "#b6f04a", "#f4ff9a"],
+  ocean:  ["#0a0a2e", "#10288a", "#1f5fe0", "#4c99ff", "#7fd0ff", "#d6f2ff"],
+  grape:  ["#2a0a3a", "#5e1680", "#8b24aa", "#cc66ff", "#ff8ad8", "#ffd6f5"],
+  sunset: ["#1a0510", "#5c1030", "#c2304a", "#f2734a", "#ffb45c", "#ffe8a8"],
+  mint:   ["#04201c", "#0b5c50", "#13a38a", "#5fe0c0", "#b0f5e0", "#effff9"],
+  neon:   ["#0d0221", "#3a0ca3", "#ff00a8", "#00f0ff", "#b2ff00", "#fffb96"],
+  mono:   ["#111111", "#3a3a3a", "#666666", "#999999", "#cccccc", "#f5f5f5"],
+};
+const WARHOL_PALETTES = ["hot", "jungle", "ocean", "grape"].map((k) => WARHOL_PRESETS[k]);
 
 /**
  * Turn any SVG this module wrote into a 2x2 Warhol grid whose palettes drift continuously.

@@ -24,6 +24,13 @@
   figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
   pre { font-size: 12px; color: var(--muted); white-space: pre-wrap; }
   a { color: var(--accent); }
+  [hidden] { display: none !important; }
+  .knobs { padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; }
+  .knobs output { color: var(--fg); }
+  .palettes { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .palettes label { flex-direction: row; align-items: center; gap: 6px; color: var(--fg); }
+  .swatch { display: inline-flex; height: 14px; border-radius: 3px; overflow: hidden; }
+  .swatch i { width: 10px; }
 </style>
 </head>
 <body>
@@ -34,12 +41,17 @@
     <label>Image <input type="file" id="file" accept="image/*"></label>
     <label>Mode <select id="mode"><option value="layers">coarse to fine</option><option value="flat">flat</option></select></label>
     <label>Colors <select id="colors"><option value="original">original</option><option value="warhol">Warhol 2×2, cycling</option></select></label>
-    <label>Animation <select id="reveal"><option value="sketch">sketch, then fill each layer</option><option value="paint">paint each layer</option><option value="fade">fade each layer in</option><option value="static">none</option></select></label>
-    <label>Colors (K, flat) <input type="number" id="k" value="56" min="2" max="256"></label>
+    <label id="revealBox">Animation <select id="reveal"><option value="sketch">sketch, then fill each layer</option><option value="paint">paint each layer</option><option value="fade">fade each layer in</option><option value="static">none</option></select></label>
+    <label id="kBox">Colors (K) <input type="number" id="k" value="56" min="2" max="256"></label>
     <label>Max side (px) <input type="number" id="side" value="1000" min="100" max="4000" step="100"></label>
     <label>Coordinates <select id="precision"><option value="1">0.1 unit</option><option value="0">whole units</option></select></label>
     <label>Backend <select id="backend"><option value="auto">auto</option><option value="js">JavaScript</option></select></label>
     <button id="run">Convert</button>
+  </div>
+  <div class="controls knobs" id="warholKnobs" hidden>
+    <label>Cycle length <span><input type="range" id="period" min="4" max="120" value="24"> <output id="periodOut">24 s</output></span></label>
+    <label>Shadow → highlight lag <span><input type="range" id="ripple" min="0" max="3" step="0.1" value="0.5"> <output id="rippleOut">0.5 s</output></span></label>
+    <div><div style="font-size:13px;color:var(--muted)">Palettes, cycled in this order</div><div class="palettes" id="palettes"></div></div>
   </div>
   <div class="panes">
     <figure><img id="src" alt="Source image"><figcaption>Source</figcaption></figure>
@@ -48,7 +60,7 @@
   <pre id="log"></pre>
 </main>
 <script type="module">
-import { imageToSvg, imageToSvgLayers, warholize } from "./trace.js";
+import { imageToSvg, imageToSvgLayers, warholize, WARHOL_PRESETS } from "./trace.js";
 const $ = (id) => document.getElementById(id);
 let device = null;
 async function getDevice() {
@@ -69,17 +81,32 @@ function pixels(img, side) {
   ctx.drawImage(img, 0, 0, c.width, c.height);
   return ctx.getImageData(0, 0, c.width, c.height);
 }
-async function run() {
-  $("log").textContent = "working…";
-  const dev = $("backend").value === "js" ? null : await getDevice();
-  const img = pixels($("src"), +$("side").value);
-  const common = { precision: +$("precision").value, device: dev };
-  const warhol = $("colors").value === "warhol";
-  let { svg, stats } = $("mode").value === "layers"
-    ? await imageToSvgLayers(img, { ...common, reveal: warhol ? 0 : { sketch: 2.4, paint: 1.6, fade: 0.8, static: 0 }[$("reveal").value],
-                                    revealMode: $("reveal").value })
-    : await imageToSvg(img, { ...common, K: +$("k").value });
-  if (warhol) { svg = warholize(svg); stats.bytes = svg.length; }
+let base = null;  // the last trace; color options re-render from it without tracing again
+
+// Show a control only when it does something for the current choices.
+function syncControls() {
+  const warhol = $("colors").value === "warhol", layers = $("mode").value === "layers";
+  $("warholKnobs").hidden = !warhol;
+  $("revealBox").hidden = warhol || !layers;  // Warhol tiles carry no build-up animation; flat has none
+  $("kBox").hidden = layers;                  // layered mode picks K per level
+}
+
+for (const [name, colors] of Object.entries(WARHOL_PRESETS)) {
+  const on = ["hot", "jungle", "ocean", "grape"].includes(name);
+  $("palettes").insertAdjacentHTML("beforeend",
+    `<label><input type="checkbox" value="${name}"${on ? " checked" : ""}> ${name} ` +
+    `<span class="swatch">${colors.map((c) => `<i style="background:${c}"></i>`).join("")}</span></label>`);
+}
+
+async function show() {
+  if (!base) return;
+  let { svg } = base;
+  const stats = { ...base.stats };
+  if ($("colors").value === "warhol") {
+    const palettes = [...$("palettes").querySelectorAll("input:checked")].map((i) => WARHOL_PRESETS[i.value]);
+    svg = warholize(svg, { period: +$("period").value, ripple: +$("ripple").value, palettes });
+    stats.bytes = svg.length;
+  }
   $("out").innerHTML = svg;
   const blob = new Blob([svg], { type: "image/svg+xml" });
   // .svgz is the same SVG gzipped; the browser's own CompressionStream does it.
@@ -92,12 +119,37 @@ async function run() {
   $("log").textContent = JSON.stringify(stats, null, 1);
   window.lastResult = { svg, stats };
 }
+
+async function run() {
+  $("log").textContent = "working…";
+  const dev = $("backend").value === "js" ? null : await getDevice();
+  const img = pixels($("src"), +$("side").value);
+  const common = { precision: +$("precision").value, device: dev };
+  base = $("mode").value === "layers"
+    ? await imageToSvgLayers(img, { ...common, reveal: { sketch: 2.4, paint: 1.6, fade: 0.8, static: 0 }[$("reveal").value],
+                                    revealMode: $("reveal").value })
+    : await imageToSvg(img, { ...common, K: +$("k").value });
+  await show();
+}
+
+$("colors").onchange = () => { syncControls(); show(); };
+$("mode").onchange = syncControls;
+$("reveal").onchange = run;  // the build-up animation is part of the trace
+for (const id of ["period", "ripple"]) {
+  $(id).oninput = () => { $(id + "Out").textContent = `${$(id).value} s`; show(); };
+}
+$("palettes").onchange = (e) => {
+  // The cycle needs at least two palettes.
+  if ($("palettes").querySelectorAll("input:checked").length < 2) e.target.checked = true;
+  show();
+};
+syncControls();
 let fileName = "starry.jpg";
 $("file").onchange = async (e) => {
   if (e.target.files[0]) { fileName = e.target.files[0].name; await load(URL.createObjectURL(e.target.files[0])); run(); }
 };
 $("run").onclick = run;
-window.imageToSvg = imageToSvg; window.imageToSvgLayers = imageToSvgLayers; window.getDevice = getDevice; window.pixels = pixels;
+window.show = show; window.imageToSvg = imageToSvg; window.imageToSvgLayers = imageToSvgLayers; window.getDevice = getDevice; window.pixels = pixels;
 await load("starry.jpg");
 if (!new URLSearchParams(location.search).has("manual")) run();
 </script>
