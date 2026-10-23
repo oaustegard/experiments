@@ -1317,6 +1317,21 @@ the result.
   (`Math.floor((w - s) / 2)`, as PIL does; a half-pixel shift alone cost 0.002). Result
   0.99994+. Check any browser preprocessing against the Python pipeline before blaming the
   model backend. (`live-tagger/web/app.js` `pixels()`, `live-tagger/RESULTS.md`)
+- **A distilled cut's token table is no longer the teacher's: enlarge its vocabulary by learning
+  rows, and spend codec savings on rows before bits.** Ten epochs of distilling EG2's first 4
+  layers moved the trained rows to cosine 0.48 from EG2's own (4x the norm); EG2's rows for
+  untrained tokens collapse the cut (hit@10 0.55). Rows for unseen tokens can be learned with the
+  layers frozen from the teacher's vector of each token as a one-token query (ridge init from
+  [teacher row, that vector], then distill); relearning 2,000 trained rows that way costs 0.004
+  overlap. For the near-isotropic trained rows, rotation + Lloyd-Max + one fp16 scale per row
+  (remex, or a fixed randomized Walsh-Hadamard for GPU decode) matches int-g32 at 3/4 of the bytes
+  (int-g32's per-32 scale+zero point cost a bit per value). Do not code a 262K vocabulary into the
+  trimmed budget: rare rows at 8-16 bytes are worse than letting the tokenizer split the word. A
+  67K vocabulary at mixed 3/2 bits in the trimmed 3-bit table's bytes gave +0.015 text-to-image
+  hit@10 after fine-tuning. Gemma's BPE merges after the first 1,396 are re-derivable from the
+  vocabulary (every (a, b) with a+b in vocab, sorted by (id(a+b), -len(a))). Token ids 258880,
+  258881 and 258884 are multimodal placeholders that crash EG2's ONNX if fed as text.
+  (`eg2-vocab-codebook/RESULTS.md`)
 - **A quantized teacher's published full-precision weights are a different teacher.**
   EmbeddingGemma 2's bf16 release agrees with its own q4 ONNX on only 0.87 of the top 10
   (cosine 0.990). When targets or an index came from the q4 file, initialise any student
