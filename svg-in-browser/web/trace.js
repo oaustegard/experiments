@@ -720,3 +720,66 @@ export async function imageToSvg(image, opts = {}) {
     },
   };
 }
+
+// ---------- Warhol palette cycle ----------
+
+const WARHOL_PALETTES = [
+  ["#1a0a1a", "#7a0f3a", "#e8173e", "#ff5c8a", "#ff9f43", "#ffe14c"],  // hot
+  ["#0a1a0a", "#145c22", "#1b9a3b", "#5ce65c", "#b6f04a", "#f4ff9a"],  // jungle
+  ["#0a0a2e", "#10288a", "#1f5fe0", "#4c99ff", "#7fd0ff", "#d6f2ff"],  // ocean
+  ["#2a0a3a", "#5e1680", "#8b24aa", "#cc66ff", "#ff8ad8", "#ffd6f5"],  // grape
+];
+
+/**
+ * Turn any SVG this module wrote into a 2x2 Warhol grid whose palettes drift continuously.
+ * Colors are binned by luminance into one tone band per palette entry; each band is an
+ * @property <color> that one keyframes walks through the palettes with no holds. The four
+ * tiles run it a quarter-cycle apart, so they never share a palette, and each band lags the
+ * one below it, so a change ripples from shadows to highlights instead of flipping at once.
+ *
+ * @param {string} svg  output of imageToSvg or imageToSvgLayers
+ * @param {{period?: number, ripple?: number, palettes?: string[][]}} opts
+ *   period: seconds for one tile to pass through every palette; ripple: lag between bands (s)
+ * @returns {string}
+ */
+export function warholize(svg, opts = {}) {
+  const { period = 24, ripple = 0.5, palettes = WARHOL_PALETTES } = opts;
+  const scope = svg.match(/id="(s\w+)"/)[1];
+  const [, vw, vh] = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+  const colorOf = Object.fromEntries([...svg.matchAll(new RegExp(`#${scope} \\.(c\\d+)\\{fill:(#\\w+)`, "g"))].map((m) => [m[1], m[2]]));
+  const lum = (h) => {
+    const x = h.length === 4 ? h.slice(1).split("").map((c) => parseInt(c + c, 16)) : [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    return 0.299 * x[0] + 0.587 * x[1] + 0.114 * x[2];
+  };
+  const N = palettes[0].length;
+  const classes = Object.keys(colorOf).sort((a, b) => lum(colorOf[a]) - lum(colorOf[b]));
+  const bandOf = Object.fromEntries(classes.map((c, i) => [c, Math.min(N - 1, Math.floor((i * N) / classes.length))]));
+
+  // The drawing is the main group; flat mode's background rect takes the band of the nearest color.
+  let body = svg.slice(svg.indexOf("<g fill-rule"), svg.lastIndexOf("</svg>"));
+  const rect = svg.match(/<rect width="[\d.]+" height="[\d.]+" fill="(#\w+)"\/>/);
+  if (rect) {
+    const near = classes.reduce((b, c) => (Math.abs(lum(colorOf[c]) - lum(rect[1])) < Math.abs(lum(colorOf[b]) - lum(rect[1])) ? c : b));
+    body = `<rect class="${near}" width="${vw}" height="${vh}"/>` + body;
+  }
+  body = body.replace(/ mask="url\(#\w+\)"/g, "").replace(/ style="animation-delay:[^"]*"/g, "").replace(/ pathLength="1"/g, "");
+
+  const P = palettes.length;
+  let css = "";
+  for (let b = 0; b < N; b++) {
+    css += `@property --b${b}{syntax:'<color>';inherits:true;initial-value:${palettes[0][b]}}`;
+    const frames = palettes.map((pal, k) => `${num((k * 100) / P, 2)}%{--b${b}:${pal[b]}}`).join("") + `100%{--b${b}:${palettes[0][b]}}`;
+    css += `@keyframes w${b}{${frames}}`;
+  }
+  css += classes.map((c) => `#${scope}art .${c}{fill:var(--b${bandOf[c]});stroke:var(--b${bandOf[c]})}`).join("");
+  for (let q = 0; q < 4; q++) {
+    const anims = [...Array(N).keys()].map((b) => `w${b} ${period}s linear ${num(-(q * period) / 4 - b * ripple, 2)}s infinite`);
+    const still = palettes[q % P].map((c, b) => `--b${b}:${c}`).join(";");
+    css += `#${scope}w .q${q}{${still};animation:${anims.join(",")}}`;
+  }
+  css += `@media (prefers-reduced-motion:reduce){#${scope}w use{animation:none}}`;
+  const tiles = [0, 1, 2, 3].map((q) =>
+    `<use href="#${scope}art" class="q${q}" x="${(q % 2) * vw}" y="${Math.floor(q / 2) * vh}" width="${vw}" height="${vh}"/>`).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" id="${scope}w" viewBox="0 0 ${2 * vw} ${2 * vh}"><style><![CDATA[${css}]]></style>` +
+    `<symbol id="${scope}art" viewBox="0 0 ${vw} ${vh}">${body}</symbol>${tiles}</svg>`;
+}
