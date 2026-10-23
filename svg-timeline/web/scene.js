@@ -164,7 +164,7 @@ const CANVAS = "#ebe3d0", CHARCOAL = "#4a3f35";
 /**
  * @param {ImageData} image
  * @param {{K?: number, loop?: number, width?: number, device?: GPUDevice|null, title?: string}} opts
- * @returns {Promise<{svg: string, stats: object}>}
+ * @returns {Promise<{svg: string, still: string, stats: object}>}  still: the finished picture, no animation
  */
 export async function selfPainting(image, opts = {}) {
   const { K = 40, loop = 34, width = 1000, device = null, title = "A picture painting itself" } = opts;
@@ -228,6 +228,9 @@ export async function selfPainting(image, opts = {}) {
     return `<path class="${sketchSheet.cls(line)}" d="${d}" pathLength="1"/>`;
   });
 
+  // The finished picture alone: every region at rest, one path per color.
+  const stillPaths = pathsByColor([...slots.values()].flat());
+
   const esc = (t) => t.replace(/[<&"]/g, (ch) => ({ "<": "&lt;", "&": "&amp;", '"': "&quot;" })[ch]);
   const css = [
     colors.map((c, i) => `.c${i}{fill:${c};stroke:${c}}`).join(""),
@@ -250,8 +253,16 @@ ${fills.join("\n")}
 </g>
 </svg>
 `;
+  const still = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="t">
+<title id="t">${esc(title.replace(/, painting itself$/, ""))}</title>
+<style>${colors.map((c, i) => `.c${i}{fill:${c};stroke:${c}}`).join("")}</style>
+<g fill-rule="evenodd" stroke-width="1" stroke-linejoin="round">
+${stillPaths.join("\n")}
+</g>
+</svg>
+`;
   return {
-    svg,
+    svg, still,
     stats: {
       backend: device ? "webgpu" : "js", w, h, K, regions: regions.length, colors: colors.length,
       slots: slots.size, sketchLines: sketches.length,
