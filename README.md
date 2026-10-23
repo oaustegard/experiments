@@ -191,6 +191,7 @@ session-boot repo and was the wrong home for 37 research projects.
 ### `live-tagger/` — live camera tagging against a precomputed tag bank
 
 `run/embed_tags.py` embeds the RAM++ tag list (4,585 tags, four prompt templates averaged) with `Xenova/mobileclip_s0`'s fp32 text tower into `web/tags.f16.bin`. `web/app.js` runs only the vision tower on WebGPU through transformers.js 3.5.0, smooths the frame embedding with an EMA, scores all tags in JavaScript and shows the top 5 with fps and per-stage timings; `?img=<url>` and the Photo button tag a still. `run/check.py` is the headless parity gate against `run/ref_tags.py`. Next: phone timings, MobileCLIP2-S0, then the image tower on the WGSL engine. [`RESULTS.md`](live-tagger/RESULTS.md)
+
 ### `eg2-vocab-codebook/` — token-table bytes spent on more tokens instead of fewer bits
 
 Rows for tokens the cut never trained are learned from EG2's vector for each token as a one-token query (`run/token_teacher.py`, `run/tok_rows.py`); codecs are int-g32, PQ with fine-tuned codebooks (`run/cbft.py`), remex and `run/rhq.py` (the engine's codec); `run/r5_vocab_size.py` trades vocabulary size against bits; Round 6 reruns run C's caption fine-tune on both vocabularies and scores the shipped files through the engine's NumPy path (`run/eval_packed.py`). `run/pack_engine.py` builds the engine weight file and renumbered tokenizer; `run/engine_check.py` is the headless parity check. [`RESULTS.md`](eg2-vocab-codebook/RESULTS.md)
