@@ -1,0 +1,20 @@
+imageToSvgLayers, default levels 1/8 K8, 1/4 K16, 1/2 K32, full K56; gain 4; eps 1; curves on.
+Cumulative layers rendered with rsvg-convert at 1000 px; error = mean |render - source| per channel.
+
+dog.jpg (1000x785)
+  L0        14 KB  gz   5 KB  err 13.85
+  L0..1     30 KB  gz  10 KB  err 12.07
+  L0..2    116 KB  gz  39 KB  err  9.34
+  L0..3    379 KB  gz 110 KB  err  7.79   (flat, shared arcs: 506 KB, err 7.16)
+  uncovered 0.000%, also with stroke-width 0
+
+starry.jpg (1000x625)
+  L0        19 KB  gz   6 KB  err 33.41
+  L0..1     39 KB  gz  13 KB  err 31.11
+  L0..2    152 KB  gz  50 KB  err 26.99
+  L0..3    634 KB  gz 175 KB  err 23.97   (flat, shared arcs: 903 KB, err 24.44)
+  uncovered 0.000%, also with stroke-width 0
+
+regions drawn per level (dog): 59/59, 206/488, 1306/3081, 5197/14138
+first run leaked 0.67% (dog) at the image edges: level grid 98 rows x 8 = 784 < 785, and image
+corners were not junctions so curves cut them. Fixed with separate x/y scales and pinned corners.

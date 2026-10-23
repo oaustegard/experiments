@@ -4,23 +4,27 @@
 
 ## Answer
 
-Can image-to-svg run in the page? Yes. k-means runs in WGSL on WebGPU (or in plain JS), and cleanup, tracing and output run in JS. On Starry Night at 1000 px with K=56 it writes 903 KB (Python skill: 1,355 KB), with error against the source of 24.4/255 (Python: 25.9). In JS it takes 3.2 s on this container, 2.6 s of it k-means.
+Can image-to-svg run in the page? Yes. k-means runs in WGSL on WebGPU (or in JS), and cleanup, tracing and output run in JS. Starry Night at 1000 px with K=56: 903 KB against the Python skill's 1,355 KB, error vs source 24.4/255 against 25.9. In JS it takes 3.2 s on this container, 2.6 s of it k-means.
 
-The output has no holes. Every boundary between two colors is simplified once, and both regions use that same line, so no background shows between neighbors. On a dog photo, 0.000% of pixels are uncovered even with the gap-cover stroke turned off. Before this fix the figure was 0.81% (1.68% without the stroke), and the Python skill's output has 1.98%.
+No pixel is left uncovered. Each boundary between two colors is simplified once and shared by both regions: 0.000% uncovered on a dog photo even with the gap stroke off, against 0.81% before this fix and 1.98% for the Python skill.
 
-Real-GPU k-means time is unmeasured. This container's only WebGPU is SwiftShader, a software rasterizer. Opening the page on a Mac would measure it.
+The coarse-to-fine mode builds the picture the way a diffusion sampler sharpens one. It paints smooth blobs from a 1/8-scale image, then adds regions at 1/4, 1/2 and full scale where they lower the error. Starry Night ends at 634 KB / 23.97, better than flat on both counts. The dog ends at 379 KB / 7.79, smaller but slightly worse than flat's 506 KB / 7.16. The first layer alone is a 14–19 KB sketch.
+
+Unmeasured: real-GPU k-means time (SwiftShader only here) and a sweep of the layer gain threshold.
 
 ## Findings
 
-1. **Simplifying each boundary once makes holes impossible.** On the dog photo, uncovered pixels drop from 0.811% to 0.000%, and from 1.678% to 0.000% with no stroke. The file also shrinks from 552 to 506 KB (`results/tears.txt`).
-2. **The holes came from simplifying each region's loop on its own.** Each region was simplified with a tolerance of 0.2% of its length, which reached tens of pixels on long fur boundaries. The two sides of a shared edge then disagreed, leaving long thin slivers.
-3. **Browser output is smaller than the Python skill's and slightly more faithful.** Starry Night: 903 KB against 1,355 KB, error 24.44 against 25.85 per 255. The browser writes one evenodd path per color (56), against one path per shape (6,344). Measured on one painting and one photo only (`results/starry-1000.txt`, `results/tears.txt`).
-4. **The Python skill has the same kind of hole, with two causes.** It simplifies each shape's contour independently, and filtering leaves holes: shapes dropped by `min_area` or dark-shape gating leave pixels nothing covers. 1.98% uncovered on the dog photo.
-5. **k-means is most of the CPU time.** 2.6 of 3.2 s. On SwiftShader WebGPU it takes 14 s, which says nothing about a real GPU (METHODS.md, SwiftShader).
+1. **Coarse-to-fine layers converge like a sampler, and the first layer is a usable preview.** Error after each cumulative layer: dog 13.85 → 12.07 → 9.34 → 7.79, Starry 33.41 → 31.11 → 26.99 → 23.97. Sizes: dog 14 → 30 → 116 → 379 KB, Starry 19 → 39 → 152 → 634 KB. The finer levels draw only 28–42% of their regions (`results/layers.txt`).
+2. **Whether layers beat flat depends on the image.** Starry Night: smaller and more faithful (634 KB / 23.97 against 903 KB / 24.44). Dog: 25% smaller but slightly worse (379 KB / 7.79 against 506 KB / 7.16). The `gain` threshold (default 4/255) sets the trade-off and has not been swept (`results/layers.txt`).
+3. **Simplifying each boundary once makes holes impossible.** On the dog photo, uncovered pixels drop from 0.811% to 0.000%, and from 1.678% to 0.000% with no stroke. The file also shrinks from 552 to 506 KB (`results/tears.txt`).
+4. **The holes came from simplifying each region's loop on its own.** Each region was simplified with a tolerance of 0.2% of its length, which reached tens of pixels on long fur boundaries. The two sides of a shared edge then disagreed, leaving long thin slivers.
+5. **Browser output is smaller than the Python skill's and slightly more faithful.** Starry Night: 903 KB against 1,355 KB, error 24.44 against 25.85 per 255. The browser writes one evenodd path per color (56), against one path per shape (6,344). Measured on one painting and one photo only (`results/starry-1000.txt`, `results/tears.txt`).
+6. **The Python skill has the same kind of hole, with two causes.** It simplifies each shape's contour independently, and filtering leaves holes: shapes dropped by `min_area` or dark-shape gating leave pixels nothing covers. 1.98% uncovered on the dog photo.
+7. **k-means is most of the CPU time.** 2.6 of 3.2 s. On SwiftShader WebGPU it takes 14 s, which says nothing about a real GPU (METHODS.md, SwiftShader).
 
 ## Method
 
-`web/trace.js`, about 490 lines, no dependencies:
+`web/trace.js`, about 680 lines, no dependencies:
 
 1. **Blur**: a 5-tap binomial blur, standing in for the pipeline's bilateral and Gaussian filters.
 2. **k-means**: k-means++ seeding on 20k sampled pixels, then up to 20 Lloyd iterations. On WebGPU each iteration is one WGSL dispatch that assigns every pixel and accumulates per-cluster sums in workgroup memory, then K × 16 bytes read back for the center update. Otherwise the same loop runs in JS.
@@ -29,7 +33,9 @@ Real-GPU k-means time is unmeasured. This container's only WebGPU is SwiftShader
 5. **Shared-boundary simplification**: a junction is a vertex where three or more regions meet (the image edge counts as one), or a diagonal saddle. Whether a vertex is a junction depends only on its four pixels, so both regions along a boundary agree on it. Each loop is cut at its junctions into arcs. Each arc is simplified with Douglas–Peucker at fixed endpoints, with ε = 1 source pixel by default (`eps` option), through a cache keyed by the arc's first edge. The region on the other side walks the same arc backwards and gets the cached points reversed. A loop with no junctions anchors at its smallest vertex id, and a closed arc splits at its farthest vertex (ties to the smaller id), which both sides compute the same way.
 6. **Output**: image-to-svg 1.9.0's compact format. A scoped class per color, relative `m`/`l` data on a 0.1-unit grid, the stroke=fill gap cover set once on the group, colors drawn largest area first.
 
-Checks: `node run/check.js <out> [K] [side] [image]` serves `web/`, runs both backends headless and writes SVGs and stats. `python3 run/holes.py <svg>...` repaints the background magenta and reports the uncovered share. Error vs source is the mean absolute difference per channel after rendering with rsvg-convert at the SVG's size, with the source resized by INTER_AREA.
+Coarse-to-fine (`imageToSvgLayers`): each level box-downsamples the source (1/8, 1/4, 1/2, 1 with K = 8, 16, 32, 56), then quantizes, cleans and finds 4-connected regions as above. Each region is scored at full resolution: mean absolute error per channel against what earlier levels painted, versus against the region's own color. A region is drawn only when it improves the error by more than `gain` (default 4/255). Level 0 has nothing beneath it, so it draws everything and tiles the image. Regions not drawn become an empty label the tracer skips, and drawn regions are traced and simplified with shared arcs as above. Paths are smoothed into quadratic Béziers through edge midpoints, with junctions and the image corners kept as sharp corners. A quadratic traced backwards is the same curve, so the two sides of a smoothed arc still coincide. Each level is one `<g class="L{n}">`, and `reveal` adds a fade-in that plays them in order. x and y scale separately so a rounded level grid still spans the viewBox.
+
+Checks: `node run/check.js <out> [K] [side] [image] [flat|layers]` serves `web/`, runs both backends headless and writes SVGs and stats. `python3 run/holes.py <svg>...` repaints the background magenta and reports the uncovered share. Error vs source is the mean absolute difference per channel after rendering with rsvg-convert at the SVG's size, with the source resized by INTER_AREA.
 
 Still missing compared with the Python skill: dark-shape gating, ImageMagick `smooth` presets, palette remapping, background detection and the compositional line pass. The majority filter would map to WGSL directly. Connected components and boundary following are sequential and take about 0.2 s in JS, so moving them to the GPU would not pay.
 
@@ -51,3 +57,14 @@ Oskar sent a render with pale slivers where no shape was drawn. Measured by repa
 | starry, shared arcs | 903 KB | 0.000% | 0.000% |
 
 Replaced per-region simplification with shared arcs (Method step 5). Starry Night error went from 24.53 to 24.44, and the dog's is 7.16. The Python skill's holes have a second cause the browser version never had: shapes the filters drop leave pixels uncovered. Porting the shared-arc tracer into the skill would fix both.
+
+### 2026-10-23: coarse to fine
+
+Asked: "the creation approach could still be more like diffusion, start with blobby outlines and then add progressively finer details on top." Built `imageToSvgLayers` (Method). The first run leaked 0.67% on the dog, all at the image edges. Two causes: the 1/8 grid has 98 rows, which times 8 is 784 against a 785-unit viewBox, and image corners were not junctions, so the curves cut them. Fixed with separate x/y scales and pinned corners, after which nothing is uncovered, with or without the stroke.
+
+| image | L0 | L0–1 | L0–2 | L0–3 | flat (shared arcs) |
+|---|---|---|---|---|---|
+| dog, KB / error | 14 / 13.85 | 30 / 12.07 | 116 / 9.34 | 379 / 7.79 | 506 / 7.16 |
+| starry, KB / error | 19 / 33.41 | 39 / 31.11 | 152 / 26.99 | 634 / 23.97 | 903 / 24.44 |
+
+`web/dog-reveal.svg` is the dog with `reveal: 0.8`, a 3.2 s build-up from blobs to fur. The `gain` threshold and the level schedule are untuned.

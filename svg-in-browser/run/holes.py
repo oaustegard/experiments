@@ -5,7 +5,9 @@ Usage: python3 run/holes.py a.svg [b.svg ...]
 import re, subprocess, sys, cv2, numpy as np
 for f in sys.argv[1:]:
     s = open(f).read()
-    s = re.sub(r'(<rect width="[\d.]+" height="[\d.]+" fill=")#\w+', r'\1#f0f', s, count=1)
+    s, n = re.subn(r'(<rect width="[\d.]+" height="[\d.]+" fill=")#\w+', r'\1#f0f', s, count=1)
+    if not n:  # layered output has no background rect: put a magenta one under everything
+        s = re.sub(r'(</style>)', r'\1<rect width="100%" height="100%" fill="#f0f"/>', s, count=1)
     open(f + '.holes.svg', 'w').write(s)
     vb = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', s)
     subprocess.run(['rsvg-convert', '-w', str(round(float(vb[1]))), '-o', f + '.holes.png', f + '.holes.svg'], check=True)

@@ -249,7 +249,7 @@ const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];  // right, down, left, up (y grows
 function traceLoops(labels, w, h, K) {
   const V = (w + 1) * (h + 1);
   const byLabel = Array.from({ length: K }, () => []);
-  for (let i = 0; i < labels.length; i++) byLabel[labels[i]].push(i);
+  for (let i = 0; i < labels.length; i++) if (labels[i] < K) byLabel[labels[i]].push(i);  // labels >= K are left empty
   const out = Array.from({ length: K }, () => []);
   // Up to two outgoing edges per vertex per label: store direction+1 in two slots.
   const slotA = new Uint8Array(V), slotB = new Uint8Array(V);
@@ -295,6 +295,7 @@ function traceLoops(labels, w, h, K) {
  */
 function isJunction(labels, w, h, x, y) {
   const at = (xx, yy) => (xx < 0 || yy < 0 || xx >= w || yy >= h ? -1 : labels[yy * w + xx]);
+  if ((x === 0 || x === w) && (y === 0 || y === h)) return true;  // image corners stay sharp
   const a = at(x - 1, y - 1), b = at(x, y - 1), c = at(x - 1, y), d = at(x, y);
   if (a === d && b === c) return a !== b;  // diagonal saddle
   let n = 1;
@@ -403,13 +404,13 @@ function join(values, precision) {
   return out;
 }
 
-function pathData(loops, scale, precision) {
+function pathData(loops, scale, precision, sy = scale) {
   const q = 10 ** precision;
   let d = "", cx = 0, cy = 0;
   for (const loop of loops) {
     const pts = [];
     for (let i = 0; i < loop.length; i += 2) {
-      const x = Math.round(loop[i] * scale * q), y = Math.round(loop[i + 1] * scale * q);
+      const x = Math.round(loop[i] * scale * q), y = Math.round(loop[i + 1] * sy * q);
       if (!pts.length || x !== pts[pts.length - 2] || y !== pts[pts.length - 1]) pts.push(x, y);
     }
     if (pts.length < 6) continue;
@@ -419,6 +420,199 @@ function pathData(loops, scale, precision) {
     cx = pts[0]; cy = pts[1];
   }
   return d;
+}
+
+/**
+ * Smooth path data for loops of vertex ids: each non-junction vertex becomes a quadratic
+ * control point with the curve passing through edge midpoints, and junctions stay
+ * corners. A shared arc yields the same curves from either side (a quadratic traced
+ * backwards is the same curve), so smoothing keeps neighbors sealed.
+ */
+function curvedPathData(loops, junction, W, sx, sy, precision) {
+  const q = 10 ** precision;
+  const P = (v) => [Math.round((v % W) * sx * q), Math.round(((v - (v % W)) / W) * sy * q)];
+  const mid = (a, b) => [Math.round((a[0] + b[0]) / 2), Math.round((a[1] + b[1]) / 2)];
+  let d = "", cx = 0, cy = 0, last = "";
+  const emit = (cmd, ...xy) => {
+    const rel = xy.map((v, i) => (v - (i % 2 ? cy : cx)) / q);
+    d += (cmd !== last || cmd === "m" ? cmd : rel[0] < 0 ? "" : " ") + join(rel, precision);
+    last = cmd === "m" ? "l" : cmd;
+    cx = xy[xy.length - 2]; cy = xy[xy.length - 1];
+  };
+  for (const ids of loops) {
+    const n = ids.length;
+    const pts = ids.map(P), J = ids.map(junction);
+    let start = J.indexOf(true);
+    if (start < 0) {
+      // No corners: a closed midpoint spline.
+      emit("m", ...mid(pts[n - 1], pts[0]));
+      for (let i = 0; i < n; i++) emit("q", ...pts[i], ...mid(pts[i], pts[(i + 1) % n]));
+    } else {
+      emit("m", ...pts[start]);
+      for (let k = 1; k <= n; k++) {
+        const i = (start + k) % n, prev = pts[(i - 1 + n) % n];
+        if (J[i]) { emit("l", ...pts[i]); continue; }
+        const a = mid(prev, pts[i]);
+        if (a[0] !== cx || a[1] !== cy) emit("l", ...a);
+        emit("q", ...pts[i], ...mid(pts[i], pts[(i + 1) % n]));
+      }
+    }
+    d += "z";
+    last = "";
+  }
+  return d;
+}
+
+/** Box-average RGBA down to (lw, lh). */
+function downsample(data, w, h, lw, lh) {
+  if (lw === w && lh === h) return data;
+  const out = new Uint8ClampedArray(lw * lh * 4);
+  for (let y = 0; y < lh; y++) {
+    const y0 = Math.floor((y * h) / lh), y1 = Math.max(y0 + 1, Math.floor(((y + 1) * h) / lh));
+    for (let x = 0; x < lw; x++) {
+      const x0 = Math.floor((x * w) / lw), x1 = Math.max(x0 + 1, Math.floor(((x + 1) * w) / lw));
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) {
+        const o = (yy * w + xx) * 4; r += data[o]; g += data[o + 1]; b += data[o + 2]; n++;
+      }
+      const o = (y * lw + x) * 4;
+      out[o] = r / n; out[o + 1] = g / n; out[o + 2] = b / n; out[o + 3] = 255;
+    }
+  }
+  return out;
+}
+
+/** 4-connected components of a label map: {comp, count}. */
+function components(labels, w, h) {
+  const n = w * h, comp = new Int32Array(n).fill(-1), stack = new Int32Array(n);
+  let count = 0;
+  for (let s = 0; s < n; s++) {
+    if (comp[s] !== -1) continue;
+    const L = labels[s];
+    let top = 0;
+    stack[top++] = s; comp[s] = count;
+    while (top) {
+      const p = stack[--top], x = p % w;
+      if (x > 0 && comp[p - 1] === -1 && labels[p - 1] === L) { comp[p - 1] = count; stack[top++] = p - 1; }
+      if (x < w - 1 && comp[p + 1] === -1 && labels[p + 1] === L) { comp[p + 1] = count; stack[top++] = p + 1; }
+      if (p >= w && comp[p - w] === -1 && labels[p - w] === L) { comp[p - w] = count; stack[top++] = p - w; }
+      if (p + w < n && comp[p + w] === -1 && labels[p + w] === L) { comp[p + w] = count; stack[top++] = p + w; }
+    }
+    count++;
+  }
+  return { comp, count };
+}
+
+const DEFAULT_LEVELS = [
+  { scale: 1 / 8, K: 8, minArea: 4 },
+  { scale: 1 / 4, K: 16, minArea: 6 },
+  { scale: 1 / 2, K: 32, minArea: 10 },
+  { scale: 1, K: 56, minArea: 24 },
+];
+
+/**
+ * Coarse-to-fine layers, like a diffusion sampler run backwards from blur: level 0 tiles
+ * the whole image with a few smooth blobs; each finer level quantizes the image again
+ * at a higher resolution and draws only the regions that lower the error against the
+ * source by more than `gain` (mean absolute difference per channel, 0-255) over what
+ * is already painted. Every pixel is covered by level 0, so later layers cannot tear.
+ *
+ * @param {ImageData} image
+ * @param {{levels?: {scale: number, K: number, minArea: number}[], gain?: number,
+ *          width?: number, precision?: number, eps?: number, curves?: boolean,
+ *          reveal?: number, iters?: number, device?: GPUDevice|null, seed?: number}} opts
+ *   reveal: seconds per layer for a fade-in animation that plays the levels in order (0 = none)
+ * @returns {Promise<{svg: string, stats: object}>}
+ */
+export async function imageToSvgLayers(image, opts = {}) {
+  const { levels = DEFAULT_LEVELS, gain = 4, width = 1000, precision = 1, eps = 1, curves = true,
+          reveal = 0, iters = 20, device = null, seed = 1 } = opts;
+  const { width: w, height: h, data } = image;
+  const t0 = performance.now();
+  let s = seed >>> 0;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const height = Math.round(h * (width / w) * 10) / 10;
+  const canvas = new Float32Array(w * h * 3).fill(-1);  // what the layers so far paint
+  const colors = new Map(), groups = [], perLevel = [];
+
+  for (let li = 0; li < levels.length; li++) {
+    const { scale: ls, K, minArea } = levels[li];
+    const lw = Math.max(2, Math.round(w * ls)), lh = Math.max(2, Math.round(h * ls));
+    const px = blur(downsample(data, w, h, lw, lh), lw, lh);
+    const centers = seedCenters(px, K, rand);
+    let labels = device ? await kmeansGPU(device, px, centers, K, iters) : kmeansCPU(px, centers, K, iters);
+    labels = absorbSmall(majority(labels, lw, lh, K), lw, lh, minArea);
+
+    // Score every region against the full-resolution source and the current canvas.
+    const { comp, count } = components(labels, lw, lh);
+    const errNow = new Float64Array(count), errNew = new Float64Array(count), size = new Float64Array(count);
+    const fx = new Int32Array(w).map((_, x) => Math.min(lw - 1, Math.floor((x * lw) / w)));
+    for (let y = 0; y < h; y++) {
+      const row = Math.min(lh - 1, Math.floor((y * lh) / h)) * lw;
+      for (let x = 0; x < w; x++) {
+        const lp = row + fx[x], c = comp[lp], L = labels[lp], i = y * w + x;
+        let now = 0, nw = 0;
+        for (let ch = 0; ch < 3; ch++) {
+          const src = data[i * 4 + ch];
+          now += canvas[i * 3] < 0 ? 255 : Math.abs(src - canvas[i * 3 + ch]);
+          nw += Math.abs(src - centers[L * 4 + ch]);
+        }
+        errNow[c] += now / 3; errNew[c] += nw / 3; size[c]++;
+      }
+    }
+    const keep = new Uint8Array(count);
+    let kept = 0;
+    for (let c = 0; c < count; c++) {
+      if ((errNow[c] - errNew[c]) / size[c] > gain) { keep[c] = 1; kept++; }
+    }
+    // Regions not drawn become label K, which the tracer skips.
+    const lv = new Uint32Array(lw * lh);
+    for (let p = 0; p < lw * lh; p++) lv[p] = keep[comp[p]] ? labels[p] : K;
+    for (let y = 0; y < h; y++) {
+      const row = Math.min(lh - 1, Math.floor((y * lh) / h)) * lw;
+      for (let x = 0; x < w; x++) {
+        const L = lv[row + fx[x]];
+        if (L < K) canvas.set(centers.subarray(L * 4, L * 4 + 3), (y * w + x) * 3);
+      }
+    }
+
+    const loops = traceLoops(lv, lw, lh, K);
+    // Separate x and y scales: a rounded level grid must still span the whole viewBox.
+    const W = lw + 1, arcs = new Map(), sx = width / lw, sy = height / lh;
+    const junction = (v) => isJunction(lv, lw, lh, v % W, (v - (v % W)) / W);
+    const area = new Float64Array(K);
+    for (const l of lv) if (l < K) area[l]++;
+    const order = [...Array(K).keys()].filter((k) => area[k] > 0).sort((a, b) => area[b] - area[a]);
+    const paths = [];
+    for (const L of order) {
+      const simple = loops[L].map((loop) => simplifyLoop(loop, junction, W, eps, arcs)).filter((ids) => ids.length >= 3);
+      const d = curves ? curvedPathData(simple, junction, W, sx, sy, precision)
+                       : pathData(simple.map((ids) => ids.flatMap((v) => [v % W, (v - (v % W)) / W])), sx, precision, sy);
+      if (!d) continue;
+      const c = shortHex(hex(centers.subarray(L * 4, L * 4 + 3)));
+      if (!colors.has(c)) colors.set(c, `c${colors.size}`);
+      paths.push(`<path class="${colors.get(c)}" d="${d}"/>`);
+    }
+    groups.push(`<g class="L${li}">${paths.join("")}</g>`);
+    perLevel.push({ size: `${lw}x${lh}`, K, regions: count, drawn: kept, paths: paths.length });
+  }
+
+  const body = groups.join("");
+  const scope = "s" + Math.abs(body.split("").reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7)).toString(16).slice(0, 6);
+  let css = [...colors].map(([c, k]) => `#${scope} .${k}{fill:${c};stroke:${c}}`).join("");
+  if (reveal > 0) {
+    css += `@keyframes ${scope}in{from{opacity:0}}` +
+      groups.map((_, i) => `#${scope} .L${i}{animation:${scope}in ${num(reveal, 2)}s ${num(i * reveal, 2)}s both}`).join("") +
+      `@media (prefers-reduced-motion:reduce){#${scope} g{animation:none}}`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" id="${scope}" viewBox="0 0 ${width} ${height}">` +
+    `<style>${css}</style>` +
+    `<g fill-rule="evenodd" stroke-width="${Math.max(1, Math.round(width / w))}" stroke-linejoin="round">${body}</g></svg>`;
+  return {
+    svg,
+    stats: { backend: device ? "webgpu" : "js", mode: "layers", w, h, bytes: svg.length, levels: perLevel,
+             ms: { total: Math.round(performance.now() - t0) } },
+  };
 }
 
 // ---------- entry point ----------

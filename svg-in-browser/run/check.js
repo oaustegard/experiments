@@ -1,8 +1,8 @@
 // Runs web/trace.js headless on both backends and writes the SVGs + stats.
-// Usage: node run/check.js <out_dir> [K] [side] [image under web/]
+// Usage: node run/check.js <out_dir> [K] [side] [image under web/] [flat|layers]
 const { chromium } = require("playwright");
 const http = require("http"), fs = require("fs"), path = require("path");
-const [outDir, K = "56", side = "1000", image = "starry.jpg"] = process.argv.slice(2);
+const [outDir, K = "56", side = "1000", image = "starry.jpg", mode = "flat"] = process.argv.slice(2);
 const root = path.join(__dirname, "..", "web");
 const types = { ".html": "text/html", ".js": "text/javascript", ".jpg": "image/jpeg" };
 const server = http.createServer((req, res) => {
@@ -26,12 +26,12 @@ const server = http.createServer((req, res) => {
   await page.evaluate(async (image) => { const img = document.getElementById("src"); img.src = image; await img.decode(); }, image);
   fs.mkdirSync(outDir, { recursive: true });
   for (const backend of ["webgpu", "js"]) {
-    const r = await page.evaluate(async ({ backend, K, side }) => {
+    const r = await page.evaluate(async ({ backend, K, side, mode }) => {
       const device = backend === "webgpu" ? await window.getDevice() : null;
       if (backend === "webgpu" && !device) return null;
       const img = window.pixels(document.getElementById("src"), side);
-      return window.imageToSvg(img, { K, device });
-    }, { backend, K: +K, side: +side });
+      return mode === "layers" ? window.imageToSvgLayers(img, { device }) : window.imageToSvg(img, { K, device });
+    }, { backend, K: +K, side: +side, mode });
     if (!r) { console.log(backend, "unavailable"); continue; }
     fs.writeFileSync(path.join(outDir, `${backend}.svg`), r.svg);
     console.log(backend, JSON.stringify(r.stats));

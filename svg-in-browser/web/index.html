@@ -29,10 +29,12 @@
 <body>
 <main>
   <h1>Image to SVG in the browser</h1>
-  <p>k-means on the GPU (WGSL) when WebGPU is available, plain JavaScript otherwise; tracing and output in JavaScript. Nothing is uploaded.</p>
+  <p>k-means on the GPU (WGSL) when WebGPU is available, plain JavaScript otherwise; tracing and output in JavaScript. Nothing is uploaded. "Coarse to fine" paints a few blobs from a 1/8-scale image, then adds detail at 1/4, 1/2 and full scale only where it lowers the error.</p>
   <div class="controls">
     <label>Image <input type="file" id="file" accept="image/*"></label>
-    <label>Colors (K) <input type="number" id="k" value="56" min="2" max="256"></label>
+    <label>Mode <select id="mode"><option value="layers">coarse to fine</option><option value="flat">flat</option></select></label>
+    <label>Reveal <select id="reveal"><option value="0.8">animate layers</option><option value="0">static</option></select></label>
+    <label>Colors (K, flat) <input type="number" id="k" value="56" min="2" max="256"></label>
     <label>Max side (px) <input type="number" id="side" value="1000" min="100" max="4000" step="100"></label>
     <label>Coordinates <select id="precision"><option value="1">0.1 unit</option><option value="0">whole units</option></select></label>
     <label>Backend <select id="backend"><option value="auto">auto</option><option value="js">JavaScript</option></select></label>
@@ -45,7 +47,7 @@
   <pre id="log"></pre>
 </main>
 <script type="module">
-import { imageToSvg } from "./trace.js";
+import { imageToSvg, imageToSvgLayers } from "./trace.js";
 const $ = (id) => document.getElementById(id);
 let device = null;
 async function getDevice() {
@@ -69,9 +71,11 @@ function pixels(img, side) {
 async function run() {
   $("log").textContent = "working…";
   const dev = $("backend").value === "js" ? null : await getDevice();
-  const { svg, stats } = await imageToSvg(pixels($("src"), +$("side").value), {
-    K: +$("k").value, precision: +$("precision").value, device: dev,
-  });
+  const img = pixels($("src"), +$("side").value);
+  const common = { precision: +$("precision").value, device: dev };
+  const { svg, stats } = $("mode").value === "layers"
+    ? await imageToSvgLayers(img, { ...common, reveal: +$("reveal").value })
+    : await imageToSvg(img, { ...common, K: +$("k").value });
   $("out").innerHTML = svg;
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
   $("cap").innerHTML = `SVG · ${(stats.bytes / 1024).toFixed(0)} KB · ${stats.backend} · <a download="trace.svg" href="${url}">download</a>`;
@@ -80,7 +84,7 @@ async function run() {
 }
 $("file").onchange = async (e) => { if (e.target.files[0]) { await load(URL.createObjectURL(e.target.files[0])); run(); } };
 $("run").onclick = run;
-window.imageToSvg = imageToSvg; window.getDevice = getDevice; window.pixels = pixels;
+window.imageToSvg = imageToSvg; window.imageToSvgLayers = imageToSvgLayers; window.getDevice = getDevice; window.pixels = pixels;
 await load("starry.jpg");
 if (!new URLSearchParams(location.search).has("manual")) run();
 </script>
