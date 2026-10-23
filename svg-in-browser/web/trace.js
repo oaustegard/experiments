@@ -520,11 +520,12 @@ const DEFAULT_LEVELS = [
  * @param {ImageData} image
  * @param {{levels?: {scale: number, K: number, minArea: number}[], gain?: number,
  *          width?: number, precision?: number, eps?: number, curves?: boolean,
- *          reveal?: number, revealMode?: "fade"|"paint", iters?: number, device?: GPUDevice|null,
+ *          reveal?: number, revealMode?: "fade"|"paint"|"sketch", iters?: number, device?: GPUDevice|null,
  *          seed?: number}} opts
  *   reveal: seconds per layer for an animation that plays the levels in order (0 = none).
  *   revealMode "fade" fades each layer in; "paint" sweeps a brush mask back and forth over
- *   it, a wide brush for the blobs and a narrower one for each finer layer.
+ *   it, a wide brush for the blobs and a narrower one for each finer layer; "sketch" draws each
+ *   color's outlines on paper, darkest first, then floods the fills in, layer by layer.
  * @returns {Promise<{svg: string, stats: object}>}
  */
 export async function imageToSvgLayers(image, opts = {}) {
@@ -594,9 +595,18 @@ export async function imageToSvgLayers(image, opts = {}) {
       if (!d) continue;
       const c = shortHex(hex(centers.subarray(L * 4, L * 4 + 3)));
       if (!colors.has(c)) colors.set(c, `c${colors.size}`);
-      paths.push(`<path class="${colors.get(c)}" d="${d}"/>`);
+      const [r, g, b] = centers.subarray(L * 4, L * 4 + 3);
+      paths.push({ cls: colors.get(c), d, lum: 0.299 * r + 0.587 * g + 0.114 * b });
     }
-    groups.push(`<g class="L${li}">${paths.join("")}</g>`);
+    if (reveal > 0 && revealMode === "sketch") {
+      // Darkest colors are sketched first, like an underdrawing; each path's delay is
+      // its luminance rank spread over half the layer's slot.
+      const rank = paths.map((_, j) => j).sort((a, b) => paths[a].lum - paths[b].lum);
+      rank.forEach((j, k) => { paths[j].delay = li * reveal + (k / Math.max(1, paths.length)) * reveal * 0.5; });
+    }
+    groups.push(`<g class="L${li}">${paths.map((p) => p.delay === undefined
+      ? `<path class="${p.cls}" d="${p.d}"/>`
+      : `<path class="${p.cls}" pathLength="1" style="animation-delay:${num(p.delay, 2)}s" d="${p.d}"/>`).join("")}</g>`);
     perLevel.push({ size: `${lw}x${lh}`, K, regions: count, drawn: kept, paths: paths.length });
   }
 
@@ -624,6 +634,15 @@ export async function imageToSvgLayers(image, opts = {}) {
     }).join("");
     groups.forEach((_, i) => { layers = layers.replace(`<g class="L${i}">`, `<g class="L${i}" mask="url(#${scope}m${i})">`); });
     css += `@media (prefers-reduced-motion:reduce){#${scope} mask path{animation:none}}`;
+  } else if (reveal > 0 && revealMode === "sketch") {
+    // Each color's outlines draw on in a heavier line, then the fill floods in and the
+    // line settles to the gap-cover width. Static renderers see the finished image.
+    defs = "";
+    css += `@keyframes ${scope}s{0%{stroke-dashoffset:1;fill-opacity:0;stroke-width:${num(3 * width / 1000, 1)}}` +
+      `55%{stroke-dashoffset:0;fill-opacity:0;stroke-width:${num(3 * width / 1000, 1)}}100%{stroke-dashoffset:0;fill-opacity:1}}` +
+      `#${scope} g path{stroke-dasharray:1 1;animation:${scope}s ${num(reveal * 0.7, 2)}s ease-in-out both}` +
+      `@media (prefers-reduced-motion:reduce){#${scope} g path{animation:none}}`;
+    layers = `<rect width="${width}" height="${height}" fill="#f4f1ea"/>` + layers;
   } else if (reveal > 0) {
     css += `@keyframes ${scope}in{from{opacity:0}}` +
       groups.map((_, i) => `#${scope} .L${i}{animation:${scope}in ${timing(i)}}`).join("") +
