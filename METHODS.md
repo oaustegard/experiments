@@ -3080,6 +3080,11 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **Merging a specific vocabulary into a general tag bank and ranking it flat hurts.** Adding
+  Open Images V7's 20,931 class names to RAM++'s 4,585 (MobileCLIP-S0, 500 COCO images) drops
+  object recall@5 0.255 → 0.158 and caption precision@5 0.271 → 0.196: rare labels ("Pi day",
+  "Kuih kochi") outrank plain ones. Rank tiers separately (general top 5 + specific top 3).
+  Also: `np.savez(path, **dict_of_tags)` breaks on a key named "file". (`live-tagger/RESULTS.md`)
 - **Hub correction (CSLS or per-tag mean) does not improve zero-shot tagging with a large
   CLIP tag bank.** MobileCLIP-S0 against 4,585 RAM++ tags, bias fitted on 995 Bluesky
   images, scored on 500 COCO images: object recall@5 0.255 raw, 0.244 with full CSLS, 0.221

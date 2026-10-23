@@ -22,6 +22,9 @@
     text-overflow: ellipsis; font-size: 17px; }
   #tags .fill { position: absolute; inset: 0 auto 0 0; background: var(--bar); opacity: 0.35; z-index: -1; }
   #tags .score { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  #specific { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; min-height: 1px; }
+  #specific .chip { background: #1d2a44; color: #cfe0ff; border-radius: 12px; padding: 3px 10px; font-size: 14px; }
+  #specific .chip em { color: var(--dim); font-style: normal; font-size: 12px; }
   #row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button, label.btn { background: #26262b; color: var(--fg); border: 0; border-radius: 6px; padding: 7px 11px;
     font: inherit; font-size: 14px; cursor: pointer; }
@@ -51,9 +54,9 @@
 <div id="boot">
   <div class="card">
     <h1>Live tagger</h1>
-    <p class="sub">MobileCLIP-S0 on your GPU, 4,585 tags. About 51 MB on first visit, cached after.</p>
+    <p class="sub">MobileCLIP-S0 on your GPU against a precomputed tag bank. Downloads once, cached after.</p>
     <div class="stage busy" id="st-runtime"><div class="head"><span>Runtime (transformers.js)</span><span></span></div><div class="track"><div class="bar indet"></div></div></div>
-    <div class="stage" id="st-tags"><div class="head"><span>Tag bank</span><span>4.7 MB</span></div><div class="track"><div class="bar"></div></div></div>
+    <div class="stage" id="st-tags"><div class="head"><span>Tag bank</span><span></span></div><div class="track"><div class="bar"></div></div></div>
     <div class="stage" id="st-model"><div class="head"><span>Vision model</span><span>46 MB</span></div><div class="track"><div class="bar"></div></div></div>
     <div class="stage" id="st-warm"><div class="head"><span>Compile GPU shaders</span><span></span></div><div class="track"><div class="bar"></div></div></div>
     <p id="note"></p>
@@ -76,6 +79,7 @@
 <div id="panel">
   <p id="status">Loading…</p>
   <ol id="tags"></ol>
+  <div id="specific"></div>
   <div id="row">
     <button id="pause" disabled>Pause</button>
     <button id="flip" disabled>Flip</button>

@@ -17,7 +17,7 @@ const src2d = document.createElement("canvas").getContext("2d", { willReadFreque
 const halves = [];
 const filters = new Map();
 
-let model, device, bank, tags, dim, smooth = null, paused = false, facing = "environment", stream = null;
+let model, device, bank, scales = null, tags, nGeneral, dim, smooth = null, paused = false, facing = "environment", stream = null;
 const timing = { prep: 0, model: 0, score: 0, interval: 0, last: 0 };
 
 function f16ToF32(u16) {
@@ -62,15 +62,27 @@ async function fetchWithProgress(url, onBytes) {
   return out.buffer;
 }
 
+// Two banks: "big" (RAM++ + Open Images V7, int8 rows + float32 row scales) and "small"
+// (RAM++ only, float16). ?vocab=small picks the small one.
+const VOCAB = new URLSearchParams(location.search).get("vocab") === "small" ? "small" : "big";
+const BANKS = {
+  small: { meta: "tags.json", bin: "tags.f16.bin" },
+  big: { meta: "tags-big.json", bin: "tags-big.i8.bin" },
+};
+
 async function loadBank() {
   stage("tags", "busy", 0);
   const [meta, bin] = await Promise.all([
-    fetch("tags.json").then((r) => r.json()),
-    fetchWithProgress("tags.f16.bin", (g, t) => stage("tags", "busy", t ? g / t : null, `${MB(g)} / ${t ? MB(t) : "4.7"} MB`)),
+    fetch(BANKS[VOCAB].meta).then((r) => r.json()),
+    fetchWithProgress(BANKS[VOCAB].bin, (g, t) => stage("tags", "busy", t ? g / t : null, t ? `${MB(g)} / ${MB(t)} MB` : `${MB(g)} MB`)),
   ]);
-  stage("tags", "done", 1, "4.7 MB");
-  tags = meta.tags; dim = meta.dim;
-  bank = f16ToF32(new Uint16Array(bin));
+  tags = meta.tags; dim = meta.dim; nGeneral = meta.n_general ?? tags.length;
+  if (meta.dtype === "float16") bank = f16ToF32(new Uint16Array(bin));
+  else {
+    bank = new Int8Array(bin, 0, tags.length * dim);
+    scales = new Float32Array(bin, tags.length * dim, tags.length);
+  }
+  stage("tags", "done", 1, `${tags.length.toLocaleString()} tags · ${MB(bin.byteLength)} MB`);
 }
 
 async function loadModel() {
@@ -151,27 +163,38 @@ async function embed(src, w, h) {
   return v;
 }
 
+// Top 5 among the general RAM++ rows and top 3 among the Open Images rows after them. Ranking
+// all rows together let rare specific labels push out the general ones (results/eval_vocab.json).
+const TOP_SPECIFIC = 3;
+function topk(s, from, to, k) {
+  const top = [];
+  for (let r = from; r < to; r++) {
+    if (top.length < k || s[r] > top[top.length - 1][1]) {
+      top.push([r, s[r]]); top.sort((a, b) => b[1] - a[1]); if (top.length > k) top.pop();
+    }
+  }
+  return top.map(([r, x]) => ({ tag: tags[r], score: x }));
+}
+
 function score(v) {
   const t0 = performance.now(), n = tags.length, s = new Float32Array(n);
   for (let r = 0, o = 0; r < n; r++, o += dim) {
     let acc = 0;
     for (let c = 0; c < dim; c++) acc += bank[o + c] * v[c];
-    s[r] = acc;
+    s[r] = scales ? acc * scales[r] : acc;
   }
-  const top = [];
-  for (let r = 0; r < n; r++) {
-    if (top.length < TOP_K || s[r] > top[top.length - 1][1]) {
-      top.push([r, s[r]]); top.sort((a, b) => b[1] - a[1]); if (top.length > TOP_K) top.pop();
-    }
-  }
+  const out = topk(s, 0, nGeneral, TOP_K);
+  out.specific = topk(s, nGeneral, n, TOP_SPECIFIC);
   timing.score = performance.now() - t0;
-  return top.map(([r, x]) => ({ tag: tags[r], score: x }));
+  return out;
 }
 
 function render(top) {
   const hi = top[0].score, lo = Math.min(...top.map((t) => t.score)) - 0.02;
   tagsEl.innerHTML = top.map((t) => `<li><span class="name"><span class="fill" style="width:${
     (100 * (t.score - lo) / (hi - lo)).toFixed(0)}%"></span>${t.tag}</span><span class="score">${t.score.toFixed(3)}</span></li>`).join("");
+  $("specific").innerHTML = top.specific.length
+    ? top.specific.map((t) => `<span class="chip">${t.tag} <em>${t.score.toFixed(2)}</em></span>`).join("") : "";
   const fps = timing.interval ? (1000 / timing.interval).toFixed(1) : "–";
   statsEl.innerHTML = `${fps} fps<br>resize ${timing.prep.toFixed(1)} · model ${timing.model.toFixed(1)} · tags ${timing.score.toFixed(1)} ms · ${device}`;
 }
@@ -204,7 +227,8 @@ async function startCamera() {
 async function tagImage(url) {
   const img = new Image(); img.crossOrigin = "anonymous"; img.src = url; await img.decode();
   const v = await embed(img, img.naturalWidth, img.naturalHeight);
-  return { emb: Array.from(v), top: score(v), img };
+  const top = score(v);
+  return { emb: Array.from(v), top, specific: top.specific, img };
 }
 
 async function showStill(url) {

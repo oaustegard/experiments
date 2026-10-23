@@ -1,12 +1,12 @@
 {
- "status": "Ready in 41.2 s \u00b7 MobileCLIP-S0 on webgpu \u00b7 4,585 tags",
+ "status": "Ready in 55.2 s \u00b7 MobileCLIP-S0 on webgpu \u00b7 22,690 tags",
  "images": {
   "000000000139.jpg": {
    "cos": 0.999951,
    "page_top5": [
     "living space",
-    "apartment",
     "living room",
+    "apartment",
     "home interior",
     "television room"
    ],
@@ -17,13 +17,13 @@
     "home interior",
     "television room"
    ],
-   "same_top5": true
+   "same_top5": false
   },
   "000000000285.jpg": {
    "cos": 0.999998,
    "page_top5": [
-    "bear",
     "brown bear",
+    "bear",
     "bear cub",
     "cub",
     "polar bear"
@@ -35,7 +35,7 @@
     "cub",
     "polar bear"
    ],
-   "same_top5": true
+   "same_top5": false
   },
   "000000000632.jpg": {
    "cos": 0.99999,
@@ -94,8 +94,8 @@
   "000000039769.jpg": {
    "cos": 0.999983,
    "page_top5": [
-    "tabby",
     "American shorthair",
+    "tabby",
     "cat furniture",
     "cat food",
     "cat bed"
@@ -107,12 +107,12 @@
     "cat food",
     "cat bed"
    ],
-   "same_top5": true
+   "same_top5": false
   }
  },
  "console_errors": [
-  "\u001b[0;93m2026-10-23 14:59:48.364699 [W:onnxruntime:, session_state.cc:1280 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.\u001b[m",
-  "\u001b[0;93m2026-10-23 14:59:48.366899 [W:onnxruntime:, session_state.cc:1282 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.\u001b[m"
+  "\u001b[0;93m2026-10-23 17:25:03.306899 [W:onnxruntime:, session_state.cc:1280 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.\u001b[m",
+  "\u001b[0;93m2026-10-23 17:25:03.322498 [W:onnxruntime:, session_state.cc:1282 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.\u001b[m"
  ],
  "pass": true
 }
