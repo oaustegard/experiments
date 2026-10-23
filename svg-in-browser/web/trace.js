@@ -1,0 +1,415 @@
+// In-browser image → SVG, after claude-skills image-to-svg (pipeline.py).
+// Quantize with k-means (WGSL compute on WebGPU, plain JS otherwise), clean the
+// label map, trace every label's region boundary along pixel edges, simplify,
+// and emit the compact format image-to-svg 1.9.0 writes: one scoped class per
+// color, relative path data, one evenodd path per color.
+
+const KMEANS_WGSL = /* wgsl */ `
+struct Params { n: u32, k: u32 }
+@group(0) @binding(0) var<storage, read> px: array<u32>;
+@group(0) @binding(1) var<storage, read> centers: array<vec4<f32>>;
+@group(0) @binding(2) var<storage, read_write> labels: array<u32>;
+@group(0) @binding(3) var<storage, read_write> sums: array<atomic<u32>>;
+@group(0) @binding(4) var<uniform> p: Params;
+var<workgroup> local: array<atomic<u32>, 1024>;  // 256 clusters x (r, g, b, count)
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(local_invocation_index) li: u32) {
+  for (var j = li; j < p.k * 4u; j += 256u) { atomicStore(&local[j], 0u); }
+  workgroupBarrier();
+  let i = gid.x;
+  if (i < p.n) {
+    let c = px[i];
+    let v = vec3<f32>(f32(c & 255u), f32((c >> 8u) & 255u), f32((c >> 16u) & 255u));
+    var best = 0u;
+    var bd = 1e30;
+    for (var k = 0u; k < p.k; k++) {
+      let d = centers[k].xyz - v;
+      let dd = dot(d, d);
+      if (dd < bd) { bd = dd; best = k; }
+    }
+    labels[i] = best;
+    atomicAdd(&local[best * 4u], c & 255u);
+    atomicAdd(&local[best * 4u + 1u], (c >> 8u) & 255u);
+    atomicAdd(&local[best * 4u + 2u], (c >> 16u) & 255u);
+    atomicAdd(&local[best * 4u + 3u], 1u);
+  }
+  workgroupBarrier();
+  for (var j = li; j < p.k * 4u; j += 256u) {
+    let s = atomicLoad(&local[j]);
+    if (s > 0u) { atomicAdd(&sums[j], s); }
+  }
+}`;
+
+// ---------- preprocessing ----------
+
+/** Separable 5-tap binomial blur, standing in for the pipeline's Gaussian pre-blur. */
+function blur(rgba, w, h) {
+  const k = [1, 4, 6, 4, 1];
+  const tmp = new Float32Array(w * h * 3);
+  const out = new Uint32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0, s = 0;
+    for (let t = -2; t <= 2; t++) {
+      const xx = Math.min(w - 1, Math.max(0, x + t)), o = (y * w + xx) * 4, f = k[t + 2];
+      r += rgba[o] * f; g += rgba[o + 1] * f; b += rgba[o + 2] * f; s += f;
+    }
+    const o = (y * w + x) * 3; tmp[o] = r / s; tmp[o + 1] = g / s; tmp[o + 2] = b / s;
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0, s = 0;
+    for (let t = -2; t <= 2; t++) {
+      const yy = Math.min(h - 1, Math.max(0, y + t)), o = (yy * w + x) * 3, f = k[t + 2];
+      r += tmp[o] * f; g += tmp[o + 1] * f; b += tmp[o + 2] * f; s += f;
+    }
+    out[y * w + x] = Math.round(r / s) | (Math.round(g / s) << 8) | (Math.round(b / s) << 16);
+  }
+  return out;
+}
+
+// ---------- k-means ----------
+
+function seedCenters(px, K, rand) {
+  // k-means++ on a sample of up to 20k pixels.
+  const m = Math.min(px.length, 20000);
+  const sample = new Float32Array(m * 3);
+  for (let i = 0; i < m; i++) {
+    const c = px[Math.floor(rand() * px.length)];
+    sample[i * 3] = c & 255; sample[i * 3 + 1] = (c >> 8) & 255; sample[i * 3 + 2] = (c >> 16) & 255;
+  }
+  const centers = new Float32Array(K * 4);
+  const dist = new Float32Array(m).fill(Infinity);
+  let pick = Math.floor(rand() * m);
+  for (let k = 0; k < K; k++) {
+    centers.set(sample.subarray(pick * 3, pick * 3 + 3), k * 4);
+    let total = 0;
+    for (let i = 0; i < m; i++) {
+      const dr = sample[i * 3] - centers[k * 4], dg = sample[i * 3 + 1] - centers[k * 4 + 1], db = sample[i * 3 + 2] - centers[k * 4 + 2];
+      dist[i] = Math.min(dist[i], dr * dr + dg * dg + db * db);
+      total += dist[i];
+    }
+    let r = rand() * total;
+    for (pick = 0; pick < m - 1 && (r -= dist[pick]) > 0; pick++);
+  }
+  return centers;
+}
+
+function updateCenters(centers, sums, K) {
+  let moved = 0;
+  for (let k = 0; k < K; k++) {
+    const n = sums[k * 4 + 3];
+    if (!n) continue;
+    for (let c = 0; c < 3; c++) {
+      const v = sums[k * 4 + c] / n;
+      moved = Math.max(moved, Math.abs(v - centers[k * 4 + c]));
+      centers[k * 4 + c] = v;
+    }
+  }
+  return moved;
+}
+
+function kmeansCPU(px, centers, K, iters) {
+  const labels = new Uint32Array(px.length);
+  for (let it = 0; it < iters; it++) {
+    const sums = new Float64Array(K * 4);
+    for (let i = 0; i < px.length; i++) {
+      const c = px[i], r = c & 255, g = (c >> 8) & 255, b = (c >> 16) & 255;
+      let best = 0, bd = Infinity;
+      for (let k = 0; k < K; k++) {
+        const dr = centers[k * 4] - r, dg = centers[k * 4 + 1] - g, db = centers[k * 4 + 2] - b;
+        const d = dr * dr + dg * dg + db * db;
+        if (d < bd) { bd = d; best = k; }
+      }
+      labels[i] = best;
+      sums[best * 4] += r; sums[best * 4 + 1] += g; sums[best * 4 + 2] += b; sums[best * 4 + 3]++;
+    }
+    if (updateCenters(centers, sums, K) < 0.5) break;
+  }
+  return labels;
+}
+
+async function kmeansGPU(device, px, centers, K, iters) {
+  const n = px.length;
+  const usage = GPUBufferUsage;
+  const pxBuf = device.createBuffer({ size: n * 4, usage: usage.STORAGE | usage.COPY_DST });
+  device.queue.writeBuffer(pxBuf, 0, px);
+  const cBuf = device.createBuffer({ size: K * 16, usage: usage.STORAGE | usage.COPY_DST });
+  const lBuf = device.createBuffer({ size: n * 4, usage: usage.STORAGE | usage.COPY_SRC });
+  const sBuf = device.createBuffer({ size: K * 16, usage: usage.STORAGE | usage.COPY_SRC | usage.COPY_DST });
+  const pBuf = device.createBuffer({ size: 8, usage: usage.UNIFORM | usage.COPY_DST });
+  device.queue.writeBuffer(pBuf, 0, new Uint32Array([n, K]));
+  const sRead = device.createBuffer({ size: K * 16, usage: usage.MAP_READ | usage.COPY_DST });
+  const pipeline = device.createComputePipeline({
+    layout: "auto",
+    compute: { module: device.createShaderModule({ code: KMEANS_WGSL }), entryPoint: "main" },
+  });
+  const bind = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [pxBuf, cBuf, lBuf, sBuf, pBuf].map((buffer, binding) => ({ binding, resource: { buffer } })),
+  });
+  const zeros = new Uint32Array(K * 4);
+  for (let it = 0; it < iters; it++) {
+    device.queue.writeBuffer(cBuf, 0, centers);
+    device.queue.writeBuffer(sBuf, 0, zeros);
+    const enc = device.createCommandEncoder();
+    const pass = enc.beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bind);
+    pass.dispatchWorkgroups(Math.ceil(n / 256));
+    pass.end();
+    enc.copyBufferToBuffer(sBuf, 0, sRead, 0, K * 16);
+    device.queue.submit([enc.finish()]);
+    await sRead.mapAsync(GPUMapMode.READ);
+    const sums = new Uint32Array(sRead.getMappedRange().slice(0));
+    sRead.unmap();
+    if (updateCenters(centers, sums, K) < 0.5) break;
+  }
+  // One last assignment against the final centers, then read the labels back.
+  device.queue.writeBuffer(cBuf, 0, centers);
+  device.queue.writeBuffer(sBuf, 0, zeros);
+  const lRead = device.createBuffer({ size: n * 4, usage: usage.MAP_READ | usage.COPY_DST });
+  const enc = device.createCommandEncoder();
+  const pass = enc.beginComputePass();
+  pass.setPipeline(pipeline);
+  pass.setBindGroup(0, bind);
+  pass.dispatchWorkgroups(Math.ceil(n / 256));
+  pass.end();
+  enc.copyBufferToBuffer(lBuf, 0, lRead, 0, n * 4);
+  device.queue.submit([enc.finish()]);
+  await lRead.mapAsync(GPUMapMode.READ);
+  const labels = new Uint32Array(lRead.getMappedRange().slice(0));
+  lRead.unmap();
+  for (const b of [pxBuf, cBuf, lBuf, sBuf, pBuf, sRead, lRead]) b.destroy();
+  return labels;
+}
+
+// ---------- label cleanup ----------
+
+/** 3x3 majority filter: a pixel takes the most common label around it when that beats its own. */
+function majority(labels, w, h, K) {
+  const out = new Uint32Array(labels);
+  const count = new Uint16Array(K);
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    let best = labels[y * w + x], bc = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const l = labels[(y + dy) * w + x + dx];
+      if (++count[l] > bc) { bc = count[l]; best = l; }
+    }
+    if (bc >= 5) out[y * w + x] = best;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) count[labels[(y + dy) * w + x + dx]] = 0;
+  }
+  return out;
+}
+
+/** Merge 4-connected components smaller than minArea pixels into their most common neighbor label. */
+function absorbSmall(labels, w, h, minArea) {
+  const n = w * h, comp = new Int32Array(n).fill(-1), stack = new Int32Array(n);
+  const members = new Int32Array(n);
+  for (let s = 0; s < n; s++) {
+    if (comp[s] !== -1) continue;
+    const L = labels[s];
+    let top = 0, size = 0;
+    stack[top++] = s; comp[s] = s;
+    while (top) {
+      const p = stack[--top]; members[size++] = p;
+      const x = p % w, y = (p - x) / w;
+      if (x > 0 && comp[p - 1] === -1 && labels[p - 1] === L) { comp[p - 1] = s; stack[top++] = p - 1; }
+      if (x < w - 1 && comp[p + 1] === -1 && labels[p + 1] === L) { comp[p + 1] = s; stack[top++] = p + 1; }
+      if (y > 0 && comp[p - w] === -1 && labels[p - w] === L) { comp[p - w] = s; stack[top++] = p - w; }
+      if (y < h - 1 && comp[p + w] === -1 && labels[p + w] === L) { comp[p + w] = s; stack[top++] = p + w; }
+    }
+    if (size >= minArea) continue;
+    const votes = new Map();
+    for (let i = 0; i < size; i++) {
+      const p = members[i], x = p % w;
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p - w, p + w]) {
+        if (q < 0 || q >= n || labels[q] === L) continue;
+        votes.set(labels[q], (votes.get(labels[q]) || 0) + 1);
+      }
+    }
+    let best = L, bv = 0;
+    for (const [l, v] of votes) if (v > bv) { bv = v; best = l; }
+    for (let i = 0; i < size; i++) labels[members[i]] = best;
+  }
+  return labels;
+}
+
+// ---------- boundary tracing ----------
+
+const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];  // right, down, left, up (y grows down)
+
+/**
+ * Closed boundary loops of every label, along pixel edges with the region on the right.
+ * Holes come out as loops of the opposite orientation, so one evenodd path per label
+ * reproduces the region exactly. At a saddle the trace turns right, which keeps
+ * diagonal-only neighbors apart (4-connectivity).
+ */
+function traceLoops(labels, w, h, K) {
+  const V = (w + 1) * (h + 1);
+  const byLabel = Array.from({ length: K }, () => []);
+  for (let i = 0; i < labels.length; i++) byLabel[labels[i]].push(i);
+  const out = Array.from({ length: K }, () => []);
+  // Up to two outgoing edges per vertex per label: store direction+1 in two slots.
+  const slotA = new Uint8Array(V), slotB = new Uint8Array(V);
+  const at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? -1 : labels[y * w + x]);
+  for (let L = 0; L < K; L++) {
+    const touched = [];
+    const add = (x, y, d) => {
+      const v = y * (w + 1) + x;
+      if (!slotA[v]) { slotA[v] = d + 1; touched.push(v); } else slotB[v] = d + 1;
+    };
+    for (const p of byLabel[L]) {
+      const x = p % w, y = (p - x) / w;
+      if (at(x, y - 1) !== L) add(x, y, 0);          // top edge, heading right
+      if (at(x + 1, y) !== L) add(x + 1, y, 1);      // right edge, heading down
+      if (at(x, y + 1) !== L) add(x + 1, y + 1, 2);  // bottom edge, heading left
+      if (at(x - 1, y) !== L) add(x, y + 1, 3);      // left edge, heading up
+    }
+    for (const start of touched) {
+      while (slotA[start]) {
+        const loop = [];
+        let v = start, d = -1;
+        for (;;) {
+          let a = slotA[v] - 1, b = slotB[v] - 1, take;
+          if (a < 0) break;
+          if (b >= 0 && d >= 0) take = b === (d + 1) % 4 ? b : a === (d + 1) % 4 ? a : a;
+          else take = a;
+          if (take === a) { slotA[v] = slotB[v]; slotB[v] = 0; } else slotB[v] = 0;
+          const x = v % (w + 1), y = (v - x) / (w + 1);
+          if (take !== d) loop.push(x, y);  // keep corners only
+          d = take;
+          v = (y + DY[d]) * (w + 1) + x + DX[d];
+        }
+        if (loop.length >= 6) out[L].push(loop);
+      }
+    }
+  }
+  return out;
+}
+
+/** Douglas–Peucker on a closed loop of [x0, y0, x1, y1, ...]. */
+function simplifyLoop(loop, eps) {
+  const n = loop.length / 2;
+  if (n <= 4) return loop;
+  // Anchor at vertex 0 and the vertex farthest from it.
+  let far = 0, fd = -1;
+  for (let i = 1; i < n; i++) {
+    const d = (loop[i * 2] - loop[0]) ** 2 + (loop[i * 2 + 1] - loop[1]) ** 2;
+    if (d > fd) { fd = d; far = i; }
+  }
+  const keep = new Uint8Array(n);
+  keep[0] = keep[far] = 1;
+  const stack = [[0, far], [far, n]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const ax = loop[a * 2], ay = loop[a * 2 + 1], bi = b % n, bx = loop[bi * 2], by = loop[bi * 2 + 1];
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    let worst = -1, wd = eps;
+    for (let i = a + 1; i < b; i++) {
+      const d = Math.abs((bx - ax) * (ay - loop[i * 2 + 1]) - (ax - loop[i * 2]) * (by - ay)) / len;
+      if (d > wd) { wd = d; worst = i; }
+    }
+    if (worst >= 0) { keep[worst] = 1; stack.push([a, worst], [worst, b]); }
+  }
+  const out = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(loop[i * 2], loop[i * 2 + 1]);
+  return out;
+}
+
+// ---------- emission ----------
+
+const hex = (c) => "#" + [c[0], c[1], c[2]].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+const shortHex = (h) => (h[1] === h[2] && h[3] === h[4] && h[5] === h[6] ? `#${h[1]}${h[3]}${h[5]}` : h);
+
+function num(v, precision) {
+  let t = precision > 0 ? v.toFixed(precision).replace(/\.?0+$/, "") : String(Math.round(v));
+  if (t.startsWith("0.")) t = t.slice(1);
+  else if (t.startsWith("-0.")) t = "-" + t.slice(2);
+  return t === "-0" || t === "" ? "0" : t;
+}
+
+function join(values, precision) {
+  let out = "", last = "";
+  for (const v of values) {
+    const t = num(v, precision);
+    if (out && !(t[0] === "-" || (t[0] === "." && last.includes(".")))) out += " ";
+    out += t; last = t;
+  }
+  return out;
+}
+
+function pathData(loops, scale, precision) {
+  const q = 10 ** precision;
+  let d = "", cx = 0, cy = 0;
+  for (const loop of loops) {
+    const pts = [];
+    for (let i = 0; i < loop.length; i += 2) {
+      const x = Math.round(loop[i] * scale * q), y = Math.round(loop[i + 1] * scale * q);
+      if (!pts.length || x !== pts[pts.length - 2] || y !== pts[pts.length - 1]) pts.push(x, y);
+    }
+    if (pts.length < 6) continue;
+    const deltas = [];
+    for (let i = 2; i < pts.length; i += 2) deltas.push((pts[i] - pts[i - 2]) / q, (pts[i + 1] - pts[i - 1]) / q);
+    d += "m" + join([(pts[0] - cx) / q, (pts[1] - cy) / q], precision) + "l" + join(deltas, precision) + "z";
+    cx = pts[0]; cy = pts[1];
+  }
+  return d;
+}
+
+// ---------- entry point ----------
+
+/**
+ * @param {ImageData} image
+ * @param {{K?: number, width?: number, precision?: number, minArea?: number, iters?: number,
+ *          device?: GPUDevice|null, seed?: number}} opts
+ * @returns {Promise<{svg: string, stats: object}>}
+ */
+export async function imageToSvg(image, opts = {}) {
+  const { K = 56, width = 1000, precision = 1, minArea = 40, iters = 20, device = null, seed = 1 } = opts;
+  const { width: w, height: h, data } = image;
+  const t = { start: performance.now() };
+  let s = seed >>> 0;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+  const px = blur(data, w, h);
+  t.blur = performance.now();
+  const centers = seedCenters(px, K, rand);
+  let labels = device ? await kmeansGPU(device, px, centers, K, iters) : kmeansCPU(px, centers, K, iters);
+  t.kmeans = performance.now();
+  labels = majority(labels, w, h, K);
+  labels = absorbSmall(labels, w, h, minArea);
+  t.cleanup = performance.now();
+  const loops = traceLoops(labels, w, h, K);
+  t.trace = performance.now();
+
+  const scale = width / w, height = Math.round(h * scale * 10) / 10;
+  const area = new Float64Array(K);
+  for (const l of labels) area[l]++;
+  const order = [...Array(K).keys()].filter((k) => area[k] > 0).sort((a, b) => area[b] - area[a]);
+  const colors = new Map(), classOf = new Map(), paths = [];
+  for (const L of order) {
+    const loopsL = loops[L].map((loop) => simplifyLoop(loop, Math.max(0.75, 0.002 * loop.length)));
+    const d = pathData(loopsL, scale, precision);
+    if (!d) continue;
+    const c = shortHex(hex(centers.subarray(L * 4, L * 4 + 3)));
+    if (!colors.has(c)) colors.set(c, `c${colors.size}`);
+    paths.push(`<path class="${colors.get(c)}" d="${d}"/>`);
+  }
+  const scope = "s" + Math.abs(paths.join("").split("").reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7)).toString(16).slice(0, 6);
+  const css = [...colors].map(([c, k]) => `#${scope} .${k}{fill:${c};stroke:${c}}`).join("");
+  const bg = shortHex(hex(centers.subarray(order[0] * 4, order[0] * 4 + 3)));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" id="${scope}" viewBox="0 0 ${width} ${height}">` +
+    `<style>${css}</style><rect width="${width}" height="${height}" fill="${bg}"/>` +
+    `<g fill-rule="evenodd" stroke-width="${Math.max(1, Math.round(scale))}" stroke-linejoin="round">${paths.join("")}</g></svg>`;
+  t.emit = performance.now();
+  const ms = (a, b) => Math.round(t[b] - t[a]);
+  return {
+    svg,
+    stats: {
+      backend: device ? "webgpu" : "js", w, h, K, bytes: svg.length, paths: paths.length,
+      loops: loops.reduce((a, l) => a + l.length, 0),
+      ms: { blur: ms("start", "blur"), kmeans: ms("blur", "kmeans"), cleanup: ms("kmeans", "cleanup"),
+            trace: ms("cleanup", "trace"), emit: ms("trace", "emit"), total: ms("start", "emit") },
+    },
+  };
+}

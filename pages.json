@@ -2,6 +2,18 @@
  "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
  "pages": [
   {
+   "title": "Image to SVG in the browser",
+   "experiment": "svg-in-browser",
+   "path": "svg-in-browser/web",
+   "blurb": "image-to-svg ported to the page: k-means in WGSL (JavaScript fallback), pixel-edge tracing and image-to-svg 1.9.0's compact output, all client-side"
+  },
+  {
+   "title": "Warhol palette cycle",
+   "experiment": "svg-palette-cycle",
+   "path": "svg-palette-cycle/cat-cycle.svg",
+   "blurb": "One traced cat drawn four times, cycling four palettes with @property colors and offset keyframes; 72 KB, no JavaScript"
+  },
+  {
    "title": "Navier–Stokes term by term",
    "experiment": "navier-stokes-explainer",
    "path": "navier-stokes-explainer/web",

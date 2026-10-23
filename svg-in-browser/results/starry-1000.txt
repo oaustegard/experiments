@@ -1,0 +1,8 @@
+node run/check.js <out> 56 1000   (headless Chromium, this container's CPU; WebGPU = SwiftShader)
+webgpu {"backend":"webgpu","w":1000,"h":625,"K":56,"bytes":992931,"paths":56,"loops":36730,"ms":{"blur":118,"kmeans":14472,"cleanup":115,"trace":124,"emit":357,"total":15185}}
+js {"backend":"js","w":1000,"h":625,"K":56,"bytes":990625,"paths":56,"loops":36657,"ms":{"blur":67,"kmeans":2784,"cleanup":127,"trace":119,"emit":245,"total":3342}}
+
+rendered with rsvg-convert at 1000x625, mean |rendered - source| per channel (source resized INTER_AREA):
+python  1355 KB  gz 294 KB  err 25.85/255   (image-to-svg 1.9.0, mode=painting, K=56)
+js       991 KB  gz 235 KB  err 24.53/255
+webgpu   993 KB  gz 236 KB  err 24.54/255
