@@ -1,0 +1,58 @@
+{
+ "args": {
+  "init": "ridge",
+  "epochs": 3.0,
+  "lr": 0.003,
+  "batch": 1024,
+  "holdout": 2000,
+  "learn": "rare",
+  "tag": "ridge_e3",
+  "no_bench": false
+ },
+ "n_learn": 222402,
+ "holdout_init_cos_to_trained": 0.5864304304122925,
+ "onetok_cos_kept_trained": 0.8977882862091064,
+ "onetok_cos_rare_learned": 0.9506294131278992,
+ "onetok_cos_rare_init": 0.9312293529510498,
+ "holdout_learned_cos_to_trained": 0.5856958031654358,
+ "onetok_cos_hold_trained": 0.8961769938468933,
+ "onetok_cos_hold_learned": 0.9681248664855957,
+ "bench": {
+  "cut_true": {
+   "real_overlap": 0.6319,
+   "synth_overlap": 0.7246,
+   "synth_hit10": 0.9072,
+   "img_overlap": 0.3841,
+   "img_hit10": 0.5626,
+   "img_test_overlap": 0.3827,
+   "img_test_hit10": 0.5648
+  },
+  "cut_hold_init": {
+   "real_overlap": 0.6287,
+   "synth_overlap": 0.7192,
+   "synth_hit10": 0.9092,
+   "img_overlap": 0.383,
+   "img_hit10": 0.564,
+   "img_test_overlap": 0.3809,
+   "img_test_hit10": 0.5687
+  },
+  "cut_hold_learned": {
+   "real_overlap": 0.6283,
+   "synth_overlap": 0.7202,
+   "synth_hit10": 0.9085,
+   "img_overlap": 0.3833,
+   "img_hit10": 0.5628,
+   "img_test_overlap": 0.3817,
+   "img_test_hit10": 0.5658
+  },
+  "full_learned": {
+   "real_overlap": 0.6346,
+   "synth_overlap": 0.7244,
+   "synth_hit10": 0.9092,
+   "img_overlap": 0.4403,
+   "img_hit10": 0.6109,
+   "img_test_overlap": 0.4379,
+   "img_test_hit10": 0.6112
+  }
+ }
+}

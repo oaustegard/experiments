@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>rhq engine check</title>
+<pre id="out">running…</pre>
+<script type="module">
+// Parity of the WGSL engine with an rhq token table against the NumPy reference (run/engine_check.py).
+// ?model=<dir with manifest.json, model_rhq.bin, queries.json>
+import { Eg2Engine } from "../../eg2-wgsl-engine/web/engine.js";
+const P = new URLSearchParams(location.search);
+const M = new URL(P.get("model"), location.href);
+const cos = (a, b) => { let d = 0, na = 0, nb = 0; for (let i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; } return d / Math.sqrt(na * nb); };
+window.result = { phase: "loading" };
+try {
+  const man = await (await fetch(new URL("manifest.json", M))).json();
+  const qs = await (await fetch(new URL("queries.json", M))).json();
+  const data = new Uint8Array(await (await fetch(new URL(man.data, M))).arrayBuffer());
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+  const eng = await Eg2Engine.create(device, man, data, { maxTokens: 1024, maxSeqs: 32 });
+  const single = [];
+  for (const q of qs) single.push(cos(await eng.embed([q.ids]), Float32Array.from(q.ref)));
+  const batch = await eng.embed(qs.map((q) => q.ids));
+  const bcos = qs.map((q, i) => cos(batch.subarray(i * 768, (i + 1) * 768), Float32Array.from(q.ref)));
+  window.result = { phase: "done", cos_single: single, cos_single_min: Math.min(...single), cos_batch_min: Math.min(...bcos) };
+} catch (e) {
+  window.result = { phase: "error", error: String(e && e.stack || e) };
+}
+document.getElementById("out").textContent = JSON.stringify(window.result, null, 1);
+</script>
