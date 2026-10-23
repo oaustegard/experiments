@@ -33,7 +33,7 @@
   <div class="controls">
     <label>Image <input type="file" id="file" accept="image/*"></label>
     <label>Mode <select id="mode"><option value="layers">coarse to fine</option><option value="flat">flat</option></select></label>
-    <label>Reveal <select id="reveal"><option value="0.8">animate layers</option><option value="0">static</option></select></label>
+    <label>Animation <select id="reveal"><option value="paint">paint each layer</option><option value="fade">fade each layer in</option><option value="static">none</option></select></label>
     <label>Colors (K, flat) <input type="number" id="k" value="56" min="2" max="256"></label>
     <label>Max side (px) <input type="number" id="side" value="1000" min="100" max="4000" step="100"></label>
     <label>Coordinates <select id="precision"><option value="1">0.1 unit</option><option value="0">whole units</option></select></label>
@@ -74,15 +74,25 @@ async function run() {
   const img = pixels($("src"), +$("side").value);
   const common = { precision: +$("precision").value, device: dev };
   const { svg, stats } = $("mode").value === "layers"
-    ? await imageToSvgLayers(img, { ...common, reveal: +$("reveal").value })
+    ? await imageToSvgLayers(img, { ...common, reveal: { paint: 1.6, fade: 0.8, static: 0 }[$("reveal").value],
+                                    revealMode: $("reveal").value })
     : await imageToSvg(img, { ...common, K: +$("k").value });
   $("out").innerHTML = svg;
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-  $("cap").innerHTML = `SVG · ${(stats.bytes / 1024).toFixed(0)} KB · ${stats.backend} · <a download="trace.svg" href="${url}">download</a>`;
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  // .svgz is the same SVG gzipped; the browser's own CompressionStream does it.
+  const gz = await new Response(blob.stream().pipeThrough(new CompressionStream("gzip"))).blob();
+  const name = (fileName || "trace").replace(/\.[^.]+$/, "");
+  const link = (b, ext) => `<a download="${name}.${ext}" href="${URL.createObjectURL(b)}">.${ext}</a>`;
+  stats.svgzBytes = gz.size;
+  $("cap").innerHTML = `${(gz.size / 1024).toFixed(0)} KB .svgz (${(stats.bytes / 1024).toFixed(0)} KB uncompressed) · ` +
+    `${stats.backend} · download ${link(gz, "svgz")} or ${link(blob, "svg")}`;
   $("log").textContent = JSON.stringify(stats, null, 1);
   window.lastResult = { svg, stats };
 }
-$("file").onchange = async (e) => { if (e.target.files[0]) { await load(URL.createObjectURL(e.target.files[0])); run(); } };
+let fileName = "starry.jpg";
+$("file").onchange = async (e) => {
+  if (e.target.files[0]) { fileName = e.target.files[0].name; await load(URL.createObjectURL(e.target.files[0])); run(); }
+};
 $("run").onclick = run;
 window.imageToSvg = imageToSvg; window.imageToSvgLayers = imageToSvgLayers; window.getDevice = getDevice; window.pixels = pixels;
 await load("starry.jpg");

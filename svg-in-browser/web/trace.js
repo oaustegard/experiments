@@ -520,13 +520,16 @@ const DEFAULT_LEVELS = [
  * @param {ImageData} image
  * @param {{levels?: {scale: number, K: number, minArea: number}[], gain?: number,
  *          width?: number, precision?: number, eps?: number, curves?: boolean,
- *          reveal?: number, iters?: number, device?: GPUDevice|null, seed?: number}} opts
- *   reveal: seconds per layer for a fade-in animation that plays the levels in order (0 = none)
+ *          reveal?: number, revealMode?: "fade"|"paint", iters?: number, device?: GPUDevice|null,
+ *          seed?: number}} opts
+ *   reveal: seconds per layer for an animation that plays the levels in order (0 = none).
+ *   revealMode "fade" fades each layer in; "paint" sweeps a brush mask back and forth over
+ *   it, a wide brush for the blobs and a narrower one for each finer layer.
  * @returns {Promise<{svg: string, stats: object}>}
  */
 export async function imageToSvgLayers(image, opts = {}) {
   const { levels = DEFAULT_LEVELS, gain = 4, width = 1000, precision = 1, eps = 1, curves = true,
-          reveal = 0, iters = 20, device = null, seed = 1 } = opts;
+          reveal = 0, revealMode = "fade", iters = 20, device = null, seed = 1 } = opts;
   const { width: w, height: h, data } = image;
   const t0 = performance.now();
   let s = seed >>> 0;
@@ -600,14 +603,35 @@ export async function imageToSvgLayers(image, opts = {}) {
   const body = groups.join("");
   const scope = "s" + Math.abs(body.split("").reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7)).toString(16).slice(0, 6);
   let css = [...colors].map(([c, k]) => `#${scope} .${k}{fill:${c};stroke:${c}}`).join("");
-  if (reveal > 0) {
+  let defs = "", layers = body;
+  const timing = (i) => `${num(reveal, 2)}s ${revealMode === "paint" ? "linear " : ""}${num(i * reveal, 2)}s both`;
+  if (reveal > 0 && revealMode === "paint") {
+    // One brush per layer: a boustrophedon stroke, drawn on by animating its dash offset.
+    // pathLength="1" makes the dash one unit long whatever the path's real length. A
+    // renderer without CSS animation shows the dash fully drawn, so the image stays whole.
+    css += `@keyframes ${scope}p{from{stroke-dashoffset:1}}`;
+    defs = groups.map((_, i) => {
+      const rows = Math.round(3 * 2 ** (0.75 * i)), band = height / rows, pad = band;
+      let d = `M${num(-pad, 1)} ${num(band / 2, 1)}`;
+      for (let r = 0; r < rows; r++) {
+        if (r) d += `V${num((r + 0.5) * band, 1)}`;
+        d += `H${num(r % 2 ? -pad : width + pad, 1)}`;
+      }
+      css += `#${scope} .b${i}{animation:${scope}p ${timing(i)}}`;
+      return `<mask id="${scope}m${i}" maskUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="${height}">` +
+        `<path class="b${i}" d="${d}" fill="none" stroke="#fff" stroke-width="${num(band * 1.3, 1)}" ` +
+        `stroke-linecap="round" pathLength="1" stroke-dasharray="1 1"/></mask>`;
+    }).join("");
+    groups.forEach((_, i) => { layers = layers.replace(`<g class="L${i}">`, `<g class="L${i}" mask="url(#${scope}m${i})">`); });
+    css += `@media (prefers-reduced-motion:reduce){#${scope} mask path{animation:none}}`;
+  } else if (reveal > 0) {
     css += `@keyframes ${scope}in{from{opacity:0}}` +
-      groups.map((_, i) => `#${scope} .L${i}{animation:${scope}in ${num(reveal, 2)}s ${num(i * reveal, 2)}s both}`).join("") +
+      groups.map((_, i) => `#${scope} .L${i}{animation:${scope}in ${timing(i)}}`).join("") +
       `@media (prefers-reduced-motion:reduce){#${scope} g{animation:none}}`;
   }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" id="${scope}" viewBox="0 0 ${width} ${height}">` +
-    `<style>${css}</style>` +
-    `<g fill-rule="evenodd" stroke-width="${Math.max(1, Math.round(width / w))}" stroke-linejoin="round">${body}</g></svg>`;
+    `<style>${css}</style>${defs ? `<defs>${defs}</defs>` : ""}` +
+    `<g fill-rule="evenodd" stroke-width="${Math.max(1, Math.round(width / w))}" stroke-linejoin="round">${layers}</g></svg>`;
   return {
     svg,
     stats: { backend: device ? "webgpu" : "js", mode: "layers", w, h, bytes: svg.length, levels: perLevel,
