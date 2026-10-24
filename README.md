@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`xray-glasses/`](xray-glasses/RESULTS.md) | 2026-10-24 | done — interactive page | [`web/index.html`](xray-glasses/web/index.html) ([live](https://austegard.com/fun-and-games/xray-glasses/)) + [`RESULTS.md`](xray-glasses/RESULTS.md) | [#105](https://github.com/oaustegard/experiments/issues/105). Camera X-ray view: MediaPipe Pose (people) or RTMPose-m AP-10K (cats, dogs) drives a template skeleton drawn by WGSL SDF passes. RTMPose with the page's crop and decoder lands 4.1 and 15.3 px from AP-10K ground truth; facing away read from nose world depth (20/20 front, 6/7 back); 3D skull posed by Face Landmarker; iOS 26 importExternalTexture rotation worked around. Phones untested. |
 | [`svg-timeline/`](svg-timeline/README.md) | 2026-10-23 | **done — Starry Night paints itself in one 849 KB / 223 KB gz SVG, no JS: a 99-line timeline compiler (svjeez-style `motion().at().to()` + keyframe interning) drives a derived charcoal underdrawing, paint landing in 76 time-slot groups (size + sweep order), @property night/dawn grades with blurred twinkling stars, and a fall-away. Grouping by slot took headless-Chromium playback from 1–7 fps to 20–55, vs 18–24 for svjeez minecraft.svg; `web/index.html` does it in the browser for any picture (austegard.com/fun-and-games/self-painting.html)** | [`README.md`](svg-timeline/README.md) + `timeline.py` + `build.py` + `starry-timeline.svg` + `web/` | Oskar, 2026-10-23, after svjeez's minecraft.svg: "Build YOUR thing" |
 | [`live-tagger/`](live-tagger/RESULTS.md) | 2026-10-23 | **done (prototype) — live camera tagging in the page: MobileCLIP-S0 vision tower on WebGPU (transformers.js) scored against 22,690 tags (RAM++ + Open Images V7, 11.7 MB int8) embedded offline by its own text tower, so the phone runs no text model; shows the RAM++ top 5 plus an Open Images top 3, since ranking all together drops COCO object recall@5 0.255 → 0.158. Headless parity cos 0.99994+ with identical top 5 on six COCO images after replacing canvas resizing with a JS port of PIL's triangle filter; COCO object recall@5 0.255, caption precision@5 0.271; CSLS and mean hub corrections both lose. Phone fps unmeasured** | [`RESULTS.md`](live-tagger/RESULTS.md) + `web/` + `run/` | Oskar, 2026-10-23: "Can we plausibly develop/adapt an in-browser, mobile phone live image parser/classifier/tagger running in wgsl?", then "Go" on the large-tag-bank page after a stock MobileCLIP demo ran ~30 fps on his iPhone 16 Pro |
 | [`eg2-vocab-codebook/`](eg2-vocab-codebook/RESULTS.md) | 2026-10-23 | **done — the 4-layer EG2 cut's token table: at the same 24.4 MB weight file, a 67,347-token vocabulary with rhq rows (Hadamard rotation + Lloyd-Max + fp16 scale; 3 bits for the 19,451 most frequent, 2 for the rest) beats today's trimmed 41,741-token 3-bit table after the same caption fine-tune: held-out text-to-image hit@10 0.732 vs 0.718, overlap +0.022, Bluesky hit@10 −0.006, tokenizer +0.49 MB gz. rhq3 on the trimmed vocabulary matches int3 g32 at 1.9 MB less. All 262K rows lose: training rewrote the cut's table (cos 0.48 to EG2's rows), unseen rows must be learned (one-token EG2 queries work), and rare rows at 8–16 bytes are worse than splitting the word. WGSL engine kernel `embed_rhq`, parity cos ≥ 0.9999999** | [`RESULTS.md`](eg2-vocab-codebook/RESULTS.md) + `run/` + `web/check.html` | Embedded Embedder project thread "Vocabulary embedding quantization": retry of `embeddinggemma-vocab-prune`'s below-4-bit table |
@@ -184,11 +185,20 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`muninn-kb-issue-76/`](muninn-kb-issue-76/README.md) | 2026-05-13 | done (reproducible) | [`README.md`](muninn-kb-issue-76/README.md) (build recipe) | [#76](https://github.com/oaustegard/claude-workspace/issues/76) |
 | [`py-wasm-bench/`](py-wasm-bench/RESULTS.md) | 2026-10-18 | **done — py2wasm runs 0.85–1.26x plain CPython-in-wasm (not the claimed 2.5–3x); mypyc-on-WASI hits 20x native CPython only where values stay in locals, and stays below 1x on `list[float]` kernels; hand C→wasm is 13–42x native CPython; SPy reaches 1.9–29x native CPython without libpython; a Python→WGSL `@kernel` prototype is correct on SwiftShader** | [`RESULTS.md`](py-wasm-bench/RESULTS.md) + [`bench.py`](py-wasm-bench/bench.py) + [`arms/wgsl/pykernel.py`](py-wasm-bench/arms/wgsl/pykernel.py) | Oskar: *"Could we improve on current platform tooling for converting code to run under wasm and/or webgpu?"* Nine arms × four checksum-verified kernels under wasmtime and node. The gap to the ceiling is value representation (boxed list elements), and SPy, which lowers typed lists to flat buffers, is the fastest Python-derived arm on every kernel. |
 | [`navier-stokes-explainer/`](navier-stokes-explainer/README.md) | 2026-10-19 | done — interactive page | [`web/index.html`](navier-stokes-explainer/web/index.html) ([live](https://austegard.com/experiments/navier-stokes-explainer/web/)) + [`run/verify.mjs`](navier-stokes-explainer/run/verify.mjs) | [#101](https://github.com/oaustegard/experiments/issues/101). Five-chapter WebGPU explainer: toggleable NS terms, a cylinder wake under a Reynolds slider, 2D vs 3D vortex stretching (filament rings), the Beale–Kato–Majda integral with a live energy spectrum, and the 2026 blowup results. The OpenAI result is forced (Clay C, D as corollary); the unforced alternatives stay open. |
-| [`xray-glasses/`](xray-glasses/RESULTS.md) | 2026-10-24 | done — interactive page | [`web/index.html`](xray-glasses/web/index.html) ([live](https://austegard.com/fun-and-games/xray-glasses/)) + [`RESULTS.md`](xray-glasses/RESULTS.md) | [#105](https://github.com/oaustegard/experiments/issues/105). Camera X-ray view: MediaPipe Pose (people) or RTMPose-m AP-10K (cats, dogs) drives a template skeleton drawn by WGSL SDF passes. RTMPose with the page's crop and decoder lands 4.1 and 15.3 px from AP-10K ground truth; facing away read from nose world depth (20/20 front, 6/7 back); 3D skull posed by Face Landmarker; iOS 26 importExternalTexture rotation worked around. Phones untested. |
 | [`reviews/`](reviews/) | 2026-04-21 | done | the `.md` files are the results | freeform repo reviews |
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `xray-glasses/` — camera X-ray view with a fitted skeleton
+
+A static page, live at [austegard.com/fun-and-games/xray-glasses/](https://austegard.com/fun-and-games/xray-glasses/):
+the camera feed as a radiograph, with a skeleton fitted to a person, cat or dog and drawn by two WGSL
+passes. People: MediaPipe Pose Landmarker, plus Face Landmarker to pose a 3D skull and open its jaw.
+Cats and dogs: EfficientDet-Lite0 and RTMPose-m AP-10K. [`RESULTS.md`](xray-glasses/RESULTS.md) has the
+measurements: RTMPose accuracy through the page's own decoder, reading whether someone faces away from the
+pose's world landmarks, skull fit, MediaPipe delegate start-up, and the iOS 26 `importExternalTexture`
+rotation bug. This directory is the source and test bed; the site copy is synced from `web/`. Phones untested.
 
 ### `svg-timeline/` — a traced painting given a timeline
 
@@ -1639,15 +1649,6 @@ solver (MacCormack advection, Jacobi viscosity and pressure) and a 3D vortex-fil
 all-pairs Biot–Savart. `run/verify.mjs` drives every chapter in headless Chromium and screenshots
 it. Headless WebGPU canvases need `--use-vulkan=swiftshader` (METHODS.md). Chapter 5 corrects
 Muninn memory c43844eb: the 2026 OpenAI blowup is forced.
-
-### `xray-glasses/` — camera X-ray view with a fitted skeleton
-
-One static page: the camera feed as a radiograph, with a human, cat or dog skeleton template fitted
-to pose keypoints and drawn by two WGSL passes (instanced SDF bones, then a composite). Humans use
-MediaPipe Pose Landmarker; cats and dogs use EfficientDet-Lite0 for the box and RTMPose-m AP-10K
-(LiteRT, self-hosted as `web/rtm_animal_fp16.bin`) for 17 joints. `test/` checks the WGSL with Dawn,
-runs the shaders in headless Chromium, ports them to the CPU, and scores RTMPose against AP-10K
-ground truth through the page's own crop and decoder. Frame rate and phone behaviour are untested.
 
 ## Adding a new experiment
 
