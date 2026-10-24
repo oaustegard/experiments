@@ -906,6 +906,7 @@ async function runAnimal(box, species, tsec) {
   let outs;
   try { outs = await rtm.run(input); } finally { input.delete(); }
   const host = await Promise.all(outs.map(o => o.moveTo("wasm")));
+  // outs[0] is simcc_x, outs[1] simcc_y, each [1, 17, 512] (checked against the model in test/verify-rtmpose.js)
   const sxArr = host[0].toTypedArray(), syArr = host[1].toTypedArray();
   const { pts, conf } = XR.decodeSimcc(sxArr, syArr, RTM_K, RTM_BINS);
   host.forEach(h => h.delete());

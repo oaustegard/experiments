@@ -48,7 +48,7 @@ marks the subject's right side.
 |---|---|---|---|---|
 | Human pose | MediaPipe Pose Landmarker lite, float16 v1 | 5.8 MB | Apache-2.0 | storage.googleapis.com/mediapipe-models (CORS `*`) |
 | Detector (Auto, cat/dog box) | EfficientDet-Lite0 int8 v1, COCO | 4.6 MB | Apache-2.0 | storage.googleapis.com/mediapipe-models |
-| Animal pose | RTMPose-m trained on AP-10K, LiteRT fp16 (`litert-community/RTMPose-Animal-AP10K-LiteRT` at commit `1daee634`) | 27.5 MB | Apache-2.0 (mmpose); AP-10K dataset | `./rtm_animal_fp16.bin` beside the page if present, else Hugging Face (allows the austegard.com origin) |
+| Animal pose | RTMPose-m trained on AP-10K, LiteRT fp16 (`litert-community/RTMPose-Animal-AP10K-LiteRT` at commit `1daee634`) | 27.5 MB | Apache-2.0 (mmpose); AP-10K dataset | `./rtm_animal_fp16.bin` beside the page (self-hosted copy, sha256 `7fbfc03239cebc1f657efab722849bc9b30d36d3d4371118aed2aaf4041e742f`, equal to the LFS oid at that commit); Hugging Face as fallback |
 | Runtimes | `@mediapipe/tasks-vision@1.1.0`, `@litertjs/core@2.5.3` (+ `@litertjs/wasm-utils@2.5.3`) | ~13 MB wasm each | Apache-2.0 | cdn.jsdelivr.net |
 
 The animal model is fetched only when a cat or dog is first needed. The page
@@ -68,10 +68,9 @@ Why these choices:
   not browser-ready: ViTPose++-s APT-36K ONNX is 97 MB; DeepLabCut
   SuperAnimal-Quadruped ships PyTorch weights only (RTMPose-s 24 MB `.pt`, plus a
   separate detector); the YOLOv8-pose AP-10K repos found have no weights.
-- At 27.5 MB the model is over the 15 MB limit for a claude.ai artifact supporting
-  file, so it was not put in the repo. pages_site.py ships `.bin` files under 50 MB.
-  To serve it from austegard.com, copy `rtm_animal_fp16.tflite` to
-  `web/rtm_animal_fp16.bin`; the page tries that path first.
+- The model is committed as `web/rtm_animal_fp16.bin`, a byte-for-byte copy of
+  `rtm_animal_fp16.tflite`, because pages_site.py ships `.bin` files under 50 MB and
+  not `.tflite`. The page tries that path first.
 
 Prior art: searches turned up many MediaPipe pose demos that draw stick figures.
 None found renders an anatomical X-ray skeleton, and none handles animals.
@@ -85,29 +84,15 @@ fetches from storage.googleapis.com and huggingface.co.
 
 ## Verification
 
-Done in a container with no GPU and no camera:
+First pass (claude.ai sandbox, no GPU, no camera, Hugging Face LFS blocked):
 
 - **JS syntax**: the inline classic script and the module script were extracted
   (`test/extract.js`) and checked with `node --check`. Both pass.
-- **WGSL**: both shader modules compile with Dawn (npm `webgpu` 0.6.2 on Mesa
-  lavapipe) with no errors or warnings. Both render pipelines were created with
-  the page's exact descriptors: r16float targets, additive and max blend,
-  bgra8unorm output (`test/wgsl-check.js`). A deliberately broken shader fails the
-  same check, so the validator is live. GPU execution was not possible: queue
-  work never completes under lavapipe in this sandbox.
 - **Landmark-to-bone mapping on real model output**: MediaPipe Pose Landmarker
   lite (the same `.task` file the page loads, run through Python mediapipe 0.10.32)
   ran on `test/pose.jpg`. Its 33 landmarks and segmentation mask drove the page's
   own skeleton builder, extracted from `index.html` rather than copied. The result
   was 583 primitives, all values finite, all anchors in frame.
-- **Quadruped templates**: driven by AP-10K ground-truth keypoints from two mmpose
-  test images (an antelope driving the dog template, a jaguar driving the cat
-  template). RTMPose itself was not run here: the model file could not be
-  downloaded.
-- **test-frame.png**: a CPU port of both WGSL passes (`test/render-cpu.js`,
-  same SDFs, blend rules and composite maths) rendered the three cases above. Top:
-  human. Bottom left: dog template. Bottom right: cat template. This is a CPU
-  rendering of the shader maths, not a WebGPU frame.
 - **SimCC decoding**: synthetic heads decode back to the exact pixel (argmax/2).
 - **One-Euro filter**: on a static point with ±3 px noise at 30 fps, mean
   frame-to-frame movement fell from 1.97 px to 0.36 px.
@@ -116,12 +101,72 @@ Done in a container with no GPU and no camera:
   "cat" (0.57-0.61), so Auto mode can pick the wrong species template. The Cat and
   Dog buttons override the label.
 
+Second pass ([#105](https://github.com/oaustegard/experiments/issues/105), Claude Code
+cloud container, Firecracker VM, no GPU, no camera):
+
+- **RTMPose on the AP-10K test images**: `test/run-rtmpose.py` runs the committed
+  `.bin` through `ai-edge-litert` with the page's crop (square, 1.25x the box, black
+  outside the frame, 256 px) and normalisation (ImageNet mean/std, RGB, NCHW). The
+  crop is resampled the way canvas `drawImage` does it, plain bilinear with no
+  low-pass filter. The AP-10K ground-truth box stands in for the EfficientDet box. `test/verify-rtmpose.js`
+  decodes the heads with the page's own `decodeSimcc` and maps them back as
+  `runAnimal()` does. Mean keypoint error against ground truth, over the 16
+  annotated keypoints of each image:
+
+  | image | crop side | mean error | max error | swapped order |
+  |---|---|---|---|---|
+  | `ap10k.jpg` (antelope) | 536 px | **4.1 px** | 10.5 px | 159.7 px |
+  | `ap10k_37516.jpg` (jaguar) | 1365 px | **15.3 px** | 54.8 px (neck) | 425.5 px |
+
+  One crop pixel is 2.1 and 5.3 image pixels respectively, so both are about 2-3 crop
+  pixels on average. Peak scores run 0.86-1.49, so the page's 0.3 threshold keeps
+  all 17. The resampling barely matters: the crop Chromium's own `drawImage` makes
+  from the same call (mean difference 0.35 and 4.0 levels from the emulation) gives
+  4.2 and 15.2 px, and PIL's antialiased resize (`python3 run-rtmpose.py pil`) gives
+  4.3 and 14.3 px.
+- **Output order and split ratio**: the model has two `[1, 17, 512]` outputs,
+  `output_0` and `output_1` in the signature and graph order. `output_0` is
+  simcc_x, as the page assumes: swapping them puts keypoints 160-430 px off.
+  Decoding at split ratios 1, 1.5, 2, 2.5 and 3 gives mean errors of 456, 151,
+  4.1, 93 and 154 px on the antelope, so the ratio is 2. LiteRT.js 2.5.3 itself
+  (wasm accelerator, headless Chromium) returns the outputs in the same order:
+  its `outs[0]` matches Python's `output_0` to 7e-6 on the same input. The page
+  needed no change.
+- **test-frame.png** now drives the cat and dog templates with these RTMPose
+  keypoints and scores (`test/rtm_keypoints.json`) instead of ground truth. Top:
+  human (MediaPipe). Bottom left: dog template on the antelope. Bottom right: cat
+  template on the jaguar. It is still the CPU port of the shaders.
+- **WGSL**: `test/wgsl-check.js` passes on Dawn (npm `webgpu` 0.6.2) over Mesa 25.2.8
+  lavapipe: both modules compile with no messages and both pipelines are created.
+  Copy work completes here (a buffer write maps back), unlike the claude.ai sandbox.
+  Any draw crashes the process: a bare one-triangle pass segfaults, and the full
+  render aborts with the same "futex facility returned an unexpected error code"
+  seen there. `LP_NUM_THREADS=0` or `1` turns the abort into a segfault.
+- **The shaders, executed**: `test/render-gpu.js` runs both passes, unmodified, in
+  headless Chromium with SwiftShader as the WebGPU adapter, with the page's
+  pipelines, blend states, formats, uniforms and bind groups. The frame goes
+  through `importExternalTexture` as a `VideoFrame`, so the `texture_external`
+  path is exercised too. No WebGPU errors. Output: `test-frame-gpu.png`. Difference
+  from the CPU port per 8-bit channel:
+
+  | panel | mean | p50 | p99 |
+  |---|---|---|---|
+  | human | 3.8 | 3 | 15 |
+  | dog | 8.4 | 6 | 41 |
+  | cat | 5.7 | 4 | 33 |
+
+  The p50 is the grain term (±6 levels, computed with f32 `sin` on the GPU and f64
+  in JS). Of the pixels off by more than 30 in any channel, 78-93% sit on an image
+  edge: the CPU port reads luminance nearest-neighbour at the ±1.5 px Sobel taps,
+  while the shader samples bilinearly. The dog panel has the most because the grass
+  is edges throughout. SwiftShader timings (0.2-0.5 s per frame) say nothing about a
+  real GPU.
+
 Not tested, needs real hardware:
 
-- Anything on a GPU: the actual WebGPU frame, frame rate, `importExternalTexture`
-  on Safari, MediaPipe's GPU delegate, LiteRT.js WebGPU compile of the animal
-  model, its output order (assumed simcc_x then simcc_y, per the model card) and
-  its latency on phones.
+- Anything on a real GPU: frame rate, `importExternalTexture` on Safari, MediaPipe's
+  GPU delegate, the LiteRT.js WebGPU compile of the animal model and whether its
+  output order matches the wasm path, and its latency on phones.
 - Camera start and flip, portrait layout on a real phone, permission prompts.
 - Frame rate. Nothing here was measured. Expected order of magnitude, not a
   measurement: render cost is small (hundreds of instanced quads plus one
@@ -134,19 +179,17 @@ Not tested, needs real hardware:
 ## Files
 
 - `web/index.html`: the page. Inline JS and WGSL, no build step.
+- `web/rtm_animal_fp16.bin`: the RTMPose-m AP-10K LiteRT model (27.5 MB).
 - `test/extract.js`: pulls the inline JS and WGSL blocks out of the page.
-- `test/wgsl-check.js`: Dawn compile plus pipeline validation (`VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json node wgsl-check.js`).
+- `test/wgsl-check.js`: Dawn compile plus pipeline validation (`VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json node wgsl-check.js`; needs `mesa-vulkan-drivers`).
 - `test/render-cpu.js`: CPU port of the shaders; writes `test-frame.png`.
-- `test/make-fixtures.py`: regenerates the landmark, mask and ground-truth fixtures.
-- `test/pose_landmarks.json`, `test/pose_mask.json` (16-level run-length text), `test/ap10k_gt.json`: fixtures written by `make-fixtures.py`.
-- `test-frame.png`: the CPU-rendered test frame.
+- `test/render-gpu.js`: runs the page's shaders in headless Chromium on SwiftShader; writes `test-frame-gpu.png` and the CPU/GPU difference.
+- `test/run-rtmpose.py`, `test/verify-rtmpose.js`: run RTMPose with the page's preprocessing, decode with the page's decoder, score against ground truth; write `test/rtm_keypoints.json`.
+- `test/make-fixtures.py`: downloads the test images and regenerates the landmark, mask and ground-truth fixtures.
+- `test/pose_landmarks.json`, `test/pose_mask.json` (16-level run-length text), `test/ap10k_gt.json`, `test/rtm_keypoints.json`: fixtures.
+- `test-frame.png`: CPU-rendered test frame. `test-frame-gpu.png`: the same frame from the WGSL on SwiftShader.
 
-The repo copy holds the text files only. The three test JPEGs, `test-frame.png`,
-`pose_mask.json` (28 KB of generated run-length data) and `package-lock.json` were
-left out because the commit path used here accepts only text sent inline.
-`make-fixtures.py` downloads the JPEGs and writes the mask again. To reproduce:
-`cd test && npm i && python3 make-fixtures.py && node render-cpu.js`.
-Regenerating the fixtures this way gave a byte-identical `test-frame.png`.
+To reproduce: `cd test && npm i && pip install mediapipe==0.10.32 ai-edge-litert pillow && python3 make-fixtures.py && python3 run-rtmpose.py && node verify-rtmpose.js && node render-cpu.js && node render-gpu.js`.
 
 Test images: `pose.jpg` from MediaPipe's test assets
 (storage.googleapis.com/mediapipe-assets); `ap10k.jpg` and `ap10k_37516.jpg` from

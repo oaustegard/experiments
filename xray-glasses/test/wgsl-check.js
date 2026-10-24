@@ -1,5 +1,6 @@
 // Compile both WGSL modules with Dawn and build the two render pipelines exactly as the page does.
-// Execution is not attempted: queue work never completes under this sandbox's lavapipe.
+// Execution is not attempted here: Dawn on lavapipe crashes on the first draw in the containers tried.
+// render-gpu.js executes both passes in headless Chromium (SwiftShader) instead.
 const { create, globals } = require('webgpu');
 Object.assign(globalThis, globals);
 const src = require('./extract.js');

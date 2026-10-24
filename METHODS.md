@@ -707,6 +707,23 @@ survives exactly the sanity checks people run.
   `--use-vulkan=swiftshader` fixes it; `WebGPUService`, `--headless=new` and
   `--enable-unsafe-swiftshader` do not. Listen on `device.lost`, or a dead device reads as a page
   that renders nothing. (`navier-stokes-explainer/run/verify.mjs`)
+- **`importExternalTexture` in headless Chromium needs `--use-angle=swiftshader` and
+  `--use-vulkan=swiftshader` together.** With the ANGLE flag alone the import returns an invalid
+  texture and the bind group fails validation; with the Vulkan flag alone, or neither, it throws
+  "Failed to import texture from video". This held for every source tried: a `VideoFrame` from RGBA,
+  I420 or a canvas, and a `<video>` on `--use-fake-device-for-media-stream`. With both flags, a
+  `texture_external` shader runs unmodified. (`xray-glasses/test/render-gpu.js`)
+- **Dawn on lavapipe (npm `webgpu`) validates but cannot draw in these containers.** Shader
+  compilation, `getCompilationInfo` and pipeline creation work, so it is a good WGSL checker. Copy
+  work completes (a `writeBuffer` maps back), but the first draw kills the process: a one-triangle
+  pass segfaults, and a heavier one aborts with "The futex facility returned an unexpected error
+  code", in the claude.ai sandbox (gVisor) and in the Claude Code Firecracker VM alike.
+  `LP_NUM_THREADS=0` does not help. To execute shaders, use headless Chromium on SwiftShader.
+  (`xray-glasses/test/wgsl-check.js`, `README.md`)
+- **LiteRT.js does not load in Node.** `loadLiteRt` injects a `<script>` tag (`document is not
+  defined`). To check a LiteRT.js result headless, serve `node_modules` over localhost with an import
+  map for `@litertjs/core` and `@litertjs/wasm-utils` and run it in Playwright's Chromium; the wasm
+  accelerator needs no GPU flags. (`xray-glasses/README.md`, Verification)
 - **SwiftShader charges ~3 ms per compute dispatch regardless of size.** A stable-fluids step of
   ~50 dispatches on a 320 x 108 grid took 165 ms; the same step is about 1 ms on a laptop GPU. A
   simulation that needs a thousand steps to develop (a cylinder wake) cannot be watched in real
@@ -1348,6 +1365,12 @@ the result.
   (`Math.floor((w - s) / 2)`, as PIL does; a half-pixel shift alone cost 0.002). Result
   0.99994+. Check any browser preprocessing against the Python pipeline before blaming the
   model backend. (`live-tagger/web/app.js` `pixels()`, `live-tagger/RESULTS.md`)
+- **RTMPose LiteRT (`litert-community/RTMPose-Animal-AP10K-LiteRT`): `output_0` is simcc_x,
+  split ratio 2.** Two `[1, 17, 512]` outputs for a 256 px input; decode as `argmax / 2` in crop
+  pixels. Swapped order puts AP-10K keypoints 160-430 px off; ratios 1.5 or 2.5 put them 93-325 px
+  off. LiteRT.js 2.5.3 returns `outs` in the same order as Python's signature runner. Peak values are
+  raw SimCC maxima of about 0.9-1.5, not probabilities. Input is NCHW float, ImageNet mean/std on
+  0-255 RGB. (`xray-glasses/test/verify-rtmpose.js`)
 - **A distilled cut's token table is no longer the teacher's: enlarge its vocabulary by learning
   rows, and spend codec savings on rows before bits.** Ten epochs of distilling EG2's first 4
   layers moved the trained rows to cosine 0.48 from EG2's own (4x the norm); EG2's rows for

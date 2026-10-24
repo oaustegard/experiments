@@ -1,8 +1,8 @@
 // CPU rasterizer that ports the two WGSL passes in web/index.html line for line
 // (bone density/glow pass + radiograph composite), used to make test-frame.png
 // headlessly. The geometry comes from the page's own XR block (extracted, not copied).
-// Inputs: real MediaPipe Pose Landmarker (lite) output for pose.jpg, and AP-10K
-// ground-truth keypoints for two mmpose test images driving the dog and cat templates.
+// Inputs: real MediaPipe Pose Landmarker (lite) output for pose.jpg, and RTMPose-m AP-10K
+// output for two mmpose test images driving the dog and cat templates.
 const fs = require('fs');
 const path = require('path');
 const jpeg = require('jpeg-js');
@@ -135,7 +135,7 @@ function panel(file, build, mask, maskW, maskH, label) {
   results.push(checkPrims(label, pr, W, H));
   const bones = rasterBones(pr, W, H);
   const px = composite(raw.data, W, H, mask, maskW, maskH, bones, !!mask);
-  return { W, H, px, label };
+  return { W, H, px, label, img: raw.data, pr, mask, maskW, maskH };
 }
 
 // Human: MediaPipe Pose Landmarker lite output on pose.jpg (normalized coords -> px)
@@ -152,13 +152,13 @@ const human = panel('pose.jpg', (pr, W, H) => {
   results.push({ name: 'human landmark distances (px)', shoulderW: d(11, 12).toFixed(1), upperArmL: d(11, 13).toFixed(1), thighL: d(23, 25).toFixed(1), shinL: d(25, 27).toFixed(1) });
 }, mask, maskJ.w, maskJ.h, 'human (MediaPipe lite landmarks)');
 
-// Quadrupeds: AP-10K ground-truth keypoints (antelope -> dog template, jaguar -> cat template)
-const gt = JSON.parse(fs.readFileSync(path.join(D, 'ap10k_gt.json'), 'utf8'));
+// Quadrupeds: RTMPose-m AP-10K keypoints and scores (rtm_keypoints.json, written by run-rtmpose.py +
+// verify-rtmpose.js with the page's crop, normalisation and decoder). Antelope -> dog template, jaguar -> cat template.
+const rtm = JSON.parse(fs.readFileSync(path.join(D, 'rtm_keypoints.json'), 'utf8'));
 function quad(file, species) {
-  const a = gt.annotations.find(x => x.file === file);
-  const K = [], C = [];
-  for (let i = 0; i < 17; i++) { K.push([a.keypoints[i * 3], a.keypoints[i * 3 + 1]]); C.push(a.keypoints[i * 3 + 2] > 0 ? 1 : 0); }
-  return panel(file, (pr) => XR.buildQuad(pr, K, C, species, 0.8), null, 0, 0, `${species} template (AP-10K GT keypoints, ${file})`);
+  const r = rtm.runs.find(x => x.file === file);
+  results.push({ name: `RTMPose vs AP-10K GT, ${file}`, meanErrPx: r.mean_err_px, maxErrPx: r.max_err_px });
+  return panel(file, (pr) => XR.buildQuad(pr, r.keypoints, r.conf, species, 0.8), null, 0, 0, `${species} template (RTMPose keypoints, ${file})`);
 }
 const dog = quad('ap10k.jpg', 'dog');
 const cat = quad('ap10k_37516.jpg', 'cat');
@@ -179,6 +179,8 @@ const cat = quad('ap10k_37516.jpg', 'cat');
   results.push({ name: 'One-Euro on static point with ±3 px noise @30 fps', rawFrameToFrame: (sr / 299).toFixed(2), filtered: (s / 299).toFixed(2) });
 }
 
+module.exports = { panels: { human, dog, cat }, assemble, results };
+
 // Assemble: human on top, dog and cat below (scaled to half width each)
 function scaleBox(p, W, H, w, h) { // box filter for downscale
   const o = Buffer.alloc(w * h * 4);
@@ -190,17 +192,24 @@ function scaleBox(p, W, H, w, h) { // box filter for downscale
   }
   return o;
 }
-const OW = 1000, gap = 4;
-const halfW = (OW - gap) / 2;
-const dH = Math.round(dog.H * halfW / dog.W), cH = Math.round(cat.H * halfW / cat.W), rowH = Math.max(dH, cH);
-const OH = human.H + gap + rowH;
-const png = new PNG({ width: OW, height: OH });
-png.data.fill(0); for (let i = 3; i < png.data.length; i += 4) png.data[i] = 255;
-const blit = (p, w, h, ox, oy) => { for (let y = 0; y < h; y++) p.copy(png.data, ((oy + y) * OW + ox) * 4, y * w * 4, (y + 1) * w * 4); };
-blit(human.px, human.W, human.H, 0, 0);
-blit(scaleBox(dog.px, dog.W, dog.H, halfW, dH), halfW, dH, 0, human.H + gap);
-blit(scaleBox(cat.px, cat.W, cat.H, halfW, cH), halfW, cH, halfW + gap, human.H + gap);
-const outPath = path.join(D, '..', 'test-frame.png');
-fs.writeFileSync(outPath, PNG.sync.write(png));
-console.log(JSON.stringify(results, null, 1));
-console.log('wrote', outPath, OW + 'x' + OH);
+// Lays out the three panels as test-frame.png does; render-gpu.js reuses it for the GPU frame.
+function assemble(human, dog, cat) {
+  const OW = 1000, gap = 4;
+  const halfW = (OW - gap) / 2;
+  const dH = Math.round(dog.H * halfW / dog.W), cH = Math.round(cat.H * halfW / cat.W), rowH = Math.max(dH, cH);
+  const OH = human.H + gap + rowH;
+  const png = new PNG({ width: OW, height: OH });
+  png.data.fill(0); for (let i = 3; i < png.data.length; i += 4) png.data[i] = 255;
+  const blit = (p, w, h, ox, oy) => { for (let y = 0; y < h; y++) p.copy(png.data, ((oy + y) * OW + ox) * 4, y * w * 4, (y + 1) * w * 4); };
+  blit(human.px, human.W, human.H, 0, 0);
+  blit(scaleBox(dog.px, dog.W, dog.H, halfW, dH), halfW, dH, 0, human.H + gap);
+  blit(scaleBox(cat.px, cat.W, cat.H, halfW, cH), halfW, cH, halfW + gap, human.H + gap);
+  return png;
+}
+if (require.main === module) {
+  const png = assemble(human, dog, cat), OW = png.width, OH = png.height;
+  const outPath = path.join(D, '..', 'test-frame.png');
+  fs.writeFileSync(outPath, PNG.sync.write(png));
+  console.log(JSON.stringify(results, null, 1));
+  console.log('wrote', outPath, OW + 'x' + OH);
+}
