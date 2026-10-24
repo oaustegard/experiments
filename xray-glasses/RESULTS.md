@@ -5,19 +5,22 @@ Live: https://austegard.com/fun-and-games/xray-glasses/
 
 ## Answer
 
-How does the page know where to draw the bones, which way you are facing and how your head is turned,
-and how close does it get? MediaPipe Pose Landmarker finds 33 points on a person and RTMPose finds 17 on
-an animal; the page stretches a stock skeleton between them, so it shows how the subject stands and nothing
-about their real bones.
+How does a web page put a moving skeleton on you, or on your dog, from a phone camera, and how well
+does it know where you are?
 
-On the two AP-10K test photos the animal joints land a mean 4.1 px from the hand-marked ones on an antelope <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
-and 15.3 px on a jaguar that fills a crop 1365 px across. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k_37516.jpg/mean_err_px]] -->
-Facing toward or away comes from the pose model's depth estimate of the nose against the shoulders: right on 20/20 photos facing the camera <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
-and 6/7 from behind. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
-The skull is posed by MediaPipe Face Landmarker and sits a median 0.41 cm from the face's landmarks. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
-The iOS camera background, at first rotated a quarter turn, is fixed and confirmed on an iPhone.
+It never sees bones. Two pose models find joints: MediaPipe Pose Landmarker finds 33 points on a person
+and RTMPose finds 17 on a cat or dog. The page stretches a stock skeleton between them. It tells which
+way a person faces from the pose model's depth estimate, since the nose is nearer the camera than the
+shoulders when you face it and farther when you turn away. The skull turns and opens its jaw because a
+third model, MediaPipe Face Landmarker, reports the head's rotation and how far the mouth is open.
 
-Frame rate and battery cost on phones are unmeasured; measuring them could change what runs on the GPU.
+On test photos, animal joints sit a mean 4.1 px from where people marked them on an antelope <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
+and 15.3 px on a jaguar, about 1% of the 1365 px crop. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k_37516.jpg/mean_err_px]] -->
+Facing was called right on 20/20 photos of people facing the camera <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
+and 6/7 photos from behind. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
+The skull's face sits a median 0.41 cm from the face's landmarks. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
+
+Nobody has measured its speed or battery use on a phone yet.
 
 ## Findings
 
