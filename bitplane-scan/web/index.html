@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bit-Plane Dispersion Scan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one instrument column. Controls strip on top, verdict line, then the per-pass ledger. */
+:root {
+  --bg: #f3f5f6;
+  --panel: #ffffff;
+  --ink: #16202a;
+  --muted: #5a6875;
+  --rule: #d5dce2;
+  --accent: #1f6f8b;
+  --accent-soft: #d8eaf1;
+  --ok: #1d7a46;
+  --bad: #b3261e;
+  --warn: #8a5a00;
+  --plane-hi: #1f6f8b;
+  --plane-lo: #c9d3da;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1418; --panel: #161d23; --ink: #e2e8ec; --muted: #93a2ae; --rule: #2a343c;
+    --accent: #5fb3cf; --accent-soft: #1d3440; --ok: #5cc48a; --bad: #f08a80; --warn: #e0b45a;
+    --plane-hi: #5fb3cf; --plane-lo: #34414b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1418; --panel: #161d23; --ink: #e2e8ec; --muted: #93a2ae; --rule: #2a343c;
+  --accent: #5fb3cf; --accent-soft: #1d3440; --ok: #5cc48a; --bad: #f08a80; --warn: #e0b45a;
+  --plane-hi: #5fb3cf; --plane-lo: #34414b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--font-sans);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+main { max-width: 1040px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font: 600 1.6rem/1.2 var(--font-sans); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font: 600 0.78rem/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+header { display: grid; gap: 8px; }
+.planes { display: flex; gap: 3px; align-items: flex-end; margin-top: 6px; flex-wrap: wrap; }
+.planes span { font: 500 0.72rem/1 var(--font-mono); padding: 5px 6px; border-radius: 3px; background: var(--plane-lo); color: var(--ink); min-width: 38px; text-align: center; }
+.planes span.hi { background: var(--plane-hi); color: var(--panel); }
+section.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 16px; }
+label { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); }
+input, select { font: 0.92rem var(--font-mono); padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+button { font: 500 0.9rem var(--font-sans); padding: 8px 14px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--panel); cursor: pointer; }
+button.secondary { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+.file { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; grid-template-columns: none; }
+.file input { width: auto; border: none; padding: 0; background: none; }
+#status { font: 0.85rem var(--font-mono); color: var(--muted); }
+.verdict { display: flex; gap: 10px; flex-wrap: wrap; }
+.chip { font: 500 0.8rem var(--font-mono); padding: 4px 9px; border-radius: 999px; border: 1px solid var(--rule); background: var(--bg); }
+.chip.ok { color: var(--ok); border-color: currentColor; }
+.chip.bad { color: var(--bad); border-color: currentColor; }
+.chip.warn { color: var(--warn); border-color: currentColor; }
+.nogpu { border-color: var(--bad); }
+.nogpu p { color: var(--ink); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font: 0.84rem var(--font-mono); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; }
+th:first-child, td:first-child { text-align: left; }
+td.bar { width: 28%; min-width: 120px; text-align: left; }
+.bartrack { display: inline-block; vertical-align: middle; width: 90px; height: 10px; margin-right: 8px; background: var(--accent-soft); border-radius: 2px; position: relative; overflow: hidden; }
+.barfill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+tr.total td { font-weight: 600; border-bottom: none; }
+.mismatch { color: var(--bad); font-weight: 600; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.summary div { display: grid; gap: 2px; }
+.summary .k { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.summary .v { font: 500 1.05rem var(--font-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 0.85rem; color: var(--muted); display: grid; gap: 8px; }
+.note ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Bit-Plane Dispersion Scan</h1>
+  <p class="lede">Exact top-K inner-product search over int8 vectors that reads the corpus one bit plane at a time. Each pass scores the remaining candidates with popcounts on packed planes, bounds what the unread planes could add, and drops every candidate whose upper bound falls below the K-th best lower bound.</p>
+  <div class="planes" id="planeStrip" aria-label="Two's-complement plane weights; highlighted planes are read in pass 1"></div>
+</header>
+
+<section class="panel nogpu" id="nogpu" hidden>
+  <h2>WebGPU unavailable</h2>
+  <p id="nogpuMsg">This browser does not expose <code>navigator.gpu</code>. The GPU scan needs a WebGPU-capable browser (Chrome or Edge 113+, Safari 26+, or Firefox with WebGPU enabled). The CPU reference below still runs, so you can inspect survivor counts and bytes per pass.</p>
+</section>
+
+<section class="panel">
+  <h2>Corpus and query</h2>
+  <div class="controls">
+    <label for="dist">Distribution
+      <select id="dist">
+        <option value="clustered:0.35">Clustered, tight (spread 0.35)</option>
+        <option value="clustered:0.6">Clustered, loose (spread 0.6)</option>
+        <option value="gaussian">Gaussian i.i.d.</option>
+      </select>
+    </label>
+    <label for="nvec">Vectors N
+      <select id="nvec">
+        <option selected>20000</option><option>100000</option><option>200000</option>
+      </select>
+    </label>
+    <label for="dim">Dimension D (multiple of 32, max 2048)
+      <input id="dim" type="number" value="768" min="32" max="2048" step="32">
+    </label>
+    <label for="topk">K
+      <input id="topk" type="number" value="10" min="1" max="1000">
+    </label>
+    <label for="sched">Planes per pass
+      <input id="sched" value="3,1,1,1,1,1">
+    </label>
+    <label for="budget">Plane budget (8 = exact)
+      <input id="budget" type="number" value="8" min="1" max="8">
+    </label>
+    <label for="seed">Seed
+      <input id="seed" type="number" value="1">
+    </label>
+    <label for="nq">Queries per run
+      <input id="nq" type="number" value="4" min="1" max="64">
+    </label>
+  </div>
+  <div class="actions">
+    <button id="genBtn" type="button">Generate corpus</button>
+    <button id="runBtn" type="button" disabled>Run brute force and bit-plane scan</button>
+    <span id="status">Idle.</span>
+  </div>
+  <div class="actions">
+    <label class="file" for="npy">Or load your own embeddings: a float32 <code>.npy</code> of shape [N, D]. The last rows are held out as queries.
+      <input id="npy" type="file" accept=".npy">
+    </label>
+  </div>
+</section>
+
+<section class="panel" id="resultPanel">
+  <h2>Result</h2>
+  <div class="verdict" id="verdict"><span class="chip">Generate a corpus, then run.</span></div>
+  <div class="summary" id="summary" style="margin-top:14px"></div>
+</section>
+
+<section class="panel">
+  <h2>Passes (first query; counts averaged over all queries in the last column)</h2>
+  <div class="tablewrap">
+    <table id="passTable">
+      <thead><tr>
+        <th>Pass</th><th>Planes read</th><th>Unread r</th><th>In</th><th>Out (GPU)</th><th>Out (CPU ref)</th>
+        <th>Survive</th><th>Bytes read</th><th>GPU ms</th><th>Mean out, all q</th>
+      </tr></thead>
+      <tbody><tr><td colspan="10" style="text-align:left;color:var(--muted)">No run yet.</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel note">
+  <h2>What is verified where</h2>
+  <ul>
+    <li>The CPU reference column is a JavaScript port of <code>reference.py</code>, operation for operation, including float32 rounding of the bounds. The page checks GPU top-K against GPU brute force and against CPU brute force, and GPU survivor counts against the CPU port.</li>
+    <li>GPU timings come from <code>timestamp-query</code> when the adapter has it, otherwise from wall-clock time around <code>onSubmittedWorkDone</code>. Before publishing, the kernels were only run on SwiftShader, a software rasterizer. Treat the timings as this machine's numbers.</li>
+    <li>Bytes read count every storage-buffer read in the pipeline: plane words, scales, residual norms, carried indices and partial dots, four radix-histogram rounds and the compaction read. Readback is excluded.</li>
+  </ul>
+</section>
+</main>
+
+<!-- ======================================================================
+     WGSL kernels. Workgroup size 256 throughout. Planes layout: [plane b][vector i][word w],
+     bit (j % 32) of word (j / 32) of plane b = bit b of the two's-complement byte of component j.
+     ====================================================================== -->
+<script id="wgsl-common" type="text/wgsl">
+struct Params {
+  N: u32, W: u32, K: u32, pass_: u32,
+  first: u32, last: u32, btop: u32, k: u32,
+  r: u32, round: u32, hc: f32, cl1: f32,
+  l2q: f32, _p0: u32, _p1: u32, _p2: u32,
+}
+struct QWords { w: array<vec4<u32>, 128> }   // D/4 u32 words, D <= 2048
+
+fn fkey(v: f32) -> u32 {                     // order-preserving f32 -> u32
+  let b = bitcast<u32>(v);
+  return select(b | 0x80000000u, ~b, (b >> 31u) == 1u);
+}
+</script>
+
+<script id="wgsl-score" type="text/wgsl">
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<uniform> Q: QWords;              // query planes, [c][w]
+@group(0) @binding(2) var<storage, read> planes: array<u32>;
+@group(0) @binding(3) var<storage, read> scale: array<f32>;
+@group(0) @binding(4) var<storage, read> rnorm: array<f32>; // [r][N]
+@group(0) @binding(5) var<storage, read> idx_in: array<u32>;
+@group(0) @binding(6) var<storage, read_write> qhi: array<i32>;
+@group(0) @binding(7) var<storage, read_write> keys: array<vec2<u32>>;
+@group(0) @binding(8) var<storage, read> counts: array<u32>;
+
+fn qword(c: u32, w: u32) -> u32 {
+  let f = c * P.W + w;
+  return Q.w[f >> 2u][f & 3u];
+}
+
+// One pass: add the next P.k planes (from P.btop downwards) to the exact partial dot
+// q . hi(x), then emit sortable keys for the lower and upper bound of the full score.
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let j = gid.x;
+  let M = counts[P.pass_];
+  if (j >= M) { return; }
+  var i = j;
+  var acc = 0i;
+  if (P.first == 0u) { i = idx_in[j]; acc = qhi[j]; }
+  for (var t = 0u; t < P.k; t = t + 1u) {
+    let b = P.btop - t;
+    let base = (b * P.N + i) * P.W;
+    var d = 0i;
+    for (var w = 0u; w < P.W; w = w + 1u) {
+      let x = planes[base + w];
+      // q . plane_b(x) = sum_c weight(c) * popcount(Q_c & X_b), weight(7) = -128
+      for (var c = 0u; c < 7u; c = c + 1u) {
+        d = d + (i32(countOneBits(x & qword(c, w))) << c);
+      }
+      d = d - (i32(countOneBits(x & qword(7u, w))) << 7u);
+    }
+    let pw = select(1i << b, -128i, b == 7u);
+    acc = acc + pw * d;
+  }
+  qhi[j] = acc;
+
+  let s = scale[i];
+  var lb: f32; var ub: f32; var mid: f32;
+  if (P.r == 0u) {
+    let sc = s * f32(acc);
+    lb = sc; ub = sc; mid = sc;
+  } else {
+    // full dot = q.hi + c*sum(q) + q.(e - c),  |q.(e - c)| <= min(c*|q|_1, |q|_2 * R_r)
+    let center = f32(acc) + P.hc;
+    var w = min(P.cl1, P.l2q * rnorm[P.r * P.N + i]);
+    w = w * 1.00001 + abs(center) * 1e-6 + 4.0;      // float32 rounding slack
+    lb = s * (center - w);
+    ub = s * (center + w);
+    mid = s * center;
+  }
+  if (P.last == 1u) {
+    let k = fkey(mid);
+    keys[j] = vec2<u32>(k, k);
+  } else {
+    keys[j] = vec2<u32>(fkey(lb), fkey(ub));
+  }
+}
+</script>
+
+<script id="wgsl-brute" type="text/wgsl">
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<uniform> Q: QWords;              // packed int8 query
+@group(0) @binding(2) var<storage, read> corpus: array<u32>; // packed int8, D/4 words per vector
+@group(0) @binding(3) var<storage, read> scale: array<f32>;
+@group(0) @binding(4) var<storage, read_write> keys: array<vec2<u32>>;
+
+fn dot4(a: u32, b: u32) -> i32 {
+  /*DOT4*/
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let i = gid.x;
+  if (i >= P.N) { return; }
+  let nw = P.W * 8u;
+  let base = i * nw;
+  var d = 0i;
+  for (var w = 0u; w < nw; w = w + 1u) {
+    d = d + dot4(corpus[base + w], Q.w[w >> 2u][w & 3u]);
+  }
+  let k = fkey(scale[i] * f32(d));
+  keys[i] = vec2<u32>(k, k);
+}
+</script>
+
+<script id="wgsl-hist" type="text/wgsl">
+// Radix select, histogram step: 8 bits per round, MSB first, over keys[.].x whose
+// higher bytes equal the prefix chosen so far.
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<storage, read> keys: array<vec2<u32>>;
+@group(0) @binding(2) var<storage, read> counts: array<u32>;
+@group(0) @binding(3) var<storage, read> state: array<u32>;   // [prefix, kRem, theta]
+@group(0) @binding(4) var<storage, read_write> hist: array<atomic<u32>, 256>;
+
+var<workgroup> lh: array<atomic<u32>, 256>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>,
+        @builtin(local_invocation_index) li: u32) {
+  atomicStore(&lh[li], 0u);
+  workgroupBarrier();
+  let M = counts[P.pass_];
+  let shift = 24u - 8u * P.round;
+  let j = gid.x;
+  if (j < M) {
+    let key = keys[j].x;
+    var hm = 0u;
+    if (P.round > 0u) { hm = 0xFFFFFFFFu << (shift + 8u); }
+    if ((key & hm) == (state[0] & hm)) {
+      atomicAdd(&lh[(key >> shift) & 255u], 1u);
+    }
+  }
+  workgroupBarrier();
+  let v = atomicLoad(&lh[li]);
+  if (v > 0u) { atomicAdd(&hist[li], v); }
+}
+</script>
+
+<script id="wgsl-scan" type="text/wgsl">
+// Radix select, bucket choice: one invocation walks the 256 buckets from the top.
+// After round 3, state[2] is the exact K-th largest key (0 if fewer than K items).
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<storage, read_write> state: array<u32>;
+@group(0) @binding(2) var<storage, read_write> hist: array<u32, 256>;
+
+@compute @workgroup_size(1)
+fn main() {
+  var kRem = state[1];
+  var prefix = state[0];
+  if (P.round == 0u) { kRem = P.K; prefix = 0u; }
+  let shift = 24u - 8u * P.round;
+  var cum = 0u;
+  var bsel = 0u;
+  var found = false;
+  for (var bi = 255i; bi >= 0i; bi = bi - 1i) {
+    let h = hist[bi];
+    if (!found && cum + h >= kRem) {
+      bsel = u32(bi);
+      found = true;
+      kRem = kRem - cum;
+    }
+    cum = cum + h;
+    hist[bi] = 0u;
+  }
+  prefix = prefix | (bsel << shift);
+  state[0] = prefix;
+  state[1] = kRem;
+  if (P.round == 3u) { state[2] = prefix; }
+}
+</script>
+
+<script id="wgsl-compact" type="text/wgsl">
+// Stream compaction by atomic append: keep slot j if its upper-bound key >= theta.
+// Non-final pass: append (vector index, partial dot). Final pass: append (index, rank key).
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<storage, read> keys: array<vec2<u32>>;
+@group(0) @binding(2) var<storage, read_write> counts: array<atomic<u32>>;
+@group(0) @binding(3) var<storage, read> state: array<u32>;
+@group(0) @binding(4) var<storage, read> idx_in: array<u32>;
+@group(0) @binding(5) var<storage, read> qhi_in: array<i32>;
+@group(0) @binding(6) var<storage, read_write> idx_out: array<u32>;
+@group(0) @binding(7) var<storage, read_write> val_out: array<u32>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let j = gid.x;
+  let M = atomicLoad(&counts[P.pass_]);
+  if (j >= M) { return; }
+  let kk = keys[j];
+  if (kk.y >= state[2]) {
+    let pos = atomicAdd(&counts[P.pass_ + 1u], 1u);
+    var i = j;
+    if (P.first == 0u) { i = idx_in[j]; }
+    idx_out[pos] = i;
+    if (P.last == 1u) { val_out[pos] = kk.y; }
+    else { val_out[pos] = bitcast<u32>(qhi_in[j]); }
+  }
+}
+</script>
+
+<script id="wgsl-indirect" type="text/wgsl">
+// Dispatch size for the next pass, computed on the GPU (no readback between passes).
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<storage, read> counts: array<u32>;
+@group(0) @binding(2) var<storage, read_write> args: array<u32>;
+
+@compute @workgroup_size(1)
+fn main() {
+  let n = counts[P.pass_ + 1u];
+  let o = (P.pass_ + 1u) * 3u;
+  args[o] = (n + 255u) / 256u;
+  args[o + 1u] = 1u;
+  args[o + 2u] = 1u;
+}
+</script>
+
+<script>
+"use strict";
+// ==========================================================================
+// CPU reference: a 1:1 port of reference.py (quantize, pack, bounds, select).
+// ==========================================================================
+const f = Math.fround;
+const PLANE_W = [1, 2, 4, 8, 16, 32, 64, -128];
+const W1 = f(1.00001), E6 = f(1e-6);
+const _fb = new Float32Array(1), _ub = new Uint32Array(_fb.buffer);
+
+function f32key(v) {
+  _fb[0] = v; const b = _ub[0];
+  return (b >>> 31) ? (~b) >>> 0 : (b | 0x80000000) >>> 0;
+}
+function nextUpF32(v) { _fb[0] = v; _ub[0] = _ub[0] + 1; return _fb[0]; } // v >= 0
+function popcnt(x) {
+  x = x - ((x >>> 1) & 0x55555555);
+  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+  return (Math.imul((x + (x >>> 4)) & 0x0F0F0F0F, 0x01010101) >>> 24);
+}
+function rintEven(x) {
+  const r = Math.round(x);
+  return (Math.abs(x % 1) === 0.5 && (r % 2) !== 0) ? r - 1 : r;
+}
+
+// mulberry32 + Box-Muller (the page's own generator; it does not reproduce numpy's stream)
+function makeRng(seed) {
+  let a = seed >>> 0, spare = null;
+  const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const g = () => { if (spare !== null) { const s = spare; spare = null; return s; }
+    let x; do { x = u(); } while (x <= 1e-300);
+    const r = Math.sqrt(-2 * Math.log(x)), th = 2 * Math.PI * u(); spare = r * Math.sin(th); return r * Math.cos(th); };
+  return { u, g, int: (n) => Math.floor(u() * n) };
+}
+
+function genGaussian(rng, N, D) {
+  const X = new Float32Array(N * D);
+  for (let i = 0; i < X.length; i++) X[i] = rng.g();
+  return { X, queries: (n) => { const Q = new Float32Array(n * D); for (let i = 0; i < Q.length; i++) Q[i] = rng.g(); return Q; } };
+}
+
+// Same construction as reference.gen_clustered: random orthogonal basis B (Gram-Schmidt
+// on a Gaussian matrix), centres with power-law spectrum in B plus a shared mean
+// direction, within-cluster noise = half low-rank (top M_LOW columns of B) + half isotropic.
+// Uses the page's own RNG, so the numbers differ from numpy's; the distribution is the same.
+function genClustered(rng, N, D, spread, C = 1000, meanFrac = 0.4, alpha = 1.0) {
+  const M_LOW = 32;
+  const spec = new Float64Array(D);
+  for (let j = 0; j < D; j++) spec[j] = Math.pow(j + 1, -alpha / 2);
+  const B = new Float64Array(D * D);            // row j = basis vector j
+  for (let j = 0; j < D; j++) { const o = j * D;
+    for (let t = 0; t < D; t++) B[o + t] = rng.g();
+    for (let pass = 0; pass < 2; pass++) for (let i = 0; i < j; i++) { const oi = i * D; let d = 0;
+      for (let t = 0; t < D; t++) d += B[o + t] * B[oi + t];
+      for (let t = 0; t < D; t++) B[o + t] -= d * B[oi + t]; }
+    let n = 0; for (let t = 0; t < D; t++) n += B[o + t] * B[o + t]; n = Math.sqrt(n);
+    for (let t = 0; t < D; t++) B[o + t] /= n; }
+  let ls = 0; for (let j = 0; j < M_LOW; j++) ls += spec[j] * spec[j]; ls = Math.sqrt(ls);
+  const norm = (z, o) => { let n = 0; for (let j = 0; j < D; j++) n += z[o + j] * z[o + j];
+    n = Math.sqrt(n); for (let j = 0; j < D; j++) z[o + j] /= n; };
+  const mu = new Float64Array(D); for (let j = 0; j < D; j++) mu[j] = rng.g(); norm(mu, 0);
+  const cen = new Float64Array(C * D);
+  for (let c = 0; c < C; c++) { const o = c * D;
+    for (let j = 0; j < D; j++) { const a = rng.g() * spec[j], oj = j * D;
+      for (let t = 0; t < D; t++) cen[o + t] += a * B[oj + t]; }
+    norm(cen, o);
+    for (let t = 0; t < D; t++) cen[o + t] = (1 - meanFrac) * cen[o + t] + meanFrac * mu[t];
+    norm(cen, o); }
+  const h = spread * Math.SQRT1_2, iso = 1 / Math.sqrt(D);
+  const sample = (n) => { const X = new Float32Array(n * D), z = new Float64Array(D);
+    for (let i = 0; i < n; i++) { const co = rng.int(C) * D;
+      for (let t = 0; t < D; t++) z[t] = cen[co + t] + h * iso * rng.g();
+      for (let j = 0; j < M_LOW; j++) { const a = h * rng.g() * spec[j] / ls, oj = j * D;
+        for (let t = 0; t < D; t++) z[t] += a * B[oj + t]; }
+      norm(z, 0); X.set(z, i * D); }
+    return X; };
+  return { X: sample(N), queries: sample };
+}
+
+function quantize(X, N, D) {
+  const q = new Int8Array(N * D), s = new Float32Array(N);
+  for (let i = 0; i < N; i++) { const o = i * D; let m = 0;
+    for (let j = 0; j < D; j++) { const a = Math.abs(X[o + j]); if (a > m) m = a; }
+    m = Math.max(f(m), f(1e-12)); const si = f(m / 127); s[i] = si;
+    for (let j = 0; j < D; j++) { let v = rintEven(f(X[o + j] / si)); v = v > 127 ? 127 : v < -127 ? -127 : v; q[o + j] = v; } }
+  return { q, s };
+}
+
+function packPlanes(xq, N, D) {          // -> Uint32Array [8][N][W]
+  const W = D / 32, P = new Uint32Array(8 * N * W);
+  for (let i = 0; i < N; i++) for (let w = 0; w < W; w++) {
+    const words = [0, 0, 0, 0, 0, 0, 0, 0];
+    for (let t = 0; t < 32; t++) { const u = xq[i * D + w * 32 + t] & 255;
+      for (let b = 0; b < 8; b++) words[b] |= ((u >>> b) & 1) << t; }
+    for (let b = 0; b < 8; b++) P[(b * N + i) * W + w] = words[b] >>> 0; }
+  return P;
+}
+
+function residualNorms(xq, N, D) {       // -> Float32Array [8][N], rounded up
+  const R = new Float32Array(8 * N);
+  for (let r = 1; r < 8; r++) { const m = (1 << r) - 1;
+    for (let i = 0; i < N; i++) { let ss = 0; const o = i * D;
+      for (let j = 0; j < D; j++) { const e2 = 2 * (xq[o + j] & m) - m; ss += e2 * e2; }
+      R[r * N + i] = nextUpF32(f(Math.sqrt(ss / 4))); } }
+  return R;
+}
+
+function queryStats(qv) {
+  let sumq = 0, l1q = 0, ss = 0;
+  for (const v of qv) { sumq += v; l1q += Math.abs(v); ss += v * v; }
+  return { sumq, l1q, l2q: nextUpF32(f(Math.sqrt(ss))) };
+}
+function passConsts(r, st) {
+  if (r === 0) return { hc: 0, cl1: 0 };
+  const c = f(((1 << r) - 1) * 0.5);
+  return { hc: f(c * f(st.sumq)), cl1: f(c * f(st.l1q)) };
+}
+function bounds(acc, s, Rr, r, pc, l2q) {   // mirrors reference.bounds_f32
+  if (r === 0) { const sc = f(s * f(acc)); return [sc, sc, sc]; }
+  const center = f(f(acc) + pc.hc);
+  let w = Math.min(pc.cl1, f(l2q * Rr));
+  w = f(f(f(w * W1) + f(Math.abs(center) * E6)) + 4);
+  return [f(s * f(center - w)), f(s * f(center + w)), f(s * center)];
+}
+function kthLargest(keys, K) {
+  if (keys.length <= K) return 0;
+  const c = Uint32Array.from(keys).sort();
+  return c[c.length - K];
+}
+function topkFromKeys(idx, keys, K) {
+  const o = Array.from(idx.keys()).sort((a, b) => (keys[b] - keys[a]) || (idx[a] - idx[b]));
+  return o.slice(0, K).map((t) => idx[t]);
+}
+function auxReadBytes(Mi, p, r, last) {      // mirrors reference.aux_read_bytes
+  return Mi * (4 + (r > 0 ? 4 : 0) + (p > 0 ? 8 : 0) + 16 + 4 + (last ? 0 : 4) + (p > 0 ? 4 : 0));
+}
+function bruteReadBytes(N, D) { return N * (D + 24); }
+
+function planPasses(schedule, budget) {   // mirrors the loop head of reference.bitplane_scan
+  const out = []; let seen = 0;
+  for (let p = 0; p < schedule.length; p++) {
+    if (seen >= budget) break;
+    const k = Math.min(schedule[p], budget - seen);
+    const btop = 7 - seen; seen += k;
+    out.push({ p, k, btop, seen, r: 8 - seen, last: (seen >= budget) || (p === schedule.length - 1) });
+    if (out[out.length - 1].last) break;
+  }
+  return out;
+}
+
+function queryPlanes(qv, D) { return packPlanes(qv, 1, D); }   // [8][1][W]
+
+function cpuBrute(C, qv, K) {
+  const { N, D, xq, s } = C; const keys = new Uint32Array(N);
+  for (let i = 0; i < N; i++) { let d = 0; const o = i * D;
+    for (let j = 0; j < D; j++) d += xq[o + j] * qv[j];
+    keys[i] = f32key(f(s[i] * f(d))); }
+  return topkFromKeys(Uint32Array.from({ length: N }, (_, i) => i), keys, K);
+}
+
+function cpuScan(C, qv, K, schedule, budget) {
+  const { N, D, planes, s, R } = C; const W = D / 32;
+  const qp = queryPlanes(qv, D), st = queryStats(qv);
+  let idx = Uint32Array.from({ length: N }, (_, i) => i), qhi = new Int32Array(N);
+  const stats = [];
+  for (const ps of planPasses(schedule, budget)) {
+    const Mi = idx.length, pc = passConsts(ps.r, st);
+    const lbk = new Uint32Array(Mi), ubk = new Uint32Array(Mi);
+    for (let t = 0; t < Mi; t++) { const i = idx[t]; let acc = qhi[t];
+      for (let b = ps.btop; b > ps.btop - ps.k; b--) { const base = (b * N + i) * W; let d = 0;
+        for (let w = 0; w < W; w++) { const x = planes[base + w];
+          for (let c = 0; c < 8; c++) d += PLANE_W[c] * popcnt(x & qp[c * W + w]); }
+        acc += PLANE_W[b] * d; }
+      qhi[t] = acc;
+      const [lb, ub, mid] = bounds(acc, s[i], ps.r > 0 ? R[ps.r * N + i] : 0, ps.r, pc, st.l2q);
+      if (ps.last) { lbk[t] = ubk[t] = f32key(mid); } else { lbk[t] = f32key(lb); ubk[t] = f32key(ub); } }
+    const theta = kthLargest(lbk, K);
+    const keepIdx = [], keepQ = [], keepK = [];
+    for (let t = 0; t < Mi; t++) if (ubk[t] >= theta) { keepIdx.push(idx[t]); keepQ.push(qhi[t]); keepK.push(ubk[t]); }
+    stats.push({ ...ps, nIn: Mi, nOut: keepIdx.length, corpusBytes: Mi * ps.k * D / 8, auxBytes: auxReadBytes(Mi, ps.p, ps.r, ps.last) });
+    if (ps.last) return { top: topkFromKeys(Uint32Array.from(keepIdx), Uint32Array.from(keepK), K), stats };
+    idx = Uint32Array.from(keepIdx); qhi = Int32Array.from(keepQ);
+  }
+  throw new Error("schedule exhausted");
+}
+
+function buildCorpus(xq, s, N, D) {
+  return { N, D, xq, s, planes: packPlanes(xq, N, D), R: residualNorms(xq, N, D) };
+}
+
+// ==========================================================================
+// WebGPU pipeline
+// ==========================================================================
+const WG = 256;
+const GPUQ = {
+  dev: null, info: null, pipes: null, ts: false, buf: null, C: null,
+
+  async init() {
+    if (!navigator.gpu) throw new Error("no-webgpu");
+    const ad = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!ad) throw new Error("no-adapter");
+    this.ts = ad.features.has("timestamp-query");
+    const lim = ad.limits;
+    this.dev = await ad.requestDevice({
+      requiredFeatures: this.ts ? ["timestamp-query"] : [],
+      requiredLimits: { maxStorageBufferBindingSize: lim.maxStorageBufferBindingSize, maxBufferSize: lim.maxBufferSize,
+        maxStorageBuffersPerShaderStage: Math.min(8, lim.maxStorageBuffersPerShaderStage) },
+    });
+    this.info = ad.info || {};
+    this.maxBind = lim.maxStorageBufferBindingSize;
+    const hasDot = !window.BPS_NO_DOT4 && navigator.gpu.wgslLanguageFeatures && navigator.gpu.wgslLanguageFeatures.has("packed_4x8_integer_dot_product");
+    const dot4 = hasDot ? "return dot4I8Packed(a, b);" :
+      "var d = 0i; for (var k = 0u; k < 4u; k = k + 1u) { let sh = 24u - 8u * k; d = d + (bitcast<i32>(a << sh) >> 24u) * (bitcast<i32>(b << sh) >> 24u); } return d;";
+    this.dot4Native = hasDot;
+    const common = document.getElementById("wgsl-common").textContent;
+    const src = (id) => common + document.getElementById(id).textContent.replace("/*DOT4*/", dot4);
+    const errs = [];
+    const mk = async (id) => {
+      const m = this.dev.createShaderModule({ code: src(id), label: id });
+      const ci = await m.getCompilationInfo();
+      for (const msg of ci.messages) if (msg.type === "error") errs.push(`${id}:${msg.lineNum}:${msg.linePos} ${msg.message}`);
+      return this.dev.createComputePipeline({ layout: "auto", compute: { module: m, entryPoint: "main" }, label: id });
+    };
+    this.dev.pushErrorScope("validation");
+    this.pipes = {};
+    for (const id of ["score", "brute", "hist", "scan", "compact", "indirect"]) this.pipes[id] = await mk("wgsl-" + id);
+    const e = await this.dev.popErrorScope();
+    if (e) errs.push(e.message);
+    if (errs.length) throw new Error("WGSL errors:\n" + errs.join("\n"));
+    return this.info;
+  },
+
+  upload(C) {
+    const d = this.dev, S = GPUBufferUsage.STORAGE, CD = GPUBufferUsage.COPY_DST, CS = GPUBufferUsage.COPY_SRC;
+    if (this.buf) for (const b of Object.values(this.buf)) if (b && b.destroy) b.destroy();
+    const need = C.N * C.D;
+    if (need > this.maxBind) throw new Error(`Corpus needs ${need} bytes per binding; adapter allows ${this.maxBind}. Lower N or D.`);
+    const mkb = (size, usage, data) => { const b = d.createBuffer({ size: Math.max(16, Math.ceil(size / 4) * 4), usage: usage | CD });
+      if (data) d.queue.writeBuffer(b, 0, data.buffer, data.byteOffset, data.byteLength); return b; };
+    const N = C.N;
+    this.buf = {
+      planes: mkb(C.planes.byteLength, S, C.planes),
+      corpus: mkb(C.xq.byteLength, S, C.xq),
+      scale: mkb(N * 4, S, C.s),
+      rnorm: mkb(C.R.byteLength, S, C.R),
+      keys: mkb(N * 8, S),
+      idx: [mkb(N * 4, S | CS), mkb(N * 4, S | CS)],
+      qhi: [mkb(N * 4, S | CS), mkb(N * 4, S | CS)],
+      counts: mkb(64 * 4, S | CS),
+      args: mkb(64 * 3 * 4, S | GPUBufferUsage.INDIRECT),
+      state: mkb(16, S),
+      hist: mkb(256 * 4, S),
+      qwords: mkb(2048, GPUBufferUsage.UNIFORM),
+    };
+    this.C = C;
+  },
+
+  params(o) {
+    const a = new ArrayBuffer(64), u = new Uint32Array(a), fl = new Float32Array(a);
+    u[0] = this.C.N; u[1] = this.C.D / 32; u[2] = o.K; u[3] = o.pass_;
+    u[4] = o.first; u[5] = o.last; u[6] = o.btop || 0; u[7] = o.k || 0;
+    u[8] = o.r || 0; u[9] = o.round || 0; fl[10] = o.hc || 0; fl[11] = o.cl1 || 0; fl[12] = o.l2q || 0;
+    const b = this.dev.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.dev.queue.writeBuffer(b, 0, a); return b;
+  },
+  bg(pipe, list) {
+    return this.dev.createBindGroup({ layout: this.pipes[pipe].getBindGroupLayout(0),
+      entries: list.map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+  },
+
+  // Select + compact for "pass" p: theta = K-th largest keys[.].x among counts[p]
+  // slots, then append slots with keys[.].y >= theta into the other ping-pong buffer.
+  encodeSelectCompact(cp, p, K, first, last, inSlot) {
+    const B = this.buf, outSlot = 1 - inSlot;
+    for (let round = 0; round < 4; round++) {
+      const pr = this.params({ K, pass_: p, round, first, last });
+      cp.setPipeline(this.pipes.hist); cp.setBindGroup(0, this.bg("hist", [pr, B.keys, B.counts, B.state, B.hist]));
+      cp.dispatchWorkgroupsIndirect(B.args, p * 12);
+      cp.setPipeline(this.pipes.scan); cp.setBindGroup(0, this.bg("scan", [pr, B.state, B.hist]));
+      cp.dispatchWorkgroups(1);
+    }
+    const pr = this.params({ K, pass_: p, first, last });
+    cp.setPipeline(this.pipes.compact);
+    cp.setBindGroup(0, this.bg("compact", [pr, B.keys, B.counts, B.state, B.idx[inSlot], B.qhi[inSlot], B.idx[outSlot], B.qhi[outSlot]]));
+    cp.dispatchWorkgroupsIndirect(B.args, p * 12);
+    if (!last) {
+      cp.setPipeline(this.pipes.indirect); cp.setBindGroup(0, this.bg("indirect", [pr, B.counts, B.args]));
+      cp.dispatchWorkgroups(1);
+    }
+    return outSlot;
+  },
+
+  resetCounters(nPasses) {
+    const N = this.C.N, c = new Uint32Array(64); c[0] = N;
+    this.dev.queue.writeBuffer(this.buf.counts, 0, c);
+    this.dev.queue.writeBuffer(this.buf.args, 0, new Uint32Array([Math.ceil(N / WG), 1, 1]));
+  },
+
+  async submit(encodeFn, nTimed) {
+    const d = this.dev, enc = d.createCommandEncoder();
+    let qs = null, res = null, rb = null;
+    if (this.ts) { qs = d.createQuerySet({ type: "timestamp", count: 2 * nTimed });
+      res = d.createBuffer({ size: 16 * nTimed, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC });
+      rb = d.createBuffer({ size: 16 * nTimed, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST }); }
+    const beginPass = (t) => enc.beginComputePass(qs ? { timestampWrites: { querySet: qs, beginningOfPassWriteIndex: 2 * t, endOfPassWriteIndex: 2 * t + 1 } } : {});
+    const out = encodeFn(enc, beginPass);
+    if (qs) { enc.resolveQuerySet(qs, 0, 2 * nTimed, res, 0); enc.copyBufferToBuffer(res, 0, rb, 0, 16 * nTimed); }
+    const t0 = performance.now();
+    d.queue.submit([enc.finish()]);
+    await d.queue.onSubmittedWorkDone();
+    const wall = performance.now() - t0;
+    let gpuMs = null;
+    if (rb) { await rb.mapAsync(GPUMapMode.READ); const v = new BigInt64Array(rb.getMappedRange());
+      gpuMs = []; for (let t = 0; t < nTimed; t++) gpuMs.push(Number(v[2 * t + 1] - v[2 * t]) / 1e6); rb.unmap(); }
+    return { out, wall, gpuMs };
+  },
+
+  async readback(slot, pFinal) {
+    const d = this.dev, B = this.buf, N = this.C.N;
+    const enc = d.createCommandEncoder();
+    const rc = d.createBuffer({ size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    enc.copyBufferToBuffer(B.counts, 0, rc, 0, 256);
+    d.queue.submit([enc.finish()]);
+    await rc.mapAsync(GPUMapMode.READ); const counts = Uint32Array.from(new Uint32Array(rc.getMappedRange())); rc.unmap();
+    const n = counts[pFinal + 1];
+    const e2 = d.createCommandEncoder();
+    const ri = d.createBuffer({ size: Math.max(16, n * 4), usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const rk = d.createBuffer({ size: Math.max(16, n * 4), usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    if (n) { e2.copyBufferToBuffer(B.idx[slot], 0, ri, 0, n * 4); e2.copyBufferToBuffer(B.qhi[slot], 0, rk, 0, n * 4); }
+    d.queue.submit([e2.finish()]);
+    await Promise.all([ri.mapAsync(GPUMapMode.READ), rk.mapAsync(GPUMapMode.READ)]);
+    const idx = Uint32Array.from(new Uint32Array(ri.getMappedRange()).slice(0, n));
+    const key = Uint32Array.from(new Uint32Array(rk.getMappedRange()).slice(0, n));
+    ri.unmap(); rk.unmap(); ri.destroy(); rk.destroy(); rc.destroy();
+    return { counts, idx, key };
+  },
+
+  async brute(qv, K) {
+    const C = this.C, D = C.D;
+    const qw = new Uint32Array(512); qw.set(new Uint32Array(Int8Array.from(qv).buffer));
+    this.dev.queue.writeBuffer(this.buf.qwords, 0, qw);
+    this.resetCounters(1);
+    const r = await this.submit((enc, beginPass) => {
+      const cp = beginPass(0);
+      const pr = this.params({ K, pass_: 0, first: 1, last: 1 });
+      cp.setPipeline(this.pipes.brute);
+      cp.setBindGroup(0, this.bg("brute", [pr, this.buf.qwords, this.buf.corpus, this.buf.scale, this.buf.keys]));
+      cp.dispatchWorkgroups(Math.ceil(C.N / WG));
+      const slot = this.encodeSelectCompact(cp, 0, K, 1, 1, 0);
+      cp.end(); return slot;
+    }, 1);
+    const rb = await this.readback(r.out, 0);
+    return { top: topkFromKeys(rb.idx, rb.key, K), ms: r.gpuMs ? r.gpuMs[0] : r.wall, wall: r.wall, bytes: bruteReadBytes(C.N, D) };
+  },
+
+  async scan(qv, K, schedule, budget) {
+    const C = this.C, D = C.D, W = D / 32;
+    const qp = queryPlanes(qv, D), st = queryStats(qv);
+    const qw = new Uint32Array(512); qw.set(qp);
+    this.dev.queue.writeBuffer(this.buf.qwords, 0, qw);
+    const plan = planPasses(schedule, budget);
+    this.resetCounters(plan.length);
+    const r = await this.submit((enc, beginPass) => {
+      let slot = 0;
+      for (const ps of plan) {
+        const cp = beginPass(ps.p);
+        const pc = passConsts(ps.r, st);
+        const pr = this.params({ K, pass_: ps.p, first: ps.p === 0 ? 1 : 0, last: ps.last ? 1 : 0,
+          btop: ps.btop, k: ps.k, r: ps.r, hc: pc.hc, cl1: pc.cl1, l2q: st.l2q });
+        cp.setPipeline(this.pipes.score);
+        cp.setBindGroup(0, this.bg("score", [pr, this.buf.qwords, this.buf.planes, this.buf.scale, this.buf.rnorm,
+          this.buf.idx[slot], this.buf.qhi[slot], this.buf.keys, this.buf.counts]));
+        cp.dispatchWorkgroupsIndirect(this.buf.args, ps.p * 12);
+        slot = this.encodeSelectCompact(cp, ps.p, K, ps.p === 0 ? 1 : 0, ps.last ? 1 : 0, slot);
+        cp.end();
+      }
+      return slot;
+    }, plan.length);
+    const pl = plan[plan.length - 1];
+    const rb = await this.readback(r.out, pl.p);
+    const stats = plan.map((ps) => { const Mi = rb.counts[ps.p];
+      return { ...ps, nIn: Mi, nOut: rb.counts[ps.p + 1], corpusBytes: Mi * ps.k * D / 8, auxBytes: auxReadBytes(Mi, ps.p, ps.r, ps.last),
+        gpuMs: r.gpuMs ? r.gpuMs[ps.p] : null }; });
+    return { top: topkFromKeys(rb.idx, rb.key, K), stats, ms: r.gpuMs ? r.gpuMs.reduce((a, b) => a + b, 0) : r.wall, wall: r.wall };
+  },
+};
+
+// ==========================================================================
+// Page
+// ==========================================================================
+const $ = (id) => document.getElementById(id);
+let corpus = null, queries = null, gpuReady = null;
+const fmtB = (b) => b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : b >= 1e6 ? (b / 1e6).toFixed(2) + " MB" : b >= 1e3 ? (b / 1e3).toFixed(1) + " kB" : b + " B";
+const fmtN = (n) => Math.round(n).toLocaleString("en-US");
+const sameArr = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+const setStatus = (t) => { $("status").textContent = t; };
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
+function readSchedule() {
+  const s = $("sched").value.split(/[,\s+]+/).filter(Boolean).map(Number);
+  if (!s.length || s.some((v) => !Number.isInteger(v) || v < 1 || v > 8) || s.reduce((a, b) => a + b, 0) < 1)
+    throw new Error("Planes per pass must be a list of integers 1-8, for example 3,1,1,1,1,1.");
+  return s;
+}
+
+function drawPlaneStrip() {
+  let s; try { s = readSchedule(); } catch { s = [3]; }
+  const k0 = Math.min(s[0], Number($("budget").value) || 8);
+  $("planeStrip").innerHTML = [7, 6, 5, 4, 3, 2, 1, 0].map((b) =>
+    `<span class="${7 - b < k0 ? "hi" : ""}" title="plane ${b}">${PLANE_W[b] > 0 ? "+" : "−"}${Math.abs(PLANE_W[b])}</span>`).join("");
+}
+
+async function ensureGpu() {
+  if (gpuReady) return gpuReady;
+  gpuReady = GPUQ.init().catch((e) => {
+    $("nogpu").hidden = false;
+    if (e.message === "no-adapter") $("nogpuMsg").textContent = "navigator.gpu exists, but requestAdapter() returned no adapter. WebGPU may be disabled or blocklisted for this GPU. The CPU reference still runs.";
+    else if (e.message !== "no-webgpu") $("nogpuMsg").textContent = "WebGPU setup failed: " + e.message;
+    return null;
+  });
+  return gpuReady;
+}
+
+async function generate() {
+  try {
+    $("genBtn").disabled = true; $("runBtn").disabled = true;
+    const N = Number($("nvec").value), D = Number($("dim").value), seed = Number($("seed").value) | 0;
+    if (D % 32 || D < 32 || D > 2048) throw new Error("D must be a multiple of 32 between 32 and 2048.");
+    setStatus(`Generating ${fmtN(N)} x ${D} vectors...`); await tick();
+    const rng = makeRng(seed), dist = $("dist").value;
+    const g = dist === "gaussian" ? genGaussian(rng, N, D) : genClustered(rng, N, D, Number(dist.split(":")[1]));
+    await setCorpus(g.X, N, D, g.queries(Number($("nq").value)));
+  } catch (e) { setStatus("Error: " + e.message); }
+  finally { $("genBtn").disabled = false; }
+}
+
+async function setCorpus(X, N, D, Qf) {
+  setStatus("Quantizing and packing bit planes..."); await tick();
+  const t0 = performance.now();
+  const qz = quantize(X, N, D);
+  corpus = buildCorpus(qz.q, qz.s, N, D);
+  const nq = Qf.length / D;
+  queries = []; const qq = quantize(Qf, nq, D).q;
+  for (let t = 0; t < nq; t++) queries.push(qq.slice(t * D, (t + 1) * D));
+  const g = await ensureGpu();
+  if (g) { setStatus("Uploading to GPU..."); await tick(); GPUQ.upload(corpus); }
+  setStatus(`Corpus ready: ${fmtN(N)} x ${D}, ${fmtB(N * D)} int8, prepared in ${((performance.now() - t0) / 1000).toFixed(1)} s. ${g ? "" : "CPU only."}`);
+  $("runBtn").disabled = false;
+}
+
+async function loadNpy(file) {
+  const buf = await file.arrayBuffer(), u8 = new Uint8Array(buf);
+  if (u8[0] !== 0x93 || String.fromCharCode(...u8.slice(1, 6)) !== "NUMPY") throw new Error("Not a .npy file.");
+  const hl = u8[6] === 1 ? new DataView(buf).getUint16(8, true) : new DataView(buf).getUint32(8, true);
+  const ho = u8[6] === 1 ? 10 : 12, hdr = new TextDecoder().decode(u8.slice(ho, ho + hl));
+  if (!/'descr':\s*'<f4'/.test(hdr) || /'fortran_order':\s*True/.test(hdr)) throw new Error("Need a C-order float32 (<f4) array.");
+  const m = hdr.match(/'shape':\s*\((\d+),\s*(\d+)\)/); if (!m) throw new Error("Need a 2-D array [N, D].");
+  let N = Number(m[1]); const D0 = Number(m[2]);
+  const D = Math.min(2048, Math.ceil(D0 / 32) * 32);
+  const src = new Float32Array(buf, ho + hl, N * D0);
+  const nq = Math.min(Number($("nq").value), Math.max(1, Math.floor(N / 10)));
+  // Hold out the last nq rows as queries; zero-pad D up to a multiple of 32.
+  const pad = (o, n) => { const X = new Float32Array(n * D); for (let i = 0; i < n; i++) X.set(src.subarray((o + i) * D0, (o + i + 1) * D0).subarray(0, D), i * D); return X; };
+  const Qf = pad(N - nq, nq); N -= nq;
+  await setCorpus(pad(0, N), N, D, Qf);
+}
+
+async function run() {
+  if (!corpus) return;
+  $("runBtn").disabled = true; $("genBtn").disabled = true;
+  try {
+    const K = Number($("topk").value), schedule = readSchedule(), budget = Math.max(1, Math.min(8, Number($("budget").value)));
+    const exact = planPasses(schedule, budget).at(-1).r === 0;
+    const g = await ensureGpu();
+    const per = [];
+    for (let t = 0; t < queries.length; t++) {
+      setStatus(`Query ${t + 1}/${queries.length}: CPU reference...`); await tick();
+      const qv = queries[t];
+      const t0 = performance.now(); const cb = cpuBrute(corpus, qv, K); const tcb = performance.now() - t0;
+      const t1 = performance.now(); const cs = cpuScan(corpus, qv, K, schedule, budget); const tcs = performance.now() - t1;
+      let gb = null, gs = null;
+      if (g) {
+        setStatus(`Query ${t + 1}/${queries.length}: GPU...`); await tick();
+        if (t === 0) { await GPUQ.brute(qv, K); await GPUQ.scan(qv, K, schedule, budget); }   // warm-up
+        gb = await GPUQ.brute(qv, K); gs = await GPUQ.scan(qv, K, schedule, budget);
+      }
+      per.push({ cb, cs, gb, gs, tcb, tcs });
+    }
+    render(per, K, exact);
+    setStatus(`Done: ${queries.length} queries, K=${K}.`);
+  } catch (e) { setStatus("Error: " + e.message); console.error(e); }
+  finally { $("runBtn").disabled = false; $("genBtn").disabled = false; }
+}
+
+function render(per, K, exact) {
+  const N = corpus.N, D = corpus.D, g = !!per[0].gb;
+  const recall = (a, b) => a.filter((x) => b.includes(x)).length / K;
+  const allExactCpu = per.every((x) => sameArr(x.cs.top, x.cb));
+  const chips = [];
+  const chip = (cls, t) => chips.push(`<span class="chip ${cls}">${t}</span>`);
+  const meanRecall = per.reduce((a, x) => a + recall(x.cs.top, x.cb), 0) / per.length;
+  if (exact) chip(allExactCpu ? "ok" : "bad", allExactCpu ? "CPU scan top-K = CPU brute force" : "CPU scan top-K differs from brute force");
+  else chip("warn", `Plane budget: recall@${K} ${meanRecall.toFixed(3)} (CPU)`);
+  if (g) {
+    const gbOk = per.every((x) => sameArr(x.gb.top, x.cb));
+    const gsOk = per.every((x) => sameArr(x.gs.top, x.cs.top));
+    const cntOk = per.every((x) => x.gs.stats.every((s, i) => s.nOut === x.cs.stats[i].nOut));
+    chip(gbOk ? "ok" : "bad", gbOk ? "GPU brute force = CPU brute force" : "GPU brute force differs from CPU");
+    chip(gsOk ? "ok" : "bad", gsOk ? (exact ? "GPU bit-plane top-K = brute force" : "GPU bit-plane top-K = CPU bit-plane") : "GPU bit-plane top-K differs");
+    chip(cntOk ? "ok" : "warn", cntOk ? "GPU survivor counts = CPU reference" : "GPU survivor counts differ from CPU reference");
+  } else chip("warn", "GPU not run");
+  $("verdict").innerHTML = chips.join("");
+
+  const med = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  const scanBytes = (st) => st.reduce((a, s) => a + s.corpusBytes + s.auxBytes, 0);
+  const bb = bruteReadBytes(N, D), sb = per.reduce((a, x) => a + scanBytes(x.cs.stats), 0) / per.length;
+  const items = [
+    ["Corpus", `${fmtN(N)} x ${D}`],
+    ["Brute force reads", fmtB(bb)],
+    ["Bit-plane scan reads", `${fmtB(sb)} (${(sb / bb).toFixed(3)}x)`],
+  ];
+  if (g) {
+    items.push(["GPU brute force", `${med(per.map((x) => x.gb.ms)).toFixed(2)} ms`]);
+    items.push(["GPU bit-plane scan", `${med(per.map((x) => x.gs.ms)).toFixed(2)} ms`]);
+    items.push(["Adapter", `${GPUQ.info.vendor || "?"} ${GPUQ.info.architecture || ""}`.trim() + (GPUQ.ts ? ", timestamps" : ", wall clock")]);
+  }
+  items.push(["CPU brute / scan (JS)", `${med(per.map((x) => x.tcb)).toFixed(0)} / ${med(per.map((x) => x.tcs)).toFixed(0)} ms`]);
+  $("summary").innerHTML = items.map(([k, v]) => `<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+  const st0 = per[0].cs.stats, gst0 = g ? per[0].gs.stats : null;
+  const rows = st0.map((s, i) => {
+    const go = gst0 ? gst0[i].nOut : null, mism = go !== null && go !== s.nOut;
+    const frac = s.nOut / N, meanOut = per.reduce((a, x) => a + x.cs.stats[i].nOut, 0) / per.length;
+    return `<tr><td>${s.p + 1}${s.last ? " (final)" : ""}</td><td>${s.k} (${s.seen} total)</td><td>${s.r}</td><td>${fmtN(s.nIn)}</td>
+      <td class="${mism ? "mismatch" : ""}">${go === null ? "-" : fmtN(go)}</td><td>${fmtN(s.nOut)}</td>
+      <td class="bar"><div class="bartrack" title="${(100 * frac).toFixed(3)}% of N"><div class="barfill" style="width:${Math.max(0.5, 100 * frac).toFixed(2)}%"></div></div> ${(100 * frac).toFixed(2)}%</td>
+      <td>${fmtB(s.corpusBytes + s.auxBytes)}</td><td>${gst0 && gst0[i].gpuMs !== null ? gst0[i].gpuMs.toFixed(2) : "-"}</td><td>${meanOut.toFixed(1)}</td></tr>`;
+  });
+  rows.push(`<tr class="total"><td>Brute force</td><td>8</td><td>0</td><td>${fmtN(N)}</td><td>${g ? fmtN(K) : "-"}</td><td>${fmtN(K)}</td><td></td><td>${fmtB(bb)}</td><td>${g ? per[0].gb.ms.toFixed(2) : "-"}</td><td></td></tr>`);
+  $("passTable").querySelector("tbody").innerHTML = rows.join("");
+}
+
+// Test hook for headless runs: verify the GPU pipeline against vectors exported by reference.py.
+window.BPS = { GPUQ, cpuScan, cpuBrute, buildCorpus, planPasses,
+  async testVectors({ xq, s, q, N, D, K, nq }) {
+    const C = buildCorpus(new Int8Array(xq), new Float32Array(s), N, D);
+    const g = await ensureGpu(); if (g) GPUQ.upload(C);
+    const out = [];
+    for (let t = 0; t < nq; t++) {
+      const qv = new Int8Array(q).slice(t * D, (t + 1) * D);
+      const cs = cpuScan(C, qv, K, [3, 1, 1, 1, 1, 1], 8), cb = cpuBrute(C, qv, K);
+      const r = { cpuTop: cs.top, cpuBrute: cb, cpuOut: cs.stats.map((x) => x.nOut) };
+      if (g) { const gs = await GPUQ.scan(qv, K, [3, 1, 1, 1, 1, 1], 8), gb = await GPUQ.brute(qv, K);
+        r.gpuTop = gs.top; r.gpuBrute = gb.top; r.gpuOut = gs.stats.map((x) => x.nOut); }
+      out.push(r);
+    }
+    return { adapter: g ? GPUQ.info : null, dot4Native: GPUQ.dot4Native, out };
+  },
+  async demo(opts = {}) {          // generate + run with the page controls, return a summary
+    for (const [k, v] of Object.entries(opts)) $(k).value = v;
+    await generate(); await run();
+    return { status: $("status").textContent, verdict: $("verdict").innerText, summary: $("summary").innerText,
+      table: $("passTable").innerText };
+  },
+};
+
+$("genBtn").addEventListener("click", generate);
+$("runBtn").addEventListener("click", run);
+$("sched").addEventListener("input", drawPlaneStrip);
+$("budget").addEventListener("input", drawPlaneStrip);
+$("npy").addEventListener("change", (e) => { const fl = e.target.files[0]; if (fl) loadNpy(fl).catch((err) => setStatus("Error: " + err.message)); });
+drawPlaneStrip();
+if (!navigator.gpu) $("nogpu").hidden = false;
+// Open in a working state: build the default 20k corpus and run it once.
+if (!window.BPS_NO_AUTORUN) generate().then(() => corpus && run());
+</script>
+</body>
+</html>
