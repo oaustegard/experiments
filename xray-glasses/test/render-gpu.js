@@ -1,10 +1,8 @@
 // Runs the page's two WGSL passes, unmodified, on a real WebGPU implementation: headless Chromium
 // (Playwright) with SwiftShader as the WebGPU adapter. Same three panels as render-cpu.js. Writes
 // test-frame-gpu.png and reports how far each GPU panel is from the CPU port.
-// Pipelines, blend states, formats, uniforms and bind groups follow the page's render(). The frame reaches
-// the composite shader through importExternalTexture, as on the page, from a VideoFrame built from the
-// test JPEG in place of the <video> element. importExternalTexture needs both --use-angle=swiftshader and
-// --use-vulkan=swiftshader; with either alone it throws or yields an invalid texture.
+// Pipelines, blend states, formats, uniforms and bind groups follow the page's render(). The page copies each
+// camera frame into an rgba8unorm texture (frameTexture); here the test JPEG goes into one at full size.
 // Needs: npm i (this dir) and Playwright with Chromium (preinstalled in Claude Code cloud containers).
 // Dawn on Mesa lavapipe (npm `webgpu`) compiles and validates (wgsl-check.js) but crashes on the first
 // draw in this container, so execution goes through Chromium.
@@ -47,7 +45,8 @@ window.renderPanel = async (name, W, H, nPrims, maskW, maskH, tissue) => {
   const out = device.createTexture({ size: [W, H], format: 'bgra8unorm', usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
   const bpr = 256 * Math.ceil(W * 4 / 256);
   const read = device.createBuffer({ size: bpr * H, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-  const frame = new VideoFrame(img, { format: 'RGBA', codedWidth: W, codedHeight: H, timestamp: 0 });
+  const vid = device.createTexture({ size: [W, H], format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+  device.queue.writeTexture({ texture: vid }, img, { bytesPerRow: W * 4 }, [W, H]);
   const t0 = performance.now();
   const enc = device.createCommandEncoder();
   const bp = enc.beginRenderPass({ colorAttachments: [
@@ -61,7 +60,7 @@ window.renderPanel = async (name, W, H, nPrims, maskW, maskH, tissue) => {
   cp.setPipeline(pipes.composite);
   cp.setBindGroup(0, device.createBindGroup({ layout: pipes.composite.getBindGroupLayout(0), entries: [
     { binding: 0, resource: { buffer: uniform } }, { binding: 1, resource: sampler },
-    { binding: 2, resource: device.importExternalTexture({ source: frame }) },
+    { binding: 2, resource: vid.createView() },
     { binding: 3, resource: mask.createView() }, { binding: 4, resource: dens.createView() }, { binding: 5, resource: glow.createView() }] }));
   cp.draw(3); cp.end();
   enc.copyTextureToBuffer({ texture: out }, { buffer: read, bytesPerRow: bpr }, [W, H]);
@@ -73,8 +72,8 @@ window.renderPanel = async (name, W, H, nPrims, maskW, maskH, tissue) => {
     const s = y * bpr + x * 4, d = (y * W + x) * 4;
     px[d] = raw[s + 2]; px[d + 1] = raw[s + 1]; px[d + 2] = raw[s]; px[d + 3] = 255;  // BGRA -> RGBA
   }
-  read.unmap(); frame.close();
-  [uniform, prims, read].forEach(b => b.destroy()); [mask, dens, glow, out].forEach(t => t.destroy());
+  read.unmap();
+  [uniform, prims, read].forEach(b => b.destroy()); [vid, mask, dens, glow, out].forEach(t => t.destroy());
   let s = ''; for (let i = 0; i < px.length; i += 0x8000) s += String.fromCharCode(...px.subarray(i, i + 0x8000));
   return { ms, px: btoa(s), errors };
 };

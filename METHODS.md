@@ -713,6 +713,13 @@ survives exactly the sanity checks people run.
   "Failed to import texture from video". This held for every source tried: a `VideoFrame` from RGBA,
   I420 or a canvas, and a `<video>` on `--use-fake-device-for-media-stream`. With both flags, a
   `texture_external` shader runs unmodified. (`xray-glasses/test/render-gpu.js`)
+- **Camera into WebGPU: copy through a 2D canvas, not `importExternalTexture`, if phones matter.** On
+  iOS 26 WebKit's `importExternalTexture(video)` gets the sensor frame without its rotation, so a
+  portrait camera shows 90 degrees off, while MediaPipe and canvas `drawImage` see it upright
+  (tfjs#8733 reports the same). `drawImage(video)` into an OffscreenCanvas (cap it near 640 px), then
+  `copyExternalImageToTexture` into an rgba8unorm texture (usage needs RENDER_ATTACHMENT), is correct
+  everywhere. `textureSampleBaseClampToEdge` takes a `texture_2d<f32>` too, so the shader barely
+  changes. (`xray-glasses/web/index.html` `frameTexture`)
 - **Dawn on lavapipe (npm `webgpu`) validates but cannot draw in these containers.** Shader
   compilation, `getCompilationInfo` and pipeline creation work, so it is a good WGSL checker. Copy
   work completes (a `writeBuffer` maps back), but the first draw kills the process: a one-triangle

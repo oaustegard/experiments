@@ -24,7 +24,8 @@ camera (getUserMedia, 960x540 ideal)
      additive "density" + max "glow" into two r16float targets
   ─> WebGPU pass 2: full-screen composite: inverted luminance + Sobel edges in a cyan
      tint, soft tissue from the pose mask, bone density as 1-exp(-1.4 D), glow, grain,
-     scanlines, vignette. The video frame comes in as a texture_external.
+     scanlines, vignette. The video frame is drawn into a 2D canvas (at most 640 px)
+     and copied into a texture each frame; see below for why not texture_external.
 ```
 
 Bone sizes are fractions of a body scale taken from the keypoints: for humans the
@@ -192,7 +193,7 @@ cloud container, Firecracker VM, no GPU, no camera):
   headless Chromium with SwiftShader as the WebGPU adapter, with the page's
   pipelines, blend states, formats, uniforms and bind groups. The frame goes
   through `importExternalTexture` as a `VideoFrame`, so the `texture_external`
-  path is exercised too. No WebGPU errors. Output: `test-frame-gpu.png`. Difference
+  path is exercised too (since replaced by a copied texture, fourth pass). No WebGPU errors. Output: `test-frame-gpu.png`. Difference
   from the CPU port per 8-bit channel:
 
   | panel | mean | p50 | p99 |
@@ -261,11 +262,25 @@ front/back detection and whether there is a separate face model):
   pose landmarks (the fixtures hold no face). The GPU frame is still within 3.8
   levels of the CPU port on the human panel.
 
+Fourth pass: Oskar saw the faint camera background rotated 90 degrees clockwise
+on his phone while the skeleton was placed right. The background was the only part
+that read the camera through `importExternalTexture`. On iOS 26, WebKit hands
+that path the sensor frame without its rotation (same symptom in
+[tfjs#8733](https://github.com/tensorflow/tfjs/issues/8733): WebGL and desktop
+WebGPU fine, iOS WebGPU 90 degrees off). MediaPipe reads the frame its own way
+and gets it upright. The page now draws each frame into a 2D canvas, which
+applies the rotation in every browser, and copies that into an rgba8unorm
+`texture_2d` with `copyExternalImageToTexture`. The shader's Sobel step is now in
+texels of that texture. The GPU/CPU comparison is unchanged (3.8 / 8.4 / 5.7). The
+page runs end to end headless with both a 960x540 and a 540x960 camera, upright
+both times. The fix on an iPhone is not verified here.
+
 Not tested, needs real hardware:
 
+- That the background is upright on an iPhone now (iOS 26 WebGPU).
 - The Face Landmarker's cost per frame on a phone. It runs every frame while a
   head is larger than 30 px, alongside the pose.
-- Anything on a real GPU: frame rate, `importExternalTexture` on Safari, MediaPipe's
+- Anything on a real GPU: frame rate, the per-frame canvas copy on Safari, MediaPipe's
   GPU delegate, the LiteRT.js WebGPU compile of the animal model and whether its
   output order matches the wasm path, and its latency on phones.
 - Camera start and flip, portrait layout on a real phone, permission prompts.
