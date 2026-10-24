@@ -4,77 +4,82 @@
 camera feed into a live fluoroscope. Point it at a person, a cat or a dog and a skeleton appears over
 them and follows them as they move. Everything runs in the browser; the video never leaves the device.
 
-The skeleton is a drawing, not a scan. The page finds where the joints are and draws a stock skeleton
-to fit them. It shows how you are standing; your actual bones do not show.
+The page cannot see your bones. It finds where your joints are and stretches a stock skeleton to fit
+them.
 
 ![A woman in a yoga pose on a beach, the right half of the picture turned into the page's X-ray](https://austegard.com/images/xray-glasses-og.jpg)
 
-## Person tracking: Pose Landmarker and Face Landmarker
+## Finding a person's joints
 
 Google's MediaPipe Pose Landmarker looks at each frame and returns 33 points: nose, eyes, ears,
 shoulders, elbows, wrists, hands, hips, knees, ankles and feet. Besides each point's position in the
 picture it returns a rough 3D position in metres, and an outline of the body that the page uses for the
-faint soft-tissue glow. A small detector (EfficientDet-Lite0) runs every 8 to 20 frames in Auto mode to
-decide whether the camera sees a person, a cat or a dog.
+faint soft-tissue glow. In Auto mode a small object detector (EfficientDet-Lite0) decides whether the
+camera sees a person, a cat or a dog. While it is tracking a person it re-checks every 20 frames, and
+otherwise every 8.
 
 When your face is close enough to the camera, a second model, MediaPipe Face Landmarker, also runs. It
 returns 478 points on the face, the head's rotation, and scores for expressions, including how far the
 mouth is open. That is what turns the skull with your head and opens its jaw when you open your mouth.
-From across a room the face is too small for it, and the skull follows your nose and ears instead, which
-is less exact: about 8 degrees off in how far the head is turned, against the face model.
+From across a room the face is too small for it, and the skull follows your nose and ears instead. That
+estimate of how far your head is turned is typically about 8 degrees off from the face model's.
 
-Each point is smoothed over time (a One-Euro filter) so the skeleton does not jitter when you stand
-still and does not lag much when you move.
+Each point is smoothed over time (a One-Euro filter) so the skeleton does not jitter when you stand still
+and does not lag much when you move.
 
-## Cat and dog tracking: EfficientDet and RTMPose
+## Finding a cat's or dog's joints
 
 The detector draws a box around the animal, and RTMPose, an animal pose model trained on the AP-10K
 dataset, finds 17 points in it: eyes, nose, neck, the root of the tail, shoulders, elbows, hips, knees
-and paws. The next frame's box follows those points, and the detector checks again every 6 to 8 frames.
-The animal model is 27.5 MB, so the page downloads it only the first time it sees a cat or dog.
+and paws. Between detector checks, the page draws the next frame's box around the points it just found;
+the detector re-checks every 8 frames in Auto mode and every 6 with the Cat or Dog button pressed. The
+animal model is 27.5 MB, so the page downloads it only the first time it sees a cat or dog.
 
-The cat and dog skeletons are the same template with different skulls, orbits, bone thickness, chest
+The cat and dog skeletons are the same template with different skulls, eye sockets, bone thickness, chest
 depth and tail. AP-10K has no point for the tip of the tail, so the page invents the tail and lets it
 sway. The detector sometimes calls a dog a cat; the Cat and Dog buttons override it.
 
-## Rendering: bone shapes and two WebGPU passes
+## Drawing the bones
 
-Bone sizes come from your proportions: for a person, the distance from shoulders to hips, or 1.35 times
-the shoulder width when your hips are out of frame. Every bone is a simple shape (a tapered tube, an
-ellipse or a rounded box), a few hundred of them per frame: the spine vertebra by vertebra, 12 pairs of
-ribs, the pelvis, both forearm bones, the carpals and finger bones, the foot bones.
+The skeleton is scaled to your torso: the distance from shoulders to hips, or an estimate from your
+shoulder width when your hips are out of frame. Bone lengths follow your joints; bone thickness only
+scales with that one measurement. Every bone is a simple shape (a tapered tube, an ellipse or a rounded
+box), a few hundred of them per frame: the spine vertebra by vertebra, 12 pairs of ribs, the pelvis, both
+forearm bones, the carpals and finger bones, the foot bones.
 
-Two WebGPU passes draw the frame. The first adds up how much bone each pixel looks through.
-A long bone is a hollow tube, so its walls show brighter than its middle, as the cortex does on a real
-radiograph. The second pass turns the camera image into film: brightness inverted, edges traced in
-cyan, the soft-tissue glow, then the bone brightness on top, with grain, scan lines and a vignette.
+Two passes on the graphics card, through WebGPU (the browser's interface to the GPU), draw each frame.
+The first adds up how much bone each pixel looks through. A long bone is a hollow tube, so its walls show
+brighter than its middle, as the dense outer wall of a real bone (the cortex) does on a radiograph. The
+second pass turns the camera image into film: brightness inverted, edges traced in cyan, the soft-tissue
+glow, then the bone brightness on top, with grain, scan lines and a vignette.
 
 ## The 3D skull
 
-The skull is a 3D model of about 150 parts, built in centimetres around MediaPipe's standard face: the
-cranium, brow ridges, sinuses, eye sockets, the nose opening, cheekbones, the upper jaw and palate, 32
-teeth with roots, the mandible, and the dense bone at the base of the skull. Each frame it is turned to
-match your head and flattened onto the screen, the way an X-ray beam projects it. The jaw hinges at the
-joints in front of the ears, up to 26 degrees open.
+The skull is a 3D model of about 150 parts, built in centimetres around the average face that Face
+Landmarker fits every face to: the cranium, brow ridges, sinuses, eye sockets, the nose opening,
+cheekbones, the upper jaw and palate, 32 teeth with roots, the mandible, and the dense bone at the base
+of the skull. Each frame it is turned to match your head and flattened onto the screen, the way an X-ray
+beam projects it. The jaw hinges at the joints in front of the ears, up to 26 degrees open.
 
 ![The skull alone, turned from facing front to facing away, tilted, and with the jaw open](skull-sheet.png)
 
-## AP, PA and the R marker
+## Facing the camera or turned away
 
 The label under "Human" reads AP when you face the camera, PA when you face away and lateral when your
-head is turned side-on, the way radiographs are labelled. The page decides AP or PA from the pose
-model's depth estimate: when you face the camera your nose is closer than your shoulders, and when you
-turn away it is farther. The pose model's other cues do not help: it reports your eyes and nose as fully
+head is turned side-on. Radiographs are labelled the same way: AP (anterior-posterior) means the beam
+enters at the front, PA at the back. The page decides AP or PA from the pose model's depth estimate: when
+you face the camera your nose is closer than your shoulders, and when you turn away it is farther. It
+cannot simply check whether your face is visible, because the pose model reports your eyes and nose as
 visible even from behind.
 
-The R marker always sits on your right side, so it moves across the screen when you turn around. The
-skeleton itself does not change: on a radiograph, front and back views of the same body look almost
-the same, mirrored.
+The R marker always sits on your right side, so it moves across the screen when you turn around. The rest
+of the skeleton is drawn the same way facing either direction: on a radiograph, front and back views of
+the same body look almost the same, mirrored.
 
 ## Limitations
 
 - It draws a standard skeleton stretched to your joints. Your real bones, injuries and implants do not
-  show, and bone thickness comes from the template, not from you.
+  show, and bone thickness is the template's, scaled to your torso.
 - It tracks one person or one animal at a time.
 - Two people standing side by side with their backs to the camera can be read as one person facing it.
 - The page needs WebGPU: Chrome or Edge 121+, Safari 26+, or Firefox 141+ on Windows.
@@ -83,18 +88,14 @@ the same, mirrored.
 
 Measured on test images, in [`RESULTS.md`](RESULTS.md), with the scripts in `test/`:
 
-- On the two AP-10K photos that ship with mmpose's tests (an antelope and a jaguar), the animal
-  model's joints land a mean 4.1 px and 15.3 px from where people marked them. The
-  jaguar fills a crop 1,365 px across, so 15.3 px is about 1% of it.
+- On the two marked test photos that come with mmpose, the open-source library the animal model was
+  trained in (an antelope and a jaguar), the animal model's joints land a mean 4.1 px and 15.3 px from
+  where people marked them. The jaguar fills a crop 1,365 px across, so 15.3 px is about 1% of it.
 - Facing toward or away was called right on 20 of 20 photos of people facing the camera, and 6 of the 7
   photos from behind in which a person was found.
-- The face model places the skull a median 0.4 cm from where the face is.
-- On iOS 26 the camera background first showed rotated a quarter turn, because WebKit's fast path for
-  feeding video to WebGPU ignores the phone's rotation (every iOS browser uses WebKit). The page now copies each frame through a canvas,
-  which gets it right; confirmed on an iPhone.
+- On test photos, the skull's face sits a median 0.4 cm from the face's landmarks.
 
 Frame rate and battery use on phones have not been measured.
-
 ## Pipeline
 
 ```
