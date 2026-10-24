@@ -6,10 +6,9 @@ Hop 256 at 75% overlap; added latency is N−HOP = 768 samples plus the block an
 
 ## Files
 
-- `engine.js` — `PrismEngine` (WGSL compute + render shaders, host code). Runs in browsers and in Node via the `webgpu` package.
-- `page.src.html` — UI, AudioWorklet, demo loop. `python3 build.py` writes `index.html` with `engine.js` inlined.
-- `cpu-mirror.js` — line-by-line JS mirror of the kernel; `test-cpu.js` runs it.
-- `validate.js` — compiles both shaders and builds every pipeline and bind group with Dawn.
+- `web/index.html` — the page: UI, AudioWorklet, demo loop. Live at https://austegard.com/experiments/prism-audio/web/
+- `web/engine.js` — `PrismEngine` (WGSL compute + render shaders, host code). Runs in browsers and in Node via the `webgpu` package.
+- `cpu-mirror.js` — line-by-line JS mirror of the kernel, used for the checks below.
 
 ## What was verified (2026-10-24)
 

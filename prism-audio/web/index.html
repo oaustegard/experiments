@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Two Prisms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a rack — transport strip, live spectrum waterfall, five band channels side by side (stacking on phones) */
+:root {
+  --bg: #eef0f3; --panel: #ffffff; --ink: #15181e; --muted: #5b6270; --line: #d5d9e0;
+  --accent: #3a46d8; --warn: #c2410c; --screen: #05060a;
+  --b0: #e0362f; --b1: #e88a0c; --b2: #2f9e3a; --b3: #2f6fe0; --b4: #8a43e6;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d0f14; --panel: #161a22; --ink: #e8ebf1; --muted: #9098a8; --line: #2a3040;
+  --accent: #8f98ff; --warn: #fb923c; --screen: #000000;
+  --b0: #ff5a4f; --b1: #ffa630; --b2: #5fd46a; --b3: #5b93ff; --b4: #b07bff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d0f14; --panel: #161a22; --ink: #e8ebf1; --muted: #9098a8; --line: #2a3040;
+  --accent: #8f98ff; --warn: #fb923c; --screen: #000000;
+  --b0: #ff5a4f; --b1: #ffa630; --b2: #5fd46a; --b3: #5b93ff; --b4: #b07bff; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: grid; gap: 6px; }
+h1 { font: 700 clamp(28px, 5vw, 44px)/1.05 var(--display); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+h1 .spec { background: linear-gradient(90deg, var(--b0), var(--b1), var(--b2), var(--b3), var(--b4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--muted); max-width: 68ch; margin: 0; }
+.lede code { font-family: var(--mono); font-size: 0.9em; }
+
+.strip { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.label { font: 600 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+button, select { font: 600 13px/1 var(--body); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; cursor: pointer; }
+button:hover, select:hover { border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+button.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); min-width: 74px; }
+.grow { flex: 1 1 160px; display: flex; gap: 8px; align-items: center; min-width: 0; }
+input[type=range] { width: 100%; accent-color: var(--accent); min-width: 0; }
+.status { font: 12px/1.4 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 16px; font-variant-numeric: tabular-nums; }
+.status b { color: var(--ink); font-weight: 600; }
+.status .bad { color: var(--warn); }
+
+.screen { position: relative; background: var(--screen); border-radius: 10px; overflow: hidden; aspect-ratio: 2.4 / 1; max-width: 100%; }
+.screen canvas { width: 100%; height: 100%; display: block; }
+.axis { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; pointer-events: none; font: 10px/18px var(--mono); color: #9aa3b5; }
+.axis span { position: absolute; transform: translateX(-50%); }
+.msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: #c9cfdb; font-size: 14px; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bands { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 860px) { .bands { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); } }
+.band { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 10px; padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.band h3 { margin: 0; font: 700 15px/1.1 var(--display); display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.band h3 small { font: 11px var(--mono); color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.meter { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--line) 70%, transparent); position: relative; overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--c); border-radius: 4px; }
+.meter u { position: absolute; right: 0; top: 0; bottom: 0; width: 0; background: var(--warn); }
+.ctl { display: grid; gap: 2px; }
+.ctl .row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.ctl .row output { font: 12px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.toggles { display: flex; gap: 6px; }
+.toggles button { flex: 1; padding: 7px 0; font-size: 12px; }
+.toggles button.on { background: var(--c); border-color: var(--c); color: #fff; }
+.globals { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.notes { color: var(--muted); font-size: 13px; max-width: 75ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Two <span class="spec">Prisms</span></h1>
+    <p class="lede">Newton split white light with one prism and rejoined it with a second. This does the same to sound on the GPU: one WGSL dispatch takes a 1024-point FFT, divides the spectrum into five bands, compresses, gates, freezes or mutes each band, then inverts and overlap-adds back to audio.</p>
+  </header>
+
+  <div class="strip">
+    <div class="group"><span class="label">Source</span>
+      <button id="srcDemo" class="on" type="button">Demo loop</button>
+      <button id="srcFile" type="button">Audio file…</button>
+      <button id="srcMic" type="button">Microphone</button>
+      <input id="file" type="file" accept="audio/*" hidden>
+    </div>
+    <button id="play" class="primary" type="button">Play</button>
+    <div class="grow"><span class="label">Wet</span><input id="wet" type="range" min="0" max="1" step="0.01" value="1"><output id="wetOut" class="label">100%</output></div>
+    <div class="group"><span class="label">Block</span>
+      <select id="block"><option value="256">256</option><option value="512">512</option><option value="1024" selected>1024</option><option value="2048">2048</option><option value="4096">4096</option></select>
+      <span class="label">Queue</span>
+      <select id="pre"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+    </div>
+  </div>
+
+  <div class="status" id="status"><span>Press <b>Play</b> to start the audio pipeline.</span></div>
+
+  <div class="screen"><canvas id="wf"></canvas><div class="axis" id="axis"></div><div class="msg" id="msg" hidden></div></div>
+
+  <div class="presets"><span class="label">Presets</span>
+    <button type="button" data-preset="flat">Flat</button>
+    <button type="button" data-preset="glue">Glue</button>
+    <button type="button" data-preset="phone">Telephone</button>
+    <button type="button" data-preset="drone">Drone</button>
+    <button type="button" data-preset="sub">Only the low end</button>
+  </div>
+
+  <div class="bands" id="bands"></div>
+
+  <div class="globals">
+    <div class="ctl"><div class="row"><label for="att">Attack</label><output id="attOut"></output></div><input id="att" type="range" min="1" max="200" step="1" value="10"></div>
+    <div class="ctl"><div class="row"><label for="rel">Release</label><output id="relOut"></output></div><input id="rel" type="range" min="20" max="1500" step="10" value="150"></div>
+    <div class="ctl"><div class="row"><label for="x0">Crossover 1</label><output id="x0Out"></output></div><input id="x0" type="range" min="0" max="1" step="0.001"></div>
+    <div class="ctl"><div class="row"><label for="x1">Crossover 2</label><output id="x1Out"></output></div><input id="x1" type="range" min="0" max="1" step="0.001"></div>
+    <div class="ctl"><div class="row"><label for="x2">Crossover 3</label><output id="x2Out"></output></div><input id="x2" type="range" min="0" max="1" step="0.001"></div>
+    <div class="ctl"><div class="row"><label for="x3">Crossover 4</label><output id="x3Out"></output></div><input id="x3" type="range" min="0" max="1" step="0.001"></div>
+  </div>
+
+  <div class="notes">
+    <p>Each block of samples crosses from the audio thread to the GPU and back. The status line shows the round trip against the block's own duration: above 100% load the queue drains and you hear dropouts. Smaller blocks lower latency and raise the number of round trips per second.</p>
+    <p>Freeze holds a band's last magnitudes and re-rolls the phases every hop, which turns whatever was playing into a sustained drone. Use headphones with the microphone, or the output will feed back into the input.</p>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const NB = 5, N = PrismEngine.N, HOP = PrismEngine.HOP;
+const NAMES = ['Sub', 'Low', 'Mid', 'Presence', 'Air'];
+const FMIN = 40, FMAX = 16000;
+const toPos = f => Math.log(f / FMIN) / Math.log(FMAX / FMIN);
+const toHz = p => FMIN * Math.pow(FMAX / FMIN, p);
+const fmtHz = f => f >= 1000 ? (f / 1000).toFixed(f >= 10000 ? 0 : 1) + ' kHz' : Math.round(f) + ' Hz';
+
+const flatBand = () => ({ gainDb: 0, thrDb: 0, ratio: 1, gateDb: -120, freeze: 0, mute: 0, solo: 0 });
+const state = { wet: 1, xover: [120, 500, 2000, 6000], attackMs: 10, releaseMs: 150, bands: Array.from({ length: NB }, flatBand) };
+
+const PRESETS = {
+  flat: () => ({ bands: Array.from({ length: NB }, flatBand) }),
+  glue: () => ({ bands: Array.from({ length: NB }, (_, i) => ({ ...flatBand(), thrDb: -26, ratio: 3, gainDb: [3, 2, 2, 3, 4][i] })) }),
+  phone: () => ({ bands: Array.from({ length: NB }, (_, i) => ({ ...flatBand(), mute: i === 0 || i === 1 || i === 4 ? 1 : 0, gainDb: i === 2 ? 6 : 0 })) }),
+  drone: () => ({ bands: Array.from({ length: NB }, (_, i) => ({ ...flatBand(), freeze: i === 1 || i === 2 ? 1 : 0 })) }),
+  sub: () => ({ bands: Array.from({ length: NB }, (_, i) => ({ ...flatBand(), solo: i === 0 ? 1 : 0 })) }),
+};
+
+// ---------- band UI ----------
+const bandEls = [];
+function slider(id, label, min, max, step, val, fmt) {
+  return `<div class="ctl"><div class="row"><label for="${id}">${label}</label><output id="${id}Out">${fmt(val)}</output></div><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${val}"></div>`;
+}
+const F = {
+  gain: v => (v > 0 ? '+' : '') + Number(v).toFixed(1) + ' dB',
+  thr: v => Number(v) >= 0 ? 'off' : Number(v).toFixed(0) + ' dB',
+  ratio: v => Number(v).toFixed(1) + ':1',
+  gate: v => Number(v) <= -100 ? 'off' : Number(v).toFixed(0) + ' dB',
+};
+$('bands').innerHTML = NAMES.map((n, b) => `
+  <section class="band" style="--c: var(--b${b})">
+    <h3>${n} <small id="r${b}"></small></h3>
+    <div class="meter" title="Band level and gain reduction"><i id="m${b}"></i><u id="g${b}"></u></div>
+    ${slider('gain' + b, 'Gain', -24, 12, 0.5, 0, F.gain)}
+    ${slider('thr' + b, 'Threshold', -60, 0, 1, 0, F.thr)}
+    ${slider('ratio' + b, 'Ratio', 1, 20, 0.1, 1, F.ratio)}
+    ${slider('gate' + b, 'Gate', -100, -20, 1, -100, F.gate)}
+    <div class="toggles">
+      <button type="button" id="frz${b}" aria-pressed="false">Freeze</button>
+      <button type="button" id="mut${b}" aria-pressed="false">Mute</button>
+      <button type="button" id="sol${b}" aria-pressed="false">Solo</button>
+    </div>
+  </section>`).join('');
+
+for (let b = 0; b < NB; b++) {
+  const bind = (key, field, conv) => {
+    const el = $(key + b), out = $(key + b + 'Out');
+    el.addEventListener('input', () => { state.bands[b][field] = conv(Number(el.value)); out.textContent = F[key](el.value); push(); });
+  };
+  bind('gain', 'gainDb', v => v);
+  bind('thr', 'thrDb', v => v);
+  bind('ratio', 'ratio', v => v);
+  bind('gate', 'gateDb', v => v <= -100 ? -120 : v);
+  for (const [key, field] of [['frz', 'freeze'], ['mut', 'mute'], ['sol', 'solo']]) {
+    $(key + b).addEventListener('click', () => { state.bands[b][field] = state.bands[b][field] ? 0 : 1; syncBandUI(); push(); });
+  }
+  bandEls.push({ m: $('m' + b), g: $('g' + b), r: $('r' + b) });
+}
+
+function syncBandUI() {
+  state.bands.forEach((B, b) => {
+    const set = (k, v, f) => { $(k + b).value = v; $(k + b + 'Out').textContent = F[k](v); };
+    set('gain', B.gainDb); set('thr', B.thrDb); set('ratio', B.ratio); set('gate', B.gateDb <= -100 ? -100 : B.gateDb);
+    for (const [key, field] of [['frz', 'freeze'], ['mut', 'mute'], ['sol', 'solo']]) {
+      $(key + b).classList.toggle('on', !!B[field]); $(key + b).setAttribute('aria-pressed', B[field] ? 'true' : 'false');
+    }
+  });
+  const edges = [30, ...state.xover, null];
+  state.bands.forEach((_, b) => { bandEls[b].r.textContent = b === NB - 1 ? '> ' + fmtHz(edges[b]) : (b === 0 ? '< ' + fmtHz(edges[1]) : fmtHz(edges[b]) + '–' + fmtHz(edges[b + 1])); });
+}
+
+document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => {
+  Object.assign(state, PRESETS[btn.dataset.preset]()); syncBandUI(); push();
+}));
+
+// globals
+const fmtMs = v => Number(v).toFixed(0) + ' ms';
+$('att').addEventListener('input', e => { state.attackMs = +e.target.value; $('attOut').textContent = fmtMs(state.attackMs); push(); });
+$('rel').addEventListener('input', e => { state.releaseMs = +e.target.value; $('relOut').textContent = fmtMs(state.releaseMs); push(); });
+$('attOut').textContent = fmtMs(10); $('relOut').textContent = fmtMs(150);
+for (let i = 0; i < 4; i++) {
+  const el = $('x' + i); el.value = toPos(state.xover[i]); $('x' + i + 'Out').textContent = fmtHz(state.xover[i]);
+  el.addEventListener('input', () => {
+    let f = toHz(+el.value);
+    const lo = i > 0 ? state.xover[i - 1] * 1.25 : 50, hi = i < 3 ? state.xover[i + 1] / 1.25 : 14000;
+    f = Math.min(hi, Math.max(lo, f)); state.xover[i] = f; el.value = toPos(f);
+    $('x' + i + 'Out').textContent = fmtHz(f); syncBandUI(); drawAxis(); push();
+  });
+}
+$('wet').addEventListener('input', e => { state.wet = +e.target.value; $('wetOut').textContent = Math.round(state.wet * 100) + '%'; push(); });
+
+function push() { if (engine) engine.setParams(JSON.parse(JSON.stringify(state))); }
+
+// frequency axis labels (log scale 30 Hz .. Nyquist, matching the shader)
+let sampleRate = 48000;
+function drawAxis() {
+  const ticks = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000].filter(f => f < sampleRate / 2);
+  $('axis').innerHTML = ticks.map(f => `<span style="left:${(Math.log(f / 30) / Math.log(sampleRate / 2 / 30) * 100).toFixed(2)}%">${fmtHz(f).replace(' ', '')}</span>`).join('');
+}
+drawAxis(); syncBandUI();
+
+// ---------- demo loop: 4 bars at 116 bpm, synthesized ----------
+function makeDemo(sr) {
+  const bpm = 116, beat = 60 / bpm, bars = 4, len = Math.round(sr * beat * 4 * bars);
+  const L = new Float32Array(len);
+  const add = (t0, dur, fn) => { const s = Math.round(t0 * sr), n = Math.round(dur * sr); for (let i = 0; i < n && s + i < len; i++) L[s + i] += fn(i / sr); };
+  let seed = 7; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
+  const bass = [45, 45, 53.4, 40.05];               // A1 A1 C2 E1 (Hz)
+  const chords = [[220, 261.63, 329.63], [220, 261.63, 329.63], [174.61, 220, 261.63], [196, 246.94, 293.66]];
+  const arp = [880, 1046.5, 1318.5, 1760, 1318.5, 1046.5, 880, 659.25];
+  for (let bar = 0; bar < bars; bar++) {
+    const t = bar * beat * 4;
+    for (let k = 0; k < 4; k++) {   // kick on every beat
+      let ph = 0; add(t + k * beat, 0.45, x => { const f = 48 + 110 * Math.exp(-x * 28); ph += 2 * Math.PI * f / sr; return 0.85 * Math.sin(ph) * Math.exp(-x * 7); });
+    }
+    for (const k of [1, 3]) add(t + k * beat, 0.25, x => (0.45 * rnd() + 0.25 * Math.sin(2 * Math.PI * 190 * x)) * Math.exp(-x * 18));
+    for (let e = 0; e < 8; e++) { let prev = 0; add(t + e * beat / 2 + beat / 4, 0.06, x => { const n = rnd(), h = n - prev; prev = n; return 0.18 * h * Math.exp(-x * 70); }); }
+    for (let e = 0; e < 8; e++) { const f = bass[bar] * (e % 4 === 3 ? 2 : 1); add(t + e * beat / 2, beat / 2 * 0.9, x => { const s = 2 * ((x * f) % 1) - 1; return 0.32 * s * Math.min(1, x * 200) * Math.exp(-x * 3); }); }
+    { let lp = 0; add(t, beat * 4, x => { let s = 0; for (const f of chords[bar]) s += 2 * ((x * f) % 1) - 1; lp += 0.06 * (s - lp); return 0.09 * lp * Math.min(1, x * 6) * Math.min(1, (beat * 4 - x) * 6); }); }
+    for (let e = 0; e < 16; e++) { const f = arp[e % 8] * (bar === 3 ? 1.1225 : 1); add(t + e * beat / 4, 0.18, x => 0.12 * Math.sin(2 * Math.PI * f * x + 0.6 * Math.sin(2 * Math.PI * f * 3 * x) * Math.exp(-x * 20)) * Math.exp(-x * 16)); }
+  }
+  let peak = 0; for (const v of L) peak = Math.max(peak, Math.abs(v));
+  for (let i = 0; i < len; i++) L[i] *= 0.8 / peak;
+  return L;
+}
+
+// ---------- audio worklet (inline) ----------
+const WORKLET = `
+const MASK = (1 << 17) - 1;
+class PrismIO extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.chunk = 1024; this.pre = 2; this.acc = new Float32Array(8192); this.n = 0;
+    this.ring = new Float32Array(MASK + 1); this.r = 0; this.w = 0; this.started = false; this.under = 0;
+    this.port.onmessage = (e) => {
+      const d = e.data;
+      if (d.type === 'cfg') { this.chunk = d.chunk; this.pre = d.pre; this.n = 0; this.r = this.w = 0; this.started = false; }
+      else if (d.type === 'out') { const a = d.data; for (let i = 0; i < a.length; i++) { this.ring[this.w & MASK] = a[i]; this.w++; } }
+    };
+  }
+  process(inputs, outputs) {
+    const inp = inputs[0], out = outputs[0], len = out[0].length;
+    for (let i = 0; i < len; i++) {
+      let v = 0;
+      if (inp && inp.length) v = inp.length > 1 ? 0.5 * (inp[0][i] + inp[1][i]) : inp[0][i];
+      this.acc[this.n++] = v;
+      if (this.n === this.chunk) { const c = this.acc.slice(0, this.chunk); this.port.postMessage({ type: 'in', data: c }, [c.buffer]); this.n = 0; }
+    }
+    const avail = this.w - this.r;
+    if (!this.started && avail >= this.pre * this.chunk) this.started = true;
+    if (this.started && avail >= len) {
+      for (let i = 0; i < len; i++) { const v = this.ring[this.r & MASK]; this.r++; for (let c = 0; c < out.length; c++) out[c][i] = v; }
+    } else {
+      if (this.started) { this.started = false; this.under++; this.port.postMessage({ type: 'under', n: this.under }); }
+      for (let c = 0; c < out.length; c++) out[c].fill(0);
+    }
+    return true;
+  }
+}
+registerProcessor('prism-io', PrismIO);`;
+
+// ---------- pipeline ----------
+let engine = null, device = null, ctx = null, node = null, source = null, playing = false;
+let srcKind = 'demo', fileBuffer = null, micStream = null, demoBuffer = null;
+let chain = Promise.resolve(), pending = 0, dropped = 0, underruns = 0;
+let rtSum = 0, rtN = 0, rtMax = 0, lastStats = null;
+const msg = (t) => { $('msg').hidden = !t; $('msg').textContent = t || ''; };
+
+async function initGPU() {
+  if (device) return true;
+  if (!navigator.gpu) { msg('This browser has no WebGPU. Try a recent Chrome, Edge or Safari 26+.'); return false; }
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter) { msg('WebGPU is present but no GPU adapter was granted.'); return false; }
+  device = await adapter.requestDevice();
+  device.lost.then(i => msg('The GPU device was lost: ' + i.message));
+  return true;
+}
+
+function buildEngine() {
+  engine = new PrismEngine(device, { sampleRate, maxFrames: 16 });
+  push();
+  const canvas = $('wf'), gctx = canvas.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  gctx.configure({ device, format, alphaMode: 'opaque' });
+  engine.initRender(gctx, format);
+}
+
+function sizeCanvas() {
+  const c = $('wf'), dpr = Math.min(devicePixelRatio || 1, 2);
+  c.width = Math.max(1, Math.round(c.clientWidth * dpr)); c.height = Math.max(1, Math.round(c.clientHeight * dpr));
+}
+new ResizeObserver(sizeCanvas).observe($('wf'));
+
+function onWorklet(e) {
+  const d = e.data;
+  if (d.type === 'under') { underruns = d.n; return; }
+  if (d.type !== 'in' || !engine) return;
+  if (pending > 6) { dropped++; return; }             // GPU cannot keep up: drop rather than grow latency
+  pending++;
+  const t0 = performance.now(), data = d.data;
+  chain = chain.then(() => engine.process(data)).then(r => {
+    const rt = performance.now() - t0;
+    rtSum += rt; rtN++; rtMax = Math.max(rtMax, rt);
+    lastStats = r.stats.slice();
+    const out = r.out.slice();
+    node && node.port.postMessage({ type: 'out', data: out }, [out.buffer]);
+  }).catch(err => msg('GPU processing failed: ' + err.message)).finally(() => { pending--; });
+}
+
+async function start() {
+  if (!(await initGPU())) return;
+  if (!ctx) {
+    ctx = new AudioContext({ latencyHint: 'interactive' });
+    sampleRate = ctx.sampleRate; drawAxis();
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
+    await ctx.audioWorklet.addModule(url);
+    buildEngine();
+  }
+  await ctx.resume();
+  node = new AudioWorkletNode(ctx, 'prism-io', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
+  node.port.onmessage = onWorklet;
+  node.port.postMessage({ type: 'cfg', chunk: +$('block').value, pre: +$('pre').value });
+  node.connect(ctx.destination);
+  await connectSource();
+  playing = true; $('play').textContent = 'Stop';
+  rtSum = rtN = rtMax = 0; dropped = 0; underruns = 0;
+}
+
+async function connectSource() {
+  if (source) { try { source.stop && source.stop(); } catch (_) {} source.disconnect(); source = null; }
+  if (srcKind === 'mic') {
+    try {
+      micStream = micStream || await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      source = ctx.createMediaStreamSource(micStream);
+      msg('');
+    } catch (err) { msg('Microphone access was refused here. Use the demo loop or open an audio file.'); srcKind = 'demo'; markSource(); }
+  }
+  if (srcKind === 'file' && fileBuffer) { source = ctx.createBufferSource(); source.buffer = fileBuffer; source.loop = true; source.start(); }
+  if (srcKind === 'demo' || (srcKind === 'file' && !fileBuffer)) {
+    demoBuffer = demoBuffer || (() => { const d = makeDemo(ctx.sampleRate), b = ctx.createBuffer(1, d.length, ctx.sampleRate); b.copyToChannel(d, 0); return b; })();
+    source = ctx.createBufferSource(); source.buffer = demoBuffer; source.loop = true; source.start();
+  }
+  if (source) source.connect(node);
+}
+
+function stop() {
+  playing = false; $('play').textContent = 'Play';
+  if (source) { try { source.stop && source.stop(); } catch (_) {} source.disconnect(); source = null; }
+  if (node) { node.port.onmessage = null; node.disconnect(); node = null; }
+}
+
+function markSource() { for (const k of ['Demo', 'File', 'Mic']) $('src' + k).classList.toggle('on', srcKind === k.toLowerCase()); }
+$('srcDemo').addEventListener('click', () => { srcKind = 'demo'; markSource(); if (playing) connectSource(); });
+$('srcMic').addEventListener('click', () => { srcKind = 'mic'; markSource(); if (playing) connectSource(); else start(); });
+$('srcFile').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    if (!ctx) await start();
+    fileBuffer = await ctx.decodeAudioData(await f.arrayBuffer());
+    srcKind = 'file'; markSource(); if (playing) connectSource(); else start();
+  } catch (err) { msg('Could not decode that file: ' + err.message); }
+});
+$('play').addEventListener('click', () => playing ? stop() : start());
+for (const id of ['block', 'pre']) $(id).addEventListener('change', () => { if (node) { node.port.postMessage({ type: 'cfg', chunk: +$('block').value, pre: +$('pre').value }); rtSum = rtN = rtMax = 0; } });
+
+// ---------- render + status loop ----------
+let lastStatus = 0;
+function frame(t) {
+  if (engine) engine.render();
+  if (lastStats) {
+    for (let b = 0; b < NB; b++) {
+      const env = lastStats[10 + b], gr = lastStats[5 + b];
+      bandEls[b].m.style.width = Math.max(0, Math.min(100, (env + 72) / 72 * 100)).toFixed(1) + '%';
+      bandEls[b].g.style.width = Math.min(100, gr / 24 * 100).toFixed(1) + '%';
+    }
+  }
+  if (playing && t - lastStatus > 250) {
+    lastStatus = t;
+    const chunk = +$('block').value, pre = +$('pre').value, budget = chunk / sampleRate * 1000;
+    const avg = rtN ? rtSum / rtN : 0, load = avg / budget * 100;
+    const lat = (N - HOP + chunk + pre * chunk) / sampleRate * 1000 + avg;
+    $('status').innerHTML = [
+      `GPU round trip <b>${avg.toFixed(2)}</b> ms avg / <b>${rtMax.toFixed(1)}</b> max`,
+      `block <b>${budget.toFixed(1)}</b> ms`,
+      `load <b class="${load > 85 ? 'bad' : ''}">${load.toFixed(0)}%</b>`,
+      `latency ≈ <b>${lat.toFixed(0)}</b> ms + device`,
+      `dropouts <b class="${underruns ? 'bad' : ''}">${underruns}</b>`,
+      `dropped blocks <b class="${dropped ? 'bad' : ''}">${dropped}</b>`,
+      `${sampleRate} Hz`,
+    ].map(s => `<span>${s}</span>`).join('');
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// idle screen until the GPU is up
+if (!navigator.gpu) msg('This browser has no WebGPU. Try a recent Chrome, Edge or Safari 26+.');
+else msg('Press Play. The spectrum scrolls here, coloured by band.');
+const clearOnPlay = () => { if (!$('msg').textContent.startsWith('Press')) return; msg(''); };
+$('play').addEventListener('click', clearOnPlay);
+})();
+</script>
+
+</body>
+</html>
