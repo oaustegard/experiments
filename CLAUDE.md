@@ -157,6 +157,11 @@ other 86 predate the rule and fail the lint until retrofitted.
 
 ## Finishing an experiment
 
+0. **Write for the reader, then have a fresh subagent read it before pushing.** The reader of a
+   writeup is someone curious about the result (for a page, someone who tried it), not the builder.
+   Open with what the thing is and the question in plain words, so `## Answer` answers something stated.
+   Spawn a subagent with no stake in the draft to read RESULTS.md and the README as that reader; fix
+   what it reports and send it back once. See the hub's `docs/prose-rules.md`.
 1. Results into `RESULTS.md` in the shape above — including what broke, and
    costs/wall-clock. Negative results are reported as results, not quietly
    dropped. Run `python3 _lib/results_lint.py <dir>/RESULTS.md`. Put

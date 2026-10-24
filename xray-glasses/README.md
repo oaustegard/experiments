@@ -88,14 +88,17 @@ the same body look almost the same, mirrored.
 
 Measured on test images, in [`RESULTS.md`](RESULTS.md), with the scripts in `test/`:
 
-- On the two marked test photos that come with mmpose, the open-source library the animal model was
-  trained in (an antelope and a jaguar), the animal model's joints land a mean 4.1 px and 15.3 px from
-  where people marked them. The jaguar fills a crop 1,365 px across, so 15.3 px is about 1% of it.
-- Facing toward or away was called right on 20 of 20 photos of people facing the camera, and 6 of the 7
-  photos from behind in which a person was found.
-- On test photos, the skull's face sits a median 0.4 cm from the face's landmarks.
+- On the two marked test photos that come with mmpose, the open-source library the animal model comes
+  from, the model's joints land a mean 4.1 px from the marked ones on an antelope 429 px long (1% of its
+  length) and 15.3 px on a jaguar 1,092 px long (1.4%).
+- Facing toward or away was called right on 20 of 20 photos of people facing the camera, and on 6 of 9
+  photos from behind: in two the pose model found no one, and it read two people side by side as one
+  person facing the camera.
+- The skull sits a median 0.4 cm from the face Face Landmarker detects. How closely Face Landmarker's
+  face follows a real head was not tested.
 
 Frame rate and battery use on phones have not been measured.
+
 ## Pipeline
 
 ```
@@ -114,7 +117,7 @@ camera (getUserMedia, 960x540 ideal)
   ─> WebGPU pass 2: full-screen composite: inverted luminance + Sobel edges in a cyan
      tint, soft tissue from the pose mask, bone density as 1-exp(-1.4 D), glow, grain,
      scanlines, vignette. The video frame is drawn into a 2D canvas (at most 640 px)
-     and copied into a texture each frame; importExternalTexture rotates it wrongly on iOS 26 (RESULTS.md, finding 2).
+     and copied into a texture each frame; importExternalTexture rotates it wrongly on iOS 26 (RESULTS.md, round 5).
 ```
 
 

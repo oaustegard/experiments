@@ -33,7 +33,9 @@ for (const r of raw.runs) {
     for (let i = 0; i < K; i++) if (g[i * 3 + 2] > 0) d.push(Math.hypot(sx + pts[i][0] * 2 / q / k - g[i * 3], sy + pts[i][1] * 2 / q / k - g[i * 3 + 1]));
     ratios[q] = +(d.reduce((a, b) => a + b, 0) / d.length).toFixed(1);
   }
-  summary[r.file] = { crop_side_px: +s.toFixed(1), mean_err_px: +page.mean.toFixed(1), max_err_px: +page.max.toFixed(1), swapped_mean_err_px: +swapped.mean.toFixed(1),
+  // the crop is 1.25x the box's longer side (runAnimal), so the box's longer side is the animal's length in the picture
+  const len = s / 1.25;
+  summary[r.file] = { crop_side_px: +s.toFixed(1), animal_length_px: Math.round(len), mean_err_pct_of_length: +(100 * page.mean / len).toFixed(1), mean_err_px: +page.mean.toFixed(1), max_err_px: +page.max.toFixed(1), swapped_mean_err_px: +swapped.mean.toFixed(1),
     visible: page.n, score_min: +Math.min(...page.conf).toFixed(2), score_max: +Math.max(...page.conf).toFixed(2), mean_err_by_split_ratio: ratios };
   out.runs.push({ file: r.file, keypoints: page.vp.map(p => [+p[0].toFixed(1), +p[1].toFixed(1)]), conf: page.conf.map(c => +c.toFixed(3)), mean_err_px: +page.mean.toFixed(2), max_err_px: +page.max.toFixed(2), swapped_mean_err_px: +swapped.mean.toFixed(2) });
 }

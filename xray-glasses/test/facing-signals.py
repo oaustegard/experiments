@@ -55,10 +55,12 @@ for i, (lab, url) in enumerate(SET):
     print(f"{i:2} {lab:5} shoulder dx {shx:7.3f}  nose depth {wz:7.3f} m  face {bool(f.face_landmarks)}")
 res = {"labelled": {"front": sum(l == "front" for l, _ in SET), "back": sum(l == "back" for l, _ in SET)}, "pose_found": len(rows), "signals": {}}
 fz = [r[2] for r in rows if r[0] == "front"]; bz = [r[2] for r in rows if r[0] == "back"]
-res["nose_depth_m"] = {"front_max": round(max(fz), 3), "front_min": round(min(fz), 3), "back_detected": sorted(round(z, 3) for z in bz)}
+res["nose_depth_m"] = {"front_nose_lead_min_cm": round(-max(fz) * 100, 1), "front_max": round(max(fz), 3), "front_min": round(min(fz), 3), "back_detected": sorted(round(z, 3) for z in bz)}
 for name, front in (("shoulder order (dx > 0)", lambda r: r[1] > 0), ("nose depth (< 0)", lambda r: r[2] < 0), ("face found", lambda r: r[3])):
     nf = sum(r[0] == "front" for r in rows); nb = len(rows) - nf
-    res["signals"][name.split(" (")[0].replace(" ", "_")] = {"front_called_front": f"{sum(front(r) for r in rows if r[0] == 'front')}/{nf}", "back_called_back": f"{sum(not front(r) for r in rows if r[0] == 'back')}/{nb}"}
+    nb_all = sum(l == "back" for l, _ in SET)  # back views pose missed count as misses here
+    res["signals"][name.split(" (")[0].replace(" ", "_")] = {"front_called_front": f"{sum(front(r) for r in rows if r[0] == 'front')}/{nf}", "back_called_back": f"{sum(not front(r) for r in rows if r[0] == 'back')}/{nb}",
+                                                            "back_called_back_of_all_labelled": f"{sum(not front(r) for r in rows if r[0] == 'back')}/{nb_all}"}
     print(f"{name:24} front called front {sum(front(r) for r in rows if r[0] == 'front')}/{nf}, back called back {sum(not front(r) for r in rows if r[0] == 'back')}/{nb}")
 os.makedirs(os.path.join(D, "..", "results"), exist_ok=True)
 json.dump(res, open(os.path.join(D, "..", "results", "facing.json"), "w"), indent=1)
