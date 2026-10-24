@@ -1,0 +1,14 @@
+{
+  "name": "xray-glasses-tests",
+  "private": true,
+  "description": "Headless checks for web/index.html: WGSL validation with Dawn, CPU port of the shaders for test-frame.png",
+  "scripts": {
+    "wgsl": "node wgsl-check.js",
+    "frame": "node render-cpu.js"
+  },
+  "dependencies": {
+    "jpeg-js": "0.4.4",
+    "pngjs": "7.0.0",
+    "webgpu": "0.6.2"
+  }
+}
