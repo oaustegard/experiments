@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refractometer</title>
+<meta name="description" content="Sweeps WebGPU kernel configurations on this device, verifies each against a JS reference, and saves the fastest per adapter.">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3ef; --surface: #fcfcfb; --surface-2: #efeee9; --border: #dcdad2;
+  --text: #1d1d1b; --text-2: #55544e; --muted: #85837a; --grid: #e6e4dd; --axis: #b9b7ae;
+  --accent: #2a78d6; --good: #0b7a0b; --bad: #c03232;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #34342f;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8d84; --grid: #2a2a27; --axis: #55544e;
+    --accent: #5598e7; --good: #4cc24c; --bad: #e66767;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #34342f;
+  --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8d84; --grid: #2a2a27; --axis: #55544e;
+  --accent: #5598e7; --good: #4cc24c; --bad: #e66767;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 20px 16px 64px; }
+h1 { font-size: 1.6rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; margin: 0 0 4px; }
+p { margin: 0 0 10px; }
+.lede { color: var(--text-2); max-width: 70ch; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; font-size: 0.9rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .kv { grid-template-columns: 1fr; } .kv dt { margin-top: 6px; } }
+.feat { display: inline-block; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--border); margin: 2px 4px 2px 0; font-size: 0.82rem; }
+.feat.on { border-color: var(--good); color: var(--good); }
+.feat.off { color: var(--muted); text-decoration: line-through; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; font-size: 0.92rem; }
+.sweeps { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; }
+button { font: inherit; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+#status { min-height: 1.5em; font-size: 0.9rem; color: var(--text-2); overflow-wrap: anywhere; }
+.bar { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+.sweep h2 .tag { font-weight: 400; font-size: 0.8rem; color: var(--muted); margin-left: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 0.82rem; color: var(--text-2); margin: 6px 0 2px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 5px; vertical-align: -1px; }
+.chart { width: 100%; position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.charts { display: grid; grid-template-columns: 1fr; gap: 10px 18px; }
+@media (min-width: 760px) { .charts.two { grid-template-columns: 1fr 1fr; } }
+.chart h3 { font-size: 0.9rem; margin: 6px 0 0; font-weight: 600; }
+.summary { font-size: 0.92rem; margin-top: 6px; }
+.summary b { font-weight: 600; }
+.summary .warn { color: var(--bad); }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 0.8rem; line-height: 1.35; box-shadow: 0 2px 8px rgba(0,0,0,.15); white-space: nowrap; z-index: 2; display: none; }
+details { margin-top: 6px; }
+summary { cursor: pointer; color: var(--text-2); font-size: 0.88rem; }
+.tablewrap { overflow-x: auto; max-height: 340px; overflow-y: auto; }
+table { border-collapse: collapse; font-size: 0.8rem; width: 100%; }
+th, td { text-align: right; padding: 3px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-weight: 500; }
+td.wrong { color: var(--bad); }
+pre#json { max-height: 320px; overflow: auto; background: var(--surface-2); padding: 10px; border-radius: 8px; font-size: 0.75rem; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.err { color: var(--bad); }
+a { color: var(--accent); }
+.chart text { fill: var(--muted); font-size: 11px; font-family: system-ui, sans-serif; }
+.chart text.lbl { fill: var(--text-2); }
+.chart text.win { fill: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Refractometer</h1>
+  <p class="lede">A prism's index is read at its angle of minimum deviation. This page sweeps WebGPU kernel
+    configurations on this device, finds the fastest one, and shows where performance falls off a cliff.
+    Every configuration is checked against a JavaScript reference before it is timed, so a fast kernel with
+    wrong output cannot win. The best configurations are saved as a JSON profile keyed by the GPU adapter.</p>
+  <p class="small muted">Kernels follow <a href="../../eg2-wgsl-engine/">eg2-wgsl-engine</a> (the 4-layer
+    EmbeddingGemma 2 query encoder) and <a href="../../embeddinggemma2-webgpu-tail/">embeddinggemma2-webgpu-tail</a>
+    (the 2-bit corpus scan). Source: <a href="https://github.com/oaustegard/experiments/tree/main/refractometer">oaustegard/experiments/refractometer</a>.</p>
+
+  <section class="card" id="adapter"><h2>Adapter</h2><p class="muted">Requesting a WebGPU adapter…</p></section>
+
+  <section class="card">
+    <div class="controls">
+      <button class="primary" id="run" disabled>Run sweeps</button>
+      <button id="stop" disabled>Stop</button>
+      <label><input type="checkbox" id="quick"> Quick (fewer configs)</label>
+      <label>Largest buffer <select id="maxbytes">
+        <option value="33554432">32 MiB</option><option value="67108864">64 MiB</option>
+        <option value="134217728" selected>128 MiB</option><option value="268435456">256 MiB</option></select></label>
+      <label><input type="checkbox" id="wall"> Wall-clock timing</label>
+    </div>
+    <div class="sweeps" id="pick"></div>
+    <div id="status" aria-live="polite"></div>
+    <div class="bar"><div id="prog"></div></div>
+    <p class="small muted" style="margin-top:8px">A full run takes a few minutes on a laptop GPU. Keep the tab in front and the device plugged in;
+      a phone that heats up throttles, so compare runs made under the same conditions.</p>
+  </section>
+
+  <div id="results"></div>
+
+  <section class="card" id="profile" hidden>
+    <h2>Profile</h2>
+    <p class="small" id="profile-note"></p>
+    <div class="row">
+      <button id="copy">Copy JSON</button>
+      <button id="download">Download JSON</button>
+      <span class="small muted" id="copied"></span>
+    </div>
+    <details><summary>Show JSON</summary><pre id="json"></pre></details>
+  </section>
+
+  <section class="card small">
+    <h2>What each sweep measures</h2>
+    <dl class="kv">
+      <dt>a) bandwidth</dt><dd>vec4 copy and vec4 read-reduce over buffers from 16 KiB up; the knees are where data stops fitting in a cache.</dd>
+      <dt>b) reduction</dt><dd>sum of 4M floats: workgroup size × items per thread, tree in workgroup memory.</dd>
+      <dt>b) q4 GEMV</dt><dd>the encoder's 4-bit matmuls (MatMulNBits layout) at its real shapes: columns per workgroup C, k-splits S, rows R. The engine uses C=32, S=8, R=8.</dd>
+      <dt>b) scan</dt><dd>the tail's 2-bit scan, 65,536 vectors × 8 queries: workgroup size, lookup table in workgroup memory or storage, vectors per thread. The tail uses 256 / workgroup / 1.</dd>
+      <dt>c) tiled matmul</dt><dd>f32 128×2048×512 (gate projection at 128 tokens): tile, k-step, workgroup shape and workgroup memory. The occupancy cliff is where more workgroup memory per workgroup stops paying.</dd>
+      <dt>d) subgroups</dt><dd>the reduction again, with subgroupAdd in place of the workgroup-memory tree (needs the <code>subgroups</code> feature).</dd>
+      <dt>e) f16</dt><dd>the best matmul tiles with f16 data, accumulating in f32 or f16 (needs <code>shader-f16</code>).</dd>
+    </dl>
+    <p class="muted" style="margin-top:8px">Timing: each sample is one compute pass of back-to-back dispatches lasting about 2 ms, timed with
+      <code>timestamp-query</code> where the adapter has it, else from submit to <code>onSubmittedWorkDone</code>. Median and p10–p90 over 25 samples
+      after warmup. A cliff is marked where the best configuration at some x falls below 75% (bandwidth: 80%) of the best at smaller x.
+      Configurations above WebGPU's default limits (16 KiB workgroup memory, 256 invocations) are marked, and a second winner is kept without them,
+      since a device created by onnxruntime-web cannot raise its limits.</p>
+  </section>
+</main>
+<script type="module">
+import { openDevice, SWEEPS, makeProfile, human, DEFAULT_LIMITS, VERSION } from './refract.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const LS = 'refractometer:profile:';
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+};
+const ORDER = ['bandwidth', 'reduce', 'gemv', 'scan', 'matmul', 'subgroup', 'f16'];
+const nf = (x, d = 3) => (x == null || !Number.isFinite(x) ? '–' : Number(x.toPrecision(d)).toLocaleString());
+
+// How each sweep is drawn and described.
+const VIEW = {
+  bandwidth: { kind: 'line', logX: true, xFmt: human, xLabel: 'buffer size', cfg: (c) => `${c.kernel} ${human(c.bytes)}` },
+  reduce: { kind: 'line', logX: true, xFmt: String, xLabel: 'workgroup size', cfg: (c) => `wg ${c.wg}, ${c.ipt}/thread` },
+  gemv: { kind: 'scatter', logX: true, xFmt: String, xLabel: 'invocations per workgroup (C×S)', facet: (p) => p.config.shape,
+    cfg: (c) => `C=${c.C} S=${c.S} R=${c.R}`, mark: (p) => p.config.C === 32 && p.config.S === 8 && p.config.R === Math.min(8, p.config.M), markLabel: 'engine' },
+  scan: { kind: 'line', logX: true, xFmt: String, xLabel: 'workgroup size', cfg: (c) => `wg ${c.wg}, LUT in ${c.lut === 'wg' ? 'workgroup mem' : 'storage'}, V=${c.v}`,
+    mark: (p) => p.config.wg === 256 && p.config.lut === 'wg' && p.config.v === 1, markLabel: 'tail' },
+  matmul: { kind: 'scatter', logX: false, tickUnit: 1024, xFmt: (b) => (b ? `${b / 1024} KiB` : '0'), xLabel: 'workgroup memory per workgroup',
+    cfg: (c) => `${c.TM}×${c.TN}${c.shared ? ` k${c.TK}` : ' direct'}, wg ${c.WX}×${c.WY}`, refX: [{ x: DEFAULT_LIMITS.maxComputeWorkgroupStorageSize, label: 'default limit' }] },
+  subgroup: { kind: 'line', logX: true, xFmt: String, xLabel: 'workgroup size', cfg: (c) => `${c.variant}, wg ${c.wg}, ${c.ipt}/thread` },
+  f16: { kind: 'bars', xLabel: 'tile config', cfg: (c) => `${c.TM}×${c.TN} k${c.TK} wg ${c.WX}×${c.WY}, ${c.type}${c.type === 'f16' ? ` acc ${c.acc}` : ''}` },
+};
+
+let ctx = null, stopFlag = false;
+const results = {};
+
+// ------------------------------------------------------------- charts
+
+const SERIES_COLORS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'];
+function seriesColors(points) {
+  const names = [...new Set(points.map((p) => p.series))];
+  return new Map(names.map((n, i) => [n, `var(${SERIES_COLORS[i % 8]})`]));
+}
+
+function niceTicks(max, n = 5) {
+  if (!(max > 0)) return [0, 1];
+  const step0 = max / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= step0);
+  const out = [];
+  for (let v = 0; v <= max + 1e-9; v += step) out.push(+v.toPrecision(6));
+  if (out[out.length - 1] < max) out.push(+(out[out.length - 1] + step).toPrecision(6));
+  return out;
+}
+
+function drawChart(host, spec) {
+  host._spec = spec;
+  const W = Math.max(280, Math.round(host.clientWidth || 600));
+  const H = Math.round(Math.min(340, Math.max(220, W * 0.55)));
+  const m = { l: 46, r: 14, t: 26, b: 38 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const ok = spec.points.filter((p) => p.status === 'ok' && Number.isFinite(p.y));
+  const colors = spec.colors;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title ?? spec.unit)}">`;
+  if (!ok.length) {
+    host.innerHTML = svg + `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">no verified configurations</text></svg>`;
+    return;
+  }
+  const yMax = Math.max(...ok.map((p) => p.y)) * 1.08;
+  const yt = niceTicks(yMax);
+  const Y = (v) => m.t + ph - (v / yt[yt.length - 1]) * ph;
+  let X, xt;
+  if (spec.kind === 'bars') {
+    const cats = spec.categories;
+    X = (i) => m.l + (i + 0.5) * (pw / cats.length);
+    xt = cats.map((c, i) => ({ v: i, label: c }));
+  } else {
+    const xs = [...new Set(ok.map((p) => p.x).concat((spec.refX ?? []).map((r) => r.x)))].sort((a, b) => a - b);
+    const f = spec.logX ? (v) => Math.log2(Math.max(v, 1)) : (v) => v;
+    let lo = f(xs[0]), hi = f(xs[xs.length - 1]);
+    if (hi === lo) { lo -= 1; hi += 1; }
+    const pad = (hi - lo) * 0.04;
+    X = (v) => m.l + ((f(v) - lo + pad) / (hi - lo + 2 * pad)) * pw;
+    let ticks = xs;
+    if (!spec.logX) { const u = spec.tickUnit ?? 1; ticks = niceTicks(xs[xs.length - 1] / u, 5).map((v) => v * u).filter((v) => v <= xs[xs.length - 1] * 1.01); }
+    // Thin labels to ~56px apart.
+    const keep = [];
+    for (const v of ticks) if (!keep.length || X(v) - X(keep[keep.length - 1]) >= 56) keep.push(v);
+    xt = keep.map((v) => ({ v, label: spec.xFmt(v) }));
+  }
+  for (const v of yt) svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end">${nf(v, 4)}</text>`;
+  svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--axis)"/>`;
+  for (const t of xt) svg += `<text x="${X(t.v)}" y="${H - m.b + 16}" text-anchor="middle">${esc(t.label)}</text>`;
+  svg += `<text x="${m.l + pw / 2}" y="${H - 4}" text-anchor="middle" class="lbl">${esc(spec.xLabel)}</text>`;
+  svg += `<text x="${m.l - 40}" y="${m.t - 12}" class="lbl">${esc(spec.unit)}</text>`;
+  for (const r of spec.refX ?? []) {
+    svg += `<line x1="${X(r.x)}" x2="${X(r.x)}" y1="${m.t}" y2="${Y(0)}" stroke="var(--axis)" stroke-dasharray="2 3"/><text x="${X(r.x) + 4}" y="${m.t + 10}">${esc(r.label)}</text>`;
+  }
+  for (const c of spec.cliffs ?? []) {
+    const x = (X(c.x) + X(c.from)) / 2;
+    svg += `<line x1="${x}" x2="${x}" y1="${m.t}" y2="${Y(0)}" stroke="var(--bad)" stroke-dasharray="4 3"/><text x="${x + 4}" y="${m.t + 24}" style="fill:var(--bad)">cliff ${Math.round((c.ratio - 1) * 100)}%</text>`;
+  }
+  const pts = [];
+  if (spec.kind === 'bars') {
+    const names = [...colors.keys()], bw = Math.min(22, (pw / spec.categories.length) / (names.length + 1));
+    for (const p of ok) {
+      const k = names.indexOf(p.series), x = X(p.x) + (k - (names.length - 1) / 2) * (bw + 2) - bw / 2;
+      svg += `<path d="M${x},${Y(0)} V${Y(p.y) + 3} q0,-3 3,-3 h${bw - 6} q3,0 3,3 V${Y(0)} Z" fill="${colors.get(p.series)}"/>`;
+      pts.push({ p, cx: x + bw / 2, cy: Y(p.y) });
+    }
+  } else {
+    if (spec.kind === 'line') {
+      for (const [name, col] of colors) {
+        const s = ok.filter((p) => p.series === name).sort((a, b) => a.x - b.x);
+        if (s.length > 1) svg += `<polyline fill="none" stroke="${col}" stroke-width="2" points="${s.map((p) => `${X(p.x)},${Y(p.y)}`).join(' ')}"/>`;
+      }
+    }
+    for (const p of ok) {
+      const jit = spec.kind === 'scatter' ? ((p._j ??= Math.random()) - 0.5) * 8 : 0;
+      const cx = X(p.x) + jit, cy = Y(p.y);
+      svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${colors.get(p.series)}" stroke="var(--surface)" stroke-width="2"${p.needsLimits ? ' stroke-dasharray="2 1.5"' : ''}/>`;
+      pts.push({ p, cx, cy });
+    }
+  }
+  const ring = (p, label, dashed) => {
+    const q = pts.find((e) => e.p === p);
+    if (!q) return;
+    svg += `<circle cx="${q.cx}" cy="${q.cy}" r="8" fill="none" stroke="var(--text)" stroke-width="1.5"${dashed ? ' stroke-dasharray="3 2"' : ''}/>`;
+    const right = q.cx < m.l + pw * 0.7;
+    svg += `<text class="win" x="${q.cx + (right ? 11 : -11)}" y="${q.cy - 9}" text-anchor="${right ? 'start' : 'end'}">${esc(label)}</text>`;
+  };
+  if (spec.mark) for (const p of ok.filter(spec.mark)) {
+    const q = pts.find((e) => e.p === p);
+    svg += `<rect x="${q.cx - 5}" y="${q.cy - 5}" width="10" height="10" fill="none" stroke="var(--text-2)" stroke-width="1.2" transform="rotate(45 ${q.cx} ${q.cy})"/>`;
+  }
+  for (const w of spec.winners ?? []) ring(w.p, w.label, w.dashed);
+  svg += '</svg>';
+  host.innerHTML = svg + '<div class="tip"></div>';
+  // Hover: nearest point within 24px.
+  const el = host.querySelector('svg'), tip = host.querySelector('.tip');
+  el.onpointermove = (e) => {
+    const r = el.getBoundingClientRect(), sx = (e.clientX - r.left) * (W / r.width), sy = (e.clientY - r.top) * (H / r.height);
+    let best = null, bd = 24 * 24;
+    for (const q of pts) { const d = (q.cx - sx) ** 2 + (q.cy - sy) ** 2; if (d < bd) { bd = d; best = q; } }
+    if (!best) { tip.style.display = 'none'; return; }
+    const p = best.p, t = p.time ?? {};
+    tip.innerHTML = `<b>${esc(spec.cfg(p.config))}</b><br>${nf(p.y)} ${esc(spec.unit)} · ${nf(t.median_us)} µs<br><span class="muted">p10–p90 ${nf(t.p10_us)}–${nf(t.p90_us)} µs${p.needsLimits ? ' · above default limits' : ''}</span>`;
+    tip.style.display = 'block';
+    const px = best.cx * (r.width / W), py = best.cy * (r.height / H);
+    tip.style.left = `${Math.min(Math.max(0, px - tip.offsetWidth / 2), r.width - tip.offsetWidth)}px`;
+    tip.style.top = `${Math.max(0, py - tip.offsetHeight - 12)}px`;
+  };
+  el.onpointerleave = () => { tip.style.display = 'none'; };
+}
+
+let resizeT = 0;
+addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => document.querySelectorAll('.chart').forEach((c) => c._spec && drawChart(c, c._spec)), 150); });
+
+// ------------------------------------------------------------- sweep sections
+
+function bestOf(points, filter = () => true) {
+  return points.filter((p) => p.status === 'ok' && filter(p)).reduce((a, p) => (!a || p.y > a.y ? p : a), null);
+}
+
+function renderSweep(id, r, savedDate) {
+  const v = VIEW[id];
+  let sec = document.getElementById(`sw-${id}`);
+  if (!sec) {
+    sec = document.createElement('section');
+    sec.className = 'card sweep'; sec.id = `sw-${id}`;
+    const after = ORDER.slice(0, ORDER.indexOf(id)).reverse().map((k) => document.getElementById(`sw-${k}`)).find(Boolean);
+    if (after) after.after(sec); else $('#results').prepend(sec);
+  }
+  const head = `<h2>${esc(SWEEPS[id].title)}${savedDate ? `<span class="tag">saved run, ${esc(savedDate.slice(0, 10))}</span>` : ''}</h2>`;
+  if (r.skipped) { sec.innerHTML = `${head}<p class="muted">Skipped: ${esc(r.skipped)}.</p>`; return; }
+  if (r.error) { sec.innerHTML = `${head}<p class="err">${esc(r.error)}</p>`; return; }
+  const pts = r.points;
+  const unit = r.unit;
+  const facets = v.facet ? [...new Set(pts.map(v.facet))] : [null];
+  const colors = seriesColors(pts.map((p) => (v.facet ? { series: p.series.replace(/^\S+ /, '') } : p)));
+  const counts = {};
+  for (const p of pts) counts[p.status] = (counts[p.status] ?? 0) + 1;
+  let html = head + `<div class="legend">${[...colors].map(([n, c]) => `<span style="--c:${c}">${esc(n)}</span>`).join('')}</div>`;
+  html += `<div class="charts${facets.length > 1 ? ' two' : ''}">${facets.map((f, i) => `<div><div class="chart" data-f="${i}"></div></div>`).join('')}</div>`;
+  html += `<div class="summary"></div>`;
+  html += `<details><summary>All ${pts.length} configurations</summary><div class="tablewrap"><table><thead><tr><th>config</th><th>${esc(unit)}</th><th>median µs</th><th>p10–p90 µs</th><th>status</th></tr></thead><tbody>${
+    [...pts].sort((a, b) => (b.y ?? -1) - (a.y ?? -1)).map((p) => `<tr><td>${esc(v.cfg(p.config))}${p.needsLimits ? ' *' : ''}</td><td>${nf(p.y)}</td><td>${nf(p.time?.median_us)}</td><td>${p.time ? `${nf(p.time.p10_us)}–${nf(p.time.p90_us)}` : ''}</td><td class="${p.status === 'ok' ? '' : 'wrong'}" title="${esc(p.error ?? '')}">${esc(p.status)}</td></tr>`).join('')
+  }</tbody></table></div><p class="small muted">* needs more than WebGPU's default limits.</p></details>`;
+  sec.innerHTML = html;
+
+  const lines = [];
+  facets.forEach((f, i) => {
+    const fp = f == null ? pts : pts.filter((p) => v.facet(p) === f);
+    const fpView = v.facet ? fp.map((p) => Object.assign(p, { series: p.series.replace(/^\S+ /, '') })) : fp;
+    const w = bestOf(fpView), wd = bestOf(fpView, (p) => !p.needsLimits);
+    const winnersList = [];
+    if (w) winnersList.push({ p: w, label: 'best' });
+    if (wd && wd !== w) winnersList.push({ p: wd, label: 'best @ default limits', dashed: true });
+    let cl = [];
+    if (id === 'bandwidth') cl = [...(r.cliffs?.copy ?? []), ...(r.cliffs?.['read-reduce'] ?? [])];
+    else if (id === 'gemv') cl = r.cliffs?.[f] ?? [];
+    else if (id === 'matmul') cl = r.cliffs?.shared ?? [];
+    else cl = r.cliffs?.all ?? [];
+    const host = sec.querySelector(`.chart[data-f="${i}"]`);
+    if (f != null) host.insertAdjacentHTML('beforebegin', `<h3>${esc(f)} <span class="muted small">${fp[0] ? `${fp[0].config.N}×${fp[0].config.K}, M=${fp[0].config.M}` : ''}</span></h3>`);
+    drawChart(host, { ...v, unit, points: fpView, colors, cliffs: cl, winners: id === 'bandwidth' ? [] : winnersList, categories: r.categories, title: SWEEPS[id].title });
+    if (id === 'bandwidth') {
+      for (const s of ['copy', 'read-reduce']) {
+        const b = bestOf(pts, (p) => p.series === s);
+        if (b) lines.push(`<b>${s}</b> peaks at ${nf(b.y)} GB/s at ${human(b.x)}${(r.cliffs?.[s] ?? []).length ? `; falls ${r.cliffs[s].map((c) => `${Math.round((1 - c.ratio) * 100)}% past ${human(c.from)}`).join(', ')}` : '; no knee over 20% in this range'}.`);
+      }
+    } else if (w) {
+      const t = w.time;
+      let s = `${f != null ? `<b>${esc(f)}</b>: ` : ''}best <b>${esc(v.cfg(w.config))}</b>: ${nf(w.y)} ${esc(unit)}, ${nf(t.median_us)} µs (p10–p90 ${nf(t.p10_us)}–${nf(t.p90_us)})${w.needsLimits ? ' — needs raised limits' : ''}.`;
+      if (wd && wd !== w) s += ` Within default limits: ${esc(v.cfg(wd.config))}, ${nf(wd.time.median_us)} µs.`;
+      if (v.mark) {
+        const ref = fpView.find((p) => p.status === 'ok' && v.mark(p));
+        if (ref && ref !== w) s += ` The ${v.markLabel}'s current config (◇) takes ${nf(ref.time.median_us)} µs: ${nf(ref.time.median_us / t.median_us)}× slower.`;
+        else if (ref) s += ` That is the ${v.markLabel}'s current config.`;
+      }
+      if (cl.length) s += ` Cliff: ${cl.map((c) => `${Math.round((1 - c.ratio) * 100)}% drop going from ${esc(v.xFmt ? v.xFmt(c.from) : c.from)} to ${esc(v.xFmt ? v.xFmt(c.x) : c.x)}`).join('; ')}.`;
+      lines.push(s);
+    }
+  });
+  if (r.verdict) {
+    const vv = Object.entries(r.verdict).filter(([k]) => k.includes('/') || k.includes('_over_'));
+    if (vv.length) lines.push(`Ratio of best configs: ${vv.map(([k, x]) => `${esc(k.replace('_over_', ' / '))} = <b>${nf(x)}</b>×`).join(', ')}.`);
+  }
+  const bad = (counts.wrong ?? 0) + (counts.invalid ?? 0) + (counts.error ?? 0);
+  lines.push(`<span class="${bad ? 'warn' : 'muted'}">${counts.ok ?? 0} configs verified and timed${bad ? `; ${counts.wrong ?? 0} gave wrong output, ${(counts.invalid ?? 0) + (counts.error ?? 0)} failed to compile or run (excluded)` : ''}.</span>`);
+  if (pts.some((p) => p.time?.quantized)) lines.push('<span class="muted">Timestamps arrive quantized to 100 µs; passes were lengthened to compensate.</span>');
+  sec.querySelector('.summary').innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
+}
+
+// ------------------------------------------------------------- profile
+
+function showProfile(profile, note) {
+  $('#profile').hidden = false;
+  $('#json').textContent = JSON.stringify(profile, null, 1);
+  $('#profile-note').innerHTML = note;
+}
+
+$('#copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#json').textContent); $('#copied').textContent = 'Copied.'; }
+  catch { $('#copied').textContent = 'Clipboard blocked: use Download.'; }
+};
+$('#download').onclick = () => {
+  const p = JSON.parse($('#json').textContent);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([$('#json').textContent], { type: 'application/json' }));
+  a.download = `refractometer-${p.key.replace(/\//g, '_')}-${p.date.slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+// ------------------------------------------------------------- adapter + run
+
+function renderAdapter() {
+  const i = ctx.info, L = ctx.limits;
+  const feat = (f) => `<span class="feat ${ctx.features.includes(f) ? 'on' : 'off'}">${f}</span>`;
+  const lim = ['maxComputeWorkgroupStorageSize', 'maxComputeInvocationsPerWorkgroup', 'maxComputeWorkgroupSizeX', 'maxStorageBufferBindingSize', 'maxBufferSize'];
+  $('#adapter').innerHTML = `<h2>Adapter</h2><dl class="kv">
+    <dt>profile key</dt><dd class="mono">${esc(ctx.key)}</dd>
+    <dt>vendor</dt><dd>${esc(i.vendor || '–')}</dd><dt>architecture</dt><dd>${esc(i.architecture || '–')}</dd>
+    <dt>device</dt><dd>${esc(i.device || '–')}</dd><dt>description</dt><dd>${esc(i.description || '–')}</dd>
+    ${i.subgroupMinSize ? `<dt>subgroup size</dt><dd>${i.subgroupMinSize}–${i.subgroupMaxSize}</dd>` : ''}
+    <dt>features</dt><dd>${feat('timestamp-query')}${feat('subgroups')}${feat('shader-f16')}</dd>
+    <dt>timing</dt><dd>${ctx.timing === 'timestamp' ? 'GPU timestamps' : 'wall clock (submit → onSubmittedWorkDone)'}</dd>
+    ${lim.map((k) => `<dt>${k}</dt><dd>${L[k] >= 1 << 20 ? human(L[k]) : L[k]} <span class="muted">(default ${DEFAULT_LIMITS[k] >= 1 << 20 ? human(DEFAULT_LIMITS[k]) : DEFAULT_LIMITS[k]})</span></dd>`).join('')}
+  </dl>${i.isFallbackAdapter ? '<p class="err">This is a fallback (software) adapter: timings describe the CPU, not a GPU.</p>' : ''}`;
+}
+
+function renderPick() {
+  $('#pick').innerHTML = ORDER.map((id) => {
+    const need = id === 'subgroup' ? 'subgroups' : id === 'f16' ? 'shader-f16' : null;
+    const has = !need || ctx.features.includes(need);
+    return `<label><input type="checkbox" value="${id}" ${has ? 'checked' : 'disabled'}> ${esc(SWEEPS[id].title.split(':')[0].replace(/^\w\) /, (m) => m))}${has ? '' : ` <span class="muted">(no ${need})</span>`}</label>`;
+  }).join('');
+}
+
+async function run() {
+  const picked = [...document.querySelectorAll('#pick input:checked')].map((e) => e.value);
+  if (!picked.length) return;
+  stopFlag = false;
+  $('#run').disabled = true; $('#stop').disabled = false;
+  ctx.timing = $('#wall').checked || !ctx.features.includes('timestamp-query') ? 'wall' : 'timestamp';
+  const opts = { quick: $('#quick').checked, maxBytes: +$('#maxbytes').value };
+  const t0 = performance.now();
+  let n = 0;
+  for (const id of picked) {
+    if (stopFlag) break;
+    $('#prog').style.width = `${(100 * n) / picked.length}%`;
+    try {
+      results[id] = await SWEEPS[id].run(ctx, {
+        ...opts,
+        onProgress: (msg) => { $('#status').textContent = msg; if (stopFlag) throw new Error('stopped'); },
+      }, results.matmul);
+    } catch (e) {
+      results[id] = { error: e.message === 'stopped' ? 'Stopped.' : `Sweep failed: ${e.message}` };
+    }
+    if (ctx.lost.reason) { results[id] = { error: `GPU device lost (${ctx.lost.reason}); reload to continue.` }; renderSweep(id, results[id]); break; }
+    renderSweep(id, results[id]);
+    n++;
+    const profile = makeProfile(ctx, Object.fromEntries(Object.entries(results).filter(([, r]) => !r.error)), { options: opts, seconds: Math.round((performance.now() - t0) / 1000) });
+    const saved = store.set(LS + ctx.key, profile);
+    showProfile(profile, `Key <code>${esc(ctx.key)}</code>. ${saved ? 'Saved in this browser, so <code>tuned.js</code> on this origin picks it up.' : 'Could not save to this browser\'s storage (private window?): download it instead.'} Add it to <code>refractometer/web/profiles.json</code> to ship it with the pages.`);
+  }
+  $('#prog').style.width = '100%';
+  $('#status').textContent = stopFlag ? 'Stopped.' : `Done in ${Math.round((performance.now() - t0) / 1000)} s.`;
+  $('#run').disabled = false; $('#stop').disabled = true;
+}
+
+$('#run').onclick = run;
+$('#stop').onclick = () => { stopFlag = true; $('#status').textContent = 'Stopping after this configuration…'; };
+
+try {
+  ctx = await openDevice(navigator.gpu);
+  renderAdapter();
+  renderPick();
+  $('#run').disabled = false;
+  const saved = store.get(LS + ctx.key);
+  if (saved?.schema === VERSION && saved.sweeps) {
+    for (const id of ORDER) if (saved.sweeps[id]) renderSweep(id, saved.sweeps[id], saved.date);
+    showProfile(saved, `A profile saved in this browser on ${esc(saved.date.slice(0, 16).replace('T', ' '))} UTC. Run again to replace it.`);
+    $('#status').textContent = 'Showing the profile saved in this browser. Run sweeps to measure again.';
+  } else {
+    $('#status').textContent = 'Ready.';
+  }
+  if (new URLSearchParams(location.search).has('autorun')) {
+    if (new URLSearchParams(location.search).has('quick')) $('#quick').checked = true;
+    const only = new URLSearchParams(location.search).get('only');
+    if (only) document.querySelectorAll('#pick input').forEach((e) => { e.checked = only.split(',').includes(e.value) && !e.disabled; });
+    await run();
+    window.__refractometer = { done: true, profile: JSON.parse($('#json').textContent) };
+  }
+} catch (e) {
+  $('#adapter').innerHTML = `<h2>Adapter</h2><p class="err">${esc(e.message)}</p><p class="muted">WebGPU needs a recent Chrome, Edge or Safari (iOS 26+), or Firefox 141+ on Windows.</p>`;
+  window.__refractometer = { done: true, error: e.message };
+}
+</script>
+</body>
+</html>

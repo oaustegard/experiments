@@ -1,0 +1,20 @@
+// tuned.js against the lavapipe check's winners: exact match, vendor/architecture match, fallback.
+import { readFileSync } from 'node:fs';
+import { getTuned, explainTuned } from '../web/tuned.js';
+import assert from 'node:assert/strict';
+const lc = JSON.parse(readFileSync(new URL('../results/lavapipe_check.json', import.meta.url)));
+const prof = { key: lc.adapter.key, adapter: { info: lc.adapter.info }, best: lc.timed.timestamp.best };
+const url = 'data:application/json,' + encodeURIComponent(JSON.stringify({ profiles: { [prof.key]: prof } }));
+const info = prof.adapter.info;
+const kern = Object.keys(prof.best).find((k) => k.startsWith('gemv_q4'));
+const e = await explainTuned({ info }, kern, { C: 32, S: 8, R: 8 }, { bundledUrl: url });
+assert.equal(e.source, 'profiles.json'); assert.equal(e.match, 'exact');
+assert.deepEqual(Object.keys(e.config).sort(), ['C', 'R', 'S']);
+assert.equal(e.config.C, prof.best[kern].C);
+const near = await explainTuned({ info: { ...info, device: 'other' } }, kern, {}, { bundledUrl: url });
+assert.equal(near.match, 'vendor/architecture');
+const miss = await getTuned({ info: { vendor: 'apple', architecture: 'metal-3' } }, kern, { C: 32 }, { bundledUrl: url });
+assert.deepEqual(miss, { C: 32 });
+const none = await getTuned({ info }, 'no_such_kernel', { x: 1 }, { bundledUrl: url });
+assert.deepEqual(none, { x: 1 });
+console.log('tuned.js ok:', kern, JSON.stringify(e.config));
