@@ -14,4 +14,4 @@ Hop 256 at 75% overlap; added latency is N−HOP = 768 samples plus the block an
 
 - Dawn (lavapipe adapter) compiles both WGSL modules with no messages and validates the compute pipeline, render pipeline and bind groups.
 - The CPU mirror: flat settings reconstruct the input to 1.2e-7 max error at 768 samples delay; muting the 120–500 Hz band drops a 300 Hz tone from 0.30 to 0.005 while 3 kHz stays at 0.20; threshold −30 dB, ratio 4 on a −14 dB band gives 12.0 dB gain reduction; freeze over silence sustains the band at 0.208 RMS against 0.212 input (after a 1.85 gain that offsets random-phase overlap-add loss).
-- GPU execution is untested: in this sandbox llvmpipe cannot complete a queue submission (futex error under gVisor), so `test.js` hangs. Run `node test.js` on a machine with a real GPU to check the WGSL path against the same numbers.
+- GPU execution is untested. In the authoring sandbox llvmpipe cannot complete a queue submission (futex error under gVisor), so the WGSL path first runs on real hardware in the browser.
