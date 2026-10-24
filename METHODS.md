@@ -717,8 +717,8 @@ survives exactly the sanity checks people run.
   iOS 26 WebKit's `importExternalTexture(video)` gets the sensor frame without its rotation, so a
   portrait camera shows 90 degrees off, while MediaPipe and canvas `drawImage` see it upright
   (tfjs#8733 reports the same). `drawImage(video)` into an OffscreenCanvas (cap it near 640 px), then
-  `copyExternalImageToTexture` into an rgba8unorm texture (usage needs RENDER_ATTACHMENT), is correct
-  everywhere. `textureSampleBaseClampToEdge` takes a `texture_2d<f32>` too, so the shader barely
+  `copyExternalImageToTexture` into an rgba8unorm texture (usage needs RENDER_ATTACHMENT), fixed it;
+  confirmed upright on an iPhone. `textureSampleBaseClampToEdge` takes a `texture_2d<f32>` too, so the shader barely
   changes. (`xray-glasses/web/index.html` `frameTexture`)
 - **Dawn on lavapipe (npm `webgpu`) validates but cannot draw in these containers.** Shader
   compilation, `getCompilationInfo` and pipeline creation work, so it is a good WGSL checker. Copy

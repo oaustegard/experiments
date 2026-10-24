@@ -1,54 +1,56 @@
 # X-ray glasses: results
 
-The page itself, its pipeline and its models are described in [`README.md`](README.md).
+What the page does and how it works, for someone who has tried it: [`README.md`](README.md).
 Live: https://austegard.com/fun-and-games/xray-glasses/
 
 ## Answer
 
-Can a phone browser track a person, cat or dog from the camera and draw an X-ray-style skeleton fitted to
-them, live and entirely on the device, from off-the-shelf pose models and two WebGPU passes? Tracking and
-rendering work: every stage ran on real model output in headless Chromium, end to end with a fake camera. The skeleton is a stylised template that follows the joints; it does not
-look like real anatomy, and nothing here measured how it looks. On a phone it is unmeasured beyond
-Oskar's first look, which found the iOS camera background a quarter turn off (fixed, not re-checked).
+How does the page know where to draw the bones, which way you are facing and how your head is turned,
+and how close does it get? MediaPipe Pose Landmarker finds 33 points on a person and RTMPose finds 17 on
+an animal; the page stretches a stock skeleton between them, so it shows how the subject stands and nothing
+about their real bones.
 
-The numbers that carry it:
-RTMPose, through the page's own crop and decoder, lands a mean 4.1 px from AP-10K ground truth on one test image <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
-and 15.3 px on the other, a jaguar filling a 1365 px crop. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k_37516.jpg/mean_err_px]] -->
-Facing the camera or away is read from the nose's world depth: 20/20 front views right <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
-and 6/7 back views. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
-The 3D skull, posed by the Face Landmarker, sits a median 0.41 cm from the face's landmarks. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
+On the two AP-10K test photos the animal joints land a mean 4.1 px from the hand-marked ones on an antelope <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
+and 15.3 px on a jaguar that fills a crop 1365 px across. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k_37516.jpg/mean_err_px]] -->
+Facing toward or away comes from the pose model's depth estimate of the nose against the shoulders: right on 20/20 photos facing the camera <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
+and 6/7 from behind. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
+The skull is posed by MediaPipe Face Landmarker and sits a median 0.41 cm from the face's landmarks. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
+The iOS camera background, at first rotated a quarter turn, is fixed and confirmed on an iPhone.
 
-What would change this: phone frame rate, Face Landmarker cost, and the iOS fix on an iPhone.
+Frame rate and battery cost on phones are unmeasured; measuring them could change what runs on the GPU.
 
 ## Findings
 
-1. **Facing away is in the pose's world landmarks, not its visibility scores.** Nose depth minus shoulder depth called 20/20 front views front <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
-   and 6/7 back views back. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
-   Front views stayed at or below -0.034 m. <!-- @evidence[[results/facing.json#nose_depth_m.front_max]] -->
-   Visibility was 0.99-1.0 for the nose, eyes and ears even from behind. The one miss is two people side by
-   side, read as one person facing the camera. Small hand-labelled set (`test/facing-signals.py`).
-2. **On iOS 26, WebGPU's `importExternalTexture` ignores the camera's rotation.** A portrait camera's frame
-   arrives a quarter turn off while MediaPipe and canvas `drawImage` see it upright (also reported in
-   [tfjs#8733](https://github.com/tensorflow/tfjs/issues/8733)). The page now draws each frame into a 2D
-   canvas and copies it into a texture. Verified headless in both orientations; not yet on an iPhone (log 5).
-3. **RTMPose AP-10K (LiteRT): `output_0` is simcc_x and the split ratio is 2, as the page assumed.**
-   Swapping the outputs puts the antelope's keypoints 159.7 px off. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/swapped_mean_err_px]] -->
-   Decoding at ratio 1.5 instead of 2 puts them 151.2 px off. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_by_split_ratio/1.5]] -->
-   LiteRT.js 2.5.3 returns the outputs in the same order as Python (log 2).
-4. **The face model's rotation plus a 2D fit places a 3D skull on the face.** Mean landmark distance was 0.41 cm at the median face <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
-   and 0.75 cm at the worst, over faces turned -47 to +56 degrees. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_max]] -->
-   Without a face, nose and ears give a yaw a median 8.4 degrees off the face model's <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.yaw]] -->
-   and roll 3.2 degrees off, <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.roll]] -->
-   when image xy comes from the 2D landmarks; world landmarks alone are 7.0 degrees off in roll. <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.world.median_abs_err_deg.roll]] -->
-5. **An int8 detector belongs on MediaPipe's CPU delegate.** On SwiftShader the GPU delegate's first detection took 2770 ms <!-- @evidence[[results/delegate_timing.json#detector_GPU.first_ms]] -->
+1. **Facing direction comes from the pose model's depth estimate.** When a person faces the camera their
+   nose is nearer than their shoulders; facing away, it is farther. That called 20/20 photos facing the camera <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
+   and 6/7 photos from behind. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
+   Nose depth minus shoulder depth was never above -0.034 m facing the camera; the page switches to PA only above +0.05 m. <!-- @evidence[[results/facing.json#nose_depth_m.front_max]] -->
+   The pose model's visibility scores are no help: they report the eyes and nose as visible from behind
+   (0.99-1.0). The one miss is two people side by side with their backs to the camera, read as one person
+   facing it. Hand-labelled set of 29 photos (`test/facing-signals.py`).
+2. **The skull turns with the head because Face Landmarker reports the head's rotation.** Projecting the
+   face model's standard face through that rotation lands a median 0.41 cm from the detected landmarks <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
+   and 0.75 cm on the worst face, over heads turned -47 to +56 degrees. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_max]] -->
+   When the face is too small for Face Landmarker, the page estimates the head from the nose and ears instead: a median 8.4 degrees off in yaw <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.yaw]] -->
+   and 3.2 degrees in roll. <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.roll]] -->
+   Using the pose model's 3D points alone, roll is 7.0 degrees off, so the page takes positions from the 2D points and only depth from the 3D ones. <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.world.median_abs_err_deg.roll]] -->
+3. **On iOS 26 the camera background showed a quarter turn off; copying the frame through a canvas fixed
+   it.** WebKit's `importExternalTexture`, the fast path from a video to WebGPU, ignores the camera's
+   rotation, while the pose models read the frame upright. Every iOS browser uses WebKit. Drawing each
+   frame into a 2D canvas and copying that into a texture is upright everywhere, confirmed on an iPhone.
+   Also reported in [tfjs#8733](https://github.com/tensorflow/tfjs/issues/8733).
+4. **The animal model's outputs needed no reinterpretation.** RTMPose returns x before y, and decodes at two bins per pixel. Swapping the outputs would put the antelope's joints 159.7 px off <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/swapped_mean_err_px]] -->
+   and decoding at 1.5 bins per pixel 151.2 px off. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_by_split_ratio/1.5]] -->
+   LiteRT.js in the browser returns the outputs in the same order as Python.
+5. **The detector loaded slowly because MediaPipe's GPU delegate stalls on its first detection.** In a headless browser that first detection took 2770 ms on the GPU <!-- @evidence[[results/delegate_timing.json#detector_GPU.first_ms]] -->
    against 283 ms on the CPU, <!-- @evidence[[results/delegate_timing.json#detector_CPU.first_ms]] -->
-   while the 4.6 MB download took 550 ms. <!-- @evidence[[results/delegate_timing.json#detector_download.ms]] -->
-   The pose model's GPU delegate shows the same first-call stall (2832 ms) and is still on the GPU: open. <!-- @evidence[[results/delegate_timing.json#pose_GPU.first_ms]] -->
-6. **An orthographic head pose lets a 2D SDF renderer draw a 3D model with no shader change.** Ellipsoids
-   project to exact ellipses and capsules to capsules, so the existing shaders draw the skull's ~150
-   primitives at any yaw. On SwiftShader the page's shaders match their CPU port to a mean 3.82 levels per 8-bit channel on the human frame. <!-- @evidence[[results/gpu_vs_cpu.json#per_8bit_channel.human.mean]] -->
-7. **Dawn on lavapipe validates WGSL but cannot draw here; headless Chromium on SwiftShader can.** Headless
-   Chromium's `importExternalTexture` needs `--use-angle=swiftshader` and `--use-vulkan=swiftshader` together (log 2).
+   while downloading the 4.6 MB model took 550 ms. <!-- @evidence[[results/delegate_timing.json#detector_download.ms]] -->
+   The detector now runs on the CPU. The pose model's GPU delegate shows the same first-call stall (2832 ms) and still runs on the GPU; a phone measurement will decide whether it moves too. <!-- @evidence[[results/delegate_timing.json#pose_GPU.first_ms]] -->
+6. **A 3D skull can be drawn with the page's 2D bone shapes.** Seen along the beam, a 3D ellipsoid is
+   exactly an ellipse and a 3D tube is a 2D tube, so the shaders needed no change. Run on a software GPU, the page's shaders match their CPU version to a mean 3.82 levels out of 255 per colour channel. <!-- @evidence[[results/gpu_vs_cpu.json#per_8bit_channel.human.mean]] -->
+7. **For anyone testing WebGPU pages headless:** Dawn on Mesa lavapipe checks WGSL but crashes on any
+   draw in these containers; headless Chromium on SwiftShader runs them, and its `importExternalTexture`
+   needs `--use-angle=swiftshader` and `--use-vulkan=swiftshader` together (log 2).
 
 ## Method
 
@@ -257,9 +259,16 @@ Rounds 3 and 4 measured with throwaway scripts. They are now `test/head-pose-che
 
 The RTMPose, facing and GPU-versus-CPU numbers reproduced exactly.
 
+### 7. iOS fix confirmed; writeups rewritten for readers (2026-10-24)
+
+Oskar confirmed the camera background is upright on his iPhone with the canvas copy from round 5. He also
+asked for writeups aimed at someone who has tried the page rather than at its build history.
+`README.md` now explains the page in that order: how it finds a person or an animal, how the skeleton
+and the 3D skull are drawn, what AP and PA mean, its limits, and the measured accuracy. The Answer and
+Findings above were rewritten the same way; the numbers did not change.
+
 ### Open
 
-- That the background is upright on an iPhone now (iOS 26 WebGPU).
 - The Face Landmarker's cost per frame on a phone. It runs every frame while a
   head is larger than 30 px, alongside the pose.
 - Anything on a real GPU: frame rate, the per-frame canvas copy on Safari, MediaPipe's
