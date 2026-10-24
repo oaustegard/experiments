@@ -114,10 +114,19 @@ None found renders an anatomical X-ray skeleton, and none handles animals.
 
 ## Hosting notes
 
-The page is meant for https://austegard.com/experiments/xray-glasses/web/, where
-camera access works. It would not work as a claude.ai artifact: that sandbox
-refuses the camera without a declared capability, and its CSP blocks the model
-fetches from storage.googleapis.com and huggingface.co.
+The page lives at https://austegard.com/fun-and-games/xray-glasses/, published
+from the site repo (`oaustegard.github.io`, `fun-and-games/xray-glasses/`) with
+the model file beside it. This directory is the source and holds the tests: edit
+`web/index.html` here, then copy `web/index.html` and `web/rtm_animal_fp16.bin`
+there. It was first published at `/experiments/xray-glasses/web/`, which no
+longer exists; the experiments index now links to the site page. The link
+preview, `images/xray-glasses-og.jpg` in the site repo, is `test/pose.jpg`
+blended into its own X-ray. It was rendered by the page's shaders on SwiftShader
+(`test/render-gpu.js`).
+
+Camera access needs a normal https page. It would not work as a claude.ai
+artifact: that sandbox refuses the camera without a declared capability, and its
+CSP blocks the model fetches from storage.googleapis.com and huggingface.co.
 
 ## Verification
 
