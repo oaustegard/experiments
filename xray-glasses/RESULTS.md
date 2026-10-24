@@ -5,21 +5,20 @@ Live: https://austegard.com/fun-and-games/xray-glasses/
 
 ## Answer
 
-Can a phone browser show a live, believable X-ray of a person, cat or dog, entirely on the device, from
-off-the-shelf pose models and two WebGPU passes? As a pipeline, yes. Every stage was run on real model
-output in headless Chromium, and the page runs end to end there with a fake camera. On a real phone it is
-unmeasured beyond Oskar's first look, which found the camera background a quarter turn off on iOS (fixed,
-not yet re-checked on the device).
+Can a phone browser track a person, cat or dog from the camera and draw an X-ray-style skeleton fitted to
+them, live and entirely on the device, from off-the-shelf pose models and two WebGPU passes? Tracking and
+rendering work: every stage ran on real model output in headless Chromium, end to end with a fake camera. The skeleton is a stylised template that follows the joints; it does not
+look like real anatomy, and nothing here measured how it looks. On a phone it is unmeasured beyond
+Oskar's first look, which found the iOS camera background a quarter turn off (fixed, not re-checked).
 
 The numbers that carry it:
-RTMPose, fed through the page's own crop and decoder, lands a mean 4.1 px from AP-10K ground truth on one test image <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
+RTMPose, through the page's own crop and decoder, lands a mean 4.1 px from AP-10K ground truth on one test image <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_px]] -->
 and 15.3 px on the other, a jaguar filling a 1365 px crop. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k_37516.jpg/mean_err_px]] -->
 Facing the camera or away is read from the nose's world depth: 20/20 front views right <!-- @evidence[[results/facing.json#signals.nose_depth.front_called_front]] -->
 and 6/7 back views. <!-- @evidence[[results/facing.json#signals.nose_depth.back_called_back]] -->
 The 3D skull, posed by the Face Landmarker, sits a median 0.41 cm from the face's landmarks. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
 
-What would change this: frame rate and Face Landmarker cost on a phone, and whether the iOS rotation fix
-holds on an iPhone.
+What would change this: phone frame rate, Face Landmarker cost, and the iOS fix on an iPhone.
 
 ## Findings
 
@@ -36,7 +35,7 @@ holds on an iPhone.
    Swapping the outputs puts the antelope's keypoints 159.7 px off. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/swapped_mean_err_px]] -->
    Decoding at ratio 1.5 instead of 2 puts them 151.2 px off. <!-- @evidence[[results/rtmpose_canvas.json#/images/ap10k.jpg/mean_err_by_split_ratio/1.5]] -->
    LiteRT.js 2.5.3 returns the outputs in the same order as Python (log 2).
-4. **The face model's rotation plus a 2D fit poses a 3D skull well enough to read as attached.** Mean landmark distance was 0.41 cm at the median face <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
+4. **The face model's rotation plus a 2D fit places a 3D skull on the face.** Mean landmark distance was 0.41 cm at the median face <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_median]] -->
    and 0.75 cm at the worst, over faces turned -47 to +56 degrees. <!-- @evidence[[results/head_pose.json#face_fit.resid_cm_max]] -->
    Without a face, nose and ears give a yaw a median 8.4 degrees off the face model's <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.yaw]] -->
    and roll 3.2 degrees off, <!-- @evidence[[results/head_pose.json#pose_fallback_vs_face.hybrid.median_abs_err_deg.roll]] -->
