@@ -1,0 +1,130 @@
+{
+ "error": null,
+ "seconds": 2280.6,
+ "console_errors": [],
+ "phone_horizontal_overflow_px": 0,
+ "phone_saved_charts": 9,
+ "key": "google/swiftshader/-",
+ "timing": "timestamp",
+ "best": {
+  "bandwidth_copy": {
+   "bytes": 134217728,
+   "gbps": 2.345
+  },
+  "bandwidth_read-reduce": {
+   "bytes": 134217728,
+   "gbps": 0.1141
+  },
+  "reduce_f32:4194304": {
+   "variant": "tree",
+   "wg": 64,
+   "ipt": 8,
+   "gbps": 0.04939
+  },
+  "gemv_q4:2048x512:m16": {
+   "C": 16,
+   "S": 2,
+   "R": 16,
+   "us": 43160,
+   "gbps": 0.01936,
+   "engine_config_us": 160700,
+   "speedup_vs_engine": 3.72
+  },
+  "gemv_q4:1024x512:m16": {
+   "C": 16,
+   "S": 2,
+   "R": 16,
+   "us": 20510,
+   "gbps": 0.02117,
+   "engine_config_us": 62780,
+   "speedup_vs_engine": 3.06
+  },
+  "gemv_q4:512x2048:m16": {
+   "C": 32,
+   "S": 4,
+   "R": 16,
+   "us": 39370,
+   "gbps": 0.02123,
+   "engine_config_us": 74730,
+   "speedup_vs_engine": 1.9
+  },
+  "gemv_q4:768x512:m1": {
+   "C": 32,
+   "S": 2,
+   "R": 1,
+   "us": 2798,
+   "gbps": 0.09185,
+   "engine_config_us": 6233,
+   "speedup_vs_engine": 2.23
+  },
+  "scan_2bit:65536x8": {
+   "wg": 256,
+   "lut": "wg",
+   "v": 4,
+   "us": 2058000,
+   "gbps": 0.04892,
+   "tail_config_us": 3747000,
+   "speedup_vs_tail": 1.82
+  },
+  "matmul_f32:128x2048x512": {
+   "TM": 64,
+   "TN": 64,
+   "TK": 32,
+   "WX": 8,
+   "WY": 8,
+   "shared": true,
+   "gflops": 0.4762,
+   "us": 563600
+  },
+  "reduce_f32_tree:4194304": {
+   "variant": "tree",
+   "wg": 64,
+   "ipt": 4,
+   "gbps": 0.02406
+  },
+  "reduce_f32_subgroup:4194304": {
+   "variant": "subgroup",
+   "wg": 64,
+   "ipt": 4,
+   "gbps": 0.04012
+  }
+ },
+ "statuses": {
+  "bandwidth": {
+   "ok": 28,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  },
+  "reduce": {
+   "ok": 4,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  },
+  "gemv": {
+   "ok": 80,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  },
+  "scan": {
+   "ok": 8,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  },
+  "matmul": {
+   "ok": 18,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  },
+  "subgroup": {
+   "ok": 4,
+   "wrong": 0,
+   "invalid": 0,
+   "error": 0
+  }
+ }
+}

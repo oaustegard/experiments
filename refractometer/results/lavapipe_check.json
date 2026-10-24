@@ -1,0 +1,193 @@
+{
+ "started": "2026-10-24T15:14:02.912Z",
+ "adapter": {
+  "info": {
+   "vendor": "mesa",
+   "architecture": "software",
+   "device": "llvmpipe-llvm-20-1-2-256-bits-",
+   "description": "llvmpipe: Mesa 25.2.8-0ubuntu0.24.04.4 (LLVM 20.1.2)",
+   "subgroupMinSize": 8,
+   "subgroupMaxSize": 8,
+   "isFallbackAdapter": true
+  },
+  "key": "mesa/software/llvmpipe-llvm-20-1-2-256-bits",
+  "features": [
+   "timestamp-query",
+   "subgroups",
+   "shader-f16"
+  ],
+  "timing": "timestamp"
+ },
+ "compile": {
+  "kernels": 910,
+  "failed": 0,
+  "failures": []
+ },
+ "verify": {
+  "bandwidth": {
+   "statuses": {
+    "verified": 28
+   },
+   "errors": [],
+   "maxErr": 0,
+   "seconds": 4.8
+  },
+  "reduce": {
+   "statuses": {
+    "verified": 30
+   },
+   "errors": [],
+   "maxErr": 0,
+   "seconds": 4.4
+  },
+  "gemv": {
+   "statuses": {
+    "verified": 378
+   },
+   "errors": [],
+   "maxErr": 0.0000021006684747248983,
+   "seconds": 3.8
+  },
+  "scan": {
+   "statuses": {
+    "verified": 36
+   },
+   "errors": [],
+   "maxErr": 0.00010449304629389644,
+   "seconds": 8.5
+  },
+  "matmul": {
+   "statuses": {
+    "verified": 136
+   },
+   "errors": [],
+   "maxErr": 0,
+   "seconds": 11.6
+  },
+  "subgroup": {
+   "statuses": {
+    "verified": 36
+   },
+   "errors": [],
+   "maxErr": 0,
+   "seconds": 4
+  },
+  "f16": {
+   "statuses": {
+    "verified": 12
+   },
+   "errors": [],
+   "maxErr": 0.0625,
+   "seconds": 2.5
+  }
+ },
+ "negative": {
+  "bandwidth": {
+   "wrong": 3,
+   "verified": 3
+  },
+  "reduce": {
+   "wrong": 6
+  },
+  "gemv": {
+   "wrong": 9
+  },
+  "scan": {
+   "wrong": 12
+  },
+  "matmul": {
+   "wrong": 18
+  }
+ },
+ "timed": {
+  "timestamp": {
+   "best": {
+    "bandwidth_copy": {
+     "bytes": 4194304,
+     "gbps": 5.079
+    },
+    "bandwidth_read-reduce": {
+     "bytes": 131072,
+     "gbps": 0.1809
+    },
+    "reduce_f32:4194304": {
+     "variant": "tree",
+     "wg": 64,
+     "ipt": 8,
+     "gbps": 0.4044
+    },
+    "reduce_f32_tree:4194304": {
+     "variant": "tree",
+     "wg": 256,
+     "ipt": 4,
+     "gbps": 0.2066
+    },
+    "reduce_f32_subgroup:4194304": {
+     "variant": "subgroup",
+     "wg": 1024,
+     "ipt": 4,
+     "gbps": 0.6772
+    },
+    "gemv_q4:768x512:m1": {
+     "C": 16,
+     "S": 2,
+     "R": 1,
+     "us": 229.6,
+     "gbps": 1.119,
+     "engine_config_us": 362.3,
+     "speedup_vs_engine": 1.58
+    }
+   },
+   "modes": [
+    "timestamp"
+   ],
+   "quantized": false
+  },
+  "wall": {
+   "best": {
+    "bandwidth_copy": {
+     "bytes": 2097152,
+     "gbps": 4.898
+    },
+    "bandwidth_read-reduce": {
+     "bytes": 524288,
+     "gbps": 0.1767
+    },
+    "reduce_f32:4194304": {
+     "variant": "tree",
+     "wg": 64,
+     "ipt": 8,
+     "gbps": 0.4125
+    },
+    "reduce_f32_tree:4194304": {
+     "variant": "tree",
+     "wg": 64,
+     "ipt": 4,
+     "gbps": 0.2111
+    },
+    "reduce_f32_subgroup:4194304": {
+     "variant": "subgroup",
+     "wg": 256,
+     "ipt": 4,
+     "gbps": 0.6424
+    },
+    "gemv_q4:768x512:m1": {
+     "C": 32,
+     "S": 2,
+     "R": 1,
+     "us": 205.5,
+     "gbps": 1.251,
+     "engine_config_us": 349.1,
+     "speedup_vs_engine": 1.7
+    }
+   },
+   "modes": [
+    "wall"
+   ],
+   "quantized": false
+  }
+ },
+ "uncaptured": [],
+ "lost": null,
+ "seconds": 126.4
+}

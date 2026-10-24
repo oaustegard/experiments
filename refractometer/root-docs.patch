@@ -1,0 +1,34 @@
+diff --git a/METHODS.md b/METHODS.md
+index fa780ada..030830d9 100644
+--- a/METHODS.md
++++ b/METHODS.md
+@@ -737,0 +738,18 @@ survives exactly the sanity checks people run.
++- **Dawn in Node (`npm install webgpu`) validates *and runs* WGSL in the cloud container, on lavapipe.**
++  With no driver it finds no adapter. `apt-get install -y mesa-vulkan-drivers`, then
++  `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json` gives `mesa/software/llvmpipe` with
++  timestamp-query, subgroups (size 8) and shader-f16. In the Cowork cloud container, queue submissions
++  complete, so you can read results back and check them numerically. The claude.ai container
++  compiles but never completes a submission. 910 kernels compiled in 17 s and 656 configs verified in
++  40 s on 2 cores. (`refractometer/run/check.mjs`)
++- **Dawn in Node: keep a reference to the object `create([])` returns.** `openDevice(create([]))` lets the
++  `GPU` instance be garbage-collected. After any pause (a 3 s sleep, a busy loop), the next pipeline
++  creation aborts the whole process with `std::system_error: Invalid argument` or "The futex facility
++  returned an unexpected error code". It looks like a sandbox or threading fault and is not one.
++  Store the instance next to the device. (`refractometer/web/refract.js` `openDevice`)
++- **Verify a kernel before timing it, and test the check with mutants that change values.** A
++  sweep that times configs without checking them can crown a fast wrong kernel. Integer-valued test data
++  (0–6) makes f32 reductions exact in any order, so the comparison can use tolerance 0. Matmul data in
++  multiples of 1/8 is exact in f16 and in f32 sums at K=512. When testing the gate, a mutant that only
++  permutes a reduction's indices still passes, because sums ignore order; poison a value instead.
++  (`refractometer/run/check.mjs`, 48/48 mutants rejected)
+diff --git a/README.md b/README.md
+index 2e5d5601..2c1148f8 100644
+--- a/README.md
++++ b/README.md
+@@ -28,0 +29 @@ session-boot repo and was the wrong home for 37 research projects.
++| [`refractometer/`](refractometer/RESULTS.md) | 2026-10-24 | **built, awaiting GPU runs — a page that sweeps WebGPU kernel configs on the device it runs on: bandwidth vs buffer size, reduction workgroup size, the EG2 q4 GEMV (C×S×R) at the encoder's real shapes, the tail's 2-bit scan, tiled matmul vs workgroup memory, subgroups, f16. Every config is verified against a JS reference before timing (910 kernels compile and 656 configs verify on Dawn/lavapipe; 48/48 broken mutants rejected); winners and cliffs are saved as a JSON profile per adapter, read back by `web/tuned.js`. No GPU numbers yet** | [`RESULTS.md`](refractometer/RESULTS.md) + `web/` + `run/check.mjs` | brainstorm idea #3; page at austegard.com/experiments/refractometer/web/ |
+@@ -192,0 +194,4 @@ session-boot repo and was the wrong home for 37 research projects.
++### `refractometer/` — per-device WebGPU kernel sweeps
++
++`web/refract.js` generates the sweep kernels (vec4 copy and read-reduce, a 4M-float reduction as a tree or with `subgroupAdd`, `eg2-wgsl-engine`'s MatMulNBits q4 matmul generalized to C columns × S k-splits × R rows, the tail's 2-bit `SCAN` with workgroup size, LUT placement and vectors per thread, and a tiled f32/f16 matmul), verifies each config against a JS reference, and times it with timestamp-query or wall clock. `web/index.html` plots each sweep with the winner, the engine's or tail's current config and the cliffs, and saves a profile keyed `vendor/architecture/device`. `web/tuned.js` `getTuned(adapter, kernel, fallback, {defaultLimits})` returns the saved config. `run/check.mjs` compiles and verifies the full grid headless on Dawn/lavapipe. [`RESULTS.md`](refractometer/RESULTS.md)
++
