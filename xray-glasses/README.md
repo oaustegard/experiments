@@ -12,11 +12,14 @@ shows nothing about the real anatomy in front of the camera.
 ```
 camera (getUserMedia, 960x540 ideal)
   ├─ Auto mode: EfficientDet-Lite0 (COCO, allowlist person/cat/dog, CPU delegate), every 8-20 frames
-  ├─ person ─> MediaPipe Pose Landmarker lite ─> 33 landmarks + segmentation mask
+  ├─ person ─> MediaPipe Pose Landmarker lite ─> 33 landmarks + world landmarks + segmentation mask
+  │          ─> Face Landmarker (when the head is > 30 px) ─> head rotation, 478 landmarks, jawOpen
+  │          ─> head pose: face-model rotation fitted to 24 face landmarks, else nose + ears of the pose
   └─ cat/dog ─> square crop from the box (x1.25) ─> RTMPose-m AP-10K ─> 17 keypoints
                 (each crop is centred on the previous frame's keypoints; the detector re-runs every 6-8 frames)
   ─> One-Euro filter per coordinate (min cutoff 1.2 Hz, beta 0.02)
-  ─> JS template builder: keypoints -> ~370-590 bone primitives (capsule / ellipse / rounded box)
+  ─> JS template builder: keypoints -> ~370-720 bone primitives (capsule / ellipse / rounded box);
+     the human skull is a 3D model projected through the head pose
   ─> WebGPU pass 1: one instanced quad per primitive, SDF fragment shader,
      additive "density" + max "glow" into two r16float targets
   ─> WebGPU pass 2: full-screen composite: inverted luminance + Sobel edges in a cyan
@@ -29,7 +32,7 @@ shoulder-to-hip distance (or 1.35x shoulder width when the hips are out of frame
 for animals the neck-to-tail-root distance. Long bones are tapered capsules with
 epiphysis bulges at both ends. Their density is the chord length through a hollow
 tube, so the cortex shows brighter than the marrow. The human template has a
-skull, orbits, nasal aperture, teeth, mandible, 7 cervical vertebrae, 17 thoracic
+3D skull (below), 6 cervical vertebrae below it, 17 thoracic
 and lumbar vertebrae, 12 rib pairs with costal cartilage, sternum, clavicles,
 scapulae, pelvis with obturator foramina, paired forearm and shank bones, carpals
 and metacarpals with phalanges, and tarsals and metatarsals. The cat and dog
@@ -38,9 +41,42 @@ scapulae, pelvis, limbs, paws) and differ in skull shape, orbit size, bone
 thickness, chest depth and tail length and curl. AP-10K has no tail-tip keypoint,
 so the tail is a guess that sways.
 
+The human skull is modelled in 3D, in centimetres, in the frame of MediaPipe's
+canonical face model (x toward the subject's left, y up, z out of the face). It
+is about 150 primitives. The vault is a solid ellipsoid minus a slightly smaller
+one, so it is brightest where the beam runs tangent to the bone, as on a film.
+Then the brow ridges, the frontal and maxillary sinuses, and orbits with
+rounded-square rims. Then the nasal bones, the pear-shaped aperture and the
+septum. Then the cheekbones and zygomatic arches, the maxilla and hard palate,
+and two arches of 16 teeth with crowns and roots. Then the mandible with its rami,
+condyles and coronoid processes. Last, the skull base: the petrous ridges, clivus,
+sella turcica, mastoids, ear canals and the occipital protuberance. Each frame a
+head pose maps it to the image orthographically: an ellipsoid projects to an
+exact ellipse and a capsule to a capsule, so the existing 2D primitives and
+shaders draw it unchanged. The mandible and lower teeth hinge about the condyles
+by up to 26 degrees, driven by the face model's `jawOpen` blendshape.
+`skull-sheet.png` shows it alone at yaw 0-180 degrees, pitched, and with the jaw
+open.
+
+The head pose comes from the Face Landmarker when it finds this person's face: its
+rotation matrix, plus a least-squares scale and offset over 24 landmarks. Otherwise
+it comes from the pose: the image positions of the nose and ears, with depth
+from the world landmarks. Head pose smooths with the same One-Euro filter as the
+joints.
+
 Controls: Auto / Human / Cat / Dog, Flip camera (front/back), Soft tissue on/off.
-Readouts: render fps and smoothed model time per frame. The R/L lead marker
-marks the subject's right side.
+Readouts: render fps and smoothed model time per frame. For a person, the view as
+a radiograph names it: AP (facing the camera), PA (facing away) or lateral (head
+turned more than ~70 degrees), and whether the skull follows the face mesh or the
+pose. The R lead marker sits on the subject's right side as the landmarks place
+it, so it changes sides when they turn around.
+
+Facing away is read from the pose's world landmarks: the nose's depth minus the
+shoulders'. With hysteresis, the page switches to PA above +0.05 m and back to AP
+below -0.02 m. A face that the face model finds always means AP. MediaPipe Pose
+labels left and right correctly from behind (the shoulders swap sides in the
+image), so the skeleton needs no change for PA. On a radiograph, AP and PA images
+of the same skeleton are nearly mirror images.
 
 ## Models
 
@@ -48,6 +84,7 @@ marks the subject's right side.
 |---|---|---|---|---|
 | Human pose | MediaPipe Pose Landmarker lite, float16 v1 | 5.8 MB | Apache-2.0 | storage.googleapis.com/mediapipe-models (CORS `*`) |
 | Detector (Auto, cat/dog box) | EfficientDet-Lite0 int8 v1, COCO | 4.6 MB | Apache-2.0 | storage.googleapis.com/mediapipe-models |
+| Head pose and jaw | MediaPipe Face Landmarker, float16 v1 (BlazeFace short-range + 478-point mesh + blendshapes) | 3.8 MB | Apache-2.0 | storage.googleapis.com/mediapipe-models; optional, the page runs without it |
 | Animal pose | RTMPose-m trained on AP-10K, LiteRT fp16 (`litert-community/RTMPose-Animal-AP10K-LiteRT` at commit `1daee634`) | 27.5 MB | Apache-2.0 (mmpose); AP-10K dataset | `./rtm_animal_fp16.bin` beside the page (self-hosted copy, sha256 `7fbfc03239cebc1f657efab722849bc9b30d36d3d4371118aed2aaf4041e742f`, equal to the LFS oid at that commit); Hugging Face as fallback |
 | Runtimes | `@mediapipe/tasks-vision@1.1.0`, `@litertjs/core@2.5.3` (+ `@litertjs/wasm-utils@2.5.3`) | ~13 MB wasm each | Apache-2.0 | cdn.jsdelivr.net |
 
@@ -173,8 +210,52 @@ cloud container, Firecracker VM, no GPU, no camera):
   the size of the gain on a phone is unmeasured; the CPU path costs nothing at the
   rate the detector runs.
 
+Third pass (3D skull, facing, face model; Oskar asked for a better skull, for
+front/back detection and whether there is a separate face model):
+
+- **Facing signals** (`test/facing-signals.py`): 20 front and 9 back views,
+  hand-labelled. The front views are mmpose test images and MediaPipe assets,
+  with three-quarter views counted as front and side views left out. The back
+  views are Wikimedia Commons photos and one Human3.6M frame. Pose found a person
+  in 27 of the 29; the two misses were back views.
+
+  | signal | front called front | back called back |
+  |---|---|---|
+  | nose world depth minus shoulders' < 0 | 20/20 | 6/7 |
+  | subject's left shoulder right of their right in the image | 19/20 | 6/7 |
+  | Face Landmarker finds a face | 4/20 | 7/7 |
+
+  Pose visibility scores were 0.99-1.0 for the nose, eyes and ears on every back
+  view, so they say nothing. Front views had nose depths of -0.034 to -0.196 m;
+  the six detected back views had +0.12 to +0.19 m. The miss is a photo of two
+  women side by side from behind, which pose read as one person facing the
+  camera. Small set; treat the thresholds as provisional.
+- **Face-model head pose**: the facial transformation matrix's rotation, plus a
+  least-squares scale and offset, put 24 canonical landmarks a mean 0.4-6.5 px
+  from the detected ones (at most 0.4 cm). That held on 18 faces at 3-16 px/cm,
+  with yaw from -47 to +56 degrees and pitch up to 20. The page reads
+  `facialTransformationMatrixes[0].data` as column-major. With that, the skull on
+  a head turned 42 degrees turns with the face. A transposed matrix would invert
+  the turn; that was inferred, not tested.
+- **Pose-only head pose**: against the face model on 17 heads, image positions
+  of the nose and ears with world-landmark depth were off by a median 9.5 degrees
+  in yaw, 4.9 in pitch and 3.2 in roll. World landmarks alone were 9.7 / 6.6 /
+  7.0, worse in roll.
+- **The page end to end** (`test/run-page.js`): headless Chromium, SwiftShader
+  WebGPU and a fake camera playing a still. All four models load. The readout and
+  marker were "AP view · face mesh", R right on the frontal portrait, the
+  business photo and a 42-degree turned head. They were "PA view · pose", R left
+  on a person walking away, and "AP view · pose" on the yoga photo, whose face is
+  too small for the face detector. On the portrait the orbits sit on the eyes and
+  the mandible on the jaw.
+- `test-frame.png` and `test-frame-gpu.png` now draw the 3D skull, posed from the
+  pose landmarks (the fixtures hold no face). The GPU frame is still within 3.8
+  levels of the CPU port on the human panel.
+
 Not tested, needs real hardware:
 
+- The Face Landmarker's cost per frame on a phone. It runs every frame while a
+  head is larger than 30 px, alongside the pose.
 - Anything on a real GPU: frame rate, `importExternalTexture` on Safari, MediaPipe's
   GPU delegate, the LiteRT.js WebGPU compile of the animal model and whether its
   output order matches the wasm path, and its latency on phones.
@@ -196,9 +277,12 @@ Not tested, needs real hardware:
 - `test/render-cpu.js`: CPU port of the shaders; writes `test-frame.png`.
 - `test/render-gpu.js`: runs the page's shaders in headless Chromium on SwiftShader; writes `test-frame-gpu.png` and the CPU/GPU difference.
 - `test/run-rtmpose.py`, `test/verify-rtmpose.js`: run RTMPose with the page's preprocessing, decode with the page's decoder, score against ground truth; write `test/rtm_keypoints.json`.
+- `test/render-skull.js`: the 3D skull alone at a grid of head poses; writes `skull-sheet.png`.
+- `test/facing-signals.py`: front/back signals on a labelled image set (downloads into `test/facing-cache/`).
+- `test/run-page.js`: drives the page in headless Chromium with a fake camera; prints the readout, saves a screenshot.
 - `test/make-fixtures.py`: downloads the test images and regenerates the landmark, mask and ground-truth fixtures.
 - `test/pose_landmarks.json`, `test/pose_mask.json` (16-level run-length text), `test/ap10k_gt.json`, `test/rtm_keypoints.json`: fixtures.
-- `test-frame.png`: CPU-rendered test frame. `test-frame-gpu.png`: the same frame from the WGSL on SwiftShader.
+- `test-frame.png`: CPU-rendered test frame. `test-frame-gpu.png`: the same frame from the WGSL on SwiftShader. `skull-sheet.png`: the skull at yaw 0, 30, 60, 90, 135 and 180 degrees; rows level, pitched 20 degrees, jaw open.
 
 To reproduce: `cd test && npm i && pip install mediapipe==0.10.32 ai-edge-litert pillow && python3 make-fixtures.py && python3 run-rtmpose.py && node verify-rtmpose.js && node render-cpu.js && node render-gpu.js`.
 

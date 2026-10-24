@@ -1376,6 +1376,24 @@ the result.
   against 1.1 s init and 107 ms per call on XNNPACK. Its 4.6 MB download took 0.5 s. A detector that
   runs every few frames gains nothing from the GPU. Also create independent tasks with `Promise.all`:
   serial `createFromOptions` calls add up. Real-GPU numbers unmeasured. (`xray-glasses/README.md`)
+- **Facing the camera or away: use the nose's world depth, not visibility.** MediaPipe Pose (lite) gives
+  nose, eye and ear visibility of 0.99-1.0 on people seen from behind. Its world landmarks do know:
+  nose z minus mean shoulder z was <= -0.034 m on 20/20 front views and >= +0.12 m on 6 of 7 detected
+  back views. The miss was two people side by side. The shoulders also swap image sides from behind
+  (19/20, 6/7), so left/right labels stay anatomically right. Face Landmarker finding a face confirms
+  front but misses most faces under ~60 px. (`xray-glasses/test/facing-signals.py`)
+- **Posing a 3D model on a face: MediaPipe's facial transformation matrix plus a 2D fit.** Take the
+  rotation from `facialTransformationMatrixes` (column-major `data` in tasks-vision JS; normalise out the
+  scale). Least-squares fit one scale and a 2D offset of the rotated canonical landmarks (from
+  `canonical_face_model.obj`, cm) to the detected ones. Weak perspective lands within 0.4 cm on faces
+  turned up to ±56 degrees. Without a face, nose and ears give ~10 degrees of yaw error: image xy from the
+  2D landmarks, depth from the world landmarks. An orthographic projection maps an ellipsoid to an
+  exact ellipse (2x2 covariance of the projected semi-axes) and a capsule to a capsule. So a 2D SDF
+  renderer can draw a 3D model with no change. (`xray-glasses/web/index.html` `buildSkull`)
+- **Wikimedia Commons from a cloud container: the API returns 429; `Special:FilePath` works, slowly.**
+  `commons.wikimedia.org/w/api.php` and `upload.wikimedia.org` thumbnails returned 429 after a few calls.
+  `https://commons.wikimedia.org/wiki/Special:FilePath/<title>?width=800` served images but 429s bursts:
+  space the requests out and retry with backoff. (`xray-glasses/test/facing-signals.py`)
 - **A distilled cut's token table is no longer the teacher's: enlarge its vocabulary by learning
   rows, and spend codec savings on rows before bits.** Ten epochs of distilling EG2's first 4
   layers moved the trained rows to cosine 0.48 from EG2's own (4x the norm); EG2's rows for

@@ -14,7 +14,8 @@ get("https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landma
 pl = V.PoseLandmarker.create_from_options(V.PoseLandmarkerOptions(base_options=mpt.BaseOptions(model_asset_path=os.path.join(D, "pose_landmarker_lite.task")), output_segmentation_masks=True, num_poses=1))
 img = mp.Image.create_from_file(os.path.join(D, "pose.jpg"))
 r = pl.detect(img)
-json.dump({"pose": {"w": img.width, "h": img.height, "lm": [[l.x, l.y, l.z, l.visibility] for l in r.pose_landmarks[0]]}}, open(os.path.join(D, "pose_landmarks.json"), "w"))
+json.dump({"pose": {"w": img.width, "h": img.height, "lm": [[l.x, l.y, l.z, l.visibility] for l in r.pose_landmarks[0]],
+                    "world": [[round(l.x, 4), round(l.y, 4), round(l.z, 4)] for l in r.pose_world_landmarks[0]]}}, open(os.path.join(D, "pose_landmarks.json"), "w"))
 m = r.segmentation_masks[0].numpy_view()[..., 0]
 q = (np.clip(m, 0, 1) * 15 + 0.5).astype(int).ravel()  # 16 levels, run-length encoded as text
 runs, i = [], 0

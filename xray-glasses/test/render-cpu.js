@@ -146,7 +146,7 @@ const mask = new Uint8Array(maskJ.w * maskJ.h);
 { let o = 0; for (const r of maskJ.rle.split(',')) { if (!r) continue; const v = parseInt(r[0], 16) * 17, c = parseInt(r.slice(1), 16); mask.fill(v, o, o + c); o += c; } }
 const human = panel('pose.jpg', (pr, W, H) => {
   const P = poseJ.lm.map(l => [l[0] * W, l[1] * H]), V = poseJ.lm.map(l => l[3]);
-  XR.buildHuman(pr, P, V);
+  XR.buildHuman(pr, P, V, XR.headFromPose(P, poseJ.world, V));  // no face fixture: the 3D skull posed from the pose landmarks
   // proportion check: humerus primitive length vs shoulder-elbow landmark distance
   const d = (i, j) => Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]);
   results.push({ name: 'human landmark distances (px)', shoulderW: d(11, 12).toFixed(1), upperArmL: d(11, 13).toFixed(1), thighL: d(23, 25).toFixed(1), shinL: d(25, 27).toFixed(1) });
@@ -179,7 +179,7 @@ const cat = quad('ap10k_37516.jpg', 'cat');
   results.push({ name: 'One-Euro on static point with ±3 px noise @30 fps', rawFrameToFrame: (sr / 299).toFixed(2), filtered: (s / 299).toFixed(2) });
 }
 
-module.exports = { panels: { human, dog, cat }, assemble, results };
+module.exports = { panels: { human, dog, cat }, assemble, results, rasterBones, composite, XR };
 
 // Assemble: human on top, dog and cat below (scaled to half width each)
 function scaleBox(p, W, H, w, h) { // box filter for downscale

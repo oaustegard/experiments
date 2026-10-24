@@ -103,7 +103,7 @@
     <p>Point the camera at a person, cat or dog. A pose model finds their joints and the GPU draws a skeleton that follows them, over a radiograph version of the camera feed. Everything runs on this device; no video leaves it.</p>
     <button id="start" type="button">Put them on</button>
     <ul id="steps"></ul>
-    <p class="fine">Human pose: MediaPipe Pose Landmarker (lite). Animals: EfficientDet-Lite0 finds the cat or dog, RTMPose-m (AP-10K) finds 17 joints. Rendering: WebGPU. The skeleton is a drawn template fitted to the joints, not a scan.</p>
+    <p class="fine">Human pose: MediaPipe Pose Landmarker (lite), with Face Landmarker for the head and jaw. Animals: EfficientDet-Lite0 finds the cat or dog, RTMPose-m (AP-10K) finds 17 joints. Rendering: WebGPU. The skeleton is a drawn template fitted to the joints, not a scan.</p>
   </div>
 </div>
 
@@ -176,9 +176,133 @@ const XR = (() => {
     }
   }
 
+  // ---------------- Head pose and the 3D skull ----------------
+  // The skull is modelled in MediaPipe's canonical face-model frame: centimetres, x toward the subject's left,
+  // y up, z out of the face. A head pose maps it to the image as p2 = M p + b, where M (2x3) is the scale times
+  // the first two rows of the head rotation (row 1 negated, image y points down). Under this orthographic
+  // projection an ellipsoid becomes an ellipse and a capsule stays a capsule, so the 2D primitives draw it exactly.
+  const FACE_IDX = [1, 10, 152, 234, 454, 33, 263, 133, 362, 61, 291, 168, 172, 397, 116, 345, 127, 356, 9, 13, 14, 199, 4, 6];
+  const FACE_CANON = [[0, -1.13, 7.48], [0, 8.26, 4.48], [0, -9.4, 4.26], [-7.66, 0.67, -2.44], [7.66, 0.67, -2.44], [-4.45, 2.66, 3.17], [4.45, 2.66, 3.17], [-1.86, 2.59, 3.76], [1.86, 2.59, 3.76], [-2.46, -4.34, 4.28], [2.46, -4.34, 4.28], [0, 3.27, 5.24], [-5.94, -6.22, -0.63], [5.94, -6.22, -0.63], [-6.47, 0.94, 1.69], [6.47, 0.94, 1.69], [-7.74, 2.36, -2.01], [7.74, 2.36, -2.01], [0, 4.89, 5.39], [0, -3.99, 5.22], [0, -4.54, 5.4], [0, -7.94, 5.18], [0, -0.46, 7.59], [0, 2.47, 5.79]];
+  // Pose-landmark stand-ins in the same frame: 0 nose tip, 7 left ear, 8 right ear.
+  const POSE_HEAD = [[0, [0, -1.1, 7.5]], [7, [7.4, 1.0, -4.0]], [8, [-7.4, 1.0, -4.0]]];
+  const a3 = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const s3 = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const m3 = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+  const d3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const n3 = (a) => m3(a, 1 / (Math.hypot(a[0], a[1], a[2]) || 1));
+  const x3 = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  // orthonormal frame [x, y, z] from a direction and a second, non-parallel one
+  const frame3 = (a, b) => { const x = n3(a), y = n3(s3(b, m3(x, d3(b, x)))); return [x, y, x3(x, y)]; };
+  const CANON_FRAME = frame3(s3(POSE_HEAD[1][1], POSE_HEAD[2][1]), s3(POSE_HEAD[0][1], m3(a3(POSE_HEAD[1][1], POSE_HEAD[2][1]), 0.5)));
+
+  // Least-squares scale and offset for a rotation R (rows, canonical -> camera with y up, z toward the viewer).
+  function fitHead(R, obs, canon) {
+    const q = canon.map(c => [d3(R[0], c), -d3(R[1], c)]);
+    const qm = [0, 0], om = [0, 0];
+    for (let i = 0; i < q.length; i++) { qm[0] += q[i][0] / q.length; qm[1] += q[i][1] / q.length; om[0] += obs[i][0] / q.length; om[1] += obs[i][1] / q.length; }
+    let num = 0, den = 0;
+    for (let i = 0; i < q.length; i++) { const dq = sub(q[i], qm), dob = sub(obs[i], om); num += dot(dq, dob); den += dot(dq, dq); }
+    const k = num / (den || 1);
+    return { M: [m3(R[0], k), m3(R[1], -k)], b: sub(om, mul(qm, k)), k, R, jaw: 0 };
+  }
+  // pts: face landmarks in px; R: rotation rows from the facial transformation matrix.
+  function headFromFace(pts, R) { return fitHead(R, FACE_IDX.map(i => pts[i]), FACE_CANON); }
+  // No face: rotation from the nose and ears. Image-plane positions come from the 2D landmarks and depth from
+  // the world landmarks, scaled to px. Against the face model this is ~10 deg off in yaw and ~3 deg in roll (median).
+  function headFromPose(P, W, V, thr = 0.5) {
+    if (!(V[0] > thr && V[7] > thr && V[8] > thr) || !W) return null;
+    const kz = len(sub(P[7], P[8])) / (Math.hypot(W[7][0] - W[8][0], W[7][1] - W[8][1]) || 1);
+    const H = (i) => [P[i][0], -P[i][1], -W[i][2] * kz];
+    const ears = m3(a3(H(7), H(8)), 0.5);
+    const F = frame3(s3(H(7), H(8)), s3(H(0), ears));
+    const R = [0, 1, 2].map(i => [0, 1, 2].map(j => F[0][i] * CANON_FRAME[0][j] + F[1][i] * CANON_FRAME[1][j] + F[2][i] * CANON_FRAME[2][j]));
+    return fitHead(R, POSE_HEAD.map(([i]) => P[i]), POSE_HEAD.map(([, c]) => c));
+  }
+
+  function buildSkull(pr, H) {
+    const { M, b, k } = H;
+    const Pj = (p) => [d3(M[0], p) + b[0], d3(M[1], p) + b[1]];
+    const cap3 = (a, c, r0, r1, I, knob = 0, shell = 0.35) => pr.cap(Pj(a), Pj(c), r0 * k, r1 * k, I, knob, shell);
+    const ell3 = (c, sx, sy, sz, I, shell = 1) => {
+      const e0 = [M[0][0] * sx, M[0][1] * sy, M[0][2] * sz], e1 = [M[1][0] * sx, M[1][1] * sy, M[1][2] * sz];
+      const c00 = d3(e0, e0), c11 = d3(e1, e1), c01 = d3(e0, e1);
+      const mm = (c00 + c11) / 2, dd = Math.hypot((c00 - c11) / 2, c01);
+      pr.ell(Pj(c), Math.sqrt(mm + dd), Math.sqrt(Math.max(mm - dd, 1e-4)), 0.5 * Math.atan2(2 * c01, c00 - c11), I, shell);
+    };
+    const curve3 = (pts, r0, r1, I, shell = 0.5) => pr.curve(pts.map(Pj), r0 * k, r1 * k, I, 3, shell);
+    const ring3 = (pts, r, I) => { for (let i = 0; i < pts.length; i++) cap3(pts[i], pts[(i + 1) % pts.length], r, r, I, 0, 0.6); };
+    // mandible and lower teeth hinge about the condyles
+    const th = H.jaw || 0, cj = Math.cos(th), sj = Math.sin(th), piv = [0, 0.5, -2.6];
+    const J = (p) => { const y = p[1] - piv[1], z = p[2] - piv[2]; return [p[0], piv[1] + y * cj - z * sj, piv[2] + y * sj + z * cj]; };
+
+    // cranial vault: a solid ellipsoid minus a slightly smaller one leaves a shell that is brightest where the
+    // beam runs tangent to the bone, as on a film; then a faint diploe and the frontal sinus
+    ell3([0, 5.0, -4.3], 7.1, 8.4, 9.2, 1.0);
+    ell3([0, 5.05, -4.3], 6.55, 7.85, 8.65, -0.92);
+    ell3([0, 5.2, -4.3], 6.3, 7.5, 8.3, 0.06);
+    ell3([0, 4.6, 3.9], 1.6, 1.0, 0.6, -0.3);
+    curve3([[-5.2, 3.9, 2.0], [-3.2, 4.5, 3.9], [0, 4.6, 4.8], [3.2, 4.5, 3.9], [5.2, 3.9, 2.0]], 0.45, 0.45, 0.5); // brow ridges
+    // skull base: petrous ridges, clivus, sella turcica, mastoids, ear canals, occipital protuberance
+    for (const s of [-1, 1]) {
+      cap3([1.6 * s, 1.0, -3.4], [5.8 * s, 0.4, -4.9], 0.55, 0.45, 0.55);
+      ell3([6.0 * s, -1.2, -5.4], 0.7, 1.1, 0.9, 0.5, 0.5);
+      ell3([6.6 * s, 0.5, -4.3], 0.35, 0.35, 0.5, -0.25);
+    }
+    cap3([0, 1.8, -2.2], [0, -1.4, -4.6], 0.45, 0.4, 0.45);
+    curve3([[0, 2.1, -0.9], [0, 1.3, -1.6], [0, 2.1, -2.4]], 0.17, 0.17, 0.5);
+    ell3([0, 1.0, -13.2], 0.9, 0.6, 0.4, 0.5, 0.5);
+    // orbits: dark cones ringed by a dense rim
+    for (const s of [-1, 1]) {
+      ell3([3.2 * s, 2.5, 2.4], 1.9, 1.65, 1.8, -0.45);
+      // rim: a rounded square (superellipse), set back laterally
+      const rim = [];
+      for (let i = 0; i < 20; i++) {
+        const t = i / 20 * 2 * Math.PI, c = Math.cos(t), sn = Math.sin(t);
+        const sq = (v) => Math.sign(v) * Math.pow(Math.abs(v), 0.6);
+        rim.push([3.2 * s + 2.0 * sq(c) * s, 2.5 + 1.7 * sq(sn), 3.55 - 0.7 * Math.max(c, 0) - 0.2 * Math.max(-sn, 0)]);
+      }
+      ring3(rim, 0.17, 0.42);
+    }
+    // nose: nasal bones, pear-shaped aperture with its rim, septum
+    cap3([0, 3.3, 4.7], [0, 1.6, 5.6], 0.32, 0.22, 0.6);
+    ell3([0, 0.2, 4.8], 1.15, 1.6, 0.6, -0.45);
+    const ap = [];
+    for (let i = 0; i < 14; i++) { const t = i / 14 * 2 * Math.PI, w = 1.0 + 0.3 * Math.max(-Math.sin(t), 0); ap.push([w * 1.12 * Math.cos(t), 0.2 + 1.6 * Math.sin(t), 4.85 - 0.3 * Math.abs(Math.cos(t))]); }
+    ring3(ap, 0.13, 0.45);
+    cap3([0, 1.6, 4.6], [0, -1.1, 4.6], 0.1, 0.1, 0.35);
+    // midface: maxillary sinuses, cheekbones and zygomatic arches, maxilla, hard palate
+    for (const s of [-1, 1]) {
+      ell3([2.4 * s, 0.3, 2.8], 1.4, 1.5, 1.6, -0.3);
+      ell3([4.9 * s, 0.9, 2.4], 1.3, 1.0, 1.1, 0.55, 0.4);
+      cap3([5.8 * s, 0.7, 1.2], [6.7 * s, 0.8, -2.2], 0.38, 0.34, 0.55);
+    }
+    ell3([0, -2.4, 3.9], 2.9, 1.0, 1.6, 0.35, 0.5);
+    ell3([0, -2.4, 1.5], 1.9, 0.35, 2.6, 0.45, 0.5);
+    // teeth: 16 per arch on a parabola; enamel crowns bright, roots faint
+    const toothR = (u) => (Math.abs(u) < 0.3 ? 0.3 : Math.abs(u) < 0.45 ? 0.33 : Math.abs(u) < 0.7 ? 0.36 : 0.48);
+    for (let i = 0; i < 16; i++) {
+      const u = (i - 7.5) / 7.5, r = toothR(u);
+      const up = [2.55 * u, 0, 4.6 - 3.6 * u * u], lo = [2.4 * u, 0, 4.45 - 3.5 * u * u];
+      const long = Math.abs(u) < 0.3 ? 0.1 : 0;
+      cap3([up[0], -3.25, up[2]], [up[0], -4.1 - long, up[2]], r * 0.8, r * 0.7, 0.6, 0, 0.55);
+      cap3([up[0], -1.7, up[2] - 0.2], [up[0], -3.25, up[2]], r * 0.3, r * 0.5, 0.22);
+      cap3(J([lo[0], -4.25 - long, lo[2]]), J([lo[0], -5.05, lo[2]]), r * 0.7, r * 0.8, 0.55, 0, 0.55);
+      cap3(J([lo[0], -5.05, lo[2]]), J([lo[0], -6.5, lo[2] - 0.2]), r * 0.5, r * 0.3, 0.22);
+    }
+    // mandible: body, rami with condyles and coronoid processes, chin
+    curve3([[-5.0, -6.6, -2.3], [-4.1, -7.7, 0.4], [-2.1, -8.6, 2.8], [0, -8.95, 3.7], [2.1, -8.6, 2.8], [4.1, -7.7, 0.4], [5.0, -6.6, -2.3]].map(J), 0.6, 0.6, 0.8, 0.45);
+    for (const s of [-1, 1]) {
+      cap3(J([5.4 * s, 0.5, -2.6]), J([5.05 * s, -6.5, -2.2]), 0.5, 0.65, 0.75, 0.3, 0.45);
+      ell3(J([5.4 * s, 0.6, -2.6]), 0.55, 0.4, 0.8, 0.7, 0.5);
+      cap3(J([4.9 * s, -2.6, -1.0]), J([4.6 * s, -0.4, 0.2]), 0.3, 0.25, 0.55);
+    }
+    ell3(J([0, -8.5, 3.8]), 1.2, 0.8, 0.6, 0.45, 0.5);
+    return Pj;
+  }
+
   // ---------------- Human (MediaPipe 33 landmarks) ----------------
   // P: 33 [x,y] screen px; V: visibility 0..1.
-  function buildHuman(pr, P, V, thr = 0.5) {
+  function buildHuman(pr, P, V, head = null, thr = 0.5) {
     const ok = (...ix) => ix.every(i => V[i] > thr);
     const shW = len(sub(P[12], P[11]));
     const S = mid(P[11], P[12]);
@@ -307,8 +431,12 @@ const XR = (() => {
         pr.cap(add(t0, mul(fd, 0.02 * u)), add(add(To, mul(fw, o * 0.65)), mul(fd, 0.05 * u * (1 - k * 0.15))), 0.01 * u, 0.008 * u, 0.7, 0.3, 0.5);
       }
     }
-    // skull + neck
-    if (ok(0) || ok(7) || ok(8)) {
+    // skull + neck: the 3D skull when a head pose is known, else a flat template from the face landmarks
+    if (head) {
+      const Pj = buildSkull(pr, head);
+      // cervical spine from C2, below the teeth, so it does not read as a third row of them in AP view
+      if (shouldersOk) { const c2 = Pj([0, -5.6, -4.6]); pr.vertebrae(c2, mid(c2, T(0, -0.04)), T(0, -0.04), 6, 0.04 * u, 0.05 * u, 0.7, 0.7); }
+    } else if (ok(0) || ok(7) || ok(8)) {
       const eyeMid = ok(2, 5) ? mid(P[2], P[5]) : P[0];
       const earMid = ok(7, 8) ? mid(P[7], P[8]) : ok(7) ? P[7] : ok(8) ? P[8] : eyeMid;
       const mouthMid = ok(9, 10) ? mid(P[9], P[10]) : add(P[0], mul(norm(Yv), 0.05 * u));
@@ -521,7 +649,7 @@ const XR = (() => {
     return { pts: out, conf };
   }
 
-  return { Prims, buildHuman, buildQuad, OneEuro, decodeSimcc, SPECIES };
+  return { Prims, buildHuman, buildQuad, buildSkull, headFromFace, headFromPose, OneEuro, decodeSimcc, SPECIES };
 })();
 if (typeof module !== "undefined") module.exports = XR;
 // END skeleton
@@ -670,6 +798,7 @@ const MP_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/v
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`;
 const POSE_MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 const DET_MODEL = "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite";
+const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 const LITERT_URL = "https://cdn.jsdelivr.net/npm/@litertjs/core@2.5.3/dist/index.js";
 const LITERT_WASM = "https://cdn.jsdelivr.net/npm/@litertjs/core@2.5.3/wasm/";
 // a local copy beside the page wins if present; otherwise the pinned Hugging Face revision
@@ -687,7 +816,7 @@ function toast(msg, ms = 3500) { const t = $("toast"); t.textContent = msg; t.hi
 const state = { mode: "auto", facing: "user", tissue: true, subject: null, species: "dog" };
 const canvas = $("screen"), video = $("cam");
 let device, ctx, format, pipes = {}, gpuRes = {}, stream;
-let vision, pose, det, rtm = null, rtmLoading = null, LiteRT;
+let vision, pose, det, face = null, rtm = null, rtmLoading = null, LiteRT;
 const prims = new XR.Prims(2048);
 
 // ---------------- camera ----------------
@@ -776,7 +905,16 @@ function render(t) {
   prims.fade = fade;
   if (fade > 0.02 && filt.pts) {
     const P = filt.pts.map(p => toScreen(m, p[0], p[1]));
-    if (filt.kind === "human") XR.buildHuman(prims, P, filt.conf);
+    if (filt.kind === "human") {
+      let head = null;
+      if (filt.head) {
+        const h = filt.head, sx = m.mirror ? -m.sc : m.sc;
+        head = { M: [h.M[0].map(v => v * sx), h.M[1].map(v => v * m.sc)], b: toScreen(m, h.b[0], h.b[1]), k: h.k * m.sc, jaw: h.jaw };
+      }
+      XR.buildHuman(prims, P, filt.conf, head);
+      // lead marker on the subject's right, wherever the landmarks put it (it swaps sides when they turn around)
+      if (filt.conf[11] > 0.5 && filt.conf[12] > 0.5) $("marker").className = P[12][0] > P[11][0] ? "right" : "left";
+    }
     else XR.buildQuad(prims, P, filt.conf, filt.species, t / 1000);
   }
   device.queue.writeBuffer(gpuRes.uniform, 0, new Float32Array([m.W, m.H, m.vw, m.vh, m.sc, m.ox, m.oy, m.mirror ? 1 : 0, t / 1000, state.tissue && maskFresh ? 1 : 0, 0, 1]));
@@ -814,6 +952,12 @@ async function initPose() {
 }
 // The detector is int8 and runs every 6-20 frames: XNNPACK on the CPU handles it directly, while the GPU
 // delegate has to build a GL graph for a quantized model and stalls the first frames for seconds.
+// Face Landmarker: 478 landmarks, a head rotation and blendshapes. It sharpens the skull's pose and opens its
+// jaw; without it the head pose comes from the pose landmarks.
+async function initFace() {
+  face = await createTask(vision.mp.FaceLandmarker, { baseOptions: { modelAssetPath: FACE_MODEL }, runningMode: "VIDEO", numFaces: 1,
+    outputFacialTransformationMatrixes: true, outputFaceBlendshapes: true });
+}
 async function initDetector() {
   det = await vision.mp.ObjectDetector.createFromOptions(vision.files, { baseOptions: { modelAssetPath: DET_MODEL, delegate: "CPU" },
     runningMode: "VIDEO", scoreThreshold: 0.35, maxResults: 5, categoryAllowlist: ["person", "cat", "dog"] });
@@ -848,13 +992,13 @@ function loadAnimalModel() {
 }
 
 // ---------------- tracking ----------------
-const filt = { kind: null, pts: null, conf: null, species: "dog", filters: [] };
+const filt = { kind: null, pts: null, conf: null, species: "dog", filters: [], head: null, headFilters: null, headSrc: null, away: false, view: null };
 let maskFresh = false;
 function ensureFilters(n) {
   if (filt.filters.length !== n * 2) filt.filters = Array.from({ length: n * 2 }, () => new XR.OneEuro(1.2, 0.02));
 }
 function updateFiltered(kind, pts, conf, tsec, species) {
-  if (filt.kind !== kind) { filt.filters = []; }
+  if (filt.kind !== kind) { filt.filters = []; filt.head = null; filt.headFilters = null; }
   filt.kind = kind; filt.species = species || filt.species;
   ensureFilters(pts.length);
   filt.pts = pts.map((p, i) => [filt.filters[2 * i].filter(p[0], tsec), filt.filters[2 * i + 1].filter(p[1], tsec)]);
@@ -888,8 +1032,52 @@ function runPose(ts, tsec) {
   }
   if (!r.landmarks?.length) return false;
   const lm = r.landmarks[0], vw = video.videoWidth, vh = video.videoHeight;
-  updateFiltered("human", lm.map(p => [p.x * vw, p.y * vh]), lm.map(p => p.visibility ?? 1), tsec);
+  const P = lm.map(p => [p.x * vw, p.y * vh]), V = lm.map(p => p.visibility ?? 1);
+  updateFiltered("human", P, V, tsec);
+  updateHead(P, V, r.worldLandmarks?.[0]?.map(p => [p.x, p.y, p.z]), ts, tsec);
   return true;
+}
+// Head pose for the 3D skull, in video px: from the face model when it sees this person's face, else from the
+// nose and ears of the pose. Also decides AP / PA / lateral.
+function updateHead(P, V, W, ts, tsec) {
+  let head = null, src = "pose";
+  // head size that survives a profile view, where the ears overlap
+  const dd = (i, j) => Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]);
+  const hs = Math.max(dd(7, 8), dd(0, 7), dd(0, 8));
+  if (face && hs > 30) {
+    const fr = face.detectForVideo(video, ts);
+    const fl = fr.faceLandmarks?.[0], mx = fr.facialTransformationMatrixes?.[0];
+    if (fl && mx) {
+      const pts = fl.map(p => [p.x * video.videoWidth, p.y * video.videoHeight]);
+      // the face found must be this pose's face
+      if (Math.hypot(pts[1][0] - P[0][0], pts[1][1] - P[0][1]) < 0.6 * hs) {
+        const d = mx.data, R = [[d[0], d[4], d[8]], [d[1], d[5], d[9]], [d[2], d[6], d[10]]];  // column-major 4x4
+        const sc = Math.hypot(R[0][0], R[1][0], R[2][0]) || 1;
+        head = XR.headFromFace(pts, R.map(row => row.map(v => v / sc)));
+        const jo = fr.faceBlendshapes?.[0]?.categories.find(c => c.categoryName === "jawOpen");
+        head.jaw = (jo ? jo.score : 0) * 0.45;
+        src = "face mesh";
+      }
+    }
+  }
+  if (!head && W) head = XR.headFromPose(P, W, V);
+  // facing: the nose's world depth against the shoulders' (front views <= -0.03 m, back views >= +0.12 m in
+  // the README's test set); a face the face model can see always means facing the camera
+  if (W) {
+    const wz = W[0][2] - (W[11][2] + W[12][2]) / 2;
+    if (src === "face mesh" || wz < -0.02) filt.away = false;
+    else if (wz > 0.05) filt.away = true;
+  }
+  if (!head) { filt.head = null; return; }
+  const raw = [...head.M[0], ...head.M[1], ...head.b, head.jaw];
+  if (!filt.headFilters) filt.headFilters = raw.map(() => new XR.OneEuro(1.0, 0.02));
+  const f = raw.map((v, i) => filt.headFilters[i].filter(v, tsec));
+  const M = [f.slice(0, 3), f.slice(3, 6)], k = Math.hypot(...M[0]);
+  filt.head = { M, b: [f[6], f[7]], k, jaw: Math.max(0, f[8]) };
+  filt.headSrc = src;
+  // canonical z (out of the face) in camera z: the rotation's third row is row0 x row1
+  const r0 = M[0].map(v => v / k), r1 = M[1].map(v => -v / k), fz = r0[0] * r1[1] - r0[1] * r1[0];
+  filt.view = Math.abs(fz) < 0.35 ? "lateral" : filt.away ? "PA" : "AP";
 }
 async function runAnimal(box, species, tsec) {
   const [bx, by, bw, bh] = box;
@@ -978,7 +1166,7 @@ function setSubject(s, why) {
   state.subject = s;
   $("subject").classList.toggle("on", !!s);
   $("subjName").textContent = s ? s.label : "Searching";
-  $("subjInfo").textContent = s ? (s.kind === "human" ? "33 landmarks" : "17 keypoints") : (why || "no subject");
+  $("subjInfo").textContent = s ? (s.kind === "human" ? (filt.view ? `${filt.view} view · ${filt.headSrc}` : "33 landmarks") : "17 keypoints") : (why || "no subject");
 }
 
 // ---------------- loop ----------------
@@ -1024,10 +1212,12 @@ $("start").addEventListener("click", async () => {
     s = step("Camera"); await openCamera(); s.ok(`Camera ${video.videoWidth}×${video.videoHeight}`);
     s = step("MediaPipe runtime"); await initVision(); s.ok("MediaPipe runtime");
     // the two models load side by side; neither needs the other
-    const sp = step("Pose model (5.8 MB)"), sd = step("Detector (4.6 MB)");
+    const sp = step("Pose model (5.8 MB)"), sd = step("Detector (4.6 MB)"), sf = step("Face model (3.8 MB)");
     await Promise.all([
       initPose().then(() => sp.ok("Pose model"), (e) => { s = sp; throw e; }),
-      initDetector().then(() => sd.ok("Detector"), (e) => { s = sd; throw e; })]);
+      initDetector().then(() => sd.ok("Detector"), (e) => { s = sd; throw e; }),
+      // optional: without it the skull is posed from the pose landmarks
+      initFace().then(() => sf.ok("Face model"), (e) => { console.warn(e); face = null; sf.err("Face model unavailable; skull follows the pose"); })]);
   } catch (e) {
     console.error(e);
     s?.err(e.name === "NotAllowedError" ? "Camera permission was refused. Allow camera access for this site and try again." : e.message);
