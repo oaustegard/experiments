@@ -10,7 +10,7 @@ const D = __dirname;
 const raw = JSON.parse(fs.readFileSync(path.join(D, 'rtm_raw.json'), 'utf8'));
 const gt = JSON.parse(fs.readFileSync(path.join(D, 'ap10k_gt.json'), 'utf8'));
 const K = 17, BINS = 512;  // RTM_K, RTM_BINS in web/index.html
-const out = { categories: gt.categories, runs: [] };
+const out = { categories: gt.categories, runs: [] }, summary = {};
 for (const r of raw.runs) {
   const [sx, sy, s] = r.crop, k = r.size / s;
   const g = gt.annotations.find(a => a.file === r.file).keypoints;
@@ -25,7 +25,21 @@ for (const r of raw.runs) {
   // split ratio: decode at ratio 2 vs 1 (bins/1) and see which lands on the GT
   const diag = Math.hypot(...gt.annotations.find(a => a.file === r.file).keypoints.slice(0, 2));
   console.log(`${r.file}: page order (output_0=x, output_1=y) mean ${page.mean.toFixed(1)} px, max ${page.max.toFixed(1)} px over ${page.n} visible keypoints; swapped mean ${swapped.mean.toFixed(1)} px; crop side ${s.toFixed(0)} px (1 crop px = ${(1 / k).toFixed(2)} image px); scores ${Math.min(...page.conf).toFixed(2)}-${Math.max(...page.conf).toFixed(2)}`);
+  // split ratio: argmax / ratio for ratios other than the page's 2 (the page decoder's px scale by 2 / ratio)
+  const ratios = {};
+  for (const q of [1, 1.5, 2, 2.5, 3]) {
+    const { pts } = XR.decodeSimcc(Float32Array.from(r.output_0), Float32Array.from(r.output_1), K, BINS);
+    const d = [];
+    for (let i = 0; i < K; i++) if (g[i * 3 + 2] > 0) d.push(Math.hypot(sx + pts[i][0] * 2 / q / k - g[i * 3], sy + pts[i][1] * 2 / q / k - g[i * 3 + 1]));
+    ratios[q] = +(d.reduce((a, b) => a + b, 0) / d.length).toFixed(1);
+  }
+  summary[r.file] = { crop_side_px: +s.toFixed(1), mean_err_px: +page.mean.toFixed(1), max_err_px: +page.max.toFixed(1), swapped_mean_err_px: +swapped.mean.toFixed(1),
+    visible: page.n, score_min: +Math.min(...page.conf).toFixed(2), score_max: +Math.max(...page.conf).toFixed(2), mean_err_by_split_ratio: ratios };
   out.runs.push({ file: r.file, keypoints: page.vp.map(p => [+p[0].toFixed(1), +p[1].toFixed(1)]), conf: page.conf.map(c => +c.toFixed(3)), mean_err_px: +page.mean.toFixed(2), max_err_px: +page.max.toFixed(2), swapped_mean_err_px: +swapped.mean.toFixed(2) });
 }
-fs.writeFileSync(path.join(D, 'rtm_keypoints.json'), JSON.stringify(out));
-console.log('wrote rtm_keypoints.json');
+const resample = raw.resample || 'canvas';
+// the page's own resampling writes the fixture render-cpu.js uses; other resamplings only report
+if (resample === 'canvas') fs.writeFileSync(path.join(D, 'rtm_keypoints.json'), JSON.stringify(out));
+fs.mkdirSync(path.join(D, '..', 'results'), { recursive: true });
+fs.writeFileSync(path.join(D, '..', 'results', `rtmpose_${resample}.json`), JSON.stringify({ resample, model_outputs: raw.outputs_in_graph_order, images: summary }, null, 1));
+console.log(`wrote results/rtmpose_${resample}.json` + (resample === 'canvas' ? ' and rtm_keypoints.json' : ''));

@@ -1392,7 +1392,7 @@ the result.
 - **Posing a 3D model on a face: MediaPipe's facial transformation matrix plus a 2D fit.** Take the
   rotation from `facialTransformationMatrixes` (column-major `data` in tasks-vision JS; normalise out the
   scale). Least-squares fit one scale and a 2D offset of the rotated canonical landmarks (from
-  `canonical_face_model.obj`, cm) to the detected ones. Weak perspective lands within 0.4 cm on faces
+  `canonical_face_model.obj`, cm) to the detected ones. Weak perspective lands a median 0.41 cm (worst 0.75) from the landmarks on faces
   turned up to ±56 degrees. Without a face, nose and ears give ~10 degrees of yaw error: image xy from the
   2D landmarks, depth from the world landmarks. An orthographic projection maps an ellipsoid to an
   exact ellipse (2x2 covariance of the projected semi-axes) and a capsule to a capsule. So a 2D SDF

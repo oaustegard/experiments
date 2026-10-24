@@ -98,7 +98,7 @@ window.ready = JSON.stringify(adapter.info);
   await page.goto('http://localhost/');
   const info = await (await page.waitForFunction(() => window.ready, null, { timeout: 60000 })).jsonValue();
   console.log('adapter:', info);
-  const g = {}; let errors = [];
+  const g = {}, stats = {}; let errors = [];
   for (const [k, p] of Object.entries(panels)) {
     const { W, H } = p;
     const r = await page.evaluate(([k, W, H, n, mw, mh, t]) => window.renderPanel(k, W, H, n, mw, mh, t),
@@ -110,11 +110,14 @@ window.ready = JSON.stringify(adapter.info);
     const n = W * H * 3, pct = (q) => { let c = 0; for (let v = 0; v < 256; v++) { c += hist[v]; if (c >= q * n) return v; } return 255; };
     console.log(`${p.label}: ${W}x${H}, ${p.pr.n} prims, ${r.ms.toFixed(0)} ms; vs CPU port per 8-bit channel: mean ${(sum / n).toFixed(2)}, p50 ${pct(0.5)}, p99 ${pct(0.99)}, max ${pct(1)}`);
     g[k] = { ...p, px };
+    stats[k] = { mean: +(sum / n).toFixed(2), p50: pct(0.5), p99: pct(0.99), max: pct(1), prims: p.pr.n };
   }
   await browser.close();
   if (errors.length) { console.log('GPU errors:', errors); process.exit(1); }
   const png = assemble(g.human, g.dog, g.cat);
   const outPath = path.join(__dirname, '..', 'test-frame-gpu.png');
   fs.writeFileSync(outPath, PNG.sync.write(png));
-  console.log('wrote', outPath, png.width + 'x' + png.height);
+  fs.mkdirSync(path.join(__dirname, '..', 'results'), { recursive: true });
+  fs.writeFileSync(path.join(__dirname, '..', 'results', 'gpu_vs_cpu.json'), JSON.stringify({ adapter: 'SwiftShader (headless Chromium)', per_8bit_channel: stats }, null, 1));
+  console.log('wrote', outPath, png.width + 'x' + png.height, 'and results/gpu_vs_cpu.json');
 })().catch(e => { console.error(e); process.exit(1); });
