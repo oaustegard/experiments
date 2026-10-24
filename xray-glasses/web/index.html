@@ -812,9 +812,11 @@ async function initPose() {
   pose = await createTask(vision.mp.PoseLandmarker, { baseOptions: { modelAssetPath: POSE_MODEL }, runningMode: "VIDEO", numPoses: 1,
     outputSegmentationMasks: state.tissue, minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
 }
+// The detector is int8 and runs every 6-20 frames: XNNPACK on the CPU handles it directly, while the GPU
+// delegate has to build a GL graph for a quantized model and stalls the first frames for seconds.
 async function initDetector() {
-  det = await createTask(vision.mp.ObjectDetector, { baseOptions: { modelAssetPath: DET_MODEL }, runningMode: "VIDEO", scoreThreshold: 0.35, maxResults: 5,
-    categoryAllowlist: ["person", "cat", "dog"] });
+  det = await vision.mp.ObjectDetector.createFromOptions(vision.files, { baseOptions: { modelAssetPath: DET_MODEL, delegate: "CPU" },
+    runningMode: "VIDEO", scoreThreshold: 0.35, maxResults: 5, categoryAllowlist: ["person", "cat", "dog"] });
 }
 async function fetchWithProgress(url, onProgress) {
   const r = await fetch(url);
@@ -1021,8 +1023,11 @@ $("start").addEventListener("click", async () => {
     s = step("WebGPU"); await initGPU(); s.ok("WebGPU ready");
     s = step("Camera"); await openCamera(); s.ok(`Camera ${video.videoWidth}×${video.videoHeight}`);
     s = step("MediaPipe runtime"); await initVision(); s.ok("MediaPipe runtime");
-    s = step("Pose model (5.8 MB)"); await initPose(); s.ok("Pose model");
-    s = step("Detector (4.6 MB)"); await initDetector(); s.ok("Detector");
+    // the two models load side by side; neither needs the other
+    const sp = step("Pose model (5.8 MB)"), sd = step("Detector (4.6 MB)");
+    await Promise.all([
+      initPose().then(() => sp.ok("Pose model"), (e) => { s = sp; throw e; }),
+      initDetector().then(() => sd.ok("Detector"), (e) => { s = sd; throw e; })]);
   } catch (e) {
     console.error(e);
     s?.err(e.name === "NotAllowedError" ? "Camera permission was refused. Allow camera access for this site and try again." : e.message);

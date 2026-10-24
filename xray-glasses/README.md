@@ -11,7 +11,7 @@ shows nothing about the real anatomy in front of the camera.
 
 ```
 camera (getUserMedia, 960x540 ideal)
-  ├─ Auto mode: EfficientDet-Lite0 (COCO, allowlist person/cat/dog), every 8-20 frames
+  ├─ Auto mode: EfficientDet-Lite0 (COCO, allowlist person/cat/dog, CPU delegate), every 8-20 frames
   ├─ person ─> MediaPipe Pose Landmarker lite ─> 33 landmarks + segmentation mask
   └─ cat/dog ─> square crop from the box (x1.25) ─> RTMPose-m AP-10K ─> 17 keypoints
                 (each crop is centred on the previous frame's keypoints; the detector re-runs every 6-8 frames)
@@ -161,6 +161,17 @@ cloud container, Firecracker VM, no GPU, no camera):
   while the shader samples bilinearly. The dog panel has the most because the grass
   is edges throughout. SwiftShader timings (0.2-0.5 s per frame) say nothing about a
   real GPU.
+
+- **Detector start-up** (after Oskar reported the detector loading slowly): the model
+  downloads in 0.5 s, so its size was never the cost. The page created it on
+  MediaPipe's GPU delegate, after the pose model had finished. On SwiftShader that
+  delegate took 3.6-3.8 s for the first detection and ~0.95 s for later ones. The
+  CPU delegate (XNNPACK, the int8 model's native path) took 1.1 s to init and 107 ms
+  per detection. The page now creates the detector on the CPU and loads it alongside
+  the pose model. Booting the whole page headless with a fake camera, the models
+  were ready at 1.7 s instead of 6.2 s. SwiftShader overstates any GPU cost, so
+  the size of the gain on a phone is unmeasured; the CPU path costs nothing at the
+  rate the detector runs.
 
 Not tested, needs real hardware:
 

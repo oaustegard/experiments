@@ -1371,6 +1371,11 @@ the result.
   off. LiteRT.js 2.5.3 returns `outs` in the same order as Python's signature runner. Peak values are
   raw SimCC maxima of about 0.9-1.5, not probabilities. Input is NCHW float, ImageNet mean/std on
   0-255 RGB. (`xray-glasses/test/verify-rtmpose.js`)
+- **MediaPipe tasks-vision: put an int8 detector on `delegate: "CPU"`.** EfficientDet-Lite0 int8 on
+  the GPU delegate cost 3.6 s on its first detection and ~1 s per call afterwards (SwiftShader),
+  against 1.1 s init and 107 ms per call on XNNPACK. Its 4.6 MB download took 0.5 s. A detector that
+  runs every few frames gains nothing from the GPU. Also create independent tasks with `Promise.all`:
+  serial `createFromOptions` calls add up. Real-GPU numbers unmeasured. (`xray-glasses/README.md`)
 - **A distilled cut's token table is no longer the teacher's: enlarge its vocabulary by learning
   rows, and spend codec savings on rows before bits.** Ten epochs of distilling EG2's first 4
   layers moved the trained rows to cosine 0.48 from EG2's own (4x the norm); EG2's rows for
