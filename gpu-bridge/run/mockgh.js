@@ -20,7 +20,7 @@ http.createServer((req, res) => {
       if (p === '/git/trees') { const idx = path.join(os.tmpdir(), 'idx-' + Date.now() + Math.random()); const env = { GIT_INDEX_FILE: idx }; git(['read-tree', j.base_tree], { env }); for (const e of j.tree) git(['update-index', '--add', '--cacheinfo', `${e.mode},${e.sha},${e.path}`], { env }); const t = git(['write-tree'], { env }).trim(); fs.rmSync(idx, { force: true }); return send(res, 201, { sha: t }); }
       if (p === '/git/commits') return send(res, 201, { sha: git(['-c', 'user.name=page', '-c', 'user.email=p@p', 'commit-tree', j.tree, ...j.parents.flatMap((x) => ['-p', x]), '-m', j.message]).trim() });
       if (p === '/git/refs/heads/main' && req.method === 'PATCH') { const old = git(['rev-parse', 'main']).trim(); try { git(['merge-base', '--is-ancestor', old, j.sha]); } catch { return send(res, 422, { message: 'Update is not a fast forward' }); } git(['update-ref', 'refs/heads/main', j.sha, old]); return send(res, 200, { object: { sha: j.sha } }); }
-      if (p === '/pulls') return send(res, 200, [{ number: 1 }]);
+      if (p === '/pulls') return send(res, 200, [{ number: 7, head: { ref: 'feature' } }, { number: 1, head: { ref: 'wake/sessions' } }]);
       if (p === '/issues/1/comments') { comments.push(j.body); return send(res, 201, { id: comments.length }); }
       send(res, 404, { message: 'mock: ' + req.method + ' ' + p });
     } catch (e) { send(res, 500, { message: String(e) }); }

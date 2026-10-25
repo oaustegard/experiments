@@ -203,9 +203,8 @@ async function commitFiles(files, message) {
 async function findWakePR() {
   if (wakePR !== undefined) return wakePR;
   try {
-    const owner = cfg.repo.split("/")[0];
-    const r = await gh(`${R()}/pulls?state=open&head=${encodeURIComponent(owner + ":wake")}&per_page=1`);
-    wakePR = r.data?.[0]?.number ?? null;
+    const r = await gh(`${R()}/pulls?state=open&per_page=50`);
+    wakePR = (r.data || []).find((pr) => /^wake(\/|$)/.test(pr.head?.ref || ""))?.number ?? null;
   } catch { wakePR = null; }
   return wakePR;
 }
@@ -370,7 +369,7 @@ async function connect(e) {
   $("#token").value = ""; $("#token").placeholder = "saved"; $("#forget").hidden = false;
   const n = await findWakePR();
   $("#connNote").className = "note";
-  $("#connNote").textContent = `Connected to ${repo}. ` + (n ? `Finished jobs comment on wake PR #${n}.` : "No open PR from a branch named wake, so sessions won't be woken; they can still poll.");
+  $("#connNote").textContent = `Connected to ${repo}. ` + (n ? `Finished jobs comment on wake PR #${n}.` : "No open PR from a branch named wake or wake/…, so sessions won't be woken; they can still poll.");
   connected = true; lastErr = "";
   if (pollTimer) clearTimeout(pollTimer);
   commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, ua: navigator.userAgent, mode, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
