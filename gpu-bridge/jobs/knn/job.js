@@ -1,15 +1,22 @@
 // Exact top-10 nearest neighbours by dot product: Q queries against N docs of 256 dims.
 // One fused kernel: each workgroup takes 4 queries, streams every doc once (vec4 loads),
 // keeps a per-thread top-10 per query, then merges the 256 thread lists with a tree argmax.
-const { docs, queries } = ctx.inputs;
-const D = 256, K = 10, QB = 4, WG = 256;
-const N = docs.length / D, Q = queries.length / D;
+// Options (inputs): docDtype "f32" (default) or "f16" (docs as Uint16Array halves, needs shader-f16);
+// cache "store" keeps the docs buffer on the GPU in ctx.cache for later jobs, "use" runs against it
+// with only queries sent. Defaults reproduce knn-1.
+const { docs, queries, docDtype = "f32", cache = null } = ctx.inputs;
+const D = 256, K = 10, QB = 4, WG = 256, KEY = "knn-docs-" + docDtype;
+const Q = queries.length / D;
 if (Q % QB) throw new Error(`query count ${Q} must be a multiple of ${QB}`);
 const dev = await ctx.gpu();
-const wgsl = `
+if (docDtype === "f16" && !dev.features.has("shader-f16")) throw new Error("this GPU has no shader-f16");
+const cached = cache === "use" ? ctx.cache.get(KEY) : null;
+if (cache === "use" && !cached) throw new Error(`no ${KEY} in the worker cache: run a job with cache "store" first in this tab`);
+const N = cached ? cached.N : docs.length / D;
+const wgsl = `${docDtype === "f16" ? "enable f16;" : ""}
 const K: u32 = ${K}u; const QB: u32 = ${QB}u; const WG: u32 = ${WG}u; const DV: u32 = ${D / 4}u;
 struct P { n: u32, nq: u32 }
-@group(0) @binding(0) var<storage, read> docs: array<vec4f>;
+@group(0) @binding(0) var<storage, read> docs: array<${docDtype === "f16" ? "vec4<f16>" : "vec4f"}>;
 @group(0) @binding(1) var<storage, read> qs: array<vec4f>;
 @group(0) @binding(2) var<storage, read_write> outIdx: array<u32>;
 @group(0) @binding(3) var<storage, read_write> outScore: array<f32>;
@@ -30,7 +37,7 @@ fn main(@builtin(local_invocation_index) t: u32, @builtin(workgroup_id) w: vec3u
   for (var j = t; j < p.n; j += WG) {
     var acc = vec4f(0.0);
     for (var d = 0u; d < DV; d++) {
-      let x = docs[j * DV + d];
+      let x = vec4f(docs[j * DV + d]);
       acc += vec4f(dot(x, qsh[d]), dot(x, qsh[DV + d]), dot(x, qsh[2u * DV + d]), dot(x, qsh[3u * DV + d]));
     }
     for (var q = 0u; q < QB; q++) {
@@ -77,9 +84,11 @@ if (errs.length) throw new Error("WGSL: " + errs.map((m) => `${m.lineNum}:${m.li
 const pipe = await dev.createComputePipelineAsync({ layout: "auto", compute: { module, entryPoint: "main" } });
 const S = GPUBufferUsage.STORAGE, CD = GPUBufferUsage.COPY_DST, CS = GPUBufferUsage.COPY_SRC;
 const buf = (size, usage) => dev.createBuffer({ size, usage });
-const bDocs = buf(docs.byteLength, S | CD), bQ = buf(queries.byteLength, S | CD);
+const bDocs = cached ? cached.buf : buf(docs.byteLength, S | CD), bQ = buf(queries.byteLength, S | CD);
+const tUp0 = performance.now();
 const bIdx = buf(Q * K * 4, S | CS), bScore = buf(Q * K * 4, S | CS), bP = buf(16, GPUBufferUsage.UNIFORM | CD);
-dev.queue.writeBuffer(bDocs, 0, docs); dev.queue.writeBuffer(bQ, 0, queries); dev.queue.writeBuffer(bP, 0, new Uint32Array([N, Q, 0, 0]));
+if (!cached) dev.queue.writeBuffer(bDocs, 0, docs);
+dev.queue.writeBuffer(bQ, 0, queries); dev.queue.writeBuffer(bP, 0, new Uint32Array([N, Q, 0, 0]));
 const bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [bDocs, bQ, bIdx, bScore, bP].map((buffer, binding) => ({ binding, resource: { buffer } })) });
 const ITERS = 6, hasTs = dev.features.has("timestamp-query");
 const qset = hasTs ? dev.createQuerySet({ type: "timestamp", count: 2 * ITERS }) : null;
@@ -103,7 +112,8 @@ await Promise.all([rIdx.mapAsync(GPUMapMode.READ), rScore.mapAsync(GPUMapMode.RE
 const idx = new Uint32Array(rIdx.getMappedRange().slice(0)), score = new Float32Array(rScore.getMappedRange().slice(0));
 let gpuMs = null;
 if (rTs) { const ts = new BigInt64Array(rTs.getMappedRange().slice(0)); gpuMs = []; for (let i = 0; i < ITERS; i++) gpuMs.push(Number(ts[2 * i + 1] - ts[2 * i]) / 1e6); }
-[bDocs, bQ, bIdx, bScore, bP, rIdx, rScore, rTs].forEach((b) => b?.destroy());
+if (cache === "store") ctx.cache.set(KEY, { buf: bDocs, N }); else if (!cached) bDocs.destroy();
+[bQ, bIdx, bScore, bP, rIdx, rScore, rTs].forEach((b) => b?.destroy());
 const med = (a) => { const s = a.slice(1).sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
-ctx.log(`N=${N} Q=${Q} wall median ${med(wall).toFixed(2)} ms` + (gpuMs ? `, gpu median ${med(gpuMs).toFixed(3)} ms` : ", no timestamp-query"));
-return { idx, score, wallMs: wall, gpuMs, gflop: (2 * N * Q * D) / 1e9 };
+ctx.log(`${docDtype}${cached ? " cached" : ""} N=${N} Q=${Q} wall median ${med(wall).toFixed(2)} ms` + (gpuMs ? `, gpu median ${med(gpuMs).toFixed(3)} ms` : ", no timestamp-query"));
+return { idx, score, wallMs: wall, gpuMs, gflop: (2 * N * Q * D) / 1e9, docDtype, cache, N, Q };
