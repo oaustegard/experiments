@@ -107,7 +107,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 3;
+const PAGE_VERSION = 4;
 const TAB = Math.random().toString(36).slice(2, 10);
 const params = new URLSearchParams(location.search);
 const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
@@ -260,12 +260,13 @@ function splitOutputs(value, id, files) {
 }
 
 let gpuInfo = null, gpuErr = null, connected = false, busy = false, lastErr = "";
-let etag = null, headSha = null, tree = new Map(), pollTimer = null;
+let etag = null, headSha = null, tree = new Map(), pollTimer = null, pollGen = 0;
 const seen = new Map();   // id -> {status, note, runMs, created, startedAt, error, logs}
 const inflight = new Set();
 
-async function poll() {
-  if (!connected) return;
+// One poll loop per tab: a reconnect bumps pollGen and the old loop ends at its next tick.
+async function poll(gen) {
+  if (!connected || gen !== pollGen) return;
   try {
     const r = await gh(`${R()}/commits/${BRANCH}`, { etag });
     if (r.status !== 304) {
@@ -280,7 +281,7 @@ async function poll() {
     if (e.status === 401 || e.status === 404) connected = false;
   }
   setPill(); render();
-  if (connected) pollTimer = setTimeout(poll, document.hidden ? 15000 : 3000);
+  if (connected && gen === pollGen) pollTimer = setTimeout(() => poll(gen), document.hidden ? 15000 : 3000);
 }
 async function scan() {
   const jobIds = [...tree.keys()].map((p) => /^jobs\/([^/]+)\/job\.json$/.exec(p)?.[1]).filter(Boolean);
@@ -288,11 +289,12 @@ async function scan() {
     const done = tree.has(`results/${id}/result.json`);
     const s = seen.get(id);
     if (!s) seen.set(id, { status: done ? "done" : "queued" });
-    else if (done && s.status === "queued") s.status = "done";
+    else if (done && !inflight.has(id) && s.status !== "done" && s.status !== "error") s.status = "done";   // finished here or in another tab
   }
   if (busy) return;
   const queued = jobIds.filter((id) => !tree.has(`results/${id}/result.json`) && !inflight.has(id));
   if (!queued.length) return;
+  busy = true;   // held from here until process() has committed, so a job never starts while another runs
   const jobs = [];
   for (const id of queued) { try { jobs.push({ id, ...JSON.parse(await blobText(tree.get(`jobs/${id}/job.json`))) }); } catch (e) { jobs.push({ id, broken: String(e.message || e) }); } }
   jobs.sort((a, b) => (a.created || 0) - (b.created || 0));
@@ -403,9 +405,10 @@ async function connect(e) {
   $("#connNote").textContent = `Connected to ${repo}. ` + (n ? `Finished jobs comment on wake PR #${n}.` : "No open PR from a branch named wake or wake/…, so sessions won't be woken; they can still poll.");
   connected = true; lastErr = "";
   if (pollTimer) clearTimeout(pollTimer);
-  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, ua: navigator.userAgent, mode, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
+  const gen = ++pollGen;
+  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, ua: navigator.userAgent, mode, tab: TAB, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
     "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
-  poll();
+  poll(gen);
 }
 
 async function selfTest() {

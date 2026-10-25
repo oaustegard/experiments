@@ -1,11 +1,11 @@
 // Minimal GitHub REST mock over a real bare repo: just the calls the bridge page makes.
 const http = require('http'), { execFileSync } = require('child_process'), fs = require('fs'), path = require('path'), os = require('os');
-const BARE = process.argv[2]; const comments = [];
+const BARE = process.argv[2], LATENCY = Number(process.argv[3] || 0); const comments = [];   // LATENCY ms per request, like a slow uplink
 const git = (args, opts = {}) => execFileSync('git', ['--git-dir', BARE, ...args], { encoding: opts.buf ? null : 'utf8', input: opts.input, env: { ...process.env, ...(opts.env || {}) } });
 const send = (res, code, body, headers = {}) => { res.writeHead(code, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Expose-Headers': 'ETag', 'Content-Type': Buffer.isBuffer(body) ? 'application/octet-stream' : 'application/json', ...headers }); res.end(Buffer.isBuffer(body) ? body : JSON.stringify(body)); };
 http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'GET,POST,PATCH' }); return res.end(); }
-  let body = ''; req.on('data', (c) => body += c); req.on('end', () => {
+  let body = ''; req.on('data', (c) => body += c); req.on('end', () => setTimeout(() => {
     try {
       const u = new URL(req.url, 'http://x'), p = u.pathname.replace(/^\/repos\/[^/]+\/[^/]+/, ''), j = body ? JSON.parse(body) : null;
       if (req.url === '/__comments') return send(res, 200, comments);
@@ -24,5 +24,5 @@ http.createServer((req, res) => {
       if (p === '/issues/1/comments') { comments.push(j.body); return send(res, 201, { id: comments.length }); }
       send(res, 404, { message: 'mock: ' + req.method + ' ' + p });
     } catch (e) { send(res, 500, { message: String(e) }); }
-  });
+  }, LATENCY));
 }).listen(8766);

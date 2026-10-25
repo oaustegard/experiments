@@ -43,9 +43,28 @@ SwiftShader runs here are correctness checks only, not timing (METHODS.md).
 |---|---|---|
 | `hello-1` (2026-10-25) | iPhone, Chrome 155 / iOS 27.0.1 (WebKit WebGPU; adapter "apple") | 16M-float saxpy correct, median 5.0 ms ≈ 40 GB/s (the worker clock is quantized to 1 ms here) |
 | `knn-1` (2026-10-25) | same | `jobs/knn/`: exact top-10 by dot product, 256 queries × 32,768 docs × 256 dims (4.29 GFLOP), one fused WGSL kernel. Same order as numpy for all 2,560 results, max score error 1.2e-7. GPU timestamp median 18.1 ms (≈ 237 GFLOP/s effective) vs numpy 62–76 ms on the container's 4 vCPUs. 32 MB input fetched by the phone from the comms repo |
+| `scan-1` | same | `jobs/scan/`: exact exclusive prefix sum of 16,777,216 u32 (Blelloch, 512 per workgroup, 3 levels). 0 mismatches; checksum, samples and total agree with numpy. GPU 6.73 ms vs numpy `cumsum` 67 ms on 4 vCPUs |
+| `sort-1` | same | `jobs/sort/`: LSD radix sort of 4,194,304 u32 keys, 8 passes × 4 bits (histogram, scan, stable scatter). Exact. GPU 36.9 ms vs numpy `sort` 23.7 ms on 4 vCPUs and JS `TypedArray.sort` 81 ms on the phone: the naive 8-pass design loses to numpy |
+| `knn-f16` | same | `knn-1` with docs as float16 (`shader-f16`; first run of that path anywhere, SwiftShader lacks it). Same order as the float16 numpy reference, recall@10 1.0 vs float32. GPU 13.95 ms vs 18.1 ms in float32 (−23%), 16 MB sent instead of 32 |
+| `knn-cached` | same | 1,024 new queries against the float16 docs `knn-f16` left in `ctx.cache` (1 MB sent). Same order as numpy's float16 reference, recall@10 0.9997 vs float32. GPU 54.9 ms vs numpy 205 ms |
 
 `knn-1` also exposed two open tabs running the same job: one failed its 32 MB
 download ("Load failed") and committed an error, the other overwrote it with
 the good result. Page version 3 claims a job with a commit before running it
 (a second tab sees the claim and backs off) and retries failed downloads;
 `run/e2e.js` now runs two tabs on one repo and checks each job runs once.
+
+The four jobs above were queued at 23:20Z while the phone's tab was in the
+background, and started when it was reopened at 23:24Z. Once running, each took
+11–41 s end to end over in-flight Wi-Fi, against 0.2–0.6 s of job time: about a
+dozen sequential GitHub API calls per job (claim, input download, result
+commit, comment), plus 16 MB for `knn-f16`. The bridge pays off when the GPU
+work is large next to the bytes moved, as in `knn-cached`.
+
+The same run showed one tab overlapping its own jobs. Its two "page opened"
+commits are 4 ms apart, so `connect()` ran twice in one tab and started two poll
+loops. Page version 4 keeps one loop per tab (a generation counter) and holds
+the busy flag from job selection until the result is committed. `run/e2e.js`
+reproduces it with two simultaneous connects in one tab, plus a second tab,
+behind a mock that adds 250 ms per request. Version 3 gave 1 overlap and one
+job run twice; version 4 gave 0 overlaps, twice.

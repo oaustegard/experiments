@@ -10,7 +10,7 @@ const sh = (cmd, args, env) => execFileSync(cmd, args, { encoding: 'utf8', env: 
   fs.rmSync('bare.git', { recursive: true, force: true }); fs.rmSync('seed', { recursive: true, force: true }); fs.rmSync('clone', { recursive: true, force: true });
   sh('git', ['init', '-q', '--bare', '-b', 'main', 'bare.git']); sh('git', ['clone', '-q', 'bare.git', 'seed']);
   fs.writeFileSync('seed/README.md', 'comms\n'); sh('git', ['-C', 'seed', 'add', '.']); sh('git', ['-C', 'seed', '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'init']); sh('git', ['-C', 'seed', 'push', '-q', 'origin', 'HEAD:main']);
-  const api = spawn('node', [MOCK, path.join(S, 'bare.git')], { stdio: 'inherit' });
+  const api = spawn('node', [MOCK, path.join(S, 'bare.git'), process.env.MOCK_LATENCY_MS || '250'], { stdio: 'inherit' });
   const web = http.createServer((q, r) => { const f = path.join(WEB, new URL(q.url, 'http://x').pathname.replace(/\/$/, '/index.html')); let buf; try { buf = fs.readFileSync(f); } catch { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': f.endsWith('.js') ? 'text/javascript' : 'text/html' }); r.end(buf); }).listen(8765);
   const env = { GPU_BRIDGE_REMOTE: path.join(S, 'bare.git'), GPU_BRIDGE_REPO: path.join(S, 'clone') };
   // session side: submit a real WGSL job with an .npy input
@@ -31,12 +31,14 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   const p2 = await b.newPage(); p2.on('pageerror', (e) => errs.push('tab2: ' + e.message));
   await p2.goto('http://localhost:8765/?api=http://localhost:8766'); await p2.waitForTimeout(1500);
   await p2.fill('#token', 'test-token'); await p2.click('#connect');
+  await p.evaluate(() => { const f = document.querySelector('#connForm'); f.requestSubmit(); f.requestSubmit(); });   // two connects 4 ms apart in one tab, as on the phone 2026-10-25
   await p.waitForTimeout(1500);   // both tabs listening before any job exists
   console.log('submit:', sh('python3', [CLI, 'submit', 'job.js', '--id', 'sq-1', '--note', 'square 1024', '--input', 'a=a.npy', '--input', 'k=@{"n":3}'], env).trim());
   fs.writeFileSync('bad.js', 'throw new Error("boom")');
   sh('python3', [CLI, 'submit', 'bad.js', '--id', 'bad-1'], env);
+  for (const k of [2, 3, 4]) sh('python3', [CLI, 'submit', 'job.js', '--id', `sq-${k}`, '--input', 'a=a.npy', '--input', 'k=@{"n":3}'], env);   // enough jobs that each tab gets several
   const t0 = Date.now(); let st;
-  while (Date.now() - t0 < 60000) { try { st = sh('python3', [CLI, 'status', 'bad-1'], env); } catch (e) { st = e.stdout; if (e.status === 1) break; } await new Promise((r) => setTimeout(r, 1500)); }
+  while (Date.now() - t0 < 120000) { try { st = sh('python3', [CLI, 'status', 'bad-1'], env); } catch (e) { st = e.stdout; if (e.status === 1 && ['sq-2', 'sq-3', 'sq-4'].every((j) => { try { sh('python3', [CLI, 'status', j], env); return true; } catch { return false; } })) break; } await new Promise((r) => setTimeout(r, 1500)); }
   console.log('connNote:', await p.textContent('#connNote'));
   let fetchOut; try { fetchOut = sh('python3', [CLI, 'fetch', 'sq-1', '--out', path.join(S, 'out')], env); } catch (e) { fetchOut = e.stdout + e.stderr; }
   const f = JSON.parse(fetchOut);
@@ -46,8 +48,18 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   console.log('wake comments:', JSON.stringify(await (await fetch('http://localhost:8766/__comments')).json()));
   console.log('bridge:', sh('python3', [CLI, 'bridge'], env).trim());
   const subjects = sh('git', ['--git-dir', 'bare.git', 'log', '--format=%s', 'main']).trim().split('\n');
-  console.log('runs per job (want 1 each):', JSON.stringify({ sq: subjects.filter((x) => x === 'gpu-bridge: sq-1 done').length, bad: subjects.filter((x) => x === 'gpu-bridge: bad-1 error').length, claims: subjects.filter((x) => x.startsWith('gpu-bridge: claim')).length }));
+  console.log('runs per job (want 1 each):', JSON.stringify({ sq: subjects.filter((x) => x === 'gpu-bridge: sq-1 done').length, bad: subjects.filter((x) => x === 'gpu-bridge: bad-1 error').length, claims: subjects.filter((x) => x.startsWith('gpu-bridge: claim')).length, sqAll: subjects.filter((x) => /^gpu-bridge: sq-\d done$/.test(x)).length }));
   console.log('tab statuses:', JSON.stringify(await p.$$eval('.job .st', (e) => e.map((x) => x.textContent))), JSON.stringify(await p2.$$eval('.job .st', (e) => e.map((x) => x.textContent))));
+  // per tab, a job's claim must come after that tab's previous result commit (no overlapping jobs in one tab)
+  const commits = sh('git', ['--git-dir', 'bare.git', 'log', '--reverse', '--format=%H %s', 'main']).trim().split('\n').map((l) => { const i = l.indexOf(' '); return [l.slice(0, i), l.slice(i + 1)]; });
+  const open = {}; let overlaps = 0; const tabOf = {};
+  for (const [sha, subj] of commits) {
+    let m = /^gpu-bridge: claim (\S+)$/.exec(subj);
+    if (m) { const tab = JSON.parse(sh('git', ['--git-dir', 'bare.git', 'show', `${sha}:results/${m[1]}/claim.json`])).tab; tabOf[m[1]] = tab; if (open[tab]) overlaps++; open[tab] = m[1]; continue; }
+    m = /^gpu-bridge: (\S+) (done|error)$/.exec(subj);
+    if (m && tabOf[m[1]] && open[tabOf[m[1]]] === m[1]) open[tabOf[m[1]]] = null;
+  }
+  console.log('overlapping jobs within a tab (want 0):', overlaps);
   console.log('repo log:', sh('git', ['--git-dir', 'bare.git', 'log', '--format=%s', 'main']).trim().split('\n').join(' | '));
   console.log('h-overflow:', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), 'errors:', errs);
   await p.screenshot({ path: 'page.png', fullPage: true });
