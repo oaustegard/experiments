@@ -36,3 +36,16 @@ a tap.
   both posted wake comments.
 
 SwiftShader runs here are correctness checks only, not timing (METHODS.md).
+
+## Runs on real hardware
+
+| Job | Device | Result |
+|---|---|---|
+| `hello-1` (2026-10-25) | iPhone, Chrome 155 / iOS 27.0.1 (WebKit WebGPU; adapter "apple") | 16M-float saxpy correct, median 5.0 ms ≈ 40 GB/s (the worker clock is quantized to 1 ms here) |
+| `knn-1` (2026-10-25) | same | `jobs/knn/`: exact top-10 by dot product, 256 queries × 32,768 docs × 256 dims (4.29 GFLOP), one fused WGSL kernel. Same order as numpy for all 2,560 results, max score error 1.2e-7. GPU timestamp median 18.1 ms (≈ 237 GFLOP/s effective) vs numpy 62–76 ms on the container's 4 vCPUs. 32 MB input fetched by the phone from the comms repo |
+
+`knn-1` also exposed two open tabs running the same job: one failed its 32 MB
+download ("Load failed") and committed an error, the other overwrote it with
+the good result. Page version 3 claims a job with a commit before running it
+(a second tab sees the claim and backs off) and retries failed downloads;
+`run/e2e.js` now runs two tabs on one repo and checks each job runs once.

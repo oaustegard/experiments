@@ -21,15 +21,20 @@ const wgsl = \`@group(0) @binding(0) var<storage, read_write> a: array<f32>;
 const r = await ctx.compute({ wgsl, bindings: [a], dispatch: [Math.ceil(a.length / 64)], read: [0] });
 ctx.log("n", a.length);
 return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
-  console.log('submit:', sh('python3', [CLI, 'submit', 'job.js', '--id', 'sq-1', '--note', 'square 1024', '--input', 'a=a.npy', '--input', 'k=@{"n":3}'], env).trim());
-  fs.writeFileSync('bad.js', 'throw new Error("boom")');
-  sh('python3', [CLI, 'submit', 'bad.js', '--id', 'bad-1'], env);
   // page side
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] });
   const p = await b.newPage({ viewport: { width: 390, height: 1000 } });
   const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await p.goto('http://localhost:8765/?api=http://localhost:8766'); await p.waitForTimeout(2000);
   await p.fill('#token', 'test-token'); await p.click('#connect');
+  // a second tab on the same repo: each job must still run exactly once
+  const p2 = await b.newPage(); p2.on('pageerror', (e) => errs.push('tab2: ' + e.message));
+  await p2.goto('http://localhost:8765/?api=http://localhost:8766'); await p2.waitForTimeout(1500);
+  await p2.fill('#token', 'test-token'); await p2.click('#connect');
+  await p.waitForTimeout(1500);   // both tabs listening before any job exists
+  console.log('submit:', sh('python3', [CLI, 'submit', 'job.js', '--id', 'sq-1', '--note', 'square 1024', '--input', 'a=a.npy', '--input', 'k=@{"n":3}'], env).trim());
+  fs.writeFileSync('bad.js', 'throw new Error("boom")');
+  sh('python3', [CLI, 'submit', 'bad.js', '--id', 'bad-1'], env);
   const t0 = Date.now(); let st;
   while (Date.now() - t0 < 60000) { try { st = sh('python3', [CLI, 'status', 'bad-1'], env); } catch (e) { st = e.stdout; if (e.status === 1) break; } await new Promise((r) => setTimeout(r, 1500)); }
   console.log('connNote:', await p.textContent('#connNote'));
@@ -40,6 +45,9 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   console.log('bad-1 status:', st.trim());
   console.log('wake comments:', JSON.stringify(await (await fetch('http://localhost:8766/__comments')).json()));
   console.log('bridge:', sh('python3', [CLI, 'bridge'], env).trim());
+  const subjects = sh('git', ['--git-dir', 'bare.git', 'log', '--format=%s', 'main']).trim().split('\n');
+  console.log('runs per job (want 1 each):', JSON.stringify({ sq: subjects.filter((x) => x === 'gpu-bridge: sq-1 done').length, bad: subjects.filter((x) => x === 'gpu-bridge: bad-1 error').length, claims: subjects.filter((x) => x.startsWith('gpu-bridge: claim')).length }));
+  console.log('tab statuses:', JSON.stringify(await p.$$eval('.job .st', (e) => e.map((x) => x.textContent))), JSON.stringify(await p2.$$eval('.job .st', (e) => e.map((x) => x.textContent))));
   console.log('repo log:', sh('git', ['--git-dir', 'bare.git', 'log', '--format=%s', 'main']).trim().split('\n').join(' | '));
   console.log('h-overflow:', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), 'errors:', errs);
   await p.screenshot({ path: 'page.png', fullPage: true });

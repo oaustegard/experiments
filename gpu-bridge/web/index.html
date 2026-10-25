@@ -107,7 +107,8 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 2;
+const PAGE_VERSION = 3;
+const TAB = Math.random().toString(36).slice(2, 10);
 const params = new URLSearchParams(location.search);
 const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
 const BRANCH = params.get("branch") || "main";
@@ -178,13 +179,20 @@ async function gh(path, { method = "GET", body, accept = "application/vnd.github
   return { status: res.status, etag: res.headers.get("ETag"), data };
 }
 const R = () => "/repos/" + cfg.repo;
-const blobBytes = async (sha) => new Uint8Array((await gh(`${R()}/git/blobs/${sha}`, { accept: "application/vnd.github.raw+json", as: "buf" })).data);
+// A phone browser drops big downloads now and then ("Load failed", no HTTP status): retry those and 5xx.
+async function blobBytes(sha) {
+  for (let attempt = 1; ; attempt++) {
+    try { return new Uint8Array((await gh(`${R()}/git/blobs/${sha}`, { accept: "application/vnd.github.raw+json", as: "buf" })).data); }
+    catch (e) { if (attempt >= 4 || (e.status && e.status < 500)) throw e; await delay(1000 * attempt); }
+  }
+}
 const blobText = async (sha) => new TextDecoder().decode(await blobBytes(sha));
 
 function b64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
 
 // Commit {path: {text} | {bytes}} onto BRANCH in one commit; rebuilds on a moved head.
-async function commitFiles(files, message) {
+// `guard(paths)`, given the head's blob paths and shas, may return false to abort (resolves null).
+async function commitFiles(files, message, guard) {
   const entries = [];
   for (const [path, f] of Object.entries(files)) {
     const body = f.bytes ? { content: b64(f.bytes), encoding: "base64" } : { content: f.text, encoding: "utf-8" };
@@ -193,6 +201,10 @@ async function commitFiles(files, message) {
   for (let attempt = 0; attempt < 6; attempt++) {
     const head = (await gh(`${R()}/git/ref/heads/${BRANCH}`)).data.object.sha;
     const baseTree = (await gh(`${R()}/git/commits/${head}`)).data.tree.sha;
+    if (guard) {
+      const all = (await gh(`${R()}/git/trees/${baseTree}?recursive=1`)).data.tree;
+      if (!(await guard(new Map(all.filter((e) => e.type === "blob").map((e) => [e.path, e.sha]))))) return null;
+    }
     const tree = (await gh(`${R()}/git/trees`, { method: "POST", body: { base_tree: baseTree, tree: entries } })).data.sha;
     const commit = (await gh(`${R()}/git/commits`, { method: "POST", body: { message, tree, parents: [head] } })).data.sha;
     try { await gh(`${R()}/git/refs/heads/${BRANCH}`, { method: "PATCH", body: { sha: commit, force: false } }); return commit; }
@@ -286,9 +298,28 @@ async function scan() {
   jobs.sort((a, b) => (a.created || 0) - (b.created || 0));
   process(jobs[0]);
 }
+// Take a job by committing results/<id>/claim.json. A ref update only lands on the current head,
+// so of two tabs racing for one job, the second sees the first's claim and backs off.
+async function claim(id, ttlMs) {
+  const mine = { tab: TAB, at: Date.now(), ua: navigator.userAgent };
+  const sha = await commitFiles({ [`results/${id}/claim.json`]: { text: JSON.stringify(mine) + "\n" } }, `gpu-bridge: claim ${id}`, async (paths) => {
+    if (paths.has(`results/${id}/result.json`)) return false;
+    const c = paths.get(`results/${id}/claim.json`);
+    if (!c) return true;
+    try { const other = JSON.parse(await blobText(c)); return other.tab === TAB || Date.now() - other.at > ttlMs; } catch { return true; }
+  });
+  return sha !== null;
+}
 async function process(job) {
   const id = job.id, info = { status: "running", note: job.note, created: job.created, startedAt: Date.now(), logs: [] };
   seen.set(id, info); inflight.add(id); busy = true; setPill(); render();
+  const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000);
+  let claimed;
+  try { claimed = await claim(id, timeoutMs + 300000); } catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; }
+  if (!claimed) {
+    info.status = info.error ? "error" : "taken"; info.note = (job.note ? job.note + " · " : "") + (info.error ? "" : "run by another open bridge tab");
+    inflight.delete(id); busy = false; etag = null; setPill(); render(); return;
+  }
   const snapshot = new Map(tree);
   let r;
   try {
@@ -296,7 +327,7 @@ async function process(job) {
     const code = snapshot.has(`jobs/${id}/job.js`) ? await blobText(snapshot.get(`jobs/${id}/job.js`)) : job.code;
     if (typeof code !== "string" || !code.trim()) throw new Error("No code: add jobs/" + id + "/job.js or a code field");
     const inputs = await loadInputs(id, job.inputs, snapshot);
-    r = await runJob(id, code, inputs, Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000));
+    r = await runJob(id, code, inputs, timeoutMs);
   } catch (e) { r = { t: "error", s: String(e.message || e), logs: [] }; }
   info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || [];
   const files = {};
