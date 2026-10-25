@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPU Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: single column, max 760px — status band, connection card, GPU card, job list; meant to sit open in a laptop tab */
+:root {
+  --bg: #eef0f2; --panel: #ffffff; --ink: #161b22; --muted: #5a6472; --line: #d4d9df;
+  --accent: #0f7a6c; --accent-ink: #ffffff; --code: #f3f5f7; --ok: #1d7f55; --warn: #9a6a00; --err: #b93434;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0e1215; --panel: #151b20; --ink: #e1e6ea; --muted: #8a95a1; --line: #253039;
+  --accent: #4fd1bd; --accent-ink: #062520; --code: #0a0e11; --ok: #4fc08a; --warn: #e3b341; --err: #ff7f78; color-scheme: dark } }
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 20px; font-weight: 600; flex: 1; min-width: 0; }
+.pill { border-radius: 999px; padding: 3px 11px; font-size: 13px; border: 1px solid currentColor; white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.live { color: var(--ok); } .pill.live::before { animation: pulse 2s ease-in-out infinite; }
+.pill.busy { color: var(--accent); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--err); } .pill.idle { color: var(--muted); }
+@keyframes pulse { 50% { opacity: .25 } }
+@media (prefers-reduced-motion: reduce) { .pill.live::before { animation: none; } }
+.lede { margin: 0; color: var(--muted); max-width: 64ch; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+section h2 { margin: 0; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; min-width: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 220px; }
+.field label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.field input { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; font: 14px var(--mono); min-width: 0; width: 100%; }
+.check { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.note.err { color: var(--err); }
+.jobs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.job { border-top: 1px solid var(--line); padding: 10px 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; min-width: 0; }
+.job:first-child { border-top: 0; }
+.job .id { font: 600 13px var(--mono); overflow-wrap: anywhere; min-width: 0; }
+.job .what { grid-column: 1 / -1; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.job .nums { grid-column: 1 / -1; font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.job .st { font-size: 12px; justify-self: end; }
+.st.done { color: var(--ok); } .st.error { color: var(--err); } .st.running, .st.queued { color: var(--accent); }
+.job details { grid-column: 1 / -1; }
+.job summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.job pre { margin: 6px 0 0; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 220px; overflow: auto;
+  font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>GPU Bridge</h1>
+    <span class="pill idle" id="pill">Starting</span>
+  </header>
+  <p class="lede">Keep this tab open on your laptop. Claude Code sessions push GPU jobs to a private GitHub repo; this tab picks them up, runs them on your graphics card through WebGPU, commits the results back, and comments on the wake PR so the session resumes.</p>
+
+  <section aria-labelledby="connH">
+    <h2 id="connH">Connection</h2>
+    <form id="connForm" class="row">
+      <div class="field"><label for="repo">Repository</label><input id="repo" autocomplete="off" spellcheck="false" value="oaustegard/gpu-bridge-comms"></div>
+      <div class="field"><label for="token">Fine-grained token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
+      <label class="check"><input type="checkbox" id="remember" checked> Remember on this device</label>
+      <label class="check"><input type="checkbox" id="wake" checked> Wake sessions when a job ends</label>
+      <button class="btn primary" id="connect">Connect</button>
+      <button class="btn" id="forget" type="button" hidden>Forget token</button>
+    </form>
+    <p class="note" id="connNote">The token needs access to that one repository only, with Contents and Pull requests set to read and write. It stays in this browser.</p>
+  </section>
+
+  <section aria-labelledby="devH">
+    <h2 id="devH">This GPU</h2>
+    <dl class="kv" id="dev"><dt>Adapter</dt><dd>Checking…</dd></dl>
+    <div class="row">
+      <button class="btn" id="selfTest" type="button">Run self-test</button>
+      <button class="btn" id="wakeLock" type="button">Keep screen awake</button>
+      <span class="note" id="testOut"></span>
+    </div>
+  </section>
+
+  <section aria-labelledby="jobsH">
+    <h2 id="jobsH">Jobs</h2>
+    <p class="note" id="jobsNote">Connect to start listening.</p>
+    <ul class="jobs" id="jobs"></ul>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const PAGE_VERSION = 2;
+const params = new URLSearchParams(location.search);
+const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
+const BRANCH = params.get("branch") || "main";
+const store = {
+  get(k) { try { return localStorage.getItem("gpubridge:" + k) ?? sessionStorage.getItem("gpubridge:" + k); } catch { return null; } },
+  set(k, v, persist) { try { (persist ? localStorage : sessionStorage).setItem("gpubridge:" + k, v); } catch {} },
+  del(k) { try { localStorage.removeItem("gpubridge:" + k); sessionStorage.removeItem("gpubridge:" + k); } catch {} },
+};
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ---------------------------------------------------------------- worker
+let RUNTIME = "", worker = null, mode = null;
+const pending = new Map();
+const jobScript = (id, code) => `self.__jobs[${JSON.stringify(id)}] = async function (ctx) {\n${code}\n};\n`;
+function spawn(extra = "") {
+  const url = URL.createObjectURL(new Blob([RUNTIME + extra], { type: "text/javascript" }));
+  const w = new Worker(url);
+  w.onmessage = (e) => {
+    const m = e.data;
+    if (m.t === "log") { pending.get(m.id)?.logs.push(m.s); return; }
+    if (m.t === "lost") { gpuInfo = null; setPill(); return; }
+    const key = m.id ?? m.t, p = pending.get(key);
+    if (p) { pending.delete(key); p.resolve(m); }
+  };
+  w.onerror = (e) => { e.preventDefault(); for (const [k, p] of pending) if (p.worker === w) { pending.delete(k); p.resolve({ t: "error", id: k, s: e.message || "Worker failed (syntax error?)" }); } };
+  return w;
+}
+function ask(w, key, msg, timeoutMs) {
+  return new Promise((resolve) => {
+    const p = { logs: [], worker: w };
+    p.resolve = (m) => { clearTimeout(p.timer); m.logs = p.logs; resolve(m); };
+    pending.set(key, p);
+    if (timeoutMs) p.timer = setTimeout(() => { if (pending.get(key) === p) { pending.delete(key); p.resolve({ t: "timeout" }); } }, timeoutMs);
+    w.postMessage(msg);
+  });
+}
+async function startWorker() {
+  try { worker?.terminate(); } catch {}
+  worker = spawn();
+  if (!mode) { const r = await ask(worker, "probe", { t: "probe" }, 5000); mode = r.ok ? "persistent" : "fresh"; }
+}
+async function runJob(id, code, inputs, timeoutMs) {
+  let r;
+  if (mode === "persistent") {
+    r = await ask(worker, id, { t: "run", id, src: jobScript(id, code), inputs }, timeoutMs);
+    if (r.t === "timeout") await startWorker();
+  } else {
+    const w = spawn(jobScript(id, code));
+    r = await ask(w, id, { t: "run", id, inputs }, timeoutMs);
+    w.terminate();
+  }
+  return r;
+}
+
+// ---------------------------------------------------------------- GitHub
+let cfg = { repo: "", token: "" }, wakePR = undefined;
+async function gh(path, { method = "GET", body, accept = "application/vnd.github+json", etag, as = "json" } = {}) {
+  const headers = { Authorization: "Bearer " + cfg.token, Accept: accept, "X-GitHub-Api-Version": "2022-11-28" };
+  if (etag) headers["If-None-Match"] = etag;
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
+  if (res.status === 304) return { status: 304 };
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    const e = new Error(`${method} ${path}: HTTP ${res.status} ${t.slice(0, 200)}`); e.status = res.status; throw e;
+  }
+  const data = as === "buf" ? await res.arrayBuffer() : as === "text" ? await res.text() : res.status === 204 ? null : await res.json();
+  return { status: res.status, etag: res.headers.get("ETag"), data };
+}
+const R = () => "/repos/" + cfg.repo;
+const blobBytes = async (sha) => new Uint8Array((await gh(`${R()}/git/blobs/${sha}`, { accept: "application/vnd.github.raw+json", as: "buf" })).data);
+const blobText = async (sha) => new TextDecoder().decode(await blobBytes(sha));
+
+function b64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+
+// Commit {path: {text} | {bytes}} onto BRANCH in one commit; rebuilds on a moved head.
+async function commitFiles(files, message) {
+  const entries = [];
+  for (const [path, f] of Object.entries(files)) {
+    const body = f.bytes ? { content: b64(f.bytes), encoding: "base64" } : { content: f.text, encoding: "utf-8" };
+    entries.push({ path, mode: "100644", type: "blob", sha: (await gh(`${R()}/git/blobs`, { method: "POST", body })).data.sha });
+  }
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const head = (await gh(`${R()}/git/ref/heads/${BRANCH}`)).data.object.sha;
+    const baseTree = (await gh(`${R()}/git/commits/${head}`)).data.tree.sha;
+    const tree = (await gh(`${R()}/git/trees`, { method: "POST", body: { base_tree: baseTree, tree: entries } })).data.sha;
+    const commit = (await gh(`${R()}/git/commits`, { method: "POST", body: { message, tree, parents: [head] } })).data.sha;
+    try { await gh(`${R()}/git/refs/heads/${BRANCH}`, { method: "PATCH", body: { sha: commit, force: false } }); return commit; }
+    catch (e) { if (e.status !== 422 && e.status !== 409) throw e; await delay(400 * (attempt + 1)); }
+  }
+  throw new Error("The branch kept moving; gave up after 6 tries");
+}
+async function findWakePR() {
+  if (wakePR !== undefined) return wakePR;
+  try {
+    const owner = cfg.repo.split("/")[0];
+    const r = await gh(`${R()}/pulls?state=open&head=${encodeURIComponent(owner + ":wake")}&per_page=1`);
+    wakePR = r.data?.[0]?.number ?? null;
+  } catch { wakePR = null; }
+  return wakePR;
+}
+async function wakeSessions(text) {
+  if (!$("#wake").checked) return;
+  const n = await findWakePR(); if (!n) return;
+  try { await gh(`${R()}/issues/${n}/comments`, { method: "POST", body: { body: text } }); } catch (e) { console.warn("wake comment failed", e); }
+}
+
+// ---------------------------------------------------------------- jobs
+const CTORS = { f32: Float32Array, u32: Uint32Array, i32: Int32Array, u8: Uint8Array, i8: Int8Array, u16: Uint16Array, i16: Int16Array, f16: Uint16Array, f64: Float64Array };
+const NAMES = new Map([[Float32Array, "f32"], [Uint32Array, "u32"], [Int32Array, "i32"], [Uint8Array, "u8"], [Int8Array, "i8"], [Uint16Array, "u16"], [Int16Array, "i16"], [Float64Array, "f64"]]);
+async function loadInputs(id, spec, tree) {
+  const out = {};
+  for (const [k, v] of Object.entries(spec || {})) {
+    if (v && typeof v === "object" && v.dtype && v.file) {
+      const sha = tree.get(`jobs/${id}/${v.file}`); if (!sha) throw new Error(`input ${k}: jobs/${id}/${v.file} is missing`);
+      const C = CTORS[v.dtype]; if (!C) throw new Error(`input ${k}: unknown dtype ${v.dtype}`);
+      const bytes = await blobBytes(sha);
+      out[k] = new C(bytes.buffer, bytes.byteOffset, bytes.byteLength / C.BYTES_PER_ELEMENT);
+    } else out[k] = v && typeof v === "object" && "json" in v ? v.json : v;
+  }
+  return out;
+}
+// Typed arrays become .bin files beside result.json; everything else stays inline.
+function splitOutputs(value, id, files) {
+  const safe = (s) => String(s).replace(/[^A-Za-z0-9_.-]/g, "_");
+  const walk = (v, keyPath, depth) => {
+    if (ArrayBuffer.isView(v) || v instanceof ArrayBuffer) {
+      const u = v instanceof ArrayBuffer ? new Uint8Array(v) : new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+      const file = (keyPath.map(safe).join(".") || "out") + ".bin";
+      files[`results/${id}/${file}`] = { bytes: u };
+      return { dtype: v instanceof ArrayBuffer ? "u8" : NAMES.get(v.constructor) || "u8", length: v instanceof ArrayBuffer ? v.byteLength : v.length, file };
+    }
+    if (Array.isArray(v) && depth < 8) return v.map((x, i) => walk(x, keyPath.concat(i), depth + 1));
+    if (v && typeof v === "object" && depth < 8) { const o = {}; for (const [k, x] of Object.entries(v)) o[k] = walk(x, keyPath.concat(k), depth + 1); return o; }
+    if (typeof v === "number" && !Number.isFinite(v)) return String(v);
+    return v === undefined ? null : v;
+  };
+  return walk(value, [], 0);
+}
+
+let gpuInfo = null, gpuErr = null, connected = false, busy = false, lastErr = "";
+let etag = null, headSha = null, tree = new Map(), pollTimer = null;
+const seen = new Map();   // id -> {status, note, runMs, created, startedAt, error, logs}
+const inflight = new Set();
+
+async function poll() {
+  if (!connected) return;
+  try {
+    const r = await gh(`${R()}/commits/${BRANCH}`, { etag });
+    if (r.status !== 304) {
+      etag = r.etag; headSha = r.data.sha;
+      const t = await gh(`${R()}/git/trees/${r.data.commit.tree.sha}?recursive=1`);
+      tree = new Map(t.data.tree.filter((e) => e.type === "blob").map((e) => [e.path, e.sha]));
+      await scan();
+    }
+    lastErr = "";
+  } catch (e) {
+    lastErr = e.status === 401 ? "The token was refused (401). Check it and connect again." : e.status === 404 ? "Repository not found, or the token can't see it (404)." : "GitHub: " + e.message;
+    if (e.status === 401 || e.status === 404) connected = false;
+  }
+  setPill(); render();
+  if (connected) pollTimer = setTimeout(poll, document.hidden ? 15000 : 3000);
+}
+async function scan() {
+  const jobIds = [...tree.keys()].map((p) => /^jobs\/([^/]+)\/job\.json$/.exec(p)?.[1]).filter(Boolean);
+  for (const id of jobIds) {
+    const done = tree.has(`results/${id}/result.json`);
+    const s = seen.get(id);
+    if (!s) seen.set(id, { status: done ? "done" : "queued" });
+    else if (done && s.status === "queued") s.status = "done";
+  }
+  if (busy) return;
+  const queued = jobIds.filter((id) => !tree.has(`results/${id}/result.json`) && !inflight.has(id));
+  if (!queued.length) return;
+  const jobs = [];
+  for (const id of queued) { try { jobs.push({ id, ...JSON.parse(await blobText(tree.get(`jobs/${id}/job.json`))) }); } catch (e) { jobs.push({ id, broken: String(e.message || e) }); } }
+  jobs.sort((a, b) => (a.created || 0) - (b.created || 0));
+  process(jobs[0]);
+}
+async function process(job) {
+  const id = job.id, info = { status: "running", note: job.note, created: job.created, startedAt: Date.now(), logs: [] };
+  seen.set(id, info); inflight.add(id); busy = true; setPill(); render();
+  const snapshot = new Map(tree);
+  let r;
+  try {
+    if (job.broken) throw new Error("job.json is not valid JSON: " + job.broken);
+    const code = snapshot.has(`jobs/${id}/job.js`) ? await blobText(snapshot.get(`jobs/${id}/job.js`)) : job.code;
+    if (typeof code !== "string" || !code.trim()) throw new Error("No code: add jobs/" + id + "/job.js or a code field");
+    const inputs = await loadInputs(id, job.inputs, snapshot);
+    r = await runJob(id, code, inputs, Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000));
+  } catch (e) { r = { t: "error", s: String(e.message || e), logs: [] }; }
+  info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || [];
+  const files = {};
+  const result = { id, status: r.t === "done" ? "done" : "error", startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs,
+    logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null, mode, pageVersion: PAGE_VERSION };
+  if (r.t === "timeout") result.error = `Timed out after ${job.timeoutMs || 120000} ms; the worker was restarted and its cache cleared.`;
+  if (r.t === "error") result.error = String(r.s).slice(0, 8000);
+  if (r.t === "done") result.outputs = splitOutputs(r.result, id, files);
+  files[`results/${id}/result.json`] = { text: JSON.stringify(result, null, 1) + "\n" };
+  try {
+    const sha = await commitFiles(files, `gpu-bridge: ${id} ${result.status}`);
+    info.status = result.status; info.error = result.error;
+    await wakeSessions(`gpu-bridge: \`${id}\` ${result.status}${info.runMs != null ? ` in ${Math.round(info.runMs)} ms` : ""} — \`results/${id}/\` at ${sha.slice(0, 7)}`);
+  } catch (e) { info.status = "error"; info.error = "Could not commit the result: " + e.message; }
+  inflight.delete(id); busy = false; etag = null;   // the next poll refetches the tree and sees the new result
+  setPill(); render();
+}
+
+// ---------------------------------------------------------------- UI
+function setPill() {
+  const p = $("#pill");
+  const [cls, txt] = gpuErr ? ["bad", "No WebGPU"] : lastErr ? ["bad", "GitHub error"] : !connected ? ["warn", "Not connected"]
+    : busy ? ["busy", "Running a job"] : gpuInfo ? ["live", "Listening for jobs"] : ["idle", "Starting"];
+  p.className = "pill " + cls; p.textContent = txt;
+}
+function renderDevice() {
+  const d = $("#dev");
+  if (gpuErr) { d.innerHTML = `<dt>Adapter</dt><dd>${esc(gpuErr)}</dd>`; return; }
+  if (!gpuInfo) return;
+  const L = gpuInfo.limits;
+  d.innerHTML = [
+    ["Adapter", [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description || gpuInfo.device].filter(Boolean).join(" · ") || "unnamed"],
+    ["Features", gpuInfo.features.join(", ") || "none"],
+    ["Max buffer", (L.maxBufferSize / 2 ** 20).toFixed(0) + " MiB · storage binding " + (L.maxStorageBufferBindingSize / 2 ** 20).toFixed(0) + " MiB"],
+    ["Workgroup", L.maxComputeInvocationsPerWorkgroup + " invocations · " + (L.maxComputeWorkgroupStorageSize / 1024) + " KiB shared"],
+    ["Job runner", mode === "persistent" ? "one worker, cache kept between jobs" : "a fresh worker per job"],
+  ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+}
+const fmtMs = (x) => x == null ? "–" : x < 10 ? x.toFixed(2) + " ms" : x < 10000 ? Math.round(x) + " ms" : (x / 1000).toFixed(1) + " s";
+function render() {
+  const note = $("#jobsNote");
+  note.className = lastErr ? "note err" : "note";
+  note.textContent = lastErr || (!connected ? "Connect to start listening." : seen.size ? "" : `Listening on ${cfg.repo}. No jobs yet: a session pushes jobs/<id>/job.json and it runs here at once.`);
+  note.hidden = !note.textContent;
+  const items = [...seen.entries()].filter(([, s]) => s.status !== "done" || s.startedAt).sort((a, b) => (b[1].startedAt || b[1].created || 0) - (a[1].startedAt || a[1].created || 0)).slice(0, 30);
+  const doneBefore = [...seen.values()].filter((s) => s.status === "done" && !s.startedAt).length;
+  $("#jobs").innerHTML = items.map(([id, s]) => `<li class="job">
+      <span class="id">${esc(id)}</span><span class="st ${esc(s.status)}">${esc(s.status)}</span>
+      ${s.note ? `<span class="what">${esc(s.note)}</span>` : ""}
+      ${s.startedAt ? `<span class="nums">waited ${fmtMs(s.created ? s.startedAt - s.created : null)} · ran ${fmtMs(s.runMs)}</span>` : ""}
+      ${s.error || s.logs?.length ? `<details><summary>${s.error ? "Error" : "Log"}</summary><pre>${esc([s.error, ...(s.logs || [])].filter(Boolean).join("\n"))}</pre></details>` : ""}
+    </li>`).join("") + (doneBefore ? `<li class="job"><span class="what">${doneBefore} earlier job${doneBefore > 1 ? "s" : ""} already have results in the repo.</span></li>` : "");
+}
+
+async function connect(e) {
+  e?.preventDefault();
+  const token = $("#token").value.trim() || store.get("token") || "", repo = $("#repo").value.trim();
+  if (!token || !/^[\w.-]+\/[\w.-]+$/.test(repo)) { $("#connNote").textContent = "Enter owner/repo and a token."; $("#connNote").className = "note err"; return; }
+  const wasConnected = connected;
+  cfg = { token, repo }; wakePR = undefined; etag = null; seen.clear(); connected = false;
+  try {
+    const r = await gh(`${R()}`);
+    if (!r.data.permissions?.push && r.data.permissions) throw Object.assign(new Error("The token can read this repository but not write to it."), { status: 403 });
+  } catch (err) {
+    $("#connNote").textContent = err.status === 401 ? "GitHub refused the token (401)." : err.status === 404 ? "No such repository, or the token can't see it (404)." : err.message;
+    $("#connNote").className = "note err"; connected = false; setPill(); return;
+  }
+  const persist = $("#remember").checked;
+  store.del("token"); store.set("token", token, persist); store.set("repo", repo, true); store.set("wake", $("#wake").checked ? "1" : "0", true);
+  $("#token").value = ""; $("#token").placeholder = "saved"; $("#forget").hidden = false;
+  const n = await findWakePR();
+  $("#connNote").className = "note";
+  $("#connNote").textContent = `Connected to ${repo}. ` + (n ? `Finished jobs comment on wake PR #${n}.` : "No open PR from a branch named wake, so sessions won't be woken; they can still poll.");
+  connected = true; lastErr = "";
+  if (pollTimer) clearTimeout(pollTimer);
+  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, ua: navigator.userAgent, mode, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
+    "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
+  poll();
+}
+
+async function selfTest() {
+  const out = $("#testOut"); out.textContent = "Running…"; out.className = "note";
+  const code = `
+const n = 1 << 22, x = new Float32Array(n), y = new Float32Array(n);
+for (let i = 0; i < n; i++) { x[i] = i % 97; y[i] = 1; }
+const wgsl = \`@group(0) @binding(0) var<storage, read> x: array<f32>;
+@group(0) @binding(1) var<storage, read_write> y: array<f32>;
+@compute @workgroup_size(256) fn main(@builtin(global_invocation_id) g: vec3u) { let i = g.x; if (i < arrayLength(&y)) { y[i] = 2.0 * x[i] + y[i]; } }\`;
+const r = await ctx.compute({ wgsl, bindings: [x, y], dispatch: [Math.ceil(n / 256)], read: [1], iterations: 6 });
+const ok = [5, 96, n - 1].every((i) => r.out[1][i] === 1 + 6 * 2 * (i % 97));   // y accumulates over the 6 passes
+return { ok, medianMs: r.medianMs, gbps: (3 * 4 * n) / (r.medianMs / 1000) / 1e9 };`;
+  const r = await runJob("selftest-" + Date.now(), code, {}, 30000);
+  if (r.t !== "done") { out.textContent = "Self-test failed: " + (r.s || r.t); out.className = "note err"; return; }
+  out.className = r.result.ok ? "note" : "note err";
+  out.textContent = r.result.ok ? `Correct. saxpy over 4M floats: ${r.result.medianMs.toFixed(2)} ms per pass, about ${r.result.gbps.toFixed(0)} GB/s` : "The GPU returned wrong numbers for saxpy.";
+}
+let lock = null;
+async function toggleLock(btn) {
+  try {
+    if (lock) { await lock.release(); lock = null; }
+    else { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; btn.textContent = "Keep screen awake"; }); }
+    btn.textContent = lock ? "Screen stays awake" : "Keep screen awake";
+  } catch { btn.textContent = "Screen lock not available"; btn.disabled = true; }
+}
+
+$("#connForm").addEventListener("submit", connect);
+$("#forget").addEventListener("click", () => { store.del("token"); connected = false; cfg.token = ""; $("#forget").hidden = true; $("#token").placeholder = "github_pat_…"; $("#connNote").textContent = "Token removed from this browser."; setPill(); render(); });
+$("#selfTest").addEventListener("click", async (e) => { e.target.disabled = true; try { await selfTest(); } finally { e.target.disabled = false; } });
+$("#wakeLock").addEventListener("click", (e) => toggleLock(e.target));
+
+(async () => {
+  setPill(); render();
+  $("#repo").value = store.get("repo") || $("#repo").value;
+  $("#wake").checked = store.get("wake") !== "0";
+  try {
+    RUNTIME = await (await fetch("runtime.js", { cache: "no-cache" })).text();
+    await startWorker();
+    const d = await ask(worker, "describe", { t: "describe" }, 15000);
+    if (d.info) gpuInfo = d.info; else gpuErr = d.err || "The GPU didn't answer";
+  } catch (e) { gpuErr = "Couldn't start the job worker: " + e.message; }
+  renderDevice(); setPill();
+  if (store.get("token")) { $("#forget").hidden = false; $("#token").placeholder = "saved"; connect(); }
+})();
+})();
+</script>
+</body>
+</html>
