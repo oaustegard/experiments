@@ -661,6 +661,12 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A detached job on a `colab new` VM dies when the session goes untouched.** A training run
+  launched with `nohup` from `colab exec` was lost (`colab exec` returned "appears to be lost (404/401)",
+  `colab sessions` empty) after 24 minutes without a `colab exec`; 10-minute gaps survived. Run a
+  local `Bash run_in_background` loop that calls `colab exec` and `colab download`s the results every
+  few minutes, so the VM stays assigned and a loss costs only the last interval.
+  (`moederncolbert-bench/RESULTS.md`, round 3)
 - **A Cloudflare Container's Durable Object keeps its old code while the container runs.** A Worker
   deploy updates the Worker, but the Durable Object instance that owns a live container keeps
   executing the class it started with: new RPC methods fail with "The RPC receiver does not
