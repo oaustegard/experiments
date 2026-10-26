@@ -12,8 +12,8 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   p.on('pageerror', e => errs.push(e.message));
   await p.goto('http://localhost:8765/?debug');
   await p.click('#startBtn');
-  await p.waitForTimeout(1200);
-  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'overlay closes on Start (no sensor: calibration skipped)');
+  await p.waitForTimeout(200);
+  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'overlay closes on Start');
 
   // Single line clear: fill the floor except four cells, drop a flat I into the gap.
   const r1 = await p.evaluate(() => {
@@ -49,15 +49,17 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   const x1 = await p.evaluate(() => { clearInterval(window.__t); dispatchEvent(Object.assign(new Event('deviceorientation'), { beta: 45, gamma: 0 })); return window.__plumb.piece().x; });
   assert(x1 > x0, `right tilt steers right (${x0} -> ${x1})`);
 
-  // Lying in bed: screen facing the floor (beta 150). Calibrate there, then roll the right edge down.
+  // Lying in bed: screen facing the floor (beta 150, 30 degrees off flat). Pick Flat, then roll the right edge down.
   // Gravity gains +x, which the browser reports as negative gamma once beta passes 90.
   const orient = (b, g) => p.evaluate(([b, g]) => { clearInterval(window.__o);
     window.__o = setInterval(() => dispatchEvent(Object.assign(new Event('deviceorientation'), { beta: b, gamma: g })), 20); }, [b, g]);
   await orient(150, 0);
   await p.keyboard.press('p');
+  await p.click('#pauseCard .chip[data-pose="flat"]');
+  assert(await p.evaluate(() => document.querySelector('#titleCard .chip[data-pose="flat"]').getAttribute('aria-checked')) === 'true', 'pose toggle syncs across cards');
   await p.click('#resumeBtn');
-  await p.waitForTimeout(2100);
-  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'resume calibrates, then plays');
+  await p.waitForTimeout(100);
+  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'resume plays');
   const bed0 = await p.evaluate(() => { const P = window.__plumb; P.place('O', 4); return { ...P.piece() }; });
   await p.waitForTimeout(900);
   const bed1 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
@@ -66,7 +68,21 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   await p.waitForTimeout(600);
   const bed2 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
   assert(bed2.x > bed1.x, `in bed, right edge down steers right (${bed1.x} -> ${bed2.x})`);
+  // Same pose with Upright selected: 30 degrees off flat reads as much flatter than level, so no soft drop either.
+  await orient(150, 0);
+  await p.keyboard.press('p'); await p.click('#pauseCard .chip[data-pose="upright"]'); await p.click('#resumeBtn');
+  const up0 = await p.evaluate(() => { const P = window.__plumb; P.place('O', 4); return { ...P.piece() }; });
+  await p.waitForTimeout(900);
+  const up1 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
+  assert(up1.y - up0.y <= 2, `upright preset, flat phone: normal gravity (dy ${up1.y - up0.y})`);
+  // Upright preset, phone tipped to 85 degrees: soft drop engages.
+  await orient(85, 0);
+  const st0 = await p.evaluate(() => { const P = window.__plumb; P.place('O', 4); return { ...P.piece() }; });
+  await p.waitForTimeout(500);
+  const st1 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
+  assert(st1.y - st0.y >= 5, `upright preset, steep phone: tip soft drop (dy ${st1.y - st0.y})`);
   await p.evaluate(() => clearInterval(window.__o));
+  assert(await p.evaluate(() => document.querySelectorAll('input[switch]').length) === 1, 'haptic switch present for iOS');
 
   // Hold: swaps the active piece into the hold pod.
   const h = await p.evaluate(() => { const P = window.__plumb; P.place('J', 3); P.hold(); return document.querySelectorAll('#holdSvg .mini').length; });
