@@ -8,7 +8,7 @@ card. This page lights the content inside the card, per pixel, with WebGPU.
 
 ![Card sample under the Gallery setup](test/card-gallery.png)
 
-Open [`web/index.html`](web/index.html) in a browser with WebGPU. Without it the page falls back to SVG
+Live at [austegard.com/fun-and-games/raking-light.html](https://austegard.com/fun-and-games/raking-light.html). That is a copy in the site repo (`oaustegard.github.io`, `fun-and-games/raking-light.html`); edit [`web/index.html`](web/index.html) here and copy it there. Open it in a browser with WebGPU. Without it the page falls back to SVG
 filter lighting (`feDiffuseLighting` + `feSpecularLighting`) driven by the first light only. In that mode
 there are no cast shadows or occlusion, and the compare divider, bevel profile, grain, metalness and
 extra lights do nothing.
