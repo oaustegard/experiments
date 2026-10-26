@@ -112,52 +112,54 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 }`;
 }
 
-// Row normalization over D <= 512 values, one workgroup of 64 per row, thread l holding elements
-// l + 64 i. kind rms: x / rms(x) * w; kind ln: (x - mean) / std * w (+ bias).
+// Row normalization over D values (a multiple of 64, at most 512), one workgroup of 64 per row,
+// thread l holding elements l + 64 i. kind rms: x / rms(x) * w; kind ln: (x - mean) / std * w (+ bias).
 // mode 0: y = norm(x).  mode 1: y = norm(y + x) (residual first, BERT post-LN).
 // mode 2: y = (y + norm(x)) * scalar (residual after, Gemma sandwich norm with layer scalar).
-// Uniform: a = (D, weight word offset, bias word offset or NONE, mode), b = (rows selector, rows per
-// selected unit), f = (eps, scalar).
-function normWGSL(kind) {
+// D, mode and the bias are WGSL constants, one pipeline per combination: with them as uniforms the
+// kernel ran 22-32% slower on Apple Metal (gpu-bridge job wgsl-kern-1).
+// Uniform: a = (weight word offset, bias word offset), b = (rows selector, rows per selected unit),
+// f = (eps, scalar).
+function normWGSL(kind, D, mode, bias) {
+  const per = D / 64;
   return HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> W: array<u32>;
 @group(0) @binding(3) var<storage, read> x: array<f32>;
 @group(0) @binding(4) var<storage, read_write> y: array<f32>;
 var<workgroup> red: array<f32, 64>;
+const D = ${D}u;
+const PER = ${per}u;
 @compute @workgroup_size(64)
 fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
   let r = wid.x + wid.y * 65535u;
   if (r >= dn.n[p.b.x] * p.b.y) { return; }
-  let D = p.a.x; let base = r * D; let mode = p.a.w;
-  var v = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  var c = 0u;
+  let base = r * D;
+  var v: array<f32, ${per}>;
   var s = 0.0;
-  for (var j = l; j < D; j += 64u) {
-    var a = x[base + j];
-    if (mode == 1u) { a += y[base + j]; }
-    v[c] = a; c++;
+  for (var i = 0u; i < PER; i++) {
+    var a = x[base + l + 64u * i];
+    ${mode === 1 ? "a += y[base + l + 64u * i];" : ""}
+    v[i] = a;
     ${kind === "rms" ? "s += a * a;" : "s += a;"}
   }
   red[l] = s;
   workgroupBarrier();
   for (var k = 32u; k > 0u; k >>= 1u) { if (l < k) { red[l] += red[l + k]; } workgroupBarrier(); }
   ${kind === "rms" ? `
-  let mu = 0.0;
   let inv = 1.0 / sqrt(red[0] / f32(D) + p.f.x);` : `
   let mu = red[0] / f32(D);
   workgroupBarrier();
   var q = 0.0;
-  for (var i = 0u; i < c; i++) { let d = v[i] - mu; q += d * d; }
+  for (var i = 0u; i < PER; i++) { v[i] -= mu; q += v[i] * v[i]; }
   red[l] = q;
   workgroupBarrier();
   for (var k = 32u; k > 0u; k >>= 1u) { if (l < k) { red[l] += red[l + k]; } workgroupBarrier(); }
   let inv = 1.0 / sqrt(red[0] / f32(D) + p.f.x);`}
-  c = 0u;
-  for (var j = l; j < D; j += 64u) {
-    var o = (v[c] - mu) * inv * bitcast<f32>(W[p.a.y + j]);
-    if (p.a.z != ${NONE}u) { o += bitcast<f32>(W[p.a.z + j]); }
-    if (mode == 2u) { y[base + j] = (y[base + j] + o) * p.f.y; } else { y[base + j] = o; }
-    c++;
+  for (var i = 0u; i < PER; i++) {
+    let j = l + 64u * i;
+    var o = v[i] * inv * bitcast<f32>(W[p.a.x + j]);
+    ${bias ? "o += bitcast<f32>(W[p.a.y + j]);" : ""}
+    ${mode === 2 ? "y[base + j] = (y[base + j] + o) * p.f.y;" : "y[base + j] = o;"}
   }
 }`;
 }
@@ -167,8 +169,9 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 // key j (sequences are at most 128 tokens), then thread i sums values i + 128 e. Head dim hd is a
 // multiple of 4 up to 512. Layout: separate q [T, nh, hd], k and v [T, nkv, hd] buffers, or (fused)
 // one [T, (nh + 2 nkv) hd] buffer bound three times. Output o [T, nh, hd].
-// Uniform: a = (nh, nkv, hd, fused), b.x = window or 0, f.x = score scale.
-const ATTN = HEADER + /* wgsl */ `
+// The head dim and the layout are WGSL constants, one pipeline per combination.
+// Uniform: a = (nh, nkv), b.x = window or 0, f.x = score scale.
+const attnWGSL = (hd, fused) => HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> tok: array<vec4<u32>>;
 @group(0) @binding(3) var<storage, read> seqs: array<vec4<u32>>;
 @group(0) @binding(4) var<storage, read> Q: array<f32>;
@@ -182,15 +185,15 @@ var<workgroup> red: array<f32, 128>;
 fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
   let t = wid.x; let h = wid.y;
   if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let nkv = p.a.y; let hd = p.a.z; let hd4 = hd / 4u;
-  var qst = nh * hd; var kst = nkv * hd; var ko = 0u; var vo = 0u;
-  if (p.a.w == 1u) { qst = (nh + 2u * nkv) * hd; kst = qst; ko = nh * hd; vo = (nh + nkv) * hd; }
+  let nh = p.a.x; let nkv = p.a.y; let hd = ${hd}u; let hd4 = ${hd / 4}u;
+  ${fused ? "let qst = (nh + 2u * nkv) * hd; let kst = qst; let ko = nh * hd; let vo = (nh + nkv) * hd;"
+          : "let qst = nh * hd; let kst = nkv * hd; let ko = 0u; let vo = 0u;"}
   let kvh = h / (nh / nkv);
   let tk = tok[t];
   let sq = seqs[tk.z];
   let start = sq.x; let len = sq.y;
   let qb = t * qst + h * hd;
-  for (var j = i; j < hd4; j += 128u) { qs[j] = vec4<f32>(Q[qb + 4u * j], Q[qb + 4u * j + 1u], Q[qb + 4u * j + 2u], Q[qb + 4u * j + 3u]); }
+  if (i < hd4) { qs[i] = vec4<f32>(Q[qb + 4u * i], Q[qb + 4u * i + 1u], Q[qb + 4u * i + 2u], Q[qb + 4u * i + 3u]); }
   workgroupBarrier();
   var sc = -3.0e38;
   if (i < len) {
@@ -213,14 +216,18 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   workgroupBarrier();
   for (var s = 64u; s > 0u; s >>= 1u) { if (i < s) { red[i] += red[i + s]; } workgroupBarrier(); }
   let inv = 1.0 / red[0];
-  var acc = array<f32, 4>(0.0, 0.0, 0.0, 0.0);
+  ${hd >= 128 ? `
+  var acc = array<f32, ${hd / 128}>();
   for (var j = 0u; j < len; j++) {
-    let vb = (start + j) * kst + vo + kvh * hd;
-    var c = 0u;
-    for (var d = i; d < hd; d += 128u) { acc[c] += pr[j] * V[vb + d]; c++; }
+    let vb = (start + j) * kst + vo + kvh * hd + i;
+    for (var e = 0u; e < ${hd / 128}u; e++) { acc[e] += pr[j] * V[vb + 128u * e]; }
   }
-  var c = 0u;
-  for (var d = i; d < hd; d += 128u) { O[(t * nh + h) * hd + d] = acc[c] * inv; c++; }
+  for (var e = 0u; e < ${hd / 128}u; e++) { O[(t * nh + h) * hd + i + 128u * e] = acc[e] * inv; }` : `
+  if (i < hd) {
+    var a = 0.0;
+    for (var j = 0u; j < len; j++) { a += pr[j] * V[(start + j) * kst + vo + kvh * hd + i]; }
+    O[(t * nh + h) * hd + i] = a * inv;
+  }`}
 }`;
 
 // Mean over each sequence's tokens: [tokens, H] -> [sequences, H].  a.x = H.
@@ -259,10 +266,16 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   for (var j = i; j < D; j += 256u) { y[b * D + j] = x[b * D + j] * inv; }
 }`;
 
+// Fixed kernels; norm and attention variants are generated per shape by their helpers.
 export const KERNELS = {
-  matmul_q4: matmulWGSL("q4"), matmul_i8: matmulWGSL("i8"), matmul_f32: matmulWGSL("f32"),
-  norm_rms: normWGSL("rms"), norm_ln: normWGSL("ln"), attn: ATTN, pool: POOL, l2: L2,
+  matmul_q4: matmulWGSL("q4"), matmul_i8: matmulWGSL("i8"), matmul_f32: matmulWGSL("f32"), pool: POOL, l2: L2,
 };
+
+// Name a shape-specialized variant and add its source to e.shaders on first use.
+function variant(e, name, make) {
+  e.shaders[name] ??= make();
+  return name;
+}
 
 function split(n) { return n <= 65535 ? [n] : [65535, Math.ceil(n / 65535)]; }
 
@@ -283,14 +296,17 @@ export function matmul(e, w, W, X, Y, { rowsSel = 0, alpha = 1, bias = NONE, gel
 
 // kind "rms" | "ln"; wOff / bOff word offsets in W (bOff NONE for none); mode 0 | 1 | 2 as above.
 export function norm(e, kind, W, wOff, X, Y, { D, eps, bOff = NONE, mode = 0, scalar = 1, rowsSel = 0, mult = 1 }) {
-  if (D > 512) throw new Error(`norm: D ${D} over 512`);
-  e.step(`norm_${kind}`, { a: [D, wOff, bOff, mode], b: [rowsSel, mult], f: [eps, scalar] }, [W, X, Y], (n) => split(n[rowsSel] * mult));
+  if (D > 512 || D % 64) throw new Error(`norm: D ${D} must be a multiple of 64 up to 512`);
+  const bias = bOff !== NONE;
+  const k = variant(e, `norm_${kind}_${D}_${mode}${bias ? "_b" : ""}`, () => normWGSL(kind, D, mode, bias));
+  e.step(k, { a: [wOff, bias ? bOff : 0], b: [rowsSel, mult], f: [eps, scalar] }, [W, X, Y], (n) => split(n[rowsSel] * mult));
 }
 
 // Q, K, V: buffers (the same one three times when fused); O: [T, nh, hd].
 export function attention(e, Q, K, V, O, { nh, nkv = nh, hd, fused = false, window = 0, scale }) {
-  if (hd % 4 || hd > 512 || nh % nkv) throw new Error(`attention: head dim ${hd} (multiple of 4, <= 512), heads ${nh}/${nkv}`);
-  e.step("attn", { a: [nh, nkv, hd, fused ? 1 : 0], b: [window], f: [scale ?? 1 / Math.sqrt(hd)] },
+  if (hd % 4 || hd > 512 || (hd > 128 && hd % 128) || nh % nkv) throw new Error(`attention: head dim ${hd} (multiple of 4 up to 128, or of 128 up to 512), heads ${nh}/${nkv}`);
+  const k = variant(e, `attn_${hd}${fused ? "_fused" : ""}`, () => attnWGSL(hd, fused));
+  e.step(k, { a: [nh, nkv], b: [window], f: [scale ?? 1 / Math.sqrt(hd)] },
     [e.b.tok, e.b.seqs, Q, K, V, O], (n) => [n[0], nh]);
 }
 
