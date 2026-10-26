@@ -110,7 +110,18 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 5;
+const PAGE_VERSION = 6;
+// WebGPU reports only "apple" on every Apple device, so results also carry the user agent and a
+// coarse device class read from it: Apple GPUs on an iPhone and on a Mac differ several-fold.
+function deviceLabel() {
+  const ua = navigator.userAgent;
+  if (/iPhone/.test(ua)) return "iPhone";
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/Macintosh/.test(ua)) return "Mac";
+  if (/Android/.test(ua)) return "Android";
+  if (/Windows/.test(ua)) return "Windows";
+  return /Linux/.test(ua) ? "Linux" : "unknown";
+}
 const TAB = Math.random().toString(36).slice(2, 10);
 const params = new URLSearchParams(location.search);
 const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
@@ -341,7 +352,8 @@ async function process(job) {
   info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || []; info.phase = "committing the result"; info.progress = null; tick();
   const files = {};
   const result = { id, status: r.t === "done" ? "done" : "error", startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs,
-    logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null, mode, pageVersion: PAGE_VERSION };
+    logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null,
+    device: deviceLabel(), ua: navigator.userAgent, mode, pageVersion: PAGE_VERSION };
   if (r.t === "timeout") result.error = `Timed out after ${job.timeoutMs || 120000} ms; the worker was restarted and its cache cleared.`;
   if (r.t === "error") result.error = String(r.s).slice(0, 8000);
   if (r.t === "done") result.outputs = splitOutputs(r.result, id, files);
@@ -432,7 +444,7 @@ async function connect(e) {
   connected = true; lastErr = "";
   if (pollTimer) clearTimeout(pollTimer);
   const gen = ++pollGen;
-  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, ua: navigator.userAgent, mode, tab: TAB, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
+  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, device: deviceLabel(), ua: navigator.userAgent, mode, tab: TAB, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
     "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
   poll(gen);
 }

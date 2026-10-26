@@ -9,7 +9,7 @@ import { MoEdernEngine } from "./engine.js";
 window.result = { phase: "running" };
 const log = (s) => { document.getElementById("log").textContent += "\n" + s; };
 try {
-  const name = new URLSearchParams(location.search).get("m") || "1.5M";
+  const qs = new URLSearchParams(location.search), name = qs.get("m") || "1.5M", kernel = qs.get("k") || "tiled";
   const base = `../.work/models/${name}/`;
   const get = async (u) => new Uint8Array(await (await fetch(u)).arrayBuffer());
   const [config, model, dense, fx, exp] = await Promise.all([
@@ -20,7 +20,7 @@ try {
   const adapter = await navigator.gpu.requestAdapter();
   const device = await adapter.requestDevice({ requiredLimits: {
     maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
-  const eng = await MoEdernEngine.create(device, { config, dense }, model, { maxTokens: 4096, maxSeqs: 64 });
+  const eng = await MoEdernEngine.create(device, { config, dense }, model, { maxTokens: 4096, maxSeqs: 64, kernel });
   const seqs = fx.queries.concat(fx.docs);
   const cos = (a, ao, b, bo) => { let d = 0, x = 0, y = 0; for (let i = 0; i < 128; i++) { d += a[ao + i] * b[bo + i]; x += a[ao + i] ** 2; y += b[bo + i] ** 2; } return d / Math.sqrt(x * y); };
   let row = 0, minSingle = 1, minBatch = 1;
@@ -40,7 +40,7 @@ try {
     let o = 0;
     for (const j of batch) { for (let t = 0; t < seqs[j].length; t++) minBatch = Math.min(minBatch, cos(v, (o + t) * 128, E, (starts[j] + t) * 128)); o += seqs[j].length; }
   }
-  window.result = { phase: "done", model: name, rows: row, cos_single_min: minSingle, cos_batch_min: minBatch };
+  window.result = { phase: "done", model: name, kernel, rows: row, cos_single_min: minSingle, cos_batch_min: minBatch };
   log(JSON.stringify(window.result));
 } catch (e) {
   window.result = { phase: "error", error: String(e && e.stack || e) };

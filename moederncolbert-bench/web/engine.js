@@ -9,8 +9,9 @@
 //
 // Every token gets a vector (ColBERT). Callers drop document skiplist tokens themselves; queries are
 // [CLS] [Q] ... [SEP] padded with [MASK] to 32 and keep all 32. A sequence is at most 512 tokens.
-// Matmuls use the shared f32 template from _lib/wgsl/kernels.js; the MoE runs sparsely: a router
-// kernel appends each (token, slot) to its expert's list, and grouped matmuls walk only those rows.
+// Matmuls run on a 64 x 64 tiled f32 kernel (opts.kernel "template" switches to the shared 8-row
+// kernels.js matmul). The MoE runs sparsely: a router kernel appends each (token, slot) to its
+// expert's list, and grouped matmuls walk only those rows.
 // The 115M size's gated-conv layers are not implemented.
 
 import { BYTE, HEADER, SeqEngine } from "../../_lib/wgsl/runtime.js";
@@ -264,6 +265,63 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   Y[slot[t] * N + n] = s;
 }`,
 
+  // Tiled f32 matmul for batches: Y[out(r), n] (+)= sum_k X[in(r), k] W_e[n, k], W_e [N, K] at word
+  // p.a.x + e * N * K, e = wid.z. 64 x 64 output tile per workgroup of 256, 4 x 4 per thread, K in
+  // steps of 16 through workgroup memory. p.b.x row mode: 0 dense (r < tokens, in = out = r);
+  // 1 expert rows, in = slot / 2 (a token), out = slot; 2 expert rows, in = out = slot.
+  // p.b.y = 1 accumulates into Y. p.a = (weight word offset, N, K, list cap). N % 64 = 0, K % 16 = 0.
+  mmt: HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<f32>;
+@group(0) @binding(3) var<storage, read> cnt: array<u32>;
+@group(0) @binding(4) var<storage, read> list: array<u32>;
+@group(0) @binding(5) var<storage, read> X: array<f32>;
+@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
+var<workgroup> xs: array<f32, 1024>;
+var<workgroup> ws: array<f32, 1024>;
+var<workgroup> wrows: u32;
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let e = wid.z; let mode = p.b.x;
+  if (l == 0u) { wrows = select(cnt[e], dn.n.x, mode == 0u); }
+  let rows = workgroupUniformLoad(&wrows);
+  let r0 = wid.y * 64u;
+  if (r0 >= rows) { return; }
+  let N = p.a.y; let K = p.a.z; let n0 = wid.x * 64u;
+  let wb = p.a.x + e * N * K;
+  let tx = l % 16u; let ty = l / 16u;
+  // the 4 tile rows this thread loads (r = l / 4 for loading; 4 k values each)
+  let lr = l / 4u; let lk = (l % 4u) * 4u;
+  var inRow = 0u; var valid = r0 + lr < rows;
+  if (valid) {
+    if (mode == 0u) { inRow = r0 + lr; }
+    else { let s = list[e * p.a.w + r0 + lr]; inRow = select(s, s / 2u, mode == 1u); }
+  }
+  var acc: array<vec4<f32>, 4>;
+  for (var i = 0u; i < 4u; i++) { acc[i] = vec4<f32>(0.0); }
+  for (var k0 = 0u; k0 < K; k0 += 16u) {
+    for (var i = 0u; i < 4u; i++) {
+      xs[lr * 16u + lk + i] = select(0.0, X[inRow * K + k0 + lk + i], valid);
+      ws[lr * 16u + lk + i] = W[wb + (n0 + lr) * K + k0 + lk + i];
+    }
+    workgroupBarrier();
+    for (var k = 0u; k < 16u; k++) {
+      let w = vec4<f32>(ws[(tx * 4u) * 16u + k], ws[(tx * 4u + 1u) * 16u + k], ws[(tx * 4u + 2u) * 16u + k], ws[(tx * 4u + 3u) * 16u + k]);
+      for (var i = 0u; i < 4u; i++) { acc[i] += xs[(ty * 4u + i) * 16u + k] * w; }
+    }
+    workgroupBarrier();
+  }
+  for (var i = 0u; i < 4u; i++) {
+    let r = r0 + ty * 4u + i;
+    if (r >= rows) { break; }
+    var o = r;
+    if (mode != 0u) { o = list[e * p.a.w + r]; }
+    for (var c = 0u; c < 4u; c++) {
+      let idx = o * N + n0 + tx * 4u + c;
+      if (p.b.y == 1u) { Y[idx] += acc[i][c]; } else { Y[idx] = acc[i][c]; }
+    }
+  }
+}`,
+
   // GeGLU: g[r, j] = gelu(u[r, j]) * u[r, I + j] over p.b.x rows-per-token x tokens.  p.a.x = I.
   glu: HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> u: array<f32>;
@@ -317,6 +375,7 @@ export class MoEdernEngine extends SeqEngine {
   constructor(device, manifest, opts) {
     super(device, manifest, opts);
     this.dim = 128;
+    this.kernel = opts.kernel ?? "tiled";
   }
 
   async _build(bytes) {
@@ -385,7 +444,15 @@ export class MoEdernEngine extends SeqEngine {
     this._owned.push(this.readTok);
     this.shaders = { ...KERNELS, ...SHADERS };
     const step = (...a) => this.step(...a), W = this.W, eps = c.norm_eps, cap = 2 * T;
-    const mm = (wOff, N, K, X, Y, opts = {}) => matmul(this, { fmt: "f32", offs: [wOff], N, K }, W, X, Y, opts);
+    // tiled: the 64 x 64 batch kernel (mmt) everywhere; template: the shared 8-row kernels.js
+    // matmul and the 8-row grouped gmm (the shape the query engines were tuned on).
+    const tiled = this.kernel === "tiled";
+    const mm = (wOff, N, K, X, Y, opts = {}) => tiled
+      ? step("mmt", { a: [wOff, N, K, cap], b: [0, opts.accumulate ? 1 : 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), 1])
+      : matmul(this, { fmt: "f32", offs: [wOff], N, K }, W, X, Y, opts);
+    const gmm = (wOff, N, K, X, Y, mode) => tiled
+      ? step("mmt", { a: [wOff, N, K, cap], b: [mode, 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), E])
+      : step("gmm", { a: [wOff, N, K, cap], b: [mode === 1 ? 1 : 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 32, Math.ceil(n[0] / 8), E]);
     const rms = (wOff, X, Y) => step("rms", { a: [H, wOff], f: [eps] }, [W, X, Y], (n) => rows2d(n[0]));
 
     step("embed", { a: [H, P, off.table, off.proj], b: [off.lnw, off.lnb], f: [1e-5] }, [W, b.tok, b.x], (n) => rows2d(n[0]));
@@ -399,9 +466,9 @@ export class MoEdernEngine extends SeqEngine {
       rms(L.fnorm, b.x, b.a);
       step("zero", {}, [b.cnt], () => [1]);
       step("route", { a: [H, L.router, E, cap] }, [W, b.a, b.cnt, b.list, b.gw], (n) => rows2d(n[0]));
-      step("gmm", { a: [L.gu, 2 * He, H, cap], b: [1] }, [W, b.cnt, b.list, b.a, b.u], (n) => [2 * He / 32, Math.ceil(n[0] / 8), E]);
+      gmm(L.gu, 2 * He, H, b.a, b.u, 1);
       step("glu", { a: [He], b: [2] }, [b.u, b.g], (n) => flat(2 * n[0] * He));
-      step("gmm", { a: [L.down, H, He, cap], b: [0] }, [W, b.cnt, b.list, b.g, b.od], (n) => [H / 32, Math.ceil(n[0] / 8), E]);
+      gmm(L.down, H, He, b.g, b.od, 2);
       step("combine", { a: [H] }, [b.od, b.gw, b.x], (n) => flat(n[0] * H));
       // shared expert, accumulated straight into the residual
       mm(L.sgu, 2 * He, H, b.a, b.u);

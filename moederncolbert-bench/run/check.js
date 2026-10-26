@@ -7,6 +7,7 @@ const { spawn } = require("child_process");
 const path = require("path"), fs = require("fs");
 const ROOT = path.resolve(__dirname, ".."), REPO = path.dirname(ROOT);
 const models = process.argv.slice(2).length ? process.argv.slice(2) : ["1.5M", "27M"];
+const K = process.env.K || "tiled";
 const port = 8000 + Math.floor(Math.random() * 1000);
 (async () => {
   const srv = spawn("python3", ["-m", "http.server", String(port), "--bind", "127.0.0.1"], { cwd: REPO, stdio: "ignore" });
@@ -19,7 +20,7 @@ const port = 8000 + Math.floor(Math.random() * 1000);
       const page = await b.newPage();
       const errors = [];
       page.on("console", (x) => x.type() === "error" && errors.push(x.text()));
-      await page.goto(`http://127.0.0.1:${port}/${path.basename(ROOT)}/web/check.html?m=${m}`);
+      await page.goto(`http://127.0.0.1:${port}/${path.basename(ROOT)}/web/check.html?m=${m}&k=${K}`);
       await page.waitForFunction("['done', 'error'].includes(window.result.phase)", null, { timeout: 3600000 });
       const r = await page.evaluate("window.result");
       r.console_errors = errors;
@@ -29,6 +30,6 @@ const port = 8000 + Math.floor(Math.random() * 1000);
       console.log(m, JSON.stringify(r), good ? "PASS" : "FAIL");
     }
   } finally { await b.close(); srv.kill(); }
-  fs.writeFileSync(path.join(ROOT, "results", "check_swiftshader.json"), JSON.stringify(out, null, 1));
+  fs.writeFileSync(path.join(ROOT, "results", `check_swiftshader_${K}.json`), JSON.stringify(out, null, 1));
   process.exit(ok ? 0 : 1);
 })();
