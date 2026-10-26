@@ -4,7 +4,7 @@ EG2 4-layer cut, which it shares with bsky/image-search/ (same model, engine and
 Usage: .venv/bin/python -I run/publish_site.py [SITE_REPO]     (default ~/Projects/oaustegard.github.io)
 
 Layout written under SITE_REPO/bsky/embedders/:
-  index.html, demo.js (paths block rewritten), sw.js, engine.js (ettin-native) + wgsl-runtime.js, tail.js
+  index.html, demo.js (paths block rewritten), sw.js, engine.js (ettin-native) + wgsl-runtime.js + wgsl-kernels.js, tail.js
   (embeddinggemma2-webgpu-tail, the tested version), README.md
   models/{ettin,leaf}/  model.onnx, tokenizer.json, meta.json, manifest.json
   index/{ettin,leaf,eg2}/  index.json, codes.u8.bin, aux.f32.bin   (eg2 = the full-EG2 posts index)
@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EXP = ROOT.parent
 sys.path.insert(0, str(EXP))
-from _lib.wgsl.vendor import RUNTIME, vendor_engine, vendored_engine  # noqa: E402
+from _lib.wgsl.vendor import vendor_engine, vendored_engine, vendored_modules  # noqa: E402
 DEMO = ROOT / "web" / "demo"
 TAILW = EXP / "embeddinggemma2-webgpu-tail" / "web"
 
@@ -64,11 +64,11 @@ def sha(p):
 def main():
     site = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / "Projects" / "oaustegard.github.io"
     img = site / "bsky" / "image-search"
-    # the engines import the shared runtime; a site directory holds them as engine.js + wgsl-runtime.js
-    assert (img / "engine.js").read_text() == vendored_engine(EXP / "eg2-wgsl-engine" / "web" / "engine.js"), \
-        f"{img / 'engine.js'} differs from the tested eg2-wgsl-engine: refusing to publish against it"
-    for a, b in ((img / "wgsl-runtime.js", RUNTIME),
-                 (img / "params.json", TAILW / "assets" / "params.json"),
+    # the engines import the shared modules; a site directory holds engine.js + wgsl-runtime.js + wgsl-kernels.js
+    expect = {"engine.js": vendored_engine(EXP / "eg2-wgsl-engine" / "web" / "engine.js"), **vendored_modules()}
+    for f, src in expect.items():
+        assert (img / f).read_text() == src, f"{img / f} differs from the tested eg2-wgsl-engine: refusing to publish against it"
+    for a, b in ((img / "params.json", TAILW / "assets" / "params.json"),
                  *((img / "model" / f, DEMO / "eg2cut" / f) for f in ("model_t3w.onnx", "model_t3w.onnx_data", "manifest.json", "tokenizer.json"))):
         assert sha(a) == sha(b), f"{a} differs from the tested {b}: refusing to publish against it"
     out = site / "bsky" / "embedders"
@@ -81,7 +81,7 @@ def main():
     (out / "demo.js").write_text(js)
     for f in ("index.html", "sw.js"):
         shutil.copy(DEMO / f, out / f)
-    vendor_engine(ROOT / "web" / "engine.js", out)  # engine.js + wgsl-runtime.js
+    vendor_engine(ROOT / "web" / "engine.js", out)  # engine.js + wgsl-runtime.js + wgsl-kernels.js
     shutil.copy(TAILW / "tail.js", out / "tail.js")
     (out / "README.md").write_text(README)
     for key, pkg in (("ettin", "e17c-t4-w8L63"), ("leaf", "leafirc-t4-w8L63")):

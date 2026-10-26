@@ -6,15 +6,16 @@
 //
 //   class MyEngine extends SeqEngine {
 //     async _build(bytes) {
-//       this.pipes = await compile(this.device, SHADERS);
+//       this.shaders = { ...KERNELS, ...SHADERS };     // kernels.js templates plus the engine's own
 //       ...                                            // buffers, then this.step(kind, params, bufs, grid)
-//     }
+//     }                                                // or the kernels.js helpers (matmul, norm, ...)
 //   }
 //   const eng = await MyEngine.create(device, manifest, bytes, { maxTokens, maxSeqs });
 //   const vecs = await eng.embed([ids0, ids1, ...]);   // Float32Array[B * dim]
 //
 // A step's grid is a function of n = [tokens, sequences] in the batch, evaluated when it is recorded.
-// This is phase 1 of the generic-engine plan in _lib/wgsl/README.md.
+// Only the shaders a model's steps use are compiled, after _build, so unused kernel variants cost
+// no start-up time. See _lib/wgsl/README.md for the generic-engine plan.
 
 export const MAX_SEQ = 128;
 export const NONE = 0xffffffff;
@@ -78,6 +79,7 @@ export class SeqEngine {
     e.steps = [];
     await e._build(bytes);
     if (!e.b?.out) throw new Error("engine must put its output buffer at this.b.out");
+    await e._finish();
     e.read = device.createBuffer({ size: e.maxSeqs * e.dim * 4, usage: U.MAP_READ | U.COPY_DST, label: "readback" });
     e._owned.push(e.read);
     await device.queue.onSubmittedWorkDone();
@@ -144,7 +146,9 @@ export class SeqEngine {
 
   // Append a dispatch: params { a: u32[<=4], b: u32[<=4], f: f32[<=4] } go into its own uniform;
   // bufs bind from 2 up (a GPUBuffer, or a { buffer, offset, size } window); grid(n) -> workgroups.
+  // The bind group is made in _finish, once the pipelines exist.
   step(kind, params, bufs, grid) {
+    if (!this.shaders?.[kind]) throw new Error(`no shader named ${kind}`);
     const dev = this.device;
     const pad = (x) => (x ?? []).concat(Array(4 - (x ?? []).length).fill(0));
     const u = new ArrayBuffer(48);
@@ -155,7 +159,17 @@ export class SeqEngine {
     this._owned.push(ub);
     const entries = [{ binding: 0, resource: { buffer: ub } }, { binding: 1, resource: { buffer: this.dyn } }]
       .concat(bufs.map((b, i) => ({ binding: i + 2, resource: b.buffer ? b : { buffer: b } })));
-    this.steps.push({ kind, bg: dev.createBindGroup({ layout: this.pipes[kind].getBindGroupLayout(0), entries }), grid });
+    this.steps.push({ kind, entries, grid });
+  }
+
+  // Compile the shaders the steps use and make their bind groups.
+  async _finish() {
+    const used = [...new Set(this.steps.map((s) => s.kind))];
+    this.pipes = await compile(this.device, Object.fromEntries(used.map((k) => [k, this.shaders[k]])));
+    for (const s of this.steps) {
+      s.bg = this.device.createBindGroup({ layout: this.pipes[s.kind].getBindGroupLayout(0), entries: s.entries, label: s.kind });
+      delete s.entries;
+    }
   }
 
   // Pack the batch (lists of token ids) into this.b.tok ([id, position, sequence, 0] per token) and

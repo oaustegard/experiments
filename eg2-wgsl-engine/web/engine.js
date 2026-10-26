@@ -19,12 +19,12 @@
 // and one KV head on their own RoPE table, and per-norm eps. Its 174 MB weight file is one buffer,
 // and each dispatch binds the window of it that holds its tensors.
 //
-// The shaders and the forward pass are this file's; batching, dispatch recording, weight upload and
-// the embed / embedTo / probe surface are the shared runtime's (_lib/wgsl/runtime.js).
+// The matmul, norm, attention, pool and l2 kernels are the shared templates in _lib/wgsl/kernels.js;
+// the token-table gathers, the q/k norm + RoPE prep and the PLE gate are this file's. Batching,
+// dispatch recording, weight upload and embed / embedTo / probe come from _lib/wgsl/runtime.js.
 
-import { BYTE, HEADER, MAX_SEQ, SeqEngine, compile, split } from "../../_lib/wgsl/runtime.js";
-
-const WG_MM = 256; // matmul: 32 output columns x 8 k-splits, 8 tokens per workgroup
+import { BYTE, HEADER, MAX_SEQ, SeqEngine, split } from "../../_lib/wgsl/runtime.js";
+import { KERNELS, attention, l2, matmul, norm, pool } from "../../_lib/wgsl/kernels.js";
 
 const SHADERS = {
   // One workgroup per token, one thread per 8-value group (3 bytes) of the 512-wide row.
@@ -120,82 +120,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // Y[r, n] = alpha * sum_k X[r, k] W[n, k], W in onnxruntime's MatMulNBits layout (4-bit,
-  // block 32, low nibble first, f32 scales, packed 4-bit zero points). Workgroup: 32 columns x 8
-  // k-splits, 8 rows; each thread dequantizes its weights once and applies them to all 8 rows.
-  // p.a = (q, scales, zp) offsets in words, N; p.b = K, rows selector (0 tokens, 1 sequences).
-  matmul: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> X: array<vec4<f32>>;
-@group(0) @binding(4) var<storage, read_write> Y: array<f32>;
-var<workgroup> red: array<f32, 2048>;
-${BYTE}
-@compute @workgroup_size(${WG_MM})
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let N = p.a.w; let K = p.b.x;
-  let rows = dn.n[p.b.y];
-  let nl = l % 32u; let ks = l / 32u;
-  let n = wid.x * 32u + nl;
-  let r0 = wid.y * 8u;
-  let nb = K / 32u; let bps = nb / 8u;
-  let K4 = K / 4u;
-  var rr: array<u32, 8>;
-  for (var t = 0u; t < 8u; t++) { rr[t] = min(r0 + t, rows - 1u) * K4; }
-  var acc = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  let zrow = (nb + 1u) / 2u;
-  for (var b = ks * bps; b < (ks + 1u) * bps; b++) {
-    let sc = bitcast<f32>(W[p.a.y + n * nb + b]);
-    let z = f32((wbyte(p.a.z * 4u + n * zrow + b / 2u) >> (4u * (b % 2u))) & 15u);
-    var part = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    for (var w = 0u; w < 4u; w++) {
-      let word = W[p.a.x + n * (K / 8u) + b * 4u + w];
-      let lo = vec4<f32>(f32(word & 15u), f32((word >> 4u) & 15u), f32((word >> 8u) & 15u), f32((word >> 12u) & 15u)) - z;
-      let hi = vec4<f32>(f32((word >> 16u) & 15u), f32((word >> 20u) & 15u), f32((word >> 24u) & 15u), f32(word >> 28u)) - z;
-      let k4 = b * 8u + w * 2u;
-      for (var t = 0u; t < 8u; t++) {
-        part[t] += dot(lo, X[rr[t] + k4]) + dot(hi, X[rr[t] + k4 + 1u]);
-      }
-    }
-    for (var t = 0u; t < 8u; t++) { acc[t] += sc * part[t]; }
-  }
-  for (var t = 0u; t < 8u; t++) { red[(ks * 8u + t) * 32u + nl] = acc[t]; }
-  workgroupBarrier();
-  let t = l / 32u;
-  var s = 0.0;
-  for (var j = 0u; j < 8u; j++) { s += red[(j * 8u + t) * 32u + nl]; }
-  if (r0 + t < rows) { Y[(r0 + t) * N + n] = s * p.f.x; }
-}`,
-
-  // RMSNorm over rows of D (<= 512) values, one workgroup per row.
-  // mode 0: y = rms(x) * w.   mode 1: y = (y + rms(x) * w) * p.f.y  (residual add, then layer scalar).
-  // p.a = (D, weight offset in words, mode, rows selector); p.b.x = rows per selected unit; p.f.x = eps.
-  norm: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> x: array<f32>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-var<workgroup> red: array<f32, 64>;
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let r = wid.x + wid.y * 65535u;
-  if (r >= dn.n[p.a.w] * p.b.x) { return; }
-  let D = p.a.x; let per = D / 64u; let base = r * D;
-  var v: array<f32, 8>;
-  var ss = 0.0;
-  for (var i = 0u; i < per; i++) { v[i] = x[base + l * per + i]; ss += v[i] * v[i]; }
-  red[l] = ss;
-  workgroupBarrier();
-  for (var s = 32u; s > 0u; s >>= 1u) {
-    if (l < s) { red[l] += red[l + s]; }
-    workgroupBarrier();
-  }
-  let inv = 1.0 / sqrt(red[0] / f32(D) + p.f.x);
-  for (var i = 0u; i < per; i++) {
-    let j = l * per + i;
-    let nv = v[i] * inv * bitcast<f32>(W[p.a.y + j]);
-    if (p.a.z == 0u) { y[base + j] = nv; } else { y[base + j] = (y[base + j] + nv) * p.f.y; }
-  }
-}`,
-
   // Per-head RMSNorm of q, k (with weights) and v (without), then RoPE on q and k. One workgroup
   // per (token, head slot): slots [0, nh) are q heads, [nh, nh+nkv) k heads, the rest v heads.
   // Head dim hd = 256 or 512: thread i holds elements i + 128 j and i + 128 j + hd / 2 (the pairs
@@ -251,64 +175,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // Bidirectional attention inside each packed sequence. One workgroup per (token, query head);
-  // thread j scores key j (sequences are at most 128 tokens), then thread i sums the values of
-  // elements i + 128 j, j < hd / 128.
-  // p.a = (nh, nkv, hd); p.f.x = score scale.
-  attn: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(3) var<storage, read> seqs: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read> q: array<f32>;
-@group(0) @binding(5) var<storage, read> k: array<vec4<f32>>;
-@group(0) @binding(6) var<storage, read> v: array<f32>;
-@group(0) @binding(7) var<storage, read_write> o: array<f32>;
-var<workgroup> qs: array<vec4<f32>, 128>;
-var<workgroup> pr: array<f32, 128>;
-var<workgroup> red: array<f32, 128>;
-@compute @workgroup_size(128)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  let t = wid.x; let h = wid.y;
-  if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let nkv = p.a.y; let hd = p.a.z; let hd4 = hd / 4u;
-  let kvh = h / (nh / nkv);
-  let sq = seqs[tok[t].z];
-  let start = sq.x; let len = sq.y;
-  let qb = (t * nh + h) * hd;
-  if (i < hd4) { qs[i] = vec4<f32>(q[qb + 4u * i], q[qb + 4u * i + 1u], q[qb + 4u * i + 2u], q[qb + 4u * i + 3u]); }
-  workgroupBarrier();
-  var sc = -3.0e38;
-  if (i < len) {
-    let kb = ((start + i) * nkv + kvh) * hd4;
-    var d = 0.0;
-    for (var j = 0u; j < hd4; j++) { d += dot(qs[j], k[kb + j]); }
-    sc = d * p.f.x;
-  }
-  red[i] = sc;
-  workgroupBarrier();
-  for (var s = 64u; s > 0u; s >>= 1u) {
-    if (i < s) { red[i] = max(red[i], red[i + s]); }
-    workgroupBarrier();
-  }
-  let mx = red[0];
-  workgroupBarrier();
-  var e = 0.0;
-  if (i < len) { e = exp(sc - mx); }
-  pr[i] = e; red[i] = e;
-  workgroupBarrier();
-  for (var s = 64u; s > 0u; s >>= 1u) {
-    if (i < s) { red[i] += red[i + s]; }
-    workgroupBarrier();
-  }
-  let inv = 1.0 / red[0];
-  let ne = hd / 128u;
-  var acc = array<f32, 4>(0.0, 0.0, 0.0, 0.0);
-  for (var j = 0u; j < len; j++) {
-    let vb = ((start + j) * nkv + kvh) * hd + i;
-    for (var e = 0u; e < ne; e++) { acc[e] += pr[j] * v[vb + 128u * e]; }
-  }
-  for (var e = 0u; e < ne; e++) { o[qb + i + 128u * e] = acc[e] * inv; }
-}`,
-
   // a[r, j] = gelu_tanh(a[r, j]) * b[r * bStride + bOff + j] for r < tokens, j < D.
   // p.a = (D, bStride, bOff).
   gelumul: HEADER + /* wgsl */ `
@@ -323,43 +189,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let x = a[idx];
   let u = clamp(0.7978845608028654 * (x + 0.044715 * x * x * x), -15.0, 15.0);
   a[idx] = 0.5 * x * (1.0 + tanh(u)) * b[r * p.a.y + p.a.z + j];
-}`,
-
-  // Mean over each sequence's tokens of a [tokens, 512] buffer -> [sequences, 512].
-  pool: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> seqs: array<vec4<u32>>;
-@group(0) @binding(3) var<storage, read> x: array<f32>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  _ = p.a;
-  let b = wid.x;
-  if (b >= dn.n.y) { return; }
-  let sq = seqs[b];
-  var s0 = 0.0; var s1 = 0.0;
-  for (var t = 0u; t < sq.y; t++) { s0 += x[(sq.x + t) * 512u + i]; s1 += x[(sq.x + t) * 512u + i + 256u]; }
-  y[b * 512u + i] = s0 / f32(sq.y); y[b * 512u + i + 256u] = s1 / f32(sq.y);
-}`,
-
-  // L2-normalize rows of 768.
-  l2: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> x: array<f32>;
-@group(0) @binding(3) var<storage, read_write> y: array<f32>;
-var<workgroup> red: array<f32, 256>;
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  _ = p.a;
-  let b = wid.x;
-  if (b >= dn.n.y) { return; }
-  let a0 = x[b * 768u + i]; let a1 = x[b * 768u + i + 256u]; let a2 = x[b * 768u + i + 512u];
-  red[i] = a0 * a0 + a1 * a1 + a2 * a2;
-  workgroupBarrier();
-  for (var s = 128u; s > 0u; s >>= 1u) {
-    if (i < s) { red[i] += red[i + s]; }
-    workgroupBarrier();
-  }
-  let inv = 1.0 / max(sqrt(red[0]), 1e-12);
-  y[b * 768u + i] = a0 * inv; y[b * 768u + i + 256u] = a1 * inv; y[b * 768u + i + 512u] = a2 * inv;
 }`,
 };
 
@@ -411,7 +240,7 @@ export class Eg2Engine extends SeqEngine {
       pooled: buf(B * 512, "pooled"), e: buf(B * 768, "e"), out: buf(B * 768, "out", U.COPY_SRC),
     };
     this.b = B_;
-    this.pipes = await compile(dev, SHADERS);
+    this.shaders = { ...KERNELS, ...SHADERS };
 
     // Word offset of a tensor inside the weight binding that starts at byte `base`.
     const W = (t, base) => {
@@ -420,15 +249,16 @@ export class Eg2Engine extends SeqEngine {
     };
     const step = (...args) => this.step(...args);
     const eps = m.eps;
+    // MatMulNBits weights (q4); rowsSel 1 runs over sequences (after pooling) instead of tokens.
     const mm = (w, X, Y, rowsSel = 0, alpha = 1) => {
-      if (w.N % 32 || w.K % 256 || w.block !== 32 || w.bits !== 4) throw new Error("matmul shape");
+      if (w.block !== 32 || w.bits !== 4) throw new Error("matmul: expected 4-bit MatMulNBits with block 32");
       const { base, res } = win(w.q, w.scales, w.zp);
-      step("matmul", { a: [W(w.q, base), W(w.scales, base), W(w.zp, base), w.N], b: [w.K, rowsSel], f: [alpha] }, [res, X, Y],
-           (n) => [w.N / 32, Math.ceil(n[rowsSel] / 8)]);
+      matmul(this, { fmt: "q4", offs: [W(w.q, base), W(w.scales, base), W(w.zp, base)], N: w.N, K: w.K }, res, X, Y, { rowsSel, alpha });
     };
-    const norm = (w, X, Y, D, mode = 0, scalar = 1, rowsSel = 0, mult = 1) => {
+    // RMSNorm; residual: y = (y + rms(x) * w) * scalar.
+    const rms = (w, X, Y, D, residual = false, scalar = 1, rowsSel = 0, mult = 1) => {
       const { base, res } = win(w);
-      step("norm", { a: [D, W(w, base), mode, rowsSel], b: [mult], f: [w.eps ?? eps, scalar] }, [res, X, Y], (n) => split(n[rowsSel] * mult));
+      norm(this, "rms", res, W(w, base), X, Y, { D, eps: w.eps ?? eps, mode: residual ? 2 : 0, scalar, rowsSel, mult });
     };
     const gelumul = (A, Bf, D, bStride, bOff) =>
       step("gelumul", { a: [D, bStride, bOff] }, [A, Bf], (n) => split(Math.ceil(n[0] * D / 256)));
@@ -445,31 +275,30 @@ export class Eg2Engine extends SeqEngine {
            [res, B_.tok, B_.h], (n) => [n[0]]);
     }
     mm(m.ple, B_.h, B_.pleRaw, 0, m.ple_scale);
-    norm(m.per_layer_projection_norm, B_.pleRaw, B_.ple, m.ple_dim, 0, 1, 0, m.ple_layers);
+    rms(m.per_layer_projection_norm, B_.pleRaw, B_.ple, m.ple_dim, false, 1, 0, m.ple_layers);
     m.layers.forEach((L, i) => {
-      norm(L.input_layernorm, B_.h, B_.a, 512);
+      rms(L.input_layernorm, B_.h, B_.a, 512);
       mm(L.q_proj, B_.a, B_.q); mm(L.k_proj, B_.a, B_.k); mm(L.v_proj, B_.a, B_.v);
       const pw = win(L.q_norm, L.k_norm);
       step("prep", { a: [L.n_heads, L.n_kv_heads, W(L.q_norm, pw.base), W(L.k_norm, pw.base)], b: [L.head_dim, ropeOff[L.rope ?? "default"]],
                      f: [L.q_norm.eps ?? eps] },
            [pw.res, this.rope, B_.tok, B_.q, B_.k, B_.v], (n) => [n[0], L.n_heads + 2 * L.n_kv_heads]);
-      step("attn", { a: [L.n_heads, L.n_kv_heads, L.head_dim], f: [L.attn_scale] }, [B_.tok, B_.seqs, B_.q, B_.k, B_.v, B_.o],
-           (n) => [n[0], L.n_heads]);
+      attention(this, B_.q, B_.k, B_.v, B_.o, { nh: L.n_heads, nkv: L.n_kv_heads, hd: L.head_dim, scale: L.attn_scale });
       mm(L.o_proj, B_.o, B_.t);
-      norm(L.post_attention_layernorm, B_.t, B_.h, 512, 1);
-      norm(L.pre_feedforward_layernorm, B_.h, B_.a, 512);
+      rms(L.post_attention_layernorm, B_.t, B_.h, 512, true);
+      rms(L.pre_feedforward_layernorm, B_.h, B_.a, 512);
       mm(L.gate_proj, B_.a, B_.g); mm(L.up_proj, B_.a, B_.u);
       gelumul(B_.g, B_.u, L.gate_proj.N, L.gate_proj.N, 0);
       mm(L.down_proj, B_.g, B_.t);
-      norm(L.post_feedforward_layernorm, B_.t, B_.h, 512, 1);
+      rms(L.post_feedforward_layernorm, B_.t, B_.h, 512, true);
       mm(L.per_layer_input_gate, B_.h, B_.u);
       gelumul(B_.u, B_.ple, m.ple_dim, m.ple_layers * m.ple_dim, i * m.ple_dim);
       mm(L.per_layer_projection, B_.u, B_.t);
-      norm(L.post_per_layer_input_norm, B_.t, B_.h, 512, 1, L.layer_scalar);
+      rms(L.post_per_layer_input_norm, B_.t, B_.h, 512, true, L.layer_scalar);
     });
-    norm(m.norm, B_.h, B_.a, 512);
-    step("pool", { a: [] }, [B_.seqs, B_.a, B_.pooled], (n) => [n[1]]);
+    rms(m.norm, B_.h, B_.a, 512);
+    pool(this, B_.a, B_.pooled, 512);
     mm(m.embedding_projection, B_.pooled, B_.e, 1);
-    step("l2", { a: [] }, [B_.e, B_.out], (n) => [n[1]]);
+    l2(this, B_.e, B_.out, 768);
   }
 }

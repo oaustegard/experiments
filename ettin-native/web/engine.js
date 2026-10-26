@@ -11,20 +11,12 @@
 // (transposed once at init from the file's [K, N] to [N, K]), a 4-bit (packed nibbles, fp16 scale per 32) or 3-bit (eg2-layer-student layout)
 // token table, f32 norms and biases. Activations are f32 throughout. Several sequences run in one
 // pass, packed back to back; attention stays inside each sequence.
-// The shaders and the forward pass are this file's; batching, dispatch recording, weight upload and
-// the embed / embedTo / probe surface are the shared runtime's (_lib/wgsl/runtime.js).
+// The matmul, norm, attention, pool and l2 kernels are the shared templates in _lib/wgsl/kernels.js;
+// the token-table gather, RoPE and the GLU are this file's. Batching, dispatch recording, weight
+// upload and embed / embedTo / probe come from _lib/wgsl/runtime.js.
 
-import { BYTE, HEADER, MAX_SEQ, NONE, SeqEngine, compile } from "../../_lib/wgsl/runtime.js";
-
-// Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7): the exact-erf GELU both models use.
-const GELU = /* wgsl */ `
-fn gelu(x: f32) -> f32 {
-  let a = abs(x) * 0.7071067811865476;
-  let t = 1.0 / (1.0 + 0.3275911 * a);
-  let y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-a * a);
-  return 0.5 * x * (1.0 + sign(x) * y);
-}
-`;
+import { BYTE, HEADER, MAX_SEQ, NONE, SeqEngine } from "../../_lib/wgsl/runtime.js";
+import { GELU, KERNELS, attention, l2, matmul, norm, pool } from "../../_lib/wgsl/kernels.js";
 
 const SHADERS = {
   // e[t, j] = table(id)[j] (+ pos[p, j] + type0[j] for BERT). One workgroup per token.
@@ -57,93 +49,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // LayerNorm over rows of D (<= 512). mode 0: y = LN(x); mode 1: y = LN(y + x) (residual, in place).
-  // p.a = (D, weight word offset, bias word offset or NONE, mode); p.b.x = rows selector; p.f.x = eps.
-  norm: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> x: array<f32>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-var<workgroup> red: array<f32, 64>;
-${BYTE}
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let r = wid.x;
-  if (r >= dn.n[p.b.x]) { return; }
-  let D = p.a.x; let base = r * D;
-  var v: array<f32, 8>;
-  var s = 0.0;
-  var c = 0u;
-  for (var j = l; j < D; j += 64u) {
-    var a = x[base + j];
-    if (p.a.w == 1u) { a += y[base + j]; }
-    v[c] = a; s += a; c++;
-  }
-  red[l] = s;
-  workgroupBarrier();
-  for (var k = 32u; k > 0u; k >>= 1u) { if (l < k) { red[l] += red[l + k]; } workgroupBarrier(); }
-  let mu = red[0] / f32(D);
-  workgroupBarrier();
-  var q = 0.0;
-  for (var i = 0u; i < c; i++) { let d = v[i] - mu; q += d * d; }
-  red[l] = q;
-  workgroupBarrier();
-  for (var k = 32u; k > 0u; k >>= 1u) { if (l < k) { red[l] += red[l + k]; } workgroupBarrier(); }
-  let inv = 1.0 / sqrt(red[0] / f32(D) + p.f.x);
-  c = 0u;
-  for (var j = l; j < D; j += 64u) {
-    var o = (v[c] - mu) * inv * wf32(p.a.y + j);
-    if (p.a.z != ${NONE}u) { o += wf32(p.a.z + j); }
-    y[base + j] = o; c++;
-  }
-}`,
-
-  // Y[r, n] = sum_k X[r, k] W[n, k] (* scale[n]) (+ bias[n]), then gelu (mode bit 0) and either
-  // store or add into Y (mode bit 1). Workgroup: 32 columns x 8 k-splits, 8 rows; each thread reads
-  // 4 weights per u32 and applies them to all 8 rows (eg2-wgsl-engine's matmul layout).
-  // Weights [N, K]: int8 from the repacked buffer Wt (transposed at init from the file's [K, N]),
-  // or f32 straight from W (kind 1). p.a = (weight word offset, scale word offset in W, N, K);
-  // p.b = (bias word offset in W or NONE, mode, rows selector, kind: 0 int8 in Wt, 1 f32 [N, K] in W).
-  matmul: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> Wt: array<u32>;
-@group(0) @binding(4) var<storage, read> X: array<vec4<f32>>;
-@group(0) @binding(5) var<storage, read_write> Y: array<f32>;
-var<workgroup> red: array<f32, 2048>;
-${GELU}
-fn i8x4(w: u32) -> vec4<f32> {
-  return vec4<f32>(f32(bitcast<i32>(w << 24u) >> 24u), f32(bitcast<i32>(w << 16u) >> 24u),
-                   f32(bitcast<i32>(w << 8u) >> 24u), f32(bitcast<i32>(w) >> 24u));
-}
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let N = p.a.z; let K = p.a.w; let K4 = K / 4u; let kind = p.b.w;
-  let rows = dn.n[p.b.z];
-  let nl = l % 32u; let ks = l / 32u;
-  let n = wid.x * 32u + nl;
-  let r0 = wid.y * 8u;
-  var rr: array<u32, 8>;
-  for (var t = 0u; t < 8u; t++) { rr[t] = min(r0 + t, rows - 1u) * K4; }
-  var acc = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  let per = K4 / 8u;
-  for (var kq = ks * per; kq < (ks + 1u) * per; kq++) {
-    var w: vec4<f32>;
-    if (kind == 0u) { w = i8x4(Wt[p.a.x + n * K4 + kq]); }
-    else { let o = p.a.x + n * K + kq * 4u; w = vec4<f32>(bitcast<f32>(W[o]), bitcast<f32>(W[o + 1u]), bitcast<f32>(W[o + 2u]), bitcast<f32>(W[o + 3u])); }
-    for (var t = 0u; t < 8u; t++) { acc[t] += dot(w, X[rr[t] + kq]); }
-  }
-  for (var t = 0u; t < 8u; t++) { red[(ks * 8u + t) * 32u + nl] = acc[t]; }
-  workgroupBarrier();
-  let t = l / 32u;
-  let r = r0 + t;
-  if (r >= rows) { return; }
-  var s = 0.0;
-  for (var j = 0u; j < 8u; j++) { s += red[(j * 8u + t) * 32u + nl]; }
-  if (kind == 0u) { s *= bitcast<f32>(W[p.a.y + n]); }
-  if (p.b.x != ${NONE}u) { s += bitcast<f32>(W[p.b.x + n]); }
-  if ((p.b.y & 1u) != 0u) { s = gelu(s); }
-  if ((p.b.y & 2u) != 0u) { Y[r * N + n] += s; } else { Y[r * N + n] = s; }
-}`,
-
   // RoPE on the q and k parts of a fused [T, 3H] qkv buffer, in place (rotate_half convention).
   // p.a = (heads, head dim D, row stride, table: 0 global theta, 1 local theta).
   rope: HEADER + /* wgsl */ `
@@ -169,57 +74,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // Bidirectional attention inside each packed sequence, optionally limited to |i - j| <= window / 2.
-  // One workgroup per (token, head); thread j scores key j (sequences <= 128), then threads d < D sum values.
-  // p.a = (heads, D, row stride of q/k/v, q offset); p.b = (k offset, v offset, window or 0); p.f.x = scale.
-  attn: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(3) var<storage, read> seqs: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read> Q: array<f32>;
-@group(0) @binding(5) var<storage, read> Kb: array<f32>;
-@group(0) @binding(6) var<storage, read> Vb: array<f32>;
-@group(0) @binding(7) var<storage, read_write> O: array<f32>;
-var<workgroup> qs: array<f32, 64>;
-var<workgroup> pr: array<f32, 128>;
-var<workgroup> red: array<f32, 128>;
-@compute @workgroup_size(128)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  let t = wid.x; let h = wid.y;
-  if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let D = p.a.y; let st = p.a.z;
-  let tk = tok[t];
-  let sq = seqs[tk.z];
-  let start = sq.x; let len = sq.y;
-  if (i < D) { qs[i] = Q[t * st + p.a.w + h * D + i]; }
-  workgroupBarrier();
-  var sc = -3.0e38;
-  if (i < len) {
-    let pi = i32(tk.y); let pj = i32(i);
-    if (p.b.z == 0u || u32(abs(pi - pj)) <= p.b.z / 2u) {
-      let kb = (start + i) * st + p.b.x + h * D;
-      var d = 0.0;
-      for (var j = 0u; j < D; j++) { d += qs[j] * Kb[kb + j]; }
-      sc = d * p.f.x;
-    }
-  }
-  red[i] = sc;
-  workgroupBarrier();
-  for (var s = 64u; s > 0u; s >>= 1u) { if (i < s) { red[i] = max(red[i], red[i + s]); } workgroupBarrier(); }
-  let mx = red[0];
-  workgroupBarrier();
-  var e = 0.0;
-  if (sc > -1.0e38) { e = exp(sc - mx); }
-  pr[i] = e; red[i] = e;
-  workgroupBarrier();
-  for (var s = 64u; s > 0u; s >>= 1u) { if (i < s) { red[i] += red[i + s]; } workgroupBarrier(); }
-  let inv = 1.0 / red[0];
-  if (i < D) {
-    var a = 0.0;
-    for (var j = 0u; j < len; j++) { a += pr[j] * Vb[(start + j) * st + p.b.y + h * D + i]; }
-    O[t * nh * D + h * D + i] = a * inv;
-  }
-}`,
-
   // ModernBERT GLU: g[r, j] = gelu(u[r, j]) * u[r, I + j].  p.a.x = I.
   glu: HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> u: array<f32>;
@@ -232,41 +86,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (idx >= dn.n.x * I) { return; }
   let r = idx / I; let j = idx % I;
   g[idx] = gelu(u[r * 2u * I + j]) * u[r * 2u * I + I + j];
-}`,
-
-  // Mean over each sequence's tokens: [tokens, H] -> [sequences, H].  p.a.x = H.
-  pool: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> seqs: array<vec4<u32>>;
-@group(0) @binding(3) var<storage, read> x: array<f32>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-@compute @workgroup_size(128)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let b = wid.x;
-  if (b >= dn.n.y) { return; }
-  let H = p.a.x; let sq = seqs[b];
-  for (var j = l; j < H; j += 128u) {
-    var s = 0.0;
-    for (var t = 0u; t < sq.y; t++) { s += x[(sq.x + t) * H + j]; }
-    y[b * H + j] = s / f32(sq.y);
-  }
-}`,
-
-  // L2-normalize rows of 768.
-  l2: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> x: array<f32>;
-@group(0) @binding(3) var<storage, read_write> y: array<f32>;
-var<workgroup> red: array<f32, 256>;
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  _ = p.a;
-  let b = wid.x;
-  if (b >= dn.n.y) { return; }
-  let a0 = x[b * 768u + i]; let a1 = x[b * 768u + i + 256u]; let a2 = x[b * 768u + i + 512u];
-  red[i] = a0 * a0 + a1 * a1 + a2 * a2;
-  workgroupBarrier();
-  for (var s = 128u; s > 0u; s >>= 1u) { if (i < s) { red[i] += red[i + s]; } workgroupBarrier(); }
-  let inv = 1.0 / max(sqrt(red[0]), 1e-12);
-  y[b * 768u + i] = a0 * inv; y[b * 768u + i + 256u] = a1 * inv; y[b * 768u + i + 512u] = a2 * inv;
 }`,
 };
 
@@ -317,7 +136,7 @@ export class SmallEngine extends SeqEngine {
       pooled: buf(B * H, "pooled"), d: buf(B * 768, "d"), out: buf(B * 768, "out"),
     };
     this.b = B_;
-    this.pipes = await compile(dev, SHADERS);
+    this.shaders = { ...KERNELS, ...SHADERS };
 
     const step = (...args) => this.step(...args);
     const word = (t) => { if (t.offset % 4) throw new Error("unaligned f32 tensor"); return t.offset / 4; };
@@ -333,55 +152,53 @@ export class SmallEngine extends SeqEngine {
       for (let k = 0; k < w.K; k++) for (let n = 0; n < w.N; n++) wt[dst + n * w.K + k] = src[k * w.N + n];
     }
     this.Wt = this.upload(wt, "int8 weights [N, K]");
+    // int8 (repacked [N, K] in Wt) or f32 [N, K] weights, optional bias; mode bit 0 GELU, bit 1 Y +=.
     const mm = (w, X, Y, mode = 0, rowsSel = 0) => {
-      let kind, a0, s = 0;
-      if (w.q) { kind = 0; a0 = w._wt; s = word(w.s); }
-      else if (w.f32_t) { kind = 1; a0 = word(w.f32_t); }
+      let f;
+      if (w.q) f = { fmt: "i8", offs: [w._wt, word(w.s)] };
+      else if (w.f32_t) f = { fmt: "f32", offs: [word(w.f32_t)] };
       else throw new Error("f32 [K, N] matmul weights are not supported; export them as [N, K]");
-      if (w.K % 32 || w.N % 32) throw new Error("matmul shape");
-      step("matmul", { a: [a0, s, w.N, w.K], b: [w.b ? word(w.b) : NONE, mode, rowsSel, kind] }, [this.W, this.Wt, X, Y],
-           (n) => [w.N / 32, Math.ceil(n[rowsSel] / 8)]);
+      matmul(this, { ...f, N: w.N, K: w.K }, this.W, X, Y,
+             { rowsSel, bias: w.b ? word(w.b) : NONE, gelu: !!(mode & 1), accumulate: !!(mode & 2), Wt: this.Wt });
     };
-    const norm = (w, b, X, Y, mode = 0, rowsSel = 0, Dn = H) =>
-      step("norm", { a: [Dn, word(w), b ? word(b) : NONE, mode], b: [rowsSel], f: [m.eps] }, [this.W, X, Y], (n) => [n[rowsSel]]);
-    const attn = (Q, K, V, stride, offs, window) =>
-      step("attn", { a: [nh, D, stride, offs[0]], b: [offs[1], offs[2], window], f: [1 / Math.sqrt(D)] },
-           [B_.tok, B_.seqs, Q, K, V, B_.o], (n) => [n[0], nh]);
+    // LayerNorm (bias optional); mode 1: y = LN(y + x).
+    const ln = (w, b, X, Y, mode = 0, rowsSel = 0) =>
+      norm(this, "ln", this.W, word(w), X, Y, { D: H, eps: m.eps, bOff: b ? word(b) : NONE, mode, rowsSel });
 
     const tb = m.table;
     step("embed", { a: [H, tb.bits, tb.codes.offset, tb.scales.offset],
                     b: [tb.zp ? tb.zp.offset : 0, bert ? word(m.pos) : NONE, bert ? word(m.type0) : 0] },
          [this.W, B_.tok, B_.e], (n) => [n[0]]);
     if (!bert) {
-      norm(m.emb_norm, null, B_.e, B_.h);
+      ln(m.emb_norm, null, B_.e, B_.h);
       m.layers.forEach((L) => {
         let X = B_.h;
-        if (L.attn_norm) { norm(L.attn_norm, null, B_.h, B_.a); X = B_.a; }
+        if (L.attn_norm) { ln(L.attn_norm, null, B_.h, B_.a); X = B_.a; }
         mm(L.Wqkv, X, B_.qkv);
         step("rope", { a: [nh, D, 3 * H, L.global ? 0 : 1] }, [this.rope, B_.tok, B_.qkv], (n) => [n[0]]);
-        attn(B_.qkv, B_.qkv, B_.qkv, 3 * H, [0, H, 2 * H], L.global ? 0 : m.window);
+        attention(this, B_.qkv, B_.qkv, B_.qkv, B_.o, { nh, hd: D, fused: true, window: L.global ? 0 : m.window });
         mm(L.Wo, B_.o, B_.h, 2);
-        norm(L.mlp_norm, null, B_.h, B_.a);
+        ln(L.mlp_norm, null, B_.h, B_.a);
         mm(L.Wi, B_.a, B_.u);
         step("glu", { a: [I] }, [B_.u, B_.g], (n) => [Math.ceil(n[0] * I / 256)]);
         mm(L.Wo_mlp, B_.g, B_.h, 2);
       });
-      norm(m.final_norm, null, B_.h, B_.a);
-      step("pool", { a: [H] }, [B_.seqs, B_.a, B_.pooled], (n) => [n[1]]);
+      ln(m.final_norm, null, B_.h, B_.a);
+      pool(this, B_.a, B_.pooled, H);
     } else {
-      norm(m.emb_ln.w, m.emb_ln.b, B_.e, B_.h);
+      ln(m.emb_ln.w, m.emb_ln.b, B_.e, B_.h);
       m.layers.forEach((L) => {
         mm(L.q, B_.h, B_.a); mm(L.k, B_.h, B_.t); mm(L.v, B_.h, B_.e);
-        attn(B_.a, B_.t, B_.e, H, [0, 0, 0], 0);
+        attention(this, B_.a, B_.t, B_.e, B_.o, { nh, hd: D });
         mm(L.o, B_.o, B_.t);
-        norm(L.ln1.w, L.ln1.b, B_.t, B_.h, 1);
+        ln(L.ln1.w, L.ln1.b, B_.t, B_.h, 1);
         mm(L.up, B_.h, B_.u, 1);
         mm(L.down, B_.u, B_.t);
-        norm(L.ln2.w, L.ln2.b, B_.t, B_.h, 1);
+        ln(L.ln2.w, L.ln2.b, B_.t, B_.h, 1);
       });
-      step("pool", { a: [H] }, [B_.seqs, B_.h, B_.pooled], (n) => [n[1]]);
+      pool(this, B_.h, B_.pooled, H);
     }
     mm(m.dense, B_.pooled, B_.d, 0, 1);
-    step("l2", { a: [] }, [B_.d, B_.out], (n) => [n[1]]);
+    l2(this, B_.d, B_.out, 768);
   }
 }

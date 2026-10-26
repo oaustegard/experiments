@@ -9,12 +9,14 @@ instead of another engine.
 | File | What |
 |---|---|
 | `runtime.js` | `SeqEngine` base class: uniform layout (`HEADER`), weight readers (`BYTE`), shader compilation, one static uniform and bind group per dispatch, packed variable-length batches, whole-file upload with binding windows, aligned per-tensor upload, `embed` / `embedTo` / `probe` / `destroy` |
+| `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2` |
 | `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
 
-An engine subclasses `SeqEngine`, compiles its shaders with `compile()`, and records its forward
-pass as `this.step(kind, params, bufs, grid)` calls in `_build(bytes)`. Engines import the runtime as
-`../../_lib/wgsl/runtime.js`, so a page that uses one must also publish this file: `pages.json`
-lists it next to `eg2-wgsl-engine/web`, and `vendor.py` handles copies made for the site repo.
+An engine subclasses `SeqEngine`, sets `this.shaders = { ...KERNELS, ...ownShaders }`, and records
+its forward pass in `_build(bytes)` with the `kernels.js` helpers and `this.step(kind, params, bufs,
+grid)` for its own shaders. Only the shaders its steps use get compiled. Engines import `../../_lib/wgsl/runtime.js` and `kernels.js`, so a page that uses one must also
+publish both: `pages.json` lists them next to `eg2-wgsl-engine/web`, and `vendor.py` handles copies
+made for the site repo.
 
 ## Checks
 
