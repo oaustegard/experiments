@@ -1,6 +1,6 @@
 # moederncolbert-bench: SauerkrautLM-MoEdernColBERT in the browser, and whether its sizes share a space
 
-**Date:** 2026-10-26 · **Status:** done (benchmark). A distilled cross-size query encoder was proposed to Oskar and is not started.
+**Date:** 2026-10-26 · **Status:** done (benchmark, and one distillation run).
 
 VAGOsolutions released SauerkrautLM-MoEdernColBERT on 2026-10-23: multilingual ColBERT retrievers at
 1.5M, 27M and 115M parameters on a new encoder, MoEdernBERT (a hashed, factorized token embedding,
@@ -20,12 +20,12 @@ The sizes do not share a vector space. On 13 English NanoBEIR sets each size mat
 model card alone (nDCG@10 0.590 / 0.619 / 0.642 <!-- @evidence[[results/summary.json#/ndcg/1.5M>1.5M]] -->), and every
 mixed pair scores near zero (random ranking): 1.5M queries against 115M documents give 0.004 <!-- @evidence[[results/summary.json#/ndcg/1.5M>115M]] -->.
 Token vectors agree at cosine −0.009 <!-- @evidence[[results/summary.json#/align/1.5M~0115M]] -->. An
-orthogonal map into 115M's space recovers only 0.086 for 1.5M → 115M <!-- @evidence[[results/summary.json#/ndcg/1.5M*map>115M]] -->. A small query model would need training into 115M's space.
+orthogonal map into 115M's space recovers only 0.086 for 1.5M → 115M <!-- @evidence[[results/summary.json#/ndcg/1.5M*map>115M]] -->. Training 1.5M's query side into 115M's space reaches 0.468 <!-- @evidence[[results/summary.json#/distill/step8000]] -->, below 1.5M's own 0.590.
 
 On Oskar's Mac (Chrome 155, Metal 3) a 32-token query takes 0.464 ms <!-- @evidence[[results/summary.json#/mac/1.5M_query_ms]] --> on 1.5M and 0.963 ms on 27M <!-- @evidence[[results/summary.json#/mac/27M_query_ms]] -->. On ~32-token queries EG2 cut takes 0.997 ms <!-- @evidence[[results/summary.json#/mac/eg2_cut_near32_ms]] --> and Ettin-17m 0.667 ms <!-- @evidence[[results/summary.json#/mac/ettin_near32_ms]] -->. Documents: 1,161,965 tokens/s on 1.5M <!-- @evidence[[results/summary.json#/mac/1.5M_tokens_per_s]] -->
 and 174,497 on 27M <!-- @evidence[[results/summary.json#/mac/27M_tokens_per_s]] -->. An iPhone was 6× slower per query and 16× slower on documents.
 
-A distilled 1.5M query model scoring well on 115M documents would change this.
+Queries closer to the weak sets (multi-hop, duplicate-question, argument) could change the distillation result.
 
 ## Findings
 
@@ -53,7 +53,12 @@ A distilled 1.5M query model scoring well on 115M documents would change this.
 7. **Server-side encoding (plain PyTorch fp32, no Triton).** 4 vCPUs, 1.5M: 217 docs/s <!-- @evidence[[results/summary.json#/encode/cpu_1.5M_docs_per_s]] -->. Colab L4: 27M
    576 docs/s <!-- @evidence[[results/summary.json#/encode/l4_27M_docs_per_s]] -->, 115M 194 docs/s <!-- @evidence[[results/summary.json#/encode/l4_115M_docs_per_s]] -->. Server timings include tokenization. The Mac's browser engine, on the 64 fixture documents (314 tokens on average) and without tokenization (3,699 docs/s for 1.5M <!-- @evidence[[results/summary.json#/mac/1.5M_docs_per_s]] -->, 555.6 for 27M <!-- @evidence[[results/summary.json#/mac/27M_docs_per_s]] -->) is on
    par with the L4 for 27M.
-8. **A pipeline trap in sentence-transformers 6.2.** `encode_query` inserts the `[Q]` marker
+8. **Distilling 1.5M queries into 115M's space reaches 0.468 and beats 1.5M alone only near its training data.**
+   Student initialised from 1.5M, trained 8,000 steps × 256 MS MARCO and NQ queries to match 115M's query
+   token vectors (cosine loss, final 0.203 <!-- @evidence[[results/summary.json#/distill/final_loss]] -->). It plateaus by step 6,000 (0.470 <!-- @evidence[[results/summary.json#/distill/step6000]] -->). MS MARCO 0.628 <!-- @evidence[[results/summary.json#/distill/MSMARCO]] --> beats 1.5M
+   alone (0.593 <!-- @evidence[[results/summary.json#/distill/self15_MSMARCO]] -->); HotpotQA 0.344 <!-- @evidence[[results/summary.json#/distill/HotpotQA]] --> (1.5M alone 0.871 <!-- @evidence[[results/summary.json#/distill/self15_HotpotQA]] -->) and Quora 0.611 <!-- @evidence[[results/summary.json#/distill/QuoraRetrieval]] --> (0.9 <!-- @evidence[[results/summary.json#/distill/self15_QuoraRetrieval]] -->) collapse.
+   One L4 run took 38.5 minutes <!-- @evidence[[results/summary.json#/distill/total_min]] -->, 7.6 of them encoding NanoBEIR with 115M.
+9. **A pipeline trap in sentence-transformers 6.2.** `encode_query` inserts the `[Q]` marker
    token (id 30000) after `[CLS]`, but `preprocess(task="query")` does not. A reimplementation copied
    from `preprocess` gets cosine ~0.5 per token. The model detects a query by that marker and then
    attends over all 32 positions, `[MASK]` padding included.
@@ -124,3 +129,26 @@ ran on the Mac with both kernels and agreed within 15%:
 (`moedern-refs-1`, `-2`) failed on a transient jsDelivr 403 for `_lib/wgsl/runtime.js`. The second
 failed because the persistent worker had cached the failed module import for that URL. Re-running at
 another commit with the same engine code fixed it.
+
+### Round 3 (2026-10-26): distilling a 1.5M query encoder into 115M's space
+
+Oskar asked what it would take to train 1.5M against 115M's document tokens. `run/distill.py`: the
+student is every 1.5M weight, the teacher 115M's query encoder (frozen). The two share token ids, so the
+loss is 1 − cosine per query position, all 32 rows. 1,110,793 MS MARCO and Natural Questions queries
+with the 649 NanoBEIR query texts removed; AdamW lr 1e-3, cosine schedule, batch 256, 8,000 steps
+(about 2 passes). Eval every 2,000 steps: student queries against 115M documents, all 13 sets.
+
+The first run lost its VM after a 24-minute gap between `colab exec` calls; its step-2000 eval was
+0.389. The second ran with a `colab exec` and `colab download` every 4 minutes and finished.
+
+| step | 0 | 2000 | 4000 | 6000 | 8000 |
+|---|---:|---:|---:|---:|---:|
+| nDCG@10 | 0.0035 | 0.389 | 0.458 | 0.470 | 0.468 |
+| loss (1 − cos) | | 0.252 | 0.218 | 0.205 | 0.203 |
+
+Per set at step 8000, against 1.5M alone: MS MARCO 0.628 / 0.593, NQ 0.637 / 0.628, FEVER 0.798 / 0.904,
+HotpotQA 0.344 / 0.871, Quora 0.611 / 0.900, ArguAna 0.273 / 0.448. The student matches or beats 1.5M
+where the training queries look like the test queries and falls far short elsewhere. Mean token cosine
+to the teacher stops at about 0.80, which points at the query mix or the student's capacity, not the
+step count. Not tried: queries generated from the eval corpora's domains, a MaxSim score loss against 115M
+documents, more layers.
