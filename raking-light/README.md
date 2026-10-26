@@ -1,6 +1,6 @@
 # Raking Light
 
-A single-file page that takes flat, evenly lit SVG (a UI card, a poster, an icon sheet, a wordmark) and
+A page that takes flat, evenly lit SVG (a UI card, a poster, an icon sheet, a wordmark) and
 relights it as a physical object, with raised shapes, bevelled edges, darkening in corners and crevices,
 and soft shadows from lights you can drag. It was prompted by [Lumen](https://lumen.renderg.host), a
 card-shadow designer that turns Kelvin-temperature lights into stacked CSS `box-shadow` layers around a
@@ -8,7 +8,7 @@ card. This page lights the content inside the card, per pixel, with WebGPU.
 
 ![Card sample under the Gallery setup](test/card-gallery.png)
 
-Live at [austegard.com/fun-and-games/raking-light.html](https://austegard.com/fun-and-games/raking-light.html). That is a copy in the site repo (`oaustegard.github.io`, `fun-and-games/raking-light.html`); edit [`web/index.html`](web/index.html) here and copy it there. Open it in a browser with WebGPU. Without it the page falls back to SVG
+Live at [austegard.com/fun-and-games/raking-light.html](https://austegard.com/fun-and-games/raking-light.html). That is a copy in the site repo (`oaustegard.github.io`, `fun-and-games/raking-light.html`); edit [`web/index.html`](web/index.html) and [`web/raking-light.js`](web/raking-light.js) here and copy them there as `raking-light.html` and `raking-light.js`. Open it in a browser with WebGPU. Without it the page falls back to SVG
 filter lighting (`feDiffuseLighting` + `feSpecularLighting`) driven by the first light only. In that mode
 there are no cast shadows or occlusion, and the compare divider, bevel profile, grain, metalness and
 extra lights do nothing.
@@ -50,11 +50,45 @@ lighting a surface from a low angle to show its relief; the light readout gives 
 |---|---|
 | ![Poster, Raking](test/poster-raking.png) | ![Wordmark, Letterpress](test/type-letterpress.png) |
 
+## Embedding it
+
+`web/raking-light.js` is a self-contained ES module (no dependencies). Importing it defines a
+`<raking-light>` element, and the page's **Copy embed code** button writes one out with the current settings:
+
+```html
+<script type="module" src="https://austegard.com/fun-and-games/raking-light.js"></script>
+<raking-light preset="gallery" light="pointer" style="width: 480px">
+  <svg viewBox="0 0 200 200">…</svg>
+</raking-light>
+```
+
+The SVG goes inside as a child, or by URL with `src` (an SVG, or an image that uses brightness for height).
+Attributes: `preset` (gallery, raking, golden hour, overcast, letterpress, studio) and `material` (paper,
+satin, enamel, metal, clay) set the starting point. `elevation`, `step`, `bevel`, `profile`, `grain`,
+`grain-size`, `deboss`, `roughness`, `metal`, `specular`, `ambient`, `sky`, `exposure` and a `lights` JSON
+array override it. `wall` defaults to `transparent`, which keeps only the shadows so the element sits on any
+background; give it a colour for a solid wall. `light` is `pointer` (the key light follows the cursor
+anywhere on the page), `tilt` (phone orientation), `orbit` or `fixed`. `margin` sets the room left for
+shadows, as a fraction of the picture's long side (default 0.1).
+
+All elements on a page share one GPU device and set of pipelines. Each one keeps two textures (about
+9 MB at full size), redraws only when its light moves, and stops drawing when scrolled offscreen.
+Without WebGPU it shows the original SVG unchanged. With `prefers-reduced-motion` the light stays put.
+`element.toBlob()` returns a PNG of the current lighting. The page's **Save PNG** and **Copy image**
+export the same render at 1024 px on the long side, with a transparent background when "No wall" is on.
+
+For a transparent wall, the shader lights the wall twice, once with shadows and occlusion and once
+without. The ratio of their brightness sets the alpha of a black shadow layer, and content pixels keep
+their own alpha.
+
 ## Verification
 
 `test/render.js` loads the page in headless Chromium on SwiftShader (a software GPU) and renders each
 sample under one setup through the real canvas path. It fails on any console error or if the page falls
-back from WebGPU. It makes no pixel assertions; the four screenshots in `test/` were checked by eye. No
+back from WebGPU. `test/embed.js` loads `test/embed.html`, with three elements: inline SVG on a
+transparent wall, `src=` with a fixed light, and a solid wall with an orbiting light. It moves the pointer,
+checks that all three draw, and checks that `toBlob()` returns a PNG (`test/embed.png`). Run both from a server rooted at
+`raking-light/`. It makes no pixel assertions; the four screenshots in `test/` were checked by eye. No
 real GPU has run the page yet, so browser support (Chrome, Edge and Safari 26 ship WebGPU) and frame rate
 are untested.
 

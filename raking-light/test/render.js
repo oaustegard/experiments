@@ -1,5 +1,5 @@
 // Renders each sample under its preset through the real WebGPU canvas path on SwiftShader and saves screenshots.
-// Usage: (cd raking-light/web && python3 -m http.server 8765 &) ; node raking-light/test/render.js
+// Usage: (cd raking-light && python3 -m http.server 8765 &) ; node raking-light/test/render.js
 // --use-vulkan=swiftshader is required for canvas presentation (METHODS.md, Environment gotchas).
 const { chromium } = require('playwright');
 const path = require('path');
@@ -10,7 +10,7 @@ const path = require('path');
   let errors = 0;
   p.on('console', m => { if (m.type() === 'error') { errors++; console.log('console error:', m.text()); } });
   p.on('pageerror', e => { errors++; console.log('pageerror:', e.message); });
-  await p.goto('http://localhost:8765/index.html');
+  await p.goto('http://localhost:8765/web/index.html');
   await p.waitForTimeout(15000);
   const mode = await p.textContent('#hud-mode');
   console.log('mode:', mode);

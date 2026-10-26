@@ -654,7 +654,8 @@ survives exactly the sanity checks people run.
 | Float-screen-then-exact-reverify with rational denominator ladder | `ms13-campaign/sweep.py` | trivial–moderate |
 | CEGAR loop for k-way packing feasibility (SAT + exhaustive verify + extract violated constraint) | `woodall/verifier/packing.py` | moderate |
 | Certificate re-verification harness (load → recompute independently → diff → non-zero exit) | `discrepancy/verify_certificates.py` | moderate |
-| SVG paint order as a heightfield: restyle every painted shape white at opacity a over black, then `k = log(1 − v)/log(1 − a)` is the stack depth (a = 0.2 exact to ~10 layers at 8 bits); jump-flood bevel from edge seeds that store the lower side's height | `raking-light/web/index.html` (`heightSVG`, `WGSL_LAYERS`, `WGSL_SEED`, `WGSL_JFA`, `WGSL_RELIEF`) | trivial |
+| SVG paint order as a heightfield: restyle every painted shape white at opacity a over black, then `k = log(1 − v)/log(1 − a)` is the stack depth (a = 0.2 exact to ~10 layers at 8 bits); jump-flood bevel from edge seeds that store the lower side's height | `raking-light/web/raking-light.js` (`heightSVG`, `WGSL_LAYERS`, `WGSL_SEED`, `WGSL_JFA`, `WGSL_RELIEF`) | trivial |
+| Shadow-only transparent background for a relit scene: shade the background twice (with and without shadows/AO) and set alpha = 1 − lum(shadowed)/lum(unshadowed) on black, so cast shadows composite onto any page colour | `raking-light/web/raking-light.js` (`WGSL_RENDER`, the `clear` branch) | trivial |
 
 ---
 
