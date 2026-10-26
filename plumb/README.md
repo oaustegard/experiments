@@ -4,7 +4,9 @@ Falling blocks for a phone, played by tilting it. Installable PWA; SVG draws the
 WebGPU runs a particle field behind it that settles under the phone's real gravity, and the motion
 sensors replace most of the buttons.
 
-Live: <https://austegard.com/experiments/plumb/web/>. Open it on a phone, press Start (iOS asks for
+Live: <https://austegard.com/fun-and-games/plumb/>. The page's source lives in
+[`oaustegard.github.io/fun-and-games/plumb/`](https://github.com/oaustegard/oaustegard.github.io/tree/main/fun-and-games/plumb);
+this directory keeps the writeup and the tests. Open it on a phone, press Start (iOS asks for
 motion access then), and use Add to Home Screen to install it full-screen and offline.
 
 ## Controls
@@ -44,7 +46,7 @@ can play lying down. Keyboard works on a desktop: arrows, X/Z, space, C, P.
 ## Testing
 
 ```bash
-(cd plumb/web && python3 -m http.server 8765) &
+(cd ../oaustegard.github.io/fun-and-games/plumb && python3 -m http.server 8765) &
 node plumb/test_plumb.js   # line clears, scoring, kicks, tilt steering, hold, swipe drop
 node plumb/test_wgsl.js    # both WGSL modules compile, pipelines validate, 240 sim steps run
 ```

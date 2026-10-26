@@ -1,8 +1,8 @@
 // Compiles Plumb's two WGSL modules, builds both pipelines and runs 240 sim steps offscreen.
 // Headless Chromium loses any device that presents to a canvas, so this renders to a texture.
-// Serve web/ on :8765 first, as for test_plumb.js.
+// Serve oaustegard.github.io/fun-and-games/plumb on :8765 first, as for test_plumb.js.
 const { chromium } = require('playwright');
-const src = require('fs').readFileSync('/home/user/experiments/plumb/web/index.html', 'utf8');
+const src = require('fs').readFileSync(process.env.PLUMB_HTML || require('path').join(__dirname, '../../oaustegard.github.io/fun-and-games/plumb/index.html'), 'utf8');
 const grab = n => src.match(new RegExp(`const ${n} = /\\* wgsl \\*/\`([\\s\\S]*?)\`;`))[1];
 (async () => {
   const b = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--use-webgpu-adapter=swiftshader'] });

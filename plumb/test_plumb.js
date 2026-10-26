@@ -1,5 +1,6 @@
-// Playwright check of Plumb's rules and controls. Serve web/ on :8765 first:
-//   (cd plumb/web && python3 -m http.server 8765) & node plumb/test_plumb.js
+// Playwright check of Plumb's rules and controls. Serve oaustegard.github.io/fun-and-games/plumb on :8765 first:
+//   (cd fun-and-games/plumb && python3 -m http.server 8765) &   # in oaustegard.github.io
+//   node plumb/test_plumb.js
 const { chromium } = require('playwright');
 const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
 (async () => {
