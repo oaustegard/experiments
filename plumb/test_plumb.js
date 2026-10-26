@@ -12,8 +12,8 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   p.on('pageerror', e => errs.push(e.message));
   await p.goto('http://localhost:8765/?debug');
   await p.click('#startBtn');
-  await p.waitForTimeout(200);
-  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'overlay closes on Start');
+  await p.waitForTimeout(1200);
+  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'overlay closes on Start (no sensor: calibration skipped)');
 
   // Single line clear: fill the floor except four cells, drop a flat I into the gap.
   const r1 = await p.evaluate(() => {
@@ -48,6 +48,25 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   await p.waitForTimeout(600);
   const x1 = await p.evaluate(() => { clearInterval(window.__t); dispatchEvent(Object.assign(new Event('deviceorientation'), { beta: 45, gamma: 0 })); return window.__plumb.piece().x; });
   assert(x1 > x0, `right tilt steers right (${x0} -> ${x1})`);
+
+  // Lying in bed: screen facing the floor (beta 150). Calibrate there, then roll the right edge down.
+  // Gravity gains +x, which the browser reports as negative gamma once beta passes 90.
+  const orient = (b, g) => p.evaluate(([b, g]) => { clearInterval(window.__o);
+    window.__o = setInterval(() => dispatchEvent(Object.assign(new Event('deviceorientation'), { beta: b, gamma: g })), 20); }, [b, g]);
+  await orient(150, 0);
+  await p.keyboard.press('p');
+  await p.click('#resumeBtn');
+  await p.waitForTimeout(2100);
+  assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'resume calibrates, then plays');
+  const bed0 = await p.evaluate(() => { const P = window.__plumb; P.place('O', 4); return { ...P.piece() }; });
+  await p.waitForTimeout(900);
+  const bed1 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
+  assert(bed1.x === bed0.x && bed1.y - bed0.y <= 2, `held level in bed: no drift, normal gravity (dx ${bed1.x - bed0.x}, dy ${bed1.y - bed0.y})`);
+  await orient(150, -25);
+  await p.waitForTimeout(600);
+  const bed2 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
+  assert(bed2.x > bed1.x, `in bed, right edge down steers right (${bed1.x} -> ${bed2.x})`);
+  await p.evaluate(() => clearInterval(window.__o));
 
   // Hold: swaps the active piece into the hold pod.
   const h = await p.evaluate(() => { const P = window.__plumb; P.place('J', 3); P.hold(); return document.querySelectorAll('#holdSvg .mini').length; });
