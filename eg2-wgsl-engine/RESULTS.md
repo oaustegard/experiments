@@ -137,3 +137,18 @@ and audio features are empty).
 - Bench: `web/index.html?full=1` fetches the 174 MB weight file from Hugging Face, which sends CORS
   headers, and compares the engine with onnxruntime-web on WebGPU and wasm. A Metal run is pending.
 
+
+### Round 3, 2026-10-26: the shared runtime
+
+Oskar picked the block-spec plan for a generic engine (`_lib/wgsl/README.md`). Phase 1 moved what this
+engine and `ettin-native`'s had copied from each other into `_lib/wgsl/runtime.js` (`SeqEngine`):
+batching, dispatch recording, weight upload with binding windows, and `embed` / `embedTo` / `probe`.
+The shaders and the forward pass did not change.
+
+- `run/check.py` and `run/check.py --full`: cosine 1, single and batched, the same values as the
+  pre-move engine in the same Chromium. `eg2-vocab-codebook/run/engine_check.py` on the site's rhq
+  build passes as well.
+- `web/queries.json` was regenerated. The committed one predated the weights the site now serves at
+  `bsky/image-search/model/ort/` (same shapes, retrained), against which the engine and onnxruntime
+  CPU both gave 0.90 to 0.98 to the old fixture. `bench.js` and `side.html` point at that directory,
+  since the site's `model/` now holds the rhq build.

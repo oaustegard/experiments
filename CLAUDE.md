@@ -99,6 +99,7 @@ Absent that mount, `METHODS.md` is the whole index.
 | `_lib/pipeline.py` | `retry` (jittered backoff), `chunked`, `save_json`/`load_json` (atomic checkpoints) |
 | `_lib/textnorm.py` | `ascii_fold` — the NFKD stroke-letter fix |
 | `_lib/pages_site.py` | builds the GitHub Pages site from `pages.json` |
+| `_lib/wgsl/` | `runtime.js`: shared WebGPU runtime (`SeqEngine`) for the hand-written WGSL encoders; `vendor.py` copies an engine + runtime into a site repo. See its README for the checks to run |
 
 Experiment scripts run directly and are not a package, so the repo root has
 to go on `sys.path` first:

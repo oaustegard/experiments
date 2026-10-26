@@ -31,7 +31,9 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out" / "demo"
-CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+# The pre-installed Chromium's directory carries its build number, which changes with the container image.
+CHROME = next((str(p) for p in sorted(Path("/opt/pw-browsers").glob("chromium-*/chrome-linux*/chrome"), reverse=True)),
+              "/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
 CHROME_ARGS = [
     "--no-sandbox",
     "--enable-unsafe-webgpu",

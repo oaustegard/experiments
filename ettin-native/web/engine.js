@@ -11,22 +11,11 @@
 // (transposed once at init from the file's [K, N] to [N, K]), a 4-bit (packed nibbles, fp16 scale per 32) or 3-bit (eg2-layer-student layout)
 // token table, f32 norms and biases. Activations are f32 throughout. Several sequences run in one
 // pass, packed back to back; attention stays inside each sequence.
-// Pattern from eg2-wgsl-engine/web/engine.js (manifest, static bind groups, packed batches).
+// The shaders and the forward pass are this file's; batching, dispatch recording, weight upload and
+// the embed / embedTo / probe surface are the shared runtime's (_lib/wgsl/runtime.js).
 
-const MAX_SEQ = 128;
-const NONE = 0xffffffff;
+import { BYTE, HEADER, MAX_SEQ, NONE, SeqEngine, compile } from "../../_lib/wgsl/runtime.js";
 
-const HEADER = /* wgsl */ `
-struct P { a: vec4<u32>, b: vec4<u32>, f: vec4<f32> };
-struct Dyn { n: vec4<u32> };            // x: tokens in the batch, y: sequences
-@group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<uniform> dn: Dyn;
-`;
-const BYTE = /* wgsl */ `
-fn wbyte(i: u32) -> u32 { return (W[i >> 2u] >> ((i & 3u) * 8u)) & 255u; }
-fn wf16(byteOff: u32) -> f32 { return unpack2x16float(W[byteOff >> 2u])[(byteOff >> 1u) & 1u]; }
-fn wf32(word: u32) -> f32 { return bitcast<f32>(W[word]); }
-`;
 // Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7): the exact-erf GELU both models use.
 const GELU = /* wgsl */ `
 fn gelu(x: f32) -> f32 {
@@ -281,43 +270,28 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 }`,
 };
 
-const U = GPUBufferUsage;
-
-export class SmallEngine {
+export class SmallEngine extends SeqEngine {
   // manifest: web/models/<pkg>/manifest.json (copied; offsets are rewritten); data: model.onnx bytes.
   // opts.maxTokens bounds one batch (all sequences together); each sequence is at most 128 tokens.
-  static async create(device, manifest, data, opts = {}) {
-    const e = new SmallEngine(device, structuredClone(manifest), opts);
-    await e._init(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-    return e;
+  // embed, embedTo, probe and destroy come from SeqEngine (_lib/wgsl/runtime.js).
+  static create(device, manifest, data, opts = {}) {
+    return super.create(device, structuredClone(manifest), data, opts);
   }
 
   constructor(device, manifest, opts) {
-    this.device = device;
-    this.m = manifest;
-    this.maxTokens = opts.maxTokens ?? 512;
-    this.maxSeqs = opts.maxSeqs ?? 64;
+    super(device, manifest, opts);
     this.dim = manifest.dim;
   }
 
-  async _init(bytes) {
+  async _build(bytes) {
     const dev = this.device, m = this.m, T = this.maxTokens, B = this.maxSeqs;
     const H = m.hidden, nh = m.heads, D = H / nh;
     if (m.dim !== 768 || D > 64 || H > 512 || H % 32) throw new Error("unexpected manifest shape");
     // The manifest gives each tensor's byte range inside model.onnx, where protobuf leaves them
     // unaligned. Copy every tensor once into a 4-byte-aligned buffer and point the manifest at it.
-    const tensors = [];
-    const collect = (o) => { if (o && typeof o === "object") { if ("offset" in o && "length" in o) tensors.push(o); else Object.values(o).forEach(collect); } };
-    collect(m);
-    let total = 0;
-    for (const t of tensors) { t._src = t.offset; t.offset = total; total += Math.ceil(t.length / 4) * 4; }
-    const packed = new Uint8Array(Math.max(16, total));
-    for (const t of tensors) packed.set(bytes.subarray(t._src, t._src + t.length), t.offset);
-    bytes = packed;
-    this.W = dev.createBuffer({ size: packed.byteLength, usage: U.STORAGE | U.COPY_DST, label: "weights" });
-    dev.queue.writeBuffer(this.W, 0, packed);
+    bytes = this.uploadPacked(bytes);
 
-    const buf = (n, label, extra = 0) => dev.createBuffer({ size: Math.max(16, n * 4), usage: U.STORAGE | U.COPY_SRC | extra, label });
+    const buf = (n, label, extra) => this.buf(n, label, extra), U = GPUBufferUsage;
     // RoPE tables [global, local][pos][D/2]: cos block, then sin block. Angles formed in float32 like the graph.
     const half = D / 2;
     const rope = new Float32Array(2 * 2 * MAX_SEQ * half);
@@ -333,8 +307,7 @@ export class SmallEngine {
         }
       });
     }
-    this.rope = buf(rope.length, "rope", U.COPY_DST);
-    dev.queue.writeBuffer(this.rope, 0, rope);
+    this.rope = this.upload(rope, "rope");
     const I = m.inter;
     const bert = m.arch === "bert";
     const B_ = {
@@ -344,31 +317,9 @@ export class SmallEngine {
       pooled: buf(B * H, "pooled"), d: buf(B * 768, "d"), out: buf(B * 768, "out"),
     };
     this.b = B_;
-    this.dyn = dev.createBuffer({ size: 16, usage: U.UNIFORM | U.COPY_DST, label: "dyn" });
-    this.read = dev.createBuffer({ size: B * 768 * 4, usage: U.MAP_READ | U.COPY_DST, label: "readback" });
+    this.pipes = await compile(dev, SHADERS);
 
-    const pipes = {};
-    await Promise.all(Object.entries(SHADERS).map(async ([name, code]) => {
-      const module = dev.createShaderModule({ code, label: name });
-      const info = await module.getCompilationInfo();
-      const errs = info.messages.filter((x) => x.type === "error");
-      if (errs.length) throw new Error(`${name} WGSL: ` + errs.map((x) => `${x.lineNum}:${x.linePos} ${x.message}`).join("; "));
-      pipes[name] = await dev.createComputePipelineAsync({ layout: "auto", compute: { module, entryPoint: "main" }, label: name });
-    }));
-    this.pipes = pipes;
-
-    this.steps = [];
-    const step = (kind, params, bufs, grid) => {
-      const u = new ArrayBuffer(48);
-      const pad = (x) => (x ?? []).concat(Array(4 - (x ?? []).length).fill(0));
-      new Uint32Array(u, 0, 8).set(pad(params.a).concat(pad(params.b)));
-      new Float32Array(u, 32, 4).set(pad(params.f));
-      const ub = dev.createBuffer({ size: 48, usage: U.UNIFORM | U.COPY_DST, label: kind });
-      dev.queue.writeBuffer(ub, 0, u);
-      const entries = [{ binding: 0, resource: { buffer: ub } }, { binding: 1, resource: { buffer: this.dyn } }]
-        .concat(bufs.map((b, i) => ({ binding: i + 2, resource: { buffer: b } })));
-      this.steps.push({ kind, bg: dev.createBindGroup({ layout: pipes[kind].getBindGroupLayout(0), entries }), grid });
-    };
+    const step = (...args) => this.step(...args);
     const word = (t) => { if (t.offset % 4) throw new Error("unaligned f32 tensor"); return t.offset / 4; };
     // Transpose every int8 matmul from the file's [K, N] to [N, K] (4 k per u32) into one buffer, once.
     const lins = [];
@@ -381,8 +332,7 @@ export class SmallEngine {
       const src = new Int8Array(bytes.buffer, bytes.byteOffset + w.q.offset, w.K * w.N), dst = w._wt * 4;
       for (let k = 0; k < w.K; k++) for (let n = 0; n < w.N; n++) wt[dst + n * w.K + k] = src[k * w.N + n];
     }
-    this.Wt = dev.createBuffer({ size: Math.max(16, wt.byteLength), usage: U.STORAGE | U.COPY_DST, label: "int8 weights [N, K]" });
-    dev.queue.writeBuffer(this.Wt, 0, wt);
+    this.Wt = this.upload(wt, "int8 weights [N, K]");
     const mm = (w, X, Y, mode = 0, rowsSel = 0) => {
       let kind, a0, s = 0;
       if (w.q) { kind = 0; a0 = w._wt; s = word(w.s); }
@@ -433,62 +383,5 @@ export class SmallEngine {
     }
     mm(m.dense, B_.pooled, B_.d, 0, 1);
     step("l2", { a: [] }, [B_.d, B_.out], (n) => [n[1]]);
-    await dev.queue.onSubmittedWorkDone();
-  }
-
-  _record(enc, batch, nSteps = Infinity) {
-    const T = batch.reduce((s, x) => s + x.length, 0), B = batch.length;
-    if (!B || T > this.maxTokens || B > this.maxSeqs) throw new Error(`batch of ${B} sequences / ${T} tokens exceeds the engine's limits`);
-    const tok = new Uint32Array(T * 4), seqs = new Uint32Array(B * 4);
-    let o = 0;
-    batch.forEach((ids, b) => {
-      if (!ids.length || ids.length > MAX_SEQ) throw new Error(`sequence length ${ids.length} not in 1..${MAX_SEQ}`);
-      seqs.set([o, ids.length], b * 4);
-      ids.forEach((id, j) => tok.set([id, j, b], (o + j) * 4));
-      o += ids.length;
-    });
-    const q = this.device.queue;
-    q.writeBuffer(this.b.tok, 0, tok);
-    q.writeBuffer(this.b.seqs, 0, seqs);
-    q.writeBuffer(this.dyn, 0, new Uint32Array([T, B, 0, 0]));
-    const pass = enc.beginComputePass();
-    const n = [T, B];
-    for (const s of this.steps.slice(0, nSteps)) {
-      pass.setPipeline(this.pipes[s.kind]);
-      pass.setBindGroup(0, s.bg);
-      pass.dispatchWorkgroups(...s.grid(n));
-    }
-    pass.end();
-    return B;
-  }
-
-  // Embed sequences of token ids; returns a Float32Array of B * 768 unit vectors.
-  async embed(batch) {
-    const enc = this.device.createCommandEncoder();
-    const B = this._record(enc, batch);
-    enc.copyBufferToBuffer(this.b.out, 0, this.read, 0, B * 768 * 4);
-    this.device.queue.submit([enc.finish()]);
-    await this.read.mapAsync(GPUMapMode.READ, 0, B * 768 * 4);
-    const out = new Float32Array(this.read.getMappedRange(0, B * 768 * 4).slice(0));
-    this.read.unmap();
-    return out;
-  }
-
-  // Debugging: run the first nSteps dispatches and read `count` floats of an activation buffer.
-  async probe(batch, nSteps, name, count) {
-    const enc = this.device.createCommandEncoder();
-    this._record(enc, batch, nSteps);
-    const rb = this.device.createBuffer({ size: count * 4, usage: U.MAP_READ | U.COPY_DST });
-    enc.copyBufferToBuffer(this.b[name], 0, rb, 0, count * 4);
-    this.device.queue.submit([enc.finish()]);
-    await rb.mapAsync(GPUMapMode.READ);
-    const out = new Float32Array(rb.getMappedRange().slice(0));
-    rb.destroy();
-    return out;
-  }
-
-  destroy() {
-    for (const b of Object.values(this.b)) b.destroy();
-    this.W.destroy(); this.Wt.destroy(); this.rope.destroy(); this.dyn.destroy(); this.read.destroy();
   }
 }

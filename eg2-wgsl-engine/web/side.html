@@ -38,7 +38,7 @@ import { Eg2Engine } from "./engine.js";
 const P = new URLSearchParams(location.search);
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
 const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.min.mjs";
-const MODEL = new URL(P.get("model") || (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/" : "../out/model/"), location.href);
+const MODEL = new URL(P.get("model") || (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/ort/" : "../out/model/"), location.href);
 const QUERY = "task: search result | query: ";
 const ROUNDS = +(P.get("rounds") || 10);
 const TEXTS = ["a cat asleep in a sunbeam", "foggy mountains at dawn", "watercolor of a city street", "a bird in the snow",

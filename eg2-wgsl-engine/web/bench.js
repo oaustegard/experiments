@@ -11,7 +11,7 @@ const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
 const FULL = P.get("full") === "1";
 const HF_FULL = "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/onnx/";
 const MODEL = new URL(P.get("model") || (FULL ? (location.hostname.endsWith("austegard.com") ? HF_FULL : "../out/full/")
-  : (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/" : "../out/model/")), location.href);
+  : (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/ort/" : "../out/model/")), location.href);
 const SFX = FULL ? "_full" : "";
 const REPS = +(P.get("reps") || 20);
 const $ = (id) => document.getElementById(id);
