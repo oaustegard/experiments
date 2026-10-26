@@ -64,9 +64,11 @@ lighting a surface from a low angle to show its relief; the light readout gives 
 
 The SVG goes inside as a child, or by URL with `src` (an SVG, or an image that uses brightness for height).
 Attributes: `preset` (gallery, raking, golden hour, overcast, letterpress, studio) and `material` (paper,
-satin, enamel, metal, clay) set the starting point. `elevation`, `step`, `bevel`, `profile`, `grain`,
+satin, enamel, metal, clay) set the starting point. `lighting` takes the same setup names and swaps in
+only that setup's lights, ambient light, sky and exposure, so `preset="letterpress" lighting="golden hour"`
+keeps the pressed paper and lights it low and warm. `lights` also accepts a setup name. `elevation`, `step`, `bevel`, `profile`, `grain`,
 `grain-size`, `deboss`, `roughness`, `metal`, `specular`, `ambient`, `sky`, `exposure` and a `lights` JSON
-array override it. `wall` defaults to `transparent`, which keeps only the shadows so the element sits on any
+array override it. Copy embed code writes `lighting="…"` while the lights still match the chosen setup, and the full `lights` JSON once you move or change one. `wall` defaults to `transparent`, which keeps only the shadows so the element sits on any
 background; give it a colour for a solid wall. `light` is `pointer` (the key light follows the cursor
 anywhere on the page), `tilt` (phone orientation), `orbit` or `fixed`. `margin` sets the room left for
 shadows, as a fraction of the picture's long side (default 0.1).
@@ -86,7 +88,7 @@ their own alpha.
 `test/render.js` loads the page in headless Chromium on SwiftShader (a software GPU) and renders each
 sample under one setup through the real canvas path. It fails on any console error or if the page falls
 back from WebGPU. `test/embed.js` loads `test/embed.html`, with three elements: inline SVG on a
-transparent wall, `src=` with a fixed light, and a solid wall with an orbiting light. It moves the pointer,
+transparent wall, `src=` with a fixed light and `lighting=` taken from a different setup (checked), and a solid wall with an orbiting light. It moves the pointer,
 checks that all three draw, and checks that `toBlob()` returns a PNG (`test/embed.png`). Run both from a server rooted at
 `raking-light/`. It makes no pixel assertions; the four screenshots in `test/` were checked by eye. No
 real GPU has run the page yet, so browser support (Chrome, Edge and Safari 26 ship WebGPU) and frame rate
