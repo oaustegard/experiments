@@ -1,0 +1,68 @@
+{
+ "ndcg": {
+  "1.5M>1.5M": 0.59,
+  "1.5M>27M": 0.004,
+  "1.5M>115M": 0.004,
+  "27M>1.5M": 0.003,
+  "27M>27M": 0.619,
+  "27M>115M": 0.002,
+  "115M>1.5M": 0.005,
+  "115M>27M": 0.003,
+  "115M>115M": 0.642,
+  "1.5M*map>115M": 0.086,
+  "27M*map>115M": 0.444
+ },
+ "align": {
+  "1.5M~27M": -0.013,
+  "1.5M~115M": -0.009,
+  "27M~115M": 0.003
+ },
+ "card": {
+  "1.5M": 0.591,
+  "27M": 0.619,
+  "115M": 0.643
+ },
+ "encode": {
+  "cpu_1.5M_docs_per_s": 217,
+  "cpu_1.5M_seconds": 261.3,
+  "n_docs": 56723,
+  "l4_27M_docs_per_s": 576,
+  "l4_115M_docs_per_s": 194,
+  "l4_27M_seconds": 98.5,
+  "l4_115M_seconds": 292.8
+ },
+ "mac": {
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "1.5M_query_ms": 0.464,
+  "27M_query_ms": 0.963,
+  "1.5M_query_ms_tiled": 0.731,
+  "27M_query_ms_tiled": 2.086,
+  "1.5M_q16_ms": 0.67,
+  "27M_q16_ms": 3.92,
+  "1.5M_tokens_per_s": 1161965,
+  "27M_tokens_per_s": 174497,
+  "1.5M_docs_per_s": 3699.4,
+  "27M_docs_per_s": 555.6,
+  "27M_tokens_per_s_template": 130702,
+  "parity_min_cos": 0.9999999999929852,
+  "eg2_cut_short_ms": 0.95,
+  "eg2_cut_near32_ms": 0.997,
+  "eg2_cut_long_ms": 2.135,
+  "ettin_short_ms": 0.812,
+  "ettin_near32_ms": 0.667,
+  "ettin_long_ms": 1.105
+ },
+ "iphone": {
+  "ua": "iPhone, iOS 27.0.1, Chrome for iOS 155 (WebKit WebGPU), from the bridge status at the time",
+  "1.5M_query_ms": 3,
+  "27M_query_ms": 5,
+  "1.5M_parity_min_cos": 0.9958,
+  "27M_parity_min_cos": 1.0,
+  "1.5M_tokens_per_s_template": 87022,
+  "27M_tokens_per_s_template": 8122
+ },
+ "weights_mb_f32": {
+  "1.5M": 5.9,
+  "27M": 108.5
+ }
+}

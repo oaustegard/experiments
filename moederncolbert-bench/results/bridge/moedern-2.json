@@ -1,0 +1,98 @@
+{
+ "id": "moedern-2",
+ "status": "done",
+ "startedAt": 1793025779504,
+ "finishedAt": 1793025800055,
+ "runMs": 12043.800000011921,
+ "logs": [
+  "1.5M/tiled {\"initMs\":90,\"weightMB\":5.937792,\"parityMinCos\":0.9999999999936356,\"rowsBelow09999\":0,\"rows\":20614,\"queryMs\":0.906,\"q16Ms\":0.88,\"docPassMs\":19.6,\"docsPerSec\":3265.3,\"tokensPerSec\":1025612,\"nDocs\":64,\"docTokens\":20102,\"nBatches\":3}",
+  "1.5M/template {\"initMs\":41,\"weightMB\":5.937792,\"parityMinCos\":0.9999999999929852,\"rowsBelow09999\":0,\"rows\":20614,\"queryMs\":0.467,\"q16Ms\":0.73,\"docPassMs\":21,\"docsPerSec\":3047.6,\"tokensPerSec\":957238,\"nDocs\":64,\"docTokens\":20102,\"nBatches\":3}",
+  "27M/tiled {\"initMs\":239,\"weightMB\":108.496,\"parityMinCos\":0.9999999999945128,\"rowsBelow09999\":0,\"rows\":20614,\"queryMs\":2.08,\"q16Ms\":3.74,\"docPassMs\":113.7,\"docsPerSec\":562.9,\"tokensPerSec\":176799,\"nDocs\":64,\"docTokens\":20102,\"nBatches\":3}",
+  "27M/template {\"initMs\":207,\"weightMB\":108.496,\"parityMinCos\":0.9999999999973155,\"rowsBelow09999\":0,\"rows\":20614,\"queryMs\":0.886,\"q16Ms\":3.67,\"docPassMs\":150.8,\"docsPerSec\":424.4,\"tokensPerSec\":133302,\"nDocs\":64,\"docTokens\":20102,\"nBatches\":3}"
+ ],
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 6,
+ "outputs": {
+  "adapter": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "description": ""
+  },
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "cfg": {
+   "sha": "d0c654e6424bfd45e3cfbb05356e229396cddb73",
+   "reps": 10,
+   "rounds": 5,
+   "docTokens": 8192,
+   "kernels": [
+    "tiled",
+    "template"
+   ]
+  },
+  "models": {
+   "1.5M/tiled": {
+    "initMs": 90,
+    "weightMB": 5.937792,
+    "parityMinCos": 0.9999999999936356,
+    "rowsBelow09999": 0,
+    "rows": 20614,
+    "queryMs": 0.906,
+    "q16Ms": 0.88,
+    "docPassMs": 19.6,
+    "docsPerSec": 3265.3,
+    "tokensPerSec": 1025612,
+    "nDocs": 64,
+    "docTokens": 20102,
+    "nBatches": 3
+   },
+   "1.5M/template": {
+    "initMs": 41,
+    "weightMB": 5.937792,
+    "parityMinCos": 0.9999999999929852,
+    "rowsBelow09999": 0,
+    "rows": 20614,
+    "queryMs": 0.467,
+    "q16Ms": 0.73,
+    "docPassMs": 21,
+    "docsPerSec": 3047.6,
+    "tokensPerSec": 957238,
+    "nDocs": 64,
+    "docTokens": 20102,
+    "nBatches": 3
+   },
+   "27M/tiled": {
+    "initMs": 239,
+    "weightMB": 108.496,
+    "parityMinCos": 0.9999999999945128,
+    "rowsBelow09999": 0,
+    "rows": 20614,
+    "queryMs": 2.08,
+    "q16Ms": 3.74,
+    "docPassMs": 113.7,
+    "docsPerSec": 562.9,
+    "tokensPerSec": 176799,
+    "nDocs": 64,
+    "docTokens": 20102,
+    "nBatches": 3
+   },
+   "27M/template": {
+    "initMs": 207,
+    "weightMB": 108.496,
+    "parityMinCos": 0.9999999999973155,
+    "rowsBelow09999": 0,
+    "rows": 20614,
+    "queryMs": 0.886,
+    "q16Ms": 3.67,
+    "docPassMs": 150.8,
+    "docsPerSec": 424.4,
+    "tokensPerSec": 133302,
+    "nDocs": 64,
+    "docTokens": 20102,
+    "nBatches": 3
+   }
+  }
+ }
+}

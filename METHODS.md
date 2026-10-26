@@ -1363,6 +1363,13 @@ the result.
   reversed points: 0.000% uncovered even with no stroke, and a smaller file. Same
   idea as TopoJSON / mapshaper arcs. (`svg-in-browser/`)
 
+- **The GPU bridge cannot tell an iPhone from a Mac by its adapter, and its worker caches a failed
+  module import.** WebGPU reports every Apple GPU as `apple apple apple`; a 2026-10-26 run read as Mac
+  timing was an iPhone (5–16× slower). Bridge page v6 writes `device` and `ua` into each
+  `result.json`: name the device next to any number. Separately, a dynamic `import()` that failed once
+  (a transient jsDelivr 403) fails again for the same URL in the persistent worker; resubmit at another
+  commit sha with the same code. (`moederncolbert-bench/RESULTS.md` log round 2)
+
 ## Numerical / ML gotchas
 
 - **Canvas `drawImage` is not an image-model resize.** Chromium's 2D canvas downscales
@@ -2760,6 +2767,20 @@ the result.
   matched the floats on Bernoulli-score retrieval (−0.011 [−0.031, +0.009] nDCG@10) and cost
   0.043 micro-AP; 3 uniform bits cost 0.053 and 0.080. A threshold decision at 0.5 needs only the
   sign bit, and F1 at 0.5 was identical under every code. (`jev-tag-encoder/quant_eval.py`)
+
+- **Model families with one tokenizer and one head width need not share a vector space; measure it
+  before mixing sizes.** SauerkrautLM-MoEdernColBERT 1.5M/27M/115M share tokenizer and 128-d head, and
+  every mixed query/document pair scores at chance on NanoBEIR (0.002–0.005 vs 0.59–0.64). With a shared
+  tokenizer the check is one line: cosine of the same document token row across sizes (≈0 here).
+  An orthogonal map recovers 27M→115M only to 0.444. (`moederncolbert-bench/RESULTS.md` findings 1–3)
+- **A top-k MoE router makes cross-device parity a near-tie lottery.** MoEdernColBERT-1.5M has a
+  top-2/top-3 router gap of 5.6e-8 on one of 41k fixture tokens; the same WGSL engine is at cosine 1.0
+  on Metal and SwiftShader and 0.9958 min on an iPhone. Report per-row counts, and check router margins
+  before chasing a kernel bug. (`moederncolbert-bench/RESULTS.md` finding 6)
+- **sentence-transformers 6.2 `preprocess(task="query")` omits a legacy ColBERT marker that
+  `encode_query` inserts.** For PyLate-era checkpoints with `query_prefix: "[Q] "`, build reference
+  inputs through `encode_query`/`encode_document`, not `preprocess`; MoEdernColBERT's forward also keys
+  full query attention on that marker. (`moederncolbert-bench/RESULTS.md` finding 8)
 
 ## Cache and measurement hygiene
 
