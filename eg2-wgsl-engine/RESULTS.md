@@ -152,3 +152,9 @@ The shaders and the forward pass did not change.
   `bsky/image-search/model/ort/` (same shapes, retrained), against which the engine and onnxruntime
   CPU both gave 0.90 to 0.98 to the old fixture. `bench.js` and `side.html` point at that directory,
   since the site's `model/` now holds the rhq build.
+- Real GPU (GPU bridge job `wgsl-ab-1`, Oskar's Mac, Apple adapter, `gpu-bridge/jobs/wgsl-ab/job.js`):
+  old engine (a4391046) and new (8d3926f7) loaded side by side, every output vector identical (max
+  |difference| 0). Per short query, readback included: cut 4 ms vs 4 ms, Ettin-17m 2 vs 2, full EG2
+  19 vs 19.25; at 118 tokens the full model 121 vs 126 ms. The worker's `performance.now()` resolves
+  to about 1 ms, so the small models' numbers carry no finer difference, and they read higher than
+  round 1's 0.7 ms page bench for the same reason plus the worker context.
