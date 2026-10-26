@@ -132,6 +132,10 @@ class MoEdernColBERT:
 
     @torch.no_grad()
     def forward(self, ids, amask):
+        return self.forward_grad(ids, amask)
+
+    def forward_grad(self, ids, amask):
+        """forward() with autograd on, for run/distill.py."""
         w = self.w
         x = w["embeddings.hash_embeddings.weight"][ids] @ w["embeddings.projection.weight"].T
         x = F.layer_norm(x, (self.H,), w["embeddings.norm.weight"], w["embeddings.norm.bias"], 1e-5)
