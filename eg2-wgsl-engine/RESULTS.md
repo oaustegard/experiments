@@ -22,7 +22,8 @@ onnxruntime-web as a fallback downloads the weights only once.
 
 The same engine also runs the full 24-layer EmbeddingGemma 2 (`model_q4.onnx`, 174 MB), again at
 cosine 1 to onnxruntime CPU in headless Chromium. <!-- @evidence[[results/check_swiftshader_full.json#wgsl.cos_single_min]] -->
-Its speed on a real GPU has not been measured yet.
+On the Mac it takes 3.5 ms for a short query and 9.8 ms at 118 tokens (GPU bridge job `wgsl-ab-9`).
+Both now run on the shared kernels in `_lib/wgsl/` at unchanged speed.
 
 Two things could change this: a GPU that is not Apple's, or Safari. Neither has been measured.
 
@@ -152,9 +153,45 @@ The shaders and the forward pass did not change.
   `bsky/image-search/model/ort/` (same shapes, retrained), against which the engine and onnxruntime
   CPU both gave 0.90 to 0.98 to the old fixture. `bench.js` and `side.html` point at that directory,
   since the site's `model/` now holds the rhq build.
-- Real GPU (GPU bridge job `wgsl-ab-1`, Oskar's Mac, Apple adapter, `gpu-bridge/jobs/wgsl-ab/job.js`):
-  old engine (a4391046) and new (8d3926f7) loaded side by side, every output vector identical (max
-  |difference| 0). Per short query, readback included: cut 4 ms vs 4 ms, Ettin-17m 2 vs 2, full EG2
-  19 vs 19.25; at 118 tokens the full model 121 vs 126 ms. The worker's `performance.now()` resolves
-  to about 1 ms, so the small models' numbers carry no finer difference, and they read higher than
-  round 1's 0.7 ms page bench for the same reason plus the worker context.
+- Real GPU, iPhone (GPU bridge job `wgsl-ab-1`, adapter "apple", `gpu-bridge/jobs/wgsl-ab/job.js`;
+  first recorded here as Oskar's Mac, which it was not): old engine (a4391046) and new (8d3926f7)
+  loaded side by side, every output vector identical (max |difference| 0). Per short query, readback
+  included: cut 4 ms vs 4 ms, Ettin-17m 2 vs 2, full EG2 19 vs 19.25; at 118 tokens the full model 121
+  vs 126 ms. The worker's `performance.now()` resolves to about 1 ms there.
+- Real GPU, Mac (job `wgsl-ab-4`, Chrome 155, adapter "apple metal-3"), phase 0 vs phase 1: identical
+  vectors; per short query cut 0.725 vs 0.70 ms, Ettin-17m 0.6 vs 0.6, full EG2 3.2 vs 3.2.
+
+### Round 4, 2026-10-26: kernel templates and weight formats
+
+Phase 2 moved the matmul, norm, attention, pool and L2 shaders out of both engines into
+`_lib/wgsl/kernels.js`: one matmul template with q4 (MatMulNBits), int8 and f32 weight-format plugins,
+and norm and attention templates generated per shape (hidden size, head dim, residual mode) the first
+time an engine records a step that needs them. Each engine keeps only the shaders unique to it (EG2:
+embedding lookups, `prep`, `gelumul`; Ettin: embedding, rope, GLU).
+
+- SwiftShader: `run/check.py` (cut), `ettin-native/run/check_wgsl.py` (Ettin t4/t3, leaf-ir) at cosine
+  1, as before.
+- The first version (a67f614b) took D and the head dim as runtime uniforms. On the Mac (`wgsl-ab-3`)
+  that cost EG2: per short query cut 0.7 to 0.8 ms, full 3.2 to 3.5. Per-kernel timing (`wgsl-kern-1`,
+  `gpu-bridge/jobs/wgsl-kernels/job.js`) put it on norm (+22% cut, +32% full) and attention (+4%).
+  The same build on the iPhone (`wgsl-ab-2`) showed no change.
+- Shape-specialized variants (1b0dc82f) fixed it. Mac, Chrome 155, "apple metal-3", phase 1 (8d3926f7)
+  vs this build:
+
+  | | phase 1 | phase 2 |
+  |---|---|---|
+  | `wgsl-ab-9`, ms per query, cut short / 118 tok | 0.8 / 2.1 | 0.8 / 1.9 |
+  | Ettin-17m short / 128 tok | 0.7 / 1.0 | 0.7 / 0.9 |
+  | full EG2 short / 118 tok | 3.4 / 10.8 | 3.5 / 9.8 |
+  | `wgsl-kern-4`, ms per 16-tok forward, norm cut / full | 0.105 / 0.527 | 0.091 / 0.475 |
+  | attention cut / Ettin / full | 0.060 / 0.080 / 0.352 | 0.051 / 0.058 / 0.286 |
+  | matmul cut / Ettin / full | 0.356 / 0.190 / 1.830 | 0.343 / 0.181 / 1.882 |
+
+  Max |difference| between the two builds' vectors is under 1e-7. The phase gate (no more than 5%
+  slower on Metal) passes: the one slower number, full EG2 short 3.4 to 3.5 ms, is one step of the
+  0.1 ms timer.
+- Bridge gotcha: the bridge page's module loader remembers a failed `import()` for the page's
+  lifetime, and jsDelivr 403s a commit it has not yet fetched from GitHub. A job submitted seconds
+  after a push failed, and every rerun at the same URL failed with it. A short-sha URL (a new module
+  URL for the same commit) loaded; the job now reads data files from the older sha.
+

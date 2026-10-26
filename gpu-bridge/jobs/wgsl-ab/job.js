@@ -20,7 +20,7 @@ const json = async (url) => JSON.parse(new TextDecoder().decode(await bytes(url)
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
 
 // queries come from the newer sha's fixtures; their ids do not depend on the engine
-const q = cfg.b;
+const q = cfg.data ?? cfg.a; // manifests and fixtures; engine modules load from cfg.a and cfg.b
 const models = [
   { name: "eg2-cut", file: "eg2-wgsl-engine/web/engine.js", cls: "Eg2Engine",
     manifest: `${GH}${q}/eg2-wgsl-engine/web/manifest.json`, data: `${SITE}image-search/model/ort/model_t3w.onnx_data`,

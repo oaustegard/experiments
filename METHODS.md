@@ -1374,7 +1374,10 @@ the result.
   timing was an iPhone (5–16× slower). Bridge page v6 writes `device` and `ua` into each
   `result.json`: name the device next to any number. Separately, a dynamic `import()` that failed once
   (a transient jsDelivr 403) fails again for the same URL in the persistent worker; resubmit at another
-  commit sha with the same code. (`moederncolbert-bench/RESULTS.md` log round 2)
+  commit sha with the same code, or the same commit under a short sha (`@1b0dc82f300`). A plain `fetch`
+  that got that 403 kept getting it from the Mac for minutes after curl saw 200, so read data files from a
+  sha the CDN already served. (`moederncolbert-bench/RESULTS.md` log round 2, `eg2-wgsl-engine/RESULTS.md`
+  log round 4)
 
 ## Numerical / ML gotchas
 
