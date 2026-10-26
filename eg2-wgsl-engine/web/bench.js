@@ -3,7 +3,8 @@
 // so tokenization is out of the measurement. Params: ?model=<dir with model_t3w.onnx[_data]>,
 // &reps=N, &time=0 for parity only, &ort=0 to skip onnxruntime-web, &auto=1 to run on load (the headless check uses it).
 // ?full=1 runs the full 24-layer model instead (manifest_full.json, queries_full.json), whose
-// 174 MB model_q4.onnx_data comes from Hugging Face unless ?model= names another directory.
+// 174 MB model_q4.onnx_data comes from Hugging Face unless ?model= names another directory, and
+// the comparison arm is transformers.js on WebGPU (the image-search page's full-model path).
 import { Eg2Engine } from "./engine.js";
 
 const P = new URLSearchParams(location.search);
@@ -11,8 +12,10 @@ const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
 const FULL = P.get("full") === "1";
 const HF_FULL = "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/onnx/";
 const MODEL = new URL(P.get("model") || (FULL ? (location.hostname.endsWith("austegard.com") ? HF_FULL : "../out/full/")
-  : (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/ort/" : "../out/model/")), location.href);
+  : (location.hostname.endsWith("austegard.com") ? "/bsky/image-search/model/ort/" : "../out/model/ort/")), location.href);
 const SFX = FULL ? "_full" : "";
+const HF_ID = "onnx-community/embeddinggemma-2-ONNX";
+const TJS = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1"; // the image-search page's version
 const REPS = +(P.get("reps") || 20);
 const $ = (id) => document.getElementById(id);
 const status = (t, bad = false) => { $("status").textContent = t; $("status").className = bad ? "bad" : ""; };
@@ -72,36 +75,64 @@ async function run() {
       res.wgsl.ms_batch12 = await time(() => eng.embed(ids));
     }
 
-    if (P.get("ort") !== "0") {
-      status("onnxruntime-web: loading…");
-      const ort = await import(ORT + "ort.webgpu.min.mjs");
-      ort.env.wasm.wasmPaths = ORT;
-      for (const ep of ["webgpu", "wasm"]) {
-        status(`onnxruntime-web ${ep}: session…`);
+    // A comparison arm: vec(ids) -> Float32Array. A failure is recorded and the bench goes on.
+    const arm = async (key, label, load) => {
+      status(`${label}: loading…`);
+      try {
         t0 = performance.now();
-        const session = await ort.InferenceSession.create(graph, {
-          executionProviders: [ep], logSeverityLevel: 3, externalData: [{ path: manifest.data, data }] });
-        const r = res["ort_" + ep] = { init_ms: round(performance.now() - t0, 1) };
-        const media = FULL ? Object.fromEntries(["image", "video", "audio"].map((k) =>
-          [`${k}_features`, new ort.Tensor("float32", new Float32Array(0), [0, 512])])) : {};
-        const feed = (x) => ({
-          input_ids: new ort.Tensor("int64", BigInt64Array.from(x, BigInt), [1, x.length]),
-          attention_mask: new ort.Tensor("int64", new BigInt64Array(x.length).fill(1n), [1, x.length]), ...media });
-        const vec = async (x) => new Float32Array((await session.run(feed(x)))[FULL ? "sentence_embedding" : "embedding"].data);
+        const { vec, release } = await load();
+        const r = res[key] = { init_ms: round(performance.now() - t0, 1) };
         const vs = [];
         for (const x of ids) vs.push(await vec(x));
         r.cos_single_min = round(Math.min(...vs.map((v, i) => cos(v, ref[i]))), 7);
-        status(`onnxruntime-web ${ep}: timing…`);
+        status(`${label}: timing…`);
         r.ms_per_query = [];
         for (const x of ids) r.ms_per_query.push({ tokens: x.length, ...(await time(() => vec(x))) });
-        await session.release();
+        await release?.();
+      } catch (e) {
+        res[key] = { error: String(e?.message || e) };
+      }
+    };
+    if (P.get("ort") !== "0" && FULL) {
+      // onnxruntime-web 1.30 has no GatherBlockQuantized kernel for this graph's 4-bit token table;
+      // transformers.js bundles its own onnxruntime build, and it is what the image-search page uses.
+      await arm("tjs_webgpu", "transformers.js WebGPU", async () => {
+        const T = await import(TJS);
+        const config = await T.AutoConfig.from_pretrained(HF_ID);
+        config.vision_config = config.audio_config = null;
+        const model = await T.AutoModel.from_pretrained(HF_ID, { config, device: "webgpu", dtype: "q4" });
+        const vec = async (x) => {
+          const shape = [1, x.length];
+          const out = await model({ input_ids: new T.Tensor("int64", BigInt64Array.from(x, BigInt), shape),
+                                    attention_mask: new T.Tensor("int64", new BigInt64Array(x.length).fill(1n), shape) });
+          return new Float32Array(out.sentence_embedding.data);
+        };
+        return { vec, release: () => model.dispose?.() };
+      });
+    } else if (P.get("ort") !== "0") {
+      const ort = await import(ORT + "ort.webgpu.min.mjs");
+      ort.env.wasm.wasmPaths = ORT;
+      for (const ep of ["webgpu", "wasm"]) {
+        await arm("ort_" + ep, `onnxruntime-web ${ep}`, async () => {
+          const session = await ort.InferenceSession.create(graph, {
+            executionProviders: [ep], logSeverityLevel: 3, externalData: [{ path: manifest.data, data }] });
+          const vec = async (x) => {
+            const shape = [1, x.length];
+            const out = await session.run({ input_ids: new ort.Tensor("int64", BigInt64Array.from(x, BigInt), shape),
+                                            attention_mask: new ort.Tensor("int64", new BigInt64Array(x.length).fill(1n), shape) });
+            return new Float32Array(out.embedding.data);
+          };
+          return { vec, release: () => session.release() };
+        });
       }
     }
-    const typical = (k) => res[k] && round(median(res[k].ms_per_query.filter((q) => q.tokens <= 20).map((q) => q.median)));
+    const typical = (k) => res[k]?.ms_per_query && round(median(res[k].ms_per_query.filter((q) => q.tokens <= 20).map((q) => q.median)));
     res.summary = { wgsl_ms: typical("wgsl"), ort_webgpu_ms: typical("ort_webgpu"), ort_wasm_ms: typical("ort_wasm"),
+                    tjs_webgpu_ms: typical("tjs_webgpu"),
                     note: "median over the 10 queries of <= 20 tokens of each query's median ms, readback included" };
     res.phase = "done";
-    status(`done: WGSL ${res.summary.wgsl_ms} ms, ORT-web WebGPU ${res.summary.ort_webgpu_ms ?? "–"} ms, wasm ${res.summary.ort_wasm_ms ?? "–"} ms per short query`);
+    status(FULL ? `done: WGSL ${res.summary.wgsl_ms} ms, transformers.js WebGPU ${res.summary.tjs_webgpu_ms ?? "–"} ms per short query`
+      : `done: WGSL ${res.summary.wgsl_ms} ms, ORT-web WebGPU ${res.summary.ort_webgpu_ms ?? "–"} ms, wasm ${res.summary.ort_wasm_ms ?? "–"} ms per short query`);
     render(res);
   } catch (e) {
     res.phase = "error";
@@ -114,9 +145,10 @@ async function run() {
 }
 
 function render(res) {
-  const rows = [["query tokens", "WGSL ms", "ORT WebGPU ms", "ORT wasm ms"]];
-  res.wgsl.ms_per_query.forEach((q, i) => rows.push([q.tokens, q.median, res.ort_webgpu?.ms_per_query[i].median ?? "–", res.ort_wasm?.ms_per_query[i].median ?? "–"]));
-  rows.push(["cos to CPU (min)", res.wgsl.cos_single_min, res.ort_webgpu?.cos_single_min ?? "–", res.ort_wasm?.cos_single_min ?? "–"]);
+  const arms = FULL ? [["tjs_webgpu", "transformers.js WebGPU ms"]] : [["ort_webgpu", "ORT WebGPU ms"], ["ort_wasm", "ORT wasm ms"]];
+  const rows = [["query tokens", "WGSL ms", ...arms.map((a) => a[1])]];
+  res.wgsl.ms_per_query.forEach((q, i) => rows.push([q.tokens, q.median, ...arms.map(([k]) => res[k]?.ms_per_query?.[i].median ?? "–")]));
+  rows.push(["cos to CPU (min)", res.wgsl.cos_single_min, ...arms.map(([k]) => res[k]?.cos_single_min ?? res[k]?.error ?? "–")]);
   $("table").replaceChildren(...rows.map((r, i) => {
     const tr = document.createElement("tr");
     tr.append(...r.map((c) => Object.assign(document.createElement(i ? "td" : "th"), { textContent: c })));
