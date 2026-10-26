@@ -12,9 +12,7 @@ const HF = "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/
 const dev = await ctx.gpu();
 const bytes = async (url) => {
   if (ctx.cache.has(url)) return ctx.cache.get(url);
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${url}: ${r.status}`);
-  const b = new Uint8Array(await r.arrayBuffer());
+  const b = await ctx.fetchBytes(url);   // reports download progress on the page's bar
   ctx.cache.set(url, b);
   return b;
 };
@@ -55,6 +53,7 @@ for (const m of models) {
   }
   const per = { a: m.ids.map(() => []), b: m.ids.map(() => []) };
   for (let r = 0; r < cfg.rounds; r++) {
+    ctx.progress(r / cfg.rounds, `${m.name}: timing round ${r + 1} of ${cfg.rounds}`);
     for (const v of r % 2 ? ["b", "a"] : ["a", "b"]) {
       for (let i = 0; i < m.ids.length; i++) {
         for (let k = 0; k < cfg.reps; k++) {

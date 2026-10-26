@@ -28,7 +28,7 @@ a tap.
 ## Files
 
 - `web/index.html`: the page; `?api=` points it at another API base (the mock).
-- `web/runtime.js`: the worker runtime (`ctx.gpu`, `ctx.compute`, `ctx.cache`, `ctx.log`).
+- `web/runtime.js`: the worker runtime (`ctx.gpu`, `ctx.compute`, `ctx.cache`, `ctx.log`, `ctx.progress`, `ctx.fetchBytes`). A running job shows a bar on the page: the job's own `ctx.progress(f, label)` when it reports one, else elapsed time against the timeout.
 - `run/e2e.js`: end-to-end check. It runs `gpu_bridge.py` submit/status/fetch
   against `run/mockgh.js`, a GitHub REST mock over a local bare repo, with the
   page in headless Chromium on SwiftShader. 2026-10-25: a 1,024-float square

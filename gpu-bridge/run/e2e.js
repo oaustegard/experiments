@@ -37,6 +37,17 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   fs.writeFileSync('bad.js', 'throw new Error("boom")');
   sh('python3', [CLI, 'submit', 'bad.js', '--id', 'bad-1'], env);
   for (const k of [2, 3, 4]) sh('python3', [CLI, 'submit', 'job.js', '--id', `sq-${k}`, '--input', 'a=a.npy', '--input', 'k=@{"n":3}'], env);   // enough jobs that each tab gets several
+  // a job that reports progress: some tab must show it on the job's bar while it runs
+  fs.writeFileSync('prog.js', 'for (let i = 1; i <= 8; i++) { ctx.progress(i / 8, `step ${i} of 8`); await new Promise((r) => setTimeout(r, 500)); } return { ok: 1 };');
+  sh('python3', [CLI, 'submit', 'prog.js', '--id', 'prog-1'], env);
+  let progSeen = null;
+  for (const t1 = Date.now(); !progSeen && Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 200))) {
+    for (const pg of [p, p2]) {
+      const txt = await pg.$$eval('[data-prog] span', (e) => e.map((x) => x.textContent)).catch(() => []);
+      progSeen = progSeen || txt.find((x) => /step \d of 8 · \d+% · /.test(x)) || null;
+    }
+  }
+  console.log('progress bar (want a step label):', progSeen);
   const t0 = Date.now(); let st;
   while (Date.now() - t0 < 120000) { try { st = sh('python3', [CLI, 'status', 'bad-1'], env); } catch (e) { st = e.stdout; if (e.status === 1 && ['sq-2', 'sq-3', 'sq-4'].every((j) => { try { sh('python3', [CLI, 'status', j], env); return true; } catch { return false; } })) break; } await new Promise((r) => setTimeout(r, 1500)); }
   console.log('connNote:', await p.textContent('#connNote'));

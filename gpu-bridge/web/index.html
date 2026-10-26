@@ -58,6 +58,9 @@ section h2 { margin: 0; font-size: 12px; letter-spacing: .07em; text-transform: 
 .job .st { font-size: 12px; justify-self: end; }
 .st.done { color: var(--ok); } .st.error { color: var(--err); } .st.running, .st.queued { color: var(--accent); }
 .job details { grid-column: 1 / -1; }
+.job .prog { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.job progress { width: 100%; height: 8px; accent-color: var(--accent); }
+.job .prog span { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .job summary { cursor: pointer; font-size: 13px; color: var(--muted); }
 .job pre { margin: 6px 0 0; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 220px; overflow: auto;
   font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -107,7 +110,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 4;
+const PAGE_VERSION = 5;
 const TAB = Math.random().toString(36).slice(2, 10);
 const params = new URLSearchParams(location.search);
 const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
@@ -129,6 +132,7 @@ function spawn(extra = "") {
   w.onmessage = (e) => {
     const m = e.data;
     if (m.t === "log") { pending.get(m.id)?.logs.push(m.s); return; }
+    if (m.t === "progress") { const s = seen.get(m.id); if (s) { s.progress = { f: m.f, s: m.s }; tick(); } return; }
     if (m.t === "lost") { gpuInfo = null; setPill(); return; }
     const key = m.id ?? m.t, p = pending.get(key);
     if (p) { pending.delete(key); p.resolve(m); }
@@ -316,6 +320,7 @@ async function process(job) {
   const id = job.id, info = { status: "running", note: job.note, created: job.created, startedAt: Date.now(), logs: [] };
   seen.set(id, info); inflight.add(id); busy = true; setPill(); render();
   const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000);
+  info.timeoutMs = timeoutMs; info.phase = "claiming";
   let claimed;
   try { claimed = await claim(id, timeoutMs + 300000); } catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; }
   if (!claimed) {
@@ -328,10 +333,12 @@ async function process(job) {
     if (job.broken) throw new Error("job.json is not valid JSON: " + job.broken);
     const code = snapshot.has(`jobs/${id}/job.js`) ? await blobText(snapshot.get(`jobs/${id}/job.js`)) : job.code;
     if (typeof code !== "string" || !code.trim()) throw new Error("No code: add jobs/" + id + "/job.js or a code field");
+    info.phase = "downloading inputs"; tick();
     const inputs = await loadInputs(id, job.inputs, snapshot);
+    info.phase = "running"; info.runStartedAt = Date.now(); tick();
     r = await runJob(id, code, inputs, timeoutMs);
   } catch (e) { r = { t: "error", s: String(e.message || e), logs: [] }; }
-  info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || [];
+  info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || []; info.phase = "committing the result"; info.progress = null; tick();
   const files = {};
   const result = { id, status: r.t === "done" ? "done" : "error", startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs,
     logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null, mode, pageVersion: PAGE_VERSION };
@@ -379,10 +386,29 @@ function render() {
   $("#jobs").innerHTML = items.map(([id, s]) => `<li class="job">
       <span class="id">${esc(id)}</span><span class="st ${esc(s.status)}">${esc(s.status)}</span>
       ${s.note ? `<span class="what">${esc(s.note)}</span>` : ""}
+      ${s.status === "running" ? `<div class="prog" data-prog="${esc(id)}"><progress max="1"></progress><span></span></div>` : ""}
       ${s.startedAt ? `<span class="nums">waited ${fmtMs(s.created ? s.startedAt - s.created : null)} · ran ${fmtMs(s.runMs)}</span>` : ""}
       ${s.error || s.logs?.length ? `<details><summary>${s.error ? "Error" : "Log"}</summary><pre>${esc([s.error, ...(s.logs || [])].filter(Boolean).join("\n"))}</pre></details>` : ""}
     </li>`).join("") + (doneBefore ? `<li class="job"><span class="what">${doneBefore} earlier job${doneBefore > 1 ? "s" : ""} already have results in the repo.</span></li>` : "");
+  tick();
 }
+
+// Running jobs' bars, updated in place (a full render would close any open log).
+const fmtClock = (ms) => { const t = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+function tick() {
+  for (const el of document.querySelectorAll("[data-prog]")) {
+    const s = seen.get(el.dataset.prog);
+    if (!s || s.status !== "running") continue;
+    const bar = el.querySelector("progress"), label = el.querySelector("span");
+    const f = s.phase === "running" ? s.progress?.f : null;
+    if (f == null) bar.removeAttribute("value"); else bar.value = f;
+    const what = s.phase === "running" ? (s.progress?.s || "running (this job reports no progress)") : s.phase;
+    const pct = f == null ? "" : ` · ${Math.round(f * 100)}%`;
+    const left = s.timeoutMs ? ` · stops at ${fmtClock(s.timeoutMs)}` : "";
+    label.textContent = `${what}${pct} · ${fmtClock(Date.now() - (s.runStartedAt || s.startedAt))} elapsed${s.phase === "running" ? left : ""}`;
+  }
+}
+setInterval(() => { if (busy) tick(); }, 1000);
 
 async function connect(e) {
   e?.preventDefault();

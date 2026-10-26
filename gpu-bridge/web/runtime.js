@@ -83,7 +83,32 @@ onmessage = async (e) => {
     if (m.src) importScripts(URL.createObjectURL(new Blob([m.src], { type: "text/javascript" })));
     const fn = self.__jobs[id]; delete self.__jobs[id];
     if (typeof fn !== "function") throw new Error("job did not load");
-    const ctx = { inputs: m.inputs, gpu, compute, cache, log, describe, types: TYPES, get device() { return device; } };
+    // progress(f, label): f in [0, 1], or null for "busy, amount unknown"; the page shows it on the job's bar.
+    let lastP = 0;
+    const progress = (f, s = "") => {
+      const now = performance.now();
+      if (f !== 1 && now - lastP < 200) return;   // a few updates a second is plenty for a bar
+      lastP = now;
+      postMessage({ t: "progress", id, f: f == null ? null : Math.max(0, Math.min(1, f)), s: String(s) });
+    };
+    // fetchBytes(url, label): a Uint8Array of the response, reporting download progress as it streams.
+    const fetchBytes = async (url, label = url.split("/").pop()) => {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+      const total = +r.headers.get("content-length") || 0;
+      if (!r.body) return new Uint8Array(await r.arrayBuffer());
+      const parts = []; let got = 0;
+      for (const rd = r.body.getReader(); ;) {
+        const { done, value } = await rd.read();
+        if (done) break;
+        parts.push(value); got += value.length;
+        progress(total ? got / total : null, `downloading ${label}: ${(got / 2 ** 20).toFixed(1)}${total ? " of " + (total / 2 ** 20).toFixed(1) : ""} MiB`);
+      }
+      const out = new Uint8Array(got); let o = 0;
+      for (const x of parts) { out.set(x, o); o += x.length; }
+      return out;
+    };
+    const ctx = { inputs: m.inputs, gpu, compute, cache, log, progress, fetchBytes, describe, types: TYPES, get device() { return device; } };
     const t0 = performance.now();
     const result = await fn(ctx);
     postMessage({ t: "done", id, result, runMs: performance.now() - t0 });
