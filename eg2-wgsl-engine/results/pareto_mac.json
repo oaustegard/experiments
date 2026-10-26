@@ -1,0 +1,95 @@
+{
+ "device": "Mac",
+ "adapter": "apple metal-3",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+ "jobs": [
+  "wgsl-pareto-1",
+  "wgsl-pareto-2"
+ ],
+ "rows": [
+  {
+   "model": "moedern-1.5M",
+   "label": "MoEdernColBERT 1.5M",
+   "hit10": 0.82,
+   "mb": 5.9,
+   "ms": 0.42500000000000004,
+   "ms_runs": [
+    0.383,
+    0.467
+   ],
+   "tokens": 32,
+   "accuracy_source": "moederncolbert-bench/RESULTS.md, round 4 (exact MaxSim, fp16 index)",
+   "pareto": true
+  },
+  {
+   "model": "moedern-27M",
+   "label": "MoEdernColBERT 27M",
+   "hit10": 0.879,
+   "mb": 108.5,
+   "ms": 0.886,
+   "ms_runs": [
+    0.845,
+    0.927
+   ],
+   "tokens": 32,
+   "accuracy_source": "moederncolbert-bench/RESULTS.md, round 4 (exact MaxSim, fp16 index)",
+   "pareto": false
+  },
+  {
+   "model": "leaf-ir",
+   "label": "leaf-ir, tuned",
+   "hit10": 0.942,
+   "mb": 16.1,
+   "ms": 0.9304999999999999,
+   "ms_runs": [
+    1.148,
+    0.713
+   ],
+   "tokens": 16,
+   "accuracy_source": "ettin-native/RESULTS.md (int4 table, 2-bit index)",
+   "pareto": true
+  },
+  {
+   "model": "ettin-17m",
+   "label": "Ettin-17m, tuned",
+   "hit10": 0.918,
+   "mb": 10.2,
+   "ms": 0.645,
+   "ms_runs": [
+    0.643,
+    0.647
+   ],
+   "tokens": 20,
+   "accuracy_source": "ettin-native/RESULTS.md (int4 table, 2-bit index)",
+   "pareto": true
+  },
+  {
+   "model": "eg2-cut",
+   "label": "EG2 4-layer cut",
+   "hit10": 0.907,
+   "mb": 22.7,
+   "ms": 0.8805000000000001,
+   "ms_runs": [
+    0.888,
+    0.873
+   ],
+   "tokens": 14,
+   "accuracy_source": "ettin-native/RESULTS.md (queries EG2's own index)",
+   "pareto": false
+  },
+  {
+   "model": "eg2-full",
+   "label": "EG2 full (q4)",
+   "hit10": 0.918,
+   "mb": 180,
+   "ms": 3.6340000000000003,
+   "ms_runs": [
+    3.588,
+    3.68
+   ],
+   "tokens": 14,
+   "accuracy_source": "ettin-native/RESULTS.md (EG2's own index)",
+   "pareto": false
+  }
+ ]
+}

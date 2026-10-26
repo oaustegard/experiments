@@ -195,3 +195,27 @@ embedding lookups, `prep`, `gelumul`; Ettin: embedding, rope, GLU).
   after a push failed, and every rerun at the same URL failed with it. A short-sha URL (a new module
   URL for the same commit) loaded; the job now reads data files from the older sha.
 
+
+### Round 5, 2026-10-26: speed against accuracy across the encoders
+
+Oskar asked for a speed/accuracy chart. One GPU bridge job (`gpu-bridge/jobs/wgsl-pareto/job.js`, run
+twice: `wgsl-pareto-1`, `-2`, both on the Mac, Chrome 155, "apple metal-3") timed every hand-written
+WGSL encoder at 1b0dc82f on its own real queries of up to 32 tokens, one query per call with
+readback. Accuracy is Bluesky hit@10 from each model's writeup (`run/pareto.py` cites them).
+
+![speed against accuracy](results/pareto_mac.png)
+
+| encoder | ms per query (runs) | hit@10 | download MB |
+|---|---|---|---|
+| MoEdernColBERT 1.5M | 0.43 (0.38, 0.47) | 0.820 | 5.9 |
+| Ettin-17m, tuned | 0.65 (0.64, 0.65) | 0.918 | 10.2 |
+| EG2 4-layer cut | 0.88 (0.89, 0.87) | 0.907 | 22.7 |
+| MoEdernColBERT 27M | 0.89 (0.85, 0.93) | 0.879 | 108.5 |
+| leaf-ir, tuned | 0.93 (1.15, 0.71) | 0.942 | 16.1 |
+| EG2 full, q4 | 3.63 (3.59, 3.68) | 0.918 | 180 |
+
+The frontier is MoEdernColBERT 1.5M, Ettin-17m and leaf-ir. Every encoder but full EG2 answers in under
+1 ms. The EG2 cut is off the frontier for text search but is the only one that queries EG2's own
+index, including the image index. MoEdernColBERT's rows use exact fp32 MaxSim over an fp16 index of
+10.6 KB per post; the others use a 2-bit index of about 200 bytes per post. The two runs differ by
+up to 0.4 ms on leaf-ir, so gaps under about 0.2 ms are noise.
