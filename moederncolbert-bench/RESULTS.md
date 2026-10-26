@@ -58,6 +58,10 @@ Queries closer to the weak sets (multi-hop, duplicate-question, argument) could 
    token vectors (cosine loss, final 0.203 <!-- @evidence[[results/summary.json#/distill/final_loss]] -->). It plateaus by step 6,000 (0.470 <!-- @evidence[[results/summary.json#/distill/step6000]] -->). MS MARCO 0.628 <!-- @evidence[[results/summary.json#/distill/MSMARCO]] --> beats 1.5M
    alone (0.593 <!-- @evidence[[results/summary.json#/distill/self15_MSMARCO]] -->); HotpotQA 0.344 <!-- @evidence[[results/summary.json#/distill/HotpotQA]] --> (1.5M alone 0.871 <!-- @evidence[[results/summary.json#/distill/self15_HotpotQA]] -->) and Quora 0.611 <!-- @evidence[[results/summary.json#/distill/QuoraRetrieval]] --> (0.9 <!-- @evidence[[results/summary.json#/distill/self15_QuoraRetrieval]] -->) collapse.
    One L4 run took 38.5 minutes <!-- @evidence[[results/summary.json#/distill/total_min]] -->, 7.6 of them encoding NanoBEIR with 115M.
+9. **On the project's Bluesky task 1.5M is the weakest model tried.** hit@10 on 1,498 synthetic
+   queries over 61,686 posts: 1.5M 0.82 <!-- @evidence[[results/summary.json#/bsky/1.5M_hit10]] -->, 27M 0.879 <!-- @evidence[[results/summary.json#/bsky/27M_hit10]] -->, against EG2 0.918, the EG2 4-layer cut 0.907,
+   stock leaf-ir 0.889 and tuned Ettin-17m 0.918 (`../ettin-native/RESULTS.md`). Its exact fp16
+   token index takes 10,576 bytes per post <!-- @evidence[[results/summary.json#/bsky/bytes_per_doc]] -->, against 192–264 for the single-vector models' 2-bit codes.
 9. **A pipeline trap in sentence-transformers 6.2.** `encode_query` inserts the `[Q]` marker
    token (id 30000) after `[CLS]`, but `preprocess(task="query")` does not. A reimplementation copied
    from `preprocess` gets cosine ~0.5 per token. The model detects a query by that marker and then
@@ -152,3 +156,25 @@ where the training queries look like the test queries and falls far short elsewh
 to the teacher stops at about 0.80, which points at the query mix or the student's capacity, not the
 step count. Not tried: queries generated from the eval corpora's domains, a MaxSim score loss against 115M
 documents, more layers.
+
+### Round 4 (2026-10-26): the Bluesky task
+
+Oskar asked how 1.5M compares with the models the project has tried. Those were all scored on
+eg2-native-small's Bluesky task, not NanoBEIR, so `run/bsky.py` runs MoEdernColBERT on it:
+61,686 AI-list posts re-fetched with `eg2-query-student/run/hydrate_posts.py` (12 since deleted,
+scored as empty), documents truncated to 128 tokens, the 1,498 synthetic test queries, exact MaxSim
+over fp32 token vectors, stock checkpoints. The other rows come from their own writeups and use
+2-bit remex codes, which cost them about 0.004 against fp32 (leaf-ir 0.893 vs 0.889).
+
+| model | hit@10 | hit@1 | weights MB | index bytes/post | Mac query ms |
+|---|---:|---:|---:|---:|---:|
+| MoEdernColBERT 1.5M | 0.820 [0.800, 0.840] | 0.668 | 5.9 (f32) | 10,576 (fp16) | 0.46 |
+| MoEdernColBERT 27M | 0.879 [0.861, 0.895] | 0.724 | 108.5 (f32) | 10,576 (fp16) | 0.96 |
+| MiniLM (stock) | 0.823 | | 23.7 | <300 (2-bit) | |
+| leaf-ir (stock) | 0.889 | 0.732 | 23.9 | 200 | |
+| EG2 4-layer cut, EG2 index | 0.907 | | 25.4 | 192 | 1.00 |
+| Ettin-17m (distilled, tuned in-domain) | 0.918 | | 10.2 | <300 (2-bit) | 0.67 |
+| EG2 q4 | 0.918 | | ~180 | 192 | |
+
+Posts average 41 tokens. 1.5M encoded them at 1,262 posts/s on 4 CPUs, and exact scoring took
+about 5 minutes per model there.
