@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MoEdernColBERT WGSL check</title>
+<pre id="log">running…</pre>
+<script type="module">
+// Parity of web/engine.js against run/mcb.py on web/fixtures.json, for the model in ?m= (1.5M or 27M).
+// Weights and expected vectors come from ../.work/ (run/fixtures.py), served locally by run/check.py.
+import { MoEdernEngine } from "./engine.js";
+window.result = { phase: "running" };
+const log = (s) => { document.getElementById("log").textContent += "\n" + s; };
+try {
+  const name = new URLSearchParams(location.search).get("m") || "1.5M";
+  const base = `../.work/models/${name}/`;
+  const get = async (u) => new Uint8Array(await (await fetch(u)).arrayBuffer());
+  const [config, model, dense, fx, exp] = await Promise.all([
+    fetch(base + "config.json").then((r) => r.json()), get(base + "model.safetensors"),
+    get(base + "1_Dense/model.safetensors"), fetch("fixtures.json").then((r) => r.json()), get(`../.work/expect_${name}.npy`)]);
+  const hl = new DataView(exp.buffer).getUint16(8, true);
+  const E = new Float32Array(exp.buffer.slice(10 + hl));
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice({ requiredLimits: {
+    maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+  const eng = await MoEdernEngine.create(device, { config, dense }, model, { maxTokens: 4096, maxSeqs: 64 });
+  const seqs = fx.queries.concat(fx.docs);
+  const cos = (a, ao, b, bo) => { let d = 0, x = 0, y = 0; for (let i = 0; i < 128; i++) { d += a[ao + i] * b[bo + i]; x += a[ao + i] ** 2; y += b[bo + i] ** 2; } return d / Math.sqrt(x * y); };
+  let row = 0, minSingle = 1, minBatch = 1;
+  const starts = [];
+  for (const s of seqs) { starts.push(row); row += s.length; }
+  // one sequence per call
+  for (let i = 0; i < seqs.length; i++) {
+    const v = await eng.embed([seqs[i]]);
+    for (let t = 0; t < seqs[i].length; t++) minSingle = Math.min(minSingle, cos(v, t * 128, E, (starts[i] + t) * 128));
+  }
+  // packed batches of up to 4096 tokens
+  let i = 0;
+  while (i < seqs.length) {
+    const batch = []; let n = 0;
+    while (i < seqs.length && n + seqs[i].length <= 4096 && batch.length < 64) { batch.push(i); n += seqs[i].length; i++; }
+    const v = await eng.embed(batch.map((j) => seqs[j]));
+    let o = 0;
+    for (const j of batch) { for (let t = 0; t < seqs[j].length; t++) minBatch = Math.min(minBatch, cos(v, (o + t) * 128, E, (starts[j] + t) * 128)); o += seqs[j].length; }
+  }
+  window.result = { phase: "done", model: name, rows: row, cos_single_min: minSingle, cos_batch_min: minBatch };
+  log(JSON.stringify(window.result));
+} catch (e) {
+  window.result = { phase: "error", error: String(e && e.stack || e) };
+  log(window.result.error);
+}
+</script>
