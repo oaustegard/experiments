@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`raking-light/`](raking-light/README.md) | 2026-10-26 | done — interactive page | [`web/index.html`](raking-light/web/index.html) ([live](https://austegard.com/experiments/raking-light/web/)) + `test/render.js` | Oskar, 2026-10-26: "Inspired by https://lumen.renderg.host let's use SVG and webgpu to transform 'flat' evenly lit content to something more visually striking". SVG paint order read back as layer depth (`v = 1 − 0.8^k`), five WGSL compute passes (layers, edge seeds, jump flood, bevel, normals + horizon AO), GGX lighting with Kelvin point lights and heightfield-marched soft shadows; SVG-filter fallback without WebGPU |
 | [`gpu-bridge/`](gpu-bridge/README.md) | 2026-10-25 | **built, end-to-end on SwiftShader; awaiting the first real-GPU run.** Claude Code sessions push WebGPU jobs to the private repo `gpu-bridge-comms`; this page, open on the laptop, runs them in a persistent worker, commits results (raw `.bin` per array) and comments on a wake PR that resumes the session | [`README.md`](gpu-bridge/README.md) + `web/` ([live](https://austegard.com/experiments/gpu-bridge/web/)) + `run/e2e.js` | Oskar, 2026-10-25: a CCotw session should use a WebGPU session on his laptop to augment the container, then "We could make use of a working repo as a temp folder for comms" |
 | [`xray-glasses/`](xray-glasses/RESULTS.md) | 2026-10-24 | done — interactive page | [`web/index.html`](xray-glasses/web/index.html) ([live](https://austegard.com/fun-and-games/xray-glasses/)) + [`RESULTS.md`](xray-glasses/RESULTS.md) | [#105](https://github.com/oaustegard/experiments/issues/105). Camera X-ray view: MediaPipe Pose (people) or RTMPose-m AP-10K (cats, dogs) drives a template skeleton drawn by WGSL SDF passes. RTMPose with the page's crop and decoder lands 4.1 and 15.3 px from AP-10K ground truth; facing away read from nose world depth (20/20 front, 6/7 back); 3D skull posed by Face Landmarker; iOS 26 importExternalTexture rotation worked around. Phones untested. |
 | [`svg-timeline/`](svg-timeline/README.md) | 2026-10-23 | **done — Starry Night paints itself in one 849 KB / 223 KB gz SVG, no JS: a 99-line timeline compiler (svjeez-style `motion().at().to()` + keyframe interning) drives a derived charcoal underdrawing, paint landing in 76 time-slot groups (size + sweep order), @property night/dawn grades with blurred twinkling stars, and a fall-away. Grouping by slot took headless-Chromium playback from 1–7 fps to 20–55, vs 18–24 for svjeez minecraft.svg; `web/index.html` does it in the browser for any picture (austegard.com/fun-and-games/self-painting.html)** | [`README.md`](svg-timeline/README.md) + `timeline.py` + `build.py` + `starry-timeline.svg` + `web/` | Oskar, 2026-10-23, after svjeez's minecraft.svg: "Build YOUR thing" |
@@ -190,6 +191,14 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `raking-light/` — relighting flat SVG with WebGPU
+
+A single-file page that turns flat SVG into a lit relief. Each painted shape is restyled as white at 20%
+opacity, so the composite value gives how many shapes are stacked at each pixel; compute passes turn that
+into bevelled height, normals and ambient occlusion, and a fragment pass lights it with up to four Kelvin
+point lights and soft shadows marched through the heightfield. Prompted by Lumen's light-to-`box-shadow`
+designer. Verified on SwiftShader only (`test/render.js`); real-GPU frame rate not measured.
 
 ### `xray-glasses/` — camera X-ray view with a fitted skeleton
 
