@@ -28,12 +28,16 @@ a tap.
 ## Files
 
 - `web/index.html`: the page; `?api=` points it at another API base (the mock).
-- `web/runtime.js`: the worker runtime (`ctx.gpu`, `ctx.compute`, `ctx.cache`, `ctx.log`, `ctx.progress`, `ctx.fetchBytes`). A running job shows a bar on the page: the job's own `ctx.progress(f, label)` when it reports one, else elapsed time against the timeout.
+- `web/runtime.js`: the worker runtime (`ctx.gpu`, `ctx.compute`, `ctx.cache`, `ctx.log`, `ctx.progress`, `ctx.fetchBytes`, `ctx.importModule`; the last two retry transient CDN and network failures with backoff). A running job shows a bar on the page: the job's own `ctx.progress(f, label)` when it reports one, else elapsed time against the timeout.
 - `run/e2e.js`: end-to-end check. It runs `gpu_bridge.py` submit/status/fetch
   against `run/mockgh.js`, a GitHub REST mock over a local bare repo, with the
   page in headless Chromium on SwiftShader. 2026-10-25: a 1,024-float square
   job round-tripped exactly, a throwing job came back as an error result, and
-  both posted wake comments.
+  both posted wake comments. 2026-10-26 (page v7) adds: a fetch that 403s twice is retried inside
+  the job, a job whose raw fetch 403s once is rerun and records the try in `attempts`, a job that
+  keeps failing comes back as an error after 2 reruns, `throw new Error("boom")` is not rerun, an
+  open panel stays open across polls, Copy copies the error, and a fresh tab lists every earlier
+  result with its error.
 
 SwiftShader runs here are correctness checks only, not timing (METHODS.md).
 

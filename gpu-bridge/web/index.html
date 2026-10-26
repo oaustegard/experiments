@@ -62,6 +62,10 @@ section h2 { margin: 0; font-size: 12px; letter-spacing: .07em; text-transform: 
 .job progress { width: 100%; height: 8px; accent-color: var(--accent); }
 .job .prog span { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .job summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.job .out { position: relative; }
+.job .copy { position: absolute; top: 6px; right: 6px; padding: 2px 9px; font-size: 12px; background: var(--panel); }
+.job .out pre { padding-right: 64px; }
+.job pre, .kv dd, .note { user-select: text; -webkit-user-select: text; }
 .job pre { margin: 6px 0 0; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 220px; overflow: auto;
   font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
@@ -110,7 +114,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 6;
+const PAGE_VERSION = 7;
 // WebGPU reports only "apple" on every Apple device, so results also carry the user agent and a
 // coarse device class read from it: Apple GPUs on an iPhone and on a Mac differ several-fold.
 function deviceLabel() {
@@ -132,6 +136,10 @@ const store = {
   del(k) { try { localStorage.removeItem("gpubridge:" + k); sessionStorage.removeItem("gpubridge:" + k); } catch {} },
 };
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+// Failures worth rerunning a job for: the fetch or module import failed, a CDN refused or throttled
+// (jsDelivr answers 403 for a minute after a push: wgsl-ab-5..8, 2026-10-26), or the GPU device was lost.
+const TRANSIENT = /failed to fetch|load failed|networkerror|network connection|dynamically imported module|importing a module script|HTTP (403|408|425|429|5\d\d)\b|device (was )?lost/i;
+const RETRY_WAITS = (params.get("retryWaits") || "20000,60000").split(",").map(Number);
 
 // ---------------------------------------------------------------- worker
 let RUNTIME = "", worker = null, mode = null;
@@ -180,7 +188,18 @@ async function runJob(id, code, inputs, timeoutMs) {
 
 // ---------------------------------------------------------------- GitHub
 let cfg = { repo: "", token: "" }, wakePR = undefined;
-async function gh(path, { method = "GET", body, accept = "application/vnd.github+json", etag, as = "json" } = {}) {
+// Retries a failed fetch (no HTTP status: the phone dropped it), 429 and 5xx with backoff. 4xx answers
+// are real and go straight to the caller. A wake comment passes retry: false so it can't post twice.
+async function gh(path, opts = {}) {
+  for (let attempt = 0; ; attempt++) {
+    try { return await gh1(path, opts); }
+    catch (e) {
+      if (opts.retry === false || attempt >= 3 || (e.status && e.status !== 429 && e.status < 500)) throw e;
+      await delay(1000 * 3 ** attempt);
+    }
+  }
+}
+async function gh1(path, { method = "GET", body, accept = "application/vnd.github+json", etag, as = "json" } = {}) {
   const headers = { Authorization: "Bearer " + cfg.token, Accept: accept, "X-GitHub-Api-Version": "2022-11-28" };
   if (etag) headers["If-None-Match"] = etag;
   if (body) headers["Content-Type"] = "application/json";
@@ -194,13 +213,7 @@ async function gh(path, { method = "GET", body, accept = "application/vnd.github
   return { status: res.status, etag: res.headers.get("ETag"), data };
 }
 const R = () => "/repos/" + cfg.repo;
-// A phone browser drops big downloads now and then ("Load failed", no HTTP status): retry those and 5xx.
-async function blobBytes(sha) {
-  for (let attempt = 1; ; attempt++) {
-    try { return new Uint8Array((await gh(`${R()}/git/blobs/${sha}`, { accept: "application/vnd.github.raw+json", as: "buf" })).data); }
-    catch (e) { if (attempt >= 4 || (e.status && e.status < 500)) throw e; await delay(1000 * attempt); }
-  }
-}
+const blobBytes = async (sha) => new Uint8Array((await gh(`${R()}/git/blobs/${sha}`, { accept: "application/vnd.github.raw+json", as: "buf" })).data);
 const blobText = async (sha) => new TextDecoder().decode(await blobBytes(sha));
 
 function b64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
@@ -238,7 +251,7 @@ async function findWakePR() {
 async function wakeSessions(text) {
   if (!$("#wake").checked) return;
   const n = await findWakePR(); if (!n) return;
-  try { await gh(`${R()}/issues/${n}/comments`, { method: "POST", body: { body: text } }); } catch (e) { console.warn("wake comment failed", e); }
+  try { await gh(`${R()}/issues/${n}/comments`, { method: "POST", body: { body: text }, retry: false }); } catch (e) { console.warn("wake comment failed", e); }
 }
 
 // ---------------------------------------------------------------- jobs
@@ -278,6 +291,30 @@ let gpuInfo = null, gpuErr = null, connected = false, busy = false, lastErr = ""
 let etag = null, headSha = null, tree = new Map(), pollTimer = null, pollGen = 0;
 const seen = new Map();   // id -> {status, note, runMs, created, startedAt, error, logs}
 const inflight = new Set();
+// Finished jobs from the branch's commit messages ("gpu-bridge: <id> done|error"), so results from
+// before this tab opened still show, with their error and log loaded from result.json on demand.
+const hist = new Map();   // id -> {status, at, result?, loading?}
+let histLoading = false, histAgain = false;
+async function loadHistory() {
+  if (histLoading) { histAgain = true; return; }   // a result landed mid-fetch: fetch once more after
+  histLoading = true; histAgain = false;
+  try {
+    const r = await gh(`${R()}/commits?sha=${BRANCH}&per_page=100`);
+    for (const c of r.data || []) {
+      const m = /^gpu-bridge: (\S+) (done|error)$/.exec((c.commit?.message || "").split("\n")[0]);
+      if (m && !hist.has(m[1])) hist.set(m[1], { status: m[2], at: Date.parse(c.commit.committer?.date) || 0 });
+    }
+  } catch (e) { console.warn("history", e); }
+  histLoading = false; render();
+  if (histAgain) loadHistory();
+}
+async function loadResult(id) {
+  const h = hist.get(id), sha = tree.get(`results/${id}/result.json`);
+  if (!h || h.result || h.loading || !sha) return;
+  h.loading = true; render();
+  try { h.result = JSON.parse(await blobText(sha)); } catch (e) { h.result = { error: "Could not load result.json: " + e.message }; }
+  h.loading = false; render();
+}
 
 // One poll loop per tab: a reconnect bumps pollGen and the old loop ends at its next tick.
 async function poll(gen) {
@@ -296,16 +333,19 @@ async function poll(gen) {
     if (e.status === 401 || e.status === 404) connected = false;
   }
   setPill(); render();
-  if (connected && gen === pollGen) pollTimer = setTimeout(() => poll(gen), document.hidden ? 15000 : 3000);
+  if (connected && gen === pollGen) pollTimer = setTimeout(() => poll(gen), document.hidden ? 15000 : 5000);
 }
 async function scan() {
+  let newResults = false;
   const jobIds = [...tree.keys()].map((p) => /^jobs\/([^/]+)\/job\.json$/.exec(p)?.[1]).filter(Boolean);
   for (const id of jobIds) {
     const done = tree.has(`results/${id}/result.json`);
     const s = seen.get(id);
     if (!s) seen.set(id, { status: done ? "done" : "queued" });
     else if (done && !inflight.has(id) && s.status !== "done" && s.status !== "error") s.status = "done";   // finished here or in another tab
+    if (done && !hist.has(id) && !inflight.has(id) && !seen.get(id).startedAt) newResults = true;
   }
+  if (newResults) loadHistory();
   if (busy) return;
   const queued = jobIds.filter((id) => !tree.has(`results/${id}/result.json`) && !inflight.has(id));
   if (!queued.length) return;
@@ -336,24 +376,35 @@ async function process(job) {
   try { claimed = await claim(id, timeoutMs + 300000); } catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; }
   if (!claimed) {
     info.status = info.error ? "error" : "taken"; info.note = (job.note ? job.note + " · " : "") + (info.error ? "" : "run by another open bridge tab");
+    if (!info.error) delete info.startedAt;   // not run here: its row shows the other tab's result from history
     inflight.delete(id); busy = false; etag = null; setPill(); render(); return;
   }
-  const snapshot = new Map(tree);
+  const snapshot = new Map(tree), attempts = [];
   let r;
-  try {
-    if (job.broken) throw new Error("job.json is not valid JSON: " + job.broken);
-    const code = snapshot.has(`jobs/${id}/job.js`) ? await blobText(snapshot.get(`jobs/${id}/job.js`)) : job.code;
-    if (typeof code !== "string" || !code.trim()) throw new Error("No code: add jobs/" + id + "/job.js or a code field");
-    info.phase = "downloading inputs"; tick();
-    const inputs = await loadInputs(id, job.inputs, snapshot);
-    info.phase = "running"; info.runStartedAt = Date.now(); tick();
-    r = await runJob(id, code, inputs, timeoutMs);
-  } catch (e) { r = { t: "error", s: String(e.message || e), logs: [] }; }
+  for (let n = 0; ; n++) {
+    try {
+      if (job.broken) throw new Error("job.json is not valid JSON: " + job.broken);
+      const code = snapshot.has(`jobs/${id}/job.js`) ? await blobText(snapshot.get(`jobs/${id}/job.js`)) : job.code;
+      if (typeof code !== "string" || !code.trim()) throw new Error("No code: add jobs/" + id + "/job.js or a code field");
+      info.phase = "downloading inputs"; tick();
+      const inputs = await loadInputs(id, job.inputs, snapshot);
+      info.phase = "running"; info.runStartedAt = Date.now(); info.progress = null; tick();
+      r = await runJob(id, code, inputs, timeoutMs);
+    } catch (e) { r = { t: "error", s: String(e.message || e), logs: [] }; }
+    // Rerun only on network, CDN and lost-device failures; a job's own bug or a timeout is final.
+    const head = r.t === "error" ? String(r.s).split("\n")[0] : "";
+    if (r.t !== "error" || n >= RETRY_WAITS.length || !TRANSIENT.test(head)) break;
+    attempts.push({ at: Date.now(), error: head.slice(0, 500), logs: (r.logs || []).slice(-20) });
+    info.attempts = attempts.length;
+    info.phase = `retry ${n + 1} of ${RETRY_WAITS.length} in ${RETRY_WAITS[n] / 1000} s after: ${head.slice(0, 140)}`; info.runStartedAt = Date.now(); tick();
+    await delay(RETRY_WAITS[n]);
+  }
   info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || []; info.phase = "committing the result"; info.progress = null; tick();
   const files = {};
   const result = { id, status: r.t === "done" ? "done" : "error", startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs,
     logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null,
     device: deviceLabel(), ua: navigator.userAgent, mode, pageVersion: PAGE_VERSION };
+  if (attempts.length) result.attempts = attempts;   // earlier tries that hit a transient failure, oldest first
   if (r.t === "timeout") result.error = `Timed out after ${job.timeoutMs || 120000} ms; the worker was restarted and its cache cleared.`;
   if (r.t === "error") result.error = String(r.s).slice(0, 8000);
   if (r.t === "done") result.outputs = splitOutputs(r.result, id, files);
@@ -361,6 +412,7 @@ async function process(job) {
   try {
     const sha = await commitFiles(files, `gpu-bridge: ${id} ${result.status}`);
     info.status = result.status; info.error = result.error;
+    hist.set(id, { status: result.status, at: info.finishedAt, result });
     await wakeSessions(`gpu-bridge: \`${id}\` ${result.status}${info.runMs != null ? ` in ${Math.round(info.runMs)} ms` : ""} — \`results/${id}/\` at ${sha.slice(0, 7)}`);
   } catch (e) { info.status = "error"; info.error = "Could not commit the result: " + e.message; }
   inflight.delete(id); busy = false; etag = null;   // the next poll refetches the tree and sees the new result
@@ -388,21 +440,56 @@ function renderDevice() {
   ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
 }
 const fmtMs = (x) => x == null ? "–" : x < 10 ? x.toFixed(2) + " ms" : x < 10000 ? Math.round(x) + " ms" : (x / 1000).toFixed(1) + " s";
+const copyText = new Map();   // job id -> what its Copy button copies
+let lastHTML = "";
 function render() {
   const note = $("#jobsNote");
   note.className = lastErr ? "note err" : "note";
   note.textContent = lastErr || (!connected ? "Connect to start listening." : seen.size ? "" : `Listening on ${cfg.repo}. No jobs yet: a session pushes jobs/<id>/job.json and it runs here at once.`);
   note.hidden = !note.textContent;
-  const items = [...seen.entries()].filter(([, s]) => s.status !== "done" || s.startedAt).sort((a, b) => (b[1].startedAt || b[1].created || 0) - (a[1].startedAt || a[1].created || 0)).slice(0, 30);
-  const doneBefore = [...seen.values()].filter((s) => s.status === "done" && !s.startedAt).length;
-  $("#jobs").innerHTML = items.map(([id, s]) => `<li class="job">
-      <span class="id">${esc(id)}</span><span class="st ${esc(s.status)}">${esc(s.status)}</span>
+  const when = (id, s) => s.startedAt || hist.get(id)?.at || s.created || 0;
+  const items = [...seen.entries()].filter(([id, s]) => s.status !== "done" || s.startedAt || hist.has(id)).sort((a, b) => when(b[0], b[1]) - when(a[0], a[1])).slice(0, 40);
+  const shown = new Set(items.map(([id]) => id));
+  const doneBefore = [...seen.entries()].filter(([id, s]) => s.status === "done" && !shown.has(id)).length;
+  copyText.clear();
+  const html = items.map(([id, s]) => {
+    const h = !s.startedAt ? hist.get(id) : null, res = h?.result;
+    const status = h ? h.status : s.status;
+    const error = h ? res?.error : s.error, logs = h ? res?.logs || [] : s.logs || [];
+    const attempts = h ? res?.attempts || [] : null;
+    const device = h ? res?.device : s.startedAt ? deviceLabel() : null;
+    let nums = "";
+    if (s.startedAt) nums = `waited ${fmtMs(s.created ? s.startedAt - s.created : null)} · ran ${fmtMs(s.runMs)}${s.attempts ? ` · ${s.attempts} ${s.attempts > 1 ? "retries" : "retry"}` : ""}`;
+    else if (h) nums = `finished ${h.at ? new Date(h.at).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "earlier"}${res ? ` · ran ${fmtMs(res.runMs)}` : ""}${device ? ` · ${device}` : ""}${res?.attempts?.length ? ` · ${res.attempts.length} ${res.attempts.length > 1 ? "retries" : "retry"}` : ""}`;
+    const tries = (attempts || []).map((a, i) => `try ${i + 1} failed: ${a.error}`);
+    const body = [error, ...tries, ...(logs.length ? ["log:", ...logs] : [])].filter(Boolean).join("\n");
+    if (body) copyText.set(id, [`${id} · ${status}${device ? " · " + device : ""}${s.note ? " · " + s.note : ""}`, body].join("\n"));
+    const label = h && !res ? (h.loading ? "Loading result…" : status === "error" ? "Error" : "Result") : error ? "Error" : "Log";
+    const panel = body ? `<div class="out"><button class="btn copy" type="button" data-copy="${esc(id)}">Copy</button><pre>${esc(body)}</pre></div>` : h && res ? `<p class="note">No error or log lines.</p>` : "";
+    return `<li class="job">
+      <span class="id">${esc(id)}</span><span class="st ${esc(status)}">${esc(status)}</span>
       ${s.note ? `<span class="what">${esc(s.note)}</span>` : ""}
       ${s.status === "running" ? `<div class="prog" data-prog="${esc(id)}"><progress max="1"></progress><span></span></div>` : ""}
-      ${s.startedAt ? `<span class="nums">waited ${fmtMs(s.created ? s.startedAt - s.created : null)} · ran ${fmtMs(s.runMs)}</span>` : ""}
-      ${s.error || s.logs?.length ? `<details><summary>${s.error ? "Error" : "Log"}</summary><pre>${esc([s.error, ...(s.logs || [])].filter(Boolean).join("\n"))}</pre></details>` : ""}
-    </li>`).join("") + (doneBefore ? `<li class="job"><span class="what">${doneBefore} earlier job${doneBefore > 1 ? "s" : ""} already have results in the repo.</span></li>` : "");
+      ${nums ? `<span class="nums">${esc(nums)}</span>` : ""}
+      ${body || h ? `<details data-key="${esc(id)}"${h && !res ? ` data-load="${esc(id)}"` : ""}><summary>${label}</summary>${panel}</details>` : ""}
+    </li>`;
+  }).join("") + (doneBefore ? `<li class="job"><span class="what">${doneBefore} earlier job${doneBefore > 1 ? "s" : ""} already have results in the repo.</span></li>` : "");
+  // Replace the list only when it changed, keeping open panels open: a poll used to rebuild it every
+  // few seconds, which closed every panel and dropped any text selection.
+  if (html !== lastHTML) {
+    const box = $("#jobs"), open = new Set([...box.querySelectorAll("details[open]")].map((d) => d.dataset.key));
+    box.innerHTML = html; lastHTML = html;
+    for (const d of box.querySelectorAll("details")) if (open.has(d.dataset.key)) d.open = true;
+  }
   tick();
+}
+async function copy(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch {   // clipboard API refused (no focus, older Safari): fall back to a selected textarea
+    const t = document.createElement("textarea"); t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.append(t); t.select(); try { document.execCommand("copy"); } finally { t.remove(); }
+  }
+  btn.textContent = "Copied"; setTimeout(() => { btn.textContent = "Copy"; }, 1500);
 }
 
 // Running jobs' bars, updated in place (a full render would close any open log).
@@ -427,7 +514,7 @@ async function connect(e) {
   const token = $("#token").value.trim() || store.get("token") || "", repo = $("#repo").value.trim();
   if (!token || !/^[\w.-]+\/[\w.-]+$/.test(repo)) { $("#connNote").textContent = "Enter owner/repo and a token."; $("#connNote").className = "note err"; return; }
   const wasConnected = connected;
-  cfg = { token, repo }; wakePR = undefined; etag = null; seen.clear(); connected = false;
+  cfg = { token, repo }; wakePR = undefined; etag = null; seen.clear(); hist.clear(); connected = false;
   try {
     const r = await gh(`${R()}`);
     if (!r.data.permissions?.push && r.data.permissions) throw Object.assign(new Error("The token can read this repository but not write to it."), { status: 403 });
@@ -446,7 +533,7 @@ async function connect(e) {
   const gen = ++pollGen;
   commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, device: deviceLabel(), ua: navigator.userAgent, mode, tab: TAB, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
     "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
-  poll(gen);
+  poll(gen); loadHistory();
 }
 
 async function selfTest() {
@@ -478,6 +565,8 @@ $("#connForm").addEventListener("submit", connect);
 $("#forget").addEventListener("click", () => { store.del("token"); connected = false; cfg.token = ""; $("#forget").hidden = true; $("#token").placeholder = "github_pat_…"; $("#connNote").textContent = "Token removed from this browser."; setPill(); render(); });
 $("#selfTest").addEventListener("click", async (e) => { e.target.disabled = true; try { await selfTest(); } finally { e.target.disabled = false; } });
 $("#wakeLock").addEventListener("click", (e) => toggleLock(e.target));
+$("#jobs").addEventListener("click", (e) => { const b = e.target.closest("[data-copy]"); if (b) copy(copyText.get(b.dataset.copy) || "", b); });
+$("#jobs").addEventListener("toggle", (e) => { const d = e.target; if (d.open && d.dataset.load) loadResult(d.dataset.load); }, true);
 
 (async () => {
   setPill(); render();

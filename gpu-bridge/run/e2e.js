@@ -11,7 +11,8 @@ const sh = (cmd, args, env) => execFileSync(cmd, args, { encoding: 'utf8', env: 
   sh('git', ['init', '-q', '--bare', '-b', 'main', 'bare.git']); sh('git', ['clone', '-q', 'bare.git', 'seed']);
   fs.writeFileSync('seed/README.md', 'comms\n'); sh('git', ['-C', 'seed', 'add', '.']); sh('git', ['-C', 'seed', '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'init']); sh('git', ['-C', 'seed', 'push', '-q', 'origin', 'HEAD:main']);
   const api = spawn('node', [MOCK, path.join(S, 'bare.git'), process.env.MOCK_LATENCY_MS || '250'], { stdio: 'inherit' });
-  const web = http.createServer((q, r) => { const f = path.join(WEB, new URL(q.url, 'http://x').pathname.replace(/\/$/, '/index.html')); let buf; try { buf = fs.readFileSync(f); } catch { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': f.endsWith('.js') ? 'text/javascript' : 'text/html' }); r.end(buf); }).listen(8765);
+  const hits = {};   // /flaky/<name>/<n>: answers 403 to the first n requests per name, like jsDelivr right after a push
+  const web = http.createServer((q, r) => { const fl = /^\/flaky\/([\w-]+)\/(\d+)/.exec(q.url); if (fl) { hits[fl[1]] = (hits[fl[1]] || 0) + 1; r.writeHead(hits[fl[1]] <= +fl[2] ? 403 : 200, { 'access-control-allow-origin': '*' }); return r.end('ok'); } const f = path.join(WEB, new URL(q.url, 'http://x').pathname.replace(/\/$/, '/index.html')); let buf; try { buf = fs.readFileSync(f); } catch { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': f.endsWith('.js') ? 'text/javascript' : 'text/html' }); r.end(buf); }).listen(8765);
   const env = { GPU_BRIDGE_REMOTE: path.join(S, 'bare.git'), GPU_BRIDGE_REPO: path.join(S, 'clone') };
   // session side: submit a real WGSL job with an .npy input
   sh('python3', ['-c', 'import numpy as np; np.save("a.npy", np.arange(1,1025,dtype=np.float32))']);
@@ -25,11 +26,11 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] });
   const p = await b.newPage({ viewport: { width: 390, height: 1000 } });
   const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-  await p.goto('http://localhost:8765/?api=http://localhost:8766'); await p.waitForTimeout(2000);
+  await p.goto('http://localhost:8765/?api=http://localhost:8766&retryWaits=1500,1500'); await p.waitForTimeout(2000);
   await p.fill('#token', 'test-token'); await p.click('#connect');
   // a second tab on the same repo: each job must still run exactly once
   const p2 = await b.newPage(); p2.on('pageerror', (e) => errs.push('tab2: ' + e.message));
-  await p2.goto('http://localhost:8765/?api=http://localhost:8766'); await p2.waitForTimeout(1500);
+  await p2.goto('http://localhost:8765/?api=http://localhost:8766&retryWaits=1500,1500'); await p2.waitForTimeout(1500);
   await p2.fill('#token', 'test-token'); await p2.click('#connect');
   await p.evaluate(() => { const f = document.querySelector('#connForm'); f.requestSubmit(); f.requestSubmit(); });   // two connects 4 ms apart in one tab, as on the phone 2026-10-25
   await p.waitForTimeout(1500);   // both tabs listening before any job exists
@@ -40,6 +41,14 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   // a job that reports progress: some tab must show it on the job's bar while it runs
   fs.writeFileSync('prog.js', 'for (let i = 1; i <= 8; i++) { ctx.progress(i / 8, `step ${i} of 8`); await new Promise((r) => setTimeout(r, 500)); } return { ok: 1 };');
   sh('python3', [CLI, 'submit', 'prog.js', '--id', 'prog-1'], env);
+  // transient failures: ctx.fetchBytes retries a 403 inside the job; a raw fetch that 403s once reruns the job;
+  // a job that throws its own error, or keeps getting 403 past the retries, is not masked
+  fs.writeFileSync('flaky.js', 'const b = await ctx.fetchBytes("http://localhost:8765/flaky/fb/2"); return { n: b.length };');
+  sh('python3', [CLI, 'submit', 'flaky.js', '--id', 'flaky-fb'], env);
+  fs.writeFileSync('flaky2.js', 'const r = await fetch("http://localhost:8765/flaky/raw/1"); if (!r.ok) throw new Error("x: HTTP " + r.status); return { ok: 1 };');
+  sh('python3', [CLI, 'submit', 'flaky2.js', '--id', 'flaky-job'], env);
+  fs.writeFileSync('flaky3.js', 'const r = await fetch("http://localhost:8765/flaky/dead/99"); if (!r.ok) throw new Error("x: HTTP " + r.status); return { ok: 1 };');
+  sh('python3', [CLI, 'submit', 'flaky3.js', '--id', 'flaky-dead'], env);
   let progSeen = null;
   for (const t1 = Date.now(); !progSeen && Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 200))) {
     for (const pg of [p, p2]) {
@@ -50,6 +59,26 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   console.log('progress bar (want a step label):', progSeen);
   const t0 = Date.now(); let st;
   while (Date.now() - t0 < 120000) { try { st = sh('python3', [CLI, 'status', 'bad-1'], env); } catch (e) { st = e.stdout; if (e.status === 1 && ['sq-2', 'sq-3', 'sq-4'].every((j) => { try { sh('python3', [CLI, 'status', j], env); return true; } catch { return false; } })) break; } await new Promise((r) => setTimeout(r, 1500)); }
+  for (const t1 = Date.now(); Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 1000))) { try { sh('python3', [CLI, 'status', 'flaky-dead'], env); } catch (e) { if (e.status === 1) break; } }
+  const res = (id) => { try { return JSON.parse(sh('python3', [CLI, 'fetch', id, '--out', path.join(S, 'out-' + id)], env)); } catch (e) { return JSON.parse(e.stdout); } };
+  for (const id of ['flaky-fb', 'flaky-job', 'flaky-dead', 'bad-1']) { const r = res(id); console.log(`${id}: ${r.status} attempts=${(r.attempts || []).length} logs=${JSON.stringify(r.logs)} error=${JSON.stringify((r.error || '').split('\n')[0])}`); }
+  console.log('want: flaky-fb done 0 attempts with 2 retry logs; flaky-job done 1 attempt; flaky-dead error 2 attempts; bad-1 error 0 attempts, message "Error: boom"');
+  // an open panel survives polls, and its Copy button copies the error
+  const pg = (await p.$('details[data-key="bad-1"]')) ? p : p2;
+  await pg.evaluate(() => { document.querySelector('details[data-key="bad-1"]').open = true; });
+  await pg.waitForTimeout(12000);
+  console.log('bad-1 panel still open after 12 s of polls (want true):', await pg.evaluate(() => document.querySelector('details[data-key="bad-1"]')?.open));
+  await pg.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await pg.click('details[data-key="bad-1"] [data-copy]');
+  console.log('copied:', JSON.stringify(await pg.evaluate(() => navigator.clipboard.readText())));
+  // a fresh tab lists earlier results from the commit log and loads one on demand
+  const p3 = await b.newPage(); await p3.goto('http://localhost:8765/?api=http://localhost:8766'); await p3.waitForTimeout(1500);
+  await p3.fill('#token', 'test-token'); await p3.click('#connect'); await p3.waitForTimeout(10000);
+  console.log('fresh tab history:', JSON.stringify(await p3.$$eval('.job', (e) => e.map((x) => x.querySelector('.id')?.textContent + ':' + x.querySelector('.st')?.textContent).slice(0, 12))));
+  await p3.evaluate(() => { const d = document.querySelector('details[data-key="flaky-dead"]'); if (d) d.open = true; }); await p3.waitForTimeout(2000);
+  console.log('fresh tab history, after:', JSON.stringify(await p3.$$eval('.job', (e) => e.map((x) => x.querySelector('.id')?.textContent + ':' + x.querySelector('.st')?.textContent).slice(0, 12))));
+  console.log('fresh tab flaky-dead panel:', JSON.stringify(await p3.evaluate(() => document.querySelector('details[data-key="flaky-dead"]')?.textContent.slice(0, 300))));
+  await p3.screenshot({ path: 'page3.png', fullPage: true });
   console.log('connNote:', await p.textContent('#connNote'));
   let fetchOut; try { fetchOut = sh('python3', [CLI, 'fetch', 'sq-1', '--out', path.join(S, 'out')], env); } catch (e) { fetchOut = e.stdout + e.stderr; }
   const f = JSON.parse(fetchOut);

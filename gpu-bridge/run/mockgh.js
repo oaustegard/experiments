@@ -11,6 +11,7 @@ http.createServer((req, res) => {
       if (req.url === '/__comments') return send(res, 200, comments);
       if (p === '' ) return send(res, 200, { full_name: 'o/r', permissions: { push: true } });
       if (p === '/commits/main') { const sha = git(['rev-parse', 'main']).trim(); if (req.headers['if-none-match'] === `"${sha}"`) { res.writeHead(304, { 'Access-Control-Allow-Origin': '*' }); return res.end(); } return send(res, 200, { sha, commit: { tree: { sha: git(['rev-parse', 'main^{tree}']).trim() } } }, { ETag: `"${sha}"` }); }
+      if (p === '/commits') return send(res, 200, git(['log', '--format=%H%x09%cI%x09%s', '-n', u.searchParams.get('per_page') || '30', 'main']).trim().split('\n').map((l) => { const [sha, date, message] = l.split('\t'); return { sha, commit: { message, committer: { date } } }; }));
       let m;
       if ((m = /^\/git\/trees\/(\w+)$/.exec(p)) && req.method === 'GET') return send(res, 200, { tree: git(['ls-tree', '-r', m[1]]).trim().split('\n').filter(Boolean).map((l) => { const [meta, path] = l.split('\t'); const [, type, sha] = meta.split(' '); return { path, type, sha }; }) });
       if ((m = /^\/git\/blobs\/(\w+)$/.exec(p))) return send(res, 200, git(['cat-file', 'blob', m[1]], { buf: true }));

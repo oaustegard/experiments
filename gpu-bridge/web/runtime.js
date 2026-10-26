@@ -91,10 +91,25 @@ onmessage = async (e) => {
       lastP = now;
       postMessage({ t: "progress", id, f: f == null ? null : Math.max(0, Math.min(1, f)), s: String(s) });
     };
+    // Network and CDN failures are often transient: a fresh commit on jsDelivr answers 403 or fails the
+    // fetch for a minute or so (wgsl-ab-5..8, 2026-10-26). Retry those with backoff and log each retry;
+    // a 404 or any other 4xx fails at once, since that is usually a wrong URL.
+    const transient = (err) => err && (err.status ? err.status === 403 || err.status === 408 || err.status === 425 || err.status === 429 || err.status >= 500
+      : /failed to fetch|load failed|networkerror|network connection|dynamically imported module|importing a module script/i.test(String(err.message || err)));
+    const withRetry = async (what, fn, waits = [2000, 6000, 15000]) => {
+      for (let attempt = 0; ; attempt++) {
+        try { return await fn(attempt); }
+        catch (err) {
+          if (attempt >= waits.length || !transient(err)) throw err;
+          log(`retry ${attempt + 1}/${waits.length} in ${waits[attempt] / 1000} s: ${String(err.message || err).includes(what) ? "" : what + ": "}${err.message || err}`);
+          await new Promise((r) => setTimeout(r, waits[attempt]));
+        }
+      }
+    };
     // fetchBytes(url, label): a Uint8Array of the response, reporting download progress as it streams.
-    const fetchBytes = async (url, label = url.split("/").pop()) => {
+    const fetchBytes = (url, label = url.split("/").pop()) => withRetry(url, async () => {
       const r = await fetch(url);
-      if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+      if (!r.ok) throw Object.assign(new Error(`${url}: HTTP ${r.status}`), { status: r.status });
       const total = +r.headers.get("content-length") || 0;
       if (!r.body) return new Uint8Array(await r.arrayBuffer());
       const parts = []; let got = 0;
@@ -107,12 +122,17 @@ onmessage = async (e) => {
       const out = new Uint8Array(got); let o = 0;
       for (const x of parts) { out.set(x, o); o += x.length; }
       return out;
-    };
-    const ctx = { inputs: m.inputs, gpu, compute, cache, log, progress, fetchBytes, describe, types: TYPES, get device() { return device; } };
+    });
+    // importModule(url): import() with the same retries. A browser may keep a failed module import in its
+    // module map, so a retry adds ?retry=N to get a fresh entry (relative imports inside still resolve).
+    const importModule = (url) => withRetry(url, (attempt) => import(attempt ? url + (url.includes("?") ? "&" : "?") + "retry=" + attempt : url));
+    const ctx = { inputs: m.inputs, gpu, compute, cache, log, progress, fetchBytes, importModule, describe, types: TYPES, get device() { return device; } };
     const t0 = performance.now();
     const result = await fn(ctx);
     postMessage({ t: "done", id, result, runMs: performance.now() - t0 });
   } catch (err) {
-    postMessage({ t: "error", id, s: (err && (err.stack || err.message)) || String(err) });
+    // Safari's err.stack has only the frames, not the message (moedern-1 came back as a bare stack), so send both.
+    const head = err && err.message ? `${err.name || "Error"}: ${err.message}` : String(err), stack = (err && err.stack) || "";
+    postMessage({ t: "error", id, s: stack.includes(head) ? stack : stack ? head + "\n" + stack : head });
   }
 };
