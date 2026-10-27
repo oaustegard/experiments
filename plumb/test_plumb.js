@@ -113,6 +113,21 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   const after = await p.evaluate(() => window.__plumb.piece().t + window.__plumb.stats().score);
   assert(before !== after, 'swipe down hard-drops');
 
+  // Game over plays the funeral march once; Play again goes back to Korobeiniki from the top.
+  await p.evaluate(() => { const P = window.__plumb, g = P.grid();
+    for (let y = 2; y < 22; y++) for (let x = 0; x < 9; x++) g[y][x] = 'Z';
+    P.place('O', 4); P.hardDrop(); });
+  await p.waitForTimeout(300);
+  const d0 = await p.evaluate(() => window.__plumb.music());
+  await p.waitForTimeout(1600);
+  const d1 = await p.evaluate(() => window.__plumb.music());
+  assert(await p.isVisible('#overCard') && d1.song === 'dirge' && d1.playing && d1.bpm === 54 && d1.beats === 19 && d1.scheduled > d0.scheduled,
+    `game over plays the dirge (${d0.scheduled} -> ${d1.scheduled} notes, over card ${await p.isVisible('#overCard')})`);
+  await p.click('#againBtn');
+  await p.waitForTimeout(300);
+  const d2 = await p.evaluate(() => window.__plumb.music());
+  assert(d2.song === 'main' && d2.playing && d2.bpm === 132, `play again returns to Korobeiniki (${JSON.stringify(d2)})`);
+
   assert(errs.length === 0, 'no page errors' + (errs.length ? ': ' + errs.join('; ') : ''));
   if (process.env.SHOT) await p.screenshot({ path: process.env.SHOT });
   await b.close();
