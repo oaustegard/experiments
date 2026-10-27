@@ -79,6 +79,9 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   await p.waitForTimeout(500);
   const st1 = await p.evaluate(() => ({ ...window.__plumb.piece() }));
   assert(st1.y - st0.y >= 5, `tipped 40 degrees past plumb: soft drop (dy ${st1.y - st0.y})`);
+  const vial = await p.evaluate(() => ({ cy: +document.querySelector('#bubble').getAttribute('cy'),
+    band: +document.querySelector('#fastBand').getAttribute('height'), fast: document.querySelector('#tiltRead').textContent }));
+  assert(vial.cy < 22 - 20 / 36 * 11 && vial.band > 0 && /^FAST/.test(vial.fast), `tipped steep: bubble rises into the fast band, readout says FAST (cy ${vial.cy}, ${vial.fast})`);
   await p.evaluate(() => clearInterval(window.__o));
   assert(await p.evaluate(() => document.querySelectorAll('input[switch]').length) === 1, 'haptic switch present for iOS');
 
