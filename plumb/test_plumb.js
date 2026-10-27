@@ -19,6 +19,18 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   await p.click('#plumbBtn');
   assert(await p.evaluate(() => document.querySelector('#overlay').hidden), 'plumb button starts the game');
 
+  // Music: Korobeiniki loop is 64 beats (A A B A, 16 each); notes are being scheduled while playing.
+  const m0 = await p.evaluate(() => window.__plumb.music());
+  await p.waitForTimeout(1200);
+  const m1 = await p.evaluate(() => window.__plumb.music());
+  assert(m1.playing && m1.beats === 64 && m1.scheduled > m0.scheduled + 8 && m1.bpm === 132, `music plays and keeps scheduling (${m0.scheduled} -> ${m1.scheduled} notes)`);
+  await p.keyboard.press('p');
+  const m2 = await p.evaluate(() => window.__plumb.music());
+  await p.waitForTimeout(500);
+  const m3 = await p.evaluate(() => window.__plumb.music());
+  assert(!m2.playing && m3.scheduled === m2.scheduled, 'pause stops scheduling music');
+  await p.click('#resumeBtn');
+
   // Single line clear: fill the floor except four cells, drop a flat I into the gap.
   const r1 = await p.evaluate(() => {
     const P = window.__plumb, g = P.grid();
