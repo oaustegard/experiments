@@ -2,6 +2,12 @@
  "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
  "pages": [
   {
+   "title": "Lantern Eel",
+   "experiment": "lantern-eel",
+   "blurb": "Snake in the deep sea: bioluminescent prey that flees, jellyfish, phasing pearls, combo chains and boost, while the light fades with depth until only your lure shows the way. Tilt, swipe, keys or on-screen arrows",
+   "path": "lantern-eel/index.html"
+  },
+  {
    "title": "Scoop",
    "experiment": "scoop",
    "blurb": "Minesweeper with dog poop: sweep the long grass, bag the heaps, and step in one to set off the whole lawn. A WebGPU reskin of Sounding. Installable PWA",
@@ -88,7 +94,11 @@
   {
    "title": "EG2 query encoder in hand-written WGSL",
    "experiment": "eg2-wgsl-engine",
-   "path": ["eg2-wgsl-engine/web", "_lib/wgsl/runtime.js", "_lib/wgsl/kernels.js"],
+   "path": [
+    "eg2-wgsl-engine/web",
+    "_lib/wgsl/runtime.js",
+    "_lib/wgsl/kernels.js"
+   ],
    "blurb": "Bench: the 4-layer EmbeddingGemma 2 query encoder run by a custom WebGPU engine against onnxruntime-web (WebGPU and wasm) on the same 25 MB model file"
   },
   {
