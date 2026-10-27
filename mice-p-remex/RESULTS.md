@@ -35,6 +35,8 @@ decode latency. The other nine BEIR13 datasets through the authors' pipeline wou
 
 ## Findings
 
+![Bytes per token against pooled nDCG@10 change for each codec](results/pareto.png)
+
 Pooled deltas weight each query once; "mean over datasets" averages the four per-dataset deltas, as the paper's Figure 1 does.
 
 1. **PLAID centroid + remex 2-bit residual (`plaid-rx-2`) removes the 2-bit loss** at 38 B/token (Round 1).
@@ -59,8 +61,8 @@ Pooled deltas weight each query once; "mean over datasets" averages the four per
    Against PLAID 4-bit: +0.002 [-0.008, +0.012]. <!-- @evidence[[results/paired.json#remex-c-2__plaid-4.delta]] -->
    Its ranking agreement is lower (Spearman 0.936 to 0.961), so it trails `plaid-rx-2`.
 5. **At 1 bit (`plaid-rx-1`, 22 B/token, under LateOn's budget) the same codec is level with
-   PLAID 4-bit** (Round 1; FiQA not scored at 1 bit).
-   Paired over 340 queries: +0.009 [-0.002, +0.019]. <!-- @evidence[[results/paired.json#plaid-rx-1__plaid-4.delta]] -->
+   PLAID 4-bit** (Round 1). Pooled against fp32: -0.003 [-0.012, +0.005]. <!-- @evidence[[results/summary.json#pooled.plaid-rx-1.delta]] -->
+   Against PLAID 4-bit: +0.005 [-0.004, +0.015]; FiQA alone is -0.019 [-0.044, +0.005]. <!-- @evidence[[results/paired.json#plaid-rx-1__plaid-4.delta]] -->
 6. **The harness reproduces the paper's uncompressed numbers** (Round 1). nDCG@10
    NFCorpus 0.2512 (paper 0.249), FiQA 0.5249 (0.541), <!-- @evidence[[results/summary.json#nfcorpus.fp32.ndcg10]] -->
    SciFact 0.8544 (0.856). <!-- @evidence[[results/summary.json#scifact.fp32.ndcg10]] -->
@@ -127,7 +129,7 @@ Proxy errors on SciFact, sorted: `plaid-8` 0.001, `plaid-n-4` 0.005, `remex-4` 0
 0.042, `remex-2` 0.075, `plaid-2` 0.082. NFCorpus and FiQA gave the same order to within
 0.004. After scoring, ranking agreement kept the ends of that order (`plaid-rx-2` first
 among the 2-bit arms, `plaid-2` last) and swapped two close pairs: `plaid-rx-1` agrees with
-fp32 better than `remex-c-2` on every dataset it was scored on, and `plaid-4` against
+fp32 better than `remex-c-2` on all four datasets, and `plaid-4` against
 `plaid-n-2` splits two datasets each. Pooled nDCG reversed one pair the proxy and Spearman
 agree on: `plaid-n-2` loses -0.018 and `remex-c-2` -0.007.
 
@@ -152,6 +154,7 @@ agree on: `plaid-n-2` loses -0.018 and `remex-c-2` -0.007.
 |  | plaid-2 | 36 | 0.4406 | -0.0843 [-0.1395, -0.0317] | 0.8934 | 0.741 |
 |  | plaid-4 | 68 | 0.5186 | -0.0062 [-0.0292, +0.0167] | 0.9769 | 0.897 |
 |  | plaid-n-2 | 36 | 0.4853 | -0.0395 [-0.0887, +0.0009] | 0.9708 | 0.862 |
+|  | plaid-rx-1 | 22 | 0.5060 | -0.0188 [-0.0437, +0.0047] | 0.9632 | 0.859 |
 |  | plaid-rx-2 | 38 | 0.5161 | -0.0088 [-0.0258, +0.0044] | 0.9897 | 0.928 |
 |  | remex-c-2 | 34 | 0.5232 | -0.0017 [-0.0305, +0.0252] | 0.9550 | 0.843 |
 | SciDocs (130) | fp32 | 512 | 0.1695 | | | |
@@ -163,7 +166,7 @@ agree on: `plaid-n-2` loses -0.018 and `remex-c-2` -0.007.
 |  | remex-c-2 | 34 | 0.1546 | -0.0149 [-0.0307, +0.0009] | 0.9612 | 0.832 |
 
 Not scored: `plaid-8` and `remex-2` on any dataset (SciFact's job hit its 2 h limit after
-six arms); `plaid-n-4` except on NFCorpus; `plaid-rx-1` on FiQA; ArguAna entirely, whose
+six arms); `plaid-n-4` except on NFCorpus; ArguAna entirely, whose
 SPLADE run exists in `cache/runs/`.
 
 Reading at the time: SciFact's 41 queries could not separate any arm (every CI about

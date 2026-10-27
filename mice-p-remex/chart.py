@@ -8,9 +8,10 @@ import json
 from pathlib import Path
 
 import matplotlib
+import matplotlib.ticker
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
 HERE = Path(__file__).resolve().parent
 S = json.loads((HERE / "results" / "summary.json").read_text())["pooled"]
@@ -30,17 +31,21 @@ plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 13})
 fig, ax = plt.subplots(figsize=(12, 6.28), dpi=100, facecolor=SURFACE)
 ax.set_facecolor(SURFACE)
 
-ax.axhline(0, color=MUTED, lw=1, zorder=1)
-ax.text(530, 0.0012, f"uncompressed fp32 ({BYTES['fp32']} B/token)", ha="right", va="bottom",
-        color=INK2, fontsize=11)
+ax.axhline(0, color=GRID, lw=1, zorder=1)
+ax.plot([512], [0], "s", ms=9, color=INK2, mec=SURFACE, mew=2, zorder=3)
+ax.annotate("uncompressed fp32", (512, 0), xytext=(6, 12), textcoords="offset points", ha="right",
+            color=INK, fontsize=11.5)
 ax.axvline(36, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=1)
-ax.text(36.8, -0.0405, "LateOn's 2-bit PLAID\nbudget: 36 B/token", ha="left", va="bottom",
+ax.text(36, 0.0085, "LateOn's 2-bit PLAID: 36 B/token", ha="center", va="bottom",
         color=INK2, fontsize=11)
+
+
+NUDGE = {"plaid-2": 0.97, "plaid-n-2": 1.03}  # both are 36 B/token; nudged apart to stay legible
 
 
 def point(arm):
     r = S[arm]
-    return BYTES[arm], r["delta"], r["delta"] - r["ci"][0], r["ci"][1] - r["delta"]
+    return BYTES[arm] * NUDGE.get(arm, 1.0), r["delta"], r["delta"] - r["ci"][0], r["ci"][1] - r["delta"]
 
 
 for arms, col, label in SERIES:
@@ -53,8 +58,8 @@ x, y, lo, hi = point("remex-c-2")
 ax.errorbar([x], [y], yerr=[[lo], [hi]], fmt="D", ms=7, color=MUTED, ecolor=MUTED, elinewidth=1.2,
             mec=SURFACE, mew=2, zorder=3, label="remex centred, no centroids")
 
-labels = {"plaid-2": ("2-bit", (8, -4), "left"), "plaid-4": ("4-bit (shipped)", (10, -4), "left"),
-          "plaid-n-2": ("2-bit", (-10, -4), "right"), "plaid-rx-1": ("1-bit", (-10, 6), "right"),
+labels = {"plaid-2": ("2-bit", (-10, -4), "right"), "plaid-4": ("4-bit (shipped)", (10, -4), "left"),
+          "plaid-n-2": ("2-bit", (10, -4), "left"), "plaid-rx-1": ("1-bit", (-10, 6), "right"),
           "plaid-rx-2": ("2-bit", (8, 8), "left")}
 for arm, (txt, off, ha) in labels.items():
     x, y, *_ = point(arm)
@@ -65,7 +70,8 @@ ax.set_xscale("log")
 ax.set_xlim(16, 600)
 ax.set_xticks([16, 22, 36, 68, 128, 256, 512])
 ax.set_xticklabels(["16", "22", "36", "68", "128", "256", "512"])
-ax.set_ylim(-0.048, 0.010)
+ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+ax.set_ylim(-0.048, 0.012)
 ax.set_xlabel("bytes stored per document token (log scale)", color=INK2)
 ax.set_ylabel(f"change in nDCG@10 vs uncompressed\n(pooled, {N} queries, 95% CI)", color=INK2)
 ax.grid(axis="y", color=GRID, lw=0.8)
@@ -75,7 +81,7 @@ for s in ("top", "right"):
 for s in ("left", "bottom"):
     ax.spines[s].set_color(MUTED)
 ax.tick_params(colors=INK2)
-ax.text(0.995, 0.97, "better: up and left", transform=ax.transAxes, ha="right", va="top",
+ax.text(0.012, 0.035, "better: up and left", transform=ax.transAxes, ha="left", va="bottom",
         color=MUTED, fontsize=11)
 ax.legend(loc="lower right", frameon=False, fontsize=11.5, labelcolor=INK)
 fig.suptitle("MICE-P document-vector storage: bytes against ranking quality", x=0.065, ha="left",
