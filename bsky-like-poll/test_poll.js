@@ -36,7 +36,11 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
     if (nsid === 'app.bsky.feed.getPostThread') {
       const mk = (rkey, text, replies = []) => ({ post: { uri: `at://${DID}/app.bsky.feed.post/${rkey}`, author: { did: DID }, record: { text } }, replies });
       const other = { post: { uri: 'at://did:plc:other/app.bsky.feed.post/x', author: { did: 'did:plc:other' }, record: { text: '1️⃣ fake' } }, replies: [] };
-      const t = mk('rk0', 'Lunch?', [other, mk('rk1', '1️⃣ Tacos\n\n♥ like to vote', [mk('rk2', '2️⃣ Pho\n\n♥ like to vote', [mk('rk3', '3️⃣ Salad\n\n♥ like to vote')])])]);
+      const o = i => mk(`rk${i}`, `${['1️⃣ Tacos', '2️⃣ Pho', '3️⃣ Salad'][i - 1]}\n\n♥ like to vote`);
+      // rk0: options as direct replies (current layout). chain0: the first version's reply chain.
+      const t = url.searchParams.get('uri').endsWith('chain0')
+        ? mk('chain0', 'Lunch?', [other, { ...o(1), replies: [{ ...o(2), replies: [o(3)] }] }])
+        : mk('rk0', 'Lunch?', [other, o(3), o(1), o(2)]);
       return json(route, { thread: t });
     }
     if (nsid === 'app.bsky.feed.getLikes') {
@@ -62,7 +66,7 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   const ins = await page.$$('#opts input');
   await ins[0].fill('Tacos'); await ins[1].fill('Pho');
   await page.click('#addOpt');
-  await (await page.$$('#opts input'))[2].fill('Salad');
+  await (await page.$$('#opts input'))[2].fill('Salad, see https://example.com/menü.');
   assert.equal(await page.$$eval('#preview .post', ps => ps.length), 4);
   assert(!(await page.isDisabled('#postBtn')));
   await page.screenshot({ path: path.join(__dirname, 'shot-builder.png'), fullPage: true });
@@ -75,9 +79,17 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   assert(root.record.text.startsWith('Lunch?\n\n🗳️ Poll'));
   assert(!root.record.reply);
   assert.equal(o1.record.text, '1️⃣ Tacos\n\n♥ like to vote');
-  assert.deepEqual(o1.record.reply, { root: { uri: `at://${DID}/app.bsky.feed.post/rk0`, cid: 'cid-rk0' }, parent: { uri: `at://${DID}/app.bsky.feed.post/rk0`, cid: 'cid-rk0' } });
-  assert.equal(o3.record.reply.parent.uri, `at://${DID}/app.bsky.feed.post/rk2`, 'options chain');
-  assert.equal(o3.record.reply.root.uri, `at://${DID}/app.bsky.feed.post/rk0`);
+  const uf = o3.record.facets[0];
+  assert.equal(uf.features[0].uri, 'https://example.com/menü');
+  assert.equal(Buffer.from(o3.record.text, 'utf8').subarray(uf.index.byteStart, uf.index.byteEnd).toString(), 'https://example.com/menü');
+  const rootRef = { uri: `at://${DID}/app.bsky.feed.post/rk0`, cid: 'cid-rk0' };
+  for (const o of [o1, o2, o3]) assert.deepEqual(o.record.reply, { root: rootRef, parent: rootRef }, 'every option replies to the question');
+  // Credit line: "via Like Poll" with a link facet over exactly "Like Poll" (UTF-8 byte offsets).
+  assert(root.record.text.endsWith('\n\nvia Like Poll'));
+  const lf = root.record.facets.find(f => f.features[0].uri === 'https://austegard.com/experiments/bsky-like-poll/');
+  const b = Buffer.from(root.record.text, 'utf8');
+  assert.equal(b.subarray(lf.index.byteStart, lf.index.byteEnd).toString(), 'Like Poll');
+  assert(!o1.record.facets, 'no facets on plain option');
   assert.equal(gate.collection, 'app.bsky.feed.threadgate');
   assert.equal(gate.rkey, 'rk0');
   assert.deepEqual(gate.record.allow, []);
@@ -92,6 +104,13 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   assert(rows[0][0].includes('Tacos'));
   assert.match(await page.textContent('#resultsMsg'), /4 votes from 5 accounts\. 1 account liked more than one option/);
   await page.screenshot({ path: path.join(__dirname, 'shot-results.png'), fullPage: true });
+
+  // The counter still reads a poll posted as a reply chain.
+  await page.fill('#pollUrl', `at://${DID}/app.bsky.feed.post/chain0`);
+  await page.click('#resultsForm button');
+  await page.waitForFunction(() => /votes from/.test(document.querySelector('#resultsMsg').textContent));
+  const chainRows = await page.$$eval('#resultsOut tbody tr', trs => trs.map(tr => tr.cells[2].textContent.trim()));
+  assert.deepEqual(chainRows, ['4', '2', '0'], 'chain layout counted');
   await browser.close();
   console.log(process.exitCode ? 'FAIL' : 'PASS');
 })().catch(e => { console.error(e); process.exit(1); });

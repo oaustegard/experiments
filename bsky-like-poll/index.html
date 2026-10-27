@@ -48,6 +48,7 @@
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
   .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; margin-top: 16px; }
   .check input { margin-top: 4px; }
+  .check a { color: var(--accent); }
   .who { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .msg { margin-top: 12px; font-size: 0.925rem; white-space: pre-wrap; }
   .msg.bad { color: var(--bad); }
@@ -99,6 +100,8 @@
     <button class="ghost" id="addOpt" type="button">+ Add option</button>
     <label class="check"><input type="checkbox" id="lockReplies" checked>
       <span>Turn off replies from others, so the thread holds only the options. People can still quote-post to discuss it.</span></label>
+    <label class="check"><input type="checkbox" id="addLink" checked>
+      <span>End the question with “via <a href="https://austegard.com/experiments/bsky-like-poll/" target="_blank" rel="noopener">Like Poll</a>”, linked to this page.</span></label>
 
     <h2 style="margin-top:20px">Preview</h2>
     <div class="preview" id="preview"></div>
@@ -126,8 +129,35 @@ const segmenter = new Intl.Segmenter();
 const graphemes = s => [...segmenter.segment(s)].length;
 const $ = id => document.getElementById(id);
 
-const rootText = (q, n) => `${q.trim()}\n\n🗳️ Poll: open the thread and ♥ like ONE reply to vote.\n🧵 ${n} options below 👇`;
+const BUILDER_URL = 'https://austegard.com/experiments/bsky-like-poll/';
+const VIA = 'via Like Poll';
+const rootText = (q, n, via) =>
+  `${q.trim()}\n\n🗳️ Poll: open the thread and ♥ like ONE reply to vote.\n🧵 ${n} options below 👇` + (via ? `\n\n${VIA}` : '');
 const optionText = (i, label) => `${KEYCAPS[i]} ${label.trim()}\n\n♥ like to vote`;
+
+// Link facets: bare URLs anywhere, plus "Like Poll" in the trailing credit line.
+// Facet offsets are UTF-8 byte offsets, not string indexes.
+function facetsFor(text, via) {
+  const enc = new TextEncoder();
+  const bytes = i => enc.encode(text.slice(0, i)).length;
+  const link = (start, end, uri) => ({
+    index: { byteStart: bytes(start), byteEnd: bytes(end) },
+    features: [{ $type: 'app.bsky.richtext.facet#link', uri }],
+  });
+  const facets = [];
+  for (const m of text.matchAll(/https?:\/\/\S+/g)) {
+    const url = m[0].replace(/[.,;:!?)\]'"’]+$/, '');
+    facets.push(link(m.index, m.index + url.length, url));
+  }
+  if (via) facets.push(link(text.length - 'Like Poll'.length, text.length, BUILDER_URL));
+  return facets;
+}
+
+function postRecord(text, via, extra = {}) {
+  const facets = facetsFor(text, via);
+  return { $type: 'app.bsky.feed.post', text, createdAt: new Date().toISOString(),
+    langs: [(navigator.language || 'en').split('-')[0]], ...(facets.length ? { facets } : {}), ...extra };
+}
 
 async function xrpc(base, nsid, { params, body, token } = {}) {
   const url = new URL(`${base.replace(/\/$/, '')}/xrpc/${nsid}`);
@@ -234,7 +264,7 @@ function render() {
   $('addOpt').disabled = rows.length >= KEYCAPS.length;
 
   const { question, options } = currentPoll();
-  const texts = [rootText(question || '…', options.length), ...options.map((o, i) => optionText(i, o))];
+  const texts = [rootText(question || '…', options.length, $('addLink').checked), ...options.map((o, i) => optionText(i, o))];
   $('preview').innerHTML = '';
   let over = false;
   texts.forEach((t, i) => {
@@ -258,21 +288,18 @@ async function postPoll() {
   msg.className = 'msg';
   msg.textContent = 'Posting…';
   $('postBtn').disabled = true;
-  const langs = [(navigator.language || 'en').split('-')[0]];
   const now = () => new Date().toISOString();
+  const via = $('addLink').checked;
   const created = [];
   try {
-    const root = await createRecord('app.bsky.feed.post',
-      { $type: 'app.bsky.feed.post', text: rootText(question, options.length), createdAt: now(), langs });
+    const root = await createRecord('app.bsky.feed.post', postRecord(rootText(question, options.length, via), via));
     created.push(root);
-    let parent = root;
+    // Every option replies to the question directly, so each sits one level under it.
+    const ref = { uri: root.uri, cid: root.cid };
     for (let i = 0; i < options.length; i++) {
       msg.textContent = `Posting option ${i + 1} of ${options.length}…`;
-      parent = await createRecord('app.bsky.feed.post', {
-        $type: 'app.bsky.feed.post', text: optionText(i, options[i]), createdAt: now(), langs,
-        reply: { root: { uri: root.uri, cid: root.cid }, parent: { uri: parent.uri, cid: parent.cid } },
-      });
-      created.push(parent);
+      created.push(await createRecord('app.bsky.feed.post',
+        postRecord(optionText(i, options[i]), false, { reply: { root: ref, parent: ref } })));
     }
     // Gate after the options exist, so the gate can never get in the author's own way.
     if ($('lockReplies').checked) {
@@ -333,16 +360,20 @@ async function countResults(input) {
     if (!thread?.post) throw new Error('Post not found, or it is not visible logged-out');
     const author = thread.post.author.did;
 
-    // Walk the author's own reply chain, picking up the numbered option posts.
+    // Collect the author's numbered option posts anywhere in the thread: direct
+    // replies to the question, or the reply chain the first version posted.
+    const found = [];
+    (function walk(node) {
+      for (const r of node.replies || []) {
+        if (r.post?.author?.did !== author) continue;
+        const text = r.post.record?.text || '';
+        const i = optionIndex(text);
+        if (i >= 0 && !found[i]) found[i] = { uri: r.post.uri, label: text.slice(KEYCAPS[i].length).split('\n')[0].trim() };
+        walk(r);
+      }
+    })(thread);
     const options = [];
-    let node = thread;
-    for (;;) {
-      const next = (node.replies || []).find(r => r.post?.author?.did === author && optionIndex(r.post.record?.text || '') === options.length);
-      if (!next) break;
-      const text = next.post.record.text;
-      options.push({ uri: next.post.uri, label: text.slice(KEYCAPS[options.length].length).split('\n')[0].trim() });
-      node = next;
-    }
+    for (let i = 0; found[i]; i++) options.push(found[i]);
     if (options.length < 2) throw new Error('No numbered option replies found under that post. Paste the link to the question post.');
 
     msg.textContent = `Counting likes on ${options.length} options…`;
@@ -407,6 +438,7 @@ $('logoutBtn').addEventListener('click', async () => {
 });
 
 $('question').addEventListener('input', render);
+$('addLink').addEventListener('change', render);
 $('addOpt').addEventListener('click', () => addOption());
 $('postBtn').addEventListener('click', postPoll);
 $('resultsForm').addEventListener('submit', e => { e.preventDefault(); countResults($('pollUrl').value); });

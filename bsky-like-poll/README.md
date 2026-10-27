@@ -12,9 +12,16 @@ Live: <https://austegard.com/experiments/bsky-like-poll/>
 - The question post ends with `🗳️ Poll: open the thread and ♥ like ONE reply
   to vote.` and `🧵 N options below 👇`, so someone who sees it in a feed knows
   to open the thread.
-- Each option is `1️⃣ Tacos` plus `♥ like to vote`, posted as a chain (each
-  option replies to the one before it). Bluesky shows an author's own reply
-  chain in order under the root, which sibling replies don't guarantee.
+- Each option is `1️⃣ Tacos` plus `♥ like to vote`, posted as a direct reply
+  to the question. The first version chained them (each option replying to the
+  one before), which Bluesky draws as a staircase that reads as a
+  conversation. As siblings, Bluesky's reply sort decides their order; the
+  keycap numbers keep them identifiable if it reorders them.
+- With "via Like Poll" checked (the default), the question ends with that
+  line, and "Like Poll" is a link facet to this page. It goes in the question
+  rather than a closing reply because a closing reply would sit among the
+  options and collect likes like one. Bare URLs in the question or options are
+  also turned into links.
 - By default a threadgate with an empty allow list turns off replies from
   everyone else, so the thread holds only the options. Quote posts still work.
   The gate is written after the options, so it can't block the author's own
@@ -28,8 +35,9 @@ you can delete them.
 ## Counting
 
 Likes are deduplicated per post, not across options, so one account can like
-every option. The Results box takes the question post's link, walks the
-author's numbered reply chain, pages through `app.bsky.feed.getLikes` for each
+every option. The Results box takes the question post's link, finds the
+author's numbered replies anywhere in the thread (so polls from the chained
+first version still count), pages through `app.bsky.feed.getLikes` for each
 option, and shows two columns: **Likes** (raw) and **Votes** (likes from
 accounts that liked exactly one option). It reads the public AppView, so it
 needs no sign-in, and `?poll=<post link>` loads it directly.
@@ -42,8 +50,8 @@ needs no sign-in, and `?poll=<post link>` loads it directly.
   in `sessionStorage` until the tab closes. OAuth would avoid handling a
   password at all but needs a hosted client-metadata document and redirect
   flow; app passwords were the smallest working version.
-- Links, mentions and hashtags in the question are posted as plain text (no
-  facets).
+- Mentions and hashtags are posted as plain text (no facets); only URLs are
+  linked.
 - Votes are public: anyone can see who liked which option.
 - Counting depends on the option posts keeping their keycap prefix
   (`1️⃣`…`🔟`); editing isn't possible on Bluesky, so that holds.
@@ -52,9 +60,16 @@ needs no sign-in, and `?poll=<post link>` loads it directly.
 
 `node test_poll.js` drives the page in headless Chromium with the network
 mocked. It signs in, builds a three-option poll, and checks the five records
-written (root, three chained replies with correct `root`/`parent` refs, and the
-threadgate keyed to the root's rkey). It then counts a mocked thread in which
+written (root, three replies whose `root` and `parent` are both the question,
+and the threadgate keyed to the root's rkey). It then counts a mocked thread in which
 one account liked two options and one option's likes span two pages, and
-checks both columns. It passes. The real AppView endpoints (`getPostThread`,
-`getLikes`) were checked by hand for response shape. Nothing was posted to a
-live account, so the first real poll is also the first end-to-end run.
+checks both columns, for both the current layout and the chained one. It
+also checks the facet byte offsets for the credit link and for a URL with a
+non-ASCII character. It passes. The real AppView endpoints (`getPostThread`,
+`getLikes`) were checked by hand for response shape. The first live poll (posted by
+Oskar with the chained version) counted correctly in five of seven runs. Two runs
+reported no options found; I didn't capture those responses and could not
+reproduce the failure afterwards, so the cause is unknown. A shallow thread
+response from the AppView would explain it. Direct replies need only one
+level of the thread, so the current layout doesn't depend on deep thread
+responses.
