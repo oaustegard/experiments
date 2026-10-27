@@ -68,6 +68,15 @@ async function common(p, tag) {
       return out;
     });
     assert.deepEqual(t, { dead: [], right: ['right'], up: ['up'], down: ['down'], held: ['right'] });
+    // tilt yields to a swipe while the finger is down, and ignores the tilt held at release until it changes
+    await p.evaluate(() => { const S = __eel.S; S.acc = -1e6; S.queue = []; S.dir = 'right'; __eel.tilt.neutral = null; __ev(40, 0); });
+    const box = await p.locator('#c').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+    await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - 40, { steps: 4 });
+    const during = await p.evaluate(() => { __ev(40, 25); return __eel.S.queue.slice(); });
+    await p.mouse.up();
+    const after = await p.evaluate(() => { const q = __eel.S.queue; __ev(40, 25); const stale = q.slice(); __ev(40, 0); __ev(40, -25); return [stale, q.slice()]; });
+    assert.deepEqual([during, ...after], [['up'], ['up'], ['up', 'left']]);
+    await p.evaluate(() => { __eel.S.acc = 0; });
     // switching to arrows in pause shows the deck and stops tilt
     await p.evaluate(() => document.querySelector('#pauseBtn').click());
     await p.locator('#pauseView [data-ctl="arrows"]').tap();
@@ -87,6 +96,9 @@ async function common(p, tag) {
     await p.click('#titleView [data-side="right"]');
     assert.equal(await sideOf(), 'right', tag);
     await p.click('#startBtn');
+    const clear = await p.evaluate(() => { const S = __eel.S, d = document.querySelector('.dpad').getBoundingClientRect(), w = document.querySelector('.actions').getBoundingClientRect();
+      const g = window.__grid(); return [d, w].every(r => r.right <= g.x || r.left >= g.x + g.w || r.bottom <= g.y || r.top >= g.y + g.h); });
+    assert.ok(clear, tag + ' grid overlaps the floating controls');
     const box = await p.locator('#c').boundingBox();
     await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await p.mouse.down();
     await p.waitForTimeout(350);
