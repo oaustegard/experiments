@@ -100,6 +100,14 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   // Hold: swaps the active piece into the hold pod.
   const h = await p.evaluate(() => { const P = window.__plumb; P.place('J', 3); P.hold(); return document.querySelectorAll('#holdSvg .mini').length; });
   assert(h === 4, 'hold draws the held piece');
+  // Hold re-arms after each lock (it once stayed spent for the whole game), and tapping the Hold box swaps the held J back in.
+  // Fresh board so the drop cannot clear lines or top out, then lock a piece to re-arm hold.
+  await p.evaluate(() => { const P = window.__plumb, g = P.grid(); for (const row of g) row.fill(0); P.place('S', 3); P.hardDrop(); });
+  await p.waitForTimeout(100);
+  const pre = await p.evaluate(() => ({ t: window.__plumb.piece().t, mode: window.__plumb.stats().mode }));
+  await p.tap('#holdPod');
+  const swapped = await p.evaluate(() => window.__plumb.piece().t);
+  assert(pre.mode === 'play' && swapped === 'J', `tapping the Hold box swaps in the held piece (${pre.t} -> ${swapped}, mode ${pre.mode})`);
 
   // Touch: swipe down hard-drops.
   const before = await p.evaluate(() => window.__plumb.piece().t + window.__plumb.stats().score);
