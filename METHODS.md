@@ -2287,6 +2287,22 @@ the result.
   NFCorpus. At 1 bit PLAID leads on SciFact (+0.029 [+0.009, +0.049]) and ties
   on NFCorpus. RSLM's residual-vs-centroid result (memory e0fc3c57) predicts the
   1-bit gap: K=1 is the degenerate case. (`mxbai-edge-remex-quant/RESULTS.md` finding 3)
+- **Before compressing any model's stored vectors, find what the model reads from them;
+  FastPLAID assumes unit-norm input and does not check.** MICE-P stores
+  `doc_compress(normalize(center(h)))`, 128-d vectors of norm 0.43-0.47, and reads them only
+  through `LayerNorm(W_up x)` (no bias), so their scale carries nothing. FastPLAID's centroids
+  are unit-norm, its residual is `x - c` on the raw input, and its decode re-normalises, so
+  every residual spends its 2 bits on a ~0.54 offset along the centroid. L2-normalising
+  before indexing cut MICE-P's 2-bit nDCG@10 loss from -0.031 to -0.018 (401 queries).
+  Coding the residual from the same centroid with remex (unit direction + fp16 length,
+  38 B/token) instead of per-dimension quantile buckets removed it: -0.001 [-0.006, +0.005],
+  and ranking Spearman vs fp32 >= 0.989 against PLAID 4-bit's 0.962-0.977. FastPLAID's
+  default k-means runs 4 iterations; match it when re-implementing. (`mice-p-remex/RESULTS.md` findings 1-2)
+- **When a test set is too small to resolve a codec delta, measure ranking agreement with the
+  uncompressed scorer instead.** Per-query Spearman over the reranked candidates and top-10
+  overlap need no judgements; on SciFact's 41 queries every nDCG@10 CI was +/-0.03 while
+  Spearman ordered the arms (0.915 / 0.975 / 0.991) the same way the 169-query NFCorpus nDCG
+  did. (`mice-p-remex/ERRORS.md` #4)
 - **pplx-embed-v2-late's 128-d tokens are a narrow cone too; center before any
   code below 4 bits, and centered remex ties PLAID at every width.** ‖mean‖/mean‖x‖
   0.945, random-pair cosine 0.892 (SciFact, 0.6B). Plain remex 1-bit −0.206 / −0.145
