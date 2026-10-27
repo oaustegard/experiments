@@ -66,6 +66,7 @@
   td.opt { position: relative; }
   td.opt .bar { position: absolute; inset: 4px auto 4px 0; background: var(--bar); border-radius: 4px; z-index: 0; }
   td.opt span { position: relative; z-index: 1; padding-left: 6px; }
+  .question { font-weight: 600; margin: 12px 0 0; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -337,15 +338,64 @@ function optionIndex(text) {
   return i;
 }
 
+// Likers come from Constellation (microcosm's backlink index of the whole network),
+// which counts every like. Bluesky's logged-out getLikes is the fallback; it may
+// leave out likers who hide their account from logged-out viewers.
+const CONSTELLATION = 'https://constellation.microcosm.blue';
+
 async function likersOf(uri) {
-  const dids = new Set();
-  let cursor;
-  do {
-    const page = await xrpc(APPVIEW, 'app.bsky.feed.getLikes', { params: { uri, limit: 100, cursor } });
-    page.likes.forEach(l => dids.add(l.actor.did));
-    cursor = page.likes.length ? page.cursor : undefined;
-  } while (cursor);
-  return dids;
+  try {
+    const dids = new Set();
+    let cursor;
+    do {
+      const url = new URL(`${CONSTELLATION}/links/distinct-dids`);
+      url.search = new URLSearchParams({ target: uri, collection: 'app.bsky.feed.like', path: '.subject.uri', limit: 100, ...(cursor ? { cursor } : {}) });
+      const res = await fetch(url, { headers: { accept: 'application/json' } });
+      if (!res.ok) throw new Error(`Constellation HTTP ${res.status}`);
+      const page = await res.json();
+      page.linking_dids.forEach(d => dids.add(d));
+      cursor = page.linking_dids.length ? page.cursor : null;
+    } while (cursor);
+    return { dids, source: 'constellation' };
+  } catch {
+    const dids = new Set();
+    let cursor;
+    do {
+      const page = await xrpc(APPVIEW, 'app.bsky.feed.getLikes', { params: { uri, limit: 100, cursor } });
+      page.likes.forEach(l => dids.add(l.actor.did));
+      cursor = page.likes.length ? page.cursor : undefined;
+    } while (cursor);
+    return { dids, source: 'getLikes' };
+  }
+}
+
+// Options are read from the author's repo on their PDS, not from Bluesky's thread
+// view: the AppView hides replies from logged-out readers when the author has
+// turned on "discourage apps from showing my account to logged-out users".
+// Record keys are timestamps, so listing forward from the question's key reaches
+// the options, which are posted seconds after it.
+async function pollFromRepo(uri) {
+  const [, did, , rkey] = uri.slice('at://'.length).match(/^([^/]+)(\/app\.bsky\.feed\.post\/)([^/]+)$/) || [];
+  if (!did) throw new Error('That does not look like a Bluesky post link');
+  const pds = await resolvePds(did);
+  let question;
+  try {
+    question = (await xrpc(pds, 'com.atproto.repo.getRecord', { params: { repo: did, collection: 'app.bsky.feed.post', rkey } })).value.text;
+  } catch {
+    throw new Error('Post not found');
+  }
+  const { records } = await xrpc(pds, 'com.atproto.repo.listRecords',
+    { params: { repo: did, collection: 'app.bsky.feed.post', limit: 50, reverse: true, cursor: rkey } });
+  const found = [];
+  for (const r of records) {
+    if (r.value.reply?.root?.uri !== uri) continue;
+    const text = r.value.text || '';
+    const i = optionIndex(text);
+    if (i >= 0 && !found[i]) found[i] = { uri: r.uri, label: text.slice(KEYCAPS[i].length).split('\n')[0].trim() };
+  }
+  const options = [];
+  for (let i = 0; found[i]; i++) options.push(found[i]);
+  return { question: question.split('\n')[0], options };
 }
 
 async function countResults(input) {
@@ -356,28 +406,13 @@ async function countResults(input) {
   out.innerHTML = '';
   try {
     const uri = await toAtUri(input);
-    const { thread } = await xrpc(APPVIEW, 'app.bsky.feed.getPostThread', { params: { uri, depth: 15, parentHeight: 0 } });
-    if (!thread?.post) throw new Error('Post not found, or it is not visible logged-out');
-    const author = thread.post.author.did;
-
-    // Collect the author's numbered option posts anywhere in the thread: direct
-    // replies to the question, or the reply chain the first version posted.
-    const found = [];
-    (function walk(node) {
-      for (const r of node.replies || []) {
-        if (r.post?.author?.did !== author) continue;
-        const text = r.post.record?.text || '';
-        const i = optionIndex(text);
-        if (i >= 0 && !found[i]) found[i] = { uri: r.post.uri, label: text.slice(KEYCAPS[i].length).split('\n')[0].trim() };
-        walk(r);
-      }
-    })(thread);
-    const options = [];
-    for (let i = 0; found[i]; i++) options.push(found[i]);
+    const { question, options } = await pollFromRepo(uri);
     if (options.length < 2) throw new Error('No numbered option replies found under that post. Paste the link to the question post.');
 
     msg.textContent = `Counting likes on ${options.length} options…`;
-    const likers = await Promise.all(options.map(o => likersOf(o.uri)));
+    const counted = await Promise.all(options.map(o => likersOf(o.uri)));
+    const likers = counted.map(c => c.dids);
+    const partial = counted.some(c => c.source === 'getLikes');
     const seen = new Map();
     likers.forEach(set => set.forEach(d => seen.set(d, (seen.get(d) || 0) + 1)));
     const multi = new Set([...seen].filter(([, n]) => n > 1).map(([d]) => d));
@@ -387,7 +422,8 @@ async function countResults(input) {
     const total = rows.reduce((a, r) => a + r.votes, 0);
     const top = Math.max(1, ...rows.map(r => r.votes));
 
-    out.innerHTML = `<table><thead><tr><th>Option</th><th class="num">Votes</th><th class="num">Likes</th></tr></thead><tbody></tbody></table>`;
+    out.innerHTML = `<p class="question"></p><table><thead><tr><th>Option</th><th class="num">Votes</th><th class="num">Likes</th></tr></thead><tbody></tbody></table>`;
+    out.querySelector('.question').textContent = question;
     const tbody = out.querySelector('tbody');
     rows.forEach((r, i) => {
       const tr = document.createElement('tr');
@@ -398,7 +434,8 @@ async function countResults(input) {
       tbody.appendChild(tr);
     });
     msg.textContent = `${total} vote${total === 1 ? '' : 's'} from ${seen.size} account${seen.size === 1 ? '' : 's'}.` +
-      (multi.size ? ` ${multi.size} account${multi.size === 1 ? '' : 's'} liked more than one option; Votes leaves them out, Likes keeps them.` : '');
+      (multi.size ? ` ${multi.size} account${multi.size === 1 ? '' : 's'} liked more than one option; Votes leaves them out, Likes keeps them.` : '') +
+      (partial ? ' The like index was unreachable, so these counts come from Bluesky and may miss likers who hide their account from logged-out viewers.' : '');
   } catch (e) {
     msg.className = 'msg bad';
     msg.textContent = e.message;

@@ -35,12 +35,25 @@ you can delete them.
 ## Counting
 
 Likes are deduplicated per post, not across options, so one account can like
-every option. The Results box takes the question post's link, finds the
-author's numbered replies anywhere in the thread (so polls from the chained
-first version still count), pages through `app.bsky.feed.getLikes` for each
-option, and shows two columns: **Likes** (raw) and **Votes** (likes from
-accounts that liked exactly one option). It reads the public AppView, so it
-needs no sign-in, and `?poll=<post link>` loads it directly.
+every option. The Results box takes the question post's link and shows two
+columns: **Likes** (raw) and **Votes** (likes from accounts that liked exactly
+one option). It needs no sign-in, and `?poll=<post link>` loads it directly.
+
+It doesn't read the thread from Bluesky's AppView. When the poll's author has
+turned on "discourage apps from showing my account to logged-out users", the
+AppView leaves their replies out of logged-out thread views, and not
+consistently: the first live poll counted correctly in some runs and showed no
+options in others. Instead the page lists the author's posts straight from
+their PDS, which serves them to anyone, starting at the question's record key
+(keys are timestamps, and the options are posted seconds later). It keeps the
+posts whose reply root is the question and whose text starts with a keycap, so
+polls from the chained first version still count.
+
+Likers come from [Constellation](https://constellation.microcosm.blue), a
+backlink index over the whole network, which returns every account that liked
+a post. If it is unreachable the page falls back to Bluesky's logged-out
+`getLikes`, says so, and warns that the count may miss likers who hide their
+account from logged-out viewers.
 
 ## Limits
 
@@ -61,15 +74,12 @@ needs no sign-in, and `?poll=<post link>` loads it directly.
 `node test_poll.js` drives the page in headless Chromium with the network
 mocked. It signs in, builds a three-option poll, and checks the five records
 written (root, three replies whose `root` and `parent` are both the question,
-and the threadgate keyed to the root's rkey). It then counts a mocked thread in which
-one account liked two options and one option's likes span two pages, and
+and the threadgate keyed to the root's rkey). It then counts a mocked repo listing in which one
+account liked two options, one option's likers span two pages, and one
+option's Constellation lookup fails so the `getLikes` fallback runs, and
 checks both columns, for both the current layout and the chained one. It
 also checks the facet byte offsets for the credit link and for a URL with a
-non-ASCII character. It passes. The real AppView endpoints (`getPostThread`,
-`getLikes`) were checked by hand for response shape. The first live poll (posted by
-Oskar with the chained version) counted correctly in five of seven runs. Two runs
-reported no options found; I didn't capture those responses and could not
-reproduce the failure afterwards, so the cause is unknown. A shallow thread
-response from the AppView would explain it. Direct replies need only one
-level of the thread, so the current layout doesn't depend on deep thread
-responses.
+non-ASCII character. It passes. The real PDS, Constellation and `getLikes`
+endpoints were checked by hand for response shape and CORS. Run against the first live poll, the
+counter returned the same result (one vote, on option 4) in three of three
+runs after the switch to reading the PDS.

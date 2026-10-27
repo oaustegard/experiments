@@ -1,6 +1,6 @@
 // Drives index.html in headless Chromium with the network mocked: signs in,
 // builds a 3-option poll, checks the records written to the PDS, then counts
-// results on a mocked thread where one account liked two options and one
+// results from a mocked repo listing where one account liked two options and one
 // option's likes span two pages. Run: node test_poll.js
 const { chromium } = require('playwright');
 const path = require('path');
@@ -33,20 +33,38 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
       const rkey = b.rkey || `rk${n++}`;
       return json(route, { uri: `at://${DID}/${b.collection}/${rkey}`, cid: `cid-${rkey}` });
     }
-    if (nsid === 'app.bsky.feed.getPostThread') {
-      const mk = (rkey, text, replies = []) => ({ post: { uri: `at://${DID}/app.bsky.feed.post/${rkey}`, author: { did: DID }, record: { text } }, replies });
-      const other = { post: { uri: 'at://did:plc:other/app.bsky.feed.post/x', author: { did: 'did:plc:other' }, record: { text: '1️⃣ fake' } }, replies: [] };
-      const o = i => mk(`rk${i}`, `${['1️⃣ Tacos', '2️⃣ Pho', '3️⃣ Salad'][i - 1]}\n\n♥ like to vote`);
-      // rk0: options as direct replies (current layout). chain0: the first version's reply chain.
-      const t = url.searchParams.get('uri').endsWith('chain0')
-        ? mk('chain0', 'Lunch?', [other, { ...o(1), replies: [{ ...o(2), replies: [o(3)] }] }])
-        : mk('rk0', 'Lunch?', [other, o(3), o(1), o(2)]);
-      return json(route, { thread: t });
+    if (nsid === 'com.atproto.repo.getRecord') {
+      assert.equal(url.origin, PDS);
+      return json(route, { uri: `at://${DID}/app.bsky.feed.post/${url.searchParams.get('rkey')}`, value: { text: 'Lunch?\n\n🗳️ Poll…' } });
+    }
+    if (nsid === 'com.atproto.repo.listRecords') {
+      // Options in the repo after the question: rk0 has direct replies, chain0 the first
+      // version's chain (each option's parent is the previous one, root is the question).
+      assert.equal(url.origin, PDS);
+      assert.equal(url.searchParams.get('reverse'), 'true');
+      const root = url.searchParams.get('cursor');
+      const rootUri = `at://${DID}/app.bsky.feed.post/${root}`;
+      const labels = ['1️⃣ Tacos', '2️⃣ Pho', '3️⃣ Salad'];
+      const rec = (rkey, text, parent) => ({ uri: `at://${DID}/app.bsky.feed.post/${rkey}`, value: { text, reply: { root: { uri: rootUri }, parent: { uri: parent } } } });
+      const records = [
+        { uri: `at://${DID}/app.bsky.feed.post/unrelated`, value: { text: '1️⃣ not a poll option' } },
+        rec('rk3', labels[2] + '\n\n♥ like to vote', root === 'chain0' ? `at://${DID}/app.bsky.feed.post/rk2` : rootUri),
+        rec('rk1', labels[0] + '\n\n♥ like to vote', rootUri),
+        rec('rk2', labels[1] + '\n\n♥ like to vote', root === 'chain0' ? `at://${DID}/app.bsky.feed.post/rk1` : rootUri),
+      ];
+      return json(route, { records });
+    }
+    if (url.host === 'constellation.microcosm.blue') {
+      // Option rk2 exercises the getLikes fallback.
+      const target = url.searchParams.get('target'), cursor = url.searchParams.get('cursor');
+      assert.equal(url.searchParams.get('collection'), 'app.bsky.feed.like');
+      if (target.endsWith('rk2')) return json(route, { error: 'boom' }, 500);
+      if (target.endsWith('rk1')) return cursor ? json(route, { linking_dids: ['c', 'd'], cursor: null }) : json(route, { linking_dids: ['a', 'b'], cursor: 'p2' });
+      return json(route, { linking_dids: [], cursor: null });
     }
     if (nsid === 'app.bsky.feed.getLikes') {
       const uri = url.searchParams.get('uri'), cursor = url.searchParams.get('cursor');
       const L = ds => ds.map(d => ({ actor: { did: d } }));
-      if (uri.endsWith('rk1')) return cursor ? json(route, { likes: L(['c', 'd']) }) : json(route, { likes: L(['a', 'b']), cursor: 'p2' });
       if (uri.endsWith('rk2')) return json(route, { likes: L(['a', 'e']) });
       return json(route, { likes: [] });
     }
@@ -102,7 +120,8 @@ const json = (route, body, status = 200) => route.fulfill({ status, contentType:
   assert.deepEqual(rows.map(r => r[2]), ['4', '2', '0'], 'raw likes incl. page 2');
   assert.deepEqual(rows.map(r => r[1].split(' ')[0]), ['3', '1', '0'], 'multi-liker a dropped');
   assert(rows[0][0].includes('Tacos'));
-  assert.match(await page.textContent('#resultsMsg'), /4 votes from 5 accounts\. 1 account liked more than one option/);
+  assert.match(await page.textContent('#resultsMsg'), /4 votes from 5 accounts\. 1 account liked more than one option.*may miss likers/);
+  assert.equal(await page.textContent('#resultsOut .question'), 'Lunch?');
   await page.screenshot({ path: path.join(__dirname, 'shot-results.png'), fullPage: true });
 
   // The counter still reads a poll posted as a reply chain.
