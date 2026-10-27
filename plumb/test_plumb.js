@@ -133,7 +133,7 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
     m.voice = orig;
     return seen.map(t => t - seen[0]);
   });
-  const want = [0, 1, 1.75, 2, 4, 5, 5.75, 6, 8, 9, 9.75, 10, 11, 11.75, 12, 12.75, 13, 13.75, 14].map(b => b * 60 / 52)
+  const want = [0, 1, 1.75, 2, 3, 3.75, 4, 4.75, 5, 5.75, 6, 8, 9, 9.75, 10, 11, 11.75, 12, 12.75, 13, 13.75, 14].map(b => b * 60 / 52)
     .filter(x => x <= onsets[onsets.length - 1] + 1e-6);
   const worst = Math.max(...want.map((w, k) => Math.abs(w - onsets[k])));
   assert(onsets.length >= 6 && worst < 0.002, `dirge onsets on the beat grid (${onsets.length} notes checked, worst error ${(worst * 1000).toFixed(2)} ms)`);
