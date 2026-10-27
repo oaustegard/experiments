@@ -121,8 +121,22 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   const d0 = await p.evaluate(() => window.__plumb.music());
   await p.waitForTimeout(1600);
   const d1 = await p.evaluate(() => window.__plumb.music());
-  assert(await p.isVisible('#overCard') && d1.song === 'dirge' && d1.playing && d1.bpm === 54 && d1.beats === 19 && d1.scheduled > d0.scheduled,
+  assert(await p.isVisible('#overCard') && d1.song === 'dirge' && d1.playing && d1.bpm === 52 && d1.beats === 17 && d1.scheduled > d0.scheduled,
     `game over plays the dirge (${d0.scheduled} -> ${d1.scheduled} notes, over card ${await p.isVisible('#overCard')})`);
+  // Timing: replay the dirge with the voice call recorded; every melody onset must land on the
+  // score's beat grid at 52 bpm (Chopin's dotted-eighth/sixteenth pairs included), within 2 ms.
+  const onsets = await p.evaluate(async () => {
+    const m = window.__plumb.musicEngine(), seen = [], orig = m.voice.bind(m);
+    m.voice = (e, t, d) => { if (e.v === 'sq') seen.push(t); return orig(e, t, d); };
+    m.dirge();
+    await new Promise(r => setTimeout(r, 6500));
+    m.voice = orig;
+    return seen.map(t => t - seen[0]);
+  });
+  const want = [0, 1, 1.75, 2, 4, 5, 5.75, 6, 8, 9, 9.75, 10, 11, 11.75, 12, 12.75, 13, 13.75, 14].map(b => b * 60 / 52)
+    .filter(x => x <= onsets[onsets.length - 1] + 1e-6);
+  const worst = Math.max(...want.map((w, k) => Math.abs(w - onsets[k])));
+  assert(onsets.length >= 6 && worst < 0.002, `dirge onsets on the beat grid (${onsets.length} notes checked, worst error ${(worst * 1000).toFixed(2)} ms)`);
   await p.click('#againBtn');
   await p.waitForTimeout(300);
   const d2 = await p.evaluate(() => window.__plumb.music());
