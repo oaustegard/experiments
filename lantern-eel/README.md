@@ -18,21 +18,40 @@ tilt is unavailable because the artifact frame blocks motion sensors.
 - **Boost** doubles speed and points while it burns the glow meter, which refills slowly and with each bite.
 - Edges wrap, which suits tilt steering.
 
-## Tilt
+## Controls and tilt
 
-The angle the phone is held at when tilt is switched on, a dive starts, play resumes or the screen
-rotates counts as level. A tip of 9° past it along one axis turns the eel, provided that axis leads
-the other by 15%. Beta and gamma are mapped through `screen.orientation.angle`, the same mapping
-Tilt Chomp uses, so landscape works.
+Phones (a coarse pointer plus `DeviceOrientationEvent`) start in tilt mode, which hides the D-pad,
+meters and Boost button and gives the stage the whole screen; glow and phase are drawn on the water
+instead. Arrows mode can put the D-pad on either side. Swiping steers and press-and-hold on the water
+boosts in both modes. The choices persist in `localStorage`.
+
+The angle the phone is held at when a dive starts, play resumes or the screen rotates counts as
+level, and a vial in the HUD resets it. A tip of 6° past level along one axis turns the eel (first
+version: 9°). The axis already steering keeps priority until the other leads it by 3°, so a diagonal
+hold does not alternate turns. Beta and gamma are mapped through `screen.orientation.angle`, the same
+mapping Tilt Chomp uses. If permission is refused or no data arrives within 1.6 s, the game falls
+back to arrows for that visit without saving it.
+
+## Sound
+
+The first version made sound only through a bare `AudioContext`, which iOS silences on the
+ring/silent switch, so on an iPhone it played nothing. It now does what Plumb and Scoop do: sets
+`navigator.audioSession.type = 'playback'` and plays a one-sample buffer on each pointerup,
+touchend, click or keydown until the context runs. On top of that sit an ambient bed (looped noise
+through a slowly swelling low-pass, and a 55/82 Hz drone, both lowering with depth) and event sounds
+for bites, turns, boost, phase, zones, sonar below 1000 m and nearby jellyfish.
 
 ## Tests
 
 `node test_lantern_eel.js` with the site repo cloned beside this one. It runs phone, short-landscape
-and desktop viewports in headless Chromium and checks: overlays honour `[hidden]` outside the
-Artifact skeleton, no horizontal scroll, turn queueing refuses reversals, synthetic
-`deviceorientation` events respect the dead zone and steer all four ways, plankton scores and
-grows, a pearl's phase passes through a jellyfish, a jellyfish without it ends the dive, and no
-console errors.
+and desktop viewports in headless Chromium and checks: a mobile context defaults to tilt
+and hides the deck, Dive creates the audio context and enables tilt, synthetic `deviceorientation`
+events respect the 6° dead zone, steer all four ways and keep axis priority on a diagonal, switching
+to arrows in the pause menu shows the deck and stops tilt, desktop defaults to arrows and moves the
+D-pad to the right on request, holding the water boosts and releasing stops it, overlays honour
+`[hidden]` outside the Artifact skeleton, no horizontal scroll, reversals are refused, plankton
+scores and grows, a pearl's phase passes through a jellyfish, a jellyfish without it ends the
+dive, and no console errors.
 
 ## Notes
 
