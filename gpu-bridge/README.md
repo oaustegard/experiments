@@ -37,7 +37,12 @@ a tap.
   the job, a job whose raw fetch 403s once is rerun and records the try in `attempts`, a job that
   keeps failing comes back as an error after 2 reruns, `throw new Error("boom")` is not rerun, an
   open panel stays open across polls, Copy copies the error, and a fresh tab lists every earlier
-  result with its error.
+  result with its error. 2026-10-28 (page v8) adds targeting and failure handling: two tabs named
+  `alpha` and `beta` each run exactly the jobs targeted at them (by name, by name in other case,
+  and by tab id), a job targeted at a tab that isn't open is never claimed, a job whose result
+  commit is rejected comes back as an error result after one claim, a job whose error result is
+  rejected too has its claim released once and is not claimed again, and `bridge` lists both tabs
+  by name.
 
 SwiftShader runs here are correctness checks only, not timing (METHODS.md).
 
@@ -73,3 +78,15 @@ the busy flag from job selection until the result is committed. `run/e2e.js`
 reproduces it with two simultaneous connects in one tab, plus a second tab,
 behind a mock that adds 250 ms per request. Version 3 gave 1 overlap and one
 job run twice; version 4 gave 0 overlaps, twice.
+
+On 2026-10-27 `doom-2-iphone`, meant for the phone, was claimed seven times at
+about one-minute intervals by a Mac tab (`iqp927j0`) that never committed a
+result, and the phone's tab showed "taken" until the claim was deleted by hand.
+That Mac tab was not the one that had run `doom-1` (`jvbovucv`) a minute
+earlier. Its one-minute rhythm matches Chrome's throttling of timers in tabs
+hidden for over five minutes, so it was most likely a background tab. The reason
+it failed stayed in that tab: before v8 a failed result commit was shown only on
+the page. Page v8 lets a session send a job to one tab (`target` in
+`job.json`, `gpu_bridge.py submit --target`), has each tab report itself in
+`bridge/tabs/<tab>.json`, and replaces a failed result commit with an error
+result, or else releases the claim, so the next such failure lands in the repo.

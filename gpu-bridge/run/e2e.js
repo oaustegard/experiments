@@ -71,6 +71,51 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   await pg.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await pg.click('details[data-key="bad-1"] [data-copy]');
   console.log('copied:', JSON.stringify(await pg.evaluate(() => navigator.clipboard.readText())));
+  // targeting: name the two tabs, send a job to each by name, and one to a tab that isn't open
+  const fails = [];
+  const check = (ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) fails.push(what); };
+  for (const [pg_, name] of [[p, 'alpha'], [p2, 'beta']]) { await pg_.fill('#tabName', name); await pg_.click('#saveName'); }
+  const tabIds = { alpha: (await p.textContent('#dev')).match(/· id ([a-z0-9]{8})/)[1], beta: (await p2.textContent('#dev')).match(/· id ([a-z0-9]{8})/)[1] };
+  console.log('tab ids:', JSON.stringify(tabIds));
+  await p.waitForTimeout(6000);   // both renames committed and rescanned
+  fs.writeFileSync('who.js', 'await new Promise((r) => setTimeout(r, 1500)); return { ok: 1 };');
+  // submit order alternates so that, untargeted, each tab would take some of the other's jobs
+  for (const [id, t] of [['tgt-b1', 'beta'], ['tgt-a1', 'alpha'], ['tgt-b2', 'BETA'], ['tgt-a2', tabIds.alpha], ['tgt-none', 'nosuchtab']]) sh('python3', [CLI, 'submit', 'who.js', '--id', id, '--target', t], env);
+  // a result commit that fails: the page must commit an error result instead, and claim once
+  fs.writeFileSync('rej.js', 'return { x: "mock-reject-blob" };');
+  sh('python3', [CLI, 'submit', 'rej.js', '--id', 'fail-commit', '--target', 'alpha'], env);
+  // a job whose error result can't be committed either: the page must release its claim, once, and not take it again
+  sh('python3', [CLI, 'submit', 'who.js', '--id', 'mock-reject-blob-1', '--target', 'beta'], env);
+  const subj = () => sh('git', ['--git-dir', 'bare.git', 'log', '--format=%s', 'main']).trim().split('\n');
+  for (const t1 = Date.now(); Date.now() - t1 < 120000; await new Promise((r) => setTimeout(r, 1500))) {
+    const ss = subj();
+    if (['tgt-a1', 'tgt-a2', 'tgt-b1', 'tgt-b2'].every((j) => ss.includes(`gpu-bridge: ${j} done`)) && ss.includes('gpu-bridge: fail-commit error') && ss.includes('gpu-bridge: release mock-reject-blob-1')) break;
+  }
+  await p.waitForTimeout(20000);   // several more polls: no tab may take the released job back, or the untargeted-elsewhere one
+  const ss = subj(), count = (x) => ss.filter((y) => y === x).length;
+  for (const [j, want] of [['tgt-a1', 'alpha'], ['tgt-a2', 'alpha'], ['tgt-b1', 'beta'], ['tgt-b2', 'beta']]) {
+    const r = res(j);
+    check(r.status === 'done' && r.tabName === want && r.tab === tabIds[want] && count(`gpu-bridge: claim ${j}`) === 1, `${j} ran once, in ${want} (got ${r.status} in ${r.tabName}/${r.tab}, ${count(`gpu-bridge: claim ${j}`)} claims)`);
+  }
+  check(count('gpu-bridge: claim tgt-none') === 0, 'tgt-none (target nosuchtab) was never claimed');
+  let noneSt; try { sh('python3', [CLI, 'status', 'tgt-none'], env); noneSt = 'exit 0'; } catch (e) { noneSt = 'exit ' + e.status; }
+  check(noneSt === 'exit 3', `tgt-none still pending (${noneSt})`);
+  const p2txt = await p2.$$eval('.job', (e) => e.map((x) => x.textContent.replace(/\s+/g, ' ').trim()).filter((t) => t.startsWith('tgt-none')));
+  check(p2txt.some((t) => /queued.*for nosuchtab, not this tab \(beta\)/.test(t)), `beta's row for tgt-none says it is for another tab: ${JSON.stringify(p2txt)}`);
+  const ptxt = await p.$$eval('.job', (e) => e.map((x) => x.textContent.replace(/\s+/g, ' ').trim()).filter((t) => /^tgt-b/.test(t)));
+  check(ptxt.length > 0 && ptxt.every((t) => !/taken/.test(t)), `alpha never showed beta's jobs as taken: ${JSON.stringify(ptxt)}`);
+  const fc = res('fail-commit');
+  check(fc.status === 'error' && /^Could not commit the result: .*blob rejected/.test(fc.error || '') && count('gpu-bridge: claim fail-commit') === 1 && fc.tabName === 'alpha', `fail-commit: error result committed in place of the rejected one, 1 claim (${fc.status}, ${count('gpu-bridge: claim fail-commit')} claims, ${JSON.stringify((fc.error || '').slice(0, 90))})`);
+  const head = sh('git', ['--git-dir', 'bare.git', 'ls-tree', '-r', '--name-only', 'main']).split('\n');
+  check(count('gpu-bridge: claim mock-reject-blob-1') === 1 && count('gpu-bridge: release mock-reject-blob-1') === 1 && !head.includes('results/mock-reject-blob-1/claim.json') && !head.includes('results/mock-reject-blob-1/result.json'),
+    `mock-reject-blob-1: claimed once, claim released, no result (${count('gpu-bridge: claim mock-reject-blob-1')} claims, ${count('gpu-bridge: release mock-reject-blob-1')} releases)`);
+  const relTxt = await p2.$$eval('.job', (e) => e.map((x) => x.textContent.replace(/\s+/g, ' ').trim()).filter((t) => t.startsWith('mock-reject-blob-1')));
+  console.log('beta row for the released job:', JSON.stringify(relTxt));
+  const br = JSON.parse(sh('python3', [CLI, 'bridge'], env));
+  check(['alpha', 'beta'].every((n) => br.tabs.some((t) => t.name === n && t.tab === tabIds[n] && t.device && t.lastSeenAgoMin < 5)), `bridge lists both tabs by name: ${JSON.stringify(br.tabs.map((t) => [t.name, t.device, t.tab, t.lastSeenAgoMin]))}`);
+  const w = require('child_process').spawnSync('python3', [CLI, 'submit', 'who.js', '--id', 'tgt-warn2', '--target', 'gamma'], { encoding: 'utf8', env: { ...process.env, ...env } }); const warn = w.stderr;
+  check(/no tab matching 'gamma'/.test(warn), `submit --target warns about a tab that isn't open: ${JSON.stringify(warn.trim())}`);
+  console.log(`targeting and failure handling: ${fails.length ? 'FAIL (' + fails.length + ')' : 'PASS'}`);
   // a fresh tab lists earlier results from the commit log and loads one on demand
   const p3 = await b.newPage(); await p3.goto('http://localhost:8765/?api=http://localhost:8766'); await p3.waitForTimeout(1500);
   await p3.fill('#token', 'test-token'); await p3.click('#connect'); await p3.waitForTimeout(10000);
@@ -96,7 +141,7 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   for (const [sha, subj] of commits) {
     let m = /^gpu-bridge: claim (\S+)$/.exec(subj);
     if (m) { const tab = JSON.parse(sh('git', ['--git-dir', 'bare.git', 'show', `${sha}:results/${m[1]}/claim.json`])).tab; tabOf[m[1]] = tab; if (open[tab]) overlaps++; open[tab] = m[1]; continue; }
-    m = /^gpu-bridge: (\S+) (done|error)$/.exec(subj);
+    m = /^gpu-bridge: (?:release (\S+)|(\S+) (?:done|error))$/.exec(subj); if (m) m[1] = m[1] || m[2];
     if (m && tabOf[m[1]] && open[tabOf[m[1]]] === m[1]) open[tabOf[m[1]]] = null;
   }
   console.log('overlapping jobs within a tab (want 0):', overlaps);
@@ -104,4 +149,5 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   console.log('h-overflow:', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), 'errors:', errs);
   await p.screenshot({ path: 'page.png', fullPage: true });
   await b.close(); web.close(); api.kill();
+  if (fails.length) { console.error('E2E FAIL:', fails.join('; ')); process.exit(1); }
 })().catch((e) => { console.error('E2E FAIL', e); process.exit(1); });

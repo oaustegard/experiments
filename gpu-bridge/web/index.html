@@ -95,6 +95,11 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
   <section aria-labelledby="devH">
     <h2 id="devH">This GPU</h2>
     <dl class="kv" id="dev"><dt>Adapter</dt><dd>Checking…</dd></dl>
+    <form id="nameForm" class="row">
+      <div class="field"><label for="tabName">Tab name</label><input id="tabName" autocomplete="off" spellcheck="false" maxlength="40" placeholder="device name"></div>
+      <button class="btn" id="saveName">Save name</button>
+    </form>
+    <p class="note" id="nameNote">A session sends a job to one tab with <code>submit --target NAME</code>. NAME is this name, the device (iPhone, Mac, …) or the tab id. Leave the name empty to use the device.</p>
     <div class="row">
       <button class="btn" id="selfTest" type="button">Run self-test</button>
       <button class="btn" id="wakeLock" type="button">Keep screen awake</button>
@@ -114,7 +119,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 7;
+const PAGE_VERSION = 8;
 // WebGPU reports only "apple" on every Apple device, so results also carry the user agent and a
 // coarse device class read from it: Apple GPUs on an iPhone and on a Mac differ several-fold.
 function deviceLabel() {
@@ -136,6 +141,30 @@ const store = {
   del(k) { try { localStorage.removeItem("gpubridge:" + k); sessionStorage.removeItem("gpubridge:" + k); } catch {} },
 };
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+// A tab's name: ?name= in the URL, else the one saved in this browser, else the device label.
+// A job's `target` (a string or a list) runs only in a tab whose name, device label or id matches.
+const tabName = () => (params.get("name") || store.get("tabName") || "").trim() || deviceLabel();
+function wants(job) {
+  const t = job.target;
+  if (t == null || t === "" || (Array.isArray(t) && !t.length)) return true;
+  const mine = [tabName(), deviceLabel(), TAB].map((x) => x.toLowerCase());
+  return (Array.isArray(t) ? t : [t]).some((x) => mine.includes(String(x).trim().toLowerCase()));
+}
+const fmtTarget = (t) => (Array.isArray(t) ? t : [t]).join(" or ");
+// Each tab reports itself in bridge/tabs/<id>.json: on connect, in each claim and result commit,
+// on a rename, and every 15 minutes, so a session can list the open tabs and their names.
+const HEARTBEAT_MS = 15 * 60000;
+let openedAt = null, lastBeat = 0;
+function tabFile() {
+  lastBeat = Date.now();
+  const info = { tab: TAB, name: tabName(), device: deviceLabel(), ua: navigator.userAgent, adapter: gpuInfo, error: gpuErr, mode,
+    pageVersion: PAGE_VERSION, openedAt, lastSeen: lastBeat };
+  return { [`bridge/tabs/${TAB}.json`]: { text: JSON.stringify(info, null, 1) + "\n" } };
+}
+// Jobs this tab gave up on, id -> time it may try again. Before v8 a tab whose result commit failed
+// claimed the job again on the next poll, and held it for good: a Mac tab claimed doom-2-iphone seven
+// times in seven minutes on 2026-10-27, while the iPhone tab saw "taken".
+const failedHere = new Map();
 // Failures worth rerunning a job for: the fetch or module import failed, a CDN refused or throttled
 // (jsDelivr answers 403 for a minute after a push: wgsl-ab-5..8, 2026-10-26), or the GPU device was lost.
 const TRANSIENT = /failed to fetch|load failed|networkerror|network connection|dynamically imported module|importing a module script|HTTP (403|408|425|429|5\d\d)\b|device (was )?lost/i;
@@ -218,11 +247,12 @@ const blobText = async (sha) => new TextDecoder().decode(await blobBytes(sha));
 
 function b64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
 
-// Commit {path: {text} | {bytes}} onto BRANCH in one commit; rebuilds on a moved head.
+// Commit {path: {text} | {bytes} | {remove: true}} onto BRANCH in one commit; rebuilds on a moved head.
 // `guard(paths)`, given the head's blob paths and shas, may return false to abort (resolves null).
 async function commitFiles(files, message, guard) {
   const entries = [];
   for (const [path, f] of Object.entries(files)) {
+    if (f.remove) { entries.push({ path, mode: "100644", type: "blob", sha: null }); continue; }
     const body = f.bytes ? { content: b64(f.bytes), encoding: "base64" } : { content: f.text, encoding: "utf-8" };
     entries.push({ path, mode: "100644", type: "blob", sha: (await gh(`${R()}/git/blobs`, { method: "POST", body })).data.sha });
   }
@@ -332,6 +362,8 @@ async function poll(gen) {
     lastErr = e.status === 401 ? "The token was refused (401). Check it and connect again." : e.status === 404 ? "Repository not found, or the token can't see it (404)." : "GitHub: " + e.message;
     if (e.status === 401 || e.status === 404) connected = false;
   }
+  if (connected && gen === pollGen && !busy && Date.now() - lastBeat > HEARTBEAT_MS)
+    commitFiles(tabFile(), `gpu-bridge: tab ${TAB} seen`).catch((err) => console.warn("tab heartbeat failed", err));
   setPill(); render();
   if (connected && gen === pollGen) pollTimer = setTimeout(() => poll(gen), document.hidden ? 15000 : 5000);
 }
@@ -347,19 +379,34 @@ async function scan() {
   }
   if (newResults) loadHistory();
   if (busy) return;
-  const queued = jobIds.filter((id) => !tree.has(`results/${id}/result.json`) && !inflight.has(id));
+  const now = Date.now();
+  const queued = jobIds.filter((id) => !tree.has(`results/${id}/result.json`) && !inflight.has(id) && !((failedHere.get(id) || 0) > now));
   if (!queued.length) return;
   busy = true;   // held from here until process() has committed, so a job never starts while another runs
   const jobs = [];
-  for (const id of queued) { try { jobs.push({ id, ...JSON.parse(await blobText(tree.get(`jobs/${id}/job.json`))) }); } catch (e) { jobs.push({ id, broken: String(e.message || e) }); } }
-  jobs.sort((a, b) => (a.created || 0) - (b.created || 0));
-  process(jobs[0]);
+  try { for (const id of queued) jobs.push(await readJob(id)); } catch (e) { busy = false; throw e; }
+  // A job targeted at another tab is left alone: no claim, so that tab finds it free.
+  const mine = jobs.filter((j) => j.broken || wants(j));
+  for (const j of jobs) { const s = seen.get(j.id); if (s && s.status === "queued") s.elsewhere = mine.includes(j) ? null : fmtTarget(j.target); }
+  if (!mine.length) { busy = false; return; }
+  mine.sort((a, b) => (a.created || 0) - (b.created || 0));
+  process(mine[0]);
+}
+// job.json, parsed once per blob. A network failure throws (the poll retries); bad JSON is the job's error.
+const jobCache = new Map();
+async function readJob(id) {
+  const sha = tree.get(`jobs/${id}/job.json`), c = jobCache.get(id);
+  if (c && c.sha === sha) return c.job;
+  const text = await blobText(sha);
+  let job; try { job = { id, ...JSON.parse(text) }; } catch (e) { job = { id, broken: String(e.message || e) }; }
+  job.id = id; jobCache.set(id, { sha, job });
+  return job;
 }
 // Take a job by committing results/<id>/claim.json. A ref update only lands on the current head,
 // so of two tabs racing for one job, the second sees the first's claim and backs off.
 async function claim(id, ttlMs) {
-  const mine = { tab: TAB, at: Date.now(), ua: navigator.userAgent };
-  const sha = await commitFiles({ [`results/${id}/claim.json`]: { text: JSON.stringify(mine) + "\n" } }, `gpu-bridge: claim ${id}`, async (paths) => {
+  const mine = { tab: TAB, name: tabName(), at: Date.now(), ua: navigator.userAgent };
+  const sha = await commitFiles({ [`results/${id}/claim.json`]: { text: JSON.stringify(mine) + "\n" }, ...tabFile() }, `gpu-bridge: claim ${id}`, async (paths) => {
     if (paths.has(`results/${id}/result.json`)) return false;
     const c = paths.get(`results/${id}/claim.json`);
     if (!c) return true;
@@ -367,19 +414,29 @@ async function claim(id, ttlMs) {
   });
   return sha !== null;
 }
+const gpuName = () => gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null;
+const resultBase = (id, info) => ({ id, startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs ?? null, adapter: gpuName(),
+  device: deviceLabel(), tab: TAB, tabName: tabName(), ua: navigator.userAgent, mode, pageVersion: PAGE_VERSION });
 async function process(job) {
   const id = job.id, info = { status: "running", note: job.note, created: job.created, startedAt: Date.now(), logs: [] };
   seen.set(id, info); inflight.add(id); busy = true; setPill(); render();
-  const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000);
+  const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000), ttlMs = timeoutMs + 300000;
   info.timeoutMs = timeoutMs; info.phase = "claiming";
   let claimed;
-  try { claimed = await claim(id, timeoutMs + 300000); } catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; }
+  try { claimed = await claim(id, ttlMs); }
+  catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; failedHere.set(id, Date.now() + 60000); }   // try again in a minute, not every poll
   if (!claimed) {
     info.status = info.error ? "error" : "taken"; info.note = (job.note ? job.note + " · " : "") + (info.error ? "" : "run by another open bridge tab");
     if (!info.error) delete info.startedAt;   // not run here: its row shows the other tab's result from history
     inflight.delete(id); busy = false; etag = null; setPill(); render(); return;
   }
-  const snapshot = new Map(tree), attempts = [];
+  try { await runAndCommit(job, info, timeoutMs); }
+  catch (e) { await giveUp(id, info, e, ttlMs); }   // the claim must not outlive this tab's attempt without a result
+  inflight.delete(id); busy = false; etag = null;   // the next poll refetches the tree and sees the new result
+  setPill(); render();
+}
+async function runAndCommit(job, info, timeoutMs) {
+  const id = job.id, snapshot = new Map(tree), attempts = [];
   let r;
   for (let n = 0; ; n++) {
     try {
@@ -400,23 +457,44 @@ async function process(job) {
     await delay(RETRY_WAITS[n]);
   }
   info.finishedAt = Date.now(); info.runMs = r.runMs ?? null; info.logs = r.logs || []; info.phase = "committing the result"; info.progress = null; tick();
+  info.attemptList = attempts;
   const files = {};
-  const result = { id, status: r.t === "done" ? "done" : "error", startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs,
-    logs: info.logs.slice(-200), adapter: gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null,
-    device: deviceLabel(), ua: navigator.userAgent, mode, pageVersion: PAGE_VERSION };
+  const result = { ...resultBase(id, info), status: r.t === "done" ? "done" : "error", logs: info.logs.slice(-200) };
   if (attempts.length) result.attempts = attempts;   // earlier tries that hit a transient failure, oldest first
   if (r.t === "timeout") result.error = `Timed out after ${job.timeoutMs || 120000} ms; the worker was restarted and its cache cleared.`;
   if (r.t === "error") result.error = String(r.s).slice(0, 8000);
   if (r.t === "done") result.outputs = splitOutputs(r.result, id, files);
   files[`results/${id}/result.json`] = { text: JSON.stringify(result, null, 1) + "\n" };
+  const sha = await commitFiles({ ...files, ...tabFile() }, `gpu-bridge: ${id} ${result.status}`);
+  info.status = result.status; info.error = result.error;
+  hist.set(id, { status: result.status, at: info.finishedAt, result });
+  await wakeSessions(`gpu-bridge: \`${id}\` ${result.status}${info.runMs != null ? ` in ${Math.round(info.runMs)} ms` : ""} — \`results/${id}/\` at ${sha.slice(0, 7)}`);
+}
+// The job ran (or the page broke) but its result could not be committed. Commit a small error result
+// in its place, so the session sees why; failing that, delete this tab's claim so another tab can take
+// the job. Either way this tab leaves the job alone until the claim's TTL has passed.
+async function giveUp(id, info, err, ttlMs) {
+  failedHere.set(id, Date.now() + ttlMs);
+  info.status = "error"; info.finishedAt = info.finishedAt || Date.now();
+  info.error = "Could not commit the result: " + String(err?.message || err);
+  const result = { ...resultBase(id, info), status: "error", error: info.error.slice(0, 8000), logs: (info.logs || []).slice(-50) };
+  if (info.attemptList?.length) result.attempts = info.attemptList;
   try {
-    const sha = await commitFiles(files, `gpu-bridge: ${id} ${result.status}`);
-    info.status = result.status; info.error = result.error;
-    hist.set(id, { status: result.status, at: info.finishedAt, result });
-    await wakeSessions(`gpu-bridge: \`${id}\` ${result.status}${info.runMs != null ? ` in ${Math.round(info.runMs)} ms` : ""} — \`results/${id}/\` at ${sha.slice(0, 7)}`);
-  } catch (e) { info.status = "error"; info.error = "Could not commit the result: " + e.message; }
-  inflight.delete(id); busy = false; etag = null;   // the next poll refetches the tree and sees the new result
-  setPill(); render();
+    const sha = await commitFiles({ [`results/${id}/result.json`]: { text: JSON.stringify(result, null, 1) + "\n" } }, `gpu-bridge: ${id} error`,
+      async (paths) => !paths.has(`results/${id}/result.json`));
+    if (sha) {
+      hist.set(id, { status: "error", at: info.finishedAt, result });
+      await wakeSessions(`gpu-bridge: \`${id}\` error (the result could not be committed) — \`results/${id}/\` at ${sha.slice(0, 7)}`);
+    }
+    return;
+  } catch (e) { info.error += "\nCould not commit an error result either: " + e.message; }
+  try {
+    const sha = await commitFiles({ [`results/${id}/claim.json`]: { remove: true } }, `gpu-bridge: release ${id}`, async (paths) => {
+      const c = paths.get(`results/${id}/claim.json`); if (!c) return false;
+      try { return JSON.parse(await blobText(c)).tab === TAB; } catch { return false; }
+    });
+    if (sha) info.error += "\nReleased the claim, so another open tab can run the job.";
+  } catch (e) { info.error += "\nCould not release the claim: " + e.message; }
 }
 
 // ---------------------------------------------------------------- UI
@@ -436,6 +514,7 @@ function renderDevice() {
     ["Features", gpuInfo.features.join(", ") || "none"],
     ["Max buffer", (L.maxBufferSize / 2 ** 20).toFixed(0) + " MiB · storage binding " + (L.maxStorageBufferBindingSize / 2 ** 20).toFixed(0) + " MiB"],
     ["Workgroup", L.maxComputeInvocationsPerWorkgroup + " invocations · " + (L.maxComputeWorkgroupStorageSize / 1024) + " KiB shared"],
+    ["This tab", `${tabName()} · ${deviceLabel()} · id ${TAB}`],
     ["Job runner", mode === "persistent" ? "one worker, cache kept between jobs" : "a fresh worker per job"],
   ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
 }
@@ -460,6 +539,7 @@ function render() {
     const device = h ? res?.device : s.startedAt ? deviceLabel() : null;
     let nums = "";
     if (s.startedAt) nums = `waited ${fmtMs(s.created ? s.startedAt - s.created : null)} · ran ${fmtMs(s.runMs)}${s.attempts ? ` · ${s.attempts} ${s.attempts > 1 ? "retries" : "retry"}` : ""}`;
+    else if (s.status === "queued" && s.elsewhere) nums = `for ${s.elsewhere}, not this tab (${tabName()})`;
     else if (h) nums = `finished ${h.at ? new Date(h.at).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "earlier"}${res ? ` · ran ${fmtMs(res.runMs)}` : ""}${device ? ` · ${device}` : ""}${res?.attempts?.length ? ` · ${res.attempts.length} ${res.attempts.length > 1 ? "retries" : "retry"}` : ""}`;
     const tries = (attempts || []).map((a, i) => `try ${i + 1} failed: ${a.error}`);
     const body = [error, ...tries, ...(logs.length ? ["log:", ...logs] : [])].filter(Boolean).join("\n");
@@ -531,7 +611,8 @@ async function connect(e) {
   connected = true; lastErr = "";
   if (pollTimer) clearTimeout(pollTimer);
   const gen = ++pollGen;
-  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, device: deviceLabel(), ua: navigator.userAgent, mode, tab: TAB, openedAt: Date.now(), pageVersion: PAGE_VERSION }, null, 1) + "\n" } },
+  openedAt = Date.now();   // bridge/status.json is the last tab to connect, kept for older sessions; bridge/tabs/ has every tab
+  commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, device: deviceLabel(), name: tabName(), ua: navigator.userAgent, mode, tab: TAB, openedAt, pageVersion: PAGE_VERSION }, null, 1) + "\n" }, ...tabFile() },
     "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
   poll(gen); loadHistory();
 }
@@ -562,6 +643,14 @@ async function toggleLock(btn) {
 }
 
 $("#connForm").addEventListener("submit", connect);
+$("#nameForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = $("#tabName").value.trim().slice(0, 40);
+  if (v) store.set("tabName", v, true); else store.del("tabName");
+  $("#nameNote").textContent = params.get("name") ? `The page URL sets this tab's name to ${params.get("name")}; remove ?name= to use the saved one.` : `This tab is now ${tabName()}.`;
+  renderDevice(); etag = null;   // the next poll rescans, so jobs targeted at the new name run here
+  if (connected) commitFiles(tabFile(), `gpu-bridge: tab ${TAB} renamed`).catch((err) => console.warn("tab rename commit failed", err));
+});
 $("#forget").addEventListener("click", () => { store.del("token"); connected = false; cfg.token = ""; $("#forget").hidden = true; $("#token").placeholder = "github_pat_…"; $("#connNote").textContent = "Token removed from this browser."; setPill(); render(); });
 $("#selfTest").addEventListener("click", async (e) => { e.target.disabled = true; try { await selfTest(); } finally { e.target.disabled = false; } });
 $("#wakeLock").addEventListener("click", (e) => toggleLock(e.target));
@@ -572,6 +661,7 @@ $("#jobs").addEventListener("toggle", (e) => { const d = e.target; if (d.open &&
   setPill(); render();
   $("#repo").value = store.get("repo") || $("#repo").value;
   $("#wake").checked = store.get("wake") !== "0";
+  $("#tabName").value = store.get("tabName") || ""; $("#tabName").placeholder = deviceLabel();
   try {
     RUNTIME = await (await fetch("runtime.js", { cache: "no-cache" })).text();
     await startWorker();
