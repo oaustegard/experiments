@@ -82,6 +82,22 @@ async function common(p, tag) {
     await p.locator('#pauseView [data-ctl="arrows"]').tap();
     assert.equal(await p.evaluate(() => [__eel.ctl, __eel.tilt.on, getComputedStyle(document.querySelector('.dpad')).display]).then(r => r.join()), 'arrows,false,grid');
     await p.locator('#pauseView [data-ctl="tilt"]').tap();
+    await p.locator('#resumeBtn').tap();
+    // rotating mid-dive re-fits the grid to the new shape and carries the eel over in one piece
+    const fill = () => p.evaluate(() => { const g = __grid(), c = document.querySelector('#c').getBoundingClientRect(); return [g.w / c.width, g.h / c.height]; });
+    await p.evaluate(() => { __eel.S.acc = -1e6; });
+    await p.setViewportSize({ width: 844, height: 390 }); await p.waitForTimeout(300);
+    const rot = await p.evaluate(() => {
+      const S = __eel.S, C = __eel.dims[0], Rr = __eel.dims[1];
+      const adj = S.snake.every((q, i) => { if (!i) return true; const a = S.snake[i - 1], dx = Math.abs(a.x - q.x), dy = Math.abs(a.y - q.y);
+        return (Math.min(dx, C - dx) + Math.min(dy, Rr - dy)) === 1; });
+      return { state: __eel.state, adj, wide: C > Rr };
+    });
+    assert.deepEqual(rot, { state: 'play', adj: true, wide: true });
+    const [fw, fh] = await fill();
+    assert.ok(fw > 0.9 && fh > 0.75, `landscape grid fills the screen: ${fw.toFixed(2)} x ${fh.toFixed(2)}`);
+    await p.setViewportSize({ width: 390, height: 800 }); await p.waitForTimeout(300);
+    await p.evaluate(() => { __eel.S.acc = 0; });
     await common(p, 'phone');
     await ctx.close();
   }
