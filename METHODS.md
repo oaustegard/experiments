@@ -661,6 +661,16 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **MLX on Linux CPU (`pip install "mlx[cpu]"`) ships the netlib reference BLAS.** A 2048² fp32
+  matmul took 4.2 s against numpy's 0.14 s; bf16 has no fast path either, so a bf16 checkpoint ran
+  11 CPU-minutes without finishing one 1.3B forward pass. Convert to fp32 for CPU work and run with
+  `LD_PRELOAD=<any libopenblas*.so>` (OpenCV's wheel ships one in `opencv_python.libs/`): 10×
+  faster, same results. Quantized matmuls stay slow (a 4-bit 1.3B VLM: ~2 tok/s).
+  (`minicpm-ocr-mlx/README.md`, caveats)
+- **Output through `grep` into a file is block-buffered, so a finished stage looks hung.** A sweep
+  piped through `grep -v` showed nothing for 50 minutes while three of five models had finished;
+  it was killed. Use `python -u` and `grep --line-buffered`, and write per-unit result files.
+  (`minicpm-ocr-mlx/ERRORS.md` #4)
 - **A detached job on a `colab new` VM dies when the session goes untouched.** A training run
   launched with `nohup` from `colab exec` was lost (`colab exec` returned "appears to be lost (404/401)",
   `colab sessions` empty) after 24 minutes without a `colab exec`; 10-minute gaps survived. Run a
