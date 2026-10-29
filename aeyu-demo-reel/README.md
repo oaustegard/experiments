@@ -43,8 +43,13 @@ deployment.
 ## Voiceover
 
 `public/vo/` holds the narration tracks, each mixed to the reel's 35.5 s timeline
-by `vo/assemble.py`: best of three takes per line by faster-whisper WER, then the
-longest take that fits its slot, then loudnorm to -16 LUFS. `vo/script.json`
+by `vo/assemble.py`. For each line it caps pauses inside the take at 0.22 s,
+picks the take with the lowest faster-whisper WER and then the one closest to
+the line's `target` (slot minus 0.25 s), and stretches it gently (0.92–1.12×)
+to that target. The track is then normalized to -16 LUFS. Oskar, 2026-10-29,
+on v2: "weirdly hurried, then with a gap between slides". Lines that merely fit
+their slots ran at 180–280 wpm and left up to 1.7 s of silence before each cut.
+`vo/script_v2.json` lengthens the lines so that about 160 wpm fills each slot. `vo/script.json`
 gives each line's text and its slot. The reel takes the track as a prop:
 
 ```bash
