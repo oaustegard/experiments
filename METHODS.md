@@ -823,8 +823,8 @@ survives exactly the sanity checks people run.
   half a pixel per frame shimmers into a different pattern each frame, and the matcher reports large fake shifts
   (±7 px at confidence about 0.5 in the synthetic test). Draw at 2x the matching size and average a 4x4 texel box
   per pixel, remove each patch's mean (so auto-exposure is not motion), and add 0.002 per pixel of |dx|+|dy| so a
-  repeating texture's ties go to the small shift. Those two changes took fake impacts on a scripted scene from 2
-  per cycle to 0. (`camera-resonator/web/detect.js`, RESULTS log 2026-10-29)
+  repeating texture's ties go to the small shift. Those two changes took fake impacts on a scripted scene from one
+  per cycle to none. (`camera-resonator/web/detect.js`, RESULTS log 2026-10-29)
 - **A simulation stepped at audio rate on WebGPU: one dispatch per step beats one workgroup that loops.**
   Keeping the whole grid in one workgroup's memory and running all 512 steps of a block in a single
   dispatch avoids the per-dispatch price, and it wins on small grids (1.1 vs 1.9 ms per 512 steps at 64x48 on
