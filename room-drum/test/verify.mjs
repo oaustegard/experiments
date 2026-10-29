@@ -92,8 +92,11 @@ if (what === "selftest") {
 } else {
   await page.goto(base + `index.html?autostart=1&${process.argv[3] || ""}`);
   await page.waitForTimeout(+(process.argv[4] || 15000));
+  const before = await page.evaluate(() => window.__stats().strikes);
+  for (let k = 1; k <= 3; k++) { await page.keyboard.press(`Digit${k}`); await page.waitForTimeout(400); }   // the pads, from the keyboard
   res = await page.evaluate(() => window.__stats && window.__stats());
-  res.pass = !!res && res.sent > 4 && res.walls > 0 && res.errors.length === 0;
+  res.padStrikes = res.strikes - before;
+  res.pass = !!res && res.sent > 4 && res.walls > 0 && res.pads.length > 0 && res.padStrikes > 0 && res.errors.length === 0;
 }
 const out = { what, res, errors };
 console.log(JSON.stringify(out, null, 1));

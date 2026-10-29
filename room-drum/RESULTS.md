@@ -13,18 +13,18 @@ A 640×480 skin, one cell per pixel of a VGA frame, takes 5.1 ms (48%).
 <!-- @evidence[[results/summary.json#mac.multi_640x480_wg0_b512.medianMs]] -->
 Up to about 50k cells most of that is a fixed 1.8 ms for 512 dispatches.
 
-The CPU limits the grid before the GPU does. It finds the walls once per 33 ms camera frame, on the main thread, which also feeds the audio: 9 ms at 256×192
+The CPU limits the grid before the GPU does. Finding the walls in one camera frame takes 9 ms at 256×192
 <!-- @evidence[[results/summary.json#macWalls.256x192.wallsMedianMs]] -->
 and 47.5 ms at 640×480, longer than a frame,
 <!-- @evidence[[results/summary.json#macWalls.640x480.wallsMedianMs]] -->
-so the page's default grid, the largest under 30% GPU load on the visitor's device, stops at 256×192.
+The page now does that in a Worker and defaults to at most 128×96, for playability as much as cost.
 
 The numerics hold. The GPU output matches a float64 run of the same scheme to −114 dB on the Mac,
 <!-- @evidence[[results/summary.json#accuracy.macDb]] -->
 and a rectangular drum rings within 0.09 cents of the scheme's predicted modes.
 <!-- @evidence[[results/summary.json#modes.rectMaxCentsVsDiscrete]] -->
 
-No phone has been measured. A slow phone, on the GPU or in the wall pass, would lower its default grid; the page times itself and has a Copy timings button.
+Real time is not the same as playable. On Oskar's Mac the first version was "pure chaos with any movement". Round 2 changed how the page is played. No phone has been measured.
 
 ## Findings
 
@@ -43,14 +43,17 @@ No phone has been measured. A slow phone, on the GPU or in the wall pass, would 
 4. **The CPU wall pass sets the grid limit.** Sobel, hysteresis and region labelling take 9 ms per frame at
    256×192 and 18.4 ms at 384×288 on the Mac, in the bridge's Worker with a synthetic frame (`bench/walls-job.js`, Round 1).
    <!-- @evidence[[results/summary.json#macWalls.384x288.wallsMedianMs]] -->
-   A main thread that stalls for longer than the queued audio, about 32 ms, causes dropouts.
-5. **GPU and float64 agree.** Over both kernels, two grid shapes and a wall change mid-stream, the worst run on
+   Round 2 moved it into a Worker, because on the main thread it delayed the audio blocks.
+5. **The first version was not playable on a real camera.** On Oskar's Mac (Chrome, laptop webcam), "pure chaos with
+   any movement", walls in chaos, and too slow to react (Round 2). Motion fired up to two strikes a frame, walls
+   followed every moving edge, and three 10.7 ms blocks were queued. Round 2's fix is untested on a real camera.
+6. **GPU and float64 agree.** Over both kernels, two grid shapes and a wall change mid-stream, the worst run on
    SwiftShader is −107.7 dB, RMS error relative to the reference's peak, (`test/verify.mjs selftest`). <!-- @evidence[[results/summary.json#accuracy.swiftshaderWorstDb]] -->
-6. **The modes match theory.** On a 33×23 rectangle, the ten lowest peaks sit within 0.09 cents of the discrete dispersion relation
+7. **The modes match theory.** On a 33×23 rectangle, the ten lowest peaks sit within 0.09 cents of the discrete dispersion relation
    (`test/verify.mjs modes`). <!-- @evidence[[results/summary.json#modes.rectMaxCentsVsDiscrete]] -->
    They sit within 5.33 cents of the continuous membrane, a gap that is the scheme's own dispersion.
    <!-- @evidence[[results/summary.json#modes.rectMaxCentsVsContinuous]] -->
-7. **A staircase disc keeps the Bessel ratios.** On a disc of radius 15.5 cells, the first six partial ratios are within
+8. **A staircase disc keeps the Bessel ratios.** On a disc of radius 15.5 cells, the first six partial ratios are within
    0.26% of the Bessel-zero ratios (`test/verify.mjs modes`). <!-- @evidence[[results/summary.json#modes.discFirst6RatioErrPct]] -->
    Every partial reads 26 to 30 cents flat, because the effective radius is about a quarter cell larger than the
    nominal one. The (2,2) mode lies 2.39% off the ratio, and (4,1) did not show at that strike and pickup.
@@ -129,3 +132,29 @@ lower than I assumed, and one workgroup leaves all but one GPU core idle.
 Two page bugs were found by the live check and fixed before the push. Two blocks in flight shared one readback
 buffer ("Buffer already has an outstanding map pending"), and the error path re-pumped in a tight loop that hung
 the tab. The first output level peaked at 8.7 and was cut to about 0.3.
+
+### Round 2 — 2026-10-29 playability
+
+Oskar tried the page on his Mac (Chrome, laptop webcam): "it's ... something but not exactly playable". Asked
+which problems applied, he picked "pure chaos with any movement", "walls are chaos" and "too slow to react".
+
+Causes in the Round 1 design: motion detection fired up to two strikes per camera frame wherever anything moved;
+walls followed every edge in every frame, so a moving hand repainted the drum and the room broke into specks and
+slivers; three 512-sample blocks were queued (32 ms) and the wall pass ran on the thread that feeds the audio.
+
+Changes:
+
+- Walls settle. A cell's score is a slow average (weight 0.12 per frame, about a third of a second), and a cell
+  whose image is moving keeps its score, so a waving hand strikes without repainting and a hand held still becomes
+  a wall. Wall specks with fewer than two wall neighbours are dropped, and skin islands under 0.2% of the grid are
+  filled.
+- The nine largest regions become pads, labelled with their estimated note at their deepest cell. Keys 1 to 9
+  strike them (Shift softer), Space repeats; click or tap still strikes anywhere.
+- Motion strikes are off by default. When on, only an onset counts (the block was quiet the frame before), one
+  per frame, at most four a second.
+- The wall pass runs in a Worker; blocks are 256 samples with two queued (about 11 ms before output latency).
+- The default grid is the largest up to 128×96 under 30% GPU load, for fewer, larger drums.
+
+The headless live check now presses 1 to 3 and requires a pad strike; it passes on SwiftShader (fake camera, one
+region). Output gain went up fourfold, since a strike at a pad's deepest point peaked at 0.05.
+Not yet checked on a real camera.

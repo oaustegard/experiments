@@ -211,7 +211,8 @@ motion strike the skin inside a shape. On a Mac's Apple GPU a 256×192 skin cost
 dispatch per step; one workgroup holding the grid and looping over all 512 steps is faster only below about 5k
 cells. The CPU pass that finds the walls is the tighter limit, 47.5 ms a frame at 640×480. The GPU output matches a
 float64 run to −114 dB, and a rectangular drum rings within 0.09 cents of the scheme's predicted modes. No phone
-timing yet; the page calibrates itself and has a Copy timings button.
+timing yet. Round 2, after Oskar found the first version unplayable, made walls settle where the image is still,
+turned regions into numbered pads struck with keys 1 to 9, made motion strikes opt-in, and moved the wall pass to a Worker.
 
 ### `pulse-video/` — the face's pulse, magnified on the GPU
 
