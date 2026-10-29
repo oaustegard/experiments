@@ -818,6 +818,13 @@ survives exactly the sanity checks people run.
   `e^{s t} = hi[t >> 6] · lo[t & 63]`: one complex multiply, no transcendentals. Damped-mode sums matched float64 at
   −135.7 dB RMS on an iPhone and −141.5 dB on a Mac, with the state carried across blocks on the GPU.
   (`webgpu-bells/job.js`, `camera-resonator/web/engine.js`)
+- **Block matching on camera frames: low-pass before matching, and charge a little per pixel of shift.** A frame
+  drawn straight down to a small matching size (`drawImage` to 96 px wide) aliases fine textures; a pattern moving
+  half a pixel per frame shimmers into a different pattern each frame, and the matcher reports large fake shifts
+  (±7 px at confidence about 0.5 in the synthetic test). Draw at 2x the matching size and average a 4x4 texel box
+  per pixel, remove each patch's mean (so auto-exposure is not motion), and add 0.002 per pixel of |dx|+|dy| so a
+  repeating texture's ties go to the small shift. Those two changes took fake impacts on a scripted scene from 2
+  per cycle to 0. (`camera-resonator/web/detect.js`, RESULTS log 2026-10-29)
 - **A simulation stepped at audio rate on WebGPU: one dispatch per step beats one workgroup that loops.**
   Keeping the whole grid in one workgroup's memory and running all 512 steps of a block in a single
   dispatch avoids the per-dispatch price, and it wins on small grids (1.1 vs 1.9 ms per 512 steps at 64x48 on
