@@ -40,6 +40,27 @@ sequences (67 MB) are not: `capture.cjs replay` and `capture.cjs heatmap`
 regenerate them in about 8 minutes. `AEYU_URL` points the capture at another
 deployment.
 
+## Voiceover
+
+`public/vo/` holds the narration tracks, each mixed to the reel's 35.5 s timeline
+by `vo/assemble.py`: best of three takes per line by faster-whisper WER, then the
+longest take that fits its slot, then loudnorm to -16 LUFS. `vo/script.json`
+gives each line's text and its slot. The reel takes the track as a prop:
+
+```bash
+bash /mnt/skills/user/making-remotion-videos/scripts/render.sh video Reel out/reel.mp4 --props='{"vo":"vo/vo_gemini.wav"}'
+```
+
+- `vo_gemini.wav`: Gemini 3.8 Flash TTS, prebuilt voice Charon, style "energetic,
+  brisk explainer". Line 3 reads "Best of the YEAR" (`vo/script_gemini.json`)
+  because "Year bests" came out as "your best" in 3 of 3 takes.
+- OmniVoice (k2-fsa/OmniVoice 0.2.1, the default engine of
+  [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio)): rendering.
+  `vo/omnivoice_run.py` runs inside `claude-workspace/scripts/jail.sh` with the
+  weights downloaded outside it.
+
+"aeyu" is voiced as "ay-yoo", an unconfirmed guess at the name's pronunciation.
+
 ## Files
 
 - `capture/capture.cjs`: stills (`fullPage`) and the two motion shots. The

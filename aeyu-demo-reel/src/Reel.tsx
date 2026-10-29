@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, staticFile, Img } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, staticFile, Img, Html5Audio } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
@@ -161,8 +161,11 @@ const SCENES: { id: string; dur: number; C: React.FC }[] = [
 ];
 export const REEL_DUR = SCENES.reduce((a, s) => a + s.dur, 0) - T * (SCENES.length - 1);
 
-export const Reel: React.FC = () => (
+// `vo` picks the narration track in public/vo/; render another with --props='{"vo":"vo/x.wav"}'
+export const Reel: React.FC<{ vo?: string }> = ({ vo = "vo/vo_gemini.wav" }) => (
   <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, #FBF8F3 0%, ${C.bg} 55%, #EDE6DB 100%)` }}>
+    {/* narration, mixed to this timeline by vo/assemble.py */}
+    <Html5Audio src={staticFile(vo)} />
     <TransitionSeries>
       {SCENES.flatMap((s, i) => [
         <TransitionSeries.Sequence key={s.id} durationInFrames={s.dur}><s.C /></TransitionSeries.Sequence>,
