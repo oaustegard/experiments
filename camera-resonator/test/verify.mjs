@@ -34,6 +34,16 @@ if (what === "selftest") {
     out.push({ preset: S.label, peak: pk, rmsDb: 20 * Math.log10(Math.sqrt(se / ref.length) / pk) });
     return out;
   });
+} else if (what === "switch") {
+  // queue depth must stay bounded after the resonator is rebuilt (a reset counter once let it grow without limit)
+  await page.goto(base + `index.html?autostart=1&modes=${process.argv[3] || 400}`);
+  await page.waitForTimeout(4000);
+  const before = await page.evaluate(() => window.__stats());
+  await page.selectOption("#preset", "gong");
+  await page.waitForTimeout(+(process.argv[4] || 8000));
+  const after = await page.evaluate(() => window.__stats());
+  res = { before: { queue: before.queue, sent: before.sent, label: before.label }, after: { queue: after.queue, sent: after.sent, done: after.done, label: after.label, latencyMs: after.latencyMs } };
+  if (!(after.queue >= 0 && after.queue <= 8)) errors.push(`queue after rebuild is ${after.queue} blocks`);
 } else {
   await page.goto(base + `index.html?autostart=1&modes=${process.argv[3] || 400}`);
   await page.waitForTimeout(+(process.argv[4] || 12000));

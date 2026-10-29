@@ -37,14 +37,14 @@
 <div id="intro">
   <div>
     <h2>Play a steel plate with your hands</h2>
-    <p>Movement in front of the camera strikes a virtual resonator where it happens: a plate the shape of the frame, or a row of eight bells. Every mode of the plate is a separate damped sinusoid summed on your GPU, a few thousand of them for each 10 ms block of sound. Tapping the screen strikes too.</p>
+    <p>Movement in front of the camera strikes a virtual resonator where it happens: a row of eight bells across the frame, or a steel plate the shape of the frame. Every mode of the plate is a separate damped sinusoid summed on your GPU, a few thousand of them for each 10 ms block of sound. Tapping the screen strikes too.</p>
     <p>Sound plays even with the silent switch on where the browser allows it; headphones are best, since the speaker can feed back into the camera's motion.</p>
     <button class="primary" id="go">Start camera and sound</button>
     <p id="err"></p>
   </div>
 </div>
 <div id="panel" class="hide">
-  <label>Resonator <select id="preset"><option value="plate">Steel plate</option><option value="gong">Gong sheet (long ring)</option><option value="bells">Eight bells</option></select></label>
+  <label>Resonator <select id="preset"><option value="bells">Eight bells</option><option value="plate">Steel plate</option><option value="gong">Gong sheet (long ring)</option></select></label>
   <label id="modesL">Modes <input type="range" id="modes" min="0" max="5" step="1" value="2"><span id="modesV"></span></label>
   <label>Sensitivity <input type="range" id="sens" min="0" max="1" step="0.01" value="0.55"></label>
   <label>Block <select id="block"><option>256</option><option selected>512</option><option>1024</option></select></label>
@@ -59,7 +59,7 @@ const P = new URLSearchParams(location.search);
 const MODES = [1000, 2000, 4000, 8000, 16000, 32000];
 if (P.get("modes")) { MODES.splice(0, MODES.length, +P.get("modes")); $("modes").max = 0; $("modes").value = 0; }
 const st = { facing: "user", strikes: 0, frames: 0, errors: [] };
-let device, stream, ac, node, analyser, eng = null, engKey = "", sent = 0, done = 0, inflight = 0, under = 0, pending = [], rings = [];
+let device, stream, ac, node, analyser, eng = null, engKey = "", gen = 0, sent = 0, done = 0, wq = 0, inflight = 0, under = 0, dropped = 0, pending = [], rings = [];
 const video = $("cam"), fx = $("fx"), g2 = fx.getContext("2d");
 
 // ---------- camera ----------
@@ -182,7 +182,7 @@ async function rebuild() {
     const t0 = performance.now(), S = make(), e = await ModalEngine.create(device, S, { block });
     while (inflight) await new Promise((r) => setTimeout(r, 5));
     old?.destroy();
-    node.port.postMessage({ type: "reset" }); sent = done = 0; pending = [];
+    gen++; node.port.postMessage({ type: "reset", gen }); sent = done = wq = 0; pending = [];
     eng = e; st.buildMs = performance.now() - t0;
     $("modesL").classList.toggle("hide", $("preset").value === "bells" || !!P.get("modes"));
     $("modesV").textContent = MODES[+$("modes").value] ?? MODES[0];
@@ -201,7 +201,7 @@ async function renderOne(e) {
     const out = await e.render(strikes);
     let pk = 0; for (let i = 0; i < out.length; i++) pk = Math.max(pk, Math.abs(out[i]));
     st.peak = Math.max(st.peak || 0, pk);
-    if (e === eng) { node.port.postMessage({ type: "block", data: out }, [out.buffer]); sent++; }
+    if (e === eng) { node.port.postMessage({ type: "block", data: out, gen }, [out.buffer]); sent++; }
   } catch (err) { fail(err); } finally { inflight--; }
   pump();
 }
@@ -212,7 +212,10 @@ async function startAudio() {
   node = new AudioWorkletNode(ac, "resonator-out", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
   analyser = ac.createAnalyser(); analyser.fftSize = 8192; analyser.smoothingTimeConstant = 0.6;
   node.connect(analyser); analyser.connect(ac.destination);
-  node.port.onmessage = (ev) => { if (ev.data.type === "done") { done = ev.data.n; pump(); } else if (ev.data.type === "under") under = ev.data.n; };
+  node.port.onmessage = (ev) => {
+    const d = ev.data; if (d.gen !== gen) return;   // a count from before the last rebuild
+    if (d.type === "done") { done = d.n; wq = d.q; dropped = d.dropped; pump(); } else if (d.type === "under") under = d.n;
+  };
   await ac.resume();
 }
 
@@ -262,16 +265,16 @@ function draw() {
 function stats() {
   const ms = eng ? eng.ms.slice(-50) : [], avg = ms.reduce((a, b) => a + b, 0) / (ms.length || 1), mx = Math.max(0, ...ms);
   const blockMs = eng ? 1000 * eng.B / ac.sampleRate : 0, q = sent - done;
-  const lat = blockMs * (q + 0.5) + 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0));
+  const queueMs = blockMs * (q + 0.5), outMs = 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0)), lat = queueMs + outMs;
   return { label: eng?.S.label, modes: eng?.S.n, block: eng?.B, sr: ac?.sampleRate, gpuMsAvg: avg, gpuMsMax: mx, blockMs, load: avg / blockMs,
-    queue: q, sent, done, under, strikes: st.strikes, frames: st.frames, peak: st.peak, latencyMs: lat, buildMs: st.buildMs, errors: st.errors };
+    queue: q, queueMs, outMs, workletQueue: wq, dropped, sent, done, under, strikes: st.strikes, frames: st.frames, peak: st.peak, latencyMs: lat, buildMs: st.buildMs, errors: st.errors };
 }
 window.__stats = stats;
 setInterval(() => {
   if (!eng) return;
   const s = stats();
   $("status").innerHTML = `${s.label} · GPU <b>${s.gpuMsAvg.toFixed(1)}</b> ms per ${s.blockMs.toFixed(1)} ms block ` +
-    `(<b class="${s.load > 0.8 ? "bad" : ""}">${Math.round(100 * s.load)}%</b>) · queue ${s.queue} · sound ≈ ${Math.round(s.latencyMs)} ms after the frame · ` +
+    `(<b class="${s.load > 0.8 ? "bad" : ""}">${Math.round(100 * s.load)}%</b>) · audio queue ${Math.round(s.queueMs)} ms + output ${Math.round(s.outMs)} ms · ` +
     `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · strikes ${s.strikes}` + (st.check ? ` · ${st.check}` : "");
   pump();
 }, 250);

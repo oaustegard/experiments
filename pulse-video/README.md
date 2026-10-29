@@ -34,7 +34,10 @@ camera's auto-exposure.
   background column has no pulse, so its brightness measures that drift directly. The page shows how far the
   background brightness moved in the window, and how strongly the face's in-band green moves with it. When the
   background shows the same rhythm as the POS estimate at comparable strength, it marks the reading as light
-  or exposure, not pulse. Below 0 dB SNR it shows no number.
+  or exposure, not pulse. It shows no number below 0 dB SNR, while the face's brightness range exceeds the
+  background's by more than 0.2 (you are moving, not the exposure), or when the peak sits on the band's lower edge. The number is the median of the last 5 s.
+- **Comparing with a watch.** "Compare with a watch" opens a field for the rate your watch shows; Save it a few
+  times, then Copy JSON copies the page's per-second readings together with yours.
 
 ## Checks
 
