@@ -187,10 +187,13 @@ function update() {
   const e = tracker.estimate(); st.est = e;
   const span = tracker.span();
   if (!e) { $("bpmV").textContent = "–"; $("bpmS").textContent = `bpm · ${Math.max(0, Math.ceil(6 - span))} s`; $("quality").textContent = `Collecting… ${span.toFixed(0)} s of 6`; return; }
-  if (e.pos) st.hist.push(e.pos.bpm); if (st.hist.length > 5) st.hist.shift();
-  const shown = median(st.hist), good = e.pos && e.pos.snr > -2 && !e.exposureSuspect;
+  // Synthetic video without a pulse peaks anywhere in the band at -2 to -10 dB SNR; with one, at +7 dB or more.
+  // A window below 0 dB shows no number and does not enter the median.
+  const good = e.pos && e.pos.snr >= 0 && !e.exposureSuspect;
+  if (good) { st.hist.push(e.pos.bpm); if (st.hist.length > 5) st.hist.shift(); }
+  const shown = good ? median(st.hist) : null;
   $("bpmV").textContent = shown ? Math.round(shown) : "–";
-  $("bpmS").textContent = good ? "bpm" : "bpm · unsure";
+  $("bpmS").textContent = good ? "bpm" : "no clear pulse";
   const f = (v, d = 1) => (v == null ? "–" : v.toFixed(d));
   $("quality").innerHTML = `POS ${f(e.pos?.bpm, 0)} (SNR <b class="${e.pos?.snr > 0 ? "ok" : "warn"}">${f(e.pos?.snr)} dB</b>) · magnified signal ${f(e.evm?.bpm, 0)} · raw green ${f(e.green?.bpm, 0)} · ` +
     `exposure: background moved <b class="${e.bgDrift > 0.03 ? "warn" : ""}">${f(100 * e.bgDrift)}%</b>, in-band correlation with face <b class="${Math.abs(e.expCorr) > 0.5 ? "warn" : ""}">${f(e.expCorr, 2)}</b>` +

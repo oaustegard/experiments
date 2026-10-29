@@ -21,7 +21,7 @@ const what = process.argv[2] || "filter";
 let failed = false;
 async function open(url) {
   const page = await b.newPage(), errors = [];
-  page.on("pageerror", (e) => errors.push(e.message)); page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("pageerror", (e) => errors.push(e.message)); page.on("console", (m) => m.type() === "error" && !m.text().startsWith("INFO:") && errors.push(m.text()));
   await page.goto(base + url); return { page, errors };
 }
 
@@ -30,7 +30,7 @@ const CASES = [
   ["52", "synth=52", 52], ["72", "synth=72", 72], ["96", "synth=96", 96], ["128", "synth=128", 128],
   ["72-faint", "synth=72&amp=0.002", 72], ["72-noisy", "synth=72&noise=6", 72],
   ["72-steady", "synth=72&drift=0", 72],
-  ["none", "synth=0", null],
+  ["none", "synth=0", null], ["none-steady", "synth=0&drift=0", null],
   ["none-flicker", "synth=0&flicker=1.3,0.003", null],
   ["72-flicker", "synth=72&flicker=1.3,0.003", 72],
 ];
@@ -98,7 +98,7 @@ if (what === "filter") {
     const row = { name, q, expect, windows: last.length, posMAE: mae("pos"), evmMAE: mae("evm"), greenMAE: mae("green"), shownErr: expect == null ? null : +Math.abs(last[last.length - 1].shown - expect).toFixed(2),
       final: last[last.length - 1], meanPosSNR: +(last.reduce((a, r) => a + (r.pos?.snr ?? 0), 0) / last.length).toFixed(2),
       suspectFrac: +(last.filter((r) => r.suspect).length / last.length).toFixed(2), meanExpCorr: +(last.reduce((a, r) => a + (r.expCorr ?? 0), 0) / last.length).toFixed(3),
-      frameMs: s.frameMs, wallS: (Date.now() - t0) / 1000, errors: [...errors, ...s.errors] };
+      log: s.log.map((r) => ({ t: r.t, pos: r.pos, evm: r.evm, green: r.green, bg: r.bg, expCorr: r.expCorr, bgDrift: r.bgDrift })), frameMs: s.frameMs, wallS: (Date.now() - t0) / 1000, errors: [...errors, ...s.errors] };
     rows.push(row);
     console.log(JSON.stringify({ name, expect, posMAE: row.posMAE, evmMAE: row.evmMAE, greenMAE: row.greenMAE, shownErr: row.shownErr, meanPosSNR: row.meanPosSNR, suspectFrac: row.suspectFrac, meanExpCorr: row.meanExpCorr, final: { pos: row.final.pos, bg: row.final.bg, bgDrift: row.final.bgDrift }, wallS: row.wallS }));
     if (row.errors.length) { console.log("errors:", row.errors); failed = true; }
@@ -107,7 +107,7 @@ if (what === "filter") {
   const byName = Object.fromEntries(merged.map((r) => [r.name, r]));
   fs.mkdirSync(OUT, { recursive: true }); fs.writeFileSync(file, JSON.stringify({ seconds: +(process.env.DUR || 20), rows: merged, byName }, null, 1));
 } else {
-  const { page, errors } = await open("index.html?autostart=1&roi=fixed");
+  const { page, errors } = await open("index.html?autostart=1&roi=" + (process.env.ROI || "fixed"));
   await page.waitForTimeout(+(process.argv[3] || 15000));
   const s = await page.evaluate(() => window.__stats());
   console.log(JSON.stringify({ frames: s.frames, skipped: s.skipped, size: s.size, coarse: s.coarse, frameMs: s.frameMs, est: s.est && { pos: s.est.pos, fps: s.est.fps, bgDrift: s.est.bgDrift }, errors: [...errors, ...s.errors] }, null, 1));
