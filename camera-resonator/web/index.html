@@ -37,13 +37,14 @@
 <div id="intro">
   <div>
     <h2>Play a steel plate with your hands</h2>
-    <p>Movement in front of the camera strikes a virtual resonator where it happens: a row of eight bells across the frame, or a steel plate the shape of the frame. Every mode of the plate is a separate damped sinusoid summed on your GPU, a few thousand of them for each 10 ms block of sound. Tapping the screen strikes too.</p>
+    <p>A fingertip that taps the air and stops strikes a virtual resonator where it stops: a row of eight bells across the frame, or a steel plate the shape of the frame. Every mode of the plate is a separate damped sinusoid summed on your GPU, a few thousand of them for each 10 ms block of sound. "Motion impacts" plays with anything that moves fast and stops (a hand, a pen); tapping the screen strikes too.</p>
     <p>Sound plays even with the silent switch on where the browser allows it; headphones are best, since the speaker can feed back into the camera's motion.</p>
     <button class="primary" id="go">Start camera and sound</button>
     <p id="err"></p>
   </div>
 </div>
 <div id="panel" class="hide">
+  <label>Play with <select id="input"><option value="hands">Fingertips (hand tracking)</option><option value="impact">Motion impacts</option><option value="any">Any motion</option></select></label>
   <label>Resonator <select id="preset"><option value="bells">Eight bells</option><option value="plate">Steel plate</option><option value="gong">Gong sheet (long ring)</option></select></label>
   <label id="modesL">Modes <input type="range" id="modes" min="0" max="5" step="1" value="2"><span id="modesV"></span></label>
   <label>Sensitivity <input type="range" id="sens" min="0" max="1" step="0.01" value="0.55"></label>
@@ -54,11 +55,12 @@
 </div>
 <script type="module">
 import { ModalEngine, plate, bells, selfTest } from "./engine.js";
+import { MotionDetector, HandDetector } from "./detect.js";
 const $ = (id) => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 const MODES = [1000, 2000, 4000, 8000, 16000, 32000];
 if (P.get("modes")) { MODES.splice(0, MODES.length, +P.get("modes")); $("modes").max = 0; $("modes").value = 0; }
-const st = { facing: "user", strikes: 0, frames: 0, errors: [] };
+const st = { facing: "user", strikes: 0, frames: 0, errors: [], log: [], t0: performance.now(), inputNote: "" };
 let device, stream, ac, node, analyser, eng = null, engKey = "", gen = 0, sent = 0, done = 0, wq = 0, inflight = 0, under = 0, dropped = 0, pending = [], rings = [];
 const video = $("cam"), fx = $("fx"), g2 = fx.getContext("2d");
 
@@ -70,97 +72,74 @@ async function openCamera() {
   video.classList.toggle("mirror", st.facing === "user");
 }
 
-// ---------- motion on the GPU: |luma - previous luma| summed per grid cell ----------
-const MOTION = /* wgsl */`
-struct MU { w: u32, h: u32, gx: u32, gy: u32 };
-@group(0) @binding(0) var frame: texture_2d<f32>;
-@group(0) @binding(1) var<storage, read_write> prev: array<f32>;
-@group(0) @binding(2) var<storage, read_write> energy: array<f32>;
-@group(0) @binding(3) var<uniform> mu: MU;
-@compute @workgroup_size(8, 8)
-fn main(@builtin(global_invocation_id) g: vec3u) {
-  if (g.x >= mu.gx || g.y >= mu.gy) { return; }
-  let cw = mu.w / mu.gx; let ch = mu.h / mu.gy; var s = 0.0;
-  for (var y = 0u; y < ch; y++) { for (var x = 0u; x < cw; x++) {
-    let px = g.x * cw + x; let py = g.y * ch + y;
-    let l = dot(textureLoad(frame, vec2u(px, py), 0).rgb, vec3f(0.299, 0.587, 0.114));
-    let i = py * mu.w + px; s += abs(l - prev[i]); prev[i] = l;
-  } }
-  energy[g.y * mu.gx + g.x] = s / f32(cw * ch);
-}`;
-const M = {};
-async function initMotion() {
-  const mod = device.createShaderModule({ code: MOTION });
-  M.pipe = await device.createComputePipelineAsync({ layout: "auto", compute: { module: mod, entryPoint: "main" } });
-  M.busy = false;
+// ---------- strikes: the detectors in detect.js ----------
+let motion = null, hands = null, handsLoading = null, view = null, busyFrame = false;
+const synth = P.get("synthetic") ? makeSynthetic() : null;
+function srcDims() { return synth ? [synth.canvas.width, synth.canvas.height] : [video.videoWidth || 4, video.videoHeight || 3]; }
+function motionSize() { const [w, h] = srcDims(); return w >= h ? { w: 96, h: 72 } : { w: 72, h: 96 }; }   // the plate's shape
+async function setInput() {
+  const v = $("input").value;
+  if (v === "hands" && !synth) {
+    st.inputNote = "loading the hand model (7.8 MB)…";
+    try { if (!handsLoading) handsLoading = HandDetector.create(); hands = await handsLoading; st.inputNote = `hand tracking on ${hands.delegate}`; }
+    catch (err) { handsLoading = null; st.inputNote = "hand tracking failed (" + (err.message || err) + "), using motion impacts"; $("input").value = "impact"; }
+  } else st.inputNote = "";
+  hands?.reset();
+  if (motion) { motion.mode = $("input").value === "any" ? "any" : "impact"; motion.reset(); }
 }
-function motionSize() {   // 160 x 120 in the frame's orientation, 16 x 12 cells of 10 x 10 px
-  const land = (video.videoWidth || 4) >= (video.videoHeight || 3);
-  return land ? { w: 160, h: 120, gx: 16, gy: 12 } : { w: 120, h: 160, gx: 12, gy: 16 };
-}
-function motionSetup() {
-  const s = motionSize();
-  if (M.s && M.s.w === s.w && M.s.h === s.h) return;
-  M.s = s; M.tex?.destroy(); M.prev?.destroy(); M.energy?.destroy();
-  M.tex = device.createTexture({ size: [s.w, s.h], format: "rgba8unorm", usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
-  M.prev = device.createBuffer({ size: s.w * s.h * 4, usage: GPUBufferUsage.STORAGE });
-  M.energy = device.createBuffer({ size: s.gx * s.gy * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
-  M.stage = device.createBuffer({ size: s.gx * s.gy * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
-  M.uni = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(M.uni, 0, new Uint32Array([s.w, s.h, s.gx, s.gy]));
-  M.bg = device.createBindGroup({ layout: M.pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: M.tex.createView() },
-    { binding: 1, resource: { buffer: M.prev } }, { binding: 2, resource: { buffer: M.energy } }, { binding: 3, resource: { buffer: M.uni } }] });
-  // drawImage applies the camera's rotation on iOS, which importExternalTexture does not (METHODS.md, xray-glasses)
-  M.canvas = new OffscreenCanvas(s.w, s.h); M.ctx = M.canvas.getContext("2d", { willReadFrequently: false });
-  M.base = new Float32Array(s.gx * s.gy); M.last = new Float64Array(s.gx * s.gy); M.e = new Float32Array(s.gx * s.gy); M.warm = 0;
-}
-async function motionFrame() {
-  if (M.busy || !video.videoWidth) return;
-  M.busy = true;
+async function onFrame(now) {
+  if (busyFrame) return;
+  busyFrame = true;
   try {
-    motionSetup();
-    const s = M.s;
-    M.ctx.drawImage(video, 0, 0, s.w, s.h);
-    device.queue.copyExternalImageToTexture({ source: M.canvas }, { texture: M.tex }, [s.w, s.h]);
-    const enc = device.createCommandEncoder(), p = enc.beginComputePass();
-    p.setPipeline(M.pipe); p.setBindGroup(0, M.bg); p.dispatchWorkgroups(Math.ceil(s.gx / 8), Math.ceil(s.gy / 8)); p.end();
-    enc.copyBufferToBuffer(M.energy, 0, M.stage, 0, s.gx * s.gy * 4);
-    device.queue.submit([enc.finish()]);
-    await M.stage.mapAsync(GPUMapMode.READ);
-    M.e.set(new Float32Array(M.stage.getMappedRange())); M.stage.unmap();
-    st.frames++; detect(performance.now());
-  } finally { M.busy = false; }
+    const sens = +$("sens").value, mode = $("input").value;
+    let r = null;
+    if (mode === "hands" && hands && !synth) { if (video.videoWidth) { hands.sens = sens; r = hands.frame(video, now); } }
+    else if (motion && mode !== "hands") { motion.sens = sens; const [w, h] = srcDims(); if (w > 4) r = await motion.frame(synth ? synth.canvas : video, w, h, now); }
+    if (!r) return;
+    st.frames++; view = r.view;
+    for (const k of r.strikes) strike(mirrored() ? 1 - k.x : k.x, k.y, k.vel);
+  } finally { busyFrame = false; }
 }
-
-// A strike fires where a cell's motion jumps above its own running baseline, is the largest of its neighbours,
-// and the cell has rested 140 ms. At most three per frame; faster motion strikes harder and with a harder mallet.
-function detect(now) {
-  const { gx, gy } = M.s, e = M.e, base = M.base;
-  if (M.warm++ < 8) { base.set(e); return; }
-  const thr = 0.09 - 0.075 * +$("sens").value, cand = [];
-  for (let cy = 0; cy < gy; cy++) for (let cx = 0; cx < gx; cx++) {
-    const i = cy * gx + cx, d = e[i] - base[i];
-    base[i] += (d > thr ? 0.01 : 0.06) * d;
-    if (d <= thr || now - M.last[i] < 140) continue;
-    let peak = true;
-    for (let yy = Math.max(0, cy - 1); yy <= Math.min(gy - 1, cy + 1) && peak; yy++)
-      for (let xx = Math.max(0, cx - 1); xx <= Math.min(gx - 1, cx + 1); xx++) if (e[yy * gx + xx] > e[i]) { peak = false; break; }
-    if (peak) cand.push([d, cx, cy, i]);
-  }
-  cand.sort((a, b) => b[0] - a[0]);
-  for (const [d, cx, cy, i] of cand.slice(0, 3)) {
-    M.last[i] = now;
-    let x = (cx + 0.5) / gx; const y = (cy + 0.5) / gy;
-    if (st.facing === "user") x = 1 - x;   // strike where it shows on the mirrored preview
-    const vel = Math.min(1, 0.2 + (d - thr) / 0.15);
-    strike(x, y, vel);
-  }
-}
+const mirrored = () => st.facing === "user" && !synth;
 function strike(x, y, vel) {
   if (!eng) return;
   pending.push({ x, y, vel, tau: 0.0016 - 0.0013 * vel, js: 0 });
   if (pending.length > 32) pending.splice(0, pending.length - 32);
   rings.push({ x, y, vel, t: performance.now() }); st.strikes++;
+  st.log.push({ t: Math.round(performance.now() - st.t0), x: +x.toFixed(3), y: +y.toFixed(3), vel: +vel.toFixed(2) });
+  if (st.log.length > 200) st.log.shift();
+}
+
+// A test scene in place of the camera (?synthetic=1): a textured disc on a textured background drops fast and
+// stops, drifts slowly, rides a whole-frame pan back and forth, rises fast and stops, then drifts back. An impact
+// detector should strike twice per 5 s cycle, where each fast move stops, and stay quiet through the drift and the pan.
+function makeSynthetic() {
+  const W = 320, H = 240, canvas = document.createElement("canvas"); canvas.width = W; canvas.height = H;
+  const g = canvas.getContext("2d"), bg = document.createElement("canvas"); bg.width = W + 200; bg.height = H;
+  const b = bg.getContext("2d"); let seed = 9; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let y = 0; y < H; y += 6) for (let x = 0; x < W + 200; x += 6) { const v = 40 + 160 * rnd(); b.fillStyle = `rgb(${v},${v},${v})`; b.fillRect(x, y, 6, 6); }
+  const disc = document.createElement("canvas"); disc.width = disc.height = 64; const dg = disc.getContext("2d");
+  for (let y = 0; y < 64; y += 8) for (let x = 0; x < 64; x += 8) { dg.fillStyle = (x + y) % 16 ? "#f5e6c8" : "#2a1d10"; dg.fillRect(x, y, 8, 8); }
+  dg.globalCompositeOperation = "destination-in"; dg.beginPath(); dg.arc(32, 32, 30, 0, 2 * Math.PI); dg.fill();
+  const pos = (t) => {   // disc centre and pan offset in px at time t (s) within the cycle
+    const v = 1.6 * W, x0 = 100, y0 = 40, y1 = 40 + v * 0.3;
+    if (t < 0.5) return [x0, y0, 0];
+    if (t < 0.8) return [x0, y0 + v * (t - 0.5), 0];
+    if (t < 1.8) return [x0, y1, 0];
+    if (t < 2.8) return [x0 + 0.15 * W * (t - 1.8), y1, 0];
+    const x2 = x0 + 0.15 * W;
+    if (t < 3.3) { const p = 1.2 * W * (t < 3.05 ? t - 2.8 : 3.3 - t); return [x2, y1, p]; }
+    if (t < 3.5) return [x2, y1, 0];
+    if (t < 3.8) return [x2, y1 - v * (t - 3.5), 0];
+    if (t < 4) return [x2, y0, 0];
+    return [x2 - 0.15 * W * (t - 4), y0, 0];   // slow drift back to the start, so the loop has no jump
+  };
+  // the scene runs on its own clock, one 30 fps frame per detector pass, so a slow test machine sees the same
+  // per-frame motion a real camera would
+  let frame = 0;
+  return { canvas, expected: [[100 / W, (40 + 1.6 * W * 0.3) / H], [(100 + 0.15 * W) / W, 40 / H]],
+    get ms() { return frame * 1000 / 30; },
+    draw() { const t = (frame++ / 30) % 5, [x, y, p] = pos(t); g.drawImage(bg, -100 - p, 0); g.drawImage(disc, x - 32 - p, y - 32); } };
 }
 
 // ---------- audio: the GPU renders blocks ahead, the worklet plays them ----------
@@ -225,19 +204,30 @@ function draw() {
   const dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(fx.clientWidth * dpr), H = Math.round(fx.clientHeight * dpr);
   if (fx.width !== W || fx.height !== H) { fx.width = W; fx.height = H; }
   g2.clearRect(0, 0, W, H);
-  const vw = video.videoWidth || 4, vh = video.videoHeight || 3, sc = Math.max(W / vw, H / vh);
+  const [vw, vh] = srcDims(), sc = Math.max(W / vw, H / vh);
   const toS = (x, y) => [W / 2 + (x - 0.5) * vw * sc, H / 2 + (y - 0.5) * vh * sc];
   if ($("preset").value === "bells") {
     g2.strokeStyle = "rgba(240,184,90,0.18)"; g2.lineWidth = dpr;
     for (let b = 1; b < 8; b++) { const [x] = toS(b / 8, 0); g2.beginPath(); g2.moveTo(x, 0); g2.lineTo(x, H); g2.stroke(); }
   }
-  if (M.s && M.warm > 8) {   // live motion per cell
-    const { gx, gy } = M.s;
-    for (let cy = 0; cy < gy; cy++) for (let cx = 0; cx < gx; cx++) {
-      const a = Math.min(0.5, M.e[cy * gx + cx] * 6); if (a < 0.03) continue;
-      const x0 = st.facing === "user" ? 1 - (cx + 1) / gx : cx / gx;
-      const [X, Y] = toS(x0, cy / gy), [X1, Y1] = toS(x0 + 1 / gx, (cy + 1) / gy);
-      g2.fillStyle = `rgba(120,170,255,${a})`; g2.fillRect(X, Y, X1 - X, Y1 - Y);
+  if (synth) g2.drawImage(synth.canvas, W / 2 - vw * sc / 2, H / 2 - vh * sc / 2, vw * sc, vh * sc);
+  const mx = (x) => (mirrored() ? 1 - x : x);
+  if (view?.kind === "hands") {
+    for (const t of view.tips) { const [X, Y] = toS(mx(t.x), t.y); g2.fillStyle = t.index ? "rgba(240,184,90,0.9)" : "rgba(233,230,223,0.5)"; g2.beginPath(); g2.arc(X, Y, (t.index ? 6 : 4) * dpr, 0, 2 * Math.PI); g2.fill(); }
+  } else if (view) {
+    const { gx, gy } = view.s, c = view.cells;
+    g2.lineWidth = 2 * dpr; g2.lineCap = "round";
+    for (let i = 0; i < gx * gy; i++) {
+      const cx = (i % gx + 0.5) / gx, cy = (((i / gx) | 0) + 0.5) / gy;
+      if (view.kind === "any") {
+        const a = Math.min(0.5, c[4 * i + 3] * 6); if (a < 0.03) continue;
+        const [X, Y] = toS(mx(cx - 0.5 / gx), cy - 0.5 / gy), [X1, Y1] = toS(mx(cx + 0.5 / gx), cy + 0.5 / gy);
+        g2.fillStyle = `rgba(120,170,255,${a})`; g2.fillRect(Math.min(X, X1), Y, Math.abs(X1 - X), Y1 - Y);
+      } else if (view.speed[i] > 0.2) {   // velocity arrows
+        const k = 0.6 / gx, ex = cx + c[4 * i] * k / 2, ey = cy + c[4 * i + 1] * k / 2 * (view.s.w / view.s.h);
+        const [X, Y] = toS(mx(cx), cy), [X1, Y1] = toS(mx(ex), ey);
+        g2.strokeStyle = `rgba(120,170,255,${Math.min(0.9, 0.2 + view.speed[i] / 3)})`; g2.beginPath(); g2.moveTo(X, Y); g2.lineTo(X1, Y1); g2.stroke();
+      }
     }
   }
   const now = performance.now();
@@ -267,7 +257,7 @@ function stats() {
   const blockMs = eng ? 1000 * eng.B / ac.sampleRate : 0, q = sent - done;
   const queueMs = blockMs * (q + 0.5), outMs = 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0)), lat = queueMs + outMs;
   return { label: eng?.S.label, modes: eng?.S.n, block: eng?.B, sr: ac?.sampleRate, gpuMsAvg: avg, gpuMsMax: mx, blockMs, load: avg / blockMs,
-    queue: q, queueMs, outMs, workletQueue: wq, dropped, sent, done, under, strikes: st.strikes, frames: st.frames, peak: st.peak, latencyMs: lat, buildMs: st.buildMs, errors: st.errors };
+    queue: q, queueMs, outMs, workletQueue: wq, dropped, sent, done, under, strikes: st.strikes, frames: st.frames, peak: st.peak, input: $("input").value, log: st.log, expected: synth?.expected, latencyMs: lat, buildMs: st.buildMs, errors: st.errors };
 }
 window.__stats = stats;
 setInterval(() => {
@@ -275,7 +265,7 @@ setInterval(() => {
   const s = stats();
   $("status").innerHTML = `${s.label} · GPU <b>${s.gpuMsAvg.toFixed(1)}</b> ms per ${s.blockMs.toFixed(1)} ms block ` +
     `(<b class="${s.load > 0.8 ? "bad" : ""}">${Math.round(100 * s.load)}%</b>) · audio queue ${Math.round(s.queueMs)} ms + output ${Math.round(s.outMs)} ms · ` +
-    `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · strikes ${s.strikes}` + (st.check ? ` · ${st.check}` : "");
+    `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · strikes ${s.strikes}` + (st.inputNote ? ` · ${st.inputNote}` : "") + (st.check ? ` · ${st.check}` : "");
   pump();
 }, 250);
 function fail(err) { const m = String(err?.message || err); st.errors.push(m); $("err").textContent = m; $("status").textContent = "Error: " + m; console.error(err); }
@@ -290,17 +280,26 @@ async function start() {
     device = await adapter.requestDevice();
     device.lost.then((i) => fail("GPU device lost: " + i.message));
     device.addEventListener?.("uncapturederror", (ev) => fail(ev.error.message));
-    await Promise.all([audio, openCamera(), initMotion()]);
+    if (P.get("input")) $("input").value = P.get("input");
+    await Promise.all([audio, synth ? null : openCamera(), MotionDetector.create(device).then((m) => (motion = m))]);
     $("intro").classList.add("hide"); $("panel").classList.remove("hide");
     await rebuild();
-    const tick = () => { motionFrame().catch(fail); video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
-    tick(); draw();
+    setInput().catch(fail);
+    if (synth) {
+      const loop = async () => { synth.draw(); await onFrame(synth.ms).catch(fail); requestAnimationFrame(loop); };
+      loop();
+    } else {
+      const tick = () => { onFrame(performance.now()).catch(fail); video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
+      tick();
+    }
+    draw();
   } catch (err) { fail(err); }
 }
 $("go").onclick = start;
 for (const id of ["preset", "modes", "block"]) $(id).addEventListener("change", () => rebuild().catch(fail));
 $("queue").addEventListener("change", pump);
-$("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; M.warm = 0; await openCamera().catch(fail); engKey = ""; rebuild().catch(fail); };
+$("input").addEventListener("change", () => setInput().catch(fail));
+$("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; motion?.reset(); hands?.reset(); await openCamera().catch(fail); engKey = ""; rebuild().catch(fail); };
 $("check").onclick = async () => {
   st.check = "checking…";
   try { const r = await selfTest(device, { modes: 2000, blocks: 16, block: 512 }); st.check = `GPU vs float64: ${r.rmsDb.toFixed(1)} dB RMS`; }

@@ -90,3 +90,29 @@ drops anything past 8 queued blocks so a backlog can never build. After the fix 
 2 blocks. The bells are now the default. The status line now shows the audio queue and the browser's output
 latency separately, because a lag that survives the fix belongs to the output device (Bluetooth headphones add
 100–300 ms) or to the camera.
+
+### 2026-10-29: strikes from deliberate motion
+
+Oskar: "The lag seems to be gone, but how do we make it more of a reaction to deliberate motion?", then "do both
+with a switch". Added fingertip tracking and motion impacts (`web/detect.js`) beside the original rule.
+
+The synthetic scene (`test/verify.mjs synthetic`) scripts one deliberate move and three distractors per 5 s cycle,
+driven one 30 fps frame per detector pass. Getting the impact detector to strike only at the two stops per cycle
+took five fixes, each found by tracing what the cells reported frame by frame:
+
+| change | strikes at stops / elsewhere |
+|---|---|
+| impact = fast, then not continued along its direction | 12 / 15 (per ~2 cycles) |
+| require the whole neighbourhood to go still | 2 / 9 |
+| place at the last moving cells; scene loops without a jump | 2 / 10 |
+| require 2 of 3 fast frames; absolute stillness threshold; speed-weighted placement | 4 / 2 |
+| low-pass the frame (4×4 box at 2× resolution) and charge 0.002 per pixel of shift | 4 / 0 |
+
+The last two fake strikes came from aliasing. The disc's checker pattern, drawn straight down to 96 px wide,
+moved by half a pixel per frame during the slow drift and shimmered into a different pattern every frame. The
+block match then reported ±7 px jumps with confidence around 0.5, and the end of the drift read as an impact. A
+camera filming fine stripes or a keyboard would do the same, so the fix is in the matcher, not the scene. The
+original any-motion rule fired 200 times on the same scene (the log's limit), 59 to 86 of them near a stop.
+
+The hand detector loads MediaPipe tasks-vision 1.1.0 and runs on the GPU delegate in headless Chromium, but the
+fake camera shows no hand, so whether it catches real taps is untested.
