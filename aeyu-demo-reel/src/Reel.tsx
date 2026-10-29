@@ -137,36 +137,72 @@ const Privacy: React.FC = () => (
   </AbsoluteFill>
 );
 
+// Frames (from the closing card's start) at which the narrator says each vowel,
+// measured on public/vo/vo_v6.wav (whisper word timestamps + onset detection).
+const VOWEL_AT: Record<string, number> = { a: 56, e: 70, y: 85, u: 98, i: 122, o: 131 };
+const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+const ROW_SHIFT = [0, 0.25, 0.75]; // QWERTY stagger, in key widths
+
+// "A, E, Y, U, dot I, O: every vowel on your keyboard, left to right."
+const Keyboard: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const K = 84, G = 8;
+  return (
+    <div style={{ position: "relative", width: 10 * K + 9 * G, height: 3 * K + 2 * G }}>
+      {ROWS.flatMap((row, r) =>
+        row.split("").map((ch, c) => {
+          const at = VOWEL_AT[ch];
+          const lit = at === undefined ? 0 : spring({ frame: frame - at, fps, config: { damping: 12 }, durationInFrames: 14 });
+          return (
+            <div key={ch} style={{
+              position: "absolute", left: (c + ROW_SHIFT[r]) * (K + G), top: r * (K + G), width: K, height: K, borderRadius: 14,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: F.mono, fontSize: 40, textTransform: "uppercase",
+              background: lit > 0.5 ? C.accent : "#FFFFFF", color: lit > 0.5 ? C.onDark : C.text3,
+              border: `2px solid ${lit > 0.5 ? C.accentDark : "#E2DBD0"}`,
+              transform: `translateY(${-8 * lit}px) scale(${1 + 0.12 * lit})`,
+              boxShadow: lit > 0.5 ? "0 10px 24px rgba(184,90,40,0.35)" : "0 2px 0 #E2DBD0",
+            }}>{ch}</div>
+          );
+        })
+      )}
+    </div>
+  );
+};
+
 const Cta: React.FC = () => {
   const frame = useCurrentFrame();
-  const pulse = 1 + 0.03 * Math.sin(Math.max(0, frame - 40) / 6);
+  const pulse = 1 + 0.03 * Math.sin(Math.max(0, frame - 30) / 6);
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-      <Rise at={0}><Img src={staticFile("shots/icon.png")} style={{ width: 200, height: 200, borderRadius: 46, boxShadow: "0 24px 60px rgba(107,53,24,0.35)" }} /></Rise>
-      <Rise at={6}><div style={{ marginTop: 50 }}><Wordmark size={170} /></div></Rise>
-      <Rise at={14}><div style={{ fontFamily: F.serif, fontSize: 62, color: C.text2, marginTop: 10 }}>Participation Awards</div></Rise>
-      <Rise at={24}>
-        <div style={{ marginTop: 80, transform: `scale(${pulse})`, background: C.accent, color: C.onDark, fontFamily: F.sans, fontWeight: 700, fontSize: 50, padding: "30px 72px", borderRadius: 999 }}>
+      <Rise at={0}><Img src={staticFile("shots/icon.png")} style={{ width: 150, height: 150, borderRadius: 34, boxShadow: "0 20px 50px rgba(107,53,24,0.35)" }} /></Rise>
+      <Rise at={4}><div style={{ marginTop: 36 }}><Wordmark size={150} /></div></Rise>
+      <Rise at={10}><div style={{ fontFamily: F.serif, fontSize: 54, color: C.text2, marginTop: 6 }}>Participation Awards</div></Rise>
+      <Rise at={16}>
+        <div style={{ marginTop: 50, transform: `scale(${pulse})`, background: C.accent, color: C.onDark, fontFamily: F.sans, fontWeight: 700, fontSize: 48, padding: "26px 68px", borderRadius: 999 }}>
           All free · aeyu.io
         </div>
       </Rise>
-      <Rise at={36}><div style={{ fontFamily: F.sans, fontSize: 34, color: C.text3, marginTop: 36 }}>No ads. No tracking. Try the demo, or connect Strava.</div></Rise>
+      <Rise at={40}><div style={{ marginTop: 80 }}><Keyboard /></div></Rise>
+      <Rise at={150}><div style={{ fontFamily: F.serif, fontSize: 52, color: C.text, marginTop: 44 }}>Every vowel on your keyboard, left to right.</div></Rise>
+      <Rise at={185}><div style={{ fontFamily: F.sans, fontSize: 32, color: C.text3, marginTop: 26 }}>No ads. No tracking. Try the demo, or connect Strava.</div></Rise>
     </AbsoluteFill>
   );
 };
 
 // ---------- reel ----------
 const SCENES: { id: string; dur: number; C: React.FC }[] = [
-  { id: "title", dur: 90, C: Title },
+  { id: "title", dur: 135, C: Title },
   { id: "hook", dur: 120, C: Hook },
   { id: "phone", dur: PHONE_DUR, C: PhoneSection },
   { id: "privacy", dur: 210, C: Privacy },
-  { id: "cta", dur: 135, C: Cta },
+  { id: "cta", dur: 240, C: Cta },
 ];
 export const REEL_DUR = SCENES.reduce((a, s) => a + s.dur, 0) - T * (SCENES.length - 1);
 
 // `vo` picks the narration track in public/vo/; render another with --props='{"vo":"vo/x.wav"}'
-export const Reel: React.FC<{ vo?: string }> = ({ vo = "vo/vo_gemini.wav" }) => (
+export const Reel: React.FC<{ vo?: string }> = ({ vo = "vo/vo_v6.wav" }) => (
   <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, #FBF8F3 0%, ${C.bg} 55%, #EDE6DB 100%)` }}>
     {/* narration, mixed to this timeline by vo/assemble.py */}
     <Html5Audio src={staticFile(vo)} />
