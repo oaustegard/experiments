@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Camera Resonator</title>
+<meta name="description" content="Movement in front of the camera strikes a virtual steel plate or a row of bells with thousands of modes, synthesised on the GPU.">
+<style>
+  :root { --bg: #0b0c0e; --fg: #e9e6df; --dim: #9a968c; --accent: #f0b85a; --panel: rgba(16, 17, 20, 0.86); --line: rgba(255, 255, 255, 0.12); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, -apple-system, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  video, #fx { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  video.mirror { transform: scaleX(-1); }
+  video { filter: grayscale(0.6) brightness(0.55) contrast(1.1); }
+  #fx { touch-action: none; }
+  header { position: fixed; top: 0; left: 0; right: 0; padding: max(10px, env(safe-area-inset-top)) 16px 8px; background: linear-gradient(var(--panel), transparent); pointer-events: none; }
+  h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
+  #status { margin-top: 4px; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #status b { color: var(--fg); font-weight: 600; } #status .bad { color: #ff7a6b; }
+  #panel { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  label { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+  select, button, input[type=range] { font: inherit; color: var(--fg); }
+  select, button { background: #1d1f24; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  button.primary { background: var(--accent); color: #1a1408; border: 0; font-weight: 600; padding: 8px 16px; }
+  input[type=range] { width: 110px; accent-color: var(--accent); }
+  #intro { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; }
+  #intro p { max-width: 30em; color: var(--dim); margin: 0 auto 16px; }
+  #intro h2 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+  .hide { display: none !important; }
+  #err { color: #ff7a6b; max-width: 30em; }
+</style>
+</head>
+<body>
+<div id="stage"><video id="cam" playsinline muted></video><canvas id="fx"></canvas></div>
+<header><h1>Camera Resonator</h1><div id="status">Not started.</div></header>
+<div id="intro">
+  <div>
+    <h2>Play a steel plate with your hands</h2>
+    <p>Movement in front of the camera strikes a virtual resonator where it happens: a plate the shape of the frame, or a row of eight bells. Every mode of the plate is a separate damped sinusoid summed on your GPU, a few thousand of them for each 10 ms block of sound. Tapping the screen strikes too.</p>
+    <p>Sound plays even with the silent switch on where the browser allows it; headphones are best, since the speaker can feed back into the camera's motion.</p>
+    <button class="primary" id="go">Start camera and sound</button>
+    <p id="err"></p>
+  </div>
+</div>
+<div id="panel" class="hide">
+  <label>Resonator <select id="preset"><option value="plate">Steel plate</option><option value="gong">Gong sheet (long ring)</option><option value="bells">Eight bells</option></select></label>
+  <label id="modesL">Modes <input type="range" id="modes" min="0" max="5" step="1" value="2"><span id="modesV"></span></label>
+  <label>Sensitivity <input type="range" id="sens" min="0" max="1" step="0.01" value="0.55"></label>
+  <label>Block <select id="block"><option>256</option><option selected>512</option><option>1024</option></select></label>
+  <label>Queue <select id="queue"><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label>
+  <button id="flip">Flip camera</button>
+  <button id="check">Check accuracy</button>
+</div>
+<script type="module">
+import { ModalEngine, plate, bells, selfTest } from "./engine.js";
+const $ = (id) => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+const MODES = [1000, 2000, 4000, 8000, 16000, 32000];
+if (P.get("modes")) { MODES.splice(0, MODES.length, +P.get("modes")); $("modes").max = 0; $("modes").value = 0; }
+const st = { facing: "user", strikes: 0, frames: 0, errors: [] };
+let device, stream, ac, node, analyser, eng = null, engKey = "", sent = 0, done = 0, inflight = 0, under = 0, pending = [], rings = [];
+const video = $("cam"), fx = $("fx"), g2 = fx.getContext("2d");
+
+// ---------- camera ----------
+async function openCamera() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: st.facing, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } });
+  video.srcObject = stream; await video.play();
+  video.classList.toggle("mirror", st.facing === "user");
+}
+
+// ---------- motion on the GPU: |luma - previous luma| summed per grid cell ----------
+const MOTION = /* wgsl */`
+struct MU { w: u32, h: u32, gx: u32, gy: u32 };
+@group(0) @binding(0) var frame: texture_2d<f32>;
+@group(0) @binding(1) var<storage, read_write> prev: array<f32>;
+@group(0) @binding(2) var<storage, read_write> energy: array<f32>;
+@group(0) @binding(3) var<uniform> mu: MU;
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) g: vec3u) {
+  if (g.x >= mu.gx || g.y >= mu.gy) { return; }
+  let cw = mu.w / mu.gx; let ch = mu.h / mu.gy; var s = 0.0;
+  for (var y = 0u; y < ch; y++) { for (var x = 0u; x < cw; x++) {
+    let px = g.x * cw + x; let py = g.y * ch + y;
+    let l = dot(textureLoad(frame, vec2u(px, py), 0).rgb, vec3f(0.299, 0.587, 0.114));
+    let i = py * mu.w + px; s += abs(l - prev[i]); prev[i] = l;
+  } }
+  energy[g.y * mu.gx + g.x] = s / f32(cw * ch);
+}`;
+const M = {};
+async function initMotion() {
+  const mod = device.createShaderModule({ code: MOTION });
+  M.pipe = await device.createComputePipelineAsync({ layout: "auto", compute: { module: mod, entryPoint: "main" } });
+  M.busy = false;
+}
+function motionSize() {   // 160 x 120 in the frame's orientation, 16 x 12 cells of 10 x 10 px
+  const land = (video.videoWidth || 4) >= (video.videoHeight || 3);
+  return land ? { w: 160, h: 120, gx: 16, gy: 12 } : { w: 120, h: 160, gx: 12, gy: 16 };
+}
+function motionSetup() {
+  const s = motionSize();
+  if (M.s && M.s.w === s.w && M.s.h === s.h) return;
+  M.s = s; M.tex?.destroy(); M.prev?.destroy(); M.energy?.destroy();
+  M.tex = device.createTexture({ size: [s.w, s.h], format: "rgba8unorm", usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+  M.prev = device.createBuffer({ size: s.w * s.h * 4, usage: GPUBufferUsage.STORAGE });
+  M.energy = device.createBuffer({ size: s.gx * s.gy * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  M.stage = device.createBuffer({ size: s.gx * s.gy * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+  M.uni = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(M.uni, 0, new Uint32Array([s.w, s.h, s.gx, s.gy]));
+  M.bg = device.createBindGroup({ layout: M.pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: M.tex.createView() },
+    { binding: 1, resource: { buffer: M.prev } }, { binding: 2, resource: { buffer: M.energy } }, { binding: 3, resource: { buffer: M.uni } }] });
+  // drawImage applies the camera's rotation on iOS, which importExternalTexture does not (METHODS.md, xray-glasses)
+  M.canvas = new OffscreenCanvas(s.w, s.h); M.ctx = M.canvas.getContext("2d", { willReadFrequently: false });
+  M.base = new Float32Array(s.gx * s.gy); M.last = new Float64Array(s.gx * s.gy); M.e = new Float32Array(s.gx * s.gy); M.warm = 0;
+}
+async function motionFrame() {
+  if (M.busy || !video.videoWidth) return;
+  M.busy = true;
+  try {
+    motionSetup();
+    const s = M.s;
+    M.ctx.drawImage(video, 0, 0, s.w, s.h);
+    device.queue.copyExternalImageToTexture({ source: M.canvas }, { texture: M.tex }, [s.w, s.h]);
+    const enc = device.createCommandEncoder(), p = enc.beginComputePass();
+    p.setPipeline(M.pipe); p.setBindGroup(0, M.bg); p.dispatchWorkgroups(Math.ceil(s.gx / 8), Math.ceil(s.gy / 8)); p.end();
+    enc.copyBufferToBuffer(M.energy, 0, M.stage, 0, s.gx * s.gy * 4);
+    device.queue.submit([enc.finish()]);
+    await M.stage.mapAsync(GPUMapMode.READ);
+    M.e.set(new Float32Array(M.stage.getMappedRange())); M.stage.unmap();
+    st.frames++; detect(performance.now());
+  } finally { M.busy = false; }
+}
+
+// A strike fires where a cell's motion jumps above its own running baseline, is the largest of its neighbours,
+// and the cell has rested 140 ms. At most three per frame; faster motion strikes harder and with a harder mallet.
+function detect(now) {
+  const { gx, gy } = M.s, e = M.e, base = M.base;
+  if (M.warm++ < 8) { base.set(e); return; }
+  const thr = 0.09 - 0.075 * +$("sens").value, cand = [];
+  for (let cy = 0; cy < gy; cy++) for (let cx = 0; cx < gx; cx++) {
+    const i = cy * gx + cx, d = e[i] - base[i];
+    base[i] += (d > thr ? 0.01 : 0.06) * d;
+    if (d <= thr || now - M.last[i] < 140) continue;
+    let peak = true;
+    for (let yy = Math.max(0, cy - 1); yy <= Math.min(gy - 1, cy + 1) && peak; yy++)
+      for (let xx = Math.max(0, cx - 1); xx <= Math.min(gx - 1, cx + 1); xx++) if (e[yy * gx + xx] > e[i]) { peak = false; break; }
+    if (peak) cand.push([d, cx, cy, i]);
+  }
+  cand.sort((a, b) => b[0] - a[0]);
+  for (const [d, cx, cy, i] of cand.slice(0, 3)) {
+    M.last[i] = now;
+    let x = (cx + 0.5) / gx; const y = (cy + 0.5) / gy;
+    if (st.facing === "user") x = 1 - x;   // strike where it shows on the mirrored preview
+    const vel = Math.min(1, 0.2 + (d - thr) / 0.15);
+    strike(x, y, vel);
+  }
+}
+function strike(x, y, vel) {
+  if (!eng) return;
+  pending.push({ x, y, vel, tau: 0.0016 - 0.0013 * vel, js: 0 });
+  if (pending.length > 32) pending.splice(0, pending.length - 32);
+  rings.push({ x, y, vel, t: performance.now() }); st.strikes++;
+}
+
+// ---------- audio: the GPU renders blocks ahead, the worklet plays them ----------
+function presetModes() {
+  const key = $("preset").value, n = MODES[+$("modes").value] ?? MODES[0], sr = ac.sampleRate, s = motionSize();
+  const aspect = s.w / s.h;
+  if (key === "bells") return [key, () => bells(sr)];
+  if (key === "gong") return [key + n, () => plate(n, sr, { aspect, t60: 16, fmax: 14000 })];
+  return [key + n, () => plate(n, sr, { aspect })];
+}
+let building = null;
+async function rebuild() {
+  const [key, make] = presetModes(), block = +$("block").value, k = key + "/" + block;
+  if (k === engKey) return;
+  engKey = k;
+  const prev = building; building = (async () => {
+    await prev;
+    const old = eng; eng = null;
+    const t0 = performance.now(), S = make(), e = await ModalEngine.create(device, S, { block });
+    while (inflight) await new Promise((r) => setTimeout(r, 5));
+    old?.destroy();
+    node.port.postMessage({ type: "reset" }); sent = done = 0; pending = [];
+    eng = e; st.buildMs = performance.now() - t0;
+    $("modesL").classList.toggle("hide", $("preset").value === "bells" || !!P.get("modes"));
+    $("modesV").textContent = MODES[+$("modes").value] ?? MODES[0];
+    pump();
+  })();
+  await building;
+}
+function pump() {
+  const target = +$("queue").value;
+  while (eng && inflight < 2 && sent - done + inflight < target) renderOne(eng);
+}
+async function renderOne(e) {
+  inflight++;
+  const strikes = pending.splice(0, 16);
+  try {
+    const out = await e.render(strikes);
+    let pk = 0; for (let i = 0; i < out.length; i++) pk = Math.max(pk, Math.abs(out[i]));
+    st.peak = Math.max(st.peak || 0, pk);
+    if (e === eng) { node.port.postMessage({ type: "block", data: out }, [out.buffer]); sent++; }
+  } catch (err) { fail(err); } finally { inflight--; }
+  pump();
+}
+async function startAudio() {
+  ac = new AudioContext({ latencyHint: "interactive" });   // created inside the tap, as iOS requires
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  await ac.audioWorklet.addModule("worklet.js");
+  node = new AudioWorkletNode(ac, "resonator-out", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+  analyser = ac.createAnalyser(); analyser.fftSize = 8192; analyser.smoothingTimeConstant = 0.6;
+  node.connect(analyser); analyser.connect(ac.destination);
+  node.port.onmessage = (ev) => { if (ev.data.type === "done") { done = ev.data.n; pump(); } else if (ev.data.type === "under") under = ev.data.n; };
+  await ac.resume();
+}
+
+// ---------- drawing ----------
+const spec = new Float32Array(4096);
+function draw() {
+  const dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(fx.clientWidth * dpr), H = Math.round(fx.clientHeight * dpr);
+  if (fx.width !== W || fx.height !== H) { fx.width = W; fx.height = H; }
+  g2.clearRect(0, 0, W, H);
+  const vw = video.videoWidth || 4, vh = video.videoHeight || 3, sc = Math.max(W / vw, H / vh);
+  const toS = (x, y) => [W / 2 + (x - 0.5) * vw * sc, H / 2 + (y - 0.5) * vh * sc];
+  if ($("preset").value === "bells") {
+    g2.strokeStyle = "rgba(240,184,90,0.18)"; g2.lineWidth = dpr;
+    for (let b = 1; b < 8; b++) { const [x] = toS(b / 8, 0); g2.beginPath(); g2.moveTo(x, 0); g2.lineTo(x, H); g2.stroke(); }
+  }
+  if (M.s && M.warm > 8) {   // live motion per cell
+    const { gx, gy } = M.s;
+    for (let cy = 0; cy < gy; cy++) for (let cx = 0; cx < gx; cx++) {
+      const a = Math.min(0.5, M.e[cy * gx + cx] * 6); if (a < 0.03) continue;
+      const x0 = st.facing === "user" ? 1 - (cx + 1) / gx : cx / gx;
+      const [X, Y] = toS(x0, cy / gy), [X1, Y1] = toS(x0 + 1 / gx, (cy + 1) / gy);
+      g2.fillStyle = `rgba(120,170,255,${a})`; g2.fillRect(X, Y, X1 - X, Y1 - Y);
+    }
+  }
+  const now = performance.now();
+  rings = rings.filter((r) => now - r.t < 900);
+  for (const r of rings) {
+    const age = (now - r.t) / 900, [X, Y] = toS(r.x, r.y);
+    g2.strokeStyle = `rgba(240,184,90,${(1 - age) * (0.4 + 0.6 * r.vel)})`; g2.lineWidth = (1 + 3 * r.vel) * dpr;
+    g2.beginPath(); g2.arc(X, Y, (12 + 140 * age) * dpr * (0.5 + r.vel), 0, 2 * Math.PI); g2.stroke();
+  }
+  if (analyser) {   // spectrum, 30 Hz to 20 kHz on a log axis, above the panel
+    analyser.getFloatFrequencyData(spec);
+    const top = H - $("panel").offsetHeight * dpr - 8 * dpr, hh = 90 * dpr, ny = ac.sampleRate / 2;
+    g2.beginPath();
+    for (let i = 0; i <= 400; i++) {
+      const f = 30 * (20000 / 30) ** (i / 400), v = spec[Math.min(spec.length - 1, Math.round(f / ny * spec.length))];
+      const y = top - Math.max(0, Math.min(1, (v + 110) / 90)) * hh, x = i / 400 * W;
+      i ? g2.lineTo(x, y) : g2.moveTo(x, y);
+    }
+    g2.strokeStyle = "rgba(233,230,223,0.55)"; g2.lineWidth = dpr; g2.stroke();
+  }
+  requestAnimationFrame(draw);
+}
+
+// ---------- status ----------
+function stats() {
+  const ms = eng ? eng.ms.slice(-50) : [], avg = ms.reduce((a, b) => a + b, 0) / (ms.length || 1), mx = Math.max(0, ...ms);
+  const blockMs = eng ? 1000 * eng.B / ac.sampleRate : 0, q = sent - done;
+  const lat = blockMs * (q + 0.5) + 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0));
+  return { label: eng?.S.label, modes: eng?.S.n, block: eng?.B, sr: ac?.sampleRate, gpuMsAvg: avg, gpuMsMax: mx, blockMs, load: avg / blockMs,
+    queue: q, sent, done, under, strikes: st.strikes, frames: st.frames, peak: st.peak, latencyMs: lat, buildMs: st.buildMs, errors: st.errors };
+}
+window.__stats = stats;
+setInterval(() => {
+  if (!eng) return;
+  const s = stats();
+  $("status").innerHTML = `${s.label} · GPU <b>${s.gpuMsAvg.toFixed(1)}</b> ms per ${s.blockMs.toFixed(1)} ms block ` +
+    `(<b class="${s.load > 0.8 ? "bad" : ""}">${Math.round(100 * s.load)}%</b>) · queue ${s.queue} · sound ≈ ${Math.round(s.latencyMs)} ms after the frame · ` +
+    `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · strikes ${s.strikes}` + (st.check ? ` · ${st.check}` : "");
+  pump();
+}, 250);
+function fail(err) { const m = String(err?.message || err); st.errors.push(m); $("err").textContent = m; $("status").textContent = "Error: " + m; console.error(err); }
+
+// ---------- start ----------
+async function start() {
+  try {
+    const audio = startAudio();   // first, while still inside the tap
+    if (!navigator.gpu) throw new Error("This browser has no WebGPU. Try Chrome or Edge 121+, or Safari 26+.");
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!adapter) throw new Error("WebGPU is present but no GPU adapter was granted.");
+    device = await adapter.requestDevice();
+    device.lost.then((i) => fail("GPU device lost: " + i.message));
+    device.addEventListener?.("uncapturederror", (ev) => fail(ev.error.message));
+    await Promise.all([audio, openCamera(), initMotion()]);
+    $("intro").classList.add("hide"); $("panel").classList.remove("hide");
+    await rebuild();
+    const tick = () => { motionFrame().catch(fail); video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
+    tick(); draw();
+  } catch (err) { fail(err); }
+}
+$("go").onclick = start;
+for (const id of ["preset", "modes", "block"]) $(id).addEventListener("change", () => rebuild().catch(fail));
+$("queue").addEventListener("change", pump);
+$("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; M.warm = 0; await openCamera().catch(fail); engKey = ""; rebuild().catch(fail); };
+$("check").onclick = async () => {
+  st.check = "checking…";
+  try { const r = await selfTest(device, { modes: 2000, blocks: 16, block: 512 }); st.check = `GPU vs float64: ${r.rmsDb.toFixed(1)} dB RMS`; }
+  catch (err) { fail(err); }
+};
+fx.addEventListener("pointerdown", (ev) => {
+  if (!eng) return;
+  const r = fx.getBoundingClientRect(), vw = video.videoWidth || 4, vh = video.videoHeight || 3, sc = Math.max(r.width / vw, r.height / vh);
+  const x = 0.5 + (ev.clientX - r.left - r.width / 2) / (vw * sc), y = 0.5 + (ev.clientY - r.top - r.height / 2) / (vh * sc);
+  strike(Math.min(0.99, Math.max(0.01, x)), Math.min(0.99, Math.max(0.01, y)), 0.85);
+});
+if (P.get("autostart")) start();
+</script>
+</body>
+</html>
