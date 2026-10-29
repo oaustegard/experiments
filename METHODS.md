@@ -765,7 +765,10 @@ survives exactly the sanity checks people run.
   stayed within 1.5 bpm. A background rectangle with no skin is a direct drift meter: the face's band-passed
   green correlated with it at 0.85-0.95 under drift and 0.11 without. Gate the output on spectral SNR. With no
   pulse the peak landed anywhere from 48 to 180 bpm at -2 to -10 dB, and a median over those windows
-  happened to read 72. (`pulse-video/RESULTS.md` findings 3-5)
+  happened to read 72. On one real face at a laptop, with steady exposure, the green signal was the stronger one
+  (median SNR 4.7 dB against POS's 1.0, agreeing to 0.85 bpm), so do not assume POS wins where drift is small.
+  Movement puts its own rhythm in: jumping jacks read about 85 per minute in the background and the face alike;
+  gate on the face's brightness range (over 8% in a 10 s window meant moving). (`pulse-video/RESULTS.md` findings 3-7)
 - **Temporal filters on camera frames: take each frame's own dt.** Camera frames arrive late or get skipped
   when the GPU is busy. An exponential smoother with gain `1 - exp(-2*pi*f*dt)` per frame keeps its cutoff in
   hertz whatever the spacing, and a difference of two-pole smoothers makes a band-pass that needs no fixed

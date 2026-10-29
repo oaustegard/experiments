@@ -15,7 +15,9 @@
   header { position: fixed; top: 0; left: 0; right: 0; padding: max(10px, env(safe-area-inset-top)) 16px 8px; background: linear-gradient(var(--panel), transparent); pointer-events: none; display: flex; justify-content: space-between; gap: 12px; }
   h1 { margin: 0; font-size: 17px; font-weight: 600; }
   #status { margin-top: 3px; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
-  #bpm { text-align: right; font-variant-numeric: tabular-nums; }
+  #top { display: flex; gap: 14px; align-items: center; }
+  #trace { flex: 1; min-width: 0; }
+  #bpm { min-width: 5.5em; font-variant-numeric: tabular-nums; }
   #bpm b { font-size: 38px; font-weight: 650; color: var(--accent); line-height: 1; }
   #bpm small { display: block; color: var(--dim); font-size: 12px; }
   #panel { position: fixed; left: 0; right: 0; bottom: 0; padding: 8px 16px max(10px, env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); }
@@ -26,7 +28,7 @@
   label { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
   select, button, input { font: inherit; color: var(--fg); }
   select, button, input[type=number] { background: #221d1c; border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
-  input[type=number] { width: 4.5em; }
+  input[type=number] { width: 5.5em; }
   input[type=range] { width: 100px; accent-color: var(--accent); }
   button.primary { background: var(--accent); color: #1c0b0b; border: 0; font-weight: 600; padding: 8px 16px; }
   #intro { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--bg); }
@@ -41,7 +43,6 @@
 <div id="stage"><canvas id="view"></canvas><canvas id="ov"></canvas></div>
 <header>
   <div><h1>Pulse From Video</h1><div id="status">Not started.</div></div>
-  <div id="bpm"><b id="bpmV">–</b><small id="bpmS">bpm</small></div>
 </header>
 <div id="intro">
   <div>
@@ -54,15 +55,19 @@
   </div>
 </div>
 <div id="panel" class="hide">
-  <canvas id="trace"></canvas>
+  <div id="top"><div id="bpm"><b id="bpmV">–</b><small id="bpmS">bpm</small></div><canvas id="trace"></canvas></div>
   <div id="quality">Collecting…</div>
   <div class="row">
     <label>Show <select id="viewSel"><option value="0">Magnified</option><option value="1">Changes only</option><option value="2">Original</option></select></label>
     <label>Gain <input type="range" id="amp" min="0" max="200" step="5" value="60"><span id="ampV">60</span></label>
     <label>Blur <select id="levels"><option value="3">3 levels</option><option value="4" selected>4 levels</option><option value="5">5 levels</option></select></label>
     <button id="flip">Flip camera</button>
-    <label>Watch says <input type="number" id="ref" min="30" max="220" placeholder="bpm"></label>
-    <button id="mark">Record</button>
+    <button id="cmpBtn">Compare with a watch</button>
+  </div>
+  <div id="cmp" class="row hide">
+    <span class="note">Optional. Type the heart rate your watch shows right now and tap Save; do it a few times. Copy JSON then copies the page's readings with yours, to paste to whoever is checking it.</span>
+    <label>Watch <input type="number" id="ref" min="30" max="220" placeholder="bpm" inputmode="numeric"></label>
+    <button id="mark">Save</button>
     <button id="copy">Copy JSON</button>
   </div>
 </div>
@@ -72,7 +77,7 @@ import { RateTracker } from "./rate.js";
 import { Synth } from "./synth.js";
 const $ = (id) => document.getElementById(id);
 const P = new URLSearchParams(location.search);
-const VERSION = 1;
+const VERSION = 2;
 const st = { facing: "user", frames: 0, skipped: 0, box: null, boxT: -1e9, detector: null, detectMs: [], gpuMs: [], est: null, hist: [], log: [], marks: [], errors: [], roiMode: P.get("roi") || "face" };
 let device, adapterInfo, gctx, format, eng = null, tracker = new RateTracker(), stream, busy = false, synth = null, building = null;
 const video = document.createElement("video"); video.playsInline = true; video.muted = true;
@@ -188,12 +193,16 @@ function update() {
   const span = tracker.span();
   if (!e) { $("bpmV").textContent = "–"; $("bpmS").textContent = `bpm · ${Math.max(0, Math.ceil(6 - span))} s`; $("quality").textContent = `Collecting… ${span.toFixed(0)} s of 6`; return; }
   // Synthetic video without a pulse peaks anywhere in the band at -2 to -10 dB SNR; with one, at +7 dB or more.
-  // A window below 0 dB shows no number and does not enter the median.
-  const good = e.pos && e.pos.snr >= 0 && !e.exposureSuspect;
-  if (good) { st.hist.push(e.pos.bpm); if (st.hist.length > 5) st.hist.shift(); }
-  const shown = good ? median(st.hist) : null;
+  // A window below 0 dB shows no number and does not enter the median. Neither does a window where the face's
+  // brightness swung by more than 8% (moving: 0.05 to 1.2 during Oskar's jumping jacks, 0.01 to 0.04 seated),
+  // or one whose peak sits on the band's lower edge, where slow drift lands. The median covers the last 5 s only.
+  const moving = e.faceDrift > 0.08, edge = e.pos && e.pos.bpm < 43;
+  const good = e.pos && e.pos.snr >= 0 && !e.exposureSuspect && !moving && !edge;
+  if (good) st.hist.push({ t: e.t, bpm: e.pos.bpm });
+  st.hist = st.hist.filter((h) => h.t > e.t - 5);
+  const shown = good ? median(st.hist.map((h) => h.bpm)) : null;
   $("bpmV").textContent = shown ? Math.round(shown) : "–";
-  $("bpmS").textContent = good ? "bpm" : "no clear pulse";
+  $("bpmS").textContent = good ? "bpm" : moving ? "hold still" : "no clear pulse";
   const f = (v, d = 1) => (v == null ? "–" : v.toFixed(d));
   $("quality").innerHTML = `POS ${f(e.pos?.bpm, 0)} (SNR <b class="${e.pos?.snr > 0 ? "ok" : "warn"}">${f(e.pos?.snr)} dB</b>) · magnified signal ${f(e.evm?.bpm, 0)} · raw green ${f(e.green?.bpm, 0)} · ` +
     `exposure: background moved <b class="${e.bgDrift > 0.03 ? "warn" : ""}">${f(100 * e.bgDrift)}%</b>, in-band correlation with face <b class="${Math.abs(e.expCorr) > 0.5 ? "warn" : ""}">${f(e.expCorr, 2)}</b>` +
@@ -268,11 +277,12 @@ $("amp").addEventListener("input", () => { $("ampV").textContent = $("amp").valu
 $("viewSel").addEventListener("change", () => { if (eng) eng.params.view = +$("viewSel").value; });
 $("levels").addEventListener("change", () => { if (eng) ensureEngine(eng.w, eng.h).catch(fail); });
 $("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; await openCamera().catch(fail); };
+$("cmpBtn").onclick = () => $("cmp").classList.toggle("hide");
 $("mark").onclick = () => {
   const ref = +$("ref").value;
   if (!ref) { $("ref").focus(); return; }
-  st.marks.push({ t: st.est?.t ?? null, ref, shown: median(st.hist), est: st.log[st.log.length - 1] ?? null });
-  $("mark").textContent = `Recorded (${st.marks.length})`;
+  st.marks.push({ t: st.est?.t ?? null, ref, shown: median(st.hist.map((h) => h.bpm)), est: st.log[st.log.length - 1] ?? null });
+  $("mark").textContent = `Saved (${st.marks.length})`; $("ref").value = "";
 };
 $("copy").onclick = async () => {
   const txt = JSON.stringify(stats(), null, 1);
