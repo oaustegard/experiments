@@ -661,6 +661,14 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **TTS for a timed voiceover: generate 3 takes per line and pick by faster-whisper WER, then
+  check pace.** Both Gemini 3.8 Flash TTS and OmniVoice turned "Year bests" into "your best".
+  Unpaced OmniVoice averaged 211 wpm, which its `duration=` argument fixed. A coined brand name
+  was said two ways in one reel until it was recorded once and spliced into every line.
+  OmniVoice runs on CPU here in the jail at about 17–36× real time and takes CMU phonemes inline
+  (`[EY1 Y UW0]`). faster-whisper 1.2.1 with this container's PyAV fails on a file path, so pass a
+  16 kHz float array. (`aeyu-demo-reel/README.md` "Voiceover"; skill `making-remotion-videos`
+  `references/narration.md`)
 - **Headless Chromium launched by a tool (Remotion's renderer) does not trust the egress proxy's
   CA, though curl and Playwright's own launches reach the same hosts.** Every Remotion still failed
   with `ERR_CERT_AUTHORITY_INVALID` on fonts.gstatic.com, then `TypeError: Failed to fetch`.

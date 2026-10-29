@@ -48,16 +48,21 @@ longest take that fits its slot, then loudnorm to -16 LUFS. `vo/script.json`
 gives each line's text and its slot. The reel takes the track as a prop:
 
 ```bash
-bash /mnt/skills/user/making-remotion-videos/scripts/render.sh video Reel out/reel.mp4 --props='{"vo":"vo/vo_gemini.wav"}'
+bash /mnt/skills/user/making-remotion-videos/scripts/render.sh video Reel out/reel.mp4 --props='{"vo":"vo/vo_omnivoice.wav"}'   # default: vo_gemini.wav
 ```
 
 - `vo_gemini.wav`: Gemini 3.8 Flash TTS, prebuilt voice Charon, style "energetic,
   brisk explainer". Line 3 reads "Best of the YEAR" (`vo/script_gemini.json`)
   because "Year bests" came out as "your best" in 3 of 3 takes.
-- OmniVoice (k2-fsa/OmniVoice 0.2.1, the default engine of
-  [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio)): rendering.
-  `vo/omnivoice_run.py` runs inside `claude-workspace/scripts/jail.sh` with the
-  weights downloaded outside it.
+- `vo_omnivoice.wav`: OmniVoice (k2-fsa/OmniVoice 0.2.1, the default engine of
+  [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio)), run on CPU
+  inside `claude-workspace/scripts/jail.sh` (`vo/omnivoice_run.py`, weights
+  downloaded outside the jail). Tag-designed voices came out flat, so the voice
+  is cloned from a 6 s Gemini Charon clip in the energetic style, which shares
+  no words with the script. Unpaced it ran at 211 wpm. With `duration=` set
+  per line it runs at 182 wpm. Each line took about 17–36× real time on 4
+  cores. The name uses the inline phoneme override `[EY1 Y UW0] dot I-O.`,
+  because every plain spelling came out "eye-you".
 
 "aeyu" is "AY-yoo" (Oskar, 2026-10-29). The name is recorded once, with the
 spelling "AY-you dot I-O." (3 of 3 Gemini takes transcribed identically; other
