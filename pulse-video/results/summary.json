@@ -1,0 +1,200 @@
+{
+ "filter": {
+  "maxFiltErr": 1.8235859466919635e-07,
+  "maxFiltErrE7": 1.82,
+  "maxCompLevels": 1
+ },
+ "drift": {
+  "posMAEmax": 1.45,
+  "evmMAEmax": 18.42,
+  "greenMAEmax": 12.72,
+  "expCorrMin": 0.846,
+  "expCorrMax": 0.951
+ },
+ "flicker": {
+  "noPulseEvmBpmMedian": 78.0,
+  "noPulsePosBpm": [
+   71.1,
+   70.3,
+   70.5,
+   132.4,
+   131.3,
+   116.8,
+   119.2,
+   118.3,
+   55.5,
+   50.1,
+   48.6,
+   72.8,
+   71.7,
+   73.2
+  ],
+  "hz": 1.3
+ },
+ "finalEvmBpm": {
+  "96": 41.9,
+  "128": 41.9,
+  "72-faint": 41.9,
+  "72-flicker": 80.1
+ },
+ "steady": {
+  "posMAE": 0.82,
+  "evmMAE": 0.8,
+  "greenMAE": 0.78,
+  "meanExpCorr": 0.107
+ },
+ "snr": {
+  "pulseMeanMin": 8.33,
+  "noPulseMax": -2.06,
+  "noPulseWindows": 42
+ },
+ "cases": {
+  "52": {
+   "expect": 52,
+   "posMAE": 0.63,
+   "evmMAE": 2.05,
+   "greenMAE": 2.9,
+   "meanPosSNR": 10.21,
+   "meanExpCorr": 0.846
+  },
+  "72": {
+   "expect": 72,
+   "posMAE": 0.79,
+   "evmMAE": 4.05,
+   "greenMAE": 4.06,
+   "meanPosSNR": 9.9,
+   "meanExpCorr": 0.848
+  },
+  "96": {
+   "expect": 96,
+   "posMAE": 1.06,
+   "evmMAE": 6.39,
+   "greenMAE": 1.02,
+   "meanPosSNR": 9.47,
+   "meanExpCorr": 0.873
+  },
+  "128": {
+   "expect": 128,
+   "posMAE": 1.45,
+   "evmMAE": 18.42,
+   "greenMAE": 1.35,
+   "meanPosSNR": 8.33,
+   "meanExpCorr": 0.901
+  },
+  "72-faint": {
+   "expect": 72,
+   "posMAE": 0.78,
+   "evmMAE": 9.9,
+   "greenMAE": 12.72,
+   "meanPosSNR": 9.67,
+   "meanExpCorr": 0.951
+  },
+  "72-noisy": {
+   "expect": 72,
+   "posMAE": 0.75,
+   "evmMAE": 4.04,
+   "greenMAE": 6.93,
+   "meanPosSNR": 9.35,
+   "meanExpCorr": 0.85
+  },
+  "72-steady": {
+   "expect": 72,
+   "posMAE": 0.82,
+   "evmMAE": 0.8,
+   "greenMAE": 0.78,
+   "meanPosSNR": 9.9,
+   "meanExpCorr": 0.107
+  },
+  "72-flicker": {
+   "expect": 72,
+   "posMAE": 0.79,
+   "evmMAE": 5.02,
+   "greenMAE": 5.02,
+   "meanPosSNR": 9.91,
+   "meanExpCorr": 0.898
+  },
+  "none": {
+   "expect": null,
+   "posMAE": null,
+   "evmMAE": null,
+   "greenMAE": null,
+   "meanPosSNR": -4.33,
+   "meanExpCorr": 1
+  },
+  "none-steady": {
+   "expect": null,
+   "posMAE": null,
+   "evmMAE": null,
+   "greenMAE": null,
+   "meanPosSNR": -5.89,
+   "meanExpCorr": -0.164
+  },
+  "none-flicker": {
+   "expect": null,
+   "posMAE": null,
+   "evmMAE": null,
+   "greenMAE": null,
+   "meanPosSNR": -4.08,
+   "meanExpCorr": 1
+  }
+ },
+ "mac": {
+  "check": {
+   "maxErr": 1.8430498849308918e-07,
+   "peakFilt": 0.016841891715448365,
+   "maxErrE7": 1.84
+  },
+  "320x240": {
+   "w": 320,
+   "h": 240,
+   "levels": 3,
+   "coarse": [
+    40,
+    30
+   ],
+   "medianMs": 1.6,
+   "p90Ms": 2.5,
+   "maxMs": 5.6,
+   "synthDrawMs": 9.2
+  },
+  "640x480": {
+   "w": 640,
+   "h": 480,
+   "levels": 4,
+   "coarse": [
+    40,
+    30
+   ],
+   "medianMs": 1.9,
+   "p90Ms": 2.8,
+   "maxMs": 4.1,
+   "synthDrawMs": 36.2
+  },
+  "480x640": {
+   "w": 480,
+   "h": 640,
+   "levels": 4,
+   "coarse": [
+    30,
+    40
+   ],
+   "medianMs": 1.7,
+   "p90Ms": 2.5,
+   "maxMs": 5.2,
+   "synthDrawMs": 37.2
+  },
+  "1280x720": {
+   "w": 1280,
+   "h": 720,
+   "levels": 5,
+   "coarse": [
+    40,
+    23
+   ],
+   "medianMs": 2.1,
+   "p90Ms": 2.7,
+   "maxMs": 3.8,
+   "synthDrawMs": 114.4
+  }
+ }
+}

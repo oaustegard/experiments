@@ -27,6 +27,8 @@ session-boot repo and was the wrong home for 37 research projects.
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
 | [`aeyu-demo-reel/`](aeyu-demo-reel/README.md) | 2026-10-29 | **done — a 35.5 s 1080×1920 demo reel of aeyu.io in Remotion 4.0.535: nine scenes, five of them the live `/demo` app inside a phone frame (dashboard scroll with a tap, the 3D ride replay, awards, the fatigue power curve, the heatmap playing). Stills are full-page Playwright captures at 390 px @3x; the two animations were stepped frame by frame under Playwright's fake clock. Worked example for the `making-remotion-videos` skill in claude-skills** | [`README.md`](aeyu-demo-reel/README.md) + `capture/capture.cjs` + `src/Reel.tsx` | Oskar, 2026-10-29: "Build up a set of protocols for making use of https://github.com/remotion-dev/remotion. Then create a demo reel video for aeyu.io using it, with a phone form factor" |
+| [`pulse-video/`](pulse-video/RESULTS.md) | 2026-10-29 | **built; verified on SwiftShader and a Mac GPU, real-face accuracy pending.** Eulerian video magnification of the face's colour on WebGPU (1.9 ms per 640×480 frame on a Mac), with a POS heart-rate estimate that stays within 1.5 bpm of synthetic pulses under simulated auto-exposure, where the green channel misses by up to 18 | [`RESULTS.md`](pulse-video/RESULTS.md) + `web/` ([live](https://austegard.com/experiments/pulse-video/web/)) + `test/verify.mjs`, `bench/job.js` | Oskar, 2026-10-29, idea #3 of the camera-to-GPU list: "since this is camera based let's maybe have one that uses the camera? Could be either on my phone or laptop" |
+| [`room-drum/`](room-drum/RESULTS.md) | 2026-10-29 | **built; real time on a Mac, phone pending.** Camera edges become the walls of a drum skin stepped once per audio sample on the GPU: 256×192 cells in 2.2 ms per 10.7 ms block on the Mac's Apple GPU, 640×480 in 5.1 ms; GPU vs float64 −114 dB; the CPU wall pass (9 ms a frame at 256×192, 47.5 ms at 640×480) limits the grid first | [`RESULTS.md`](room-drum/RESULTS.md) + `web/` ([live](https://austegard.com/experiments/room-drum/web/)) + `test/verify.mjs`, `bench/` | Oskar, 2026-10-29: idea #2 from camera-resonator's list, "the room as a drum", built in a sibling session |
 | [`camera-resonator/`](camera-resonator/README.md) | 2026-10-29 | **built; verified on SwiftShader (GPU vs float64 −141 dB RMS), real-device timing pending.** Camera motion strikes a virtual steel plate or eight bells with thousands of GPU-summed modes, streamed to an AudioWorklet block by block | [`README.md`](camera-resonator/README.md) + `web/` ([live](https://austegard.com/experiments/camera-resonator/web/)) + `test/verify.mjs`, `bench/job.js` | Oskar, 2026-10-29: "let's think of innovative ways to use the GPU to react to real time events, like processing camera input", then "build #1" (camera-played resonators) |
 | [`webgpu-bells/`](webgpu-bells/README.md) | 2026-10-29 | **done — rendered on the iPhone GPU in 79 ms for 18.7 s of 96 kHz stereo (237x real time); RMS error 135.7 dB below peak against a float64 reference.** Modal synthesis of a six-bell ring plus a bourdon: 3,320 damped modes (doublet partials, clapper transients), mode states in float64 JS, per-sample sums on the GPU with no sin or exp | [`README.md`](webgpu-bells/README.md) + `score.py`, `job.js`, `master.py` | Oskar, 2026-10-29: "What's the most hifi sound you can generate with the webgpu? Use my GPU Bridge if you need to test on something real" |
 | [`minicpm-ocr-mlx/`](minicpm-ocr-mlx/README.md) | 2026-10-28 | **done — MiniCPM-OCR 1.0 on the released mlx-vlm 0.7.10 with no library changes: the converted checkpoint carries `minicpm_ocr.py` as its `model_file`, which reuses the MiniCPM-V 4.6 port and fixes its 16x-only image sizing, grid tie-break, stripped `<think>` block and parenthesised CLI image marker. fp32: token ids, slice sizes and greedy transcripts identical to transformers on 4/4 crops (logit cosine ≥ 0.99958). 8-bit with embeddings and linear attention quantized: 1.90 GB, 350/350 teacher-forced tokens; mlx-vlm's default 4-bit recipe is 2.16 GB. CPU only; Metal speed unmeasured. nativ-community published conversions a day earlier that need an unreleased mlx-vlm** | [`README.md`](minicpm-ocr-mlx/README.md) + [`ERRORS.md`](minicpm-ocr-mlx/ERRORS.md) + `minicpm_ocr.py` `convert.py` `parity.py` `sweep.py` `recheck.py` | Oskar, 2026-10-28: "Can we create an MLX version of this model? https://huggingface.co/collections/openbmb/minicpm-ocr", then "go ahead, but keep in experiments" |
@@ -201,6 +203,24 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `room-drum/` — the camera image as a drum
+
+Edges in the live camera image become walls in a 2D membrane that the GPU steps once per audio sample, and taps or
+motion strike the skin inside a shape. On a Mac's Apple GPU a 256×192 skin costs 2.2 ms per 10.7 ms block with one
+dispatch per step; one workgroup holding the grid and looping over all 512 steps is faster only below about 5k
+cells. The CPU pass that finds the walls is the tighter limit, 47.5 ms a frame at 640×480. The GPU output matches a
+float64 run to −114 dB, and a rectangular drum rings within 0.09 cents of the scheme's predicted modes. No phone
+timing yet; the page calibrates itself and has a Copy timings button.
+
+### `pulse-video/` — the face's pulse, magnified on the GPU
+
+The page runs Eulerian video magnification (Wu et al. 2012) on every camera frame in WebGPU. It uses a 5-tap
+pyramid down to 40×30 and a per-pixel band-pass at 0.7–3 Hz whose gains come from each frame's own time step,
+then adds 60× the band back. A whole 640×480 frame takes 1.9 ms on a Mac's GPU. The heart rate comes from POS on
+the face's mean RGB. On synthetic video with simulated auto-exposure, POS stayed within 1.5 bpm, while the
+green-channel estimate, which is the signal the magnified video shows, missed by up to 18 bpm. A background
+column with no skin measures the exposure drift live. Real-face accuracy against a watch is pending.
 
 ### `bsky-like-poll/` — Bluesky polls answered with likes
 

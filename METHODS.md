@@ -750,6 +750,18 @@ survives exactly the sanity checks people run.
   `copyExternalImageToTexture` into an rgba8unorm texture (usage needs RENDER_ATTACHMENT), fixed it;
   confirmed upright on an iPhone. `textureSampleBaseClampToEdge` takes a `texture_2d<f32>` too, so the shader barely
   changes. (`xray-glasses/web/index.html` `frameTexture`)
+- **A colour signal from a web camera: project out auto-exposure, and measure it with a region that has
+  no signal.** Pages get no exposure control, and the camera's gain steps by a few percent every few
+  seconds. On synthetic face video with a 0.4% pulse, that drift moved the green-channel heart-rate peak by
+  up to 18 bpm, while POS (Wang et al. 2017), which projects out any change that scales R, G and B alike,
+  stayed within 1.5 bpm. A background rectangle with no skin is a direct drift meter: the face's band-passed
+  green correlated with it at 0.85-0.95 under drift and 0.11 without. Gate the output on spectral SNR. With no
+  pulse the peak landed anywhere from 48 to 180 bpm at -2 to -10 dB, and a median over those windows
+  happened to read 72. (`pulse-video/RESULTS.md` findings 3-5)
+- **Temporal filters on camera frames: take each frame's own dt.** Camera frames arrive late or get skipped
+  when the GPU is busy. An exponential smoother with gain `1 - exp(-2*pi*f*dt)` per frame keeps its cutoff in
+  hertz whatever the spacing, and a difference of two-pole smoothers makes a band-pass that needs no fixed
+  rate. Use `requestVideoFrameCallback`'s `captureTime`, else `mediaTime`. (`pulse-video/web/evm.js`)
 - **Dawn on lavapipe (npm `webgpu`) validates but cannot draw in these containers.** Shader
   compilation, `getCompilationInfo` and pipeline creation work, so it is a good WGSL checker. Copy
   work completes (a `writeBuffer` maps back), but the first draw kills the process: a one-triangle
@@ -783,6 +795,27 @@ survives exactly the sanity checks people run.
   `e^{s t} = hi[t >> 6] · lo[t & 63]`: one complex multiply, no transcendentals. Damped-mode sums matched float64 at
   −135.7 dB RMS on an iPhone and −141.5 dB on a Mac, with the state carried across blocks on the GPU.
   (`webgpu-bells/job.js`, `camera-resonator/web/engine.js`)
+- **A simulation stepped at audio rate on WebGPU: one dispatch per step beats one workgroup that loops.**
+  Keeping the whole grid in one workgroup's memory and running all 512 steps of a block in a single
+  dispatch avoids the per-dispatch price, and it wins on small grids (1.1 vs 1.9 ms per 512 steps at 64x48 on
+  a Mac's Apple GPU). But one workgroup runs on one GPU core, so above about 5k cells 512 separate dispatches
+  are faster: 1.8 to 2.2 ms per block from 7k to 49k cells, 5.1 ms at 640x480, about 3.5 us a dispatch.
+  Measure both before choosing; the cap on the single-workgroup kernel is `maxComputeWorkgroupStorageSize`
+  (32 KB, 8,192 f32 cells, on the Mac; request it, the default is 16 KB). (`room-drum/RESULTS.md`)
+- **Two WebGPU readbacks in flight need two staging buffers.** A second `mapAsync` on a buffer
+  whose first map is still pending throws "Buffer already has an outstanding map pending". Keep a
+  pool and return each buffer after `unmap`. And stop the producer on the first error: a render loop
+  whose `finally` re-pumps turns that throw into a tight loop that hangs the tab.
+  (`room-drum/web/engine.js` `render`)
+- **GPU Bridge: send an unpushed module as a job input and import it from a Blob URL.**
+  `import(URL.createObjectURL(new Blob([src], {type: "text/javascript"})))` works in the bridge's
+  Worker, so a kernel can be timed on real hardware before it is committed, with no jsDelivr delay
+  or flake. Pass the source in the `meta` JSON input. (`room-drum/bench/job.js`)
+- **Check a staircased boundary by mode ratios, not absolute pitch.** A disc of radius 15.5 cells on a
+  square finite-difference grid rang 26 to 30 cents flat of the Bessel prediction, an effective radius
+  about a quarter cell larger, while its first six partial ratios matched the Bessel-zero ratios
+  within 0.26%. A rectangle aligned with the grid matched the scheme's discrete dispersion relation to
+  0.09 cents, which is the stronger check of the code. (`room-drum/test/verify.mjs modes`)
 - **transformers' EmbeddingGemma 2 config rewrites the last layer of a cut model.**
   `EmbeddingGemma2TextConfig.__post_init__` forces the last entry of `layer_types` to
   `full_attention`, editing the list you passed in place, so a model cut after a sliding
@@ -4702,7 +4735,7 @@ Source: Lange et al., *The Agentic Scientist* (arXiv 2610.18933, Sakana AI, 2026
 - **Ablate only what the winner added over the baseline, one change per variant.** Their variant selector rejects hyperparameter sweeps, padding variants, variants that try to beat the winner instead of explaining it, multi-component changes, and generic baselines with no task-specific rationale. An empty accepted set is a valid outcome. Without ablations, a sequential search supports "configuration B scored above configuration A" and nothing about which component caused it.
 - **Name the metric that went the other way.** One objective can hide a trade-off. In the SAE task, held-out reconstruction error fell 28.8–53.8%, a feature-perturbation metric got worse, and fitting took about 40× longer. In the tabular task, balanced accuracy rose 0.606 → 0.778 while plain accuracy fell 0.781 → 0.766. Declare a guard metric before the run and report it next to the headline.
 - **An attempt with no score is missing data, and a failed gate does not show the method is worse.** Count crashed or unscored attempts separately from measured losses. A run that fails qualification may have failed a validity check without performing worse; say which, or say the cause is unknown. A negative result is publishable when the failure and its limits are stated.
-- **Tie every reported number to the artifact it came from, and fail on a dangling link.** Their `scientific-evidence` skill puts an `@evidence[[path#locator]]` ref beside each number in prose, LaTeX, plotting scripts and `.prov.json` sidecars for figures. A verifier classifies each link as resolved, anchored or dangling and fails on any dangling link. Plotting and statistics scripts read values from result files and never hardcode them. Here, `recheck.py` exists in about 26 of 143 experiments. `_lib/evidence.py` is the low-cost version: put `<!-- @evidence[[results/x.json#key]] -->` after the number in `RESULTS.md`. Store the number you report: a ref can only check a value the file holds, so a complement (80% shown, 0.2 stored) or a statistic computed only in prose (a Wilson interval) needs to be written to a summary file first, as `harness-bench/recheck.py` now does.
+- **Tie every reported number to the artifact it came from, and fail on a dangling link.** Their `scientific-evidence` skill puts an `@evidence[[path#locator]]` ref beside each number in prose, LaTeX, plotting scripts and `.prov.json` sidecars for figures. A verifier classifies each link as resolved, anchored or dangling and fails on any dangling link. Plotting and statistics scripts read values from result files and never hardcode them. Here, `recheck.py` exists in about 26 of 143 experiments. `_lib/evidence.py` is the low-cost version: put `<!-- @evidence[[results/x.json#key]] -->` after the number in `RESULTS.md`. Store the number you report: a ref can only check a value the file holds, so a complement (80% shown, 0.2 stored) or a statistic computed only in prose (a Wilson interval) needs to be written to a summary file first, as `harness-bench/recheck.py` now does. The checker reads only the number on the ref's own line, and it splits scientific notation: `1.8e-7` reads as 1.8 and 7. Keep the number and its ref on one line, and store a scaled key (`maxErrE7: 1.82`) for anything below 10⁻³. (`pulse-video/test/summarize.py`)
 - **After the writeup, run a separate read-only audit.** Their audit agent compares each visible claim against the artifacts and returns `PASS` or `FAIL` with at most about 4 findings. It may only narrow or qualify a claim; it may not request new runs. The output is one line per finding: claim, issue, artifact evidence, fix. It treats the manuscript as untrusted data. The paper recommends judges from a different model family than the one that did the work, because a same-family judge can share the worker's blind spots. That pairs with "Adversarially review your own thesis before writing it up" above.
 
 ### Planting a model's own past turns with `claude -p`: no API key needed

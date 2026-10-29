@@ -1,0 +1,101 @@
+{
+ "id": "pulse-1",
+ "startedAt": 1793297231444,
+ "finishedAt": 1793297267164,
+ "runMs": 32501.30000001192,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "hplz5db4",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 8,
+ "status": "done",
+ "logs": [
+  "filtered level, GPU f32 vs float64: max abs 1.84e-7 (peak 1.68e-2)",
+  "{\"w\":320,\"h\":240,\"levels\":3,\"coarse\":[40,30],\"medianMs\":1.6,\"p90Ms\":2.5,\"maxMs\":5.6,\"synthDrawMs\":9.2}",
+  "{\"w\":640,\"h\":480,\"levels\":4,\"coarse\":[40,30],\"medianMs\":1.9,\"p90Ms\":2.8,\"maxMs\":4.1,\"synthDrawMs\":36.2}",
+  "{\"w\":480,\"h\":640,\"levels\":4,\"coarse\":[30,40],\"medianMs\":1.7,\"p90Ms\":2.5,\"maxMs\":5.2,\"synthDrawMs\":37.2}",
+  "{\"w\":1280,\"h\":720,\"levels\":5,\"coarse\":[40,23],\"medianMs\":2.1,\"p90Ms\":2.7,\"maxMs\":3.8,\"synthDrawMs\":114.4}"
+ ],
+ "outputs": {
+  "check": {
+   "maxErr": 1.8430498849308918e-07,
+   "peakFilt": 0.016841891715448365
+  },
+  "frames": 150,
+  "rows": [
+   {
+    "w": 320,
+    "h": 240,
+    "levels": 3,
+    "coarse": [
+     40,
+     30
+    ],
+    "medianMs": 1.6,
+    "p90Ms": 2.5,
+    "maxMs": 5.6,
+    "synthDrawMs": 9.2
+   },
+   {
+    "w": 640,
+    "h": 480,
+    "levels": 4,
+    "coarse": [
+     40,
+     30
+    ],
+    "medianMs": 1.9,
+    "p90Ms": 2.8,
+    "maxMs": 4.1,
+    "synthDrawMs": 36.2
+   },
+   {
+    "w": 480,
+    "h": 640,
+    "levels": 4,
+    "coarse": [
+     30,
+     40
+    ],
+    "medianMs": 1.7,
+    "p90Ms": 2.5,
+    "maxMs": 5.2,
+    "synthDrawMs": 37.2
+   },
+   {
+    "w": 1280,
+    "h": 720,
+    "levels": 5,
+    "coarse": [
+     40,
+     23
+    ],
+    "medianMs": 2.1,
+    "p90Ms": 2.7,
+    "maxMs": 3.8,
+    "synthDrawMs": 114.4
+   }
+  ],
+  "adapter": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  }
+ }
+}
