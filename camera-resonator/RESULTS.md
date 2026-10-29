@@ -78,3 +78,15 @@ Bridge job `resonator-bench-1` ran on the Mac tab (apple metal-3, Chrome 156) in
 
 The median is flat from 32,000 to 64,000 modes, presumably because the highest modes decay below the
 skip threshold (1e-10) within a few blocks. That was not checked directly.
+
+### 2026-10-29: Oskar's laptop run — large lag, plate too noisy
+
+Oskar reported "a HUGE lag between motion and sound" on his laptop, and that the steel plate "is just awful
+noise". Cause of the lag: switching the resonator (or flipping the camera) reset the page's count of blocks sent
+but not the worklet's count of blocks played, so the page believed the queue was empty and kept rendering ahead.
+A headless switch reproduced it, with the queue at −31 blocks and the latency readout at −312 ms
+(`test/verify.mjs switch`). Fix: every reset now starts a new generation and counts carry it, and the worklet
+drops anything past 8 queued blocks so a backlog can never build. After the fix the same check holds the queue at
+2 blocks. The bells are now the default. The status line now shows the audio queue and the browser's output
+latency separately, because a lag that survives the fix belongs to the output device (Bluetooth headphones add
+100–300 ms) or to the camera.
