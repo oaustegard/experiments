@@ -38,7 +38,7 @@
 <div id="intro">
   <div>
     <h2>Drum on the shape the camera sees</h2>
-    <p>Edges in the camera image become walls in a simulated drum skin. Tap inside a shape, or move, and the skin is struck there; you hear how a drum of exactly that outline rings. Hold up a hand, or point the camera at a drawing, and the walls move with it.</p>
+    <p>Edges in the camera image become walls in a simulated drum skin, and every enclosed shape is a drum. Tap or click inside one, or press 1 to 9 to hit the numbered drums (1 is the largest and lowest); you hear how a drum of exactly that outline rings. Walls settle where the picture holds still, so hold a hand still for a moment, or point the camera at a drawing, to shape the drums.</p>
     <p>The skin is a grid of thousands of cells that your GPU steps forward once for every audio sample, 48,000 times a second. Bigger shapes ring lower. Headphones are best.</p>
     <button class="primary" id="go">Start camera and sound</button>
     <p id="err"></p>
@@ -51,7 +51,8 @@
   <label>Tension <input type="range" id="tension" min="0" max="1" step="0.01" value="0.8"></label>
   <label>Ring <input type="range" id="ring" min="0" max="1" step="0.01" value="0.5"></label>
   <label>Volume <input type="range" id="vol" min="0" max="1" step="0.01" value="0.6"></label>
-  <button id="motion" class="on">Motion strikes</button>
+  <button id="motion">Motion strikes</button>
+  <label>Sensitivity <input type="range" id="sens" min="0" max="1" step="0.01" value="0.4"></label>
   <button id="auto">Auto beat</button>
   <button id="freeze">Freeze walls</button>
   <button id="flip">Flip camera</button>
@@ -60,13 +61,13 @@
 </div>
 <script type="module">
 import { DrumEngine, coeffs, tileLimits, selfTest } from "./engine.js";
-import { Walls } from "./walls.js";
+import { nearestSkin, pickupNear } from "./walls.js";
 const $ = (id) => document.getElementById(id);
 const P = new URLSearchParams(location.search);
-const st = { facing: P.get("facing") || "user", strikes: 0, frames: 0, errors: [], freeze: false, motion: true, auto: false, last: null, calib: [] };
+const st = { facing: P.get("facing") || "user", strikes: 0, frames: 0, errors: [], freeze: false, motion: P.get("motion") === "1", auto: false, last: null, calib: [] };
 let device, stream, ac, node, eng = null, engKey = "", sent = 0, done = 0, inflight = 0, under = 0, pending = [], rings = [], field = null, blockNo = 0;
 const video = $("cam"), fx = $("fx"), g2 = fx.getContext("2d");
-const BLOCK = +(P.get("block") || 512);
+const BLOCK = +(P.get("block") || 256);   // 5.3 ms at 48 kHz; two queued blocks keep a strike about 11 ms from the speaker
 const GRIDS = [[48, 36], [64, 48], [96, 72], [128, 96], [192, 144], [256, 192], [384, 288], [640, 480]];
 
 // ---------- camera ----------
@@ -77,63 +78,89 @@ async function openCamera() {
   video.classList.toggle("mirror", st.facing === "user");
 }
 
-// ---------- walls (walls.js): the camera frame reduced to one wall bit per grid cell, on the CPU ----------
+// ---------- walls (walls.js, in walls-worker.js): the camera frame reduced to one wall bit per grid cell ----------
+// The page draws the frame upright into a small canvas (METHODS.md, xray-glasses) and posts it to the worker, one
+// frame at a time; W holds the latest answer. Finding walls off the main thread keeps it free to feed the audio.
 let W = {};
+const worker = new Worker("walls-worker.js", { type: "module" });
+const wc = {};
 function gridDims() {   // the grid in the frame's orientation
   const [a, b] = $("grid").value.split("x").map(Number);
   return (video.videoWidth || 4) >= (video.videoHeight || 3) ? [a, b] : [b, a];
 }
 function wallSetup(nx, ny) {
   if (W.nx === nx && W.ny === ny) return;
-  W = new Walls(nx, ny); M.base = null;
+  const n = nx * ny;
+  W = { nx, ny, wall: new Uint8Array(n), mask: new Float32Array(n).fill(1), label: new Int32Array(n), sizes: [n], pads: [], motion: new Float32Array(n) };
+  M.base = null;
 }
 function wallFrame() {
-  const t0 = performance.now();
-  if (W.frame(video, { src: $("src").value, thr: +$("thr").value, freeze: st.freeze })) eng?.setMask(W.mask);
-  st.frames++; st.wallMs = 0.9 * (st.wallMs || 0) + 0.1 * (performance.now() - t0);
-  if (st.motion) detect(performance.now());
+  if (wc.busy || !W.nx || !video.videoWidth) return;
+  const { nx, ny } = W, s = nx * ny > 8192 ? 1 : 2;
+  if (!wc.c || wc.c.width !== s * nx || wc.c.height !== s * ny) { wc.c = new OffscreenCanvas(s * nx, s * ny); wc.g = wc.c.getContext("2d"); }
+  wc.g.drawImage(video, 0, 0, s * nx, s * ny);
+  wc.busy = true; wc.t0 = performance.now();
+  worker.postMessage({ nx, ny, bitmap: wc.c.transferToImageBitmap(), opts: { src: $("src").value, thr: +$("thr").value, freeze: st.freeze } });
 }
+worker.onmessage = ({ data: d }) => {
+  wc.busy = false;
+  if (d.nx !== W.nx || d.ny !== W.ny) return;   // the grid changed while the worker was busy
+  W.motion = d.motion; W.sizes = d.sizes; W.pads = d.pads;
+  if (d.changed) { W.wall = d.wall; W.mask = d.mask; W.label = d.label; eng?.setMask(W.mask); }
+  st.frames++; st.wallMs = 0.9 * (st.wallMs || 0) + 0.1 * d.ms;
+  if (st.motion) detect(performance.now());
+};
+worker.onerror = (e) => fail(e.message || "walls worker failed");
 
 // ---------- strikes ----------
 const M = {};
-// Motion: the change in luma over blocks of cells about 1/16 of the frame wide, against each block's own running
-// baseline, as camera-resonator does.
+// Motion strikes: the change in luma over blocks of cells about 1/16 of the frame wide, against each block's own
+// running baseline. Only an onset counts (the block was quiet the frame before), one strike per frame, at most
+// four a second overall, so a waving arm plays a beat rather than a roll.
 function detect(now) {
   const { nx, ny } = W, bs = Math.max(2, Math.round(nx / 16)), gx = Math.ceil(nx / bs), gy = Math.ceil(ny / bs);
-  if (!M.base || M.base.length !== gx * gy) { M.base = new Float32Array(gx * gy); M.lastT = new Float64Array(gx * gy); M.e = new Float32Array(gx * gy); M.warm = 0; }
+  if (!M.base || M.base.length !== gx * gy) { M.base = new Float32Array(gx * gy); M.prev = new Float32Array(gx * gy); M.e = new Float32Array(gx * gy); M.warm = 0; M.lastT = 0; }
   M.e.fill(0);
   for (let k = 0; k < nx * ny; k++) M.e[Math.floor(((k / nx) | 0) / bs) * gx + Math.floor((k % nx) / bs)] += W.motion[k] / (bs * bs);
   if (M.warm++ < 8) { M.base.set(M.e); return; }
-  const thr = 0.05, cand = [];
+  const thr = 0.08 - 0.06 * +$("sens").value; let best = null;
   for (let i = 0; i < gx * gy; i++) {
-    const d = M.e[i] - M.base[i];
+    const d = M.e[i] - M.base[i], onset = d > thr && M.prev[i] <= thr;
+    M.prev[i] = d;
     M.base[i] += (d > thr ? 0.01 : 0.06) * d;
-    if (d > thr && now - M.lastT[i] > 180) cand.push([d, i]);
+    if (onset && (!best || d > best[0])) best = [d, i];
   }
-  cand.sort((a, b) => b[0] - a[0]);
-  for (const [d, i] of cand.slice(0, 2)) { M.lastT[i] = now; strike(((i % gx) + 0.5) * bs, (Math.floor(i / gx) + 0.5) * bs, Math.min(1, 0.25 + d / 0.15)); }
+  if (best && now - M.lastT > 250) {
+    M.lastT = now; const [d, i] = best;
+    strike(((i % gx) + 0.5) * bs, (Math.floor(i / gx) + 0.5) * bs, Math.min(1, 0.3 + (d - thr) / 0.12));
+  }
 }
 function strike(x, y, vel) {   // grid coordinates
   if (!eng || !W.nx) return;
-  const u = W.nx / 64, i = W.nearestSkin(x, y, Math.ceil(8 * u));   // distances scale with the grid, so a strike is the same size on screen
+  const u = W.nx / 64, i = nearestSkin(W, x, y, Math.ceil(8 * u));   // distances scale with the grid, so a strike is the same size on screen
   if (i === null) return;
   const nx = W.nx, side = st.facing === "user" ? -1 : 1;   // left ear on the screen's left, mirrored preview or not
-  const pl = W.pickupNear(i, -4 * u * side, 3 * u), pr = W.pickupNear(i, 4 * u * side, -3 * u);
+  const pl = pickupNear(W, i, -4 * u * side, 3 * u), pr = pickupNear(W, i, 4 * u * side, -3 * u);
   const T = Math.round((0.0016 - 0.0012 * vel) * ac.sampleRate);
   pending.push({ x: i % nx, y: (i / nx) | 0, r: 2 * u, amp: 0.25 * vel / u, js: 0, T, pl, pr });
   if (pending.length > 16) pending.splice(0, pending.length - 16);
   st.last = { i, size: W.sizes[W.label[i]] || 0 };
   rings.push({ x: i % nx, y: (i / nx) | 0, vel, t: performance.now() }); st.strikes++;
 }
+function strikePad(k, vel = 0.8) {   // keys 1-9: pad k (1 is the largest drum, so the lowest)
+  const p = W.pads?.[k - 1]; if (!p) return;
+  strike(p.i % W.nx, (p.i / W.nx) | 0, vel);
+}
 
 // ---------- audio: the GPU renders blocks ahead, the worklet plays them ----------
 function material() {
   const c = coeffs({ tension: +$("tension").value, t60: 0.3 + 6 * (+$("ring").value) ** 2, hf: 1 - 0.8 * +$("ring").value, sr: ac.sampleRate });
-  return { ...c, gain: 2.5 * (+$("vol").value) ** 2 };
+  return { ...c, gain: 10 * (+$("vol").value) ** 2 };
 }
 // Before the sound starts: time a few blocks of every grid on both kernels, on this GPU, and default to the
-// largest grid up to 256 x 192 whose block takes under 30% of its own playing time. Each grid keeps its faster
-// kernel. Larger grids stay in the menu: the walls are found on the CPU, which costs more per cell than the GPU.
+// largest grid up to 128 x 96 whose block takes under 30% of its own playing time. Each grid keeps its faster
+// kernel. Larger grids stay in the menu: the walls are found on the CPU, which costs more per cell than the GPU,
+// and a coarser grid gives fewer, larger drums that are easier to aim at.
 async function calibrate() {
   const lim = tileLimits(device), blockMs = 1000 * BLOCK / ac.sampleRate, best = {};
   if (P.get("grid")) {   // a grid in the URL skips the timing (the headless check, where SwiftShader would take minutes)
@@ -153,7 +180,7 @@ async function calibrate() {
     const b = best[`${nx}x${ny}`], o = document.createElement("option");
     o.value = `${nx}x${ny}`; o.textContent = `${nx}×${ny}` + (b.load >= 0 ? ` · ${Math.round(100 * b.load)}% GPU` : ""); o.dataset.kernel = b.kernel; $("grid").append(o);
   }
-  const ok = GRIDS.filter(([nx, ny]) => nx * ny <= 49152 && best[`${nx}x${ny}`].load < 0.3).pop() || GRIDS[0];
+  const ok = GRIDS.filter(([nx, ny]) => nx * ny <= 12288 && best[`${nx}x${ny}`].load < 0.3).pop() || GRIDS[0];
   $("grid").value = P.get("grid") || `${ok[0]}x${ok[1]}`;
 }
 let building = null;
@@ -177,7 +204,7 @@ async function rebuild() {
   await building;
 }
 function pump() {
-  const target = +(P.get("queue") || 3);
+  const target = +(P.get("queue") || 2);
   while (eng && !st.broken && inflight < 2 && sent - done + inflight < target) renderOne(eng);
 }
 async function renderOne(e) {
@@ -240,21 +267,33 @@ function draw() {
     });
   }
   g2.restore();
+  if (W.nx && W.pads) {   // pad numbers at each drum's deepest point, with its estimated pitch
+    const mir = st.facing === "user";
+    g2.font = `600 ${13 * dpr}px system-ui, sans-serif`; g2.textAlign = "center"; g2.textBaseline = "middle";
+    W.pads.forEach((p, k) => {
+      const xn = ((p.i % W.nx) + 0.5) / W.nx, yn = (((p.i / W.nx) | 0) + 0.5) / W.ny;
+      const X = Wd / 2 + ((mir ? 1 - xn : xn) - 0.5) * vw * sc, Y = H / 2 + (yn - 0.5) * vh * sc, f = padHz(p.area);
+      const t = `${k + 1}` + (f ? ` · ${noteName(f)}` : "");
+      g2.fillStyle = "rgba(11,12,14,0.7)"; const tw = g2.measureText(t).width + 10 * dpr; g2.fillRect(X - tw / 2, Y - 10 * dpr, tw, 20 * dpr);
+      g2.fillStyle = "#f0b85a"; g2.fillText(t, X, Y);
+    });
+  }
   requestAnimationFrame(draw);
 }
 
 // ---------- status ----------
 const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+// a region's lowest mode, taken as a disc of the same area: f = sqrt(lam2) sr j01 / (2 pi R)
+const padHz = (area) => area > 3 && eng ? Math.sqrt(eng.lam2) * ac.sampleRate * 2.404826 / (2 * Math.PI * Math.sqrt(area / Math.PI)) : 0;
+const noteName = (f) => { const m = Math.round(69 + 12 * Math.log2(f / 440)); return NOTES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); };
 function stats() {
   const ms = eng ? eng.ms.slice(-50) : [], avg = ms.reduce((a, b) => a + b, 0) / (ms.length || 1), mx = Math.max(0, ...ms);
   const blockMs = eng ? 1000 * eng.B / ac.sampleRate : 0, q = sent - done;
   const lat = blockMs * (q + 0.5) + 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0));
-  // the struck region's lowest mode, taken as a disc of the same area: f = sqrt(lam2) sr j01 / (2 pi R)
-  const area = st.last?.size || 0, f1 = area > 3 && eng ? Math.sqrt(eng.lam2) * ac.sampleRate * 2.404826 / (2 * Math.PI * Math.sqrt(area / Math.PI)) : 0;
-  const midi = f1 ? Math.round(69 + 12 * Math.log2(f1 / 440)) : 0;
+  const area = st.last?.size || 0, f1 = padHz(area);
   return { grid: eng ? `${eng.nx}x${eng.ny}` : "", kernel: eng?.kernel, wg: eng?.wg, block: eng?.B, sr: ac?.sampleRate, gpuMsAvg: avg, gpuMsMax: mx, blockMs,
     load: avg / blockMs, queue: q, sent, done, under, strikes: st.strikes, frames: st.frames, wallMs: st.wallMs, peak: st.peak, latencyMs: lat, buildMs: st.buildMs,
-    walls: W.wall ? W.wall.reduce((a, b) => a + b, 0) : 0, regions: W.sizes?.length || 0, struckArea: area, f1, note: f1 ? NOTES[midi % 12] + (Math.floor(midi / 12) - 1) : "",
+    walls: W.wall ? W.wall.reduce((a, b) => a + b, 0) : 0, regions: W.sizes?.length || 0, struckArea: area, f1, note: f1 ? noteName(f1) : "", pads: (W.pads || []).map((p) => p.area),
     calib: st.calib, errors: st.errors, adapter: st.adapter, ua: navigator.userAgent };
 }
 window.__stats = stats;
@@ -263,7 +302,7 @@ setInterval(() => {
   const s = stats();
   $("status").innerHTML = `${s.grid} skin (${s.kernel}) · GPU <b>${s.gpuMsAvg.toFixed(1)}</b> ms per ${s.blockMs.toFixed(1)} ms of sound ` +
     `(<b class="${s.load > 0.8 ? "bad" : ""}">${Math.round(100 * s.load)}%</b>) · sound ≈ ${Math.round(s.latencyMs)} ms late · ` +
-    `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · walls ${(s.wallMs || 0).toFixed(1)} ms a frame · ${s.regions} drums` + (s.f1 ? ` · last drum ${s.struckArea} cells ≈ <b>${Math.round(s.f1)} Hz (${s.note})</b>` : "") +
+    `dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b> · walls ${(s.wallMs || 0).toFixed(1)} ms a frame · ${(W.pads || []).length} drums` + (s.f1 ? ` · last drum ${s.struckArea} cells ≈ <b>${Math.round(s.f1)} Hz (${s.note})</b>` : "") +
     (st.check ? ` · ${st.check}` : "");
   pump();
 }, 250);
@@ -289,6 +328,7 @@ async function start() {
     const tick = () => { if (W.nx) { try { wallFrame(); } catch (err) { fail(err); } } video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
     tick(); draw();
     setInterval(() => { if (st.auto && st.last && W.nx) { const i = st.last.i; strike(i % W.nx, (i / W.nx) | 0, 0.7); } }, 500);
+    window.__strikePad = strikePad;
   } catch (err) { fail(err); }
 }
 $("go").onclick = start;
@@ -312,6 +352,12 @@ fx.addEventListener("pointerdown", (ev) => {
   let x = 0.5 + (ev.clientX - r.left - r.width / 2) / (vw * sc); const y = 0.5 + (ev.clientY - r.top - r.height / 2) / (vh * sc);
   if (st.facing === "user") x = 1 - x;
   strike(x * W.nx - 0.5, y * W.ny - 0.5, 0.85);
+});
+addEventListener("keydown", (ev) => {   // 1-9 strike the pads, Shift for a softer stroke; space repeats the last strike
+  if (ev.repeat || ev.target.tagName === "SELECT" || ev.target.tagName === "INPUT") return;
+  const k = ev.code.startsWith("Digit") ? +ev.code.slice(5) : 0;
+  if (k >= 1) { strikePad(k, ev.shiftKey ? 0.4 : 0.85); ev.preventDefault(); }
+  else if (ev.code === "Space" && st.last && W.nx) { strike(st.last.i % W.nx, (st.last.i / W.nx) | 0, ev.shiftKey ? 0.4 : 0.85); ev.preventDefault(); }
 });
 if (P.get("autostart")) start();
 </script>
