@@ -1,0 +1,49 @@
+{
+ "what": "selftest",
+ "res": {
+  "limits": {
+   "maxCells": 8192,
+   "wg": 256
+  },
+  "runs": [
+   {
+    "kernel": "tile",
+    "nx": 40,
+    "ny": 30,
+    "block": 256,
+    "blocks": 6,
+    "peak": 0.2343949883976597,
+    "rmsDb": -114.32880564932154
+   },
+   {
+    "kernel": "tile",
+    "nx": 27,
+    "ny": 19,
+    "block": 128,
+    "blocks": 6,
+    "peak": 0.2958763174221363,
+    "rmsDb": -107.68818398310833
+   },
+   {
+    "kernel": "multi",
+    "nx": 40,
+    "ny": 30,
+    "block": 256,
+    "blocks": 6,
+    "peak": 0.2343949883976597,
+    "rmsDb": -114.32880564932154
+   },
+   {
+    "kernel": "multi",
+    "nx": 27,
+    "ny": 19,
+    "block": 128,
+    "blocks": 6,
+    "peak": 0.2958763174221363,
+    "rmsDb": -107.68818398310833
+   }
+  ],
+  "pass": true
+ },
+ "errors": []
+}

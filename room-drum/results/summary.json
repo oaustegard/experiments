@@ -1,0 +1,178 @@
+{
+ "device": {
+  "bench": "Mac",
+  "adapter": "apple metal-3",
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+ },
+ "accuracy": {
+  "swiftshaderWorstDb": -107.7,
+  "macDb": -114.3
+ },
+ "modes": {
+  "rectMaxCentsVsDiscrete": 0.09,
+  "rectMaxCentsVsContinuous": 5.33,
+  "discFirst6RatioErrPct": 0.26,
+  "discAllRatioErrPct": 2.39,
+  "discCentsRange": [
+   -30.3,
+   15.1
+  ]
+ },
+ "mac": {
+  "tile_32x24_wg256_b512": {
+   "medianMs": 1.2,
+   "p90Ms": 2.6,
+   "load": 0.112
+  },
+  "tile_48x36_wg1024_b512": {
+   "medianMs": 1,
+   "p90Ms": 1.2,
+   "load": 0.094
+  },
+  "tile_64x48_wg256_b512": {
+   "medianMs": 2.5,
+   "p90Ms": 3,
+   "load": 0.234
+  },
+  "tile_64x48_wg512_b512": {
+   "medianMs": 1.3,
+   "p90Ms": 1.6,
+   "load": 0.122
+  },
+  "tile_64x48_wg1024_b512": {
+   "medianMs": 1.1,
+   "p90Ms": 1.4,
+   "load": 0.103
+  },
+  "tile_80x60_wg1024_b512": {
+   "medianMs": 1.9,
+   "p90Ms": 2.2,
+   "load": 0.178
+  },
+  "tile_96x72_wg512_b512": {
+   "medianMs": 3.6,
+   "p90Ms": 4.1,
+   "load": 0.338
+  },
+  "tile_96x72_wg1024_b512": {
+   "medianMs": 2.7,
+   "p90Ms": 3.1,
+   "load": 0.253
+  },
+  "tile_104x78_wg1024_b512": {
+   "medianMs": 3.3,
+   "p90Ms": 3.8,
+   "load": 0.309
+  },
+  "multi_64x48_wg0_b512": {
+   "medianMs": 1.9,
+   "p90Ms": 2.2,
+   "load": 0.178
+  },
+  "multi_96x72_wg0_b512": {
+   "medianMs": 1.8,
+   "p90Ms": 2,
+   "load": 0.169
+  },
+  "multi_128x96_wg0_b512": {
+   "medianMs": 1.9,
+   "p90Ms": 2,
+   "load": 0.178
+  },
+  "multi_192x144_wg0_b512": {
+   "medianMs": 2.1,
+   "p90Ms": 2.6,
+   "load": 0.197
+  },
+  "multi_256x192_wg0_b512": {
+   "medianMs": 2.2,
+   "p90Ms": 2.5,
+   "load": 0.206
+  },
+  "tile_96x72_wg1024_b256": {
+   "medianMs": 1.7,
+   "p90Ms": 2.6,
+   "load": 0.319
+  },
+  "tile_96x72_wg1024_b1024": {
+   "medianMs": 5.2,
+   "p90Ms": 6.2,
+   "load": 0.244
+  },
+  "tile_64x48_wg1024_b256": {
+   "medianMs": 0.8,
+   "p90Ms": 1,
+   "load": 0.15
+  },
+  "multi_256x192_wg0_b256": {
+   "medianMs": 1.3,
+   "p90Ms": 1.8,
+   "load": 0.244
+  },
+  "multi_256x192_wg0_b1024": {
+   "medianMs": 4.2,
+   "p90Ms": 4.6,
+   "load": 0.197
+  },
+  "multi_320x240_wg0_b512": {
+   "medianMs": 2.6,
+   "p90Ms": 2.8,
+   "load": 0.244
+  },
+  "multi_384x288_wg0_b512": {
+   "medianMs": 3,
+   "p90Ms": 3.4,
+   "load": 0.281
+  },
+  "multi_512x384_wg0_b512": {
+   "medianMs": 3.9,
+   "p90Ms": 4.2,
+   "load": 0.366
+  },
+  "multi_640x480_wg0_b512": {
+   "medianMs": 5.1,
+   "p90Ms": 5.4,
+   "load": 0.478
+  },
+  "multi_96x72_wg0_b256": {
+   "medianMs": 1,
+   "p90Ms": 1.2,
+   "load": 0.188
+  },
+  "multi_96x72_wg0_b1024": {
+   "medianMs": 3.4,
+   "p90Ms": 3.7,
+   "load": 0.159
+  }
+ },
+ "macWalls": {
+  "48x36": {
+   "wallsMedianMs": 2.1,
+   "drawMedianMs": 0.1
+  },
+  "96x72": {
+   "wallsMedianMs": 5.3,
+   "drawMedianMs": 0.4
+  },
+  "128x96": {
+   "wallsMedianMs": 4.1,
+   "drawMedianMs": 0.7
+  },
+  "192x144": {
+   "wallsMedianMs": 6.4,
+   "drawMedianMs": 0.4
+  },
+  "256x192": {
+   "wallsMedianMs": 9,
+   "drawMedianMs": 0.4
+  },
+  "384x288": {
+   "wallsMedianMs": 18.4,
+   "drawMedianMs": 1.1
+  },
+  "640x480": {
+   "wallsMedianMs": 47.5,
+   "drawMedianMs": 3.1
+  }
+ }
+}

@@ -783,6 +783,27 @@ survives exactly the sanity checks people run.
   `e^{s t} = hi[t >> 6] · lo[t & 63]`: one complex multiply, no transcendentals. Damped-mode sums matched float64 at
   −135.7 dB RMS on an iPhone and −141.5 dB on a Mac, with the state carried across blocks on the GPU.
   (`webgpu-bells/job.js`, `camera-resonator/web/engine.js`)
+- **A simulation stepped at audio rate on WebGPU: one dispatch per step beats one workgroup that loops.**
+  Keeping the whole grid in one workgroup's memory and running all 512 steps of a block in a single
+  dispatch avoids the per-dispatch price, and it wins on small grids (1.1 vs 1.9 ms per 512 steps at 64x48 on
+  a Mac's Apple GPU). But one workgroup runs on one GPU core, so above about 5k cells 512 separate dispatches
+  are faster: 1.8 to 2.2 ms per block from 7k to 49k cells, 5.1 ms at 640x480, about 3.5 us a dispatch.
+  Measure both before choosing; the cap on the single-workgroup kernel is `maxComputeWorkgroupStorageSize`
+  (32 KB, 8,192 f32 cells, on the Mac; request it, the default is 16 KB). (`room-drum/RESULTS.md`)
+- **Two WebGPU readbacks in flight need two staging buffers.** A second `mapAsync` on a buffer
+  whose first map is still pending throws "Buffer already has an outstanding map pending". Keep a
+  pool and return each buffer after `unmap`. And stop the producer on the first error: a render loop
+  whose `finally` re-pumps turns that throw into a tight loop that hangs the tab.
+  (`room-drum/web/engine.js` `render`)
+- **GPU Bridge: send an unpushed module as a job input and import it from a Blob URL.**
+  `import(URL.createObjectURL(new Blob([src], {type: "text/javascript"})))` works in the bridge's
+  Worker, so a kernel can be timed on real hardware before it is committed, with no jsDelivr delay
+  or flake. Pass the source in the `meta` JSON input. (`room-drum/bench/job.js`)
+- **Check a staircased boundary by mode ratios, not absolute pitch.** A disc of radius 15.5 cells on a
+  square finite-difference grid rang 26 to 30 cents flat of the Bessel prediction, an effective radius
+  about a quarter cell larger, while its first six partial ratios matched the Bessel-zero ratios
+  within 0.26%. A rectangle aligned with the grid matched the scheme's discrete dispersion relation to
+  0.09 cents, which is the stronger check of the code. (`room-drum/test/verify.mjs modes`)
 - **transformers' EmbeddingGemma 2 config rewrites the last layer of a cut model.**
   `EmbeddingGemma2TextConfig.__post_init__` forces the last entry of `layer_types` to
   `full_attention`, editing the list you passed in place, so a model cut after a sliding
