@@ -2,7 +2,7 @@
 Usage: assemble.py TAKES_DIR NAME [SCRIPT_JSON]   (takes named <line id>_s<seed>.wav)
 Best take = lowest ASR WER, then the longest that fits its slot (atempo <= 1.12 if none fit).
 Writes vo.wav (48 kHz mono, loudnorm -16 LUFS) and picks.json."""
-import json, re, subprocess, sys
+import glob, json, re, subprocess, sys
 import numpy as np, librosa, soundfile as sf, jiwer
 from faster_whisper import WhisperModel
 from pathlib import Path
@@ -16,8 +16,9 @@ picks = []
 for l in S:
     slot = l["end"] - l["start"]
     cands = []
-    for s in (1, 2, 3):
-        y, _ = librosa.load(f"{TAKES}/{l['id']}_s{s}.wav", sr=SR)
+    for f in sorted(glob.glob(f"{TAKES}/{l['id']}_s*.wav")):
+        s = int(f.rsplit("_s", 1)[1][:-4])
+        y, _ = librosa.load(f, sr=SR)
         y, _ = librosa.effects.trim(y, top_db=40)
         hyp = " ".join(x.text for x in asr.transcribe(librosa.resample(y, orig_sr=SR, target_sr=16000), language="en", beam_size=5)[0])
         wer = jiwer.wer(norm(l["text"]), norm(hyp)) if l["id"] != "l1" and l["id"] != "l9" else 0.0  # brand name: checked by ear-proxy below
