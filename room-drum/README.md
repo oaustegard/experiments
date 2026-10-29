@@ -3,7 +3,7 @@
 A page that turns the camera image into a drum. Edges in the picture become walls in a simulated drum skin, and
 tapping or moving inside a shape strikes the skin there, so you hear how a drum with exactly that outline rings.
 Hold up a hand and the walls move with it. Live at https://austegard.com/experiments/room-drum/web/ (timed on a
-Mac so far; no phone has been measured).
+Mac with a synthetic frame and on Chromium's fake camera so far; no phone and no real camera yet).
 
 The question: can a browser GPU advance a 2D wave equation by one time step per audio sample, 48,000 times a second, on a grid
 large enough to trace the camera image, while the walls change with every frame? Answer and numbers are in
@@ -15,16 +15,17 @@ Tap Start, allow the camera (the front camera opens; Flip switches) and wait a s
 GPU. Walls show as pale cells over the dimmed video, and the skin's motion as amber and blue ripples. Tap inside
 an outlined shape: you should hear a drum-like thump whose pitch drops as the shape gets bigger, and see two
 small squares, the left and right pickups. Moving in front of the camera strikes too (Motion strikes), Auto beat
-repeats the last strike, and Freeze walls holds the current shape. Walls from switches between edges and dark or
+repeats the last strike, and Freeze walls holds the current shape. The Walls from menu switches between edges and dark or
 bright areas, which suits a drawing on paper. Tension sets the pitch, Ring the decay. The status line shows the
-GPU's share of each block's time, how late the sound is (about 40 to 60 ms), dropouts, and the struck shape's
+GPU's share of each block's time, how late the sound is (the three queued blocks, about 32 ms, plus the
+browser's own output latency), dropouts, and the struck shape's
 estimated pitch. Headphones keep the speaker out of the motion detector.
 
 ## Simulation, walls and playback
 
 - **The skin.** `web/engine.js` steps Bilbao's lossy membrane scheme (a 5-point Laplacian with a loss term that
-  grows with frequency) once per sample. A wall cell has mask 0 and is held at zero. Each 512-sample block is one
-  GPU submit, and two kernels run the same arithmetic:
+  grows with frequency) once per sample. A wall cell has mask 0 and is held at zero. Each 512-sample block (10.7 ms at 48 kHz) is
+  one GPU submit, and two kernels run the same arithmetic:
   - `tile` keeps the whole grid in one workgroup's memory and runs all 512 steps in a single dispatch, with two
     barriers per step. Workgroup memory caps it at 8,192 cells on the Mac.
   - `multi` dispatches once per step over 8×8 workgroups in storage buffers, 512 dispatches per block, at any

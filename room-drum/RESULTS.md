@@ -6,14 +6,14 @@ grid fine enough to trace the image, with walls that change every frame.
 
 ## Answer
 
-On the Mac, yes, with room to spare. Its Apple GPU, running Chrome 156, steps a 256×192 skin (49,152 cells) once
+On the Mac, yes. Its Apple GPU, running Chrome 156, steps a 256×192 skin (49,152 cells) once
 per sample, 512 steps per 10.7 ms block, in 2.2 ms. That is 21% of the block's playing time.
 <!-- @evidence[[results/summary.json#mac.multi_256x192_wg0_b512.load]] -->
 A 640×480 skin, one cell per pixel of a VGA frame, takes 5.1 ms (48%).
 <!-- @evidence[[results/summary.json#mac.multi_640x480_wg0_b512.medianMs]] -->
 Up to about 50k cells most of that is a fixed 1.8 ms for 512 dispatches.
 
-The CPU limits the grid before the GPU does. It finds the walls once per 33 ms camera frame, on the thread that feeds the audio: 9 ms at 256×192
+The CPU limits the grid before the GPU does. It finds the walls once per 33 ms camera frame, on the main thread, which also feeds the audio: 9 ms at 256×192
 <!-- @evidence[[results/summary.json#macWalls.256x192.wallsMedianMs]] -->
 and 47.5 ms at 640×480, longer than a frame,
 <!-- @evidence[[results/summary.json#macWalls.640x480.wallsMedianMs]] -->
@@ -60,7 +60,7 @@ No phone has been measured. A slow phone, on the GPU or in the wall pass, would 
 
 **Scheme.** u[n+1] = (2u[n] − (1 − a0)u[n−1] + λ²Lu[n] + b(Lu[n] − Lu[n−1])) / (1 + a0), then a force term,
 then multiplication by the wall mask. L is the 5-point Laplacian, and outside the grid counts as wall. λ² runs
-from 0.10 to 0.45 (Tension). a0 is set from a T60 of 0.3 to 6.3 s, and b ≤ 0.02 adds loss that grows with
+from 0.10 to 0.45 (Tension). a0 is set from a decay time (T60, the Ring slider) of 0.3 to 6.3 s, and b ≤ 0.02 adds loss that grows with
 frequency. The scheme is stable for λ² + 2b ≤ ½. Each cell keeps its previous Laplacian, so a step needs only
 its neighbours' current values. The output is the skin's velocity at two pickup cells.
 
