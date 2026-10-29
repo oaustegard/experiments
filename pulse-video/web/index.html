@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pulse From Video</title>
+<meta name="description" content="Eulerian video magnification on the GPU makes the flush of blood in your face visible, and estimates your heart rate from it. A curiosity, not a medical device.">
+<style>
+  :root { --bg: #0c0b0b; --fg: #ece6e2; --dim: #a39a94; --accent: #ff6b6b; --panel: rgba(18, 15, 15, 0.88); --line: rgba(255, 255, 255, 0.12); --ok: #8fd18f; --warn: #f0b85a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, -apple-system, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #view, #ov { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .mirror { transform: scaleX(-1); }
+  header { position: fixed; top: 0; left: 0; right: 0; padding: max(10px, env(safe-area-inset-top)) 16px 8px; background: linear-gradient(var(--panel), transparent); pointer-events: none; display: flex; justify-content: space-between; gap: 12px; }
+  h1 { margin: 0; font-size: 17px; font-weight: 600; }
+  #status { margin-top: 3px; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #bpm { text-align: right; font-variant-numeric: tabular-nums; }
+  #bpm b { font-size: 38px; font-weight: 650; color: var(--accent); line-height: 1; }
+  #bpm small { display: block; color: var(--dim); font-size: 12px; }
+  #panel { position: fixed; left: 0; right: 0; bottom: 0; padding: 8px 16px max(10px, env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); }
+  #trace { width: 100%; height: 64px; display: block; }
+  #quality { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
+  #quality .warn { color: var(--warn); } #quality .ok { color: var(--ok); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  label { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+  select, button, input { font: inherit; color: var(--fg); }
+  select, button, input[type=number] { background: #221d1c; border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
+  input[type=number] { width: 4.5em; }
+  input[type=range] { width: 100px; accent-color: var(--accent); }
+  button.primary { background: var(--accent); color: #1c0b0b; border: 0; font-weight: 600; padding: 8px 16px; }
+  #intro { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--bg); }
+  #intro p { max-width: 32em; color: var(--dim); margin: 0 auto 14px; }
+  #intro h2 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+  .note { font-size: 12px; }
+  .hide { display: none !important; }
+  #err { color: var(--accent); max-width: 32em; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="view"></canvas><canvas id="ov"></canvas></div>
+<header>
+  <div><h1>Pulse From Video</h1><div id="status">Not started.</div></div>
+  <div id="bpm"><b id="bpmV">–</b><small id="bpmS">bpm</small></div>
+</header>
+<div id="intro">
+  <div>
+    <h2>See your pulse in your face</h2>
+    <p>Each heartbeat pushes a little more blood into the skin, which changes its colour by a fraction of a percent. Your GPU blurs every camera frame down to a coarse grid, keeps only the colour changes that repeat 42 to 180 times a minute, multiplies them about 60 times and adds them back, so the flush becomes visible (Eulerian video magnification, Wu et al. 2012). The heart-rate number comes from the average colour of your face.</p>
+    <p>Sit still in steady, bright light, facing the camera, for 10 to 20 seconds. Daylight or a lamp beats a flickering ceiling light.</p>
+    <p class="note"><b>A curiosity, not a medical device.</b> The number can be wrong, and confidently so. Nothing leaves your device.</p>
+    <button class="primary" id="go">Start camera</button>
+    <p id="err"></p>
+  </div>
+</div>
+<div id="panel" class="hide">
+  <canvas id="trace"></canvas>
+  <div id="quality">Collecting…</div>
+  <div class="row">
+    <label>Show <select id="viewSel"><option value="0">Magnified</option><option value="1">Changes only</option><option value="2">Original</option></select></label>
+    <label>Gain <input type="range" id="amp" min="0" max="200" step="5" value="60"><span id="ampV">60</span></label>
+    <label>Blur <select id="levels"><option value="3">3 levels</option><option value="4" selected>4 levels</option><option value="5">5 levels</option></select></label>
+    <button id="flip">Flip camera</button>
+    <label>Watch says <input type="number" id="ref" min="30" max="220" placeholder="bpm"></label>
+    <button id="mark">Record</button>
+    <button id="copy">Copy JSON</button>
+  </div>
+</div>
+<script type="module">
+import { EvmEngine, DEFAULTS } from "./evm.js";
+import { RateTracker } from "./rate.js";
+import { Synth } from "./synth.js";
+const $ = (id) => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+const VERSION = 1;
+const st = { facing: "user", frames: 0, skipped: 0, box: null, boxT: -1e9, detector: null, detectMs: [], gpuMs: [], est: null, hist: [], log: [], marks: [], errors: [], roiMode: P.get("roi") || "face" };
+let device, adapterInfo, gctx, format, eng = null, tracker = new RateTracker(), stream, busy = false, synth = null, building = null;
+const video = document.createElement("video"); video.playsInline = true; video.muted = true;
+const base = document.createElement("canvas"), bctx = base.getContext("2d", { willReadFrequently: !!P.get("synth") });
+const view = $("view"), ov = $("ov"), octx = ov.getContext("2d");
+
+// ---------- face region ----------
+// MediaPipe's short-range face detector (BlazeFace) on the CPU every 200 ms; without it, a fixed box to sit in.
+const FIXED = [0.36, 0.22, 0.64, 0.62];
+async function loadDetector() {
+  if (st.roiMode !== "face") return;
+  try {
+    const V = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+    const { FilesetResolver, FaceDetector } = await import(V + "/vision_bundle.mjs");
+    const files = await FilesetResolver.forVisionTasks(V + "/wasm");
+    st.detector = await FaceDetector.createFromOptions(files, { runningMode: "VIDEO", minDetectionConfidence: 0.5,
+      baseOptions: { delegate: "CPU", modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite" } });
+  } catch (err) { st.roiMode = "fixed"; st.errors.push("face detector: " + (err?.message || err)); }
+}
+let lastDetect = 0;
+function detectFace(nowMs) {
+  if (!st.detector || nowMs - lastDetect < 200) return;
+  lastDetect = nowMs;
+  const t0 = performance.now(), r = st.detector.detectForVideo(base, nowMs);
+  st.detectMs.push(performance.now() - t0); if (st.detectMs.length > 50) st.detectMs.shift();
+  const d = r.detections?.[0]?.boundingBox;
+  if (!d) return;
+  const b = [d.originX / base.width, d.originY / base.height, (d.originX + d.width) / base.width, (d.originY + d.height) / base.height];
+  st.box = st.box ? st.box.map((v, i) => v + 0.35 * (b[i] - v)) : b; st.boxT = nowMs;
+}
+// Skin inside the face box: drop its outer 15% at the sides and the bottom 12% (chin, background corners).
+function setRects(nowMs) {
+  let box = st.roiMode === "synth" ? synth.box : st.roiMode === "face" && st.box && nowMs - st.boxT < 1500 ? st.box : null;
+  st.faceFound = !!box;
+  if (!box) box = st.roiMode === "face" && st.box ? st.box : FIXED;
+  const [x0, y0, x1, y1] = box, bw = x1 - x0, bh = y1 - y0;
+  eng.face = [x0 + 0.15 * bw, y0 + 0.02 * bh, x1 - 0.15 * bw, y1 - 0.12 * bh].map((v) => Math.min(1, Math.max(0, v)));
+  // background: a column on the side farther from the face
+  eng.bg = (x0 + x1) / 2 > 0.5 ? [0.02, 0.1, 0.17, 0.9] : [0.83, 0.1, 0.98, 0.9];
+}
+
+// ---------- engine ----------
+async function ensureEngine(w, h) {
+  const levels = +$("levels").value;
+  if (eng && eng.w === w && eng.h === h && eng.levels === levels) return;
+  const prev = building; building = (async () => {
+    await prev;
+    if (eng && eng.w === w && eng.h === h && eng.levels === levels) return;
+    eng?.destroy(); eng = null;
+    base.width = view.width = ov.width = w; base.height = view.height = ov.height = h;
+    gctx.configure({ device, format, alphaMode: "opaque" });
+    const e = await EvmEngine.create(device, { w, h, levels, format });
+    e.params.amp = +$("amp").value; e.params.view = +$("viewSel").value;
+    eng = e;
+  })();
+  await building;
+}
+
+async function step(source, t, nowMs) {
+  if (st.roiMode !== "synth") detectFace(nowMs);
+  setRects(nowMs);
+  const t0 = performance.now(), m = await eng.frame(base, t, gctx.getCurrentTexture().createView());
+  st.gpuMs.push(performance.now() - t0); if (st.gpuMs.length > 60) st.gpuMs.shift();
+  st.frames++; tracker.push(t, m); st.lastM = m;
+}
+
+// ---------- camera ----------
+async function openCamera() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: st.facing, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } });
+  video.srcObject = stream; await video.play();
+  for (const c of [view, ov]) c.classList.toggle("mirror", st.facing === "user");
+  st.box = null; tracker.reset(); eng?.reset();
+}
+let lastT = -1;
+function onFrame(nowMs, meta) {
+  video.requestVideoFrameCallback ? video.requestVideoFrameCallback(onFrame) : requestAnimationFrame(onFrame);
+  if (busy || !video.videoWidth) { st.skipped++; return; }
+  // the frame's capture time when the browser gives it; otherwise its presentation time
+  let t = meta?.captureTime ? meta.captureTime / 1000 : meta?.mediaTime ?? nowMs / 1000;
+  if (t <= lastT) { if (!meta?.mediaTime) return; t = lastT + 1e-3; }
+  lastT = t; busy = true;
+  (async () => {
+    const vw = video.videoWidth, vh = video.videoHeight, s = Math.min(1, 640 / Math.max(vw, vh));
+    await ensureEngine(Math.round(vw * s), Math.round(vh * s));
+    // drawImage applies the camera's rotation on iOS, which importExternalTexture does not (METHODS.md, xray-glasses)
+    bctx.drawImage(video, 0, 0, base.width, base.height);
+    await step(base, t, performance.now());
+  })().catch(fail).finally(() => { busy = false; });
+}
+
+// ---------- synthetic source (?synth=bpm) for headless checks ----------
+async function runSynth() {
+  const o = { bpm: +P.get("synth"), amp: +(P.get("amp") || 0.004), drift: +(P.get("drift") ?? 1), noise: +(P.get("noise") || 2), seed: +(P.get("seed") || 1) };
+  if (P.get("flicker")) o.flicker = P.get("flicker").split(",").map(Number);
+  synth = new Synth({ w: +(P.get("w") || 640), h: +(P.get("h") || 480), ...o });
+  st.roiMode = "synth";
+  await ensureEngine(synth.w, synth.h);
+  const secs = +(P.get("seconds") || 20), fps = 30, rnd = (() => { let s = 99; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); })();
+  for (let i = 0; i < secs * fps; i++) {
+    const t = i / fps + 0.004 * (rnd() - 0.5);   // camera timestamps jitter by a few ms
+    synth.draw(bctx, t);
+    await step(base, t, t * 1000);
+    if (i % fps === fps - 1) update();
+  }
+  window.__done = true;
+}
+
+// ---------- estimates and display ----------
+function median(a) { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; }
+function update() {
+  const e = tracker.estimate(); st.est = e;
+  const span = tracker.span();
+  if (!e) { $("bpmV").textContent = "–"; $("bpmS").textContent = `bpm · ${Math.max(0, Math.ceil(6 - span))} s`; $("quality").textContent = `Collecting… ${span.toFixed(0)} s of 6`; return; }
+  if (e.pos) st.hist.push(e.pos.bpm); if (st.hist.length > 5) st.hist.shift();
+  const shown = median(st.hist), good = e.pos && e.pos.snr > -2 && !e.exposureSuspect;
+  $("bpmV").textContent = shown ? Math.round(shown) : "–";
+  $("bpmS").textContent = good ? "bpm" : "bpm · unsure";
+  const f = (v, d = 1) => (v == null ? "–" : v.toFixed(d));
+  $("quality").innerHTML = `POS ${f(e.pos?.bpm, 0)} (SNR <b class="${e.pos?.snr > 0 ? "ok" : "warn"}">${f(e.pos?.snr)} dB</b>) · magnified signal ${f(e.evm?.bpm, 0)} · raw green ${f(e.green?.bpm, 0)} · ` +
+    `exposure: background moved <b class="${e.bgDrift > 0.03 ? "warn" : ""}">${f(100 * e.bgDrift)}%</b>, in-band correlation with face <b class="${Math.abs(e.expCorr) > 0.5 ? "warn" : ""}">${f(e.expCorr, 2)}</b>` +
+    (e.exposureSuspect ? ` · <b class="warn">background shows the same rhythm: light or exposure, not pulse</b>` : "") +
+    (st.faceFound ? "" : ` · <b class="warn">${st.roiMode === "fixed" ? "keep your face in the box" : "no face found"}</b>`);
+  const row = { t: +e.t.toFixed(2), shown, pos: e.pos && { bpm: +e.pos.bpm.toFixed(1), snr: +e.pos.snr.toFixed(2) }, evm: e.evm && { bpm: +e.evm.bpm.toFixed(1), snr: +e.evm.snr.toFixed(2) },
+    green: e.green && { bpm: +e.green.bpm.toFixed(1), snr: +e.green.snr.toFixed(2) }, bg: e.bg && { bpm: +e.bg.bpm.toFixed(1), snr: +e.bg.snr.toFixed(2) },
+    bgDrift: +e.bgDrift.toFixed(4), faceDrift: +e.faceDrift.toFixed(4), bgBandStd: +e.bgBandStd.toExponential(3), faceBandStd: +e.faceBandStd.toExponential(3),
+    expCorr: e.expCorr == null ? null : +e.expCorr.toFixed(3), suspect: e.exposureSuspect, fps: +e.fps.toFixed(1), face: st.faceFound };
+  st.log.push(row); if (st.log.length > 900) st.log.shift();
+}
+function drawOverlay() {
+  if (eng) {
+    const W = ov.width, H = ov.height; octx.clearRect(0, 0, W, H); octx.lineWidth = Math.max(1, W / 320);
+    const box = (r, c) => { octx.strokeStyle = c; octx.strokeRect(r[0] * W, r[1] * H, (r[2] - r[0]) * W, (r[3] - r[1]) * H); };
+    box(eng.face, st.faceFound ? "rgba(255,107,107,0.8)" : "rgba(240,184,90,0.9)"); box(eng.bg, "rgba(160,160,160,0.35)");
+  }
+  // trace: last 10 s of the face's magnified green (red) and the background's brightness (grey), each scaled to fit
+  const tc = $("trace"), dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(tc.clientWidth * dpr), H = Math.round(tc.clientHeight * dpr);
+  if (tc.width !== W || tc.height !== H) { tc.width = W; tc.height = H; }
+  const g = tc.getContext("2d"); g.clearRect(0, 0, W, H);
+  const T = tracker.t, M = tracker.m;
+  if (T.length > 10) {
+    const t1 = T[T.length - 1], i0 = T.findIndex((t) => t > t1 - 10);
+    const line = (get, col) => {
+      const v = []; for (let i = i0; i < T.length; i++) v.push(get(M[i]));
+      const mu = v.reduce((a, b) => a + b, 0) / v.length, sc = Math.max(...v.map((x) => Math.abs(x - mu))) || 1;
+      g.beginPath(); v.forEach((x, k) => { const X = (T[i0 + k] - t1 + 10) / 10 * W, Y = H / 2 - (x - mu) / sc * H * 0.45; k ? g.lineTo(X, Y) : g.moveTo(X, Y); });
+      g.strokeStyle = col; g.lineWidth = dpr * 1.5; g.stroke();
+    };
+    line((m) => m.bg[0] * 0.299 + m.bg[1] * 0.587 + m.bg[2] * 0.114, "rgba(160,160,160,0.6)");
+    line((m) => m.filt[1], "rgba(255,107,107,0.95)");
+  }
+  requestAnimationFrame(drawOverlay);
+}
+function stats() {
+  const avg = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  return { version: VERSION, frames: st.frames, skipped: st.skipped, est: st.est, log: st.log, marks: st.marks, roiMode: st.roiMode, faceFound: st.faceFound,
+    size: eng && [eng.w, eng.h], levels: eng?.levels, coarse: eng && [eng.lw, eng.lh], params: eng?.params, frameMs: avg(st.gpuMs), detectMs: avg(st.detectMs),
+    facing: st.facing, adapter: adapterInfo, ua: navigator.userAgent, errors: st.errors };
+}
+window.__stats = stats;
+setInterval(() => {
+  if (!eng) return;
+  const s = stats();
+  $("status").textContent = `${s.size[0]}×${s.size[1]} → ${s.coarse[0]}×${s.coarse[1]} · ${s.est ? s.est.fps.toFixed(0) : "–"} fps · ${s.frameMs?.toFixed(1)} ms per frame on the GPU` +
+    (s.detectMs ? ` · face ${s.detectMs.toFixed(0)} ms` : "") + (st.roiMode === "fixed" ? " · fixed region" : "");
+  if (!synth) update();
+}, 1000);
+function fail(err) { const m = String(err?.message || err); st.errors.push(m); $("err").textContent = m; $("status").textContent = "Error: " + m; console.error(err); }
+
+// ---------- start ----------
+async function start() {
+  try {
+    if (!navigator.gpu) throw new Error("This browser has no WebGPU. Try Chrome or Edge 121+, or Safari 26+.");
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) throw new Error("WebGPU is present but no GPU adapter was granted.");
+    adapterInfo = adapter.info ? { vendor: adapter.info.vendor, architecture: adapter.info.architecture, description: adapter.info.description } : null;
+    device = await adapter.requestDevice();
+    device.lost.then((i) => fail("GPU device lost: " + i.message));
+    device.addEventListener?.("uncapturederror", (ev) => fail(ev.error.message));
+    gctx = view.getContext("webgpu"); format = navigator.gpu.getPreferredCanvasFormat();
+    $("intro").classList.add("hide"); $("panel").classList.remove("hide");
+    drawOverlay();
+    if (P.get("synth") !== null) return await runSynth();
+    await Promise.all([openCamera(), loadDetector()]);
+    video.requestVideoFrameCallback ? video.requestVideoFrameCallback(onFrame) : requestAnimationFrame(onFrame);
+  } catch (err) { $("intro").classList.remove("hide"); fail(err); }
+}
+$("go").onclick = start;
+$("amp").addEventListener("input", () => { $("ampV").textContent = $("amp").value; if (eng) eng.params.amp = +$("amp").value; });
+$("viewSel").addEventListener("change", () => { if (eng) eng.params.view = +$("viewSel").value; });
+$("levels").addEventListener("change", () => { if (eng) ensureEngine(eng.w, eng.h).catch(fail); });
+$("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; await openCamera().catch(fail); };
+$("mark").onclick = () => {
+  const ref = +$("ref").value;
+  if (!ref) { $("ref").focus(); return; }
+  st.marks.push({ t: st.est?.t ?? null, ref, shown: median(st.hist), est: st.log[st.log.length - 1] ?? null });
+  $("mark").textContent = `Recorded (${st.marks.length})`;
+};
+$("copy").onclick = async () => {
+  const txt = JSON.stringify(stats(), null, 1);
+  try { await navigator.clipboard.writeText(txt); $("copy").textContent = "Copied"; }
+  catch { const w = window.open("", "_blank"); w?.document.write("<pre>" + txt.replace(/</g, "&lt;") + "</pre>"); }
+  setTimeout(() => ($("copy").textContent = "Copy JSON"), 1500);
+};
+if (P.get("autostart") || P.get("synth") !== null) start();
+</script>
+</body>
+</html>
