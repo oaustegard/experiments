@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Drum</title>
+<meta name="description" content="Draw a drum on paper, point the camera at it and tap it with your finger. The camera sees where your finger is, the microphone hears the tap, and the GPU rings a drum skin with exactly the shape you drew.">
+<style>
+  :root { --bg: #0b0c0e; --fg: #f1eee6; --dim: #a29d92; --accent: #ffbf47; --panel: rgba(16, 17, 20, 0.88); --line: rgba(255, 255, 255, 0.13); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 15px/1.4 system-ui, -apple-system, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  video, #fx { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  video.mirror { transform: scaleX(-1); }
+  video { filter: brightness(0.75) saturate(0.6); }
+  #fx { touch-action: none; }
+  header { position: fixed; top: 0; left: 0; right: 0; padding: max(10px, env(safe-area-inset-top)) 16px 8px; background: linear-gradient(var(--panel), transparent); pointer-events: none; }
+  h1 { margin: 0; font-size: 18px; font-weight: 650; }
+  #status { margin-top: 4px; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #status b { color: var(--fg); font-weight: 600; } #status .bad { color: #ff7a6b; }
+  #meter { position: fixed; right: 16px; top: max(14px, env(safe-area-inset-top)); width: 90px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.12); overflow: hidden; }
+  #meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 80ms linear; }
+  #say { position: fixed; left: 0; right: 0; bottom: 120px; text-align: center; font-size: 22px; font-weight: 650; text-shadow: 0 2px 8px #000; pointer-events: none; padding: 0 16px; }
+  #panel { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; max-height: 45vh; overflow-y: auto; }
+  label { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+  select, button, input[type=range] { font: inherit; font-size: 13px; color: var(--fg); }
+  select, button { background: #1d1f24; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  button.primary { background: var(--accent); color: #1a1408; border: 0; font-weight: 650; padding: 10px 18px; font-size: 16px; }
+  button.on { border-color: var(--accent); color: var(--accent); }
+  input[type=range] { width: 100px; accent-color: var(--accent); }
+  #intro { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px 16px; text-align: center; overflow-y: auto; }
+  #intro p { max-width: 30em; color: var(--dim); margin: 0 auto 14px; }
+  #intro h2 { margin: 0 0 12px; font-size: 24px; font-weight: 650; }
+  #intro ol { text-align: left; max-width: 26em; margin: 0 auto 18px; padding-left: 1.4em; }
+  #intro li { margin-bottom: 6px; }
+  .hide { display: none !important; }
+  #err { color: #ff7a6b; max-width: 30em; }
+</style>
+</head>
+<body>
+<div id="stage"><video id="cam" playsinline muted></video><canvas id="fx"></canvas></div>
+<header><h1>Paper Drum</h1><div id="status">Not started.</div></header>
+<div id="meter" class="hide" title="microphone"><i></i></div>
+<div id="say"></div>
+<div id="intro">
+  <div>
+    <h2>Draw a drum, then play it</h2>
+    <ol>
+      <li>Draw a closed shape on white paper with a dark marker: a circle, a square, a star. Thick lines work best.</li>
+      <li>Point the camera at the paper so the whole drawing is in view.</li>
+      <li>Tap inside your drum with one finger. Big drums sound low, little ones sound high.</li>
+    </ol>
+    <p>The camera sees where your finger is and the microphone hears the tap. Your GPU then rings a drum skin with exactly the shape you drew, stepping it 48,000 times a second. Nothing leaves your device.</p>
+    <button class="primary" id="go">Start camera, microphone and sound</button>
+    <p id="err"></p>
+  </div>
+</div>
+<div id="panel" class="hide">
+  <label>Tap sensitivity <input type="range" id="sens" min="0" max="1" step="0.01" value="0.5"></label>
+  <label>Ink threshold <input type="range" id="thr" min="0" max="1" step="0.01" value="0.4"></label>
+  <label>Grid <select id="grid"></select></label>
+  <label>Tension <input type="range" id="tension" min="0" max="1" step="0.01" value="0.7"></label>
+  <label>Ring <input type="range" id="ring" min="0" max="1" step="0.01" value="0.45"></label>
+  <label>Volume <input type="range" id="vol" min="0" max="1" step="0.01" value="0.7"></label>
+  <button id="freeze">Freeze drawing</button>
+  <button id="flip">Flip camera</button>
+  <button id="copy">Copy timings</button>
+</div>
+<script type="module">
+import { DrumEngine, coeffs, tileLimits } from "./engine.js";
+import { nearestSkin, pickupNear } from "./walls.js";
+import { tapVelocity } from "./taps.js";
+const $ = (id) => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+const st = { facing: P.get("facing") || "environment", mirror: false, strikes: 0, frames: 0, errors: [], freeze: false, last: null, calib: [],
+  taps: 0, hits: 0, miss: {}, log: [], handMs: 0, handFrames: 0 };
+let device, stream, mic, ac, node, eng = null, engKey = "", sent = 0, done = 0, inflight = 0, under = 0, pending = [], rings = [], field = null, blockNo = 0;
+const video = $("cam"), fx = $("fx"), g2 = fx.getContext("2d");
+const BLOCK = +(P.get("block") || 256);
+const QUEUE = +(P.get("queue") || 3);    // queued blocks: 16 ms at 48 kHz; the hand detector shares the page's threads
+const GRIDS = [[48, 36], [64, 48], [96, 72], [128, 96], [160, 120]];
+const DRUM_MAX = 0.3;                    // a region over this share of the frame is the paper itself, not a drum
+const IN_LATENCY_MS = +(P.get("inlat") || 12);   // mic buffering, a guess; the tap is matched to the hand this long before it is reported
+const HAND_WINDOW_MS = +(P.get("handwin") || 250);   // a tap needs a hand seen this close to it (the headless check runs ~3 hand frames a second)
+
+// ---------- camera and microphone ----------
+async function openCamera() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: st.facing }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } });
+  video.srcObject = stream; await video.play();
+  const fm = stream.getVideoTracks()[0].getSettings().facingMode;
+  st.mirror = fm ? fm === "user" : !/Android|iPhone|iPad/.test(navigator.userAgent);   // a laptop camera faces you
+  video.classList.toggle("mirror", st.mirror);
+}
+// Echo cancellation, noise suppression and gain control are all off: each one is built for speech and treats a
+// tap as noise to remove. The worklet tells the drum's own sound apart instead (taps.js).
+async function openMic() {
+  const aec = P.get("aec") === "1";
+  mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: aec, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+  const src = ac.createMediaStreamSource(mic); src.connect(node);
+  st.inputLatency = mic.getAudioTracks()[0].getSettings().latency;
+}
+
+// ---------- walls: the drawing reduced to one wall bit per grid cell (walls.js in walls-worker.js) ----------
+let W = {};
+const worker = new Worker("walls-worker.js", { type: "module" });
+const wc = {};
+function gridDims() {
+  const [a, b] = $("grid").value.split("x").map(Number);
+  return (video.videoWidth || 4) >= (video.videoHeight || 3) ? [a, b] : [b, a];
+}
+function wallSetup(nx, ny) {
+  if (W.nx === nx && W.ny === ny) return;
+  const n = nx * ny;
+  W = { nx, ny, wall: new Uint8Array(n), mask: new Float32Array(n).fill(1), label: new Int32Array(n), sizes: [n], pads: [], edge: [] };
+}
+const isDrum = (id) => id >= 0 && W.sizes && !W.edge.includes(id) && W.sizes[id] < DRUM_MAX * W.nx * W.ny;
+function handBoxCells() {   // the hands' boxes, grown by a fifth, in cells; their cells keep their walls this frame
+  const h = H.now; if (!h || !h.length || !W.nx) return null;
+  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+  for (const { box: b } of h) { const gx = 0.2 * (b[2] - b[0]), gy = 0.2 * (b[3] - b[1]); x0 = Math.min(x0, b[0] - gx); y0 = Math.min(y0, b[1] - gy); x1 = Math.max(x1, b[2] + gx); y1 = Math.max(y1, b[3] + gy); }
+  return [Math.floor(x0 * W.nx), Math.floor(y0 * W.ny), Math.ceil(x1 * W.nx), Math.ceil(y1 * W.ny)];
+}
+function wallFrame() {
+  if (wc.busy || !W.nx || !video.videoWidth) return;
+  const { nx, ny } = W, s = nx * ny > 8192 ? 1 : 2;
+  if (!wc.c || wc.c.width !== s * nx || wc.c.height !== s * ny) { wc.c = new OffscreenCanvas(s * nx, s * ny); wc.g = wc.c.getContext("2d"); }
+  wc.g.drawImage(video, 0, 0, s * nx, s * ny);
+  wc.busy = true;
+  worker.postMessage({ nx, ny, bitmap: wc.c.transferToImageBitmap(), opts: { src: "ink", thr: +$("thr").value, freeze: st.freeze, hold: handBoxCells(), close: 1 } });
+}
+worker.onmessage = ({ data: d }) => {
+  wc.busy = false;
+  if (d.nx !== W.nx || d.ny !== W.ny) return;
+  W.sizes = d.sizes; W.pads = d.pads; W.edge = d.edge;
+  if (d.changed) { W.wall = d.wall; W.mask = d.mask; W.label = d.label; eng?.setMask(W.mask); }
+  st.frames++; st.wallMs = 0.9 * (st.wallMs || 0) + 0.1 * d.ms;
+};
+worker.onerror = (e) => fail(e.message || "walls worker failed");
+
+// ---------- hands: MediaPipe in hands-worker.js; a short history of fingertips with their capture times ----------
+const H = { now: null, hist: [], busy: false, ready: false };
+const hw = new Worker("hands-worker.js", { type: "module" });
+hw.onmessage = ({ data: d }) => {
+  if (d.type === "ready") { H.ready = true; st.handDelegate = d.delegate; return; }
+  if (d.type === "error") { H.busy = false; return fail("hand tracker: " + d.error); }
+  H.busy = false; H.now = d.hands; H.hist.push({ t: d.t, hands: d.hands });
+  while (H.hist.length && H.hist[0].t < d.t - 1000) H.hist.shift();
+  st.handFrames++; st.handMs = 0.9 * st.handMs + 0.1 * d.ms;
+};
+const hc = {};
+function handFrame(t) {
+  if (H.busy || !H.ready || !video.videoWidth) return;
+  const vw = video.videoWidth, vh = video.videoHeight, k = Math.min(1, 480 / Math.max(vw, vh)), w = Math.round(vw * k), h = Math.round(vh * k);
+  if (!hc.c || hc.c.width !== w || hc.c.height !== h) { hc.c = new OffscreenCanvas(w, h); hc.g = hc.c.getContext("2d"); }
+  hc.g.drawImage(video, 0, 0, w, h);   // through a canvas so iOS frames arrive upright (METHODS.md, xray-glasses)
+  H.busy = true; hw.postMessage({ bitmap: hc.c.transferToImageBitmap(), t }, []);
+}
+
+// ---------- taps: the worklet hears one, the hand history says where ----------
+// The tap is matched to the fingertips seen closest to the moment it happened. Among fingertips inside a drum, the
+// one that moved most in the 150 ms before is the one that tapped (a resting hand's finger may be inside a drum too).
+function onTap(t) {
+  st.taps++;
+  const tapAt = performance.now() - 3 - IN_LATENCY_MS;
+  const ev = { at: Math.round(performance.now()), db: +t.db.toFixed(1), level: +(10 * Math.log10(t.level)).toFixed(1) };
+  st.log.push(ev); if (st.log.length > 50) st.log.shift();
+  if (!W.nx || !eng) return (ev.result = "not ready");
+  let snap = null;
+  for (const s of H.hist) if (!snap || Math.abs(s.t - tapAt) < Math.abs(snap.t - tapAt)) snap = s;
+  if (!snap || Math.abs(snap.t - tapAt) > HAND_WINDOW_MS || !snap.hands.length) return miss(ev, "no finger seen");
+  let best = null;
+  snap.hands.forEach((h, k) => {
+    const x = h.tip[0] * W.nx - 0.5, y = h.tip[1] * W.ny - 0.5;
+    const i = nearestSkin(W, x, y, Math.ceil(W.nx / 40));
+    if (i === null || !isDrum(W.label[i])) return;
+    let moved = 0;
+    for (const s of H.hist) if (s.t >= snap.t - 150 && s.t <= snap.t && s.hands[k]) moved = Math.max(moved, Math.hypot(s.hands[k].tip[0] - h.tip[0], s.hands[k].tip[1] - h.tip[1]));
+    if (!best || moved > best.moved) best = { x, y, moved };
+  });
+  if (!best) return miss(ev, "finger not on a drum");
+  ev.result = "hit"; ev.cell = [Math.round(best.x), Math.round(best.y)]; ev.handAgeMs = Math.round(tapAt - snap.t);
+  st.hits++;
+  node.port.postMessage({ type: "learn", n: t.n });
+  strike(best.x, best.y, tapVelocity(t.level));
+}
+function miss(ev, why) { ev.result = why; st.miss[why] = (st.miss[why] || 0) + 1; say(why === "no finger seen" ? "I heard a tap, but I can't see a finger" : "Tap inside a drum you drew"); }
+let sayT = 0;
+function say(text) { $("say").textContent = text; clearTimeout(sayT); sayT = setTimeout(() => ($("say").textContent = ""), 1500); }
+
+function strike(x, y, vel) {   // grid coordinates
+  if (!eng || !W.nx) return;
+  const u = W.nx / 64, i = nearestSkin(W, x, y, Math.ceil(8 * u));
+  if (i === null) return;
+  const nx = W.nx, side = st.mirror ? -1 : 1;
+  const pl = pickupNear(W, i, -4 * u * side, 3 * u), pr = pickupNear(W, i, 4 * u * side, -3 * u);
+  const T = Math.round((0.0016 - 0.0012 * vel) * ac.sampleRate);
+  pending.push({ x: i % nx, y: (i / nx) | 0, r: 2 * u, amp: 0.25 * vel / u, js: 0, T, pl, pr });
+  if (pending.length > 16) pending.splice(0, pending.length - 16);
+  st.last = { i, size: W.sizes[W.label[i]] || 0, at: performance.now() };
+  rings.push({ x: i % nx, y: (i / nx) | 0, vel, t: performance.now() }); st.strikes++;
+}
+
+// ---------- audio: the GPU renders blocks ahead, the worklet plays them and listens ----------
+function material() {
+  const c = coeffs({ tension: +$("tension").value, t60: 0.3 + 6 * (+$("ring").value) ** 2, hf: 1 - 0.8 * +$("ring").value, sr: ac.sampleRate });
+  return { ...c, gain: 10 * (+$("vol").value) ** 2 };
+}
+const sensRatio = () => 10 ** ((14 - 10 * +$("sens").value) / 10);   // onset over baseline: 14 dB at 0 to 4 dB at 1
+async function calibrate() {   // time each grid on this GPU; default to the largest under 30% of the block's playing time
+  const lim = tileLimits(device), blockMs = 1000 * BLOCK / ac.sampleRate, best = {};
+  if (P.get("grid")) for (const [nx, ny] of GRIDS) best[`${nx}x${ny}`] = { kernel: nx * ny <= lim.maxCells ? "tile" : "multi", load: NaN };
+  else for (const [nx, ny] of GRIDS) for (const kernel of ["tile", "multi"]) {
+    if (kernel === "tile" && nx * ny > lim.maxCells) continue;
+    $("status").textContent = `Timing the GPU: ${nx}×${ny} ${kernel}…`;
+    const e = await DrumEngine.create(device, { nx, ny, block: BLOCK, sr: ac.sampleRate, kernel, ...coeffs({ sr: ac.sampleRate }) });
+    await e.render([{ x: nx / 3, y: ny / 3, r: 2, amp: 0.1, js: 0, T: 20 }]);
+    const ms = []; for (let k = 0; k < 9; k++) { const t = performance.now(); await e.render(); ms.push(performance.now() - t); }
+    e.destroy(); ms.sort((a, b) => a - b);
+    const r = { grid: `${nx}x${ny}`, kernel, medianMs: +ms[4].toFixed(2), load: +(ms[4] / blockMs).toFixed(3) };
+    st.calib.push(r);
+    if (!best[r.grid] || r.medianMs < best[r.grid].medianMs) best[r.grid] = r;
+  }
+  for (const [nx, ny] of GRIDS) {
+    const b = best[`${nx}x${ny}`], o = document.createElement("option");
+    o.value = `${nx}x${ny}`; o.textContent = `${nx}×${ny}` + (b.load >= 0 ? ` · ${Math.round(100 * b.load)}% GPU` : ""); o.dataset.kernel = b.kernel; $("grid").append(o);
+  }
+  const ok = GRIDS.filter(([nx, ny]) => nx * ny <= 12288 && best[`${nx}x${ny}`].load < 0.3).pop() || GRIDS[0];
+  $("grid").value = P.get("grid") || `${ok[0]}x${ok[1]}`;
+}
+let building = null;
+async function rebuild() {
+  const [nx, ny] = gridDims(), k = `${nx}x${ny}`;
+  if (k === engKey) return;
+  engKey = k;
+  const prev = building; building = (async () => {
+    await prev;
+    const old = eng; eng = null;
+    while (inflight) await new Promise((r) => setTimeout(r, 5));
+    old?.destroy();
+    wallSetup(nx, ny);
+    const kernel = P.get("kernel") || $("grid").selectedOptions[0]?.dataset.kernel || "auto";
+    const e = await DrumEngine.create(device, { nx, ny, block: BLOCK, sr: ac.sampleRate, kernel, ...material() });
+    e.setMask(W.mask); e.setPickups(Math.floor(ny / 2) * nx + 3, Math.floor(ny / 2) * nx + nx - 4);
+    node.port.postMessage({ type: "reset" }); sent = done = 0; pending = []; field = null;
+    eng = e; pump();
+  })();
+  await building;
+}
+function pump() { while (eng && !st.broken && inflight < 2 && sent - done + inflight < QUEUE) renderOne(eng); }
+async function renderOne(e) {
+  inflight++;
+  const strikes = pending.splice(0, 8), last = strikes[strikes.length - 1];
+  if (last) e.setPickups(last.pl, last.pr);
+  try {
+    const wantField = blockNo++ % 3 === 0, r = await e.render(strikes, { field: wantField }), out = wantField ? r.out : r;
+    if (wantField && e === eng) field = r.field;
+    if (e === eng) { node.port.postMessage({ type: "block", data: out }, [out.buffer]); sent++; }
+  } catch (err) { st.broken = true; fail(err); } finally { inflight--; }
+  pump();
+}
+async function startAudio() {
+  ac = new AudioContext({ latencyHint: "interactive" });   // inside the tap, as iOS requires
+  try { if (navigator.audioSession) navigator.audioSession.type = "play-and-record"; } catch {}
+  await ac.audioWorklet.addModule("worklet.js");
+  node = new AudioWorkletNode(ac, "paper-drum", { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 1, channelCountMode: "explicit" });
+  node.connect(ac.destination);
+  node.port.onmessage = ({ data: d }) => {
+    if (d.type === "done") { done = d.n; pump(); }
+    else if (d.type === "under") under = d.n;
+    else if (d.type === "tap") onTap(d);
+    else if (d.type === "meter") { st.meter = d; $("meter").firstChild.style.width = `${Math.max(0, Math.min(100, (d.peakDb + 60) / 60 * 100))}%`; }
+  };
+  await ac.resume();
+  sendSens();
+}
+function sendSens() {
+  const echoMs = 1000 * ((ac.outputLatency || 0) + (ac.baseLatency || 0)) + IN_LATENCY_MS;   // speaker to mic
+  node?.port.postMessage({ type: "set", ratio: sensRatio(), echoMs });
+}
+
+// ---------- drawing: drums tinted, walls, the skin's motion, fingertips, strikes ----------
+const img = {};
+const HUES = [[255, 191, 71], [110, 200, 255], [255, 120, 170], [140, 230, 140], [200, 150, 255], [255, 150, 90]];
+function draw() {
+  const dpr = Math.min(2, devicePixelRatio || 1), Wd = Math.round(fx.clientWidth * dpr), Hh = Math.round(fx.clientHeight * dpr);
+  if (fx.width !== Wd || fx.height !== Hh) { fx.width = Wd; fx.height = Hh; }
+  g2.clearRect(0, 0, Wd, Hh);
+  const vw = video.videoWidth || 4, vh = video.videoHeight || 3, sc = Math.max(Wd / vw, Hh / vh);
+  g2.save();
+  g2.translate(Wd / 2, Hh / 2); if (st.mirror) g2.scale(-1, 1); g2.scale(vw * sc, vh * sc); g2.translate(-0.5, -0.5);   // unit square = the frame
+  if (W.nx) {
+    const { nx, ny } = W;
+    if (!img.c || img.c.width !== nx || img.c.height !== ny) { img.c = new OffscreenCanvas(nx, ny); img.x = img.c.getContext("2d"); img.d = img.x.createImageData(nx, ny); }
+    const d = img.d.data, f = field && field.length === nx * ny ? field : null, drumIds = new Map();
+    let fm = 1e-9; if (f) for (let i = 0; i < f.length; i++) fm = Math.max(fm, Math.abs(f[i]));
+    for (let i = 0; i < nx * ny; i++) {
+      const o = 4 * i, id = W.label[i];
+      if (W.wall[i]) { d[o] = 20; d[o + 1] = 20; d[o + 2] = 24; d[o + 3] = 90; continue; }
+      if (!isDrum(id)) { d[o + 3] = 0; continue; }
+      if (!drumIds.has(id)) drumIds.set(id, HUES[drumIds.size % HUES.length]);
+      const c = drumIds.get(id), v = f ? f[i] / fm : 0, a = Math.min(1, Math.abs(v) * 1.8);
+      d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 55 + 170 * a;
+    }
+    img.x.putImageData(img.d, 0, 0);
+    g2.imageSmoothingEnabled = true; g2.drawImage(img.c, 0, 0, 1, 1);
+    const now = performance.now();
+    rings = rings.filter((r) => now - r.t < 600);
+    for (const r of rings) {
+      const age = (now - r.t) / 600, rad = 0.015 + 0.07 * age;
+      g2.strokeStyle = `rgba(255,255,255,${(1 - age) * (0.5 + 0.5 * r.vel)})`; g2.lineWidth = 4 * dpr / (vw * sc);
+      g2.beginPath(); g2.ellipse((r.x + 0.5) / nx, (r.y + 0.5) / ny, rad, rad * vw / vh, 0, 0, 2 * Math.PI); g2.stroke();
+    }
+  }
+  for (const h of H.now || []) {   // fingertips
+    g2.fillStyle = "rgba(255,255,255,0.95)"; g2.strokeStyle = "rgba(0,0,0,0.6)"; g2.lineWidth = 2 * dpr / (vw * sc);
+    g2.beginPath(); g2.ellipse(h.tip[0], h.tip[1], 0.012, 0.012 * vw / vh, 0, 0, 2 * Math.PI); g2.fill(); g2.stroke();
+  }
+  g2.restore();
+  requestAnimationFrame(draw);
+}
+
+// ---------- status ----------
+const NOTES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const padHz = (area) => area > 3 && eng ? Math.sqrt(eng.lam2) * ac.sampleRate * 2.404826 / (2 * Math.PI * Math.sqrt(area / Math.PI)) : 0;
+const noteName = (f) => { const m = Math.round(69 + 12 * Math.log2(f / 440)); return NOTES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); };
+function stats() {
+  const ms = eng ? eng.ms.slice(-50) : [], avg = ms.reduce((a, b) => a + b, 0) / (ms.length || 1);
+  const blockMs = eng ? 1000 * eng.B / ac.sampleRate : 0, q = sent - done;
+  const outMs = blockMs * (q + 0.5) + 1000 * ((ac?.outputLatency || 0) + (ac?.baseLatency || 0));
+  const drums = W.sizes ? W.sizes.map((a, id) => (isDrum(id) ? a : 0)).filter(Boolean) : [];
+  return { grid: eng ? `${eng.nx}x${eng.ny}` : "", kernel: eng?.kernel, block: eng?.B, sr: ac?.sampleRate, gpuMsAvg: avg, blockMs, load: avg / blockMs, queue: q,
+    sent, done, under, strikes: st.strikes, taps: st.taps, hits: st.hits, miss: st.miss, log: st.log.slice(-20), frames: st.frames, wallMs: st.wallMs,
+    handFrames: st.handFrames, handMs: st.handMs, handLagMs: H.hist.length ? performance.now() - H.hist[H.hist.length - 1].t : null, handDelegate: st.handDelegate, hands: (H.now || []).length, tips: (H.now || []).map((h) => h.tip.map((v) => +v.toFixed(3))),
+    drums, mic: st.meter, inputLatency: st.inputLatency, outLatencyMs: outMs, tapToSoundMs: outMs + IN_LATENCY_MS + 3 + blockMs / 2,
+    errors: st.errors, adapter: st.adapter, ua: navigator.userAgent };
+}
+window.__stats = stats; window.__strike = (x, y, v = 0.8) => strike(x, y, v);
+setInterval(() => {
+  if (!eng) return;
+  const s = stats(), f = st.last ? padHz(st.last.size) : 0;
+  $("status").innerHTML = `${s.drums.length} drum${s.drums.length === 1 ? "" : "s"} · ${s.hands ? "finger seen" : "no finger"} · taps heard <b>${s.taps}</b>, on a drum <b>${s.hits}</b> · ` +
+    `sound ≈ ${Math.round(s.tapToSoundMs)} ms after a tap · GPU ${Math.round(100 * s.load)}% · dropouts <b class="${s.under ? "bad" : ""}">${s.under}</b>` +
+    (f ? ` · last drum ≈ <b>${Math.round(f)} Hz (${noteName(f)})</b>` : "") + (st.note ? ` · ${st.note}` : "");
+  pump();
+}, 250);
+function fail(err) { const m = String(err?.message || err); st.errors.push(m); $("err").textContent = m; $("status").textContent = "Error: " + m; console.error(err); }
+
+// ---------- start ----------
+async function start() {
+  try {
+    $("go").disabled = true;
+    const audio = startAudio();
+    if (!navigator.gpu) throw new Error("This browser has no WebGPU. Try Chrome or Edge 121+, or Safari 26+.");
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    if (!adapter) throw new Error("WebGPU is present but no GPU adapter was granted.");
+    const L = adapter.limits;
+    device = await adapter.requestDevice({ requiredLimits: { maxComputeWorkgroupStorageSize: L.maxComputeWorkgroupStorageSize,
+      maxComputeInvocationsPerWorkgroup: L.maxComputeInvocationsPerWorkgroup, maxComputeWorkgroupSizeX: L.maxComputeWorkgroupSizeX } });
+    st.adapter = adapter.info ? `${adapter.info.vendor} ${adapter.info.architecture}` : "";
+    device.lost.then((i) => fail("GPU device lost: " + i.message));
+    hw.postMessage({ type: "init", delegate: P.get("handdelegate") || "GPU" });
+    await Promise.all([audio, openCamera()]);
+    await openMic();
+    node.port.postMessage({ type: "train" });   // a short whoosh: the echo canceller learns the speaker-to-mic path
+    await calibrate();
+    $("intro").classList.add("hide"); $("panel").classList.remove("hide"); $("meter").classList.remove("hide");
+    await rebuild();
+    const tick = (now, meta) => {
+      if (W.nx) { try { wallFrame(); handFrame(meta?.captureTime ?? performance.now()); } catch (err) { fail(err); } }
+      video.requestVideoFrameCallback ? video.requestVideoFrameCallback(tick) : requestAnimationFrame(tick);
+    };
+    tick(); draw();
+    if (!H.ready) say("Loading the hand tracker…");
+  } catch (err) { fail(err); $("go").disabled = false; }
+}
+$("go").onclick = start;
+$("grid").addEventListener("change", () => rebuild().catch(fail));
+for (const id of ["tension", "ring", "vol"]) $(id).addEventListener("input", () => eng?.set(material()));
+$("sens").addEventListener("input", sendSens);
+$("freeze").onclick = () => { st.freeze = !st.freeze; $("freeze").classList.toggle("on", st.freeze); };
+$("flip").onclick = async () => { st.facing = st.facing === "user" ? "environment" : "user"; await openCamera().catch(fail); engKey = ""; rebuild().catch(fail); };
+$("copy").onclick = async () => {
+  const txt = JSON.stringify({ ...stats(), at: new Date().toISOString() }, null, 1);
+  try { await navigator.clipboard.writeText(txt); st.note = "timings copied"; } catch { prompt("Copy these timings", txt); }
+};
+fx.addEventListener("pointerdown", (ev) => {   // a tap on the screen strikes there too, for trying it without paper
+  if (!eng || !W.nx) return;
+  const r = fx.getBoundingClientRect(), vw = video.videoWidth || 4, vh = video.videoHeight || 3, sc = Math.max(r.width / vw, r.height / vh);
+  let x = 0.5 + (ev.clientX - r.left - r.width / 2) / (vw * sc); const y = 0.5 + (ev.clientY - r.top - r.height / 2) / (vh * sc);
+  if (st.mirror) x = 1 - x;
+  strike(x * W.nx - 0.5, y * W.ny - 0.5, 0.85);
+});
+if (P.get("autostart")) start();
+</script>
+</body>
+</html>
