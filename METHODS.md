@@ -661,6 +661,18 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Headless Chromium launched by a tool (Remotion's renderer) does not trust the egress proxy's
+  CA, though curl and Playwright's own launches reach the same hosts.** Every Remotion still failed
+  with `ERR_CERT_AUTHORITY_INVALID` on fonts.gstatic.com, then `TypeError: Failed to fetch`.
+  Download anything the page fetches over HTTPS (fonts, images) into the project and load it
+  locally. (`aeyu-demo-reel/README.md`; skill `making-remotion-videos`)
+- **Capturing a browser animation: step Playwright's fake clock instead of recording in real
+  time.** A CDP screencast of a WebGPU canvas on SwiftShader delivered 4 fps.
+  `page.clock.install()` then `page.clock.pauseAt(...)`, since `install()` alone keeps ticking at
+  real speed and a slow screenshot lets the app run ahead. Then per frame `fastForward(step)`,
+  `runFor(34)`, a 40 ms real wait and a screenshot give evenly spaced frames however slow the
+  renderer is. Click controls by exact
+  accessible name: `/play/i` matched "Make a 30 second replay video". (`aeyu-demo-reel/README.md`)
 - **MLX on Linux CPU (`pip install "mlx[cpu]"`) ships the netlib reference BLAS.** A 2048² fp32
   matmul took 4.2 s against numpy's 0.14 s; bf16 has no fast path either, so a bf16 checkpoint ran
   11 CPU-minutes without finishing one 1.3B forward pass. Convert to fp32 for CPU work and run with
