@@ -117,17 +117,21 @@ const Hook: React.FC = () => (
   </AbsoluteFill>
 );
 
+// Reads follow the narration: "No ads, no tracking." / "Just you and your Strava
+// data," / "on your device, in your browser."
 const Privacy: React.FC = () => (
   <AbsoluteFill style={{ justifyContent: "center", padding: "0 90px" }}>
     <Rise at={2}>
-      <div style={{ fontFamily: F.mono, fontSize: 34, color: C.accent, letterSpacing: 2, textTransform: "uppercase" }}>100% client-side</div>
+      <div style={{ fontFamily: F.mono, fontSize: 34, color: C.accent, letterSpacing: 2, textTransform: "uppercase" }}>No ads · No tracking</div>
     </Rise>
-    <Rise at={8}>
-      <div style={{ fontFamily: F.serif, fontSize: 104, color: C.text, lineHeight: 1.02, marginTop: 30 }}>Your rides stay in your browser.</div>
+    <Rise at={40}>
+      <div style={{ fontFamily: F.serif, fontSize: 110, color: C.text, lineHeight: 1.02, marginTop: 30 }}>
+        Just you and <span style={{ color: C.accent }}>your</span> Strava data.
+      </div>
     </Rise>
-    <Rise at={26}>
-      <div style={{ fontFamily: F.sans, fontSize: 42, color: C.text2, marginTop: 40, lineHeight: 1.35 }}>
-        Strava to your phone, directly. No server, no database, no analytics.
+    <Rise at={105}>
+      <div style={{ fontFamily: F.sans, fontSize: 44, color: C.text2, marginTop: 44, lineHeight: 1.35 }}>
+        On <b style={{ color: C.text }}>your</b> device, in <b style={{ color: C.text }}>your</b> browser. Nothing goes to a server.
       </div>
     </Rise>
   </AbsoluteFill>
@@ -141,12 +145,12 @@ const Cta: React.FC = () => {
       <Rise at={0}><Img src={staticFile("shots/icon.png")} style={{ width: 200, height: 200, borderRadius: 46, boxShadow: "0 24px 60px rgba(107,53,24,0.35)" }} /></Rise>
       <Rise at={6}><div style={{ marginTop: 50 }}><Wordmark size={170} /></div></Rise>
       <Rise at={14}><div style={{ fontFamily: F.serif, fontSize: 62, color: C.text2, marginTop: 10 }}>Participation Awards</div></Rise>
-      <Rise at={28}>
-        <div style={{ marginTop: 90, transform: `scale(${pulse})`, background: C.accent, color: C.onDark, fontFamily: F.sans, fontWeight: 700, fontSize: 46, padding: "30px 64px", borderRadius: 999 }}>
-          Try the demo · aeyu.io/demo
+      <Rise at={24}>
+        <div style={{ marginTop: 80, transform: `scale(${pulse})`, background: C.accent, color: C.onDark, fontFamily: F.sans, fontWeight: 700, fontSize: 50, padding: "30px 72px", borderRadius: 999 }}>
+          All free · aeyu.io
         </div>
       </Rise>
-      <Rise at={38}><div style={{ fontFamily: F.sans, fontSize: 34, color: C.text3, marginTop: 36 }}>Free. Connect Strava when you're ready.</div></Rise>
+      <Rise at={36}><div style={{ fontFamily: F.sans, fontSize: 34, color: C.text3, marginTop: 36 }}>No ads. No tracking. Try the demo, or connect Strava.</div></Rise>
     </AbsoluteFill>
   );
 };
@@ -156,7 +160,7 @@ const SCENES: { id: string; dur: number; C: React.FC }[] = [
   { id: "title", dur: 90, C: Title },
   { id: "hook", dur: 120, C: Hook },
   { id: "phone", dur: PHONE_DUR, C: PhoneSection },
-  { id: "privacy", dur: 120, C: Privacy },
+  { id: "privacy", dur: 210, C: Privacy },
   { id: "cta", dur: 135, C: Cta },
 ];
 export const REEL_DUR = SCENES.reduce((a, s) => a + s.dur, 0) - T * (SCENES.length - 1);

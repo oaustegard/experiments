@@ -1,5 +1,5 @@
 """Pick the best take per line and mix a narration track timed to the reel.
-Usage: assemble.py TAKES_DIR NAME [SCRIPT_JSON]   (takes named <line id>_s<seed>.wav)
+Usage: assemble.py TAKES_DIR NAME [SCRIPT_JSON [TOTAL_SECONDS]]   (takes named <line id>_s<seed>.wav)
 Best take = lowest ASR WER, then the longest that fits its slot (atempo <= 1.12 if none fit).
 Writes vo.wav (48 kHz mono, loudnorm -16 LUFS) and picks.json."""
 import glob, json, re, subprocess, sys
@@ -7,7 +7,8 @@ import numpy as np, librosa, soundfile as sf, jiwer
 from faster_whisper import WhisperModel
 from pathlib import Path
 D = str(Path(__file__).resolve().parent)  # takes and outputs live beside this script
-TAKES, NAME, TOTAL, SR = sys.argv[1], sys.argv[2], 35.5, 48000
+TAKES, NAME, SR = sys.argv[1], sys.argv[2], 48000
+TOTAL = float(sys.argv[4]) if len(sys.argv) > 4 else 35.5  # composition length, seconds
 S = json.load(open(sys.argv[3] if len(sys.argv) > 3 else f"{D}/script.json"))
 asr = WhisperModel("small.en", device="cpu", compute_type="int8")
 MAX_PAUSE = 0.22  # seconds of silence kept between phrases inside a line
