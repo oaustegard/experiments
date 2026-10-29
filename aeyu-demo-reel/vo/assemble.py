@@ -36,7 +36,10 @@ for l in S:
     for f in sorted(glob.glob(f"{TAKES}/{l['id']}_s*.wav")):
         s = int(f.rsplit("_s", 1)[1][:-4])
         y, _ = librosa.load(f, sr=SR)
-        y, _ = librosa.effects.trim(y, top_db=40)
+        _, (a, b) = librosa.effects.trim(y, top_db=40)
+        # keep 60 ms ahead of the detected start: a hard cut at the threshold clips
+        # soft onsets ("th", "h") and sounds like the line was cut off
+        y = y[max(0, a - int(0.06 * SR)):min(len(y), b + int(0.04 * SR))]
         y = cap_pauses(y)
         hyp = " ".join(x.text for x in asr.transcribe(librosa.resample(y, orig_sr=SR, target_sr=16000), language="en", beam_size=5)[0])
         wer = jiwer.wer(norm(l["text"]), norm(hyp)) if l["id"] != "l1" and l["id"] != "l9" else 0.0  # brand name: checked by ear-proxy below

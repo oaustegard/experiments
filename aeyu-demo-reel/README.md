@@ -1,6 +1,6 @@
 # aeyu-demo-reel
 
-[`aeyu-reel.mp4`](aeyu-reel.mp4): a 43.5 s vertical (1080×1920, 30 fps, 7.6 MB) narrated demo reel for [aeyu.io](https://aeyu.io),
+[`aeyu-reel.mp4`](aeyu-reel.mp4): a 46 s vertical (1080×1920, 30 fps, 7.7 MB) narrated demo reel for [aeyu.io](https://aeyu.io),
 built in [Remotion](https://github.com/remotion-dev/remotion) from captures of
 the live app's `/demo` mode at iPhone size. It is the worked example for the
 `making-remotion-videos` skill in `oaustegard/claude-skills`.
@@ -69,21 +69,24 @@ bash /mnt/skills/user/making-remotion-videos/scripts/render.sh video Reel out/re
   cores. The name uses the inline phoneme override `[EY1 Y UW0] dot I-O.`,
   because every plain spelling came out "eye-you".
 
-**Current track: `vo_v6.wav`** (`vo/script_v4.json`, the composition default).
-It uses Gemini prebuilt voice `en-us-commercial-17` ("Commercial Voiceover 17"),
-which Oskar picked from an eight-voice audition, with the style "warm and
-lively, varied intonation, natural conversational pace, not rushed". All nine
-lines have zero WER apart from "50" for "fifty". Loudness is −16.9 LUFS.
+**Current track: `vo_v7.wav`** (`vo/script_v5.json`, the composition default).
+It uses Gemini prebuilt voice `en-us-training-6` ("Training Voiceover 6"), voice
+7 of Oskar's eight-voice audition. v4 used voice 6 by mistake. The style is
+"warm and lively, varied intonation, natural conversational pace, not rushed".
+All nine lines have zero WER apart from "50" for "fifty". Loudness is −16.6 LUFS.
 
 The name is spelled, not spoken. "aeyu" is pronounced "AY-yoo", but every
-voice tried mangled it: in the audition each of the eight dropped a letter or
-said "a, u, i-t-o". The opening line is now the tagline, "The sound you make at
-the top of the climb", and the close says "And it's all free. A, E, Y, U, dot
-I, O. Every vowel on your keyboard, left to right." That is true of QWERTY: A
-on the home row, then E, Y, U, I, O along the top row. The closing card's
-keyboard lights each vowel on the frame the narrator says it. `VOWEL_AT` in
-`src/Reel.tsx` holds those frames, measured on the track with whisper word
-timestamps plus onset detection: 37.35, 37.84, 38.34, 38.78, 39.58 and 39.86 s.
+auditioned voice mangled it. Opening: "A, E, Y, U, dot I, O. The sound you make
+at the top of the climb." In v4 the opening dropped the name, which Oskar
+caught. The title scene runs 7 s, and each letter of the wordmark lights as it
+is spoken (`TITLE_AT`). Closing: "And it's all free. A, E, Y, U, dot I, O.
+Every vowel on your keyboard, left to right." That is true of QWERTY: A on the
+home row, then E, Y, U, I, O along the top row. The keyboard lights each vowel
+as it is spoken (`VOWEL_AT`). Both frame lists were measured on the track with
+energy segmentation (`librosa.effects.split`, top_db 20–30) and whisper word
+timestamps. Onset detection alone was too noisy on the closing line.
+`assemble.py` keeps 60 ms before each detected line start, because a hard cut
+at the trim threshold clipped soft onsets.
 
 The ending also changed per Oskar: "Try the free demo" sounded as if only the
 demo were free. The privacy scene now reads "No ads · No tracking / Just you

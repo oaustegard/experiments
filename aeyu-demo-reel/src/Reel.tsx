@@ -93,10 +93,34 @@ const PhoneSection: React.FC = () => {
 };
 
 // ---------- text scenes ----------
+// Frames at which the opening line spells each character of "aeyu.io",
+// measured on public/vo/vo_v7.wav (energy segmentation + whisper word timestamps).
+const TITLE_AT = [9, 28, 47, 71, 93, 105, 113]; // a e y u . i o
+
+const SpelledWordmark: React.FC<{ size: number }> = ({ size }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return (
+    <span style={{ fontFamily: F.serif, fontSize: size, letterSpacing: -size * 0.01, lineHeight: 1 }}>
+      {"aeyu.io".split("").map((ch, k) => {
+        const hit = spring({ frame: frame - TITLE_AT[k], fps, config: { damping: 14 }, durationInFrames: 16 });
+        const glow = interpolate(frame - TITLE_AT[k], [0, 4, 20], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const base = k >= 4 ? C.accent : C.text;
+        return (
+          <span key={k} style={{
+            display: "inline-block", color: glow > 0.3 ? C.accent : base,
+            opacity: 0.25 + 0.75 * hit, transform: `translateY(${-14 * glow}px)`,
+          }}>{ch}</span>
+        );
+      })}
+    </span>
+  );
+};
+
 const Title: React.FC = () => (
   <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-    <Rise at={2} dy={30}><Wordmark size={210} /></Rise>
-    <Rise at={22}>
+    <Rise at={0} dy={20}><SpelledWordmark size={210} /></Rise>
+    <Rise at={122}>
       <div style={{ fontFamily: F.serifItalic, fontStyle: "italic", fontSize: 50, color: C.text3, marginTop: 30, padding: "0 80px" }}>
         The sound you make at the top of the climb
       </div>
@@ -138,8 +162,8 @@ const Privacy: React.FC = () => (
 );
 
 // Frames (from the closing card's start) at which the narrator says each vowel,
-// measured on public/vo/vo_v6.wav (whisper word timestamps + onset detection).
-const VOWEL_AT: Record<string, number> = { a: 56, e: 70, y: 85, u: 98, i: 122, o: 131 };
+// measured on public/vo/vo_v7.wav (energy segmentation + whisper word timestamps).
+const VOWEL_AT: Record<string, number> = { a: 47, e: 58, y: 69, u: 85, i: 106, o: 115 };
 const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
 const ROW_SHIFT = [0, 0.25, 0.75]; // QWERTY stagger, in key widths
 
@@ -193,7 +217,7 @@ const Cta: React.FC = () => {
 
 // ---------- reel ----------
 const SCENES: { id: string; dur: number; C: React.FC }[] = [
-  { id: "title", dur: 135, C: Title },
+  { id: "title", dur: 210, C: Title },
   { id: "hook", dur: 120, C: Hook },
   { id: "phone", dur: PHONE_DUR, C: PhoneSection },
   { id: "privacy", dur: 210, C: Privacy },
@@ -202,7 +226,7 @@ const SCENES: { id: string; dur: number; C: React.FC }[] = [
 export const REEL_DUR = SCENES.reduce((a, s) => a + s.dur, 0) - T * (SCENES.length - 1);
 
 // `vo` picks the narration track in public/vo/; render another with --props='{"vo":"vo/x.wav"}'
-export const Reel: React.FC<{ vo?: string }> = ({ vo = "vo/vo_v6.wav" }) => (
+export const Reel: React.FC<{ vo?: string }> = ({ vo = "vo/vo_v7.wav" }) => (
   <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 30%, #FBF8F3 0%, ${C.bg} 55%, #EDE6DB 100%)` }}>
     {/* narration, mixed to this timeline by vo/assemble.py */}
     <Html5Audio src={staticFile(vo)} />
