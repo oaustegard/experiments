@@ -11,8 +11,8 @@ drops out. See `README.md` for how the page works.
 
 The question was whether a GPU can sum thousands of modes fast enough to play live from the camera, inside a
 browser. On a Mac (Apple GPU, Chrome) it can, with room to spare, up to about 32,000 modes. At that size a block
-takes 2 ms median <!-- @evidence[[results/resonator-bench-1-mac.json#plate.32000.medianMs]] --> and 6.3 ms at the
-90th percentile <!-- @evidence[[results/resonator-bench-1-mac.json#plate.32000.p90Ms]] -->, inside the 10.7 ms
+takes 2 ms median <!-- @evidence[[results/resonator-bench-1-mac.json#plate.32000.medianMs]] --> and 6.3 ms <!-- @evidence[[results/resonator-bench-1-mac.json#plate.32000.p90Ms]] --> at
+the 90th percentile, inside the 10.7 ms
 budget. At 64,000 modes the 90th percentile is 12.9 ms <!-- @evidence[[results/resonator-bench-1-mac.json#plate.64000.p90Ms]] -->,
 which would drop out. The GPU result matches the same sum done in double precision (float64) in JavaScript, with
 an RMS error of −141.5 dB relative to peak <!-- @evidence[[results/resonator-bench-1-mac.json#check.rmsDb]] -->.
