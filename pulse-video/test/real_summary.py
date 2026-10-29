@@ -36,18 +36,40 @@ out["rest"]["posBpmRange"] = [min(r["posBpm"] for r in rows if phase(r["t"]) == 
                               max(r["posBpm"] for r in rows if phase(r["t"]) == "rest" and r["posSnr"] >= 0)]
 # the displayed median at t 54.25 mixed a jumping-jack window into four rest windows
 out["staleShown"] = next({"t": r["t"], "shown": r["shown"], "pos": r["posBpm"]} for r in rows if 43 < r["t"] < 69 and r["shown"])
-# the page's display rule since version 2, replayed: SNR >= 0, not moving (faceDrift <= 0.08), peak not on the
+# the page's display rule since version 3, replayed: SNR >= 0, not moving (faceDrift - bgDrift <= 0.2), peak not on the
 # band's lower edge, median of the passing windows in the last 5 s
 hist, shown2 = [], []
 for r in rows:
-    good = r["posSnr"] >= 0 and not r["suspect"] and r["faceDrift"] <= 0.08 and r["posBpm"] >= 43
+    good = r["posSnr"] >= 0 and not r["suspect"] and r["faceDrift"] - r["bgDrift"] <= 0.2 and r["posBpm"] >= 43
     if good: hist.append((r["t"], r["posBpm"]))
     hist = [h for h in hist if h[0] > r["t"] - 5]
     shown2.append(S.median(b for _, b in hist) if good else None)
 for p in ("rest", "exercise", "recovery"):
     v = [x for r, x in zip(rows, shown2) if phase(r["t"]) == p]
-    out[p]["v2ShownFrac"] = round(sum(x is not None for x in v) / len(v), 2)
-    out[p]["v2ShownRange"] = [round(min(x for x in v if x), 1), round(max(x for x in v if x), 1)] if any(v) else None
+    out[p]["v3ShownFrac"] = round(sum(x is not None for x in v) / len(v), 2)
+    out[p]["v3ShownRange"] = [round(min(x for x in v if x), 1), round(max(x for x in v if x), 1)] if any(v) else None
+ph = json.loads((R / "real-iphone-1.json").read_text())
+pr = [dict(zip(ph["columns"], r)) for r in ph["log"]]
+hist, sh = [], []
+for r in pr:
+    good = r["posSnr"] >= 0 and not r["suspect"] and r["faceDrift"] - r["bgDrift"] <= 0.2 and r["posBpm"] >= 43
+    if good: hist.append((r["t"], r["posBpm"]))
+    hist = [h for h in hist if h[0] > r["t"] - 5]
+    sh.append(S.median(b for _, b in hist) if good else None)
+shown = [x for x in sh if x]
+out["iphone"] = {
+    "windows": len(pr), "seconds": round(pr[-1]["t"] - pr[0]["t"], 1),
+    "posSnrMedian": round(S.median(r["posSnr"] for r in pr), 2), "posSnrMax": max(r["posSnr"] for r in pr),
+    "evmSnrMedian": round(S.median(r["evmSnr"] for r in pr), 2),
+    "expCorrMedian": round(S.median(r["expCorr"] for r in pr), 3), "bgDriftMax": max(r["bgDrift"] for r in pr),
+    "faceDriftMax": max(r["faceDrift"] for r in pr), "faceMinusBgMax": round(max(r["faceDrift"] - r["bgDrift"] for r in pr), 3),
+    "suspectWindows": sum(r["suspect"] for r in pr),
+    "evmEdgeWindows": sum(r["evmBpm"] < 43.5 for r in pr),
+    "v2ShownWindows": sum(1 for r in pr if r["posSnr"] >= 0 and not r["suspect"] and r["faceDrift"] <= 0.08 and r["posBpm"] >= 43),
+    "v3ShownWindows": len(shown), "v3ShownRange": [round(min(shown), 1), round(max(shown), 1)],
+    "frameMs": round(ph["frameMs"], 2), "skippedFrac": round(ph["skipped"] / (ph["frames"] + ph["skipped"]), 3),
+}
+out["macJacksFaceMinusBgMin"] = round(min(r["faceDrift"] - r["bgDrift"] for r in rows if 48 <= r["t"] < 66), 3)
 out["frameMs"] = round(d["frameMs"], 2); out["detectMs"] = round(d["detectMs"], 1)
 (R / "real-summary.json").write_text(json.dumps(out, indent=1) + "\n")
 print(json.dumps(out, indent=1))

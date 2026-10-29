@@ -223,7 +223,8 @@ the face's mean RGB. On synthetic video with simulated auto-exposure, POS stayed
 green-channel estimate, which is the signal the magnified video shows, missed by up to 18 bpm. A background
 column with no skin measures the exposure drift live. On Oskar's face, seated at a laptop, it read 51–55 bpm, and
 POS and magnified green agreed to 0.85 bpm; jumping jacks put their own rhythm (about 85 per minute) into the
-signal, so the page hides the number while the face moves. Accuracy against a watch is pending.
+signal, so the page hides the number while the face moves more than the background. On the phone, auto-exposure
+dominated (face/background correlation 0.77) and POS read 51–56 bpm. Accuracy against a watch is pending.
 
 ### `bsky-like-poll/` — Bluesky polls answered with likes
 

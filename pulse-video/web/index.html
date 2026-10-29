@@ -77,7 +77,7 @@ import { RateTracker } from "./rate.js";
 import { Synth } from "./synth.js";
 const $ = (id) => document.getElementById(id);
 const P = new URLSearchParams(location.search);
-const VERSION = 2;
+const VERSION = 3;
 const st = { facing: "user", frames: 0, skipped: 0, box: null, boxT: -1e9, detector: null, detectMs: [], gpuMs: [], est: null, hist: [], log: [], marks: [], errors: [], roiMode: P.get("roi") || "face" };
 let device, adapterInfo, gctx, format, eng = null, tracker = new RateTracker(), stream, busy = false, synth = null, building = null;
 const video = document.createElement("video"); video.playsInline = true; video.muted = true;
@@ -194,9 +194,10 @@ function update() {
   if (!e) { $("bpmV").textContent = "–"; $("bpmS").textContent = `bpm · ${Math.max(0, Math.ceil(6 - span))} s`; $("quality").textContent = `Collecting… ${span.toFixed(0)} s of 6`; return; }
   // Synthetic video without a pulse peaks anywhere in the band at -2 to -10 dB SNR; with one, at +7 dB or more.
   // A window below 0 dB shows no number and does not enter the median. Neither does a window where the face's
-  // brightness swung by more than 8% (moving: 0.05 to 1.2 during Oskar's jumping jacks, 0.01 to 0.04 seated),
-  // or one whose peak sits on the band's lower edge, where slow drift lands. The median covers the last 5 s only.
-  const moving = e.faceDrift > 0.08, edge = e.pos && e.pos.bpm < 43;
+  // brightness range exceeds the background's by more than 0.2 (moving: 0.3 to 1.0 during Oskar's jumping jacks;
+  // at most 0.14 holding the phone still, where auto-exposure alone moved the face 32%), or one whose peak sits on
+  // the band's lower edge, where slow drift lands. The median covers the last 5 s only.
+  const moving = e.faceDrift - e.bgDrift > 0.2, edge = e.pos && e.pos.bpm < 43;
   const good = e.pos && e.pos.snr >= 0 && !e.exposureSuspect && !moving && !edge;
   if (good) st.hist.push({ t: e.t, bpm: e.pos.bpm });
   st.hist = st.hist.filter((h) => h.t > e.t - 5);
