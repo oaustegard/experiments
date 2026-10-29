@@ -776,6 +776,13 @@ survives exactly the sanity checks people run.
   `writeBuffer` lands before the whole submit, so several dispatches recorded into one command
   encoder all see the last value written. Create each uniform `mappedAtCreation` and destroy it right
   after the submit; destruction waits for the submitted work. (`embeddinggemma2-webgpu-tail/web/tail.js`)
+- **Sums of many sinusoids on the GPU: build e^{st} from float64 tables, never sin/exp in WGSL.** WGSL only
+  promises `sin` to 2^-11 absolute (about −66 dB) inside [−π, π] and nothing outside it, so a sum of thousands
+  of oscillators built on `sin` is guaranteed no better than that per partial (the guarantee, not a measurement). Precompute per mode
+  `lo[t] = e^{s t}` for t < 64 and `hi[k] = e^{s·64k}` in float64 JS, store them as f32, and take
+  `e^{s t} = hi[t >> 6] · lo[t & 63]`: one complex multiply, no transcendentals. Damped-mode sums matched float64 at
+  −135.7 dB RMS on an iPhone and −141.5 dB on a Mac, with the state carried across blocks on the GPU.
+  (`webgpu-bells/job.js`, `camera-resonator/web/engine.js`)
 - **transformers' EmbeddingGemma 2 config rewrites the last layer of a cut model.**
   `EmbeddingGemma2TextConfig.__post_init__` forces the last entry of `layer_types` to
   `full_attention`, editing the list you passed in place, so a model cut after a sliding
