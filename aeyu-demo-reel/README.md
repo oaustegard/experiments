@@ -59,7 +59,11 @@ bash /mnt/skills/user/making-remotion-videos/scripts/render.sh video Reel out/re
   `vo/omnivoice_run.py` runs inside `claude-workspace/scripts/jail.sh` with the
   weights downloaded outside it.
 
-"aeyu" is voiced as "ay-yoo", an unconfirmed guess at the name's pronunciation.
+"aeyu" is "AY-yoo" (Oskar, 2026-10-29). The name is recorded once, with the
+spelling "AY-you dot I-O." (3 of 3 Gemini takes transcribed identically; other
+spellings drifted between "AO", "AEO" and "Hey you"). That same clip is spliced
+into both line 1 and line 9 ("Try the demo at" + the clip), so it cannot be
+pronounced two ways.
 
 ## Files
 
