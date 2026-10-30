@@ -33,7 +33,9 @@ onmessage = async ({ data }) => {
       const out = await tts(`<en>${data.text}</en>`, {
         speaker_embeddings: await voice(data.voice || "F1"),
         num_inference_steps: data.steps || 5,
-        speed: data.speed || 1.05,
+        // 0.9, not the model card's 1.05: the predicted duration is too short at 1.05 and words
+        // get squeezed out (Whisper transcripts in voice-loop/README.md).
+        speed: data.speed || 0.9,
       });
       postMessage({ type: "audio", id: data.id, audio: out.audio, rate: out.sampling_rate, ms: performance.now() - t0 }, [out.audio.buffer]);
     }

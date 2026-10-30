@@ -284,13 +284,21 @@ $("voice").onchange = () => store("voice:" + mode(), $("voice").value);
 if (synth) { synth.addEventListener?.("voiceschanged", () => mode() === "system" && fillVoices()); }
 fillVoices();
 
-$("testvoice").onclick = () => { unlockAudio(); stopSpeech(); say("This is how answers will sound."); };
+$("testvoice").onclick = () => { unlockAudio(); stopSpeech(); say("Hello. This is how my answers will sound when you ask me something."); };
+let shortBuf = "";
 
 // Speak whole sentences as they stream in, so the first sentence plays while the rest generates.
 function flushSentences(final) {
   const re = /^([\s\S]*?[.!?…]["')\]]?)(\s+|$)/;
   let m;
-  while ((m = speakBuf.match(re)) && (m[2] || final)) { say(m[1]); speakBuf = speakBuf.slice(m[0].length); }
+  // Sentences under 60 characters wait for the next one: Supertonic underestimates the duration of
+  // a short utterance and drops words from it ("This is how answers will sound." lost "is how" in
+  // most Whisper transcripts, while a 95-character sentence came back verbatim).
+  while ((m = speakBuf.match(re)) && (m[2] || final)) {
+    shortBuf += (shortBuf ? " " : "") + m[1].trim(); speakBuf = speakBuf.slice(m[0].length);
+    if (shortBuf.length >= 60) { say(shortBuf); shortBuf = ""; }
+  }
+  if (final && shortBuf) { speakBuf = shortBuf + " " + speakBuf; shortBuf = ""; }
   // A long run without sentence punctuation goes out in ~200-character pieces cut at a space, so
   // one synthesis never covers a whole answer.
   while (speakBuf.length > 220) {
@@ -340,7 +348,7 @@ async function ask(text) {
   add("you", text);
   history.push({ role: "user", content: text });
   history = history.slice(-6);
-  const el = add("bot", "…"); speakBuf = "";
+  const el = add("bot", "…"); speakBuf = ""; shortBuf = "";
   let shown = "";
   abort = new AbortController();
   try {

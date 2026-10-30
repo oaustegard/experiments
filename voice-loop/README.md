@@ -42,6 +42,22 @@ without the tab being killed, prefilled a 35-token prompt in 107–181 ms and de
 14 ms per token, about 71 tokens/s. Its next-token picks agreed with onnxruntime at 13 of 13 steps.
 See `lfm-wgsl/README.md`.
 
+Supertonic drops words from short utterances at the model card's speed of 1.05. Each synthesis
+below was transcribed with Whisper base.en, three runs per row:
+
+| Text | Speed | Transcripts |
+|---|---|---|
+| "This is how answers will sound." (31 characters) | 1.05 | "This will sound.", "This answers will sound." |
+| same | 0.9 | 1 of 3 verbatim |
+| same | 0.8 | 2 of 3 verbatim |
+| A 95-character sentence | 0.9 | 3 of 3 verbatim |
+| "Hello. This is how my answers will sound when you ask me something." | 0.9 | 3 of 3 verbatim |
+| "The sky appears blue because of the way sunlight interacts with Earth's atmosphere." | 0.9 | 3 of 3 verbatim |
+
+The page therefore runs Supertonic at speed 0.9. It holds sentences shorter than 60 characters
+until the next one arrives and synthesizes them together. Supertonic predicts one duration for each
+utterance, and on a short one the predicted duration leaves no room for some words.
+
 ## Pending on a phone
 
 - The whole page on the iPhone: Supertonic's speed, and memory with both models loaded.
