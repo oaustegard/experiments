@@ -60,13 +60,33 @@ class Block(nn.Module):
         return rms(x + s.down(F.silu(g) * u))
 
 
+class ConvBlock(nn.Module):
+    """The same post-norm block with a 3×3 convolution over the grid as the token mixer, the way the TRM
+    paper swaps attention for an MLP on small fixed grids. Local mixing is what BFS needs, and recurrent
+    conv nets are known to learn maze solving quickly (Schwarzschild et al. 2021)."""
+    def __init__(s, d, mult=4, grid=32):
+        super().__init__()
+        s.g = grid
+        s.conv = nn.Conv2d(d, d, 3, padding=1, bias=False)
+        hid = mult * d
+        s.gu = nn.Linear(d, 2 * hid, bias=False)
+        s.down = nn.Linear(hid, d, bias=False)
+
+    def forward(s, x):
+        B, L, D = x.shape
+        c = s.conv(x.transpose(1, 2).reshape(B, D, s.g, s.g)).reshape(B, D, L).transpose(1, 2)
+        x = rms(x + c)
+        g, u = s.gu(x).chunk(2, -1)
+        return rms(x + s.down(F.silu(g) * u))
+
+
 class TRM(nn.Module):
-    def __init__(s, vocab=7, out=2, L=1024, d=128, heads=4, layers=2, n=4, T=3):
+    def __init__(s, vocab=7, out=2, L=1024, d=128, heads=4, layers=2, n=4, T=3, mixer="attn"):
         super().__init__()
         s.n, s.T, s.d = n, T, d
         s.emb = nn.Embedding(vocab, d)
-        s.pos = nn.Parameter(torch.randn(L, d) * 0.5)
-        s.blocks = nn.ModuleList(Block(d, heads) for _ in range(layers))
+        s.pos = nn.Parameter(torch.randn(L, d) * (0.5 if mixer == "attn" else 0.0))
+        s.blocks = nn.ModuleList((Block(d, heads) if mixer == "attn" else ConvBlock(d)) for _ in range(layers))
         s.head = nn.Linear(d, out, bias=False)
         s.qhead = nn.Linear(d, 1, bias=True)
         s.y0 = nn.Parameter(torch.randn(d) * 0.02)

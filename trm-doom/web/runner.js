@@ -2,7 +2,7 @@
 // asks the bot for input and runs one tic. Used by the test page here and by the GPU-bridge job.
 
 export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", maxTics = 35 * 300, every = 2, skill = 3,
-  frameEvery = 0, debugGrids = false, frameSize = [320, 200], carry = null, onProgress = null, Bot }) {
+  frameEvery = 0, debugGrids = false, frameSize = [320, 200], carry = null, onProgress = null, deadlineMs = 1e12, Bot }) {
   const { Engine, unpackWad, freshPlayer, W } = doom.engine;
   const eng = await Engine.create(device, await unpackWad(wadBytes), { width: frameSize[0], height: frameSize[1], skill, maxWidth: frameSize[0], maxHeight: frameSize[1] });
   const t0 = performance.now();
@@ -33,6 +33,7 @@ export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", 
       const p = bot.s.p;
       if (p.exit) { result = p.exit === 2 ? "secret-exit" : "exit"; break; }
       if (p.dead) { result = "dead"; break; }
+      if (performance.now() - tStart > deadlineMs) { result = "time-limit"; break; }
       if (tic % 35 === 0) { trace.push([tic, Math.round(p.x), Math.round(p.y), p.health]); onProgress?.(tic / maxTics, bot.debug()); }
     }
     input = await bot.step();
@@ -50,6 +51,6 @@ export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", 
   return {
     map, result, tics: tic, seconds: +(tic / 35).toFixed(1), wallMs: Math.round(performance.now() - tStart), compileMs: Math.round(compileMs),
     kills: wi[W.killcount], totalKills: wi[W.totalkills], items: wi[W.itemcount], totalItems: wi[W.totalitems], health: wi[W.health],
-    stats: bot.stats, events: bot.events, trace, frames, palette: pal, carry: result === "exit" || result === "secret-exit" ? eng.playerFrom(world) : null,
+    stats: bot.stats, events: bot.events, final: bot.debug(), trace, frames, palette: pal, carry: result === "exit" || result === "secret-exit" ? eng.playerFrom(world) : null,
   };
 }

@@ -7,10 +7,12 @@ order = ["emb.weight", "pos", "y0", "z0", "head.weight", "qhead.weight", "qhead.
 order += [k for k in sd if k.startswith("blocks.")]
 parts, tensors, off = [], {}, 0
 for k in order:
-    v = sd[k].float().numpy().ravel()
+    v = sd[k].float()
+    if k.endswith("conv.weight"): v = v.permute(0, 2, 3, 1)  # [out, in, ky, kx] -> [out, ky, kx, in]
+    v = v.numpy().ravel()
     tensors[k] = {"offset": off, "shape": list(sd[k].shape)}
     parts.append(v); off += v.size
 np.concatenate(parts).astype("<f4").tofile(out + ".bin")
-cfg = {k: a[k] for k in ("d", "heads", "layers", "n", "T", "nsup")}; cfg["L"] = 1024; cfg["step"] = ck.get("step")
+cfg = {k: a[k] for k in ("d", "heads", "layers", "n", "T", "nsup")}; cfg["mixer"] = a.get("mixer", "attn"); cfg["L"] = 1024; cfg["step"] = ck.get("step")
 json.dump({"config": cfg, "tensors": tensors}, open(out + ".json", "w"))
 print(out, off, "floats", cfg)

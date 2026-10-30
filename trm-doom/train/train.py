@@ -24,7 +24,7 @@ p.add_argument("--warmup", type=int, default=1000); p.add_argument("--ema", type
 p.add_argument("--eval_every", type=int, default=2000); p.add_argument("--eval_n", type=int, default=2000)
 p.add_argument("--explore", type=float, default=0.1); p.add_argument("--hours", type=float, default=99)
 p.add_argument("--resume", default=""); p.add_argument("--flex", type=int, default=0)
-p.add_argument("--compile", type=int, default=0)
+p.add_argument("--compile", type=int, default=0); p.add_argument("--mixer", default="attn")
 a = p.parse_args()
 
 dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -58,7 +58,7 @@ def draw(m):
     return dihedral(x, k), dihedral(y, k)
 
 if a.flex: use_flex()
-model = TRM(L=N * N, d=a.d, heads=a.heads, layers=a.layers, n=a.n, T=a.T).to(dev)
+model = TRM(L=N * N, d=a.d, heads=a.heads, layers=a.layers, n=a.n, T=a.T, mixer=a.mixer).to(dev)
 ema = copy.deepcopy(model).eval()
 for q in ema.parameters(): q.requires_grad_(False)
 opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=a.wd, betas=(0.9, 0.95))

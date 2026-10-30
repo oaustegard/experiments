@@ -6,14 +6,16 @@ here = Path(__file__).resolve().parent; root = here.parent
 sys.path.insert(0, str(root / "train"))
 from trm import TRM
 torch.manual_seed(0)
-cfg = dict(d=128, heads=4, layers=2, n=4, T=3, nsup=8)
+cfg = dict(d=128, heads=4, layers=2, n=4, T=3, nsup=8, mixer=sys.argv[3] if len(sys.argv) > 3 else "attn")
 src = sys.argv[1] if len(sys.argv) > 1 else ""
-m = TRM(L=1024, d=cfg["d"], heads=cfg["heads"], layers=cfg["layers"], n=cfg["n"], T=cfg["T"]).eval()
+m = TRM(L=1024, d=cfg["d"], heads=cfg["heads"], layers=cfg["layers"], n=cfg["n"], T=cfg["T"], mixer=cfg["mixer"]).eval()
 if src:
-    ck = torch.load(src, map_location="cpu"); m.load_state_dict(ck["ema"]); ck = {"ema": ck["ema"], "args": ck["args"], "step": ck.get("step")}
+    ck = torch.load(src, map_location="cpu"); m = TRM(L=1024, d=ck["args"]["d"], heads=ck["args"]["heads"], layers=ck["args"]["layers"], n=ck["args"]["n"], T=ck["args"]["T"], mixer=ck["args"].get("mixer", "attn")).eval(); m.load_state_dict(ck["ema"]); ck = {"ema": ck["ema"], "args": ck["args"], "step": ck.get("step")}
 else:
     with torch.no_grad():
-        for b in m.blocks: b.rel.normal_(0, 1.0)  # exercise the relative bias
+        for b in m.blocks:
+            if hasattr(b, "rel"): b.rel.normal_(0, 1.0)  # exercise the relative bias
+        m.pos.normal_(0, 0.5)
     ck = {"ema": m.state_dict(), "args": cfg, "step": 0}
 (here / "tmp").mkdir(exist_ok=True)
 torch.save(ck, here / "tmp/ck.pt")

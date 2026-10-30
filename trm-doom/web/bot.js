@@ -54,7 +54,7 @@ export class Bot {
       x: wf[W.viewx], y: wf[W.viewy], angle: wf[W.viewangle], health: wi[W.health], armor: wi[W.armor],
       cards: wu[W.cards], weapons: wu[W.weapons], ready: wi[W.readyweapon], dead: wu[W.dead], exit: wu[W.exit],
       ammo: [0, 1, 2, 3].map((k) => wi[W.ammo + k]), maxammo: [0, 1, 2, 3].map((k) => wi[W.maxammo + k]),
-      kills: wi[W.killcount], items: wi[W.itemcount],
+      kills: wi[W.killcount], items: wi[W.itemcount], attacker: wi[W.attacker], damage: wi[W.damagecount],
     };
     const sf = new Float32Array(st.sec), ns = this.map.sectors.length;
     const floor = new Float32Array(ns), ceil = new Float32Array(ns);
@@ -222,30 +222,48 @@ export class Bot {
     return true;
   }
 
-  async planFine() {
-    const t = this.target, p = this.s.p;
-    const grid = this.anchored(this.gr.fine, FINE);
-    const c0 = (N / 2) * N + N / 2;
-    grid.g[c0] = C.START;
-    // the goal: the target itself when it's in the window, else the farthest coarse-route cell that is
-    let gx = t.x, gy = t.y;
+  // Goals to try, best first: the target when it's in the window, then coarse-route cells in the window
+  // from the farthest back. A goal across a wall from the coarse route's cell is common (coarse cells are
+  // 96 units), so a failed goal falls back to one nearer along the route.
+  fineGoals() {
+    const t = this.target, p = this.s.p, out = [];
     const inWin = (x, y) => Math.abs(x - p.x) < (N / 2 - 1) * FINE && Math.abs(y - p.y) < (N / 2 - 1) * FINE;
-    if (!inWin(gx, gy) && this.coarse) {
-      const cg = this.coarse.grid;
+    if (inWin(t.x, t.y)) out.push([t.x, t.y]);
+    if (this.coarse) {
+      const cg = this.coarse.grid, pts = [];
       for (const o of this.coarse.path) {
         const x = cg.ox + (o % N + 0.5) * cg.cs, y = cg.oy + (((o / N) | 0) + 0.5) * cg.cs;
-        if (inWin(x, y)) { gx = x; gy = y; }
+        if (inWin(x, y) && Math.hypot(x - p.x, y - p.y) > 2 * FINE) pts.push([x, y]);
       }
+      for (let k = pts.length - 1; k >= 0; k -= 2) out.push(pts[k]);
     }
-    const gc = this.goalCell(grid, gx, gy, 3);
-    if (gc < 0) { this.reject(t, "no fine goal cell", 350); return false; }
-    grid.g[gc] = C.GOAL;
-    const set = await this.runTRM(grid.g, "fine");
-    const w = this.walkSet(grid.g, set, gc);
-    if (!w.reached) this.stats.fineBroken++;
-    this.fine = { grid, path: w.path, reached: w.reached, tic: this.tic, goal: [gx, gy] };
-    if (w.path.length <= 1 && !w.reached) { this.reject(t, "TRM: no fine route", 350); return false; }
-    return true;
+    if (!out.length) out.push([t.x, t.y]); // clamped into the window by goalCell
+    return out.slice(0, 3);
+  }
+
+  async planFine(retry = true) {
+    const t = this.target, p = this.s.p;
+    const base = this.anchored(this.gr.fine, FINE);
+    const c0 = (N / 2) * N + N / 2;
+    base.g[c0] = C.START;
+    let best = null;
+    for (const [gx, gy] of this.fineGoals()) {
+      const gc = this.goalCell(base, gx, gy, 3);
+      if (gc < 0) continue;
+      const grid = { ...base, g: base.g.slice() };
+      grid.g[gc] = C.GOAL;
+      const set = await this.runTRM(grid.g, "fine");
+      const w = this.walkSet(grid.g, set, gc);
+      if (!w.reached) this.stats.fineBroken++;
+      const cand = { grid, path: w.path, reached: w.reached, tic: this.tic, goal: [gx, gy] };
+      if (w.reached) { best = cand; break; }
+      if (!best || w.path.length > best.path.length) best = cand;
+    }
+    if (best && (best.reached || best.path.length >= 3)) { this.fine = best; return true; }
+    // a near target with no coarse route yet: get one and try again
+    if (retry && !this.coarse && (await this.planCoarse())) return this.planFine(false);
+    this.reject(t, "TRM: no fine route", 350);
+    return false;
   }
 
   // ------------------------------------------------------------ acting
@@ -275,6 +293,10 @@ export class Bot {
       if (d > 1400 || d > bd) continue;
       if (!this.sightClear(p.x, p.y, m.x, m.y)) continue;
       best = m; bd = d;
+    }
+    if (!best && p.damage > 0 && p.attacker > 0) { // whoever is hurting us, even if our sight test can't see it
+      const m = this.s.monsters.find((mm) => mm.k === p.attacker);
+      if (m) { const d = Math.hypot(m.x - p.x, m.y - p.y); if (d < 2000) return { m, d, unseen: true }; }
     }
     return best ? { m: best, d: bd } : null;
   }
@@ -377,7 +399,8 @@ export class Bot {
       const w = this.weaponFor(en.d);
       if (w !== p.ready + 1 && !(w === 7 && p.ready === 7)) input.weapon = w;
       const err = Math.abs(wrap(face - p.angle));
-      input.fire = err < Math.max(0.05, Math.atan2(en.m.r * 0.8, en.d));
+      // hitscan spreads: past ~900 units a pistol or shotgun mostly wastes ammo
+      input.fire = err < Math.max(0.05, Math.atan2(en.m.r * 0.8, en.d)) && (en.d < 900 || w >= 5) && !(en.unseen && !this.sightClear(p.x, p.y, en.m.x, en.m.y));
     }
     const err = wrap(face - p.angle);
     input.turn = Math.max(-0.3, Math.min(0.3, err));

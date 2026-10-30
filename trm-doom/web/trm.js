@@ -35,6 +35,42 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) li: vec3
   } }
 }`;
 
+// 3×3 convolution over the 32×32 grid as a matmul with K = 9·D: A's row gathers the cell's neighbours
+// (zero outside the grid), W is [M, ky, kx, in].
+const CONV = /* wgsl */ `
+override K: u32; override M: u32;
+@group(0) @binding(0) var<storage, read> A: array<f32>;      // [L, K]
+@group(0) @binding(1) var<storage, read> W: array<f32>;      // [M, K] (torch Linear)
+@group(0) @binding(2) var<storage, read_write> O: array<f32>; // [L, M]
+@group(0) @binding(3) var<uniform> woff: vec4u;               // weight offset in floats
+var<workgroup> As: array<array<f32, 17>, 64>;
+var<workgroup> Ws: array<array<f32, 17>, 64>;
+@compute @workgroup_size(16, 16)
+fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) li: vec3u) {
+  let r0 = wg.y * 64u; let c0 = wg.x * 64u; let t = li.y * 16u + li.x;
+  var acc = array<f32, 16>(0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.);
+  for (var k0 = 0u; k0 < K; k0 += 16u) {
+    for (var e = t; e < 1024u; e += 256u) {
+      let rr = e / 16u; let kk = e % 16u;
+      let kg = k0 + kk; let C = K / 9u; let tap = kg / C; let ch = kg % C;
+      let r = r0 + rr; let j = i32(r / 32u) + i32(tap / 3u) - 1; let i = i32(r % 32u) + i32(tap % 3u) - 1;
+      As[rr][kk] = select(0.0, A[u32(max(j, 0) * 32 + max(i, 0)) * C + ch], j >= 0 && j < 32 && i >= 0 && i < 32);
+      Ws[rr][kk] = select(0.0, W[woff.x + (c0 + rr) * K + k0 + kk], c0 + rr < M);
+    }
+    workgroupBarrier();
+    for (var kk = 0u; kk < 16u; kk++) {
+      var a: array<f32, 4>; var w: array<f32, 4>;
+      for (var i = 0u; i < 4u; i++) { a[i] = As[li.y + 16u * i][kk]; w[i] = Ws[li.x + 16u * i][kk]; }
+      for (var i = 0u; i < 4u; i++) { for (var j = 0u; j < 4u; j++) { acc[i * 4u + j] += a[i] * w[j]; } }
+    }
+    workgroupBarrier();
+  }
+  for (var i = 0u; i < 4u; i++) { for (var j = 0u; j < 4u; j++) {
+    let c = c0 + li.x + 16u * j;
+    if (c < M) { O[(r0 + li.y + 16u * i) * M + c] = acc[i * 4u + j]; }
+  } }
+}`;
+
 // one thread per query row and head, keys streamed through workgroup memory, online softmax
 const ATTN = /* wgsl */ `
 override D: u32; override H: u32; override L: u32;
@@ -154,7 +190,7 @@ export class TRMPlanner {
     p.device = device; p.cfg = manifest.config; p.T = manifest.tensors;
     const { d: D, heads: H, layers, n, T } = p.cfg;
     const L = p.cfg.L, HID = 4 * D;
-    if (D / H !== 32 || L !== 1024) throw new Error("WGSL attention is written for head size 32 on a 32×32 grid");
+    if ((p.cfg.mixer || "attn") === "attn" && D / H !== 32 || L !== 1024) throw new Error("WGSL attention is written for head size 32 on a 32×32 grid");
     const S = GPUBufferUsage.STORAGE, CP = GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
     const buf = (floats, usage = S | CP) => device.createBuffer({ size: Math.max(16, floats * 4), usage });
     p.P = buf(weights.length); device.queue.writeBuffer(p.P, 0, weights);
@@ -167,7 +203,8 @@ export class TRMPlanner {
     const uni = (v) => { const b = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }); device.queue.writeBuffer(b, 0, new Uint32Array(v)); return b; };
 
     const mod = (code) => device.createShaderModule({ code });
-    const mmMod = mod(MATMUL), atMod = mod(ATTN), rowMod = mod(ROWS), headMod = mod(HEAD);
+    const mixer = p.cfg.mixer || "attn";
+    const mmMod = mod(MATMUL), cvMod = mod(CONV), atMod = mod(ATTN), rowMod = mod(ROWS), headMod = mod(HEAD);
     const pipe = (module, entryPoint, constants, layout = "auto") => device.createComputePipeline({ layout, compute: { module, entryPoint, constants } });
     // the row kernels share one explicit layout, since each uses only some of the six bindings
     const ro = { type: "read-only-storage" }, C = GPUShaderStage.COMPUTE;
@@ -177,7 +214,8 @@ export class TRMPlanner {
     const mmPipes = new Map();
     const mmPipe = (K, M) => { const k = K + "x" + M; if (!mmPipes.has(k)) mmPipes.set(k, pipe(mmMod, "main", { K, M })); return mmPipes.get(k); };
     const rowPipes = {}; for (const e of ["addNorm", "add", "swiglu", "embed", "fill"]) rowPipes[e] = pipe(rowMod, e, { D, HID }, rowLayout);
-    const atPipe = pipe(atMod, "main", { D, H, L });
+    const atPipe = mixer === "attn" ? pipe(atMod, "main", { D, H, L }) : null;
+    const cvPipe = mixer === "conv" ? pipe(cvMod, "main", { K: 9 * D, M: D }) : null;
     const headPipe = pipe(headMod, "main", { D, L });
     const bg = (pl, bufs) => device.createBindGroup({ layout: pl.getBindGroupLayout(0), entries: bufs.map((b, i) => ({ binding: i, resource: { buffer: b } })) });
     const dummy = buf(4);
@@ -190,9 +228,13 @@ export class TRMPlanner {
     const uRows = uni([L, 0, 0, 0]), uAdd3 = uni([L, 0, 0, 1]);
     const net = (Hb) => {
       for (let b = 0; b < layers; b++) {
-        mm(Hb, `blocks.${b}.qkv.weight`, QKV, D, 3 * D);
-        steps.push({ pl: atPipe, bg: bg(atPipe, [QKV, ATT, p.P, uni([off(`blocks.${b}.rel`), 0, 0, 0])]), wg: [L / 64, H] });
-        mm(ATT, `blocks.${b}.o.weight`, TMP, D, D);
+        if (mixer === "conv") {
+          steps.push({ pl: cvPipe, bg: bg(cvPipe, [Hb, p.P, TMP, uni([off(`blocks.${b}.conv.weight`), 0, 0, 0])]), wg: [Math.ceil(D / 64), L / 64] });
+        } else {
+          mm(Hb, `blocks.${b}.qkv.weight`, QKV, D, 3 * D);
+          steps.push({ pl: atPipe, bg: bg(atPipe, [QKV, ATT, p.P, uni([off(`blocks.${b}.rel`), 0, 0, 0])]), wg: [L / 64, H] });
+          mm(ATT, `blocks.${b}.o.weight`, TMP, D, D);
+        }
         steps.push({ pl: rowPipes.addNorm, bg: rowBG("addNorm", Hb, TMP, dummy, uRows), wg: [rows64, 1] });
         mm(Hb, `blocks.${b}.gu.weight`, GU, D, 2 * HID);
         steps.push({ pl: rowPipes.swiglu, bg: rowBG("swiglu", ACT, GU, dummy, uRows), wg: [elems(HID), 1] });
