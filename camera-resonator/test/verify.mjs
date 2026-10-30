@@ -13,7 +13,10 @@ const srv = http.createServer((q, r) => {
 });
 await new Promise((ok) => srv.listen(0, "127.0.0.1", ok));
 const base = `http://127.0.0.1:${srv.address().port}/`;
-const b = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-angle=swiftshader",
+// hand tracking fetches MediaPipe from jsDelivr and its model from storage.googleapis.com; in a proxied container
+// Chromium needs the proxy passed explicitly
+const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: "127.0.0.1,localhost" } : undefined;
+const b = await chromium.launch({ proxy, args: ["--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-angle=swiftshader",
   "--use-webgpu-adapter=swiftshader", "--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", "--autoplay-policy=no-user-gesture-required"] });
 const page = await b.newPage(); const errors = [];
 page.on("pageerror", (e) => errors.push(e.message)); page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -34,9 +37,27 @@ if (what === "selftest") {
     out.push({ preset: S.label, peak: pk, rmsDb: 20 * Math.log10(Math.sqrt(se / ref.length) / pk) });
     return out;
   });
+} else if (what === "synthetic") {
+  // the synthetic scene: impacts should land where the disc stopped, twice per 4 s cycle, and nowhere else
+  const out = {};
+  for (const input of ["impact", "any"]) {
+    await page.goto(base + `index.html?autostart=1&synthetic=1&input=${input}&modes=300`);
+    await page.waitForTimeout(+(process.argv[3] || 12500));
+    const s = await page.evaluate(() => window.__stats());
+    const near = (k) => s.expected.map((e) => Math.hypot(k.x - e[0], k.y - e[1])).some((d) => d < 0.08);
+    out[input] = { frames: s.frames, sceneSeconds: +(s.frames / 30).toFixed(1), strikes: s.log.length, atStops: s.log.filter(near).length, elsewhere: s.log.filter((k) => !near(k)).map((k) => [k.t, k.x, k.y]) };
+  }
+  res = out;
+} else if (what === "hands") {
+  // the hand model loads and runs on the fake camera (which shows no hand): no errors, frames advance, no strikes
+  await page.goto(base + `index.html?autostart=1&input=hands&modes=300`);
+  await page.waitForTimeout(+(process.argv[3] || 45000));
+  const s = await page.evaluate(() => window.__stats());
+  res = { input: s.input, frames: s.frames, strikes: s.strikes, note: await page.evaluate(() => document.getElementById("status").textContent.split(" · ").pop()) };
+  if (s.input !== "hands") errors.push("fell back from hand tracking: " + res.note);
 } else if (what === "switch") {
   // queue depth must stay bounded after the resonator is rebuilt (a reset counter once let it grow without limit)
-  await page.goto(base + `index.html?autostart=1&modes=${process.argv[3] || 400}`);
+  await page.goto(base + `index.html?autostart=1&input=impact&modes=${process.argv[3] || 400}`);
   await page.waitForTimeout(4000);
   const before = await page.evaluate(() => window.__stats());
   await page.selectOption("#preset", "gong");
@@ -45,7 +66,7 @@ if (what === "selftest") {
   res = { before: { queue: before.queue, sent: before.sent, label: before.label }, after: { queue: after.queue, sent: after.sent, done: after.done, label: after.label, latencyMs: after.latencyMs } };
   if (!(after.queue >= 0 && after.queue <= 8)) errors.push(`queue after rebuild is ${after.queue} blocks`);
 } else {
-  await page.goto(base + `index.html?autostart=1&modes=${process.argv[3] || 400}`);
+  await page.goto(base + `index.html?autostart=1&input=${process.argv[5] || "impact"}&modes=${process.argv[3] || 400}`);
   await page.waitForTimeout(+(process.argv[4] || 12000));
   res = await page.evaluate(() => window.__stats && window.__stats());
 }

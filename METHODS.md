@@ -661,6 +661,17 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **MediaPipe tasks-vision in a module Worker: evaluate the wasm loader globally first.** tasks-vision 1.1.0's
+  loader tries `importScripts`, which throws in a module Worker, falls back to `import()`, and then fails with
+  "ModuleFactory not set." because the classic script's `ModuleFactory` lands in module scope. Before
+  `createFromOptions`: `if (!self.ModuleFactory) (0, eval)(await (await fetch(files.wasmLoaderPath)).text())`.
+  Needs a page without a CSP that blocks eval (GitHub Pages is fine). (`paper-drum/web/hands-worker.js`)
+- **A full camera-and-mic page test runs headless from files.** `--use-file-for-fake-video-capture=x.y4m` and
+  `--use-file-for-fake-audio-capture=x.wav` (both loop) with `--use-fake-ui-for-media-stream`; a y4m is a header
+  line and raw 4:2:0 frames, easy to write with numpy. A generated photo (Muninn `image`) is enough for MediaPipe
+  hands to find a fingertip. The hand tracker ran at ~3 frames a second beside SwiftShader WebGPU, so loosen any
+  time window that assumes camera frame rate. (`paper-drum/test/make-fixtures.py`, `e2e.mjs`)
+
 - **TTS for a timed voiceover: generate 3 takes per line and pick by faster-whisper WER, then
   check pace.** Both Gemini 3.8 Flash TTS and OmniVoice turned "Year bests" into "your best".
   Unpaced OmniVoice averaged 211 wpm, which its `duration=` argument fixed. A coined brand name
@@ -807,6 +818,13 @@ survives exactly the sanity checks people run.
   `e^{s t} = hi[t >> 6] · lo[t & 63]`: one complex multiply, no transcendentals. Damped-mode sums matched float64 at
   −135.7 dB RMS on an iPhone and −141.5 dB on a Mac, with the state carried across blocks on the GPU.
   (`webgpu-bells/job.js`, `camera-resonator/web/engine.js`)
+- **Block matching on camera frames: low-pass before matching, and charge a little per pixel of shift.** A frame
+  drawn straight down to a small matching size (`drawImage` to 96 px wide) aliases fine textures; a pattern moving
+  half a pixel per frame shimmers into a different pattern each frame, and the matcher reports large fake shifts
+  (±7 px at confidence about 0.5 in the synthetic test). Draw at 2x the matching size and average a 4x4 texel box
+  per pixel, remove each patch's mean (so auto-exposure is not motion), and add 0.002 per pixel of |dx|+|dy| so a
+  repeating texture's ties go to the small shift. Those two changes took fake impacts on a scripted scene from one
+  per cycle to none. (`camera-resonator/web/detect.js`, RESULTS log 2026-10-29)
 - **A simulation stepped at audio rate on WebGPU: one dispatch per step beats one workgroup that loops.**
   Keeping the whole grid in one workgroup's memory and running all 512 steps of a block in a single
   dispatch avoids the per-dispatch price, and it wins on small grids (1.1 vs 1.9 ms per 512 steps at 64x48 on
@@ -1454,6 +1472,14 @@ the result.
   log round 4)
 
 ## Numerical / ML gotchas
+
+- **Hearing taps while the page plays sound: cancel your own playback with NLMS on the exact output.** One
+  AudioWorklet that both plays and listens has the true reference. A 120 ms NLMS filter at 16 kHz, adapting only
+  while something plays and frozen 30 ms after each onset, trained by a 0.6 s noise burst at start, kept tap recall at
+  48/51 with the drum's echo up to -2 dBFS (22/53 with an energy detector alone), in a closed-loop sim with a soft
+  clipper standing in for speaker distortion. Onsets: 2 ms energy over a 250 ms baseline that only sees
+  min(fast, 4 x base), so a decaying ring never triggers. Costs ~14% of a core in V8. Browser echo cancelling, noise
+  suppression and AGC were left off as speech-tuned (not measured on taps). Real hardware untested. (`paper-drum/web/taps.js`)
 
 - **Canvas `drawImage` is not an image-model resize.** Chromium's 2D canvas downscales
   without a low-pass filter (SwiftShader ignores `imageSmoothingQuality = "high"`), so a
