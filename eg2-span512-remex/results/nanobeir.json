@@ -1,0 +1,336 @@
+{
+ "sets": [
+  "NanoArguAna",
+  "NanoClimateFEVER",
+  "NanoDBPedia",
+  "NanoFEVER",
+  "NanoFiQA2018",
+  "NanoHotpotQA",
+  "NanoMSMARCO",
+  "NanoNFCorpus",
+  "NanoNQ",
+  "NanoQuoraRetrieval",
+  "NanoSCIDOCS",
+  "NanoSciFact",
+  "NanoTouche2020"
+ ],
+ "metric": "NDCG@10 x 100",
+ "n_queries": 649,
+ "arms": {
+  "eg2_768": {
+   "per_set": {
+    "NanoArguAna": 65.377,
+    "NanoClimateFEVER": 27.434,
+    "NanoDBPedia": 65.198,
+    "NanoFEVER": 92.432,
+    "NanoFiQA2018": 44.527,
+    "NanoHotpotQA": 89.613,
+    "NanoMSMARCO": 56.633,
+    "NanoNFCorpus": 38.114,
+    "NanoNQ": 77.749,
+    "NanoQuoraRetrieval": 95.463,
+    "NanoSCIDOCS": 37.355,
+    "NanoSciFact": 88.08,
+    "NanoTouche2020": 44.089
+   },
+   "mean_of_sets": 63.236,
+   "pooled": 63.265,
+   "card_mean": 63.362,
+   "max_abs_diff_vs_card": 0.738
+  },
+  "prefix512": {
+   "per_set": {
+    "NanoArguAna": 63.649,
+    "NanoClimateFEVER": 27.905,
+    "NanoDBPedia": 64.317,
+    "NanoFEVER": 93.224,
+    "NanoFiQA2018": 43.221,
+    "NanoHotpotQA": 88.54,
+    "NanoMSMARCO": 55.212,
+    "NanoNFCorpus": 37.334,
+    "NanoNQ": 76.674,
+    "NanoQuoraRetrieval": 95.272,
+    "NanoSCIDOCS": 37.78,
+    "NanoSciFact": 89.473,
+    "NanoTouche2020": 44.208
+   },
+   "mean_of_sets": 62.832,
+   "pooled": 62.86,
+   "card_mean": 62.746,
+   "max_abs_diff_vs_card": 0.738
+  },
+  "svd512": {
+   "per_set": {
+    "NanoArguAna": 65.315,
+    "NanoClimateFEVER": 27.469,
+    "NanoDBPedia": 65.305,
+    "NanoFEVER": 92.432,
+    "NanoFiQA2018": 44.474,
+    "NanoHotpotQA": 89.613,
+    "NanoMSMARCO": 56.055,
+    "NanoNFCorpus": 38.084,
+    "NanoNQ": 77.749,
+    "NanoQuoraRetrieval": 95.455,
+    "NanoSCIDOCS": 37.15,
+    "NanoSciFact": 88.08,
+    "NanoTouche2020": 44.491
+   },
+   "mean_of_sets": 63.206,
+   "pooled": 63.234,
+   "card_mean": 63.385,
+   "max_abs_diff_vs_card": 1.316
+  },
+  "svd512_b2": {
+   "per_set": {
+    "NanoArguAna": 62.897,
+    "NanoClimateFEVER": 26.853,
+    "NanoDBPedia": 64.582,
+    "NanoFEVER": 91.317,
+    "NanoFiQA2018": 41.432,
+    "NanoHotpotQA": 89.146,
+    "NanoMSMARCO": 52.423,
+    "NanoNFCorpus": 38.676,
+    "NanoNQ": 75.878,
+    "NanoQuoraRetrieval": 95.695,
+    "NanoSCIDOCS": 37.038,
+    "NanoSciFact": 88.577,
+    "NanoTouche2020": 43.181
+   },
+   "mean_of_sets": 62.13,
+   "pooled": 62.16
+  },
+  "svd512_b3": {
+   "per_set": {
+    "NanoArguAna": 63.604,
+    "NanoClimateFEVER": 28.079,
+    "NanoDBPedia": 65.968,
+    "NanoFEVER": 92.307,
+    "NanoFiQA2018": 43.265,
+    "NanoHotpotQA": 89.223,
+    "NanoMSMARCO": 54.064,
+    "NanoNFCorpus": 38.047,
+    "NanoNQ": 77.201,
+    "NanoQuoraRetrieval": 95.484,
+    "NanoSCIDOCS": 37.284,
+    "NanoSciFact": 88.423,
+    "NanoTouche2020": 44.183
+   },
+   "mean_of_sets": 62.856,
+   "pooled": 62.885
+  },
+  "svd512_b4": {
+   "per_set": {
+    "NanoArguAna": 64.332,
+    "NanoClimateFEVER": 27.883,
+    "NanoDBPedia": 65.072,
+    "NanoFEVER": 91.694,
+    "NanoFiQA2018": 44.577,
+    "NanoHotpotQA": 89.192,
+    "NanoMSMARCO": 54.398,
+    "NanoNFCorpus": 38.547,
+    "NanoNQ": 76.1,
+    "NanoQuoraRetrieval": 95.447,
+    "NanoSCIDOCS": 37.198,
+    "NanoSciFact": 87.502,
+    "NanoTouche2020": 43.99
+   },
+   "mean_of_sets": 62.764,
+   "pooled": 62.793
+  },
+  "eg2_768_b2": {
+   "per_set": {
+    "NanoArguAna": 61.137,
+    "NanoClimateFEVER": 27.353,
+    "NanoDBPedia": 64.762,
+    "NanoFEVER": 92.057,
+    "NanoFiQA2018": 43.762,
+    "NanoHotpotQA": 89.037,
+    "NanoMSMARCO": 54.409,
+    "NanoNFCorpus": 37.628,
+    "NanoNQ": 77.379,
+    "NanoQuoraRetrieval": 95.283,
+    "NanoSCIDOCS": 36.893,
+    "NanoSciFact": 86.632,
+    "NanoTouche2020": 43.629
+   },
+   "mean_of_sets": 62.305,
+   "pooled": 62.334
+  },
+  "eg2_768_b3": {
+   "per_set": {
+    "NanoArguAna": 63.492,
+    "NanoClimateFEVER": 27.43,
+    "NanoDBPedia": 65.341,
+    "NanoFEVER": 92.083,
+    "NanoFiQA2018": 44.506,
+    "NanoHotpotQA": 89.314,
+    "NanoMSMARCO": 55.991,
+    "NanoNFCorpus": 37.527,
+    "NanoNQ": 77.308,
+    "NanoQuoraRetrieval": 95.463,
+    "NanoSCIDOCS": 37.692,
+    "NanoSciFact": 87.641,
+    "NanoTouche2020": 43.592
+   },
+   "mean_of_sets": 62.875,
+   "pooled": 62.905
+  },
+  "prefix512_b3": {
+   "per_set": {
+    "NanoArguAna": 63.192,
+    "NanoClimateFEVER": 27.407,
+    "NanoDBPedia": 65.463,
+    "NanoFEVER": 93.331,
+    "NanoFiQA2018": 44.008,
+    "NanoHotpotQA": 87.925,
+    "NanoMSMARCO": 55.036,
+    "NanoNFCorpus": 37.379,
+    "NanoNQ": 76.603,
+    "NanoQuoraRetrieval": 95.262,
+    "NanoSCIDOCS": 37.265,
+    "NanoSciFact": 89.902,
+    "NanoTouche2020": 43.673
+   },
+   "mean_of_sets": 62.803,
+   "pooled": 62.833
+  }
+ },
+ "card": {
+  "eg2_768": [
+   65.377,
+   27.469,
+   65.312,
+   92.432,
+   44.736,
+   89.544,
+   56.633,
+   38.354,
+   78.487,
+   95.463,
+   37.591,
+   88.08,
+   44.226
+  ],
+  "prefix512": [
+   63.423,
+   28.177,
+   64.131,
+   93.17,
+   43.188,
+   88.525,
+   55.126,
+   37.229,
+   76.674,
+   95.272,
+   37.753,
+   88.735,
+   44.293
+  ],
+  "svd512": [
+   65.377,
+   27.469,
+   65.175,
+   92.432,
+   44.563,
+   89.598,
+   57.371,
+   38.29,
+   78.487,
+   95.455,
+   37.595,
+   88.08,
+   44.109
+  ]
+ },
+ "diffs": {
+  "svd512_b3_minus_eg2_768_b2": {
+   "mean_of_sets": 0.552,
+   "pooled": 0.552,
+   "ci95_pooled": [
+    -0.046,
+    1.167
+   ]
+  },
+  "svd512_b3_minus_svd512": {
+   "mean_of_sets": -0.349,
+   "pooled": -0.349,
+   "ci95_pooled": [
+    -0.741,
+    0.046
+   ]
+  },
+  "svd512_b3_minus_eg2_768": {
+   "mean_of_sets": -0.379,
+   "pooled": -0.38,
+   "ci95_pooled": [
+    -0.783,
+    0.016
+   ]
+  },
+  "svd512_b2_minus_eg2_768_b2": {
+   "mean_of_sets": -0.175,
+   "pooled": -0.174,
+   "ci95_pooled": [
+    -0.875,
+    0.498
+   ]
+  },
+  "svd512_b3_minus_prefix512_b3": {
+   "mean_of_sets": 0.053,
+   "pooled": 0.052,
+   "ci95_pooled": [
+    -0.536,
+    0.596
+   ]
+  },
+  "eg2_768_b2_minus_eg2_768": {
+   "mean_of_sets": -0.931,
+   "pooled": -0.932,
+   "ci95_pooled": [
+    -1.545,
+    -0.358
+   ]
+  },
+  "svd512_minus_eg2_768": {
+   "mean_of_sets": -0.03,
+   "pooled": -0.031,
+   "ci95_pooled": [
+    -0.152,
+    0.061
+   ]
+  },
+  "prefix512_minus_eg2_768": {
+   "mean_of_sets": -0.404,
+   "pooled": -0.405,
+   "ci95_pooled": [
+    -0.914,
+    0.126
+   ]
+  }
+ },
+ "seeds": {
+  "svd512_b3": {
+   "mean_of_sets_per_seed": [
+    62.81,
+    62.916,
+    62.492,
+    63.341,
+    62.94
+   ],
+   "range": 0.849,
+   "mean_over_seeds": 62.9
+  },
+  "eg2_768_b2": {
+   "mean_of_sets_per_seed": [
+    62.437,
+    62.969,
+    62.615,
+    62.495,
+    62.812
+   ],
+   "range": 0.532,
+   "mean_over_seeds": 62.666
+  },
+  "svd512_b3_minus_eg2_768_b2_over_seeds": 0.234
+ }
+}

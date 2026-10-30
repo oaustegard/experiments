@@ -21,11 +21,13 @@ index. Recall@10 on 1,000 real MS MARCO tech queries:
 
 A likely reason, not tested here: 768 two-bit codes of a 512-dim signal carry 50% more bits than 512 do. The
 Matryoshka prefix does worse than the rotation at every width, with 0.804 at 3 bits. <!-- @evidence[[results/recall.json#arms.prefix512_b3.recall_at_10.real_test]] -->
-The 1,498 synthetic queries agree, and so do five more remex seeds for the three arms above. A metric other than agreement with exact 768-dim search could
-change the verdict.
+Synthetic queries and five more remex seeds agree.
+On NanoBEIR's relevance labels (round 3), 3-bit codes of the 512-dim vectors change NDCG@10 by -0.35 <!-- @evidence[[results/nanobeir.json#diffs.svd512_b3_minus_svd512.mean_of_sets]] -->
+against unquantized search and score 0.55 above 2-bit codes at 768, <!-- @evidence[[results/nanobeir.json#diffs.svd512_b3_minus_eg2_768_b2.mean_of_sets]] -->
+within remex seed noise at 650 queries.
 
 Round 2 switched the search page to 3-bit rotated codes (`embeddinggemma2-webgpu-tail` round 7). It needed a
-512 × 768 query matrix on the client (1.5 MB) and two new WGSL kernels. The download size is unchanged.
+512 × 768 query matrix on the client (1.5 MB) and two new WGSL kernels.
 
 ## Findings
 
@@ -62,6 +64,17 @@ Round 2 switched the search page to 3-bit rotated codes (`embeddinggemma2-webgpu
    0.804 for rotated 2-bit <!-- @evidence[[results/seeds.json#arms.rot512_b2.real_test.mean]] -->
    and 0.889 for rotated 3-bit, so the seed-averaged gaps are -0.027 and +0.058. <!-- @evidence[[results/seeds.json#arms.rot512_b3.real_test.mean]] -->
    (`run/seeds.py`)
+8. On NanoBEIR (13 English sets, NDCG@10 × 100) the unquantized columns of tomaarsen/embeddinggemma-2-512d's
+   card reproduce to within 0.18 of its means: 63.24 for EG2 at 768, <!-- @evidence[[results/nanobeir.json#arms.eg2_768.mean_of_sets]] -->
+   62.83 for the 512 prefix <!-- @evidence[[results/nanobeir.json#arms.prefix512.mean_of_sets]] -->
+   and 63.21 for the SVD 512d model. <!-- @evidence[[results/nanobeir.json#arms.svd512.mean_of_sets]] -->
+   remex 3-bit codes of the 512d vectors score 62.86 at 192 B, <!-- @evidence[[results/nanobeir.json#arms.svd512_b3.mean_of_sets]] -->
+   2-bit codes at 768 score 62.31 at the same size, <!-- @evidence[[results/nanobeir.json#arms.eg2_768_b2.mean_of_sets]] -->
+   and 2-bit codes of the 512d vectors 62.13 at 128 B. <!-- @evidence[[results/nanobeir.json#arms.svd512_b2.mean_of_sets]] -->
+   The 192 B difference has a pooled 95% CI of -0.05 to +1.17, <!-- @evidence[[results/nanobeir.json#diffs.svd512_b3_minus_eg2_768_b2.ci95_pooled.0]] -->
+   and over five remex seeds it shrinks to +0.23. <!-- @evidence[[results/nanobeir.json#seeds.svd512_b3_minus_eg2_768_b2_over_seeds]] -->
+   Only 2-bit at 768 is clearly below unquantized search (-0.93). <!-- @evidence[[results/nanobeir.json#diffs.eg2_768_b2_minus_eg2_768.mean_of_sets]] -->
+   (round 3, `run/nanobeir_eval.py`)
 
 ## Method
 
@@ -149,3 +162,48 @@ is folded into the basis, so the query side is one 512 × 768 product and needs 
 codes are stored as bit planes (three u32 words per 32 dims), so a post stays 48 words and the
 existing corpus buffer and GPU top-k are reused. Headless, the page's top 10 equals remex's on
 8 of 8 parity queries. `?span=0` loads the old 2-bit index.
+
+### 2026-10-30 — round 3: NanoBEIR, as on tomaarsen/embeddinggemma-2-512d's card
+
+Tom Aarsen published [tomaarsen/embeddinggemma-2-512d](https://huggingface.co/tomaarsen/embeddinggemma-2-512d),
+which replaces EG2's 512 → 768 projection with `diag(S) @ Vh` from its SVD: the same rotation into the
+512-dim span as here, shipped as a model. Oskar asked to repeat his NanoBEIR evaluation with remex codes
+added before replying to him, so the comparison is on his benchmark and his model.
+
+`run/nanobeir_encode.py` ran on a Colab L4 (bf16, sentence-transformers 6.2, `encode_query` /
+`encode_document`, so the models' own query and document prompts): all 13 English NanoBEIR sets, with
+`google/embeddinggemma-2` and with his model. That took about 20 minutes of GPU time and about one compute unit.
+Two restarts were needed: NanoTouche2020's long documents ran out of GPU memory at batch 32, and the first
+retry saved a stale array from the previous set before the guard caught it. Both were fixed and the file
+re-encoded. `run/nanobeir_eval.py` scores on CPU, with NDCG@10 computed as sentence-transformers'
+InformationRetrievalEvaluator does. The remex arms encode documents, keep queries as floats, and score as
+`search_adc` does.
+
+| arm | bytes | NDCG@10 mean of 13 | card |
+|---|---:|---:|---:|
+| EG2 768, float | 3072 | 63.24 | 63.36 |
+| EG2 first 512, float | 2048 | 62.83 | 62.75 |
+| SVD 512d model, float | 2048 | 63.21 | 63.39 |
+| SVD 512d, remex 4-bit | 256 | 62.76 | |
+| SVD 512d, remex 3-bit | 192 | 62.86 | |
+| SVD 512d, remex 2-bit | 128 | 62.13 | |
+| EG2 768, remex 3-bit | 288 | 62.88 | |
+| EG2 768, remex 2-bit | 192 | 62.31 | |
+| EG2 first 512, remex 3-bit | 192 | 62.80 | |
+
+Per set, the reproduction differs from the card by up to 0.74 (EG2) and 1.32 (SVD model, NanoMSMARCO).
+Each set has 50 queries, and bf16 on a different GPU with different batch padding moves a few ranks. The
+means agree to 0.18. Paired bootstrap over the 650 queries:
+- SVD 3-bit minus EG2 2-bit, both 192 B: +0.55 [-0.05, +1.17].
+- SVD 3-bit minus unquantized SVD: -0.35 [-0.74, +0.05].
+- EG2 2-bit minus unquantized EG2: -0.93 [-1.55, -0.36].
+- SVD 3-bit minus prefix 3-bit: +0.05 [-0.54, +0.60].
+Across remex seeds 0 to 4 the means move by 0.85 (SVD 3-bit) and 0.53 (EG2 2-bit), the same size as the
+gaps being measured.
+
+Reading: the direction matches rounds 1 and 2. At 192 B, 3-bit codes of the 512-dim vectors do better than
+2-bit codes at 768 and stay closest to unquantized search. NanoBEIR's 50 queries per set are too few to
+show it at this effect size, where the 1,000-query exact-search recall of round 1 did (0.894 against 0.837).
+The prefix-versus-rotation gap that round 1 measured against exact search (0.090 at 3 bits) does not show in
+NDCG either: on relevance labels the prefix loses only 0.40 even unquantized, as Tom's card also shows.
+
