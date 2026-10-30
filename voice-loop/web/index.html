@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Voice Loop</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f5f2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* One column, phone first: status strip, model loader, conversation log, then a thumb-reach talk bar fixed to the bottom. */
+:root {
+  --bg: #f3f5f2; --panel: #ffffff; --fg: #1b2420; --muted: #5d6b64; --line: #d6ddd8;
+  --accent: #0f7b6c; --accent-fg: #ffffff; --you: #e3ece8; --ok: #2e7d32; --warn: #a15c00; --bad: #b3261e;
+  --sans: "IBM Plex Sans", -apple-system, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #121715; --panel: #1a211e; --fg: #e4ebe7; --muted: #94a39b; --line: #2c3631;
+  --accent: #3fbfa8; --accent-fg: #0b1412; --you: #22302b; --ok: #7bc47f; --warn: #e0a24a; --bad: #f2867d;
+  color-scheme: dark;
+} }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.wrap {
+  max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px calc(150px + env(safe-area-inset-bottom, 0px));
+}
+h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 500 12px/1 var(--mono); padding: 6px 8px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+}
+.chip[data-s="ok"] { color: var(--ok); }
+.chip[data-s="warn"] { color: var(--warn); }
+.chip[data-s="bad"] { color: var(--bad); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+select, input[type=text] {
+  font: 15px var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 10px; min-width: 0; flex: 1 1 180px;
+}
+button {
+  font: 600 15px var(--sans); border-radius: 8px; padding: 10px 14px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg);
+}
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.meta { font: 12px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--fg); text-transform: none; letter-spacing: 0; }
+.log { display: flex; flex-direction: column; gap: 10px; }
+.msg { padding: 10px 12px; border-radius: 10px; max-width: 88%; overflow-wrap: anywhere; }
+.msg.you { align-self: flex-end; background: var(--you); }
+.msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); }
+.msg.sys { align-self: center; color: var(--muted); font: 12px/1.4 var(--mono); text-align: center; }
+.msg .t { font: 11px var(--mono); color: var(--muted); margin-top: 4px; }
+.talkbar {
+  position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line);
+  padding-top: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.talkbar .inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+#talk { width: 100%; padding: 16px; font-size: 17px; border-radius: 12px; }
+#talk[data-state="listening"] { background: var(--bad); border-color: var(--bad); }
+#talk[data-state="busy"] { background: var(--muted); border-color: var(--muted); }
+#heard { min-height: 1.4em; font-size: 14px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Voice Loop</h1>
+    <p class="sub">Speech in, a small language model on this device, speech out. The model runs in the browser; dictation and voices are the phone's own.</p>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <section class="panel">
+    <div class="row">
+      <label for="model">Model</label>
+    </div>
+    <div class="row">
+      <select id="model">
+        <option value="HuggingFaceTB/SmolLM2-135M-Instruct">SmolLM2 135M · ~120 MB · fastest, often wrong</option>
+        <option value="HuggingFaceTB/SmolLM2-360M-Instruct" selected>SmolLM2 360M · ~270 MB</option>
+        <option value="onnx-community/Qwen2.5-0.5B-Instruct">Qwen2.5 0.5B · ~480 MB · best answers, most memory</option>
+      </select>
+      <button id="load">Load</button>
+    </div>
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="meta" id="loadmeta">Not loaded. Weights download once, then come from the browser cache.</div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="wasm"> Force CPU (wasm) instead of WebGPU</label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="row"><label for="voice">Voice</label></div>
+    <div class="row">
+      <select id="voice"></select>
+      <button class="ghost" id="testvoice">Test</button>
+    </div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="loop"> Conversation mode: listen again after each spoken answer</label>
+    </div>
+  </section>
+
+  <div class="log" id="log">
+    <div class="msg sys">Load a model, then tap Talk and ask something short, like "Why is the sky blue?"</div>
+  </div>
+</div>
+
+<div class="talkbar">
+  <div class="inner">
+    <div id="heard"></div>
+    <div class="row">
+      <input type="text" id="typed" placeholder="Or type a question" enterkeyhint="send" autocomplete="off">
+      <button class="ghost" id="stop">Stop</button>
+    </div>
+    <button id="talk" data-state="idle" disabled>Talk</button>
+  </div>
+</div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const synth = window.speechSynthesis;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const SYSTEM = "You are a voice assistant. Answer in one to three short spoken sentences. Plain text only: no lists, no markdown, no emoji.";
+
+let worker = null, ready = false, busy = false, listening = false, rec = null;
+let history = [], botEl = null, botText = "", speakBuf = "", cancelled = false, pendingSpeech = 0;
+
+function store(k, v) { try { v === undefined ? null : localStorage.setItem(k, v); return localStorage.getItem(k); } catch { return null; } }
+
+// ---------- capability chips ----------
+async function chips() {
+  const out = [];
+  out.push(["speech recognition", SR ? "ok" : "bad", SR ? (window.SpeechRecognition ? "yes" : "webkit") : "missing"]);
+  out.push(["speech synthesis", synth ? "ok" : "bad", synth ? "yes" : "missing"]);
+  let gpu = ["WebGPU", "bad", "missing"];
+  if (navigator.gpu) {
+    try {
+      const a = await navigator.gpu.requestAdapter();
+      gpu = a ? ["WebGPU", "ok", a.features.has("shader-f16") ? "f16" : "no f16"] : ["WebGPU", "warn", "no adapter"];
+    } catch { gpu = ["WebGPU", "warn", "error"]; }
+  }
+  out.push(gpu);
+  out.push(["mode", "ok", standalone ? "home screen app" : "browser tab"]);
+  if (navigator.deviceMemory) out.push(["memory", "ok", navigator.deviceMemory + " GB"]);
+  $("chips").innerHTML = "";
+  for (const [k, s, v] of out) {
+    const c = document.createElement("span");
+    c.className = "chip"; c.dataset.s = s; c.textContent = k + ": " + v;
+    $("chips").append(c);
+  }
+}
+
+// ---------- voices ----------
+function fillVoices() {
+  if (!synth) return;
+  const vs = synth.getVoices();
+  if (!vs.length) return;
+  const saved = store("voice");
+  const lang = (navigator.language || "en").slice(0, 2);
+  const sorted = vs.slice().sort((a, b) =>
+    (b.lang.startsWith(lang) - a.lang.startsWith(lang)) ||
+    (/premium|enhanced/i.test(b.name) - /premium|enhanced/i.test(a.name)) ||
+    a.name.localeCompare(b.name));
+  $("voice").innerHTML = "";
+  for (const v of sorted) {
+    const o = document.createElement("option");
+    o.value = v.voiceURI; o.textContent = v.name + " · " + v.lang;
+    $("voice").append(o);
+  }
+  if (saved && vs.some((v) => v.voiceURI === saved)) $("voice").value = saved;
+}
+if (synth) { fillVoices(); synth.addEventListener?.("voiceschanged", fillVoices); setTimeout(fillVoices, 500); }
+$("voice").onchange = () => store("voice", $("voice").value);
+
+function voice() { return synth?.getVoices().find((v) => v.voiceURI === $("voice").value) || null; }
+
+function say(text, onEnd) {
+  if (!synth || !text.trim()) { onEnd?.(); return; }
+  const u = new SpeechSynthesisUtterance(text.trim());
+  const v = voice(); if (v) { u.voice = v; u.lang = v.lang; }
+  u.rate = 1.05;
+  pendingSpeech++;
+  u.onend = u.onerror = () => { pendingSpeech--; onEnd?.(); };
+  synth.speak(u);
+}
+
+// iOS only lets a page speak after speech has started inside a tap; an empty utterance unlocks it.
+let unlocked = false;
+function unlockSpeech() {
+  if (unlocked || !synth) return;
+  unlocked = true;
+  const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u);
+}
+
+$("testvoice").onclick = () => { unlockSpeech(); synth?.cancel(); say("This is how answers will sound."); };
+
+// ---------- log ----------
+function add(cls, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls; d.textContent = text;
+  $("log").append(d);
+  d.scrollIntoView({ block: "end", behavior: "smooth" });
+  return d;
+}
+function note(el, text) { const t = document.createElement("div"); t.className = "t"; t.textContent = text; el.append(t); }
+
+// ---------- model ----------
+function startWorker() {
+  worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
+  worker.onmessage = ({ data }) => {
+    if (data.type === "progress") {
+      $("barfill").style.width = (100 * data.done / data.total).toFixed(1) + "%";
+      $("loadmeta").textContent = `Downloading ${(data.done / 1e6).toFixed(0)} of ${(data.total / 1e6).toFixed(0)} MB`;
+    } else if (data.type === "ready") {
+      ready = true; $("barfill").style.width = "100%"; $("load").disabled = false;
+      $("loadmeta").textContent = `Ready on ${data.device} (${data.dtype}, ${data.note}) in ${data.seconds.toFixed(1)} s`;
+      $("talk").disabled = !SR;
+      if (!SR) $("talk").textContent = "No speech recognition here; type below";
+    } else if (data.type === "token") {
+      if (cancelled) return;
+      botText += data.text; botEl.textContent = botText;
+      speakBuf += data.text;
+      flushSentences(false);
+    } else if (data.type === "done") {
+      if (!cancelled) {
+        flushSentences(true);
+        history.push({ role: "assistant", content: botText.trim() });
+        note(botEl, [data.firstMs != null && `first token ${Math.round(data.firstMs)} ms`,
+                     data.tokPerSec != null && `${data.tokPerSec.toFixed(1)} tok/s`].filter(Boolean).join(" · "));
+      }
+      busy = false; setTalk();
+      afterSpeech();
+    } else if (data.type === "error") {
+      busy = false; setTalk(); $("load").disabled = false;
+      add("sys", "Error: " + data.message);
+      $("loadmeta").textContent = "Failed: " + data.message;
+    }
+  };
+}
+
+$("load").onclick = () => {
+  unlockSpeech();
+  if (!worker) startWorker();
+  ready = false; $("load").disabled = true; $("talk").disabled = true;
+  $("barfill").style.width = "0"; $("loadmeta").textContent = "Starting…";
+  worker.postMessage({ type: "load", model: $("model").value, forceWasm: $("wasm").checked });
+};
+
+// Speak whole sentences as they stream in, so the first sentence plays while the rest generates.
+function flushSentences(final) {
+  const re = /^([\s\S]*?[.!?…]["')\]]?)(\s+|$)/;
+  let m;
+  while ((m = speakBuf.match(re)) && (m[2] || final)) {
+    say(m[1]); speakBuf = speakBuf.slice(m[0].length);
+  }
+  if (final && speakBuf.trim()) { say(speakBuf); speakBuf = ""; }
+}
+
+function afterSpeech() {
+  if (!$("loop").checked || cancelled) return;
+  const wait = () => (pendingSpeech > 0 || synth?.speaking) ? setTimeout(wait, 200) : setTimeout(listen, 300);
+  wait();
+}
+
+function ask(text) {
+  text = text.trim();
+  if (!text || !ready || busy) return;
+  cancelled = false; busy = true; setTalk();
+  synth?.cancel(); pendingSpeech = 0;
+  add("you", text);
+  history.push({ role: "user", content: text });
+  history = history.slice(-6);
+  botEl = add("bot", "…"); botText = ""; speakBuf = "";
+  worker.postMessage({ type: "generate", messages: [{ role: "system", content: SYSTEM }, ...history], maxTokens: 120 });
+}
+
+// ---------- recognition ----------
+function setTalk() {
+  const t = $("talk");
+  t.dataset.state = listening ? "listening" : busy ? "busy" : "idle";
+  t.textContent = listening ? "Listening… tap to stop" : busy ? "Thinking…" : "Talk";
+  t.disabled = !ready || !SR || busy;
+}
+
+function listen() {
+  if (!SR || listening || busy || !ready) return;
+  synth?.cancel();
+  rec = new SR();
+  rec.lang = navigator.language || "en-US";
+  rec.interimResults = true;
+  rec.continuous = false;
+  let final = "";
+  const t0 = performance.now();
+  rec.onresult = (e) => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) final += r[0].transcript; else interim += r[0].transcript;
+    }
+    $("heard").textContent = (final + " " + interim).trim();
+  };
+  rec.onerror = (e) => {
+    const why = { "not-allowed": "Microphone or Speech Recognition permission denied (Settings > Safari, and Settings > Privacy > Speech Recognition).",
+                  "service-not-allowed": "Speech recognition is not allowed in this context. Try the page in a Safari tab, or check that Siri & Dictation is on.",
+                  "no-speech": "Heard nothing.", "network": "Dictation needs a network connection on this device." }[e.error];
+    add("sys", "Recognition: " + (why || e.error));
+  };
+  rec.onend = () => {
+    listening = false; setTalk();
+    const text = (final || $("heard").textContent).trim();
+    $("heard").textContent = text ? `heard in ${((performance.now() - t0) / 1000).toFixed(1)} s` : "";
+    if (text) ask(text);
+  };
+  try { rec.start(); listening = true; setTalk(); $("heard").textContent = ""; }
+  catch (e) { add("sys", "Recognition failed to start: " + e.message); }
+}
+
+$("talk").onclick = () => {
+  unlockSpeech();
+  if (listening) { rec?.stop(); return; }
+  listen();
+};
+
+$("typed").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { unlockSpeech(); ask($("typed").value); $("typed").value = ""; $("typed").blur(); }
+});
+
+$("stop").onclick = () => {
+  cancelled = true; synth?.cancel(); pendingSpeech = 0; rec?.abort?.();
+  if (busy && botEl) note(botEl, "stopped");
+  // Generation finishes in the worker; its remaining tokens are dropped.
+};
+
+chips();
+setTalk();
+</script>
+</body>
+</html>
