@@ -15,6 +15,7 @@ const ARMOR = { 2018: 100, 2019: 200, 2015: 1 };
 const WEAPON = { 2001: 2, 2002: 3, 2003: 4, 2004: 5, 2006: 6, 2005: 7 }; // doomednum -> weapon slot
 const AMMO = { 2007: 0, 2048: 0, 2008: 1, 2049: 1, 2047: 2, 17: 2, 2010: 3, 2046: 3, 8: -1 };
 const EXITS = new Set([11, 52]);
+const HITSCAN = new Set([3004, 9, 65, 84]); // zombieman, shotgun guy, chaingunner, SS
 const IGNORE_SWITCHES = new Set([11, 51, 42, 50, 41, 43, 44, 49, 113, 116]); // exits, closers, crushers
 
 export class Bot {
@@ -89,8 +90,8 @@ export class Bot {
     for (const it of s.items) {
       let want = 0;
       if (KEY_THINGS[it.ed] && !hasKey(p.cards, KEY_THINGS[it.ed])) want = 90;
-      else if (HEALTH[it.ed] && p.health < (it.ed === 2014 ? 100 : 100 - HEALTH[it.ed] / 2)) want = p.health < 40 ? 95 : 30;
-      else if (ARMOR[it.ed] && p.armor < 100) want = 25;
+      else if (HEALTH[it.ed] && p.health < (it.ed === 2014 ? 100 : 100 - HEALTH[it.ed] / 2)) want = p.health < 40 ? 95 : p.health < 70 ? 80 : 30; // below 70, health is worth a long walk
+      else if (ARMOR[it.ed] && p.armor < 100) want = p.armor < 50 ? 65 : 25;
       else if (WEAPON[it.ed] !== undefined && !(p.weapons & (1 << WEAPON[it.ed]))) want = 60;
       else if (AMMO[it.ed] !== undefined && (AMMO[it.ed] < 0 || p.ammo[AMMO[it.ed]] < p.maxammo[AMMO[it.ed]] / 2)) want = p.ammo[0] + p.ammo[1] + p.ammo[2] + p.ammo[3] < 10 ? 85 : 20;
       if (!want) continue;
@@ -432,13 +433,16 @@ export class Bot {
 
   enemy() {
     const p = this.s.p;
-    let best = null, bd = 1e9;
+    let best = null, bd = 1e9, bs = 1e9;
     for (const m of this.s.monsters) {
       const d = Math.hypot(m.x - p.x, m.y - p.y);
-      if (d > 1400 || d > bd) continue;
+      if (d > 1400) continue;
       if (this.ignore?.get(m.k) > this.tic) continue; // shot at for seconds without a scratch: out of reach
       if (!this.sightClear(p.x, p.y, m.x, m.y)) continue;
-      best = m; bd = d;
+      // hitscanners hit the moment they fire, so they go first; the rest by distance
+      const w = HITSCAN.has(m.ed) ? 2 : 1;
+      if (d / w > bs) continue;
+      best = m; bd = d; bs = d / w;
     }
     if (!best && p.damage > 0 && p.attacker > 0) { // whoever is hurting us, even if our sight test can't see it
       const m = this.s.monsters.find((mm) => mm.k === p.attacker);
