@@ -12,11 +12,13 @@ m = TRM(L=1024, d=cfg["d"], heads=cfg["heads"], layers=cfg["layers"], n=cfg["n"]
 if src:
     ck = torch.load(src, map_location="cpu"); m.load_state_dict(ck["ema"]); ck = {"ema": ck["ema"], "args": ck["args"], "step": ck.get("step")}
 else:
+    with torch.no_grad():
+        for b in m.blocks: b.rel.normal_(0, 1.0)  # exercise the relative bias
     ck = {"ema": m.state_dict(), "args": cfg, "step": 0}
 (here / "tmp").mkdir(exist_ok=True)
 torch.save(ck, here / "tmp/ck.pt")
 subprocess.run([sys.executable, str(root / "train/export.py"), str(here / "tmp/ck.pt"), str(here / "tmp/w")], check=True)
-x = np.load(root / "data/val/x.npy")[:4]
+x = np.load(root / "data/val/x.npy")[:int(sys.argv[2]) if len(sys.argv) > 2 else 1]
 outs = []
 with torch.no_grad():
     for g in x:
