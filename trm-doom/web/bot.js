@@ -92,7 +92,7 @@ export class Bot {
       else if (HEALTH[it.ed] && p.health < (it.ed === 2014 ? 100 : 100 - HEALTH[it.ed] / 2)) want = p.health < 40 ? 95 : 30;
       else if (ARMOR[it.ed] && p.armor < 100) want = 25;
       else if (WEAPON[it.ed] !== undefined && !(p.weapons & (1 << WEAPON[it.ed]))) want = 60;
-      else if (AMMO[it.ed] !== undefined && (AMMO[it.ed] < 0 || p.ammo[AMMO[it.ed]] < p.maxammo[AMMO[it.ed]] / 2)) want = 20;
+      else if (AMMO[it.ed] !== undefined && (AMMO[it.ed] < 0 || p.ammo[AMMO[it.ed]] < p.maxammo[AMMO[it.ed]] / 2)) want = p.ammo[0] + p.ammo[1] + p.ammo[2] + p.ammo[3] < 10 ? 85 : 20;
       if (!want) continue;
       const dist = d(it.x, it.y);
       if (want < 90 && dist > (want >= 60 ? 1200 : 600)) continue;
@@ -364,12 +364,13 @@ export class Bot {
     for (const m of this.s.monsters) {
       const d = Math.hypot(m.x - p.x, m.y - p.y);
       if (d > 1400 || d > bd) continue;
+      if (this.ignore?.get(m.k) > this.tic) continue; // shot at for seconds without a scratch: out of reach
       if (!this.sightClear(p.x, p.y, m.x, m.y)) continue;
       best = m; bd = d;
     }
     if (!best && p.damage > 0 && p.attacker > 0) { // whoever is hurting us, even if our sight test can't see it
       const m = this.s.monsters.find((mm) => mm.k === p.attacker);
-      if (m) { const d = Math.hypot(m.x - p.x, m.y - p.y); if (d < 2000) return { m, d, unseen: true }; }
+      if (m && !(this.ignore?.get(m.k) > this.tic)) { const d = Math.hypot(m.x - p.x, m.y - p.y); if (d < 2000) return { m, d, unseen: true }; }
     }
     return best ? { m: best, d: bd } : null;
   }
@@ -486,8 +487,14 @@ export class Bot {
       if (w !== p.ready + 1 && !(w === 7 && p.ready === 7)) input.weapon = w;
       const err = Math.abs(wrap(face - p.angle));
       // hitscan spreads: past ~900 units a pistol or shotgun mostly wastes ammo
-      input.fire = err < Math.max(0.05, Math.atan2(en.m.r * 0.8, en.d)) && (en.d < 900 || w >= 5) && !(en.unseen && !this.sightClear(p.x, p.y, en.m.x, en.m.y));
+      const melee = w === 1;
+      input.fire = err < Math.max(0.05, Math.atan2(en.m.r * 0.8, en.d)) && (en.d < (melee ? 80 : 900) || w >= 5) && !en.unseen;
+      // a target that takes three seconds of fire without losing health is out of reach (a ledge, a window): leave it
+      const f = this.fight;
+      if (!f || f.k !== en.m.k || en.m.health < f.health) this.fight = { k: en.m.k, health: en.m.health, tic: this.tic };
+      else if (input.fire && this.tic - f.tic > 105) { (this.ignore ||= new Map()).set(en.m.k, this.tic + 700); this.fight = null; }
     }
+    const dry = !(p.weapons & 0b110) || (p.ammo[0] <= 0 && p.ammo[1] <= 0 && p.ammo[2] <= 0 && p.ammo[3] <= 0);
     const err = wrap(face - p.angle);
     input.turn = Math.max(-0.3, Math.min(0.3, err));
     let vx = mx - p.x, vy = my - p.y; const vl = Math.hypot(vx, vy) || 1; vx /= vl; vy /= vl;
@@ -502,7 +509,7 @@ export class Bot {
       let ax = vx, ay = vy;
       if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
       else if (en.d < 192) { ax = ex; ay = ey; }
-      else if (en.d < 700 && !en.unseen) { ax = 0; ay = 0; } // stand and fight rather than walk into the room
+      else if (en.d < 700 && !en.unseen && !dry) { ax = 0; ay = 0; } // stand and fight rather than walk into the room
       const side = ((this.tic / 30) | 0) & 1 ? 1 : -1;
       vx = ax - ey * side * 0.8; vy = ay + ex * side * 0.8;
       const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l; speed = 1;
