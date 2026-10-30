@@ -1,8 +1,8 @@
 """Pick the best take per line and mix a narration track timed to the reel.
 Usage: assemble.py TAKES_DIR NAME [SCRIPT_JSON [TOTAL_SECONDS]]   (takes named <line id>_s<seed>.wav)
-Best take = lowest ASR WER, then the longest that fits its slot (atempo <= 1.12 if none fit).
-Writes vo.wav (48 kHz mono, loudnorm -16 LUFS) and picks.json."""
-import glob, json, re, subprocess, sys
+Best take = lowest ASR WER, then closest to the line target (slot - 0.25 s), stretched 0.92-1.12x toward it.
+Writes NAME.wav (48 kHz mono 16-bit, peaks at -2 dBFS, linear gain) and NAME_picks.json."""
+import glob, json, re, sys
 import numpy as np, librosa, soundfile as sf, jiwer
 from faster_whisper import WhisperModel
 from pathlib import Path
@@ -58,5 +58,8 @@ for l in S:
     picks.append({k: v for k, v in best.items() if k != "y"} | {"id": l["id"], "slot": round(slot, 2), "final_dur": round(len(y) / SR, 2)})
     print(picks[-1], [ (c["seed"], round(c["dur"],2), c["wer"]) for c in cands])
 sf.write(f"{D}/{NAME}_raw.wav", track, SR)
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{D}/{NAME}_raw.wav", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", str(SR), f"{D}/{NAME}.wav"], check=True)
+# Linear gain only: peaks to -2 dBFS. Single-pass loudnorm to -16 LUFS needed ~5 dB of
+# limiting on TTS that already peaks near 0 dBFS; Oskar heard it as "amplified too much".
+peak = float(np.abs(track).max())
+sf.write(f"{D}/{NAME}.wav", (track * (10 ** (-2 / 20) / peak)).astype(np.float32), SR, subtype="PCM_16")
 json.dump(picks, open(f"{D}/{NAME}_picks.json", "w"), indent=1)
