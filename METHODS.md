@@ -1576,6 +1576,15 @@ the result.
   result (codebook shape matters most at 2–3 bits) carries to weights, and calibration adds
   more on top. fp32 block scales cost a full bit per weight at block 32; use fp16.
   (`eg2-layer-student/run/quant_full.py`, RESULTS Round 5)
+- **Rotated GPTQ at 4 bits beats onnx-community's q4 export at fewer bytes, and 2 bits break a 1.7B chat
+  model.** LFM3-1.7B, scored against bf16: GPTQ in a 256-wide randomized-Hadamard basis onto Lloyd-Max
+  levels with an fp16 scale per 32 (993 MB) has text KL 0.043 and top-1 0.872. onnx-community's
+  MatMulNBits q4 (1107 MB) has 0.101 and 0.824. At 3 bits the replies stay fluent but get facts wrong.
+  At 2 bits, rotated GPTQ keeps 0.63 top-1 but emits stray `</think>` tags and repeats itself, and
+  round-to-nearest collapses (perplexity 3525). Check generations, not only KL: 3-bit KL looked close
+  to q4 on text. Also note that onnx-community LFM3 exports set `accuracy_level` 4 (int8 activations;
+  cosine 0.9975 to exact) and permute q/k head dims to onnxruntime's partial-RoPE pairing.
+  (`lfm-wgsl/README.md` LFM3 section, `lfm-wgsl/run/quant3.py`)
 - **A query student distilled on one text domain does not carry to another use of the same
   space; distil on that domain's text, which can be noisy.** EG2's 4-layer cut, at hit@10
   within 0.012 of EG2 on Bluesky post search, fell 0.248 behind on text-to-image search over EG2

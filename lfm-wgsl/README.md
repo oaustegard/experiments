@@ -99,3 +99,58 @@ python3 lfm-wgsl/run/ref.py           # needs model/ from onnx-community/LFM2.5-
 python3 lfm-wgsl/run/manifest.py
 node lfm-wgsl/test/check.mjs
 ```
+
+## LFM3-1.7B: how far below 4 bits?
+
+LFM3-1.7B is the smallest LFM3 model. The question was whether it could go to 2 bits so that it
+fits on a phone. It cannot, without retraining. At 4 bits, though, a rotated GPTQ quantizer is
+smaller than onnx-community's q4 file and closer to the bf16 release.
+
+**Method.** `run/lfm3.py` is LFM3 in plain PyTorch, written from the release's model source and the
+ONNX graph rather than imported. On onnx-community's q4 file with the same weights dequantized, it
+matches onnxruntime at cosine 1.000000 and 100% top-1 over a 320-token prompt that crosses the
+256-position sliding window. Getting there took two corrections, both in `run/parity3.py`:
+- The export permutes each head's q/k dimensions into onnxruntime's partial-RoPE pairing, so the
+  forward pass takes `ort=True` for ONNX weights.
+- The export sets `accuracy_level` 4, which quantizes activations to int8 inside every matmul
+  (cosine 0.9975, top-1 0.984). The comparison uses a copy with it set to 0.
+
+`run/quant3.py` builds each variant from the bf16 release and scores it against bf16 on two sets:
+- 4,088 tokens of WikiText-2 test text
+- the bf16 model's own greedy replies to 8 voice-assistant prompts (251 tokens)
+
+The scores are KL(bf16 ‖ variant) over bf16's top 256 tokens, top-1 agreement and perplexity.
+
+The variants:
+- `rtn`: round to nearest on MatMulNBits' grid (block 32, fp32 scale and zero point).
+- `gq`: GPTQ in a 256-wide randomized-Hadamard basis onto Lloyd-Max levels, with an fp16 scale per
+  block of 32 (METHODS.md). The calibration set is 48 × 512 tokens of WikiText-2 train.
+- `mixA_B`: A bits on the feed-forward matrices (1.13B of the 1.47B layer weights), B bits on the rest.
+
+The token table, which is also the lm_head, is 4-bit RTN in every variant. The GPTQ took 21–29 s
+per layer on a Colab A100 and 237–346 s on the container's 4 CPUs. Results are in
+`results/quant3.json`, and every variant's answers to the 8 prompts are in `results/quant3_gen.json`.
+
+| Variant | Bits per layer weight | MB | Text KL | Text top-1 | Text ppl | Chat KL | Chat top-1 | Chat ppl |
+|---|---|---|---|---|---|---|---|---|
+| bf16 | 16 | 3457 | 0 | 1 | 22.56 | 0 | 1 | 1.35 |
+| onnx-community q4 | 5.12 | 1107 | 0.101 | 0.824 | 24.53 | 0.149 | 0.845 | 1.55 |
+| rtn4 | 5.12 | 1107 | 0.095 | 0.821 | 24.32 | 0.115 | 0.873 | 1.52 |
+| **gq4** | 4.50 | **993** | **0.043** | **0.872** | 22.99 | **0.084** | **0.896** | 1.43 |
+| mix3_4 | 3.73 | 851 | 0.118 | 0.814 | 24.08 | 0.323 | 0.761 | 1.95 |
+| gq3 | 3.50 | 809 | 0.142 | 0.796 | 24.34 | 0.489 | 0.753 | 2.41 |
+| rtn3 | 4.09 | 918 | 0.385 | 0.688 | 29.79 | 0.462 | 0.773 | 2.23 |
+| mix2_4 | 2.96 | 710 | 0.430 | 0.674 | 29.72 | 1.306 | 0.594 | 5.98 |
+| mix2_3 | 2.73 | 668 | 0.460 | 0.660 | 30.34 | 1.351 | 0.574 | 6.35 |
+| gq2 | 2.50 | 626 | 0.577 | 0.629 | 33.00 | 1.712 | 0.522 | 9.45 |
+| rtn2 | 3.06 | 729 | 5.097 | 0.094 | 3525 | 6.247 | 0.135 | 917 |
+
+What the answers show:
+- **gq4 is the one to ship.** It is 10% smaller than onnx-community's q4, and its KL to bf16 is less
+  than half: 0.043 against 0.101 on text, 0.084 against 0.149 on chat. Its replies read like
+  bf16's ("About 384,400 kilometers from Earth right now").
+- **3 bits stay fluent and get facts wrong.** gq3 put the moon 2.1 million km away and gave an
+  octopus a "third eye". mix3_4 is a little better.
+- **2 bits break the chat format.** gq2 and mix2_4 emit stray `</think>` tags, repeat sentences, and
+  put the moon 57 million km away. Plain round-to-nearest at 2 bits is noise (perplexity 3525).
+  Usable 2-bit LFM3 would need quantization-aware training, not just post-training rounding.
