@@ -54,7 +54,7 @@ export class Bot {
       x: wf[W.viewx], y: wf[W.viewy], angle: wf[W.viewangle], health: wi[W.health], armor: wi[W.armor],
       cards: wu[W.cards], weapons: wu[W.weapons], ready: wi[W.readyweapon], dead: wu[W.dead], exit: wu[W.exit],
       ammo: [0, 1, 2, 3].map((k) => wi[W.ammo + k]), maxammo: [0, 1, 2, 3].map((k) => wi[W.maxammo + k]),
-      kills: wi[W.killcount], items: wi[W.itemcount], attacker: wi[W.attacker], damage: wi[W.damagecount],
+      kills: wi[W.killcount], items: wi[W.itemcount], attacker: wi[W.attacker], damage: wi[W.damagecount], leveltime: wu[W.leveltime],
     };
     const sf = new Float32Array(st.sec), ns = this.map.sectors.length;
     const floor = new Float32Array(ns), ceil = new Float32Array(ns);
@@ -195,11 +195,15 @@ export class Bot {
   // the player's own spot first, then nudged by up to a cell, since hugging a wall can put it on a wall cell.
   anchored(make, cs) {
     const p = this.s.p, st = this.gridState(), c0 = (N / 2) * N + N / 2;
+    const here = this.map.sectors[this.map.spawnSector(p.x, p.y)];
+    if (here && [4, 5, 7, 11, 16].includes(here.special) && this.target) this.target.hazardOK = true; // already in it: get out
     let first = null;
     for (const [dx, dy] of [[0, 0], [-0.5, -0.5], [-0.5, 0], [0, -0.5], [-1, -1], [-1, 0], [0, -1], [0.5, 0], [0, 0.5], [-1, 0.5], [0.5, -1]]) {
       const grid = make(p.x + dx * cs, p.y + dy * cs, st);
       first ||= grid;
       const g = grid.g;
+      // nukage counts as wall unless this target has already failed without it
+      if (!this.target?.hazardOK) for (let k = 0; k < g.length; k++) if (g[k] === C.HAZARD) g[k] = C.WALL;
       if (passable(g[c0]) && (passable(g[c0 - 1]) || passable(g[c0 + 1]) || passable(g[c0 - N]) || passable(g[c0 + N]))) return grid;
     }
     return first;
@@ -216,6 +220,7 @@ export class Bot {
     const set = await this.runTRM(grid.g, "coarse");
     const w = this.walkSet(grid.g, set, gc);
     let n = 0; for (let k = 0; k < N * N; k++) n += set[k];
+    if (n === 0 && !t.hazardOK) { t.hazardOK = true; return this.planCoarse(); }
     if (n === 0) { this.stats.coarseEmpty++; this.reject(t, "TRM: no coarse route"); return false; }
     if (!w.reached) this.stats.coarseBroken++;
     this.coarse = { grid, path: w.path, tic: this.tic };
@@ -262,6 +267,7 @@ export class Bot {
     if (best && (best.reached || best.path.length >= 3)) { this.fine = best; return true; }
     // a near target with no coarse route yet: get one and try again
     if (retry && !this.coarse && (await this.planCoarse())) return this.planFine(false);
+    if (!t.hazardOK) { t.hazardOK = true; this.events.push({ tic: this.tic, ev: "hazard-ok", kind: t.kind, key: t.key }); return this.planFine(retry); }
     this.reject(t, "TRM: no fine route", 350);
     return false;
   }
@@ -341,7 +347,8 @@ export class Bot {
 
   // One tic: the input for the engine (forward/side in DOOM's units, turn in radians).
   async step() {
-    this.tic++;
+    // the game's own clock, so a bot that runs slower than the game (a live page on a slow GPU) times things right
+    this.tic = this.s.p.leveltime ?? this.tic + 1;
     const s = this.s, p = s.p;
     if (p.dead || p.exit) return {};
     const bi = Math.floor((p.x - this.bx) / 128), bj = Math.floor((p.y - this.by) / 128);
@@ -407,7 +414,7 @@ export class Bot {
     let vx = mx - p.x, vy = my - p.y; const vl = Math.hypot(vx, vy) || 1; vx /= vl; vy /= vl;
     let speed = finalLeg && vl < 64 ? 0.5 : 1;
     // breadcrumbs, the way back when a fight goes badly
-    if (this.tic % 35 === 0) { (this.trail ||= []).push([p.x, p.y]); if (this.trail.length > 30) this.trail.shift(); }
+    if (this.tic - (this.lastCrumb ?? -99) >= 35) { this.lastCrumb = this.tic; (this.trail ||= []).push([p.x, p.y]); if (this.trail.length > 30) this.trail.shift(); }
     if (en) {
       // fight: keep the route's direction only from afar, back off from anything close, retreat when
       // hurt, and sidestep every second so fireballs miss
@@ -416,7 +423,7 @@ export class Bot {
       let ax = vx, ay = vy;
       if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
       else if (en.d < 192) { ax = ex; ay = ey; }
-      else if (en.d < 400) { ax = vx * 0.3; ay = vy * 0.3; }
+      else if (en.d < 700 && !en.unseen) { ax = 0; ay = 0; } // stand and fight rather than walk into the room
       const side = ((this.tic / 30) | 0) & 1 ? 1 : -1;
       vx = ax - ey * side * 0.8; vy = ay + ex * side * 0.8;
       const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l; speed = 1;

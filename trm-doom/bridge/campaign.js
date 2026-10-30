@@ -18,20 +18,28 @@ else {
     stats: () => ({ plans, meanSteps: steps / Math.max(plans, 1), meanMs: ms / Math.max(plans, 1), halted }) };
 }
 const out = { levels: [], device: ctx.describe?.()?.device };
-const t0 = performance.now();
+const t0 = performance.now(), budget = cfg.budgetMs || 540000;
 let carry = cfg.carry || null, frames = [], palette = null;
-for (const map of cfg.maps) {
-  const left = (cfg.budgetMs || 540000) - (performance.now() - t0);
-  if (left < 30000) break;
+// mode "campaign": maps in order carrying the player over, stopping at a failure;
+// mode "each": every map from a pistol start, up to `attempts` tries each
+const queue = cfg.mode === "each" ? cfg.maps.flatMap((m) => Array(cfg.attempts || 1).fill(m)) : cfg.maps.slice();
+const cleared = new Set();
+for (const map of queue) {
+  if (cfg.mode === "each" && cleared.has(map)) continue;
+  const left = budget - (performance.now() - t0);
+  if (left < 20000) break;
   const r = await runLevel({ device, doom, wadBytes, planner, Bot, map, maxTics: cfg.maxTics || 35 * 600, skill: cfg.skill || 3,
-    frameEvery: cfg.frameEvery || 0, carry, deadlineMs: left - 10000,
-    onProgress: (f, d) => ctx.progress(Math.min(0.99, (performance.now() - t0) / (cfg.budgetMs || 540000)), `${map} ${d.target?.kind || ""} hp ${d.health}`) });
-  frames.push(...r.frames); palette = r.palette; delete r.frames; delete r.palette;
-  r.events = r.events.filter((e) => e.ev !== "target" || true).slice(-400);
+    frameEvery: cfg.frameEvery || 0, carry: cfg.mode === "each" ? null : carry, deadlineMs: left - 8000,
+    onProgress: (f, d) => ctx.progress(Math.min(0.99, (performance.now() - t0) / budget), `${map} ${d.target?.kind || ""} hp ${d.health}`) });
+  if (cfg.keepFrames !== false) frames.push(...r.frames);
+  palette = r.palette; delete r.frames; delete r.palette;
+  r.events = r.events.slice(-300);
   out.levels.push(r);
   ctx.log(`${map}: ${r.result} in ${r.seconds}s, kills ${r.kills}/${r.totalKills}, hp ${r.health}`);
+  const ok = r.result === "exit" || r.result === "secret-exit";
+  if (ok) cleared.add(map);
   carry = r.carry;
-  if (r.result !== "exit" && r.result !== "secret-exit") break;
+  if (cfg.mode !== "each" && !ok) break;
 }
 out.planner = planner.stats ? planner.stats() : "oracle";
 out.carry = carry;
