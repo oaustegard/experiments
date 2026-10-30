@@ -184,16 +184,20 @@ matches it at cosine 1.000000 and 7/7 greedy tokens (41-token chat prompt plus 6
 in headless Chromium on SwiftShader (`test/check3.mjs`) and on the Mac's GPU (bridge job
 `lfm3-bench-2-mac`).
 
-**Speed and memory.** Bridge job `lfm3-bench-2-mac`, Mac (M5), Chrome on Metal:
+**Speed and memory.** Bridge jobs `lfm3-bench-2-mac` (Mac, M5, Chrome on Metal) and
+`lfm3-bench-3-iphone` (iPhone 16 Pro, Safari on iOS 27.0.1). Both match the reference at 7/7:
 
-| | |
-|---|---|
-| Load: stream 994.5 MB from R2 straight to the GPU | 30.4 s |
-| Prefill, 41 tokens | 28 ms |
-| Decode, median per token | 4.8 ms (about 208 tokens/s); 90th percentile 4.9–5.1 ms |
+| | iPhone 16 Pro, Safari | Mac (M5), Chrome |
+|---|---|---|
+| Load: stream 994.5 MB from R2 straight to the GPU | 43.7 s | 30.4 s |
+| Prefill, 41 tokens | 337–342 ms | 28 ms |
+| Decode, median per token | 29 ms (about 34 tokens/s) | 4.8 ms (about 208 tokens/s) |
+| Decode, 90th percentile | 30–31 ms | 4.9–5.1 ms |
+
+The iPhone's Safari tab survived loading the full 1 GB model, and it allows 1 GB storage bindings.
 
 On SwiftShader, peak PSS was 1528 MB against a 152 MB baseline.
 
 The token table is the largest buffer at 168 MB. That is more than WebGPU's default 128 MiB binding
-limit, so the engine needs an adapter that allows larger bindings, which the Mac's does (4 GB). An
-iPhone has not been tried.
+limit, so the engine needs an adapter that allows larger bindings. The Mac's allows 4 GB and the
+iPhone 16 Pro's 1 GB.
