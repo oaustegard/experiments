@@ -50,8 +50,10 @@ export class Chat {
   // Liquid's recommendation for LFM2: temperature 0.3, min_p 0.15, repetition penalty 1.05.
   async generate(messages, { maxTokens = 160, onText, signal, temperature = 0.3, minP = 0.15, repPenalty = 1.05 } = {}) {
     if (this.lost) throw new Error(this.lost);
-    let ids = this.tok.apply_chat_template(messages, { add_generation_prompt: true, tokenize: true, return_tensor: false });
-    ids = Array.from(ids, Number);
+    // transformers.js 4 returns { input_ids, attention_mask } here, 3.x a bare array.
+    const enc = this.tok.apply_chat_template(messages, { add_generation_prompt: true, tokenize: true, return_tensor: false });
+    const ids = Array.from(enc.input_ids ?? enc, Number);
+    if (!ids.length || ids.some((x) => !Number.isInteger(x))) throw new Error("chat template produced no token ids");
     if (ids.length > MAX_CTX - maxTokens) throw new Error("conversation too long; tap Stop and start over");
     const eos = new Set([this.m.eos, 2]);
     const out = [];

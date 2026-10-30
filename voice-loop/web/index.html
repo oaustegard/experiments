@@ -291,6 +291,13 @@ function flushSentences(final) {
   const re = /^([\s\S]*?[.!?…]["')\]]?)(\s+|$)/;
   let m;
   while ((m = speakBuf.match(re)) && (m[2] || final)) { say(m[1]); speakBuf = speakBuf.slice(m[0].length); }
+  // A long run without sentence punctuation goes out in ~200-character pieces cut at a space, so
+  // one synthesis never covers a whole answer.
+  while (speakBuf.length > 220) {
+    const cut = Math.max(speakBuf.lastIndexOf(", ", 200) + 1, speakBuf.lastIndexOf(" ", 200));
+    const at = cut > 40 ? cut : 200;
+    say(speakBuf.slice(0, at)); speakBuf = speakBuf.slice(at);
+  }
   if (final && speakBuf.trim()) { say(speakBuf); speakBuf = ""; }
 }
 

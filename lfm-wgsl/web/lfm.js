@@ -381,6 +381,7 @@ export class LfmEngine {
 
   // Run ids (appended after the cached context) and return the last position's logits.
   async forward(ids, { read = true, nSteps = Infinity } = {}) {
+    if (!ids.length) throw new Error("forward: no token ids");
     if (this.past + ids.length > MAX_CTX) throw new Error(`context full (${MAX_CTX} tokens)`);
     for (let o = 0; o < ids.length; o += MAX_T) {
       const chunk = ids.slice(o, o + MAX_T), n = chunk.length, final = o + MAX_T >= ids.length;
