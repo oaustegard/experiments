@@ -69,9 +69,28 @@ had died on SmolLM2-360M, a model of similar size.
 On SwiftShader in the container, prefill took 67 s and a decode step 4.6 s. As METHODS.md warns,
 those timings say nothing about real hardware.
 
-**Memory.** The SwiftShader check measured a peak PSS of 1412 MB against an 899 MB baseline. That
-baseline included another Chromium instance running a measurement at the same time, so the number
-needs a clean rerun.
+**Memory.** Peak PSS summed over all Chromium processes, in headless Chromium on SwiftShader. Each
+row loads a model and generates once. With SwiftShader, GPU buffers count as process memory, much as
+they do on Apple's unified memory.
+
+| Loader and model | Peak, load and generate | After |
+|---|---|---|
+| This engine, LFM2.5-350M q4 (228 MB uploaded) | 649 MB | 571 MB |
+| transformers.js 4.3.1, LFM2.5-350M q4 on WebGPU | 1726 MB | 866 MB |
+| transformers.js 3.8.1, SmolLM2-360M q4 on WebGPU (the page that crashed the iPhone) | 4054 MB | 3094 MB |
+| transformers.js 4.3.1, SmolLM2-360M q4 on WebGPU | 3729 MB | 2737 MB |
+| transformers.js 3.8.1, SmolLM2-360M q8 on wasm | 1722 MB | 1553 MB |
+| Supertonic 2 TTS on wasm, transformers.js 4.3.1 | 1195 MB | 989 MB |
+
+Every row starts from a baseline of 155 to 158 MB. The engine's own row ran with no other browser
+open. The transformers.js rows came from a serial batch, and a few of them overlapped with other
+headless runs in this session, so read them as rough. The WebLLM runs from the same batch are left
+out: one started from a baseline of 1382 MB because another browser was running, and one lost its
+GPU instance. The Qwen3.5-0.8B run under transformers.js 4.3.1 timed out after 15 minutes on
+SwiftShader.
+
+Pending: memory on the phone itself. Safari reports nothing comparable to PSS, so the iPhone test is
+whether the tab survives with both the engine and Supertonic loaded.
 
 Run the check:
 
