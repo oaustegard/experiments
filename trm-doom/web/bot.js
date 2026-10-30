@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-140626";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-151341";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -89,8 +89,8 @@ export class Bot {
     for (const it of s.items) {
       let want = 0;
       if (KEY_THINGS[it.ed] && !hasKey(p.cards, KEY_THINGS[it.ed])) want = 90;
-      else if (HEALTH[it.ed] && p.health < (it.ed === 2014 ? 100 : 100 - HEALTH[it.ed] / 2)) want = p.health < 40 ? 95 : 30;
-      else if (ARMOR[it.ed] && p.armor < 100) want = 25;
+      else if (HEALTH[it.ed] && p.health < (it.ed === 2014 ? 100 : 100 - HEALTH[it.ed] / 2)) want = p.health < 40 ? 95 : p.health < 70 ? 80 : 30; // below 70, health is worth a long walk
+      else if (ARMOR[it.ed] && p.armor < 100) want = p.armor < 50 ? 65 : 25;
       else if (WEAPON[it.ed] !== undefined && !(p.weapons & (1 << WEAPON[it.ed]))) want = 60;
       else if (AMMO[it.ed] !== undefined && (AMMO[it.ed] < 0 || p.ammo[AMMO[it.ed]] < p.maxammo[AMMO[it.ed]] / 2)) want = p.ammo[0] + p.ammo[1] + p.ammo[2] + p.ammo[3] < 10 ? 85 : 20;
       if (!want) continue;
