@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// ?map=E1M1&tics=2000&planner=oracle|trm&frames=0
+import { runLevel } from "../web/runner.js";
+import { Bot } from "../web/bot.js";
+import { OraclePlanner } from "../web/oracle.js";
+import { TRMPlanner } from "../web/trm.js";
+const q = new URLSearchParams(location.search);
+const D = "/oaustegard.github.io/fun-and-games/doom/";
+try {
+  const doom = { engine: await import(D + "engine.js"), info: await import(D + "info.js"), specials: await import(D + "specials.js") };
+  const ad = await navigator.gpu.requestAdapter();
+  const device = await ad.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
+  const wadBytes = await (await fetch(D + "e1.wad.gz")).arrayBuffer();
+  let planner = new OraclePlanner();
+  if (q.get("planner") === "trm") {
+    const w = q.get("w") || "tmp/w";
+    planner = await TRMPlanner.create(device, new Float32Array(await (await fetch(w + ".bin")).arrayBuffer()), await (await fetch(w + ".json")).json());
+  }
+  const r = await runLevel({ device, doom, wadBytes, planner, Bot, map: q.get("map") || "E1M1", maxTics: +(q.get("tics") || 2000),
+    frameEvery: +(q.get("frames") || 0), debugGrids: q.has("debug"), onProgress: (f, d) => console.log(JSON.stringify(d)) });
+  if (r.frames.length) {
+    const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode(...u8.subarray(i, i + 8192)); return btoa(s); };
+    r.frames = r.frames.map(b64); r.palette = Array.from(r.palette);
+  } else { delete r.frames; delete r.palette; }
+  window.RESULT = r;
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>
