@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DOOM Arena</title>
+<style>
+:root { --bg: #111; --fg: #ddd; --dim: #888; --acc: #f0c060; --err: #f66; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 ui-monospace, Menlo, monospace; }
+main { max-width: 980px; margin: 0 auto; padding: 12px 16px 40px; }
+h1 { font-size: 18px; margin: 0 0 4px; color: var(--acc); }
+.lede { color: var(--dim); margin: 0 0 12px; }
+canvas { width: 100%; aspect-ratio: 4 / 3; background: #000; image-rendering: pixelated; display: block; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 10px 0; }
+label { color: var(--dim); }
+input, select, button { font: inherit; background: #222; color: var(--fg); border: 1px solid #444; border-radius: 4px; padding: 4px 6px; }
+input[type=number] { width: 5em; }
+button { cursor: pointer; }
+button.go { background: #a33; border-color: #d55; color: #fff; }
+#status { color: var(--acc); min-height: 1.4em; }
+#log { white-space: pre-wrap; color: var(--dim); max-height: 40vh; overflow: auto; border-top: 1px solid #333; padding-top: 8px; font-size: 12px; }
+.err { color: var(--err); }
+.ver { font-size: 13px; font-weight: normal; padding: 2px 8px; border-radius: 10px; background: #143a1c; color: #8f8; margin-left: 6px; white-space: nowrap; }
+.pill { padding: 3px 8px; border-radius: 10px; background: #2a2a2a; color: var(--dim); }
+.pill.ok { background: #143a1c; color: #8f8; }
+.pill.wait { background: #3a3214; color: var(--acc); }
+.pill.bad { background: #3a1414; color: var(--err); }
+</style>
+</head>
+<body>
+<main>
+  <h1>DOOM Arena <small id="ver" class="ver"></small></h1>
+  <div id="newver" class="row" hidden><span class="pill wait" id="newvertext"></span> <button id="reload" type="button">Reload</button></div>
+  <p class="lede">The TRM bot plays gPu(doom) here, on this device's GPU. After every attempt the log goes to the GPU-bridge repo and a comment wakes the Claude session. A level that stops making progress is restarted, and after a few tries skipped.</p>
+  <canvas id="screen" width="640" height="480"></canvas>
+  <div id="status"></div>
+  <div class="row"><span id="connstate" class="pill">Not connected: logs stay on this page</span> <button id="change" type="button">Connect to GitHub</button> <span id="uploads"></span></div>
+  <form class="row" id="conn" hidden>
+    <label>Repo <input id="repo" value="oaustegard/gpu-bridge-comms" size="28"></label>
+    <label>Token <input id="token" type="password" size="24" placeholder="the GPU bridge token"></label>
+    <label><input type="checkbox" id="remember" checked> remember</label>
+    <button id="connect">Connect</button>
+  </form>
+  <div class="row">
+    <label>Start <select id="map"></select></label>
+    <label>Skill <select id="skill"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
+    <label>Stuck after <input id="stuck" type="number" value="90" min="20"> s</label>
+    <label>Level cap <input id="cap" type="number" value="15" min="1"> min</label>
+    <label>Tries <input id="tries" type="number" value="3" min="1"></label>
+    <label><input type="checkbox" id="fast"> as fast as the GPU goes</label>
+    <label><input type="checkbox" id="wake" checked> wake the session</label>
+  </div>
+  <div class="row">
+    <button class="go" id="play" disabled>Play</button>
+    <button id="stop" disabled>Stop</button>
+    <button id="lock">Keep screen awake</button>
+  </div>
+  <div id="log"></div>
+</main>
+<script type="module" src="arena.js?v=20261030-122108"></script>
+</body>
+</html>

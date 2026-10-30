@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+import { TRMPlanner } from "../web/trm.js";
+try {
+  const ad = await navigator.gpu.requestAdapter(); const dev = await ad.requestDevice();
+  const man = await (await fetch("tmp/w.json")).json();
+  const w = new Float32Array(await (await fetch("tmp/w.bin")).arrayBuffer());
+  const ref = await (await fetch("tmp/ref.json")).json();
+  const p = await TRMPlanner.create(dev, w, man);
+  const res = [];
+  for (const r of ref) {
+    const o = await p.plan(Uint8Array.from(r.grid), { sup: 2 });
+    let md = 0, agree = 0;
+    for (let k = 0; k < 1024; k++) { md = Math.max(md, Math.abs(o.logits[k] - r.diff[k])); agree += (o.logits[k] > 0) === (r.diff[k] > 0); }
+    res.push({ maxdiff: md, agree, q: o.halt, qref: r.q, ms: o.ms });
+  }
+  window.RESULT = res;
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>

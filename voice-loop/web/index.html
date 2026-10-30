@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Voice Loop</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f5f2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* One column, phone first: status strip, model loader, conversation log, then a thumb-reach talk bar fixed to the bottom. */
+:root {
+  --bg: #f3f5f2; --panel: #ffffff; --fg: #1b2420; --muted: #5d6b64; --line: #d6ddd8;
+  --accent: #0f7b6c; --accent-fg: #ffffff; --you: #e3ece8; --ok: #2e7d32; --warn: #a15c00; --bad: #b3261e;
+  --sans: "IBM Plex Sans", -apple-system, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #121715; --panel: #1a211e; --fg: #e4ebe7; --muted: #94a39b; --line: #2c3631;
+  --accent: #3fbfa8; --accent-fg: #0b1412; --you: #22302b; --ok: #7bc47f; --warn: #e0a24a; --bad: #f2867d;
+  color-scheme: dark;
+} }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.wrap {
+  max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px calc(150px + env(safe-area-inset-bottom, 0px));
+}
+h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 500 12px/1 var(--mono); padding: 6px 8px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+}
+.chip[data-s="ok"] { color: var(--ok); }
+.chip[data-s="warn"] { color: var(--warn); }
+.chip[data-s="bad"] { color: var(--bad); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+select, input[type=text] {
+  font: 15px var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 10px; min-width: 0; flex: 1 1 180px;
+}
+button {
+  font: 600 15px var(--sans); border-radius: 8px; padding: 10px 14px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg);
+}
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.grow { flex: 1 1 180px; min-width: 0; }
+.meta { font: 12px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--fg); text-transform: none; letter-spacing: 0; }
+.log { display: flex; flex-direction: column; gap: 10px; }
+.msg { padding: 10px 12px; border-radius: 10px; max-width: 88%; overflow-wrap: anywhere; }
+.msg.you { align-self: flex-end; background: var(--you); }
+.msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); }
+.msg.sys { align-self: center; color: var(--muted); font: 12px/1.4 var(--mono); text-align: center; }
+.msg .t { font: 11px var(--mono); color: var(--muted); margin-top: 4px; }
+.talkbar {
+  position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line);
+  padding-top: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.talkbar .inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+#talk { width: 100%; padding: 16px; font-size: 17px; border-radius: 12px; }
+#talk[data-state="listening"] { background: var(--bad); border-color: var(--bad); }
+#talk[data-state="busy"] { background: var(--muted); border-color: var(--muted); }
+#heard { min-height: 1.4em; font-size: 14px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Voice Loop</h1>
+    <p class="sub">Speech in, a small language model on this device, speech out. The model and the neural voice run in the browser; dictation is the phone's own.</p>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <section class="panel">
+    <div class="row"><label>Model</label></div>
+    <div class="row">
+      <div class="grow">LFM2.5 350M on a custom WebGPU engine · ~230 MB</div>
+      <button id="load">Load</button>
+    </div>
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="meta" id="loadmeta">Not loaded. Weights stream straight to the GPU, then come from the browser cache.</div>
+  </section>
+
+  <section class="panel">
+    <div class="row"><label for="ttsmode">Voice</label></div>
+    <div class="row">
+      <select id="ttsmode">
+        <option value="system" selected>System voice</option>
+        <option value="supertonic">Supertonic: neural, runs on this device, ~260 MB</option>
+      </select>
+    </div>
+    <div class="row">
+      <select id="voice"></select>
+      <button class="ghost" id="testvoice">Test</button>
+    </div>
+    <div class="meta" id="ttsmeta"></div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="loop"> Conversation mode: listen again after each spoken answer</label>
+    </div>
+  </section>
+
+  <div class="log" id="log">
+    <div class="msg sys">Load a model, then tap Talk and ask something short, like "Why is the sky blue?"</div>
+  </div>
+</div>
+
+<div class="talkbar">
+  <div class="inner">
+    <div id="heard"></div>
+    <div class="row">
+      <input type="text" id="typed" placeholder="Or type a question" enterkeyhint="send" autocomplete="off">
+      <button class="ghost" id="stop">Stop</button>
+    </div>
+    <button id="talk" data-state="idle" disabled>Talk</button>
+  </div>
+</div>
+
+
+<script type="module">
+import { Chat } from "./llm.js";
+
+const $ = (id) => document.getElementById(id);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const synth = window.speechSynthesis;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const SYSTEM = "You are a voice assistant. Answer in one to three short spoken sentences. Plain text only: no lists, no markdown, no emoji.";
+const ST_VOICES = [["F1", "Supertonic F1"], ["F2", "Supertonic F2"], ["F3", "Supertonic F3"], ["F4", "Supertonic F4"], ["F5", "Supertonic F5"], ["M1", "Supertonic M1"], ["M2", "Supertonic M2"]];
+
+let chat = null, busy = false, listening = false, rec = null, abort = null;
+let history = [], speakBuf = "", cancelled = false;
+
+function store(k, v) { try { if (v !== undefined) localStorage.setItem(k, v); return localStorage.getItem(k); } catch { return null; } }
+
+// ---------- capability chips ----------
+async function chips() {
+  const out = [];
+  out.push(["speech recognition", SR ? "ok" : "bad", SR ? "yes" : "missing"]);
+  let gpu = ["WebGPU", "bad", "missing"];
+  if (navigator.gpu) {
+    try {
+      const a = await navigator.gpu.requestAdapter();
+      gpu = a ? ["WebGPU", "ok", "yes"] : ["WebGPU", "warn", "no adapter"];
+    } catch { gpu = ["WebGPU", "warn", "error"]; }
+  }
+  out.push(gpu);
+  out.push(["mode", "ok", standalone ? "home screen app" : "browser tab"]);
+  $("chips").innerHTML = "";
+  for (const [k, s, v] of out) {
+    const c = document.createElement("span");
+    c.className = "chip"; c.dataset.s = s; c.textContent = k + ": " + v;
+    $("chips").append(c);
+  }
+}
+
+// ---------- log ----------
+function add(cls, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls; d.textContent = text;
+  $("log").append(d);
+  d.scrollIntoView({ block: "end", behavior: "smooth" });
+  return d;
+}
+function note(el, text) { const t = document.createElement("div"); t.className = "t"; t.textContent = text; el.append(t); }
+
+// ---------- speech out ----------
+// Supertonic runs in a worker; sentences are synthesized one at a time, in order, and scheduled
+// back to back on one AudioContext so the next sentence is ready while the current one plays.
+let ac = null, playEnd = 0, ttsWorker = null, ttsReady = false, ttsLoading = false;
+let ttsQueue = [], ttsBusy = false, ttsSeq = 0, pendingAudio = 0;
+const mode = () => $("ttsmode").value;
+
+function unlockAudio() {
+  try { ac ??= new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
+  if (synth && !unlockAudio.done) { unlockAudio.done = true; const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); }
+}
+
+function loadTTS() {
+  if (ttsWorker || ttsLoading) return;
+  ttsLoading = true;
+  ttsWorker = new Worker(new URL("./tts-worker.js", import.meta.url), { type: "module" });
+  const t0 = performance.now();
+  ttsWorker.onmessage = ({ data }) => {
+    if (data.type === "progress") $("ttsmeta").textContent = `Voice model: ${(data.done / 1e6).toFixed(0)} of ${(data.total / 1e6).toFixed(0)} MB`;
+    else if (data.type === "ready") { ttsReady = true; ttsLoading = false; $("ttsmeta").textContent = `Voice ready in ${((performance.now() - t0) / 1000).toFixed(1)} s`; pump(); }
+    else if (data.type === "audio") {
+      ttsBusy = false;
+      if (data.id >= cancelFloor) play(data.audio, data.rate, data.ms);
+      pendingAudio--; pump(); afterSpeech();
+    } else if (data.type === "error") {
+      ttsBusy = false; pendingAudio = Math.max(0, pendingAudio - 1);
+      $("ttsmeta").textContent = "Voice error: " + data.message; ttsLoading = false; pump();
+    }
+  };
+  ttsWorker.postMessage({ type: "load" });
+}
+let cancelFloor = 0;
+
+function play(audio, rate, ms) {
+  if (!ac) return;
+  const buf = ac.createBuffer(1, audio.length, rate);
+  buf.copyToChannel(audio, 0);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.connect(ac.destination);
+  const at = Math.max(ac.currentTime + 0.02, playEnd);
+  src.start(at);
+  playEnd = at + buf.duration;
+  playing.push(src);
+  src.onended = () => { playing = playing.filter((x) => x !== src); afterSpeech(); };
+  $("ttsmeta").textContent = `Last sentence: ${buf.duration.toFixed(1)} s of audio made in ${(ms / 1000).toFixed(1)} s`;
+}
+let playing = [];
+
+function pump() {
+  if (!ttsReady || ttsBusy || !ttsQueue.length) return;
+  const { id, text } = ttsQueue.shift();
+  ttsBusy = true;
+  ttsWorker.postMessage({ type: "say", id, text, voice: $("voice").value, steps: 5 });
+}
+
+function sysVoice() { return synth?.getVoices().find((v) => v.voiceURI === $("voice").value) || null; }
+let sysPending = 0;
+function say(text) {
+  text = text.trim();
+  if (!text) return;
+  if (mode() === "supertonic") { pendingAudio++; ttsQueue.push({ id: ++ttsSeq, text }); loadTTS(); pump(); return; }
+  if (!synth) return;
+  const u = new SpeechSynthesisUtterance(text);
+  const v = sysVoice(); if (v) { u.voice = v; u.lang = v.lang; }
+  u.rate = 1.05; sysPending++;
+  u.onend = u.onerror = () => { sysPending--; afterSpeech(); };
+  synth.speak(u);
+}
+
+function stopSpeech() {
+  synth?.cancel(); sysPending = 0;
+  ttsQueue = []; cancelFloor = ttsSeq + 1; pendingAudio = ttsBusy ? 1 : 0;
+  for (const s of playing) { try { s.stop(); } catch {} }
+  playing = []; playEnd = 0;
+}
+
+const speaking = () => sysPending > 0 || synth?.speaking || pendingAudio > 0 || playing.length > 0;
+
+function fillVoices() {
+  const saved = store("voice:" + mode());
+  $("voice").innerHTML = "";
+  let list = [];
+  if (mode() === "supertonic") list = ST_VOICES;
+  else if (synth) {
+    // First in the list, and so the default: Samantha (Enhanced) when installed, then other
+    // Enhanced or Premium voices in the page's language, then the system's default voice.
+    const lang = (navigator.language || "en").slice(0, 2);
+    const rank = (v) => (/^samantha/i.test(v.name) && /enhanced|premium/i.test(v.name) ? 8 : 0)
+      + (v.lang.startsWith(lang) ? 4 : 0) + (/enhanced|premium/i.test(v.name) ? 2 : 0) + (v.default ? 1 : 0);
+    list = synth.getVoices().slice().sort((a, b) => rank(b) - rank(a) || a.name.localeCompare(b.name))
+      .map((v) => [v.voiceURI, v.name + " · " + v.lang]);
+  }
+  for (const [v, label] of list) { const o = document.createElement("option"); o.value = v; o.textContent = label; $("voice").append(o); }
+  if (saved && list.some(([v]) => v === saved)) $("voice").value = saved;
+}
+$("ttsmode").value = store("ttsmode") || "system";
+$("ttsmode").onchange = () => { store("ttsmode", mode()); fillVoices(); if (mode() === "supertonic") loadTTS(); };
+$("voice").onchange = () => store("voice:" + mode(), $("voice").value);
+if (synth) {
+  synth.addEventListener?.("voiceschanged", () => mode() === "system" && fillVoices());
+  setTimeout(() => mode() === "system" && !$("voice").options.length && fillVoices(), 500);  // Safari may load voices without the event
+}
+fillVoices();
+
+$("testvoice").onclick = () => { unlockAudio(); stopSpeech(); say("Hello. This is how my answers will sound when you ask me something."); };
+let shortBuf = "";
+
+// Speak whole sentences as they stream in, so the first sentence plays while the rest generates.
+function flushSentences(final) {
+  const re = /^([\s\S]*?[.!?…]["')\]]?)(\s+|$)/;
+  let m;
+  // Sentences under 60 characters wait for the next one: Supertonic underestimates the duration of
+  // a short utterance and drops words from it ("This is how answers will sound." lost "is how" in
+  // most Whisper transcripts, while a 95-character sentence came back verbatim).
+  while ((m = speakBuf.match(re)) && (m[2] || final)) {
+    shortBuf += (shortBuf ? " " : "") + m[1].trim(); speakBuf = speakBuf.slice(m[0].length);
+    if (shortBuf.length >= 60) { say(shortBuf); shortBuf = ""; }
+  }
+  if (final && shortBuf) { speakBuf = shortBuf + " " + speakBuf; shortBuf = ""; }
+  // A long run without sentence punctuation goes out in ~200-character pieces cut at a space, so
+  // one synthesis never covers a whole answer.
+  while (speakBuf.length > 220) {
+    const cut = Math.max(speakBuf.lastIndexOf(", ", 200) + 1, speakBuf.lastIndexOf(" ", 200));
+    const at = cut > 40 ? cut : 200;
+    say(speakBuf.slice(0, at)); speakBuf = speakBuf.slice(at);
+  }
+  if (final && speakBuf.trim()) { say(speakBuf); speakBuf = ""; }
+}
+
+let waitingToListen = false;
+function afterSpeech() {
+  if (!$("loop").checked || cancelled || busy || waitingToListen) return;
+  if (speaking()) return;
+  waitingToListen = true;
+  setTimeout(() => { waitingToListen = false; if (!speaking() && !busy && !cancelled) listen(); }, 400);
+}
+
+// ---------- model ----------
+$("load").onclick = async () => {
+  unlockAudio();
+  if (mode() === "supertonic") loadTTS();
+  $("load").disabled = true; $("talk").disabled = true;
+  $("barfill").style.width = "0"; $("loadmeta").textContent = "Starting…";
+  const t0 = performance.now();
+  try {
+    chat = await Chat.load((done, total) => {
+      $("barfill").style.width = (100 * done / total).toFixed(1) + "%";
+      $("loadmeta").textContent = `Loading ${(done / 1e6).toFixed(0)} of ${(total / 1e6).toFixed(0)} MB`;
+    });
+    $("barfill").style.width = "100%";
+    $("loadmeta").textContent = `Ready in ${((performance.now() - t0) / 1000).toFixed(1)} s${chat.cached ? " (weights from cache)" : ""}`;
+    $("load").textContent = "Loaded";
+    setTalk();
+  } catch (e) {
+    $("load").disabled = false;
+    $("loadmeta").textContent = "Failed: " + e.message;
+    add("sys", "Load failed: " + e.message);
+  }
+};
+
+async function ask(text) {
+  text = text.trim();
+  if (!text || !chat || busy) return;
+  cancelled = false; busy = true; setTalk();
+  stopSpeech();
+  add("you", text);
+  history.push({ role: "user", content: text });
+  history = history.slice(-6);
+  const el = add("bot", "…"); speakBuf = ""; shortBuf = "";
+  let shown = "";
+  abort = new AbortController();
+  try {
+    const r = await chat.generate([{ role: "system", content: SYSTEM }, ...history], {
+      signal: abort.signal,
+      onText: (t) => { if (cancelled) return; speakBuf += t.slice(shown.length); shown = t; el.textContent = t; flushSentences(false); },
+    });
+    if (!cancelled) {
+      flushSentences(true);
+      history.push({ role: "assistant", content: r.text.trim() });
+      note(el, `${r.promptTokens} prompt tokens in ${Math.round(r.prefillMs)} ms · ${r.tokPerSec ? r.tokPerSec.toFixed(1) + " tok/s" : ""}`);
+    } else note(el, "stopped");
+  } catch (e) { add("sys", "Error: " + e.message); }
+  busy = false; setTalk(); afterSpeech();
+}
+
+// ---------- recognition ----------
+function setTalk() {
+  const t = $("talk");
+  t.dataset.state = listening ? "listening" : busy ? "busy" : "idle";
+  t.textContent = !SR ? "No speech recognition here; type below" : listening ? "Listening… tap to stop" : busy ? "Thinking…" : "Talk";
+  t.disabled = !chat || !SR || busy;
+}
+
+function listen() {
+  if (!SR || listening || busy || !chat) return;
+  stopSpeech();
+  rec = new SR();
+  rec.lang = navigator.language || "en-US";
+  rec.interimResults = true;
+  rec.continuous = false;
+  let final = "";
+  rec.onresult = (e) => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) final += r[0].transcript; else interim += r[0].transcript;
+    }
+    $("heard").textContent = (final + " " + interim).trim();
+  };
+  rec.onerror = (e) => {
+    const why = { "not-allowed": "Microphone or Speech Recognition permission denied (Settings > Safari, and Settings > Privacy > Speech Recognition).",
+                  "service-not-allowed": "Speech recognition is not allowed in this context. Try the page in a Safari tab, or check that Siri & Dictation is on.",
+                  "no-speech": "Heard nothing.", "network": "Dictation needs a network connection on this device." }[e.error];
+    add("sys", "Recognition: " + (why || e.error));
+  };
+  rec.onend = () => {
+    listening = false; setTalk();
+    const text = (final || $("heard").textContent).trim();
+    $("heard").textContent = "";
+    if (text) ask(text);
+  };
+  try { rec.start(); listening = true; setTalk(); $("heard").textContent = ""; }
+  catch (e) { add("sys", "Recognition failed to start: " + e.message); }
+}
+
+$("talk").onclick = () => { unlockAudio(); if (listening) { rec?.stop(); return; } listen(); };
+$("typed").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { unlockAudio(); ask($("typed").value); $("typed").value = ""; $("typed").blur(); }
+});
+$("stop").onclick = () => { cancelled = true; abort?.abort(); stopSpeech(); rec?.abort?.(); };
+
+chips();
+setTalk();
+</script>
+</body>
+</html>

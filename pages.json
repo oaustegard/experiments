@@ -219,6 +219,24 @@
    "experiment": "gpu-bridge",
    "path": "gpu-bridge/web",
    "blurb": "Runs WebGPU jobs that Claude Code sessions push to a private GitHub repo on this machine's GPU, commits the results back and wakes the session"
+  },
+  {
+   "title": "Voice Loop",
+   "experiment": "voice-loop",
+   "path": [
+    "voice-loop/web",
+    "lfm-wgsl/web/lfm.js",
+    "lfm-wgsl/web/manifest.json",
+    "_lib/wgsl/runtime.js",
+    "_lib/wgsl/kernels.js"
+   ],
+   "blurb": "Talk to LFM2.5 350M running on a hand-written WebGPU engine in the page: the phone's dictation in, Supertonic neural speech out, with prefill time and tokens per second on screen"
+  },
+  {
+   "title": "DOOM Arena",
+   "experiment": "trm-doom",
+   "path": "trm-doom/web",
+   "blurb": "The TRM bot plays gPu(doom) on this device's GPU, level after level, restarting a level that stops making progress, and ships a log of every attempt back to the Claude session through the GPU-bridge repo"
   }
  ]
 }

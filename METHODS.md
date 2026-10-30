@@ -661,6 +661,14 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **WebGPU's 65,535 workgroups per dimension fails silently inside a queue of dispatches.** A 1-D elementwise dispatch
+  over L·HID/64 workgroups passed the limit only on large grids; the dispatch failed validation and the pass produced
+  nothing, so every whole-level TRM plan came back empty with no error surfaced to the job. Dispatch elementwise kernels
+  in 2-D (x ≤ 16384) and check a large-size run against a reference, not only the training size. (`trm-doom/web/trm.js`)
+- **A lockstep game harness must read state as often as the agent acts.** Reading DOOM's state every second tic while
+  the bot steered every tic applied each turn twice from a stale angle; aim never settled and the bot faced walls in
+  fights. (`trm-doom/web/runner.js`)
+
 - **MediaPipe tasks-vision in a module Worker: evaluate the wasm loader globally first.** tasks-vision 1.1.0's
   loader tries `importScripts`, which throws in a module Worker, falls back to `import()`, and then fails with
   "ModuleFactory not set." because the classic script's `ModuleFactory` lands in module scope. Before
@@ -1472,6 +1480,17 @@ the result.
   log round 4)
 
 ## Numerical / ML gotchas
+
+- **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM
+  (arXiv 2510.04871) with attention (learned positions plus a 2D relative bias) reached 1.7% exact on 32×32
+  shortest-route labels after 4000 steps at 1.8 steps/s on an A100; the same recursion with a 3×3 conv ran 7.2 steps/s
+  and reached 27% by step 5000 and 94% by 60k. Learning was flat for the first ~3000 steps, then took off: judge a run
+  after the knee, not before. Keep token embeddings and a learned position table at the same scale (√d-scaled
+  embeddings drowned a 0.02-std table). (`trm-doom/RESULTS.md`)
+- **A conv recursive model trained on one grid size extrapolates poorly to bigger grids until fine-tuned on several.**
+  32×32-only: 30–35% joined start to goal on 64×64. After fine-tuning on 32/48/64/96 with no position table: 75% exact
+  on 64×64 and 59% on 96×96 held-out grids. A halting head trained on the small size fires after one step on the large
+  ones, so force a minimum step count there. (`trm-doom/RESULTS.md`)
 
 - **Hearing taps while the page plays sound: cancel your own playback with NLMS on the exact output.** One
   AudioWorklet that both plays and listens has the true reference. A 120 ms NLMS filter at 16 kHz, adapting only
