@@ -1,7 +1,7 @@
 // Headless lockstep player: loads a level, and each tic reads the game state back (every `every` tics),
 // asks the bot for input and runs one tic. Used by the test page here and by the GPU-bridge job.
 
-export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", maxTics = 35 * 300, every = 2, skill = 3,
+export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", maxTics = 35 * 300, every = 1, skill = 3,
   frameEvery = 0, debugGrids = false, frameSize = [320, 200], carry = null, onProgress = null, deadlineMs = 1e12, seed = 0, globalPlanner = null, Bot }) {
   const { Engine, unpackWad, freshPlayer, W } = doom.engine;
   const eng = await Engine.create(device, await unpackWad(wadBytes), { width: frameSize[0], height: frameSize[1], skill, maxWidth: frameSize[0], maxHeight: frameSize[1] });

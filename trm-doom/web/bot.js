@@ -214,6 +214,7 @@ export class Bot {
   // grid size). Used instead of the 1536-unit coarse window when the bot has a global planner.
   async planGlobal() {
     const t = this.target, p = this.s.p, b = this.map.bmap, cs = COARSE;
+    if (!t) return false;
     const n = this.globalN ||= Math.ceil(Math.max(b.w, b.h) * 128 / cs / 8) * 8 + 8;
     const cx = b.x + b.w * 64, cy = b.y + b.h * 64;
     const grid = this.gr.coarse(cx, cy, this.gridState(), cs, n);
@@ -249,6 +250,7 @@ export class Bot {
   }
 
   async planCoarse() {
+    if (!this.target) return false;
     if (this.globalPlanner && !this.noGlobal) return this.planGlobal();
     const t = this.target, p = this.s.p;
     const grid = this.anchored(this.gr.coarse, COARSE);
@@ -293,6 +295,7 @@ export class Bot {
 
   async planFine(retry = true) {
     const t = this.target, p = this.s.p;
+    if (!t) return false; // rejected while replanning
     const base = this.anchored(this.gr.fine, FINE);
     const c0 = (N / 2) * N + N / 2;
     base.g[c0] = C.START;
