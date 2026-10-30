@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable } from "./grid.js?v=20261030-113048";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT } from "./grid.js?v=20261030-113048";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -113,6 +113,24 @@ export class Bot {
         out.push({ key: "l" + i, kind: "trigger", x: mx, y: my, prio: 15 - d(mx, my) / 100, line: i, use: false, walk: true });
       }
     });
+    // Standing on a damaging floor, getting off it comes first: an edge with a step the player can take, or a
+    // lift out (E1M3's nukage pit: the bot pressed the pit's lift switch, then went for an item and died there).
+    const here = this.map.spawnSector(p.x, p.y);
+    if (HURT.has(this.map.sectors[here].special)) {
+      const L = this.gr.lines;
+      for (const i of this.gr.secLines[here]) {
+        const l = this.map.lines[i], o = l.fsec === here ? l.bsec : l.fsec;
+        if (o < 0 || o === here || HURT.has(this.map.sectors[o].special)) continue;
+        const lift = this.gr.lifts.has(o);
+        if (Math.min(s.ceil[o], s.ceil[here]) - Math.max(s.floor[o], s.floor[here]) < 56 && !lift) continue;
+        if (s.floor[o] - s.floor[here] > 24 && !lift) continue;
+        const dx = L.lx2[i] - L.lx1[i], dy = L.ly2[i] - L.ly1[i], len = Math.hypot(dx, dy) || 1, side = o === l.bsec ? -1 : 1;
+        const x = (L.lx1[i] + L.lx2[i]) / 2 + side * 32 * dy / len, y = (L.ly1[i] + L.ly2[i]) / 2 - side * 32 * dx / len;
+        out.push({ key: "e" + i, kind: "escape", x, y, prio: 100 - d(x, y) / 100, hazardOK: true, fromSector: here });
+      }
+    }
+    // ExM8: the way to the exit opens when the bosses die (tag 666), so the bot goes looking for them
+    if (/M8$/.test(this.map.name)) for (const m of s.monsters) out.push({ key: "m" + m.k, kind: "hunt", x: m.x, y: m.y, prio: 75 - d(m.x, m.y) / 200, mobj: m.k });
     // the nearest unexplored places
     const fr = [];
     for (const c of this.standCells) if (!this.visited[c.j * this.bw + c.i]) fr.push({ key: `f${c.i},${c.j}`, kind: "explore", x: c.x, y: c.y, prio: 10 - d(c.x, c.y) / 100 });
@@ -132,6 +150,8 @@ export class Bot {
   targetDone(t) {
     const p = this.s.p;
     if (t.thing !== undefined) return !this.s.items.some((it) => it.k === t.thing);
+    if (t.mobj !== undefined) return !this.s.monsters.some((m) => m.k === t.mobj);
+    if (t.kind === "escape") return !HURT.has(this.map.sectors[this.map.spawnSector(p.x, p.y)].special);
     if (t.line !== undefined && t.use) return !this.s.specials[t.line];
     if (t.walk && Math.hypot(t.x - this.s.p.x, t.y - this.s.p.y) < 40) { (this.crossed ||= new Set()).add(t.line); return true; }
     return Math.hypot(t.x - p.x, t.y - p.y) < 48;
@@ -515,6 +535,15 @@ export class Bot {
       if (this.target.kind === "explore") this.blacklist.set(this.target.key, 1e9);
       this.target = null; this.fine = null; this.coarse = null;
     }
+    // three seconds on a damaging floor with a target elsewhere: that target is dropped for a way off it
+    if (HURT.has(this.map.sectors[this.map.spawnSector(p.x, p.y)].special)) {
+      this.hurtSince ??= this.tic;
+      if (this.target && this.target.kind !== "escape" && this.tic - this.hurtSince > 105) {
+        const c = this.candidates()[0];
+        if (c?.kind === "escape") { this.events.push({ tic: this.tic, ev: "escape", from: this.target.key }); this.target = null; this.fine = null; this.coarse = null; }
+      }
+    } else this.hurtSince = null;
+    if (this.target?.mobj !== undefined) { const m = s.monsters.find((mm) => mm.k === this.target.mobj); if (m) { this.target.x = m.x; this.target.y = m.y; } }
     if (this.target && this.tic - this.target.since > 35 * 40) this.reject(this.target, "timeout");
     // progress: the target must get closer within 20 seconds, or it's given up for now. Closer means a
     // shorter global route when there is one (routes often start away from the goal), else straight-line.
@@ -546,7 +575,15 @@ export class Bot {
       if (!near && !(await this.planCoarse())) continue;
       if (!(await this.planFine())) continue;
     }
-    if (!this.target) return { turn: 0.05 };
+    // Nothing plans from here (E1M2: a corner where every route came back empty for 40 s): drop the temporary
+    // blocks, then wander a second at a time in a new direction until a target plans again.
+    if (!this.target) {
+      this.idleSince ??= this.tic;
+      if (this.tic - this.idleSince < 70) return { turn: 0.05 };
+      if (!this.wander || this.tic > this.wander.until) { this.blocked = []; this.wander = { until: this.tic + 35, turn: (Math.random() - 0.5) * 0.3 }; this.events.push({ tic: this.tic, ev: "wander", x: Math.round(p.x), y: Math.round(p.y) }); }
+      return { forward: 25, turn: this.wander.turn, use: (this.tic & 15) === 0 };
+    }
+    this.idleSince = null;
     const t = this.target;
     const near = Math.hypot(t.x - p.x, t.y - p.y) < (N / 2 - 2) * FINE;
     if (!near && (!this.coarse || this.tic - this.coarse.tic > (this.globalPlanner ? 350 : 140))) { if (!(await this.planCoarse())) return {}; }
