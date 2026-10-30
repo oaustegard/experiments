@@ -35,6 +35,7 @@ def load(dirs):
 data = {n: load(sorted(root.glob("train*")) if n == 32 else sorted(root.glob(f"b{n}[a-z]"))) for n, _ in sizes}
 for n in data: print("size", n, "samples", len(data[n][0]), flush=True)
 evals = {"val32": (32, *load([root / "val"])), "test64_E1M9": (64, *load([root / "b64test"]))}
+if (root / "b96test").exists(): evals["test96_E1M9"] = (96, *load([root / "b96test"]))
 
 ck = torch.load(a.init, map_location=dev); ia = ck["args"]
 model = TRM(L=1024, d=ia["d"], heads=ia["heads"], layers=ia["layers"], n=ia["n"], T=ia["T"], mixer="conv").to(dev)

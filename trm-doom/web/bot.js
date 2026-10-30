@@ -245,6 +245,7 @@ export class Bot {
     if (!k) { this.stats.coarseEmpty++; this.reject(t, "TRM: no global route"); return false; }
     const w = this.walkSet(g, r.path, gc, n, s0);
     if (!w.reached) this.stats.coarseBroken++;
+    t.routeLeft = w.reached ? w.path.length : undefined;
     this.coarse = { grid: { ...grid, cs }, path: w.path, tic: this.tic, n };
     return true;
   }
@@ -431,11 +432,12 @@ export class Bot {
       this.target = null; this.fine = null; this.coarse = null;
     }
     if (this.target && this.tic - this.target.since > 35 * 40) this.reject(this.target, "timeout");
-    // progress: the target must get closer every 12 seconds, or it's given up for now
+    // progress: the target must get closer within 20 seconds, or it's given up for now. Closer means a
+    // shorter global route when there is one (routes often start away from the goal), else straight-line.
     if (this.target) {
-      const dt = Math.hypot(this.target.x - p.x, this.target.y - p.y);
-      if (!(dt > (this.target.best ?? 1e9) - 64)) { this.target.best = Math.min(dt, this.target.best ?? 1e9); this.target.bestTic = this.tic; }
-      else if (this.tic - this.target.bestTic > 420) this.reject(this.target, "no progress");
+      const t = this.target, left = t.routeLeft ?? Math.hypot(t.x - p.x, t.y - p.y) / COARSE;
+      if (!(left > (t.best ?? 1e9) - 1.5)) { t.best = Math.min(left, t.best ?? 1e9); t.bestTic = this.tic; }
+      else if (this.tic - t.bestTic > 700) this.reject(t, "no progress");
     }
     if (this.debugGrids && this.fine && this.tic - (this.lastDump ?? -999) > 300) {
       this.lastDump = this.tic;
