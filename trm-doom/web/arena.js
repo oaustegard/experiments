@@ -7,9 +7,9 @@
 // ?map= ?skill= ?stuck= ?cap= ?tries= ?fast preset the controls, ?auto starts at once, ?planner=oracle swaps
 // TRM for exact BFS (a debug stand-in, never for reported runs).
 
-import { Bot } from "./bot.js?v=20261030-122108";
-import { TRMPlanner } from "./trm.js?v=20261030-122108";
-import { OraclePlanner } from "./oracle.js?v=20261030-122108";
+import { Bot } from "./bot.js?v=20261030-123935";
+import { TRMPlanner } from "./trm.js?v=20261030-123935";
+import { OraclePlanner } from "./oracle.js?v=20261030-123935";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -230,6 +230,8 @@ async function campaign() {
 }
 
 // ---------------------------------------------------------------- page
+const SETTINGS = ["map", "skill", "stuck", "cap", "tries"];
+$("#play").addEventListener("click", () => { try { localStorage.setItem("arena-settings", JSON.stringify(Object.fromEntries(SETTINGS.map((k) => [k, $("#" + k).value])))); } catch {} });
 $("#play").addEventListener("click", () => campaign().catch((e) => { running = false; status(e.message, true); console.error(e); $("#play").disabled = false; }));
 $("#stop").addEventListener("click", () => { running = false; });
 let lock = null;
@@ -286,7 +288,10 @@ $("#repo").value = cfg.repo;
 verify();
 setInterval(() => ship(null), 60000); // retry uploads that failed
 init().then(() => {
-  for (const k of ["map", "skill", "stuck", "cap", "tries"]) if (params.has(k)) $("#" + k).value = params.get(k);
+  // start where the bot has work to do (E1M1 clears); then whatever this browser used last; then the URL
+  $("#map").value = "E1M2";
+  try { const saved = JSON.parse(localStorage.getItem("arena-settings") || "{}"); for (const k of SETTINGS) if (saved[k] != null) $("#" + k).value = saved[k]; } catch {}
+  for (const k of SETTINGS) if (params.has(k)) $("#" + k).value = params.get(k);
   if (params.has("fast")) $("#fast").checked = true;
   $("#play").disabled = false;
   if (params.has("auto")) $("#play").click();

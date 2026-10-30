@@ -21,7 +21,7 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
 #status { color: var(--acc); min-height: 1.4em; }
 #log { white-space: pre-wrap; color: var(--dim); max-height: 40vh; overflow: auto; border-top: 1px solid #333; padding-top: 8px; font-size: 12px; }
 .err { color: var(--err); }
-.ver { font-size: 13px; font-weight: normal; padding: 2px 8px; border-radius: 10px; background: #143a1c; color: #8f8; margin-left: 6px; white-space: nowrap; }
+.ver { font-size: 13px; font-weight: normal; padding: 2px 8px; border-radius: 10px; background: #143a1c; color: #8f8; margin-left: 6px; display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
 .pill { padding: 3px 8px; border-radius: 10px; background: #2a2a2a; color: var(--dim); }
 .pill.ok { background: #143a1c; color: #8f8; }
 .pill.wait { background: #3a3214; color: var(--acc); }
@@ -45,9 +45,9 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
   <div class="row">
     <label>Start <select id="map"></select></label>
     <label>Skill <select id="skill"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
-    <label>Stuck after <input id="stuck" type="number" value="90" min="20"> s</label>
-    <label>Level cap <input id="cap" type="number" value="15" min="1"> min</label>
-    <label>Tries <input id="tries" type="number" value="3" min="1"></label>
+    <label>Stuck after <input id="stuck" type="number" value="45" min="20"> s</label>
+    <label>Level cap <input id="cap" type="number" value="8" min="1"> min</label>
+    <label>Tries <input id="tries" type="number" value="2" min="1"></label>
     <label><input type="checkbox" id="fast"> as fast as the GPU goes</label>
     <label><input type="checkbox" id="wake" checked> wake the session</label>
   </div>
@@ -58,6 +58,6 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
   </div>
   <div id="log"></div>
 </main>
-<script type="module" src="arena.js?v=20261030-122108"></script>
+<script type="module" src="arena.js?v=20261030-123935"></script>
 </body>
 </html>
