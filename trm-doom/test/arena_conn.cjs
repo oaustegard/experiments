@@ -26,6 +26,6 @@ const srv = http.createServer((req, res) => { const f = path.join(root, decodeUR
     console.log(tok + ":", await pill(), "| form hidden:", await pg.evaluate(() => document.getElementById("conn").hidden));
   }
   await pg.reload(); await pg.waitForTimeout(1500); console.log("after reload:", await pill());
-  console.log("errors:", errs);
+  console.log("version:", await pg.evaluate(() => document.getElementById("ver").textContent), "newver hidden:", await pg.evaluate(() => document.getElementById("newver").hidden)); console.log("errors:", errs);
   await b.close(); srv.close();
 });

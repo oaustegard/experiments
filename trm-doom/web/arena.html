@@ -21,6 +21,7 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
 #status { color: var(--acc); min-height: 1.4em; }
 #log { white-space: pre-wrap; color: var(--dim); max-height: 40vh; overflow: auto; border-top: 1px solid #333; padding-top: 8px; font-size: 12px; }
 .err { color: var(--err); }
+.ver { font-size: 12px; color: var(--dim); font-weight: normal; }
 .pill { padding: 3px 8px; border-radius: 10px; background: #2a2a2a; color: var(--dim); }
 .pill.ok { background: #143a1c; color: #8f8; }
 .pill.wait { background: #3a3214; color: var(--acc); }
@@ -29,7 +30,8 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
 </head>
 <body>
 <main>
-  <h1>DOOM Arena</h1>
+  <h1>DOOM Arena <small id="ver" class="ver"></small></h1>
+  <div id="newver" class="row" hidden><span class="pill wait" id="newvertext"></span> <button id="reload" type="button">Reload</button></div>
   <p class="lede">The TRM bot plays gPu(doom) here, on this device's GPU. After every attempt the log goes to the GPU-bridge repo and a comment wakes the Claude session. A level that stops making progress is restarted, and after a few tries skipped.</p>
   <canvas id="screen" width="640" height="480"></canvas>
   <div id="status"></div>
@@ -56,6 +58,6 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
   </div>
   <div id="log"></div>
 </main>
-<script type="module" src="arena.js"></script>
+<script type="module" src="arena.js?v=20261030-105357"></script>
 </body>
 </html>

@@ -7,9 +7,9 @@
 // ?map= ?skill= ?stuck= ?cap= ?tries= ?fast preset the controls, ?auto starts at once, ?planner=oracle swaps
 // TRM for exact BFS (a debug stand-in, never for reported runs).
 
-import { Bot } from "./bot.js";
-import { TRMPlanner } from "./trm.js";
-import { OraclePlanner } from "./oracle.js";
+import { Bot } from "./bot.js?v=20261030-105357";
+import { TRMPlanner } from "./trm.js?v=20261030-105357";
+import { OraclePlanner } from "./oracle.js?v=20261030-105357";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -83,12 +83,28 @@ async function flush() {
   }
 }
 
+// ---------------------------------------------------------------- version: which build is this, and is there a newer one?
+let VERSION = "unknown", VNOTE = "";
+async function deployed() { try { return await (await fetch(new URL("version.json", import.meta.url), { cache: "no-store" })).json(); } catch { return null; } }
+async function checkVersion() {
+  const v = await deployed();
+  if (!v || v.version === VERSION || VERSION === "unknown") return;
+  $("#newvertext").textContent = `Version ${v.version} is deployed${v.note ? ` (${v.note})` : ""}; this page runs ${VERSION}${running ? ". It reloads when you press Reload; the current attempt is lost" : ""}`;
+  $("#newver").hidden = false;
+}
+$("#reload").addEventListener("click", () => location.reload());
+
 // ---------------------------------------------------------------- game
 let device, context, format, eng, doom, weights, man, planner, globals = new Map(), fast = false;
 const SESSION = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + "-" + Math.random().toString(36).slice(2, 6);
 const deviceLabel = () => /iPhone/.test(navigator.userAgent) ? "iPhone" : /iPad/.test(navigator.userAgent) ? "iPad" : /Android/.test(navigator.userAgent) ? "Android" : /Mac/.test(navigator.userAgent) ? "Mac" : /Windows/.test(navigator.userAgent) ? "Windows" : "Linux";
 
 async function init() {
+  const v = await deployed();
+  // the version this page loaded is the one stamped into its own URL, not whatever is deployed now
+  VERSION = new URL(import.meta.url).searchParams.get("v") || v?.version || "unknown"; VNOTE = v?.version === VERSION ? v.note || "" : "";
+  $("#ver").textContent = `version ${VERSION}${VNOTE ? " · " + VNOTE : ""}`;
+  setInterval(checkVersion, 60000);
   if (!navigator.gpu) throw new Error("this browser has no WebGPU");
   const ad = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   device = await ad.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
@@ -188,7 +204,7 @@ async function campaign() {
   const opts = { stuck: +$("#stuck").value, cap: +$("#cap").value, tries: +$("#tries").value };
   eng.skill = +$("#skill").value;
   let map = $("#map").value, carry = null, tryNo = 1;
-  const meta = { session: SESSION, device: deviceLabel(), ua: navigator.userAgent, skill: eng.skill, opts, weights: WEIGHTS, global: fast, startedAt: new Date().toISOString() };
+  const meta = { session: SESSION, version: VERSION, note: VNOTE, device: deviceLabel(), ua: navigator.userAgent, skill: eng.skill, opts, weights: WEIGHTS, global: fast, startedAt: new Date().toISOString() };
   ship({ [`doom-logs/${SESSION}/session.json`]: { text: JSON.stringify(meta, null, 1) } }, `doom-arena: ${SESSION} started on ${meta.device}`);
   logLine(`session ${SESSION}`);
   while (running && map) {
@@ -196,11 +212,11 @@ async function campaign() {
     const r = await playLevel(map, carry, { ...opts, tryNo });
     if (r.result === "stopped") break;
     const n = String(attemptNo).padStart(3, "0"), base = `doom-logs/${SESSION}/${n}-${map}-${r.result}`;
-    const files = { [base + ".json"]: { text: JSON.stringify({ ...r, thumbs: r.thumbs.map(([t]) => t), tryNo, skill: eng.skill }, null, 0) } };
+    const files = { [base + ".json"]: { text: JSON.stringify({ ...r, thumbs: r.thumbs.map(([t]) => t), tryNo, skill: eng.skill, version: VERSION }, null, 0) } };
     for (const [t, png] of r.thumbs) files[`${base}-t${String(t).padStart(6, "0")}.png`] = { bytes: png };
     const line = `${map} try ${tryNo}: ${r.result} at ${r.seconds} s, kills ${r.kills}, hp ${r.health}`;
     logLine(line);
-    ship(files, `doom-arena: ${line}`, `doom-arena \`${SESSION}\`: ${line} — \`${base}.json\``);
+    ship(files, `doom-arena: ${line}`, `doom-arena \`${SESSION}\` (v ${VERSION}): ${line} — \`${base}.json\``);
     if (r.result === "exit" || r.result === "secret-exit") { map = (r.result === "secret-exit" ? SECRET[map] : null) || NEXT[map]; carry = r.carry; tryNo = 1; }
     else if (tryNo < opts.tries) { tryNo++; carry = null; }             // pistol start on a retry
     else { logLine(`${map}: giving up after ${tryNo} tries`); map = NEXT[map]; carry = null; tryNo = 1; }
