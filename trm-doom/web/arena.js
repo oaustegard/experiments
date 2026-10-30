@@ -157,7 +157,7 @@ async function playLevel(map, carry, opts) {
   const plan = { plans: 0, ms: 0 };
   const oracle = params.get("planner") === "oracle" ? new OraclePlanner() : null;
   const local = { async plan(g) { const r = oracle ? await oracle.plan(g) : await planner.plan(g, { sup: 4, minSup: 2 }); plan.plans++; plan.ms += r.ms; return r; } };
-  const bot = new Bot({ wad: eng.wad, map: eng.map, MOBJINFO: doom.info.MOBJINFO, MF: doom.info.MF, LINE_SPECIALS: doom.specials.LINE_SPECIALS, TR: doom.specials.TR, W }, local);
+  const bot = new Bot({ wad: eng.wad, map: eng.map, MOBJINFO: doom.info.MOBJINFO, MF: doom.info.MF, LINE_SPECIALS: doom.specials.LINE_SPECIALS, TR: doom.specials.TR, W }, local, { seed: seed ?? 0 });
   if (oracle) bot.globalPlanner = async () => oracle;
   else if (fast) bot.globalPlanner = async (n) => { if (!globals.has(n)) globals.set(n, await TRMPlanner.create(device, weights, man, { w: n, h: n })); return globals.get(n); };
   const t0 = performance.now(), thumbs = [], trace = [];
