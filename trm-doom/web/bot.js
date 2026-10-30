@@ -237,7 +237,9 @@ export class Bot {
     g[s0] = C.START; g[gc] = C.GOAL;
     const pl = await this.globalPlanner(n);
     const t0 = performance.now();
-    const r = await pl.plan(g, { sup: this.globalSup || 10 });
+    // a supervision step carries a route ~30 cells (15 net calls of two 3×3 convs): enough steps to cross the grid
+    const steps = this.globalSup || Math.ceil(n / 16) + 2;
+    const r = await pl.plan(g, { sup: steps, minSup: steps });
     this.stats.planMs += performance.now() - t0; this.stats.globalPlans = (this.stats.globalPlans || 0) + 1;
     this.stats.globalMs = (this.stats.globalMs || 0) + r.ms;
     let k = 0; for (const v of r.path) k += v;

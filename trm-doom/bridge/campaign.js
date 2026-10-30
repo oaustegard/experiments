@@ -18,7 +18,7 @@ else {
   const cache = new Map();
   if (cfg.global) globalPlanner = async (n) => { if (!cache.has(n)) cache.set(n, await TRMPlanner.create(device, gw, gman, { w: n, h: n })); return cache.get(n); };
   let plans = 0, steps = 0, ms = 0, halted = 0;
-  planner = { async plan(g) { const r = await trm.plan(g, { sup: cfg.sup || 4 }); plans++; steps += r.steps; ms += r.ms; halted += r.halt > 0; return r; },
+  planner = { async plan(g) { const r = await trm.plan(g, { sup: cfg.sup || 4, minSup: cfg.minSup || 2 }); plans++; steps += r.steps; ms += r.ms; halted += r.halt > 0; return r; },
     stats: () => ({ plans, meanSteps: steps / Math.max(plans, 1), meanMs: ms / Math.max(plans, 1), halted }) };
 }
 const out = { levels: [], device: ctx.describe?.()?.device };

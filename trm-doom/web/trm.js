@@ -287,7 +287,7 @@ export class TRMPlanner {
 
   // Plan on a grid (Uint8Array of L cells). Runs `sup` supervision steps, stopping early once the halting
   // head says so; `yieldEvery` net calls it awaits a frame (pass a function returning a promise).
-  async plan(grid, { sup = 3, yieldFn = null } = {}) {
+  async plan(grid, { sup = 3, minSup = 1, yieldFn = null } = {}) {
     const q = this.device.queue, t0 = performance.now();
     q.writeBuffer(this.tok, 0, Uint32Array.from(grid));
     q.submit([this.encode(this.init).finish()]);
@@ -301,7 +301,7 @@ export class TRMPlanner {
       const r = new Float32Array(this.read.getMappedRange().slice(0));
       this.read.unmap();
       logits = r.subarray(0, this.L); halt = r[this.L]; steps = s + 1;
-      if (halt > 0) break;
+      if (halt > 0 && steps >= minSup) break; // the halting head was trained on 32×32: don't trust it early
     }
     const path = new Uint8Array(this.L);
     for (let k = 0; k < this.L; k++) path[k] = logits[k] > 0 ? 1 : 0;
