@@ -930,6 +930,14 @@ survives exactly the sanity checks people run.
   codes at 512 recall 0.874 against 0.915 at 768 (−0.041, CI ±0.006). Measure the metric the use
   case needs: labels for search quality, the full-width neighbours for an ANN index that must agree
   with its float version. (`embeddinggemma2-webgpu-tail/run/eval_512.py`)
+- **EmbeddingGemma 2 text embeddings live in a fixed 512-dim subspace; rotate, don't truncate.** The
+  text tower's hidden size is 512 and it projects linearly to 768, so every text vector (query or document)
+  has rank-512 support: singular values drop 1e4x after rank 512 on 100k Quora docs, and queries have 1e-7
+  outside the document span. Dot-product search in the 512 rotated coordinates (basis = top 512 right
+  singular vectors of any few thousand vectors, no centring, no renormalising) reproduces the 768-dim top 10
+  exactly (1.000), against 0.926 for the Matryoshka prefix at 512. Before compressing any embedding model, check
+  its spectrum for this: a projection head wider than the hidden state stores dead dimensions. Centring plus
+  renormalising (plain PCA cosine) cost 0.12 nDCG@10 here, so score uncentred. (`rrc-negative-margin-drop/span512.py`)
 - **remex `search_batch` is not an ADC scan.** It scores against a cached dequantized float matrix
   (100k x 768 fp32, ~300 MB) and ran 20 queries over 100k in 43 ms; the codes-only `search_adc` took
   7.5 s for the same work. Compare a codes-only implementation (a GPU scan, a WASM scan) with
