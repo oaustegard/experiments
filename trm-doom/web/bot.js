@@ -113,6 +113,8 @@ export class Bot {
         out.push({ key: "l" + i, kind: "trigger", x: mx, y: my, prio: 15 - d(mx, my) / 100, line: i, use: false, walk: true });
       }
     });
+    // ExM8: the way to the exit opens when the bosses die (tag 666), so the bot goes looking for them
+    if (/M8$/.test(this.map.name)) for (const m of s.monsters) out.push({ key: "m" + m.k, kind: "hunt", x: m.x, y: m.y, prio: 75 - d(m.x, m.y) / 200, mobj: m.k });
     // the nearest unexplored places
     const fr = [];
     for (const c of this.standCells) if (!this.visited[c.j * this.bw + c.i]) fr.push({ key: `f${c.i},${c.j}`, kind: "explore", x: c.x, y: c.y, prio: 10 - d(c.x, c.y) / 100 });
@@ -132,6 +134,7 @@ export class Bot {
   targetDone(t) {
     const p = this.s.p;
     if (t.thing !== undefined) return !this.s.items.some((it) => it.k === t.thing);
+    if (t.mobj !== undefined) return !this.s.monsters.some((m) => m.k === t.mobj);
     if (t.line !== undefined && t.use) return !this.s.specials[t.line];
     if (t.walk && Math.hypot(t.x - this.s.p.x, t.y - this.s.p.y) < 40) { (this.crossed ||= new Set()).add(t.line); return true; }
     return Math.hypot(t.x - p.x, t.y - p.y) < 48;
@@ -515,6 +518,7 @@ export class Bot {
       if (this.target.kind === "explore") this.blacklist.set(this.target.key, 1e9);
       this.target = null; this.fine = null; this.coarse = null;
     }
+    if (this.target?.mobj !== undefined) { const m = s.monsters.find((mm) => mm.k === this.target.mobj); if (m) { this.target.x = m.x; this.target.y = m.y; } }
     if (this.target && this.tic - this.target.since > 35 * 40) this.reject(this.target, "timeout");
     // progress: the target must get closer within 20 seconds, or it's given up for now. Closer means a
     // shorter global route when there is one (routes often start away from the goal), else straight-line.
