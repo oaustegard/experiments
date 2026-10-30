@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-132237";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-132340";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -104,7 +104,7 @@ export class Bot {
       if (!def) return;
       const [tr, , ac, , key = 0] = def;
       const [mx, my] = this.lineMid[i];
-      if (EXITS.has(sp)) { out.push({ key: "l" + i, kind: "exit", x: mx, y: my, prio: 70 - d(mx, my) / 200, line: i, use: tr === this.TR.S }); return; }
+      if (EXITS.has(sp)) { (this.exitKeys ||= new Set()).add("l" + i); out.push({ key: "l" + i, kind: "exit", x: mx, y: my, prio: 70 - d(mx, my) / 200, line: i, use: tr === this.TR.S }); return; }
       if (tr === this.TR.S && !IGNORE_SWITCHES.has(sp) && hasKey(p.cards, key)) {
         out.push({ key: "l" + i, kind: "switch", x: mx, y: my, prio: 40 - d(mx, my) / 100, line: i, use: true });
       }
@@ -550,6 +550,11 @@ export class Bot {
     if (this.target && this.targetDone(this.target)) {
       this.events.push({ tic: this.tic, ev: "done", kind: this.target.kind, key: this.target.key });
       this.stats.targets[this.target.kind] = (this.stats.targets[this.target.kind] || 0) + 1;
+      // a boss down, a switch pressed or a trigger crossed can open the way out, so the exits get a fresh chance
+      // (E1M8: both Barons died at 278 s, but the exits were still backed off and the bot wandered by the platform)
+      if (["hunt", "switch", "trigger"].includes(this.target.kind)) for (const k of [...this.blacklist.keys()]) {
+        if (k === "kind:exit" || this.exitKeys?.has(k)) { this.blacklist.delete(k); this.rejects?.delete(k); }
+      }
       if (this.target.kind === "explore") this.blacklist.set(this.target.key, 1e9);
       this.target = null; this.fine = null; this.coarse = null;
     }
@@ -561,6 +566,12 @@ export class Bot {
         if (c?.kind === "escape") { this.events.push({ tic: this.tic, ev: "escape", from: this.target.key }); this.target = null; this.fine = null; this.coarse = null; }
       }
     } else this.hurtSince = null;
+    // on ExM8 a monster death (a boss, maybe not the one targeted) can open the way out
+    if (/M8$/.test(this.map.name)) {
+      if (this.liveCount !== undefined && s.monsters.length < this.liveCount)
+        for (const k of [...this.blacklist.keys()]) if (k === "kind:exit" || this.exitKeys?.has(k)) { this.blacklist.delete(k); this.rejects?.delete(k); }
+      this.liveCount = s.monsters.length;
+    }
     if (this.target?.mobj !== undefined) { const m = s.monsters.find((mm) => mm.k === this.target.mobj); if (m) { this.target.x = m.x; this.target.y = m.y; } }
     if (this.target && this.tic - this.target.since > 35 * 40) this.reject(this.target, "timeout");
     // progress: the target must get closer within 20 seconds, or it's given up for now. Closer means a
