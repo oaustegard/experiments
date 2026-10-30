@@ -136,13 +136,19 @@ export class Bot {
     for (const c of this.standCells) if (!this.visited[c.j * this.bw + c.i]) fr.push({ key: `f${c.i},${c.j}`, kind: "explore", x: c.x, y: c.y, prio: 10 - d(c.x, c.y) / 100 });
     fr.sort((a, b) => b.prio - a.prio);
     out.push(...fr.slice(0, 12));
-    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic)).sort((a, b) => b.prio - a.prio);
+    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic) && !(this.blacklist.get("kind:" + c.kind) > this.tic)).sort((a, b) => b.prio - a.prio);
   }
 
   reject(t, why, tics = 1050) {
     // each repeat failure on the same target doubles its time out, so the bot explores instead of retrying
     const n = (this.rejects ||= new Map()).set(t.key, (this.rejects.get(t.key) || 0) + 1).get(t.key);
     this.blacklist.set(t.key, this.tic + Math.min(tics * 2 ** (n - 1), 35 * 240));
+    // an exit or a hunt that can't be reached says the same of its siblings: E1M8 has eight exit lines on one
+    // platform and spent its time retrying them one by one instead of crossing the triggers that lower it
+    if (t.kind === "exit" || t.kind === "hunt") {
+      const k = "kind:" + t.kind, m = (this.rejects.get(k) || 0) + 1; this.rejects.set(k, m);
+      this.blacklist.set(k, this.tic + Math.min(tics * 2 ** (m - 1), 35 * 240));
+    }
     this.events.push({ tic: this.tic, ev: "reject", kind: t.kind, key: t.key, why });
     if (this.target?.key === t.key) { this.target = null; this.fine = null; this.coarse = null; }
   }
