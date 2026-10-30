@@ -408,14 +408,14 @@ export class Bot {
     return { pt: pts[pick], k: pick, at, end: pts.length - 1, cls: f.path.slice(at, at + 4).map((o) => g.g[o]) };
   }
 
-  gridLineClear(g, ax, ay, bx, by) {
+  gridLineClear(g, ax, ay, bx, by, strict = false) {
     const n = Math.ceil(Math.hypot(bx - ax, by - ay) / (g.cs / 3)) + 1;
     for (let k = 1; k <= n; k++) {
       const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
       const i = Math.floor((x - g.ox) / g.cs), j = Math.floor((y - g.oy) / g.cs);
       if (i < 0 || j < 0 || i >= N || j >= N) return false;
       const c = g.g[j * N + i];
-      if (c === C.WALL) return false;
+      if (c === C.WALL || (strict && c === C.HAZARD && !this.target?.hazardOK)) return false;
     }
     return true;
   }
@@ -522,6 +522,12 @@ export class Bot {
       const side = ((this.tic / 30) | 0) & 1 ? 1 : -1;
       vx = ax - ey * side * 0.8; vy = ay + ex * side * 0.8;
       const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l; speed = 1;
+      // fighting moves leave the route: never into a wall, a drop-off or nukage, which is how pits catch the bot
+      const g = this.fine?.grid;
+      if (g && !this.gridLineClear(g, p.x, p.y, p.x + vx * 40, p.y + vy * 40, true)) {
+        const r = Math.hypot(mx - p.x, my - p.y) || 1; vx = (mx - p.x) / r; vy = (my - p.y) / r;
+        if (!hurt && en.d < 700 && !dry) speed = 0;
+      }
     }
     const ca = Math.cos(p.angle), sa = Math.sin(p.angle);
     input.forward = 50 * speed * (vx * ca + vy * sa);
