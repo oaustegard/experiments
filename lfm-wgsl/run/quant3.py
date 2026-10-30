@@ -145,8 +145,18 @@ def deq_gq(codes, scales, bits):
 
 def chat_ids(tok, user, reply_ids=()):
     import jinja2
+    from jinja2.ext import Extension
+
+    class Generation(Extension):
+        """transformers' {% generation %}...{% endgeneration %} marks assistant tokens; render the body as is."""
+        tags = {"generation"}
+
+        def parse(self, parser):
+            next(parser.stream)
+            return parser.parse_statements(["name:endgeneration"], drop_needle=True)
     tpl = (M3 / "bf16" / "chat_template.jinja").read_text()
-    env = jinja2.Environment(); env.globals["raise_exception"] = lambda m: (_ for _ in ()).throw(Exception(m))
+    env = jinja2.Environment(extensions=[Generation, "jinja2.ext.loopcontrols"])
+    env.globals["raise_exception"] = lambda m: (_ for _ in ()).throw(Exception(m))
     s = env.from_string(tpl).render(messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
                                     add_generation_prompt=True, enable_thinking=False, bos_token="<|startoftext|>")
     return tok.encode(s, add_special_tokens=False).ids + list(reply_ids)
