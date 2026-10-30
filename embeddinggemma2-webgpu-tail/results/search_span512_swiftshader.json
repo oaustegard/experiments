@@ -1,0 +1,61 @@
+{
+ "startup": {
+  "phase": "ready",
+  "error": null,
+  "mode": "prebuilt",
+  "index_kind": "span512 3-bit",
+  "adapter": {
+   "vendor": "google",
+   "architecture": "swiftshader",
+   "device": "",
+   "description": ""
+  },
+  "source": {
+   "list": "at://did:plc:r2whjvupgfw55mllpksnombn/app.bsky.graph.list/3lankcdrlip2f",
+   "list_name": "Artificial (and real) Intelligence",
+   "filter": "posts_and_author_threads, own posts, >= 20 chars, newest 200 per member",
+   "first_post": "2021-02-27T20:50:55.000Z",
+   "last_post": "2026-10-19T02:29:30.966Z",
+   "posts": 61686,
+   "members": 512,
+   "built": "2026-10-19T04:45:57Z"
+  },
+  "load_ms": {
+   "index_fetch": 334,
+   "codes_to_gpu": 2470
+  },
+  "build": null,
+  "compare": null,
+  "parity": {
+   "queries": 8,
+   "overlap_with_remex": 1
+  }
+ },
+ "query": "what do people think about AI safety research",
+ "hits": 10,
+ "hits_with_text": 10,
+ "queries": [
+  {
+   "path": "server",
+   "embed_ms": 511.9,
+   "server_ms": 104.3,
+   "search_ms": 333.9,
+   "fetch_ms": 266.6,
+   "n": 61686
+  }
+ ],
+ "top3": [
+  "- 81% believe safety is more important than staying at the forefront of innovation when it comes to AI\n\n- 77% believe we should slow down or stop developing powerful AI systems until their safety can be evaluated",
+  "But empiricism around AI safety is possible, and lots of people are working on it!",
+  "- 73% are concerned that future AI systems could potentially threaten human survival\n\n- 86% support requiring AI companies to meet independent safety standards, even if it slows down development"
+ ],
+ "wall_clock_s": 14.0,
+ "errors": [],
+ "checks": {
+  "ready": true,
+  "remex_parity_ge_0.9": true,
+  "ten_hits_with_text": true,
+  "no_errors": true
+ },
+ "PASS": true
+}

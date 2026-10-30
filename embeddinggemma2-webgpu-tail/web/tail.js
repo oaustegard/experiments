@@ -922,3 +922,186 @@ export class RemexTail {
     return res;
   }
 }
+
+// ---------------------------------------------------------------- 512-dim span, 3-bit codes
+
+// EG2 vectors lie in a 512-dim subspace (eg2-span512-remex). This index stores remex 3-bit codes
+// of the 512 rotated coordinates, 192 B per vector like the 2-bit 768 index, in a bit-plane
+// layout: for block b of 32 dims, words 3b, 3b+1, 3b+2 hold bit 2, 1, 0 of dim 32b+t's code at
+// bit t (run/build_bsky_span512.py). Queries stay 768-d: prep multiplies by M = R B (remex's
+// rotation folded into the basis, uploaded as M^T so lanes read adjacent floats) and the query
+// offset is q . mu768 with mu768 = B^T mu512. Scores: scale * sum_j lut[j][code_j] + bias + offset,
+// the same formula as SCAN. Search only: documents are encoded offline.
+const SPAN_D = 512;
+const SPAN_LUT_STRIDE = 4097;    // 512*8 LUT entries, then the query offset
+
+const PREP512 = /* wgsl */ `
+struct PrepP {
+  normalize: u32,
+  q_base: u32,
+  stride: u32,
+  pad: u32,
+}
+@group(0) @binding(0) var<uniform> pq: PrepP;
+@group(0) @binding(1) var<storage, read> qin: array<f32>;
+@group(0) @binding(2) var<storage, read> qmt: array<f32>;
+@group(0) @binding(3) var<storage, read> mu: array<f32>;
+@group(0) @binding(4) var<storage, read> cst: array<f32>;
+@group(0) @binding(5) var<storage, read_write> lut: array<f32>;
+
+const D: u32 = 768u;
+const DS: u32 = 512u;
+var<workgroup> xs: array<f32, 768>;
+${REDUCE}
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
+  let tid = lid.x;
+  let q = pq.q_base + wg.x;
+  let qb = q * D;
+
+  var a0 = qin[qb + tid];
+  var a1 = qin[qb + tid + 256u];
+  var a2 = qin[qb + tid + 512u];
+  let ss = reduce_sum(tid, a0 * a0 + a1 * a1 + a2 * a2);
+  if (pq.normalize != 0u) {
+    let nrm = max(sqrt(ss), 1e-8);
+    a0 = a0 / nrm;
+    a1 = a1 / nrm;
+    a2 = a2 / nrm;
+  }
+  xs[tid] = a0;
+  xs[tid + 256u] = a1;
+  xs[tid + 512u] = a2;
+  workgroupBarrier();
+
+  let qoff = reduce_sum(tid, a0 * mu[tid] + a1 * mu[tid + 256u] + a2 * mu[tid + 512u]);
+
+  // lut[j*8 + c] = (M q)_j * centroid[c]
+  let lb = q * pq.stride;
+  for (var i: u32 = 0u; i < 2u; i += 1u) {
+    let j = tid + 256u * i;
+    var qr: f32 = 0.0;
+    for (var k: u32 = 0u; k < D; k += 1u) {
+      qr += qmt[k * DS + j] * xs[k];
+    }
+    let jb = lb + j * 8u;
+    for (var c: u32 = 0u; c < 8u; c += 1u) {
+      lut[jb + c] = qr * cst[c];
+    }
+  }
+  if (tid == 0u) {
+    lut[lb + 4096u] = qoff;
+  }
+}
+`;
+
+const SCAN512 = /* wgsl */ `
+struct ScanP {
+  n: u32,
+  capacity: u32,
+  q_base: u32,
+  stride: u32,
+}
+@group(0) @binding(0) var<uniform> ps: ScanP;
+@group(0) @binding(1) var<storage, read> wds: array<u32>;
+@group(0) @binding(2) var<storage, read> aux: array<f32>;
+@group(0) @binding(3) var<storage, read> lut: array<f32>;
+@group(0) @binding(4) var<storage, read_write> scores: array<f32>;
+
+var<workgroup> lsh: array<f32, 4096>;     // 16 KB, the default workgroup-memory limit
+
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
+  let tid = lid.x;
+  let q = ps.q_base + wg.y;
+  let lb = q * ps.stride;
+  for (var t: u32 = tid; t < 4096u; t += 256u) {
+    lsh[t] = lut[lb + t];
+  }
+  workgroupBarrier();
+
+  let i = wg.x * 256u + tid;
+  if (i >= ps.n) {
+    return;
+  }
+  var acc: f32 = 0.0;
+  for (var b: u32 = 0u; b < 16u; b += 1u) {
+    let w2 = wds[(3u * b) * ps.capacity + i];
+    let w1 = wds[(3u * b + 1u) * ps.capacity + i];
+    let w0 = wds[(3u * b + 2u) * ps.capacity + i];
+    for (var t: u32 = 0u; t < 32u; t += 1u) {
+      let code = (((w2 >> t) & 1u) << 2u) | (((w1 >> t) & 1u) << 1u) | ((w0 >> t) & 1u);
+      acc += lsh[(b * 32u + t) * 8u + code];
+    }
+  }
+  scores[q * ps.capacity + i] = aux[i * 4u] * acc + aux[i * 4u + 1u] + lut[lb + 4096u];
+}
+`;
+
+export class SpanTail extends RemexTail {
+  static async create(device, params) {
+    const t = new SpanTail(device);
+    await t._init(params);
+    return t;
+  }
+
+  // params: qmat (M^T, 768 x 512 float32), mu768 (768), centroids (8).
+  async _init(params) {
+    if (!LITTLE_ENDIAN) throw new Error('SpanTail requires a little-endian host');
+    const dev = this.device;
+    this.qmat = storageBuf(dev, D * SPAN_D * 4);
+    dev.queue.writeBuffer(this.qmat, 0, toF32(params.qmat, D * SPAN_D, 'qmat'));
+    this.mu_host = toF32(params.mu768, D, 'mu768');
+    this.mu = storageBuf(dev, D * 4);
+    dev.queue.writeBuffer(this.mu, 0, this.mu_host);
+    this.cst = storageBuf(dev, 32);
+    dev.queue.writeBuffer(this.cst, 0, toF32(params.centroids, 8, 'centroids'));
+    const mk = async (label, code) => {
+      const module = dev.createShaderModule({ code, label });
+      const info = await module.getCompilationInfo();
+      const errs = info.messages.filter((m) => m.type === 'error');
+      if (errs.length) {
+        throw new Error(`${label} WGSL: ` + errs.map((e) => `${e.lineNum}:${e.linePos} ${e.message}`).join('; '));
+      }
+      return dev.createComputePipelineAsync({ layout: 'auto', compute: { module, entryPoint: 'main' }, label });
+    };
+    this.pipes = {
+      prep: await mk('prep512', PREP512),
+      scan: await mk('scan512', SCAN512),
+      topk: await mk('topk', SHADERS.topk),
+    };
+  }
+
+  setMean() { throw new Error('SpanTail: the mean is fixed by the prebuilt index'); }
+  encode() { throw new Error('SpanTail: documents are encoded offline (run/build_bsky_span512.py)'); }
+  pool() { throw new Error('SpanTail: no pool'); }
+  colsum() { throw new Error('SpanTail: no colsum'); }
+
+  // Scores nq 768-d queries against the first n corpus rows. Returns scores [nq, capacity].
+  search(queryBuf, nq, corpus, opts = {}) {
+    const n = opts.n ?? corpus.filled;
+    const normalize = (opts.normalize ?? true) ? 1 : 0;
+    if (n > corpus.capacity) throw new Error(`search: n=${n} exceeds capacity`);
+    const dev = this.device;
+    const lut = storageBuf(dev, nq * SPAN_LUT_STRIDE * 4);
+    const scores = storageBuf(dev, nq * corpus.capacity * 4);
+    const enc = dev.createCommandEncoder();
+    const temps = [lut];
+    for (let qb = 0; qb < nq; qb += MAX_DIM) {
+      const nqq = Math.min(MAX_DIM, nq - qb);
+      const u = uniform(dev, new Uint32Array([normalize, qb, SPAN_LUT_STRIDE, 0]));
+      temps.push(u);
+      this._dispatch(enc, this.pipes.prep, [u, queryBuf, this.qmat, this.mu, this.cst, lut], [nqq, 1, 1]);
+    }
+    if (n > 0) {
+      for (let qb = 0; qb < nq; qb += MAX_DIM) {
+        const nqq = Math.min(MAX_DIM, nq - qb);
+        const u = uniform(dev, new Uint32Array([n, corpus.capacity, qb, SPAN_LUT_STRIDE]));
+        temps.push(u);
+        this._dispatch(enc, this.pipes.scan, [u, corpus.words, corpus.aux, lut, scores], [Math.ceil(n / 256), nqq, 1]);
+      }
+    }
+    this._submit(enc, temps);
+    return scores;
+  }
+}

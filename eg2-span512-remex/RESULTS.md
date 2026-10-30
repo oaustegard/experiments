@@ -24,9 +24,8 @@ Matryoshka prefix does worse than the rotation at every width, with 0.804 at 3 b
 The 1,498 synthetic queries agree, and so do five more remex seeds for the three arms above. A metric other than agreement with exact 768-dim search could
 change the verdict.
 
-The page could switch to 3-bit rotated codes for +0.056 recall at the same download size. It would need a
-512 × 768 basis on the client (1.5 MB float32), one query-side multiply, and WGSL kernels rebuilt for d = 512 and
-3-bit packing.
+Round 2 switched the search page to 3-bit rotated codes (`embeddinggemma2-webgpu-tail` round 7). It needed a
+512 × 768 query matrix on the client (1.5 MB) and two new WGSL kernels. The download size is unchanged.
 
 ## Findings
 
@@ -139,4 +138,14 @@ seed-averaged arm gaps are 0.027 and 0.058.
 `web/tail.js` hard-codes `D = 768` in its WGSL (workgroup arrays, LUT stride, RHT plan), and its pack and scan read
 2-bit words. The 3-bit arm would need a d = 512 RHT plan from remex, 3-bit packing (8 values in 3 bytes, crossing
 byte boundaries) in the scan, and a rebuilt `codes.u8.txt` (the same 11.8 MB) and `aux.f32.txt`. The 2-bit arm
-needs only the d = 512 kernels and shrinks the codes to 7.9 MB, at -0.030 recall. The live page was not changed.
+needs only the d = 512 kernels and shrinks the codes to 7.9 MB, at -0.030 recall. The live page was not changed in this round.
+
+### 2026-10-30 — round 2: the page switches
+
+Oskar: "switch the bsky page to 3-bit rotated codes". Done in `embeddinggemma2-webgpu-tail`
+(round 7 of its log): `run/build_bsky_span512.py` writes the index from this experiment's
+`out/docs.npy` and `out/basis_proj.npy`, and `SpanTail` in `web/tail.js` scans it. remex's rotation
+is folded into the basis, so the query side is one 512 × 768 product and needs no RHT plan. The
+codes are stored as bit planes (three u32 words per 32 dims), so a post stays 48 words and the
+existing corpus buffer and GPU top-k are reused. Headless, the page's top 10 equals remex's on
+8 of 8 parity queries. `?span=0` loads the old 2-bit index.

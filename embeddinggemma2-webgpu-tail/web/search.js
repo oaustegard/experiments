@@ -1,7 +1,8 @@
 // Semantic search over a Bluesky list's posts on this GPU. Two modes:
 //
-// default    Loads the prebuilt index in bsky/ (remex 2-bit codes, built by run/build_bsky_index.py)
-//            onto a WebGPU device of its own, and embeds each query with the hosted EG2 query
+// default    Loads the prebuilt index in bsky/ onto a WebGPU device of its own: remex 3-bit codes of
+//            the 512-dim span EG2 vectors live in (run/build_bsky_span512.py; ?span=0 loads the 2-bit
+//            768-d codes of run/build_bsky_index.py instead), and embeds each query with the hosted EG2 query
 //            embedder (same q4 graph and prompt), so no model is downloaded. The scan and top-10 run
 //            on the GPU; the matching posts' text comes from Bluesky. If the embedder refuses
 //            (rate limit, origin), the page loads the model and embeds locally from then on.
@@ -14,7 +15,7 @@
 // queries; with ?build=1: ?per=200 posts per member, ?members=N first N members (tests),
 // ?rebuild=1 ignore the saved index, ?compare=1 cross-check against bsky/. ?hf=<base> and
 // ?local=1 as in demo.html.
-import { RemexTail } from './tail.js';
+import { RemexTail, SpanTail } from './tail.js';
 
 const D = 768;
 const K = 10;
@@ -36,6 +37,7 @@ const PER = Number(Q.get('per') || 200);
 const MAX_MEMBERS = Q.get('members') ? Number(Q.get('members')) : Infinity;
 const REBUILD = Q.get('rebuild') === '1';
 const COMPARE = Q.get('compare') === '1';
+const SPAN = Q.get('span') !== '0';
 const LOCAL = Q.get('local') === '1';
 const HF = Q.get('hf') ? new URL(Q.get('hf'), location.href).href
   : 'https://huggingface.co/onnx-community/embeddinggemma-2-ONNX/resolve/main/';
@@ -549,12 +551,16 @@ async function makeTail(params, mu) {
 async function startupPrebuilt() {
   let t = now();
   const index = await (await fetch(abs('bsky/index.json'))).json();
+  const span = SPAN && index.span512 ? await (await fetch(abs('bsky/' + index.span512))).json() : null;
+  const files = span ? span.files : index.files;
   const [codes, aux, postList, params] = await Promise.all([
-    fetch(abs('bsky/' + index.files.codes)).then((r) => r.arrayBuffer()),
-    fetch(abs('bsky/' + index.files.aux)).then((r) => r.arrayBuffer()),
+    fetch(abs('bsky/' + files.codes)).then((r) => r.arrayBuffer()),
+    fetch(abs('bsky/' + files.aux)).then((r) => r.arrayBuffer()),
     fetch(abs('bsky/' + index.files.posts)).then((r) => r.json()),
-    fetch(abs('assets/params.json')).then((r) => r.json()),
+    span ? fetch(abs('bsky/' + files.qmat)).then((r) => r.arrayBuffer())
+      : fetch(abs('assets/params.json')).then((r) => r.json()),
   ]);
+  state.index_kind = span ? `span512 ${span.bits}-bit` : `768 ${index.bits}-bit`;
   state.load_ms.index_fetch = Math.round(now() - t);
   t = now();
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
@@ -563,7 +569,9 @@ async function startupPrebuilt() {
     maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize,
   } });
   noteAdapter(adapter.info ?? device.adapterInfo);
-  tail = await makeTail(params, new Float32Array(index.mu));
+  tail = span
+    ? await SpanTail.create(device, { qmat: new Float32Array(params), mu768: span.mu768, centroids: span.centroids })
+    : await makeTail(params, new Float32Array(index.mu));
   authors = index.authors.map((a) => ({ ...a, name: '' }));
   posts = postList.map(([a, rkey]) => ({ a, rkey, text: null, created_at: null }));
   corpus = tail.allocCorpus(index.n);
@@ -572,10 +580,10 @@ async function startupPrebuilt() {
   filled = index.n;
   state.load_ms.codes_to_gpu = Math.round(now() - t);
   state.source = { ...index.source, posts: index.n, members: index.authors.length, built: index.built };
-  log(`prebuilt index: ${index.n.toLocaleString()} posts by ${index.authors.length} people (${(codes.byteLength / 1e6).toFixed(1)} MB of codes), ` +
+  log(`prebuilt index (${state.index_kind}): ${index.n.toLocaleString()} posts by ${index.authors.length} people (${(codes.byteLength / 1e6).toFixed(1)} MB of codes), ` +
       `fetched in ${state.load_ms.index_fetch} ms, on the GPU in ${state.load_ms.codes_to_gpu} ms (${state.adapter.vendor} ${state.adapter.architecture})`);
   if (PARITY) {
-    const parity = await (await fetch(abs('bsky/' + index.files.parity))).json();
+    const parity = span ? span.parity : await (await fetch(abs('bsky/' + index.files.parity))).json();
     let overlap = 0;
     for (const p of parity) {
       const r = await searchServer(p.query);
@@ -586,8 +594,8 @@ async function startupPrebuilt() {
   }
   enableSearch();
   warm();
-  const span = `${index.source.first_post?.slice(0, 10)} to ${index.source.last_post?.slice(0, 10)}`;
-  return `Ready: ${index.n.toLocaleString()} posts by ${index.authors.length} people (${span}). ` +
+  const dates = `${index.source.first_post?.slice(0, 10)} to ${index.source.last_post?.slice(0, 10)}`;
+  return `Ready: ${index.n.toLocaleString()} posts by ${index.authors.length} people (${dates}). ` +
          'Queries are embedded by the hosted EG2 embedder; the scan runs on your GPU.';
 }
 

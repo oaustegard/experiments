@@ -94,6 +94,11 @@ host. A second GPU would change these numbers most.
    per 32 documents (250× Metal), and the GPU top-k is slower than the host
    path (8,814 ms against 7,031 ms <!-- @evidence[[results/bench_tail_swiftshader.json#topk_gpu_ms.median]] -->
    for search plus top-10), the reverse of Metal.
+12. The search page now loads 3-bit codes of the 512-dim span EG2 vectors live in, 192 B per post as
+    before. `eg2-span512-remex` measured them at 0.894 recall@10 against exact search <!-- @evidence[[../eg2-span512-remex/results/recall.json#arms.rot512_b3.recall_at_10.real_test]] -->
+    against 0.837 for the old codes. <!-- @evidence[[../eg2-span512-remex/results/recall.json#arms.full768_b2.recall_at_10.real_test]] -->
+    Headless with the hosted embedder, the page's GPU top 10 equals remex's on 8 of 8 test queries. <!-- @evidence[[results/search_span512_swiftshader.json#startup.parity.overlap_with_remex]] -->
+    `?span=0` keeps the 2-bit 768-d index. (`run/build_bsky_span512.py`, `SpanTail` in `web/tail.js`)
 
 ## Method
 
@@ -277,4 +282,35 @@ on 512 dims adds more error than on 768. Whether that matters for search
 quality needs a labelled set, which the 100k prefix lacks (most Quora qrels fall
 outside it). No GPU d=512 path built: a third off storage for 4 points of
 recall is a trade to make for a specific corpus, not a default.
+
+### 2026-10-30 — round 7: the page switches to 3-bit codes of the 512-dim span
+
+Oskar: "switch the bsky page to 3-bit rotated codes", after `eg2-span512-remex` showed that
+EG2 q4 vectors lie in a 512-dim subspace and that, at 192 B per post, 3-bit codes of the 512
+rotated coordinates beat this index's 2-bit 768-d codes (recall@10 against exact fp32 search on
+1,000 real queries: 0.894 against 0.837). Round 6's 512 was the Matryoshka prefix, which loses
+recall even before quantization; the rotation loses none.
+
+`run/build_bsky_span512.py` encodes the rebuilt fp32 vectors (`eg2-span512-remex/out/docs.npy`,
+which reproduce this index's codes to 16 flips in 47.4M) as remex `Quantizer(512, bits=3, seed=42)`
+codes of `B x`, B from the q4 projection weight. The 12 posts deleted since the build get scale 0
+and bias -1e30, so they never rank. Files in `web/bsky/`: `span512.json` (centroids, `mu768`,
+parity), `codes512.u8.txt` (11.8 MB, the old size), `aux512.f32.txt`, `qmat512.f32.txt` (1.5 MB).
+The codes are stored as bit planes, three u32 words per 32 dims, so a post is still 48 words and
+`RemexTail`'s corpus buffer, `loadCodes` and GPU top-k are reused unchanged. remex's rotation is
+folded into the basis, `M = R B`, so the query side is one dense 512 × 768 product in the prep
+kernel instead of a second RHT plan, and the query offset is `q . (B^T mu512)`. The builder checks
+the page's score formula against remex `search_adc` scores on the parity queries (within 1e-4).
+
+`SpanTail` (in `web/tail.js`) subclasses `RemexTail` with two kernels: prep (768 → 512 product, an
+8-entry LUT per dim) and a scan that rebuilds each 3-bit code from three bit planes. The scan's
+LUT is 4,096 floats, exactly the 16 KB default workgroup-memory limit. `search.js` loads it by
+default when `index.json` names `span512`; `?span=0` loads the 2-bit index, which `?build=1`,
+`?compare=1` and `eg2-query-student` still use.
+
+`run/run_search.py --prebuilt` (SwiftShader, hosted embedder, `?parity=1`): ready, 8 of 8
+parity queries match remex's top 10 exactly, ten hits rendered; `--span0` passes the same checks
+on the old index. The runner gained `--span0` and lost a crash on its own dangling symlink when
+run twice. Scan timing on a real GPU is not measured yet: per post the new scan does 512 LUT
+reads against 768, plus bit extraction, so it should be no slower, but SwiftShader cannot say.
 

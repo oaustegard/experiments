@@ -1,6 +1,6 @@
 """Correctness run of web/search.html in Chromium (SwiftShader WebGPU) with the real model.
 
-Usage: python3 -I run/run_search.py [--prebuilt] [--query TEXT] [--members 3] [--per 20]
+Usage: python3 -I run/run_search.py [--prebuilt [--span0]] [--query TEXT] [--members 3] [--per 20]
 
 --prebuilt tests the default mode: the prebuilt index in web/bsky/, queries embedded by the hosted
 EG2 embedder (called from Python with the austegard.com Origin), &parity=1. Without it, ?build=1:
@@ -61,12 +61,13 @@ def main() -> int:
     ap.add_argument("--members", type=int, default=3)
     ap.add_argument("--per", type=int, default=20)
     ap.add_argument("--prebuilt", action="store_true")
+    ap.add_argument("--span0", action="store_true", help="with --prebuilt: the 2-bit 768-d index (?span=0)")
     a = ap.parse_args()
     for name, sub in [("model_q4.onnx", "onnx"), ("model_q4.onnx_data", "onnx"),
                       ("tokenizer.json", ""), ("tokenizer_config.json", "")]:
         link = ROOT / "out" / "hfmirror" / sub / name
         link.parent.mkdir(parents=True, exist_ok=True)
-        if not link.exists():
+        if not link.exists() and not link.is_symlink():
             link.symlink_to(ROOT / "out" / "hf" / name)
     port = free_port()
     server = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"],
@@ -86,13 +87,13 @@ def main() -> int:
                 page.route("https://cdn.jsdelivr.net/**", serve_from_cache)
                 page.route("https://public.api.bsky.app/**", bsky_passthrough)
                 page.route("https://eg2-query-embedder.austegard.workers.dev/**", embedder_passthrough)
-                q = ("/web/search.html?parity=1" if a.prebuilt else
+                q = ("/web/search.html?parity=1" + ("&span=0" if a.span0 else "") if a.prebuilt else
                      f"/web/search.html?build=1&hf=/out/hfmirror/&members={a.members}&per={a.per}&compare=1")
                 page.goto(base + q, wait_until="load", timeout=60_000)
                 page.wait_for_function("window.searchState && window.searchState.phase !== 'loading'",
                                        timeout=60 * 60_000, polling=1000)
                 st = page.evaluate("() => window.searchState")
-                summary["startup"] = {k: st[k] for k in ("phase", "error", "mode", "adapter", "source", "load_ms",
+                summary["startup"] = {k: st.get(k) for k in ("phase", "error", "mode", "index_kind", "adapter", "source", "load_ms",
                                                          "build", "compare", "parity")}
                 if st["phase"] == "ready":
                     page.fill("#q", a.query)
