@@ -60,16 +60,14 @@ async function commitFiles(files, message) {
 }
 async function wake(text) {
   if (!$("#wake").checked) return;
-  if (wakePR === undefined) {
-    try { wakePR = (await gh(`${R()}/pulls?state=open&per_page=50`)).find((pr) => /^wake(\/|$)/.test(pr.head?.ref || ""))?.number ?? null; }
-    catch { wakePR = null; }
-  }
-  if (wakePR) try { await gh(`${R()}/issues/${wakePR}/comments`, { method: "POST", body: { body: text }, retry: false }); } catch (e) { console.warn(e); }
+  const pr = await findWakePR();
+  if (pr) try { await gh(`${R()}/issues/${pr}/comments`, { method: "POST", body: { body: text }, retry: false }); } catch (e) { console.warn(e); }
 }
 // a failed upload is kept and retried with the next one, so a dropped connection doesn't lose an attempt
 const outbox = [];
+let shipped = 0, lastSha = "";
 async function ship(files, message, wakeText) {
-  if (files) outbox.push({ files, message, wakeText });
+  if (files) { outbox.push({ files, message, wakeText }); showUploads(); }
   if (!cfg.token || ship.busy) return;
   ship.busy = true;
   try { await flush(); } finally { ship.busy = false; }
@@ -77,8 +75,11 @@ async function ship(files, message, wakeText) {
 async function flush() {
   while (outbox.length) {
     const job = outbox[0];
-    try { const sha = await commitFiles(job.files, job.message); outbox.shift(); if (job.wakeText) await wake(`${job.wakeText} at ${sha.slice(0, 7)}`); }
-    catch (e) { logLine("upload failed, will retry: " + e.message); return; }
+    try {
+      const sha = await commitFiles(job.files, job.message); outbox.shift(); shipped++; lastSha = sha.slice(0, 7); showUploads();
+      if (job.wakeText) await wake(`${job.wakeText} at ${sha.slice(0, 7)}`);
+    }
+    catch (e) { logLine("upload failed, will retry: " + e.message); showUploads(); if (e.status === 401 || e.status === 403) verify(); return; }
   }
 }
 
@@ -215,14 +216,53 @@ $("#lock").addEventListener("click", async (e) => {
   try { if (lock) { await lock.release(); lock = null; } else { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; e.target.textContent = "Keep screen awake"; }); } } catch {}
   e.target.textContent = lock ? "Screen stays awake" : "Keep screen awake";
 });
+// connection state, checked against GitHub rather than assumed from a stored token
+const conn = (cls, text) => { const el = $("#connstate"); el.className = "pill " + cls; el.textContent = text; };
+async function verify() {
+  if (!cfg.token) { conn("", "Not connected: logs stay on this page"); $("#change").textContent = "Connect to GitHub"; return false; }
+  conn("wait", `Connecting to ${cfg.repo}…`);
+  try {
+    const repo = await gh(R(), { retry: false });
+    if (repo.permissions && !repo.permissions.push) throw Object.assign(new Error(`the token can read ${cfg.repo} but not write to it`), { status: 403 });
+    let login = ""; try { login = (await gh("/user", { retry: false })).login; } catch {}
+    wakePR = undefined;
+    const pr = await findWakePR();
+    conn("ok", `✓ Connected to ${cfg.repo}${login ? " as " + login : ""}, can write${pr ? `, wakes the session on PR #${pr}` : ", but no wake PR is open (logs still upload)"}`);
+    $("#change").textContent = "Change token";
+    ship(null);
+    return true;
+  } catch (err) {
+    conn("bad", "✗ " + (err.status === 401 ? "GitHub refused the token (401): paste it again" : err.status === 404 ? `${cfg.repo} not found, or the token can't see it (404)` : err.status === 403 ? err.message : "Couldn't reach GitHub: " + err.message));
+    $("#conn").hidden = false; $("#change").textContent = "Change token";
+    return false;
+  }
+}
+async function findWakePR() {
+  if (wakePR === undefined) {
+    try { wakePR = (await gh(`${R()}/pulls?state=open&per_page=50`)).find((pr) => /^wake(\/|$)/.test(pr.head?.ref || ""))?.number ?? null; }
+    catch { wakePR = null; }
+  }
+  return wakePR;
+}
+function showUploads() {
+  const q = outbox.length;
+  $("#uploads").textContent = (shipped ? `${shipped} log${shipped === 1 ? "" : "s"} uploaded, last at ${lastSha}` : "") + (q ? `${shipped ? " · " : ""}${q} waiting to upload` : "");
+}
+$("#change").addEventListener("click", () => { $("#conn").hidden = !$("#conn").hidden; if (!$("#conn").hidden) $("#token").focus(); });
 $("#conn").addEventListener("submit", async (e) => {
   e.preventDefault();
-  cfg = { token: $("#token").value.trim(), repo: $("#repo").value.trim() };
-  try { await gh(R()); store.set("token", cfg.token, $("#remember").checked); store.set("repo", cfg.repo, true); $("#conn").hidden = true; showConn(); ship(null); }
-  catch (err) { $("#conninfo").textContent = "GitHub refused: " + err.message; }
+  const token = $("#token").value.trim();
+  if (!token) { conn("bad", "✗ Paste the token first"); return; }
+  cfg = { token, repo: $("#repo").value.trim() || cfg.repo };
+  $("#connect").disabled = true;
+  if (await verify()) {
+    store.set("token", cfg.token, $("#remember").checked); store.set("repo", cfg.repo, true);
+    $("#conn").hidden = true; $("#token").value = "";
+  }
+  $("#connect").disabled = false;
 });
-function showConn() { $("#conninfo").textContent = cfg.token ? `logs to ${cfg.repo}` : "not connected: logs stay on this page"; $("#conn").hidden = !!cfg.token; }
-showConn();
+$("#repo").value = cfg.repo;
+verify();
 setInterval(() => ship(null), 60000); // retry uploads that failed
 init().then(() => {
   for (const k of ["map", "skill", "stuck", "cap", "tries"]) if (params.has(k)) $("#" + k).value = params.get(k);
