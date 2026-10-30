@@ -1,0 +1,48 @@
+<!doctype html><meta charset="utf-8"><title>LFM WGSL check</title><pre id="out"></pre>
+<script type="module">
+// Parity of the WGSL engine against onnxruntime CPU (run/ref.py): prefill logits, then each decode
+// step fed the reference's greedy token. Reports cosine, max |diff| and argmax agreement per step.
+import { LfmEngine } from "../web/lfm.js";
+const log = (s) => { document.getElementById("out").textContent += s + "\n"; console.log(s); };
+window.result = null;
+try {
+  const adapter = await navigator.gpu.requestAdapter();
+  const L = adapter.limits;
+  const device = await adapter.requestDevice({ requiredLimits: {
+    maxStorageBufferBindingSize: L.maxStorageBufferBindingSize, maxBufferSize: L.maxBufferSize,
+    maxComputeWorkgroupStorageSize: L.maxComputeWorkgroupStorageSize } });
+  device.lost.then((i) => log("device lost: " + i.message));
+  device.onuncapturederror = (e) => log("GPU error: " + e.error.message);
+  const m = await (await fetch("../web/manifest.json")).json();
+  const fx = await (await fetch("fixture.json")).json();
+  const ref = new Float32Array(await (await fetch("logits.f32")).arrayBuffer());
+  const t0 = performance.now();
+  const eng = await LfmEngine.create(device, m, "../model/model_q4.onnx_data");
+  const loadMs = performance.now() - t0;
+  log(`loaded in ${(loadMs / 1000).toFixed(1)} s`);
+  const V = m.vocab, rows = [];
+  const cmp = (a, s) => {
+    const r = ref.subarray(s * V, (s + 1) * V);
+    let dot = 0, na = 0, nb = 0, mx = 0, ia = 0, ib = 0;
+    for (let i = 0; i < V; i++) { dot += a[i] * r[i]; na += a[i] * a[i]; nb += r[i] * r[i]; mx = Math.max(mx, Math.abs(a[i] - r[i])); if (a[i] > a[ia]) ia = i; if (r[i] > r[ib]) ib = i; }
+    return { step: s, cos: dot / Math.sqrt(na * nb), maxdiff: mx, argmax: ia, ref_argmax: ib };
+  };
+  eng.reset();
+  let tp = performance.now();
+  let lg = await eng.forward(fx.ids);
+  const prefillMs = performance.now() - tp;
+  rows.push(cmp(lg, 0));
+  const dts = [];
+  for (let s = 1; s < fx.greedy.length; s++) {
+    tp = performance.now();
+    lg = await eng.forward([fx.greedy[s - 1]]);
+    dts.push(performance.now() - tp);
+    rows.push(cmp(lg, s));
+  }
+  for (const r of rows) log(`step ${r.step}: cos ${r.cos.toFixed(6)} maxdiff ${r.maxdiff.toFixed(4)} argmax ${r.argmax} ref ${r.ref_argmax}`);
+  dts.sort((a, b) => a - b);
+  window.result = { loadMs, prefillMs, decodeMedianMs: dts[dts.length >> 1], rows,
+    cosMin: Math.min(...rows.map((r) => r.cos)), argmaxAgree: rows.filter((r) => r.argmax === r.ref_argmax).length + "/" + rows.length };
+  log(JSON.stringify({ ...window.result, rows: undefined }));
+} catch (e) { log("ERROR " + (e?.stack || e)); window.result = { error: String(e) }; }
+</script>
