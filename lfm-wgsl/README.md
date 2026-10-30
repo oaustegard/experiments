@@ -51,16 +51,27 @@ Two export details matter for parity:
 | Largest absolute logit difference | 0.0001 |
 | Greedy next token agreeing with onnxruntime | 13 of 13 steps |
 
-**Speed.** On SwiftShader, prefill took 67 s and a decode step 4.6 s. SwiftShader is a software
-rasterizer whose timings say nothing about a real GPU (METHODS.md), so speed is still unmeasured.
+**Real GPUs.** Bridge job `lfm-bench-2-iphone` ran on the iPhone 16 Pro in Safari on iOS 27.0.1,
+and `lfm-bench-1` ran on the Mac in Chrome 156 on Metal. Each ran the same 35-token prompt and 64
+decode steps three times. Next-token picks agreed with onnxruntime at 13 of 13 steps in every run on
+both devices.
 
-**Memory.** The check measured a peak PSS of 1412 MB against a 899 MB baseline. That baseline
-included another Chromium instance running a measurement at the same time, so the number needs a
-clean rerun.
+| | iPhone 16 Pro, Safari | Mac, Chrome on Metal |
+|---|---|---|
+| Load: stream 228 MB from Hugging Face to the GPU | 91.3 s (phone network) | 6.2 s |
+| Prefill, 35 tokens | 107–181 ms | 15–18 ms |
+| Decode, median per token | 14–15 ms (about 71 tokens/s) | 3.8–8.1 ms |
+| Decode, 90th percentile | 17–21 ms | 5.0–8.6 ms |
 
-Pending:
-- Decode speed and memory on the iPhone 16 Pro, through `voice-loop`.
-- A clean memory comparison against transformers.js 4.3.1 and WebLLM.
+The iPhone tab loaded the model and ran without being killed. The tab running transformers.js 3.8.1
+had died on SmolLM2-360M, a model of similar size.
+
+On SwiftShader in the container, prefill took 67 s and a decode step 4.6 s. As METHODS.md warns,
+those timings say nothing about real hardware.
+
+**Memory.** The SwiftShader check measured a peak PSS of 1412 MB against an 899 MB baseline. That
+baseline included another Chromium instance running a measurement at the same time, so the number
+needs a clean rerun.
 
 Run the check:
 

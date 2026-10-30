@@ -223,8 +223,14 @@
   {
    "title": "Voice Loop",
    "experiment": "voice-loop",
-   "path": "voice-loop/web",
-   "blurb": "Talk to a small language model running in the page: the phone's own dictation in, SmolLM2 or Qwen2.5 on WebGPU, the phone's own voices out, with latency and tokens per second on screen"
+   "path": [
+    "voice-loop/web",
+    "lfm-wgsl/web/lfm.js",
+    "lfm-wgsl/web/manifest.json",
+    "_lib/wgsl/runtime.js",
+    "_lib/wgsl/kernels.js"
+   ],
+   "blurb": "Talk to LFM2.5 350M running on a hand-written WebGPU engine in the page: the phone's dictation in, Supertonic neural speech out, with prefill time and tokens per second on screen"
   }
  ]
 }

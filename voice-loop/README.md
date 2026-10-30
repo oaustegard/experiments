@@ -9,36 +9,42 @@ Live: https://austegard.com/experiments/voice-loop/web/
 
 ## Pieces
 
-- **Speech in:** `webkitSpeechRecognition`. On iOS it runs through Siri
-  dictation, so it needs Siri & Dictation enabled and usually a network
-  connection. The audio leaves the device, while the model's answer does not.
-- **Model:** transformers.js 3.8.1 in a module worker (`web/worker.js`). WebGPU
-  with `q4f16` when the adapter has `shader-f16`, `q4` without it, wasm `q8`
-  when there is no adapter or the box is ticked. Choices: SmolLM2 135M (~120 MB),
-  SmolLM2 360M (~270 MB, default), Qwen2.5 0.5B (~480 MB). Weights come from
-  the Hugging Face hub and stay in the browser cache.
-- **Speech out:** `speechSynthesis`. Sentences are spoken as they stream in, so
-  the first sentence plays while the rest generates. iOS needs one utterance
-  started inside a tap before it will speak, so every button unlocks it.
-- **Conversation mode:** after the last sentence finishes, it starts listening
-  again.
+- **Speech in:** `webkitSpeechRecognition`. On iOS it runs through Siri dictation, so it needs
+  Siri & Dictation enabled and usually a network connection. The audio leaves the device, while
+  the model's answer does not.
+- **Model:** LFM2.5-350M on the hand-written WebGPU engine in [`lfm-wgsl`](../lfm-wgsl/README.md)
+  (`web/llm.js`):
+  - The weights stream from Hugging Face straight into GPU buffers. A copy goes into the Cache API,
+    so later loads come from disk.
+  - The tokenizer and chat template come from transformers.js 4.3.1.
+  - Sampling follows Liquid's settings for LFM2: temperature 0.3, min_p 0.15, repetition
+    penalty 1.05.
+- **Speech out:** Supertonic 2 (`onnx-community/Supertonic-TTS-2-ONNX`, about 260 MB) runs in a
+  worker (`web/tts-worker.js`) on onnxruntime-web wasm.
+  - Sentences are spoken as they stream from the model. Each is synthesized while the previous one
+    plays, then scheduled back to back on one AudioContext.
+  - The system voice is the alternative. In the container, Supertonic made 6.0 s of audio in 4.4 s
+    on one wasm thread, while Kokoro (kokoro-js 1.2.1, q8) needed 22.7 s, so Supertonic is the
+    default.
+- **Conversation mode:** after the last sentence finishes, the page starts listening again.
 
-The page reports first-token latency and tokens per second under each answer,
-and recognition time under the talk button.
+## History
 
-## Verified
+The first version ran transformers.js 3.8.1 with SmolLM2 or Qwen2.5 in a worker and spoke with
+`speechSynthesis`. On the iPhone 16 Pro, the tab reloaded as soon as SmolLM2-360M loaded, which
+means it ran out of memory. Oskar also found the system voice poor. Both problems led to the
+current design.
 
-Headless Chromium on this container (no GPU, wasm forced, SmolLM2 135M): the
-model loaded in 13.8 s and answered a typed question at 11.7 tok/s, with first
-token at 1.0 s and no console errors. Its answer to "Why is the sky blue?" was
-nonsense, which is what 135M parameters gets you. Speech recognition and
-synthesis exist there, but there is no microphone, so neither was exercised.
+## Measured
+
+The LFM engine ran on the iPhone 16 Pro through the GPU bridge. In Safari on iOS 27.0.1 it loaded
+without the tab being killed, prefilled a 35-token prompt in 107–181 ms and decoded at a median of
+14 ms per token, about 71 tokens/s. Its next-token picks agreed with onnxruntime at 13 of 13 steps.
+See `lfm-wgsl/README.md`.
 
 ## Pending on a phone
 
-- Does `webkitSpeechRecognition` work in Home Screen (standalone) mode? It has
-  returned `service-not-allowed` there in past iOS releases.
-- WebGPU on iOS 26: the f16 path, load time and tok/s per model.
-- After dictation, iOS may route speech to the earpiece at low volume. Check
-  whether answers come out of the speaker.
-- Memory ceiling: whether Qwen2.5 0.5B loads without the tab being killed.
+- The whole page on the iPhone: Supertonic's speed, and memory with both models loaded.
+- Does `webkitSpeechRecognition` work in Home Screen (standalone) mode? It has returned
+  `service-not-allowed` there in past iOS releases.
+- Whether speech plays through the speaker or the earpiece after dictation.
