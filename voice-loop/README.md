@@ -19,13 +19,15 @@ Live: https://austegard.com/experiments/voice-loop/web/
   - The tokenizer and chat template come from transformers.js 4.3.1.
   - Sampling follows Liquid's settings for LFM2: temperature 0.3, min_p 0.15, repetition
     penalty 1.05.
-- **Speech out:** Supertonic 2 (`onnx-community/Supertonic-TTS-2-ONNX`, about 260 MB) runs in a
-  worker (`web/tts-worker.js`) on onnxruntime-web wasm.
-  - Sentences are spoken as they stream from the model. Each is synthesized while the previous one
-    plays, then scheduled back to back on one AudioContext.
-  - The system voice is the alternative. In the container, Supertonic made 6.0 s of audio in 4.4 s
-    on one wasm thread, while Kokoro (kokoro-js 1.2.1, q8) needed 22.7 s, so Supertonic is the
-    default.
+- **Speech out:** the system voice by default, through `speechSynthesis`. The page picks
+  Samantha (Enhanced) when it is installed, then another Enhanced or Premium voice in the page's
+  language, then the system's default voice. A choice made in the voice menu is remembered.
+  - Supertonic 2 (`onnx-community/Supertonic-TTS-2-ONNX`, about 260 MB) is the alternative. It runs
+    in a worker (`web/tts-worker.js`) on onnxruntime-web wasm. Each sentence is synthesized while
+    the previous one plays, then scheduled back to back on one AudioContext.
+  - Supertonic was the default until Oskar heard it still hiccup on the Mac after the speed fix
+    below. In the container it made 6.0 s of audio in 4.4 s on one wasm thread. Kokoro (kokoro-js
+    1.2.1, q8) needed 22.7 s for the same audio.
 - **Conversation mode:** after the last sentence finishes, the page starts listening again.
 
 ## History

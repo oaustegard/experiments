@@ -108,8 +108,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
     <div class="row"><label for="ttsmode">Voice</label></div>
     <div class="row">
       <select id="ttsmode">
-        <option value="supertonic" selected>Supertonic: neural, runs on this device, ~260 MB</option>
-        <option value="system">System voice</option>
+        <option value="system" selected>System voice</option>
+        <option value="supertonic">Supertonic: neural, runs on this device, ~260 MB</option>
       </select>
     </div>
     <div class="row">
@@ -269,19 +269,24 @@ function fillVoices() {
   let list = [];
   if (mode() === "supertonic") list = ST_VOICES;
   else if (synth) {
+    // First in the list, and so the default: Samantha (Enhanced) when installed, then other
+    // Enhanced or Premium voices in the page's language, then the system's default voice.
     const lang = (navigator.language || "en").slice(0, 2);
-    list = synth.getVoices().slice().sort((a, b) =>
-      (b.lang.startsWith(lang) - a.lang.startsWith(lang)) ||
-      (/premium|enhanced/i.test(b.name) - /premium|enhanced/i.test(a.name)) || a.name.localeCompare(b.name))
+    const rank = (v) => (/^samantha/i.test(v.name) && /enhanced|premium/i.test(v.name) ? 8 : 0)
+      + (v.lang.startsWith(lang) ? 4 : 0) + (/enhanced|premium/i.test(v.name) ? 2 : 0) + (v.default ? 1 : 0);
+    list = synth.getVoices().slice().sort((a, b) => rank(b) - rank(a) || a.name.localeCompare(b.name))
       .map((v) => [v.voiceURI, v.name + " · " + v.lang]);
   }
   for (const [v, label] of list) { const o = document.createElement("option"); o.value = v; o.textContent = label; $("voice").append(o); }
   if (saved && list.some(([v]) => v === saved)) $("voice").value = saved;
 }
-$("ttsmode").value = store("ttsmode") || "supertonic";
+$("ttsmode").value = store("ttsmode") || "system";
 $("ttsmode").onchange = () => { store("ttsmode", mode()); fillVoices(); if (mode() === "supertonic") loadTTS(); };
 $("voice").onchange = () => store("voice:" + mode(), $("voice").value);
-if (synth) { synth.addEventListener?.("voiceschanged", () => mode() === "system" && fillVoices()); }
+if (synth) {
+  synth.addEventListener?.("voiceschanged", () => mode() === "system" && fillVoices());
+  setTimeout(() => mode() === "system" && !$("voice").options.length && fillVoices(), 500);  // Safari may load voices without the event
+}
 fillVoices();
 
 $("testvoice").onclick = () => { unlockAudio(); stopSpeech(); say("Hello. This is how my answers will sound when you ask me something."); };
