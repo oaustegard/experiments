@@ -7,6 +7,9 @@ Layout written under SITE_REPO/bsky/embedders/:
   index.html, demo.js (paths block rewritten), sw.js, engine.js (ettin-native) + wgsl-runtime.js + wgsl-kernels.js, tail.js
   (embeddinggemma2-webgpu-tail, the tested version), README.md
   models/{ettin,leaf}/  model.onnx, tokenizer.json, meta.json, manifest.json
+  models/eg2/manifest.json   the t3w engine manifest (eg2-wgsl-engine/web/manifest.json). Since
+                        2026-10-23 bsky/image-search/model/ holds a different build (67K rhq) and the
+                        t3w cut this page uses lives in model/ort/, so the manifest ships here.
   index/{ettin,leaf,eg2}/  index.json, codes.u8.bin, aux.f32.bin   (eg2 = the full-EG2 posts index)
   data/corpus.json.gz   authors, rows and post texts, gzip -9 (decompressed in the page)
 Refuses to run if the shared image-search files differ from the ones the demo was tested with.
@@ -35,7 +38,7 @@ const P = {
   params: "../image-search/params.json", corpus: "data/corpus.json.gz",
   ettinModel: "models/ettin/", ettinIndex: "index/ettin/",
   leafModel: "models/leaf/", leafIndex: "index/leaf/",
-  eg2Model: "../image-search/model/", eg2Index: "index/eg2/", codes: "codes.u8.bin", aux: "aux.f32.bin",
+  eg2Model: "../image-search/model/ort/", eg2Manifest: "models/eg2/manifest.json", eg2Index: "index/eg2/", codes: "codes.u8.bin", aux: "aux.f32.bin",
 };
 // --- end paths ---'''
 
@@ -50,7 +53,9 @@ Each embeds the query on a hand-written WebGPU engine, and a GPU scan (RemexTail
 works with the network off (service worker, cache first).
 
 Ettin-17m and leaf-ir search indexes of the posts they embedded themselves. The cut queries the
-full-EG2 index and shares its model, engine and remex parameters with ../image-search/.
+full-EG2 index and shares its engine and remex parameters with ../image-search/, and its weights
+with that page's onnxruntime fallback (../image-search/model/ort/). The cut's engine manifest is
+models/eg2/manifest.json, because ../image-search/model/manifest.json now describes a different build.
 
 Built by oaustegard/experiments `ettin-native/run/publish_site.py`; write-up in
 `ettin-native/RESULTS.md`. Needs WebGPU (Chrome, Edge, Safari 26+).
@@ -68,8 +73,10 @@ def main():
     expect = {"engine.js": vendored_engine(EXP / "eg2-wgsl-engine" / "web" / "engine.js"), **vendored_modules()}
     for f, src in expect.items():
         assert (img / f).read_text() == src, f"{img / f} differs from the tested eg2-wgsl-engine: refusing to publish against it"
+    # model/ort/ carries a later fine-tune of the same graph (image-search's run C weights), so the graph
+    # and tokenizer are checked, not the weights; the engine manifest depends only on the graph.
     for a, b in ((img / "params.json", TAILW / "assets" / "params.json"),
-                 *((img / "model" / f, DEMO / "eg2cut" / f) for f in ("model_t3w.onnx", "model_t3w.onnx_data", "manifest.json", "tokenizer.json"))):
+                 *((img / "model" / "ort" / f, DEMO / "eg2cut" / f) for f in ("model_t3w.onnx", "tokenizer.json"))):
         assert sha(a) == sha(b), f"{a} differs from the tested {b}: refusing to publish against it"
     out = site / "bsky" / "embedders"
     if out.exists():
@@ -93,6 +100,8 @@ def main():
         shutil.copy(src / "index.json", out / "index" / key / "index.json")
         shutil.copy(src / "codes.u8.txt", out / "index" / key / "codes.u8.bin")
         shutil.copy(src / "aux.f32.txt", out / "index" / key / "aux.f32.bin")
+    (out / "models" / "eg2").mkdir(parents=True)
+    shutil.copy(EXP / "eg2-wgsl-engine" / "web" / "manifest.json", out / "models" / "eg2" / "manifest.json")
     (out / "index" / "eg2").mkdir(parents=True)
     eg2 = json.loads((TAILW / "bsky" / "index.json").read_text())
     eg2["files"] = {"codes": "codes.u8.bin", "aux": "aux.f32.bin"}

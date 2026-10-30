@@ -17,7 +17,7 @@ const P = {
   params: "../../../embeddinggemma2-webgpu-tail/web/assets/params.json", corpus: "data/corpus.json",
   ettinModel: "../models/e17c-t4-w8L63/", ettinIndex: "index/e17c-t4-w8L63/",
   leafModel: "../models/leafirc-t4-w8L63/", leafIndex: "index/leafirc-t4-w8L63/",
-  eg2Model: "eg2cut/", eg2Index: "../../../embeddinggemma2-webgpu-tail/web/bsky/", codes: "codes.u8.txt", aux: "aux.f32.txt",
+  eg2Model: "eg2cut/", eg2Manifest: "eg2cut/manifest.json", eg2Index: "../../../embeddinggemma2-webgpu-tail/web/bsky/", codes: "codes.u8.txt", aux: "aux.f32.txt",
 };
 // --- end paths ---
 const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs";
@@ -38,7 +38,7 @@ const MODELS = [
 ];
 const modelFiles = (m) => m.kind === "small"
   ? ["manifest.json", "meta.json", "tokenizer.json", "model.onnx"].map((f) => m.dir + f)
-  : ["manifest.json", "tokenizer.json", "model_t3w.onnx", "model_t3w.onnx_data"].map((f) => m.dir + f);
+  : [P.eg2Manifest, ...["tokenizer.json", "model_t3w.onnx", "model_t3w.onnx_data"].map((f) => m.dir + f)];
 const indexFiles = (m) => ["index.json", P.codes, P.aux].map((f) => m.index + f);
 const ASSETS = [
   "./", "index.html", "demo.js", P.smallEngine, P.eg2Engine, P.tail, P.params, P.corpus, TOKENIZERS,
