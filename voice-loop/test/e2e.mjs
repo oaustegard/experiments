@@ -22,8 +22,9 @@ try {
   await p.goto(`http://localhost:${port}/voice-loop/web/`);
   await p.waitForTimeout(1000);
   console.log("chips:", await p.$$eval(".chip", (cs) => cs.map((c) => c.textContent).join(" | ")));
+  if (process.env.MODEL) await p.selectOption("#model", process.env.MODEL);
   await p.click("#load");
-  await p.waitForFunction(() => /Ready|Failed/.test(document.getElementById("loadmeta").textContent), null, { timeout: 900000 });
+  await p.waitForFunction(() => /ready in|Failed/.test(document.getElementById("loadmeta").textContent), null, { timeout: 900000 });
   console.log("load:", await p.textContent("#loadmeta"), "| PSS peak so far", peak.toFixed(0), "MB");
   await p.fill("#typed", "Why is the sky blue?");
   await p.press("#typed", "Enter");
@@ -33,8 +34,10 @@ try {
   const pt = Number((answer.match(/(\d+) prompt tokens/) || [])[1] || 0);
   if (pt < 10) failures.push(`prompt had ${pt} tokens`);
   if (!/scatter|light|wavelength|atmosphere/i.test(answer)) failures.push("answer does not mention light or scattering");
-  await p.waitForFunction(() => /Last sentence|error/i.test(document.getElementById("ttsmeta").textContent), null, { timeout: 900000 });
-  console.log("tts:", await p.textContent("#ttsmeta"));
+  if (await p.inputValue("#ttsmode") === "supertonic") {   // the system voice reports nothing to wait on
+    await p.waitForFunction(() => /Last sentence|error/i.test(document.getElementById("ttsmeta").textContent), null, { timeout: 900000 });
+    console.log("tts:", await p.textContent("#ttsmeta"));
+  }
 } catch (e) { failures.push(e.message); }
 clearInterval(iv);
 console.log(`PSS peak ${peak.toFixed(0)} MB, now ${pss().toFixed(0)} MB`);

@@ -95,9 +95,12 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   <div class="chips" id="chips"></div>
 
   <section class="panel">
-    <div class="row"><label>Model</label></div>
+    <div class="row"><label for="model">Model</label></div>
     <div class="row">
-      <div class="grow">LFM2.5 350M on a custom WebGPU engine · ~230 MB</div>
+      <select id="model">
+        <option value="lfm25">LFM2.5 350M · ~230 MB · phones and laptops</option>
+        <option value="lfm3">LFM3 1.7B · ~1 GB · laptops (Mac)</option>
+      </select>
       <button id="load">Load</button>
     </div>
     <div class="bar"><i id="barfill"></i></div>
@@ -140,7 +143,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 
 <script type="module">
-import { Chat } from "./llm.js";
+import { Chat, MODELS } from "./llm.js";
 
 const $ = (id) => document.getElementById(id);
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -281,6 +284,8 @@ function fillVoices() {
   if (saved && list.some(([v]) => v === saved)) $("voice").value = saved;
 }
 $("ttsmode").value = store("ttsmode") || "system";
+$("model").value = store("model") || "lfm25";
+$("model").onchange = () => store("model", $("model").value);
 $("ttsmode").onchange = () => { store("ttsmode", mode()); fillVoices(); if (mode() === "supertonic") loadTTS(); };
 $("voice").onchange = () => store("voice:" + mode(), $("voice").value);
 if (synth) {
@@ -330,13 +335,17 @@ $("load").onclick = async () => {
   $("barfill").style.width = "0"; $("loadmeta").textContent = "Starting…";
   const t0 = performance.now();
   try {
-    chat = await Chat.load((done, total) => {
+    // one model on the GPU at a time: free the previous engine before loading another
+    if (chat) { chat.eng.destroy(); chat = null; history = []; }
+    const model = $("model").value;
+    chat = await Chat.load(model, (done, total) => {
       $("barfill").style.width = (100 * done / total).toFixed(1) + "%";
       $("loadmeta").textContent = `Loading ${(done / 1e6).toFixed(0)} of ${(total / 1e6).toFixed(0)} MB`;
     });
     $("barfill").style.width = "100%";
-    $("loadmeta").textContent = `Ready in ${((performance.now() - t0) / 1000).toFixed(1)} s${chat.cached ? " (weights from cache)" : ""}`;
-    $("load").textContent = "Loaded";
+    $("loadmeta").textContent = `${MODELS[model].label} ready in ${((performance.now() - t0) / 1000).toFixed(1)} s${chat.cached ? " (weights from cache)" : ""}`;
+    $("load").textContent = "Load";
+    $("load").disabled = false;
     setTalk();
   } catch (e) {
     $("load").disabled = false;

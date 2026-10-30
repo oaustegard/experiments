@@ -154,3 +154,46 @@ What the answers show:
 - **2 bits break the chat format.** gq2 and mix2_4 emit stray `</think>` tags, repeat sentences, and
   put the moon 57 million km away. Plain round-to-nearest at 2 bits is noise (perplexity 3525).
   Usable 2-bit LFM3 would need quantization-aware training, not just post-training rounding.
+
+## LFM3-1.7B in the browser (`web/lfm3.js`)
+
+`run/export3.py` writes gq4 as one 994.5 MB file. The file is the engine's 122 GPU buffers back to
+back, each 256-byte aligned:
+- the 4-bit codes and fp16 scales of every layer matrix
+- q, k, v and the gate fused into one matrix per attention layer, and w1 and w3 fused per layer
+- the norms and conv taps
+- the token table, as 4-bit round-to-nearest in MatMulNBits layout
+
+`run/upload3.py` puts the file on R2 (`austegard-media`, `lfm3/gq4-v1/`) in fifteen 64 MB parts.
+The bucket has a GET/HEAD CORS rule for austegard.com, and the parts' URLs and hashes are in
+`web/manifest3.json`.
+
+The engine streams the parts straight into the GPU buffers, like `lfm.js`. Before each matmul it
+rotates the activations with a 256-point fast Walsh-Hadamard transform. The matmul then reads 4-bit
+codes through a 16-entry Lloyd-Max table and applies an fp16 scale per 32 weights. The rest of the
+engine is LFM3's own:
+- RMS norm per 128-wide head on q and k
+- RoPE on pairs (i, i + 64), with pairs past a full-attention layer's 32 frequencies left unrotated
+- grouped-query attention over a 2048-position cache, with sliding layers seeing the last 256 keys
+- the per-head sigmoid gate
+- the sandwich norms
+- the 7-tap conv with a 6-value state
+
+**Parity.** `run/ref3.py` runs `run/lfm3.py` on weights decoded from the exported file. The engine
+matches it at cosine 1.000000 and 7/7 greedy tokens (41-token chat prompt plus 6 decode steps), both
+in headless Chromium on SwiftShader (`test/check3.mjs`) and on the Mac's GPU (bridge job
+`lfm3-bench-2-mac`).
+
+**Speed and memory.** Bridge job `lfm3-bench-2-mac`, Mac (M5), Chrome on Metal:
+
+| | |
+|---|---|
+| Load: stream 994.5 MB from R2 straight to the GPU | 30.4 s |
+| Prefill, 41 tokens | 28 ms |
+| Decode, median per token | 4.8 ms (about 208 tokens/s); 90th percentile 4.9–5.1 ms |
+
+On SwiftShader, peak PSS was 1528 MB against a 152 MB baseline.
+
+The token table is the largest buffer at 168 MB. That is more than WebGPU's default 128 MiB binding
+limit, so the engine needs an adapter that allows larger bindings, which the Mac's does (4 GB). An
+iPhone has not been tried.
