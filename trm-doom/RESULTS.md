@@ -174,7 +174,10 @@ before it shipped. Changes in order, with their measurement:
 Rejected: hitscan-first targeting with retreat on fast health loss (826 → 782 s survived on E1M4–E1M6) and hitscan-first
 alone (827 s against the same 819 s baseline); escaping a damaging floor once in it (all three E1M3 seeds still died in the
 pit). On the final build (20261030-151341) no E1M2–E1M7 run stalls at a lift, a thin wall or nukage; the bot dies in a
-fight or reaches the time cap. E1M8's two Barons engaged in one arena run of about a dozen; the rest stopped at 209 s with
-0/2 kills, which is under investigation as a possible engine wake-up bug
-([experiments#107](https://github.com/oaustegard/experiments/issues/107)).
+fight or reaches the time cap. E1M8's two Barons engaged in one arena run; the others stopped at 209 s with 0/2 kills. That
+looked like an engine wake-up bug and is not one ([experiments#107](https://github.com/oaustegard/experiments/issues/107)):
+the engine's sight and sound wake-up match Doom's, and the stalled runs never entered a sector the Barons can see or that
+gunfire reaches from, because the bot spent 40 s oscillating between two sectors toward an unreachable exit and then
+stopped exploring. Those stalled runs share one byte-identical trace across three seeds: with nothing awake the seed changes
+nothing, so they are one sample, not several.
 
