@@ -95,7 +95,7 @@ const PhoneSection: React.FC = () => {
 // ---------- text scenes ----------
 // Frames at which the opening line spells each character of "aeyu.io",
 // measured on public/vo/vo_v7.wav (energy segmentation + whisper word timestamps).
-const TITLE_AT = [9, 28, 47, 71, 93, 105, 113]; // a e y u . i o
+const TITLE_AT = [9, 27, 45, 67, 88, 100, 107]; // a e y u . i o
 
 const SpelledWordmark: React.FC<{ size: number }> = ({ size }) => {
   const frame = useCurrentFrame();
@@ -120,7 +120,7 @@ const SpelledWordmark: React.FC<{ size: number }> = ({ size }) => {
 const Title: React.FC = () => (
   <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", textAlign: "center" }}>
     <Rise at={0} dy={20}><SpelledWordmark size={210} /></Rise>
-    <Rise at={122}>
+    <Rise at={118}>
       <div style={{ fontFamily: F.serifItalic, fontStyle: "italic", fontSize: 50, color: C.text3, marginTop: 30, padding: "0 80px" }}>
         The sound you make at the top of the climb
       </div>
@@ -163,7 +163,7 @@ const Privacy: React.FC = () => (
 
 // Frames (from the closing card's start) at which the narrator says each vowel,
 // measured on public/vo/vo_v7.wav (energy segmentation + whisper word timestamps).
-const VOWEL_AT: Record<string, number> = { a: 47, e: 58, y: 69, u: 85, i: 106, o: 115 };
+const VOWEL_AT: Record<string, number> = { a: 44, e: 51, y: 60, u: 72, i: 96, o: 105 };
 const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
 const ROW_SHIFT = [0, 0.25, 0.75]; // QWERTY stagger, in key widths
 

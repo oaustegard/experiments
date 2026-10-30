@@ -45,8 +45,12 @@ deployment.
 `public/vo/` holds the narration tracks, each mixed to the reel's 35.5 s timeline
 by `vo/assemble.py`. For each line it caps pauses inside the take at 0.22 s,
 picks the take with the lowest faster-whisper WER and then the one closest to
-the line's `target` (slot minus 0.25 s), and stretches it gently (0.92–1.12×)
-to that target. The mixed track gets linear gain only, peaking at -2 dBFS (about -22 LUFS). Oskar, 2026-10-29,
+the line's `target` (slot minus 0.25 s), and stretches it only when the change is under 4%,
+using ffmpeg's Rubber Band filter with formants preserved. A take may run until
+0.1 s before the next line starts. v3–v6 stretched with librosa's phase vocoder
+by up to 12%, and Oskar heard "recorded from a laptop microphone in a slightly
+echoey room" on the lines stretched 6–12% (six of nine). v7 leaves six lines as
+recorded and stretches three by 2–3% The mixed track gets linear gain only, peaking at -2 dBFS (about -22 LUFS). Oskar, 2026-10-29,
 on v2: "weirdly hurried, then with a gap between slides". Lines that merely fit
 their slots ran at 180–280 wpm and left up to 1.7 s of silence before each cut.
 `vo/script_v2.json` lengthens the lines so that about 160 wpm fills each slot. `vo/script.json`

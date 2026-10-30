@@ -1,6 +1,6 @@
 """Pick the best take per line and mix a narration track timed to the reel.
 Usage: assemble.py TAKES_DIR NAME [SCRIPT_JSON [TOTAL_SECONDS]]   (takes named <line id>_s<seed>.wav)
-Best take = lowest ASR WER, then closest to the line target (slot - 0.25 s), stretched 0.92-1.12x toward it.
+Best take = lowest ASR WER among takes that end 0.1 s before the next line, then closest to the\ntarget (slot - 0.25 s). Rubber Band stretch only within 4% (librosa phase vocoder sounded echoey).
 Writes NAME.wav (48 kHz mono 16-bit, peaks at -2 dBFS, linear gain) and NAME_picks.json."""
 import glob, json, re, sys
 import numpy as np, librosa, soundfile as sf, jiwer
@@ -27,6 +27,19 @@ def cap_pauses(y):
     return np.concatenate(out) if out else y
 
 
+def rubberband(y, rate):
+    """Time-stretch with ffmpeg's Rubber Band filter (tempo > 1 shortens), formants preserved."""
+    import os, subprocess, tempfile
+    with tempfile.TemporaryDirectory() as td:
+        a, b = os.path.join(td, "in.wav"), os.path.join(td, "out.wav")
+        sf.write(a, y, SR)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", a, "-af",
+                        f"rubberband=tempo={rate:.4f}:formant=preserved:pitchq=quality:window=short",
+                        "-ar", str(SR), b], check=True)
+        out, _ = librosa.load(b, sr=SR)
+    return out
+
+
 norm = lambda s: " ".join(re.sub(r"[^a-z ]", " ", s.lower().replace("ay-yoo", "aeyu")).split())
 track = np.zeros(int(TOTAL * SR), np.float32)
 picks = []
@@ -44,13 +57,21 @@ for l in S:
         hyp = " ".join(x.text for x in asr.transcribe(librosa.resample(y, orig_sr=SR, target_sr=16000), language="en", beam_size=5)[0])
         wer = jiwer.wer(norm(l["text"]), norm(hyp)) if l["id"] != "l1" and l["id"] != "l9" else 0.0  # brand name: checked by ear-proxy below
         cands.append({"seed": s, "dur": len(y) / SR, "wer": round(wer, 3), "hyp": hyp.strip(), "y": y})
-    # fill the slot: aim to end 0.25 s before the next line, not merely fit
+    # fill the slot: aim to end 0.25 s before the next line; a take may run on
+    # until 0.1 s before the next line starts
     target = l.get("target", slot)
-    best = min(cands, key=lambda c: (c["wer"], abs(c["dur"] - target)))
+    nxt = next((m["start"] for m in S if m["start"] > l["start"]), TOTAL)
+    max_len = nxt - 0.1 - l["start"]
+    fits = [c for c in cands if c["dur"] <= max_len] or [min(cands, key=lambda c: c["dur"])]
+    best = min(fits, key=lambda c: (c["wer"], abs(c["dur"] - target)))
     y = best["y"]
-    rate = float(np.clip(best["dur"] / target, 0.92, 1.12))  # gentle stretch only
-    if abs(rate - 1) > 0.02:
-        y = librosa.effects.time_stretch(y, rate=rate)
+    # Rubber Band, formant-preserved, only for small changes. librosa's phase
+    # vocoder at 6-12% gave half the lines a hollow "laptop mic in an echoey room"
+    # sound (Oskar, 2026-10-30); beyond 4% we take the length as recorded.
+    rate = best["dur"] / target
+    if 0.01 < abs(rate - 1) <= 0.04 or best["dur"] > max_len:
+        rate = min(rate, 1.06) if best["dur"] > max_len else rate
+        y = rubberband(y, rate)
     if len(y) / SR > slot + 0.05:
         print(f"WARNING {l['id']}: {len(y)/SR:.2f}s overruns its {slot:.2f}s slot", file=sys.stderr)
     i = int(l["start"] * SR)
