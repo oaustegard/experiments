@@ -330,6 +330,20 @@ export class Bot {
       if (cand.gain > 3 * FINE && (!best || cand.gain > best.gain)) best = cand;
     }
     if (best) { this.fine = best; this.repairs = 0; return true; }
+    // the whole-level route exists but the window can't join it: walk the route's own cells for a while
+    if (this.coarse?.n && this.coarse.path.length > 2 && !this.target.viaGlobal) {
+      const cg = this.coarse.grid, cn = this.coarse.n, path = [(N / 2) * N + N / 2];
+      for (const o of this.coarse.path) {
+        const x = cg.ox + (o % cn + 0.5) * cg.cs, y = cg.oy + (((o / cn) | 0) + 0.5) * cg.cs;
+        const i = Math.floor((x - base.ox) / FINE), j = Math.floor((y - base.oy) / FINE);
+        if (i >= 0 && j >= 0 && i < N && j < N && Math.hypot(x - p.x, y - p.y) > FINE) path.push(j * N + i);
+      }
+      if (path.length > 2) {
+        this.stats.globalWalks = (this.stats.globalWalks || 0) + 1;
+        this.fine = { grid: base, path, reached: false, tic: this.tic, goal: null, viaGlobal: true };
+        return true;
+      }
+    }
     if (failed.length && (this.repairs = (this.repairs || 0) + 1) <= 4) { // repair the coarse map and try again
       this.blocked.push(...failed.map(([x, y]) => [x, y, this.tic + 35 * 40]));
       this.events.push({ tic: this.tic, ev: "coarse-repair", kind: t.kind, n: failed.length });
