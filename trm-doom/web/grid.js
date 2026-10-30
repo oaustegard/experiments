@@ -6,7 +6,7 @@
 
 export const C = { PAD: 0, WALL: 1, FREE: 2, DOOR: 3, HAZARD: 4, START: 5, GOAL: 6 };
 export const VOCAB = 7;
-export const N = 32, FINE = 24, COARSE = 96;
+export const N = 32, FINE = 24, COARSE = 48;
 const CLEAR = 14; // a little under the player's radius of 16: a 48-unit gap still leaves a cell open
 
 // manual doors and the key each needs (0 none, 1 blue, 2 yellow, 3 red)
@@ -127,20 +127,22 @@ export function makeGridder(map, verts) {
     return { g: raster(ox, oy, FINE, N, st), ox, oy, cs: FINE };
   }
 
-  // Coarse grid: a 4N×4N fine raster pooled 4×4. A coarse cell is open when at least 4 of its 16 fine cells are.
-  function coarse(cx, cy, st) {
-    const ox = cx - N * COARSE / 2, oy = cy - N * COARSE / 2, f = 4, nf = N * f;
+  // Coarse grid: a fN×fN fine raster pooled f×f (f = COARSE / FINE). A coarse cell is open when at least
+  // f²/4 of its fine cells are. Training data used f = 4 (96 units); the bot uses f = 2, which keeps
+  // corridors and doors that 96-unit cells lost while joining rooms across walls less often.
+  function coarse(cx, cy, st, cs = COARSE, n = N) {
+    const f = Math.round(cs / FINE), ox = cx - n * cs / 2, oy = cy - n * cs / 2, nf = n * f, need = Math.max(1, (f * f) >> 2);
     const fg = raster(ox, oy, FINE, nf, st);
-    const g = new Uint8Array(N * N);
-    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const g = new Uint8Array(n * n);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
       let free = 0, hurt = 0, door = 0;
       for (let b = 0; b < f; b++) for (let a = 0; a < f; a++) {
         const c = fg[(j * f + b) * nf + i * f + a];
         if (c === C.FREE) free++; else if (c === C.HAZARD) hurt++; else if (c === C.DOOR) door++;
       }
-      g[j * N + i] = free + hurt >= 4 ? (hurt > free ? C.HAZARD : C.FREE) : free + hurt + door >= 4 ? C.DOOR : C.WALL;
+      g[j * n + i] = free + hurt >= need ? (hurt > free ? C.HAZARD : C.FREE) : free + hurt + door >= need ? C.DOOR : C.WALL;
     }
-    return { g, ox, oy, cs: COARSE };
+    return { g, ox, oy, cs, n };
   }
 
   return { fine, coarse, raster, inSector, lineClass, doorKey, secLines, lines: { lx1, ly1, lx2, ly2 } };

@@ -35,10 +35,10 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) li: vec3
   } }
 }`;
 
-// 3×3 convolution over the 32×32 grid as a matmul with K = 9·D: A's row gathers the cell's neighbours
+// 3×3 convolution over a GW-wide grid as a matmul with K = 9·D: A's row gathers the cell's neighbours
 // (zero outside the grid), W is [M, ky, kx, in].
 const CONV = /* wgsl */ `
-override K: u32; override M: u32;
+override K: u32; override M: u32; override GW: u32; override GH: u32;
 @group(0) @binding(0) var<storage, read> A: array<f32>;      // [L, K]
 @group(0) @binding(1) var<storage, read> W: array<f32>;      // [M, K] (torch Linear)
 @group(0) @binding(2) var<storage, read_write> O: array<f32>; // [L, M]
@@ -53,8 +53,8 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) li: vec3
     for (var e = t; e < 1024u; e += 256u) {
       let rr = e / 16u; let kk = e % 16u;
       let kg = k0 + kk; let C = K / 9u; let tap = kg / C; let ch = kg % C;
-      let r = r0 + rr; let j = i32(r / 32u) + i32(tap / 3u) - 1; let i = i32(r % 32u) + i32(tap % 3u) - 1;
-      As[rr][kk] = select(0.0, A[u32(max(j, 0) * 32 + max(i, 0)) * C + ch], j >= 0 && j < 32 && i >= 0 && i < 32);
+      let r = r0 + rr; let j = i32(r / GW) + i32(tap / 3u) - 1; let i = i32(r % GW) + i32(tap % 3u) - 1;
+      As[rr][kk] = select(0.0, A[u32(max(j, 0) * i32(GW) + max(i, 0)) * C + ch], j >= 0 && j < i32(GH) && i >= 0 && i < i32(GW));
       Ws[rr][kk] = select(0.0, W[woff.x + (c0 + rr) * K + k0 + kk], c0 + rr < M);
     }
     workgroupBarrier();
@@ -185,9 +185,19 @@ var<workgroup> part: array<f32, 256>;
 
 export class TRMPlanner {
   // weights: Float32Array of all tensors; manifest: {config, tensors: {name: {offset, shape}}}
-  static async create(device, weights, manifest) {
+  // grid: {w, h} to plan on a grid other than the 32×32 one it was trained on (the conv mixer is
+  // translation-equivariant). Such a grid has no learned position table: positions are zero.
+  static async create(device, weights, manifest, grid = null) {
     const p = new TRMPlanner();
-    p.device = device; p.cfg = manifest.config; p.T = manifest.tensors;
+    p.device = device; p.cfg = { ...manifest.config }; p.T = { ...manifest.tensors };
+    p.gw = grid?.w ?? 32; p.gh = grid?.h ?? 32;
+    if (grid) {
+      if ((p.cfg.mixer || "attn") !== "conv" || (p.gw * p.gh) % 64) throw new Error("other grid sizes need the conv mixer and a multiple of 64 cells");
+      p.cfg.L = p.gw * p.gh;
+      const w2 = new Float32Array(weights.length + p.cfg.L * p.cfg.d); w2.set(weights); // zero positions at the end
+      p.T.pos = { offset: weights.length, shape: [p.cfg.L, p.cfg.d] };
+      weights = w2;
+    }
     const { d: D, heads: H, layers, n, T } = p.cfg;
     const L = p.cfg.L, HID = 4 * D;
     if ((p.cfg.mixer || "attn") === "attn" && D / H !== 32 || L !== 1024) throw new Error("WGSL attention is written for head size 32 on a 32×32 grid");
@@ -215,7 +225,7 @@ export class TRMPlanner {
     const mmPipe = (K, M) => { const k = K + "x" + M; if (!mmPipes.has(k)) mmPipes.set(k, pipe(mmMod, "main", { K, M })); return mmPipes.get(k); };
     const rowPipes = {}; for (const e of ["addNorm", "add", "swiglu", "embed", "fill"]) rowPipes[e] = pipe(rowMod, e, { D, HID }, rowLayout);
     const atPipe = mixer === "attn" ? pipe(atMod, "main", { D, H, L }) : null;
-    const cvPipe = mixer === "conv" ? pipe(cvMod, "main", { K: 9 * D, M: D }) : null;
+    const cvPipe = mixer === "conv" ? pipe(cvMod, "main", { K: 9 * D, M: D, GW: p.gw, GH: p.gh }) : null;
     const headPipe = pipe(headMod, "main", { D, L });
     const bg = (pl, bufs) => device.createBindGroup({ layout: pl.getBindGroupLayout(0), entries: bufs.map((b, i) => ({ binding: i, resource: { buffer: b } })) });
     const dummy = buf(4);

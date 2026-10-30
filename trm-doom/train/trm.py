@@ -74,7 +74,8 @@ class ConvBlock(nn.Module):
 
     def forward(s, x):
         B, L, D = x.shape
-        c = s.conv(x.transpose(1, 2).reshape(B, D, s.g, s.g)).reshape(B, D, L).transpose(1, 2)
+        h, w = s.hw if hasattr(s, "hw") else (s.g, s.g)
+        c = s.conv(x.transpose(1, 2).reshape(B, D, h, w)).reshape(B, D, L).transpose(1, 2)
         x = rms(x + c)
         g, u = s.gu(x).chunk(2, -1)
         return rms(x + s.down(F.silu(g) * u))
@@ -100,7 +101,12 @@ class TRM(nn.Module):
         return h
 
     def embed(s, tokens):
+        if tokens.shape[1] != s.pos.shape[0]:  # another grid size (conv mixer): no positions
+            return s.emb(tokens)
         return s.emb(tokens) + s.pos
+
+    def set_grid(s, h, w):
+        for b in s.blocks: b.hw = (h, w)
 
     def init_state(s, B, L, device, dtype):
         y = s.y0.to(dtype).expand(B, L, -1).clone()

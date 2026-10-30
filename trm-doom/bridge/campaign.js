@@ -8,11 +8,15 @@ const [{ runLevel }, { Bot }, { TRMPlanner }, { OraclePlanner }] = await Promise
 const doom = { engine: await ctx.importModule(D + "engine.js"), info: await ctx.importModule(D + "info.js"), specials: await ctx.importModule(D + "specials.js") };
 const device = await ctx.gpu();
 const wadBytes = await ctx.fetchBytes(D + "e1.wad.gz");
-let planner;
-if (cfg.planner === "oracle") planner = new OraclePlanner();
+let planner, globalPlanner = null;
+if (cfg.planner === "oracle") { planner = new OraclePlanner(); if (cfg.global) globalPlanner = async () => planner; }
 else {
   const man = JSON.parse(new TextDecoder().decode(ctx.inputs.man));
   const trm = await TRMPlanner.create(device, ctx.inputs.w, man);
+  // whole-level planning on its own weights when given (the multi-size fine-tune), else the same ones
+  const gw = ctx.inputs.gw || ctx.inputs.w, gman = ctx.inputs.gman ? JSON.parse(new TextDecoder().decode(ctx.inputs.gman)) : man;
+  const cache = new Map();
+  if (cfg.global) globalPlanner = async (n) => { if (!cache.has(n)) cache.set(n, await TRMPlanner.create(device, gw, gman, { w: n, h: n })); return cache.get(n); };
   let plans = 0, steps = 0, ms = 0, halted = 0;
   planner = { async plan(g) { const r = await trm.plan(g, { sup: cfg.sup || 4 }); plans++; steps += r.steps; ms += r.ms; halted += r.halt > 0; return r; },
     stats: () => ({ plans, meanSteps: steps / Math.max(plans, 1), meanMs: ms / Math.max(plans, 1), halted }) };
@@ -24,12 +28,14 @@ let carry = cfg.carry || null, frames = [], palette = null;
 // mode "each": every map from a pistol start, up to `attempts` tries each
 const queue = cfg.mode === "each" ? cfg.maps.flatMap((m) => Array(cfg.attempts || 1).fill(m)) : cfg.maps.slice();
 const cleared = new Set();
+const tries = {};
 for (const map of queue) {
+  tries[map] = (tries[map] || 0) + 1;
   if (cfg.mode === "each" && cleared.has(map)) continue;
   const left = budget - (performance.now() - t0);
   if (left < 20000) break;
   const r = await runLevel({ device, doom, wadBytes, planner, Bot, map, maxTics: cfg.maxTics || 35 * 600, skill: cfg.skill || 3,
-    frameEvery: cfg.frameEvery || 0, carry: cfg.mode === "each" ? null : carry, deadlineMs: left - 8000,
+    globalPlanner, frameEvery: cfg.frameEvery || 0, carry: cfg.mode === "each" ? null : carry, deadlineMs: left - 8000, seed: (cfg.seed || 0) + 37 * (tries[map] - 1),
     onProgress: (f, d) => ctx.progress(Math.min(0.99, (performance.now() - t0) / budget), `${map} ${d.target?.kind || ""} hp ${d.health}`) });
   if (cfg.keepFrames !== false) frames.push(...r.frames);
   palette = r.palette; delete r.frames; delete r.palette;

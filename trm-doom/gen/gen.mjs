@@ -51,7 +51,7 @@ function sample(L) {
     if (standable(L, st, x, y)) break;
   }
   const isCoarse = rnd() < +coarseFrac;
-  const { g } = isCoarse ? L.gr.coarse(x, y, st) : L.gr.fine(x, y, st);
+  const { g } = isCoarse ? L.gr.coarse(x, y, st, 96) : L.gr.fine(x, y, st);
   const c0 = (N / 2) * N + N / 2;
   g[c0] = C.START;
   // goal: mostly a reachable cell, sometimes one that isn't

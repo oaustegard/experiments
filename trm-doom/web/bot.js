@@ -39,6 +39,7 @@ export class Bot {
     const L = this.map.lines;
     this.lineMid = L.map((l) => { const a = this.verts[l.v1], c = this.verts[l.v2]; return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2]; });
     this.blacklist = new Map(); // target key -> tic it may be tried again
+    this.blocked = []; // world points of coarse waypoints found unreachable
     this.tic = 0; this.target = null; this.fine = null; this.coarse = null;
     this.stats = { finePlans: 0, coarsePlans: 0, fineBroken: 0, coarseBroken: 0, coarseEmpty: 0, planMs: 0, stuck: 0, targets: {} };
     this.lastPos = null; this.lastProgressTic = 0; this.unstick = 0; this.useToggle = false;
@@ -139,20 +140,20 @@ export class Bot {
   }
 
   // order the TRM set: BFS inside it from START; returns {order (cells, start first), dist, toGoal}
-  walkSet(g, set, goalCell) {
-    const c0 = (N / 2) * N + N / 2, dist = new Int32Array(N * N).fill(-1), prev = new Int32Array(N * N).fill(-1), q = [c0];
+  walkSet(g, set, goalCell, n = N, c0 = (N / 2) * N + N / 2) {
+    const dist = new Int32Array(n * n).fill(-1), prev = new Int32Array(n * n).fill(-1), q = [c0];
     dist[c0] = 0;
     for (let h = 0; h < q.length; h++) {
-      const o = q[h], i = o % N, j = (o / N) | 0;
-      for (const n of [i > 0 ? o - 1 : -1, i < N - 1 ? o + 1 : -1, j > 0 ? o - N : -1, j < N - 1 ? o + N : -1]) {
-        if (n >= 0 && dist[n] < 0 && set[n] && passable(g[n])) { dist[n] = dist[o] + 1; prev[n] = o; q.push(n); }
+      const o = q[h], i = o % n, j = (o / n) | 0;
+      for (const m of [i > 0 ? o - 1 : -1, i < n - 1 ? o + 1 : -1, j > 0 ? o - n : -1, j < n - 1 ? o + n : -1]) {
+        if (m >= 0 && dist[m] < 0 && set[m] && passable(g[m])) { dist[m] = dist[o] + 1; prev[m] = o; q.push(m); }
       }
     }
     let end = goalCell;
     const reached = dist[goalCell] >= 0;
     if (!reached) { // the reachable cell of the set nearest the goal
-      let best = -1, bd = 1e9; const gi = goalCell % N, gj = (goalCell / N) | 0;
-      for (const o of q) { const dd = Math.abs(o % N - gi) + Math.abs(((o / N) | 0) - gj); if (dd < bd) { bd = dd; best = o; } }
+      let best = -1, bd = 1e9; const gi = goalCell % n, gj = (goalCell / n) | 0;
+      for (const o of q) { const dd = Math.abs(o % n - gi) + Math.abs(((o / n) | 0) - gj); if (dd < bd) { bd = dd; best = o; } }
       end = best;
     }
     const path = [];
@@ -209,10 +210,54 @@ export class Bot {
     return first;
   }
 
+  // The whole level as one grid of 48-unit cells, planned by TRM in one go (the conv mixer runs on any
+  // grid size). Used instead of the 1536-unit coarse window when the bot has a global planner.
+  async planGlobal() {
+    const t = this.target, p = this.s.p, b = this.map.bmap, cs = COARSE;
+    const n = this.globalN ||= Math.ceil(Math.max(b.w, b.h) * 128 / cs / 8) * 8 + 8;
+    const cx = b.x + b.w * 64, cy = b.y + b.h * 64;
+    const grid = this.gr.coarse(cx, cy, this.gridState(), cs, n);
+    const g = grid.g;
+    if (!t.hazardOK) for (let k = 0; k < g.length; k++) if (g[k] === C.HAZARD) g[k] = C.WALL;
+    for (const [bx, by] of this.blocked) {
+      const i = Math.floor((bx - grid.ox) / cs), j = Math.floor((by - grid.oy) / cs);
+      if (i >= 0 && j >= 0 && i < n && j < n) g[j * n + i] = C.WALL;
+    }
+    const cell = (x, y, r) => {
+      const i0 = Math.floor((x - grid.ox) / cs), j0 = Math.floor((y - grid.oy) / cs);
+      for (let rr = 0; rr <= r; rr++) for (let dj = -rr; dj <= rr; dj++) for (let di = -rr; di <= rr; di++) {
+        const i = i0 + di, j = j0 + dj;
+        if (Math.max(Math.abs(di), Math.abs(dj)) === rr && i >= 0 && j >= 0 && i < n && j < n && passable(g[j * n + i])) return j * n + i;
+      }
+      return -1;
+    };
+    const s0 = cell(p.x, p.y, 2), gc = cell(t.x, t.y, 3);
+    if (s0 < 0 || gc < 0 || s0 === gc) { this.noGlobal = true; const ok = await this.planCoarse(); this.noGlobal = false; return ok; }
+    g[s0] = C.START; g[gc] = C.GOAL;
+    const pl = await this.globalPlanner(n);
+    const t0 = performance.now();
+    const r = await pl.plan(g, { sup: this.globalSup || 10 });
+    this.stats.planMs += performance.now() - t0; this.stats.globalPlans = (this.stats.globalPlans || 0) + 1;
+    this.stats.globalMs = (this.stats.globalMs || 0) + r.ms;
+    let k = 0; for (const v of r.path) k += v;
+    if (!k && !t.hazardOK) { t.hazardOK = true; return this.planGlobal(); }
+    if (!k) { this.stats.coarseEmpty++; this.reject(t, "TRM: no global route"); return false; }
+    const w = this.walkSet(g, r.path, gc, n, s0);
+    if (!w.reached) this.stats.coarseBroken++;
+    this.coarse = { grid: { ...grid, cs }, path: w.path, tic: this.tic, n };
+    return true;
+  }
+
   async planCoarse() {
+    if (this.globalPlanner && !this.noGlobal) return this.planGlobal();
     const t = this.target, p = this.s.p;
     const grid = this.anchored(this.gr.coarse, COARSE);
     const c0 = (N / 2) * N + N / 2;
+    // waypoints the fine planner couldn't reach: the coarse grid's pooling joined them across a wall
+    for (const [bx, by] of this.blocked) {
+      const i = Math.floor((bx - grid.ox) / COARSE), j = Math.floor((by - grid.oy) / COARSE);
+      if (i >= 0 && j >= 0 && i < N && j < N) grid.g[j * N + i] = C.WALL;
+    }
     grid.g[c0] = C.START;
     const gc = this.goalCell(grid, t.x, t.y, 4);
     if (gc < 0) { this.reject(t, "no coarse goal cell"); return false; }
@@ -233,16 +278,16 @@ export class Bot {
   fineGoals() {
     const t = this.target, p = this.s.p, out = [];
     const inWin = (x, y) => Math.abs(x - p.x) < (N / 2 - 1) * FINE && Math.abs(y - p.y) < (N / 2 - 1) * FINE;
-    if (inWin(t.x, t.y)) out.push([t.x, t.y]);
+    if (inWin(t.x, t.y)) out.push([t.x, t.y, false]);
     if (this.coarse) {
-      const cg = this.coarse.grid, pts = [];
+      const cg = this.coarse.grid, pts = [], cn = this.coarse.n || N;
       for (const o of this.coarse.path) {
-        const x = cg.ox + (o % N + 0.5) * cg.cs, y = cg.oy + (((o / N) | 0) + 0.5) * cg.cs;
+        const x = cg.ox + (o % cn + 0.5) * cg.cs, y = cg.oy + (((o / cn) | 0) + 0.5) * cg.cs;
         if (inWin(x, y) && Math.hypot(x - p.x, y - p.y) > 2 * FINE) pts.push([x, y]);
       }
-      for (let k = pts.length - 1; k >= 0; k -= 2) out.push(pts[k]);
+      for (let k = pts.length - 1; k >= 0; k -= 2) out.push([...pts[k], true]);
     }
-    if (!out.length) out.push([t.x, t.y]); // clamped into the window by goalCell
+    if (!out.length) out.push([t.x, t.y, false]); // clamped into the window by goalCell
     return out.slice(0, 3);
   }
 
@@ -252,7 +297,8 @@ export class Bot {
     const c0 = (N / 2) * N + N / 2;
     base.g[c0] = C.START;
     let best = null;
-    for (const [gx, gy] of this.fineGoals()) {
+    const failed = [];
+    for (const [gx, gy, waypoint] of this.fineGoals()) {
       const gc = this.goalCell(base, gx, gy, 3);
       if (gc < 0) continue;
       const grid = { ...base, g: base.g.slice() };
@@ -262,12 +308,27 @@ export class Bot {
       if (!w.reached) this.stats.fineBroken++;
       const cand = { grid, path: w.path, reached: w.reached, tic: this.tic, goal: [gx, gy] };
       if (w.reached) { best = cand; break; }
-      if (!best || w.path.length > best.path.length) best = cand;
+      if (waypoint) failed.push([gx, gy]);
+      // a partial route counts only if it ends well closer to the goal than we are
+      const e = w.path[w.path.length - 1], ex = grid.ox + (e % N + 0.5) * FINE, ey = grid.oy + (((e / N) | 0) + 0.5) * FINE;
+      cand.gain = Math.hypot(gx - p.x, gy - p.y) - Math.hypot(gx - ex, gy - ey);
+      if (cand.gain > 3 * FINE && (!best || cand.gain > best.gain)) best = cand;
     }
-    if (best && (best.reached || best.path.length >= 3)) { this.fine = best; return true; }
+    if (best) { this.fine = best; this.repairs = 0; return true; }
+    if (failed.length && (this.repairs = (this.repairs || 0) + 1) <= 4) { // repair the coarse map and try again
+      this.blocked.push(...failed);
+      this.events.push({ tic: this.tic, ev: "coarse-repair", kind: t.kind, n: failed.length });
+      if (await this.planCoarse()) return this.planFine(retry);
+      return false;
+    }
     // a near target with no coarse route yet: get one and try again
     if (retry && !this.coarse && (await this.planCoarse())) return this.planFine(false);
-    if (!t.hazardOK) { t.hazardOK = true; this.events.push({ tic: this.tic, ev: "hazard-ok", kind: t.kind, key: t.key }); return this.planFine(retry); }
+    if (!t.hazardOK) { // allow nukage, and get a coarse route that may use it too
+      t.hazardOK = true; this.events.push({ tic: this.tic, ev: "hazard-ok", kind: t.kind, key: t.key });
+      this.coarse = null;
+      if (Math.hypot(t.x - p.x, t.y - p.y) >= (N / 2 - 2) * FINE && !(await this.planCoarse())) return false;
+      return this.planFine(retry);
+    }
     this.reject(t, "TRM: no fine route", 350);
     return false;
   }
@@ -367,6 +428,17 @@ export class Bot {
       this.target = null; this.fine = null; this.coarse = null;
     }
     if (this.target && this.tic - this.target.since > 35 * 40) this.reject(this.target, "timeout");
+    // progress: the target must get closer every 12 seconds, or it's given up for now
+    if (this.target) {
+      const dt = Math.hypot(this.target.x - p.x, this.target.y - p.y);
+      if (!(dt > (this.target.best ?? 1e9) - 64)) { this.target.best = Math.min(dt, this.target.best ?? 1e9); this.target.bestTic = this.tic; }
+      else if (this.tic - this.target.bestTic > 420) this.reject(this.target, "no progress");
+    }
+    if (this.debugGrids && this.fine && this.tic - (this.lastDump ?? -999) > 300) {
+      this.lastDump = this.tic;
+      this.events.push({ tic: this.tic, ev: "dump", kind: this.target?.kind, x: Math.round(p.x), y: Math.round(p.y), angle: +p.angle.toFixed(2),
+        grid: Array.from(this.fine.grid.g), path: this.fine.path, ox: this.fine.grid.ox, oy: this.fine.grid.oy, goal: this.fine.goal });
+    }
     if (this.tic - this.lastProgressTic > 70 && this.target) {
       this.stats.stuck++; this.lastProgressTic = this.tic; this.unstick = 18;
       this.target.stuck = (this.target.stuck || 0) + 1;
@@ -388,7 +460,7 @@ export class Bot {
     if (!this.target) return { turn: 0.05 };
     const t = this.target;
     const near = Math.hypot(t.x - p.x, t.y - p.y) < (N / 2 - 2) * FINE;
-    if (!near && (!this.coarse || this.tic - this.coarse.tic > 140)) { if (!(await this.planCoarse())) return {}; }
+    if (!near && (!this.coarse || this.tic - this.coarse.tic > (this.globalPlanner ? 350 : 140))) { if (!(await this.planCoarse())) return {}; }
     const fineEnd = this.fine && this.fine.path.length ? this.fine.path[this.fine.path.length - 1] : -1;
     const atEnd = this.fine && this.lookahead().at >= this.fine.path.length - 2;
     if (!this.fine || this.tic - this.fine.tic > 24 || atEnd) { if (!(await this.planFine())) return {}; }

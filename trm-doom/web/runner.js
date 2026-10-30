@@ -2,14 +2,15 @@
 // asks the bot for input and runs one tic. Used by the test page here and by the GPU-bridge job.
 
 export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", maxTics = 35 * 300, every = 2, skill = 3,
-  frameEvery = 0, debugGrids = false, frameSize = [320, 200], carry = null, onProgress = null, deadlineMs = 1e12, Bot }) {
+  frameEvery = 0, debugGrids = false, frameSize = [320, 200], carry = null, onProgress = null, deadlineMs = 1e12, seed = 0, globalPlanner = null, Bot }) {
   const { Engine, unpackWad, freshPlayer, W } = doom.engine;
   const eng = await Engine.create(device, await unpackWad(wadBytes), { width: frameSize[0], height: frameSize[1], skill, maxWidth: frameSize[0], maxHeight: frameSize[1] });
   const t0 = performance.now();
-  await eng.loadMap(map, carry || freshPlayer());
+  await eng.loadMap(map, carry || { ...freshPlayer(), rng: seed & 255 });
   const compileMs = performance.now() - t0;
   const bot = new Bot({ wad: eng.wad, map: eng.map, MOBJINFO: doom.info.MOBJINFO, MF: doom.info.MF, LINE_SPECIALS: doom.specials.LINE_SPECIALS, TR: doom.specials.TR, W }, planner);
   bot.debugGrids = debugGrids;
+  if (globalPlanner) bot.globalPlanner = globalPlanner;
   const read = async () => {
     const enc = device.createCommandEncoder(), out = {};
     const parts = { world: eng.worldBuf, sec: eng.secBuf, mobj: eng.mobjBuf, ls: eng.lsBuf };
@@ -49,7 +50,7 @@ export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", 
   const wi = new Int32Array(world), wu = new Uint32Array(world);
   const pal = eng.gfx.words.slice(eng.gfx.layout.PAL + new Uint32Array(world)[W.palette] * 0, eng.gfx.layout.PAL + 256);
   return {
-    map, result, tics: tic, seconds: +(tic / 35).toFixed(1), wallMs: Math.round(performance.now() - tStart), compileMs: Math.round(compileMs),
+    map, seed, result, tics: tic, seconds: +(tic / 35).toFixed(1), wallMs: Math.round(performance.now() - tStart), compileMs: Math.round(compileMs),
     kills: wi[W.killcount], totalKills: wi[W.totalkills], items: wi[W.itemcount], totalItems: wi[W.totalitems], health: wi[W.health],
     stats: bot.stats, events: bot.events, final: bot.debug(), trace, frames, palette: pal, carry: result === "exit" || result === "secret-exit" ? eng.playerFrom(world) : null,
   };

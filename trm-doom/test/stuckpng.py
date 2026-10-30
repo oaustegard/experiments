@@ -10,5 +10,5 @@ for e in r['events']:
     i = int((e['x'] - e['ox']) // 24); j = int((e['y'] - e['oy']) // 24)
     if 0 <= i < 32 and 0 <= j < 32: img[j, i] = [255, 0, 255]
     tiles.append(np.kron(img[::-1], np.ones((8, 8, 1), np.uint8)))
-    print(e['tic'], e['kind'], e['x'], e['y'], 'angle', e['angle'], 'pathlen', len(e['path']))
-if tiles: Image.fromarray(np.concatenate(tiles[:6], 1)).save(sys.argv[1])
+    print(e['tic'], e['ev'], e['kind'], e['x'], e['y'], 'angle', e['angle'], 'pathlen', len(e['path']), 'goal', e.get('goal'))
+if tiles: Image.fromarray(np.concatenate(tiles[:8], 1)).save(sys.argv[1])
