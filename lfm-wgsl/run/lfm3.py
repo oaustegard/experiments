@@ -22,7 +22,8 @@ import torch
 import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parents[1]
-M3 = ROOT / "model3"
+M3 = Path(__import__("os").environ.get("LFM3_DIR", ROOT / "model3"))
+DEV = __import__("os").environ.get("DEV", "cpu")
 
 
 def config(d=M3):
@@ -124,7 +125,7 @@ def rope_tables(cfg, kind, T, offset=0):
     rp = cfg["rope_parameters"][kind]
     angles = int(rp.get("partial_rotary_factor", 1.0) * hd) // 2
     inv = 1.0 / (rp["rope_theta"] ** (torch.arange(0, 2 * angles, 2, dtype=torch.float) / hd))
-    f = torch.arange(offset, offset + T, dtype=torch.float)[:, None] * inv
+    f = torch.arange(offset, offset + T, dtype=torch.float, device=DEV)[:, None] * inv.to(DEV)
     return f.cos(), f.sin()
 
 
@@ -154,7 +155,7 @@ class Lfm3:
         self.hook = None
 
     def w(self, name):
-        return self.W[name].float()
+        return self.W[name].to(DEV).float()
 
     def lin(self, x, name, tag):
         if self.hook:
@@ -183,7 +184,7 @@ class Lfm3:
             cos, sin = rope_tables(c, kind, T)
             q, k = rope(q, cos, sin, self.ort), rope(k, cos, sin, self.ort)
             k = k.repeat_interleave(nh // nkv, 1); v = v.repeat_interleave(nh // nkv, 1)
-            pos = torch.arange(T)
+            pos = torch.arange(T, device=DEV)
             allow = pos[:, None] >= pos[None, :]
             if kind == "sliding_attention":
                 allow &= (pos[:, None] - pos[None, :]) < c["sliding_window"]
@@ -199,7 +200,7 @@ class Lfm3:
 
     @torch.no_grad()
     def hidden(self, ids):
-        x = self.w("model.embed_tokens.weight")[torch.as_tensor(ids)]
+        x = self.w("model.embed_tokens.weight")[torch.as_tensor(ids, device=DEV)]
         for i in range(len(self.cfg["layer_types"])):
             x = self.layer(i, x)
         return rms(x, self.w("model.embedding_norm.weight"), self.cfg["norm_eps"])

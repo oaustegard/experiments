@@ -30,11 +30,11 @@ import torch
 import torch.nn.functional as F
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lfm3 import M3, ROOT, Lfm3, bf16, config, linear_names, onnx_q4, rms  # noqa: E402
+from lfm3 import DEV, M3, ROOT, Lfm3, bf16, config, linear_names, onnx_q4, rms  # noqa: E402
 
 torch.set_num_threads(4)
 Q = M3 / "quant"
-OUT = ROOT / "results" / "quant3.json"
+OUT = Path(__import__("os").environ.get("QUANT3_OUT", ROOT / "results" / "quant3.json"))
 CAL_SEQS, EVAL_SEQS, SEQ = 48, 8, 512
 ROT = 256
 BLOCK = 32
@@ -63,7 +63,7 @@ def rotation256(seed=0):
 
 def rot_w(W, inverse=False):
     """W [out, K] times R^T (into the rotated basis), or times R (back out) with inverse."""
-    R = rotation256().to(W.dtype)
+    R = rotation256().to(W.dtype).to(W.device)
     out, K = W.shape
     Wb = W.reshape(out, K // ROT, ROT)
     return (Wb @ (R if inverse else R.T)).reshape(out, K)
@@ -71,7 +71,7 @@ def rot_w(W, inverse=False):
 
 def rot_h(H):
     """R H R^T for the block-diagonal R, block by block."""
-    R = rotation256().to(H.dtype)
+    R = rotation256().to(H.dtype).to(H.device)
     K = H.shape[0]; nb = K // ROT
     Hb = H.reshape(nb, ROT, nb, ROT)
     return torch.einsum("ab,ibjc,dc->iajd", R, Hb, R).reshape(K, K)
@@ -102,15 +102,15 @@ def gq(w, H, bits, damp=0.01):
     """GPTQ in the rotated basis onto Lloyd-Max levels with an fp16 scale per block of 32.
     Returns (codes uint8 [out, K], scales fp16 [out, K/32]); dequantize with deq_gq."""
     K = w.shape[1]
-    W = rot_w(w.double())
-    H = rot_h(H.double())
+    W = rot_w(w.to(DEV).double())
+    H = rot_h(H.to(DEV).double())
     dead = torch.diag(H) == 0
     H[dead, dead] = 1
-    H += damp * torch.mean(torch.diag(H)) * torch.eye(K, dtype=H.dtype)
+    H += damp * torch.mean(torch.diag(H)) * torch.eye(K, dtype=H.dtype, device=H.device)
     Hinv = torch.linalg.cholesky(torch.cholesky_inverse(torch.linalg.cholesky(H)), upper=True)
-    lv = lloyd_max(bits)
-    codes = torch.zeros(W.shape, dtype=torch.uint8)
-    scales = torch.zeros(W.shape[0], K // BLOCK, dtype=torch.float16)
+    lv = lloyd_max(bits).to(DEV)
+    codes = torch.zeros(W.shape, dtype=torch.uint8, device=DEV)
+    scales = torch.zeros(W.shape[0], K // BLOCK, dtype=torch.float16, device=DEV)
     for c0 in range(0, K, BLOCK):
         c1 = c0 + BLOCK
         Wb = W[:, c0:c1]
@@ -131,11 +131,12 @@ def gq(w, H, bits, damp=0.01):
             Wb[:, j:] -= e @ Hinv[c0 + j:c0 + j + 1, c0 + j:c1]
             Err[:, j] = e[:, 0]
         W[:, c1:] -= Err @ Hinv[c0:c1, c1:]
-    return codes, scales
+    return codes.cpu(), scales.cpu()
 
 
 def deq_gq(codes, scales, bits):
-    lv = lloyd_max(bits).float()
+    lv = lloyd_max(bits).float().to(DEV)
+    codes, scales = codes.to(DEV), scales.to(DEV)
     out, K = codes.shape
     Wr = lv[codes.long()].reshape(out, K // BLOCK, BLOCK) * scales.float()[..., None]
     return rot_w(Wr.reshape(out, K), inverse=True)
@@ -199,7 +200,7 @@ def stage_data():
 def stage_gptq(bits_list=(2, 3, 4)):
     cfg = config()
     data = json.loads((Q / "data.json").read_text())["train"]
-    W = bf16()
+    W = {k: v.to(DEV) for k, v in bf16().items()}
     m = Lfm3(W)
     xs = [W["model.embed_tokens.weight"][torch.tensor(s)].float() for s in data]
     names = linear_names(cfg)
@@ -238,7 +239,7 @@ def variant_weights(name, W):
     """Weights dict for a variant: W (bf16 release) with the layer matrices and the token table replaced."""
     cfg = config()
     if name == "onnx-q4":
-        return {k: v.half() for k, v in onnx_q4().items()}, True
+        return {k: v.half().to(DEV) for k, v in onnx_q4().items()}, True
     V = dict(W)
     V["model.embed_tokens.weight"] = rtn(W["model.embed_tokens.weight"], 4).half()
     for n, _ in linear_names(cfg):
@@ -249,7 +250,7 @@ def variant_weights(name, W):
             V[n] = rtn(W[n], int(name[3:])).half()
             continue
         b = int(name[2:]) if name.startswith("gq") else int(name[3:].split("_")[0 if ffn else 1])
-        d = torch.load(Q / f"gq{b}.{n}.pt")
+        d = torch.load(Q / f"gq{b}.{n}.pt", map_location=DEV)
         V[n] = deq_gq(d["codes"], d["scales"], b).half()
     if name == "bf16":
         V["model.embed_tokens.weight"] = W["model.embed_tokens.weight"]
@@ -271,7 +272,7 @@ def score(m, seqs, ref, chat=None):
     kl, agree, nll, n = 0.0, 0, 0.0, 0
     for j, (s, (idx, lpr, _)) in enumerate(zip(seqs, ref)):
         lp = F.log_softmax(m.logits(s), -1)
-        tgt = torch.tensor(s[1:])
+        tgt = torch.tensor(s[1:], device=DEV)
         if chat:
             lp, tgt = lp[chat[j] - 1:-1], tgt[chat[j] - 1:]
         else:
@@ -308,11 +309,11 @@ def stage_eval(variants):
     cfg = config()
     data = json.loads((Q / "data.json").read_text())
     chats = json.loads((Q / "chat.json").read_text())
-    W = bf16()
+    W = {k: v.to(DEV) for k, v in bf16().items()}
     res = json.loads(OUT.read_text()) if OUT.exists() else {}
     refp = Q / "ref.pt"
     if refp.exists():
-        ref = torch.load(refp)
+        ref = torch.load(refp, map_location=DEV)
     else:
         m = Lfm3(W)
         ref = {"text": topk_ref(m, data["test"]), "chat": topk_ref(m, [c["ids"] for c in chats], chat=[c["reply_start"] for c in chats])}
