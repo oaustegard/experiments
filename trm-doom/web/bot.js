@@ -108,6 +108,10 @@ export class Bot {
       if (tr === this.TR.S && !IGNORE_SWITCHES.has(sp) && hasKey(p.cards, key)) {
         out.push({ key: "l" + i, kind: "switch", x: mx, y: my, prio: 40 - d(mx, my) / 100, line: i, use: true });
       }
+      // walk-over lines that open the way (doors, floors, lifts, stairs) are worth crossing once
+      if (tr === this.TR.W && [1, 2, 3, 5].includes(ac) && !this.crossed?.has(i)) {
+        out.push({ key: "l" + i, kind: "trigger", x: mx, y: my, prio: 15 - d(mx, my) / 100, line: i, use: false, walk: true });
+      }
     });
     // the nearest unexplored places
     const fr = [];
@@ -127,6 +131,7 @@ export class Bot {
     const p = this.s.p;
     if (t.thing !== undefined) return !this.s.items.some((it) => it.k === t.thing);
     if (t.line !== undefined && t.use) return !this.s.specials[t.line];
+    if (t.walk && Math.hypot(t.x - this.s.p.x, t.y - this.s.p.y) < 40) { (this.crossed ||= new Set()).add(t.line); return true; }
     return Math.hypot(t.x - p.x, t.y - p.y) < 48;
   }
 
