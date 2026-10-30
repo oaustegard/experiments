@@ -10,8 +10,9 @@ goals (keys, the exit, switches, items, unexplored places) and does the shooting
 
 ## Answer
 
-Yes, for navigation. TRM is the only route planner in the bot, and the bot cleared Freedoom E1M1 at both skill 2 (43.8 s
-of game time, 97 health) and skill 3, Hurt Me Plenty (94.1 s, 43 health), running on a Mac's GPU through the GPU bridge.
+Yes, for navigation. TRM is the only route planner in the bot, and the bot cleared Freedoom E1M1 in every one of 4 runs at
+skill 2 (fastest 27.5 s of game time) and 2 of 3 at skill 3, Hurt Me Plenty (fastest 94.1 s), running on a Mac's GPU
+through the GPU bridge.
 On BFS shortest-route labels over 32×32 grids, the trained TRM is exactly right on 94.0% of validation grids and 93.3% of
 grids from E1M9, a level it never trained on. Fine-tuned on several grid sizes, the same 820k-parameter model also plans
 across a whole level in one 96×96 grid (51–59% exact on E1M9, and in practice usable as a route sketch that the bot
@@ -26,8 +27,9 @@ key doors, which would show whether TRM's planning holds up on the later levels.
 
 ## Findings
 
-1. **TRM cleared E1M1 by itself**, planning every route: skill 2 in 43.8 s with 97 health (`results/trm-r7-sk2-1.json`,
-   video `results/e1m1-trm-skill2.mp4`), skill 3 in 94.1 s with 43 health and 13 of 29 kills (`results/trm-r7-sk3-1.json`).
+1. **TRM cleared E1M1 by itself**, planning every route: 4 of 4 runs at skill 2 (27.5 s to 146.7 s; the 43.8 s run is
+   `results/e1m1-trm-skill2.mp4`) and 2 of 3 at skill 3 (94.1 s with 43 health, 101.1 s), across three random seeds
+   (`results/trm-r7-sk2-*.json`, `results/doom-sweep-*.json`, `results/trm-r7-sk3-1.json`).
 2. **Planning accuracy on 32×32 grids: 94.0% exact on validation, 93.3% on the held-out level E1M9** (run4, step 60k;
    95.5% on 24-unit fine grids) (`results/training/run4.jsonl`). A prediction is exact only if every one of the 1024 cells is
    right.
@@ -107,3 +109,22 @@ cleared E1M1 at skill 2 (43.8 s) and skill 3 (94.1 s).
 | E1M5 | died at 60 s | — |
 | E1M6 | died at 73 s | — |
 | E1M7 | time limit at 196 s | — |
+
+### Round 4: overnight sweep
+
+Fixes to the scripted layer: targets that keep failing back off exponentially, walk-over lines that open doors or lower
+floors become targets, and fighting moves never step into a wall, a drop-off or nukage. Then every level from a pistol
+start with three seeds, run7's step-13,500 weights for both planning levels, five or ten minutes of game time each.
+
+| level | skill 2 runs | exits | how the rest ended | most kills | skill 3 runs | exits |
+|---|---|---|---|---|---|---|
+| E1M1 | 4 | 4 (27.5–146.7 s) | — | 7/17 | 3 | 2 (94.1, 101.1 s) |
+| E1M2 | 8 | 0 | out of time; one run of 19 game minutes | 8/59 | 1 | 0 (41/93 kills, a key) |
+| E1M3 | 7 | 0 | died at 70–80 s crossing nukage | 10/48 | 4 | 0 |
+| E1M4 | 4 | 0 | out of time, one death | 11/81 | 1 | 0 |
+| E1M5 | 9 | 0 | died, 22–230 s | 19/84 | 3 | 0 |
+| E1M6 | 3 | 0 | died at about 73 s | 7/124 | — | — |
+| E1M7 | 3 | 0 | out of time | 9/129 | — | — |
+
+E1M3's deaths are all in the same place: the route crosses a nukage floor with no radiation suit. E1M2 and E1M4 end in
+search: the bot keeps finding new places but not the key and door sequence that opens the exit within the time.
