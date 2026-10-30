@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-135354";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-140626";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -700,7 +700,9 @@ export class Bot {
     if (lift?.hold) speed = 0;
     input.forward = 50 * speed * (vx * ca + vy * sa);
     input.side = 40 * speed * (vx * sa - vy * ca);
-    if (lift?.face && !en) input.turn = Math.max(-0.3, Math.min(0.3, wrap(Math.atan2(lift.face[1] - p.y, lift.face[0] - p.x) - p.angle)));
+    // a lift switch only works faced, so pressing it beats aiming at a monster (E1M7: an unreachable shooter kept
+    // the bot turned away from the call switch 16 units off, and the lift "never came")
+    if (lift?.face && (!en || lift.use)) input.turn = Math.max(-0.3, Math.min(0.3, wrap(Math.atan2(lift.face[1] - p.y, lift.face[0] - p.x) - p.angle)));
     if (lift?.use && this.tic - (this.lastUse ?? -99) > 45) { input.use = true; this.lastUse = this.tic; }
     // doors and switches: press use once when one is just ahead, then leave it a second, since using a
     // moving DR door sends it back the way it came
