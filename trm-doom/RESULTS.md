@@ -1,7 +1,7 @@
 # TRM plays DOOM
 
 Samsung SAIL Montreal's Tiny Recursive Model (TRM, Jolicoeur-Martineau, [arXiv 2510.04871](https://arxiv.org/abs/2510.04871))
-is a network of about 7M parameters that solves grid puzzles (Sudoku, mazes, ARC) by applying one tiny network over and
+is a network of about 7M parameters (the version here is 820k) that solves grid puzzles (Sudoku, mazes, ARC) by applying one tiny network over and
 over. This experiment asks whether TRM can be the route planner of a bot that plays DOOM: the bot runs inside
 [gPu(doom)](https://austegard.com/fun-and-games/doom/), the WebGPU port of DOOM, and TRM runs in WGSL on the same GPU
 device. TRM can't render frames or read the screen, so the bot turns the level around the player into a grid, asks TRM
@@ -10,25 +10,26 @@ goals (keys, the exit, switches, items, unexplored places) and does the shooting
 
 ## Answer
 
-Yes, for navigation. TRM is the only route planner in the bot, and the bot cleared Freedoom E1M1 in every one of 4 runs at
-skill 2 (fastest 27.5 s of game time) and 2 of 3 at skill 3, Hurt Me Plenty (fastest 94.1 s), running on a Mac's GPU
-through the GPU bridge.
-On BFS shortest-route labels over 32×32 grids, the trained TRM is exactly right on 94.0% of validation grids and 93.3% of
-grids from E1M9, a level it never trained on. Fine-tuned on several grid sizes, the same 820k-parameter model also plans
-across a whole level in one 96×96 grid (51–59% exact on E1M9, and in practice usable as a route sketch that the bot
-repairs when a waypoint turns out to be behind a wall).
+Yes, for navigation. TRM is the only route planner in the bot, and the bot cleared Freedoom E1M1 in all 3 runs at skill 2,
+(fastest 27.5 s of game time), and 2 of 3 at skill 3, Hurt Me Plenty (fastest 94.1 s), each from
+a pistol start, running on a Mac's GPU through the GPU bridge.
+On 32×32 grids labelled by breadth-first search (BFS), the best 32×32 model (run4) is exactly right on 94.0% of
+validation grids and 93.3% of grids from E1M9, a level it never trained on. The model the bot uses (run7, the same
+820k-parameter network fine-tuned on several grid sizes) scores 90% on 32×32 and plans a whole level in one 96×96 grid
+(59% exact on E1M9), a route sketch the bot repairs when a waypoint proves unreachable.
 
-The bot does not finish the episode. On E1M2–E1M7 it dies within one to two minutes or runs out of time: combat, doors
-and switches are the limits now, not planning. With exact BFS in TRM's place (a debug stand-in) the bot fares about the
-same on those levels, which places the failures in the scripted layer.
+The bot does not finish the episode. On E1M2–E1M7 every run ended in death or ran out of time: combat, nukage, and the
+key-and-door sequences are the limits now, not planning. With exact BFS in TRM's place (a debug stand-in) the bot also
+failed every one of those levels (`results/oracle-global-*.json`), which places the failures in the scripted layer. BFS is
+exact and cheaper; the question was whether a learned recursive model can carry the planning.
 
-What would change this: better fighting (cover, strafing that dodges projectiles) and handling of switches, lifts and
-key doors, which would show whether TRM's planning holds up on the later levels.
+Better fighting and key-door handling would show whether TRM's planning holds up on the later levels.
 
 ## Findings
 
-1. **TRM cleared E1M1 by itself**, planning every route: 4 of 4 runs at skill 2 (27.5 s to 146.7 s; the 43.8 s run is
-   `results/e1m1-trm-skill2.mp4`) and 2 of 3 at skill 3 (94.1 s with 43 health, 101.1 s), across three random seeds
+1. **TRM cleared E1M1 by itself**, planning every route: 3 of 3 runs at skill 2 (27.5, 43.8 and 146.7 s; the 43.8 s run
+   is `results/e1m1-trm-skill2.mp4`) and 2 of 3 at skill 3 (94.1 s with 43 health, 101.1 s), across two code versions and
+   three random seeds; runs are deterministic for a given seed and code
    (`results/trm-r7-sk2-*.json`, `results/doom-sweep-*.json`, `results/trm-r7-sk3-1.json`).
 2. **Planning accuracy on 32×32 grids: 94.0% exact on validation, 93.3% on the held-out level E1M9** (run4, step 60k;
    95.5% on 24-unit fine grids) (`results/training/run4.jsonl`). A prediction is exact only if every one of the 1024 cells is
@@ -55,6 +56,13 @@ key doors, which would show whether TRM's planning holds up on the later levels.
    exact BFS stand-in alike (`results/oracle-global-sk2.json`, `results/trm-r7-sk2-*.json`).
 
 ## Method
+
+Terms: a **supervision step** is one round of TRM's recursion after which its answer is read out (training supervises
+every round); the **halting head** is a small output trained to say when the answer is final. **run2…run7** are training
+runs: run2 attention on 32×32, run4 3×3 conv on 32×32, run6 and run7 fine-tunes of run4 on 32/48/64 and 32/64/96 grids.
+**Skill 2/3** are DOOM's "Hey, not too rough" and "Hurt me plenty"; a **pistol start** begins a level with 100 health, a
+pistol and 50 bullets. The **GPU bridge** runs jobs from this session in a browser tab on Oskar's Mac. **SwiftShader** is
+the software WebGPU in the container, used for correctness checks only.
 
 - **Grids** (`web/grid.js`, shared by the bot and the data generator). Cells are open floor, wall, door the bot can open,
   nukage, start and goal. A cell is open when its centre lies in a sector with room to stand, more than 14 units from any
@@ -118,7 +126,7 @@ start with three seeds, run7's step-13,500 weights for both planning levels, fiv
 
 | level | skill 2 runs | exits | how the rest ended | most kills | skill 3 runs | exits |
 |---|---|---|---|---|---|---|
-| E1M1 | 4 | 4 (27.5–146.7 s) | — | 7/17 | 3 | 2 (94.1, 101.1 s) |
+| E1M1 | 3 | 3 (27.5–146.7 s) | — | 7/17 | 3 | 2 (94.1, 101.1 s) |
 | E1M2 | 8 | 0 | out of time; one run of 19 game minutes | 8/59 | 1 | 0 (41/93 kills, a key) |
 | E1M3 | 7 | 0 | died at 70–80 s crossing nukage | 10/48 | 4 | 0 |
 | E1M4 | 4 | 0 | out of time, one death | 11/81 | 1 | 0 |
