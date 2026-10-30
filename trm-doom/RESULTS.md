@@ -39,7 +39,9 @@ key doors, which would show whether TRM's planning holds up on the later levels.
 4. **The conv TRM plans on grids larger than it was trained on once fine-tuned on mixed sizes.** Trained only on 32×32, it
    joined start to goal on 30–35% of 64×64 E1M9 grids. After fine-tuning on 32/48/64 and then 32/64/96 grids with no
    position table, exact match on held-out grids was 75% (64×64) and 59% (96×96), and 32×32 stayed at 90% (run7,
-   `results/training/run7.jsonl`). An 8-step plan over a 96×96 level grid takes 255 ms on the Mac.
+   `results/training/run7.jsonl`). An 8-step plan over a 96×96 level grid takes 255 ms on the Mac. Run7 then fell apart
+   after step 22,500 (32×32 down to 76%, 96×96 to 27%) while its training loss kept falling. Only the latest checkpoint
+   was kept, so the bot uses the step-13,500 export.
 5. **WGSL inference matches PyTorch**: max logit difference 9e-6 on a 32×32 grid with trained weights, and all 9,216 cells
    agree on a 96×96 grid (max difference 0.011 after 45 recursive network calls). One supervision step on 32×32 takes
    12 ms on the Mac and about 1 s on an iPhone.
