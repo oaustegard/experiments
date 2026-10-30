@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT } from "./grid.js?v=20261030-123935";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-124223";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -285,7 +285,12 @@ export class Bot {
     this.stats.globalMs = (this.stats.globalMs || 0) + r.ms;
     let k = 0; for (const v of r.path) k += v;
     if (!k && !t.hazardOK) { t.hazardOK = true; return this.planGlobal(); }
-    if (!k) { this.stats.coarseEmpty++; this.reject(t, "TRM: no global route"); return false; }
+    if (!k) {
+      // was there a route to find? BFS on the same grid tells a TRM miss from a level that is really shut here
+      const bfs = shortestUnion(g, n).some((v) => v);
+      this.stats.trmMiss = (this.stats.trmMiss || 0) + bfs; this.stats.trmShut = (this.stats.trmShut || 0) + !bfs;
+      this.stats.coarseEmpty++; this.reject(t, bfs ? "TRM: no global route (BFS has one)" : "TRM: no global route (none)"); return false;
+    }
     const w = this.walkSet(g, r.path, gc, n, s0);
     if (!w.reached) this.stats.coarseBroken++;
     t.routeLeft = w.reached ? w.path.length : undefined;
