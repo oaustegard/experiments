@@ -505,7 +505,9 @@ export class Bot {
       // fight: keep the route's direction only from afar, back off from anything close, retreat when
       // hurt, and sidestep every second so fireballs miss
       const ex = (p.x - en.m.x) / en.d, ey = (p.y - en.m.y) / en.d;
-      const hurt = p.health < 35 && this.trail?.length > 3;
+      // hurt: fall back along the breadcrumbs, and keep falling back until nothing has been seen for two seconds
+      if (p.health < 50 && this.trail?.length > 3) this.retreatUntil = this.tic + 70;
+      const hurt = this.tic < (this.retreatUntil ?? 0) && this.trail?.length > 3;
       let ax = vx, ay = vy;
       if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
       else if (en.d < 192) { ax = ex; ay = ey; }
