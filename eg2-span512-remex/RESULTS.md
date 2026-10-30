@@ -214,8 +214,10 @@ NDCG either: on relevance labels the prefix loses only 0.40 even unquantized, as
 ![Pareto chart: bytes per document against NanoBEIR NDCG@10](results/nanobeir_pareto.svg)
 
 On the frontier (`run/nanobeir_pareto.py`), 3-bit codes of the 512d vectors at 192 B sit 0.35 below float32 at
-2,048 B. Tom's 512d float model sits 0.03 below the 768d original at 3,072 B. The seed bars at 192 B show why the
-two 192 B arms cannot be ranked on NanoBEIR alone.
+2,048 B. Tom's 512d float model sits 0.03 below the 768d original at 3,072 B. For scale, the squares are the
+card's float32 truncations to 256 and 128 dims (its numbers, not re-measured): 61.25 and 56.30 for EG2,
+57.77 and 48.82 for the SVD model. Every remex arm from 128 B up scores above the 1,024 B float32 truncation.
+On this y-axis the two 192 B arms are 0.55 apart, inside the remex seed spread.
 
 The same index through sentence-transformers. `RemexIndex` calls the model's `encode_document` and
 `encode_query`, so the model's prompts apply. Documents are stored as codes and queries stay float.
