@@ -75,6 +75,10 @@ Round 2 switched the search page to 3-bit rotated codes (`embeddinggemma2-webgpu
    and over five remex seeds it shrinks to +0.23. <!-- @evidence[[results/nanobeir.json#seeds.svd512_b3_minus_eg2_768_b2_over_seeds]] -->
    Only 2-bit at 768 is clearly below unquantized search (-0.93). <!-- @evidence[[results/nanobeir.json#diffs.eg2_768_b2_minus_eg2_768.mean_of_sets]] -->
    (round 3, `run/nanobeir_eval.py`)
+9. remex's own sentence-transformers wrapper reproduces the 3-bit result exactly: `RemexIndex(model, bits=3,
+   center=True)` scores 62.86 on all 13 sets, <!-- @evidence[[results/nanobeir_st_check.json#center_True.mean_of_sets]] -->
+   and `center=False` drops it to 62.40. <!-- @evidence[[results/nanobeir_st_check.json#center_False.mean_of_sets]] -->
+   (round 3, `run/nanobeir_st_check.py`)
 
 ## Method
 
@@ -206,4 +210,28 @@ Reading: the direction matches rounds 1 and 2. At 192 B, 3-bit codes of the 512-
 show it at this effect size, where the 1,000-query exact-search recall of round 1 did (0.894 against 0.837).
 The prefix-versus-rotation gap that round 1 measured against exact search (0.090 at 3 bits) does not show in
 NDCG either: on relevance labels the prefix loses only 0.40 even unquantized, as Tom's card also shows.
+
+![Pareto chart: bytes per document against NanoBEIR NDCG@10](results/nanobeir_pareto.svg)
+
+On the frontier (`run/nanobeir_pareto.py`), 3-bit codes of the 512d vectors at 192 B sit 0.35 below float32 at
+2,048 B. Tom's 512d float model sits 0.03 below the 768d original at 3,072 B. The seed bars at 192 B show why the
+two 192 B arms cannot be ranked on NanoBEIR alone.
+
+The same index through sentence-transformers. `RemexIndex` calls the model's `encode_document` and
+`encode_query`, so the model's prompts apply. Documents are stored as codes and queries stay float.
+`run/nanobeir_st_check.py` feeds the stored embeddings through it and gets 62.856 on every set, identical
+to the direct `Quantizer` scoring. `run/st_remex_3bit.py` is the snippet as a runnable file:
+
+```python
+from sentence_transformers import SentenceTransformer
+from remex import RemexIndex   # pip install remex
+
+model = SentenceTransformer("tomaarsen/embeddinggemma-2-512d")
+index = RemexIndex(model, bits=3, center=True)   # 512 dims x 3 bits = 192 bytes per document
+index.add(documents)                              # encode_document, then rotate and quantize
+index.search("What causes the northern lights?", top_k=10)   # encode_query; the query stays float
+```
+
+`center=True` quantizes relative to the corpus mean (taken from the first `add`). Without it NanoBEIR drops
+to 62.40.
 
