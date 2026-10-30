@@ -211,7 +211,7 @@ show it at this effect size, where the 1,000-query exact-search recall of round 
 The prefix-versus-rotation gap that round 1 measured against exact search (0.090 at 3 bits) does not show in
 NDCG either: on relevance labels the prefix loses only 0.40 even unquantized, as Tom's card also shows.
 
-![Pareto chart: bytes per document against NanoBEIR NDCG@10](results/nanobeir_pareto.png)
+![Pareto chart: bytes per document against NanoBEIR NDCG@10](https://raw.githubusercontent.com/oaustegard/experiments/main/eg2-span512-remex/results/nanobeir_pareto.png)
 
 On the frontier (`run/nanobeir_pareto.py`), 3-bit codes of the 512d vectors at 192 B sit 0.35 below float32 at
 2,048 B. Tom's 512d float model sits 0.03 below the 768d original at 3,072 B. For scale, the squares are the
