@@ -58,6 +58,13 @@ def test_thousands_separator_and_unicode_minus():
     assert statuses("delta −0.25 <!-- @evidence[[m.json#d]] -->", files) == ["resolved"]
 
 
+def test_scientific_notation_matches_at_mantissa_precision():
+    files = {"m.json": json.dumps({"r": 3.870157e-08})}
+    assert statuses("ratio 3.9e-8 <!-- @evidence[[m.json#r]] -->", files) == ["resolved"]
+    assert statuses("ratio 3.7e-8 <!-- @evidence[[m.json#r]] -->", files) == ["mismatch"]
+    assert statuses("ratio 3.9e-7 <!-- @evidence[[m.json#r]] -->", files) == ["mismatch"]
+
+
 def test_count_fraction_matches_stored_rate():
     files = {"m.json": json.dumps({"rate": 0.95, "acc": 0.9375})}
     assert statuses("19/20 runs <!-- @evidence[[m.json#rate]] -->", files) == ["resolved"]

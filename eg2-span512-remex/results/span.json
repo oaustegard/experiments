@@ -1,0 +1,59 @@
+{
+ "projection": {
+  "node": "/model/embedding_projection/MatMul_Quant",
+  "K": 512,
+  "N": 768,
+  "bits": 4,
+  "block_size": 32,
+  "weight_shape": [
+   768,
+   512
+  ],
+  "rank_sv_ratio_last": 0.08620281444609698
+ },
+ "heldout": {
+  "set": "msmarco_train",
+  "n": 30000,
+  "sv_ratio_512": 0.0002372293970396215,
+  "sv_ratio_513": 4.3431495742885637e-08
+ },
+ "posts": {
+  "n": 61674,
+  "sv_ratio_512": 0.0007444370287192224,
+  "sv_ratio_513": 3.870157423150303e-08
+ },
+ "principal_angle_cos_min": 0.9999999999936836,
+ "outside_proj": {
+  "posts": {
+   "max": 1.940720922387392e-07,
+   "median": 9.670397080984465e-08
+  },
+  "real_test": {
+   "max": 1.8183834944195518e-07,
+   "median": 1.1017319622262269e-07
+  },
+  "synth_test": {
+   "max": 1.5319495815103362e-07,
+   "median": 1.1101538772399796e-07
+  },
+  "heldout": {
+   "max": 1.9224475164505946e-07,
+   "median": 1.0906158671831171e-07
+  }
+ },
+ "outside_heldout": {
+  "posts": {
+   "max": 1.9216574707712599e-07,
+   "median": 9.799974191184951e-08
+  },
+  "real_test": {
+   "max": 1.8463330632018585e-07,
+   "median": 1.1078802273963131e-07
+  },
+  "synth_test": {
+   "max": 1.5576298715314877e-07,
+   "median": 1.1189073239851035e-07
+  }
+ },
+ "prefix512_energy_posts": 0.7695027444149104
+}

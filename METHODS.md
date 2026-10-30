@@ -938,6 +938,12 @@ survives exactly the sanity checks people run.
   exactly (1.000), against 0.926 for the Matryoshka prefix at 512. Before compressing any embedding model, check
   its spectrum for this: a projection head wider than the hidden state stores dead dimensions. Centring plus
   renormalising (plain PCA cosine) cost 0.12 nDCG@10 here, so score uncentred. (`rrc-negative-margin-drop/span512.py`)
+- **Quantized codes of a lossless 512-dim rotation lose recall at the same bit width and gain it at the same bytes.** EG2's 512 rotated
+  coordinates reproduce 768-dim fp32 search exactly, yet 2-bit remex codes on them lose 0.03 recall@10 against 2-bit
+  codes at 768 (Bluesky index, 61,674 posts), probably because 768 codes of a rank-512 signal carry 50% more bits.
+  Spending the saved bytes on bit width pays: 3 bits × 512 (192 B) beats 2 bits × 768 (192 B) by
+  +0.056. Rotation beats the Matryoshka prefix at every width. For a quantized ONNX model the basis comes from the
+  dequantized projection weight (MatMulNBits, low nibble first), so no data is needed. (`eg2-span512-remex/`)
 - **remex `search_batch` is not an ADC scan.** It scores against a cached dequantized float matrix
   (100k x 768 fp32, ~300 MB) and ran 20 queries over 100k in 43 ms; the codes-only `search_adc` took
   7.5 s for the same work. Compare a codes-only implementation (a GPU scan, a WASM scan) with

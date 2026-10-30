@@ -44,7 +44,7 @@ from pathlib import Path
 
 REF = re.compile(r"@evidence\[\[([^\]#]+?)(?:#([^\]]*))?\]\]")
 COMMENT_WITH_REF = re.compile(r"<!--[^>]*?@evidence\[\[[^\]]*\]\][^>]*?-->")
-NUMBER = re.compile(r"(?<![\w.])[-−]?\d[\d,]*(?:\.\d+)?(%?)")
+NUMBER = re.compile(r"(?<![\w.])[-−]?\d[\d,]*(?:\.\d+)?(?:e[-−+]?\d+)?(%?)")
 FRACTION = re.compile(r"(?<![\w.])(\d+)\s*(?:/|\bof\b|\bin\b)\s*(\d+)(?![\w.])")
 ROW = re.compile(r"^row\((.*)\)\.(.+)$")
 LINES = re.compile(r"^L(\d+)(?:-L?(\d+))?$")
@@ -142,7 +142,8 @@ def _matches(value: float, claim: str) -> bool:
             return True
     for m in NUMBER.finditer(claim):
         s = m.group(0).rstrip("%").replace(",", "").replace("−", "-")
-        decimals = len(s.split(".")[1]) if "." in s else 0
+        mant, _, exp = s.partition("e")
+        decimals = (len(mant.split(".")[1]) if "." in mant else 0) - (int(exp) if exp else 0)
         shown = float(s)
         if not decimals and not m.group(1) and 0 < abs(value) < 1:
             continue  # a rate strictly between 0 and 1 is never written as a bare integer
