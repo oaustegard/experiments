@@ -8,7 +8,7 @@ export async function runLevel({ device, doom, wadBytes, planner, map = "E1M1", 
   const t0 = performance.now();
   await eng.loadMap(map, carry || { ...freshPlayer(), rng: seed & 255 });
   const compileMs = performance.now() - t0;
-  const bot = new Bot({ wad: eng.wad, map: eng.map, MOBJINFO: doom.info.MOBJINFO, MF: doom.info.MF, LINE_SPECIALS: doom.specials.LINE_SPECIALS, TR: doom.specials.TR, W }, planner);
+  const bot = new Bot({ wad: eng.wad, map: eng.map, MOBJINFO: doom.info.MOBJINFO, MF: doom.info.MF, LINE_SPECIALS: doom.specials.LINE_SPECIALS, TR: doom.specials.TR, W }, planner, { seed });
   bot.debugGrids = debugGrids;
   if (globalPlanner) bot.globalPlanner = globalPlanner;
   const read = async () => {

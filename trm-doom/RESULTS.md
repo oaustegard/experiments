@@ -170,6 +170,7 @@ before it shipped. Changes in order, with their measurement:
 | set aside targets with no route | E1M2, 3 seeds, kills | 11/11/3 | 28/21/8 |
 | face the lift call switch | E1M7, 2 seeds | "lift never came" | past the lift, 7 switches |
 | seek health and armour | E1M4–E1M6, 6 runs, total game seconds survived | 819 | 1,017 |
+| explore after an unreachable target; catch back-and-forth; seeded tie-breaks (#107) | E1M8, 3 seeds | stuck, 0 areas explored, never west of x = 1776 | 25–58 areas explored, reaches the Barons' side; still 0/2 kills |
 
 Rejected: hitscan-first targeting with retreat on fast health loss (826 → 782 s survived on E1M4–E1M6) and hitscan-first
 alone (827 s against the same 819 s baseline); escaping a damaging floor once in it (all three E1M3 seeds still died in the
@@ -179,5 +180,7 @@ looked like an engine wake-up bug and is not one ([experiments#107](https://gith
 the engine's sight and sound wake-up match Doom's, and the stalled runs never entered a sector the Barons can see or that
 gunfire reaches from, because the bot spent 40 s oscillating between two sectors toward an unreachable exit and then
 stopped exploring. Those stalled runs share one byte-identical trace across three seeds: with nothing awake the seed changes
-nothing, so they are one sample, not several.
+nothing, so they are one sample, not several. The #107 fixes (explore after an unreachable target, give up early on two-sector back-and-forth,
+seed the bot's own tie-breaks) got the bot across the map to the Barons on all three bridge seeds; a pistol-start bot still
+does not kill them.
 
