@@ -132,7 +132,9 @@ async function thumb() {
 let running = false, attemptNo = 0;
 async function playLevel(map, carry, opts) {
   const { W, freshPlayer } = doom.engine;
-  await eng.loadMap(map, carry || freshPlayer());
+  // a retry gets a fresh random seed (the monsters' choices), or every try of a level replays the last one
+  const seed = carry ? null : (crypto.getRandomValues(new Uint8Array(1))[0]);
+  await eng.loadMap(map, carry || { ...freshPlayer(), rng: seed });
   const plan = { plans: 0, ms: 0 };
   const oracle = params.get("planner") === "oracle" ? new OraclePlanner() : null;
   const local = { async plan(g) { const r = oracle ? await oracle.plan(g) : await planner.plan(g, { sup: 4, minSup: 2 }); plan.plans++; plan.ms += r.ms; return r; } };
@@ -171,7 +173,7 @@ async function playLevel(map, carry, opts) {
   if (running) thumbs.push([tic, await thumb()]);
   const wi = new Int32Array(world);
   return {
-    map, result: running ? result : "stopped", tic, seconds: +(tic / 35).toFixed(1), wallS: Math.round((performance.now() - t0) / 1000),
+    map, seed, result: running ? result : "stopped", tic, seconds: +(tic / 35).toFixed(1), wallS: Math.round((performance.now() - t0) / 1000),
     kills: `${wi[W.killcount]}/${wi[W.totalkills]}`, items: `${wi[W.itemcount]}/${wi[W.totalitems]}`, secrets: `${wi[W.secretcount]}/${wi[W.totalsecrets]}`, health: wi[W.health],
     plans: plan.plans, planMs: Math.round(plan.ms / Math.max(1, plan.plans)), stats: bot.stats, events: bot.events.slice(-500), trace,
     carry: result === "exit" || result === "secret-exit" ? eng.playerFrom(world) : null, thumbs,
