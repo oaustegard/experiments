@@ -35,11 +35,11 @@ for (const map of queue) {
   const left = budget - (performance.now() - t0);
   if (left < 20000) break;
   const r = await runLevel({ device, doom, wadBytes, planner, Bot, map, maxTics: cfg.maxTics || 35 * 600, skill: cfg.skill || 3,
-    globalPlanner, frameEvery: cfg.frameEvery || 0, carry: cfg.mode === "each" ? null : carry, deadlineMs: left - 8000, seed: (cfg.seed || 0) + 37 * (tries[map] - 1),
+    globalPlanner, debugGrids: !!cfg.debug, frameEvery: cfg.frameEvery || 0, carry: cfg.mode === "each" ? null : carry, deadlineMs: left - 8000, seed: (cfg.seed || 0) + 37 * (tries[map] - 1),
     onProgress: (f, d) => ctx.progress(Math.min(0.99, (performance.now() - t0) / budget), `${map} ${d.target?.kind || ""} hp ${d.health}`) });
   if (cfg.keepFrames !== false) frames.push(...r.frames);
   palette = r.palette; delete r.frames; delete r.palette;
-  r.events = r.events.slice(-300);
+  r.events = cfg.debug ? r.events.filter((e) => e.ev !== "dump" || e.tic > (cfg.dumpFrom || 0)).slice(-400) : r.events.filter((e) => e.ev !== "dump").slice(-300);
   out.levels.push(r);
   ctx.log(`${map}: ${r.result} in ${r.seconds}s, kills ${r.kills}/${r.totalKills}, hp ${r.health}`);
   const ok = r.result === "exit" || r.result === "secret-exit";
