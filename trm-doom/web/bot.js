@@ -122,7 +122,9 @@ export class Bot {
   }
 
   reject(t, why, tics = 1050) {
-    this.blacklist.set(t.key, this.tic + tics);
+    // each repeat failure on the same target doubles its time out, so the bot explores instead of retrying
+    const n = (this.rejects ||= new Map()).set(t.key, (this.rejects.get(t.key) || 0) + 1).get(t.key);
+    this.blacklist.set(t.key, this.tic + Math.min(tics * 2 ** (n - 1), 35 * 240));
     this.events.push({ tic: this.tic, ev: "reject", kind: t.kind, key: t.key, why });
     if (this.target?.key === t.key) { this.target = null; this.fine = null; this.coarse = null; }
   }
