@@ -1484,7 +1484,9 @@ the result.
   (a transient jsDelivr 403) fails again for the same URL in the persistent worker; resubmit at another
   commit sha with the same code, or the same commit under a short sha (`@1b0dc82f300`). A plain `fetch`
   that got that 403 kept getting it from the Mac for minutes after curl saw 200, so read data files from a
-  sha the CDN already served. (`moederncolbert-bench/RESULTS.md` log round 2, `eg2-wgsl-engine/RESULTS.md`
+  sha the CDN already served. Cheapest prevention: before submitting a job at a fresh sha, curl every module it imports
+  at that sha until each returns 200 (a cold sha 403s one file in a few for up to a minute); after that, two timed-out
+  jobs in a row stopped happening (`trm-doom`, 2026-10-30). (`moederncolbert-bench/RESULTS.md` log round 2, `eg2-wgsl-engine/RESULTS.md`
   log round 4)
 
 ## Numerical / ML gotchas
@@ -1499,6 +1501,17 @@ the result.
   32×32-only: 30–35% joined start to goal on 64×64. After fine-tuning on 32/48/64/96 with no position table: 75% exact
   on 64×64 and 59% on 96×96 held-out grids. A halting head trained on the small size fires after one step on the large
   ones, so force a minimum step count there. (`trm-doom/RESULTS.md`)
+- **Pooling a fine occupancy grid "open if any sub-cell is open" joins rooms across thin walls.** A wall straddling a
+  coarse-cell boundary leaves an open fine cell on each side, and the two coarse cells touch: routes went through a locked
+  door and a corridor wall. Cut two open coarse neighbours that no open fine pair crosses and no wall-free segment between
+  their open fine cells joins, walling one of them only if its other neighbours stay connected in a small window; count
+  only two-way blockers, or one-way drops the leak used to carry vanish too. Broken local plans fell from 63% to 33% and
+  81% to 17% on two levels. Any reachability guard written against the leaky grid may be passing through the leak:
+  check its points were reached in real use. (`trm-doom/web/grid.js`, `trm-doom/RESULTS.md` finding 4)
+- **When a learned planner says "no route", run exact search on the same input before blaming the model.** In the TRM DOOM
+  bot, BFS agreed with 204 of 220 empty plans: the stalls were targets that were unreachable at that moment, a
+  target-selection problem that a better model would not have fixed. Logging the check costs one BFS per empty plan.
+  (`trm-doom/RESULTS.md` finding 3)
 
 - **Hearing taps while the page plays sound: cancel your own playback with NLMS on the exact output.** One
   AudioWorklet that both plays and listens has the true reference. A 120 ms NLMS filter at 16 kHz, adapting only

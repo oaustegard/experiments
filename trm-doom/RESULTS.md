@@ -10,50 +10,61 @@ goals (keys, the exit, switches, items, unexplored places) and does the shooting
 
 ## Answer
 
-Yes, for navigation. TRM is the only route planner in the bot, and the bot cleared Freedoom E1M1 in all 3 runs at skill 2,
-(fastest 27.5 s of game time), and 2 of 3 at skill 3, Hurt Me Plenty (fastest 94.1 s), each from
-a pistol start, running on a Mac's GPU through the GPU bridge.
-On 32×32 grids labelled by breadth-first search (BFS), the best 32×32 model (run4) is exactly right on 94.0% of
-validation grids and 93.3% of grids from E1M9, a level it never trained on. The model the bot uses (run7, the same
-820k-parameter network fine-tuned on several grid sizes) scores 90% on 32×32 and plans a whole level in one 96×96 grid
-(59% exact on E1M9), a route sketch the bot repairs when a waypoint proves unreachable.
+Yes, for navigation. TRM is the bot's only route planner, and the bot clears Freedoom's first level (E1M1, of nine in
+episode 1) from a pistol start: 3 of 3 runs on the second difficulty and 2 of 3 on the third. TRM is exactly right on
+94.0% of 32×32 test grids, every one of the 1,024 cells matching breadth-first search (BFS), and on 93.3% from a level it
+never trained on. In play, when TRM finds no route to a target, BFS on the same grid agrees 93% of the time (204 of 220):
+the target really is closed off until a door opens or a lift comes.
 
-The bot does not finish the episode. On E1M2–E1M7 every run ended in death or ran out of time: combat, nukage, and the
-key-and-door sequences are the limits now, not planning. With exact BFS in TRM's place (a debug stand-in) the bot also
-failed every one of those levels (`results/oracle-global-*.json`), which places the failures in the scripted layer. BFS is
-exact and cheaper; the question was whether a learned recursive model can carry the planning.
+The bot does not finish levels 2–8. Fixes to the grid and the hand-written decision layer around TRM stopped it getting
+stuck at lifts, behind thin walls and in nukage (toxic floor). In the last cross-level check (8 runs on levels 2, 3, 4 and 6),
+each ended in a fight (5) or at the 240 s game-time cap (3), none stuck. What is left, fighting and multi-step puzzles (which switch
+opens which door), belongs to that decision layer, not to the planner. Exact BFS would do the planning more cheaply; the
+question was whether a small learned recursive model can carry it.
 
-Better fighting and key-door handling would show whether TRM's planning holds up on the later levels.
+A bot that survives the fights on levels 4–6 is what it would take to test TRM's planning through the whole episode.
 
 ## Findings
 
-1. **TRM cleared E1M1 by itself**, planning every route: 3 of 3 runs at skill 2 (27.5, 43.8 and 146.7 s; the 43.8 s run
-   is `results/e1m1-trm-skill2.mp4`) and 2 of 3 at skill 3 (94.1 s with 43 health, 101.1 s), across two code versions and
-   three random seeds; runs are deterministic for a given seed and code
-   (`results/trm-r7-sk2-*.json`, `results/doom-sweep-*.json`, `results/trm-r7-sk3-1.json`).
+1. **TRM cleared E1M1 by itself**, planning every route: 3 of 3 runs at skill 2 (27.5–146.7 s of game time) and 2 of 3
+   at skill 3 (94.1 s with 43 health, 101.1 s), across code versions and seeds; runs are deterministic for a given seed and
+   code (`results/trm-r7-sk2-*.json`, `results/doom-sweep-*.json`, `results/trm-r7-sk3-1.json`). The fastest clear, 24.3 s,
+   was in the on-screen arena (gpu-bridge-comms `doom-logs/2026-10-30T11-43-25-4ddu/001-E1M1-exit.json`).
 2. **Planning accuracy on 32×32 grids: 94.0% exact on validation, 93.3% on the held-out level E1M9** (run4, step 60k;
    95.5% on 24-unit fine grids) (`results/training/run4.jsonl`). A prediction is exact only if every one of the 1024 cells is
    right.
-3. **Attention as TRM's token mixer did not learn the task in the time available; a 3×3 convolution did.** With
-   attention (learned positions plus a 2D relative bias), validation exact was 1.7% after 4000 steps at 1.8 steps/s on an
-   A100. With a 3×3 conv in its place, the run was 4× faster (7.2 steps/s) and went from 4% to 27% between steps 3000 and
-   5000, then to 94% (`results/training/run2.jsonl`, `run4.jsonl`). The TRM paper itself swaps attention for an MLP on small
-   fixed grids; the recursion and deep supervision are unchanged here.
-4. **The conv TRM plans on grids larger than it was trained on once fine-tuned on mixed sizes.** Trained only on 32×32, it
-   joined start to goal on 30–35% of 64×64 E1M9 grids. After fine-tuning on 32/48/64 and then 32/64/96 grids with no
-   position table, exact match on held-out grids was 75% (64×64) and 59% (96×96), and 32×32 stayed at 90% (run7,
-   `results/training/run7.jsonl`). An 8-step plan over a 96×96 level grid takes 255 ms on the Mac. Run7 then fell apart
-   after step 22,500 (32×32 down to 76%, 96×96 to 27%) while its training loss kept falling. Only the latest checkpoint
-   was kept, so the bot uses the step-13,500 export.
-5. **WGSL inference matches PyTorch**: max logit difference 9e-6 on a 32×32 grid with trained weights, and all 9,216 cells
-   agree on a 96×96 grid (max difference 0.011 after 45 recursive network calls). One supervision step on 32×32 takes
-   12 ms on the Mac and about 1 s on an iPhone.
-6. **Three bugs voided results silently until found.** Whole-level grids passed WebGPU's 65,535-workgroups-per-dimension
-   limit in one elementwise kernel, so every whole-level plan came back empty without an error. The halting head, trained
-   on 32×32, stopped after one step on large grids, which again returned empty plans. The lockstep runner read the game
-   state every second tic while the bot steered every tic, so each turn was applied twice and aim never settled.
-7. **Combat decides the other levels.** Every E1M2–E1M7 run ended in death or a timeout, with the TRM planner and with the
-   exact BFS stand-in alike (`results/oracle-global-sk2.json`, `results/trm-r7-sk2-*.json`).
+3. **In play, TRM's empty whole-level plans are almost always right.** On E1M2 (3 seeds), BFS on the same grid found a
+   route for 16 of the 220 targets TRM returned no route to; for the other 204 the level was shut at that moment
+   (`results/doom-miss-e1m2-trm.json`). The stalls are a target-choice problem: the bot asked for places a door, lift or
+   switch still closed off.
+4. **Pooling a fine grid 2×2 into a coarse one joins rooms across thin walls.** A coarse cell was open when any of its four
+   fine cells was, so a wall straddling a coarse boundary vanished: routes ran through E1M2's locked blue door and into
+   E1M3's switch room through the corridor wall. Cutting coarse neighbours that no open fine pair or wall-free segment joins
+   dropped broken local plans from 63% to 33% on E1M2 and from 81% to 17% on E1M3, and the bot pressed the E1M3 switch it
+   had walked into a wall beside (`results/doom-cut-trm-sk2-1.json` vs `results/doom-lift-trm-sk2-1.json`).
+5. **Setting unreachable targets aside until the level changes ("parking") beat retrying them on a timer.** A target with
+   no route on the grid now waits for a switch, trigger, lift ride or boss death. On E1M2, same seeds: kills 11/11/3 became 28/21/8,
+   items 8/13/6 became 23/16/8, and the bot never wandered idle (`results/doom-park-e1m2-trm.json` vs
+   `results/doom-miss-e1m2-trm.json`).
+6. **Nukage deaths were bot behaviour, fixed in two steps.** The bot dropped into E1M3's pit for the switches inside it,
+   then stood in the nukage to fight. Skipping targets down in a damaging pit, then keeping the route at full speed on a
+   damaging floor, took E1M3 (3 seeds) from deaths at 121/186/164 s to 230 s/alive/alive
+   (`results/doom-escape-trm-3s.json`, `results/doom-pit-trm-3s.json`, `results/doom-acid-e1m3-trm.json`).
+7. **Lift riding works once the bot faces the call switch.** On E1M2 the bot went from stuck at the first lift (7 kills) to
+   600 s alive with 31 kills and a key (`results/doom-lift-trm-sk2-1.json`). On E1M7 an unreachable monster kept it turned
+   away from a call switch 16 units off; facing the switch for the press got it past that lift with 7 switches pressed
+   (`results/doom-liftface-e1m7-trm.json`).
+8. **Seeking health and armour from farther away helped; shooting hitscanners (zombiemen, shotgun guys, whose shots land
+   instantly) first hurt, twice.** On E1M4–E1M6 (6 runs,
+   same seeds), health below 70 and armour below 50 as long-range targets raised game time survived from 819 s to
+   1,017 s (5 deaths to 4). Hitscan-first targeting on top fell back to 827 s; with retreat on fast health loss it had also
+   lost before (`results/doom-cmb-*-m456.json`, `results/doom-combat2-m456.json`).
+9. **Attention as TRM's token mixer did not learn the task in the time available; a 3×3 convolution did.** With
+   attention, validation exact was 1.7% after 4000 steps on an A100; with a 3×3 conv, 4× faster and 94% by step 60k
+   (`results/training/run2.jsonl`, `run4.jsonl`).
+10. **Three bugs voided results silently until found**: WebGPU's 65,535-workgroups-per-dimension limit (every whole-level
+    plan came back empty), a halting head that stopped after one step on large grids, and a runner that read game state
+    every second tic so every turn was applied twice.
 
 ## Method
 
@@ -81,10 +92,17 @@ the software WebGPU in the container, used for correctness checks only.
   `GPUDevice`. The bot asks for 2–4 supervision steps per local plan and ⌈n/16⌉+2 per whole-level plan.
 - **Bot** (`web/bot.js`): picks a target, plans the whole level with TRM, takes the farthest route cell inside the local
   window as the local goal, plans that with TRM, and walks the predicted cells (ordered by a BFS restricted to the cells TRM
-  marked). A waypoint the local plan can't reach is marked as wall in later whole-level grids. Combat: face the nearest
-  visible monster, fire when aimed, back off when close, retreat along the breadcrumbs below 50 health.
+  marked). A waypoint the local plan can't reach is marked as wall in later whole-level grids for 40 s. Targets with no route
+  on the grid are parked until the level changes. Lifts are called (switch or walk-over line), waited for and ridden. On a
+  damaging floor the bot keeps its route at full speed; targets down in a damaging pit are skipped. Combat: face the nearest
+  visible monster, fire when aimed, back off when close, retreat along the breadcrumbs below 40 health; health below 70
+  and armour below 50 are long-range targets.
 - **Evaluation** (`bridge/campaign.js`): the GPU-bridge page on Oskar's Mac runs the shipped engine headless with the bot,
-  one level from a pistol start per run, 10 minutes of game time per level, about 12× real time.
+  one level from a pistol start per run, 10 minutes of game time per level, about 12× real time. A/B comparisons run both
+  arms on the same seeds; a run is deterministic for a seed and code, so differences come from the change.
+- **Arena** (`web/arena.html`, live at austegard.com/experiments/trm-doom/web/arena.html): the same bot plays on screen;
+  after each attempt the log and thumbnails go to the GPU-bridge repo and a comment wakes the session. A level with no
+  progress for 45 s is restarted, two tries per level, each with a fresh seed.
 
 ## Log
 
@@ -136,3 +154,27 @@ start with three seeds, run7's step-13,500 weights for both planning levels, fiv
 
 E1M3's deaths are all in the same place: the route crosses a nukage floor with no radiation suit. E1M2 and E1M4 end in
 search: the bot keeps finding new places but not the key and door sequence that opens the exit within the time.
+
+### Round 5: the arena, then fixes from its logs
+
+Oskar asked for the bot to play on screen with its logs shipped back, and for lift riding. The arena (`web/arena.html`)
+ran on the Mac and an iPhone through the day; each stall or death in its logs became a fix, each fix a same-seed bridge A/B
+before it shipped. Changes in order, with their measurement:
+
+| change | test (seeds, game time) | before | after |
+|---|---|---|---|
+| ride lifts | E1M2, 1 seed | stuck at the lift, 7 kills | 600 s alive, 31 kills, a key |
+| cut pooled thin walls | E1M2/E1M3, share of local plans that failed | 63% / 81% | 33% / 17% |
+| skip pit targets, then keep moving on nukage | E1M3, 3 seeds | died 121/186/164 s | died 230 s, alive, alive |
+| exits and hunts back off as a group; boss deaths refresh exits | E1M8, 2 seeds | stuck at 123.9 s, 0 areas explored | 27 areas explored, floor trigger crossed |
+| set aside targets with no route | E1M2, 3 seeds, kills | 11/11/3 | 28/21/8 |
+| face the lift call switch | E1M7, 2 seeds | "lift never came" | past the lift, 7 switches |
+| seek health and armour | E1M4–E1M6, 6 runs, total game seconds survived | 819 | 1,017 |
+
+Rejected: hitscan-first targeting with retreat on fast health loss (826 → 782 s survived on E1M4–E1M6) and hitscan-first
+alone (827 s against the same 819 s baseline); escaping a damaging floor once in it (all three E1M3 seeds still died in the
+pit). On the final build (20261030-151341) no E1M2–E1M7 run stalls at a lift, a thin wall or nukage; the bot dies in a
+fight or reaches the time cap. E1M8's two Barons engaged in one arena run of about a dozen; the rest stopped at 209 s with
+0/2 kills, which is under investigation as a possible engine wake-up bug
+([experiments#107](https://github.com/oaustegard/experiments/issues/107)).
+
