@@ -146,10 +146,13 @@ async function thumb() {
 }
 
 let running = false, attemptNo = 0;
+const usedSeeds = {};
 async function playLevel(map, carry, opts) {
   const { W, freshPlayer } = doom.engine;
   // a retry gets a fresh random seed (the monsters' choices), or every try of a level replays the last one
-  const seed = carry ? null : (crypto.getRandomValues(new Uint8Array(1))[0]);
+  // DOOM's generator has 256 starting points, so a retry also skips seeds this level already had (E1M4 drew 79 twice)
+  let seed = null;
+  if (!carry) { const used = (usedSeeds[map] ||= new Set()); do seed = crypto.getRandomValues(new Uint8Array(1))[0]; while (used.has(seed) && used.size < 256); used.add(seed); }
   await eng.loadMap(map, carry || { ...freshPlayer(), rng: seed });
   const plan = { plans: 0, ms: 0 };
   const oracle = params.get("planner") === "oracle" ? new OraclePlanner() : null;
