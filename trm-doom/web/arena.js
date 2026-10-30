@@ -7,9 +7,9 @@
 // ?map= ?skill= ?stuck= ?cap= ?tries= ?fast preset the controls, ?auto starts at once, ?planner=oracle swaps
 // TRM for exact BFS (a debug stand-in, never for reported runs).
 
-import { Bot } from "./bot.js?v=20261030-105357";
-import { TRMPlanner } from "./trm.js?v=20261030-105357";
-import { OraclePlanner } from "./oracle.js?v=20261030-105357";
+import { Bot } from "./bot.js?v=20261030-110204";
+import { TRMPlanner } from "./trm.js?v=20261030-110204";
+import { OraclePlanner } from "./oracle.js?v=20261030-110204";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);

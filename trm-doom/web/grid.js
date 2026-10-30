@@ -10,12 +10,14 @@ export const N = 32, FINE = 24, COARSE = 48;
 const CLEAR = 14; // a little under the player's radius of 16: a 48-unit gap still leaves a cell open
 // a drop into nukage, or of more than 64 units, keeps the route further away: the player's momentum carries
 // it a few units past where it stops pushing, and a pit with no way out is a death
-const CLEAR_DROP = 40;
+const CLEAR_DROP = 24;
 
 // manual doors and the key each needs (0 none, 1 blue, 2 yellow, 3 red)
 export const MANUAL_DOORS = { 1: 0, 26: 1, 27: 2, 28: 3, 31: 0, 32: 1, 33: 3, 34: 2, 117: 0, 118: 0 };
 // switch-triggered lifts whose switch is usually the lift's own edge: pressing use there lowers it
 const USE_LIFTS = new Set([21, 62, 122, 123]);
+// lifts that lower, wait and rise (DOOM's downWaitUpStay and its blazing twin), by how they're triggered
+export const LIFT_SPECIALS = { 10: "W", 88: "W", 120: "W", 121: "W", 21: "S", 62: "S", 122: "S", 123: "S" };
 const HURT = new Set([4, 5, 7, 11, 16]);
 const ML_BLOCKING = 1;
 export const KEY_THINGS = { 5: 1, 40: 1, 6: 2, 39: 2, 13: 3, 38: 3 }; // doomednum -> key colour
@@ -36,6 +38,21 @@ export function makeGridder(map, verts) {
   });
   const lx1 = new Float64Array(map.lines.length), ly1 = lx1.slice(), lx2 = lx1.slice(), ly2 = lx1.slice();
   map.lines.forEach((l, i) => { [lx1[i], ly1[i]] = verts[l.v1]; [lx2[i], ly2[i]] = verts[l.v2]; });
+  // lift sector -> {low, high, triggers: [{line, how}]}: it rests at high and lowers to the lowest floor around it
+  const lifts = new Map();
+  map.lines.forEach((l, i) => {
+    const how = LIFT_SPECIALS[l.special];
+    if (!how || !l.tag) return;
+    map.sectors.forEach((sec, k) => {
+      if (sec.tag !== l.tag) return;
+      if (!lifts.has(k)) {
+        let low = sec.floor;
+        for (const j of secLines[k]) { const o = map.lines[j].fsec === k ? map.lines[j].bsec : map.lines[j].fsec; if (o >= 0) low = Math.min(low, map.sectors[o].floor); }
+        lifts.set(k, { low, high: sec.floor, triggers: [] });
+      }
+      lifts.get(k).triggers.push({ line: i, how });
+    });
+  });
 
   // even-odd test against the sector's own boundary: the BSP puts a point outside the map in some sector too
   function inSector(s, x, y) {
@@ -57,6 +74,15 @@ export function makeGridder(map, verts) {
     const open = Math.min(st.ceil[a], st.ceil[b]) - Math.max(st.floor[a], st.floor[b]);
     const step = Math.abs(st.floor[a] - st.floor[b]);
     if (open >= 56 && step <= 24) return 0;
+    // a lift's edge is a way on or off when the lift can stand level with the other side (a door-like cell: passable
+    // once something is done about it)
+    const la = lifts.get(a), lb = lifts.get(b);
+    if ((la || lb) && !(la && lb)) {
+      const [L, S, lift] = la ? [a, b, la] : [b, a, lb];
+      for (const h of [lift.low, lift.high]) {
+        if (Math.abs(st.floor[S] - h) <= 24 && Math.min(st.ceil[L], st.ceil[S]) - Math.max(h, st.floor[S]) >= 56) return C.DOOR;
+      }
+    }
     if (step > 24 && !USE_LIFTS.has(l.special)) return C.WALL; // a door onto a drop is still a drop (E1M3's door into a nukage pit)
     for (const s of [a, b]) {
       if (st.ceil[s] - st.floor[s] < 56 && doorKey.has(s)) return hasKey(st.cards, doorKey.get(s)) ? C.DOOR : C.WALL;
@@ -156,7 +182,7 @@ export function makeGridder(map, verts) {
     return { g, ox, oy, cs, n };
   }
 
-  return { fine, coarse, raster, inSector, lineClass, doorKey, secLines, lines: { lx1, ly1, lx2, ly2 } };
+  return { fine, coarse, raster, inSector, lineClass, doorKey, lifts, secLines, lines: { lx1, ly1, lx2, ly2 } };
 }
 
 export const passable = (c) => c >= C.FREE;
