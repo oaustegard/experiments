@@ -486,7 +486,10 @@ export class Bot {
     const finalLeg = near && la.k === la.end;
     if (finalLeg) { mx = t.x; my = t.y; }
     const input = { forward: 0, side: 0, turn: 0, use: false, fire: false, weapon: 0 };
-    const en = this.enemy();
+    let en = this.enemy();
+    // with no ammo, only something in punching range is worth facing; everything else is walked past
+    const noAmmo = p.ammo[0] <= 0 && p.ammo[1] <= 0 && p.ammo[2] <= 0 && p.ammo[3] <= 0;
+    if (en && noAmmo && en.d > 120) en = null;
     let face = Math.atan2(my - p.y, mx - p.x);
     if (en) {
       face = Math.atan2(en.m.y - p.y, en.m.x - p.x);
@@ -513,7 +516,9 @@ export class Bot {
       // hurt, and sidestep every second so fireballs miss
       const ex = (p.x - en.m.x) / en.d, ey = (p.y - en.m.y) / en.d;
       // hurt: fall back along the breadcrumbs, and keep falling back until nothing has been seen for two seconds
-      if (p.health < 50 && this.trail?.length > 3) this.retreatUntil = this.tic + 70;
+      // two seconds at most, then three of fighting on: a retreat that never ends is how the bot paced one room
+      // of E1M4 for four minutes
+      if (p.health < 40 && !en.unseen && en.d < 500 && this.trail?.length > 3 && this.tic > (this.retreatUntil ?? 0) + 105) this.retreatUntil = this.tic + 70;
       const hurt = this.tic < (this.retreatUntil ?? 0) && this.trail?.length > 3;
       let ax = vx, ay = vy;
       if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
