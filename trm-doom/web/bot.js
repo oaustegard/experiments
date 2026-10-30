@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-132340";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261030-135354";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -143,7 +143,15 @@ export class Bot {
       const cs = c.line !== undefined && !c.walk ? this.map.lines[c.line].fsec : this.map.spawnSector(c.x, c.y); // a switch is pressed from its front
       return cs !== here && HURT.has(this.map.sectors[cs].special) && s.floor[cs] < s.floor[here] - 24;
     };
-    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic) && !(this.blacklist.get("kind:" + c.kind) > this.tic) && !pit(c)).sort((a, b) => b.prio - a.prio);
+    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic) && !(this.blacklist.get("kind:" + c.kind) > this.tic) && !pit(c) && !this.parked?.has(c.key)).sort((a, b) => b.prio - a.prio);
+  }
+
+  // the level changed: targets parked as unreachable get another look
+  unpark(why) {
+    if (!this.parked?.size) return;
+    for (const k of this.parked) { this.blacklist.delete(k); this.rejects?.delete(k); }
+    this.events.push({ tic: this.tic, ev: "unpark", n: this.parked.size, why });
+    this.parked.clear();
   }
 
   reject(t, why, tics = 1050) {
@@ -289,6 +297,9 @@ export class Bot {
       // was there a route to find? BFS on the same grid tells a TRM miss from a level that is really shut here
       const bfs = shortestUnion(g, n).some((v) => v);
       this.stats.trmMiss = (this.stats.trmMiss || 0) + bfs; this.stats.trmShut = (this.stats.trmShut || 0) + !bfs;
+      // no route on the grid at all: the target waits until something changes the level (a switch, a trigger, a
+      // lift, a death), instead of coming back on a timer to fail again (E1M2: 93% of empty plans were this)
+      if (!bfs && t.kind !== "escape") (this.parked ||= new Set()).add(t.key);
       this.stats.coarseEmpty++; this.reject(t, bfs ? "TRM: no global route (BFS has one)" : "TRM: no global route (none)"); return false;
     }
     const w = this.walkSet(g, r.path, gc, n, s0);
@@ -488,7 +499,7 @@ export class Bot {
     // remember how each lift moves, to tell a lift on its way from one at rest
     const now = this.tic, mv = (this.liftMoves ||= new Map());
     const moving = (k) => { const m = mv.get(k); if (!m || m.f !== floor(k)) { mv.set(k, { f: floor(k), t: now }); return !!m; } return now - m.t < 20; };
-    const done = (why) => { if (this.liftTask) this.events.push({ tic: now, ev: "lift", why, sector: this.liftTask.L }); this.liftTask = null; return null; };
+    const done = (why) => { if (this.liftTask) { this.events.push({ tic: now, ev: "lift", why, sector: this.liftTask.L }); if (why === "off") this.unpark("lift " + this.liftTask.L); } this.liftTask = null; return null; };
     if (this.liftTask && now - this.liftTask.since > 35 * 15) { this.reject(this.target, "lift never came", 700); return done("timeout"); }
 
     if (lifts.has(here)) {
@@ -552,6 +563,7 @@ export class Bot {
       this.stats.targets[this.target.kind] = (this.stats.targets[this.target.kind] || 0) + 1;
       // a boss down, a switch pressed or a trigger crossed can open the way out, so the exits get a fresh chance
       // (E1M8: both Barons died at 278 s, but the exits were still backed off and the bot wandered by the platform)
+      if (["hunt", "switch", "trigger"].includes(this.target.kind)) this.unpark("done " + this.target.key);
       if (["hunt", "switch", "trigger"].includes(this.target.kind)) for (const k of [...this.blacklist.keys()]) {
         if (k === "kind:exit" || this.exitKeys?.has(k)) { this.blacklist.delete(k); this.rejects?.delete(k); }
       }
@@ -566,6 +578,9 @@ export class Bot {
         if (c?.kind === "escape") { this.events.push({ tic: this.tic, ev: "escape", from: this.target.key }); this.target = null; this.fine = null; this.coarse = null; }
       }
     } else this.hurtSince = null;
+    // a backstop for changes the bot doesn't see (a door opened by a monster, a crusher, a timed floor)
+    if (this.parked?.size && this.tic - (this.parkedAt ?? 0) > 35 * 90) { this.unpark("timer"); this.parkedAt = this.tic; }
+    if (!this.parked?.size) this.parkedAt = this.tic;
     // on ExM8 a monster death (a boss, maybe not the one targeted) can open the way out
     if (/M8$/.test(this.map.name)) {
       if (this.liveCount !== undefined && s.monsters.length < this.liveCount)
@@ -695,7 +710,7 @@ export class Bot {
     if ((doorAhead || atSwitch || this.unstick > 0) && this.tic - (this.lastUse ?? -99) > 45) {
       input.use = true; this.lastUse = this.tic;
       // a repeatable switch keeps its special, and one we can't reach never clears: three presses is enough
-      if (atSwitch && ++t.presses >= 3) { this.blacklist.set(t.key, 1e9); this.events.push({ tic: this.tic, ev: "pressed", kind: t.kind, key: t.key }); this.target = null; this.fine = null; this.coarse = null; }
+      if (atSwitch && ++t.presses >= 3) { this.blacklist.set(t.key, 1e9); this.events.push({ tic: this.tic, ev: "pressed", kind: t.kind, key: t.key }); this.unpark("pressed " + t.key); this.target = null; this.fine = null; this.coarse = null; }
     }
     if (this.unstick > 0) { this.unstick--; input.side = (this.tic >> 4) & 1 ? 40 : -40; input.forward = -20; }
     return input;
