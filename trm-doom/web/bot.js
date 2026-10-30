@@ -136,7 +136,14 @@ export class Bot {
     for (const c of this.standCells) if (!this.visited[c.j * this.bw + c.i]) fr.push({ key: `f${c.i},${c.j}`, kind: "explore", x: c.x, y: c.y, prio: 10 - d(c.x, c.y) / 100 });
     fr.sort((a, b) => b.prio - a.prio);
     out.push(...fr.slice(0, 12));
-    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic) && !(this.blacklist.get("kind:" + c.kind) > this.tic)).sort((a, b) => b.prio - a.prio);
+    // A target down in a damaging pit is a trap unless the bot is already in it: E1M3's lift switches sit in a
+    // nukage pit 80 units below the lift out, and three runs out of three died there after pressing one.
+    const pit = (c) => {
+      if (c.kind === "exit" || c.kind === "escape") return false;
+      const cs = c.line !== undefined && !c.walk ? this.map.lines[c.line].fsec : this.map.spawnSector(c.x, c.y); // a switch is pressed from its front
+      return cs !== here && HURT.has(this.map.sectors[cs].special) && s.floor[cs] < s.floor[here] - 24;
+    };
+    return out.filter((c) => !(this.blacklist.get(c.key) > this.tic) && !(this.blacklist.get("kind:" + c.kind) > this.tic) && !pit(c)).sort((a, b) => b.prio - a.prio);
   }
 
   reject(t, why, tics = 1050) {
