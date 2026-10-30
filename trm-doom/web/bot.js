@@ -39,7 +39,7 @@ export class Bot {
     const L = this.map.lines;
     this.lineMid = L.map((l) => { const a = this.verts[l.v1], c = this.verts[l.v2]; return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2]; });
     this.blacklist = new Map(); // target key -> tic it may be tried again
-    this.blocked = []; // world points of coarse waypoints found unreachable
+    this.blocked = []; // [x, y, until]: coarse waypoints found unreachable, walled off for a while (a wrong one can seal a corridor)
     this.tic = 0; this.target = null; this.fine = null; this.coarse = null;
     this.stats = { finePlans: 0, coarsePlans: 0, fineBroken: 0, coarseBroken: 0, coarseEmpty: 0, planMs: 0, stuck: 0, targets: {} };
     this.lastPos = null; this.lastProgressTic = 0; this.unstick = 0; this.useToggle = false;
@@ -227,6 +227,7 @@ export class Bot {
     const grid = this.gr.coarse(cx, cy, this.gridState(), cs, n);
     const g = grid.g;
     if (!t.hazardOK) for (let k = 0; k < g.length; k++) if (g[k] === C.HAZARD) g[k] = C.WALL;
+    this.blocked = this.blocked.filter((b) => b[2] > this.tic);
     for (const [bx, by] of this.blocked) {
       const i = Math.floor((bx - grid.ox) / cs), j = Math.floor((by - grid.oy) / cs);
       if (i >= 0 && j >= 0 && i < n && j < n) g[j * n + i] = C.WALL;
@@ -266,6 +267,7 @@ export class Bot {
     const grid = this.anchored(this.gr.coarse, COARSE);
     const c0 = (N / 2) * N + N / 2;
     // waypoints the fine planner couldn't reach: the coarse grid's pooling joined them across a wall
+    this.blocked = this.blocked.filter((b) => b[2] > this.tic);
     for (const [bx, by] of this.blocked) {
       const i = Math.floor((bx - grid.ox) / COARSE), j = Math.floor((by - grid.oy) / COARSE);
       if (i >= 0 && j >= 0 && i < N && j < N) grid.g[j * N + i] = C.WALL;
@@ -329,7 +331,7 @@ export class Bot {
     }
     if (best) { this.fine = best; this.repairs = 0; return true; }
     if (failed.length && (this.repairs = (this.repairs || 0) + 1) <= 4) { // repair the coarse map and try again
-      this.blocked.push(...failed);
+      this.blocked.push(...failed.map(([x, y]) => [x, y, this.tic + 35 * 40]));
       this.events.push({ tic: this.tic, ev: "coarse-repair", kind: t.kind, n: failed.length });
       if (await this.planCoarse()) return this.planFine(retry);
       return false;
