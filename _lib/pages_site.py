@@ -92,8 +92,8 @@ def index_html(rows):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Experiments</title>
-<meta name="description" content="Interactive pages from oaustegard/experiments.">
+<title>Experiments: full index</title>
+<meta name="description" content="Every interactive page in oaustegard/experiments, generated from the repository.">
 <style>
 :root {{ --bg: #fbfaf7; --fg: #1d1f24; --dim: #5d6370; --accent: #2f5d8a; --rule: #e3e0d8; color-scheme: light; }}
 @media (prefers-color-scheme: dark) {{ :root {{ --bg: #14161b; --fg: #e6e4df; --dim: #9aa0ab; --accent: #8db4dc; --rule: #2a2d35; color-scheme: dark; }} }}
@@ -113,8 +113,8 @@ small a {{ color: var(--dim); }}
 </head>
 <body>
 <main>
-<h1>Experiments</h1>
-<p class="lede">Interactive pages from <a href="https://github.com/oaustegard/experiments" style="color:var(--accent)">oaustegard/experiments</a>. Each links its experiment's directory, where the writeup and code live. ↗ marks a page hosted elsewhere.</p>
+<h1>Experiments: full index</h1>
+<p class="lede">Every interactive page in <a href="https://github.com/oaustegard/experiments" style="color:var(--accent)">oaustegard/experiments</a>, generated from the repository on each push. For a short hand-picked selection, see the <a href="https://austegard.com/lab/" style="color:var(--accent)">Lab</a> on austegard.com. Each entry links its experiment's directory, where the writeup and code live. ↗ marks a page hosted elsewhere.</p>
 <ul>
 {items}
 </ul>
