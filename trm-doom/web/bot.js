@@ -652,17 +652,22 @@ export class Bot {
       if (p.health < 40 && !en.unseen && en.d < 500 && this.trail?.length > 3 && this.tic > (this.retreatUntil ?? 0) + 105) this.retreatUntil = this.tic + 70;
       const hurt = this.tic < (this.retreatUntil ?? 0) && this.trail?.length > 3;
       let ax = vx, ay = vy;
-      if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
+      // on a damaging floor every second costs health, so the bot keeps to its route at full speed and shoots on
+      // the move (E1M3: it stood to fight in the nukage on the way to the blue key and died there)
+      const acid = HURT.has(this.map.sectors[this.map.spawnSector(p.x, p.y)].special);
+      if (acid) { /* keep the route */ }
+      else if (hurt) { const [bx, by] = this.trail[Math.max(0, this.trail.length - 4)]; ax = bx - p.x; ay = by - p.y; const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l; }
       else if (en.d < 192) { ax = ex; ay = ey; }
       else if (en.d < 700 && !en.unseen && !dry) { ax = 0; ay = 0; } // stand and fight rather than walk into the room
       const side = ((this.tic / 30) | 0) & 1 ? 1 : -1;
-      vx = ax - ey * side * 0.8; vy = ay + ex * side * 0.8;
+      const dodge = acid ? 0 : 0.8;
+      vx = ax - ey * side * dodge; vy = ay + ex * side * dodge;
       const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l; speed = 1;
       // fighting moves leave the route: never into a wall, a drop-off or nukage, which is how pits catch the bot
       const g = this.fine?.grid;
       if (g && !this.gridLineClear(g, p.x, p.y, p.x + vx * 40, p.y + vy * 40, true)) {
         const r = Math.hypot(mx - p.x, my - p.y) || 1; vx = (mx - p.x) / r; vy = (my - p.y) / r;
-        if (!hurt && en.d < 700 && !dry) speed = 0;
+        if (!hurt && !acid && en.d < 700 && !dry) speed = 0;
       }
     }
     const ca = Math.cos(p.angle), sa = Math.sin(p.angle);
