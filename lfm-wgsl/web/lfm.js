@@ -20,7 +20,7 @@ export const MAX_T = 128;     // tokens per forward pass; longer prompts go in c
 export const MAX_CTX = 2048;  // KV cache length (the attention kernel keeps one score per key in workgroup memory)
 
 // Token embedding from the 4-bit table: (q - zero point) * block scale. Grid: one workgroup per token.
-const EMBED = HEADER + /* wgsl */ `
+export const EMBED = HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> W: array<u32>;
 @group(0) @binding(3) var<storage, read> tok: array<u32>;
 @group(0) @binding(4) var<storage, read_write> Y: array<f32>;
@@ -63,7 +63,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 
 // Single-row q4 matmul for decode steps: the shared kernel's layout (32 columns x 8 k-splits per
 // workgroup) without its 8-row tile, which at one row would repeat every dot product 8 times.
-const GEMV = HEADER + /* wgsl */ `
+export const GEMV = HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> W: array<u32>;
 @group(0) @binding(3) var<storage, read> X: array<vec4<f32>>;
 @group(0) @binding(4) var<storage, read_write> Y: array<f32>;
@@ -217,7 +217,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 }`;
 
 // Copy the last token's row of X into L.
-const LAST = HEADER + /* wgsl */ `
+export const LAST = HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> X: array<f32>;
 @group(0) @binding(3) var<storage, read_write> L: array<f32>;
 @compute @workgroup_size(256)
