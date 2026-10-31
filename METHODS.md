@@ -661,6 +661,16 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Attach `deviceorientation` before awaiting anything in the start handler.** Headless Chromium exposes
+  `DeviceOrientationEvent.requestPermission`, and the promise it returns never settles. `requestFullscreen`,
+  `screen.orientation.lock` and `wakeLock.request` can hang the same way. A start handler that awaited any of them
+  before `addEventListener` got zero events, and nothing reported an error. Call `requestPermission` (iOS needs it inside the tap),
+  attach the listener unconditionally, and do not await the rest. Synthetic `Object.assign(new Event("deviceorientation"),
+  {beta, gamma})` events then drive the page in tests. (`tilt-racer/web/index.html`)
+- **Phone-as-wheel input: take the gravity direction from beta/gamma, not the Euler angles themselves.** Up in device coordinates is
+  `(-cos β sin γ, sin β, cos β cos γ)`. Its angle around device z is the wheel angle, the same in both
+  landscapes and needing no `screen.orientation` handling, and `asin(up.z)` is the pedal. The landscape pose sits on the γ = ±90° seam,
+  where raw β jumps 180° when the phone tilts past vertical, while the vector stays continuous. (`tilt-racer/test/verify.mjs math`)
 - **WebGPU's 65,535 workgroups per dimension fails silently inside a queue of dispatches.** A 1-D elementwise dispatch
   over L·HID/64 workgroups passed the limit only on large grids; the dispatch failed validation and the pass produced
   nothing, so every whole-level TRM plan came back empty with no error surfaced to the job. Dispatch elementwise kernels
