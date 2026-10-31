@@ -3,17 +3,17 @@
 // session picks it up. The game runs in lockstep with the bot: each tic waits for the bot's input, so
 // a slow GPU slows the game instead of leaving the bot behind it.
 //
-// ?doom=<url of the gPu(doom) directory> (default /fun-and-games/doom/), ?weights=<url without .bin/.json>,
+// ?doom=<url of the gPu(doom) directory> (default /games/doom/), ?weights=<url without .bin/.json>,
 // ?map= ?skill= ?stuck= ?cap= ?tries= ?fast preset the controls, ?auto starts at once, ?planner=oracle swaps
 // TRM for exact BFS (a debug stand-in, never for reported runs).
 
-import { Bot } from "./bot.js?v=20261030-163344";
-import { TRMPlanner } from "./trm.js?v=20261030-163344";
-import { OraclePlanner } from "./oracle.js?v=20261030-163344";
+import { Bot } from "./bot.js?v=20261031-015405";
+import { TRMPlanner } from "./trm.js?v=20261031-015405";
+import { OraclePlanner } from "./oracle.js?v=20261031-015405";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
-const DOOM = new URL(params.get("doom") || "/fun-and-games/doom/", location.href).href;
+const DOOM = new URL(params.get("doom") || "/games/doom/", location.href).href;
 const WEIGHTS = params.get("weights") || DOOM + "bot/trm";
 const API = "https://api.github.com", BRANCH = "main";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));

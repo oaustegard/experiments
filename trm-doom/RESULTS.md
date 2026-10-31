@@ -3,7 +3,7 @@
 Samsung SAIL Montreal's Tiny Recursive Model (TRM, Jolicoeur-Martineau, [arXiv 2510.04871](https://arxiv.org/abs/2510.04871))
 is a network of about 7M parameters (the version here is 820k) that solves grid puzzles (Sudoku, mazes, ARC) by applying
 one tiny network over and over. This experiment asks whether TRM can be the route planner of a bot that plays DOOM. The
-bot runs inside [gPu(doom)](https://austegard.com/fun-and-games/doom/), the WebGPU port of DOOM, and TRM runs in WGSL on
+bot runs inside [gPu(doom)](https://austegard.com/games/doom/), the WebGPU port of DOOM, and TRM runs in WGSL on
 the same GPU device. TRM can't render frames or read the screen, so the bot turns the level into a grid, asks TRM which
 cells lie on a shortest route to its current goal, and walks that route. Hand-written code around TRM (the "decision
 layer") picks goals (keys, the exit, switches, items, unexplored places), rides lifts and does the shooting.

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
-const D = "/home/user/oaustegard/oaustegard.github.io/fun-and-games/doom/";
+const D = "/home/user/oaustegard/oaustegard.github.io/games/doom/";
 const { readWad, buildGfx, buildMap } = await import(D + "wad.js");
 const u8 = gunzipSync(readFileSync(D + "e1.wad.gz"));
 const wad = readWad(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength));

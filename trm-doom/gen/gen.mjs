@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { makeGridder, shortestUnion, wadState, mapVerts, C, N, passable, MANUAL_DOORS } from "../web/grid.js";
 
-const DOOM = process.env.DOOM_DIR || new URL("../../../oaustegard.github.io/fun-and-games/doom/", import.meta.url).pathname;
+const DOOM = process.env.DOOM_DIR || new URL("../../../oaustegard.github.io/games/doom/", import.meta.url).pathname;
 const { readWad, buildGfx, buildMap } = await import(DOOM + "wad.js");
 const { MOBJINFO, MF } = await import(DOOM + "info.js");
 const [out, count, seed, mapsArg, coarseFrac = "0.3"] = process.argv.slice(2);

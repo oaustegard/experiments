@@ -17,7 +17,7 @@ const srv = http.createServer((req, res) => { const f = path.join(root, decodeUR
     if (u.pathname.endsWith("/pulls")) return json(200, [{ number: 1, head: { ref: "wake/sessions" } }]);
     return json(404, {});
   });
-  await pg.goto(`http://127.0.0.1:${srv.address().port}/experiments/trm-doom/web/arena.html?doom=/oaustegard.github.io/fun-and-games/doom/`);
+  await pg.goto(`http://127.0.0.1:${srv.address().port}/experiments/trm-doom/web/arena.html?doom=/oaustegard.github.io/games/doom/`);
   const pill = () => pg.evaluate(() => document.getElementById("connstate").textContent);
   console.log("initial:", await pill());
   for (const tok of ["nope", "good"]) {

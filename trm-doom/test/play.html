@@ -5,7 +5,7 @@ import { Bot } from "../web/bot.js";
 import { OraclePlanner } from "../web/oracle.js";
 import { TRMPlanner } from "../web/trm.js";
 const q = new URLSearchParams(location.search);
-const D = "/oaustegard.github.io/fun-and-games/doom/";
+const D = "/oaustegard.github.io/games/doom/";
 try {
   const doom = { engine: await import(D + "engine.js"), info: await import(D + "info.js"), specials: await import(D + "specials.js") };
   const ad = await navigator.gpu.requestAdapter();

@@ -2,7 +2,7 @@
 // inputs: w (f32 weights), man (u8 JSON manifest), cfg (JSON: {sha, maps, maxTics, skill, frameEvery, planner, sup, carry})
 const cfg = ctx.inputs.cfg;
 const base = `https://cdn.jsdelivr.net/gh/oaustegard/experiments@${cfg.sha}/trm-doom/web/`;
-const D = "https://austegard.com/fun-and-games/doom/";
+const D = "https://austegard.com/games/doom/";
 const [{ runLevel }, { Bot }, { TRMPlanner }, { OraclePlanner }] = await Promise.all(
   ["runner.js", "bot.js", "trm.js", "oracle.js"].map((f) => ctx.importModule(base + f)));
 const doom = { engine: await ctx.importModule(D + "engine.js"), info: await ctx.importModule(D + "info.js"), specials: await ctx.importModule(D + "specials.js") };

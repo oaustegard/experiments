@@ -9,7 +9,7 @@ const srv = http.createServer((req, res) => { const f = path.join(root, decodeUR
   const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox", "--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader"] });
   const pg = await b.newPage(); const errs = [];
   pg.on("pageerror", (e) => errs.push(e.message)); pg.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
-  await pg.goto(`http://127.0.0.1:${srv.address().port}/experiments/trm-doom/web/arena.html?doom=/oaustegard.github.io/fun-and-games/doom/&planner=oracle&auto&fast&map=E1M1&stuck=8&cap=1&tries=2`);
+  await pg.goto(`http://127.0.0.1:${srv.address().port}/experiments/trm-doom/web/arena.html?doom=/oaustegard.github.io/games/doom/&planner=oracle&auto&fast&map=E1M1&stuck=8&cap=1&tries=2`);
   try { await pg.waitForFunction("window.ARENA && window.ARENA.attempts >= 2 && window.ARENA.outbox.length >= 3", null, { timeout: 900000 }); } catch (e) { console.log("timeout"); }
   console.log(JSON.stringify({ errs: errs.slice(0, 5), log: await pg.evaluate("window.ARENA && window.ARENA.log"), outbox: await pg.evaluate("window.ARENA && window.ARENA.outbox.map(j => [j.message, Object.keys(j.files).length])"), status: await pg.evaluate("document.getElementById('status').textContent") }, null, 1));
   await b.close(); srv.close();
