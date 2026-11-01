@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Force Touch Probe</title>
+<style>
+/* A lab instrument: one pad, one prompt, the raw numbers in view. */
+:root { --bg: #0f1418; --ink: #eef2f4; --dim: #9aa7b0; --line: #2a343c; --pad: #1a242c; --go: #57d38c; --warn: #ffcf3f; --stop: #ff6b5e;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace; --sans: system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-user-select: none; user-select: none; touch-action: none; overflow: hidden; }
+main { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px;
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+h1 { margin: 0; font-size: 20px; }
+.room { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+.room b { color: var(--warn); font-size: 22px; letter-spacing: 0.15em; }
+#prompt { font-size: 22px; line-height: 1.25; min-height: 2.6em; text-wrap: balance; }
+#prompt small { display: block; font-size: 14px; color: var(--dim); margin-top: 4px; }
+.stage { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: end; min-height: 0; }
+#live { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; color: var(--dim); white-space: pre; align-self: start; overflow: hidden; }
+#pad { width: 120px; height: 190px; border-radius: 18px; border: 3px solid var(--line); background: var(--pad); display: grid; place-items: center;
+  font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 13px; color: var(--dim); position: relative; overflow: hidden; touch-action: none; }
+#pad.armed { border-color: var(--warn); color: var(--warn); }
+#pad.down { border-color: var(--go); color: var(--go); }
+#fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(87, 211, 140, 0.25); }
+.bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button { font: 600 16px var(--sans); border-radius: 8px; padding: 10px 16px; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+button.go { background: var(--warn); color: #1a1500; border: 0; }
+button:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
+#status { font-size: 13px; color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <div><h1>Force Touch Probe</h1><div class="room">Room <b id="code">····</b> · tell Claude this code</div></div>
+  <div id="prompt">Hold the phone sideways in both hands, as in Tilt Rally, and use your right thumb on the pad.<small>Tap Start. Each prompt asks for one press: press when the pad turns yellow, hold until the bar fills (2 s), then let go.</small></div>
+  <div class="stage"><div id="live">waiting for a touch</div><div id="pad"><div id="fill"></div><span id="padText">Pad</span></div></div>
+  <div class="bar"><button class="go" id="start" type="button">Start</button><button id="copy" type="button" hidden>Copy results</button><span id="status">Connecting…</span></div>
+</main>
+<script type="module">
+// What can a phone browser tell about how hard a thumb presses? Every press records, at each event: PointerEvent
+// pressure/width/height, Touch force/radiusX/radiusY/rotationAngle, and the motion sensors (the phone may dip under a
+// firm press). Each finished press goes to the room as JSON for an observer session; a copy stays on the phone.
+const LOBBY = "wss://rally-lobby.austegard.workers.dev";
+const Q = new URLSearchParams(location.search), $ = (id) => document.getElementById(id);
+const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const asked = (Q.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);   // the room server takes 4-8 of A-Z and 0-9
+const code = asked.length >= 4 ? asked : Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => A[b % A.length]).join("");
+$("code").textContent = code;
+const lobby = /^ws:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(Q.get("lobby") || "") ? Q.get("lobby") : LOBBY;
+
+// The protocol: three force levels at the same posture, then two posture-vs-force contrasts that separate contact area
+// caused by force from contact area caused by how the thumb lies. Order interleaved so drift does not fake a trend.
+const CONDS = {
+  light: "Rest your thumb on the pad as lightly as you can.",
+  medium: "Press normally, like tapping a button and holding it.",
+  firm: "Press firmly, as hard as is comfortable.",
+  "flat-light": "Lay your thumb flat on the pad, pressing lightly.",
+  "tip-firm": "Press firmly with just the tip of your thumb.",
+};
+const PLAN = ["light", "medium", "firm", "medium", "firm", "light", "firm", "light", "medium", "flat-light", "tip-firm", "flat-light", "tip-firm"];
+const HOLD = 2000, r3 = (x) => (x == null || Number.isNaN(x) ? null : Math.round(x * 1000) / 1000);
+const dev = { ua: navigator.userAgent, w: screen.width, h: screen.height, dpr: devicePixelRatio, maxTouch: navigator.maxTouchPoints,
+  pointer: typeof PointerEvent !== "undefined", touchForceProp: typeof Touch !== "undefined" && "force" in Touch.prototype };
+
+let ws = null, wsOpen = false;
+function connect() {
+  ws = new WebSocket(`${lobby}/room/${code}?name=forcetouch-phone`);
+  ws.onopen = () => { wsOpen = true; $("status").textContent = "Connected to room " + code + ", but Claude isn't watching yet."; raw({ t: "ft-hello", v: 1, dev }); resend(); };
+  ws.onclose = () => { wsOpen = false; $("status").textContent = "Disconnected; retrying…"; setTimeout(connect, 2000); };
+  // an observer can be in the room before us (listed in hello) or arrive later (join); either way it gets everything so far
+  ws.onmessage = (e) => { try { const m = JSON.parse(e.data), obs = (p) => p?.name?.startsWith("observer:");
+    if ((m.t === "hello" && m.peers?.some(obs)) || (m.t === "join" && obs(m.peer))) { $("status").textContent = "Claude is watching room " + code + "."; raw({ t: "ft-hello", v: 1, dev }); resend(); }
+    if (m.t === "leave" && wsOpen) $("status").textContent = "Someone left room " + code + "; if it was Claude, presses are kept and resent when it rejoins."; } catch (err) {} };
+}
+// Every press stays in the outbox and goes out again after a reconnect or when an observer arrives; the analysis keeps
+// one copy per press number, so repeats are harmless.
+const outbox = [];
+function raw(m) { if (!wsOpen) return; const s = JSON.stringify(m); if (s.length < 16000) ws.send(s); else for (const part of split(m)) ws.send(JSON.stringify(part)); }
+function send(m) { outbox.push(m); raw(m); }
+function resend() { for (const m of outbox) raw(m); }
+function split(m) {   // keep each message under the room's 16 KB limit by thinning the sample arrays
+  let k = 2; for (;;) { const t = { ...m, thin: k, ptr: m.ptr?.filter((_, i) => i % k === 0), tch: m.tch?.filter((_, i) => i % k === 0), mot: m.mot?.filter((_, i) => i % k === 0) };
+    if (JSON.stringify(t).length < 16000 || k > 64) return [t]; k *= 2; }
+}
+connect();
+
+// ---- sensors
+let rec = null, motionOn = false, motBuf = [];
+function onMotion(e) {
+  const a = e.acceleration || {}, g = e.accelerationIncludingGravity || {}, r = e.rotationRate || {};
+  motBuf.push([Math.round(performance.now()), r3(a.x), r3(a.y), r3(a.z), r3(g.x), r3(g.y), r3(g.z), r3(r.alpha), r3(r.beta), r3(r.gamma)]);
+  if (motBuf.length > 600) motBuf.splice(0, 300);
+}
+const pad = $("pad");
+let live = { p: null, t: null };
+function showLive() {
+  const p = live.p, t = live.t;
+  $("live").textContent = [
+    "pointer  pressure " + (p ? p.pressure : "–"), "         width " + (p ? r3(p.width) : "–") + "  height " + (p ? r3(p.height) : "–"),
+    "touch    force " + (t ? r3(t.force) : "–"), "         radius " + (t ? r3(t.radiusX) + " × " + r3(t.radiusY) : "–") + "  angle " + (t ? r3(t.rotationAngle) : "–"),
+    "motion   " + (motionOn ? (motBuf.length ? "z " + motBuf[motBuf.length - 1][3] + " m/s²" : "on") : "off"),
+    "presses  " + done + " / " + PLAN.length].join("\n");
+}
+pad.addEventListener("pointerdown", (e) => { e.preventDefault(); pad.setPointerCapture?.(e.pointerId); pad.classList.add("down");
+  if (rec && !rec.t0) { rec.t0 = performance.now(); rec.pointerType = e.pointerType; } logPtr(e); });
+pad.addEventListener("pointermove", logPtr);
+for (const ev of ["pointerup", "pointercancel"]) pad.addEventListener(ev, (e) => { logPtr(e); pad.classList.remove("down"); if (rec?.t0 && !rec.t1) finishPress(); });
+function logPtr(e) { live.p = e; showLive(); if (rec?.t0 && !rec.t1) rec.ptr.push([Math.round(e.timeStamp || performance.now()), r3(e.pressure), r3(e.width), r3(e.height), r3(e.tiltX), r3(e.tiltY), e.type[7] || "d"]); }
+for (const ev of ["touchstart", "touchmove", "touchend"]) pad.addEventListener(ev, (e) => { e.preventDefault(); const t = e.changedTouches[0]; if (!t) return; live.t = t; showLive();
+  if (rec?.t0 && !rec.t1) rec.tch.push([Math.round(e.timeStamp || performance.now()), r3(t.force), r3(t.radiusX), r3(t.radiusY), r3(t.rotationAngle), ev[5] || "s"]); }, { passive: false });
+
+// ---- the run
+let done = 0, fillTimer = null;
+function nextPrompt() {
+  if (done >= PLAN.length) { $("prompt").innerHTML = "Done, thank you.<small>Claude has the data if the status says it was watching. Otherwise tap Copy results and paste it to Claude.</small>"; pad.classList.remove("armed"); $("padText").textContent = "Done";
+    send({ t: "ft-done", v: 1, dev, presses: done }); $("copy").hidden = false; return; }
+  const cond = PLAN[done];
+  $("prompt").innerHTML = CONDS[cond] + "<small>Press " + (done + 1) + " of " + PLAN.length + ": press when the pad turns yellow and hold until the bar is full.</small>";
+  setTimeout(() => { rec = { cond, rep: PLAN.slice(0, done + 1).filter((c) => c === cond).length, ptr: [], tch: [], t0: 0, t1: 0, armedAt: performance.now() };
+    pad.classList.add("armed"); $("padText").textContent = "Press"; }, 700);
+}
+function finishPress() {
+  rec.t1 = performance.now(); pad.classList.remove("armed"); $("padText").textContent = "Pad";
+  const dur = rec.t1 - rec.t0;
+  if (dur < 400) { $("prompt").innerHTML = "That was a tap; hold until the bar fills.<small>Same prompt again.</small>"; rec = null; setTimeout(nextPrompt, 900); return; }
+  const mot = motBuf.filter((m) => m[0] >= rec.t0 - 500 && m[0] <= rec.t1 + 300);
+  send({ t: "ft-press", v: 1, i: done, cond: rec.cond, rep: rec.rep, pointerType: rec.pointerType, t0: Math.round(rec.t0), t1: Math.round(rec.t1), ptr: rec.ptr, tch: rec.tch, mot });
+  done++; rec = null; showLive(); setTimeout(nextPrompt, 600);
+}
+// the hold bar: fills over 2 s while the thumb is down
+setInterval(() => { const h = rec?.t0 && !rec.t1 ? Math.min(1, (performance.now() - rec.t0) / HOLD) : 0; $("fill").style.height = (h * 100) + "%"; }, 50);
+
+$("start").addEventListener("click", async () => {
+  $("start").hidden = true;
+  try { if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") await Promise.race([DeviceMotionEvent.requestPermission(), new Promise((r) => setTimeout(r, 8000))]); } catch (e) {}
+  addEventListener("devicemotion", (e) => { motionOn = true; onMotion(e); });
+  done = 0; nextPrompt();
+});
+$("copy").addEventListener("click", async () => {
+  const text = outbox.map((m) => JSON.stringify(m)).join("\n");
+  try { await navigator.clipboard.writeText(text); $("status").textContent = "Copied " + outbox.length + " records."; } catch (e) { $("status").textContent = "Copy failed; long-press to select the numbers instead."; }
+});
+showLive();
+window.__ft = { outbox, PLAN };
+</script>
+</body>
+</html>
