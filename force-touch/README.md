@@ -2,7 +2,7 @@
 
 Can a phone browser tell how hard a thumb presses? iPhones since the XS have no pressure-sensing screen, so `force` and `pressure` are expected to be fixed values. The open question is whether the browser still reports the size of the contact, which a firmer thumb flattens and enlarges. If it does, a game pedal (Tilt Rally's brake) could be progressive. As a second channel, the probe records the phone's motion sensors during each press: a firm press might tip the phone back measurably.
 
-Status: **built; waiting for the first run on a real phone.** The page, observer and analysis have only run end to end with a stand-in thumb in headless Chromium (`test/`).
+Status: **one run, one iPhone (Chrome on iOS 27.2): no pressure, coarse contact size that follows posture more than force.** See [`RESULTS.md`](RESULTS.md).
 
 Origin: Oskar, 2026-11-01, after the Tilt Rally brake felt too sensitive: "I assume you can't register Force Touch? Could we register that by size of thumb press area?", then: "Let's do a Force Touch experiment in experiments with feedback to a running sibling instance, along with the instructions in the readme required for both the human and the bot as to how to re-play the experiment".
 
@@ -57,4 +57,4 @@ To compare conditions, repeat with a different code per run: another phone, Safa
 
 ## Results
 
-None yet. `RESULTS.md` follows the first phone run.
+In [`RESULTS.md`](RESULTS.md).

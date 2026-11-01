@@ -661,6 +661,12 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **An iPhone browser has no touch pressure, only quantised contact size, and that follows posture.** Chrome on
+  iOS 27.2 (WebKit) gave `PointerEvent.pressure` and `Touch.force` as 0 on every press. `radiusX`/`radiusY` came in
+  steps of 12.139 px (three levels across light to firm) and `width`/`height` in steps of twice that. In one posture,
+  radius separated light from firm, but a firm fingertip read smaller than a light flat thumb. Treat contact size as
+  "how flat is the thumb" and design analog touch controls by position or hold time instead.
+  (`force-touch/RESULTS.md`)
 - **Attach `deviceorientation` before awaiting anything in the start handler.** Headless Chromium exposes
   `DeviceOrientationEvent.requestPermission`, and the promise it returns never settles. `requestFullscreen`,
   `screen.orientation.lock` and `wakeLock.request` can hang the same way. A start handler that awaited any of them
