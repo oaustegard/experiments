@@ -1,0 +1,225 @@
+{
+ "last_run": "2026-11-01T01:31:21.631240+00:00",
+ "papers": {
+  "2610.18861": {
+   "title": "Hybrid Reasoning Agents",
+   "first_seen": "2026-11-01",
+   "best_rank": 1,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Latent reasoning cuts agent tokens 35-55%, but only via RL fine-tuning of open models; code at togethercomputer/HybridAgent, no weights."
+  },
+  "2610.31642": {
+   "title": "A Fix for Softmax and Cross-Entropy",
+   "first_seen": "2026-11-01",
+   "best_rank": 2,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Corrected low-precision softmax/CE and soft-target distillation loss; toy experiments only; relevant only if writing custom bf16 distillation losses."
+  },
+  "2610.28480": {
+   "title": "SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model",
+   "first_seen": "2026-11-01",
+   "best_rank": 3,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "abstract",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Humanoid robot control; no overlap."
+  },
+  "2610.18773": {
+   "title": "Jeva: System One Models from First Principles",
+   "first_seen": "2026-11-01",
+   "best_rank": 4,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Permutation-invariant option scorer with null outcome; beats Jev-1.13.0 (likely decide's lineage) on BANKING77 K=8 92.05 vs 86.14, null AUROC 98.7 vs 93.6. No weights stated in paper; possible BANKING77 contamination. Test head-to-head vs decide on Typed Decisions + BANKING77; borrow coverage gate and cached per-option K/V."
+  },
+  "2610.08144": {
+   "title": "Navier-Stokes lost in translation",
+   "first_seen": "2026-11-01",
+   "best_rank": 5,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Lean verification of autoformalised proofs does not validate the informal proof; no engineering content."
+  },
+  "2610.06805": {
+   "title": "H-JEPA: End-to-End Learning of Hierarchical World Models for Visual Planning",
+   "first_seen": "2026-11-01",
+   "best_rank": 6,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "abstract",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Hierarchical latent world models for visual planning; robotics/sim training."
+  },
+  "2610.06833": {
+   "title": "Towards Looped Models Done Right, Part II: Rethinking at Fixed Points",
+   "first_seen": "2026-11-01",
+   "best_rank": 7,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Looped 1.6B ~1/3 the weight bytes of equal-depth untied at equal FLOPs; terminal KV sharing 3x smaller cache at <=0.85% ppl. No checkpoints; gains within seed noise. Code ifm-ai/xllm-loop."
+  },
+  "2610.29162": {
+   "title": "Why is AI-generated language so hard to understand?",
+   "first_seen": "2026-11-01",
+   "best_rank": 8,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Frontier models overuse psycholinguistically hard constructions; descriptive, nothing to adopt."
+  },
+  "2610.30136": {
+   "title": "Agentic World Action Models",
+   "first_seen": "2026-11-01",
+   "best_rank": 9,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robot manipulation model generating skill code + video + actions."
+  },
+  "2610.13928": {
+   "title": "AI Models Can Provably Hide Arbitrary Capabilities",
+   "first_seen": "2026-11-01",
+   "best_rank": 10,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Encrypted capability lockers survive SFT/LAT/GCG; supply-chain threat, no tested mitigation. Clean evals of open-weight models cannot rule out hidden triggers."
+  },
+  "2610.26825": {
+   "title": "MemT-1.0: Towards Memory-Native Evolution",
+   "first_seen": "2026-11-01",
+   "best_rank": 11,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Memory-in-weights trails same-backbone DenseRAG by 9.5 pts avg (LongMemEval 32.6 vs 70.8) -- supports external memory design. Code MemTensor/MemT-1.0, HF collection MemTensor/memt-1."
+  },
+  "2610.10528": {
+   "title": "Long-WAM: Scaling the Context of World-Action Models",
+   "first_seen": "2026-11-01",
+   "best_rank": 12,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robot policy with 19s video history."
+  },
+  "2610.11959": {
+   "title": "MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement",
+   "first_seen": "2026-11-01",
+   "best_rank": 13,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "RL scaling tech report; mentions MiMo-V2.6-Distill-Qwen-9B but no release link found."
+  },
+  "2610.18615": {
+   "title": "VideoJev: System One Model for Video Understanding and Interaction",
+   "first_seen": "2026-11-01",
+   "best_rank": 14,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Video interval/MC scoring with shared-prefix caching; no video pipeline in stack."
+  },
+  "2610.06783": {
+   "title": "Truly Subquadratic 3SUM and Truly Subcubic APSP via Triangles in Sparse Lopsided Graphs",
+   "first_seen": "2026-11-01",
+   "best_rank": 15,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Complexity theory; authors call it impractical."
+  },
+  "2610.22471": {
+   "title": "Has GPT-6-Astra Achieved Embodied Intelligence?",
+   "first_seen": "2026-11-01",
+   "best_rank": 16,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "abstract",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robotics eval of a closed model."
+  },
+  "2610.20533": {
+   "title": "Generative Representation Learning for Scalable Latent Tokenization",
+   "first_seen": "2026-11-01",
+   "best_rank": 17,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Image latent tokenizer from diffusion PMI; not text retrieval. Code AlanBaade/repr."
+  },
+  "2610.32285": {
+   "title": "Trial by Trace: Benchmarking AI Agent Harnesses for Reliability and Failure Attribution",
+   "first_seen": "2026-11-01",
+   "best_rank": 18,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "7-part harness taxonomy as audit checklist; 31% of task successes violate a harness criterion. Code TraceLite-AI/TraceTrial-Bench."
+  },
+  "2610.24087": {
+   "title": "OR-License: Evaluating LLM Agents as Real-World Operations Research Practitioners",
+   "first_seen": "2026-11-01",
+   "best_rank": 19,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Infeasible deliveries are most of the gap to experts; reinforces hard-constraint checks before agent delivery."
+  },
+  "2610.08077": {
+   "title": "Self-Retrospection Distillation",
+   "first_seen": "2026-11-01",
+   "best_rank": 20,
+   "upvotes": 0,
+   "reviewed": "2026-11-01",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "RLVR training add-on; prompt-only variant showed little effect."
+  }
+ }
+}
