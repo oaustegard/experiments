@@ -10,19 +10,19 @@ Yes, both. The compiler turns a scene of shapes (circles, rects, ellipses, curve
 gradients, transforms, and from Python also smooth unions and time-animated values) into one
 fragment shader that computes every shape's distance at each pixel.
 On 26 SVGs, 22 of them real icons, its images reach a median PSNR of 34.7 dB against Chromium's own SVG rendering, <!-- @evidence[[results/diff_svg.json#summary.median_psnr]] -->
-a root-mean-square error of about 4.7 of 255 levels, almost all on shape edges.
+That is an RMS error of about 4.7 of 255 levels, concentrated in edge pixels.
 
 The minifier cuts 86 shaders (55 naga compiler tests, 31 WebGPU samples) to 34% of their bytes. <!-- @evidence[[results/minify_bench.json#ratios.full.raw]] -->
 Every output passes naga, the WGSL validator in wgpu and Firefox.
-Of 37 compute entry points runnable with buffers alone, 30 gave bit-identical buffers after minification; <!-- @evidence[[results/diff_compute.json#counts.identical]] -->
+Of 37 compute entry points that need only buffers, 30 gave bit-identical buffers after minification; <!-- @evidence[[results/diff_compute.json#counts.identical]] -->
 the other 7 do not compile in Chrome even unminified.
 On the 49 shaders LucentFlux's wgsl-minifier also handles, ours leaves 39% of the bytes <!-- @evidence[[results/minify_bench.json#baseline.ours_ratio]] -->
 and wgsl-minifier leaves 56%. <!-- @evidence[[results/minify_bench.json#baseline.baseline_ratio]] -->
 
 A scene with a path compiles to at least 2000 bytes, <!-- @evidence[[results/overhead.json#one_line_path_fill.min]] -->
 mostly shared distance and winding code, so a small icon's shader outweighs its SVG.
-Everything ran on SwiftShader, Chromium's CPU stand-in for a GPU; per-pixel time on real
-GPUs, where each pixel loops over every path segment, is the main unmeasured cost.
+Everything ran on SwiftShader, Chromium's CPU stand-in for a GPU, so per-pixel time on real
+GPUs is unmeasured.
 
 ## Findings
 
@@ -33,18 +33,18 @@ GPUs, where each pixel loops over every path segment, is the main unmeasured cos
    and 50% gzip, <!-- @evidence[[results/minify_bench.json#by_source.samples.gz_ratio]] -->
    so the naga test files do not inflate the headline. All 86 outputs pass naga 30.0.1
    (`results/minify_bench.json`, `full.invalid` is empty).
-2. **What was executed, and what was only compiled.** 12 corpus files use textures or 64-bit integers and were not executed. <!-- @evidence[[results/diff_compute.json#counts.files_skipped]] -->
-   The rest hold 37 compute entry points, <!-- @evidence[[results/diff_compute.json#counts.entry_points]] -->
+2. **What was executed, and what was only compiled.** 47 corpus files have compute entry points; 12 bind textures or 64-bit integers and were not run. <!-- @evidence[[results/diff_compute.json#counts.files_skipped]] -->
+   The other 35 hold 37 compute entry points, <!-- @evidence[[results/diff_compute.json#counts.entry_points]] -->
    and 30 of them returned bit-identical buffers on random inputs; <!-- @evidence[[results/diff_compute.json#counts.identical]] -->
    the other 7 do not compile in Chrome unminified. <!-- @evidence[[results/diff_compute.json#counts.error]] -->
    Every minified scene shader drew the same pixels as its source in all 26 SVG renders and
    all 6 Python frames (`results/diff_svg.json`, `results/diff_python.json`). The corpus's
    vertex and fragment shaders were validated and compiled, not executed.
 3. **Compiling in Chrome.** Tint, Chrome's WGSL compiler, accepts 73 shaders both before and after minification. <!-- @evidence[[results/tint_compile.json#counts.both]] -->
-   11 fail both ways, mostly on extensions Chrome does not enable here (f16, ray queries, 64-bit integers). <!-- @evidence[[results/tint_compile.json#counts.neither]] -->
+   11 fail both ways: 6 use features Chrome does not enable here (f16, ray queries, binding arrays, dual-source blending, primitive index, 64-bit integers) and 5 break rules Tint enforces and naga does not (loops that never exit, mixed `@workgroup_size` types, a read-write storage buffer reachable from a vertex stage, an atomic texture). <!-- @evidence[[results/tint_compile.json#counts.neither]] -->
    2 compile only after minification, <!-- @evidence[[results/tint_compile.json#counts.minified_only]] -->
-   because dead-code removal drops an unused `const` that Tint rejects (a float literal just
-   past the f32 range, and a `u32 + f32` in an unused expression). None compiles before but
+   because dead-code removal drops unused code that Tint rejects: in one file a `const` whose
+   float literal is just past the f32 range, in the other an unused `u32 + f32` expression. None compiles before but
    not after.
 4. **Against wgsl-minifier 0.7.0.** It produced no output for 36 of the 86 files: <!-- @evidence[[results/minify_bench.json#baseline.rejected_or_crashed]] -->
    26 stopped with a parse or validation error from its embedded, older naga, <!-- @evidence[[results/minify_bench.json#baseline.failures.error]] -->
@@ -57,7 +57,8 @@ GPUs, where each pixel loops over every path segment, is the main unmeasured cos
 5. **Which passes matter.** On a total output of 63114 bytes, <!-- @evidence[[results/minify_bench.json#full.raw]] -->
    switching off renaming adds 37389 bytes. <!-- @evidence[[results/minify_bench.json#ablation.rename.raw_cost]] -->
    Switching off dead-code removal adds 10569, <!-- @evidence[[results/minify_bench.json#ablation.dce.raw_cost]] -->
-   much of it naga test code that no entry point reaches.
+   9065 of it in the naga test files <!-- @evidence[[results/minify_bench.json#by_source.naga.dce_raw_cost]] -->
+   and 1504 in the samples. <!-- @evidence[[results/minify_bench.json#by_source.samples.dce_raw_cost]] -->
    Writing `vec3<f32>` as `vec3f` saves 2333. <!-- @evidence[[results/minify_bench.json#ablation.aliases.raw_cost]] -->
    Type aliases (`alias a=vec4f;`) save 1075 raw bytes <!-- @evidence[[results/minify_bench.json#ablation.type_aliases.raw_cost]] -->
    but add 275 gzip bytes, so `--no-aliases` suits shaders served compressed (`tests/bench_minify.py`).
@@ -70,7 +71,7 @@ GPUs, where each pixel loops over every path segment, is the main unmeasured cos
    Round 1's median PSNR was 28.93 dB. <!-- @evidence[[results/round1_lines.json#diff_svg_192px.median_psnr]] -->
    In Round 2 the error falls with resolution, from 4.577 levels at 48 px <!-- @evidence[[results/scale_check.json#fe_settings.48.mae]] -->
    to 0.377 at 768 px, <!-- @evidence[[results/scale_check.json#fe_settings.768.mae]] -->
-   which is what antialiasing error does and geometry error does not. At 48 px the shader
+   roughly in proportion to 1/size, as antialiasing error should; Round 1 was measured at one size only for MAE, so only its ink ratio is compared. At 48 px the shader
    draws slightly heavy (`scale_check.json`, ink ratio 1.03), from its one-pixel coverage ramp.
 8. **Animation.** A Python scene driven by `T` matches its own SVG export, evaluated in Python at the same time, at 47.05 dB for t=1.3. <!-- @evidence[[results/diff_python.json#/sunrise/1.3/psnr]] -->
    While an operator-precedence bug was live, frames at t=0 and t=4.7 still matched closely,
@@ -107,7 +108,9 @@ LucentFlux `wgsl-minifier` 0.7.0 (`cargo install wgsl-minifier --features bin`),
 each file failed. `tests/overhead.py` compiles the smallest scenes of each kind.
 
 **Curves.** Each cubic is split into n quadratics, with n chosen so the quadratic stays within
-0.02 nominal pixels of the cubic (the error bound falls as 1/n³); quadratics are then split at
+0.02 nominal pixels of the cubic (the error bound falls as 1/n³). A nominal pixel is one unit of
+the SVG's own size, so the bound stays under one screen pixel up to 50× magnification; beyond
+that, lower `tolerance` when compiling; quadratics are then split at
 their highest or lowest point so each rises or falls monotonically. Per pixel, the shader
 solves the cubic equation for the closest point on each quadratic, so distances are exact to
 the quadratics, which are within that tolerance of the original cubics.

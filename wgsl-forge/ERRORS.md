@@ -6,14 +6,14 @@ real-world input (#3) and two by naga (#4, #5).
 
 1. **Curves flattened at the SVG's own size.** Round 1 turned curves into line segments
    within 0.2 pixels at the SVG's nominal size (24 px for an icon). Rendered at 512 px, the
-   chords cut inside every convex curve: ink ratio 0.982–0.984 and an error that did not fall
-   with resolution. `tests/scale_check.py` caught it, by measuring ink at several sizes. It
+   chords cut inside every convex curve: an ink ratio of 0.982–0.984 that
+   more resolution could not fix. `tests/scale_check.py` caught it, by measuring ink at several sizes. It
    had made the compiler look worse than it is (median PSNR 28.93 dB, against 34.74 dB after
-   the switch to exact quadratic segments) and had quietly broken the resolution-independence
-   claim.
+   the switch to quadratic segments within 0.02 nominal px). The new bound is still tied to
+   the SVG's size, so it holds up to about 50× magnification, not at any zoom.
 2. **Missing parentheses around an animated value.** `Circle(r=44 + 3*sin(T*2))` compiled to
-   `length(q - c) - 44+3*sin(u.t*2)`. Frames at t=0 and t=4.7 passed, because `sin` was near
-   zero there; t=1.3 diverged visibly (27.9 dB, a smaller sun). `forge.scene.wg` now
+   `length(q - c) - 44+3*sin(u.t*2)`. Frames at t=0 and t=4.7 matched closely, because `sin`
+   was near zero there; t=1.3 diverged visibly (27.9 dB, a smaller sun). `forge.scene.wg` now
    parenthesises any compound expression. Lesson: test animated output at times where the
    animated term is large.
 3. **Packed SVG arc flags.** `a8.77 8.77 0 014.907-2.77` means flags 0 and 1, then x=4.907.

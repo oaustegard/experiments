@@ -1,9 +1,10 @@
 # wgsl-forge
 
 A WGSL toolchain in plain Python: a shape compiler that turns SVG files or Python-built scenes
-into a single WebGPU fragment shader, and a minifier for any WGSL module. On 86 test shaders
-every minified output validates, and every one that could be executed (30 compute entry
-points, 32 scene renders) computes bit-identical results. Results and how they were measured: [RESULTS.md](RESULTS.md).
+into a single WebGPU fragment shader, and a minifier for any WGSL module. Every minified
+output of the 86 corpus shaders validates. The 30 compute entry points the harness could drive
+give bit-identical buffers, and so do 32 renders of the compiler's own scene shaders. The
+corpus's vertex and fragment shaders were compiled, not run. Results and how they were measured: [RESULTS.md](RESULTS.md).
 Live gallery: [`web/index.html`](web/index.html) ([austegard.com/experiments/wgsl-forge/web/](https://austegard.com/experiments/wgsl-forge/web/)).
 
 ```bash
@@ -23,7 +24,8 @@ Both front-ends build the same `Scene` (`forge/scene.py`): an ordered list of sh
 geometry with a fill and/or stroke paint and a transform. `forge/codegen.py` emits one shader
 that, for each pixel, carries the point into each shape's local coordinates, evaluates a
 signed distance there, turns it into one pixel's worth of coverage and composites back to
-front. Nothing is rasterised ahead of time, so edges stay sharp at any resolution.
+front. Nothing is rasterised ahead of time. Curves are approximated to 0.02 of the SVG's own
+pixel, which stays under one screen pixel up to 50× magnification (`--tolerance` lowers it).
 
 - **Primitives** use closed-form distances: circle, ellipse, rounded rect.
 - **Paths** keep their curves. Each cubic becomes n quadratic Béziers, with n chosen to stay
