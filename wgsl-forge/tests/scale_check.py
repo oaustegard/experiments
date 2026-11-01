@@ -17,7 +17,7 @@ from forge.svg import read_svg                       # noqa: E402
 
 FILES = ["tests/svg/real/fe_settings.svg", "tests/svg/real/si_github.svg",
          "tests/svg/real/tw_1f981.svg", "tests/svg/paths.svg"]
-SIZES = [48, 96, 256, 768]
+SIZES = [48, 96, 256, 512, 768]
 
 
 def main():

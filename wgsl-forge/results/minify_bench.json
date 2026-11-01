@@ -14,7 +14,7 @@
   "gz": 30278,
   "invalid": []
  },
- "full_seconds": 1.01,
+ "full_seconds": 1.23,
  "no_aliases": {
   "raw": 64189,
   "gz": 30003,
@@ -106,6 +106,23 @@
    "gz": 0.4968
   }
  },
+ "by_source": {
+  "naga": {
+   "files": 55,
+   "orig": 115953,
+   "min": 39316,
+   "ratio": 0.3391,
+   "gz_ratio": 0.5064
+  },
+  "samples": {
+   "files": 31,
+   "orig": 72151,
+   "min": 23798,
+   "ratio": 0.3298,
+   "gz_ratio": 0.4952
+  }
+ },
+ "minify_only_seconds": 0.69,
  "baseline": {
   "accepted": 50,
   "rejected_or_crashed": 36,
@@ -121,6 +138,48 @@
   "baseline_ratio": 0.5622,
   "ours_gz_ratio": 0.5822,
   "baseline_gz_ratio": 0.7273,
-  "ours_smaller": 45
+  "ours_smaller": 45,
+  "failures": {
+   "panic": 10,
+   "error": 26,
+   "cases": {
+    "abstract-types-const.wgsl": "error: type can't be inferred",
+    "abstract-types-function-calls.wgsl": "error: automatic conversions cannot convert `i32` to `f32`",
+    "abstract-types-operators.wgsl": "error: Function [0] 'runtime_values' is invalid: Expression [56] is invalid: Abstract types may only appear in constant expressions",
+    "abstract-types-return.wgsl": "error: Function [1] 'return_u32_ai' is invalid: The `return` value Some([0]) does not match the function return value",
+    "abstract-types-var.wgsl": "error: type can't be inferred",
+    "access.wgsl": "error: the value indexed by a `[]` subscripting expression must not be a pointer",
+    "atomicCompareExchange.wgsl": "thread 'main' (11339) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:125:10:",
+    "atomicOps.wgsl": "thread 'main' (11340) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:125:10:",
+    "binding-arrays.wgsl": "error: unknown enable-extension `wgpu_binding_array`",
+    "bits.wgsl": "error: no definition in scope for identifier: `pack4xI8Clamp`",
+    "const-exprs.wgsl": "error: this operation is not supported in a const context",
+    "constructors.wgsl": "error: type can't be inferred",
+    "control-flow.wgsl": "error: expected expression, found \"{\"",
+    "dualsource.wgsl": "error: the `dual_source_blending` enable-extension is not yet supported",
+    "extra.wgsl": "error: unknown enable-extension `primitive_index`",
+    "f16.wgsl": "error: the `f16` enable-extension is not yet supported",
+    "functions.wgsl": "error: no definition in scope for identifier: `dot4I8Packed`",
+    "image.wgsl": "error: this operation is not supported in a const context",
+    "must-use.wgsl": "error: unknown attribute: `must_use`",
+    "operators.wgsl": "error: Cannot apply math function to type",
+    "overrides.wgsl": "thread 'main' (11387) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "ray-query.wgsl": "error: unknown enable-extension `wgpu_ray_query`",
+    "a-buffer_composite.wgsl": "error: this operation is not supported in a const context",
+    "cornell_common.wgsl": "error: failed to convert expression to a concrete type: the concrete type `i32` cannot represent the abstract value `4294967295` accurately",
+    "cornell_radiosity_full.wgsl": "error: failed to convert expression to a concrete type: the concrete type `i32` cannot represent the abstract value `4294967295` accurately",
+    "cornell_rasterizer_full.wgsl": "error: failed to convert expression to a concrete type: the concrete type `i32` cannot represent the abstract value `4294967295` accurately",
+    "cornell_raytracer_full.wgsl": "error: failed to convert expression to a concrete type: the concrete type `i32` cannot represent the abstract value `4294967295` accurately",
+    "cornell_tonemapper.wgsl": "thread 'main' (11434) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "deferredRendering_fragmentGBuffersDebugView.wgsl": "thread 'main' (11437) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "gameOfLife_compute.wgsl": "thread 'main' (11446) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "normalMap_normalMap.wgsl": "error: invalid switch value",
+    "particles_particle.wgsl": "error: failed to convert expression to a concrete type: the concrete type `i32` cannot represent the abstract value `2947058881` accurately",
+    "samplerParameters_showTexture.wgsl": "error: automatic conversions cannot convert elements of `i32` to `u32`",
+    "samplerParameters_texturedSquare.wgsl": "thread 'main' (11458) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "shadowMapping_fragment.wgsl": "thread 'main' (11459) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgsl-minifier-0.7.0/src/main.rs:129:14:",
+    "skinnedMesh_grid.wgsl": "error: invalid switch value"
+   }
+  }
  }
 }

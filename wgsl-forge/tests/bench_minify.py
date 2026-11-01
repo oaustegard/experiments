@@ -58,16 +58,21 @@ def baseline():
     for f in FILES:
         with tempfile.TemporaryDirectory() as td:
             out = Path(td) / "o.wgsl"
-            subprocess.run([exe, "-f", str(f), str(out)], capture_output=True)
+            r = subprocess.run([exe, "-f", str(f), str(out)], capture_output=True, text=True)
             src = f.read_text()
             ours = minify(src)
+            if not out.exists():
+                import re
+                err = re.sub(r"\x1b\[[0-9;]*m", "", (r.stderr or r.stdout or "")).strip()
+                kind = "panic" if "panicked" in err else "error"
+                first = next((ln.strip() for ln in err.splitlines() if ln.strip()), "")
+                rows.append({"file": f.name, "baseline": None, "kind": kind, "reason": first[:160]})
+                continue
             if out.exists():
                 b = out.read_text()
                 rows.append({"file": f.name, "orig": len(src), "ours": len(ours), "baseline": len(b),
                              "orig_gz": gz(src), "ours_gz": gz(ours), "baseline_gz": gz(b),
                              "baseline_valid": naga_ok(b)})
-            else:
-                rows.append({"file": f.name, "baseline": None})
     ok = [r for r in rows if r.get("baseline") is not None and r["baseline_valid"]]
     S = lambda k: sum(r[k] for r in ok)  # noqa: E731
     return {"accepted": len([r for r in rows if r.get("baseline") is not None]),
@@ -79,7 +84,10 @@ def baseline():
             "ours_ratio": round(S("ours") / S("orig"), 4), "baseline_ratio": round(S("baseline") / S("orig"), 4),
             "ours_gz_ratio": round(S("ours_gz") / S("orig_gz"), 4),
             "baseline_gz_ratio": round(S("baseline_gz") / S("orig_gz"), 4),
-            "ours_smaller": sum(r["ours"] < r["baseline"] for r in ok)}
+            "ours_smaller": sum(r["ours"] < r["baseline"] for r in ok),
+            "failures": {"panic": sum(r.get("kind") == "panic" for r in rows),
+                         "error": sum(r.get("kind") == "error" for r in rows),
+                         "cases": {r["file"]: r["reason"] for r in rows if r.get("baseline") is None}}}
 
 
 def main():
@@ -98,6 +106,18 @@ def main():
                               "gz_cost": r["gz"] - full["gz"], "invalid": r["invalid"]}
     res["ratios"] = {k: {"raw": round(res[k]["raw"] / orig_raw, 4), "gz": round(res[k]["gz"] / orig_gz, 4)}
                      for k in ("whitespace_only", "full", "no_aliases")}
+    res["by_source"] = {}
+    for src in ("naga", "samples"):
+        fs = [f for f in FILES if f.parent.name == src]
+        o = sum(len(f.read_text()) for f in fs)
+        mm = [minify(f.read_text()) for f in fs]
+        res["by_source"][src] = {"files": len(fs), "orig": o, "min": sum(map(len, mm)),
+                                 "ratio": round(sum(map(len, mm)) / o, 4),
+                                 "gz_ratio": round(sum(gz(x) for x in mm) / sum(gz(f.read_text()) for f in fs), 4)}
+    t1 = time.time()
+    for f in FILES:
+        minify(f.read_text())
+    res["minify_only_seconds"] = round(time.time() - t1, 2)
     res["baseline"] = baseline()
     print(json.dumps({k: v for k, v in res.items() if k != "ablation"}, indent=1))
     for p, v in res["ablation"].items():

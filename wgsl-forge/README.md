@@ -1,8 +1,9 @@
 # wgsl-forge
 
 A WGSL toolchain in plain Python: a shape compiler that turns SVG files or Python-built scenes
-into a single WebGPU fragment shader, and a minifier that shrinks any WGSL module without
-changing what it computes. Results and how they were measured: [RESULTS.md](RESULTS.md).
+into a single WebGPU fragment shader, and a minifier for any WGSL module. On 86 test shaders
+every minified output validates, and every one that could be executed (30 compute entry
+points, 32 scene renders) computes bit-identical results. Results and how they were measured: [RESULTS.md](RESULTS.md).
 Live gallery: [`web/index.html`](web/index.html) ([austegard.com/experiments/wgsl-forge/web/](https://austegard.com/experiments/wgsl-forge/web/)).
 
 ```bash
@@ -22,13 +23,14 @@ Both front-ends build the same `Scene` (`forge/scene.py`): an ordered list of sh
 geometry with a fill and/or stroke paint and a transform. `forge/codegen.py` emits one shader
 that, for each pixel, carries the point into each shape's local coordinates, evaluates a
 signed distance there, turns it into one pixel's worth of coverage and composites back to
-front. Nothing is rasterised ahead of time, so the shader is sharp at any resolution.
+front. Nothing is rasterised ahead of time, so edges stay sharp at any resolution.
 
 - **Primitives** use closed-form distances: circle, ellipse, rounded rect.
-- **Paths** keep their curves. Cubics become a few y-monotone quadratic Béziers (error
-  falls as n⁻³), stored delta-encoded as integers in one `const` array. A loop computes the
-  exact distance to each quadratic (solving its closest-point cubic), the winding number for
-  `nonzero`/`evenodd` fills, and stroke distance with butt, square or round caps.
+- **Paths** keep their curves. Each cubic becomes n quadratic Béziers, with n chosen to stay
+  within 0.02 nominal pixels (the error falls as 1/n³), split so each one only rises or only
+  falls. They are stored delta-encoded as integers in one `const` array. A loop computes the
+  distance to each quadratic (solving a cubic equation for the closest point), the winding
+  number for `nonzero`/`evenodd` fills, and stroke distance with butt, square or round caps.
 - **Paints** are solid colours and linear or radial gradients, in user or bounding-box
   units, with `gradientTransform`.
 - **Transforms** that never change are folded into one matrix; a path under one is baked
@@ -67,13 +69,14 @@ with s.group(translate=(160, 100), rotate=T * 30):          # animated transform
 s.add(smooth_union(Circle(60, 150, 25), Circle(90 + 20 * sin(T), 150, 20), k=12), fill="hotpink")
 s.path("M10 190 Q 160 120 310 190", fill=None, stroke="white", stroke_width=3, linecap="round")
 wgsl = s.compile(minify=True)
-svg = s.to_svg(t=1.5)       # the same scene at t=1.5 as SVG (not for SDF-only features)
+svg = s.to_svg(t=1.5)       # the scene at t=1.5 as SVG; raises on SDF-only features
 ```
 
 Shapes: `circle`, `ellipse`, `rect` (`rx`/`ry`), `line`, `polyline`, `polygon`, `path` (SVG path
 syntax) and `add(geometry)`. Geometries can be combined with `union`/`smooth_union`,
 `subtract` and `intersect` (sharp, or smooth with `k`), and changed with `rounded` and
-`onion`. Style keywords: `fill`, `stroke`, `stroke_width`, `opacity`, `fill_opacity`,
+`onion`. These SDF-only features, and `soft`, have no SVG equivalent, so `to_svg` raises on
+them and no reference image checks them. Style keywords: `fill`, `stroke`, `stroke_width`, `opacity`, `fill_opacity`,
 `stroke_opacity`, `fill_rule`, `linecap`, `soft` (extra edge blur, for glows). Transform
 keywords on shapes and `group()`: `translate`, `rotate` (degrees, or `(deg, cx, cy)`),
 `scale`, `transform` (an SVG transform string). Any number can be an expression in `T`

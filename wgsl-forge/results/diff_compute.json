@@ -1,9 +1,12 @@
 {
  "counts": {
-  "identical": 29,
+  "identical": 30,
   "differs": 0,
   "nondeterministic": 0,
-  "error": 8
+  "error": 7,
+  "files_skipped": 12,
+  "files_run": 35,
+  "entry_points": 37
  },
  "cases": {
   "corpus/naga/atomicTexture.wgsl": "skip: non-buffer resource",
@@ -44,7 +47,7 @@
   "corpus/naga/local-const.wgsl::main": "identical",
   "corpus/naga/must-use.wgsl::main": "identical",
   "corpus/naga/operators.wgsl::main": "error: 55:47 no matching overload for 'operator + (u32, f32)'\n\n5 candidate operators:\n \u2022 'operator + (T  \u2713 , T  \u2717 ) -> T' where:\n      \u2713  'T' is 'abstract-float', 'abstract-int', 'f32', 'i32', 'u32' or 'f16'\n \u2022 'operator + (vecN<T>  \u2717 , T  \u2713 ) -> vecN<T>' where:\n      \u2713  'T' is 'abstract-float', 'abstract-",
-  "corpus/naga/overrides.wgsl::main": "error: pipeline: There are uninitialized pipeline overridable constants, their identifiers:[depth, 1300]\n - While validating compute stage ([ShaderModule (unlabeled)], entryPoint: \"main\").\n - While calling [Device].CreateComputePipeline([ComputePipelineDescriptor]).\n; pipeline: There are uninitialized pipe",
+  "corpus/naga/overrides.wgsl::main": "identical",
   "corpus/naga/phony_assignment.wgsl::main": "identical",
   "corpus/naga/pointers.wgsl::main": "identical",
   "corpus/naga/struct-layout.wgsl::no_padding_comp": "identical",

@@ -8,7 +8,8 @@
 //        @group(0) @binding(0) holding vec4f(width, height, time, 0), rgba8unorm target)
 //   {id, kind:"svg",     svg, width, height}         -> {rgba}  (Chromium's own SVG raster)
 //   {id, kind:"compute", wgsl, entry, dispatch:[x,y,z],
-//        bindings:[{group, binding, type:"uniform"|"storage"|"read-only-storage", data}]}
+//        bindings:[{group, binding, type:"uniform"|"storage"|"read-only-storage", data}],
+//        constants:{name or @id: number}}   (pipeline-overridable constants)
 //        -> {buffers:{"g.b": base64}}
 // rgba and buffer data are base64. Every job reports {ok, error?}; one failure never stops
 // the batch.
@@ -98,7 +99,7 @@ window.runJob = async (job) => {
       d.pushErrorScope("validation");
       const layouts = [], maxg = Math.max(-1, ...Object.keys(groups).map(Number));
       for (let g = 0; g <= maxg; g++) layouts.push(d.createBindGroupLayout({ entries: (groups[g] || []).map((b) => ({ binding: b.binding, visibility: GPUShaderStage.COMPUTE, buffer: { type: b.type } })) }));
-      const pipe = d.createComputePipeline({ layout: d.createPipelineLayout({ bindGroupLayouts: layouts }), compute: { module: mod, entryPoint: job.entry } });
+      const pipe = d.createComputePipeline({ layout: d.createPipelineLayout({ bindGroupLayouts: layouts }), compute: { module: mod, entryPoint: job.entry, constants: job.constants || {} } });
       const bufs = {};
       const bgs = layouts.map((l, g) => d.createBindGroup({ layout: l, entries: (groups[g] || []).map((b) => {
         const data = unb64(b.data);

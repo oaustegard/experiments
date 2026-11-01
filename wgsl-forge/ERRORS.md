@@ -1,8 +1,8 @@
 # Errors
 
 What was wrong, how it was caught, and which way it pushed the conclusion. Seven errors in
-one build; four were caught by a check written for this experiment, two by a real-world
-input, and one by naga.
+one build: four were caught by a check written for this experiment (#1, #2, #6, #7), one by a
+real-world input (#3) and two by naga (#4, #5).
 
 1. **Curves flattened at the SVG's own size.** Round 1 turned curves into line segments
    within 0.2 pixels at the SVG's nominal size (24 px for an icon). Rendered at 512 px, the
@@ -13,13 +13,14 @@ input, and one by naga.
    claim.
 2. **Missing parentheses around an animated value.** `Circle(r=44 + 3*sin(T*2))` compiled to
    `length(q - c) - 44+3*sin(u.t*2)`. Frames at t=0 and t=4.7 passed, because `sin` was near
-   zero there; t=1.3 failed at 27.9 dB with a visibly smaller sun. `forge.scene.wg` now
+   zero there; t=1.3 diverged visibly (27.9 dB, a smaller sun). `forge.scene.wg` now
    parenthesises any compound expression. Lesson: test animated output at times where the
    animated term is large.
 3. **Packed SVG arc flags.** `a8.77 8.77 0 014.907-2.77` means flags 0 and 1, then x=4.907.
-   The first parser only split a flag token when its second character was a flag character,
-   so `014.907` came out as flag 0, then 14. Caught by two Simple Icons logos (Rust, Firefox)
-   that failed to parse; no hand-written test SVG packed flags that way.
+   The first parser split a packed token only when its second character was `0`, `1` or `.`.
+   `014.907` passed that test, giving flag 0 and leaving `14.907`, whose second character
+   `4` failed it, so the second flag was read as the number 14 and the coordinates shifted. Caught
+   by two Simple Icons logos (Rust, Firefox) that failed to parse; no hand-written test SVG packed flags that way.
 4. **Type aliases for generic constructors.** The first alias pass aliased `vec2`, `array`
    and `mat2x2` (constructors that infer their template), which are not types on their own.
    naga rejected 9 of the 86 outputs. Fixed by aliasing only complete types.
@@ -34,6 +35,6 @@ input, and one by naga.
    exist. The benchmark now counts a missing output as a rejection, which is how 36 of 86
    are classified.
 
-Base rate: 2 of the 7 (#1, #2) would have changed a reported number had they shipped; both
-were caught by checks that compared against an independent renderer at a second operating
-point (a second size, a second time).
+Two of the seven (#1, #2) would have changed a reported number had they shipped. Both were
+caught only by comparing against an independent renderer at an extra operating point:
+another size for #1, a third time for #2.

@@ -15,7 +15,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
-from forge.ast import Fn                      # noqa: E402
+from forge.ast import Decl, Fn                # noqa: E402
 from forge.minify import minify                # noqa: E402
 from forge.reflect import bindings, buffer_type  # noqa: E402
 from forge.scope import is_entry               # noqa: E402
@@ -46,24 +46,34 @@ def cases():
         except ValueError as e:
             yield f, None, None, None, f"skip: {e}"
             continue
-        yield f, src, entries, binds, None
+        # overrides without a default must be set by the host; give them 1
+        consts = {}
+        for d in m.decls:
+            if isinstance(d, Decl) and d.kind == "override" and d.init is None:
+                ids = [a.args[0].text.rstrip("iu") for a in d.attrs if a.name == "id" and a.args]
+                consts[ids[0] if ids else d.name] = 1
+        yield f, src, entries, (binds, consts), None
 
 
 def main():
     jobs, meta, report = [], [], {}
-    for f, src, entries, binds, skip in cases():
+    for f, src, entries, bc, skip in cases():
         rel = str(f.relative_to(HERE))
         if skip:
             report[rel] = skip
             continue
         mini = minify(src)
+        binds, consts = bc
         for e in entries:
             for tag, code in (("o1", src), ("o2", src), ("m", mini)):
                 jobs.append({"id": f"{rel}|{e}|{tag}", "kind": "compute", "wgsl": code,
-                             "entry": e, "dispatch": [2, 1, 1], "bindings": binds})
+                             "entry": e, "dispatch": [2, 1, 1], "bindings": binds,
+                             "constants": consts})
             meta.append((rel, e))
     res = run_jobs(jobs)
-    counts = {"identical": 0, "differs": 0, "nondeterministic": 0, "error": 0}
+    counts = {"identical": 0, "differs": 0, "nondeterministic": 0, "error": 0,
+              "files_skipped": sum(1 for v in report.values() if str(v).startswith("skip")),
+              "files_run": len({rel for rel, _ in meta}), "entry_points": len(meta)}
     for rel, e in meta:
         o1, o2, m = (res[f"{rel}|{e}|{t}"] for t in ("o1", "o2", "m"))
         if not (o1["ok"] and o2["ok"] and m["ok"]):
