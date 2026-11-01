@@ -1,0 +1,441 @@
+{
+ "files": 86,
+ "counts": {
+  "both": 73,
+  "original_only": 0,
+  "minified_only": 2,
+  "neither": 11
+ },
+ "cases": {
+  "abstract-types-const.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "abstract-types-function-calls.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "abstract-types-operators.wgsl": {
+   "verdict": "minified_only",
+   "original_error": "25:24 value -340282346999999984391321947108527833088.0 cannot be represented as 'f32'",
+   "minified_error": null
+  },
+  "abstract-types-return.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "abstract-types-var.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "access.wgsl": {
+   "verdict": "neither",
+   "original_error": "125:19 var with 'storage' address space and 'read_write' access mode cannot be used by vertex pipeline stage",
+   "minified_error": "1:978 var with 'storage' address space and 'read_write' access mode cannot be used by vertex pipeline stage"
+  },
+  "atomicCompareExchange.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "atomicOps.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "atomicTexture.wgsl": {
+   "verdict": "neither",
+   "original_error": "2:0 expected '<' for 'atomic'",
+   "minified_error": "1:0 expected '<' for 'atomic'"
+  },
+  "binding-arrays.wgsl": {
+   "verdict": "neither",
+   "original_error": "1:8 expected extension\nPossible values: 'atomic_vec2u_min_max', 'clip_distances', 'dual_source_blending', 'f16', 'primitive_index', 'subgroup_size_control', 'subgroups'",
+   "minified_error": "1:8 expected extension\nPossible values: 'atomic_vec2u_min_max', 'clip_distances', 'dual_source_blending', 'f16', 'primitive_index', 'subgroup_size_control', 'subgroups'"
+  },
+  "bitcast.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "bits.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "boids.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "break-if.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "collatz.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "const-exprs.wgsl": {
+   "verdict": "neither",
+   "original_error": "6:11 '@workgroup_size' arguments must be of the same type, either 'i32' or 'u32'",
+   "minified_error": "1:10 '@workgroup_size' arguments must be of the same type, either 'i32' or 'u32'"
+  },
+  "constructors.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "control-flow.wgsl": {
+   "verdict": "neither",
+   "original_error": "136:5 loop does not exit",
+   "minified_error": "1:608 loop does not exit"
+  },
+  "cross.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "diagnostic-filter.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "dualsource.wgsl": {
+   "verdict": "neither",
+   "original_error": "1:8 extension 'dual_source_blending' is not allowed in the current environment",
+   "minified_error": "1:8 extension 'dual_source_blending' is not allowed in the current environment"
+  },
+  "extra.wgsl": {
+   "verdict": "neither",
+   "original_error": "1:8 extension 'primitive_index' is not allowed in the current environment",
+   "minified_error": "1:8 extension 'primitive_index' is not allowed in the current environment"
+  },
+  "f16.wgsl": {
+   "verdict": "neither",
+   "original_error": "1:8 extension 'f16' is not allowed in the current environment",
+   "minified_error": "1:8 extension 'f16' is not allowed in the current environment"
+  },
+  "fragment-output.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "functions.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "globals.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "hlsl-keyword.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "image.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "int64.wgsl": {
+   "verdict": "neither",
+   "original_error": "1:39 expected ';' for variable declaration; 2:34 expected ';' for 'const' declaration; 45:13 expected ';' for statement; 96:13 expected ';' for statement",
+   "minified_error": "1:16 expected ';' for variable declaration; 1:410 expected ',' for function call; 1:419 expected ';' for statement; 1:872 expected ',' for function call; 1:881 expected ';' for statement"
+  },
+  "interface.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "interpolate.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "lexical-scopes.wgsl": {
+   "verdict": "neither",
+   "original_error": "21:5 loop does not exit",
+   "minified_error": "1:52 loop does not exit"
+  },
+  "local-const.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "math-functions.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "module-scope.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "must-use.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "operators.wgsl": {
+   "verdict": "minified_only",
+   "original_error": "55:47 no matching overload for 'operator + (u32, f32)'\n\n5 candidate operators:\n \u2022 'operator + (T  \u2713 , T  \u2717 ) -> T' where:\n      \u2713  'T' is 'abstract-float', 'abstract-int', 'f32', 'i32', 'u32' or 'f16'\n \u2022 'operator + (vecN<T>  \u2717 , T  \u2713 ) -> vecN<T>' where:\n      \u2713  'T' is 'abstract-float', 'abstract-int', 'f32', 'i32', 'u32' or 'f16'\n \u2022 'operator + (T  \u2713 , vecN<T>  \u2717 ) -> vecN<T>' where:\n      \u2713  'T' is 'abstract-float', 'abstract-int', 'f32', 'i32', 'u32' or 'f16'\n \u2022 'operator + (vecN<T>  \u2717 , vecN<T>  \u2717 ) -> vecN<T>' where:\n      \u2717  'T' is 'abstract-float', 'abstract-int', 'f32', 'i32', 'u32' or 'f16'\n \u2022 'operator + (matNxM<T>  \u2717 , matNxM<T>  \u2717 ) -> matNxM<T>' where:\n      \u2717  'T' is 'abstract-float', 'f32' or 'f16'\n",
+   "minified_error": null
+  },
+  "overrides.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "padding.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "phony_assignment.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "pointers.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "policy-mix.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "quad.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "ray-query.wgsl": {
+   "verdict": "neither",
+   "original_error": "43:8 expected extension\nPossible values: 'atomic_vec2u_min_max', 'clip_distances', 'dual_source_blending', 'f16', 'primitive_index', 'subgroup_size_control', 'subgroups'",
+   "minified_error": "1:8 expected extension\nPossible values: 'atomic_vec2u_min_max', 'clip_distances', 'dual_source_blending', 'f16', 'primitive_index', 'subgroup_size_control', 'subgroups'"
+  },
+  "shadow.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "skybox.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "sprite.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "standard.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "storage-textures.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "struct-layout.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "texture-arg.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "types_with_comments.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "use-gl-ext-over-grad-workaround-if-instructed.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "workgroup-uniform-load.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "workgroup-var-init.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "a-buffer_composite.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "a-buffer_opaque.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "a-buffer_translucent.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "computeBoids_sprite.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "computeBoids_updateSprites.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "cornell_common.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "cornell_radiosity_full.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "cornell_rasterizer_full.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "cornell_raytracer_full.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "cornell_tonemapper.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_fragmentDeferredRendering.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_fragmentGBuffersDebugView.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_fragmentWriteGBuffers.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_lightUpdate.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_vertexTextureQuad.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "deferredRendering_vertexWriteGBuffers.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "gameOfLife_compute.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "gameOfLife_frag.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "gameOfLife_vert.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "imageBlur_blur.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "normalMap_normalMap.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "particles_particle.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "particles_probabilityMap.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "samplerParameters_showTexture.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "samplerParameters_texturedSquare.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "shadowMapping_fragment.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "shadowMapping_vertex.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "shadowMapping_vertexShadow.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "skinnedMesh_grid.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "volumeRenderingTexture3D_volume.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  },
+  "wireframe_wireframe.wgsl": {
+   "verdict": "both",
+   "original_error": null,
+   "minified_error": null
+  }
+ }
+}

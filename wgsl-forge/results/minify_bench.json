@@ -1,0 +1,126 @@
+{
+ "files": 86,
+ "orig": {
+  "raw": 188104,
+  "gz": 60393
+ },
+ "whitespace_only": {
+  "raw": 123134,
+  "gz": 42633,
+  "invalid": []
+ },
+ "full": {
+  "raw": 63114,
+  "gz": 30278,
+  "invalid": []
+ },
+ "full_seconds": 1.01,
+ "no_aliases": {
+  "raw": 64189,
+  "gz": 30003,
+  "invalid": []
+ },
+ "ablation": {
+  "dce": {
+   "raw": 73683,
+   "gz": 34288,
+   "raw_cost": 10569,
+   "gz_cost": 4010,
+   "invalid": []
+  },
+  "inline": {
+   "raw": 64005,
+   "gz": 30728,
+   "raw_cost": 891,
+   "gz_cost": 450,
+   "invalid": []
+  },
+  "inline_lets": {
+   "raw": 63785,
+   "gz": 30564,
+   "raw_cost": 671,
+   "gz_cost": 286,
+   "invalid": []
+  },
+  "splat": {
+   "raw": 63252,
+   "gz": 30324,
+   "raw_cost": 138,
+   "gz_cost": 46,
+   "invalid": []
+  },
+  "rewrite": {
+   "raw": 63166,
+   "gz": 30301,
+   "raw_cost": 52,
+   "gz_cost": 23,
+   "invalid": []
+  },
+  "untype": {
+   "raw": 63468,
+   "gz": 30360,
+   "raw_cost": 354,
+   "gz_cost": 82,
+   "invalid": []
+  },
+  "literals": {
+   "raw": 63797,
+   "gz": 30456,
+   "raw_cost": 683,
+   "gz_cost": 178,
+   "invalid": []
+  },
+  "aliases": {
+   "raw": 65447,
+   "gz": 30398,
+   "raw_cost": 2333,
+   "gz_cost": 120,
+   "invalid": []
+  },
+  "rename": {
+   "raw": 100503,
+   "gz": 36292,
+   "raw_cost": 37389,
+   "gz_cost": 6014,
+   "invalid": []
+  },
+  "type_aliases": {
+   "raw": 64189,
+   "gz": 30003,
+   "raw_cost": 1075,
+   "gz_cost": -275,
+   "invalid": []
+  }
+ },
+ "ratios": {
+  "whitespace_only": {
+   "raw": 0.6546,
+   "gz": 0.7059
+  },
+  "full": {
+   "raw": 0.3355,
+   "gz": 0.5013
+  },
+  "no_aliases": {
+   "raw": 0.3412,
+   "gz": 0.4968
+  }
+ },
+ "baseline": {
+  "accepted": 50,
+  "rejected_or_crashed": 36,
+  "invalid_output": 1,
+  "compared": 49,
+  "orig": 53759,
+  "ours": 21187,
+  "baseline": 30225,
+  "orig_gz": 21529,
+  "ours_gz": 12534,
+  "baseline_gz": 15659,
+  "ours_ratio": 0.3941,
+  "baseline_ratio": 0.5622,
+  "ours_gz_ratio": 0.5822,
+  "baseline_gz_ratio": 0.7273,
+  "ours_smaller": 45
+ }
+}

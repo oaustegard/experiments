@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WGSL Forge Gallery</title>
+<style>
+  :root { --bg: #f6f5f1; --fg: #1d1d1b; --muted: #6b6a64; --card: #fff; --line: #e2e0d8; --accent: #0f766e; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #141412; --fg: #ecebe6; --muted: #9c9b94; --card: #1d1d1a; --line: #2e2d29; --accent: #5eead4; }
+  }
+  :root[data-theme="dark"] { --bg: #141412; --fg: #ecebe6; --muted: #9c9b94; --card: #1d1d1a; --line: #2e2d29; --accent: #5eead4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+  .controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .stage { background: repeating-conic-gradient(#0000000d 0 25%, #0000 0 50%) 0 0 / 16px 16px; }
+  canvas { display: block; width: 100%; }
+  .meta { padding: 10px 12px 12px; }
+  .meta h2 { font-size: 16px; margin: 0; }
+  .meta .note { color: var(--muted); font-size: 13px; }
+  .bytes { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 6px; color: var(--muted); }
+  .bytes b { color: var(--fg); font-weight: 600; }
+  details { margin-top: 6px; }
+  summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+  pre { white-space: pre-wrap; word-break: break-all; font: 11px/1.35 ui-monospace, Menlo, monospace; max-height: 220px; overflow: auto; background: var(--bg); padding: 8px; border-radius: 6px; margin: 6px 0 0; }
+  .err { padding: 16px; color: #b91c1c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>WGSL Forge</h1>
+  <p class="lede">Each tile is one fragment shader compiled from a Python scene or an SVG file and then minified.
+    Nothing is rasterised ahead of time: the shader computes every shape's distance at each pixel, so the
+    tiles stay sharp at any size. Zoom the page to check.</p>
+  <div class="controls">
+    <label><input type="checkbox" id="anim" checked> animate</label>
+    <span id="status"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<script type="module">
+import { SHADERS } from "./shaders.js";
+const grid = document.getElementById("grid"), status = document.getElementById("status");
+const fmt = (n) => n == null ? "–" : n.toLocaleString() + " B";
+
+async function start() {
+  const ad = await navigator.gpu?.requestAdapter();
+  if (!ad) { grid.innerHTML = '<div class="err">WebGPU is not available in this browser, so the shaders cannot run here.</div>'; return; }
+  const dev = await ad.requestDevice();
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  const tiles = [];
+  for (const s of SHADERS) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div class="stage"><canvas></canvas></div><div class="meta"><h2></h2><div class="note"></div>
+      <div class="bytes">${s.kind === "svg" ? `SVG <b>${fmt(s.src_bytes)}</b> → ` : ""}WGSL ${fmt(s.wgsl_bytes)} → minified <b>${fmt(s.min_bytes)}</b></div>
+      <details><summary>minified WGSL</summary><pre></pre></details></div>`;
+    card.querySelector("h2").textContent = s.title;
+    card.querySelector(".note").textContent = s.note;
+    card.querySelector("pre").textContent = s.wgsl;
+    grid.appendChild(card);
+    const cv = card.querySelector("canvas");
+    cv.style.aspectRatio = String(s.aspect);
+    const ctx = cv.getContext("webgpu");
+    ctx.configure({ device: dev, format, alphaMode: "premultiplied" });
+    const mod = dev.createShaderModule({ code: s.wgsl });
+    const info = await mod.getCompilationInfo();
+    if (info.messages.some((m) => m.type === "error")) { card.querySelector(".stage").innerHTML = '<div class="err">compile error</div>'; continue; }
+    const pipe = await dev.createRenderPipelineAsync({ layout: "auto", vertex: { module: mod, entryPoint: "vs" },
+      fragment: { module: mod, entryPoint: "fs", targets: [{ format, blend: undefined }] } });
+    const ub = dev.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
+    tiles.push({ cv, ctx, pipe, ub, bg, animated: s.kind === "python" });
+  }
+  status.textContent = `${tiles.length} shaders running on ${ad.info?.description || ad.info?.vendor || "WebGPU"}`;
+  const t0 = performance.now();
+  let tFrozen = 1.3, drawn = false;
+  function frame() {
+    const animate = document.getElementById("anim").checked;
+    const t = animate ? (performance.now() - t0) / 1000 : tFrozen;
+    if (animate) tFrozen = t;
+    const enc = dev.createCommandEncoder();
+    for (const k of tiles) {
+      const w = Math.max(1, Math.round(k.cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(k.cv.clientHeight * devicePixelRatio));
+      const resized = k.cv.width !== w || k.cv.height !== h;
+      if (resized) { k.cv.width = w; k.cv.height = h; }
+      if (!resized && drawn && !(k.animated && animate)) continue;
+      dev.queue.writeBuffer(k.ub, 0, new Float32Array([w, h, t, 0]));
+      const pass = enc.beginRenderPass({ colorAttachments: [{ view: k.ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 0] }] });
+      pass.setPipeline(k.pipe); pass.setBindGroup(0, k.bg); pass.draw(3); pass.end();
+    }
+    dev.queue.submit([enc.finish()]);
+    drawn = true;
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+start().catch((e) => { grid.innerHTML = `<div class="err">${String(e && e.message || e)}</div>`; });
+</script>
+</body>
+</html>

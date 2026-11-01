@@ -816,6 +816,25 @@ survives exactly the sanity checks people run.
   code", in the claude.ai sandbox (gVisor) and in the Claude Code Firecracker VM alike.
   `LP_NUM_THREADS=0` does not help. To execute shaders, use headless Chromium on SwiftShader.
   (`xray-glasses/test/wgsl-check.js`, `README.md`)
+- **`cargo install naga-cli` gives a WGSL validator in about 3 minutes** (naga 30.0.1, `naga file.wgsl`,
+  milliseconds per file), quicker to loop on than a browser. It accepts naga extensions that Tint rejects
+  (`int64`, `f16`, ray queries), so a shader can pass naga and fail in Chromium; check both. naga 30 also
+  types `array<e, 2>`, where `e` aliases `i32`, as different from `array<i32, 2>`, and Tint does not.
+  (`wgsl-forge/ERRORS.md` #5)
+- **`wgsl-minifier` (LucentFlux) needs `cargo install wgsl-minifier --features bin`, and exits 0
+  without writing anything when it fails.** Version 0.7.0 rejected or crashed on 36 of 86 current
+  shaders (it embeds an older naga). Treat a missing output file as a failure.
+  (`wgsl-forge/tests/bench_minify.py`)
+- **Printing WGSL without parentheses can invent a template list.** `f((a<b), c>d)` printed as
+  `f(a<b,c>d)` lexes as `a<b,c>` followed by `d`, because WGSL decides `<` by a lexical scan. A WGSL
+  printer or code generator should re-lex its output and keep the parentheses where a relational `<`
+  turned into a template start. (`wgsl-forge/forge/printer.py`)
+- **Shapes in a shader: keep curves as curves, and test at more than one size.** Flattening SVG
+  curves to line segments at the SVG's own size looked fine at that size, but at 512 px left 1.8%
+  less ink, an error that never shrinks with resolution. Exact distance to quadratic Béziers
+  (cubics split into a few quadratics, error n⁻³) made the error pure antialiasing, falling from
+  4.58 to 0.38 levels between 48 and 768 px. Measure the ink ratio against a reference renderer at
+  two sizes. (`wgsl-forge/RESULTS.md` finding 6, `tests/scale_check.py`)
 - **LiteRT.js does not load in Node.** `loadLiteRt` injects a `<script>` tag (`document is not
   defined`). To check a LiteRT.js result headless, serve `node_modules` over localhost with an import
   map for `@litertjs/core` and `@litertjs/wasm-utils` and run it in Playwright's Chromium; the wasm
