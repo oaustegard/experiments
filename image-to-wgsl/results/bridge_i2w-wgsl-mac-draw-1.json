@@ -1,0 +1,108 @@
+{
+ "id": "i2w-wgsl-mac-draw-1",
+ "device": "Mac",
+ "tabName": "Mac",
+ "adapter": "apple metal-3",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "status": "done",
+ "error": null,
+ "runMs": 4340.100000023842,
+ "logs": [
+  "{\"tag\":\"mac8192\",\"n\":8192,\"codeLen\":196124,\"format\":\"rgba16float\",\"psnr\":30.235,\"ms\":{\"768x512\":0.6,\"1920x1280\":1.7}}",
+  "phone n=8192: 4.1 s, 2050 steps, overflows 0, [[16,18.65],[32,20.33],[64,22.15],[128,23.38],[256,24.58],[512,25.83],[1024,26.95],[2048,27.99],[4096,29.02],[8192,30.14]]",
+  "{\"tag\":\"phone-trained\",\"n\":8192,\"codeLen\":196245,\"format\":\"rgba16float\",\"psnr\":30.145,\"ms\":{\"768x512\":0.7,\"1920x1280\":1.5}}"
+ ],
+ "probe": [],
+ "draws": [
+  {
+   "tag": "mac8192",
+   "n": 8192,
+   "codeLen": 196124,
+   "format": "rgba16float",
+   "psnr": 30.235,
+   "ms": {
+    "768x512": 0.6,
+    "1920x1280": 1.7
+   }
+  },
+  {
+   "tag": "phone-trained",
+   "n": 8192,
+   "codeLen": 196245,
+   "format": "rgba16float",
+   "psnr": 30.145,
+   "ms": {
+    "768x512": 0.7,
+    "1920x1280": 1.5
+   }
+  }
+ ],
+ "limits": {
+  "maxStorageBufferBindingSize": 4294967292,
+  "maxBufferSize": 4294967292
+ },
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 8192,
+    "tag": "phone"
+   },
+   "seconds": 4.07,
+   "steps": 2050,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.649,
+     "psnr_torch": 18.649
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.33,
+     "psnr_torch": 20.33
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.155,
+     "psnr_torch": 22.155
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.376,
+     "psnr_torch": 23.376
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.578,
+     "psnr_torch": 24.578
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.834,
+     "psnr_torch": 25.834
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.948,
+     "psnr_torch": 26.948
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 27.99,
+     "psnr_torch": 27.989
+    },
+    {
+     "n": 4096,
+     "psnr_gpu": 29.019,
+     "psnr_torch": 29.019
+    },
+    {
+     "n": 8192,
+     "psnr_gpu": 30.144,
+     "psnr_torch": 30.144
+    }
+   ]
+  }
+ ]
+}

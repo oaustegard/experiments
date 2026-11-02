@@ -1,0 +1,304 @@
+{
+ "id": "i2w-wgsl-sweep-2",
+ "device": "Mac",
+ "tabName": "Mac",
+ "adapter": "apple metal-3",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "status": "done",
+ "error": null,
+ "runMs": 46017.89999997616,
+ "logs": [
+  "s1 n=2048: 2.3 s, 1750 steps, overflows 2, [[16,18.87],[32,20.52],[64,22.09],[128,23.36],[256,24.59],[512,25.9],[1024,27],[2048,28.07]]",
+  "s3 n=2048: 6.2 s, 5250 steps, overflows 2, [[16,18.65],[32,20.18],[64,21.81],[128,23.03],[256,24.34],[512,25.61],[1024,26.83],[2048,27.95]]",
+  "s8 n=2048: 17.2 s, 14000 steps, overflows 2, [[16,18.78],[32,20.04],[64,22.16],[128,23.22],[256,24.42],[512,25.86],[1024,26.97],[2048,28.1]]",
+  "s3 n=4096: 8.3 s, 5700 steps, overflows 1, [[16,18.86],[32,20.27],[64,21.94],[128,23.35],[256,24.67],[512,25.86],[1024,26.98],[2048,28.01],[4096,29.07]]",
+  "s3 n=8192: 11.9 s, 6150 steps, overflows 0, [[16,18.93],[32,20.28],[64,21.73],[128,23.08],[256,24.55],[512,25.69],[1024,26.95],[2048,28.01],[4096,29.04],[8192,30.24]]"
+ ],
+ "probe": null,
+ "limits": null,
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 2048,
+    "tag": "s1"
+   },
+   "seconds": 2.34,
+   "steps": 1750,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.874,
+     "psnr_torch": 18.874
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.518,
+     "psnr_torch": 20.518
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.089,
+     "psnr_torch": 22.089
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.355,
+     "psnr_torch": 23.355
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.59,
+     "psnr_torch": 24.59
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.902,
+     "psnr_torch": 25.902
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.998,
+     "psnr_torch": 26.998
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.066,
+     "psnr_torch": 28.066
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 2048,
+    "stepsStage": 450,
+    "stepsFinal": 1500,
+    "stepsQat": 600,
+    "tag": "s3"
+   },
+   "seconds": 6.24,
+   "steps": 5250,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.654,
+     "psnr_torch": 18.654
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.177,
+     "psnr_torch": 20.177
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.806,
+     "psnr_torch": 21.806
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.031,
+     "psnr_torch": 23.031
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.34,
+     "psnr_torch": 24.34
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.606,
+     "psnr_torch": 25.606
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.831,
+     "psnr_torch": 26.831
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 27.951,
+     "psnr_torch": 27.951
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 2048,
+    "stepsStage": 1200,
+    "stepsFinal": 4000,
+    "stepsQat": 1600,
+    "tag": "s8"
+   },
+   "seconds": 17.21,
+   "steps": 14000,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.78,
+     "psnr_torch": 18.78
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.042,
+     "psnr_torch": 20.042
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.164,
+     "psnr_torch": 22.164
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.217,
+     "psnr_torch": 23.217
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.421,
+     "psnr_torch": 24.421
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.862,
+     "psnr_torch": 25.862
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.974,
+     "psnr_torch": 26.974
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.096,
+     "psnr_torch": 28.096
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 4096,
+    "stepsStage": 450,
+    "stepsFinal": 1500,
+    "stepsQat": 600,
+    "tag": "s3"
+   },
+   "seconds": 8.26,
+   "steps": 5700,
+   "overflows": 1,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.858,
+     "psnr_torch": 18.858
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.272,
+     "psnr_torch": 20.272
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.942,
+     "psnr_torch": 21.942
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.347,
+     "psnr_torch": 23.347
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.666,
+     "psnr_torch": 24.666
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.858,
+     "psnr_torch": 25.858
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.975,
+     "psnr_torch": 26.975
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.012,
+     "psnr_torch": 28.012
+    },
+    {
+     "n": 4096,
+     "psnr_gpu": 29.067,
+     "psnr_torch": 29.067
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 8192,
+    "stepsStage": 450,
+    "stepsFinal": 1500,
+    "stepsQat": 600,
+    "tag": "s3"
+   },
+   "seconds": 11.92,
+   "steps": 6150,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.929,
+     "psnr_torch": 18.929
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.276,
+     "psnr_torch": 20.276
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.728,
+     "psnr_torch": 21.728
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.079,
+     "psnr_torch": 23.079
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.553,
+     "psnr_torch": 24.553
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.694,
+     "psnr_torch": 25.694
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.946,
+     "psnr_torch": 26.946
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.009,
+     "psnr_torch": 28.009
+    },
+    {
+     "n": 4096,
+     "psnr_gpu": 29.035,
+     "psnr_torch": 29.035
+    },
+    {
+     "n": 8192,
+     "psnr_gpu": 30.236,
+     "psnr_torch": 30.236
+    }
+   ]
+  }
+ ]
+}
