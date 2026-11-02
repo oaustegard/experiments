@@ -23,10 +23,11 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import jevfilter as jf  # noqa: E402
+import hierfilter as hf  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(HERE, "data")
-OUT = os.path.join(DATA, "results")
+DATA = os.environ.get("EVAL_DATA") or os.path.join(HERE, "data")
+OUT = os.environ.get("EVAL_OUT") or os.path.join(DATA, "results")
 EMPTY = os.path.join(DATA, "empty")
 MODEL = "sonnet"
 BUDGET = 20_000
@@ -90,6 +91,11 @@ def run_task(task: dict, arms: list) -> dict:
                 ctx = "(no context was passed)"
             elif arm in ("jev1", "jev4"):
                 ctx, st = jf.build_context(task["task"], chunks, BUDGET, scale=1.0 if arm == "jev1" else 4.0)
+                st["must_recall"] = [i in st["kept_ids"] for i in task["must_chunks"]]
+                st.pop("scores")
+                r["filter"] = st
+            elif arm in ("hier4", "hier8"):
+                ctx, st = hf.build_context(task["task"], chunks, BUDGET, scale=4.0 if arm == "hier4" else 8.0)
                 st["must_recall"] = [i in st["kept_ids"] for i in task["must_chunks"]]
                 st.pop("scores")
                 r["filter"] = st

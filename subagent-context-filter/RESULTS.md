@@ -163,3 +163,74 @@ bisection on WAF blocks, rank-to-budget), `context_hook.py` (PreToolUse hook),
 `preview.py` (what the hook would pass), `run_eval.py`, `adjudicate.py`,
 `analyze.py`, `recheck.py`, `results/summary.json`, `ERRORS.md`. Shipped as the
 `delegating-with-context` skill in `oaustegard/claude-skills`.
+
+## Follow-up, 2026-11-02: a hierarchical filter
+
+**Question.** DecisionRAG (arXiv 2610.35868) retrieves with Jev by descending a
+tree: it scores coarse nodes, keeps the top k and scores only the children of
+what it kept. Does that shape, applied to a transcript, match the flat filter?
+
+**Answer.** On these 8 sessions it matches and costs 36-41% fewer Jev tokens.
+Spending the saved room on a 2x larger chunk view (`hier8`) found 107 of 108
+facts, against 105 for the flat `jev4` filter and 106 for the full transcript.
+Every arm sits near the ceiling, so none of the differences is significant: the
+paired `hier8` minus `jev4` CI is +0.0% to +7.1%, and the gain is one task.
+
+**Filter (`hierfilter.py`).** Level 1 splits the session into segments (a new
+segment at each user message, and every 8 chunks) and shows Jev a short digest
+of each, so a whole session fits one window. It keeps the top 40% of segments,
+never fewer than 3. Level 2 scores only the chunks inside kept segments, at
+view scale 4 (`hier4`) or 8 (`hier8`). Chunks in dropped segments are never
+scored. The budget packing is the flat filter's `select`. A score threshold at
+level 1 was tried first and dropped: on a single-topic session every segment
+scored 0.57 or more, so nothing was pruned.
+
+**Labels are new.** The September tasks and regexes lived in the gitignored
+`data/` and did not survive. The same 8 session snapshots (same commits, same
+chunk counts) were relabelled by 8 tool-less Sonnet labellers using the
+September prompt (`label.py`). 34 tasks were written; 6 were dropped for a
+regex that missed its own evidence, leaked into the task text, or a fact
+count outside 2-4. That left 28 tasks and 108 facts. `jev4` and `full` were
+re-run on them, so the comparison is within this run only; the numbers do not
+line up with the September table.
+
+| arm | facts found | tasks fully correct | 95% CI (tasks) | context passed, est. tokens (median) |
+|---|---|---|---|---|
+| none | 0/108 (0%) | 0/28 | 0%-0% | 7 |
+| jev4 | 105/108 (97%) | 26/28 | 82%-100% | 20,051 |
+| hier4 | 106/108 (98%) | 26/28 | 82%-100% | 19,951 |
+| hier8 | 107/108 (99%) | 27/28 | 89%-100% | 19,936 |
+| full | 106/108 (98%) | 27/28 | 89%-100% | 80,744 |
+
+Regex-only, before adjudication: none 0, jev4 96, hier4 98, hier8 103, full 99.
+Adjudicator: TPR 95% on 40 regex hits, TNR 90% on 40 wrong-task deliverables;
+28 of 36 misses upgraded. `hier8` leads under both scorings.
+
+| filter | Jev calls (median) | Jev input tokens (median) | Jev $ (median) | seconds (median) | chunks scored at level 2 (median) | must-have chunks kept |
+|---|---|---|---|---|---|---|
+| jev4 | 2 | 50,954 | $0.0021 | 1.0 | all | 111/116 (96%) |
+| hier4 | 2 | 30,046 | $0.0013 | 1.1 | 30 | 103/116 (89%) |
+| hier8 | 2 | 32,620 | $0.0014 | 1.1 | 30 | 110/116 (95%) |
+
+`hier4` lost 13 must-have chunks: 9 pruned with their segment at level 1 and 4
+out-ranked at level 2. Its executor still found 106 facts, because most facts
+appear in more than one chunk. `hier8` lost 6 (5 at level 1). The larger view
+helps at both levels, since the level-1 choice is the same in both arms only
+up to Jev's scores on identical digests: the 5-versus-9 difference at level 1
+is run-to-run variation in which segments made the top 40%, not the scale.
+
+**Limits.** Sessions are 19 to 97 chunks, where the flat filter needs only 1-2
+windows; the hierarchy's case is longer sessions, which were not tested. The
+eval sits at the ceiling (`full` misses 2 facts), so it cannot separate arms
+that differ by a fact or two. The keep fraction (40%) and segment length (8)
+were set once, not swept. One run per arm; Jev's level-1 ranking varies
+between runs.
+
+**Verdict.** Not worth replacing the shipped filter on recall. Worth it on
+cost only if Jev spend matters, which at $0.002 per delegation it does not. It
+becomes worth testing again on sessions past ~150 chunks, where the flat
+filter pages into 4 or more windows.
+
+Files: `hierfilter.py`, `label.py`, `analyze_hier.py`, `results/summary_hier.json`;
+`run_eval.py` gained the `hier4`/`hier8` arms and, with `adjudicate.py`, an
+`EVAL_DATA` override so transcript-derived data can live outside the repo.

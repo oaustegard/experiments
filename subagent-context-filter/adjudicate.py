@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_eval import claude  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(HERE, "data")
+DATA = os.environ.get("EVAL_DATA") or os.path.join(HERE, "data")
 ARMS = ["none", "jev1", "jev4", "full", "brief"]
 BATCH = 20
 
