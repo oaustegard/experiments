@@ -656,6 +656,7 @@ survives exactly the sanity checks people run.
 | Certificate re-verification harness (load → recompute independently → diff → non-zero exit) | `discrepancy/verify_certificates.py` | moderate |
 | SVG paint order as a heightfield: restyle every painted shape white at opacity a over black, then `k = log(1 − v)/log(1 − a)` is the stack depth (a = 0.2 exact to ~10 layers at 8 bits); jump-flood bevel from edge seeds that store the lower side's height | `raking-light/web/raking-light.js` (`heightSVG`, `WGSL_LAYERS`, `WGSL_SEED`, `WGSL_JFA`, `WGSL_RELIEF`) | trivial |
 | Shadow-only transparent background for a relit scene: shade the background twice (with and without shadows/AO) and set alpha = 1 − lum(shadowed)/lum(unshadowed) on black, so cast shadows composite onto any page colour | `raking-light/web/raking-light.js` (`WGSL_RENDER`, the `clear` branch) | trivial |
+| Footprint-limited 2D splat trainer in WGSL compute, no float atomics: 16×16 tiles, per-tile splat lists in list order (no sort), per-pixel snapshots of colour and log-transmittance at each prefix, a backward pass that takes transmittance from those logs instead of dividing by (1 − w), and a slot map so each splat sums its own per-tile partials. Checked against PyTorch autograd to under 1e-3 relative error | `image-to-wgsl/web/gputrain.js` (`GpuTrainer`, `encodeGPU`, `lossAndGrad`; check: `bridge/gradcheck_gpu.py`) | small |
 
 ---
 
@@ -835,6 +836,17 @@ survives exactly the sanity checks people run.
   (cubics split into a few quadratics, error n⁻³) made the error pure antialiasing, falling from
   4.58 to 0.38 levels between 48 and 768 px. Measure the ink ratio against a reference renderer at
   two sizes. (`wgsl-forge/RESULTS.md` finding 6, `tests/scale_check.py`)
+- **A WGSL loop bound read from a storage buffer is non-uniform, so a `workgroupBarrier()` inside the loop
+  fails to compile.** The fix is to have one invocation copy the bound into a `var<workgroup>` and every
+  invocation read it back with `workgroupUniformLoad(&v)`, which the uniformity analysis treats as
+  uniform. In `image-to-wgsl/web/gputrain.js` each tile's list range comes from a prefix sum in a
+  storage buffer, and the forward and backward passes loop over it in batches with a barrier per batch.
+- **Give a WGSL `var` declared inside a loop an explicit initialiser.** The spec zero-initialises
+  it on every iteration. On SwiftShader an array declared as `var out: array<f32, 10>;` inside a
+  loop kept the previous iteration's values. The splat trainer's gradients then correlated only
+  0.7 with PyTorch's. Writing `= array<f32, 10>(0., ...)` fixed it, and the gradient check passed to
+  under 1e-3 relative error. Other implementations were not tested for this.
+  (`image-to-wgsl/web/gputrain.js`, backward pass)
 - **WebKit rejects a WGSL `const` array of more than 2,047 elements; Chromium accepts larger ones.**
   Every browser on iOS uses WebKit, so a shader that compiles in Chromium, naga and SwiftShader can
   fail on an iPhone with "constant array cannot have more than 2047 elements". (Chromium's own
