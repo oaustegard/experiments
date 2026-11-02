@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-01T01:31:21.631240+00:00",
+ "last_run": "2026-11-02T04:32:27.546761+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -59,13 +59,13 @@
   "2610.06805": {
    "title": "H-JEPA: End-to-End Learning of Hierarchical World Models for Visual Planning",
    "first_seen": "2026-11-01",
-   "best_rank": 6,
+   "best_rank": 5,
    "upvotes": 0,
-   "reviewed": "2026-11-01",
-   "read": "abstract",
+   "reviewed": "2026-11-02",
+   "read": "full",
    "practical": "LOW",
-   "attempts": 1,
-   "review": "Hierarchical latent world models for visual planning; robotics/sim training."
+   "attempts": 2,
+   "review": "Hierarchical action-conditioned JEPA world models for top-down visual planning (AntMaze 73% vs 18% flat); simulation-only, H200-scale training, no bearing on his stack."
   },
   "2610.06833": {
    "title": "Towards Looped Models Done Right, Part II: Rethinking at Fixed Points",
@@ -220,6 +220,149 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "RLVR training add-on; prompt-only variant showed little effect."
+  },
+  "2610.14224": {
+   "title": "Harness^2: Recursive Agent Harnessing for an Open World",
+   "first_seen": "2026-11-02",
+   "best_rank": 24,
+   "upvotes": 199,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "HIGH",
+   "attempts": 1,
+   "review": "Per-task harness-edit loop (generic + domain edit, probe, compose, distill into a library) with code at github.com/google-research/harness2; GLM-5/OpenCode on WorkBuddy-Bench 64.2 to 75.7, though only ~1 point over offline Meta-Harness and LLM-judged over 3 runs. Its component model (always-on prose is paid every run, skills need a trigger line, hooks enforce what prose can't) maps directly onto Claude Code skills/hooks and Muninn boot design."
+  },
+  "2610.39302": {
+   "title": "Proving and Improving the Platonic Representation Hypothesis with JEPAs",
+   "first_seen": "2026-11-02",
+   "best_rank": 9,
+   "upvotes": 315,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Proves separately trained JEPAs converge up to a rotation when positives are views of one scene; a 109M text JEPA reaches 0.184 mutual-kNN with DINOv2 vs 0.154 for Qwen2.5-72B, but on one benchmark with LLaVA recaptions. Code at github.com/galilai-group/prh-proof; the one-GPU Flickr recipe and pair-free Procrustes alignment between embedding spaces are testable, and it argues for building embedder positives as different descriptions of the same item."
+  },
+  "2610.19159": {
+   "title": "Into the Unknown: Benchmarking AI agents on open scientific research problems",
+   "first_seen": "2026-11-02",
+   "best_rank": 24,
+   "upvotes": 208,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "15 open research directions, 135 agent submissions, none valid under strict grading and 114 failing integrity. The audited failure modes (lenient self-verification 58/64, too little backtracking 34/64) reinforce checking agent artifacts against the original plan rather than the agent's own checker; nothing new to adopt."
+  },
+  "2610.35845": {
+   "title": "Work Agents: Systems, Capabilities, and Optimization",
+   "first_seen": "2026-11-02",
+   "best_rank": 25,
+   "upvotes": 205,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "91-page survey of agents as model plus harness in stateful workspaces; no results of its own. Worth borrowing: the attempted/accepted/committed/verified effect-state distinction for tool calls, and keeping changing facts in external records rather than weights."
+  },
+  "2610.28577": {
+   "title": "Cache Engineering for Agents",
+   "first_seen": "2026-11-02",
+   "best_rank": 21,
+   "upvotes": 214,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Drops selected KV entries inside a custom SGLang engine (AKV) for ~28% cost savings vs summarization; hosted APIs don't expose this. Design warning: text-level trimming of old tool outputs without cache control cost 1.85x full context, since it breaks prefix caching."
+  },
+  "2610.14709": {
+   "title": "Vela: User Behavior as Supervision Sparks LLM Intelligence",
+   "first_seen": "2026-11-02",
+   "best_rank": 29,
+   "upvotes": 191,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Fine-tunes on tasks labeled by users' observed future behavior from a proprietary 100k-user log, judged by a 2.4T model; not reproducible. The task construction (hold out a future window as label, keep mid-difficulty tasks) could seed a personal-context eval from memory or Strava logs."
+  },
+  "2610.12242": {
+   "title": "TokenRouter: Efficient Serving System for Token-Level LLM Routing",
+   "first_seen": "2026-11-02",
+   "best_rank": 28,
+   "upvotes": 202,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Serving runtime for token-level small/large routing; realistic gain ~1.7x over the large model alone, not the 64x headline. Needs self-hosted model pairs with logit access, which Muninn's hosted-API routing lacks."
+  },
+  "2610.14162": {
+   "title": "Next-Concept Modeling: Fast, Parallel Coarse-to-Fine Text Generation",
+   "first_seen": "2026-11-02",
+   "best_rank": 26,
+   "upvotes": 200,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Residual VQ code hierarchy lets a ~100M model generate text in 8-12 parallel steps vs 128 for diffusion LMs; per-dataset training from scratch, nothing to drop into the browser stack yet."
+  },
+  "2610.12369": {
+   "title": "Embodied Turing Machines: Stateful Code for Robot Recursive Self-Improvement",
+   "first_seen": "2026-11-02",
+   "best_rank": 23,
+   "upvotes": 204,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Coding agents write a model-free robot policy library that hits 70% on RoboDojo sim vs 31% leaderboard best, but it is hand-engineered against simulator state. The explicit-state, default-off-parameter code pattern is the only transferable piece."
+  },
+  "2610.20331": {
+   "title": "Are We Overthinking One-Step Generation?",
+   "first_seen": "2026-11-02",
+   "best_rank": 19,
+   "upvotes": 213,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Reconstruction pretraining then OT fine-tuning gives one-step ImageNet FID 1.19 at a fraction of Drifting's compute; image-generation training on 8 H200s, no decision for his work."
+  },
+  "2610.14136": {
+   "title": "Correction Training for Diffusion Models",
+   "first_seen": "2026-11-02",
+   "best_rank": 21,
+   "upvotes": 206,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Corrector network refines diffusion predictions each step, beating CFG on DiT/SiT unguided FID; image-diffusion only."
+  },
+  "2610.05538": {
+   "title": "LiFT: Loop Flow Transformers",
+   "first_seen": "2026-11-02",
+   "best_rank": 22,
+   "upvotes": 206,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Looped DiT core can run more loops than trained, with fewer params; ImageNet diffusion only, no evidence for language or embedding models."
+  },
+  "2610.10515": {
+   "title": "RoboJEPA: Scaling Robotic Latent World Models",
+   "first_seen": "2026-11-02",
+   "best_rank": 20,
+   "upvotes": 210,
+   "reviewed": "2026-11-02",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robot latent world-model scaling laws on 2.87M trajectories with real Franka tests; cluster-scale robotics, no overlap with his work."
   }
  }
 }
