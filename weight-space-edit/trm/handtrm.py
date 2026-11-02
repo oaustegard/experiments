@@ -36,7 +36,9 @@ M = [7, 8, 9]       # marked, by label
 GM = 10             # goal is marked: the plan is complete (drives the halting head)
 NL = [11, 12, 13]   # scratch: labelled neighbours, by label
 NM = [14, 15, 16]   # scratch: marked neighbours, by label
-BITS = [XP, XS, XG] + L + M + [GM]
+FR = 17             # frontier: labelled in this step (the wavefront is still spreading)
+SL = 18             # start is labelled (the goal is reachable)
+BITS = [XP, XS, XG] + L + M + [GM, FR, SL]
 NB4 = [(0, 1), (2, 1), (1, 0), (1, 2)]  # (ky, kx) of the four orthogonal neighbours in a 3x3 kernel
 
 C_NOM = math.sqrt(D)          # channel 0 after RMSNorm (BIG dominates the norm)
@@ -87,8 +89,11 @@ def build():
     for m in M: head[1, m] = 10.0 / A_NOM
     head[1, C0] = -5.0 / C_NOM
     sd["head.weight"] = head
-    q = torch.zeros(1, D, dtype=torch.float64); q[0, GM] = 1000.0 / A_NOM  # mean over cells: 1000/L when the goal is marked
-    sd["qhead.weight"] = q; sd["qhead.bias"] = torch.tensor([-1e-3], dtype=torch.float64)
+    # halt = goal marked (route complete), or wavefront stopped without reaching the start (no route).
+    # q = (1000*GM - SL - 0.01*FR) / L + 1e-7 over cell counts: positive iff GM, or neither SL nor FR.
+    q = torch.zeros(1, D, dtype=torch.float64)
+    q[0, GM] = 1000.0 / A_NOM; q[0, SL] = -1.0 / A_NOM; q[0, FR] = -0.01 / A_NOM
+    sd["qhead.weight"] = q; sd["qhead.bias"] = torch.tensor([1e-7], dtype=torch.float64)
 
     # block 0: no mixing; re-quantise every bit of the summed input, seed the goal's label
     b0 = MLP()
@@ -106,7 +111,7 @@ def build():
             conv[NM[k], M[k], ky, kx] = 1.0
     sd["blocks.1.conv.weight"] = conv
     b1 = MLP()
-    for c in NL + NM + L + M + [GM]:
+    for c in NL + NM + L + M + [GM, FR, SL]:
         b1.linear(c, c, -1.0)  # clear scratch and the old state; X bits pass through untouched
     for k in range(3):
         k1, k2 = (k + 1) % 3, (k + 2) % 3
@@ -115,6 +120,8 @@ def build():
         # mark k: labelled k and (START, already marked, or next to a marked cell labelled k+1)
         b1.step(M[k], [(L[k], 20), (NM[k1], 1), (XS, 4), (M[k], 30)], 20.5)
     b1.step(GM, [(M[0], 1), (XG, 1)], 1.5)
+    b1.step(FR, [(XP, 4)] + [(c, 1) for c in NL] + [(c, -10) for c in L], 4.5)
+    b1.step(SL, [(XS, 1)] + [(c, 1) for c in L], 1.5)
     sd["blocks.1.conv.weight"] = conv
     sd["blocks.1.gu.weight"], sd["blocks.1.down.weight"] = b1.weights()
     print(f"hidden units used: block0 {b0.j}, block1 {b1.j} of {HID}", file=sys.stderr)
