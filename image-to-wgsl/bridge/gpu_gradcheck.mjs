@@ -18,7 +18,7 @@ const res = await p.evaluate(async (s) => {
   const dev = await (await navigator.gpu.requestAdapter()).requestDevice();
   dev.addEventListener("uncapturederror", (e) => console.log("gpu error: " + e.error.message));
   const img = { width: s.W, height: s.H, rgba: Uint8Array.from(s.rgba) };
-  return await lossAndGrad(dev, img, s.P, Int32Array.from(s.bg), { cut: 1e9 });
+  return await lossAndGrad(dev, img, s.P, Int32Array.from(s.bg), { cut: 1e9, focus: s.focus ? Float32Array.from(s.focus) : null });
 }, spec);
 fs.writeFileSync(outp, JSON.stringify(res));
 await b.close(); srv.close();

@@ -170,7 +170,8 @@ fn listRange(ti: u32) -> vec2u { let s = min(tileOff[ti], cfg.cap); let e = min(
     var e = 0.;
     if (valid) {
       pix[k * P + pi] = snaps[k];
-      if (cfg.evalMode == 1u) { let d = round(clamp(snaps[k].rgb, vec3f(0.), vec3f(1.)) * 255.) - round(T.rgb * 255.); e = dot(d, d); }
+      // evalMode 1: 8-bit squared error (as psnr8); 2: the same, times the focus weight (as psnr8w)
+      if (cfg.evalMode >= 1u) { let d = round(clamp(snaps[k].rgb, vec3f(0.), vec3f(1.)) * 255.) - round(T.rgb * 255.); e = dot(d, d) * select(1., T.w, cfg.evalMode == 2u); }
       else { let d = snaps[k].rgb - T.rgb; e = dot(d, d) * T.w; }
     }
     redf[li] = e; workgroupBarrier();
@@ -354,7 +355,9 @@ export class GpuTrainer {
 // ---------------------------------------------------------------- the training schedule (as trainer.js encode)
 
 export async function encodeGPU(dev, img, opts = {}) {
-  const { n = 1024, seed = 0, onProgress = null, onPreview = null, init = "structure", focus = null,
+  // focus: per-pixel weights (W*H, any scale) trained on and reported as psnrFocus; focusEval: weights only
+  // reported, so an unfocused run can be scored on the same map
+  const { n = 1024, seed = 0, onProgress = null, onPreview = null, init = "structure", focus = null, focusEval = null,
           stepsStage = 150, stepsFinal = 500, stepsQat = 200, cut = 1024 } = opts;
   const W = img.width, H = img.height, A = W / H, HW = W * H, rand = rng(seed);
   const tr = new GpuTrainer(dev, img, { nMax: n, cut, focus });
@@ -448,7 +451,20 @@ export async function encodeGPU(dev, img, opts = {}) {
   dev.queue.submit([tr.encode(n, false).finish()]);
   const st = await tr.read("stats", (2 * tr.Kcur + 1) * 4);
   // with evalMode on, st[i] is the mean squared difference of 8-bit-rounded colours (as psnr8)
-  const points = checkpoints(n).map((k, i) => ({ n: k, psnr: 10 * Math.log10(255 * 255 / Math.max(st[i], 1e-12)) }));
+  const db = (m) => 10 * Math.log10(255 * 255 / Math.max(m, 1e-12));
+  const points = checkpoints(n).map((k, i) => ({ n: k, psnr: db(st[i]) }));
+  const evalW = focusEval ?? focus;
+  if (evalW) {   // and weighted by the focus map (mean 1), as trainer.js psnrFocus
+    if (evalW !== focus) {
+      let ws = 0; for (let i = 0; i < HW; i++) ws += evalW[i];
+      const t = Float32Array.from(tr.tgtArr); for (let i = 0; i < HW; i++) t[i * 4 + 3] = evalW[i] * HW / ws;
+      dev.queue.writeBuffer(tr.b.tgt, 0, t);
+    }
+    tr.writeCfg({ N: n, quant: 1, evalMode: 2, bg });
+    dev.queue.submit([tr.encode(n, false).finish()]);
+    const sf = await tr.read("stats", (2 * tr.Kcur + 1) * 4);
+    points.forEach((p, i) => { p.psnrFocus = db(sf[i]); });
+  }
   tr.destroy();
   return { P: Pq, bg, A, W, H, n, points, seconds: (performance.now() - t0) / 1000, backend: "webgpu-tiles", steps: totalSteps, overflows };
 }

@@ -1,6 +1,7 @@
 """Check web/gputrain.js's loss and gradient against PyTorch autograd on the same model.
 
-    python3 bridge/gradcheck_gpu.py   (runs gpu_gradcheck.mjs in headless Chromium, SwiftShader)
+    python3 bridge/gradcheck_gpu.py [W H N [focus]]   (runs gpu_gradcheck.mjs in headless Chromium, SwiftShader)
+With "focus", pixels carry Gaussian weights (normalised to mean 1) in both losses, as a focus map does.
 Model: splats in quantization units, weight clamped at 0.9999, painted in order over the fixed
 background, loss = mean over prefixes k of log(mean squared error of the k-splat prefix).
 """
@@ -21,7 +22,7 @@ def ckpts(n):
     while k < n: out.append(k); k *= 2
     return out + [n]
 
-def torch_loss(P, bg, T, W, H):
+def torch_loss(P, bg, T, W, H, wpix=None):
     A = W / H
     ys, xs = torch.meshgrid(torch.arange(H, dtype=torch.float64), torch.arange(W, dtype=torch.float64), indexing="ij")
     X = ((xs + .5) / H).flatten(); Y = ((ys + .5) / H).flatten()
@@ -44,7 +45,8 @@ def torch_loss(P, bg, T, W, H):
         w = torch.clamp(al[j] * torch.exp(-.5 * e), max=.9999)[:, None]
         c = c * (1 - w) + col[j] * w
     snaps[P.shape[0]] = c
-    mse = [((snaps[k] - T) ** 2).mean() for k in ks]
+    wcol = torch.ones(T.shape[0], 1, dtype=torch.float64) if wpix is None else wpix[:, None]
+    mse = [(((snaps[k] - T) ** 2) * wcol).mean() for k in ks]
     return torch.stack([torch.log(s) for s in mse]).mean(), [float(s) for s in mse]
 
 def main():
@@ -58,9 +60,15 @@ def main():
     P[:, 8] = torch.rand(N, generator=g, dtype=torch.float64) * 13                 # alpha <= 0.875: away from the clamp
     P[:, 9] = torch.rand(N, generator=g, dtype=torch.float64) * 2                  # shape exponent 1..4
     bg = torch.tensor([30, 40, 20, 50, 45, 35, 25, 30, 20, 40, 35, 30])
+    focus = None
+    if len(sys.argv) > 4 and sys.argv[4] == "focus":   # Gaussian around (0.3, 0.4), floored at 0.05
+        ys, xs = np.mgrid[0:H, 0:W]
+        f = np.maximum(np.exp(-0.5 * (((xs + .5) / W - .3) ** 2 + ((ys + .5) / H - .4) ** 2) / .15 ** 2), 0.05).flatten()
+        focus = f.tolist()
+    wpix = None if focus is None else torch.tensor(focus, dtype=torch.float64) * (W * H) / sum(focus)
     P.requires_grad_(True)
-    loss, mse = torch_loss(P, bg, T, W, H); loss.backward()
-    spec = {"W": W, "H": H, "rgba": rgba.flatten().tolist(), "P": P.detach().flatten().tolist(), "bg": bg.tolist()}
+    loss, mse = torch_loss(P, bg, T, W, H, wpix); loss.backward()
+    spec = {"W": W, "H": H, "rgba": rgba.flatten().tolist(), "P": P.detach().flatten().tolist(), "bg": bg.tolist(), "focus": focus}
     (HERE.parent / "scratch").mkdir(exist_ok=True)
     sp = HERE.parent / "scratch" / "gpu_gc_in.json"; op = HERE.parent / "scratch" / "gpu_gc_out.json"
     sp.write_text(json.dumps(spec))

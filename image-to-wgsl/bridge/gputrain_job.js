@@ -2,9 +2,11 @@
 // splat lists with web/instanced.js to check and time the renderer there.
 // Inputs: rgba (u8), cfg {W, H, probe: [n...], runs: [{n, stepsStage, stepsFinal, stepsQat}], render: bool},
 // trainer (trainer.js source), gputrain (gputrain.js source; its "./trainer.js" import is pointed at the trainer
-// blob), optional instanced (instanced.js source), optional lists ({tag: {P, bg, A, n}}: drawn without training).
+// blob), optional instanced (instanced.js source), optional lists ({tag: {P, bg, A, n}}: drawn without training),
+// optional focus (u8, W*H weights 0..255). A run with focus: "train" trains on the focus map; "eval" trains evenly
+// and only scores on it. Either way the map is floored and normalised as the page does (normaliseFocus).
 const cfg = ctx.inputs.cfg, dec = (b) => new TextDecoder().decode(b), blob = (s) => URL.createObjectURL(new Blob([s], { type: "text/javascript" }));
-const tUrl = blob(dec(ctx.inputs.trainer));
+const tUrl = blob(dec(ctx.inputs.trainer)), trainerMod = await import(tUrl);
 const { encodeGPU, probeGPU } = await import(blob(dec(ctx.inputs.gputrain).replace('from "./trainer.js"', `from "${tUrl}"`)));
 const inst = ctx.inputs.instanced ? await import(blob(dec(ctx.inputs.instanced).replace('from "./trainer.js"', `from "${tUrl}"`))) : null;
 const dev = await ctx.gpu();
@@ -43,12 +45,14 @@ for (const n of cfg.probe || []) {   // ms per training step, as the page's menu
 }
 const lists = ctx.inputs.lists instanceof Uint8Array ? JSON.parse(dec(ctx.inputs.lists)) : ctx.inputs.lists || {};   // u8 JSON past the argv limit
 for (const [tag, l] of Object.entries(lists)) await drawCheck(tag, { P: Int32Array.from(l.P), bg: Int32Array.from(l.bg), A: l.A, n: l.n });
+const fmap = ctx.inputs.focus ? trainerMod.normaliseFocus(Float32Array.from(ctx.inputs.focus, (v) => v / 255), cfg.W * cfg.H) : null;
 for (const [ri, run] of (cfg.runs || []).entries()) {
   const trace = [];
   const r = await encodeGPU(dev, { rgba: tgt, width: cfg.W, height: cfg.H }, { ...run,
+    focus: run.focus === "train" ? fmap : null, focusEval: run.focus ? fmap : null,
     onProgress: (p) => { trace.push([p.phase, p.step, +p.psnrSample.toFixed(2), +p.seconds.toFixed(2)]); ctx.progress((ri + p.step / p.totalSteps) / cfg.runs.length, `n=${run.n} ${p.phase}`); } });
   out.runs.push({ cfg: run, seconds: r.seconds, points: r.points, overflows: r.overflows, steps: r.steps, trace, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A });
-  ctx.log(`${run.tag || ""} n=${run.n}: ${r.seconds.toFixed(1)} s, ${r.steps} steps, overflows ${r.overflows}, ${JSON.stringify(r.points.map((p) => [p.n, +p.psnr.toFixed(2)]))}`);
+  ctx.log(`${run.tag || ""} n=${run.n}: ${r.seconds.toFixed(1)} s, ${r.steps} steps, overflows ${r.overflows}, ${JSON.stringify(r.points.map((p) => [p.n, +p.psnr.toFixed(2), ...(p.psnrFocus != null ? [+p.psnrFocus.toFixed(2)] : [])]))}`);
   if (inst && cfg.render) await drawCheck(`${run.tag || ""}-trained`, r);
 }
 return out;
