@@ -108,3 +108,22 @@ Training on Oskar's iPhone through the GPU bridge found three problems with TF.j
 - every op was correct with chunks of at most 32 splats, but training with that cap crashed the tab twice.
 
 On the WebGL backend, every op matched the CPU backend to within about 1e-6, relative to the largest value. The trainer now sums with triangular matrix products instead of `cumsum`, and trains on WebGL. On the iPhone, WebGL trained 64 splats of a 384×256 kodim23 in 26 s (22.85 dB) and 256 splats in 52 s. In the 256-splat run every prefix beat the one before: 18.79, 20.84, 23.04, 24.97 and 25.86 dB at 16, 32, 64, 128 and 256 splats (`results/bridge_i2w-train-6.json`). A 1,024-splat run crashed the tab on WebGL as well, even when each training step sampled only 2,048 pixels instead of 8,192, so the page offers at most 256 splats. Only the iPhone was tested.
+
+### 2026-11-02 — limits by device, and training changes, on an M5 Max
+
+Asked, after a 256-splat Mona Lisa from the iPhone came out soft: raise the limit on a stronger GPU, set it from the device, and improve training. All runs below are on Oskar's M5 Max through the GPU bridge, TF.js WebGL, Mona Lisa at 484×512 (`results/bridge_i2w-m5-*.json`).
+
+| run | splats | time | PSNR |
+|---|---|---|---|
+| trainer as shipped | 256 | 21 s | 24.12 dB |
+| trainer as shipped | 1,024 | 57 s | 25.49 dB |
+| trainer as shipped | 2,048 | 50 s | 25.75 dB |
+| `WEBGL_USE_SHAPES_UNIFORMS` on | 1,024 | 29 s | 25.48 dB |
+| twice the pixels per step and twice the steps, plus edge-aligned init and importance sampling | 1,024 | 47 s | 26.34 dB |
+| the same | 2,048 | 63 s | 26.81 dB |
+
+The shipped trainer barely improved past 1,024 splats, because each step samples fewer pixels as the list grows: at 2,048 splats a step saw 1,024 pixels. With the TF.js flag on, compiled shaders take tensor shapes as uniforms, which removed about 28 s of recompiling between stages at the same quality.
+
+An ablation at 256 splats compared new splats stretched along the local edge direction (from a structure tensor), half the sampled pixels drawn in proportion to the error (weighted so the loss stays unbiased), and moving splats that cover under two pixels of ink. On the Mona Lisa, edge-aligned initialisation added 0.40 dB and importance sampling 0.13 dB more; on kodim23 at 384×256 they added 0.02 dB together. No splat ever met the respawn criterion. Twice the steps added 0.78 and 0.34 dB with the other two changes on. The page now sets edge-aligned init, importance sampling and the TF.js flag everywhere. On computers it also doubles pixels per step and steps, and goes up to 2,048 splats and 768-pixel uploads. Phones keep 256 splats and 512 pixels.
+
+The page times two short training steps before offering splat counts and labels each with an estimate. On the M5 the estimates were 65 s for 512 splats (actual 60 s) and 74 s for 1,024 (actual 45 s). Above 2,047 words the shader packs its data into `vec4u`, which decodes within 1 level of the PyTorch decode on SwiftShader.

@@ -61,7 +61,7 @@ a { color: var(--accent); }
       <select id="nsel"><option>64</option><option>128</option><option selected>256</option></select>
       <button id="go" disabled>Encode</button>
     </div>
-    <div class="note">Your image stays in this browser. It is scaled to at most 512 px on its longer side, then fitted on your GPU with TensorFlow.js; the picture above updates while it trains. On an iPhone, 64 splats take about half a minute and 256 about a minute. Larger lists ran out of memory on a phone, so 256 is the limit here.</div>
+    <div class="note">Your image stays in this browser. It is scaled down (512 px on a phone, 768 px otherwise, on its longer side), then fitted on your GPU with TensorFlow.js; the picture above updates while it trains. The splat menu lists what this device can train, with a time estimate from a quick test of its GPU. Phones stop at 256 splats, since larger lists ran out of memory on an iPhone; computers go up to 2,048.</div>
     <progress id="prog" max="1" value="0" hidden></progress>
     <div class="note" id="encstat"></div>
   </div>

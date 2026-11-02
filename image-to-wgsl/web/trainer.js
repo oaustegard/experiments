@@ -136,9 +136,13 @@ export function psnr8(a, b) {        // a, b: float RGB in [0,1], same length
 }
 
 export async function encode(tf, img, opts = {}) {
-  const { n = 256, stepsStage = 100, stepsFinal = 300, stepsQat = 150, pixBudget = 2 ** 21, seed = 0,
-          onProgress = null, onPreview = null, previewEvery = 25, previewWidth = 160,
-          chunk = tf.getBackend() === "webgpu" ? 32 : 256 } = opts;   // WebGPU is correct only up to 32 (see composite)
+  const { n = 256, pixBudget = 2 ** 21, seed = 0, onProgress = null, onPreview = null, previewEvery = 25, previewWidth = 160,
+          chunk = tf.getBackend() === "webgpu" ? 32 : 256,   // WebGPU is correct only up to 32 (see composite)
+          // ablation switches: "structure" orients new splats along local edges; respawnEvery > 0 moves splats that
+          // contribute almost nothing to high-error spots; importance in [0, 1] samples that share of pixels by error
+          init = "error", respawnEvery = 0, importance = 0, stepsScale = 1 } = opts;
+  const stepsStage = Math.round((opts.stepsStage ?? 100) * stepsScale), stepsFinal = Math.round((opts.stepsFinal ?? 300) * stepsScale),
+        stepsQat = Math.round((opts.stepsQat ?? 150) * stepsScale);
   const W = img.width, H = img.height, A = W / H, HW = W * H;
   const rand = rng(seed);
   const ops = makeOps(tf, A, chunk);
@@ -165,7 +169,79 @@ export async function encode(tf, img, opts = {}) {
   const totalSteps = sizes.reduce((a, s, i) => a + (i === sizes.length - 1 ? stepsFinal : stepsStage), 0) + stepsQat;
   let done = 0, lastLoss = null;
   const t0 = performance.now();
-  const smallGrid = grid(sw, sh, A);
+  const C = sw * sh;
+  // structure tensor of the small target's luminance, blurred: the edge direction and how strongly it is oriented
+  const Lum = new Float32Array(C), J = [new Float32Array(C), new Float32Array(C), new Float32Array(C)];
+  for (let i = 0; i < C; i++) Lum[i] = 0.299 * tsmallArr[i * 3] + 0.587 * tsmallArr[i * 3 + 1] + 0.114 * tsmallArr[i * 3 + 2];
+  for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+    const at = (xx, yy) => Lum[Math.min(sh - 1, Math.max(0, yy)) * sw + Math.min(sw - 1, Math.max(0, xx))];
+    const gx = (at(x + 1, y) - at(x - 1, y)) / 2, gy = (at(x, y + 1) - at(x, y - 1)) / 2, i = y * sw + x;
+    J[0][i] = gx * gx; J[1][i] = gx * gy; J[2][i] = gy * gy;
+  }
+  for (const a of J) {               // 5x5 box blur, twice
+    for (let pass = 0; pass < 2; pass++) {
+      const b = Float32Array.from(a);
+      for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+        let acc = 0, cnt = 0;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+          const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= sw || yy >= sh) continue;
+          acc += b[yy * sw + xx]; cnt++;
+        }
+        a[y * sw + x] = acc / cnt;
+      }
+    }
+  }
+  // a new splat at small-target cell i, sized for `size` splats in all
+  function newSplat(i, size) {
+    const ix = i % sw, iy = Math.floor(i / sw), sigma = 0.6 * Math.sqrt(A / size);
+    let ls = Math.log2(sigma) + (rand() * 0.6 - 0.3), ratio = 1, th = rand() * Math.PI;
+    if (init === "structure") {
+      const a = J[0][i], b = J[1][i], c = J[2][i], tr = a + c, d = Math.sqrt(Math.max(0, (a - c) ** 2 / 4 + b * b));
+      const l1 = tr / 2 + d, l2 = tr / 2 - d;
+      ratio = Math.min(4, Math.max(1, Math.sqrt((l1 + 1e-6) / (l2 + 1e-6))));
+      th = 0.5 * Math.atan2(2 * b, a - c) + Math.PI / 2;     // across the gradient: along the edge
+      th = ((th % Math.PI) + Math.PI) % Math.PI;
+    }
+    const q = (l) => (l - LAYOUT.sLo) / (LAYOUT.sHi - LAYOUT.sLo) * MAX[2];
+    const r2 = Math.log2(ratio) / 2;
+    return [(ix + rand()) / sw * MAX[0], (iy + rand()) / sh * MAX[1], q(ls + r2), q(ls - r2) + (init === "structure" ? 0 : rand() * 4 - 2),
+      th / (Math.PI / 2 ** B[4]), tsmallArr[i * 3] * MAX[5], tsmallArr[i * 3 + 1] * MAX[5], tsmallArr[i * 3 + 2] * MAX[5],
+      0.75 * 2 ** B[8] - 1, 0].map((v, f) => Math.min(Math.max(v, 0), MAX[f]));
+  }
+  // per-cell squared error of the current splats against the small target
+  async function errorCells(Pt, bgt) {
+    const Pc = tf.tidy(() => tf.minimum(tf.maximum(Pt, 0), ops.M));
+    const cur = await renderImage(tf, ops, Pc, bgt, sw, sh, A);
+    Pc.dispose();
+    const e = new Float32Array(C);
+    for (let i = 0; i < C; i++) { let v = 1e-8; for (let c = 0; c < 3; c++) { const d = cur[i * 3 + c] - tsmallArr[i * 3 + c]; v += d * d; } e[i] = v; }
+    return e;
+  }
+  // k distinct cells drawn in proportion to e (Efraimidis-Spirakis)
+  function pickCells(e, k) {
+    const keys = [];
+    for (let i = 0; i < C; i++) keys.push([Math.log(rand() + 1e-300) / e[i], i]);
+    keys.sort((p, q) => q[0] - p[0]);
+    return keys.slice(0, k).map((x) => x[1]);
+  }
+  // nPix pixel indices, a share `importance` of them drawn by error, with weights that keep the loss unbiased
+  function samplePixels(e, nPix) {
+    const idx = new Int32Array(nPix), w = new Float32Array(nPix);
+    let E = 0; for (let i = 0; i < C; i++) E += e[i];
+    const cum = new Float64Array(C); let acc = 0;
+    for (let i = 0; i < C; i++) { acc += (1 - importance) / C + importance * e[i] / E; cum[i] = acc; }
+    for (let j = 0; j < nPix; j++) {
+      const u = rand() * acc; let lo = 0, hi = C - 1;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m] < u) lo = m + 1; else hi = m; }
+      const pc = cum[lo] - (lo ? cum[lo - 1] : 0), cx = lo % sw, cy = Math.floor(lo / sw);
+      const x0 = Math.floor(cx * W / sw), x1 = Math.max(x0 + 1, Math.floor((cx + 1) * W / sw));
+      const y0 = Math.floor(cy * H / sh), y1 = Math.max(y0 + 1, Math.floor((cy + 1) * H / sh));
+      idx[j] = (y0 + Math.floor(rand() * (y1 - y0))) * W + x0 + Math.floor(rand() * (x1 - x0));
+      w[j] = (1 / C) / pc;
+    }
+    return { idx, w };
+  }
+  let respawned = 0;
 
   async function optimise(steps, lr0, lr1, quant, phase) {
     const base = tf.variable(P.div(scale)), bbase = tf.variable(bgp.div(bscale));
@@ -173,14 +249,39 @@ export async function encode(tf, img, opts = {}) {
     const nNow = P.shape[0], kNow = checkpoints(nNow).filter((k) => k <= nNow);
     // sampled pixels x splats bounds the autodiff tape; iOS kills a tab past a few hundred MB
     const nPix = opts.nPix ?? Math.min(8192, Math.max(1024, Math.floor(pixBudget / nNow)));
+    let eCells = null;
     for (let it = 0; it < steps; it++) {
       const f = it / Math.max(1, steps - 1);
       opt.learningRate = lr1 + 0.5 * (lr0 - lr1) * (1 + Math.cos(Math.PI * f));
+      if ((importance > 0 || respawnEvery > 0) && it % 50 === 0) {
+        const Pt = tf.tidy(() => base.mul(scale)), bt = tf.tidy(() => bbase.mul(bscale));
+        eCells = await errorCells(Pt, bt); Pt.dispose(); bt.dispose();
+      }
+      if (respawnEvery > 0 && !quant && it > 0 && it % respawnEvery === 0 && it < 0.8 * steps) {
+        // splats with almost no ink (alpha x area under two pixels) move to where the error is
+        const Pt0 = tf.tidy(() => tf.minimum(tf.maximum(base.mul(scale), 0), ops.M)), Pa = await Pt0.data(); Pt0.dispose();
+        const dead = [];
+        for (let j = 0; j < nNow; j++) {
+          const r = Pa.subarray(j * 10, j * 10 + 10), al = (Math.round(r[8]) + 1) / 2 ** B[8];
+          const sx = 2 ** (LAYOUT.sLo + r[2] * SPAN) * H, sy = 2 ** (LAYOUT.sLo + r[3] * SPAN) * H;
+          if (al * Math.PI * sx * sy < 2) dead.push(j);
+        }
+        if (dead.length) {
+          const cells = pickCells(eCells, Math.min(dead.length, Math.ceil(0.05 * nNow)));
+          const rows = Float32Array.from(Pa);
+          cells.forEach((cell, k) => rows.set(newSplat(cell, nNow), dead[k] * 10));
+          respawned += cells.length;
+          tf.tidy(() => base.assign(tf.tensor2d(rows, [nNow, 10]).div(scale)));
+        }
+      }
+      let selArr = null, wArr = null;
+      if (importance > 0) ({ idx: selArr, w: wArr } = samplePixels(eCells, nPix));
       const cost = opt.minimize(() => {
-        const sel = tf.randomUniform([nPix], 0, HW, "int32", seed * 100003 + done);
+        const sel = selArr ? tf.tensor1d(selArr, "int32") : tf.randomUniform([nPix], 0, HW, "int32", seed * 100003 + done);
         const Xs = tf.gather(Xall, sel), Ys = tf.gather(Yall, sel), T = tf.gather(target, sel);
         const { snaps } = ops.render(base.mul(scale), bbase.mul(bscale), Xs, Ys, quant, kNow);
-        const ls = kNow.map((k) => tf.log(tf.mean(tf.squaredDifference(snaps.get(k), T))));
+        const wt = wArr ? tf.tensor2d(wArr, [nPix, 1]) : null;
+        const ls = kNow.map((k) => { const sq = tf.squaredDifference(snaps.get(k), T); return tf.log(tf.mean(wt ? sq.mul(wt) : sq)); });
         return tf.mean(tf.stack(ls));
       }, true, [base, bbase]);
       tf.tidy(() => { base.assign(tf.minimum(tf.maximum(base.mul(scale), 0), ops.M).div(scale)); });
@@ -207,25 +308,7 @@ export async function encode(tf, img, opts = {}) {
   for (let si = 0; si < sizes.length; si++) {
     const size = sizes[si], nNew = size - P.shape[0];
     // error map at small size -> new splats where the error is largest
-    const Pc = tf.tidy(() => tf.minimum(tf.maximum(P, 0), ops.M));
-    const cur = await renderImage(tf, ops, Pc, bgp, sw, sh, A);
-    Pc.dispose();
-    const keys = [];
-    for (let i = 0; i < sw * sh; i++) {
-      let e = 1e-8;
-      for (let c = 0; c < 3; c++) { const d = cur[i * 3 + c] - tsmallArr[i * 3 + c]; e += d * d; }
-      keys.push([Math.log(rand() + 1e-300) / e, i]);      // Efraimidis-Spirakis: weight e
-    }
-    keys.sort((p, q) => q[0] - p[0]);
-    const sigma = 0.6 * Math.sqrt(A / size), rows = [];
-    for (let k = 0; k < nNew; k++) {
-      const i = keys[k][1], ix = i % sw, iy = Math.floor(i / sw);
-      const ls = Math.log2(sigma) + (rand() * 0.6 - 0.3);
-      const qs = (ls - LAYOUT.sLo) / (LAYOUT.sHi - LAYOUT.sLo) * MAX[2];
-      rows.push([(ix + 0.5) / sw * MAX[0], (iy + 0.5) / sh * MAX[1], qs, qs + rand() * 4 - 2, rand() * 2 ** B[4],
-        tsmallArr[i * 3] * MAX[5], tsmallArr[i * 3 + 1] * MAX[5], tsmallArr[i * 3 + 2] * MAX[5], 0.75 * 2 ** B[8] - 1, 0]
-        .map((v, f) => Math.min(Math.max(v, 0), MAX[f])));
-    }
+    const rows = pickCells(await errorCells(P, bgp), nNew).map((i) => newSplat(i, size));
     const Pnew = tf.concat([P, tf.tensor2d(rows, [nNew, 10])], 0);
     P.dispose(); P = Pnew;
     const final = si === sizes.length - 1;
@@ -238,7 +321,8 @@ export async function encode(tf, img, opts = {}) {
   const points = [];
   for (const k of ks) points.push({ n: k, psnr: psnr8(await renderImage(tf, ops, Pq, bq, W, H, A, k), tgt) });
   const result = { P: Int32Array.from(await Pq.data()), bg: Int32Array.from(await bq.data()), A, W, H, n, points,
-                   seconds: (performance.now() - t0) / 1000, backend: tf.getBackend() };
+                   seconds: (performance.now() - t0) / 1000, backend: tf.getBackend(), respawned,
+                   steps: totalSteps, options: { init, respawnEvery, importance, stepsScale } };
   [P, bgp, Pq, bq, target, Xall, Yall, tsmall, scale, ops.M].forEach((t) => t.dispose());
   ops.dispose();
   return result;
@@ -272,15 +356,21 @@ export function emitWGSL(r, n = null, paintSeconds = 6) {
   const fields = [];
   for (const v of r.bg) fields.push([v, LAYOUT.bbg]);
   for (let i = 0; i < N; i++) for (let f = 0; f < 10; f++) fields.push([r.P[i * 10 + f], B[f]]);
-  const words = packBits(fields);
-  if (words.length > 2047) throw new Error(`${words.length} words: over WebKit's 2047-element const array limit`);
+  let words = packBits(fields);
+  // WebKit rejects const arrays over 2047 elements; past that, four words per vec4u element (codec.py "vec4u")
+  const wide = words.length > 2047;
+  if (wide) { const pad = new Uint32Array(Math.ceil(words.length / 4) * 4); pad.set(words); words = pad; }
+  if (words.length > 4 * 2047) throw new Error(`${words.length} words: too many splats for one shader`);
   const off = [0]; for (const b of B) off.push(off[off.length - 1] + b);
   const fld = (j) => `r(o+${off[j]}u,${B[j]}u)`;
   const bgv = (j) => `vec3f(r(${3 * j * LAYOUT.bbg}u,6u),r(${(3 * j + 1) * LAYOUT.bbg}u,6u),r(${(3 * j + 2) * LAYOUT.bbg}u,6u))`;
   const sig = (j) => `exp2(${fnum(LAYOUT.sLo)}+${fld(j)}*${fnum(SPAN)})`;
   return `@group(0)@binding(0)var<uniform>u:vec4f;const A=${fnum(A)};` +
-    `const D=array<u32,${words.length}>(${Array.from(words).join(",")});` +
-    `fn r(o:u32,n:u32)->f32{let w=o>>5u;let s=o&31u;var v=D[w]>>s;if(s+n>32u){v|=D[w+1u]<<(32u-s);}return f32(v&((1u<<n)-1u));}` +
+    (wide
+      ? `const D=array<vec4u,${words.length / 4}>(${Array.from({ length: words.length / 4 }, (_, i) => `vec4u(${words.slice(4 * i, 4 * i + 4).join(",")})`).join(",")});fn dw(i:u32)->u32{return D[i>>2u][i&3u];}` +
+        `fn r(o:u32,n:u32)->f32{let w=o>>5u;let s=o&31u;var v=dw(w)>>s;if(s+n>32u){v|=dw(w+1u)<<(32u-s);}return f32(v&((1u<<n)-1u));}`
+      : `const D=array<u32,${words.length}>(${Array.from(words).join(",")});` +
+        `fn r(o:u32,n:u32)->f32{let w=o>>5u;let s=o&31u;var v=D[w]>>s;if(s+n>32u){v|=D[w+1u]<<(32u-s);}return f32(v&((1u<<n)-1u));}`) +
     `@vertex fn vs(@builtin(vertex_index)i:u32)->@builtin(position)vec4f{return vec4f(vec2f(f32(i%2u),f32(i/2u))*4.-1.,0.,1.);}` +
     `@fragment fn fs(@builtin(position)p:vec4f)->@location(0)vec4f{let k=min(u.x/A,u.y);let q=(p.xy-(u.xy-vec2f(A,1.)*k)*.5)/k;` +
     `if(q.x<0.||q.y<0.||q.x>A||q.y>1.){return vec4f(1.);}let h=q.x/A;` +
@@ -297,4 +387,37 @@ export function emitWGSL(r, n = null, paintSeconds = 6) {
 export async function gzipSize(text) {
   const s = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
   return (await new Response(s).arrayBuffer()).byteLength;
+}
+
+// ---------------------------------------------------------------- sizing for this device
+
+// Total optimiser steps for an n-splat run (the schedule in encode()).
+export function totalSteps(n, stepsScale = 1, o = {}) {
+  const st = Math.round((o.stepsStage ?? 100) * stepsScale), sf = Math.round((o.stepsFinal ?? 300) * stepsScale),
+        sq = Math.round((o.stepsQat ?? 150) * stepsScale);
+  return (checkpoints(n).length - 1) * st + sf + sq;
+}
+
+// Milliseconds per training step on this device, measured on the real training graph with n random
+// splats and nPix sampled pixels (median after warm-up).
+export async function probe(tf, { n = 256, nPix = 8192, steps = 8 } = {}) {
+  const A = 1;
+  const ops = makeOps(tf, A, tf.getBackend() === "webgpu" ? 32 : 256);
+  const rand = rng(7), rows = new Float32Array(n * 10);
+  for (let i = 0; i < n; i++) rows.set(MAX.map((m, f) => (f === 2 || f === 3 ? 0.55 + 0.2 * rand() : rand()) * m), i * 10);
+  const base = tf.variable(tf.tensor2d(rows, [n, 10])), bgp = tf.fill([12], MBG / 2);
+  const X = tf.randomUniform([nPix], 0, A), Y = tf.randomUniform([nPix], 0, 1), T = tf.randomUniform([nPix, 3]);
+  const opt = tf.train.adam(0.1), ks = checkpoints(n), times = [];
+  for (let it = 0; it < steps; it++) {
+    const t = performance.now();
+    const cost = opt.minimize(() => {
+      const { snaps } = ops.render(base, bgp, X, Y, false, ks);
+      return tf.mean(tf.stack(ks.map((k) => tf.log(tf.mean(tf.squaredDifference(snaps.get(k), T))))));
+    }, true, [base]);
+    await cost.data(); cost.dispose();
+    times.push(performance.now() - t);
+  }
+  [base, bgp, X, Y, T, ops.M].forEach((t) => t.dispose()); opt.dispose(); ops.dispose();
+  const warm = times.slice(Math.min(3, times.length - 1)).sort((a, b) => a - b);
+  return warm[Math.floor(warm.length / 2)];
 }

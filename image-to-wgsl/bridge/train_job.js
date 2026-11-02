@@ -7,9 +7,16 @@ const cfg = ctx.inputs.cfg;
 const src = new TextDecoder().decode(ctx.inputs.trainer);
 const trainer = await import(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
 const want = cfg.backend || "webgl";
+if (cfg.tfFlags) for (const [k, v] of Object.entries(cfg.tfFlags)) tf.env().set(k, v);   // e.g. WEBGL_USE_SHAPES_UNIFORMS
 try { if (!(await tf.setBackend(want))) throw new Error("refused"); await tf.ready(); }
 catch (e) { ctx.log(want + " backend failed: " + e.message); await tf.setBackend("cpu"); await tf.ready(); }
 const out = { backend: tf.getBackend(), runs: [], cumsum: [] };
+try {   // which GPU the WebGL backend landed on
+  const gl = tf.backend().gpgpu?.gl, ext = gl?.getExtension("WEBGL_debug_renderer_info");
+  out.renderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER);
+  out.maxTexture = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
+} catch (e) { out.renderer = "unknown: " + e.message; }
+ctx.log("renderer " + out.renderer + ", max texture " + out.maxTexture);
 if (cfg.cumsumCheck) // Direct check of tf.cumsum on this backend against a JS reference (rows of length G, last axis).
 for (const G of [16, 32, 33, 64, 128, 256]) {
   const P = 1000, a = new Float32Array(P * G);
@@ -25,8 +32,8 @@ for (const [ri, run] of cfg.runs.entries()) {
   const r = await trainer.encode(tf, { rgba: ctx.inputs.rgba, width: cfg.W, height: cfg.H }, {
     ...run, onProgress: (p) => { trace.push([p.phase, p.step, +p.psnrSample.toFixed(2), +p.seconds.toFixed(1)]);
       ctx.progress((ri + p.step / p.totalSteps) / cfg.runs.length, `n=${run.n} ${p.phase}`); } });
-  out.runs.push({ cfg: run, seconds: r.seconds, points: r.points, trace, P: Array.from(r.P), bg: Array.from(r.bg),
-                  A: r.A, wgsl: trainer.emitWGSL(r) });
-  ctx.log(`n=${run.n}: ${r.seconds.toFixed(1)} s, ${JSON.stringify(r.points.map((p) => [p.n, +p.psnr.toFixed(2)]))}`);
+  let wgsl = null; try { wgsl = trainer.emitWGSL(r); } catch (e) { ctx.log("emit: " + e.message); }
+  out.runs.push({ cfg: run, seconds: r.seconds, points: r.points, trace, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A, wgsl });
+  ctx.log(`${run.tag || ""} n=${run.n}: ${r.seconds.toFixed(1)} s, respawned ${r.respawned}, ${JSON.stringify(r.points.map((p) => [p.n, +p.psnr.toFixed(2)]))}`);
 }
 return out;

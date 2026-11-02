@@ -23,11 +23,11 @@ p.on("pageerror", (e) => console.log("[err]", e.message));
 await p.goto(`http://127.0.0.1:${srv.address().port}/`);
 await p.waitForFunction(() => window.gpuDone, null, { timeout: 60000 });
 await p.evaluate(() => { window.__encodeOpts = { stepsStage: 20, stepsFinal: 40, stepsQat: 20, previewEvery: 10 }; });
-await p.click("button.own");
+await p.evaluate(() => document.querySelector("button.own").click());
 await p.setInputFiles("#file", image);
-await p.waitForFunction(() => !document.getElementById("go").disabled);
-await p.selectOption("#nsel", "64");
-await p.click("#go");
+await p.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 600000 });   // loads TF.js and times the GPU first
+await p.waitForFunction(() => document.getElementById("nsel").options.length > 0); console.log("menu:", await p.$$eval("#nsel option", (o) => o.map((x) => x.textContent + (x.selected ? " *" : "")))); await p.selectOption("#nsel", "64");
+await p.evaluate(() => document.getElementById("go").click());
 await p.waitForFunction(() => !document.getElementById("prev").hidden, null, { timeout: 600000 });
 await p.waitForTimeout(4000);
 await p.screenshot({ path: path.join(outdir, "enc_during.png") });

@@ -3,7 +3,15 @@ import { IMAGES } from "./shaders.js";
 
 const $ = (id) => document.getElementById(id);
 const T = 6;                 // the shader paints N * (t / T)^2 splats at time t > 0
-const MAXDIM = 512;          // uploaded images are fitted at most this many pixels on the longer side
+// Phones and tablets: 1,024 splats crashed an iPhone tab (memory), so they stop at 256 and train on the
+// smaller pixel budget. Other devices: up to 2,048 splats, twice the pixels per step and twice the steps,
+// which on an M5 Max took 1,024 splats from 25.5 to 26.3 dB (GPU bridge, 2026-11-02). Which counts are
+// offered also depends on a timed probe of this device's training step.
+const MOBILE = /iPhone|iPad|Android/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const PROFILE = MOBILE ? { maxN: 256, pixBudget: 2 ** 21, stepsScale: 1, maxDim: 512 }
+                       : { maxN: 2048, pixBudget: 2 ** 22, stepsScale: 2, maxDim: 768 };
+const MAXDIM = PROFILE.maxDim;   // uploaded images are fitted at most this many pixels on the longer side
+const TRAIN = { init: "structure", importance: 0.5, pixBudget: PROFILE.pixBudget, stepsScale: PROFILE.stepsScale };
 // TF.js trains on its WebGL backend. Its WebGPU backend computed wrong gradients past 32 splats per
 // chunk and crashed the iPhone tab when limited to 32 (GPU bridge, 2026-11-02).
 const TF_URLS = ["https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"];
@@ -129,7 +137,31 @@ addEventListener("resize",()=>draw(0));cv.onclick=()=>{t0=performance.now();step
 
 // ------------------------------------------------------------------ the encoder
 
-let tfReady = null, trainer = null, upload = null;
+let tfReady = null, trainer = null, upload = null, probed = null;
+
+// Fill the splat menu with the counts this device can train: up to PROFILE.maxN, each labelled with an
+// estimate from a timed probe of one training step; the default is the largest that fits in about a minute.
+async function sizeMenu() {
+  if (!probed) {
+    $("encstat").textContent = "Timing this GPU…";
+    const tf = await getTF();
+    trainer ??= await import("./trainer.js");
+    // a step costs a fixed overhead plus a part proportional to splats x pixels: two probes fit both
+    const small = await trainer.probe(tf, { n: 64, nPix: 1024 }), big = await trainer.probe(tf, { n: 256, nPix: 8192 });
+    const b = Math.max(0, (big - small) / (256 * 8192 - 64 * 1024)), a0 = Math.max(0, small - b * 64 * 1024);
+    probed = { a: a0, b, small, big, backend: tf.getBackend() };
+  }
+  const opts = [];
+  for (let n = 64; n <= PROFILE.maxN; n *= 2) {
+      const work = (k) => k * Math.min(8192, Math.max(1024, Math.floor(PROFILE.pixBudget / k)));
+    const sizes = trainer.checkpoints(n), sc = PROFILE.stepsScale, ms = (k) => probed.a + probed.b * work(k);
+    const sec = (sizes.slice(0, -1).reduce((acc, k) => acc + 100 * sc * ms(k), 0) + 450 * sc * ms(n)) / 1000 + 2;
+    if (sec <= 300 || n <= 256) opts.push([n, sec]);
+  }
+  const pick = opts.filter(([, s]) => s <= 75).pop() || opts[0];
+  const fmt = (s) => s < 90 ? `about ${Math.max(5, Math.round(s / 5) * 5)} s` : `about ${Math.round(s / 60)} min`;
+  $("nsel").replaceChildren(...opts.map(([n, s]) => { const o = document.createElement("option"); o.value = n; o.textContent = `${n} · ${fmt(s)}`; o.selected = n === pick[0]; return o; }));
+}
 
 function loadScript(src) {
   return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res;
@@ -139,6 +171,8 @@ function loadScript(src) {
 async function getTF() {
   tfReady ??= (async () => {
     for (const u of TF_URLS) await loadScript(u);
+    // shaders that take tensor shapes as uniforms: no recompiles as the splat list grows (2x faster on an M5 Max)
+    tf.env().set("WEBGL_USE_SHAPES_UNIFORMS", true);
     if (!(await tf.setBackend("webgl"))) throw new Error("TensorFlow.js could not start its WebGL backend");
     await tf.ready();
     return window.tf;
@@ -210,7 +244,7 @@ async function runEncode() {
     $("encstat").textContent = `Training on ${tf.getBackend()}…`;
     cancelAnimationFrame(anim); setView("shader");
     const r = await trainer.encode(tf, { rgba: upload.rgba, width: upload.W, height: upload.H }, {
-      n, ...(window.__encodeOpts || {}),         // tests shorten training through this
+      n, ...TRAIN, ...(window.__encodeOpts || {}),         // tests shorten training through this
       onProgress: (p) => {
         $("prog").value = p.step / p.totalSteps;
         $("encstat").textContent = `${p.phase} · step ${p.step} of ${p.totalSteps} · about ${p.psnrSample.toFixed(1)} dB · ${Math.round(p.seconds)} s`;
@@ -254,6 +288,7 @@ if (await init()) {
     if (!f) return;
     try {
       upload = await readUpload(f);
+      await sizeMenu();
       $("go").disabled = false;
       $("encstat").textContent = `${f.name}: ${upload.W}×${upload.H} after scaling. Press Encode.`;
     } catch (e) { $("encstat").textContent = "Could not read that image: " + (e?.message || e); }
