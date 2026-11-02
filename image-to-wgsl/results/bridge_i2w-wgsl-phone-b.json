@@ -1,0 +1,77 @@
+{
+ "id": "i2w-wgsl-phone-b",
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "adapter": "apple apple apple",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "status": "done",
+ "error": null,
+ "runMs": 45771,
+ "logs": [
+  "phone n=4096: 45.7 s, 1900 steps, overflows 1, [[16,18.89],[32,20.51],[64,22.12],[128,23.39],[256,24.55],[512,25.87],[1024,26.98],[2048,28.11],[4096,29.07]]"
+ ],
+ "probe": [],
+ "limits": {
+  "maxStorageBufferBindingSize": 1073741824,
+  "maxBufferSize": 1073741824
+ },
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 4096,
+    "tag": "phone"
+   },
+   "seconds": 45.74,
+   "steps": 1900,
+   "overflows": 1,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.893,
+     "psnr_torch": 18.893
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.512,
+     "psnr_torch": 20.512
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.116,
+     "psnr_torch": 22.116
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.391,
+     "psnr_torch": 23.391
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.55,
+     "psnr_torch": 24.55
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.866,
+     "psnr_torch": 25.866
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.978,
+     "psnr_torch": 26.978
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.108,
+     "psnr_torch": 28.108
+    },
+    {
+     "n": 4096,
+     "psnr_gpu": 29.068,
+     "psnr_torch": 29.068
+    }
+   ]
+  }
+ ]
+}

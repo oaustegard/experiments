@@ -46,6 +46,12 @@ a { color: var(--accent); }
 .enc button:disabled { opacity: .5; cursor: default; }
 .enc progress { width: 100%; accent-color: var(--accent); }
 .stage canvas.prev { image-rendering: auto; background: var(--card); }
+.stage { touch-action: none; cursor: zoom-in; }
+.stage.zoomed { cursor: grab; }
+.stage .zoom { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 4px; }
+.stage .zoom button { font: inherit; font-size: .85rem; min-width: 32px; height: 30px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; cursor: pointer; }
+.stage .zoom span { background: rgba(0,0,0,.6); color: #fff; font-size: .8rem; padding: 5px 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.stage .zoom span:empty { display: none; }
 .dl a { margin-right: 14px; }
 #views { display: contents; }
 </style>
@@ -62,7 +68,7 @@ a { color: var(--accent); }
       <select id="nsel"><option>64</option><option>128</option><option selected>256</option></select>
       <button id="go" disabled>Encode</button>
     </div>
-    <div class="note">Your image stays in this browser. It is scaled down (512 px on a phone, 768 px otherwise, on its longer side), then fitted on your GPU with TensorFlow.js; the picture above updates while it trains. The splat menu lists what this device can train, with a time estimate from a quick test of its GPU. Phones stop at 256 splats, since larger lists ran out of memory on an iPhone; computers go up to 2,048.</div>
+    <div class="note">Your image stays in this browser. It is scaled down (512 px on a phone, 768 px otherwise, on its longer side), then fitted on your GPU by WebGPU compute shaders in which each splat only touches the 16×16-pixel tiles it reaches; the picture above updates while it trains. The splat menu lists what this device can train, with a time estimate from a few timed training steps on your image. It offers up to 8,192 splats, which took about a minute on an iPhone and 4 seconds on an M5 Max laptop. The HTML download opens on the finished picture, with a button to paint it in and a slider over the measured splat counts.</div>
     <progress id="prog" max="1" value="0" hidden></progress>
     <div class="note" id="encstat"></div>
   </div>
@@ -71,6 +77,7 @@ a { color: var(--accent); }
     <canvas id="prev" class="prev" hidden></canvas>
     <img id="cmpimg" alt="" hidden>
     <span class="tag" id="tag">shader</span>
+    <div class="zoom"><span id="zlvl"></span><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit">Fit</button></div>
   </div>
   <div class="ctl">
     <div class="row">
@@ -82,8 +89,9 @@ a { color: var(--accent); }
       <button id="paint">Paint it in</button>
       <span id="views"></span>
     </div>
+    <div class="note">Scroll, pinch or use + and − to zoom in, and drag to look around; double-click or Fit to go back. The shader redraws its splats at every zoom, so edges stay smooth at any magnification. The original and the JPEG, WebP and AVIF files zoom with it and show their pixels.</div>
     <div class="note" id="cmpnote"></div>
-    <div class="note dl" id="dl" hidden><a id="dlw" download="image.wgsl" href="#">Download the shader (.wgsl)</a><a id="dlh" download="image-shader.html" href="#">Download a page that plays it (.html)</a></div>
+    <div class="note dl" id="dl" hidden><a id="dlw" download="image.wgsl" href="#">Download the shader (.wgsl)</a><a id="dlh" download="image-shader.html" href="#">Download a page that shows it (.html)</a></div>
   </div>
   <details>
     <summary>Shader source (minified)</summary>

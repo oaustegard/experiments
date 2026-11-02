@@ -360,14 +360,19 @@ export function emitWGSL(r, n = null, paintSeconds = 6) {
   // WebKit rejects const arrays over 2047 elements; past that, four words per vec4u element (codec.py "vec4u")
   const wide = words.length > 2047;
   if (wide) { const pad = new Uint32Array(Math.ceil(words.length / 4) * 4); pad.set(words); words = pad; }
-  if (words.length > 4 * 2047) throw new Error(`${words.length} words: too many splats for one shader`);
+  // past 2047 vec4u elements (about 4,295 splats) they go in several arrays, as in instanced.js
+  const parts = []; if (wide) for (let i = 0; i < words.length / 4; i += 2047) parts.push([i, Math.min(words.length / 4, i + 2047)]);
+  const vec = (a, b) => Array.from({ length: b - a }, (_, i) => `vec4u(${words.slice(4 * (a + i), 4 * (a + i) + 4).join(",")})`).join(",");
   const off = [0]; for (const b of B) off.push(off[off.length - 1] + b);
   const fld = (j) => `r(o+${off[j]}u,${B[j]}u)`;
   const bgv = (j) => `vec3f(r(${3 * j * LAYOUT.bbg}u,6u),r(${(3 * j + 1) * LAYOUT.bbg}u,6u),r(${(3 * j + 2) * LAYOUT.bbg}u,6u))`;
   const sig = (j) => `exp2(${fnum(LAYOUT.sLo)}+${fld(j)}*${fnum(SPAN)})`;
   return `@group(0)@binding(0)var<uniform>u:vec4f;const A=${fnum(A)};` +
     (wide
-      ? `const D=array<vec4u,${words.length / 4}>(${Array.from({ length: words.length / 4 }, (_, i) => `vec4u(${words.slice(4 * i, 4 * i + 4).join(",")})`).join(",")});fn dw(i:u32)->u32{return D[i>>2u][i&3u];}` +
+      ? (parts.length === 1
+          ? `const D=array<vec4u,${words.length / 4}>(${vec(0, words.length / 4)});fn dw(i:u32)->u32{return D[i>>2u][i&3u];}`
+          : parts.map(([a, b], k) => `const D${k}=array<vec4u,${b - a}>(${vec(a, b)});`).join("") + `fn dw(i:u32)->u32{let j=i>>2u;let c=i&3u;` +
+            parts.slice(0, -1).map(([a, b], k) => `if(j<${b}u){return D${k}[j-${a}u][c];}`).join("") + `return D${parts.length - 1}[j-${parts[parts.length - 1][0]}u][c];}`) +
         `fn r(o:u32,n:u32)->f32{let w=o>>5u;let s=o&31u;var v=dw(w)>>s;if(s+n>32u){v|=dw(w+1u)<<(32u-s);}return f32(v&((1u<<n)-1u));}`
       : `const D=array<u32,${words.length}>(${Array.from(words).join(",")});` +
         `fn r(o:u32,n:u32)->f32{let w=o>>5u;let s=o&31u;var v=D[w]>>s;if(s+n>32u){v|=D[w+1u]<<(32u-s);}return f32(v&((1u<<n)-1u));}`) +

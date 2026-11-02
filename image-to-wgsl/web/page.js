@@ -1,19 +1,24 @@
 // Gallery viewer plus the in-browser encoder ("Your image").
 import { IMAGES } from "./shaders.js";
 import { emitInstanced, createRenderer } from "./instanced.js";
-import { gzipSize } from "./trainer.js";
+import { gzipSize, emitWGSL, checkpoints } from "./trainer.js";
+import { encodeGPU, probeGPU } from "./gputrain.js";
 
 const $ = (id) => document.getElementById(id);
 const T = 6;                 // the shader paints N * (t / T)^2 splats at time t > 0
-// Phones and tablets: 1,024 splats crashed an iPhone tab (memory), so they stop at 256 and train on the
-// smaller pixel budget. Other devices: up to 2,048 splats, twice the pixels per step and twice the steps,
-// which on an M5 Max took 1,024 splats from 25.5 to 26.3 dB (GPU bridge, 2026-11-02). Which counts are
-// offered also depends on a timed probe of this device's training step.
+// Training runs in WebGPU compute shaders (gputrain.js): every pixel every step, each pixel meeting only
+// the splats that reach its 16x16 tile. On an M5 Max that fitted 2,048 splats of a 484x512 image to 28.1 dB
+// in 2.3 s, where TF.js took 63 s for 26.8 dB. 8,192 splats reached 30.1 dB in 4.1 s there and 30.2 dB in
+// 61 s on an iPhone (GPU bridge, 2026-11-02). TF.js on WebGL is the fallback: add ?tf to the URL, or it
+// takes over if the WebGPU trainer fails. Under TF.js, phones stop at 256 splats (1,024 crashed an iPhone
+// tab) and other devices at 2,048. Which counts are offered also depends on timed steps on this device.
 const MOBILE = /iPhone|iPad|Android/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-const PROFILE = MOBILE ? { maxN: 256, pixBudget: 2 ** 21, stepsScale: 1, maxDim: 512 }
-                       : { maxN: 2048, pixBudget: 2 ** 22, stepsScale: 2, maxDim: 768 };
-const MAXDIM = PROFILE.maxDim;   // uploaded images are fitted at most this many pixels on the longer side
-const TRAIN = { init: "structure", importance: 0.5, pixBudget: PROFILE.pixBudget, stepsScale: PROFILE.stepsScale };
+const FORCE_TF = new URLSearchParams(location.search).has("tf");
+const GPU_MAXN = 8192;
+const TF_PROFILE = MOBILE ? { maxN: 256, pixBudget: 2 ** 21, stepsScale: 1 } : { maxN: 2048, pixBudget: 2 ** 22, stepsScale: 2 };
+const MAXDIM = MOBILE ? 512 : 768;   // uploaded images are fitted at most this many pixels on the longer side
+const TRAIN_TF = { init: "structure", importance: 0.5, pixBudget: TF_PROFILE.pixBudget, stepsScale: TF_PROFILE.stepsScale };
+const GPU_STEPS = { stepsStage: 150, stepsFinal: 500, stepsQat: 200 };   // 3x or 8x as many changed 2,048 splats by under 0.15 dB
 // TF.js trains on its WebGL backend. Its WebGPU backend computed wrong gradients past 32 splats per
 // chunk and crashed the iPhone tab when limited to 32 (GPU bridge, 2026-11-02).
 const TF_URLS = ["https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"];
@@ -26,7 +31,9 @@ async function init() {
   const ad = await navigator.gpu?.requestAdapter();
   if (!ad) { $("stage").innerHTML = '<p class="err" style="padding:16px">WebGPU is not available in this browser, so the shaders cannot run. A recent Chrome, Edge or Safari has it.</p>'; return false; }
   // float32 blending makes the instanced renderer's painting exact; without it, it blends in float16
-  dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
+  // the trainer keeps a snapshot of the image per prefix: allow storage buffers as large as the adapter does
+  dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [],
+    requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
   ctx = $("cv").getContext("webgpu");
   fmt = navigator.gpu.getPreferredCanvasFormat();
   ctx.configure({ device: dev, format: fmt, alphaMode: "premultiplied" });
@@ -40,7 +47,7 @@ function load(entry) {
   cur = entry;
   // Draw with the instanced renderer (one quad per splat, instanced.js) when the entry carries its splats;
   // the per-pixel shader is the file whose size is measured, and the fallback.
-  rend = null;
+  rend?.destroy(); rend = null;
   if (entry.P) {
     entry.inst ??= emitInstanced({ P: Int32Array.from(entry.P), bg: Int32Array.from(entry.bg), A: entry.A, n: entry.n });
     rend = createRenderer(dev, fmt, entry.inst);
@@ -69,8 +76,67 @@ function load(entry) {
     $("dlw").href = URL.createObjectURL(new Blob([entry.wgsl], { type: "text/plain" }));
     $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
   }
+  cam.z = 1; cam.x = cam.y = 0.5; applyCam();
   setView(views.includes(view) ? view : "shader");
   draw(timeFor(ks[$("k").value]));
+}
+
+// ------------------------------------------------------------------ zoom and pan
+// The camera zooms by z about image point (x, y), given as fractions of the image's width and height. The
+// instanced renderer redraws the splats at that scale; comparison images get the same view as a CSS
+// transform, with pixelated scaling so their pixels show.
+const cam = { z: 1, x: 0.5, y: 0.5 }, ZMAX = 64;
+let painting = false, redrawPending = false;
+function camGeom() { const st = $("stage"), A = cur.A ?? cur.W / cur.H; return { A, Sw: st.clientWidth, Sh: st.clientHeight, k: Math.min(st.clientWidth / A, st.clientHeight) * cam.z }; }
+function clampCam() {
+  cam.z = Math.min(ZMAX, Math.max(1, cam.z));
+  const m = 0.5 / cam.z;   // keep the view over the image
+  cam.x = Math.min(1 - m, Math.max(m, cam.x)); cam.y = Math.min(1 - m, Math.max(m, cam.y));
+}
+function applyCam() {
+  const img = $("cmpimg"), { A, k } = camGeom(), k1 = k / cam.z;
+  img.style.transform = cam.z === 1 ? "" : `scale(${cam.z}) translate(${(0.5 - cam.x) * A * k1}px, ${(0.5 - cam.y) * k1}px)`;
+  img.style.imageRendering = cam.z > 1 ? "pixelated" : "";
+  $("zlvl").textContent = cam.z === 1 ? "" : `${cam.z < 9.95 ? cam.z.toFixed(1) : Math.round(cam.z)}×`;
+  $("stage").classList.toggle("zoomed", cam.z > 1);
+}
+function redraw() {
+  applyCam();
+  if (painting || redrawPending) return;   // a running paint-in draws every frame anyway
+  redrawPending = true;
+  requestAnimationFrame(() => { redrawPending = false; if (pv) drawPreview(); else draw(timeFor(ks[$("k").value])); });
+}
+function zoomAt(mx, my, f) {           // keep the image point under (mx, my) in place
+  let g = camGeom();
+  const qx = cam.x * g.A + (mx - g.Sw / 2) / g.k, qy = cam.y + (my - g.Sh / 2) / g.k;
+  cam.z = Math.min(ZMAX, Math.max(1, cam.z * f)); g = camGeom();
+  cam.x = (qx - (mx - g.Sw / 2) / g.k) / g.A; cam.y = qy - (my - g.Sh / 2) / g.k;
+  clampCam(); redraw();
+}
+function panBy(dx, dy) { const g = camGeom(); cam.x -= dx / g.k / g.A; cam.y -= dy / g.k; clampCam(); redraw(); }
+function resetCam() { cam.z = 1; cam.x = cam.y = 0.5; redraw(); }
+function initZoom() {
+  const st = $("stage"), pts = new Map();
+  const at = (e) => { const r = st.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  st.addEventListener("wheel", (e) => { e.preventDefault(); const [x, y] = at(e); zoomAt(x, y, Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.002))); }, { passive: false });
+  st.addEventListener("pointerdown", (e) => { if (e.target.closest("button")) return; st.setPointerCapture(e.pointerId); pts.set(e.pointerId, at(e)); });
+  st.addEventListener("pointermove", (e) => {
+    const prev = pts.get(e.pointerId); if (!prev) return;
+    const p = at(e);
+    if (pts.size === 1) panBy(p[0] - prev[0], p[1] - prev[1]);
+    else {                             // two fingers: pan with the midpoint, zoom with the spread
+      const o = [...pts].find(([id]) => id !== e.pointerId)[1];
+      const d0 = Math.hypot(prev[0] - o[0], prev[1] - o[1]), d1 = Math.hypot(p[0] - o[0], p[1] - o[1]);
+      panBy((p[0] - prev[0]) / 2, (p[1] - prev[1]) / 2);
+      if (d0 > 0) zoomAt((p[0] + o[0]) / 2, (p[1] + o[1]) / 2, d1 / d0);
+    }
+    pts.set(e.pointerId, p);
+  });
+  for (const ev of ["pointerup", "pointercancel"]) st.addEventListener(ev, (e) => pts.delete(e.pointerId));
+  st.addEventListener("dblclick", (e) => { if (!e.target.closest("button")) resetCam(); });
+  $("zin").onclick = () => zoomAt(st.clientWidth / 2, st.clientHeight / 2, 2);
+  $("zout").onclick = () => zoomAt(st.clientWidth / 2, st.clientHeight / 2, 0.5);
+  $("zfit").onclick = resetCam;
 }
 
 function note(entry) {
@@ -88,7 +154,7 @@ function draw(t) {
   const cv = $("cv");
   const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  if (rend) { rend.draw(ctx.getCurrentTexture().createView(), w, h, nAt(t)); readout(t); return; }
+  if (rend) { rend.draw(ctx.getCurrentTexture().createView(), w, h, nAt(t), cam); readout(t); return; }
   dev.queue.writeBuffer(ub, 0, new Float32Array([w, h, t, 0]));
   const enc = dev.createCommandEncoder();
   const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [1, 1, 1, 1] }] });
@@ -114,13 +180,16 @@ function setView(v) {
   $("tag").textContent = v === "orig" ? "original" : `${v.toUpperCase()} ${cur.cmp[v].bytes.toLocaleString()} B`;
 }
 
+function stopPaint() { cancelAnimationFrame(anim); painting = false; }
+
 function paint() {
-  cancelAnimationFrame(anim);
+  stopPaint();
   setView("shader");
   const t0 = performance.now();
+  painting = true;
   const step = () => {
     const t = (performance.now() - t0) / 1000;
-    if (t >= T) { $("k").value = ks.length - 1; draw(0); return; }
+    if (t >= T) { painting = false; $("k").value = ks.length - 1; draw(0); return; }
     draw(Math.max(t, 1e-3));
     anim = requestAnimationFrame(step);
   };
@@ -134,68 +203,101 @@ function addButton(e, own = false) {
     b.textContent = e.id; b.dataset.id = e.id;
     $("picker").insertBefore(b, $("picker").querySelector(".own"));
   }
-  b.onclick = () => { cancelAnimationFrame(anim); $("enc").hidden = !own; load(e); };
+  b.onclick = () => { stopPaint(); $("enc").hidden = !own; load(e); };
 }
 
 // ------------------------------------------------------------------ standalone page for downloads
 
+// Opens on the finished image. "Paint it in" replays the painting; the slider steps through the measured
+// prefixes (16, 32, ... splats) with their bytes and PSNR from the encoder. Scroll or pinch zooms and drag
+// pans, redrawing the splats at each scale. Shader only: no source image or comparisons.
 function standalone(entry) {
-  if (!entry.P) return standalonePerPixel(entry.wgsl);
+  const pts = entry.points.map((p) => [p.n, p.bytes, p.psnr]);
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image as a shader</title>
-<style>html,body{margin:0;height:100%;background:#fff}canvas{width:100%;height:100%;display:block}</style><canvas></canvas><script type="module">
-const code=${JSON.stringify(entry.inst)},N=${entry.n};const cv=document.querySelector("canvas");const ad=await navigator.gpu?.requestAdapter();
+<style>html,body{margin:0;height:100%;background:#fff;color:#222;font:14px/1.4 system-ui,sans-serif}body{display:flex;flex-direction:column}
+canvas{flex:1;min-height:0;width:100%;display:block;touch-action:none;cursor:zoom-in}.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;border-top:1px solid #ddd}
+.bar input{flex:1;min-width:140px}.bar button{font:inherit;padding:6px 12px}#ro,#zl{font-variant-numeric:tabular-nums}.near,.hint{color:#777}</style>
+<canvas title="Scroll or pinch to zoom, drag to pan, double-click to fit"></canvas><div class="bar"><button id="go">Paint it in</button><input id="k" type="range" min="0" step="1" aria-label="Splats drawn"><span id="ro"></span>
+<span class="hint">Scroll or pinch to zoom; drag to pan.</span><span id="zl"></span><button id="fit">Fit</button></div>
+<script type="module">
+const code=${JSON.stringify(entry.inst)},N=${entry.n},A=${entry.A},PTS=${JSON.stringify(pts)},T=6;
+const $=(id)=>document.getElementById(id),cv=document.querySelector("canvas"),k=$("k"),ro=$("ro"),zl=$("zl"),ad=await navigator.gpu?.requestAdapter();
 if(!ad){document.body.textContent="WebGPU is not available in this browser.";throw 0;}
 const dev=await ad.requestDevice({requiredFeatures:ad.features.has("float32-blendable")?["float32-blendable"]:[]}),ctx=cv.getContext("webgpu"),fmt=navigator.gpu.getPreferredCanvasFormat();ctx.configure({device:dev,format:fmt,alphaMode:"premultiplied"});
 ${createRenderer.toString()}
-const rd=createRenderer(dev,fmt,code);let t0=performance.now();
-const draw=(t)=>{const w=cv.width=Math.round(cv.clientWidth*devicePixelRatio),h=cv.height=Math.round(cv.clientHeight*devicePixelRatio);rd.draw(ctx.getCurrentTexture().createView(),w,h,t<=0?N:Math.min(N,Math.floor(N*Math.min(1,t*t/36))));};
-const step=()=>{const t=(performance.now()-t0)/1000;if(t>=6){draw(0);return;}draw(Math.max(t,1e-3));requestAnimationFrame(step);};step();
-addEventListener("resize",()=>draw(0));cv.onclick=()=>{t0=performance.now();step();};
-</script>`;
-}
-
-function standalonePerPixel(wgsl) {
-  return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image as a shader</title>
-<style>html,body{margin:0;height:100%;background:#fff}canvas{width:100%;height:100%;display:block}</style><canvas></canvas><script type="module">
-const code=${JSON.stringify(wgsl)};const cv=document.querySelector("canvas");const ad=await navigator.gpu?.requestAdapter();
-if(!ad){document.body.textContent="WebGPU is not available in this browser.";throw 0;}
-const dev=await ad.requestDevice(),ctx=cv.getContext("webgpu"),fmt=navigator.gpu.getPreferredCanvasFormat();ctx.configure({device:dev,format:fmt,alphaMode:"premultiplied"});
-const mod=dev.createShaderModule({code});const pipe=dev.createRenderPipeline({layout:"auto",vertex:{module:mod,entryPoint:"vs"},fragment:{module:mod,entryPoint:"fs",targets:[{format:fmt}]}});
-const ub=dev.createBuffer({size:16,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});const bg=dev.createBindGroup({layout:pipe.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:ub}}]});
-let t0=performance.now();const draw=(t)=>{const w=cv.width=cv.clientWidth*devicePixelRatio,h=cv.height=cv.clientHeight*devicePixelRatio;dev.queue.writeBuffer(ub,0,new Float32Array([w,h,t,0]));
-const e=dev.createCommandEncoder(),p=e.beginRenderPass({colorAttachments:[{view:ctx.getCurrentTexture().createView(),loadOp:"clear",storeOp:"store",clearValue:[1,1,1,1]}]});
-p.setPipeline(pipe);p.setBindGroup(0,bg);p.draw(3);p.end();dev.queue.submit([e.finish()]);};
-const step=()=>{const t=(performance.now()-t0)/1000;if(t>=6){draw(0);return;}draw(Math.max(t,1e-3));requestAnimationFrame(step);};step();
-addEventListener("resize",()=>draw(0));cv.onclick=()=>{t0=performance.now();step();};
+const rd=createRenderer(dev,fmt,code),cam={z:1,x:.5,y:.5};let cur=N,anim=0,painting=false,pend=false;k.max=PTS.length-1;k.value=PTS.length-1;
+const show=(n)=>{cur=n;const w=Math.max(1,Math.round(cv.clientWidth*devicePixelRatio)),h=Math.max(1,Math.round(cv.clientHeight*devicePixelRatio));
+if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}rd.draw(ctx.getCurrentTexture().createView(),w,h,n,cam);
+const i=Math.max(0,PTS.findLastIndex((q)=>q[0]<=n)),p=PTS[i];k.value=i;
+ro.innerHTML="<b>"+n.toLocaleString()+"</b> splats · <b>"+p[1].toLocaleString()+"</b> bytes · <b>"+p[2]+"</b> dB"+(n===p[0]?"":' <span class="near">(nearest measured: '+p[0]+")</span>");};
+const stop=()=>{cancelAnimationFrame(anim);painting=false;};
+k.oninput=()=>{stop();show(PTS[k.value][0]);};
+$("go").onclick=()=>{stop();painting=true;const t0=performance.now();
+const step=()=>{const t=(performance.now()-t0)/1000;if(t>=T){painting=false;show(N);return;}show(Math.min(N,Math.floor(N*t*t/(T*T))));anim=requestAnimationFrame(step);};step();};
+const geo=()=>({Sw:cv.clientWidth,Sh:cv.clientHeight,k:Math.min(cv.clientWidth/A,cv.clientHeight)*cam.z});
+const clamp=()=>{cam.z=Math.min(64,Math.max(1,cam.z));const m=.5/cam.z;cam.x=Math.min(1-m,Math.max(m,cam.x));cam.y=Math.min(1-m,Math.max(m,cam.y));
+zl.textContent=cam.z===1?"":(cam.z<9.95?cam.z.toFixed(1):Math.round(cam.z))+"×";cv.style.cursor=cam.z>1?"grab":"zoom-in";};
+const redraw=()=>{if(painting||pend)return;pend=true;requestAnimationFrame(()=>{pend=false;show(cur);});};
+const zoomAt=(mx,my,f)=>{let g=geo();const qx=cam.x*A+(mx-g.Sw/2)/g.k,qy=cam.y+(my-g.Sh/2)/g.k;cam.z=Math.min(64,Math.max(1,cam.z*f));g=geo();
+cam.x=(qx-(mx-g.Sw/2)/g.k)/A;cam.y=qy-(my-g.Sh/2)/g.k;clamp();redraw();};
+const panBy=(dx,dy)=>{const g=geo();cam.x-=dx/g.k/A;cam.y-=dy/g.k;clamp();redraw();};
+const at=(e)=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];},pts=new Map();
+cv.addEventListener("wheel",(e)=>{e.preventDefault();const[x,y]=at(e);zoomAt(x,y,Math.exp(-e.deltaY*(e.deltaMode===1?.05:.002)));},{passive:false});
+cv.onpointerdown=(e)=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,at(e));};
+cv.onpointermove=(e)=>{const pr=pts.get(e.pointerId);if(!pr)return;const p=at(e);if(pts.size===1)panBy(p[0]-pr[0],p[1]-pr[1]);
+else{const o=[...pts].find(([i])=>i!==e.pointerId)[1],d0=Math.hypot(pr[0]-o[0],pr[1]-o[1]),d1=Math.hypot(p[0]-o[0],p[1]-o[1]);panBy((p[0]-pr[0])/2,(p[1]-pr[1])/2);if(d0>0)zoomAt((p[0]+o[0])/2,(p[1]+o[1])/2,d1/d0);}pts.set(e.pointerId,p);};
+cv.onpointerup=cv.onpointercancel=(e)=>pts.delete(e.pointerId);
+const fit=()=>{cam.z=1;cam.x=cam.y=.5;clamp();redraw();};cv.ondblclick=fit;$("fit").onclick=fit;
+addEventListener("resize",redraw);show(N);
 </script>`;
 }
 
 // ------------------------------------------------------------------ the encoder
 
-let tfReady = null, trainer = null, upload = null, probed = null;
+let tfReady = null, trainer = null, upload = null, probed = null, tfProbe = null;
 
-// Fill the splat menu with the counts this device can train: up to PROFILE.maxN, each labelled with an
-// estimate from a timed probe of one training step; the default is the largest that fits in about a minute.
+// Fill the splat menu with the counts this device can train, each labelled with an estimate from timed
+// training steps; the default is the largest that fits in about 30 s (WebGPU) or a minute (TF.js).
+// The WebGPU probe runs on the uploaded image, since a step's cost follows its pixel count.
 async function sizeMenu() {
-  if (!probed) {
+  probed = null;
+  const opts = [];
+  if (!FORCE_TF) {
     $("encstat").textContent = "Timing this GPU…";
+    try {
+      const img = { rgba: upload.rgba, width: upload.W, height: upload.H };
+      const lo = await probeGPU(dev, img, { n: 256 }), hi = await probeGPU(dev, img, { n: 2048 });
+      // a step costs a fixed part plus a part proportional to splats
+      const b = Math.max(0, (hi - lo) / (2048 - 256)), a = Math.max(0.05, lo - 256 * b), ms = (k) => a + b * k;
+      probed = { gpu: true, a, b };
+      for (let n = 64; n <= GPU_MAXN; n *= 2) {
+        const sizes = checkpoints(n);
+        const sec = (sizes.slice(0, -1).reduce((acc, k) => acc + GPU_STEPS.stepsStage * ms(k), 0) + (GPU_STEPS.stepsFinal + GPU_STEPS.stepsQat) * ms(n)) / 1000 + 1 + 0.1 * sizes.length;
+        if (sec <= 300 || n <= 256) opts.push([n, sec]);
+      }
+    } catch (e) { console.log("WebGPU trainer probe failed; using TF.js", e?.stack || e); probed = null; opts.length = 0; }
+  }
+  if (!probed) {
+    $("encstat").textContent = "Loading TensorFlow.js and timing this GPU…";
     const tf = await getTF();
     trainer ??= await import("./trainer.js");
-    // a step costs a fixed overhead plus a part proportional to splats x pixels: two probes fit both
-    const small = await trainer.probe(tf, { n: 64, nPix: 1024 }), big = await trainer.probe(tf, { n: 256, nPix: 8192 });
-    const b = Math.max(0, (big - small) / (256 * 8192 - 64 * 1024)), a0 = Math.max(0, small - b * 64 * 1024);
-    probed = { a: a0, b, small, big, backend: tf.getBackend() };
+    if (!tfProbe) {
+      // a step costs a fixed overhead plus a part proportional to splats x pixels: two probes fit both
+      const small = await trainer.probe(tf, { n: 64, nPix: 1024 }), big = await trainer.probe(tf, { n: 256, nPix: 8192 });
+      const b = Math.max(0, (big - small) / (256 * 8192 - 64 * 1024)), a0 = Math.max(0, small - b * 64 * 1024);
+      tfProbe = { gpu: false, a: a0, b, small, big, backend: tf.getBackend() };
+    }
+    probed = tfProbe;
+    for (let n = 64; n <= TF_PROFILE.maxN; n *= 2) {
+      const work = (k) => k * Math.min(8192, Math.max(1024, Math.floor(TF_PROFILE.pixBudget / k)));
+      const sizes = checkpoints(n), sc = TF_PROFILE.stepsScale, ms = (k) => probed.a + probed.b * work(k);
+      const sec = (sizes.slice(0, -1).reduce((acc, k) => acc + 100 * sc * ms(k), 0) + 450 * sc * ms(n)) / 1000 + 2;
+      if (sec <= 300 || n <= 256) opts.push([n, sec]);
+    }
   }
-  const opts = [];
-  for (let n = 64; n <= PROFILE.maxN; n *= 2) {
-      const work = (k) => k * Math.min(8192, Math.max(1024, Math.floor(PROFILE.pixBudget / k)));
-    const sizes = trainer.checkpoints(n), sc = PROFILE.stepsScale, ms = (k) => probed.a + probed.b * work(k);
-    const sec = (sizes.slice(0, -1).reduce((acc, k) => acc + 100 * sc * ms(k), 0) + 450 * sc * ms(n)) / 1000 + 2;
-    if (sec <= 300 || n <= 256) opts.push([n, sec]);
-  }
-  const pick = opts.filter(([, s]) => s <= 75).pop() || opts[0];
+  const pick = opts.filter(([, s]) => s <= (probed.gpu ? 30 : 75)).pop() || opts[0];
   const fmt = (s) => s < 90 ? `about ${Math.max(5, Math.round(s / 5) * 5)} s` : `about ${Math.round(s / 60)} min`;
-  $("nsel").replaceChildren(...opts.map(([n, s]) => { const o = document.createElement("option"); o.value = n; o.textContent = `${n} · ${fmt(s)}`; o.selected = n === pick[0]; return o; }));
+  $("nsel").replaceChildren(...opts.map(([n, s]) => { const o = document.createElement("option"); o.value = n; o.textContent = `${n.toLocaleString()} · ${fmt(s)}`; o.selected = n === pick[0]; return o; }));
 }
 
 function loadScript(src) {
@@ -268,37 +370,64 @@ function showPreview({ rgb, width, height }) {
   c.hidden = false;
 }
 
+// Live preview for the WebGPU trainer: its splats so far, drawn on the main canvas by the instanced
+// renderer. A preview compiles a shader, so they come at most every 0.7 s.
+let lastPreview = 0, pv = null;
+function previewSplats(p) {
+  if (performance.now() - lastPreview < 700) return;
+  pv?.r.destroy();
+  pv = { r: createRenderer(dev, fmt, emitInstanced(p)), n: p.n };
+  drawPreview();
+  lastPreview = performance.now();
+}
+function drawPreview() {
+  const cv = $("cv"), w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  pv.r.draw(ctx.getCurrentTexture().createView(), w, h, pv.n, cam);
+}
+function endPreview() { pv?.r.destroy(); pv = null; }
+
 async function runEncode() {
-  const n = +$("nsel").value;
+  let n = +$("nsel").value;
   $("go").disabled = $("file").disabled = $("nsel").disabled = true;
   $("prog").hidden = false; $("prog").value = 0;
+  const img = { rgba: upload.rgba, width: upload.W, height: upload.H }, extra = window.__encodeOpts || {};   // tests shorten training through __encodeOpts
+  const onProgress = (p) => {
+    $("prog").value = p.step / p.totalSteps;
+    $("encstat").textContent = `${p.phase} · step ${p.step} of ${p.totalSteps} · about ${p.psnrSample.toFixed(1)} dB · ${Math.round(p.seconds)} s`;
+  };
   try {
-    $("encstat").textContent = "Loading TensorFlow.js…";
-    const tf = await getTF();
-    trainer ??= await import("./trainer.js");
-    $("encstat").textContent = `Training on ${tf.getBackend()}…`;
-    cancelAnimationFrame(anim); setView("shader");
-    const r = await trainer.encode(tf, { rgba: upload.rgba, width: upload.W, height: upload.H }, {
-      n, ...TRAIN, ...(window.__encodeOpts || {}),         // tests shorten training through this
-      onProgress: (p) => {
-        $("prog").value = p.step / p.totalSteps;
-        $("encstat").textContent = `${p.phase} · step ${p.step} of ${p.totalSteps} · about ${p.psnrSample.toFixed(1)} dB · ${Math.round(p.seconds)} s`;
-      },
-      onPreview: showPreview,
-    });
+    stopPaint(); setView("shader");
+    let r = null, fellBack = "";
+    if (probed?.gpu) {
+      $("encstat").textContent = "Training on WebGPU…";
+      lastPreview = 0;
+      try { r = await encodeGPU(dev, img, { n, ...GPU_STEPS, ...extra, onProgress, onPreview: previewSplats }); }
+      catch (e) { console.log("WebGPU trainer failed; falling back to TF.js", e?.stack || e); fellBack = ` (the WebGPU trainer failed: ${e?.message || e})`; }
+    }
+    if (!r) {
+      $("encstat").textContent = "Loading TensorFlow.js…" + fellBack;
+      const tf = await getTF();
+      trainer ??= await import("./trainer.js");
+      n = Math.min(n, TF_PROFILE.maxN);
+      $("encstat").textContent = `Training on ${tf.getBackend()}…`;
+      r = await trainer.encode(tf, img, { n, ...TRAIN_TF, ...extra, onProgress, onPreview: showPreview });
+    }
+    endPreview();
     $("encstat").textContent = "Measuring the shader and the JPEG/WebP files of the same size…";
-    const wgsl = trainer.emitWGSL(r);
+    const wgsl = emitWGSL(r);
     const points = [];
-    for (const p of r.points) points.push({ n: p.n, bytes: await trainer.gzipSize(trainer.emitWGSL(r, p.n)), psnr: +p.psnr.toFixed(2) });
+    for (const p of r.points) points.push({ n: p.n, bytes: await gzipSize(emitWGSL(r, p.n)), psnr: +p.psnr.toFixed(2) });
     const budget = points[points.length - 1].bytes, cmp = {}, src = { orig: upload.png };
     for (const [k, type] of [["jpeg", "image/jpeg"], ["webp", "image/webp"]]) {
       const b = await bestUnder(upload, type, budget);
       if (b) { src[k] = b.url; cmp[k] = { psnr: b.psnr, bytes: b.bytes, scale: b.scale }; }
     }
     const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A };
-    window.__encodeResult = { ...entry, seconds: r.seconds, backend: r.backend, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A };
+    window.__encodeResult = { ...entry, seconds: r.seconds, backend: r.backend };
     $("prev").hidden = true;
-    $("encstat").textContent = `Done in ${Math.round(r.seconds)} s on ${r.backend}: ${points[points.length - 1].bytes.toLocaleString()} bytes, ${points[points.length - 1].psnr} dB at ${upload.W}×${upload.H}.`;
+    const on = r.backend === "webgpu-tiles" ? "WebGPU" : `TensorFlow.js (${r.backend})`;
+    $("encstat").textContent = `Done in ${r.seconds < 10 ? r.seconds.toFixed(1) : Math.round(r.seconds)} s on ${on}${fellBack}: ${n.toLocaleString()} splats, ${points[points.length - 1].bytes.toLocaleString()} bytes, ${points[points.length - 1].psnr} dB at ${upload.W}×${upload.H}.`;
     addButton(entry, true);
     load(entry);
     paint();
@@ -306,6 +435,8 @@ async function runEncode() {
     $("encstat").textContent = "Encoding failed: " + (e?.message || e);
     console.log("encode error", e?.stack || e);
     $("prev").hidden = true;
+    endPreview();
+    if (cur) draw(timeFor(ks[$("k").value]));   // repaint what the canvas showed before the previews
   } finally {
     $("prog").hidden = true;
     $("go").disabled = !upload; $("file").disabled = $("nsel").disabled = false;
@@ -329,9 +460,10 @@ if (await init()) {
     } catch (e) { $("encstat").textContent = "Could not read that image: " + (e?.message || e); }
   };
   $("go").onclick = runEncode;
-  $("k").oninput = () => { cancelAnimationFrame(anim); setView("shader"); draw(timeFor(ks[$("k").value])); };
+  $("k").oninput = () => { stopPaint(); setView("shader"); draw(timeFor(ks[$("k").value])); };
   $("paint").onclick = paint;
-  addEventListener("resize", () => { if (view === "shader") draw(timeFor(ks[$("k").value])); });
+  addEventListener("resize", redraw);
+  initZoom();
   load(IMAGES[0]);
   paint();
 }

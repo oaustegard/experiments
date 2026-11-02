@@ -1,0 +1,167 @@
+{
+ "id": "i2w-wgsl-phone-a",
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "adapter": "apple apple apple",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "status": "done",
+ "error": null,
+ "runMs": 76583,
+ "logs": [
+  "probe n=256: 14.70 ms/step",
+  "probe n=2048: 23.50 ms/step",
+  "phone n=256: 14.6 s, 1300 steps, overflows 0, [[16,18.91],[32,20.37],[64,22.15],[128,23.42],[256,24.61]]",
+  "phone n=1024: 26.2 s, 1600 steps, overflows 1, [[16,18.78],[32,20.41],[64,22.17],[128,23.4],[256,24.65],[512,25.91],[1024,27]]",
+  "phone n=2048: 34.3 s, 1750 steps, overflows 2, [[16,18.73],[32,20.3],[64,22.12],[128,23.32],[256,24.54],[512,25.79],[1024,26.94],[2048,27.95]]"
+ ],
+ "probe": [
+  {
+   "n": 256,
+   "ms": 14.7
+  },
+  {
+   "n": 2048,
+   "ms": 23.5
+  }
+ ],
+ "limits": {
+  "maxStorageBufferBindingSize": 1073741824,
+  "maxBufferSize": 1073741824
+ },
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 256,
+    "tag": "phone"
+   },
+   "seconds": 14.56,
+   "steps": 1300,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.911,
+     "psnr_torch": 18.911
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.374,
+     "psnr_torch": 20.374
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.148,
+     "psnr_torch": 22.148
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.423,
+     "psnr_torch": 23.423
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.609,
+     "psnr_torch": 24.609
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 1024,
+    "tag": "phone"
+   },
+   "seconds": 26.15,
+   "steps": 1600,
+   "overflows": 1,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.778,
+     "psnr_torch": 18.778
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.405,
+     "psnr_torch": 20.405
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.168,
+     "psnr_torch": 22.168
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.398,
+     "psnr_torch": 23.398
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.646,
+     "psnr_torch": 24.646
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.905,
+     "psnr_torch": 25.905
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 27.001,
+     "psnr_torch": 27.001
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 2048,
+    "tag": "phone"
+   },
+   "seconds": 34.25,
+   "steps": 1750,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.735,
+     "psnr_torch": 18.735
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.303,
+     "psnr_torch": 20.303
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.117,
+     "psnr_torch": 22.117
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.322,
+     "psnr_torch": 23.321
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.541,
+     "psnr_torch": 24.541
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.793,
+     "psnr_torch": 25.793
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.935,
+     "psnr_torch": 26.935
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 27.946,
+     "psnr_torch": 27.946
+    }
+   ]
+  }
+ ]
+}
