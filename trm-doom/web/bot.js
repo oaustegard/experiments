@@ -7,7 +7,7 @@
 // walk it. When the set doesn't join start to goal, that's a TRM failure: the bot counts it and heads
 // for the reachable cell of the set nearest the goal.
 
-import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261031-015405";
+import { makeGridder, mapVerts, C, N, FINE, COARSE, KEY_THINGS, hasKey, passable, HURT, shortestUnion } from "./grid.js?v=20261102-224453";
 
 const ANGLE = 2 * Math.PI / 4294967296;
 const HEALTH = { 2011: 10, 2012: 25, 2013: 100, 2014: 1 };
@@ -296,8 +296,9 @@ export class Bot {
     const pl = await this.globalPlanner(n);
     const t0 = performance.now();
     // a supervision step carries a route ~30 cells (15 net calls of two 3×3 convs): enough steps to cross the grid
-    const steps = this.globalSup || Math.ceil(n / 16) + 2;
-    const r = await pl.plan(g, { sup: steps, minSup: steps });
+    // weights whose halting head is exact (weight-space-edit's hand-written ones) set globalSupFor and globalMinSup
+    const steps = this.globalSup || (this.globalSupFor ? this.globalSupFor(n) : Math.ceil(n / 16) + 2);
+    const r = await pl.plan(g, { sup: steps, minSup: this.globalMinSup ?? steps });
     this.stats.planMs += performance.now() - t0; this.stats.globalPlans = (this.stats.globalPlans || 0) + 1;
     this.stats.globalMs = (this.stats.globalMs || 0) + r.ms;
     let k = 0; for (const v of r.path) k += v;

@@ -152,7 +152,7 @@ def export(sd, stem):
         if k.endswith("conv.weight"): v = v.permute(0, 2, 3, 1)
         v = v.numpy().ravel(); tensors[k] = {"offset": off, "shape": list(sd[k].shape)}; parts.append(v); off += v.size
     np.concatenate(parts).astype("<f4").tofile(stem + ".bin")
-    cfg = {"d": D, "heads": 4, "layers": 2, "n": 4, "T": 3, "nsup": 16, "mixer": "conv", "L": 1024, "step": "hand"}
+    cfg = {"d": D, "heads": 4, "layers": 2, "n": 4, "T": 3, "nsup": 16, "mixer": "conv", "L": 1024, "step": "hand", "halt": "exact"}
     json.dump({"config": cfg, "tensors": tensors}, open(stem + ".json", "w"))
 
 
