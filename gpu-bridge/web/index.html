@@ -119,7 +119,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 8;
+const PAGE_VERSION = 9;
 // WebGPU reports only "apple" on every Apple device, so results also carry the user agent and a
 // coarse device class read from it: Apple GPUs on an iPhone and on a Mac differ several-fold.
 function deviceLabel() {
@@ -132,6 +132,27 @@ function deviceLabel() {
   return /Linux/.test(ua) ? "Linux" : "unknown";
 }
 const TAB = Math.random().toString(36).slice(2, 10);
+// A tab that crashes mid-job (iOS kills a tab that uses too much memory, then reloads it) used to leave
+// its claim behind: the reloaded page has a new id, so it saw the job as "taken" by another tab until the
+// claim's TTL ran out (image-to-wgsl, 2026-11-02, five times). Now each running job is recorded in
+// localStorage, and a page that connects asks the other open tabs of this browser whether the tab that
+// recorded it is still alive. If none answers, the run died with its page: commit an error result in
+// place of the stuck claim. Such a job is not rerun, since running it again would most likely crash again.
+const RUN_KEY = "gpubridge:running:";
+const bc = (() => { try { return new BroadcastChannel("gpubridge"); } catch { return null; } })();
+if (bc) bc.onmessage = (e) => { const m = e.data; if (m && m.t === "ping" && m.tab === TAB) bc.postMessage({ t: "pong", tab: TAB, nonce: m.nonce }); };
+function markRunning(id) { try { localStorage.setItem(RUN_KEY + TAB, JSON.stringify({ tab: TAB, id, name: tabName(), at: Date.now() })); } catch {} }
+function clearRunning() { try { localStorage.removeItem(RUN_KEY + TAB); } catch {} }
+function tabAlive(tab, ms = 800) {
+  if (!bc) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const nonce = Math.random();
+    const on = (e) => { if (e.data && e.data.t === "pong" && e.data.nonce === nonce) { bc.removeEventListener("message", on); resolve(true); } };
+    bc.addEventListener("message", on);
+    bc.postMessage({ t: "ping", tab, nonce });
+    setTimeout(() => { bc.removeEventListener("message", on); resolve(false); }, ms);
+  });
+}
 const params = new URLSearchParams(location.search);
 const API = (params.get("api") || "https://api.github.com").replace(/\/$/, "");
 const BRANCH = params.get("branch") || "main";
@@ -410,10 +431,11 @@ async function claim(id, ttlMs) {
     if (paths.has(`results/${id}/result.json`)) return false;
     const c = paths.get(`results/${id}/claim.json`);
     if (!c) return true;
-    try { const other = JSON.parse(await blobText(c)); return other.tab === TAB || Date.now() - other.at > ttlMs; } catch { return true; }
+    try { const other = JSON.parse(await blobText(c)); lastHolder = other; return other.tab === TAB || Date.now() - other.at > ttlMs; } catch { return true; }
   });
   return sha !== null;
 }
+let lastHolder = null;   // the claim that made the last claim() back off
 const gpuName = () => gpuInfo ? [gpuInfo.vendor, gpuInfo.architecture, gpuInfo.description].filter(Boolean).join(" ") : null;
 const resultBase = (id, info) => ({ id, startedAt: info.startedAt, finishedAt: info.finishedAt, runMs: info.runMs ?? null, adapter: gpuName(),
   device: deviceLabel(), tab: TAB, tabName: tabName(), ua: navigator.userAgent, mode, pageVersion: PAGE_VERSION });
@@ -423,15 +445,21 @@ async function process(job) {
   const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000), ttlMs = timeoutMs + 300000;
   info.timeoutMs = timeoutMs; info.phase = "claiming";
   let claimed;
+  lastHolder = null;
   try { claimed = await claim(id, ttlMs); }
   catch (e) { claimed = false; info.error = "Could not claim the job: " + e.message; failedHere.set(id, Date.now() + 60000); }   // try again in a minute, not every poll
   if (!claimed) {
-    info.status = info.error ? "error" : "taken"; info.note = (job.note ? job.note + " · " : "") + (info.error ? "" : "run by another open bridge tab");
+    const h = lastHolder, ago = h ? Math.round((Date.now() - h.at) / 60000) : null;
+    info.status = info.error ? "error" : "taken"; info.note = (job.note ? job.note + " · " : "") + (info.error ? "" : h
+      ? `claimed ${ago} min ago by tab ${h.tab}${h.name ? " (" + h.name + ")" : ""}; free in ${Math.max(0, Math.round((h.at + ttlMs - Date.now()) / 60000))} min if that tab never finishes`
+      : "run by another open bridge tab");
     if (!info.error) delete info.startedAt;   // not run here: its row shows the other tab's result from history
     inflight.delete(id); busy = false; etag = null; setPill(); render(); return;
   }
+  markRunning(id);
   try { await runAndCommit(job, info, timeoutMs); }
   catch (e) { await giveUp(id, info, e, ttlMs); }   // the claim must not outlive this tab's attempt without a result
+  clearRunning();
   inflight.delete(id); busy = false; etag = null;   // the next poll refetches the tree and sees the new result
   setPill(); render();
 }
@@ -495,6 +523,28 @@ async function giveUp(id, info, err, ttlMs) {
     });
     if (sha) info.error += "\nReleased the claim, so another open tab can run the job.";
   } catch (e) { info.error += "\nCould not release the claim: " + e.message; }
+}
+
+// Jobs whose page died mid-run (see RUN_KEY): commit an error result for each, once, unless a result exists.
+async function recoverCrashed() {
+  let keys = [];
+  try { keys = Object.keys(localStorage).filter((k) => k.startsWith(RUN_KEY)); } catch { return; }
+  for (const k of keys) {
+    let m = null;
+    try { m = JSON.parse(localStorage.getItem(k)); } catch {}
+    if (!m || !m.id || m.tab === TAB) { if (!m || !m.id) localStorage.removeItem(k); continue; }
+    if (await tabAlive(m.tab)) continue;
+    localStorage.removeItem(k);
+    const id = m.id, now = Date.now();
+    const error = `The bridge page reloaded while this job was running (tab ${m.tab}${m.name ? ", " + m.name : ""}, started ${Math.round((now - m.at) / 1000)} s before the reload was noticed), so the run was lost. ` +
+      "A reload in the middle of a job usually means the browser killed the tab, most often for using too much memory. Not rerun automatically: resubmit it, smaller if it was large.";
+    const result = { ...resultBase(id, { startedAt: m.at, finishedAt: now, runMs: null }), tab: m.tab, status: "error", error, logs: [], recoveredBy: TAB };
+    try {
+      const sha = await commitFiles({ [`results/${id}/result.json`]: { text: JSON.stringify(result, null, 1) + "\n" }, ...tabFile() },
+        `gpu-bridge: ${id} error`, async (paths) => !paths.has(`results/${id}/result.json`));
+      if (sha) { hist.set(id, { status: "error", at: now, result }); await wakeSessions(`gpu-bridge: \`${id}\` error (the page reloaded mid-run) — \`results/${id}/\` at ${sha.slice(0, 7)}`); }
+    } catch (e) { console.warn("could not record the crashed job " + id, e); }
+  }
 }
 
 // ---------------------------------------------------------------- UI
@@ -614,6 +664,8 @@ async function connect(e) {
   openedAt = Date.now();   // bridge/status.json is the last tab to connect, kept for older sessions; bridge/tabs/ has every tab
   commitFiles({ "bridge/status.json": { text: JSON.stringify({ adapter: gpuInfo, error: gpuErr, device: deviceLabel(), name: tabName(), ua: navigator.userAgent, mode, tab: TAB, openedAt, pageVersion: PAGE_VERSION }, null, 1) + "\n" }, ...tabFile() },
     "gpu-bridge: page opened").catch((err) => console.warn("status commit failed", err));
+  await recoverCrashed().catch((err) => console.warn("crash recovery failed", err));
+  if (gen !== pollGen) return;
   poll(gen); loadHistory();
 }
 

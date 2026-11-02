@@ -116,6 +116,30 @@ return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   const w = require('child_process').spawnSync('python3', [CLI, 'submit', 'who.js', '--id', 'tgt-warn2', '--target', 'gamma'], { encoding: 'utf8', env: { ...process.env, ...env } }); const warn = w.stderr;
   check(/no tab matching 'gamma'/.test(warn), `submit --target warns about a tab that isn't open: ${JSON.stringify(warn.trim())}`);
   console.log(`targeting and failure handling: ${fails.length ? 'FAIL (' + fails.length + ')' : 'PASS'}`);
+  // a tab that dies mid-job (iOS reloads a tab that ran out of memory): the reloaded page commits an error
+  // result instead of leaving the job "taken"; a live tab of the same browser keeps its running job
+  const p4 = await p.context().newPage(); p4.on('pageerror', (e) => errs.push('tab4: ' + e.message));
+  await p4.goto('http://localhost:8765/?api=http://localhost:8766&name=gamma'); await p4.waitForTimeout(1500);
+  await p4.fill('#token', 'test-token'); await p4.click('#connect'); await p4.waitForTimeout(4000);
+  fs.writeFileSync('hang.js', 'await new Promise((r) => setTimeout(r, 25000)); return { ok: 1 };');
+  sh('python3', [CLI, 'submit', 'hang.js', '--id', 'crash-a', '--target', 'alpha', '--timeout', '60000'], env);
+  sh('python3', [CLI, 'submit', 'hang.js', '--id', 'live-g', '--target', 'gamma', '--timeout', '60000'], env);
+  for (const t1 = Date.now(); Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 1000))) {
+    const ss2 = subj(); if (ss2.includes('gpu-bridge: claim crash-a') && ss2.includes('gpu-bridge: claim live-g')) break;
+  }
+  await p.reload(); await p.waitForTimeout(1500);   // alpha "crashes": same browser, new page, new tab id
+  await p.fill('#token', 'test-token'); await p.click('#connect');
+  for (const t1 = Date.now(); Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 1000))) { if (subj().includes('gpu-bridge: crash-a error')) break; }
+  const ca = res('crash-a');
+  check(ca.status === 'error' && /reloaded while this job was running/.test(ca.error || '') && ca.recoveredBy && ca.recoveredBy !== tabIds.alpha,
+    `crash-a: error result from the reloaded page (${ca.status}, ${JSON.stringify((ca.error || '').slice(0, 70))}, recoveredBy ${ca.recoveredBy})`);
+  for (const t1 = Date.now(); Date.now() - t1 < 60000; await new Promise((r) => setTimeout(r, 1000))) { if (subj().some((x) => /^gpu-bridge: live-g (done|error)$/.test(x))) break; }
+  const lg = res('live-g'), ss3 = subj();
+  check(lg.status === 'done' && lg.tabName === 'gamma', `live-g: the live gamma tab finished its job, untouched by alpha's recovery (${lg.status} in ${lg.tabName})`);
+  check(ss3.filter((x) => x === 'gpu-bridge: claim crash-a').length === 1 && ss3.filter((x) => x === 'gpu-bridge: crash-a error').length === 1, 'crash-a: claimed once, one error result, not rerun');
+  const wk = await (await fetch('http://localhost:8766/__comments')).json();
+  check(JSON.stringify(wk).includes('crash-a') && JSON.stringify(wk).includes('page reloaded mid-run'), 'crash-a: a wake comment says the page reloaded mid-run');
+  console.log(`crash recovery: ${fails.length ? 'FAIL (' + fails.length + ' total)' : 'PASS'}`);
   // a fresh tab lists earlier results from the commit log and loads one on demand
   const p3 = await b.newPage(); await p3.goto('http://localhost:8765/?api=http://localhost:8766'); await p3.waitForTimeout(1500);
   await p3.fill('#token', 'test-token'); await p3.click('#connect'); await p3.waitForTimeout(10000);

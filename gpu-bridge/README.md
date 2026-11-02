@@ -79,6 +79,15 @@ reproduces it with two simultaneous connects in one tab, plus a second tab,
 behind a mock that adds 250 ms per request. Version 3 gave 1 overlap and one
 job run twice; version 4 gave 0 overlaps, twice.
 
+Page version 9 handles a tab that dies mid-job. On 2026-11-02, `image-to-wgsl` training jobs crashed
+the iPhone tab five times (out of memory); iOS reloaded the page, the reloaded page had a new tab id,
+and the dead page's claim kept each job "taken" until it was withdrawn by hand. Now a running job is
+recorded in `localStorage`, and a connecting page asks the other open tabs of the browser, over a
+`BroadcastChannel`, whether the recording tab is alive. If none answers, the page commits an error
+result saying the page reloaded mid-run, and does not rerun the job. A "taken" row names the holding
+tab and when its claim expires. `run/e2e.js` reloads a tab in the middle of a job, and checks that the
+job gets one error result while a live tab of the same browser finishes its own job.
+
 On 2026-10-27 `doom-2-iphone`, meant for the phone, was claimed seven times at
 about one-minute intervals by a Mac tab (`iqp927j0`) that never committed a
 result, and the phone's tab showed "taken" until the claim was deleted by hand.
