@@ -38,6 +38,15 @@ summary { cursor: pointer; color: var(--muted); }
 pre { white-space: pre-wrap; word-break: break-all; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; }
 .err { color: var(--accent); }
 a { color: var(--accent); }
+.picker button.own { border-style: dashed; }
+.enc { border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 12px 14px; margin-bottom: 14px; display: grid; gap: 10px; }
+.enc select, .enc input[type=file] { font: inherit; font-size: .9rem; color: var(--fg); }
+.enc select { padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
+.enc button { font: inherit; font-size: .9rem; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.enc button:disabled { opacity: .5; cursor: default; }
+.enc progress { width: 100%; accent-color: var(--accent); }
+.stage canvas.prev { image-rendering: auto; background: var(--card); }
+.dl a { margin-right: 14px; }
 </style>
 </head>
 <body>
@@ -45,8 +54,20 @@ a { color: var(--accent); }
   <h1>Images as Shaders</h1>
   <p class="lede">Each picture below is one WGSL fragment shader. The shader holds an ordered list of 1,024 soft, rotated ellipses packed into an integer array, and paints them per pixel; its minified source is about 11 KB gzipped. The list was trained so that its first 16, 32, 64 and so on ellipses already make a coarser picture. Press "Paint it in" to watch the shader add them, or drag the splats slider to stop at a power of two. As compression it loses: on these six Kodak test photos, AVIF at the same size scores 3.9 to 6.8 dB higher in PSNR. The buttons under the picture show the original and the AVIF and WebP files of the same size.</p>
   <div class="picker" id="picker"></div>
+  <div class="enc" id="enc" hidden>
+    <div class="row">
+      <input type="file" id="file" accept="image/*" aria-label="Choose an image">
+      <label for="nsel">splats</label>
+      <select id="nsel"><option>64</option><option>128</option><option selected>256</option></select>
+      <button id="go" disabled>Encode</button>
+    </div>
+    <div class="note">Your image stays in this browser. It is scaled to at most 512 px on its longer side, then fitted on your GPU with TensorFlow.js; the picture above updates while it trains. On an iPhone, 64 splats take about half a minute and 256 about a minute. Larger lists ran out of memory on a phone, so 256 is the limit here.</div>
+    <progress id="prog" max="1" value="0" hidden></progress>
+    <div class="note" id="encstat"></div>
+  </div>
   <div class="stage" id="stage">
     <canvas id="cv"></canvas>
+    <canvas id="prev" class="prev" hidden></canvas>
     <img id="cmpimg" alt="" hidden>
     <span class="tag" id="tag">shader</span>
   </div>
@@ -58,112 +79,17 @@ a { color: var(--accent); }
     </div>
     <div class="row">
       <button id="paint">Paint it in</button>
-      <button data-view="shader" aria-pressed="true">Shader</button>
-      <button data-view="orig" aria-pressed="false">Original</button>
-      <button data-view="avif" aria-pressed="false">AVIF, same bytes</button>
-      <button data-view="webp" aria-pressed="false">WebP, same bytes</button>
+      <span id="views"></span>
     </div>
     <div class="note" id="cmpnote"></div>
+    <div class="note dl" id="dl" hidden><a id="dlw" download="image.wgsl" href="#">Download the shader (.wgsl)</a><a id="dlh" download="image-shader.html" href="#">Download a page that plays it (.html)</a></div>
   </div>
   <details>
     <summary>Shader source (minified)</summary>
     <pre id="src"></pre>
   </details>
-  <p class="note">Bytes are the gzip size of the minified shader, measured at each power-of-two prefix; PSNR is against the Kodak original at 768×512. The AVIF and WebP comparisons are the best encodes at or under the full shader's size, allowing downscaling by 2, 4 or 8 before encoding. Method and numbers: <a href="https://github.com/oaustegard/experiments/tree/main/image-to-wgsl">image-to-wgsl</a>.</p>
+  <p class="note">Bytes are the gzip size of the minified shader, measured at each power-of-two prefix; PSNR is against the Kodak original at 768×512, or against your image at the size it was fitted. The AVIF, WebP and JPEG comparisons are the best encodes at or under the full shader's size, allowing downscaling before encoding. Method and numbers: <a href="https://github.com/oaustegard/experiments/tree/main/image-to-wgsl">image-to-wgsl</a>.</p>
 </main>
-<script type="module">
-import { IMAGES } from "./shaders.js";
-const $ = (id) => document.getElementById(id);
-const T = 6;                 // the shader paints N * (t / T)^2 splats at time t > 0
-const KS = [16, 32, 64, 128, 256, 512, 1024];
-let dev, ctx, fmt, ub, cur, pipe, bg, anim = 0, view = "shader";
-
-async function init() {
-  const ad = await navigator.gpu?.requestAdapter();
-  if (!ad) { $("stage").innerHTML = '<p class="err" style="padding:16px">WebGPU is not available in this browser, so the shaders cannot run. A recent Chrome, Edge or Safari has it.</p>'; return false; }
-  dev = await ad.requestDevice();
-  ctx = $("cv").getContext("webgpu");
-  fmt = navigator.gpu.getPreferredCanvasFormat();
-  ctx.configure({ device: dev, format: fmt, alphaMode: "premultiplied" });
-  ub = dev.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  dev.lost.then((i) => console.log("device lost: " + i.message));
-  window.gpuDone = () => dev.queue.onSubmittedWorkDone();   // for headless tests
-  return true;
-}
-
-function load(entry) {
-  cur = entry;
-  const mod = dev.createShaderModule({ code: entry.wgsl });
-  pipe = dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format: fmt }] } });
-  bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
-  $("src").textContent = entry.wgsl;
-  for (const b of $("picker").children) b.setAttribute("aria-pressed", String(b.dataset.id === entry.id));
-  const c = entry.cmp, full = entry.points[entry.points.length - 1];
-  $("cmpnote").textContent = `Full shader: ${full.bytes.toLocaleString()} bytes, ${full.psnr} dB.` +
-    (c.avif ? ` AVIF at ≤ that size: ${c.avif.bytes.toLocaleString()} bytes, ${c.avif.psnr} dB${c.avif.scale > 1 ? ` (encoded at 1/${c.avif.scale} size)` : ""}.` : "") +
-    (c.webp ? ` WebP: ${c.webp.bytes.toLocaleString()} bytes, ${c.webp.psnr} dB${c.webp.scale > 1 ? ` (1/${c.webp.scale} size)` : ""}.` : "");
-  setView(view);
-  draw(timeFor(KS[$("k").value]));
-}
-
-function timeFor(k) { return k >= cur.n ? 0 : T * Math.sqrt((k + 0.5) / cur.n); }
-
-function draw(t) {
-  const cv = $("cv");
-  const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
-  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  dev.queue.writeBuffer(ub, 0, new Float32Array([w, h, t, 0]));
-  const enc = dev.createCommandEncoder();
-  const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [1, 1, 1, 1] }] });
-  pass.setPipeline(pipe); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
-  dev.queue.submit([enc.finish()]);
-  readout(t);
-}
-
-function readout(t) {
-  const n = t <= 0 ? cur.n : Math.min(cur.n, Math.floor(cur.n * Math.min(1, t * t / (T * T))));
-  const p = cur.points.filter((q) => q.n <= Math.max(n, 16)).pop();
-  $("readout").innerHTML = `<b>${n}</b> splats · <b>${p.bytes.toLocaleString()}</b> bytes · <b>${p.psnr}</b> dB` + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`);
-}
-
-function setView(v) {
-  view = v;
-  for (const b of document.querySelectorAll("[data-view]")) b.setAttribute("aria-pressed", String(b.dataset.view === v));
-  const img = $("cmpimg");
-  if (v === "shader") { img.hidden = true; $("tag").textContent = "shader"; return; }
-  const src = v === "orig" ? `img/${cur.id}_orig.jpg` : `img/${cur.id}_${v}.${v}`;
-  if (v !== "orig" && !cur.cmp[v]) { img.hidden = true; $("tag").textContent = `no ${v} fits`; return; }
-  img.src = src; img.hidden = false;
-  $("tag").textContent = v === "orig" ? "original" : `${v.toUpperCase()} ${cur.cmp[v].bytes.toLocaleString()} B`;
-}
-
-function paint() {
-  cancelAnimationFrame(anim);
-  setView("shader");
-  const t0 = performance.now();
-  const step = () => {
-    const t = (performance.now() - t0) / 1000;
-    if (t >= T) { $("k").value = 6; draw(0); return; }
-    draw(Math.max(t, 1e-3));
-    anim = requestAnimationFrame(step);
-  };
-  step();
-}
-
-if (await init()) {
-  for (const e of IMAGES) {
-    const b = document.createElement("button");
-    b.textContent = e.id; b.dataset.id = e.id;
-    b.onclick = () => { cancelAnimationFrame(anim); load(e); };
-    $("picker").append(b);
-  }
-  $("k").oninput = () => { cancelAnimationFrame(anim); setView("shader"); draw(timeFor(KS[$("k").value])); };
-  $("paint").onclick = paint;
-  for (const b of document.querySelectorAll("[data-view]")) b.onclick = () => setView(b.dataset.view);
-  addEventListener("resize", () => { if (view === "shader") draw(timeFor(KS[$("k").value])); });
-  load(IMAGES[0]);
-  paint();
-}
-</script>
+<script type="module" src="./page.js"></script>
 </body>
 </html>

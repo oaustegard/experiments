@@ -854,6 +854,15 @@ survives exactly the sanity checks people run.
   image-to-svg skill writes its colours that way, so every path compiled by wgsl-forge renders
   black. wgsl-forge itself is not fixed. Write the class declarations onto each path as attributes
   before compiling: `image-to-wgsl/svg_arm.py`, `inline_classes`.
+- **TensorFlow.js 4.22's WebGPU backend computes some gradients wrongly; train on WebGL.** On an
+  iPhone, against TF.js's own CPU backend: `matMul` of `[P, G]` by `[G, 3]` gave wrong values and
+  gradients from G = 64, and the gradient of `cumsum` was wrong from a row length of 32 (for axis 0 it
+  also comes back transposed). The WebGL backend matched the CPU backend to about 1e-6 on every op
+  tested. Check a new autodiff graph by running `tf.valueAndGrads` on both the target backend and
+  `cpu` before trusting a loss curve. Training at 1,024 splats crashed the iPhone tab on both
+  backends, and a crashed tab's claim keeps a bridge job "taken" until it is withdrawn by deleting
+  `jobs/<id>` and `results/<id>`. (`image-to-wgsl/bridge/gradcheck_job.js`,
+  `results/bridge_i2w-gradcheck-2.json`)
 - **GPU bridge jobs: guard each frame and keep the timeout to minutes.** The GPU bridge
   (`docs/gpu-bridge.md` in claude-workspace) runs a WebGPU job on Oskar's phone or laptop and
   commits the result. A job that hits its timeout returns nothing, including the work it had

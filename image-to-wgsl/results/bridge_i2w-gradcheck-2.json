@@ -1,0 +1,555 @@
+{
+ "id": "i2w-gradcheck-2",
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "status": "done",
+ "runMs": 43022,
+ "logs": [
+  "{\"backend\":\"webgpu\",\"op\":\"transpose\",\"G\":16,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"transpose\",\"G\":16,\"valueRel\":1.0551351369602338e-7,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"transpose\",\"G\":32,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"transpose\",\"G\":32,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"transpose\",\"G\":64,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"transpose\",\"G\":64,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"transpose\",\"G\":128,\"valueRel\":9.993205619499302e-8,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"transpose\",\"G\":128,\"valueRel\":9.993205619499302e-8,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"transpose\",\"G\":256,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"transpose\",\"G\":256,\"valueRel\":0,\"gradWRel\":0,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"cumsum_last\",\"G\":16,\"valueRel\":1.0975995388325778e-7,\"gradWRel\":2.3121777546765529e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"cumsum_last\",\"G\":16,\"valueRel\":0,\"gradWRel\":2.3121777546765529e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"cumsum_last\",\"G\":32,\"valueRel\":0,\"gradWRel\":0.7121077545548211,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"cumsum_last\",\"G\":32,\"valueRel\":1.1679706474960636e-7,\"gradWRel\":3.3423623910966416e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"cumsum_last\",\"G\":64,\"valueRel\":0,\"gradWRel\":0.9322778593310213,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"cumsum_last\",\"G\":64,\"valueRel\":0,\"gradWRel\":5.322546710860025e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"cumsum_last\",\"G\":128,\"valueRel\":6.105739315582036e-8,\"gradWRel\":0.9831484773107728,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"cumsum_last\",\"G\":128,\"valueRel\":0,\"gradWRel\":8.195864776427053e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"cumsum_last\",\"G\":256,\"valueRel\":0,\"gradWRel\":0.9953550620762028,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"cumsum_last\",\"G\":256,\"valueRel\":0,\"gradWRel\":0.0000011217843619808296,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_tri\",\"G\":16,\"valueRel\":0,\"gradWRel\":1.9936495615964613e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_tri\",\"G\":16,\"valueRel\":0,\"gradWRel\":1.9936495615964613e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_tri\",\"G\":32,\"valueRel\":0,\"gradWRel\":2.767072473986233e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_tri\",\"G\":32,\"valueRel\":6.419337303565069e-8,\"gradWRel\":2.767072473986233e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_tri\",\"G\":64,\"valueRel\":0,\"gradWRel\":4.754741328996164e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_tri\",\"G\":64,\"valueRel\":0,\"gradWRel\":4.754741328996164e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_tri\",\"G\":128,\"valueRel\":0,\"gradWRel\":6.6131907529407e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_tri\",\"G\":128,\"valueRel\":6.237265842125072e-8,\"gradWRel\":6.6131907529407e-7,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_tri\",\"G\":256,\"valueRel\":0,\"gradWRel\":0.0000012285678531882477,\"gradColRel\":0}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_tri\",\"G\":256,\"valueRel\":6.251198667344464e-8,\"gradWRel\":0.0000012285678531882477,\"gradColRel\":0}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_col\",\"G\":16,\"valueRel\":1.013562685000529e-7,\"gradWRel\":1.2758709956629317e-7,\"gradColRel\":2.0293267478523635e-7}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_col\",\"G\":16,\"valueRel\":1.013562685000529e-7,\"gradWRel\":1.2758709956629317e-7,\"gradColRel\":0.0000015558171733534786}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_col\",\"G\":32,\"valueRel\":0,\"gradWRel\":1.6721585928718554e-7,\"gradColRel\":2.8643866864739004e-7}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_col\",\"G\":32,\"valueRel\":0,\"gradWRel\":1.6721585928718554e-7,\"gradColRel\":0.000002076680347693578}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_col\",\"G\":64,\"valueRel\":0.6904452262798415,\"gradWRel\":0.9398738995589216,\"gradColRel\":0.9992522509474888}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_col\",\"G\":64,\"valueRel\":0,\"gradWRel\":2.652624028741712e-7,\"gradColRel\":0.0000017106835523678298}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_col\",\"G\":128,\"valueRel\":0.9332673696621585,\"gradWRel\":0.9485881532844943,\"gradColRel\":0.999649082636059}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_col\",\"G\":128,\"valueRel\":1.1332665990408711e-7,\"gradWRel\":3.1039353368325444e-7,\"gradColRel\":0.0000022145449572794506}",
+  "{\"backend\":\"webgpu\",\"op\":\"matmul_col\",\"G\":256,\"valueRel\":0.9825981072147999,\"gradWRel\":0.9487148677288705,\"gradColRel\":1}",
+  "{\"backend\":\"webgl\",\"op\":\"matmul_col\",\"G\":256,\"valueRel\":1.182089406859452e-7,\"gradWRel\":4.87626512086276e-7,\"gradColRel\":0.0000022683871410965965}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_tri\",\"G\":16,\"valueRel\":1.3071401616331096e-7,\"gradWRel\":0.0000017043411272853084,\"gradColRel\":2.4342206635636844e-7}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_tri\",\"G\":16,\"valueRel\":0,\"gradWRel\":0.0000014912984863746448,\"gradColRel\":0.000001135969642996386}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_tri\",\"G\":32,\"valueRel\":2.166676813936412e-7,\"gradWRel\":9.802178043961367e-7,\"gradColRel\":7.665929817492609e-8}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_tri\",\"G\":32,\"valueRel\":1.083338406968206e-7,\"gradWRel\":9.802178043961367e-7,\"gradColRel\":8.43252279924187e-7}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_tri\",\"G\":64,\"valueRel\":7.4080165109872e-8,\"gradWRel\":18.418247332053852,\"gradColRel\":0.9987009970069969}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_tri\",\"G\":64,\"valueRel\":0,\"gradWRel\":7.03355898553572e-7,\"gradColRel\":0.0000019028364155319023}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_tri\",\"G\":128,\"valueRel\":6.139993195659541e-8,\"gradWRel\":3.7657780785474593,\"gradColRel\":0.9987896467517854}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_tri\",\"G\":128,\"valueRel\":1.2279986391319082e-7,\"gradWRel\":0.0000012538704293288175,\"gradColRel\":0.000001477481992449476}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_tri\",\"G\":256,\"valueRel\":0,\"gradWRel\":12402.423149917175,\"gradColRel\":0.9984241921893062}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_tri\",\"G\":256,\"valueRel\":7.90471654674553e-8,\"gradWRel\":6.537535399586772e-7,\"gradColRel\":0.0000010579764354023153}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_cumsum\",\"G\":16,\"valueRel\":1.3071401616331096e-7,\"gradWRel\":0.000004686931110421327,\"gradColRel\":2.4342206635636844e-7}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_cumsum\",\"G\":16,\"valueRel\":0,\"gradWRel\":0.000004686931110421327,\"gradColRel\":0.000001135969642996386}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_cumsum\",\"G\":32,\"valueRel\":1.083338406968206e-7,\"gradWRel\":6.287392898937149,\"gradColRel\":7.665929817492609e-8}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_cumsum\",\"G\":32,\"valueRel\":0,\"gradWRel\":0.000007841743533257184,\"gradColRel\":8.43252279924187e-7}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_cumsum\",\"G\":64,\"valueRel\":1.48160330219744e-7,\"gradWRel\":40.83541134077163,\"gradColRel\":1}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_cumsum\",\"G\":64,\"valueRel\":7.4080165109872e-8,\"gradWRel\":0.000007971347226844496,\"gradColRel\":0.0000019028364155319023}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_cumsum\",\"G\":128,\"valueRel\":1.2279986391319082e-7,\"gradWRel\":62.86679513730996,\"gradColRel\":1}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_cumsum\",\"G\":128,\"valueRel\":6.139993195659541e-8,\"gradWRel\":0.000029913717732368238,\"gradColRel\":0.000001551355977466924}",
+  "{\"backend\":\"webgpu\",\"op\":\"composite_cumsum\",\"G\":256,\"valueRel\":0,\"gradWRel\":34.475330830153624,\"gradColRel\":1}",
+  "{\"backend\":\"webgl\",\"op\":\"composite_cumsum\",\"G\":256,\"valueRel\":7.90471654674553e-8,\"gradWRel\":0.000033528101405415825,\"gradColRel\":0.0000010579765371581559}"
+ ],
+ "outputs": {
+  "P": 2048,
+  "rows": [
+   {
+    "backend": "webgpu",
+    "op": "transpose",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "transpose",
+    "G": 16,
+    "valueRel": 1.0551351369602338e-07,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "transpose",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "transpose",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "transpose",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "transpose",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "transpose",
+    "G": 128,
+    "valueRel": 9.993205619499302e-08,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "transpose",
+    "G": 128,
+    "valueRel": 9.993205619499302e-08,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "transpose",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "transpose",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 0,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "cumsum_last",
+    "G": 16,
+    "valueRel": 1.0975995388325778e-07,
+    "gradWRel": 2.3121777546765529e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "cumsum_last",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 2.3121777546765529e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "cumsum_last",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 0.7121077545548211,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "cumsum_last",
+    "G": 32,
+    "valueRel": 1.1679706474960636e-07,
+    "gradWRel": 3.3423623910966416e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "cumsum_last",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 0.9322778593310213,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "cumsum_last",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 5.322546710860025e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "cumsum_last",
+    "G": 128,
+    "valueRel": 6.105739315582036e-08,
+    "gradWRel": 0.9831484773107728,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "cumsum_last",
+    "G": 128,
+    "valueRel": 0,
+    "gradWRel": 8.195864776427053e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "cumsum_last",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 0.9953550620762028,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "cumsum_last",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 1.1217843619808296e-06,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_tri",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 1.9936495615964613e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_tri",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 1.9936495615964613e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_tri",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 2.767072473986233e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_tri",
+    "G": 32,
+    "valueRel": 6.419337303565069e-08,
+    "gradWRel": 2.767072473986233e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_tri",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 4.754741328996164e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_tri",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 4.754741328996164e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_tri",
+    "G": 128,
+    "valueRel": 0,
+    "gradWRel": 6.6131907529407e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_tri",
+    "G": 128,
+    "valueRel": 6.237265842125072e-08,
+    "gradWRel": 6.6131907529407e-07,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_tri",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 1.2285678531882477e-06,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_tri",
+    "G": 256,
+    "valueRel": 6.251198667344464e-08,
+    "gradWRel": 1.2285678531882477e-06,
+    "gradColRel": 0
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_col",
+    "G": 16,
+    "valueRel": 1.013562685000529e-07,
+    "gradWRel": 1.2758709956629317e-07,
+    "gradColRel": 2.0293267478523635e-07
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_col",
+    "G": 16,
+    "valueRel": 1.013562685000529e-07,
+    "gradWRel": 1.2758709956629317e-07,
+    "gradColRel": 1.5558171733534786e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_col",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 1.6721585928718554e-07,
+    "gradColRel": 2.8643866864739004e-07
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_col",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 1.6721585928718554e-07,
+    "gradColRel": 2.076680347693578e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_col",
+    "G": 64,
+    "valueRel": 0.6904452262798415,
+    "gradWRel": 0.9398738995589216,
+    "gradColRel": 0.9992522509474888
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_col",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 2.652624028741712e-07,
+    "gradColRel": 1.7106835523678298e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_col",
+    "G": 128,
+    "valueRel": 0.9332673696621585,
+    "gradWRel": 0.9485881532844943,
+    "gradColRel": 0.999649082636059
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_col",
+    "G": 128,
+    "valueRel": 1.1332665990408711e-07,
+    "gradWRel": 3.1039353368325444e-07,
+    "gradColRel": 2.2145449572794506e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "matmul_col",
+    "G": 256,
+    "valueRel": 0.9825981072147999,
+    "gradWRel": 0.9487148677288705,
+    "gradColRel": 1
+   },
+   {
+    "backend": "webgl",
+    "op": "matmul_col",
+    "G": 256,
+    "valueRel": 1.182089406859452e-07,
+    "gradWRel": 4.87626512086276e-07,
+    "gradColRel": 2.2683871410965965e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_tri",
+    "G": 16,
+    "valueRel": 1.3071401616331096e-07,
+    "gradWRel": 1.7043411272853084e-06,
+    "gradColRel": 2.4342206635636844e-07
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_tri",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 1.4912984863746448e-06,
+    "gradColRel": 1.135969642996386e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_tri",
+    "G": 32,
+    "valueRel": 2.166676813936412e-07,
+    "gradWRel": 9.802178043961367e-07,
+    "gradColRel": 7.665929817492609e-08
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_tri",
+    "G": 32,
+    "valueRel": 1.083338406968206e-07,
+    "gradWRel": 9.802178043961367e-07,
+    "gradColRel": 8.43252279924187e-07
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_tri",
+    "G": 64,
+    "valueRel": 7.4080165109872e-08,
+    "gradWRel": 18.418247332053852,
+    "gradColRel": 0.9987009970069969
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_tri",
+    "G": 64,
+    "valueRel": 0,
+    "gradWRel": 7.03355898553572e-07,
+    "gradColRel": 1.9028364155319023e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_tri",
+    "G": 128,
+    "valueRel": 6.139993195659541e-08,
+    "gradWRel": 3.7657780785474593,
+    "gradColRel": 0.9987896467517854
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_tri",
+    "G": 128,
+    "valueRel": 1.2279986391319082e-07,
+    "gradWRel": 1.2538704293288175e-06,
+    "gradColRel": 1.477481992449476e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_tri",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 12402.423149917175,
+    "gradColRel": 0.9984241921893062
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_tri",
+    "G": 256,
+    "valueRel": 7.90471654674553e-08,
+    "gradWRel": 6.537535399586772e-07,
+    "gradColRel": 1.0579764354023153e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_cumsum",
+    "G": 16,
+    "valueRel": 1.3071401616331096e-07,
+    "gradWRel": 4.686931110421327e-06,
+    "gradColRel": 2.4342206635636844e-07
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_cumsum",
+    "G": 16,
+    "valueRel": 0,
+    "gradWRel": 4.686931110421327e-06,
+    "gradColRel": 1.135969642996386e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_cumsum",
+    "G": 32,
+    "valueRel": 1.083338406968206e-07,
+    "gradWRel": 6.287392898937149,
+    "gradColRel": 7.665929817492609e-08
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_cumsum",
+    "G": 32,
+    "valueRel": 0,
+    "gradWRel": 7.841743533257184e-06,
+    "gradColRel": 8.43252279924187e-07
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_cumsum",
+    "G": 64,
+    "valueRel": 1.48160330219744e-07,
+    "gradWRel": 40.83541134077163,
+    "gradColRel": 1
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_cumsum",
+    "G": 64,
+    "valueRel": 7.4080165109872e-08,
+    "gradWRel": 7.971347226844496e-06,
+    "gradColRel": 1.9028364155319023e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_cumsum",
+    "G": 128,
+    "valueRel": 1.2279986391319082e-07,
+    "gradWRel": 62.86679513730996,
+    "gradColRel": 1
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_cumsum",
+    "G": 128,
+    "valueRel": 6.139993195659541e-08,
+    "gradWRel": 2.9913717732368238e-05,
+    "gradColRel": 1.551355977466924e-06
+   },
+   {
+    "backend": "webgpu",
+    "op": "composite_cumsum",
+    "G": 256,
+    "valueRel": 0,
+    "gradWRel": 34.475330830153624,
+    "gradColRel": 1
+   },
+   {
+    "backend": "webgl",
+    "op": "composite_cumsum",
+    "G": 256,
+    "valueRel": 7.90471654674553e-08,
+    "gradWRel": 3.3528101405415825e-05,
+    "gradColRel": 1.0579765371581559e-06
+   }
+  ]
+ }
+}
