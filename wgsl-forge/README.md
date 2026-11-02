@@ -5,6 +5,9 @@ into a single WebGPU fragment shader, and a minifier for any WGSL module. Every 
 output of the 86 corpus shaders validates. The 30 compute entry points the harness could drive
 give bit-identical buffers, and so do 32 renders of the compiler's own scene shaders. The
 corpus's vertex and fragment shaders were compiled, not run. Results and how they were measured: [RESULTS.md](RESULTS.md).
+The maintained copy is the `compiling-wgsl` skill in
+[oaustegard/claude-skills](https://github.com/oaustegard/claude-skills/tree/main/compiling-wgsl),
+which adds GLSL/WebGL/Shadertoy to WGSL conversion; this directory is the experiment's record.
 Live gallery: [`web/index.html`](web/index.html) ([austegard.com/experiments/wgsl-forge/web/](https://austegard.com/experiments/wgsl-forge/web/)).
 
 ```bash

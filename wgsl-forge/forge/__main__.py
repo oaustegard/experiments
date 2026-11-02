@@ -23,7 +23,7 @@ from .wgsl import parse
 PREVIEW = """<!doctype html><meta charset="utf-8"><title>wgsl-forge preview</title>
 <style>html,body{margin:0;height:100%;background:#fff}canvas{width:100%;height:100%;display:block}</style>
 <canvas></canvas><script type="module">
-const code = %s;
+const code = __CODE__;
 const cv = document.querySelector("canvas");
 const ad = await navigator.gpu?.requestAdapter();
 if (!ad) { document.body.textContent = "WebGPU is not available in this browser."; throw 0; }
@@ -115,7 +115,7 @@ def main(argv=None):
             src = minify(src)
         print(f"{len(src)} bytes of WGSL", file=sys.stderr)
         if a.cmd == "html":
-            Path(a.out).write_text(PREVIEW % json.dumps(src))
+            Path(a.out).write_text(PREVIEW.replace("__CODE__", json.dumps(src)))
         else:
             _emit(src, a.out)
 
