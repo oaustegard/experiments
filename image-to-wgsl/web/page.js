@@ -1,7 +1,7 @@
 // Gallery viewer plus the in-browser encoder ("Your image").
 import { IMAGES } from "./shaders.js";
 import { emitInstanced, createRenderer } from "./instanced.js";
-import { gzipSize, emitWGSL, checkpoints } from "./trainer.js";
+import { gzipSize, emitWGSL, checkpoints, normaliseFocus } from "./trainer.js";
 import { encodeGPU, probeGPU } from "./gputrain.js";
 
 const $ = (id) => document.getElementById(id);
@@ -107,13 +107,14 @@ function redraw() {
   requestAnimationFrame(() => { redrawPending = false; if (pv) drawPreview(); else draw(timeFor(ks[$("k").value])); });
 }
 function zoomAt(mx, my, f) {           // keep the image point under (mx, my) in place
+  if (focusShown) return;                // the focus map is a flat preview; zoom the shader once it exists
   let g = camGeom();
   const qx = cam.x * g.A + (mx - g.Sw / 2) / g.k, qy = cam.y + (my - g.Sh / 2) / g.k;
   cam.z = Math.min(ZMAX, Math.max(1, cam.z * f)); g = camGeom();
   cam.x = (qx - (mx - g.Sw / 2) / g.k) / g.A; cam.y = qy - (my - g.Sh / 2) / g.k;
   clampCam(); redraw();
 }
-function panBy(dx, dy) { const g = camGeom(); cam.x -= dx / g.k / g.A; cam.y -= dy / g.k; clampCam(); redraw(); }
+function panBy(dx, dy) { if (focusShown) return; const g = camGeom(); cam.x -= dx / g.k / g.A; cam.y -= dy / g.k; clampCam(); redraw(); }
 function resetCam() { cam.z = 1; cam.x = cam.y = 0.5; redraw(); }
 function initZoom() {
   const st = $("stage"), pts = new Map();
@@ -141,8 +142,10 @@ function initZoom() {
 
 function note(entry) {
   const full = entry.points[entry.points.length - 1];
-  $("cmpnote").textContent = `Full shader: ${full.bytes.toLocaleString()} bytes, ${full.psnr} dB.` + Object.entries(entry.cmp).map(([k, c]) =>
-    ` ${k.toUpperCase()} at or under that size: ${c.bytes.toLocaleString()} bytes, ${c.psnr} dB${c.scale > 1 ? ` (encoded at 1/${c.scale} size)` : ""}.`).join("") +
+  const inF = (q) => q.pf != null ? ` (${q.pf} dB in focus)` : "";
+  $("cmpnote").textContent = (entry.focus ? `Trained with focus on ${entry.focus}. ` : "") +
+    `Full shader: ${full.bytes.toLocaleString()} bytes, ${full.psnr} dB${inF(full)}.` + Object.entries(entry.cmp).map(([k, c]) =>
+    ` ${k.toUpperCase()} at or under that size: ${c.bytes.toLocaleString()} bytes, ${c.psnr} dB${inF(c)}${c.scale > 1 ? ` (encoded at 1/${c.scale} size)` : ""}.`).join("") +
     (entry.instGz ? ` Drawn by an instanced version of the same data (${entry.instGz.toLocaleString()} bytes gzipped), one quad per splat.` : "");
 }
 
@@ -166,7 +169,8 @@ function draw(t) {
 function readout(t) {
   const n = nAt(t);
   const p = cur.points.filter((q) => q.n <= Math.max(n, 16)).pop();
-  $("readout").innerHTML = `<b>${n}</b> splats · <b>${p.bytes.toLocaleString()}</b> bytes · <b>${p.psnr}</b> dB` + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`);
+  $("readout").innerHTML = `<b>${n}</b> splats · <b>${p.bytes.toLocaleString()}</b> bytes · <b>${p.psnr}</b> dB` +
+    (p.pf != null ? ` · <b>${p.pf}</b> dB in focus` : "") + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`);
 }
 
 function setView(v) {
@@ -203,7 +207,7 @@ function addButton(e, own = false) {
     b.textContent = e.id; b.dataset.id = e.id;
     $("picker").insertBefore(b, $("picker").querySelector(".own"));
   }
-  b.onclick = () => { stopPaint(); $("enc").hidden = !own; load(e); };
+  b.onclick = () => { stopPaint(); hideFocus(); $("enc").hidden = !own; load(e); };
 }
 
 // ------------------------------------------------------------------ standalone page for downloads
@@ -212,7 +216,7 @@ function addButton(e, own = false) {
 // prefixes (16, 32, ... splats) with their bytes and PSNR from the encoder. Scroll or pinch zooms and drag
 // pans, redrawing the splats at each scale. Shader only: no source image or comparisons.
 function standalone(entry) {
-  const pts = entry.points.map((p) => [p.n, p.bytes, p.psnr]);
+  const pts = entry.points.map((p) => [p.n, p.bytes, p.psnr, p.pf ?? null]);
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image as a shader</title>
 <style>html,body{margin:0;height:100%;background:#fff;color:#222;font:14px/1.4 system-ui,sans-serif}body{display:flex;flex-direction:column}
 canvas{flex:1;min-height:0;width:100%;display:block;touch-action:none;cursor:zoom-in}.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;border-top:1px solid #ddd}
@@ -229,7 +233,7 @@ const rd=createRenderer(dev,fmt,code),cam={z:1,x:.5,y:.5};let cur=N,anim=0,paint
 const show=(n)=>{cur=n;const w=Math.max(1,Math.round(cv.clientWidth*devicePixelRatio)),h=Math.max(1,Math.round(cv.clientHeight*devicePixelRatio));
 if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}rd.draw(ctx.getCurrentTexture().createView(),w,h,n,cam);
 const i=Math.max(0,PTS.findLastIndex((q)=>q[0]<=n)),p=PTS[i];k.value=i;
-ro.innerHTML="<b>"+n.toLocaleString()+"</b> splats · <b>"+p[1].toLocaleString()+"</b> bytes · <b>"+p[2]+"</b> dB"+(n===p[0]?"":' <span class="near">(nearest measured: '+p[0]+")</span>");};
+ro.innerHTML="<b>"+n.toLocaleString()+"</b> splats · <b>"+p[1].toLocaleString()+"</b> bytes · <b>"+p[2]+"</b> dB"+(p[3]!=null?" · <b>"+p[3]+"</b> dB in focus":"")+(n===p[0]?"":' <span class="near">(nearest measured: '+p[0]+")</span>");};
 const stop=()=>{cancelAnimationFrame(anim);painting=false;};
 k.oninput=()=>{stop();show(PTS[k.value][0]);};
 $("go").onclick=()=>{stop();painting=true;const t0=performance.now();
@@ -317,6 +321,12 @@ async function getTF() {
   return tfReady;
 }
 
+function psnrU8w(a, b, w) {  // the same, each pixel weighted by w (mean 1), as trainer.js psnr8w
+  let s = 0, ws = 0;
+  for (let i = 0, j = 0; i < a.length; i += 4, j++) { let d2 = 0; for (let c = 0; c < 3; c++) { const d = a[i + c] - b[i + c]; d2 += d * d; } s += w[j] * d2; ws += w[j]; }
+  return 10 * Math.log10(255 * 255 / Math.max(s / (3 * ws), 1e-12));
+}
+
 function psnrU8(a, b) {      // RGBA byte arrays, alpha ignored
   let s = 0, n = 0;
   for (let i = 0; i < a.length; i += 4) for (let c = 0; c < 3; c++) { const d = a[i + c] - b[i + c]; s += d * d; n++; }
@@ -335,11 +345,11 @@ async function readUpload(file) {
   x.drawImage(bmp, 0, 0, W, H);
   const rgba = x.getImageData(0, 0, W, H).data;
   const png = URL.createObjectURL(await toBlob(c, "image/png"));
-  return { W, H, rgba, canvas: c, png, name: file.name };
+  return { W, H, rgba, canvas: c, png, name: file.name, img: { rgba, width: W, height: H } };
 }
 
 // Best encode of `type` at or under `budget` bytes, at full, half or quarter size, decoded back to W x H.
-async function bestUnder(up, type, budget) {
+async function bestUnder(up, type, budget, focus = null) {
   let best = null;
   for (const sc of [1, 2, 4]) {
     const w = Math.max(8, Math.round(up.W / sc)), h = Math.max(8, Math.round(up.H / sc));
@@ -352,8 +362,9 @@ async function bestUnder(up, type, budget) {
       const bmp = await createImageBitmap(blob);
       const [d, y] = canvas2d(up.W, up.H);
       y.imageSmoothingQuality = "high"; y.drawImage(bmp, 0, 0, up.W, up.H);
-      const p = psnrU8(y.getImageData(0, 0, up.W, up.H).data, up.rgba);
-      if (!best || p > best.psnr) best = { psnr: +p.toFixed(2), bytes: blob.size, scale: sc, q: +q.toFixed(2), url: URL.createObjectURL(blob) };
+      const px = y.getImageData(0, 0, up.W, up.H).data, p = psnrU8(px, up.rgba);
+      if (!best || p > best.psnr) best = { psnr: +p.toFixed(2), bytes: blob.size, scale: sc, q: +q.toFixed(2), url: URL.createObjectURL(blob),
+        pf: focus ? +psnrU8w(px, up.rgba, focus).toFixed(2) : null };
     }
   }
   return best;
@@ -368,6 +379,66 @@ function showPreview({ rgb, width, height }) {
   }
   x.putImageData(im, 0, 0);
   c.hidden = false;
+}
+
+// ------------------------------------------------------------------ focus (foveation)
+// A focus map is a weight per pixel (focus.js): a spot, faces, or a band of depth around a tapped spot. Until
+// the next encode the stage shows it over the image, bright where error counts most; tapping the stage moves
+// the spot or picks the depth. The trainers take it floored at 1/20 and normalised (trainer.js normaliseFocus).
+const FOCUS_LABEL = { point: "a spot", face: "faces", depth: "a distance" };
+const focusState = { mode: "", point: { x: 0.5, y: 0.4 }, depthAt: null, map: null };
+let focusMod = null, focusToken = 0, focusShown = false;
+async function updateFocus() {
+  const mode = $("fsel").value, size = +$("fsize").value, token = ++focusToken;
+  focusState.mode = mode;
+  $("fsize").hidden = $("fsizel").hidden = !(mode === "point" || mode === "depth");
+  if (!mode) { focusState.map = null; $("fstat").textContent = ""; hideFocus(); return; }
+  if (!upload) { $("fstat").textContent = "Choose an image first."; return; }
+  const img = upload.img;
+  try {
+    focusMod ??= await import("./focus.js");
+    let m = null, msg = "";
+    if (mode === "point") { m = await focusMod.focusMap("point", img, { point: focusState.point, radius: size }); msg = "Tap the picture to move the spot."; }
+    else if (mode === "face") {
+      $("fstat").textContent = "Looking for faces…";
+      const faces = await focusMod.detectFaces(img);
+      m = faces.length ? await focusMod.focusMap("face", img, { faces }) : null;
+      msg = faces.length ? `Found ${faces.length} face${faces.length > 1 ? "s" : ""}.` : "No face found: the whole image will be trained evenly.";
+    } else {
+      $("fstat").textContent = "Estimating depth…";
+      const d = await focusMod.depthMap(img);
+      if (focusState.depthAt == null) focusState.depthAt = d[Math.floor(img.height * 0.45) * img.width + Math.floor(img.width / 2)];
+      m = await focusMod.focusMap("depth", img, { depth: focusState.depthAt, width: size * 0.75 });
+      msg = "Tap the picture to pick the distance in focus.";
+    }
+    if (token !== focusToken) return;     // a newer request superseded this one
+    focusState.map = m; $("fstat").textContent = msg;
+    if (m) showFocus(); else hideFocus();
+  } catch (e) {
+    if (token !== focusToken) return;
+    focusState.map = null; hideFocus();
+    $("fstat").textContent = "Focus failed: " + (e?.message || e) + ". The whole image will be trained evenly.";
+    console.log("focus error", e?.stack || e);
+  }
+}
+function showFocus() {           // the image, darkened where the focus weight is low
+  const m = focusState.map, { W, H, rgba } = upload, c = $("prev");
+  if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+  let mx = 0; for (let i = 0; i < m.length; i++) if (m[i] > mx) mx = m[i];
+  const x = c.getContext("2d"), im = x.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) { const k = 0.2 + 0.8 * Math.max(m[i] / mx, 0.05); for (let ch = 0; ch < 3; ch++) im.data[i * 4 + ch] = rgba[i * 4 + ch] * k; im.data[i * 4 + 3] = 255; }
+  x.putImageData(im, 0, 0);
+  resetCam(); setView("shader"); c.hidden = false; $("tag").textContent = "focus map"; focusShown = true;
+}
+function hideFocus() { if (focusShown) { focusShown = false; $("prev").hidden = true; setView(view); } }
+async function tapFocus(e) {     // stage click while a tappable focus map is shown
+  if (!upload || !focusShown || !(focusState.mode === "point" || focusState.mode === "depth")) return;
+  const r = $("stage").getBoundingClientRect(), k = Math.min(r.width / upload.W, r.height / upload.H);
+  const x = (e.clientX - r.left - (r.width - upload.W * k) / 2) / (upload.W * k), y = (e.clientY - r.top - (r.height - upload.H * k) / 2) / (upload.H * k);
+  if (x < 0 || y < 0 || x > 1 || y > 1) return;
+  if (focusState.mode === "point") focusState.point = { x, y };
+  else { const d = await focusMod.depthMap(upload.img); focusState.depthAt = d[Math.min(upload.H - 1, Math.floor(y * upload.H)) * upload.W + Math.min(upload.W - 1, Math.floor(x * upload.W))]; }
+  updateFocus();
 }
 
 // Live preview for the WebGPU trainer: its splats so far, drawn on the main canvas by the instanced
@@ -397,12 +468,13 @@ async function runEncode() {
     $("encstat").textContent = `${p.phase} · step ${p.step} of ${p.totalSteps} · about ${p.psnrSample.toFixed(1)} dB · ${Math.round(p.seconds)} s`;
   };
   try {
-    stopPaint(); setView("shader");
+    stopPaint(); setView("shader"); hideFocus();
+    const focus = focusState.map ? normaliseFocus(focusState.map, upload.W * upload.H) : null, focusLabel = focus ? FOCUS_LABEL[focusState.mode] : null;
     let r = null, fellBack = "";
     if (probed?.gpu) {
       $("encstat").textContent = "Training on WebGPU…";
       lastPreview = 0;
-      try { r = await encodeGPU(dev, img, { n, ...GPU_STEPS, ...extra, onProgress, onPreview: previewSplats }); }
+      try { r = await encodeGPU(dev, img, { n, ...GPU_STEPS, ...extra, focus, onProgress, onPreview: previewSplats }); }
       catch (e) { console.log("WebGPU trainer failed; falling back to TF.js", e?.stack || e); fellBack = ` (the WebGPU trainer failed: ${e?.message || e})`; }
     }
     if (!r) {
@@ -411,23 +483,23 @@ async function runEncode() {
       trainer ??= await import("./trainer.js");
       n = Math.min(n, TF_PROFILE.maxN);
       $("encstat").textContent = `Training on ${tf.getBackend()}…`;
-      r = await trainer.encode(tf, img, { n, ...TRAIN_TF, ...extra, onProgress, onPreview: showPreview });
+      r = await trainer.encode(tf, img, { n, ...TRAIN_TF, ...extra, focus, onProgress, onPreview: showPreview });
     }
     endPreview();
     $("encstat").textContent = "Measuring the shader and the JPEG/WebP files of the same size…";
     const wgsl = emitWGSL(r);
     const points = [];
-    for (const p of r.points) points.push({ n: p.n, bytes: await gzipSize(emitWGSL(r, p.n)), psnr: +p.psnr.toFixed(2) });
+    for (const p of r.points) points.push({ n: p.n, bytes: await gzipSize(emitWGSL(r, p.n)), psnr: +p.psnr.toFixed(2), pf: p.psnrFocus != null ? +p.psnrFocus.toFixed(2) : null });
     const budget = points[points.length - 1].bytes, cmp = {}, src = { orig: upload.png };
     for (const [k, type] of [["jpeg", "image/jpeg"], ["webp", "image/webp"]]) {
-      const b = await bestUnder(upload, type, budget);
-      if (b) { src[k] = b.url; cmp[k] = { psnr: b.psnr, bytes: b.bytes, scale: b.scale }; }
+      const b = await bestUnder(upload, type, budget, focus);
+      if (b) { src[k] = b.url; cmp[k] = { psnr: b.psnr, bytes: b.bytes, scale: b.scale, pf: b.pf }; }
     }
-    const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A };
+    const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A, focus: focusLabel };
     window.__encodeResult = { ...entry, seconds: r.seconds, backend: r.backend };
     $("prev").hidden = true;
     const on = r.backend === "webgpu-tiles" ? "WebGPU" : `TensorFlow.js (${r.backend})`;
-    $("encstat").textContent = `Done in ${r.seconds < 10 ? r.seconds.toFixed(1) : Math.round(r.seconds)} s on ${on}${fellBack}: ${n.toLocaleString()} splats, ${points[points.length - 1].bytes.toLocaleString()} bytes, ${points[points.length - 1].psnr} dB at ${upload.W}×${upload.H}.`;
+    $("encstat").textContent = `Done in ${r.seconds < 10 ? r.seconds.toFixed(1) : Math.round(r.seconds)} s on ${on}${fellBack}: ${n.toLocaleString()} splats, ${points[points.length - 1].bytes.toLocaleString()} bytes, ${points[points.length - 1].psnr} dB${points[points.length - 1].pf != null ? ` (${points[points.length - 1].pf} dB in focus)` : ""} at ${upload.W}×${upload.H}.`;
     addButton(entry, true);
     load(entry);
     paint();
@@ -446,7 +518,7 @@ async function runEncode() {
 if (await init()) {
   const own = document.createElement("button");
   own.className = "own"; own.textContent = "Your image…"; own.dataset.id = "__own";
-  own.onclick = () => { $("enc").hidden = false; for (const b of $("picker").children) b.setAttribute("aria-pressed", String(b === own)); $("file").focus(); };
+  own.onclick = () => { $("enc").hidden = false; for (const b of $("picker").children) b.setAttribute("aria-pressed", String(b === own)); if (focusState.map) showFocus(); $("file").focus(); };
   $("picker").append(own);
   for (const e of IMAGES) addButton(e);
   $("file").onchange = async () => {
@@ -454,12 +526,18 @@ if (await init()) {
     if (!f) return;
     try {
       upload = await readUpload(f);
+      focusState.depthAt = null; focusState.point = { x: 0.5, y: 0.4 };
+      updateFocus();                       // runs alongside the timing below
       await sizeMenu();
       $("go").disabled = false;
       $("encstat").textContent = `${f.name}: ${upload.W}×${upload.H} after scaling. Press Encode.`;
     } catch (e) { $("encstat").textContent = "Could not read that image: " + (e?.message || e); }
   };
   $("go").onclick = runEncode;
+  $("fsel").onchange = updateFocus;
+  let fsizeTimer = 0;
+  $("fsize").oninput = () => { clearTimeout(fsizeTimer); fsizeTimer = setTimeout(updateFocus, 120); };
+  $("stage").addEventListener("click", tapFocus);
   $("k").oninput = () => { stopPaint(); setView("shader"); draw(timeFor(ks[$("k").value])); };
   $("paint").onclick = paint;
   addEventListener("resize", redraw);
