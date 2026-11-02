@@ -75,7 +75,7 @@ async function start() {
       fragment: { module: mod, entryPoint: "fs", targets: [{ format, blend: undefined }] } });
     const ub = dev.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     const bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
-    tiles.push({ cv, ctx, pipe, ub, bg, animated: s.kind === "python" });
+    tiles.push({ cv, ctx, pipe, ub, bg, animated: s.kind === "python" || !!s.animated });
   }
   status.textContent = `${tiles.length} shaders running on ${ad.info?.description || ad.info?.vendor || "WebGPU"}`;
   const t0 = performance.now();
