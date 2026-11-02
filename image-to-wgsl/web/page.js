@@ -1,5 +1,7 @@
 // Gallery viewer plus the in-browser encoder ("Your image").
 import { IMAGES } from "./shaders.js";
+import { emitInstanced, createRenderer } from "./instanced.js";
+import { gzipSize } from "./trainer.js";
 
 const $ = (id) => document.getElementById(id);
 const T = 6;                 // the shader paints N * (t / T)^2 splats at time t > 0
@@ -16,14 +18,15 @@ const TRAIN = { init: "structure", importance: 0.5, pixBudget: PROFILE.pixBudget
 // chunk and crashed the iPhone tab when limited to 32 (GPU bridge, 2026-11-02).
 const TF_URLS = ["https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"];
 const LABEL = { orig: "Original", avif: "AVIF, same bytes", webp: "WebP, same bytes", jpeg: "JPEG, same bytes" };
-let dev, ctx, fmt, ub, cur, pipe, bg, anim = 0, view = "shader", ks = [16, 32, 64, 128, 256, 512, 1024];
+let dev, ctx, fmt, ub, cur, pipe, bg, rend = null, anim = 0, view = "shader", ks = [16, 32, 64, 128, 256, 512, 1024];
 
 const ksFor = (n) => { const a = []; for (let k = 16; k < n; k *= 2) a.push(k); a.push(n); return a; };
 
 async function init() {
   const ad = await navigator.gpu?.requestAdapter();
   if (!ad) { $("stage").innerHTML = '<p class="err" style="padding:16px">WebGPU is not available in this browser, so the shaders cannot run. A recent Chrome, Edge or Safari has it.</p>'; return false; }
-  dev = await ad.requestDevice();
+  // float32 blending makes the instanced renderer's painting exact; without it, it blends in float16
+  dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
   ctx = $("cv").getContext("webgpu");
   fmt = navigator.gpu.getPreferredCanvasFormat();
   ctx.configure({ device: dev, format: fmt, alphaMode: "premultiplied" });
@@ -35,9 +38,18 @@ async function init() {
 
 function load(entry) {
   cur = entry;
-  const mod = dev.createShaderModule({ code: entry.wgsl });
-  pipe = dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format: fmt }] } });
-  bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
+  // Draw with the instanced renderer (one quad per splat, instanced.js) when the entry carries its splats;
+  // the per-pixel shader is the file whose size is measured, and the fallback.
+  rend = null;
+  if (entry.P) {
+    entry.inst ??= emitInstanced({ P: Int32Array.from(entry.P), bg: Int32Array.from(entry.bg), A: entry.A, n: entry.n });
+    rend = createRenderer(dev, fmt, entry.inst);
+    if (entry.instGz == null) gzipSize(entry.inst).then((g) => { entry.instGz = g; if (cur === entry) note(entry); });
+  } else {
+    const mod = dev.createShaderModule({ code: entry.wgsl });
+    pipe = dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format: fmt }] } });
+    bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
+  }
   $("src").textContent = entry.wgsl;
   for (const b of $("picker").children) b.setAttribute("aria-pressed", String(b.dataset.id === entry.id));
   ks = ksFor(entry.n);
@@ -51,17 +63,24 @@ function load(entry) {
     b.onclick = () => setView(v);
     return b;
   }));
-  const full = entry.points[entry.points.length - 1];
-  $("cmpnote").textContent = `Full shader: ${full.bytes.toLocaleString()} bytes, ${full.psnr} dB.` + Object.entries(entry.cmp).map(([k, c]) =>
-    ` ${k.toUpperCase()} at or under that size: ${c.bytes.toLocaleString()} bytes, ${c.psnr} dB${c.scale > 1 ? ` (encoded at 1/${c.scale} size)` : ""}.`).join("");
+  note(entry);
   $("dl").hidden = !entry.own;
   if (entry.own) {
     $("dlw").href = URL.createObjectURL(new Blob([entry.wgsl], { type: "text/plain" }));
-    $("dlh").href = URL.createObjectURL(new Blob([standalone(entry.wgsl)], { type: "text/html" }));
+    $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
   }
   setView(views.includes(view) ? view : "shader");
   draw(timeFor(ks[$("k").value]));
 }
+
+function note(entry) {
+  const full = entry.points[entry.points.length - 1];
+  $("cmpnote").textContent = `Full shader: ${full.bytes.toLocaleString()} bytes, ${full.psnr} dB.` + Object.entries(entry.cmp).map(([k, c]) =>
+    ` ${k.toUpperCase()} at or under that size: ${c.bytes.toLocaleString()} bytes, ${c.psnr} dB${c.scale > 1 ? ` (encoded at 1/${c.scale} size)` : ""}.`).join("") +
+    (entry.instGz ? ` Drawn by an instanced version of the same data (${entry.instGz.toLocaleString()} bytes gzipped), one quad per splat.` : "");
+}
+
+const nAt = (t) => t <= 0 ? cur.n : Math.min(cur.n, Math.floor(cur.n * Math.min(1, t * t / (T * T))));
 
 function timeFor(k) { return k >= cur.n ? 0 : T * Math.sqrt((k + 0.5) / cur.n); }
 
@@ -69,6 +88,7 @@ function draw(t) {
   const cv = $("cv");
   const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  if (rend) { rend.draw(ctx.getCurrentTexture().createView(), w, h, nAt(t)); readout(t); return; }
   dev.queue.writeBuffer(ub, 0, new Float32Array([w, h, t, 0]));
   const enc = dev.createCommandEncoder();
   const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [1, 1, 1, 1] }] });
@@ -78,7 +98,7 @@ function draw(t) {
 }
 
 function readout(t) {
-  const n = t <= 0 ? cur.n : Math.min(cur.n, Math.floor(cur.n * Math.min(1, t * t / (T * T))));
+  const n = nAt(t);
   const p = cur.points.filter((q) => q.n <= Math.max(n, 16)).pop();
   $("readout").innerHTML = `<b>${n}</b> splats · <b>${p.bytes.toLocaleString()}</b> bytes · <b>${p.psnr}</b> dB` + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`);
 }
@@ -119,7 +139,22 @@ function addButton(e, own = false) {
 
 // ------------------------------------------------------------------ standalone page for downloads
 
-function standalone(wgsl) {
+function standalone(entry) {
+  if (!entry.P) return standalonePerPixel(entry.wgsl);
+  return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image as a shader</title>
+<style>html,body{margin:0;height:100%;background:#fff}canvas{width:100%;height:100%;display:block}</style><canvas></canvas><script type="module">
+const code=${JSON.stringify(entry.inst)},N=${entry.n};const cv=document.querySelector("canvas");const ad=await navigator.gpu?.requestAdapter();
+if(!ad){document.body.textContent="WebGPU is not available in this browser.";throw 0;}
+const dev=await ad.requestDevice({requiredFeatures:ad.features.has("float32-blendable")?["float32-blendable"]:[]}),ctx=cv.getContext("webgpu"),fmt=navigator.gpu.getPreferredCanvasFormat();ctx.configure({device:dev,format:fmt,alphaMode:"premultiplied"});
+${createRenderer.toString()}
+const rd=createRenderer(dev,fmt,code);let t0=performance.now();
+const draw=(t)=>{const w=cv.width=Math.round(cv.clientWidth*devicePixelRatio),h=cv.height=Math.round(cv.clientHeight*devicePixelRatio);rd.draw(ctx.getCurrentTexture().createView(),w,h,t<=0?N:Math.min(N,Math.floor(N*Math.min(1,t*t/36))));};
+const step=()=>{const t=(performance.now()-t0)/1000;if(t>=6){draw(0);return;}draw(Math.max(t,1e-3));requestAnimationFrame(step);};step();
+addEventListener("resize",()=>draw(0));cv.onclick=()=>{t0=performance.now();step();};
+</script>`;
+}
+
+function standalonePerPixel(wgsl) {
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Image as a shader</title>
 <style>html,body{margin:0;height:100%;background:#fff}canvas{width:100%;height:100%;display:block}</style><canvas></canvas><script type="module">
 const code=${JSON.stringify(wgsl)};const cv=document.querySelector("canvas");const ad=await navigator.gpu?.requestAdapter();
@@ -260,7 +295,7 @@ async function runEncode() {
       const b = await bestUnder(upload, type, budget);
       if (b) { src[k] = b.url; cmp[k] = { psnr: b.psnr, bytes: b.bytes, scale: b.scale }; }
     }
-    const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src };
+    const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A };
     window.__encodeResult = { ...entry, seconds: r.seconds, backend: r.backend, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A };
     $("prev").hidden = true;
     $("encstat").textContent = `Done in ${Math.round(r.seconds)} s on ${r.backend}: ${points[points.length - 1].bytes.toLocaleString()} bytes, ${points[points.length - 1].psnr} dB at ${upload.W}×${upload.H}.`;

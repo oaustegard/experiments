@@ -11,6 +11,7 @@ import json
 import sys
 from pathlib import Path
 
+import torch
 from PIL import Image
 
 WEB = Path(__file__).resolve().parent
@@ -58,6 +59,8 @@ def main():
                 (WEB / "img" / f"{im}_{ext}.{ext}").write_bytes(b[1])
                 cmp[ext] = {"psnr": round(b[0], 2), "scale": b[2], "q": b[3], "bytes": b[4]}
         entries.append({"id": im, "wgsl": wgsl, "n": int(run["P"].shape[0]), "W": run["W"], "H": run["H"],
+                        # the splat data itself, for the instanced renderer (instanced.js)
+                        "P": run["P"].to(torch.int64).flatten().tolist(), "bg": run["bg"].to(torch.int64).tolist(), "A": run["A"],
                         "points": [{"n": r["n"], "bytes": r["gz_packed"], "psnr": round(r["psnr"], 2)} for r in pts],
                         "cmp": cmp})
     (WEB / "shaders.js").write_text("export const IMAGES = " + json.dumps(entries) + ";\n")

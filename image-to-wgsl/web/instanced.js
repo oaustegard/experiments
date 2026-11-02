@@ -5,8 +5,8 @@
 // the fragment shader only runs where the splat has ink, and the GPU's blending does the painting:
 // "over" blending, src * a + dst * (1 - a), is exactly mix(c, colour, w). The splat list order is the
 // painting order, so no sorting is needed, and drawing the first n instances paints the n-splat prefix.
-// Blending happens in an rgba16float target (8-bit blending would round at every layer), and a last
-// pass copies it to the screen. Same packed data, same decode arithmetic as the per-pixel shader.
+// Blending happens in a float target (8-bit blending would round at every layer): rgba32float where the
+// device has float32-blendable, else rgba16float. A last pass copies it to the screen. Same packed data, same decode arithmetic as the per-pixel shader.
 //
 // Entry points: vb/fb background, vs/fs splats (instanced, 6 vertices each), vc/fc copy.
 // Bindings: @group(0) @binding(0) uniform vec4f(width, height, 0, 0); @binding(1) the float texture (copy).
@@ -63,6 +63,7 @@ export function emitInstanced(r, n = null) {
 }
 
 // Host side. draw(view, w, h, n) paints the first n splats into `view` (w x h pixels, format `fmt`).
+// Pass a device created with the "float32-blendable" feature, when the adapter has it, for exact blending.
 // Kept free of imports so a downloaded page can embed it with createRenderer.toString().
 export function createRenderer(dev, fmt, code) {
   const mod = dev.createShaderModule({ code });
@@ -71,15 +72,17 @@ export function createRenderer(dev, fmt, code) {
                  alpha: { srcFactor: "zero", dstFactor: "one", operation: "add" } };
   const mk = (v, f, format, blend) => dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: v },
     fragment: { module: mod, entryPoint: f, targets: [{ format, blend }] }, primitive: { topology: "triangle-list" } });
-  const pBg = mk("vb", "fb", "rgba16float"), pSp = mk("vs", "fs", "rgba16float", OVER), pCp = mk("vc", "fc", fmt);
+  const FT = dev.features.has("float32-blendable") ? "rgba32float" : "rgba16float";
+  const pBg = mk("vb", "fb", FT), pSp = mk("vs", "fs", FT, OVER), pCp = mk("vc", "fc", fmt);
   const ubg = (p) => dev.createBindGroup({ layout: p.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
   const gBg = ubg(pBg), gSp = ubg(pSp);
   let tex = null, gCp = null, tw = 0, th = 0;
   return {
+    format: FT,
     draw(view, w, h, n) {
       if (w !== tw || h !== th) {
         tex?.destroy();
-        tex = dev.createTexture({ size: [w, h], format: "rgba16float", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
+        tex = dev.createTexture({ size: [w, h], format: FT, usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
         gCp = dev.createBindGroup({ layout: pCp.getBindGroupLayout(0), entries: [{ binding: 1, resource: tex.createView() }] });
         tw = w; th = h;
       }

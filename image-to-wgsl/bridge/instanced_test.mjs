@@ -16,7 +16,8 @@ await p.goto(`http://127.0.0.1:${srv.address().port}/`);
 const jobs = JSON.parse(fs.readFileSync(inp));
 const res = await p.evaluate(async (jobs) => {
   const { emitInstanced, createRenderer } = await import("/instanced.js");
-  const dev = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const ad = await navigator.gpu.requestAdapter();
+  const dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
   dev.addEventListener("uncapturederror", (e) => console.log("gpu error: " + e.error.message));
   const out = {};
   for (const [name, j] of Object.entries(jobs)) {
@@ -26,7 +27,7 @@ const res = await p.evaluate(async (jobs) => {
     const errs = info.messages.filter((m) => m.type === "error").map((m) => m.lineNum + ":" + m.linePos + " " + m.message);
     if (errs.length) { out[name] = { errors: errs }; continue; }
     const rd = createRenderer(dev, "rgba8unorm", code);
-    out[name] = { codeLen: code.length, imgs: {} };
+    out[name] = { codeLen: code.length, format: rd.format, imgs: {} };
     for (const n of j.prefixes) {
       const W = j.W, H = j.H, tex = dev.createTexture({ size: [W, H], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
       rd.draw(tex.createView(), W, H, n);
