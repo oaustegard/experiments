@@ -75,7 +75,7 @@ def build(src, out):
     for b in range(len(BANDS)):
         lines.append(f"@property --b{b}{{syntax:'<color>';inherits:true;initial-value:{BANDS[b]}}}")
     lines.append("".join(f".{c}{{fill:var(--b{b});stroke:var(--b{b})}}" for c, b in band_of.items()))
-    lines.append(".bg{fill:var(--b{len(BANDS) - 1})}")  # var() is not allowed in presentation attributes
+    lines.append(f".bg{{fill:var(--b{len(BANDS) - 1})}}")  # var() is not allowed in presentation attributes
     lines.append(keyframes(names))
     # Static per-quadrant palettes are the reduced-motion frame; the animation overrides them.
     for q, name in enumerate(names):
