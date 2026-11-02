@@ -214,10 +214,12 @@ Adjudicator: TPR 95% on 40 regex hits, TNR 90% on 40 wrong-task deliverables;
 
 `hier4` lost 13 must-have chunks: 9 pruned with their segment at level 1 and 4
 out-ranked at level 2. Its executor still found 106 facts, because most facts
-appear in more than one chunk. `hier8` lost 6 (5 at level 1). The larger view
-helps at both levels, since the level-1 choice is the same in both arms only
-up to Jev's scores on identical digests: the 5-versus-9 difference at level 1
-is run-to-run variation in which segments made the top 40%, not the scale.
+appear in more than one chunk. `hier8` lost 6 (5 at level 1). Level 1 sees the
+same digests in both arms, so the 9-versus-5 difference there is not the view
+scale: the two arms kept different segments on 8 of 28 tasks, from identical
+input. Jev's scores vary between calls enough to reorder segments near the 40%
+cut. Only the level-2 difference (4 versus 1 out-ranked) is attributable to
+the larger view.
 
 **Limits.** Sessions are 19 to 97 chunks, where the flat filter needs only 1-2
 windows; the hierarchy's case is longer sessions, which were not tested. The
