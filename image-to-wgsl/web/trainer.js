@@ -4,6 +4,12 @@
 //
 //   const r = await encode(tf, {rgba, width, height}, {n: 256, onProgress});
 //   r.wgsl, r.points[{n, psnr}], r.P (Int32Array n*10), r.bg (Int32Array 12)
+//
+// Foveation: opts.focus is a Float32Array of W*H non-negative weights (null = uniform; web/focus.js makes them).
+// They are scaled to max 1, floored at FOCUS_FLOOR so no pixel is ignored, then normalised to mean 1, and used
+// as per-pixel loss weights, in the importance sampler's cell probabilities, and where new splats are placed.
+// points then also carry psnrFocus, the PSNR of the focus-weighted MSE. opts.focusEval gives weights that are
+// only reported (psnrFocus) and not trained on, so a uniform run can be scored on the same map.
 
 // Bit layout: must match codec.py Layout (x, y, sx, sy, th, r, g, b, alpha, shape).
 export const LAYOUT = { bits: [10, 9, 6, 6, 6, 6, 6, 6, 4, 2], bbg: 6, sLo: -9, sHi: 0 };
@@ -129,6 +135,33 @@ export async function renderImage(tf, ops, Pq, bgq, W, H, A, n = null, pixChunk 
   return out;
 }
 
+export const FOCUS_FLOOR = 0.05;
+
+// W*H weights -> scaled to max 1, floored at `floor`, mean 1. null for no or all-zero weights.
+export function normaliseFocus(f, HW, floor = FOCUS_FLOOR) {
+  if (!f) return null;
+  if (f.length !== HW) throw new Error(`focus has ${f.length} weights, expected ${HW}`);
+  let mx = 0;
+  for (let i = 0; i < HW; i++) { const v = f[i]; if (v > mx) mx = v; }   // NaN and negatives drop out here
+  if (!(mx > 0) || !isFinite(mx)) return null;
+  const w = new Float32Array(HW); let s = 0;
+  for (let i = 0; i < HW; i++) { const v = f[i] > 0 ? f[i] / mx : 0; w[i] = Math.max(v, floor); s += w[i]; }
+  const k = HW / s;
+  for (let i = 0; i < HW; i++) w[i] *= k;
+  return w;
+}
+
+// PSNR of the weighted MSE: w per pixel (mean 1), a and b RGB in [0,1].
+export function psnr8w(a, b, w) {
+  let s = 0, ws = 0;
+  for (let p = 0; p < w.length; p++) {
+    let d2 = 0;
+    for (let c = 0; c < 3; c++) { const d = Math.round(a[p * 3 + c] * 255) - Math.round(b[p * 3 + c] * 255); d2 += d * d; }
+    s += w[p] * d2; ws += w[p];
+  }
+  return 10 * Math.log10(255 * 255 / Math.max(s / (3 * ws), 1e-12));
+}
+
 export function psnr8(a, b) {        // a, b: float RGB in [0,1], same length
   let s = 0;
   for (let i = 0; i < a.length; i++) { const d = Math.round(a[i] * 255) - Math.round(b[i] * 255); s += d * d; }
@@ -144,6 +177,7 @@ export async function encode(tf, img, opts = {}) {
   const stepsStage = Math.round((opts.stepsStage ?? 100) * stepsScale), stepsFinal = Math.round((opts.stepsFinal ?? 300) * stepsScale),
         stepsQat = Math.round((opts.stepsQat ?? 150) * stepsScale);
   const W = img.width, H = img.height, A = W / H, HW = W * H;
+  const focus = normaliseFocus(opts.focus, HW), focusEval = opts.focusEval ? normaliseFocus(opts.focusEval, HW) : focus;
   const rand = rng(seed);
   const ops = makeOps(tf, A, chunk);
   const tgt = new Float32Array(HW * 3);
@@ -170,6 +204,24 @@ export async function encode(tf, img, opts = {}) {
   let done = 0, lastLoss = null;
   const t0 = performance.now();
   const C = sw * sh;
+  // pixel block of small-target cell i (the sampler draws a cell, then a pixel inside its block)
+  const cellBox = (i) => {
+    const cx = i % sw, cy = Math.floor(i / sw);
+    const x0 = Math.floor(cx * W / sw), x1 = Math.max(x0 + 1, Math.floor((cx + 1) * W / sw));
+    const y0 = Math.floor(cy * H / sh), y1 = Math.max(y0 + 1, Math.floor((cy + 1) * H / sh));
+    return [x0, x1, y0, y1];
+  };
+  // focus per cell: the mean weight over the cell's pixel block
+  let fCell = null;
+  if (focus) {
+    fCell = new Float32Array(C);
+    for (let i = 0; i < C; i++) {
+      const [x0, x1, y0, y1] = cellBox(i); let s = 0;
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) s += focus[y * W + x];
+      fCell[i] = s / ((x1 - x0) * (y1 - y0));
+    }
+  }
+  const focused = (e) => fCell ? e.map((v, i) => v * fCell[i]) : e;   // error x focus, for placing splats
   // structure tensor of the small target's luminance, blurred: the edge direction and how strongly it is oriented
   const Lum = new Float32Array(C), J = [new Float32Array(C), new Float32Array(C), new Float32Array(C)];
   for (let i = 0; i < C; i++) Lum[i] = 0.299 * tsmallArr[i * 3] + 0.587 * tsmallArr[i * 3 + 1] + 0.114 * tsmallArr[i * 3 + 2];
@@ -224,20 +276,26 @@ export async function encode(tf, img, opts = {}) {
     keys.sort((p, q) => q[0] - p[0]);
     return keys.slice(0, k).map((x) => x[1]);
   }
-  // nPix pixel indices, a share `importance` of them drawn by error, with weights that keep the loss unbiased
+  // nPix pixel indices, a share `importance` of them drawn by error, with weights that keep the loss unbiased.
+  // With focus, both shares are also scaled by the cell's focus (the uniform share becomes focus-proportional),
+  // and each pixel's weight carries its own focus weight, so the estimate stays unbiased for the focus-weighted loss.
   function samplePixels(e, nPix) {
     const idx = new Int32Array(nPix), w = new Float32Array(nPix);
-    let E = 0; for (let i = 0; i < C; i++) E += e[i];
+    const f = fCell ?? new Float32Array(C).fill(1);
+    let F = 0, E = 0;
+    for (let i = 0; i < C; i++) { F += f[i]; if (importance > 0) E += e[i] * f[i]; }
     const cum = new Float64Array(C); let acc = 0;
-    for (let i = 0; i < C; i++) { acc += (1 - importance) / C + importance * e[i] / E; cum[i] = acc; }
+    for (let i = 0; i < C; i++) {
+      acc += fCell ? (1 - importance) * f[i] / F + (importance > 0 ? importance * e[i] * f[i] / E : 0)
+                   : (1 - importance) / C + importance * e[i] / E;     // the unfocused sampler, unchanged
+      cum[i] = acc;
+    }
     for (let j = 0; j < nPix; j++) {
       const u = rand() * acc; let lo = 0, hi = C - 1;
       while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m] < u) lo = m + 1; else hi = m; }
-      const pc = cum[lo] - (lo ? cum[lo - 1] : 0), cx = lo % sw, cy = Math.floor(lo / sw);
-      const x0 = Math.floor(cx * W / sw), x1 = Math.max(x0 + 1, Math.floor((cx + 1) * W / sw));
-      const y0 = Math.floor(cy * H / sh), y1 = Math.max(y0 + 1, Math.floor((cy + 1) * H / sh));
+      const pc = (cum[lo] - (lo ? cum[lo - 1] : 0)) / (fCell ? acc : 1), [x0, x1, y0, y1] = cellBox(lo);
       idx[j] = (y0 + Math.floor(rand() * (y1 - y0))) * W + x0 + Math.floor(rand() * (x1 - x0));
-      w[j] = (1 / C) / pc;
+      w[j] = (1 / C) / pc * (focus ? focus[idx[j]] : 1);
     }
     return { idx, w };
   }
@@ -267,7 +325,7 @@ export async function encode(tf, img, opts = {}) {
           if (al * Math.PI * sx * sy < 2) dead.push(j);
         }
         if (dead.length) {
-          const cells = pickCells(eCells, Math.min(dead.length, Math.ceil(0.05 * nNow)));
+          const cells = pickCells(focused(eCells), Math.min(dead.length, Math.ceil(0.05 * nNow)));
           const rows = Float32Array.from(Pa);
           cells.forEach((cell, k) => rows.set(newSplat(cell, nNow), dead[k] * 10));
           respawned += cells.length;
@@ -275,7 +333,7 @@ export async function encode(tf, img, opts = {}) {
         }
       }
       let selArr = null, wArr = null;
-      if (importance > 0) ({ idx: selArr, w: wArr } = samplePixels(eCells, nPix));
+      if (importance > 0 || focus) ({ idx: selArr, w: wArr } = samplePixels(eCells, nPix));
       const cost = opt.minimize(() => {
         const sel = selArr ? tf.tensor1d(selArr, "int32") : tf.randomUniform([nPix], 0, HW, "int32", seed * 100003 + done);
         const Xs = tf.gather(Xall, sel), Ys = tf.gather(Yall, sel), T = tf.gather(target, sel);
@@ -308,7 +366,7 @@ export async function encode(tf, img, opts = {}) {
   for (let si = 0; si < sizes.length; si++) {
     const size = sizes[si], nNew = size - P.shape[0];
     // error map at small size -> new splats where the error is largest
-    const rows = pickCells(await errorCells(P, bgp), nNew).map((i) => newSplat(i, size));
+    const rows = pickCells(focused(await errorCells(P, bgp)), nNew).map((i) => newSplat(i, size));
     const Pnew = tf.concat([P, tf.tensor2d(rows, [nNew, 10])], 0);
     P.dispose(); P = Pnew;
     const final = si === sizes.length - 1;
@@ -319,10 +377,14 @@ export async function encode(tf, img, opts = {}) {
   const Pq = tf.tidy(() => tf.round(tf.minimum(tf.maximum(P, 0), ops.M)));
   const bq = tf.tidy(() => tf.round(tf.clipByValue(bgp, 0, MBG)));
   const points = [];
-  for (const k of ks) points.push({ n: k, psnr: psnr8(await renderImage(tf, ops, Pq, bq, W, H, A, k), tgt) });
+  for (const k of ks) {
+    const im = await renderImage(tf, ops, Pq, bq, W, H, A, k), pt = { n: k, psnr: psnr8(im, tgt) };
+    if (focusEval) pt.psnrFocus = psnr8w(im, tgt, focusEval);
+    points.push(pt);
+  }
   const result = { P: Int32Array.from(await Pq.data()), bg: Int32Array.from(await bq.data()), A, W, H, n, points,
                    seconds: (performance.now() - t0) / 1000, backend: tf.getBackend(), respawned,
-                   steps: totalSteps, options: { init, respawnEvery, importance, stepsScale } };
+                   steps: totalSteps, options: { init, respawnEvery, importance, stepsScale, focus: !!focus } };
   [P, bgp, Pq, bq, target, Xall, Yall, tsmall, scale, ops.M].forEach((t) => t.dispose());
   ops.dispose();
   return result;
