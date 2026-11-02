@@ -857,11 +857,12 @@ survives exactly the sanity checks people run.
 - **TensorFlow.js 4.22's WebGPU backend computes some gradients wrongly; train on WebGL.** On an
   iPhone, against TF.js's own CPU backend: `matMul` of `[P, G]` by `[G, 3]` gave wrong values and
   gradients from G = 64, and the gradient of `cumsum` was wrong from a row length of 32 (for axis 0 it
-  also comes back transposed). The WebGL backend matched the CPU backend to about 1e-6 on every op
-  tested. Check a new autodiff graph by running `tf.valueAndGrads` on both the target backend and
-  `cpu` before trusting a loss curve. Training at 1,024 splats crashed the iPhone tab on both
-  backends, and a crashed tab's claim keeps a bridge job "taken" until it is withdrawn by deleting
-  `jobs/<id>` and `results/<id>`. (`image-to-wgsl/bridge/gradcheck_job.js`,
+  also comes back transposed). The WebGL backend matched the CPU backend to within about 1e-6, relative to
+  the largest value, on every op tested. Only an iPhone was tested. Before trusting a loss curve,
+  compute values and gradients of the new graph with `tf.valueAndGrads` on the target backend and on
+  `cpu`, and compare. Training at 1,024 splats crashed the iPhone tab on both backends. On the GPU
+  bridge, a job whose run crashed the tab stays claimed ("taken") by the dead tab; delete its
+  `jobs/<id>` and `results/<id>` in gpu-bridge-comms to free it. (`image-to-wgsl/bridge/gradcheck_job.js`,
   `results/bridge_i2w-gradcheck-2.json`)
 - **GPU bridge jobs: guard each frame and keep the timeout to minutes.** The GPU bridge
   (`docs/gpu-bridge.md` in claude-workspace) runs a WebGPU job on Oskar's phone or laptop and

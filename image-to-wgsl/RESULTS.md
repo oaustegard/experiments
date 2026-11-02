@@ -68,7 +68,7 @@ The fields are bit-packed into one `const` array of `u32` in the shader. wgsl-fo
 
 **Decode checks.** Every shader was rendered in headless Chromium on SwiftShader (`verify_gpu.py`). The kodim23 shaders and the payload layouts were also rendered on Oskar's iPhone through the GPU bridge, a browser page that runs WebGPU jobs pushed from this session (`bridge/job.js`).
 
-**Encoding in the browser** (`web/trainer.js`, `web/page.js`). The gallery's "Your image…" button fits splats to an uploaded image in the browser with TensorFlow.js 4.22 on its WebGL backend, up to 256 splats, and builds the same shader that `codec.py` writes. `bridge/train_job.js` runs the same trainer on a device through the GPU bridge.
+**Encoding in the browser** (`web/trainer.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser with TensorFlow.js 4.22, and builds the same shader that `codec.py` writes. It trains on TF.js's WebGL backend, because the WebGPU backend gave wrong gradients, and stops at 256 splats, because 1,024 crashed an iPhone tab (log entry below). `bridge/train_job.js` runs the same trainer on a device through the GPU bridge.
 
 **Rebuild.** Run `data/fetch.sh`, then `python3 run_sweep.py` (about two hours on 4 vCPUs), `python3 baselines.py`, `python3 svg_arm.py kodim23 kodim05`, `python3 analyze.py --gpu`, `python3 make_headline.py` and `python3 web/build.py`.
 
@@ -100,11 +100,11 @@ Three tooling problems came up and were worked around:
 
 ### 2026-11-02 — encoding an uploaded image in the browser
 
-Asked: "Can't we make this interactive, allowing a user to upload an image?" The trainer was ported to JavaScript on TensorFlow.js 4.22, with the WGSL emitter alongside it, and the gallery gained a "Your image…" button. On a 32-splat test in headless Chromium, the JavaScript trainer's own PSNR, PyTorch rendering the same splats and Chromium rendering its shader all gave 20.089 dB, and its shader was 1,083 gzipped bytes against 1,078 from `codec.py` plus the forge minifier.
+Asked: "Can't we make this interactive, allowing a user to upload an image?" The trainer was ported to JavaScript on TensorFlow.js 4.22, with the WGSL emitter alongside it, and the gallery gained a "Your image…" button. On a 32-splat test in headless Chromium, the JavaScript trainer's own PSNR, PyTorch rendering the same splats and Chromium rendering its shader all gave 20.089 dB against the 192×128 image, so the two trainers decode identically. Its hand-compacted shader was 1,083 gzipped bytes, against 1,078 from `codec.py` plus the wgsl-forge minifier.
 
-Training on Oskar's iPhone through the GPU bridge found three problems with TF.js's WebGPU backend (`results/bridge_i2w-gradcheck-2.json`, values and gradients against TF.js's CPU backend):
+Training on Oskar's iPhone through the GPU bridge found three problems with TF.js's WebGPU backend. The check compared values and gradients against TF.js's CPU backend, for P = 2,048 pixels and chunks of G splats painted together (`results/bridge_i2w-gradcheck-2.json`):
 - `matMul` of a `[P, G]` by a `[G, 3]` matrix gave wrong values and gradients from G = 64;
 - the gradient of `cumsum` was wrong from a row length of 32, and for axis 0 its gradient came back transposed;
-- with chunks of at most 32 splats, where every op checked out, training crashed the tab twice.
+- every op was correct with chunks of at most 32 splats, but training with that cap crashed the tab twice.
 
-Every op checked matched the CPU backend to about 1e-6 on WebGL. The trainer now sums with triangular matrix products instead of `cumsum`, and trains on WebGL. On the iPhone, WebGL trained 64 splats of a 384×256 kodim23 in 26 s (22.85 dB) and 256 splats in 52 s, with every prefix better than the last: 18.79, 20.84, 23.04, 24.97 and 25.86 dB (`results/bridge_i2w-train-6.json`). A 1,024-splat run crashed the tab on WebGL as well, even at 2,048 sampled pixels per step, so the page offers at most 256 splats.
+On the WebGL backend, every op matched the CPU backend to within about 1e-6, relative to the largest value. The trainer now sums with triangular matrix products instead of `cumsum`, and trains on WebGL. On the iPhone, WebGL trained 64 splats of a 384×256 kodim23 in 26 s (22.85 dB) and 256 splats in 52 s. In the 256-splat run every prefix beat the one before: 18.79, 20.84, 23.04, 24.97 and 25.86 dB at 16, 32, 64, 128 and 256 splats (`results/bridge_i2w-train-6.json`). A 1,024-splat run crashed the tab on WebGL as well, even when each training step sampled only 2,048 pixels instead of 8,192, so the page offers at most 256 splats. Only the iPhone was tested.
