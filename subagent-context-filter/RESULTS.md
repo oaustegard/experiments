@@ -2,76 +2,97 @@
 
 When an orchestrating agent hands work to a subagent, the subagent starts
 blank. The `delegating-with-context` skill lets the orchestrator write only the
-task: a PreToolUse hook reads the parent session's transcript, asks Jev (a
-hosted decision model that scores many yes/no questions over one shared text
-in about a second) which transcript chunks the task needs, and appends those
-chunks to the subagent's prompt, up to a 20k-token budget.
+task: a PreToolUse hook (a script Claude Code runs before the tool call) reads
+the parent session's transcript, asks Jev which transcript chunks the task
+needs, and appends those chunks to the subagent's prompt, up to a 20k-token
+budget. Jev is a hosted decision model that answers many yes/no questions over
+one shared text in about a second. A chunk is one message, or one tool call
+with its result. The **flat** filter asks Jev about every chunk. The
+**hierarchical** one (after DecisionRAG, arXiv 2610.35868, which retrieves
+documents by descending a topic tree) first scores segments of the session and
+then asks only about the chunks inside the best segments.
 
 ## Answer
 
-Does the filtered transcript carry the facts a subagent needs, and does
-scoring it hierarchically (segments first, then chunks inside the kept
-segments, after DecisionRAG, arXiv 2610.35868) beat scoring every chunk?
+Does the filtered transcript carry the facts a subagent needs, and does the
+hierarchical filter beat the flat one?
 
-Yes to both, by small margins. In the first eval the flat filter's subagent
-found 99 of 105 facts. <!-- @evidence[[results/summary.json#arms.jev4.facts_found]] -->
-The full transcript found 102. <!-- @evidence[[results/summary.json#arms.full.facts_found]] -->
-A brief written by the orchestrator found 82. <!-- @evidence[[results/summary.json#arms.brief.facts_found]] -->
-Over 52 later delegations from 16 sessions of 19 to 581 chunks, the
-hierarchical filter at 8x view was never worse than the flat one and better on 3 tasks. <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.better]] -->
-Paired fact recall rose 2.7%, <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.mean_pct]] -->
-with a CI from +0.0% to +6.4%, <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.ci_hi_pct]] -->
-at a median 31% fewer Jev tokens per delegation. <!-- @evidence[[results/summary_pooled.json#hier8_jev_token_saving_pct]] -->
-It is the skill's default since version 0.3.0.
+The first holds. On 32 delegations from 8 sessions, the flat filter's
+subagent found 99 of 105 facts. <!-- @evidence[[results/summary.json#arms.jev4.facts_found]] -->
+The whole transcript found 102, <!-- @evidence[[results/summary.json#arms.full.facts_found]] -->
+and a brief the orchestrator wrote found 82. <!-- @evidence[[results/summary.json#arms.brief.facts_found]] -->
 
-Most arms find at least 97% of the facts, so the eval sits near its ceiling.
-Harder tasks, or facts stated in only one chunk, would separate the arms more.
+The second is a cost win with recall at least equal. Over 52 later
+delegations from 16 sessions of 19 to 581 chunks, the hierarchical filter at
+8x view (`hier8`, the shipped default) cut
+Jev input tokens by a median 31% per delegation. <!-- @evidence[[results/summary_pooled.json#hier8_jev_token_saving_pct]] -->
+It was never worse than the flat filter on fact recall and better on 3 tasks. <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.better]] -->
+That is +2.7 points, <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.mean_pct]] -->
+with a 95% CI from +0.0 to +6.4. <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.ci_hi_pct]] -->
+The recall gain rests on 3 tasks and on an adjudicator that rescued most regex misses. Scored by regex alone,
+the flat filter leads on long sessions. On cost alone the hierarchical filter
+became the skill's default.
+
+In both hierarchy rounds every filter arm found at least 96% of facts, so the
+eval sits near its ceiling. Harder tasks would separate the arms more.
 
 ## Findings
 
-1. A written brief loses facts by pointing at lookups: 5 of 32 tasks deferred a fact to a tool the subagent lacked, and that is the brief's whole gap (Round 2026-09-23).
-2. The hierarchical filter is never worse than the flat filter on 52 tasks and better on 3 (`results/summary_pooled.json`). <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.better]] -->
-3. Over 150 chunks, `hier8` found 93 of 93 facts against 90 for the flat filter (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#arms.jev4.facts_found]] -->
-4. On those sessions the flat filter needs 8 Jev calls and 2.5 s per delegation (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#filter.jev4.calls_median]] -->
-5. Level 1 needs a top-k budget, not a score threshold: on a single-topic session every segment scored at least 0.57, so a 0.3 threshold pruned nothing (Round 2026-11-02, 8 short sessions).
-6. Jev's scores vary between identical calls: given the same level-1 input, `hier4` and `hier8` kept different segments on 8 of 28 tasks (Round 2026-11-02, 8 short sessions).
-7. The shipped filter looped forever on sessions of about 500 chunks or more, because `clip(x, 20)` returns 25 characters and the exit test wanted 24; the hook timed out and passed no context. Fixed in skill 0.2.3 (Round 2026-11-02, long sessions).
-8. The fact regexes are too literal in every round; a blind adjudicator upgraded 61 of 64 misses on the long run, where regex-only scoring puts the flat filter first (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#adjudicator.upgrades]] -->
-9. TypeSafe's edge WAF blocks some transcript bytes, and the AI Gateway reports it as HTTP 402; the filter bisects the window (ERRORS #5).
+1. On sessions over 150 chunks, `hier8` and `hier4` each found 93 of 93 facts and the flat filter (`jev4`) 90, after adjudication (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#arms.jev4.facts_found]] -->
+2. The adjudicator decides that ordering: it upgraded 61 of 64 regex misses on that run (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#adjudicator.upgrades]] -->
+   Regex-only scoring gives `jev4` 79, `hier4` 76 and `hier8` 77. The adjudicator was validated in the same batches at TPR 100% and TNR 98% (Round 2026-11-02, long sessions).
+3. On those sessions `hier8` reads a median 142,841 Jev input tokens per delegation (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#filter.hier8.jev_tokens_median]] -->
+   The flat filter reads 227,449. <!-- @evidence[[results/summary_hier_long.json#filter.jev4.jev_tokens_median]] -->
+   It makes 6 Jev calls against 8, and selection takes 1.8 s against 2.5 s. On the 19-to-97-chunk sessions the token figures are 32,620 against 50,954 (`results/summary_hier.json`). <!-- @evidence[[results/summary_hier.json#filter.hier8.jev_tokens_median]] -->
+4. A written brief loses facts by pointing at lookups. On 5 of 32 tasks the brief told the subagent to look a fact up instead of stating it. Excluding those 5, the brief, the flat filter and the full transcript land within 2 facts of each other (Round 2026-09-23).
+5. Jev's scores vary between identical calls. Given the same segment-level input, two arms kept different segments on 8 of 28 tasks, so a gain of a few tasks between Jev-ranked arms can be noise (Round 2026-11-02, short sessions).
+6. The segment level needs a top-k budget, not a score threshold. Jev scores are probabilities from 0 to 1. On a single-topic session every segment scored at least 0.57, so a 0.3 threshold kept them all (Round 2026-11-02, short sessions).
+7. The shipped filter never returned on sessions of about 500 chunks or more, so delegations there went out with no context. It is fixed in skill 0.2.3, and the hierarchical default shipped in 0.3.0 (Round 2026-11-02, long sessions).
 
 ## Method
 
+- **Rounds.** 2026-09-23: 8 sessions of 19 to 97 chunks, 32 tasks, 105 facts.
+  2026-11-02 short: the same 8 sessions relabelled, 28 tasks, 108 facts.
+  2026-11-02 long: 8 sessions of 159 to 581 chunks, 24 tasks, 93 facts. Each
+  round's tasks were written fresh, so its arms compare only with each other.
 - **Corpus.** Archived sessions from the `claude-workspace` `transcripts`
-  branch, chunked by `chunking.py` (one user message, assistant text block,
-  harness turn, or tool call with its result per chunk), secrets redacted
-  before any chunk leaves the machine. Transcript-derived data stays out of
-  this public repo (`data/` is gitignored; `EVAL_DATA` points the scripts at a
-  directory elsewhere).
+  branch, chunked by `chunking.py`, with secrets redacted before any chunk
+  leaves the machine. Transcript-derived data stays out of this public repo:
+  `data/` is gitignored, and `EVAL_DATA` points the scripts at a directory elsewhere.
 - **Tasks.** Per session, a tool-less Sonnet labeller reads the whole session
-  and writes 4 delegation tasks phrased by name without the facts, each with 2
-  to 4 required facts as regexes, the transcript evidence, and the chunk ids
-  holding them (`label.py`). Tasks whose regex misses its own evidence, leaks
-  into the task text, or has a bad chunk id are dropped.
-- **Arms.** `none` (task only), `jev1`/`jev4` (flat filter at 1x or 4x view:
-  every chunk scored, paged into ~27k-token Jev windows), `hier4`/`hier8`
-  (`hierfilter.py`: segments at each user message and every 8 chunks, scored
-  from digests; top 40% kept, at least 3; their chunks scored at 4x or 8x
-  view), `full` (the whole transcript), `brief` (the orchestrator model writes a
-  brief from the full transcript). All filter arms pack into a 20k budget with
-  the same `select`.
+  and writes 4 delegation tasks. Each task is phrased by name, without the facts, and
+  carries 2 to 4 required facts as regexes, with their transcript evidence and the chunk
+  ids that hold them (`label.py`). A task whose regex misses its own evidence or
+  leaks into the task text is dropped.
+- **Arms.**
+  - `none`: the task alone. It found 0 or 1 facts in every round.
+  - `jev1`/`jev4`: the flat filter, which shows Jev each chunk clipped to 1x or 4x a base
+    length (the **view**; at 1x, 1,500 characters of text, or 300 of tool input
+    and 900 of result) and pages the chunks into Jev requests of about 27k tokens
+    (**windows**). `jev1` ran only in the first round, where it tied `jev4` at 99 of 105 facts. <!-- @evidence[[results/summary.json#arms.jev1.facts_found]] -->
+  - `hier4`/`hier8` (`hierfilter.py`): **level 1** cuts the session into
+    segments at each user message and every 8 chunks, shows Jev a short
+    **digest** of each (clipped lines of its messages and tool calls), and
+    keeps the top 40%, at least 3. **Level 2** scores only those segments'
+    chunks at 4x or 8x view.
+  - `full`: the whole transcript.
+  - `brief`: the executor model writes a brief from the full transcript.
+  
+  Every filter arm packs its top-scored chunks into the same 20k-token budget,
+  with the same `select` function.
 - **Executor.** `claude -p` with no tools, settings or MCP, one turn: Sonnet,
-  and `sonnet[1m]` on sessions over 150 chunks, where the full transcript
-  reaches 391k tokens.
-- **Scoring.** Fact regexes, then a blind adjudicator over every miss
-  (`adjudicate.py`), validated in the same batches on regex hits (TPR) and on
-  facts checked against another task's deliverable (TNR).
+  and `sonnet[1m]` in the long round, where the full transcript reaches 391k tokens.
+- **Scoring.** Fact regexes first. Every miss then goes to a blind Sonnet
+  adjudicator that never sees the arm (`adjudicate.py`). It is validated in
+  the same batches on 40 regex hits (TPR) and on 40 facts checked against
+  another task's deliverable (TNR).
 - **Files.** `chunking.py`, `jevfilter.py`, `hierfilter.py`, `context_hook.py`,
   `preview.py`, `label.py`, `run_eval.py`, `adjudicate.py`, `analyze.py`,
   `analyze_hier.py`, `pool.py`, `recheck.py`; `results/*.json` hold counts only.
-  Rerun a round: with `EVAL_DATA` set, `python3 label.py`, `python3 run_eval.py
-  --arms none,jev4,hier4,hier8,full`, `python3 adjudicate.py`, `python3
-  analyze_hier.py`, then `python3 pool.py <dir> ...`. Shipped as the
-  `delegating-with-context` skill in `oaustegard/claude-skills`.
+  To rerun a round, set `EVAL_DATA` and run `python3 label.py`, then `python3 run_eval.py
+  --arms none,jev4,hier4,hier8,full`, `python3 adjudicate.py` and `python3
+  analyze_hier.py`; pool the rounds with `python3 pool.py <dir> ...`. The
+  filter ships as the `delegating-with-context` skill in `oaustegard/claude-skills`.
 
 ## Log
 
