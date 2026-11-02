@@ -168,7 +168,10 @@ bisection on WAF blocks, rank-to-budget), `context_hook.py` (PreToolUse hook),
 
 **Question.** DecisionRAG (arXiv 2610.35868) retrieves with Jev by descending a
 tree: it scores coarse nodes, keeps the top k and scores only the children of
-what it kept. Does that shape, applied to a transcript, match the flat filter?
+what it kept. Applied to a transcript, does that shape find as many facts as
+the flat filter described above (`jevfilter.py`, shipped in the
+`delegating-with-context` skill as the `jev4` setting), and at what Jev cost?
+Arms, scoring and the 20k-token context budget are as in Setup above.
 
 **Answer.** On these 8 sessions it matches and costs 36-41% fewer Jev tokens.
 Spending the saved room on a 2x larger chunk view (`hier8`) found 107 of 108
@@ -185,14 +188,14 @@ scored. The budget packing is the flat filter's `select`. A score threshold at
 level 1 was tried first and dropped: on a single-topic session every segment
 scored 0.57 or more, so nothing was pruned.
 
-**Labels are new.** The September tasks and regexes lived in the gitignored
-`data/` and did not survive. The same 8 session snapshots (same commits, same
+**Labels are new.** The tasks and fact regexes of the 2026-09-23 eval above
+lived in the gitignored `data/` and did not survive. The same 8 session snapshots (same commits, same
 chunk counts) were relabelled by 8 tool-less Sonnet labellers using the
-September prompt (`label.py`). 34 tasks were written; 6 were dropped for a
+same labelling prompt (`label.py`). 34 tasks were written; 6 were dropped for a
 regex that missed its own evidence, leaked into the task text, or a fact
 count outside 2-4. That left 28 tasks and 108 facts. `jev4` and `full` were
 re-run on them, so the comparison is within this run only; the numbers do not
-line up with the September table.
+line up with the first Results table.
 
 | arm | facts found | tasks fully correct | 95% CI (tasks) | context passed, est. tokens (median) |
 |---|---|---|---|---|
@@ -228,7 +231,7 @@ that differ by a fact or two. The keep fraction (40%) and segment length (8)
 were set once, not swept. One run per arm; Jev's level-1 ranking varies
 between runs.
 
-**Verdict.** Not worth replacing the shipped filter on recall. Worth it on
+**Verdict.** Not worth replacing the shipped flat filter (`jev4`) on recall. Worth it on
 cost only if Jev spend matters, which at $0.002 per delegation it does not. It
 becomes worth testing again on sessions past ~150 chunks, where the flat
 filter pages into 4 or more windows.
@@ -236,3 +239,6 @@ filter pages into 4 or more windows.
 Files: `hierfilter.py`, `label.py`, `analyze_hier.py`, `results/summary_hier.json`;
 `run_eval.py` gained the `hier4`/`hier8` arms and, with `adjudicate.py`, an
 `EVAL_DATA` override so transcript-derived data can live outside the repo.
+With `EVAL_DATA` pointing at a directory holding `chunks/`, `rendered/` and
+`tasks/`: `python3 label.py`, then `python3 run_eval.py --arms
+none,jev4,hier4,hier8,full`, `python3 adjudicate.py`, `python3 analyze_hier.py`.
