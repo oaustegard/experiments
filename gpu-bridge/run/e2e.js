@@ -24,7 +24,7 @@ ctx.log("n", a.length);
 return { sq: r.out[0], ms: r.medianMs, meta: { k: ctx.inputs.k } };`);
   // page side
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-angle=swiftshader', '--use-webgpu-adapter=swiftshader'] });
-  const p = await b.newPage({ viewport: { width: 390, height: 1000 } });
+  const ctx0 = await b.newContext({ viewport: { width: 390, height: 1000 } }); const p = await ctx0.newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await p.goto('http://localhost:8765/?api=http://localhost:8766&retryWaits=1500,1500'); await p.waitForTimeout(2000);
   await p.fill('#token', 'test-token'); await p.click('#connect');
