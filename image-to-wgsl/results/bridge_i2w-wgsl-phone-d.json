@@ -1,0 +1,96 @@
+{
+ "id": "i2w-wgsl-phone-d",
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "adapter": "apple apple apple",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "status": "done",
+ "error": null,
+ "runMs": 60881,
+ "logs": [
+  "phone n=8192: 60.7 s, 2050 steps, overflows 0, [[16,18.8],[32,20.42],[64,22.02],[128,23.26],[256,24.43],[512,25.8],[1024,26.97],[2048,28.05],[4096,29.06],[8192,30.19]]",
+  "{\"tag\":\"phone-trained\",\"n\":8192,\"codeLen\":196132,\"format\":\"rgba16float\",\"psnr\":30.19,\"ms\":{\"768x512\":2,\"1920x1280\":3}}"
+ ],
+ "probe": [],
+ "draws": [
+  {
+   "tag": "phone-trained",
+   "n": 8192,
+   "codeLen": 196132,
+   "format": "rgba16float",
+   "psnr": 30.19,
+   "ms": {
+    "768x512": 2,
+    "1920x1280": 3
+   }
+  }
+ ],
+ "limits": {
+  "maxStorageBufferBindingSize": 1073741824,
+  "maxBufferSize": 1073741824
+ },
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 8192,
+    "tag": "phone"
+   },
+   "seconds": 60.67,
+   "steps": 2050,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.8,
+     "psnr_torch": 18.8
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.421,
+     "psnr_torch": 20.421
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.023,
+     "psnr_torch": 22.023
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.262,
+     "psnr_torch": 23.262
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.431,
+     "psnr_torch": 24.431
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.797,
+     "psnr_torch": 25.797
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.967,
+     "psnr_torch": 26.967
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.048,
+     "psnr_torch": 28.048
+    },
+    {
+     "n": 4096,
+     "psnr_gpu": 29.056,
+     "psnr_torch": 29.056
+    },
+    {
+     "n": 8192,
+     "psnr_gpu": 30.191,
+     "psnr_torch": 30.191
+    }
+   ]
+  }
+ ]
+}

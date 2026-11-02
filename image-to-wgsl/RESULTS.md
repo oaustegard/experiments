@@ -36,9 +36,12 @@ What would change the answer is a cheaper splat. Each one costs 10.5 gzipped byt
 6. **Array size limits on iOS.** WebKit, which every browser on iOS uses, rejects a `const` array with more than 2,047 elements. Chromium accepts larger ones. With 32-bit words and 61 bits per splat, one array holds about 1,072 splats, so the 1,024-splat shaders fit. <!-- @evidence[[results/headline.json#splat_cap_one_array]] -->
    Two layouts get past the limit, and both compile: four words packed per `vec4u` element, or the words split across several arrays. On the iPhone, the 1,024-splat shader rendered 1.36 times slower as `vec4u` and 2.32 times slower split into four arrays. <!-- @evidence[[results/headline.json#layout_slowdown.vec4u]] --> <!-- @evidence[[results/headline.json#layout_slowdown.split512]] -->
    At 4,096 splats (7,682 words) neither worked on the iPhone. The `vec4u` render did not finish within minutes, and the split render lost the GPU device.
-7. **Drawing time.** Every pixel evaluates every splat, because no splat is skipped by position. On the iPhone the 1,024-splat shader takes 77 ms at 768×512 and 1949 ms at 3840×2560, which is 25 times the pixels for about 25 times the time. <!-- @evidence[[results/headline.json#iphone.ms_1024.768x512]] --> <!-- @evidence[[results/headline.json#iphone.ms_1024.3840x2560]] -->
-   A 16-splat prefix takes 4 ms at 768×512. At that size the shader's fixed cost dominates. <!-- @evidence[[results/headline.json#iphone.ms_16.768x512]] -->
+7. **Drawing time.** In the per-pixel shader every pixel evaluates every splat. On the iPhone the 1,024-splat shader takes 77 ms at 768×512 and 1949 ms at 3840×2560, which is 25 times the pixels for about 25 times the time. <!-- @evidence[[results/headline.json#iphone.ms_1024.768x512]] --> <!-- @evidence[[results/headline.json#iphone.ms_1024.3840x2560]] -->
+   An instanced renderer that draws each splat as a quad over its footprint, and lets the GPU blend them, draws the same list on the iPhone in 3 ms at 768×512 and 15 ms at 3840×2560 (`results/bridge_i2w-speed-iphone.json`). The gallery and the downloads use it. The per-pixel shader remains the file whose bytes are counted.
 8. **Payload text format.** The shipped shader holds one bitstream of fields packed into 32-bit words. An alternative held one array per field, as small decimal integers. After gzip the alternative was 0.4% smaller, which is too little to matter. <!-- @evidence[[results/headline.json#columnar_smaller_pct]] -->
+9. **Training in the browser.** The gallery's encoder trains in WebGPU compute shaders. Each pixel meets only the splats whose footprint reaches its 16×16 tile (`web/gputrain.js`). On an M5 Max this fitted 2,048 splats to a 484×512 image in 2.3 s at 28.07 dB. <!-- @evidence[[results/bridge_i2w-wgsl-train-1.json#runs.2.seconds]] --> <!-- @evidence[[results/bridge_i2w-wgsl-train-1.json#runs.2.points.7.psnr_torch]] -->
+   TensorFlow.js on WebGL took 63.3 s for 26.81 dB. <!-- @evidence[[results/bridge_i2w-m5-big2048.json#outputs.runs.0.seconds]] --> <!-- @evidence[[results/bridge_i2w-m5-big2048.json#outputs.runs.0.points.7.psnr]] -->
+   An iPhone fitted 8,192 splats in 60.7 s at 30.19 dB, where TF.js had crashed at 1,024. <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.seconds]] --> <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.points.9.psnr_torch]] -->
 
 ## Method
 
@@ -68,7 +71,7 @@ The fields are bit-packed into one `const` array of `u32` in the shader. wgsl-fo
 
 **Decode checks.** Every shader was rendered in headless Chromium on SwiftShader (`verify_gpu.py`). The kodim23 shaders and the payload layouts were also rendered on Oskar's iPhone through the GPU bridge, a browser page that runs WebGPU jobs pushed from this session (`bridge/job.js`).
 
-**Encoding in the browser** (`web/trainer.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser with TensorFlow.js 4.22, and builds the same shader that `codec.py` writes. It trains on TF.js's WebGL backend, because the WebGPU backend gave wrong gradients, and stops at 256 splats, because 1,024 crashed an iPhone tab (log entry below). `bridge/train_job.js` runs the same trainer on a device through the GPU bridge.
+**Encoding in the browser** (`web/gputrain.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser and builds the same shader that `codec.py` writes. Training runs in WebGPU compute shaders over 16×16 tiles, with every pixel used in every step. It was checked against PyTorch autograd before any real run. The first version trained with TensorFlow.js 4.22 on its WebGL backend (`web/trainer.js`), which is now the fallback. TF.js's WebGPU backend gave wrong gradients. Splat counts are offered up to 8,192 when a time estimate from timed steps on the uploaded image is at most 5 minutes. `bridge/gputrain_job.js` runs the trainer on a device through the GPU bridge, and `bridge/train_job.js` runs the TF.js trainer.
 
 **Rebuild.** Run `data/fetch.sh`, then `python3 run_sweep.py` (about two hours on 4 vCPUs), `python3 baselines.py`, `python3 svg_arm.py kodim23 kodim05`, `python3 analyze.py --gpu`, `python3 make_headline.py` and `python3 web/build.py`.
 
@@ -127,3 +130,67 @@ The shipped trainer barely improved past 1,024 splats, because each step samples
 An ablation at 256 splats compared new splats stretched along the local edge direction (from a structure tensor), half the sampled pixels drawn in proportion to the error (weighted so the loss stays unbiased), and moving splats that cover under two pixels of ink. On the Mona Lisa, edge-aligned initialisation added 0.40 dB and importance sampling 0.13 dB more; on kodim23 at 384×256 they added 0.02 dB together. No splat ever met the respawn criterion. Twice the steps added 0.78 and 0.34 dB with the other two changes on. The page now sets edge-aligned init, importance sampling and the TF.js flag everywhere. On computers it also doubles pixels per step and steps, and goes up to 2,048 splats and 768-pixel uploads. Phones keep 256 splats and 512 pixels.
 
 The page times two short training steps before offering splat counts and labels each with an estimate. On the M5 the estimates were 65 s for 512 splats (actual 60 s) and 74 s for 1,024 (actual 45 s). Above 2,047 words the shader packs its data into `vec4u`, which decodes within 1 level of the PyTorch decode on SwiftShader.
+
+### 2026-11-02 — drawing each splat as its own quad
+
+Asked: "Why is this so much more efficient rendering 3d splats?" (about splat.radiancefields.net), then "build the instanced renderer". The per-pixel shader evaluates every splat at every pixel. 3D Gaussian splatting viewers instead draw each splat as a quad covering only its footprint, and the GPU's blending composites them. `web/instanced.js` does that for these lists:
+- one instanced quad per splat, sized to where alpha times falloff drops below 1/1024;
+- painted in list order with "over" blending, which computes `mix(c, colour, w)` exactly;
+- blended into an `rgba32float` target when the device has `float32-blendable`, else `rgba16float`, then copied to the screen.
+
+The data is the same packed words as the per-pixel shader. Drawing the first n instances paints the n-splat prefix.
+
+Frame times through the GPU bridge, median of 5 (`results/bridge_i2w-speed-m5.json`, `results/bridge_i2w-speed-iphone.json`):
+
+| list | device | per-pixel at 768×512 / 1920×1280 / 3840×2560 | instanced, same sizes |
+|---|---|---|---|
+| kodim23, 1,024 splats | M5 Max | 10.4 / 62.3 / 243.8 ms | 0.3 / 0.7 / 1.9 ms |
+| Mona Lisa, 2,048 splats | M5 Max | 28.8 / 128.6 / 499.5 ms | 0.3 / 0.6 / 1.4 ms |
+| kodim23, 1,024 splats | iPhone | 80 / 475 / 1,894 ms | 3 / 7 / 15 ms |
+| Mona Lisa, 2,048 splats | iPhone | 144 / 887 / 3,160 ms | timed out |
+
+That is 35 to 357 times faster on the M5 and 27 to 126 times on the iPhone. The iPhone job ran out of time before its instanced Mona Lisa rows. A diagnostic job then drew the full 2,048-splat list on the iPhone in 3 ms (`results/bridge_i2w-diag-iphone.json`). On SwiftShader the instanced draw was within 3 of 255 levels of the PyTorch decode, 59 to 68 dB between them. The difference comes from the 1/1024 cutoff and the blending precision. The gallery now draws with the instanced renderer. The per-pixel shader is still the file whose bytes are counted.
+
+### 2026-11-02 — training in WGSL compute shaders
+
+Asked: "build the footprint-limited WGSL trainer". In the TF.js trainer every sampled pixel evaluates every splat, so it can afford a few thousand pixels per step, fewer as the list grows. `web/gputrain.js` trains the way 3D Gaussian splatting's tile rasterisers do. Every step uses every pixel, and each pixel meets only the splats whose footprint (weight at least 1/1024) reaches its 16×16 tile. A step is a fixed sequence of compute dispatches:
+1. Decode each splat and find the tiles it reaches.
+2. List the splats per tile, in list order, so nothing is sorted.
+3. Paint each tile, keeping the colour and log-transmittance at every power-of-two prefix.
+4. Reduce the prefix losses.
+5. Walk the lists again for the gradients. A splat's transmittance comes from the stored logs as exp(L_k − L_≤i), with no division by (1 − w).
+6. Sum each splat's per-tile partials through a slot map, which avoids float atomics.
+7. Take an Adam step.
+
+The model matches `trainer.js` and `codec.py`, with four differences:
+- every pixel is used in every step;
+- the weight is clamped at 0.9999;
+- tails below 1/1024 are ignored;
+- the background is fixed at the quadrant means.
+
+Against PyTorch autograd on SwiftShader (`bridge/gradcheck_gpu.py`, no cutoff, 48×32 pixels, three prefixes), the loss agreed to 1e-5. The worst relative gradient error was 5.8e-4 with 2 splats, 8.8e-4 with 12 and 5.7e-4 with 40. Two bugs came first, both now in METHODS:
+- A loop bound read from a storage buffer counts as non-uniform, so the barriers inside the loop did not compile.
+- On SwiftShader, an array declared inside a loop without an initialiser kept the previous iteration's values, and the gradients correlated only 0.7 with PyTorch's.
+
+Mona Lisa at 484×512 through the GPU bridge, with the default schedule: 150 steps per growth stage, 500 at full size and 200 rounding to bits (`results/bridge_i2w-wgsl-*.json`).
+
+| device | trainer | splats | time | PSNR |
+|---|---|---|---|---|
+| M5 Max | TF.js on WebGL, shipped settings | 256 | 21 s | 24.12 dB |
+| M5 Max | TF.js on WebGL, best settings (entry above) | 1,024 / 2,048 | 47 / 63 s | 26.34 / 26.81 dB |
+| M5 Max | WGSL | 256 / 1,024 / 2,048 | 1.4 / 1.8 / 2.3 s | 24.69 / 26.89 / 28.07 dB |
+| M5 Max | WGSL | 8,192 | 4.1 s | 30.14 dB |
+| iPhone | WGSL | 256 / 1,024 / 2,048 | 14.6 / 26.2 / 34.3 s | 24.61 / 27.00 / 27.95 dB |
+| iPhone | WGSL | 4,096 / 8,192 | 45.7 / 60.7 s | 29.07 / 30.19 dB |
+
+Each PSNR is the GPU's own measurement of the rounded list. PyTorch re-rendered every returned list without the cutoff, and its PSNR agreed within 0.01 dB at every prefix of every run.
+
+At 2,048 splats on the M5, three and eight times the default steps gave 27.95 and 28.10 dB, against 28.07 dB, so the default schedule has converged. More splats do help. At three times the steps, 4,096 splats reached 29.07 dB in 8.3 s and 8,192 reached 30.24 dB in 11.9 s. Under TF.js, 1,024 splats crashed the iPhone tab. The WGSL trainer ran 8,192 there. The gzipped per-pixel shader of the M5's 8,192-splat list is 85,905 bytes, and its 2,048-splat prefix is 22,735 bytes.
+
+The page now trains with `gputrain.js` and offers up to 8,192 splats on every device. TF.js is the fallback, used when the URL has `?tf` or the WebGPU trainer fails. The splat menu's estimates come from 20 timed steps at 256 and at 2,048 splats on the uploaded image. On the iPhone that predicted 33.5 s for 2,048 splats, and the run took 34.3 s.
+
+Past about 4,295 splats a list needs more than 2,047 `vec4u` elements, more than WebKit allows in one array. Both emitters now split the data over several arrays. The iPhone drew the M5's 8,192-splat list at 30.24 dB, as PyTorch does, in 3 ms per frame. On SwiftShader the split per-pixel shader was within 1 level of PyTorch.
+
+Asked at the same time: the HTML download now opens on the finished picture, without playing. A "Paint it in" button replays the painting. A slider steps through the measured prefixes and shows each one's splats, bytes and PSNR. The download carries no source image and no JPEG or WebP comparison.
+
+Asked next: "We should allow zooming into the generated wgsl to show off how it's NOT pixellated/rasterized". The instanced renderer now takes a camera: a zoom factor, up to 64×, about a point of the image. It redraws the splats at that scale, so their edges stay smooth at any magnification. In the gallery and the download, the wheel, a pinch or the + and − buttons zoom, and dragging pans. In the gallery, the original and the JPEG, WebP and AVIF files zoom along with the shader. They are scaled nearest-neighbour, so their pixels show. Wheel zoom and drag were checked in headless Chromium. Pinch was not tested on a phone.
