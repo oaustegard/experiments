@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// Hand-written weights on the shipped WGSL planner (trm-doom/web/trm.js): exact match against BFS labels.
+import { TRMPlanner } from "../../trm-doom/web/trm.js";
+try {
+  const dev = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const man = await (await fetch("weights/hand.json")).json();
+  const w = new Float32Array(await (await fetch("weights/hand.bin")).arrayBuffer());
+  const cases = await (await fetch(new URLSearchParams(location.search).get("cases") || "data/wgsl_cases.json")).json();
+  const res = {};
+  for (const [name, c] of Object.entries(cases)) {
+    const p = await TRMPlanner.create(dev, w, man, c.n === 32 ? null : { w: c.n, h: c.n });
+    let exact = 0, halted = 0, steps = [], minMargin = Infinity;
+    for (let i = 0; i < c.x.length; i++) {
+      const o = await p.plan(Uint8Array.from(c.x[i]), { sup: 12, minSup: 1 });
+      let ok = true;
+      for (let k = 0; k < o.path.length; k++) { if (o.path[k] !== c.y[i][k]) ok = false; minMargin = Math.min(minMargin, Math.abs(o.logits[k])); }
+      exact += ok; console.log(name, i, ok, o.steps, o.halt); if (o.halt > 0) { halted++; steps.push(o.steps); }
+    }
+    res[name] = { cases: c.x.length, exact, halted, steps, minAbsLogit: minMargin };
+  }
+  window.RESULT = res;
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>
