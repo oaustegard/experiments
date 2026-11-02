@@ -1,0 +1,379 @@
+{
+ "id": "i2w-focus-face-1",
+ "device": "Mac",
+ "tabName": "Mac",
+ "adapter": "apple metal-3",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "status": "done",
+ "error": null,
+ "runMs": 10941.5,
+ "logs": [
+  "even n=256: 1.2 s, 1300 steps, overflows 0, [[16,18.92,18.06],[32,20.5,18.95],[64,22.12,20.93],[128,23.39,23.14],[256,24.69,24.61]]",
+  "face n=256: 1.2 s, 1300 steps, overflows 0, [[16,17.97,18.44],[32,19.5,20.35],[64,21.18,22.28],[128,22.51,23.84],[256,23.99,25.63]]",
+  "even n=1024: 1.8 s, 1600 steps, overflows 1, [[16,18.72,17.51],[32,20.28,18.52],[64,21.96,20.75],[128,23.07,22.62],[256,24.48,24.11],[512,25.81,25.71],[1024,26.89,26.94]]",
+  "face n=1024: 1.9 s, 1600 steps, overflows 1, [[16,17.93,18.5],[32,19.42,20.36],[64,21.02,22.39],[128,22.46,23.92],[256,24.07,25.87],[512,25.37,27.16],[1024,26.37,28.19]]",
+  "even n=2048: 2.3 s, 1750 steps, overflows 2, [[16,18.87,17.85],[32,20.52,18.88],[64,22.09,20.8],[128,23.36,22.98],[256,24.59,24.36],[512,25.9,25.85],[1024,27,27.18],[2048,28.07,28.29]]",
+  "face n=2048: 2.4 s, 1750 steps, overflows 2, [[16,17.83,18.57],[32,19.35,20.55],[64,21.04,22.27],[128,22.33,23.84],[256,23.91,25.68],[512,25.27,26.98],[1024,26.25,28.11],[2048,27.4,29.29]]"
+ ],
+ "probe": [],
+ "draws": [],
+ "limits": {
+  "maxStorageBufferBindingSize": 4294967292,
+  "maxBufferSize": 4294967292
+ },
+ "image": "mona_512.bin 484x512",
+ "runs": [
+  {
+   "cfg": {
+    "n": 256,
+    "focus": "eval",
+    "tag": "even"
+   },
+   "seconds": 1.24,
+   "steps": 1300,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.919,
+     "psnr_torch": 18.919,
+     "psnr_focus_gpu": 18.056,
+     "psnr_focus_torch": 18.056
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.495,
+     "psnr_torch": 20.495,
+     "psnr_focus_gpu": 18.946,
+     "psnr_focus_torch": 18.946
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.115,
+     "psnr_torch": 22.115,
+     "psnr_focus_gpu": 20.929,
+     "psnr_focus_torch": 20.929
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.392,
+     "psnr_torch": 23.392,
+     "psnr_focus_gpu": 23.144,
+     "psnr_focus_torch": 23.144
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.692,
+     "psnr_torch": 24.692,
+     "psnr_focus_gpu": 24.606,
+     "psnr_focus_torch": 24.606
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 256,
+    "focus": "train",
+    "tag": "face"
+   },
+   "seconds": 1.17,
+   "steps": 1300,
+   "overflows": 0,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 17.968,
+     "psnr_torch": 17.968,
+     "psnr_focus_gpu": 18.442,
+     "psnr_focus_torch": 18.442
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 19.502,
+     "psnr_torch": 19.502,
+     "psnr_focus_gpu": 20.353,
+     "psnr_focus_torch": 20.353
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.18,
+     "psnr_torch": 21.18,
+     "psnr_focus_gpu": 22.28,
+     "psnr_focus_torch": 22.28
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 22.506,
+     "psnr_torch": 22.506,
+     "psnr_focus_gpu": 23.838,
+     "psnr_focus_torch": 23.838
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 23.986,
+     "psnr_torch": 23.986,
+     "psnr_focus_gpu": 25.63,
+     "psnr_focus_torch": 25.63
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 1024,
+    "focus": "eval",
+    "tag": "even"
+   },
+   "seconds": 1.84,
+   "steps": 1600,
+   "overflows": 1,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.724,
+     "psnr_torch": 18.724,
+     "psnr_focus_gpu": 17.515,
+     "psnr_focus_torch": 17.515
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.276,
+     "psnr_torch": 20.276,
+     "psnr_focus_gpu": 18.518,
+     "psnr_focus_torch": 18.518
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.962,
+     "psnr_torch": 21.962,
+     "psnr_focus_gpu": 20.751,
+     "psnr_focus_torch": 20.751
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.074,
+     "psnr_torch": 23.074,
+     "psnr_focus_gpu": 22.615,
+     "psnr_focus_torch": 22.615
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.481,
+     "psnr_torch": 24.481,
+     "psnr_focus_gpu": 24.113,
+     "psnr_focus_torch": 24.113
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.81,
+     "psnr_torch": 25.81,
+     "psnr_focus_gpu": 25.713,
+     "psnr_focus_torch": 25.714
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.887,
+     "psnr_torch": 26.887,
+     "psnr_focus_gpu": 26.941,
+     "psnr_focus_torch": 26.941
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 1024,
+    "focus": "train",
+    "tag": "face"
+   },
+   "seconds": 1.88,
+   "steps": 1600,
+   "overflows": 1,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 17.934,
+     "psnr_torch": 17.934,
+     "psnr_focus_gpu": 18.502,
+     "psnr_focus_torch": 18.502
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 19.417,
+     "psnr_torch": 19.417,
+     "psnr_focus_gpu": 20.358,
+     "psnr_focus_torch": 20.358
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.018,
+     "psnr_torch": 21.018,
+     "psnr_focus_gpu": 22.391,
+     "psnr_focus_torch": 22.391
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 22.46,
+     "psnr_torch": 22.46,
+     "psnr_focus_gpu": 23.921,
+     "psnr_focus_torch": 23.921
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.073,
+     "psnr_torch": 24.073,
+     "psnr_focus_gpu": 25.869,
+     "psnr_focus_torch": 25.869
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.374,
+     "psnr_torch": 25.374,
+     "psnr_focus_gpu": 27.165,
+     "psnr_focus_torch": 27.165
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.374,
+     "psnr_torch": 26.374,
+     "psnr_focus_gpu": 28.191,
+     "psnr_focus_torch": 28.191
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 2048,
+    "focus": "eval",
+    "tag": "even"
+   },
+   "seconds": 2.34,
+   "steps": 1750,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 18.874,
+     "psnr_torch": 18.874,
+     "psnr_focus_gpu": 17.846,
+     "psnr_focus_torch": 17.846
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 20.518,
+     "psnr_torch": 20.518,
+     "psnr_focus_gpu": 18.881,
+     "psnr_focus_torch": 18.881
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 22.089,
+     "psnr_torch": 22.089,
+     "psnr_focus_gpu": 20.799,
+     "psnr_focus_torch": 20.8
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 23.355,
+     "psnr_torch": 23.355,
+     "psnr_focus_gpu": 22.985,
+     "psnr_focus_torch": 22.985
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 24.59,
+     "psnr_torch": 24.59,
+     "psnr_focus_gpu": 24.36,
+     "psnr_focus_torch": 24.36
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.902,
+     "psnr_torch": 25.902,
+     "psnr_focus_gpu": 25.854,
+     "psnr_focus_torch": 25.854
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.998,
+     "psnr_torch": 26.998,
+     "psnr_focus_gpu": 27.182,
+     "psnr_focus_torch": 27.182
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 28.066,
+     "psnr_torch": 28.066,
+     "psnr_focus_gpu": 28.287,
+     "psnr_focus_torch": 28.287
+    }
+   ]
+  },
+  {
+   "cfg": {
+    "n": 2048,
+    "focus": "train",
+    "tag": "face"
+   },
+   "seconds": 2.4,
+   "steps": 1750,
+   "overflows": 2,
+   "points": [
+    {
+     "n": 16,
+     "psnr_gpu": 17.826,
+     "psnr_torch": 17.826,
+     "psnr_focus_gpu": 18.57,
+     "psnr_focus_torch": 18.57
+    },
+    {
+     "n": 32,
+     "psnr_gpu": 19.345,
+     "psnr_torch": 19.345,
+     "psnr_focus_gpu": 20.546,
+     "psnr_focus_torch": 20.546
+    },
+    {
+     "n": 64,
+     "psnr_gpu": 21.037,
+     "psnr_torch": 21.037,
+     "psnr_focus_gpu": 22.274,
+     "psnr_focus_torch": 22.274
+    },
+    {
+     "n": 128,
+     "psnr_gpu": 22.325,
+     "psnr_torch": 22.325,
+     "psnr_focus_gpu": 23.841,
+     "psnr_focus_torch": 23.841
+    },
+    {
+     "n": 256,
+     "psnr_gpu": 23.908,
+     "psnr_torch": 23.908,
+     "psnr_focus_gpu": 25.682,
+     "psnr_focus_torch": 25.682
+    },
+    {
+     "n": 512,
+     "psnr_gpu": 25.268,
+     "psnr_torch": 25.268,
+     "psnr_focus_gpu": 26.982,
+     "psnr_focus_torch": 26.982
+    },
+    {
+     "n": 1024,
+     "psnr_gpu": 26.251,
+     "psnr_torch": 26.251,
+     "psnr_focus_gpu": 28.109,
+     "psnr_focus_torch": 28.109
+    },
+    {
+     "n": 2048,
+     "psnr_gpu": 27.397,
+     "psnr_torch": 27.397,
+     "psnr_focus_gpu": 29.286,
+     "psnr_focus_torch": 29.286
+    }
+   ]
+  }
+ ]
+}

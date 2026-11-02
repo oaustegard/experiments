@@ -42,6 +42,8 @@ What would change the answer is a cheaper splat. Each one costs 10.5 gzipped byt
 9. **Training in the browser.** The gallery's encoder trains in WebGPU compute shaders. Each pixel meets only the splats whose footprint reaches its 16×16 tile (`web/gputrain.js`). On an M5 Max this fitted 2,048 splats to a 484×512 image in 2.3 s at 28.07 dB. <!-- @evidence[[results/bridge_i2w-wgsl-train-1.json#runs.2.seconds]] --> <!-- @evidence[[results/bridge_i2w-wgsl-train-1.json#runs.2.points.7.psnr_torch]] -->
    TensorFlow.js on WebGL took 63.3 s for 26.81 dB. <!-- @evidence[[results/bridge_i2w-m5-big2048.json#outputs.runs.0.seconds]] --> <!-- @evidence[[results/bridge_i2w-m5-big2048.json#outputs.runs.0.points.7.psnr]] -->
    An iPhone fitted 8,192 splats in 60.7 s at 30.19 dB, where TF.js had crashed at 1,024. <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.seconds]] --> <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.points.9.psnr_torch]] -->
+10. **Foveation.** Training with a focus map, here soft ellipses around a detected face, moves quality to where the map points (`web/focus.js`). On the Mona Lisa at 1,024 splats the face-weighted PSNR rose from 26.94 to 28.19 dB. <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.2.points.6.psnr_focus_torch]] --> <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.3.points.6.psnr_focus_torch]] -->
+   The whole-image PSNR fell from 26.89 to 26.37 dB. <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.2.points.6.psnr_torch]] --> <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.3.points.6.psnr_torch]] -->
 
 ## Method
 
@@ -71,7 +73,7 @@ The fields are bit-packed into one `const` array of `u32` in the shader. wgsl-fo
 
 **Decode checks.** Every shader was rendered in headless Chromium on SwiftShader (`verify_gpu.py`). The kodim23 shaders and the payload layouts were also rendered on Oskar's iPhone through the GPU bridge, a browser page that runs WebGPU jobs pushed from this session (`bridge/job.js`).
 
-**Encoding in the browser** (`web/gputrain.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser and builds the same shader that `codec.py` writes. Training runs in WebGPU compute shaders over 16×16 tiles, with every pixel used in every step. It was checked against PyTorch autograd before any real run. The first version trained with TensorFlow.js 4.22 on its WebGL backend (`web/trainer.js`), which is now the fallback. TF.js's WebGPU backend gave wrong gradients. Splat counts are offered up to 8,192 when a time estimate from timed steps on the uploaded image is at most 5 minutes. `bridge/gputrain_job.js` runs the trainer on a device through the GPU bridge, and `bridge/train_job.js` runs the TF.js trainer.
+**Encoding in the browser** (`web/gputrain.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser and builds the same shader that `codec.py` writes. Training runs in WebGPU compute shaders over 16×16 tiles, with every pixel used in every step. It was checked against PyTorch autograd before any real run. The first version trained with TensorFlow.js 4.22 on its WebGL backend (`web/trainer.js`), which is now the fallback. TF.js's WebGPU backend gave wrong gradients. Splat counts are offered up to 8,192 when a time estimate from timed steps on the uploaded image is at most 5 minutes. An optional focus map (a tapped spot, detected faces, or a band of depth from a monocular depth model) weights the loss and the placement of new splats, and adds a focus-weighted PSNR to the scores. `bridge/gputrain_job.js` runs the trainer on a device through the GPU bridge, and `bridge/train_job.js` runs the TF.js trainer.
 
 **Rebuild.** Run `data/fetch.sh`, then `python3 run_sweep.py` (about two hours on 4 vCPUs), `python3 baselines.py`, `python3 svg_arm.py kodim23 kodim05`, `python3 analyze.py --gpu`, `python3 make_headline.py` and `python3 web/build.py`.
 
@@ -194,3 +196,24 @@ Past about 4,295 splats a list needs more than 2,047 `vec4u` elements, more than
 Asked at the same time: the HTML download now opens on the finished picture, without playing. A "Paint it in" button replays the painting. A slider steps through the measured prefixes and shows each one's splats, bytes and PSNR. The download carries no source image and no JPEG or WebP comparison.
 
 Asked next: "We should allow zooming into the generated wgsl to show off how it's NOT pixellated/rasterized". The instanced renderer now takes a camera: a zoom factor, up to 64×, about a point of the image. It redraws the splats at that scale, so their edges stay smooth at any magnification. In the gallery and the download, the wheel, a pinch or the + and − buttons zoom, and dragging pans. In the gallery, the original and the JPEG, WebP and AVIF files zoom along with the shader. They are scaled nearest-neighbour, so their pixels show. Wheel zoom and drag were checked in headless Chromium. Pinch was not tested on a phone.
+
+### 2026-11-02 — foveation: training toward a face, a spot or a distance
+
+Asked earlier: "include a foveation option - like - focus on the face, say, or do a depth field analysis and focus on a particular distance", then "yes, wire up foveation". A focus map is one weight per pixel. `web/focus.js` builds it three ways:
+- a Gaussian spot around a point the user taps;
+- soft ellipses around the faces that MediaPipe's face detector finds;
+- a band of depth around the distance of a tapped point, from the Depth Anything V2 small model run with transformers.js.
+
+Everything runs in the browser, and the image is never uploaded. Both trainers floor the map at 1/20 of its maximum and normalise it to mean 1. The floor keeps every pixel counting a little. Both trainers then use the map as per-pixel loss weights and to choose where new splats go, so the WebGPU trainer stores the weights beside the target colours. A second evaluation pass weights the 8-bit error by the same map, giving a focus-weighted PSNR that the page reports beside the whole-image PSNR, for the JPEG and WebP comparisons too. Against PyTorch autograd with Gaussian pixel weights (`bridge/gradcheck_gpu.py 48 32 40 focus`), the weighted loss agreed to 2e-5, and the worst relative gradient error was 3.7e-4.
+
+In headless Chromium on the 484×512 Mona Lisa, the face detector found her face (score 0.93) in 2 s, and the depth model took 12 s on the CPU. Depth Anything's map put her hands nearest, so a fixed "nearest" depth would have focused on the hands. The page therefore picks the depth from a tapped point, starting at the centre.
+
+On the M5 Max through the GPU bridge, Mona Lisa at 484×512 was trained evenly and trained with the face map. Both runs were scored on the same face map (`results/bridge_i2w-focus-face-1.json`):
+
+| splats | even: whole / face-weighted | face focus: whole / face-weighted |
+|---|---|---|
+| 256 | 24.69 / 24.61 dB | 23.99 / 25.63 dB |
+| 1,024 | 26.89 / 26.94 dB | 26.37 / 28.19 dB |
+| 2,048 | 28.07 / 28.29 dB | 27.40 / 29.29 dB |
+
+Focusing on the face gained 1.0 to 1.25 dB there and cost 0.5 to 0.7 dB over the whole image. The gain was larger in short prefixes: 1.35 dB at 64 splats and 1.4 dB at 32. On the face, 1,024 focused splats came within 0.1 dB of 2,048 even ones. The focused runs took no longer. The face-weighted PSNR still counts the rest of the image at a twentieth of the weight, so it is not a PSNR of the face region alone.
