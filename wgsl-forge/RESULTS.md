@@ -151,3 +151,20 @@ animated radius) passed at t=0 and t=4.7 and failed at t=1.3. Gallery page built
 measuring what the first writeup asserted: the per-source split, the baseline's failure
 reasons, the fixed shader overhead, override values in the compute harness, and the 512 px
 point for comparing the two rounds at one size.
+
+### Round 3 — 2026-11-02: Python-made SVGs from this repo, in the skill
+
+Oskar asked for tests on real imagery Claude had produced with Python; an `xr` search found
+four SVGs: a hand-built chart, a matplotlib chart, the palette-cycling cat and a traced dog.
+Work continued in the `compiling-wgsl` skill (claude-skills), now the maintained copy. The
+first run failed on three of the four. matplotlib's glyph-per-shape output unrolled into
+235 KB of WGSL and crashed SwiftShader's pipeline compiler, and the cat and dog exceeded
+Tint's 32,767-element limit on an array constructor. The fixes were a shape table, so one
+loop draws runs of plain shapes, and a storage buffer for path data over 8,192 ints. All
+four then compiled to under 7 KB of WGSL each. Scored against Chromium with the
+unsupported parts removed: 39.8, 29.0, 34.2 and 41.0 dB (`results/real_svgs.json`). The
+matplotlib chart's ink ratio of 1.067 comes from sub-pixel glyph stems getting too much
+coverage. The dog's 53,601 segments in full-canvas layers took 215 s per 512 px frame on
+SwiftShader, a cost only tile binning would fix. The cat's generator has an f-string bug
+(`svg-palette-cycle/build.py:78`).
+

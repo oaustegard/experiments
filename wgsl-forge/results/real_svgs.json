@@ -1,0 +1,7 @@
+{
+ "_note": "Round 3 (2026-11-02): SVGs produced by Python code elsewhere in this repo, compiled by the compiling-wgsl skill v0.3.0 (claude-skills) and scored by its verify.py svg at 512 px wide against Chromium with the dropped features removed. Draw times are SwiftShader (CPU), not real-GPU timings.",
+ "chart_scifact": {"source": "embeddinggemma2-remex-quant/chart_scifact.svg (hand-built Python chart)", "shapes": 78, "dropped": "text", "psnr_full_ref": 23.4, "psnr": 39.8, "ink_ratio": 1.0068, "draw_ms": 788},
+ "nanobeir_pareto": {"source": "eg2-span512-remex/results/nanobeir_pareto.svg (matplotlib)", "shapes": 468, "dropped": "clip-path", "psnr": 29.0, "ink_ratio": 1.0667, "draw_ms": 2771, "before_table_mode": "pipeline creation crashed SwiftShader (235 KB unrolled WGSL)"},
+ "cat_cycle": {"source": "svg-palette-cycle/cat-cycle.svg (build.py)", "shapes": 880, "segments": 44888, "psnr": 34.2, "ink_ratio": 1.0000, "draw_ms": 8049, "data_bytes": 409664, "before_buffer_mode": "Tint: array constructor has excessive number of elements (>32767)"},
+ "dog_paint": {"source": "svg-in-browser/web/dog-paint.svg", "shapes": 110, "segments": 53601, "dropped": "mask", "psnr": 41.0, "ink_ratio": 1.0002, "draw_ms": 214972, "data_bytes": 731304}
+}
