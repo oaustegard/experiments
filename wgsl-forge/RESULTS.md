@@ -183,3 +183,14 @@ knob (`results/quantum_sweep.json`). On Twemoji's lion at 512 px, grid 1/16 px g
 2,595 gzip bytes at 33.2 dB, the default 1/64 gives 2,889 at 37.8 dB, and 1/128 gives
 3,003 at 38.4 dB. The skill (v0.4.0) exposes it as `--grid`.
 
+### Round 5 — 2026-11-02: self-painting shaders
+
+The skill (v0.5.0) gained `--paint-in`, an idea taken from the image-to-wgsl session's
+truncatable shader. Shapes appear one by one in paint order, driven by the time uniform,
+and the shape table's loop stops at the first unrevealed row. The check has three parts:
+only the background at t=0, no pixel's coverage decreasing while it paints, and a
+finished frame bit-identical to the static shader. All three hold on paths.svg, Twemoji's
+lion and the 880-shape palette cat. The first version of the check required ink to rise
+every frame. It failed on the lion, where the light face paints over the dark mane, which
+is correct behaviour, so the check now measures coverage.
+
