@@ -22,25 +22,26 @@ N_RATE = 0.95                              # 139 wpm at 0.78, 182 at 0.97 on the
 DEMO = "af_heart"
 D_RATE = 0.85
 KOKORO = "[Kokoro](/kˈQkəɹQ/)"
-KINE = "[Kinescript](/kˈɪnəskɹˌɪpt/)"
+KINE = "Kinescript"   # Dimitri says KYNE-script, which is Kokoro's default
 
 BG, INK, DIM, ACC, OK, BAD = "#0b0d12", "#f2f0e8", "#8a91a0", "#ff633f", "#7ee0a1", "#ff8a7a"
 
 # Each segment: narrator line, then a "before" and an "after" line (voice, rate, text), and an optional fact.
 SEGS = [
     dict(key="names", kicker="1 · NAMES", head="Spell a name in phonemes",
-         narr=f"Names first. {KOKORO} guesses words it doesn't know, and it guesses {KINE} wrong. "
+         narr=f"Names first. {KOKORO} guesses words it doesn't know, and it guesses my name wrong. "
               "A phoneme link in the text fixes it.",
-         before=(DEMO, D_RATE, "Meet Kinescript."), after=(DEMO, D_RATE, "Meet [Kinescript](/kˈɪnəskɹˌɪpt/).")),
+         before=(DEMO, D_RATE, "Ask Muninn."), after=(DEMO, D_RATE, "Ask [Muninn](/mˈunɪn/).")),
     dict(key="gee", kicker="2 · THE ALPHABET", head="Script ɡ (U+0261), not keyboard g",
          narr=f"Write those phonemes in {KOKORO}'s own alphabet. A plain keyboard g is not in it, "
               "and the model drops it without a word.",
-         before=(DEMO, D_RATE, "[Huginn](/hˈugɪn/) and Muninn."), after=(DEMO, D_RATE, "[Huginn](/hˈuɡɪn/) and Muninn."),
+         before=(DEMO, D_RATE, "[Huginn](/hˈugɪn/) and [Muninn](/mˈunɪn/)."),
+         after=(DEMO, D_RATE, "[Huginn](/hˈuɡɪn/) and [Muninn](/mˈunɪn/)."),
          fact="ASCII g (U+0067) is missing from the vocabulary · use ɡ (U+0261)"),
-    dict(key="stress", kicker="3 · EMPHASIS", head="Raise the stress",
-         narr="Stress is the only emphasis it has. Raise a word two steps, or write it in capitals.",
-         before=(DEMO, D_RATE, "I never said she stole it."), after=(DEMO, D_RATE, "I never said [she](+2) stole it."),
-         fact="“she”: 40% longer and 3.6 semitones higher"),
+    dict(key="stress", kicker="3 · EMPHASIS", head="Give the word its own fragment",
+         narr="Stress is the only emphasis it has, and plus two is the ceiling. A word that must land needs a fragment of its own.",
+         before=(DEMO, D_RATE, "I never said [she](+2) stole it."), after=(DEMO, D_RATE, "Her? I never said she stole it."),
+         labels=("STRESS +2", "OWN FRAGMENT"), fact="over the plain line: +2 lifts it 3.7 semitones · a fragment 7.6"),
     dict(key="numbers", kicker="4 · NUMBERS", head="Watch the zeros and abbreviations",
          narr="Numbers and abbreviations trip it up. Leading zeros vanish, and St. becomes a saint.",
          before=(DEMO, D_RATE, "Agent 007 lives on Main St."),
