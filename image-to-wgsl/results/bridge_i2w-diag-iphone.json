@@ -1,0 +1,62 @@
+{
+ "id": "i2w-diag-iphone",
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "status": "done",
+ "runMs": 346,
+ "error": null,
+ "logs": [
+  "float32-blendable true",
+  "mona_1024_u32 compile 10 ms, messages []",
+  "mona_1024_u32 pipelines 0 ms",
+  "mona_1024_u32 draw n=16 ok 300 ms",
+  "mona_1024_u32 draw n=256 ok 1 ms",
+  "mona_1024_u32 draw n=1024 ok 2 ms",
+  "mona_2048_vec4u compile 2 ms, messages []",
+  "mona_2048_vec4u pipelines 0 ms",
+  "mona_2048_vec4u draw n=16 ok 22 ms",
+  "mona_2048_vec4u draw n=256 ok 1 ms",
+  "mona_2048_vec4u draw n=2048 ok 3 ms"
+ ],
+ "outputs": {
+  "out": [
+   {
+    "id": "mona_1024_u32",
+    "n": 16,
+    "done": "ok",
+    "ms": 300
+   },
+   {
+    "id": "mona_1024_u32",
+    "n": 256,
+    "done": "ok",
+    "ms": 1
+   },
+   {
+    "id": "mona_1024_u32",
+    "n": 1024,
+    "done": "ok",
+    "ms": 2
+   },
+   {
+    "id": "mona_2048_vec4u",
+    "n": 16,
+    "done": "ok",
+    "ms": 22
+   },
+   {
+    "id": "mona_2048_vec4u",
+    "n": 256,
+    "done": "ok",
+    "ms": 1
+   },
+   {
+    "id": "mona_2048_vec4u",
+    "n": 2048,
+    "done": "ok",
+    "ms": 3
+   }
+  ]
+ }
+}
