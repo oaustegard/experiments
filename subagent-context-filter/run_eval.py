@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.environ.get("EVAL_DATA") or os.path.join(HERE, "data")
 OUT = os.environ.get("EVAL_OUT") or os.path.join(DATA, "results")
 EMPTY = os.path.join(DATA, "empty")
-MODEL = "sonnet"
+MODEL = os.environ.get("EVAL_MODEL") or "sonnet"
 BUDGET = 20_000
 
 EXEC_PROMPT = """You are a subagent. The parent agent delegated this task to you:

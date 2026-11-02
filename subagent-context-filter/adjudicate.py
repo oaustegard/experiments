@@ -24,7 +24,7 @@ from run_eval import claude  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.environ.get("EVAL_DATA") or os.path.join(HERE, "data")
-ARMS = ["none", "jev1", "jev4", "full", "brief"]
+ARMS = ["none", "jev1", "jev4", "hier4", "hier8", "full", "brief"]
 BATCH = 20
 
 PROMPT = """You are checking deliverables for specific facts. For each item you get a FACT name, the EVIDENCE (the exact text from the source where the fact appears) and a DELIVERABLE. Decide whether the deliverable states that same fact correctly. Equivalent formats count (3868 ms = 3.9 s; "5 passed, 3 failed" = "3 failed, 5 passed"; a short hash that matches the start of the full one). A different value, a hedge without the value, or saying the fact is missing do not count.
@@ -55,7 +55,7 @@ def main():
     for tid in tasks:
         by_sess.setdefault(tid.rsplit("-", 1)[0], []).append(tid)
     for _ in range(40):
-        tid = rnd.choice(list(tasks)); other = rnd.choice([x for x in by_sess[tid.rsplit("-", 1)[0]] if x != tid])
+        tid = rnd.choice([t for t in tasks if len(by_sess[t.rsplit('-', 1)[0]]) > 1]); other = rnd.choice([x for x in by_sess[tid.rsplit("-", 1)[0]] if x != tid])
         i = rnd.randrange(len(tasks[tid]["facts"]))
         items.append({"key": [tid, "full", i], "deliverable_of": other}); kinds[len(items) - 1] = "neg"
     order = list(range(len(items))); rnd.shuffle(order)

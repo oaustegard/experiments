@@ -1,5 +1,82 @@
 # Subagent context filter: pass the task, let Jev pick the transcript
 
+When an orchestrating agent hands work to a subagent, the subagent starts
+blank. The `delegating-with-context` skill lets the orchestrator write only the
+task: a PreToolUse hook reads the parent session's transcript, asks Jev (a
+hosted decision model that scores many yes/no questions over one shared text
+in about a second) which transcript chunks the task needs, and appends those
+chunks to the subagent's prompt, up to a 20k-token budget.
+
+## Answer
+
+Does the filtered transcript carry the facts a subagent needs, and does
+scoring it hierarchically (segments first, then chunks inside the kept
+segments, after DecisionRAG, arXiv 2610.35868) beat scoring every chunk?
+
+Yes to both, by small margins. In the first eval the flat filter's subagent
+found 99 of 105 facts. <!-- @evidence[[results/summary.json#arms.jev4.facts_found]] -->
+The full transcript found 102. <!-- @evidence[[results/summary.json#arms.full.facts_found]] -->
+A brief written by the orchestrator found 82. <!-- @evidence[[results/summary.json#arms.brief.facts_found]] -->
+Over 52 later delegations from 16 sessions of 19 to 581 chunks, the
+hierarchical filter at 8x view was never worse than the flat one and better on 3 tasks. <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.better]] -->
+Paired fact recall rose 2.7%, <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.mean_pct]] -->
+with a CI from +0.0% to +6.4%, <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.ci_hi_pct]] -->
+at a median 31% fewer Jev tokens per delegation. <!-- @evidence[[results/summary_pooled.json#hier8_jev_token_saving_pct]] -->
+It is the skill's default since version 0.3.0.
+
+Most arms find at least 97% of the facts, so the eval sits near its ceiling.
+Harder tasks, or facts stated in only one chunk, would separate the arms more.
+
+## Findings
+
+1. A written brief loses facts by pointing at lookups: 5 of 32 tasks deferred a fact to a tool the subagent lacked, and that is the brief's whole gap (Round 2026-09-23).
+2. The hierarchical filter is never worse than the flat filter on 52 tasks and better on 3 (`results/summary_pooled.json`). <!-- @evidence[[results/summary_pooled.json#pairs.hier8_minus_jev4.better]] -->
+3. Over 150 chunks, `hier8` found 93 of 93 facts against 90 for the flat filter (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#arms.jev4.facts_found]] -->
+4. On those sessions the flat filter needs 8 Jev calls and 2.5 s per delegation (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#filter.jev4.calls_median]] -->
+5. Level 1 needs a top-k budget, not a score threshold: on a single-topic session every segment scored at least 0.57, so a 0.3 threshold pruned nothing (Round 2026-11-02, 8 short sessions).
+6. Jev's scores vary between identical calls: given the same level-1 input, `hier4` and `hier8` kept different segments on 8 of 28 tasks (Round 2026-11-02, 8 short sessions).
+7. The shipped filter looped forever on sessions of about 500 chunks or more, because `clip(x, 20)` returns 25 characters and the exit test wanted 24; the hook timed out and passed no context. Fixed in skill 0.2.3 (Round 2026-11-02, long sessions).
+8. The fact regexes are too literal in every round; a blind adjudicator upgraded 61 of 64 misses on the long run, where regex-only scoring puts the flat filter first (`results/summary_hier_long.json`). <!-- @evidence[[results/summary_hier_long.json#adjudicator.upgrades]] -->
+9. TypeSafe's edge WAF blocks some transcript bytes, and the AI Gateway reports it as HTTP 402; the filter bisects the window (ERRORS #5).
+
+## Method
+
+- **Corpus.** Archived sessions from the `claude-workspace` `transcripts`
+  branch, chunked by `chunking.py` (one user message, assistant text block,
+  harness turn, or tool call with its result per chunk), secrets redacted
+  before any chunk leaves the machine. Transcript-derived data stays out of
+  this public repo (`data/` is gitignored; `EVAL_DATA` points the scripts at a
+  directory elsewhere).
+- **Tasks.** Per session, a tool-less Sonnet labeller reads the whole session
+  and writes 4 delegation tasks phrased by name without the facts, each with 2
+  to 4 required facts as regexes, the transcript evidence, and the chunk ids
+  holding them (`label.py`). Tasks whose regex misses its own evidence, leaks
+  into the task text, or has a bad chunk id are dropped.
+- **Arms.** `none` (task only), `jev1`/`jev4` (flat filter at 1x or 4x view:
+  every chunk scored, paged into ~27k-token Jev windows), `hier4`/`hier8`
+  (`hierfilter.py`: segments at each user message and every 8 chunks, scored
+  from digests; top 40% kept, at least 3; their chunks scored at 4x or 8x
+  view), `full` (the whole transcript), `brief` (the orchestrator model writes a
+  brief from the full transcript). All filter arms pack into a 20k budget with
+  the same `select`.
+- **Executor.** `claude -p` with no tools, settings or MCP, one turn: Sonnet,
+  and `sonnet[1m]` on sessions over 150 chunks, where the full transcript
+  reaches 391k tokens.
+- **Scoring.** Fact regexes, then a blind adjudicator over every miss
+  (`adjudicate.py`), validated in the same batches on regex hits (TPR) and on
+  facts checked against another task's deliverable (TNR).
+- **Files.** `chunking.py`, `jevfilter.py`, `hierfilter.py`, `context_hook.py`,
+  `preview.py`, `label.py`, `run_eval.py`, `adjudicate.py`, `analyze.py`,
+  `analyze_hier.py`, `pool.py`, `recheck.py`; `results/*.json` hold counts only.
+  Rerun a round: with `EVAL_DATA` set, `python3 label.py`, `python3 run_eval.py
+  --arms none,jev4,hier4,hier8,full`, `python3 adjudicate.py`, `python3
+  analyze_hier.py`, then `python3 pool.py <dir> ...`. Shipped as the
+  `delegating-with-context` skill in `oaustegard/claude-skills`.
+
+## Log
+
+### 2026-09-23: filter against brief and full transcript, 8 sessions, 32 tasks
+
 **Question.** When an orchestrator delegates, can it write only the task and
 let a filter pass the parent transcript's relevant chunks, instead of writing
 a background brief or forking the whole context? (Oskar, 2026-09-22: *"wrap
@@ -25,7 +102,7 @@ the one 181-chunk session tried outside the eval, where the condensed view
 ranked the answer chunk 6th and the paged view 1st. The filter defaults to the
 paged view because Jev costs almost nothing either way.
 
-## Setup
+#### Setup
 
 - **Corpus.** 8 sessions from this account's transcript archive
   (`claude-workspace` `transcripts` branch), 19 to 97 chunks each, 54k to 375k
@@ -64,7 +141,7 @@ paged view because Jev costs almost nothing either way.
   57 of 95 misses. Regex-only counts differ in the middle of the ranking (below): the filter
   arms and `full` swap places, and `brief` is last either way.
 
-## Results
+#### Results
 
 | arm | facts found | tasks fully correct | 95% CI (tasks) | context passed, est. tokens (median) |
 |---|---|---|---|---|
@@ -108,7 +185,7 @@ cache write in the subagent. Against a fork it passes a quarter of the tokens
 at a 3-point cost in recall, and becomes cheaper than the fork after about
 13 subagent turns ($0.16 / ($0.016 − $0.004)) on Opus.
 
-## What this does not show
+#### What this does not show
 
 - **Tool-less, one-turn executors.** The deliverables are fact-carrying
   write-ups. Real subagents have tools and run many turns. That makes the
@@ -126,7 +203,7 @@ at a 3-point cost in recall, and becomes cheaper than the fork after about
 - **n = 32.** The task-level CIs are wide (the jev and full intervals
   overlap almost entirely).
 
-## Found along the way
+#### Found along the way
 
 - **TypeSafe's edge WAF blocks some transcript content.** Through the AI
   Gateway it arrives as `HTTP 402 Payment error from model using BYOK` wrapping
@@ -147,7 +224,7 @@ at a 3-point cost in recall, and becomes cheaper than the fork after about
   labelled as reference data and the task repeated after it, the third answered
   correctly on its first turn. n = 3; a direction, not a rate.
 
-## Prior art
+#### Prior art
 
 The 101-project roundup and the awesome-jev lists (reviewed in memories
 `dd506da5`, `0070d581`) have compaction by Jev (`fast-jev-compaction`,
@@ -156,7 +233,7 @@ session still needs it. I did not find task-conditioned selection for a
 subagent handoff in those lists; no separate web search was run. The
 components exist; this composition was not found there.
 
-## Files
+#### Files
 
 `chunking.py` (transcript to chunks, redaction), `jevfilter.py` (windows,
 bisection on WAF blocks, rank-to-budget), `context_hook.py` (PreToolUse hook),
@@ -164,7 +241,7 @@ bisection on WAF blocks, rank-to-budget), `context_hook.py` (PreToolUse hook),
 `analyze.py`, `recheck.py`, `results/summary.json`, `ERRORS.md`. Shipped as the
 `delegating-with-context` skill in `oaustegard/claude-skills`.
 
-## Follow-up, 2026-11-02: a hierarchical filter
+### 2026-11-02: hierarchical filter, the same 8 sessions relabelled
 
 **Question.** DecisionRAG (arXiv 2610.35868) retrieves with Jev by descending a
 tree: it scores coarse nodes, keeps the top k and scores only the children of
@@ -242,3 +319,65 @@ Files: `hierfilter.py`, `label.py`, `analyze_hier.py`, `results/summary_hier.jso
 With `EVAL_DATA` pointing at a directory holding `chunks/`, `rendered/` and
 `tasks/`: `python3 label.py`, then `python3 run_eval.py --arms
 none,jev4,hier4,hier8,full`, `python3 adjudicate.py`, `python3 analyze_hier.py`.
+
+### 2026-11-02: hierarchical filter on 8 sessions over 150 chunks
+
+**Asked.** Run the hierarchical filter on sessions over 150 chunks, where the
+flat filter pages into many windows.
+
+**Ran.** 30 of the largest archived sessions were chunked, and 12 had more than 150
+chunks. 8 were taken, spanning 159 to 581 chunks, on which the flat filter
+needs 3 to 11 Jev windows. Labelling them produced 32 tasks. 8 were dropped,
+each for a regex that missed its own evidence (one also leaked into its task),
+leaving 24 tasks and 93 facts. The executor was `sonnet[1m]` in every arm.
+
+**Broke first.** The chunk survey hung. `jevfilter._global_state` never
+terminated on the five sessions of 498 or more chunks: `clip(x, 20)` returns 25
+characters, a fixed point, and the loop's exit test required at most 24. The
+shipped hook would hit its 120 s timeout there and pass no context. The loop now stops on a pass that changes
+nothing, then thins the index. The same fix shipped as skill 0.2.3. The adjudicator's
+negative-control sampler also failed on a session left with one task; it now
+samples only sessions with two or more.
+
+| arm | facts found | tasks fully correct | 95% CI (tasks) | context passed, est. tokens (median) |
+|---|---|---|---|---|
+| none | 1/93 (1%) | 0/24 | 0%-0% | 7 |
+| jev4 | 90/93 (97%) | 22/24 | 79%-100% | 20,062 |
+| hier4 | 93/93 (100%) | 24/24 | 100%-100% | 20,064 |
+| hier8 | 93/93 (100%) | 24/24 | 100%-100% | 20,065 |
+| full | 93/93 (100%) | 24/24 | 100%-100% | 231,577 |
+
+Regex-only, before adjudication: none 1, jev4 79, hier4 76, hier8 77, full 76.
+Adjudicator: TPR 100% on 40 regex hits, TNR 98% on 40 wrong-task
+deliverables; 61 of 64 misses upgraded. The regex ranks the flat filter
+first, and the adjudicated count ranks it last. The two flat-filter task
+misses (`597340de-2`, `-3`) were read by hand, and in both its executor wrote that
+the facts were missing. In `-3` the flat filter dropped chunk 65, which `hier8`
+kept. In `-2` both dropped chunk 111, and `hier8`'s executor found the same
+facts in other kept chunks.
+
+| filter | Jev calls (median) | Jev input tokens (median) | seconds (median) | chunks scored at level 2 (median) | must-have chunks kept |
+|---|---|---|---|---|---|
+| jev4 | 8 | 227,449 | 2.5 | all | 97/117 (83%) |
+| hier4 | 5.5 | 138,294 | 1.8 | 182.5 | 100/117 (85%) |
+| hier8 | 6 | 142,841 | 1.8 | 186 | 100/117 (85%) |
+
+`hier8` dropped 17 must-have chunks: 9 with a segment pruned at level 1 and 8 out-ranked
+at level 2.
+
+**Pooled with the short-session round** (52 tasks, `pool.py`): `hier8` minus
+`jev4` is +2.7% fact recall (CI +0.0% to +6.4%), worse on 0 tasks and better on 3.
+`hier4` minus `jev4` is +2.1% (CI −0.5% to +5.3%), worse on 1 and better on 4.
+`hier8` minus `full` is +0.5%. The median per-task Jev saving is 31% for `hier8`
+and 37% for `hier4`. The two rounds used different executors (Sonnet and
+`sonnet[1m]`).
+
+**Tokenizer.** Claude counted 391k tokens for the 890k-character rendering of
+the 581-chunk session, which is 2.3 characters per token. The filter's budget
+estimate assumes 3.3, so a "20k" context is nearer 29k Claude tokens on this
+content. Jev's window limits use Jev's own counts and were not exceeded.
+
+**Reading.** The hierarchy holds or improves recall and costs less. Both of
+the flat filter's lost tasks come from one 159-chunk session, so the gain rests
+on very few tasks. On these numbers `hier8` became the skill default (0.3.0), with
+`CONTEXT_FILTER_MODE=flat` to switch back.

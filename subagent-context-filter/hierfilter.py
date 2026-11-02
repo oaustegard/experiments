@@ -115,6 +115,7 @@ def score(task: str, chunks: list[dict], scale: float = 4.0) -> tuple[dict[int, 
     return scores, {"segments": len(segs), "segments_kept": sorted(kept),
                     "segment_scores": {str(k): round(v, 3) for k, v in s1.items()},
                     "candidates": len(cand), "windows_l1": len(w1), "windows_l2": len(w2),
+                    "windows": len(w1) + len(w2),
                     "calls": c1 + c2, "blocked_chunks": b1 + b2, "jev_input_tokens": u1 + u2,
                     "seconds": round(time.time() - t0, 2)}
 

@@ -1502,6 +1502,24 @@ the result.
 - **`export.arxiv.org` answers Python `urllib` with HTTP 406 and curl or `requests` with 200 on the
   same URL.** Use `requests`. (`jev-tag-encoder/data.py`)
 
+- **Jev over a coarse level needs a top-k budget, not a score threshold.** Scoring session segments
+  from short digests, every segment of a single-topic session scored 0.57 or more for its task, so a
+  0.3 threshold kept all of them and the hierarchy pruned nothing. Keeping the top 40% (at least 3)
+  pruned 79 chunks to 31 candidates without losing recall. Same budget-per-level rule as DecisionRAG
+  (arXiv 2610.35868). (`subagent-context-filter/hierfilter.py`)
+- **Jev Noul scores vary between identical calls enough to reorder a ranking near a cut.** Two arms
+  sent the same level-1 state and questions and kept different top-40% segments on 8 of 28 tasks.
+  Do not attribute a difference between two Jev-ranked arms to a parameter that did not touch that
+  call; run the same request twice before reading small gaps. (`subagent-context-filter/`)
+- **Claude tokenizes session transcripts at about 2.3 characters per token.** A 581-chunk session
+  rendered to 890k characters counted 391k tokens on Sonnet 5.5, so a budget estimated at 3.3 chars
+  per token is about 40% over its nominal size in real tokens. Jev counts its own tokens and was not
+  affected. (`subagent-context-filter/`)
+- **A shrink-until-it-fits loop needs a no-progress exit, not a size test.** `clip(x, 20)` returns
+  25 characters ("15 + ' […] ' + 5"), so a loop that clipped an index until every entry was at most
+  24 characters never ended once the index outgrew its budget. It hung the shipped filter on every
+  session over ~500 chunks, and the hook's timeout turned that into a delegation with no context and no visible
+  error. Compare the state before and after each pass. (`subagent-context-filter/jevfilter.py`)
 - **The `delegating-with-context` PreToolUse hook appends about 20K tokens of the parent
   session to every Agent prompt unless the prompt contains `[no-context]`.** For eval or
   judging subagents that is contamination: the judge sees the parent's discussion of the
