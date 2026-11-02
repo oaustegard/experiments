@@ -168,3 +168,18 @@ coverage. The dog's 53,601 segments in full-canvas layers took 215 s per 512 px 
 SwiftShader, a cost only tile binning would fix. The cat's generator has an f-string bug
 (`svg-palette-cycle/build.py:78`).
 
+### Round 4 — 2026-11-02: precision as a size knob, from the image-to-wgsl session
+
+Oskar pointed at the parallel "neural model compression engine" session, whose
+image-to-WGSL codec scores the gzipped minified shader as the compressed file and makes
+precision in digits its quality knob. Two versions of that idea were measured here.
+Rounding float literals to N significant digits saves almost nothing on this compiler's
+output. At 5 digits, scene shaders shrink 0.3% and pixels change by up to 1 level; at
+3 digits they shrink 0.7% for a worst case of 27.6 dB (`results/digits_sweep.json`, 31
+scenes). The 86 hand-written corpus shaders shrink 0.05%. The idea had been in the
+compiler all along: geometry is stored as integers on a grid and colours at 4 decimals,
+so few long floats remain. The option was not shipped. The grid step itself is the real
+knob (`results/quantum_sweep.json`). On Twemoji's lion at 512 px, grid 1/16 px gives
+2,595 gzip bytes at 33.2 dB, the default 1/64 gives 2,889 at 37.8 dB, and 1/128 gives
+3,003 at 38.4 dB. The skill (v0.4.0) exposes it as `--grid`.
+
