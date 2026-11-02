@@ -1,0 +1,168 @@
+{
+ "gap_vs_best_db": {
+  "16": 4.02,
+  "32": 3.52,
+  "64": 3.57,
+  "128": 3.63,
+  "256": 4.14,
+  "512": 4.84,
+  "1024": 5.6
+ },
+ "gap_vs_jpeg_down_db": {
+  "16": 2.74,
+  "32": 2.13,
+  "64": 1.69,
+  "128": 1.34,
+  "256": 0.93,
+  "512": 1.52,
+  "1024": 1.72
+ },
+ "gap_vs_avif_down_db": {
+  "16": 3.81,
+  "32": 3.52,
+  "64": 3.57,
+  "128": 3.63,
+  "256": 3.19,
+  "512": 2.97,
+  "1024": 2.81
+ },
+ "median_psnr": {
+  "16": 18.2,
+  "32": 19.3,
+  "64": 20.32,
+  "128": 22.06,
+  "256": 23.37,
+  "512": 24.63,
+  "1024": 26.11
+ },
+ "median_bytes": {
+  "16": 896,
+  "32": 1079,
+  "64": 1434,
+  "128": 2122,
+  "256": 3478,
+  "512": 6142,
+  "1024": 11450
+ },
+ "prefix_cost_db": {
+  "64": 0.4,
+  "256": 0.36,
+  "1024": 0.82
+ },
+ "untrained_prefix_gap_db": {
+  "16": 7.25,
+  "32": 8.14,
+  "64": 8.36,
+  "128": 6.97,
+  "256": 6.33,
+  "512": 4.13
+ },
+ "residual": {
+  "median_gain_db": 0.05,
+  "median_extra_bytes": 787,
+  "median_splat_gain_same_bytes_db": 0.2
+ },
+ "bytes": {
+  "per_splat_gz": 10.5,
+  "overhead_gz": 694,
+  "raw_bits_per_splat": 61
+ },
+ "columnar_smaller_pct": 0.4,
+ "swiftshader_vs_torch_db_min": 71.7,
+ "swiftshader_max_abs": 1,
+ "iphone": {
+  "device": "iPhone",
+  "max_abs_vs_torch": 1,
+  "frac_px_differ_max_pct": 0.02,
+  "psnr_1024": 28.92,
+  "ms_1024": {
+   "768x512": 77,
+   "1920x1280": 476,
+   "3840x2560": 1949
+  },
+  "ms_16": {
+   "768x512": 4,
+   "1920x1280": 10,
+   "3840x2560": 36
+  }
+ },
+ "layout_ms_768": {
+  "u32": 78,
+  "split512": 181,
+  "vec4u": 106
+ },
+ "layout_slowdown": {
+  "u32": 1.0,
+  "split512": 2.32,
+  "vec4u": 1.36
+ },
+ "layout_error_4096": "OperationError: map async was not successful",
+ "svg_arm": {
+  "kodim23_K4": {
+   "gz": 3475,
+   "psnr": 17.59,
+   "error": null
+  },
+  "kodim23_K8": {
+   "gz": 9932,
+   "psnr": 20.73,
+   "error": null
+  },
+  "kodim23_K16": {
+   "gz": 17160,
+   "psnr": 22.48,
+   "error": null
+  },
+  "kodim05_K4": {
+   "gz": 14229,
+   "psnr": 16.71,
+   "error": null
+  },
+  "kodim05_K8": {
+   "gz": 37596,
+   "psnr": null,
+   "error": "1:378 array constructor has excessive number of elements (>32767)"
+  },
+  "kodim05_K16": {
+   "gz": 79791,
+   "psnr": null,
+   "error": "1:378 array constructor has excessive number of elements (>32767)"
+  }
+ },
+ "kodim23": {
+  "n16": {
+   "bytes": 898,
+   "psnr": 18.6
+  },
+  "n32": {
+   "bytes": 1079,
+   "psnr": 20.69
+  },
+  "n64": {
+   "bytes": 1433,
+   "psnr": 22.13
+  },
+  "n128": {
+   "bytes": 2131,
+   "psnr": 23.9
+  },
+  "n256": {
+   "bytes": 3501,
+   "psnr": 25.7
+  },
+  "n512": {
+   "bytes": 6194,
+   "psnr": 27.23
+  },
+  "n1024": {
+   "bytes": 11536,
+   "psnr": 28.92
+  }
+ },
+ "fit_minutes_median": 11.1,
+ "avif_gap_1024_db": {
+  "min": 3.9,
+  "max": 6.8
+ },
+ "splat_cap_one_array": 1072
+}

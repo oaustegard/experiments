@@ -1,0 +1,157 @@
+{
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "apple",
+  "device": "apple",
+  "description": "apple",
+  "features": [
+   "core-features-and-limits",
+   "shader-f16",
+   "timestamp-query"
+  ],
+  "limits": {
+   "maxBufferSize": 1073741824,
+   "maxStorageBufferBindingSize": 1073741824,
+   "maxComputeWorkgroupStorageSize": 32768,
+   "maxComputeInvocationsPerWorkgroup": 1024,
+   "maxComputeWorkgroupsPerDimension": 65535
+  }
+ },
+ "shaders": [
+  {
+   "id": "kodim23_prefix1024_n16",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 4,
+     "min": 3,
+     "max": 4,
+     "n": 5,
+     "slow": false
+    },
+    "1920x1280": {
+     "median": 10,
+     "min": 10,
+     "max": 13,
+     "n": 5,
+     "slow": false
+    },
+    "3840x2560": {
+     "median": 36,
+     "min": 34,
+     "max": 37,
+     "n": 5,
+     "slow": false
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 4.0690104166666664e-05,
+   "psnr_vs_torch": 96.8071281393899,
+   "psnr_gpu": 18.59657057665132,
+   "psnr_torch": 18.59657137992712
+  },
+  {
+   "id": "kodim23_prefix1024_n64",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 5,
+     "min": 5,
+     "max": 6,
+     "n": 5,
+     "slow": false
+    },
+    "1920x1280": {
+     "median": 31,
+     "min": 31,
+     "max": 32,
+     "n": 5,
+     "slow": false
+    },
+    "3840x2560": {
+     "median": 125,
+     "min": 123,
+     "max": 126,
+     "n": 5,
+     "slow": false
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 3.5603841145833336e-05,
+   "psnr_vs_torch": 97.38704760916677,
+   "psnr_gpu": 22.132037528475674,
+   "psnr_torch": 22.132041191591384
+  },
+  {
+   "id": "kodim23_prefix1024_n256",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 20,
+     "min": 20,
+     "max": 21,
+     "n": 5,
+     "slow": false
+    },
+    "1920x1280": {
+     "median": 121,
+     "min": 120,
+     "max": 121,
+     "n": 5,
+     "slow": false
+    },
+    "3840x2560": {
+     "median": 480,
+     "min": 479,
+     "max": 480,
+     "n": 5,
+     "slow": false
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 8.646647135416667e-05,
+   "psnr_vs_torch": 93.5335387955266,
+   "psnr_gpu": 25.695733475042346,
+   "psnr_torch": 25.695735366373018
+  },
+  {
+   "id": "kodim23_prefix1024_n1024",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 77,
+     "min": 77,
+     "max": 78,
+     "n": 5,
+     "slow": false
+    },
+    "1920x1280": {
+     "median": 476,
+     "min": 476,
+     "max": 478,
+     "n": 5,
+     "slow": false
+    },
+    "3840x2560": {
+     "median": 1949,
+     "min": 1899,
+     "max": 1991,
+     "n": 5,
+     "slow": false
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 0.00022633870442708334,
+   "psnr_vs_torch": 89.35442789950002,
+   "psnr_gpu": 28.919046129153273,
+   "psnr_torch": 28.919057915195104
+  }
+ ]
+}

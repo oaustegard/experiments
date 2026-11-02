@@ -1,0 +1,132 @@
+{
+ "device": "iPhone",
+ "tabName": "iPhone",
+ "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/156.0.8078.54 Mobile/15E148 Safari/604.1",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "apple",
+  "device": "apple",
+  "description": "apple",
+  "features": [
+   "core-features-and-limits",
+   "shader-f16",
+   "timestamp-query"
+  ],
+  "limits": {
+   "maxBufferSize": 1073741824,
+   "maxStorageBufferBindingSize": 1073741824,
+   "maxComputeWorkgroupStorageSize": 32768,
+   "maxComputeInvocationsPerWorkgroup": 1024,
+   "maxComputeWorkgroupsPerDimension": 65535
+  }
+ },
+ "shaders": [
+  {
+   "id": "k23_128_n16",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 4,
+     "min": 3,
+     "max": 4
+    },
+    "1920x1280": {
+     "median": 11,
+     "min": 9,
+     "max": 14
+    },
+    "3840x2560": {
+     "median": 34,
+     "min": 33,
+     "max": 35
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 5.340576171875e-05,
+   "psnr_vs_torch": 95.62613501860996
+  },
+  {
+   "id": "k23_128_n128",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 10,
+     "min": 10,
+     "max": 10
+    },
+    "1920x1280": {
+     "median": 61,
+     "min": 61,
+     "max": 62
+    },
+    "3840x2560": {
+     "median": 243,
+     "min": 242,
+     "max": 245
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 5.8492024739583336e-05,
+   "psnr_vs_torch": 95.23104960577322
+  },
+  {
+   "id": "k23_128_res16_n128_res",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 12,
+     "min": 12,
+     "max": 13
+    },
+    "1920x1280": {
+     "median": 77,
+     "min": 76,
+     "max": 78
+    },
+    "3840x2560": {
+     "median": 306,
+     "min": 302,
+     "max": 309
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 4.0690104166666664e-05,
+   "psnr_vs_torch": 96.8071281393899
+  },
+  {
+   "id": "synth_1024_n1024",
+   "messages": [],
+   "repeat_bytes_differ": 0,
+   "ms": {
+    "768x512": {
+     "median": 84,
+     "min": 83,
+     "max": 84
+    },
+    "1920x1280": {
+     "median": 517,
+     "min": 514,
+     "max": 518
+    },
+    "3840x2560": {
+     "median": 2150,
+     "min": 2112,
+     "max": 2194
+    }
+   },
+   "max_abs_vs_torch": 1,
+   "frac_px_differ": 7.120768229166667e-05,
+   "psnr_vs_torch": 94.37674765252696
+  },
+  {
+   "id": "synth_4096_n4096",
+   "messages": [
+    "error 1:73 constant array cannot have more than 2047 elements"
+   ],
+   "error": "1 error generated while compiling the shader:\n1:72: constant array cannot have more than 2047 elements"
+  }
+ ]
+}

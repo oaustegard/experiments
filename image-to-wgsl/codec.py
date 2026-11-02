@@ -384,6 +384,11 @@ def fnum(v):
     return s
 
 
+# WebKit (Safari, and every browser on iOS) refuses `const` arrays with more than 2047 elements;
+# Tint and naga accept them. Found on the GPU bridge, iPhone, 2026-11-02 (results/bridge_i2w-render-1.json).
+MAX_CONST_ARRAY = 2047
+
+
 def pack_bits(fields):
     """[(value, nbits)] -> u32 words, LSB first, plus one zero pad word for the straddling read."""
     acc, off = 0, 0
@@ -396,12 +401,17 @@ def pack_bits(fields):
     return [(acc >> (32 * i)) & 0xFFFFFFFF for i in range(nw)] + [0], off
 
 
-def emit_wgsl(run, n=None, encoding="packed", residual=None, paint_seconds=6.0, hexlit=False):
+def emit_wgsl(run, n=None, encoding="packed", residual=None, paint_seconds=6.0, hexlit=False, store="auto",
+              chunk=None):
     """One self-contained shader: vs + fs, uniform vec4f(width, height, time, 0) at group 0 binding 0.
 
     time <= 0 paints everything; time > 0 paints the first N * min(1, (t / paint_seconds)^2) splats,
     so the image paints itself in when driven by a clock.
+
+    store (packed only): "u32" one array<u32>; "vec4u" one array<vec4u>, four words per element;
+    "split" several array<u32> of `chunk` words; "auto" = u32 while it fits WebKit's limit, else vec4u.
     """
+    chunk = chunk or MAX_CONST_ARRAY
     L: Layout = run["layout"]
     P = run["P"].to(torch.int64).tolist()
     bg = run["bg"].to(torch.int64).tolist()
@@ -419,9 +429,32 @@ def emit_wgsl(run, n=None, encoding="packed", residual=None, paint_seconds=6.0, 
         for p in P:
             fields += list(zip(p, W))
         words, nbits = pack_bits(fields)
-        out.append(f"const D = array<u32, {len(words)}>({','.join(lit(w) for w in words)});\n")
-        out.append("fn rd(o: u32, n: u32) -> f32 {\n  let w = o >> 5u;\n  let s = o & 31u;\n  var v = D[w] >> s;\n"
-                   "  if (s + n > 32u) { v |= D[w + 1u] << (32u - s); }\n  return f32(v & ((1u << n) - 1u));\n}\n")
+        if store == "auto":
+            store = "u32" if len(words) <= MAX_CONST_ARRAY else "vec4u"
+        if store == "u32":
+            out.append(f"const D = array<u32, {len(words)}>({','.join(lit(w) for w in words)});\n")
+            at = "D[{}]"
+        elif store == "split":
+            # several plain u32 arrays of at most `chunk` words; dw() picks the array per read
+            parts = [words[i:i + chunk] for i in range(0, len(words), chunk)]
+            for j, part in enumerate(parts):
+                out.append(f"const D{j} = array<u32, {len(part)}>({','.join(lit(w) for w in part)});\n")
+            sel = "".join(f"  if (i < {chunk * (j + 1)}u) {{ return D{j}[i - {chunk * j}u]; }}\n" for j in range(len(parts) - 1))
+            out.append(f"fn dw(i: u32) -> u32 {{\n{sel}  return D{len(parts) - 1}[i - {chunk * (len(parts) - 1)}u];\n}}\n")
+            at = "dw({})"
+        else:
+            # WebKit rejects const arrays over 2047 elements; four words per vec4u element.
+            words += [0] * (-len(words) % 4)
+            vecs = [f"vec4u({','.join(lit(w) for w in words[i:i + 4])})" for i in range(0, len(words), 4)]
+            if len(vecs) > MAX_CONST_ARRAY:
+                raise ValueError(f"{len(words)} words exceed {4 * MAX_CONST_ARRAY} even as vec4u")
+            out.append(f"const D = array<vec4u, {len(vecs)}>({','.join(vecs)});\n")
+            out.append("fn dw(i: u32) -> u32 { return D[i >> 2u][i & 3u]; }\n")
+            at = "dw({})"
+        out.append("fn rd(o: u32, n: u32) -> f32 {\n  let w = o >> 5u;\n  let s = o & 31u;\n"
+                   f"  var v = {at.format('w')} >> s;\n"
+                   f"  if (s + n > 32u) {{ v |= {at.format('w + 1u')} << (32u - s); }}\n"
+                   "  return f32(v & ((1u << n) - 1u));\n}\n")
         offs = np.cumsum([0] + W).tolist()
         hb = 12 * L.bbg
         B = L.bits

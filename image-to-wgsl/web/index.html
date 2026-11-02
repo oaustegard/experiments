@@ -43,7 +43,7 @@ a { color: var(--accent); }
 <body>
 <main>
   <h1>Images as Shaders</h1>
-  <p class="lede">Each picture below is one WGSL fragment shader of a few kilobytes. The shader holds an ordered list of soft, rotated ellipses packed into an integer array, and paints them per pixel. The list was trained so that every prefix is itself a coarser picture, so the shader can paint itself in, and the slider can stop it at any power of two.</p>
+  <p class="lede">Each picture below is one WGSL fragment shader. The shader holds an ordered list of 1,024 soft, rotated ellipses packed into an integer array, and paints them per pixel; its minified source is about 11 KB gzipped. The list was trained so that its first 16, 32, 64 and so on ellipses already make a coarser picture. Press "Paint it in" to watch the shader add them, or drag the splats slider to stop at a power of two. As compression it loses: on these six Kodak test photos, AVIF at the same size scores 3.9 to 6.8 dB higher in PSNR. The buttons under the picture show the original and the AVIF and WebP files of the same size.</p>
   <div class="picker" id="picker"></div>
   <div class="stage" id="stage">
     <canvas id="cv"></canvas>

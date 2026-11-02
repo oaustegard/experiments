@@ -85,6 +85,7 @@ def main():
     cache_path = HERE / "results" / "points_cache.json"
     cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
     summary = {"images": {}}
+    prev = json.loads((HERE / "results" / "summary.json").read_text()) if (HERE / "results" / "summary.json").exists() else {"images": {}}
     for im in IMAGES:
         img_path = HERE / "data" / "kodak" / f"{im}.png"
         S = {}
@@ -137,6 +138,10 @@ def main():
                 rows2, _ = verify_gpu.check(run2, res2, ns=(None,), encodings=("packed",))
                 S["gpu_check_res16"] = rows2
             print(im, "gpu", [(r["n"], r.get("psnr_gpu_vs_torch"), r.get("max_abs")) for r in S["gpu_check"]], flush=True)
+        if not a.gpu:  # keep GPU checks from an earlier --gpu run
+            for k in ("gpu_check", "gpu_check_res16"):
+                if k in prev["images"].get(im, {}):
+                    S[k] = prev["images"][im][k]
         summary["images"][im] = S
     # aggregates
     agg = {}

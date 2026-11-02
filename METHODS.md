@@ -835,6 +835,31 @@ survives exactly the sanity checks people run.
   (cubics split into a few quadratics, error n⁻³) made the error pure antialiasing, falling from
   4.58 to 0.38 levels between 48 and 768 px. Measure the ink ratio against a reference renderer at
   two sizes. (`wgsl-forge/RESULTS.md` finding 6, `tests/scale_check.py`)
+- **WebKit rejects a WGSL `const` array of more than 2,047 elements; Chromium accepts larger ones.**
+  Every browser on iOS uses WebKit, so a shader that compiles in Chromium, naga and SwiftShader can
+  fail on an iPhone with "constant array cannot have more than 2047 elements". (Chromium's own
+  limit is different: an array constructor may hold at most 32,767 elements.) A shader that carries
+  its data in one `const` array of `u32` therefore holds at most 2,047 words. Two layouts get past
+  the limit and compile: four words per `vec4u` element, or the words split across several arrays.
+  In image-to-wgsl, a shader of 1,922 words ran 1.36 times slower on an iPhone as `vec4u`, and 2.32
+  times slower as four arrays, than as one plain array. At 7,682 words both layouts failed on the
+  iPhone: one render did not finish within minutes and the other lost the GPU device. Moving the data
+  to a storage buffer or a texture is the obvious next step, but it is untested.
+  (`image-to-wgsl/RESULTS.md` finding 6)
+- **In headless Chromium a 2D `drawImage` of a WebGPU canvas reads back zeros, though a
+  screenshot shows the frame.** This was with the flags in the entries above. To check pixels,
+  render to an offscreen `rgba8unorm` texture and copy it out, as `wgsl-forge/harness/gpu.mjs` does.
+  (`image-to-wgsl/RESULTS.md` log)
+- **wgsl-forge's SVG reader ignores id-scoped CSS classes (`#id .c0{fill:...}`).** The
+  image-to-svg skill writes its colours that way, so every path compiled by wgsl-forge renders
+  black. wgsl-forge itself is not fixed. Write the class declarations onto each path as attributes
+  before compiling: `image-to-wgsl/svg_arm.py`, `inline_classes`.
+- **GPU bridge jobs: guard each frame and keep the timeout to minutes.** The GPU bridge
+  (`docs/gpu-bridge.md` in claude-workspace) runs a WebGPU job on Oskar's phone or laptop and
+  commits the result. A job that hits its timeout returns nothing, including the work it had
+  finished, while lines logged through the job's `ctx.log` survive a job that throws. One shader
+  that ran for minutes per frame lost a whole job this way. `image-to-wgsl/bridge/job.js` stops
+  timing a shader after one frame over 2 s (an arbitrary bound) and records that frame.
 - **LiteRT.js does not load in Node.** `loadLiteRt` injects a `<script>` tag (`document is not
   defined`). To check a LiteRT.js result headless, serve `node_modules` over localhost with an import
   map for `@litertjs/core` and `@litertjs/wasm-utils` and run it in Playwright's Chromium; the wasm
@@ -3402,6 +3427,14 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **An image stored as a shader of ordered soft-ellipse splats loses to every conventional codec at
+  equal bytes.** On six Kodak photographs, 1,024 splats (about 11.5 KB gzipped) reach a median
+  26.11 dB, 5.6 dB below AVIF at the same size and 1.72 dB below JPEG encoded at reduced size
+  and upscaled. The gap is 3.5 to 5.6 dB at every length from 16 to 1,024 splats. Each splat costs
+  10.5 gzipped bytes for 61 bits of fields. A 16-unit SIREN residual inside the shader adds
+  0.05 dB for about 790 bytes. Training every power-of-two prefix to be a usable image costs only
+  0.4 dB, so a self-painting, resolution-free image is cheap to add once you accept the rate.
+  (`image-to-wgsl/RESULTS.md`)
 - **Merging a specific vocabulary into a general tag bank and ranking it flat hurts.** Adding
   Open Images V7's 20,931 class names to RAM++'s 4,585 (MobileCLIP-S0, 500 COCO images) drops
   object recall@5 0.255 → 0.158 and caption precision@5 0.271 → 0.196: rare labels ("Pi day",
