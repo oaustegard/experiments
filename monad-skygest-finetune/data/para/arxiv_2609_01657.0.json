@@ -1,0 +1,107 @@
+{
+ "id": "arxiv:2609.01657",
+ "k": 0,
+ "generator": "gemini-3.8-flash",
+ "rows": [
+  {
+   "q": "When was arXiv:2609.01657 officially published on arXiv?",
+   "reasoning": "Query: \"When was arXiv:2609.01657 officially published on arXiv?\"\n\n→ Checking publication details for arXiv:2609.01657.\n● Paper titled 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' by Lac and Wu.\n● Venue: arXiv.\n● Registered publication date: August 31, 2026.\n\n∴ Released on August 31, 2026, in Lac and Wu's paper.",
+   "answer": "The paper designated as arXiv:2609.01657 was published on arXiv on August 31, 2026. Authored by Aurélien Lac and Tony Wu, the work introduces the NeoMME foundation encoder family."
+  },
+  {
+   "q": "Which researchers authored the full paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference'?",
+   "reasoning": "Query: \"Which researchers authored the full paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference'?\"\n\n→ Identify authorship metadata for the paper.\n● In the full paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' (cataloged as arXiv:2609.01657), two primary authors are listed.\n● Authors = Aurélien Lac and Tony Wu.\n\n∴ Aurélien Lac and Tony Wu.",
+   "answer": "The full paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' was authored by Aurélien Lac and Tony Wu. They introduced this multimodal foundation encoder on arXiv in August 2026."
+  },
+  {
+   "q": "What parameter counts were developed for the foundation encoders in Lac and Wu's 2026 publication?",
+   "reasoning": "Query: \"What parameter counts were developed for the foundation encoders in Lac and Wu's 2026 publication?\"\n\n→ Check model scale specifications in Lac and Wu's 2026 publication.\n● NeoMME model family provides two specific capacity tiers.\n● Scales = 260M and 800M parameters.\n● Both operate as multimodal, multilingual foundation encoders.\n\n∴ Sizes are 260M and 800M in the NeoMME study.",
+   "answer": "In Lac and Wu's 2026 publication on NeoMME, the foundation encoders were developed with parameter counts of 260M and 800M. Both sizes are designed as multimodal and multilingual bidirectional encoders."
+  },
+  {
+   "q": "Is it true that the study introducing single-tower multimodal-native encoders combines raw image patches and text in a single bidirectional Transformer?",
+   "reasoning": "Query: \"Is it true that the study introducing single-tower multimodal-native encoders combines raw image patches and text in a single bidirectional Transformer?\"\n\n→ Validate architectural configuration.\n● In the study introducing single-tower multimodal-native encoders by Lac et al., the design processes multilingual text alongside raw image patches.\n● Unified within a single bidirectional Transformer rather than separate visual and causal language models.\n\n∴ True: a single bidirectional Transformer processes both modalities.",
+   "answer": "Yes, it is true. The study introducing single-tower multimodal-native encoders by Lac and Wu demonstrates that both multilingual text and raw image patches are processed together within a single bidirectional Transformer encoder."
+  },
+  {
+   "q": "What pretraining objective was applied from scratch in the NeoMME project?",
+   "reasoning": "Query: \"What pretraining objective was applied from scratch in the NeoMME project?\"\n\n→ Identify pretraining method in the NeoMME project.\n● Also described under arXiv:2609.01657.\n● Pretraining is conducted from scratch rather than adapting existing checkpoints.\n● Objective formulation: masked discrete-diffusion text objective.\n● Conditioning: conditioned on visible image patches for multimodal examples.\n\n∴ Masked discrete-diffusion text objective conditioned on visible image patches.",
+   "answer": "In the NeoMME project, both models are pretrained completely from scratch using a masked discrete-diffusion text objective. For multimodal instances, this objective is explicitly conditioned on visible image patches."
+  },
+  {
+   "q": "I read that in arXiv preprint 2609.01657, pretraining uses masked discrete diffusion. How is the conditioning structured for multimodal data?",
+   "reasoning": "Query: \"I read that in arXiv preprint 2609.01657, pretraining uses masked discrete diffusion. How is the conditioning structured for multimodal data?\"\n\n→ Determine multimodal conditioning mechanism in arXiv preprint 2609.01657.\n● The paper by Lac and Wu implements a masked discrete-diffusion text objective.\n● When handling multimodal inputs, text diffusion is conditioned directly on visible image patches.\n\n∴ Conditioned on visible image patches.",
+   "answer": "According to arXiv preprint 2609.01657 by Lac and Wu, multimodal pretraining conditions the masked discrete-diffusion text objective directly on visible image patches. This structure allows the single bidirectional Transformer to bind visual and linguistic representations during training."
+  },
+  {
+   "q": "How large is the context window in a 2026 arXiv paper on the NeoMME architecture, and what visual capacity does it provide?",
+   "reasoning": "Query: \"How large is the context window in a 2026 arXiv paper on the NeoMME architecture, and what visual capacity does it provide?\"\n\n→ Context length and image capacity facts.\n● Described in a 2026 arXiv paper on the NeoMME architecture ('NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference').\n● Context window length = 16,384 tokens.\n● Visual capacity: sufficient to encode up to two standard 4K UHD images.\n\n∴ 16,384 tokens; up to two standard 4K UHD images.",
+   "answer": "In their 2026 arXiv paper on the NeoMME architecture, Lac and Wu report that the models feature a 16,384-token context window. This large capacity is sufficient to encode up to two standard 4K UHD images simultaneously."
+  },
+  {
+   "q": "What number of standard 4K UHD images can be accommodated in the context window according to Lac et al. in their 2026 paper?",
+   "reasoning": "Query: \"What number of standard 4K UHD images can be accommodated in the context window according to Lac et al. in their 2026 paper?\"\n\n→ Check maximum 4K image capacity.\n● In Lac et al. in their 2026 paper (arXiv:2609.01657), the encoder supports 16,384 context tokens.\n● Translates directly to processing up to two standard 4K UHD images.\n\n∴ Up to two 4K UHD images.",
+   "answer": "According to Lac et al. in their 2026 paper on NeoMME, the 16,384-token context window can accommodate up to two standard 4K UHD images. This enables rich visual document processing within a single bidirectional pass."
+  },
+  {
+   "q": "On the ViDoRe v3 benchmark, what nDCG@10 score was achieved by the 800M model in the investigation by Lac and Wu?",
+   "reasoning": "Query: \"On the ViDoRe v3 benchmark, what nDCG@10 score was achieved by the 800M model in the investigation by Lac and Wu?\"\n\n→ Retrieve ViDoRe v3 metric for 800M retriever variant.\n● In the investigation by Lac and Wu introducing the NeoMME paper.\n● Model: NeoMME-Retriever 800M.\n● ViDoRe v3 result = 0.556 nDCG@10.\n\n∴ 0.556 nDCG@10.",
+   "answer": "In the investigation by Lac and Wu, the NeoMME-Retriever 800M model achieved an nDCG@10 score of 0.556 on the ViDoRe v3 benchmark. This score reflects the performance of the model after fine-tuning with dense and late-interaction heads."
+  },
+  {
+   "q": "Is it true that NeoMME-Retriever 260M beat all evaluated models under 800M parameters on ViDoRe v3 in the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder'?",
+   "reasoning": "Query: \"Is it true that NeoMME-Retriever 260M beat all evaluated models under 800M parameters on ViDoRe v3 in the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder'?\"\n\n→ Confirm comparative benchmark performance.\n● In the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder' (Lac et al., 2026).\n● NeoMME-Retriever 260M achieved 0.523 nDCG@10 on ViDoRe v3.\n● Explicitly outperforms all evaluated models strictly below 800M parameters.\n\n∴ True: scored 0.523 nDCG@10 and outperformed all models under 800M.",
+   "answer": "Yes, that is true. In the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder', the 260M retriever attained a score of 0.523 nDCG@10 on ViDoRe v3, outperforming every evaluated model strictly below 800M parameters."
+  },
+  {
+   "q": "What specific nDCG@10 score was recorded on ViDoRe v3 for the 260M model in the research report on NeoMME-Retriever?",
+   "reasoning": "Query: \"What specific nDCG@10 score was recorded on ViDoRe v3 for the 260M model in the research report on NeoMME-Retriever?\"\n\n→ Find evaluation metric for NeoMME-Retriever 260M.\n● Found in the research report on NeoMME-Retriever (arXiv:2609.01657).\n● Benchmark: ViDoRe v3.\n● Score: 0.523 nDCG@10.\n\n∴ Exactly 0.523 nDCG@10.",
+   "answer": "In the research report on NeoMME-Retriever by Lac and Wu, the 260M-parameter model recorded an nDCG@10 score of 0.523 on ViDoRe v3. This result surpassed all tested models under 800M parameters on that benchmark."
+  },
+  {
+   "q": "How does document page encoding throughput compare to ColModernVBERT in Lac et al.'s August 2026 study?",
+   "reasoning": "Query: \"How does document page encoding throughput compare to ColModernVBERT in Lac et al.'s August 2026 study?\"\n\n→ Compare inference speed against ColModernVBERT.\n● Documented in Lac et al.'s August 2026 study introducing NeoMME.\n● Evaluated model: NeoMME-260M.\n● Tested on an NVIDIA L40S GPU at 2048x2048 resolution.\n● Result: approximately twice (2x) the page encoding throughput of ColModernVBERT.\n\n∴ Roughly 2x the throughput.",
+   "answer": "In Lac et al.'s August 2026 study on NeoMME, the 260M model encodes document pages at roughly twice the throughput of ColModernVBERT. This throughput advantage was established at a matched 2048x2048 image resolution."
+  },
+  {
+   "q": "Under what GPU hardware and input resolution did the NeoMME architecture paper report roughly 2x throughput over ColModernVBERT?",
+   "reasoning": "Query: \"Under what GPU hardware and input resolution did the NeoMME architecture paper report roughly 2x throughput over ColModernVBERT?\"\n\n→ Identify benchmarking setup for throughput claims.\n● In the NeoMME architecture paper (Lac and Wu's study).\n● Hardware accelerator = NVIDIA L40S GPU.\n● Matched image input size = 2048x2048.\n● Model evaluated = NeoMME-260M.\n\n∴ NVIDIA L40S GPU and 2048x2048 input size.",
+   "answer": "The NeoMME architecture paper reports this speedup using an NVIDIA L40S GPU with a matched 2048x2048 image input size. Under these conditions, NeoMME-260M achieved about double the page encoding throughput of ColModernVBERT."
+  },
+  {
+   "q": "What compression factor is achieved for late-interaction document embeddings in the original NeoMME research publication?",
+   "reasoning": "Query: \"What compression factor is achieved for late-interaction document embeddings in the original NeoMME research publication?\"\n\n→ Identify embedding compression ratio.\n● In the original NeoMME research publication (arXiv:2609.01657).\n● Techniques applied: hierarchical token pooling + asymmetric quantization.\n● Compression factor achieved = 255x.\n● Preserves over 95% of baseline nDCG@10.\n\n∴ 255x compression.",
+   "answer": "In the original NeoMME research publication by Lac and Wu, late-interaction multimodal document embeddings are compressed by a factor of 255x. Even with this 255x reduction, the embeddings preserve over 95% of baseline nDCG@10 performance."
+  },
+  {
+   "q": "Which methods were used to compress late-interaction embeddings in the 2026 Lac & Wu preprint?",
+   "reasoning": "Query: \"Which methods were used to compress late-interaction embeddings in the 2026 Lac & Wu preprint?\"\n\n→ Identify compression mechanisms.\n● In the 2026 Lac & Wu preprint ('NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference').\n● Techniques combined: hierarchical token pooling and asymmetric quantization.\n● Result: 255x compression while preserving >95% baseline nDCG@10.\n\n∴ Hierarchical token pooling and asymmetric quantization.",
+   "answer": "In the 2026 Lac & Wu preprint on NeoMME, the authors employed hierarchical token pooling and asymmetric quantization to compress late-interaction document embeddings. Together, these techniques achieve 255x compression while retaining more than 95% of baseline retrieval performance."
+  },
+  {
+   "q": "Is it true that compressing embeddings by 255x retains over 95% of baseline retrieval performance in arXiv article arXiv:2609.01657?",
+   "reasoning": "Query: \"Is it true that compressing embeddings by 255x retains over 95% of baseline retrieval performance in arXiv article arXiv:2609.01657?\"\n\n→ Validate embedding retention claims.\n● In arXiv article arXiv:2609.01657 by Lac and Wu.\n● Applying hierarchical token pooling alongside asymmetric quantization compresses document representations 255x.\n● The paper verifies that this retains over 95% of the baseline nDCG@10.\n\n∴ True: over 95% baseline nDCG@10 is preserved at 255x compression.",
+   "answer": "Yes, that is true. In arXiv article arXiv:2609.01657, Lac and Wu show that compressing late-interaction multimodal document embeddings by 255x preserves over 95% of baseline nDCG@10 through hierarchical token pooling and asymmetric quantization."
+  },
+  {
+   "q": "Under what open-source license are the checkpoints released in a 2026 arXiv contribution by Lac and colleagues?",
+   "reasoning": "Query: \"Under what open-source license are the checkpoints released in a 2026 arXiv contribution by Lac and colleagues?\"\n\n→ Identify licensing terms.\n● In a 2026 arXiv contribution by Lac and colleagues introducing NeoMME.\n● Releases both pretrained backbones and retrieval-compatible checkpoints.\n● License applied: Apache 2.0.\n\n∴ Apache 2.0 license.",
+   "answer": "In their 2026 arXiv contribution on NeoMME, Lac and colleagues released the pretrained backbone models and retrieval checkpoints under an Apache 2.0 license. The models were made available through Hugging Face Transformers."
+  },
+  {
+   "q": "What online repository URL hosts the model collection in the technical report by Lac and Wu?",
+   "reasoning": "Query: \"What online repository URL hosts the model collection in the technical report by Lac and Wu?\"\n\n→ Find the official model collection link.\n● In the technical report by Lac and Wu (arXiv:2609.01657).\n● Checkpoints contributed to Hugging Face Transformers.\n● URL provided: https://hf.co/collections/Hcompany/neomme.\n\n∴ https://hf.co/collections/Hcompany/neomme.",
+   "answer": "In their technical report on NeoMME, Lac and Wu provide the repository link https://hf.co/collections/Hcompany/neomme. This URL hosts the collection of pretrained foundation backbones and retrieval-compatible checkpoints."
+  },
+  {
+   "q": "To which open-source library did the authors of the NeoMME foundation encoder paper contribute their models?",
+   "reasoning": "Query: \"To which open-source library did the authors of the NeoMME foundation encoder paper contribute their models?\"\n\n→ Check ecosystem integration.\n● In the NeoMME foundation encoder paper by Lac and Wu (2026).\n● The authors officially contributed NeoMME to the Hugging Face Transformers library.\n\n∴ Hugging Face Transformers.",
+   "answer": "The authors of the NeoMME foundation encoder paper contributed their models to the Hugging Face Transformers library. Both the pretrained backbones and retrieval-compatible checkpoints were provided there under an Apache 2.0 license."
+  },
+  {
+   "q": "What kind of Transformer architecture serves as the foundation for both model sizes in the 2026 paper on single-tower multimodal-native encoders?",
+   "reasoning": "Query: \"What kind of Transformer architecture serves as the foundation for both model sizes in the 2026 paper on single-tower multimodal-native encoders?\"\n\n→ Review core backbone architecture in the 2026 paper on single-tower multimodal-native encoders (NeoMME).\n● Both 260M and 800M variants unify multilingual text and raw image patches.\n● Architecture = a single bidirectional Transformer encoder.\n\n∴ A single bidirectional Transformer encoder.",
+   "answer": "In their 2026 paper on single-tower multimodal-native encoders, Lac and Wu base both NeoMME model sizes on a single bidirectional Transformer encoder. This unified architecture ingests raw image patches and multilingual text simultaneously without relying on separate vision encoders or causal language models."
+  }
+ ]
+}

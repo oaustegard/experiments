@@ -1,0 +1,107 @@
+{
+ "id": "arxiv:2605.06663",
+ "k": 0,
+ "generator": "gemini-3.8-flash",
+ "rows": [
+  {
+   "q": "On what date was the preprint arXiv:2605.06663 posted, and who are its listed authors?",
+   "reasoning": "Query: \"On what date was the preprint arXiv:2605.06663 posted, and who are its listed authors?\"\n\n→ Checking metadata for preprint arXiv:2605.06663, also titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity'.\n\n● Listed authors: Ryan Wang, Akshita Bhagia, and Sewon Min.\n● Publication date: May 7, 2026 on arXiv.\n\n∴ Published on arXiv on May 7, 2026 by Ryan Wang, Akshita Bhagia, and Sewon Min.",
+   "answer": "The preprint arXiv:2605.06663, titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity', was authored by Ryan Wang, Akshita Bhagia, and Sewon Min. It was officially published on arXiv on May 7, 2026."
+  },
+  {
+   "q": "According to Wang et al. (2026), what issue arises if standard MoE inference is limited to an expert subset tailored to a specific domain?",
+   "reasoning": "Query: \"According to Wang et al. (2026), what issue arises if standard MoE inference is limited to an expert subset tailored to a specific domain?\"\n\n→ Wang et al. (2026) in 'EMO: Pretraining Mixture of Experts for Emergent Modularity' evaluate baseline MoE limitations.\n\n● Baseline MoE tokens select experts arbitrarily across layers.\n● Restricting inference to a subset of experts for a given domain leads to severe performance degradation.\n\n∴ Standard MoEs experience severe degradation under restricted expert subsets.",
+   "answer": "In the paper by Wang et al. (2026), 'EMO: Pretraining Mixture of Experts for Emergent Modularity', standard Mixture-of-Experts models suffer severe performance degradation when inference is restricted to a subset of experts for a given domain. This behavior limits their viability in memory-constrained environments."
+  },
+  {
+   "q": "In the paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity', what mechanism ensures tokens from similar domains choose similar experts without relying on human priors?",
+   "reasoning": "Query: \"In the paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity', what mechanism ensures tokens from similar domains choose similar experts without relying on human priors?\"\n\n→ 'EMO: Pretraining Mixture of Experts for Emergent Modularity' by Wang et al. introduces a document-level pooling constraint.\n\n● Tokens within a single document are restricted to choose from a shared expert pool.\n● Different documents are allowed to use different pools.\n\n∴ Enables domain alignment without manual or human-defined priors.",
+   "answer": "In 'EMO: Pretraining Mixture of Experts for Emergent Modularity', tokens within a single document are restricted to choose from a shared expert pool, while different documents use different pools. This mechanism encourages tokens from similar domains to rely on similar experts without requiring human-defined priors."
+  },
+  {
+   "q": "Is it true that a 2026 arXiv study introducing emergent modularity in MoEs relies exclusively on document boundaries during pretraining?",
+   "reasoning": "Query: \"Is it true that a 2026 arXiv study introducing emergent modularity in MoEs relies exclusively on document boundaries during pretraining?\"\n\n→ Examining pretraining details in the 2026 arXiv study introducing emergent modularity in MoEs ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Architecture uses only document boundaries during pretraining.\n● Coherent expert groupings emerge without extra domain tags.\n\n∴ Yes, it relies solely on document boundaries to induce coherent expert groupings.",
+   "answer": "Yes, it is true. The 2026 arXiv study introducing emergent modularity in MoEs ('EMO: Pretraining Mixture of Experts for Emergent Modularity') relies solely on document boundaries during pretraining to induce the emergence of coherent expert groupings."
+  },
+  {
+   "q": "What are the exact parameter counts and pretraining token numbers reported by Wang, Bhagia, and Min (2026) for their EMO model?",
+   "reasoning": "Query: \"What are the exact parameter counts and pretraining token numbers reported by Wang, Bhagia, and Min (2026) for their EMO model?\"\n\n→ Looking at model specifications in Wang, Bhagia, and Min (2026), titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity' (arXiv:2605.06663).\n\n● Total parameters: 14B.\n● Active parameters: 1B.\n● Pretraining budget: 1 trillion (1T) tokens.\n\n∴ 1B-active, 14B-total model trained on 1T tokens.",
+   "answer": "In their 2026 paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity', Wang, Bhagia, and Min pretrained an EMO model with 1 billion active parameters and 14 billion total parameters. This model was trained on a total budget of 1 trillion tokens."
+  },
+  {
+   "q": "When evaluated as a full model, does the architecture in the study titled 'Pretraining Mixture of Experts for Emergent Modularity' underperform standard MoEs?",
+   "reasoning": "Query: \"When evaluated as a full model, does the architecture in the study titled 'Pretraining Mixture of Experts for Emergent Modularity' underperform standard MoEs?\"\n\n→ Checking full-model comparative results in 'Pretraining Mixture of Experts for Emergent Modularity' by Wang et al. (2026).\n\n● EMO is tested as an unpruned full model against standard MoE baselines.\n● As a full model, EMO matches standard MoE performance.\n\n∴ No, it does not underperform; it matches standard MoE performance.",
+   "answer": "No, it does not underperform. The study titled 'Pretraining Mixture of Experts for Emergent Modularity' finds that, when evaluated as a full model, EMO matches the performance of standard MoE architectures."
+  },
+  {
+   "q": "I read that retaining 25% of experts in the work on EMO architectures causes a massive accuracy drop; is this accurate?",
+   "reasoning": "Query: \"I read that retaining 25% of experts in the work on EMO architectures causes a massive accuracy drop; is this accurate?\"\n\n→ Verifying pruning results from the work on EMO architectures ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Retaining 25% of experts incurs only a 1% absolute drop.\n● Retaining 12.5% of experts incurs only a 3% absolute drop.\n● Standard MoEs break under these settings.\n\n∴ Inaccurate; the performance drop is only 1%.",
+   "answer": "That is not accurate. In the work on EMO architectures ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), retaining only 25% of the experts leads to just a 1% absolute drop in performance. Furthermore, keeping only 12.5% of experts results in merely a 3% absolute drop, whereas standard MoEs break completely under those conditions."
+  },
+  {
+   "q": "What distinction does the preprint arXiv:2605.06663 draw regarding the specialization of EMO experts compared to standard MoEs?",
+   "reasoning": "Query: \"What distinction does the preprint arXiv:2605.06663 draw regarding the specialization of EMO experts compared to standard MoEs?\"\n\n→ Reviewing expert analysis in preprint arXiv:2605.06663 ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Standard MoEs: experts exhibit low-level syntactic specialization.\n● EMO: expert subsets specialize at semantic levels (e.g., domains like math or code).\n\n∴ Standard MoEs are syntactic; EMO experts specialize semantically.",
+   "answer": "The preprint arXiv:2605.06663, 'EMO: Pretraining Mixture of Experts for Emergent Modularity', reveals that EMO expert subsets specialize at semantic levels, including domains such as math or code. This contrasts sharply with standard MoE models, which exhibit low-level syntactic specialization."
+  },
+  {
+   "q": "Which venue published the 2026 research by Ryan Wang and colleagues introducing EMO, and when did it appear?",
+   "reasoning": "Query: \"Which venue published the 2026 research by Ryan Wang and colleagues introducing EMO, and when did it appear?\"\n\n→ Checking publication details for the 2026 research by Ryan Wang and colleagues ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Authors: Ryan Wang, Akshita Bhagia, and Sewon Min.\n● Venue: arXiv.\n● Date: May 7, 2026.\n\n∴ Published on arXiv on May 7, 2026.",
+   "answer": "The 2026 research by Ryan Wang and colleagues (co-authored by Akshita Bhagia and Sewon Min), titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity', was published on arXiv. It appeared on May 7, 2026."
+  },
+  {
+   "q": "Why do standard Mixture-of-Experts models fall short when deployed in domain-restricted inference environments, according to the paper introducing EMO?",
+   "reasoning": "Query: \"Why do standard Mixture-of-Experts models fall short when deployed in domain-restricted inference environments, according to the paper introducing EMO?\"\n\n→ Examining baseline failure modes described in the paper introducing EMO (arXiv:2605.06663).\n\n● Domain-restricted inference limits active parameters to an expert subset.\n● In standard MoEs, restricting inference to a subset of experts for a given domain causes severe performance degradation.\n\n∴ Severe degradation prevents effective domain-restricted deployment.",
+   "answer": "According to the paper introducing EMO ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), standard Mixture-of-Experts models fall short because restricting inference to a subset of experts for a given domain leads to severe performance degradation. This vulnerability severely limits their practical use in memory-constrained settings."
+  },
+  {
+   "q": "How are token expert selections constrained across different documents in Wang et al.'s work on document-level expert routing?",
+   "reasoning": "Query: \"How are token expert selections constrained across different documents in Wang et al.'s work on document-level expert routing?\"\n\n→ Wang et al.'s work on document-level expert routing ('EMO: Pretraining Mixture of Experts for Emergent Modularity') outlines intra- vs. inter-document rules.\n\n● Tokens within a document choose from a shared expert pool.\n● Across different documents, different expert pools may be chosen.\n\n∴ Tokens within a document share a pool; different documents use different pools.",
+   "answer": "In Wang et al.'s work on document-level expert routing ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), tokens within the same document are restricted to selecting from a shared pool of experts. At the same time, different documents are permitted to utilize different expert pools, enabling modular grouping across domains."
+  },
+  {
+   "q": "What exact information during pretraining does the full paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity' use to organize experts into coherent groups?",
+   "reasoning": "Query: \"What exact information during pretraining does the full paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity' use to organize experts into coherent groups?\"\n\n→ Consulting 'EMO: Pretraining Mixture of Experts for Emergent Modularity' by Wang et al. (2026).\n\n● The pretraining procedure induces coherent expert groupings.\n● Required supervisory signal: document boundaries alone.\n● No external domain annotations or human-defined priors are used.\n\n∴ Pretraining relies solely on document boundaries.",
+   "answer": "The full paper 'EMO: Pretraining Mixture of Experts for Emergent Modularity' relies solely on document boundaries during pretraining to induce coherent expert groupings. The framework requires no external domain labels or human-defined priors."
+  },
+  {
+   "q": "Was EMO trained on more than 500 billion tokens in the 2026 arXiv study by Wang, Bhagia, and Min?",
+   "reasoning": "Query: \"Was EMO trained on more than 500 billion tokens in the 2026 arXiv study by Wang, Bhagia, and Min?\"\n\n→ Checking pretraining token budget in the 2026 arXiv study by Wang, Bhagia, and Min ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● EMO was pretrained on 1 trillion (1T) tokens.\n● Model size: 1B active, 14B total parameters.\n● 1T tokens > 500 billion tokens.\n\n∴ Yes, exactly 1 trillion tokens were used.",
+   "answer": "Yes, it was. In the 2026 arXiv study by Wang, Bhagia, and Min ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), the authors pretrained their 1B-active, 14B-total parameter EMO model on 1 trillion tokens, which is well over 500 billion tokens."
+  },
+  {
+   "q": "How does the overall quality of EMO compare to traditional MoEs when all parameters are active, according to the modular pretraining approach presented in arXiv:2605.06663?",
+   "reasoning": "Query: \"How does the overall quality of EMO compare to traditional MoEs when all parameters are active, according to the modular pretraining approach presented in arXiv:2605.06663?\"\n\n→ Examining full-model evaluation in arXiv:2605.06663 ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Full-model deployment activates all experts normally.\n● EMO matches the performance of standard MoE architectures.\n\n∴ EMO matches standard MoE performance as a full model.",
+   "answer": "According to the modular pretraining approach presented in arXiv:2605.06663 ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), EMO matches the performance of standard MoE architectures when deployed as a full model. Introducing modular pretraining constraints does not compromise full-scale model performance."
+  },
+  {
+   "q": "What absolute drop in performance occurs if EMO is pruned down to 12.5% of its experts in the EMO paper?",
+   "reasoning": "Query: \"What absolute drop in performance occurs if EMO is pruned down to 12.5% of its experts in the EMO paper?\"\n\n→ Checking pruning statistics in the EMO paper ('EMO: Pretraining Mixture of Experts for Emergent Modularity', arXiv:2605.06663).\n\n● Retaining 25% of experts → 1% absolute drop.\n● Retaining 12.5% of experts → 3% absolute drop.\n● Standard MoEs break under the same conditions.\n\n∴ Performance drops by only 3% absolute.",
+   "answer": "In the EMO paper ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), retaining only 12.5% of experts causes just a 3% absolute drop in performance. In contrast, standard MoEs break entirely under the same retention level."
+  },
+  {
+   "q": "Do experts in standard MoEs specialize in semantic domains like math or code according to Wang and co-authors in their 2026 publication?",
+   "reasoning": "Query: \"Do experts in standard MoEs specialize in semantic domains like math or code according to Wang and co-authors in their 2026 publication?\"\n\n→ Examining expert specialization in Wang and co-authors (2026), 'EMO: Pretraining Mixture of Experts for Emergent Modularity'.\n\n● Standard MoE experts exhibit low-level syntactic specialization, not semantic.\n● EMO expert subsets specialize at semantic levels like math or code.\n\n∴ No, standard MoE experts specialize syntactically, while EMO specializes semantically.",
+   "answer": "No, they do not. According to Wang and co-authors in their 2026 publication 'EMO: Pretraining Mixture of Experts for Emergent Modularity', standard MoE experts exhibit low-level syntactic specialization, whereas EMO expert subsets specialize at semantic levels such as math or code."
+  },
+  {
+   "q": "I read that EMO requires human-defined priors to align experts with domains; does the research titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity' confirm this?",
+   "reasoning": "Query: \"I read that EMO requires human-defined priors to align experts with domains; does the research titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity' confirm this?\"\n\n→ Checking architectural principles in 'EMO: Pretraining Mixture of Experts for Emergent Modularity' (arXiv:2605.06663).\n\n● EMO specifically achieves modularity without requiring human-defined priors.\n● Relies solely on document-level expert pooling and document boundaries.\n\n∴ No, it does not require human-defined priors.",
+   "answer": "No, that is not confirmed. The research titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity' emphasizes that EMO achieves modularity without human-defined priors. It does so by restricting tokens within a document to select from a shared pool, using only document boundaries to drive expert grouping."
+  },
+  {
+   "q": "How many total parameters and active parameters does the model described in the paper arXiv:2605.06663 have?",
+   "reasoning": "Query: \"How many total parameters and active parameters does the model described in the paper arXiv:2605.06663 have?\"\n\n→ Checking parameter counts in arXiv:2605.06663 ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● Total parameter count: 14 billion (14B).\n● Active parameter count: 1 billion (1B).\n● Trained on 1 trillion tokens.\n\n∴ 14B total parameters and 1B active parameters.",
+   "answer": "The model described in the paper arXiv:2605.06663, titled 'EMO: Pretraining Mixture of Experts for Emergent Modularity', features 14 billion total parameters and 1 billion active parameters per token. It was pretrained on a dataset of 1 trillion tokens."
+  },
+  {
+   "q": "What happens to standard MoEs when subjected to the 25% expert retention test reported by Wang et al. (2026)?",
+   "reasoning": "Query: \"What happens to standard MoEs when subjected to the 25% expert retention test reported by Wang et al. (2026)?\"\n\n→ Reviewing expert pruning findings in Wang et al. (2026), 'EMO: Pretraining Mixture of Experts for Emergent Modularity'.\n\n● In EMO, retaining 25% of experts results in only a 1% absolute drop.\n● Standard MoEs break under the same evaluation setting.\n\n∴ Standard MoEs break under 25% expert retention.",
+   "answer": "When subjected to the 25% expert retention test reported by Wang et al. (2026) in 'EMO: Pretraining Mixture of Experts for Emergent Modularity', standard MoE models break. In contrast, EMO demonstrates robust modularity, suffering only a 1% absolute drop under the same restricted conditions."
+  },
+  {
+   "q": "Which specific domain examples are highlighted as semantic specializations for EMO subsets in the 2026 preprint on emergent modularity in MoEs?",
+   "reasoning": "Query: \"Which specific domain examples are highlighted as semantic specializations for EMO subsets in the 2026 preprint on emergent modularity in MoEs?\"\n\n→ Examining findings in the 2026 preprint on emergent modularity in MoEs ('EMO: Pretraining Mixture of Experts for Emergent Modularity').\n\n● EMO expert subsets specialize at semantic levels rather than syntactic levels.\n● Specific domain examples cited: math and code.\n\n∴ Math and code are the highlighted domain examples.",
+   "answer": "In the 2026 preprint on emergent modularity in MoEs ('EMO: Pretraining Mixture of Experts for Emergent Modularity'), math and code are specifically highlighted as examples of semantic domains where EMO expert subsets specialize. This semantic grouping stands in contrast to the syntactic specialization seen in standard MoE architectures."
+  }
+ ]
+}

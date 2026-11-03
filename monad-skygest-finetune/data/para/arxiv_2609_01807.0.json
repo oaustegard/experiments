@@ -1,0 +1,107 @@
+{
+ "id": "arxiv:2609.01807",
+ "k": 0,
+ "generator": "gemini-3.8-flash",
+ "rows": [
+  {
+   "q": "On what specific date was the paper with identifier arxiv:2609.01807 released?",
+   "reasoning": "Query: \"On what specific date was the paper with identifier arxiv:2609.01807 released?\"\n\n→ Checking release metadata for arxiv:2609.01807.\n● The manuscript titled 'SPD: Single Pass Decoding for Generative Reranking' was submitted to the arXiv repository.\n● The exact publication date noted in the records is September 1, 2026.\n\n∴ Release date was September 1, 2026.",
+   "answer": "According to the paper with identifier arxiv:2609.01807, titled 'SPD: Single Pass Decoding for Generative Reranking', the article was released on September 1, 2026. It was published on the arXiv preprint platform on that date."
+  },
+  {
+   "q": "Who are the listed authors of 'SPD: Single Pass Decoding for Generative Reranking'?",
+   "reasoning": "Query: \"Who are the listed authors of 'SPD: Single Pass Decoding for Generative Reranking'?\"\n\n→ Author roster needed for 'SPD: Single Pass Decoding for Generative Reranking'.\n● Written by Emil Laftchiev, Prachi Agrawal, Moe Kayali, Bixing Yan, Qi Xu, Zijie Lei, Chen Qiu, Zhi Hua et al.\n● Laftchiev et al. lead this research on generative reranking.\n\n∴ All authors are Emil Laftchiev, Prachi Agrawal, Moe Kayali, Bixing Yan, Qi Xu, Zijie Lei, Chen Qiu, Zhi Hua, and colleagues.",
+   "answer": "The authors of 'SPD: Single Pass Decoding for Generative Reranking' are Emil Laftchiev, Prachi Agrawal, Moe Kayali, Bixing Yan, Qi Xu, Zijie Lei, Chen Qiu, Zhi Hua et al. The team published this work as an arXiv preprint."
+  },
+  {
+   "q": "Is it true that generative LLM rankers traditionally require an autoregressive forward pass for every emitted token, according to Laftchiev et al.?",
+   "reasoning": "Query: \"Is it true that generative LLM rankers traditionally require an autoregressive forward pass for every emitted token, according to Laftchiev et al.?\"\n\n→ Verifying standard LLM ranker decoding cost in Laftchiev et al.\n● Also documented in arxiv:2609.01807.\n● Generative LLM rankers typically rely on autoregressive left-to-right generation.\n● This consumes one sequential forward pass per emitted token to output the N ordinals.\n\n∴ Yes, typical LLM rankers spend one sequential forward pass per token.",
+   "answer": "Yes, it is true. As noted by Laftchiev et al. in their research on generative reranking, standard generative LLM rankers rely on autoregressive decoding that spends one sequential forward pass for every token emitted to generate the N ordinal values."
+  },
+  {
+   "q": "In a 2026 arXiv preprint on generative ranking, how many forward passes do standard LLMs spend per emitted token to produce N ordinal values?",
+   "reasoning": "Query: \"In a 2026 arXiv preprint on generative ranking, how many forward passes do standard LLMs spend per emitted token to produce N ordinal values?\"\n\n→ Examining token emission cost in the 2026 arXiv preprint ('SPD: Single Pass Decoding for Generative Reranking').\n● Typical autoregressive rankers emit items sequentially.\n● Each emitted token demands exactly one sequential forward pass.\n● For N ordinals, this incurs sequential overhead.\n\n∴ Exactly one sequential forward pass per token.",
+   "answer": "In the 2026 arXiv preprint titled 'SPD: Single Pass Decoding for Generative Reranking', standard generative LLM rankers are described as spending one sequential forward pass per emitted token. Consequently, producing the list of N ordinal values requires sequential forward passes across the entire sequence."
+  },
+  {
+   "q": "Does the decoding strategy known as SPD operate in O(1) forward passes?",
+   "reasoning": "Query: \"Does the decoding strategy known as SPD operate in O(1) forward passes?\"\n\n→ SPD pass complexity inquiry.\n● 'SPD' stands for Single Forward Pass in the paper by Laftchiev et al.\n● It bypasses left-to-right generation.\n● Decodes all N ordinals simultaneously using O(1) forward passes.\n\n∴ Confirmed: SPD decodes in O(1) forward passes.",
+   "answer": "Yes, it does. In the paper introducing SPD (Single Forward Pass), the authors show that the method decodes all N ordinals in O(1) forward passes instead of relying on sequential left-to-right decoding."
+  },
+  {
+   "q": "What forward pass complexity does the single-pass generative reranking framework achieve when outputting all N ordinals?",
+   "reasoning": "Query: \"What forward pass complexity does the single-pass generative reranking framework achieve when outputting all N ordinals?\"\n\n→ Evaluating forward pass complexity in single-pass generative reranking.\n● From arxiv:2609.01807, SPD discards autoregressive token-by-token generation.\n● All N ordinals naming the items in ranked order are resolved in parallel.\n● Complexity is constant, O(1) forward passes.\n\n∴ O(1) forward passes.",
+   "answer": "In the study on single-pass generative reranking (arxiv:2609.01807), the framework decodes all N ordinals in O(1) forward passes. This replaces the traditional left-to-right generation with a constant number of forward operations."
+  },
+  {
+   "q": "From what specific internal representations do Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al. read the item-position score matrix?",
+   "reasoning": "Query: \"From what specific internal representations do Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al. read the item-position score matrix?\"\n\n→ Locate extraction source of the score matrix in Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al.\n● Described in 'SPD: Single Pass Decoding for Generative Reranking'.\n● A lightweight self-attention head extracts an N x K matrix directly from the LLM's prefill hidden states.\n\n∴ Extracted from the LLM's prefill hidden states.",
+   "answer": "In the study by Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al., titled 'SPD: Single Pass Decoding for Generative Reranking', the item-position score matrix is read directly from the LLM's prefill hidden states. This reading is performed using a lightweight self-attention head."
+  },
+  {
+   "q": "Is an N x K item-position score matrix extracted from prefill hidden states in arxiv:2609.01807?",
+   "reasoning": "Query: \"Is an N x K item-position score matrix extracted from prefill hidden states in arxiv:2609.01807?\"\n\n→ Check matrix dimensions and extraction source in arxiv:2609.01807.\n● SPD ('Single Pass Decoding for Generative Reranking') reads scores off prefill hidden states.\n● The dimension is specifically N x K representing item-position scores.\n● Done via a lightweight self-attention head.\n\n∴ Yes, an N x K item-position score matrix is extracted from prefill hidden states.",
+   "answer": "Yes, that is correct. In arxiv:2609.01807 ('SPD: Single Pass Decoding for Generative Reranking'), the authors extract an N x K item-position score matrix from the LLM's prefill hidden states via a lightweight self-attention head."
+  },
+  {
+   "q": "Which combinatorial algorithm is employed in 'SPD: Single Pass Decoding for Generative Reranking' to compute the optimal bipartite assignment?",
+   "reasoning": "Query: \"Which combinatorial algorithm is employed in 'SPD: Single Pass Decoding for Generative Reranking' to compute the optimal bipartite assignment?\"\n\n→ Algorithm identifying bipartite assignment in 'SPD: Single Pass Decoding for Generative Reranking'.\n● Also presented in the 2026 arXiv study.\n● The model computes optimal bipartite matching over the N x K score matrix.\n● The exact algorithm specified is the Hungarian algorithm.\n\n∴ The Hungarian algorithm.",
+   "answer": "In 'SPD: Single Pass Decoding for Generative Reranking', the optimal bipartite assignment of the item-position score matrix is computed using the Hungarian algorithm. This optimization step decodes the ordinals into a valid permutation without requiring any post-hoc repair."
+  },
+  {
+   "q": "I read that ordinals form a valid permutation without post-hoc repair in the 2026 paper by Laftchiev et al.; how is this accomplished?",
+   "reasoning": "Query: \"I read that ordinals form a valid permutation without post-hoc repair in the 2026 paper by Laftchiev et al.; how is this accomplished?\"\n\n→ Mechanism for valid permutation by construction in 2026 paper by Laftchiev et al. (arxiv:2609.01807).\n● They decode ordinals as the optimal bipartite assignment of the score matrix.\n● Bipartite matching is solved using the Hungarian algorithm.\n● This guarantees a valid permutation by construction.\n\n∴ Via optimal bipartite assignment of the score matrix solved by the Hungarian algorithm.",
+   "answer": "In their 2026 paper, Laftchiev et al. achieve a valid permutation by construction by solving for the optimal bipartite assignment of the item-position score matrix using the Hungarian algorithm. Because the matching is solved via bipartite assignment, every position receives a unique item, eliminating the need for post-hoc repair."
+  },
+  {
+   "q": "What end-to-end inference latency is achieved by Single Pass Decoding?",
+   "reasoning": "Query: \"What end-to-end inference latency is achieved by Single Pass Decoding?\"\n\n→ Find inference latency in Single Pass Decoding.\n● Work by Emil Laftchiev and co-authors.\n● LoRA fine-tuning + autoregressive ranking distillation is used.\n● Recorded end-to-end latency reaches 28 ms.\n\n∴ End-to-end inference latency is 28 ms.",
+   "answer": "According to the paper on Single Pass Decoding by Emil Laftchiev and colleagues, the framework achieves an end-to-end inference latency of 28 ms. This is accomplished using LoRA-based fine-tuning paired with autoregressive ranking distillation."
+  },
+  {
+   "q": "Which training techniques are combined in the work on format-specialized reranking to reach 28 ms end-to-end inference?",
+   "reasoning": "Query: \"Which training techniques are combined in the work on format-specialized reranking to reach 28 ms end-to-end inference?\"\n\n→ Identify training setup yielding 28 ms latency in format-specialized reranking.\n● Corresponds to 'SPD: Single Pass Decoding for Generative Reranking'.\n● Combines LoRA-based fine-tuning with autoregressive LLM ranking distillation.\n\n∴ LoRA-based fine-tuning combined with autoregressive LLM ranking distillation.",
+   "answer": "In the work on format-specialized generative reranking ('SPD: Single Pass Decoding for Generative Reranking'), the authors reach 28 ms end-to-end inference by combining LoRA-based fine-tuning with autoregressive LLM ranking distillation. This setup adapts the backbone while transferring ranking capabilities from the teacher model."
+  },
+  {
+   "q": "What speed-up factor does the method described in arxiv:2609.01807 deliver?",
+   "reasoning": "Query: \"What speed-up factor does the method described in arxiv:2609.01807 deliver?\"\n\n→ Check speed-up factor in arxiv:2609.01807 (SPD).\n● SPD replaces sequential forward passes with O(1) passes and Hungarian matching.\n● Compared to autoregressive baseline, it reaches 28 ms.\n● The exact reported acceleration factor is 64x.\n\n∴ 64x speed-up.",
+   "answer": "The method presented in arxiv:2609.01807, 'SPD: Single Pass Decoding for Generative Reranking', delivers a 64x speed-up over the autoregressive baseline. It simultaneously maintains ranking quality comparable to the autoregressive teacher."
+  },
+  {
+   "q": "Does SPD maintain ranking quality comparable to its autoregressive teacher, according to Emil Laftchiev and colleagues' 2026 work?",
+   "reasoning": "Query: \"Does SPD maintain ranking quality comparable to its autoregressive teacher, according to Emil Laftchiev and colleagues' 2026 work?\"\n\n→ Assess ranking quality relative to teacher in Emil Laftchiev and colleagues' 2026 work.\n● Titled 'SPD: Single Pass Decoding for Generative Reranking'.\n● Fact states: SPD maintains ranking quality on par with the autoregressive teacher.\n\n∴ Yes, ranking quality is on par with the teacher.",
+   "answer": "Yes, it does. In Emil Laftchiev and colleagues' 2026 work, titled 'SPD: Single Pass Decoding for Generative Reranking', the authors show that SPD maintains ranking quality on par with the autoregressive teacher while achieving a significant 64x acceleration."
+  },
+  {
+   "q": "What field of mathematics does 'SPD: Single Pass Decoding for Generative Reranking' link generative ranking to?",
+   "reasoning": "Query: \"What field of mathematics does 'SPD: Single Pass Decoding for Generative Reranking' link generative ranking to?\"\n\n→ Identify conceptual link in 'SPD: Single Pass Decoding for Generative Reranking'.\n● Also cited as arxiv:2609.01807.\n● The abstract and facts state the framework links generative ranking to combinatorial optimization.\n\n∴ Combinatorial optimization.",
+   "answer": "In 'SPD: Single Pass Decoding for Generative Reranking', the authors explicitly connect generative ranking to combinatorial optimization. By treating the decoding phase as a bipartite matching problem, the framework bridges LLM ranking with classical optimization techniques."
+  },
+  {
+   "q": "Is it true that the 2026 arXiv paper by Laftchiev et al. provides an O(1)-decode mechanism for real-time ranking?",
+   "reasoning": "Query: \"Is it true that the 2026 arXiv paper by Laftchiev et al. provides an O(1)-decode mechanism for real-time ranking?\"\n\n→ Verify O(1)-decode mechanism claim in 2026 arXiv paper by Laftchiev et al.\n● Refers to 'SPD: Single Pass Decoding for Generative Reranking'.\n● Facts state: the framework connects generative ranking to combinatorial optimization, providing an O(1)-decode mechanism for real-time ranking.\n\n∴ Yes, it provides an O(1)-decode mechanism for real-time ranking.",
+   "answer": "Yes, it is true. The 2026 arXiv paper by Laftchiev et al., titled 'SPD: Single Pass Decoding for Generative Reranking', provides an O(1)-decode mechanism designed specifically for real-time ranking applications by linking generative ranking to combinatorial optimization."
+  },
+  {
+   "q": "Was the reranking study by Laftchiev et al. published on arXiv in September 2026?",
+   "reasoning": "Query: \"Was the reranking study by Laftchiev et al. published on arXiv in September 2026?\"\n\n→ Check venue and date for Laftchiev et al.\n● Manuscript is 'SPD: Single Pass Decoding for Generative Reranking' (arxiv:2609.01807).\n● Venue: arXiv.\n● Date: September 1, 2026.\n\n∴ Yes, it was released on arXiv in September 2026.",
+   "answer": "Yes, that is accurate. The study by Laftchiev et al., titled 'SPD: Single Pass Decoding for Generative Reranking', was officially released on arXiv on September 1, 2026."
+  },
+  {
+   "q": "What specific architectural module reads the item-position score matrix in SPD?",
+   "reasoning": "Query: \"What specific architectural module reads the item-position score matrix in SPD?\"\n\n→ Identify architectural head in SPD ('SPD: Single Pass Decoding for Generative Reranking').\n● Authored by Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al.\n● An N x K score matrix is extracted from prefill hidden states.\n● Architectural module used: a lightweight self-attention head.\n\n∴ A lightweight self-attention head.",
+   "answer": "In SPD, as described by Laftchiev, Agrawal, Kayali, Yan, Xu, Lei, Qiu, Hua et al. in 'SPD: Single Pass Decoding for Generative Reranking', the item-position score matrix is read by a lightweight self-attention head. This head operates on the LLM's prefill hidden states to produce the N x K matrix."
+  },
+  {
+   "q": "Does the Hungarian algorithm in arxiv:2609.01807 solve an optimal bipartite assignment over an item-position score matrix?",
+   "reasoning": "Query: \"Does the Hungarian algorithm in arxiv:2609.01807 solve an optimal bipartite assignment over an item-position score matrix?\"\n\n→ Verify role of Hungarian algorithm in arxiv:2609.01807.\n● Titled 'SPD: Single Pass Decoding for Generative Reranking'.\n● Ordinals are decoded as the optimal bipartite assignment of the N x K score matrix.\n● The Hungarian algorithm solves this assignment to guarantee a valid permutation.\n\n∴ Yes, it solves optimal bipartite assignment over the item-position score matrix.",
+   "answer": "Yes, it does. In arxiv:2609.01807 ('SPD: Single Pass Decoding for Generative Reranking'), the Hungarian algorithm is used to compute the optimal bipartite assignment over the N x K item-position score matrix, ensuring the decoded output is a valid permutation by construction."
+  },
+  {
+   "q": "I read that a 64x speed-up was achieved while matching teacher ranking quality; does this match the findings of Laftchiev, Agrawal, Kayali, et al.?",
+   "reasoning": "Query: \"I read that a 64x speed-up was achieved while matching teacher ranking quality; does this match the findings of Laftchiev, Agrawal, Kayali, et al.?\"\n\n→ Validate 64x speedup and teacher parity in Laftchiev, Agrawal, Kayali, et al.\n● Paper: 'SPD: Single Pass Decoding for Generative Reranking'.\n● Facts confirm a 64x speed-up while maintaining ranking quality on par with the autoregressive teacher.\n\n∴ Yes, this matches the reported findings.",
+   "answer": "Yes, this directly matches the findings reported by Laftchiev, Agrawal, Kayali, et al. in 'SPD: Single Pass Decoding for Generative Reranking'. Their framework delivers a 64x speed-up over the baseline while keeping ranking quality on par with the autoregressive teacher model."
+  }
+ ]
+}
