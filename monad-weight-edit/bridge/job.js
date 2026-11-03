@@ -62,6 +62,40 @@ if (!M) {
 const pieces = ctx.cache.get("pieces") || JSON.parse(td.decode(ctx.inputs.pieces));
 ctx.cache.set("pieces", pieces);
 
+// Optional sampling (cfg.sample = {temperature, topP, penalty, window, seed}); greedy without it.
+// Same arithmetic as the chat page's makeSampler (austegard.com/ai-tools/monad-chat/monad.js), with a
+// seeded RNG (mulberry32) so a run can be repeated.
+const SAMPLE = (() => {
+  const c = cfg.sample;
+  if (!c) return null;
+  let st = (c.seed >>> 0) || 1;
+  const rand = () => { st |= 0; st = (st + 0x6D2B79F5) | 0; let t = Math.imul(st ^ (st >>> 15), 1 | st);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  return (logits, gen) => {
+    const V = logits.length, l = Float32Array.from(logits);
+    if (c.penalty !== 1 && c.window > 0 && gen.length) {
+      for (const id of new Set(gen.slice(-c.window))) l[id] = l[id] > 0 ? l[id] / c.penalty : l[id] * c.penalty;
+    }
+    let best = 0;
+    for (let i = 1; i < V; i++) if (l[i] > l[best]) best = i;
+    if (!(c.temperature > 0)) return best;
+    const mx = l[best], inv = 1 / c.temperature, p = new Float32Array(V);
+    let z = 0;
+    for (let i = 0; i < V; i++) { p[i] = Math.exp((l[i] - mx) * inv); z += p[i]; }
+    // Sort only the tokens within a factor 1e-3 of the top one; widen to everything when they
+    // hold less than top-p of the mass (a flat distribution). Same result, much less sorting.
+    let cand = [], cm = 0;
+    for (let i = 0; i < V; i++) if (p[i] > 1e-3) { cand.push(i); cm += p[i]; }
+    if (cm / z < c.topP) { cand = []; for (let i = 0; i < V; i++) if (p[i] > 1e-9) cand.push(i); }
+    cand.sort((a, b) => p[b] - p[a]);
+    let keep = 0, mass = 0;
+    while (keep < cand.length) { mass += p[cand[keep]] / z; keep++; if (mass >= c.topP) break; }
+    let r = rand() * mass * z;
+    for (let k = 0; k < keep; k++) { r -= p[cand[k]]; if (r <= 0) return cand[k]; }
+    return cand[keep - 1];
+  };
+})();
+
 const i64 = (arr, dims) => new ort.Tensor("int64", BigInt64Array.from(arr, (x) => BigInt(x)), dims);
 
 // One batched greedy generation. opts: {maxNew, stop (bool), keepLogits (steps to keep)}
@@ -89,6 +123,7 @@ async function generate(prompts, { maxNew, stop = true, keepLogits = 0, onStep }
     if (step < keepLogits) kept.push(logits.slice());
     const nxt = new Array(B);
     for (let b = 0; b < B; b++) {
+      if (SAMPLE) { nxt[b] = SAMPLE(logits.subarray(b * V, (b + 1) * V), out[b]); continue; }
       let bi = 0, bv = -Infinity;
       for (let v = 0, o = b * V; v < V; v++) if (logits[o + v] > bv) { bv = logits[o + v]; bi = v; }
       nxt[b] = bi;
