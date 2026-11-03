@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`monad-weight-edit/`](monad-weight-edit/RESULTS.md) | 2026-11-03 | **done — a training-free weight edit removes Monad's repetition loops: 34.2% → 5.8% of greedy answers on a pinned 500-prompt set, IFEval 5.3% → 13.3%, MMLU/GSM8K within noise, decode speed unchanged (11.8 ms/token on the Mac GPU through the GPU Bridge); the loop direction is mostly the attention-sink direction and only works with that component removed** | [`RESULTS.md`](monad-weight-edit/RESULTS.md) + `ablate.py` + `loopdir.py` + `writers.py` + `layers.py` + `export.py` + `bridge/job.js` + `bridge.py` + `ort_gen.py` + `run_eval.py` + `summarize.py` + `stats.py` + `results/` + `runs/` | Oskar, after `weight-space-edit`: download Pleias' Monad, improve it without training, and A/B it against the original on his GPU through the GPU Bridge. |
 | [`poker-hand-weights/`](poker-hand-weights/RESULTS.md) | 2026-11-03 | **done. A poker bot whose policy is a 1,677-unit ReLU network with every weight written by hand (no training) plays all eight variants of the site's poker game. On held-out deals it is level with the existing Monte Carlo bot's tight-aggressive style at six-handed no-limit hold'em (+1.7 ± 10.1 bb/100), ahead at draw (+2.8 ± 2.1), behind in the other games by 5–29 bb/100; it beats the first bot almost everywhere and an always-caller everywhere. Its hand reading matches the game's evaluator on 20,000 of 20,000 hands** | [`RESULTS.md`](poker-hand-weights/RESULTS.md) + site `games/poker/net.js` | Oskar, 2026-11-03, via a parent session: "have Opus High write weights by hand for an alternate Poker neural bot" |
 | [`weight-space-edit/`](weight-space-edit/RESULTS.md) | 2026-11-02 | **done. Hand-written weights for the trm-doom TRM (no training) are exact on every held-out E1M9 grid at 32×32, 64×64 and 96×96 given enough rounds, where the trained run7 weights peak at 88.6%, 81% and 63%; at the bot's round budget 92.2/79.5/71% vs 87.2/75.5/56%. In the arena: 0 wrong "no route" answers in 249, faster whole-level plans, still no levels cleared. LFM2.5-350M showed 0 repetition loops in 332 answers, so the loop edit had nothing to remove** | [`RESULTS.md`](weight-space-edit/RESULTS.md) + `trm/handtrm.py` + `hero/` + [post](https://muninn.austegard.com/blog/hand-written-weights-for-a-doom-route-planner.html) | Oskar, 2026-11-02: "potentially optimizing some of the recent models we've crafted?" ([weight-space programming](https://rikiyat.github.io/blog/weight-space-programming/)), then "Another potential target is not an LLM but the TRM used in the Doom bot" |
 | [`image-to-wgsl/`](image-to-wgsl/RESULTS.md) | 2026-11-02 | **done; loses as compression.** A photo stored as one WGSL shader that paints 1,024 soft ellipses and can paint itself in. Median 26.11 dB PSNR at 11.5 KB on six Kodak photos; AVIF at the same size is 5.6 dB better | [`RESULTS.md`](image-to-wgsl/RESULTS.md) + `codec.py` + `web/` ([live](https://austegard.com/experiments/image-to-wgsl/web/)) + `bridge/` | Oskar, 2026-11-02: "Could we do an image to wgsl compression approach similar to the image to SVG paint idea? The goal is more novelty than practicality" |
@@ -217,6 +218,17 @@ session-boot repo and was the wrong home for 37 research projects.
 
 ## Per-experiment notes
 
+### `monad-weight-edit/` — removing Monad's loops by editing its weights
+
+Pleias Monad (56M, 64 layers) loops on a third of greedy answers on a pinned set of 200 MMLU, 150 GSM8K and 150 IFEval prompts,
+and every loop leaves its think block open. The direction that separates looping states from normal ones (AUROC 0.99 at layer
+33) is mostly the attention-sink direction of token 0's massive activation, so removing it from all writers, or from the five
+MLP neurons that write it, breaks the model; even a random direction removed globally raises loops from 30% to 51%. With the
+sink component projected out, attention at layers 27–34 writes most of the remainder, and removing it from those eight o_proj
+matrices (`W ← (I − uuᵀ)W`, bf16) cuts loops to 5.8% and lifts IFEval from 5.3% to 13.3% (p = 0.017) without changing speed.
+Both models ran on Oskar's Mac through the GPU Bridge as onnxruntime-web 1.30 WebGPU graphs (onnxruntime-genai builder,
+bf16-packed weights, batched right-padded greedy decoding), matching PyTorch to 5.5e-5 in the logits. Depth pruning was
+measured and ruled out: one layer costs at least 0.045 nats of KL. [`RESULTS.md`](monad-weight-edit/RESULTS.md)
 ### `poker-hand-weights/` — a hand-wired neural network as a poker opponent
 
 A second computer player for [austegard.com/games/poker](https://austegard.com/games/poker/) (lobby: Computer → Hand-wired),

@@ -3867,6 +3867,27 @@ The traps, each of which cost a revision:
   instead: one "provides evidence about the claim" Noul reranks the top 20 to 0.763.
   (`jev-tag-encoder/RESULTS.md`)
 
+### A loop direction can be the attention-sink direction in disguise (monad-weight-edit)
+
+Difference-of-means between looping and normal residual states gave Monad a near-perfect loop detector (AUROC 0.99 at layer
+33), and removing it from the weights produced newline floods on every answer. The direction had cosine −0.77 with token 0's
+residual, where the massive activation behind the attention sink lives (projection −11,790 against a typical residual norm of
+228), and its strongest MLP writers were the sink's massive-activation neurons. Before ablating a behaviour direction, check its
+cosine with the first token's residual and project that component out; for Monad the remainder was written by attention at
+layers 27–34, and removing it there cut loops from 34% to 6%. Also run a random-direction control: removing any one direction
+from every layer's output hurt this deep, narrow model badly (dev loops 30% → 51%).
+
+### ORT-web WebGPU numbers from SwiftShader are not the GPU's (monad-weight-edit)
+
+The same onnxruntime-web 1.30 WebGPU graph gave logits up to 2.7 off the CPU reference on SwiftShader in headless Chromium and
+5.5e-5 off on a real Mac GPU; its WASM backend in the same SwiftShader browser matched to 3.6e-5. A large SwiftShader
+difference with the right argmax is not a bug in the graph. Check on a real GPU (the GPU Bridge) before chasing it.
+
+### Monad's layers are not removable without healing (monad-weight-edit)
+
+Removing Monad's least important layer costs 0.045 nats of next-token KL on its own outputs, and eight greedily chosen layers
+cost 0.57, so depth, the measured latency cost (64 × ~0.18 ms per token on a Mac GPU), cannot be cut training-free.
+
 ### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
 
 0 loops in 200 greedy and 100 sampled (T 0.3, min_p 0.15, rep 1.05) GSM8K answers and 64 chat replies at 512 tokens, so the

@@ -1,0 +1,80 @@
+{
+ "id": "mwe-bench-base-1",
+ "startedAt": 1793679716147,
+ "finishedAt": 1793679729699,
+ "runMs": 9861.800000071526,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "6e1kbq9e",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 9,
+ "status": "done",
+ "logs": [],
+ "outputs": {
+  "mode": "bench",
+  "load": {
+   "cached": true
+  },
+  "layers": 64,
+  "ort": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/",
+  "bench": [
+   {
+    "B": 1,
+    "promptLen": 37,
+    "runs": [
+     {
+      "prefillMs": 89.5,
+      "decodeMedMs": 11.799999952316284,
+      "decodeP90Ms": 12.700000047683716,
+      "decodeMeanMs": 11.978906256146729,
+      "steps": 128
+     },
+     {
+      "prefillMs": 17.399999976158142,
+      "decodeMedMs": 11.799999952316284,
+      "decodeP90Ms": 12.900000095367432,
+      "decodeMeanMs": 11.965625006705523,
+      "steps": 128
+     },
+     {
+      "prefillMs": 17.300000071525574,
+      "decodeMedMs": 11.700000047683716,
+      "decodeP90Ms": 12.200000047683716,
+      "decodeMeanMs": 11.900000003166497,
+      "steps": 128
+     }
+    ]
+   },
+   {
+    "B": 8,
+    "promptLen": 37,
+    "runs": [
+     {
+      "prefillMs": 18.600000023841858,
+      "decodeMedMs": 12.799999952316284,
+      "decodeP90Ms": 13.900000095367432,
+      "decodeMeanMs": 13.063281244598329,
+      "steps": 128
+     },
+     {
+      "prefillMs": 20.100000023841858,
+      "decodeMedMs": 12.700000047683716,
+      "decodeP90Ms": 13.700000047683716,
+      "decodeMeanMs": 12.971093756146729,
+      "steps": 128
+     },
+     {
+      "prefillMs": 20,
+      "decodeMedMs": 12.700000047683716,
+      "decodeP90Ms": 13.799999952316284,
+      "decodeMeanMs": 13.003124999813735,
+      "steps": 128
+     }
+    ]
+   }
+  ],
+  "totalMs": 9861.399999976158
+ }
+}
