@@ -84,7 +84,7 @@ What would change it: sampled decoding, or a task family the edit harms.
 - **GPU**: Oskar's Mac, Chrome 156, Metal (`apple metal-3`), GPU Bridge page v9, onnxruntime-web 1.30.0 from jsDelivr. Each
   test run took five jobs of about six minutes. Latency: a 37-token prompt, 128 forced decode steps, three runs, the median run.
 - **CPU baseline**: PyTorch, `run_eval.py`, same fixture, HF static KV cache. Dev: all 192 answers identical in text to the
-  GPU run. Test: at the first commit, 2026-11-03, 264 of 500 had run; its 200 MMLU answers score exactly as on the GPU (25.0%, 18.5% loops).
+  GPU run. Test: all 500 answers identical in text to the GPU run (34.2% loops on both) <!-- @evidence[[results/summary.json#test_cpu_base.all.loop]] -->
 
 ## Log
 
