@@ -3076,6 +3076,29 @@ make post-norm SwiGLU blocks compute exact boolean logic, all in `weight-space-e
 - A halting head over the cell-mean can test global facts if you keep per-cell bits for them (frontier, start-labelled).
 - Halting only on success makes unreachable cases run to the step cap; in a game loop that was the whole slowdown.
 
+### A game policy can be written as a ReLU network by hand; calibrate the per-opponent share against one opponent (poker-hand-weights)
+
+`poker-hand-weights/` (the site's `games/poker/net.js`) wrote a poker policy for eight variants as a 1,677-unit ReLU
+network with every weight set by a line of code. The kit:
+- An integer threshold is two ReLUs read as their difference, `relu(x − k + 1) − relu(x − k)`. AND of binary signals is
+  `relu(Σ − (n − 1))`; OR of non-negative integers is `Σ − relu(Σ − 1)`; a value v in [0, B] gated by a binary flag g is
+  `relu(v + B·g − B)`; a curve is a sum of ReLU ramps at fixed knots, with slopes interpolated from a formula.
+- A builder that names every unit, lets later units refer to named linear combinations, and refuses a unit that reads its
+  own layer made the 1,677 units writable. An exact check against the game's own evaluator (20,000 of 20,000 random
+  hands) found both wiring bugs before any match was played.
+
+The traps, each of which cost a revision:
+- An AND fed a count is not an AND: `relu(trips + two-pairs + Σ pairs − 2)` fired on plain two pair because Σ pairs was 2.
+  Weight the binary inputs so the sum clears only when all hold: `relu(10a + 10b + c − 20)`.
+- If the share against n opponents is E^n, E has to be the share against one opponent. Values written against "the field"
+  are discounted twice: a top set read as 9% of a four-way Omaha pot.
+- Evidence about one opponent enters once. A bet strengthens the bettor's range, so it adds to the exponent (k = n + 0.6a);
+  multiplying every opponent's exponent (n(1 + 0.6a)) made the network fold small pairs heads-up at a fifth of the pot.
+- In a split pot, each half needs its own curve: raising a blended high-low share to the power n folded nut lows multiway.
+- A tie-break bias is a threshold shift of bias/slope: −0.25 at slope 6 moved every value-bet threshold by 0.04.
+- A policy with no opponent model, which reads every bet as strength, can lose to a uniformly random bettor (Stud Hi-Lo,
+  −9.1 ± 3.8 bb/100) while the Monte Carlo bot with a per-seat table model beats the same player.
+
 ## Cache and measurement hygiene
 
 - **A byte-matching decompilation runner has to compare relocations by target, and has to be

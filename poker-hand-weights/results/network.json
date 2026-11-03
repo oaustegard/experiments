@@ -1,0 +1,121 @@
+{
+ "inputs": 774,
+ "units": 1677,
+ "params": 2399627,
+ "nonzero": 21003,
+ "layers": [
+  {
+   "index": 1,
+   "name": "count",
+   "units": 271,
+   "inputs": 774,
+   "nonzero_weights": 2272,
+   "nonzero_biases": 0,
+   "distinct_weight_values": 1,
+   "note": "Cards per rank and per suit: all my usable cards (mine and the board), mine, the board, each opponent's up cards, each draw slot"
+  },
+  {
+   "index": 2,
+   "name": "step",
+   "units": 504,
+   "inputs": 1045,
+   "nonzero_weights": 658,
+   "nonzero_biases": 439,
+   "distinct_weight_values": 6,
+   "note": "Thresholds on the counts (pairs, trips, four to a flush, my highest card) and on the situation (low stack-to-pot, a cheap price, the dice)"
+  },
+  {
+   "index": 3,
+   "name": "piece",
+   "units": 485,
+   "inputs": 1549,
+   "nonzero_weights": 3771,
+   "nonzero_biases": 431,
+   "distinct_weight_values": 2,
+   "note": "Hand pieces: straights per window, pairs that use my cards, top pair and overpairs, Omaha's two-plus-three combinations, lows, the Chen formula's gaps, opponents' up-card pairs, draw-slot memberships"
+  },
+  {
+   "index": 4,
+   "name": "made",
+   "units": 202,
+   "inputs": 2034,
+   "nonzero_weights": 9180,
+   "nonzero_biases": 194,
+   "distinct_weight_values": 117,
+   "note": "Made-hand categories, draws and board texture; each game's first-round strength as a percentile"
+  },
+  {
+   "index": 5,
+   "name": "ladder",
+   "units": 29,
+   "inputs": 2236,
+   "nonzero_weights": 597,
+   "nonzero_biases": 27,
+   "distinct_weight_values": 106,
+   "note": "At least a pair, at least two pair, … at least quads: a thermometer over the made-hand categories (any five cards, and Omaha's two plus three)"
+  },
+  {
+   "index": 6,
+   "name": "adjust",
+   "units": 64,
+   "inputs": 2265,
+   "nonzero_weights": 1467,
+   "nonzero_biases": 28,
+   "distinct_weight_values": 49,
+   "note": "Adjustments inside a category (pair rank, top pair, high cards), draws by cards to come, penalties for dangerous boards and up cards"
+  },
+  {
+   "index": 7,
+   "name": "share1",
+   "units": 50,
+   "inputs": 2329,
+   "nonzero_weights": 1100,
+   "nonzero_biases": 36,
+   "distinct_weight_values": 79,
+   "note": "Each game's estimate of its share of the pot against one opponent still in the hand, gated by the game being played; strong draws"
+  },
+  {
+   "index": 8,
+   "name": "knots",
+   "units": 23,
+   "inputs": 2379,
+   "nonzero_weights": 127,
+   "nonzero_biases": 21,
+   "distinct_weight_values": 17,
+   "note": "The high (or whole) and low shares against one opponent on a piecewise-linear basis; five-card draw's first-round percentile"
+  },
+  {
+   "index": 9,
+   "name": "share",
+   "units": 27,
+   "inputs": 2402,
+   "nonzero_weights": 303,
+   "nonzero_biases": 27,
+   "distinct_weight_values": 258,
+   "note": "The share of the pot against this many opponents after this much betting from them: E^k, with k = opponents + 0.6 × aggression, one table per bucket, and a table for each half of a split pot"
+  },
+  {
+   "index": 10,
+   "name": "decide",
+   "units": 12,
+   "inputs": 2429,
+   "nonzero_weights": 275,
+   "nonzero_biases": 10,
+   "distinct_weight_values": 48,
+   "note": "The decision rule: margins of the share over the price and over the betting thresholds, bluffs, and the first-round rules by position"
+  },
+  {
+   "index": 11,
+   "name": "out",
+   "units": 10,
+   "inputs": 2441,
+   "nonzero_weights": 40,
+   "nonzero_biases": 0,
+   "distinct_weight_values": 13,
+   "note": "Action logits: fold, check or call, raise half the pot, raise the pot, all in (the largest legal one is played); keep scores at the draw"
+  }
+ ],
+ "distinct_weight_values": 622,
+ "weights_pm1": 10066,
+ "ms_per_decision": 0.161
+}

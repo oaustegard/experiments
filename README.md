@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`poker-hand-weights/`](poker-hand-weights/RESULTS.md) | 2026-11-03 | **done. A poker bot whose policy is a 1,677-unit ReLU network with every weight written by hand (no training) plays all eight variants of the site's poker game. On held-out deals it is level with the existing Monte Carlo bot's tight-aggressive style at six-handed no-limit hold'em (+1.7 ± 10.1 bb/100), ahead at draw (+2.8 ± 2.1), behind in the other games by 5–29 bb/100; it beats the first bot almost everywhere and an always-caller everywhere. Its hand reading matches the game's evaluator on 20,000 of 20,000 hands** | [`RESULTS.md`](poker-hand-weights/RESULTS.md) + site `games/poker/net.js` | Oskar, 2026-11-03, via a parent session: "have Opus High write weights by hand for an alternate Poker neural bot" |
 | [`weight-space-edit/`](weight-space-edit/RESULTS.md) | 2026-11-02 | **done. Hand-written weights for the trm-doom TRM (no training) are exact on every held-out E1M9 grid at 32×32, 64×64 and 96×96 given enough rounds, where the trained run7 weights peak at 88.6%, 81% and 63%; at the bot's round budget 92.2/79.5/71% vs 87.2/75.5/56%. In the arena: 0 wrong "no route" answers in 249, faster whole-level plans, still no levels cleared. LFM2.5-350M showed 0 repetition loops in 332 answers, so the loop edit had nothing to remove** | [`RESULTS.md`](weight-space-edit/RESULTS.md) + `trm/handtrm.py` + `hero/` + [post](https://muninn.austegard.com/blog/hand-written-weights-for-a-doom-route-planner.html) | Oskar, 2026-11-02: "potentially optimizing some of the recent models we've crafted?" ([weight-space programming](https://rikiyat.github.io/blog/weight-space-programming/)), then "Another potential target is not an LLM but the TRM used in the Doom bot" |
 | [`image-to-wgsl/`](image-to-wgsl/RESULTS.md) | 2026-11-02 | **done; loses as compression.** A photo stored as one WGSL shader that paints 1,024 soft ellipses and can paint itself in. Median 26.11 dB PSNR at 11.5 KB on six Kodak photos; AVIF at the same size is 5.6 dB better | [`RESULTS.md`](image-to-wgsl/RESULTS.md) + `codec.py` + `web/` ([live](https://austegard.com/experiments/image-to-wgsl/web/)) + `bridge/` | Oskar, 2026-11-02: "Could we do an image to wgsl compression approach similar to the image to SVG paint idea? The goal is more novelty than practicality" |
 | [`wgsl-forge/`](wgsl-forge/RESULTS.md) | 2026-11-01 | **built: a shape compiler (SVG or Python scenes → one WGSL fragment shader that computes every shape's distance per pixel; median 34.7 dB against Chromium's own SVG rendering on 26 SVGs, error shrinking with resolution) and a WGSL minifier (86 real shaders to 34% of their bytes, 50% gzipped; all naga-valid; 30 of 37 runnable compute entry points bit-identical, the other 7 failing in Chrome unminified; 39% vs wgsl-minifier's 56% on the 49 files both handle). SwiftShader only: real-GPU cost unmeasured** | [`RESULTS.md`](wgsl-forge/RESULTS.md) + [`README.md`](wgsl-forge/README.md) + `forge/` + `web/` ([live](https://austegard.com/experiments/wgsl-forge/web/)) + `tests/` | Oskar, 2026-11-01: "Can we build a WGSL shader compiler? Something that would take inputs from, say, a Python rendering or SVG and turn it into WGSL. Also, a WGSL optimizer, something that compresses the WGSL into as small a footprint as possible", then "anything that leans into _shapes_ more so than pixels" |
@@ -215,6 +216,14 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `poker-hand-weights/` — a hand-wired neural network as a poker opponent
+
+A second computer player for [austegard.com/games/poker](https://austegard.com/games/poker/) (lobby: Computer → Hand-wired),
+written in the site repo as `games/poker/net.js`. Every unit of the 11-layer ReLU network is placed by a named line of code:
+card counts, thresholds, hand pieces, made-hand categories, a share of the pot per game, a multiway table, a decision rule.
+`run.mjs` plays it against the existing players with the site's duplicate-match harness on held-out deals, `summarize.py`
+prints the tables, and the site's `tests/poker-net.mjs` checks its hand reading against the game's evaluator.
 
 ### `image-to-wgsl/` — a photograph as one WGSL shader
 
