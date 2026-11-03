@@ -11,9 +11,11 @@ FX = json.loads((HERE / "data/fixture.json").read_text())["dev"]
 tok, _ = load()
 piece = json.load(open(HERE / "export/pieces.json"))
 P = [tok.encode(prompt(question(x)), add_special_tokens=False) for x in FX[::12][:16]]
-ref = ort_gen.generate(ort_gen.session(HERE / "export/base"), P, 64, piece, record_logits=65, stop=False)
-p = HERE / "results/q4_probe.json"
-out = json.loads(p.read_text()) if p.exists() else {}
+import os
+REF = os.environ.get("REF", "base")
+ref = ort_gen.generate(ort_gen.session(HERE / "export" / REF), P, 64, piece, record_logits=65, stop=False)
+OUTP = HERE / os.environ.get("OUT", "results/q4_probe.json")
+out = json.loads(OUTP.read_text()) if OUTP.exists() else {}
 for name in sys.argv[1:]:
     r = ort_gen.generate(ort_gen.session(HERE / "export" / name), P, 64, piece, record_logits=65, stop=False)
     kls, agree = [], []
@@ -30,4 +32,4 @@ for name in sys.argv[1:]:
     out[name] = {"mean_kl": float(np.mean(kls)), "median_agree_steps": float(np.median(agree)),
                  "full_64_agree": int(sum(a == 64 for a in agree)), "n": len(P)}
     print(name, out[name], flush=True)
-(HERE / "results/q4_probe.json").write_text(json.dumps(out, indent=1))
+OUTP.write_text(json.dumps(out, indent=1))
