@@ -40,7 +40,7 @@ F = MWE / "runs/A8p__gpu_test.jsonl"
 s["test"] = {"F": summarize(F)}
 s["stats_vs_F"] = {}
 a = {json.loads(l)["uid"]: json.loads(l) for l in open(F)}
-for arm in ("A8p_q4", "A8p_P16_q4"):
+for arm in ("A8p_q8", "A8p_q4", "A8p_P16_q4", "A8p_P8"):
     p = MWE / f"runs/{arm}__gpu_test.jsonl"
     if not p.exists():
         continue
