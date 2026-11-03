@@ -119,7 +119,7 @@ code { font: 13px var(--mono); background: var(--code); border: 1px solid var(--
 "use strict";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const PAGE_VERSION = 9;
+const PAGE_VERSION = 10;
 // WebGPU reports only "apple" on every Apple device, so results also carry the user agent and a
 // coarse device class read from it: Apple GPUs on an iPhone and on a Mac differ several-fold.
 function deviceLabel() {
@@ -442,7 +442,7 @@ const resultBase = (id, info) => ({ id, startedAt: info.startedAt, finishedAt: i
 async function process(job) {
   const id = job.id, info = { status: "running", note: job.note, created: job.created, startedAt: Date.now(), logs: [] };
   seen.set(id, info); inflight.add(id); busy = true; setPill(); render();
-  const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 600000), ttlMs = timeoutMs + 300000;
+  const timeoutMs = Math.min(Math.max(Number(job.timeoutMs) || 120000, 1000), 1800000), ttlMs = timeoutMs + 300000;
   info.timeoutMs = timeoutMs; info.phase = "claiming";
   let claimed;
   lastHolder = null;
