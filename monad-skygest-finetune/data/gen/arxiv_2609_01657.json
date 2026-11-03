@@ -1,0 +1,93 @@
+{
+ "facts": [
+  "Aurélien Lac and Tony Wu published 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' on arXiv on August 31, 2026 (arXiv:2609.01657).",
+  "NeoMME provides 260M and 800M-parameter multimodal, multilingual foundation encoders combining multilingual text and raw image patches in a single bidirectional Transformer.",
+  "Both NeoMME models are pretrained from scratch using a masked discrete-diffusion text objective conditioned on visible image patches.",
+  "The models feature a 16,384-token context window capable of encoding up to two standard 4K UHD images.",
+  "On the ViDoRe v3 benchmark, NeoMME-Retriever 260M scores 0.523 nDCG@10 (surpassing all evaluated models under 800M parameters), while NeoMME-Retriever 800M reaches 0.556 nDCG@10.",
+  "On an NVIDIA L40S GPU at a 2048x2048 input size, NeoMME-260M encodes document pages at roughly twice the throughput of ColModernVBERT.",
+  "Using hierarchical token pooling and asymmetric quantization, late-interaction document embeddings can be compressed 255x while maintaining over 95% of baseline nDCG@10.",
+  "Pretrained backbones and retrieval checkpoints are contributed to Hugging Face Transformers under an Apache 2.0 license at https://hf.co/collections/Hcompany/neomme."
+ ],
+ "train": [
+  {
+   "q": "Who wrote the 2026 paper introducing the NeoMME encoder family, and where was it published?",
+   "reasoning": "Query: \"Who wrote the 2026 paper introducing the NeoMME encoder family, and where was it published?\"\n\n→ Paper: \"NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference\".\n● Authors: Aurélien Lac and Tony Wu.\n● Date: August 31, 2026.\n● Venue: arXiv (arXiv:2609.01657).\n\n∴ Aurélien Lac and Tony Wu authored the paper on arXiv.",
+   "answer": "The paper introducing the NeoMME family was written by Aurélien Lac and Tony Wu. Titled 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', it was published on arXiv on August 31, 2026. It presents a single-tower bidirectional architecture designed to eliminate the overhead of generative vision-language models for retrieval."
+  },
+  {
+   "q": "What core architectural design differentiates the NeoMME models from conventional visual document retrievers like ColPali?",
+   "reasoning": "Query: \"What core architectural design differentiates the NeoMME models from conventional visual document retrievers like ColPali?\"\n\n→ Conventional VLM-based retrievers (e.g., ColPali) repurpose separate vision encoders + causal LLMs.\n● Overhead: non-generative tasks carry generative parameter and compute burdens.\n● NeoMME fix: single bidirectional Transformer encoder processing multilingual text and raw image patches directly.\n\n∴ Unified single-tower encoder, not a decoupled causal VLM.",
+   "answer": "In 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', the authors design a single bidirectional Transformer encoder that natively processes multilingual text and raw image patches. Unlike visual retrievers such as ColPali that repurpose generative VLMs composed of separate vision encoders and causal language models, NeoMME eliminates the compute and parameter overhead of generative architectures for non-generative tasks."
+  },
+  {
+   "q": "What pretraining objective and context window size are used for the NeoMME foundation models?",
+   "reasoning": "Query: \"What pretraining objective and context window size are used for the NeoMME foundation models?\"\n\n→ Pretraining setup in paper:\n● Objective: masked discrete-diffusion text objective conditioned on visible image patches for multimodal data.\n● Pretrained from scratch (260M and 800M variants).\n● Context window: 16,384 tokens.\n● Capacity: accommodates up to two 4K UHD images.\n\n∴ Masked discrete-diffusion text objective with a 16,384-token context.",
+   "answer": "As detailed in 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', both the 260M and 800M variants are pretrained from scratch using a masked discrete-diffusion text objective conditioned on visible image patches. Both models support an extensive context window of 16,384 tokens, providing enough capacity to encode up to two standard 4K UHD images."
+  },
+  {
+   "q": "How did NeoMME-Retriever perform on the ViDoRe v3 benchmark across its model sizes?",
+   "reasoning": "Query: \"How did NeoMME-Retriever perform on the ViDoRe v3 benchmark across its model sizes?\"\n\n→ Look at evaluation results on ViDoRe v3.\n● NeoMME-Retriever 260M achieves 0.523 nDCG@10.\n● Surpasses all evaluated models strictly below 800M parameters.\n● NeoMME-Retriever 800M achieves 0.556 nDCG@10.\n\n∴ 0.523 for 260M (sub-800M SOTA) and 0.556 for 800M.",
+   "answer": "On the ViDoRe v3 benchmark, the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' reports that NeoMME-Retriever 260M achieved an nDCG@10 score of 0.523. This outperformed every evaluated model with strictly fewer than 800M parameters. The larger NeoMME-Retriever 800M model achieved an even higher score of 0.556 nDCG@10."
+  },
+  {
+   "q": "How does the page encoding throughput of NeoMME-260M compare to ColModernVBERT?",
+   "reasoning": "Query: \"How does the page encoding throughput of NeoMME-260M compare to ColModernVBERT?\"\n\n→ Check hardware and throughput comparison.\n● Hardware: NVIDIA L40S.\n● Resolution: matched 2048x2048 image input size.\n● NeoMME-260M page encoding speed vs. ColModernVBERT.\n\n∴ Roughly 2x the throughput of ColModernVBERT under identical conditions.",
+   "answer": "According to 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', NeoMME-260M delivers roughly twice the throughput of ColModernVBERT. This measurement was taken while encoding document pages at a matched 2048x2048 image input size on an NVIDIA L40S GPU."
+  },
+  {
+   "q": "What compression techniques does NeoMME use for late-interaction embeddings, and how do they impact retrieval quality?",
+   "reasoning": "Query: \"What compression techniques does NeoMME use for late-interaction embeddings, and how do they impact retrieval quality?\"\n\n→ Methods applied to late-interaction document embeddings:\n● Hierarchical token pooling.\n● Asymmetric quantization.\n● Compression ratio: 255x reduction.\n● Performance preservation: retains >95% of baseline nDCG@10.\n\n∴ 255x compression via hierarchical pooling and asymmetric quantization while retaining >95% accuracy.",
+   "answer": "In 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', the authors combine hierarchical token pooling with asymmetric quantization to compress late-interaction multimodal document embeddings. This strategy achieves a 255x compression ratio while successfully preserving more than 95% of the baseline nDCG@10 retrieval performance."
+  },
+  {
+   "q": "Can you summarize the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference'?",
+   "reasoning": "Query: \"Can you summarize the paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference'?\"\n\n→ Synthesis of paper details:\n● Problem: Generative VLMs are over-parameterized for retrieval.\n● Proposed: NeoMME (260M and 800M), single-tower bidirectional Transformer encoder for text and raw image patches.\n● Training & Context: masked discrete-diffusion text objective, 16k tokens.\n● Results: 0.523 and 0.556 nDCG@10 on ViDoRe v3, ~2x speedup over ColModernVBERT, 255x embedding compression.\n\n∴ Provide concise high-level paper summary.",
+   "answer": "The paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' introduces 260M and 800M bidirectional encoders that process text and raw image patches directly in a single network. Pretrained with a masked discrete-diffusion objective across a 16,384-token context, NeoMME sets a new retrieval benchmark on ViDoRe v3 with 0.523 nDCG@10 at 260M and 0.556 at 800M. The models also achieve approximately 2x the encoding throughput of ColModernVBERT and offer a 255x embedding compression pipeline under an Apache 2.0 open-source release."
+  },
+  {
+   "q": "Where can developers access the pretrained backbones and checkpoints from the NeoMME study, and what license covers them?",
+   "reasoning": "Query: \"Where can developers access the pretrained backbones and checkpoints from the NeoMME study, and what license covers them?\"\n\n→ Check release details in paper:\n● Library: Hugging Face Transformers contribution.\n● License: Apache 2.0.\n● URL: https://hf.co/collections/Hcompany/neomme.\n● Artifacts: pretrained backbone and retrieval-compatible checkpoints.\n\n∴ Available at https://hf.co/collections/Hcompany/neomme under Apache 2.0.",
+   "answer": "The artifacts from 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' are available on Hugging Face at https://hf.co/collections/Hcompany/neomme. The authors integrated NeoMME into Hugging Face Transformers and released both the pretrained backbones and retrieval-compatible fine-tuned checkpoints under the Apache 2.0 license."
+  },
+  {
+   "q": "I'm looking for a lightweight multimodal document retrieval encoder below 1B parameters. What does the Lac & Wu (2026) paper offer?",
+   "reasoning": "Query: \"I'm looking for a lightweight multimodal document retrieval encoder below 1B parameters. What does the Lac & Wu (2026) paper offer?\"\n\n→ Lac & Wu (2026) = NeoMME paper.\n● Offers 260M and 800M single-tower multimodal-multilingual bidirectional encoders.\n● Fine-tuned with jointly trained dense and late-interaction heads (NeoMME-Retriever).\n● Scores 0.523 (260M) and 0.556 (800M) on ViDoRe v3, outperforming sub-800M competitors.\n\n∴ NeoMME provides 260M/800M encoders with dense and late-interaction retrieval heads.",
+   "answer": "In their 2026 paper 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference', Aurélien Lac and Tony Wu present 260M and 800M bidirectional encoders tailored for visual document retrieval. Fine-tuned with joint dense and late-interaction heads, NeoMME-Retriever achieves up to 0.556 nDCG@10 on ViDoRe v3 while operating with roughly twice the page throughput of ColModernVBERT. These lightweight foundation encoders bypass the heavy compute overhead typical of causal VLM architectures."
+  },
+  {
+   "q": "In single-tower multimodal encoder research, what heads did the authors of NeoMME train for downstream document retrieval?",
+   "reasoning": "Query: \"In single-tower multimodal encoder research, what heads did the authors of NeoMME train for downstream document retrieval?\"\n\n→ Retrieval fine-tuning strategy:\n● NeoMME fine-tuned for downstream retrieval as NeoMME-Retriever.\n● Heads: jointly trained dense and late-interaction heads.\n● Result: high benchmark performance on ViDoRe v3.\n\n∴ Jointly trained dense and late-interaction heads.",
+   "answer": "To adapt their single-tower architecture for downstream visual document retrieval, the authors of 'NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference' fine-tuned the model with jointly trained dense and late-interaction heads. This dual-head strategy enabled NeoMME-Retriever to attain strong results across multimodal retrieval tasks such as the ViDoRe v3 benchmark."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "What maximum image capacity can the 16,384-token window of the Lac and Wu (2026) bidirectional encoder handle simultaneously?",
+   "answer": "The 16,384-token context window of NeoMME is sufficient to process up to two standard 4K UHD images simultaneously.",
+   "key_points": [
+    "two standard 4K UHD images",
+    "16,384-token context"
+   ]
+  },
+  {
+   "q": "What score did the smaller 260M-parameter variant of the NeoMME retrieval model achieve on the ViDoRe v3 evaluation?",
+   "answer": "The NeoMME-Retriever 260M model achieved an nDCG@10 score of 0.523 on the ViDoRe v3 benchmark, surpassing all evaluated sub-800M parameter models.",
+   "key_points": [
+    "0.523 nDCG@10",
+    "ViDoRe v3"
+   ]
+  },
+  {
+   "q": "Under what software license and at which web repository did the creators of NeoMME make their model checkpoints public?",
+   "answer": "The NeoMME pretrained and retrieval checkpoints were released under the Apache 2.0 license at https://hf.co/collections/Hcompany/neomme.",
+   "key_points": [
+    "Apache 2.0",
+    "https://hf.co/collections/Hcompany/neomme"
+   ]
+  }
+ ],
+ "id": "arxiv:2609.01657",
+ "title": "NeoMME: A Single-Tower Multimodal-Native Multilingual Foundation Encoder for Efficient Fine-Tuning and Inference",
+ "generator": "gemini-3.8-flash"
+}

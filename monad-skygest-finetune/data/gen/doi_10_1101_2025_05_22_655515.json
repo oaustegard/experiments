@@ -1,0 +1,95 @@
+{
+ "facts": [
+  "The paper 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' was written by Jason Derks, Kevin McDonnell, Harrison Specht, Daniel J. Geiszler, Michael P. Agius, Xiaofeng Xie, Jarrod J. Sandow, Liang Chen et al.",
+  "The paper was published on openRxiv on May 27, 2025 (doi:10.1101/2025.05.22.655515).",
+  "Liquid chromatography-mass spectrometry (LC-MS) provides precise, accurate, and high-sensitivity quantification, but sample analysis rates remain limited.",
+  "Multiplexing in the mass domain using plexDIA scales throughput only linearly with plex.",
+  "timePlex is a data-independent-acquisition (DIA) strategy that multiplexes samples in the time domain by staggering and overlapping separation periods.",
+  "timePlex is orthogonal to isotopic multiplexing, enabling combinatorial multiplexing across both mass and time domains to multiplicatively increase throughput.",
+  "A 27-plex implementation combining 3-timePlex and 9-plexDIA exceeded 1,200 samples and 4 million protein datapoints per day.",
+  "timePlex serves as a framework for multiplexing both label-free and labeled samples while maintaining sensitive and accurate protein quantification."
+ ],
+ "train": [
+  {
+   "q": "Who authored the 2025 openRxiv preprint introducing timePlex, and what core challenge does it address?",
+   "reasoning": "Query: \"Who authored the 2025 openRxiv preprint introducing timePlex, and what core challenge does it address?\"\n\n→ Authors: Jason Derks, Kevin McDonnell, Harrison Specht, Daniel J. Geiszler, Michael P. Agius, Xiaofeng Xie, Jarrod J. Sandow, Liang Chen et al.\n→ Topic: LC-MS throughput limitations.\n● LC-MS offers precise, sensitive quantification, but throughput remains constrained.\n● Existing multiplexing (e.g., plexDIA in mass domain) only scales linearly.\n\n∴ The authors introduce time-encoded multiplexing to overcome these throughput bottlenecks.",
+   "answer": "The paper 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' was authored by Jason Derks, Kevin McDonnell, Harrison Specht, Daniel J. Geiszler, Michael P. Agius, Xiaofeng Xie, Jarrod J. Sandow, Liang Chen, and colleagues. It addresses the limitation in sample analysis rates typical of liquid chromatography-mass spectrometry (LC-MS) despite its high precision and sensitivity. The work seeks to overcome the linear scaling bottleneck of traditional mass-domain multiplexing by introducing a time-domain strategy."
+  },
+  {
+   "q": "How does the timePlex method achieve sample multiplexing in liquid chromatography-mass spectrometry according to Derks et al. (2025)?",
+   "reasoning": "Query: \"How does the timePlex method achieve sample multiplexing in liquid chromatography-mass spectrometry according to Derks et al. (2025)?\"\n\n→ Concept: time-domain multiplexing.\n● Conventional DIA multiplexing focuses on the mass domain.\n● timePlex operates as a DIA strategy multiplexing in the time domain.\n● Mechanism: staggers and overlaps the separation periods of individual samples.\n\n∴ timePlex multiplexes by overlapping sample separation periods over time.",
+   "answer": "According to 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' by Derks et al., timePlex achieves multiplexing in the time domain within a data-independent acquisition (DIA) workflow. It accomplishes this by staggering and overlapping the separation periods of individual samples during liquid chromatography. This design operates orthogonally to conventional mass-domain methods to expand sample analysis capacity."
+  },
+  {
+   "q": "In 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', how does time-domain multiplexing interact with mass-domain multiplexing?",
+   "reasoning": "Query: \"In 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', how does time-domain multiplexing interact with mass-domain multiplexing?\"\n\n→ Mass domain: plexDIA (linear scaling).\n→ Time domain: timePlex.\n● Crucial feature: timePlex is orthogonal to isotopic (mass-domain) multiplexing.\n● Interaction enables combinatorial scaling across both dimensions.\n● Results in multiplicative rather than merely additive/linear throughput gains.\n\n∴ Orthogonal combination yields combinatorial, multiplicative throughput.",
+   "answer": "In 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', the authors explain that time-domain multiplexing is completely orthogonal to isotopic mass-domain multiplexing such as plexDIA. Because of this orthogonality, the two approaches can be combined combinatorially across the mass and time domains. This synergy scales throughput multiplicatively rather than linearly."
+  },
+  {
+   "q": "What specific throughput numbers and plex configuration were demonstrated in the timePlex paper by Jason Derks and colleagues?",
+   "reasoning": "Query: \"What specific throughput numbers and plex configuration were demonstrated in the timePlex paper by Jason Derks and colleagues?\"\n\n→ Paper details 27-plex demonstration.\n● Combination: 3-timePlex combined with 9-plexDIA (3 × 9 = 27-plex).\n● Daily rate: exceeded 1,200 samples per day.\n● Protein data: exceeded 4 million protein datapoints per day.\n\n∴ Benchmark reached >1,200 samples/day and >4M protein datapoints/day with a 27-plex configuration.",
+   "answer": "The study 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' demonstrated a 27-plex system created by combining a 3-timePlex with a 9-plexDIA approach. This configuration achieved a daily throughput exceeding 1,200 samples and over 4 million protein datapoints per day. These metrics demonstrate the multiplicative throughput gains possible with combinatorial multiplexing."
+  },
+  {
+   "q": "Can timePlex be applied to both label-free and labeled samples based on the 2025 openRxiv study?",
+   "reasoning": "Query: \"Can timePlex be applied to both label-free and labeled samples based on the 2025 openRxiv study?\"\n\n→ Framework versatility.\n● Abstract conclusion: establishes timePlex as a general framework.\n● Supports label-free samples alone or labeled samples (isotopic labels).\n● Maintains sensitive and accurate protein quantification.\n\n∴ Yes, applies to both label-free and labeled workflows.",
+   "answer": "Yes, 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' explicitly establishes timePlex as a versatile framework compatible with both label-free and labeled samples. The authors demonstrate that it retains high sensitivity and accuracy in protein quantification across these configurations. This flexibility allows researchers to use it alone or in combination with isotopic labeling schemes."
+  },
+  {
+   "q": "Why is conventional mass-domain multiplexing like plexDIA insufficient for combinatorial scaling according to Derks et al.?",
+   "reasoning": "Query: \"Why is conventional mass-domain multiplexing like plexDIA insufficient for combinatorial scaling according to Derks et al.?\"\n\n→ Single-dimension bottleneck.\n● plexDIA multiplexes purely along the mass domain.\n● Scaling in one dimension alone yields only linear throughput growth relative to plex.\n● Combinatorial scaling requires introducing an independent, orthogonal dimension.\n\n∴ Mass multiplexing alone scales only linearly, necessitating an orthogonal time-domain strategy.",
+   "answer": "In 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', Derks et al. point out that multiplexing along a single dimension, such as the mass domain with plexDIA, scales throughput only linearly with the plex level. Achieving combinatorial scaling requires an orthogonal dimension of separation. timePlex introduces this second dimension in the time domain, unlocking multiplicative scaling when merged with mass multiplexing."
+  },
+  {
+   "q": "Provide a summary of the 2025 openRxiv preprint 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing'.",
+   "reasoning": "Query: \"Provide a summary of the 2025 openRxiv preprint 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing'.\"\n\n→ Premise: LC-MS sample throughput is limited; 1D multiplexing scales only linearly.\n→ Innovation: timePlex introduces time-domain multiplexing via staggered, overlapping separation.\n→ Integration: Combines orthogonally with isotopic mass multiplexing (plexDIA).\n→ Results: 27-plex yields >1,200 samples/day (>4M protein datapoints/day) with accurate quantification.\n\n∴ Significant throughput enhancement via combinatorial time-mass multiplexing.",
+   "answer": "The preprint 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' presents a novel data-independent acquisition method to overcome sample analysis bottlenecks in proteomics. By staggering and overlapping chromatographic separation periods, timePlex enables multiplexing in the time domain. Because it is orthogonal to isotopic mass-domain multiplexing, combining 3-timePlex with 9-plexDIA achieved a 27-plex throughput surpassing 1,200 samples and 4 million protein datapoints daily without compromising quantification accuracy."
+  },
+  {
+   "q": "What data-acquisition framework does timePlex build upon, and how does it safeguard quantification quality?",
+   "reasoning": "Query: \"What data-acquisition framework does timePlex build upon, and how does it safeguard quantification quality?\"\n\n→ Framework: Data-Independent Acquisition (DIA).\n→ Quantification aspects: Precision, accuracy, sensitivity.\n● LC-MS provides precise, accurate, high-sensitivity data.\n● timePlex extends DIA with staggered separation while preserving sensitive and accurate protein quantification.\n\n∴ Built on DIA; maintains sensitive and accurate quantification.",
+   "answer": "As detailed in 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', the strategy is developed within a data-independent acquisition (DIA) proteomics framework. The method preserves the core strengths of LC-MS by continuing to support sensitive and accurate protein quantification. This ensures that the dramatic increase in sample throughput does not degrade measurement quality."
+  },
+  {
+   "q": "Where and when was the timePlex research article published, and who are its primary listed contributors?",
+   "reasoning": "Query: \"Where and when was the timePlex research article published, and who are its primary listed contributors?\"\n\n→ Publication venue: openRxiv.\n→ Publication date: May 27, 2025.\n→ Authors listed: Jason Derks, Kevin McDonnell, Harrison Specht, Daniel J. Geiszler, Michael P. Agius, Xiaofeng Xie, Jarrod J. Sandow, Liang Chen et al.\n→ DOI: 10.1101/2025.05.22.655515.\n\n∴ Released on openRxiv on May 27, 2025, by Derks, McDonnell, Specht, et al.",
+   "answer": "The study describing timePlex, titled 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', was published on openRxiv on May 27, 2025. The author list is led by Jason Derks, Kevin McDonnell, Harrison Specht, Daniel J. Geiszler, Michael P. Agius, Xiaofeng Xie, Jarrod J. Sandow, and Liang Chen, among others. The preprint is archived under doi:10.1101/2025.05.22.655515."
+  },
+  {
+   "q": "I'm looking into accelerating proteomics sample runs. How does time-encoded sample multiplexing help, based on recent literature?",
+   "reasoning": "Query: \"I'm looking into accelerating proteomics sample runs. How does time-encoded sample multiplexing help, based on recent literature?\"\n\n→ Addressed in Derks et al. (2025).\n● Standard LC-MS runs have long separation times, limiting throughput.\n● Staggering and overlapping separation periods (timePlex) multiplexes runs across time.\n● Pairing time multiplexing with mass multiplexing generates multiplicative throughput increases.\n\n∴ Accelerates proteomics by overlapping separation times and scaling multiplicatively.",
+   "answer": "According to 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', time-encoded multiplexing accelerates proteomics by staggering and overlapping the chromatographic separation periods of distinct samples. This approach moves beyond the linear throughput limits of purely mass-encoded multiplexing by introducing an orthogonal time dimension. When paired with isotopic labeling, it allows laboratories to scale throughput multiplicatively, reaching over a thousand samples analyzed per day."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "In the 2025 preprint by Derks et al. on openRxiv, what mechanism allows timePlex to run multiple samples concurrently on an LC-MS system?",
+   "answer": "The paper 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing' explains that timePlex operates by staggering and overlapping the chromatographic separation periods of different samples.",
+   "key_points": [
+    "staggering and overlapping",
+    "separation periods"
+   ]
+  },
+  {
+   "q": "What total daily protein datapoint benchmark was attained by combining 3-timePlex with 9-plexDIA?",
+   "answer": "In 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', the combined 27-plex method generated over 4 million protein datapoints per day across more than 1,200 samples.",
+   "key_points": [
+    "4M protein datapoints",
+    "1,200 samples per day",
+    "27-plex"
+   ]
+  },
+  {
+   "q": "What mathematical scaling advantage does timePlex provide when combined with isotopic multiplexing techniques like plexDIA?",
+   "answer": "As described in 'timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing', timePlex provides combinatorial scaling that increases throughput multiplicatively across mass and time domains rather than linearly.",
+   "key_points": [
+    "multiplicatively",
+    "combinatorial scaling",
+    "orthogonal"
+   ]
+  }
+ ],
+ "id": "doi:10.1101/2025.05.22.655515",
+ "title": "timePlex: Increasing mass spectrometry throughput using time-encoded sample multiplexing",
+ "generator": "gemini-3.8-flash"
+}

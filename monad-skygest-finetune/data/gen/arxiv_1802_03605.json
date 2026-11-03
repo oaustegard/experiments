@@ -1,0 +1,96 @@
+{
+ "facts": [
+  "The paper 'Combinets: Creativity via Recombination of Neural Networks' (arXiv:1802.03605) was authored by Matthew Guzdial and Mark O. Riedl.",
+  "The paper was submitted to arXiv on February 10, 2018.",
+  "The research addresses the limitation that deep neural networks struggle with out-of-distribution inputs, especially when limited training data is available.",
+  "Existing transfer learning techniques typically require additional training (backpropagation) or domain-specific transfer mechanisms.",
+  "The authors introduce 'conceptual expansion', a general representation to reuse existing trained models to produce new models without backpropagation.",
+  "The approach is inspired by human creativity and the ability to make conceptual leaps from existing knowledge to create something surprising.",
+  "The method was evaluated on few-shot variations of two distinct tasks: image classification and image generation.",
+  "The proposed conceptual expansion approach outperforms standard transfer learning baselines on the evaluated few-shot tasks."
+ ],
+ "train": [
+  {
+   "q": "Who authored the 2018 arXiv paper 'Combinets: Creativity via Recombination of Neural Networks', and when was it published?",
+   "reasoning": "Query: \"Who authored the 2018 arXiv paper 'Combinets: Creativity via Recombination of Neural Networks', and when was it published?\"\n\n→ Paper: 'Combinets: Creativity via Recombination of Neural Networks'.\n● Identifier: arXiv:1802.03605.\n● Authors listed: Matthew Guzdial and Mark O. Riedl.\n● Submission date: February 10, 2018.\n\n∴ Authors are Matthew Guzdial and Mark O. Riedl, published February 10, 2018 on arXiv.",
+   "answer": "The paper 'Combinets: Creativity via Recombination of Neural Networks' was written by Matthew Guzdial and Mark O. Riedl. It was published on the arXiv preprint repository on February 10, 2018 under the identifier arXiv:1802.03605."
+  },
+  {
+   "q": "What core problem in deep learning does the paper 'Combinets: Creativity via Recombination of Neural Networks' set out to address?",
+   "reasoning": "Query: \"What core problem in deep learning does the paper 'Combinets: Creativity via Recombination of Neural Networks' set out to address?\"\n\n→ Identify core challenge in paper.\n● Deep neural nets fail on out-of-distribution data.\n● Especially problematic when target domain has limited data.\n● Standard transfer learning requires extra training or domain-specific tricks.\n\n∴ Addresses deep nets failing outside training data with sparse samples.",
+   "answer": "In 'Combinets: Creativity via Recombination of Neural Networks', the authors target the failure of deep neural networks to handle examples outside their training distributions. This problem is particularly severe in settings with limited training data, where standard models cannot generalize well."
+  },
+  {
+   "q": "What novel method is introduced by Matthew Guzdial and Mark O. Riedl in their 2018 Combinets paper?",
+   "reasoning": "Query: \"What novel method is introduced by Matthew Guzdial and Mark O. Riedl in their 2018 Combinets paper?\"\n\n→ Paper: Guzdial & Riedl (2018), arXiv:1802.03605.\n● Method name: Conceptual expansion.\n● Function: Recombining existing trained models into new models.\n● Key feature: No backpropagation or domain-specific tuning needed.\n\n∴ Introduced conceptual expansion to derive new models without backpropagation.",
+   "answer": "Matthew Guzdial and Mark O. Riedl introduced a method called 'conceptual expansion' in their paper 'Combinets: Creativity via Recombination of Neural Networks'. This framework provides a general representation for reusing existing trained neural networks to synthesize new models without relying on backpropagation."
+  },
+  {
+   "q": "How does human creativity inspire the conceptual approach in 'Combinets: Creativity via Recombination of Neural Networks'?",
+   "reasoning": "Query: \"How does human creativity inspire the conceptual approach in 'Combinets: Creativity via Recombination of Neural Networks'?\"\n\n→ Motivation from abstract:\n● Human creativity defined by conceptual leaps.\n● Generates surprising ideas out of typical prior knowledge.\n● Goal: replicate this conceptual leap mechanism in neural networks via recombination.\n\n∴ Inspired by human ability to combine existing concepts into novel, surprising outputs.",
+   "answer": "The paper 'Combinets: Creativity via Recombination of Neural Networks' draws inspiration from human creativity's capacity for conceptual leaps. The authors observe that humans generate surprising innovations by recombining familiar knowledge, which motivates their strategy of combining existing trained networks rather than learning purely from scratch."
+  },
+  {
+   "q": "What limitation of standard transfer learning is highlighted in the paper 'Combinets: Creativity via Recombination of Neural Networks'?",
+   "reasoning": "Query: \"What limitation of standard transfer learning is highlighted in the paper 'Combinets: Creativity via Recombination of Neural Networks'?\"\n\n→ Existing transfer methods:\n● Transfer from data-rich to data-poor tasks exists.\n● Major drawbacks: requires additional training (backpropagation) or domain-specific transfer mechanisms.\n● Inflexible for general model reuse.\n\n∴ Standard transfer demands extra training or specific domain adaptations.",
+   "answer": "In 'Combinets: Creativity via Recombination of Neural Networks', the authors observe that existing transfer learning methods usually demand additional training passes or tailored, domain-specific adaptation strategies. They seek to overcome this constraint by enabling direct model reuse without backpropagation."
+  },
+  {
+   "q": "On which benchmark tasks did Guzdial and Riedl evaluate their approach in 'Combinets: Creativity via Recombination of Neural Networks'?",
+   "reasoning": "Query: \"On which benchmark tasks did Guzdial and Riedl evaluate their approach in 'Combinets: Creativity via Recombination of Neural Networks'?\"\n\n→ Check evaluation section in paper info.\n● Few-shot settings tested.\n● Two distinct tasks: image classification and image generation.\n\n∴ Evaluated on few-shot image classification and few-shot image generation.",
+   "answer": "In 'Combinets: Creativity via Recombination of Neural Networks', Guzdial and Riedl evaluated conceptual expansion on two tasks configured as few-shot problems. These tasks were few-shot image classification and few-shot image generation."
+  },
+  {
+   "q": "What were the primary experimental findings reported in 'Combinets: Creativity via Recombination of Neural Networks'?",
+   "reasoning": "Query: \"What were the primary experimental findings reported in 'Combinets: Creativity via Recombination of Neural Networks'?\"\n\n→ Experimental outcome from paper info.\n● Evaluated against standard transfer learning approaches.\n● Tasks: few-shot classification and generation.\n● Result: Outperformed the baselines.\n\n∴ Conceptual expansion outperformed standard transfer learning baselines.",
+   "answer": "The experimental findings in 'Combinets: Creativity via Recombination of Neural Networks' showed that conceptual expansion outperformed conventional transfer learning approaches. It achieved superior results across both few-shot image classification and few-shot image generation benchmarks."
+  },
+  {
+   "q": "Can you provide a concise summary of the paper 'Combinets: Creativity via Recombination of Neural Networks' (arXiv:1802.03605)?",
+   "reasoning": "Query: \"Can you provide a concise summary of the paper 'Combinets: Creativity via Recombination of Neural Networks' (arXiv:1802.03605)?\"\n\n→ Authors: Guzdial & Riedl (2018).\n● Problem: Deep nets struggle with low-data out-of-distribution cases.\n● Solution: Conceptual expansion, recombining existing nets without backprop.\n● Outcome: Exceeds standard transfer learning in few-shot classification and generation.\n\n∴ General reuse method without backprop outperforming standard transfer.",
+   "answer": "The paper 'Combinets: Creativity via Recombination of Neural Networks' by Matthew Guzdial and Mark O. Riedl introduces conceptual expansion, an approach for creating new neural network models by recombining existing ones without backpropagation. Inspired by human creative leaps, the technique is designed for settings where data is scarce. When evaluated on few-shot image classification and generation tasks, it outperformed standard transfer learning baselines."
+  },
+  {
+   "q": "Does the conceptual expansion method in 'Combinets: Creativity via Recombination of Neural Networks' require backpropagation to adapt models?",
+   "reasoning": "Query: \"Does the conceptual expansion method in 'Combinets: Creativity via Recombination of Neural Networks' require backpropagation to adapt models?\"\n\n→ Method details:\n● Target: derive new models from existing trained ones.\n● Backpropagation requirement: explicitly 'without backpropagation'.\n\n∴ No, it specifically avoids backpropagation.",
+   "answer": "No, conceptual expansion in 'Combinets: Creativity via Recombination of Neural Networks' does not require backpropagation. The method is explicitly formulated as a general representation to synthesize new neural models directly from existing trained models without gradient-based fine-tuning."
+  },
+  {
+   "q": "I'm looking for a machine learning paper from early 2018 on arXiv about combining networks for creativity without retraining. What paper is that?",
+   "reasoning": "Query: \"I'm looking for a machine learning paper from early 2018 on arXiv about combining networks for creativity without retraining. What paper is that?\"\n\n→ Match query details:\n● Early 2018 (Feb 10, 2018), arXiv.\n● Topic: combining networks, conceptual expansion without backprop/retraining, creativity.\n● Paper: 'Combinets: Creativity via Recombination of Neural Networks'.\n\n∴ Corresponds to Guzdial and Riedl's Combinets paper.",
+   "answer": "That description matches 'Combinets: Creativity via Recombination of Neural Networks' (arXiv:1802.03605), published on February 10, 2018 by Matthew Guzdial and Mark O. Riedl. The paper proposes conceptual expansion, which recombines trained networks to form new models without backpropagation."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "In arXiv:1802.03605, how did the proposed conceptual expansion technique compare against baseline transfer learning algorithms?",
+   "answer": "In arXiv:1802.03605, the conceptual expansion technique demonstrated superior performance compared to standard transfer learning approaches on few-shot image classification and generation.",
+   "key_points": [
+    "outperformed standard transfer learning",
+    "few-shot image classification",
+    "image generation"
+   ]
+  },
+  {
+   "q": "Which researchers introduced the concept of Combinets, and on what platform was their research released?",
+   "answer": "Combinets was introduced by researchers Matthew Guzdial and Mark O. Riedl on the arXiv preprint repository in February 2018.",
+   "key_points": [
+    "Matthew Guzdial",
+    "Mark O. Riedl",
+    "arXiv"
+   ]
+  },
+  {
+   "q": "What mechanism enables Combinets to produce novel architectures from pre-trained weights without applying gradient updates?",
+   "answer": "Combinets uses 'conceptual expansion', a framework that recombines existing trained networks into new models without requiring backpropagation.",
+   "key_points": [
+    "conceptual expansion",
+    "without backpropagation",
+    "reusing existing trained models"
+   ]
+  }
+ ],
+ "id": "arxiv:1802.03605",
+ "title": "Combinets: Creativity via Recombination of Neural Networks",
+ "generator": "gemini-3.8-flash"
+}

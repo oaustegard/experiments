@@ -1,0 +1,94 @@
+{
+ "facts": [
+  "Alex L. Zhang, Tim Kraska, and Omar Khattab authored the paper 'Recursive Language Models' on arXiv (arXiv:2512.24601) on December 31, 2025.",
+  "The paper introduces Recursive Language Models (RLMs), a general inference paradigm that approaches long prompt processing through inference-time scaling.",
+  "RLMs treat long prompts as part of an external environment and allow the LLM to programmatically examine, decompose, and recursively call itself over snippets.",
+  "RLMs successfully process inputs up to two orders of magnitude beyond model context windows while maintaining comparable cost.",
+  "Across four diverse long-context tasks on GPT-5, RLMs achieved median improvements of 26% against compaction, 130% against CodeAct with sub-calls, and 13% against Claude Code.",
+  "The authors post-trained RLM-Qwen3-8B, which improved over Qwen3-8B by 28.3% on average and approached vanilla GPT-5 quality on three long-context tasks.",
+  "The official implementation code is available at https://github.com/alexzhang13/rlm."
+ ],
+ "train": [
+  {
+   "q": "Who wrote the 2025 paper 'Recursive Language Models' and where was it released?",
+   "reasoning": "Query: \"Who wrote the 2025 paper 'Recursive Language Models' and where was it released?\"\n\n→ Paper metadata check.\n● Authors: Alex L. Zhang, Tim Kraska, and Omar Khattab.\n● Date: December 31, 2025.\n● Venue: arXiv (identifier arXiv:2512.24601).\n\n∴ Written by Zhang, Kraska, and Khattab; released on arXiv.",
+   "answer": "The paper 'Recursive Language Models' was authored by Alex L. Zhang, Tim Kraska, and Omar Khattab. It was published on arXiv on December 31, 2025, under the identifier arXiv:2512.24601."
+  },
+  {
+   "q": "What core methodology is proposed in the paper 'Recursive Language Models' by Zhang et al.?",
+   "reasoning": "Query: \"What core methodology is proposed in the paper 'Recursive Language Models' by Zhang et al.?\"\n\n→ Methodology inspection.\n● Paradigm: Recursive Language Models (RLMs).\n● Perspective: Inference-time scaling for arbitrarily long prompts.\n● Mechanism: Treats long prompt as external environment.\n● Execution: Programmatically examines, decomposes, and recursively calls itself over snippets.\n\n∴ Prompt treated as external environment with programmatic recursive calls.",
+   "answer": "In 'Recursive Language Models', Zhang et al. propose RLMs as a general inference paradigm framed around inference-time scaling. The method treats an arbitrarily long prompt as an external environment, enabling the LLM to programmatically examine, decompose, and recursively invoke itself over smaller snippets of the context."
+  },
+  {
+   "q": "How far beyond standard context limits can RLMs scale according to 'Recursive Language Models'?",
+   "reasoning": "Query: \"How far beyond standard context limits can RLMs scale according to 'Recursive Language Models'?\"\n\n→ Scaling capability findings.\n● Context boundary: Standard LLM context window.\n● RLM achievement: Up to two orders of magnitude beyond model context windows.\n● Cost profile: Comparable cost to standard methods.\n\n∴ Scales up to two orders of magnitude past context windows.",
+   "answer": "According to 'Recursive Language Models', the RLM paradigm enables LLMs to process inputs up to two orders of magnitude beyond their standard context windows. This substantial context expansion is achieved while maintaining a cost comparable to alternative approaches."
+  },
+  {
+   "q": "In 'Recursive Language Models', how did the RLM paradigm perform on GPT-5 compared to baseline long-context scaffolds?",
+   "reasoning": "Query: \"In 'Recursive Language Models', how did the RLM paradigm perform on GPT-5 compared to baseline long-context scaffolds?\"\n\n→ Benchmark comparisons on GPT-5.\n● Tasks: Four diverse long-context benchmarks.\n● Compaction baseline: Median improvement of 26%.\n● CodeAct with sub-calls: Median improvement of 130%.\n● Claude Code: Median improvement of 13%.\n\n∴ Outperforms compaction by 26%, CodeAct by 130%, and Claude Code by 13%.",
+   "answer": "In 'Recursive Language Models', applying RLM to GPT-5 across four diverse long-context tasks yielded significant quality gains over common scaffolds. Specifically, it outperformed compaction by a median of 26%, CodeAct with sub-calls by 130%, and Claude Code by 13%."
+  },
+  {
+   "q": "What specific model did the authors post-train in the paper 'Recursive Language Models'?",
+   "reasoning": "Query: \"What specific model did the authors post-train in the paper 'Recursive Language Models'?\"\n\n→ Post-training artifact details.\n● Base model: Qwen3-8B.\n● Post-trained model: RLM-Qwen3-8B.\n● Milestone: First model post-trained specifically around the RLM paradigm.\n\n∴ RLM-Qwen3-8B was post-trained on top of Qwen3-8B.",
+   "answer": "The authors of 'Recursive Language Models' post-trained RLM-Qwen3-8B, which represents the first model specifically trained around the RLM framework. It was built using the underlying Qwen3-8B open-weight model."
+  },
+  {
+   "q": "What performance results were reported for RLM-Qwen3-8B in 'Recursive Language Models'?",
+   "reasoning": "Query: \"What performance results were reported for RLM-Qwen3-8B in 'Recursive Language Models'?\"\n\n→ RLM-Qwen3-8B evaluation results.\n● Base comparison: Outperforms Qwen3-8B by 28.3% on average.\n● Frontier comparison: Approaches vanilla GPT-5 quality on three long-context tasks.\n\n∴ +28.3% over Qwen3-8B and approaches vanilla GPT-5 on three tasks.",
+   "answer": "In 'Recursive Language Models', RLM-Qwen3-8B outperformed its base Qwen3-8B model by an average of 28.3%. Furthermore, despite its small scale, it approached the performance of vanilla GPT-5 on three long-context benchmark tasks."
+  },
+  {
+   "q": "Where can developers access the code for the paper 'Recursive Language Models' by Zhang, Kraska, and Khattab?",
+   "reasoning": "Query: \"Where can developers access the code for the paper 'Recursive Language Models' by Zhang, Kraska, and Khattab?\"\n\n→ Code availability lookup.\n● Paper: 'Recursive Language Models'.\n● URL: https://github.com/alexzhang13/rlm.\n\n∴ GitHub repository at alexzhang13/rlm.",
+   "answer": "The code for 'Recursive Language Models' is publicly available on GitHub. It can be accessed at https://github.com/alexzhang13/rlm."
+  },
+  {
+   "q": "Can you summarize the main contribution and findings of the paper 'Recursive Language Models'?",
+   "reasoning": "Query: \"Can you summarize the main contribution and findings of the paper 'Recursive Language Models'?\"\n\n→ High-level synthesis of paper.\n● Concept: RLMs treat long contexts as external environments via programmatic recursive calls.\n● Capability: Processes inputs 2 orders of magnitude beyond window.\n● Results: Beats GPT-5 scaffolds (e.g., +130% vs CodeAct); RLM-Qwen3-8B beats base by 28.3% and nears vanilla GPT-5.\n\n∴ Inference-time scaling via recursion handles massive context superior to standard scaffolds.",
+   "answer": "The paper 'Recursive Language Models' introduces an inference-time scaling framework that enables language models to recursively inspect and decompose long contexts treated as external environments. The authors show that RLMs can scale two orders of magnitude past context windows, outperform existing scaffolds like Claude Code and CodeAct on GPT-5, and allow an 8B post-trained model (RLM-Qwen3-8B) to approach vanilla GPT-5 quality on three long-context tasks."
+  },
+  {
+   "q": "Does 'Recursive Language Models' show advantages even when input prompts are not extraordinarily long?",
+   "reasoning": "Query: \"Does 'Recursive Language Models' show advantages even when input prompts are not extraordinarily long?\"\n\n→ Evaluating RLM on shorter contexts.\n● Finding: Even for shorter prompts, RLMs dramatically outperform vanilla frontier LLMs.\n● Scaffolds compared: Better than compaction, CodeAct with sub-calls, and Claude Code.\n● Cost: Comparable cost maintained.\n\n∴ Yes, dramatically outperforms vanilla frontier models and scaffolds even on shorter inputs.",
+   "answer": "Yes, 'Recursive Language Models' explicitly demonstrates that even on shorter prompts, RLMs dramatically outperform vanilla frontier LLMs as well as standard long-context and coding scaffolds. This quality improvement holds while keeping overall inference costs comparable."
+  },
+  {
+   "q": "In a 2025 arXiv study on handling long prompts via recursion, how was prompt context conceptualized?",
+   "reasoning": "Query: \"In a 2025 arXiv study on handling long prompts via recursion, how was prompt context conceptualized?\"\n\n→ Study: 'Recursive Language Models' (Zhang et al., Dec 2025).\n● Conceptualization: Long prompts are treated as an external environment.\n● Operation: The model programmatically reads, splits, and recursively self-invokes on snippets.\n\n∴ Context is viewed as an external environment rather than an in-context sequence.",
+   "answer": "In 'Recursive Language Models' (Zhang et al., 2025), the input prompt is conceptualized as an external environment rather than passive in-context tokens. This framing enables the model to programmatically explore, partition, and recursively call itself across selected text snippets."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "Under the framework described by Alex L. Zhang and colleagues in arXiv:2512.24601, by what margin did their fine-tuned 8-billion-parameter checkpoint exceed its foundation architecture?",
+   "answer": "In 'Recursive Language Models', the fine-tuned checkpoint RLM-Qwen3-8B exceeded the baseline Qwen3-8B model by an average margin of 28.3%.",
+   "key_points": [
+    "28.3%",
+    "RLM-Qwen3-8B",
+    "Qwen3-8B"
+   ]
+  },
+  {
+   "q": "When benchmarking recursive prompt processing on frontier systems, what median gain did Zhang et al. record relative to CodeAct with sub-calls on GPT-5?",
+   "answer": "In 'Recursive Language Models', testing the RLM approach on GPT-5 yielded a median improvement of 130% over CodeAct with sub-calls across four long-context tasks.",
+   "key_points": [
+    "130%",
+    "CodeAct with sub-calls",
+    "GPT-5"
+   ]
+  },
+  {
+   "q": "How does the paradigm presented in 'Recursive Language Models' interact with an LLM's fixed context length limit?",
+   "answer": "The paper 'Recursive Language Models' shows that RLMs can process prompts extending up to two orders of magnitude past the model's standard context window limits.",
+   "key_points": [
+    "two orders of magnitude",
+    "context windows"
+   ]
+  }
+ ],
+ "id": "arxiv:2512.24601",
+ "title": "Recursive Language Models",
+ "generator": "gemini-3.8-flash"
+}

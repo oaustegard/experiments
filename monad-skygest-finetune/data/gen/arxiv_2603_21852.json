@@ -1,0 +1,96 @@
+{
+ "facts": [
+  "Andrzej Odrzywołek authored the paper 'All elementary functions from a single binary operator', posted on arXiv on 2026-03-23.",
+  "The paper introduces the binary operator eml(x, y) = exp(x) - ln(y), which alongside the constant 1 generates the standard scientific calculator repertoire.",
+  "The operator eml(x, y) was discovered through a systematic exhaustive search.",
+  "The generated repertoire includes constants (e, pi, i), basic arithmetic (+, -, *, /, exponentiation), and standard algebraic and transcendental functions.",
+  "Specific formulas include exp(x) = eml(x, 1) and ln(x) = eml(1, eml(eml(1, x), 1)).",
+  "In EML form, every elementary expression becomes a binary tree of identical nodes under the grammar S -> 1 | eml(S, S).",
+  "Using EML trees as trainable circuits with Adam optimizer enables gradient-based symbolic regression.",
+  "The method demonstrates exact recovery of closed-form elementary functions from numerical data at shallow tree depths up to 4."
+ ],
+ "train": [
+  {
+   "q": "Who wrote the 2026 arXiv paper 'All elementary functions from a single binary operator', and what central primitive does it introduce?",
+   "reasoning": "Query: \"Who wrote the 2026 arXiv paper 'All elementary functions from a single binary operator', and what central primitive does it introduce?\"\n\n→ Paper: 'All elementary functions from a single binary operator' (arXiv:2603.21852, 2026).\n● Author identified as Andrzej Odrzywołek.\n● Key primitive: single binary operator eml(x, y) = exp(x) - ln(y).\n● Used alongside constant 1 to derive all standard elementary functions.\n\n∴ Authored by Andrzej Odrzywołek; introduces eml(x, y) = exp(x) - ln(y).",
+   "answer": "The 2026 arXiv paper 'All elementary functions from a single binary operator' was written by Andrzej Odrzywołek. The paper introduces a single binary operator defined as eml(x, y) = exp(x) - ln(y). Together with the constant 1, this operator generates the entire repertoire of elementary functions found on a standard scientific calculator."
+  },
+  {
+   "q": "How was the universal binary operator found in Andrzej Odrzywołek's 2026 study on elementary functions?",
+   "reasoning": "Query: \"How was the universal binary operator found in Andrzej Odrzywołek's 2026 study on elementary functions?\"\n\n→ Focus: discovery method for the eml(x, y) operator.\n● Context: continuous mathematics lacked a single universal primitive.\n● Author notes the existence of such an operator was unanticipated.\n● Found via systematic exhaustive search.\n● Constructively proven to suffice for a scientific-calculator basis.\n\n∴ Identified via systematic exhaustive search and verified constructively.",
+   "answer": "In 'All elementary functions from a single binary operator', Andrzej Odrzywołek explains that the existence of such an operator was previously unanticipated. He discovered the binary operator eml(x, y) = exp(x) - ln(y) through a systematic exhaustive search. He then established constructively that it suffices to reproduce the entire scientific-calculator basis."
+  },
+  {
+   "q": "According to the paper 'All elementary functions from a single binary operator', what operations and constants can be constructed using eml(x, y) and 1?",
+   "reasoning": "Query: \"According to the paper 'All elementary functions from a single binary operator', what operations and constants can be constructed using eml(x, y) and 1?\"\n\n→ Recall paper contents on generated repertoire.\n● Constants: e, pi, and i.\n● Arithmetic: addition, subtraction, multiplication, division, and exponentiation.\n● Functions: algebraic and transcendental functions (e.g., sin, cos, sqrt, log).\n\n∴ Reproduces standard scientific calculator basis entirely from eml and 1.",
+   "answer": "In 'All elementary functions from a single binary operator', the operator eml(x, y) = exp(x) - ln(y) paired with the constant 1 generates the standard repertoire of a scientific calculator. This includes key constants such as e, pi, and i, as well as fundamental arithmetic operations like addition, subtraction, multiplication, division, and exponentiation. It also covers conventional algebraic and transcendental functions, such as square roots, trigonometric functions, and logarithms."
+  },
+  {
+   "q": "What explicit EML representations are given for exp(x) and ln(x) in Odrzywołek's 2026 paper?",
+   "reasoning": "Query: \"What explicit EML representations are given for exp(x) and ln(x) in Odrzywołek's 2026 paper?\"\n\n→ Target: exact formulas for exp(x) and ln(x) in terms of eml and 1.\n● Operator: eml(x, y) = exp(x) - ln(y).\n● exp(x) formula: eml(x, 1).\n● ln(x) formula: eml(1, eml(eml(1, x), 1)).\n\n∴ exp(x) requires depth-1 call; ln(x) uses nested eml combinations with 1.",
+   "answer": "In the paper 'All elementary functions from a single binary operator', Andrzej Odrzywołek provides explicit constructions for both basic functions. The exponential function is expressed simply as exp(x) = eml(x, 1). The natural logarithm is constructed via nested operations as ln(x) = eml(1, eml(eml(1, x), 1))."
+  },
+  {
+   "q": "What formal grammar defines expressions in the paper 'All elementary functions from a single binary operator'?",
+   "reasoning": "Query: \"What formal grammar defines expressions in the paper 'All elementary functions from a single binary operator'?\"\n\n→ Examine structural representation of expressions.\n● All expressions in EML form map to binary trees of identical nodes.\n● Single terminal constant is 1; single binary production is eml.\n● Paper explicitly defines grammar: S -> 1 | eml(S, S).\n\n∴ Minimal uniform grammar: S -> 1 | eml(S, S).",
+   "answer": "In 'All elementary functions from a single binary operator', expressions in EML (Exp-Minus-Log) form are represented as binary trees composed entirely of identical nodes. This structural uniformity produces an exceptionally simple formal grammar: S -> 1 | eml(S, S). Consequently, every elementary mathematical expression can be parsed using this single recursive rule."
+  },
+  {
+   "q": "How does Andrzej Odrzywołek apply the EML operator to symbolic regression in his 2026 preprint?",
+   "reasoning": "Query: \"How does Andrzej Odrzywołek apply the EML operator to symbolic regression in his 2026 preprint?\"\n\n→ Link between EML uniform tree structure and machine learning.\n● Uniform binary tree allows treating trees as trainable circuits.\n● Uses standard optimizers, specifically Adam, for gradient-based symbolic regression.\n● Fits arbitrary numerical data, recovering exact elementary closed-form expressions.\n\n∴ Employs EML trees as trainable circuits optimized via Adam.",
+   "answer": "In 'All elementary functions from a single binary operator', Andrzej Odrzywołek leverages the uniform binary tree structure of EML expressions to perform gradient-based symbolic regression. By treating EML trees as trainable circuits, standard optimization algorithms like Adam can be applied directly to numerical data. When the underlying process is governed by an elementary law, this architecture can recover the exact closed-form formula."
+  },
+  {
+   "q": "What tree depths and performance limits for exact formula recovery are reported in 'All elementary functions from a single binary operator'?",
+   "reasoning": "Query: \"What tree depths and performance limits for exact formula recovery are reported in 'All elementary functions from a single binary operator'?\"\n\n→ Identify specific empirical benchmarks and numerical bounds.\n● Focus: symbolic regression performance.\n● Task: exact recovery of closed-form elementary functions from numerical data.\n● Reported depth threshold: shallow tree depths up to 4.\n\n∴ Exact closed-form recovery is demonstrated at tree depths up to 4.",
+   "answer": "According to the paper 'All elementary functions from a single binary operator', gradient-based symbolic regression was tested on shallow tree architectures. Odrzywołek demonstrated the practical feasibility of recovering exact closed-form elementary functions from numerical data at tree depths up to 4. While the framework can fit arbitrary data, exact mathematical recovery is verified within this shallow depth regime."
+  },
+  {
+   "q": "Could you provide a concise summary of the 2026 research paper 'All elementary functions from a single binary operator'?",
+   "reasoning": "Query: \"Could you provide a concise summary of the 2026 research paper 'All elementary functions from a single binary operator'?\"\n\n→ Synthesize core elements: author, core concept, discovery, application.\n● Author: Andrzej Odrzywołek (arXiv, March 2026).\n● Concept: eml(x, y) = exp(x) - ln(y) + 1 generates all elementary functions.\n● Discovery: found via systematic exhaustive search.\n● ML application: gradient-based symbolic regression with Adam up to depth 4.\n\n∴ Unified primitive for continuous math enabling trainable functional circuits.",
+   "answer": "'All elementary functions from a single binary operator' by Andrzej Odrzywołek demonstrates that a single binary operator, eml(x, y) = exp(x) - ln(y), combined with the constant 1, is sufficient to generate all standard elementary functions and constants. Discovered via exhaustive search, this representation reduces continuous mathematical formulas to uniform binary trees governed by the grammar S -> 1 | eml(S, S). Furthermore, the author shows that these trees can function as trainable circuits, allowing the Adam optimizer to reconstruct exact closed-form formulas at depths up to 4."
+  },
+  {
+   "q": "What digital logic analogy motivates the core discovery in Odrzywołek's 2026 arXiv paper?",
+   "reasoning": "Query: \"What digital logic analogy motivates the core discovery in Odrzywołek's 2026 arXiv paper?\"\n\n→ Trace introductory motivation.\n● In digital hardware, a single two-input gate (like NAND/NOR) suffices for all Boolean logic.\n● In contrast, continuous math previously lacked any comparable single primitive.\n● Odrzywołek bridges this gap by establishing eml(x, y) = exp(x) - ln(y) as the continuous analog.\n\n∴ Analogous to a single universal logic gate in digital hardware.",
+   "answer": "In 'All elementary functions from a single binary operator', Andrzej Odrzywołek draws an explicit analogy to digital hardware, where a single two-input gate suffices to implement all of Boolean logic. The paper notes that continuous mathematics historically lacked any comparable universal primitive, always requiring distinct operations for functions like sine, square root, and logarithms. The introduction of the eml operator solves this asymmetry by serving as a single building block for continuous elementary mathematics."
+  },
+  {
+   "q": "Can the EML architecture described by Odrzywołek fit arbitrary datasets, or is it restricted only to elementary laws?",
+   "reasoning": "Query: \"Can the EML architecture described by Odrzywołek fit arbitrary datasets, or is it restricted only to elementary laws?\"\n\n→ Clarify architecture generalization capabilities.\n● Stated capability: 'The same architecture can fit arbitrary data'.\n● Special capability: when generating law is elementary, can find exact formula.\n● Optimization method: Adam on EML circuits.\n\n∴ Architecture fits arbitrary data and recovers exact formulas for elementary laws.",
+   "answer": "According to 'All elementary functions from a single binary operator', the EML architecture is not restricted solely to predefined formulas; it has the capacity to fit arbitrary numerical data. However, a distinctive advantage highlighted by Odrzywołek is that when the underlying data-generating process is an elementary law, the model is capable of recovering the exact closed-form mathematical expression."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "On what date was the preprint establishing that eml(x, y) generates all elementary functions released on arXiv?",
+   "answer": "The preprint 'All elementary functions from a single binary operator' was posted to arXiv on March 23, 2026.",
+   "key_points": [
+    "2026-03-23",
+    "March 23, 2026",
+    "arXiv"
+   ]
+  },
+  {
+   "q": "Which specific optimization algorithm was employed in Odrzywołek's 2026 paper to train EML expression trees for symbolic regression?",
+   "answer": "In 'All elementary functions from a single binary operator', Andrzej Odrzywołek utilized the Adam optimizer to train EML trees as differentiable circuits.",
+   "key_points": [
+    "Adam",
+    "trainable circuits",
+    "symbolic regression"
+   ]
+  },
+  {
+   "q": "What algebraic definition is assigned to the eml operator introduced in the 2026 study by Odrzywołek?",
+   "answer": "In 'All elementary functions from a single binary operator', the eml operator is algebraically defined as eml(x, y) = exp(x) - ln(y).",
+   "key_points": [
+    "eml(x, y) = exp(x) - ln(y)",
+    "exp(x) - ln(y)",
+    "Exp-Minus-Log"
+   ]
+  }
+ ],
+ "id": "arxiv:2603.21852",
+ "title": "All elementary functions from a single binary operator",
+ "generator": "gemini-3.8-flash"
+}

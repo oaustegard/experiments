@@ -1,0 +1,95 @@
+{
+ "facts": [
+  "Jiuyao Lu, Georgy Noarov, and Aaron Roth authored 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', posted to arXiv on 2026-11-02 (arxiv:2611.03305).",
+  "Calibrated multiaccuracy requires a predictor to be globally calibrated and multiaccurate with respect to a bounded test family G, meaning its residuals are uncorrelated with every test g(x) in G.",
+  "Full multicalibration has sample complexity of ~Θ(log|G|/ε^2 + 1/ε^3) when |G| is at least a sufficiently large power of log(1/ε).",
+  "The authors show the sample complexity of ε-calibrated multiaccuracy for randomized predictors scales as ~Θ(log|G|/ε^2 + 1/ε^(5/2)), separating it from full multicalibration.",
+  "For deterministic predictors where log|G| = Ω(log(1/ε)), the tight sample complexity rate is established as ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)).",
+  "When log|G| ≤ ε^(-1+κ) for fixed κ ∈ (0, 1), the deterministic sample complexity is polynomially larger than the randomized sample complexity, creating a genuine separation.",
+  "The matching upper and lower bounds prove that the cube-root dependence on log|G| for deterministic predictors is intrinsic.",
+  "When log|G| ≍ ε^(-1), the minimax sample complexity rates for both randomized and deterministic calibrated multiaccuracy coincide with the minimax rate for full multicalibration."
+ ],
+ "train": [
+  {
+   "q": "Who authored the 2026 paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' and when was it published?",
+   "reasoning": "Query: \"Who authored the 2026 paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' and when was it published?\"\n\n→ Paper metadata lookup: arxiv:2611.03305.\n● Authors: Jiuyao Lu, Georgy Noarov, and Aaron Roth.\n● Posting date: November 2, 2026.\n● Venue: arXiv.\n\n∴ Lu, Noarov, and Roth on 2026-11-02.",
+   "answer": "The paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' was authored by Jiuyao Lu, Georgy Noarov, and Aaron Roth. It was released on the arXiv preprint server on November 2, 2026. The authors investigate statistical sample complexity bounds for both deterministic and randomized predictors under calibrated multiaccuracy."
+  },
+  {
+   "q": "How does the paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' define calibrated multiaccuracy?",
+   "reasoning": "Query: \"How does the paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' define calibrated multiaccuracy?\"\n\n→ Definition of calibrated multiaccuracy:\n● Predictor must be globally calibrated.\n● Predictor must be multiaccurate wrt a bounded test family G.\n● Residuals must be uncorrelated with every test function g(x) ∈ G.\n● Serves as a weakening of multicalibration.\n\n∴ Globally calibrated + uncorrelated residuals across G.",
+   "answer": "In 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', calibrated multiaccuracy is defined as requiring a predictor to be globally calibrated and multiaccurate with respect to a bounded test family G. Specifically, the predictor's residuals must be completely uncorrelated with every test function g(x) in G. This formulation acts as a natural weakening of full multicalibration while remaining sufficient for numerous applications."
+  },
+  {
+   "q": "What is the sample complexity of randomized calibrated multiaccuracy established by Lu, Noarov, and Roth (2026)?",
+   "reasoning": "Query: \"What is the sample complexity of randomized calibrated multiaccuracy established by Lu, Noarov, and Roth (2026)?\"\n\n→ Review randomized complexity rate in the paper:\n● Previous multicalibration baseline: ~Θ(log|G|/ε^2 + 1/ε^3).\n● Lu et al. algorithm outputs a randomized predictor.\n● Achieves sample complexity ~Θ(log|G|/ε^2 + 1/ε^(5/2)).\n● Resolves sample complexity and separates it from multicalibration.\n\n∴ Rate is ~Θ(log|G|/ε^2 + 1/ε^(5/2)).",
+   "answer": "In 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', Lu, Noarov, and Roth show that the sample complexity for ε-calibrated multiaccuracy using a randomized predictor is ~Θ(log|G|/ε^2 + 1/ε^(5/2)). This upper bound is achieved via an algorithm producing randomized predictors. Consequently, it strictly separates the sample complexity of calibrated multiaccuracy from the ~Θ(log|G|/ε^2 + 1/ε^3) complexity required for full multicalibration."
+  },
+  {
+   "q": "According to 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', what is the tight sample complexity for deterministic predictors?",
+   "reasoning": "Query: \"According to 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', what is the tight sample complexity for deterministic predictors?\"\n\n→ Deterministic sample complexity bounds:\n● Condition: log|G| = Ω(log(1/ε)).\n● Deterministic rate: ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)).\n● Contains matching upper and lower bounds.\n● Demonstrates an intrinsic cube-root dependence on log|G|.\n\n∴ Tight rate is ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)).",
+   "answer": "According to 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', the tight sample complexity for deterministic predictors is ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)) whenever log|G| = Ω(log(1/ε)). The authors establish matching upper and lower bounds for this setting. These matching bounds confirm that the unusual cube-root dependence on log|G| is an intrinsic property of deterministic calibrated multiaccuracy."
+  },
+  {
+   "q": "Under what conditions does calibrated multiaccuracy exhibit a separation between deterministic and randomized sample complexity in Lu et al. (2026)?",
+   "reasoning": "Query: \"Under what conditions does calibrated multiaccuracy exhibit a separation between deterministic and randomized sample complexity in Lu et al. (2026)?\"\n\n→ Deterministic vs randomized comparison:\n● Deterministic: ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)).\n● Randomized: ~Θ(log|G|/ε^2 + 1/ε^(5/2)).\n● Regime: log|G| ≤ ε^(-1+κ) for fixed κ ∈ (0,1).\n● Deterministic rate becomes polynomially larger than randomized rate.\n\n∴ Genuine polynomial separation occurs when log|G| ≤ ε^(-1+κ).",
+   "answer": "In 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', Lu, Noarov, and Roth prove a separation occurs when log|G| ≤ ε^(-1+κ) for any fixed constant κ ∈ (0, 1). In this parameter regime, the sample complexity for deterministic predictors is polynomially larger than that for randomized predictors. This demonstrates that, unlike multicalibration, calibrated multiaccuracy possesses an inherent sample-complexity gap between deterministic and randomized models."
+  },
+  {
+   "q": "What happens to the sample complexity rates of calibrated multiaccuracy when log|G| is on the order of 1/epsilon in the paper by Lu, Noarov, and Roth?",
+   "reasoning": "Query: \"What happens to the sample complexity rates of calibrated multiaccuracy when log|G| is on the order of 1/epsilon in the paper by Lu, Noarov, and Roth?\"\n\n→ Evaluate rates at boundary log|G| ≍ ε^(-1):\n● Randomized rate: log|G|/ε^2 + 1/ε^(5/2) → dominated by 1/ε^3.\n● Deterministic rate: (log|G|)^(1/3)/ε^(8/3) → (1/ε)^(1/3)/ε^(8/3) = 1/ε^3.\n● Full multicalibration rate is ~Θ(log|G|/ε^2 + 1/ε^3).\n\n∴ Both randomized and deterministic rates match multicalibration minimax rate.",
+   "answer": "The paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' demonstrates that when log|G| ≍ ε^(-1), the distinction between the models vanishes. At this threshold, the minimax rates for both randomized and deterministic calibrated multiaccuracy coincide exactly with the minimax rate for full multicalibration. Thus, the sample complexity advantage of calibrated multiaccuracy over multicalibration is tied to smaller test family sizes."
+  },
+  {
+   "q": "Can you summarize the core contributions of the paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity'?",
+   "reasoning": "Query: \"Can you summarize the core contributions of the paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity'?\"\n\n→ High-level summary of paper:\n● Resolves sample complexity of ε-calibrated multiaccuracy.\n● Randomized: ~Θ(log|G|/ε^2 + 1/ε^(5/2)), separating from multicalibration's ~Θ(log|G|/ε^2 + 1/ε^3).\n● Deterministic: ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)), proving intrinsic (log|G|)^(1/3) dependence.\n● Proves polynomial separation between deterministic and randomized predictors.\n\n∴ Resolved minimax sample bounds and demonstrated randomized vs deterministic separation.",
+   "answer": "'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' fully resolves the sample complexity of calibrated multiaccuracy. It shows that randomized predictors achieve a rate of ~Θ(log|G|/ε^2 + 1/ε^(5/2)), thereby improving upon full multicalibration. Furthermore, the paper proves a tight deterministic rate of ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)), establishing a genuine sample-complexity separation between deterministic and randomized predictors that does not exist in multicalibration."
+  },
+  {
+   "q": "I heard calibrated multiaccuracy doesn't need as many samples as multicalibration—is that true according to recent research by Lu, Noarov, and Roth?",
+   "reasoning": "Query: \"I heard calibrated multiaccuracy doesn't need as many samples as multicalibration—is that true according to recent research by Lu, Noarov, and Roth?\"\n\n→ Compare sample complexities:\n● Multicalibration requires ~Θ(log|G|/ε^2 + 1/ε^3).\n● Randomized calibrated multiaccuracy needs only ~Θ(log|G|/ε^2 + 1/ε^(5/2)).\n● Strict improvement when log|G| is smaller than ε^(-1).\n\n∴ Yes, randomized algorithms strictly beat multicalibration sample complexity.",
+   "answer": "Yes, that is correct according to 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' by Lu, Noarov, and Roth. They prove that an algorithm outputting a randomized predictor achieves a sample complexity of ~Θ(log|G|/ε^2 + 1/ε^(5/2)), strictly improving upon the ~Θ(log|G|/ε^2 + 1/ε^3) required for full multicalibration. However, when using deterministic predictors or when log|G| scales as ε^(-1), this sample complexity gap narrows or coincides with multicalibration."
+  },
+  {
+   "q": "What baseline sample complexity for full multicalibration is referenced in 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity'?",
+   "reasoning": "Query: \"What baseline sample complexity for full multicalibration is referenced in 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity'?\"\n\n→ Prior multicalibration sample complexity:\n● Rate mentioned in paper: ~Θ(log|G|/ε^2 + 1/ε^3).\n● Condition: holds when |G| is at least a sufficiently large power of log(1/ε).\n● Calibrated multiaccuracy was not previously known to improve on this baseline.\n\n∴ Reference rate is ~Θ(log|G|/ε^2 + 1/ε^3).",
+   "answer": "The paper 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity' references the known sample complexity for full multicalibration as ~Θ(log|G|/ε^2 + 1/ε^3). This rate applies when the cardinality |G| is at least a sufficiently large power of log(1/ε). Prior to this work, it was unknown whether calibrated multiaccuracy could statistically improve upon this multicalibration bound."
+  },
+  {
+   "q": "In the context of calibrated multiaccuracy research by Lu et al. (2026), what does the term (log|G|)^(1/3) represent?",
+   "reasoning": "Query: \"In the context of calibrated multiaccuracy research by Lu et al. (2026), what does the term (log|G|)^(1/3) represent?\"\n\n→ Deterministic bound analysis:\n● Rate: ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)).\n● (log|G|)^(1/3) is an unusual cube-root dependence on the test family size.\n● Proven to be intrinsic by matching upper and lower bounds for deterministic predictors.\n\n∴ Intrinsic cube-root dependence on test family size for deterministic predictors.",
+   "answer": "In 'Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity', the factor (log|G|)^(1/3) appears in the deterministic sample complexity rate of ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)). The authors prove through matching upper and lower bounds that this unusual cube-root dependence on the size of the test family G is intrinsic to deterministic predictors. It highlights a fundamental structural difference from randomized predictors, which lack this factor in their second term."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "What exact sample size rate did Lu, Noarov, and Roth establish for randomized predictors satisfying epsilon-calibrated multiaccuracy in their 2026 study?",
+   "answer": "In their 2026 study on calibrated multiaccuracy, Lu, Noarov, and Roth showed that randomized predictors require a sample complexity of ~Θ(log|G|/ε^2 + 1/ε^(5/2)).",
+   "key_points": [
+    "~Θ(log|G|/ε^2 + 1/ε^(5/2))",
+    "randomized predictor",
+    "Lu, Noarov, and Roth"
+   ]
+  },
+  {
+   "q": "How does restricting algorithms to deterministic predictors affect the sample efficiency of calibrated multiaccuracy relative to randomized algorithms in arxiv:2611.03305?",
+   "answer": "Restricting to deterministic predictors increases the sample complexity to ~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3)), which is polynomially larger than the randomized rate when log|G| ≤ ε^(-1+κ).",
+   "key_points": [
+    "~Θ(log|G|/ε^2 + (log|G|)^(1/3)/ε^(8/3))",
+    "polynomially larger",
+    "log|G| ≤ ε^(-1+κ)"
+   ]
+  },
+  {
+   "q": "What condition on the test family size causes both deterministic and randomized calibrated multiaccuracy minimax sample complexities to match multicalibration in the 2026 paper by Lu et al.?",
+   "answer": "Both sample complexity rates coincide with the minimax rate for full multicalibration when log|G| ≍ ε^(-1).",
+   "key_points": [
+    "log|G| ≍ ε^(-1)",
+    "coincide with multicalibration minimax rate"
+   ]
+  }
+ ],
+ "id": "arxiv:2611.03305",
+ "title": "Calibrated Multiaccuracy: Deterministic and Randomized Sample Complexity",
+ "generator": "gemini-3.8-flash"
+}

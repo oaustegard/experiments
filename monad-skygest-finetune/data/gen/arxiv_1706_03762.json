@@ -1,0 +1,92 @@
+{
+ "facts": [
+  "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin authored the paper 'Attention Is All You Need'.",
+  "The paper was published on arXiv on June 12, 2017 (arXiv:1706.03762).",
+  "The paper introduces the Transformer, a sequence transduction architecture based entirely on attention mechanisms, discarding recurrence and convolutions.",
+  "On the WMT 2014 English-to-German translation task, the Transformer achieved a BLEU score of 28.4, surpassing existing best results including ensembles by over 2 BLEU.",
+  "On the WMT 2014 English-to-French translation task, the model achieved a state-of-the-art BLEU score of 41.8.",
+  "The English-to-French Transformer model was trained for 3.5 days on eight GPUs, requiring a fraction of the training cost of prior state-of-the-art models.",
+  "The Transformer demonstrates strong generalization capability by successfully applying to English constituency parsing with both large and limited training data."
+ ],
+ "train": [
+  {
+   "q": "Who are the authors of the 2017 paper 'Attention Is All You Need' and where was it published?",
+   "reasoning": "Query: \"Who are the authors of the 2017 paper 'Attention Is All You Need' and where was it published?\"\n\n→ Paper: 'Attention Is All You Need' (arXiv:1706.03762, June 12, 2017).\n● Authors listed: Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin.\n● Venue: arXiv preprint.\n∴ Eight authors; published on arXiv.",
+   "answer": "The paper 'Attention Is All You Need' was authored by Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. It was published as an arXiv preprint on June 12, 2017."
+  },
+  {
+   "q": "What core architectural change does the paper 'Attention Is All You Need' propose compared to prior sequence models?",
+   "reasoning": "Query: \"What core architectural change does the paper 'Attention Is All You Need' propose compared to prior sequence models?\"\n\n→ Standard models rely on recurrent or convolutional layers in encoder-decoder structures.\n● Vaswani et al. introduce 'Transformer'.\n● Design: relies entirely on attention mechanisms.\n● Completely eliminates recurrence and convolutions.\n∴ Replaces recurrence/convolutions with pure attention.",
+   "answer": "In 'Attention Is All You Need', the authors introduce the Transformer architecture, which dispenses entirely with recurrent and convolutional neural networks. Instead, the model relies solely on attention mechanisms to connect the encoder and decoder for sequence transduction tasks."
+  },
+  {
+   "q": "What BLEU score did the Transformer attain on the WMT 2014 English-to-German task in 'Attention Is All You Need'?",
+   "reasoning": "Query: \"What BLEU score did the Transformer attain on the WMT 2014 English-to-German task in 'Attention Is All You Need'?\"\n\n→ Task: WMT 2014 English-to-German translation.\n● Transformer performance recorded in abstract: 28.4 BLEU.\n● Benchmark comparison: outperforms previous best results, including ensemble models, by over 2 BLEU.\n∴ 28.4 BLEU achieved.",
+   "answer": "According to 'Attention Is All You Need', the Transformer achieved a BLEU score of 28.4 on the WMT 2014 English-to-German translation task. This result surpassed existing benchmark results, including ensemble architectures, by more than 2 BLEU points."
+  },
+  {
+   "q": "What were the translation performance and training hardware requirements for the English-to-French model in 'Attention Is All You Need'?",
+   "reasoning": "Query: \"What were the translation performance and training hardware requirements for the English-to-French model in 'Attention Is All You Need'?\"\n\n→ WMT 2014 English-to-French translation task.\n● Performance: 41.8 BLEU score, establishing a new single-model state of the art.\n● Training resources: trained for 3.5 days using eight GPUs.\n● Efficiency note: represents a small fraction of previous literature training costs.\n∴ 41.8 BLEU via 3.5 days on 8 GPUs.",
+   "answer": "In 'Attention Is All You Need', the Transformer established a state-of-the-art single-model BLEU score of 41.8 on the WMT 2014 English-to-French translation task. This model achieved this performance after training for only 3.5 days on eight GPUs, using substantially fewer computational resources than earlier state-of-the-art systems."
+  },
+  {
+   "q": "Beyond machine translation, to what other task was the Transformer applied in 'Attention Is All You Need' to demonstrate generalization?",
+   "reasoning": "Query: \"Beyond machine translation, to what other task was the Transformer applied in 'Attention Is All You Need' to demonstrate generalization?\"\n\n→ Evaluated primary tasks: translation (EN-DE, EN-FR).\n● Paper evaluates generalizability on parsing.\n● Specific task: English constituency parsing.\n● Tested settings: both large and limited training data regimes.\n∴ Successfully applied to English constituency parsing.",
+   "answer": "To test its generalization capabilities beyond translation, the authors of 'Attention Is All You Need' applied the Transformer to English constituency parsing. The model performed successfully in both large-data and limited-data training regimes."
+  },
+  {
+   "q": "Can you provide a concise summary of the paper 'Attention Is All You Need' by Vaswani et al.?",
+   "reasoning": "Query: \"Can you provide a concise summary of the paper 'Attention Is All You Need' by Vaswani et al.?\"\n\n→ Core thesis: attention replaces recurrent/convolutional models entirely.\n● Proposes Transformer for sequence transduction.\n● Key results: 28.4 BLEU (EN-DE) and 41.8 BLEU (EN-FR) at lower computational cost (3.5 days on 8 GPUs).\n● Also generalizes to English constituency parsing.\n∴ Groundbreaking attention-only architecture showing high translation quality and training efficiency.",
+   "answer": "'Attention Is All You Need' introduces the Transformer, a sequence transduction architecture that relies solely on attention mechanisms, discarding recurrence and convolutions. It demonstrates state-of-the-art translation performance on WMT 2014 English-to-German (28.4 BLEU) and English-to-French (41.8 BLEU) with superior training efficiency, while also successfully generalizing to English constituency parsing."
+  },
+  {
+   "q": "How does the training efficiency of the Transformer in 'Attention Is All You Need' compare with previous dominant sequence models?",
+   "reasoning": "Query: \"How does the training efficiency of the Transformer in 'Attention Is All You Need' compare with previous dominant sequence models?\"\n\n→ Recurrent/convolutional sequence transduction models suffer from training bottlenecks.\n● Transformer removes recurrence → significantly more parallelizable.\n● Concrete metric: English-to-French model trained in 3.5 days on eight GPUs.\n● Abstract highlights this training cost is a small fraction of previous top literature models.\n∴ Greater parallelization leads to dramatically reduced training time.",
+   "answer": "The authors of 'Attention Is All You Need' show that the Transformer is significantly more parallelizable than traditional recurrent or convolutional models, requiring drastically less training time. For instance, their state-of-the-art English-to-French model trained in just 3.5 days on eight GPUs, which is a small fraction of the training cost incurred by prior leading architectures."
+  },
+  {
+   "q": "In the 2017 Vaswani et al. study on sequence transduction, what replaces recurrent neural network layers in the Transformer?",
+   "reasoning": "Query: \"In the 2017 Vaswani et al. study on sequence transduction, what replaces recurrent neural network layers in the Transformer?\"\n\n→ Context: Vaswani et al. (2017), 'Attention Is All You Need'.\n● Typical models: encoder-decoder RNNs/CNNs connected by attention.\n● Proposed innovation: dispense with recurrence and convolutions completely.\n● Foundation: architecture is based purely on attention mechanisms.\n∴ Solely attention mechanisms replace recurrent layers.",
+   "answer": "In 'Attention Is All You Need', Vaswani et al. replace recurrence and convolutional operations entirely with attention mechanisms. The resulting Transformer architecture uses these attention mechanisms to connect the encoder and decoder directly."
+  },
+  {
+   "q": "What specific improvement did the Transformer demonstrate over ensemble models in the paper 'Attention Is All You Need'?",
+   "reasoning": "Query: \"What specific improvement did the Transformer demonstrate over ensemble models in the paper 'Attention Is All You Need'?\"\n\n→ Focus: WMT 2014 English-to-German translation results.\n● Transformer achieved 28.4 BLEU.\n● Paper directly compares this to earlier best results, explicitly citing ensembles.\n● Margin: improved over prior best results, including ensembles, by over 2 BLEU.\n∴ Beat existing ensemble systems by more than 2 BLEU.",
+   "answer": "In 'Attention Is All You Need', the authors report that the Transformer achieved a 28.4 BLEU score on the WMT 2014 English-to-German translation benchmark. This score improved upon the existing state of the art, including ensemble models, by over 2 BLEU."
+  },
+  {
+   "q": "Hey, why was the Transformer paper titled 'Attention Is All You Need'?",
+   "reasoning": "Query: \"Hey, why was the Transformer paper titled 'Attention Is All You Need'?\"\n\n→ Conventional sequence transduction relied heavily on recurrence (RNNs) or convolutions (CNNs).\n● Attention was previously just an auxiliary connector between encoder and decoder.\n● The authors built a model relying exclusively on attention mechanisms, discarding RNNs/CNNs entirely.\n∴ Title reflects that attention alone suffices for state-of-the-art sequence modeling.",
+   "answer": "The paper was titled 'Attention Is All You Need' because the authors demonstrated that state-of-the-art sequence transduction could be achieved without recurrent or convolutional layers. By relying exclusively on attention mechanisms, the Transformer proved that attention alone was sufficient to outperform complex existing architectures."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "On which public repository and date was the foundational Transformer manuscript first made available?",
+   "answer": "The Transformer manuscript, 'Attention Is All You Need', was first released on the arXiv preprint server on June 12, 2017.",
+   "key_points": [
+    "arXiv",
+    "June 12, 2017"
+   ]
+  },
+  {
+   "q": "What score was recorded on the English-to-French WMT 2014 benchmark by the novel architecture in Vaswani et al. (2017)?",
+   "answer": "In 'Attention Is All You Need', the Transformer achieved a single-model state-of-the-art score of 41.8 BLEU on the WMT 2014 English-to-French benchmark.",
+   "key_points": [
+    "41.8 BLEU",
+    "English-to-French"
+   ]
+  },
+  {
+   "q": "Did the authors of 'Attention Is All You Need' validate their framework on any natural language processing task other than machine translation?",
+   "answer": "Yes, the authors evaluated the Transformer on English constituency parsing, confirming that it generalized effectively with both abundant and restricted training data.",
+   "key_points": [
+    "English constituency parsing",
+    "large and limited training data"
+   ]
+  }
+ ],
+ "id": "arxiv:1706.03762",
+ "title": "Attention Is All You Need",
+ "generator": "gemini-3.8-flash"
+}

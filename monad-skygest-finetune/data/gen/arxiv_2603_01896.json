@@ -1,0 +1,94 @@
+{
+ "facts": [
+  "The paper 'Agentic Code Reasoning' was authored by Shubham Ugare and Satish Chandra and released on arXiv on March 2, 2026 (arXiv:2603.01896).",
+  "The research investigates whether LLM agents can explore codebases and reason about code semantics without executing code.",
+  "The authors introduce semi-formal reasoning, a structured prompting methodology requiring agents to build explicit premises, trace execution paths, and derive formal conclusions acting as certificates.",
+  "For patch equivalence verification, semi-formal reasoning improves accuracy from 78% to 88% on curated examples and reaches 93% on real-world agent-generated patches.",
+  "For code question answering on RubberDuckBench (Mohammad et al., 2026), semi-formal reasoning achieves 87% accuracy.",
+  "For fault localization on Defects4J (Just et al., 2014), semi-formal reasoning improves Top-5 accuracy by 5 percentage points over standard reasoning.",
+  "The findings suggest execution-free semantic analysis can provide practical reliability for RL reward signals, code review, and static program analysis."
+ ],
+ "train": [
+  {
+   "q": "Who wrote the 2026 arXiv paper 'Agentic Code Reasoning' and what core research question does it explore?",
+   "reasoning": "Query: \"Who wrote the 2026 arXiv paper 'Agentic Code Reasoning' and what core research question does it explore?\"\n\n→ Paper: 'Agentic Code Reasoning' (arXiv:2603.01896, March 2, 2026).\n● Authors: Shubham Ugare and Satish Chandra.\n● Core query: Can LLM agents explore codebases and analyze code semantics without running the code?\n∴ Focus is execution-free agentic semantic reasoning.",
+   "answer": "The paper 'Agentic Code Reasoning' was written by Shubham Ugare and Satish Chandra and published on arXiv in March 2026. It explores whether LLM agents can inspect codebases and accurately deduce code semantics without actually executing the code."
+  },
+  {
+   "q": "What novel prompting methodology is proposed in Ugare and Chandra's paper 'Agentic Code Reasoning'?",
+   "reasoning": "Query: \"What novel prompting methodology is proposed in Ugare and Chandra's paper 'Agentic Code Reasoning'?\"\n\n→ Target methodology in 'Agentic Code Reasoning' by Ugare and Chandra.\n● Method: semi-formal reasoning.\n● Requires agents to construct explicit premises, trace execution paths, and derive formal conclusions.\n● Functions as a certificate preventing skipped cases or unsupported claims.\n∴ Replaces unstructured chain-of-thought with structured verification.",
+   "answer": "In 'Agentic Code Reasoning', Ugare and Chandra introduce semi-formal reasoning, a structured prompting methodology. This approach requires agents to formulate explicit premises, trace program execution paths, and reach formal conclusions that serve as verifiable certificates."
+  },
+  {
+   "q": "How does semi-formal reasoning differ from traditional chain-of-thought according to the paper 'Agentic Code Reasoning'?",
+   "reasoning": "Query: \"How does semi-formal reasoning differ from traditional chain-of-thought according to the paper 'Agentic Code Reasoning'?\"\n\n→ Comparison in 'Agentic Code Reasoning'.\n● Standard chain-of-thought: unstructured, prone to skipping edge cases or making unsupported assertions.\n● Semi-formal reasoning: structured premise-path-conclusion framework.\n● Acts as a certificate that forbids skipping steps or deriving ungrounded results.\n∴ Enforces rigorous verification over free-form explanation.",
+   "answer": "According to 'Agentic Code Reasoning', semi-formal reasoning differs from unstructured chain-of-thought by acting as a strict certificate. It obligates the agent to establish explicit premises and trace execution paths, preventing the model from skipping cases or asserting unsupported claims."
+  },
+  {
+   "q": "Across which three evaluation tasks did the authors test their approach in 'Agentic Code Reasoning'?",
+   "reasoning": "Query: \"Across which three evaluation tasks did the authors test their approach in 'Agentic Code Reasoning'?\"\n\n→ Evaluation suite in 'Agentic Code Reasoning'.\n● Task 1: Patch equivalence verification.\n● Task 2: Fault localization.\n● Task 3: Code question answering.\n∴ Validated across three diverse code semantic analysis benchmarks.",
+   "answer": "The authors of 'Agentic Code Reasoning' evaluated their approach across patch equivalence verification, fault localization, and code question answering. Their semi-formal reasoning framework consistently improved accuracy across all three tasks."
+  },
+  {
+   "q": "What performance gains did 'Agentic Code Reasoning' achieve in patch equivalence verification?",
+   "reasoning": "Query: \"What performance gains did 'Agentic Code Reasoning' achieve in patch equivalence verification?\"\n\n→ Patch equivalence benchmarks in 'Agentic Code Reasoning'.\n● Curated examples: accuracy rose from 78% to 88%.\n● Real-world agent-generated patches: reached 93% accuracy.\n∴ Demonstrates reliability approaching execution-free RL reward signal thresholds.",
+   "answer": "In 'Agentic Code Reasoning', semi-formal reasoning improved patch equivalence verification accuracy from 78% to 88% on curated benchmarks. Furthermore, it achieved 93% accuracy on real-world, agent-generated patches."
+  },
+  {
+   "q": "How did semi-formal reasoning perform on the RubberDuckBench benchmark in 'Agentic Code Reasoning'?",
+   "reasoning": "Query: \"How did semi-formal reasoning perform on the RubberDuckBench benchmark in 'Agentic Code Reasoning'?\"\n\n→ Benchmark: RubberDuckBench Mohammad et al. (2026) for code question answering.\n● Evaluated in 'Agentic Code Reasoning'.\n● Semi-formal reasoning achieved 87% accuracy.\n∴ Outperforms unstructured baseline reasoning on semantic questions.",
+   "answer": "On the RubberDuckBench dataset (Mohammad et al., 2026) evaluated in 'Agentic Code Reasoning', semi-formal reasoning attained an accuracy of 87%. This task tested the model's ability to answer code questions without execution."
+  },
+  {
+   "q": "What were the results of the paper 'Agentic Code Reasoning' on the Defects4J fault localization task?",
+   "reasoning": "Query: \"What were the results of the paper 'Agentic Code Reasoning' on the Defects4J fault localization task?\"\n\n→ Fault localization benchmark: Defects4J Just et al. (2014).\n● Metric: Top-5 accuracy.\n● Semi-formal reasoning improved performance by 5 percentage points over standard reasoning.\n∴ Confirms utility in bug isolation without executing test suites.",
+   "answer": "Evaluating on the Defects4J dataset (Just et al., 2014), the authors of 'Agentic Code Reasoning' reported a 5 percentage point increase in Top-5 accuracy over standard reasoning. This demonstrates the framework's effectiveness in locating program defects purely through static analysis."
+  },
+  {
+   "q": "What practical applications are enabled by the findings in Ugare and Chandra's 2026 paper on agentic code reasoning?",
+   "reasoning": "Query: \"What practical applications are enabled by the findings in Ugare and Chandra's 2026 paper on agentic code reasoning?\"\n\n→ Applications cited in Ugare & Chandra (2026).\n● Reliability in patch equivalence (93%) enables execution-free RL reward signals.\n● Additional domains: automated code review and static program analysis.\n∴ Enables execution-free workflows where dynamic running is impractical.",
+   "answer": "The authors of 'Agentic Code Reasoning' highlight several practical applications, including providing execution-free reward signals for reinforcement learning training pipelines. Additionally, the approach has direct relevance to automated code review and advanced static program analysis."
+  },
+  {
+   "q": "Can you summarize the primary contributions and conclusions of the paper 'Agentic Code Reasoning' (arXiv:2603.01896)?",
+   "reasoning": "Query: \"Can you summarize the primary contributions and conclusions of the paper 'Agentic Code Reasoning' (arXiv:2603.01896)?\"\n\n→ Paper: Ugare & Chandra (March 2, 2026).\n● Defined agentic code reasoning without execution.\n● Introduced semi-formal reasoning (premises, execution tracing, formal conclusions).\n● Empirical wins: 88% curated / 93% real patch equivalence, 87% RubberDuckBench, +5 pp Top-5 Defects4J.\n∴ Demonstrates reliable execution-free code semantics.",
+   "answer": "'Agentic Code Reasoning' by Ugare and Chandra shows that LLM agents can effectively analyze code semantics without running the code by using structured semi-formal reasoning. The technique enforces verifiable reasoning paths, achieving strong performance gains across patch equivalence, fault localization, and code question answering."
+  },
+  {
+   "q": "Could execution-free agentic code reasoning be accurate enough to guide RL reward models according to recent 2026 research?",
+   "reasoning": "Query: \"Could execution-free agentic code reasoning be accurate enough to guide RL reward models according to recent 2026 research?\"\n\n→ Look at 2026 study 'Agentic Code Reasoning'.\n● Achieved 93% accuracy on real-world patch equivalence verification.\n● Authors conclude this approaches the reliability needed for execution-free RL reward signals.\n∴ Yes, structured execution-free reasoning is viable for RL rewards.",
+   "answer": "Yes, according to the 2026 paper 'Agentic Code Reasoning', the method achieves 93% accuracy on real-world patch equivalence verification. The authors note that this level of reliability approaches what is necessary to serve as an execution-free reward signal in reinforcement learning pipelines."
+  }
+ ],
+ "heldout": [
+  {
+   "q": "In their March 2026 study, what three steps do Shubham Ugare and Satish Chandra require agents to follow when verifying code?",
+   "answer": "In their paper 'Agentic Code Reasoning', Shubham Ugare and Satish Chandra require agents to establish explicit premises, trace execution paths, and derive formal conclusions.",
+   "key_points": [
+    "explicit premises",
+    "trace execution paths",
+    "formal conclusions"
+   ]
+  },
+  {
+   "q": "By how much did the structured methodology in the paper 'Agentic Code Reasoning' boost curated patch equivalence verification scores?",
+   "answer": "The technique presented in 'Agentic Code Reasoning' increased curated patch equivalence accuracy from 78% to 88%, representing a 10 percentage point gain.",
+   "key_points": [
+    "78% to 88%",
+    "10 percentage points"
+   ]
+  },
+  {
+   "q": "What specific benchmark did the authors of 'Agentic Code Reasoning' utilize to assess code question answering performance?",
+   "answer": "The authors evaluated code question answering on RubberDuckBench (Mohammad et al., 2026), reaching an accuracy of 87%.",
+   "key_points": [
+    "RubberDuckBench",
+    "Mohammad et al. (2026)",
+    "87%"
+   ]
+  }
+ ],
+ "id": "arxiv:2603.01896",
+ "title": "Agentic Code Reasoning",
+ "generator": "gemini-3.8-flash"
+}
