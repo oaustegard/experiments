@@ -35,9 +35,9 @@ The table gives the share of grids with every cell correct, on held-out grids fr
 | 32×32, trained (500 grids) | 85.8% | 87.2% | 86.0% | 88.6% |
 | 32×32, hand-written | 61.2% | 92.2% | 100% | 100% from round 9 |
 | 64×64, trained (200 grids) | 61.5% | 75.5% | 77.0% | 81.0% |
-| 64×64, hand-written | 37.5% | 79.5% | 99.5% | 100% from round 24 |
+| 64×64, hand-written | 37.5% | 79.5% | 99.5% | 100% from round 17 |
 | 96×96, trained (100 grids) | 48.0% | 56.0% | 61.0% | 63.0% |
-| 96×96, hand-written | 34.0% | 71.0% | 92.0% | 100% from round 24 |
+| 96×96, hand-written | 34.0% | 71.0% | 92.0% | 100% from round 23 |
 
 One round is 15 passes, and the hand-written network moves information one cell per pass. A route of length D needs about 2D passes, so with very few rounds the trained network leads. With more rounds it plateaus and the program converges. The 18%, 10% and 12% of grids whose goal is unreachable came out correct, with no cells marked. The first version of the weights, used at 32×32 and 64×64, halted only when the goal was marked: all 408 reachable grids at 32×32 and all 180 at 64×64 halted, every one with an exact route; that version never halted on an unreachable goal, though its answer, no cells marked, was correct from the first round. The second version, used at 96×96 and in the game, also halts when the wave stops; all 100 grids halted, every answer exact.
 

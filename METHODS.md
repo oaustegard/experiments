@@ -3063,6 +3063,19 @@ the result.
   inputs through `encode_query`/`encode_document`, not `preprocess`; MoEdernColBERT's forward also keys
   full query attention on that marker. (`moederncolbert-bench/RESULTS.md` finding 8)
 
+### A local algorithm can be written straight into a conv TRM's weights (weight-space-edit)
+
+When the target of a small recurrent conv net is a known local rule (BFS wavefronts, cellular automata), writing the
+weights by hand beat training outright: exact at every grid size where trained run7 plateaued at 63–89%. The tricks that
+make post-norm SwiGLU blocks compute exact boolean logic, all in `weight-space-edit/trm/handtrm.py`:
+- Put a large constant (1000×) in channel 0 of every vector: RMSNorm then only rescales, and ratios to channel 0 carry values.
+- `silu(G)·u` with a large constant gate G is a linear pass-through (cancel or copy channels exactly).
+- Two units `silu(β(k(s−θ)+½)) − silu(β(k(s−θ)−½))` divided by β make a clamped step; pick k so every legal input lands at
+  |k(s−θ)| ≥ 1 (the summed x+y+z inputs arrive at ⅓–1 unit, which needed k=12, not 2).
+- TRM feeds sums of its states; if the automaton is monotone (bits only turn on), re-quantising the sum gives the newest state.
+- A halting head over the cell-mean can test global facts if you keep per-cell bits for them (frontier, start-labelled).
+- Halting only on success makes unreachable cases run to the step cap; in a game loop that was the whole slowdown.
+
 ## Cache and measurement hygiene
 
 - **A byte-matching decompilation runner has to compare relocations by target, and has to be
@@ -3829,6 +3842,11 @@ the result.
   (held-out half +0.045). Where the claim is known, ask Jev about the (claim, document) pair
   instead: one "provides evidence about the claim" Noul reranks the top 20 to 0.763.
   (`jev-tag-encoder/RESULTS.md`)
+
+### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
+
+0 loops in 200 greedy and 100 sampled (T 0.3, min_p 0.15, rep 1.05) GSM8K answers and 64 chat replies at 512 tokens, so the
+MIT post's loop-direction edit (which fixed Qwen3.5-0.8B) has nothing to remove here. Measure the obstacle before editing.
 
 ## Shared code — `_lib/`
 
