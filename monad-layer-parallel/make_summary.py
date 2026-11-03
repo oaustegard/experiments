@@ -29,12 +29,18 @@ def bench(job):
 
 
 s["bench"] = {"F": bench("mwe-bench-A8p-1")}
-for arm in ("A8p_q8", "A8p_q4", "A8p_P8_q4", "A8p_P16_q4", "A8p_P24_q4"):
+for arm in ("A8p_q8", "A8p_q8_acc4", "A8p_q4", "A8p_P8_q4", "A8p_P16_q4", "A8p_P24_q4", "A8p_P8_q8", "A8p_P16_q8",
+            "A8p_P24_q8"):
     s["bench"][arm] = bench(f"mlp-bench-{arm}")
 s["sizes_mb"] = {}
-for arm in ("A8p", "A8p_q8", "A8p_q4", "A8p_P8_q4", "A8p_P16_q4", "A8p_P24_q4"):
+for arm in ("A8p", "A8p_q8", "A8p_q4", "A8p_P8_q4", "A8p_P16_q4", "A8p_P24_q4", "A8p_P8_q8", "A8p_P16_q8", "A8p_P24_q8"):
     m = json.loads((MWE / "export" / arm / "meta.json").read_text())
     s["sizes_mb"][arm] = {"data": round(m["data_bytes"] / 1e6, 1), "shipped": round(m["packed_bytes"] / 1e6, 1)}
+
+d = json.loads((R / "depth_probe.json").read_text())
+s["depth"] = {"groups": {k: {"depth": v["depth"], "kl": round(v["kl"], 3)} for k, v in d["groups"].items()},
+              "parareal": {m: {K: {"kl": round(x["kl"], 2), "cost": x["cost_layer_steps"]} for K, x in r.items()}
+                           for m, r in d["parareal"].items()}}
 
 F = MWE / "runs/A8p__gpu_test.jsonl"
 s["test"] = {"F": summarize(F)}
