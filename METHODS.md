@@ -3869,24 +3869,28 @@ The traps, each of which cost a revision:
 
 ### A loop direction can be the attention-sink direction in disguise (monad-weight-edit)
 
-Difference-of-means between looping and normal residual states gave Monad a near-perfect loop detector (AUROC 0.99 at layer
-33), and removing it from the weights produced newline floods on every answer. The direction had cosine −0.77 with token 0's
-residual, where the massive activation behind the attention sink lives (projection −11,790 against a typical residual norm of
-228), and its strongest MLP writers were the sink's massive-activation neurons. Before ablating a behaviour direction, check its
-cosine with the first token's residual and project that component out; for Monad the remainder was written by attention at
-layers 27–34, and removing it there cut loops from 34% to 6%. Also run a random-direction control: removing any one direction
-from every layer's output hurt this deep, narrow model badly (dev loops 30% → 51%).
+In PleIAs Monad (56M parameters, 64 layers at width 256), a loop is greedy decoding repeating the same tokens until the token
+limit. The difference of means between residual states inside loops and in answers that finished gave a near-perfect loop
+detector (AUROC 0.99 at layer 33). Removing that direction from every layer's o_proj and down_proj made 98% of answers loop. The
+direction had cosine −0.77 with token 0's residual, where the massive activation behind the attention sink lives (token 0 has a
+residual norm of 15,285 against a typical 228), and its strongest MLP writers were the sink's massive-activation neurons. Before ablating a behaviour direction, check its
+cosine with the first token's residual and project that component out. In Monad, the loop direction minus its sink component
+is written mostly by attention at layers 27–34; removing it from those eight attention output projections cut loops from 34% to
+6% of answers on a 500-prompt test set. Also run a random-direction control: removing a random direction from every layer's
+output raised loops on Monad's 192-prompt design set from 30% to 51%.
 
 ### ORT-web WebGPU numbers from SwiftShader are not the GPU's (monad-weight-edit)
 
 The same onnxruntime-web 1.30 WebGPU graph gave logits up to 2.7 off the CPU reference on SwiftShader in headless Chromium and
 5.5e-5 off on a real Mac GPU; its WASM backend in the same SwiftShader browser matched to 3.6e-5. A large SwiftShader
-difference with the right argmax is not a bug in the graph. Check on a real GPU (the GPU Bridge) before chasing it.
+difference that still picks the same greedy token is not a bug in the graph. Check on a real GPU before chasing it (the GPU
+Bridge, `gpu-bridge/`, runs jobs on Oskar's devices).
 
-### Monad's layers are not removable without healing (monad-weight-edit)
+### Monad's layers cannot be removed without retraining (monad-weight-edit)
 
-Removing Monad's least important layer costs 0.045 nats of next-token KL on its own outputs, and eight greedily chosen layers
-cost 0.57, so depth, the measured latency cost (64 × ~0.18 ms per token on a Mac GPU), cannot be cut training-free.
+Decode latency in Monad tracks depth: 11.8 ms per token for 64 layers on a Mac GPU. Dropping layers would be the obvious
+training-free speedup, but removing the least important single layer costs 0.045 nats of KL against the full model's
+next-token predictions on its own outputs, and eight greedily chosen layers cost 0.57. Pruning it would need fine-tuning after.
 
 ### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
 
