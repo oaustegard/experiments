@@ -1,7 +1,8 @@
 """Check web/gputrain.js's loss and gradient against PyTorch autograd on the same model.
 
-    python3 bridge/gradcheck_gpu.py [W H N [focus]]   (runs gpu_gradcheck.mjs in headless Chromium, SwiftShader)
+    python3 bridge/gradcheck_gpu.py [W H N [focus|bgimg]]   (runs gpu_gradcheck.mjs in headless Chromium, SwiftShader)
 With "focus", pixels carry Gaussian weights (normalised to mean 1) in both losses, as a focus map does.
+With "bgimg", the splats paint over a per-pixel background (another image), as a deep-zoom detail tile does.
 Model: splats in quantization units, weight clamped at 0.9999, painted in order over the fixed
 background, loss = mean over prefixes k of log(mean squared error of the k-splat prefix).
 """
@@ -22,7 +23,7 @@ def ckpts(n):
     while k < n: out.append(k); k *= 2
     return out + [n]
 
-def torch_loss(P, bg, T, W, H, wpix=None):
+def torch_loss(P, bg, T, W, H, wpix=None, bgimg=None):
     A = W / H
     ys, xs = torch.meshgrid(torch.arange(H, dtype=torch.float64), torch.arange(W, dtype=torch.float64), indexing="ij")
     X = ((xs + .5) / H).flatten(); Y = ((ys + .5) / H).flatten()
@@ -36,6 +37,8 @@ def torch_loss(P, bg, T, W, H, wpix=None):
     bgc = (bg / 63.).view(4, 3).double()
     h = (X / A)[:, None]; v = Y[:, None]
     c = (bgc[0] * (1 - h) + bgc[1] * h) * (1 - v) + (bgc[2] * (1 - h) + bgc[3] * h) * v
+    if bgimg is not None:
+        c = bgimg
     ks = ckpts(P.shape[0]); snaps = {}
     for j in range(P.shape[0]):
         if j in ks: snaps[j] = c
@@ -66,9 +69,14 @@ def main():
         f = np.maximum(np.exp(-0.5 * (((xs + .5) / W - .3) ** 2 + ((ys + .5) / H - .4) ** 2) / .15 ** 2), 0.05).flatten()
         focus = f.tolist()
     wpix = None if focus is None else torch.tensor(focus, dtype=torch.float64) * (W * H) / sum(focus)
+    bgimg = None
+    if len(sys.argv) > 4 and sys.argv[4] == "bgimg":   # kodim05 at the same size, as float32 (what the GPU holds)
+        b = np.asarray(Image.open(HERE.parent / "data" / "kodak" / "kodim05.png").convert("RGB").resize((W, H), Image.LANCZOS), np.float32) / 255
+        bgimg = torch.tensor(b.reshape(-1, 3), dtype=torch.float64)
     P.requires_grad_(True)
-    loss, mse = torch_loss(P, bg, T, W, H, wpix); loss.backward()
-    spec = {"W": W, "H": H, "rgba": rgba.flatten().tolist(), "P": P.detach().flatten().tolist(), "bg": bg.tolist(), "focus": focus}
+    loss, mse = torch_loss(P, bg, T, W, H, wpix, bgimg); loss.backward()
+    spec = {"W": W, "H": H, "rgba": rgba.flatten().tolist(), "P": P.detach().flatten().tolist(), "bg": bg.tolist(), "focus": focus,
+            "bgimg": None if bgimg is None else np.concatenate([bgimg.numpy(), np.ones((W * H, 1))], 1).flatten().tolist()}
     (HERE.parent / "scratch").mkdir(exist_ok=True)
     sp = HERE.parent / "scratch" / "gpu_gc_in.json"; op = HERE.parent / "scratch" / "gpu_gc_out.json"
     sp.write_text(json.dumps(spec))

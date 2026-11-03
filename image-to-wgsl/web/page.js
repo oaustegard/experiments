@@ -3,6 +3,7 @@ import { IMAGES } from "./shaders.js";
 import { emitInstanced, createRenderer } from "./instanced.js";
 import { gzipSize, emitWGSL, checkpoints, normaliseFocus } from "./trainer.js";
 import { encodeGPU, probeGPU } from "./gputrain.js";
+import { DeepZoom } from "./deepzoom.js";
 
 const $ = (id) => document.getElementById(id);
 const T = 6;                 // the shader paints N * (t / T)^2 splats at time t > 0
@@ -17,13 +18,14 @@ const FORCE_TF = new URLSearchParams(location.search).has("tf");
 const GPU_MAXN = 8192;
 const TF_PROFILE = MOBILE ? { maxN: 256, pixBudget: 2 ** 21, stepsScale: 1 } : { maxN: 2048, pixBudget: 2 ** 22, stepsScale: 2 };
 const MAXDIM = MOBILE ? 512 : 768;   // uploaded images are fitted at most this many pixels on the longer side
+const MAXSRC = 4096;                 // and kept at most this size, for the detail tiles a zoomed view trains
 const TRAIN_TF = { init: "structure", importance: 0.5, pixBudget: TF_PROFILE.pixBudget, stepsScale: TF_PROFILE.stepsScale };
 const GPU_STEPS = { stepsStage: 150, stepsFinal: 500, stepsQat: 200 };   // 3x or 8x as many changed 2,048 splats by under 0.15 dB
 // TF.js trains on its WebGL backend. Its WebGPU backend computed wrong gradients past 32 splats per
 // chunk and crashed the iPhone tab when limited to 32 (GPU bridge, 2026-11-02).
 const TF_URLS = ["https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"];
 const LABEL = { orig: "Original", avif: "AVIF, same bytes", webp: "WebP, same bytes", jpeg: "JPEG, same bytes" };
-let dev, ctx, fmt, ub, cur, pipe, bg, rend = null, anim = 0, view = "shader", ks = [16, 32, 64, 128, 256, 512, 1024];
+let dev, ctx, fmt, ub, cur, pipe, bg, rend = null, anim = 0, view = "shader", ks = [16, 32, 64, 128, 256, 512, 1024], dz = null;
 
 const ksFor = (n) => { const a = []; for (let k = 16; k < n; k *= 2) a.push(k); a.push(n); return a; };
 
@@ -51,8 +53,13 @@ function load(entry) {
   if (entry.P) {
     entry.inst ??= emitInstanced({ P: Int32Array.from(entry.P), bg: Int32Array.from(entry.bg), A: entry.A, n: entry.n });
     rend = createRenderer(dev, fmt, entry.inst);
+    if (dz && dz !== entry.dz) dz.paused = true;
+    dz = entry.dz ?? null;
+    if (dz) { dz.attach(rend); dz.paused = false; }
     if (entry.instGz == null) gzipSize(entry.inst).then((g) => { entry.instGz = g; if (cur === entry) note(entry); });
   } else {
+    if (dz) dz.paused = true;
+    dz = null;
     const mod = dev.createShaderModule({ code: entry.wgsl });
     pipe = dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format: fmt }] } });
     bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }] });
@@ -77,6 +84,7 @@ function load(entry) {
     $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
   }
   cam.z = 1; cam.x = cam.y = 0.5; applyCam();
+  $("dzrow").hidden = !dz; dzStatus();
   setView(views.includes(view) ? view : "shader");
   draw(timeFor(ks[$("k").value]));
 }
@@ -157,7 +165,13 @@ function draw(t) {
   const cv = $("cv");
   const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-  if (rend) { rend.draw(ctx.getCurrentTexture().createView(), w, h, nAt(t), cam); readout(t); return; }
+  if (rend) {
+    const n = nAt(t), nd = dz && $("dzon").checked && n === cur.n ? dz.countFor(viewLevel()) : 0;
+    rend.draw(ctx.getCurrentTexture().createView(), w, h, n, cam, nd);
+    readout(t, nd);
+    if (n === cur.n) wantDetail();
+    return;
+  }
   dev.queue.writeBuffer(ub, 0, new Float32Array([w, h, t, 0]));
   const enc = dev.createCommandEncoder();
   const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [1, 1, 1, 1] }] });
@@ -166,11 +180,13 @@ function draw(t) {
   readout(t);
 }
 
-function readout(t) {
+function readout(t, nd = 0) {
   const n = nAt(t);
   const p = cur.points.filter((q) => q.n <= Math.max(n, 16)).pop();
+  $("tag").textContent = view === "shader" && !focusShown ? (nd ? "shader + detail" : "shader") : $("tag").textContent;
   $("readout").innerHTML = `<b>${n}</b> splats · <b>${p.bytes.toLocaleString()}</b> bytes · <b>${p.psnr}</b> dB` +
-    (p.pf != null ? ` · <b>${p.pf}</b> dB in focus` : "") + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`);
+    (p.pf != null ? ` · <b>${p.pf}</b> dB in focus` : "") + (n === p.n ? "" : ` <span class="note">(nearest measured: ${p.n})</span>`) +
+    (nd ? ` · <b>+${nd.toLocaleString()}</b> detail splats` : "");
 }
 
 function setView(v) {
@@ -208,6 +224,53 @@ function addButton(e, own = false) {
     $("picker").insertBefore(b, $("picker").querySelector(".own"));
   }
   b.onclick = () => { stopPaint(); hideFocus(); $("enc").hidden = !own; load(e); };
+}
+
+// ------------------------------------------------------------------ deep zoom
+// For your own image the page keeps the source (up to MAXSRC on its longer side). When the screen shows more
+// pixels than the list was fitted at, detail tiles for the visible part train in the background (deepzoom.js) and
+// draw over the list, so zooming in adds detail from the source rather than only smoother edges.
+function viewLevel() {          // device pixels per pixel of the fitted image, as a pyramid level
+  const { A, Sw, Sh } = camGeom();
+  return dz.levelFor(Math.min(Sw / A, Sh) * cam.z * devicePixelRatio / cur.H);
+}
+let wantTimer = 0;
+function wantDetail() {         // the tiles this view needs, once the view has settled for a moment
+  if (!dz || !$("dzon").checked) return;
+  clearTimeout(wantTimer);
+  wantTimer = setTimeout(() => {
+    const L = viewLevel();
+    if (L < 1) { dz.want([]); dzStatus(); return; }
+    const { A, k } = camGeom(), hw = camGeom().Sw / 2 / k / A, hh = camGeom().Sh / 2 / k;
+    dz.want(dz.visible(L, Math.max(0, cam.x - hw), Math.max(0, cam.y - hh), Math.min(1, cam.x + hw), Math.min(1, cam.y + hh)));
+    dzStatus();
+  }, 150);
+}
+function dzStatus() {
+  if (!dz) return;
+  const st = dz.stats(), L = viewLevel(), top = dz.levels[dz.levels.length - 1];
+  const trained = st.reduce((a, l) => a + l.trained, 0), splats = st.reduce((a, l) => a + l.splats, 0);
+  let msg = `Source kept at ${top.W.toLocaleString()}×${top.H.toLocaleString()}: ${dz.levels.length} detail level${dz.levels.length > 1 ? "s" : ""} above the fitted ${cur.W}×${cur.H}.`;
+  if (dz.error) msg += ` Detail training failed: ${dz.error.message || dz.error}.`;
+  else if (dz.pending()) msg += ` Training detail for this view: ${dz.pending()} tile${dz.pending() > 1 ? "s" : ""} to go.`;
+  else if (L > 0) msg += ` This view shows level ${L} (${dz.levels[L - 1].W.toLocaleString()}×${dz.levels[L - 1].H.toLocaleString()}).`;
+  else msg += " Zoom in to add detail.";
+  if (trained) msg += ` ${trained} tile${trained > 1 ? "s" : ""}, ${splats.toLocaleString()} detail splats so far.`;
+  $("dzstat").textContent = msg;
+}
+function makeDeepZoom(entry, up) {
+  const src = up.src, Ws = src.width, Hs = src.height;
+  const crop = async (lv, x0, y0, x1, y1) => {       // a rectangle of a level, resampled from the kept source
+    const w = x1 - x0, h = y1 - y0, [c, x] = canvas2d(w, h);
+    x.imageSmoothingQuality = "high";
+    x.drawImage(src, x0 * Ws / lv.W, y0 * Hs / lv.H, w * Ws / lv.W, h * Hs / lv.H, 0, 0, w, h);
+    return x.getImageData(0, 0, w, h).data;
+  };
+  const d = new DeepZoom(dev, { base: { P: Int32Array.from(entry.P), bg: entry.bg, A: entry.A, n: entry.n }, W0: up.W, H0: up.H, Ws, Hs, crop,
+    ...(window.__dzOpts || {}) });   // tests shorten tile training through __dzOpts
+  if (!d.levels.length) return null;
+  d.onTile = (r) => { if (r?.error) console.log("deep zoom error", r.error?.stack || r.error); if (cur?.dz === d) { dzStatus(); redraw(); } };
+  return d;
 }
 
 // ------------------------------------------------------------------ standalone page for downloads
@@ -337,7 +400,7 @@ function canvas2d(w, h) { const c = document.createElement("canvas"); c.width = 
 const toBlob = (c, type, q) => new Promise((r) => c.toBlob(r, type, q));
 
 async function readUpload(file) {
-  const bmp = await createImageBitmap(file);
+  let bmp = await createImageBitmap(file);
   const s = Math.min(1, MAXDIM / Math.max(bmp.width, bmp.height));
   const W = Math.max(16, Math.round(bmp.width * s)), H = Math.max(16, Math.round(bmp.height * s));
   const [c, x] = canvas2d(W, H);
@@ -345,7 +408,10 @@ async function readUpload(file) {
   x.drawImage(bmp, 0, 0, W, H);
   const rgba = x.getImageData(0, 0, W, H).data;
   const png = URL.createObjectURL(await toBlob(c, "image/png"));
-  return { W, H, rgba, canvas: c, png, name: file.name, img: { rgba, width: W, height: H } };
+  // the source, for deep zoom: at most MAXSRC on its longer side
+  const t = Math.min(1, MAXSRC / Math.max(bmp.width, bmp.height));
+  if (t < 1) { const big = bmp; bmp = await createImageBitmap(big, { resizeWidth: Math.round(big.width * t), resizeHeight: Math.round(big.height * t), resizeQuality: "high" }); big.close(); }
+  return { W, H, rgba, canvas: c, png, name: file.name, img: { rgba, width: W, height: H }, src: bmp };
 }
 
 // Best encode of `type` at or under `budget` bytes, at full, half or quarter size, decoded back to W x H.
@@ -467,6 +533,7 @@ async function runEncode() {
     $("prog").value = p.step / p.totalSteps;
     $("encstat").textContent = `${p.phase} · step ${p.step} of ${p.totalSteps} · about ${p.psnrSample.toFixed(1)} dB · ${Math.round(p.seconds)} s`;
   };
+  if (dz) dz.paused = true;                 // the GPU is the encoder's until it finishes
   try {
     stopPaint(); setView("shader"); hideFocus();
     const focus = focusState.map ? normaliseFocus(focusState.map, upload.W * upload.H) : null, focusLabel = focus ? FOCUS_LABEL[focusState.mode] : null;
@@ -496,6 +563,9 @@ async function runEncode() {
       if (b) { src[k] = b.url; cmp[k] = { psnr: b.psnr, bytes: b.bytes, scale: b.scale, pf: b.pf }; }
     }
     const entry = { id: "your image", own: true, wgsl, n, W: r.W, H: r.H, points, cmp, src, P: Array.from(r.P), bg: Array.from(r.bg), A: r.A, focus: focusLabel };
+    const old = [...$("picker").children].find((x) => x.dataset.id === entry.id);
+    if (dz && old) dz.paused = true;                  // the previous upload's detail stops training
+    entry.dz = makeDeepZoom(entry, upload);
     window.__encodeResult = { ...entry, seconds: r.seconds, backend: r.backend };
     $("prev").hidden = true;
     const on = r.backend === "webgpu-tiles" ? "WebGPU" : `TensorFlow.js (${r.backend})`;
@@ -506,6 +576,7 @@ async function runEncode() {
   } catch (e) {
     $("encstat").textContent = "Encoding failed: " + (e?.message || e);
     console.log("encode error", e?.stack || e);
+    if (dz) { dz.paused = false; dz.pump(); }
     $("prev").hidden = true;
     endPreview();
     if (cur) draw(timeFor(ks[$("k").value]));   // repaint what the canvas showed before the previews
@@ -540,6 +611,7 @@ if (await init()) {
   $("stage").addEventListener("click", tapFocus);
   $("k").oninput = () => { stopPaint(); setView("shader"); draw(timeFor(ks[$("k").value])); };
   $("paint").onclick = paint;
+  $("dzon").onchange = () => { if (dz) { dz.paused = !$("dzon").checked; if (!dz.paused) dz.pump(); } redraw(); };
   addEventListener("resize", redraw);
   initZoom();
   load(IMAGES[0]);

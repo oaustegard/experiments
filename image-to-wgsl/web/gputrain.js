@@ -70,11 +70,13 @@ struct Cfg { W: u32, H: u32, TX: u32, TY: u32, N: u32, K: u32, quant: u32, evalM
 @group(0) @binding(16) var<storage, read_write> grad: array<f32>;
 @group(0) @binding(17) var<storage, read_write> adamM: array<f32>;
 @group(0) @binding(18) var<storage, read_write> adamV: array<f32>;
+@group(0) @binding(19) var<storage, read_write> bgi: array<vec4f>;    // per-pixel background, used when cfg.bg[0].w = 1
 const MAXS = ${arr(MAX)};
 const SCALE = ${arr(MAX.map((m, i) => m * STEP_FRAC[i]))};
 const LN2 = 0.6931471805599453;
 fn ck(i: u32) -> u32 { return cfg.ck[i / 4u][i % 4u]; }
 fn bgAt(q: vec2f) -> vec3f { let h = q.x / cfg.A; return mix(mix(cfg.bg[0].rgb, cfg.bg[1].rgb, h), mix(cfg.bg[2].rgb, cfg.bg[3].rgb, h), q.y); }
+fn bgPix(q: vec2f, pi: u32) -> vec3f { if (cfg.bg[0].w > .5) { return bgi[pi].rgb; } return bgAt(q); }
 
 @compute @workgroup_size(64) fn prep(@builtin(global_invocation_id) g: vec3u) {
   let j = g.x; if (j >= cfg.N) { return; }
@@ -150,7 +152,7 @@ fn listRange(ti: u32) -> vec2u { let s = min(tileOff[ti], cfg.cap); let e = min(
   let ti = wg.y * cfg.TX + wg.x;
   if (li == 0u) { lrw = listRange(ti); }
   let lr = workgroupUniformLoad(&lrw);   // one value per tile, uniform for the barriers below
-  var c = bgAt(q); var L = 0.; var kp = 0u;
+  var c = bgPix(q, min(pi, P - 1u)); var L = 0.; var kp = 0u;
   var snaps: array<vec4f, ${KMAX}>;
   for (var base = 0u; base < lr.y; base += 256u) {
     if (base + li < lr.y) { let j = tileList[lr.x + base + li]; sb[li * 3u] = spl[j * 3u]; sb[li * 3u + 1u] = spl[j * 3u + 1u]; sb[li * 3u + 2u] = spl[j * 3u + 2u]; }
@@ -207,7 +209,7 @@ fn listRange(ti: u32) -> vec2u { let s = min(tileOff[ti], cfg.cap); let e = min(
     let s = pix[k * P + pi]; Lk[k] = s.w;
     gk[k] = select(vec3f(0.), stats[cfg.K + k] * T.w * (s.rgb - T.rgb), valid);
   }
-  var Bc = bgAt(q); var Lle = 0.;
+  var Bc = bgPix(q, pi); var Lle = 0.;
   for (var base = 0u; base < lr.y; base += 64u) {
     if (li < 64u && base + li < lr.y) { let j = tileList[lr.x + base + li]; sbb[li * 3u] = spl[j * 3u]; sbb[li * 3u + 1u] = spl[j * 3u + 1u]; sbb[li * 3u + 2u] = spl[j * 3u + 2u]; }
     workgroupBarrier();
@@ -267,15 +269,17 @@ fn listRange(ti: u32) -> vec2u { let s = min(tileOff[ti], cfg.cap); let e = min(
 // Bindings each entry point uses (layout "auto" makes one bind group layout per pipeline from these).
 const USES = {
   prep: [0, 1, 2, 3, 4], scanArea: [0, 4, 5], count: [0, 3, 6], scanTiles: [0, 6, 7, 10], fill: [0, 3, 5, 7, 8, 9],
-  forward: [0, 2, 7, 8, 11, 12, 13], loss: [0, 13, 14], backward: [0, 2, 7, 8, 11, 12, 14, 15], gather: [0, 5, 9, 15, 16],
+  forward: [0, 2, 7, 8, 11, 12, 13, 19], loss: [0, 13, 14], backward: [0, 2, 7, 8, 11, 12, 14, 15, 19], gather: [0, 5, 9, 15, 16],
   adam: [0, 1, 16, 17, 18],
 };
 
+const PIPES = new WeakMap();
+
 export class GpuTrainer {
-  constructor(dev, img, { nMax, cut = 1024, focus = null } = {}) {
+  constructor(dev, img, { nMax, cut = 1024, focus = null, bgImg = null, prefix = true } = {}) {
     this.dev = dev; this.W = img.width; this.H = img.height; this.A = this.W / this.H; this.P = this.W * this.H;
     this.TX = Math.ceil(this.W / TILE); this.TY = Math.ceil(this.H / TILE); this.T = this.TX * this.TY;
-    this.nMax = nMax; this.cut = cut; this.K = checkpoints(nMax).length;
+    this.nMax = nMax; this.cut = cut; this.prefix = prefix; this.K = checkpoints(nMax).length;
     const U = GPUBufferUsage, S = U.STORAGE | U.COPY_DST | U.COPY_SRC;
     const buf = (bytes) => dev.createBuffer({ size: Math.max(16, Math.ceil(bytes / 16) * 16), usage: S });
     this.cfgBuf = dev.createBuffer({ size: 176, usage: U.UNIFORM | U.COPY_DST });
@@ -283,7 +287,10 @@ export class GpuTrainer {
     this.b = { params: buf(N * 40), spl: buf(N * 48), rects: buf(N * 16), area: buf(N * 4), slotOff: buf((N + 1) * 4),
       tileCount: buf(this.T * 4), tileOff: buf((this.T + 1) * 4), counters: buf(16), tgt: buf(this.P * 16),
       pix: buf(this.K * this.P * 16), tileLoss: buf(this.T * this.K * 4), stats: buf((2 * this.K + 1) * 4),
-      grad: buf(N * 40), adamM: buf(N * 40), adamV: buf(N * 40) };
+      grad: buf(N * 40), adamM: buf(N * 40), adamV: buf(N * 40), bgi: buf(bgImg ? this.P * 16 : 16) };
+    // residual tiles paint over a given picture (rgba floats in 0..1) instead of the four-corner blend
+    this.bgImg = bgImg;
+    if (bgImg) dev.queue.writeBuffer(this.b.bgi, 0, bgImg);
     // target and per-pixel weights (focus); weights normalised to mean 1
     const t = new Float32Array(this.P * 4);
     let ws = 0;
@@ -296,9 +303,13 @@ export class GpuTrainer {
     dev.queue.writeBuffer(this.b.tgt, 0, t);
     this.wsum = this.P;
     this.tgtArr = t;
-    this.mod = dev.createShaderModule({ code: wgsl() });
-    this.pipes = {};
-    for (const name of Object.keys(USES)) this.pipes[name] = dev.createComputePipeline({ layout: "auto", compute: { module: this.mod, entryPoint: name } });
+    // pipelines depend only on the device: compile once (a deep-zoom view trains many small tiles)
+    if (!PIPES.has(dev)) {
+      const mod = dev.createShaderModule({ code: wgsl() }), pipes = {};
+      for (const name of Object.keys(USES)) pipes[name] = dev.createComputePipeline({ layout: "auto", compute: { module: mod, entryPoint: name } });
+      PIPES.set(dev, pipes);
+    }
+    this.pipes = PIPES.get(dev);
     this.setCap(Math.max(this.T * 48, nMax * 16));
   }
   setCap(cap) {
@@ -309,7 +320,7 @@ export class GpuTrainer {
     this.b.slotMap = this.dev.createBuffer({ size: cap * 4, usage: S });
     this.b.partials = this.dev.createBuffer({ size: cap * 40, usage: S });
     const byIdx = ["cfg", "params", "spl", "rects", "area", "slotOff", "tileCount", "tileOff", "tileList", "slotMap", "counters",
-                   "tgt", "pix", "tileLoss", "stats", "partials", "grad", "adamM", "adamV"];
+                   "tgt", "pix", "tileLoss", "stats", "partials", "grad", "adamM", "adamV", "bgi"];
     this.groups = {};
     for (const [name, uses] of Object.entries(USES)) {
       this.groups[name] = this.dev.createBindGroup({ layout: this.pipes[name].getBindGroupLayout(0),
@@ -317,12 +328,13 @@ export class GpuTrainer {
     }
   }
   writeCfg({ N, quant = 0, evalMode = 0, lr = 0, t = 1, b1 = 0.9, b2 = 0.99, bg }) {
-    const ks = checkpoints(N); this.Kcur = ks.length;
+    const ks = this.prefix ? checkpoints(N) : [N]; this.Kcur = ks.length;
     const ab = new ArrayBuffer(176), u = new Uint32Array(ab), fl = new Float32Array(ab);
     u[0] = this.W; u[1] = this.H; u[2] = this.TX; u[3] = this.TY; u[4] = N; u[5] = ks.length; u[6] = quant; u[7] = evalMode;
     fl[8] = this.A; fl[9] = this.cut; fl[10] = lr; fl[11] = t; u[12] = this.cap; fl[13] = this.wsum; fl[14] = b1; fl[15] = b2;
     for (let i = 0; i < KMAX; i++) u[16 + i] = i < ks.length ? ks[i] : 0xffffffff;
     for (let i = 0; i < 4; i++) for (let c = 0; c < 3; c++) fl[28 + i * 4 + c] = bg[i * 3 + c] / MBG;
+    fl[31] = this.bgImg ? 1 : 0;
     this.dev.queue.writeBuffer(this.cfgBuf, 0, ab);
   }
   // one pass of the pipeline; `train` adds backward, gather and adam
@@ -357,10 +369,12 @@ export class GpuTrainer {
 export async function encodeGPU(dev, img, opts = {}) {
   // focus: per-pixel weights (W*H, any scale) trained on and reported as psnrFocus; focusEval: weights only
   // reported, so an unfocused run can be scored on the same map
+  // bgImg: a picture to paint over (W*H rgba floats in 0..1) in place of the four-corner background, as a
+  // deep-zoom detail tile paints over the coarser levels; prefix: false trains the full list only
   const { n = 1024, seed = 0, onProgress = null, onPreview = null, init = "structure", focus = null, focusEval = null,
-          stepsStage = 150, stepsFinal = 500, stepsQat = 200, cut = 1024 } = opts;
+          stepsStage = 150, stepsFinal = 500, stepsQat = 200, cut = 1024, bgImg = null, prefix = true } = opts;
   const W = img.width, H = img.height, A = W / H, HW = W * H, rand = rng(seed);
-  const tr = new GpuTrainer(dev, img, { nMax: n, cut, focus });
+  const tr = new GpuTrainer(dev, img, { nMax: n, cut, focus, bgImg, prefix });
   const t0 = performance.now();
   // small target, structure tensor and splat init (same rules as trainer.js)
   const sw = Math.max(16, Math.min(W, 128)), sh = Math.max(8, Math.round(sw / A)), C = sw * sh;
@@ -403,10 +417,19 @@ export async function encodeGPU(dev, img, opts = {}) {
   let P = new Float32Array(0), done = 0, overflows = 0;
   const zero = (N) => { tr.dev.queue.writeBuffer(tr.b.adamM, 0, new Float32Array(N * 10)); tr.dev.queue.writeBuffer(tr.b.adamV, 0, new Float32Array(N * 10)); };
   async function errorCells(N) {           // per-cell squared error of the current render (last prefix)
+    if (N === 0 && bgImg) {               // error of the given background, per cell
+      const e = new Float32Array(C), k = new Float32Array(C);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const ci = Math.min(sh - 1, Math.floor(y * sh / H)) * sw + Math.min(sw - 1, Math.floor(x * sw / W)), i = y * W + x;
+        let s = 0; for (let c = 0; c < 3; c++) s += (bgImg[i * 4 + c] - tr.tgtArr[i * 4 + c]) ** 2; e[ci] += s * tr.tgtArr[i * 4 + 3]; k[ci]++;
+      }
+      for (let i = 0; i < C; i++) e[i] = e[i] / Math.max(1, k[i]) + 1e-8;
+      return e;
+    }
     if (N === 0) { const e = new Float32Array(C); const bgc = (h, v, c) => ((bg[c] * (1 - h) + bg[3 + c] * h) * (1 - v) + (bg[6 + c] * (1 - h) + bg[9 + c] * h) * v) / MBG;
       for (let i = 0; i < C; i++) { const h = (i % sw + 0.5) / sw, v = (Math.floor(i / sw) + 0.5) / sh; let s = 1e-8; for (let c = 0; c < 3; c++) s += (bgc(h, v, c) - small[i * 3 + c]) ** 2; e[i] = s * fsmall[i]; } return e; }
     tr.writeCfg({ N, bg }); tr.dev.queue.submit([tr.encode(N, false).finish()]);
-    const K = checkpoints(N).length, cur = await tr.read("pix", HW * 16, (K - 1) * HW * 16);
+    const K = tr.Kcur, cur = await tr.read("pix", HW * 16, (K - 1) * HW * 16);
     const e = new Float32Array(C), k = new Float32Array(C);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const ci = Math.min(sh - 1, Math.floor(y * sh / H)) * sw + Math.min(sw - 1, Math.floor(x * sw / W)), i = y * W + x;
@@ -452,7 +475,7 @@ export async function encodeGPU(dev, img, opts = {}) {
   const st = await tr.read("stats", (2 * tr.Kcur + 1) * 4);
   // with evalMode on, st[i] is the mean squared difference of 8-bit-rounded colours (as psnr8)
   const db = (m) => 10 * Math.log10(255 * 255 / Math.max(m, 1e-12));
-  const points = checkpoints(n).map((k, i) => ({ n: k, psnr: db(st[i]) }));
+  const points = (prefix ? checkpoints(n) : [n]).map((k, i) => ({ n: k, psnr: db(st[i]) }));
   const evalW = focusEval ?? focus;
   if (evalW) {   // and weighted by the focus map (mean 1), as trainer.js psnrFocus
     if (evalW !== focus) {
@@ -489,8 +512,8 @@ export async function probeGPU(dev, img, { n = 256, steps = 20 } = {}) {
 }
 
 // Gradient check helper: one forward + backward on given params; returns {loss, grad, mse}.
-export async function lossAndGrad(dev, img, P, bg, { cut = 1e9, quant = 0, focus = null } = {}) {
-  const N = P.length / 10, tr = new GpuTrainer(dev, img, { nMax: N, cut, focus });
+export async function lossAndGrad(dev, img, P, bg, { cut = 1e9, quant = 0, focus = null, bgImg = null } = {}) {
+  const N = P.length / 10, tr = new GpuTrainer(dev, img, { nMax: N, cut, focus, bgImg });
   dev.queue.writeBuffer(tr.b.params, 0, Float32Array.from(P));
   tr.writeCfg({ N, quant, lr: 0, t: 1, bg });
   dev.queue.submit([tr.encode(N, true).finish()]);
