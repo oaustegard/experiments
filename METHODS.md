@@ -3877,6 +3877,23 @@ width 256 cost 0.172 ms and a layer of twice the width 0.228 ms, about 0.115 ms 
 per token. int8 gave 7.6 ms at batch 1 and 54 ms at batch 8, so the right precision depends on
 the batch size you serve. `monad-layer-parallel/results/premises.json`.
 
+### Gate a quantized small model on loop rate, not KL (monad-layer-parallel)
+
+A next-token KL screen does not predict what quantization does to free generation. On the loop-edited Monad (56.7M),
+int4 round-to-nearest screened at KL 0.13 and tripled the greedy loop rate on the test set (5.8% to 18.6%), undoing most of
+the loop edit; int4 plus 16 folded layer pairs passed a KL gate of 0.35 at 0.25 and collapsed to 42% loops. int8 (KL 0.003)
+matched fp32 exactly. GPTQ and HQQ did not repair the int4 error (0.27, 0.14). For a small model whose failure mode is
+repetition, screen with a short generation run and count loops before trusting any KL threshold.
+`monad-layer-parallel/RESULTS.md`.
+
+### Layer-level speculation and wide parallel groups do not cut depth for free (monad-layer-parallel)
+
+Parareal over depth (guess segment outputs with a cheap parallel pass, correct with the exact layers from all guesses at
+once) converges only one segment per iteration on Monad, because the attention sink makes coarse guesses wildly wrong, so it
+costs at least as many layer steps as running in order. Running groups of three or four layers in parallel costs more KL per
+layer of depth saved than pairs (depth 48: pairs 0.18, triples 0.26). Pairs are the only grouping worth trying.
+`monad-layer-parallel/results/depth_probe.json`.
+
 ### A loop direction can be the attention-sink direction in disguise (monad-weight-edit)
 
 In PleIAs Monad (56M parameters, 64 layers at width 256), a loop is greedy decoding repeating the same tokens until the token

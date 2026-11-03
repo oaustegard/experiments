@@ -9,11 +9,33 @@ onnxruntime-web's WebGPU backend. The plan, with its predictions, was registered
 
 ## Answer
 
-ANSWER_TBD
+How much faster and smaller can weight surgery alone make the loop-edited Monad without hurting its answers? About
+1.8×, from 8-bit weights and nothing else.
+The 8-bit model decodes in 6.6 ms per token on the Mac (152 tokens/s against 85 for fp32) <!-- @evidence[[results/summary.json#bench.A8p_q8.B1]] -->
+and ships 65 MB instead of 114. <!-- @evidence[[results/summary.json#sizes_mb.A8p_q8.shipped]] -->
+On the 500-prompt test set it gets 17.4% right against 17.2% for fp32. <!-- @evidence[[results/summary.json#test.A8p_q8.all.acc]] -->
+
+Everything faster failed or did not pay. 4-bit weights cut latency further, to 5.5 ms, but tripled the loop rate to
+18.6% <!-- @evidence[[results/summary.json#test.A8p_q4.all.loop]] -->, undoing much of the loop edit; 4-bit plus 16
+folded layer pairs, the arm the plan bet on, collapsed to 5.8% correct. Folding 8 pairs passes the decision rule
+(16.0% correct <!-- @evidence[[results/summary.json#test.A8p_P8.all.acc]] -->, loops 7.8%) but in 8-bit saves only
+0.7 ms while the zero padding that keeps the layers uniform grows the download to 109 MB
+<!-- @evidence[[results/summary.json#sizes_mb.A8p_P8_q8.shipped]] -->.
+
+A 4-bit quantizer that keeps the loop rate near fp32's would change this answer: at 4 bits a double-width layer costs the
+same as a normal one, so folding would then pay.
 
 ## Findings
 
-FINDINGS_TBD
+1. 8-bit weights are free: 87 vs 86 correct of 500, McNemar p = 1.0 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q8.all.correct.p]] -->, loops 7.0% against 5.8% (p = 0.48), at 6.6 ms/token against 11.8 (Round 3).
+2. 4-bit weights bring the loops back: 18.6% of answers loop against 5.8%, p = 3.6e-11 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q4.all.loop.p]] -->; overall 12.8% correct, p = 0.035. A screen KL of 0.13 was already enough to do this (rounds 2–3).
+3. GPTQ and HQQ do not repair Monad's 4-bit error: screen KL 0.267 and 0.136 against 0.132 for round-to-nearest <!-- @evidence[[results/summary.json#screen_kl.A8p_gptq]] --> (Round 3).
+4. 4-bit plus 16 folded pairs collapses: 5.8% correct, loops 42.4% <!-- @evidence[[results/summary.json#test.A8p_P16_q4.all.loop]] -->, despite passing the 0.35 KL gate at 0.251 (Round 3).
+5. Folding 8 pairs passes the decision rule, without a margin: 80 vs 86 correct (p = 0.61), loops 39 vs 29 (p = 0.23); GSM8K falls from 12 to 5 correct, p = 0.092 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_P8.gsm8k.correct.p]] --> (Round 5, fp32 stand-in for 8-bit).
+6. In int4 a double-width layer costs what a normal one does, so folding converts depth directly into latency: 16 pairs 4.4 ms and 24 pairs 3.6 ms <!-- @evidence[[results/summary.json#bench.A8p_P24_q4.B1]] -->, both within 0.1 ms of the cost model; 8 pairs missed it, 5.3 against 4.9 (Round 2).
+7. The int8 kernel is slow at batch 8: 53.9 ms per step against 12.2 for int4 <!-- @evidence[[results/summary.json#bench.A8p_q8.B8]] -->; accuracy_level 4 did not change it (6.8 ms at batch 1). The slowness is in onnxruntime-web's int8 MatMulNBits path, not in the model (Round 2).
+8. Wider parallel groups cost more KL per layer of depth saved than pairs: depth 48 at KL 0.180 for pairs, 0.256 for groups of three <!-- @evidence[[results/summary.json#depth.groups.3.kl]] --> (Round 4).
+9. Parareal over depth (layer-level speculation) gives nothing: 16 segments of 4 layers stay at KL 4.12 after 3 iterations <!-- @evidence[[results/summary.json#depth.parareal.16.3.kl]] -->, which already cost as many layer steps as running all 64 in order (Round 4).
 
 ## Method
 
@@ -107,4 +129,17 @@ cost more layer steps than running all 64 in order. No gain.
 
 ### Round 5 — 8 pairs on the test set
 
-P8_TBD
+The 8-pair fold had not been planned for the test set: the plan's gate admitted the fastest arm under KL 0.35, and that
+arm collapsed. After round 3 the KL screen could no longer pick arms, so the 8-pair fold was tested directly. It ran in fp32
+as a stand-in for 8-bit + 8 pairs, since the two screened alike (0.062 and 0.066) and 8-bit alone matched fp32 on the test
+set. Six IFEval batches overran the 600 s job cap and were rerun as two further jobs.
+
+| arm | correct | MMLU | GSM8K | IFEval | loops | correct vs F (p) | loops vs F (p) |
+|---|---|---|---|---|---|---|---|
+| F | 17.2% | 27.0% | 8.0% | 13.3% | 5.8% | — | — |
+| fp32 + 8 pairs | 16.0% | 29.0% | 3.3% | 11.3% | 7.8% | 80 vs 86 (0.61) | 39 vs 29 (0.23) |
+
+It sits inside the decision rule's bounds (−1.2 points, +2.0 points of loops). GSM8K fell from 12 to 5 correct (p = 0.09).
+That is not significant at this sample size but is the largest per-task move. In 8-bit the fold buys 0.7 ms (5.9 against
+6.6) and costs 44 MB of download (109 against 65 MB), because the zero padding on unpaired layers is stored as int8 weights
+and scales. In int4 the same padding cost about 3% per layer. The recommended build is 8-bit alone.
