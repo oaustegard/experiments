@@ -3,13 +3,15 @@
     python3 build_data.py
       data/train_papers.jsonl   10 SYNTH-style rows per paper
       data/heldout.jsonl        3 held-out questions per paper, with reference answer and key points
+      data/train_para.jsonl     round 1 rows plus data/para/*.json (gen_para.py), minus any row whose question
+                                shares 50% or more of its content words with a held-out question on the same paper
       data/eval_prompts.jsonl   every evaluation prompt: papers (held-out), facts (monad-chat's 30
                                 one-line probes), dev (monad-weight-edit's 192-prompt dev fixture)
 
 A paper counts as post-cutoff when it is dated 2025-11-01 or later: SYNTH and Monad were released in
 November 2025, so nothing later can be in the weights.
 """
-import json, sys
+import json, re, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -21,6 +23,16 @@ sys.path.insert(0, str(MWE))
 from common import gsm8k_gold, mmlu_question  # noqa: E402
 
 CUTOFF = "2025-11-01"
+NEAR = 0.5
+
+
+def words(s):
+    return set(re.findall(r"[a-z0-9]{3,}", s.lower()))
+
+
+def jaccard(a, b):
+    a, b = words(a), words(b)
+    return len(a & b) / max(1, len(a | b))
 
 
 def main():
@@ -53,6 +65,20 @@ def main():
         with open(HERE / f"data/{name}.jsonl", "w") as f:
             for r in rows:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    para, dropped = list(tr), []
+    for f in sorted((HERE / "data/para").glob("*.json")) if (HERE / "data/para").exists() else []:
+        d = json.loads(f.read_text())
+        hq = [r["q"] for r in ho if r["paper"] == d["id"]]
+        for i, x in enumerate(d["rows"]):
+            row = {"id": f"{f.stem}#{i}", "paper": d["id"], "q": x["q"].strip(), "reasoning": x["reasoning"].strip(),
+                   "answer": x["answer"].strip()}
+            (dropped if max(jaccard(row["q"], q) for q in hq) >= NEAR else para).append(row)
+    if len(para) > len(tr):
+        with open(HERE / "data/train_para.jsonl", "w") as f:
+            for r in para:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        (HERE / "data/para_dropped.json").write_text(json.dumps(dropped, indent=1, ensure_ascii=False))
+        print(f"train_para: {len(para)} rows ({len(para) - len(tr)} paraphrases kept, {len(dropped)} dropped as near held-out)")
     ev = [{"set": "papers", "id": r["id"], "q": r["q"], "max_new": 768} for r in ho]
     ev += [{"set": "seen", "id": r["id"], "q": r["q"], "max_new": 768} for r in seen]
     for p in json.loads((experiment("monad-chat") / "probes_facts.json").read_text()):
