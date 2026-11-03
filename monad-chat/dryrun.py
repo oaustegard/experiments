@@ -35,6 +35,8 @@ DECODES = {
     "t0.7": {"temperature": 0.7, "top_p": 0.9, "penalty": 1.0, "window": 0},
     "t0.7r": {"temperature": 0.7, "top_p": 0.9, "penalty": 1.15, "window": 64},
     "t0.5r": {"temperature": 0.5, "top_p": 0.9, "penalty": 1.15, "window": 64},
+    "t0.3r": {"temperature": 0.3, "top_p": 0.9, "penalty": 1.15, "window": 64},
+    "gr": {"temperature": 0, "top_p": 1.0, "penalty": 1.15, "window": 64},   # greedy after the penalty (GPU Bridge only)
     "t1.0": {"temperature": 1.0, "top_p": 0.95, "penalty": 1.0, "window": 0},
 }
 
