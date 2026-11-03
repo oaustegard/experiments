@@ -34,6 +34,12 @@ while q:
     for p in (o - 1 if i else -1, o + 1 if i < n - 1 else -1, o - n if j else -1, o + n if j < n - 1 else -1):
         if p >= 0 and d[p] < 0 and g[p] >= FREE: d[p] = d[o] + 1; q.append(p)
 assert ((d >= 0) == (lab >= 0)).all() and (d[d >= 0] % 3 == lab[d >= 0]).all(), "labels differ from BFS mod 3"
-json.dump({"n": n, "rounds": s + 1, "tok": g.tolist(), "lab": lab.tolist(), "mark": mark.tolist(), "dist": d.tolist(),
+# distance from the start: a route cell's mark appears about D + 1 + ds steps in (D = start's distance to goal)
+s0 = int(np.where(g == 5)[0][0]); ds = np.full(n * n, -1); ds[s0] = 0; q = deque([s0])
+while q:
+    o = q.popleft(); i, j = o % n, o // n
+    for p in (o - 1 if i else -1, o + 1 if i < n - 1 else -1, o - n if j else -1, o + n if j < n - 1 else -1):
+        if p >= 0 and ds[p] < 0 and g[p] >= FREE: ds[p] = ds[o] + 1; q.append(p)
+json.dump({"ds": ds.tolist(), "D": int(d[s0]), "n": n, "rounds": s + 1, "tok": g.tolist(), "lab": lab.tolist(), "mark": mark.tolist(), "dist": d.tolist(),
            "dmax": int(d.max())}, open(HERE / "state.json", "w"))
 print("labels and route match BFS; dmax", d.max())

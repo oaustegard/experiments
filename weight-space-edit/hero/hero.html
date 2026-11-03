@@ -1,7 +1,9 @@
 <!doctype html><meta charset="utf-8"><body style="margin:0;background:#000"><canvas id="out"></canvas><script type="module">
 // Hero image for the hand-written TRM post, drawn by a WGSL fragment shader from the network's own state
 // (state.json: wavefront labels mod 3, route marks, BFS distance for shading). Renders offscreen, reads back,
-// and leaves a PNG data URL in window.RESULT.
+// and leaves a PNG data URL in window.RESULT. window.frame(t) renders the network at automaton step t: the
+// goal's wavefront reaches a cell at its distance to the goal, a route cell's mark appears at D + 1 + its distance
+// from the start, which is the order the hand-written weights compute them in.
 const W = +(new URLSearchParams(location.search).get("w") || 1600), H = +(new URLSearchParams(location.search).get("h") || 840);
 try {
   const st = await (await fetch("state.json")).json();
@@ -10,15 +12,19 @@ try {
   for (let k = 0; k < n * n; k++) cells[k] = st.tok[k] | ((st.lab[k] + 1) << 4) | (st.mark[k] << 8) | (Math.max(0, st.dist[k]) << 12);
   const buf = dev.createBuffer({ size: cells.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
   dev.queue.writeBuffer(buf, 0, cells);
-  const uni = dev.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const dsb = dev.createBuffer({ size: cells.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  dev.queue.writeBuffer(dsb, 0, Uint32Array.from(st.ds, (v) => (v < 0 ? 65535 : v)));
+  const uni = dev.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   let x0 = n, x1 = 0, y0 = n, y1 = 0;
   for (let k = 0; k < n * n; k++) if (st.mark[k]) { const i = k % n, j = (k / n) | 0; x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, j); y1 = Math.max(y1, j); }
   const span = Math.max(x1 - x0 + 1, (y1 - y0 + 1) * W / H) * 1.55; // grid cells across the image width
   dev.queue.writeBuffer(uni, 0, new Float32Array([W, H, n, st.dmax, (x0 + x1 + 1) / 2, (y0 + y1 + 1) / 2, span, 0, ...[5, 6].flatMap((t) => { const k = st.tok.indexOf(t); return [k % n + 0.5, ((k / n) | 0) + 0.5]; })]));
+  const setT = (t) => dev.queue.writeBuffer(uni, 48, new Float32Array([t, st.D, 0, 0]));
   const code = /* wgsl */`
-struct U { res: vec2f, n: f32, dmax: f32, centre: vec2f, span: f32, pad: f32, startp: vec2f, goalp: vec2f };
+struct U { res: vec2f, n: f32, dmax: f32, centre: vec2f, span: f32, pad: f32, startp: vec2f, goalp: vec2f, t: f32, D: f32, pad2: vec2f };
 @group(0) @binding(0) var<storage, read> cells: array<u32>;
 @group(0) @binding(1) var<uniform> u: U;
+@group(0) @binding(2) var<storage, read> dstart: array<u32>;
 
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
   let p = array(vec2f(-1, -3), vec2f(-1, 1), vec2f(3, 1));
@@ -34,6 +40,14 @@ fn tok(c: u32) -> u32 { return c & 15u; }
 fn lab(c: u32) -> i32 { return i32((c >> 4u) & 15u) - 1; }
 fn mark(c: u32) -> f32 { return f32((c >> 8u) & 1u); }
 fn dist(c: u32) -> f32 { return f32(c >> 12u); }
+fn ds(i: i32, j: i32) -> f32 {
+  let n = i32(u.n);
+  if (i < 0 || j < 0 || i >= n || j >= n) { return 65535.0; }
+  return f32(dstart[u32(j * n + i)]);
+}
+// how far the automaton has got: 0 before a cell's step, 1 after, a soft edge in between
+fn reached(step: f32) -> f32 { return clamp(u.t - step + 1.0, 0.0, 1.0); }
+fn markAt(i: i32, j: i32) -> f32 { return u.D + 1.0 + ds(i, j); }
 
 fn hash(p: vec2f) -> f32 { return fract(sin(dot(p, vec2f(127.1, 311.7))) * 43758.5453); }
 
@@ -57,7 +71,8 @@ fn shade(px: vec2f) -> vec3f {
   let edge = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
   if (tk >= 2u) {
     let l = lab(c);
-    if (l >= 0) {
+    let rch = select(0.0, reached(dist(c)), l >= 0);
+    if (rch > 0.0) {
       // the goal's wavefront: hue drifts teal -> violet with distance, ripples every six steps
       let d = dist(c) / u.dmax;
       let ph = fract((dist(c) + f.x * 0.0) / 6.0);
@@ -67,10 +82,14 @@ fn shade(px: vec2f) -> vec3f {
       // the three mod-3 labels as a faint stipple, so the code the network keeps is still visible
       let dotp = smoothstep(0.16, 0.08, length(f - 0.5));
       col += pal[l] * dotp * 0.25 * (1.0 - d);
+      // the leading edge of the wave, bright while it is moving
+      let lead = u.t - dist(c);
+      col += vec3f(0.35, 0.85, 1.0) * exp(-lead * lead * 0.35) * 0.9 * step(0.0, lead);
+      col = mix(vec3f(0.005, 0.005, 0.007), col, rch);
     } else {
       col = vec3f(0.005, 0.005, 0.007); // open floor the wave never reached
     }
-    if (tk == 4u) { col = mix(col, vec3f(0.10, 0.28, 0.04), 0.35); } // damaging floor
+    if (tk == 4u) { col = mix(col, vec3f(0.10, 0.28, 0.04), 0.35 * max(rch, 0.08)); } // damaging floor, dim until reached
     col *= 0.7 + 0.3 * smoothstep(0.0, 0.08, edge); // cell grout
   } else {
     col = vec3f(0.0008, 0.0008, 0.0016) * (1.0 + hash(vec2f(ci)));
@@ -80,13 +99,15 @@ fn shade(px: vec2f) -> vec3f {
   for (var dj = -4; dj <= 4; dj++) {
     for (var di = -4; di <= 4; di++) {
       let o = cell(ci.x + di, ci.y + dj);
-      if (mark(o) > 0.0) {
+      let ma = mark(o) * reached(markAt(ci.x + di, ci.y + dj));
+      if (ma > 0.0) {
         let v = g - (vec2f(ci + vec2i(di, dj)) + 0.5);
-        glow += exp(-dot(v, v) * 0.55);
+        let tip = u.t - markAt(ci.x + di, ci.y + dj);
+        glow += ma * exp(-dot(v, v) * 0.55) * (1.0 + 2.5 * exp(-tip * tip * 0.15));
       }
     }
   }
-  let core = mark(c) * smoothstep(0.5, 0.18, max(abs(f.x - 0.5), abs(f.y - 0.5)));
+  let core = mark(c) * reached(markAt(ci.x, ci.y)) * smoothstep(0.5, 0.18, max(abs(f.x - 0.5), abs(f.y - 0.5)));
   col += vec3f(1.0, 0.42, 0.06) * glow * 0.075 + vec3f(1.0, 0.62, 0.22) * core * 0.42;
   // start (green) and goal (red-white) beacons, drawn over several cells
   let pts = array(u.startp, u.goalp);
@@ -94,7 +115,9 @@ fn shade(px: vec2f) -> vec3f {
     let v = g - pts[k];
     let r = length(v);
     let hue = select(vec3f(0.25, 1.0, 0.45), vec3f(1.0, 0.22, 0.15), k == 1);
-    col += hue * (exp(-r * r * 1.2) * 2.2 + smoothstep(0.25, 0.0, abs(r - 2.2)) * 0.6 + smoothstep(0.2, 0.0, abs(r - 3.6)) * 0.3);
+    // the start flares when the goal's wave arrives
+    let flare = select(1.0 + 2.0 * exp(-pow(u.t - u.D, 2.0) * 0.02) * step(0.0, u.t - u.D + 3.0), 1.0, k == 1);
+    col += hue * flare * (exp(-r * r * 1.2) * 2.2 + smoothstep(0.25, 0.0, abs(r - 2.2)) * 0.6 + smoothstep(0.2, 0.0, abs(r - 3.6)) * 0.3);
   }
   // fog into the distance, and outside the plane
   let fog = smoothstep(0.42, 0.75, gp.z);
@@ -118,19 +141,26 @@ fn shade(px: vec2f) -> vec3f {
   const info = await mod.getCompilationInfo();
   if (info.messages.some((m) => m.type === "error")) throw new Error(info.messages.map((m) => `${m.lineNum}:${m.linePos} ${m.message}`).join("\n"));
   const pl = dev.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format: "rgba8unorm" }] } });
-  const bg = dev.createBindGroup({ layout: pl.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: buf } }, { binding: 1, resource: { buffer: uni } }] });
+  const bg = dev.createBindGroup({ layout: pl.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: buf } }, { binding: 1, resource: { buffer: uni } }, { binding: 2, resource: { buffer: dsb } }] });
   const tex = dev.createTexture({ size: [W, H], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
   const bpr = Math.ceil(W * 4 / 256) * 256;
   const rb = dev.createBuffer({ size: bpr * H, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-  const enc = dev.createCommandEncoder();
-  const pass = enc.beginRenderPass({ colorAttachments: [{ view: tex.createView(), loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
-  pass.setPipeline(pl); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
-  enc.copyTextureToBuffer({ texture: tex }, { buffer: rb, bytesPerRow: bpr }, [W, H]);
-  dev.queue.submit([enc.finish()]);
-  await rb.mapAsync(GPUMapMode.READ);
-  const src = new Uint8Array(rb.getMappedRange()), img = new ImageData(W, H);
-  for (let y = 0; y < H; y++) img.data.set(src.subarray(y * bpr, y * bpr + W * 4), y * W * 4);
-  const cv = document.getElementById("out"); cv.width = W; cv.height = H; cv.getContext("2d").putImageData(img, 0, 0);
-  window.RESULT = { png: cv.toDataURL("image/png") };
+  const cv = document.getElementById("out"); cv.width = W; cv.height = H; const c2 = cv.getContext("2d");
+  window.frame = async (t, type = "image/png", q) => {
+    setT(t);
+    const enc = dev.createCommandEncoder();
+    const pass = enc.beginRenderPass({ colorAttachments: [{ view: tex.createView(), loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
+    pass.setPipeline(pl); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
+    enc.copyTextureToBuffer({ texture: tex }, { buffer: rb, bytesPerRow: bpr }, [W, H]);
+    dev.queue.submit([enc.finish()]);
+    await rb.mapAsync(GPUMapMode.READ);
+    const src = new Uint8Array(rb.getMappedRange()), img = new ImageData(W, H);
+    for (let y = 0; y < H; y++) img.data.set(src.subarray(y * bpr, y * bpr + W * 4), y * W * 4);
+    rb.unmap();
+    c2.putImageData(img, 0, 0);
+    return cv.toDataURL(type, q);
+  };
+  window.META = { D: st.D, dmax: st.dmax };
+  window.RESULT = { png: await window.frame(1e6) };
 } catch (e) { window.RESULT = { error: String(e.stack || e) }; }
 </script>
