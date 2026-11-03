@@ -32,6 +32,7 @@ def session(model_dir, threads=4):
 
 def generate(sess, prompts, max_new, piece, record_logits=0, stop=True):
     layers = sum(1 for i in sess.get_inputs() if i.name.endswith(".key"))
+    kv = next(i.shape[1] for i in sess.get_inputs() if i.name.endswith(".key"))
     B = len(prompts)
     lens = np.array([len(p) for p in prompts], dtype=np.int64)
     T = int(lens.max())
@@ -43,8 +44,8 @@ def generate(sess, prompts, max_new, piece, record_logits=0, stop=True):
     feed = {"input_ids": ids, "attention_mask": mask,
             "logits_index": np.arange(B, dtype=np.int64) * T + lens - 1}
     for l in range(layers):
-        feed[f"past_key_values.{l}.key"] = np.zeros((B, 4, 0, 64), np.float32)
-        feed[f"past_key_values.{l}.value"] = np.zeros((B, 4, 0, 64), np.float32)
+        feed[f"past_key_values.{l}.key"] = np.zeros((B, kv, 0, 64), np.float32)
+        feed[f"past_key_values.{l}.value"] = np.zeros((B, kv, 0, 64), np.float32)
     names = [o.name for o in sess.get_outputs()]
     out_toks = [[] for _ in range(B)]
     tails = [""] * B

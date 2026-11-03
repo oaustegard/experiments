@@ -26,19 +26,19 @@ HERE = Path(__file__).resolve().parent
 PART = 95 * 2**20
 
 
-def build(src: Path, out: Path):
+def build(src: Path, out: Path, precision="fp32", extra=()):
     tmp = out.with_name(out.name + "_raw")
     shutil.rmtree(tmp, ignore_errors=True)
     subprocess.run([sys.executable, "-m", "onnxruntime_genai.models.builder", "-i", str(src), "-o", str(tmp),
-                    "-p", "fp32", "-e", "webgpu", "-c", str(HERE / "export/cache"),
-                    "--extra_options", "hf_token=false"], check=True, stdout=subprocess.DEVNULL)
+                    "-p", precision, "-e", "webgpu", "-c", str(HERE / "export/cache"),
+                    "--extra_options", "hf_token=false", *extra], check=True, stdout=subprocess.DEVNULL)
     return tmp
 
 
 def surgery(raw: Path, out: Path):
     m = onnx.load(str(raw / "model.onnx"), load_external_data=False)
     g = m.graph
-    lm = next(n for n in g.node if n.name == "/lm_head/MatMul")
+    lm = next(n for n in g.node if "logits" in n.output)
     hid = lm.input[0]
     g.input.append(helper.make_tensor_value_info("logits_index", TensorProto.INT64, ["batch_size"]))
     shape = helper.make_tensor("/sel/shape", TensorProto.INT64, [2], [-1, 256])
@@ -108,8 +108,9 @@ def split(out: Path):
         p.write_bytes(data[i:i + PART])
         parts.append({"file": p.name, "bytes": len(data[i:i + PART])})
     full = (out / "model.onnx.data").read_bytes()
-    n_layers = json.loads((out / "genai_config.json").read_text())["model"]["decoder"]["num_hidden_layers"]
-    meta = {"layers": n_layers, "data_bytes": len(full), "data_sha256": hashlib.sha256(full).hexdigest(),
+    dec = json.loads((out / "genai_config.json").read_text())["model"]["decoder"]
+    n_layers = dec["num_hidden_layers"]
+    meta = {"layers": n_layers, "kv_heads": dec["num_key_value_heads"], "head_dim": dec["head_size"], "data_bytes": len(full), "data_sha256": hashlib.sha256(full).hexdigest(),
             "covered_bytes": covered, "packed_bytes": packed_bytes,
             "graph_sha256": hashlib.sha256((out / "model.onnx").read_bytes()).hexdigest(), "parts": parts,
             "regions": manifest}
@@ -119,9 +120,11 @@ def split(out: Path):
 
 def main():
     src, out = Path(sys.argv[1]), Path(sys.argv[2])
+    precision = sys.argv[3] if len(sys.argv) > 3 else "fp32"
+    extra = sys.argv[4:]
     src = src if src.is_absolute() else HERE / src
     out = out if out.is_absolute() else HERE / out
-    raw = build(src, out)
+    raw = build(src, out, precision, extra)
     surgery(raw, out)
     print(json.dumps(split(out)))
 

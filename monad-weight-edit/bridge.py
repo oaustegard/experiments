@@ -111,6 +111,7 @@ def main():
     ap.add_argument("--split", default="test")
     ap.add_argument("--ep", default="")
     ap.add_argument("--no-weights", action="store_true")
+    ap.add_argument("--cache-tag", default="")
     ap.add_argument("--opt", default="")
     a = ap.parse_args()
     sys.path.insert(0, str(HERE))
@@ -122,7 +123,7 @@ def main():
     elif a.kind == "bench":
         t = tok()
         from common import prompt
-        cfg = {"mode": "bench", "steps": 128, "runs": 3, "batches": [1, 8],
+        cfg = {"mode": "bench", "steps": a.steps if a.local else 128, "runs": 1 if a.local else 3, "batches": [1] if a.local else [1, 8],
                "prompt": t.encode(prompt("Explain why the sky is blue in two sentences."), add_special_tokens=False)}
     elif a.kind == "gen":
         bs = gen_batches(a.split)
@@ -138,6 +139,8 @@ def main():
         cfg["ep"] = a.ep
     if a.opt:
         cfg["opt"] = a.opt
+    if a.cache_tag:
+        cfg["cacheTag"] = a.cache_tag
     run(a.kind, a, cfg)
 
 

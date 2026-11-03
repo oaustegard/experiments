@@ -24,7 +24,7 @@ if (!ort) {
   ctx.cache.set("ort:" + ORT, ort);
 }
 
-const key = "monad:" + meta.graph_sha256 + ":" + meta.data_sha256 + ":" + (cfg.ep || "webgpu") + ":" + (cfg.opt || "all");
+const key = "monad:" + meta.graph_sha256 + ":" + meta.data_sha256 + ":" + (cfg.ep || "webgpu") + ":" + (cfg.opt || "all") + ":" + (cfg.cacheTag || "");
 let M = ctx.cache.get(key);
 const load = {};
 if (!M) {
@@ -72,8 +72,8 @@ async function generate(prompts, { maxNew, stop = true, keepLogits = 0, onStep }
   prompts.forEach((p, b) => p.forEach((t, j) => { ids[b * T + j] = t; mask[b * T + j] = 1; }));
   let feeds = { input_ids: i64(ids, [B, T]), attention_mask: i64(mask, [B, T]), logits_index: i64(lens.map((n, b) => b * T + n - 1), [B]) };
   for (let l = 0; l < L; l++) {
-    feeds[`past_key_values.${l}.key`] = new ort.Tensor("float32", new Float32Array(0), [B, 4, 0, 64]);
-    feeds[`past_key_values.${l}.value`] = new ort.Tensor("float32", new Float32Array(0), [B, 4, 0, 64]);
+    feeds[`past_key_values.${l}.key`] = new ort.Tensor("float32", new Float32Array(0), [B, meta.kv_heads || 4, 0, meta.head_dim || 64]);
+    feeds[`past_key_values.${l}.value`] = new ort.Tensor("float32", new Float32Array(0), [B, meta.kv_heads || 4, 0, meta.head_dim || 64]);
   }
   const out = prompts.map(() => []), tails = prompts.map(() => ""), done = new Array(B).fill(false), stopped = new Array(B).fill(false);
   const cur = lens.slice(); let total = T;

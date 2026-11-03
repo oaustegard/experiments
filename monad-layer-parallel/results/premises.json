@@ -1,0 +1,74 @@
+{
+ "device": "Mac, Chrome 156, Metal, onnxruntime-web 1.30 WebGPU, decode ms/token, 37-token prompt, 128 steps, median of 3 runs",
+ "bench_ms": {
+  "fp32": {
+   "base64": 11.799999952316284,
+   "narrow32": 6.299999952316284,
+   "wide40": 9.900000095367432,
+   "wide48": 11.899999976158142
+  },
+  "int4": {
+   "base64": 5.400000095367432,
+   "narrow32": 3,
+   "wide40": 3.6999999284744263
+  },
+  "int8": {
+   "base64": 7.600000023841858
+  },
+  "batch8": {
+   "fp32_base64": 13,
+   "int4_base64": 12.199999928474426,
+   "int8_base64": 54
+  }
+ },
+ "cost_model": {
+  "fp32_ms_per_narrow_layer": 0.1719,
+  "int4_ms_per_narrow_layer": 0.075,
+  "fp32_fixed_ms": 0.8,
+  "int4_fixed_ms": 0.6,
+  "fp32_ms_per_wide_layer": 0.2275,
+  "int4_ms_per_wide_layer": 0.0775
+ },
+ "pairing_kl": {
+  "4": 0.023,
+  "8": 0.0553,
+  "12": 0.0984,
+  "16": 0.1584,
+  "20": 0.2821,
+  "24": 0.4514,
+  "28": 10.7293
+ },
+ "deletion_kl": {
+  "4": 0.2389,
+  "8": 0.5703,
+  "12": 0.9286,
+  "16": 1.3607
+ },
+ "pair_kl_min": 0.0045,
+ "pair_kl_median": 0.0138,
+ "pair_kl_worst": {
+  "0": 7.352,
+  "30": 0.175,
+  "29": 0.111,
+  "1": 0.081,
+  "27": 0.081,
+  "31": 0.075
+ },
+ "quant_kl": {
+  "q4_nolm": 0.1016,
+  "q4_mlpq": 0.0593,
+  "q4_attnq": 0.0671,
+  "base_q4": 0.1109,
+  "base_q4k": 0.0905,
+  "base_q8": 0.002,
+  "q4_sink3": 0.1092,
+  "q4_early2": 0.1193,
+  "q4_ctrl3": 0.1099
+ },
+ "sizes_mb": {
+  "fp32": 227.1,
+  "bf16_packed": 113.8,
+  "int8": 72.7,
+  "int4": 36.0
+ }
+}

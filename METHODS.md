@@ -3867,6 +3867,16 @@ The traps, each of which cost a revision:
   instead: one "provides evidence about the claim" Noul reranks the top 20 to 0.763.
   (`jev-tag-encoder/RESULTS.md`)
 
+### A flat batch curve hides the cost of reading weights (monad-layer-parallel)
+
+Weights are read once per decode step whatever the batch size, so batch 8 costing the same as batch 1 says nothing about how
+much of a step is spent reading them. Bench random-weight models of different depth and width to split a step into a fixed
+cost per layer and a cost that grows with weight bytes. For Monad on onnxruntime-web 1.30 WebGPU (Mac), an fp32 layer of
+width 256 cost 0.172 ms and a layer of twice the width 0.228 ms, about 0.115 ms of it fixed per layer. With int4 weights
+(MatMulNBits) the two cost 0.075 and 0.0775 ms, nearly all of it fixed, and the whole 64-layer model went from 11.8 to 5.4 ms
+per token. int8 gave 7.6 ms at batch 1 and 54 ms at batch 8, so the right precision depends on
+the batch size you serve. `monad-layer-parallel/results/premises.json`.
+
 ### A loop direction can be the attention-sink direction in disguise (monad-weight-edit)
 
 In PleIAs Monad (56M parameters, 64 layers at width 256), a loop is greedy decoding repeating the same tokens until the token
