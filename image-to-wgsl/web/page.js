@@ -19,6 +19,10 @@ const GPU_MAXN = 8192;
 const TF_PROFILE = MOBILE ? { maxN: 256, pixBudget: 2 ** 21, stepsScale: 1 } : { maxN: 2048, pixBudget: 2 ** 22, stepsScale: 2 };
 const MAXDIM = MOBILE ? 512 : 768;   // uploaded images are fitted at most this many pixels on the longer side
 const MAXSRC = 4096;                 // and kept at most this size, for the detail tiles a zoomed view trains
+// Splats per 256-pixel detail tile. On six 2040-px DIV2K photos (M5 Max, GPU bridge, 2026-11-03) 256 splats a tile added
+// a median 5.7 dB at full size over the zoomed base list; 1,024 a tile added 4.3 dB more on the two photos tried and
+// beat bicubic upscaling of the fitted raster, at 0.5-0.65 s a tile there. Phones get 512: not timed on a phone.
+const DZ_TILE = MOBILE ? 512 : 1024;
 const TRAIN_TF = { init: "structure", importance: 0.5, pixBudget: TF_PROFILE.pixBudget, stepsScale: TF_PROFILE.stepsScale };
 const GPU_STEPS = { stepsStage: 150, stepsFinal: 500, stepsQat: 200 };   // 3x or 8x as many changed 2,048 splats by under 0.15 dB
 // TF.js trains on its WebGL backend. Its WebGPU backend computed wrong gradients past 32 splats per
@@ -266,7 +270,7 @@ function makeDeepZoom(entry, up) {
     x.drawImage(src, x0 * Ws / lv.W, y0 * Hs / lv.H, w * Ws / lv.W, h * Hs / lv.H, 0, 0, w, h);
     return x.getImageData(0, 0, w, h).data;
   };
-  const d = new DeepZoom(dev, { base: { P: Int32Array.from(entry.P), bg: entry.bg, A: entry.A, n: entry.n }, W0: up.W, H0: up.H, Ws, Hs, crop,
+  const d = new DeepZoom(dev, { base: { P: Int32Array.from(entry.P), bg: entry.bg, A: entry.A, n: entry.n }, W0: up.W, H0: up.H, Ws, Hs, crop, nTile: DZ_TILE,
     ...(window.__dzOpts || {}) });   // tests shorten tile training through __dzOpts
   if (!d.levels.length) return null;
   d.onTile = (r) => { if (r?.error) console.log("deep zoom error", r.error?.stack || r.error); if (cur?.dz === d) { dzStatus(); redraw(); } };

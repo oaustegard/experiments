@@ -4,6 +4,8 @@ The question, from Oskar on 2026-11-02, was whether an image could be compressed
 
 The codec built here stores an image as an ordered list of soft, rotated ellipses, called splats, packed into an integer array inside one fragment shader. The shader decodes the list and paints the splats per pixel. The compressed size is the gzip size of the shader source after minification. A prefix is the first *n* splats of the list. Training makes every power-of-two prefix a usable image, so the shader can paint itself in, coarse to fine.
 
+A later question, from Oskar on 2026-11-03 ([#108](https://github.com/oaustegard/experiments/issues/108)), was whether zooming into the shader could add real detail from a larger source image, as deep-zoom image viewers do with tile pyramids. That part uses six 2040-pixel DIV2K photographs instead of the Kodak set, which has nothing larger than 768×512.
+
 The test images are six photographs from the Kodak set, 768×512 each. Quality is PSNR in dB against the original. Live gallery: [austegard.com/experiments/image-to-wgsl/web/](https://austegard.com/experiments/image-to-wgsl/web/).
 
 ## Answer
@@ -11,11 +13,14 @@ The test images are six photographs from the Kodak set, 768×512 each. Quality i
 On the six Kodak photographs, the 1,024-splat shader reaches a median 26.11 dB at a median 11,450 bytes. <!-- @evidence[[results/headline.json#median_psnr.1024]] --> <!-- @evidence[[results/headline.json#median_bytes.1024]] -->
 At that byte count, AVIF is 5.6 dB better (median over the six images). <!-- @evidence[[results/headline.json#gap_vs_best_db.1024]] -->
 JPEG, encoded at half, quarter or eighth size and upscaled, is 1.72 dB better. <!-- @evidence[[results/headline.json#gap_vs_jpeg_down_db.1024]] -->
-The shader trails every codec tested at every list length from 16 to 1,024 splats, so as compression it loses.
+It trails every codec tested at every length from 16 to 1,024 splats.
 
-Three properties hold. First, a prefix-trained list costs 0.4 dB against a list trained for one length only. <!-- @evidence[[results/headline.json#prefix_cost_db.64]] -->
-Its prefixes are 4 to 8 dB better than those of a list trained without prefixes (one image). Second, the decode matches on two very different GPUs: on Chromium's software renderer and on an iPhone, every pixel is within 1 of 255 levels of the PyTorch decode. <!-- @evidence[[results/headline.json#iphone.max_abs_vs_torch]] -->
-Third, the shader can be drawn at any resolution with no extra bytes, though drawing time grows with the pixel count.
+Three properties hold. First, prefix training costs 0.4 dB. <!-- @evidence[[results/headline.json#prefix_cost_db.64]] -->
+Its prefixes are 4 to 8 dB better than those of a list trained without prefixes (one image). Second, on Chromium's software renderer and on an iPhone, every pixel decodes within 1 of 255 levels of PyTorch. <!-- @evidence[[results/headline.json#iphone.max_abs_vs_torch]] -->
+Third, it draws at any resolution with no extra bytes.
+
+Zooming adds detail. On six 2040-pixel photos fitted at 768, detail tiles trained on demand beat the zoomed splat list by a median 5.69 dB at 2,040 pixels, <!-- @evidence[[results/deepzoom.json#median.gain_L2]] -->
+but trail bicubic upscaling of the 768-pixel photo below about 1,024 splats a tile.
 
 What would change the answer is a cheaper splat. Each one costs 10.5 gzipped bytes for 61 bits of fields. <!-- @evidence[[results/headline.json#bytes.per_splat_gz]] --> <!-- @evidence[[results/headline.json#bytes.raw_bits_per_splat]] -->
 
@@ -44,6 +49,18 @@ What would change the answer is a cheaper splat. Each one costs 10.5 gzipped byt
    An iPhone fitted 8,192 splats in 60.7 s at 30.19 dB, where TF.js had crashed at 1,024. <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.seconds]] --> <!-- @evidence[[results/bridge_i2w-wgsl-phone-d.json#runs.0.points.9.psnr_torch]] -->
 10. **Foveation.** Training with a focus map, here soft ellipses around a detected face, moves quality to where the map points (`web/focus.js`). On the Mona Lisa at 1,024 splats the face-weighted PSNR rose from 26.94 to 28.19 dB. <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.2.points.6.psnr_focus_torch]] --> <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.3.points.6.psnr_focus_torch]] -->
    The whole-image PSNR fell from 26.89 to 26.37 dB. <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.2.points.6.psnr_torch]] --> <!-- @evidence[[results/bridge_i2w-focus-face-1.json#runs.3.points.6.psnr_torch]] -->
+
+11. **Deep zoom adds detail from a larger source.** On six DIV2K photos (2040 pixels wide) with a 1,024-splat base list fitted at 768 pixels, detail tiles of 256 splats raised PSNR over the zoomed base list by a median 4.01 dB at 1,536 pixels wide and 5.69 dB at 2,040. <!-- @evidence[[results/deepzoom.json#median.gain_L1]] --> <!-- @evidence[[results/deepzoom.json#median.gain_L2]] -->
+   On Oskar's 1512×2016 night street photo, fitted at 576×768, the gains were 3.75 dB at 1,152 pixels wide and 5.23 dB at the full 1,512. <!-- @evidence[[results/deepzoom.json#private_photo.gain_L1]] --> <!-- @evidence[[results/deepzoom.json#private_photo.gain_L2]] -->
+   At 256 splats a tile, bicubic upscaling of the 768-pixel downscaled photo stays ahead, by a median 1.79 dB at 2,040 pixels, though not on 0803 (a flower on a blurred background). <!-- @evidence[[results/deepzoom.json#median.bicubic_lead_L2]] -->
+   With 1,024 splats a tile, 0801 (a penguin on rocks) beat bicubic by 0.82 dB and 0803 (a flower) by 6.19 dB, at a median 0.49 and 0.65 s a tile. <!-- @evidence[[results/deepzoom.json#sweep.0801.1024.L2.vs_bicubic]] --> <!-- @evidence[[results/deepzoom.json#sweep.0803.1024.L2.vs_bicubic]] --> <!-- @evidence[[results/deepzoom.json#sweep.0801.1024.tile_seconds_median]] --> <!-- @evidence[[results/deepzoom.json#sweep.0803.1024.tile_seconds_median]] -->
+   A median 256-splat tile trained in 0.32 s on the M5 Max. <!-- @evidence[[results/deepzoom.json#tile_seconds.median]] -->
+   Drawing the tiles over the base list with the page's renderer scored within 0.026 dB of the trainer's own measurement on every image and level. <!-- @evidence[[results/deepzoom.json#median.drawn_minus_trained_max_abs]] -->
+   No phone was timed (`results/deepzoom.json`).
+12. **Painting over the coarser levels beats fitting each tile alone.** With the same splats in each tile, tiles fitted alone, over a plain background instead of the coarser picture, scored a median 0.29 dB lower at 1,536 pixels and 0.94 dB lower at 2,040. <!-- @evidence[[results/deepzoom.json#median.vs_indep_L1]] --> <!-- @evidence[[results/deepzoom.json#median.vs_indep_L2]] -->
+   At 512 splats a tile the gap at 2,040 pixels was 0.97 and 1.79 dB on the two photos tried. <!-- @evidence[[results/deepzoom.json#sweep.0801.512.L2.vs_indep_same_n]] --> <!-- @evidence[[results/deepzoom.json#sweep.0803.512.L2.vs_indep_same_n]] -->
+   Training every power-of-two prefix of a tile, which would let a view draw a cheaper partial tile, cost 0.35 dB at 1,536 pixels and 0.31 dB at 2,040, so the tiles are trained for their full length only. <!-- @evidence[[results/deepzoom.json#median.prefix_cost_L1]] --> <!-- @evidence[[results/deepzoom.json#median.prefix_cost_L2]] -->
+   Tile seams cost little: pixels touching a tile boundary were a median 0.54 dB worse than pixels 16 or more pixels from any boundary. The base list alone, which has no tiles, differed by 0.2 dB between the same two groups of pixels. <!-- @evidence[[results/deepzoom.json#median.seam_drop_detail]] --> <!-- @evidence[[results/deepzoom.json#median.seam_drop_base]] -->
 
 ## Method
 
@@ -75,7 +92,9 @@ The fields are bit-packed into one `const` array of `u32` in the shader. wgsl-fo
 
 **Encoding in the browser** (`web/gputrain.js`, `web/page.js`). The live gallery's "Your image…" button fits splats to an uploaded image in the browser and builds the same shader that `codec.py` writes. Training runs in WebGPU compute shaders over 16×16 tiles, with every pixel used in every step. It was checked against PyTorch autograd before any real run. The first version trained with TensorFlow.js 4.22 on its WebGL backend (`web/trainer.js`), which is now the fallback. TF.js's WebGPU backend gave wrong gradients. Splat counts are offered up to 8,192 when a time estimate from timed steps on the uploaded image is at most 5 minutes. An optional focus map (a tapped spot, detected faces, or a band of depth from a monocular depth model) weights the loss and the placement of new splats, and adds a focus-weighted PSNR to the scores. `bridge/gputrain_job.js` runs the trainer on a device through the GPU bridge, and `bridge/train_job.js` runs the TF.js trainer.
 
-**Rebuild.** Run `data/fetch.sh`, then `python3 run_sweep.py` (about two hours on 4 vCPUs), `python3 baselines.py`, `python3 svg_arm.py kodim23 kodim05`, `python3 analyze.py --gpu`, `python3 make_headline.py` and `python3 web/build.py`.
+**Deep zoom** (`web/deepzoom.js`, `bridge/deepzoom_job.js`). The purpose is the gallery's: an uploaded image is fitted as a splat list at 512 or 768 pixels, and zooming in should show more than that list holds. The page therefore keeps the uploaded source, at most 4,096 pixels on its longer side, and builds a pyramid above the fitted size: level L has 2^L times the fitted resolution, capped at the source, which is the last level. For a 2040-pixel photo fitted at 768, level 1 is 1,536 pixels wide and level 2 is the source. Each level is cut into 256-pixel tiles. A tile is trained by the WebGPU trainer on its crop widened by 16 pixels on each side, over a per-pixel background: the render of the base list (the splat list fitted at 768) and of every coarser level there. It is drawn clipped to its 256-pixel core, so inside the core the screen shows exactly what it was trained on. The coarser-level tiles under a tile's crop train first. The page trains the tiles a view needs, nearest its centre first, at the level whose resolution covers the screen's device pixels. The test set is the first six DIV2K validation images (0801 to 0806, 2040 pixels wide; `data/fetch_div2k.py`). Each was fitted at 768 pixels with 1,024 splats; the levels were then 1,536 pixels wide and the source. PSNR per level pools the squared 8-bit error over every tile's core against the level image, the source downscaled by the browser's canvas (`imageSmoothingQuality` high). The zoomed base list is the splat list redrawn at the level's resolution. Arms: tiles painted over the coarser levels at 256 splats (512 and 1,024 on 0801 and 0803); the same with every prefix trained; tiles fitted alone, over the codec's usual background (a blend of four corner colours), at 256 and 512 splats; the base list alone; and bicubic upscaling (Keys, a = −0.5) of the 768-pixel downscaled photo. All runs used Oskar's M5 Max laptop through the GPU bridge. A tile's packed fields take 61 bits a splat, so the 256-splat tiles of a 2040-pixel photo hold about 125 KB before gzip, against about 160 KB for a quality-90 JPEG of the 768-pixel image (0801); the detail is trained in the browser from the source, so these bytes are not sent anywhere.
+
+**Rebuild.** Run `data/fetch.sh`, then `python3 run_sweep.py` (about two hours on 4 vCPUs), `python3 baselines.py`, `python3 svg_arm.py kodim23 kodim05`, `python3 analyze.py --gpu`, `python3 make_headline.py` and `python3 web/build.py`. Deep zoom: `python3 data/fetch_div2k.py`, then per image `python3 bridge/make_deepzoom_job.py data/div2k/<id>.png <dir> --cfg ...` and a GPU-bridge submit of `bridge/deepzoom_job.js` (configurations in the result files), then `python3 deepzoom_analyze.py`.
 
 ## Log
 
@@ -219,3 +238,41 @@ On the M5 Max through the GPU bridge, Mona Lisa at 484×512 was trained evenly a
 Focusing on the face gained 1.0 to 1.25 dB there and cost 0.5 to 0.7 dB over the whole image. The gain was larger in short prefixes: 1.35 dB at 64 splats and 1.4 dB at 32. On the face, 1,024 focused splats came within 0.1 dB of 2,048 even ones. The focused runs took no longer. The face-weighted PSNR still counts the rest of the image at a twentieth of the weight, so it is not a PSNR of the face region alone.
 
 The iPhone gave the same trade at 1,024 splats (`results/bridge_i2w-focus-phone-2.json`): trained evenly, 27.00 dB whole and 27.21 dB face-weighted in 26.2 s; trained on the face, 26.42 and 28.32 dB in 27.8 s. PyTorch re-renders of both lists matched to the second decimal. On the phone the depth model ran in 5.4 s. The face detector could not be tested through the bridge, because the bridge runs jobs in a Web Worker and MediaPipe's bundle needs `document`. In the page the detector runs on the main thread, and it worked there in headless Chromium. In the headless page tests, the spot and distance modes both moved the focus map to a tapped point and trained with it (`bridge/focus_page_test.mjs`).
+
+### 2026-11-03 — deep zoom: detail tiles from a larger source
+
+Asked (#108): "could we enhance an image when zoomed in on, sort of like the deep zoom approach, but using shaders? Obviously only up to a max resolution, but a 1x display on a phone is not super dense." Until now the zoom redrew the same list at any scale, smooth but with nothing new, and uploads were downscaled to 512 or 768 pixels before fitting.
+
+Prior art, searched first. LIG ("Large Images are Gaussians", AAAI 2025) fits a large image with 2D Gaussians in two levels, a coarse fit to a downsampled image and then most Gaussians on the high frequencies. Image-GS (SIGGRAPH 2025) adds Gaussians where the error stays high, which gives it a level-of-detail ordering. ACORN fits gigapixel images with a quadtree of blocks. Babylon Lite and MapTiler GeoSplats stream 3D splats by level of detail. Five searches did not find splat tiles trained on demand in the browser for a 2D deep zoom.
+
+Alternatives weighed before building:
+- a quadtree of independent tiles, each a full picture of its region (measured as "alone" below);
+- residual tiles painted over the coarser levels (built);
+- detail lists trained so every prefix works (measured, as a per-tile option);
+- one bigger list trained at the high resolution. Its per-prefix snapshots alone would need 1.2 GB at 3072×2048, too much for a phone.
+
+The trainer gained a per-pixel background. Against PyTorch autograd on SwiftShader, painting over another image, the worst relative gradient error was 3.1e-4 (`bridge/gradcheck_gpu.py 48 32 40 bgimg`). The renderer gained a second instanced pass for detail splats, read from a storage buffer with one clip rectangle per tile, and a float readback used as the training background. On SwiftShader, `bridge/page_deepzoom_test.mjs` uploaded a 1600×1060 crop, zoomed 16×, and drew the two tiles the view needed, with no errors.
+
+Full-pyramid runs on the M5 Max through the GPU bridge, 256 splats a tile. PSNR at 1,536 and at 2,040 pixels wide: base list alone / with detail / tiles fitted alone / bicubic of the 768-pixel photo. "Tiles" counts both levels; "training" is the time spent training them on the M5 (`results/bridge_dz-*-arms-1.json`):
+
+| image | source | base list at 768 px | 1,536 px wide | 2,040 px wide | tiles | training |
+|---|---|---|---|---|---|---|
+| 0801 | 2040×1356 | 22.11 | 21.26 / 25.08 / 24.78 / 31.77 | 20.95 / 26.53 / 25.60 / 29.97 | 72 | 21.1 s |
+| 0802 | 2040×1356 | 25.28 | 24.76 / 31.64 / 31.23 / 37.20 | 24.56 / 33.07 / 32.00 / 35.33 | 72 | 21.3 s |
+| 0803 | 2040×1536 | 28.17 | 27.37 / 35.30 / 34.54 / 37.74 | 27.09 / 38.21 / 36.06 / 36.13 | 78 | 32.3 s |
+| 0804 | 2040×1200 | 21.64 | 20.59 / 24.79 / 24.54 / 29.23 | 20.14 / 25.93 / 24.98 / 27.25 | 64 | 18.7 s |
+| 0805 | 2040×1536 | 23.93 | 22.83 / 26.00 / 25.73 / 31.43 | 22.34 / 26.83 / 25.94 / 29.32 | 78 | 25.6 s |
+| 0806 | 2040×1356 | 25.23 | 23.59 / 27.10 / 26.86 / 29.97 | 22.90 / 27.75 / 26.86 / 27.96 | 72 | 25.3 s |
+
+Splats a tile, painted over the coarser levels (`results/bridge_dz-*-n*-1.json`):
+
+| image | splats a tile | 1,536 px | 2,040 px | median tile |
+|---|---|---|---|---|
+| 0801 | 256 / 512 / 1,024 | 25.08 / 26.85 / 28.90 | 26.53 / 28.50 / 30.80 | 0.32 / 0.38 / 0.49 s |
+| 0803 | 256 / 512 / 1,024 | 35.30 / 37.73 / 39.78 | 38.21 / 40.33 / 42.33 | 0.39 / 0.51 / 0.65 s |
+
+Prediction before the runs: detail tiles would beat the zoomed base list easily and lose to bicubic upscaling of the 768-pixel photo, because the base list is itself 3 to 9 dB below that photo. Measured at 256 splats a tile: the first held on every image; the second held on four images, tied on 0806 (27.75 against 27.96 dB) and failed on 0803 (38.21 against 36.13 dB). At 1,024 splats a tile, both images tried beat bicubic at 2,040 pixels.
+
+On Oskar's 1512×2016 night street photo, fitted at 576×768, 78 tiles trained in 25.7 s. Base list alone against with detail: 20.09 and 23.84 dB at 1,152 pixels wide, 19.63 and 24.86 dB at the full size (`results/deepzoom_private.json`; the photo and its renders stay out of the repo). Frame times on the M5 Max stayed near 1 ms at 1920×1280 with 16,446 detail splats (`results/bridge_dz-0801-res-1.json`). No phone was timed: Oskar asked to stay on the Mac where possible.
+
+The gallery now keeps an upload's source, up to 4,096 pixels, and trains the tiles a view needs in the background: 1,024 splats a tile on computers and 512 on phones. A phone screen at 1× already shows about twice the pixels of a 512-pixel fit, so on a phone the detail starts before any zoom. The Kodak gallery images are 768×512 and have no larger source, so they gain nothing. Trained detail is not in the downloads.

@@ -920,6 +920,9 @@
   "indep2_L2": 28.13,
   "seam_edge_minus_far_detail": -0.54,
   "seam_edge_minus_far_base": -0.2,
+  "bicubic_lead_L2": 1.79,
+  "seam_drop_detail": 0.54,
+  "seam_drop_base": 0.2,
   "drawn_minus_trained_max_abs": 0.026,
   "base_psnr": 24.58
  },
@@ -930,7 +933,108 @@
   "min": 0.153,
   "max": 0.617
  },
- "sweep": {},
+ "sweep": {
+  "0801": {
+   "1024": {
+    "L1": {
+     "detail": 28.897,
+     "splats": 23384,
+     "seconds": 14.74,
+     "vs_bicubic": -2.87,
+     "vs_256": 3.81
+    },
+    "L2": {
+     "detail": 30.796,
+     "splats": 42373,
+     "seconds": 19.97,
+     "vs_bicubic": 0.82,
+     "vs_256": 4.26
+    },
+    "tile_seconds_median": 0.492
+   },
+   "512": {
+    "L1": {
+     "detail": 26.852,
+     "splats": 11698,
+     "seconds": 11.13,
+     "vs_bicubic": -4.92,
+     "vs_256": 1.77,
+     "vs_indep_same_n": 0.33
+    },
+    "L2": {
+     "detail": 28.497,
+     "splats": 21192,
+     "seconds": 15.85,
+     "vs_bicubic": -1.48,
+     "vs_256": 1.96,
+     "vs_indep_same_n": 0.97
+    },
+    "tile_seconds_median": 0.383
+   },
+   "256": {
+    "L1": {
+     "detail": 25.084,
+     "splats": 5848,
+     "seconds": 8.36
+    },
+    "L2": {
+     "detail": 26.532,
+     "splats": 10598,
+     "seconds": 12.78
+    }
+   }
+  },
+  "0803": {
+   "1024": {
+    "L1": {
+     "detail": 39.784,
+     "splats": 26904,
+     "seconds": 24.12,
+     "vs_bicubic": 2.04,
+     "vs_256": 4.48
+    },
+    "L2": {
+     "detail": 42.327,
+     "splats": 47404,
+     "seconds": 29.86,
+     "vs_bicubic": 6.19,
+     "vs_256": 4.11
+    },
+    "tile_seconds_median": 0.645
+   },
+   "512": {
+    "L1": {
+     "detail": 37.728,
+     "splats": 13458,
+     "seconds": 18,
+     "vs_bicubic": -0.02,
+     "vs_256": 2.43,
+     "vs_indep_same_n": 0.39
+    },
+    "L2": {
+     "detail": 40.325,
+     "splats": 23708,
+     "seconds": 23.54,
+     "vs_bicubic": 4.19,
+     "vs_256": 2.11,
+     "vs_indep_same_n": 1.79
+    },
+    "tile_seconds_median": 0.514
+   },
+   "256": {
+    "L1": {
+     "detail": 35.299,
+     "splats": 6726,
+     "seconds": 13.35
+    },
+    "L2": {
+     "detail": 38.213,
+     "splats": 11856,
+     "seconds": 18.99
+    }
+   }
+  }
+ },
  "draw_ms": [
   {
    "w": 1920,

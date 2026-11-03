@@ -69,6 +69,9 @@ def main():
         out["median"][f"indep2_{L}"] = med([e["indep2"][L]["detail"] for e in I])
     out["median"]["seam_edge_minus_far_detail"] = med([e["seams_L2"]["edge_minus_far_detail"] for e in I])
     out["median"]["seam_edge_minus_far_base"] = med([e["seams_L2"]["edge_minus_far_base"] for e in I])
+    out["median"]["bicubic_lead_L2"] = round(-out["median"]["vs_bicubic_L2"], 2)
+    out["median"]["seam_drop_detail"] = round(-out["median"]["seam_edge_minus_far_detail"], 2)
+    out["median"]["seam_drop_base"] = round(-out["median"]["seam_edge_minus_far_base"], 2)
     out["median"]["drawn_minus_trained_max_abs"] = max(abs(e[f"drawn_minus_trained_{L}"]) for e in I for L in ["L1", "L2"])
     out["median"]["base_psnr"] = med([e["base_psnr"] for e in I])
     out["tile_seconds"] = {"device": "Mac (M5 Max)", "tiles": len(secs), "median": round(st.median(secs), 3), "min": round(min(secs), 3), "max": round(max(secs), 3)}
@@ -86,7 +89,17 @@ def main():
     for im in out["sweep"]:
         e = out["images"][im]
         out["sweep"][im][256] = {L: {"detail": e["residual"][L]["detail"], "splats": e["residual"][L]["splats"], "seconds": e["residual"][L]["seconds"]} for L in ["L1", "L2"]}
-    priv = R / "deepzoom_private.json"
+    for im in out["sweep"]:
+        e = out["images"][im]
+        for n in (512, 1024):
+            if n in out["sweep"][im]:
+                for L in ["L1", "L2"]:
+                    sw = out["sweep"][im][n][L]
+                    sw["vs_bicubic"] = round(sw["detail"] - e["residual"][L]["bicubic"], 2)
+                    sw["vs_256"] = round(sw["detail"] - e["residual"][L]["detail"], 2)
+                    if n == 512:
+                        sw["vs_indep_same_n"] = round(sw["detail"] - e["indep2"][L]["detail"], 2)
+        priv = R / "deepzoom_private.json"
     if priv.exists():
         out["private_photo"] = json.loads(priv.read_text())
     (R / "deepzoom.json").write_text(json.dumps(out, indent=1))
