@@ -9,33 +9,36 @@ onnxruntime-web's WebGPU backend. The plan, with its predictions, was registered
 
 ## Answer
 
-How much faster and smaller can weight surgery alone make the loop-edited Monad without hurting its answers? About
-1.8×, from 8-bit weights and nothing else.
+How much faster and smaller can weight surgery alone make the loop-edited Monad without hurting its answers? With 8-bit
+weights and nothing else, 1.8× faster (11.8 → 6.6 ms per token) and 43% smaller, with no measurable loss.
 The 8-bit model decodes in 6.6 ms per token on the Mac (152 tokens/s against 85 for fp32) <!-- @evidence[[results/summary.json#bench.A8p_q8.B1]] -->
 and ships 65 MB instead of 114. <!-- @evidence[[results/summary.json#sizes_mb.A8p_q8.shipped]] -->
 On the 500-prompt test set it gets 17.4% right against 17.2% for fp32. <!-- @evidence[[results/summary.json#test.A8p_q8.all.acc]] -->
 
-Everything faster failed or did not pay. 4-bit weights cut latency further, to 5.5 ms, but tripled the loop rate to
-18.6% <!-- @evidence[[results/summary.json#test.A8p_q4.all.loop]] -->, undoing much of the loop edit; 4-bit plus 16
-folded layer pairs, the arm the plan bet on, collapsed to 5.8% correct. Folding 8 pairs passes the decision rule
-(16.0% correct <!-- @evidence[[results/summary.json#test.A8p_P8.all.acc]] -->, loops 7.8%) but in 8-bit saves only
-0.7 ms while the zero padding that keeps the layers uniform grows the download to 109 MB
-<!-- @evidence[[results/summary.json#sizes_mb.A8p_P8_q8.shipped]] -->.
+The faster arms hurt answers or paid too little. 4-bit weights reach 5.5 ms but triple the loop rate to
+18.6% <!-- @evidence[[results/summary.json#test.A8p_q4.all.loop]] -->; 4-bit plus 16
+folded layer pairs collapsed to 5.8% correct. Folding 8 pairs, tested in fp32, stays within the
+decision rule (16.0% correct <!-- @evidence[[results/summary.json#test.A8p_P8.all.acc]] -->, loops 7.8%), but in 8-bit it
+saves only 0.7 ms, and the zero padding on unpaired layers (so every layer has one shape)
+grows the download to 109 MB. <!-- @evidence[[results/summary.json#sizes_mb.A8p_P8_q8.shipped]] -->
 
-A 4-bit quantizer that keeps the loop rate near fp32's would change this answer: at 4 bits a double-width layer costs the
-same as a normal one, so folding would then pay.
+A 4-bit quantizer that kept loops near fp32's rate would change this: at 4 bits a double-width layer decodes as fast as a
+normal one, so folding would pay.
 
 ## Findings
 
-1. 8-bit weights are free: 87 vs 86 correct of 500, McNemar p = 1.0 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q8.all.correct.p]] -->, loops 7.0% against 5.8% (p = 0.48), at 6.6 ms/token against 11.8 (Round 3).
-2. 4-bit weights bring the loops back: 18.6% of answers loop against 5.8%, p = 3.6e-11 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q4.all.loop.p]] -->; overall 12.8% correct, p = 0.035. A screen KL of 0.13 was already enough to do this (rounds 2–3).
+F below is the loop-edited model in fp32; "screen KL" is the divergence of an arm's next-token distribution from F's on 16
+dev prompts; p-values are McNemar's exact test on per-prompt outcomes against F.
+
+1. 8-bit weights showed no loss: 87 vs 86 correct of 500, p = 1.0 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q8.all.correct.p]] -->, loops 7.0% against 5.8% (p = 0.48), at 6.6 ms/token against 11.8. One run on one test set: no detectable difference, not proven equivalence (Round 3).
+2. 4-bit weights bring the loops back: 18.6% of answers loop against 5.8%, p = 3.6e-11 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_q4.all.loop.p]] -->; overall 12.8% correct, p = 0.035. A screen KL of 0.13 was already enough to do this (Round 2, Round 3).
 3. GPTQ and HQQ do not repair Monad's 4-bit error: screen KL 0.267 and 0.136 against 0.132 for round-to-nearest <!-- @evidence[[results/summary.json#screen_kl.A8p_gptq]] --> (Round 3).
 4. 4-bit plus 16 folded pairs collapses: 5.8% correct, loops 42.4% <!-- @evidence[[results/summary.json#test.A8p_P16_q4.all.loop]] -->, despite passing the 0.35 KL gate at 0.251 (Round 3).
-5. Folding 8 pairs passes the decision rule, without a margin: 80 vs 86 correct (p = 0.61), loops 39 vs 29 (p = 0.23); GSM8K falls from 12 to 5 correct, p = 0.092 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_P8.gsm8k.correct.p]] --> (Round 5, fp32 stand-in for 8-bit).
-6. In int4 a double-width layer costs what a normal one does, so folding converts depth directly into latency: 16 pairs 4.4 ms and 24 pairs 3.6 ms <!-- @evidence[[results/summary.json#bench.A8p_P24_q4.B1]] -->, both within 0.1 ms of the cost model; 8 pairs missed it, 5.3 against 4.9 (Round 2).
-7. The int8 kernel is slow at batch 8: 53.9 ms per step against 12.2 for int4 <!-- @evidence[[results/summary.json#bench.A8p_q8.B8]] -->; accuracy_level 4 did not change it (6.8 ms at batch 1). The slowness is in onnxruntime-web's int8 MatMulNBits path, not in the model (Round 2).
+5. Folding 8 pairs passes the decision rule, without a margin: 80 vs 86 correct (p = 0.61), loops 39 vs 29 (p = 0.23); GSM8K falls from 12 to 5 correct, p = 0.092 <!-- @evidence[[results/summary.json#stats_vs_F.A8p_P8.gsm8k.correct.p]] --> (Round 5, run in fp32 as a stand-in for 8-bit).
+6. In int4 a double-width layer costs what a normal one does, so folding converts depth directly into latency: 16 pairs 4.4 ms and 24 pairs 3.6 ms <!-- @evidence[[results/summary.json#bench.A8p_P24_q4.B1]] -->, both within 0.1 ms of the plan's cost model (0.6 ms + 0.0775 ms per layer); 8 pairs missed it, 5.3 against 4.9 (Round 2).
+7. The int8 weights decode slowly at batch 8: 53.9 ms per step against 12.2 for int4 <!-- @evidence[[results/summary.json#bench.A8p_q8.B8]] -->. Raising the kernel's accuracy_level option to 4 (int8 activations) did not change it (6.8 ms at batch 1). The cause looks like onnxruntime-web's int8 MatMulNBits kernel, but it was not isolated (Round 2).
 8. Wider parallel groups cost more KL per layer of depth saved than pairs: depth 48 at KL 0.180 for pairs, 0.256 for groups of three <!-- @evidence[[results/summary.json#depth.groups.3.kl]] --> (Round 4).
-9. Parareal over depth (layer-level speculation) gives nothing: 16 segments of 4 layers stay at KL 4.12 after 3 iterations <!-- @evidence[[results/summary.json#depth.parareal.16.3.kl]] -->, which already cost as many layer steps as running all 64 in order (Round 4).
+9. Parareal over depth, a layer-level form of speculative decoding (guess segment outputs cheaply, then correct them in parallel), gave nothing on 8 dev answers: 16 segments of 4 layers stay at KL 4.12 after 3 iterations <!-- @evidence[[results/summary.json#depth.parareal.16.3.kl]] -->, which already cost as many layer steps as running all 64 in order (Round 4).
 
 ## Method
 
