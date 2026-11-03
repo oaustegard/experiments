@@ -46,6 +46,13 @@ a { color: var(--accent); }
 .enc button:disabled { opacity: .5; cursor: default; }
 .enc progress { width: 100%; accent-color: var(--accent); }
 .stage canvas.prev { image-rendering: auto; background: var(--card); }
+details.info { margin: 0; border: 0; padding: 0; color: var(--muted); font-size: .85rem; }
+details.info > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 2px 0; user-select: none; }
+details.info > summary::-webkit-details-marker { display: none; }
+details.info > summary::before { content: "i"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1px solid currentColor; font: italic 600 11px/1 Georgia, serif; }
+details.info[open] > summary { color: var(--fg); }
+details.info > p { margin: 6px 0 4px; padding: 8px 10px; border-left: 2px solid var(--line); background: var(--card); border-radius: 0 6px 6px 0; }
+.lede + details.info { margin: -12px 0 16px; }
 .stage { touch-action: none; cursor: zoom-in; }
 .stage.zoomed { cursor: grab; }
 .stage .zoom { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 4px; }
@@ -59,7 +66,11 @@ a { color: var(--accent); }
 <body>
 <main>
   <h1>Images as Shaders</h1>
-  <p class="lede">Each picture below is one WGSL fragment shader. The shader holds an ordered list of 1,024 soft, rotated ellipses packed into an integer array; its minified source is about 11 KB gzipped. The page draws each ellipse as its own small quad and lets the GPU blend them in order, so a frame costs about as much as the ink on screen. The list was trained so that its first 16, 32, 64 and so on ellipses already make a coarser picture. Press "Paint it in" to watch the shader add them, or drag the splats slider to stop at a power of two. As compression it loses: on these six Kodak test photos, AVIF at the same size scores 3.9 to 6.8 dB higher in PSNR. The buttons under the picture show the original and the AVIF and WebP files of the same size.</p>
+  <p class="lede">Each picture is one WGSL shader that paints an ordered list of soft ellipses. Press "Paint it in", drag the slider, or zoom in.</p>
+  <details class="info"><summary>About these images</summary>
+    <p>Each picture below is one WGSL fragment shader. The shader holds an ordered list of 1,024 soft, rotated ellipses packed into an integer array; its minified source is about 11 KB gzipped. The page draws each ellipse as its own small quad and lets the GPU blend them in order, so a frame costs about as much as the ink on screen. The list was trained so that its first 16, 32, 64 and so on ellipses already make a coarser picture. Press "Paint it in" to watch the shader add them, or drag the splats slider to stop at a power of two. As compression it loses: on these six Kodak test photos, AVIF at the same size scores 3.9 to 6.8 dB higher in PSNR. The buttons under the picture show the original and the AVIF and WebP files of the same size.</p>
+    <p>Bytes are the gzip size of the minified shader, measured at each power-of-two prefix; PSNR is against the Kodak original at 768×512, or against your image at the size it was fitted. The AVIF, WebP and JPEG comparisons are the best encodes at or under the full shader's size, allowing downscaling before encoding. Method and numbers: <a href="https://github.com/oaustegard/experiments/tree/main/image-to-wgsl">image-to-wgsl</a>.</p>
+  </details>
   <div class="picker" id="picker"></div>
   <div class="enc" id="enc" hidden>
     <div class="row">
@@ -74,8 +85,10 @@ a { color: var(--accent); }
       <label for="fsize" id="fsizel" hidden>size</label><input type="range" id="fsize" min="0.05" max="0.5" step="0.01" value="0.2" hidden>
       <span class="note" id="fstat"></span>
     </div>
-    <div class="note">Your image stays in this browser. It is scaled down (512 px on a phone, 768 px otherwise, on its longer side), then fitted on your GPU by WebGPU compute shaders in which each splat only touches the 16×16-pixel tiles it reaches; the picture above updates while it trains. The splat menu lists what this device can train, with a time estimate from a few timed training steps on your image. It offers up to 8,192 splats, which took about a minute on an iPhone and 4 seconds on an M5 Max laptop. The HTML download opens on the finished picture, with a button to paint it in and a slider over the measured splat counts.</div>
-    <div class="note">Focus spends the splats where you choose: on a spot you tap, on faces (MediaPipe's face detector, about 13 MB the first time), or on everything at the distance of a spot you tap (the Depth Anything V2 small depth model, about 27 MB plus its runtime the first time). The picture shows the focus map until you encode, bright where the error counts most. Pixels outside the focus still count at a twentieth of the weight. The scores then add the PSNR inside the focus, weighted by the same map.</div>
+    <details class="info"><summary>How encoding and focus work</summary>
+      <p>Your image stays in this browser. It is scaled down (512 px on a phone, 768 px otherwise, on its longer side), then fitted on your GPU by WebGPU compute shaders in which each splat only touches the 16×16-pixel tiles it reaches; the picture above updates while it trains. The splat menu lists what this device can train, with a time estimate from a few timed training steps on your image. It offers up to 8,192 splats, which took about a minute on an iPhone and 4 seconds on an M5 Max laptop. The HTML download opens on the finished picture, with a button to paint it in and a slider over the measured splat counts.</p>
+      <p>Focus spends the splats where you choose: on a spot you tap, on faces (MediaPipe's face detector, about 13 MB the first time), or on everything at the distance of a spot you tap (the Depth Anything V2 small depth model, about 27 MB plus its runtime the first time). The picture shows the focus map until you encode, bright where the error counts most. Pixels outside the focus still count at a twentieth of the weight. The scores then add the PSNR inside the focus, weighted by the same map.</p>
+    </details>
     <progress id="prog" max="1" value="0" hidden></progress>
     <div class="note" id="encstat"></div>
   </div>
@@ -96,15 +109,15 @@ a { color: var(--accent); }
       <button id="paint">Paint it in</button>
       <span id="views"></span>
     </div>
-    <div class="note">Scroll, pinch or use + and − to zoom in, and drag to look around; double-click or Fit to go back. The shader redraws its splats at every zoom, so edges stay smooth at any magnification. The original and the JPEG, WebP and AVIF files zoom with it and show their pixels.</div>
-    <div class="note" id="cmpnote"></div>
+    <details class="info"><summary>Zoom</summary><p>Scroll, pinch or use + and − to zoom in, and drag to look around; double-click or Fit to go back. The shader redraws its splats at every zoom, so edges stay smooth at any magnification. The original and the JPEG, WebP and AVIF files zoom with it and show their pixels.</p></details>
+    <details class="info"><summary>Sizes and comparisons</summary><p id="cmpnote"></p></details>
     <div class="note dl" id="dl" hidden><a id="dlw" download="image.wgsl" href="#">Download the shader (.wgsl)</a><a id="dlh" download="image-shader.html" href="#">Download a page that shows it (.html)</a></div>
   </div>
   <details>
     <summary>Shader source (minified)</summary>
     <pre id="src"></pre>
   </details>
-  <p class="note">Bytes are the gzip size of the minified shader, measured at each power-of-two prefix; PSNR is against the Kodak original at 768×512, or against your image at the size it was fitted. The AVIF, WebP and JPEG comparisons are the best encodes at or under the full shader's size, allowing downscaling before encoding. Method and numbers: <a href="https://github.com/oaustegard/experiments/tree/main/image-to-wgsl">image-to-wgsl</a>.</p>
+
 </main>
 <script type="module" src="./page.js"></script>
 </body>
