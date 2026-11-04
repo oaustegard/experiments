@@ -193,6 +193,38 @@ if (cfg.mode === "check") {
   }
   result.tokens = Int32Array.from(toks); result.lengths = Int32Array.from(lens); result.stopped = Uint8Array.from(stopped);
   result.uids = uids; result.batches = batches; result.batchesDone = batches.length; result.batchesTotal = cfg.batches.length;
+} else if (cfg.mode === "sharedkv") {
+  // Greedy decode of one prompt two ways: the growing cache (generate above) and a fixed-size cache bound as
+  // both past input and present output (the chat page's generateShared). Same tokens expected.
+  const T = cfg.prompt.length, N = cfg.steps, L = M.layers, KVH = meta.kv_heads || 4, HD = meta.head_dim || 64;
+  const g = await generate([cfg.prompt], { maxNew: N, stop: false });
+  const MAX = Math.ceil((T + N + 1) / 128) * 128, dev = ort.env.webgpu.device, bufs = [], tens = [];
+  for (let i = 0; i < 2 * L; i++) {
+    const b = dev.createBuffer({ size: 4 * KVH * MAX * HD, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+    bufs.push(b); tens.push(ort.Tensor.fromGpuBuffer(b, { dataType: "float32", dims: [1, KVH, MAX, HD] }));
+  }
+  const kvF = {}, kvO = {};
+  for (let l = 0; l < L; l++) { kvF[`past_key_values.${l}.key`] = tens[2 * l]; kvF[`past_key_values.${l}.value`] = tens[2 * l + 1];
+    kvO[`present.${l}.key`] = tens[2 * l]; kvO[`present.${l}.value`] = tens[2 * l + 1]; }
+  const out = [], ms = [];
+  let ids = cfg.prompt, total = T, err = null;
+  try {
+    for (let step = 0; step <= N; step++) {
+      const t0 = performance.now();
+      const res = await M.sess.run({ input_ids: i64(ids, [1, ids.length]), attention_mask: i64(new Array(total).fill(1), [1, total]),
+        logits_index: i64([ids.length - 1], [1]), ...kvF }, { logits: null, ...kvO });
+      ms.push(performance.now() - t0);
+      const lg = res.logits.data; let bi = 0; for (let v = 1; v < lg.length; v++) if (lg[v] > lg[bi]) bi = v;
+      if (step === N) break;
+      out.push(bi); ids = [bi]; total += 1;
+      if (step % 100 === 0) ctx.progress(step / N, `shared step ${step}`);
+    }
+  } catch (e) { err = String(e && e.message || e); }
+  for (const b of bufs) b.destroy();
+  let same = 0; while (same < Math.min(out.length, g.tokens[0].length) && out[same] === g.tokens[0][same]) same++;
+  Object.assign(result, { growTokens: g.tokens[0], sharedTokens: out, sameTokens: same, growStepMedMs: med(g.stepMs.slice(1)),
+    sharedStepMedMs: med(ms.slice(1)), growPrefillMs: g.stepMs[0], sharedPrefillMs: ms[0], kvMax: MAX, sharedError: err });
 }
+
 result.totalMs = performance.now() - t00;
 return result;
