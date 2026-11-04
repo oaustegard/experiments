@@ -226,7 +226,8 @@ Full fine-tune of the loop-edited Monad (A8p) on the 45 Paper Skygest papers who
 Gemini-written training rows in Monad's own reasoning format and SYNTH replay mixed in. Ten rows per paper made the model
 recite its training answers but fail reworded questions; forty paraphrases per paper fixed that (8% → 29% at equal
 exposure). The shipped 8-bit model reuses the chat page's graph byte for byte and was measured on the page's runtime through
-the GPU Bridge. It knows the papers and loops more on long prompts; re-applying the loop edit after training did not undo that.
+the GPU Bridge (a page on Oskar's Mac that runs WebGPU jobs sent from a session). It answers about a third of reworded
+questions about the papers and loops more on long prompts; re-applying the loop edit after training did not undo that.
 
 ### `monad-layer-parallel/` — making the loop-edited Monad faster without training
 

@@ -1,82 +1,92 @@
 # monad-skygest-finetune
 
-[Monad](https://huggingface.co/PleIAs/Monad) is a 56M-parameter reasoning model from PleIAs, small enough to run in a
-browser tab: the [Monad chat page](https://austegard.com/ai-tools/monad-chat/) runs an 8-bit copy of it on WebGPU. Its
-training data ends in late 2025, so it cannot know anything published since. This experiment fine-tunes it on the papers
-people were sharing on Bluesky's "Paper Skygest" feed on 2026-11-03 and asks whether it can then answer questions about
-them, and what that costs it elsewhere. The starting point is A8p, the loop-edited Monad from
-[`monad-weight-edit/`](../monad-weight-edit/RESULTS.md), which is what the page ships.
+[Monad](https://huggingface.co/PleIAs/Monad) is a 56M-parameter reasoning model from PleIAs, trained on PleIAs' synthetic
+dataset SYNTH (questions, step-by-step reasoning, answers). It is small enough to run in a browser tab, and the
+[Monad chat page](https://austegard.com/ai-tools/monad-chat/) runs two 8-bit copies of it on WebGPU: the original and
+**A8p**, a version from [`monad-weight-edit/`](../monad-weight-edit/RESULTS.md) whose weights were edited to stop it
+falling into repetition loops (the same few tokens repeated until the length limit). Monad's training data ends in late
+2025, so it cannot know anything published since.
+
+The question here: if A8p is fine-tuned on the papers people were sharing on Bluesky's "Paper Skygest" feed on
+2026-11-03, can it then answer questions about them, and what does it lose elsewhere? The result is meant as a third model
+for the chat page.
 
 ## Answer
 
-Partly. The shipped model, `skygest_q8`, answers 31.1% of reworded questions <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_judged]] -->
-about the 45 papers it was trained on, counting a partly right answer as half,
-and gets 20.7% fully right <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_correct]] -->. Before
-fine-tuning it scored 0.7% <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.papers_judged]] -->. Both numbers
-are greedy decoding on Oskar's Mac GPU with the page's own runtime.
+Partly. Each paper has three held-out questions that ask about facts the training rows teach, in different words. The
+shipped model, `skygest_q8` (the epoch-8 checkpoint in 8 bits), answers 31.1% of them <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_judged]] -->
+across the 45 papers, counting a partly right answer as half, and 20.7% fully right <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_correct]] -->.
+A8p scored 0.7% on the same questions <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.papers_judged]] -->. Both ran greedily on Oskar's Mac GPU
+with the page's own runtime.
 
-What made it work was paraphrase. With ten training rows per paper, the model learned to answer its own training
-questions word for word, 45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.seen_judged]] -->, while scoring
-8.1% on reworded ones <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.papers_judged]] -->: it had stored answers
-against question strings. Adding about 40 paraphrased rows per paper raised the reworded score to 28.9% <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->
-after the same number of passes over each paper.
+Paraphrase is what made it work. With ten training rows per paper, the model answered its own training questions word
+for word, 45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.seen_judged]] -->, and only 8.1% of the held-out ones <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.papers_judged]] -->.
+With about 40 paraphrased rows added per paper, and the same number of rows seen per paper, it answered 28.9% <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->.
 
-The cost is general behaviour. On a 192-prompt general set, loops (generation stuck repeating until the token limit) rose
-from 6.2% to 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] --> in full precision, which undoes
-much of A8p's loop edit, and MMLU fell from 25% to 20%. On 30 one-line facts it is unchanged.
+It costs general behaviour. On 192 general prompts, measured in full precision, the loop rate rose from 6.2% <!-- @evidence[[results/summary.json#arms.A8p.dev_loop]] -->
+to 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->, undoing much of A8p's edit.
+A checkpoint scoring 39.6% on the papers lost more and was rejected.
 
 More papers would change the headline: only 45 of the 92 in the feed had an abstract this session could fetch.
 
 ## Findings
 
-1. **Paraphrased training rows are what let the model answer reworded questions.** At an equal number of rows seen per
-   paper (about 150), ten distinct rows per paper repeated 15 times scored 8.1% on held-out questions; 50 rows per paper
-   (10 originals plus 40 paraphrases) repeated three times scored 28.9% <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->
-   , and 20.7% fully correct <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_correct]] -->
-   against 3.0%. This is the effect Allen-Zhu
-   and Li describe in "Physics of Language Models 3.1" (arXiv 2309.14316): facts seen in one phrasing are stored but not
-   extractable. (Round 1 vs Round 2)
-2. **Without paraphrase, the model memorizes the questions.** The round-1 model at learning rate 5e-4 answered every
-   training question asked back verbatim, 45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e20.seen_correct]] -->,
-   and borrowed facts across papers when the wording changed (asked about a mixture-of-experts paper, it quoted a
-   sample-complexity bound from a different one). With paraphrases the verbatim score fell to 41% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.seen_judged]] -->
-   while the reworded score rose. (Round 1)
-3. **The shipped 8-bit model keeps its fp32 score.** `skygest_q8`: 31.9% judged on CPU onnxruntime <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.papers_judged]] -->
-   , 31.1% on the Mac GPU, against
-   28.5% for the same checkpoint in fp32 <!-- @evidence[[results/summary.json#arms.para5e_4_e8.papers_judged]] -->; facts
-   8 of 30 on CPU <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.facts_ok]] -->. The difference is within
-   noise for 135 questions (one standard error is about 4 points). (Round 3)
-4. **Fine-tuning brings the loops back.** Dev loop rate 6.2% for A8p, 23.4% for the shipped checkpoint <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->
-   , worst on long instruction-following prompts:
-   51.6% of IFEval prompts <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_ifeval_loop]] --> against 15.6%.
-   Training restored only a tenth of the edited direction in the matrices the edit touched (0.8% of their norm, against
-   8.7% in the original Monad <!-- @evidence[[results/extra.json#loop_direction_share.base]] -->), and re-applying the
-   edit after training cut loops only to 18.8% <!-- @evidence[[results/summary.json#arms.para5e_4_e8_re.dev_loop]] -->
-   while MMLU fell to 10.9%. The loops return through other weights. (Round 2)
-5. **The best paper score came with the worst general score.** Round 2 at epoch 4 scored 39.6% on the papers <!-- @evidence[[results/summary.json#arms.para5e_4_e4.papers_judged]] -->,
-   but got 1 of 30 facts, looped on 29.7% of dev prompts <!-- @evidence[[results/summary.json#arms.para5e_4_e4.dev_loop]] -->
-   and scored 15.6% on MMLU. The last four epochs, at a decaying learning rate, gave back 11 points on the papers and
-   recovered the facts (8 of 30) and some of the rest; epoch 8 shipped. (Round 2)
-6. **The learning rate had to be high enough to store anything.** After 10 epochs of the ten-row data, 1e-4 answered
-   8.9% of its own training questions <!-- @evidence[[results/summary.json#arms.lr1e_4_e10.seen_judged]] --> and 3e-4
-   answered 12.2%; 5e-4 reached 100% by epoch 15. (Round 1)
-7. **Older papers were no easier.** The feed included 16 papers from before Monad's training data (one is "Attention Is
-   All You Need"). Before fine-tuning both groups scored 0%; after, older papers scored 33.3% <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_pre_judged]] -->
-   and post-cutoff ones 29.9% <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_post_judged]] -->
-   . Monad did not know even the
-   famous ones well enough to answer these questions. (Round 3)
-8. **The page's 8-bit graph can be rebuilt byte for byte, and A8p's weights recovered from it.** onnxruntime-genai
-   0.18.0 in fp32, then onnxruntime's 8-bit weight quantizer, reproduces the published `base_q8` exactly; the loop
-   edit's direction, never committed, comes back from the published `A8p_q8` as one singular vector, and the rebuilt A8p
-   differs from the published one by a next-token KL of 0.00141 <!-- @evidence[[results/extra.json#recover_a8p.kl_rebuilt_vs_published]] -->
-   , against 0.03231 between A8p and the
-   original Monad. (Round 0)
+Rounds are in the Log: 0 is setup, 1 is ten training rows per paper, 2 adds paraphrases, 3 measures the shipped model.
+*Judged* counts a partly right answer as half; *verbatim* means a training question asked back word for word; *dev* is a
+fixed set of 192 general prompts (64 each from MMLU, a multiple-choice knowledge test; GSM8K, grade-school maths word
+problems; and IFEval, instructions such as "answer in three paragraphs"). Rows-per-paper comparisons are at equal
+exposure: about 150 rows seen per paper.
+
+1. **Paraphrased training rows are what let the model answer reworded questions.** Ten distinct rows per paper, seen 15
+   times each, gave 8.1% judged on the held-out questions and 3.0% fully correct. Fifty rows per paper (the ten plus 40
+   paraphrases), seen three times each, gave 28.9% judged <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->
+   and 20.7% fully correct <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_correct]] -->. Allen-Zhu and Li
+   report the same effect in "Physics of Language Models 3.1" (arXiv 2309.14316): facts trained in one phrasing are
+   stored but cannot be retrieved by other questions. (Round 1 vs Round 2)
+2. **Without paraphrase, the model memorizes the questions.** At learning rate 5e-4 the round-1 model answered every
+   training question asked back verbatim, 45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e20.seen_correct]] -->.
+   When the wording changed it mixed up papers: asked about a mixture-of-experts paper, it quoted a sample-complexity
+   bound from a different one. With paraphrases, the verbatim score fell to 41% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.seen_judged]] -->
+   and the held-out score rose. (Round 1)
+3. **The 8-bit export keeps the full-precision score.** `skygest_q8` scored 31.9% judged on CPU onnxruntime <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.papers_judged]] -->
+   and 31.1% on the Mac GPU. The same checkpoint in full precision scored 28.5% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.papers_judged]] -->.
+   With 135 questions one standard error is about 4 points, so these agree. On the 30 one-line facts it scored 8 on CPU <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.facts_ok]] -->
+   and 6 on the Mac, the same as A8p on each runtime. (Round 3)
+4. **Fine-tuning brings the loops back, and re-applying the edit does not remove them.** In full precision, A8p looped on
+   6.2% of dev prompts and the shipped checkpoint on 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->.
+   The worst case is the long IFEval answers: 51.6% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_ifeval_loop]] -->
+   against 15.6% for A8p <!-- @evidence[[results/summary.json#arms.A8p.dev_ifeval_loop]] -->. A8p's edit removed one
+   direction from eight weight matrices. After training, that direction makes up 0.8% of those matrices' size, against
+   8.7% in the original Monad <!-- @evidence[[results/extra.json#loop_direction_share.base]] --> and almost none in A8p.
+   Removing it again lowered loops only to 18.8% <!-- @evidence[[results/summary.json#arms.para5e_4_e8_re.dev_loop]] -->,
+   and MMLU fell to 10.9%. Whatever brings the loops back is mostly not in those eight matrices; this experiment did not
+   find where it is. (Round 2)
+5. **The checkpoint with the best paper score lost the most elsewhere.** Round 2 at epoch 4 scored 39.6% on the papers <!-- @evidence[[results/summary.json#arms.para5e_4_e4.papers_judged]] -->,
+   but got 1 of 30 facts and looped on 29.7% of dev prompts <!-- @evidence[[results/summary.json#arms.para5e_4_e4.dev_loop]] -->.
+   Over the last four epochs, with the learning rate decaying, the model gave back 11 points on the papers and recovered
+   the facts (8 of 30). Epoch 8 shipped. (Round 2)
+6. **MMLU moved within noise.** A8p scored 25% <!-- @evidence[[results/summary.json#arms.A8p.dev_mmlu]] -->, which is
+   chance on four choices, and the shipped checkpoint 20.3% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_mmlu]] -->.
+   With 64 questions one standard error is about 5 points, so this neither shows a loss nor rules one out. (Round 2)
+7. **The learning rate had to be high enough to store anything.** After 10 epochs on the ten-row data, learning rate 1e-4
+   answered 8.9% of its own training questions <!-- @evidence[[results/summary.json#arms.lr1e_4_e10.seen_judged]] -->
+   and 3e-4 answered 12.2%. 5e-4 reached 100% by epoch 15. (Round 1)
+8. **Older papers were no easier.** 16 of the 45 papers predate Monad's training data, one of them "Attention Is All You
+   Need". On the Mac, A8p answered none of their questions; after fine-tuning they scored 33.3% <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_pre_judged]] -->
+   against 29.9% for the post-cutoff papers <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_post_judged]] -->.
+   The questions were written from the abstracts and ask for details such as numbers and author names, which Monad did
+   not have for the older papers either. (Round 3)
+9. **The page's 8-bit model can be rebuilt exactly.** Converting Monad with onnxruntime-genai 0.18.0 in full precision
+   and then quantizing with onnxruntime's 8-bit weight quantizer reproduces the published original byte for byte. A8p's
+   full-precision weights were not saved anywhere, so they were recovered from the published 8-bit A8p. The recovered
+   model's next-token predictions differ from the published one's by a KL divergence of 0.00141 <!-- @evidence[[results/extra.json#recover_a8p.kl_rebuilt_vs_published]] -->.
+   For scale, the original Monad and A8p differ by 0.032. (Round 0)
 
 ## Method
 
 - **Papers.** The Paper Skygest feed (`at://did:plc:uaadt6f5bbda6cycbmatcm3z/app.bsky.feed.generator/preprintdigest`)
   is personalized; logged out it serves the latest ~120 paper posts across Bluesky, and that window did not move in 45
-  minutes on 2026-11-03. That view plus Muninn's logged-in view gave 151 posts linking 92 papers <!-- @evidence[[results/summary.json#data.papers_ranked]] -->
+  minutes on 2026-11-03. That view plus the logged-in view of Muninn (the Bluesky account of the agent that ran this) gave 151 posts linking 92 papers <!-- @evidence[[results/summary.json#data.papers_ranked]] -->
   , ranked by summed likes, reposts, replies and quotes
   (`fetch_feed.py`). Abstracts came from the arXiv API, Crossref and Semantic Scholar (`fetch_meta.py`): 45 papers <!-- @evidence[[results/summary.json#data.papers_with_abstract]] -->
   , 29 dated after 2025-11-01, when Monad and its
@@ -88,7 +98,7 @@ More papers would change the headline: only 45 of the 92 in the feed had an abst
   with reference answers and key points (`gen_data.py`); then 40 more rows per paper in two calls, one asking each fact
   several ways and one with multi-fact overviews, the paper named differently in every row (`gen_para.py`). Training
   rows sharing half or more of their content words with a held-out question on the same paper were dropped (3 of
-  1,800). Replay: 3,000 English SYNTH rows at random offsets, a fresh 300 (Round 1) or 600 (Round 2) per epoch.
+  1,800). Replay, to keep the model's general behaviour: English SYNTH rows from random offsets, 2,923 of which fit the 1,024-token window, taken in order from a shuffled pool at 300 (Round 1) or 600 (Round 2) per epoch and wrapping around when the pool runs out. The 450 original training rows were checked against the held-out questions only for exact duplicates; Gemini wrote both from the abstract in the same call.
 - **Training.** Full fine-tune from A8p (`train.py`): AdamW, betas 0.9/0.95, weight decay 0.01, 5% warmup then cosine
   decay, batch 16, loss on the reasoning and answer only, gradient checkpointing, fp32, checkpoints saved in bf16. Round
   1: 450 rows, learning rates 1e-4 and 3e-4 for 10 epochs and 5e-4 for 20. Round 2: 2,247 rows, 5e-4, 8 epochs. On a
@@ -111,11 +121,11 @@ More papers would change the headline: only 45 of the 92 in the feed had an abst
 
 ### 2026-11-03 — round 0: data and starting weights
 
-Oskar, from the parent session: fine-tune Monad on the top ~100 papers in the Paper Skygest feed, as a third model for
-the chat page. The feed's logged-out view held 84 papers and did not change over 45 minutes; Muninn's logged-in view
+Oskar, from the monad-chat session: fine-tune Monad on the top ~100 papers in the Paper Skygest feed, as a third model
+for the chat page. The feed's logged-out view held 84 papers and did not change over 45 minutes; the logged-in view of Muninn (the Bluesky account of the agent that ran this)
 added 8. 45 had abstracts. The 30 bioRxiv preprints carry a DOI with a `v1` suffix that Crossref did not resolve; a
-probe of bioRxiv's landing page with a browser User-Agent was denied by the session's auto-mode classifier as bot-check
-circumvention, and per the workspace rule no other route to those abstracts was tried. Claude Sonnet was the first
+probe of bioRxiv's landing page with a browser User-Agent was refused by the session's safety check as bot-check
+circumvention, and no other route to those abstracts was tried. Claude Sonnet was the first
 choice to write the training data; its API safeguard refused the prompt (`reasoning_extraction`, writing reasoning
 traces to train another model), so Gemini wrote it.
 
@@ -129,10 +139,11 @@ published model's recorded answers to the first 10 fact probes exactly, so the h
 
 Learning rates 1e-4 and 3e-4 for 10 epochs and 5e-4 for 20, 450 paper rows plus 300 replay rows per epoch. Held-out
 scores stayed under 9% at every checkpoint, and fine-tuning raised the dev loop rate from 6.2% to 21.9% by epoch 2 at
-1e-4. The verbatim probe separated the two failure modes: 5e-4 had memorized every training question by epoch 15 and
-still could not answer reworded ones.
+1e-4. The verbatim probe told "not learned" apart from "learned but not retrievable": 1e-4 and 3e-4 had not stored the
+training answers at all, while 5e-4 had memorized every training question by epoch 15 and still could not answer
+reworded ones.
 
-| checkpoint | papers judged | fully correct | seen (verbatim) | facts |
+| checkpoint | papers judged | fully correct | verbatim | facts (of 30) |
 |---|---|---|---|---|
 | A8p (fp32) | 0% | 0% | — | 8 |
 | 1e-4, epoch 10 | 4.1% | 1.5% | 8.9% | 8 |
@@ -149,7 +160,7 @@ untouched), and this experiment had not checked it.
 Oskar: "try more paraphrases per paper instead of more epochs". 1,797 paraphrased rows kept, 600 replay rows per epoch,
 learning rate 5e-4, 8 epochs.
 
-| checkpoint | papers judged | fully correct | seen | facts | dev loops | MMLU |
+| checkpoint | papers judged | fully correct | verbatim | facts (of 30) | dev loops | MMLU |
 |---|---|---|---|---|---|---|
 | epoch 3 | 28.9% | 20.7% | 45.6% | 3 | — | — |
 | epoch 4 | 39.6% | 32.6% | 51.1% | 1 | 29.7% | 15.6% |
@@ -158,16 +169,18 @@ learning rate 5e-4, 8 epochs.
 | epoch 8, loop edit re-applied | 30.7% | 22.2% | — | 7 | 18.8% | 10.9% |
 
 Epoch 8 shipped: epoch 4's 11 extra points on the papers came with near-zero facts and the worst loop and MMLU numbers,
-and the re-applied edit traded MMLU for loops with both shifts about two standard errors.
+and the re-applied edit lowered loops (23.4% to 18.8%) while MMLU fell (20.3% to 10.9%), each shift about two
+standard errors.
 
 ### 2026-11-04 — round 3: the shipped 8-bit model
 
 `skygest_q8` exported, uploaded to R2 at `models/monad-chat/v1/skygest_q8/`, and measured as the page runs it.
 
-| model, runtime | papers judged | fully correct | facts | dev loops |
+| model, runtime | papers judged | fully correct | facts (of 30) | dev loops |
 |---|---|---|---|---|
 | A8p_q8, Mac GPU | 0.7% | 0% | 6 | 7.3% |
 | skygest_q8, CPU | 31.9% | 21.5% | 8 | pending |
 | skygest_q8, Mac GPU | 31.1% | 20.7% | 6 | pending |
 
-Costs: 9.65 Colab compute units, 135 Gemini calls for training data plus the judge calls, about 1.5 hours of Mac GPU time on the bridge.
+Costs: 9.65 Colab compute units; Gemini calls for the training data (45 plus 90 for paraphrases) and for judging (15
+answers per call); about 1.5 hours of Mac GPU time on the bridge.
