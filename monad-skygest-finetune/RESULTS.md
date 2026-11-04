@@ -13,21 +13,22 @@ for the chat page.
 
 ## Answer
 
-Partly. Each paper has three held-out questions that ask about facts the training rows teach, in different words. The
-shipped model, `skygest_q8` (the epoch-8 checkpoint in 8 bits), answers 31.1% of them <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_judged]] -->
-across the 45 papers, counting a partly right answer as half, and 20.7% fully right <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_correct]] -->.
-A8p scored 0.7% on the same questions <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.papers_judged]] -->. Both ran greedily on Oskar's Mac GPU
-with the page's own runtime.
+Partly. Each paper has three held-out questions on facts the training rows teach, worded differently. The shipped
+model, `skygest_q8` (after 8 passes over the training data, in 8 bits), answers 31.1% of them <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_judged]] -->
+across 45 papers (partly right counts half), and 20.7% fully right <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_correct]] -->.
+A8p scored 0.7% on the same questions <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.papers_judged]] -->. Both ran greedily (most likely token
+each step) on the Mac GPU of Oskar Austegard, this repo's owner, in the page's runtime.
 
-Paraphrase is what made it work. With ten training rows per paper, the model answered its own training questions word
-for word, 45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.seen_judged]] -->, and only 8.1% of the held-out ones <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.papers_judged]] -->.
-With about 40 paraphrased rows added per paper, and the same number of rows seen per paper, it answered 28.9% <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->.
+Paraphrase made it work. With ten training rows per paper, the model answered its own training questions verbatim,
+45 of 45 <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.seen_judged]] -->, and only 8.1% of the held-out ones <!-- @evidence[[results/summary.json#arms.lr5e_4_e15.papers_judged]] -->.
+Adding about 40 paraphrases per paper, at equal rows seen per paper, gave 28.9% <!-- @evidence[[results/summary.json#arms.para5e_4_e3.papers_judged]] -->.
 
-It costs general behaviour. On 192 general prompts, measured in full precision, the loop rate rose from 6.2% <!-- @evidence[[results/summary.json#arms.A8p.dev_loop]] -->
-to 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->, undoing much of A8p's edit.
-A checkpoint scoring 39.6% on the papers lost more and was rejected.
+It costs general behaviour. On 192 general prompts, in full precision, loops rose from 6.2% <!-- @evidence[[results/summary.json#arms.A8p.dev_loop]] -->
+to 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->; the unedited Monad looped on 30%, so
+most of A8p's gain is gone.
+A checkpoint scoring 39.6% on the papers was rejected: it got 1 of 30 basic facts.
 
-More papers would change the headline: only 45 of the 92 in the feed had an abstract this session could fetch.
+More papers would change the headline: only 45 of the feed's 92 had a fetchable abstract.
 
 ## Findings
 
@@ -51,13 +52,14 @@ exposure: about 150 rows seen per paper.
 3. **The 8-bit export keeps the full-precision score.** `skygest_q8` scored 31.9% judged on CPU onnxruntime <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.papers_judged]] -->
    and 31.1% on the Mac GPU. The same checkpoint in full precision scored 28.5% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.papers_judged]] -->.
    With 135 questions one standard error is about 4 points, so these agree. On the 30 one-line facts it scored 8 on CPU <!-- @evidence[[results/summary.json#final.cpu.skygest_e8_q8.facts_ok]] -->
-   and 6 on the Mac, the same as A8p on each runtime. (Round 3)
-4. **Fine-tuning brings the loops back, and re-applying the edit does not remove them.** In full precision, A8p looped on
+   and 6 on the Mac; A8p scored 7 on CPU and 6 on the Mac. (Round 3)
+4. **Fine-tuning brings the loops back, and re-applying the edit removes few of them.** In full precision, A8p looped on
    6.2% of dev prompts and the shipped checkpoint on 23.4% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_loop]] -->.
    The worst case is the long IFEval answers: 51.6% <!-- @evidence[[results/summary.json#arms.para5e_4_e8.dev_ifeval_loop]] -->
    against 15.6% for A8p <!-- @evidence[[results/summary.json#arms.A8p.dev_ifeval_loop]] -->. A8p's edit removed one
-   direction from eight weight matrices. After training, that direction makes up 0.8% of those matrices' size, against
-   8.7% in the original Monad <!-- @evidence[[results/extra.json#loop_direction_share.base]] --> and almost none in A8p.
+   direction from eight weight matrices. Measured as a share of each matrix's norm, that direction is 8.7% in the original Monad <!-- @evidence[[results/extra.json#loop_direction_share.base]] -->,
+   almost zero in A8p, and 0.8% after training:
+   training put back only a tenth of it.
    Removing it again lowered loops only to 18.8% <!-- @evidence[[results/summary.json#arms.para5e_4_e8_re.dev_loop]] -->,
    and MMLU fell to 10.9%. Whatever brings the loops back is mostly not in those eight matrices; this experiment did not
    find where it is. (Round 2)
@@ -74,12 +76,13 @@ exposure: about 150 rows seen per paper.
 8. **Older papers were no easier.** 16 of the 45 papers predate Monad's training data, one of them "Attention Is All You
    Need". On the Mac, A8p answered none of their questions; after fine-tuning they scored 33.3% <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_pre_judged]] -->
    against 29.9% for the post-cutoff papers <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_post_judged]] -->.
-   The questions were written from the abstracts and ask for details such as numbers and author names, which Monad did
-   not have for the older papers either. (Round 3)
+   The questions ask for details from the abstracts, for example "What score was recorded on the English-to-French WMT
+   2014 benchmark by the novel architecture in Vaswani et al. (2017)?", which a model can know a paper exists without
+   knowing. (Round 3)
 9. **The page's 8-bit model can be rebuilt exactly.** Converting Monad with onnxruntime-genai 0.18.0 in full precision
    and then quantizing with onnxruntime's 8-bit weight quantizer reproduces the published original byte for byte. A8p's
    full-precision weights were not saved anywhere, so they were recovered from the published 8-bit A8p. The recovered
-   model's next-token predictions differ from the published one's by a KL divergence of 0.00141 <!-- @evidence[[results/extra.json#recover_a8p.kl_rebuilt_vs_published]] -->.
+   model's next-token predictions differ from the published one's by a KL divergence (in nats) of 0.00141 <!-- @evidence[[results/extra.json#recover_a8p.kl_rebuilt_vs_published]] -->.
    For scale, the original Monad and A8p differ by 0.032. (Round 0)
 
 ## Method
