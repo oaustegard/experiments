@@ -7,7 +7,8 @@ Each row is the chat prompt, then the target `reasoning\n</think>\n\nanswer<|im_
 loss on the target only (the same masking as monad-bsky/train.py). No BOS: the page and the eval
 harness feed the prompt without one. Every epoch sees all paper rows and the next --replay-per-epoch
 SYNTH rows from data/replay.jsonl, so replay rows are not repeated until the pool runs out.
-Checkpoints are saved in bf16, the dtype Monad ships in and the one export.py packs.
+--replay-long adds a second pool whose rows are 1,025 to --max-len tokens, --long-per-epoch of them per
+epoch, so the model keeps seeing long answers. Checkpoints are saved in bf16, the dtype Monad ships in and the one export.py packs.
 Runs on CUDA when present, else CPU.
 """
 import argparse, json, math, random, time
@@ -56,6 +57,8 @@ def main():
     ap.add_argument("--papers", default=str(HERE / "data/train_papers.jsonl"))
     ap.add_argument("--replay", default=str(HERE / "data/replay.jsonl"))
     ap.add_argument("--replay-per-epoch", type=int, default=300)
+    ap.add_argument("--replay-long", default="", help="second replay pool of long rows (fetch_replay.py --min-chars)")
+    ap.add_argument("--long-per-epoch", type=int, default=0)
     ap.add_argument("--epochs", type=int, default=10)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--batch-size", type=int, default=16)
@@ -77,20 +80,28 @@ def main():
     replay = [json.loads(l) for l in open(a.replay)]
     rng.shuffle(replay)
     P = [encode(tok, r, a.max_len) for r in papers]
-    R = [x for x in (encode(tok, r, 4096) for r in replay) if len(x[0]) <= a.max_len]   # whole rows only
-    per_epoch = len(P) + a.replay_per_epoch
+    R = [x for x in (encode(tok, r, 4096) for r in replay) if len(x[0]) <= 1024]   # whole rows only, as in rounds 1-2
+    L = []
+    if a.replay_long:
+        longs = [json.loads(l) for l in open(a.replay_long)]
+        rng.shuffle(longs)
+        L = [x for x in (encode(tok, r, 4096) for r in longs) if 1024 < len(x[0]) <= a.max_len]
+    per_epoch = len(P) + a.replay_per_epoch + (a.long_per_epoch if L else 0)
     steps_per_epoch = math.ceil(per_epoch / a.batch_size)
     total = steps_per_epoch * a.epochs
     warmup = max(1, total // 20)
     save_at = {int(x) for x in a.save_at.split(",") if x} | {a.epochs}
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.01, betas=(0.9, 0.95))
-    print(json.dumps({"device": dev, "paper_rows": len(P), "replay_pool": len(R), "per_epoch": per_epoch,
+    print(json.dumps({"device": dev, "paper_rows": len(P), "replay_pool": len(R), "long_pool": len(L), "per_epoch": per_epoch,
                       "steps": total, "lr": a.lr, "batch": a.batch_size}), flush=True)
     log = []
     step, t0 = 0, time.perf_counter()
     for ep in range(a.epochs):
         k = (ep * a.replay_per_epoch) % len(R)
         rows = P + [(R + R)[k + j] for j in range(a.replay_per_epoch)]
+        if L:
+            kl = (ep * a.long_per_epoch) % len(L)
+            rows += [L[(kl + j) % len(L)] for j in range(a.long_per_epoch)]
         rng.shuffle(rows)
         tot_p = tot_n = 0.0
         for i in range(0, len(rows), a.batch_size):

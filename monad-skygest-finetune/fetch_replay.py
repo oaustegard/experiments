@@ -26,6 +26,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=3000)
     ap.add_argument("--seed", type=int, default=20261103)
+    ap.add_argument("--min-chars", type=int, default=0)
+    ap.add_argument("--max-chars", type=int, default=3000)
+    ap.add_argument("--out", default="data/replay.jsonl")
     a = ap.parse_args()
     total = get(f"{API}/size?dataset=PleIAs/SYNTH")["size"]["splits"][0]["num_rows"]
     rng = random.Random(a.seed)
@@ -36,13 +39,14 @@ def main():
         for r in (x["row"] for x in d["rows"]):
             if r["language"] != "en" or r["synth_id"] in seen:
                 continue
-            if len(r["synthetic_reasoning"]) + len(r["synthetic_answer"]) > 3000 or not r["synthetic_answer"].strip():
+            n = len(r["synthetic_reasoning"]) + len(r["synthetic_answer"])
+            if not a.min_chars <= n <= a.max_chars or not r["synthetic_answer"].strip():
                 continue
             seen.add(r["synth_id"])
             out.append({"id": r["synth_id"], "exercise": r["exercise"], "q": r["query"],
                         "reasoning": r["synthetic_reasoning"], "answer": r["synthetic_answer"]})
         print(len(out), flush=True)
-    with open(HERE / "data/replay.jsonl", "w") as f:
+    with open(HERE / a.out, "w") as f:
         for r in out[: a.n]:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     print("total rows", total)
