@@ -3135,6 +3135,18 @@ The traps, each of which cost a revision:
   into the published graph's data layout (`monad-skygest-finetune/assemble.py`) to keep `graph_sha256`. The builder's
   own `-p int8` gives a different graph (fp16 I/O, quantized embeddings).
 
+### Score a compressed index by what the reader sees, not by its recall (answer-search-1bit)
+
+- **Finding.** On a 100,000-post Bluesky index searched by Ettin-17m, going from 2-bit to 1-bit remex codes
+  cut recall@40 against fp32 from 0.92 to 0.84, but the page's actual output (the best sentence of each of
+  the top 40 posts, re-ranked with fp32 sentence vectors, top 10) changed by only 0.48 of 10 sentences
+  [-0.67, -0.32]. A second-stage re-rank forgives most swaps near the first stage's cutoff.
+- **Also.** remex's 2-bit code contains its 1-bit code exactly: `search_adc(..., precision=1)` on the 2-bit
+  codes matched a native 1-bit index on every query. Ship the top bits and the low bits as separate sections
+  and a page can search on the first half and upgrade when the rest arrives.
+- **Rule.** Before choosing a bit width from recall, measure the metric after the pipeline's later stages;
+  the gap between the two decides how far the first stage can be compressed. (`answer-search-1bit/RESULTS.md`)
+
 ## Cache and measurement hygiene
 
 - **A byte-matching decompilation runner has to compare relocations by target, and has to be
