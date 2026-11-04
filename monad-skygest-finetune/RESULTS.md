@@ -32,7 +32,8 @@ More papers would change the headline: only 45 of the feed's 92 had a fetchable 
 
 ## Findings
 
-Rounds are in the Log: 0 is setup, 1 is ten training rows per paper, 2 adds paraphrases, 3 measures the shipped model.
+Rounds are in the Log: 0 is setup, 1 is ten training rows per paper, 2 adds paraphrases, 3 measures the shipped model,
+4 adds long replay rows.
 *Judged* counts a partly right answer as half; *verbatim* means a training question asked back word for word; *dev* is a
 fixed set of 192 general prompts (64 each from MMLU, a multiple-choice knowledge test; GSM8K, grade-school maths word
 problems; and IFEval, instructions such as "answer in three paragraphs"). Rows-per-paper comparisons are at equal
@@ -85,6 +86,11 @@ exposure: about 150 rows seen per paper.
    full-precision weights were not saved anywhere, so they were recovered from the published 8-bit A8p. The recovered
    model's next-token predictions differ from the published one's by a KL divergence (in nats) of 0.00141 <!-- @evidence[[results/extra.json#recover_a8p.kl_rebuilt_vs_published]] -->.
    For scale, the original Monad and A8p differ by 0.032. (Round 0)
+
+10. **Training on long answers did not stop the loops; it made them worse.** Round 4 repeated round 2 with half of each
+   epoch's replay rows replaced by long SYNTH answers (1,025 to 2,048 tokens). Dev loops at epoch 8 rose to 30.2% <!-- @evidence[[results/summary.json#arms.long5e_4_e8.dev_loop]] -->
+   against 23.4%, and 71.9% of IFEval prompts <!-- @evidence[[results/summary.json#arms.long5e_4_e8.dev_ifeval_loop]] -->.
+   Short training targets are not what brings the loops back. (Round 4)
 
 ## Method
 
@@ -188,3 +194,22 @@ standard errors.
 
 Costs: 9.65 Colab compute units; Gemini calls for the training data (45 plus 90 for paraphrases) and for judging (15
 answers per call); about 1.3 hours of Mac GPU time on the bridge (48 minutes for A8p_q8, 31 for skygest_q8).
+
+### 2026-11-04 — round 4: long replay rows
+
+Oskar asked whether the loops could be fixed. Most of the shipped model's loops are on IFEval's long answers, and every
+training target had been under 1,024 tokens, so the first test was whether the fine-tune had simply stopped practising long
+answers. Round 2 was rerun unchanged except that 300 of each epoch's 600 replay rows came from a pool of 791 SYNTH rows of
+1,025 to 2,048 tokens (`fetch_replay.py --min-chars 3500`, `train.py --replay-long`, window 2,048). Training took 73
+minutes. The prediction was fewer loops; loops rose instead.
+
+| checkpoint | dev loops | IFEval loops | MMLU | facts (of 30) | papers, key-point recall |
+|---|---|---|---|---|---|
+| round 2, epoch 8 (shipped) | 23.4% | 51.6% | 20.3% | 8 | 34.1% |
+| round 4, epoch 6 | 27.6% | 62.5% | 23.4% | 6 | 34.1% |
+| round 4, epoch 8 | 30.2% | 71.9% | 17.2% | 5 | 36.7% |
+
+The papers column is the key-point word overlap, not the judged score: the Gemini judge stopped with HTTP 402 ("prepayment
+credits are depleted") partway through this round, so round 4 has no judged paper score. Nothing from round 4 shipped. The
+next step is to repeat `monad-weight-edit`'s diagnosis on the shipped model itself: read a loop direction off its own loops
+and find which layers write it now.

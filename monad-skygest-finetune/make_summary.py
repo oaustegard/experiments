@@ -41,6 +41,8 @@ def flat(d):
 
 def main():
     sel, gpu, seen, dev = load("sel"), load("gpu_select"), load("seen"), load("dev")
+    for k, v in load("sel_nojudge").items():   # runs scored after the Gemini judge ran out of credit
+        sel.setdefault(k, v)
     names = {"A8p": "A8p"} | {k: k for k in list(sel) + list(gpu)}
     arms = {}
     for n in names:
