@@ -2,6 +2,8 @@
 1.30, WebGPU), batch 1 like the chat page, greedy. Reuses monad-weight-edit/bridge/job.js (`gen` mode).
 
     python3 bridge_eval.py submit export/r2_A8p_q8 --name A8p_q8 --parts 4
+    python3 bridge_eval.py submit export/skygest_e8_q8_page --name skygest_e8 --sets facts --parts 1 --tag f --cached
+    python3 bridge_eval.py submit ... --sets dev --parts 5 --tag d --cached --no-weights   # reuse the tab's cached weights
     python3 bridge_eval.py collect --name A8p_q8          # -> runs/A8p_q8__bridge.jsonl, lists missing prompts
 
 Batch 1: the int8 kernel decodes at 6.6 ms/token at batch 1 and 54 ms/step at batch 8 on this Mac
@@ -36,7 +38,7 @@ def submit(a):
     if not pieces.exists():
         pieces.write_text(json.dumps([tok.decode([i]) for i in range(8192)]))
     meta = json.loads((mdir / "meta.json").read_text())
-    todo = items()
+    todo = [x for x in items() if not a.sets or x["set"] in a.sets.split(",")]
     if a.only:
         keep = set(json.loads(Path(a.only).read_text()))
         todo = [x for x in todo if x["id"] in keep]
@@ -49,7 +51,7 @@ def submit(a):
         cmd = GB + ["submit", str(MWE / "bridge/job.js"), "--id", jid, "--note", f"monad-skygest {a.name} part {k}",
                     "--timeout", str(a.timeout), "--target", "Mac", "--input", f"cfg=@{json.dumps(cfg)}",
                     "--input", f"meta={mdir / 'meta.json'}:u8", "--input", f"pieces={pieces}:u8"]
-        if k == 0 or not a.cached:
+        if (k == 0 and not a.no_weights) or not a.cached:
             cmd += ["--input", f"graph={mdir / 'model.onnx'}:u8"]
             cmd += [x for i, p in enumerate(meta["parts"]) for x in ("--input", f"p{i}={mdir / p['file']}:u8")]
         r = subprocess.run(cmd, capture_output=True, text=True)
@@ -113,6 +115,8 @@ def main():
     ap.add_argument("--tag", default="p")
     ap.add_argument("--only", help="JSON list of prompt ids (resubmit missing ones)")
     ap.add_argument("--cached", action="store_true", help="send weights with part 0 only (tab cache)")
+    ap.add_argument("--no-weights", action="store_true", help="with --cached: send no weights at all")
+    ap.add_argument("--sets", default="", help="comma list of probe sets (papers,facts,seen,dev)")
     a = ap.parse_args()
     submit(a) if a.cmd == "submit" else collect(a)
 
