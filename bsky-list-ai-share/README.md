@@ -27,3 +27,14 @@ same classifier. The top of that ranking is bots, feeds and marketers, so `vet.p
 <= 40 posts a day, no bot or feed words), re-fetches 100 posts for reply share and samples, and has a headless
 Haiku judge whether each is an individual writing about AI (`vet_judge.sh`). 207 passed the screen, 41 the
 judge; they went on a review list for Oskar. Names stay in `data/`.
+
+## Quieter candidates from the follow graph (`follows.py`, then `vet.py`)
+
+Search only finds people who used an exact term lately. `follows.py` reads every member's follows (550
+members, 105,730 non-members followed, 275 s), takes non-members followed by at least 12 members (3,732)
+minus the candidates list and the accounts removed on 2026-11-04, scores the 500 most-followed (462 had
+enough posts), and `vet.py data/follow_candidates.json data/follow_vetted.json` screens them (AI share
+>= 0.40, <= 40 posts a day, a post in the last 30 days, no bot or feed words) and has Haiku judge the 66
+left: 48 individuals, followed by 43 to 127 members each. A Bridgy mirror of a member's Mastodon account
+was dropped by hand, and 47 went on a second review list. The judge rejects organizations (conference,
+lab and company accounts), which a member list may want; they are in `data/follow_vetted.json`.

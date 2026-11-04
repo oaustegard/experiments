@@ -4,7 +4,9 @@
 2. Re-fetch each survivor's last 100 posts: reply fraction (bots and feeds rarely reply) and six sample posts.
 3. A headless Claude Haiku judges, from bio, stats and samples, whether the account is an individual person
    writing substantive commentary about AI (vet_judge.sh); keyed JSON replies.
-Writes data/vetted.json (names: not committed).
+usage: vet.py [CANDIDATES_JSON] [OUT_JSON]   (defaults data/candidates.json, data/vetted.json)
+Accounts whose last post is more than 30 days old (when the input says) are dropped too.
+Writes OUT_JSON (names: not committed).
 """
 import json, random, re, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
@@ -30,8 +32,12 @@ def get(url, params, tries=5):
 
 
 def main():
-    rows = json.loads((HERE / "data" / "candidates.json").read_text())
+    src = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "data" / "candidates.json"
+    dst = Path(sys.argv[2]) if len(sys.argv) > 2 else HERE / "data" / "vetted.json"
+    tag = dst.stem
+    rows = json.loads(src.read_text())
     screened = [r for r in rows if r["ai_share"] >= 0.40 and r["posts_per_day"] <= 40
+                and r.get("last_post_days", 0) <= 30
                 and not BOTWORDS.search(r["handle"] + " " + r["name"] + " " + r["bio"])]
     print(f"{len(rows)} candidates, {len(screened)} pass the screen", flush=True)
 
@@ -55,15 +61,15 @@ def main():
             f"[{j}] @{r['handle']} | {r['name']} | bio: {r['bio']} | {r['posts_per_day']} posts/day, "
             f"{int(r['reply_frac'] * 100)}% replies, followers {r['followers']}\n" + "\n".join(f"  - {s}" for s in r["samples"])
             for j, r in enumerate(batch))
-        (HERE / "data" / f"vet{b // 25}.txt").write_text(blob)
-        out = subprocess.run(["bash", str(HERE / "vet_judge.sh"), str(HERE / "data" / f"vet{b // 25}.txt"), str(len(batch))],
+        (HERE / "data" / f"{tag}{b // 25}.txt").write_text(blob)
+        out = subprocess.run(["bash", str(HERE / "vet_judge.sh"), str(HERE / "data" / f"{tag}{b // 25}.txt"), str(len(batch))],
                              capture_output=True, text=True, timeout=600)
         verdict = json.loads(out.stdout)
         for j, r in enumerate(batch):
             v = verdict[str(j)]
             r["person"], r["why"] = bool(v["keep"]), v["why"]
         print(f"  judged {b + len(batch)}/{len(screened)}", flush=True)
-    (HERE / "data" / "vetted.json").write_text(json.dumps(screened, indent=1, ensure_ascii=False))
+    dst.write_text(json.dumps(screened, indent=1, ensure_ascii=False))
     keep = [r for r in screened if r["person"]]
     print(f"{len(keep)} kept as individuals writing about AI", flush=True)
 
