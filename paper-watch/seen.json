@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-03T01:50:58.344899+00:00",
+ "last_run": "2026-11-04T01:52:08.545170+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -374,6 +374,39 @@
    "practical": "MEDIUM",
    "attempts": 1,
    "review": "50-task stateful payments-workflow agent benchmark with a released harness and dataset (github.com/ant-intl/BizBench, now BizAgentBench); Claude Opus 5 strict success 64.0%. The findings that carry over to subagent delegation: a tool-call cap of 2x the reference trace cuts DeepSeek-V4.1-Flash strict success from 43.3% to 26.7%, so tight turn budgets are costly; and outcome-only checks miss process violations such as crossing a reserve floor or acting before approval. Giving the agent the customer's constraints up front (70.0%) beat giving it gold docs (50.0%). Domain is far from Muninn and runs are few (1-3 per model)."
+  },
+  "2610.12176": {
+   "title": "Recursive Self-Improvement through Multi-Agent Self-Supervision",
+   "first_seen": "2026-11-04",
+   "best_rank": 30,
+   "upvotes": 182,
+   "reviewed": "2026-11-04",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "MASS alternates evolutionary search over orchestrator/subagent workflow prompts (roles, handoffs, call order), self-judged by Qwen3.6-27B, with LoRA SFT on the resulting traces; code at github.com/SakanaAI/mass. The prompt-level workflow search is the transferable part for Muninn's subagent delegation, and the paper finds workflow optimisation rather than evaluation is the bottleneck. Win rate vs base rises 53.9% to 69.9% on frontier-judged private synthetic tasks, but Terminal-Bench 2.0 (37.5 to 35.2) and SWE-bench Verified (62.6 to 61.1) regress, and the 1.2-1.6x headline is score per output token, so test it on his own tasks first."
+  },
+  "2610.40564": {
+   "title": "Training Foundation Models with a Single Algorithm",
+   "first_seen": "2026-11-04",
+   "best_rank": 20,
+   "upvotes": 210,
+   "reviewed": "2026-11-04",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Recasts MaxRL-style RL as weighted maximum likelihood so pretraining, SFT and RL run as one mixed-data loss; shown at 124M and 0.76B scale, code and weights released. A training-recipe paper that needs a pretraining budget; the one portable note is that replaying ~0.5-5% earlier-stage data during fine-tuning reduced forgetting."
+  },
+  "2610.37381": {
+   "title": "PDRVLA: A Vision-Language-Action Model with Physical Dynamics Representations",
+   "first_seen": "2026-11-04",
+   "best_rank": 27,
+   "upvotes": 192,
+   "reviewed": "2026-11-04",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robot-manipulation VLA with a physical-dynamics token module distilled from a video world model; gains of 0.2-0.9 points over copied, unrerun baselines and no code or weights. Nothing transfers to his stack."
   }
  }
 }
