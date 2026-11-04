@@ -48,7 +48,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default=str(HERE / "models/skygest_e8"))
     ap.add_argument("--run", default=str(HERE / "runs/skygest_e8__bridge.jsonl"))
-    ap.add_argument("--per", type=int, default=200, help="positions sampled per answer")
+    ap.add_argument("--per", type=int, default=100, help="positions sampled per answer")
     ap.add_argument("--out", default="results/rediag.json")
     a = ap.parse_args()
     torch.set_num_threads(4)
@@ -63,7 +63,9 @@ def main():
         lyr.self_attn.o_proj.register_forward_hook(lambda m, i, o, l=l: cap.__setitem__(f"att{l}", o[0]))
         lyr.mlp.down_proj.register_forward_hook(lambda m, i, o, l=l: cap.__setitem__(f"mlp{l}", o[0]))
     H = {"loop": [], "normal": []}
-    W = {"loop": [], "normal": []}       # [n, L, 2, 256]: attention and MLP writes at the sampled positions
+    # attention and MLP writes summed over the sampled positions: the writer gap along any direction is linear in the mean
+    W = {"loop": torch.zeros(L, 2, 256, dtype=torch.float64), "normal": torch.zeros(L, 2, 256, dtype=torch.float64)}
+    Wn = {"loop": 0, "normal": 0}
     sink = []
     meta = {"loop": 0, "normal": 0}
     for r in rows:
@@ -86,11 +88,12 @@ def main():
         hs = torch.stack([h[0] for h in out.hidden_states[1:]])         # [L, T, 256], after each layer
         sel = rng.sample(pos, min(len(pos), a.per))
         H[kind].append(hs[:, sel].transpose(0, 1))                       # [n, L, 256]
-        W[kind].append(torch.stack([torch.stack([cap[f"att{l}"][sel], cap[f"mlp{l}"][sel]]) for l in range(L)]).permute(2, 0, 1, 3))
+        W[kind] += torch.stack([torch.stack([cap[f"att{l}"][sel].sum(0), cap[f"mlp{l}"][sel].sum(0)]) for l in range(L)]).double()
+        Wn[kind] += len(sel)
         sink.append(hs[:, 0])                                            # token 0 after every layer
         meta[kind] += 1
     Hc = {k: torch.cat(v) for k, v in H.items()}
-    Wc = {k: torch.cat(v) for k, v in W.items()}
+    Wm = {k: (W[k] / Wn[k]).float() for k in W}
     sinkm = torch.stack(sink).mean(0)                                    # [L, 256]
     layers, dirs = [], []
     for l in range(L):
@@ -111,7 +114,7 @@ def main():
     writers = []
     for l in range(L):
         for j, kind in enumerate(("att", "mlp")):
-            gap = float((Wc["loop"][:, l, j] @ up).mean() - (Wc["normal"][:, l, j] @ up).mean())
+            gap = float((Wm["loop"][l, j] - Wm["normal"][l, j]) @ up)
             writers.append({"layer": l, "kind": kind, "gap": gap})
     writers.sort(key=lambda x: -abs(x["gap"]))
     res = {"model": a.model, "run": a.run, "answers": meta, "positions": {k: int(v.shape[0]) for k, v in Hc.items()},
