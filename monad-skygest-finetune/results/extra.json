@@ -1,0 +1,32 @@
+{
+ "recover_a8p": {
+  "kl_rebuilt_vs_published": 0.00141,
+  "top1_rebuilt_vs_published": 0.9812,
+  "kl_base_vs_published_a8p": 0.03231,
+  "top1_base_vs_published_a8p": 0.9116,
+  "sv1": 16.916,
+  "sv2": 0.126,
+  "o_proj_rel_fro_diff": 0.0015,
+  "base_q8_byte_identical": true,
+  "facts_rebuilt": 8,
+  "facts_published": 7,
+  "note": "kl_check.py on 6 fact prompts x 280 teacher-forced positions; recover_a8p.py"
+ },
+ "loop_direction_share": {
+  "note": "|u^T W_o| / |W_o| in attention o_proj of layers 27-34, mean over the 8 layers (reedit.py)",
+  "base": 0.0866,
+  "a8p": 0.0001,
+  "para5e_4_e8": 0.008
+ },
+ "export": {
+  "graph_sha256": "cd197c81054e6dab966188d99899b212fe2b170ce7ef1ce66d82e280298c9d9b",
+  "packed_bytes": 64946688
+ },
+ "cost": {
+  "colab_compute_units": 9.65,
+  "colab_gpu": "L4",
+  "train_round2_s": 2636,
+  "train_round1_lr1e4_s": 925,
+  "gemini_calls": 135
+ }
+}
