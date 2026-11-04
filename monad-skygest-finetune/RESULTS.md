@@ -62,7 +62,8 @@ exposure: about 150 rows seen per paper.
    training put back only a tenth of it.
    Removing it again lowered loops only to 18.8% <!-- @evidence[[results/summary.json#arms.para5e_4_e8_re.dev_loop]] -->,
    and MMLU fell to 10.9%. Whatever brings the loops back is mostly not in those eight matrices; this experiment did not
-   find where it is. (Round 2)
+   find where it is. The shipped 8-bit model on the Mac shows the same: 24.0% <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.dev_loop]] -->
+   of dev prompts against 7.3% for A8p <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.dev_loop]] -->, and 60.9% of IFEval prompts. (Round 2, Round 3)
 5. **The checkpoint with the best paper score lost the most elsewhere.** Round 2 at epoch 4 scored 39.6% on the papers <!-- @evidence[[results/summary.json#arms.para5e_4_e4.papers_judged]] -->,
    but got 1 of 30 facts and looped on 29.7% of dev prompts <!-- @evidence[[results/summary.json#arms.para5e_4_e4.dev_loop]] -->.
    Over the last four epochs, with the learning rate decaying, the model gave back 11 points on the papers and recovered
@@ -182,8 +183,8 @@ standard errors.
 | model, runtime | papers judged | fully correct | facts (of 30) | dev loops |
 |---|---|---|---|---|
 | A8p_q8, Mac GPU | 0.7% | 0% | 6 | 7.3% |
-| skygest_q8, CPU | 31.9% | 21.5% | 8 | pending |
-| skygest_q8, Mac GPU | 31.1% | 20.7% | 6 | pending |
+| skygest_q8, CPU | 31.9% | 21.5% | 8 | not run (stopped once the Mac had it) |
+| skygest_q8, Mac GPU | 31.1% | 20.7% | 6 | 24.0% |
 
 Costs: 9.65 Colab compute units; Gemini calls for the training data (45 plus 90 for paraphrases) and for judging (15
-answers per call); about 1.5 hours of Mac GPU time on the bridge.
+answers per call); about 1.3 hours of Mac GPU time on the bridge (48 minutes for A8p_q8, 31 for skygest_q8).
