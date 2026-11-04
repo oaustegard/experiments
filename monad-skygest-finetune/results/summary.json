@@ -197,27 +197,51 @@
   }
  },
  "final": {
-  "cpu_A8p_q8__cpu": {
-   "papers_judged": 0.0,
-   "papers_correct": 0.0,
-   "papers_key_recall": 0.09506172839506172,
-   "papers_loop": 0.037037037037037035,
-   "papers_post_judged": 0.0,
-   "papers_pre_judged": 0.0,
-   "facts_ok": 7
+  "cpu": {
+   "A8p_q8": {
+    "papers_judged": 0.0,
+    "papers_correct": 0.0,
+    "papers_key_recall": 0.09506172839506172,
+    "papers_loop": 0.037037037037037035,
+    "papers_post_judged": 0.0,
+    "papers_pre_judged": 0.0,
+    "facts_ok": 7
+   },
+   "skygest_e8_q8": {
+    "papers_judged": 0.31851851851851853,
+    "papers_correct": 0.21481481481481482,
+    "papers_key_recall": 0.36172839506172844,
+    "papers_loop": 0.007407407407407408,
+    "papers_post_judged": 0.3218390804597701,
+    "papers_pre_judged": 0.3125,
+    "facts_ok": 8
+   }
   },
-  "bridge_A8p_q8__bridge": {
-   "papers_judged": 0.007407407407407408,
-   "papers_correct": 0.0,
-   "papers_key_recall": 0.07901234567901234,
-   "papers_loop": 0.05185185185185185,
-   "papers_post_judged": 0.011494252873563218,
-   "papers_pre_judged": 0.0,
-   "facts_ok": 6,
-   "dev_loop": 0.07291666666666667,
-   "dev_mmlu": 0.171875,
-   "dev_gsm8k": 0.03125,
-   "dev_ifeval_loop": 0.21875
+  "bridge": {
+   "A8p_q8": {
+    "papers_judged": 0.007407407407407408,
+    "papers_correct": 0.0,
+    "papers_key_recall": 0.07901234567901234,
+    "papers_loop": 0.05185185185185185,
+    "papers_post_judged": 0.011494252873563218,
+    "papers_pre_judged": 0.0,
+    "facts_ok": 6,
+    "dev_loop": 0.07291666666666667,
+    "dev_mmlu": 0.171875,
+    "dev_gsm8k": 0.03125,
+    "dev_ifeval_loop": 0.21875
+   },
+   "skygest_e8": {
+    "papers_judged": 0.3111111111111111,
+    "papers_correct": 0.2074074074074074,
+    "papers_key_recall": 0.39876543209876547,
+    "papers_loop": 0.0,
+    "papers_post_judged": 0.2988505747126437,
+    "papers_pre_judged": 0.3333333333333333,
+    "seen_judged": 0.3888888888888889,
+    "seen_correct": 0.24444444444444444,
+    "facts_ok": 6
+   }
   }
  },
  "timing": {
@@ -225,6 +249,14 @@
    "tokens": 269711,
    "ms": 2892173.1000025272,
    "step_med_ms": 9.5,
+   "devices": [
+    "Mac"
+   ]
+  },
+  "bridge_timing_skygest_e8": {
+   "tokens": 58111,
+   "ms": 469660.1999999285,
+   "step_med_ms": 7.600000023841858,
    "devices": [
     "Mac"
    ]

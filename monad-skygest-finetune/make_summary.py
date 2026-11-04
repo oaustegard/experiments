@@ -49,9 +49,10 @@ def main():
                     {"dev": dev[n]["dev"]} if n in dev and "dev" in dev[n] else {}):
             a.update(flat(src))
         arms[n.replace("-", "_")] = a
-    cpu, bridge = load("cpu"), load("bridge")
-    final = {k.replace("-", "_"): flat(v) for k, v in {**{f"cpu_{k}": v for k, v in cpu.items()},
-                                                        **{f"bridge_{k}": v for k, v in bridge.items()}}.items()}
+    final = {}
+    for rt in ("cpu", "bridge"):
+        for k, v in load(rt).items():          # keys are run-file stems: <model>__<set or runtime>
+            final.setdefault(rt, {}).setdefault(k.split("__")[0], {}).update(flat(v))
     papers = json.loads((HERE / "data/papers.json").read_text())
     ranked = json.loads((HERE / "data/papers_ranked.json").read_text())
     ho = [json.loads(l) for l in open(HERE / "data/heldout.jsonl")]
