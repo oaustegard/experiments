@@ -13,7 +13,7 @@ for the chat page.
 
 ## Answer
 
-Partly. Each paper has three held-out questions on facts the training rows teach, worded differently. The shipped
+Partly. Each paper has three held-out questions on facts the training rows teach, reworded. The shipped
 model, `skygest_q8` (after 8 passes over the training data, in 8 bits), answers 31.1% of them <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_judged]] -->
 across 45 papers (partly right counts half), and 20.7% fully right <!-- @evidence[[results/summary.json#final.bridge.skygest_e8.papers_correct]] -->.
 A8p scored 0.7% on the same questions <!-- @evidence[[results/summary.json#final.bridge.A8p_q8.papers_judged]] -->. Both ran greedily (most likely token
