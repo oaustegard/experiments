@@ -5,7 +5,10 @@ the reference the browser runtime matches), for three probe sets:
     python3 evalgen.py export/r2_A8p_q8 papers runs/A8p_q8__papers.jsonl   # held-out paper questions (135)
     python3 evalgen.py export/r2_A8p_q8 dev    runs/A8p_q8__dev.jsonl      # monad-weight-edit dev fixture (192)
 
-Appends one line per prompt and skips ids already written, so an interrupted run resumes.
+Appends one line per prompt to <out>.part and skips ids already written there, so an interrupted run
+resumes; the file is renamed to <out> only when the set is complete. (A committed output file that a
+later `git rebase` rewrote while this was appending to it lost every row: the process kept writing to
+the replaced inode.)
 """
 import json, re, sys, time
 from pathlib import Path
@@ -42,7 +45,11 @@ class Tok:
 
 
 def main():
-    model, kind, out = sys.argv[1], sys.argv[2], HERE / sys.argv[3]
+    model, kind, final = sys.argv[1], sys.argv[2], HERE / sys.argv[3]
+    if final.exists():
+        print("complete:", final)
+        return
+    out = final.with_name(final.name + ".part")
     batch = int(sys.argv[4]) if len(sys.argv) > 4 else 8
     mdir = HERE / model
     tok = Tok(mdir / "tokenizer.json")
@@ -69,6 +76,7 @@ def main():
                 f.write(json.dumps(row) + "\n")
             f.flush()
             print(f"{k + len(chunk)}/{len(todo)} {time.time() - t0:.0f}s", flush=True)
+    out.rename(final)
 
 
 if __name__ == "__main__":
