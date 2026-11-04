@@ -33,7 +33,7 @@ More papers would change the headline: only 45 of the feed's 92 had a fetchable 
 ## Findings
 
 Rounds are in the Log: 0 is setup, 1 is ten training rows per paper, 2 adds paraphrases, 3 measures the shipped model,
-4 adds long replay rows.
+4 adds long replay rows, 5 re-derives the loop edit.
 *Judged* counts a partly right answer as half; *verbatim* means a training question asked back word for word; *dev* is a
 fixed set of 192 general prompts (64 each from MMLU, a multiple-choice knowledge test; GSM8K, grade-school maths word
 problems; and IFEval, instructions such as "answer in three paragraphs"). Rows-per-paper comparisons are at equal
@@ -91,6 +91,13 @@ exposure: about 150 rows seen per paper.
    epoch's replay rows replaced by long SYNTH answers (1,025 to 2,048 tokens). Dev loops at epoch 8 rose to 30.2% <!-- @evidence[[results/summary.json#arms.long5e_4_e8.dev_loop]] -->
    against 23.4%, and 71.9% of IFEval prompts <!-- @evidence[[results/summary.json#arms.long5e_4_e8.dev_ifeval_loop]] -->.
    Short training targets are not what brings the loops back. (Round 4)
+
+11. **Re-deriving the loop edit on the fine-tuned model did not remove its loops.** The fine-tuned model has a new loop
+   direction, separating loops at AUROC 0.99 at layer 30 <!-- @evidence[[results/round5.json#rediag.best_auroc]] -->, with a cosine of only 0.41 <!-- @evidence[[results/round5.json#rediag.cos_perp_a8p_u]] -->
+   to A8p's. Removing it from attention 27-34 fixed 14 of 24 looping screen prompts,
+   but on all 192 dev prompts loops went to 27.1% <!-- @evidence[[results/round5.json#E3_full.dev_loop]] --> against 24.0%, and key-point recall on
+   the papers fell from 39.9% to 30.9%. The screen was biased: its looping prompts were among those the direction was
+   read from. (Round 5)
 
 ## Method
 
@@ -213,3 +220,37 @@ The papers column is the key-point word overlap, not the judged score: the Gemin
 credits are depleted") partway through this round, so round 4 has no judged paper score. Nothing from round 4 shipped. The
 next step is to repeat `monad-weight-edit`'s diagnosis on the shipped model itself: read a loop direction off its own loops
 and find which layers write it now.
+
+### 2026-11-04 — round 5: the loop edit, re-derived
+
+Oskar: repeat the diagnosis that found A8p's edit, on the fine-tuned model, and use the GPU Bridge. `rediag.py` teacher-forced
+the shipped model on its own Mac dev answers (46 loops, 137 finished): the loop direction separates best after layer 30
+(AUROC 0.99, 0.98 with the attention-sink component removed), and its cosine with A8p's edited direction is 0.41. The
+largest writers of it are the MLP of layer 30 (+42) and the attention of layer 31 (-72, writing against it; the same block
+wrote +42 for it in the original Monad). Four edits (`edit_ft.py`) were screened in 8 bits on the Mac on 24 prompts the
+shipped model looped on, 24 it finished, and one question per paper; E3 was predicted to be worst, because it also strips
+layer 31's counter-writing.
+
+| edit (new direction removed from) | loops fixed / 24 | new loops / 24 | papers key recall |
+|---|---|---|---|
+| shipped | — | — | 39.6% |
+| E1: MLP 30 | 12 | 2 | 28.9% |
+| E2: MLP 29-30, attention 29-30 | 14 | 4 | 30.7% |
+| E3: attention 27-34 | 14 | 2 | 34.4% |
+| E4: MLP 30, attention 27-30 | 14 | 1 | 26.7% |
+
+The prediction was wrong: E3 did best. Its full run on the Mac (all 402 prompts) undid the screen:
+
+| Mac GPU, 8-bit | shipped | E3 |
+|---|---|---|
+| dev loops | 24.0% | 27.1% |
+| IFEval loops | 60.9% | 56.2% |
+| MMLU loops | 6.2% | 15.6% |
+| MMLU | 20.3% | 25.0% |
+| papers, key-point recall | 39.9% | 30.9% |
+| facts (of 30) | 6 | 9 |
+
+The screen's looping prompts were among the 46 the direction was read from, so the edit fixed loops it had been fitted to
+and caused new ones elsewhere, mostly on MMLU. Nothing from round 5 shipped. A held-out screen (direction from one half
+of the prompts, screened on the other) would be the clean version of this test; a training-side fix, keeping the loop
+direction out of the weights during fine-tuning, is the other option.
