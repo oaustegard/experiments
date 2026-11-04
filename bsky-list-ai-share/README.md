@@ -18,3 +18,12 @@ below 0.25; together they wrote 22% of the corpus and 27% of its non-AI posts. T
 **Limits.** The labeller counts a short reply as not-AI unless its topic shows, so members who reply a lot in
 AI threads score low; the classifier is English-centred and undercounts posts in other languages; 600 labels
 are one labeller's judgement, not a gold set.
+
+## Finding members to add (`discover.py`, `vet.py`)
+
+Authenticated post search (the public AppView refuses `searchPosts`) for 40 AI terms over 14 days gave
+10,281 posts from 5,277 non-members; 587 appeared at least 3 times and 570 had enough posts to score with the
+same classifier. The top of that ranking is bots, feeds and marketers, so `vet.py` screens (AI share >= 0.40,
+<= 40 posts a day, no bot or feed words), re-fetches 100 posts for reply share and samples, and has a headless
+Haiku judge whether each is an individual writing about AI (`vet_judge.sh`). 207 passed the screen, 41 the
+judge; they went on a review list for Oskar. Names stay in `data/`.
