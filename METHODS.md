@@ -1597,6 +1597,24 @@ the result.
   jobs in a row stopped happening (`trm-doom`, 2026-10-30). (`moederncolbert-bench/RESULTS.md` log round 2, `eg2-wgsl-engine/RESULTS.md`
   log round 4)
 
+- **Do not commit a file that a running process is still appending to.** An eval wrote rows to
+  `runs/x.jsonl` while a commit loop ran `git add`, then `git fetch && git rebase`; the rebase rewrote the
+  working-tree file, the eval kept writing to the replaced inode, and all 135 rows were lost with no error.
+  Write `x.jsonl.part`, gitignore `*.part`, and rename when the set completes. (`monad-skygest-finetune/evalgen.py`)
+- **Colab CLI: upload in 20 MB parts, launch with `Popen`, and download as results land.** `colab upload` of a
+  90 MB file failed with HTTP 500 where 20 MB parts went through. `colab exec` of a script that starts a long job and
+  then waits timed out or lost its connection and the job never started; `subprocess.Popen(cmd, shell=True,
+  start_new_session=True)` with the script returning at once worked every time. `colab console` output came back
+  empty about half the time; `colab exec` printing `subprocess.run(...).stdout` was reliable. A local loop that
+  downloads each result file as it appears kept everything when the VM was later reclaimed (the entry above on idle
+  Colab VMs applies). (`monad-skygest-finetune/RESULTS.md`, Log)
+- **Claude refuses prompts that write reasoning traces for training another model.** A `claude -p --model sonnet`
+  request for SYNTH-style "question → reasoning → answer" rows returned "safeguards flagged this message"
+  (`reasoning_extraction`) on every retry. Gemini through the Cloudflare gateway wrote the same data. Do not reword
+  around the safeguard. (`monad-skygest-finetune/gen_data.py`)
+- **`gpu-bridge/run/e2e.js` writes its fixtures into the current directory.** Run from the repo root, it leaves
+  `bare.git/`, `seed/`, `clone/`, `out/` and a dozen job files there. Run it from a scratch directory.
+
 ## Numerical / ML gotchas
 
 - **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM
@@ -3099,6 +3117,23 @@ The traps, each of which cost a revision:
 - A tie-break bias is a threshold shift of bias/slope: −0.25 at slope 6 moved every value-bet threshold by 0.04.
 - A policy with no opponent model, which reads every bet as strength, can lose to a uniformly random bettor (Stud Hi-Lo,
   −9.1 ± 3.8 bb/100) while the Monte Carlo bot with a per-seat table model beats the same player.
+
+- **Fine-tuning a small model on new facts in one phrasing each stores the question strings, not the facts.**
+  Monad (56M) trained on 10 Q/A rows per paper answered all 45 training questions verbatim and 8% of reworded
+  held-out questions. Adding 40 paraphrases per paper (each fact asked several ways, the paper named differently each
+  time) raised held-out to 29% at the same number of rows seen per paper. This is Allen-Zhu & Li's knowledge
+  augmentation result ("Physics of Language Models 3.1", arXiv 2309.14316). Spend the budget on phrasings, not
+  epochs, and test with a verbatim-recall probe next to the held-out one: it tells "not stored" from "stored but not
+  extractable". (`monad-skygest-finetune/RESULTS.md`, findings 1-2)
+- **A full fine-tune undoes a training-free weight edit, and re-applying the edit does not restore it.** A8p
+  (Monad with a loop direction projected out of 8 attention output matrices) went from 6% to 23% dev loops after 8
+  epochs of fine-tuning, though only a tenth of the direction came back in those matrices; projecting it out again
+  gave 19% loops and lower MMLU. Measure the edit's target behaviour after any fine-tune. (`monad-skygest-finetune`, finding 4)
+- **The Monad chat page's 8-bit graph is reproducible.** onnxruntime-genai 0.18.0 builder in fp32 (`-e webgpu`),
+  the logits-index surgery, then onnxruntime `MatMulNBitsQuantizer(bits=8, block_size=32, is_symmetric=True,
+  accuracy_level=4)` gives byte-identical tensors to the published `base_q8`; node names differ, so write new tensors
+  into the published graph's data layout (`monad-skygest-finetune/assemble.py`) to keep `graph_sha256`. The builder's
+  own `-p int8` gives a different graph (fp16 I/O, quantized embeddings).
 
 ## Cache and measurement hygiene
 
