@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Creator Engine Check</title>
+<title>Creator Checks</title>
 <style>:root{--bg:#fbfaf7;--fg:#1d1c19}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171715;--fg:#efede7}}
 :root[data-theme="dark"]{--bg:#171715;--fg:#efede7}body{background:var(--bg);color:var(--fg);font:14px system-ui;margin:16px}pre{white-space:pre-wrap}</style></head>
 <body><h1>Creator checks</h1>
-<p>(1) the prompt builder against the ids the spikes were trained on (run/make_fixtures.py); (2) the head-only backend's logits against
-adapter-library's NumPy reference fixtures; (3) a short head-only training run on the demo, and the exported spike reloaded into a separate
-SpikeEngine. <code>?n=16&test=6&epochs=3</code> sets the run's size.</p><pre id="out">running…</pre>
+<p>Correctness checks for the <a href="index.html">decision spike creator</a>. Needs WebGPU; serve from the experiments repo root (<code>node run/check.mjs check</code>). Each check reports <code>ok</code>. (1) the page's prompt builder against the token ids that the training code produces for the demo (web/fixtures.json, from run/make_fixtures.py); (2) the head-only trainer's logits (frozen encoder, decision head in JS) against
+adapter-library's NumPy reference, to under 1e-3; (3) a short head-only training run on the invoice demo (train loss must fall), and the exported spike reloaded into a fresh
+inference engine (same top option on every test case). <code>?n=16&test=6&epochs=3</code> (the defaults) set labelled cases, test cases and epochs; on a software GPU this takes 10–30 minutes.</p><pre id="out">running…</pre>
 <script type="module">
 import * as C from "./creator.js";
 import { HeadBackend } from "./backends.js";

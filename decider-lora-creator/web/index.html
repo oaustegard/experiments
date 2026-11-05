@@ -73,7 +73,7 @@
 <h1>Decision spike creator</h1>
 <p class="muted">Define a decision as questions with fixed options, label some cases, and train a specialist ("spike") for
 Ettin-17m on your GPU. Ettin-17m is the frozen 10 MB decision model behind the <a href="../../adapter-library/web/">Spiky Ball Decider</a>.
-The spike is a 0.5 MB adapter that loads into that page's engine unchanged. Nothing leaves the browser.</p>
+The spike is a 0.5 MB adapter (LoRA weights for the encoder plus a small decision head that scores each option) and loads into that page as it is. Nothing leaves the browser; training needs WebGPU and an 11 MB model download.</p>
 <div id="env" class="small muted">Checking WebGPU…</div>
 <div id="err"></div>
 
@@ -83,13 +83,13 @@ The spike is a 0.5 MB adapter that loads into that page's engine unchanged. Noth
   <label class="pill small"><input type="file" id="file" accept=".json,.jsonl,application/json"> import</label>
   <button id="blank">New blank decision</button>
 </div>
-<p class="small muted">The demo is the invoice workflow from the Typed Decisions benchmark, one the four-workflow library has
-not been trained on. It starts from the other three workflow spikes, as in adapter-library's growth experiment.</p>
+<p class="small muted">The demo is the invoice-review workflow from the Typed Decisions benchmark (synthetic cases with five questions each).
+It starts from the mean of the library's three other business-workflow spikes, leaving the invoice spike out, to show how fast a new spike learns from labels.</p>
 <div class="card">
   <div class="qgrid">
     <label class="f">id<input id="did" placeholder="my_decision"></label>
     <span></span>
-    <label class="f full">what a case is (the router description, if you add the spike to a set)<input id="ddesc" placeholder="Support email: a subject and a body. Decides …"></label>
+    <label class="f full">what a case is (one sentence; the Spiky Ball router reads it to pick this spike)<input id="ddesc" placeholder="Support email: a subject and a body. Decides …"></label>
   </div>
 </div>
 <div id="qs"></div>
@@ -97,7 +97,7 @@ not been trained on. It starts from the other three workflow spikes, as in adapt
 <details><summary>Decision as JSON</summary>
   <p class="small muted">Typed Decisions shape: <code>{"id", "description", "questions": {"name": {"type": "choice|noul|score", "instructions", "criteria"}}}</code>.
   Criteria are <code>{"option": "description"}</code> for choice, an array of level descriptions for score (levels 0, 1, …), and optionally
-  <code>{"true", "false"}</code> for noul (a yes/no statement).</p>
+  <code>{"true", "false"}</code> for noul, a statement the model judges true or false.</p>
   <textarea id="djson" rows="10"></textarea>
   <div class="row"><button id="dapply">Apply JSON</button></div>
 </details>
@@ -128,9 +128,9 @@ not been trained on. It starts from the other three workflow spikes, as in adapt
   <label class="pill small"><input type="radio" name="be" value="head" checked> the decision head only, on the frozen encoder.
   Works now: each sequence is encoded once, then every epoch runs in JS.</label><br>
   <label class="pill small"><input type="radio" name="be" value="lora"> the LoRA adapter and the head, with the WGSL backward pass</label>
-  <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" placeholder="../../<experiment>/web/trainer.js"></label>
+  <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" placeholder="../../EXPERIMENT/web/trainer.js"></label>
     <button id="modcheck">Check</button></div>
-  <div id="modstat" class="small muted">The WGSL trainer is still being written; until it lands, LoRA training is unavailable.</div>
+  <div id="modstat" class="small muted">LoRA training needs a WebGPU backward pass, a separate experiment that is not published yet. Until a module path works here, train the head only.</div>
 </div>
 <div class="row">
   <label class="f">epochs<input type="number" id="epochs" value="10" min="1" max="200"></label>
@@ -138,7 +138,7 @@ not been trained on. It starts from the other three workflow spikes, as in adapt
   <label class="f">batch (sequences)<input type="number" id="bs" value="16" min="1"></label>
   <label class="f">validation %<input type="number" id="valp" value="15" min="0" max="50"></label>
   <label class="f">test % (if none marked)<input type="number" id="testp" value="20" min="0" max="60"></label>
-  <label class="f">labelled cases used (0 = all)<input type="number" id="maxtr" value="64" min="0"></label>
+  <label class="f">labelled cases used, train + validation (0 = all)<input type="number" id="maxtr" value="64" min="0"></label>
   <label class="f">max test cases (0 = all)<input type="number" id="maxte" value="0" min="0"></label>
   <label class="f">seed<input type="number" id="seed" value="0"></label>
 </div>
@@ -148,7 +148,7 @@ not been trained on. It starts from the other three workflow spikes, as in adapt
 <div class="scroll"><table id="etable"></table></div>
 
 <h2>4. Results</h2>
-<div id="results" class="muted small">Train to see test accuracy against the start and the prior.</div>
+<div id="results" class="muted small">Train to see test accuracy against the start spike (before any training) and the prior (each question's average answer in the training cases).</div>
 
 <h2>5. Try it</h2>
 <textarea id="tstate" rows="5" placeholder="Paste a case. Trained spike answers; before training, the start spike does."></textarea>
@@ -157,7 +157,7 @@ not been trained on. It starts from the other three workflow spikes, as in adapt
 
 <h2>6. Export</h2>
 <p class="small muted">The spike is a <code>.json</code> manifest (questions, per-type temperatures, tensor offsets) and a <code>.bin</code>
-of fp16 weights, in the format of adapter-library's <code>pack_system.py</code>. Put both in a set's <code>spikes/</code> directory and list
+of fp16 weights (per-type temperatures rescale the logits so probabilities are calibrated on validation), in the format of adapter-library's <code>pack_system.py</code>. Put both in a set's <code>spikes/</code> directory and list
 the spike in its <code>system.json</code>.</p>
 <div class="row"><button id="xspike" disabled>Download spike</button><button id="xdata">Download decision and cases</button></div>
 <pre id="xsys" class="small" style="white-space:pre-wrap"></pre>

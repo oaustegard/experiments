@@ -219,8 +219,8 @@ export function packSpike({ layers, head }, meta = {}) {
 
 // The library start: the mean of several spikes' weight deltas, kept exact by stacking their ranks
 // (sum_i B_i A_i / n = [B_1 .. B_n] / n . [A_1; ..; A_n]), with their heads averaged. Three rank-8
-// spikes give rank 24, inside the engine's padded rank of 32. adapter-library's G arm SVD-cut this
-// mean to rank 8 before training it; a head-only run keeps it whole.
+// spikes give rank 24, inside the engine's padded rank of 32. The page then cuts it to rank 8 by SVD
+// (backends.js truncateRank), as adapter-library's library start does.
 export function mergeSpikes(unpacked) {
   const n = unpacked.length;
   const layers = unpacked[0].layers.map((_, li) => Object.fromEntries(MODS.map((k) => {
