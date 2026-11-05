@@ -148,3 +148,38 @@ method) chosen on W's test.
 
 **Decision rule:** the gated blend becomes the system's predictor if P8a and P8b hold. If P10 fails,
 the constant λ is enough and the features are dropped.
+
+## Round 3: cross-fitted blend weight (registered 2026-11-05, before running)
+
+Round 2's gate had no estimate of the new spike's held-out accuracy. Round 3 measures it inside the new
+workflow W, from its revealed cases only. The n revealed cases are split into 4 folds (case i goes to
+fold i mod 4 in the seeded reveal order). For each fold, a spike is trained on the other three folds
+with round 1's growth recipe (same start: zero or library) and predicts the held-out fold. kNN predicts
+each held-out fold from the other three folds' cases. Every revealed decision then has an out-of-fold
+spike prediction and an out-of-fold kNN prediction, made under the same handicap: each saw 75% of the
+cases. This needs 4 extra spikes per (W, n, seed, start): GPU, n ∈ {16, 64}, seeds 0–1. n = 300 is
+skipped; the spike dominates there.
+
+**Arms (CPU, after the GPU folds):**
+- `cv_lambda`: for each (W, question), choose λ from {0, 0.1, …, 1} to minimize the out-of-fold
+  blend's soft cross-entropy against gold on the revealed cases. Apply it to round 1's final spike and
+  kNN (both on all n cases) on W's test.
+- `cv_select`: per (W, question), use the spike or kNN alone, whichever had higher out-of-fold accuracy
+  (ties go to the spike).
+- `gate2`: round 2's gate plus two per-question features, spike out-of-fold accuracy and kNN
+  out-of-fold accuracy, fit leave-one-workflow-out as in round 2.
+
+**Predictions (mean over the 4 workflows, accuracy):**
+- **P12.** cv_lambda beats the spike alone at n = 16 and n = 64, for both starts.
+- **P13.** cv_lambda beats round 2's gate by at least 0.01 at n = 16, for at least one start.
+- **P14.** cv_lambda avoids round 2's harm on agent traces: at n = 16, library start, it is within
+  0.01 of the spike alone or above it.
+- **P15.** gate2 beats round 2's gate by at least 0.01 at n = 16, for at least one start.
+- **P16.** Per (W, question, n, seed, start) at n = 16, the out-of-fold difference (kNN accuracy minus
+  spike accuracy) correlates with the test difference at r ≥ 0.4. Round 2's kNN-only proxy reached 0.19.
+
+**Known bias:** the out-of-fold spike trains on 75% of the cases, and the final spike trains on all of
+them. Growth curves are steep at small n, so the out-of-fold numbers understate the final spike more
+than they understate kNN, which pushes λ toward kNN.
+
+**Decision rule:** cv_lambda becomes the blend if P12 and P14 hold.

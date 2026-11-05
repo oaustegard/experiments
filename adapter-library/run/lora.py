@@ -179,7 +179,41 @@ def arms():
             for s in GPU_SEEDS:
                 for kind in ("scratch", "warm", "full"):
                     A.append(("grow", f"G-{kind}-{w}-n{n}-s{s}", w, s, n))
+    for w in WORKFLOWS:
+        for n in CV_SIZES:
+            for s in GPU_SEEDS:
+                for kind in ("scratch", "warm"):
+                    A.append(("cv", f"CV-{kind}-{w}-n{n}-s{s}", w, s, n))
     return A
+
+
+CV_SIZES, FOLDS = (16, 64), 4
+
+
+def run_cv(name, w, seed, n, kind, tok, ms, t0):
+    """Out-of-fold spike predictions on W's revealed cases (round 3)."""
+    rev = revealed(w, seed, n)
+    fold = {c["id"]: i % FOLDS for i, c in enumerate(rev)}
+    ex = prep(tok, rev)
+    oof = [None] * len(ex)
+    lib = None
+    if kind == "warm":
+        lib = merged_adapter([torch.load(OUT / "adapters" / f"S-lora-{x}-s0.pt") for x in WORKFLOWS if x != w])
+    for f in range(FOLDS):
+        torch.manual_seed(seed * 100 + f)
+        model = new_model(kind)
+        if lib is not None:
+            load_adapter(model, lib)
+        tr = [e for e in ex if fold[e["case"]] != f]
+        idx = [i for i, e in enumerate(ex) if fold[e["case"]] == f]
+        train(model, "lora", tr, growth_epochs(n - n // FOLDS), seed * 100 + f, max_steps=ms)
+        for i, z in zip(idx, predict(model, [ex[i] for i in idx], PAD)):
+            oof[i] = probs_at([z], 1.0)[0]
+    summ, _ = score_examples(ex, oof)
+    (OUT / "probs" / f"{name}.json").write_text(json.dumps([[round(x, 5) for x in p] for p in oof]))
+    (RES / f"{name}.json").write_text(json.dumps({"name": name, "workflow": w, "seed": seed, "n": n, "kind": kind,
+                                                  "folds": FOLDS, "oof": summ, "sec": time.time() - t0}, indent=1))
+    print(f"[{name}] oof acc {summ['accuracy']:.4f} {time.time() - t0:.0f}s", flush=True)
 
 
 def main():
@@ -201,6 +235,8 @@ def main():
         w0 = WORKFLOWS[0]
         todo = [x for x in todo if x[3] == 0 and ((x[0] == "spike" and "-lora-" in x[1]) or
                                                   (x[2] == w0 and x[4] in (0, 16)))]
+        if a.only:
+            todo = [x for x in arms() if x[1].startswith(a.only) and x[3] == 0 and x[4] == 16][:2]
     test_of = {w: prep(tok, load_cases(w, "test")[: 4 if a.smoke else None]) for w in WORKFLOWS}
     for mode, name, w, seed, n in todo:
         if (RES / f"{name}.json").exists():
@@ -208,6 +244,9 @@ def main():
         t0 = time.time()
         torch.manual_seed(seed)
         ms = 2 if a.smoke else 0
+        if mode == "cv":
+            run_cv(name, w, seed, n, name.split("-")[1], tok, ms, t0)
+            continue
         if mode == "spike":
             kind = "lora" if "-lora-" in name else "full"
             cases = sorted(load_cases(w, "train"), key=lambda c: c["id"])

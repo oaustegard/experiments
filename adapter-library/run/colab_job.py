@@ -28,13 +28,18 @@ if not D.exists():
     sh("git sparse-checkout set adapter-library browser-decider/run browser-decider/data _lib", cwd=BASE)
 sh("git pull -q", cwd=BASE)
 sh("pip install -q transformers==4.57.1")
-r = sh("python3 -I run/lora.py 2>&1 | grep -v -i warning", cwd=D)
+# round 3: adapters from round 1 uploaded to /content/adapters, and an optional arm prefix in /content/al_only.txt
+if Path("/content/adapters").exists():
+    (D / "out" / "adapters").mkdir(parents=True, exist_ok=True)
+    sh(f"cp /content/adapters/*.pt {D}/out/adapters/")
+only = Path("/content/al_only.txt").read_text().strip() if Path("/content/al_only.txt").exists() else ""
+r = sh(f"python3 -I run/lora.py {'--only ' + only if only else ''} 2>&1 | grep --line-buffered -v -i warning", cwd=D)
 LOG.write(f"LORA_RC {r.returncode}\n")
 with zipfile.ZipFile("/content/al_out.zip", "w") as z:
-    for f in (D / "results").glob("*.json"):
+    for f in (D / "results").glob(f"{only}*.json"):
         z.write(f, f"results/{f.name}")
     for sub in ("probs", "adapters"):
-        for f in (D / "out" / sub).glob("*"):
+        for f in (D / "out" / sub).glob(f"{only}*"):
             z.write(f, f"out/{sub}/{f.name}")
 LOG.write("ALL_DONE\n")
 LOG.flush()
