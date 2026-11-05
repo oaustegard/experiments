@@ -109,3 +109,42 @@ downloadable files) if P1 holds and at least one of P4, P5 or P6 holds. P1 means
 P4–P6 mean the datastore or the library measurably shortens the time a new spike needs. If P1 holds
 but P4–P6 all fail, the result is "a LoRA library is a cheap way to store specialists, and nothing
 more."
+
+## Round 2: a learned blend weight (registered 2026-11-05, before running)
+
+Round 1's equal-weight blend of spike and kNN helped only where kNN was good. Round 2 learns the weight
+per decision: p = λ·p_spike + (1 − λ)·p_knn, with λ = sigmoid(w·f + b). It runs on CPU from round 1's
+saved distributions; no new training of spikes.
+
+**Prior art:** adaptive kNN-MT (Zheng et al., ACL 2021, arXiv 2105.13022). A meta-k network of a few
+thousand parameters, fed neighbor distances, replaces the fixed λ in kNN-MT. It was trained with few
+samples, and a network trained on one domain transferred to others. The gate here is the same idea at
+8 weights.
+
+**Features f, all available at deployment** (no test labels):
+1. top-1 cosine between the case and the nearest revealed case (is there a close neighbor);
+2. kNN leave-one-out accuracy for this question, measured on the revealed cases themselves (is kNN
+   good on this question of this workflow);
+3. kNN confidence (max probability); 4. spike confidence (max probability);
+5. total variation between the two distributions (do they disagree);
+6. log n; 7. warm-start indicator.
+
+**Fitting without W's test labels:** for held-out workflow W, fit the gate on the growth runs of the
+other three workflows (their test decisions, every n in {16, 64, 300}, seeds 0–1, scratch and warm), by
+soft cross-entropy against gold with a small L2 penalty. Apply it unchanged to W. This is
+leave-one-workflow-out for the gate, as a library that has already grown three spikes would do for its
+fourth. Comparisons: the spike alone, kNN alone, round 1's fixed 0.5, a single constant λ fit the same
+cross-workflow way, and, post hoc and labelled as an upper bound, the best constant λ per (W, n,
+method) chosen on W's test.
+
+**Predictions:**
+- **P8a.** At n ∈ {16, 64}, the gated blend beats the better of spike alone and kNN alone (mean over
+  the 4 workflows), for both scratch and warm.
+- **P8b.** At n = 300, the gated blend is within 0.005 of the spike alone or above it (no harm).
+- **P9.** The gated blend beats the fixed 0.5 blend at every n, for both methods.
+- **P10.** The features matter: the gated blend beats the cross-workflow constant λ by at least 0.01
+  at n = 16 or n = 64, for at least one method.
+- **P11.** For scratch, the gain over the spike alone is largest at n = 16.
+
+**Decision rule:** the gated blend becomes the system's predictor if P8a and P8b hold. If P10 fails,
+the constant λ is enough and the features are dropped.
