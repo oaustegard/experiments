@@ -30,6 +30,10 @@ Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but at 65 MB and w
 1. **Specialist accuracy matches Jev's zero-shot score at 17M parameters.** Stock Ettin-17m, 10 epochs:
    0.740 ± 0.010 over seeds 0 to 2 (0.7375, 0.7515, 0.732). KL from gold 0.142, Brier 0.079. <!-- @evidence[[results/summary.json#spec.stock-e10.kl_from_gold.mean]] -->
    By type: noul 0.814, choice 0.712, score 0.706 (Jev: 0.775, 0.720, 0.696 on the dataset card).
+   Score answers land within one level of gold 0.965 of the time. <!-- @evidence[[results/score_pm1.json#mean]] -->
+   nanoGentzen-Jev-v3's own card, on the same 2,000 test decisions: 0.731 overall, noul 0.828, choice 0.685,
+   score 0.693, score ±1 0.973, KL 0.150, Brier 0.081, ECE 0.087. Ettin is ahead on overall, choice, score,
+   KL and Brier, behind on noul, score ±1 and ECE. (`results/score_pm1.json`)
    On the card's table of models fitted on `train`, this sits between SafeDecide-140M (0.754) and
    ProKope-421M (0.7185), and far above the other 17M entry, Bekko 17M (0.483). (`results/spec-stock-e10-s*.json`)
 2. **The browser build runs the model exactly and fast.** The hand-written WGSL engine matches the
@@ -138,4 +142,13 @@ fetched its Hub files (fixed for any Hub id), and the rerun's L4 VM was reclaime
 likely as idle, since the runner was detached and the notebook kernel did nothing. The kept Monad runs
 ran on an A100 with a keepalive loop holding the kernel. An L4 seed-0 run seen in the log before the VM
 vanished scored 0.7475; the kept A100 seed 0 scored 0.755 (GPU nondeterminism).
+
+### 2026-11-05: score ±1 and the nanoGentzen-Jev-v3 card
+
+Oskar asked for ours to be run on the benchmark's 400 test cases and 2,000 decisions. It already had been:
+every spec number here uses the dataset's own scorer on exactly that split. The one column missing against
+nanoGentzen-Jev-v3's card was score ±1 (rubric answer within one level of gold), which the dataset scorer does
+not compute. `run/score_pm1.py` takes it from the saved predictions of the three 10-epoch stock seeds:
+0.9563, 0.9663, 0.9712, mean 0.965, against the card's 0.973. No model was retrained. That card reports 0.731
+overall, below the 0.7585 the leaderboard lists for nanoGentzen-v3, a separate repo.
 
