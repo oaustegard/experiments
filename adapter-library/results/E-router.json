@@ -1,0 +1,90 @@
+{
+ "name": "E-router",
+ "spikes": {
+  "transactions": "Bank or card transaction: a merchant descriptor, amount and date, with recent charges from the same merchant. Decides the spending category, whether it recurs and whether it is unusual.",
+  "emails": "Email: a subject line and a body. Decides what kind of email it is, whether it needs a reply and how urgent it is.",
+  "reviews": "Customer review of a business or product. Decides the star rating, the main complaint and whether the business should reply."
+ },
+ "none_desc": "None of these specialists covers this input.",
+ "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+ "threshold_p_none": 0.5,
+ "best_epoch": 9,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.00015899819232196083
+  },
+  {
+   "epoch": 1,
+   "val_kl": 6.15328060536174e-05
+  },
+  {
+   "epoch": 2,
+   "val_kl": 3.236531159767704e-05
+  },
+  {
+   "epoch": 3,
+   "val_kl": 2.0938973340007008e-05
+  },
+  {
+   "epoch": 4,
+   "val_kl": 1.4352066622021975e-05
+  },
+  {
+   "epoch": 5,
+   "val_kl": 1.087259749293088e-05
+  },
+  {
+   "epoch": 6,
+   "val_kl": 8.852123170857675e-06
+  },
+  {
+   "epoch": 7,
+   "val_kl": 7.530861917553693e-06
+  },
+  {
+   "epoch": 8,
+   "val_kl": 6.821452756104445e-06
+  },
+  {
+   "epoch": 9,
+   "val_kl": 6.589290928304079e-06
+  }
+ ],
+ "steps": 2180,
+ "in_library": {
+  "correct": 1.0,
+  "flagged_none": 0.0,
+  "n": 955,
+  "routed_to": {
+   "transactions": 307,
+   "emails": 329,
+   "reviews": 319
+  }
+ },
+ "unseen_texts": {
+  "correct": 1.0,
+  "flagged_none": 1.0,
+  "n": 34,
+  "routed_to": {
+   "none": 34
+  }
+ },
+ "unseen_lab_records": {
+  "correct": 1.0,
+  "flagged_none": 1.0,
+  "n": 40,
+  "routed_to": {
+   "none": 40
+  }
+ },
+ "unseen_kinds": {
+  "correct": 1.0,
+  "flagged_none": 1.0,
+  "n": 75,
+  "routed_to": {
+   "none": 75
+  }
+ },
+ "sec": 87.67722082138062
+}

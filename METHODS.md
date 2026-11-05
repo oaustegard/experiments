@@ -1663,6 +1663,10 @@ the result.
   domain's own labels lifted 16-label accuracy from 0.554 to 0.578 and repaired the transfer
   failure. At 64 labels it cost 0.006 because fold models trained on 75% of the data understate the
   final model and tilt λ toward kNN; use more folds or stop blending once the model clearly leads.
+- **Normalise JSON booleans when validating LLM labels against string option keys.** Asked for "true"/"false"
+  option keys, Sonnet (`claude -p`) sometimes answered with JSON `true`, which `str()` turns into "True": a
+  third of 3,040 items failed validation silently and stayed unlabelled across two resumed runs. Map bools
+  to "true"/"false" before checking. (`adapter-library/run/everyday_data.py`)
 - **Train LoRA adapters against the base you will ship, quantized.** Round 1's rank-8 spikes, trained
   on fp32 Ettin-17m, lost 0.029 on average when the base was packed to int8 matmuls and a 4-bit token
   table. A fully fine-tuned model lost 0.0075 to the same packing (browser-decider). The fp16 adapter

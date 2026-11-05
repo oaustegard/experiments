@@ -6,7 +6,7 @@ was trained on and badly on any other. This experiment tests a different kind of
 ball" of many narrow specialists ("spikes"), a router that sends each input to the right spike, a way
 to notice an input that matches no spike, and a cheap way to grow a new spike there. Each spike is a
 LoRA adapter on one frozen Ettin-17m. A kNN datastore of labelled cases does the routing and the gap
-detection, and predicts while a new spike has too few labels to train. A working v0.1.0 of the system runs
+detection, and predicts while a new spike has too few labels to train. A working version of the system (v0.2.0) runs
 in the browser at https://austegard.com/experiments/adapter-library/web/ (see the last Log entry).
 
 Terms used throughout: the benchmark (Typed Decisions) has four **workflows**, such as customer service
@@ -468,3 +468,50 @@ had learned, so its stored predictions looked near-perfect and λ was fit to 1 e
 16 held-out test cases per spike that the page does not show (`run/pack_system.py`). The base file also drops 266 kB:
 `pack()` appended a randomly initialised placeholder head the manifest never referenced, which made every
 repack differ. Every byte the engine reads is identical to v0.1.1, so the parity results stand.
+
+### System v0.2.0 (2026-11-05): everyday spikes anyone can judge
+
+Oskar, on v0.1.x: "this definitely works, but I fear it's too deep in the weeds to be comprehensible to a
+user", then: "go with transactions, email and reviews". The page now opens on this set; the workflows set
+is one click away (`?set=workflows`), with its own memory.
+
+**Data** (`run/everyday_data.py`, `data/everyday/`):
+- **Transactions:** generated from a table of 52 merchant descriptors (for example `AMZN MKTP US*K42B7`,
+  `NETFLIX.COM`, `ZELLE TO MARIA G`), each with a category, a typical amount and whether it recurs. Each
+  case carries up to five earlier charges from the same merchant. 15% get an amount 4–9 times typical,
+  which defines "unusual". Labels are exact by construction.
+- **Emails:** 700 Enron ham and 200 Enron spam (SetFit/enron_spam), plus 640 Sonnet-written newsletters,
+  promotions, bills and personal emails with fictional names, filling gaps Enron lacks.
+- **Reviews:** 1,500 Yelp reviews, 300 per star rating. Stars come from Yelp.
+- **Labels:** Sonnet (`claude -p`, 20 items per call) answered every other question. One bug: Sonnet
+  sometimes answers a yes/no question with a JSON boolean, which the validator rejected, leaving a third
+  of items unlabelled until normalised. All 3,040 text items are labelled. Sonnet cost about $8–10 in all.
+- **Split:** 20% test per domain. Labels come from one Sonnet pass, so accuracy means agreement with
+  Sonnet, not with people.
+
+**Spikes** (`run/everyday_train.py`, one Colab L4, about 7 minutes): v0.1.1's recipe, 10 epochs on the
+fp32 base, then 5 on the quantized base from that adapter.
+
+| spike | train cases | test accuracy | by question | stage 1 adapter on the quantized base, before stage 2 |
+|---|---|---|---|---|
+| transactions | 1074 | 0.960 | category 0.935 · recurring 0.993 · unusual 0.951 | 0.795 |
+| emails | 1090 | 0.819 | category 0.897 · needs reply 0.878 · urgency 0.681 | 0.818 |
+| reviews | 1063 | 0.610 | complaint 0.618 · needs reply 0.799 · stars 0.414 | 0.609 |
+
+Stage 2 lifted transactions (0.795 to 0.960) and left emails and reviews where stage 1 put them. Star rating is the weak question: exact 0.414, within one star 0.856. Through `LoraRef` the shipped files score
+0.959, 0.819 and 0.610. Engine parity on 6 fixtures: logits within 1.8e-05, keys within
+3.5e-08, top option the same 6/6.
+
+**Router:** the three descriptions plus `none`, trained on the quantized base from zero. `none` trained on
+70 decider_eval texts, synthetic JSON from three unrelated domains, and Sonnet-written texts of six kinds
+(recipes, poems, news, posts, fiction, meeting notes). It routed all 955 test cases (307 transactions, 329 emails, 319 reviews) correctly
+and flagged as `none` the other 34 decider_eval texts (not among the 70 trained on), 40 lab records, and 75 texts of five kinds it never saw (code,
+sports results, weather, lyrics, product specs).
+
+**Memory.** The fitted λ is now pulled toward the spike while labels are few: (n·fit + 4) / (n + 4).
+v0.1.2 let 8 lucky labels hand a question wholly to the memory. `run/check_memory_demo.mjs` runs the page's
+demo in headless Chromium: the transaction spike calls Amazon charges "shopping", and the user marks them
+"household". After 4 corrections λ = 0.50 and household reaches 0.496 on the fifth charge, just short.
+After 5, λ = 0.44 and the sixth charge comes out household at 0.651, while the spike alone still says
+shopping. The fit chose λ = 0 (memory only) both times; λ falls only because the pull toward the spike weakens
+as labels accumulate. The page's sample list holds six Amazon charges for this.

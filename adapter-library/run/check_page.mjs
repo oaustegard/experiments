@@ -15,7 +15,7 @@ const port = server.address().port, which = process.argv[2] || "check";
 const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader", "--enable-features=Vulkan", "--use-vulkan=swiftshader"] });
 const page = await browser.newPage();
 page.on("console", (m) => { if (m.type() === "error") console.log("console:", m.text()); });
-if (which !== "flow") await page.goto(`http://localhost:${port}/${which}.html`);
+if (which !== "flow") await page.goto(`http://localhost:${port}/${which}.html${process.argv[3] ? "?set=" + process.argv[3] : ""}`);
 if (which === "check") {
   await page.waitForFunction(() => window.__result, null, { timeout: 900000 });
   console.log(JSON.stringify(await page.evaluate(() => window.__result), null, 1));

@@ -1,0 +1,32 @@
+{
+ "version": "0.2.0",
+ "set": "everyday",
+ "title": "Everyday inputs",
+ "about": "Bank transactions, emails and customer reviews: paste one and the router picks the specialist. To see the memory learn, open five of the Amazon (AMZN MKTP) charges and mark each one's category as household; the sixth then follows your choice. The spike calls them shopping; the memory outvotes it once it has proved right.",
+ "base": "../base/",
+ "rank": 8,
+ "router": {
+  "file": "spikes/router",
+  "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+  "none": "None of these specialists covers this input.",
+  "threshold": 0.5,
+  "threshold_note": "0.5, as for the workflows set"
+ },
+ "spikes": [
+  {
+   "id": "transactions",
+   "file": "spikes/transactions",
+   "description": "Bank or card transaction: a merchant descriptor, amount and date, with recent charges from the same merchant. Decides the spending category, whether it recurs and whether it is unusual."
+  },
+  {
+   "id": "emails",
+   "file": "spikes/emails",
+   "description": "Email: a subject line and a body. Decides what kind of email it is, whether it needs a reply and how urgent it is."
+  },
+  {
+   "id": "reviews",
+   "file": "spikes/reviews",
+   "description": "Customer review of a business or product. Decides the star rating, the main complaint and whether the business should reply."
+  }
+ ]
+}
