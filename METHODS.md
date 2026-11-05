@@ -5152,6 +5152,12 @@ From `long-horizon-execution` (2026-10-16).
 - **Rule.** Contrastive tuning for pooled sentence vectors does not carry over to tasks that read individual token
   states; start a token-level head from the MLM checkpoint and reuse only the compression format. (`browser-decider/RESULTS.md`)
 
+### Tune a search's fusion through the reader that serves it (muninn-search-ettin)
+
+- **Finding.** remax_kb's Python reader and its vendored JS reader (`kb-reader.js`, what the Worker runs) differ in two defaults: the fusion pool is `max(k*8, 64)` in Python and `max(k*8, 40)` in JS, and the JS reader collapses hits to one per page with a match-count boost. Weighted fusion min-max normalises over the pool, so the same alpha ranks differently; the Worker and Python agreed on the top hit for only 72 of 80 queries. At a matched 40-candidate pool the fused top-40 lists were identical on 80 of 80.
+- **Finding.** With a small embedder, RRF let BM25 drag paraphrased queries below dense alone (hit@5 0.48 vs 0.58); weighted alpha 0.7 toward dense beat RRF on both keyword-style and paraphrased sets.
+- **Rule.** Sweep fusion settings by calling the serving code (here, the Worker's modules in Node), not the library's other-language reader, and re-check RRF against weighted fusion whenever the embedder changes. (`muninn-search-ettin/RESULTS.md`)
+
 ### A typed-decision specialist under 20M parameters does not transfer to an unseen workflow (browser-decider)
 
 - **Finding.** Trained on three Typed Decisions workflows and tested on the fourth, Ettin-17m scored 0.353 (stock) and
