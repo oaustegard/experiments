@@ -135,7 +135,9 @@ SETS = {
                   "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json), kept for v0.1.1 (results/lookalikes.json)"},
     "everyday": {"version": "0.2.0", "spikes": ["transactions", "emails", "reviews"], "spike_run": "E-{w}", "router_run": "E-router",
                  "router_results": "E-router.json", "cases": everyday_cases, "questions": _everyday_questions, "offdomain": everyday_offdomain,
-                 "title": "Everyday inputs", "about": "Bank transactions, emails and customer reviews: paste one and the router picks the specialist.",
+                 "title": "Everyday inputs", "about": "Bank transactions, emails and customer reviews: paste one and the router picks the "
+                 "specialist. To see the memory learn, open four of the Amazon (AMZN MKTP) charges and mark each one's category as household; "
+                 "the memory then votes on the fifth, and the blend shifts as the memory proves right.",
                  "threshold_note": "0.5, as for the workflows set"},
 }
 
@@ -190,7 +192,11 @@ def main():
     samples = {"cases": [], "seed": {}, "offdomain": cfgset["offdomain"]()}
     for w in cfgset["spikes"]:
         cs = cfgset["cases"](w, "test")
-        for c in random.Random(f"demo-{w}").sample(cs, 6):
+        demo = random.Random(f"demo-{w}").sample(cs, 6)
+        if w == "transactions":   # the memory demo: several Amazon charges, which people file differently
+            amzn = [c for c in cs if "AMZN MKTP" in c["state"]][:5]
+            demo = amzn + [c for c in demo if c not in amzn][:3]
+        for c in demo:
             samples["cases"].append({"id": c["id"], "workflow": w, "state": c["state"], "gold": {q: g["label"] for q, g in c["gold"].items()}})
         shown = {c["id"] for c in samples["cases"]}
         sd_cases = random.Random(f"seed-{w}").sample([c for c in cs if c["id"] not in shown], 16)

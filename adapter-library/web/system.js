@@ -16,8 +16,8 @@ import { SpikeEngine } from "./engine.js";
 const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs";
 const MAX_LEN = 1024, K = 8, TAU = 0.05, EPS = 0.01, MIN_LABELS = 4;
 // v0.2.0: the fitted lambda is pulled toward the spike while labels are few: (n * fit + PRIOR * 1) / (n + PRIOR),
-// so 8 lucky labels can move it at most halfway (v0.1.2 let 8 labels hand a question wholly to the memory)
-const PRIOR = 8;
+// so 4 labels can move it at most halfway (v0.1.2 let 8 lucky labels hand a question wholly to the memory)
+const PRIOR = 4;
 const GRID = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
 const NOUL_DEFAULT = { true: "The statement is true for this case.", false: "The statement is not true for this case." };
 const STORE = "adapter-library/memory/";
