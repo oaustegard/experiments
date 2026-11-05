@@ -443,3 +443,19 @@ content in general.
 the 8 fixtures: logits within 3.2e-6, top option the same 8/8; the page's teach and gap paths pass in
 headless Chromium. Two samples added outside the library: the lunch-chat support ticket and a shop
 receipt.
+
+**Real-GPU timing** (`web/bridge_job.js` through the GPU Bridge, `results/bridge_v011.json`). Device: a
+Mac, Apple GPU (WebGPU reports `apple metal-3`), Chrome 156. Ran on the published v0.1.1 code and files,
+24 sample cases × 3 repetitions:
+
+| step | median | p90 |
+|---|---|---|
+| router, one choice question | 21.6 ms | 26.9 ms |
+| spike, five questions, including the swap from the router | 36.3 ms | 46.4 ms |
+| the same spike again (no swap) | 23.0 ms | — |
+| whole case, route + answer | 59.3 ms | 70.6 ms |
+| answer with 16 cases in memory | 20.4 ms | — |
+
+Start-up 1.6 s with the files cached; seeding 16 memory cases 318 ms; the router chose the sample's own
+workflow in 72 of 72 runs. A spike swap costs about 13 ms (36.3 against 23.0), mostly decoding fp16 to
+f32 in JavaScript; caching each spike's decoded weights would remove most of it.
