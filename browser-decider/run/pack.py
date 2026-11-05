@@ -178,7 +178,7 @@ def main():
     a = ap.parse_args()
     ck = ROOT / "out" / "ckpt" / a.name
     meta = json.loads((ck / "meta.json").read_text())
-    sd = {k: v.numpy() for k, v in torch.load(ck / "best.pt").items()}
+    sd = {k: v.numpy() for k, v in torch.load(ck / "best.pt", map_location="cpu").items()}
     from transformers import AutoConfig
     cfg = AutoConfig.from_pretrained(meta["init"]).to_dict()
     man, data = pack(sd, cfg, a.variant, meta["temps"])
@@ -198,7 +198,7 @@ def main():
     if a.check:
         torch.set_num_threads(2)
         model = Decider(meta["init"])
-        model.load_state_dict(torch.load(ck / "best.pt"))
+        model.load_state_dict(torch.load(ck / "best.pt", map_location="cpu"))
         model.eval()
         diffs = []
         for e in te[: a.check]:

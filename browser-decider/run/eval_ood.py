@@ -58,7 +58,7 @@ def main():
     for e in ex:
         e["ids"], e["pos"] = tok.build(e)
     model = Decider(meta["init"])
-    model.load_state_dict(torch.load(ck / "best.pt"))
+    model.load_state_dict(torch.load(ck / "best.pt", map_location="cpu"))
     logits = predict(model, ex, tok.tok.token_to_id("[PAD]"))
     probs = [probs_at([z], meta["temps"][e["type"]])[0] for z, e in zip(logits, ex)]
     summ, rows_ = score_examples(ex, probs)

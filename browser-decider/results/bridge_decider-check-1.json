@@ -1,0 +1,103 @@
+{
+ "describe": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": "",
+  "features": [
+   "core-features-and-limits",
+   "shader-f16",
+   "subgroups",
+   "timestamp-query"
+  ],
+  "limits": {
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292,
+   "maxComputeWorkgroupStorageSize": 32768,
+   "maxComputeInvocationsPerWorkgroup": 1024,
+   "maxComputeWorkgroupsPerDimension": 65535
+  }
+ },
+ "setupMs": 180.5,
+ "firstCaseMs": 24.700000047683716,
+ "parity": {
+  "maxAbsLogitDiff": 2.205371856689453e-06,
+  "argmaxAgree": 40,
+  "nQuestions": 40
+ },
+ "caseMsMedian": 19,
+ "caseMsP90": 57.39999997615814,
+ "oneQuestionMsMedian": 9.5,
+ "engineOnlyMsMedian": 26.699999928474426,
+ "tokensPerCaseMedian": 1710,
+ "nCases": 8,
+ "reps": 5,
+ "sample": {
+  "action": {
+   "type": "choice",
+   "label": "observe",
+   "confidence": 0.13735946697942047,
+   "probabilities": {
+    "continue": 0.3399024561376455,
+    "human_review": 0.25346387170390267,
+    "observe": 0.35301960023456536,
+    "stop": 0.05361407192388639
+   }
+  },
+  "needs_review": {
+   "type": "noul",
+   "label": "false",
+   "confidence": 0.40557342211893843,
+   "probabilities": {
+    "true": 0.29721328894053084,
+    "false": 0.7027867110594692
+   },
+   "probability_true": 0.29721328894053084
+  },
+  "outcome": {
+   "type": "choice",
+   "label": "partial",
+   "confidence": 0.19422684859103248,
+   "probabilities": {
+    "failure": 0.24564619447005856,
+    "harmful": 0.11839058781725316,
+    "partial": 0.39567013644327437,
+    "success": 0.2402930812694139
+   }
+  },
+  "risk": {
+   "type": "score",
+   "label": "0",
+   "confidence": 0.17971367782999317,
+   "probabilities": {
+    "0": 0.3847852583724949,
+    "1": 0.3796127661800247,
+    "2": 0.18199111153630523,
+    "3": 0.053610863911175234
+   },
+   "score": 0.9044275809861609
+  },
+  "urgency": {
+   "type": "score",
+   "label": "1",
+   "confidence": 0.22757388826098005,
+   "probabilities": {
+    "0": 0.337010611406444,
+    "1": 0.42068041619573504,
+    "2": 0.19703817263557286,
+    "3": 0.04527079976224811
+   },
+   "score": 0.9505691607536251
+  }
+ },
+ "_job": {
+  "id": "decider-check-1",
+  "device": "Mac",
+  "adapter": "apple metal-3",
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+  "tabName": "Mac",
+  "pageVersion": 10,
+  "runMs": 7556
+ },
+ "_note": "tmpcheck = spec-e17c epoch-1 checkpoint (parity + timing only; accuracy comes from the final checkpoint)"
+}

@@ -27,6 +27,8 @@ from transformers import AutoModel
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import ROOT, WORKFLOWS, examples, load_cases, score_examples  # noqa: E402
 
+DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 INITS = {
     "e17c": ROOT / "out/base/st-ettin17m-tuned-e17-cap-c-epoch1/epoch1",
     "stock": "jhu-clsp/ettin-encoder-17m",
@@ -107,7 +109,7 @@ def predict(model, data, pad_id, bs=32):
     logits = [None] * len(data)
     for ch in batches(data, bs, False, None):
         ids, att, pb, pt, seg, _ = collate([data[i] for i in ch], pad_id)
-        z = model(ids, att, pb, pt)
+        z = model(ids.to(DEV), att.to(DEV), pb.to(DEV), pt.to(DEV)).float().cpu()
         j = 0
         for i, k in zip(ch, seg):
             logits[i] = z[j: j + k].numpy().astype(np.float64)
@@ -183,7 +185,7 @@ def main():
     print(f"[{a.name}] train {len(tr)} val {len(va)} test {len(te)} examples; "
           f"max len {max(len(d['ids']) for d in tr + va + te)}", flush=True)
 
-    model = Decider(init)
+    model = Decider(init).to(DEV)
     head_params = list(model.head.parameters())
     opt = torch.optim.AdamW([
         {"params": model.enc.parameters(), "lr": a.lr},
@@ -203,7 +205,8 @@ def main():
         te0, losses = time.time(), []
         for ch in batches(tr, a.bs, True, rng):
             ids, att, pb, pt, seg, gold = collate([tr[i] for i in ch], pad_id)
-            z = model(ids, att, pb, pt)
+            z = model(ids.to(DEV), att.to(DEV), pb.to(DEV), pt.to(DEV))
+            gold = gold.to(DEV)
             lp = torch.cat(seg_softmax(z, seg))
             loss = -(gold * lp).sum() / len(seg)
             opt.zero_grad()
@@ -230,7 +233,7 @@ def main():
         if a.max_steps and step >= a.max_steps:
             break
 
-    model.load_state_dict(torch.load(ckdir / "best.pt"))
+    model.load_state_dict(torch.load(ckdir / "best.pt", map_location=DEV))
     vl = predict(model, va, pad_id)
     temps = fit_temps(va, vl)
     tl = predict(model, te, pad_id)
@@ -249,7 +252,7 @@ def main():
             by[f"q={w}/{q}"] = score_examples([te[i] for i in sel], [probs[i] for i in sel])[0]
     res = {"name": a.name, "args": vars(a), "best_epoch": best[1], "temps": temps,
            "test": summ, "test_raw_T1": summ_raw, "by": by, "log": log,
-           "wall_sec": time.time() - t0, "n_params": sum(p.numel() for p in model.parameters())}
+           "wall_sec": time.time() - t0, "device": str(DEV), "n_params": sum(p.numel() for p in model.parameters())}
     (ROOT / "results").mkdir(exist_ok=True)
     (ROOT / "results" / f"{a.name}.json").write_text(json.dumps(res, indent=1))
     (ROOT / "results" / f"{a.name}_preds.json").write_text(json.dumps(
