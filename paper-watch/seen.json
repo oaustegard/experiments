@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-04T01:52:08.545170+00:00",
+ "last_run": "2026-11-05T01:52:01.436008+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -407,6 +407,39 @@
    "practical": "NONE",
    "attempts": 1,
    "review": "Robot-manipulation VLA with a physical-dynamics token module distilled from a video world model; gains of 0.2-0.9 points over copied, unrerun baselines and no code or weights. Nothing transfers to his stack."
+  },
+  "2610.11765": {
+   "title": "Thinking Inertia: LLMs Keep Thinking When Told Not To",
+   "first_seen": "2026-11-05",
+   "best_rank": 28,
+   "upvotes": 0,
+   "reviewed": "2026-11-05",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Native no-thinking modes yield answer-only output on Boolean tasks but almost never on open-ended ones; strict answer-only prompting on open-ended tasks raises empty-thinking to ~40% at a cost of ~15 accuracy points (spot-checked in the body). For cheap-model gates and subagent calls, frame the question as a closed answer set rather than suppressing reasoning on open questions. No code released."
+  },
+  "2610.36848": {
+   "title": "Evolving Agent Teams",
+   "first_seen": "2026-11-05",
+   "best_rank": 24,
+   "upvotes": 184,
+   "reviewed": "2026-11-05",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A supervisor restructures a Claude Code agent team on plateaus; gains (0.74x vs 0.51x of FlashInfer on MLA decode) are GPU-kernel-specific, all-Opus, two runs, no cost axis. Transferable bit: a mandated cross-team synthesis doc every subagent reads. Code: github.com/caoshiyi/EAT."
+  },
+  "2610.13912": {
+   "title": "RSI-Anything: Unlocking Recursive Self-Improvement with World Models",
+   "first_seen": "2026-11-05",
+   "best_rank": 29,
+   "upvotes": 179,
+   "reviewed": "2026-11-05",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A small calibrated predictor reranks candidate patches/actions before execution; on CodeContests it lifts hidden-test success 26.0% -> 29.2% over random (CI +0.17 to +5.50), with gains elsewhere within noise. Amounts to reranking that the existing decide tool already covers."
   }
  }
 }
