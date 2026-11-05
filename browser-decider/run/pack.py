@@ -68,9 +68,12 @@ def pack(sd, cfg, variant, temps):
                  "scales": P.add(s.reshape(V, G, 1), np.float16)}
     else:
         table = {"bits": 32, "V": V, "H": H, "f32": P.add(T, np.float32)}
+    rp = cfg.get("rope_parameters")   # transformers 5 nests RoPE bases by attention type; 4.x has flat keys
+    rope = ({"global": rp["full_attention"]["rope_theta"], "local": rp["sliding_attention"]["rope_theta"]} if rp else
+            {"global": cfg["global_rope_theta"], "local": cfg["local_rope_theta"] or cfg["global_rope_theta"]})
     m = {"arch": "modernbert", "hidden": H, "heads": cfg["num_attention_heads"], "inter": I,
          "eps": cfg["norm_eps"], "window": cfg["local_attention"], "global_every": cfg["global_attn_every_n_layers"],
-         "theta_global": cfg["global_rope_theta"], "theta_local": cfg["local_rope_theta"] or cfg["global_rope_theta"],
+         "theta_global": rope["global"], "theta_local": rope["local"],
          "table": table, "emb_norm": P.add(sd["enc.embeddings.norm.weight"], np.float32), "layers": []}
     for i in range(cfg["num_hidden_layers"]):
         p = f"enc.layers.{i}."

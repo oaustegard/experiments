@@ -1,0 +1,203 @@
+{
+ "accounts": 1842,
+ "test_accounts": 300,
+ "cases": {
+  "account/train": 1542,
+  "post/train": 9216,
+  "account/test": 300,
+  "post/test": 3558
+ },
+ "distribution": {
+  "account_type": {
+   "human": 1568,
+   "organization": 159,
+   "bot": 85,
+   "aggregator": 30
+  },
+  "account_type_by_source": {
+   "list": {
+    "human": 454,
+    "organization": 22,
+    "bot": 13,
+    "aggregator": 6
+   },
+   "firehose": {
+    "human": 453,
+    "bot": 49,
+    "organization": 24,
+    "aggregator": 11
+   },
+   "follows": {
+    "human": 346,
+    "organization": 50,
+    "bot": 13,
+    "aggregator": 2
+   },
+   "discover": {
+    "human": 315,
+    "organization": 63,
+    "aggregator": 11,
+    "bot": 10
+   }
+  },
+  "ai_share": {
+   "0": 1190,
+   "3": 249,
+   "1": 215,
+   "2": 188
+  },
+  "ai_share_by_source": {
+   "list": {
+    "3": 196,
+    "2": 123,
+    "1": 114,
+    "0": 62
+   },
+   "firehose": {
+    "0": 519,
+    "1": 14,
+    "3": 2,
+    "2": 2
+   },
+   "follows": {
+    "0": 214,
+    "1": 84,
+    "2": 63,
+    "3": 50
+   },
+   "discover": {
+    "0": 395,
+    "1": 3,
+    "3": 1
+   }
+  },
+  "ai_role": {
+   "not_ai_focused": 1403,
+   "researcher": 212,
+   "builder": 131,
+   "commentator": 77,
+   "creative": 11,
+   "business": 8
+  },
+  "ai_role_by_source": {
+   "list": {
+    "not_ai_focused": 169,
+    "researcher": 149,
+    "builder": 105,
+    "commentator": 61,
+    "business": 7,
+    "creative": 4
+   },
+   "firehose": {
+    "not_ai_focused": 535,
+    "creative": 1,
+    "commentator": 1
+   },
+   "follows": {
+    "not_ai_focused": 302,
+    "researcher": 63,
+    "builder": 26,
+    "commentator": 15,
+    "creative": 4,
+    "business": 1
+   },
+   "discover": {
+    "not_ai_focused": 397,
+    "creative": 2
+   }
+  },
+  "ai_stance": {
+   "none": 1392,
+   "pragmatic": 332,
+   "enthusiast": 77,
+   "critic": 31,
+   "mixed": 10
+  },
+  "ai_stance_by_source": {
+   "list": {
+    "pragmatic": 248,
+    "none": 162,
+    "enthusiast": 64,
+    "critic": 13,
+    "mixed": 8
+   },
+   "firehose": {
+    "none": 532,
+    "pragmatic": 2,
+    "critic": 2,
+    "enthusiast": 1
+   },
+   "follows": {
+    "none": 301,
+    "pragmatic": 81,
+    "critic": 16,
+    "enthusiast": 11,
+    "mixed": 2
+   },
+   "discover": {
+    "none": 397,
+    "pragmatic": 1,
+    "enthusiast": 1
+   }
+  },
+  "original_content": {
+   "2": 1203,
+   "0": 397,
+   "1": 242
+  },
+  "original_content_by_source": {
+   "list": {
+    "2": 374,
+    "0": 69,
+    "1": 52
+   },
+   "firehose": {
+    "2": 299,
+    "0": 164,
+    "1": 74
+   },
+   "follows": {
+    "2": 265,
+    "0": 89,
+    "1": 57
+   },
+   "discover": {
+    "2": 265,
+    "0": 75,
+    "1": 59
+   }
+  }
+ },
+ "self_agreement": {
+  "account_type": {
+   "argmax": 0.9733,
+   "n": 150,
+   "mean_tv": 0.0404
+  },
+  "ai_share": {
+   "argmax": 0.92,
+   "n": 150,
+   "mean_tv": 0.063
+  },
+  "ai_role": {
+   "argmax": 0.9533,
+   "n": 150,
+   "mean_tv": 0.0499
+  },
+  "ai_stance": {
+   "argmax": 0.9467,
+   "n": 150,
+   "mean_tv": 0.049
+  },
+  "original_content": {
+   "argmax": 0.88,
+   "n": 150,
+   "mean_tv": 0.0679
+  },
+  "items_about_ai": {
+   "argmax": 0.9804,
+   "n": 1782,
+   "mean_tv": 0.0211
+  }
+ }
+}
