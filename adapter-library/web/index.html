@@ -202,7 +202,7 @@ try {
   [sys, samples] = await Promise.all([loadSystem(`models/${SET}/`), fetch(`models/${SET}/samples.json`).then((r) => r.json())]);
   $("about").textContent = sys.system.about ?? "";
   $("ver").textContent = sys.info.version;
-  $("stats").innerHTML = stat("download, base + 5 spikes", (sys.info.bytes / 1e6).toFixed(1) + " MB") + stat("spikes", sys.system.spikes.length + " + router")
+  $("stats").innerHTML = stat(`download: base, ${sys.system.spikes.length} spikes and the router`, (sys.info.bytes / 1e6).toFixed(1) + " MB") + stat("spikes", sys.system.spikes.length + " + router")
     + stat("engine start", sys.info.initMs.toFixed(0) + " ms");
   const groups = {};
   samples.cases.forEach((c, i) => (groups[c.workflow] ??= []).push(`<option value="c${i}">${esc(nice(c.workflow))}: ${esc(c.id)}</option>`));
