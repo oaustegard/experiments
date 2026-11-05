@@ -87,6 +87,12 @@ Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but it would take 
    residual stream reach about 1,100 in every layer against a median channel peak of 6 to 10; activations
    stay in 32-bit floats here, so they cost the weight-only int8 nothing. The int8 columns are near-Gaussian
    (peak about 3.1 to 4.1 times the column RMS). (`results/weight_probe.json`)
+11. **Codes held to ±31 save 0.58 MB for about 0.008.** Halving the shipped ±63 codes (scale doubled)
+   cuts the matmuls' brotli bytes from 3.05 to 2.47 MB. KL from gold rises from 0.151 to 0.156, and
+   accuracy goes from 0.730 to 0.7215. <!-- @evidence[[results/codes31.json#test.accuracy]] -->
+   The codes were rounded twice, from fp32 to ±63 and then to ±31, so a ±31 build quantized straight from
+   the fp32 checkpoint should lose less; that needs the checkpoint, which is on Colab, not in the repo.
+   (`results/codes31.json`, `run/codes31.py`)
 
 ## Method
 
@@ -170,4 +176,18 @@ nanoGentzen-Jev-v3's card was score ±1 (rubric answer within one level of gold)
 not compute. `run/score_pm1.py` takes it from the saved predictions of the three 10-epoch stock seeds:
 0.9563, 0.9663, 0.9712, mean 0.965, against the card's 0.973. No model was retrained. That card reports 0.731
 overall, below the 0.7585 the leaderboard lists for nanoGentzen-v3, a separate repo.
+
+### 2026-11-05: weight probe, token-table fallback, ±31 codes
+
+Oskar asked whether Ettin's weights hold improvements like the loop edit found in Monad (a generation
+fix, so not applicable to an encoder that writes nothing). Quantization levels and lossy vocabulary
+pruning were already measured in `ettin-native` (findings 4 and 5 there) and were not rerun. Three new
+checks ran on the shipped file through the NumPy reference, on 4 vCPUs: `run/weight_probe.py`
+(reproduced 0.730 on all 2,000 decisions in 11 min, then 49 ablations on 400 questions in about an hour),
+`run/vocab_fallback.py` (two Bluesky pools collected 3 min apart, 675 and 626 accounts, disjoint, the
+second used only for measuring) and `run/codes31.py`. GitHub Pages serves single byte ranges (206) but
+answers a multi-range request with the whole 11.5 MB file (200), so a fallback loader must fetch one
+range per row; a 144-byte range took 0.12 to 0.34 s from the container through its proxy. The ablation
+subset is the first 80 agent-trace cases only, where the file scores 0.7925, so the per-layer numbers
+describe one workflow.
 
