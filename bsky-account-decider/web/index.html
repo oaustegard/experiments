@@ -99,7 +99,9 @@ async function classify(handle) {
       const bg = `color-mix(in srgb, var(--model) ${Math.round(pa * 100)}%, var(--code))`;
       html += `<div class="post"><span class="chip" style="background:${bg};color:${pa > 0.55 ? "#fff" : "var(--fg)"}">${(pa * 100).toFixed(0)}%</span><div><div class="kind">${esc(it.kind === "repost" ? "repost of @" + it.author : it.kind)}${it.embed ? " · " + esc(it.embed) : ""}</div><div class="ptext">${esc(it.text || "(no text)")}</div>${it.thread ? `<div class="muted" style="font-size:12px">${it.thread.length > 1 ? `thread started by @${esc(it.thread.at(-1).author ?? "?")}: ${esc(it.thread.at(-1).text ?? "(unavailable)")}<br>` + (it.thread.length > 2 ? `… ${it.thread.length - 2} more …<br>` : "") : ""}in reply to @${esc(it.thread[0].author ?? "?")}: ${esc(it.thread[0].text ?? "(unavailable)")}</div>` : ""}</div></div>`;
     });
-    html += `</div><details><summary class="muted">What the model read</summary><pre>${esc(state)}</pre></details>`;
+    const postStates = items.map((it, i) => `${i + 1}. ${postState(it)}`).join("\n\n");
+    html += `</div><details><summary class="muted">What the model read</summary><b>Account questions</b><pre>${esc(state)}</pre>` +
+      `<b>"About AI", one input per item</b> (a reply carries its thread, nearest post first)<pre>${esc(postStates)}</pre></details>`;
     $("out").innerHTML = html;
     $("stats").textContent = `Bluesky fetch ${tf.toFixed(0)} ms · model ${tm.toFixed(1)} ms for ${Object.keys(Q).length} questions + ${items.length} posts · engine start ${d.info.initMs.toFixed(0)} ms`;
     history.replaceState(null, "", "?h=" + encodeURIComponent(handle));
