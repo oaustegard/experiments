@@ -465,5 +465,6 @@ blend equals the spike until λ < 1, so the third bar repeated the first; it is 
 memory has weight, and each question's tag says why it has none ("spike decides until 4", "memory not
 trusted yet"). Second, a bug: the seed button filled the memory with *training* cases, which the spike
 had learned, so its stored predictions looked near-perfect and λ was fit to 1 every time. Seeds are now
-16 held-out test cases per spike that the page does not show (`run/pack_system.py`). Model files unchanged
-apart from `samples.json` and `system.json`.
+16 held-out test cases per spike that the page does not show (`run/pack_system.py`). The base file also drops 266 kB:
+`pack()` appended a randomly initialised placeholder head the manifest never referenced, which made every
+repack differ. Every byte the engine reads is identical to v0.1.1, so the parity results stand.

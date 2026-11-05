@@ -110,6 +110,9 @@ def main():
     cfg = AutoConfig.from_pretrained(init).to_dict()
     sd = {k: v.numpy() for k, v in Decider(init).state_dict().items()}   # head is a placeholder: spikes carry their own
     man, data = pack(sd, cfg, "t4-w8L63", {})
+    # the placeholder head is the last tensor pack() writes; drop its bytes too, so the base file is
+    # deterministic and 266 kB smaller (spikes carry their own heads)
+    data = data[: man["head"]["w0"]["offset"]]
     del man["head"]
     (WEB / "base").mkdir(parents=True, exist_ok=True)
     (WEB / "base" / "weights.bin").write_bytes(data)
