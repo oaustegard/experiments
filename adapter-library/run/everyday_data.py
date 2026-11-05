@@ -175,19 +175,23 @@ def emails():
     system = ("You write realistic sample emails for a classifier's training data. Use fictional people and fictional companies "
               "only; never real brands. Vary length, tone and detail. Reply with only a JSON list of objects "
               '{"subject": ..., "body": ...}.')
-    jobs = [(t, j) for t in GEN for j in range(8)]          # 8 calls x 20 emails per type
+    jobs = [(t, j) for t in GEN for j in range(16)]         # 16 calls x 10 emails per type
 
     def gen(job):
         t, j = job
-        text, cost = claude(system, f"Write 20 different emails of this kind: {GEN[t]}. Batch {j}: make them unlike other batches.")
-        m = re.search(r"\[[\s\S]*\]", text)
-        return t, j, (json.loads(m.group(0)) if m else []), cost
+        try:
+            text, cost = claude(system, f"Write 10 different emails of this kind: {GEN[t]}. Batch {j}: make them unlike other batches.", timeout=600)
+            m = re.search(r"\[[\s\S]*\]", text)
+            return t, j, (json.loads(m.group(0)) if m else []), cost
+        except Exception as e:  # noqa: BLE001 - a failed batch is skipped, not fatal
+            print(f"gen {t} {j} failed: {str(e)[:80]}", flush=True)
+            return t, j, [], 0.0
 
     total = 0.0
     with ThreadPoolExecutor(6) as ex:
         for t, j, items, cost in ex.map(gen, jobs):
             total += cost
-            for k, it in enumerate(items[:20]):
+            for k, it in enumerate(items[:10]):
                 rows.append({"id": f"em_g{t[:3]}{j}{k:02d}", "state": json.dumps({"subject": it["subject"], "body": it["body"]}),
                              "labels": {}, "source": f"sonnet-{t}"})
     write_jsonl(D / "items_emails.jsonl", rows)
