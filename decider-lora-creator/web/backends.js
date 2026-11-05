@@ -235,17 +235,121 @@ export class HeadBackend {
   destroy() { this.engine.destroy?.(); }
 }
 
+// ettin-wgsl-train's Trainer (web/train.js there): forward, backward and AdamW for rank-r LoRA on Wqkv,
+// Wo and Wi plus the head, in WGSL, checked against PyTorch to 3.9e-6 per gradient tensor. Its API is
+// padded batches and one flat parameter buffer; this adapter maps the creator's interface onto it.
+// Differences that matter: its B is stored without the alpha/r scale (packed spikes carry it), and it has
+// no LoRA on Wo_mlp, so a start spike's Wo_mlp delta is dropped (this.dropped reports its size) and the
+// exported spike's Wo_mlp is zero. Body lr = lr, head lr = headMult * lr (run/lora.py: 5e-4 and 8e-4).
+export class WgslTrainerBackend {
+  static async create(device, manifest, weights, opts = {}) {
+    const { Trainer, pad, rank = 8, alpha = 16, maxSeqs = 16, maxRows = 16 * 1024, headMult = 1.6 } = opts;
+    const t = await Trainer.create(device, { manifest, weights, maxRows, maxSeqs, maxPool: maxSeqs * 32, maxSeg: maxSeqs, rank, alpha });
+    const b = new WgslTrainerBackend(t, { pad, rank, alpha, maxSeqs, maxRows, headMult, L: manifest.layers.length });
+    if (opts.init) await b.loadSpike(opts.init.sm, opts.init.bytes);
+    return b;
+  }
+
+  constructor(t, o) { this.t = t; Object.assign(this, o); this.s = o.alpha / o.rank; this.step_ = 0; this.dropped = 0; this.name = "LoRA + head (WGSL backward pass, ettin-wgsl-train)"; }
+
+  // [{ ids, pos }] -> the trainer's padded batch; targets optional
+  collate(seqs, targets = null) {
+    const B = seqs.length, S = Math.max(...seqs.map((x) => x.ids.length));
+    const ids = new Int32Array(B * S).fill(this.pad), lens = new Int32Array(B), pos = [], seg = [], gold = [];
+    seqs.forEach((x, b) => {
+      ids.set(x.ids, b * S); lens[b] = x.ids.length; seg.push(x.pos.length);
+      x.pos.forEach((p, j) => { pos.push(b * S + p); gold.push(targets ? targets[b][j] : 0); });
+    });
+    return { ids, B, S, lens, pos: Int32Array.from(pos), seg: Int32Array.from(seg), gold: Float32Array.from(gold) };
+  }
+
+  batches(seqs) {
+    const out = [];
+    let cur = [], S = 0;
+    for (const x of seqs) {
+      const S2 = Math.max(S, x.ids.length);
+      if (cur.length && (cur.length >= this.maxSeqs || (cur.length + 1) * S2 > this.maxRows)) { out.push(cur); cur = []; S = 0; }
+      cur.push(x); S = Math.max(S, x.ids.length);
+    }
+    if (cur.length) out.push(cur);
+    return out;
+  }
+
+  async step(seqs, targets, { lr = 5e-4, weightDecay = 0.01 } = {}) {
+    const t = this.t;
+    t.loadBatch(this.collate(seqs, targets));
+    t.forwardBackward({ T: 1, slot: 0 });
+    t.adamStep({ lr, lrHead: lr * this.headMult, wd: weightDecay, step: ++this.step_, clip: 1.0 });
+    const loss = (await t.read(t.LOSS, 1))[0];
+    return { loss };
+  }
+
+  async score(seqs) {
+    const t = this.t, out = [];
+    for (const b of this.batches(seqs)) {
+      t.loadBatch(this.collate(b));
+      t.forward();
+      const z = await t.read(t.LOGIT, b.reduce((a, x) => a + x.pos.length, 0));
+      let j = 0;
+      for (const x of b) { out.push(z.slice(j, j + x.pos.length)); j += x.pos.length; }
+    }
+    return out;
+  }
+
+  async loadSpike(sm, bytes) {
+    let u = unpackSpike(sm, bytes);
+    if (u.layers.some((L) => MODS.some((k) => L[k].r > this.rank))) u = truncateRank(u, this.rank);
+    const t = this.t, flat = new Float32Array(t.nParams), off = t.poff, r = this.rank;
+    let dropped = 0;
+    u.layers.forEach((L, i) => {
+      for (const k of ["Wqkv", "Wo", "Wi"]) {
+        const m = L[k], A = new Float32Array(r * m.K), B = new Float32Array(m.N * r);
+        A.set(m.A.subarray(0, m.r * m.K));                                      // rows m.r..r-1 stay zero
+        for (let n = 0; n < m.N; n++) for (let j = 0; j < m.r; j++) B[n * r + j] = m.B[n * m.r + j] / this.s;
+        flat.set(A, off[`L${i}.${k}.A`]); flat.set(B, off[`L${i}.${k}.B`]);
+      }
+      for (const x of L.Wo_mlp.B) dropped = Math.max(dropped, Math.abs(x));
+    });
+    const h = u.head;
+    flat.set(h.w0, off["head.w0"]); flat.set(h.b0, off["head.b0"]); flat.set(h.lnw, off["head.ln_w"]); flat.set(h.lnb, off["head.ln_b"]);
+    flat.set(h.w1, off["head.w1"]); flat[off["head.b1"]] = h.b1;
+    t.setParams(flat);
+    await t.flush();
+    this.step_ = 0; this.dropped = dropped;
+  }
+
+  async exportSpike() {
+    const t = this.t, p = await t.read(t.PRM), off = t.poff, r = this.rank, H = 256;
+    const layers = Array.from({ length: this.L }, (_, i) => {
+      const o = {};
+      for (const k of ["Wqkv", "Wo", "Wi"]) {
+        const [, K] = t.layout.find((x) => x.name === `L${i}.${k}.A`).shape, [N] = t.layout.find((x) => x.name === `L${i}.${k}.B`).shape;
+        const A = p.slice(off[`L${i}.${k}.A`], off[`L${i}.${k}.A`] + r * K), B = p.slice(off[`L${i}.${k}.B`], off[`L${i}.${k}.B`] + N * r);
+        for (let j = 0; j < B.length; j++) B[j] *= this.s;
+        o[k] = { A, B, r, K, N };
+      }
+      o.Wo_mlp = { A: new Float32Array(384), B: new Float32Array(H), r: 1, K: 384, N: H };
+      return o;
+    });
+    const g = (n, len) => p.slice(off[n], off[n] + len);
+    return packSpike({ layers, head: { w0: g("head.w0", H * H), b0: g("head.b0", H), lnw: g("head.ln_w", H), lnb: g("head.ln_b", H), w1: g("head.w1", H), b1: p[off["head.b1"]] } });
+  }
+}
+
 // An external trainer (the WGSL backward pass) behind the same interface. The module must export
 // LoraTrainer (or a default export) with create(device, manifest, weights, opts) and the methods above.
 export class LoraBackend {
   static async load(url) {
     const mod = await import(url);
-    const T = mod.LoraTrainer ?? mod.default;
-    if (!T?.create) throw new Error(`${url} exports no LoraTrainer.create`);
+    const T = mod.LoraTrainer ?? mod.Trainer ?? mod.default;
+    if (!T?.create) throw new Error(`${url} exports neither LoraTrainer nor Trainer with create()`);
     return T;
   }
 
   static async create(device, manifest, weights, opts = {}) {
+    const mod = await import(opts.module);
+    if (mod.Trainer?.create && mod.Trainer.prototype?.forwardBackward)   // ettin-wgsl-train's API
+      return WgslTrainerBackend.create(device, manifest, weights, { ...opts, Trainer: mod.Trainer });
     const T = await LoraBackend.load(opts.module);
     const t = await T.create(device, manifest, weights, { rank: 8, alpha: 16, maxTokens: 4096, maxSeqs: 16, maxPos: 2048, seed: 0, ...opts.trainer });
     const b = new LoraBackend(t);

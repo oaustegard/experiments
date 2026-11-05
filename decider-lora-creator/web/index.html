@@ -128,10 +128,10 @@ It starts from the mean of the library's three other business-workflow spikes, l
   <label class="pill small"><input type="radio" name="be" value="head" checked> the decision head only, on the frozen encoder.
   Each sequence is encoded once, then every epoch runs in JS. A weak baseline: on the invoice demo it reaches 59% at 64 labelled
   cases against 54% for the prior, where a LoRA spike reaches 75% (<a href="https://github.com/oaustegard/experiments/blob/main/decider-lora-creator/RESULTS.md">results</a>).</label><br>
-  <label class="pill small"><input type="radio" name="be" value="lora"> the LoRA adapter and the head, with the WGSL backward pass</label>
-  <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" placeholder="../../EXPERIMENT/web/trainer.js"></label>
+  <label class="pill small"><input type="radio" name="be" value="lora"> the LoRA adapter and the head, with a WebGPU backward pass through the encoder</label>
+  <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" value="../../ettin-wgsl-train/web/train.js"></label>
     <button id="modcheck">Check</button></div>
-  <div id="modstat" class="small muted">LoRA training needs a WebGPU backward pass, a separate experiment that is not published yet. Until a module path works here, train the head only.</div>
+  <div id="modstat" class="small muted">LoRA training runs on ettin-wgsl-train's WebGPU backward pass (gradients checked against PyTorch). It needs a few hundred MB of GPU memory. Its LoRA covers Wqkv, Wo and Wi, so a start spike's Wo_mlp delta is dropped.</div>
 </div>
 <div class="row">
   <label class="f">epochs<input type="number" id="epochs" value="10" min="1" max="200"></label>
@@ -352,8 +352,9 @@ async function loadBase() {
   $("env").textContent = `Model ready on ${adapter.info?.vendor || "GPU"} ${adapter.info?.architecture || ""}`.trim();
   return base;
 }
-async function backendFor(kind, init) {
-  const { device, manifest, weights } = await loadBase();
+let loraBackend = null, loraKey = "";
+async function backendFor(kind, init, sizes = {}) {
+  const { device, manifest, weights, tok } = await loadBase();
   if (kind === "head") {
     if (!headBackend) headBackend = await HeadBackend.create(device, manifest, weights, { init });
     else await headBackend.loadSpike(init.sm, init.bytes);
@@ -361,15 +362,22 @@ async function backendFor(kind, init) {
   }
   const mod = $("mod").value.trim();
   if (!mod) throw new Error("Enter the WGSL trainer's module path in section 3, or train the head only.");
-  return LoraBackend.create(device, manifest, weights, { module: new URL(mod, location.href).href, init });
+  const maxSeqs = sizes.maxSeqs ?? 16, maxRows = Math.max(sizes.maxRows ?? 0, maxSeqs * 512), key = `${mod}|${maxSeqs}|${maxRows}`;
+  if (loraBackend && loraKey === key) { await loraBackend.loadSpike(init.sm, init.bytes); return loraBackend; }
+  loraBackend?.t?.destroy?.();
+  loraBackend = await LoraBackend.create(device, manifest, weights, { module: new URL(mod, location.href).href, init, pad: tok.pad, maxSeqs, maxRows });
+  loraKey = key;
+  return loraBackend;
 }
 $("modcheck").onclick = async () => {
   const mod = $("mod").value.trim();
   if (!mod) { $("modstat").textContent = "No module path given."; return; }
-  try { await LoraBackend.load(new URL(mod, location.href).href); $("modstat").innerHTML = `<span class="ok">Found LoraTrainer in ${esc(mod)}.</span>`; }
+  try { await LoraBackend.load(new URL(mod, location.href).href); $("modstat").innerHTML = `<span class="ok">Trainer found (${esc(mod)}).</span> Its LoRA covers Wqkv, Wo and Wi, so a start spike's Wo_mlp delta is dropped. It needs a few hundred MB of GPU memory.`; }
   catch (e) { $("modstat").innerHTML = `<span class="bad">Not available: ${esc(e.message)}</span>`; }
 };
-if (params.get("trainer")) { $("mod").value = params.get("trainer"); $("modcheck").onclick(); }
+if (params.get("trainer")) $("mod").value = params.get("trainer");
+$("modcheck").onclick();
+document.querySelectorAll('input[name="be"]').forEach((r) => r.addEventListener("change", () => { $("lr").value = r.value === "lora" ? "0.0005" : "0.0008"; }));
 
 // ---- training ----
 let stopFlag = false;
@@ -428,10 +436,12 @@ $("train").onclick = async () => {
     const { tok } = await loadBase();
     $("tstat").textContent = "Preparing the start spike…";
     const init = await startSpike(S.init);
-    const backend = await backendFor(kind, init);
     const opts = { valFrac: num("valp") / 100, testFrac: num("testp") / 100, seed: num("seed"), maxTrain: num("maxtr"), maxTest: num("maxte") };
     const sp = C.splitCases(S.cases, opts);
     const data = { train: C.examples(S.decision, sp.train, tok.build), val: C.examples(S.decision, sp.val, tok.build), test: C.examples(S.decision, sp.test, tok.build) };
+    const maxLen = Math.max(...[...data.train, ...data.val, ...data.test].map((e) => e.ids.length));
+    const backend = await backendFor(kind, init, { maxSeqs: num("bs"), maxRows: num("bs") * maxLen });
+    if (backend.dropped) $("modstat").textContent = `The start spike's Wo_mlp delta (largest weight ${backend.dropped.toFixed(3)}) is dropped: this trainer has no LoRA on Wo_mlp.`;
     const t0 = performance.now();
     if (backend.warm) {
       const all = [...data.train, ...data.val, ...data.test];

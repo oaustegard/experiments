@@ -69,7 +69,7 @@ export async function loadTokenizer(url, mod = null) {
     ids.push(SEP);
     return { ids, pos };
   };
-  return { build, sp };
+  return { build, sp, pad: sp("[PAD]")[0] };
 }
 
 // One sequence per (case, question) that has a label; key identifies it for the frozen-row cache.
