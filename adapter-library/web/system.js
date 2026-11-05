@@ -15,9 +15,12 @@ import { SpikeEngine } from "./engine.js";
 
 const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs";
 const MAX_LEN = 1024, K = 8, TAU = 0.05, EPS = 0.01, MIN_LABELS = 4;
+// v0.2.0: the fitted lambda is pulled toward the spike while labels are few: (n * fit + PRIOR * 1) / (n + PRIOR),
+// so 8 lucky labels can move it at most halfway (v0.1.2 let 8 labels hand a question wholly to the memory)
+const PRIOR = 8;
 const GRID = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
 const NOUL_DEFAULT = { true: "The statement is true for this case.", false: "The statement is not true for this case." };
-const STORE = "adapter-library/memory/v0.1.0";
+const STORE = "adapter-library/memory/";
 
 export function optionsOf(q) {
   const c = q.criteria;
@@ -39,7 +42,8 @@ export async function loadSystem(base, opts = {}) {
   const B = (p) => fetch(new URL(p, base)).then((r) => { if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); });
   const system = await J("system.json");
   const files = [system.router.file, ...system.spikes.map((s) => s.file)];
-  const [manifest, tj, data, ...parts] = await Promise.all([J("base/manifest.json"), J("base/tokenizer.json"), B("base/weights.bin"),
+  const bb = system.base ?? "base/";
+  const [manifest, tj, data, ...parts] = await Promise.all([J(bb + "manifest.json"), J(bb + "tokenizer.json"), B(bb + "weights.bin"),
     ...files.flatMap((f) => [J(`${f}.json`), B(`${f}.bin`)])]);
   const spikes = {};
   files.forEach((f, i) => { spikes[i === 0 ? "router" : system.spikes[i - 1].id] = { m: parts[2 * i], bytes: new Uint8Array(parts[2 * i + 1]) }; });
@@ -74,10 +78,11 @@ export async function loadSystem(base, opts = {}) {
 
   // ---- memory: per spike, labelled cases { id, key: Float32Array, labels: {q: option}, spikeP: {q: [p]} }
   let memory = {};
-  try { memory = JSON.parse(localStorage.getItem(STORE) || "{}"); } catch { memory = {}; }
+  const storeKey = STORE + (system.set ?? "workflows");
+  try { memory = JSON.parse(localStorage.getItem(storeKey) || "{}"); } catch { memory = {}; }
   for (const k of Object.keys(memory)) memory[k].forEach((it) => { it.key = Float32Array.from(it.key); });
   const save = () => {
-    try { localStorage.setItem(STORE, JSON.stringify(Object.fromEntries(Object.entries(memory).map(([k, v]) => [k, v.map((it) => ({ ...it, key: Array.from(it.key) }))])))); } catch { /* storage unavailable: memory lasts for this page */ }
+    try { localStorage.setItem(storeKey, JSON.stringify(Object.fromEntries(Object.entries(memory).map(([k, v]) => [k, v.map((it) => ({ ...it, key: Array.from(it.key) }))])))); } catch { /* storage unavailable: memory lasts for this page */ }
   };
 
   function knn(items, q, opts, key, skip = null) {
@@ -100,7 +105,7 @@ export async function loadSystem(base, opts = {}) {
       const loss = pairs.reduce((a, r) => a - Math.log(l * r.ps[r.y] + (1 - l) * r.pk[r.y] + 1e-9), 0);
       if (loss < bestLoss - 1e-9) { bestLoss = loss; best = l; }
     }
-    return { lambda: best, n: items.length };
+    return { lambda: (items.length * best + PRIOR) / (items.length + PRIOR), fit: best, n: items.length };
   }
 
   async function route(stateStr) {

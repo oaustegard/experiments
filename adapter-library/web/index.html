@@ -69,17 +69,17 @@
 </head>
 <body>
 <main>
-<h1>Spiky Ball Decider <span class="muted" style="font-size:14px;font-weight:400">v<span id="ver">0.1.0</span></span></h1>
+<h1>Spiky Ball Decider <span class="muted" style="font-size:14px;font-weight:400">v<span id="ver">0.2.0</span></span></h1>
 <p>Several narrow specialists ("spikes") on one shared model, running on your GPU in this tab. A router reads
 the input and picks the spike whose description fits, or says no specialist covers it. The chosen spike
 answers its typed questions with a probability for every option. A memory of cases you correct adds a
 nearest-neighbour vote, weighted per question by how well it has done on your corrections so far.</p>
-<p class="muted">The base is Ettin-17m (10 MB), frozen. Each spike is a 0.5 MB LoRA adapter trained on one
-<a href="https://huggingface.co/datasets/LocalLLaMA/typed-decisions">Typed Decisions</a> workflow; the router is
-one more. Switching spikes rewrites one GPU buffer. Click an option to mark it correct: that case joins the
-memory (kept in this browser only; Clear memory removes it). The spikes agree with the benchmark's gold answer
-about 75% of the time, where always picking the most common answer gets 47%; inputs from outside the four
-workflows are refused rather than guessed. See the
+<p class="muted">Spike set: <a href="?set=everyday" id="set-everyday">everyday inputs</a> ·
+<a href="?set=workflows" id="set-workflows">business workflows</a>. <span id="about"></span></p>
+<p class="muted">The base is Ettin-17m (11 MB), frozen. Each spike is a 0.5 MB LoRA adapter trained on one kind of
+input; the router is one more. Switching spikes rewrites one GPU buffer. Click an option to mark it correct: that
+case joins the memory, kept in this browser only (Clear memory removes it). Inputs the router does not recognise
+are refused rather than guessed. See the
 <a href="https://github.com/oaustegard/experiments/tree/main/adapter-library">write-up</a> for what each part was measured to do.</p>
 
 <div class="stats" id="stats"></div>
@@ -194,7 +194,13 @@ async function run() {
 
 try {
   if (!navigator.gpu) throw new Error("This page needs WebGPU (recent Chrome, Edge or Safari 26+).");
-  [sys, samples] = await Promise.all([loadSystem("models/"), fetch("models/samples.json").then((r) => r.json())]);
+  const hasEveryday = await fetch("models/everyday/system.json", { method: "HEAD" }).then((r) => r.ok).catch(() => false);
+  if (!hasEveryday) $("set-everyday").style.display = "none";
+  const asked = new URLSearchParams(location.search).get("set");
+  const SET = /^[a-z]+$/.test(asked || "") ? asked : hasEveryday ? "everyday" : "workflows";
+  document.getElementById(`set-${SET}`)?.setAttribute("style", "font-weight:600");
+  [sys, samples] = await Promise.all([loadSystem(`models/${SET}/`), fetch(`models/${SET}/samples.json`).then((r) => r.json())]);
+  $("about").textContent = sys.system.about ?? "";
   $("ver").textContent = sys.info.version;
   $("stats").innerHTML = stat("download, base + 5 spikes", (sys.info.bytes / 1e6).toFixed(1) + " MB") + stat("spikes", sys.system.spikes.length + " + router")
     + stat("engine start", sys.info.initMs.toFixed(0) + " ms");

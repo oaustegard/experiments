@@ -9,8 +9,9 @@ engine and compares logits and pooled keys with the NumPy reference.</p><pre id=
 import { loadSystem } from "./system.js";
 const out = document.getElementById("out");
 try {
-  const sys = await loadSystem("models/");
-  const fx = await fetch("models/fixtures.json").then((r) => r.json());
+  const SET = new URLSearchParams(location.search).get("set") || "everyday";
+  const sys = await loadSystem(`models/${SET}/`);
+  const fx = await fetch(`models/${SET}/fixtures.json`).then((r) => r.json());
   const res = [];
   for (const c of fx.cases) {
     sys.engine.setSpike(sys.spikes[c.spike].m, sys.spikes[c.spike].bytes);

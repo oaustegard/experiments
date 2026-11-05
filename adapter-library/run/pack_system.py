@@ -29,7 +29,7 @@ sys.path.insert(0, str(BD / "run"))
 from pack import Packer, Ref, gelu, pack  # noqa: E402
 from train_enc import Decider, Enc  # noqa: E402
 
-VERSION = "0.1.2"
+VERSION = "0.1.2"   # workflows set
 # v0.1.1: spikes fine-tuned on the quantized base (QW), router-v3 (content-swapped negatives, quantized base)
 SPIKE_RUN = "QW-lora-{w}-s0"
 ROUTER_RUN, ROUTER_RESULTS = "router-v3", "system_router_v3.json"
@@ -94,9 +94,50 @@ class LoraRef(Ref):
         return h @ self.st(hd["w1"]) + hd["b1"], key / (np.linalg.norm(key) + 1e-12)
 
 
+def everyday_cases(w, split):
+    return [c for c in (json.loads(l) for l in open(ROOT / "data" / "everyday" / "cases.jsonl")) if c["workflow"] == w and c["split"] == split]
+
+
+def workflows_offdomain():
+    from system_router import synthetic
+    from lookalikes import lookalike, swapped
+    return [{"label": "Lab sample record (a domain the router never saw)", "state": json.dumps(synthetic("lab", 3))},
+            {"label": "Bank customer message (plain text)", "state": "I was charged twice for the same card payment yesterday."},
+            {"label": "Restaurant booking (trained as none)", "state": json.dumps(synthetic("booking", 99))},
+            {"label": "Support-ticket structure, coworkers' lunch chat (v0.1.0 missed this)",
+             "state": swapped("chat_in_support_shape", load_cases("customer_service", "test")[40:41])[0][0]},
+            {"label": "Shop receipt (routes to invoices; arguably out of scope)", "state": json.dumps(lookalike("receipt", 7))}]
+
+
+def everyday_offdomain():
+    off = [json.loads(l) for l in open(ROOT / "data" / "everyday" / "offtopic.jsonl")]
+    pick = lambda kind: next(o["text"] for o in off if o["kind"].startswith(kind))
+    return [{"label": "A code snippet (a kind of text the router never saw)", "state": pick("a code snippet")},
+            {"label": "Song lyrics (never seen)", "state": pick("song lyrics")},
+            {"label": "A weather forecast (never seen)", "state": pick("a weather forecast")},
+            {"label": "A recipe (trained as none)", "state": pick("a recipe")}]
+
+
 def questions_of(w):
     import pandas as pd
     return json.loads(pd.read_parquet(BD / "data" / "td" / w / "test.parquet").questions.iloc[0])
+
+
+def _everyday_questions(w):
+    from everyday_data import QUESTIONS
+    return QUESTIONS[w]
+
+
+SETS = {
+    "workflows": {"version": VERSION, "spikes": WORKFLOWS, "spike_run": SPIKE_RUN, "router_run": ROUTER_RUN, "router_results": ROUTER_RESULTS,
+                  "cases": lambda w, split: load_cases(w, split), "questions": lambda w: questions_of(w), "offdomain": workflows_offdomain,
+                  "title": "Business workflows", "about": "Four synthetic workflows from the Typed Decisions benchmark: support tickets, vendor invoices, security alerts and AI-agent traces.",
+                  "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json), kept for v0.1.1 (results/lookalikes.json)"},
+    "everyday": {"version": "0.2.0", "spikes": ["transactions", "emails", "reviews"], "spike_run": "E-{w}", "router_run": "E-router",
+                 "router_results": "E-router.json", "cases": everyday_cases, "questions": _everyday_questions, "offdomain": everyday_offdomain,
+                 "title": "Everyday inputs", "about": "Bank transactions, emails and customer reviews: paste one and the router picks the specialist.",
+                 "threshold_note": "0.5, as for the workflows set"},
+}
 
 
 def main():
@@ -104,6 +145,7 @@ def main():
     ap.add_argument("--score", type=int, default=0, help="score N test cases per workflow through LoraRef")
     ap.add_argument("--fixtures", action="store_true")
     ap.add_argument("--smoke-router", action="store_true", help="use out/smoke's 2-step router (engine debugging only)")
+    ap.add_argument("--set", default="everyday", choices=["everyday", "workflows"])
     a = ap.parse_args()
     from transformers import AutoConfig
     init = stock_path()
@@ -120,68 +162,58 @@ def main():
     (WEB / "base" / "tokenizer.json").write_bytes((Path(init) / "tokenizer.json").read_bytes())
     print(f"base: {len(data) / 1e6:.2f} MB")
 
+    cfgset = SETS[a.set]
+    SW = WEB / a.set
     rdir = ROOT / "out" / "smoke" if a.smoke_router else ROOT
-    router = json.loads((rdir / ("system_router.json" if a.smoke_router else f"results/{ROUTER_RESULTS}")).read_text())
-    (WEB / "spikes").mkdir(exist_ok=True)
-    system = {"version": VERSION, "rank": RANK, "router": {"file": "spikes/router", "question": router["question"],
-              "none": router["none_desc"], "threshold": GAP_THRESHOLD,
-              "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json) and kept for v0.1.1 "
-                                "(results/lookalikes.json router-v3)"},
-              "spikes": []}
+    router = json.loads((rdir / ("system_router.json" if a.smoke_router else f"results/{cfgset['router_results']}")).read_text())
+    (SW / "spikes").mkdir(parents=True, exist_ok=True)
+    system = {"version": cfgset["version"], "set": a.set, "title": cfgset["title"], "about": cfgset["about"], "base": "../base/",
+              "rank": RANK, "router": {"file": "spikes/router", "question": router["question"], "none": router["none_desc"],
+                                       "threshold": GAP_THRESHOLD, "threshold_note": cfgset["threshold_note"]}, "spikes": []}
     packed = {}
-    for sid in ["router"] + WORKFLOWS:
-        st = torch.load((rdir / "out" / "adapters" / f"{ROUTER_RUN}.pt" if not a.smoke_router else rdir / "adapters" / "router-v1.pt")
-                        if sid == "router" else ROOT / "out" / "adapters" / (SPIKE_RUN.format(w=sid) + ".pt"))
+    for sid in ["router"] + cfgset["spikes"]:
+        st = torch.load((rdir / "out" / "adapters" / f"{cfgset['router_run']}.pt" if not a.smoke_router else rdir / "adapters" / "router-v1.pt")
+                        if sid == "router" else ROOT / "out" / "adapters" / (cfgset["spike_run"].format(w=sid) + ".pt"))
         sm, sb = pack_spike(st, cfg["num_hidden_layers"])
         if sid != "router":
-            temps = json.loads((ROOT / "results" / (SPIKE_RUN.format(w=sid) + ".json")).read_text())["temps"]
-            sm.update({"id": sid, "description": router["spikes"][sid], "questions": questions_of(sid), "temps": temps})
+            temps = json.loads((ROOT / "results" / (cfgset["spike_run"].format(w=sid) + ".json")).read_text())["temps"]
+            sm.update({"id": sid, "description": router["spikes"][sid], "questions": cfgset["questions"](sid), "temps": temps})
             system["spikes"].append({"id": sid, "file": f"spikes/{sid}", "description": router["spikes"][sid]})
-        (WEB / "spikes" / f"{sid}.bin").write_bytes(sb)
-        (WEB / "spikes" / f"{sid}.json").write_text(json.dumps(sm))
+        (SW / "spikes" / f"{sid}.bin").write_bytes(sb)
+        (SW / "spikes" / f"{sid}.json").write_text(json.dumps(sm))
         packed[sid] = (sm, sb)
         print(f"spike {sid}: {len(sb) / 1e3:.0f} kB")
-    (WEB / "system.json").write_text(json.dumps(system, indent=1))
+    (SW / "system.json").write_text(json.dumps(system, indent=1))
 
-    # demo cases: 6 test cases per workflow with gold, 16 train cases per workflow as seed memory, 3 off-domain
-    from system_router import synthetic
-    from lookalikes import lookalike, swapped
-    samples = {"cases": [], "seed": {}, "offdomain": [
-        {"label": "Lab sample record (a domain the router never saw)", "state": json.dumps(synthetic("lab", 3))},
-        {"label": "Bank customer message (plain text)", "state": "I was charged twice for the same card payment yesterday."},
-        {"label": "Restaurant booking (trained as none)", "state": json.dumps(synthetic("booking", 99))},
-        {"label": "Support-ticket structure, coworkers' lunch chat (v0.1.0 missed this)", "state": swapped("chat_in_support_shape", load_cases("customer_service", "test")[40:41])[0][0]},
-        {"label": "Shop receipt (routes to invoices; arguably out of scope)", "state": json.dumps(lookalike("receipt", 7))}]}
-    for w in WORKFLOWS:
-        cs = load_cases(w, "test")
+    # demo cases: 6 test cases per spike with gold; seed memory: 16 held-out test cases the page does not show
+    # (the spike never trained on them, so its stored predictions are out of sample and the blend can move)
+    samples = {"cases": [], "seed": {}, "offdomain": cfgset["offdomain"]()}
+    for w in cfgset["spikes"]:
+        cs = cfgset["cases"](w, "test")
         for c in random.Random(f"demo-{w}").sample(cs, 6):
-            samples["cases"].append({"id": c["id"], "workflow": w, "state": c["state"],
-                                     "gold": {q: g["label"] for q, g in c["gold"].items()}})
-        # seed memory from held-out test cases the page does not show: the spike never trained on them,
-        # so its stored predictions are out of sample and the blend weight can move (v0.1.2; v0.1.1 used
-        # train cases, which pinned lambda at 1)
+            samples["cases"].append({"id": c["id"], "workflow": w, "state": c["state"], "gold": {q: g["label"] for q, g in c["gold"].items()}})
         shown = {c["id"] for c in samples["cases"]}
-        tr = random.Random(f"seed-{w}").sample([c for c in cs if c["id"] not in shown], 16)
-        samples["seed"][w] = [{"id": c["id"], "state": c["state"], "gold": {q: g["label"] for q, g in c["gold"].items()}} for c in tr]
-    (WEB / "samples.json").write_text(json.dumps(samples))
+        sd_cases = random.Random(f"seed-{w}").sample([c for c in cs if c["id"] not in shown], 16)
+        samples["seed"][w] = [{"id": c["id"], "state": c["state"], "gold": {q: g["label"] for q, g in c["gold"].items()}} for c in sd_cases]
+    (SW / "samples.json").write_text(json.dumps(samples))
 
     if a.score or a.fixtures:
         tok = Enc(Path(init) / "tokenizer.json")
         ref = LoraRef(man, data)
-        fx = {"version": VERSION, "cases": []}
-        for w in WORKFLOWS:
+        fx = {"version": cfgset["version"], "cases": []}
+        for w in cfgset["spikes"]:
             ref.use(*packed[w])
-            cases = load_cases(w, "test")[: a.score or 2]
+            cases = cfgset["cases"](w, "test")[: a.score or 2]
             te = examples(cases)
             probs = []
             for e in te:
                 ids, pos = tok.build(e)
                 start = ids.index(tok.sep, pos[-1]) + 1
                 z, key = ref.run(ids, pos, (start, len(ids) - 1))
-                T = packed[w][0]["temps"][e["type"]]
+                T = packed[w][0]["temps"].get(e["type"], 1.0)
                 p = np.exp(z / T - (z / T).max())
                 probs.append((p / p.sum()).tolist())
-                if a.fixtures and len(fx["cases"]) < 8 and e["qname"] == te[0]["qname"]:
+                if a.fixtures and sum(c["spike"] == w for c in fx["cases"]) < 2 and e["qname"] == te[0]["qname"]:
                     fx["cases"].append({"spike": w, "ids": ids, "pos": pos, "pool": [start, len(ids) - 1],
                                         "logits": z.tolist(), "key8": key[:8].tolist()})
             if a.score:
@@ -189,10 +221,9 @@ def main():
                 print(f"LoraRef {w} on {len(cases)} test cases: acc {summ['accuracy']:.4f}", flush=True)
                 fx[f"score_{w}"] = summ
         if a.fixtures:
-            (WEB / "fixtures.json").write_text(json.dumps(fx))
+            (SW / "fixtures.json").write_text(json.dumps(fx))
         if a.score:
-            (ROOT / "results" / "system_pack_check.json").write_text(json.dumps({k: v for k, v in fx.items() if k.startswith("score_")}, indent=1))
-
+            (ROOT / "results" / f"system_pack_check_{a.set}.json").write_text(json.dumps({k: v for k, v in fx.items() if k.startswith("score_")}, indent=1))
 
 if __name__ == "__main__":
     main()

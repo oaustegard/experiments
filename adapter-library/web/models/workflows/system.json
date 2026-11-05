@@ -1,12 +1,16 @@
 {
  "version": "0.1.2",
+ "set": "workflows",
+ "title": "Business workflows",
+ "about": "Four synthetic workflows from the Typed Decisions benchmark: support tickets, vendor invoices, security alerts and AI-agent traces.",
+ "base": "../base/",
  "rank": 8,
  "router": {
   "file": "spikes/router",
   "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
   "none": "None of these specialists covers this input.",
   "threshold": 0.5,
-  "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json) and kept for v0.1.1 (results/lookalikes.json router-v3)"
+  "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json), kept for v0.1.1 (results/lookalikes.json)"
  },
  "spikes": [
   {
