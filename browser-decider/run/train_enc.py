@@ -179,6 +179,10 @@ def main():
     ap.add_argument("--bs", type=int, default=16)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max-steps", type=int, default=0, help="smoke test: stop after N steps")
+    ap.add_argument("--data", help="JSONL of cases (id, workflow, state, questions, gold, split, optional "
+                    "account) instead of Typed Decisions; --train/--test are then ignored")
+    ap.add_argument("--max-train-accounts", type=int, default=0, help="with --data: keep N training accounts")
+    ap.add_argument("--out-root", help="write results/ and out/ckpt/ under this directory instead")
     a = ap.parse_args()
 
     torch.set_num_threads(4)
@@ -194,11 +198,26 @@ def main():
     pad_id = tok.tok.token_to_id("[PAD]")
     assert pad_id is not None
 
-    train_cases = [c for w in a.train for c in load_cases(w, "train")]
-    rng.shuffle(train_cases)
-    nval = max(20, len(train_cases) // 10)
-    val_cases, tr_cases = train_cases[:nval], train_cases[nval:]
-    test_cases = [c for w in a.test for c in load_cases(w, "test")]
+    if a.data:
+        recs = [json.loads(l) for l in open(a.data)]
+        grp = lambda c: c.get("account", c["id"])
+        accts = sorted({grp(c) for c in recs if c["split"] == "train"})
+        rng.shuffle(accts)
+        if a.max_train_accounts:
+            accts = accts[: a.max_train_accounts]
+        nval = max(5, len(accts) // 10)
+        val_acc = set(accts[:nval])
+        keep = set(accts)
+        tr_cases = [c for c in recs if c["split"] == "train" and grp(c) in keep and grp(c) not in val_acc]
+        val_cases = [c for c in recs if c["split"] == "train" and grp(c) in val_acc]
+        test_cases = [c for c in recs if c["split"] == "test"]
+        rng.shuffle(tr_cases)
+    else:
+        train_cases = [c for w in a.train for c in load_cases(w, "train")]
+        rng.shuffle(train_cases)
+        nval = max(20, len(train_cases) // 10)
+        val_cases, tr_cases = train_cases[:nval], train_cases[nval:]
+        test_cases = [c for w in a.test for c in load_cases(w, "test")]
 
     def prep(cases):
         out = []
@@ -223,7 +242,8 @@ def main():
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt, lambda s: min(1.0, (s + 1) / warm) * max(0.0, (total - s) / max(1, total - warm)))
 
-    ckdir = ROOT / "out" / "ckpt" / a.name
+    OUT = Path(a.out_root) if a.out_root else ROOT
+    ckdir = OUT / "out" / "ckpt" / a.name
     ckdir.mkdir(parents=True, exist_ok=True)
     log, best, step = [], (float("inf"), -1), 0
     for ep in range(a.epochs):
@@ -279,9 +299,9 @@ def main():
     res = {"name": a.name, "args": vars(a), "best_epoch": best[1], "temps": temps,
            "test": summ, "test_raw_T1": summ_raw, "by": by, "log": log,
            "wall_sec": time.time() - t0, "device": str(DEV), "n_params": sum(p.numel() for p in model.parameters())}
-    (ROOT / "results").mkdir(exist_ok=True)
-    (ROOT / "results" / f"{a.name}.json").write_text(json.dumps(res, indent=1))
-    (ROOT / "results" / f"{a.name}_preds.json").write_text(json.dumps(
+    (OUT / "results").mkdir(exist_ok=True)
+    (OUT / "results" / f"{a.name}.json").write_text(json.dumps(res, indent=1))
+    (OUT / "results" / f"{a.name}_preds.json").write_text(json.dumps(
         [{"case": d["case"], "q": d["qname"], "p": [round(x, 5) for x in p], "ok": r[0]}
          for d, p, r in zip(te, probs, rows)]))
     (ckdir / "meta.json").write_text(json.dumps({"init": str(init), "temps": temps}))

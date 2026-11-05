@@ -68,11 +68,24 @@ export async function deciderFrom({ manifest, tj, data }, opts = {}) {
   const device = opts.device ?? await adapter.requestDevice({
     requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
   const t1 = performance.now();
-  const engine = await DeciderEngine.create(device, manifest, data, { maxTokens: opts.maxTokens ?? 4096, maxSeqs: 16, maxPos: 256 });
+  const engine = await DeciderEngine.create(device, manifest, data, { maxTokens: opts.maxTokens ?? 4096, maxSeqs: opts.maxSeqs ?? 32, maxPos: 256 });
   const initMs = performance.now() - t1;
 
   // Raw logits for prepared sequences (for parity checks against run/pack.py's reference).
   const logitsFor = (seqs) => engine.score(seqs);
+
+  function answer(s, z) {
+    const T = manifest.temps[s.type] ?? 1;
+    const v = Array.from(z, (x) => x / T), mx = Math.max(...v);
+    const e = v.map((x) => Math.exp(x - mx)), sum = e.reduce((a, b) => a + b, 0);
+    const p = e.map((x) => x / sum);
+    const probabilities = Object.fromEntries(s.options.map(([o], k) => [o, p[k]]));
+    const k = p.indexOf(Math.max(...p)), K = p.length;
+    const ans = { type: s.type, label: s.options[k][0], confidence: (K * p[k] - 1) / (K - 1), probabilities };
+    if (s.type === "score") ans.score = p.reduce((a, x, j) => a + j * x, 0);
+    if (s.type === "noul") ans.probability_true = probabilities.true;
+    return ans;
+  }
 
   async function decide(state, questions) {
     const stateStr = typeof state === "string" ? state : pyJson(state);
@@ -92,21 +105,37 @@ export async function deciderFrom({ manifest, tj, data }, opts = {}) {
     if (cur.length) groups.push(cur);
     for (const g of groups) {
       const z = await engine.score(g);
-      g.forEach((s, i) => {
-        const T = manifest.temps[s.type] ?? 1;
-        const v = Array.from(z[i], (x) => x / T), mx = Math.max(...v);
-        const e = v.map((x) => Math.exp(x - mx)), sum = e.reduce((a, b) => a + b, 0);
-        const p = e.map((x) => x / sum);
-        const probabilities = Object.fromEntries(s.options.map(([o], k) => [o, p[k]]));
-        const k = p.indexOf(Math.max(...p)), K = p.length;
-        const ans = { type: s.type, label: s.options[k][0], confidence: (K * p[k] - 1) / (K - 1), probabilities };
-        if (s.type === "score") ans.score = p.reduce((a, x, j) => a + j * x, 0);
-        if (s.type === "noul") ans.probability_true = probabilities.true;
-        out[s.name] = ans;
-      });
+      g.forEach((s, i) => { out[s.name] = answer(s, z[i]); });
     }
     return out;
   }
 
-  return { decide, logitsFor, build, engine, manifest, info: { initMs, tokMs: t1 - t0, weightBytes: data.byteLength } };
+  // Several (state, questions) pairs in as few engine passes as fit: e.g. one account question set plus
+  // a noul per post. Returns one answers object per pair, in order.
+  async function decideMany(pairs) {
+    const seqs = [];
+    pairs.forEach(({ state, questions }, pi) => {
+      const stateStr = typeof state === "string" ? state : pyJson(state);
+      for (const [n, q] of Object.entries(questions)) {
+        const options = optionsOf(q);
+        seqs.push({ pi, name: n, type: q.type, options, ...build(q.type, q.instructions, options, stateStr) });
+      }
+    });
+    const outs = pairs.map(() => ({}));
+    let i = 0;
+    while (i < seqs.length) {
+      const g = [];
+      let tokens = 0, pos = 0;
+      while (i < seqs.length && (!g.length || (tokens + seqs[i].ids.length <= engine.maxTokens && g.length < engine.maxSeqs
+             && pos + seqs[i].pos.length <= engine.maxPos))) {
+        g.push(seqs[i]); tokens += seqs[i].ids.length; pos += seqs[i].pos.length; i++;
+      }
+      const z = await engine.score(g);
+      g.forEach((s, k) => { outs[s.pi][s.name] = answer(s, z[k]); });
+    }
+    return outs;
+  }
+
+  const countTokens = (t) => sp(t).length;
+  return { decide, decideMany, countTokens, logitsFor, build, engine, manifest, info: { initMs, tokMs: t1 - t0, weightBytes: data.byteLength } };
 }

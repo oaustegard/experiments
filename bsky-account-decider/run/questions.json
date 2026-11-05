@@ -1,0 +1,27 @@
+{
+ "account_type": {"type": "choice", "instructions": "What kind of account is this?",
+  "criteria": {
+   "human": "A person posting as themselves, by hand.",
+   "bot": "An automated account: scheduled, generated or templated posts, or a bridge or mirror of another feed.",
+   "organization": "A company, lab, publication, project, event or brand speaking as itself.",
+   "aggregator": "A news or link feed that mostly reposts or shares links from elsewhere, run by a person or a program."}},
+ "ai_share": {"type": "score", "instructions": "How much of this account's recent activity is about AI?",
+  "criteria": ["None: nothing about AI.", "Occasional: a few items touch on AI.", "Frequent: AI is a regular topic, roughly a quarter to a half.", "Nearly all: most items are about AI."]},
+ "ai_role": {"type": "choice", "instructions": "When this account engages with AI, in what capacity? Pick not_ai_focused if AI is not a regular topic.",
+  "criteria": {
+   "researcher": "Studies AI or ML: papers, experiments, academic work.",
+   "builder": "Builds with or on AI: engineering, products, tools, code.",
+   "commentator": "Writes about AI as news, analysis, opinion or journalism.",
+   "creative": "Uses or discusses AI in art, writing, music or design.",
+   "business": "Sells, markets or promotes AI products or services.",
+   "not_ai_focused": "AI is not a regular topic for this account."}},
+ "ai_stance": {"type": "choice", "instructions": "What attitude toward AI does this account show?",
+  "criteria": {
+   "enthusiast": "Mostly excited or promotional about AI.",
+   "pragmatic": "Uses or assesses AI matter-of-factly, weighing benefits and limits.",
+   "critic": "Mostly skeptical, critical or opposed to AI.",
+   "mixed": "Shows clearly different attitudes in different items.",
+   "none": "Shows no attitude toward AI, or does not discuss it."}},
+ "original_content": {"type": "score", "instructions": "How much of the recent activity is the account's own writing rather than reposts, bare links or templated text?",
+  "criteria": ["Little: mostly reposts, bare links or templated posts.", "Mixed: about half its own writing.", "Mostly: nearly all its own words."]}
+}

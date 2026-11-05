@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bluesky Account Decider</title>
+<meta name="description" content="A 10 MB model in your browser that reads a Bluesky account's recent posts and answers: human or bot, how much it posts about AI, in what role and with what stance.">
+<style>
+  :root { --bg: #fbfaf7; --panel: #fff; --fg: #1d1c19; --muted: #6e6c64; --line: #e4e2db; --model: #2f6db3; --soft: #dbe7f5; --code: #f3f1ec; --bad: #b3452f; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d; --model: #6aa5e8; --soft: #23344a; --code: #2a2925; --bad: #e07a63; } }
+  :root[data-theme="dark"] { --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d; --model: #6aa5e8; --soft: #23344a; --code: #2a2925; --bad: #e07a63; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 6px; } p { margin: 6px 0; } .muted { color: var(--muted); }
+  form { display: flex; gap: 8px; margin: 16px 0 6px; flex-wrap: wrap; }
+  input, button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; }
+  input { flex: 1; min-width: 200px; } button { cursor: pointer; } button.primary { background: var(--model); border-color: var(--model); color: #fff; }
+  button:disabled { opacity: .5; cursor: default; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; font-size: 13px; } .chips button { padding: 2px 8px; font-size: 13px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .prof { display: flex; gap: 12px; align-items: flex-start; } .prof img { width: 56px; height: 56px; border-radius: 50%; flex: none; }
+  .prof .bio { font-size: 13px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .q h3 { font-size: 14px; margin: 0 0 4px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  .q h3 .lab { margin-left: auto; font-weight: 600; color: var(--model); }
+  .opt { display: grid; grid-template-columns: 110px 1fr 40px; gap: 6px; align-items: center; font-size: 12.5px; margin: 2px 0; }
+  .opt .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { height: 10px; background: var(--code); border-radius: 3px; overflow: hidden; } .bar i { display: block; height: 100%; background: var(--model); }
+  .opt .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .post { display: grid; grid-template-columns: 54px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+  .post:first-of-type { border-top: 0; }
+  .chip { font-size: 12px; font-variant-numeric: tabular-nums; text-align: center; border-radius: 10px; padding: 1px 0; align-self: start; }
+  .kind { color: var(--muted); font-size: 12px; } .ptext { overflow-wrap: anywhere; }
+  .stats { font-size: 12.5px; color: var(--muted); margin: 8px 0; }
+  #err { color: var(--bad); white-space: pre-wrap; }
+  details summary { cursor: pointer; } pre { background: var(--code); padding: 10px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.45 ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<main>
+<h1>Bluesky Account Decider</h1>
+<p>Type a Bluesky handle. This page fetches the account's profile and latest posts from Bluesky's public API,
+and a 10 MB model running on your GPU answers five questions about it: what kind of account it is, how much it
+posts about AI, in what role, with what attitude, and how much is its own writing. Each post also gets a
+probability that it is about AI. Nothing leaves your browser except the requests to Bluesky.</p>
+<p class="muted">The model is Ettin-17m fine-tuned on about 1,500 accounts labelled by Claude Sonnet, so it
+repeats Sonnet's judgement, mistakes included, from the 12 most recent items. Accuracy against Sonnet on
+held-out accounts is in the <a href="https://github.com/oaustegard/experiments/tree/main/bsky-account-decider">write-up</a>.</p>
+
+<form id="f"><input id="h" placeholder="handle, e.g. austegard.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+<button class="primary" id="go" disabled>Classify</button></form>
+<div class="chips" id="ex"></div>
+<div class="stats" id="stats"></div>
+<p id="err"></p>
+<div id="out"></div>
+
+<script type="module">
+import { loadDecider } from "../../browser-decider/web/decider.js";
+import { fitAccountState, postState, fetchAccount } from "./state.js";
+
+const MODEL = new URLSearchParams(location.search).get("model") || "models/account/";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const LABELS = { account_type: "Account type", ai_share: "Posts about AI", ai_role: "AI role", ai_stance: "Stance on AI", original_content: "Own writing" };
+
+let d, Q, POST_Q;
+function bars(q, a) {
+  const names = Array.isArray(q.criteria) ? q.criteria.map((c, i) => [String(i), c.split(":")[0]]) : Object.keys(q.criteria).map((k) => [k, k.replace(/_/g, " ")]);
+  return names.map(([k, n]) => {
+    const p = a.probabilities[k] ?? 0;
+    return `<div class="opt" title="${esc(Array.isArray(q.criteria) ? q.criteria[+k] : q.criteria[k])}"><span class="n">${esc(n)}</span><div class="bar"><i style="width:${(p * 100).toFixed(1)}%"></i></div><span class="v">${(p * 100).toFixed(0)}%</span></div>`;
+  }).join("");
+}
+const labelOf = (q, a) => Array.isArray(q.criteria) ? q.criteria[+a.label].split(":")[0] : a.label.replace(/_/g, " ");
+
+async function classify(handle) {
+  $("err").textContent = ""; $("go").disabled = true;
+  try {
+    handle = handle.trim().replace(/^@/, "");
+    const t0 = performance.now();
+    const acct = await fetchAccount(handle);
+    const tf = performance.now() - t0;
+    if (acct.items.length < 1) throw new Error("This account has no posts to read.");
+    const { state, n } = fitAccountState(acct, d.countTokens);
+    const items = acct.items.slice(0, n);
+    const t1 = performance.now();
+    const [acc, ...posts] = await d.decideMany([{ state, questions: Q }, ...items.map((it) => ({ state: postState(it), questions: POST_Q }))]);
+    const tm = performance.now() - t1;
+    const p = acct.profile;
+    let html = `<div class="card prof">${p.avatar ? `<img src="${esc(p.avatar)}" alt="">` : ""}<div><b>${esc(p.displayName || p.handle)}</b> <span class="muted">@${esc(p.handle)}</span>
+      <div class="bio">${esc(p.description || "")}</div><div class="muted" style="font-size:12px">${p.followersCount ?? 0} followers · ${p.postsCount ?? 0} posts</div></div></div><div class="grid">`;
+    for (const [k, q] of Object.entries(Q)) html += `<div class="card q"><h3>${LABELS[k] || k}<span class="lab">${esc(labelOf(q, acc[k]))}</span></h3>${bars(q, acc[k])}</div>`;
+    html += `</div><div class="card"><b>The ${items.length} items it read</b><div class="muted" style="font-size:12px">probability that each is about AI</div>`;
+    items.forEach((it, i) => {
+      const pa = posts[i].about_ai.probability_true;
+      const bg = `color-mix(in srgb, var(--model) ${Math.round(pa * 100)}%, var(--code))`;
+      html += `<div class="post"><span class="chip" style="background:${bg};color:${pa > 0.55 ? "#fff" : "var(--fg)"}">${(pa * 100).toFixed(0)}%</span><div><div class="kind">${esc(it.kind === "repost" ? "repost of @" + it.author : it.kind)}${it.embed ? " · " + esc(it.embed) : ""}</div><div class="ptext">${esc(it.text || "(no text)")}</div></div></div>`;
+    });
+    html += `</div><details><summary class="muted">What the model read</summary><pre>${esc(state)}</pre></details>`;
+    $("out").innerHTML = html;
+    $("stats").textContent = `Bluesky fetch ${tf.toFixed(0)} ms · model ${tm.toFixed(1)} ms for ${Object.keys(Q).length} questions + ${items.length} posts · engine start ${d.info.initMs.toFixed(0)} ms`;
+    history.replaceState(null, "", "?h=" + encodeURIComponent(handle));
+  } catch (e) { $("err").textContent = String(e.message || e); }
+  $("go").disabled = false;
+}
+
+try {
+  if (!navigator.gpu) throw new Error("This page needs WebGPU (recent Chrome, Edge or Safari 26+).");
+  [d, Q, POST_Q] = await Promise.all([loadDecider(MODEL), fetch(MODEL + "questions.json").then((r) => r.json()), fetch(MODEL + "post_question.json").then((r) => r.json())]);
+  const about = await fetch(MODEL + "about.json").then((r) => r.json()).catch(() => ({}));
+  $("stats").textContent = `model loaded: ${about.downloadMB ? about.downloadMB.toFixed(1) + " MB, " : ""}engine start ${d.info.initMs.toFixed(0)} ms`;
+  for (const h of about.examples || ["austegard.com", "bsky.app", "pfrazee.com"]) {
+    const b = document.createElement("button"); b.textContent = h; b.onclick = () => { $("h").value = h; classify(h); }; $("ex").append(b);
+  }
+  $("go").disabled = false;
+  $("f").onsubmit = (e) => { e.preventDefault(); if ($("h").value.trim()) classify($("h").value); };
+  const h0 = new URLSearchParams(location.search).get("h");
+  if (h0) { $("h").value = h0; classify(h0); }
+} catch (e) { $("err").textContent = String(e.message || e); }
+</script>
+</main>
+</body>
+</html>
