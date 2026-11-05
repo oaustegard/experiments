@@ -45,6 +45,7 @@ def pack(sd, cfg, variant, temps):
     P = Packer()
     H, I = cfg["hidden_size"], cfg["intermediate_size"]
     q8 = variant != "fp32"
+    lv = int(variant.rsplit("L", 1)[1]) if q8 else 0   # t4-w8L63: codes in +-63; t4-w8L31: +-31
 
     def lin(W):  # torch [out=N, in=K]
         W = W.astype(np.float32)
@@ -52,8 +53,8 @@ def pack(sd, cfg, variant, temps):
         if not q8:
             return {"f32_t": P.add(W, np.float32), "K": K, "N": N}
         Wk = W.T  # [K, N], the file layout the engine transposes once
-        s = (np.abs(Wk).max(0) / 63 + 1e-12).astype(np.float32)
-        q = np.clip(np.round(Wk / s), -63, 63).astype(np.int8)
+        s = (np.abs(Wk).max(0) / lv + 1e-12).astype(np.float32)
+        q = np.clip(np.round(Wk / s), -lv, lv).astype(np.int8)
         return {"q": P.add(q, np.int8), "s": P.add(s, np.float32), "K": K, "N": N}
 
     T = sd["enc.embeddings.tok_embeddings.weight"].astype(np.float32)
@@ -174,7 +175,7 @@ def main():
     from train_enc import Decider, Enc
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
-    ap.add_argument("--variant", default="t4-w8L63", choices=["t4-w8L63", "fp32"])
+    ap.add_argument("--variant", default="t4-w8L63", choices=["t4-w8L63", "t4-w8L31", "fp32"])
     ap.add_argument("--check", type=int, default=0)
     ap.add_argument("--score", action="store_true")
     ap.add_argument("--fixtures", type=int, default=0, help="write N cases (5 questions each) with reference logits")

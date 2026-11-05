@@ -29,6 +29,11 @@ if len(sys.argv) > 1 and sys.argv[1] == "monad":   # the comparison arm: Monad 5
 if len(sys.argv) > 1 and sys.argv[1] == "long":   # round 2: every 5-epoch seed peaked at its last epoch
     ARMS = [(f"spec-stock-e10-s{s}", ["--init", "stock", "--seed", str(s), "--epochs", "10"]) for s in (0, 1, 2)]
     KEEP = ["spec-stock-e10-s0"]
+POST = []
+if len(sys.argv) > 1 and sys.argv[1] == "q31":   # fresh 10-epoch checkpoints, packed at +-63 and +-31 codes
+    ARMS = [(f"spec-stock-e10q-s{s}", ["--init", "stock", "--seed", str(s), "--epochs", "10"]) for s in (0, 1, 2)]
+    KEEP = ["spec-stock-e10q-s0"]
+    POST = ["python3 run/quant_levels.py " + " ".join(n for n, _ in ARMS)]
 if len(sys.argv) > 1 and sys.argv[1] == "curve":   # eg2-decider comparison: n cases of one workflow, A4's draws
     ARMS = []
     for w in W:
@@ -58,7 +63,7 @@ if not D.exists():
     sh(f"git clone -q --depth 1 --filter=blob:none --sparse https://github.com/oaustegard/experiments {BASE}")
     sh("git sparse-checkout set browser-decider", cwd=BASE)
 sh("git pull -q", cwd=BASE)
-sh("pip install -q transformers==4.57.1")
+sh("pip install -q transformers==4.57.1 brotli")
 ck = D / "out/base/st-ettin17m-tuned-e17-cap-c-epoch1"
 if not ck.exists():
     ck.parent.mkdir(parents=True, exist_ok=True)
@@ -68,6 +73,10 @@ for name, args in ARMS:
         continue
     r = sh(f"python3 run/train_enc.py {name} {' '.join(args)} 2>&1 | grep -v -i warning", cwd=D)
     LOG.write(f"ARM_DONE {name} rc={r.returncode}\n")
+    LOG.flush()
+for cmd in POST:
+    r = sh(f"{cmd} 2>&1 | grep -v -i warning", cwd=D)
+    LOG.write(f"POST_DONE rc={r.returncode}\n")
     LOG.flush()
 with zipfile.ZipFile(f"/content/bd_out_{sys.argv[1] if len(sys.argv) > 1 else 'ettin'}.zip", "w") as z:
     for f in (D / "results").glob("*.json"):
