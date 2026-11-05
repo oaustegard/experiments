@@ -26,6 +26,9 @@ if len(sys.argv) > 1 and sys.argv[1] == "monad":   # the comparison arm: Monad 5
     ARMS = [(f"spec-monad-s{s}", ["--init", "monad", "--seed", str(s)]) for s in (0, 1, 2)]
     ARMS += [(f"lowo-monad-{w}-s0", ["--init", "monad", "--seed", "0", "--train", *[x for x in W if x != w], "--test", w]) for w in W]
     KEEP = ["spec-monad-s0"]
+if len(sys.argv) > 2 and sys.argv[2].startswith("only="):  # rerun a named subset, e.g. after an OOM
+    keep = set(sys.argv[2][5:].split(","))
+    ARMS = [a for a in ARMS if a[0] in keep]
 
 BASE = Path("/content/exp")
 D = BASE / "browser-decider"
