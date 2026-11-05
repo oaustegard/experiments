@@ -50,7 +50,9 @@ export function fitAccountState(acct, countTokens, budget = 830, nPosts = 12) {
   return { state: accountState(acct, 1), n: 1 };
 }
 
-export const postState = (it) => `[${it.kind}]${embedTag(it.embed)} ${clean(it.text, 300) || "(no text)"}`;
+// A reply carrying its parent ({ author, text }) gets the parent appended (run/state.py post_state).
+export const postState = (it) => `[${it.kind}]${embedTag(it.embed)} ${clean(it.text, 300) || "(no text)"}` +
+  (it.parent ? ` (in reply to @${it.parent.author || "?"}: ${clean(it.parent.text) || "(no text)"})` : "");
 
 // Fetch an account the way run/collect.py does, from the public AppView.
 const PUBLIC = "https://public.api.bsky.app/xrpc";
@@ -68,10 +70,12 @@ export async function fetchAccount(actor) {
     const kind = reason.includes("reasonRepost") ? "repost" : rec.reply ? "reply" : "post";
     if (kind === "repost" && post.author.did === p.did) continue;
     const emb = (post.embed || {}).$type || "";
+    const par = kind === "reply" ? (it.reply || {}).parent : null;   // notFoundPost / blockedPost have no record
     items.push({ kind, text: rec.text || "", createdAt: rec.createdAt || "",
                  indexedAt: (it.reason || {}).indexedAt || post.indexedAt || "",
                  author: kind === "repost" ? post.author.handle : null,
-                 embed: emb ? emb.split(".").pop().split("#")[0] : null, uri: post.uri });
+                 embed: emb ? emb.split(".").pop().split("#")[0] : null, uri: post.uri,
+                 parent: par && (par.$type || "").endsWith("#postView") ? { author: par.author.handle, text: (par.record || {}).text || "" } : null });
     if (items.length >= 20) break;
   }
   const profile = { did: p.did, handle: p.handle, displayName: p.displayName, description: p.description,

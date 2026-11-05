@@ -60,6 +60,29 @@ int8 matmuls and a 4-bit token table.
 
 ## Log
 
+### 2026-11-05: replies read with the post they answer
+
+The page scored each reply on its own text, so a reply under an AI post ("agreed, it can't do that")
+came out as not about AI. The page now appends the parent post to a reply's state,
+`[reply] <text> (in reply to @handle: <parent, 140 chars>)`, from the `reply.parent` the author feed
+already returns. The model was not retrained: training states are unchanged because they carry no parent.
+
+Measured with `run/reply_context_eval.py` on 388 fresh replies from 45 AI-list members and 45 Discover
+authors, labelled by Sonnet with the parent visible under the rule that a reply in a conversation about
+AI is about AI ($0.33). 107 of the 388 are about AI by that rule. <!-- @evidence[[results/reply_context.json#sonnet_positive]] -->
+
+| model input | accuracy | recall | false positives |
+|---|---|---|---|
+| reply only (before) | 0.884 | 0.617 | 1.4% |
+| reply, then parent (shipped) | 0.912 | 0.776 | 3.6% |
+| parent, then reply | 0.910 | 0.794 | 4.6% |
+
+The shipped format gains 16 points of recall for 2 points of false positives. <!-- @evidence[[results/reply_context.json#variants.reply_then_parent.all]] -->
+On AI-list accounts the false-positive rate rises from 3.6% to 9.0%: replies on an AI post that change
+the subject now get partial credit from the parent. A retrain on parent-aware labels would be the next
+step; the account-level questions still read replies without their parents, because the parent text
+would push items out of the 830-token budget the model was trained on.
+
 ### 2026-11-05: labels, arms, page
 
 Registered `PLAN.md` before reading labels. Predictions against results:

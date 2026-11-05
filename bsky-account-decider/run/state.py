@@ -57,5 +57,14 @@ def account_state(acct, n_posts=12):
 
 
 def post_state(item):
+    """One feed item; a reply carrying its parent ({author, text}) gets the parent appended.
+
+    Training items had no parent, so their states are unchanged. The appended parent is
+    inference-only: results/reply_context.json measures it on the shipped model.
+    """
     emb = f" [{EMBED.get(item.get('embed'), item.get('embed'))}]" if item.get("embed") else ""
-    return f"[{item['kind']}]{emb} {_clean(item.get('text'), 300) or '(no text)'}"
+    s = f"[{item['kind']}]{emb} {_clean(item.get('text'), 300) or '(no text)'}"
+    par = item.get("parent")
+    if par:
+        s += f" (in reply to @{par.get('author') or '?'}: {_clean(par.get('text')) or '(no text)'})"
+    return s

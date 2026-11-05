@@ -97,7 +97,7 @@ async function classify(handle) {
     items.forEach((it, i) => {
       const pa = posts[i].about_ai.probability_true;
       const bg = `color-mix(in srgb, var(--model) ${Math.round(pa * 100)}%, var(--code))`;
-      html += `<div class="post"><span class="chip" style="background:${bg};color:${pa > 0.55 ? "#fff" : "var(--fg)"}">${(pa * 100).toFixed(0)}%</span><div><div class="kind">${esc(it.kind === "repost" ? "repost of @" + it.author : it.kind)}${it.embed ? " · " + esc(it.embed) : ""}</div><div class="ptext">${esc(it.text || "(no text)")}</div></div></div>`;
+      html += `<div class="post"><span class="chip" style="background:${bg};color:${pa > 0.55 ? "#fff" : "var(--fg)"}">${(pa * 100).toFixed(0)}%</span><div><div class="kind">${esc(it.kind === "repost" ? "repost of @" + it.author : it.kind)}${it.embed ? " · " + esc(it.embed) : ""}</div><div class="ptext">${esc(it.text || "(no text)")}</div>${it.parent ? `<div class="muted" style="font-size:12px">in reply to @${esc(it.parent.author)}: ${esc(it.parent.text)}</div>` : ""}</div></div>`;
     });
     html += `</div><details><summary class="muted">What the model read</summary><pre>${esc(state)}</pre></details>`;
     $("out").innerHTML = html;
