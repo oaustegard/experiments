@@ -67,6 +67,30 @@ def synthetic(domain, i):
             "chain_of_custody": r.choice(["intact", "broken seal", "late delivery to lab"])}
 
 
+TRAIN_CHAT = ["Has everyone finished the book for Thursday?", "I'm halfway, the ending better be good.",
+              "Anyone have a good lentil soup recipe?", "Add cumin early, it changes everything.",
+              "Book club moved to the café on Elm Street.", "Perfect, see you all there."]
+TRAIN_NOTICES = [("school closed for teacher training day", "All classes are cancelled on Friday; the canteen and buses will not run."),
+                 ("bake sale this weekend", "Parents are asked to bring labelled trays to the hall by 9 am on Saturday."),
+                 ("library returns overdue", "Three books checked out in September are now two weeks late; fines start Monday.")]
+
+
+def swap_negatives(n=40):
+    """`none` cases in the support and alert shapes, built from train cases (the test look-alikes use
+    lunch-chat and weather content, run/lookalikes.py)."""
+    out = []
+    for w, field in (("customer_service", "thread"), ("security_incidents", "alert")):
+        for i, c in enumerate(load_cases(w, "train")[:n]):
+            st, r = json.loads(c["state"]), random.Random(f"trainswap-{w}-{i}")
+            if field == "thread":
+                st["thread"] = [{"role": t["role"], "text": r.choice(TRAIN_CHAT)} for t in st["thread"]]
+            else:
+                d, e = r.choice(TRAIN_NOTICES)
+                st["alert"] = {"description": d, "evidence": e, "rule": r.choice(["closure_notice", "event_notice", "library_notice"])}
+            out.append((json.dumps(st, ensure_ascii=False), "none"))
+    return out
+
+
 def example(state, label):
     names = list(SPIKES) + ["none"]
     return {"case": "", "workflow": "", "qname": "router", "type": "choice", "question": QUESTION, "instructions": QUESTION,
@@ -78,6 +102,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--qbase", action="store_true", help="v0.1.1: train on the quantized base; writes router-v2")
+    ap.add_argument("--swap-negatives", action="store_true",
+                    help="v0.1.1: add `none` cases that keep a real support or alert state's structure with off-topic "
+                         "content (book club and recipe chat, school notices); writes router-v3")
     a = ap.parse_args()
     torch.set_num_threads(4)
     t0 = time.time()
@@ -88,6 +115,8 @@ def main():
     tr_none = [(t, "none") for t in texts[:70]] + [(json.dumps(synthetic(d, i)), "none") for d in TRAIN_DOMAINS for i in range(40)]
     te_none_text = [(t, "none") for t in texts[70:]]
     te_none_lab = [(json.dumps(synthetic(TEST_DOMAIN, i)), "none") for i in range(40)]
+    if a.swap_negatives:
+        tr_none += swap_negatives()
     tr = [(c["state"], w) for w in WORKFLOWS for c in load_cases(w, "train")] + tr_none
     random.Random("router-v1").shuffle(tr)
     if a.smoke:
@@ -121,8 +150,10 @@ def main():
            "sec": time.time() - t0}
     out = ROOT / ("out/smoke" if a.smoke else "out") / "adapters"
     out.mkdir(parents=True, exist_ok=True)
-    torch.save(adapter_state(model), out / ("router-v2.pt" if a.qbase else "router-v1.pt"))
-    dst = ROOT / ("out/smoke" if a.smoke else "results") / ("system_router_q.json" if a.qbase else "system_router.json")
+    tag = "v3" if a.swap_negatives else "v2" if a.qbase else "v1"
+    torch.save(adapter_state(model), out / f"router-{tag}.pt")
+    dst = ROOT / ("out/smoke" if a.smoke else "results") / {"v1": "system_router.json", "v2": "system_router_q.json",
+                                                              "v3": "system_router_v3.json"}[tag]
     dst.write_text(json.dumps(res, indent=1))
     print(json.dumps({k: v for k, v in res.items() if k not in ("spikes", "log")}, indent=1))
 
