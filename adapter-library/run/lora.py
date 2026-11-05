@@ -211,6 +211,9 @@ def arms():
     # system v0.1.1: whole-workflow spikes trained on the quantized base
     for w in WORKFLOWS:
         A.append(("spike", f"Q-lora-{w}-s0", w, 0, None))
+    # v0.1.1: quantization-aware fine-tuning, starting from round 1's fp32-base spike (QW = warm)
+    for w in WORKFLOWS:
+        A.append(("spike", f"QW-lora-{w}-s0", w, 0, None))
     for i in range(len(FAM_IDS)):
         A.append(("router", f"R-router-F{i:02d}", None, 0, i))
     for fid in FAM_IDS:
@@ -363,8 +366,10 @@ def main():
             random.Random(f"{w}-{seed}").shuffle(cases)
             nval = 30
             va, tr = prep(tok, cases[:nval][: 4 if a.smoke else None]), prep(tok, cases[nval:])
-            model = new_model(kind, qbase=name.startswith("Q-"))
-            info = train(model, kind, tr, 10, seed, va=va, max_steps=ms)
+            model = new_model(kind, qbase=name.startswith(("Q-", "QW-")))
+            if name.startswith("QW-"):
+                load_adapter(model, torch.load(OUT / "adapters" / f"S-lora-{w}-s{seed}.pt"))
+            info = train(model, kind, tr, 5 if name.startswith("QW-") else 10, seed, va=va, max_steps=ms)
             info["trainable"] = sum(p.numel() for p in model.parameters() if p.requires_grad)
             temps = fit_temps(va, predict(model, va, PAD))
             if kind == "lora":

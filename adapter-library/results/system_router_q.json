@@ -1,0 +1,65 @@
+{
+ "spikes": {
+  "customer_service": "Customer support conversation: a ticket thread with the customer's account and orders. Decides the category, the next action, whether a human is needed, urgency and churn risk.",
+  "invoice_processing": "Vendor invoice review: an invoice with its purchase order, delivery record and payment terms. Decides the disposition, discrepancy severity, duplicates, the order match and urgency.",
+  "security_incidents": "Security alert triage: an alert with its evidence, the principal involved and context. Decides the disposition, severity, whether it is a true positive or a credential compromise, and urgency.",
+  "agent_trace_observability": "AI agent run trace: an autonomous agent's task, constraints and step summary. Decides the outcome, risk, whether it needs review, urgency and what observability should do."
+ },
+ "none_desc": "None of these specialists covers this input.",
+ "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+ "threshold_p_none": 6.230919942597922e-05,
+ "best_epoch": 9,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.15995595786840391
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.0003790775671407166
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.0002450087631140935
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.00018027953363821908
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.00014439855260975189
+  },
+  {
+   "epoch": 5,
+   "val_kl": 0.0001224814992503987
+  },
+  {
+   "epoch": 6,
+   "val_kl": 0.00010787785434511016
+  },
+  {
+   "epoch": 7,
+   "val_kl": 9.874157992937786e-05
+  },
+  {
+   "epoch": 8,
+   "val_kl": 9.365541822540827e-05
+  },
+  {
+   "epoch": 9,
+   "val_kl": 9.191568383349558e-05
+  }
+ ],
+ "steps": 790,
+ "test_routing_acc": 0.9925,
+ "test_false_gap_rate": 0.0075,
+ "gap_recall_unseen_texts": 1.0,
+ "gap_recall_unseen_domain_lab": 1.0,
+ "p_none_median": {
+  "in_library_test": 5.2462006135077784e-05,
+  "unseen_texts": 0.9996296017307956,
+  "unseen_lab_states": 0.9996188849416187
+ },
+ "sec": 62.812827825546265
+}
