@@ -392,6 +392,137 @@
      4.1513
     ]
    }
+  },
+  "monad": {
+   "accuracy": {
+    "mean": 0.7515,
+    "sd": 0.0093,
+    "n": 3,
+    "values": [
+     0.755,
+     0.741,
+     0.7585
+    ]
+   },
+   "kl_from_gold": {
+    "mean": 0.1218,
+    "sd": 0.0004,
+    "n": 3,
+    "values": [
+     0.1213,
+     0.1221,
+     0.1219
+    ]
+   },
+   "brier": {
+    "mean": 0.0662,
+    "sd": 0.0014,
+    "n": 3,
+    "values": [
+     0.0663,
+     0.0675,
+     0.0647
+    ]
+   },
+   "ece": {
+    "mean": 0.1386,
+    "sd": 0.0074,
+    "n": 3,
+    "values": [
+     0.1446,
+     0.1303,
+     0.1408
+    ]
+   },
+   "by_type": {
+    "choice": {
+     "mean": 0.7022,
+     "sd": 0.0167,
+     "n": 3,
+     "values": [
+      0.7083,
+      0.6833,
+      0.715
+     ]
+    },
+    "noul": {
+     "mean": 0.8317,
+     "sd": 0.0044,
+     "n": 3,
+     "values": [
+      0.8367,
+      0.83,
+      0.8283
+     ]
+    },
+    "score": {
+     "mean": 0.7283,
+     "sd": 0.0106,
+     "n": 3,
+     "values": [
+      0.7288,
+      0.7175,
+      0.7388
+     ]
+    }
+   },
+   "by_workflow": {
+    "agent_trace_observability": {
+     "mean": 0.7027,
+     "sd": 0.0252,
+     "n": 3,
+     "values": [
+      0.726,
+      0.676,
+      0.706
+     ]
+    },
+    "customer_service": {
+     "mean": 0.742,
+     "sd": 0.0139,
+     "n": 3,
+     "values": [
+      0.726,
+      0.75,
+      0.75
+     ]
+    },
+    "invoice_processing": {
+     "mean": 0.816,
+     "sd": 0.0125,
+     "n": 3,
+     "values": [
+      0.82,
+      0.802,
+      0.826
+     ]
+    },
+    "security_incidents": {
+     "mean": 0.7453,
+     "sd": 0.0083,
+     "n": 3,
+     "values": [
+      0.748,
+      0.736,
+      0.752
+     ]
+    }
+   },
+   "best_epoch": [
+    4,
+    4,
+    4
+   ],
+   "wall_min": {
+    "mean": 9.6679,
+    "sd": 0.0832,
+    "n": 3,
+    "values": [
+     9.6976,
+     9.5739,
+     9.7322
+    ]
+   }
   }
  },
  "lowo": {
@@ -742,6 +873,148 @@
    },
    "complete": true,
    "mean_accuracy": 0.3531
+  },
+  "monad": {
+   "per_workflow": {
+    "agent_trace_observability": {
+     "accuracy": {
+      "mean": 0.256,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.256
+      ]
+     },
+     "kl_from_gold": {
+      "mean": 0.5927,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.5927
+      ]
+     },
+     "brier": {
+      "mean": 0.2728,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.2728
+      ]
+     },
+     "ece": {
+      "mean": 0.18,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.18
+      ]
+     }
+    },
+    "customer_service": {
+     "accuracy": {
+      "mean": 0.242,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.242
+      ]
+     },
+     "kl_from_gold": {
+      "mean": 0.5886,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.5886
+      ]
+     },
+     "brier": {
+      "mean": 0.3,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.3
+      ]
+     },
+     "ece": {
+      "mean": 0.1152,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.1152
+      ]
+     }
+    },
+    "invoice_processing": {
+     "accuracy": {
+      "mean": 0.498,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.498
+      ]
+     },
+     "kl_from_gold": {
+      "mean": 0.5097,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.5097
+      ]
+     },
+     "brier": {
+      "mean": 0.2938,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.2938
+      ]
+     },
+     "ece": {
+      "mean": 0.0264,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.0264
+      ]
+     }
+    },
+    "security_incidents": {
+     "accuracy": {
+      "mean": 0.336,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.336
+      ]
+     },
+     "kl_from_gold": {
+      "mean": 0.2993,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.2993
+      ]
+     },
+     "brier": {
+      "mean": 0.1826,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.1826
+      ]
+     },
+     "ece": {
+      "mean": 0.1862,
+      "sd": null,
+      "n": 1,
+      "values": [
+       0.1862
+      ]
+     }
+    }
+   },
+   "complete": true,
+   "mean_accuracy": 0.333
   }
  },
  "packed_spec-stock-s0-t4-w8L63": {

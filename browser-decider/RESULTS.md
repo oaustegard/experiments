@@ -23,7 +23,7 @@ The shipped int8/int4 build scores 0.730 and answers a five-question case in 19 
 It does not generalise. Trained on three workflows and tested on the fourth, it scores 0.353, below the 0.470 label prior. <!-- @evidence[[results/summary.json#lowo.stock.mean_accuracy]] -->
 On 104 questions from unrelated schemas it scores 0.279, where Jev scores 0.894. <!-- @evidence[[results/summary.json#ood_spec-stock-e10-s0.summary.accuracy]] -->
 It is a specialist: retrain it for each set of workflows, from a few hundred labelled cases.
-Ettin is the shipped model because it is 10 MB against Monad's 65 MB; Monad's own result is pending.
+Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but at 65 MB and with the same failure on unseen workflows (0.333); Ettin ships for its size. <!-- @evidence[[results/summary.json#spec.monad.accuracy.mean]] -->
 
 ## Findings
 
@@ -56,7 +56,13 @@ Ettin is the shipped model because it is 10 MB against Monad's 65 MB; Monad's ow
    It loses most on score questions (0.545 against 0.679).
    Its contrastive tuning for mean-pooled sentence vectors appears to have worn down the per-token
    features the option positions read.
-7. **Calibration is the weak metric.** ECE 0.144 on the fp32 runs and 0.156 packed, after a per-type
+7. **Monad buys about 0.01 to 0.04 of accuracy for six times the bytes.** Same layout reordered for a
+   causal model (state first, each option scored at its line's last token), five epochs, three seeds:
+   0.752 ± 0.009, KL 0.122, Brier 0.066; noul 0.832, choice 0.702, score 0.728. Against Ettin at five
+   epochs (0.714) that is +0.037; against Ettin at ten (0.740), +0.011. Left out of one workflow
+   (seed 0 only) it scores 0.333, the same failure as Ettin. Monad was not run at ten epochs.
+   (`results/spec-monad-s*.json`, `results/lowo-monad-*.json`)
+8. **Calibration is the weak metric.** ECE 0.144 on the fp32 runs and 0.156 packed, after a per-type
    temperature fitted to KL on validation. The fitted entries on the card sit at 0.12 to 0.18. Fitting
    the temperature to KL against soft gold labels does not optimise argmax-confidence calibration.
 
@@ -102,7 +108,8 @@ a gather of the option positions; the head runs in JS. `web/decider.js` builds t
 answers. Timing ran on Oskar's Mac through the GPU Bridge (`web/bridge_job.js`); SwiftShader in the
 container is used only to check the page renders.
 
-**Compute.** Colab L4: 1.5 min per Ettin run at five epochs, 4.4 at ten, about 18 min per Monad run.
+**Compute.** Colab L4: 1.5 min per Ettin run at five epochs, 4.4 at ten, about 18 min per Monad run; the
+Monad runs that were kept ran on an A100 at about 10 min each. About 3 compute units in all.
 
 ## Log
 
@@ -115,7 +122,7 @@ Registered `PLAN.md` first. Predictions against results:
 | P1 specialist 0.72 (0.68 to 0.76) | 0.714 at 5 epochs, 0.740 at 10: held |
 | P2 stock init beats `e17c` by ≥ 0.02 | +0.078: held |
 | P3 leave-one-out ≤ 0.55 | 0.353 (stock), 0.378 (e17c): held, and below the prior |
-| P4 Monad within 0.03 of Ettin | seed 0: 0.7475 against 0.7145, +0.033: missed narrowly (other seeds pending) |
+| P4 Monad within 0.03 of Ettin | 0.752 against 0.714 at five epochs, +0.037: missed (+0.011 against Ettin at ten epochs) |
 | P5 out-of-schema ≤ 0.60 | 0.394 (5 ep), 0.279 (10 ep): held |
 | P6 ≤ 30 ms per case, download within 0.5 MB of 10.2 | 19.3 ms quiet, 41.2 ms with the GPU shared; 10.24 MB: held on a quiet GPU |
 
@@ -125,3 +132,10 @@ caught it (6 ms "timings" for 1,700 tokens were the tell). The first CPU trainin
 container restart and moved to Colab. Running Monad beside the Ettin arms on one L4 put nine stock
 leave-one-out runs out of GPU memory; they were rerun on a second VM. The Colab runner had reported
 those crashes as exit 0 because the trainer was piped through `grep`; it now runs under `pipefail`.
+
+The first Monad runs were lost twice: the specialist seeds crashed at start because only the `stock` init
+fetched its Hub files (fixed for any Hub id), and the rerun's L4 VM was reclaimed by Colab mid-run, most
+likely as idle, since the runner was detached and the notebook kernel did nothing. The kept Monad runs
+ran on an A100 with a keepalive loop holding the kernel. An L4 seed-0 run seen in the log before the VM
+vanished scored 0.7475; the kept A100 seed 0 scored 0.755 (GPU nondeterminism).
+
