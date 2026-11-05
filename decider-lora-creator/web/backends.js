@@ -252,6 +252,9 @@ export class WgslTrainerBackend {
 
   constructor(t, o) { this.t = t; Object.assign(this, o); this.s = o.alpha / o.rank; this.step_ = 0; this.dropped = 0; this.name = "LoRA + head (WGSL backward pass, ettin-wgsl-train)"; }
 
+  // the LoRA targets the trainer has, read from its layout (Wo_mlp only if it was added)
+  mods() { return MODS.filter((k) => `L0.${k}.A` in this.t.poff); }
+
   // [{ ids, pos }] -> the trainer's padded batch; targets optional
   collate(seqs, targets = null) {
     const B = seqs.length, S = Math.max(...seqs.map((x) => x.ids.length));
@@ -301,14 +304,15 @@ export class WgslTrainerBackend {
     if (u.layers.some((L) => MODS.some((k) => L[k].r > this.rank))) u = truncateRank(u, this.rank);
     const t = this.t, flat = new Float32Array(t.nParams), off = t.poff, r = this.rank;
     let dropped = 0;
+    const mods = this.mods();
     u.layers.forEach((L, i) => {
-      for (const k of ["Wqkv", "Wo", "Wi"]) {
+      for (const k of mods) {
         const m = L[k], A = new Float32Array(r * m.K), B = new Float32Array(m.N * r);
         A.set(m.A.subarray(0, m.r * m.K));                                      // rows m.r..r-1 stay zero
         for (let n = 0; n < m.N; n++) for (let j = 0; j < m.r; j++) B[n * r + j] = m.B[n * m.r + j] / this.s;
         flat.set(A, off[`L${i}.${k}.A`]); flat.set(B, off[`L${i}.${k}.B`]);
       }
-      for (const x of L.Wo_mlp.B) dropped = Math.max(dropped, Math.abs(x));
+      if (!mods.includes("Wo_mlp")) for (const x of L.Wo_mlp.B) dropped = Math.max(dropped, Math.abs(x));
     });
     const h = u.head;
     flat.set(h.w0, off["head.w0"]); flat.set(h.b0, off["head.b0"]); flat.set(h.lnw, off["head.ln_w"]); flat.set(h.lnb, off["head.ln_b"]);
@@ -321,14 +325,14 @@ export class WgslTrainerBackend {
   async exportSpike() {
     const t = this.t, p = await t.read(t.PRM), off = t.poff, r = this.rank, H = 256;
     const layers = Array.from({ length: this.L }, (_, i) => {
-      const o = {};
-      for (const k of ["Wqkv", "Wo", "Wi"]) {
+      const o = {}, mods = this.mods();
+      for (const k of mods) {
         const [, K] = t.layout.find((x) => x.name === `L${i}.${k}.A`).shape, [N] = t.layout.find((x) => x.name === `L${i}.${k}.B`).shape;
         const A = p.slice(off[`L${i}.${k}.A`], off[`L${i}.${k}.A`] + r * K), B = p.slice(off[`L${i}.${k}.B`], off[`L${i}.${k}.B`] + N * r);
         for (let j = 0; j < B.length; j++) B[j] *= this.s;
         o[k] = { A, B, r, K, N };
       }
-      o.Wo_mlp = { A: new Float32Array(384), B: new Float32Array(H), r: 1, K: 384, N: H };
+      if (!mods.includes("Wo_mlp")) o.Wo_mlp = { A: new Float32Array(384), B: new Float32Array(H), r: 1, K: 384, N: H };
       return o;
     });
     const g = (n, len) => p.slice(off[n], off[n] + len);

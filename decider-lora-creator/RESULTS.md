@@ -7,40 +7,43 @@ austegard.com/experiments/decider-lora-creator/web/). Plan and predictions: `PLA
 
 ## Answer
 
-The page and its harness work. Training the decision head alone, though, is too weak to be the method.
-On adapter-library's growth protocol (invoice workflow, start from the other three workflow spikes, 100
-test cases), head-only training on the Mac's GPU scores 0.560 / 0.590 / 0.628 at 16 / 64 / 300 labelled
-cases. <!-- @evidence[[results/bridge_creator-head-1.json#outputs.arms]] -->
-The prior scores 0.538. Python's LoRA from the same start scores 0.600 / 0.748 / 0.813, and LoRA from zero
-0.628 / 0.621 / 0.790. Head-only trails both at every size. On three of the five questions it never moves
-off the prior's answer. The encoder has to adapt, so the page's real training path is the LoRA backend,
-which waits on the WGSL backward pass. The page's engine path matches the reference: the merged start
-scores 0.240 at temperature 1 against Python's 0.258 for its own merge. Encoding costs 1.3 ms a sequence
-on the Mac.
+The page trains real LoRA spikes on the GPU, and they score as well as the Python ones. It uses the
+WebGPU backward pass from `ettin-wgsl-train`. On adapter-library's growth protocol on your Mac (invoice
+workflow, start from the other three workflow spikes, 100 test cases), in-browser LoRA scores 0.572 /
+0.704 / 0.849 at 16 / 64 / 300 labelled cases. <!-- @evidence[[results/bridge_creator-lora-1.json#outputs.arms]] -->
+Python's LoRA from the same start scores 0.600 / 0.748 / 0.813. Training only the decision head scores
+0.560 / 0.590 / 0.628, barely above the prior's 0.538. All six of the page's checks pass on the Mac: prompt
+ids, logits against the NumPy reference, the trainer's logits against the inference path (3.1e-6), the
+weight round trip, and train-and-export for both backends. The 300-case spike trains in about 97 s.
 
-A LoRA backend that reaches the Python LoRA numbers in the page would change this answer from "harness
-ready" to "method ready".
+The browser runs differ from the Python ones in three ways, so the comparison is close but not exact.
+The base is quantized. The start is merged from the shipped spikes. And the trainer has no LoRA on
+Wo_mlp, so the start loses that delta (largest weight 0.106). A Wo_mlp path in the trainer would remove
+the last difference.
 
 ## Findings
 
-1. **Head-only training barely clears the prior on a new workflow.** Mean of 2 seeds: 0.560 (n = 16),
-   0.590 (64), 0.628 (300); prior 0.538; library-start LoRA 0.600 / 0.748 / 0.813; zero-start LoRA
-   0.628 / 0.621 / 0.790 (adapter-library `results/G-*-invoice_processing-*`). (bridge `creator-head-1`)
-2. **What the head learns is mostly urgency.** At n = 64, `disposition` (0.45), `duplicate` (0.89) and
-   `matches_order` (0.54) sit exactly at the prior's accuracy, and urgency rises from 0.34 to 0.54–0.64. At
-   n = 300 `disposition` reaches 0.55. The frozen [MASK] features of the merged start do not separate
-   the answers of the new workflow's questions linearly enough for a 66k-parameter head.
-3. **The browser path reproduces the Python stack.** The prompt builder is a verbatim copy of
-   adapter-library's `system.js` layout; `web/check.html` compares its ids with `Enc.build` (the
-   training code) and the head-only logits with the NumPy reference (`node run/check.mjs check`). In
-   pure JS (`run/check_js.mjs`), the head's gradient matches central differences (worst relative error
-   2.5e-5), re-packing a shipped spike is byte-identical, the stacked-rank merge is exact (1e-10), and the
-   rank-8 SVD cut matches numpy to 5e-9 (`results/check_truncate.json`). On the Mac, the merge at n = 0
-   scores 0.240 at temperature 1, close to Python's 0.258. The two do not merge the same spikes, so they
-   are not expected to match exactly.
-4. **Encoding is cheap and head epochs are not free.** On the Mac (Chrome 156, Apple Metal), the 2,000
-   sequences (708k tokens) encoded in 2.7 s, 1.3 ms each. A head-only arm at n = 300 (1,500 sequences,
-   10 epochs) took 37 s in JS, about 3.7 s an epoch. (bridge `creator-head-1`)
+1. **In-browser LoRA matches the Python LoRA.** Mean of 2 seeds: 0.572 (n = 16), 0.704 (64), 0.849 (300),
+   against Python's library-start LoRA at 0.600 / 0.748 / 0.813 (adapter-library `results/G-warm-invoice_processing-*`).
+   It trails by 0.03–0.04 at the small sizes, where the start's missing Wo_mlp delta weighs most, and leads
+   by 0.04 at 300. (bridge `creator-lora-1`)
+2. **Training the head alone is not enough; the encoder has to adapt.** Head-only scores 0.560 / 0.590 /
+   0.628, prior 0.538. On three of five questions it stays at the prior's answer up to n = 64. LoRA moves
+   them: at n = 300 `matches_order` reaches 0.93–0.96 and `disposition` 0.81–0.82, against 0.50–0.60 and
+   0.55 head-only. (bridges `creator-head-1`, `creator-lora-1`)
+3. **The browser path reproduces the Python stack at every joint** (`web/checks.js`, Mac):
+   - The prompt ids match the training code's on 20/20 sequences.
+   - Head-only logits are within 1.8e-5 of the NumPy reference.
+   - The WGSL trainer's logits are within 3.1e-6 of the inference engine's on the same start (100/100 argmax).
+   - Weights survive the trainer's load and export round trip within 4.8e-4 relative (fp16).
+   - An exported spike reloads into the Spiky Ball engine with the same answers.
+   - In pure JS, the head gradient matches central differences, re-packing a shipped spike is
+     byte-identical, and the rank-8 SVD cut matches numpy to 5e-9.
+4. **Training is quick enough for the page.** On the Mac (Chrome 156, Apple Metal), LoRA arms take 15 s
+   at n = 16, 20 s at 64 and 97 s at 300 (940 steps of 16 sequences, about 0.1 s a step including the
+   scheduler and loss read-back). Encoding for head-only takes 1.3 ms a sequence.
+5. **The library start is a good initialization and a bad model.** The merged start scores 0.222 to 0.240
+   untrained, against the prior's 0.538. Python's merge scored 0.258, which is adapter-library's finding.
 
 ## Method
 
@@ -50,6 +53,9 @@ ready" to "method ready".
   the exact mean of their B·A deltas (stacked to rank 24), then SVD-cut to rank 8 with A = sqrt(S)·Vᵀ and
   B = U·sqrt(S), with heads averaged. This is adapter-library's library start, rebuilt from the packed
   fp16 spikes.
+- **LoRA backend.** ettin-wgsl-train's `Trainer` (rank 8, alpha 16, LoRA on Wqkv, Wo and Wi, head trained too),
+  behind `WgslTrainerBackend`: lr 5e-4 for the LoRA and 8e-4 for the head, AdamW with weight decay 0.01, gradient norm clipped at 1.0, the same warmup and
+  decay, batch 16. These are run/lora.py's settings. Packed B carries alpha/r; the trainer's B does not, so the adapter rescales both ways.
 - **Head-only backend.** Base + start LoRA frozen on adapter-library's SpikeEngine. Each sequence's
   [MASK] rows are computed once and cached. The head (Linear 256→256, GELU, LayerNorm, Linear→1) trains in
   JS: soft cross-entropy over each question's options, AdamW (lr 8e-4, weight decay 0.01 on the
@@ -98,5 +104,28 @@ Predictions:
 The decision rule's second branch applies. The page now says that head-only training is a weak
 baseline and that the LoRA backend is the method once it exists.
 
-The headless SwiftShader run of `web/check.html` was still running when this was written. Its result
-goes in `results/check_page.json`.
+The checks moved to the bridge in round 2.
+
+### Round 2 (2026-11-05): LoRA in the page on ettin-wgsl-train's trainer
+
+The sibling session pushed its WGSL trainer (`ettin-wgsl-train/web/train.js`, gradients checked against
+PyTorch on the Mac). `WgslTrainerBackend` adapts it to the creator's interface. Its API is padded
+batches and one flat parameter buffer, its B is unscaled, and it has no Wo_mlp LoRA. `web/checks.js`
+now holds every check, shared by `check.html` and the bridge job `web/bridge_lora.js`. Bridge job
+`creator-lora-1` (Mac, commit 6a0f1330, 283 s): all six checks ok, then the growth arms:
+
+| n | seed 0 | seed 1 | mean | Python library-start LoRA | head-only (round 1) |
+|---|---|---|---|---|---|
+| 0 (start, no Wo_mlp) | 0.222 | | | 0.258 | 0.240 |
+| 16 | 0.564 | 0.580 | 0.572 | 0.600 | 0.560 |
+| 64 | 0.674 | 0.734 | 0.704 | 0.748 | 0.590 |
+| 300 | 0.842 | 0.856 | 0.849 | 0.813 | 0.628 |
+
+No predictions were registered for this round. I sent its numbers on to the trainer's session.
+
+Reading: the page's LoRA path is the method; head-only stays as the cheap baseline. The gap at small n is
+the right size for the start's missing Wo_mlp delta. A Wo_mlp target in the trainer would test that
+directly, and the adapter picks it up from the trainer's `layout` with no other change.
+
+The headless SwiftShader run of the round-1 `check.html` hit its 28-minute timeout before reporting, so
+the checks moved to the Mac through the bridge. `check.html` now shows each check as it finishes.

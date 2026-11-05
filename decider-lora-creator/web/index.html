@@ -125,17 +125,18 @@ It starts from the mean of the library's three other business-workflow spikes, l
 </div>
 <div class="card">
   <h3>What trains</h3>
-  <label class="pill small"><input type="radio" name="be" value="head" checked> the decision head only, on the frozen encoder.
+  <label class="pill small"><input type="radio" name="be" value="head"> the decision head only, on the frozen encoder.
   Each sequence is encoded once, then every epoch runs in JS. A weak baseline: on the invoice demo it reaches 59% at 64 labelled
-  cases against 54% for the prior, where a LoRA spike reaches 75% (<a href="https://github.com/oaustegard/experiments/blob/main/decider-lora-creator/RESULTS.md">results</a>).</label><br>
-  <label class="pill small"><input type="radio" name="be" value="lora"> the LoRA adapter and the head, with a WebGPU backward pass through the encoder</label>
+  cases against 54% for the prior, where LoRA reaches 70% (<a href="https://github.com/oaustegard/experiments/blob/main/decider-lora-creator/RESULTS.md">results</a>).</label><br>
+  <label class="pill small"><input type="radio" name="be" value="lora" checked> the LoRA adapter and the head, with a WebGPU backward pass through the encoder.
+  On the invoice demo it reaches 70% at 64 labelled cases and 85% at 300, as well as the same training in PyTorch.</label><br>
   <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" value="../../ettin-wgsl-train/web/train.js"></label>
     <button id="modcheck">Check</button></div>
   <div id="modstat" class="small muted">LoRA training runs on ettin-wgsl-train's WebGPU backward pass (gradients checked against PyTorch). It needs a few hundred MB of GPU memory. Its LoRA covers Wqkv, Wo and Wi, so a start spike's Wo_mlp delta is dropped.</div>
 </div>
 <div class="row">
   <label class="f">epochs<input type="number" id="epochs" value="10" min="1" max="200"></label>
-  <label class="f">learning rate<input type="number" id="lr" value="0.0008" step="0.0001"></label>
+  <label class="f">learning rate<input type="number" id="lr" value="0.0005" step="0.0001"></label>
   <label class="f">batch (sequences)<input type="number" id="bs" value="16" min="1"></label>
   <label class="f">validation %<input type="number" id="valp" value="15" min="0" max="50"></label>
   <label class="f">test % (if none marked)<input type="number" id="testp" value="20" min="0" max="60"></label>
