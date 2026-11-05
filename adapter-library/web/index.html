@@ -97,9 +97,11 @@ workflows are refused rather than guessed. See the
 
 <h2>Memory</h2>
 <p class="muted">Labelled cases per spike. With fewer than 4 labels for a question the spike answers alone; after
-that the blend weight λ (1 = spike only, 0 = memory only) is fit on the memory itself.</p>
+that the blend weight λ (1 = spike only, 0 = memory only) is fit on the memory itself, and the green blend
+bar appears once the memory earns some weight. The 16 seed cases are held-out test cases the spike never
+trained on.</p>
 <div id="mem"></div>
-<div class="row"><select id="seedSpike" aria-label="Spike to seed"></select><button id="seed" disabled>Add 16 labelled training cases</button>
+<div class="row"><select id="seedSpike" aria-label="Spike to seed"></select><button id="seed" disabled>Add 16 labelled held-out cases</button>
   <button id="clear" disabled>Clear memory</button><span id="seedMsg" class="muted"></span></div>
 
 <h2>Library</h2>
@@ -137,18 +139,20 @@ function renderRoute(r, forced) {
 function renderAnswer(a) {
   const gold = current?.gold && current.workflow === a.spike ? current.gold : null;
   let html = `<div class="legend"><span><span class="sw" style="background:var(--model)"></span>spike</span>
-    <span><span class="sw" style="background:var(--knn)"></span>memory (kNN)</span><span><span class="sw" style="background:var(--blend)"></span>blend</span>
+    <span><span class="sw" style="background:var(--knn)"></span>memory (kNN)</span><span><span class="sw" style="background:var(--blend)"></span>blend (when memory has weight)</span>
     <span>${a.ms.toFixed(0)} ms for ${Object.keys(a.questions).length} questions</span></div>`;
   for (const [name, q] of Object.entries(a.questions)) {
     let verdict = "";
     if (gold) verdict = gold[name] === q.label ? `<span class="verdict ok">matches gold</span>` : `<span class="verdict bad">gold: ${esc(gold[name])}</span>`;
-    const mem = q.knn ? `λ ${q.lambda.toFixed(1)} · ${q.labels} labels` : `no memory yet`;
+    const blended = q.knn && q.lambda < 1;
+    const mem = !q.knn ? `no memory yet` : q.labels < 4 ? `${q.labels} label${q.labels === 1 ? "" : "s"}: spike decides until 4`
+      : blended ? `λ ${q.lambda.toFixed(1)}: memory has weight ${(1 - q.lambda).toFixed(1)}` : `λ 1.0: memory not trusted yet`;
     html += `<div class="card"><h3>${esc(name)} <span class="tag">${q.type}</span><span class="tag">${mem}</span>${verdict}</h3><div class="instr">${esc(q.instructions)}</div>`;
     q.options.forEach(([o, d], j) => {
       const g = gold && gold[name] === o ? `<span class="goldmark">gold</span>` : "";
       html += `<div class="opt teach" data-q="${esc(name)}" data-o="${esc(o)}" title="Mark &quot;${esc(o)}&quot; correct: ${esc(d)}">
         <span class="name">${esc(o)}${q.type === "score" ? ": " + esc(String(d).split(/[.;:]/)[0]) : ""}${g}</span>
-        <div class="bars"><div class="s" style="width:${(q.spike[j] * 100).toFixed(1)}%"></div>${q.knn ? `<div class="k" style="width:${(q.knn[j] * 100).toFixed(1)}%"></div>` : ""}<div class="b" style="width:${(q.blend[j] * 100).toFixed(1)}%"></div></div>
+        <div class="bars"><div class="s" style="width:${(q.spike[j] * 100).toFixed(1)}%"></div>${q.knn ? `<div class="k" style="width:${(q.knn[j] * 100).toFixed(1)}%"></div>` : ""}${blended ? `<div class="b" style="width:${(q.blend[j] * 100).toFixed(1)}%"></div>` : ""}</div>
         <span class="pct">${pct(q.blend[j])}</span></div>`;
     });
     html += `</div>`;

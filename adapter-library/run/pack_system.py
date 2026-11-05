@@ -29,7 +29,7 @@ sys.path.insert(0, str(BD / "run"))
 from pack import Packer, Ref, gelu, pack  # noqa: E402
 from train_enc import Decider, Enc  # noqa: E402
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 # v0.1.1: spikes fine-tuned on the quantized base (QW), router-v3 (content-swapped negatives, quantized base)
 SPIKE_RUN = "QW-lora-{w}-s0"
 ROUTER_RUN, ROUTER_RESULTS = "router-v3", "system_router_v3.json"
@@ -154,7 +154,11 @@ def main():
         for c in random.Random(f"demo-{w}").sample(cs, 6):
             samples["cases"].append({"id": c["id"], "workflow": w, "state": c["state"],
                                      "gold": {q: g["label"] for q, g in c["gold"].items()}})
-        tr = random.Random(f"seed-{w}").sample(load_cases(w, "train"), 16)
+        # seed memory from held-out test cases the page does not show: the spike never trained on them,
+        # so its stored predictions are out of sample and the blend weight can move (v0.1.2; v0.1.1 used
+        # train cases, which pinned lambda at 1)
+        shown = {c["id"] for c in samples["cases"]}
+        tr = random.Random(f"seed-{w}").sample([c for c in cs if c["id"] not in shown], 16)
         samples["seed"][w] = [{"id": c["id"], "state": c["state"], "gold": {q: g["label"] for q, g in c["gold"].items()}} for c in tr]
     (WEB / "samples.json").write_text(json.dumps(samples))
 

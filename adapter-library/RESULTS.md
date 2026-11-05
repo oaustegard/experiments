@@ -459,3 +459,11 @@ Mac, Apple GPU (WebGPU reports `apple metal-3`), Chrome 156. Ran on the publishe
 Start-up 1.6 s with the files cached; seeding 16 memory cases 318 ms; the router chose the sample's own
 workflow in 72 of 72 runs. A spike swap costs about 13 ms (36.3 against 23.0), mostly decoding fp16 to
 f32 in JavaScript; caching each spike's decoded weights would remove most of it.
+
+**v0.1.2 (page fix).** Oskar noticed the spike and blend bars were always equal. Two causes. First, the
+blend equals the spike until λ < 1, so the third bar repeated the first; it is now drawn only when the
+memory has weight, and each question's tag says why it has none ("spike decides until 4", "memory not
+trusted yet"). Second, a bug: the seed button filled the memory with *training* cases, which the spike
+had learned, so its stored predictions looked near-perfect and λ was fit to 1 every time. Seeds are now
+16 held-out test cases per spike that the page does not show (`run/pack_system.py`). Model files unchanged
+apart from `samples.json` and `system.json`.
