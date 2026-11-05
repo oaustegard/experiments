@@ -35,6 +35,12 @@ if list(Path("/content").glob("S-lora-*.pt")):
 only = Path("/content/al_only.txt").read_text().strip() if Path("/content/al_only.txt").exists() else ""
 r = sh(f"python3 -I run/lora.py {'--only ' + only if only else ''} 2>&1 | grep --line-buffered -v -i warning", cwd=D)
 LOG.write(f"LORA_RC {r.returncode}\n")
+# v0.1.1: further commands, one per line, from /content/al_extra.txt (e.g. the router trainer)
+if Path("/content/al_extra.txt").exists():
+    for cmd in Path("/content/al_extra.txt").read_text().splitlines():
+        if cmd.strip():
+            rc = sh(f"{cmd} 2>&1 | grep --line-buffered -v -i warning", cwd=D).returncode
+            LOG.write(f"EXTRA_RC {rc} {cmd}\n")
 with zipfile.ZipFile("/content/al_out.zip", "w") as z:
     for pre in (only.split(",") if only else [""]):
         for f in (D / "results").glob(f"{pre}*.json"):

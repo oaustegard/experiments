@@ -97,10 +97,32 @@ def merged_adapter(sts):
     return out
 
 
-def new_model(kind):
+@torch.no_grad()
+def fake_quant(model):
+    """Round the frozen base to what pack.py ships (v0.1.1): int8 per output column (codes in +-63) for
+    every Wqkv/Wo/Wi/Wo_mlp, and the token table to 4 bits in groups of 32 with an fp16 scale."""
+    for _, mod in model.enc.named_modules():
+        for cn, ch in mod.named_children():
+            lin = ch.base if isinstance(ch, LoRALinear) else ch
+            if cn in TARGETS and isinstance(lin, nn.Linear):
+                W = lin.weight
+                sc = W.abs().amax(1, keepdim=True) / 63 + 1e-12
+                lin.weight.copy_(torch.clamp(torch.round(W / sc), -63, 63) * sc)
+    T = model.enc.embeddings.tok_embeddings.weight
+    V, H = T.shape
+    g = T.view(V, H // 32, 32)
+    sc = g.abs().amax(2, keepdim=True) / 7 + 1e-12
+    q = torch.clamp(torch.round(g / sc), -8, 7)
+    T.copy_((q * sc.half().float()).view(V, H))
+    return model
+
+
+def new_model(kind, qbase=False):
     m = Decider(stock_path())
     if kind != "full":
         add_lora(m)
+    if qbase:
+        fake_quant(m)
     return m.to(DEV)
 
 
@@ -186,6 +208,9 @@ def arms():
                 for kind in ("scratch", "warm"):
                     A.append(("cv", f"CV-{kind}-{w}-n{n}-s{s}", w, s, n))
     # round 4b: router spikes (one per held-out family) and one sub-spike per family
+    # system v0.1.1: whole-workflow spikes trained on the quantized base
+    for w in WORKFLOWS:
+        A.append(("spike", f"Q-lora-{w}-s0", w, 0, None))
     for i in range(len(FAM_IDS)):
         A.append(("router", f"R-router-F{i:02d}", None, 0, i))
     for fid in FAM_IDS:
@@ -338,7 +363,7 @@ def main():
             random.Random(f"{w}-{seed}").shuffle(cases)
             nval = 30
             va, tr = prep(tok, cases[:nval][: 4 if a.smoke else None]), prep(tok, cases[nval:])
-            model = new_model(kind)
+            model = new_model(kind, qbase=name.startswith("Q-"))
             info = train(model, kind, tr, 10, seed, va=va, max_steps=ms)
             info["trainable"] = sum(p.numel() for p in model.parameters() if p.requires_grad)
             temps = fit_temps(va, predict(model, va, PAD))

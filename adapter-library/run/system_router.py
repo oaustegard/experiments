@@ -77,6 +77,7 @@ def example(state, label):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--qbase", action="store_true", help="v0.1.1: train on the quantized base; writes router-v2")
     a = ap.parse_args()
     torch.set_num_threads(4)
     t0 = time.time()
@@ -95,7 +96,7 @@ def main():
     nval = max(20, len(ex) // 10)
     va, trn = ex[:nval], ex[nval:]
     torch.manual_seed(0)
-    model = new_model("lora")
+    model = new_model("lora", qbase=a.qbase)
     info = train(model, "lora", trn, 10, 0, va=va, max_steps=2 if a.smoke else 0)
     names = list(SPIKES) + ["none"]
 
@@ -120,8 +121,8 @@ def main():
            "sec": time.time() - t0}
     out = ROOT / ("out/smoke" if a.smoke else "out") / "adapters"
     out.mkdir(parents=True, exist_ok=True)
-    torch.save(adapter_state(model), out / "router-v1.pt")
-    dst = ROOT / ("out/smoke" if a.smoke else "results") / "system_router.json"
+    torch.save(adapter_state(model), out / ("router-v2.pt" if a.qbase else "router-v1.pt"))
+    dst = ROOT / ("out/smoke" if a.smoke else "results") / ("system_router_q.json" if a.qbase else "system_router.json")
     dst.write_text(json.dumps(res, indent=1))
     print(json.dumps({k: v for k, v in res.items() if k not in ("spikes", "log")}, indent=1))
 
