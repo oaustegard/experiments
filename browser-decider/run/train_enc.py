@@ -32,7 +32,9 @@ DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INITS = {
     "e17c": ROOT / "out/base/st-ettin17m-tuned-e17-cap-c-epoch1/epoch1",
     "stock": "jhu-clsp/ettin-encoder-17m",
+    "monad": "PleIAs/Monad",
 }
+CAUSAL = {"monad"}
 MAX_LEN = 1024
 
 
@@ -57,6 +59,29 @@ class Enc:
         budget = MAX_LEN - len(ids) - 1
         ids += self.ids(e["state"])[:budget] + [self.sep]
         return ids, pos
+
+
+class DecTok(Enc):
+    """Causal layout (Monad): state first, then the question, then one line per option; each
+    option is scored at its line's last token, which has read the state, the question and the
+    options before it.  <bos> state \n\n type: instructions \n opt: desc \n opt: desc \n ..."""
+
+    def __init__(self, tok_path):
+        self.tok = Tokenizer.from_file(str(tok_path))
+        self.tok.no_truncation()
+        self.tok.no_padding()
+        self.bos = self.tok.token_to_id("<|begin_of_text|>")
+        assert self.bos is not None
+
+    def build(self, e):
+        tail = self.ids("\n\n" + e["question"] + "\n")
+        pos = []
+        for name, desc in e["options"]:
+            tail += self.ids(f"{name}: {desc}\n")
+            pos.append(len(tail) - 1)
+        budget = MAX_LEN - len(tail) - 1
+        head = [self.bos] + self.ids(e["state"])[:budget]
+        return head + tail, [len(head) + p for p in pos]
 
 
 class Decider(nn.Module):
@@ -165,8 +190,9 @@ def main():
     if a.init == "stock":
         from huggingface_hub import snapshot_download
         init = snapshot_download(init, allow_patterns=["*.json", "*.bin", "*.safetensors"])
-    tok = Enc(Path(init) / "tokenizer.json")
+    tok = (DecTok if a.init in CAUSAL else Enc)(Path(init) / "tokenizer.json")
     pad_id = tok.tok.token_to_id("[PAD]")
+    assert pad_id is not None
 
     train_cases = [c for w in a.train for c in load_cases(w, "train")]
     rng.shuffle(train_cases)
