@@ -27,7 +27,9 @@ from build_data import POST_Q  # noqa: E402
 
 
 def main():
-    name = sys.argv[1] if len(sys.argv) > 1 else "all-s0"
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    name = args[0] if args else "all-s0"
+    score = "--no-score" not in sys.argv
     ck = ROOT / "out" / "ckpt" / name
     meta = json.loads((ck / "meta.json").read_text())
     from huggingface_hub import snapshot_download
@@ -45,8 +47,9 @@ def main():
     (dst / "post_question.json").write_text(json.dumps(POST_Q, indent=1))
 
     ref, tok = Ref(man, data), Enc(Path(init) / "tokenizer.json")
+    by, overall = {}, None
     recs = [json.loads(l) for l in (ROOT / "data" / "cases.jsonl").open()]
-    te = examples([r for r in recs if r["split"] == "test"])
+    te = examples([r for r in recs if r["split"] == "test"]) if score else []
     probs = []
     for e in te:
         ids, pos = tok.build(e)
@@ -57,9 +60,10 @@ def main():
     for q in sorted({e["qname"] for e in te}):
         sel = [i for i, e in enumerate(te) if e["qname"] == q]
         by[q] = score_examples([te[i] for i in sel], [probs[i] for i in sel])[0]
-    overall, _ = score_examples(te, probs)
-    res = {"ckpt": name, "variant": "t4-w8L63", "overall": overall, "by_question": by}
-    (ROOT / "results" / f"packed_{name}.json").write_text(json.dumps(res, indent=1))
+    if score:
+        overall, _ = score_examples(te, probs)
+        res = {"ckpt": name, "variant": "t4-w8L63", "overall": overall, "by_question": by}
+        (ROOT / "results" / f"packed_{name}.json").write_text(json.dumps(res, indent=1))
     sizes = {f: len(brotli.compress((dst / f).read_bytes(), quality=11)) for f in ("weights.bin", "tokenizer.json", "manifest.json")}
     js = sum(len(brotli.compress(p.read_bytes(), quality=11)) for p in
              [BD / "web" / "decider.js", BD / "web" / "engine.js", BD / "web" / "wgsl" / "runtime.js",
@@ -68,7 +72,7 @@ def main():
              "testAccuracy": {q: round(v["accuracy"], 4) for q, v in by.items()},
              "examples": ["austegard.com", "bsky.app", "nytimes.com"]}
     (dst / "about.json").write_text(json.dumps(about, indent=1))
-    print(json.dumps({"overall": overall["accuracy"], "by": about["testAccuracy"], "MB": about["downloadMB"]}, indent=1))
+    print(json.dumps({"overall": overall and overall["accuracy"], "by": about["testAccuracy"], "MB": about["downloadMB"]}, indent=1))
 
 
 if __name__ == "__main__":
