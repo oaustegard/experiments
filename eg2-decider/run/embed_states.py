@@ -14,7 +14,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "browser-decider" / "run"))
 from common import WORKFLOWS, load_cases  # noqa: E402
-from enc import EG2, render  # noqa: E402
+from enc import EG2, encoder, render, results_dir  # noqa: E402
 
 OOD = HERE.parents[1] / "browser-decider" / "data" / "decider_eval.jsonl"
 
@@ -23,7 +23,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--prompts", default="doc,cls")
     a = ap.parse_args()
-    m = EG2()
+    m = encoder()
     texts = [r["input"] for r in map(json.loads, open(OOD))]
     for w in WORKFLOWS:
         for split in ("test", "train"):

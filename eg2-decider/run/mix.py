@@ -72,9 +72,9 @@ def load():
 
 def embed(state_prompt, opt_prompt, template):
     import arms
-    from enc import EG2
+    from enc import EG2, encoder
     rows = load()
-    m = EG2(tag="mix")
+    m = encoder(tag="mix")
     t0 = time.time()
     m.embed([e["question"] for e in rows], prompt=opt_prompt, max_tokens=256, log_every=1000)
     flat = [arms.opt_text(e, n, d, template) for e in rows for n, d in e["options"]]

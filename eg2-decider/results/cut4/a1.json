@@ -1,0 +1,139 @@
+{
+ "runs": [
+  {
+   "seed": 0,
+   "best_epoch": 34,
+   "temp": [
+    1.100000023841858,
+    1.100000023841858,
+    1.100000023841858
+   ],
+   "td_test": {
+    "n_decisions": 2000,
+    "accuracy": 0.6575,
+    "kl_from_gold": 0.19683205545759738,
+    "brier": 0.11438223322263953,
+    "ece": 0.08422576177649806,
+    "by_type": {
+     "choice": 0.615,
+     "score": 0.60625,
+     "noul": 0.7683333333333333
+    },
+    "by_subset": {
+     "agent_trace_observability": 0.616,
+     "customer_service": 0.704,
+     "invoice_processing": 0.63,
+     "security_incidents": 0.68
+    }
+   },
+   "ood": {
+    "n_decisions": 104,
+    "accuracy": 0.47115384615384615,
+    "kl_from_gold": 1.3442520731917775,
+    "brier": 0.6728181935630746,
+    "ece": 0.16717631543751382,
+    "by_type": {
+     "choice": 0.46875,
+     "score": 0.3125,
+     "noul": 0.5833333333333334
+    },
+    "by_subset": {
+     "banking": 0.46875,
+     "predicates": 0.5833333333333334,
+     "rubric": 0.3125
+    }
+   }
+  },
+  {
+   "seed": 1,
+   "best_epoch": 27,
+   "temp": [
+    1.0,
+    1.100000023841858,
+    1.2000000476837158
+   ],
+   "td_test": {
+    "n_decisions": 2000,
+    "accuracy": 0.6635,
+    "kl_from_gold": 0.18930519748913308,
+    "brier": 0.11059362892289064,
+    "ece": 0.09915042331768824,
+    "by_type": {
+     "choice": 0.6416666666666667,
+     "score": 0.59875,
+     "noul": 0.7716666666666666
+    },
+    "by_subset": {
+     "agent_trace_observability": 0.624,
+     "customer_service": 0.718,
+     "invoice_processing": 0.652,
+     "security_incidents": 0.66
+    }
+   },
+   "ood": {
+    "n_decisions": 104,
+    "accuracy": 0.4423076923076923,
+    "kl_from_gold": 1.3204182237759232,
+    "brier": 0.6657461097377314,
+    "ece": 0.12330561776238724,
+    "by_type": {
+     "choice": 0.4375,
+     "score": 0.375,
+     "noul": 0.5
+    },
+    "by_subset": {
+     "banking": 0.4375,
+     "predicates": 0.5,
+     "rubric": 0.375
+    }
+   }
+  },
+  {
+   "seed": 2,
+   "best_epoch": 22,
+   "temp": [
+    1.0,
+    1.100000023841858,
+    1.100000023841858
+   ],
+   "td_test": {
+    "n_decisions": 2000,
+    "accuracy": 0.674,
+    "kl_from_gold": 0.19147174428463007,
+    "brier": 0.11034794338559059,
+    "ece": 0.10911852577425052,
+    "by_type": {
+     "choice": 0.6533333333333333,
+     "score": 0.61,
+     "noul": 0.78
+    },
+    "by_subset": {
+     "agent_trace_observability": 0.666,
+     "customer_service": 0.734,
+     "invoice_processing": 0.63,
+     "security_incidents": 0.666
+    }
+   },
+   "ood": {
+    "n_decisions": 104,
+    "accuracy": 0.41346153846153844,
+    "kl_from_gold": 1.341540341024006,
+    "brier": 0.6701012185814862,
+    "ece": 0.12899122274503166,
+    "by_type": {
+     "choice": 0.421875,
+     "score": 0.375,
+     "noul": 0.4166666666666667
+    },
+    "by_subset": {
+     "banking": 0.421875,
+     "predicates": 0.4166666666666667,
+     "rubric": 0.375
+    }
+   }
+  }
+ ],
+ "mean_td_test_accuracy": 0.665,
+ "sd_td_test_accuracy": 0.006819090848492959,
+ "mean_ood_accuracy": 0.4423076923076923
+}

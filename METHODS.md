@@ -5131,3 +5131,16 @@ From `long-horizon-execution` (2026-10-16).
 - **Rule.** At this size, budget for labelled cases per workflow and do not claim schema generality; measure
   leave-one-workflow-out before calling any small decider "general". (`browser-decider/RESULTS.md`)
 
+
+
+### A head on a frozen embedder learns the training mix, not schema generality (eg2-decider)
+
+- **Finding.** A 1M-parameter head on frozen EmbeddingGemma 2 (field = state + MLP correction, cosine to option
+  vectors, initialised to the zero-shot score) trained on 7,921 rows from 727 tasksource sources improved on held-out mix
+  rows (0.424 to 0.500) and fell on every outside test: Typed Decisions 0.378 zero-shot to 0.327, unrelated schemas 0.721
+  to 0.609. Trained on three Typed Decisions workflows it scored 0.372 on the fourth, the same as zero-shot. Labelled
+  cases of the workflow itself were what moved it: 0.584 at 64 cases, 0.661 at 256.
+- **Rule.** Do not expect breadth from a head over frozen embeddings; it fits the sources it sees. A per-workflow
+  label budget of a few hundred cases is the working recipe, and generality needs the encoder trained on the mix
+  (as tasksource-decider-nano is). Also: zero-shot option similarity is strong for intent labels (0.875 on banking77)
+  and at chance for yes/no predicates and rubrics. (`eg2-decider/RESULTS.md`)

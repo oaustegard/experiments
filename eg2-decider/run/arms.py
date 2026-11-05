@@ -16,10 +16,10 @@ ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT.parent / "browser-decider" / "run"))
 from common import NOUL_DEFAULT, WORKFLOWS, examples, load_cases, score_examples  # noqa: E402
-from enc import EG2, render  # noqa: E402
+from enc import EG2, encoder, render, results_dir  # noqa: E402
 
 OOD = ROOT.parent / "browser-decider" / "data" / "decider_eval.jsonl"
-RES = ROOT / "results"
+RES = results_dir()
 TYPES = ["choice", "score", "noul"]
 TEMPLATES = {
     "desc": "{desc}",
@@ -86,8 +86,8 @@ class Vecs:
     def __init__(self, sp, op, tmpl):
         self.sp, self.op, self.tmpl = sp, op, tmpl
         if not Vecs._enc:
-            Vecs._enc["states"] = EG2()  # filled by embed_states.py
-            Vecs._enc["small"] = EG2(tag="small")  # questions and options, its own writer
+            Vecs._enc["states"] = encoder()  # filled by embed_states.py
+            Vecs._enc["small"] = encoder(tag="small")  # questions and options, its own writer
         self.states, self.small = Vecs._enc["states"], Vecs._enc["small"]
 
     def __call__(self, exs):
@@ -349,7 +349,7 @@ class MixVecs(Vecs):
     def __init__(self, sp, op, tmpl):
         super().__init__(sp, op, tmpl)
         if "mix" not in Vecs._enc:
-            Vecs._enc["mix"] = EG2(tag="mix")
+            Vecs._enc["mix"] = encoder(tag="mix")
         self.mix = Vecs._enc["mix"]
 
     def __call__(self, exs):
@@ -459,6 +459,29 @@ def a4(ns=(16, 64, 256), draws=(0, 1, 2)):
     print("A4", curve)
 
 
+def a3_diag():
+    """Does the A3 head learn the mix itself? Untrained head (=A0) vs A3 seed 0 on seed 0's mix validation rows."""
+    import torch
+    c = json.loads((RES / "a0.json").read_text())["choice"]
+    V = Joined(Vecs(c["state_prompt"], c["opt_prompt"], c["template"]),
+               MixVecs(c["state_prompt"], c["opt_prompt"], c["template"]))
+    rows = mix_rows()
+    rng = np.random.default_rng(0)  # train_head's seed-0 validation draw
+    cases = sorted({e["case"] for e in rows})
+    val = set(rng.choice(cases, max(1, int(len(cases) * 0.1)), replace=False).tolist())
+    va = [e for e in rows if e["case"] in val]
+    tva = tensors(V, va)
+    h = head_module(c["tau"])
+    zs = report(va, predict(h, tva), key=None)["accuracy"]
+    st = torch.load(ROOT / "out" / "heads" / "a3-s0.pt")
+    h.load_state_dict(st["state"])
+    tr = report(va, predict(h, tva, st["temp"]), key=None)["accuracy"]
+    first = float(np.mean([int(np.argmax(e["gold"]) == 0) for e in va]))
+    out = {"n_val": len(va), "zero_shot": zs, "a3_seed0": tr, "first_option_rate": first}
+    (RES / "a3_diag.json").write_text(json.dumps(out, indent=1))
+    print("A3 diag", out)
+
+
 if __name__ == "__main__":
     for arm in sys.argv[1:]:
-        {"a0": a0, "a1": a1, "a2": a2, "a3": a3, "a4": a4}[arm]()
+        {"a0": a0, "a1": a1, "a2": a2, "a3": a3, "a4": a4, "a3_diag": a3_diag}[arm]()

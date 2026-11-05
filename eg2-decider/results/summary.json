@@ -1,0 +1,158 @@
+{
+ "reference": {
+  "prior": 0.47,
+  "jev_zero_shot": 0.727,
+  "ettin_decider_specialist": 0.74,
+  "ettin_decider_lowo": 0.353,
+  "ettin_decider_ood": 0.279,
+  "jev_ood": 0.894,
+  "mrm8488_frozen": 0.677,
+  "mrm8488_end_to_end": 0.764
+ },
+ "full": {
+  "a0": {
+   "choice": {
+    "state_prompt": "cls",
+    "opt_prompt": "cls",
+    "template": "instr_name_desc",
+    "tau": {
+     "choice": 7.5,
+     "score": 15.0,
+     "noul": 1.0
+    }
+   },
+   "td_test_accuracy": 0.378,
+   "td_test_kl": 0.432,
+   "td_by_type": {
+    "choice": 0.3466666666666667,
+    "score": 0.32125,
+    "noul": 0.485
+   },
+   "ood_accuracy": 0.7212,
+   "ood_by_subset": {
+    "banking": 0.875,
+    "predicates": 0.4583333333333333,
+    "rubric": 0.5
+   }
+  },
+  "a1": {
+   "td_test_accuracy": 0.6783,
+   "td_test_sd": 0.0101,
+   "td_test_kl": 0.1818,
+   "td_test_brier": 0.1052,
+   "td_test_ece": 0.1091,
+   "td_by_type": {
+    "choice": 0.6611,
+    "score": 0.6071,
+    "noul": 0.7906
+   },
+   "td_by_workflow": {
+    "agent_trace_observability": 0.646,
+    "customer_service": 0.702,
+    "invoice_processing": 0.646,
+    "security_incidents": 0.7193
+   },
+   "ood_accuracy": 0.6667,
+   "ood_by_subset": {
+    "banking": 0.7656,
+    "predicates": 0.5278,
+    "rubric": 0.4792
+   }
+  },
+  "a2": {
+   "mean_accuracy": 0.3718,
+   "per_workflow": {
+    "agent_trace_observability": 0.3013,
+    "customer_service": 0.3847,
+    "invoice_processing": 0.4867,
+    "security_incidents": 0.3147
+   }
+  },
+  "a3": {
+   "td_test_accuracy": 0.3268,
+   "td_test_sd": 0.0082,
+   "ood_accuracy": 0.609,
+   "ood_by_subset": {
+    "banking": 0.6979,
+    "predicates": 0.4444,
+    "rubric": 0.5
+   },
+   "n_train_rows": 7921,
+   "n_sources": 727
+  },
+  "a4": {
+   "a3_n16": 0.4775,
+   "a3_n64": 0.5752,
+   "a3_n256": 0.6547,
+   "a0_n16": 0.5032,
+   "a0_n64": 0.5837,
+   "a0_n256": 0.6605
+  },
+  "timing": {
+   "n64_seconds_1thread": 6.2,
+   "n256_seconds_1thread": 18.1,
+   "head_params": 984324
+  },
+  "a3_diag": {
+   "n_val": 794,
+   "zero_shot": 0.4244,
+   "a3_seed0": 0.5,
+   "first_option_rate": 0.3892
+  }
+ },
+ "cut4": {
+  "a0": {
+   "choice": {
+    "state_prompt": "cls",
+    "opt_prompt": "sts",
+    "template": "instr_desc",
+    "tau": {
+     "choice": 3.5,
+     "score": 19.0,
+     "noul": 11.0
+    }
+   },
+   "td_test_accuracy": 0.3825,
+   "td_test_kl": 0.431,
+   "td_by_type": {
+    "choice": 0.33,
+    "score": 0.33,
+    "noul": 0.505
+   },
+   "ood_accuracy": 0.5865,
+   "ood_by_subset": {
+    "banking": 0.6875,
+    "predicates": 0.5,
+    "rubric": 0.3125
+   }
+  },
+  "a1": {
+   "td_test_accuracy": 0.665,
+   "td_test_sd": 0.0068,
+   "td_test_kl": 0.1925,
+   "td_test_brier": 0.1118,
+   "td_test_ece": 0.0975,
+   "td_by_type": {
+    "choice": 0.6367,
+    "score": 0.605,
+    "noul": 0.7733
+   },
+   "td_by_workflow": {
+    "agent_trace_observability": 0.6353,
+    "customer_service": 0.7187,
+    "invoice_processing": 0.6373,
+    "security_incidents": 0.6687
+   },
+   "ood_accuracy": 0.4423,
+   "ood_by_subset": {
+    "banking": 0.4427,
+    "predicates": 0.5,
+    "rubric": 0.3542
+   }
+  }
+ },
+ "embed_seconds_per_prompt": {
+  "full": 442,
+  "cut4": 86
+ }
+}

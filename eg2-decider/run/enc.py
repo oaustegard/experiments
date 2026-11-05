@@ -62,13 +62,18 @@ def render(obj, prefix="") -> str:
 
 
 class EG2:
-    def __init__(self, model="model_q4.onnx", threads=None, tag=""):
+    def __init__(self, model="model_q4.onnx", threads=None, tag="", hf=None):
+        """hf: directory holding onnx/<model> and tokenizer.json (default the full EG2 download).
+        The 4-layer cut (out/cut4, from austegard.com/bsky/image-search/model/ort) outputs 'embedding'."""
+        hf = Path(hf) if hf else HF
         so = ort.SessionOptions()
         so.intra_op_num_threads = threads or int(os.environ.get("EG2_THREADS", "4"))
-        self.sess = ort.InferenceSession(str(HF / "onnx" / model), so, providers=["CPUExecutionProvider"])
+        self.sess = ort.InferenceSession(str(hf / "onnx" / model), so, providers=["CPUExecutionProvider"])
         self.inputs = {i.name for i in self.sess.get_inputs()}
-        self.tok = Tokenizer.from_file(str(HF / "tokenizer.json"))
-        t = json.loads((HF / "tokenizer.json").read_text())
+        self.output = self.sess.get_outputs()[0].name if "sentence_embedding" not in {
+            o.name for o in self.sess.get_outputs()} else "sentence_embedding"
+        self.tok = Tokenizer.from_file(str(hf / "tokenizer.json"))
+        t = json.loads((hf / "tokenizer.json").read_text())
         self.specials = sorted((a["content"] for a in t["added_tokens"] if a.get("special")), key=len, reverse=True)
         self.name = model
         CACHE.mkdir(parents=True, exist_ok=True)
@@ -104,7 +109,7 @@ class EG2:
         for extra in ("image_features", "video_features", "audio_features"):
             if extra in self.inputs:
                 feed[extra] = empty
-        e = self.sess.run(["sentence_embedding"], feed)[0]
+        e = self.sess.run([self.output], feed)[0]
         return e / np.linalg.norm(e, axis=1, keepdims=True)
 
     def embed(self, texts, prompt="doc", max_tokens=1024, tok_budget=8192, log_every=0):
@@ -141,6 +146,20 @@ class EG2:
         if self._flat is None or len(self._flat) != len(self.index):
             self._flat = np.concatenate(self.vecs) if self.vecs else np.zeros((0, 768), np.float32)
         return self._flat[[self.index[k] for k in keys]]
+
+
+ENCODERS = {"full": ("model_q4.onnx", HF), "cut4": ("model_t3w.onnx", ROOT / "out" / "cut4")}
+
+
+def encoder(tag=""):
+    """The encoder named by $EG2_ENCODER (full EG2 q4 by default, or the 4-layer cut 'cut4')."""
+    model, hf = ENCODERS[os.environ.get("EG2_ENCODER", "full")]
+    return EG2(model, tag=tag, hf=hf)
+
+
+def results_dir():
+    name = os.environ.get("EG2_ENCODER", "full")
+    return ROOT / "results" / ("" if name == "full" else name)
 
 
 if __name__ == "__main__":
