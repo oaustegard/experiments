@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spiky Ball Decider</title>
+<meta name="description" content="A router and four LoRA specialists on one frozen 10 MB model, with a memory that learns from your corrections, in your browser on WebGPU.">
+<style>
+  :root {
+    --bg: #fbfaf7; --panel: #ffffff; --fg: #1d1c19; --muted: #6e6c64; --line: #e4e2db;
+    --model: #2f6db3; --knn: #c07a1f; --blend: #2e7d4f; --gold: #c9c5b8; --ok: #2e7d4f; --bad: #b3452f; --code: #f3f1ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d;
+      --model: #6aa5e8; --knn: #e3a54f; --blend: #5cc28a; --gold: #5a574f; --ok: #5cc28a; --bad: #e07a63; --code: #2a2925;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d;
+    --model: #6aa5e8; --knn: #e3a54f; --blend: #5cc28a; --gold: #5a574f; --ok: #5cc28a; --bad: #e07a63; --code: #2a2925;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  select, button, textarea { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  select, button { padding: 6px 10px; max-width: 100%; }
+  button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--model); color: #fff; border-color: var(--model); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 120px; }
+  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .card h3 { font-size: 14px; margin: 0 0 4px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 .tag { font-size: 11px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+  .card h3 .verdict { margin-left: auto; font-size: 12px; font-weight: 500; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  .instr { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  .opt { display: grid; grid-template-columns: minmax(90px, 30%) 1fr 48px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0;
+         border-radius: 4px; padding: 1px 2px; }
+  .opt.teach { cursor: pointer; } .opt.teach:hover { background: var(--code); }
+  .opt .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt .name .goldmark { color: var(--muted); font-size: 11px; margin-left: 4px; }
+  .bars { position: relative; height: 20px; }
+  .bars div { position: absolute; left: 0; border-radius: 2px; height: 5px; }
+  .bars .s { top: 1px; background: var(--model); } .bars .k { top: 7px; background: var(--knn); } .bars .b { top: 13px; background: var(--blend); }
+  .opt .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  .legend { font-size: 12px; color: var(--muted); display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 14px; height: 6px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  .route { display: grid; grid-template-columns: minmax(120px, 34%) 1fr 48px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+  .route .bars div { top: 6px; height: 8px; background: var(--model); }
+  .route.none .bars div { background: var(--bad); }
+  .gap { border-color: var(--bad); }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+  summary { cursor: pointer; }
+  pre, textarea { font: 12px/1.45 ui-monospace, Menlo, monospace; }
+  pre { background: var(--code); border-radius: 6px; padding: 10px; overflow: auto; max-height: 320px; margin: 8px 0 0; white-space: pre-wrap; word-break: break-word; }
+  textarea { width: 100%; min-height: 140px; padding: 8px; background: var(--code); }
+  table { border-collapse: collapse; font-size: 13px; width: 100%; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  #err { color: var(--bad); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+<h1>Spiky Ball Decider <span class="muted" style="font-size:14px;font-weight:400">v<span id="ver">0.1.0</span></span></h1>
+<p>Several narrow specialists ("spikes") on one shared model, running on your GPU in this tab. A router reads
+the input and picks the spike whose description fits, or says no specialist covers it. The chosen spike
+answers its typed questions with a probability for every option. A memory of cases you correct adds a
+nearest-neighbour vote, weighted per question by how well it has done on your corrections so far.</p>
+<p class="muted">The base is Ettin-17m (10 MB), frozen. Each spike is a 0.5 MB LoRA adapter trained on one
+<a href="https://huggingface.co/datasets/LocalLLaMA/typed-decisions">Typed Decisions</a> workflow; the router is
+one more. Switching spikes rewrites one GPU buffer. Click an option to mark it correct: that case joins the
+memory (kept in this browser only). See the
+<a href="https://github.com/oaustegard/experiments/tree/main/adapter-library">write-up</a> for what each part was measured to do.</p>
+
+<div class="stats" id="stats"></div>
+<p id="err"></p>
+
+<div class="row">
+  <select id="pick" aria-label="Sample input"></select>
+  <button id="run" class="primary" disabled>Route and answer</button>
+  <span id="ms" class="muted"></span>
+</div>
+<textarea id="st" aria-label="Input state (JSON or text)"></textarea>
+
+<div id="route"></div>
+<div id="ans"></div>
+
+<h2>Memory</h2>
+<p class="muted">Labelled cases per spike. With fewer than 4 labels for a question the spike answers alone; after
+that the blend weight λ (1 = spike only, 0 = memory only) is fit on the memory itself.</p>
+<div id="mem"></div>
+<div class="row"><select id="seedSpike" aria-label="Spike to seed"></select><button id="seed" disabled>Add 16 labelled training cases</button>
+  <button id="clear" disabled>Clear memory</button><span id="seedMsg" class="muted"></span></div>
+
+<h2>Library</h2>
+<div id="lib"></div>
+</main>
+
+<script type="module">
+import { loadSystem } from "./system.js";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const stat = (label, value) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`;
+const pct = (p) => (p * 100).toFixed(0) + "%";
+const nice = (s) => s.replace(/_/g, " ");
+// Python json.dumps(obj) spacing, the form the spikes were trained on.
+const pyJson = (v) => v === null ? "null" : Array.isArray(v) ? "[" + v.map(pyJson).join(", ") + "]"
+  : typeof v === "object" ? "{" + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ": " + pyJson(x)).join(", ") + "}"
+  : typeof v === "boolean" ? (v ? "true" : "false") : JSON.stringify(v);
+
+let sys, samples, current = null, lastAns = null;
+
+function renderRoute(r, forced) {
+  const rows = [...r.ranked, "none"].map((id) => `<div class="route ${id === "none" ? "none" : ""}"><span>${id === "none" ? "none of these" : nice(id)}</span>
+    <div class="bars"><div style="width:${(r.probs[id] * 100).toFixed(1)}%"></div></div><span class="pct">${pct(r.probs[id])}</span></div>`).join("");
+  const verdict = r.gap && !forced
+    ? `<span class="verdict bad">gap: P(none) ${r.pNone.toFixed(2)} ≥ threshold ${sys.system.router.threshold.toFixed(2)}</span>`
+    : `<span class="verdict ok">→ ${nice(forced || r.spike)}${forced ? " (chosen by you)" : ""}</span>`;
+  const gapNote = r.gap && !forced ? `<p>No specialist covers this input. In the experiment, spikes trained on other tasks scored below
+    the always-the-most-common-answer baseline on unseen tasks, so the system does not guess. To grow a spike here it would need
+    labelled examples and its own questions. <button id="force">Answer with ${esc(nice(r.spike))} anyway</button></p>` : "";
+  $("route").innerHTML = `<div class="card ${r.gap && !forced ? "gap" : ""}"><h3>Router <span class="tag">${r.ms.toFixed(0)} ms</span>${verdict}</h3>${rows}${gapNote}</div>`;
+  if ($("force")) $("force").onclick = () => answer(r.spike, r, true);
+}
+
+function renderAnswer(a) {
+  const gold = current?.gold && current.workflow === a.spike ? current.gold : null;
+  let html = `<div class="legend"><span><span class="sw" style="background:var(--model)"></span>spike</span>
+    <span><span class="sw" style="background:var(--knn)"></span>memory (kNN)</span><span><span class="sw" style="background:var(--blend)"></span>blend</span>
+    <span>${a.ms.toFixed(0)} ms for ${Object.keys(a.questions).length} questions</span></div>`;
+  for (const [name, q] of Object.entries(a.questions)) {
+    let verdict = "";
+    if (gold) verdict = gold[name] === q.label ? `<span class="verdict ok">matches gold</span>` : `<span class="verdict bad">gold: ${esc(gold[name])}</span>`;
+    const mem = q.knn ? `λ ${q.lambda.toFixed(1)} · ${q.labels} labels` : `no memory yet`;
+    html += `<div class="card"><h3>${esc(name)} <span class="tag">${q.type}</span><span class="tag">${mem}</span>${verdict}</h3><div class="instr">${esc(q.instructions)}</div>`;
+    q.options.forEach(([o, d], j) => {
+      const g = gold && gold[name] === o ? `<span class="goldmark">gold</span>` : "";
+      html += `<div class="opt teach" data-q="${esc(name)}" data-o="${esc(o)}" title="Mark &quot;${esc(o)}&quot; correct: ${esc(d)}">
+        <span class="name">${esc(o)}${q.type === "score" ? ": " + esc(String(d).split(/[.;:]/)[0]) : ""}${g}</span>
+        <div class="bars"><div class="s" style="width:${(q.spike[j] * 100).toFixed(1)}%"></div>${q.knn ? `<div class="k" style="width:${(q.knn[j] * 100).toFixed(1)}%"></div>` : ""}<div class="b" style="width:${(q.blend[j] * 100).toFixed(1)}%"></div></div>
+        <span class="pct">${pct(q.blend[j])}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  $("ans").innerHTML = html;
+  document.querySelectorAll(".opt.teach").forEach((el) => el.onclick = () => {
+    sys.teach(a.spike, a, { [el.dataset.q]: el.dataset.o }, current?.id ?? `user-${Date.now()}`);
+    renderMem();
+    $("ms").textContent = `taught: ${el.dataset.q} = ${el.dataset.o}`;
+  });
+}
+
+function renderMem() {
+  const c = sys.memCount();
+  $("mem").innerHTML = `<div class="stats">${Object.entries(c).map(([k, n]) => stat(nice(k), n)).join("")}</div>`;
+}
+
+async function answer(spike, r, forced = false) {
+  renderRoute(r, forced ? spike : null);
+  lastAns = await sys.answer(spike, stateStr());
+  renderAnswer(lastAns);
+}
+
+function stateStr() {
+  const raw = $("st").value.trim();
+  try { const v = JSON.parse(raw); return typeof v === "object" && v !== null ? pyJson(v) : raw; } catch { return raw; }
+}
+
+async function run() {
+  $("err").textContent = "";
+  try {
+    const t = performance.now();
+    const r = await sys.route(stateStr());
+    if (r.gap) { renderRoute(r); $("ans").innerHTML = ""; }
+    else await answer(r.spike, r);
+    $("ms").textContent = `${(performance.now() - t).toFixed(0)} ms in all`;
+  } catch (e) { $("err").textContent = String(e.message || e); }
+}
+
+try {
+  if (!navigator.gpu) throw new Error("This page needs WebGPU (recent Chrome, Edge or Safari 26+).");
+  [sys, samples] = await Promise.all([loadSystem("models/"), fetch("models/samples.json").then((r) => r.json())]);
+  $("ver").textContent = sys.info.version;
+  $("stats").innerHTML = stat("download, base + 5 spikes", (sys.info.bytes / 1e6).toFixed(1) + " MB") + stat("spikes", sys.system.spikes.length + " + router")
+    + stat("engine start", sys.info.initMs.toFixed(0) + " ms");
+  const groups = {};
+  samples.cases.forEach((c, i) => (groups[c.workflow] ??= []).push(`<option value="c${i}">${esc(nice(c.workflow))}: ${esc(c.id)}</option>`));
+  $("pick").innerHTML = Object.entries(groups).map(([w, o]) => `<optgroup label="${esc(nice(w))}">${o.join("")}</optgroup>`).join("")
+    + `<optgroup label="outside the library">${samples.offdomain.map((c, i) => `<option value="o${i}">${esc(c.label)}</option>`).join("")}</optgroup>`;
+  const load = () => {
+    const v = $("pick").value, c = v[0] === "c" ? samples.cases[+v.slice(1)] : { ...samples.offdomain[+v.slice(1)], id: null };
+    current = c;
+    let txt = c.state;
+    try { txt = JSON.stringify(JSON.parse(c.state), null, 2); } catch { /* text */ }
+    $("st").value = txt;
+  };
+  $("pick").onchange = () => { load(); run(); };
+  $("run").onclick = run;
+  $("seedSpike").innerHTML = sys.system.spikes.map((s) => `<option value="${s.id}">${esc(nice(s.id))}</option>`).join("");
+  $("seed").onclick = async () => {
+    const id = $("seedSpike").value;
+    $("seed").disabled = true; $("seedMsg").textContent = "running the spike on 16 cases…";
+    const n = await sys.seed(id, samples.seed[id]);
+    $("seedMsg").textContent = `${nice(id)} memory: ${n} cases`; $("seed").disabled = false; renderMem();
+  };
+  $("clear").onclick = () => { sys.clear(); renderMem(); $("seedMsg").textContent = "memory cleared"; };
+  $("lib").innerHTML = `<table><tr><th>spike</th><th>what it covers</th><th>size</th></tr>${sys.system.spikes.map((s) =>
+    `<tr><td>${esc(nice(s.id))}</td><td>${esc(s.description)}</td><td>${(sys.spikes[s.id].bytes.byteLength / 1e3).toFixed(0)} kB</td></tr>`).join("")}
+    <tr><td>router</td><td>${esc(sys.system.router.question.replace(/^choice: /, ""))} Gap threshold P(none) ≥ ${sys.system.router.threshold.toFixed(2)}.</td>
+    <td>${(sys.spikes.router.bytes.byteLength / 1e3).toFixed(0)} kB</td></tr></table>`;
+  renderMem();
+  $("run").disabled = $("seed").disabled = $("clear").disabled = false;
+  load(); await run();
+} catch (e) {
+  $("err").textContent = String(e.message || e);
+}
+</script>
+</body>
+</html>

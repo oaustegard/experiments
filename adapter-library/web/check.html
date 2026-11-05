@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spike Engine Check</title>
+<style>:root{--bg:#fbfaf7;--fg:#1d1c19}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171715;--fg:#efede7}}
+:root[data-theme="dark"]{--bg:#171715;--fg:#efede7}body{background:var(--bg);color:var(--fg);font:14px system-ui;margin:16px}pre{white-space:pre-wrap}</style></head>
+<body><h1>Spike engine parity check</h1><p>Runs the packed reference fixtures (run/pack_system.py --fixtures) through the WebGPU
+engine and compares logits and pooled keys with the NumPy reference.</p><pre id="out">running…</pre>
+<script type="module">
+import { loadSystem } from "./system.js";
+const out = document.getElementById("out");
+try {
+  const sys = await loadSystem("models/");
+  const fx = await fetch("models/fixtures.json").then((r) => r.json());
+  const res = [];
+  for (const c of fx.cases) {
+    sys.engine.setSpike(sys.spikes[c.spike].m, sys.spikes[c.spike].bytes);
+    const z = await sys.engine.score([{ ids: c.ids, pos: c.pos, pool: c.pool }]);
+    const dl = Math.max(...c.logits.map((x, i) => Math.abs(x - z[0][i])));
+    const dk = Math.max(...c.key8.map((x, i) => Math.abs(x - z.keys[0][i])));
+    const argOk = c.logits.indexOf(Math.max(...c.logits)) === Array.from(z[0]).indexOf(Math.max(...z[0]));
+    res.push({ spike: c.spike, maxLogitDiff: dl, maxKeyDiff: dk, argmaxSame: argOk });
+  }
+  const summary = { n: res.length, maxLogitDiff: Math.max(...res.map((r) => r.maxLogitDiff)), maxKeyDiff: Math.max(...res.map((r) => r.maxKeyDiff)),
+                    argmaxSame: res.filter((r) => r.argmaxSame).length, cases: res };
+  window.__result = summary;
+  out.textContent = JSON.stringify(summary, null, 1);
+} catch (e) { window.__result = { error: String(e.stack || e) }; out.textContent = String(e.stack || e); }
+</script></body></html>
