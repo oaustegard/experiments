@@ -289,3 +289,27 @@ option works as a score (AUROC) but rarely fires as a decision on a family it ne
 would have to be set from data. Splitting workflows into families cost 0.065 even with perfect routing.
 On this benchmark the families share their questions, so a sub-spike only loses data. Until a family
 needs answers its siblings don't give, the spiky ball's spikes should be whole tasks, not sub-topics.
+
+### Post hoc after round 4 (2026-11-05, not registered): answering a case from an unseen family
+
+Oskar asked what happens to a case that falls in a gap, and whether averaging the two or three nearest
+spikes would cover it. Round 1 already answered the cross-workflow case: a spike trained on other
+questions scores below the 0.470 frequency baseline on an unseen workflow, so averaging such spikes
+cannot help. Inside a workflow, siblings share the questions. For each family, its two sibling
+sub-spikes (never trained on it) were scored on its test cases. `run/gap_siblings.py`, CPU, from
+round 4's saved predictions:
+
+| answer from | accuracy (mean over 12 families) |
+|---|---|
+| the family's own sub-spike (not a gap; reference) | 0.658 |
+| best single sibling | 0.618 |
+| average of the two siblings' distributions | 0.575 |
+| siblings weighted by the router's probabilities | 0.565 |
+| worst single sibling | 0.465 |
+| whole-workflow spike (trained on all three families; reference) | 0.733 |
+
+Reading at the time: averaging lands between the best and the worst sibling. It insures against the
+bad one and gives up the good one. Weighting by the router does no better, because the router scores
+how well a description fits, not which spike answers better. For a gap inside a known task, the useful
+fallback is the broader spike that covers the whole task. For a gap across tasks, the fallback is to
+flag it and grow a new spike from the library start.
