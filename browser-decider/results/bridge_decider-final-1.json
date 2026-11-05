@@ -1,0 +1,103 @@
+{
+ "describe": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": "",
+  "features": [
+   "core-features-and-limits",
+   "shader-f16",
+   "subgroups",
+   "timestamp-query"
+  ],
+  "limits": {
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292,
+   "maxComputeWorkgroupStorageSize": 32768,
+   "maxComputeInvocationsPerWorkgroup": 1024,
+   "maxComputeWorkgroupsPerDimension": 65535
+  }
+ },
+ "setupMs": 199.29999995231628,
+ "firstCaseMs": 25.899999976158142,
+ "parity": {
+  "maxAbsLogitDiff": 7.033348083496094e-06,
+  "argmaxAgree": 40,
+  "nQuestions": 40
+ },
+ "caseMsMedian": 19.300000071525574,
+ "caseMsP90": 25.5,
+ "oneQuestionMsMedian": 5.200000047683716,
+ "engineOnlyMsMedian": 13.799999952316284,
+ "tokensPerCaseMedian": 1710,
+ "nCases": 8,
+ "reps": 5,
+ "sample": {
+  "action": {
+   "type": "choice",
+   "label": "continue",
+   "confidence": 0.2458277865794256,
+   "probabilities": {
+    "continue": 0.4343708399345692,
+    "human_review": 0.1539431937107529,
+    "observe": 0.3860204419600482,
+    "stop": 0.025665524394629716
+   }
+  },
+  "needs_review": {
+   "type": "noul",
+   "label": "false",
+   "confidence": 0.6511815794133209,
+   "probabilities": {
+    "true": 0.17440921029333964,
+    "false": 0.8255907897066604
+   },
+   "probability_true": 0.17440921029333964
+  },
+  "outcome": {
+   "type": "choice",
+   "label": "success",
+   "confidence": 0.569251109781535,
+   "probabilities": {
+    "failure": 0.10396025421935443,
+    "harmful": 0.01996892171172906,
+    "partial": 0.19913249173276518,
+    "success": 0.6769383323361513
+   }
+  },
+  "risk": {
+   "type": "score",
+   "label": "0",
+   "confidence": 0.2797322928363024,
+   "probabilities": {
+    "0": 0.4597992196272268,
+    "1": 0.3923451220120891,
+    "2": 0.12067617968631845,
+    "3": 0.027179478674365577
+   },
+   "score": 0.7152359174078228
+  },
+  "urgency": {
+   "type": "score",
+   "label": "0",
+   "confidence": 0.39117439767827705,
+   "probabilities": {
+    "0": 0.5433807982587078,
+    "1": 0.35921483270494203,
+    "2": 0.08335420239092853,
+    "3": 0.014050166645421656
+   },
+   "score": 0.568073737423064
+  }
+ },
+ "_job": {
+  "id": "decider-final-1",
+  "device": "Mac",
+  "adapter": "apple metal-3",
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+  "tabName": "Mac",
+  "pageVersion": 10,
+  "runMs": 4967.100000023842
+ },
+ "_note": "shipped build: spec-stock-s0, t4-w8L63"
+}
