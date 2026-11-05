@@ -1650,6 +1650,15 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A learned kNN/model blend weight needs an estimate of the model's own held-out accuracy, not
+  only the neighbors'.** A logistic gate over neighbor similarity, kNN leave-one-out accuracy,
+  both models' confidence and their disagreement, fit on three workflows and applied to a fourth,
+  matched the model alone in accuracy (0.555 vs 0.554 at 16 labels) and only improved calibration.
+  kNN's leave-one-out accuracy tracked kNN's own test accuracy (r 0.69–0.92) but barely tracked whether
+  kNN beat the model at few labels (r 0.19 at 16, 0.72 at 300), and few labels is where kNN won most
+  (40% of questions at 16). The likely fix, untested, is to cross-fit the model on folds of the labelled
+  set and feed the gate its held-out accuracy. A gate fit on other domains also guessed worst on the
+  domain least like them. One benchmark, four domains. (`adapter-library/RESULTS.md` round 2)
 - **To grow a new LoRA specialist, start it from the library's merged delta, not from zero.** On
   Ettin-17m and Typed Decisions, the mean of three other workflows' `B·A` deltas, SVD-cut to rank 8,
   plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero
