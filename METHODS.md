@@ -1615,6 +1615,17 @@ the result.
 - **`gpu-bridge/run/e2e.js` writes its fixtures into the current directory.** Run from the repo root, it leaves
   `bare.git/`, `seed/`, `clone/`, `out/` and a dozen job files there. Run it from a scratch directory.
 
+- **A WGSL kernel that never reads a declared binding makes its bind group invalid, and the pass then runs nothing.**
+  With `layout: "auto"`, bindings the shader does not use are left out of the layout, so a bind group that supplies them
+  fails validation; every later dispatch in the command buffer is dropped and the readback holds stale or zero data, with
+  no exception. `browser-decider`'s gather kernel skipped the `dn` uniform: logits were garbage and SwiftShader "timed"
+  1,700 tokens at 6 ms. Read every binding (a no-op comparison is enough), and push an error scope around the first run
+  of a new engine. (`browser-decider/web/wgsl/kernels.js`, RESULTS Log)
+- **A remote runner that pipes a trainer through `grep` reports its crashes as success.** The pipeline's exit code is
+  grep's. `browser-decider`'s Colab runner logged nine CUDA out-of-memory crashes as `rc=0`. Run the command under
+  `bash -o pipefail`. Two training jobs sharing one GPU is also where the OOM came from: Monad (64 layers × 1,000 tokens ×
+  batch 16) took 21 of the L4's 23 GB. (`browser-decider/run/colab_arms.py`)
+
 ## Numerical / ML gotchas
 
 - **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM
@@ -5090,3 +5101,21 @@ From `long-horizon-execution` (2026-10-16).
 - **Minimal context.** `--system-prompt <own> --tools "" --strict-mcp-config --setting-sources ""` and stdin from `/dev/null` (otherwise a 3 s stdin wait and a warning) gives ~1.5k tokens of context, ~$0.001 per Haiku call with 100 planted turns.
 - **Classify misses before reading a rate.** With corrupted history there are two different wrong answers: a slip, and a repair (the model recomputes the true state and ignores its history). Turn accuracy scores both as misses. On Haiku 5.5 at high effort, 6 of 7 misses were repairs.
 - **Gemini 3.x thinking budget 0 means "minimal", not "none".** The model allots its own thinking (0 to 2.9k tokens on the same task), and the 0-thinking run was the wrong one.
+
+### An embedder's retrieval-tuned checkpoint is a worse cross-encoder start than its MLM base (browser-decider)
+
+- **Finding.** Fine-tuned as a typed-decision cross-encoder (a head on each option's `[MASK]` state), the Ettin-17m
+  checkpoint that ettin-native had tuned for Bluesky retrieval reached 0.636 ± 0.008 against 0.714 ± 0.005 from stock
+  `jhu-clsp/ettin-encoder-17m`, three seeds each, with the largest loss on ordinal score questions (0.545 vs 0.679).
+- **Rule.** Contrastive tuning for pooled sentence vectors does not carry over to tasks that read individual token
+  states; start a token-level head from the MLM checkpoint and reuse only the compression format. (`browser-decider/RESULTS.md`)
+
+### A typed-decision specialist under 20M parameters does not transfer to an unseen workflow (browser-decider)
+
+- **Finding.** Trained on three Typed Decisions workflows and tested on the fourth, Ettin-17m scored 0.353 (stock) and
+  0.378 (retrieval-tuned) averaged over four held-out workflows and three seeds, below the 0.470 label prior; on the
+  same workflows after training on them it scored 0.70 to 0.77. Longer training raised in-domain accuracy by 0.026 and
+  lowered accuracy on unrelated schemas from 0.394 to 0.279.
+- **Rule.** At this size, budget for labelled cases per workflow and do not claim schema generality; measure
+  leave-one-workflow-out before calling any small decider "general". (`browser-decider/RESULTS.md`)
+

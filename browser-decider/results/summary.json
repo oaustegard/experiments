@@ -842,6 +842,109 @@
   },
   "_note": "shipped build: spec-stock-s0, t4-w8L63"
  },
+ "bridge_decider-final-2": {
+  "describe": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  },
+  "setupMs": 164.89999997615814,
+  "firstCaseMs": 29.699999928474426,
+  "parity": {
+   "maxAbsLogitDiff": 7.3909759521484375e-06,
+   "argmaxAgree": 40,
+   "nQuestions": 40
+  },
+  "caseMsMedian": 41.199999928474426,
+  "caseMsP90": 144.39999997615814,
+  "oneQuestionMsMedian": 10.899999976158142,
+  "engineOnlyMsMedian": 33.10000002384186,
+  "tokensPerCaseMedian": 1710,
+  "nCases": 8,
+  "reps": 5,
+  "sample": {
+   "action": {
+    "type": "choice",
+    "label": "continue",
+    "confidence": 0.3851292659049905,
+    "probabilities": {
+     "continue": 0.5388469494287429,
+     "human_review": 0.10803494996740136,
+     "observe": 0.3344937309126134,
+     "stop": 0.018624369691242253
+    }
+   },
+   "needs_review": {
+    "type": "noul",
+    "label": "false",
+    "confidence": 0.6235332072479118,
+    "probabilities": {
+     "true": 0.18823339637604397,
+     "false": 0.8117666036239559
+    },
+    "probability_true": 0.18823339637604397
+   },
+   "outcome": {
+    "type": "choice",
+    "label": "success",
+    "confidence": 0.6115960762244385,
+    "probabilities": {
+     "failure": 0.08813382930827664,
+     "harmful": 0.006924793046733152,
+     "partial": 0.19624432047666124,
+     "success": 0.7086970571683289
+    }
+   },
+   "risk": {
+    "type": "score",
+    "label": "1",
+    "confidence": 0.27190206217314666,
+    "probabilities": {
+     "0": 0.45349366470028535,
+     "1": 0.45392654662986,
+     "2": 0.07913355752101671,
+     "3": 0.013446231148838146
+    },
+    "score": 0.6525323551184078
+   },
+   "urgency": {
+    "type": "score",
+    "label": "0",
+    "confidence": 0.35718820903231396,
+    "probabilities": {
+     "0": 0.5178911567742355,
+     "1": 0.36034976607239066,
+     "2": 0.10495029801476578,
+     "3": 0.016808779138607986
+    },
+    "score": 0.6206766995177462
+   }
+  },
+  "_job": {
+   "id": "decider-final-2",
+   "device": "Mac",
+   "adapter": "apple metal-3",
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+   "tabName": "Mac",
+   "pageVersion": 10,
+   "runMs": 30638.200000047684
+  },
+  "_note": "shipped build: spec-stock-e10-s0, t4-w8L63"
+ },
  "page_build": {
   "packed": "spec-stock-e10-s0-t4-w8L63",
   "brotliBytes": {

@@ -1,268 +1,274 @@
 {
- "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
- "pages": [
-  {
-   "title": "WGSL Forge Gallery",
-   "experiment": "wgsl-forge",
-   "path": "wgsl-forge/web",
-   "blurb": "Shaders compiled from SVG files and Python scenes, minified and running live: each one computes every shape's distance at each pixel, so it stays sharp at any zoom"
-  },
-  {
-   "title": "Images as Shaders",
-   "experiment": "image-to-wgsl",
-   "path": "image-to-wgsl/web",
-   "blurb": "Six photographs, each stored as one WGSL shader of 1,024 soft ellipses that paints itself in, coarse to fine, beside AVIF and WebP files of the same size. As compression it loses: AVIF scores 3.9 to 6.8 dB higher. You can fit your own image on your GPU, up to 8,192 ellipses, and zoom in: the shader stays smooth while the image files show their pixels"
-  },
-  {
-   "title": "Force Touch Probe",
-   "experiment": "force-touch",
-   "path": "force-touch/web",
-   "blurb": "What a phone browser reports about how hard a thumb presses: pressure, contact size and the phone's own motion, sent live to an observing Claude session"
-  },
-  {
-   "title": "Tilt Rally (moved)",
-   "experiment": "tilt-racer",
-   "path": "tilt-racer/web",
-   "blurb": "Moved to austegard.com/games/tilt-rally/; this address redirects there"
-  },
-  {
-   "title": "Pulse From Video",
-   "experiment": "pulse-video",
-   "path": "pulse-video/web",
-   "blurb": "Eulerian video magnification on the GPU: the camera's colour changes at heart-rate frequencies, amplified 60 times so the flush of blood in your face shows, with a heart-rate estimate and how much auto-exposure is faking it. A curiosity, not a medical device"
-  },
-  {
-   "title": "Camera Resonator",
-   "experiment": "camera-resonator",
-   "path": "camera-resonator/web",
-   "blurb": "Move in front of the camera to strike a virtual steel plate or a row of bells where the motion is; thousands of modes summed on the GPU per 10 ms block, with dropouts and latency on screen"
-  },
-  {
-   "title": "Paper Drum",
-   "experiment": "paper-drum",
-   "path": "paper-drum/web",
-   "blurb": "Draw a drum on paper and tap it: the camera finds your fingertip, the microphone hears the tap, and the GPU rings a drum skin with the shape you drew"
-  },
-  {
-   "title": "Room Drum",
-   "experiment": "room-drum",
-   "path": "room-drum/web",
-   "blurb": "Edges in the camera image become the walls of a drum skin that the GPU steps once per audio sample; tap or move inside a shape to hear how a drum of that outline rings"
-  },
-  {
-   "title": "Like Poll",
-   "experiment": "bsky-like-poll",
-   "blurb": "Bluesky poll builder: sign in, type a question and options, and it posts a thread people vote on with likes; the counter drops anyone who liked more than one option",
-   "url": "https://austegard.com/bsky/like-poll.html"
-  },
-  {
-   "title": "Lantern Eel",
-   "experiment": "lantern-eel",
-   "blurb": "Snake in the deep sea, steered by tilt: the light fades with depth until only the eel's lure shows the way; lanternfish flee, jellyfish rise, pearls let you phase. Installable PWA",
-   "url": "https://austegard.com/fun-and-games/lantern-eel/"
-  },
-  {
-   "title": "Scoop",
-   "experiment": "scoop",
-   "blurb": "Minesweeper with dog poop: sweep the long grass, bag the heaps, and step in one to set off the whole lawn. A WebGPU reskin of Sounding. Installable PWA",
-   "url": "https://austegard.com/fun-and-games/scoop/"
-  },
-  {
-   "title": "Sounding",
-   "experiment": "sounding",
-   "blurb": "Minesweeper drawn by one WebGPU fragment shader: sonar pings, rippling flood openings, glowing beacons, and a chain detonation with a shockwave and GPU particles. Installable PWA",
-   "url": "https://austegard.com/fun-and-games/sounding/"
-  },
-  {
-   "title": "Plumb",
-   "experiment": "plumb",
-   "blurb": "Falling blocks for the phone: tilt to steer, tip to drop faster, jab to hard-drop, shake to hold; SVG well over a WebGPU dust field that pools under real gravity. Installable PWA",
-   "url": "https://austegard.com/fun-and-games/plumb/"
-  },
-  {
-   "title": "Raking Light",
-   "experiment": "raking-light",
-   "blurb": "Relights flat SVG on the GPU: paint order becomes a heightfield, compute passes add bevels and ambient occlusion, and Kelvin lights cast soft ray-marched shadows",
-   "url": "https://austegard.com/fun-and-games/raking-light.html"
-  },
-  {
-   "title": "Refractometer",
-   "experiment": "refractometer",
-   "path": "refractometer/web",
-   "blurb": "Sweeps WebGPU kernel configurations on your GPU, checks each against a JS reference, and saves the fastest per adapter with the performance cliffs around it"
-  },
-  {
-   "title": "Two Prisms",
-   "experiment": "prism-audio",
-   "path": "prism-audio/web",
-   "blurb": "Five-band spectral audio processor in one WGSL dispatch: FFT, per-band compressor, gate, freeze and mute, inverse FFT, with a live waterfall and the GPU round trip measured against the block length"
-  },
-  {
-   "title": "Bit-Plane Dispersion Scan",
-   "experiment": "bitplane-scan",
-   "path": "bitplane-scan/web",
-   "blurb": "Exact int8 top-K search in WebGPU that reads the corpus one bit plane at a time and prunes candidates with provable bounds; compares results, survivor counts and bytes read against brute force"
-  },
-  {
-   "title": "Self-painting SVG",
-   "experiment": "svg-timeline",
-   "path": "svg-timeline/web/index.html",
-   "blurb": "Any picture becomes one SVG that sketches itself in charcoal, paints itself in and falls apart; built in the page, no JavaScript in the output"
-  },
-  {
-   "title": "Starry Night, painting itself",
-   "experiment": "svg-timeline",
-   "path": "svg-timeline/starry-timeline.svg",
-   "blurb": "A traced Starry Night sketched, painted, taken to night and dawn, then dismantled on a 48 s loop: one SVG, CSS keyframes from a small timeline compiler, no JavaScript"
-  },
-  {
-   "title": "Live camera tagger",
-   "experiment": "live-tagger",
-   "path": "live-tagger/web",
-   "blurb": "Point your phone camera at something: MobileCLIP-S0 on WebGPU tags each frame against 4,585 tags embedded ahead of time, with no text model in the page"
-  },
-  {
-   "title": "Image to SVG in the browser",
-   "experiment": "svg-in-browser",
-   "path": "svg-in-browser/web",
-   "blurb": "image-to-svg ported to the page: k-means in WGSL (JavaScript fallback), pixel-edge tracing and image-to-svg 1.9.0's compact output, all client-side"
-  },
-  {
-   "title": "Warhol palette cycle",
-   "experiment": "svg-palette-cycle",
-   "path": "svg-palette-cycle/cat-cycle.svg",
-   "blurb": "One traced cat drawn four times, cycling four palettes with @property colors and offset keyframes; 72 KB, no JavaScript"
-  },
-  {
-   "title": "Navier–Stokes term by term",
-   "experiment": "navier-stokes-explainer",
-   "path": "navier-stokes-explainer/web",
-   "blurb": "Interactive WebGPU explainer: the four terms, Reynolds number, vortex stretching, the Beale–Kato–Majda criterion and the 2026 forced blowup results"
-  },
-  {
-   "title": "EmbeddingGemma 2 search on WebGPU",
-   "experiment": "embeddinggemma2-webgpu-tail",
-   "path": "embeddinggemma2-webgpu-tail/web",
-   "blurb": "EmbeddingGemma 2 q4 in the browser, with 2-bit remex codes and the corpus scan in WebGPU kernels on onnxruntime-web's own device"
-  },
-  {
-   "title": "EG2 query encoder in hand-written WGSL",
-   "experiment": "eg2-wgsl-engine",
-   "path": [
-    "eg2-wgsl-engine/web",
-    "_lib/wgsl/runtime.js",
-    "_lib/wgsl/kernels.js"
-   ],
-   "blurb": "Bench: the 4-layer EmbeddingGemma 2 query encoder run by a custom WebGPU engine against onnxruntime-web (WebGPU and wasm) on the same 25 MB model file"
-  },
-  {
-   "title": "EG2 training targets on WebGPU",
-   "experiment": "eg2-query-student",
-   "path": "eg2-query-student/web",
-   "blurb": "Embeds 110,605 query-shaped texts with EmbeddingGemma 2 on the browser's GPU and saves int8 shards, the training targets for a small query encoder distilled into EG2's space"
-  },
-  {
-   "title": "Delegation skill map",
-   "experiment": "delegation-skill-map",
-   "path": "delegation-skill-map",
-   "blurb": "14 agent and delegation skills compared: frontmatter, boundaries, a decision path and cut candidates"
-  },
-  {
-   "title": "The Second Sky",
-   "experiment": "second-sky",
-   "url": "https://muninn.austegard.com/scratch/second-sky/",
-   "blurb": "140 constellations of an invented people, drawn on the real stars by 1,843 Haiku calls"
-  },
-  {
-   "title": "Latent Calculator",
-   "experiment": "latent-calculator",
-   "path": "latent-calculator/web",
-   "blurb": "A frozen SmolLM2-135M doing arithmetic through a calculator wired between its layers, in the browser"
-  },
-  {
-   "title": "Latent Calculator demo",
-   "experiment": "latent-calculator",
-   "path": "latent-calculator/demo.html",
-   "blurb": "Explainer page: how the operands are read from layer 16 and the result written back"
-  },
-  {
-   "title": "In-browser taxonomy classifier",
-   "experiment": "hypothetical-classification",
-   "path": "hypothetical-classification/demo",
-   "blurb": "gte-small snaps free text onto Wayfair's 860 WANDS product classes, with no server"
-  },
-  {
-   "title": "Snooker Break Simulator",
-   "experiment": "snooker-break",
-   "path": "snooker-break/snooker-break.html",
-   "blurb": "Break simulator: the traditional apex strike against Murphy's third-red break"
-  },
-  {
-   "title": "Procedural Lion",
-   "experiment": "threejs-lion",
-   "path": "threejs-lion/index.html",
-   "blurb": "A cartoon lion rebuilt procedurally in three.js, with about 3,000 swept-tube hair strands"
-  },
-  {
-   "title": "Geezer Goon",
-   "experiment": "geezer-goon-video",
-   "path": "geezer-goon-video/v2/web",
-   "blurb": "Animated music video for the Wednesday-ride song, driven by the ride's real Strava data"
-  },
-  {
-   "title": "Strudel FM, before and after",
-   "experiment": "strudel-fm-melody",
-   "path": [
-    "strudel-fm-melody/before.html",
-    "strudel-fm-melody/after.html",
-    "strudel-fm-melody/before-seeded.html",
-    "strudel-fm-melody/after-seeded.html"
-   ],
-   "blurb": "The Strudel FM lead before and after its melody rewrite, with seeded variants"
-  },
-  {
-   "title": "A Growth Race for Erdős–Gyárfás",
-   "experiment": "erdos-gyarfas",
-   "path": "erdos-gyarfas/note.html",
-   "blurb": "Research note with partial results on an open problem in graph theory"
-  },
-  {
-   "title": "KB Packer",
-   "experiment": "kb-packer-web",
-   "url": "https://austegard.com/ai-tools/kb-packer.html",
-   "blurb": "Build a portable knowledgebase skill in the browser"
-  },
-  {
-   "title": "X-ray glasses",
-   "experiment": "xray-glasses",
-   "url": "https://austegard.com/fun-and-games/xray-glasses/",
-   "blurb": "Point the camera at a person, cat or dog: MediaPipe Pose or RTMPose (AP-10K) finds the joints and a WebGPU shader draws a fitted skeleton over a radiograph view of the feed, all on the device"
-  },
-  {
-   "title": "GPU Bridge",
-   "experiment": "gpu-bridge",
-   "path": "gpu-bridge/web",
-   "blurb": "Runs WebGPU jobs that Claude Code sessions push to a private GitHub repo on this machine's GPU, commits the results back and wakes the session"
-  },
-  {
-   "title": "Voice Loop",
-   "experiment": "voice-loop",
-   "path": [
-    "voice-loop/web",
-    "lfm-wgsl/web/lfm.js",
-    "lfm-wgsl/web/manifest.json",
-    "lfm-wgsl/web/manifest3.json",
-    "lfm-wgsl/web/lfm3.js",
-    "_lib/wgsl/runtime.js",
-    "_lib/wgsl/kernels.js"
-   ],
-   "blurb": "Talk to a small language model running in the page on hand-written WebGPU engines: LFM2.5 350M (phones) or LFM3 1.7B at 4 bits (laptops), the device's dictation in and its voices out, with prefill time and tokens per second on screen"
-  },
-  {
-   "title": "DOOM Arena",
-   "experiment": "trm-doom",
-   "path": "trm-doom/web",
-   "blurb": "The TRM bot plays gPu(doom) on this device's GPU, level after level, restarting a level that stops making progress, and ships a log of every attempt back to the Claude session through the GPU-bridge repo"
-  }
- ]
+  "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
+  "pages": [
+    {
+      "title": "Browser Decider",
+      "experiment": "browser-decider",
+      "path": "browser-decider/web",
+      "blurb": "A 10 MB decision model on your GPU: give it a support thread, an invoice, an alert or an agent log and typed questions, and it returns a probability for every option in about 20 ms. Trained on four workflows, weak on anything else"
+    },
+    {
+      "title": "WGSL Forge Gallery",
+      "experiment": "wgsl-forge",
+      "path": "wgsl-forge/web",
+      "blurb": "Shaders compiled from SVG files and Python scenes, minified and running live: each one computes every shape's distance at each pixel, so it stays sharp at any zoom"
+    },
+    {
+      "title": "Images as Shaders",
+      "experiment": "image-to-wgsl",
+      "path": "image-to-wgsl/web",
+      "blurb": "Six photographs, each stored as one WGSL shader of 1,024 soft ellipses that paints itself in, coarse to fine, beside AVIF and WebP files of the same size. As compression it loses: AVIF scores 3.9 to 6.8 dB higher. You can fit your own image on your GPU, up to 8,192 ellipses, and zoom in: the shader stays smooth while the image files show their pixels"
+    },
+    {
+      "title": "Force Touch Probe",
+      "experiment": "force-touch",
+      "path": "force-touch/web",
+      "blurb": "What a phone browser reports about how hard a thumb presses: pressure, contact size and the phone's own motion, sent live to an observing Claude session"
+    },
+    {
+      "title": "Tilt Rally (moved)",
+      "experiment": "tilt-racer",
+      "path": "tilt-racer/web",
+      "blurb": "Moved to austegard.com/games/tilt-rally/; this address redirects there"
+    },
+    {
+      "title": "Pulse From Video",
+      "experiment": "pulse-video",
+      "path": "pulse-video/web",
+      "blurb": "Eulerian video magnification on the GPU: the camera's colour changes at heart-rate frequencies, amplified 60 times so the flush of blood in your face shows, with a heart-rate estimate and how much auto-exposure is faking it. A curiosity, not a medical device"
+    },
+    {
+      "title": "Camera Resonator",
+      "experiment": "camera-resonator",
+      "path": "camera-resonator/web",
+      "blurb": "Move in front of the camera to strike a virtual steel plate or a row of bells where the motion is; thousands of modes summed on the GPU per 10 ms block, with dropouts and latency on screen"
+    },
+    {
+      "title": "Paper Drum",
+      "experiment": "paper-drum",
+      "path": "paper-drum/web",
+      "blurb": "Draw a drum on paper and tap it: the camera finds your fingertip, the microphone hears the tap, and the GPU rings a drum skin with the shape you drew"
+    },
+    {
+      "title": "Room Drum",
+      "experiment": "room-drum",
+      "path": "room-drum/web",
+      "blurb": "Edges in the camera image become the walls of a drum skin that the GPU steps once per audio sample; tap or move inside a shape to hear how a drum of that outline rings"
+    },
+    {
+      "title": "Like Poll",
+      "experiment": "bsky-like-poll",
+      "blurb": "Bluesky poll builder: sign in, type a question and options, and it posts a thread people vote on with likes; the counter drops anyone who liked more than one option",
+      "url": "https://austegard.com/bsky/like-poll.html"
+    },
+    {
+      "title": "Lantern Eel",
+      "experiment": "lantern-eel",
+      "blurb": "Snake in the deep sea, steered by tilt: the light fades with depth until only the eel's lure shows the way; lanternfish flee, jellyfish rise, pearls let you phase. Installable PWA",
+      "url": "https://austegard.com/fun-and-games/lantern-eel/"
+    },
+    {
+      "title": "Scoop",
+      "experiment": "scoop",
+      "blurb": "Minesweeper with dog poop: sweep the long grass, bag the heaps, and step in one to set off the whole lawn. A WebGPU reskin of Sounding. Installable PWA",
+      "url": "https://austegard.com/fun-and-games/scoop/"
+    },
+    {
+      "title": "Sounding",
+      "experiment": "sounding",
+      "blurb": "Minesweeper drawn by one WebGPU fragment shader: sonar pings, rippling flood openings, glowing beacons, and a chain detonation with a shockwave and GPU particles. Installable PWA",
+      "url": "https://austegard.com/fun-and-games/sounding/"
+    },
+    {
+      "title": "Plumb",
+      "experiment": "plumb",
+      "blurb": "Falling blocks for the phone: tilt to steer, tip to drop faster, jab to hard-drop, shake to hold; SVG well over a WebGPU dust field that pools under real gravity. Installable PWA",
+      "url": "https://austegard.com/fun-and-games/plumb/"
+    },
+    {
+      "title": "Raking Light",
+      "experiment": "raking-light",
+      "blurb": "Relights flat SVG on the GPU: paint order becomes a heightfield, compute passes add bevels and ambient occlusion, and Kelvin lights cast soft ray-marched shadows",
+      "url": "https://austegard.com/fun-and-games/raking-light.html"
+    },
+    {
+      "title": "Refractometer",
+      "experiment": "refractometer",
+      "path": "refractometer/web",
+      "blurb": "Sweeps WebGPU kernel configurations on your GPU, checks each against a JS reference, and saves the fastest per adapter with the performance cliffs around it"
+    },
+    {
+      "title": "Two Prisms",
+      "experiment": "prism-audio",
+      "path": "prism-audio/web",
+      "blurb": "Five-band spectral audio processor in one WGSL dispatch: FFT, per-band compressor, gate, freeze and mute, inverse FFT, with a live waterfall and the GPU round trip measured against the block length"
+    },
+    {
+      "title": "Bit-Plane Dispersion Scan",
+      "experiment": "bitplane-scan",
+      "path": "bitplane-scan/web",
+      "blurb": "Exact int8 top-K search in WebGPU that reads the corpus one bit plane at a time and prunes candidates with provable bounds; compares results, survivor counts and bytes read against brute force"
+    },
+    {
+      "title": "Self-painting SVG",
+      "experiment": "svg-timeline",
+      "path": "svg-timeline/web/index.html",
+      "blurb": "Any picture becomes one SVG that sketches itself in charcoal, paints itself in and falls apart; built in the page, no JavaScript in the output"
+    },
+    {
+      "title": "Starry Night, painting itself",
+      "experiment": "svg-timeline",
+      "path": "svg-timeline/starry-timeline.svg",
+      "blurb": "A traced Starry Night sketched, painted, taken to night and dawn, then dismantled on a 48 s loop: one SVG, CSS keyframes from a small timeline compiler, no JavaScript"
+    },
+    {
+      "title": "Live camera tagger",
+      "experiment": "live-tagger",
+      "path": "live-tagger/web",
+      "blurb": "Point your phone camera at something: MobileCLIP-S0 on WebGPU tags each frame against 4,585 tags embedded ahead of time, with no text model in the page"
+    },
+    {
+      "title": "Image to SVG in the browser",
+      "experiment": "svg-in-browser",
+      "path": "svg-in-browser/web",
+      "blurb": "image-to-svg ported to the page: k-means in WGSL (JavaScript fallback), pixel-edge tracing and image-to-svg 1.9.0's compact output, all client-side"
+    },
+    {
+      "title": "Warhol palette cycle",
+      "experiment": "svg-palette-cycle",
+      "path": "svg-palette-cycle/cat-cycle.svg",
+      "blurb": "One traced cat drawn four times, cycling four palettes with @property colors and offset keyframes; 72 KB, no JavaScript"
+    },
+    {
+      "title": "Navier–Stokes term by term",
+      "experiment": "navier-stokes-explainer",
+      "path": "navier-stokes-explainer/web",
+      "blurb": "Interactive WebGPU explainer: the four terms, Reynolds number, vortex stretching, the Beale–Kato–Majda criterion and the 2026 forced blowup results"
+    },
+    {
+      "title": "EmbeddingGemma 2 search on WebGPU",
+      "experiment": "embeddinggemma2-webgpu-tail",
+      "path": "embeddinggemma2-webgpu-tail/web",
+      "blurb": "EmbeddingGemma 2 q4 in the browser, with 2-bit remex codes and the corpus scan in WebGPU kernels on onnxruntime-web's own device"
+    },
+    {
+      "title": "EG2 query encoder in hand-written WGSL",
+      "experiment": "eg2-wgsl-engine",
+      "path": [
+        "eg2-wgsl-engine/web",
+        "_lib/wgsl/runtime.js",
+        "_lib/wgsl/kernels.js"
+      ],
+      "blurb": "Bench: the 4-layer EmbeddingGemma 2 query encoder run by a custom WebGPU engine against onnxruntime-web (WebGPU and wasm) on the same 25 MB model file"
+    },
+    {
+      "title": "EG2 training targets on WebGPU",
+      "experiment": "eg2-query-student",
+      "path": "eg2-query-student/web",
+      "blurb": "Embeds 110,605 query-shaped texts with EmbeddingGemma 2 on the browser's GPU and saves int8 shards, the training targets for a small query encoder distilled into EG2's space"
+    },
+    {
+      "title": "Delegation skill map",
+      "experiment": "delegation-skill-map",
+      "path": "delegation-skill-map",
+      "blurb": "14 agent and delegation skills compared: frontmatter, boundaries, a decision path and cut candidates"
+    },
+    {
+      "title": "The Second Sky",
+      "experiment": "second-sky",
+      "url": "https://muninn.austegard.com/scratch/second-sky/",
+      "blurb": "140 constellations of an invented people, drawn on the real stars by 1,843 Haiku calls"
+    },
+    {
+      "title": "Latent Calculator",
+      "experiment": "latent-calculator",
+      "path": "latent-calculator/web",
+      "blurb": "A frozen SmolLM2-135M doing arithmetic through a calculator wired between its layers, in the browser"
+    },
+    {
+      "title": "Latent Calculator demo",
+      "experiment": "latent-calculator",
+      "path": "latent-calculator/demo.html",
+      "blurb": "Explainer page: how the operands are read from layer 16 and the result written back"
+    },
+    {
+      "title": "In-browser taxonomy classifier",
+      "experiment": "hypothetical-classification",
+      "path": "hypothetical-classification/demo",
+      "blurb": "gte-small snaps free text onto Wayfair's 860 WANDS product classes, with no server"
+    },
+    {
+      "title": "Snooker Break Simulator",
+      "experiment": "snooker-break",
+      "path": "snooker-break/snooker-break.html",
+      "blurb": "Break simulator: the traditional apex strike against Murphy's third-red break"
+    },
+    {
+      "title": "Procedural Lion",
+      "experiment": "threejs-lion",
+      "path": "threejs-lion/index.html",
+      "blurb": "A cartoon lion rebuilt procedurally in three.js, with about 3,000 swept-tube hair strands"
+    },
+    {
+      "title": "Geezer Goon",
+      "experiment": "geezer-goon-video",
+      "path": "geezer-goon-video/v2/web",
+      "blurb": "Animated music video for the Wednesday-ride song, driven by the ride's real Strava data"
+    },
+    {
+      "title": "Strudel FM, before and after",
+      "experiment": "strudel-fm-melody",
+      "path": [
+        "strudel-fm-melody/before.html",
+        "strudel-fm-melody/after.html",
+        "strudel-fm-melody/before-seeded.html",
+        "strudel-fm-melody/after-seeded.html"
+      ],
+      "blurb": "The Strudel FM lead before and after its melody rewrite, with seeded variants"
+    },
+    {
+      "title": "A Growth Race for Erdős–Gyárfás",
+      "experiment": "erdos-gyarfas",
+      "path": "erdos-gyarfas/note.html",
+      "blurb": "Research note with partial results on an open problem in graph theory"
+    },
+    {
+      "title": "KB Packer",
+      "experiment": "kb-packer-web",
+      "url": "https://austegard.com/ai-tools/kb-packer.html",
+      "blurb": "Build a portable knowledgebase skill in the browser"
+    },
+    {
+      "title": "X-ray glasses",
+      "experiment": "xray-glasses",
+      "url": "https://austegard.com/fun-and-games/xray-glasses/",
+      "blurb": "Point the camera at a person, cat or dog: MediaPipe Pose or RTMPose (AP-10K) finds the joints and a WebGPU shader draws a fitted skeleton over a radiograph view of the feed, all on the device"
+    },
+    {
+      "title": "GPU Bridge",
+      "experiment": "gpu-bridge",
+      "path": "gpu-bridge/web",
+      "blurb": "Runs WebGPU jobs that Claude Code sessions push to a private GitHub repo on this machine's GPU, commits the results back and wakes the session"
+    },
+    {
+      "title": "Voice Loop",
+      "experiment": "voice-loop",
+      "path": [
+        "voice-loop/web",
+        "lfm-wgsl/web/lfm.js",
+        "lfm-wgsl/web/manifest.json",
+        "lfm-wgsl/web/manifest3.json",
+        "lfm-wgsl/web/lfm3.js",
+        "_lib/wgsl/runtime.js",
+        "_lib/wgsl/kernels.js"
+      ],
+      "blurb": "Talk to a small language model running in the page on hand-written WebGPU engines: LFM2.5 350M (phones) or LFM3 1.7B at 4 bits (laptops), the device's dictation in and its voices out, with prefill time and tokens per second on screen"
+    },
+    {
+      "title": "DOOM Arena",
+      "experiment": "trm-doom",
+      "path": "trm-doom/web",
+      "blurb": "The TRM bot plays gPu(doom) on this device's GPU, level after level, restarting a level that stops making progress, and ships a log of every attempt back to the Claude session through the GPU-bridge repo"
+    }
+  ]
 }
