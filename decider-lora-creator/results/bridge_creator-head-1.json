@@ -1,0 +1,279 @@
+{
+ "id": "creator-head-1",
+ "startedAt": 1793921716300,
+ "finishedAt": 1793921836344,
+ "runMs": 117075.30000007153,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "75ejdgup",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "start (library merge, T=1): 0.240",
+  "n=16 seed=0: 0.550 in 7.7 s",
+  "n=16 seed=1: 0.570 in 7.2 s",
+  "n=64 seed=0: 0.598 in 9.2 s",
+  "n=64 seed=1: 0.582 in 9.1 s",
+  "n=300 seed=0: 0.634 in 37.3 s",
+  "n=300 seed=1: 0.622 in 37.4 s"
+ ],
+ "outputs": {
+  "describe": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  },
+  "sha": "f3cb84642e52ba49440b8926bebc6ffc2db14c26",
+  "workflow": "invoice_processing",
+  "setupMs": 116.10000002384186,
+  "encodeMs": 2674.600000023842,
+  "sequences": 2000,
+  "tokens": 707715,
+  "encodeMsPerSeq": 1.3373000000119208,
+  "start_test": {
+   "accuracy": 0.24,
+   "kl": 0.5998411012701859
+  },
+  "arms": [
+   {
+    "n": 16,
+    "seed": 0,
+    "sequences": 80,
+    "epochs": 30,
+    "test_accuracy": 0.55,
+    "test_kl": 0.3829510217564448,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.4,
+      "kl": 0.6763342608815155
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.45,
+      "kl": 0.4235946766105137
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.1395920720512268
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.44058438209108525
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.47,
+      "kl": 0.23464971714788113
+     }
+    },
+    "ms": 7731.800000071526,
+    "best_epoch": 30
+   },
+   {
+    "n": 16,
+    "seed": 1,
+    "sequences": 80,
+    "epochs": 30,
+    "test_accuracy": 0.57,
+    "test_kl": 0.3783472073143624,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.52,
+      "kl": 0.6327357888972022
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.45,
+      "kl": 0.4409480486989291
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.14368456249638448
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.43247697828921394
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.45,
+      "kl": 0.2418906581900811
+     }
+    },
+    "ms": 7207.100000023842,
+    "best_epoch": 30
+   },
+   {
+    "n": 64,
+    "seed": 0,
+    "sequences": 320,
+    "epochs": 10,
+    "test_accuracy": 0.598,
+    "test_kl": 0.37260012250733343,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.47,
+      "kl": 0.6274459794112986
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.45,
+      "kl": 0.42773728125080623
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.14058488340970945
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.44166789116364313
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.64,
+      "kl": 0.2255645773012088
+     }
+    },
+    "ms": 9162.200000047684,
+    "best_epoch": 10
+   },
+   {
+    "n": 64,
+    "seed": 1,
+    "sequences": 320,
+    "epochs": 10,
+    "test_accuracy": 0.582,
+    "test_kl": 0.3672705933206229,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.49,
+      "kl": 0.6023919176397294
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.45,
+      "kl": 0.4285316656223639
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.13856011582785416
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.43633866772302754
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.23053059979014254
+     }
+    },
+    "ms": 9117.099999904633,
+    "best_epoch": 10
+   },
+   {
+    "n": 300,
+    "seed": 0,
+    "sequences": 1500,
+    "epochs": 10,
+    "test_accuracy": 0.634,
+    "test_kl": 0.35758640327036006,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.49,
+      "kl": 0.5950813947714422
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.55,
+      "kl": 0.40803015246336716
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.14014353340448005
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.6,
+      "kl": 0.43147393760115277
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.64,
+      "kl": 0.2132029981113579
+     }
+    },
+    "ms": 37304.89999997616,
+    "best_epoch": 10
+   },
+   {
+    "n": 300,
+    "seed": 1,
+    "sequences": 1500,
+    "epochs": 10,
+    "test_accuracy": 0.622,
+    "test_kl": 0.35742643838263255,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.5,
+      "kl": 0.594447086350957
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.55,
+      "kl": 0.40624540371727513
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.14098720637109988
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.5,
+      "kl": 0.4332603527824116
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.67,
+      "kl": 0.212192142691419
+     }
+    },
+    "ms": 37354.5,
+    "best_epoch": 10
+   }
+  ]
+ }
+}
