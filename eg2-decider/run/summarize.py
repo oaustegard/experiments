@@ -58,6 +58,13 @@ def main():
                              "n_train_rows": a3["n_train_rows"], "n_sources": a3["n_sources"]}
     if a4:
         out["full"]["a4"] = {k: r3(v) for k, v in a4["curve"].items()}
+    a6 = load("a6.json")
+    if a6:
+        out["ettin_curve"] = {"ettin_n64": r3(a6["curve"]["ettin_n64"]), "ettin_n256": r3(a6["curve"]["ettin_n256"]),
+                              "eg2_minus_ettin_n64": r3(a6["eg2_minus_ettin"]["n64"]["mean"]),
+                              "eg2_minus_ettin_n64_ci": [r3(x) for x in a6["eg2_minus_ettin"]["n64"]["ci95"]],
+                              "eg2_minus_ettin_n256": r3(a6["eg2_minus_ettin"]["n256"]["mean"]),
+                              "eg2_minus_ettin_n256_ci": [r3(x) for x in a6["eg2_minus_ettin"]["n256"]["ci95"]]}
     for name in ("timing", "a3_diag"):
         d = load(f"{name}.json")
         if d:

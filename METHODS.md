@@ -5185,6 +5185,7 @@ From `long-horizon-execution` (2026-10-16).
   to 0.609. Trained on three Typed Decisions workflows it scored 0.372 on the fourth, the same as zero-shot. Labelled
   cases of the workflow itself were what moved it: 0.584 at 64 cases, 0.661 at 256.
 - **Rule.** Do not expect breadth from a head over frozen embeddings; it fits the sources it sees. A per-workflow
-  label budget of a few hundred cases is the working recipe, and generality needs the encoder trained on the mix
+  label budget of a few hundred cases is the working recipe, and at that budget a fine-tuned 17M cross-encoder
+  (Ettin) beat the frozen-EG2 head on every Typed Decisions workflow (0.721 vs 0.661 at 256 cases); and generality needs the encoder trained on the mix
   (as tasksource-decider-nano is). Also: zero-shot option similarity is strong for intent labels (0.875 on banking77)
   and at chance for yes/no predicates (0.458 on a 50/50 set). (`eg2-decider/RESULTS.md`)

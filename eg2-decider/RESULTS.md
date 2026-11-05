@@ -21,16 +21,16 @@ question's most common answer scores 0.470.
 
 Out of the box, EG2 matches topics and intents well but cannot read numbers or rules. With no training it scores 0.721 on 104 unrelated questions, where the trained Ettin decider scores 0.279. <!-- @evidence[[results/summary.json#full.a0.ood_accuracy]] -->
 Most of that comes from bank-intent questions (0.875). <!-- @evidence[[results/summary.json#full.a0.ood_by_subset.banking]] -->
-On Typed Decisions, whose states are records of numbers and events, it scores 0.378, below the 0.470 you get by always picking each question's most common answer. <!-- @evidence[[results/summary.json#full.a0.td_test_accuracy]] -->
+On Typed Decisions, whose states are records of numbers and events, it scores 0.378, below the 0.470 prior. <!-- @evidence[[results/summary.json#full.a0.td_test_accuracy]] -->
 
-It needs labelled cases of each workflow. A one-million-parameter head trained on a workflow's own cases reaches 0.584 from 64 cases and 0.661 from 256. <!-- @evidence[[results/summary.json#full.a4.a0_n256]] -->
-Training on all four workflows gives 0.678, against Ettin's 0.740. <!-- @evidence[[results/summary.json#full.a1.td_test_accuracy]] -->
-Training a 256-case head took 18 s on one CPU thread in PyTorch; a browser trainer was not built. <!-- @evidence[[results/summary.json#full.timing.n256_seconds_1thread]] -->
+It needs labelled cases of each workflow, and it needs more of them than Ettin does. A one-million-parameter head on frozen EG2 reaches 0.661 from 256 cases of a workflow. <!-- @evidence[[results/summary.json#full.a4.a0_n256]] -->
+Ettin-17m fine-tuned whole on the same 256 cases reaches 0.721. <!-- @evidence[[results/summary.json#ettin_curve.ettin_n256]] -->
+At 64 cases Ettin also leads, 0.625 to 0.584. <!-- @evidence[[results/summary.json#ettin_curve.ettin_n64]] -->
+EG2's head trains in 18 s on one CPU thread; Ettin needs a GPU. <!-- @evidence[[results/summary.json#full.timing.n256_seconds_1thread]] -->
 
 Training the head on a broad mix (727 task sources from the public tasksource collection) did not make it general.
 It scored 0.327 on Typed Decisions, worse than no training. <!-- @evidence[[results/summary.json#full.a3.td_test_accuracy]] -->
-The untested next lever is training the encoder itself on a broad mix, as the 150M cross-encoder
-tasksource-decider-nano does (0.7515 on the dataset card's leaderboard).
+The untested lever is training the encoder itself on a broad mix, as tasksource-decider-nano does (0.7515).
 
 ## Findings
 
@@ -52,13 +52,17 @@ tasksource-decider-nano does (0.7515 on the dataset card's leaderboard).
    the head improved on held-out mix rows (zero-shot 0.424, trained 0.500, seed 0) and got worse everywhere else: 0.327
    ± 0.008 on Typed Decisions over three seeds, and 0.609 on the unrelated set (zero-shot 0.721), where
    seeds ranged from 0.452 to 0.712. (`results/a3.json`, `results/a3_diag.json`)
-5. **Labels per workflow are what buy accuracy (arm A4).** Head trained only on n cases of one workflow: 0.503 at
+5. **Ettin learns a workflow from fewer labels than EG2's head (arm A6).** Stock Ettin-17m fine-tuned end to end on
+   the same case draws scores 0.625 at 64 cases and 0.721 at 256; EG2's head scores 0.584 and 0.661. Paired over 12
+   (workflow, draw) pairs, EG2 minus Ettin is −0.041 [−0.077, −0.001] at 64 and −0.061 [−0.098, −0.025] at 256.
+   Ettin leads on every workflow at 256. (`results/a6.json`, `results/ettin_curve/`)
+6. **Labels per workflow are what buy accuracy (arm A4).** Head trained only on n cases of one workflow: 0.503 at
    16, 0.584 at 64, 0.661 at 256; the all-workflow head scores 0.678. Starting from the mix-trained head
    instead of zero-shot is no better (0.478, 0.575, 0.655). (`results/a4.json`)
-6. **The 4-layer cut keeps specialist accuracy and loses generality (arm A5).** With the cut as the encoder, the trained head scores 0.665 (−0.013), but the unrelated set falls
+7. **The 4-layer cut keeps specialist accuracy and loses generality (arm A5).** With the cut as the encoder, the trained head scores 0.665 (−0.013), but the unrelated set falls
    from 0.667 to 0.442, and zero-shot from 0.721 to 0.587. It embeds states 5 times faster on CPU
    (86 s against 442 s for 1,672 states). (`results/cut4/`)
-7. **The head is small and quick to train.** 984,324 parameters; 6.2 s for 64 cases and 18.1 s for 256 on
+8. **The head is small and quick to train.** 984,324 parameters; 6.2 s for 64 cases and 18.1 s for 256 on
    one CPU thread in PyTorch, on cached embeddings. No gradient touches the encoder, so a page would need
    only EG2's forward pass plus a small JS trainer; that trainer was not built or timed. (`results/timing.json`)
 
@@ -95,6 +99,12 @@ A5: A0 and A1 with the cut; A3 was not rerun on the cut because it was negative 
 by several points between seeds. The 4-bit build agrees with full-precision EG2 at cosine about 0.99, so
 these numbers are for the build the pages ship, not the published weights.
 
+**Ettin label curve (A6).** `../browser-decider/run/train_enc.py --n-cases N --draw D`: stock
+`jhu-clsp/ettin-encoder-17m` as browser-decider's cross-encoder, trained on the A4 draw of N cases of one
+workflow (20% of them for validation), 40 epochs at N = 64 and 15 at N = 256, best epoch by validation KL,
+scored on that workflow's test. 24 runs on a Colab L4 via `../browser-decider/run/colab_arms.py curve`,
+about 20 minutes of training.
+
 **Compute.** All on the container's 4 vCPU: state embedding ~7.5 min per prompt (full) and ~1.5 min
 (cut), mix embedding ~60 min, every head run under a minute. No GPU.
 
@@ -118,3 +128,20 @@ prompt matters little next to what similarity can and cannot answer. A3's best e
 every seed: validation KL on mix rows bottomed out early while the head was still moving away from the
 zero-shot geometry the other test sets need. A check confirmed the pipeline was not at fault: the
 untrained head routed through the mix code reproduces A0's 0.378 exactly.
+
+### 2026-11-05: A6, Ettin with few labels
+
+Asked: how does the 4-layer cut compare with Ettin, and does EG2 need fewer labels? Nothing had measured
+Ettin below 1,080 training cases. Registered P7 and P8 in `PLAN.md` before the run.
+
+| | 64 cases | 256 cases |
+|---|---|---|
+| EG2 frozen + head (A4) | 0.584 | 0.661 |
+| Ettin-17m fine-tuned (A6) | 0.625 | 0.721 |
+| EG2 − Ettin, paired, 95% CI | −0.041 [−0.077, −0.001] | −0.061 [−0.098, −0.025] |
+
+P7 (Ettin at 64 below EG2, 0.48–0.57) missed: 0.625. P8 (Ettin at 256 within 0.04 of EG2) missed: Ettin
+leads by 0.061. The reading at the time: a frozen bi-encoder caps what a head can learn about a
+record-shaped state, and a 17M cross-encoder that reads the state next to each option learns more from
+the same labels. EG2's advantages stay where they were: it answers unrelated questions without training,
+and its head trains in seconds on a CPU. All 24 runs exited 0; best epochs ranged 5 to 26.
