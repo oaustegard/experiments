@@ -56,15 +56,27 @@ def account_state(acct, n_posts=12):
     return "\n".join(lines)
 
 
-def post_state(item):
-    """One feed item; a reply carrying its parent ({author, text}) gets the parent appended.
+MAX_THREAD = 8  # ancestors shown for a reply: the nearest MAX_THREAD - 1 and the thread's root
 
-    Training items had no parent, so their states are unchanged. The appended parent is
-    inference-only: results/reply_context.json measures it on the shipped model.
+
+def thread_text(thread):
+    """A reply's ancestors, nearest first, as "@a: text ← @b: text ← … ← @root: text".
+
+    A None entry marks elided posts; an entry with text None is a post the AppView would not
+    return (deleted or blocked), which ends the chain.
     """
+    if len(thread) > MAX_THREAD:
+        thread = thread[: MAX_THREAD - 1] + [None] + thread[-1:]
+    return " ← ".join("…" if a is None else "(post unavailable)" if a.get("text") is None
+                      else f"@{a.get('author') or '?'}: {_clean(a['text']) or '(no text)'}" for a in thread)
+
+
+def post_state(item):
+    """One feed item. A reply carrying its thread (ancestors nearest first, [{author, text}])
+    gets them appended; training items had none, so their states are unchanged and the
+    context is inference-only (results/reply_context.json measures it)."""
     emb = f" [{EMBED.get(item.get('embed'), item.get('embed'))}]" if item.get("embed") else ""
     s = f"[{item['kind']}]{emb} {_clean(item.get('text'), 300) or '(no text)'}"
-    par = item.get("parent")
-    if par:
-        s += f" (in reply to @{par.get('author') or '?'}: {_clean(par.get('text')) or '(no text)'})"
+    if item.get("thread"):
+        s += f" (in reply to {thread_text(item['thread'])})"
     return s

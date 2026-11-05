@@ -50,12 +50,27 @@ export function fitAccountState(acct, countTokens, budget = 830, nPosts = 12) {
   return { state: accountState(acct, 1), n: 1 };
 }
 
-// A reply carrying its parent ({ author, text }) gets the parent appended (run/state.py post_state).
+// A reply carrying its thread (ancestors nearest first, [{ author, text }]) gets them appended (run/state.py).
+export const MAX_THREAD = 8;
+export function threadText(th) {
+  if (th.length > MAX_THREAD) th = [...th.slice(0, MAX_THREAD - 1), null, th[th.length - 1]];
+  return th.map((a) => a === null ? "…" : a.text === null ? "(post unavailable)"
+    : `@${a.author || "?"}: ${clean(a.text) || "(no text)"}`).join(" ← ");
+}
 export const postState = (it) => `[${it.kind}]${embedTag(it.embed)} ${clean(it.text, 300) || "(no text)"}` +
-  (it.parent ? ` (in reply to @${it.parent.author || "?"}: ${clean(it.parent.text) || "(no text)"})` : "");
+  (it.thread && it.thread.length ? ` (in reply to ${threadText(it.thread)})` : "");
 
 // Fetch an account the way run/collect.py does, from the public AppView.
 const PUBLIC = "https://public.api.bsky.app/xrpc";
+// a getPostThread response -> ancestors nearest first; a deleted or blocked post ends the chain
+function threadOf(d) {
+  const out = [];
+  for (let t = (d.thread || {}).parent; t; t = t.parent) {
+    if (!(t.$type || "").endsWith("#threadViewPost")) { out.push({ author: null, text: null }); break; }
+    out.push({ author: t.post.author.handle, text: (t.post.record || {}).text || "" });
+  }
+  return out.length ? out : null;
+}
 export async function fetchAccount(actor) {
   const get = async (ep, q) => {
     const r = await fetch(`${PUBLIC}/${ep}?` + new URLSearchParams(q));
@@ -70,14 +85,18 @@ export async function fetchAccount(actor) {
     const kind = reason.includes("reasonRepost") ? "repost" : rec.reply ? "reply" : "post";
     if (kind === "repost" && post.author.did === p.did) continue;
     const emb = (post.embed || {}).$type || "";
-    const par = kind === "reply" ? (it.reply || {}).parent : null;   // notFoundPost / blockedPost have no record
     items.push({ kind, text: rec.text || "", createdAt: rec.createdAt || "",
                  indexedAt: (it.reason || {}).indexedAt || post.indexedAt || "",
                  author: kind === "repost" ? post.author.handle : null,
                  embed: emb ? emb.split(".").pop().split("#")[0] : null, uri: post.uri,
-                 parent: par && (par.$type || "").endsWith("#postView") ? { author: par.author.handle, text: (par.record || {}).text || "" } : null });
+                 thread: null });
     if (items.length >= 20) break;
   }
+  // each reply's ancestors back to the thread root, one getPostThread per reply, in parallel
+  await Promise.all(items.filter((i) => i.kind === "reply").map(async (i) => {
+    try { i.thread = threadOf(await get("app.bsky.feed.getPostThread", { uri: i.uri, depth: 0, parentHeight: 50 })); }
+    catch { i.thread = null; }   // a thread that will not load leaves the reply scored on its own text
+  }));
   const profile = { did: p.did, handle: p.handle, displayName: p.displayName, description: p.description,
                     followersCount: p.followersCount, followsCount: p.followsCount, postsCount: p.postsCount,
                     createdAt: p.createdAt, avatar: p.avatar };

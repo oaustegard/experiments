@@ -1,15 +1,16 @@
-"""Does showing the replied-to post help the per-post "about AI" question on replies?
+"""Does showing a reply's thread help the per-post "about AI" question on replies?
 
-    python3 -I run/reply_context_eval.py collect   # fresh replies + their parents -> data/reply_ctx/items.jsonl
-    python3 -I run/reply_context_eval.py label     # Sonnet, shown parent and reply -> data/reply_ctx/labels.json
-    python3 -I run/reply_context_eval.py score     # shipped page model, each input format -> results/reply_context.json
+    python3 -I run/reply_context_eval.py collect   # fresh replies + every ancestor -> data/reply_thread/items.jsonl
+    python3 -I run/reply_context_eval.py label     # Sonnet, shown the whole thread -> data/reply_thread/labels.json
+    python3 -I run/reply_context_eval.py score     # shipped page model, each input format -> results/reply_thread.json
 
 The shipped model was trained on post_state(item), the reply's text alone, against labels whose
 instructions said a short reply with no visible topic is not about AI. Here Sonnet labels replies
-seeing the parent, under the rule that a reply taking part in a conversation about AI is about AI,
-and the packed page model (NumPy reference of what the browser computes) is scored on three inputs:
-the reply alone, the reply then its parent, and the parent then the reply. No retraining.
-Post texts stay in gitignored data/; the results file keeps metrics only.
+seeing the whole thread, under the rule that a reply taking part in a conversation about AI is about
+AI, and the packed page model (NumPy reference of what the browser computes) is scored with the
+reply alone, with its parent, with parent and root, and with the whole chain after or before the
+reply. No retraining. The first round (parent only, results/reply_context.json) ran an earlier
+version of this script. Post texts stay in gitignored data/; the results file keeps metrics only.
 """
 import json
 import random
@@ -26,18 +27,24 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "run"))
 sys.path.insert(0, str(ROOT.parent / "browser-decider" / "run"))
 from collect import discover_authors, get, list_members  # noqa: E402
-from state import _clean, post_state  # noqa: E402
+from state import MAX_THREAD, _clean, post_state  # noqa: E402
 
-D = ROOT / "data" / "reply_ctx"
+D = ROOT / "data" / "reply_thread"
 PER_ACCOUNT = 6
 BATCH = 30
 
 
-def parent_of(feed_item):
-    par = (feed_item.get("reply") or {}).get("parent") or {}
-    if not par.get("$type", "").endswith("#postView"):
-        return None  # notFoundPost / blockedPost
-    return {"author": par["author"].get("handle"), "text": (par.get("record") or {}).get("text", "")}
+def thread_of(uri):
+    """Ancestors of a post, nearest first (parent ... root), as [{author, text}], or None."""
+    d = get("app.bsky.feed.getPostThread", {"uri": uri, "depth": 0, "parentHeight": 50})
+    t, out = ((d or {}).get("thread") or {}).get("parent"), []
+    while t:
+        if not t.get("$type", "").endswith("#threadViewPost"):
+            out.append({"author": None, "text": None})  # notFoundPost / blockedPost: a gap in the chain
+            break
+        out.append({"author": t["post"]["author"].get("handle"), "text": (t["post"].get("record") or {}).get("text", "")})
+        t = t.get("parent")
+    return out or None
 
 
 def replies_of(did):
@@ -49,19 +56,19 @@ def replies_of(did):
         p, rec = it["post"], it["post"].get("record", {})
         if not rec.get("reply"):
             continue
-        par = parent_of(it)
-        if not par:
+        th = thread_of(p["uri"])
+        if not th or th[0]["text"] is None:
             continue
         emb = (p.get("embed") or {}).get("$type", "")
         out.append({"kind": "reply", "text": rec.get("text", ""), "uri": p["uri"], "account": did,
-                    "embed": emb.split(".")[-1].split("#")[0] if emb else None, "parent": par})
+                    "embed": emb.split(".")[-1].split("#")[0] if emb else None, "thread": th})
         if len(out) >= PER_ACCOUNT:
             break
     return out
 
 
 def collect():
-    rng = random.Random(11)
+    rng = random.Random(12)
     ai = rng.sample(list_members(), 45)
     disc = [a for a in discover_authors(pages=4) if a not in ai]
     disc = rng.sample(disc, min(45, len(disc)))
@@ -78,11 +85,18 @@ def collect():
     print({"accounts": len(ai) + len(disc), "replies": n})
 
 
-SYSTEM = """You annotate Bluesky replies. Each numbered item shows the post being replied to (PARENT) and the reply (REPLY), texts cut to 300 characters.
+SYSTEM = """You annotate Bluesky replies. Each numbered item shows the conversation the reply belongs to, oldest post first (THREAD), then the reply (REPLY); texts cut to 200 characters.
 
-For every item give the probability that the REPLY is ABOUT AI (artificial intelligence, machine learning, LLMs or chatbots, AI products, companies, research, policy, safety, art, jobs or energy use, or using AI tools). Read the reply as part of its conversation: a reply that responds to a parent post about AI is about AI, even when the reply's own words do not name AI. A reply whose own text is about AI is about AI whatever the parent says. A reply to a post that is not about AI, whose own text is not about AI either, is not about AI. Mentions of tech, computing or science without AI are not about AI. Reflect your real uncertainty: use values near 1 or 0 only when the evidence is clear.
+For every item give the probability that the REPLY is ABOUT AI (artificial intelligence, machine learning, LLMs or chatbots, AI products, companies, research, policy, safety, art, jobs or energy use, or using AI tools). Read the reply as part of its conversation: a reply that takes part in a conversation about AI is about AI, even when the reply's own words do not name AI. A reply whose own text is about AI is about AI whatever the thread says. A reply in a conversation that is not about AI, whose own text is not about AI either, is not about AI; so is a reply that clearly changes the subject away from AI. Mentions of tech, computing or science without AI are not about AI. Reflect your real uncertainty: use values near 1 or 0 only when the evidence is clear.
 
 Reply with ONLY a JSON object mapping each item number to a probability, e.g. {"1": 0.9, "2": 0.05}."""
+
+
+def show(it):
+    th = it["thread"][::-1][-12:]  # oldest first, at most 12 posts
+    lines = [f"   - @{a['author']}: {_clean(a['text'], 200) or '(no text)'}" if a["text"] is not None else "   - (post unavailable)"
+             for a in th]
+    return "   THREAD:\n" + "\n".join(lines) + f"\n   REPLY: {_clean(it['text'], 300) or '(no text)'}"
 
 
 def label():
@@ -91,8 +105,7 @@ def label():
     scratch = tempfile.mkdtemp(prefix="label-")
 
     def call(b):
-        prompt = "\n\n".join(f"{k}. PARENT (@{it['parent']['author']}): {_clean(it['parent']['text'], 300) or '(no text)'}\n"
-                             f"   REPLY: {_clean(it['text'], 300) or '(no text)'}" for k, it in enumerate(b, 1))
+        prompt = "\n\n".join(f"{k}.\n{show(it)}" for k, it in enumerate(b, 1))
         cmd = ["claude", "-p", "--model", "sonnet", "--output-format", "json", "--setting-sources", "",
                "--strict-mcp-config", "--no-session-persistence", "--tools", "", "--system-prompt", SYSTEM, prompt]
         for _ in range(3):
@@ -119,13 +132,25 @@ def label():
 
 
 def fmt_before(it):
-    p = it["parent"]
-    return f"In reply to @{p['author']}: {_clean(p['text']) or '(no text)'}\n" + post_state({**it, "parent": None})
+    th = it["thread"][::-1]
+    if len(th) > MAX_THREAD:
+        th = th[:1] + [None] + th[-(MAX_THREAD - 1):]
+    lines = ["…" if a is None else "(post unavailable)" if a["text"] is None else f"@{a['author']}: {_clean(a['text']) or '(no text)'}"
+             for a in th]
+    return "Thread: " + "\n".join(lines) + "\n" + post_state({**it, "thread": None})
 
 
-# reply_then_parent is what state.post_state (and the page) now builds for a reply with a parent
-VARIANTS = {"reply_only": lambda it: post_state({**it, "parent": None}), "reply_then_parent": post_state,
-            "parent_then_reply": fmt_before}
+def cut(it, keep):
+    th = it["thread"]
+    return {**it, "thread": th[:1] if keep == "parent" else th[:1] + ([None] if len(th) > 2 else []) + th[1:][-1:]}
+
+
+# full_chain_after is what state.post_state (and the page) builds for a reply with its thread
+VARIANTS = {"reply_only": lambda it: post_state({**it, "thread": None}),
+            "parent_only": lambda it: post_state(cut(it, "parent")),
+            "parent_and_root": lambda it: post_state(cut(it, "root")),
+            "full_chain_after": post_state,
+            "full_chain_before": fmt_before}
 
 
 def score():
@@ -165,7 +190,7 @@ def score():
     for name, f in VARIANTS.items():
         pred = np.array([p_true(f(it)) for it in items])
         out["variants"][name] = {g: metrics(pred, s) for g, s in groups.items()}
-    (ROOT / "results" / "reply_context.json").write_text(json.dumps(out, indent=1))
+    (ROOT / "results" / "reply_thread.json").write_text(json.dumps(out, indent=1))
     print(json.dumps(out, indent=1))
 
 

@@ -100,3 +100,32 @@ The decision rule (P2 on type, share and the post question) is met for type and 
 
 What broke along the way: installing sentence-transformers upgraded transformers to 5.22, which nests
 the RoPE bases; the packer now reads both layouts, and the training environment stayed on 4.57.1.
+
+### 2026-11-05: replies read with their whole thread
+
+The parent alone missed replies deep in a thread: a "thanks, did the team have an answer?" six posts
+below a post about an embedding paper scored 23% with its parent. Each reply now carries every
+ancestor back to the thread's root (one `getPostThread` per reply; the page's fetch for 20 items with
+11 replies took 1.3 s), appended nearest first, `(in reply to @parent: … ← @…: … ← @root: …)`, each cut
+to 140 characters, with threads longer than 8 ancestors keeping the nearest 7 and the root.
+
+Measured on 376 new replies (45 AI-list members and 45 Discover authors, a different sample from the
+first round), labelled by Sonnet seeing the whole thread ($0.47); 130 are about AI. <!-- @evidence[[results/reply_thread.json#sonnet_positive]] -->
+
+| model input | accuracy | recall | false positives |
+|---|---|---|---|
+| reply only | 0.838 | 0.538 | 0.4% |
+| reply, then parent (previous round's page) | 0.904 | 0.785 | 3.3% |
+| reply, then parent and root | 0.928 | 0.869 | 4.1% |
+| reply, then the whole chain (shipped) | 0.923 | 0.877 | 5.3% |
+| the whole chain, then the reply | 0.912 | 0.869 | 6.5% |
+
+On the 99 replies at least three posts deep, the whole chain finds 97.8% of the AI ones against 86.7%
+for the parent alone, with false positives at 7.4% against 0%. Parent and root alone is the more
+accurate input overall (0.970 on that subset, 1.9% false positives); the whole chain shipped because
+it is what a reader of the thread sees, and the two differ by 2 replies of 376 overall. On the two
+threads that prompted this round, the whole chain scores 74% and 44% (2% and 25% on the reply alone).
+The second stays under the line: its thread is about EmbeddingGemma on GCP A100s, which the 17M model
+does not read as AI strongly enough. A retrain on thread-aware labels is the fix for both that and
+the false positives.
+
