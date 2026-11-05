@@ -30,6 +30,7 @@ from pack import Packer, Ref, gelu, pack  # noqa: E402
 from train_enc import Decider, Enc  # noqa: E402
 
 VERSION = "0.1.0"
+GAP_THRESHOLD = 0.5
 WEB = ROOT / "web" / "models"
 MODS = [("attn.Wqkv", "Wqkv"), ("attn.Wo", "Wo"), ("mlp.Wi", "Wi"), ("mlp.Wo", "Wo_mlp")]
 
@@ -117,7 +118,10 @@ def main():
     router = json.loads((rdir / ("system_router.json" if a.smoke_router else "results/system_router.json")).read_text())
     (WEB / "spikes").mkdir(exist_ok=True)
     system = {"version": VERSION, "rank": RANK, "router": {"file": "spikes/router", "question": router["question"],
-              "none": router["none_desc"], "threshold": router["threshold_p_none"]}, "spikes": []}
+              "none": router["none_desc"], "threshold": GAP_THRESHOLD,
+              "threshold_note": "0.5, chosen after training (results/system_router_threshold.json): the 99th-percentile "
+                                "rule gave 5.2e-5 and 3.5% false gaps; every in-library P(none) was below 6e-5 and every unseen one above 0.999"},
+              "spikes": []}
     packed = {}
     for sid in ["router"] + WORKFLOWS:
         st = torch.load((rdir / "out" / "adapters" / "router-v1.pt" if not a.smoke_router else rdir / "adapters" / "router-v1.pt")

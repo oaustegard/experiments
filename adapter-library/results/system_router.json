@@ -1,0 +1,65 @@
+{
+ "spikes": {
+  "customer_service": "Customer support conversation: a ticket thread with the customer's account and orders. Decides the category, the next action, whether a human is needed, urgency and churn risk.",
+  "invoice_processing": "Vendor invoice review: an invoice with its purchase order, delivery record and payment terms. Decides the disposition, discrepancy severity, duplicates, the order match and urgency.",
+  "security_incidents": "Security alert triage: an alert with its evidence, the principal involved and context. Decides the disposition, severity, whether it is a true positive or a credential compromise, and urgency.",
+  "agent_trace_observability": "AI agent run trace: an autonomous agent's task, constraints and step summary. Decides the outcome, risk, whether it needs review, urgency and what observability should do."
+ },
+ "none_desc": "None of these specialists covers this input.",
+ "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+ "threshold_p_none": 5.214703009099541e-05,
+ "best_epoch": 9,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.04430288542950001
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.00029573250817865025
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.00020026836507511012
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.00014139402531982022
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.00011279380698256737
+  },
+  {
+   "epoch": 5,
+   "val_kl": 9.56029455214541e-05
+  },
+  {
+   "epoch": 6,
+   "val_kl": 8.42255026616709e-05
+  },
+  {
+   "epoch": 7,
+   "val_kl": 7.715607990074076e-05
+  },
+  {
+   "epoch": 8,
+   "val_kl": 7.322854185697217e-05
+  },
+  {
+   "epoch": 9,
+   "val_kl": 7.188264020187694e-05
+  }
+ ],
+ "steps": 790,
+ "test_routing_acc": 0.965,
+ "test_false_gap_rate": 0.035,
+ "gap_recall_unseen_texts": 1.0,
+ "gap_recall_unseen_domain_lab": 1.0,
+ "p_none_median": {
+  "in_library_test": 4.2658232290532604e-05,
+  "unseen_texts": 0.9997246738201238,
+  "unseen_lab_states": 0.999688070931976
+ },
+ "sec": 2106.8918845653534
+}
