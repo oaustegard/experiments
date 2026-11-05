@@ -222,10 +222,11 @@ def label(domain, batch=20, workers=6):
                 text, cost = claude(system, prompt)
                 rep = json.loads(re.search(r"\{[\s\S]*\}", text).group(0))
                 good = []
+                norm = lambda x: ("true" if x else "false") if isinstance(x, bool) else str(x)   # Sonnet sometimes sends JSON booleans
                 for it in b:
-                    a = rep.get(it["id"], {})
-                    if all(str(a.get(q)) in opts(v) for q, v in qs.items()):
-                        good.append({"id": it["id"], "labels": {q: str(a[q]) for q in qs}})
+                    a = {q: norm(x) for q, x in rep.get(it["id"], {}).items()}
+                    if all(a.get(q) in opts(v) for q, v in qs.items()):
+                        good.append({"id": it["id"], "labels": {q: a[q] for q in qs}})
                 return good, cost
             except Exception as e:  # noqa: BLE001 - one retry, then the batch is left for a rerun
                 err = e
