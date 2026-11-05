@@ -1,12 +1,12 @@
 {
- "version": "0.1.0",
+ "version": "0.1.1",
  "rank": 8,
  "router": {
   "file": "spikes/router",
   "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
   "none": "None of these specialists covers this input.",
   "threshold": 0.5,
-  "threshold_note": "0.5, chosen after training (results/system_router_threshold.json): the 99th-percentile rule gave 5.2e-5 and 3.5% false gaps; every in-library P(none) was below 6e-5 and every unseen one above 0.999"
+  "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json) and kept for v0.1.1 (results/lookalikes.json router-v3)"
  },
  "spikes": [
   {

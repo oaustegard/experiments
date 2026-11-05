@@ -1,0 +1,65 @@
+{
+ "spikes": {
+  "customer_service": "Customer support conversation: a ticket thread with the customer's account and orders. Decides the category, the next action, whether a human is needed, urgency and churn risk.",
+  "invoice_processing": "Vendor invoice review: an invoice with its purchase order, delivery record and payment terms. Decides the disposition, discrepancy severity, duplicates, the order match and urgency.",
+  "security_incidents": "Security alert triage: an alert with its evidence, the principal involved and context. Decides the disposition, severity, whether it is a true positive or a credential compromise, and urgency.",
+  "agent_trace_observability": "AI agent run trace: an autonomous agent's task, constraints and step summary. Decides the outcome, risk, whether it needs review, urgency and what observability should do."
+ },
+ "none_desc": "None of these specialists covers this input.",
+ "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+ "threshold_p_none": 8.424600975598094e-05,
+ "best_epoch": 9,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.5335013240525084
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.07869592159868555
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.06081054990122187
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.005221970373016714
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.0010611992364012964
+  },
+  {
+   "epoch": 5,
+   "val_kl": 7.279304722236798e-05
+  },
+  {
+   "epoch": 6,
+   "val_kl": 5.818239777034001e-05
+  },
+  {
+   "epoch": 7,
+   "val_kl": 5.166174829746703e-05
+  },
+  {
+   "epoch": 8,
+   "val_kl": 4.8495008770055675e-05
+  },
+  {
+   "epoch": 9,
+   "val_kl": 4.731123036786047e-05
+  }
+ ],
+ "steps": 830,
+ "test_routing_acc": 0.99,
+ "test_false_gap_rate": 0.01,
+ "gap_recall_unseen_texts": 1.0,
+ "gap_recall_unseen_domain_lab": 1.0,
+ "p_none_median": {
+  "in_library_test": 1.7501355679202085e-06,
+  "unseen_texts": 0.9999992019269806,
+  "unseen_lab_states": 0.9999994192186825
+ },
+ "sec": 64.92860960960388
+}

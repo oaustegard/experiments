@@ -29,7 +29,10 @@ sys.path.insert(0, str(BD / "run"))
 from pack import Packer, Ref, gelu, pack  # noqa: E402
 from train_enc import Decider, Enc  # noqa: E402
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
+# v0.1.1: spikes fine-tuned on the quantized base (QW), router-v3 (content-swapped negatives, quantized base)
+SPIKE_RUN = "QW-lora-{w}-s0"
+ROUTER_RUN, ROUTER_RESULTS = "router-v3", "system_router_v3.json"
 GAP_THRESHOLD = 0.5
 WEB = ROOT / "web" / "models"
 MODS = [("attn.Wqkv", "Wqkv"), ("attn.Wo", "Wo"), ("mlp.Wi", "Wi"), ("mlp.Wo", "Wo_mlp")]
@@ -115,20 +118,20 @@ def main():
     print(f"base: {len(data) / 1e6:.2f} MB")
 
     rdir = ROOT / "out" / "smoke" if a.smoke_router else ROOT
-    router = json.loads((rdir / ("system_router.json" if a.smoke_router else "results/system_router.json")).read_text())
+    router = json.loads((rdir / ("system_router.json" if a.smoke_router else f"results/{ROUTER_RESULTS}")).read_text())
     (WEB / "spikes").mkdir(exist_ok=True)
     system = {"version": VERSION, "rank": RANK, "router": {"file": "spikes/router", "question": router["question"],
               "none": router["none_desc"], "threshold": GAP_THRESHOLD,
-              "threshold_note": "0.5, chosen after training (results/system_router_threshold.json): the 99th-percentile "
-                                "rule gave 5.2e-5 and 3.5% false gaps; every in-library P(none) was below 6e-5 and every unseen one above 0.999"},
+              "threshold_note": "0.5, chosen after v0.1.0's training (results/system_router_threshold.json) and kept for v0.1.1 "
+                                "(results/lookalikes.json router-v3)"},
               "spikes": []}
     packed = {}
     for sid in ["router"] + WORKFLOWS:
-        st = torch.load((rdir / "out" / "adapters" / "router-v1.pt" if not a.smoke_router else rdir / "adapters" / "router-v1.pt")
-                        if sid == "router" else ROOT / "out" / "adapters" / f"S-lora-{sid}-s0.pt")
+        st = torch.load((rdir / "out" / "adapters" / f"{ROUTER_RUN}.pt" if not a.smoke_router else rdir / "adapters" / "router-v1.pt")
+                        if sid == "router" else ROOT / "out" / "adapters" / (SPIKE_RUN.format(w=sid) + ".pt"))
         sm, sb = pack_spike(st, cfg["num_hidden_layers"])
         if sid != "router":
-            temps = json.loads((ROOT / "results" / f"S-lora-{sid}-s0.json").read_text())["temps"]
+            temps = json.loads((ROOT / "results" / (SPIKE_RUN.format(w=sid) + ".json")).read_text())["temps"]
             sm.update({"id": sid, "description": router["spikes"][sid], "questions": questions_of(sid), "temps": temps})
             system["spikes"].append({"id": sid, "file": f"spikes/{sid}", "description": router["spikes"][sid]})
         (WEB / "spikes" / f"{sid}.bin").write_bytes(sb)
@@ -139,10 +142,13 @@ def main():
 
     # demo cases: 6 test cases per workflow with gold, 16 train cases per workflow as seed memory, 3 off-domain
     from system_router import synthetic
+    from lookalikes import lookalike, swapped
     samples = {"cases": [], "seed": {}, "offdomain": [
         {"label": "Lab sample record (a domain the router never saw)", "state": json.dumps(synthetic("lab", 3))},
         {"label": "Bank customer message (plain text)", "state": "I was charged twice for the same card payment yesterday."},
-        {"label": "Restaurant booking (trained as none)", "state": json.dumps(synthetic("booking", 99))}]}
+        {"label": "Restaurant booking (trained as none)", "state": json.dumps(synthetic("booking", 99))},
+        {"label": "Support-ticket structure, coworkers' lunch chat (v0.1.0 missed this)", "state": swapped("chat_in_support_shape", load_cases("customer_service", "test")[40:41])[0][0]},
+        {"label": "Shop receipt (routes to invoices; arguably out of scope)", "state": json.dumps(lookalike("receipt", 7))}]}
     for w in WORKFLOWS:
         cs = load_cases(w, "test")
         for c in random.Random(f"demo-{w}").sample(cs, 6):

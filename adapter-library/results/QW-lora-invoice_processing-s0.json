@@ -1,0 +1,44 @@
+{
+ "name": "QW-lora-invoice_processing-s0",
+ "test": {
+  "n_decisions": 500,
+  "accuracy": 0.856,
+  "kl_from_gold": 0.08983824202197915,
+  "brier": 0.04738547117876842,
+  "ece": 0.1333201146438232
+ },
+ "temps": {
+  "choice": 1.1197575571600529,
+  "noul": 0.9394138724025698,
+  "score": 1.0716605503815122
+ },
+ "best_epoch": 3,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.15279518672805717
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.10147584001239822
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.09504622095890188
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.08677740726017646
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.0890257644152377
+  }
+ ],
+ "steps": 425,
+ "trainable": 245761,
+ "kind": "lora",
+ "workflow": "invoice_processing",
+ "seed": 0,
+ "sec": 20.079700469970703
+}

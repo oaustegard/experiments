@@ -1,0 +1,44 @@
+{
+ "name": "QW-lora-agent_trace_observability-s0",
+ "test": {
+  "n_decisions": 500,
+  "accuracy": 0.714,
+  "kl_from_gold": 0.08995637696250246,
+  "brier": 0.05284647856218915,
+  "ece": 0.13934593054961933
+ },
+ "temps": {
+  "choice": 0.9815755395206851,
+  "noul": 0.860445668461434,
+  "score": 1.0256294569306048
+ },
+ "best_epoch": 4,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.08557817416245671
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.08499252765828769
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.08393410721866636
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.07638960817137869
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.07530762248746112
+  }
+ ],
+ "steps": 425,
+ "trainable": 245761,
+ "kind": "lora",
+ "workflow": "agent_trace_observability",
+ "seed": 0,
+ "sec": 33.01844549179077
+}

@@ -1,0 +1,44 @@
+{
+ "name": "QW-lora-security_incidents-s0",
+ "test": {
+  "n_decisions": 500,
+  "accuracy": 0.72,
+  "kl_from_gold": 0.08523947472116952,
+  "brier": 0.04746916308637339,
+  "ece": 0.19465059114380504
+ },
+ "temps": {
+  "choice": 1.334722664474056,
+  "noul": 1.5226192280498758,
+  "score": 1.394626115261553
+ },
+ "best_epoch": 3,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 0.18859460668580924
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.1849488781180166
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.18180369330526408
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.17442777283434285
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.17739772854250888
+  }
+ ],
+ "steps": 425,
+ "trainable": 245761,
+ "kind": "lora",
+ "workflow": "security_incidents",
+ "seed": 0,
+ "sec": 17.67620277404785
+}
