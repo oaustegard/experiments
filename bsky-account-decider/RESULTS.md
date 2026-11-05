@@ -129,3 +129,24 @@ The second stays under the line: its thread is about EmbeddingGemma on GCP A100s
 does not read as AI strongly enough. A retrain on thread-aware labels is the fix for both that and
 the false positives.
 
+
+### 2026-11-05: a LoRA spike trained on thread-aware labels
+
+`run/thread_data.py` collected 7,944 items from 1,357 accounts (AI list, a sample of their follows,
+Discover authors; the whole-thread eval's accounts left out): up to 4 replies with their whole thread,
+2 posts and 1 repost per account. Sonnet labelled them under the conversation rule in 5 minutes for
+$7.17 (one batch of 30 failed to parse). `run/thread_lora.py` trained a rank-8 LoRA on Wqkv / Wo / Wi
+plus the head against the page model rebuilt from its packed weights (logits match the NumPy reference
+to 3.6e-6), 4 epochs, 7.5 minutes on the container's 4 CPUs; epoch 1 had the lowest validation loss.
+
+| test set | model | accuracy | recall | false positives | mean abs error |
+|---|---|---|---|---|---|
+| 1,154 items, held-out accounts | page model, whole thread | 0.940 | 0.885 | 3.4% | 0.100 |
+| | + LoRA | 0.949 | 0.909 | 3.3% | 0.075 |
+| 376 replies, whole-thread round | page model, whole thread | 0.923 | 0.877 | 5.3% | 0.093 |
+| | + LoRA | 0.926 | 0.900 | 6.1% | 0.074 |
+
+The adapter helps a little: about a point of accuracy, two of recall, and a quarter less probability
+error, mostly on replies (0.928 to 0.941 on the held-out accounts' replies). Oskar's two threads go from
+74% and 44% to 81% and 49%; the second is still under the line. Not shipped: the page's engine has no
+LoRA path yet.
