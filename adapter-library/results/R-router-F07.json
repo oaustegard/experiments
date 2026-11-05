@@ -1,0 +1,103 @@
+{
+ "name": "R-router-F07",
+ "F": "sec_privilege",
+ "G": "agent_infra",
+ "library": [
+  "cs_billing",
+  "cs_orders",
+  "cs_account",
+  "inv_quantity",
+  "inv_pricing",
+  "inv_process",
+  "sec_identity",
+  "sec_data",
+  "agent_data",
+  "agent_housekeeping"
+ ],
+ "with_F": [
+  "cs_billing",
+  "cs_orders",
+  "cs_account",
+  "inv_quantity",
+  "inv_pricing",
+  "inv_process",
+  "sec_identity",
+  "sec_privilege",
+  "sec_data",
+  "agent_data",
+  "agent_housekeeping"
+ ],
+ "best_epoch": 7,
+ "log": [
+  {
+   "epoch": 0,
+   "val_kl": 1.6593126496543211
+  },
+  {
+   "epoch": 1,
+   "val_kl": 0.9593120155818703
+  },
+  {
+   "epoch": 2,
+   "val_kl": 0.6600338747771669
+  },
+  {
+   "epoch": 3,
+   "val_kl": 0.41035958244659737
+  },
+  {
+   "epoch": 4,
+   "val_kl": 0.41447638451930346
+  },
+  {
+   "epoch": 5,
+   "val_kl": 0.37972447005860444
+  },
+  {
+   "epoch": 6,
+   "val_kl": 0.35493019012627547
+  },
+  {
+   "epoch": 7,
+   "val_kl": 0.33122311498297397
+  },
+  {
+   "epoch": 8,
+   "val_kl": 0.3873118182674441
+  },
+  {
+   "epoch": 9,
+   "val_kl": 0.3815911343543218
+  }
+ ],
+ "steps": 640,
+ "options_A": [
+  "cs_billing",
+  "cs_orders",
+  "cs_account",
+  "inv_quantity",
+  "inv_pricing",
+  "inv_process",
+  "sec_identity",
+  "sec_data",
+  "agent_data",
+  "agent_housekeeping",
+  "none"
+ ],
+ "options_B": [
+  "cs_billing",
+  "cs_orders",
+  "cs_account",
+  "inv_quantity",
+  "inv_pricing",
+  "inv_process",
+  "sec_identity",
+  "sec_privilege",
+  "sec_data",
+  "agent_data",
+  "agent_housekeeping",
+  "none"
+ ],
+ "routing_acc_A": 0.8170731707317073,
+ "sec": 58.317598819732666
+}

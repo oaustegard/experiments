@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-sec_data",
+ "family": "sec_data",
+ "workflow": "security_incidents",
+ "n_train_cases": 90,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.698,
+  "kl_from_gold": 0.13637478014131277,
+  "brier": 0.07489433001536284,
+  "ece": 0.1374564261360095
+ },
+ "test_own_family": {
+  "n_decisions": 195,
+  "accuracy": 0.7487179487179487,
+  "kl_from_gold": 0.10572229507585822,
+  "brier": 0.055435721595788745,
+  "ece": 0.1937893993560506
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 290,
+ "sec": 11.34444785118103
+}

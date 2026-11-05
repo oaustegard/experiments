@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-inv_pricing",
+ "family": "inv_pricing",
+ "workflow": "invoice_processing",
+ "n_train_cases": 93,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.734,
+  "kl_from_gold": 0.30244979341971595,
+  "brier": 0.14846863916267783,
+  "ece": 0.10377036360719201
+ },
+ "test_own_family": {
+  "n_decisions": 140,
+  "accuracy": 0.8,
+  "kl_from_gold": 0.1468640829723178,
+  "brier": 0.08346922129171452,
+  "ece": 0.09827535446082084
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 300,
+ "sec": 17.049028396606445
+}

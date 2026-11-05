@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-inv_quantity",
+ "family": "inv_quantity",
+ "workflow": "invoice_processing",
+ "n_train_cases": 80,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.524,
+  "kl_from_gold": 0.49136132802834925,
+  "brier": 0.29868405889182026,
+  "ece": 0.11853362110672201
+ },
+ "test_own_family": {
+  "n_decisions": 145,
+  "accuracy": 0.7724137931034483,
+  "kl_from_gold": 0.16462129672357606,
+  "brier": 0.08708987290027036,
+  "ece": 0.14261791534044854
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 250,
+ "sec": 11.27683687210083
+}

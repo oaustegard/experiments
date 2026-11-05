@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-sec_privilege",
+ "family": "sec_privilege",
+ "workflow": "security_incidents",
+ "n_train_cases": 74,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.676,
+  "kl_from_gold": 0.17587029035103957,
+  "brier": 0.0965389403431925,
+  "ece": 0.0948067556834292
+ },
+ "test_own_family": {
+  "n_decisions": 125,
+  "accuracy": 0.736,
+  "kl_from_gold": 0.1288512075786909,
+  "brier": 0.07317120393444296,
+  "ece": 0.12764953414968297
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 240,
+ "sec": 9.493316888809204
+}

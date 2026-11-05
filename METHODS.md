@@ -1663,6 +1663,14 @@ the result.
   domain's own labels lifted 16-label accuracy from 0.554 to 0.578 and repaired the transfer
   failure. At 64 labels it cost 0.006 because fold models trained on 75% of the data understate the
   final model and tilt λ toward kNN; use more folds or stop blending once the model clearly leads.
+- **Route among adapters with a decision-model adapter that reads their descriptions, and don't split a
+  task into sub-topic adapters that share its questions.** On 12 Typed Decisions families (3 per
+  workflow), a LoRA router on frozen Ettin-17m with one described option per adapter plus `none` routed
+  0.907 vs 0.853 for kNN over state embeddings, and 0.678 vs 0.515 on invoices, where the family must be
+  inferred from numbers. It sent 0.66 of an unseen family's cases to that family from the description
+  alone, more than kNN given 4 examples (0.29 at 1-NN), but other routing fell 0.09. P(none) is a usable
+  gap score (AUROC 0.79) and a poor decision (10% of unseen-family cases). Sub-topic adapters cost 0.065
+  against the whole-task adapter even with perfect routing. (`adapter-library/RESULTS.md` round 4)
 - **To grow a new LoRA specialist, start it from the library's merged delta, not from zero.** On
   Ettin-17m and Typed Decisions, the mean of three other workflows' `B·A` deltas, SVD-cut to rank 8,
   plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero

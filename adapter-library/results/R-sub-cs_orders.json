@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-cs_orders",
+ "family": "cs_orders",
+ "workflow": "customer_service",
+ "n_train_cases": 64,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.46,
+  "kl_from_gold": 0.680359224183882,
+  "brier": 0.3410177515168592,
+  "ece": 0.16082987599100623
+ },
+ "test_own_family": {
+  "n_decisions": 105,
+  "accuracy": 0.5904761904761905,
+  "kl_from_gold": 0.25917396536753784,
+  "brier": 0.1439341299094207,
+  "ece": 0.07882767895441427
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 200,
+ "sec": 9.915287971496582
+}

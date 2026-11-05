@@ -1,0 +1,24 @@
+{
+ "name": "R-sub-inv_process",
+ "family": "inv_process",
+ "workflow": "invoice_processing",
+ "n_train_cases": 127,
+ "test_all": {
+  "n_decisions": 500,
+  "accuracy": 0.586,
+  "kl_from_gold": 0.5504638378571811,
+  "brier": 0.31110436137372066,
+  "ece": 0.15571858045705328
+ },
+ "test_own_family": {
+  "n_decisions": 215,
+  "accuracy": 0.7953488372093023,
+  "kl_from_gold": 0.19181653777103985,
+  "brier": 0.09624942738121582,
+  "ece": 0.07497658212679861
+ },
+ "best_epoch": -1,
+ "log": [],
+ "steps": 400,
+ "sec": 17.412964820861816
+}

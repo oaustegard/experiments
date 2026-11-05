@@ -1,0 +1,551 @@
+{
+ "k": 8,
+ "shots": 4,
+ "mean": {
+  "routing_router": 0.9066542564174579,
+  "routing_knn": 0.8534218704990829,
+  "gap_auroc_router": 0.7914802585577251,
+  "gap_auroc_knn": 0.6988219904203233,
+  "none_rate_on_G": 0.8294308279680104,
+  "none_rate_on_F": 0.09618030118030119,
+  "zero_shot_to_F": 0.664375824529322,
+  "routing_router_B": 0.8156260933327436,
+  "knn_4shot_to_F": 0.03891703253405381,
+  "down_router": 0.6457832999762025,
+  "down_knn": 0.6347213265300204,
+  "down_oracle": 0.6649531654937372,
+  "down_whole": 0.7304999352940508,
+  "routing_drop_A_to_B": 0.09102816308471429
+ },
+ "routing_by_workflow_mean": {
+  "agent_trace_observability": {
+   "router": 1.0,
+   "knn": 0.9974358974358974
+  },
+  "customer_service": {
+   "router": 0.9589539140846144,
+   "knn": 0.9385621019071545
+  },
+  "invoice_processing": {
+   "router": 0.6782838796914037,
+   "knn": 0.5146947670428026
+  },
+  "security_incidents": {
+   "router": 1.0,
+   "knn": 0.9779513888888891
+  }
+ },
+ "predictions": {
+  "P19_router_ge_0.85_and_ge_knn": true,
+  "P20_gap_auroc_router_ge_0.75_and_gt_knn": true,
+  "P21_zero_shot_ge_0.5_and_drop_le_0.05": false,
+  "P22_knn_4shot_gt_zero_shot": false,
+  "P23_subspikes_le_whole_plus_0.01_router_and_oracle": true
+ },
+ "folds": [
+  {
+   "F": "cs_billing",
+   "G": "inv_quantity",
+   "F_workflow": "customer_service",
+   "routing_router": 0.918918918918919,
+   "routing_knn": 0.9009009009009009,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.967741935483871,
+     "knn": 0.9516129032258065,
+     "n": 62
+    },
+    "invoice_processing": {
+     "router": 0.647887323943662,
+     "knn": 0.6197183098591549,
+     "n": 71
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.7366050260787103,
+   "gap_auroc_knn": 0.9509246088193457,
+   "none_rate_on_G": 0.0,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.9473684210526315,
+   "routing_router_B": 0.7117117117117117,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6354354354354355,
+   "down_knn": 0.6354354354354355,
+   "down_oracle": 0.6576576576576577,
+   "down_whole": 0.7201201201201202,
+   "n_lib": 333,
+   "n_F": 38
+  },
+  {
+   "F": "cs_orders",
+   "G": "inv_pricing",
+   "F_workflow": "customer_service",
+   "routing_router": 0.9572649572649573,
+   "routing_knn": 0.8945868945868946,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.9620253164556962,
+     "knn": 0.9367088607594937,
+     "n": 79
+    },
+    "invoice_processing": {
+     "router": 0.8333333333333334,
+     "knn": 0.5972222222222222,
+     "n": 72
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.7582417582417582,
+   "gap_auroc_knn": 0.9616062949396282,
+   "none_rate_on_G": 0.21428571428571427,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.8095238095238095,
+   "routing_router_B": 0.9544159544159544,
+   "knn_4shot_to_F": 0.09523809523809523,
+   "down_router": 0.6484330484330484,
+   "down_knn": 0.6273504273504273,
+   "down_oracle": 0.6586894586894587,
+   "down_whole": 0.7270655270655271,
+   "n_lib": 351,
+   "n_F": 21
+  },
+  {
+   "F": "cs_account",
+   "G": "inv_process",
+   "F_workflow": "customer_service",
+   "routing_router": 0.9683544303797469,
+   "routing_knn": 0.8955696202531646,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.9830508474576272,
+     "knn": 0.9830508474576272,
+     "n": 59
+    },
+    "invoice_processing": {
+     "router": 0.8421052631578947,
+     "knn": 0.49122807017543857,
+     "n": 57
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.695353504167953,
+   "gap_auroc_knn": 0.956776782957703,
+   "none_rate_on_G": 0.8372093023255814,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.8048780487804879,
+   "routing_router_B": 0.9240506329113924,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6645569620253164,
+   "down_knn": 0.6531645569620254,
+   "down_oracle": 0.6620253164556962,
+   "down_whole": 0.7322784810126582,
+   "n_lib": 316,
+   "n_F": 41
+  },
+  {
+   "F": "inv_quantity",
+   "G": "sec_identity",
+   "F_workflow": "invoice_processing",
+   "routing_router": 0.9492537313432836,
+   "routing_knn": 0.8925373134328358,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.99,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.7746478873239436,
+     "knn": 0.6197183098591549,
+     "n": 71
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.984375,
+     "n": 64
+    }
+   },
+   "gap_auroc_router": 0.7269171384457025,
+   "gap_auroc_knn": 0.17159032424086465,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.0,
+   "routing_router_B": 0.9432835820895522,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6537313432835821,
+   "down_knn": 0.6346268656716418,
+   "down_oracle": 0.6543283582089552,
+   "down_whole": 0.7271641791044776,
+   "n_lib": 335,
+   "n_F": 29
+  },
+  {
+   "F": "inv_pricing",
+   "G": "sec_privilege",
+   "F_workflow": "invoice_processing",
+   "routing_router": 0.899135446685879,
+   "routing_knn": 0.8876080691642652,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.94,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.5972222222222222,
+     "knn": 0.5972222222222222,
+     "n": 72
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.9733333333333334,
+     "n": 75
+    }
+   },
+   "gap_auroc_router": 0.514615067929189,
+   "gap_auroc_knn": 0.15356113627006998,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.0,
+   "routing_router_B": 0.899135446685879,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6167146974063401,
+   "down_knn": 0.6207492795389049,
+   "down_oracle": 0.6489913544668587,
+   "down_whole": 0.7198847262247838,
+   "n_lib": 347,
+   "n_F": 28
+  },
+  {
+   "F": "inv_process",
+   "G": "sec_data",
+   "F_workflow": "invoice_processing",
+   "routing_router": 0.9276729559748428,
+   "routing_knn": 0.8836477987421384,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 100
+    },
+    "customer_service": {
+     "router": 0.95,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.6842105263157895,
+     "knn": 0.49122807017543857,
+     "n": 57
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 61
+    }
+   },
+   "gap_auroc_router": 0.5364926137194675,
+   "gap_auroc_knn": 0.12761445078250694,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.0,
+   "routing_router_B": 0.8805031446540881,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6383647798742138,
+   "down_knn": 0.630188679245283,
+   "down_oracle": 0.6371069182389937,
+   "down_whole": 0.7182389937106918,
+   "n_lib": 318,
+   "n_F": 43
+  },
+  {
+   "F": "sec_identity",
+   "G": "agent_data",
+   "F_workflow": "security_incidents",
+   "routing_router": 0.8662613981762918,
+   "routing_knn": 0.8054711246200608,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 0.9846153846153847,
+     "n": 65
+    },
+    "customer_service": {
+     "router": 0.95,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.61,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.984375,
+     "n": 64
+    }
+   },
+   "gap_auroc_router": 0.9879263762242486,
+   "gap_auroc_knn": 0.8813745356298548,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 1.0,
+   "routing_router_B": 0.7477203647416414,
+   "knn_4shot_to_F": 0.05555555555555555,
+   "down_router": 0.6723404255319149,
+   "down_knn": 0.6389057750759879,
+   "down_oracle": 0.678419452887538,
+   "down_whole": 0.7386018237082067,
+   "n_lib": 329,
+   "n_F": 36
+  },
+  {
+   "F": "sec_privilege",
+   "G": "agent_infra",
+   "F_workflow": "security_incidents",
+   "routing_router": 0.8170731707317073,
+   "routing_knn": 0.8048780487804879,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 53
+    },
+    "customer_service": {
+     "router": 0.95,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.45,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.9733333333333334,
+     "n": 75
+    }
+   },
+   "gap_auroc_router": 1.0,
+   "gap_auroc_knn": 0.8917073170731707,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.44,
+   "zero_shot_to_F": 1.0,
+   "routing_router_B": 0.7530487804878049,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6109756097560975,
+   "down_knn": 0.624390243902439,
+   "down_oracle": 0.6652439024390244,
+   "down_whole": 0.7335365853658536,
+   "n_lib": 328,
+   "n_F": 25
+  },
+  {
+   "F": "sec_data",
+   "G": "agent_housekeeping",
+   "F_workflow": "security_incidents",
+   "routing_router": 0.8425655976676385,
+   "routing_knn": 0.8192419825072886,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 82
+    },
+    "customer_service": {
+     "router": 0.94,
+     "knn": 0.92,
+     "n": 100
+    },
+    "invoice_processing": {
+     "router": 0.52,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 61
+    }
+   },
+   "gap_auroc_router": 1.0,
+   "gap_auroc_knn": 0.9699484189280108,
+   "none_rate_on_G": 1.0,
+   "none_rate_on_F": 0.15384615384615385,
+   "zero_shot_to_F": 0.6666666666666666,
+   "routing_router_B": 0.7871720116618076,
+   "knn_4shot_to_F": 0.0,
+   "down_router": 0.6180758017492711,
+   "down_knn": 0.6297376093294461,
+   "down_oracle": 0.6682215743440233,
+   "down_whole": 0.7317784256559767,
+   "n_lib": 343,
+   "n_F": 39
+  },
+  {
+   "F": "agent_data",
+   "G": "cs_billing",
+   "F_workflow": "agent_trace_observability",
+   "routing_router": 0.9724770642201835,
+   "routing_knn": 0.8134556574923547,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 0.9846153846153847,
+     "n": 65
+    },
+    "customer_service": {
+     "router": 0.967741935483871,
+     "knn": 0.9516129032258065,
+     "n": 62
+    },
+    "invoice_processing": {
+     "router": 0.93,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.9879423328964614,
+   "gap_auroc_knn": 0.8091743119266055,
+   "none_rate_on_G": 0.9736842105263158,
+   "none_rate_on_F": 0.17142857142857143,
+   "zero_shot_to_F": 0.9142857142857143,
+   "routing_router_B": 0.654434250764526,
+   "knn_4shot_to_F": 0.08571428571428572,
+   "down_router": 0.6831804281345566,
+   "down_knn": 0.6397553516819572,
+   "down_oracle": 0.6819571865443425,
+   "down_whole": 0.7314984709480122,
+   "n_lib": 327,
+   "n_F": 35
+  },
+  {
+   "F": "agent_infra",
+   "G": "cs_orders",
+   "F_workflow": "agent_trace_observability",
+   "routing_router": 0.9397590361445783,
+   "routing_knn": 0.8132530120481928,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 53
+    },
+    "customer_service": {
+     "router": 0.9746835443037974,
+     "knn": 0.9367088607594937,
+     "n": 79
+    },
+    "invoice_processing": {
+     "router": 0.82,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.5673545244809023,
+   "gap_auroc_knn": 0.7962061009997436,
+   "none_rate_on_G": 0.9523809523809523,
+   "none_rate_on_F": 0.0,
+   "zero_shot_to_F": 0.8297872340425532,
+   "routing_router_B": 0.713855421686747,
+   "knn_4shot_to_F": 0.06382978723404255,
+   "down_router": 0.6765060240963855,
+   "down_knn": 0.6313253012048192,
+   "down_oracle": 0.6753012048192771,
+   "down_whole": 0.7409638554216867,
+   "n_lib": 332,
+   "n_F": 47
+  },
+  {
+   "F": "agent_housekeeping",
+   "G": "cs_account",
+   "F_workflow": "agent_trace_observability",
+   "routing_router": 0.8211143695014663,
+   "routing_knn": 0.8299120234604106,
+   "routing_by_workflow": {
+    "agent_trace_observability": {
+     "router": 1.0,
+     "knn": 1.0,
+     "n": 82
+    },
+    "customer_service": {
+     "router": 0.9322033898305084,
+     "knn": 0.9830508474576272,
+     "n": 59
+    },
+    "invoice_processing": {
+     "router": 0.43,
+     "knn": 0.46,
+     "n": 100
+    },
+    "security_incidents": {
+     "router": 1.0,
+     "knn": 0.97,
+     "n": 100
+    }
+   },
+   "gap_auroc_router": 0.9863147605083089,
+   "gap_auroc_knn": 0.7153796024763767,
+   "none_rate_on_G": 0.975609756097561,
+   "none_rate_on_F": 0.3888888888888889,
+   "zero_shot_to_F": 1.0,
+   "routing_router_B": 0.8181818181818182,
+   "knn_4shot_to_F": 0.16666666666666666,
+   "down_router": 0.6310850439882698,
+   "down_knn": 0.6510263929618768,
+   "down_oracle": 0.6914956011730206,
+   "down_whole": 0.7448680351906158,
+   "n_lib": 341,
+   "n_F": 18
+  }
+ ]
+}
