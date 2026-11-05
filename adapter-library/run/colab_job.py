@@ -28,10 +28,10 @@ if not D.exists():
     sh("git sparse-checkout set adapter-library browser-decider/run browser-decider/data _lib", cwd=BASE)
 sh("git pull -q", cwd=BASE)
 sh("pip install -q transformers==4.57.1")
-# round 3: adapters from round 1 uploaded to /content/adapters, and an optional arm prefix in /content/al_only.txt
-if Path("/content/adapters").exists():
+# round 3: adapters from round 1 uploaded to /content/S-lora-*.pt, and an optional arm prefix in /content/al_only.txt
+if list(Path("/content").glob("S-lora-*.pt")):
     (D / "out" / "adapters").mkdir(parents=True, exist_ok=True)
-    sh(f"cp /content/adapters/*.pt {D}/out/adapters/")
+    sh(f"cp /content/S-lora-*.pt {D}/out/adapters/")
 only = Path("/content/al_only.txt").read_text().strip() if Path("/content/al_only.txt").exists() else ""
 r = sh(f"python3 -I run/lora.py {'--only ' + only if only else ''} 2>&1 | grep --line-buffered -v -i warning", cwd=D)
 LOG.write(f"LORA_RC {r.returncode}\n")
