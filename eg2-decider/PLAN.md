@@ -75,3 +75,16 @@ Rounds: A0–A2 first (CPU here). A3–A5 need more embedding than 4 vCPUs do qu
 | P4 | A3 on TD test 0.50–0.62 (Rev-gen1 frozen EG2 0.6015 saw filtered TD train; A3 does not) |
 | P5 | A4 from A3: 64 cases reach within 0.03 of A1 on that workflow; from A0 they need 256 |
 | P6 | A5: 8-layer cut costs ≤ 0.02 on A1, 4-layer 0.02–0.05; both cost more on A3 than on A1 |
+
+## Addendum 2026-11-05: Ettin label curve (registered before it ran)
+
+Oskar asked how the 4-layer cut compares with Ettin; nothing measured Ettin with few labels. Arm A6: stock
+Ettin-17m fine-tuned as browser-decider's cross-encoder (`browser-decider/run/train_enc.py --n-cases`) on
+n ∈ {64, 256} cases of one workflow, the same case draws as A4 (`default_rng(100 + draw)`, 20% of them
+for validation), 3 draws × 4 workflows, scored on that workflow's test. 40 epochs at n = 64 and 15 at
+n = 256 (about 600 to 1,000 optimiser steps each), best epoch by validation KL. Colab GPU.
+
+| | prediction |
+|---|---|
+| P7 | Ettin at 64 cases 0.48–0.57, below EG2's head (0.584): it trains 17M parameters from an MLM start |
+| P8 | Ettin at 256 cases 0.62–0.70, within 0.04 of EG2's head (0.661) |

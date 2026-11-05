@@ -29,6 +29,15 @@ if len(sys.argv) > 1 and sys.argv[1] == "monad":   # the comparison arm: Monad 5
 if len(sys.argv) > 1 and sys.argv[1] == "long":   # round 2: every 5-epoch seed peaked at its last epoch
     ARMS = [(f"spec-stock-e10-s{s}", ["--init", "stock", "--seed", str(s), "--epochs", "10"]) for s in (0, 1, 2)]
     KEEP = ["spec-stock-e10-s0"]
+if len(sys.argv) > 1 and sys.argv[1] == "curve":   # eg2-decider comparison: n cases of one workflow, A4's draws
+    ARMS = []
+    for w in W:
+        for n, ep in ((64, 40), (256, 15)):   # about 600-1,000 optimiser steps either way
+            for d in (0, 1, 2):
+                ARMS.append((f"curve-{w}-n{n}-d{d}", ["--init", "stock", "--seed", str(d), "--draw", str(d),
+                                                       "--n-cases", str(n), "--epochs", str(ep),
+                                                       "--train", w, "--test", w]))
+    KEEP = []
 if len(sys.argv) > 2 and sys.argv[2].startswith("only="):  # rerun a named subset, e.g. after an OOM
     keep = set(sys.argv[2][5:].split(","))
     ARMS = [a for a in ARMS if a[0] in keep]

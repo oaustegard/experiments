@@ -179,6 +179,10 @@ def main():
     ap.add_argument("--bs", type=int, default=16)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--max-steps", type=int, default=0, help="smoke test: stop after N steps")
+    ap.add_argument("--n-cases", type=int, default=0,
+                    help="label curve: train on N cases of the single --train workflow, drawn as eg2-decider A4 "
+                         "draws them (np.random.default_rng(100 + draw) over sorted case ids), 20%% of them validation")
+    ap.add_argument("--draw", type=int, default=0)
     ap.add_argument("--data", help="JSONL of cases (id, workflow, state, questions, gold, split, optional "
                     "account) instead of Typed Decisions; --train/--test are then ignored")
     ap.add_argument("--max-train-accounts", type=int, default=0, help="with --data: keep N training accounts")
@@ -214,8 +218,16 @@ def main():
         rng.shuffle(tr_cases)
     else:
         train_cases = [c for w in a.train for c in load_cases(w, "train")]
-        rng.shuffle(train_cases)
-        nval = max(20, len(train_cases) // 10)
+        if a.n_cases:
+            assert len(a.train) == 1, "--n-cases draws from one workflow"
+            ids = sorted(c["id"] for c in train_cases)
+            pick = set(np.random.default_rng(100 + a.draw).choice(ids, a.n_cases, replace=False).tolist())
+            train_cases = sorted((c for c in train_cases if c["id"] in pick), key=lambda c: c["id"])
+            rng.shuffle(train_cases)
+            nval = max(1, int(a.n_cases * 0.2))
+        else:
+            rng.shuffle(train_cases)
+            nval = max(20, len(train_cases) // 10)
         val_cases, tr_cases = train_cases[:nval], train_cases[nval:]
         test_cases = [c for w in a.test for c in load_cases(w, "test")]
 
