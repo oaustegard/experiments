@@ -1659,6 +1659,10 @@ the result.
   (40% of questions at 16). The likely fix, untested, is to cross-fit the model on folds of the labelled
   set and feed the gate its held-out accuracy. A gate fit on other domains also guessed worst on the
   domain least like them. One benchmark, four domains. (`adapter-library/RESULTS.md` round 2)
+  Round 3 tested the fix: λ per question chosen from 4-fold out-of-fold predictions on the new
+  domain's own labels lifted 16-label accuracy from 0.554 to 0.578 and repaired the transfer
+  failure. At 64 labels it cost 0.006 because fold models trained on 75% of the data understate the
+  final model and tilt λ toward kNN; use more folds or stop blending once the model clearly leads.
 - **To grow a new LoRA specialist, start it from the library's merged delta, not from zero.** On
   Ettin-17m and Typed Decisions, the mean of three other workflows' `B·A` deltas, SVD-cut to rank 8,
   plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero

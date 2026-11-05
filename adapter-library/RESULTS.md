@@ -25,12 +25,13 @@ changes, compressed to one adapter). From 64 labelled cases it reaches 0.671. <!
 From the same cases, a spike started from zero reaches 0.576 and a full fine-tune 0.610. <!-- @evidence[[results/summary.json#G_mean.n64.scratch]] -->
 The library start led on all four workflows.
 
-kNN alone is weak. At 16 cases it ties a spike started from zero, 0.523 against 0.525, and it stops improving at about 0.555. <!-- @evidence[[results/summary.json#G_mean.n16.knn]] -->
-A learned per-decision blend of kNN and spike improved calibration, not accuracy:
-0.555 at 16 cases, against 0.554 for the library-start spike alone and 0.569 for a fixed 50/50 blend. <!-- @evidence[[results/blend.json#mean.n16.warm.gate]] -->
+kNN alone is weak: 0.523 at 16 cases, flat near 0.555 after. <!-- @evidence[[results/summary.json#G_mean.n16.knn]] -->
+Blending helps when the weight is chosen per question from out-of-fold predictions on the new
+workflow's own cases: 0.578 at 16 cases, against 0.554 for the library-start spike alone. <!-- @evidence[[results/cv_blend.json#mean.n16.warm.cv_lambda]] -->
+At 64 cases it cost the library start 0.006: fold spikes, trained on 75% of the cases, understate the final spike.
 
 By the rules registered before each round, the verdict stays "a cheap way to store specialists".
-A benchmark with similar spikes, or a held-out estimate of each new spike's accuracy, could change it.
+A benchmark with similar spikes could change it.
 
 ## Findings
 
@@ -69,10 +70,19 @@ A benchmark with similar spikes, or a held-out estimate of each new spike's accu
    untested. The gate also transferred worst to the workflow least like the others: on agent
    traces, where kNN is weakest, it leaned toward kNN (spike weight 0.41 at 16 cases, library start; accuracy
    0.505 vs 0.571 for the spike alone). (round 2, `out/blend.log` and the diagnostic in the Log)
-7. **With no labels, nothing in the library transfers.** Each library spike applied to an unseen workflow,
+7. **A blend weight cross-fitted on the new workflow's own cases is the best blend at 16 cases.**
+   Spikes trained on 3 of 4 folds of the revealed cases, and kNN on the same folds, give every revealed
+   decision two out-of-fold predictions; λ per question minimizes their blend's cross-entropy. At 16
+   cases: library start 0.578 vs 0.554 spike alone, 0.569 fixed blend, 0.555 round 2's gate; zero start
+   0.538 vs 0.525. It fixed round 2's failure on agent traces (spike weight 0.81, 0.567 vs 0.571 spike
+   alone). At 64 cases it helped the zero start (0.596 vs 0.576) and cost the library start 0.006 (0.665
+   vs 0.671), worst on invoices (0.719 vs 0.748). The fold spikes saw 75% of the cases, so they understate
+   the final spike and push λ toward kNN. Adding the out-of-fold accuracies to round 2's cross-workflow
+   gate did not help (0.558 vs 0.555). (round 3, `results/cv_blend.json`)
+8. **With no labels, nothing in the library transfers.** Each library spike applied to an unseen workflow,
    their uniform merge, and the spike the router picks all scored 0.254–0.440, below the 0.470 frequency
    baseline (P3 held). The uniform merge was never the best of them. (`results/summary.json` fallback)
-8. **Routing and gap detection are trivially perfect on this fixture.** Routing accuracy 1.0; gap AUROC 1.0
+9. **Routing and gap detection are trivially perfect on this fixture.** Routing accuracy 1.0; gap AUROC 1.0
    for every held-out workflow (P2 held). <!-- @evidence[[results/routing.json#accuracy]] -->
    Each workflow's state JSON has its own fields, so this is not evidence that routing would work among
    similar spikes.
@@ -100,6 +110,10 @@ A benchmark with similar spikes, or a held-out estimate of each new spike's accu
   For each held-out workflow the 8 weights are fit on the other three workflows' new-spike runs (arm G; soft
   cross-entropy, L2 1e-3, L-BFGS) and applied unchanged. Comparisons: a constant λ fit the same way, the
   fixed 0.5, and the best constant per workflow chosen on its test set (upper bound, post hoc).
+- **Cross-fit (round 3):** the n revealed cases go to 4 folds (case i to fold i mod 4); for each fold a
+  spike (same start and recipe) trains on the other three and predicts it, and kNN predicts it from the
+  other three folds' cases. λ per question is picked from {0, 0.1, …, 1} by the out-of-fold blend's soft
+  cross-entropy, then applied to the final spike and kNN on all n cases. n ∈ {16, 64}, seeds 0–1.
 - **Compute:** one Colab L4 GPU session ran the 100 GPU runs (24 spikes, 4 fallback sets, 72 growth runs) in
   about 25 minutes of training. The CPU arms took about 5 minutes on a 4-core container.
 
@@ -178,3 +192,35 @@ harm on average and the best calibration at 300 cases. On agent traces it did ha
 needs cross-fitting: train a few spikes, each on all but one fold of the revealed cases, and score each
 on the fold it did not see. Round 1's 16- and 64-case spikes took 6–8 s each on the L4. Without it, a gate fit on other workflows guesses wrong on the
 workflow least like them.
+
+### Round 3 (2026-11-05): a blend weight cross-fitted on the new workflow
+
+Oskar: "OK, keep going". PLAN.md registered P12–P16 first. 32 extra GPU runs (4 fold spikes each) on a
+Colab L4, about 15 minutes; one session hung on `colab exec` and was replaced. The analysis is CPU.
+
+| n | start | spike | kNN | round 2 gate | cv_select | gate2 | cv_lambda |
+|---|---|---|---|---|---|---|---|
+| 16 | zero | 0.525 | 0.523 | 0.532 | 0.534 | 0.528 | 0.538 |
+| 16 | library | 0.554 | 0.523 | 0.555 | 0.570 | 0.558 | 0.578 |
+| 64 | zero | 0.576 | 0.554 | 0.595 | 0.586 | 0.592 | 0.596 |
+| 64 | library | 0.671 | 0.554 | 0.669 | 0.664 | 0.673 | 0.665 |
+
+Columns: round 2 gate = the 7-feature gate fit on other workflows; cv_select = spike or kNN per question,
+whichever was more accurate out of fold; gate2 = round 2's gate plus the two out-of-fold accuracies;
+cv_lambda = the per-question weight chosen out of fold. KL from gold (lower is better), library start
+at 16 cases: spike 0.363, cv_lambda 0.284.
+
+| prediction | measured | held |
+|---|---|---|
+| P12 cv_lambda > spike at 16 and 64, both starts | library start at 64: 0.665 vs 0.671 | no |
+| P13 cv_lambda ≥ round 2 gate + 0.01 at 16 | +0.023 (library), +0.006 (zero) | yes |
+| P14 agent traces, 16, library: within 0.01 of spike | 0.567 vs 0.571 | yes |
+| P15 gate2 ≥ round 2 gate + 0.01 at 16 | +0.003, −0.004 | no |
+| P16 out-of-fold difference vs test difference, r ≥ 0.4 at 16 | 0.35 (round 2's kNN-only proxy: 0.19) | no |
+
+Reading at the time: by the decision rule cv_lambda is not adopted, since P12 failed in one of four cells.
+The failure has a known cause, the 75% fold size. A spike trained on 12 cases is a worse model than one
+trained on 16, so the fold-based comparison favors kNN. At 16 cases cv_lambda is the best blend found,
+and it repaired the transfer failure that sank round 2. Two cheap fixes to test next: more folds (8 folds
+train on 87.5%), or blend only while n is small and use the spike alone once its out-of-fold accuracy
+clearly exceeds kNN's.
