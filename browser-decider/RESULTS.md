@@ -71,6 +71,22 @@ Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but it would take 
 8. **Calibration is the weak metric.** ECE 0.144 on the fp32 runs and 0.156 packed, after a per-type
    temperature fitted to KL on validation. The fitted entries on the card sit at 0.12 to 0.18. Fitting
    the temperature to KL against soft gold labels does not optimise argmax-confidence calibration.
+9. **The token table is the size, and it cannot ship partial.** It holds 6.39 MB of the roughly 9.8 MB
+   compressed download. <!-- @evidence[[results/vocab_fallback.json#full_table_brotli]] -->
+   A core of common rows with exact fallback (keep the full tokenizer, read missing rows from the shipped
+   file by HTTP range) keeps answers identical, but on 626 held-out Bluesky accounts even a 16K-row core
+   (2.03 MB) leaves 99.8% of accounts needing fetched rows, median 27. Every row seen in 675 other accounts
+   (26K rows, 3.34 MB) still leaves 99.4%, median 11; the benchmark's test cases need one 29% to 42% of the time.
+   A fallback page would make network requests on almost every answer. Lossy pruning was ruled out earlier
+   (`ettin-native` finding 5), as were table bits below 4 (finding 4). (`results/vocab_fallback.json`)
+10. **No layer or head is free to drop, and one head carries the task.** On 400 test questions (80
+   agent-trace cases), removing the last layer changes 5% of top answers and layer 5 13.5%; layers 0, 2
+   and 3 are essential (61% to 75% of answers change). Head 1 of layer 3, a global-attention layer, alone
+   changes 70% of answers; seven of the other 27 heads change 2% or fewer. Dropping a whole layer saves about 0.5 MB
+   raw, a twentieth of the download, before any retraining to recover. Channels 11, 166 and 29 of the
+   residual stream reach about 1,100 in every layer against a median channel peak of 6 to 10; activations
+   stay in 32-bit floats here, so they cost the weight-only int8 nothing. The int8 columns are near-Gaussian
+   (peak about 3.1 to 4.1 times the column RMS). (`results/weight_probe.json`)
 
 ## Method
 
