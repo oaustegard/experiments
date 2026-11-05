@@ -19,7 +19,8 @@ import torch
 import torch.nn as nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from shared import GPU_SEEDS, ROOT, SIZES, WORKFLOWS, examples, load_cases, revealed, score_examples  # noqa: E402
+from shared import (FAM_IDS, FAM_WORKFLOW, GPU_SEEDS, ROOT, SIZES, WORKFLOWS, examples, family_map,  # noqa: E402
+                    load_cases, revealed, router_example, router_fold, score_examples)
 from train_enc import (DEV, Decider, Enc, batches, collate, fit_temps, kl_mean, predict,  # noqa: E402
                        probs_at, seg_softmax)
 
@@ -184,14 +185,25 @@ def arms():
             for s in GPU_SEEDS:
                 for kind in ("scratch", "warm"):
                     A.append(("cv", f"CV-{kind}-{w}-n{n}-s{s}", w, s, n))
+    # round 4b: router spikes (one per held-out family) and one sub-spike per family
+    for i in range(len(FAM_IDS)):
+        A.append(("router", f"R-router-F{i:02d}", None, 0, i))
+    for fid in FAM_IDS:
+        A.append(("sub", f"R-sub-{fid}", FAM_WORKFLOW[fid], 0, None))
+    # round 4a: the cross-fit with 8 folds
+    for w in WORKFLOWS:
+        for n in CV_SIZES:
+            for s in GPU_SEEDS:
+                for kind in ("scratch", "warm"):
+                    A.append(("cv8", f"CV8-{kind}-{w}-n{n}-s{s}", w, s, n))
     return A
 
 
 CV_SIZES, FOLDS = (16, 64), 4
 
 
-def run_cv(name, w, seed, n, kind, tok, ms, t0):
-    """Out-of-fold spike predictions on W's revealed cases (round 3)."""
+def run_cv(name, w, seed, n, kind, tok, ms, t0, FOLDS=FOLDS):
+    """Out-of-fold spike predictions on W's revealed cases (round 3: 4 folds; round 4a: 8)."""
     rev = revealed(w, seed, n)
     fold = {c["id"]: i % FOLDS for i, c in enumerate(rev)}
     ex = prep(tok, rev)
@@ -216,6 +228,68 @@ def run_cv(name, w, seed, n, kind, tok, ms, t0):
     print(f"[{name}] oof acc {summ['accuracy']:.4f} {time.time() - t0:.0f}s", flush=True)
 
 
+def run_router(name, i, tok, ms, t0, smoke=False):
+    """Round 4b: a router spike with family F held out and family G trained as `none`."""
+    F, G = router_fold(i)
+    fm = family_map()
+    lib = [f for f in FAM_IDS if f not in (F, G)]
+    with_f = [f for f in FAM_IDS if f != G]
+    tr_cases = [c for w in WORKFLOWS for c in load_cases(w, "train") if fm[c["id"]] in lib + [G]]
+    tr_cases.sort(key=lambda c: c["id"])
+    random.Random(f"router-{i}").shuffle(tr_cases)
+    if smoke:
+        tr_cases = tr_cases[:40]
+    ex = [router_example(c, lib, fm[c["id"]] if fm[c["id"]] != G else "none") for c in tr_cases]
+    ex = prep_raw(tok, ex)
+    nval = max(20, len(ex) // 10)
+    va, tr = ex[:nval], ex[nval:]
+    torch.manual_seed(i)
+    model = new_model("lora")
+    info = train(model, "lora", tr, 10, i, va=va, max_steps=ms)
+    te_cases = [c for w in WORKFLOWS for c in load_cases(w, "test")][: 8 if smoke else None]
+    out = {"name": name, "F": F, "G": G, "library": lib, "with_F": with_f, **info, "cases": [c["id"] for c in te_cases]}
+    for tag, opts in (("A", lib), ("B", with_f)):
+        te = prep_raw(tok, [router_example(c, opts, None) for c in te_cases])
+        out[f"options_{tag}"] = opts + ["none"]
+        out[f"probs_{tag}"] = [[round(x, 5) for x in probs_at([z], 1.0)[0]] for z in predict(model, te, PAD)]
+    lab = [fm[c] for c in out["cases"]]
+    okA = [out["options_A"][int(np.argmax(p))] == l for p, l in zip(out["probs_A"], lab) if l in lib]
+    out["routing_acc_A"] = float(np.mean(okA)) if okA else None
+    out["sec"] = time.time() - t0
+    (OUT / "probs" / f"{name}.json").write_text(json.dumps(out))
+    (RES / f"{name}.json").write_text(json.dumps({k: v for k, v in out.items() if not k.startswith("probs") and k != "cases"},
+                                                 indent=1))
+    print(f"[{name}] F={F} G={G} routing acc (library, A) {out['routing_acc_A']} {out['sec']:.0f}s", flush=True)
+
+
+def run_sub(name, fid, w, tok, ms, t0, test_of):
+    """Round 4b: a sub-spike trained on one family's train cases, scored on its workflow's test set."""
+    fm = family_map()
+    cases = [c for c in load_cases(w, "train") if fm[c["id"]] == fid]
+    tr = prep(tok, cases)
+    torch.manual_seed(0)
+    model = new_model("scratch")
+    info = train(model, "lora", tr, growth_epochs(len(cases)), 0, max_steps=ms)
+    te = test_of[w]
+    probs = [probs_at([z], 1.0)[0] for z in predict(model, te, PAD)]
+    own = [i for i, e in enumerate(te) if fm[e["case"]] == fid]
+    summ = score_examples(te, probs)[0]
+    summ_own = score_examples([te[i] for i in own], [probs[i] for i in own])[0] if own else None
+    (OUT / "probs" / f"{name}.json").write_text(json.dumps([[round(x, 5) for x in p] for p in probs]))
+    (RES / f"{name}.json").write_text(json.dumps({"name": name, "family": fid, "workflow": w, "n_train_cases": len(cases),
+                                                  "test_all": summ, "test_own_family": summ_own, **info,
+                                                  "sec": time.time() - t0}, indent=1))
+    print(f"[{name}] {len(cases)} cases, own-family acc {summ_own and summ_own['accuracy']} {time.time() - t0:.0f}s", flush=True)
+
+
+def prep_raw(tok, exs):
+    out = []
+    for e in exs:
+        ids, pos = tok.build(e)
+        out.append({**e, "ids": ids, "pos": pos})
+    return out
+
+
 def main():
     global PAD
     ap = argparse.ArgumentParser()
@@ -230,13 +304,15 @@ def main():
     (OUT / "adapters").mkdir(parents=True, exist_ok=True)
     tok = Enc(Path(stock_path()) / "tokenizer.json")
     PAD = tok.tok.token_to_id("[PAD]")
-    todo = [x for x in arms() if x[1].startswith(a.only)]
+    prefixes = tuple(a.only.split(",")) if a.only else ("",)
+    todo = [x for x in arms() if x[1].startswith(prefixes)]
     if a.smoke:
         w0 = WORKFLOWS[0]
         todo = [x for x in todo if x[3] == 0 and ((x[0] == "spike" and "-lora-" in x[1]) or
                                                   (x[2] == w0 and x[4] in (0, 16)))]
         if a.only:
-            todo = [x for x in arms() if x[1].startswith(a.only) and x[3] == 0 and x[4] == 16][:2]
+            todo = [x for p in prefixes for x in [y for y in arms() if y[1].startswith(p) and y[3] == 0
+                                                  and y[4] in (16, 0, None)][:2]]
     test_of = {w: prep(tok, load_cases(w, "test")[: 4 if a.smoke else None]) for w in WORKFLOWS}
     for mode, name, w, seed, n in todo:
         if (RES / f"{name}.json").exists():
@@ -246,6 +322,15 @@ def main():
         ms = 2 if a.smoke else 0
         if mode == "cv":
             run_cv(name, w, seed, n, name.split("-")[1], tok, ms, t0)
+            continue
+        if mode == "cv8":
+            run_cv(name, w, seed, n, name.split("-")[1], tok, ms, t0, FOLDS=8)
+            continue
+        if mode == "router":
+            run_router(name, n, tok, ms, t0, smoke=a.smoke)
+            continue
+        if mode == "sub":
+            run_sub(name, name[len("R-sub-"):], w, tok, ms, t0, test_of)
             continue
         if mode == "spike":
             kind = "lora" if "-lora-" in name else "full"

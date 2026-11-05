@@ -17,7 +17,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from blend import FEATS, acc, build_rows, fit, knn_vote, lam_of  # noqa: E402
 from shared import GPU_SEEDS, ROOT, WORKFLOWS, examples, revealed  # noqa: E402
 
-NS, KINDS, FOLDS, EPS = [16, 64], ["scratch", "warm"], 4, 0.01
+NS, KINDS, EPS = [16, 64], ["scratch", "warm"], 0.01
+FOLDS = int(sys.argv[1]) if len(sys.argv) > 1 else 4          # round 3: 4; round 4a: 8
+PREFIX = "CV" if FOLDS == 4 else f"CV{FOLDS}"
+STOP_MARGIN = 0.10                                             # round 4a cv_stop
 GRID = [round(x, 1) for x in np.linspace(0, 1, 11)]
 OUT, RES = ROOT / "out", ROOT / "results"
 
@@ -43,7 +46,7 @@ def per_question_stats(E):
                     p = knn_vote(keys, golds, E[e["case"]])
                     pk.append((1 - EPS) * p + EPS / len(p))
                 for kind in KINDS:
-                    ps = [np.array(p) for p in json.loads((OUT / "probs" / f"CV-{kind}-{w}-n{n}-s{seed}.json").read_text())]
+                    ps = [np.array(p) for p in json.loads((OUT / "probs" / f"{PREFIX}-{kind}-{w}-n{n}-s{seed}.json").read_text())]
                     q_stats = {}
                     for q in sorted({e["qname"] for e in ex}):
                         idx = [i for i, e in enumerate(ex) if e["qname"] == q]
@@ -59,6 +62,7 @@ def per_question_stats(E):
 def main():
     rows, TE = build_rows()
     rows = [r for r in rows if r["n"] in NS]
+    print(f"folds {FOLDS}, prefix {PREFIX}", flush=True)
     z = np.load(OUT / "emb.npz")
     E = dict(zip(z["ids"], z["X"]))
     stats = per_question_stats(E)
@@ -81,9 +85,11 @@ def main():
                     qn = [TE[w][r["i"]]["qname"] for r in sel]
                     lam_cv = np.array([qs[q][2] for q in qn])
                     lam_sel = np.array([1.0 if qs[q][0] >= qs[q][1] else 0.0 for q in qn])
+                    lam_stop = np.array([1.0 if qs[q][0] - qs[q][1] >= STOP_MARGIN else qs[q][2] for q in qn])
                     out[f"{w}|n{n}|{kind}|s{seed}"] = {
                         "spike": acc(TE, w, sel, np.ones(len(sel))), "knn": acc(TE, w, sel, np.zeros(len(sel))),
                         "cv_lambda": acc(TE, w, sel, lam_cv), "cv_select": acc(TE, w, sel, lam_sel),
+                        "cv_stop": acc(TE, w, sel, lam_stop),
                         "gate2": acc(TE, w, sel, lam_of(sel, gate2, mu, sd)),
                         "round2_gate": r2["runs"][f"{w}|n{n}|{kind}|s{seed}"]["gate"],
                         "cv_lambda_kl": acc(TE, w, sel, lam_cv, "kl_from_gold"),
@@ -122,10 +128,20 @@ def main():
         "P15_gate2_beats_round2_gate_by_0.01_n16_any": any(m["n16"][k]["gate2"] - m["n16"][k]["round2_gate"] >= 0.01 for k in KINDS),
         "P16_oof_diff_corr_ge_0.4_n16": r16 >= 0.4,
     }
+    cells = [(n, k) for n in NS for k in KINDS]
+    pred["P18_stop_within_0.002_every_cell_and_above_on_average"] = bool(
+        all(m[f"n{n}"][k]["cv_stop"] >= m[f"n{n}"][k]["spike"] - 0.002 for n, k in cells)
+        and np.mean([m[f"n{n}"][k]["cv_stop"] - m[f"n{n}"][k]["spike"] for n, k in cells]) > 0)
+    pred["P18_condition_cv_lambda"] = bool(
+        all(m[f"n{n}"][k]["cv_lambda"] >= m[f"n{n}"][k]["spike"] - 0.002 for n, k in cells)
+        and np.mean([m[f"n{n}"][k]["cv_lambda"] - m[f"n{n}"][k]["spike"] for n, k in cells]) > 0)
+    if FOLDS == 8:
+        pred["P17_cv8_lambda_ge_spike_n64_warm_and_ge_0.570_n16_warm"] = bool(
+            m["n64"]["warm"]["cv_lambda"] >= m["n64"]["warm"]["spike"] and m["n16"]["warm"]["cv_lambda"] >= 0.570)
     res = {"features_gate2": FEATS + ["spike_oof_acc", "knn_oof_acc"], "grid": GRID, "folds": FOLDS,
            "p16_corr_n16": r16, "mean": mean, "by_workflow": by_w,
            "predictions": {k: bool(v) for k, v in pred.items()}, "runs": out}
-    (RES / "cv_blend.json").write_text(json.dumps(res, indent=1))
+    (RES / ("cv_blend.json" if FOLDS == 4 else f"cv{FOLDS}_blend.json")).write_text(json.dumps(res, indent=1))
     print(json.dumps({"mean": mean, "p16_corr_n16": r16, "predictions": res["predictions"]}, indent=1))
 
 

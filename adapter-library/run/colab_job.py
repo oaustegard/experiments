@@ -36,11 +36,12 @@ only = Path("/content/al_only.txt").read_text().strip() if Path("/content/al_onl
 r = sh(f"python3 -I run/lora.py {'--only ' + only if only else ''} 2>&1 | grep --line-buffered -v -i warning", cwd=D)
 LOG.write(f"LORA_RC {r.returncode}\n")
 with zipfile.ZipFile("/content/al_out.zip", "w") as z:
-    for f in (D / "results").glob(f"{only}*.json"):
-        z.write(f, f"results/{f.name}")
-    for sub in ("probs", "adapters"):
-        for f in (D / "out" / sub).glob(f"{only}*"):
-            z.write(f, f"out/{sub}/{f.name}")
+    for pre in (only.split(",") if only else [""]):
+        for f in (D / "results").glob(f"{pre}*.json"):
+            z.write(f, f"results/{f.name}")
+        for sub in ("probs", "adapters"):
+            for f in (D / "out" / sub).glob(f"{pre}*"):
+                z.write(f, f"out/{sub}/{f.name}")
 LOG.write("ALL_DONE\n")
 LOG.flush()
 print("done", r.returncode)
