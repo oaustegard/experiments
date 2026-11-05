@@ -36,7 +36,8 @@ export async function trajectory(device, get, { smoke = false, epochs = 0, log =
   tr.setParams(await arr("params0", Float32Array));
   log(`trainer ready: ${tr.nParams} params, maxRows ${maxRows}, ${initMs.toFixed(0)} ms`);
 
-  const { total, warmup: warm } = meta;
+  const { total_steps: total, warmup: warm } = meta;
+  if (!(total > 0 && warm > 0)) throw new Error("schedule missing from meta");
   const lam = (s) => Math.min(1, (s + 1) / warm) * Math.max(0, (total - s) / Math.max(1, total - warm));
   const nEp = epochs || meta.epochs;
   const losses = [], epochLog = [];
