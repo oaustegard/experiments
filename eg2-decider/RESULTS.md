@@ -2,21 +2,24 @@
 
 A decision model answers typed questions about a piece of state (a support thread, an invoice, an
 agent's trace) with a probability for each option: pick a label (`choice`), rate on a rubric (`score`),
-or say whether a statement is true (`noul`). TypeSafe's Jev is the hosted example. `browser-decider`
+or say whether a statement is true (`noul`, the benchmark's name for yes/no). TypeSafe's Jev, a hosted
+decision-model API, is the reference example. `browser-decider`
 built a 10 MB one on Ettin-17m that matches Jev on the Typed Decisions benchmark (0.740 against 0.727)
 but falls to 0.353 on a workflow it never saw and to 0.279 on a separate set of 104 unrelated questions
 (bank intents, guardrail yes/no predicates, rubric scores).
 
 The question here: does EmbeddingGemma 2 (EG2), kept frozen with a small trained "head" on top, work
 on new questions without training, and how many labelled examples does a new workflow need? The
-encoder is the 4-bit ONNX build the austegard.com pages already run. Accuracy throughout means the
+encoder is the q4 (4-bit) ONNX build that austegard.com's Bluesky search pages already run in the browser,
+so a page could reuse it. Two arms also use a "cut": EG2 pruned to its first 4 layers (25 MB), from
+the `eg2-layer-student` experiment. Accuracy throughout means the
 benchmark's own metric: the top option agrees with the top option of the gold distribution (the mean of
-three teacher samples). The teacher agrees with itself 0.735 of the time, and always picking each
+three samples from the unnamed ~4B model that labelled the benchmark). The teacher agrees with itself 0.735 of the time, and always picking each
 question's most common answer scores 0.470.
 
 ## Answer
 
-Out of the box, EG2 classifies topic- and intent-style questions well and is not a decision model. With no training it scores 0.721 on 104 unrelated questions, where the trained Ettin decider scores 0.279. <!-- @evidence[[results/summary.json#full.a0.ood_accuracy]] -->
+Out of the box, EG2 matches topics and intents well but cannot read numbers or rules. With no training it scores 0.721 on 104 unrelated questions, where the trained Ettin decider scores 0.279. <!-- @evidence[[results/summary.json#full.a0.ood_accuracy]] -->
 Most of that comes from bank-intent questions (0.875). <!-- @evidence[[results/summary.json#full.a0.ood_by_subset.banking]] -->
 On Typed Decisions, whose states are records of numbers and events, it scores 0.378, below the 0.470 you get by always picking each question's most common answer. <!-- @evidence[[results/summary.json#full.a0.td_test_accuracy]] -->
 
@@ -24,40 +27,40 @@ It needs labelled cases of each workflow. A one-million-parameter head trained o
 Training on all four workflows gives 0.678, against Ettin's 0.740. <!-- @evidence[[results/summary.json#full.a1.td_test_accuracy]] -->
 Training a 256-case head took 18 s on one CPU thread in PyTorch; a browser trainer was not built. <!-- @evidence[[results/summary.json#full.timing.n256_seconds_1thread]] -->
 
-Training the head on a broad mix of 727 other task sources did not make it general.
+Training the head on a broad mix (727 task sources from the public tasksource collection) did not make it general.
 It scored 0.327 on Typed Decisions, worse than no training. <!-- @evidence[[results/summary.json#full.a3.td_test_accuracy]] -->
-The untested next lever is training the encoder itself on a broad mix, as tasksource-decider-nano
-(150M) does: 0.7515 on the Typed Decisions leaderboard.
+The untested next lever is training the encoder itself on a broad mix, as the 150M cross-encoder
+tasksource-decider-nano does (0.7515 on the dataset card's leaderboard).
 
 ## Findings
 
-1. **The zero-shot score depends on the kind of question.** Zero-shot EG2 gets 0.875 on banking intents, 0.458 on yes/no guardrail
-   predicates (a 50/50 set, so chance), 0.500 on 16 rubric scores, and 0.378 on Typed Decisions. Similarity between
+1. **The zero-shot score depends on the kind of question (arm A0).** Zero-shot EG2 gets 0.875 on banking intents, 0.458 on yes/no guardrail
+   predicates (a 50/50 set, so chance), 0.500 on 16 three-level rubric questions (chance 0.333), and 0.378 on Typed Decisions. Similarity between
    a state and an option's description works when the answer is "which topic is this"; it does not read
    numbers, rules or truth. (`results/a0.json`)
-2. **A head on frozen EG2 matches the published frozen-EG2 result.** 0.678 ± 0.010 over three seeds,
-   KL 0.182, Brier 0.105, ECE 0.109; mrm8488's frozen phase scored 0.677. On the unrelated set it
+2. **A head on frozen EG2 matches the published frozen-EG2 result (arm A1).** 0.678 ± 0.010 over three seeds
+   (KL 0.182, Brier 0.105, ECE 0.109 in `results/a1.json`); the frozen-encoder stage of
+   `mrm8488/embeddinggemma-2-ft-typed-decision` on Hugging Face scored 0.677. On the unrelated set it
    scores 0.667 (zero-shot 0.721), where Ettin's trained decider fell to 0.279; the part it keeps is
-   banking (0.766), while predicates (0.528) and rubric (0.479) stay near chance. Starting the head at
+   banking (0.766); predicates (0.528) stay near chance and rubric (0.479) sits between chance and zero-shot. Starting the head at
    the zero-shot score is the likely reason it keeps more than Ettin; that was not tested
    separately. (`results/a1.json`)
-3. **Nothing transfers to an unseen workflow.** Trained on three workflows, tested on the fourth: 0.372,
+3. **Nothing transfers to an unseen workflow (arm A2).** Trained on three workflows, tested on the fourth: 0.372,
    the same as no training (0.378) and as Ettin (0.353). Typed Decisions has 20 distinct questions; a
    head trained on 15 of them has nothing general to learn. (`results/a2.json`)
-4. **A broad mix teaches the head the mix, not the skill.** On 7,921 rows from 727 tasksource sources,
-   the head improved on held-out mix rows (0.424 to 0.500, seed 0) and got worse everywhere else: 0.327
+4. **A broad mix teaches the head the mix's sources (arm A3).** On 7,921 rows from 727 tasksource sources,
+   the head improved on held-out mix rows (zero-shot 0.424, trained 0.500, seed 0) and got worse everywhere else: 0.327
    ± 0.008 on Typed Decisions over three seeds, and 0.609 on the unrelated set (zero-shot 0.721), where
    seeds ranged from 0.452 to 0.712. (`results/a3.json`, `results/a3_diag.json`)
-5. **Labels per workflow are what buy accuracy.** Head trained only on n cases of one workflow: 0.503 at
+5. **Labels per workflow are what buy accuracy (arm A4).** Head trained only on n cases of one workflow: 0.503 at
    16, 0.584 at 64, 0.661 at 256; the all-workflow head scores 0.678. Starting from the mix-trained head
    instead of zero-shot is no better (0.478, 0.575, 0.655). (`results/a4.json`)
-6. **The 4-layer cut keeps specialist accuracy and loses generality.** With the 25 MB cut from
-   `eg2-layer-student` as the encoder, the trained head scores 0.665 (−0.013), but the unrelated set falls
+6. **The 4-layer cut keeps specialist accuracy and loses generality (arm A5).** With the cut as the encoder, the trained head scores 0.665 (−0.013), but the unrelated set falls
    from 0.667 to 0.442, and zero-shot from 0.721 to 0.587. It embeds states 5 times faster on CPU
    (86 s against 442 s for 1,672 states). (`results/cut4/`)
-7. **The head is cheap enough to train in a browser.** 984,324 parameters; 6.2 s for 64 cases and 18.1 s
-   for 256 on one CPU thread in PyTorch, on cached embeddings. No gradient touches the encoder, so a
-   page needs the forward pass it already has plus a small trainer. (`results/timing.json`)
+7. **The head is small and quick to train.** 984,324 parameters; 6.2 s for 64 cases and 18.1 s for 256 on
+   one CPU thread in PyTorch, on cached embeddings. No gradient touches the encoder, so a page would need
+   only EG2's forward pass plus a small JS trainer; that trainer was not built or timed. (`results/timing.json`)
 
 ## Method
 
@@ -73,17 +76,18 @@ rendered as `key: value` lines and capped at 1,024 tokens, cached once per (prom
 (distilled onto EG2 query vectors, then fine-tuned on Bluesky alt text). The 8-layer cut exists only as
 a PyTorch checkpoint and was not exported.
 
-**Zero-shot (A0).** P(option) = softmax(τ_type · cos(state, option text)). State prompt (2), option
+**Zero-shot (A0).** P(option) = softmax(τ_type · cos(state, option text)). State prompt (2 choices), option
 prompt (3 choices) and option template (4 choices) were chosen by Typed Decisions *train* accuracy, τ per type by train
-KL; test and the unrelated set were scored once. Choice: `task: classification` on both sides, option
-text "instructions Answer: name. description".
+KL; test and the unrelated set were scored once. Selected: the `task: classification` prompt on both sides, and option
+text built as `<question instructions> Answer: <option name>. <option description>`.
 
 **Head (A1–A4).** `field = norm(s + MLP([s, q, s⊙q]))`, `logit_i = τ_type · cos(field, o_i) + r([s⊙o_i,
 q⊙o_i])`, both MLPs ending in zero-initialised layers so the untrained head is A0 (checked: 0.378). Soft
 cross-entropy against gold, AdamW lr 1e-3, 40 epochs (30 for the mix), best epoch by validation KL on 10%
 of training cases (20% in A4), per-type temperature fitted on that slice. A1: all four workflows, 3
 seeds. A2: leave one workflow out, 4 folds × 3 seeds. A3: 7,921 rows sampled from shard 0 of
-`tasksource/tasksource-jev-typed-decisions` (≤ 12 per source, no Typed Decisions rows), states capped at
+`tasksource/tasksource-jev-typed-decisions` (a general collection in the same question format despite
+the name; ≤ 12 rows per source, none from the Typed Decisions benchmark), states capped at
 512 tokens, 3 seeds. A4: n ∈ {16, 64, 256} cases of one workflow × 3 draws, from A0 or from A3 seed 0.
 A5: A0 and A1 with the cut; A3 was not rerun on the cut because it was negative on full EG2.
 
