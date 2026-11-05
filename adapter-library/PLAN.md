@@ -183,3 +183,72 @@ them. Growth curves are steep at small n, so the out-of-fold numbers understate 
 than they understate kNN, which pushes λ toward kNN.
 
 **Decision rule:** cv_lambda becomes the blend if P12 and P14 hold.
+
+## Round 4 (registered 2026-11-05, before running)
+
+Two parts: fix round 3's loss at 64 cases, and test a router spike on spikes that are hard to tell apart.
+
+### 4a: repairing the cross-fitted blend at 64 cases
+
+Round 3's fold spikes saw 75% of the revealed cases and understated the final spike.
+- `cv8_lambda` (GPU): round 3's method with 8 folds, so each fold spike sees 87.5% of the cases.
+- `cv_stop` (CPU, round 3's 4-fold data): per question, λ = 1 (spike alone) when the spike's
+  out-of-fold accuracy exceeds kNN's by at least 0.10; otherwise round 3's λ.
+
+**P17.** cv8_lambda is at least the spike alone at 64 cases with the library start (round 3: −0.006)
+and at least 0.570 at 16 cases with the library start.
+**P18.** cv_stop is no more than 0.002 below the spike alone in any of the four cells (16 and 64 cases,
+both starts) and above it on average over the four.
+
+**Decision rule:** a method that meets P18's condition (whether it is cv_stop or cv8_lambda) and keeps
+P14 becomes the blend. If both qualify, cv_stop wins because it needs no extra training.
+
+### 4b: a router spike on confusable spikes
+
+**Fixture.** Each workflow is split into 3 families by a factor the dataset records, giving 12
+families whose spikes share state format and questions:
+- customer service by topic: billing / physical orders / account and product;
+- invoices by issue: quantity and timing / pricing (price, tax, currency, freight) / process (duplicate,
+  missing PO, clean);
+- security by rule: sign-ins and credentials / privileges and configuration / data and hosts;
+- agent traces by task: data tasks / infrastructure / housekeeping.
+
+How visible the family is varies by design. The alert rule and the agent task appear verbatim in their
+states, so a router can match strings. The customer-service topic appears verbatim in 30 of 300
+states; otherwise it must be read from the customer's message. The invoice issue never appears and must
+be inferred from numbers such as quantity billed against quantity received. Routing is reported per
+workflow for this reason.
+
+**Router spike.** A LoRA decision model on the frozen base (zero start, the spike recipe). One choice
+question per case, "Which specialist should handle this case?", with one option per library family
+(its text description) plus `none`. The input is the state only.
+
+**Protocol, 12 folds.** For held-out family F (each of the 12 in turn), G is the family three places
+later in the list, which is always in another workflow. The router trains on the other 10 families'
+train cases, labelled with their family, plus G's train cases labelled `none`. F appears nowhere in
+training, neither as an option nor as data. Test on all 400 test cases with two option sets: A, the
+library plus `none`; and B, A with F's description added.
+
+**kNN router baseline.** The datastore holds the 10 library families' train cases (e17c state
+embeddings). It routes by 8-NN majority and scores gaps as 1 minus the maximum cosine. It can route to F
+only after seeing examples of F; it is given 4.
+
+**Downstream.** One sub-spike per family (zero start, growth recipe, the family's train cases), scored
+on its workflow's test set. Decision accuracy for library-family test cases is compared under four
+routings: the router's choice, kNN's choice, the oracle family, and no routing (round 1's whole-workflow
+spike). A case routed to `none` or to another workflow falls back to the whole-workflow spike.
+
+**Predictions (mean over the 12 folds):**
+- **P19.** Router-spike routing accuracy on library-family test cases (option set A, `none` counted
+  wrong) is at least 0.85 and at least kNN's.
+- **P20.** Gap detection for F: AUROC of the router's P(none) on F's test cases against library-family
+  test cases is at least 0.75, and above kNN's 1 − max-cosine AUROC.
+- **P21.** Zero-shot new spike: with F's description added (option set B), at least 50% of F's test
+  cases are routed to F, and library routing accuracy falls by at most 0.05.
+- **P22.** kNN given 4 labelled cases of F routes a larger fraction of F's test cases to F than the
+  zero-shot router does.
+- **P23.** Splitting a workflow into sub-spikes does not pay at this data size. Router-routed
+  sub-spikes score at most 0.01 above the whole-workflow spike, and so do oracle-routed sub-spikes.
+
+**Decision rule:** the router spike replaces kNN routing if P19 and P20 hold. P21 decides whether a new
+spike can be added by description alone, with no examples.
