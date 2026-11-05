@@ -1,0 +1,22 @@
+name: Typed Decisions
+description: >
+  A benchmark for typed probabilistic decisions. A model gets one piece of
+  unstructured state and answers five typed questions about it at once, and
+  every answer is a probability distribution, not a single label.
+
+tasks:
+  - id: accuracy
+    config: all
+    split: test
+  - id: kl_from_gold
+    config: all
+    split: test
+    lower_is_better: true
+  - id: brier
+    config: all
+    split: test
+    lower_is_better: true
+  - id: ece
+    config: all
+    split: test
+    lower_is_better: true

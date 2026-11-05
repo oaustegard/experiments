@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decider engine check</title>
+<style>
+  :root { --bg: #fcfcfb; --fg: #1a1a19; --muted: #6b6a64; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; } }
+  :root[data-theme="dark"] { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, Menlo, monospace; margin: 16px; }
+  #log { white-space: pre-wrap; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1 style="font-size:16px">Decider engine check</h1>
+<p>Test harness for the browser decision model (Ettin-17m answering typed questions on WebGPU). Open with
+<code>?pkg=&lt;directory under out/web/&gt;</code>; normally driven headless by <code>run/check_engine.mjs</code>. It compares the
+engine's option logits with the NumPy reference in that package's fixtures.json, checks the tokenizer against Python's ids, and
+times whole cases. Results print below and land in <code>window.check</code>.</p>
+<p id="status">running</p>
+<pre id="log"></pre>
+<script type="module">
+// ?pkg=<dir under out/web/>  Compares the WGSL engine's logits with run/pack.py's NumPy reference on
+// the package's fixtures (same token ids), checks the JS tokenizer against the Python ids, and times
+// decide() on whole cases. Results land in window.check for run/check_engine.py.
+import { loadDecider } from "./decider.js";
+const Q = new URLSearchParams(location.search);
+const pkg = Q.get("pkg");
+const base = Q.get("base") || `../out/web/${pkg}/`;
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
+const res = window.check = { done: false };
+try {
+  const fx = await fetch(base + "fixtures.json").then((r) => r.json());
+  const d = await loadDecider(base);
+  res.gpuErrors = [];
+  d.engine.device.addEventListener("uncapturederror", (ev) => { res.gpuErrors.push(ev.error.message); log("GPU " + ev.error.message); });
+  d.engine.device.pushErrorScope("validation");
+  await d.logitsFor([{ ids: fx.cases[0].seqs[0].ids, pos: fx.cases[0].seqs[0].pos }]);
+  const ve = await d.engine.device.popErrorScope();
+  if (ve) { res.gpuErrors.push(ve.message); log("VALIDATION " + ve.message); }
+  res.initMs = d.info.initMs; res.fetchMs = d.info.fetchMs; res.weightBytes = d.info.weightBytes;
+  let maxDiff = 0, argmaxAgree = 0, nq = 0, tokOk = 0;
+  for (const c of fx.cases) {
+    const z = await d.logitsFor(c.seqs.map((s) => ({ ids: s.ids, pos: s.pos })));
+    c.seqs.forEach((s, i) => {
+      const a = Array.from(z[i]), b = s.ref_logits;
+      for (let k = 0; k < a.length; k++) maxDiff = Math.max(maxDiff, Math.abs(a[k] - b[k]));
+      argmaxAgree += a.indexOf(Math.max(...a)) === b.indexOf(Math.max(...b)); nq++;
+      const q = c.questions[s.name];
+      const built = d.build(q.type, q.instructions, Object.entries(q.criteria ?? {}).length || q.type !== "noul"
+        ? (Array.isArray(q.criteria) ? q.criteria.map((x, j) => [String(j), x]) : q.type === "noul" ? [["true", q.criteria.true], ["false", q.criteria.false]] : Object.entries(q.criteria))
+        : [["true", "The statement is true for this case."], ["false", "The statement is not true for this case."]], c.state);
+      tokOk += JSON.stringify(built.ids) === JSON.stringify(s.ids) && JSON.stringify(built.pos) === JSON.stringify(s.pos);
+    });
+  }
+  Object.assign(res, { maxAbsLogitDiff: maxDiff, argmaxAgree, nQuestions: nq, tokenizerMatches: tokOk });
+  log(`logits vs NumPy ref: max |diff| ${maxDiff.toExponential(2)}, argmax agree ${argmaxAgree}/${nq}, tokenizer+layout match ${tokOk}/${nq}`);
+  // timing: decide() on whole cases (5 questions, one engine pass), first call then warm
+  const lat = [];
+  let t = performance.now();
+  await d.decide(fx.cases[0].state, fx.cases[0].questions);
+  res.firstCaseMs = performance.now() - t;
+  const reps = +(Q.get("reps") || 3);
+  for (let r = 0; r < reps; r++) for (const c of fx.cases) {
+    t = performance.now(); await d.decide(c.state, c.questions); lat.push(performance.now() - t);
+  }
+  lat.sort((a, b) => a - b);
+  res.caseMsMedian = lat[Math.floor(lat.length / 2)]; res.caseMsP90 = lat[Math.floor(lat.length * 0.9)];
+  res.tokensPerCase = fx.cases.map((c) => c.seqs.reduce((s, q) => s + q.ids.length, 0));
+  res.sample = await d.decide(fx.cases[0].state, fx.cases[0].questions);
+  log(`decide(): first ${res.firstCaseMs.toFixed(1)} ms, warm median ${res.caseMsMedian.toFixed(1)} ms, p90 ${res.caseMsP90.toFixed(1)} ms`);
+  document.getElementById("status").textContent = "done";
+} catch (e) {
+  res.error = String(e.stack || e);
+  log("ERROR " + res.error);
+}
+res.done = true;
+</script>
+</body>
+</html>
