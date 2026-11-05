@@ -215,5 +215,27 @@ def traj():
     (HERE / "results" / "cpu_traj.json").write_text(json.dumps(res, indent=1))
 
 
+def cputime():
+    """Forward + backward time on the batch web/traj.js times (the middle batch of epoch 1), uncontended."""
+    m, man = model(0)
+    T = man["temps"]["noul"]
+    tok = TL.Enc(TL.M / "tokenizer.json")
+    pad = tok.tok.token_to_id("[PAD]")
+    sets = splits(tok)
+    meta = json.loads((FIX / "traj" / "meta.json").read_text())
+    ch = meta["order"][0][len(meta["order"][0]) // 2]
+    arr, tb = batch_arrays(sets["train"], ch, pad)
+    ms = []
+    for _ in range(6):
+        t = time.perf_counter()
+        loss = loss_of(m, tb, T)
+        m.zero_grad()
+        loss.backward()
+        ms.append((time.perf_counter() - t) * 1000)
+    r = {"batch": {"B": arr["B"], "S": arr["S"]}, "fwd_bwd_ms": ms[1:], "median_ms": float(np.median(ms[1:])), "threads": torch.get_num_threads()}
+    (HERE / "results" / "cpu_step_time.json").write_text(json.dumps(r, indent=1))
+    print(r)
+
+
 if __name__ == "__main__":
-    {"gradcheck": gradcheck, "traj": traj}[sys.argv[1]]()
+    {"gradcheck": gradcheck, "traj": traj, "cputime": cputime}[sys.argv[1]]()
