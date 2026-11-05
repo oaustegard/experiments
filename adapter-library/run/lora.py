@@ -33,7 +33,7 @@ def stock_path():
     global _INIT
     if _INIT is None:
         from huggingface_hub import snapshot_download
-        _INIT = snapshot_download("jhu-clsp/ettin-encoder-17m", allow_patterns=["*.json", "*.safetensors"])
+        _INIT = snapshot_download("jhu-clsp/ettin-encoder-17m", allow_patterns=["*.json", "*.bin", "*.safetensors"])
     return _INIT
 
 
