@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browser Decider</title>
+<meta name="description" content="A 10 MB decision model that answers typed questions in your browser on WebGPU.">
+<style>
+  :root {
+    --bg: #fbfaf7; --panel: #ffffff; --fg: #1d1c19; --muted: #6e6c64; --line: #e4e2db;
+    --model: #2f6db3; --gold: #c9c5b8; --ok: #2e7d4f; --bad: #b3452f; --code: #f3f1ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d;
+      --model: #6aa5e8; --gold: #5a574f; --ok: #5cc28a; --bad: #e07a63; --code: #2a2925;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d;
+    --model: #6aa5e8; --gold: #5a574f; --ok: #5cc28a; --bad: #e07a63; --code: #2a2925;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  select, button, textarea { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  select, button { padding: 6px 10px; }
+  button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--model); color: #fff; border-color: var(--model); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 120px; }
+  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .q { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .q h3 { font-size: 14px; margin: 0 0 2px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .q h3 .tag { font-size: 11px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+  .q h3 .verdict { margin-left: auto; font-size: 12px; font-weight: 500; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  .instr { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  .opt { display: grid; grid-template-columns: minmax(90px, 30%) 1fr 52px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+  .opt .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bars { position: relative; height: 18px; }
+  .bars .g, .bars .m { position: absolute; left: 0; border-radius: 3px; }
+  .bars .g { top: 0; height: 18px; background: var(--gold); }
+  .bars .m { top: 5px; height: 8px; background: var(--model); }
+  .opt .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  .legend { font-size: 12px; color: var(--muted); display: flex; gap: 14px; align-items: center; }
+  .sw { display: inline-block; width: 14px; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+  summary { cursor: pointer; }
+  pre, textarea { font: 12px/1.45 ui-monospace, Menlo, monospace; }
+  pre { background: var(--code); border-radius: 6px; padding: 10px; overflow: auto; max-height: 320px; margin: 8px 0 0; white-space: pre-wrap; word-break: break-word; }
+  textarea { width: 100%; min-height: 160px; padding: 8px; background: var(--code); }
+  #err { color: var(--bad); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+<h1>Browser Decider</h1>
+<p>A decision model in about 10 MB, running on your GPU in this tab. Give it a state (a support thread, an
+invoice, a security alert, an agent's run log) and a few typed questions: <b>choice</b> (pick one label),
+<b>score</b> (a level on a rubric) or <b>noul</b> (is this statement true). It returns a probability for every
+option from one forward pass, with no text generated and no server.</p>
+<p class="muted">The model is Ettin-17m, a 17M-parameter encoder, fine-tuned on the
+<a href="https://huggingface.co/datasets/LocalLLaMA/typed-decisions">Typed Decisions</a> benchmark's training
+split, so it answers these four workflows' questions well and other schemas poorly (see the
+<a href="https://github.com/oaustegard/experiments/tree/main/browser-decider">write-up</a>).
+Grey bars are the benchmark's gold distribution, the mean of three teacher samples; blue bars are this model.</p>
+
+<div class="stats" id="stats"></div>
+<p id="err"></p>
+
+<div class="row">
+  <label for="wf">Workflow</label>
+  <select id="wf"></select>
+  <button id="next" class="primary" disabled>Random test case</button>
+  <span class="legend"><span><span class="sw" style="background:var(--gold)"></span>gold</span><span><span class="sw" style="background:var(--model)"></span>model</span></span>
+</div>
+
+<div id="out"></div>
+
+<h2>Your own state and questions</h2>
+<p class="muted">Questions use the System One request shape: <code>{ name: { type, instructions, criteria } }</code>,
+criteria a map of option to description for choice, a list of level descriptions for score, optional
+<code>{ "true": …, "false": … }</code> for noul. Off the four trained workflows, expect weak answers.</p>
+<label for="st" class="muted">State (JSON or plain text)</label>
+<textarea id="st"></textarea>
+<label for="qs" class="muted">Questions (JSON)</label>
+<textarea id="qs"></textarea>
+<div class="row"><button id="run" disabled>Decide</button><span id="runms" class="muted"></span></div>
+<div id="out2"></div>
+</main>
+
+<script type="module">
+import { loadDecider, optionsOf } from "./decider.js";
+
+const MODEL = new URLSearchParams(location.search).get("model") || "models/decider/";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const stat = (label, value) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`;
+
+function render(target, questions, answers, gold) {
+  let html = "";
+  for (const [name, q] of Object.entries(questions)) {
+    const a = answers[name], g = gold?.[name]?.probabilities;
+    const opts = optionsOf(q).map(([o, d]) => [o, d]);
+    let verdict = "";
+    if (g) {
+      const gArg = Object.entries(g).sort((x, y) => y[1] - x[1])[0][0];
+      verdict = gArg === a.label ? `<span class="verdict ok">matches gold</span>` : `<span class="verdict bad">gold: ${esc(gArg)}</span>`;
+    }
+    html += `<div class="q"><h3>${esc(name)} <span class="tag">${q.type}</span>${verdict}</h3><div class="instr">${esc(q.instructions)}</div>`;
+    for (const [o, d] of opts) {
+      const pm = a.probabilities[o] ?? 0, pg = g ? (g[o] ?? 0) : null;
+      html += `<div class="opt" title="${esc(d)}"><span class="name">${esc(o)}${q.type === "score" ? ": " + esc(String(d).split(/[.;:]/)[0]) : ""}</span>
+        <div class="bars">${pg !== null ? `<div class="g" style="width:${(pg * 100).toFixed(1)}%"></div>` : ""}<div class="m" style="width:${(pm * 100).toFixed(1)}%"></div></div>
+        <span class="pct">${(pm * 100).toFixed(0)}%</span></div>`;
+    }
+    html += `</div>`;
+  }
+  target.innerHTML = html;
+}
+
+try {
+  if (!navigator.gpu) throw new Error("This page needs WebGPU (recent Chrome, Edge or Safari 26+).");
+  const [d, cases, about] = await Promise.all([
+    loadDecider(MODEL),
+    fetch(MODEL + "cases.json").then((r) => r.json()),
+    fetch(MODEL + "about.json").then((r) => r.json()).catch(() => ({})),
+  ]);
+  const show = (extra = "") => {
+    $("stats").innerHTML = stat("download, model + tokenizer", about.downloadMB ? about.downloadMB.toFixed(1) + " MB" : "—")
+      + stat("test accuracy (gold argmax)", about.testAccuracy ? about.testAccuracy.toFixed(3) : "—")
+      + stat("engine start", d.info.initMs.toFixed(0) + " ms") + extra;
+  };
+  show();
+  const wfs = [...new Set(cases.map((c) => c.workflow))];
+  $("wf").innerHTML = wfs.map((w) => `<option value="${w}">${w.replace(/_/g, " ")}</option>`).join("");
+  let last = null;
+  async function next() {
+    const pool = cases.filter((c) => c.workflow === $("wf").value);
+    let c;
+    do { c = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && c === last);
+    last = c;
+    const t = performance.now();
+    const ans = await d.decide(c.state, c.questions);
+    const ms = performance.now() - t;
+    show(stat("this case, 5 questions", ms.toFixed(1) + " ms"));
+    $("out").innerHTML = `<details><summary>State <span class="muted">(${esc(c.id)})</span></summary><pre>${esc(JSON.stringify(JSON.parse(c.state), null, 2))}</pre></details><div id="qa"></div>`;
+    render($("qa"), c.questions, ans, c.gold);
+    $("st").value = JSON.stringify(JSON.parse(c.state), null, 2);
+    $("qs").value = JSON.stringify(c.questions, null, 2);
+  }
+  $("next").onclick = next;
+  $("wf").onchange = next;
+  $("run").onclick = async () => {
+    $("err").textContent = "";
+    try {
+      const raw = $("st").value.trim();
+      let state = raw;
+      try { state = JSON.parse(raw); } catch { /* plain text state */ }
+      const qs = JSON.parse($("qs").value);
+      const t = performance.now();
+      const ans = await d.decide(state, qs);
+      $("runms").textContent = `${(performance.now() - t).toFixed(1)} ms`;
+      render($("out2"), qs, ans, null);
+    } catch (e) { $("err").textContent = String(e.message || e); }
+  };
+  $("next").disabled = $("run").disabled = false;
+  await next();
+} catch (e) {
+  $("err").textContent = String(e.message || e);
+}
+</script>
+</body>
+</html>
