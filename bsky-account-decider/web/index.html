@@ -46,7 +46,9 @@ posts about AI, in what role, with what attitude, and how much is its own writin
 probability that it is about AI. Nothing leaves your browser except the requests to Bluesky.</p>
 <p class="muted">The model is Ettin-17m fine-tuned on about 1,500 accounts labelled by Claude Sonnet, so it
 repeats Sonnet's judgement, mistakes included, from the 12 most recent items. Accuracy against Sonnet on
-held-out accounts is in the <a href="https://github.com/oaustegard/experiments/tree/main/bsky-account-decider">write-up</a>.</p>
+held-out accounts is in the <a href="https://github.com/oaustegard/experiments/tree/main/bsky-account-decider">write-up</a>.
+To link straight to an account, add <code>?h=</code> and a handle or a DID, for example <code>?h=austegard.com</code> or
+<code>?did=did:plc:r2whjvupgfw55mllpksnombn</code> (<code>?handle=</code> and <code>?actor=</code> work too).</p>
 
 <form id="f"><input id="h" placeholder="handle, e.g. austegard.com" autocomplete="off" autocapitalize="off" spellcheck="false">
 <button class="primary" id="go" disabled>Classify</button></form>
@@ -115,7 +117,9 @@ try {
   }
   $("go").disabled = false;
   $("f").onsubmit = (e) => { e.preventDefault(); if ($("h").value.trim()) classify($("h").value); };
-  const h0 = new URLSearchParams(location.search).get("h");
+  // ?h=, ?handle=, ?did= or ?actor= : a handle or a DID (did:plc:...), for linking straight to an account
+  const qs = new URLSearchParams(location.search);
+  const h0 = qs.get("h") || qs.get("handle") || qs.get("did") || qs.get("actor");
   if (h0) { $("h").value = h0; classify(h0); }
 } catch (e) { $("err").textContent = String(e.message || e); }
 </script>
