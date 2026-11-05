@@ -3,9 +3,10 @@
 The search box on muninn.austegard.com used Gemini's embedding API. A Cloudflare Worker sent each
 query to `gemini-embedding-001`, and the site's index had been built with it. On 2026-11-05 the
 prepaid Gemini credits ran out, so every search returned HTTP 402. This experiment replaces Gemini
-with Ettin-17m, the 10 MB e17c build from `ettin-native/`: pages are embedded on a CPU when the index
-is built, and queries are embedded inside the Worker in plain JavaScript. Nothing calls an embedding
-API. The change went live on 2026-11-05.
+with Ettin-17m, the 10 MB e17c build from `ettin-native/`. Pages are embedded on a CPU when the index
+is built. Queries are embedded in the visitor's browser on the GPU, once the page has downloaded the
+model and index. Until then, and in browsers that can't run it, the Worker embeds queries in plain
+JavaScript. Nothing calls an embedding API. Both paths went live on 2026-11-05.
 
 ## Answer
 
@@ -68,7 +69,17 @@ Three things would change how firmly this stands:
 
    Unpacking the model in a fresh isolate takes 68 ms <!-- @evidence[[results/timing.json#unpack_ms]] -->.
    The query prompt alone is 11 tokens, so a three-word query is 14 tokens.
-7. All 180 pages <!-- @evidence[[results/index.json#pages]] --> (2,880 chunks) re-embed in
+7. The browser path returns the same hit list as the Worker on 6 of 6 <!-- @evidence[[results/browser.json#same_as_worker]] -->
+   queries, with every chunk passing its sha256 check. This was run in headless Chromium on an emulated
+   GPU (Round 6, `results/browser.json`).
+   - The first search costs a download of 17.2 MB <!-- @evidence[[results/browser.json#download_mb]] -->,
+     before compression.
+   - After the embedding, ranking takes 9.8 ms <!-- @evidence[[results/rank_timing.json#median_ms.search]] -->
+     in Node.
+
+   Ettin-native measured the embedding at 2.4 ms on a Mac GPU, so a local search should take roughly
+   15 ms. That figure is not measured end to end.
+8. All 180 pages <!-- @evidence[[results/index.json#pages]] --> (2,880 chunks) re-embed in
    41.5 s on four CPUs <!-- @evidence[[results/index.json#full_build_seconds]] --> with no API call
    (Round 5, `results/index.json`).
 
@@ -116,7 +127,9 @@ measured in `bsky-account-decider`, it comes to about $12.
 - `run/parity.py` (with `run/fused_js.mjs`) compares the two readers at matched settings.
 - `run/worker_local.mjs` runs the whole Worker against a file-backed stand-in for its KV store.
 - `run/live_check.py` compares that local run with the deployed Worker.
-- `run/bench.mjs` times the encoder.
+- `run/bench.mjs` times the encoder, and `run/rank_bench.mjs` times the ranking after it.
+- `run/browser_check.cjs` runs the site's in-browser search against the live Worker in headless Chromium
+  (SwiftShader WebGPU), then checks that the search page swaps from server to browser.
 
 **Running cost.** Workers Paid ($5 a month) includes 30 million CPU-milliseconds a month. At 50–90 ms
 per query, that covers several hundred thousand searches. `wrangler.toml` caps a request at 2,000 ms
@@ -211,3 +224,29 @@ still pass `alpha: null` for RRF.
 For the two queries about the new post, the post ranked first. Two unrelated queries both ranked the
 long perch digest `fly-2026-05-09-the-political-economy-of-browser-engines` second, which may be the
 per-page boost favouring pages with many chunks. Not investigated.
+
+### Round 6: search in the browser
+
+Oskar asked what had happened to the site's no-search-server stance. The Worker had only ever existed
+because Gemini needed a secret key, and with Ettin that reason was gone.
+
+What was built:
+- Opening search (a click, `/`, cmd+k, the search page, or focusing the field) starts
+  `components/local-search.js`.
+- It fetches the index and the model from new Worker routes under `/kb/`. The paths carry the version,
+  so the browser caches them for a year.
+- It embeds the query with the WGSL engine from `ettin-native`, vendored into `components/ettin/`, and
+  ranks with the Worker's own `kb-reader.js` and default alpha.
+- Until it is ready, and without WebGPU, on Save-Data or on 2G/3G, the Worker answers, now by GET as
+  well as POST.
+
+What the checks showed:
+- In headless Chromium the local hit lists matched the Worker's on 6 of 6 queries, and every chunk
+  verified.
+- The download is 17.2 MB raw. On the wire it is 15.8 MB, because the chunk shard compresses from
+  2.7 MB to 0.69 MB once served as `text/plain`.
+- On the live site, a `?q=` link to a post was answered by the server, and a later search by the browser.
+- SwiftShader timings (0.6 to 0.9 s per search) are an emulated GPU and say nothing about real hardware.
+
+The index files still come from the Worker, because they live in KV. Serving them as static files
+(R2 with a CORS rule, or the site itself) would remove the Worker from the browser path entirely.
