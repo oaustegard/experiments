@@ -1,0 +1,212 @@
+embed 16/1600
+embed 32/1600
+embed 48/1600
+embed 64/1600
+embed 80/1600
+embed 96/1600
+embed 112/1600
+embed 128/1600
+embed 144/1600
+embed 160/1600
+embed 176/1600
+embed 192/1600
+embed 208/1600
+embed 224/1600
+embed 240/1600
+embed 256/1600
+embed 272/1600
+embed 288/1600
+embed 304/1600
+embed 320/1600
+embed 336/1600
+embed 352/1600
+embed 368/1600
+embed 384/1600
+embed 400/1600
+embed 416/1600
+embed 432/1600
+embed 448/1600
+embed 464/1600
+embed 480/1600
+embed 496/1600
+embed 512/1600
+embed 528/1600
+embed 544/1600
+embed 560/1600
+embed 576/1600
+embed 592/1600
+embed 608/1600
+embed 624/1600
+embed 640/1600
+embed 656/1600
+embed 672/1600
+embed 688/1600
+embed 704/1600
+embed 720/1600
+embed 736/1600
+embed 752/1600
+embed 768/1600
+embed 784/1600
+embed 800/1600
+embed 816/1600
+embed 832/1600
+embed 848/1600
+embed 864/1600
+embed 880/1600
+embed 896/1600
+embed 912/1600
+embed 928/1600
+embed 944/1600
+embed 960/1600
+embed 976/1600
+embed 992/1600
+embed 1008/1600
+embed 1024/1600
+embed 1040/1600
+embed 1056/1600
+embed 1072/1600
+embed 1088/1600
+embed 1104/1600
+embed 1120/1600
+embed 1136/1600
+embed 1152/1600
+embed 1168/1600
+embed 1184/1600
+embed 1200/1600
+embed 1216/1600
+embed 1232/1600
+embed 1248/1600
+embed 1264/1600
+embed 1280/1600
+embed 1296/1600
+embed 1312/1600
+embed 1328/1600
+embed 1344/1600
+embed 1360/1600
+embed 1376/1600
+embed 1392/1600
+embed 1408/1600
+embed 1424/1600
+embed 1440/1600
+embed 1456/1600
+embed 1472/1600
+embed 1488/1600
+embed 1504/1600
+embed 1520/1600
+embed 1536/1600
+embed 1552/1600
+embed 1568/1600
+embed 1584/1600
+embed 1600/1600
+{
+ "k": 8,
+ "accuracy": 1.0,
+ "by_workflow": {
+  "agent_trace_observability": 1.0,
+  "customer_service": 1.0,
+  "invoice_processing": 1.0,
+  "security_incidents": 1.0
+ },
+ "gap": {
+  "agent_trace_observability": {
+   "auroc": 1.0,
+   "gap_score_mean_W": 0.4097741055488586,
+   "gap_score_mean_others": 0.0622784165541331
+  },
+  "customer_service": {
+   "auroc": 1.0,
+   "gap_score_mean_W": 0.35999194204807283,
+   "gap_score_mean_others": 0.03780212899049123
+  },
+  "invoice_processing": {
+   "auroc": 1.0,
+   "gap_score_mean_W": 0.26474004924297334,
+   "gap_score_mean_others": 0.06954909761746725
+  },
+  "security_incidents": {
+   "auroc": 1.0,
+   "gap_score_mean_W": 0.3835708826780319,
+   "gap_score_mean_others": 0.04687352458635966
+  }
+ }
+}
+knn agent_trace_observability|s0|n0: acc 0.3120 kl 0.3692
+knn agent_trace_observability|s0|n16: acc 0.3840 kl 0.3619
+knn agent_trace_observability|s0|n64: acc 0.4080 kl 0.3499
+knn agent_trace_observability|s0|n300: acc 0.3540 kl 0.3750
+knn agent_trace_observability|s1|n0: acc 0.3120 kl 0.3692
+knn agent_trace_observability|s1|n16: acc 0.4120 kl 0.3506
+knn agent_trace_observability|s1|n64: acc 0.4060 kl 0.3727
+knn agent_trace_observability|s1|n300: acc 0.3540 kl 0.3750
+knn agent_trace_observability|s2|n0: acc 0.3120 kl 0.3692
+knn agent_trace_observability|s2|n16: acc 0.3900 kl 0.3826
+knn agent_trace_observability|s2|n64: acc 0.3900 kl 0.3553
+knn agent_trace_observability|s2|n300: acc 0.3540 kl 0.3750
+knn agent_trace_observability|s3|n0: acc 0.3120 kl 0.3692
+knn agent_trace_observability|s3|n16: acc 0.3840 kl 0.3974
+knn agent_trace_observability|s3|n64: acc 0.4080 kl 0.3521
+knn agent_trace_observability|s3|n300: acc 0.3540 kl 0.3750
+knn agent_trace_observability|s4|n0: acc 0.3120 kl 0.3692
+knn agent_trace_observability|s4|n16: acc 0.4320 kl 0.3311
+knn agent_trace_observability|s4|n64: acc 0.3720 kl 0.3703
+knn agent_trace_observability|s4|n300: acc 0.3540 kl 0.3750
+knn customer_service|s0|n0: acc 0.2160 kl 0.5998
+knn customer_service|s0|n16: acc 0.5380 kl 0.4126
+knn customer_service|s0|n64: acc 0.5980 kl 0.2978
+knn customer_service|s0|n300: acc 0.6140 kl 0.2331
+knn customer_service|s1|n0: acc 0.2160 kl 0.5998
+knn customer_service|s1|n16: acc 0.5960 kl 0.3483
+knn customer_service|s1|n64: acc 0.5900 kl 0.2912
+knn customer_service|s1|n300: acc 0.6140 kl 0.2331
+knn customer_service|s2|n0: acc 0.2160 kl 0.5998
+knn customer_service|s2|n16: acc 0.5260 kl 0.3783
+knn customer_service|s2|n64: acc 0.6380 kl 0.2890
+knn customer_service|s2|n300: acc 0.6140 kl 0.2331
+knn customer_service|s3|n0: acc 0.2160 kl 0.5998
+knn customer_service|s3|n16: acc 0.5820 kl 0.3604
+knn customer_service|s3|n64: acc 0.5920 kl 0.2873
+knn customer_service|s3|n300: acc 0.6140 kl 0.2331
+knn customer_service|s4|n0: acc 0.2160 kl 0.5998
+knn customer_service|s4|n16: acc 0.5420 kl 0.4059
+knn customer_service|s4|n64: acc 0.5920 kl 0.3041
+knn customer_service|s4|n300: acc 0.6140 kl 0.2331
+knn invoice_processing|s0|n0: acc 0.3140 kl 0.5341
+knn invoice_processing|s0|n16: acc 0.5820 kl 0.3965
+knn invoice_processing|s0|n64: acc 0.6140 kl 0.3768
+knn invoice_processing|s0|n300: acc 0.6160 kl 0.3606
+knn invoice_processing|s1|n0: acc 0.3140 kl 0.5341
+knn invoice_processing|s1|n16: acc 0.6040 kl 0.3755
+knn invoice_processing|s1|n64: acc 0.5960 kl 0.3674
+knn invoice_processing|s1|n300: acc 0.6160 kl 0.3606
+knn invoice_processing|s2|n0: acc 0.3140 kl 0.5341
+knn invoice_processing|s2|n16: acc 0.5540 kl 0.4148
+knn invoice_processing|s2|n64: acc 0.5940 kl 0.3612
+knn invoice_processing|s2|n300: acc 0.6160 kl 0.3606
+knn invoice_processing|s3|n0: acc 0.3140 kl 0.5341
+knn invoice_processing|s3|n16: acc 0.5640 kl 0.3883
+knn invoice_processing|s3|n64: acc 0.5940 kl 0.3766
+knn invoice_processing|s3|n300: acc 0.6160 kl 0.3606
+knn invoice_processing|s4|n0: acc 0.3140 kl 0.5341
+knn invoice_processing|s4|n16: acc 0.6020 kl 0.3831
+knn invoice_processing|s4|n64: acc 0.5560 kl 0.3763
+knn invoice_processing|s4|n300: acc 0.6160 kl 0.3606
+knn security_incidents|s0|n0: acc 0.2680 kl 0.2748
+knn security_incidents|s0|n16: acc 0.5220 kl 0.2196
+knn security_incidents|s0|n64: acc 0.6140 kl 0.1699
+knn security_incidents|s0|n300: acc 0.6360 kl 0.1479
+knn security_incidents|s1|n0: acc 0.2680 kl 0.2748
+knn security_incidents|s1|n16: acc 0.5460 kl 0.1943
+knn security_incidents|s1|n64: acc 0.6060 kl 0.1708
+knn security_incidents|s1|n300: acc 0.6360 kl 0.1479
+knn security_incidents|s2|n0: acc 0.2680 kl 0.2748
+knn security_incidents|s2|n16: acc 0.5460 kl 0.2385
+knn security_incidents|s2|n64: acc 0.6120 kl 0.1579
+knn security_incidents|s2|n300: acc 0.6360 kl 0.1479
+knn security_incidents|s3|n0: acc 0.2680 kl 0.2748
+knn security_incidents|s3|n16: acc 0.5760 kl 0.1718
+knn security_incidents|s3|n64: acc 0.6100 kl 0.1755
+knn security_incidents|s3|n300: acc 0.6360 kl 0.1479
+knn security_incidents|s4|n0: acc 0.2680 kl 0.2748
+knn security_incidents|s4|n16: acc 0.5560 kl 0.1774
+knn security_incidents|s4|n64: acc 0.6360 kl 0.1604
+knn security_incidents|s4|n300: acc 0.6360 kl 0.1479
