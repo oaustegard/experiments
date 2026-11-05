@@ -187,7 +187,7 @@ def main():
     t0 = time.time()
 
     init = INITS[a.init]
-    if a.init == "stock":
+    if not Path(str(init)).exists():  # a Hub id (stock Ettin, Monad)
         from huggingface_hub import snapshot_download
         init = snapshot_download(init, allow_patterns=["*.json", "*.bin", "*.safetensors"])
     tok = (DecTok if a.init in CAUSAL else Enc)(Path(init) / "tokenizer.json")

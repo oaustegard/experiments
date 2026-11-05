@@ -35,7 +35,8 @@ LOG = open("/content/bd.log", "a")
 def sh(cmd, **kw):
     LOG.write(f"$ {cmd}\n")
     LOG.flush()
-    return subprocess.run(cmd, shell=True, stdout=LOG, stderr=subprocess.STDOUT, **kw)
+    # bash with pipefail, so a trainer crash behind `| grep` is not reported as rc=0
+    return subprocess.run(["bash", "-o", "pipefail", "-c", cmd], stdout=LOG, stderr=subprocess.STDOUT, **kw)
 
 
 if not D.exists():
