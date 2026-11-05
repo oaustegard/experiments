@@ -77,7 +77,9 @@ nearest-neighbour vote, weighted per question by how well it has done on your co
 <p class="muted">The base is Ettin-17m (10 MB), frozen. Each spike is a 0.5 MB LoRA adapter trained on one
 <a href="https://huggingface.co/datasets/LocalLLaMA/typed-decisions">Typed Decisions</a> workflow; the router is
 one more. Switching spikes rewrites one GPU buffer. Click an option to mark it correct: that case joins the
-memory (kept in this browser only). See the
+memory (kept in this browser only; Clear memory removes it). The spikes agree with the benchmark's gold answer
+about 70% of the time, where always picking the most common answer gets 47%; inputs from outside the four
+workflows are refused rather than guessed. See the
 <a href="https://github.com/oaustegard/experiments/tree/main/adapter-library">write-up</a> for what each part was measured to do.</p>
 
 <div class="stats" id="stats"></div>

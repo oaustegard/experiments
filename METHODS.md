@@ -1663,6 +1663,11 @@ the result.
   domain's own labels lifted 16-label accuracy from 0.554 to 0.578 and repaired the transfer
   failure. At 64 labels it cost 0.006 because fold models trained on 75% of the data understate the
   final model and tilt λ toward kNN; use more folds or stop blending once the model clearly leads.
+- **Train LoRA adapters against the base you will ship, quantized.** Round 1's rank-8 spikes, trained
+  on fp32 Ettin-17m, lost 0.029 on average when the base was packed to int8 matmuls and a 4-bit token
+  table. A fully fine-tuned model lost 0.0075 to the same packing (browser-decider). The fp16 adapter
+  itself cost nothing: on an fp32 base it matched PyTorch (0.704 vs 0.704). Fake-quantize the frozen base
+  before LoRA training, as QLoRA does. (`adapter-library/RESULTS.md`, system v0.1.0)
 - **Route among adapters with a decision-model adapter that reads their descriptions, and don't split a
   task into sub-topic adapters that share its questions.** On 12 Typed Decisions families (3 per
   workflow), a LoRA router on frozen Ettin-17m with one described option per adapter plus `none` routed

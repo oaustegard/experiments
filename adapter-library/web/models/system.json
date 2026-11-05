@@ -1,0 +1,33 @@
+{
+ "version": "0.1.0",
+ "rank": 8,
+ "router": {
+  "file": "spikes/router",
+  "question": "choice: Which specialist should handle this input? Pick the one whose description fits it.",
+  "none": "None of these specialists covers this input.",
+  "threshold": 0.5,
+  "threshold_note": "0.5, chosen after training (results/system_router_threshold.json): the 99th-percentile rule gave 5.2e-5 and 3.5% false gaps; every in-library P(none) was below 6e-5 and every unseen one above 0.999"
+ },
+ "spikes": [
+  {
+   "id": "agent_trace_observability",
+   "file": "spikes/agent_trace_observability",
+   "description": "AI agent run trace: an autonomous agent's task, constraints and step summary. Decides the outcome, risk, whether it needs review, urgency and what observability should do."
+  },
+  {
+   "id": "customer_service",
+   "file": "spikes/customer_service",
+   "description": "Customer support conversation: a ticket thread with the customer's account and orders. Decides the category, the next action, whether a human is needed, urgency and churn risk."
+  },
+  {
+   "id": "invoice_processing",
+   "file": "spikes/invoice_processing",
+   "description": "Vendor invoice review: an invoice with its purchase order, delivery record and payment terms. Decides the disposition, discrepancy severity, duplicates, the order match and urgency."
+  },
+  {
+   "id": "security_incidents",
+   "file": "spikes/security_incidents",
+   "description": "Security alert triage: an alert with its evidence, the principal involved and context. Decides the disposition, severity, whether it is a true positive or a credential compromise, and urgency."
+  }
+ ]
+}

@@ -6,7 +6,8 @@ was trained on and badly on any other. This experiment tests a different kind of
 ball" of many narrow specialists ("spikes"), a router that sends each input to the right spike, a way
 to notice an input that matches no spike, and a cheap way to grow a new spike there. Each spike is a
 LoRA adapter on one frozen Ettin-17m. A kNN datastore of labelled cases does the routing and the gap
-detection, and predicts while a new spike has too few labels to train.
+detection, and predicts while a new spike has too few labels to train. A working v0.1.0 of the system runs
+in the browser at https://austegard.com/experiments/adapter-library/web/ (see the last Log entry).
 
 Terms used throughout: the benchmark (Typed Decisions) has four **workflows**, such as customer service
 or security incidents. A **case** is one state (a JSON document) with five typed questions about it.
@@ -88,7 +89,12 @@ More labels per family, or families needing different answers, could change the 
    cases, 0.551 at 64, 0.555 at 300 (5 seeds), against 0.725 for a new spike at 300. <!-- @evidence[[results/summary.json#G_mean.n300.scratch]] -->
    The fixed blend, library start, scored 0.569 at 16 cases against 0.554 for the spike alone. <!-- @evidence[[results/summary.json#G_mean.n16.mix_warm]] -->
    At 64 it scored 0.660 against 0.671. (Round 1)
-10. **With no labels, nothing in the library transfers.** Each library spike applied to an unseen workflow,
+10. **A LoRA spike trained on the full-precision base loses accuracy when the base is quantized under it.**
+   The shipped base (int8 matmuls, 4-bit token table) costs the four spikes 0.029 on average (0.702 vs
+   0.731), against 0.0075 for browser-decider's fully fine-tuned model with the same quantization. On
+   agent traces the same fp16 adapter scores 0.704 on an fp32 base and 0.666 on the shipped one. <!-- @evidence[[results/quant_check_agent_trace_observability.json#t4-w8L63]] -->
+   The fix is to train spikes against the quantized base. (System v0.1.0, `results/system_pack_check.json`)
+11. **With no labels, nothing in the library transfers.** Each library spike applied to an unseen workflow,
    their uniform merge, and the spike the router picks all scored 0.254–0.440, below the 0.470 frequency
    baseline (P3 held). (Round 1, `results/summary.json` fallback)
 
@@ -313,3 +319,71 @@ bad one and gives up the good one. Weighting by the router does no better, becau
 how well a description fits, not which spike answers better. For a gap inside a known task, the useful
 fallback is the broader spike that covers the whole task. For a gap across tasks, the fallback is to
 flag it and grow a new spike from the library start.
+
+### System v0.1.0 (2026-11-05): the spiky ball as a browser page
+
+Oskar: "let's build the system, assuming we're ready for a v0.1.0", running in the browser like
+browser-decider. This is a build, not a registered round; each check below was run on the shipped files.
+
+**What ships** (`web/`, published at austegard.com/experiments/adapter-library/web/): one frozen
+Ettin-17m base in browser-decider's int8/4-bit format (11.5 MB uncompressed), four whole-workflow spikes (round 1's
+seed-0 LoRA spikes) and a router spike, each a 492 kB file of fp16 LoRA weights plus the decision head;
+13.9 MB in all. Round 4 found sub-topic spikes cost accuracy, so the spikes are whole workflows.
+- **Engine** (`web/engine.js`): browser-decider's WGSL engine with a LoRA side path. Each Wqkv, Wo, Wi
+  and Wo_mlp matmul gets y += B(Ax), two f32 matmuls reading a separate buffer, with the rank padded from
+  8 to 32 for the kernel's tile. Swapping spikes rewrites that buffer and the JS head. The engine also
+  returns a pooled, normalized key of the state tokens. Parity with the NumPy reference (`LoraRef` in
+  `run/pack_system.py`) on 8 cases across the 4 spikes, in headless Chromium on SwiftShader: logits within
+  3.2e-06, keys within 2.6e-08, top option the same 8/8. The router file uses the same path and was not in the fixtures; the page test below exercised it.
+- **Router** (`run/system_router.py`): a zero-start LoRA spike asked which of the four spike
+  descriptions fits, or `none`. `none` trained on 70 short texts from decider_eval and synthetic JSON
+  states from three unrelated domains. Held out: the other 34 texts and a fourth synthetic domain (lab
+  samples). The script's rule (the 99th percentile of in-library validation P(none)) gave 5.2e-5, so
+  tight that 3.5% of real test cases landed above it. After training, the threshold was set to 0.5: every in-library test case had P(none) below
+  6e-5 and every unseen input above 0.999. At 0.5: routing 1.000 on the 400 test cases,
+  false gaps 0.000, unseen texts flagged 1.00, unseen domain flagged
+  1.00. Workflows are easy to tell apart (round 1), so this mostly shows that `none` works on
+  inputs unlike the training domains. It is untested on inputs that look like a workflow and are not one.
+- **Memory** (`web/system.js`): a case the user corrects is stored with its key and the spike's
+  prediction. Per question, kNN over stored cases (the round 1 rule) is blended with the spike. λ is
+  chosen on the stored cases by cross-entropy: the frozen spike never trained on them, so its stored
+  predictions are already out of sample, and kNN is scored leave-one-out. Below 4 labels the spike answers
+  alone. The memory lives in the browser's localStorage.
+- **Gap handling:** at P(none) ≥ 0.5 the page says no specialist covers the input and does not answer;
+  the post hoc check above found no useful way to borrow another task's spikes. A button answers with the
+  top-ranked spike anyway.
+
+**Key for the memory** (`run/key_check.py`): the spike's own pooled hidden state, from the pass that
+answers the question, against round 1's separate e17c embedder (another 10 MB). kNN accuracy, mean over
+workflows and 5 seeds:
+
+| revealed cases | spike's own key | e17c embedder |
+|---|---|---|
+| 16 | 0.530 | 0.522 |
+| 64 | 0.609 | 0.551 |
+| 300 | 0.652 | 0.555 |
+
+The spike key was better on three workflows and worse on customer service (0.556 vs 0.614 at 300). The
+comparison flatters the spike key: the spike was trained on the revealed cases, so its hidden states
+already encode their labels. In the page, stored cases are new to the spike.
+
+**Packing cost.** Accuracy on each workflow's 100 test cases, PyTorch fp32 against the shipped files
+through `LoraRef`:
+
+| spike | fp32 | shipped |
+|---|---|---|
+| agent trace observability | 0.704 | 0.666 |
+| customer service | 0.670 | 0.636 |
+| invoice processing | 0.832 | 0.806 |
+| security incidents | 0.716 | 0.698 |
+
+The loss is the quantized base, not the fp16 adapter: on agent traces, the same adapter file on an fp32
+base scores 0.704, equal to PyTorch (`run/quant_check.py`).
+
+**Not measured:** real-GPU latency. SwiftShader took 20 s per router call and 48 s per five questions,
+which says nothing about a GPU. browser-decider's engine ran a five-question case in 19–41 ms on a Mac,
+and the LoRA path adds two thin matmuls per projection.
+
+**Next for v0.1.1:** retrain the spikes and the router against the quantized base (fake-quantized
+weights during LoRA training), test the router on inputs that resemble a workflow without being one, and
+time the page on a real GPU.
