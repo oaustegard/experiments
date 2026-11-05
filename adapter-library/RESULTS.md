@@ -8,9 +8,16 @@ to notice an input that matches no spike, and a cheap way to grow a new spike th
 LoRA adapter on one frozen Ettin-17m. A kNN datastore of labelled cases does the routing and the gap
 detection, and predicts while a new spike has too few labels to train.
 
+Terms used throughout: the benchmark (Typed Decisions) has four **workflows**, such as customer service
+or security incidents. A **case** is one state (a JSON document) with five typed questions about it.
+The **library** is the set of spikes already trained, three when one workflow is held out as unseen.
+A **library start** initializes a new spike from the library; a **zero start** trains it from a blank
+adapter. A **blend** averages the spike's and the kNN datastore's answer distributions. Predictions
+P1–P7 and the decision rule were registered in `PLAN.md` before any run and are tabled in the Log.
+
 ## Answer
 
-Spikes are cheap, and the library helps a new spike learn faster. Numbers are accuracy against the
+Spikes are cheap, and the library speeds up new spikes. Numbers are accuracy against the
 benchmark's gold answers; always picking the most frequent answer scores 0.470. A LoRA spike (246k
 trainable parameters, about 0.5 MB, on a 10 MB base) scores 0.714 on its own workflow, against 0.709 for a full fine-tune. <!-- @evidence[[results/summary.json#S_mean.lora]] -->
 On a workflow the library has never seen, a new spike can start from the library: the average of the
@@ -18,7 +25,7 @@ existing spikes' weight changes, compressed to one adapter. From 64 labelled cas
 From the same cases, a spike started from zero reaches 0.576 and a full fine-tune 0.610. <!-- @evidence[[results/summary.json#G_mean.n64.scratch]] -->
 The library start led on all four workflows, though by only 0.008 on security incidents.
 
-The kNN datastore was a weak predictor. At 16 cases it ties a spike started from zero, 0.523 against 0.525, and it stops improving at about 0.555. <!-- @evidence[[results/summary.json#G_mean.n16.knn]] -->
+The kNN datastore was a weak predictor. At 16 cases it ties a spike started from zero, 0.523 against 0.525 (2 seeds), and it stops improving at about 0.555. <!-- @evidence[[results/summary.json#G_mean.n16.knn]] -->
 A fixed equal blend of spike and kNN helped only where kNN was good.
 
 By the decision rule registered before the runs, the verdict is "a cheap way to store specialists".
@@ -36,9 +43,9 @@ A fixture with similar spikes, or a learned blend weight, could change it.
    customer service 0.604 vs 0.550, security 0.666 vs 0.658. Agent traces at 64 cases matched
    its own fully trained spike (0.666 at 2 seeds vs a 0.666 mean over 3). At 16 cases the edge was +0.029, missing P5's 0.03;
    at 300 cases the two were within 0.010. (`results/summary.json` G)
-3. **The kNN datastore plateaus early.** Mean over workflows and 5 seeds (the Log table uses the 2 GPU seeds, hence 0.523): 0.522 at 16 cases, 0.551 at 64, 0.555
+3. **The kNN datastore plateaus early.** Mean over workflows and 5 seeds: 0.522 at 16 cases, 0.551 at 64, 0.555
    at 300, against 0.725 for a new spike at 300. <!-- @evidence[[results/summary.json#G_mean.n300.scratch]] -->
-   On agent traces it never passed 0.40: the embedding of that workflow's state does not track its labels.
+   On agent traces it never passed 0.40, which suggests (untested) that the embedding of that workflow's state does not track its labels.
    (`results/knn.json`)
 4. **A fixed equal-weight blend of spike and kNN helps only where kNN is good.** Library start plus kNN at
    16 cases: 0.569 against 0.554 for the spike alone. <!-- @evidence[[results/summary.json#G_mean.n16.mix_warm]] -->
@@ -65,10 +72,12 @@ A fixture with similar spikes, or a learned blend weight, could change it.
 - **Arms:** S: one spike per workflow, 10 epochs, 30 cases for validation, 3 seeds, LoRA and full.
   R: routing (8-NN majority) and gap detection (1 − max cosine to the library) with each workflow held
   out. G: for each held-out workflow, n ∈ {0, 16, 64, 300} revealed cases (same nested sample for every
-  method). Methods: fallback (n = 0), knn (5 seeds), and scratch / warm / full (2 seeds; fixed epochs, no
-  validation, T = 1). warm = the mean of the three library spikes' B·A deltas, reduced to rank 8 by SVD,
+  method). Methods: fallback (n = 0), knn (5 seeds), and scratch (zero start) / warm (library start) / full
+  (full fine-tune), 2 seeds each, with fixed epochs, no validation split and softmax temperature 1.
+  "Nested" means the 16 revealed cases are inside the 64, and the 64 inside the 300. warm = the mean of the three library spikes' B·A deltas, reduced to rank 8 by SVD,
   plus their averaged heads. Mixes average the spike's and kNN's distributions.
-- **Compute:** one Colab L4 session, 100 arms in about 25 minutes of training; the CPU arms took about 5 minutes here.
+- **Compute:** one Colab L4 GPU session ran the 100 GPU runs (24 spikes, 4 fallback sets, 72 growth runs) in
+  about 25 minutes of training. The CPU arms took about 5 minutes on a 4-core container.
 
 ## Log
 

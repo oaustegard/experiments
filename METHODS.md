@@ -668,8 +668,9 @@ survives exactly the sanity checks people run.
   weights: the repo ships `pytorch_model.bin`.** A warm local HF cache hid this in a CPU smoke test,
   and the Colab run died at load. Include `"*.bin"`, or smoke-test with `HF_HUB_CACHE` pointed at an
   empty directory. (`adapter-library/run/lora.py`)
-- **A sentence-transformers dir saved under transformers 5 does not load under 4.57.1's AutoTokenizer**
-  (`TokenizersBackend` in `tokenizer_config.json`). Use `PreTrainedTokenizerFast(tokenizer_file=...,
+- **A sentence-transformers dir saved under transformers 5 does not load under 4.57.1's AutoTokenizer.**
+  The 10 MB Ettin embedder (`e17c`, ettin-native release) fails with `ValueError: Tokenizer class
+  TokenizersBackend does not exist`; experiments pin 4.57.1. Use `PreTrainedTokenizerFast(tokenizer_file=...,
   pad_token="[PAD]")` and pass `return_token_type_ids=False` for ModernBERT. (`adapter-library/run/knn.py`)
 
 
