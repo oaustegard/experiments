@@ -62,7 +62,7 @@ def render(obj, prefix="") -> str:
 
 
 class EG2:
-    def __init__(self, model="model_q4.onnx", threads=None):
+    def __init__(self, model="model_q4.onnx", threads=None, tag=""):
         so = ort.SessionOptions()
         so.intra_op_num_threads = threads or int(os.environ.get("EG2_THREADS", "4"))
         self.sess = ort.InferenceSession(str(HF / "onnx" / model), so, providers=["CPUExecutionProvider"])
@@ -72,7 +72,9 @@ class EG2:
         self.specials = sorted((a["content"] for a in t["added_tokens"] if a.get("special")), key=len, reverse=True)
         self.name = model
         CACHE.mkdir(parents=True, exist_ok=True)
-        self.kpath, self.vpath = CACHE / f"{model}.keys.jsonl", CACHE / f"{model}.vecs.f32"
+        # one writer per cache: a second process embedding at the same time passes its own tag
+        stem = f"{model}{'.' + tag if tag else ''}"
+        self.kpath, self.vpath = CACHE / f"{stem}.keys.jsonl", CACHE / f"{stem}.vecs.f32"
         self.index = {}
         if self.kpath.exists():
             keys = [json.loads(l)["k"] for l in self.kpath.read_text().splitlines() if l.strip()]
