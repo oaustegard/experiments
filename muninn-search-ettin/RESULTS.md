@@ -88,14 +88,14 @@ Three things would change how firmly this stands:
 **Search, in brief.**
 - The index cuts each page into chunks of about 500 characters.
 - A query is scored two ways. BM25 is keyword matching. Dense is closeness of Ettin vectors, which
-  are compared as 256-bit SimHash codes.
+  are compared as 3,072-bit SimHash codes.
 - Fusion merges the two rankings over a pool of top candidates from each. RRF (reciprocal-rank fusion)
   adds 1/(60 + rank) from each list. Weighted fusion rescales both scores to 0–1 over the pool and adds
   them as alpha × dense + (1 − alpha) × BM25, so alpha 1.0 is dense alone and 0.0 is BM25 alone.
 - The Worker then keeps one hit per page, boosted by how many of that page's chunks matched.
 
 **Corpus and index.** muninn.austegard.com as of 2026-11-05: the blog, perch, scratch and references
-pages. `scripts/build_muninn_kb.py` builds a remax_kb v2 index (SimHash dim 256, k 4, over 768-dimensional vectors).
+pages. `scripts/build_muninn_kb.py` builds a remax_kb v2 index (centered SimHash with dim 768 and k 4, so 3,072 bits per chunk, over 768-dimensional vectors).
 
 **Embedder.** The e17c-t4-w8L63 package (release `ettin-native-20261021`): an int4 token table, int8
 matmuls, mean pooling, a 256→768 dense layer and L2 normalisation. The query prompt is "Represent this
