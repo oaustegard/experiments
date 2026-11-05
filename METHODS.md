@@ -1626,6 +1626,18 @@ the result.
   `bash -o pipefail`. Two training jobs sharing one GPU is also where the OOM came from: Monad (64 layers × 1,000 tokens ×
   batch 16) took 21 of the L4's 23 GB. (`browser-decider/run/colab_arms.py`)
 
+- **`claude -p` as a bulk labeller: switch the tools off.** With `--tools ""` (and `--setting-sources ""
+  --strict-mcp-config --no-session-persistence --system-prompt ...`), a Sonnet 5.5 call labelling 5 accounts
+  cost $0.04; with the default tools it cost $0.16, the tool definitions riding along on every request.
+  `--tools` takes a list, so put another flag after `--tools ""` or it swallows the prompt ("Input must be
+  provided"). 1,842 accounts took 15 minutes at 6 parallel calls. (`bsky-account-decider/run/label.py`)
+- **A Python/JS pair that must produce identical text needs Python's rounding and whitespace in JS.**
+  `f"{x:.1f}"` rounds an exact binary tie to even (2.25 -> "2.2") where `toFixed` rounds up; exact tenths
+  ties only happen when `x*4` is an odd integer. `str.split()` does not treat U+FEFF as whitespace and JS
+  `\s` does. With both handled, 25,589 of 25,589 strings matched. (`bsky-account-decider/web/state.js`)
+- **Installing sentence-transformers 6 upgrades transformers to 5.x**, which nests ModernBERT's RoPE bases
+  under `rope_parameters`; code reading `global_rope_theta` breaks. Pin transformers again after.
+
 ## Numerical / ML gotchas
 
 - **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM

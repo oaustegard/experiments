@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`bsky-account-decider/`](bsky-account-decider/RESULTS.md) | 2026-11-05 | **done — browser-decider's recipe on a new question set: Sonnet labelled 1,842 Bluesky accounts (5 AI-themed account questions + "is this post about AI") for $14.58, and Ettin-17m fine-tuned on 1,542 of them picks Sonnet's answer 92.1% of the time on 300 held-out accounts (81-94% per question, 3-11 points under Sonnet's own self-agreement); ahead of a frozen-embedding classifier on 4 of 6 questions; 100 labelled accounts already give 0.78 on the account questions, 1,542 give 0.87; finds only 5-8 of 18 test bots. Page: type a handle, it answers in the tab** | [`RESULTS.md`](bsky-account-decider/RESULTS.md) + [`PLAN.md`](bsky-account-decider/PLAN.md) + `results/summary.json` (`run/collect.py`, `run/label.py`, `run/build_data.py`, `web/index.html`) | Oskar: a Bluesky account profile classifier on the browser decider, AI-themed questions, with a Sonnet subagent as the oracle |
 | [`browser-decider/`](browser-decider/RESULTS.md) | 2026-11-05 | **done — a Jev-shaped typed-decision model in a 10.2 MB browser download: Ettin-17m fine-tuned as a cross-encoder on Typed Decisions scores 0.740 ± 0.010 over 3 seeds (Jev zero-shot 0.727, teacher self-agreement 0.735), the int8/int4 page build 0.730, 19 ms per 5-question case on the Mac GPU through a hand-written WGSL engine. It does not generalise: leave-one-workflow-out 0.353 (prior 0.470), unrelated schemas 0.279 vs Jev 0.894. The 10 MB embedder's retrieval-tuned weights are a worse start than stock Ettin (−0.078). Monad 56M: 0.752 at 65 MB, same leave-one-out failure (0.333)** | [`RESULTS.md`](browser-decider/RESULTS.md) + [`PLAN.md`](browser-decider/PLAN.md) + `results/summary.json` (`run/train_enc.py`, `run/pack.py`, `web/engine.js`, `web/decider.js`, `web/index.html`) | Oskar: convert the quantized Monad into a decision model à la Jev that runs in the browser; then: what about the 10 MB Ettin-17m |
 | [`monad-skygest-finetune/`](monad-skygest-finetune/RESULTS.md) | 2026-11-03 | **done — a full fine-tune teaches the loop-edited Monad 45 papers from Bluesky's Paper Skygest feed: reworded held-out questions 0.7% → 31.1% (judged, Mac WebGPU, 8-bit), but only with ~40 paraphrased rows per paper (10 rows: memorized 45/45 training questions, 8% on reworded ones); dev loops come back (6% → 23%). Shipped to R2 as `skygest_q8` and added to the chat page** | [`RESULTS.md`](monad-skygest-finetune/RESULTS.md) + `results/summary.json` (`gen_para.py`, `train.py`, `score.py`, `assemble.py`) | Oskar, from the monad-chat session: fine-tune Monad on the top papers in the Paper Skygest feed, as a third model for the chat page. |
 | [`monad-layer-parallel/`](monad-layer-parallel/RESULTS.md) | 2026-11-03 | **done — 8-bit weights make the loop-edited Monad 1.8× faster in the browser (6.6 vs 11.8 ms/token, 65 vs 114 MB) with no test-set loss (87 vs 86 of 500); int4 triples loops, int4 + 16 folded layer pairs collapses, 8 pairs passes but buys only 0.7 ms in int8; Parareal over depth gives nothing** | [`RESULTS.md`](monad-layer-parallel/RESULTS.md) + [`PLAN.md`](monad-layer-parallel/PLAN.md) + `results/summary.json` (`fold.py`, `quant_alt.py`, `depth_probe.py`; harness in `monad-weight-edit/`) | Oskar, after `monad-weight-edit`: use its insights to alter architecture, prune or quantize Monad for better bang for the buck. |
@@ -221,6 +222,14 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `bsky-account-decider/` — a Bluesky account classifier taught by Sonnet
+
+Paste a Bluesky handle and a 10 MB model in the page says whether the account is a person, a bot, an
+organization or a news feed, how much and in what role it posts about AI, its attitude, and which recent posts
+are about AI. The labels came from Claude Sonnet (1,842 accounts, $14.58 through headless `claude -p`), and
+Ettin-17m learned to give Sonnet's answers, 92% of the time on held-out accounts. Bots are rare in the data and
+the model finds fewer than half of them. See [`RESULTS.md`](bsky-account-decider/RESULTS.md).
 
 ### `browser-decider/` — a decision model that runs in the page
 
