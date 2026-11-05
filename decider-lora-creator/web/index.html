@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Spike Creator</title>
+<meta name="description" content="Define a decision, label cases, and train a 0.5 MB specialist for a 10 MB Ettin-17m decision model on your GPU, in the browser.">
+<style>
+  :root {
+    --bg: #fbfaf7; --panel: #ffffff; --fg: #1d1c19; --muted: #6e6c64; --line: #e4e2db; --code: #f3f1ec;
+    --accent: #2f6db3; --val: #c07a1f; --ok: #2e7d4f; --bad: #b3452f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d; --code: #2a2925;
+      --accent: #6aa5e8; --val: #e3a54f; --ok: #5cc28a; --bad: #e07a63; }
+  }
+  :root[data-theme="dark"] { --bg: #171715; --panel: #201f1c; --fg: #efede7; --muted: #a6a39a; --line: #34322d; --code: #2a2925;
+    --accent: #6aa5e8; --val: #e3a54f; --ok: #5cc28a; --bad: #e07a63; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 32px 0 8px; display: flex; gap: 8px; align-items: baseline; }
+  h2 .n { color: var(--muted); font-weight: 500; font-size: 14px; }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); } .small { font-size: 13px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+  input, select, button, textarea { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  input, select, button { padding: 6px 10px; max-width: 100%; }
+  input[type=number] { width: 92px; }
+  textarea { width: 100%; padding: 8px; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  label.f { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+  label.f > input, label.f > select { color: var(--fg); font-size: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .card h3 { font-size: 14px; margin: 0 0 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .qgrid { display: grid; grid-template-columns: 1fr 120px; gap: 8px; }
+  .qgrid .full { grid-column: 1 / -1; }
+  .tag { font-size: 11px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .scroll { overflow-x: auto; }
+  .state { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; font-size: 12px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 120px; }
+  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .bar { height: 6px; background: var(--code); border-radius: 3px; overflow: hidden; margin: 6px 0; }
+  .bar div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .opt { display: grid; grid-template-columns: minmax(90px, 32%) 1fr 48px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+  .opt .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt .track { height: 8px; background: var(--code); border-radius: 3px; overflow: hidden; }
+  .opt .track div { height: 100%; background: var(--accent); }
+  .opt .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  #err { color: var(--bad); white-space: pre-wrap; font-size: 13px; }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+  summary { cursor: pointer; font-weight: 500; }
+  svg text { fill: var(--muted); font-size: 11px; }
+  .legend { font-size: 12px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 4px; }
+  .pill { display: inline-flex; gap: 6px; align-items: center; }
+  .liblist { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
+  code { background: var(--code); padding: 0 4px; border-radius: 3px; font-size: 12.5px; }
+  @media (max-width: 560px) { .qgrid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Decision spike creator</h1>
+<p class="muted">Define a decision as questions with fixed options, label some cases, and train a specialist ("spike") for
+Ettin-17m on your GPU. Ettin-17m is the frozen 10 MB decision model behind the <a href="../../adapter-library/web/">Spiky Ball Decider</a>.
+The spike is a 0.5 MB adapter that loads into that page's engine unchanged. Nothing leaves the browser.</p>
+<div id="env" class="small muted">Checking WebGPU…</div>
+<div id="err"></div>
+
+<h2>1. Decision <span class="n" id="dsum"></span></h2>
+<div class="row">
+  <button id="demo" class="primary">Load demo: invoice review (400 cases)</button>
+  <label class="pill small"><input type="file" id="file" accept=".json,.jsonl,application/json"> import</label>
+  <button id="blank">New blank decision</button>
+</div>
+<p class="small muted">The demo is the invoice workflow from the Typed Decisions benchmark, one the four-workflow library has
+not been trained on. It starts from the other three workflow spikes, as in adapter-library's growth experiment.</p>
+<div class="card">
+  <div class="qgrid">
+    <label class="f">id<input id="did" placeholder="my_decision"></label>
+    <span></span>
+    <label class="f full">what a case is (the router description, if you add the spike to a set)<input id="ddesc" placeholder="Support email: a subject and a body. Decides …"></label>
+  </div>
+</div>
+<div id="qs"></div>
+<div class="row"><button id="addq">Add a question</button></div>
+<details><summary>Decision as JSON</summary>
+  <p class="small muted">Typed Decisions shape: <code>{"id", "description", "questions": {"name": {"type": "choice|noul|score", "instructions", "criteria"}}}</code>.
+  Criteria are <code>{"option": "description"}</code> for choice, an array of level descriptions for score (levels 0, 1, …), and optionally
+  <code>{"true", "false"}</code> for noul (a yes/no statement).</p>
+  <textarea id="djson" rows="10"></textarea>
+  <div class="row"><button id="dapply">Apply JSON</button></div>
+</details>
+
+<h2>2. Cases <span class="n" id="csum"></span></h2>
+<div class="scroll"><table id="ctable"></table></div>
+<details><summary>Add a case</summary>
+  <textarea id="cstate" rows="5" placeholder="The case as text or JSON: whatever the model should read."></textarea>
+  <div id="cgold" class="row"></div>
+  <div class="row"><label class="pill small"><input type="checkbox" id="ctest"> test case (never trained on)</label><button id="cadd">Add case</button></div>
+</details>
+<details><summary>Add many (JSON lines)</summary>
+  <p class="small muted">One case per line: <code>{"id": "c1", "state": "…", "gold": {"question": "option"}}</code>. A gold value can also be
+  a distribution, <code>{"option": 0.7, "other": 0.3}</code>. Add <code>"split": "test"</code> to hold a case out.</p>
+  <textarea id="cbulk" rows="6"></textarea>
+  <div class="row"><button id="cbulkadd">Add cases</button><button id="cclear">Remove all cases</button></div>
+</details>
+
+<h2>3. Train</h2>
+<div class="card">
+  <h3>Start from</h3>
+  <p class="small muted">The spike's starting weights: one library spike, or the mean of several. A mean is cut to rank 8
+  by SVD, as adapter-library does for its library start.</p>
+  <div id="lib" class="liblist"></div>
+</div>
+<div class="card">
+  <h3>What trains</h3>
+  <label class="pill small"><input type="radio" name="be" value="head" checked> the decision head only, on the frozen encoder.
+  Works now: each sequence is encoded once, then every epoch runs in JS.</label><br>
+  <label class="pill small"><input type="radio" name="be" value="lora"> the LoRA adapter and the head, with the WGSL backward pass</label>
+  <div class="row small"><label class="f" style="flex:1">trainer module (exports <code>LoraTrainer</code>)<input id="mod" placeholder="../../<experiment>/web/trainer.js"></label>
+    <button id="modcheck">Check</button></div>
+  <div id="modstat" class="small muted">The WGSL trainer is still being written; until it lands, LoRA training is unavailable.</div>
+</div>
+<div class="row">
+  <label class="f">epochs<input type="number" id="epochs" value="10" min="1" max="200"></label>
+  <label class="f">learning rate<input type="number" id="lr" value="0.0008" step="0.0001"></label>
+  <label class="f">batch (sequences)<input type="number" id="bs" value="16" min="1"></label>
+  <label class="f">validation %<input type="number" id="valp" value="15" min="0" max="50"></label>
+  <label class="f">test % (if none marked)<input type="number" id="testp" value="20" min="0" max="60"></label>
+  <label class="f">labelled cases used (0 = all)<input type="number" id="maxtr" value="64" min="0"></label>
+  <label class="f">max test cases (0 = all)<input type="number" id="maxte" value="0" min="0"></label>
+  <label class="f">seed<input type="number" id="seed" value="0"></label>
+</div>
+<div class="row"><button id="train" class="primary">Train</button><button id="stop" disabled>Stop</button><span id="tstat" class="small muted"></span></div>
+<div class="bar"><div id="tbar"></div></div>
+<div id="chart"></div>
+<div class="scroll"><table id="etable"></table></div>
+
+<h2>4. Results</h2>
+<div id="results" class="muted small">Train to see test accuracy against the start and the prior.</div>
+
+<h2>5. Try it</h2>
+<textarea id="tstate" rows="5" placeholder="Paste a case. Trained spike answers; before training, the start spike does."></textarea>
+<div class="row"><button id="try">Answer</button><span id="trystat" class="small muted"></span></div>
+<div id="ans"></div>
+
+<h2>6. Export</h2>
+<p class="small muted">The spike is a <code>.json</code> manifest (questions, per-type temperatures, tensor offsets) and a <code>.bin</code>
+of fp16 weights, in the format of adapter-library's <code>pack_system.py</code>. Put both in a set's <code>spikes/</code> directory and list
+the spike in its <code>system.json</code>.</p>
+<div class="row"><button id="xspike" disabled>Download spike</button><button id="xdata">Download decision and cases</button></div>
+<pre id="xsys" class="small" style="white-space:pre-wrap"></pre>
+<p class="small muted">Source and write-up: <a href="https://github.com/oaustegard/experiments/tree/main/decider-lora-creator">experiments/decider-lora-creator</a>.</p>
+</main>
+
+<script type="module">
+import * as C from "./creator.js";
+import { HeadBackend, LoraBackend, truncateRank } from "./backends.js";
+
+const $ = (id) => document.getElementById(id);
+const LIBDIR = new URL("../../adapter-library/web/models/", location.href);
+const LIBRARY = [
+  { set: "workflows", ids: ["agent_trace_observability", "customer_service", "invoice_processing", "security_incidents"] },
+  { set: "everyday", ids: ["transactions", "emails", "reviews"] },
+];
+const STORE = "decider-lora-creator/v1";
+const params = new URLSearchParams(location.search);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const showErr = (e) => { console.error(e); $("err").textContent = String(e?.stack || e); };
+const pct = (x) => (x === null || x === undefined ? "–" : (100 * x).toFixed(1) + "%");
+
+// ---- state: { decision, cases, init: [spike keys "set/id"] } ----
+let S = { decision: { id: "", description: "", questions: {} }, cases: [], init: [] };
+try { const saved = JSON.parse(localStorage.getItem(STORE) || "null"); if (saved?.decision) S = saved; } catch { /* storage unavailable */ }
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch { /* storage full or blocked: state lasts for this page */ } };
+
+// ---- decision editor ----
+function optsToText(q) {
+  if (q.type === "score") return (q.criteria ?? []).join("\n");
+  return Object.entries(q.criteria ?? {}).map(([k, v]) => `${k}: ${v}`).join("\n");
+}
+function textToCriteria(type, text) {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (type === "score") return lines;
+  const o = {};
+  for (const l of lines) { const i = l.indexOf(":"); if (i > 0) o[l.slice(0, i).trim()] = l.slice(i + 1).trim(); }
+  return type === "noul" && !Object.keys(o).length ? undefined : o;
+}
+function renderDecision() {
+  const d = S.decision, qs = d.questions;
+  $("did").value = d.id ?? ""; $("ddesc").value = d.description ?? "";
+  $("qs").innerHTML = Object.entries(qs).map(([n, q]) => `
+    <div class="card" data-q="${esc(n)}">
+      <h3><span>${esc(n)}</span><span class="tag">${esc(q.type)}</span><span class="tag">${C.optionsOf(q).length} options</span>
+        <button class="qdel small" style="margin-left:auto">Remove</button></h3>
+      <div class="qgrid">
+        <label class="f full">instructions<input class="qi" value="${esc(q.instructions ?? "")}"></label>
+        <label class="f full">options, one per line: ${q.type === "score" ? "level descriptions, lowest first" : q.type === "noul" ? "optional <code>true: …</code> and <code>false: …</code>" : "<code>name: description</code>"}
+          <textarea class="qo" rows="${Math.max(2, C.optionsOf(q).length)}">${esc(optsToText(q))}</textarea></label>
+        <label class="f">type<select class="qt">${["choice", "noul", "score"].map((t) => `<option ${t === q.type ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      </div>
+    </div>`).join("");
+  $("djson").value = JSON.stringify(d, null, 1);
+  const nq = Object.keys(qs).length;
+  $("dsum").textContent = nq ? `${d.id || "untitled"} · ${nq} question${nq > 1 ? "s" : ""}` : "";
+  renderCases(); renderGoldForm();
+}
+$("qs").addEventListener("change", (ev) => {
+  const card = ev.target.closest("[data-q]"); if (!card) return;
+  const n = card.dataset.q, q = S.decision.questions[n];
+  if (ev.target.classList.contains("qi")) q.instructions = ev.target.value;
+  if (ev.target.classList.contains("qt")) { q.type = ev.target.value; q.criteria = textToCriteria(q.type, card.querySelector(".qo").value); }
+  if (ev.target.classList.contains("qo")) q.criteria = textToCriteria(q.type, ev.target.value);
+  if (q.criteria === undefined) delete q.criteria;
+  save(); renderDecision();
+});
+$("qs").addEventListener("click", (ev) => {
+  if (!ev.target.classList.contains("qdel")) return;
+  const n = ev.target.closest("[data-q]").dataset.q;
+  if (!confirm(`Remove question ${n}? Labels for it stay on the cases but are ignored.`)) return;
+  delete S.decision.questions[n]; save(); renderDecision();
+});
+$("did").onchange = () => { S.decision.id = $("did").value.trim().replace(/[^\w-]/g, "_"); save(); renderDecision(); };
+$("ddesc").onchange = () => { S.decision.description = $("ddesc").value; save(); };
+$("addq").onclick = () => {
+  const n = prompt("Question name (letters, digits, underscores)", "category"); if (!n) return;
+  const k = n.trim().replace(/[^\w]/g, "_");
+  S.decision.questions[k] = { type: "choice", instructions: "Which kind of case is this?", criteria: { a: "The first kind.", b: "The second kind." } };
+  save(); renderDecision();
+};
+$("dapply").onclick = () => {
+  try { const d = JSON.parse($("djson").value); const errs = C.validate(d); if (errs.length) throw new Error(errs.join("\n")); S.decision = d; save(); renderDecision(); $("err").textContent = ""; }
+  catch (e) { showErr(e); }
+};
+$("blank").onclick = () => { if (S.cases.length && !confirm("Start over? This removes the current decision and its cases.")) return; S = { decision: { id: "", description: "", questions: {} }, cases: [], init: [] }; save(); renderDecision(); renderLib(); };
+
+// ---- cases ----
+function labelOf(g) { if (g === undefined) return ""; if (typeof g === "string") return g; let best = null; for (const [o, p] of Object.entries(g)) if (best === null || p > g[best]) best = o; return best; }
+function renderCases() {
+  const qs = Object.keys(S.decision.questions), cs = S.cases;
+  const nTest = cs.filter((c) => c.split === "test").length;
+  $("csum").textContent = cs.length ? `${cs.length} cases · ${nTest} marked test` : "";
+  if (!cs.length) { $("ctable").innerHTML = `<tr><td class="muted">No cases yet.</td></tr>`; return; }
+  const head = `<tr><th>id</th><th>state</th>${qs.map((q) => `<th>${esc(q)}</th>`).join("")}<th></th></tr>`;
+  const rows = cs.slice(0, 25).map((c, i) => `<tr><td>${esc(c.id)}${c.split === "test" ? ' <span class="tag">test</span>' : ""}</td>
+    <td class="state" title="${esc(c.state.slice(0, 600))}">${esc(c.state.slice(0, 120))}</td>
+    ${qs.map((q) => `<td>${esc(labelOf(c.gold?.[q]))}</td>`).join("")}<td><button class="small cdel" data-i="${i}">×</button></td></tr>`).join("");
+  $("ctable").innerHTML = head + rows + (cs.length > 25 ? `<tr><td colspan="${qs.length + 3}" class="muted">… and ${cs.length - 25} more</td></tr>` : "");
+}
+$("ctable").addEventListener("click", (ev) => { if (!ev.target.classList.contains("cdel")) return; S.cases.splice(+ev.target.dataset.i, 1); save(); renderCases(); });
+function renderGoldForm() {
+  $("cgold").innerHTML = Object.entries(S.decision.questions).map(([n, q]) => `<label class="f">${esc(n)}<select data-g="${esc(n)}"><option value="">(no label)</option>
+    ${C.optionsOf(q).map(([o, d]) => `<option value="${esc(o)}" title="${esc(d)}">${esc(o)}</option>`).join("")}</select></label>`).join("");
+}
+function addCases(list) {
+  const errs = C.validate(S.decision, list);
+  if (errs.length) throw new Error(errs.slice(0, 12).join("\n") + (errs.length > 12 ? `\n… ${errs.length - 12} more` : ""));
+  const ids = new Set(S.cases.map((c) => c.id));
+  for (const c of list) { c.id ??= `c${S.cases.length + 1}`; while (ids.has(c.id)) c.id += "_"; ids.add(c.id); S.cases.push(c); }
+  save(); renderCases();
+}
+$("cadd").onclick = () => {
+  try {
+    const gold = {};
+    for (const sel of $("cgold").querySelectorAll("select")) if (sel.value) gold[sel.dataset.g] = sel.value;
+    if (!$("cstate").value.trim()) throw new Error("the case has no text");
+    addCases([{ id: `c${S.cases.length + 1}`, state: $("cstate").value.trim(), gold, ...($("ctest").checked ? { split: "test" } : {}) }]);
+    $("cstate").value = ""; $("err").textContent = "";
+  } catch (e) { showErr(e); }
+};
+$("cbulkadd").onclick = () => {
+  try { addCases($("cbulk").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l))); $("cbulk").value = ""; $("err").textContent = ""; }
+  catch (e) { showErr(e); }
+};
+$("cclear").onclick = () => { if (confirm(`Remove all ${S.cases.length} cases?`)) { S.cases = []; save(); renderCases(); } };
+
+async function loadDataset(d) {
+  const decision = d.decision ?? d;
+  const errs = C.validate(decision, d.cases ?? []);
+  if (errs.length) throw new Error(errs.slice(0, 12).join("\n"));
+  S = { decision, cases: d.cases ?? [], init: (d.init ?? []).map((x) => (x.includes("/") ? x : `workflows/${x}`)) };
+  save(); renderDecision(); renderLib();
+}
+$("demo").onclick = async () => {
+  try {
+    if (S.cases.length && !confirm("Replace the current decision and cases with the demo?")) return;
+    await loadDataset(await fetch("demo/invoice_processing.json").then((r) => r.json()));
+    $("err").textContent = "";
+  } catch (e) { showErr(e); }
+};
+$("file").onchange = async () => {
+  try {
+    const t = await $("file").files[0].text();
+    if (t.trim().startsWith("{") && !t.trim().includes("\n{")) await loadDataset(JSON.parse(t));
+    else addCases(t.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l)));
+    $("err").textContent = "";
+  } catch (e) { showErr(e); }
+};
+
+// ---- the library start ----
+function renderLib() {
+  $("lib").innerHTML = LIBRARY.flatMap(({ set, ids }) => ids.map((id) => {
+    const k = `${set}/${id}`;
+    return `<label class="pill"><input type="checkbox" value="${k}" ${S.init.includes(k) ? "checked" : ""}> ${esc(id.replace(/_/g, " "))} <span class="tag">${set}</span></label>`;
+  })).join("");
+}
+$("lib").addEventListener("change", () => { S.init = [...$("lib").querySelectorAll("input:checked")].map((x) => x.value); save(); });
+const spikeCache = new Map();
+async function fetchSpike(k) {
+  if (!spikeCache.has(k)) {
+    const [set, id] = k.split("/");
+    const base = new URL(`${set}/spikes/${id}`, LIBDIR);
+    spikeCache.set(k, Promise.all([fetch(base + ".json").then((r) => r.json()), fetch(base + ".bin").then((r) => r.arrayBuffer())])
+      .then(([sm, b]) => ({ sm, bytes: new Uint8Array(b) })));
+  }
+  return spikeCache.get(k);
+}
+async function startSpike(keys) {
+  if (!keys.length) throw new Error("pick at least one library spike to start from (section 3)");
+  const sp = await Promise.all(keys.map(fetchSpike));
+  if (sp.length === 1) return sp[0];
+  const merged = truncateRank(C.mergeSpikes(sp.map((s) => C.unpackSpike(s.sm, s.bytes))), 8);
+  return C.packSpike(merged, { id: "library-merge", from: keys });
+}
+
+// ---- model and backends ----
+let base = null, headBackend = null, active = null, trained = null;
+async function loadBase() {
+  if (base) return base;
+  if (!navigator.gpu) throw new Error("This browser has no WebGPU. Chrome or Edge 113+, or Safari 26, can run it.");
+  $("env").textContent = "Downloading the 11 MB base model…";
+  const b = new URL("base/", LIBDIR);
+  const [manifest, weights, tok] = await Promise.all([fetch(new URL("manifest.json", b)).then((r) => r.json()),
+    fetch(new URL("weights.bin", b)).then((r) => r.arrayBuffer()), C.loadTokenizer(new URL("tokenizer.json", b))]);
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+  if (!adapter) throw new Error("No WebGPU adapter");
+  const device = await adapter.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+  device.lost.then((i) => showErr(`GPU device lost: ${i.message}`));
+  base = { manifest, weights, tok, device, adapterInfo: adapter.info };
+  $("env").textContent = `Model ready on ${adapter.info?.vendor || "GPU"} ${adapter.info?.architecture || ""}`.trim();
+  return base;
+}
+async function backendFor(kind, init) {
+  const { device, manifest, weights } = await loadBase();
+  if (kind === "head") {
+    if (!headBackend) headBackend = await HeadBackend.create(device, manifest, weights, { init });
+    else await headBackend.loadSpike(init.sm, init.bytes);
+    return headBackend;
+  }
+  const mod = $("mod").value.trim();
+  if (!mod) throw new Error("Enter the WGSL trainer's module path in section 3, or train the head only.");
+  return LoraBackend.create(device, manifest, weights, { module: new URL(mod, location.href).href, init });
+}
+$("modcheck").onclick = async () => {
+  const mod = $("mod").value.trim();
+  if (!mod) { $("modstat").textContent = "No module path given."; return; }
+  try { await LoraBackend.load(new URL(mod, location.href).href); $("modstat").innerHTML = `<span class="ok">Found LoraTrainer in ${esc(mod)}.</span>`; }
+  catch (e) { $("modstat").innerHTML = `<span class="bad">Not available: ${esc(e.message)}</span>`; }
+};
+if (params.get("trainer")) { $("mod").value = params.get("trainer"); $("modcheck").onclick(); }
+
+// ---- training ----
+let stopFlag = false;
+const num = (id) => Number($(id).value);
+function chart(steps, epochs) {
+  const W = 920, H = 180, P = 34;
+  if (!steps.length) { $("chart").innerHTML = ""; return; }
+  const ema = []; let e = steps[0];
+  for (const s of steps) { e = 0.9 * e + 0.1 * s; ema.push(e); }
+  const maxL = Math.max(...ema) * 1.05, minL = Math.min(...ema, 0), nS = Math.max(steps.total ?? steps.length, 2);
+  const x = (i) => P + (W - 2 * P) * i / (nS - 1), yl = (v) => H - P + (P - (H - P)) * (v - minL) / (maxL - minL || 1), ya = (a) => H - P - (H - 2 * P) * a;
+  const lossPath = ema.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${yl(v).toFixed(1)}`).join("");
+  const ev = epochs.filter((r) => r.val);
+  const accPath = ev.map((r, i) => `${i ? "L" : "M"}${x(r.atStep).toFixed(1)},${ya(r.val.accuracy).toFixed(1)}`).join("");
+  $("chart").innerHTML = `<div class="legend"><span><span class="sw" style="background:var(--accent)"></span>train loss (smoothed, left)</span>
+    <span><span class="sw" style="background:var(--val)"></span>validation accuracy (right, 0–100%)</span></div>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Training curves">
+    <line x1="${P}" y1="${H - P}" x2="${W - P}" y2="${H - P}" stroke="var(--line)"/>
+    <text x="${P - 4}" y="${yl(maxL) + 10}" text-anchor="end">${maxL.toFixed(2)}</text><text x="${P - 4}" y="${H - P}" text-anchor="end">${minL.toFixed(1)}</text>
+    <text x="${W - P + 4}" y="${ya(1) + 10}">100%</text><text x="${W - P + 4}" y="${ya(0)}">0%</text>
+    <text x="${W / 2}" y="${H - 8}" text-anchor="middle">step</text>
+    <path d="${lossPath}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+    <path d="${accPath}" fill="none" stroke="var(--val)" stroke-width="1.6"/>
+    ${ev.map((r) => `<circle cx="${x(r.atStep)}" cy="${ya(r.val.accuracy)}" r="3" fill="var(--val)"/>`).join("")}</svg>`;
+}
+function epochTable(rows) {
+  $("etable").innerHTML = `<tr><th>epoch</th><th class="num">train loss</th><th class="num">val accuracy</th><th class="num">val KL</th><th class="num">time</th><th></th></tr>` +
+    rows.map((r) => `<tr><td>${r.epoch === 0 ? "start" : r.epoch}</td><td class="num">${r.trainLoss === null || r.trainLoss === undefined ? "–" : r.trainLoss.toFixed(4)}</td>
+      <td class="num">${pct(r.val?.accuracy)}</td><td class="num">${r.val ? r.val.kl.toFixed(4) : "–"}</td><td class="num">${(r.ms / 1000).toFixed(1)} s</td>
+      <td>${r.epoch === r.best ? '<span class="tag">best</span>' : ""}</td></tr>`).join("");
+}
+function resultsTable(res, startRes, info) {
+  const qs = Object.keys(res.test?.questions ?? {});
+  const row = (name, m) => `<tr><td>${name}</td><td class="num">${pct(m?.accuracy)}</td><td class="num">${m ? m.kl.toFixed(3) : "–"}</td>
+    ${qs.map((q) => `<td class="num">${pct(m?.questions?.[q]?.accuracy)}</td>`).join("")}</tr>`;
+  $("results").innerHTML = `<div class="stats">
+      <div class="stat"><b>${pct(res.test?.accuracy)}</b><span>test accuracy, trained</span></div>
+      <div class="stat"><b>${pct(startRes.test?.accuracy)}</b><span>before training</span></div>
+      <div class="stat"><b>${pct(res.prior?.accuracy)}</b><span>prior (most common answers)</span></div>
+      <div class="stat"><b>${res.test?.n ?? 0}</b><span>test decisions (${info.testCases} cases)</span></div>
+      <div class="stat"><b>${(res.trainMs / 1000).toFixed(1)} s</b><span>training, ${info.encodeS} s encoding</span></div></div>
+    <div class="scroll"><table><tr><th></th><th class="num">accuracy</th><th class="num">KL from gold</th>${qs.map((q) => `<th class="num">${esc(q)}</th>`).join("")}</tr>
+    ${row("prior", res.prior)}${row("start spike", startRes.test)}${row(`trained (epoch ${res.bestEpoch})`, res.test)}</table></div>
+    <p class="small muted">Accuracy is the Typed Decisions scorer's: the top option matches gold's top option. Temperatures per question type are fitted on
+    validation. The best epoch is chosen by validation KL, and "start" is a candidate, so a run that doesn't help on validation keeps the start.
+    ${info.backend} · ${info.trainCases} train, ${info.valCases} validation cases · seed ${info.seed}.</p>`;
+}
+
+$("train").onclick = async () => {
+  $("err").textContent = ""; stopFlag = false;
+  $("train").disabled = true; $("stop").disabled = false;
+  try {
+    const errs = C.validate(S.decision, S.cases);
+    if (errs.length) throw new Error(errs.slice(0, 12).join("\n"));
+    const kind = document.querySelector('input[name="be"]:checked').value;
+    const { tok } = await loadBase();
+    $("tstat").textContent = "Preparing the start spike…";
+    const init = await startSpike(S.init);
+    const backend = await backendFor(kind, init);
+    const opts = { valFrac: num("valp") / 100, testFrac: num("testp") / 100, seed: num("seed"), maxTrain: num("maxtr"), maxTest: num("maxte") };
+    const sp = C.splitCases(S.cases, opts);
+    const data = { train: C.examples(S.decision, sp.train, tok.build), val: C.examples(S.decision, sp.val, tok.build), test: C.examples(S.decision, sp.test, tok.build) };
+    const t0 = performance.now();
+    if (backend.warm) {
+      const all = [...data.train, ...data.val, ...data.test];
+      await backend.warm(all, (d, n) => { $("tstat").textContent = `Encoding ${d}/${n} sequences on the GPU (once; epochs reuse them)…`; $("tbar").style.width = `${100 * d / Math.max(n, 1)}%`; });
+    }
+    const encodeS = ((performance.now() - t0) / 1000).toFixed(1);
+    $("tstat").textContent = "Scoring the start spike…";
+    const startRes = await C.evaluateStart(backend, data);
+    const steps = [], epochs = [];
+    const res = await C.train(backend, data, { epochs: num("epochs"), lr: num("lr"), bs: num("bs"), seed: num("seed") }, (e) => {
+      if (e.kind === "step") { steps.push(e.loss); steps.total = e.of; $("tbar").style.width = `${100 * e.step / e.of}%`; $("tstat").textContent = `epoch ${e.epoch}, step ${e.step}/${e.of}, loss ${e.loss.toFixed(4)}`; if (e.step % 5 === 0) chart(steps, epochs); }
+      if (e.kind === "epoch") { epochs.push({ ...e, atStep: steps.length ? steps.length - 1 : 0 }); epochs.forEach((r) => { r.best = e.best ?? 0; }); epochTable(epochs); chart(steps, epochs); }
+    }, () => stopFlag);
+    active = backend;
+    trained = { ...res.spike, sm: { ...res.spike.sm, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
+      trained: { backend: backend.name, start: S.init, train_cases: sp.train.length, best_epoch: res.bestEpoch, test_accuracy: res.test?.accuracy ?? null, date: new Date().toISOString().slice(0, 10) } } };
+    const info = { backend: backend.name, trainCases: sp.train.length, valCases: sp.val.length, testCases: sp.test.length, seed: num("seed"), encodeS };
+    resultsTable(res, startRes, info);
+    $("tstat").textContent = `Done. Best epoch ${res.bestEpoch}.`;
+    $("xspike").disabled = false;
+    window.__lastRun = { result: { ...res, spike: undefined }, start: startRes, info };
+  } catch (e) { showErr(e); window.__lastRun = { error: String(e.stack || e) }; $("tstat").textContent = ""; }
+  finally { $("train").disabled = false; $("stop").disabled = true; }
+};
+$("stop").onclick = () => { stopFlag = true; $("tstat").textContent = "Stopping after this step…"; };
+
+// ---- try it ----
+$("try").onclick = async () => {
+  try {
+    $("err").textContent = "";
+    const errs = C.validate(S.decision); if (errs.length) throw new Error(errs.join("\n"));
+    const state = $("tstate").value.trim(); if (!state) throw new Error("paste a case first");
+    const { tok } = await loadBase();
+    let b = active, temps = trained?.sm.temps ?? {};
+    if (!b) { $("trystat").textContent = "Loading the start spike…"; b = await backendFor("head", await startSpike(S.init)); }
+    const exs = Object.entries(S.decision.questions).map(([n, q]) => ({ q: n, type: q.type, opts: C.optionsOf(q), ...tok.build(q.type, q.instructions, C.optionsOf(q), state) }));
+    const t = performance.now(), z = await b.score(exs);
+    $("trystat").textContent = `${(performance.now() - t).toFixed(0)} ms, ${trained ? "trained spike" : "start spike (not trained yet)"}`;
+    $("ans").innerHTML = exs.map((e, i) => {
+      const p = C.softmax(z[i], temps[e.type] ?? 1);
+      return `<div class="card"><h3>${esc(e.q)} <span class="tag">${e.type}</span></h3><div class="small muted">${esc(S.decision.questions[e.q].instructions)}</div>
+        ${e.opts.map(([o, d], j) => `<div class="opt" title="${esc(d)}"><span class="name">${esc(o)}</span><span class="track"><div style="width:${(100 * p[j]).toFixed(1)}%"></div></span><span class="pct">${(100 * p[j]).toFixed(0)}%</span></div>`).join("")}</div>`;
+    }).join("");
+  } catch (e) { showErr(e); }
+};
+
+// ---- export ----
+function download(name, data, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$("xspike").onclick = () => {
+  if (!trained) return;
+  const id = trained.sm.id;
+  download(`${id}.json`, JSON.stringify(trained.sm), "application/json");
+  setTimeout(() => download(`${id}.bin`, trained.bytes, "application/octet-stream"), 300);
+  $("xsys").textContent = "system.json entry:\n" + JSON.stringify({ id, file: `spikes/${id}`, description: S.decision.description || "(describe the kind of case this spike handles)" }, null, 1);
+};
+$("xdata").onclick = () => download(`${S.decision.id || "decision"}-cases.json`, JSON.stringify({ decision: S.decision, cases: S.cases, init: S.init }), "application/json");
+
+// ---- boot ----
+renderDecision(); renderLib();
+$("env").textContent = navigator.gpu ? "WebGPU is available. The model downloads (11 MB) when you first train or answer." : "This browser has no WebGPU: you can edit and export decisions, but not train.";
+if (params.get("demo") !== null && !S.cases.length) $("demo").onclick();
+window.__creator = { get state() { return S; }, C };
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creator Engine Check</title>
+<style>:root{--bg:#fbfaf7;--fg:#1d1c19}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171715;--fg:#efede7}}
+:root[data-theme="dark"]{--bg:#171715;--fg:#efede7}body{background:var(--bg);color:var(--fg);font:14px system-ui;margin:16px}pre{white-space:pre-wrap}</style></head>
+<body><h1>Creator checks</h1>
+<p>(1) the prompt builder against the ids the spikes were trained on (run/make_fixtures.py); (2) the head-only backend's logits against
+adapter-library's NumPy reference fixtures; (3) a short head-only training run on the demo, and the exported spike reloaded into a separate
+SpikeEngine. <code>?n=16&test=6&epochs=3</code> sets the run's size.</p><pre id="out">running…</pre>
+<script type="module">
+import * as C from "./creator.js";
+import { HeadBackend } from "./backends.js";
+import { SpikeEngine } from "../../adapter-library/web/engine.js";
+const out = document.getElementById("out"), q = new URLSearchParams(location.search);
+const LIB = new URL("../../adapter-library/web/models/", location.href);
+const J = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(`${u}: ${r.status}`); return r.json(); });
+const Bn = (u) => fetch(u).then((r) => r.arrayBuffer()).then((b) => new Uint8Array(b));
+const log = (k, v) => { R[k] = v; out.textContent = JSON.stringify(R, null, 1); };
+const R = {};
+try {
+  const b = new URL("base/", LIB);
+  const [manifest, weights, tok] = await Promise.all([J(new URL("manifest.json", b)), fetch(new URL("weights.bin", b)).then((r) => r.arrayBuffer()), C.loadTokenizer(new URL("tokenizer.json", b))]);
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+
+  // 1. prompt builder
+  const demo = await J("demo/invoice_processing.json"), fx = await J("fixtures.json");
+  const exs = C.examples(demo.decision, demo.cases.slice(0, 4), tok.build);
+  let same = exs.length === fx.cases.length, firstDiff = null;
+  fx.cases.forEach((f, i) => { const e = exs[i]; const ok = e && e.q === f.q && e.ids.length === f.ids.length && e.ids.every((x, j) => x === f.ids[j]) && e.pos.join() === f.pos.join(); if (!ok && same) { same = false; firstDiff = { i, q: f.q }; } });
+  log("prompt_ids_match", { ok: same, sequences: fx.cases.length, firstDiff });
+
+  // 2. engine + JS head vs NumPy LoraRef fixtures
+  const efx = await J(new URL("everyday/fixtures.json", LIB));
+  const spike = async (set, id) => ({ sm: await J(new URL(`${set}/spikes/${id}.json`, LIB)), bytes: await Bn(new URL(`${set}/spikes/${id}.bin`, LIB)) });
+  const first = await spike("everyday", efx.cases[0].spike);
+  const be = await HeadBackend.create(device, manifest, weights, { init: first });
+  let worst = 0, worstEngine = 0, argOk = 0;
+  for (const c of efx.cases) {
+    const s = await spike("everyday", c.spike);
+    await be.loadSpike(s.sm, s.bytes);
+    const [z] = await be.score([{ ids: c.ids, pos: c.pos }]);
+    const [ze] = await be.engine.score([{ ids: c.ids, pos: c.pos }]);
+    c.logits.forEach((x, i) => { worst = Math.max(worst, Math.abs(x - z[i])); worstEngine = Math.max(worstEngine, Math.abs(ze[i] - z[i])); });
+    if (c.logits.indexOf(Math.max(...c.logits)) === Array.from(z).indexOf(Math.max(...z))) argOk++;
+  }
+  log("head_vs_numpy_ref", { ok: worst < 1e-3 && argOk === efx.cases.length, cases: efx.cases.length, max_abs_logit_diff: worst, max_diff_vs_SpikeEngine_head: worstEngine, argmax_same: argOk });
+
+  // 3. a short training run from the library merge
+  const n = +(q.get("n") ?? 16), nTest = +(q.get("test") ?? 6), epochs = +(q.get("epochs") ?? 3);
+  const sp = await Promise.all(demo.init.map((id) => spike("workflows", id)));
+  const { truncateRank } = await import("./backends.js");
+  const init = C.packSpike(truncateRank(C.mergeSpikes(sp.map((s) => C.unpackSpike(s.sm, s.bytes))), 8), { id: "library-merge" });
+  await be.loadSpike(init.sm, init.bytes);
+  const split = C.splitCases(demo.cases, { seed: 0, maxTrain: n, maxTest: nTest, valFrac: 0.2 });
+  const data = { train: C.examples(demo.decision, split.train, tok.build), val: C.examples(demo.decision, split.val, tok.build), test: C.examples(demo.decision, split.test, tok.build) };
+  const t0 = performance.now();
+  await be.warm([...data.train, ...data.val, ...data.test]);
+  const encMs = performance.now() - t0;
+  const start = await C.evaluateStart(be, data);
+  const ep = [];
+  const res = await C.train(be, data, { epochs, lr: 8e-4, bs: 16, seed: 0 }, (e) => { if (e.kind === "epoch") ep.push({ epoch: e.epoch, trainLoss: e.trainLoss, valKL: e.val?.kl, valAcc: e.val?.accuracy, ms: Math.round(e.ms) }); });
+  // export -> a separate SpikeEngine, scored with its own JS head
+  const eng2 = await SpikeEngine.create(device, manifest, weights, { maxTokens: 4096, maxSeqs: 16, maxPos: 2048 });
+  eng2.setSpike(res.spike.sm, res.spike.bytes);
+  const zb = await be.score(data.test), z2 = [];
+  for (const e of data.test) z2.push((await eng2.score([{ ids: e.ids, pos: e.pos }]))[0]);
+  let dExp = 0, agree = 0;
+  zb.forEach((z, i) => { z.forEach((x, j) => { dExp = Math.max(dExp, Math.abs(x - z2[i][j])); }); if (Array.from(z).indexOf(Math.max(...z)) === Array.from(z2[i]).indexOf(Math.max(...z2[i]))) agree++; });
+  const lossDown = ep.length > 2 && ep[ep.length - 1].trainLoss < ep[1].trainLoss;
+  log("train_smoke", { ok: lossDown && dExp < 0.05 && agree === zb.length, cases: { train: split.train.length, val: split.val.length, test: split.test.length },
+    sequences: { train: data.train.length, val: data.val.length, test: data.test.length }, encode_ms: Math.round(encMs), epochs: ep,
+    best_epoch: res.bestEpoch, start_test_acc: start.test?.accuracy, trained_test_acc: res.test?.accuracy, prior_test_acc: res.prior?.accuracy,
+    export_reload_max_logit_diff: dExp, export_reload_argmax_same: `${agree}/${zb.length}`, spike_bytes: res.spike.bytes.length });
+  R.ok = R.prompt_ids_match.ok && R.head_vs_numpy_ref.ok && R.train_smoke.ok;
+  window.__result = R; log("done", true);
+} catch (e) { R.error = String(e.stack || e); window.__result = R; out.textContent = JSON.stringify(R, null, 1); }
+</script></body></html>
