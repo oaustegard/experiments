@@ -664,6 +664,15 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`snapshot_download("jhu-clsp/ettin-encoder-17m", allow_patterns=[..."*.safetensors"])` fetches no
+  weights: the repo ships `pytorch_model.bin`.** A warm local HF cache hid this in a CPU smoke test,
+  and the Colab run died at load. Include `"*.bin"`, or smoke-test with `HF_HUB_CACHE` pointed at an
+  empty directory. (`adapter-library/run/lora.py`)
+- **A sentence-transformers dir saved under transformers 5 does not load under 4.57.1's AutoTokenizer**
+  (`TokenizersBackend` in `tokenizer_config.json`). Use `PreTrainedTokenizerFast(tokenizer_file=...,
+  pad_token="[PAD]")` and pass `return_token_type_ids=False` for ModernBERT. (`adapter-library/run/knn.py`)
+
+
 - **An iPhone browser has no touch pressure, only quantised contact size, and that follows posture.** Chrome on
   iOS 27.2 (WebKit) gave `PointerEvent.pressure` and `Touch.force` as 0 on every press. `radiusX`/`radiusY` came in
   steps of 12.139 px (three levels across light to firm) and `width`/`height` in steps of twice that. In one posture,
@@ -1639,6 +1648,13 @@ the result.
   under `rope_parameters`; code reading `global_rope_theta` breaks. Pin transformers again after.
 
 ## Numerical / ML gotchas
+
+- **To grow a new LoRA specialist, start it from the library's merged delta, not from zero.** On
+  Ettin-17m and Typed Decisions, the mean of three other workflows' `B·A` deltas, SVD-cut to rank 8,
+  plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero
+  and 0.610 for a full fine-tune. The same merge used *as a model* with no labels scored 0.258–0.402,
+  below prior: the merge is a good initialization and a bad predictor. (`adapter-library/RESULTS.md`)
+
 
 - **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM
   (arXiv 2510.04871) with attention (learned positions plus a 2D relative bias) reached 1.7% exact on 32×32

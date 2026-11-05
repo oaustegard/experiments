@@ -89,7 +89,8 @@ def main():
     routing = json.loads((RES / "routing.json").read_text())
     s["predictions"]["P2_routing_ge_0.98_gap_auroc_ge_0.95"] = routing["accuracy"] >= 0.98 and all(
         v["auroc"] >= 0.95 for v in routing["gap"].values())
-    (RES / "summary.json").write_text(json.dumps(s, indent=1))
+    s["predictions"] = {k: bool(v) for k, v in s["predictions"].items()}
+    (RES / "summary.json").write_text(json.dumps(s, indent=1, default=float))
     print(json.dumps({"S_mean": s["S_mean"], "fallback": fb, "G_mean": gm, "predictions": s["predictions"]}, indent=1))
 
 
