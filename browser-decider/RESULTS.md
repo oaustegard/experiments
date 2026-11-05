@@ -23,7 +23,7 @@ The shipped int8/int4 build scores 0.730 and answers a five-question case in 19 
 It does not generalise. Trained on three workflows and tested on the fourth, it scores 0.353, below the 0.470 label prior. <!-- @evidence[[results/summary.json#lowo.stock.mean_accuracy]] -->
 On 104 questions from unrelated schemas it scores 0.279, where Jev scores 0.894. <!-- @evidence[[results/summary.json#ood_spec-stock-e10-s0.summary.accuracy]] -->
 It is a specialist: retrain it for each set of workflows, from a few hundred labelled cases.
-Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but at 65 MB and with the same failure on unseen workflows (0.333); Ettin ships for its size. <!-- @evidence[[results/summary.json#spec.monad.accuracy.mean]] -->
+Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but it would take about 65 MB at 8 bits and has the same failure on unseen workflows (0.333); Ettin ships for its size. <!-- @evidence[[results/summary.json#spec.monad.accuracy.mean]] -->
 
 ## Findings
 
@@ -60,7 +60,9 @@ Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but at 65 MB and w
    It loses most on score questions (0.545 against 0.679).
    Its contrastive tuning for mean-pooled sentence vectors appears to have worn down the per-token
    features the option positions read.
-7. **Monad buys about 0.01 to 0.04 of accuracy for six times the bytes.** Same layout reordered for a
+7. **Monad buys about 0.01 to 0.04 of accuracy for about six times the bytes.** The Monad decider was fine-tuned
+   from Pleias' original weights and scored at full precision; it was not quantized or built for the browser,
+   and 65 MB is the size of the chat page's 8-bit Monad, used here as the estimate. Same layout reordered for a
    causal model (state first, each option scored at its line's last token), five epochs, three seeds:
    0.752 ± 0.009, KL 0.122, Brier 0.066; noul 0.832, choice 0.702, score 0.728. Against Ettin at five
    epochs (0.714) that is +0.037; against Ettin at ten (0.740), +0.011. Left out of one workflow
@@ -96,7 +98,8 @@ cases, one temperature per question type fitted on that slice. Monad (causal) re
 question, then one line per option, scored at each line's last token. `run/train_enc.py`.
 
 **Arms.** Inits: stock `jhu-clsp/ettin-encoder-17m`, the 10 MB build's checkpoint (`e17c`, release
-`ettin-native-20261021`) and `PleIAs/Monad`. Modes: specialist (all four workflows) and leave one
+`ettin-native-20261021`) and `PleIAs/Monad` (Pleias' original weights, not the loop-edited build on the chat page,
+whose edit removes a direction that drives repetition during generation; nothing here generates text). Modes: specialist (all four workflows) and leave one
 workflow out. Seeds 0 to 2 everywhere, 5 epochs, plus a 10-epoch round for the stock specialist, added
 after the 5-epoch round because every seed's best validation epoch was its last (test scores were in hand
 by then, so read the +0.026 as a second look, not a pre-registered arm). The
