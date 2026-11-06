@@ -665,6 +665,9 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`colab exec` gives up after 30 s by default, but the kernel keeps running.** The client raised "Timeout waiting for reply" and exited 1 while the job finished normally on the L4. Pass `--timeout`, and check progress with `colab download -s NAME /content/LOG`, which works while the kernel is busy; a second `colab exec` queues behind the running cell. (`ettin-wgsl-train/run/colab_growth.py`)
+- **Two seeds of a small-data arm are not a baseline.** adapter-library's published warm-start arms at 64 labels (0.746, 0.750) did not reproduce once the library adapters were rebuilt: 0.608 and 0.680, mean 0.703 over 10 seeds. A two-seed gap of 0.055 reversed to +0.024 the other way. (`ettin-wgsl-train/RESULTS.md` finding 5)
+
 - **A SwiftShader WebGPU job takes all 4 CPUs, so anything timed beside it is wrong.** A PyTorch training run sped from about 530 s per 100 steps to 25 s per 100 steps when a headless-Chromium SwiftShader job beside it was stopped. Time CPU baselines with nothing else running, or take the time from an earlier uncontended run. (`ettin-wgsl-train/RESULTS.md` log)
 
 - **`snapshot_download("jhu-clsp/ettin-encoder-17m", allow_patterns=[..."*.safetensors"])` fetches no
