@@ -1060,6 +1060,13 @@
   "brier": 0.08423714540033406,
   "ece": 0.15645294441006782
  },
+ "packed_spec-stock-e10q-s0-t4-w8L31": {
+  "n_decisions": 2000,
+  "accuracy": 0.745,
+  "kl_from_gold": 0.14260388958366302,
+  "brier": 0.0776483646415322,
+  "ece": 0.16851547839682843
+ },
  "ood_spec-stock-e10-s0": {
   "name": "spec-stock-e10-s0",
   "eval": "decider_eval.jsonl",
@@ -1219,17 +1226,17 @@
   "_note": "shipped build: spec-stock-e10-s0, t4-w8L63"
  },
  "page_build": {
-  "packed": "spec-stock-e10-s0-t4-w8L63",
+  "packed": "spec-stock-e10q-s0-t4-w8L31",
   "brotliBytes": {
-   "weights.bin": 9757603,
+   "weights.bin": 9262332,
    "tokenizer.json": 461274,
-   "manifest.json": 819
+   "manifest.json": 813
   },
-  "jsBrotliBytes": 15420,
-  "downloadMB": 10.235116,
-  "testAccuracy": 0.73,
-  "testKL": 0.15124186565002623,
-  "testBrier": 0.08423714540033406,
-  "testECE": 0.15645294441006782
+  "jsBrotliBytes": 15737,
+  "downloadMB": 9.740156,
+  "testAccuracy": 0.745,
+  "testKL": 0.14260388958366302,
+  "testBrier": 0.0776483646415322,
+  "testECE": 0.16851547839682843
  }
 }

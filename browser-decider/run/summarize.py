@@ -47,7 +47,7 @@ def main():
             complete = len(per) == len(WORKFLOWS)
             out["lowo"][init] = {"per_workflow": per, "complete": complete,
                                  "mean_accuracy": round(st.mean(v["accuracy"]["mean"] for v in per.values()), 4)}
-    for k in ("packed_spec-stock-s0-t4-w8L63", "ood_spec-stock-s0", "packed_spec-stock-e10-s0-t4-w8L63", "ood_spec-stock-e10-s0", "bridge_decider-final-1", "bridge_decider-final-2", "page_build"):
+    for k in ("packed_spec-stock-s0-t4-w8L63", "ood_spec-stock-s0", "packed_spec-stock-e10-s0-t4-w8L63", "packed_spec-stock-e10q-s0-t4-w8L31", "ood_spec-stock-e10-s0", "bridge_decider-final-1", "bridge_decider-final-2", "page_build"):
         r = load(k)
         if r:
             out[k] = r if k != "bridge_decider-final-1" else {x: r[x] for x in r if x not in ("sample", "describe")}

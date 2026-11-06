@@ -1,0 +1,84 @@
+{
+ "done": true,
+ "gpuErrors": [],
+ "initMs": 1754.2000000000698,
+ "fetchMs": 139.19999999995343,
+ "weightBytes": 11491328,
+ "maxAbsLogitDiff": 0.000004291534423828125,
+ "argmaxAgree": 40,
+ "nQuestions": 40,
+ "tokenizerMatches": 40,
+ "firstCaseMs": 25374.400000000023,
+ "caseMsMedian": 50112.19999999995,
+ "caseMsP90": 57951.89999999991,
+ "tokensPerCase": [
+  796,
+  771,
+  1248,
+  1758,
+  1723,
+  1738,
+  1710,
+  1645
+ ],
+ "sample": {
+  "action": {
+   "type": "choice",
+   "label": "continue",
+   "confidence": 0.49226220202170684,
+   "probabilities": {
+    "continue": 0.6191966515162801,
+    "human_review": 0.11087243324112298,
+    "observe": 0.2435208586426149,
+    "stop": 0.026410056599981975
+   }
+  },
+  "needs_review": {
+   "type": "noul",
+   "label": "false",
+   "confidence": 0.6433794858774806,
+   "probabilities": {
+    "true": 0.17831025706125958,
+    "false": 0.8216897429387403
+   },
+   "probability_true": 0.17831025706125958
+  },
+  "outcome": {
+   "type": "choice",
+   "label": "success",
+   "confidence": 0.8231164082261652,
+   "probabilities": {
+    "failure": 0.041508499310319864,
+    "harmful": 0.014004774143284562,
+    "partial": 0.07714942037677161,
+    "success": 0.8673373061696239
+   }
+  },
+  "risk": {
+   "type": "score",
+   "label": "1",
+   "confidence": 0.2962922574550615,
+   "probabilities": {
+    "0": 0.3982826195669393,
+    "1": 0.4722191930912961,
+    "2": 0.10468944035585254,
+    "3": 0.024808746985912237
+   },
+   "score": 0.756024314760738
+  },
+  "urgency": {
+   "type": "score",
+   "label": "0",
+   "confidence": 0.28330152504005635,
+   "probabilities": {
+    "0": 0.46247614378004226,
+    "1": 0.42562739229762886,
+    "2": 0.09804715742697341,
+    "3": 0.013849306495355472
+   },
+   "score": 0.6632696266376421
+  }
+ },
+ "console_errors": [],
+ "pkg": "spec-stock-e10q-s0-t4-w8L31"
+}

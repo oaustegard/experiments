@@ -17,8 +17,10 @@ numbers come from the card; every other number here was measured in this experim
 
 Yes for a fixed set of workflows, no for arbitrary questions. Ettin-17m, fine-tuned as a cross-encoder
 on the four workflows of the public Typed Decisions benchmark, agrees with the gold label 0.740 of the time over three seeds. <!-- @evidence[[results/summary.json#spec.stock-e10.accuracy.mean]] -->
-That matches Jev and the teacher's self-agreement. The page downloads 10.2 MB. <!-- @evidence[[results/summary.json#page_build.downloadMB]] -->
-The shipped int8/int4 build scores 0.730 and answers a five-question case in 19 to 41 ms on a MacBook's GPU in Chrome, depending on GPU load. <!-- @evidence[[results/summary.json#packed_spec-stock-e10-s0-t4-w8L63.accuracy]] -->
+That matches Jev and the teacher's self-agreement. The page downloads 9.74 MB. <!-- @evidence[[results/summary.json#page_build.downloadMB]] -->
+Since 2026-11-06 it ships a seed-0 checkpoint retrained on Colab, with matmul codes held to ±31 and a 4-bit token table; that file scores 0.745. <!-- @evidence[[results/summary.json#packed_spec-stock-e10q-s0-t4-w8L31.accuracy]] -->
+The first build (±63 codes, 10.2 MB) scored 0.730. <!-- @evidence[[results/summary.json#packed_spec-stock-e10-s0-t4-w8L63.accuracy]] -->
+It answered a five-question case in 19 to 41 ms on a MacBook's GPU in Chrome, depending on GPU load; the ±31 file has the same shapes and kernels and was not timed again.
 
 It does not generalise. Trained on three workflows and tested on the fourth, it scores 0.353, below the 0.470 label prior. <!-- @evidence[[results/summary.json#lowo.stock.mean_accuracy]] -->
 On 104 questions from unrelated schemas it scores 0.279, where Jev scores 0.894. <!-- @evidence[[results/summary.json#ood_spec-stock-e10-s0.summary.accuracy]] -->
@@ -210,5 +212,10 @@ dequantized weights from those bytes into PyTorch and scored all 2,000 test deci
 | ±31 | 0.745 / 0.737 / 0.7145 | 0.7322 | 0.150 | 9.26 MB | 0.932 / 0.938 / 0.935 |
 
 Reading: ±31 costs about 0.002 against ±63 from the same weights, inside the seed-to-seed and
-rerun-to-rerun spread. The shipped page has not been rebuilt.
+rerun-to-rerun spread. Oskar then asked for the page to ship it: `run/pack.py spec-stock-e10q-s0 --variant
+t4-w8L31 --score` (NumPy reference, 0.745, same as the GPU score) and `run/build_page.py` replaced
+`web/models/decider/`. Seed 0 is the seed fixed as shipped before the first round's results. The WGSL
+engine matches the reference on the new file in headless Chromium (max logit difference 4.3e-6, 40 of 40
+top options, 40 of 40 tokenizations; `results/check_engine_spec-stock-e10q-s0-t4-w8L31.json`), and the
+page loads it and answers a test case. Download 9.74 MB, from 10.24.
 
