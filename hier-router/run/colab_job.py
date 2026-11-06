@@ -42,7 +42,9 @@ if len(list((AL / "out" / "probs").glob("R-sub-*.json"))) < 12:
     sh("rm -f results/R-sub-*.json", cwd=AL)
     r = sh("python3 -I run/lora.py --only R-sub 2>&1 | grep --line-buffered -v -i warning", cwd=AL)
     LOG.write(f"SUB_RC {r.returncode}\n")
-r = sh("python3 -I run/train_eval.py 2>&1 | grep --line-buffered -v -i warning", cwd=HR)
+import os
+extra = os.environ.get("HR_ARGS", Path("/content/hr_args.txt").read_text().strip() if Path("/content/hr_args.txt").exists() else "")
+r = sh(f"python3 -I run/train_eval.py {extra} 2>&1 | grep --line-buffered -v -i warning", cwd=HR)
 LOG.write(f"TRAIN_EVAL_RC {r.returncode}\n")
 r = sh("python3 -I run/analyze.py", cwd=HR)
 LOG.write(f"ANALYZE_RC {r.returncode}\n")

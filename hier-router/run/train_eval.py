@@ -111,7 +111,7 @@ def body_state(model):
     return {k: v.detach().cpu() for k, v in model.state_dict().items() if "tok_embeddings" not in k}
 
 
-def fit(name, exs, seed, smoke, kind="lora"):
+def fit(name, exs, seed, smoke, kind="lora", epochs=EPOCHS):
     path = OUT / "adapters" / f"{name}.pt"
     model = new_model("lora") if kind == "lora" else body_model()
     if path.exists():
@@ -124,8 +124,8 @@ def fit(name, exs, seed, smoke, kind="lora"):
     va, tr = exs[:nval], exs[nval:]
     torch.manual_seed(seed)
     t0 = time.time()
-    info = train(model, kind, tr, 1 if smoke else EPOCHS, seed, va=va, max_steps=4 if smoke else 0)
-    info.update({"n_examples": len(tr), "train_tokens": int(sum(len(e["ids"]) for e in tr)) * (1 if smoke else EPOCHS),
+    info = train(model, kind, tr, 1 if smoke else epochs, seed, va=va, max_steps=4 if smoke else 0)
+    info.update({"n_examples": len(tr), "train_tokens": int(sum(len(e["ids"]) for e in tr)) * (1 if smoke else epochs),
                  "sec": time.time() - t0})
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(adapter_state(model) if kind == "lora" else body_state(model), path)
@@ -164,9 +164,40 @@ def flat_calls(model, tok, leaves, cases, pad):
     return {c["id"]: {"long": long[i], "shards": [s[i] for s in shard]} for i, c in enumerate(cases)}
 
 
+def configs():
+    out = []
+    for n in SIZES:
+        for d in range(1 if n == len(T.TRAINED) else DRAWS):
+            leaves = sorted(random.Random(f"draw-{n}-{d}").sample(T.TRAINED, n), key=T.LEAVES.index)
+            out.append((f"N{n}-d{d}", leaves, leaves))
+    out.append(("absent", T.TRAINED, T.LEAVES))          # held-out leaves not in the library
+    out.append(("added", T.LEAVES, T.LEAVES))            # held-out leaves added by description only
+    return out
+
+
+def round2(tok, pad, lc, tree_ex, smoke):
+    """Round 2: round 1's flat router read 43M training tokens and the tree router 14M. Retrain the tree
+    LoRA for 9 epochs (about 42M) and score it on round 1's configurations, into out/eval_r2.json."""
+    lim = 3 if smoke else None
+    model, info = fit("tree_e9", tree_ex, 0, smoke, epochs=9)
+    path = OUT / "eval_r2.json"
+    ev = json.loads(path.read_text()) if path.exists() else {"configs": {}}
+    ev["train"] = {"tree_e9": info}
+    for name, lib, test_leaves in configs():
+        if name in ev["configs"]:
+            continue
+        cases = [c for x in test_leaves for c in lc[x]["test"][:lim]]
+        _SUB.clear()
+        ev["configs"][name] = {"tree_e9": tree_calls(model, tok, T.induced(lib), cases, pad)}
+        path.write_text(json.dumps(ev))
+        print(f"[r2 {name}] {len(cases)} cases", flush=True)
+    print("EVAL_DONE", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--round2", action="store_true", help="tree router at 9 epochs (flat's training tokens)")
     a = ap.parse_args()
     global OUT
     if a.smoke:
@@ -184,6 +215,8 @@ def main():
     rng = random.Random("hier-router")
     flat_ex = tok_examples(tok, flat_train(train_cases, rng))
     tree_ex = tok_examples(tok, tree_train(train_cases, rng))
+    if a.round2:
+        return round2(tok, pad, lc, tree_ex, a.smoke)
     flat, finfo = fit("flat", flat_ex, 0, a.smoke)
     treem, tinfo = fit("tree", tree_ex, 0, a.smoke)
     bodym, binfo = fit("tree_body", tree_ex, 0, a.smoke, kind="full")
@@ -192,14 +225,7 @@ def main():
     ev = json.loads(ev_path.read_text()) if ev_path.exists() else {"configs": {}}
     ev["train"] = {"flat": finfo, "tree": tinfo, "tree_body": binfo}
     lim = 3 if a.smoke else None
-    configs = []
-    for n in SIZES:
-        for d in range(1 if n == len(T.TRAINED) else DRAWS):
-            leaves = sorted(random.Random(f"draw-{n}-{d}").sample(T.TRAINED, n), key=T.LEAVES.index)
-            configs.append((f"N{n}-d{d}", leaves, leaves))
-    configs.append(("absent", T.TRAINED, T.LEAVES))          # held-out leaves not in the library
-    configs.append(("added", T.LEAVES, T.LEAVES))            # held-out leaves added by description only
-    for name, lib, test_leaves in configs:
+    for name, lib, test_leaves in configs():
         if name in ev["configs"]:
             continue
         t0 = time.time()

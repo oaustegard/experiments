@@ -33,7 +33,7 @@ from shared import FAM_WORKFLOW, examples, load_cases  # noqa: E402
 
 ROOT = T.ROOT
 BEAMS = (2, 3, 5)
-TREES = ("tree", "tree_body")
+TREES = ("tree", "tree_body", "tree_e9")
 
 
 def source(leaf):
@@ -155,6 +155,11 @@ def main():
     a = ap.parse_args()
     out_dir = ROOT / "out" / ("smoke" if a.smoke else "")
     ev = json.loads((out_dir / "eval.json").read_text())
+    if (out_dir / "eval_r2.json").exists():   # round 2: tree LoRA at 9 epochs
+        r2 = json.loads((out_dir / "eval_r2.json").read_text())
+        ev["train"].update(r2["train"])
+        for name, c in r2["configs"].items():
+            ev["configs"][name].update(c)
     sub_dir = T.AL / "out" / "probs"
     sub = {f: json.loads((sub_dir / f"R-sub-{f}.json").read_text()) for f in FAM_WORKFLOW
            if (sub_dir / f"R-sub-{f}.json").exists()}
