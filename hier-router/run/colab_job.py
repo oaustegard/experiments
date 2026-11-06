@@ -38,7 +38,8 @@ for split in ("train", "test"):
         f = json.loads(urllib.request.urlopen(api + split).read())[0]["path"]
         urllib.request.urlretrieve(f"https://huggingface.co/datasets/AmazonScience/massive/resolve/refs%2Fconvert%2Fparquet/{f}",
                                    md / f"{split}.parquet")
-if len(list((AL / "out" / "probs").glob("R-sub-*.json"))) < 12:
+ARGS = Path("/content/hr_args.txt").read_text() if Path("/content/hr_args.txt").exists() else ""
+if "--round" not in ARGS and len(list((AL / "out" / "probs").glob("R-sub-*.json"))) < 12:  # rounds 2+ reuse round 1's
     sh("rm -f results/R-sub-*.json", cwd=AL)
     r = sh("python3 -I run/lora.py --only R-sub 2>&1 | grep --line-buffered -v -i warning", cwd=AL)
     LOG.write(f"SUB_RC {r.returncode}\n")

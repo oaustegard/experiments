@@ -33,7 +33,7 @@ from shared import FAM_WORKFLOW, examples, load_cases  # noqa: E402
 
 ROOT = T.ROOT
 BEAMS = (2, 3, 5)
-TREES = ("tree", "tree_body", "tree_e9")
+TREES = ("tree", "tree_body", "tree_e9", "tree_e9_node")
 
 
 def source(leaf):
@@ -157,7 +157,7 @@ def main():
     a = ap.parse_args()
     out_dir = ROOT / "out" / ("smoke" if a.smoke else "")
     ev = json.loads((out_dir / "eval.json").read_text())
-    for rn in ("eval_r2.json", "eval_r3.json"):   # round 2: tree LoRA at 9 epochs; round 3: flat at 9
+    for rn in ("eval_r2.json", "eval_r3.json", "eval_r4.json"):   # round 2: tree LoRA at 9 epochs; round 3: flat at 9
         if (out_dir / rn).exists():
             r2 = json.loads((out_dir / rn).read_text())
             ev["train"].update(r2["train"])
@@ -173,6 +173,11 @@ def main():
             ex_idx[e["case"]].append(i)
     have_e2e = len(sub) == len(FAM_WORKFLOW)
 
+    for name, cfg in ev["configs"].items():   # round 4: tree_e9 with the invoice node's own adapter
+        if "tree_e9" in cfg:
+            node = cfg.get("node_invoice", {})
+            cfg["tree_e9_node"] = {c: ({**calls, "invoice_processing": node[c]} if c in node else calls)
+                                   for c, calls in cfg["tree_e9"].items()}
     res = {"train": ev["train"], "configs": {}, "scaling": {}}
     for name, cfg in ev["configs"].items():
         M = methods(cfg)

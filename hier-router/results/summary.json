@@ -107,6 +107,51 @@
    "n_examples": 27764,
    "train_tokens": 42130584,
    "sec": 567.5089974403381
+  },
+  "flat_e9": {
+   "best_epoch": 8,
+   "log": [
+    {
+     "epoch": 0,
+     "val_kl": 0.7146716656051765
+    },
+    {
+     "epoch": 1,
+     "val_kl": 0.5020227590267476
+    },
+    {
+     "epoch": 2,
+     "val_kl": 0.37827428174717065
+    },
+    {
+     "epoch": 3,
+     "val_kl": 0.42447721355066426
+    },
+    {
+     "epoch": 4,
+     "val_kl": 0.3835584804504734
+    },
+    {
+     "epoch": 5,
+     "val_kl": 0.3797131931592204
+    },
+    {
+     "epoch": 6,
+     "val_kl": 0.38277975130378805
+    },
+    {
+     "epoch": 7,
+     "val_kl": 0.37406022937910377
+    },
+    {
+     "epoch": 8,
+     "val_kl": 0.3477956130307559
+    }
+   ],
+   "steps": 12078,
+   "n_examples": 21464,
+   "train_tokens": 129639276,
+   "sec": 1411.5548131465912
   }
  },
  "configs": {
@@ -132,6 +177,34 @@
      "massive": 0.8839285714285714
     },
     "none_rate": 0.11607142857142858,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 97.90178571428571,
+    "calls": 1.0,
+    "n": 112,
+    "e2e_td": null
+   },
+   "flat_e9_long": {
+    "acc": 0.8660714285714286,
+    "macro_acc": 0.868939393939394,
+    "by_source": {
+     "massive": 0.8660714285714286
+    },
+    "none_rate": 0.13392857142857142,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 97.90178571428571,
+    "calls": 1.0,
+    "n": 112,
+    "e2e_td": null
+   },
+   "flat_e9_shard": {
+    "acc": 0.8660714285714286,
+    "macro_acc": 0.868939393939394,
+    "by_source": {
+     "massive": 0.8660714285714286
+    },
+    "none_rate": 0.13392857142857142,
     "misroute_same_top": null,
     "misroute_same_parent": null,
     "tokens": 97.90178571428571,
@@ -307,6 +380,62 @@
     "n": 112,
     "e2e_td": null
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8482142857142857,
+    "macro_acc": 0.8492424242424244,
+    "by_source": {
+     "massive": 0.8482142857142857
+    },
+    "none_rate": 0.11607142857142858,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 155.80357142857142,
+    "calls": 2.0,
+    "n": 112,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9196428571428571,
+    "macro_acc": 0.9219696969696969,
+    "by_source": {
+     "massive": 0.9196428571428571
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 155.80357142857142,
+    "calls": 2.0,
+    "n": 112,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9196428571428571,
+    "macro_acc": 0.9219696969696969,
+    "by_source": {
+     "massive": 0.9196428571428571
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 155.80357142857142,
+    "calls": 2.0,
+    "n": 112,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9196428571428571,
+    "macro_acc": 0.9219696969696969,
+    "by_source": {
+     "massive": 0.9196428571428571
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 155.80357142857142,
+    "calls": 2.0,
+    "n": 112,
+    "e2e_td": null
+   },
    "oracle": {
     "e2e_td": null
    }
@@ -339,6 +468,38 @@
     "none_rate": 0.03333333333333333,
     "misroute_same_top": 1.0,
     "misroute_same_parent": 0.0,
+    "tokens": 174.91666666666666,
+    "calls": 1.0,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_long": {
+    "acc": 0.9666666666666667,
+    "macro_acc": 0.9666666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9333333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.03333333333333333,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 174.91666666666666,
+    "calls": 1.0,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_shard": {
+    "acc": 0.9666666666666667,
+    "macro_acc": 0.9666666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9333333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.03333333333333333,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
     "tokens": 174.91666666666666,
     "calls": 1.0,
     "n": 120,
@@ -536,6 +697,70 @@
     "n": 120,
     "e2e_td": 0.5933333333333334
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.9916666666666667,
+    "macro_acc": 0.9916666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9833333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 196.38333333333333,
+    "calls": 1.5,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9916666666666667,
+    "macro_acc": 0.9916666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9833333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 279.30833333333334,
+    "calls": 1.9916666666666667,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9916666666666667,
+    "macro_acc": 0.9916666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9833333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 280.8333333333333,
+    "calls": 2.0,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9916666666666667,
+    "macro_acc": 0.9916666666666667,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9833333333333333,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 280.8333333333333,
+    "calls": 2.0,
+    "n": 120,
+    "e2e_td": 0.5933333333333334
+   },
    "oracle": {
     "e2e_td": 0.5933333333333334
    }
@@ -564,6 +789,36 @@
      "typed_decisions": 1.0
     },
     "none_rate": 0.09345794392523364,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 153.0373831775701,
+    "calls": 1.0,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_long": {
+    "acc": 0.9439252336448598,
+    "macro_acc": 0.938939393939394,
+    "by_source": {
+     "massive": 0.922077922077922,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.056074766355140186,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 153.0373831775701,
+    "calls": 1.0,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_shard": {
+    "acc": 0.9439252336448598,
+    "macro_acc": 0.938939393939394,
+    "by_source": {
+     "massive": 0.922077922077922,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.056074766355140186,
     "misroute_same_top": null,
     "misroute_same_parent": null,
     "tokens": 153.0373831775701,
@@ -751,6 +1006,66 @@
     "n": 107,
     "e2e_td": 0.5933333333333334
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.9345794392523364,
+    "macro_acc": 0.928939393939394,
+    "by_source": {
+     "massive": 0.9090909090909091,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06542056074766354,
+    "misroute_same_top": null,
+    "misroute_same_parent": null,
+    "tokens": 185.30841121495328,
+    "calls": 1.719626168224299,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9906542056074766,
+    "macro_acc": 0.9886363636363636,
+    "by_source": {
+     "massive": 0.987012987012987,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 238.07476635514018,
+    "calls": 2.0,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9906542056074766,
+    "macro_acc": 0.9886363636363636,
+    "by_source": {
+     "massive": 0.987012987012987,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 238.07476635514018,
+    "calls": 2.0,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9906542056074766,
+    "macro_acc": 0.9886363636363636,
+    "by_source": {
+     "massive": 0.987012987012987,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 238.07476635514018,
+    "calls": 2.0,
+    "n": 107,
+    "e2e_td": 0.5933333333333334
+   },
    "oracle": {
     "e2e_td": 0.5933333333333334
    }
@@ -785,6 +1100,36 @@
     "calls": 1.0,
     "n": 227,
     "e2e_td": 0.6172839506172839
+   },
+   "flat_e9_long": {
+    "acc": 0.920704845814978,
+    "macro_acc": 0.9243589743589744,
+    "by_source": {
+     "massive": 0.8767123287671232,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06167400881057269,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 295.4405286343612,
+    "calls": 1.0,
+    "n": 227,
+    "e2e_td": 0.6296296296296297
+   },
+   "flat_e9_shard": {
+    "acc": 0.920704845814978,
+    "macro_acc": 0.9243589743589744,
+    "by_source": {
+     "massive": 0.8767123287671232,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06167400881057269,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 295.4405286343612,
+    "calls": 1.0,
+    "n": 227,
+    "e2e_td": 0.6296296296296297
    },
    "tree_greedy": {
     "acc": 0.8722466960352423,
@@ -966,6 +1311,66 @@
     "n": 227,
     "e2e_td": 0.6246913580246913
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.9295154185022027,
+    "macro_acc": 0.929120879120879,
+    "by_source": {
+     "massive": 0.910958904109589,
+     "typed_decisions": 0.9629629629629629
+    },
+    "none_rate": 0.030837004405286344,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 449.4537444933921,
+    "calls": 2.2246696035242293,
+    "n": 227,
+    "e2e_td": 0.6024691358024692
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9515418502202643,
+    "macro_acc": 0.9517399267399268,
+    "by_source": {
+     "massive": 0.9315068493150684,
+     "typed_decisions": 0.9876543209876543
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.09090909090909091,
+    "tokens": 679.5374449339207,
+    "calls": 3.356828193832599,
+    "n": 227,
+    "e2e_td": 0.6246913580246913
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9515418502202643,
+    "macro_acc": 0.9517399267399268,
+    "by_source": {
+     "massive": 0.9315068493150684,
+     "typed_decisions": 0.9876543209876543
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.09090909090909091,
+    "tokens": 679.5374449339207,
+    "calls": 3.356828193832599,
+    "n": 227,
+    "e2e_td": 0.6246913580246913
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9515418502202643,
+    "macro_acc": 0.9517399267399268,
+    "by_source": {
+     "massive": 0.9315068493150684,
+     "typed_decisions": 0.9876543209876543
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.09090909090909091,
+    "tokens": 679.5374449339207,
+    "calls": 3.356828193832599,
+    "n": 227,
+    "e2e_td": 0.6246913580246913
+   },
    "oracle": {
     "e2e_td": 0.6296296296296297
    }
@@ -994,6 +1399,34 @@
     "none_rate": 0.03783783783783784,
     "misroute_same_top": 1.0,
     "misroute_same_parent": 0.21428571428571427,
+    "tokens": 161.45405405405404,
+    "calls": 1.0,
+    "n": 185,
+    "e2e_td": null
+   },
+   "flat_e9_long": {
+    "acc": 0.8486486486486486,
+    "macro_acc": 0.8412004662004662,
+    "by_source": {
+     "massive": 0.8486486486486486
+    },
+    "none_rate": 0.0918918918918919,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.18181818181818182,
+    "tokens": 161.45405405405404,
+    "calls": 1.0,
+    "n": 185,
+    "e2e_td": null
+   },
+   "flat_e9_shard": {
+    "acc": 0.8486486486486486,
+    "macro_acc": 0.8412004662004662,
+    "by_source": {
+     "massive": 0.8486486486486486
+    },
+    "none_rate": 0.0918918918918919,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.18181818181818182,
     "tokens": 161.45405405405404,
     "calls": 1.0,
     "n": 185,
@@ -1167,6 +1600,62 @@
     "n": 185,
     "e2e_td": null
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8108108108108109,
+    "macro_acc": 0.769434731934732,
+    "by_source": {
+     "massive": 0.8108108108108109
+    },
+    "none_rate": 0.032432432432432434,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.41379310344827586,
+    "tokens": 218.8,
+    "calls": 2.3567567567567567,
+    "n": 185,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8162162162162162,
+    "macro_acc": 0.7736013986013986,
+    "by_source": {
+     "massive": 0.8162162162162162
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.38235294117647056,
+    "tokens": 231.52972972972972,
+    "calls": 2.545945945945946,
+    "n": 185,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8162162162162162,
+    "macro_acc": 0.7736013986013986,
+    "by_source": {
+     "massive": 0.8162162162162162
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.38235294117647056,
+    "tokens": 264.1081081081081,
+    "calls": 3.027027027027027,
+    "n": 185,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8162162162162162,
+    "macro_acc": 0.7736013986013986,
+    "by_source": {
+     "massive": 0.8162162162162162
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.38235294117647056,
+    "tokens": 300.8918918918919,
+    "calls": 3.5945945945945947,
+    "n": 185,
+    "e2e_td": null
+   },
    "oracle": {
     "e2e_td": null
    }
@@ -1195,6 +1684,34 @@
     "none_rate": 0.08152173913043478,
     "misroute_same_top": 1.0,
     "misroute_same_parent": 0.6666666666666666,
+    "tokens": 153.97826086956522,
+    "calls": 1.0,
+    "n": 184,
+    "e2e_td": null
+   },
+   "flat_e9_long": {
+    "acc": 0.9184782608695652,
+    "macro_acc": 0.9149540274540274,
+    "by_source": {
+     "massive": 0.9184782608695652
+    },
+    "none_rate": 0.07608695652173914,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 1.0,
+    "tokens": 153.97826086956522,
+    "calls": 1.0,
+    "n": 184,
+    "e2e_td": null
+   },
+   "flat_e9_shard": {
+    "acc": 0.9184782608695652,
+    "macro_acc": 0.9149540274540274,
+    "by_source": {
+     "massive": 0.9184782608695652
+    },
+    "none_rate": 0.07608695652173914,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 1.0,
     "tokens": 153.97826086956522,
     "calls": 1.0,
     "n": 184,
@@ -1368,6 +1885,62 @@
     "n": 184,
     "e2e_td": null
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.9402173913043478,
+    "macro_acc": 0.9474358974358974,
+    "by_source": {
+     "massive": 0.9402173913043478
+    },
+    "none_rate": 0.016304347826086956,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.125,
+    "tokens": 226.35326086956522,
+    "calls": 2.505434782608696,
+    "n": 184,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9456521739130435,
+    "macro_acc": 0.9516025641025642,
+    "by_source": {
+     "massive": 0.9456521739130435
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.1,
+    "tokens": 235.77173913043478,
+    "calls": 2.641304347826087,
+    "n": 184,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9456521739130435,
+    "macro_acc": 0.9516025641025642,
+    "by_source": {
+     "massive": 0.9456521739130435
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.1,
+    "tokens": 241.7391304347826,
+    "calls": 2.7282608695652173,
+    "n": 184,
+    "e2e_td": null
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9456521739130435,
+    "macro_acc": 0.9516025641025642,
+    "by_source": {
+     "massive": 0.9456521739130435
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.1,
+    "tokens": 322.25,
+    "calls": 3.875,
+    "n": 184,
+    "e2e_td": null
+   },
    "oracle": {
     "e2e_td": null
    }
@@ -1404,6 +1977,38 @@
     "calls": 1.0,
     "n": 430,
     "e2e_td": 0.64
+   },
+   "flat_e9_long": {
+    "acc": 0.9,
+    "macro_acc": 0.9000393356643357,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.867741935483871,
+     "typed_decisions": 0.9666666666666667
+    },
+    "none_rate": 0.07441860465116279,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.2727272727272727,
+    "tokens": 371.7,
+    "calls": 1.0,
+    "n": 430,
+    "e2e_td": 0.61
+   },
+   "flat_e9_shard": {
+    "acc": 0.9,
+    "macro_acc": 0.9000393356643357,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.867741935483871,
+     "typed_decisions": 0.9666666666666667
+    },
+    "none_rate": 0.07441860465116279,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.2727272727272727,
+    "tokens": 371.7,
+    "calls": 1.0,
+    "n": 430,
+    "e2e_td": 0.61
    },
    "tree_greedy": {
     "acc": 0.8790697674418605,
@@ -1597,6 +2202,70 @@
     "n": 430,
     "e2e_td": 0.64
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.9255813953488372,
+    "macro_acc": 0.9220104895104895,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.896774193548387,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.011627906976744186,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.1111111111111111,
+    "tokens": 378.0279069767442,
+    "calls": 2.1627906976744184,
+    "n": 430,
+    "e2e_td": 0.64
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.9325581395348838,
+    "macro_acc": 0.9324271561771562,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9064516129032258,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.10344827586206896,
+    "tokens": 564.8744186046512,
+    "calls": 3.302325581395349,
+    "n": 430,
+    "e2e_td": 0.64
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.9325581395348838,
+    "macro_acc": 0.9324271561771562,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9064516129032258,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.10344827586206896,
+    "tokens": 617.7255813953489,
+    "calls": 3.5860465116279068,
+    "n": 430,
+    "e2e_td": 0.64
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.9325581395348838,
+    "macro_acc": 0.9324271561771562,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9064516129032258,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.10344827586206896,
+    "tokens": 635.4720930232559,
+    "calls": 3.832558139534884,
+    "n": 430,
+    "e2e_td": 0.64
+   },
    "oracle": {
     "e2e_td": 0.64
    }
@@ -1633,6 +2302,38 @@
     "calls": 1.0,
     "n": 446,
     "e2e_td": 0.5820224719101124
+   },
+   "flat_e9_long": {
+    "acc": 0.899103139013453,
+    "macro_acc": 0.8996307542360173,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8623853211009175,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.07174887892376682,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3076923076923077,
+    "tokens": 376.18609865470853,
+    "calls": 1.0,
+    "n": 446,
+    "e2e_td": 0.7078651685393258
+   },
+   "flat_e9_shard": {
+    "acc": 0.899103139013453,
+    "macro_acc": 0.8996307542360173,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8623853211009175,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.07174887892376682,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3076923076923077,
+    "tokens": 376.18609865470853,
+    "calls": 1.0,
+    "n": 446,
+    "e2e_td": 0.7078651685393258
    },
    "tree_greedy": {
     "acc": 0.8251121076233184,
@@ -1826,6 +2527,70 @@
     "n": 446,
     "e2e_td": 0.5258426966292135
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8632286995515696,
+    "macro_acc": 0.8681895711500975,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9021406727828746,
+     "typed_decisions": 0.6741573033707865
+    },
+    "none_rate": 0.013452914798206279,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.7454545454545455,
+    "tokens": 437.2488789237668,
+    "calls": 2.531390134529148,
+    "n": 446,
+    "e2e_td": 0.5258426966292135
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8721973094170403,
+    "macro_acc": 0.8786062378167642,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9143730886850153,
+     "typed_decisions": 0.6741573033707865
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.7192982456140351,
+    "tokens": 654.0919282511211,
+    "calls": 3.9461883408071747,
+    "n": 446,
+    "e2e_td": 0.5258426966292135
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8721973094170403,
+    "macro_acc": 0.8786062378167642,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9143730886850153,
+     "typed_decisions": 0.6741573033707865
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.7192982456140351,
+    "tokens": 710.4506726457399,
+    "calls": 4.482062780269058,
+    "n": 446,
+    "e2e_td": 0.5258426966292135
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8721973094170403,
+    "macro_acc": 0.8786062378167642,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.9143730886850153,
+     "typed_decisions": 0.6741573033707865
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.7192982456140351,
+    "tokens": 806.993273542601,
+    "calls": 5.329596412556054,
+    "n": 446,
+    "e2e_td": 0.5258426966292135
+   },
    "oracle": {
     "e2e_td": 0.7078651685393258
    }
@@ -1858,6 +2623,38 @@
     "none_rate": 0.04434589800443459,
     "misroute_same_top": 1.0,
     "misroute_same_parent": 0.05,
+    "tokens": 316.5144124168514,
+    "calls": 1.0,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_long": {
+    "acc": 0.9090909090909091,
+    "macro_acc": 0.9121794871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8864265927977839,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06208425720620843,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.07692307692307693,
+    "tokens": 316.5144124168514,
+    "calls": 1.0,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
+   "flat_e9_shard": {
+    "acc": 0.9090909090909091,
+    "macro_acc": 0.9121794871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8864265927977839,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06208425720620843,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.07692307692307693,
     "tokens": 316.5144124168514,
     "calls": 1.0,
     "n": 451,
@@ -2055,6 +2852,70 @@
     "n": 451,
     "e2e_td": 0.5933333333333334
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8913525498891353,
+    "macro_acc": 0.8923878205128206,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8642659279778393,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.026607538802660754,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 324.22838137472286,
+    "calls": 2.172949002217295,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8957871396895787,
+    "macro_acc": 0.8965544871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8698060941828255,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 443.09534368070956,
+    "calls": 2.9467849223946785,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8957871396895787,
+    "macro_acc": 0.8965544871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8698060941828255,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 455.61862527716187,
+    "calls": 3.1330376940133036,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8957871396895787,
+    "macro_acc": 0.8965544871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8698060941828255,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.0,
+    "tokens": 543.0753880266076,
+    "calls": 4.093126385809312,
+    "n": 451,
+    "e2e_td": 0.5933333333333334
+   },
    "oracle": {
     "e2e_td": 0.5933333333333334
    }
@@ -2091,6 +2952,38 @@
     "calls": 2.0,
     "n": 853,
     "e2e_td": 0.6666666666666666
+   },
+   "flat_e9_long": {
+    "acc": 0.854630715123095,
+    "macro_acc": 0.8448525232077864,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8189781021897811,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.06096131301289566,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3055555555555556,
+    "tokens": 623.1570926143024,
+    "calls": 1.0,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
+   },
+   "flat_e9_shard": {
+    "acc": 0.8604923798358733,
+    "macro_acc": 0.8431911984214615,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8262773722627738,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.044548651817116064,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.2839506172839506,
+    "tokens": 705.314185228605,
+    "calls": 2.0,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
    },
    "tree_greedy": {
     "acc": 0.8077373974208675,
@@ -2284,6 +3177,70 @@
     "n": 853,
     "e2e_td": 0.6739130434782609
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8651817116060961,
+    "macro_acc": 0.8521684711487343,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8321167883211679,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.017584994138335287,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.32,
+    "tokens": 490.22039859320046,
+    "calls": 2.6998827667057443,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8757327080890973,
+    "macro_acc": 0.8630213913766546,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8452554744525548,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3018867924528302,
+    "tokens": 730.335287221571,
+    "calls": 4.1113716295427905,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8757327080890973,
+    "macro_acc": 0.8630213913766546,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8452554744525548,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3113207547169811,
+    "tokens": 818.1441969519343,
+    "calls": 4.864009378663541,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8757327080890973,
+    "macro_acc": 0.8630213913766546,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8452554744525548,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3113207547169811,
+    "tokens": 893.9296600234467,
+    "calls": 5.827667057444314,
+    "n": 853,
+    "e2e_td": 0.6739130434782609
+   },
    "oracle": {
     "e2e_td": 0.6739130434782609
    }
@@ -2320,6 +3277,38 @@
     "calls": 2.0,
     "n": 864,
     "e2e_td": 0.6118343195266273
+   },
+   "flat_e9_long": {
+    "acc": 0.8599537037037037,
+    "macro_acc": 0.8552719155844156,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8466165413533835,
+     "typed_decisions": 0.8875739644970414
+    },
+    "none_rate": 0.06481481481481481,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5384615384615384,
+    "tokens": 665.292824074074,
+    "calls": 1.0,
+    "n": 864,
+    "e2e_td": 0.6224852071005917
+   },
+   "flat_e9_shard": {
+    "acc": 0.875,
+    "macro_acc": 0.8731966991341992,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8646616541353384,
+     "typed_decisions": 0.893491124260355
+    },
+    "none_rate": 0.047453703703703706,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5522388059701493,
+    "tokens": 753.5856481481482,
+    "calls": 2.0,
+    "n": 864,
+    "e2e_td": 0.6248520710059171
    },
    "tree_greedy": {
     "acc": 0.8148148148148148,
@@ -2513,6 +3502,70 @@
     "n": 864,
     "e2e_td": 0.6650887573964497
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8483796296296297,
+    "macro_acc": 0.854448051948052,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8481203007518797,
+     "typed_decisions": 0.8224852071005917
+    },
+    "none_rate": 0.032407407407407406,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.6213592233009708,
+    "tokens": 515.6018518518518,
+    "calls": 2.7777777777777777,
+    "n": 864,
+    "e2e_td": 0.6556213017751479
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8611111111111112,
+    "macro_acc": 0.8681520562770563,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8616541353383459,
+     "typed_decisions": 0.834319526627219
+    },
+    "none_rate": 0.0011574074074074073,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5630252100840336,
+    "tokens": 838.3055555555555,
+    "calls": 4.583333333333333,
+    "n": 864,
+    "e2e_td": 0.6650887573964497
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8611111111111112,
+    "macro_acc": 0.8681520562770563,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8616541353383459,
+     "typed_decisions": 0.834319526627219
+    },
+    "none_rate": 0.0011574074074074073,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5630252100840336,
+    "tokens": 935.9768518518518,
+    "calls": 5.377314814814815,
+    "n": 864,
+    "e2e_td": 0.6650887573964497
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8611111111111112,
+    "macro_acc": 0.8681520562770563,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8616541353383459,
+     "typed_decisions": 0.834319526627219
+    },
+    "none_rate": 0.0011574074074074073,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5630252100840336,
+    "tokens": 1048.275462962963,
+    "calls": 6.12962962962963,
+    "n": 864,
+    "e2e_td": 0.6650887573964497
+   },
    "oracle": {
     "e2e_td": 0.6745562130177515
    }
@@ -2549,6 +3602,38 @@
     "calls": 2.0,
     "n": 876,
     "e2e_td": 0.6657142857142857
+   },
+   "flat_e9_long": {
+    "acc": 0.8858447488584474,
+    "macro_acc": 0.8803044871794873,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8583569405099151,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0639269406392694,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.29545454545454547,
+    "tokens": 632.9566210045662,
+    "calls": 1.0,
+    "n": 876,
+    "e2e_td": 0.6728571428571428
+   },
+   "flat_e9_shard": {
+    "acc": 0.9006849315068494,
+    "macro_acc": 0.8947275641025642,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.876770538243626,
+     "typed_decisions": 1.0
+    },
+    "none_rate": 0.0365296803652968,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3090909090909091,
+    "tokens": 712.9132420091324,
+    "calls": 2.0,
+    "n": 876,
+    "e2e_td": 0.6728571428571428
    },
    "tree_greedy": {
     "acc": 0.8333333333333334,
@@ -2742,6 +3827,70 @@
     "n": 876,
     "e2e_td": 0.6685714285714286
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8858447488584474,
+    "macro_acc": 0.8819116300366301,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8626062322946175,
+     "typed_decisions": 0.9785714285714285
+    },
+    "none_rate": 0.02054794520547945,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.32926829268292684,
+    "tokens": 476.36415525114154,
+    "calls": 2.6837899543378994,
+    "n": 876,
+    "e2e_td": 0.6571428571428571
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8938356164383562,
+    "macro_acc": 0.8898580586080587,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8696883852691218,
+     "typed_decisions": 0.9928571428571429
+    },
+    "none_rate": 0.001141552511415525,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.30434782608695654,
+    "tokens": 757.4463470319635,
+    "calls": 4.34703196347032,
+    "n": 876,
+    "e2e_td": 0.6685714285714286
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8938356164383562,
+    "macro_acc": 0.8898580586080587,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8696883852691218,
+     "typed_decisions": 0.9928571428571429
+    },
+    "none_rate": 0.001141552511415525,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.30434782608695654,
+    "tokens": 798.8824200913242,
+    "calls": 4.7408675799086755,
+    "n": 876,
+    "e2e_td": 0.6685714285714286
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8938356164383562,
+    "macro_acc": 0.8898580586080587,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8696883852691218,
+     "typed_decisions": 0.9928571428571429
+    },
+    "none_rate": 0.001141552511415525,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.30434782608695654,
+    "tokens": 909.1038812785388,
+    "calls": 5.689497716894977,
+    "n": 876,
+    "e2e_td": 0.6685714285714286
+   },
    "oracle": {
     "e2e_td": 0.6728571428571428
    }
@@ -2778,6 +3927,38 @@
     "calls": 4.0,
     "n": 1666,
     "e2e_td": 0.5869281045751634
+   },
+   "flat_e9_long": {
+    "acc": 0.8433373349339736,
+    "macro_acc": 0.8405556563790859,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8015748031496063,
+     "typed_decisions": 0.9705882352941176
+    },
+    "none_rate": 0.05162064825930372,
+    "misroute_same_top": 0.9942857142857143,
+    "misroute_same_parent": 0.37142857142857144,
+    "tokens": 1198.0354141656662,
+    "calls": 1.0,
+    "n": 1666,
+    "e2e_td": 0.6450980392156863
+   },
+   "flat_e9_shard": {
+    "acc": 0.851140456182473,
+    "macro_acc": 0.8432312804469001,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8110236220472441,
+     "typed_decisions": 0.9738562091503268
+    },
+    "none_rate": 0.022809123649459785,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3380952380952381,
+    "tokens": 1459.1416566626651,
+    "calls": 4.0,
+    "n": 1666,
+    "e2e_td": 0.6503267973856209
    },
    "tree_greedy": {
     "acc": 0.7713085234093637,
@@ -2971,6 +4152,70 @@
     "n": 1666,
     "e2e_td": 0.5941176470588235
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8091236494597839,
+    "macro_acc": 0.8039052003143684,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7968503937007874,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.026410564225690276,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5364963503649635,
+    "tokens": 609.7887154861945,
+    "calls": 2.902761104441777,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5032894736842105,
+    "tokens": 956.6446578631453,
+    "calls": 4.894357743097239,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5,
+    "tokens": 1107.704081632653,
+    "calls": 5.929771908763505,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5032894736842105,
+    "tokens": 1360.564825930372,
+    "calls": 7.792316926770709,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235
+   },
    "oracle": {
     "e2e_td": 0.6542483660130719
    }
@@ -3010,6 +4255,41 @@
     "n": 1666,
     "e2e_td": 0.5869281045751634,
     "held_out_none_rate": 0.2777777777777778
+   },
+   "flat_e9_long": {
+    "acc": 0.8433373349339736,
+    "macro_acc": 0.8405556563790859,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8015748031496063,
+     "typed_decisions": 0.9705882352941176
+    },
+    "none_rate": 0.05162064825930372,
+    "misroute_same_top": 0.9942857142857143,
+    "misroute_same_parent": 0.37142857142857144,
+    "tokens": 1198.0354141656662,
+    "calls": 1.0,
+    "n": 1666,
+    "e2e_td": 0.6450980392156863,
+    "held_out_none_rate": 0.43333333333333335,
+    "gap_auroc": 0.812875150060024
+   },
+   "flat_e9_shard": {
+    "acc": 0.851140456182473,
+    "macro_acc": 0.8432312804469001,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8110236220472441,
+     "typed_decisions": 0.9738562091503268
+    },
+    "none_rate": 0.022809123649459785,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.3380952380952381,
+    "tokens": 1459.1416566626651,
+    "calls": 4.0,
+    "n": 1666,
+    "e2e_td": 0.6503267973856209,
+    "held_out_none_rate": 0.3111111111111111
    },
    "tree_greedy": {
     "acc": 0.7713085234093637,
@@ -3224,6 +4504,77 @@
     "e2e_td": 0.5941176470588235,
     "held_out_none_rate": 0.0
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.8091236494597839,
+    "macro_acc": 0.8039052003143684,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7968503937007874,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.026410564225690276,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5364963503649635,
+    "tokens": 609.7887154861945,
+    "calls": 2.902761104441777,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "held_out_none_rate": 0.11666666666666667,
+    "held_out_reached_parent": 0.8555555555555555,
+    "held_out_none_at_parent": 0.08333333333333333,
+    "gap_auroc_at_parent": 0.7495830909443475
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5032894736842105,
+    "tokens": 956.6446578631453,
+    "calls": 4.894357743097239,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "held_out_none_rate": 0.0
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5,
+    "tokens": 1107.704081632653,
+    "calls": 5.929771908763505,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "held_out_none_rate": 0.0
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.8078740157480315,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5032894736842105,
+    "tokens": 1360.564825930372,
+    "calls": 7.792316926770709,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "held_out_none_rate": 0.0
+   },
    "oracle": {
     "e2e_td": 0.6542483660130719
    }
@@ -3262,6 +4613,40 @@
     "n": 1666,
     "e2e_td": 0.5869281045751634,
     "zero_shot_held_out": 0.6222222222222222
+   },
+   "flat_e9_long": {
+    "acc": 0.8235294117647058,
+    "macro_acc": 0.8211107806863325,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7771653543307087,
+     "typed_decisions": 0.9640522875816994
+    },
+    "none_rate": 0.07923169267707082,
+    "misroute_same_top": 0.9938271604938271,
+    "misroute_same_parent": 0.345679012345679,
+    "tokens": 1311.0354141656662,
+    "calls": 1.0,
+    "n": 1666,
+    "e2e_td": 0.6411764705882353,
+    "zero_shot_held_out": 0.5111111111111111
+   },
+   "flat_e9_shard": {
+    "acc": 0.8301320528211285,
+    "macro_acc": 0.8257289098375685,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7952755905511811,
+     "typed_decisions": 0.9248366013071896
+    },
+    "none_rate": 0.027611044417767107,
+    "misroute_same_top": 0.9915611814345991,
+    "misroute_same_parent": 0.37130801687763715,
+    "tokens": 1659.1770708283314,
+    "calls": 5.0,
+    "n": 1666,
+    "e2e_td": 0.6202614379084967,
+    "zero_shot_held_out": 0.5166666666666667
    },
    "tree_greedy": {
     "acc": 0.751500600240096,
@@ -3467,6 +4852,74 @@
     "e2e_td": 0.5941176470588235,
     "zero_shot_held_out": 0.6222222222222222
    },
+   "tree_e9_node_greedy": {
+    "acc": 0.7983193277310925,
+    "macro_acc": 0.7934511979248822,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7826771653543307,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.031212484993997598,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5669014084507042,
+    "tokens": 615.0894357743098,
+    "calls": 2.902761104441777,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "zero_shot_held_out": 0.6166666666666667
+   },
+   "tree_e9_node_beam2": {
+    "acc": 0.8085234093637454,
+    "macro_acc": 0.8028060366345596,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7960629921259843,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5297805642633229,
+    "tokens": 964.6962785114046,
+    "calls": 4.894357743097239,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "zero_shot_held_out": 0.6166666666666667
+   },
+   "tree_e9_node_beam3": {
+    "acc": 0.8079231692677071,
+    "macro_acc": 0.8022684022259574,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.7952755905511811,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.525,
+    "tokens": 1123.563025210084,
+    "calls": 5.930372148859544,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "zero_shot_held_out": 0.6222222222222222
+   },
+   "tree_e9_node_beam5": {
+    "acc": 0.8073229291716687,
+    "macro_acc": 0.8017307678173552,
+    "by_source": {
+     "everyday": 1.0,
+     "massive": 0.794488188976378,
+     "typed_decisions": 0.803921568627451
+    },
+    "none_rate": 0.0,
+    "misroute_same_top": 1.0,
+    "misroute_same_parent": 0.5264797507788161,
+    "tokens": 1394.8199279711885,
+    "calls": 7.790516206482593,
+    "n": 1666,
+    "e2e_td": 0.5941176470588235,
+    "zero_shot_held_out": 0.6222222222222222
+   },
    "oracle": {
     "e2e_td": 0.6542483660130719
    }
@@ -3554,6 +5007,88 @@
     "tokens": 1459.1416566626651,
     "calls": 4.0,
     "e2e_td": 0.5869281045751634,
+    "misroute_same_top": 1.0
+   }
+  },
+  "flat_e9_long": {
+   "4": {
+    "acc": 0.9255544429609849,
+    "macro_acc": 0.9248484848484848,
+    "tokens": 141.95194518617416,
+    "calls": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.8959439184443972,
+    "macro_acc": 0.8935044893378227,
+    "tokens": 203.62428118599348,
+    "calls": 1.0,
+    "e2e_td": 0.6296296296296297,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.9027313493681207,
+    "macro_acc": 0.9039498590266134,
+    "tokens": 354.8001703571867,
+    "calls": 1.0,
+    "e2e_td": 0.6370661672908864,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8668097225617487,
+    "macro_acc": 0.8601429753238964,
+    "tokens": 640.4688458976476,
+    "calls": 1.0,
+    "e2e_td": 0.6564184644786651,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.8433373349339736,
+    "macro_acc": 0.8405556563790859,
+    "tokens": 1198.0354141656662,
+    "calls": 1.0,
+    "e2e_td": 0.6450980392156863,
+    "misroute_same_top": 0.9942857142857143
+   }
+  },
+  "flat_e9_shard": {
+   "4": {
+    "acc": 0.9255544429609849,
+    "macro_acc": 0.9248484848484848,
+    "tokens": 141.95194518617416,
+    "calls": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.8959439184443972,
+    "macro_acc": 0.8935044893378227,
+    "tokens": 203.62428118599348,
+    "calls": 1.0,
+    "e2e_td": 0.6296296296296297,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.9027313493681207,
+    "macro_acc": 0.9039498590266134,
+    "tokens": 354.8001703571867,
+    "calls": 1.0,
+    "e2e_td": 0.6370661672908864,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8787257704475743,
+    "macro_acc": 0.8703718205527416,
+    "tokens": 723.9376917952951,
+    "calls": 2.0,
+    "e2e_td": 0.6572074191137737,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.851140456182473,
+    "macro_acc": 0.8432312804469001,
+    "tokens": 1459.1416566626651,
+    "calls": 4.0,
+    "e2e_td": 0.6503267973856209,
     "misroute_same_top": 1.0
    }
   },
@@ -4020,6 +5555,174 @@
    }
   },
   "tree_e9_beam5": {
+   "4": {
+    "acc": 0.9673212431390001,
+    "macro_acc": 0.9674242424242424,
+    "tokens": 224.90389037234831,
+    "calls": 2.0,
+    "misroute_same_top": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.904470080116508,
+    "macro_acc": 0.89231462981463,
+    "tokens": 434.22644560860425,
+    "calls": 3.608807596142398,
+    "e2e_td": 0.6246913580246913,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.900180862880501,
+    "macro_acc": 0.9025292937244691,
+    "tokens": 661.8469181974882,
+    "calls": 4.418426979300083,
+    "e2e_td": 0.5863920099875156,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8768931452128549,
+    "macro_acc": 0.8736771687539232,
+    "tokens": 950.4363347549828,
+    "calls": 5.882264801322974,
+    "e2e_td": 0.6691910764820465,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "tokens": 1360.564825930372,
+    "calls": 7.792316926770709,
+    "e2e_td": 0.5941176470588235,
+    "misroute_same_top": 1.0
+   }
+  },
+  "tree_e9_node_greedy": {
+   "4": {
+    "acc": 0.9248201305444296,
+    "macro_acc": 0.9232828282828284,
+    "tokens": 179.16510532561935,
+    "calls": 1.7398753894080998,
+    "misroute_same_top": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.893514540205787,
+    "macro_acc": 0.8819971694971694,
+    "tokens": 298.20233512098577,
+    "calls": 2.3622870476298936,
+    "e2e_td": 0.6024691358024692,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.8933875482631807,
+    "macro_acc": 0.8941959603911359,
+    "tokens": 379.8350557584113,
+    "calls": 2.2890432781402867,
+    "e2e_td": 0.5863920099875156,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8664686966980577,
+    "macro_acc": 0.8628427177111387,
+    "tokens": 494.0621352320646,
+    "calls": 2.72048349960714,
+    "e2e_td": 0.6622257341320886,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.8091236494597839,
+    "macro_acc": 0.8039052003143684,
+    "tokens": 609.7887154861945,
+    "calls": 2.902761104441777,
+    "e2e_td": 0.5941176470588235,
+    "misroute_same_top": 1.0
+   }
+  },
+  "tree_e9_node_beam2": {
+   "4": {
+    "acc": 0.9673212431390001,
+    "macro_acc": 0.9674242424242424,
+    "tokens": 224.39555703901496,
+    "calls": 1.9972222222222225,
+    "misroute_same_top": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.904470080116508,
+    "macro_acc": 0.89231462981463,
+    "tokens": 382.2796379313618,
+    "calls": 2.8480261625348775,
+    "e2e_td": 0.6246913580246913,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.900180862880501,
+    "macro_acc": 0.9025292937244691,
+    "tokens": 554.0205635121606,
+    "calls": 3.3984329481990674,
+    "e2e_td": 0.5863920099875156,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8768931452128549,
+    "macro_acc": 0.8736771687539232,
+    "tokens": 775.36239660303,
+    "calls": 4.347245642115481,
+    "e2e_td": 0.6691910764820465,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "tokens": 956.6446578631453,
+    "calls": 4.894357743097239,
+    "e2e_td": 0.5941176470588235,
+    "misroute_same_top": 1.0
+   }
+  },
+  "tree_e9_node_beam3": {
+   "4": {
+    "acc": 0.9673212431390001,
+    "macro_acc": 0.9674242424242424,
+    "tokens": 224.90389037234831,
+    "calls": 2.0,
+    "misroute_same_top": 1.0,
+    "e2e_td": 0.5933333333333334
+   },
+   "8": {
+    "acc": 0.904470080116508,
+    "macro_acc": 0.89231462981463,
+    "tokens": 395.1282278256038,
+    "calls": 3.0373720301416145,
+    "e2e_td": 0.6246913580246913,
+    "misroute_same_top": 1.0
+   },
+   "16": {
+    "acc": 0.900180862880501,
+    "macro_acc": 0.9025292937244691,
+    "tokens": 594.5982931060835,
+    "calls": 3.7337156619700895,
+    "e2e_td": 0.5863920099875156,
+    "misroute_same_top": 1.0
+   },
+   "32": {
+    "acc": 0.8768931452128549,
+    "macro_acc": 0.8736771687539232,
+    "tokens": 851.0011562983701,
+    "calls": 4.994063924462344,
+    "e2e_td": 0.6691910764820465,
+    "misroute_same_top": 1.0
+   },
+   "62": {
+    "acc": 0.8175270108043218,
+    "macro_acc": 0.8116471357982394,
+    "tokens": 1107.704081632653,
+    "calls": 5.929771908763505,
+    "e2e_td": 0.5941176470588235,
+    "misroute_same_top": 1.0
+   }
+  },
+  "tree_e9_node_beam5": {
    "4": {
     "acc": 0.9673212431390001,
     "macro_acc": 0.9674242424242424,
