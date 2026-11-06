@@ -87,12 +87,15 @@ Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but it would take 
    residual stream reach about 1,100 in every layer against a median channel peak of 6 to 10; activations
    stay in 32-bit floats here, so they cost the weight-only int8 nothing. The int8 columns are near-Gaussian
    (peak about 3.1 to 4.1 times the column RMS). (`results/weight_probe.json`)
-11. **Codes held to ±31 save 0.58 MB for about 0.008.** Halving the shipped ±63 codes (scale doubled)
-   cuts the matmuls' brotli bytes from 3.05 to 2.47 MB. KL from gold rises from 0.151 to 0.156, and
-   accuracy goes from 0.730 to 0.7215. <!-- @evidence[[results/codes31.json#test.accuracy]] -->
-   The codes were rounded twice, from fp32 to ±63 and then to ±31, so a ±31 build quantized straight from
-   the fp32 checkpoint should lose less; that needs the checkpoint, which is on Colab, not in the repo.
-   (`results/codes31.json`, `run/codes31.py`)
+11. **Codes held to ±31 save 0.50 MB for about 0.002.** Three fresh 10-epoch checkpoints (seeds 0 to 2,
+   retrained on Colab), each packed at ±63 and at ±31 from its own fp32 weights and scored from the packed
+   bytes: ±63 averages 0.7343, ±31 0.7322 (per seed +0.001, −0.004, −0.0035), with KL from gold 0.150
+   for both. <!-- @evidence[[results/quant_levels-summary.json#delta_L31_minus_L63]] -->
+   The weights file goes from 9.76 to 9.26 MB brotli, the matmul codes from 3.05 to 2.55 MB.
+   The retrained fp32 checkpoints score 0.7315 against the first round's 0.740 with the same seeds and
+   settings (GPU nondeterminism), a larger spread than the ±31 cost. Halving the shipped codes instead of
+   requantizing gave an upper bound of −0.0085 (`results/codes31.json`).
+   (`results/quant_levels-*.json`, `run/quant_levels.py`)
 
 ## Method
 
@@ -190,4 +193,22 @@ answers a multi-range request with the whole 11.5 MB file (200), so a fallback l
 range per row; a 144-byte range took 0.12 to 0.34 s from the container through its proxy. The ablation
 subset is the first 80 agent-trace cases only, where the file scores 0.7925, so the per-layer numbers
 describe one workflow.
+
+### 2026-11-06: fresh ±31 build on Colab
+
+Oskar asked for the ±31 build from fp32 rather than from the shipped codes. The first round's checkpoints
+were gone with their Colab VM, so `run/colab_arms.py q31` retrained the stock 10-epoch specialist for
+seeds 0 to 2 (`spec-stock-e10q-s*`, Colab L4, about 25 min with scoring, under 1 compute unit) and
+`run/quant_levels.py` packed each checkpoint at fp32, ±63 and ±31 with `pack.pack()`, loaded the
+dequantized weights from those bytes into PyTorch and scored all 2,000 test decisions on the GPU
+(logits within 5e-6 of `Ref` on six questions per variant).
+
+| variant | accuracy s0 / s1 / s2 | mean | KL | weights file, brotli | top option same as fp32 |
+|---|---|---|---|---|---|
+| fp32 | 0.7335 / 0.743 / 0.718 | 0.7315 | 0.146 | 61.9 MB | — |
+| ±63 (shipped format) | 0.744 / 0.741 / 0.718 | 0.7343 | 0.150 | 9.76 MB | 0.931 / 0.947 / 0.941 |
+| ±31 | 0.745 / 0.737 / 0.7145 | 0.7322 | 0.150 | 9.26 MB | 0.932 / 0.938 / 0.935 |
+
+Reading: ±31 costs about 0.002 against ±63 from the same weights, inside the seed-to-seed and
+rerun-to-rerun spread. The shipped page has not been rebuilt.
 
