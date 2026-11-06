@@ -144,7 +144,13 @@ It starts from the mean of the library's three other business-workflow spikes, l
   <label class="f">max test cases (0 = all)<input type="number" id="maxte" value="0" min="0"></label>
   <label class="f">seed<input type="number" id="seed" value="0"></label>
 </div>
-<div class="row"><button id="train" class="primary">Train</button><button id="stop" disabled>Stop</button><span id="tstat" class="small muted"></span></div>
+<div class="row"><button id="train" class="primary">Train</button><button id="stop" disabled>Stop</button>
+  <button id="resume" hidden>Resume</button><button id="finish" hidden>Finish with the best epoch</button><span id="tstat" class="small muted"></span></div>
+<div class="row small"><label class="pill"><input type="checkbox" id="awake" checked> keep the screen awake while training</label><span id="awakestat" class="muted"></span></div>
+<p class="small muted">Stop pauses a run, and Resume continues it exactly where it stopped. The run is also saved in this browser
+after every epoch and every 50 steps. If the page reloads or the GPU is lost, it can resume from there. Closing a laptop's lid still
+puts it to sleep.</p>
+<div id="saved" class="card small" hidden></div>
 <div class="bar"><div id="tbar"></div></div>
 <div id="chart"></div>
 <div class="scroll"><table id="etable"></table></div>
@@ -348,13 +354,14 @@ async function loadBase() {
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   if (!adapter) throw new Error("No WebGPU adapter");
   const device = await adapter.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
-  device.lost.then((i) => showErr(`GPU device lost: ${i.message}`));
+  device.lost.then((i) => showErr(`GPU device lost: ${i.message}. Reload the page: a run in progress resumes from its last saved checkpoint.`));
   base = { manifest, weights, tok, device, adapterInfo: adapter.info };
   $("env").textContent = `Model ready on ${adapter.info?.vendor || "GPU"} ${adapter.info?.architecture || ""}`.trim();
   return base;
 }
 let loraBackend = null, loraKey = "";
 async function backendFor(kind, init, sizes = {}) {
+  if (params.get("backend") === "fake") return (await import("./fake_backend.js")).FakeBackend.create({ delay: +params.get("fakeDelay") || 0 });   // tests only (run/check.mjs resume)
   const { device, manifest, weights, tok } = await loadBase();
   if (kind === "head") {
     if (!headBackend) headBackend = await HeadBackend.create(device, manifest, weights, { init });
@@ -427,47 +434,149 @@ function resultsTable(res, startRes, info) {
     ${info.backend} · ${info.trainCases} train, ${info.valCases} validation cases · seed ${info.seed}.</p>`;
 }
 
-$("train").onclick = async () => {
-  $("err").textContent = ""; stopFlag = false;
-  $("train").disabled = true; $("stop").disabled = false;
-  try {
-    const errs = C.validate(S.decision, S.cases);
-    if (errs.length) throw new Error(errs.slice(0, 12).join("\n"));
-    const kind = document.querySelector('input[name="be"]:checked').value;
-    const { tok } = await loadBase();
-    $("tstat").textContent = "Preparing the start spike…";
-    const init = await startSpike(S.init);
-    const opts = { valFrac: num("valp") / 100, testFrac: num("testp") / 100, seed: num("seed"), maxTrain: num("maxtr"), maxTest: num("maxte") };
-    const sp = C.splitCases(S.cases, opts);
-    const data = { train: C.examples(S.decision, sp.train, tok.build), val: C.examples(S.decision, sp.val, tok.build), test: C.examples(S.decision, sp.test, tok.build) };
-    const maxLen = Math.max(...[...data.train, ...data.val, ...data.test].map((e) => e.ids.length));
-    const backend = await backendFor(kind, init, { maxSeqs: num("bs"), maxRows: num("bs") * maxLen });
-    if (backend.dropped) $("modstat").textContent = `The start spike's Wo_mlp delta (largest weight ${backend.dropped.toFixed(3)}) is dropped: this trainer has no LoRA on Wo_mlp.`;
-    const t0 = performance.now();
-    if (backend.warm) {
-      const all = [...data.train, ...data.val, ...data.test];
-      await backend.warm(all, (d, n) => { $("tstat").textContent = `Encoding ${d}/${n} sequences on the GPU (once; epochs reuse them)…`; $("tbar").style.width = `${100 * d / Math.max(n, 1)}%`; });
-    }
-    const encodeS = ((performance.now() - t0) / 1000).toFixed(1);
-    $("tstat").textContent = "Scoring the start spike…";
-    const startRes = await C.evaluateStart(backend, data);
-    const steps = [], epochs = [];
-    const res = await C.train(backend, data, { epochs: num("epochs"), lr: num("lr"), bs: num("bs"), seed: num("seed") }, (e) => {
-      if (e.kind === "step") { steps.push(e.loss); steps.total = e.of; $("tbar").style.width = `${100 * e.step / e.of}%`; $("tstat").textContent = `epoch ${e.epoch}, step ${e.step}/${e.of}, loss ${e.loss.toFixed(4)}`; if (e.step % 5 === 0) chart(steps, epochs); }
-      if (e.kind === "epoch") { epochs.push({ ...e, atStep: steps.length ? steps.length - 1 : 0 }); epochs.forEach((r) => { r.best = e.best ?? 0; }); epochTable(epochs); chart(steps, epochs); }
-    }, () => stopFlag);
-    active = backend;
-    trained = { ...res.spike, sm: { ...res.spike.sm, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
-      trained: { backend: backend.name, start: S.init, train_cases: sp.train.length, best_epoch: res.bestEpoch, test_accuracy: res.test?.accuracy ?? null, date: new Date().toISOString().slice(0, 10) } } };
-    const info = { backend: backend.name, trainCases: sp.train.length, valCases: sp.val.length, testCases: sp.test.length, seed: num("seed"), encodeS };
-    resultsTable(res, startRes, info);
-    $("tstat").textContent = `Done. Best epoch ${res.bestEpoch}.`;
-    $("xspike").disabled = false;
-    window.__lastRun = { result: { ...res, spike: undefined }, start: startRes, info };
-  } catch (e) { showErr(e); window.__lastRun = { error: String(e.stack || e) }; $("tstat").textContent = ""; }
-  finally { $("train").disabled = false; $("stop").disabled = true; }
+// ---- a run: prepare, train (pausable), finish; its checkpoint kept in this browser's IndexedDB ----
+const RUN_DB = "decider-lora-creator", RUN_STORE = "runs";
+const idb = () => new Promise((res, rej) => { const q = indexedDB.open(RUN_DB, 1); q.onupgradeneeded = () => q.result.createObjectStore(RUN_STORE); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+async function idbPut(v) {
+  try { const db = await idb(); await new Promise((res, rej) => { const t = db.transaction(RUN_STORE, "readwrite"); t.objectStore(RUN_STORE).put(v, "current"); t.oncomplete = res; t.onerror = () => rej(t.error); }); return true; }
+  catch { return false; }   // storage blocked or full: pause and resume still work within this page
+}
+async function idbGet() {
+  try { const db = await idb(); return await new Promise((res) => { const q = db.transaction(RUN_STORE).objectStore(RUN_STORE).get("current"); q.onsuccess = () => res(q.result ?? null); q.onerror = () => res(null); }); }
+  catch { return null; }
+}
+async function idbDel() { try { const db = await idb(); await new Promise((res) => { const t = db.transaction(RUN_STORE, "readwrite"); t.objectStore(RUN_STORE).delete("current"); t.oncomplete = res; t.onerror = res; }); } catch { /* nothing saved */ } }
+// what a checkpoint depends on besides its options: the decision and its labelled cases
+function fingerprint() {
+  const str = JSON.stringify([S.decision, S.cases.map((c) => [c.id, c.state.length, c.gold, c.split ?? ""])]);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return `${(h >>> 0).toString(16)}-${str.length}`;
+}
+
+// keep the screen awake while a run trains (the lock lapses when the tab is hidden; it is taken again on return)
+let wake = null, training = false;
+async function holdAwake(on) {
+  if (!on || !$("awake").checked) { try { await wake?.release(); } catch { /* already released */ } wake = null; $("awakestat").textContent = ""; return; }
+  if (!("wakeLock" in navigator)) { $("awakestat").textContent = " (this browser cannot keep the screen awake)"; return; }
+  try { wake = await navigator.wakeLock.request("screen"); $("awakestat").textContent = " (holding the screen awake)"; }
+  catch (e) { $("awakestat").textContent = ` (not allowed: ${e.message})`; }
+}
+document.addEventListener("visibilitychange", () => { if (training && document.visibilityState === "visible") holdAwake(true); });
+$("awake").onchange = () => { if (training) holdAwake($("awake").checked); };
+
+const cfgFromUI = () => ({ kind: document.querySelector('input[name="be"]:checked').value, module: $("mod").value.trim(), init: S.init.slice(),
+  split: { valFrac: num("valp") / 100, testFrac: num("testp") / 100, seed: num("seed"), maxTrain: num("maxtr"), maxTest: num("maxte") },
+  train: { epochs: num("epochs"), lr: num("lr"), bs: num("bs"), seed: num("seed") } });
+function cfgToUI(cfg) {
+  document.querySelector(`input[name="be"][value="${cfg.kind}"]`).checked = true;
+  if (cfg.module) $("mod").value = cfg.module;
+  S.init = cfg.init.slice(); renderLib();
+  $("valp").value = cfg.split.valFrac * 100; $("testp").value = cfg.split.testFrac * 100; $("seed").value = cfg.split.seed;
+  $("maxtr").value = cfg.split.maxTrain; $("maxte").value = cfg.split.maxTest;
+  $("epochs").value = cfg.train.epochs; $("lr").value = cfg.train.lr; $("bs").value = cfg.train.bs;
+}
+
+async function prepare(cfg, startRes = null) {
+  const errs = C.validate(S.decision, S.cases);
+  if (errs.length) throw new Error(errs.slice(0, 12).join("\n"));
+  const { tok } = await loadBase();
+  $("tstat").textContent = "Preparing the start spike…";
+  const init = await startSpike(cfg.init);
+  const sp = C.splitCases(S.cases, cfg.split);
+  const data = { train: C.examples(S.decision, sp.train, tok.build), val: C.examples(S.decision, sp.val, tok.build), test: C.examples(S.decision, sp.test, tok.build) };
+  const maxLen = Math.max(...[...data.train, ...data.val, ...data.test].map((e) => e.ids.length));
+  const backend = await backendFor(cfg.kind, init, { maxSeqs: cfg.train.bs, maxRows: cfg.train.bs * maxLen });
+  if (backend.dropped) $("modstat").textContent = `The start spike's Wo_mlp delta (largest weight ${backend.dropped.toFixed(3)}) is dropped: this trainer has no LoRA on Wo_mlp.`;
+  const t0 = performance.now();
+  if (backend.warm) {
+    await backend.warm([...data.train, ...data.val, ...data.test], (d, n) => { $("tstat").textContent = `Encoding ${d}/${n} sequences on the GPU (once; epochs reuse them)…`; $("tbar").style.width = `${100 * d / Math.max(n, 1)}%`; });
+  }
+  const encodeS = ((performance.now() - t0) / 1000).toFixed(1);
+  if (!startRes) { $("tstat").textContent = "Scoring the start spike…"; startRes = await C.evaluateStart(backend, data); }
+  return { cfg, backend, data, sp, startRes, encodeS, fp: fingerprint() };
+}
+
+let paused = null;   // { ctx, checkpoint } while a run is paused in this page
+const setButtons = (state) => {   // "idle" | "training" | "paused"
+  $("train").disabled = state === "training"; $("stop").disabled = state !== "training";
+  $("resume").hidden = $("finish").hidden = state !== "paused";
 };
-$("stop").onclick = () => { stopFlag = true; $("tstat").textContent = "Stopping after this step…"; };
+const saveRun = (ctx, cp) => idbPut({ savedAt: Date.now(), fp: ctx.fp, cfg: ctx.cfg, startRes: ctx.startRes, checkpoint: cp });
+
+async function execute(ctx, resume = null) {
+  stopFlag = false; training = true; setButtons("training"); $("saved").hidden = true;
+  await holdAwake(true);
+  try {
+    const spe = Math.ceil(ctx.data.train.length / ctx.cfg.train.bs);
+    const steps = resume ? Array.from(resume.losses) : [], epochs = [];
+    steps.total = spe * ctx.cfg.train.epochs;
+    const res = await C.train(ctx.backend, ctx.data, ctx.cfg.train, (e) => {
+      if (e.kind === "step") { steps.push(e.loss); $("tbar").style.width = `${100 * e.step / e.of}%`; $("tstat").textContent = `epoch ${e.epoch}, step ${e.step}/${e.of}, loss ${e.loss.toFixed(4)}`; if (e.step % 5 === 0) chart(steps, epochs); }
+      if (e.kind === "epoch") { epochs.push({ ...e, atStep: Math.max(0, e.epoch * spe - 1) }); epochs.forEach((r) => { r.best = e.best ?? 0; }); epochTable(epochs); chart(steps, epochs); }
+    }, () => stopFlag, { resume, checkpointSteps: 50, onCheckpoint: (cp) => { saveRun(ctx, cp); } });
+    if (res.paused) {
+      paused = { ctx, checkpoint: res.checkpoint };
+      const cp = res.checkpoint;
+      $("tstat").textContent = `Paused at epoch ${cp.ep}, step ${cp.step} of ${steps.total}. Resume continues exactly here; the run is also saved in this browser.`;
+      setButtons("paused");
+      window.__paused = { epoch: cp.ep, step: cp.step };
+      return;
+    }
+    done(ctx, res);
+  } finally { training = false; await holdAwake(false); }
+}
+
+function done(ctx, res) {
+  const { backend, sp, startRes, encodeS, cfg } = ctx;
+  paused = null; idbDel(); setButtons("idle");
+  active = backend;
+  trained = { ...res.spike, sm: { ...res.spike.sm, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
+    trained: { backend: backend.name, start: cfg.init, train_cases: sp.train.length, best_epoch: res.bestEpoch, test_accuracy: res.test?.accuracy ?? null, date: new Date().toISOString().slice(0, 10) } } };
+  const info = { backend: backend.name, trainCases: sp.train.length, valCases: sp.val.length, testCases: sp.test.length, seed: cfg.split.seed, encodeS };
+  resultsTable(res, startRes, info);
+  $("tstat").textContent = `Done. Best epoch ${res.bestEpoch} of ${res.epochsRun} run.`;
+  $("xspike").disabled = false;
+  window.__lastRun = { result: { ...res, spike: undefined }, start: startRes, info };
+}
+
+const guard = (f) => async () => {
+  $("err").textContent = "";
+  try { await f(); }
+  catch (e) { showErr(e); window.__lastRun = { error: String(e.stack || e) }; $("tstat").textContent = ""; setButtons(paused ? "paused" : "idle"); }
+};
+$("train").onclick = guard(async () => {
+  if (paused && !confirm("Start a new run? The paused run is discarded.")) return;
+  paused = null; await idbDel();
+  await execute(await prepare(cfgFromUI()));
+});
+$("stop").onclick = () => { stopFlag = true; $("tstat").textContent = "Pausing after this step…"; };
+$("resume").onclick = guard(async () => { if (paused) await execute(paused.ctx, paused.checkpoint); });
+$("finish").onclick = guard(async () => {
+  if (!paused) return;
+  setButtons("training");
+  done(paused.ctx, await C.finishRun(paused.ctx.backend, paused.ctx.data, paused.checkpoint));
+});
+
+// a run saved in this browser by an earlier visit (reloaded, crashed, or GPU lost)
+async function offerSaved() {
+  const rec = await idbGet();
+  if (!rec) return;
+  const cp = rec.checkpoint, total = cp.steps * cp.epochs, when = new Date(rec.savedAt).toLocaleString();
+  const box = $("saved");
+  box.hidden = false;
+  if (rec.fp !== fingerprint()) {
+    box.innerHTML = `A run saved ${esc(when)} was for a different decision or different cases, so it cannot resume here. <button id="savedDrop">Discard it</button>`;
+  } else {
+    box.innerHTML = `<b>An unfinished run</b> saved ${esc(when)}: ${esc(rec.cfg.kind === "lora" ? "LoRA" : "head only")}, epoch ${cp.ep} of ${cp.epochs},
+      step ${cp.step} of ${total}. <button id="savedGo" class="primary">Resume it</button> <button id="savedDrop">Discard it</button>`;
+    $("savedGo").onclick = guard(async () => {
+      box.hidden = true; cfgToUI(rec.cfg);
+      await execute(await prepare(rec.cfg, rec.startRes), rec.checkpoint);
+    });
+  }
+  $("savedDrop").onclick = async () => { await idbDel(); box.hidden = true; };
+}
 
 // ---- try it ----
 $("try").onclick = async () => {
@@ -507,7 +616,7 @@ $("xdata").onclick = () => download(`${S.decision.id || "decision"}-cases.json`,
 // ---- boot ----
 renderDecision(); renderLib();
 $("env").textContent = navigator.gpu ? "WebGPU is available. The model downloads (11 MB) when you first train or answer." : "This browser has no WebGPU: you can edit and export decisions, but not train.";
-if (params.get("demo") !== null && !S.cases.length) $("demo").onclick();
+(async () => { if (params.get("demo") !== null && !S.cases.length) await $("demo").onclick(); await offerSaved(); window.__ready = true; })();
 window.__creator = { get state() { return S; }, C };
 </script>
 </body>

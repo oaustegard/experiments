@@ -81,5 +81,36 @@ const merged = C.mergeSpikes(ws);
   check("truncate_ran", sig.every((x, i) => i === 0 || x <= sig[i - 1] * (1 + 1e-6)), { sig: sig.map((x) => +x.toFixed(5)), err2: e2, norm2: n2, ms });
 }
 
+// 6. pause and resume: a run stopped at any step and resumed from its (structured-cloned) checkpoint on a
+// fresh backend ends exactly where the uninterrupted run ends: same step losses, best epoch and weights.
+{
+  const { FakeBackend: Fake } = await import(path.join(web, "fake_backend.js"));
+  const r = C.rng(5), mk = (n, tag) => Array.from({ length: n }, (_, i) => {
+    const P = 2 + (i % 3), ids = Array.from({ length: 12 }, () => Math.floor(r() * 500)), t = new Float32Array(P); t[Math.floor(r() * P)] = 1;
+    return { key: `${tag}${i}`, q: `q${i % 2}`, type: "choice", ids, pos: Array.from({ length: P }, (_, j) => j), target: t };
+  });
+  const data = { train: mk(37, "t"), val: mk(9, "v"), test: mk(11, "s") }, opts = { epochs: 4, lr: 0.05, bs: 8, seed: 3 };
+  const runLog = async (stopAt, every = 0) => {
+    const losses = [], cps = [];
+    let b = new Fake(), seen = 0;
+    let res = await C.train(b, data, opts, (e) => { if (e.kind === "step") { losses.push(e.loss); seen = e.step; } }, () => stopAt !== null && seen === stopAt,
+      { onCheckpoint: every ? (cp) => cps.push(structuredClone(cp)) : null, checkpointSteps: every });
+    let paused = !!res.paused;
+    if (res.paused || (every && cps.length)) {
+      const cp = res.paused ? structuredClone(res.checkpoint) : cps[2];
+      if (!res.paused) losses.length = cp.step;   // a crash after the third checkpoint: drop the steps it lost
+      b = new Fake();
+      res = await C.train(b, data, opts, (e) => { if (e.kind === "step") losses.push(e.loss); }, () => false, { resume: cp });
+    }
+    return { res, losses, paused, w: res.spike.sm.w };
+  };
+  const A = await runLog(null);
+  const cases = { mid_epoch: await runLog(7), epoch_end: await runLog(5), first_step: await runLog(1), from_periodic_checkpoint: await runLog(null, 3) };
+  const same = (x) => x.losses.length === A.losses.length && x.losses.every((l, i) => l === A.losses[i]) && x.w.every((v, i) => v === A.w[i]) &&
+    x.res.bestEpoch === A.res.bestEpoch && x.res.test.accuracy === A.res.test.accuracy;
+  const detail = Object.fromEntries(Object.entries(cases).map(([k, x]) => [k, { paused: x.paused, identical: same(x) }]));
+  check("pause_resume_exact", Object.values(cases).every(same) && cases.mid_epoch.paused && cases.epoch_end.paused, { steps: A.losses.length, bestEpoch: A.res.bestEpoch, cases: detail });
+}
+
 fs.writeFileSync(path.join(here, "..", "results", "check_js.json"), JSON.stringify(results, null, 1));
 process.exit(fail ? 1 : 0);

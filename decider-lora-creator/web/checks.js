@@ -7,6 +7,8 @@
 //   lora_forward       the WGSL trainer's logits against the head-only path on the same start (Wo_mlp zeroed)
 //   lora_roundtrip     loadSpike then exportSpike returns the same weights (to fp16)
 //   lora_train_export  a short LoRA run (loss falls); its export reloaded in a fresh SpikeEngine
+//   head_resume, lora_resume  a run paused mid-epoch, its checkpoint structured-cloned (as IndexedDB stores
+//                      it), the backend reset, then resumed, ends where the uninterrupted run ends
 import * as C from "./creator.js";
 import { HeadBackend, LoraBackend, truncateRank } from "./backends.js";
 import { SpikeEngine } from "../../adapter-library/web/engine.js";
@@ -80,6 +82,26 @@ export async function runChecks({ device, models, code, fetchBytes = null, n = 1
   const l = await trainRun(lb, 5e-4);
   put("lora_train_export", { ok: l.lossDown && l.d < 0.05 && l.same === data.test.length, epochs: l.ep, test_acc: l.res.test?.accuracy, wo_mlp_dropped: lb.dropped,
     export_reload_max_logit_diff: l.d, argmax_same: `${l.same}/${data.test.length}` });
+  // 7. pause and resume on the real backends
+  const resumeCheck = async (b, lr, stopAt) => {
+    const opts = { epochs, lr, bs: 16, seed: 0 };
+    await b.loadSpike(init.sm, init.bytes);
+    const U = await C.train(b, data, opts);
+    const zU = await b.score(data.test);
+    await b.loadSpike(init.sm, init.bytes);
+    let seen = 0;
+    const P = await C.train(b, data, opts, (e) => { if (e.kind === "step") seen = e.step; }, () => seen === stopAt);
+    if (!P.paused) return { ok: false, error: "did not pause" };
+    const cp = structuredClone(P.checkpoint);
+    await b.loadSpike(init.sm, init.bytes);   // as if the page had reloaded: the backend holds the start again
+    const Rz = await C.train(b, data, opts, () => {}, () => false, { resume: cp });
+    const zR = await b.score(data.test), d = maxAbs(zU, zR);
+    return { ok: d < 1e-4 && argmaxSame(zU, zR) === zU.length && Rz.bestEpoch === U.bestEpoch, pausedAt: { epoch: cp.ep, step: cp.step },
+             max_abs_logit_diff: d, best_epoch: [U.bestEpoch, Rz.bestEpoch], test_acc: [U.test?.accuracy, Rz.test?.accuracy] };
+  };
+  const spe = Math.ceil(data.train.length / 16);
+  put("head_resume", await resumeCheck(be, 8e-4, spe + 1));
+  put("lora_resume", await resumeCheck(lb, 5e-4, spe + 1));
   R.ok = Object.values(R).every((v) => v.ok);
   return R;
 }

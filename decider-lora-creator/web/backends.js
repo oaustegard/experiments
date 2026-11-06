@@ -227,6 +227,20 @@ export class HeadBackend {
     });
   }
 
+  // weights and AdamW moments, for pausing and resuming (creator.js train); the frozen encoder is the start spike's
+  saveState() {
+    const c = (o) => Object.fromEntries(HEAD_KEYS.map((k) => [k, o[k].slice()]));
+    return { kind: "head", sig: this.sig, p: c(this.p), adam: { t: this.adam.t, m: c(this.adam.m), v: c(this.adam.v) } };
+  }
+
+  loadState(st) {
+    if (st.kind !== "head") throw new Error(`a ${st.kind} checkpoint cannot resume on the head-only backend`);
+    if (st.sig !== this.sig) throw new Error("this checkpoint was made on a different start spike");
+    const c = (o) => Object.fromEntries(HEAD_KEYS.map((k) => [k, Float32Array.from(o[k])]));
+    this.p = c(st.p);
+    this.adam = { t: st.adam.t, m: c(st.adam.m), v: c(st.adam.v) };
+  }
+
   exportSpike() {
     const h = this.p;
     return packSpike({ layers: this.layers, head: { w0: h.w0, b0: h.b0, lnw: h.lnw, lnb: h.lnb, w1: h.w1, b1: h.b1[0] } });
@@ -320,6 +334,24 @@ export class WgslTrainerBackend {
     t.setParams(flat);
     await t.flush();
     this.step_ = 0; this.dropped = dropped;
+  }
+
+  // the whole flat parameter vector, both AdamW moments and the step count, for pausing and resuming
+  async saveState() {
+    const t = this.t;
+    return { kind: "wgsl", nParams: t.nParams, rank: this.rank, mods: this.mods(), prm: await t.read(t.PRM), am: await t.read(t.AM), av: await t.read(t.AV), step: this.step_ };
+  }
+
+  async loadState(st) {
+    const t = this.t;
+    if (st.kind !== "wgsl" || st.nParams !== t.nParams || st.rank !== this.rank || st.mods.join() !== this.mods().join())
+      throw new Error("this checkpoint was made with a different trainer layout");
+    t.setParams(Float32Array.from(st.prm));   // also queues clears of the moments, so flush before writing them
+    await t.flush();
+    t.device.queue.writeBuffer(t.AM, 0, Float32Array.from(st.am));
+    t.device.queue.writeBuffer(t.AV, 0, Float32Array.from(st.av));
+    await t.flush();
+    this.step_ = st.step;
   }
 
   async exportSpike() {
@@ -508,6 +540,8 @@ export class LoraBackend {
   score(seqs) { return this.t.score(seqs); }
   exportSpike() { return this.t.exportSpike(); }
   loadSpike(sm, bytes) { return this.t.loadSpike(sm, bytes); }
+  get saveState() { return this.t.saveState ? () => this.t.saveState() : undefined; }
+  loadState(st) { return this.t.loadState(st); }
   destroy() { this.t.destroy?.(); }
 }
 
