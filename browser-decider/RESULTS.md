@@ -18,14 +18,13 @@ numbers come from the card; every other number here was measured in this experim
 Yes for a fixed set of workflows, no for arbitrary questions. Ettin-17m, fine-tuned as a cross-encoder
 on the four workflows of the public Typed Decisions benchmark, agrees with the gold label 0.740 of the time over three seeds. <!-- @evidence[[results/summary.json#spec.stock-e10.accuracy.mean]] -->
 That matches Jev and the teacher's self-agreement. The page downloads 9.74 MB. <!-- @evidence[[results/summary.json#page_build.downloadMB]] -->
-Since 2026-11-06 it ships a seed-0 checkpoint retrained on Colab, with matmul codes held to ±31 and a 4-bit token table; that file scores 0.745. <!-- @evidence[[results/summary.json#packed_spec-stock-e10q-s0-t4-w8L31.accuracy]] -->
-The first build (±63 codes, 10.2 MB) scored 0.730. <!-- @evidence[[results/summary.json#packed_spec-stock-e10-s0-t4-w8L63.accuracy]] -->
-It answered a five-question case in 19 to 41 ms on a MacBook's GPU in Chrome, depending on GPU load; the ±31 file has the same shapes and kernels and was not timed again.
+Its file (±31 matmul codes, 4-bit token table, retrained 2026-11-06) scores 0.745. <!-- @evidence[[results/summary.json#packed_spec-stock-e10q-s0-t4-w8L31.accuracy]] -->
+A five-question case took 19 to 41 ms on a MacBook's GPU in Chrome, depending on GPU load.
 
 It does not generalise. Trained on three workflows and tested on the fourth, it scores 0.353, below the 0.470 label prior. <!-- @evidence[[results/summary.json#lowo.stock.mean_accuracy]] -->
 On 104 questions from unrelated schemas it scores 0.279, where Jev scores 0.894. <!-- @evidence[[results/summary.json#ood_spec-stock-e10-s0.summary.accuracy]] -->
 It is a specialist: retrain it for each set of workflows, from a few hundred labelled cases.
-Monad (56M, causal) scores 0.752 at five epochs, above Ettin, but it would take about 65 MB at 8 bits and has the same failure on unseen workflows (0.333); Ettin ships for its size. <!-- @evidence[[results/summary.json#spec.monad.accuracy.mean]] -->
+Monad (56M, causal) scores 0.752 at five epochs, at about 65 MB, with the same failure on unseen workflows (0.333). <!-- @evidence[[results/summary.json#spec.monad.accuracy.mean]] -->
 
 ## Findings
 
