@@ -17,6 +17,7 @@ const Bk = await ctx.importModule(code + "backends.js");
 const device = await ctx.gpu();
 const J = async (u) => JSON.parse(new TextDecoder().decode(await ctx.fetchBytes(u)));
 const set = JSON.parse(new TextDecoder().decode(data));
+if (cfg.only) set.spikes = set.spikes.filter((s) => cfg.only.includes(s.id));   // refit a subset
 const tok = await C.loadTokenizer(cfg.models + "base/tokenizer.json");
 const W = () => base.buffer.slice(base.byteOffset, base.byteOffset + base.byteLength);
 const shipped = await Promise.all(set.spikes.map(async (s) => ({ ...s, sm: await J(cfg.models + `${set.set}/${s.file}.json`), bytes: await ctx.fetchBytes(cfg.models + `${set.set}/${s.file}.bin`) })));
@@ -42,12 +43,12 @@ for (let k = 0; k < shipped.length; k++) {
   const s = shipped[k], e = exs[k], t0 = performance.now();
   await lb.loadSpike(s.sm, s.bytes);
   const epochs = [];
-  const res = await C.train(lb, { train: e.train, val: e.val, test: [] }, { epochs: 5, lr: 5e-4, bs: 16, seed: 0 }, (ev) => {
+  const res = await C.train(lb, { train: e.train, val: e.val, test: [] }, { epochs: 5, lr: 5e-4, bs: 16, seed: 0, startCandidate: cfg.startCandidate ?? true }, (ev) => {
     if (ev.kind === "epoch") epochs.push({ epoch: ev.epoch, trainLoss: ev.trainLoss, valKL: ev.val?.kl, valAcc: ev.val?.accuracy });
     if (ev.kind === "step" && ev.step % 10 === 0) ctx.progress(0.05 + 0.95 * (k + ev.step / ev.of) / shipped.length, `${s.id} step ${ev.step}/${ev.of}`);
   });
   const sm = { ...res.spike.sm, id: s.sm.id, description: s.sm.description, questions: s.sm.questions, temps: res.temps,
-               refit: { base: "t4-w8L31", from: "shipped spike", epochs: 5, best_epoch: res.bestEpoch, sha: cfg.sha } };
+               refit: { base: "t4-w8L31", from: "shipped spike", epochs: 5, best_epoch: res.bestEpoch, start_candidate: cfg.startCandidate ?? true, sha: cfg.sha } };
   out.spikes[s.id] = { sm, bestEpoch: res.bestEpoch, epochs, ms: performance.now() - t0 };
   out[`bin_${s.id}`] = res.spike.bytes;
   ctx.log(`${s.id}: best epoch ${res.bestEpoch}, val acc ${epochs[0].valAcc?.toFixed(3)} -> ${res.val?.accuracy?.toFixed(3)} (${((performance.now() - t0) / 1000).toFixed(0)} s)`);

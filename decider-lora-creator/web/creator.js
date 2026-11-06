@@ -309,7 +309,9 @@ export function zeroLayers(manifest) {
 // (the first phase's decayed to 0), epoch numbers and the best-epoch choice continuing across both. Each
 // phase's schedule is stored in the checkpoint, so pause and resume work inside an extension too.
 export async function train(backend, data, opts = {}, onEvent = () => {}, shouldStop = () => false, ctl = {}) {
-  const { epochs = 10, lr = 8e-4, weightDecay = 0.01, bs = 16, seed = 0 } = opts;
+  // startCandidate: false makes the run keep a trained epoch even when none beats the start on validation
+  // (adapter-library run/lora.py's rule); the page leaves it on, so training cannot make a spike worse on val
+  const { epochs = 10, lr = 8e-4, weightDecay = 0.01, bs = 16, seed = 0, startCandidate = true } = opts;
   const { resume = null, extend = null, onCheckpoint = null, checkpointSteps = 0 } = ctl;
   const { train: tr, val } = data;
   if (!tr.length) throw new Error("no labelled training sequences");
@@ -349,6 +351,7 @@ export async function train(backend, data, opts = {}, onEvent = () => {}, should
     const rec = { epoch: 0, ...ev, trainLoss: null, ms: performance.now() - t };
     st = { v: 1, steps, epochs, optsKey: key, phase: { start: 0, total: steps * epochs }, ep: 1, b: 0, step: 0, sum: 0, cnt: 0, epochMs: 0, elapsedMs: 0,
            history: [rec], losses: [], best: { ...rec, spike: await snapshot(ev.temps) } };
+    if (!startCandidate) st.best = { ...st.best, epoch: -1, val: st.best.val && { ...st.best.val, kl: Infinity } };
     onEvent({ kind: "epoch", ...rec, best: 0 });
   }
   const checkpoint = async () => ({ ...st, losses: Float32Array.from(st.losses), elapsedMs: st.elapsedMs + performance.now() - tStart,
