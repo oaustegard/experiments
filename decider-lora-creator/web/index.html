@@ -280,7 +280,7 @@ function renderCases() {
   const nSyn = cs.filter((c) => c.source === "synthetic").length, nTl = cs.filter((c) => c.source === "real-teacher-labelled").length;
   $("csum").textContent = cs.length ? `${cs.length} cases · ${nTest} marked test${nTl ? ` · ${nTl} teacher-labelled` : ""}${nSyn ? ` · ${nSyn} synthetic (train only)` : ""}` : "";
   const warn = C.datasetWarnings(S.decision, cs);
-  $("cwarn").textContent = warn.length ? "Check: " + warn.join("; ") + "." : "";
+  $("cwarn").textContent = warn.length ? "Worth knowing (training still works): " + warn.join("; ") + ". An option with few cases is one the model will rarely predict; add cases for it if it matters." : "";
   if (!cs.length) { $("ctable").innerHTML = `<tr><td class="muted">No cases yet.</td></tr>`; return; }
   const head = `<tr><th>id</th><th>state</th>${qs.map((q) => `<th>${esc(q)}</th>`).join("")}<th></th></tr>`;
   const rows = cs.slice(0, 25).map((c, i) => `<tr><td>${esc(c.id)}${c.split === "test" ? ' <span class="tag">test</span>' : ""}</td>
