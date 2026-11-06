@@ -215,7 +215,7 @@ def round3(tok, pad, lc, flat_ex, smoke):
 NODE = "invoice_processing"
 
 
-def round4(tok, pad, lc, train_cases, smoke):
+def round4(tok, pad, lc, train_cases, smoke, epochs=9):
     """Round 4: the shared tree router sent 55 of 60 inv_pricing and inv_process test cases to
     inv_quantity; flat learned the split only on its 9-epoch run. Give that one node its own LoRA,
     trained on the node's question alone (3 shuffles per case, 9 epochs), and score it at that node for
@@ -230,17 +230,18 @@ def round4(tok, pad, lc, train_cases, smoke):
                 opts = list(kids[NODE])
                 rng.shuffle(opts)
                 exs.append(T.router_example(NODE, opts, c["state"], c["leaf"], c["id"]))
-    model, info = fit("node_invoice", tok_examples(tok, exs), 0, smoke, epochs=9)
-    path = OUT / "eval_r4.json"
+    tag = "node_invoice" if epochs == 9 else f"node_invoice_e{epochs}"
+    model, info = fit(tag, tok_examples(tok, exs), 0, smoke, epochs=epochs)
+    path = OUT / ("eval_r4.json" if epochs == 9 else f"eval_r4_e{epochs}.json")
     ev = json.loads(path.read_text()) if path.exists() else {"configs": {}}
-    ev["train"] = {"node_invoice": info}
+    ev["train"] = {tag: info}
     for name, lib, test_leaves in configs():
         k = T.induced(lib)
         if name in ev["configs"] or NODE not in k:
             continue
         cases = [c for x in test_leaves for c in lc[x]["test"][:lim]]
         res = run_queries(model, tok, [(c["state"], NODE, k[NODE]) for c in cases], pad)
-        ev["configs"][name] = {"node_invoice": {c["id"]: r for c, r in zip(cases, res)}}
+        ev["configs"][name] = {tag: {c["id"]: r for c, r in zip(cases, res)}}
         path.write_text(json.dumps(ev))
         print(f"[r4 {name}] {len(cases)} cases", flush=True)
     print("EVAL_DONE", flush=True)
@@ -250,6 +251,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--round4", action="store_true", help="own adapter for the invoice router node")
+    ap.add_argument("--node-epochs", type=int, default=9, help="round 4b: 40 (9 left validation KL at ln 3)")
     ap.add_argument("--round3", action="store_true", help="flat router on the same 9-epoch schedule")
     ap.add_argument("--round2", action="store_true", help="tree router at 9 epochs (flat's training tokens)")
     a = ap.parse_args()
@@ -272,7 +274,7 @@ def main():
     if a.round2:
         return round2(tok, pad, lc, tree_ex, a.smoke)
     if a.round4:
-        return round4(tok, pad, lc, train_cases, a.smoke)
+        return round4(tok, pad, lc, train_cases, a.smoke, a.node_epochs)
     if a.round3:
         return round3(tok, pad, lc, flat_ex, a.smoke)
     flat, finfo = fit("flat", flat_ex, 0, a.smoke)
