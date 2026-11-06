@@ -24,7 +24,7 @@ const KCHUNK = 256;         // rows per split-K slice
 export const TARGETS = ["Wqkv", "Wo", "Wi", "Wo_mlp"];   // PyTorch's recipes match child name "Wo", so attn.Wo and mlp.Wo
 
 // Abramowitz & Stegun 7.1.26 erf (|error| < 1.5e-7): exact-erf GELU as in PyTorch, and its derivative.
-const GELU = /* wgsl */ `
+export const GELU = /* wgsl */ `
 fn erf_(x: f32) -> f32 {
   let a = abs(x);
   let t = 1.0 / (1.0 + 0.3275911 * a);
@@ -35,7 +35,7 @@ fn gelu(x: f32) -> f32 { return 0.5 * x * (1.0 + erf_(x * 0.7071067811865476)); 
 fn gelu_d(x: f32) -> f32 { return 0.5 * (1.0 + erf_(x * 0.7071067811865476)) + x * exp(-0.5 * x * x) * 0.3989422804014327; }
 `;
 
-const REDUCE = (n) => /* wgsl */ `
+export const REDUCE = (n) => /* wgsl */ `
 var<workgroup> red: array<f32, ${n}>;
 fn wsum(v: f32, t: u32) -> f32 {
   red[t] = v;
@@ -66,7 +66,7 @@ fn main(@builtin(workgroup_id) wid: vec3u, @builtin(local_invocation_id) lid: ve
   let gi = wid.x + wid.y * nwg.x;`;
 
 // Kernel specs: u = uniform names (suffix ":f" for f32), b = [name, "r" | "rw", type], wg, src (body + helpers).
-function kernels(C) {
+export function kernels(C) {
   const { H, NH, D, I } = C;
   const K = {};
   // ---- embedding: 4-bit table row, LayerNorm (no bias) ---------------------------------------
@@ -421,7 +421,7 @@ var<workgroup> sd: array<f32, ${SMAX}>;`;
   return K;
 }
 
-function wgsl(name, k) {
+export function wgsl(name, k) {
   const fields = k.u.map((s) => { const [n, t] = s.split(":"); return `  ${n}: ${t === "f" ? "f32" : "u32"},`; });
   const st = `struct Uni {\n${fields.join("\n")}\n}\n@group(0) @binding(0) var<uniform> p: Uni;\n`;
   const binds = k.b.map(([n, m, t], i) => `@group(0) @binding(${i + 1}) var<storage, ${m === "rw" ? "read_write" : "read"}> ${n}: array<${t}>;`).join("\n");
@@ -807,7 +807,7 @@ export class Trainer {
   }
 }
 
-function grid(n) {
+export function grid(n) {
   if (n <= 65535) return [n, 1, 1];
   return [65535, Math.ceil(n / 65535), 1];
 }

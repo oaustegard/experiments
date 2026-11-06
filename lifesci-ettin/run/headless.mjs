@@ -1,0 +1,50 @@
+// Runs a web/*.js check in headless Chromium on SwiftShader WebGPU and prints its JSON result.
+//   node run/headless.mjs gradcheck [out.json]
+// Serves the experiments repo root (distill.js imports ettin-wgsl-train/web/train.js); `get(p)` reads
+// p relative to this experiment.
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+const { chromium } = createRequire(import.meta.url)("playwright");
+
+const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = path.resolve(HERE, "..");
+const NAME = path.basename(HERE);
+const [which = "gradcheck", out, opts = "{}"] = process.argv.slice(2);
+const [file, fn = file] = which.split(":");
+const TYPES = { ".js": "text/javascript", ".html": "text/html", ".json": "application/json" };
+const server = http.createServer((req, res) => {
+  const f = path.join(ROOT, decodeURIComponent(new URL(req.url, "http://x").pathname));
+  if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+  fs.readFile(f, (err, data) => {
+    if (err) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { "content-type": TYPES[path.extname(f)] || "application/octet-stream" });
+    res.end(data);
+  });
+});
+await new Promise((r) => server.listen(0, "127.0.0.1", r));
+const port = server.address().port;
+const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader", "--enable-features=Vulkan"] });
+const page = await browser.newPage();
+page.on("console", (m) => process.stderr.write(`[page] ${m.text()}\n`));
+await page.goto(`http://127.0.0.1:${port}/ettin-wgsl-train/web/blank.html`);
+const result = await page.evaluate(async ([file, fn, opts, NAME]) => {
+  const adapter = await navigator.gpu.requestAdapter();
+  const L = adapter.limits;
+  const device = await adapter.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: L.maxStorageBufferBindingSize, maxBufferSize: L.maxBufferSize,
+    maxStorageBuffersPerShaderStage: L.maxStorageBuffersPerShaderStage } });
+  device.addEventListener("uncapturederror", (e) => console.log("GPU error: " + e.error.message));
+  const get = async (p) => { const r = await fetch(`/${NAME}/` + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return new Uint8Array(await r.arrayBuffer()); };
+  const mod = await import(`/${NAME}/web/${file}.js`);
+  const o = JSON.parse(opts);
+  o.log = (m) => console.log(m);
+  const plain = (v) => ArrayBuffer.isView(v) ? Array.from(v) : Array.isArray(v) ? v.map(plain) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, plain(x)])) : v;
+  try { return plain(await mod[fn](device, get, o)); } catch (e) { return { error: String(e.stack || e) }; }
+}, [file, fn, opts, NAME]);
+await browser.close();
+server.close();
+if (out) fs.writeFileSync(out, JSON.stringify(result));
+const { grads, ...rest } = result;
+console.log(JSON.stringify(rest, null, 1));
