@@ -88,9 +88,10 @@ A.losses.push(...losses);
 const out = { arm: cfg.arm, from: cfg.from, to: cfg.to, loadMs, trainMs, msPerStep: trainMs / (cfg.to - cfg.from), losses: Float32Array.from(losses) };
 if (cfg.save) {
   const p = await tr.read(tr.PRM);
-  const tOff = tr.poff.table, tN = cfg.V * 256;
-  out.table = p.slice(tOff, tOff + tN);
-  out.rest = p.slice(tOff + tN);
-  if (!Number.isFinite(p[tOff + tN + 5])) throw new Error("non-finite params");
+  // in pieces of 3M floats (12 MB): the GitHub blob API refuses one of 51 MB
+  const P = 3 << 20;
+  out.nPieces = Math.ceil(p.length / P);
+  for (let i = 0; i < out.nPieces; i++) out[`p${i}`] = p.slice(i * P, (i + 1) * P);
+  if (!p.every(Number.isFinite)) throw new Error("non-finite params");
 }
 return out;
