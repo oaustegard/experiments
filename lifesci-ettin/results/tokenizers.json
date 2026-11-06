@@ -1,0 +1,235 @@
+{
+ "corpus": {
+  "pubmed_lines": 643320,
+  "pubmed_words": 35876958,
+  "wikitext_lines": 68141,
+  "wikitext_words": 8969269,
+  "hgnc_lines": 45326,
+  "msd_terms": 4567,
+  "msd_term_occurrences": 44351
+ },
+ "pattern": " ?[\\p{L}\\p{N}]+(?:[-–/.,'+][\\p{L}\\p{N}]+)*| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
+ "arms": {
+  "ls32": {
+   "vocab": 32768,
+   "rows_copied_exactly": 20147
+  },
+  "ls50": {
+   "vocab": 50368,
+   "rows_copied_exactly": 25938
+  }
+ },
+ "tokens_per_heldout_abstract": {
+  "ettin": 359.384,
+  "ls32": 326.289,
+  "ls50": 314.9525
+ },
+ "examples": {
+  "IL-6": {
+   "ettin": [
+    "ĠIL",
+    "-",
+    "6"
+   ],
+   "ls32": [
+    "ĠIL-6"
+   ],
+   "ls50": [
+    "ĠIL-6"
+   ]
+  },
+  "GLP-1": {
+   "ettin": [
+    "ĠGL",
+    "P",
+    "-",
+    "1"
+   ],
+   "ls32": [
+    "ĠGLP-1"
+   ],
+   "ls50": [
+    "ĠGLP-1"
+   ]
+  },
+  "SARS-CoV-2": {
+   "ettin": [
+    "ĠSARS",
+    "-",
+    "CoV",
+    "-",
+    "2"
+   ],
+   "ls32": [
+    "ĠSARS-CoV-2"
+   ],
+   "ls50": [
+    "ĠSARS-CoV-2"
+   ]
+  },
+  "NLRP3": {
+   "ettin": [
+    "ĠNLR",
+    "P",
+    "3"
+   ],
+   "ls32": [
+    "ĠNLRP3"
+   ],
+   "ls50": [
+    "ĠNLRP3"
+   ]
+  },
+  "ferroptosis": {
+   "ettin": [
+    "Ġfer",
+    "ro",
+    "pt",
+    "osis"
+   ],
+   "ls32": [
+    "Ġferroptosis"
+   ],
+   "ls50": [
+    "Ġferroptosis"
+   ]
+  },
+  "U-PLEX": {
+   "ettin": [
+    "ĠU",
+    "-",
+    "PLE",
+    "X"
+   ],
+   "ls32": [
+    "ĠU-PLEX"
+   ],
+   "ls50": [
+    "ĠU-PLEX"
+   ]
+  },
+  "V-PLEX": {
+   "ettin": [
+    "ĠV",
+    "-",
+    "PLE",
+    "X"
+   ],
+   "ls32": [
+    "ĠV",
+    "-PLEX"
+   ],
+   "ls50": [
+    "ĠV-PLEX"
+   ]
+  },
+  "R-PLEX": {
+   "ettin": [
+    "ĠR",
+    "-",
+    "PLE",
+    "X"
+   ],
+   "ls32": [
+    "ĠR-PLEX"
+   ],
+   "ls50": [
+    "ĠR-PLEX"
+   ]
+  },
+  "MSD": {
+   "ettin": [
+    "ĠMSD"
+   ],
+   "ls32": [
+    "ĠMSD"
+   ],
+   "ls50": [
+    "ĠMSD"
+   ]
+  },
+  "SULFO-TAG": {
+   "ettin": [
+    "ĠS",
+    "UL",
+    "FO",
+    "-",
+    "TAG"
+   ],
+   "ls32": [
+    "ĠSU",
+    "LF",
+    "O",
+    "-T",
+    "AG"
+   ],
+   "ls50": [
+    "ĠSU",
+    "LF",
+    "O",
+    "-T",
+    "AG"
+   ]
+  },
+  "electrochemiluminescence": {
+   "ettin": [
+    "Ġelectro",
+    "chem",
+    "il",
+    "uminescence"
+   ],
+   "ls32": [
+    "Ġelectrochem",
+    "iluminescence"
+   ],
+   "ls50": [
+    "Ġelectrochemiluminescence"
+   ]
+  },
+  "pembrolizumab": {
+   "ettin": [
+    "Ġp",
+    "emb",
+    "rol",
+    "izumab"
+   ],
+   "ls32": [
+    "Ġpembrolizumab"
+   ],
+   "ls50": [
+    "Ġpembrolizumab"
+   ]
+  },
+  "2,3-dihydro-1H-indene": {
+   "ettin": [
+    "Ġ2",
+    ",",
+    "3",
+    "-",
+    "di",
+    "hydro",
+    "-",
+    "1",
+    "H",
+    "-",
+    "ind",
+    "ene"
+   ],
+   "ls32": [
+    "Ġ2,3",
+    "-dihydro",
+    "-1",
+    "H",
+    "-ind",
+    "ene"
+   ],
+   "ls50": [
+    "Ġ2,3",
+    "-dihydro",
+    "-1H",
+    "-ind",
+    "ene"
+   ]
+  }
+ }
+}
