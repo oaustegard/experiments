@@ -157,6 +157,8 @@ It starts from the mean of the library's three other business-workflow spikes, l
 </div>
 <div class="row"><button id="train" class="primary">Train</button><button id="stop" disabled>Stop</button>
   <button id="resume" hidden>Resume</button><button id="finish" hidden>Finish with the best epoch</button><span id="tstat" class="small muted"></span></div>
+<div class="row" id="moreRow" hidden><button id="more">Train more</button>
+  <label class="pill small"><input type="number" id="moreN" value="5" min="1" max="200"> more epochs, continuing from the last one (with a fresh warmup and decay)</label></div>
 <div class="row small"><label class="pill"><input type="checkbox" id="awake" checked> keep the screen awake while training</label><span id="awakestat" class="muted"></span></div>
 <p class="small muted">Stop pauses a run, and Resume continues it exactly where it stopped. The run is also saved in this browser
 after every epoch and every 50 steps. If the page reloads or the GPU is lost, it can resume from there. Closing a laptop's lid still
@@ -537,23 +539,24 @@ async function prepare(cfg, startRes = null) {
 }
 
 let paused = null;   // { ctx, checkpoint } while a run is paused in this page
+let finished = null; // { ctx, final } after a run ends, for "train more"
 const setButtons = (state) => {   // "idle" | "training" | "paused"
   $("train").disabled = state === "training"; $("stop").disabled = state !== "training";
   $("resume").hidden = $("finish").hidden = state !== "paused";
 };
 const saveRun = (ctx, cp) => idbPut({ savedAt: Date.now(), fp: ctx.fp, cfg: ctx.cfg, startRes: ctx.startRes, checkpoint: cp });
 
-async function execute(ctx, resume = null) {
-  stopFlag = false; training = true; setButtons("training"); $("saved").hidden = true;
+async function execute(ctx, resume = null, extend = null, more = 0) {
+  stopFlag = false; training = true; setButtons("training"); $("saved").hidden = true; $("moreRow").hidden = true;
   await holdAwake(true);
   try {
     const spe = Math.ceil(ctx.data.train.length / ctx.cfg.train.bs);
-    const steps = resume ? Array.from(resume.losses) : [], epochs = [];
-    steps.total = spe * ctx.cfg.train.epochs;
-    const res = await C.train(ctx.backend, ctx.data, ctx.cfg.train, (e) => {
+    const from = resume ?? extend, steps = from ? Array.from(from.losses) : [], epochs = [];
+    steps.total = spe * (extend ? extend.epochs + more : from ? from.epochs : ctx.cfg.train.epochs);
+    const res = await C.train(ctx.backend, ctx.data, extend ? { ...ctx.cfg.train, epochs: more } : ctx.cfg.train, (e) => {
       if (e.kind === "step") { steps.push(e.loss); $("tbar").style.width = `${100 * e.step / e.of}%`; $("tstat").textContent = `epoch ${e.epoch}, step ${e.step}/${e.of}, loss ${e.loss.toFixed(4)}`; if (e.step % 5 === 0) chart(steps, epochs); }
       if (e.kind === "epoch") { epochs.push({ ...e, atStep: Math.max(0, e.epoch * spe - 1) }); epochs.forEach((r) => { r.best = e.best ?? 0; }); epochTable(epochs); chart(steps, epochs); }
-    }, () => stopFlag, { resume, checkpointSteps: 50, onCheckpoint: (cp) => { saveRun(ctx, cp); } });
+    }, () => stopFlag, { resume, extend, checkpointSteps: 50, onCheckpoint: (cp) => { saveRun(ctx, cp); } });
     if (res.paused) {
       paused = { ctx, checkpoint: res.checkpoint };
       const cp = res.checkpoint;
@@ -569,6 +572,8 @@ async function execute(ctx, resume = null) {
 function done(ctx, res) {
   const { backend, sp, startRes, encodeS, cfg } = ctx;
   paused = null; idbDel(); setButtons("idle");
+  finished = res.final ? { ctx, final: res.final } : null;   // what "train more" continues from
+  $("moreRow").hidden = !finished;
   active = backend;
   trained = { ...res.spike, sm: { ...res.spike.sm, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
     trained: { backend: backend.name, start: cfg.init, train_cases: sp.train.length, best_epoch: res.bestEpoch, test_accuracy: res.test?.accuracy ?? null, date: new Date().toISOString().slice(0, 10) } } };
@@ -587,8 +592,13 @@ const guard = (f) => async () => {
 };
 $("train").onclick = guard(async () => {
   if (paused && !confirm("Start a new run? The paused run is discarded.")) return;
-  paused = null; await idbDel();
+  paused = null; finished = null; await idbDel();
   await execute(await prepare(cfgFromUI()));
+});
+$("more").onclick = guard(async () => {
+  if (!finished) return;
+  const n = Math.max(1, Math.round(num("moreN")));
+  await execute(finished.ctx, null, finished.final, n);
 });
 $("stop").onclick = () => { stopFlag = true; $("tstat").textContent = "Pausing after this step…"; };
 $("resume").onclick = guard(async () => { if (paused) await execute(paused.ctx, paused.checkpoint); });

@@ -112,6 +112,35 @@ const merged = C.mergeSpikes(ws);
   check("pause_resume_exact", Object.values(cases).every(same) && cases.mid_epoch.paused && cases.epoch_end.paused, { steps: A.losses.length, bestEpoch: A.res.bestEpoch, cases: detail });
 }
 
+// 6b. train more: a finished run extended by M epochs continues its weights, optimizer, shuffles and epoch
+// numbers with a fresh schedule over the added steps; a pause inside the extension resumes exactly; only a
+// finished run can be extended.
+{
+  const { FakeBackend: Fake } = await import(path.join(web, "fake_backend.js"));
+  const r = C.rng(9), mk = (n, tag) => Array.from({ length: n }, (_, i) => {
+    const P = 2 + (i % 3), ids = Array.from({ length: 12 }, () => Math.floor(r() * 500)), t = new Float32Array(P); t[Math.floor(r() * P)] = 1;
+    return { key: `${tag}${i}`, q: `q${i % 2}`, type: "choice", ids, pos: Array.from({ length: P }, (_, j) => j), target: t };
+  });
+  const data = { train: mk(37, "t"), val: mk(9, "v"), test: mk(11, "s") }, opts = { epochs: 2, lr: 0.05, bs: 8, seed: 3 }, more = { ...opts, epochs: 3 };
+  const lrs = [];
+  class Spy extends Fake { async step(sq, tg, o) { lrs.push(o.lr); return super.step(sq, tg, o); } }
+  const b = new Spy();
+  const first = await C.train(b, data, opts);
+  const n1 = lrs.length, ext = await C.train(b, data, more, () => {}, () => false, { extend: first.final });
+  const spe = Math.ceil(37 / 8), lr2 = lrs.slice(n1);
+  // the same extension, paused at its 4th step and resumed on a fresh backend
+  const b2 = new Fake(); const f2 = await C.train(b2, data, opts);
+  let seen = 0;
+  const p = await C.train(b2, data, more, (e) => { if (e.kind === "step") seen = e.step; }, () => seen === f2.final.step + 4, { extend: f2.final });
+  const b3 = new Fake(), ext2 = await C.train(b3, data, more, () => {}, () => false, { resume: structuredClone(p.checkpoint) });
+  let refused = false;
+  try { await C.train(new Fake(), data, more, () => {}, () => false, { extend: p.checkpoint }); } catch { refused = true; }
+  const ok = ext.epochsRun === 5 && b.t === 5 * spe && lr2.length === 3 * spe && lr2[0] > 5 * lrs[n1 - 1] && lr2[lr2.length - 1] < lr2[0] / 5 && p.paused && ext2.spike.sm.w.every((v, i) => v === ext.spike.sm.w[i]) && ext2.bestEpoch === ext.bestEpoch && refused &&
+    ext.bestEpoch >= first.bestEpoch;
+  check("train_more", ok, { epochsRun: ext.epochsRun, adamSteps: b.t, bestEpoch: [first.bestEpoch, ext.bestEpoch], lrFirstPhaseEnd: lrs[n1 - 1], lrExtension: [lr2[0], Math.max(...lr2), lr2[lr2.length - 1]],
+    pausedInExtension: p.paused, resumedIdentical: ext2.spike.sm.w.every((v, i) => v === ext.spike.sm.w[i]), extendUnfinishedRefused: refused });
+}
+
 // 7. the agent prompt's example output passes the page's own validator, with and without a draft decision
 {
   const { agentPrompt } = await import(path.join(web, "agent_prompt.js"));

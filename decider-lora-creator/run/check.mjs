@@ -98,6 +98,13 @@ if (which === "check") {
   let [cA, pA] = await fresh(); await setup(pA); await pA.click("#train");
   await pA.waitForFunction(() => window.__lastRun, null, { timeout: 600000 });
   out.uninterrupted = await result(pA); out.wakeLock = await pA.evaluate(() => ("wakeLock" in navigator));
+  // train more: 2 further epochs on the finished run
+  out.moreVisible = await pA.isVisible("#more");
+  await pA.evaluate(() => { window.__lastRun = null; });
+  await pA.fill("#moreN", "2"); await pA.click("#more");
+  await pA.waitForFunction(() => window.__lastRun, null, { timeout: 600000 });
+  out.trainedMore = await result(pA);
+  out.epochRows = await pA.evaluate(() => document.querySelectorAll("#etable tr").length - 1);
   await cA.close();
   // B: Stop mid-epoch, then Resume in the same page
   let [cB, pB] = await fresh(); await setup(pB); await pB.click("#train");
@@ -127,7 +134,8 @@ if (which === "check") {
   await pC.screenshot({ path: path.join(exp, "out", "resume.png"), fullPage: true });
   await cC.close();
   const same = (x) => JSON.stringify(x) === JSON.stringify(out.uninterrupted);
-  out.ok = !out.uninterrupted.error && same(out.resumedInPage) && same(out.resumedAfterReload) && out.resumeVisible && out.savedClearedAfterDone;
+  out.ok = !out.uninterrupted.error && same(out.resumedInPage) && same(out.resumedAfterReload) && out.resumeVisible && out.savedClearedAfterDone &&
+    out.moreVisible && out.trainedMore.epochsRun === 6 && out.epochRows === 7 && out.trainedMore.best >= out.uninterrupted.best;
   console.log(JSON.stringify(out, null, 1));
   fs.writeFileSync(path.join(exp, "results", "check_resume_page.json"), JSON.stringify(out, null, 1));
   process.exitCode = out.ok ? 0 : 1;

@@ -291,9 +291,15 @@ export function zeroLayers(manifest) {
 // epoch instead. ctl.onCheckpoint(checkpoint) is also called after every epoch, and every
 // ctl.checkpointSteps steps, so a run cut off by a reload or a lost GPU can resume from the last one.
 // A backend without saveState() cannot pause: shouldStop() then ends the run with its best epoch so far.
+//
+// Train more. A finished run's result carries `final`, the checkpoint at its last step (before the best
+// epoch was restored). Passing it as ctl.extend with opts.epochs = M adds M epochs: training goes on from
+// the final weights and optimizer moments, with a fresh warmup-and-decay schedule over the added steps
+// (the first phase's decayed to 0), epoch numbers and the best-epoch choice continuing across both. Each
+// phase's schedule is stored in the checkpoint, so pause and resume work inside an extension too.
 export async function train(backend, data, opts = {}, onEvent = () => {}, shouldStop = () => false, ctl = {}) {
   const { epochs = 10, lr = 8e-4, weightDecay = 0.01, bs = 16, seed = 0 } = opts;
-  const { resume = null, onCheckpoint = null, checkpointSteps = 0 } = ctl;
+  const { resume = null, extend = null, onCheckpoint = null, checkpointSteps = 0 } = ctl;
   const { train: tr, val } = data;
   if (!tr.length) throw new Error("no labelled training sequences");
   const canSave = typeof backend.saveState === "function";
@@ -305,35 +311,45 @@ export async function train(backend, data, opts = {}, onEvent = () => {}, should
   };
   // exportSpike() may be async (a GPU trainer reads its buffers back); temps ride along in the manifest part
   const snapshot = async (T) => { const s = await backend.exportSpike(); return { sm: { ...s.sm, temps: T }, bytes: s.bytes }; };
-  // adapter-library run/lora.py's schedule: linear warmup over 6% of steps, then linear decay to 0
-  const steps = Math.ceil(tr.length / bs), total = steps * epochs, warm = Math.max(1, Math.floor(0.06 * total));
-  const lrAt = (s) => lr * Math.min(1, (s + 1) / warm) * Math.max(0, (total - s) / Math.max(1, total - warm));
+  // adapter-library run/lora.py's schedule, per phase: linear warmup over 6% of the phase's steps, then
+  // linear decay to 0 at its end. A fresh run has one phase; each "train more" adds one.
+  const steps = Math.ceil(tr.length / bs);
+  const lrAt = (s, ph) => {
+    const warm = Math.max(1, Math.floor(0.06 * ph.total)), k = s - ph.start;
+    return lr * Math.min(1, (k + 1) / warm) * Math.max(0, (ph.total - k) / Math.max(1, ph.total - warm));
+  };
+  const key = JSON.stringify({ lr, weightDecay, bs, seed, n: tr.length, nVal: val.length });
   const tStart = performance.now();
   let st;   // the loop's state: exactly what a checkpoint stores, minus the backend's
-  if (resume) {
-    const want = JSON.stringify({ epochs, lr, weightDecay, bs, seed, n: tr.length, nVal: val.length });
-    if (resume.v !== 1 || resume.steps !== steps || resume.optsKey !== want) throw new Error("this checkpoint was made with different data or options");
-    await backend.loadState(resume.backend);
-    st = { ...resume, history: resume.history.slice(), losses: Array.from(resume.losses) };
+  const from = resume ?? extend;
+  if (from) {
+    const legacy = JSON.stringify({ epochs: from.epochs, lr, weightDecay, bs, seed, n: tr.length, nVal: val.length });
+    if (from.v !== 1 || from.steps !== steps || (from.optsKey !== key && from.optsKey !== legacy)) throw new Error("this checkpoint was made with different data or options");
+    await backend.loadState(from.backend);
+    st = { ...from, optsKey: key, history: from.history.slice(), losses: Array.from(from.losses), phase: from.phase ?? { start: 0, total: steps * from.epochs } };
     delete st.backend;
+    if (extend) {
+      if (st.ep <= st.epochs) throw new Error("only a finished run can be extended; resume this one instead");
+      st.epochs += epochs; st.phase = { start: st.step, total: steps * epochs };
+    }
     for (const rec of st.history) onEvent({ kind: "epoch", ...rec, best: st.best.epoch, replayed: true });
   } else {
     const t = performance.now(), ev = await evalVal();
     const rec = { epoch: 0, ...ev, trainLoss: null, ms: performance.now() - t };
-    st = { v: 1, steps, epochs, optsKey: JSON.stringify({ epochs, lr, weightDecay, bs, seed, n: tr.length, nVal: val.length }), ep: 1, b: 0, step: 0, sum: 0, cnt: 0, epochMs: 0, elapsedMs: 0, history: [rec], losses: [],
-           best: { ...rec, spike: await snapshot(ev.temps) } };
+    st = { v: 1, steps, epochs, optsKey: key, phase: { start: 0, total: steps * epochs }, ep: 1, b: 0, step: 0, sum: 0, cnt: 0, epochMs: 0, elapsedMs: 0,
+           history: [rec], losses: [], best: { ...rec, spike: await snapshot(ev.temps) } };
     onEvent({ kind: "epoch", ...rec, best: 0 });
   }
   const checkpoint = async () => ({ ...st, losses: Float32Array.from(st.losses), elapsedMs: st.elapsedMs + performance.now() - tStart,
                                     backend: await backend.saveState() });
   for (let e = 1; e < st.ep; e++) shuffle(tr, r);   // replay the finished epochs' shuffles
-  for (; st.ep <= epochs; st.ep++) {
+  for (; st.ep <= st.epochs; st.ep++) {
     const te = performance.now(), order = shuffle(tr, r);
     for (; st.b < steps; st.b++) {
       const batch = order.slice(st.b * bs, (st.b + 1) * bs);
-      const { loss } = await backend.step(batch, batch.map((x) => x.target), { lr: lrAt(st.step), weightDecay, epoch: st.ep, step: st.step });
+      const { loss } = await backend.step(batch, batch.map((x) => x.target), { lr: lrAt(st.step, st.phase), weightDecay, epoch: st.ep, step: st.step });
       st.sum += loss * batch.length; st.cnt += batch.length; st.step++; st.losses.push(loss);
-      onEvent({ kind: "step", epoch: st.ep, step: st.step, of: total, loss });
+      onEvent({ kind: "step", epoch: st.ep, step: st.step, of: steps * st.epochs, loss });
       if (shouldStop() && canSave && st.b + 1 < steps) {
         st.b++; st.epochMs += performance.now() - te;
         const cp = await checkpoint();
@@ -354,7 +370,7 @@ export async function train(backend, data, opts = {}, onEvent = () => {}, should
     onEvent({ kind: "epoch", ...rec, best: st.best.epoch });
     st.b = 0; st.sum = 0; st.cnt = 0; st.epochMs = 0;
     const stop = shouldStop();
-    if (st.ep < epochs && (onCheckpoint || (stop && canSave))) {
+    if (st.ep < st.epochs && (onCheckpoint || (stop && canSave))) {
       st.ep++;
       const cp = await checkpoint();
       onCheckpoint?.(cp);
@@ -363,8 +379,13 @@ export async function train(backend, data, opts = {}, onEvent = () => {}, should
     }
     if (stop && !canSave) break;
   }
+  // the final state, for "train more": taken before finishRun restores the best epoch's weights
+  st.ep = st.epochs + 1;
+  const final = canSave ? await checkpoint() : null;
   st.elapsedMs += performance.now() - tStart;
-  return finishRun(backend, data, st, onEvent);
+  const result = await finishRun(backend, data, st, onEvent);
+  result.final = final;
+  return result;
 }
 
 // End a run (finished or paused) with its best epoch: restore that spike and score the test set.
