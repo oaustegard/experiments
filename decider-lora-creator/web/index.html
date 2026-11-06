@@ -113,6 +113,7 @@ It starts from the mean of the library's three other business-workflow spikes, l
 </details>
 
 <h2>2. Cases <span class="n" id="csum"></span></h2>
+<p id="cwarn" class="small" style="color:var(--val)"></p>
 <div class="scroll"><table id="ctable"></table></div>
 <details><summary>Add a case</summary>
   <textarea id="cstate" rows="5" placeholder="The case as text or JSON: whatever the model should read."></textarea>
@@ -269,7 +270,10 @@ function labelOf(g) { if (g === undefined) return ""; if (typeof g === "string")
 function renderCases() {
   const qs = Object.keys(S.decision.questions), cs = S.cases;
   const nTest = cs.filter((c) => c.split === "test").length;
-  $("csum").textContent = cs.length ? `${cs.length} cases · ${nTest} marked test` : "";
+  const nSyn = cs.filter((c) => c.source === "synthetic").length, nTl = cs.filter((c) => c.source === "real-teacher-labelled").length;
+  $("csum").textContent = cs.length ? `${cs.length} cases · ${nTest} marked test${nTl ? ` · ${nTl} teacher-labelled` : ""}${nSyn ? ` · ${nSyn} synthetic (train only)` : ""}` : "";
+  const warn = C.datasetWarnings(S.decision, cs);
+  $("cwarn").textContent = warn.length ? "Check: " + warn.join("; ") + "." : "";
   if (!cs.length) { $("ctable").innerHTML = `<tr><td class="muted">No cases yet.</td></tr>`; return; }
   const head = `<tr><th>id</th><th>state</th>${qs.map((q) => `<th>${esc(q)}</th>`).join("")}<th></th></tr>`;
   const rows = cs.slice(0, 25).map((c, i) => `<tr><td>${esc(c.id)}${c.split === "test" ? ' <span class="tag">test</span>' : ""}</td>

@@ -106,7 +106,12 @@ export function shuffle(arr, r) { const a = arr.slice(); for (let i = a.length -
 // does not depend on the order cases were added); if no case is marked test, testFrac of them test.
 // maxTrain caps the labelled cases used for training and validation together (a label budget, as in
 // adapter-library's "n revealed cases"); valFrac of those validate.
+// Cases with "source": "synthetic" (written by an AI teacher) only ever train: validation picks the best
+// epoch and test gives the score, and both must measure real cases. maxTrain caps the real cases; every
+// synthetic case is added to train.
 export function splitCases(cases, { valFrac = 0.15, testFrac = 0.2, seed = 0, maxTrain = 0, maxTest = 0 } = {}) {
+  const synth = cases.filter((c) => c.source === "synthetic");
+  cases = cases.filter((c) => c.source !== "synthetic");
   const marked = cases.filter((c) => c.split === "test");
   const rest = shuffle(cases.filter((c) => c.split !== "test").sort((a, b) => String(a.id).localeCompare(String(b.id))), rng(seed + 1));
   const nTest = marked.length ? 0 : Math.round(rest.length * testFrac);
@@ -114,10 +119,26 @@ export function splitCases(cases, { valFrac = 0.15, testFrac = 0.2, seed = 0, ma
   let pool = rest.slice(nTest);
   if (maxTrain > 0) pool = pool.slice(0, maxTrain);
   const nVal = Math.max(pool.length > 4 && valFrac > 0 ? 1 : 0, Math.round(pool.length * valFrac));
-  const train = pool.slice(nVal);
+  const train = pool.slice(nVal).concat(synth);
   // maxTest caps the test cases (a quick check on a slow GPU); the cap takes a seeded sample, not the first ones
   const testUsed = maxTest > 0 && test.length > maxTest ? shuffle(test, rng(seed + 2)).slice(0, maxTest) : test;
   return { train, val: pool.slice(0, nVal), test: testUsed };
+}
+
+// Things worth fixing in a dataset that still trains: synthetic cases marked test (they will train
+// instead), more synthetic than real cases, options with fewer than 5 labelled cases.
+export function datasetWarnings(decision, cases) {
+  const w = [], synth = cases.filter((c) => c.source === "synthetic"), real = cases.length - synth.length;
+  const st = synth.filter((c) => c.split === "test").length;
+  if (st) w.push(`${st} synthetic case${st > 1 ? "s are" : " is"} marked test; synthetic cases only train, so ${st > 1 ? "they" : "it"} will train`);
+  if (synth.length > real) w.push(`more synthetic cases (${synth.length}) than real ones (${real}): the score will be on real cases only, and the model may learn the teacher's style`);
+  for (const [n, q] of Object.entries(decision.questions ?? {})) {
+    const cnt = Object.fromEntries(optionsOf(q).map(([o]) => [o, 0]));
+    for (const c of cases) { const g = c.gold?.[n]; if (g === undefined) continue; const top = typeof g === "string" ? g : Object.entries(g).sort((a, b) => b[1] - a[1])[0]?.[0]; if (top in cnt) cnt[top]++; }
+    const thin = Object.entries(cnt).filter(([, k]) => k < 5).map(([o, k]) => `${o} (${k})`);
+    if (cases.length && thin.length) w.push(`${n}: fewer than 5 cases for ${thin.join(", ")}`);
+  }
+  return w;
 }
 
 export const softmax = (z, T = 1) => {

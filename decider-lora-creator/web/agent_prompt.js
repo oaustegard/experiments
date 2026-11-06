@@ -19,7 +19,9 @@ export function agentPrompt(decision = null) {
 
 4. How many. 16 labelled cases teach the model little, 64 are a usable start, and 300 come close to what it can learn. On an invoice-review task it got 63% of decisions right from 16 cases, 73% from 64 and 84% from 300. Aim for at least 5 cases of every option of every question, and keep the mix close to what I will see in practice. Mark about 20% of the cases with "split": "test". The page never trains on them, so they give the honest score. Keep near-duplicates on the same side of the split.
 
-5. Check before you hand the file over: every question has instructions and at least 2 options (a noul question may leave out its options); every gold value names an existing option, or is a distribution over existing options that sums to 1; every case id is unique and no state is empty. Then report how many cases each option of each question has, and flag any option with fewer than 5.
+5. Growing the set, with you as the teacher. If I have more real cases than I can label, label them for me. This is the best use of you: the cases stay real and you supply the judgement. Use the rules from step 3. Where you are unsure, give your honest probabilities as the gold distribution instead of a single answer. Mark these cases "source": "real-teacher-labelled", and show me 10 of them to check before you label the rest. Only if an option still has too few real cases, write synthetic ones for it. Model them on real cases I gave you, vary them (length, wording, layout, the details that point to each answer), and include hard cases close to the boundary between options. Mark every one "source": "synthetic" and keep them fewer than the real cases. Synthetic cases are only ever used for training: the page keeps them out of validation and test, because a score on text you wrote measures your writing, not my cases.
+
+6. Check before you hand the file over: every question has instructions and at least 2 options (a noul question may leave out its options); every gold value names an existing option, or is a distribution over existing options that sums to 1; every case id is unique and no state is empty. Then report how many cases each option of each question has, how many cases are real, teacher-labelled and synthetic, and flag any option with fewer than 5.
 
 The output is one JSON object and nothing else:
 {"decision": {"id": "snake_case_name", "description": "One sentence: what a case is and what gets decided.",
@@ -27,7 +29,7 @@ The output is one JSON object and nothing else:
     "category": {"type": "choice", "instructions": "Which kind of request is this?", "criteria": {"refund": "The customer wants money back.", "other": "Anything else."}},
     "urgent": {"type": "noul", "instructions": "The customer needs an answer today.", "criteria": {"true": "A deadline today or sooner is stated or implied.", "false": "No same-day deadline."}},
     "severity": {"type": "score", "instructions": "How serious is the problem?", "criteria": ["Cosmetic.", "Inconvenient.", "Blocks the customer's work."]}}},
- "cases": [{"id": "c001", "state": "...", "gold": {"category": "refund", "urgent": "false", "severity": "1"}},
-           {"id": "c002", "state": "...", "gold": {"category": {"refund": 0.6, "other": 0.4}, "urgent": "true", "severity": "2"}, "split": "test"}]}
-Leave "split" out for training cases. A score question's gold is its level as a string ("0", "1", ...), and a noul question's gold is "true" or "false".${draft}`;
+ "cases": [{"id": "c001", "state": "...", "gold": {"category": "refund", "urgent": "false", "severity": "1"}, "source": "real"},
+           {"id": "c002", "state": "...", "gold": {"category": {"refund": 0.6, "other": 0.4}, "urgent": "true", "severity": "2"}, "source": "real-teacher-labelled", "split": "test"}]}
+Leave "split" out for training cases. "source" is "real" (labelled by me), "real-teacher-labelled" or "synthetic". A score question's gold is its level as a string ("0", "1", ...), and a noul question's gold is "true" or "false".${draft}`;
 }

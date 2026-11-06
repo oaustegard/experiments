@@ -33,7 +33,7 @@
   ],
   "err2": 0.018153476385358355,
   "norm2": 0.3868457185131424,
-  "ms": 104
+  "ms": 112
  },
  "pause_resume_exact": {
   "ok": true,
@@ -64,6 +64,17 @@
   "validateErrors": [],
   "cases": 2,
   "draftIncluded": true,
-  "chars": 4014
+  "chars": 5131
+ },
+ "synthetic_train_only": {
+  "ok": true,
+  "train": [
+   27,
+   42
+  ],
+  "warnings": [
+   "1 synthetic case is marked test; synthetic cases only train, so it will train",
+   "more synthetic cases (15) than real ones (3): the score will be on real cases only, and the model may learn the teacher's style"
+  ]
  }
 }

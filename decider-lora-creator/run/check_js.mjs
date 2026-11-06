@@ -125,5 +125,18 @@ const merged = C.mergeSpikes(ws);
     { parseError: err, validateErrors: errs, cases: ex?.cases.length, draftIncluded: withDraft, chars: p.length });
 }
 
+// 8. synthetic cases only train; without them the split is unchanged
+{
+  const mkc = (n, src) => Array.from({ length: n }, (_, i) => ({ id: `${src}${String(i).padStart(3, "0")}`, state: "s", gold: {}, ...(src === "y" ? { source: "synthetic" } : {}) }));
+  const real = mkc(40, "r"), syn = mkc(15, "y");
+  syn[0].split = "test";
+  const a = C.splitCases(real, { seed: 1 }), b = C.splitCases([...real, ...syn], { seed: 1 });
+  const ids = (x) => x.map((c) => c.id).join();
+  const ok = ids(a.val) === ids(b.val) && ids(a.test) === ids(b.test) && b.train.length === a.train.length + 15 &&
+    ![...b.val, ...b.test].some((c) => c.source === "synthetic");
+  const w = C.datasetWarnings({ questions: {} }, [...mkc(3, "r"), ...syn]);
+  check("synthetic_train_only", ok && w.length === 2, { train: [a.train.length, b.train.length], warnings: w });
+}
+
 fs.writeFileSync(path.join(here, "..", "results", "check_js.json"), JSON.stringify(results, null, 1));
 process.exit(fail ? 1 : 0);
