@@ -97,6 +97,11 @@ More labels per family, or families needing different answers, could change the 
 11. **With no labels, nothing in the library transfers.** Each library spike applied to an unseen workflow,
    their uniform merge, and the spike the router picks all scored 0.254–0.440, below the 0.470 frequency
    baseline (P3 held). (Round 1, `results/summary.json` fallback)
+12. **The base ships at ±31, 9.02 MB brotli instead of 9.51, once the spikes are refit to it.** Swapped
+   under the shipped spikes unchanged, ±31 cost two of them 0.016–0.018. Refit on the GPU Bridge (5 or 10
+   epochs from the shipped spike), the seven spikes score +0.001 pooled over 4,865 test decisions <!-- @evidence[[results/refit31_paired.json#pooled.n]] -->
+   (95% CI −0.008 to +0.010), with every spike's upper bound at or above 0, the rule registered before the
+   test. (2026-11-06 entries, `results/refit31_paired.json`)
 
 ## Method
 
@@ -540,3 +545,29 @@ Reading: the routers do not care. Two spikes lose 0.016–0.018 because they wer
 was for a model packed at ±31 from its own fp32 weights. So a ±31 base needs the spikes refit to it. The
 base stays at ±63 until that is done (candidate: 5-epoch refits from the shipped spikes with
 ettin-wgsl-train's trainer on the GPU Bridge).
+
+### 2026-11-06: the ±31 base ships with refit spikes
+
+The entry above kept ±63 until the spikes were refit to ±31. `run/refit31_job.js` refit each shipped spike
+on the ±31 base with ettin-wgsl-train's trainer on the GPU Bridge: 5 epochs from the shipped spike, and 10
+epochs with a trained epoch required (`startCandidate` off) for the three whose first refit kept the start
+(invoices, security, reviews). `run/refit31_paired.py` then scored both versions of each spike on the same
+test cases, decision by decision, with a 95% bootstrap interval over cases. The rule was committed before
+the scores (f8448908): ship if no spike's upper bound is below 0 and the pooled change is at or above 0.
+
+| spike | decisions | shipped (±63) | refit (±31) | change | 95% CI |
+|---|---|---|---|---|---|
+| agent traces | 500 | 0.714 | 0.738 | +0.024 | +0.004 to +0.044 |
+| customer service | 500 | 0.694 | 0.698 | +0.004 | −0.022 to +0.030 |
+| invoices | 500 | 0.856 | 0.834 | −0.022 | −0.048 to +0.002 |
+| security | 500 | 0.720 | 0.722 | +0.002 | −0.022 to +0.026 |
+| transactions | 921 | 0.959 | 0.974 | +0.015 | +0.004 to +0.027 |
+| emails | 987 | 0.819 | 0.829 | +0.010 | −0.010 to +0.029 |
+| reviews | 957 | 0.610 | 0.586 | −0.024 | −0.050 to +0.003 |
+| pooled | 4,865 | | | +0.001 | −0.008 to +0.010 |
+
+It passes, narrowly: invoices and reviews have upper bounds of +0.002 and +0.003. `run/ship31.py` installed
+the base at `web/models/base31/`, swapped in the seven refit spikes, pointed `system.json` at it, bumped
+workflows to 0.2.0 and everyday to 0.3.0, and rebuilt the page's fixtures (31133eea). The ±63 base stays at
+`web/models/base/` for spikes that record it. decider-lora-creator trains new spikes on base31.
+

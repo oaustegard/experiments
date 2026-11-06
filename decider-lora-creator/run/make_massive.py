@@ -4,7 +4,7 @@
 
 AmazonScience/massive (FitzGerald et al. 2022, arXiv 2204.08582) labels each utterance with a scenario
 (18) and an intent (60), plus slot annotations. No library spike covers spoken commands, so this demo
-shows a new decision rather than a held-out library workflow. Three questions, all from MASSIVE's own
+shows a new decision rather than a held-out library workflow; it starts from all seven library spikes merged. Three questions, all from MASSIVE's own
 labels:
   domain         choice, the 18 scenarios
   request        choice: act / ask / chat, a fixed mapping of the 60 intents (REQUEST below)
@@ -38,6 +38,11 @@ ACT = {"iot_hue_lightchange", "transport_ticket", "iot_wemo_off", "audio_volume_
        "social_post", "alarm_set", "calendar_set", "play_game", "alarm_remove", "lists_remove", "transport_taxi", "iot_coffee", "play_music",
        "play_podcasts", "music_likeness", "music_dislikeness"}
 REQUEST = {i: "chat" if i in CHAT else "act" if i in ACT else "ask" for i in INTENTS}
+# The demo's start: all seven library spikes, merged and cut to rank 8 as the page does. None has seen a voice command; on
+# three paired seeds the merge beat a fresh adapter by 1.8 points at 64 and at 1,200 cases (results/bridge_massive-starts-3.json
+# against bridge_massive-starts-1.json).
+LIBRARY_START = ["workflows/agent_trace_observability", "workflows/customer_service", "workflows/invoice_processing",
+                 "workflows/security_incidents", "everyday/transactions", "everyday/emails", "everyday/reviews"]
 TIME_SLOT = re.compile(r"\[(date|time|timeofday) :")
 
 DOMAIN = {
@@ -96,7 +101,7 @@ def main():
     tr, te = rows(src / "train.parquet"), rows(src / "test.parquet")
     random.Random("massive-demo").shuffle(tr); random.Random("massive-demo-test").shuffle(te)
     cases = [{k: v for k, v in c.items() if k != "intent"} for c in tr[:1200]] + [{**{k: v for k, v in c.items() if k != "intent"}, "split": "test"} for c in te[:600]]
-    out = {"decision": DECISION, "cases": cases, "init": [],
+    out = {"decision": DECISION, "cases": cases, "init": LIBRARY_START,
            "source": "Amazon MASSIVE en-US (CC BY 4.0, AmazonScience/massive, FitzGerald et al. 2022): 1,200 train and 600 test utterances, "
                      "labels from its scenario, intent (mapped to act/ask/chat) and date/time slots. decider-lora-creator/run/make_massive.py"}
     (ROOT / "web" / "demo" / "massive.json").write_text(json.dumps(out, separators=(",", ":")))

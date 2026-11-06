@@ -1,0 +1,233 @@
+{
+ "id": "massive-starts-3",
+ "startedAt": 1793983757538,
+ "finishedAt": 1793984142968,
+ "runMs": 381103.89999997616,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "75ejdgup",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "library n=64 seed 0: start 0.299 -> 0.699 (epoch 8, 7 s)",
+  "library n=64 seed 1: start 0.299 -> 0.695 (epoch 8, 7 s)",
+  "library n=64 seed 2: start 0.299 -> 0.677 (epoch 4, 7 s)",
+  "library n=all seed 0: start 0.299 -> 0.874 (epoch 6, 97 s)",
+  "library n=all seed 1: start 0.299 -> 0.856 (epoch 9, 100 s)",
+  "library n=all seed 2: start 0.299 -> 0.878 (epoch 5, 102 s)"
+ ],
+ "outputs": {
+  "describe": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  },
+  "sha": "930ef4e431ec5e6c775c9f83d61e4331f9de4e6a",
+  "maxLen": 306,
+  "arms": [
+   {
+    "start": "library",
+    "n": 64,
+    "seed": 0,
+    "train_cases": 54,
+    "val_cases": 10,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.6994444444444444,
+    "test_kl": 1.248683322809459,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.5033333333333333,
+      "kl": 1.843700275091562
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.7766666666666666,
+      "kl": 0.6226053809723147
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.8183333333333334,
+      "kl": 1.2797443123644985
+     }
+    },
+    "prior": 0.4494444444444444,
+    "best_epoch": 8,
+    "ms": 6681.099999904633
+   },
+   {
+    "start": "library",
+    "n": 64,
+    "seed": 1,
+    "train_cases": 54,
+    "val_cases": 10,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.695,
+    "test_kl": 0.9562628175577708,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.5183333333333333,
+      "kl": 1.7440769900819393
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.74,
+      "kl": 0.7271969482849554
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.8266666666666667,
+      "kl": 0.39751451430642015
+     }
+    },
+    "prior": 0.48333333333333334,
+    "best_epoch": 8,
+    "ms": 6699.200000047684
+   },
+   {
+    "start": "library",
+    "n": 64,
+    "seed": 2,
+    "train_cases": 54,
+    "val_cases": 10,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.6772222222222222,
+    "test_kl": 1.781984505276434,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.5483333333333333,
+      "kl": 2.884420010157001
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.6633333333333333,
+      "kl": 1.2030238957142148
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.82,
+      "kl": 1.2585096099580806
+     }
+    },
+    "prior": 0.48333333333333334,
+    "best_epoch": 4,
+    "ms": 6610.299999952316
+   },
+   {
+    "start": "library",
+    "n": 0,
+    "seed": 0,
+    "train_cases": 1020,
+    "val_cases": 180,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.8744444444444445,
+    "test_kl": 0.44749405251794294,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.785,
+      "kl": 0.8104721586881342
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.87,
+      "kl": 0.42715064920850715
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.9683333333333334,
+      "kl": 0.10485934965718718
+     }
+    },
+    "prior": 0.48333333333333334,
+    "best_epoch": 6,
+    "ms": 97344.19999992847
+   },
+   {
+    "start": "library",
+    "n": 0,
+    "seed": 1,
+    "train_cases": 1020,
+    "val_cases": 180,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.8561111111111112,
+    "test_kl": 0.4922821217261944,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.7583333333333333,
+      "kl": 0.9041255660184437
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.8483333333333334,
+      "kl": 0.45635872594097254
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.9616666666666667,
+      "kl": 0.1163620732191674
+     }
+    },
+    "prior": 0.48333333333333334,
+    "best_epoch": 9,
+    "ms": 99663.19999992847
+   },
+   {
+    "start": "library",
+    "n": 0,
+    "seed": 2,
+    "train_cases": 1020,
+    "val_cases": 180,
+    "test_cases": 600,
+    "start_test": 0.29944444444444446,
+    "test": 0.8783333333333333,
+    "test_kl": 0.44287702125545525,
+    "questions": {
+     "domain": {
+      "n": 600,
+      "accuracy": 0.7783333333333333,
+      "kl": 0.8293615626732876
+     },
+     "request": {
+      "n": 600,
+      "accuracy": 0.8816666666666667,
+      "kl": 0.3885669930436983
+     },
+     "mentions_time": {
+      "n": 600,
+      "accuracy": 0.975,
+      "kl": 0.11070250804938007
+     }
+    },
+    "prior": 0.48333333333333334,
+    "best_epoch": 5,
+    "ms": 101736.39999997616
+   }
+  ]
+ }
+}

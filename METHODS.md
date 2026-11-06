@@ -1613,6 +1613,9 @@ the result.
   at that sha until each returns 200 (a cold sha 403s one file in a few for up to a minute); after that, two timed-out
   jobs in a row stopped happening (`trm-doom`, 2026-10-30). (`moederncolbert-bench/RESULTS.md` log round 2, `eg2-wgsl-engine/RESULTS.md`
   log round 4)
+  A job that fetches many data files at once (seven spikes, 14 files) drew jsDelivr 403s on several of them on
+  two tries; reading the data from `raw.githubusercontent.com/<owner>/<repo>/<sha>/` (CORS `*`) worked first time. Keep
+  module imports on jsDelivr, since raw serves JS as text/plain. (`decider-lora-creator/RESULTS.md` log round 6)
 
 - **Do not commit a file that a running process is still appending to.** An eval wrote rows to
   `runs/x.jsonl` while a commit loop ran `git add`, then `git fetch && git rebase`; the rebase rewrote the
@@ -5241,3 +5244,13 @@ From `long-horizon-execution` (2026-10-16).
   (Ettin) beat the frozen-EG2 head on every Typed Decisions workflow (0.721 vs 0.661 at 256 cases); and generality needs the encoder trained on the mix
   (as tasksource-decider-nano is). Also: zero-shot option similarity is strong for intent labels (0.875 on banking77)
   and at chance for yes/no predicates (0.458 on a 50/50 set). (`eg2-decider/RESULTS.md`)
+
+### Start a new LoRA from the merged library even when no spike is related (decider-lora-creator)
+
+On MASSIVE voice commands, a decision none of seven business and everyday spikes had seen, starting from
+their mean cut to rank 8 beat a fresh adapter by 1.8 points at 64 and at 1,200 labelled cases (0.690 vs
+0.672, 0.869 vs 0.851), with none of three paired seeds worse. Untrained, the merge scored 0.299 against
+0.123. Three seeds give no tight interval, and it costs downloading the spikes, so treat it as a default to
+beat, not a law. It does not contradict browser-decider's no-transfer finding: there the spikes were applied
+untrained; here they only initialize training. (`decider-lora-creator/RESULTS.md` finding 8)
+

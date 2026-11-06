@@ -7,8 +7,8 @@ austegard.com/experiments/decider-lora-creator/web/). Plan and predictions: `PLA
 
 ## Answer
 
-The page trains real LoRA spikes on the GPU, and they score at least as well as PyTorch's. It uses
-ettin-wgsl-train's WebGPU backward pass. The protocol is adapter-library's growth arm: the invoice workflow,
+The page trains real LoRA spikes on the GPU with ettin-wgsl-train's WebGPU backward pass, and they score
+at least as well as PyTorch's. The protocol is adapter-library's growth arm: the invoice workflow,
 a start from the other three workflow spikes, and 100 test cases. Over 10 seeds paired by seed on the Mac,
 in-browser LoRA scores 0.727 at 64 labelled cases against PyTorch's 0.703 (+0.024, 95% CI 0.003–0.045), and
 0.837 against 0.816 at 300 (+0.021). <!-- @evidence[[../ettin-wgsl-train/results/growth_seeds.json#by_n]] -->
@@ -16,13 +16,14 @@ At 16 cases it scores 0.629 over 8 seeds. <!-- @evidence[[results/bridge_creator
 Training only the decision head scores 0.560 / 0.590 / 0.628 at 16 / 64 / 300, barely above the prior's 0.538.
 So the encoder has to adapt.
 
-A learned library merge after P²-MOPD (one weight per spike per module) scores 0.616 / 0.720. That is no
-better than an even merge (0.611 / 0.706) or the page's plain start, which the page keeps.
+A learned library merge after P²-MOPD scores 0.616 / 0.720, no better than an even merge (0.611 / 0.706).
 
-All six of the page's checks pass on the Mac. The trainer matches the inference path to 3.1e-6. A 300-case spike trains in about 97 s.
+On a decision no library spike covers, MASSIVE voice commands, a fresh adapter answers 0.851 of test
+questions from 1,200 labelled commands and the merged library start 0.869 (3 seeds each). <!-- @evidence[[results/bridge_massive-starts-3.json#outputs.arms]] -->
 
-The starts, bases and training loops of the two pipelines still differ. A run that separates them would
-say why the page leads.
+The page's checks pass on the Mac, and a 300-case spike trains in about 97 s.
+
+The two pipelines' starts, bases and training loops still differ; a run separating them would say why the page leads.
 
 ## Findings
 
@@ -63,6 +64,11 @@ say why the page leads.
    uninterrupted run (max difference 0), for both the WGSL LoRA trainer and the head-only backend. In
    headless Chromium, Stop then Resume, and Stop then reload then "Resume it", give the same final
    result as an uninterrupted run, through the page's own buttons. (bridge `creator-resume-2`, `results/check_resume_page.json`)
+8. **On a new decision, the merged library still beats a fresh adapter, by 1.8 points.** MASSIVE voice
+   commands, three questions, 600 test commands, the page's protocol, three seeds paired by split. From 64
+   labelled commands the merge of all seven spikes scores 0.690 and a fresh adapter 0.672; from 1,200, 0.869 <!-- @evidence[[results/bridge_massive-starts-3.json#outputs.arms]] -->
+   and 0.851. No seed did worse from the library. Untrained, the merge scores 0.299 and the fresh adapter
+   0.123; always giving the most common answer scores 0.483. (bridges `massive-starts-1`, `massive-starts-3`)
 
 ## Method
 
@@ -238,3 +244,38 @@ Checks:
   the resume flow): both pass.
 - On the Mac (bridge `creator-resume-2`, commit 2532af04): `head_resume` and `lora_resume` pass with logit
   difference 0, alongside the six earlier checks.
+
+### Round 6 (2026-11-06): the ±31 base and the MASSIVE demo
+
+Two changes. The page now trains on adapter-library's ±31 base (`base31`, 9.02 MB brotli), which shipped
+once the refit spikes passed a paired test (adapter-library log, 2026-11-06). Exported spikes record
+`base: "base31"` and `embed.js` loads the base a spike names. Oskar also pointed out that the demo was the
+invoice workflow, which the library already has a spike for. The main demo is now 1,800 commands from
+Amazon MASSIVE (en-US, CC BY 4.0): 1,200 to train from, 600 marked test. Three questions come from
+MASSIVE's own labels (`run/make_massive.py`): the scenario (18 options), act/ask/chat (a fixed mapping
+of the 60 intents) and whether a date or time slot is annotated. The invoice demo stays as the second
+button.
+
+Which start should the demo default to? `web/bridge_massive.js` ran the page's protocol on the Mac: 15%
+validation, 10 epochs, lr 5e-4, batch 16, best epoch by validation KL with the start as a candidate,
+temperatures fitted on validation. The scratch arm ran first (`massive-starts-1`, 930ef4e4). Its library
+arm stopped on jsDelivr 403s, and so did a second try at a jsDelivr import. The library arm then ran with
+the models from raw.githubusercontent.com (`massive-starts-3`, same sha).
+
+| start | n | seed 0 | seed 1 | seed 2 | mean | untrained |
+|---|---|---|---|---|---|---|
+| fresh adapter | 64 | 0.693 | 0.656 | 0.667 | 0.672 | 0.123 |
+| all seven spikes, merged to rank 8 | 64 | 0.699 | 0.695 | 0.677 | 0.690 | 0.299 |
+| fresh adapter | 1,200 | 0.844 | 0.856 | 0.854 | 0.851 | 0.123 |
+| all seven spikes, merged to rank 8 | 1,200 | 0.874 | 0.856 | 0.878 | 0.869 | 0.299 |
+
+(n = 64 caps training plus validation, so 54 train and 10 validate; at 1,200, 1,020 train and 180 validate.)
+The prior scores 0.483. Per question at 1,200 from the library start: domain 0.758–0.785, request
+0.848–0.882, mentions_time 0.962–0.975. A run over all 1,200 takes 97–108 s on the Mac.
+
+Reading: none of the seven spikes has seen a voice command, and the merge still helps, by 1.8 points on
+average at both sizes, with no seed worse (the differences by seed are +0.6, +3.9, +1.0 at 64 and +3.0,
+0.0, +2.4 at 1,200). Three seeds cannot put a tight interval on that. The demo now defaults to the merged
+start (`massive.json` `init`), and the page's hints quote these numbers. The blog post's 85% is the fresh
+adapter's.
+
