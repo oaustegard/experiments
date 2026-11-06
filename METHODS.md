@@ -1650,6 +1650,14 @@ the result.
   `\s` does. With both handled, 25,589 of 25,589 strings matched. (`bsky-account-decider/web/state.js`)
 - **Installing sentence-transformers 6 upgrades transformers to 5.x**, which nests ModernBERT's RoPE bases
   under `rope_parameters`; code reading `global_rope_theta` breaks. Pin transformers again after.
+- **GitHub Pages answers one byte range with 206 and several ranges with the whole file.** A
+  `Range: bytes=a-b,c-d` request to austegard.com returned 200 and all 11.5 MB, silently. A loader that
+  fetches scattered rows (token-table fallback, sparse weights) must send one range per request.
+  (`browser-decider/run/vocab_fallback.py`)
+- **`pages.yml` here only runs for listed file types, so a push that changes only a page's model files
+  (`.bin`, `.json`) does not deploy.** The page kept serving the old weights. Dispatch the workflow
+  (`POST /repos/oaustegard/experiments/actions/workflows/pages.yml/dispatches`, `{"ref": "main"}`) and
+  check the live file afterwards. (`browser-decider`, 2026-11-06)
 
 ## Numerical / ML gotchas
 
@@ -4043,6 +4051,21 @@ Bridge, `gpu-bridge/`, runs jobs on Oskar's devices).
 Decode latency in Monad tracks depth: 11.8 ms per token for 64 layers on a Mac GPU. Dropping layers would be the obvious
 training-free speedup, but removing the least important single layer costs 0.045 nats of KL against the full model's
 next-token predictions on its own outputs, and eight greedily chosen layers cost 0.57. Pruning it would need fine-tuning after.
+
+### A partial token table with fetch-on-miss does not suit open text (browser-decider)
+
+Shipping the most frequent rows of Ettin-17m's 4-bit table and fetching missing rows by range keeps
+answers exact, but on 626 held-out Bluesky accounts a 16K-row core (2.0 of 6.4 MB) left 99.8% of accounts
+needing fetches (median 27 rows), and every row seen in 675 other accounts (26K) still left 99.4%. The
+benchmark's synthetic text needed one in 29% to 42% of cases. Measure coverage on real, held-out input
+before building the loader. (`browser-decider/results/vocab_fallback.json`)
+
+### Ettin-17m matmul codes can be held to ±31 (browser-decider)
+
+On three fresh checkpoints packed from fp32, ±31 per-column int8 codes cost 0.002 accuracy against ±63
+(within seed spread) and cut the matmuls' brotli bytes 3.05 to 2.55 MB. Halving existing ±63 codes
+instead of requantizing from fp32 overstated the cost fourfold (0.0085).
+(`browser-decider/results/quant_levels-summary.json`)
 
 ### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
 
