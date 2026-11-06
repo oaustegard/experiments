@@ -72,6 +72,23 @@ def run_student(arm, params, tokp, names):
     return res
 
 
+def run_pooled(arm, params, tokp, pooled, name="trec-covid"):
+    """Docs pooled on the bridge (web/bridge_encode.js), Dense applied here; queries encoded here."""
+    from tokenizers import Tokenizer
+    tok = Tokenizer.from_file(str(tokp))
+    flat = np.fromfile(params, np.float32)
+    V = (len(flat) - 4099840) // 256
+    p = from_flat(flat, V)
+    m = Embedder(p).eval()
+    d, q, qr = load(name)
+    P = np.load(pooled) if str(pooled).endswith(".npy") else np.fromfile(pooled, np.float32)
+    D = P.reshape(len(d["ids"]), 256) @ p["dense"].numpy().T
+    Q = encode(m, tok, [QP + x for x in q["text"]], 64)
+    r = {name: score(dense_rank(Q, D, d["ids"]), q["ids"], qr) | {"docs_pooled_on": "bridge"}}
+    print(arm, name, round(r[name]["ndcg@10"], 4), round(r[name]["recall@100"], 4), flush=True)
+    return r
+
+
 def run_medcpt(names):
     res = {}
     for n, d, q, qr in sets(names):
@@ -107,9 +124,10 @@ if __name__ == "__main__":
     ap.add_argument("tok", nargs="?")
     ap.add_argument("--sets", default="scifact,nfcorpus,pubmed")
     ap.add_argument("--out")
+    ap.add_argument("--pooled", help="docs pooled on the bridge (trec-covid)")
     a = ap.parse_args()
     names = a.sets.split(",")
-    r = run_medcpt(names) if a.arm == "medcpt" else run_bm25(names) if a.arm == "bm25" else run_student(a.arm, a.params, a.tok, names)
+    r = run_pooled(a.arm, a.params, a.tok, a.pooled) if a.pooled else run_medcpt(names) if a.arm == "medcpt" else run_bm25(names) if a.arm == "bm25" else run_student(a.arm, a.params, a.tok, names)
     out = Path(a.out or HERE / "results" / f"eval_{a.arm}.json")
     out.parent.mkdir(exist_ok=True)
     prev = json.loads(out.read_text()) if out.exists() else {}
