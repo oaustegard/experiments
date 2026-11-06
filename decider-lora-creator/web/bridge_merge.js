@@ -31,7 +31,7 @@ const run = async (b, p, startFn) => {
   });
   const m = C.metrics(test, C.probsOf(test, await b.score(test), {}));
   const rec = { ...p, test_accuracy: m.accuracy, test_kl: m.kl, questions: m.questions, ms: performance.now() - ta };
-  if (b.alpha) { const a = b.alpha.flatMap((L) => L.flatMap((o) => Object.values(o))); rec.alpha = { mean: a.reduce((x, y) => x + y, 0) / a.length, min: Math.min(...a), max: Math.max(...a),
+  if (Array.isArray(b.alpha)) { const a = b.alpha.flatMap((L) => L.flatMap((o) => Object.values(o))); rec.alpha = { mean: a.reduce((x, y) => x + y, 0) / a.length, min: Math.min(...a), max: Math.max(...a),
     perSpike: b.alpha.map((L) => L.flatMap((o) => Object.values(o)).reduce((x, y) => x + y, 0) / (L.length * Object.keys(L[0]).length)) }; }
   out.arms.push(rec); done++;
   ctx.log(`${p.arm} n=${p.n} seed=${p.seed}: ${m.accuracy.toFixed(3)} (${(rec.ms / 1000).toFixed(1)} s)`);
