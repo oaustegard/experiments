@@ -7,23 +7,22 @@ austegard.com/experiments/decider-lora-creator/web/). Plan and predictions: `PLA
 
 ## Answer
 
-The page trains real LoRA spikes on the GPU, and they score as well as the Python ones. It uses the
-WebGPU backward pass from `ettin-wgsl-train`. On adapter-library's growth protocol on your Mac (invoice
-workflow, start from the other three workflow spikes, 100 test cases), in-browser LoRA scores 0.600 /
-0.693 / 0.833 at 16 / 64 / 300 labelled cases. <!-- @evidence[[results/bridge_creator-lora-2.json#outputs.arms]] -->
-Python's LoRA from the same start scores 0.600 / 0.748 / 0.813. Training only the decision head scores
-0.560 / 0.590 / 0.628, barely above the prior's 0.538. All six of the page's checks pass on the Mac: prompt
-ids, logits against the NumPy reference, the trainer's logits against the inference path (3.1e-6), the
-weight round trip, and train-and-export for both backends. The 300-case spike trains in about 97 s.
+The page trains real LoRA spikes on the GPU, and they score at least as well as PyTorch's. It uses
+ettin-wgsl-train's WebGPU backward pass. The protocol is adapter-library's growth arm: the invoice workflow,
+a start from the other three workflow spikes, and 100 test cases. Over 10 seeds paired by seed on the Mac,
+in-browser LoRA scores 0.727 at 64 labelled cases against PyTorch's 0.703 (+0.024, 95% CI 0.003–0.045), and
+0.837 against 0.816 at 300 (+0.021). <!-- @evidence[[../ettin-wgsl-train/results/growth_seeds.json#by_n]] -->
+At 16 cases it scores 0.629 over 8 seeds. <!-- @evidence[[results/bridge_creator-merge-2.json#outputs.arms]] -->
+Training only the decision head scores 0.560 / 0.590 / 0.628 at 16 / 64 / 300, barely above the prior's 0.538.
+So the encoder has to adapt.
 
-Over 8 seeds the page's start reaches 0.629 at 16 cases and 0.732 at 64. <!-- @evidence[[results/bridge_creator-merge-2.json#outputs.arms]] -->
-The trainer's session then ran 10 paired seeds on both sides, with the published Python start rebuilt. The
-page beats PyTorch: 0.727 against 0.703 at 64 (+0.024, 95% CI 0.003–0.045) and 0.837 against 0.816 at 300
-(+0.021, CI 0.009–0.033). <!-- @evidence[[../ettin-wgsl-train/results/growth_seeds.json#by_n]] -->
-The Python 0.748 at 64 used for comparison in rounds 1–3 does not reproduce. Rebuilt, its two seeds score
-0.608 and 0.680. A learned library merge after P²-MOPD (one weight per spike per
-module, learned with a fresh residual) reaches 0.616 / 0.720. That is no better than freezing the weights at
-an even split (0.611 / 0.706) or the page's plain start, so the page keeps the plain start.
+A learned library merge after P²-MOPD (one weight per spike per module) scores 0.616 / 0.720. That is no
+better than an even merge (0.611 / 0.706) or the page's plain start, which the page keeps.
+
+All six of the page's checks pass on the Mac. The trainer matches the inference path to 3.1e-6. A 300-case spike trains in about 97 s.
+
+The starts, bases and training loops of the two pipelines still differ. A run that separates them would
+say why the page leads.
 
 ## Findings
 
