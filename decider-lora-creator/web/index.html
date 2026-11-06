@@ -158,9 +158,9 @@ It starts from the mean of the library's three other business-workflow spikes, l
 <div id="ans"></div>
 
 <h2>6. Export</h2>
-<p class="small muted">The spike is a <code>.json</code> manifest (questions, per-type temperatures, tensor offsets) and a <code>.bin</code>
-of fp16 weights (per-type temperatures rescale the logits so probabilities are calibrated on validation), in the format of adapter-library's <code>pack_system.py</code>. Put both in a set's <code>spikes/</code> directory and list
-the spike in its <code>system.json</code>.</p>
+<p class="small muted">Two files: a <code>.json</code> with the questions and calibration, and a 0.5 MB <code>.bin</code> of adapter weights.
+They load in the <a href="../../adapter-library/web/">Spiky Ball Decider</a> as they are: put both in one of its sets'
+<code>spikes/</code> directories and add the spike to that set's <code>system.json</code>, using the entry shown after download.</p>
 <div class="row"><button id="xspike" disabled>Download spike</button><button id="xdata">Download decision and cases</button></div>
 <pre id="xsys" class="small" style="white-space:pre-wrap"></pre>
 <p class="small muted">Source and write-up: <a href="https://github.com/oaustegard/experiments/tree/main/decider-lora-creator">experiments/decider-lora-creator</a>.</p>
