@@ -1701,6 +1701,14 @@ the result.
   plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero
   and 0.610 for a full fine-tune. The same merge used *as a model* with no labels scored 0.258–0.402,
   below prior: the merge is a good initialization and a bad predictor. (`adapter-library/RESULTS.md`)
+- **Learning per-module merge coefficients (P²-MOPD-style) did not beat the uniform merge for growing a spike.**
+  On Ettin-17m, invoices, 3 library spikes: α per spike per module (84 scalars) learned with a rank-8
+  residual reached 0.616 / 0.720 at 16 / 64 labels, against 0.611 / 0.706 with α frozen at 1/3 and
+  0.629 / 0.732 for the plain SVD-cut merge trained whole (4–8 seeds, spread 0.02–0.05). α stayed at
+  0.33–0.41 per spike. The residual is what matters: α alone scored 0.613 at 64. A learned merge can be
+  run on an unmodified LoRA trainer: put each frozen spike in extra rank slots (A = A_k, B = α·B_k),
+  take dL/dα = Σ G_B[slot k] ⊙ B_k, and zero those slots' gradients before the optimizer step.
+  (`decider-lora-creator/RESULTS.md` round 4)
 
 
 - **A recursive model that must learn BFS on a grid: use a 3×3 conv as the token mixer, not attention.** TRM

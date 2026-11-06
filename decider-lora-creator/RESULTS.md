@@ -16,14 +16,16 @@ Python's LoRA from the same start scores 0.600 / 0.748 / 0.813. Training only th
 ids, logits against the NumPy reference, the trainer's logits against the inference path (3.1e-6), the
 weight round trip, and train-and-export for both backends. The 300-case spike trains in about 97 s.
 
-The browser runs still differ from the Python ones in two ways: the base is quantized, and the start is
-merged from the shipped spikes. With two seeds per size, seed-to-seed spread (up to 0.06 at n = 64) is as
-large as any remaining gap. More seeds would say whether the 0.05 deficit at n = 64 is real.
+Over 8 seeds the page's start reaches 0.629 at 16 cases and 0.732 at 64, within 0.03 of Python. <!-- @evidence[[results/bridge_creator-merge-2.json#outputs.arms]] -->
+The round-3 gap at 64 was seed noise. A learned library merge after P²-MOPD (one weight per spike per
+module, learned with a fresh residual) reaches 0.616 / 0.720. That is no better than freezing the weights at
+an even split (0.611 / 0.706) or the page's plain start, so the page keeps the plain start.
 
 ## Findings
 
-1. **In-browser LoRA matches the Python LoRA within seed noise.** Mean of 2 seeds, all four LoRA targets:
-   0.600 (n = 16), 0.693 (64), 0.833 (300), against Python's library-start LoRA at 0.600 / 0.748 / 0.813
+1. **In-browser LoRA matches the Python LoRA.** Over 8 seeds the page's start reaches 0.629 (n = 16, sd 0.032)
+   and 0.732 (64, sd 0.028), against Python's 0.600 and 0.748 (round 4). With 2 seeds and all four LoRA
+   targets it scored 0.600 (n = 16), 0.693 (64), 0.833 (300), against Python's library-start LoRA at 0.600 / 0.748 / 0.813
    (adapter-library `results/G-warm-invoice_processing-*`). Without the Wo_mlp target (round 2) it was
    0.572 / 0.704 / 0.849: adding it closed the gap at n = 16; at 64 and 300 the two runs differ by about
    the spread between seeds. (bridges `creator-lora-1`, `creator-lora-2`)
@@ -42,7 +44,13 @@ large as any remaining gap. More seeds would say whether the 0.05 deficit at n =
 4. **Training is quick enough for the page.** On the Mac (Chrome 156, Apple Metal), LoRA arms take 15 s
    at n = 16, 20 s at 64 and 97 s at 300 (940 steps of 16 sequences, about 0.1 s a step including the
    scheduler and loss read-back). Encoding for head-only takes 1.3 ms a sequence.
-5. **The library start is a good initialization and a bad model.** The merged start scores 0.222 to 0.240
+5. **Learning the library merge's weights did not help** (P²-MOPD-style, 84 weights: 3 spikes × 4 modules
+   × 7 layers). With a rank-8 residual it scored 0.616 (n = 16, 4 seeds) and 0.720 (64). With the
+   weights frozen at 1/3 it scored 0.611 and 0.706, and the page's start, trained whole, 0.629 and 0.732
+   (8 seeds). Seed spread was 0.02–0.05. The learned weights stayed near the even split (0.35–0.41 per
+   spike on average, 0.16–0.56 per module). Without the residual, weights alone reached 0.573 / 0.613.
+   The weight gradients are exact: within 7.6e-4 of central differences. (bridge `creator-merge-2`)
+6. **The library start is a good initialization and a bad model.** The merged start scores 0.222 to 0.240
    untrained, against the prior's 0.538. Python's merge scored 0.258, which is adapter-library's finding.
 
 ## Method
@@ -146,3 +154,39 @@ head-only path, which always had Wo_mlp).
 
 Reading: Wo_mlp accounts for the n = 16 gap. The n = 64 deficit (0.05) and the n = 300 lead (0.02) are
 the size of the seed spread (0.04–0.06), so two seeds cannot settle them.
+
+### Round 4 (2026-11-06): 8 seeds, and a learned library merge
+
+Oskar asked for both: more seeds at n = 64, and the P²-MOPD-style learned merge. `LearnedMergeBackend`
+runs it on the unchanged trainer at rank 32: the three library spikes sit in slots 8–31 as α·B_k with A_k
+fixed, and a fresh rank-8 residual sits in slots 0–7. dL/dα comes from the trainer's B gradient. The
+library slots' gradients are zeroed before AdamW and the slots are rewritten from α after each step.
+α uses its own Adam at 20× the LoRA lr. Bridge job `creator-merge-2` (Mac, commit 85315e3a, 796 s). The
+first try, `creator-merge-1`, failed on a bug in the job script: it read the LoRA scale `alpha` of the
+plain backend as merge weights.
+
+α gradient check on one batch, against central differences (h = 0.05), relative error: Wqkv 9.8e-5,
+Wi 1.6e-4, Wo_mlp 7.6e-4, Wo 4.5e-4. The uniform merge itself, untrained: 0.248.
+
+| arm | n = 16 | n = 64 | seeds |
+|---|---|---|---|
+| `warm` (the page's start, SVD-cut, trained whole) | 0.629 ± 0.032 | 0.732 ± 0.028 | 8 |
+| `uniform+res` (α = 1/3 fixed, residual + head) | 0.611 ± 0.023 | 0.706 ± 0.020 | 4 |
+| `alpha+res` (α learned, residual + head) | 0.616 ± 0.048 | 0.720 ± 0.033 | 4 |
+| `alpha` (α + head, no residual) | 0.573 | 0.613 | 2 |
+| Python library-start LoRA | 0.600 | 0.748 | 2 |
+
+On the same seeds 0–3, `alpha+res` minus `uniform+res` is +0.004 at n = 16 (per seed +0.024, −0.024,
++0.044, −0.028) and +0.015 at 64. Learned α per spike averaged 0.35–0.41 (module range 0.16–0.56). The
+merge arms take about 20 s at n = 16 and 26 s at 64, against 16 s and 22 s for `warm` at rank 8.
+
+Predictions:
+- **P6 held:** `warm` at 64 is 0.732, 0.016 from 0.748.
+- **P7 failed:** +0.005 at n = 16, short of the 0.02 predicted; at 64 it was within ±0.02 (+0.014).
+- **P8 held:** `alpha` trails `alpha+res` by 0.107 at 64.
+- **P9 held:** `alpha+res` is 0.012 under `warm` at 64.
+
+Reading: on this fixture, learning how much of each library spike to keep does not beat an even mean. The
+residual adapter carries the learning. The page keeps its rank-8 SVD-cut start, which is as good and
+cheaper. `LearnedMergeBackend` stays in `backends.js` for a fixture where the library spikes disagree
+more, and the page does not offer it.
