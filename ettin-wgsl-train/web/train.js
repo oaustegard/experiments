@@ -2,9 +2,9 @@
 //
 // The frozen base is the browser-decider page format (int8 matmuls with a scale per output column, a
 // 4-bit token table), dequantized to f32 once on upload. Trainable: a rank-r LoRA on every Wqkv, Wo and
-// Wi, and the decision head (Linear, GELU, LayerNorm, Linear). One flat parameter vector holds them, in
-// run/reference.py's layout: per layer Wqkv A, Wqkv B, Wo A, Wo B, Wi A, Wi B; then head w0, b0, ln_w,
-// ln_b, w1, b1.
+// Wi and Wo_mlp (the MLP output; `targets` picks a subset), and the decision head (Linear, GELU,
+// LayerNorm, Linear). One flat parameter vector holds them, in run/reference.py's layout: per layer A then B
+// for each target in TARGETS order; then head w0, b0, ln_w, ln_b, w1, b1. `trainer.layout` lists it.
 //
 // One step: forward through the 7 layers keeping only each layer's input (checkpointing), the head and
 // the segment-softmax cross-entropy loss, then for each layer from the top: recompute its forward from
@@ -21,6 +21,7 @@ const SMAX = 1024;          // longest sequence (the attention kernels' workgrou
 const SLOT = 256;           // uniform slot bytes (minUniformBufferOffsetAlignment)
 const MAX_SLOTS = 2048;
 const KCHUNK = 256;         // rows per split-K slice
+export const TARGETS = ["Wqkv", "Wo", "Wi", "Wo_mlp"];   // PyTorch's recipes match child name "Wo", so attn.Wo and mlp.Wo
 
 // Abramowitz & Stegun 7.1.26 erf (|error| < 1.5e-7): exact-erf GELU as in PyTorch, and its derivative.
 const GELU = /* wgsl */ `
@@ -440,12 +441,14 @@ export class Trainer {
     return t;
   }
 
-  constructor(device, { manifest, weights, maxRows, maxSeqs = 64, maxPool = 256, maxSeg = 128, rank = 8, alpha = 16 }) {
+  constructor(device, { manifest, weights, maxRows, maxSeqs = 64, maxPool = 256, maxSeg = 128, rank = 8, alpha = 16, targets = TARGETS }) {
     this.device = device;
     this.man = manifest;
     this.wbytes = weights instanceof Uint8Array ? weights : new Uint8Array(weights);
     const H = manifest.hidden, NH = manifest.heads;
     this.C = { H, NH, D: H / NH, I: manifest.inter, L: manifest.layers.length, r: rank, s: alpha / rank };
+    if (targets.some((t) => !TARGETS.includes(t))) throw new Error(`targets must be among ${TARGETS}`);
+    this.targets = TARGETS.filter((t) => targets.includes(t));
     if (H !== 256 || this.C.D !== 64) throw new Error(`kernels assume hidden 256, head dim 64 (got ${H}, ${this.C.D})`);
     this.max = { R: maxRows, B: maxSeqs, P: maxPool, G: maxSeg };
     this.ops = [];
@@ -521,7 +524,7 @@ export class Trainer {
     this.CS = this.#buf("CS", cs.length, cs);
 
     // trainable parameters: per layer [Wqkv A, B, Wo A, B, Wi A, B], then head
-    const tg = [["Wqkv", 3 * H, H], ["Wo", H, H], ["Wi", 2 * I, H]];
+    const tg = [["Wqkv", 3 * H, H], ["Wo", H, H], ["Wi", 2 * I, H], ["Wo_mlp", H, I]].filter(([t]) => this.targets.includes(t));
     const lay = [];
     let pn = 0;
     const add = (name, size, shape) => { lay.push({ name, offset: pn, shape }); pn += size; };
@@ -542,7 +545,7 @@ export class Trainer {
     const A = (name, size) => { this[name] = this.#buf(name, size); };
     A("Hn", R * H); A("ST1", 2 * R); A("QKV", R * 3 * H); A("QR", R * 2 * H); A("O", R * H); A("LSE", R * NH);
     A("XM", R * H); A("H2", R * H); A("ST2", 2 * R); A("U", R * 2 * I); A("G", R * I);
-    A("T1", R * r); A("T2", R * r); A("T3", R * r);
+    A("T1", R * r); A("T2", R * r); A("T3", R * r); A("T4", R * r);
     A("DXA", R * H); A("DXB", R * H); A("DG", R * I); A("DU", R * 2 * I); A("DT", R * r); A("DH2", R * H); A("DO", R * H);
     A("DH", R * H); A("DXM", R * H); A("DQR", R * 2 * H); A("DQKV", R * 3 * H); A("DD", R * NH);
     this.ZMAX = Math.ceil(R / KCHUNK);
@@ -668,10 +671,14 @@ export class Trainer {
   }
 
   // LoRA forward: T = X A^T, Y += s T B^T
-  #loraF(X, pfx, N, Kin, T, Y, R) {
+  #has(pfx) { return this.targets.includes(pfx.split(".")[1]); }
+
+  #loraF(X, pfx, N, Kin, T, Y, R, tOnly = false) {
+    if (!this.#has(pfx)) return;
     const { r, s } = this.C;
     this.op("mm", [X, this.PRM, T], { M: R, N: r, K: Kin, kChunk: Kin, aRS: Kin, aCS: 1, bOff: this.poff[pfx + ".A"], bRS: 1, bCS: Kin, cRS: r, cCS: 1, alpha: 1 },
       [1, Math.ceil(R / 64), 1]);
+    if (tOnly) return;
     this.op("mm", [T, this.PRM, Y], { M: R, N, K: r, kChunk: r, aRS: r, aCS: 1, bOff: this.poff[pfx + ".B"], bRS: 1, bCS: r, cRS: N, cCS: 1, acc: 1, alpha: s },
       [Math.ceil(N / 64), Math.ceil(R / 64), 1]);
   }
@@ -687,6 +694,7 @@ export class Trainer {
   // LoRA backward. DY [R, N] is the gradient of the LoRA'd output, X [R, K] its input, T = X A^T.
   // Writes dA, dB into GRD; DT = s DY B; DX += DT A (when DX given).
   #loraB(DY, X, T, pfx, N, Kin, R, DX) {
+    if (!this.#has(pfx)) return;
     const { r, s } = this.C;
     this.op("mm", [DY, this.PRM, this.DT], { M: R, N: r, K: N, kChunk: N, aRS: N, aCS: 1, bOff: this.poff[pfx + ".B"], bRS: r, bCS: 1, cRS: r, cCS: 1, alpha: s },
       [1, Math.ceil(R / 64), 1]);
@@ -715,9 +723,10 @@ export class Trainer {
     this.#lin(this.H2, `L${i}.Wi`, 2 * I, H, this.U, R);
     this.#loraF(this.H2, `L${i}.Wi`, 2 * I, H, this.T3, this.U, R);
     this.op("geglu", [this.U, this.G], { n: R * I }, Math.ceil((R * I) / 256));
-    if (recompute) return { h, att };
+    if (recompute) { this.#loraF(this.G, `L${i}.Wo_mlp`, H, I, this.T4, null, R, true); return { h, att }; }
     this.op("copy", [this.XM, this.XS[i + 1]], { n: R * H }, Math.ceil((R * H) / 256));
     this.#lin(this.G, `L${i}.Wo_mlp`, H, I, this.XS[i + 1], R, 1);
+    this.#loraF(this.G, `L${i}.Wo_mlp`, H, I, this.T4, this.XS[i + 1], R);
     return { h, att };
   }
 
@@ -764,6 +773,7 @@ export class Trainer {
       const { h, att } = this.#layer(i, true);
       // MLP
       this.#linT(dxo, pf + "Wo_mlp", H, I, this.DG, R);
+      this.#loraB(dxo, this.G, this.T4, pf + "Wo_mlp", H, I, R, this.DG);
       this.op("geglu_bwd", [this.U, this.DG, this.DU], { n: R * I }, Math.ceil((R * I) / 256));
       this.#linT(this.DU, pf + "Wi", 2 * I, H, this.DH2, R);
       this.#loraB(this.DU, this.H2, this.T3, pf + "Wi", 2 * I, H, R, this.DH2);

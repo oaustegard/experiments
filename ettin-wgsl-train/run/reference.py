@@ -6,7 +6,7 @@
 
 The model is bsky-account-decider's page model rebuilt from its packed weights (thread_lora.base_model),
 with its rank-8 LoRA on Wqkv / Wo / Wi and a trainable head. The flat parameter layout (layout()) is the
-one web/train.js uses: per layer, Wqkv A, Wqkv B, Wo A, Wo B, Wi A, Wi B; then the head.
+one web/train.js uses: per layer, A then B for Wqkv, Wo, Wi and Wo_mlp; then the head.
 Fixtures hold tokenized Bluesky posts, so fixtures/ is gitignored.
 """
 import json
@@ -29,7 +29,7 @@ import thread_lora as TL  # noqa: E402
 from train_enc import batches, collate, seg_softmax  # noqa: E402
 
 FIX = HERE / "fixtures"
-TARGETS = [("Wqkv", "attn.Wqkv"), ("Wo", "attn.Wo"), ("Wi", "mlp.Wi")]
+TARGETS = [("Wqkv", "attn.Wqkv"), ("Wo", "attn.Wo"), ("Wi", "mlp.Wi"), ("Wo_mlp", "mlp.Wo")]   # add_lora matches child name "Wo", so mlp.Wo is a target too
 HEAD = [("w0", "head.0.weight"), ("b0", "head.0.bias"), ("ln_w", "head.2.weight"), ("ln_b", "head.2.bias"),
         ("w1", "head.3.weight"), ("b1", "head.3.bias")]
 LR, LR_HEAD, WD, CLIP = 5e-4, 8e-4, 0.01, 1.0
