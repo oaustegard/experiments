@@ -399,6 +399,7 @@ survives exactly the sanity checks people run.
   0.83 after two epochs with whole-term masking). Score one target per pass or
   keep co-listed terms apart; report a per-type table from the same counters
   the aggregate uses (ERRORS.md #5). (`msd-context-classifier/mlm_ppl.py`)
+- **A new BPE vocabulary cannot merge across what the pre-tokenizer splits.** ModernBERT/Ettin (and GPT-2-style) byte-level pre-tokenization separates letters, digits and hyphens first, so `GLP-1`, `IL-6`, `SARS-CoV-2` stay 3-5 pieces under any retrained vocab: a 50K PubMed BPE saved 8% of tokens, the same budget with whitespace-only splitting 21%. Decide the pre-tokenizer before the vocab size. BioClinical-ModernBERT and Clinical_ModernBERT reuse the stock tokenizer. (`lifesci-vocab-probe/RESULTS.md`)
 - **Continued MLM pretraining teaches vocabulary and produces neither an
   embedding nor a better classifier.** Whole-term recovery +51 points; mean-
   pooled retrieval at chance before and after over 3,028 docs while gte-small,

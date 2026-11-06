@@ -1,0 +1,545 @@
+{
+ "n_test_docs": 2000,
+ "categories": {
+  "long technical word": [
+   13139,
+   31669
+  ],
+  "ordinary": [
+   14467,
+   401774
+  ],
+  "other rare": [
+   14172,
+   37057
+  ],
+  "gene/protein-symbol-like": [
+   3251,
+   10796
+  ],
+  "chemical/IUPAC-like": [
+   2833,
+   4612
+  ]
+ },
+ "tokenizers": {
+  "ettin (ModernBERT BPE)": {
+   "vocab": 50368,
+   "tokens_per_abstract": 376.007,
+   "long technical word": 3.2025640215984086,
+   "long technical word >=3 pieces": 0.6965486753607629,
+   "ordinary": 1.0432033929522568,
+   "ordinary >=3 pieces": 0.005473226241618423,
+   "other rare": 2.5696899371238904,
+   "other rare >=3 pieces": 0.5304800712416008,
+   "gene/protein-symbol-like": 2.6042978881067063,
+   "gene/protein-symbol-like >=3 pieces": 0.4627639866617266,
+   "chemical/IUPAC-like": 5.587380745880313,
+   "chemical/IUPAC-like >=3 pieces": 1.0
+  },
+  "BiomedBERT (PubMed WordPiece, uncased)": {
+   "vocab": 30522,
+   "tokens_per_abstract": 347.653,
+   "long technical word": 2.5550538381382424,
+   "long technical word >=3 pieces": 0.5459913480059364,
+   "ordinary": 1.0145853141318253,
+   "ordinary >=3 pieces": 0.0024342043039121495,
+   "other rare": 2.2602747119302697,
+   "other rare >=3 pieces": 0.4211889791402434,
+   "gene/protein-symbol-like": 1.8508706928492034,
+   "gene/protein-symbol-like >=3 pieces": 0.168766209707299,
+   "chemical/IUPAC-like": 4.6999132697311365,
+   "chemical/IUPAC-like >=3 pieces": 0.9705117085862967
+  },
+  "domain BPE 16K": {
+   "vocab": 16384,
+   "tokens_per_abstract": 378.3825,
+   "long technical word": 2.972844106223752,
+   "long technical word >=3 pieces": 0.6131863967918153,
+   "ordinary": 1.0754702892671004,
+   "ordinary >=3 pieces": 0.015095551230293647,
+   "other rare": 2.566991391639906,
+   "other rare >=3 pieces": 0.5325039803545889,
+   "gene/protein-symbol-like": 2.504816598740274,
+   "gene/protein-symbol-like >=3 pieces": 0.41543164134864763,
+   "chemical/IUPAC-like": 5.465091066782307,
+   "chemical/IUPAC-like >=3 pieces": 1.0
+  },
+  "domain BPE 32K": {
+   "vocab": 32768,
+   "tokens_per_abstract": 354.3555,
+   "long technical word": 2.5117622911995956,
+   "long technical word >=3 pieces": 0.5154567558179923,
+   "ordinary": 1.0296858432850309,
+   "ordinary >=3 pieces": 0.004977922911885787,
+   "other rare": 2.325660469007205,
+   "other rare >=3 pieces": 0.44963164854143617,
+   "gene/protein-symbol-like": 2.2160059281215263,
+   "gene/protein-symbol-like >=3 pieces": 0.3097443497591701,
+   "chemical/IUPAC-like": 5.0856461405030355,
+   "chemical/IUPAC-like >=3 pieces": 1.0
+  },
+  "domain BPE 49K": {
+   "vocab": 50368,
+   "tokens_per_abstract": 345.528,
+   "long technical word": 2.324165587798794,
+   "long technical word >=3 pieces": 0.475133411222331,
+   "ordinary": 1.0171937457376534,
+   "ordinary >=3 pieces": 0.002588519914180609,
+   "other rare": 2.2190139514801523,
+   "other rare >=3 pieces": 0.41142024448822084,
+   "gene/protein-symbol-like": 2.076417191552427,
+   "gene/protein-symbol-like >=3 pieces": 0.25861430159318266,
+   "chemical/IUPAC-like": 4.943408499566349,
+   "chemical/IUPAC-like >=3 pieces": 1.0
+  },
+  "domain BPE 49K, whitespace pre-tok": {
+   "vocab": 50368,
+   "tokens_per_abstract": 296.3405,
+   "long technical word": 1.9044491458524109,
+   "long technical word >=3 pieces": 0.23903501847232309,
+   "ordinary": 1.0266990895378993,
+   "ordinary >=3 pieces": 0.003755842837017826,
+   "other rare": 1.7334376770920474,
+   "other rare >=3 pieces": 0.15805380899695065,
+   "gene/protein-symbol-like": 1.841422749166358,
+   "gene/protein-symbol-like >=3 pieces": 0.18997776954427567,
+   "chemical/IUPAC-like": 3.1138334778837815,
+   "chemical/IUPAC-like >=3 pieces": 0.5236339982653946
+  }
+ },
+ "ettin_vocab_usage": {
+  "distinct_ids_used_in_10k_abstracts": 38820,
+  "of": 50368,
+  "token_mass_covered_by_top_n": {
+   "4096": 0.8427297882288585,
+   "8192": 0.924635735179833,
+   "16384": 0.9801042448916251,
+   "24576": 0.9951969569509037
+  }
+ },
+ "examples": {
+  "CRP": {
+   "ettin (ModernBERT BPE)": [
+    "ĠCRP"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "crp"
+   ],
+   "domain BPE 32K": [
+    "ĠCRP"
+   ],
+   "domain BPE 49K": [
+    "ĠCRP"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠCRP"
+   ]
+  },
+  "HCC": {
+   "ettin (ModernBERT BPE)": [
+    "ĠHCC"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "hcc"
+   ],
+   "domain BPE 32K": [
+    "ĠHCC"
+   ],
+   "domain BPE 49K": [
+    "ĠHCC"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠHCC"
+   ]
+  },
+  "IC50": {
+   "ettin (ModernBERT BPE)": [
+    "ĠIC",
+    "50"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "ic50"
+   ],
+   "domain BPE 32K": [
+    "ĠIC",
+    "50"
+   ],
+   "domain BPE 49K": [
+    "ĠIC",
+    "50"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠIC50"
+   ]
+  },
+  "CKD": {
+   "ettin (ModernBERT BPE)": [
+    "ĠCKD"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "ckd"
+   ],
+   "domain BPE 32K": [
+    "ĠCKD"
+   ],
+   "domain BPE 49K": [
+    "ĠCKD"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠCKD"
+   ]
+  },
+  "NSCLC": {
+   "ettin (ModernBERT BPE)": [
+    "ĠNSCLC"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "nsclc"
+   ],
+   "domain BPE 32K": [
+    "ĠNSCLC"
+   ],
+   "domain BPE 49K": [
+    "ĠNSCLC"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠNSCLC"
+   ]
+  },
+  "NLRP3": {
+   "ettin (ModernBERT BPE)": [
+    "ĠNLR",
+    "P",
+    "3"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "nlrp3"
+   ],
+   "domain BPE 32K": [
+    "ĠNLRP",
+    "3"
+   ],
+   "domain BPE 49K": [
+    "ĠNLRP",
+    "3"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠNLRP3"
+   ]
+  },
+  "MDD": {
+   "ettin (ModernBERT BPE)": [
+    "ĠMD",
+    "D"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "mdd"
+   ],
+   "domain BPE 32K": [
+    "ĠMDD"
+   ],
+   "domain BPE 49K": [
+    "ĠMDD"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠMDD"
+   ]
+  },
+  "TNBC": {
+   "ettin (ModernBERT BPE)": [
+    "ĠTN",
+    "BC"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "tnbc"
+   ],
+   "domain BPE 32K": [
+    "ĠTNBC"
+   ],
+   "domain BPE 49K": [
+    "ĠTNBC"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠTNBC"
+   ]
+  },
+  "GLP-1": {
+   "ettin (ModernBERT BPE)": [
+    "ĠGL",
+    "P",
+    "-",
+    "1"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "glp",
+    "-",
+    "1"
+   ],
+   "domain BPE 32K": [
+    "ĠGLP",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K": [
+    "ĠGLP",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠGLP-1"
+   ]
+  },
+  "SARS-CoV-2": {
+   "ettin (ModernBERT BPE)": [
+    "ĠSARS",
+    "-",
+    "CoV",
+    "-",
+    "2"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "sars",
+    "-",
+    "cov",
+    "-",
+    "2"
+   ],
+   "domain BPE 32K": [
+    "ĠSARS",
+    "-",
+    "CoV",
+    "-",
+    "2"
+   ],
+   "domain BPE 49K": [
+    "ĠSARS",
+    "-",
+    "CoV",
+    "-",
+    "2"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠSARS-CoV-2"
+   ]
+  },
+  "peptide-1": {
+   "ettin (ModernBERT BPE)": [
+    "Ġpeptide",
+    "-",
+    "1"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "peptide",
+    "-",
+    "1"
+   ],
+   "domain BPE 32K": [
+    "Ġpeptide",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K": [
+    "Ġpeptide",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġpeptide-1"
+   ]
+  },
+  "PD-L1": {
+   "ettin (ModernBERT BPE)": [
+    "ĠPD",
+    "-",
+    "L",
+    "1"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "pd",
+    "-",
+    "l1"
+   ],
+   "domain BPE 32K": [
+    "ĠPD",
+    "-",
+    "L",
+    "1"
+   ],
+   "domain BPE 49K": [
+    "ĠPD",
+    "-",
+    "L",
+    "1"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠPD-L1"
+   ]
+  },
+  "COVID-19": {
+   "ettin (ModernBERT BPE)": [
+    "ĠCOVID",
+    "-",
+    "19"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "cov",
+    "##id",
+    "-",
+    "19"
+   ],
+   "domain BPE 32K": [
+    "ĠCOVID",
+    "-",
+    "19"
+   ],
+   "domain BPE 49K": [
+    "ĠCOVID",
+    "-",
+    "19"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠCOVID-19"
+   ]
+  },
+  "HIF-1": {
+   "ettin (ModernBERT BPE)": [
+    "ĠHIF",
+    "-",
+    "1"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "hif",
+    "-",
+    "1"
+   ],
+   "domain BPE 32K": [
+    "ĠHIF",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K": [
+    "ĠHIF",
+    "-",
+    "1"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "ĠHIF-1"
+   ]
+  },
+  "ferroptosis": {
+   "ettin (ModernBERT BPE)": [
+    "Ġfer",
+    "ro",
+    "pt",
+    "osis"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "ferro",
+    "##ptosis"
+   ],
+   "domain BPE 32K": [
+    "Ġferroptosis"
+   ],
+   "domain BPE 49K": [
+    "Ġferroptosis"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġferroptosis"
+   ]
+  },
+  "microbiota": {
+   "ettin (ModernBERT BPE)": [
+    "Ġmicrobiota"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "microbiota"
+   ],
+   "domain BPE 32K": [
+    "Ġmicrobiota"
+   ],
+   "domain BPE 49K": [
+    "Ġmicrobiota"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġmicrobiota"
+   ]
+  },
+  "anti-inflammatory": {
+   "ettin (ModernBERT BPE)": [
+    "Ġanti",
+    "-",
+    "inflammatory"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "anti",
+    "-",
+    "inflammatory"
+   ],
+   "domain BPE 32K": [
+    "Ġanti",
+    "-",
+    "inflammatory"
+   ],
+   "domain BPE 49K": [
+    "Ġanti",
+    "-",
+    "inflammatory"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġanti-inflammatory"
+   ]
+  },
+  "overexpression": {
+   "ettin (ModernBERT BPE)": [
+    "Ġoverexpression"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "overexpression"
+   ],
+   "domain BPE 32K": [
+    "Ġoverexpression"
+   ],
+   "domain BPE 49K": [
+    "Ġoverexpression"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġoverexpression"
+   ]
+  },
+  "upregulated": {
+   "ettin (ModernBERT BPE)": [
+    "Ġupregulated"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "upregulated"
+   ],
+   "domain BPE 32K": [
+    "Ġupregulated"
+   ],
+   "domain BPE 49K": [
+    "Ġupregulated"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġupregulated"
+   ]
+  },
+  "upregulation": {
+   "ettin (ModernBERT BPE)": [
+    "Ġupregulation"
+   ],
+   "BiomedBERT (PubMed WordPiece, uncased)": [
+    "upregulation"
+   ],
+   "domain BPE 32K": [
+    "Ġupregulation"
+   ],
+   "domain BPE 49K": [
+    "Ġupregulation"
+   ],
+   "domain BPE 49K, whitespace pre-tok": [
+    "Ġupregulation"
+   ]
+  }
+ }
+}
