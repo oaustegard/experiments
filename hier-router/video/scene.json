@@ -1,0 +1,2037 @@
+{
+ "canvas": {
+  "w": 1920,
+  "h": 1080,
+  "fps": 30,
+  "bg": "#0b0e14",
+  "duration": "auto"
+ },
+ "layers": [
+  {
+   "id": "bg",
+   "type": "shader",
+   "preset": "mesh",
+   "opacity": 0.35
+  },
+  {
+   "id": "title",
+   "type": "text",
+   "text": "The **hierarchical** spiky ball",
+   "x": "50%",
+   "y": 104,
+   "size": 72,
+   "fill": "#f2f0e8",
+   "weight": 800,
+   "at": 0.2,
+   "enter": "rise",
+   "exit": "fade",
+   "emph": "#ff8a3d",
+   "until": "vo1:lora"
+  },
+  {
+   "id": "ball5",
+   "type": "group",
+   "x": 960,
+   "y": 520,
+   "at": "vo1.in",
+   "until": "vo2.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "ball5-sp",
+     "type": "line",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       330,
+       0
+      ]
+     ],
+     "stroke": "#7bd88f",
+     "strokeWidth": 16,
+     "repeat": {
+      "count": 5,
+      "rotate": "=i * 72.0 - 90",
+      "stroke": "=hsl(100 + i * 40.0, 0.55, 0.62)"
+     },
+     "rotate": "=t * 0"
+    },
+    {
+     "id": "ball5-core",
+     "type": "circle",
+     "r": 120,
+     "fill": "#2a3242",
+     "stroke": "#5b6678",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ball5-lbl",
+     "type": "text",
+     "text": "Ettin-17m\nfrozen",
+     "size": 34,
+     "fill": "#f2f0e8",
+     "weight": 700,
+     "lineHeight": 1.1
+    }
+   ]
+  },
+  {
+   "id": "b5-transactions",
+   "type": "text",
+   "text": "transactions",
+   "x": 960.0,
+   "y": 115.0,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo1:lora",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "b5-emails",
+   "type": "text",
+   "text": "emails",
+   "x": 1416.5071278216737,
+   "y": 394.84811727814633,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo1:lora",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "b5-reviews",
+   "type": "text",
+   "text": "reviews",
+   "x": 1242.136921100387,
+   "y": 847.6518827218538,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo1:lora",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "b5-support",
+   "type": "text",
+   "text": "support",
+   "x": 677.8630788996129,
+   "y": 847.6518827218538,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo1:lora",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "b5-invoices",
+   "type": "text",
+   "text": "invoices",
+   "x": 503.49287217832625,
+   "y": 394.84811727814633,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo1:lora",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "mb",
+   "type": "text",
+   "text": "one spike = one LoRA adapter, 0.5 MB",
+   "x": "50%",
+   "y": 905,
+   "size": 40,
+   "fill": "#7bd88f",
+   "weight": 600,
+   "at": "vo1:lora+1.2",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2.in"
+  },
+  {
+   "id": "h2",
+   "type": "text",
+   "text": "One flat router reads everything at once",
+   "x": "50%",
+   "y": 140,
+   "size": 60,
+   "fill": "#f2f0e8",
+   "weight": 700,
+   "at": "vo2.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo3.in"
+  },
+  {
+   "id": "seqframe",
+   "type": "rect",
+   "x": "50%",
+   "y": 470,
+   "w": 1640,
+   "h": 120,
+   "radius": 12,
+   "stroke": "#9299a8",
+   "strokeWidth": 3,
+   "fill": "#00000000",
+   "at": "vo2:router",
+   "until": "vo3.in",
+   "enter": "wipe",
+   "exit": "fade"
+  },
+  {
+   "id": "seqlbl",
+   "type": "text",
+   "text": "one sequence: 1,024 tokens",
+   "x": 140,
+   "y": 370,
+   "size": 34,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo2:router",
+   "enter": "fade",
+   "exit": "fade",
+   "anchor": "left",
+   "until": "vo3.in"
+  },
+  {
+   "id": "chips",
+   "type": "rect",
+   "x": 167,
+   "y": 470,
+   "w": 22,
+   "h": 96,
+   "radius": 4,
+   "fill": "#4a90e2",
+   "at": "vo2:seq+0.4",
+   "until": "vo3.in",
+   "exit": "fade",
+   "repeat": {
+    "count": 56,
+    "x": "=i * 28.6",
+    "opacity": "=clamp((t - i * 0.06) * 6, 0, 1)"
+   }
+  },
+  {
+   "id": "case",
+   "type": "rect",
+   "x": 1775,
+   "y": 470,
+   "anchor": "right",
+   "h": 96,
+   "radius": 6,
+   "fill": "#ff8a3d",
+   "w": [
+    [
+     0,
+     1590
+    ],
+    [
+     3.4,
+     0,
+     "linear"
+    ]
+   ],
+   "at": "vo2:seq+0.4",
+   "until": "vo3.in",
+   "exit": "fade"
+  },
+  {
+   "id": "caselbl",
+   "type": "text",
+   "text": "the case",
+   "x": 1700,
+   "y": 570,
+   "size": 34,
+   "fill": "#ff8a3d",
+   "weight": 600,
+   "at": "vo2:seq+0.4",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo2:full"
+  },
+  {
+   "id": "cnt",
+   "type": "counter",
+   "x": "50%",
+   "y": 680,
+   "size": 64,
+   "weight": 800,
+   "fill": "#f2f0e8",
+   "value": {
+    "from": 0,
+    "to": 56,
+    "dur": 3.4,
+    "ease": "linear"
+   },
+   "format": "{:.0f} spikes",
+   "at": "vo2:seq+0.4",
+   "until": "vo3.in",
+   "enter": "fade",
+   "exit": "fade"
+  },
+  {
+   "id": "noroom",
+   "type": "text",
+   "text": "no room left for the case",
+   "x": "50%",
+   "y": 790,
+   "size": 48,
+   "fill": "#ff8a3d",
+   "weight": 700,
+   "at": "vo2:full+0.6",
+   "enter": "pop",
+   "exit": "fade",
+   "until": "vo3.in"
+  },
+  {
+   "id": "h3",
+   "type": "text",
+   "text": "Routers can pick spikes, or other routers",
+   "x": "50%",
+   "y": 90,
+   "size": 54,
+   "fill": "#f2f0e8",
+   "weight": 700,
+   "at": "vo3.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo4.in"
+  },
+  {
+   "id": "e-root-voice",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     420,
+     311
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-root-business",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     820,
+     311
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-root-transactions",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     1180,
+     311
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-root-emails",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     1450,
+     311
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-root-reviews",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     1680,
+     311
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-voice-home",
+   "type": "line",
+   "points": [
+    [
+     420,
+     369
+    ],
+    [
+     260,
+     471
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-voice-calendar",
+   "type": "line",
+   "points": [
+    [
+     420,
+     369
+    ],
+    [
+     500,
+     471
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-voice-music",
+   "type": "line",
+   "points": [
+    [
+     420,
+     369
+    ],
+    [
+     700,
+     471
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-business-invoices",
+   "type": "line",
+   "points": [
+    [
+     820,
+     369
+    ],
+    [
+     900,
+     471
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-business-security",
+   "type": "line",
+   "points": [
+    [
+     820,
+     369
+    ],
+    [
+     1120,
+     471
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-home-lights",
+   "type": "line",
+   "points": [
+    [
+     260,
+     529
+    ],
+    [
+     240,
+     631
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-home-plugs",
+   "type": "line",
+   "points": [
+    [
+     260,
+     529
+    ],
+    [
+     440,
+     631
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-lights-dimL",
+   "type": "line",
+   "points": [
+    [
+     240,
+     689
+    ],
+    [
+     180,
+     791
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-lights-off",
+   "type": "line",
+   "points": [
+    [
+     240,
+     689
+    ],
+    [
+     340,
+     791
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "e-lights-colour",
+   "type": "line",
+   "points": [
+    [
+     240,
+     689
+    ],
+    [
+     510,
+     791
+    ]
+   ],
+   "stroke": "#3a4558",
+   "strokeWidth": 3,
+   "at": "vo3:tree+0.2",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "n-root",
+   "type": "group",
+   "x": 960,
+   "y": 190,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-root-box",
+     "type": "rect",
+     "w": 164,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-root-t",
+     "type": "text",
+     "text": "router",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-voice",
+   "type": "group",
+   "x": 420,
+   "y": 340,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-voice-box",
+     "type": "rect",
+     "w": 144,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-voice-t",
+     "type": "text",
+     "text": "voice",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-business",
+   "type": "group",
+   "x": 820,
+   "y": 340,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-business-box",
+     "type": "rect",
+     "w": 204,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-business-t",
+     "type": "text",
+     "text": "business",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-transactions",
+   "type": "group",
+   "x": 1180,
+   "y": 340,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-transactions-box",
+     "type": "rect",
+     "w": 284,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-transactions-t",
+     "type": "text",
+     "text": "transactions",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-emails",
+   "type": "group",
+   "x": 1450,
+   "y": 340,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-emails-box",
+     "type": "rect",
+     "w": 164,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-emails-t",
+     "type": "text",
+     "text": "emails",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-reviews",
+   "type": "group",
+   "x": 1680,
+   "y": 340,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-reviews-box",
+     "type": "rect",
+     "w": 184,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-reviews-t",
+     "type": "text",
+     "text": "reviews",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-home",
+   "type": "group",
+   "x": 260,
+   "y": 500,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-home-box",
+     "type": "rect",
+     "w": 244,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-home-t",
+     "type": "text",
+     "text": "smart home",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-calendar",
+   "type": "group",
+   "x": 500,
+   "y": 500,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-calendar-box",
+     "type": "rect",
+     "w": 204,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-calendar-t",
+     "type": "text",
+     "text": "calendar",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-music",
+   "type": "group",
+   "x": 700,
+   "y": 500,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-music-box",
+     "type": "rect",
+     "w": 144,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-music-t",
+     "type": "text",
+     "text": "music",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-invoices",
+   "type": "group",
+   "x": 900,
+   "y": 500,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-invoices-box",
+     "type": "rect",
+     "w": 204,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-invoices-t",
+     "type": "text",
+     "text": "invoices",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-security",
+   "type": "group",
+   "x": 1120,
+   "y": 500,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-security-box",
+     "type": "rect",
+     "w": 204,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-security-t",
+     "type": "text",
+     "text": "security",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-lights",
+   "type": "group",
+   "x": 240,
+   "y": 660,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-lights-box",
+     "type": "rect",
+     "w": 164,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-lights-t",
+     "type": "text",
+     "text": "lights",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-plugs",
+   "type": "group",
+   "x": 440,
+   "y": 660,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-plugs-box",
+     "type": "rect",
+     "w": 144,
+     "h": 58,
+     "radius": 14,
+     "fill": "#16202e",
+     "stroke": "#4a90e2",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-plugs-t",
+     "type": "text",
+     "text": "plugs",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-dimL",
+   "type": "group",
+   "x": 180,
+   "y": 820,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-dimL-box",
+     "type": "rect",
+     "w": 130,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-dimL-t",
+     "type": "text",
+     "text": "dim",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-off",
+   "type": "group",
+   "x": 340,
+   "y": 820,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-off-box",
+     "type": "rect",
+     "w": 130,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-off-t",
+     "type": "text",
+     "text": "off",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "n-colour",
+   "type": "group",
+   "x": 510,
+   "y": 820,
+   "at": "vo3:tree",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "n-colour-box",
+     "type": "rect",
+     "w": 164,
+     "h": 58,
+     "radius": 14,
+     "fill": "#13261a",
+     "stroke": "#7bd88f",
+     "strokeWidth": 3
+    },
+    {
+     "id": "n-colour-t",
+     "type": "text",
+     "text": "colour",
+     "size": 32,
+     "fill": "#f2f0e8",
+     "weight": 600
+    }
+   ]
+  },
+  {
+   "id": "more",
+   "type": "text",
+   "text": "+ 13 more scenarios, 54 intents",
+   "x": 760,
+   "y": 600,
+   "size": 32,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo3:tree+0.4",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo4.in"
+  },
+  {
+   "id": "legend1",
+   "type": "text",
+   "text": "router",
+   "x": 1500,
+   "y": 560,
+   "size": 32,
+   "fill": "#4a90e2",
+   "weight": 600,
+   "at": "vo3:tree+0.4",
+   "enter": "fade",
+   "exit": "fade",
+   "anchor": "left",
+   "until": "vo4.in"
+  },
+  {
+   "id": "legend2",
+   "type": "text",
+   "text": "spike (leaf)",
+   "x": 1500,
+   "y": 610,
+   "size": 32,
+   "fill": "#7bd88f",
+   "weight": 600,
+   "at": "vo3:tree+0.4",
+   "enter": "fade",
+   "exit": "fade",
+   "anchor": "left",
+   "until": "vo4.in"
+  },
+  {
+   "id": "query",
+   "type": "text",
+   "text": "\u201cdim the lights a bit\u201d",
+   "x": 1330,
+   "y": 790,
+   "size": 46,
+   "fill": "#ff8a3d",
+   "weight": 700,
+   "at": "vo3:dim",
+   "enter": "pop",
+   "exit": "fade",
+   "until": "vo4.in"
+  },
+  {
+   "id": "hot-root-voice",
+   "type": "line",
+   "points": [
+    [
+     960,
+     219
+    ],
+    [
+     420,
+     311
+    ]
+   ],
+   "stroke": "#ff8a3d",
+   "strokeWidth": 8,
+   "at": "vo3:voice",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "hot-voice-home",
+   "type": "line",
+   "points": [
+    [
+     420,
+     369
+    ],
+    [
+     260,
+     471
+    ]
+   ],
+   "stroke": "#ff8a3d",
+   "strokeWidth": 8,
+   "at": "vo3:home",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "hot-home-lights",
+   "type": "line",
+   "points": [
+    [
+     260,
+     529
+    ],
+    [
+     240,
+     631
+    ]
+   ],
+   "stroke": "#ff8a3d",
+   "strokeWidth": 8,
+   "at": "vo3:lights",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "hot-lights-dimL",
+   "type": "line",
+   "points": [
+    [
+     240,
+     689
+    ],
+    [
+     180,
+     791
+    ]
+   ],
+   "stroke": "#ff8a3d",
+   "strokeWidth": 8,
+   "at": "vo3:leaf",
+   "until": "vo4.in",
+   "enter": {
+    "name": "draw",
+    "dur": 0.5
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "hotleaf",
+   "type": "circle",
+   "x": 180,
+   "y": 820,
+   "r": 46,
+   "stroke": "#ff8a3d",
+   "strokeWidth": 6,
+   "fill": "#00000000",
+   "at": "vo3:leaf+0.3",
+   "until": "vo4.in",
+   "enter": "pop",
+   "exit": "fade",
+   "emphasis": {
+    "name": "pulse",
+    "loop": true
+   }
+  },
+  {
+   "id": "h4",
+   "type": "text",
+   "text": "Broad spikes split into narrow ones",
+   "x": "50%",
+   "y": 110,
+   "size": 60,
+   "fill": "#f2f0e8",
+   "weight": 700,
+   "at": "vo4.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo5.in"
+  },
+  {
+   "id": "ball5b",
+   "type": "group",
+   "x": 960,
+   "y": 520,
+   "at": "vo4.in",
+   "until": "vo4:grow+0.8",
+   "enter": "pop",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "ball5b-sp",
+     "type": "line",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       330,
+       0
+      ]
+     ],
+     "stroke": "#7bd88f",
+     "strokeWidth": 16,
+     "repeat": {
+      "count": 5,
+      "rotate": "=i * 72.0 - 90",
+      "stroke": "=hsl(100 + i * 40.0, 0.55, 0.62)"
+     },
+     "rotate": "=t * 0"
+    },
+    {
+     "id": "ball5b-core",
+     "type": "circle",
+     "r": 120,
+     "fill": "#2a3242",
+     "stroke": "#5b6678",
+     "strokeWidth": 4
+    }
+   ]
+  },
+  {
+   "id": "ball69",
+   "type": "group",
+   "x": 960,
+   "y": 520,
+   "at": "vo4:grow+0.4",
+   "until": "vo5.in",
+   "enter": {
+    "name": "pop",
+    "dur": 0.8
+   },
+   "exit": "fade",
+   "children": [
+    {
+     "id": "ball69-sp",
+     "type": "line",
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       230,
+       0
+      ]
+     ],
+     "stroke": "#7bd88f",
+     "strokeWidth": 7,
+     "repeat": {
+      "count": 69,
+      "rotate": "=i * 5.217391304347826 - 90",
+      "stroke": "=hsl(100 + i * 2.898550724637681, 0.55, 0.62)"
+     },
+     "rotate": "=t * 6"
+    },
+    {
+     "id": "ball69-core",
+     "type": "circle",
+     "r": 120,
+     "fill": "#2a3242",
+     "stroke": "#5b6678",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ball69-lbl",
+     "type": "text",
+     "text": "Ettin-17m\nfrozen",
+     "size": 34,
+     "fill": "#f2f0e8",
+     "weight": 700,
+     "lineHeight": 1.1
+    }
+   ]
+  },
+  {
+   "id": "c5",
+   "type": "text",
+   "text": "5 broad spikes",
+   "x": 560,
+   "y": 905,
+   "size": 44,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo4.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo4:grow+0.8"
+  },
+  {
+   "id": "c69",
+   "type": "text",
+   "text": "69 narrow spikes, up to 4 routers deep",
+   "x": "50%",
+   "y": 905,
+   "size": 44,
+   "fill": "#7bd88f",
+   "weight": 600,
+   "at": "vo4:grow+1.0",
+   "enter": "pop",
+   "exit": "fade",
+   "until": "vo5.in"
+  },
+  {
+   "id": "h5",
+   "type": "text",
+   "text": "62 leaves, held-out test cases",
+   "x": "50%",
+   "y": 150,
+   "size": 56,
+   "fill": "#f2f0e8",
+   "weight": 700,
+   "at": "vo5.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "vo6.in"
+  },
+  {
+   "id": "card-acc",
+   "type": "group",
+   "x": 400,
+   "y": 520,
+   "at": "vo5:acc",
+   "until": "vo6.in",
+   "enter": "rise",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "card-acc-bg",
+     "type": "rect",
+     "w": 500,
+     "h": 420,
+     "radius": 24,
+     "fill": "#151b26",
+     "stroke": "#2b3546",
+     "strokeWidth": 2
+    },
+    {
+     "id": "card-acc-h",
+     "type": "text",
+     "text": "routing accuracy",
+     "y": -150,
+     "size": 34,
+     "fill": "#9299a8",
+     "maxWidth": 440
+    },
+    {
+     "id": "card-acc-a",
+     "type": "text",
+     "text": "0.839",
+     "x": -120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-acc-al",
+     "type": "text",
+     "text": "tree",
+     "x": -120,
+     "y": 80,
+     "size": 34,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-acc-b",
+     "type": "text",
+     "text": "0.843",
+     "x": 120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#9299a8"
+    },
+    {
+     "id": "card-acc-bl",
+     "type": "text",
+     "text": "flat",
+     "x": 120,
+     "y": 80,
+     "size": 34,
+     "fill": "#9299a8"
+    }
+   ]
+  },
+  {
+   "id": "card-tok",
+   "type": "group",
+   "x": 960,
+   "y": 520,
+   "at": "vo5:acc+1.2",
+   "until": "vo6.in",
+   "enter": "rise",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "card-tok-bg",
+     "type": "rect",
+     "w": 500,
+     "h": 420,
+     "radius": 24,
+     "fill": "#151b26",
+     "stroke": "#2b3546",
+     "strokeWidth": 2
+    },
+    {
+     "id": "card-tok-h",
+     "type": "text",
+     "text": "tokens read per decision",
+     "y": -150,
+     "size": 34,
+     "fill": "#9299a8",
+     "maxWidth": 440
+    },
+    {
+     "id": "card-tok-a",
+     "type": "text",
+     "text": "610",
+     "x": -120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-tok-al",
+     "type": "text",
+     "text": "tree",
+     "x": -120,
+     "y": 80,
+     "size": 34,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-tok-b",
+     "type": "text",
+     "text": "1,198",
+     "x": 120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#9299a8"
+    },
+    {
+     "id": "card-tok-bl",
+     "type": "text",
+     "text": "flat",
+     "x": 120,
+     "y": 80,
+     "size": 34,
+     "fill": "#9299a8"
+    }
+   ]
+  },
+  {
+   "id": "card-new",
+   "type": "group",
+   "x": 1520,
+   "y": 520,
+   "at": "vo5:new",
+   "until": "vo6.in",
+   "enter": "rise",
+   "exit": "fade",
+   "children": [
+    {
+     "id": "card-new-bg",
+     "type": "rect",
+     "w": 500,
+     "h": 420,
+     "radius": 24,
+     "fill": "#151b26",
+     "stroke": "#2b3546",
+     "strokeWidth": 2
+    },
+    {
+     "id": "card-new-h",
+     "type": "text",
+     "text": "new spike, description only",
+     "y": -150,
+     "size": 34,
+     "fill": "#9299a8",
+     "maxWidth": 440
+    },
+    {
+     "id": "card-new-a",
+     "type": "text",
+     "text": "0.62",
+     "x": -120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-new-al",
+     "type": "text",
+     "text": "tree",
+     "x": -120,
+     "y": 80,
+     "size": 34,
+     "fill": "#7bd88f"
+    },
+    {
+     "id": "card-new-b",
+     "type": "text",
+     "text": "0.51",
+     "x": 120,
+     "y": 0,
+     "size": 76,
+     "weight": 800,
+     "fill": "#9299a8"
+    },
+    {
+     "id": "card-new-bl",
+     "type": "text",
+     "text": "flat",
+     "x": 120,
+     "y": 80,
+     "size": 34,
+     "fill": "#9299a8"
+    }
+   ]
+  },
+  {
+   "id": "h6",
+   "type": "text",
+   "text": "Every router node has to learn",
+   "x": "50%",
+   "y": 150,
+   "size": 60,
+   "fill": "#f2f0e8",
+   "weight": 700,
+   "at": "vo6.in",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "end"
+  },
+  {
+   "id": "axis",
+   "type": "line",
+   "x": 380,
+   "y": 760,
+   "points": [
+    [
+     0,
+     -380
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     1200,
+     0
+    ]
+   ],
+   "stroke": "#9299a8",
+   "strokeWidth": 3,
+   "at": "vo6.in+0.8",
+   "until": "end",
+   "enter": "draw",
+   "exit": "fade"
+  },
+  {
+   "id": "curve",
+   "type": "line",
+   "x": 380,
+   "y": 760,
+   "points": [
+    [
+     0,
+     -343.2
+    ],
+    [
+     40,
+     -328.8
+    ],
+    [
+     80,
+     -326.09999999999997
+    ],
+    [
+     120,
+     -326.09999999999997
+    ],
+    [
+     160,
+     -329.09999999999997
+    ],
+    [
+     200,
+     -328.20000000000005
+    ],
+    [
+     240,
+     -324.0
+    ],
+    [
+     280,
+     -324.6
+    ],
+    [
+     320,
+     -324.9
+    ],
+    [
+     360,
+     -326.40000000000003
+    ],
+    [
+     400,
+     -332.40000000000003
+    ],
+    [
+     440,
+     -336.00000000000006
+    ],
+    [
+     480,
+     -334.5
+    ],
+    [
+     520,
+     -334.20000000000005
+    ],
+    [
+     560,
+     -327.6
+    ],
+    [
+     600,
+     -327.0
+    ],
+    [
+     640,
+     -316.5
+    ],
+    [
+     680,
+     -319.5
+    ],
+    [
+     720,
+     -324.3
+    ],
+    [
+     760,
+     -171.29999999999998
+    ],
+    [
+     800,
+     -137.1
+    ],
+    [
+     840,
+     -143.7
+    ],
+    [
+     880,
+     -68.10000000000001
+    ],
+    [
+     920,
+     -56.1
+    ],
+    [
+     960,
+     -35.4
+    ],
+    [
+     1000,
+     -9.9
+    ],
+    [
+     1040,
+     -44.099999999999994
+    ],
+    [
+     1080,
+     -38.4
+    ],
+    [
+     1120,
+     -33.3
+    ],
+    [
+     1160,
+     -36.9
+    ]
+   ],
+   "stroke": "#ff8a3d",
+   "strokeWidth": 7,
+   "at": "vo6:inv+0.3",
+   "until": "end",
+   "enter": {
+    "name": "draw",
+    "dur": 2.6,
+    "ease": "linear"
+   },
+   "exit": "fade"
+  },
+  {
+   "id": "ylbl",
+   "type": "text",
+   "text": "validation loss",
+   "x": 400,
+   "y": 360,
+   "size": 30,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo6.in+0.8",
+   "enter": "fade",
+   "exit": "fade",
+   "anchor": "left",
+   "until": "end"
+  },
+  {
+   "id": "xlbl",
+   "type": "text",
+   "text": "epochs \u2192",
+   "x": 1580,
+   "y": 800,
+   "size": 30,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo6.in+0.8",
+   "enter": "fade",
+   "exit": "fade",
+   "anchor": "right",
+   "until": "end"
+  },
+  {
+   "id": "chance",
+   "type": "text",
+   "text": "chance: 19 epochs",
+   "x": 760,
+   "y": 390,
+   "size": 38,
+   "fill": "#f2f0e8",
+   "weight": 600,
+   "at": "vo6:inv+1.0",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "end"
+  },
+  {
+   "id": "clicked",
+   "type": "text",
+   "text": "then it learned",
+   "x": 1330,
+   "y": 600,
+   "size": 42,
+   "fill": "#ff8a3d",
+   "weight": 700,
+   "at": "vo6:click",
+   "enter": "pop",
+   "exit": "fade",
+   "until": "end"
+  },
+  {
+   "id": "url",
+   "type": "text",
+   "text": "austegard.com/experiments \u00b7 hier-router",
+   "x": "50%",
+   "y": 905,
+   "size": 36,
+   "fill": "#9299a8",
+   "weight": 600,
+   "at": "vo6:click+1.5",
+   "enter": "fade",
+   "exit": "fade",
+   "until": "end"
+  },
+  {
+   "id": "cc1",
+   "type": "captions",
+   "voice": "vo1",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "cc2",
+   "type": "captions",
+   "voice": "vo2",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "cc3",
+   "type": "captions",
+   "voice": "vo3",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "cc4",
+   "type": "captions",
+   "voice": "vo4",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "cc5",
+   "type": "captions",
+   "voice": "vo5",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "cc6",
+   "type": "captions",
+   "voice": "vo6",
+   "mode": "karaoke",
+   "y": "90%",
+   "size": 40,
+   "active": "#ff8a3d"
+  },
+  {
+   "id": "hold",
+   "type": "rect",
+   "w": 2,
+   "h": 2,
+   "fill": "#00000000",
+   "at": "vo6.out",
+   "dur": 2.5
+  }
+ ],
+ "audio": [
+  {
+   "id": "vo1",
+   "role": "voice",
+   "src": "voice/vo1.wav",
+   "text": "This is a spiky ball: one small, frozen decision model, with a [[lora]]LoRA adapter for each kind of decision it is good at. Each spike is half a megabyte.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": 0.6
+  },
+  {
+   "id": "vo2",
+   "role": "voice",
+   "src": "voice/vo2.wav",
+   "text": "A [[router]]router picks the spike. It reads every spike's description and the case together, in one [[seq]]sequence. At about [[full]]fifty-six spikes the descriptions fill it, and the case has no room left.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": "vo1.out+0.5"
+  },
+  {
+   "id": "vo3",
+   "role": "voice",
+   "src": "voice/vo3.wav",
+   "text": "So make it a [[tree]]tree. A router's options can be spikes, or other routers, and each router reads only its own children. [[dim]]Dim the lights goes to [[voice]]voice, then [[home]]smart home, then [[lights]]lights, then [[leaf]]dim. Three short reads instead of one long one.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": "vo2.out+0.5"
+  },
+  {
+   "id": "vo4",
+   "role": "voice",
+   "src": "voice/vo4.wav",
+   "text": "No router ever reads the whole list, so the library can keep [[grow]]growing. Broad spikes split into narrow ones: voice commands become fifty-four separate intents. The ball fills in, and gets [[round]]rounder.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": "vo3.out+0.5"
+  },
+  {
+   "id": "vo5",
+   "role": "voice",
+   "src": "voice/vo5.wav",
+   "text": "On sixty-two leaves, the tree [[acc]]routes within about a point of one flat router, reading fewer tokens. And a [[new]]new spike, given only its description, finds its cases more often, because it competes only with its siblings.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": "vo4.out+0.5"
+  },
+  {
+   "id": "vo6",
+   "role": "voice",
+   "src": "voice/vo6.wav",
+   "text": "There is a catch. Every router has to learn its own split. The [[inv]]invoice router sat at chance for nineteen epochs, then [[click]]clicked. So check every node, not just the total.",
+   "speaker": "bm_fable,bm_fable,bm_lewis",
+   "rate": 0.88,
+   "at": "vo5.out+0.5"
+  }
+ ]
+}
