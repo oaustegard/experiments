@@ -44,7 +44,8 @@ def main():
     ref = LoraRef(man, (b31 / "weights.bin").read_bytes())
     tok = Enc(Path(stock_path()) / "tokenizer.json")
     prior = json.loads((ROOT / "results" / "base31.json").read_text())
-    res = {"rule": f"ship ±31 only if every refit is within {RULE} of its shipped spike on ±63", "spikes": {}}
+    out = ROOT / "results" / "refit31.json"   # each run adds to what earlier runs scored
+    res = json.loads(out.read_text()) if out.exists() else {"rule": f"ship ±31 only if every refit is within {RULE} of its shipped spike on ±63", "spikes": {}}
     for d in map(Path, sys.argv[1:]):
         r = json.loads((d / "result.json").read_text())
         o = r.get("outputs", r)
@@ -66,8 +67,9 @@ def main():
             res["spikes"][sid] = rec
             print(f"{set_} {sid}: ±63 {rec['L63_shipped']:.4f}  ±31 shipped {rec['L31_shipped']:.4f}  ±31 refit {rec['L31_refit']:.4f}"
                   f"  ({rec['delta_vs_L63']:+.4f}, best epoch {x['bestEpoch']})", flush=True)
-    res["ship"] = bool(res["spikes"]) and all(v["delta_vs_L63"] >= -RULE for v in res["spikes"].values())
-    (ROOT / "results" / "refit31.json").write_text(json.dumps(res, indent=1) + "\n")
+    res["complete"] = len(res["spikes"]) == 7
+    res["ship"] = res["complete"] and all(v["delta_vs_L63"] >= -RULE for v in res["spikes"].values())
+    out.write_text(json.dumps(res, indent=1) + "\n")
     print("ship ±31:", res["ship"])
 
 
