@@ -194,9 +194,28 @@ def round2(tok, pad, lc, tree_ex, smoke):
     print("EVAL_DONE", flush=True)
 
 
+def round3(tok, pad, lc, flat_ex, smoke):
+    """Round 3: round 2's tree gain came from the 9-epoch schedule (best epoch 3), so give the flat router
+    the same schedule; out/eval_r3.json."""
+    lim = 3 if smoke else None
+    model, info = fit("flat_e9", flat_ex, 0, smoke, epochs=9)
+    path = OUT / "eval_r3.json"
+    ev = json.loads(path.read_text()) if path.exists() else {"configs": {}}
+    ev["train"] = {"flat_e9": info}
+    for name, lib, test_leaves in configs():
+        if name in ev["configs"]:
+            continue
+        cases = [c for x in test_leaves for c in lc[x]["test"][:lim]]
+        ev["configs"][name] = {"flat_e9": flat_calls(model, tok, lib, cases, pad)}
+        path.write_text(json.dumps(ev))
+        print(f"[r3 {name}] {len(cases)} cases", flush=True)
+    print("EVAL_DONE", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--round3", action="store_true", help="flat router on the same 9-epoch schedule")
     ap.add_argument("--round2", action="store_true", help="tree router at 9 epochs (flat's training tokens)")
     a = ap.parse_args()
     global OUT
@@ -217,6 +236,8 @@ def main():
     tree_ex = tok_examples(tok, tree_train(train_cases, rng))
     if a.round2:
         return round2(tok, pad, lc, tree_ex, a.smoke)
+    if a.round3:
+        return round3(tok, pad, lc, flat_ex, a.smoke)
     flat, finfo = fit("flat", flat_ex, 0, a.smoke)
     treem, tinfo = fit("tree", tree_ex, 0, a.smoke)
     bodym, binfo = fit("tree_body", tree_ex, 0, a.smoke, kind="full")

@@ -95,10 +95,12 @@ def flat_shard(f):
 
 def methods(cfg):
     """method -> case id -> (route, tokens, calls)."""
-    out = {"flat_long": {}, "flat_shard": {}}
-    for cid, _ in cfg["cases"]:
-        out["flat_long"][cid] = flat_long(cfg["flat"][cid])
-        out["flat_shard"][cid] = flat_shard(cfg["flat"][cid])
+    out = {}
+    for fl, pre in (("flat", "flat"), ("flat_e9", "flat_e9")):
+        if fl not in cfg:
+            continue
+        out[f"{pre}_long"] = {cid: flat_long(cfg[fl][cid]) for cid, _ in cfg["cases"]}
+        out[f"{pre}_shard"] = {cid: flat_shard(cfg[fl][cid]) for cid, _ in cfg["cases"]}
     for tr in TREES:
         if tr not in cfg:
             continue
@@ -155,11 +157,12 @@ def main():
     a = ap.parse_args()
     out_dir = ROOT / "out" / ("smoke" if a.smoke else "")
     ev = json.loads((out_dir / "eval.json").read_text())
-    if (out_dir / "eval_r2.json").exists():   # round 2: tree LoRA at 9 epochs
-        r2 = json.loads((out_dir / "eval_r2.json").read_text())
-        ev["train"].update(r2["train"])
-        for name, c in r2["configs"].items():
-            ev["configs"][name].update(c)
+    for rn in ("eval_r2.json", "eval_r3.json"):   # round 2: tree LoRA at 9 epochs; round 3: flat at 9
+        if (out_dir / rn).exists():
+            r2 = json.loads((out_dir / rn).read_text())
+            ev["train"].update(r2["train"])
+            for name, c in r2["configs"].items():
+                ev["configs"][name].update(c)
     sub_dir = T.AL / "out" / "probs"
     sub = {f: json.loads((sub_dir / f"R-sub-{f}.json").read_text()) for f in FAM_WORKFLOW
            if (sub_dir / f"R-sub-{f}.json").exists()}
@@ -189,9 +192,11 @@ def main():
             kids = cfg["kids"]
             for m in M:
                 r[m]["held_out_none_rate"] = float(np.mean([M[m][c][0] == "none" for c, _ in held]))
-            pn_flat = lambda c: cfg["flat"][c]["long"][1][-1]
-            r["flat_long"]["gap_auroc"] = auroc(np.array([pn_flat(c) for c, _ in held]),
-                                                np.array([pn_flat(c) for c, _ in trained_cases]))
+            for fl in ("flat", "flat_e9"):
+                if fl in cfg:
+                    pn = [cfg[fl][c]["long"][1][-1] for c, _ in held]
+                    ps = [cfg[fl][c]["long"][1][-1] for c, _ in trained_cases]
+                    r[f"{fl}_long"]["gap_auroc"] = auroc(np.array(pn), np.array(ps))
             for tr in TREES:
                 if tr not in cfg:
                     continue
