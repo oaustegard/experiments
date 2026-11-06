@@ -1,9 +1,12 @@
 // GPU Bridge job: one stretch of a distillation arm (web/distill.js), resumable within the tab.
-// cfg = { sha, arm, V, pad, from, to, total, lr, warm, save, urls: { params, ids, lens, order, teacher: [..] } }
+// cfg = { sha, arm, V, pad, from, to, total, lr, warm, save, urls: { params, ids, lens, order, teacher: [..] } }; mu = f32[768]
+// Targets are the teacher's vectors minus mu, their mean over the training texts (see RESULTS: the mean is
+// 75% of a MedCPT vector's length, and a student fitting it first collapses).
 // ctx.cache keeps the teacher vectors (f16, ~1 GB), the batch order, and the arm's trainer between jobs,
 // so an arm's epochs are consecutive jobs in the same tab; a job that starts mid-arm without its trainer
 // in the cache fails at once.
-const { cfg } = ctx.inputs;
+const { cfg, mu } = ctx.inputs;
+if (!mu || mu.length !== 768) throw new Error("mu (768 floats) required");
 const gh = `https://cdn.jsdelivr.net/gh/oaustegard/experiments@${cfg.sha}/lifesci-ettin/web/`;
 const { DistillTrainer } = await ctx.importModule(gh + "distill.js");
 const C = ctx.cache, OUT = 768, BS = 128;
@@ -69,7 +72,7 @@ for (let s = cfg.from; s < cfg.to; s++) {
     bLens[b] = lens[r];
     for (let t = 0; t < lens[r]; t++) bIds[b * S + t] = ids[offs[r] + t];
     const o = r * OUT;
-    for (let j = 0; j < OUT; j++) tgt[b * OUT + j] = F16[teacher[o + j]];
+    for (let j = 0; j < OUT; j++) tgt[b * OUT + j] = F16[teacher[o + j]] - mu[j];
   });
   tr.loadBatch({ ids: bIds, B: BS, S, lens: bLens, tgt });
   tr.forwardBackward({ slot: pend });

@@ -23,4 +23,4 @@ cfg = {"sha": a.sha, "arm": a.arm, "V": m["vocab"] if a.arm != "stock" else 5036
 jid = a.id or f"lse-{a.arm}-{a.frm}-{a.to}"
 subprocess.run([sys.executable, "/home/user/claude-workspace/scripts/gpu_bridge.py", "submit", str(HERE / "web/bridge_train.js"), "--id", jid,
                 "--note", f"lifesci-ettin {a.arm} steps {a.frm}-{a.to}", "--target", "Mac", "--timeout", str(a.timeout),
-                "--input", "cfg=@" + json.dumps(cfg)], check=True)
+                "--input", "cfg=@" + json.dumps(cfg), "--input", f"mu={HERE}/.work/teacher/mu_all.npy"], check=True)
