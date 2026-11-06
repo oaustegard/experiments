@@ -43,12 +43,12 @@ for (let k = 0; k < shipped.length; k++) {
   const s = shipped[k], e = exs[k], t0 = performance.now();
   await lb.loadSpike(s.sm, s.bytes);
   const epochs = [];
-  const res = await C.train(lb, { train: e.train, val: e.val, test: [] }, { epochs: 5, lr: 5e-4, bs: 16, seed: 0, startCandidate: cfg.startCandidate ?? true }, (ev) => {
+  const res = await C.train(lb, { train: e.train, val: e.val, test: [] }, { epochs: cfg.epochs ?? 5, lr: 5e-4, bs: 16, seed: 0, startCandidate: cfg.startCandidate ?? true }, (ev) => {
     if (ev.kind === "epoch") epochs.push({ epoch: ev.epoch, trainLoss: ev.trainLoss, valKL: ev.val?.kl, valAcc: ev.val?.accuracy });
     if (ev.kind === "step" && ev.step % 10 === 0) ctx.progress(0.05 + 0.95 * (k + ev.step / ev.of) / shipped.length, `${s.id} step ${ev.step}/${ev.of}`);
   });
   const sm = { ...res.spike.sm, id: s.sm.id, description: s.sm.description, questions: s.sm.questions, temps: res.temps,
-               refit: { base: "t4-w8L31", from: "shipped spike", epochs: 5, best_epoch: res.bestEpoch, start_candidate: cfg.startCandidate ?? true, sha: cfg.sha } };
+               refit: { base: "t4-w8L31", from: "shipped spike", epochs: cfg.epochs ?? 5, best_epoch: res.bestEpoch, start_candidate: cfg.startCandidate ?? true, sha: cfg.sha } };
   out.spikes[s.id] = { sm, bestEpoch: res.bestEpoch, epochs, ms: performance.now() - t0 };
   out[`bin_${s.id}`] = res.spike.bytes;
   ctx.log(`${s.id}: best epoch ${res.bestEpoch}, val acc ${epochs[0].valAcc?.toFixed(3)} -> ${res.val?.accuracy?.toFixed(3)} (${((performance.now() - t0) / 1000).toFixed(0)} s)`);
