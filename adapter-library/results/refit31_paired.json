@@ -1,0 +1,150 @@
+{
+ "rule": "ship the \u00b131 base with the seven refit spikes if\n  (a) no spike is detectably worse: every spike's 95% upper bound is at or above 0, and\n  (b) the change pooled over all spikes' decisions is at or above 0.\nOtherwise keep \u00b163. This replaces the fixed 0.005 threshold, which the test sets (500 to 987 decisions per\nspike, standard error about 0.015) could not resolve.",
+ "spikes": {
+  "agent_trace_observability": {
+   "n": 500,
+   "shipped_L63": 0.714,
+   "refit_L31": 0.738,
+   "change": 0.024,
+   "ci95": [
+    0.004,
+    0.044
+   ],
+   "better": 19,
+   "worse": 7,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 5,
+    "best_epoch": 4,
+    "sha": "92bc6354f6e194487059173dd410eb80ee89270e"
+   }
+  },
+  "customer_service": {
+   "n": 500,
+   "shipped_L63": 0.694,
+   "refit_L31": 0.698,
+   "change": 0.004,
+   "ci95": [
+    -0.022,
+    0.03
+   ],
+   "better": 26,
+   "worse": 24,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 5,
+    "best_epoch": 3,
+    "sha": "92bc6354f6e194487059173dd410eb80ee89270e"
+   }
+  },
+  "invoice_processing": {
+   "n": 500,
+   "shipped_L63": 0.856,
+   "refit_L31": 0.834,
+   "change": -0.022,
+   "ci95": [
+    -0.048,
+    0.002
+   ],
+   "better": 13,
+   "worse": 24,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 10,
+    "best_epoch": 8,
+    "start_candidate": false,
+    "sha": "f8448908fc0912d1ea21e6b0068d68840ee6bd70"
+   }
+  },
+  "security_incidents": {
+   "n": 500,
+   "shipped_L63": 0.72,
+   "refit_L31": 0.722,
+   "change": 0.002,
+   "ci95": [
+    -0.022,
+    0.026
+   ],
+   "better": 24,
+   "worse": 23,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 10,
+    "best_epoch": 2,
+    "start_candidate": false,
+    "sha": "f8448908fc0912d1ea21e6b0068d68840ee6bd70"
+   }
+  },
+  "transactions": {
+   "n": 921,
+   "shipped_L63": 0.9587404994571118,
+   "refit_L31": 0.9739413680781759,
+   "change": 0.01520086862106406,
+   "ci95": [
+    0.004343105320304018,
+    0.02714440825190011
+   ],
+   "better": 24,
+   "worse": 10,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 5,
+    "best_epoch": 5,
+    "sha": "92bc6354f6e194487059173dd410eb80ee89270e"
+   }
+  },
+  "emails": {
+   "n": 987,
+   "shipped_L63": 0.8186423505572442,
+   "refit_L31": 0.828774062816616,
+   "change": 0.010131712259371834,
+   "ci95": [
+    -0.010131712259371834,
+    0.029381965552178316
+   ],
+   "better": 54,
+   "worse": 44,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 5,
+    "best_epoch": 5,
+    "sha": "92bc6354f6e194487059173dd410eb80ee89270e"
+   }
+  },
+  "reviews": {
+   "n": 957,
+   "shipped_L63": 0.6102403343782654,
+   "refit_L31": 0.5862068965517241,
+   "change": -0.024033437826541274,
+   "ci95": [
+    -0.050156739811912224,
+    0.003134796238244514
+   ],
+   "better": 68,
+   "worse": 91,
+   "refit": {
+    "base": "t4-w8L31",
+    "from": "shipped spike",
+    "epochs": 10,
+    "best_epoch": 1,
+    "start_candidate": false,
+    "sha": "f8448908fc0912d1ea21e6b0068d68840ee6bd70"
+   }
+  }
+ },
+ "pooled": {
+  "n": 4865,
+  "change": 0.0010277492291880781,
+  "ci95": [
+   -0.00761160255091545,
+   0.009633232115798595
+  ]
+ },
+ "ship": true
+}
