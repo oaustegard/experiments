@@ -1703,6 +1703,20 @@ the result.
   alone, more than kNN given 4 examples (0.29 at 1-NN), but other routing fell 0.09. P(none) is a usable
   gap score (AUROC 0.79) and a poor decision (10% of unseen-family cases). Sub-topic adapters cost 0.065
   against the whole-task adapter even with perfect routing. (`adapter-library/RESULTS.md` round 4)
+- **A tree of description-reading routers matches one flat router at half the tokens, but check every
+  node for convergence: one shared router adapter can leave a hard node at chance while overall accuracy
+  looks fine.** 69 leaves (MASSIVE intents, Typed Decisions families, everyday sets), one LoRA answering at
+  every router node of a variable-depth tree: 0.839 at 62 leaves with beam 2 and 0.830 greedy at 610 tokens,
+  vs 0.843 flat at 1,198 tokens. The shared router sent 55 of 60 invoice pricing/process cases to one family
+  for three training rounds; a separate LoRA for that node sat at validation KL = ln 3 for 19 epochs, then
+  dropped to 0.03. With 9 epochs it never left the plateau, so a short run looks like "this node can't be
+  learned". The tree also adds a leaf by description better (0.617 vs 0.511 of its cases) because a new
+  description competes only with its siblings. Training schedule moved accuracy more than flat vs tree did
+  (tree 0.785 → 0.818 from a 3- to a 9-epoch schedule). (`hier-router/RESULTS.md`)
+- **A full fine-tune of Ettin-17m with the token table frozen is a ~4 MB adapter, and as a router it bought
+  nothing over LoRA.** The shipped base is 11.2 MB: 7.25 MB 4-bit token table, 3.97 MB for the 7 layers at
+  int8 (about 2 MB at 4 bits), against 0.49 MB for a rank-8 LoRA spike. As a tree router it scored 0.779 vs
+  0.785 for LoRA at 62 leaves. (`hier-router/RESULTS.md` round 1)
 - **To grow a new LoRA specialist, start it from the library's merged delta, not from zero.** On
   Ettin-17m and Typed Decisions, the mean of three other workflows' `B·A` deltas, SVD-cut to rank 8,
   plus their averaged heads gave 0.671 on an unseen workflow from 64 labels, against 0.576 from zero
