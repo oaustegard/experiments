@@ -260,6 +260,17 @@ the label prior on Typed Decisions; a head needs a few hundred labelled cases of
 workflow it has not seen, and a head trained on a broad task mix is worse than no head. See
 [`RESULTS.md`](eg2-decider/RESULTS.md).
 
+### `decider-lora-creator/` — define a decision, train its LoRA spike in the browser
+
+A page where you write a decision as questions with fixed options, label cases, and train a 0.5 MB
+specialist for the frozen Ettin-17m decision model on your own GPU, then export it in the format the
+Spiky Ball page loads. Training runs on ettin-wgsl-train's WebGPU backward pass. On the invoice workflow,
+started from the other library spikes, it reaches 0.727 at 64 labelled cases and 0.837 at 300 over 10
+seeds, slightly ahead of the same protocol in PyTorch (0.703 / 0.816). Training only the decision head
+barely clears the prior. A learned per-module library merge (after P²-MOPD) did not beat an even merge.
+Page: https://austegard.com/experiments/decider-lora-creator/web/. See
+[`RESULTS.md`](decider-lora-creator/RESULTS.md).
+
 ### `adapter-library/` — LoRA spikes plus a kNN datastore on one frozen decider
 
 Tests generality as a spiky ball: narrow LoRA spikes on frozen Ettin-17m, a kNN datastore that routes
