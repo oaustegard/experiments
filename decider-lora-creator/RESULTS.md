@@ -58,6 +58,11 @@ say why the page leads.
    The weight gradients are exact: within 7.6e-4 of central differences. (bridge `creator-merge-2`)
 6. **The library start is a good initialization and a bad model.** The merged start scores 0.222 to 0.240
    untrained, against the prior's 0.538. Python's merge scored 0.258, which is adapter-library's finding.
+7. **A run can stop and resume exactly.** On the Mac, a run paused mid-epoch, its checkpoint
+   structured-cloned as IndexedDB stores it, and resumed ends with test logits identical to the
+   uninterrupted run (max difference 0), for both the WGSL LoRA trainer and the head-only backend. In
+   headless Chromium, Stop then Resume, and Stop then reload then "Resume it", give the same final
+   result as an uninterrupted run, through the page's own buttons. (bridge `creator-resume-2`, `results/check_resume_page.json`)
 
 ## Method
 
@@ -207,3 +212,29 @@ RESULTS finding 5. At n = 64: page 0.727 ± 0.027, PyTorch 0.703 ± 0.048, paire
 at each size. The page's seeds 0–7 at n = 64 match round 4's numbers exactly. PyTorch seeds 0 and 1 at
 n = 64 scored 0.608 and 0.680, not the published 0.746 and 0.750, so the comparison number used in rounds
 1–3 was high.
+
+### Round 5 (2026-11-06): pause and resume, screen wake lock, a dataset prompt
+
+Oskar asked for a keep-awake option, for whether a run can be stopped and resumed, and for guidance on
+preparing data. Changes:
+
+- `train()` now pauses on Stop. It returns a checkpoint holding the backend's weights and optimizer
+  moments, the step, the position in the epoch, the partial loss, the best epoch, the history and the step
+  losses. The shuffle order is replayed from the seed. `finishRun()` ends a paused run with its best epoch.
+  The page saves the checkpoint to IndexedDB after every epoch and every 50 steps, offers to resume after a
+  reload, and clears it when the run finishes.
+- A screen wake lock (`navigator.wakeLock`, on by default) holds while a run trains and is taken again when
+  the tab returns.
+- A copyable prompt (`web/agent_prompt.js`) for the user's AI agent covers the decision, the cases, the
+  labels, how many (with this experiment's 16/64/300 numbers) and a format check, and asks for the JSON
+  file the page imports. A paste box imports the result, accepting code fences, and turns JSON booleans and
+  numbers into option names.
+
+Checks:
+- `run/check_js.mjs pause_resume_exact`: four stop points on a deterministic backend, all identical to
+  the uninterrupted run. Two deliberate mutations, no shuffle replay and an off-by-one in the saved
+  position, each fail it.
+- `run/check.mjs resume` and `import` (headless Chromium, the page's buttons, a test-only fake backend for
+  the resume flow): both pass.
+- On the Mac (bridge `creator-resume-2`, commit 2532af04): `head_resume` and `lora_resume` pass with logit
+  difference 0, alongside the six earlier checks.
