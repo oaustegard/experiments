@@ -515,3 +515,28 @@ demo in headless Chromium: the transaction spike calls Amazon charges "shopping"
 After 5, λ = 0.44 and the sixth charge comes out household at 0.651, while the spike alone still says
 shopping. The fit chose λ = 0 (memory only) both times; λ falls only because the pull toward the spike weakens
 as labels accumulate. The page's sample list holds six Amazon charges for this.
+
+### 2026-11-06: the shipped spikes on a ±31 base (not adopted)
+
+Oskar asked whether browser-decider's ±31 matmul codes could shrink this system's base too. `run/base31.py`
+packs stock Ettin-17m at ±31, after requiring its ±63 repack to match the shipped `weights.bin` byte for
+byte, and scores every shipped spike and both routers on both bases through `LoraRef`, on every test
+case. The base drops from 9.51 to 9.02 MB brotli (raw size is unchanged: same int8 layout).
+
+| spike | decisions | ±63 | ±31 | change |
+|---|---|---|---|---|
+| agent traces | 500 | 0.714 | 0.712 | −0.002 |
+| customer service | 500 | 0.694 | 0.692 | −0.002 |
+| invoices | 500 | 0.856 | 0.838 | −0.018 |
+| security | 500 | 0.720 | 0.714 | −0.006 |
+| transactions | 921 | 0.959 | 0.943 | −0.016 |
+| emails | 987 | 0.819 | 0.814 | −0.005 |
+| reviews | 957 | 0.610 | 0.608 | −0.002 |
+| workflows router | 400 cases | 400/400 | 400/400 | 0 |
+| everyday router | 955 cases | 955/955 | 955/955 | 0 |
+
+Reading: the routers do not care. Two spikes lose 0.016–0.018 because they were fine-tuned against the
+±63 base, which is METHODS.md's "train adapters against the base you will ship". browser-decider's 0.002
+was for a model packed at ±31 from its own fp32 weights. So a ±31 base needs the spikes refit to it. The
+base stays at ±63 until that is done (candidate: 5-epoch refits from the shipped spikes with
+ettin-wgsl-train's trainer on the GPU Bridge).
