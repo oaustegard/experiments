@@ -1,0 +1,52 @@
+{
+ "id": "massive-starts-1",
+ "startedAt": 1793981704943,
+ "finishedAt": 1793982252454,
+ "runMs": null,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "75ejdgup",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "error",
+ "logs": [
+  "scratch n=64 seed 0: start 0.123 -> 0.693 (epoch 10, 7 s)",
+  "scratch n=64 seed 1: start 0.123 -> 0.656 (epoch 8, 7 s)",
+  "scratch n=64 seed 2: start 0.123 -> 0.667 (epoch 9, 7 s)",
+  "scratch n=all seed 0: start 0.123 -> 0.844 (epoch 5, 103 s)",
+  "scratch n=all seed 1: start 0.123 -> 0.856 (epoch 4, 108 s)",
+  "scratch n=all seed 2: start 0.123 -> 0.854 (epoch 5, 108 s)",
+  "retry 1/3 in 2 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/workflows/spikes/security_incidents.json: HTTP 403",
+  "retry 1/3 in 2 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/transactions.json: HTTP 403",
+  "retry 1/3 in 2 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/reviews.bin: HTTP 403",
+  "retry 2/3 in 6 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/workflows/spikes/security_incidents.json: HTTP 403",
+  "retry 2/3 in 6 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/transactions.json: HTTP 403",
+  "retry 2/3 in 6 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/reviews.bin: HTTP 403",
+  "retry 3/3 in 15 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/workflows/spikes/security_incidents.json: HTTP 403",
+  "retry 3/3 in 15 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/transactions.json: HTTP 403",
+  "retry 3/3 in 15 s: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/everyday/spikes/reviews.bin: HTTP 403"
+ ],
+ "attempts": [
+  {
+   "at": 1793981740641,
+   "error": "TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=3",
+   "logs": [
+    "retry 1/3 in 2 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js",
+    "retry 2/3 in 6 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=1",
+    "retry 3/3 in 15 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=2"
+   ]
+  },
+  {
+   "at": 1793981786939,
+   "error": "TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=3",
+   "logs": [
+    "retry 1/3 in 2 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js",
+    "retry 2/3 in 6 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=1",
+    "retry 3/3 in 15 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/decider-lora-creator/web/backends.js?retry=2"
+   ]
+  }
+ ],
+ "error": "Error: https://cdn.jsdelivr.net/gh/oaustegard/experiments@20461e40b7d16f25787ccb7e9e79734b57ba92a9/adapter-library/web/models/workflows/spikes/security_incidents.json: HTTP 403\n    at blob:https://austegard.com/a35f889a-c5e2-42d4-b65b-f8af99ee3fee:112:38\n    at async withRetry (blob:https://austegard.com/a35f889a-c5e2-42d4-b65b-f8af99ee3fee:101:22)\n    at async J (blob:https://austegard.com/151ac940-f705-4cca-ab07-be7a215e2800:14:91)\n    at async blob:https://austegard.com/151ac940-f705-4cca-ab07-be7a215e2800:20:109\n    at async Promise.all (index 3)\n    at async startSpike (blob:https://austegard.com/151ac940-f705-4cca-ab07-be7a215e2800:20:14)\n    at async self.__jobs.massive-starts-1 (blob:https://austegard.com/151ac940-f705-4cca-ab07-be7a215e2800:31:16)\n    at async onmessage (blob:https://austegard.com/a35f889a-c5e2-42d4-b65b-f8af99ee3fee:131:20)"
+}

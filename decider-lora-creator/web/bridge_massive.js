@@ -5,7 +5,7 @@
 // validation KL with the start as a candidate, temperatures fitted on validation.
 const { cfg } = ctx.inputs;
 const root = `https://cdn.jsdelivr.net/gh/oaustegard/experiments@${cfg.sha}/`, code = root + "decider-lora-creator/web/";
-const models = root + "adapter-library/web/models/";
+const models = cfg.models ?? root + "adapter-library/web/models/";   // jsDelivr 403s on many files at once: cfg.models can name raw.githubusercontent
 ctx.progress(0.01, "loading code");
 const C = await ctx.importModule(code + "creator.js");
 const Bk = await ctx.importModule(code + "backends.js");
