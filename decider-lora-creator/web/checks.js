@@ -21,7 +21,8 @@ export async function runChecks({ device, models, code, fetchBytes = null, n = 1
   const J = async (u) => JSON.parse(new TextDecoder().decode(await FB(u)));
   const R = {};
   const put = (k, v) => { R[k] = v; log(k, v); };
-  const [manifest, wbytes, tok] = await Promise.all([J(models + "base/manifest.json"), FB(models + "base/weights.bin"), C.loadTokenizer(models + "base/tokenizer.json")]);
+  const BASE = models + "base31/";   // the library spikes and their fixtures are on the ±31 base since 2026-11-06
+  const [manifest, wbytes, tok] = await Promise.all([J(BASE + "manifest.json"), FB(BASE + "weights.bin"), C.loadTokenizer(BASE + "tokenizer.json")]);
   const weights = () => wbytes.buffer.slice(wbytes.byteOffset, wbytes.byteOffset + wbytes.byteLength);
   const spike = async (set, id) => ({ sm: await J(models + `${set}/spikes/${id}.json`), bytes: await FB(models + `${set}/spikes/${id}.bin`) });
 

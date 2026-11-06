@@ -6,7 +6,9 @@
 //   // { questionName: { label: "refund", confidence: 0.81, probabilities: { refund: 0.81, other: 0.19 } }, ... }
 //
 // The base model (Ettin-17m, 11 MB, fetched once and then cached by the browser), the WebGPU engine and the
-// tokenizer come from this site unless `base` names another copy. The spike is the pair the creator page
+// tokenizer come from this site unless `base` names another copy. A spike runs on the base it was trained
+// on: its .json names it ("base": "base31" for spikes made since 2026-11-06); a spike without the field was
+// trained on the original ±63 base, models/base/, which stays published for it. The spike is the pair the creator page
 // exports: a .json manifest (questions, calibration, tensor offsets) and a .bin of weights. Pass it as a URL
 // to the .json (the .bin is found beside it), or as { sm, bytes } you already hold. Needs WebGPU (Chrome or
 // Edge 113+, Safari 26); loadDecider throws a plain error without it.
@@ -14,7 +16,7 @@
 import { SpikeEngine } from "../../adapter-library/web/engine.js";
 import { loadTokenizer, optionsOf, softmax } from "./creator.js";
 
-const BASE = new URL("../../adapter-library/web/models/base/", import.meta.url).href;
+const MODELS = new URL("../../adapter-library/web/models/", import.meta.url).href;
 
 async function fetchOk(url, kind) {
   const r = await fetch(url);
@@ -22,15 +24,16 @@ async function fetchOk(url, kind) {
   return kind === "json" ? r.json() : new Uint8Array(await r.arrayBuffer());
 }
 
-export async function loadDecider({ spike, base = BASE, device = null, onProgress = () => {} } = {}) {
+export async function loadDecider({ spike, base = null, device = null, onProgress = () => {} } = {}) {
   if (!spike) throw new Error("loadDecider needs a spike: the URL of its .json, or { sm, bytes }");
   if (!device && !navigator.gpu) throw new Error("This browser has no WebGPU, which the decision model needs (Chrome or Edge 113+, Safari 26).");
-  base = base.endsWith("/") ? base : base + "/";
   onProgress("downloading");
   const sp = typeof spike === "string" || spike instanceof URL
     ? await (async () => { const j = new URL(spike, location.href); return { sm: await fetchOk(j, "json"), bytes: await fetchOk(new URL(j.href.replace(/\.json(\?.*)?$/, ".bin$1")), "bin") }; })()
     : { sm: spike.sm, bytes: spike.bytes instanceof Uint8Array ? spike.bytes : new Uint8Array(spike.bytes) };
   if (!sp.sm?.questions || !sp.sm?.layers) throw new Error("that is not a decision spike: its .json has no questions or layers");
+  base = base ?? MODELS + (sp.sm.base ?? "base") + "/";
+  base = base.endsWith("/") ? base : base + "/";
   const [manifest, weights, tok] = await Promise.all([fetchOk(base + "manifest.json", "json"), fetchOk(base + "weights.bin", "bin"), loadTokenizer(base + "tokenizer.json")]);
   if (!device) {
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });

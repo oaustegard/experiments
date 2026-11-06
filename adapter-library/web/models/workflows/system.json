@@ -1,9 +1,9 @@
 {
- "version": "0.1.2",
+ "version": "0.2.0",
  "set": "workflows",
  "title": "Business workflows",
  "about": "Four synthetic workflows from the Typed Decisions benchmark: support tickets, vendor invoices, security alerts and AI-agent traces.",
- "base": "../base/",
+ "base": "../base31/",
  "rank": 8,
  "router": {
   "file": "spikes/router",
@@ -33,5 +33,6 @@
    "file": "spikes/security_incidents",
    "description": "Security alert triage: an alert with its evidence, the principal involved and context. Decides the disposition, severity, whether it is a true positive or a credential compromise, and urgency."
   }
- ]
+ ],
+ "base_note": "\u00b131 base since 2026-11-06 (adapter-library RESULTS, the \u00b131 rounds); ../base/ is the \u00b163 base older spikes were trained on"
 }

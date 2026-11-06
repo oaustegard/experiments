@@ -28,9 +28,10 @@ from train_enc import Enc  # noqa: E402
 
 def main():
     web = AL / "web" / "models"
-    man = json.loads((web / "base" / "manifest.json").read_text())
-    ref = LoraRef(man, (web / "base" / "weights.bin").read_bytes())
     sm = json.loads((web / "everyday" / "spikes" / "emails.json").read_text())
+    b = web / sm.get("base", "base")   # the base the spike was trained on
+    man = json.loads((b / "manifest.json").read_text())
+    ref = LoraRef(man, (b / "weights.bin").read_bytes())
     ref.use(sm, (web / "everyday" / "spikes" / "emails.bin").read_bytes())
     tok = Enc(web / "base" / "tokenizer.json")
     samples = [c for c in json.loads((web / "everyday" / "samples.json").read_text())["cases"] if c["workflow"] == "emails"][:2]

@@ -83,7 +83,8 @@ The spike is a 0.5 MB adapter (LoRA weights for the encoder plus a small decisio
 
 <h2>1. Decision <span class="n" id="dsum"></span></h2>
 <div class="row">
-  <button id="demo" class="primary">Load demo: invoice review (400 cases)</button>
+  <button id="demo" class="primary">Load demo: voice-assistant commands (1,800 cases)</button>
+  <button id="demo2" class="small">or: invoice review</button>
   <label class="pill small"><input type="file" id="file" accept=".json,.jsonl,application/json"> import</label>
   <button id="blank">New blank decision</button>
 </div>
@@ -97,8 +98,11 @@ The spike is a 0.5 MB adapter (LoRA weights for the encoder plus a small decisio
   <textarea id="pasteData" rows="5" placeholder='{"decision": {...}, "cases": [...]}'></textarea>
   <div class="row"><button id="pasteImport">Import</button><span id="pasteStat" class="small"></span></div>
 </details>
-<p class="small muted">The demo is the invoice-review workflow from the Typed Decisions benchmark (synthetic cases with five questions each).
-It starts from the mean of the library's three other business-workflow spikes, leaving the invoice spike out, to show how fast a new spike learns from labels.</p>
+<p class="small muted">The demo is 1,800 commands people wrote for a voice assistant ("wake me up at nine on friday"), from Amazon's
+MASSIVE dataset (CC BY 4.0), with three questions built from its own labels: the area, whether the person wants something done, wants
+information or is chatting, and whether a date or time is named. No library spike covers spoken commands, so it shows training a decision
+the library does not know. The invoice demo is a library workflow held out from its own spike: it starts from the other three workflow
+spikes, to show how a related start helps.</p>
 <div class="card">
   <div class="qgrid">
     <label class="f">id<input id="did" placeholder="my_decision"></label>
@@ -205,6 +209,7 @@ import { standalonePage } from "./embed.js";
 
 const $ = (id) => document.getElementById(id);
 const LIBDIR = new URL("../../adapter-library/web/models/", location.href);
+const BASE_ID = "base31";   // the base new spikes train on; exported spikes record it, and embed.js loads it for them
 const LIBRARY = [
   { set: "workflows", ids: ["agent_trace_observability", "customer_service", "invoice_processing", "security_incidents"] },
   { set: "everyday", ids: ["transactions", "emails", "reviews"] },
@@ -335,13 +340,16 @@ async function loadDataset(d) {
   S = { decision, cases, init };
   save(); renderDecision(); renderLib();
 }
-$("demo").onclick = async () => {
+const loadDemo = (file) => async () => {
   try {
     if (S.cases.length && !confirm("Replace the current decision and cases with the demo?")) return;
-    await loadDataset(await fetch("demo/invoice_processing.json").then((r) => r.json()));
+    S.init = [];   // the demo file names its own start (none for MASSIVE: no library spike is near it)
+    await loadDataset(await fetch(`demo/${file}`).then((r) => r.json()));
     $("err").textContent = "";
   } catch (e) { showErr(e); }
 };
+$("demo").onclick = loadDemo("massive.json");
+$("demo2").onclick = loadDemo("invoice_processing.json");
 // a whole dataset ({decision, cases}), a decision alone, or JSON lines of cases
 async function importText(t) {
   t = t.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");   // agents often wrap JSON in a code fence
@@ -397,7 +405,7 @@ async function loadBase() {
   if (base) return base;
   if (!navigator.gpu) throw new Error("This browser has no WebGPU. Chrome or Edge 113+, or Safari 26, can run it.");
   $("env").textContent = "Downloading the 11 MB base model…";
-  const b = new URL("base/", LIBDIR);
+  const b = new URL(`${BASE_ID}/`, LIBDIR);
   const [manifest, weights, tok] = await Promise.all([fetch(new URL("manifest.json", b)).then((r) => r.json()),
     fetch(new URL("weights.bin", b)).then((r) => r.arrayBuffer()), C.loadTokenizer(new URL("tokenizer.json", b))]);
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
@@ -583,7 +591,7 @@ function done(ctx, res) {
   finished = res.final ? { ctx, final: res.final } : null;   // what "train more" continues from
   $("moreRow").hidden = !finished;
   active = backend;
-  trained = { ...res.spike, sm: { ...res.spike.sm, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
+  trained = { ...res.spike, sm: { ...res.spike.sm, base: BASE_ID, id: S.decision.id || "my_decision", description: S.decision.description, questions: S.decision.questions, temps: res.temps,
     trained: { backend: backend.name, start: cfg.init, train_cases: sp.train.length, best_epoch: res.bestEpoch, test_accuracy: res.test?.accuracy ?? null, date: new Date().toISOString().slice(0, 10) } } };
   const info = { backend: backend.name, trainCases: sp.train.length, valCases: sp.val.length, testCases: sp.test.length, seed: cfg.split.seed, encodeS };
   resultsTable(res, startRes, info);
