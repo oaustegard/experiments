@@ -1,0 +1,186 @@
+{
+ "rule": "ship \u00b131 only if every refit is within 0.005 of its shipped spike on \u00b163",
+ "spikes": {
+  "transactions": {
+   "set": "everyday",
+   "L63_shipped": 0.9587404994571118,
+   "L31_shipped": 0.9424538545059717,
+   "L31_refit": 0.9739413680781759,
+   "kl": {
+    "L63_shipped": 0.13829081098429089,
+    "L31_refit": 0.15039585517317558
+   },
+   "n": 921,
+   "best_epoch": 5,
+   "epochs": [
+    {
+     "epoch": 0,
+     "trainLoss": null,
+     "valKL": 0.21532699274715744,
+     "valAcc": 0.9215686274509803
+    },
+    {
+     "epoch": 1,
+     "trainLoss": 0.15143886836122394,
+     "valKL": 0.23903182303497617,
+     "valAcc": 0.907563025210084
+    },
+    {
+     "epoch": 2,
+     "trainLoss": 0.06387256922270851,
+     "valKL": 0.1011743049907409,
+     "valAcc": 0.957983193277311
+    },
+    {
+     "epoch": 3,
+     "trainLoss": 0.030918333381136923,
+     "valKL": 0.08802988159786837,
+     "valAcc": 0.9775910364145658
+    },
+    {
+     "epoch": 4,
+     "trainLoss": 0.011592810039320995,
+     "valKL": 0.09516333922615926,
+     "valAcc": 0.9719887955182073
+    },
+    {
+     "epoch": 5,
+     "trainLoss": 0.004698117435311472,
+     "valKL": 0.08390174318217182,
+     "valAcc": 0.9719887955182073
+    }
+   ],
+   "delta_vs_L63": 0.015200868621064068
+  },
+  "emails": {
+   "set": "everyday",
+   "L63_shipped": 0.8186423505572442,
+   "L31_shipped": 0.8135764944275583,
+   "L31_refit": 0.828774062816616,
+   "kl": {
+    "L63_shipped": 0.45078153171548435,
+    "L31_refit": 0.4699740893331385
+   },
+   "n": 987,
+   "best_epoch": 5,
+   "epochs": [
+    {
+     "epoch": 0,
+     "trainLoss": null,
+     "valKL": 0.5183001888934861,
+     "valAcc": 0.8044077134986226
+    },
+    {
+     "epoch": 1,
+     "trainLoss": 0.27417923929312177,
+     "valKL": 0.5070397124449711,
+     "valAcc": 0.8016528925619835
+    },
+    {
+     "epoch": 2,
+     "trainLoss": 0.19285401784464581,
+     "valKL": 0.5112934033131202,
+     "valAcc": 0.8126721763085399
+    },
+    {
+     "epoch": 3,
+     "trainLoss": 0.10245106420579397,
+     "valKL": 0.49803195955645774,
+     "valAcc": 0.8181818181818182
+    },
+    {
+     "epoch": 4,
+     "trainLoss": 0.032840279492034094,
+     "valKL": 0.4938715589270067,
+     "valAcc": 0.8236914600550964
+    },
+    {
+     "epoch": 5,
+     "trainLoss": 0.008256673567076798,
+     "valKL": 0.4809766919545981,
+     "valAcc": 0.8484848484848485
+    }
+   ],
+   "delta_vs_L63": 0.010131712259371817
+  },
+  "reviews": {
+   "set": "everyday",
+   "L63_shipped": 0.6102403343782654,
+   "L31_shipped": 0.6081504702194357,
+   "L31_refit": 0.6029258098223615,
+   "kl": {
+    "L63_shipped": 0.9283061506237528,
+    "L31_refit": 0.9691730912250264
+   },
+   "n": 957,
+   "best_epoch": 1,
+   "epochs": [
+    {
+     "epoch": 0,
+     "trainLoss": null,
+     "valKL": 0.9029037674810695,
+     "valAcc": 0.6694915254237288
+    },
+    {
+     "epoch": 1,
+     "trainLoss": 0.516733042944857,
+     "valKL": 0.8964886675341408,
+     "valAcc": 0.6412429378531074
+    },
+    {
+     "epoch": 2,
+     "trainLoss": 0.3816120292128123,
+     "valKL": 0.9175060276459919,
+     "valAcc": 0.632768361581921
+    },
+    {
+     "epoch": 3,
+     "trainLoss": 0.23078364756235176,
+     "valKL": 0.9140552414969042,
+     "valAcc": 0.652542372881356
+    },
+    {
+     "epoch": 4,
+     "trainLoss": 0.10811434939559741,
+     "valKL": 0.93087981922581,
+     "valAcc": 0.652542372881356
+    },
+    {
+     "epoch": 5,
+     "trainLoss": 0.04281666899519319,
+     "valKL": 0.9281678702951672,
+     "valAcc": 0.6694915254237288
+    }
+   ],
+   "delta_vs_L63": -0.007314524555903867
+  }
+ },
+ "forward_check": {
+  "everyday": {
+   "spike": "transactions",
+   "sequences": 40,
+   "max_abs_logit_diff": 0.00010585784912109375,
+   "argmax_same": 40
+  }
+ },
+ "device": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "",
+  "description": "",
+  "features": [
+   "core-features-and-limits",
+   "shader-f16",
+   "subgroups",
+   "timestamp-query"
+  ],
+  "limits": {
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292,
+   "maxComputeWorkgroupStorageSize": 32768,
+   "maxComputeInvocationsPerWorkgroup": 1024,
+   "maxComputeWorkgroupsPerDimension": 65535
+  }
+ },
+ "ship": false
+}
