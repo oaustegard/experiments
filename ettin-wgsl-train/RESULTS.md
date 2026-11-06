@@ -53,12 +53,21 @@ memory may not fit.
    the MLP's output layer `mlp.Wo`, so it gets one too: 245,761 trainable parameters, not 209,921. The first
    round of this experiment trained three targets against a reference that also had three; the trainer now
    takes all four by default (`targets` option).
-5. **Two head biases have a true gradient of zero, in PyTorch as well.** The last linear layer's bias and the
+5. **On adapter-library's growth protocol the browser pipeline scores higher than PyTorch's, by about 0.02.**
+   With 10 seeds a side, paired by seed (same labelled invoices), the creator page training through this
+   trainer averages 0.727 at 64 labels and 0.837 at 300, against 0.703 and 0.816 for adapter-library's PyTorch <!-- @evidence[[results/growth_seeds.json#by_n.64.wgsl_mean]] -->
+   arms: +0.024 (95% interval 0.003 to 0.045) and +0.021 (0.009 to 0.033), ahead on 9 of 10 seeds at each size. <!-- @evidence[[results/growth_seeds.json#by_n.300.paired_diff_mean]] -->
+   The two-seed gap at 64 that prompted this (PyTorch 0.748) came from PyTorch seeds that do not reproduce:
+   with the round-1 library adapters rebuilt, seeds 0 and 1 score 0.608 and 0.680. The browser pipeline
+   differs in its start (the merge of the shipped, quantization-tuned spikes), its base (packed) and its
+   training loop, and this round does not separate them. The trainer is not the cause: it is exact (findings 1
+   and 2). (`results/growth_seeds.json`)
+6. **Two head biases have a true gradient of zero, in PyTorch as well.** The last linear layer's bias and the
    head LayerNorm's bias add the same constant to every option's logit, and the segment softmax cancels it.
    Their reference gradients (about 1e-8) are float noise, so a gradient check has to leave them out
    of relative errors. AdamW still moves them by about the learning rate each step, in both implementations,
    because it divides a gradient by its own size.
-6. **The one real-GPU failure was in JavaScript.** The first Mac run gave a finite first loss and NaN after it:
+7. **The one real-GPU failure was in JavaScript.** The first Mac run gave a finite first loss and NaN after it:
    `web/traj.js` read the schedule's step count from a key the fixture did not have, so the learning rate was
    NaN. The kernels were already right on SwiftShader, and the Mac matched them.
 
@@ -142,4 +151,30 @@ target, the perturbed network rounds worse in PyTorch's CPU float32, while the W
 5.3e-6 of float64 (`results/gradcheck_f64.json`). The trajectory, where B starts at zero as in training,
 matches as closely as before. Bridge jobs `ewt-gradcheck-2` (Mac), `ewt-gradcheck-3` (Mac, raw gradients
 out), `ewt-traj-2` (Mac); the SwiftShader gradcheck took 270 s.
+
+### 2026-11-06: the growth-protocol gap with 10 seeds a side
+
+decider-lora-creator's two-seed comparison on adapter-library's growth protocol (invoices held out, the
+library merge as the start, 100 test cases, 500 decisions) had the page's LoRA 0.055 behind PyTorch at 64
+labels and 0.020 ahead at 300. Oskar: "run more seeds to settle the 64 and 300 gaps". Predictions in
+`PLAN.md` (round 3), committed before any arm reported. WGSL: the creator's own `bridge_lora.js`, unchanged,
+seeds 0 to 9 (`ewt-growth-n64`, 3.8 min; `ewt-growth-n300`, 16.8 min; Mac). PyTorch: `run/growth_python.py` on a
+Colab L4 (`run/colab_growth.py`), lora.py's grow branch for seeds 0 to 9, after rebuilding the three round-1
+library spikes, whose saved adapters were gone. `run/growth_compare.py` pairs the arms by seed.
+
+| labels | WGSL mean (sd) | PyTorch mean (sd) | paired difference | 95% interval | WGSL ahead |
+|---|---|---|---|---|---|
+| 64 | 0.727 (0.027) | 0.703 (0.048) | +0.024 | 0.003 to 0.045 | 9 of 10 |
+| 300 | 0.837 (0.016) | 0.816 (0.012) | +0.021 | 0.009 to 0.033 | 9 of 10 |
+
+| prediction | result |
+|---|---|
+| P4 both intervals include 0 | missed: both exclude it, with WGSL ahead |
+| P5 the two published seeds reproduce within 0.01 on each side | WGSL: all four exactly. PyTorch: no, 0.746 / 0.750 at 64 became 0.608 / 0.680, and 0.802 / 0.824 at 300 became 0.824 / 0.796, from the rebuilt start |
+
+Reading: the gap is real, smaller than the two-seed numbers suggested, and the other way round at 64. Since the
+trainer is exact, it is a setup effect. The likeliest cause is the start: the shipped spikes the page merges
+are the v0.1.1 ones, tuned on the quantized base, while lora.py merges the round-1 fp32 spikes. The next arm
+would be PyTorch on the page's start and base, which leaves only the training loop different. Colab cost:
+about 15 minutes of an L4.
 
