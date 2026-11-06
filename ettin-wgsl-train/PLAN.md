@@ -47,3 +47,19 @@ skipped.
    7.5 minutes on the 4-CPU container.
 
 Decision rule: the trainer is "working" if P1 and P2 hold. P3 decides whether it beats the CPU path.
+
+## Round 3 (2026-11-06): the growth-protocol gap, 10 seeds a side
+
+Registered before any of these arms reported. decider-lora-creator's two-seed comparison on adapter-library's
+growth protocol (invoices, library start) left WGSL behind PyTorch by 0.055 at n = 64 and ahead by 0.020 at
+n = 300. Oskar: "run more seeds to settle the 64 and 300 gaps". Seeds 0 to 9 on both sides, paired by seed
+(the same labelled cases), `run/growth_compare.py`. The two sides still differ in setup: the start (merge of
+the shipped spikes vs the rebuilt round-1 fp32 spikes), the base (packed vs fp32) and the training loop
+(the creator page's vs lora.py's). The trainer itself is exact (rounds 1 and 2).
+
+- P4: at both n = 64 and n = 300 the 95% interval of the paired mean difference includes 0.
+- P5: the two seeds published before this round reproduce within 0.01 on each side (WGSL: same code and
+  seeds on the same Mac; PyTorch: the rebuilt start differs from the lost round-1 adapters).
+
+If P4 fails, the gap is a setup effect and the next arm is PyTorch on the browser's setup (same start and
+base), which separates the start and base from the training loop.
