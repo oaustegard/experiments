@@ -1,6 +1,6 @@
 """Inputs for web/bridge_job.js: adapter-library's growth-arm samples for one workflow.
 
-    python3 -I run/bridge_inputs.py SHA [WORKFLOW] > out/bridge_cfg.json
+    python3 -I run/bridge_inputs.py SHA [WORKFLOW] [SIZES e.g. 16,64] [SEEDS e.g. 0,1,2] > out/bridge_cfg.json
 
 The revealed cases are adapter-library's own `revealed(workflow, seed, n)` (seeded, nested), and the
 epochs are its `growth_epochs(n)`, so the page's head-only runs see the same cases and the same number
@@ -29,9 +29,11 @@ def growth_epochs(n, bs=16):   # adapter-library/run/lora.py, verbatim
 def main():
     sha = sys.argv[1]
     w = sys.argv[2] if len(sys.argv) > 2 else "invoice_processing"
+    sizes = [int(x) for x in sys.argv[3].split(",")] if len(sys.argv) > 3 else SIZES
+    seeds = [int(x) for x in sys.argv[4].split(",")] if len(sys.argv) > 4 else SEEDS
     cfg = {"sha": sha, "workflow": w, "models": "https://austegard.com/experiments/adapter-library/web/models/",
-           "reveal": {str(n): {str(s): [c["id"] for c in revealed(w, s, n)] for s in SEEDS} for n in SIZES},
-           "epochs": {str(n): growth_epochs(n) for n in SIZES}, "lr": 8e-4, "bs": 16}
+           "reveal": {str(n): {str(s): [c["id"] for c in revealed(w, s, n)] for s in seeds} for n in sizes},
+           "epochs": {str(n): growth_epochs(n) for n in sizes}, "lr": 8e-4, "bs": 16}
     print(json.dumps(cfg))
 
 

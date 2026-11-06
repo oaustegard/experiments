@@ -340,6 +340,148 @@ export class WgslTrainerBackend {
   }
 }
 
+// A learned library merge (after P²-MOPD, arXiv 2611.03953) on ettin-wgsl-train's Trainer, unchanged.
+// The new spike's delta per module m is  sum_k alpha[k][m] * B_k A_k  +  B_res A_res : K frozen library
+// spikes plus a trainable rank-8 residual. The trainer runs at rank 8 + 8K with the residual in slots 0..7
+// and spike k in slots 8 + 8k .. 15 + 8k (A_slot = A_k, B_slot = alpha * B_k / s). After each backward pass
+// the adapter reads the gradients, takes dL/dalpha = sum(G_B[slot k] * B_k) / s (exact, since B_slot is
+// linear in alpha), zeroes the library slots' gradients so AdamW and its clipping see only the residual and
+// the head, steps, then writes the library slots back from the new alpha. alpha has its own Adam (no decay).
+// mode: "alpha+res" (the method), "uniform+res" (alpha frozen at 1/K), "alpha" (no residual).
+export class LearnedMergeBackend {
+  static async create(device, manifest, weights, opts = {}) {
+    const { Trainer, pad, lib, mode = "alpha+res", head, maxSeqs = 16, maxRows = 16 * 1024, headMult = 1.6, alphaMult = 20, seed = 0 } = opts;
+    const K = lib.length, rank = 8 + 8 * K;
+    const t = await Trainer.create(device, { manifest, weights, maxRows, maxSeqs, maxPool: maxSeqs * 32, maxSeg: maxSeqs, rank, alpha: 2 * rank });
+    const b = new LearnedMergeBackend(t, { pad, lib, mode, headInit: head, K, rank, maxSeqs, maxRows, headMult, alphaMult, L: manifest.layers.length, seed });
+    b.reset();
+    await t.flush();
+    return b;
+  }
+
+  constructor(t, o) {
+    Object.assign(this, o); this.t = t; this.s = 2;   // trainer scale alpha/rank = 2, as rank-8 alpha-16 spikes
+    this.inner = new WgslTrainerBackend(t, { pad: o.pad, rank: o.rank, alpha: 2 * o.rank, maxSeqs: o.maxSeqs, maxRows: o.maxRows, headMult: o.headMult, L: o.L });
+    this.mods = this.inner.mods();
+    this.name = `learned library merge (${o.mode}, ${o.K} spikes + rank-8 residual)`;
+  }
+
+  // alpha to 1/K, residual to a fresh LoRA (A kaiming-uniform as nn.Linear, B zero), head from headInit
+  reset() {
+    const t = this.t, off = t.poff, r = this.rank, s = this.s, rand = rngU(this.seed + 11);
+    this.alpha = this.lib.map(() => this.layersOf(() => 1 / this.K));
+    this.am = this.lib.map(() => this.layersOf(() => 0)); this.av = this.lib.map(() => this.layersOf(() => 0)); this.at = 0;
+    const flat = new Float32Array(t.nParams);
+    for (let i = 0; i < this.L; i++) for (const m of this.mods) {
+      const K_ = this.lib[0].layers[i][m].K, bound = 1 / Math.sqrt(K_);
+      for (let j = 0; j < 8 * K_; j++) flat[off[`L${i}.${m}.A`] + j] = this.mode === "alpha" ? 0 : (rand() * 2 - 1) * bound;
+    }
+    const h = this.headInit;
+    flat.set(h.w0, off["head.w0"]); flat.set(h.b0, off["head.b0"]); flat.set(h.lnw, off["head.ln_w"]); flat.set(h.lnb, off["head.ln_b"]);
+    flat.set(h.w1, off["head.w1"]); flat[off["head.b1"]] = h.b1;
+    this.writeLib(flat);
+    t.setParams(flat);
+    this.inner.step_ = 0;
+  }
+  layersOf(f) { return Array.from({ length: this.L }, () => Object.fromEntries(this.mods.map((m) => [m, f()]))); }
+
+  // the library slots of flat params (A rows 8+8k.., B columns 8+8k..) from the current alpha
+  writeLib(flat) {
+    const off = this.t.poff, r = this.rank, s = this.s;
+    this.lib.forEach((sp, k) => {
+      for (let i = 0; i < this.L; i++) for (const m of this.mods) {
+        const { A, B, r: rk, K, N } = sp.layers[i][m], a = this.alpha[k][i][m], j0 = 8 + 8 * k;
+        flat.set(A.subarray(0, rk * K), off[`L${i}.${m}.A`] + j0 * K);
+        const bo = off[`L${i}.${m}.B`];
+        for (let n = 0; n < N; n++) for (let j = 0; j < rk; j++) flat[bo + n * r + j0 + j] = (a * B[n * rk + j]) / s;
+      }
+    });
+  }
+
+  // dL/dalpha from the gradient buffer; zero the slots AdamW must not move
+  alphaGrads(grd) {
+    const off = this.t.poff, r = this.rank, s = this.s;
+    const g = this.lib.map(() => this.layersOf(() => 0));
+    for (let i = 0; i < this.L; i++) for (const m of this.mods) {
+      const bo = off[`L${i}.${m}.B`], ao = off[`L${i}.${m}.A`];
+      this.lib.forEach((sp, k) => {
+        const { B, r: rk, K, N } = sp.layers[i][m], j0 = 8 + 8 * k;
+        let d = 0;
+        for (let n = 0; n < N; n++) for (let j = 0; j < rk; j++) { d += grd[bo + n * r + j0 + j] * B[n * rk + j] / s; grd[bo + n * r + j0 + j] = 0; }
+        g[k][i][m] = d;
+        grd.fill(0, ao + j0 * K, ao + (j0 + 8) * K);
+      });
+      if (this.mode === "alpha") {
+        const K = this.lib[0].layers[i][m].K, N = this.lib[0].layers[i][m].N;
+        grd.fill(0, ao, ao + 8 * K);
+        for (let n = 0; n < N; n++) for (let j = 0; j < 8; j++) grd[bo + n * r + j] = 0;
+      }
+    }
+    return g;
+  }
+
+  async lossAt(seqs, targets) {   // forward + loss only (for the gradient check)
+    const t = this.t;
+    t.loadBatch(this.inner.collate(seqs, targets)); t.forwardBackward({ T: 1, slot: 0 });
+    return (await t.read(t.LOSS, 1))[0];
+  }
+
+  async step(seqs, targets, { lr = 5e-4, weightDecay = 0.01 } = {}) {
+    const t = this.t;
+    t.loadBatch(this.inner.collate(seqs, targets));
+    t.forwardBackward({ T: 1, slot: 0 });
+    const loss = (await t.read(t.LOSS, 1))[0], grd = await t.read(t.GRD);
+    const ga = this.alphaGrads(grd);
+    this.device().queue.writeBuffer(t.GRD, 0, grd);
+    t.adamStep({ lr, lrHead: lr * this.headMult, wd: weightDecay, step: ++this.inner.step_, clip: 1.0 });
+    if (this.mode !== "uniform+res") {
+      const la = lr * this.alphaMult, b1 = 0.9, b2 = 0.999; this.at++;
+      const c1 = 1 - b1 ** this.at, c2 = 1 - b2 ** this.at;
+      this.lib.forEach((_, k) => { for (let i = 0; i < this.L; i++) for (const m of this.mods) {
+        const gk = ga[k][i][m], M = this.am[k][i], V = this.av[k][i];
+        M[m] = b1 * M[m] + (1 - b1) * gk; V[m] = b2 * V[m] + (1 - b2) * gk * gk;
+        this.alpha[k][i][m] -= la * (M[m] / c1) / (Math.sqrt(V[m] / c2) + 1e-8);
+      } });
+    }
+    const prm = await t.read(t.PRM);
+    this.writeLib(prm);
+    this.device().queue.writeBuffer(t.PRM, 0, prm);
+    return { loss };
+  }
+  device() { return this.t.device; }
+
+  score(seqs) { return this.inner.score(seqs); }
+
+  // the trained spike at rank 8 + 8K (library slots carry alpha): packed B carries s
+  async exportSpike() {
+    const t = this.t, p = await t.read(t.PRM), off = t.poff, r = this.rank, H = 256;
+    const layers = Array.from({ length: this.L }, (_, i) => Object.fromEntries(this.mods.map((m) => {
+      const [, K] = t.layout.find((x) => x.name === `L${i}.${m}.A`).shape, [N] = t.layout.find((x) => x.name === `L${i}.${m}.B`).shape;
+      const A = p.slice(off[`L${i}.${m}.A`], off[`L${i}.${m}.A`] + r * K), B = p.slice(off[`L${i}.${m}.B`], off[`L${i}.${m}.B`] + N * r);
+      for (let j = 0; j < B.length; j++) B[j] *= this.s;
+      return [m, { A, B, r, K, N }];
+    })));
+    const g = (n, len) => p.slice(off[n], off[n] + len);
+    const out = packSpike({ layers, head: { w0: g("head.w0", H * H), b0: g("head.b0", H), lnw: g("head.ln_w", H), lnb: g("head.ln_b", H), w1: g("head.w1", H), b1: p[off["head.b1"]] } });
+    out.sm.alpha = this.alpha;
+    return out;
+  }
+
+  // a snapshot this backend made: params as they were, alpha restored
+  async loadSpike(sm, bytes) {
+    if (!sm.alpha) throw new Error("LearnedMergeBackend loads only its own snapshots");
+    const u = unpackSpike(sm, bytes), t = this.t, off = t.poff, r = this.rank, flat = new Float32Array(t.nParams);
+    u.layers.forEach((L, i) => { for (const m of this.mods) { flat.set(L[m].A, off[`L${i}.${m}.A`]); L[m].B.forEach((x, j) => { flat[off[`L${i}.${m}.B`] + j] = x / this.s; }); } });
+    const h = u.head;
+    flat.set(h.w0, off["head.w0"]); flat.set(h.b0, off["head.b0"]); flat.set(h.lnw, off["head.ln_w"]); flat.set(h.lnb, off["head.ln_b"]);
+    flat.set(h.w1, off["head.w1"]); flat[off["head.b1"]] = h.b1;
+    this.alpha = structuredClone(sm.alpha);
+    t.setParams(flat); await t.flush();
+  }
+}
+
+function rngU(seed) { let a = (seed >>> 0) || 1; return () => { a = (a + 0x6d2b79f5) | 0; let x = Math.imul(a ^ (a >>> 15), 1 | a); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; }
+
 // An external trainer (the WGSL backward pass) behind the same interface. The module must export
 // LoraTrainer (or a default export) with create(device, manifest, weights, opts) and the methods above.
 export class LoraBackend {

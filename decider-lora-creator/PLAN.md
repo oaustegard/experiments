@@ -46,3 +46,25 @@ the merge itself at n = 0 scores 0.258.
 Decision rule: if P2 and P4 hold, head-only is the page's default for small label budgets and the LoRA
 backend is the upgrade for large ones; if head-only falls below the zero-start LoRA at n = 64, the page
 should say so and steer users to the LoRA backend once it exists.
+
+## Round 4 (registered 2026-11-06, before the run): seeds at n = 64, and a learned library merge
+
+Oskar asked for both: more seeds, to tell whether in-browser LoRA's 0.693 at n = 64 (Python 0.748) is
+seed noise, and the P²-MOPD-style learned merge (arXiv 2611.03953) as a start. The trainer exposes no merge
+coefficients, so the adapter puts the K = 3 library spikes into extra LoRA slots of a rank 8 + 8K trainer:
+B_slot = α_{k,m}·B_k and A_slot = A_k, beside a fresh rank-8 residual (A kaiming-uniform, B zero). After each
+AdamW step the adapter writes the library slots back from α, and updates α (84 scalars: 3 spikes × 4 modules ×
+7 layers) with its own Adam, using dL/dα_{k,m} = Σ G_B[slot k] ⊙ B_k / s, which is exact. Arms, invoices,
+adapter-library's growth protocol:
+
+- `warm`: the current page start (SVD-cut merge, all of it trained), n = 16 and 64, seeds 0–7.
+- `uniform+res`: α frozen at 1/3, residual and head trained, n = 16 and 64, seeds 0–3.
+- `alpha+res`: α learned with the residual and head (the paper's method), n = 16 and 64, seeds 0–3.
+- `alpha`: α and head only, no residual, n = 16 and 64, seeds 0–1.
+
+Before training, the job checks dα against central differences of the loss on one batch.
+
+- **P6.** `warm` over 8 seeds at n = 64 lands within 0.03 of Python's 0.748: the round-3 gap was noise.
+- **P7.** `alpha+res` beats `uniform+res` by at least 0.02 at n = 16 and is within ±0.02 of it at n = 64.
+- **P8.** `alpha` alone trails `alpha+res` by at least 0.03 at n = 64 (the paper's ablation).
+- **P9.** `alpha+res` is within 0.02 of `warm` at n = 64.
