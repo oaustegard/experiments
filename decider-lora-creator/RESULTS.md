@@ -16,15 +16,22 @@ Python's LoRA from the same start scores 0.600 / 0.748 / 0.813. Training only th
 ids, logits against the NumPy reference, the trainer's logits against the inference path (3.1e-6), the
 weight round trip, and train-and-export for both backends. The 300-case spike trains in about 97 s.
 
-Over 8 seeds the page's start reaches 0.629 at 16 cases and 0.732 at 64, within 0.03 of Python. <!-- @evidence[[results/bridge_creator-merge-2.json#outputs.arms]] -->
-The round-3 gap at 64 was seed noise. A learned library merge after P²-MOPD (one weight per spike per
+Over 8 seeds the page's start reaches 0.629 at 16 cases and 0.732 at 64. <!-- @evidence[[results/bridge_creator-merge-2.json#outputs.arms]] -->
+The trainer's session then ran 10 paired seeds on both sides, with the published Python start rebuilt. The
+page beats PyTorch: 0.727 against 0.703 at 64 (+0.024, 95% CI 0.003–0.045) and 0.837 against 0.816 at 300
+(+0.021, CI 0.009–0.033). <!-- @evidence[[../ettin-wgsl-train/results/growth_seeds.json#by_n]] -->
+The Python 0.748 at 64 used for comparison in rounds 1–3 does not reproduce. Rebuilt, its two seeds score
+0.608 and 0.680. A learned library merge after P²-MOPD (one weight per spike per
 module, learned with a fresh residual) reaches 0.616 / 0.720. That is no better than freezing the weights at
 an even split (0.611 / 0.706) or the page's plain start, so the page keeps the plain start.
 
 ## Findings
 
-1. **In-browser LoRA matches the Python LoRA.** Over 8 seeds the page's start reaches 0.629 (n = 16, sd 0.032)
-   and 0.732 (64, sd 0.028), against Python's 0.600 and 0.748 (round 4). With 2 seeds and all four LoRA
+1. **In-browser LoRA matches or beats the Python LoRA.** Over 10 paired seeds (ettin-wgsl-train
+   `results/growth_seeds.json`), it scores 0.727 against PyTorch's 0.703 at n = 64 and 0.837 against 0.816
+   at 300, ahead on 9 of 10 seeds at each size. The starts, the bases and the training loops still differ,
+   so this does not say which of them helps. Over 8 seeds of its own (round 4), the page's start reaches
+   0.629 (n = 16, sd 0.032) and 0.732 (64, sd 0.028). With 2 seeds and all four LoRA
    targets it scored 0.600 (n = 16), 0.693 (64), 0.833 (300), against Python's library-start LoRA at 0.600 / 0.748 / 0.813
    (adapter-library `results/G-warm-invoice_processing-*`). Without the Wo_mlp target (round 2) it was
    0.572 / 0.704 / 0.849: adding it closed the gap at n = 16; at 64 and 300 the two runs differ by about
@@ -190,3 +197,14 @@ Reading: on this fixture, learning how much of each library spike to keep does n
 residual adapter carries the learning. The page keeps its rank-8 SVD-cut start, which is as good and
 cheaper. `LearnedMergeBackend` stays in `backends.js` for a fixture where the library spikes disagree
 more, and the page does not offer it.
+
+### Round 4b (2026-11-06): 10 paired seeds, run by the trainer's session
+
+Oskar asked ettin-wgsl-train's session to settle the n = 64 and 300 gaps. It ran this experiment's
+`bridge_lora.js` unchanged on the Mac for seeds 0–9. On Colab it ran adapter-library's `lora.py` growth
+branch with the round-1 library spikes rebuilt. Results are in its `results/growth_seeds.json` and its
+RESULTS finding 5. At n = 64: page 0.727 ± 0.027, PyTorch 0.703 ± 0.048, paired +0.024 (95% CI
+0.003–0.045). At n = 300: 0.837 against 0.816, +0.021 (CI 0.009–0.033). The page is ahead on 9 of 10 seeds
+at each size. The page's seeds 0–7 at n = 64 match round 4's numbers exactly. PyTorch seeds 0 and 1 at
+n = 64 scored 0.608 and 0.680, not the published 0.746 and 0.750, so the comparison number used in rounds
+1–3 was high.
