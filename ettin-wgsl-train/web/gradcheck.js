@@ -64,5 +64,6 @@ export async function gradcheck(device, get) {
     zeroGradTensors: tensors.filter((t) => t.zeroGrad).map(({ name, refNorm, norm }) => ({ name, refNorm, norm })),
     updateRelErr: rel(du, dr, 0, du.length), updateSignFlips: flips, updateN: du.length, tensors, initMs, stepMs,
     batch: { B: meta.B, S: meta.S, lens: meta.lens },
+    grads: g,   // raw, for a float64 comparison (run/reference.py f64)
   };
 }

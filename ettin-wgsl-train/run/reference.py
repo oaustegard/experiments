@@ -215,6 +215,50 @@ def traj():
     (HERE / "results" / "cpu_traj.json").write_text(json.dumps(res, indent=1))
 
 
+def f64(gpu_grads=None):
+    """The gradcheck batch in float64: how far PyTorch's own float32 gradients are from exact, and the GPU's."""
+    m, man = model(0)
+    T = man["temps"]["noul"]
+    meta = json.loads((FIX / "gradcheck" / "meta.json").read_text())
+    p0 = np.fromfile(FIX / "gradcheck" / "params0.bin", np.float32)
+    g32 = np.fromfile(FIX / "gradcheck" / "grads.bin", np.float32).astype(np.float64)
+    m = m.double()
+    off = 0
+    for _, t in tensors(m):
+        n = t.numel()
+        t.data.copy_(torch.from_numpy(p0[off:off + n].astype(np.float64)).view_as(t))
+        off += n
+    rd = lambda k, dt=np.int32: torch.from_numpy(np.fromfile(FIX / "gradcheck" / f"{k}.bin", dt).astype(np.int64))  # noqa: E731
+    B, S = meta["B"], meta["S"]
+    ids = rd("ids").view(B, S)
+    lens = rd("lens")
+    att = (torch.arange(S)[None] < lens[:, None]).long()
+    pos = rd("pos")
+    gold = torch.from_numpy(np.fromfile(FIX / "gradcheck" / "gold.bin", np.float32).astype(np.float64))
+    seg = np.fromfile(FIX / "gradcheck" / "seg.bin", np.int32).tolist()
+    loss = loss_of(m, (ids, att, pos // S, pos % S, seg, gold), T)
+    loss.backward()
+    g64 = flat(m, grad=True).astype(np.float64) if False else torch.cat([t.grad.reshape(-1) for _, t in tensors(m)]).numpy()
+    gg = np.fromfile(gpu_grads, np.float32).astype(np.float64) if gpu_grads else None
+    out = {"loss64": float(loss), "loss32_torch": meta["loss"], "tensors": []}
+    tot = np.linalg.norm(g64)
+    for x in meta["layout"]:
+        n = int(np.prod(x["shape"]))
+        sl = slice(x["offset"], x["offset"] + n)
+        ref = np.linalg.norm(g64[sl])
+        if ref < 1e-6 * tot:
+            continue
+        row = {"name": x["name"], "torch32_vs_64": float(np.linalg.norm(g32[sl] - g64[sl]) / ref)}
+        if gg is not None:
+            row["gpu_vs_64"] = float(np.linalg.norm(gg[sl] - g64[sl]) / ref)
+        out["tensors"].append(row)
+    for k in ("torch32_vs_64", "gpu_vs_64"):
+        if out["tensors"] and k in out["tensors"][0]:
+            out["max_" + k] = max(t[k] for t in out["tensors"])
+    (HERE / "results" / "gradcheck_f64.json").write_text(json.dumps(out, indent=1))
+    print({k: v for k, v in out.items() if k != "tensors"})
+
+
 def cputime():
     """Forward + backward time on the batch web/traj.js times (the middle batch of epoch 1), uncontended."""
     m, man = model(0)
@@ -238,4 +282,4 @@ def cputime():
 
 
 if __name__ == "__main__":
-    {"gradcheck": gradcheck, "traj": traj, "cputime": cputime}[sys.argv[1]]()
+    {"gradcheck": gradcheck, "traj": traj, "cputime": cputime, "f64": f64}[sys.argv[1]](*sys.argv[2:])
