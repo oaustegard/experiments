@@ -39,6 +39,16 @@ export function validate(decision, cases = []) {
   return errs;
 }
 
+// Agents and spreadsheets write gold labels as JSON booleans or numbers ("urgent": true, "severity": 2);
+// option names are strings. Converts those, and returns the cases (a copy) with ids filled in.
+export function normalizeCases(cases) {
+  return cases.map((c, i) => {
+    const gold = {};
+    for (const [q, g] of Object.entries(c.gold ?? {})) gold[q] = typeof g === "boolean" || typeof g === "number" ? String(g) : g;
+    return { ...c, id: c.id ?? `c${i + 1}`, gold, state: typeof c.state === "string" ? c.state : JSON.stringify(c.state) };
+  });
+}
+
 // Gold for one question as a distribution over its options, or null when the case has no label for it.
 export function goldDist(q, g) {
   if (g === undefined || g === null) return null;

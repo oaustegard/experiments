@@ -112,5 +112,18 @@ const merged = C.mergeSpikes(ws);
   check("pause_resume_exact", Object.values(cases).every(same) && cases.mid_epoch.paused && cases.epoch_end.paused, { steps: A.losses.length, bestEpoch: A.res.bestEpoch, cases: detail });
 }
 
+// 7. the agent prompt's example output passes the page's own validator, with and without a draft decision
+{
+  const { agentPrompt } = await import(path.join(web, "agent_prompt.js"));
+  const p = agentPrompt(), a = p.indexOf("nothing else:\n") + "nothing else:\n".length, b = p.indexOf("\nLeave \"split\"");
+  let ex = null, err = null;
+  try { ex = JSON.parse(p.slice(a, b)); } catch (e) { err = String(e); }
+  const errs = ex ? C.validate(ex.decision, C.normalizeCases(ex.cases)) : ["unparsed"];
+  const withDraft = agentPrompt({ id: "x", questions: { q: { type: "noul", instructions: "It is." } } }).includes('"instructions": "It is."');
+  const bools = C.normalizeCases([{ state: "s", gold: { u: true, n: 2 } }])[0];
+  check("agent_prompt_example", !err && errs.length === 0 && withDraft && bools.gold.u === "true" && bools.gold.n === "2" && bools.id === "c1",
+    { parseError: err, validateErrors: errs, cases: ex?.cases.length, draftIncluded: withDraft, chars: p.length });
+}
+
 fs.writeFileSync(path.join(here, "..", "results", "check_js.json"), JSON.stringify(results, null, 1));
 process.exit(fail ? 1 : 0);

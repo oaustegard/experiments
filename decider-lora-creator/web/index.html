@@ -83,6 +83,16 @@ The spike is a 0.5 MB adapter (LoRA weights for the encoder plus a small decisio
   <label class="pill small"><input type="file" id="file" accept=".json,.jsonl,application/json"> import</label>
   <button id="blank">New blank decision</button>
 </div>
+<details id="prep"><summary>Prepare a dataset with an AI agent</summary>
+  <p class="small">A spike is only as good as its cases. Copy this prompt into the AI agent you use (Claude, ChatGPT, or a coding agent
+  with your files). It asks about your decision, helps you collect and label cases, and checks the file. Paste what it returns below.
+  If you have drafted questions here, the prompt includes them.</p>
+  <div class="row"><button id="promptCopy" class="primary">Copy prompt</button><span id="promptStat" class="small muted"></span></div>
+  <textarea id="promptText" rows="8" readonly></textarea>
+  <p class="small">The agent's JSON file:</p>
+  <textarea id="pasteData" rows="5" placeholder='{"decision": {...}, "cases": [...]}'></textarea>
+  <div class="row"><button id="pasteImport">Import</button></div>
+</details>
 <p class="small muted">The demo is the invoice-review workflow from the Typed Decisions benchmark (synthetic cases with five questions each).
 It starts from the mean of the library's three other business-workflow spikes, leaving the invoice spike out, to show how fast a new spike learns from labels.</p>
 <div class="card">
@@ -175,6 +185,7 @@ They load in the <a href="../../adapter-library/web/">Spiky Ball Decider</a> as 
 <script type="module">
 import * as C from "./creator.js";
 import { HeadBackend, LoraBackend, truncateRank } from "./backends.js";
+import { agentPrompt } from "./agent_prompt.js";
 
 const $ = (id) => document.getElementById(id);
 const LIBDIR = new URL("../../adapter-library/web/models/", location.href);
@@ -272,6 +283,7 @@ function renderGoldForm() {
     ${C.optionsOf(q).map(([o, d]) => `<option value="${esc(o)}" title="${esc(d)}">${esc(o)}</option>`).join("")}</select></label>`).join("");
 }
 function addCases(list) {
+  list = C.normalizeCases(list);
   const errs = C.validate(S.decision, list);
   if (errs.length) throw new Error(errs.slice(0, 12).join("\n") + (errs.length > 12 ? `\n… ${errs.length - 12} more` : ""));
   const ids = new Set(S.cases.map((c) => c.id));
@@ -294,10 +306,12 @@ $("cbulkadd").onclick = () => {
 $("cclear").onclick = () => { if (confirm(`Remove all ${S.cases.length} cases?`)) { S.cases = []; save(); renderCases(); } };
 
 async function loadDataset(d) {
-  const decision = d.decision ?? d;
-  const errs = C.validate(decision, d.cases ?? []);
+  const decision = d.decision ?? d, cases = C.normalizeCases(d.cases ?? []);
+  const errs = C.validate(decision, cases);
   if (errs.length) throw new Error(errs.slice(0, 12).join("\n"));
-  S = { decision, cases: d.cases ?? [], init: (d.init ?? []).map((x) => (x.includes("/") ? x : `workflows/${x}`)) };
+  // no start named: keep the current one, or start from every library spike (their mean, cut to rank 8)
+  const init = d.init ? d.init.map((x) => (x.includes("/") ? x : `workflows/${x}`)) : S.init.length ? S.init : LIBRARY.flatMap(({ set, ids }) => ids.map((id) => `${set}/${id}`));
+  S = { decision, cases, init };
   save(); renderDecision(); renderLib();
 }
 $("demo").onclick = async () => {
@@ -307,13 +321,27 @@ $("demo").onclick = async () => {
     $("err").textContent = "";
   } catch (e) { showErr(e); }
 };
+// a whole dataset ({decision, cases}), a decision alone, or JSON lines of cases
+async function importText(t) {
+  t = t.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");   // agents often wrap JSON in a code fence
+  let whole = null;
+  try { whole = JSON.parse(t); } catch { /* not one JSON value: JSON lines */ }
+  if (whole && !Array.isArray(whole) && (whole.decision || whole.questions)) {
+    if (S.cases.length && !confirm("Replace the current decision and its cases with this file?")) return;
+    await loadDataset(whole);
+  } else addCases((Array.isArray(whole) ? whole : t.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l))));
+}
 $("file").onchange = async () => {
-  try {
-    const t = await $("file").files[0].text();
-    if (t.trim().startsWith("{") && !t.trim().includes("\n{")) await loadDataset(JSON.parse(t));
-    else addCases(t.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l)));
-    $("err").textContent = "";
-  } catch (e) { showErr(e); }
+  try { await importText(await $("file").files[0].text()); $("err").textContent = ""; } catch (e) { showErr(e); }
+};
+$("pasteImport").onclick = async () => {
+  try { await importText($("pasteData").value); $("pasteData").value = ""; $("err").textContent = ""; } catch (e) { showErr(e); }
+};
+$("prep").addEventListener("toggle", () => { if ($("prep").open) $("promptText").value = agentPrompt(S.decision); });
+$("promptCopy").onclick = async () => {
+  const t = agentPrompt(S.decision); $("promptText").value = t;
+  try { await navigator.clipboard.writeText(t); $("promptStat").textContent = "Copied."; }
+  catch { $("promptText").select(); $("promptStat").textContent = "Select-all and copy from the box below."; }
 };
 
 // ---- the library start ----
@@ -616,7 +644,7 @@ $("xdata").onclick = () => download(`${S.decision.id || "decision"}-cases.json`,
 // ---- boot ----
 renderDecision(); renderLib();
 $("env").textContent = navigator.gpu ? "WebGPU is available. The model downloads (11 MB) when you first train or answer." : "This browser has no WebGPU: you can edit and export decisions, but not train.";
-(async () => { if (params.get("demo") !== null && !S.cases.length) await $("demo").onclick(); await offerSaved(); window.__ready = true; })();
+(async () => { if (params.get("demo") !== null && !S.cases.length) await $("demo").onclick(); $("promptText").value = agentPrompt(S.decision); await offerSaved(); window.__ready = true; })();
 window.__creator = { get state() { return S; }, C };
 </script>
 </body>

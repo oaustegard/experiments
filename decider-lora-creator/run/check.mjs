@@ -27,6 +27,26 @@ if (which === "check") {
   console.log(JSON.stringify(r, null, 1));
   fs.writeFileSync(path.join(exp, "results", "check_page.json"), JSON.stringify(r, null, 1));
   process.exitCode = r.ok ? 0 : 1;
+} else if (which === "import") {
+  // the dataset panel: the prompt fills in (with the drafted decision), and the prompt's own example, pasted inside
+  // a code fence as agents return it, imports as a decision with its cases and a start spike
+  page.on("dialog", (d) => d.accept());
+  await page.goto(base + "index.html?demo");
+  await page.waitForFunction(() => window.__ready, null, { timeout: 120000 });
+  await page.click("#prep summary");
+  await page.waitForFunction(() => document.getElementById("promptText").value.length > 0, null, { timeout: 10000 });
+  const prompt = await page.inputValue("#promptText");
+  const a = prompt.indexOf("nothing else:\n") + "nothing else:\n".length, b = prompt.indexOf("\nLeave \"split\"");
+  await page.fill("#pasteData", "```json\n" + prompt.slice(a, b).replace(/"severity": "1"/, '"severity": 1').replace(/"urgent": "true"/, '"urgent": true') + "\n```");
+  await page.click("#pasteImport");
+  const st = await page.evaluate(() => ({ id: window.__creator.state.decision.id, questions: Object.keys(window.__creator.state.decision.questions),
+    cases: window.__creator.state.cases.length, golds: window.__creator.state.cases.map((c) => c.gold), init: window.__creator.state.init.length,
+    err: document.getElementById("err").textContent, csum: document.getElementById("csum").textContent }));
+  const out = { promptChars: prompt.length, promptHasDemoDecision: prompt.includes('"discrepancy_severity"'), imported: st,
+    ok: prompt.includes('"discrepancy_severity"') && st.id === "snake_case_name" && st.cases === 2 && !st.err && st.init === 3 && st.golds[0].severity === "1" && st.golds[1].urgent === "true" };
+  console.log(JSON.stringify(out, null, 1));
+  fs.writeFileSync(path.join(exp, "results", "check_import_page.json"), JSON.stringify(out, null, 1));
+  process.exitCode = out.ok ? 0 : 1;
 } else if (which === "resume") {
   // Stop / Resume and reload / resume through the page's own buttons and IndexedDB, on the fake backend (no GPU
   // training): each interrupted run must end exactly where the uninterrupted one does.
