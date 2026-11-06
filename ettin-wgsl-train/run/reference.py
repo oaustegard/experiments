@@ -238,7 +238,7 @@ def f64(gpu_grads=None):
     seg = np.fromfile(FIX / "gradcheck" / "seg.bin", np.int32).tolist()
     loss = loss_of(m, (ids, att, pos // S, pos % S, seg, gold), T)
     loss.backward()
-    g64 = flat(m, grad=True).astype(np.float64) if False else torch.cat([t.grad.reshape(-1) for _, t in tensors(m)]).numpy()
+    g64 = torch.cat([t.grad.reshape(-1) for _, t in tensors(m)]).numpy()
     gg = np.fromfile(gpu_grads, np.float32).astype(np.float64) if gpu_grads else None
     out = {"loss64": float(loss), "loss32_torch": meta["loss"], "tensors": []}
     tot = np.linalg.norm(g64)
