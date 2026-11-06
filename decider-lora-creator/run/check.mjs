@@ -11,7 +11,7 @@ const types = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/ja
 const server = http.createServer((req, res) => {
   const f = path.join(root, decodeURIComponent(new URL(req.url, "http://x").pathname));
   if (!f.startsWith(root)) { res.writeHead(403); res.end(); return; }
-  fs.readFile(f, (err, data) => { if (err) { res.writeHead(404); res.end(); return; } res.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream" }); res.end(data); });
+  fs.readFile(f, (err, data) => { if (err) { res.writeHead(404); res.end(); return; } res.writeHead(200, { "content-type": types[path.extname(f)] || "application/octet-stream", "access-control-allow-origin": "*" }); res.end(data); });
 }).listen(0);
 const port = server.address().port, which = process.argv[2] || "check";
 const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader", "--enable-features=Vulkan", "--use-vulkan=swiftshader"] });
@@ -27,6 +27,39 @@ if (which === "check") {
   console.log(JSON.stringify(r, null, 1));
   fs.writeFileSync(path.join(exp, "results", "check_page.json"), JSON.stringify(r, null, 1));
   process.exitCode = r.ok ? 0 : 1;
+} else if (which === "embed") {
+  // the ready-made page, served from another origin than the runtime (as a user's site would be), answers two
+  // sample emails with the shipped emails spike; compare with adapter-library's NumPy reference
+  // (run/embed_fixture.py). Then the snippet's form, loadDecider({ spike: URL }), on the first email.
+  globalThis.GPUBufferUsage = {}; globalThis.GPUMapMode = {};
+  const { standalonePage } = await import(path.join(exp, "web", "embed.js"));
+  const fx = JSON.parse(fs.readFileSync(path.join(exp, "out", "embed_fixture.json")));
+  const sp = path.join(root, "adapter-library", "web", "models", "everyday", "spikes");
+  const sm = JSON.parse(fs.readFileSync(path.join(sp, "emails.json"))), bytes = new Uint8Array(fs.readFileSync(path.join(sp, "emails.bin")));
+  const embedUrl = `http://localhost:${port}/decider-lora-creator/web/embed.js`;
+  const html = standalonePage(sm, bytes, embedUrl);
+  const other = http.createServer((req, res) => { res.writeHead(200, { "content-type": "text/html" }); res.end(html); }).listen(0);
+  await page.goto(`http://127.0.0.1:${other.address().port}/`);
+  await page.waitForFunction(() => window.__ready, null, { timeout: 600000 });
+  const out = { htmlKB: Math.round(html.length / 1024), ready: await page.evaluate(() => window.__ready), err: await page.textContent("#err"), cases: [] };
+  const diff = (a, b) => Math.max(...Object.keys(b).flatMap((q) => Object.keys(b[q]).map((o) => Math.abs(a[q].probabilities[o] - b[q][o]))));
+  for (let i = 0; i < fx.states.length; i++) {
+    await page.evaluate(() => { window.__answer = null; });
+    await page.fill("#state", fx.states[i]);
+    await page.click("#go");
+    await page.waitForFunction(() => window.__answer, null, { timeout: 600000 });
+    const a = await page.evaluate(() => window.__answer);
+    out.cases.push({ max_abs_prob_diff: diff(a, fx.probs[i]), labels: Object.fromEntries(Object.entries(a).map(([q, r]) => [q, r.label])) });
+  }
+  const viaUrl = await page.evaluate(async ([u, s, st]) => { const m = await import(u); const d = await m.loadDecider({ spike: s }); return d.decide(st); },
+    [embedUrl, `http://localhost:${port}/adapter-library/web/models/everyday/spikes/emails.json`, fx.states[0]]).catch((e) => ({ error: String(e) }));
+  out.urlMode = viaUrl.error ? viaUrl : { max_abs_prob_diff: diff(viaUrl, fx.probs[0]) };
+  await page.screenshot({ path: path.join(exp, "out", "embed.png"), fullPage: true });
+  other.close();
+  out.ok = out.ready === true && out.cases.length === 2 && out.cases.every((c) => c.max_abs_prob_diff < 1e-3) && out.urlMode.max_abs_prob_diff < 1e-3;
+  console.log(JSON.stringify(out, null, 1));
+  fs.writeFileSync(path.join(exp, "results", "check_embed_page.json"), JSON.stringify(out, null, 1));
+  process.exitCode = out.ok ? 0 : 1;
 } else if (which === "import") {
   // the dataset panel: the prompt fills in (with the drafted decision), and the prompt's own example, pasted inside
   // a code fence as agents return it, imports as a decision with its cases and a start spike

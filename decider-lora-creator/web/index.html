@@ -179,6 +179,12 @@ puts it to sleep.</p>
 They load in the <a href="../../adapter-library/web/">Spiky Ball Decider</a> as they are: put both in one of its sets'
 <code>spikes/</code> directories and add the spike to that set's <code>system.json</code>, using the entry shown after download.</p>
 <div class="row"><button id="xspike" disabled>Download spike</button><button id="xdata">Download decision and cases</button></div>
+<h3 style="font-size:15px;margin:18px 0 4px">Use it on your own page</h3>
+<p class="small muted">Download a ready-made page: one HTML file with your spike inside, a text box and the answers. Open it or put it
+on any web host. Or add the model to a page of your own: host the two spike files next to it and import the runtime, as below.
+The 11 MB base model and the engine load from this site, which allows other sites to use them. Visitors need a WebGPU browser.</p>
+<div class="row"><button id="xpage" disabled>Download a ready-made page</button></div>
+<pre id="xsnippet" class="small" style="white-space:pre-wrap;background:var(--code);padding:8px;border-radius:6px"></pre>
 <pre id="xsys" class="small" style="white-space:pre-wrap"></pre>
 <p class="small muted">Source and write-up: <a href="https://github.com/oaustegard/experiments/tree/main/decider-lora-creator">experiments/decider-lora-creator</a>.</p>
 </main>
@@ -187,6 +193,7 @@ They load in the <a href="../../adapter-library/web/">Spiky Ball Decider</a> as 
 import * as C from "./creator.js";
 import { HeadBackend, LoraBackend, truncateRank } from "./backends.js";
 import { agentPrompt } from "./agent_prompt.js";
+import { standalonePage } from "./embed.js";
 
 const $ = (id) => document.getElementById(id);
 const LIBDIR = new URL("../../adapter-library/web/models/", location.href);
@@ -568,7 +575,8 @@ function done(ctx, res) {
   const info = { backend: backend.name, trainCases: sp.train.length, valCases: sp.val.length, testCases: sp.test.length, seed: cfg.split.seed, encodeS };
   resultsTable(res, startRes, info);
   $("tstat").textContent = `Done. Best epoch ${res.bestEpoch} of ${res.epochsRun} run.`;
-  $("xspike").disabled = false;
+  $("xspike").disabled = false; $("xpage").disabled = false;
+  $("xsnippet").textContent = snippet(trained.sm.id);
   window.__lastRun = { result: { ...res, spike: undefined }, start: startRes, info };
 }
 
@@ -643,6 +651,18 @@ $("xspike").onclick = () => {
   setTimeout(() => download(`${id}.bin`, trained.bytes, "application/octet-stream"), 300);
   $("xsys").textContent = "system.json entry:\n" + JSON.stringify({ id, file: `spikes/${id}`, description: S.decision.description || "(describe the kind of case this spike handles)" }, null, 1);
 };
+const embedUrl = new URL("embed.js", location.href).href;
+function snippet(id) {
+  return `<script type="module">
+import { loadDecider } from "${embedUrl}";
+const decider = await loadDecider({ spike: "./${id}.json" });   // ${id}.bin beside it
+const answer = await decider.decide(document.querySelector("#case").value);
+// answer.<question> = { label, confidence, probabilities: { option: p, ... } }
+console.log(answer);
+<\/script>`;
+}
+$("xsnippet").textContent = snippet(S.decision.id || "my_decision");
+$("xpage").onclick = () => { if (trained) download(`${trained.sm.id}.html`, standalonePage(trained.sm, trained.bytes, embedUrl), "text/html"); };
 $("xdata").onclick = () => download(`${S.decision.id || "decision"}-cases.json`, JSON.stringify({ decision: S.decision, cases: S.cases, init: S.init }), "application/json");
 
 // ---- boot ----
