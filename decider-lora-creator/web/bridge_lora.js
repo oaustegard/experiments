@@ -30,7 +30,7 @@ if (cfg.arms !== false) {
   await lb.loadSpike(init.sm, init.bytes);
   out.wo_mlp_dropped = lb.dropped;
   out.start_test = await score(test);
-  ctx.log(`start (library merge without Wo_mlp, T=1): ${out.start_test.accuracy.toFixed(3)}`);
+  ctx.log(`start (library merge, T=1; Wo_mlp dropped: ${lb.dropped > 0}): ${out.start_test.accuracy.toFixed(3)}`);
   out.arms = [];
   const sizes = cfg.sizes ?? Object.keys(cfg.reveal).map(Number), seeds = Object.keys(cfg.reveal[sizes[0]]);
   let k = 0;

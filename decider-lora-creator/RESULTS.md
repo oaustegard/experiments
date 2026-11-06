@@ -9,24 +9,24 @@ austegard.com/experiments/decider-lora-creator/web/). Plan and predictions: `PLA
 
 The page trains real LoRA spikes on the GPU, and they score as well as the Python ones. It uses the
 WebGPU backward pass from `ettin-wgsl-train`. On adapter-library's growth protocol on your Mac (invoice
-workflow, start from the other three workflow spikes, 100 test cases), in-browser LoRA scores 0.572 /
-0.704 / 0.849 at 16 / 64 / 300 labelled cases. <!-- @evidence[[results/bridge_creator-lora-1.json#outputs.arms]] -->
+workflow, start from the other three workflow spikes, 100 test cases), in-browser LoRA scores 0.600 /
+0.693 / 0.833 at 16 / 64 / 300 labelled cases. <!-- @evidence[[results/bridge_creator-lora-2.json#outputs.arms]] -->
 Python's LoRA from the same start scores 0.600 / 0.748 / 0.813. Training only the decision head scores
 0.560 / 0.590 / 0.628, barely above the prior's 0.538. All six of the page's checks pass on the Mac: prompt
 ids, logits against the NumPy reference, the trainer's logits against the inference path (3.1e-6), the
 weight round trip, and train-and-export for both backends. The 300-case spike trains in about 97 s.
 
-The browser runs differ from the Python ones in three ways, so the comparison is close but not exact.
-The base is quantized. The start is merged from the shipped spikes. And the trainer has no LoRA on
-Wo_mlp, so the start loses that delta (largest weight 0.106). A Wo_mlp path in the trainer would remove
-the last difference.
+The browser runs still differ from the Python ones in two ways: the base is quantized, and the start is
+merged from the shipped spikes. With two seeds per size, seed-to-seed spread (up to 0.06 at n = 64) is as
+large as any remaining gap. More seeds would say whether the 0.05 deficit at n = 64 is real.
 
 ## Findings
 
-1. **In-browser LoRA matches the Python LoRA.** Mean of 2 seeds: 0.572 (n = 16), 0.704 (64), 0.849 (300),
-   against Python's library-start LoRA at 0.600 / 0.748 / 0.813 (adapter-library `results/G-warm-invoice_processing-*`).
-   It trails by 0.03–0.04 at the small sizes, where the start's missing Wo_mlp delta weighs most, and leads
-   by 0.04 at 300. (bridge `creator-lora-1`)
+1. **In-browser LoRA matches the Python LoRA within seed noise.** Mean of 2 seeds, all four LoRA targets:
+   0.600 (n = 16), 0.693 (64), 0.833 (300), against Python's library-start LoRA at 0.600 / 0.748 / 0.813
+   (adapter-library `results/G-warm-invoice_processing-*`). Without the Wo_mlp target (round 2) it was
+   0.572 / 0.704 / 0.849: adding it closed the gap at n = 16; at 64 and 300 the two runs differ by about
+   the spread between seeds. (bridges `creator-lora-1`, `creator-lora-2`)
 2. **Training the head alone is not enough; the encoder has to adapt.** Head-only scores 0.560 / 0.590 /
    0.628, prior 0.538. On three of five questions it stays at the prior's answer up to n = 64. LoRA moves
    them: at n = 300 `matches_order` reaches 0.93–0.96 and `disposition` 0.81–0.82, against 0.50–0.60 and
@@ -53,7 +53,7 @@ the last difference.
   the exact mean of their B·A deltas (stacked to rank 24), then SVD-cut to rank 8 with A = sqrt(S)·Vᵀ and
   B = U·sqrt(S), with heads averaged. This is adapter-library's library start, rebuilt from the packed
   fp16 spikes.
-- **LoRA backend.** ettin-wgsl-train's `Trainer` (rank 8, alpha 16, LoRA on Wqkv, Wo and Wi, head trained too),
+- **LoRA backend.** ettin-wgsl-train's `Trainer` (rank 8, alpha 16, LoRA on Wqkv, Wo, Wi and Wo_mlp from round 3, head trained too),
   behind `WgslTrainerBackend`: lr 5e-4 for the LoRA and 8e-4 for the head, AdamW with weight decay 0.01, gradient norm clipped at 1.0, the same warmup and
   decay, batch 16. These are run/lora.py's settings. Packed B carries alpha/r; the trainer's B does not, so the adapter rescales both ways.
 - **Head-only backend.** Base + start LoRA frozen on adapter-library's SpikeEngine. Each sequence's
@@ -129,3 +129,20 @@ directly, and the adapter picks it up from the trainer's `layout` with no other 
 
 The headless SwiftShader run of the round-1 `check.html` hit its 28-minute timeout before reporting, so
 the checks moved to the Mac through the bridge. `check.html` now shows each check as it finishes.
+
+### Round 3 (2026-11-06): the Wo_mlp target
+
+The trainer's session added Wo_mlp as a fourth LoRA target (experiments 04e79a02). Its three-target
+version came from matching only attn.Wo; adapter-library's lora.py matches the child name "Wo", which
+catches both. The adapter reads the trainer's targets from its `layout`, so the library start now loads
+whole. Bridge job `creator-lora-2` (Mac, commit 04e79a02, 286 s): all six checks ok; start 0.240 (as the
+head-only path, which always had Wo_mlp).
+
+| n | seed 0 | seed 1 | mean | round 2 (no Wo_mlp) | Python library-start LoRA |
+|---|---|---|---|---|---|
+| 16 | 0.620 | 0.580 | 0.600 | 0.572 | 0.600 |
+| 64 | 0.686 | 0.700 | 0.693 | 0.704 | 0.748 |
+| 300 | 0.858 | 0.808 | 0.833 | 0.849 | 0.813 |
+
+Reading: Wo_mlp accounts for the n = 16 gap. The n = 64 deficit (0.05) and the n = 300 lead (0.02) are
+the size of the seed spread (0.04–0.06), so two seeds cannot settle them.
