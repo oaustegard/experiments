@@ -91,7 +91,7 @@ The spike is a 0.5 MB adapter (LoRA weights for the encoder plus a small decisio
   <textarea id="promptText" rows="8" readonly></textarea>
   <p class="small">The agent's JSON file:</p>
   <textarea id="pasteData" rows="5" placeholder='{"decision": {...}, "cases": [...]}'></textarea>
-  <div class="row"><button id="pasteImport">Import</button></div>
+  <div class="row"><button id="pasteImport">Import</button><span id="pasteStat" class="small"></span></div>
 </details>
 <p class="small muted">The demo is the invoice-review workflow from the Typed Decisions benchmark (synthetic cases with five questions each).
 It starts from the mean of the library's three other business-workflow spikes, leaving the invoice spike out, to show how fast a new spike learns from labels.</p>
@@ -109,11 +109,11 @@ It starts from the mean of the library's three other business-workflow spikes, l
   Criteria are <code>{"option": "description"}</code> for choice, an array of level descriptions for score (levels 0, 1, …), and optionally
   <code>{"true", "false"}</code> for noul, a statement the model judges true or false.</p>
   <textarea id="djson" rows="10"></textarea>
-  <div class="row"><button id="dapply">Apply JSON</button></div>
+  <div class="row"><button id="dapply">Apply JSON</button><span id="derr" class="small"></span></div>
 </details>
 
 <h2>2. Cases <span class="n" id="csum"></span></h2>
-<p id="cwarn" class="small" style="color:var(--val)"></p>
+<p id="cwarn" class="small" style="color:var(--val)"></p><p id="cerr" class="small"></p>
 <div class="scroll"><table id="ctable"></table></div>
 <details><summary>Add a case</summary>
   <textarea id="cstate" rows="5" placeholder="The case as text or JSON: whatever the model should read."></textarea>
@@ -131,7 +131,8 @@ It starts from the mean of the library's three other business-workflow spikes, l
 <div class="card">
   <h3>Start from</h3>
   <p class="small muted">The spike's starting weights: one library spike, or the mean of several. A mean is cut to rank 8
-  by SVD, as adapter-library does for its library start.</p>
+  by SVD, as adapter-library does for its library start. Tick none to start from scratch: a fresh adapter and head on the stock model,
+  which needs more labelled cases (adapter-library: 0.58 against 0.67 for a library start, at 64 cases on an unseen workflow).</p>
   <div id="lib" class="liblist"></div>
 </div>
 <div class="card">
@@ -206,7 +207,9 @@ const LIBRARY = [
 const STORE = "decider-lora-creator/v1";
 const params = new URLSearchParams(location.search);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const showErr = (e) => { console.error(e); $("err").textContent = String(e?.stack || e); };
+// errors read as one plain message where the action was taken; the stack goes to the console
+const errText = (e) => String(e?.message || e);
+const showErr = (e, where = null) => { console.error(e); (where ?? $("err")).innerHTML = `<span class="bad">${esc(errText(e))}</span>`; };
 const pct = (x) => (x === null || x === undefined ? "–" : (100 * x).toFixed(1) + "%");
 
 // ---- state: { decision, cases, init: [spike keys "set/id"] } ----
@@ -269,8 +272,8 @@ $("addq").onclick = () => {
   save(); renderDecision();
 };
 $("dapply").onclick = () => {
-  try { const d = JSON.parse($("djson").value); const errs = C.validate(d); if (errs.length) throw new Error(errs.join("\n")); S.decision = d; save(); renderDecision(); $("err").textContent = ""; }
-  catch (e) { showErr(e); }
+  try { const d = JSON.parse($("djson").value); const errs = C.validate(d); if (errs.length) throw new Error(errs.join("\n")); S.decision = d; save(); renderDecision(); $("derr").textContent = ""; }
+  catch (e) { showErr(e, $("derr")); }
 };
 $("blank").onclick = () => { if (S.cases.length && !confirm("Start over? This removes the current decision and its cases.")) return; S = { decision: { id: "", description: "", questions: {} }, cases: [], init: [] }; save(); renderDecision(); renderLib(); };
 
@@ -309,12 +312,12 @@ $("cadd").onclick = () => {
     for (const sel of $("cgold").querySelectorAll("select")) if (sel.value) gold[sel.dataset.g] = sel.value;
     if (!$("cstate").value.trim()) throw new Error("the case has no text");
     addCases([{ id: `c${S.cases.length + 1}`, state: $("cstate").value.trim(), gold, ...($("ctest").checked ? { split: "test" } : {}) }]);
-    $("cstate").value = ""; $("err").textContent = "";
-  } catch (e) { showErr(e); }
+    $("cstate").value = ""; $("cerr").textContent = "";
+  } catch (e) { showErr(e, $("cerr")); }
 };
 $("cbulkadd").onclick = () => {
-  try { addCases($("cbulk").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l))); $("cbulk").value = ""; $("err").textContent = ""; }
-  catch (e) { showErr(e); }
+  try { addCases($("cbulk").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => JSON.parse(l))); $("cbulk").value = ""; $("cerr").textContent = ""; }
+  catch (e) { showErr(e, $("cerr")); }
 };
 $("cclear").onclick = () => { if (confirm(`Remove all ${S.cases.length} cases?`)) { S.cases = []; save(); renderCases(); } };
 
@@ -348,7 +351,7 @@ $("file").onchange = async () => {
   try { await importText(await $("file").files[0].text()); $("err").textContent = ""; } catch (e) { showErr(e); }
 };
 $("pasteImport").onclick = async () => {
-  try { await importText($("pasteData").value); $("pasteData").value = ""; $("err").textContent = ""; } catch (e) { showErr(e); }
+  try { await importText($("pasteData").value); $("pasteData").value = ""; $("pasteStat").textContent = "Imported."; } catch (e) { showErr(e, $("pasteStat")); }
 };
 $("prep").addEventListener("toggle", () => { if ($("prep").open) $("promptText").value = agentPrompt(S.decision); });
 $("promptCopy").onclick = async () => {
@@ -376,7 +379,7 @@ async function fetchSpike(k) {
   return spikeCache.get(k);
 }
 async function startSpike(keys) {
-  if (!keys.length) throw new Error("pick at least one library spike to start from (section 3)");
+  if (!keys.length) return C.scratchSpike((await loadBase()).manifest);   // nothing ticked: start from scratch
   const sp = await Promise.all(keys.map(fetchSpike));
   if (sp.length === 1) return sp[0];
   const merged = truncateRank(C.mergeSpikes(sp.map((s) => C.unpackSpike(s.sm, s.bytes))), 8);
@@ -588,7 +591,7 @@ function done(ctx, res) {
 const guard = (f) => async () => {
   $("err").textContent = "";
   try { await f(); }
-  catch (e) { showErr(e); window.__lastRun = { error: String(e.stack || e) }; $("tstat").textContent = ""; setButtons(paused ? "paused" : "idle"); }
+  catch (e) { showErr(e, $("tstat")); window.__lastRun = { error: String(e.stack || e) }; setButtons(paused ? "paused" : "idle"); }
 };
 $("train").onclick = guard(async () => {
   if (paused && !confirm("Start a new run? The paused run is discarded.")) return;
@@ -645,7 +648,7 @@ $("try").onclick = async () => {
       return `<div class="card"><h3>${esc(e.q)} <span class="tag">${e.type}</span></h3><div class="small muted">${esc(S.decision.questions[e.q].instructions)}</div>
         ${e.opts.map(([o, d], j) => `<div class="opt" title="${esc(d)}"><span class="name">${esc(o)}</span><span class="track"><div style="width:${(100 * p[j]).toFixed(1)}%"></div></span><span class="pct">${(100 * p[j]).toFixed(0)}%</span></div>`).join("")}</div>`;
     }).join("");
-  } catch (e) { showErr(e); }
+  } catch (e) { showErr(e, $("trystat")); }
 };
 
 // ---- export ----

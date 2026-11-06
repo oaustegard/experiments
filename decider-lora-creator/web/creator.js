@@ -269,6 +269,17 @@ export function mergeSpikes(unpacked) {
   return { layers, head: { w0: avg("w0"), b0: avg("b0"), lnw: avg("lnw"), lnb: avg("lnb"), w1: avg("w1"), b1: unpacked.reduce((a, u) => a + u.head.b1, 0) / n } };
 }
 
+// A start from scratch (adapter-library's "zero start"): a fresh rank-r LoRA as PyTorch's LoRALinear
+// initializes it, A kaiming-uniform (bound 1/sqrt(K)) and B zero, so the encoder starts as the stock base
+// but A still gets a gradient; and a fresh head as nn.Linear and nn.LayerNorm initialize theirs.
+export function scratchSpike(manifest, { rank = 8, seed = 0 } = {}) {
+  const r = rng(seed + 101), uni = (n, b) => Float32Array.from({ length: n }, () => (r() * 2 - 1) * b), H = manifest.hidden;
+  const layers = manifest.layers.map((L) => Object.fromEntries(MODS.map((k) => [k, { A: uni(rank * L[k].K, 1 / Math.sqrt(L[k].K)), B: new Float32Array(L[k].N * rank), r: rank, K: L[k].K, N: L[k].N }])));
+  const head = { w0: uni(H * H, 1 / Math.sqrt(H)), b0: uni(H, 1 / Math.sqrt(H)), lnw: new Float32Array(H).fill(1), lnb: new Float32Array(H),
+                 w1: uni(H, 1 / Math.sqrt(H)), b1: (r() * 2 - 1) / Math.sqrt(H) };
+  return packSpike({ layers, head }, { id: "scratch" });
+}
+
 // An empty adapter (rank 0 is not packable, so rank 1 with A = B = 0) around a given head.
 export function zeroLayers(manifest) {
   return manifest.layers.map((L) => Object.fromEntries(MODS.map((k) => [k, { A: new Float32Array(L[k].K), B: new Float32Array(L[k].N), r: 1, K: L[k].K, N: L[k].N }])));

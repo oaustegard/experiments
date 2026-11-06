@@ -53,7 +53,8 @@ def main():
         res.setdefault("device", o.get("describe"))
         (b31 / "spikes" / set_).mkdir(parents=True, exist_ok=True)
         for sid, x in o["spikes"].items():
-            sb = (d / f"bin_{sid}.bin").read_bytes()
+            f = d / f"bin_{sid}.bin"
+            sb = f.read_bytes() if f.exists() else np.load(d / f"bin_{sid}.npy").astype(np.uint8).tobytes()   # gpu_bridge.py fetch writes .npy
             (b31 / "spikes" / set_ / f"{sid}.json").write_text(json.dumps(x["sm"]))
             (b31 / "spikes" / set_ / f"{sid}.bin").write_bytes(sb)
             cases = load_cases(sid, "test") if set_ == "workflows" else everyday_cases(sid, "test")
