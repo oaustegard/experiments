@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-05T01:52:01.436008+00:00",
+ "last_run": "2026-11-06T01:52:02.180038+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -440,6 +440,28 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "A small calibrated predictor reranks candidate patches/actions before execution; on CodeContests it lifts hidden-test success 26.0% -> 29.2% over random (CI +0.17 to +5.50), with gains elsewhere within noise. Amounts to reranking that the existing decide tool already covers."
+  },
+  "2610.36077": {
+   "title": "The Trinity: Capability-Driven Recursive Self-Improvement for Multimodal Agents",
+   "first_seen": "2026-11-06",
+   "best_rank": 26,
+   "upvotes": 0,
+   "reviewed": "2026-11-06",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Evolves module-based agent harnesses per capability node and routes tasks with an LLM router that retrieves similar past outcomes; the commit-rationale/retrieve-outcomes/write-back loop could be tried on Muninn's model routing. Gains rest on a frozen frontier backbone and roughly 400-580M tokens of evolution per configuration, and the router saves only about 9% tokens over random routing. Repo: github.com/InfRec-Cardinal/The-Trinity."
+  },
+  "2610.20442": {
+   "title": "Towards Agentic Robots: Model, Data, Environment, and Harness",
+   "first_seen": "2026-11-06",
+   "best_rank": 30,
+   "upvotes": 169,
+   "reviewed": "2026-11-06",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Survey and taxonomy of agentic robotics with no experiments of its own. Sec. 7.6 describes code proposing legal candidates and a fast decision model (it cites TypeSafe's Jev) picking one above a confidence threshold, which matches the existing decide-based routing and changes nothing."
   }
  }
 }
