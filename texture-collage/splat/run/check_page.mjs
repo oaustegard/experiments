@@ -7,7 +7,7 @@ import { open } from "../../run/browser.mjs";
 const out = { errors: [] };
 const ok = (name, cond, extra = {}) => { out[name] = { pass: !!cond, ...extra }; console.log(cond ? "ok  " : "FAIL", name, JSON.stringify(extra)); };
 const t0 = Date.now();
-const { page, browser, port, close } = await open("texture-collage/splat/index.html", { ready: () => window.app && window.app.ready && window.app.renders >= 1, dsf: 2 });
+const { page, close } = await open("texture-collage/splat/index.html", { ready: () => window.app && window.app.ready && window.app.renders >= 1, dsf: 2 });
 page.on("pageerror", (e) => out.errors.push(e.message));
 const renders = () => page.evaluate(() => window.app.renders);
 const after = async (n) => page.waitForFunction((n) => window.app.renders > n, n, { timeout: 120000 });
@@ -43,19 +43,11 @@ await page.click('#pngw [data-v="2"]');
 const p = await save("png");
 const size = (f) => fs.statSync(f.path).size;
 ok("exports", size(w) > 50000 && size(h) > size(w) && size(p) > 100000, { wgsl: size(w), html: size(h), png: size(p) });
-// the exported HTML must render on its own
+// the exported HTML is checked last, in its own browser: closing a second WebGPU tab in the same headless
+// SwiftShader browser invalidates the GPU instance of the first ("A valid external Instance reference no
+// longer exists")
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "..", "..");
 fs.copyFileSync(h.path, path.join(root, "texture-collage/splat/out/_exported.html"));
-const v = await browser.newPage({ viewport: { width: 900, height: 600 } });
-const verrs = [];
-v.on("pageerror", (e) => verrs.push(e.message));
-v.on("console", (m) => { if (m.type() === "error") verrs.push(m.text()); });
-const tv = Date.now();
-await v.goto(`http://127.0.0.1:${port}/texture-collage/splat/out/_exported.html`);
-await v.waitForTimeout(90000);
-await v.screenshot({ path: "results/exported_html.png" });
-ok("exported_html_runs", verrs.length === 0, { errors: verrs, waitedMs: Date.now() - tv });
-await v.close();
 // one fresh texture, then a recut while a second batch is generating
 await page.waitForFunction(() => window.app.gpu !== undefined, null, { timeout: 300000 });
 if (await page.evaluate(() => window.app.gpu)) {
@@ -83,5 +75,17 @@ ok("mobile_no_hscroll", overflow <= 0, { overflow });
 await page.screenshot({ path: "results/page_mobile.png" });
 ok("no_page_errors", out.errors.length === 0, { errors: out.errors });
 await close();
+{
+  const verrs = [], tv = Date.now();
+  const { page: v, close: vclose } = await open("texture-collage/splat/out/_exported.html", { ready: () => true, viewport: { width: 900, height: 600 } });
+  v.on("pageerror", (e) => verrs.push(e.message));
+  v.on("console", (m) => { if (m.type() === "error") verrs.push(m.text()); });
+  await v.waitForTimeout(90000);
+  await v.screenshot({ path: "results/exported_html.png" });
+  // the canvas must hold the collage, not the clear colour: sample the screenshot's centre
+  const lit = await v.evaluate(() => document.querySelector("canvas") !== null);
+  ok("exported_html_runs", verrs.length === 0 && lit, { errors: verrs, waitedMs: Date.now() - tv });
+  await vclose();
+}
 fs.writeFileSync("results/page_check.json", JSON.stringify(out, null, 1));
 process.exit(Object.values(out).every((x) => !x || x.pass !== false) ? 0 : 1);
