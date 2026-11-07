@@ -5,7 +5,7 @@ const canvas = $("c"), status = $("status"), bar = $("bar").firstElementChild;
 const PRETTY = ["marbled", "veined", "crystalline", "swirly", "paisley", "honeycombed", "scaly", "cracked",
   "lacelike", "bubbly", "woven", "knitted", "braided", "frilly", "spiralled", "stratified", "zigzagged", "cobwebbed"];
 
-let model, painter, device, names, running = false, cancel = false, ready = false, painting = false;
+let model, painter, device, names, running = false, cancel = false, ready = false;
 // 1,024 splats by default; 512 on phones, where the model and the paint cost half as much
 const MODELS = { 1024: "./model", 512: "./model512" };
 const PHONE = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 820);
@@ -21,10 +21,18 @@ function resize() {
   draw();
 }
 
+// Drawing only ever happens inside requestAnimationFrame, at most once per frame. Safari presents a
+// WebGPU canvas on its animation-frame tick; frames submitted from inside the sampling loop could be
+// dropped, which showed as the texture vanishing part-way through generation on an iPhone.
+let drawQueued = false;
 function draw() {
-  if (!ready) return;
-  const dpr = canvas.width / innerWidth;
-  painter.draw(view.tile * dpr, view.ox, view.oy);
+  if (!ready || drawQueued) return;
+  drawQueued = true;
+  requestAnimationFrame(() => {
+    drawQueued = false;
+    const dpr = canvas.width / innerWidth;
+    painter.draw(view.tile * dpr, view.ox, view.oy);
+  });
 }
 
 async function generate() {
@@ -37,13 +45,8 @@ async function generate() {
     const done = await model.sample({ cls, steps, cfg, seed,
       onStep: async (i) => {
         ready = true;
-        // skip a preview frame while the last one is still on the GPU, so previews never queue up
-        if (!painting) {
-          painting = true;
-          painter.setSplats(model.b.splats, model.K);
-          draw();
-          device.queue.onSubmittedWorkDone().then(() => { painting = false; });
-        }
+        painter.setSplats(model.b.splats, model.K);   // marks the cached tile stale; drawn on the next frame
+        draw();
         bar.style.width = `${(100 * (i + 1)) / steps}%`;
         status.textContent = `${names[cls]} · step ${i + 1}/${steps} · ${((performance.now() - t0) / (i + 1)).toFixed(0)} ms/step`;
       },
@@ -107,7 +110,18 @@ function zoomAt(x, y, f) {
 }
 
 async function loadModel(k) {
-  if (!cache[k]) cache[k] = await SplatDiffusion.create(device, MODELS[k]);
+  if (!cache[k]) {
+    try {
+      cache[k] = await SplatDiffusion.create(device, MODELS[k]);
+    } catch (e) {
+      if (k === 1024) throw e;
+      console.warn(`no ${k}-splat model (${e.message}); using 1,024`);
+      K = 1024;
+      const o = [...$("splats").options].find((x) => x.value === String(k));
+      if (o) o.remove();
+      return loadModel(1024);
+    }
+  }
   return cache[k];
 }
 

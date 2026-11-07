@@ -65,7 +65,9 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
       if (gn >= p.N) { continue; }
       var v = p.alpha * acc[r][j];
       if (p.hasBias == 1u) { v += Wt[p.biasOff + gn]; }
-      if (p.act == 1u) { v = 0.5 * v * (1.0 + tanh(0.7978845608 * (v + 0.044715 * v * v * v))); }
+      // GELU (tanh form). The argument is clamped: tanh is 1 to 1e-13 beyond 15, and Safari's Metal
+      // tanh returned NaN for large arguments, which blanked textures part-way through sampling.
+      if (p.act == 1u) { v = 0.5 * v * (1.0 + tanh(clamp(0.7978845608 * (v + 0.044715 * v * v * v), -15.0, 15.0))); }
       let ci = cBase + gm * p.cM + gn * p.cN;
       if (p.acc == 1u) { C[ci] = C[ci] + G[p.gOff + item * p.gItemStride + gn] * v; }
       else if (p.acc == 2u) { C[ci] = C[ci] + v; }
