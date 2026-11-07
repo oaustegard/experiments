@@ -336,5 +336,10 @@ Share of pixels whose rebuilt region differs from the full-resolution one, and t
 | 192 | 3.50% | 3.07% | 2.81% | 0.72% | 795 / 226 |
 | 256 | 2.49% | 1.96% | 1.94% | 0.51% | 929 / 236 |
 
+The exported viewer could not be checked full-size on SwiftShader: its GPU process died ("A valid
+external Instance reference no longer exists") compiling the 10-region baked shader, while 1- and
+4-region viewers drew. On the Mac, bridge job `tc-splat-viewer-1` drew the 12-region baked shader into a
+WebGPU canvas context as the viewer does, with no errors and every pixel lit (`splat/results/mac/viewer_canvas.jpg`).
+
 Mac (`tc-splat-time-2`), 1024² / 2048² frame with the page's shader: 2.9 / 8.4 ms (6 regions),
 3.1 / 8.8 ms (12), 3.2 / 8.9 ms (24); baked file 485 / 798 / 1,424 kB, compiled in 138 / 228 / 398 ms.

@@ -811,6 +811,10 @@ survives exactly the sanity checks people run.
   `--use-vulkan=swiftshader` fixes it; `WebGPUService`, `--headless=new` and
   `--enable-unsafe-swiftshader` do not. Listen on `device.lost`, or a dead device reads as a page
   that renders nothing. (`navier-stokes-explainer/run/verify.mjs`)
+- **SwiftShader's GPU process dies on a very large WGSL shader.** A 540 kB shader of 10 functions over
+  30 const arrays (512 vec4s each) lost the device about 12 s into compiling; 230 kB (4 functions) drew
+  after 35 s. The same 800 kB shader compiled in 0.23 s on an Apple GPU. Test the code path on SwiftShader
+  with a cut-down instance and the full size on real hardware. (`texture-collage/splat/run/check_page.mjs`)
 - **In headless Chromium on SwiftShader, closing a second WebGPU page loses the first page's GPU
   instance.** Every later GPU call on the first page fails with "A valid external Instance reference no
   longer exists". Check a second WebGPU page (an exported viewer, say) in its own browser, after the first
