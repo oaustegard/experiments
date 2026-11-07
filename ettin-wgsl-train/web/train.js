@@ -17,15 +17,13 @@
 // Buffers are separate GPUBuffers per tensor, so no dispatch binds one buffer as both read and write.
 // Uniforms live in one buffer with a 256-byte slot per dispatch (dynamic offsets); bind groups are cached.
 
-import { GELU, REDUCE, SMAX, wgsl, grid } from "../../_lib/wgsl/train/spec.js";
+import { GELU, REDUCE, SMAX, SpecRunner, wgsl, grid } from "../../_lib/wgsl/train/spec.js";
 import { kernels } from "../../_lib/wgsl/train/kernels.js";
 
 // The kernels and the spec format live in _lib/wgsl/train/ (kernel library step 3); re-exported for
 // pages and bridge jobs that import them from here.
 export { GELU, REDUCE, kernels, wgsl, grid };
 
-const SLOT = 256;           // uniform slot bytes (minUniformBufferOffsetAlignment)
-const MAX_SLOTS = 2048;
 const KCHUNK = 256;         // rows per split-K slice
 export const TARGETS = ["Wqkv", "Wo", "Wi", "Wo_mlp"];   // PyTorch's recipes match child name "Wo", so attn.Wo and mlp.Wo
 
@@ -34,7 +32,7 @@ const f16 = (h) => {
   return e === 0 ? s * m * 2 ** -24 : e === 31 ? (m ? NaN : s * Infinity) : s * (1 + m / 1024) * 2 ** (e - 15);
 };
 
-export class Trainer {
+export class Trainer extends SpecRunner {
   // opts: { manifest, weights (ArrayBuffer | Uint8Array of weights.bin), maxRows, maxSeqs, maxPool, maxSeg, rank, alpha }
   static async create(device, opts) {
     const t = new Trainer(device, opts);
@@ -43,7 +41,7 @@ export class Trainer {
   }
 
   constructor(device, { manifest, weights, maxRows, maxSeqs = 64, maxPool = 256, maxSeg = 128, rank = 8, alpha = 16, targets = TARGETS }) {
-    this.device = device;
+    super(device, { maxSlots: 2048 });
     this.man = manifest;
     this.wbytes = weights instanceof Uint8Array ? weights : new Uint8Array(weights);
     const H = manifest.hidden, NH = manifest.heads;
@@ -52,33 +50,12 @@ export class Trainer {
     this.targets = TARGETS.filter((t) => targets.includes(t));
     if (H !== 256 || this.C.D !== 64) throw new Error(`kernels assume hidden 256, head dim 64 (got ${H}, ${this.C.D})`);
     this.max = { R: maxRows, B: maxSeqs, P: maxPool, G: maxSeg };
-    this.ops = [];
-    this.bgCache = new Map();
-    this.nid = 0;
   }
 
   async #init() {
     const dev = this.device, { H, I, L, r, NH, D } = this.C, m = this.man, R = this.max.R;
     const K = kernels(this.C);
-    this.K = {};
-    await Promise.all(Object.entries(K).map(async ([name, k]) => {
-      const code = wgsl(name, k);
-      const mod = dev.createShaderModule({ code, label: name });
-      const entries = [{ binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform", hasDynamicOffset: true } },
-        ...k.b.map(([, mode], i) => ({ binding: i + 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: mode === "rw" ? "storage" : "read-only-storage" } }))];
-      const bgl = dev.createBindGroupLayout({ entries, label: name });
-      let pipe;
-      try {
-        pipe = await dev.createComputePipelineAsync({ layout: dev.createPipelineLayout({ bindGroupLayouts: [bgl] }), compute: { module: mod, entryPoint: "main" }, label: name });
-      } catch (e) {
-        const info = await mod.getCompilationInfo();
-        throw new Error(`${name}: ${e.message}\n${info.messages.map((x) => `${x.lineNum}:${x.linePos} ${x.message}`).join("\n")}`);
-      }
-      this.K[name] = { pipe, bgl, u: k.u.map((s) => s.split(":")), nb: k.b.length };
-    }));
-    this.ubo = dev.createBuffer({ size: SLOT * MAX_SLOTS, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, label: "uniforms" });
-    this.udata = new ArrayBuffer(SLOT * MAX_SLOTS);
-    this.uview = new DataView(this.udata);
+    await this.compile(K);
 
     // frozen weights, dequantized: per layer attn_norm, Wqkv [3H,H], Wo [H,H], mlp_norm, Wi [2I,H], Wo_mlp [H,I] (PyTorch [out, in])
     const tf = (rec) => new Float32Array(this.wbytes.buffer.slice(this.wbytes.byteOffset + rec.offset, this.wbytes.byteOffset + rec.offset + rec.length));
@@ -105,13 +82,13 @@ export class Trainer {
     let o = 0;
     for (const a of parts) { wb.set(a, o); o += a.length; }
     this.woff = off;
-    this.WB = this.#buf("WB", wb.length, wb);
+    this.WB = this.buf("WB", wb.length, wb);
     const T = m.table;
     const codes = tu8(T.codes);
-    this.CODES = this.#buf("CODES", codes.length / 4, new Uint32Array(codes.buffer, codes.byteOffset, codes.length / 4));
+    this.CODES = this.buf("CODES", codes.length / 4, new Uint32Array(codes.buffer, codes.byteOffset, codes.length / 4));
     const sh = new Uint16Array(tu8(T.scales).buffer), sc = new Float32Array(sh.length);
     for (let i = 0; i < sh.length; i++) sc[i] = f16(sh[i]);
-    this.SCALES = this.#buf("SCALES", sc.length, sc);
+    this.SCALES = this.buf("SCALES", sc.length, sc);
     // RoPE cos / sin [SMAX, D/2], computed the way PyTorch does it in float32
     const half = D / 2, cs = new Float32Array(2 * SMAX * half), fr = Math.fround;
     const rope = (theta) => {
@@ -122,7 +99,7 @@ export class Trainer {
     };
     if (m.theta_global !== m.theta_local) throw new Error("separate local / global RoPE tables not implemented");
     rope(m.theta_global);
-    this.CS = this.#buf("CS", cs.length, cs);
+    this.CS = this.buf("CS", cs.length, cs);
 
     // trainable parameters: per layer [Wqkv A, B, Wo A, B, Wi A, B], then head
     const tg = [["Wqkv", 3 * H, H], ["Wo", H, H], ["Wi", 2 * I, H], ["Wo_mlp", H, I]].filter(([t]) => this.targets.includes(t));
@@ -135,15 +112,15 @@ export class Trainer {
     this.poff = Object.fromEntries(lay.map((x) => [x.name, x.offset]));
     this.nParams = pn;
     this.headOff = this.poff["head.w0"];
-    for (const nm of ["PRM", "GRD", "AM", "AV"]) this[nm] = this.#buf(nm, pn);
+    for (const nm of ["PRM", "GRD", "AM", "AV"]) this[nm] = this.buf(nm, pn);
     this.NPART = 64;
-    this.PARTN = this.#buf("PARTN", this.NPART);
-    this.NRM = this.#buf("NRM", 4);
+    this.PARTN = this.buf("PARTN", this.NPART);
+    this.NRM = this.buf("NRM", 4);
 
     // activations (sized for maxRows tokens) and gradients
     const P = this.max.P;
-    this.XS = Array.from({ length: L + 1 }, (_, i) => this.#buf(`x${i}`, R * H));
-    const A = (name, size) => { this[name] = this.#buf(name, size); };
+    this.XS = Array.from({ length: L + 1 }, (_, i) => this.buf(`x${i}`, R * H));
+    const A = (name, size) => { this[name] = this.buf(name, size); };
     A("Hn", R * H); A("ST1", 2 * R); A("QKV", R * 3 * H); A("QR", R * 2 * H); A("O", R * H); A("LSE", R * NH);
     A("XM", R * H); A("H2", R * H); A("ST2", 2 * R); A("U", R * 2 * I); A("G", R * I);
     A("T1", R * r); A("T2", R * r); A("T3", R * r); A("T4", R * r);
@@ -153,90 +130,12 @@ export class Trainer {
     A("PART", this.ZMAX * 3 * H * r);
     A("HP", P * H); A("STF", 2 * P); A("HF", P * H); A("Z1", P * H); A("A1", P * H); A("STH", 2 * P); A("N1", P * H);
     A("LOGIT", P); A("DL", P); A("DN1", P * H); A("DA1", P * H); A("DZ1", P * H); A("DHF", P * H); A("DHP", P * H);
-    this.IDS = this.#buf("IDS", R, null, "u32");
-    this.LENS = this.#buf("LENS", this.max.B, null, "u32");
-    this.POS = this.#buf("POS", P, null, "u32");
-    this.SEG = this.#buf("SEG", this.max.G, null, "u32");
-    this.GOLD = this.#buf("GOLD", P);
-    this.LOSS = this.#buf("LOSS", 4096);
-  }
-
-  #buf(label, n, init = null) {
-    const size = Math.max(16, Math.ceil((n * 4) / 16) * 16);
-    const b = this.device.createBuffer({ size, label, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST, mappedAtCreation: !!init });
-    if (init) {
-      new Uint8Array(b.getMappedRange()).set(new Uint8Array(init.buffer, init.byteOffset, init.byteLength));
-      b.unmap();
-    }
-    b._id = this.nid++;
-    b._n = n;
-    return b;
-  }
-
-  // record one dispatch
-  op(name, bufs, vals, groups) {
-    const k = this.K[name];
-    if (!k) throw new Error(`no kernel ${name}`);
-    if (bufs.length !== k.nb || bufs.some((b) => !b)) throw new Error(`${name}: expected ${k.nb} buffers`);
-    this.ops.push({ k, name, bufs, vals, groups: Array.isArray(groups) ? groups : grid(groups) });
-  }
-
-  clear(buf) { this.ops.push({ clear: buf }); }
-
-  // submit the recorded dispatches; wait = await the GPU (queue order already keeps later uploads behind it)
-  async flush(wait = true) {
-    if (!this.ops.length) { if (wait) await this.device.queue.onSubmittedWorkDone(); return; }
-    const dev = this.device;
-    let slots = 0;
-    for (const o of this.ops) {
-      if (o.clear) continue;
-      if (slots >= MAX_SLOTS) throw new Error("too many dispatches in one flush");
-      o.slot = slots++;
-      o.k.u.forEach(([n, t], i) => {
-        const v = o.vals[n] ?? 0;
-        if (t === "f") this.uview.setFloat32(o.slot * SLOT + 4 * i, v, true);
-        else this.uview.setUint32(o.slot * SLOT + 4 * i, v, true);
-      });
-    }
-    dev.queue.writeBuffer(this.ubo, 0, this.udata, 0, slots * SLOT);
-    const enc = dev.createCommandEncoder();
-    let pass = null;
-    for (const o of this.ops) {
-      if (o.clear) {
-        if (pass) { pass.end(); pass = null; }
-        enc.clearBuffer(o.clear);
-        continue;
-      }
-      if (!pass) pass = enc.beginComputePass();
-      const key = o.name + "|" + o.bufs.map((b) => b._id).join(",");
-      let bg = this.bgCache.get(key);
-      if (!bg) {
-        bg = dev.createBindGroup({ layout: o.k.bgl, entries: [{ binding: 0, resource: { buffer: this.ubo, offset: 0, size: SLOT } },
-          ...o.bufs.map((b, i) => ({ binding: i + 1, resource: { buffer: b } }))] });
-        this.bgCache.set(key, bg);
-      }
-      pass.setPipeline(o.k.pipe);
-      pass.setBindGroup(0, bg, [o.slot * SLOT]);
-      pass.dispatchWorkgroups(...o.groups);
-    }
-    if (pass) pass.end();
-    dev.queue.submit([enc.finish()]);
-    this.ops = [];
-    if (wait) await dev.queue.onSubmittedWorkDone();
-  }
-
-  async read(buf, n = buf._n, type = Float32Array) {
-    await this.flush();
-    const bytes = Math.ceil((n * 4) / 4) * 4;
-    const st = this.device.createBuffer({ size: Math.max(16, Math.ceil(bytes / 16) * 16), usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
-    const enc = this.device.createCommandEncoder();
-    enc.copyBufferToBuffer(buf, 0, st, 0, Math.ceil(bytes / 4) * 4);
-    this.device.queue.submit([enc.finish()]);
-    await st.mapAsync(GPUMapMode.READ);
-    const out = new type(st.getMappedRange(0, bytes).slice(0));
-    st.unmap();
-    st.destroy();
-    return out;
+    this.IDS = this.buf("IDS", R, null, "u32");
+    this.LENS = this.buf("LENS", this.max.B, null, "u32");
+    this.POS = this.buf("POS", P, null, "u32");
+    this.SEG = this.buf("SEG", this.max.G, null, "u32");
+    this.GOLD = this.buf("GOLD", P);
+    this.LOSS = this.buf("LOSS", 4096);
   }
 
   setParams(flat) {

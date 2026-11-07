@@ -12,11 +12,11 @@
 // table gradient (the batch's unique tokens and the rows holding each, built on the CPU, one workgroup per
 // unique token: no atomics), mean pooling and the cosine loss.
 
-import { wgsl, grid } from "../../_lib/wgsl/train/spec.js";
+import { SpecRunner, grid } from "../../_lib/wgsl/train/spec.js";
 import { fullKernels as kernels } from "../../_lib/wgsl/train/kernels.js";
 import { recordNce } from "../../_lib/wgsl/train/nce.js";
 
-const SMAX = 1024, SLOT = 256, MAX_SLOTS = 4096, KCHUNK = 512, LNCH = 256;
+const SMAX = 1024, KCHUNK = 512, LNCH = 256;
 
 export function layoutFor(V, { H = 256, I = 384, L = 7, OUT = 768 } = {}) {
   const lay = [];
@@ -31,7 +31,7 @@ export function layoutFor(V, { H = 256, I = 384, L = 7, OUT = 768 } = {}) {
   return { layout: lay, n };
 }
 
-export class DistillTrainer {
+export class DistillTrainer extends SpecRunner {
   // opts: { V, maxRows, maxSeqs, window (local attention, 128), theta, eps }
   static async create(device, opts) {
     const t = new DistillTrainer(device, opts);
@@ -40,13 +40,10 @@ export class DistillTrainer {
   }
 
   constructor(device, { V, maxRows, maxSeqs = 128, window = 128, theta = 160000, eps = 1e-5, H = 256, NH = 4, I = 384, L = 7, OUT = 768 }) {
-    this.device = device;
+    super(device, { maxSlots: 4096 });
     this.C = { H, NH, D: H / NH, I, L, OUT, V, r: 8 };
     this.cfg = { window, theta, eps, global: Array.from({ length: L }, (_, i) => i % 3 === 0) };
     this.max = { R: maxRows, B: maxSeqs };
-    this.ops = [];
-    this.bgCache = new Map();
-    this.nid = 0;
     const { layout, n } = layoutFor(V, { H, I, L, OUT });
     this.layout = layout;
     this.poff = Object.fromEntries(layout.map((x) => [x.name, x.offset]));
@@ -56,36 +53,19 @@ export class DistillTrainer {
   async #init() {
     const dev = this.device, { H, I, L, NH, D, OUT } = this.C, R = this.max.R, B = this.max.B;
     const K = kernels(this.C);
-    this.K = {};
-    await Promise.all(Object.entries(K).map(async ([name, k]) => {
-      const mod = dev.createShaderModule({ code: wgsl(name, k), label: name });
-      const entries = [{ binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform", hasDynamicOffset: true } },
-        ...k.b.map(([, mode], i) => ({ binding: i + 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: mode === "rw" ? "storage" : "read-only-storage" } }))];
-      const bgl = dev.createBindGroupLayout({ entries, label: name });
-      let pipe;
-      try {
-        pipe = await dev.createComputePipelineAsync({ layout: dev.createPipelineLayout({ bindGroupLayouts: [bgl] }), compute: { module: mod, entryPoint: "main" }, label: name });
-      } catch (e) {
-        const info = await mod.getCompilationInfo();
-        throw new Error(`${name}: ${e.message}\n${info.messages.map((x) => `${x.lineNum}:${x.linePos} ${x.message}`).join("\n")}`);
-      }
-      this.K[name] = { pipe, bgl, u: k.u.map((s) => s.split(":")), nb: k.b.length };
-    }));
-    this.ubo = dev.createBuffer({ size: SLOT * MAX_SLOTS, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, label: "uniforms" });
-    this.udata = new ArrayBuffer(SLOT * MAX_SLOTS);
-    this.uview = new DataView(this.udata);
+    await this.compile(K);
     const half = D / 2, cs = new Float32Array(2 * SMAX * half), fr = Math.fround;
     for (let j = 0; j < half; j++) {
       const inv = fr(1 / fr(this.cfg.theta ** fr((2 * j) / D)));
       for (let p = 0; p < SMAX; p++) { const a = fr(p * inv); cs[p * half + j] = Math.cos(a); cs[SMAX * half + p * half + j] = Math.sin(a); }
     }
-    this.CS = this.#buf("CS", cs.length, cs);
-    for (const nm of ["PRM", "GRD", "AM", "AV"]) this[nm] = this.#buf(nm, this.nParams);
+    this.CS = this.buf("CS", cs.length, cs);
+    for (const nm of ["PRM", "GRD", "AM", "AV"]) this[nm] = this.buf(nm, this.nParams);
     this.NPART = 256;
-    this.PARTN = this.#buf("PARTN", this.NPART);
-    this.NRM = this.#buf("NRM", 4);
-    this.XS = Array.from({ length: L + 1 }, (_, i) => this.#buf(`x${i}`, R * H));
-    const A = (name, size) => { this[name] = this.#buf(name, size); };
+    this.PARTN = this.buf("PARTN", this.NPART);
+    this.NRM = this.buf("NRM", 4);
+    this.XS = Array.from({ length: L + 1 }, (_, i) => this.buf(`x${i}`, R * H));
+    const A = (name, size) => { this[name] = this.buf(name, size); };
     A("XE", R * H); A("ST0", 2 * R); A("DXE", R * H);
     A("Hn", R * H); A("ST1", 2 * R); A("QKV", R * 3 * H); A("QR", R * 2 * H); A("O", R * H); A("LSE", R * NH);
     A("XM", R * H); A("H2", R * H); A("ST2", 2 * R); A("U", R * 2 * I); A("G", R * I);
@@ -97,81 +77,12 @@ export class DistillTrainer {
     A("YN", B * OUT); A("NR", B); A("DYN", B * OUT); A("SIM", (B / 2) ** 2); A("DS", (B / 2) ** 2); A("LROW", B / 2);
     this.ZMAX = Math.ceil(R / KCHUNK);
     A("PART", Math.max(this.ZMAX * 3 * H * H, Math.ceil(R / LNCH) * H));
-    this.IDS = this.#buf("IDS", R);
-    this.LENS = this.#buf("LENS", B);
-    this.UTOK = this.#buf("UTOK", R);
-    this.USTART = this.#buf("USTART", R + 1);
-    this.UROWS = this.#buf("UROWS", R);
-    this.LOSS = this.#buf("LOSS", 4096);
-  }
-
-  #buf(label, n, init = null) {
-    const size = Math.max(16, Math.ceil((n * 4) / 16) * 16);
-    const b = this.device.createBuffer({ size, label, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST, mappedAtCreation: !!init });
-    if (init) { new Uint8Array(b.getMappedRange()).set(new Uint8Array(init.buffer, init.byteOffset, init.byteLength)); b.unmap(); }
-    b._id = this.nid++;
-    b._n = n;
-    return b;
-  }
-
-  op(name, bufs, vals, groups) {
-    const k = this.K[name];
-    if (!k) throw new Error(`no kernel ${name}`);
-    if (bufs.length !== k.nb || bufs.some((b) => !b)) throw new Error(`${name}: expected ${k.nb} buffers`);
-    this.ops.push({ k, name, bufs, vals, groups: Array.isArray(groups) ? groups : grid(groups) });
-  }
-
-  clear(buf) { this.ops.push({ clear: buf }); }
-
-  async flush(wait = true) {
-    if (!this.ops.length) { if (wait) await this.device.queue.onSubmittedWorkDone(); return; }
-    const dev = this.device;
-    let slots = 0;
-    for (const o of this.ops) {
-      if (o.clear) continue;
-      if (slots >= MAX_SLOTS) throw new Error("too many dispatches in one flush");
-      o.slot = slots++;
-      o.k.u.forEach(([n, t], i) => {
-        const v = o.vals[n] ?? 0;
-        if (t === "f") this.uview.setFloat32(o.slot * SLOT + 4 * i, v, true);
-        else this.uview.setUint32(o.slot * SLOT + 4 * i, v, true);
-      });
-    }
-    dev.queue.writeBuffer(this.ubo, 0, this.udata, 0, slots * SLOT);
-    const enc = dev.createCommandEncoder();
-    let pass = null;
-    for (const o of this.ops) {
-      if (o.clear) { if (pass) { pass.end(); pass = null; } enc.clearBuffer(o.clear); continue; }
-      if (!pass) pass = enc.beginComputePass();
-      const key = o.name + "|" + o.bufs.map((b) => b._id).join(",");
-      let bg = this.bgCache.get(key);
-      if (!bg) {
-        bg = dev.createBindGroup({ layout: o.k.bgl, entries: [{ binding: 0, resource: { buffer: this.ubo, offset: 0, size: SLOT } },
-          ...o.bufs.map((b, i) => ({ binding: i + 1, resource: { buffer: b } }))] });
-        this.bgCache.set(key, bg);
-      }
-      pass.setPipeline(o.k.pipe);
-      pass.setBindGroup(0, bg, [o.slot * SLOT]);
-      pass.dispatchWorkgroups(...o.groups);
-    }
-    if (pass) pass.end();
-    dev.queue.submit([enc.finish()]);
-    this.ops = [];
-    if (wait) await dev.queue.onSubmittedWorkDone();
-  }
-
-  async read(buf, n = buf._n, type = Float32Array) {
-    await this.flush();
-    const bytes = n * 4;
-    const st = this.device.createBuffer({ size: Math.max(16, Math.ceil(bytes / 16) * 16), usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
-    const enc = this.device.createCommandEncoder();
-    enc.copyBufferToBuffer(buf, 0, st, 0, Math.ceil(bytes / 4) * 4);
-    this.device.queue.submit([enc.finish()]);
-    await st.mapAsync(GPUMapMode.READ);
-    const out = new type(st.getMappedRange(0, bytes).slice(0));
-    st.unmap();
-    st.destroy();
-    return out;
+    this.IDS = this.buf("IDS", R);
+    this.LENS = this.buf("LENS", B);
+    this.UTOK = this.buf("UTOK", R);
+    this.USTART = this.buf("USTART", R + 1);
+    this.UROWS = this.buf("UROWS", R);
+    this.LOSS = this.buf("LOSS", 4096);
   }
 
   setParams(flat) {
