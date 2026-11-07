@@ -7,6 +7,7 @@
 Loss: MultipleNegativesRankingLoss, the recipe that made e17c (ettin-native/run/contrast.py): in-batch
 negatives, scale 20 (temperature 0.05), query -> passage only, AdamW wd 0.01, linear warmup then decay.
 Pairs and their order come from run/pairs.py (64 pairs a step), so both arms see the same batches.
+--anchor W adds W * mean(1 - cos) to the frozen starting model on the same batch (round 5).
 Writes .work/ckpt/NAME.f32 and results/train/NAME.summary.json (loss per step).
 """
 import argparse
@@ -48,6 +49,7 @@ def main():
     ap.add_argument("--pad", type=int)
     ap.add_argument("--shards", help="shard prefix under .work/shards (default ARM)")
     ap.add_argument("--pairs", default="pairs.npz")
+    ap.add_argument("--anchor", type=float, default=0.0, help="weight of 1 - cos(student, frozen start) over the batch (round 5)")
     a = ap.parse_args()
     sh = a.shards or a.arm
     lens = np.fromfile(S / f"{sh}.lens.u16", np.uint16).astype(np.int64)
@@ -62,10 +64,13 @@ def main():
         flat = np.fromfile(S / a.start, np.float32)
         p = from_flat(flat, (len(flat) - 4099840) // 256)
     m = Embedder(p).train()
+    ref = Embedder(p).eval() if a.anchor else None
+    for t in (ref.parameters() if ref else []):
+        t.requires_grad_(False)
     ps = [t for _, t in m.ordered()]
     opt = torch.optim.AdamW(ps, lr=a.lr, weight_decay=0.01)
     sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / a.warm) * max(0.0, (a.steps - s) / max(1, a.steps - a.warm)))
-    losses, acc, t0 = [], [], time.time()
+    losses, acc, anchors, t0 = [], [], [], time.time()
     for s in range(a.steps):
         pr = order[s * P:(s + 1) * P]
         qi, qa = batch(ids, offs, lens, pr[:, 0], pad)
@@ -74,6 +79,12 @@ def main():
         d = F.normalize(m(di, da), dim=-1)
         sim = a.scale * q @ d.T
         loss = F.cross_entropy(sim, torch.arange(P))
+        if ref is not None:
+            with torch.no_grad():
+                rq, rd = ref(qi, qa), ref(di, da)
+            anc = 0.5 * ((1 - F.cosine_similarity(q, rq)).mean() + (1 - F.cosine_similarity(d, rd)).mean())
+            anchors.append(float(anc))
+            loss = loss + a.anchor * anc
         opt.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(ps, 1.0)
@@ -88,7 +99,8 @@ def main():
     to_flat(m).tofile(W / "ckpt" / f"{a.name}.f32")
     out = {"name": a.name, "start": a.start, "arm": a.arm, "shards": sh, "pairs": a.pairs, "steps": a.steps, "lr": a.lr, "scale": a.scale, "P": P,
            "s_per_step": (time.time() - t0) / a.steps, "loss_first100": float(np.mean(losses[:100])),
-           "loss_last100": float(np.mean(losses[-100:])), "acc_last100": float(np.mean(acc[-100:])), "losses": [round(x, 4) for x in losses]}
+           "loss_last100": float(np.mean(losses[-100:])), "acc_last100": float(np.mean(acc[-100:])), "losses": [round(x, 4) for x in losses], "anchor": a.anchor,
+           "anchor_last100": float(np.mean(anchors[-100:])) if anchors else None}
     (HERE / "results/train").mkdir(parents=True, exist_ok=True)
     (HERE / "results/train" / f"{a.name}.summary.json").write_text(json.dumps(out))
     print({k: v for k, v in out.items() if k != "losses"})
