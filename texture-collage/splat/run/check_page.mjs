@@ -84,11 +84,12 @@ await close();
   const { page: v, close: vclose } = await open("texture-collage/splat/out/_exported.html", { ready: () => true, viewport: { width: 900, height: 600 } });
   v.on("pageerror", (e) => verrs.push(e.message));
   v.on("console", (m) => { if (m.type() === "error") verrs.push(m.text()); });
-  await v.waitForTimeout(90000);
+  await v.waitForFunction(() => window.drawn >= 1, null, { timeout: 900000, polling: 2000 });
+  await v.waitForTimeout(3000);
   await v.screenshot({ path: "results/exported_html.png", timeout: 180000 });
   // the viewer has a canvas (its pixels are checked by eye in results/exported_html.png)
   const lit = await v.evaluate(() => document.querySelector("canvas") !== null);
-  ok("exported_html_runs", verrs.length === 0 && lit, { errors: verrs, waitedMs: Date.now() - tv });
+  ok("exported_html_runs", verrs.length === 0 && lit, { errors: verrs, firstFrameMs: Date.now() - tv });
   await vclose();
 }
 fs.writeFileSync("results/page_check.json", JSON.stringify(out, null, 1));

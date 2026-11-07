@@ -314,7 +314,9 @@ const device = await (await navigator.gpu.requestAdapter()).requestDevice();
 const ctx = cv.getContext("webgpu"), format = navigator.gpu.getPreferredCanvasFormat();
 ctx.configure({ device, format, alphaMode: "opaque" });
 const mod = device.createShaderModule({ code: WGSL });
-const pipe = device.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format }] } });
+const errs = (await mod.getCompilationInfo()).messages.filter((m) => m.type === "error");
+if (errs.length) { document.body.innerHTML = "<p style='color:#ccc;padding:20px'>Shader error: " + errs[0].message + "</p>"; throw new Error(errs[0].message); }
+const pipe = await device.createRenderPipelineAsync({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format }] } });
 const u = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 const bg = device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: u } }] });
 const W0 = ${W0}, H0 = ${H0}, v = { x0: 0, y0: 0, s: 1 };
@@ -324,7 +326,8 @@ let q = false;
 function draw() { if (q) return; q = true; requestAnimationFrame(() => { q = false;
   device.queue.writeBuffer(u, 0, new Float32Array([v.x0, v.y0, v.s, 0]));
   const e = device.createCommandEncoder(), p = e.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [0.04, 0.04, 0.05, 1] }] });
-  p.setPipeline(pipe); p.setBindGroup(0, bg); p.draw(3); p.end(); device.queue.submit([e.finish()]); }); }
+  p.setPipeline(pipe); p.setBindGroup(0, bg); p.draw(3); p.end(); device.queue.submit([e.finish()]);
+  device.queue.onSubmittedWorkDone().then(() => { window.drawn = (window.drawn || 0) + 1; }); }); }
 function zoomAt(x, y, f) { const d = cv.width / innerWidth, px = x * d, py = y * d; v.x0 += px * v.s * (1 - f); v.y0 += py * v.s * (1 - f); v.s *= f; draw(); }
 addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, Math.exp(e.deltaY * 0.0015)); }, { passive: false });
 const pts = new Map(); let pinch = 0;
