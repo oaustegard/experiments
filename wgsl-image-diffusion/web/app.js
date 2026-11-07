@@ -3,6 +3,21 @@ import { ImageDiffusion, Viewer } from "./diffusion.js";
 const $ = (id) => document.getElementById(id);
 const canvas = $("c"), status = $("status"), bar = $("bar").firstElementChild;
 const S = 64;
+const SRC = '<a href="https://github.com/oaustegard/experiments/tree/main/wgsl-image-diffusion">Source</a>';
+const TAIL = "It makes 64×64 images; the large square shows one scaled up. Earlier results collect below it: " +
+  "click one to draw it again from the same random seed. ";
+const MODELS = {
+  animals: { dir: "./model", title: "Animal Diffusion", label: "Animal", what: "animal",
+    sub: "A 23M-parameter diffusion model with self-attention, in hand-written WGSL, running on your GPU. " +
+      'It was trained on the 15,803 close-up animal-face photos of <a href="https://github.com/clovaai/stargan-v2#animal-faces-hq-dataset-afhq">AFHQv2</a> ' +
+      "(cats, dogs, and wild animals such as lions, tigers, foxes and wolves). " },
+  faces: { dir: "./model-faces", title: "Face Diffusion", label: "Face", what: "kind of face",
+    sub: "The same 23M-parameter diffusion model with self-attention, in hand-written WGSL, running on your GPU, " +
+      'trained on the 162,770 aligned celebrity photos of <a href="https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html">CelebA</a>. ' +
+      "Its four classes come from two of the dataset's annotated labels, male or female and smiling or not. " },
+};
+const MK = MODELS[new URLSearchParams(location.search).get("m")] ? new URLSearchParams(location.search).get("m") : "animals";
+const M = MODELS[MK];
 
 let model, viewer, device, names, running = false, cancel = false, autoTimer = null;
 let cls = 0, seed = (Math.random() * 1e9) | 0, shown = false;
@@ -110,6 +125,14 @@ async function save() {
 }
 
 async function main() {
+  $("title").textContent = M.title;
+  $("sub").innerHTML = M.sub + TAIL + SRC;
+  $("clsLabel").textContent = M.label;
+  $("what").textContent = M.what;
+  for (const b of $("mdl").children) {
+    b.setAttribute("aria-pressed", b.dataset.v === MK);
+    b.addEventListener("click", () => { if (b.dataset.v !== MK) location.search = `?m=${b.dataset.v}`; });
+  }
   const fail = () => { $("nogpu").style.display = "block"; $("app").style.display = "none"; };
   if (!navigator.gpu) return fail();
   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
@@ -119,9 +142,15 @@ async function main() {
     maxBufferSize: adapter.limits.maxBufferSize } });
   device.lost.then((i) => { status.textContent = `GPU device lost: ${i.message}`; });
   viewer = new Viewer(device, canvas, navigator.gpu.getPreferredCanvasFormat());
-  model = await ImageDiffusion.create(device, "./model");
+  model = await ImageDiffusion.create(device, M.dir);
   names = model.man.names;
-  // shareable settings: ?a=dog&steps=24&cfg=2&seed=123
+  for (const [i, n] of names.entries()) {
+    const b = document.createElement("button");
+    b.dataset.v = i; b.textContent = n[0].toUpperCase() + n.slice(1);
+    $("cls").append(b);
+  }
+  setCls(cls);
+  // shareable settings: ?m=faces&a=man,%20smiling&steps=24&cfg=2&seed=123 (m: animals or faces; a: a class name)
   const q = new URLSearchParams(location.search);
   if (q.has("a") && names.includes(q.get("a"))) setCls(names.indexOf(q.get("a")));
   for (const k of ["steps", "cfg"]) if (q.has(k)) { $(k).value = q.get(k); $(`${k}V`).textContent = $(k).value; }
