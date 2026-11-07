@@ -661,10 +661,21 @@ survives exactly the sanity checks people run.
 | LoRA training of a packed Ettin-17m (ModernBERT: RoPE, sliding-window attention, GeGLU, bias-free LayerNorm) in WGSL compute: per-layer checkpointing (keep each layer's input, recompute before differentiating), attention backward in two passes without atomics (per query row dQ and D = dO·O; per key row dK, dV; probabilities recomputed from the saved log-sum-exp), split-K matmul for gradients that sum over every token, one strided 64x64-tile matmul for every product, clipping and AdamW on the GPU. Reproduced a seeded PyTorch run step for step on an Apple GPU (loss 4.6e-7 relative per step over 1,552 steps), 6.1x faster per step than 4 CPUs | `ettin-wgsl-train/web/train.js` (`Trainer`; checks: `web/gradcheck.js`, `web/traj.js`, `run/compare.py`) | small |
 | Footprint-limited 2D splat trainer in WGSL compute, no float atomics: 16×16 tiles, per-tile splat lists in list order (no sort), per-pixel snapshots of colour and log-transmittance at each prefix, a backward pass that takes transmittance from those logs instead of dividing by (1 − w), and a slot map so each splat sums its own per-tile partials. Checked against PyTorch autograd to under 1e-3 relative error | `image-to-wgsl/web/gputrain.js` (`GpuTrainer`, `encodeGPU`, `lossAndGrad`; check: `bridge/gradcheck_gpu.py`) | small |
 | Deep zoom for a splat image: a pyramid of 256-px tiles (2^L times the fit, last level the source), each a small splat list trained over a per-pixel background (the render of the coarser levels), on its crop widened by 16 px, drawn clipped to its core so the screen shows exactly what was trained. On six DIV2K photos it beat tiles fitted alone with the same splats by 0.3 to 1.8 dB; training every prefix cost 0.3 dB; seams cost about 0.3 dB on the boundary pixels only; 0.3-0.65 s a tile on an M5 Max. Drawn as a second instanced pass from a storage buffer with a clip rectangle per tile | `image-to-wgsl/web/deepzoom.js` (`DeepZoom`, `pyramid`, `cropCam`), `web/instanced.js` (`setDetail`, `readback`); measured by `bridge/deepzoom_job.js` | small |
+| Conv U-Net inference in WGSL compute: a 3×3 conv where each of 64 threads keeps 4 adjacent pixels × 8 output channels in vec4 accumulators (an 8×8 × 32-channel tile per workgroup), weights re-laid out to [Cin][K·K][Cout] at load, K and stride as pipeline-overridable constants, the previous GroupNorm affine + FiLM + SiLU applied as each input is loaded, and split-K (up to 16 ways, with a second pass for partials, bias and residual) for layers with under 256 workgroups. 2.2x faster than one pixel × 16 channels per thread at 256² on an Apple GPU (2260 → 1044 ms for 20 guided steps of an 8.4M-parameter U-Net); matches PyTorch to 1e-6 relative | `wgsl-diffusion/web/diffusion.js` (`WGSL_CONV2`, `WGSL_SPLITSUM`, `plan`; check: `run/test_gpu.mjs`, `bridge/kernel_job.js`) | small |
 
 ---
 
 ## Environment gotchas (this container)
+
+- **Headless Chromium on SwiftShader does not offer `shader-f16`, so store f16 as pairs packed into u32.**
+  `pack2x16float` / `unpack2x16float` are core WGSL and work on every adapter. Make each thread write two
+  adjacent elements (keep widths even) so no two threads share a word. In `wgsl-diffusion` it halved activation
+  memory (512² guided: 1147 → 574 MB), cost 3-7% time on an Apple GPU, and matched f32 storage at 86.7 dB PSNR
+  on a 20-step diffusion sample. Keep the sampler state in f32. (`wgsl-diffusion/web/diffusion.js`, `LDFN`, `ST2`)
+- **Build a torch reference from the exported weight file, not from the checkpoint beside it.** A mirror
+  loop replaced `ema.pt` between the export and the reference copy, and a correct GPU result read as a
+  28 dB mismatch until the reference was rebuilt from `weights.bin` (142 dB). (`wgsl-diffusion/ERRORS.md`,
+  `run/ref_from_bin.py`)
 
 - **`colab exec` gives up after 30 s by default, but the kernel keeps running.** The client raised "Timeout waiting for reply" and exited 1 while the job finished normally on the L4. Pass `--timeout`, and check progress with `colab download -s NAME /content/LOG`, which works while the kernel is busy; a second `colab exec` queues behind the running cell. (`ettin-wgsl-train/run/colab_growth.py`)
 - **Two seeds of a small-data arm are not a baseline.** adapter-library's published warm-start arms at 64 labels (0.746, 0.750) did not reproduce once the library adapters were rebuilt: 0.608 and 0.680, mean 0.703 over 10 seeds. A two-seed gap of 0.055 reversed to +0.024 the other way. (`ettin-wgsl-train/RESULTS.md` finding 5)
@@ -1667,6 +1678,14 @@ the result.
   check the live file afterwards. (`browser-decider`, 2026-11-06)
 
 ## Numerical / ML gotchas
+
+- **A conv net trained with zero padding makes seamless tiles when sampled with circular padding.** No
+  retraining: the wrap makes every edge pixel an interior pixel. Over 12 DTD texture classes the step across
+  the tile edge was 1.00 times the step between neighbouring interior pixels, against 3.93 with zero padding,
+  for a 20-step diffusion sample at twice the 64×64 training size. (`wgsl-diffusion/run/seam_check.py`)
+- **Check weight quantization on the final checkpoint, not an early one.** Symmetric int8 per output row
+  cost a diffusion U-Net 42.3 dB PSNR (against f32 sampling) at 15k steps and 34.4 dB at 60k (the
+  cause was not measured). f16 activations stayed at about 84 dB at both. (`wgsl-diffusion/run/quant_sim.py`)
 
 - **Centre a teacher's vectors before distilling into them with a cosine loss, and fit the student's head first.** MedCPT's 768-d vectors share a mean component of norm 7.08 against an average length of 9.45, so a student that outputs the mean scores cosine about 0.5 and the run collapses there. Targets of T minus the training-set mean, plus a ridge-fitted output head before step 0, trained normally. The ridge head alone reaches cosine 0.61 to the teacher and still ranks badly (SciFact nDCG@10 0.17), so the layers have to move. (`lifesci-ettin/RESULTS.md` Round 1)
 - **A bias that adds the same constant to every option's logit has a zero gradient under a per-question softmax, and AdamW moves it anyway.** In browser-decider's head the last Linear's bias and the LayerNorm bias before it both cancel in the segment softmax; PyTorch's own gradients for them are float noise (about 1e-8), so a gradient check that divides by them reports errors of 400% or more. Leave tensors whose reference gradient is under about 1e-6 of the total norm out of relative errors. AdamW divides a gradient by its own running size, so these parameters drift by about the learning rate per step on noise, in PyTorch and in any faithful port. (`ettin-wgsl-train/RESULTS.md` finding 4)
