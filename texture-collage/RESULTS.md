@@ -22,8 +22,7 @@ soft-edged ellipses (splats) painted in layers on a square that wraps around at 
 seamlessly; it is a formula, not an image, and can be evaluated at any resolution. The whole collage,
 the region map included, then becomes one WGSL shader with no image pixels in it (the region map is a
 coarse grid of cells, described below), so it renders sharp at any zoom and exports as one WGSL file, or
-one HTML file that displays it. Its question is what that costs in likeness, file size and speed against
-the pixel collage, and how to store region edges so they stay smooth when zoomed.
+one HTML file that displays it. Its question is what that costs in likeness (against the pixel collage), file size and speed, and how to store region edges so they stay smooth when zoomed.
 
 ![Top: the parrots, the pixel collage, the splat collage (12 regions). Bottom: the same 96 × 64 px window
 zoomed 8×: the pixel collage enlarged, and the splat collage's shader evaluated at the zoomed
@@ -46,7 +45,7 @@ at random. Stochastic tiling hides the repeat (self-correlation one tile away 0.
 to nearly zero) and is a toggle.
 
 The splat version makes the whole collage one WGSL shader: on a Mac a 1024² frame takes 3.1 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_1024]] -->
-at 12 regions (the pixel collage needs 0.8 s of CPU to recomposite), the exported file is 226 kB gzipped, <!-- @evidence[[splat/results/summary.json#/shader_kB/distance LW192 K12/gzip]] --> and SSIM is 0.343 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/ssim]] -->
+at 12 regions, the exported file is 226 kB gzipped, <!-- @evidence[[splat/results/summary.json#/shader_kB/distance LW192 K12/gzip]] --> and SSIM is 0.343 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/ssim]] -->
 against the pixel collage's 0.357. Storing each map cell's distance to its region's edge keeps zoomed
 edges smooth and mislabels 0.72% of pixels at 192 cells, <!-- @evidence[[splat/results/eval.json#/geometry/distance LW192/wrongFrac]] -->
 against 3.50% <!-- @evidence[[splat/results/eval.json#/geometry/nearest LW192/wrongFrac]] --> for labels alone.
@@ -70,7 +69,7 @@ to the photo.
    `splat-diffusion`'s stochastic blit (Heitz and Neyret 2018) to the CPU fill.
 3. **The whole collage runs as one shader, fast.** Mac, the parrots at 12 regions of 512 splats: 3.1 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_1024]] -->
    for a 1024² frame and 8.8 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_2048]] --> at 2048², with 6 or 24 regions
-   within 0.3 ms of that; the exported file (`baked`: every number written into the WGSL) of 798 kB <!-- @evidence[[splat/results/summary.json#mac.R12.baked_kB]] -->
+   within 0.3 ms of that; the exported file for the parrots (`baked`: every number written into the WGSL), 798 kB raw, <!-- @evidence[[splat/results/summary.json#mac.R12.baked_kB]] -->
    compiles in 228 ms. <!-- @evidence[[splat/results/summary.json#mac.R12.compile_ms]] --> The page's shader, which reads the splats from GPU buffers, the exported file and a JavaScript copy of
    the shader (used for all measurements) agree within 1/255 when run on SwiftShader, a software GPU.
    (`splat/results/mac/time.json`, `splat/results/gpu_check.json`)
@@ -81,7 +80,7 @@ to the photo.
    Distances at 96 cells (3.28%) <!-- @evidence[[splat/results/eval.json#/geometry/distance LW96/wrongFrac]] --> match labels at 192 in the
    same bytes, and they trace diagonals straight where labels step. The cost is 16 bits a cell (8 for the label, 8 for the
    distance) against 4 bits for a label alone (8 above 16 regions), so 96 cells with distances take the same
-   bits as 192 without; files average 795 kB raw for 12 regions against 669 kB with labels only. (`splat/results/eval.json` geometry)
+   bits as 192 without; over the six pictures the 12-region file averages 795 kB raw (226 kB gzipped) against 669 kB with labels only. (`splat/results/eval.json` geometry)
 5. **Splats cost a little likeness and colour.** Splat collage against pixel collage, both
    pattern-picked: SSIM 0.343 against 0.357, GMSD 0.252 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/gmsd]] --> against 0.237, and region colour
    error 3.80 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/dEreg]] --> against 1.72 ΔE: recolouring changes each splat's own
@@ -112,7 +111,7 @@ to the photo.
    regions then stay flat; the page defaults to 8 so every region shows its texture. Giving each region
    a distinct class cost 0.010 SSIM.
 10. **Speed.** Mac (its Apple GPU, reached through the GPU bridge: a page on Oskar's laptop that runs jobs pushed from this container): a 128 px texture at 24 steps took 540 ms <!-- @evidence[[bank/meta.json#median_ms]] -->
-   median in the bank job, including readback, and 360 ms at the page's 20 steps; 256 px took 9.0 s
+   median in the bank job, including readback, and 360 ms at the page's 20 steps (3.0 s for eight); 256 px took 9.0 s
    for eight. Regions 0.42 s, descriptors 1.03 s, compositing 0.78 s, all on the CPU (timed before
    stochastic tiling, which samples the tile three times per pixel). SwiftShader (a software GPU, the only one in the cloud container) took 153867 ms for one 64 px texture at 12 steps, <!-- @evidence[[results/swiftshader_speed.json#S64_steps12_ms]] -->
    which is why the page ships a stored tile per class. (`results/mac/pipeline.json`)
@@ -329,7 +328,7 @@ SSIM 0.357, GMSD 0.237, region ΔE 1.72):
 
 Share of pixels whose rebuilt region differs from the full-resolution one, and the exported file's size:
 
-| cells (long side) | blocky | contour | rounded | smooth (distance) | smooth file, 12 regions (raw / gzip kB) |
+| cells (long side) | nearest | contour | spline | distance | distance file, 12 regions (raw / gzip kB) |
 |---|---|---|---|---|---|
 | 64 | 10.23% | 9.24% | 9.11% | 6.07% | 649 / 205 |
 | 96 | 7.09% | 6.21% | 6.13% | 3.28% | 671 / 211 |
