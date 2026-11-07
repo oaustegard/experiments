@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texture Diffusion</title>
+<meta name="description" content="A small diffusion model, written by hand in WGSL, dreams seamless textures on your GPU.">
+<style>
+  :root {
+    --bg: #0b0b0d; --panel: rgba(16, 16, 20, 0.78); --line: rgba(255, 255, 255, 0.12);
+    --fg: #ece9e4; --dim: #a29d96; --accent: #f0b46a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #panel { position: fixed; left: 16px; bottom: 16px; width: min(340px, calc(100vw - 32px));
+    background: var(--panel); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 12px; }
+  #panel.min .body { display: none; }
+  h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: 0.01em; }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .head button { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 18px; padding: 0 4px; }
+  .sub { color: var(--dim); font-size: 12px; margin: 2px 0 10px; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .row label { width: 72px; color: var(--dim); font-size: 12px; flex: none; }
+  .row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .row output { width: 34px; text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); font-size: 12px; }
+  select, .seg button, .btn { background: rgba(255,255,255,0.06); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 13px; }
+  select { flex: 1; text-transform: capitalize; }
+  .seg { display: flex; flex: 1; }
+  .seg button { flex: 1; border-radius: 0; cursor: pointer; padding: 5px 0; font-size: 12px; }
+  .seg button:first-child { border-radius: 8px 0 0 8px; }
+  .seg button:last-child { border-radius: 0 8px 8px 0; }
+  .seg button[aria-pressed=true] { background: var(--accent); color: #1b1309; border-color: var(--accent); }
+  .btn { cursor: pointer; }
+  .btn.go { background: var(--accent); color: #1b1309; border-color: var(--accent); font-weight: 600; flex: 1; }
+  .checks { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
+  .checks input { accent-color: var(--accent); }
+  #status { font-size: 12px; color: var(--dim); min-height: 1.4em; font-variant-numeric: tabular-nums; margin-top: 8px; }
+  #bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  #bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.08s linear; }
+  #nogpu { position: fixed; inset: 0; display: none; place-items: center; text-align: center; padding: 24px; color: var(--dim); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="nogpu"><p>This page needs WebGPU (Chrome, Edge, Safari 26 or Firefox 141 and later).</p></div>
+<div id="panel">
+  <div class="head"><h1>Texture Diffusion</h1><button id="min" title="Hide controls">–</button></div>
+  <div class="body">
+    <div class="sub">An 8.4M-parameter diffusion model in hand-written WGSL, on your GPU. Trained on the 47 classes of the
+      <a href="https://www.robots.ox.ac.uk/~vgg/data/dtd/">Describable Textures Dataset</a>.</div>
+    <div class="row"><label for="cls">Texture</label><select id="cls"></select>
+      <button class="btn" id="rnd" title="Random texture">⚄</button></div>
+    <div class="row"><label>Size</label><div class="seg" id="size">
+      <button data-v="64">64</button><button data-v="128" aria-pressed="true">128</button>
+      <button data-v="192">192</button><button data-v="256">256</button></div></div>
+    <div class="row"><label for="steps">Steps</label><input id="steps" type="range" min="4" max="48" value="20"><output id="stepsV">20</output></div>
+    <div class="row"><label for="cfg">Guidance</label><input id="cfg" type="range" min="1" max="7" step="0.25" value="3"><output id="cfgV">3</output></div>
+    <div class="row"><label for="zoom">Zoom</label><input id="zoom" type="range" min="0.5" max="6" step="0.25" value="2"><output id="zoomV">2</output></div>
+    <div class="checks">
+      <label><input type="checkbox" id="seam" checked> Seamless</label>
+      <label><input type="checkbox" id="dream"> Dream (cycle)</label>
+      <label><input type="checkbox" id="smooth" checked> Smooth</label>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn go" id="go">Generate</button>
+      <button class="btn" id="save" title="Save the tile as PNG">Save</button></div>
+    <div id="bar"><i></i></div>
+    <div id="status">Loading model…</div>
+  </div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

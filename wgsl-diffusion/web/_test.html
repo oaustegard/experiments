@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><title>wgsl-diffusion test</title>
+<script type="module">
+import { TextureDiffusion } from "./diffusion.js";
+window.runTests = async () => {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice({ requiredLimits: {
+    maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
+    maxBufferSize: adapter.limits.maxBufferSize } });
+  const errs = [];
+  device.addEventListener("uncapturederror", (e) => errs.push(e.error.message));
+  const m = await TextureDiffusion.create(device, "./test");
+  const cases = await (await fetch("./test/cases.json")).json();
+  const res = [];
+  for (const c of cases) {
+    const t0 = performance.now();
+    let got, want;
+    if (c.kind === "forward") {
+      got = await m.forward(new Float32Array(c.x), c.t, c.y, c.H, c.W, c.pad === "circular");
+      want = c.v;
+    } else {
+      await m.sample({ cls: c.y, H: c.H, W: c.W, steps: c.steps, cfg: c.cfg, circ: c.pad === "circular",
+                       noise: new Float32Array(c.noise) });
+      got = (await m.read(m.dBuf, 3 * c.H * c.W)).map((v) => Math.max(-1, Math.min(1, v)));
+      want = c.out;
+    }
+    let maxd = 0, maxw = 0;
+    for (let i = 0; i < want.length; i++) { maxd = Math.max(maxd, Math.abs(got[i] - want[i])); maxw = Math.max(maxw, Math.abs(want[i])); }
+    res.push({ kind: c.kind, H: c.H, W: c.W, pad: c.pad, maxd, maxw, rel: maxd / maxw, ms: performance.now() - t0, nan: got.some(Number.isNaN) });
+  }
+  return { res, errs };
+};
+window.ready = true;
+</script>
