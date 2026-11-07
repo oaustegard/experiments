@@ -35,6 +35,26 @@ if (gpu) {
   const after = await page.evaluate(() => window.app.regions());
   ok("fresh_texture", after[k0].seed > 0 && (await page.evaluate(() => window.app.renders)) > n, { ms: Date.now() - g0, S: after[k0].S });
 }
+if (gpu) {
+  // Recut while textures are being generated (the hang Oskar hit: 1024 -> 512 mid-generation).
+  // The page must drop the old run, cut the new regions, render, and start generating for them.
+  await page.evaluate(() => { window.app.generate({ size: 64, steps: 6 }); });
+  await page.waitForFunction(() => document.getElementById("go").textContent === "Stop", null, { timeout: 30000 });
+  await page.waitForTimeout(5000);
+  const n = await page.evaluate(() => window.app.renders);
+  await page.click('#detail [data-v="512"]');
+  await page.waitForFunction((n) => window.app.renders > n && document.getElementById("c").width === 512, n, { timeout: 120000 });
+  const regenerating = await page.evaluate(() => document.getElementById("go").textContent === "Stop");
+  // stop the new run and check the page still renders on a control change
+  if (regenerating) await page.click("#go");
+  await page.waitForFunction(() => document.getElementById("go").textContent !== "Stop", null, { timeout: 300000 });
+  const m = await page.evaluate(() => window.app.renders);
+  await page.click('#tint [data-v="local"]');
+  await page.waitForFunction((m) => window.app.renders > m, m, { timeout: 60000 });
+  ok("recut_during_generation", regenerating, { width: 512 });
+  await page.click('#detail [data-v="768"]');
+  await page.waitForFunction(() => document.getElementById("c").width === 768, null, { timeout: 60000 });
+}
 const dl = page.waitForEvent("download", { timeout: 30000 });
 await page.click("#save");
 const d = await dl;

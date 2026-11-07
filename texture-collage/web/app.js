@@ -55,6 +55,9 @@ async function loadImage(src) {
   const oc = new OffscreenCanvas(W, H), c = oc.getContext("2d");
   c.imageSmoothingQuality = "high";
   c.drawImage(bmp, 0, 0, W, H);
+  epoch++;
+  if (generating) cancel = true;
+  seg = null;                        // no render may reach the worker between its new image and new regions
   img = { W, H, rgba: c.getImageData(0, 0, W, H).data, bmp };
   canvas.width = W; canvas.height = H;
   await call("image", { W, H, rgba: img.rgba.slice().buffer });
@@ -62,8 +65,13 @@ async function loadImage(src) {
 }
 
 // ------------------------------------------------------------ pipeline
+// Bumped whenever the regions are recut: generation and renders started for the old regions stop.
+let epoch = 0;
+
 async function resegment() {
   if (!img) return;
+  epoch++;
+  if (generating) cancel = true;
   status("Finding regions…");
   const r = await call("segment", { K: +$("K").value });
   seg = { K: r.K, labels: r.labels, stats: r.stats, solid: new ImageData(new Uint8ClampedArray(r.solid), img.W, img.H) };
@@ -96,20 +104,30 @@ async function render() {
   if (!seg) return;
   if (rendering) { again = true; return rendering; }
   rendering = (async () => {
-    do {
-      again = false;
-      const tiles = regions.map((r) => { const t = tileFor(r); return { key: t.key, rgb: t.rgb.slice().buffer, S: t.S, scale: r.scale }; });
-      const opts = { tint: segVal("tint"), feather: +$("feather").value, strength: +$("strength").value, align: $("align").checked };
-      const r = await call("render", { tiles, opts }, tiles.map((t) => t.rgb));
-      collage = new ImageData(new Uint8ClampedArray(r.rgba), img.W, img.H);
-      timing.render = r.ms;
-      window.app.renders++;
-      draw();
-    } while (again);
-    rendering = null;
+    try {
+      do {
+        again = false;
+        if (!seg) break;
+        const e0 = epoch, W = img.W, H = img.H;
+        const tiles = regions.map((r) => { const t = tileFor(r); return { key: t.key, rgb: t.rgb.slice().buffer, S: t.S, scale: r.scale }; });
+        const opts = { tint: segVal("tint"), feather: +$("feather").value, strength: +$("strength").value, align: $("align").checked };
+        let r;
+        try { r = await call("render", { tiles, opts }, tiles.map((t) => t.rgb)); }
+        catch (e) { if (e0 === epoch) throw e; continue; }       // the regions changed under it: drop it
+        if (e0 !== epoch) continue;
+        collage = new ImageData(new Uint8ClampedArray(r.rgba), W, H);
+        timing.render = r.ms;
+        window.app.renders++;
+        draw();
+      } while (again);
+    } catch (e) {
+      status(`Error: ${e.message}`); console.error(e);
+    } finally {
+      rendering = null;
+    }
   })();
   await rendering;
-  if (!generating) status(summary());
+  if (!generating && seg) status(summary());
 }
 
 function summary() {
@@ -196,16 +214,20 @@ function toRGB(d, S) {
   return u;
 }
 
-let queue = Promise.resolve();
+let queue = Promise.resolve(), stops = 0;
 function generate({ only = null, onlyMissing = false } = {}) {
   if (!model) return Promise.resolve();
-  if (generating && !only && !onlyMissing) { cancel = true; return queue; }
-  queue = queue.then(() => runGenerate(only, onlyMissing));
+  // Stop: cancel the running batch and every batch queued behind it
+  if (generating && !only && !onlyMissing) { cancel = true; stops++; return queue; }
+  const s0 = stops;
+  queue = queue.then(() => (s0 === stops ? runGenerate(only, onlyMissing) : null)).catch((e) => { console.error(e); });
   return queue;
 }
 
 async function runGenerate(only, onlyMissing) {
+  if (!seg) return;
   generating = true; cancel = false; freshMode = true;
+  const e0 = epoch;
   $("go").textContent = "Stop";
   const S = +segVal("size"), steps = +$("steps").value;
   let ks = only || regions.map((_, k) => k).sort((a, b) => seg.stats[b].frac - seg.stats[a].frac);
@@ -214,13 +236,13 @@ async function runGenerate(only, onlyMissing) {
   let done = 0;
   try {
     for (const k of ks) {
-      if (cancel) break;
+      if (cancel || e0 !== epoch) break;
       const r = regions[k], seed = 1 + ((Math.random() * 1e9) | 0), t1 = performance.now();
       status(`Dreaming ${names[r.cls]} for region ${done + 1} of ${ks.length}…`);
       const ok = await model.sample({ cls: r.cls, H: S, W: S, steps, cfg: 3, seed, circ: true,
         onStep: (i) => { bar.style.width = `${(100 * (done + (i + 1) / steps)) / ks.length}%`; },
-        shouldStop: () => cancel });
-      if (!ok) break;
+        shouldStop: () => cancel || e0 !== epoch });
+      if (!ok || e0 !== epoch) break;
       const d = await model.read(model.dBuf, 3 * S * S);
       timing.texture = performance.now() - t1; timing.textureS = S;
       fresh.set(`${r.cls}:${seed}:${S}`, toRGB(d, S));
@@ -230,12 +252,14 @@ async function runGenerate(only, onlyMissing) {
     }
   } catch (e) {
     status(`Error: ${e.message}`); console.error(e);
+  } finally {
+    generating = false;
+    $("go").textContent = "Generate fresh textures";
+    bar.style.width = "0";
   }
+  if (e0 !== epoch) return;            // recut meanwhile: choose() queues the new regions' textures
   await render();
   timing.generateAll = performance.now() - t0;
-  generating = false;
-  $("go").textContent = "Generate fresh textures";
-  bar.style.width = "0";
   status(`${done} texture${done === 1 ? "" : "s"} in ${fmt(timing.generateAll)} · ` + summary());
 }
 
