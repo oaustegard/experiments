@@ -394,3 +394,135 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   for (var j = l; j < H; j += 64u) { Y[r * H + j] = X[src * H + j]; }
 }`;
 KERNELS.gather = GATHER;
+
+// ---- Token-table embedding --------------------------------------------------------------------------
+// y[t, j] = alpha * table(id)[j] (+ pos[position, j] + type0[j], BERT). One workgroup of 64 per token,
+// thread l holding columns l + 64 i. Row formats, each with one fp16 scale per 32 values:
+//   t4  symmetric 4-bit, two per byte, low nibble = even column, value (code - 8) * scale
+//   t3  3-bit, eight per 3 bytes (little-endian bitstream), a zero-point byte per 32, (code - zp) * scale
+// H, the format and the options are WGSL constants. Uniform: a = (codes, scales, zero points) byte
+// offsets and the position-table word offset; b.x = type0 word offset; f.x = alpha.
+const EMBED_FMT = {
+  t4: `let b = wbyte(p.a.x + id * (H / 2u) + j / 2u);
+    var v = (f32((b >> ((j & 1u) * 4u)) & 15u) - 8.0) * s;`,
+  t3: `let cb = p.a.x + id * (H / 8u) * 3u + (j / 8u) * 3u;
+    let word = wbyte(cb) | (wbyte(cb + 1u) << 8u) | (wbyte(cb + 2u) << 16u);
+    let z = f32(wbyte(p.a.z + id * G + j / 32u));
+    var v = (f32((word >> (3u * (j & 7u))) & 7u) - z) * s;`,
+};
+const embedWGSL = (fmt, H, alpha, pos) => HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
+@group(0) @binding(4) var<storage, read_write> y: array<f32>;
+${BYTE}
+const H = ${H}u;
+const G = ${H / 32}u;
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let t = wid.x + wid.y * 65535u;
+  if (t >= dn.n.x) { return; }
+  let id = tok[t].x;
+  for (var j = l; j < H; j += 64u) {
+    let s = wf16(p.a.y + (id * G + j / 32u) * 2u);
+    ${EMBED_FMT[fmt]}
+    ${alpha ? "v = v * p.f.x;" : ""}
+    ${pos ? "v += wf32(p.a.w + tok[t].y * H + j) + wf32(p.b.x + j);" : ""}
+    y[t * H + j] = v;
+  }
+}`;
+
+// t = { fmt: "t4" | "t3", codes, scales, zp } byte offsets in W; opts.alpha, opts.pos / opts.type0
+// (word offsets of BERT's position and token-type rows).
+export function embed(e, W, Y, t, { H, alpha = 1, pos = NONE, type0 = 0 }) {
+  if (!EMBED_FMT[t.fmt] || H % 64) throw new Error(`embed: format ${t.fmt}, H ${H} (a multiple of 64)`);
+  const k = variant(e, `embed_${t.fmt}_${H}${alpha !== 1 ? "_a" : ""}${pos !== NONE ? "_pos" : ""}`, () => embedWGSL(t.fmt, H, alpha !== 1, pos !== NONE));
+  e.step(k, { a: [t.codes, t.scales, t.zp ?? 0, pos === NONE ? 0 : pos], b: [type0], f: [alpha] }, [W, e.b.tok, Y], (n) => split(n[0]));
+}
+
+// ---- Rotary position embedding --------------------------------------------------------------------
+// ropeTable(thetas, hd, maxSeq): [cos | sin] blocks, each [table][pos][hd / 2], angles formed in float32
+// as the exported graphs do. rope() rotates in place (rotate_half convention) the first `parts` blocks
+// of nh heads in each row of X: parts 2 for the q and k of a fused [T, (q k v)] row, 1 for a plain
+// [T, nh * hd] buffer. hd, maxSeq, the table count and parts are WGSL constants; uniform a = (nh, row
+// stride, table index).
+export function ropeTable(thetas, hd, maxSeq) {
+  const half = hd / 2, nt = thetas.length, out = new Float32Array(2 * nt * maxSeq * half);
+  thetas.forEach((theta, sel) => {
+    for (let i = 0; i < half; i++) {
+      const inv = Math.fround(1 / Math.fround(Math.pow(theta, Math.fround((2 * i) / hd))));
+      for (let pos = 0; pos < maxSeq; pos++) {
+        const ang = Math.fround(pos * inv);
+        out[(sel * maxSeq + pos) * half + i] = Math.cos(ang);
+        out[nt * maxSeq * half + (sel * maxSeq + pos) * half + i] = Math.sin(ang);
+      }
+    }
+  });
+  return out;
+}
+
+const ropeWGSL = (hd, maxSeq, nt, parts) => HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> rope: array<f32>;
+@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
+@group(0) @binding(4) var<storage, read_write> x: array<f32>;
+const D = ${hd}u;
+const HALF = ${hd / 2}u;
+@compute @workgroup_size(128)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let t = wid.x + wid.y * 65535u;
+  if (t >= dn.n.x) { return; }
+  let nh = p.a.x;
+  let tb = (p.a.z * ${maxSeq}u + tok[t].y) * HALF;
+  let sinOff = ${nt * maxSeq}u * HALF;
+  for (var i = l; i < ${parts}u * nh * HALF; i += 128u) {
+    let part = i / (nh * HALF);
+    let h = (i / HALF) % nh; let d = i % HALF;
+    let base = t * p.a.y + part * nh * D + h * D;
+    let c = rope[tb + d]; let s = rope[sinOff + tb + d];
+    let x1 = x[base + d]; let x2 = x[base + d + HALF];
+    x[base + d] = x1 * c - x2 * s;
+    x[base + d + HALF] = x2 * c + x1 * s;
+  }
+}`;
+
+// table: the ropeTable buffer for `tables` thetas; sel picks one; stride defaults to parts * nh * hd.
+export function rope(e, table, X, { nh, hd, maxSeq, tables = 1, sel = 0, parts = 1, stride }) {
+  if (hd % 2 || sel >= tables) throw new Error(`rope: head dim ${hd}, table ${sel} of ${tables}`);
+  const k = variant(e, `rope_${hd}_${maxSeq}_${tables}_${parts}`, () => ropeWGSL(hd, maxSeq, tables, parts));
+  e.step(k, { a: [nh, stride ?? parts * nh * hd, sel] }, [table, e.b.tok, X], (n) => split(n[0]));
+}
+
+// ---- Gated activation -----------------------------------------------------------------------------
+// Y[r, j] = act(A[r * sa + oa + j]) * B[r * sb + ob + j] for j < I, over rows * mult rows. A and B may
+// be the same buffer (ModernBERT's [gate | up] row: sa = sb = 2I, ob = I); with inPlace, Y is A
+// (EmbeddingGemma's gelumul, LFM's SwiGLU). act: gelu (erf), gelu_tanh (clamped as in EG2), silu.
+// I and act are WGSL constants; uniform a = (sa, oa, sb, ob), b = (rows selector, mult).
+const ACT = {
+  gelu: "gelu(x)",
+  gelu_tanh: "0.5 * x * (1.0 + tanh(clamp(0.7978845608028654 * (x + 0.044715 * x * x * x), -15.0, 15.0)))",
+  silu: "x / (1.0 + exp(-x))",
+};
+const gatedWGSL = (act, I, inPlace) => HEADER + /* wgsl */ `
+${inPlace ? `@group(0) @binding(2) var<storage, read_write> A: array<f32>;
+@group(0) @binding(3) var<storage, read> B: array<f32>;`
+          : `@group(0) @binding(2) var<storage, read> A: array<f32>;
+@group(0) @binding(3) var<storage, read> B: array<f32>;
+@group(0) @binding(4) var<storage, read_write> Y: array<f32>;`}
+${act === "gelu" ? GELU : ""}
+const I = ${I}u;
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let idx = (wid.x + wid.y * 65535u) * 256u + l;
+  if (idx >= dn.n[p.b.x] * p.b.y * I) { return; }
+  let r = idx / I; let j = idx % I;
+  let x = A[r * p.a.x + p.a.y + j];
+  ${inPlace ? "A" : "Y"}[idx] = ${ACT[act]} * B[r * p.a.z + p.a.w + j];
+}`;
+
+export function gated(e, A, B, Y, { I, act = "gelu", sa, oa = 0, sb, ob = 0, rowsSel = 0, mult = 1 }) {
+  if (!ACT[act]) throw new Error(`gated: activation ${act}`);
+  const inPlace = Y === A;
+  if (inPlace && ((sa ?? I) !== I || oa)) throw new Error("gated in place: A's rows must be [rows, I] from offset 0");
+  const k = variant(e, `gated_${act}_${I}${inPlace ? "_ip" : ""}`, () => gatedWGSL(act, I, inPlace));
+  e.step(k, { a: [sa ?? I, oa, sb ?? I, ob], b: [rowsSel, mult] }, inPlace ? [A, B] : [A, B, Y],
+    (n) => split(Math.ceil(n[rowsSel] * mult * I / 256)));
+}

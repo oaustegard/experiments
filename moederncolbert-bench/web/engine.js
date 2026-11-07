@@ -15,7 +15,7 @@
 // The 115M size's gated-conv layers are not implemented.
 
 import { BYTE, HEADER, SeqEngine } from "../../_lib/wgsl/runtime.js";
-import { GELU, KERNELS, matmul } from "../../_lib/wgsl/kernels.js";
+import { KERNELS, gated, matmul, rope, ropeTable } from "../../_lib/wgsl/kernels.js";
 
 export const MAX_LEN = 512;
 
@@ -98,28 +98,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   for (var k = 64u; k > 0u; k >>= 1u) { if (l < k) { red[l] += red[l + k]; } workgroupBarrier(); }
   let inv = 1.0 / sqrt(red[0] / f32(D) + p.f.x);
   for (var j = l; j < D; j += 128u) { y[base + j] = x[base + j] * inv * wf32(p.a.y + j); }
-}`,
-
-  // RoPE in place on a [T, heads * hd] buffer (rotate_half convention). p.a = (heads, hd).
-  rope: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> rope: array<f32>;
-@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read_write> x: array<f32>;
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let t = wid.x + wid.y * 65535u;
-  if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let D = p.a.y; let half = D / 2u;
-  let pos = tok[t].y;
-  let sinOff = ${MAX_LEN}u * half;
-  for (var i = l; i < nh * half; i += 64u) {
-    let h = i / half; let d = i % half;
-    let base = (t * nh + h) * D;
-    let c = rope[pos * half + d]; let s = rope[sinOff + pos * half + d];
-    let x1 = x[base + d]; let x2 = x[base + d + half];
-    x[base + d] = x1 * c - x2 * s;
-    x[base + d + half] = x2 * c + x1 * s;
-  }
 }`,
 
   // Bidirectional grouped-query attention inside each packed sequence of up to 512 tokens, head dim 64.
@@ -322,20 +300,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // GeGLU: g[r, j] = gelu(u[r, j]) * u[r, I + j] over p.b.x rows-per-token x tokens.  p.a.x = I.
-  glu: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> u: array<f32>;
-@group(0) @binding(3) var<storage, read_write> g: array<f32>;
-${GELU}
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let I = p.a.x;
-  let idx = gid.x + gid.y * 65535u * 256u;
-  if (idx >= dn.n.x * p.b.x * I) { return; }
-  let r = idx / I; let j = idx % I;
-  g[idx] = gelu(u[r * 2u * I + j]) * u[r * 2u * I + I + j];
-}`,
-
   // x[t] += gw[2t] od[2t] + gw[2t+1] od[2t+1].  p.a.x = H.
   combine: HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> od: array<f32>;
@@ -422,15 +386,7 @@ export class MoEdernEngine extends SeqEngine {
     this.weightBytes = all.byteLength;
 
     // RoPE table [pos][hd/2]: cos block then sin block, angles in float32 like torch.
-    const half = hd / 2, rope = new Float32Array(2 * MAX_LEN * half);
-    for (let i = 0; i < half; i++) {
-      const inv = Math.fround(1 / Math.fround(Math.pow(c.rope_theta, Math.fround((2 * i) / hd))));
-      for (let pos = 0; pos < MAX_LEN; pos++) {
-        const ang = Math.fround(pos * inv);
-        rope[pos * half + i] = Math.cos(ang); rope[MAX_LEN * half + pos * half + i] = Math.sin(ang);
-      }
-    }
-    this.rope = this.upload(rope, "rope");
+    this.rope = this.upload(ropeTable([c.rope_theta], hd, MAX_LEN), "rope");
 
     const U = GPUBufferUsage, buf = (n, l, x) => this.buf(n, l, x);
     const b = this.b = {
@@ -459,20 +415,20 @@ export class MoEdernEngine extends SeqEngine {
     for (const L of off.layers) {
       rms(L.anorm, b.x, b.a);
       mm(L.q, H, H, b.a, b.q); mm(L.k, nkv * hd, H, b.a, b.k); mm(L.v, nkv * hd, H, b.a, b.v);
-      step("rope", { a: [nh, hd] }, [this.rope, b.tok, b.q], (n) => rows2d(n[0]));
-      step("rope", { a: [nkv, hd] }, [this.rope, b.tok, b.k], (n) => rows2d(n[0]));
+      rope(this, this.rope, b.q, { nh, hd, maxSeq: MAX_LEN });
+      rope(this, this.rope, b.k, { nh: nkv, hd, maxSeq: MAX_LEN });
       step("attn", { a: [nh, nkv], f: [1 / Math.sqrt(hd)] }, [b.tok, b.seqs, b.q, b.k, b.v, b.o], (n) => [n[0], nh]);
       mm(L.o, H, H, b.o, b.x, { accumulate: true });
       rms(L.fnorm, b.x, b.a);
       step("zero", {}, [b.cnt], () => [1]);
       step("route", { a: [H, L.router, E, cap] }, [W, b.a, b.cnt, b.list, b.gw], (n) => rows2d(n[0]));
       gmm(L.gu, 2 * He, H, b.a, b.u, 1);
-      step("glu", { a: [He], b: [2] }, [b.u, b.g], (n) => flat(2 * n[0] * He));
+      gated(this, b.u, b.u, b.g, { I: He, sa: 2 * He, sb: 2 * He, ob: He, mult: 2 });
       gmm(L.down, H, He, b.g, b.od, 2);
       step("combine", { a: [H] }, [b.od, b.gw, b.x], (n) => flat(n[0] * H));
       // shared expert, accumulated straight into the residual
       mm(L.sgu, 2 * He, H, b.a, b.u);
-      step("glu", { a: [He], b: [1] }, [b.u, b.g], (n) => flat(n[0] * He));
+      gated(this, b.u, b.u, b.g, { I: He, sa: 2 * He, sb: 2 * He, ob: He });
       mm(L.sdown, H, He, b.g, b.x, { accumulate: true });
     }
     rms(off.final, b.x, b.a);

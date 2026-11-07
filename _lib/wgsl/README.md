@@ -10,9 +10,9 @@ The migration plan for the rest is under "Kernel library" below.
 | File | What |
 |---|---|
 | `runtime.js` | `SeqEngine` base class: uniform layout (`HEADER`), weight readers (`BYTE`), shader compilation, one static uniform and bind group per dispatch, packed variable-length batches, whole-file upload with binding windows, aligned per-tensor upload, `embed` / `embedTo` / `probe` / `destroy` |
-| `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2` |
+| `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2`, `attentionLong` and `gather` (sequences to 1,024 tokens), `embed` (t4 / t3 token tables), `ropeTable` and `rope`, `gated` (gelu, gelu_tanh, silu) |
 | `tests/ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references, and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
-| `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider and adapter-library, add one per migrated engine |
+| `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider, adapter-library, ettin-native, eg2-cut and moedern-1.5M (weights not in git are downloaded once to a cache), add one per migrated engine |
 | `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
 
 An engine subclasses `SeqEngine`, sets `this.shaders = { ...KERNELS, ...ownShaders }`, and records
@@ -23,10 +23,11 @@ made for the site repo.
 
 ## Checks
 
-Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (22 on
+Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (31 on
 2026-11-07: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
 residual modes; attention fused and separate, grouped-query, windowed, head dim 32 to 256; attentionLong to
-1,024 tokens; gather; pool; l2)
+1,024 tokens; gather; embed t4 / t3 with alpha and position rows; rope fused and plain; gated gelu,
+gelu_tanh and silu; pool; l2)
 on random inputs and a packed batch of five sequences (1 to 128 tokens), against a float64 reference
 in the same file. A case passes at max |gpu - ref| <= 1e-4 max |ref|; today's worst is 2.4e-7. It
 takes 7 s. Injecting three bugs (swapped q4 nibbles, a window off by one, the pool divisor off by
@@ -94,9 +95,16 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    3.9e-5 of NumPy). On the Mac (bridge job `engine-ab`, run `engine-ab-1`, apple metal-3) outputs
    are identical and `score()` time is within 0.98x to 1.01x of the fork for 60, 829 and 1,500 tokens
    (`tests/results/engine-ab-1-mac.json`).
-2. **Forward ops duplicated across engines**: token-table embeds (q4, t3, t4, rhq, hash), rope, the
-   gated MLPs (glu, geglu, swiglu, gelumul). ettin-native, eg2, the decider and adapter-library
-   switch to them.
+2. **Forward ops duplicated across engines** (done 2026-11-07 on SwiftShader; Mac timing below).
+   `embed` (token tables t4 and t3, optional alpha and BERT position rows), `ropeTable` + `rope`
+   (fused q/k rows or a plain buffer, any number of theta tables) and `gated` (gelu, gelu_tanh or
+   silu times a second operand, ModernBERT's [gate | up] row or in place against a strided buffer)
+   replace each engine's copy. ettin-native, browser-decider and adapter-library now define no
+   shaders of their own; eg2-wgsl-engine keeps only its q4 and rhq tables and the fused
+   norm-plus-RoPE `prep`; moederncolbert-bench keeps its MoE, hash-embedding and ColBERT ops for
+   step 4. `tests/engine_ab.mjs` gives max |diff| 0 against the previous commit for all five
+   engines (decider, adapter-library with router and a spike, Ettin-17m, the EG2 cut, MoEdernColBERT
+   1.5M with both matmul paths). LFM's SwiGLU waits for step 5.
 3. **Training ops** into `train/`: the backward kernels, split-K weight gradients and AdamW, with
    finite-difference cases. ettin-wgsl-train and lifesci-ettin import from here; the forward ops the
    trainer shares with inference (LayerNorm, rope, attention, GeGLU) become one op where the shapes

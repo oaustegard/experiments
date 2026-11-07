@@ -23,33 +23,10 @@
 // the token-table gathers, the q/k norm + RoPE prep and the PLE gate are this file's. Batching,
 // dispatch recording, weight upload and embed / embedTo / probe come from _lib/wgsl/runtime.js.
 
-import { BYTE, HEADER, MAX_SEQ, SeqEngine, split } from "../../_lib/wgsl/runtime.js";
-import { KERNELS, attention, l2, matmul, norm, pool } from "../../_lib/wgsl/kernels.js";
+import { BYTE, HEADER, MAX_SEQ, SeqEngine } from "../../_lib/wgsl/runtime.js";
+import { KERNELS, attention, embed, gated, l2, matmul, norm, pool } from "../../_lib/wgsl/kernels.js";
 
 const SHADERS = {
-  // One workgroup per token, one thread per 8-value group (3 bytes) of the 512-wide row.
-  // p.a = (codes, scales, zp) offsets in words; p.f.x = embedding scale.
-  embed: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-${BYTE}
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
-  let t = wid.x;
-  if (t >= dn.n.x) { return; }
-  let id = tok[t].x;
-  let g = lid.x;
-  let cb = p.a.x * 4u + id * 192u + g * 3u;
-  let word = wbyte(cb) | (wbyte(cb + 1u) << 8u) | (wbyte(cb + 2u) << 16u);
-  let blk = g / 4u;
-  let z = f32(wbyte(p.a.z * 4u + id * 16u + blk));
-  let s = unpack2x16float(W[p.a.y + id * 8u + blk / 2u])[blk % 2u];
-  for (var i = 0u; i < 8u; i++) {
-    y[t * 512u + g * 8u + i] = (f32((word >> (3u * i)) & 7u) - z) * s * p.f.x;
-  }
-}`,
-
   // 4-bit token table (onnxruntime GatherBlockQuantized: 2 values per byte, low nibble first, f32
   // scales [V, 16], packed 4-bit zero points [V, 8]). One workgroup per token, one thread per word.
   // p.a = (codes, scales, zp) offsets in words; p.f.x = embedding scale.
@@ -175,21 +152,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   }
 }`,
 
-  // a[r, j] = gelu_tanh(a[r, j]) * b[r * bStride + bOff + j] for r < tokens, j < D.
-  // p.a = (D, bStride, bOff).
-  gelumul: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read_write> a: array<f32>;
-@group(0) @binding(3) var<storage, read> b: array<f32>;
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let D = p.a.x;
-  let idx = gid.x + gid.y * 65535u * 256u;
-  if (idx >= dn.n.x * D) { return; }
-  let r = idx / D; let j = idx % D;
-  let x = a[idx];
-  let u = clamp(0.7978845608028654 * (x + 0.044715 * x * x * x), -15.0, 15.0);
-  a[idx] = 0.5 * x * (1.0 + tanh(u)) * b[r * p.a.y + p.a.z + j];
-}`,
 };
 
 export class Eg2Engine extends SeqEngine {
@@ -260,8 +222,7 @@ export class Eg2Engine extends SeqEngine {
       const { base, res } = win(w);
       norm(this, "rms", res, W(w, base), X, Y, { D, eps: w.eps ?? eps, mode: residual ? 2 : 0, scalar, rowsSel, mult });
     };
-    const gelumul = (A, Bf, D, bStride, bOff) =>
-      step("gelumul", { a: [D, bStride, bOff] }, [A, Bf], (n) => split(Math.ceil(n[0] * D / 256)));
+    const gelumul = (A, Bf, D, bStride, bOff) => gated(this, A, Bf, A, { I: D, act: "gelu_tanh", sb: bStride, ob: bOff });
 
     const t = m.table;
     if (tbl === "rhq") {
@@ -271,8 +232,8 @@ export class Eg2Engine extends SeqEngine {
            [res, B_.tok, B_.h], (n) => [n[0]]);
     } else {
       const { base, res } = win(t.codes, t.scales, t.zp);
-      step(tbl === "q4" ? "embed_q4" : "embed", { a: [W(t.codes, base), W(t.scales, base), W(t.zp, base)], f: [m.embed_scale] },
-           [res, B_.tok, B_.h], (n) => [n[0]]);
+      if (tbl === "q4") step("embed_q4", { a: [W(t.codes, base), W(t.scales, base), W(t.zp, base)], f: [m.embed_scale] }, [res, B_.tok, B_.h], (n) => [n[0]]);
+      else embed(this, res, B_.h, { fmt: "t3", codes: 4 * W(t.codes, base), scales: 4 * W(t.scales, base), zp: 4 * W(t.zp, base) }, { H: 512, alpha: m.embed_scale });
     }
     mm(m.ple, B_.h, B_.pleRaw, 0, m.ple_scale);
     rms(m.per_layer_projection_norm, B_.pleRaw, B_.ple, m.ple_dim, false, 1, 0, m.ple_layers);

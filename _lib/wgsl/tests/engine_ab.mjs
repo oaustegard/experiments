@@ -23,7 +23,9 @@ const ref = ri < 0 ? "HEAD" : args.splice(ri, 2)[1];
 const only = args;
 
 // A case runs in the page: ({ device, load(modulePath, which) -> module, bytes(path), json(path) }) -> list of
-// Float32Arrays per engine. Inputs must be deterministic.
+// Float32Arrays per engine. Inputs must be deterministic. Weights not in git are listed in `fetch`: the
+// script downloads each URL once into a cache (EXPERIMENTS_AB_CACHE, default /tmp/engine-ab-cache) with
+// curl, which goes through the container's proxy, and the case reads it as path "__cache/<name>".
 const CASES = {
   "browser-decider": { tol: 0, dirs: ["browser-decider/web", "_lib/wgsl"], src: `async ({ device, load, bytes, json }, which) => {
     const { DeciderEngine } = await load("browser-decider/web/engine.js", which);
@@ -54,18 +56,69 @@ const CASES = {
     e.destroy();
     return out;
   }` },
+  "ettin-native": { tol: 0, dirs: ["ettin-native/web", "_lib/wgsl"],
+    fetch: { "ettin-manifest.json": "https://austegard.com/bsky/embedders/models/ettin/manifest.json",
+             "ettin-model.onnx": "https://austegard.com/bsky/embedders/models/ettin/model.onnx" },
+    src: `async ({ device, load, bytes, json }, which) => {
+    const { SmallEngine } = await load("ettin-native/web/engine.js", which);
+    const m = await json("__cache/ettin-manifest.json"), w = await bytes("__cache/ettin-model.onnx");
+    const fx = await json("ettin-native/web/models/e17c-t4-w8L63/fixtures.json");
+    const e = await SmallEngine.create(device, m, w, { maxTokens: 512, maxSeqs: 16 });
+    const ids = fx.map((x) => x.ids), out = [];
+    for (const q of ids.slice(0, 6)) out.push(await e.embed([q]));
+    out.push(await e.embed(ids.slice(0, 8)));
+    e.destroy();
+    return out;
+  }` },
+  "eg2-cut": { tol: 0, dirs: ["eg2-wgsl-engine/web", "_lib/wgsl"],
+    fetch: { "eg2-cut.onnx_data": "https://austegard.com/bsky/image-search/model/ort/model_t3w.onnx_data" },
+    src: `async ({ device, load, bytes, json }, which) => {
+    const { Eg2Engine } = await load("eg2-wgsl-engine/web/engine.js", which);
+    const m = await json("eg2-wgsl-engine/web/manifest.json"), w = await bytes("__cache/eg2-cut.onnx_data");
+    const ids = (await json("eg2-wgsl-engine/web/queries.json")).map((x) => x.ids);
+    const e = await Eg2Engine.create(device, m, w, { maxTokens: 512, maxSeqs: 16 });
+    const out = [];
+    for (const q of ids.slice(0, 6)) out.push(await e.embed([q]));
+    out.push(await e.embed(ids.slice(0, 8)));
+    e.destroy();
+    return out;
+  }` },
+  "moedern-1.5M": { tol: 0, dirs: ["moederncolbert-bench/web", "_lib/wgsl"],
+    fetch: { "mcb15-config.json": "https://huggingface.co/VAGOsolutions/SauerkrautLM-MoEdernColBERT-1.5M/resolve/main/config.json",
+             "mcb15-model.safetensors": "https://huggingface.co/VAGOsolutions/SauerkrautLM-MoEdernColBERT-1.5M/resolve/main/model.safetensors",
+             "mcb15-dense.safetensors": "https://huggingface.co/VAGOsolutions/SauerkrautLM-MoEdernColBERT-1.5M/resolve/main/1_Dense/model.safetensors" },
+    src: `async ({ device, load, bytes, json }, which) => {
+    const { MoEdernEngine } = await load("moederncolbert-bench/web/engine.js", which);
+    const config = await json("__cache/mcb15-config.json"), model = await bytes("__cache/mcb15-model.safetensors"), dense = await bytes("__cache/mcb15-dense.safetensors");
+    const fx = await json("moederncolbert-bench/web/fixtures.json");
+    const out = [];
+    for (const kernel of ["tiled", "template"]) {
+      const e = await MoEdernEngine.create(device, { config, dense }, model, { maxTokens: 4096, maxSeqs: 64, kernel });
+      for (const q of fx.queries.slice(0, 3)) out.push(await e.embed([q]));
+      out.push(await e.embed(fx.docs.slice(0, 4)));
+      e.destroy();
+    }
+    return out;
+  }` },
 };
+
+const CACHE = process.env.EXPERIMENTS_AB_CACHE ?? path.join(os.tmpdir(), "engine-ab-cache");
+fs.mkdirSync(CACHE, { recursive: true });
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "engine-ab-"));
 const names = Object.keys(CASES).filter((n) => !only.length || only.includes(n));
 const dirs = [...new Set(names.flatMap((n) => CASES[n].dirs))];
 execSync(`git archive ${ref} ${dirs.join(" ")} | tar -x -C ${tmp}`, { cwd: REPO, shell: "/bin/bash" });
+for (const n of names) for (const [f, url] of Object.entries(CASES[n].fetch ?? {})) {
+  const dst = path.join(CACHE, f);
+  if (!fs.existsSync(dst)) { console.error(`fetching ${url}`); execSync(`curl -sSfL --retry 3 -o ${dst}.part '${url}' && mv ${dst}.part ${dst}`, { shell: "/bin/bash" }); }
+}
 
 const server = http.createServer((req, res) => {
   const u = decodeURIComponent(new URL(req.url, "http://x").pathname);
   if (u === "/") { res.writeHead(200, { "content-type": "text/html" }); return res.end("<!doctype html><title>ab</title>"); }
-  const old = u.startsWith("/__old/");
-  const root = old ? tmp : REPO, f = path.join(root, old ? u.slice(6) : u);
+  const old = u.startsWith("/__old/"), cache = u.startsWith("/__cache/");
+  const root = old ? tmp : cache ? CACHE : REPO, f = path.join(root, old ? u.slice(6) : cache ? u.slice(8) : u);
   if (!f.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(f, (err, data) => {
     if (err) { res.writeHead(404); return res.end(); }

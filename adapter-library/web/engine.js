@@ -22,7 +22,7 @@
 // NumPy spec this follows.
 
 import { SeqEngine } from "../../_lib/wgsl/runtime.js";
-import { GELU, KERNELS, attentionLong, matmul, norm } from "../../_lib/wgsl/kernels.js";
+import { KERNELS, attentionLong, embed, gated, matmul, norm, rope, ropeTable } from "../../_lib/wgsl/kernels.js";
 
 const MAX_SEQ = 1024;   // decisions run to ~700 tokens; attentionLong holds 1024 keys
 
@@ -37,66 +37,6 @@ const BYTE = /* wgsl */ `
 fn wbyte(i: u32) -> u32 { return (W[i >> 2u] >> ((i & 3u) * 8u)) & 255u; }
 fn wf16(byteOff: u32) -> f32 { return unpack2x16float(W[byteOff >> 2u])[(byteOff >> 1u) & 1u]; }
 `;
-
-const SHADERS = {
-  // e[t, j] = 4-bit table(id)[j]: packed nibbles (low = even column), one fp16 scale per 32.
-  // p.a = (H, -, codes byte offset, scales byte offset).
-  embed: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read_write> y: array<f32>;
-${BYTE}
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let t = wid.x;
-  if (t >= dn.n.x) { return; }
-  let H = p.a.x; let id = tok[t].x;
-  let G = H / 32u;
-  for (var j = l; j < H; j += 64u) {
-    let s = wf16(p.a.w + (id * G + j / 32u) * 2u);
-    let b = wbyte(p.a.z + id * (H / 2u) + j / 2u);
-    y[t * H + j] = (f32((b >> ((j & 1u) * 4u)) & 15u) - 8.0) * s;
-  }
-}`,
-
-  // RoPE on q and k of a fused [T, 3H] qkv buffer, in place (rotate_half). p.a = (heads, D, stride, table).
-  rope: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> rope: array<f32>;
-@group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
-@group(0) @binding(4) var<storage, read_write> qkv: array<f32>;
-@compute @workgroup_size(128)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let t = wid.x;
-  if (t >= dn.n.x) { return; }
-  let nh = p.a.x; let D = p.a.y; let half = D / 2u;
-  let pos = tok[t].y;
-  let tb = (p.a.w * ${MAX_SEQ}u + pos) * half;
-  let sinOff = 2u * ${MAX_SEQ}u * half;
-  for (var i = l; i < 2u * nh * half; i += 128u) {
-    let part = i / (nh * half);
-    let h = (i / half) % nh; let d = i % half;
-    let base = t * p.a.z + part * nh * D + h * D;
-    let c = rope[tb + d]; let s = rope[sinOff + tb + d];
-    let x1 = qkv[base + d]; let x2 = qkv[base + d + half];
-    qkv[base + d] = x1 * c - x2 * s;
-    qkv[base + d + half] = x2 * c + x1 * s;
-  }
-}`,
-
-  // ModernBERT GLU: g[r, j] = gelu(u[r, j]) * u[r, I + j].
-  glu: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> u: array<f32>;
-@group(0) @binding(3) var<storage, read_write> g: array<f32>;
-${GELU}
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let I = p.a.x;
-  let idx = gid.x;
-  if (idx >= dn.n.x * I) { return; }
-  let r = idx / I; let j = idx % I;
-  g[idx] = gelu(u[r * 2u * I + j]) * u[r * 2u * I + I + j];
-}`,
-};
 
 // Same erf approximation as the WGSL GELU (Abramowitz-Stegun 7.1.26).
 function gelu(x) {
@@ -137,18 +77,7 @@ export class SpikeEngine extends SeqEngine {
 
     const U = GPUBufferUsage, buf = (n, label, extra) => this.buf(n, label, extra);
     const half = D / 2;
-    const rope = new Float32Array(2 * 2 * MAX_SEQ * half);
-    [m.theta_global, m.theta_local].forEach((theta, sel) => {
-      for (let i = 0; i < half; i++) {
-        const inv = Math.fround(1 / Math.fround(Math.pow(theta, Math.fround((2 * i) / D))));
-        for (let pos = 0; pos < MAX_SEQ; pos++) {
-          const ang = Math.fround(pos * inv);
-          rope[(sel * MAX_SEQ + pos) * half + i] = Math.cos(ang);
-          rope[2 * MAX_SEQ * half + (sel * MAX_SEQ + pos) * half + i] = Math.sin(ang);
-        }
-      }
-    });
-    this.rope = this.upload(rope, "rope");
+    this.rope = this.upload(ropeTable([m.theta_global, m.theta_local], D, MAX_SEQ), "rope");
     const B_ = {
       tok: buf(T * 4, "tok", U.COPY_DST), seqs: buf(this.maxSeqs * 4, "seqs", U.COPY_DST),
       e: buf(T * H, "e"), h: buf(T * H, "h"), a: buf(T * H, "a"), o: buf(T * H, "o"),
@@ -171,7 +100,7 @@ export class SpikeEngine extends SeqEngine {
     this.loraWords = lw;
     this.loraW = this.upload(new Float32Array(lw), "lora A/B (zero until setSpike)");
     this.b = B_;
-    this.shaders = { ...KERNELS, ...SHADERS };
+    this.shaders = { ...KERNELS };
     const word = (t) => { if (t.offset % 4) throw new Error("unaligned f32 tensor"); return t.offset / 4; };
 
     const lins = [];
@@ -195,21 +124,21 @@ export class SpikeEngine extends SeqEngine {
     const ln = (w, X, Y) => norm(this, "ln", this.W, word(w), X, Y, { D: H, eps: m.eps, bOff: NONE, mode: 0, rowsSel: 0 });
 
     const tb = m.table;
-    this.step("embed", { a: [H, 4, tb.codes.offset, tb.scales.offset] }, [this.W, B_.tok, B_.e], (n) => [n[0]]);
+    embed(this, this.W, B_.e, { fmt: "t4", codes: tb.codes.offset, scales: tb.scales.offset }, { H });
     ln(m.emb_norm, B_.e, B_.h);
     m.layers.forEach((L, li) => {
       let X = B_.h;
       if (L.attn_norm) { ln(L.attn_norm, B_.h, B_.a); X = B_.a; }
       mm(L.Wqkv, X, B_.qkv);
       lora(li, "Wqkv", X, B_.qkv);
-      this.step("rope", { a: [nh, D, 3 * H, L.global ? 0 : 1] }, [this.rope, B_.tok, B_.qkv], (n) => [n[0]]);
+      rope(this, this.rope, B_.qkv, { nh, hd: D, maxSeq: MAX_SEQ, tables: 2, sel: L.global ? 0 : 1, parts: 2, stride: 3 * H });
       attentionLong(this, B_.qkv, B_.o, { nh, hd: D, window: L.global ? 0 : m.window });
       mm(L.Wo, B_.o, B_.h, 2);
       lora(li, "Wo", B_.o, B_.h);
       ln(L.mlp_norm, B_.h, B_.a);
       mm(L.Wi, B_.a, B_.u);
       lora(li, "Wi", B_.a, B_.u);
-      this.step("glu", { a: [I] }, [B_.u, B_.g], (n) => [Math.ceil(n[0] * I / 256)]);
+      gated(this, B_.u, B_.u, B_.g, { I, sa: 2 * I, sb: 2 * I, ob: I });
       mm(L.Wo_mlp, B_.g, B_.h, 2);
       lora(li, "Wo_mlp", B_.g, B_.h);
     });

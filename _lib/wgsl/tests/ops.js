@@ -11,7 +11,7 @@
 // Run headless: node _lib/wgsl/tests/check_ops.mjs. On a real GPU: gpu-bridge/jobs/wgsl-ops.
 
 import { SeqEngine, NONE } from "../runtime.js";
-import { KERNELS, matmul, norm, attention, attentionLong, pool, l2 } from "../kernels.js";
+import { KERNELS, matmul, norm, attention, attentionLong, pool, l2, embed, rope, ropeTable, gated } from "../kernels.js";
 
 const U = GPUBufferUsage;
 
@@ -38,12 +38,34 @@ function packed(lens) {
 const LENS = [7, 33, 1, 128, 20];   // 189 tokens: a single token, a full 128, and odd lengths
 const LONG = [300, 1, 129, 700];     // attentionLong: past one workgroup, under its 1024
 
+// float32 -> IEEE half bits (round to nearest even), for fp16 scales.
+function toHalf(x) {
+  const f = new Float32Array([x]), u = new Uint32Array(f.buffer)[0];
+  const sgn = (u >>> 16) & 0x8000, e = ((u >>> 23) & 255) - 127 + 15, m = u & 0x7fffff;
+  if (e <= 0) return sgn;
+  let h = sgn | (e << 10) | (m >> 13);
+  const rest = m & 0x1fff;
+  if (rest > 0x1000 || (rest === 0x1000 && (h & 1))) h++;
+  return h;
+}
+function fromHalf(h) {
+  const s = h & 0x8000 ? -1 : 1, e = (h >> 10) & 31, m = h & 1023;
+  return e === 0 ? s * m * 2 ** -24 : s * (1 + m / 1024) * 2 ** (e - 15);
+}
+
 // ---- weight-buffer builder: word-addressed u32 store ----------------------------------------------
 class Words {
   constructor() { this.w = []; }
   f32(a) { const o = this.w.length; const u = new Uint32Array(Float32Array.from(a).buffer); for (const x of u) this.w.push(x); return o; }
   u32(a) { const o = this.w.length; for (const x of a) this.w.push(x >>> 0); return o; }
   get array() { return Uint32Array.from(this.w.length ? this.w : [0]); }
+}
+
+// byte-addressed builder for tables whose offsets are in bytes
+class Bytes {
+  constructor() { this.b = []; }
+  put(u8) { while (this.b.length % 4) this.b.push(0); const o = this.b.length; for (const x of u8) this.b.push(x); return o; }
+  get array() { const a = new Uint8Array(Math.ceil(this.b.length / 4) * 4 || 4); a.set(this.b); return new Uint32Array(a.buffer); }
 }
 
 // ---- harness: one engine per case, recorded through SeqEngine's own step / _finish / _record -------
@@ -234,6 +256,106 @@ const poolCase = (H) => ({
   },
 });
 
+// Token-table embedding: V tokens, fp16 scale per 32; t3 with zero points; alpha; BERT position rows.
+function embedCase(fmt, H, { alpha = 1, pos = false } = {}) {
+  return {
+    name: `embed_${fmt}_${H}${alpha !== 1 ? "_alpha" : ""}${pos ? "_pos" : ""}`, op: "embed",
+    async run(device, r) {
+      const bt = packed(LENS), V = 97, G = H / 32;
+      const codes = Uint8Array.from({ length: V * H }, () => Math.floor(r() * (fmt === "t4" ? 16 : 8)));
+      const zp = Uint8Array.from({ length: V * G }, () => Math.floor(r() * 8));
+      const sc = Uint16Array.from({ length: V * G }, () => toHalf((0.2 + r()) * 0.05));
+      const by = new Bytes();
+      let packedCodes;
+      if (fmt === "t4") { packedCodes = new Uint8Array(V * H / 2); for (let i = 0; i < V * H; i++) packedCodes[i >> 1] |= codes[i] << (4 * (i & 1)); }
+      else { packedCodes = new Uint8Array(V * H * 3 / 8); for (let i = 0; i < V * H; i += 8) { let w = 0; for (let k = 0; k < 8; k++) w |= codes[i + k] << (3 * k); packedCodes.set([w & 255, (w >> 8) & 255, (w >> 16) & 255], i * 3 / 8); } }
+      const t = { fmt, codes: by.put(packedCodes), scales: by.put(new Uint8Array(sc.buffer)), zp: by.put(zp) };
+      const words = by.array, maxPos = 128;
+      const pw = pos ? randn(r, maxPos * H) : null, t0 = pos ? randn(r, H) : null;
+      const wl = new Words(); wl.w = Array.from(words);
+      const posOff = pos ? wl.f32(pw) : NONE, typeOff = pos ? wl.f32(t0) : 0;
+      const ids = bt.batch.map((s) => s.map(() => Math.floor(r() * V)));
+      const ref = new Float64Array(bt.T * H);
+      let o = 0;
+      ids.forEach((s) => s.forEach((id, p) => {
+        for (let j = 0; j < H; j++) {
+          const sv = fromHalf(sc[id * G + (j >> 5)]), c = codes[id * H + j];
+          let v = (c - (fmt === "t4" ? 8 : zp[id * G + (j >> 5)])) * sv * alpha;
+          if (pos) v += pw[p * H + j] + t0[j];
+          ref[o * H + j] = v;
+        }
+        o++;
+      }));
+      bt.batch = ids;
+      const { e, out } = await harness(device, bt, (e) => {
+        const W = e.upload(wl.array, "W"), Y = e.buf(bt.T * H, "y");
+        embed(e, W, Y, t, { H, alpha, pos: posOff, type0: typeOff });
+        return { buf: Y, n: bt.T * H };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+// RoPE in place: fused [T, (q k v)] rows with two tables, or a plain [T, nh * hd] buffer.
+function ropeCase({ nh, hd, parts, tables, sel }) {
+  return {
+    name: `rope_h${nh}_d${hd}_p${parts}_t${tables}s${sel}`, op: "rope",
+    async run(device, r) {
+      const bt = packed(LENS), maxSeq = 128, stride = parts === 2 ? 3 * nh * hd : nh * hd, half = hd / 2;
+      const tab = ropeTable([160000, 10000].slice(0, tables), hd, maxSeq);
+      const x = randn(r, bt.T * stride), ref = Float64Array.from(x);
+      bt.batch.forEach((s, b) => s.forEach((_, p) => {
+        const t = bt.starts[b] + p;
+        for (let part = 0; part < parts; part++) for (let h = 0; h < nh; h++) for (let d = 0; d < half; d++) {
+          const base = t * stride + part * nh * hd + h * hd;
+          const c = tab[(sel * maxSeq + p) * half + d], sn = tab[tables * maxSeq * half + (sel * maxSeq + p) * half + d];
+          const x1 = x[base + d], x2 = x[base + d + half];
+          ref[base + d] = x1 * c - x2 * sn; ref[base + d + half] = x2 * c + x1 * sn;
+        }
+      }));
+      const { e, out } = await harness(device, bt, (e) => {
+        const T = e.upload(tab, "rope"), X = e.buf(bt.T * stride, "x", U.COPY_DST);
+        device.queue.writeBuffer(X, 0, x);
+        rope(e, T, X, { nh, hd, maxSeq, tables, sel, parts, stride });
+        return { buf: X, n: bt.T * stride, reset: () => device.queue.writeBuffer(X, 0, x) };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+// Gated activation: ModernBERT [gate | up] rows (gelu), EG2's in-place gelu_tanh against a strided B, LFM's silu.
+function gatedCase(act, I, layout, mult = 1) {
+  return {
+    name: `gated_${act}_${I}_${layout}${mult > 1 ? `_x${mult}` : ""}`, op: "gated",
+    async run(device, r) {
+      const bt = packed(LENS), R = bt.T * mult;
+      const act_ = { gelu: (x) => x * 0.5 * (1 + erfRef(x / Math.SQRT2)), gelu_tanh: (x) => 0.5 * x * (1 + Math.tanh(Math.max(-15, Math.min(15, 0.7978845608028654 * (x + 0.044715 * x ** 3))))), silu: (x) => x / (1 + Math.exp(-x)) }[act];
+      let A, B, sa, oa = 0, sb, ob = 0, inPlace = false;
+      if (layout === "cat") { A = B = randn(r, R * 2 * I, 2); sa = sb = 2 * I; ob = I; }
+      else { inPlace = true; A = randn(r, R * I, 2); sa = I; sb = 2 * I + 32; ob = 16; B = randn(r, R * sb); }
+      const ref = new Float64Array(R * I);
+      for (let i = 0; i < R; i++) for (let j = 0; j < I; j++) ref[i * I + j] = act_(A[i * sa + oa + j]) * B[i * sb + ob + j];
+      const { e, out } = await harness(device, bt, (e) => {
+        const Ab = e.buf(A.length, "A", U.COPY_DST); device.queue.writeBuffer(Ab, 0, A);
+        const Bb = layout === "cat" ? Ab : e.upload(B, "B"), Y = inPlace ? Ab : e.buf(R * I, "Y");
+        gated(e, Ab, Bb, Y, { I, act, sa, oa, sb, ob, mult });
+        return { buf: Y, n: R * I, reset: inPlace ? () => device.queue.writeBuffer(Ab, 0, A) : null };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+// erf to double precision (W. J. Cody's rational approximations are overkill here: Abramowitz & Stegun
+// 7.1.26 is the kernel's own, so the reference uses a series / continued fraction instead).
+function erfRef(x) {
+  const ax = Math.abs(x);
+  if (ax < 2.5) { let s = 0, t = ax, n = 0; while (Math.abs(t) > 1e-17 * Math.abs(s) || n < 3) { s += t / (2 * n + 1); n++; t *= -ax * ax / n; if (n > 200) break; } return Math.sign(x) * 2 / Math.sqrt(Math.PI) * s; }
+  let f = 0; for (let n = 60; n >= 1; n--) f = n / 2 / (ax + f);
+  return Math.sign(x) * (1 - Math.exp(-ax * ax) / Math.sqrt(Math.PI) / (ax + f));
+}
+
 // Copy rows idx of X [T, H] into Y [P, H] (the decider's [MASK] positions).
 const gatherCase = (H, P) => ({
   name: `gather_${H}_${P}`, op: "gather",
@@ -292,6 +414,15 @@ export const cases = [
   attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, long: true }),
   attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, long: true, window: 128 }),
   gatherCase(256, 37),
+  embedCase("t4", 256),
+  embedCase("t3", 512, { alpha: 22.627 }),
+  embedCase("t3", 256, { pos: true }),
+  ropeCase({ nh: 4, hd: 64, parts: 2, tables: 2, sel: 1 }),
+  ropeCase({ nh: 3, hd: 32, parts: 1, tables: 1, sel: 0 }),
+  gatedCase("gelu", 384, "cat"),
+  gatedCase("gelu", 96, "cat", 2),
+  gatedCase("gelu_tanh", 256, "inplace"),
+  gatedCase("silu", 160, "inplace"),
   poolCase(256),
   l2Case(768),
 ];
