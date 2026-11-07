@@ -33,6 +33,7 @@
   .seg button { flex: 1; border-radius: 0; cursor: pointer; padding: 5px 0; font-size: 12px; }
   .seg button:first-child { border-radius: 8px 0 0 8px; }
   .seg button:last-child { border-radius: 0 8px 8px 0; }
+  .seg button:disabled { opacity: 0.35; cursor: not-allowed; }
   .seg button[aria-pressed=true] { background: var(--accent); color: #1b1309; border-color: var(--accent); }
   .btn { cursor: pointer; }
   .btn.go { background: var(--accent); color: #1b1309; border-color: var(--accent); font-weight: 600; flex: 1; }
@@ -60,7 +61,8 @@
       <button class="btn" id="rnd" title="Random texture" aria-label="Random texture">⚄</button></div>
     <div class="row"><label>Size (px)</label><div class="seg" id="size">
       <button data-v="64">64</button><button data-v="128" aria-pressed="true">128</button>
-      <button data-v="192">192</button><button data-v="256">256</button></div></div>
+      <button data-v="192">192</button><button data-v="256">256</button>
+      <button data-v="384">384</button><button data-v="512">512</button></div></div>
     <div class="row"><label for="steps" title="More steps: cleaner, slower">Steps</label><input id="steps" type="range" min="4" max="48" value="20"><output id="stepsV">20</output></div>
     <div class="row"><label for="cfg" title="How closely the result follows the chosen texture; 1 turns guidance off">Guidance</label><input id="cfg" type="range" min="1" max="7" step="0.25" value="3"><output id="cfgV">3</output></div>
     <div class="row"><label for="zoom">Zoom</label><input id="zoom" type="range" min="0.5" max="6" step="0.25" value="2"><output id="zoomV">2</output></div>
