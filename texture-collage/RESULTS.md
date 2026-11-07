@@ -17,10 +17,13 @@ per class, and lets you set the number of regions, how classes are picked and ho
 recoloured, change any region's class from a menu, generate fresh tiles on your GPU, and export a PNG.
 
 A second version, in `splat/`, fills each region with a texture from
-[`splat-diffusion`](../splat-diffusion/RESULTS.md) instead: 512 soft-edged splats on a repeating square.
-Everything, the region map included, then lives in one WGSL shader with no pixels in it, so the collage
-renders sharp at any zoom and exports as a single file. Its question is what that costs in likeness,
-size and speed, and how to store region edges so they stay smooth when zoomed.
+[`splat-diffusion`](../splat-diffusion/RESULTS.md) instead. A splat texture is a list of 512 coloured,
+soft-edged ellipses (splats) painted in layers on a square that wraps around at its edges, so it repeats
+seamlessly; it is a formula, not an image, and can be evaluated at any resolution. The whole collage,
+the region map included, then becomes one WGSL shader with no image pixels in it (the region map is a
+coarse grid of cells, described below), so it renders sharp at any zoom and exports as one WGSL file, or
+one HTML file that displays it. Its question is what that costs in likeness, file size and speed against
+the pixel collage, and how to store region edges so they stay smooth when zoomed.
 
 ![Top: the parrots, the pixel collage, the splat collage (12 regions). Bottom: the same 96 × 64 px window
 zoomed 8×: the pixel collage enlarged, and the splat collage's shader evaluated at the zoomed
@@ -39,14 +42,13 @@ Pick each region's class by matching its pattern, recolour the texture to the re
 turn it to follow the region's grain. Over six Kodak pictures at 6 and 12 regions, picking by pattern
 kept SSIM at 0.357, <!-- @evidence[[results/eval_pooled.json#structure.ssim]] -->
 against 0.288 <!-- @evidence[[results/eval_pooled.json#colour.ssim]] --> by colour and 0.227 <!-- @evidence[[results/eval_pooled.json#random.ssim]] -->
-at random. Stochastic tiling removes the visible repeat (self-correlation one tile away 0.931 <!-- @evidence[[results/eval_pooled.json#/repeat:plain/repeatCorr]] -->
-to nearly zero) at a small cost to each pattern, so it is a toggle.
+at random. Stochastic tiling hides the repeat (self-correlation one tile away 0.931 <!-- @evidence[[results/eval_pooled.json#/repeat:plain/repeatCorr]] -->
+to nearly zero) and is a toggle.
 
 The splat version makes the whole collage one WGSL shader: on a Mac a 1024² frame takes 3.1 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_1024]] -->
-at 12 regions, the exported file is 226 kB gzipped, <!-- @evidence[[splat/results/summary.json#/shader_kB/distance LW192 K12/gzip]] -->
-and its likeness is close to the pixel collage's (SSIM 0.343). <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/ssim]] -->
-Storing each map cell's distance to its region's edge, not just its label, keeps zoomed edges smooth
-and mislabels 0.72% of pixels at 192 cells, <!-- @evidence[[splat/results/eval.json#/geometry/distance LW192/wrongFrac]] -->
+at 12 regions (the pixel collage needs 0.8 s of CPU to recomposite), the exported file is 226 kB gzipped, <!-- @evidence[[splat/results/summary.json#/shader_kB/distance LW192 K12/gzip]] --> and SSIM is 0.343 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/ssim]] -->
+against the pixel collage's 0.357. Storing each map cell's distance to its region's edge keeps zoomed
+edges smooth and mislabels 0.72% of pixels at 192 cells, <!-- @evidence[[splat/results/eval.json#/geometry/distance LW192/wrongFrac]] -->
 against 3.50% <!-- @evidence[[splat/results/eval.json#/geometry/nearest LW192/wrongFrac]] --> for labels alone.
 
 What would change this: people judging which collages look good; every metric here measures likeness
@@ -66,23 +68,26 @@ to the photo.
    and the region-colour error from 1.32 to 1.72: blending three shifted copies softens lines and
    spots, and the variance-preserving weights push more pixels out of gamut. Hence the toggle. Port of
    `splat-diffusion`'s stochastic blit (Heitz and Neyret 2018) to the CPU fill.
-3. **The whole collage runs as one shader, fast.** Mac, 12 regions of 512 splats: 3.1 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_1024]] -->
+3. **The whole collage runs as one shader, fast.** Mac, the parrots at 12 regions of 512 splats: 3.1 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_1024]] -->
    for a 1024² frame and 8.8 ms <!-- @evidence[[splat/results/summary.json#mac.R12.storage_2048]] --> at 2048², with 6 or 24 regions
-   within 0.3 ms of that; the baked file of 798 kB <!-- @evidence[[splat/results/summary.json#mac.R12.baked_kB]] -->
-   compiles in 228 ms. <!-- @evidence[[splat/results/summary.json#mac.R12.compile_ms]] --> Opaque splats let almost every pixel stop after
-   its top few splats. The page's storage-buffer shader, the baked file and the CPU mirror agree within 1/255 on SwiftShader.
+   within 0.3 ms of that; the exported file (`baked`: every number written into the WGSL) of 798 kB <!-- @evidence[[splat/results/summary.json#mac.R12.baked_kB]] -->
+   compiles in 228 ms. <!-- @evidence[[splat/results/summary.json#mac.R12.compile_ms]] --> The page's shader, which reads the splats from GPU buffers, the exported file and a JavaScript copy of
+   the shader (used for all measurements) agree within 1/255 when run on SwiftShader, a software GPU.
    (`splat/results/mac/time.json`, `splat/results/gpu_check.json`)
-4. **A distance per map cell keeps edges smooth at any zoom.** With 192 cells along the long side,
-   storing each cell's distance to its region's edge mislabels 0.72% of pixels against the full-resolution
-   regions; labels alone mislabel 3.50%, and rounding them with a B-spline over 3×3 cells 2.81%. <!-- @evidence[[splat/results/eval.json#/geometry/spline LW192/wrongFrac]] -->
+4. **A distance per map cell keeps edges smooth at any zoom.** With 192 cells along the 768 px long side (4 px
+   cells), storing each cell's distance to its region's edge as well as its label (*distance*) mislabels 0.72% of
+   pixels against the full-resolution regions; the cell's label alone (*nearest*) mislabels 3.50%, and
+   smoothing labels with a B-spline over 3×3 cells (*spline*) 2.81%. <!-- @evidence[[splat/results/eval.json#/geometry/spline LW192/wrongFrac]] -->
    Distances at 96 cells (3.28%) <!-- @evidence[[splat/results/eval.json#/geometry/distance LW96/wrongFrac]] --> match labels at 192 in the
-   same bytes, and they trace diagonals straight where labels step. The cost is 16 bits a cell: 795 kB raw for 12
-   regions against 669 kB with labels only. (`splat/results/eval.json` geometry)
+   same bytes, and they trace diagonals straight where labels step. The cost is 16 bits a cell (8 for the label, 8 for the
+   distance) against 4 bits for a label alone (8 above 16 regions), so 96 cells with distances take the same
+   bits as 192 without; files average 795 kB raw for 12 regions against 669 kB with labels only. (`splat/results/eval.json` geometry)
 5. **Splats cost a little likeness and colour.** Splat collage against pixel collage, both
    pattern-picked: SSIM 0.343 against 0.357, GMSD 0.252 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/gmsd]] --> against 0.237, and region colour
    error 3.80 <!-- @evidence[[splat/results/eval.json#/arms/distance LW192/dEreg]] --> against 1.72 ΔE: recolouring changes each splat's own
    colour, and overlapping splats then mix in RGB, so the region mean lands less exactly. Turning
-   textures to the grain halves the orientation error in both versions: 0.311 against 0.837 <!-- @evidence[[splat/results/eval.json#/arms/align:off/orientErr]] -->
+   textures to the grain halves the orientation error (the angle, in radians, between a region's dominant
+   stroke direction in the picture and in the collage) in both versions: 0.311 against 0.837 <!-- @evidence[[splat/results/eval.json#/arms/align:off/orientErr]] -->
    for splats, 0.292 against 0.542 <!-- @evidence[[results/eval_pooled.json#/align:off/orientErr]] --> for pixels, at no cost in SSIM.
 6. **The pattern choice carries over to a tile it never saw.** The class table was built from two
    seeds and the collages filled with a third: descriptor distance 1.93 picking by pattern against
@@ -183,18 +188,19 @@ feather 2, strength 8, alignment on, scales {1, 2}) except the setting it names.
 - *Placement.* Region k's texture coordinate is R(−φ) p / (128 · scale) + offset on the unit torus, with
   φ the grain alignment and a fixed random offset per region.
 - *Region map.* The 768 px regions are reduced to a grid of square cells (the majority label of each)
-  and stored packed in u32 words. Four ways to rebuild an edge from it: the cell's label (*blocky*);
-  bilinear weights of the 4 nearest cells' labels (*contour*); a quadratic B-spline over the 3×3 nearest
-  (*rounded*); or, with each cell also storing its distance to the nearest pixel of another region (8 bits,
-  up to 2 cells), the label whose interpolated signed distance is largest (*smooth*, the default). The two
+  and stored packed in u32 words. Four ways to rebuild an edge from it: the cell's label
+  (`nearest`, the page's *Blocky*); bilinear weights of the 4 nearest cells' labels (`contour`); a quadratic
+  B-spline over the 3×3 nearest (`spline`, *Rounded*); or, with each cell also storing its distance to the
+  nearest pixel of another region (8 bits, up to 2 cells), the label whose interpolated signed distance is
+  largest (`distance`, *Smooth*, the default). `LW192` in the tables means 192 cells along the long side. The two
   strongest labels are blended across about one output pixel, so edges are anti-aliased at any zoom.
 - *Shader.* `collage(p, px)` takes a point in the picture's reference pixels and the output pixel's size.
   The page binds the splats, map and transforms as storage buffers, so a new texture is a buffer write.
   The exported WGSL bakes them as const arrays (cut at 2,000 elements for WebKit), one function per
   region; the exported HTML wraps that in a WebGPU viewer with zoom and pan. `evalCPU` mirrors the shader
   and renders every measured collage.
-- *Measurements.* The same six pictures, region counts and metrics as the pixel version, with held-out
-  seed-2 textures; edge accuracy as the share of the 768 px picture's pixels whose strongest rebuilt label
+- *Measurements.* The same six pictures, region counts and metrics as the pixel version, with the held-out third texture of
+  each class (sampler seed 2002); edge accuracy as the share of the 768 px picture's pixels whose strongest rebuilt label
   differs from the full-resolution region. Bridge job `tc-splat-time-2` times compile and frames on the Mac.
 
 **Checks.** `run/unit.mjs`: colour round trip, a synthetic segmentation, descriptor orientation,
@@ -293,12 +299,12 @@ turning the whole image into a wgsl, rather than pixels". Built `splat/` (page, 
 on `splat-diffusion`'s 512-splat model, without changing `splat-diffusion/`.
 
 The first page render showed region edges as chamfered stairs: bilinear rebuilding of a 4 px label map
-rounds the map's corners but keeps its steps. A B-spline over 3×3 cells rounded them further and still
+(192 cells over 768 px) rounds the map's corners but keeps its steps. A B-spline over 3×3 cells rounded them further and still
 followed the steps. Storing a distance to the edge per cell, as signed-distance fonts do, fixed it.
 The first geometry run then showed 256 cells doing worse than 192: the map's rows were spaced
 H / round(H / cell) apart while the shader assumed square cells, which only matches when the cell
-divides the picture's height. Fixed with square cells; only the geometry was re-run (192 and 96 cells
-divide 512 evenly, so the rendered arms were unaffected).
+divides the picture's height. Fixed with square cells; only the geometry was re-run (at 192 and 96 cells the
+512 px picture height is a whole number of cells, so the rendered arms were unaffected).
 
 The splat bank comes out bluish: `marbled` averaged (101, 127, 117) in RGB, against the warm beige in
 `splat-diffusion`'s gallery. Sampling the same class and seed on SwiftShader reproduced the bank to
