@@ -1,9 +1,9 @@
-"""FID of the trained model against AFHQv2 train at 64x64, over guidance strengths and step counts.
+"""FID of the trained model against its training set (AFHQv2 or CelebA) at 64x64, over guidance strengths and step counts.
 
     python eval.py --ema /content/wid/run/ema.pt --data /content/wid/afhq.npz --out /content/wid/eval
 
 Samples are drawn class-balanced with the same Euler sampler the page uses. FID is clean-fid
-("clean" mode: PIL bicubic resize to 299 before Inception), against all 15,803 training images.
+("clean" mode: PIL bicubic resize to 299 before Inception), against every training image.
 Writes eval.json (one record per config, appended as each finishes) and a sample grid per config.
 Prints 'eval done' at the end.
 """
@@ -19,7 +19,7 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model import NCLASS, UNet, sample
+from model import UNet, sample
 from train import grid_png
 
 
@@ -58,8 +58,10 @@ def main():
     from cleanfid import fid
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
-    m = UNet().to(dev).eval()
-    m.load_state_dict(torch.load(a.ema, map_location=dev))
+    sd = torch.load(a.ema, map_location=dev)
+    nclass = sd["cls.weight"].shape[0] - 1
+    m = UNet(nclass).to(dev).eval()
+    m.load_state_dict(sd)
     real = out / "real"
     if not real.exists():
         write_pngs(np.load(a.data)["s64"], real)
@@ -69,9 +71,11 @@ def main():
     fmodel = build_feature_extractor("clean", torch.device(dev))
     feats = lambda d: fid.get_folder_features(str(d), fmodel, num_workers=8 if dev == "cuda" else 0,  # noqa: E731
                                               batch_size=256, device=torch.device(dev), mode="clean", verbose=False)
-    rs = out / "real_stats.npz"
-    if not rs.exists():
-        np.savez(rs, *stats(feats(real)))
+    rs, rf = out / "real_stats.npz", out / "real_feats.npy"
+    if not rs.exists() or not rf.exists():
+        f_real = feats(real)
+        np.save(rf, f_real.astype(np.float16))
+        np.savez(rs, *stats(f_real))
     z = np.load(rs)
     real_stats = (z["arr_0"], z["arr_1"])
     floor = out / "floor.json"      # FID of n real training images against all of them: the best a model can score
@@ -93,7 +97,7 @@ def main():
         if (cfg, steps) in done:
             continue
         t0 = time.time()
-        ys = torch.arange(a.n) % NCLASS
+        ys = torch.arange(a.n) % nclass
         imgs = []
         for i in range(0, a.n, a.bs):
             with torch.autocast("cuda", dtype=torch.bfloat16, enabled=dev == "cuda"):
@@ -108,9 +112,47 @@ def main():
         with open(res_path, "a") as f:
             f.write(json.dumps(rec) + "\n")
         print(rec, flush=True)
-        sel = np.concatenate([imgs[k::NCLASS][:8] for k in range(NCLASS)])
+        sel = np.concatenate([imgs[k::nclass][:8] for k in range(nclass)])
         grid_png(torch.from_numpy(sel).permute(0, 3, 1, 2).float() / 127.5 - 1, out / f"grid_cfg{cfg}_s{steps}.png", nrow=8)
+    copy_check(out, feats, rf, a.data, dev)
     print("eval done", flush=True)
+
+
+def copy_check(out, feats, rf, data, dev, n=1000):
+    n = min(n, len(np.load(rf, mmap_mode="r")) - 1)
+    """Does the model copy training images? For n samples (guidance 2, 24 steps), the distance in Inception
+    feature space to the nearest training image, against the same for n held-back training images to their
+    nearest other training image. Copies would sit far below the real-to-real distances. Also saves a grid:
+    24 samples, each above its nearest training image."""
+    if (out / "copy_check.json").exists():
+        return
+    from PIL import Image
+    R = torch.from_numpy(np.load(rf).astype(np.float32)).to(dev)
+    gen_dir = out / "gen_cfg2.0_s24"
+    G = torch.from_numpy(feats(gen_dir)[:n]).float().to(dev)
+    n = min(n, len(G))
+
+    def nn_dist(Q, skip_self=None):
+        d = torch.cdist(Q, R)
+        if skip_self is not None:
+            d[torch.arange(len(Q)), skip_self] = float("inf")
+        v, i = d.min(1)
+        return v.cpu().numpy(), i.cpu().numpy()
+
+    dg, ig = nn_dist(G)
+    pick = torch.from_numpy(np.random.default_rng(1).choice(len(R), n, replace=False)).to(dev)
+    dr, _ = nn_dist(R[pick], skip_self=pick)
+    res = {"n": n, "gen_nn_median": float(np.median(dg)), "real_nn_median": float(np.median(dr)),
+           "gen_nn_p01": float(np.quantile(dg, 0.01)), "real_nn_p01": float(np.quantile(dr, 0.01)),
+           "gen_below_real_p01": float((dg < np.quantile(dr, 0.01)).mean())}
+    (out / "copy_check.json").write_text(json.dumps(res, indent=1))
+    print("copy check", res, flush=True)
+    X = np.load(data)["s64"]
+    order = np.argsort(dg)[:24]           # the 24 samples closest to a training image: the likeliest copies
+    top = [np.asarray(Image.open(gen_dir / f"{i:05d}.png")) for i in order]
+    bot = [X[ig[i]] for i in order]
+    pairs = np.stack(top[:12] + bot[:12] + top[12:] + bot[12:])
+    grid_png(torch.from_numpy(pairs).permute(0, 3, 1, 2).float() / 127.5 - 1, out / "copy_check.png", nrow=12)
 
 
 if __name__ == "__main__":

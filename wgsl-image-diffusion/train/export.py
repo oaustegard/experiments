@@ -1,6 +1,6 @@
 """Export U-Net weights for the WGSL runtime, and build test fixtures.
 
-    python export.py weights ema.pt ../web/model            # f16 weights.bin + manifest.json
+    python export.py weights ema.pt ../web/model [afhq|celeba]   # f16 weights.bin + manifest.json
     python export.py fixture ../web/test                     # random-weight model + torch reference I/O
 
 weights.bin is little-endian float16, tensors back to back in state_dict order; manifest.json maps
@@ -16,10 +16,10 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model import NAMES, NCLASS, UNet, layout, sample
+from model import DATASETS, NCLASS, UNet, layout, sample
 
 
-def write_weights(sd, out: Path):
+def write_weights(sd, out: Path, names=DATASETS["afhq"]):
     out.mkdir(parents=True, exist_ok=True)
     man, chunks, off = {}, [], 0
     for k, v in sd.items():
@@ -28,7 +28,7 @@ def write_weights(sd, out: Path):
         chunks.append(a)
         off += a.size
     np.concatenate(chunks).tofile(out / "weights.bin")
-    (out / "manifest.json").write_text(json.dumps({"n": off, "tensors": man, "nclass": NCLASS, "names": NAMES,
+    (out / "manifest.json").write_text(json.dumps({"n": off, "tensors": man, "nclass": sd["cls.weight"].shape[0] - 1, "names": names,
                                                    "layout": [list(o) for o in layout()]}))
     print(f"{off} params, {(out / 'weights.bin').stat().st_size/1e6:.1f} MB")
 
@@ -36,8 +36,9 @@ def write_weights(sd, out: Path):
 def load_bin(bin_path, man_path):
     """A UNet holding exactly the exported f16 weights, so torch references match the GPU's inputs."""
     w = np.fromfile(bin_path, np.float16).astype(np.float32)
-    man = json.loads(Path(man_path).read_text())["tensors"]
-    m = UNet().eval()
+    mj = json.loads(Path(man_path).read_text())
+    man = mj["tensors"]
+    m = UNet(mj["nclass"]).eval()
     m.load_state_dict({k: torch.from_numpy(w[o:o + int(np.prod(s))].reshape(s).copy()) for k, (o, s) in man.items()})
     return m
 
@@ -77,6 +78,6 @@ def fixture(out: Path):
 if __name__ == "__main__":
     if sys.argv[1] == "weights":
         sd = torch.load(sys.argv[2], map_location="cpu")
-        write_weights(sd, Path(sys.argv[3]))
+        write_weights(sd, Path(sys.argv[3]), DATASETS[sys.argv[4] if len(sys.argv) > 4 else "afhq"])
     elif sys.argv[1] == "fixture":
         fixture(Path(sys.argv[2]))

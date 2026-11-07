@@ -19,8 +19,11 @@ HEAD_DIM = 64
 EMB = 256
 TDIM = 128
 GROUPS = 16
-NCLASS = 3                  # cat, dog, wild; index NCLASS is the null class
+NCLASS = 3                  # default: AFHQv2 cat, dog, wild; index nclass is the null class
 NAMES = ["cat", "dog", "wild"]
+# per dataset: class names (the model takes len(names) classes plus a null class)
+DATASETS = {"afhq": ["cat", "dog", "wild"],
+            "celeba": ["woman", "woman, smiling", "man", "man, smiling"]}
 
 
 def conv3(cin, cout, stride=1):
@@ -104,11 +107,12 @@ def layout():
 
 
 class UNet(nn.Module):
-    def __init__(self):
+    def __init__(self, nclass=NCLASS):
         super().__init__()
+        self.nclass = nclass
         self.t1 = nn.Linear(TDIM, EMB)
         self.t2 = nn.Linear(EMB, EMB)
-        self.cls = nn.Embedding(NCLASS + 1, EMB)
+        self.cls = nn.Embedding(nclass + 1, EMB)
         self.ops = layout()
         for kind, name, cin, cout in self.ops:
             if kind == "conv_in":
@@ -159,7 +163,7 @@ def sample(model, y, H=64, W=64, steps=20, cfg=2.0, seed=0, device="cpu", noise=
     x = noise.clone() if noise is not None else torch.randn(len(y), 3, H, W, generator=g)
     x = x.to(device)
     y = y.to(device)
-    null = torch.full_like(y, NCLASS)
+    null = torch.full_like(y, model.nclass)
     ts = torch.linspace(1, 0, steps + 1)
     for i in range(steps):
         t = torch.full((len(y),), float(ts[i]), device=device)

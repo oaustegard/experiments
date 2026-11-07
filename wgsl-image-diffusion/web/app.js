@@ -15,9 +15,16 @@ function resize() {
   draw();
 }
 
+// Draw only inside requestAnimationFrame (Safari on iOS presents unreliably from other callbacks);
+// draw() just asks for the next frame.
+let frameQueued = false;
 function draw() {
-  if (!viewer || !shown) return;
-  viewer.draw(model.dBuf, S, S, canvas.width / S, $("smooth").checked);
+  if (!viewer || !shown || frameQueued) return;
+  frameQueued = true;
+  requestAnimationFrame(() => {
+    frameQueued = false;
+    viewer.draw(model.dBuf, S, S, canvas.width / S, $("smooth").checked);
+  });
 }
 
 function setCls(v) {

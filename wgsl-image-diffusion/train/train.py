@@ -1,6 +1,8 @@
-"""Train the image U-Net with rectified flow on AFHQv2 (cat, dog, wild; 15,803 images) at 64x64.
+"""Train the image U-Net with rectified flow at 64x64 on AFHQv2 (cat, dog, wild; 15,803 images) or
+CelebA (162,770 aligned faces; 4 classes from the Male and Smiling attributes).
 
-    python train.py --out /content/wid/run --steps 60000         # on a Colab GPU
+    python train.py --out /content/wid/run --steps 60000                     # on a Colab GPU
+    python train.py --out /content/wif/run --steps 60000 --dataset celeba
     python train.py --out /tmp/smoke --steps 4 --smoke           # CPU smoke test (40 images)
 
 Writes log.jsonl, ema.pt (EMA weights, refreshed every --ckpt steps), samples_*.png, state.pt and
@@ -24,16 +26,50 @@ import torch
 import torch.nn.functional as F
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model import NCLASS, UNet, sample
+from model import DATASETS, UNet, sample
 
 URL = "https://huggingface.co/datasets/huggan/AFHQv2/resolve/main/data/train-{:05d}-of-00013.parquet"
 SIZES = (64, 128)
+CELEBA = "https://huggingface.co/datasets/flwrlabs/celeba/resolve/main/img_align%2Bidentity%2Battr/train-{:05d}-of-00019.parquet"
 
 
 def _shrink(b):
     from PIL import Image
     im = Image.open(io.BytesIO(b)).convert("RGB")
     return [np.asarray(im.resize((s, s), Image.LANCZOS)) for s in SIZES]
+
+
+def _shrink_celeba(b):
+    """178x218 aligned CelebA: centre 140x140 crop around the face (the usual 64x64 CelebA crop), then 64x64."""
+    from PIL import Image
+    im = Image.open(io.BytesIO(b)).convert("RGB").crop((19, 40, 159, 180))
+    return np.asarray(im.resize((64, 64), Image.LANCZOS))
+
+
+def load_celeba(cache: Path, limit=None):
+    """uint8 N x 64 x 64 x 3 and labels 2 * Male + Smiling (0 woman, 1 woman smiling, 2 man, 3 man smiling)."""
+    if cache.exists():
+        z = np.load(cache)
+        return {64: z["s64"]}, z["y"]
+    import pyarrow.parquet as pq
+    xs, ys = [], []
+    with ProcessPoolExecutor(os.cpu_count()) as ex:
+        for k in range(19):
+            raw = urllib.request.urlopen(CELEBA.format(k), timeout=900).read()
+            tab = pq.read_table(io.BytesIO(raw), columns=["image", "Male", "Smiling"]).to_pydict()
+            imgs = [d["bytes"] for d in tab["image"]]
+            lab = [2 * int(m) + int(sm) for m, sm in zip(tab["Male"], tab["Smiling"])]
+            if limit:
+                imgs, lab = imgs[:limit], lab[:limit]
+            xs += list(ex.map(_shrink_celeba, imgs, chunksize=64))
+            ys += lab
+            print(f"shard {k}: {len(ys)} images", flush=True)
+            if limit:
+                break
+    x = np.stack(xs)
+    y = np.array(ys, np.int64)
+    np.savez(cache, y=y, s64=x)
+    return {64: x}, y
 
 
 def load_afhq(cache: Path, limit=None):
@@ -94,6 +130,7 @@ def main():
     ap.add_argument("--ema", type=float, default=0.9998)
     ap.add_argument("--ckpt", type=int, default=5000)
     ap.add_argument("--data", default=None, help="npz cache path (default <out>/afhq.npz)")
+    ap.add_argument("--dataset", default="afhq", choices=sorted(DATASETS))
     ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
     out = Path(a.out)
@@ -104,16 +141,19 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     t0 = time.time()
-    cache = Path(a.data) if a.data else out / ("afhq_smoke.npz" if a.smoke else "afhq.npz")
-    arrs, y = load_afhq(cache, limit=40 if a.smoke else None)
+    cache = Path(a.data) if a.data else out / f"{a.dataset}{'_smoke' if a.smoke else ''}.npz"
+    load = load_celeba if a.dataset == "celeba" else load_afhq
+    arrs, y = load(cache, limit=40 if a.smoke else None)
+    nclass = len(DATASETS[a.dataset])
+    (out / "names.json").write_text(json.dumps(DATASETS[a.dataset]))
     X = torch.from_numpy(arrs[64]).to(dev)
     y = torch.from_numpy(y).to(dev)
     print(f"data {len(y)} images {tuple(X.shape)}, classes {torch.bincount(y).tolist()}, {time.time()-t0:.0f}s",
           flush=True)
 
     torch.manual_seed(0)
-    model = UNet().to(dev).to(memory_format=torch.channels_last)
-    ema = UNet().to(dev)
+    model = UNet(nclass).to(dev).to(memory_format=torch.channels_last)
+    ema = UNet(nclass).to(dev)
     ema.load_state_dict(model.state_dict())
     ema.requires_grad_(False)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.0, betas=(0.9, 0.99))
@@ -141,7 +181,7 @@ def main():
         x0, yc = batch(X, y, a.bs if not a.smoke else 4, dev, gen)
         B = x0.shape[0]
         drop = torch.rand(B, device=dev) < 0.1
-        yc = torch.where(drop, torch.full_like(yc, NCLASS), yc)
+        yc = torch.where(drop, torch.full_like(yc, nclass), yc)
         t = torch.sigmoid(torch.randn(B, device=dev))          # logit-normal(0, 1)
         eps = torch.randn_like(x0)
         xt = (1 - t)[:, None, None, None] * x0 + t[:, None, None, None] * eps
@@ -172,7 +212,7 @@ def main():
                         "step": step}, out / "state.pt.tmp")
             os.replace(out / "state.pt.tmp", out / "state.pt")
             ema.eval()
-            ycls = torch.arange(NCLASS).repeat_interleave(8)
+            ycls = torch.arange(nclass).repeat_interleave(8)
             xs = sample(ema, ycls, steps=20 if not a.smoke else 2, cfg=2.0, seed=0, device=dev)
             grid_png(xs, out / f"samples_{step:06d}.png", nrow=8)
             print(f"ckpt {step}", flush=True)
