@@ -473,6 +473,8 @@ window.app.generate = (o = {}) => { if (o.steps) $("steps").value = o.steps; ret
 window.app.regions = () => regions.map((r, k) => ({ ...r, name: names[r.cls], frac: seg.stats[k].frac }));
 window.app.baked = () => bakeCollage(scene);
 window.app.scene = () => scene;
+// what the Stop button does, callable whatever the button reads: cancel the running batch and drop queued ones
+window.app.stop = () => { cancel = true; stops++; };
 window.app.exportPNG = exportPNG;
 
 main().catch((e) => { status(`Error: ${e.message}`); console.error(e); });
