@@ -1505,7 +1505,7 @@ the result.
   control validates the path it runs and nothing else.
   (`toc-path-remax_kb/rescore_modalities.py`, `ERRORS.md` #2)
 
-- **Jev (TypeSafe) from a container: only through the Cloudflare AI Gateway, and the gateway caps
+- **Jev (TypeSafe) from a container: only through the Cloudflare AI Gateway, and the gateway caps *(Superseded 2026-10-18 for CCotw sessions: `TYPESAFE_API_KEY` is in the env and `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer` works directly, ~160 ms median, no 50/min gateway cap observed over 1,200 calls at 8-way concurrency; `jev-prose-lint/jev_judge.py`.)*
   it at 50 requests per minute.** The TypeSafe key lives in the gateway (BYOK): POST
   `/accounts/$CF_ACCOUNT_ID/ai/run` with `{"model": "typesafe/jev", "input": {"state", "questions"}}`
   and header `cf-aig-gateway-id`; without that header Workers AI answers 402 code 2021
@@ -3667,6 +3667,11 @@ The traps, each of which cost a revision:
   Python. (`rht-operator-native/ERRORS.md` #4)
 
 ## Negative results — do not re-derive
+
+### Jev ranks lint hits well but cannot settle them: probabilities stay in the middle (jev-prose-lint)
+
+- **Finding.** Asked per declaude_lint hit whether it is a real tic, Jev (jev-1.14.0) reached AUROC 0.808 against Opus+Sonnet agreement gold when the state carried the tic's register.md definition, and 0.697 without it. A per-category tic-rate prior alone reached 0.769 AUROC and higher accuracy at 0.5 (0.751 vs 0.732). Jev's P sat mostly in 0.3-0.8, so two thresholds settled only 24.5% of hits at 5% error; a cross-validated combination with the prior raised AUROC to 0.845 and settled 2.7%.
+- **Rule.** For a Jev gate, report coverage at a fixed error budget, not AUROC: good ranking with compressed probabilities still sends most items onward. Always include the category (or rule) prior as a baseline; a regex rule's own base rate can carry most of what Jev appears to add. Put the label definition in the state: it moved AUROC by 0.11 here. (`jev-prose-lint/RESULTS.md`)
 
 - **A domain token table did not improve a distilled small embedder.** Ettin-17m layers with a 32K or 50K PubMed BPE (hyphen-aware pre-tokenizer, rows initialised from the mean of the old pieces), trained 2 epochs to copy MedCPT, tied the same run with the stock table on SciFact and NFCorpus and lost 0.05-0.07 nDCG@10 on TREC-COVID, even on queries holding terms the new table keeps whole. Training loss was lower for the vocab arms. Distilling from a domain teacher also erased the student's general strengths: TREC-COVID fell from 0.609 to 0.448, below the teacher's 0.593. Check a teacher beats the student on every eval before copying it. (`lifesci-ettin/RESULTS.md`)
 - **Paper titles as queries make a narrow contrastive signal that costs a general embedder its question-answering.** e17c (Ettin-17m, itself MNRL-tuned) trained 1,000 steps of in-batch-negatives MNRL on PubMed title→abstract-passage pairs: SciFact +0.002, NFCorpus +0.012, TREC-COVID 0.609 to 0.388 (36 of 50 queries down), while in-batch accuracy rose 0.90 to 0.95. The starting model already solved the title task at 90%, so the gradient went into title-shaped queries. Use real search queries or questions, or keep a self-distillation term to the starting model, and check an out-of-domain-style eval at the kill test. (`lifesci-ettin/RESULTS.md` Round 3)

@@ -1,0 +1,103 @@
+{
+ "items": 300,
+ "judged_by_both": 300,
+ "judges": {
+  "agreement": 0.87,
+  "kappa": 0.723,
+  "tic_rate_opus": 0.333,
+  "tic_rate_sonnet": 0.41
+ },
+ "gold": {
+  "n": 261,
+  "tic_rate": 0.352,
+  "tic_rate_by_revision": {
+   "removed": "12/36",
+   "kept": "80/225"
+  }
+ },
+ "baselines": {
+  "majority_accuracy": 0.648,
+  "category_prior_auroc": 0.769,
+  "category_prior_accuracy": 0.751
+ },
+ "jev_A": {
+  "auroc": 0.697,
+  "accuracy@0.5": 0.67,
+  "kappa@0.5": 0.152,
+  "precision_tic": 0.594,
+  "recall_tic": 0.207,
+  "predicted_tic_rate": 0.123,
+  "coverage@5%": {
+   "coverage": 0.077,
+   "lo": 0.14,
+   "hi": 1.0
+  },
+  "repeat_mean_abs_delta": 0.0212,
+  "repeat_cross_0.5": "8/300",
+  "accuracy_by_category": {
+   "triad": "39/44",
+   "participle": "34/43",
+   "flat-certainty": "21/30",
+   "negation-first": "5/18",
+   "editorializing": "10/17",
+   "significance": "8/16",
+   "reversal": "8/14",
+   "cadence": "4/11",
+   "agency": "8/10",
+   "juridical": "9/10",
+   "verification": "8/9",
+   "time-inflation": "4/6",
+   "subjectless": "4/6"
+  },
+  "auroc_vs_opus_all": 0.656,
+  "auroc_vs_sonnet_all": 0.692
+ },
+ "jev_B": {
+  "auroc": 0.808,
+  "accuracy@0.5": 0.732,
+  "kappa@0.5": 0.418,
+  "precision_tic": 0.615,
+  "recall_tic": 0.641,
+  "predicted_tic_rate": 0.368,
+  "coverage@5%": {
+   "coverage": 0.245,
+   "lo": 0.20500000000000002,
+   "hi": 0.795
+  },
+  "repeat_mean_abs_delta": 0.018,
+  "repeat_cross_0.5": "7/300",
+  "accuracy_by_category": {
+   "triad": "39/44",
+   "participle": "38/43",
+   "flat-certainty": "19/30",
+   "negation-first": "12/18",
+   "editorializing": "12/17",
+   "significance": "12/16",
+   "reversal": "11/14",
+   "cadence": "4/11",
+   "agency": "7/10",
+   "juridical": "1/10",
+   "verification": "7/9",
+   "time-inflation": "4/6",
+   "subjectless": "5/6"
+  },
+  "auroc_vs_opus_all": 0.771,
+  "auroc_vs_sonnet_all": 0.786
+ },
+ "judge_agreement_by_category": {
+  "participle": "43/45",
+  "triad": "44/45",
+  "flat-certainty": "30/35",
+  "negation-first": "18/23",
+  "significance": "16/22",
+  "editorializing": "17/21",
+  "reversal": "14/14",
+  "cadence": "11/13",
+  "agency": "10/12",
+  "juridical": "10/11",
+  "verification": "9/9",
+  "time-inflation": "6/7",
+  "subjectless": "6/7",
+  "slop": "4/5"
+ }
+}
