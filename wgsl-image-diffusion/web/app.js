@@ -132,6 +132,10 @@ async function main() {
   for (const b of $("mdl").children) {
     b.setAttribute("aria-pressed", b.dataset.v === MK);
     b.addEventListener("click", () => { if (b.dataset.v !== MK) location.search = `?m=${b.dataset.v}`; });
+    // a model whose weights are not published yet stays disabled
+    if (b.dataset.v !== MK) fetch(`${MODELS[b.dataset.v].dir}/manifest.json`, { method: "HEAD" }).then((r) => {
+      if (!r.ok) { b.disabled = true; b.title = "Still training"; }
+    }).catch(() => { b.disabled = true; });
   }
   const fail = () => { $("nogpu").style.display = "block"; $("app").style.display = "none"; };
   if (!navigator.gpu) return fail();
