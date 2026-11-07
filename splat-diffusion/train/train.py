@@ -19,7 +19,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from model import NCLASS, SplatDiT, sample
-from splats import from_features, render, to_features
+from splats import from_features, render, sort_by_depth, to_features
 
 
 def augment(mu, A, col, gen):
@@ -38,8 +38,8 @@ def augment(mu, A, col, gen):
 def grid_png(feats, stats, path, size=128, tile=2):
     from PIL import Image
     mean, std = stats
-    mu, A, col = from_features(feats * std + mean)
-    img = render(mu.float(), A.float(), col.float(), size, size, chunk=4096).clamp(-1, 1)
+    mu, A, col, o, s, _z = sort_by_depth(*from_features(feats * std + mean))
+    img = render(mu.float(), A.float(), col.float(), o.float(), s.float(), size, size).clamp(-1, 1)
     img = ((img + 1) * 127.5).round().byte().permute(0, 2, 3, 1).cpu().numpy()
     img = np.tile(img, (1, tile, tile, 1))
     n, h, w, _ = img.shape
@@ -68,9 +68,12 @@ def main():
     mu_all = torch.from_numpy(z["mu"].astype(np.float32)).to(dev)
     A_all = torch.from_numpy(z["A"].astype(np.float32)).to(dev)
     col_all = torch.from_numpy(z["col"].astype(np.float32)).to(dev)
+    o_all = torch.from_numpy(z["o"].astype(np.float32)).to(dev)
+    s_all = torch.from_numpy(z["s"].astype(np.float32)).to(dev)
     y_all = torch.from_numpy(z["y"].astype(np.int64)).to(dev)
     N, K = mu_all.shape[:2]
-    f = to_features(mu_all, A_all, col_all)
+    z_all = ((torch.arange(K, device=dev, dtype=torch.float32) + 0.5) / K)[None].expand(N, K)   # back-to-front depth
+    f = to_features(mu_all, A_all, col_all, o_all, s_all, z_all)
     mean = f.reshape(-1, f.shape[-1]).mean(0)
     std = f.reshape(-1, f.shape[-1]).std(0)
     mean[:4] = 0.0                          # keep the cos/sin pairs centred and isotropic,
@@ -102,7 +105,7 @@ def main():
     while step < a.steps:
         idx = torch.randint(N, (a.bs,), generator=gen).to(dev)
         mu, A, col = augment(mu_all[idx], A_all[idx], col_all[idx], gen)
-        x0 = (to_features(mu, A, col) - mean) / std
+        x0 = (to_features(mu, A, col, o_all[idx], s_all[idx], z_all[idx]) - mean) / std
         yc = y_all[idx]
         yc = torch.where(torch.rand(a.bs, device=dev) < 0.1, torch.full_like(yc, NCLASS), yc)
         t = torch.sigmoid(torch.randn(a.bs, device=dev))

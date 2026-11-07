@@ -43,7 +43,7 @@
 <div id="panel">
   <div class="head"><h1>Splat Diffusion</h1><button id="min" title="Hide controls" aria-label="Hide controls">–</button></div>
   <div class="body">
-    <div class="sub">A diffusion model written by hand in WGSL generates each texture as 512 or 1,024 soft Gaussian splats,
+    <div class="sub">A diffusion model written by hand in WGSL generates each texture as 512 or 1,024 layered, opaque splats with their own edge sharpness,
       not pixels. One shader paints them, so the tile repeats seamlessly and stays smooth at any zoom. Trained on the
       <a href="https://www.robots.ox.ac.uk/~vgg/data/dtd/">Describable Textures Dataset</a>.
       Drag to pan, scroll or pinch to zoom.

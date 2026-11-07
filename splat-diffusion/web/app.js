@@ -1,4 +1,4 @@
-import { Painter, SplatDiffusion, bakeShader, splatMean } from "./splatdiff.js";
+import { Painter, SplatDiffusion, bakeShader, tileMean } from "./splatdiff.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("c"), status = $("status"), bar = $("bar").firstElementChild;
@@ -53,7 +53,7 @@ async function generate() {
       shouldStop: () => cancel });
     await device.queue.onSubmittedWorkDone();
     painter.setSplats(model.b.splats, model.K);
-    painter.mean = splatMean(await model.splats(), model.K);   // centre of the stochastic-tiling blend
+    painter.mean = await tileMean(device, model.b.splats, model.K);   // centre of the stochastic-tiling blend
     draw();
     status.textContent = done ? `${names[cls]} · ${model.K} splats · ${steps} steps in ${((performance.now() - t0) / 1000).toFixed(2)} s · seed ${seed}` : "Stopped";
   } catch (e) {

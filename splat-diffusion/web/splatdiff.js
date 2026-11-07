@@ -1,12 +1,17 @@
 // Splat-list diffusion in hand-written WGSL: a set transformer (DiT-style adaLN-Zero blocks, no
-// positional encoding) denoises K splats x 10 features with rectified flow; a fragment shader paints
-// the splats additively on a torus, so the tile repeats without seams at any zoom.
+// positional encoding) denoises K splats x 13 features with rectified flow. Splats are opaque, layered
+// ellipses with a per-splat edge sharpness and depth: a decoder turns features into splats, a GPU sort
+// orders them by depth, and a fragment shader composites them front to back on a torus, so the tile
+// repeats without seams at any zoom.
+//
+// Decoded splat layout (12 floats, back-to-front after the sort):
+//   mu_x, mu_y, e^a, b, e^c, r, g, b, alpha, sharpness p, depth z, 0
 //
 // Shapes: N = batch items (2 with guidance: chosen class + null class), K = splats (tokens),
 // d = 256 width, H = 4 heads of 64. Activations f32. Weights f32 in one buffer, Linear weights
 // transposed to [in][out] at load so the shared matmul reads B row-major.
 
-const D = 10, WIDTH = 256, DEPTH = 8, HEADS = 4, TDIM = 128, NCLASS = 47;
+const WIDTH = 256, DEPTH = 8, HEADS = 4, TDIM = 128, NCLASS = 47;
 
 // C[b][m][n] = epi(alpha * sum_k A[b][m][k] * B[b][k][n] + bias[n])
 // batch b = b1 * nb2 + b2 with separate strides for both parts (item x head for attention).
@@ -155,29 +160,52 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
   S[i] = x + p.dt * v;
 }`;
 
-// Normalised features [K][10] -> splats [K][8]: mu_x, mu_y, a (=e^.), b, c (=e^.), r, g, b.
+// Normalised features [K][13] -> splats [K][12] (unsorted).
 const WGSL_DECODE = /* wgsl */`
 struct P { K:u32, _a:u32, _b:u32, _c:u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> F: array<f32>;
-@group(0) @binding(2) var<storage, read> St: array<f32>;     // mean[10], std[10]
+@group(0) @binding(2) var<storage, read> St: array<f32>;     // mean[13], std[13]
 @group(0) @binding(3) var<storage, read_write> Sp: array<f32>;
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) gid: vec3u) {
   let k = gid.x;
   if (k >= p.K) { return; }
-  var f: array<f32, 10>;
-  for (var j = 0u; j < 10u; j++) { f[j] = F[k * 10u + j] * St[10u + j] + St[j]; }
+  var f: array<f32, 13>;
+  for (var j = 0u; j < 13u; j++) { f[j] = F[k * 13u + j] * St[13u + j] + St[j]; }
   let tau = 6.283185307;
-  let mx = fract(atan2(f[1], f[0]) / tau + 1.0);
-  let my = fract(atan2(f[3], f[2]) / tau + 1.0);
-  let o = k * 8u;
-  Sp[o] = mx; Sp[o + 1u] = my;
+  let o = k * 12u;
+  Sp[o] = fract(atan2(f[1], f[0]) / tau + 1.0);
+  Sp[o + 1u] = fract(atan2(f[3], f[2]) / tau + 1.0);
   Sp[o + 2u] = exp(min(f[4], 10.0)); Sp[o + 3u] = f[5]; Sp[o + 4u] = exp(min(f[6], 10.0));
   Sp[o + 5u] = f[7]; Sp[o + 6u] = f[8]; Sp[o + 7u] = f[9];
+  Sp[o + 8u] = 0.99 / (1.0 + exp(-clamp(f[10], -30.0, 30.0)));                 // opacity
+  Sp[o + 9u] = 1.0 + max(f[11], 0.0) + log(1.0 + exp(-abs(f[11])));          // 1 + softplus(s)
+  Sp[o + 10u] = f[12];                                                         // depth
+  Sp[o + 11u] = 0.0;
 }`;
 
-// Paints the splats additively on the unit torus; uv = fragment position / tilePx + offset.
+// Sort by depth: each splat counts the splats behind it (smaller z, ties by index) and moves to that slot.
+const WGSL_SORT = /* wgsl */`
+struct P { K:u32, _a:u32, _b:u32, _c:u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> In: array<f32>;
+@group(0) @binding(2) var<storage, read_write> Out: array<f32>;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  let i = gid.x;
+  if (i >= p.K) { return; }
+  let zi = In[i * 12u + 10u];
+  var r = 0u;
+  for (var j = 0u; j < p.K; j++) {
+    let zj = In[j * 12u + 10u];
+    if (zj < zi || (zj == zi && j < i)) { r++; }
+  }
+  for (var c = 0u; c < 12u; c++) { Out[r * 12u + c] = In[i * 12u + c]; }
+}`;
+
+// Composites the depth-sorted splats front to back on the unit torus; uv = fragment position / tilePx + offset.
+// A pixel stops once less than 0.2% of the light gets through.
 export const WGSL_PAINT = /* wgsl */`
 struct P { K:u32, tilePx:f32, offX:f32, offY:f32 }
 @group(0) @binding(0) var<uniform> p: P;
@@ -189,14 +217,20 @@ struct P { K:u32, tilePx:f32, offX:f32, offY:f32 }
 @fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
   let uv = fract(pos.xy / p.tilePx + vec2f(p.offX, p.offY));
   var c = vec3f(0.0);
-  for (var k = 0u; k < p.K; k++) {
-    let o = k * 8u;
+  var T = 1.0;
+  for (var i = 0u; i < p.K; i++) {
+    let o = (p.K - 1u - i) * 12u;
     var d = uv - vec2f(Sp[o], Sp[o + 1u]);
     d = d - round(d);
     let u = Sp[o + 2u] * d.x;
     let v = Sp[o + 3u] * d.x + Sp[o + 4u] * d.y;
     let q = u * u + v * v;
-    if (q < 30.0) { c += exp(-0.5 * q) * vec3f(Sp[o + 5u], Sp[o + 6u], Sp[o + 7u]); }
+    if (q < 60.0) {
+      let w = Sp[o + 8u] * exp(-0.5 * pow(q + 1e-8, Sp[o + 9u]));
+      c += T * w * vec3f(Sp[o + 5u], Sp[o + 6u], Sp[o + 7u]);
+      T *= 1.0 - w;
+      if (T < 0.002) { break; }
+    }
   }
   return vec4f(clamp((c + 1.0) * 0.5, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
@@ -240,6 +274,7 @@ export class SplatDiffusion {
     this.man = man;
     this.w = w;                      // torch layout, used by the JS embedding MLP
     this.K = man.K;
+    this.D = man.D ?? 13;
     this.nclass = man.nclass ?? NCLASS;
     // GPU copy with every Linear weight transposed to [in][out]
     const gw = new Float32Array(w);
@@ -251,11 +286,12 @@ export class SplatDiffusion {
     const U = GPUBufferUsage;
     this.wbuf = device.createBuffer({ size: gw.byteLength, usage: U.STORAGE | U.COPY_DST });
     device.queue.writeBuffer(this.wbuf, 0, gw);
-    this.stats = device.createBuffer({ size: 80, usage: U.STORAGE | U.COPY_DST });
+    this.stats = device.createBuffer({ size: 8 * this.D, usage: U.STORAGE | U.COPY_DST });
     device.queue.writeBuffer(this.stats, 0, new Float32Array([...man.stats.mean, ...man.stats.std]));
     const mk = (code) => device.createComputePipeline({ layout: "auto",
       compute: { module: device.createShaderModule({ code }), entryPoint: "main" } });
-    this.pipe = { mm: mk(WGSL_MATMUL), sm: mk(WGSL_SOFTMAX), ln: mk(WGSL_LNMOD), step: mk(WGSL_STEP), dec: mk(WGSL_DECODE) };
+    this.pipe = { mm: mk(WGSL_MATMUL), sm: mk(WGSL_SOFTMAX), ln: mk(WGSL_LNMOD), step: mk(WGSL_STEP), dec: mk(WGSL_DECODE),
+                  sort: mk(WGSL_SORT) };
     this.dummy = device.createBuffer({ size: 16, usage: U.STORAGE });
     this.N = 0;
   }
@@ -288,10 +324,10 @@ export class SplatDiffusion {
   plan(N) {
     if (this.N === N) return;
     this.free();
-    const dev = this.device, U = GPUBufferUsage, K = this.K, R = N * K, d = WIDTH;
+    const dev = this.device, U = GPUBufferUsage, K = this.K, R = N * K, d = WIDTH, D = this.D;
     const buf = (n) => dev.createBuffer({ size: Math.max(16, n * 4), usage: U.STORAGE | U.COPY_SRC | U.COPY_DST });
     const b = this.b = {
-      S: buf(K * D), X0: buf(K * D), splats: buf(K * 8), V: buf(R * D), emb: buf(N * d),
+      S: buf(K * D), X0: buf(K * D), raw: buf(K * 12), splats: buf(K * 12), V: buf(R * D), emb: buf(N * d),
       mod: buf((DEPTH * 6 + 2) * N * d), h: buf(R * d), hn: buf(R * d), qkv: buf(R * 3 * d),
       sc: buf(N * HEADS * K * K), att: buf(R * d), mlp: buf(R * 4 * d),
     };
@@ -368,9 +404,11 @@ export class SplatDiffusion {
     this.stepBG = dev.createBindGroup({ layout: this.pipe.step.getBindGroupLayout(0), entries: [this.stepU, b.S, b.V, b.X0]
       .map((buffer, binding) => ({ binding, resource: { buffer } })) });
     const du = uni(new Uint32Array([K, 0, 0, 0]));
-    this.decX0 = dev.createBindGroup({ layout: this.pipe.dec.getBindGroupLayout(0), entries: [du, b.X0, this.stats, b.splats]
+    this.decX0 = dev.createBindGroup({ layout: this.pipe.dec.getBindGroupLayout(0), entries: [du, b.X0, this.stats, b.raw]
       .map((buffer, binding) => ({ binding, resource: { buffer } })) });
-    this.decS = dev.createBindGroup({ layout: this.pipe.dec.getBindGroupLayout(0), entries: [du, b.S, this.stats, b.splats]
+    this.decS = dev.createBindGroup({ layout: this.pipe.dec.getBindGroupLayout(0), entries: [du, b.S, this.stats, b.raw]
+      .map((buffer, binding) => ({ binding, resource: { buffer } })) });
+    this.sortBG = dev.createBindGroup({ layout: this.pipe.sort.getBindGroupLayout(0), entries: [du, b.raw, b.splats]
       .map((buffer, binding) => ({ binding, resource: { buffer } })) });
     this.extraU = [du];
     this.N = N;
@@ -408,7 +446,7 @@ export class SplatDiffusion {
     this.encodeForward(pass);
     pass.end();
     this.device.queue.submit([enc.finish()]);
-    return this.read(this.b.V, ys.length * this.K * D);
+    return this.read(this.b.V, ys.length * this.K * this.D);
   }
 
   async read(buf, n) {
@@ -425,7 +463,7 @@ export class SplatDiffusion {
   // Euler sampler. After each step the x0 estimate is decoded into this.b.splats (drawn by onStep);
   // at the end the final state is.
   async sample({ cls, steps = 24, cfg = 3, seed = 0, noise = null, onStep = null, shouldStop = null }) {
-    const N = cfg === 1 ? 1 : 2, K = this.K, dev = this.device;
+    const N = cfg === 1 ? 1 : 2, K = this.K, D = this.D, dev = this.device;
     this.plan(N);
     dev.queue.writeBuffer(this.b.S, 0, noise || gaussian(K * D, seed));
     const ys = N === 2 ? [cls, this.nclass] : [cls];
@@ -454,6 +492,8 @@ export class SplatDiffusion {
         pass.dispatchWorkgroups(Math.ceil(K * D / 256));
         pass.setPipeline(this.pipe.dec); pass.setBindGroup(0, i === steps - 1 ? this.decS : this.decX0);
         pass.dispatchWorkgroups(Math.ceil(K / 64));
+        pass.setPipeline(this.pipe.sort); pass.setBindGroup(0, this.sortBG);
+        pass.dispatchWorkgroups(Math.ceil(K / 64));
         pass.end();
         dev.queue.submit([enc.finish()]);
         if (onStep) await onStep(i);
@@ -470,7 +510,8 @@ export class SplatDiffusion {
   }
 
   // The current splats as plain numbers [K][8] (mu_x, mu_y, a, b, c, r, g, b)
-  async splats() { return this.read(this.b.splats, this.K * 8); }
+  // The current splats, depth-sorted back-to-front, [K][12] (layout at the top of this file)
+  async splats() { return this.read(this.b.splats, this.K * 12); }
 }
 
 // Blits a cached tile texture across the canvas with a repeating sampler.
@@ -507,14 +548,12 @@ fn tap(uv: vec2f) -> vec3f { return textureSampleLevel(tex, smp, uv, 0.0).rgb; }
   return vec4f(clamp(c, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
 
-// Mean display colour of a splat list: BG + sum of colour x Gaussian area (2 pi / det A), in [0, 1].
-export function splatMean(sp, K) {
+// Mean display colour of the painted tile in [0, 1] (the centre of the stochastic-tiling blend).
+export async function tileMean(device, splatBuf, K) {
+  const px = await paintToBytes(device, splatBuf, K, 64);
   const m = [0, 0, 0];
-  for (let k = 0; k < K; k++) {
-    const o = k * 8, area = (2 * Math.PI) / Math.max(1e-6, sp[o + 2] * sp[o + 4]);
-    for (let c = 0; c < 3; c++) m[c] += sp[o + 5 + c] * area;
-  }
-  return m.map((v) => Math.min(1, Math.max(0, (v + 1) / 2)));
+  for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) m[c] += px[i + c];
+  return m.map((v) => v / (255 * (px.length / 4)));
 }
 
 // Paints the splats. While a tile is at most MAX_TILE device pixels it is painted once into a texture
@@ -620,25 +659,35 @@ export async function paintToBytes(device, splatBuf, K, size) {
   return out;
 }
 
-// A standalone WGSL fragment shader with the splat list baked in (vec4 arrays stay under WebKit's
-// 2,047-element const-array limit up to 1,023 splats per array).
+// A standalone WGSL function with the splat list baked in, back-to-front. Three arrays of K elements each,
+// so every array stays under WebKit's 2,047-element const-array limit for K up to 2,047.
 export function bakeShader(sp, K) {
   const f = (v) => (Number.isFinite(v) ? v.toPrecision(5) : "0.0");
-  const rows = [];
+  const a = [], b = [], c = [];
   for (let k = 0; k < K; k++) {
-    const o = k * 8;
-    rows.push(`vec4f(${f(sp[o])},${f(sp[o + 1])},${f(sp[o + 2])},${f(sp[o + 3])}),vec4f(${f(sp[o + 4])},${f(sp[o + 5])},${f(sp[o + 6])},${f(sp[o + 7])})`);
+    const o = k * 12;
+    a.push(`vec4f(${f(sp[o])},${f(sp[o + 1])},${f(sp[o + 2])},${f(sp[o + 3])})`);
+    b.push(`vec4f(${f(sp[o + 4])},${f(sp[o + 5])},${f(sp[o + 6])},${f(sp[o + 7])})`);
+    c.push(`vec2f(${f(sp[o + 8])},${f(sp[o + 9])})`);
   }
-  return `// ${K} additive Gaussian splats on a torus; uv in [0,1)^2 repeats seamlessly
-const S = array<vec4f, ${2 * K}>(${rows.join(",\n")});
+  return `// ${K} opaque layered Gaussian splats on a torus, back to front; uv in [0,1)^2 repeats seamlessly.
+// S0: centre xy, precision factor e^a, b   S1: e^c, rgb in [-1,1]   S2: opacity, edge sharpness
+const S0 = array<vec4f, ${K}>(${a.join(",")});
+const S1 = array<vec4f, ${K}>(${b.join(",")});
+const S2 = array<vec2f, ${K}>(${c.join(",")});
 fn texture(uv0: vec2f) -> vec3f {
   let uv = fract(uv0);
   var c = vec3f(0.0);
-  for (var k = 0u; k < ${K}u; k++) {
-    let p = S[2u * k]; let q = S[2u * k + 1u];
+  var T = 1.0;
+  for (var i = 0u; i < ${K}u; i++) {
+    let k = ${K - 1}u - i;
+    let p = S0[k]; let q = S1[k]; let r = S2[k];
     var d = uv - p.xy; d = d - round(d);
     let u = p.z * d.x; let v = p.w * d.x + q.x * d.y;
-    c += exp(-0.5 * (u * u + v * v)) * q.yzw;
+    let w = r.x * exp(-0.5 * pow(u * u + v * v + 1e-8, r.y));
+    c += T * w * q.yzw;
+    T *= 1.0 - w;
+    if (T < 0.002) { break; }
   }
   return clamp((c + 1.0) * 0.5, vec3f(0.0), vec3f(1.0));
 }

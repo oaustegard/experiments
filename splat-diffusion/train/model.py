@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-D = 10
+D = 13
 WIDTH = 256
 DEPTH = 8
 HEADS = 4

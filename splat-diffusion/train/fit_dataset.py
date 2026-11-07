@@ -3,7 +3,9 @@
     python fit_dataset.py --out /content/sd/run --K 512
 
 Each image is resized so its short side is 192 or 288 and one random 128x128 crop is taken at each
-scale. Writes sets.npz (mu, A, col as float16, y, psnr) and resumes from sets_partial.npz.
+scale. Lighting is removed first: the resized image minus a Gaussian blur of it (sigma 24 px), plus its
+mean, so a tile carries texture and no tile-wide light or shadow. Writes sets.npz (mu, A, col, o, s as
+float16, y, psnr) and resumes from sets_partial.npz.
 """
 from __future__ import annotations
 
@@ -23,6 +25,14 @@ SCALES = (192, 288)
 CROP = 128
 
 
+def highpass(im, sigma=24):
+    """Remove low-frequency lighting: image - blur + mean, per channel."""
+    from PIL import Image, ImageFilter
+    a = np.asarray(im).astype(np.float32)
+    b = np.asarray(im.filter(ImageFilter.GaussianBlur(sigma))).astype(np.float32)
+    return Image.fromarray(np.clip(a - b + a.mean((0, 1)), 0, 255).astype(np.uint8))
+
+
 def crops(seed=0, limit=None):
     import pyarrow.parquet as pq
     from PIL import Image
@@ -35,6 +45,7 @@ def crops(seed=0, limit=None):
             for s in SCALES:
                 k = s / min(im.size)
                 r = im.resize((max(s, round(im.width * k)), max(s, round(im.height * k))), Image.LANCZOS)
+                r = highpass(r)
                 l = int(rng.integers(0, r.width - CROP + 1))
                 t = int(rng.integers(0, r.height - CROP + 1))
                 xs.append(np.asarray(r.crop((l, t, l + CROP, t + CROP))))
@@ -69,7 +80,8 @@ def main():
     N = len(Y)
     print(f"{N} crops in {time.time()-t0:.0f}s", flush=True)
     part = out / "sets_partial.npz"
-    res = {k: [] for k in ("mu", "A", "col", "psnr")}
+    keys = ("mu", "A", "col", "o", "s", "psnr")
+    res = {k: [] for k in keys}
     done = 0
     if part.exists():
         z = np.load(part)
@@ -80,8 +92,8 @@ def main():
     while done < N:
         tb = time.time()
         x = torch.from_numpy(X[done:done + a.bs]).to(dev).permute(0, 3, 1, 2).float() / 127.5 - 1
-        mu, A, col, psnr = fit(x, a.K, steps=a.steps, lr=a.lr, seed=done)
-        for k, v in zip(("mu", "A", "col", "psnr"), (mu, A, col, psnr)):
+        mu, A, col, o, s_, _z, psnr = fit(x, a.K, steps=a.steps, lr=a.lr, seed=done)
+        for k, v in zip(keys, (mu, A, col, o, s_, psnr)):
             res[k].append(v.cpu().numpy().astype(np.float16 if k != "psnr" else np.float32))
         done += x.shape[0]
         rec = {"done": done, "psnr_median": float(psnr.median()), "s_batch": time.time() - tb, "t": time.time() - t0}

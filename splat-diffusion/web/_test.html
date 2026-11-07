@@ -17,7 +17,7 @@ window.runTests = async () => {
     if (c.kind === "forward") { got = await m.forward(new Float32Array(c.x), c.t, c.y); want = c.v; }
     else {
       await m.sample({ cls: c.y, steps: c.steps, cfg: c.cfg, noise: new Float32Array(c.noise) });
-      got = await m.read(m.b.S, m.K * 10); want = c.out;
+      got = await m.read(m.b.S, m.K * m.D); want = c.out;
     }
     let maxd = 0, maxw = 0;
     for (let i = 0; i < want.length; i++) { maxd = Math.max(maxd, Math.abs(got[i] - want[i])); maxw = Math.max(maxw, Math.abs(want[i])); }
@@ -27,7 +27,7 @@ window.runTests = async () => {
       let md = 0;
       for (let i = 0; i < c.splats.length; i++) {
         let dd = Math.abs(sp[i] - c.splats[i]);
-        if (i % 8 < 2) dd = Math.min(dd, 1 - dd);        // positions live on the torus
+        if (i % 12 < 2) dd = Math.min(dd, 1 - dd);       // positions live on the torus
         md = Math.max(md, dd / Math.max(1, Math.abs(c.splats[i])));
       }
       res.push({ kind: "decode", rel: md, nan: Array.from(sp).some(Number.isNaN) });
