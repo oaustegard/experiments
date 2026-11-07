@@ -1,0 +1,11578 @@
+{
+ "id": "ettin-prof-1",
+ "startedAt": 1794011564764,
+ "finishedAt": 1794011644242,
+ "runMs": 76502,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "ndv8g0dm",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "workloads {\"one\":{\"seqs\":5,\"tokens\":1723},\"b16\":{\"seqs\":16,\"tokens\":5618},\"test\":{\"seqs\":500,\"tokens\":176155,\"meanLen\":352.31}}",
+  "null dispatch {\"noBinding_us\":0.90112,\"rwBinding_us\":1.47456,\"noBinding_wall_us\":1.300000011920929,\"rwBinding_wall_us\":1.824999988079071}",
+  "S one: start",
+  "S one: e2e {\"wall\":6.144999998807907,\"gpu\":6.0030976}",
+  "S one: e2e {\"wall\":6.144999998807907,\"gpu\":6.0030976} score 14.000 ms; drop lora {\"wall\":5.040000003576279,\"gpu\":4.931584}; isoSum 5.975",
+  "S b16: start",
+  "S b16: e2e {\"wall\":19.219999980926513,\"gpu\":18.9923328}",
+  "S b16: e2e {\"wall\":19.219999980926513,\"gpu\":18.9923328} score 40.500 ms; drop lora {\"wall\":16.420000004768372,\"gpu\":16.252928}; isoSum 19.013",
+  "merge: scoring unmerged",
+  "merge aligned: acc 0.8340 vs 0.8340, agree 0.9920, max\u0394 0.5558",
+  "merge fresh127: acc 0.8320 vs 0.8340, agree 0.9900, max\u0394 0.5315",
+  "merge fresh31: acc 0.8380 vs 0.8340, agree 0.9300, max\u0394 3.2534",
+  "T: trainer ready",
+  "T forward: 139 dispatches, e2e 19.70 ms, isoSum 18.99 ms",
+  "T step: 511 dispatches, e2e 83.10 ms, isoSum 81.60 ms"
+ ],
+ "outputs": {
+  "sha": "715e92af45c7cf9bc21a18417e21c1203b90d9fd",
+  "quick": false,
+  "describe": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  },
+  "timestampQuery": true,
+  "workloads": {
+   "one": {
+    "seqs": 5,
+    "tokens": 1723
+   },
+   "b16": {
+    "seqs": 16,
+    "tokens": 5618
+   },
+   "test": {
+    "seqs": 500,
+    "tokens": 176155,
+    "meanLen": 352.31
+   }
+  },
+  "null": {
+   "noBinding_us": 0.90112,
+   "rwBinding_us": 1.47456,
+   "noBinding_wall_us": 1.300000011920929,
+   "rwBinding_wall_us": 1.824999988079071
+  },
+  "S": {
+   "steps": 122,
+   "byGroup": {
+    "embed": 1,
+    "norm": 15,
+    "base_mm": 28,
+    "lora": 56,
+    "rope": 7,
+    "attn": 7,
+    "glu": 7,
+    "gather": 1
+   },
+   "one": {
+    "score_wall_ms": 14,
+    "e2e": {
+     "wall": 6.144999998807907,
+     "gpu": 6.0030976
+    },
+    "drop": {
+     "embed": {
+      "wall": 6.144999998807907,
+      "gpu": 5.996544
+     },
+     "norm": {
+      "wall": 6.055000001192093,
+      "gpu": 5.9277312
+     },
+     "base_mm": {
+      "wall": 3.8299999952316286,
+      "gpu": 3.7126143999999996
+     },
+     "lora": {
+      "wall": 5.040000003576279,
+      "gpu": 4.931584
+     },
+     "rope": {
+      "wall": 6.1,
+      "gpu": 5.9604992
+     },
+     "attn": {
+      "wall": 3.725,
+      "gpu": 3.588096
+     },
+     "glu": {
+      "wall": 6.114999997615814,
+      "gpu": 5.9768832000000005
+     },
+     "all_but_base_mm": {
+      "wall": 2.35,
+      "gpu": 2.3035904
+     }
+    },
+    "iso": [
+     {
+      "i": 0,
+      "kind": "embed",
+      "group": "embed",
+      "grid": [
+       1723
+      ],
+      "us": 3.14,
+      "k": 1024
+     },
+     {
+      "i": 1,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 2,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 3,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 4,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 5,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.16,
+      "k": 489
+     },
+     {
+      "i": 6,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 540.67,
+      "k": 8
+     },
+     {
+      "i": 7,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 8,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 9,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 10,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 11,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 12,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.36,
+      "k": 490
+     },
+     {
+      "i": 13,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 14,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.49,
+      "k": 978
+     },
+     {
+      "i": 15,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 16,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.37,
+      "k": 245
+     },
+     {
+      "i": 17,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 18,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 19,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 20,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 21,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 22,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.3,
+      "k": 489
+     },
+     {
+      "i": 23,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 199.73,
+      "k": 21
+     },
+     {
+      "i": 24,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 25,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.25,
+      "k": 489
+     },
+     {
+      "i": 26,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 27,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 28,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 29,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 30,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 31,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.43,
+      "k": 978
+     },
+     {
+      "i": 32,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 56.17,
+      "k": 70
+     },
+     {
+      "i": 33,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 12.87,
+      "k": 489
+     },
+     {
+      "i": 34,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 35,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.94,
+      "k": 640
+     },
+     {
+      "i": 36,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 37,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 38,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 39,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.3,
+      "k": 489
+     },
+     {
+      "i": 40,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 199.88,
+      "k": 20
+     },
+     {
+      "i": 41,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 42,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 43,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 44,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 45,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 46,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 47,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 48,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.43,
+      "k": 640
+     },
+     {
+      "i": 49,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 50,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.64,
+      "k": 245
+     },
+     {
+      "i": 51,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 52,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 53,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 54,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.92,
+      "k": 489
+     },
+     {
+      "i": 55,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 56,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.16,
+      "k": 489
+     },
+     {
+      "i": 57,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 540.67,
+      "k": 8
+     },
+     {
+      "i": 58,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.12,
+      "k": 98
+     },
+     {
+      "i": 59,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.92,
+      "k": 489
+     },
+     {
+      "i": 60,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 61,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.94,
+      "k": 640
+     },
+     {
+      "i": 62,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 63,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.9,
+      "k": 490
+     },
+     {
+      "i": 64,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 65,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.43,
+      "k": 640
+     },
+     {
+      "i": 66,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 56.17,
+      "k": 70
+     },
+     {
+      "i": 67,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.37,
+      "k": 245
+     },
+     {
+      "i": 68,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 69,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 70,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 71,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 72,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 73,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.16,
+      "k": 489
+     },
+     {
+      "i": 74,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 199.73,
+      "k": 21
+     },
+     {
+      "i": 75,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 76,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 77,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 78,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 79,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 115.18,
+      "k": 33
+     },
+     {
+      "i": 80,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 81,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 82,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.43,
+      "k": 978
+     },
+     {
+      "i": 83,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 84,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.27,
+      "k": 489
+     },
+     {
+      "i": 85,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 86,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 87,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 88,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 89,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 90,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.16,
+      "k": 489
+     },
+     {
+      "i": 91,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 199.73,
+      "k": 21
+     },
+     {
+      "i": 92,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 93,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 94,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 95,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 96,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 117.96,
+      "k": 35
+     },
+     {
+      "i": 97,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.36,
+      "k": 490
+     },
+     {
+      "i": 98,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 99,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.53,
+      "k": 640
+     },
+     {
+      "i": 100,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 101,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.37,
+      "k": 245
+     },
+     {
+      "i": 102,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 103,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 104,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 105,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 106,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 107,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       1723
+      ],
+      "us": 6.16,
+      "k": 489
+     },
+     {
+      "i": 108,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       1723,
+       4
+      ],
+      "us": 540.67,
+      "k": 8
+     },
+     {
+      "i": 109,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 40.79,
+      "k": 98
+     },
+     {
+      "i": 110,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 111,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 112,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 5.96,
+      "k": 978
+     },
+     {
+      "i": 113,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 114,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 9.38,
+      "k": 489
+     },
+     {
+      "i": 115,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       216
+      ],
+      "us": 41.46,
+      "k": 98
+     },
+     {
+      "i": 116,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       2585
+      ],
+      "us": 5.43,
+      "k": 978
+     },
+     {
+      "i": 117,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 118,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       216
+      ],
+      "us": 13.37,
+      "k": 245
+     },
+     {
+      "i": 119,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       216
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 120,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       1723
+      ],
+      "us": 6.03,
+      "k": 978
+     },
+     {
+      "i": 121,
+      "kind": "gather",
+      "group": "gather",
+      "grid": [
+       2048
+      ],
+      "us": 2.18,
+      "k": 1024
+     }
+    ],
+    "isoSum_ms": 5.9747999999999974,
+    "isoByGroup_ms": {
+     "embed": 0.00314,
+     "norm": 0.08978,
+     "base_mm": 2.29588,
+     "lora": 1.0811700000000006,
+     "rope": 0.043399999999999994,
+     "attn": 2.42108,
+     "glu": 0.03817,
+     "gather": 0.00218
+    }
+   },
+   "b16": {
+    "score_wall_ms": 40.5,
+    "e2e": {
+     "wall": 19.219999980926513,
+     "gpu": 18.9923328
+    },
+    "drop": {
+     "embed": {
+      "wall": 19.220000004768373,
+      "gpu": 18.9923328
+     },
+     "norm": {
+      "wall": 18.960000014305116,
+      "gpu": 18.7564032
+     },
+     "base_mm": {
+      "wall": 12.040000009536744,
+      "gpu": 11.9013376
+     },
+     "lora": {
+      "wall": 16.420000004768372,
+      "gpu": 16.252928
+     },
+     "rope": {
+      "wall": 19.62000000476837,
+      "gpu": 19.4379776
+     },
+     "attn": {
+      "wall": 11.8,
+      "gpu": 11.6260864
+     },
+     "glu": {
+      "wall": 19.5,
+      "gpu": 19.3069056
+     },
+     "all_but_base_mm": {
+      "wall": 7.659999990463257,
+      "gpu": 7.5235328
+     }
+    },
+    "iso": [
+     {
+      "i": 0,
+      "kind": "embed",
+      "group": "embed",
+      "grid": [
+       5618
+      ],
+      "us": 8.44,
+      "k": 489
+     },
+     {
+      "i": 1,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 16.85,
+      "k": 245
+     },
+     {
+      "i": 2,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 376.83,
+      "k": 8
+     },
+     {
+      "i": 3,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.53,
+      "k": 163
+     },
+     {
+      "i": 4,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 5,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.52,
+      "k": 163
+     },
+     {
+      "i": 6,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 1794.05,
+      "k": 8
+     },
+     {
+      "i": 7,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 8,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 9,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 10,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 11,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 376.83,
+      "k": 16
+     },
+     {
+      "i": 12,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 13,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 14,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 15,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 16,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 17,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 44.14,
+      "k": 98
+     },
+     {
+      "i": 18,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 19,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 20,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 21,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 22,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.52,
+      "k": 163
+     },
+     {
+      "i": 23,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 655.36,
+      "k": 8
+     },
+     {
+      "i": 24,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 125.11,
+      "k": 33
+     },
+     {
+      "i": 25,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 26,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 27,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 28,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 29,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.53,
+      "k": 163
+     },
+     {
+      "i": 30,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 129.09,
+      "k": 33
+     },
+     {
+      "i": 31,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 32,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 33,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 34,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 35,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 36,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 37,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 38,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 39,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.52,
+      "k": 163
+     },
+     {
+      "i": 40,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 655.36,
+      "k": 8
+     },
+     {
+      "i": 41,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 42,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 43,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 44.14,
+      "k": 98
+     },
+     {
+      "i": 44,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 45,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 46,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 47,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 48,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 49,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 50,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 51,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 52,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 53,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 54,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 55,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 56,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.74,
+      "k": 245
+     },
+     {
+      "i": 57,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 1769.47,
+      "k": 8
+     },
+     {
+      "i": 58,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 125.11,
+      "k": 33
+     },
+     {
+      "i": 59,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 60,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.96,
+      "k": 82
+     },
+     {
+      "i": 61,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 62,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 63,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 25.58,
+      "k": 123
+     },
+     {
+      "i": 64,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 65,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 66,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 67,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 68,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 44.14,
+      "k": 98
+     },
+     {
+      "i": 69,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 70,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 71,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 72,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 73,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.92,
+      "k": 163
+     },
+     {
+      "i": 74,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 647.17,
+      "k": 8
+     },
+     {
+      "i": 75,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 125.11,
+      "k": 33
+     },
+     {
+      "i": 76,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 77,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 78,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 79,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 80,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 81,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 82,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 83,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 84,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 85,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 86,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 87,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 88,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.53,
+      "k": 163
+     },
+     {
+      "i": 89,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 90,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.74,
+      "k": 245
+     },
+     {
+      "i": 91,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 655.36,
+      "k": 8
+     },
+     {
+      "i": 92,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 124.73,
+      "k": 31
+     },
+     {
+      "i": 93,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.53,
+      "k": 163
+     },
+     {
+      "i": 94,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 95,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 96,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 97,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 98,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 99,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 100,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 101,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 102,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.16,
+      "k": 82
+     },
+     {
+      "i": 103,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 104,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 105,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 106,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 127.1,
+      "k": 33
+     },
+     {
+      "i": 107,
+      "kind": "rope",
+      "group": "rope",
+      "grid": [
+       5618
+      ],
+      "us": 22.92,
+      "k": 163
+     },
+     {
+      "i": 108,
+      "kind": "attnlong_64",
+      "group": "attn",
+      "grid": [
+       5618,
+       4
+      ],
+      "us": 1777.66,
+      "k": 8
+     },
+     {
+      "i": 109,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 125.11,
+      "k": 33
+     },
+     {
+      "i": 110,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 111,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 112,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 113,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 368.64,
+      "k": 16
+     },
+     {
+      "i": 114,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 24.12,
+      "k": 163
+     },
+     {
+      "i": 115,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       24,
+       703
+      ],
+      "us": 126.84,
+      "k": 31
+     },
+     {
+      "i": 116,
+      "kind": "glu",
+      "group": "glu",
+      "grid": [
+       8427
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 117,
+      "kind": "matmul_i8",
+      "group": "base_mm",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 180.22,
+      "k": 24
+     },
+     {
+      "i": 118,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       1,
+       703
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 119,
+      "kind": "matmul_f32",
+      "group": "lora",
+      "grid": [
+       8,
+       703
+      ],
+      "us": 43.47,
+      "k": 98
+     },
+     {
+      "i": 120,
+      "kind": "norm_ln_256_0",
+      "group": "norm",
+      "grid": [
+       5618
+      ],
+      "us": 15.78,
+      "k": 245
+     },
+     {
+      "i": 121,
+      "kind": "gather",
+      "group": "gather",
+      "grid": [
+       2048
+      ],
+      "us": 2.18,
+      "k": 1024
+     }
+    ],
+    "isoSum_ms": 19.013190000000005,
+    "isoByGroup_ms": {
+     "embed": 0.00844,
+     "norm": 0.23776999999999993,
+     "base_mm": 7.31347,
+     "lora": 3.1595099999999996,
+     "rope": 0.15888,
+     "attn": 7.95443,
+     "glu": 0.17850999999999997,
+     "gather": 0.00218
+    }
+   }
+  },
+  "merge": {
+   "unmerged": {
+    "n": 500,
+    "accuracy": 0.834,
+    "kl": 0.10144707899558159,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.19023415150778913
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.75,
+      "kl": 0.15369661257586947
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.91,
+      "kl": 0.03814750547181247
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.95,
+      "kl": 0.054140928100937374
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.07101619732150047
+     }
+    }
+   },
+   "aligned": {
+    "n": 500,
+    "accuracy": 0.834,
+    "kl": 0.10000152801822719,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.18652775024844914
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.75,
+      "kl": 0.15092198309202806
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.91,
+      "kl": 0.037192755358523476
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.95,
+      "kl": 0.053568997194228765
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.07179615419790694
+     }
+    },
+    "argmaxAgree": 0.992,
+    "meanAbsDlogit": 0.04591887676812803,
+    "maxAbsDlogit": 0.5558012500405312,
+    "mergeMs": 481.8000000715256,
+    "maxDeltaSteps": 33.359835436627435,
+    "clipped": 0,
+    "alignDiv": {
+     "2": 2,
+     "3": 1386,
+     "4": 12948
+    }
+   },
+   "fresh127": {
+    "n": 500,
+    "accuracy": 0.832,
+    "kl": 0.10180700370400499,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.76,
+      "kl": 0.18923244322186006
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.76,
+      "kl": 0.15534043772229034
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.91,
+      "kl": 0.03748104243298825
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.95,
+      "kl": 0.05477826832469475
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.07220282681819148
+     }
+    },
+    "argmaxAgree": 0.99,
+    "meanAbsDlogit": 0.04308923506021529,
+    "maxAbsDlogit": 0.5315113067626953,
+    "mergeMs": 437.60000002384186,
+    "maxDeltaSteps": 33.359835436627435,
+    "clipped": 0,
+    "alignDiv": {}
+   },
+   "fresh31": {
+    "n": 500,
+    "accuracy": 0.838,
+    "kl": 0.11228385825537815,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.79,
+      "kl": 0.1794475565186248
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.16428618251088103
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.06284939341745481
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.95,
+      "kl": 0.07126364900700788
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.78,
+      "kl": 0.08357250982292243
+     }
+    },
+    "argmaxAgree": 0.93,
+    "meanAbsDlogit": 0.38059872930126404,
+    "maxAbsDlogit": 3.2533986568450928,
+    "mergeMs": 409.5,
+    "maxDeltaSteps": 33.359835436627435,
+    "clipped": 0,
+    "alignDiv": {}
+   },
+   "noDelta": {
+    "n": 500,
+    "accuracy": 0.46,
+    "kl": 0.4975533754335877,
+    "questions": {
+     "discrepancy_severity": {
+      "n": 100,
+      "accuracy": 0.36,
+      "kl": 0.6989471261374873
+     },
+     "disposition": {
+      "n": 100,
+      "accuracy": 0.38,
+      "kl": 0.48131473269601693
+     },
+     "duplicate": {
+      "n": 100,
+      "accuracy": 0.89,
+      "kl": 0.4556381232508277
+     },
+     "matches_order": {
+      "n": 100,
+      "accuracy": 0.54,
+      "kl": 0.4359501644544246
+     },
+     "urgency": {
+      "n": 100,
+      "accuracy": 0.13,
+      "kl": 0.4159167306291829
+     }
+    },
+    "argmaxAgree": 0.442,
+    "meanAbsDlogit": 1.8695414207437897,
+    "maxAbsDlogit": 5.605825804173946
+   }
+  },
+  "T": {
+   "batch": {
+    "seqs": 16,
+    "S": 384,
+    "rows": 6144,
+    "realTokens": 5651
+   },
+   "forward": {
+    "dispatches": 139,
+    "clears": 0,
+    "byRole": {
+     "embed": 1,
+     "base_mm": 28,
+     "lora_mm": 56,
+     "rope": 7,
+     "attn": 7,
+     "copy": 14,
+     "ln": 15,
+     "geglu": 7,
+     "head": 4
+    },
+    "e2e_wall_ms": 19.700000007947285,
+    "drop": {
+     "embed": 19.666666666666668,
+     "base_mm": 13.5,
+     "lora_mm": 18.333333333333332,
+     "rope": 19.53333334128062,
+     "attn": 10.866666674613953,
+     "copy": 19.56666664282481,
+     "ln": 18.899999976158142,
+     "geglu": 19.53333330154419,
+     "head": 19.700000007947285
+    },
+    "iso": [
+     {
+      "i": 0,
+      "name": "embed",
+      "role": "embed",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 1,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 2,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 3,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 4,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 5,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2039.81,
+      "k": 8
+     },
+     {
+      "i": 6,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 7,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 8,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 9,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 10,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 11,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 12,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 13,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 14,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 15,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 16,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 17,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 18,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 19,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 20,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 21,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 22,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 23,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 24,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 688.13,
+      "k": 8
+     },
+     {
+      "i": 25,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.67,
+      "k": 489
+     },
+     {
+      "i": 26,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 27,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 28,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 29,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 30,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 31,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 32,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 33,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 34,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 35,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 36,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 37,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 38,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 39,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 40,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 41,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 42,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 43,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 44,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 45,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.84,
+      "k": 35
+     },
+     {
+      "i": 46,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 47,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 48,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 49,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 50,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 51,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 52,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 53,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 54,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 55,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 56,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.14,
+      "k": 489
+     },
+     {
+      "i": 57,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 58,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 59,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 60,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 61,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 62,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2039.81,
+      "k": 8
+     },
+     {
+      "i": 63,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 64,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.84,
+      "k": 35
+     },
+     {
+      "i": 65,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 66,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 67,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 68,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 69,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 70,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 71,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 72,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 73,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 173.81,
+      "k": 23
+     },
+     {
+      "i": 74,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 75,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 76,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 77,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 319.49,
+      "k": 16
+     },
+     {
+      "i": 78,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 79,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 80,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 81,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 688.13,
+      "k": 8
+     },
+     {
+      "i": 82,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 83,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 117.96,
+      "k": 35
+     },
+     {
+      "i": 84,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 85,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 86,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 87,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 88,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 89,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 90,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 91,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 92,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 176.66,
+      "k": 23
+     },
+     {
+      "i": 93,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 94,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 95,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 96,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 97,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 98,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 99,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 100,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 101,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 102,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 103,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 104,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 105,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 106,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 107,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 108,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 109,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.77,
+      "k": 123
+     },
+     {
+      "i": 110,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.64,
+      "k": 245
+     },
+     {
+      "i": 111,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 112,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 113,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 114,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 115,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 319.49,
+      "k": 16
+     },
+     {
+      "i": 116,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 117,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 118,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 119,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2031.62,
+      "k": 8
+     },
+     {
+      "i": 120,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 121,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 121.14,
+      "k": 33
+     },
+     {
+      "i": 122,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 123,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 124,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 125,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 126,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 127,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 128,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 129,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 130,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 131,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 132,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 133,
+      "name": "gather",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.54,
+      "k": 1024
+     },
+     {
+      "i": 134,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.2,
+      "k": 1024
+     },
+     {
+      "i": 135,
+      "name": "mm",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       4,
+       1,
+       1
+      ],
+      "us": 26.11,
+      "k": 123
+     },
+     {
+      "i": 136,
+      "name": "bias_gelu",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.6,
+      "k": 1024
+     },
+     {
+      "i": 137,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.33,
+      "k": 1024
+     },
+     {
+      "i": 138,
+      "name": "head_out",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 2.43,
+      "k": 1024
+     }
+    ],
+    "isoSum_ms": 18.98556000000001,
+    "isoByRole_ms": {
+     "fwd:embed": 0.06554,
+     "fwd:base_mm": 6.484189999999998,
+     "fwd:lora_mm": 2.08903,
+     "fwd:rope": 0.18011,
+     "fwd:attn": 8.88014,
+     "fwd:copy": 0.19385000000000005,
+     "fwd:ln": 0.8585500000000003,
+     "fwd:geglu": 0.20246999999999998,
+     "fwd:head": 0.03168
+    }
+   },
+   "step": {
+    "dispatches": 511,
+    "clears": 1,
+    "byRole": {
+     "embed": 1,
+     "base_mm": 76,
+     "lora_mm": 160,
+     "rope": 14,
+     "attn": 28,
+     "copy": 34,
+     "ln": 28,
+     "geglu": 14,
+     "head": 10,
+     "ln_bwd": 15,
+     "ln_pgrad": 1,
+     "gelu_bwd": 1,
+     "lora_grad": 112,
+     "geglu_bwd": 7,
+     "rope_bwd": 7,
+     "optimizer": 3
+    },
+    "e2e_wall_ms": 83.10000002384186,
+    "drop": {
+     "embed": 91.5,
+     "base_mm": 68.36666667461395,
+     "lora_mm": 82.23333330949147,
+     "rope": 83.03333330154419,
+     "attn": 36.233333349227905,
+     "copy": 87.96666665871938,
+     "ln": 84.13333332538605,
+     "geglu": 90.16666666666667,
+     "head": 88.06666668256123,
+     "ln_bwd": 86.43333331743877,
+     "ln_pgrad": 88.23333330949147,
+     "gelu_bwd": 88.46666665871938,
+     "lora_grad": 85.2333333492279,
+     "geglu_bwd": 88.70000000794728,
+     "rope_bwd": 89.33333333333333,
+     "optimizer": 89.7666666507721
+    },
+    "iso": [
+     {
+      "i": 0,
+      "name": "embed",
+      "role": "embed",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 69.11,
+      "k": 55
+     },
+     {
+      "i": 1,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 344.06,
+      "k": 16
+     },
+     {
+      "i": 2,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 37.45,
+      "k": 98
+     },
+     {
+      "i": 3,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 4,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 5,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2146.3,
+      "k": 8
+     },
+     {
+      "i": 6,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.67,
+      "k": 489
+     },
+     {
+      "i": 7,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 8,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 9,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 10,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 11,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 12,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 13,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 14,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.77,
+      "k": 123
+     },
+     {
+      "i": 15,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 16,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 17,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 18,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 19,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 20,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 21,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 22,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 23,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 24,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 25,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 26,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 27,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 28,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 29,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 30,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 31,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 32,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 33,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.77,
+      "k": 123
+     },
+     {
+      "i": 34,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.64,
+      "k": 245
+     },
+     {
+      "i": 35,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 177.49,
+      "k": 24
+     },
+     {
+      "i": 36,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 37,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 38,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 64.48,
+      "k": 62
+     },
+     {
+      "i": 39,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 40,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 41,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 42,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 43,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 44,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.67,
+      "k": 489
+     },
+     {
+      "i": 45,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 121.14,
+      "k": 33
+     },
+     {
+      "i": 46,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 47,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 48,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 49,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 50,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 51,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 52,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.35,
+      "k": 163
+     },
+     {
+      "i": 53,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.11,
+      "k": 245
+     },
+     {
+      "i": 54,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 176.66,
+      "k": 23
+     },
+     {
+      "i": 55,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 56,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 57,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 58,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 59,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 60,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 61,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 26.13,
+      "k": 163
+     },
+     {
+      "i": 62,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2105.34,
+      "k": 8
+     },
+     {
+      "i": 63,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 64,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 123.13,
+      "k": 33
+     },
+     {
+      "i": 65,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 66,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 67,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 68,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 69,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 70,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 71,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 72,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 73,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 179.51,
+      "k": 23
+     },
+     {
+      "i": 74,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 75,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 76,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 77,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 78,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 79,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 80,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 81,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 82,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 83,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.84,
+      "k": 35
+     },
+     {
+      "i": 84,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 85,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 86,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 87,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 88,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 89,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 90,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 30.96,
+      "k": 163
+     },
+     {
+      "i": 91,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 92,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 176.66,
+      "k": 23
+     },
+     {
+      "i": 93,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 94,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 95,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 96,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 97,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 98,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 99,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 100,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 101,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 16.32,
+      "k": 245
+     },
+     {
+      "i": 102,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 123.13,
+      "k": 33
+     },
+     {
+      "i": 103,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 104,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 105,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 106,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 107,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 108,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 109,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.24,
+      "k": 123
+     },
+     {
+      "i": 110,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 111,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 174.76,
+      "k": 24
+     },
+     {
+      "i": 112,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 113,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 114,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 115,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 116,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 117,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.49,
+      "k": 70
+     },
+     {
+      "i": 118,
+      "name": "rope",
+      "role": "rope",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 119,
+      "name": "attn",
+      "role": "attn",
+      "dir": "fwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2129.92,
+      "k": 8
+     },
+     {
+      "i": 120,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 121,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 121.14,
+      "k": 33
+     },
+     {
+      "i": 122,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 123,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 124,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 125,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 126,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 127,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 128,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "fwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.35,
+      "k": 163
+     },
+     {
+      "i": 129,
+      "name": "copy",
+      "role": "copy",
+      "dir": "fwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 130,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 176.66,
+      "k": 23
+     },
+     {
+      "i": 131,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 132,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "fwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 133,
+      "name": "gather",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.47,
+      "k": 1024
+     },
+     {
+      "i": 134,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.2,
+      "k": 1024
+     },
+     {
+      "i": 135,
+      "name": "mm",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       4,
+       1,
+       1
+      ],
+      "us": 26.13,
+      "k": 163
+     },
+     {
+      "i": 136,
+      "name": "bias_gelu",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.6,
+      "k": 1024
+     },
+     {
+      "i": 137,
+      "name": "ln",
+      "role": "ln",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.39,
+      "k": 1024
+     },
+     {
+      "i": 138,
+      "name": "head_out",
+      "role": "head",
+      "dir": "fwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 2.43,
+      "k": 1024
+     },
+     {
+      "i": 139,
+      "name": "loss",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       1,
+       1,
+       1
+      ],
+      "us": 12.73,
+      "k": 489
+     },
+     {
+      "i": 140,
+      "name": "head_out_bwd",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       1,
+       1,
+       1
+      ],
+      "us": 7.35,
+      "k": 535
+     },
+     {
+      "i": 141,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.14,
+      "k": 1024
+     },
+     {
+      "i": 142,
+      "name": "ln_pgrad",
+      "role": "ln_pgrad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       1,
+       1
+      ],
+      "us": 7.37,
+      "k": 489
+     },
+     {
+      "i": 143,
+      "name": "gelu_bwd",
+      "role": "gelu_bwd",
+      "dir": "bwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.47,
+      "k": 1024
+     },
+     {
+      "i": 144,
+      "name": "mm",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       4,
+       4,
+       1
+      ],
+      "us": 9.25,
+      "k": 489
+     },
+     {
+      "i": 145,
+      "name": "colsum",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       1,
+       1,
+       1
+      ],
+      "us": 6.97,
+      "k": 489
+     },
+     {
+      "i": 146,
+      "name": "mm",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       1
+      ],
+      "us": 28.55,
+      "k": 163
+     },
+     {
+      "i": 147,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 3.07,
+      "k": 1024
+     },
+     {
+      "i": 148,
+      "name": "scatter",
+      "role": "head",
+      "dir": "bwd",
+      "groups": [
+       52,
+       1,
+       1
+      ],
+      "us": 1.41,
+      "k": 1024
+     },
+     {
+      "i": 149,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 150,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 319.49,
+      "k": 16
+     },
+     {
+      "i": 151,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 152,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 153,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 154,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2048,
+      "k": 8
+     },
+     {
+      "i": 155,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 156,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 121.14,
+      "k": 33
+     },
+     {
+      "i": 157,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 158,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 159,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 160,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 161,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 162,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 163,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.77,
+      "k": 123
+     },
+     {
+      "i": 164,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 165,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 162.53,
+      "k": 25
+     },
+     {
+      "i": 166,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 167,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 168,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 169,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 45.56,
+      "k": 82
+     },
+     {
+      "i": 170,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 171,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.51,
+      "k": 163
+     },
+     {
+      "i": 172,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 59.92,
+      "k": 70
+     },
+     {
+      "i": 173,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 174,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 112.35,
+      "k": 35
+     },
+     {
+      "i": 175,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 176,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 177,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 178,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 179,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 180,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 181,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 182,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 115.18,
+      "k": 33
+     },
+     {
+      "i": 183,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 184,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 185,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.35,
+      "k": 1024
+     },
+     {
+      "i": 186,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 187,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.35,
+      "k": 1024
+     },
+     {
+      "i": 188,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 189,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 3153.92,
+      "k": 8
+     },
+     {
+      "i": 190,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 4186.11,
+      "k": 8
+     },
+     {
+      "i": 191,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 192,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 339.97,
+      "k": 16
+     },
+     {
+      "i": 193,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 115.18,
+      "k": 33
+     },
+     {
+      "i": 194,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 195,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 196,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.63,
+      "k": 123
+     },
+     {
+      "i": 197,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 198,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 199,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 200,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 201,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 202,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 319.49,
+      "k": 16
+     },
+     {
+      "i": 203,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 204,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 205,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 206,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 688.13,
+      "k": 8
+     },
+     {
+      "i": 207,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 208,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.84,
+      "k": 35
+     },
+     {
+      "i": 209,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 210,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 211,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 212,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 327.68,
+      "k": 16
+     },
+     {
+      "i": 213,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 214,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 215,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 216,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 217,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 165.15,
+      "k": 25
+     },
+     {
+      "i": 218,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 219,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 220,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 221,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 45.47,
+      "k": 98
+     },
+     {
+      "i": 222,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 223,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.33,
+      "k": 245
+     },
+     {
+      "i": 224,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 59.92,
+      "k": 70
+     },
+     {
+      "i": 225,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 226,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 227,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 228,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 229,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 230,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 231,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 232,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.07,
+      "k": 489
+     },
+     {
+      "i": 233,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 234,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 235,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 236,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 237,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 1024
+     },
+     {
+      "i": 238,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.77,
+      "k": 98
+     },
+     {
+      "i": 239,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 240,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 241,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1040.38,
+      "k": 8
+     },
+     {
+      "i": 242,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1277.95,
+      "k": 8
+     },
+     {
+      "i": 243,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 244,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 245,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 246,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 94.66,
+      "k": 45
+     },
+     {
+      "i": 247,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 248,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 249,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 250,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 251,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 252,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 67.65,
+      "k": 62
+     },
+     {
+      "i": 253,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 254,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 255,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 256,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 257,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 258,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 696.32,
+      "k": 8
+     },
+     {
+      "i": 259,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 260,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.84,
+      "k": 35
+     },
+     {
+      "i": 261,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 262,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 263,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 264,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 323.58,
+      "k": 16
+     },
+     {
+      "i": 265,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 266,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 267,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 28.95,
+      "k": 163
+     },
+     {
+      "i": 268,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 269,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 165.15,
+      "k": 25
+     },
+     {
+      "i": 270,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 271,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 272,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.48,
+      "k": 1024
+     },
+     {
+      "i": 273,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 46.14,
+      "k": 98
+     },
+     {
+      "i": 274,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 1024
+     },
+     {
+      "i": 275,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.1,
+      "k": 163
+     },
+     {
+      "i": 276,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 58.98,
+      "k": 70
+     },
+     {
+      "i": 277,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 278,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 279,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 280,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 1024
+     },
+     {
+      "i": 281,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.63,
+      "k": 123
+     },
+     {
+      "i": 282,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 283,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 284,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.8,
+      "k": 489
+     },
+     {
+      "i": 285,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 286,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 287,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 288,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 289,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 290,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 291,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.36,
+      "k": 978
+     },
+     {
+      "i": 292,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 293,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1048.58,
+      "k": 8
+     },
+     {
+      "i": 294,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1277.95,
+      "k": 8
+     },
+     {
+      "i": 295,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.33,
+      "k": 163
+     },
+     {
+      "i": 296,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 297,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 112.35,
+      "k": 35
+     },
+     {
+      "i": 298,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 299,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.92,
+      "k": 640
+     },
+     {
+      "i": 300,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.77,
+      "k": 98
+     },
+     {
+      "i": 301,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.42,
+      "k": 978
+     },
+     {
+      "i": 302,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 303,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.07,
+      "k": 489
+     },
+     {
+      "i": 304,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 305,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 306,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 307,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 308,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 309,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 310,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2072.58,
+      "k": 8
+     },
+     {
+      "i": 311,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.94,
+      "k": 489
+     },
+     {
+      "i": 312,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 313,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 314,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 315,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 316,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 323.58,
+      "k": 16
+     },
+     {
+      "i": 317,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 318,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 319,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.3,
+      "k": 123
+     },
+     {
+      "i": 320,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 321,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 162.53,
+      "k": 25
+     },
+     {
+      "i": 322,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 323,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 324,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 325,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 46.14,
+      "k": 98
+     },
+     {
+      "i": 326,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 327,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.51,
+      "k": 163
+     },
+     {
+      "i": 328,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 59.19,
+      "k": 62
+     },
+     {
+      "i": 329,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 330,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 331,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 332,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 333,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 334,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 335,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 14.98,
+      "k": 245
+     },
+     {
+      "i": 336,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 337,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 66.59,
+      "k": 62
+     },
+     {
+      "i": 338,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 339,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 340,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 341,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 342,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 343,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 344,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 345,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 3129.34,
+      "k": 8
+     },
+     {
+      "i": 346,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 4046.85,
+      "k": 8
+     },
+     {
+      "i": 347,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 348,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 349,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 350,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 351,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 352,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 353,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 354,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 355,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.07,
+      "k": 489
+     },
+     {
+      "i": 356,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 357,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 358,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 359,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 360,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 361,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 362,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 688.13,
+      "k": 8
+     },
+     {
+      "i": 363,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.64,
+      "k": 245
+     },
+     {
+      "i": 364,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 365,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 366,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 367,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 368,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 369,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 370,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 371,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.35,
+      "k": 163
+     },
+     {
+      "i": 372,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 373,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 165.15,
+      "k": 25
+     },
+     {
+      "i": 374,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.7,
+      "k": 123
+     },
+     {
+      "i": 375,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.76,
+      "k": 123
+     },
+     {
+      "i": 376,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 377,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 46.35,
+      "k": 82
+     },
+     {
+      "i": 378,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 379,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.51,
+      "k": 163
+     },
+     {
+      "i": 380,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 58.98,
+      "k": 70
+     },
+     {
+      "i": 381,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 382,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 383,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 384,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 385,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 386,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 387,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.14,
+      "k": 489
+     },
+     {
+      "i": 388,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.07,
+      "k": 489
+     },
+     {
+      "i": 389,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 390,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 391,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 392,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 37.3,
+      "k": 123
+     },
+     {
+      "i": 393,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 394,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.77,
+      "k": 98
+     },
+     {
+      "i": 395,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 396,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 397,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1040.38,
+      "k": 8
+     },
+     {
+      "i": 398,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1269.76,
+      "k": 8
+     },
+     {
+      "i": 399,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 400,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 401,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 402,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 93.21,
+      "k": 45
+     },
+     {
+      "i": 403,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 404,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.77,
+      "k": 98
+     },
+     {
+      "i": 405,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 406,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 407,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 408,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 409,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 410,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 411,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 412,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 413,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 414,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 688.13,
+      "k": 8
+     },
+     {
+      "i": 415,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 416,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 119.16,
+      "k": 33
+     },
+     {
+      "i": 417,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 418,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 419,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 420,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 323.58,
+      "k": 16
+     },
+     {
+      "i": 421,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 422,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.95,
+      "k": 82
+     },
+     {
+      "i": 423,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.3,
+      "k": 123
+     },
+     {
+      "i": 424,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.08,
+      "k": 62
+     },
+     {
+      "i": 425,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 165.15,
+      "k": 25
+     },
+     {
+      "i": 426,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 427,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 37.45,
+      "k": 98
+     },
+     {
+      "i": 428,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 429,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 46.35,
+      "k": 82
+     },
+     {
+      "i": 430,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 431,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.6,
+      "k": 245
+     },
+     {
+      "i": 432,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 59.19,
+      "k": 62
+     },
+     {
+      "i": 433,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 434,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 435,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 93.21,
+      "k": 45
+     },
+     {
+      "i": 436,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 437,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 438,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 439,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 440,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 441,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 442,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 443,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.44,
+      "k": 98
+     },
+     {
+      "i": 444,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 445,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 446,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 447,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 448,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 449,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1040.38,
+      "k": 8
+     },
+     {
+      "i": 450,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 1269.76,
+      "k": 8
+     },
+     {
+      "i": 451,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 452,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 331.78,
+      "k": 16
+     },
+     {
+      "i": 453,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 454,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 93.21,
+      "k": 45
+     },
+     {
+      "i": 455,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 456,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 457,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 458,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 459,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 13.91,
+      "k": 245
+     },
+     {
+      "i": 460,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 461,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 462,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 463,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 464,
+      "name": "rope",
+      "role": "rope",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 465,
+      "name": "attn",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 2023.42,
+      "k": 8
+     },
+     {
+      "i": 466,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 467,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 117.96,
+      "k": 35
+     },
+     {
+      "i": 468,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.11,
+      "k": 98
+     },
+     {
+      "i": 469,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 470,
+      "name": "ln",
+      "role": "ln",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 471,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 315.39,
+      "k": 16
+     },
+     {
+      "i": 472,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 36.23,
+      "k": 123
+     },
+     {
+      "i": 473,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       12,
+       96,
+       1
+      ],
+      "us": 51.15,
+      "k": 82
+     },
+     {
+      "i": 474,
+      "name": "geglu",
+      "role": "geglu",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 29.3,
+      "k": 123
+     },
+     {
+      "i": 475,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 57.11,
+      "k": 70
+     },
+     {
+      "i": 476,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 162.53,
+      "k": 25
+     },
+     {
+      "i": 477,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 478,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 479,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 480,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       6,
+       1,
+       24
+      ],
+      "us": 45.56,
+      "k": 82
+     },
+     {
+      "i": 481,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       12,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 482,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       6,
+       96,
+       1
+      ],
+      "us": 20.51,
+      "k": 163
+     },
+     {
+      "i": 483,
+      "name": "geglu_bwd",
+      "role": "geglu_bwd",
+      "dir": "bwd",
+      "groups": [
+       9216,
+       1,
+       1
+      ],
+      "us": 58.98,
+      "k": 70
+     },
+     {
+      "i": 484,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 335.87,
+      "k": 16
+     },
+     {
+      "i": 485,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 114.22,
+      "k": 35
+     },
+     {
+      "i": 486,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.11,
+      "k": 41
+     },
+     {
+      "i": 487,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.54,
+      "k": 1024
+     },
+     {
+      "i": 488,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 489,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 490,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 491,
+      "name": "copy",
+      "role": "copy",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 14.18,
+      "k": 245
+     },
+     {
+      "i": 492,
+      "name": "ln_bwd",
+      "role": "ln_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 65.54,
+      "k": 62
+     },
+     {
+      "i": 493,
+      "name": "mm",
+      "role": "base_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 116.09,
+      "k": 35
+     },
+     {
+      "i": 494,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 495,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       4,
+       24
+      ],
+      "us": 36.78,
+      "k": 98
+     },
+     {
+      "i": 496,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 497,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 35.17,
+      "k": 123
+     },
+     {
+      "i": 498,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.48,
+      "k": 1024
+     },
+     {
+      "i": 499,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       4,
+       96,
+       1
+      ],
+      "us": 15.25,
+      "k": 245
+     },
+     {
+      "i": 500,
+      "name": "attn_bq",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 3104.77,
+      "k": 8
+     },
+     {
+      "i": 501,
+      "name": "attn_bkv",
+      "role": "attn",
+      "dir": "bwd",
+      "groups": [
+       24576,
+       1,
+       1
+      ],
+      "us": 3940.35,
+      "k": 8
+     },
+     {
+      "i": 502,
+      "name": "rope_bwd",
+      "role": "rope_bwd",
+      "dir": "bwd",
+      "groups": [
+       6144,
+       1,
+       1
+      ],
+      "us": 25.73,
+      "k": 163
+     },
+     {
+      "i": 503,
+      "name": "mm",
+      "role": "lora_mm",
+      "dir": "bwd",
+      "groups": [
+       1,
+       96,
+       1
+      ],
+      "us": 125.11,
+      "k": 33
+     },
+     {
+      "i": 504,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       1,
+       12,
+       24
+      ],
+      "us": 91.75,
+      "k": 45
+     },
+     {
+      "i": 505,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       24,
+       1,
+       1
+      ],
+      "us": 4.56,
+      "k": 978
+     },
+     {
+      "i": 506,
+      "name": "mm",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       4,
+       1,
+       24
+      ],
+      "us": 34.63,
+      "k": 123
+     },
+     {
+      "i": 507,
+      "name": "sumz",
+      "role": "lora_grad",
+      "dir": "bwd",
+      "groups": [
+       8,
+       1,
+       1
+      ],
+      "us": 4.49,
+      "k": 978
+     },
+     {
+      "i": 508,
+      "name": "sqsum",
+      "role": "optimizer",
+      "dir": "bwd",
+      "groups": [
+       64,
+       1,
+       1
+      ],
+      "us": 3.97,
+      "k": 1024
+     },
+     {
+      "i": 509,
+      "name": "norm",
+      "role": "optimizer",
+      "dir": "bwd",
+      "groups": [
+       1,
+       1,
+       1
+      ],
+      "us": 2.37,
+      "k": 1024
+     },
+     {
+      "i": 510,
+      "name": "adamw",
+      "role": "optimizer",
+      "dir": "bwd",
+      "groups": [
+       961,
+       1,
+       1
+      ],
+      "us": 3.84,
+      "k": 1024
+     }
+    ],
+    "isoSum_ms": 81.60089999999992,
+    "isoByRole_ms": {
+     "fwd:embed": 0.06911,
+     "fwd:base_mm": 6.73627,
+     "fwd:lora_mm": 2.0952200000000003,
+     "fwd:rope": 0.17971,
+     "fwd:attn": 9.16684,
+     "fwd:copy": 0.19552000000000003,
+     "fwd:ln": 0.8575500000000001,
+     "fwd:geglu": 0.20438999999999996,
+     "fwd:head": 0.03163,
+     "bwd:head": 0.06625999999999999,
+     "bwd:ln_bwd": 0.8613900000000002,
+     "bwd:ln_pgrad": 0.00737,
+     "bwd:gelu_bwd": 0.00147,
+     "bwd:ln": 0.8520200000000002,
+     "bwd:base_mm": 11.623730000000002,
+     "bwd:lora_mm": 4.536409999999999,
+     "bwd:rope": 0.17971,
+     "bwd:attn": 39.731190000000005,
+     "bwd:copy": 0.2803300000000001,
+     "bwd:geglu": 0.20392,
+     "bwd:lora_grad": 3.1162099999999997,
+     "bwd:geglu_bwd": 0.41516,
+     "bwd:rope_bwd": 0.17931,
+     "bwd:optimizer": 0.01018
+    }
+   }
+  }
+ }
+}

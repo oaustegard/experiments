@@ -4098,6 +4098,24 @@ On three fresh checkpoints packed from fp32, ±31 per-column int8 codes cost 0.0
 instead of requantizing from fp32 overstated the cost fourfold (0.0085).
 (`browser-decider/results/quant_levels-summary.json`)
 
+### Merge a LoRA into ±31 int8 codes at the base scale / 4, not back to ±31 (ettin-kernel-profile)
+
+Codes held to ±31 leave int8 room to absorb a merged LoRA delta. Set each column's scale to the base scale / 4
+(/ 3 or / 2 where base plus delta passes 31.75 base steps): the base codes become exact multiples and only the
+delta rounds. On the invoice spike (500 questions) that kept accuracy 0.834 = 0.834 with 99.2% of answers unchanged;
+requantizing the merge to ±31 changed 7%. The delta reached 33 base steps, so expect some columns to need / 3.
+The merge costs ~0.5 s of JavaScript per spike, which rules it out for a page that switches spikes per decision.
+(`ettin-kernel-profile/results/summary.json` `merge`)
+
+### Profile WGSL engines per kernel before fusing: a Mac dispatch is ~1.5 µs (ettin-kernel-profile)
+
+On the Mac's Apple GPU (Chrome 156, timestamp queries) an empty dispatch costs 0.9 µs and one with a read-write
+binding 1.47 µs, so the Ettin-17m decider's 122 dispatches are 3% of a 6 ms decision. Each kernel timed alone
+(repeated in its own pass until the pass takes 3 ms) summed to the whole graph's time within 0.5%, which shows
+there are no stalls between kernels for fusion to remove. Time "drop one kernel group" arms of the real graph as
+well: outputs are wrong but timing is valid, and dropping the LoRA side path gives the merged model's cost exactly.
+GPU time is not page time: the same decision took 14 ms in `score()`. (`ettin-kernel-profile/web/profile_job.js`)
+
 ### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
 
 0 loops in 200 greedy and 100 sampled (T 0.3, min_p 0.15, rep 1.05) GSM8K answers and 64 chat replies at 512 tokens, so the

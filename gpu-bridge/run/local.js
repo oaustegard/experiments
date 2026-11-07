@@ -25,7 +25,7 @@ const srv = http.createServer((q, r) => {
     const enc = (v) => { if (ArrayBuffer.isView(v)) { let s = ''; const u = new Uint8Array(v.buffer, v.byteOffset, v.byteLength); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return { dtype: v.constructor.name, b64: btoa(s) }; }
       if (Array.isArray(v)) return v.map(enc); if (v && typeof v === 'object') { const o = {}; for (const [k, x] of Object.entries(v)) o[k] = enc(x); return o; } return v; };
     const runs = [];
-    for (const [k, inputs] of sets.entries()) runs.push(await new Promise((res) => { const logs = []; w.onmessage = (e) => { if (e.data.t === 'log') logs.push(e.data.s); else res({ t: e.data.t, s: e.data.s, logs, result: enc(e.data.result) }); };
+    for (const [k, inputs] of sets.entries()) runs.push(await new Promise((res) => { const logs = []; w.onmessage = (e) => { if (e.data.t === 'log') logs.push(e.data.s); else if (!['done', 'error', 'lost'].includes(e.data.t)) {} else res({ t: e.data.t, s: e.data.s, logs, result: enc(e.data.result) }); };
       w.onerror = (e) => res({ t: 'error', s: e.message, logs });
       w.postMessage({ t: 'run', id: 'local' + k, src: `self.__jobs["local${k}"] = async function (ctx) {\n${code}\n};`, inputs }); }));
     return Array.isArray(raw) ? runs : runs[0];
