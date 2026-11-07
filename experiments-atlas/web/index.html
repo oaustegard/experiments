@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Experiments Atlas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -14,7 +18,7 @@
 :root[data-theme="dark"]{
   --bg:#141917;--surface:#1c2320;--fg:#e4e9e5;--muted:#9aa59f;--line:#2f3934;--accent:#7cc4ad;
   --c1:#6aaee6;--c2:#ec8a52;--c3:#62c48c;--c4:#e57aa0;--c5:#a98ee6;--c6:#d1b04a;--c7:#4cc3cc;--c8:#f07a72;--c9:#9cc55a;--c10:#d488cc;--c11:#86a3f0;--c12:#d49866;color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
 .wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 28px;max-width:1500px;margin:0 auto;display:grid;gap:14px}
 header{display:grid;gap:6px}
 h1{font-family:var(--f-display);font-weight:650;font-size:clamp(24px,4vw,34px);margin:0;text-wrap:balance;letter-spacing:-.01em}
@@ -44,6 +48,8 @@ aside p{margin:0}
 aside .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
 .tag{padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-family:var(--f-mono);font-size:11.5px}
 .tag.k{border-color:var(--k);color:var(--fg)} .tag.k::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--k);margin-right:5px}
+aside .x{display:none;position:absolute;right:8px;top:8px;padding:2px 10px;font-size:18px;line-height:1.2}
+aside{position:relative}
 aside a{color:var(--accent);font-weight:500}
 .lnk{fill:none;stroke:var(--line);stroke-width:1}
 .node circle{stroke:var(--surface);stroke-width:1.5}
@@ -55,12 +61,29 @@ aside a{color:var(--accent);font-weight:500}
 .node.cl{cursor:pointer}
 .node.sel text{text-decoration:underline}
 .root text{font-family:var(--f-display);font-weight:650;font-size:16px;fill:var(--fg)}
+@media (max-width:860px){
+ .map{aspect-ratio:4/5;max-height:72svh}
+ aside{position:sticky;bottom:8px;max-height:30svh;overflow:auto;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+ aside:not(.on){display:none}
+ .hide-narrow{display:none}
+ .node.leaf text{font-size:12px}
+ .sub{font-size:13px}
+ aside .x{display:block}
+ h1{font-size:24px}
+ .wrap{padding-block:12px 20px;gap:10px}
+ .chips{flex-wrap:nowrap;overflow-x:auto;margin-inline:-16px;padding:2px 16px 6px;scrollbar-width:none}
+ .chips::-webkit-scrollbar{display:none}
+ .chip{flex:none}
+ #q{flex:1 1 100%}
+ .controls .btn{flex:1}
+}
+@media (pointer:coarse){.chip{padding:8px 12px 8px 9px}.btn{padding:10px 14px}.zoom .btn{padding:9px 14px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <div class="wrap">
 <header>
 <h1>Experiments Atlas</h1>
-<p class="sub">Every experiment directory in <b>oaustegard/experiments</b> (except the shared <code>_lib/</code>), grouped by theme. <b id="n"></b> experiments in <b id="nc"></b> clusters, with purposes taken from each directory's README or the repo's README index, as of 2026-11-07. Click a cluster name or its filter button to fold or unfold it; click an experiment for its purpose and link.</p>
+<p class="sub">Every experiment directory in <b>oaustegard/experiments</b> (except the shared <code>_lib/</code>), grouped by theme. <b id="n"></b> experiments in <b id="nc"></b> clusters, with purposes taken from each directory's README or the repo's README index, as of 2026-11-07. <span class="hide-narrow">Click a cluster name or its filter button to fold or unfold it; click an experiment for its purpose and link.</span></p>
 </header>
 <div class="controls">
 <input id="q" type="search" placeholder="Filter by name or purpose, e.g. remex, WGSL, Haiku" aria-label="Filter experiments">
@@ -82,10 +105,15 @@ const open=new Set(innerWidth<600?[]:ORDER);let q="",sel=null;
 document.getElementById('n').textContent=DATA.length;document.getElementById('nc').textContent=ORDER.length;
 const chips=d3.select('#chips').selectAll('button').data(ORDER).join('button').attr('class','chip').attr('type','button')
  .attr('style',c=>`--k:${COL[c]}`).html(c=>`<i></i>${c} <span>${DATA.filter(d=>d.c===c).length}</span>`)
- .on('click',(e,c)=>{open.has(c)?open.delete(c):open.add(c);draw()});
+ .on('click',(e,c)=>toggle(c));
 const svg=d3.select('#map').insert('svg',':first-child').attr('role','img').attr('aria-label','Radial mind map of experiments by cluster');
 const g=svg.append('g');const zoom=d3.zoom().scaleExtent([.3,6]).on('zoom',e=>g.attr('transform',e.transform));svg.call(zoom);
-let fitT=null;
+let fitT=null,POS={};
+function zoomTo(c){const pts=Object.values(POS).filter(o=>o.c===c).map(o=>o.p);if(!pts.length)return fit();
+ const m=80,x0=Math.min(...pts.map(p=>p[0]))-m,x1=Math.max(...pts.map(p=>p[0]))+m,y0=Math.min(...pts.map(p=>p[1]))-m,y1=Math.max(...pts.map(p=>p[1]))+m,
+  w=svg.node().clientWidth,h=svg.node().clientHeight,k=Math.min(w/(x1-x0),h/(y1-y0),3);
+ svg.transition().call(zoom.transform,d3.zoomIdentity.translate(w/2-k*(x0+x1)/2,h/2-k*(y0+y1)/2).scale(k))}
+const narrow=()=>innerWidth<=860;
 function fit(){const b=g.node().getBBox(),w=svg.node().clientWidth,h=svg.node().clientHeight,pad=10;
  const k=Math.min(w/(b.width+pad*2),h/(b.height+pad*2),2.5);fitT=d3.zoomIdentity.translate(w/2-k*(b.x+b.width/2),h/2-k*(b.y+b.height/2)).scale(k);svg.call(zoom.transform,fitT)}
 d3.select('#zi').on('click',()=>svg.transition().call(zoom.scaleBy,1.5));
@@ -95,14 +123,16 @@ d3.select('#exp').on('click',()=>{ORDER.forEach(c=>open.add(c));draw();fit()});
 d3.select('#col').on('click',()=>{open.clear();draw();fit()});
 d3.select('#q').on('input',e=>{q=e.target.value.trim().toLowerCase();if(q)DATA.forEach(d=>{if(match(d))open.add(d.c)});draw()});
 const match=d=>!q||(d.id+' '+d.p+' '+d.c).toLowerCase().includes(q);
+function toggle(c){const was=open.has(c);if(narrow()&&!was)open.clear();was?open.delete(c):open.add(c);draw();fit()}
 function draw(){
  chips.attr('aria-pressed',c=>open.has(c));
- const tree={name:'Experiments',children:ORDER.map(c=>({name:c,cl:c,children:open.has(c)?DATA.filter(d=>d.c===c).map(d=>({name:d.id,d})):[]}))};
+ const tree={name:'Experiments',children:(narrow()&&open.size&&open.size<ORDER.length?ORDER.filter(c=>open.has(c)):ORDER).map(c=>({name:c,cl:c,children:open.has(c)?DATA.filter(d=>d.c===c).map(d=>({name:d.id,d})):[]}))};
  const root=d3.hierarchy(tree);const leaves=Math.max(root.leaves().length,12);
- const R=Math.max(200,leaves*13/(2*Math.PI));
+ const R=Math.max(narrow()?110:200,leaves*13/(2*Math.PI));
  d3.cluster().size([2*Math.PI,R]).separation((a,b)=>a.parent===b.parent?1:2.2)(root);
  root.children.forEach((n,i)=>{n.y=R*(open.size?(i%2?0.30:0.50):0.62)});
  const pt=(x,y)=>[Math.cos(x-Math.PI/2)*y,Math.sin(x-Math.PI/2)*y];
+ POS={};root.descendants().forEach(n=>{POS[n.depth===1?'c:'+n.data.cl:n.depth===2?'l:'+n.data.name:'r']={p:pt(n.x,n.y),c:n.depth===1?n.data.cl:n.depth===2?n.data.d.c:null}});
  g.selectAll('*').remove();
  g.append('g').selectAll('path').data(root.links()).join('path').attr('class','lnk')
   .attr('stroke',l=>l.target.depth===1?COL[l.target.data.cl]:null).attr('stroke-opacity',l=>l.target.depth===1?.5:1)
@@ -115,7 +145,7 @@ function draw(){
  cl.append('circle').attr('r',7).attr('fill',n=>COL[n.data.cl]);
  cl.append('text').attr('dy','.35em').attr('x',n=>n.x<Math.PI?11:-11).attr('text-anchor',n=>n.x<Math.PI?'start':'end').attr('fill',n=>COL[n.data.cl])
   .text(n=>n.data.cl+(open.has(n.data.cl)?'':' +'));
- cl.on('click',(e,n)=>{const c=n.data.cl;open.has(c)?open.delete(c):open.add(c);draw()});
+ cl.on('click',(e,n)=>toggle(n.data.cl));
  const lf=nodes.filter(n=>n.depth===2);
  lf.append('circle').attr('r',3.4).attr('fill',n=>COL[n.data.d.c]);
  lf.append('text').attr('dy','.32em').attr('x',n=>n.x<Math.PI?6:-6).attr('text-anchor',n=>n.x<Math.PI?'start':'end')
@@ -125,11 +155,15 @@ function draw(){
 }
 function show(d){
  const k=`--k:${COL[d.c]}`;
- document.getElementById('det').innerHTML=`<div class="eyebrow">Experiment</div><h2>${d.id}/</h2>
+ document.getElementById('det').classList.add('on');
+ document.getElementById('det').innerHTML=`<button class="btn x" type="button" aria-label="Close">×</button><div class="eyebrow">Experiment</div><h2>${d.id}/</h2>
  <p>${esc(d.p)}</p><div class="meta"><span class="tag k" style="${k}">${d.c}</span>${d.s2?`<span class="tag k" style="--k:${COL[d.s2]}">also: ${d.s2}</span>`:''}${d.d?`<span class="tag">${d.d}</span>`:''}${d.s?`<span class="tag">${d.s}</span>`:''}</div>
  <a href="https://github.com/oaustegard/experiments/tree/main/${d.id}" target="_blank" rel="noopener">Open on GitHub ↗</a>`;
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 document.getElementById('det').innerHTML='<div class="eyebrow">Experiment</div><h2>Pick a leaf</h2><p>Click any experiment on the map to see its one-line purpose, date, status and a link to its directory. Type in the filter to fade everything that does not match.</p>';
-show(DATA.find(d=>d.id==='splat-diffusion'));sel='splat-diffusion';draw();fit();addEventListener('resize',fit);
+show(DATA.find(d=>d.id==='splat-diffusion'));sel='splat-diffusion';if(narrow())document.getElementById('det').classList.remove('on');
+document.getElementById('det').addEventListener('click',e=>{if(e.target.closest('.x'))e.currentTarget.classList.remove('on')});
+draw();fit();addEventListener('resize',fit);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 </script>

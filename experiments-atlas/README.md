@@ -18,4 +18,4 @@ Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experime
 - `tilt-racer` has no README, so its purpose is a guess.
 - `phase-a-bridges` and `te-bridges` are paper bridge-discovery pipelines and sit under Search and knowledge bases because no cluster fits them well.
 - Most purpose lines are trimmed automatically from the repo's top-level `README.md` index (or from the folder's own README or RESULTS file where the index has no row); about 15 were rewritten by hand, and some read clipped.
-- On a phone the clusters open folded and their labels are about 8px until you zoom or unfold one.
+- On a phone the map opens with every cluster folded. Tapping a cluster shows only that cluster, with labels at about 9px; pinch to zoom further. The experiment card appears at the bottom of the screen after a tap and closes with ×.
