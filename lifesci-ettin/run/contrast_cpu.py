@@ -46,12 +46,15 @@ def main():
     ap.add_argument("--steps", type=int, default=1000); ap.add_argument("--lr", type=float, default=5e-5)
     ap.add_argument("--warm", type=int, default=100); ap.add_argument("--scale", type=float, default=20.0)
     ap.add_argument("--pad", type=int)
+    ap.add_argument("--shards", help="shard prefix under .work/shards (default ARM)")
+    ap.add_argument("--pairs", default="pairs.npz")
     a = ap.parse_args()
-    lens = np.fromfile(S / f"{a.arm}.lens.u16", np.uint16).astype(np.int64)
-    ids = np.fromfile(S / f"{a.arm}.ids.u16", np.uint16)
+    sh = a.shards or a.arm
+    lens = np.fromfile(S / f"{sh}.lens.u16", np.uint16).astype(np.int64)
+    ids = np.fromfile(S / f"{sh}.ids.u16", np.uint16)
     offs = np.concatenate([[0], np.cumsum(lens)])
     pad = a.pad if a.pad is not None else PAD[a.arm]
-    order = np.load(S / "pairs.npz")["order"]
+    order = np.load(S / a.pairs)["order"]
     P = 64
     if a.start == "e17c":
         p = load_st(W / "e17c/epoch1")
@@ -83,7 +86,7 @@ def main():
             print(f"step {s + 1}/{a.steps} loss {np.mean(losses[-25:]):.4f} acc {np.mean(acc[-25:]):.3f} {el / (s + 1):.2f}s/step", flush=True)
     (W / "ckpt").mkdir(parents=True, exist_ok=True)
     to_flat(m).tofile(W / "ckpt" / f"{a.name}.f32")
-    out = {"name": a.name, "start": a.start, "arm": a.arm, "steps": a.steps, "lr": a.lr, "scale": a.scale, "P": P,
+    out = {"name": a.name, "start": a.start, "arm": a.arm, "shards": sh, "pairs": a.pairs, "steps": a.steps, "lr": a.lr, "scale": a.scale, "P": P,
            "s_per_step": (time.time() - t0) / a.steps, "loss_first100": float(np.mean(losses[:100])),
            "loss_last100": float(np.mean(losses[-100:])), "acc_last100": float(np.mean(acc[-100:])), "losses": [round(x, 4) for x in losses]}
     (HERE / "results/train").mkdir(parents=True, exist_ok=True)
