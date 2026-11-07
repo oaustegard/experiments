@@ -95,7 +95,7 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    3.9e-5 of NumPy). On the Mac (bridge job `engine-ab`, run `engine-ab-1`, apple metal-3) outputs
    are identical and `score()` time is within 0.98x to 1.01x of the fork for 60, 829 and 1,500 tokens
    (`tests/results/engine-ab-1-mac.json`).
-2. **Forward ops duplicated across engines** (done 2026-11-07 on SwiftShader; Mac timing below).
+2. **Forward ops duplicated across engines** (done 2026-11-07).
    `embed` (token tables t4 and t3, optional alpha and BERT position rows), `ropeTable` + `rope`
    (fused q/k rows or a plain buffer, any number of theta tables) and `gated` (gelu, gelu_tanh or
    silu times a second operand, ModernBERT's [gate | up] row or in place against a strided buffer)
@@ -104,7 +104,11 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    norm-plus-RoPE `prep`; moederncolbert-bench keeps its MoE, hash-embedding and ColBERT ops for
    step 4. `tests/engine_ab.mjs` gives max |diff| 0 against the previous commit for all five
    engines (decider, adapter-library with router and a spike, Ettin-17m, the EG2 cut, MoEdernColBERT
-   1.5M with both matmul paths). LFM's SwiGLU waits for step 5.
+   1.5M with both matmul paths). On the Mac (apple metal-3) outputs are identical for the EG2 cut,
+   Ettin-17m, the decider and adapter-library; EG2 cut 0.9 / 0.9 ms short and 1.9 / 1.9 ms at 118
+   tokens, Ettin 0.7 / 0.7 ms (`wgsl-ab-step2`); decider and spike `score()` 0.98x to 1.03x, after a
+   rerun with 12 rounds put the decider's one 1.07x reading at 1.004x (`engine-ab-step2`, `-step2b`,
+   in `tests/results/`). MoEdernColBERT was checked on SwiftShader only. LFM's SwiGLU waits for step 5.
 3. **Training ops** into `train/`: the backward kernels, split-K weight gradients and AdamW, with
    finite-difference cases. ettin-wgsl-train and lifesci-ettin import from here; the forward ops the
    trainer shares with inference (LayerNorm, rope, attention, GeGLU) become one op where the shapes
