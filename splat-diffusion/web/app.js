@@ -1,4 +1,4 @@
-import { Painter, SplatDiffusion, bakeShader } from "./splatdiff.js";
+import { Painter, SplatDiffusion, bakeShader, splatMean } from "./splatdiff.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("c"), status = $("status"), bar = $("bar").firstElementChild;
@@ -53,6 +53,7 @@ async function generate() {
       shouldStop: () => cancel });
     await device.queue.onSubmittedWorkDone();
     painter.setSplats(model.b.splats, model.K);
+    painter.mean = splatMean(await model.splats(), model.K);   // centre of the stochastic-tiling blend
     draw();
     status.textContent = done ? `${names[cls]} · ${model.K} splats · ${steps} steps in ${((performance.now() - t0) / 1000).toFixed(2)} s · seed ${seed}` : "Stopped";
   } catch (e) {
@@ -154,6 +155,8 @@ async function main() {
   $("go").addEventListener("click", generate);
   $("rnd").addEventListener("click", () => { pickRandom(); if (!running) generate(); });
   $("wgsl").addEventListener("click", exportWGSL);
+  $("stoch").addEventListener("change", () => { painter.stochastic = $("stoch").checked; draw(); });
+  if (q0.has("grid")) { $("stoch").checked = false; painter.stochastic = false; }
   $("splats").value = String(K);
   $("splats").addEventListener("change", async () => {
     if (running) { cancel = true; while (running) await new Promise((r) => setTimeout(r, 50)); }

@@ -474,8 +474,12 @@ export class SplatDiffusion {
 }
 
 // Blits a cached tile texture across the canvas with a repeating sampler.
+// Blits the cached tile across the canvas. mode 0 repeats it on a grid; mode 1 is stochastic tiling
+// (Heitz & Neyret 2018): every point blends three copies of the tile at random offsets, one per corner
+// of a triangle grid, with a variance-preserving blend around the tile's mean colour, so the grid of
+// repeats is hidden while contrast is kept.
 const WGSL_BLIT = /* wgsl */`
-struct P { tilePx:f32, offX:f32, offY:f32, _a:f32 }
+struct P { tilePx:f32, offX:f32, offY:f32, mode:f32, mean:vec4f }   // mean.w = triangle cells per tile
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var tex: texture_2d<f32>;
 @group(0) @binding(2) var smp: sampler;
@@ -483,9 +487,35 @@ struct P { tilePx:f32, offX:f32, offY:f32, _a:f32 }
   let xy = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
   return vec4f(xy * 2.0 - 1.0, 0.0, 1.0);
 }
+fn hash2(q: vec2f) -> vec2f {
+  return fract(sin(vec2f(dot(q, vec2f(127.1, 311.7)), dot(q, vec2f(269.5, 183.3)))) * 43758.5453);
+}
+fn tap(uv: vec2f) -> vec3f { return textureSampleLevel(tex, smp, uv, 0.0).rgb; }
 @fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
-  return vec4f(textureSample(tex, smp, pos.xy / p.tilePx + vec2f(p.offX, p.offY)).rgb, 1.0);
+  let uv = pos.xy / p.tilePx + vec2f(p.offX, p.offY);
+  if (p.mode < 0.5) { return vec4f(tap(uv), 1.0); }
+  let s = uv * p.mean.w;
+  let sk = vec2f(s.x - 0.57735027 * s.y, 1.15470054 * s.y);
+  let b = floor(sk); let f = fract(sk);
+  let z = 1.0 - f.x - f.y;
+  var w: vec3f; var v1: vec2f; var v2: vec2f; var v3: vec2f;
+  if (z > 0.0) { w = vec3f(z, f.y, f.x); v1 = b; v2 = b + vec2f(0.0, 1.0); v3 = b + vec2f(1.0, 0.0); }
+  else { w = vec3f(-z, 1.0 - f.y, 1.0 - f.x); v1 = b + vec2f(1.0, 1.0); v2 = b + vec2f(1.0, 0.0); v3 = b + vec2f(0.0, 1.0); }
+  let m = p.mean.rgb;
+  let c = m + (w.x * (tap(uv + hash2(v1)) - m) + w.y * (tap(uv + hash2(v2)) - m) + w.z * (tap(uv + hash2(v3)) - m))
+          / sqrt(dot(w, w));
+  return vec4f(clamp(c, vec3f(0.0), vec3f(1.0)), 1.0);
 }`;
+
+// Mean display colour of a splat list: BG + sum of colour x Gaussian area (2 pi / det A), in [0, 1].
+export function splatMean(sp, K) {
+  const m = [0, 0, 0];
+  for (let k = 0; k < K; k++) {
+    const o = k * 8, area = (2 * Math.PI) / Math.max(1e-6, sp[o + 2] * sp[o + 4]);
+    for (let c = 0; c < 3; c++) m[c] += sp[o + 5 + c] * area;
+  }
+  return m.map((v) => Math.min(1, Math.max(0, (v + 1) / 2)));
+}
 
 // Paints the splats. While a tile is at most MAX_TILE device pixels it is painted once into a texture
 // (cost tile^2 x K, only when the splats change) and repeated with a sampler; zoomed in further, every
@@ -508,7 +538,10 @@ export class Painter {
       fragment: { module: bm, entryPoint: "fs", targets: [{ format }] } });
     this.sampler = device.createSampler({ addressModeU: "repeat", addressModeV: "repeat", magFilter: "linear", minFilter: "linear" });
     this.u = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    this.tu = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.tu = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.stochastic = true;
+    this.mean = [0.5, 0.5, 0.5];
+    this.cells = 2.0;
     this.dirty = true;
   }
 
@@ -545,7 +578,7 @@ export class Painter {
         tp.setPipeline(this.tilePipe); tp.setBindGroup(0, bg); tp.draw(3); tp.end();
         this.dirty = false;
       }
-      this.uni(this.tu, tilePx, offX, offY, 0);
+      dev.queue.writeBuffer(this.tu, 0, new Float32Array([tilePx, offX, offY, this.stochastic ? 1 : 0, ...this.mean, this.cells]));
       const pass = enc.beginRenderPass({ colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
       pass.setPipeline(this.blitPipe); pass.setBindGroup(0, this.blitBG); pass.draw(3); pass.end();
     } else {
