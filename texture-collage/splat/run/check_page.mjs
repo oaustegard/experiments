@@ -60,7 +60,10 @@ if (await page.evaluate(() => window.app.gpu)) {
   await page.waitForTimeout(3000);
   n = await renders();
   await page.fill("#K", "7"); await page.dispatchEvent("#K", "change");
-  await page.waitForFunction((n) => window.app.renders > n && window.app.regions().length <= 7, n, { timeout: 300000 });
+  // the region list is rebuilt in the same step that queues generation for the new regions, so once it shows
+  // 7 rows the new batch is queued and Stop covers it
+  await page.waitForFunction(() => document.querySelectorAll("#regions .reg").length <= 7, null, { timeout: 300000 });
+  await page.waitForFunction((n) => window.app.renders > n, n, { timeout: 300000 });
   // clicked from the page: on SwiftShader a frame takes ~17 s, and Playwright waits for the button to be "stable"
   await page.evaluate(() => window.app.stop());
   await page.waitForFunction(() => document.getElementById("go").textContent !== "Stop", null, { timeout: 600000 });
