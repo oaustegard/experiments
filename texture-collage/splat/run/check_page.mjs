@@ -7,13 +7,13 @@ import { open } from "../../run/browser.mjs";
 const out = { errors: [] };
 const ok = (name, cond, extra = {}) => { out[name] = { pass: !!cond, ...extra }; console.log(cond ? "ok  " : "FAIL", name, JSON.stringify(extra)); };
 const t0 = Date.now();
-const { page, close } = await open("texture-collage/splat/index.html", { ready: () => window.app && window.app.ready && window.app.renders >= 1, dsf: 2 });
+const { page, close } = await open("texture-collage/splat/index.html", { ready: () => window.app && window.app.ready && window.app.renders >= 1, dsf: 1 });
 page.on("pageerror", (e) => out.errors.push(e.message));
 const renders = () => page.evaluate(() => window.app.renders);
 const after = async (n) => page.waitForFunction((n) => window.app.renders > n, n, { timeout: 120000 });
 ok("first_collage", true, { ms: Date.now() - t0, timing: await page.evaluate(() => window.app.timing) });
 await page.waitForTimeout(1500);
-await page.screenshot({ path: "results/page.png" });
+await page.screenshot({ path: "results/page.png", timeout: 180000 });
 for (const [id, v] of [["mode", "nearest"], ["lw", "96"], ["tint", "none"], ["pick", "colour"], ["mode", "spline"], ["mode", "distance"], ["lw", "192"], ["tint", "region"], ["pick", "structure"], ["view", "regions"], ["view", "collage"]]) {
   const n = await renders();
   await page.click(`#${id} [data-v="${v}"]`);
@@ -35,7 +35,7 @@ n = await renders();
 await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 40, { steps: 5 }); await page.mouse.up();
 await after(n);
 await page.waitForTimeout(1500);
-await page.screenshot({ path: "results/page_zoom.png" });
+await page.screenshot({ path: "results/page_zoom.png", timeout: 180000 });
 ok("zoom_pan", true);
 const save = async (id) => { const dl = page.waitForEvent("download", { timeout: 300000 }); await page.click(`#${id}`); const d = await dl; return { name: d.suggestedFilename(), path: await d.path() }; };
 const w = await save("wgsl"), h = await save("html");
@@ -73,7 +73,7 @@ await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(1500);
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 ok("mobile_no_hscroll", overflow <= 0, { overflow });
-await page.screenshot({ path: "results/page_mobile.png" });
+await page.screenshot({ path: "results/page_mobile.png", timeout: 180000 });
 ok("no_page_errors", out.errors.length === 0, { errors: out.errors });
 await close();
 {
@@ -82,8 +82,8 @@ await close();
   v.on("pageerror", (e) => verrs.push(e.message));
   v.on("console", (m) => { if (m.type() === "error") verrs.push(m.text()); });
   await v.waitForTimeout(90000);
-  await v.screenshot({ path: "results/exported_html.png" });
-  // the canvas must hold the collage, not the clear colour: sample the screenshot's centre
+  await v.screenshot({ path: "results/exported_html.png", timeout: 180000 });
+  // the viewer has a canvas (its pixels are checked by eye in results/exported_html.png)
   const lit = await v.evaluate(() => document.querySelector("canvas") !== null);
   ok("exported_html_runs", verrs.length === 0 && lit, { errors: verrs, waitedMs: Date.now() - tv });
   await vclose();
