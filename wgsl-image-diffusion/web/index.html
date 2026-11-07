@@ -54,17 +54,18 @@
   <div id="panel">
     <h1>Animal Diffusion</h1>
     <div class="sub">A 23M-parameter diffusion model with self-attention, in hand-written WGSL, running on your GPU.
-      It was trained on the 15,803 photos of <a href="https://github.com/clovaai/stargan-v2#animal-faces-hq-dataset-afhq">AFHQv2</a>
-      and makes 64×64 images; the big view is that image enlarged.
+      It was trained on the 15,803 close-up animal-face photos of <a href="https://github.com/clovaai/stargan-v2#animal-faces-hq-dataset-afhq">AFHQv2</a>
+      (cats, dogs, and wild animals such as lions, tigers, foxes and wolves) and makes 64×64 images; the large square shows one scaled up.
+      Earlier results collect below it: click one to draw it again from the same noise.
       <a href="https://github.com/oaustegard/experiments/tree/main/wgsl-image-diffusion">Source</a></div>
     <div class="row"><label>Animal</label><div class="seg" id="cls">
       <button data-v="0" aria-pressed="true">Cat</button><button data-v="1">Dog</button><button data-v="2">Wild</button></div></div>
     <div class="row"><label for="steps">Steps</label><input id="steps" type="range" min="4" max="64" value="24"><output id="stepsV">24</output></div>
     <div class="row"><label for="cfg">Guidance</label><input id="cfg" type="range" min="1" max="5" step="0.25" value="2"><output id="cfgV">2</output></div>
-    <div class="hint">More steps: cleaner and slower. Higher guidance: more typical of the animal, less varied; 1 turns it off.</div>
+    <div class="hint">More steps: cleaner and slower. Higher guidance pulls the picture toward the chosen animal: more typical, less varied. Guidance 1 turns that off.</div>
     <div class="checks">
-      <label title="Start a new picture shortly after each one finishes"><input type="checkbox" id="auto"> Keep going</label>
-      <label title="Display only: bilinear rather than blocky pixels"><input type="checkbox" id="smooth" checked> Smooth</label>
+      <label title="Start a new picture shortly after each one finishes"><input type="checkbox" id="auto"> Auto-generate</label>
+      <label title="Display only: bilinear rather than blocky pixels"><input type="checkbox" id="smooth" checked> Smooth scaling</label>
     </div>
     <div class="row" style="margin-top:10px"><button class="btn go" id="go">Generate</button>
       <button class="btn" id="save" title="Download the 64×64 image as a PNG">Save PNG</button></div>

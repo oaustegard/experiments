@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>wgsl-image-diffusion test</title>
-<p>Test harness for diffusion.js, driven by <code>run/test_gpu.mjs</code>: it loads the fixtures in <code>test/</code> (made by <code>train/export.py fixture</code>), compares each GPU output with PyTorch, and prints the result to the terminal.</p>
+<p>Test page for diffusion.js. Opened directly it does nothing: <code>node run/test_gpu.mjs _test.html [f32,f32-nosplit,f16,f16-nosplit]</code> loads it in headless Chromium and calls <code>runTests</code>, which runs the chosen runtime variants on the fixtures in <code>test/</code> and prints each output's error against PyTorch. <code>python3 train/export.py fixture web/test</code> makes the fixtures: a model with random weights, inputs, and PyTorch's outputs for them, so no trained model is needed.</p>
 <script type="module">
 import { ImageDiffusion } from "./diffusion.js";
 window.runTests = async (only) => {
