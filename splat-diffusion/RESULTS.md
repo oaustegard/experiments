@@ -38,6 +38,8 @@ that would move the answer.
 4. Needle splats come from the fits, and the model draws them more often: 0.21% of fitted splats have a long axis over a quarter of the tile, against 0.37% of generated splats (Round 2, `results/fit_summary.json`). <!-- @evidence[[results/fit_summary.json#needles_sigma_max_gt_0p25.data_frac]] -->
 5. Removing thin, long splats at decode time is not a fix. A woven texture (a DTD class) used 41 of its 1,024 splats that way, as threads, and a straight line in bubbly survived the filter (Round 2, `results/needle_filter_cmp.png`).
 6. On the training side, compiling the fitting render with `torch.compile` made it about ten times faster on an A100 (61 s to 6.1 s per 32 crops at 1,000 steps), which turned a six-hour dataset into 36 minutes (Round 1, `results/fit_log.jsonl`). <!-- @evidence[[results/fit_summary.json#fit_minutes]] -->
+7. A 512-splat model for phones samples in 139 ms on the Mac against 223 ms for 1,024 splats, from fits that are 2 dB softer (median batch 23.5 dB against 25.3), with the same 19.4 MB of weights (Round 3, `results/bench_mac_512.json`). <!-- @evidence[[results/bench_mac_512.json#sample.s24_cfg3.total_ms]] -->
+8. On an iPhone the GPU work is correct (no NaN at any step; per-step paint statistics equal to PyTorch's at 96, 1024 and 1600 px) and 24 guided steps of the 1,024-splat model take 4.2 s; the texture vanishing on the page around step 15 was not reproduced by any bridge job (Round 3, bridge jobs `sd-phone-1` to `sd-phone-5`).
 
 ## Method
 
@@ -129,3 +131,27 @@ splats". He was offered three designs (pixel diffusion followed by a splat fit, 
   The cause was not found; the likely one is SwiftShader giving up on 1,024 splats per pixel.
   The same canvas path painted the 64-splat fixture correctly, and the Mac's offscreen paint of the
   real model matches PyTorch.
+
+### Round 3 — phones, the 512-splat model and the visible repeat (2026-11-07)
+
+Oskar: "It seems to fail on an iPhone once it gets 2/3 through generation. Maybe add a 512 splat option for phone?",
+then "There's no error, the diffusing image just disappears at around step 15, depending on the texture", and
+"The pixel-based diffusion model was able to avoid a tiling effect; here it is QUITE obvious?"
+
+- **iPhone diagnostics** through the GPU bridge (iOS 27.2 Safari, in a worker): 24 guided steps of the
+  1,024-splat model in 4.2 s (175 ms a step); the old page loop with a real `OffscreenCanvas` repaint per step
+  and the new cached-tile loop both finished without device loss; zero non-finite values in the x₀ estimate at
+  every step for four classes; the per-step mean and spread of painted tiles equal PyTorch's to the printed
+  precision at 96, 1024 and 1600 px. None of this reproduced the vanishing texture, which leaves presenting the
+  visible canvas from the main thread. The page now draws only inside `requestAnimationFrame` through a
+  cached tile (at most 1024 px, painted when the splats change, repeated with a sampler), and clamps the GELU's
+  tanh argument to ±15 (exact to 1e-13). Whether that fixes the iPhone is not yet confirmed.
+- **512 splats**: fitted in 19 minutes (median batch 23.5 dB) and trained for 40,000 steps. On the Mac it
+  samples in 139 ms (24 guided steps), paints 2048² in 16 ms and matches PyTorch to 9.1e-6
+  (`results/bench_mac_512.json`). Phones default to it; `?k=` picks either.
+- **The repeat**: a tile is one 128 px crop's worth of content and carries that crop's low-frequency lighting,
+  so a grid of repeats is obvious. The display now uses stochastic tiling (Heitz and Neyret 2018) by default:
+  three randomly offset copies blended per point on a triangle grid around the tile's mean colour, which the
+  splats give analytically (colour × 2π / det A). `results/stochastic_tiling_cmp.png` shows grid against
+  stochastic for crystalline and woven. The sibling `texture-collage/` adopted it and measured its repeat
+  correlation falling from 0.931 to −0.006.
