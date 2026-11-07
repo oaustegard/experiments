@@ -43,7 +43,7 @@ await page.click('#pngw [data-v="2"]');
 const p = await save("png");
 const size = (f) => fs.statSync(f.path).size;
 ok("exports", size(w) > 50000 && size(h) > size(w) && size(p) > 100000, { wgsl: size(w), html: size(h), png: size(p) });
-// the exported HTML is checked last, in its own browser: closing a second WebGPU tab in the same headless
+// the exported HTML's viewer is checked last, in its own browser: closing a second WebGPU tab in the same headless
 // SwiftShader browser invalidates the GPU instance of the first ("A valid external Instance reference no
 // longer exists")
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "..", "..");
@@ -81,7 +81,17 @@ ok("no_page_errors", out.errors.length === 0, { errors: out.errors });
 await close();
 {
   const verrs = [], tv = Date.now();
-  const { page: v, close: vclose } = await open("texture-collage/splat/out/_exported.html", { ready: () => true, viewport: { width: 900, height: 600 } });
+  // SwiftShader's GPU process dies compiling the baked shader of 10 regions (it draws 1 and 4), so this
+  // renders a 4-region viewer built by the same viewerHTML/bakeCollage; bridge job tc-splat-viewer-1
+  // draws a 12-region one into a canvas on a Mac.
+  const S = await import("../splatcollage.js");
+  const bank = new Float32Array(fs.readFileSync("bank.bin").buffer.slice(0));
+  const W = 192, H = 128, NR = 4, labels = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) labels[i] = Math.floor((i % W) / (W / NR));
+  const regions = Array.from({ length: NR }, (_, k) => ({ splats: bank.subarray(k * 4 * 512 * 12, (k * 4 + 1) * 512 * 12), phi: 0.4 * k, scale: 1, off: [0, 0] }));
+  const sc = S.makeScene({ W0: W, H0: H, lm: S.labelMap({ W, H, K: NR, labels }, 48), regions, K: 512, mode: "distance" });
+  fs.writeFileSync("out/_viewer4.html", S.viewerHTML(S.bakeCollage(sc), W, H));
+  const { page: v, close: vclose } = await open("texture-collage/splat/out/_viewer4.html", { ready: () => true, viewport: { width: 900, height: 600 } });
   v.on("pageerror", (e) => verrs.push(e.message));
   v.on("console", (m) => { if (m.type() === "error") verrs.push(m.text()); });
   await v.waitForFunction(() => window.drawn >= 1, null, { timeout: 900000, polling: 2000 });

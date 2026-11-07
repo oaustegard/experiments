@@ -1,5 +1,5 @@
 import { SplatDiffusion, paintToBytes } from "../../splat-diffusion/web/splatdiff.js";
-import { recolourSplats, labelMap, makeScene, storageShader, sceneBuffers, sceneUniforms, bakeCollage, chooseLabels } from "./splatcollage.js";
+import { recolourSplats, labelMap, makeScene, storageShader, sceneBuffers, sceneUniforms, bakeCollage, chooseLabels, viewerHTML } from "./splatcollage.js";
 
 const MODEL = "../../splat-diffusion/web/model512";
 const NK = 512;
@@ -292,53 +292,6 @@ function exportWGSL() {
 function exportHTML() {
   const src = bakeCollage(scene);
   download(new Blob([viewerHTML(src, scene.W0, scene.H0)], { type: "text/html" }), "collage.html");
-}
-
-// A single-file viewer: the baked WGSL plus a few lines of WebGPU, with wheel or pinch zoom and drag pan.
-function viewerHTML(src, W0, H0) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Splat collage</title><style>html,body{margin:0;height:100%;background:#0b0b0d;overflow:hidden}canvas{width:100vw;height:100vh;display:block;touch-action:none;cursor:grab}
-p{position:fixed;left:12px;bottom:8px;margin:0;font:12px system-ui;color:#999}</style></head><body><canvas></canvas>
-<p>A collage of splat textures, drawn by one WGSL shader with no pixels in it. Scroll to zoom, drag to pan. Made with texture-collage/splat (oaustegard/experiments).</p>
-<script type="module">
-const WGSL = ${JSON.stringify(src)} + \`
-struct V { x0: f32, y0: f32, scale: f32, _p: f32 }
-@group(0) @binding(0) var<uniform> view: V;
-@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
-  let xy = vec2f(f32((i << 1u) & 2u), f32(i & 2u)); return vec4f(xy * 2.0 - 1.0, 0.0, 1.0); }
-@fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
-  return vec4f(collage(vec2f(view.x0, view.y0) + pos.xy * view.scale, view.scale), 1.0); }\`;
-const cv = document.querySelector("canvas");
-if (!navigator.gpu) { document.body.innerHTML = "<p style='color:#ccc;padding:20px'>This file needs a browser with WebGPU.</p>"; throw 0; }
-const device = await (await navigator.gpu.requestAdapter()).requestDevice();
-const ctx = cv.getContext("webgpu"), format = navigator.gpu.getPreferredCanvasFormat();
-ctx.configure({ device, format, alphaMode: "opaque" });
-const mod = device.createShaderModule({ code: WGSL });
-const errs = (await mod.getCompilationInfo()).messages.filter((m) => m.type === "error");
-if (errs.length) { document.body.innerHTML = "<p style='color:#ccc;padding:20px'>Shader error: " + errs[0].message + "</p>"; throw new Error(errs[0].message); }
-const pipe = await device.createRenderPipelineAsync({ layout: "auto", vertex: { module: mod, entryPoint: "vs" }, fragment: { module: mod, entryPoint: "fs", targets: [{ format }] } });
-const u = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-const bg = device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: u } }] });
-const W0 = ${W0}, H0 = ${H0}, v = { x0: 0, y0: 0, s: 1 };
-function size() { const d = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(innerWidth * d); cv.height = Math.round(innerHeight * d); }
-function fit() { size(); v.s = Math.max(W0 / cv.width, H0 / cv.height) * 1.04; v.x0 = W0 / 2 - cv.width / 2 * v.s; v.y0 = H0 / 2 - cv.height / 2 * v.s; draw(); }
-let q = false;
-function draw() { if (q) return; q = true; requestAnimationFrame(() => { q = false;
-  device.queue.writeBuffer(u, 0, new Float32Array([v.x0, v.y0, v.s, 0]));
-  const e = device.createCommandEncoder(), p = e.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store", clearValue: [0.04, 0.04, 0.05, 1] }] });
-  p.setPipeline(pipe); p.setBindGroup(0, bg); p.draw(3); p.end(); device.queue.submit([e.finish()]);
-  device.queue.onSubmittedWorkDone().then(() => { window.drawn = (window.drawn || 0) + 1; }); }); }
-function zoomAt(x, y, f) { const d = cv.width / innerWidth, px = x * d, py = y * d; v.x0 += px * v.s * (1 - f); v.y0 += py * v.s * (1 - f); v.s *= f; draw(); }
-addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, Math.exp(e.deltaY * 0.0015)); }, { passive: false });
-const pts = new Map(); let pinch = 0;
-cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); });
-cv.addEventListener("pointerup", (e) => { pts.delete(e.pointerId); pinch = 0; });
-cv.addEventListener("pointermove", (e) => { const o = pts.get(e.pointerId); if (!o) return; const d = cv.width / innerWidth;
-  if (pts.size === 2) { pts.set(e.pointerId, [e.clientX, e.clientY]); const [a, b] = [...pts.values()]; const dist = Math.hypot(a[0] - b[0], a[1] - b[1]);
-    if (pinch) zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, pinch / dist); pinch = dist; return; }
-  v.x0 -= (e.clientX - o[0]) * d * v.s; v.y0 -= (e.clientY - o[1]) * d * v.s; pts.set(e.pointerId, [e.clientX, e.clientY]); draw(); });
-addEventListener("resize", fit); fit();
-</script></body></html>`;
 }
 
 // Render the collage at f output pixels per reference pixel into a texture and save it as PNG.
