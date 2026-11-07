@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Splat Diffusion</title>
+<meta name="description" content="A diffusion model, written by hand in WGSL, generates a texture as 1,024 Gaussian splats on your GPU.">
+<style>
+  :root { --bg: #0b0b0d; --panel: rgba(16, 16, 20, 0.8); --line: rgba(255, 255, 255, 0.12);
+          --fg: #ece9e4; --dim: #a29d96; --accent: #8fd0c4; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden;
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; cursor: grab; }
+  #panel { position: fixed; left: 16px; bottom: 16px; width: min(340px, calc(100vw - 32px)); background: var(--panel);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line);
+    border-radius: 14px; padding: 14px 16px 12px; }
+  #panel.min .body { display: none; }
+  h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  .head { display: flex; align-items: center; justify-content: space-between; }
+  .head button { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 18px; padding: 0 4px; }
+  .sub { color: var(--dim); font-size: 12px; margin: 2px 0 10px; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .row label { width: 72px; color: var(--dim); font-size: 12px; flex: none; }
+  .row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .row output { width: 34px; text-align: right; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  select, .btn { background: rgba(255,255,255,0.06); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 13px; }
+  select { flex: 1; text-transform: capitalize; }
+  .btn { cursor: pointer; }
+  .btn.go { background: var(--accent); color: #0c1a17; border-color: var(--accent); font-weight: 600; flex: 1; }
+  .hint { font-size: 11px; color: var(--dim); margin: 2px 0 8px; }
+  #status { font-size: 12px; color: var(--dim); min-height: 1.4em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  #bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  #bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+  #nogpu { position: fixed; inset: 0; display: none; place-items: center; text-align: center; padding: 24px; color: var(--dim); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="nogpu"><p>This page needs WebGPU: Chrome or Edge 113+, Safari 26+, or Firefox 141+.</p></div>
+<div id="panel">
+  <div class="head"><h1>Splat Diffusion</h1><button id="min" title="Hide controls" aria-label="Hide controls">–</button></div>
+  <div class="body">
+    <div class="sub">A diffusion model written by hand in WGSL generates each texture as 1,024 soft Gaussian splats,
+      not pixels. One shader paints them, so the tile repeats seamlessly and stays smooth at any zoom. Trained on the
+      <a href="https://www.robots.ox.ac.uk/~vgg/data/dtd/">Describable Textures Dataset</a>.
+      Drag to pan, scroll or pinch to zoom.
+      <a href="https://github.com/oaustegard/experiments/tree/main/splat-diffusion">Source</a></div>
+    <div class="row"><label for="cls">Texture</label><select id="cls"></select>
+      <button class="btn" id="rnd" title="Random texture" aria-label="Random texture">⚄</button></div>
+    <div class="row"><label for="steps" title="More steps: cleaner, slower">Steps</label><input id="steps" type="range" min="4" max="48" value="24"><output id="stepsV">24</output></div>
+    <div class="row"><label for="cfg" title="How closely the result follows the chosen texture; 1 turns guidance off">Guidance</label><input id="cfg" type="range" min="1" max="7" step="0.25" value="3"><output id="cfgV">3</output></div>
+    <div class="hint">More steps: cleaner and slower. Higher guidance: closer to the chosen texture, less varied.</div>
+    <div class="row" style="margin-top:10px"><button class="btn go" id="go">Generate</button>
+      <button class="btn" id="wgsl" title="Download this texture as a standalone WGSL function">Export WGSL</button></div>
+    <div id="bar"><i></i></div>
+    <div id="status">Loading model…</div>
+  </div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
