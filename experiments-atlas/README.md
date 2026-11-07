@@ -14,9 +14,8 @@ Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experime
 ## Known gaps
 
 - It is a snapshot of 2026-11-07. A new experiment is missing until it is added to `clusters.py` and `data.json` and `build.py` is run.
-- 11 experiments are missing from that README index (`bitplane-scan`, `bsky-image-search`, `bsky-list-ai-share`, `embed-coord`, `lantern-eel`, `leaf-wasm`, `monad-chat`, `paper-watch`, `prism-audio`, `refractometer`, `tilt-racer`); their purposes come from each folder's own README or RESULTS file.
-- 8 experiments have no date: `bitplane-scan`, `refractometer`, `monad-chat`, `paper-watch`, `bsky-list-ai-share`, `lantern-eel`, `prism-audio`, `tilt-racer`.
+- Dates are each directory's first commit date, which can differ from when the work was started.
 - `tilt-racer` has no README, so its purpose is a guess.
 - `phase-a-bridges` and `te-bridges` are paper bridge-discovery pipelines and sit under Search and knowledge bases because no cluster fits them well.
-- Most purpose lines are trimmed automatically from the repo's top-level `README.md` index; about 15 were rewritten by hand, and some read clipped.
+- Most purpose lines are trimmed automatically from the repo's top-level `README.md` index (or from the folder's own README or RESULTS file where the index has no row); about 15 were rewritten by hand, and some read clipped.
 - On a phone the clusters open folded and their labels are about 8px until you zoom or unfold one.
