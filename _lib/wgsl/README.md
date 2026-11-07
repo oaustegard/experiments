@@ -47,7 +47,8 @@ column sum; the head projection; segment cross-entropy; gather / scatter; mean p
 token-table gradient through `embed_f`; InfoNCE through `recordNce`; split-K `mm` with strided operands
 and `sumz`; one clipped AdamW step). Same 1e-4 bar; the worst is 6.5e-6 (the AdamW step), the
 gradients 5e-7 or better. Three injected bugs in `ln_bwd`, `attn_bkv` and `ln_pgrad` failed the four
-cases that exercise them. The bridge job runs them after the timed ops (`train: false` skips them).
+cases that exercise them. The bridge job runs them after the timed ops (`train: false` skips them). On the Mac (apple metal-3, `wgsl-ops-step3`, 2026-11-07) all 47 cases pass; the training
+cases' worst is 2.0e-5 (the AdamW step), the gradients 4.3e-7 or better (`tests/results/wgsl-ops-step3-mac.json`).
 
 Per engine, in headless Chromium on SwiftShader:
 
