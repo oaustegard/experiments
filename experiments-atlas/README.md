@@ -1,6 +1,6 @@
 # experiments-atlas
 
-A clustered mind map of every experiment in this repo: a d3 radial tree with 217 experiments in 12 themed clusters. Click a cluster to fold or unfold it, search to fade non-matches, click an experiment for its purpose, date, status and a link to its directory on GitHub.
+A clustered mind map of every experiment in this repo: a d3 radial tree with 217 experiments in 12 themed clusters. A timeline above the map has two handles for choosing a period (experiments outside it fade out, and each cluster shows its count for that period), a bar chart of experiments per day, and Play, which grows the period from the first handle's date to the last day. Click a cluster to fold or unfold it, search to fade non-matches, click an experiment for its purpose, date, status and a link to its directory on GitHub.
 
 Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experiments/experiments-atlas/web/).
 
@@ -15,7 +15,7 @@ Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experime
 ## Known gaps
 
 - It is a snapshot of 2026-11-07. A new experiment is missing until it is added to `clusters.py` and `data.json` and `build.py` is run.
-- Dates are each directory's first commit date, which can differ from when the work was started.
+- Dates are each directory's first commit date (or the README index's Started date), which can differ from when the work was started. The timeline spans 2026-04-21 to 2026-11-07, so any experiment whose date is wrong lands in the wrong period.
 - `tilt-racer` has no README, so its purpose is a guess.
 - `phase-a-bridges` and `te-bridges` are paper bridge-discovery pipelines and sit under Search and knowledge bases because no cluster fits them well.
 - Most purpose lines are trimmed automatically from the repo's top-level `README.md` index (or from the folder's own README or RESULTS file where the index has no row); about 15 were rewritten by hand, and some read clipped.
