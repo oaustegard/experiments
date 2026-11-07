@@ -17,7 +17,8 @@ print("| arm | n | repeat corr | ΔE blur | ΔE region | SSIM | GMSD | GMSD edge
 print("|---|---|---|---|---|---|---|---|---|---|")
 for a in arms:
     p = pooled[a]
-    print(f"| {a} | {p['n']} | " + " | ".join(f"{p[c]:.3f}" if c in ('repeatCorr', 'ssim', 'gmsd', 'gmsdEdge', 'orientErr') else f"{p[c]:.2f}" for c in cols) + " |")
+    has = {c: any(r.get(c) == r.get(c) and r.get(c) is not None for r in rows if r["arm"] == a) for c in cols}
+    print(f"| {a} | {p['n']} | " + " | ".join("—" if not has[c] else f"{p[c]:.3f}" if c in ('repeatCorr', 'ssim', 'gmsd', 'gmsdEdge', 'orientErr') else f"{p[c]:.2f}" for c in cols) + " |")
 # paired wins: structure vs each other choice arm, per image x K
 by = {}
 for r in rows:
@@ -26,8 +27,8 @@ def m(k, c): rs = by[k]; return sum(r[c] for r in rs) / len(rs)
 cells = sorted({(r["image"], r["K"]) for r in rows})
 print()
 wins = {}
-for other in ["colour", "random", "fixed:marbled", "solid"]:
-    for c, better in [("ssim", 1), ("gmsd", -1), ("dist", -1)]:
+for other in ["colour", "random", "fixed:marbled", "solid", "repeat:plain"]:
+    for c, better in [("ssim", 1), ("gmsd", -1), ("dist", -1)] + ([("repeatCorr", -1)] if other == "repeat:plain" else []):
         w = sum(1 for (i, K) in cells if better * (m((i, K, "structure"), c) - m((i, K, other), c)) > 0)
         print(f"structure beats {other} on {c}: {w}/{len(cells)}")
         wins[f"{other}.{c}"] = f"{w}/{len(cells)}"

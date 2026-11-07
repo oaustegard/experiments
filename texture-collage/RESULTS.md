@@ -25,70 +25,68 @@ with fresh tiles generated on a Mac](results/figure.jpg)
 ## Answer
 
 Pick each region's class by matching its pattern, recolour the texture to the region's mean colour,
-and turn it to follow the region's grain. Over six Kodak pictures at 6 and 12 regions, picking by
-pattern kept SSIM at 0.360, <!-- @evidence[[results/eval_pooled.json#structure.ssim]] --> against
-0.280 <!-- @evidence[[results/eval_pooled.json#colour.ssim]] --> picking by colour and 0.211 <!-- @evidence[[results/eval_pooled.json#random.ssim]] -->
- at random, and beat both on SSIM and GMSD
-in 11 or 12 of the 12 picture × region-count cells. Recolouring holds each region's average colour (ΔE between region means) to
-within 1.32 ΔE; <!-- @evidence[[results/eval_pooled.json#structure.dEreg]] --> the textures' own
-colours miss by 38.59. <!-- @evidence[[results/eval_pooled.json#/tint:none structure/dEreg]] --> A
-textured collage gives up some likeness: flat colour scores SSIM 0.492 <!-- @evidence[[results/eval_pooled.json#solid.ssim]] -->
- but is
-worse on gradients (GMSD 0.315 against 0.244). Edge blending, texture scale and the contrast floor move
-the numbers little and are left as page controls.
+turn it to follow the region's grain, and fill with stochastic tiling so the square tile's repeat
+does not show. Over six Kodak pictures at 6 and 12 regions, picking by pattern kept SSIM at 0.357, <!-- @evidence[[results/eval_pooled.json#structure.ssim]] -->
+against 0.288 <!-- @evidence[[results/eval_pooled.json#colour.ssim]] --> by colour and 0.227 <!-- @evidence[[results/eval_pooled.json#random.ssim]] -->
+at random. Stochastic tiling cut the correlation of a fill with itself one tile away from 0.931 <!-- @evidence[[results/eval_pooled.json#/repeat:plain/repeatCorr]] -->
+to nearly zero, for no loss of SSIM (0.360 with a plain repeat), but it blurs each texture's pattern a
+little, so the page keeps a toggle. Recolouring holds each region's average colour within 1.72 ΔE; <!-- @evidence[[results/eval_pooled.json#structure.dEreg]] -->
+the textures' own colours miss by 39.55. <!-- @evidence[[results/eval_pooled.json#/tint:none structure/dEreg]] -->
+Flat colour scores higher SSIM, 0.492, <!-- @evidence[[results/eval_pooled.json#solid.ssim]] -->
+but is worse on gradients (GMSD 0.315 against 0.237).
 
-On a Mac, 8 regions of a 768×512 picture take 1.4 s to find and describe, eight fresh 128 px
-textures take 2977 ms, <!-- @evidence[[results/mac/pipeline.json#outputs.S128.textures_ms]] --> and compositing 0.8 s. Stored tiles show a collage first.
+On a Mac, eight fresh 128 px textures take 2977 ms; <!-- @evidence[[results/mac/pipeline.json#outputs.S128.textures_ms]] --> stored tiles show a collage first.
 
 What would change this: people judging which collages look good; every metric here measures likeness
 to the photo.
 
 ## Findings
 
-1. **Picking by pattern beats picking by colour, at random, or one class for all.** SSIM 0.360 against
-   0.280, 0.211 and 0.245 (`marbled` everywhere); it beat colour on SSIM in 11/12 cells <!-- @evidence[[results/structure_wins.json#/colour.ssim]] -->
-    and random in 12/12. <!-- @evidence[[results/structure_wins.json#/random.ssim]] -->
-    Against `marbled` everywhere it won
-   SSIM in 11/12 and GMSD in only 6/12 <!-- @evidence[[results/structure_wins.json#/fixed:marbled.gmsd]] -->:
+1. **Picking by pattern beats picking by colour, at random, or one class for all.** SSIM 0.357 against
+   0.288, 0.227 and 0.258 (`marbled` everywhere). It beat random on SSIM in 12/12 cells <!-- @evidence[[results/structure_wins.json#/random.ssim]] -->
+   and colour in 8/12; <!-- @evidence[[results/structure_wins.json#/colour.ssim]] --> on GMSD it beat colour in 12/12 <!-- @evidence[[results/structure_wins.json#/colour.gmsd]] -->
+   and `marbled` everywhere in only 6/12: <!-- @evidence[[results/structure_wins.json#/fixed:marbled.gmsd]] -->
    one mild texture everywhere is a strong default. (`results/eval_pooled.json`)
-2. **The pattern choice carries over to a tile it never saw.** The class table was built from two
-   seeds and the collages filled with a third. The descriptor distance between input region and
-   collage was 1.53 <!-- @evidence[[results/eval_pooled.json#structure.dist]] --> picking by pattern,
-   against 4.18 <!-- @evidence[[results/eval_pooled.json#random.dist]] --> at random. Among the 47
-   classes the seven-number descriptor names a held-out tile's own class first 69% of the time over 94 held-out tiles (bank seeds 2 and 3; chance 2%). <!-- @evidence[[results/descriptor_separability.json#top1]] -->
+2. **Stochastic tiling removes the repeat grid at a small cost to the pattern.** Correlation of the fill
+   with itself one tile period away: 0.931 with a plain repeat, −0.006 stochastic, lower in 12/12 cells. <!-- @evidence[[results/structure_wins.json#/repeat:plain.repeatCorr]] -->
+   GMSD improved in 12/12 (0.244 to 0.237); SSIM moved from 0.360 to 0.357. The descriptor distance
+   between region and fill rose from 1.53 to 1.93, <!-- @evidence[[results/eval_pooled.json#structure.dist]] -->
+   and the region-colour error from 1.32 to 1.72: blending three shifted copies softens lines and
+   spots, and the variance-preserving weights push more pixels out of gamut. Hence the toggle. Port of
+   `splat-diffusion`'s stochastic blit (Heitz and Neyret 2018) to the CPU fill.
+3. **The pattern choice carries over to a tile it never saw.** The class table was built from two
+   seeds and the collages filled with a third: descriptor distance 1.93 picking by pattern against
+   3.88 <!-- @evidence[[results/eval_pooled.json#random.dist]] --> at random. Among the 47 classes the
+   seven-number descriptor names a held-out tile's own class first 69% of the time over 94 held-out tiles (bank seeds 2 and 3; chance 2%). <!-- @evidence[[results/descriptor_separability.json#top1]] -->
    (`run/build_table.mjs`)
-3. **Recolour, or the collage stops being the picture.** Region recolouring: 1.32 ΔE between region
-   means; the texture's own colours with pattern choice, 38.59; picking by colour and keeping the
-   texture's colours, 14.15. <!-- @evidence[[results/eval_pooled.json#/tint:none colour/dEreg]] -->
+4. **Recolour, or the collage stops being the picture.** Region recolouring: 1.72 ΔE between region
+   means; the texture's own colours with pattern choice, 39.55; picking by colour and keeping the
+   texture's colours, 14.70. <!-- @evidence[[results/eval_pooled.json#/tint:none colour/dEreg]] -->
    Recolouring to the blurred photo instead of the region mean lowers the blurred-colour error from
-   7.78 to 6.03 <!-- @evidence[[results/eval_pooled.json#/tint:local/dE]] --> and keeps the photo's
+   7.71 to 5.95 <!-- @evidence[[results/eval_pooled.json#/tint:local/dE]] --> and keeps the photo's
    gradients, at the cost of the cut-paper look. Capping the gain of the colour transfer (4 for L,
-   1.5 for a and b) cut the region-colour error from 1.43 to 1.32. <!-- @evidence[[results/eval_pooled.json#/gain:uncapped/dEreg]] -->
-   
-4. **Turning textures to follow the grain halves the orientation error.** 0.280 rad with alignment,
-   0.549 <!-- @evidence[[results/eval_pooled.json#/align:off/orientErr]] --> without, for oriented
-   regions; SSIM is unchanged (0.360 vs 0.357).
-5. **Textures cost likeness by SSIM and gain it by gradients.** Flat colour: SSIM 0.492, GMSD 0.315; <!-- @evidence[[results/eval_pooled.json#solid.gmsd]] -->
-    pattern collage: SSIM 0.360, GMSD 0.244. <!-- @evidence[[results/eval_pooled.json#structure.gmsd]] -->
-    Flat colour wins SSIM in every
-   cell and loses GMSD in every cell. The photo has texture, and flat fills have none.
-6. **Edges, scale and contrast are tastes, not fixes.** A 6 px blend instead of a hard cut lowered
-   GMSD at region edges from 0.274 <!-- @evidence[[results/eval_pooled.json#/feather:0/gmsdEdge]] -->
-   to 0.248; <!-- @evidence[[results/eval_pooled.json#/feather:6/gmsdEdge]] --> the default is 2 px.
+   1.5 for a and b) cut the region-colour error from 1.85 to 1.72. <!-- @evidence[[results/eval_pooled.json#/gain:uncapped/dEreg]] -->
+5. **Turning textures to follow the grain halves the orientation error.** 0.292 rad with alignment,
+   0.542 <!-- @evidence[[results/eval_pooled.json#/align:off/orientErr]] --> without, for oriented
+   regions; SSIM is unchanged (0.357 vs 0.358).
+6. **Textures cost likeness by SSIM and gain it by gradients.** Flat colour: SSIM 0.492, GMSD 0.315; <!-- @evidence[[results/eval_pooled.json#solid.gmsd]] -->
+   pattern collage: SSIM 0.357, GMSD 0.237. <!-- @evidence[[results/eval_pooled.json#structure.gmsd]] -->
+   Flat colour wins SSIM in every cell and loses GMSD in every cell.
+7. **Edges, scale and contrast are tastes, not fixes.** A 6 px blend instead of a hard cut lowered
+   GMSD at region edges from 0.267 <!-- @evidence[[results/eval_pooled.json#/feather:0/gmsdEdge]] -->
+   to 0.243; <!-- @evidence[[results/eval_pooled.json#/feather:6/gmsdEdge]] --> the default is 2 px.
    Letting each region pick 1× or 2× scored between the fixed scales. A contrast floor of 0 scored
-   best (SSIM 0.377 <!-- @evidence[[results/eval_pooled.json#/strength:0/ssim]] -->) because flat
+   best (SSIM 0.376 <!-- @evidence[[results/eval_pooled.json#/strength:0/ssim]] -->) because flat
    regions then stay flat; the page defaults to 8 so every region shows its texture. Giving each region
-   a distinct class cost 0.011 SSIM.
-7. **Speed.** Mac (its Apple GPU, reached through the GPU bridge: a page on Oskar's laptop that runs jobs pushed from this container): a 128 px texture at 24 steps took 540 ms <!-- @evidence[[bank/meta.json#median_ms]] -->
-    median in the bank job, including readback, and 360 ms at the page's
-   20 steps; 256 px took 9.0 s for eight. Regions 0.42 s, descriptors 1.03 s, compositing 0.78 s, all
-   on the CPU. SwiftShader (a software GPU, the only one in the cloud container) took 153867 ms for one 64 px texture at 12 steps, <!-- @evidence[[results/swiftshader_speed.json#S64_steps12_ms]] -->
-    which is why the page ships a
-   stored tile per class. (`results/mac/pipeline.json`)
-8. **`freckled` tiles grow eyes.** The model draws skin and eyes for this class (freckles are
+   a distinct class cost 0.010 SSIM.
+8. **Speed.** Mac (its Apple GPU, reached through the GPU bridge: a page on Oskar's laptop that runs jobs pushed from this container): a 128 px texture at 24 steps took 540 ms <!-- @evidence[[bank/meta.json#median_ms]] -->
+   median in the bank job, including readback, and 360 ms at the page's 20 steps; 256 px took 9.0 s
+   for eight. Regions 0.42 s, descriptors 1.03 s, compositing 0.78 s, all on the CPU (timed before
+   stochastic tiling, which samples the tile three times per pixel). SwiftShader (a software GPU, the only one in the cloud container) took 153867 ms for one 64 px texture at 12 steps, <!-- @evidence[[results/swiftshader_speed.json#S64_steps12_ms]] -->
+   which is why the page ships a stored tile per class. (`results/mac/pipeline.json`)
+9. **`freckled` tiles grow eyes.** The model draws skin and eyes for this class (freckles are
    photographed on faces; the dataset was not checked), and pattern matching picks it for bright,
-   smooth regions. The page leaves it out of
-   automatic choice; it stays in each region's menu.
+   smooth regions. The page leaves it out of automatic choice; it stays in each region's menu.
 
 ## Method
 
@@ -112,7 +110,9 @@ to the photo.
    controls. *Distinct* lets each class be used once, largest region first.
 4. **Fill.** The tile repeats across the region at the chosen scale, turned so its dominant orientation
    matches the region's when both are oriented (coherence above 0.15), sampled bilinearly with
-   wrap-around (the tiles are seamless). **Recolour** *to region*: per Lab channel, the texture's
+   wrap-around (the tiles are seamless). With **stochastic tiling** (default), each pixel instead blends three copies of the
+   tile at random offsets, one per corner of a triangle grid with 2 cells per tile, around the tile's
+   Lab mean with weights divided by sqrt(Σw²) so the texture keeps its contrast. **Recolour** *to region*: per Lab channel, the texture's
    deviation from its own mean, scaled to the region's spread, is added to the region's mean colour.
    The spread of L has a floor (`strength`, default 8) so flat regions still show texture, and gains are
    capped. *To photo*: the same detail added to a blurred copy of the picture. *Off*: the texture's colours.
@@ -139,6 +139,8 @@ feather 2, strength 8, alignment on, scales {1, 2}) except the setting it names.
 - *Descriptor distance*: between each input region and the same pixels of the collage, area-weighted.
   The choice step minimises the same distance against the table, so this measures whether a choice made
   on two seeds holds for a third tile once it is rotated and recoloured.
+- *Repeat correlation*: per region, the correlation of the collage's L with itself shifted by one
+  tile period along each (rotated) tile axis, area-weighted. A plain repeat scores near 1.
 - *Orientation error*: the angle between each oriented input region's dominant orientation and the
   collage's there, weighted by coherence and area.
 
@@ -196,3 +198,37 @@ Full table (`results/eval_table.md`, both region counts pooled):
 Page check on SwiftShader (`results/page_check.json`): first collage 3.6 s after load, seven
 re-renders on control changes, a region's menu overriding its class, one fresh 64 px texture in
 69 s, a PNG export, no horizontal scroll at 390 px wide, no page errors.
+
+### Round 2, 2026-11-07: stochastic tiling
+
+Asked (relayed from Oskar by the parent session): apply splat-diffusion's stochastic tiling so region
+fills show no repeat grid, with a toggle if it hurts structured classes, measured against the plain
+repeat. Ported `WGSL_BLIT` mode 1 to `stochasticSample` in `web/collage.js`, made it the default, and
+added the `repeat:plain` arm and the repeat-correlation metric. Also in this round: the region slider
+goes to 32 (at 32, about 4 s of worker CPU on SwiftShader's host) and a fix for a hang when the
+picture was recut while textures were generating (`check_page.mjs` `recut_during_generation`).
+
+![kodim05 at 12 regions: plain repeat (left), stochastic tiling (right)](results/stochastic_cmp.jpg)
+
+Every arm below now uses stochastic tiling except `repeat:plain`, so the round 1 numbers shift:
+
+| arm | n | repeat corr | ΔE blur | ΔE region | SSIM | GMSD | GMSD edges | structure dist | orient err (rad) |
+|---|---|---|---|---|---|---|---|---|---|
+| solid | 12 | — | 5.00 | 0.00 | 0.492 | 0.315 | 0.331 | 9.39 | 1.026 |
+| structure | 12 | -0.006 | 7.71 | 1.72 | 0.357 | 0.237 | 0.252 | 1.93 | 0.292 |
+| colour | 12 | 0.016 | 7.03 | 1.26 | 0.288 | 0.256 | 0.264 | 3.16 | 0.337 |
+| random | 36 | 0.011 | 6.52 | 1.11 | 0.227 | 0.272 | 0.270 | 3.88 | 0.336 |
+| fixed:marbled | 12 | 0.010 | 7.22 | 1.19 | 0.258 | 0.243 | 0.249 | 3.08 | 0.566 |
+| structure+distinct | 12 | -0.008 | 7.53 | 1.59 | 0.347 | 0.240 | 0.253 | 1.80 | 0.302 |
+| tint:none structure | 12 | -0.013 | 38.51 | 39.55 | 0.253 | 0.249 | 0.260 | 2.40 | 0.316 |
+| tint:none colour | 12 | 0.016 | 15.91 | 14.70 | 0.239 | 0.277 | 0.281 | 3.63 | 0.316 |
+| tint:local | 12 | 0.010 | 5.95 | 3.58 | 0.354 | 0.233 | 0.247 | 1.78 | 0.341 |
+| feather:0 | 12 | -0.013 | 7.72 | 1.60 | 0.345 | 0.245 | 0.267 | 2.05 | 0.345 |
+| feather:6 | 12 | 0.004 | 7.71 | 2.33 | 0.364 | 0.231 | 0.243 | 1.82 | 0.322 |
+| align:off | 12 | -0.002 | 7.81 | 1.67 | 0.358 | 0.236 | 0.252 | 1.92 | 0.542 |
+| scale:1 | 12 | 0.010 | 7.16 | 1.24 | 0.318 | 0.241 | 0.253 | 2.08 | 0.380 |
+| scale:2 | 12 | 0.003 | 8.05 | 1.90 | 0.366 | 0.237 | 0.252 | 1.93 | 0.246 |
+| strength:0 | 12 | -0.004 | 7.48 | 1.59 | 0.376 | 0.236 | 0.252 | 1.10 | 0.337 |
+| strength:16 | 12 | -0.007 | 9.33 | 2.51 | 0.276 | 0.257 | 0.264 | 2.10 | 0.309 |
+| gain:uncapped | 12 | -0.006 | 8.03 | 1.85 | 0.357 | 0.237 | 0.252 | 1.93 | 0.292 |
+| repeat:plain | 12 | 0.931 | 7.78 | 1.32 | 0.360 | 0.244 | 0.258 | 1.53 | 0.280 |
