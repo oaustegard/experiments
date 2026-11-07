@@ -38,6 +38,7 @@
   .btn.go { background: var(--accent); color: #1b1309; border-color: var(--accent); font-weight: 600; flex: 1; }
   .checks { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
   .checks input { accent-color: var(--accent); }
+  .hint { font-size: 11px; color: var(--dim); margin: 2px 0 8px; }
   #status { font-size: 12px; color: var(--dim); min-height: 1.4em; font-variant-numeric: tabular-nums; margin-top: 8px; }
   #bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 6px; }
   #bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.08s linear; }
@@ -47,29 +48,32 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="nogpu"><p>This page needs WebGPU (Chrome, Edge, Safari 26 or Firefox 141 and later).</p></div>
+<div id="nogpu"><p>This page needs WebGPU: Chrome or Edge 113+, Safari 26+, or Firefox 141+.</p></div>
 <div id="panel">
-  <div class="head"><h1>Texture Diffusion</h1><button id="min" title="Hide controls">–</button></div>
+  <div class="head"><h1>Texture Diffusion</h1><button id="min" title="Hide controls" aria-label="Hide controls">–</button></div>
   <div class="body">
     <div class="sub">An 8.4M-parameter diffusion model in hand-written WGSL, on your GPU. Trained on the 47 classes of the
-      <a href="https://www.robots.ox.ac.uk/~vgg/data/dtd/">Describable Textures Dataset</a>.</div>
+      <a href="https://www.robots.ox.ac.uk/~vgg/data/dtd/">Describable Textures Dataset</a>.
+      The background is the generated square tile, repeated to fill the screen.
+      <a href="https://github.com/oaustegard/experiments/tree/main/wgsl-diffusion">Source</a></div>
     <div class="row"><label for="cls">Texture</label><select id="cls"></select>
-      <button class="btn" id="rnd" title="Random texture">⚄</button></div>
-    <div class="row"><label>Size</label><div class="seg" id="size">
+      <button class="btn" id="rnd" title="Random texture" aria-label="Random texture">⚄</button></div>
+    <div class="row"><label>Size (px)</label><div class="seg" id="size">
       <button data-v="64">64</button><button data-v="128" aria-pressed="true">128</button>
       <button data-v="192">192</button><button data-v="256">256</button></div></div>
-    <div class="row"><label for="steps">Steps</label><input id="steps" type="range" min="4" max="48" value="20"><output id="stepsV">20</output></div>
-    <div class="row"><label for="cfg">Guidance</label><input id="cfg" type="range" min="1" max="7" step="0.25" value="3"><output id="cfgV">3</output></div>
+    <div class="row"><label for="steps" title="More steps: cleaner, slower">Steps</label><input id="steps" type="range" min="4" max="48" value="20"><output id="stepsV">20</output></div>
+    <div class="row"><label for="cfg" title="How closely the result follows the chosen texture; 1 turns guidance off">Guidance</label><input id="cfg" type="range" min="1" max="7" step="0.25" value="3"><output id="cfgV">3</output></div>
     <div class="row"><label for="zoom">Zoom</label><input id="zoom" type="range" min="0.5" max="6" step="0.25" value="2"><output id="zoomV">2</output></div>
+    <div class="hint">More steps: cleaner and slower. Higher guidance: closer to the chosen texture, less varied.</div>
     <div class="checks">
-      <label><input type="checkbox" id="seam" checked> Seamless</label>
-      <label><input type="checkbox" id="dream"> Dream (cycle)</label>
-      <label><input type="checkbox" id="smooth" checked> Smooth</label>
+      <label title="Wrap the network's edges so copies of the tile meet without a seam"><input type="checkbox" id="seam" checked> Seamless</label>
+      <label title="Generate a new random texture a few seconds after each one finishes"><input type="checkbox" id="dream"> Auto-dream</label>
+      <label title="Display only: bilinear rather than blocky pixels when zoomed"><input type="checkbox" id="smooth" checked> Smooth zoom</label>
     </div>
     <div class="row" style="margin-top:10px"><button class="btn go" id="go">Generate</button>
-      <button class="btn" id="save" title="Save the tile as PNG">Save</button></div>
+      <button class="btn" id="save" title="Download the generated tile as a PNG">Save PNG</button></div>
     <div id="bar"><i></i></div>
-    <div id="status">Loading model…</div>
+    <div id="status">Loading model (17 MB)…</div>
   </div>
 </div>
 <script type="module" src="app.js"></script>
