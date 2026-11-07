@@ -121,7 +121,7 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    tokens, Ettin 0.7 / 0.7 ms (`wgsl-ab-step2`); decider and spike `score()` 0.98x to 1.03x, after a
    rerun with 12 rounds put the decider's one 1.07x reading at 1.004x (`engine-ab-step2`, `-step2b`,
    in `tests/results/`). MoEdernColBERT was checked on SwiftShader only. LFM's SwiGLU waits for step 5.
-3. **Training ops** into `train/` (in progress 2026-11-07). Done: `train/spec.js` (the trainers' spec
+3. **Training ops** into `train/` (done 2026-11-07). Done: `train/spec.js` (the trainers' spec
    format, `wgsl()`, `grid()`, the erf GELU and its derivative, the workgroup reductions),
    `train/kernels.js` (`kernels(C)`, the LoRA trainer's 26 forward and backward kernels, and
    `fullKernels(C)`, which adds lifesci-ettin's full-weight gradients and pooling losses) and
@@ -132,12 +132,10 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    contrastive loss). Both trainers now extend `SpecRunner` in `train/spec.js` (uniform slots, bind
    group cache, `op` / `buf` / `clear` / `flush` / `read`) instead of carrying a copy each; also max
    |diff| 0. Every training kernel has a parity case (`tests/train_ops.js`, finite differences for
-   the backward ones). Still to do: the
-   forward ops the trainer shares with inference (LayerNorm, rope, attention, GeGLU) as one op where
-   the shapes match. That is also where the two conventions meet (the encoders' positional uniform
-   header and the trainer's named uniforms with dynamic offsets); the trainer's form is the better op
-   description, and moving the encoders to it waits on a bridge A/B showing the dynamic offsets cost
-   nothing.
+   the backward ones). The trainer's forward ops (LayerNorm, rope, attention, GeGLU) stay separate
+   from the inference ones (Oskar, 2026-11-07): the trainer pads batches and saves values for the
+   backward pass, inference packs variable-length sequences, and merging them would mean rewriting
+   the backward kernels or slowing inference to remove about four kernels.
 4. **MoE ops** from moederncolbert-bench: route, grouped matmul, combine, per-token l2.
 5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention.
 6. **Retrieval ops** (dot, scan, top-k, sort) from tail.js and the bridge jobs, and retire
