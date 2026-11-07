@@ -2,6 +2,12 @@
   "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
   "pages": [
     {
+      "title": "Texture Diffusion",
+      "experiment": "wgsl-diffusion",
+      "path": "wgsl-diffusion/web",
+      "blurb": "Pick a texture class and an 8.4M-parameter diffusion model, written by hand in WGSL, dreams a seamless tile of it on your GPU and repeats it across the screen: 0.4 s at 128×128 and 3.7 s at 512×512 on a Mac, 47 classes from the Describable Textures Dataset"
+    },
+    {
       "title": "Decision Spike Creator",
       "experiment": "decider-lora-creator",
       "path": [

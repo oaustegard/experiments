@@ -10,7 +10,7 @@ const info = ctx.describe ? await ctx.describe() : null;
 const runs = [];
 const configs = [
   { H: 64, cfg: 3, steps: 20 }, { H: 64, cfg: 1, steps: 20 }, { H: 128, cfg: 3, steps: 20 }, { H: 128, cfg: 1, steps: 20 },
-  { H: 192, cfg: 3, steps: 20 }, { H: 256, cfg: 3, steps: 20 }];
+  { H: 192, cfg: 3, steps: 20 }, { H: 256, cfg: 3, steps: 20 }, { H: 384, cfg: 3, steps: 20 }, { H: 512, cfg: 3, steps: 20 }];
 let k = 0;
 for (const c of configs) {
   for (let rep = 0; rep < 2; rep++) {          // first run warms pipelines and buffers
