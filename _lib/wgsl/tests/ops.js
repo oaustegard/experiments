@@ -11,7 +11,7 @@
 // Run headless: node _lib/wgsl/tests/check_ops.mjs. On a real GPU: gpu-bridge/jobs/wgsl-ops.
 
 import { SeqEngine, NONE } from "../runtime.js";
-import { KERNELS, matmul, norm, attention, pool, l2 } from "../kernels.js";
+import { KERNELS, matmul, norm, attention, attentionLong, pool, l2 } from "../kernels.js";
 
 const U = GPUBufferUsage;
 
@@ -36,6 +36,7 @@ function packed(lens) {
   return { batch: lens.map((l) => Array.from({ length: l }, (_, j) => j)), T: o, B: lens.length, starts, lens };
 }
 const LENS = [7, 33, 1, 128, 20];   // 189 tokens: a single token, a full 128, and odd lengths
+const LONG = [300, 1, 129, 700];     // attentionLong: past one workgroup, under its 1024
 
 // ---- weight-buffer builder: word-addressed u32 store ----------------------------------------------
 class Words {
@@ -47,7 +48,7 @@ class Words {
 
 // ---- harness: one engine per case, recorded through SeqEngine's own step / _finish / _record -------
 async function harness(device, bt, make) {
-  const e = new SeqEngine(device, {}, { maxTokens: bt.T, maxSeqs: bt.B });
+  const e = new SeqEngine(device, {}, { maxTokens: bt.T, maxSeqs: bt.B, maxSeq: Math.max(...bt.lens) });
   e._owned = [];
   e.dyn = device.createBuffer({ size: 16, usage: U.UNIFORM | U.COPY_DST, label: "dyn" });
   e._owned.push(e.dyn);
@@ -177,11 +178,11 @@ function normCase(kind, D, mode, bias) {
   };
 }
 
-function attnCase({ nh, nkv, hd, fused, window = 0 }) {
+function attnCase({ nh, nkv, hd, fused, window = 0, long = false }) {
   return {
-    name: `attn_h${nh}kv${nkv}_d${hd}${fused ? "_fused" : ""}${window ? `_w${window}` : ""}`, op: "attention",
+    name: `attn${long ? "long" : ""}_h${nh}kv${nkv}_d${hd}${fused ? "_fused" : ""}${window ? `_w${window}` : ""}`, op: long ? "attentionLong" : "attention",
     async run(device, r) {
-      const bt = packed(LENS), T = bt.T, scale = 1 / Math.sqrt(hd);
+      const bt = packed(long ? LONG : LENS), T = bt.T, scale = 1 / Math.sqrt(hd);
       const qst = fused ? (nh + 2 * nkv) * hd : nh * hd, kst = fused ? qst : nkv * hd;
       const ko = fused ? nh * hd : 0, vo = fused ? (nh + nkv) * hd : 0;
       const Q = randn(r, T * qst), Kd = fused ? Q : randn(r, T * kst), Vd = fused ? Q : randn(r, T * kst);
@@ -207,7 +208,8 @@ function attnCase({ nh, nkv, hd, fused, window = 0 }) {
       const { e, out } = await harness(device, bt, (e) => {
         const Qb = e.upload(Q, "Q"), Kb = fused ? Qb : e.upload(Kd, "K"), Vb = fused ? Qb : e.upload(Vd, "V");
         const O = e.buf(T * nh * hd, "O");
-        attention(e, Qb, Kb, Vb, O, { nh, nkv, hd, fused, window, scale });
+        if (long) attentionLong(e, Qb, O, { nh, hd, window });
+        else attention(e, Qb, Kb, Vb, O, { nh, nkv, hd, fused, window, scale });
         return { buf: O, n: T * nh * hd };
       });
       return { e, bt, out, ref };
@@ -232,6 +234,22 @@ const poolCase = (H) => ({
   },
 });
 
+// Copy rows idx of X [T, H] into Y [P, H] (the decider's [MASK] positions).
+const gatherCase = (H, P) => ({
+  name: `gather_${H}_${P}`, op: "gather",
+  async run(device, r) {
+    const bt = packed(LENS), x = randn(r, bt.T * H);
+    const idx = Uint32Array.from({ length: P }, () => Math.floor(r() * bt.T)), ref = new Float64Array(P * H);
+    idx.forEach((t, i) => { for (let j = 0; j < H; j++) ref[i * H + j] = x[t * H + j]; });
+    const { e, out } = await harness(device, bt, (e) => {
+      const I = e.upload(idx, "idx"), X = e.upload(x, "x"), Y = e.buf(P * H, "y");
+      e.step("gather", { a: [H, P] }, [I, X, Y], () => [P]);
+      return { buf: Y, n: P * H };
+    });
+    return { e, bt, out, ref };
+  },
+});
+
 const l2Case = (D) => ({
   name: `l2_${D}`, op: "l2",
   async run(device, r) {
@@ -251,8 +269,8 @@ const l2Case = (D) => ({
 });
 
 // The shapes the shipped engines use (EG2: H 768, hd 256, nh 3 / nkv 1, window 512, q4; Ettin-17m: H 256,
-// hd 64, nh 4, fused qkv, int8 or f32, window 128; MoEdernColBERT: rms, f32), at sizes SwiftShader runs
-// in seconds.
+// hd 64, nh 4, fused qkv, int8 or f32, window 128, and in the decider up to 1024 tokens with
+// attentionLong; MoEdernColBERT: rms, f32), at sizes SwiftShader runs in seconds.
 export const cases = [
   matmulCase("f32", { N: 64, K: 64 }),
   matmulCase("f32", { N: 96, K: 256, bias: true, geluOn: true }),
@@ -271,6 +289,9 @@ export const cases = [
   attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, window: 16 }),
   attnCase({ nh: 4, nkv: 2, hd: 32, fused: false }),
   attnCase({ nh: 3, nkv: 1, hd: 256, fused: false, window: 64 }),
+  attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, long: true }),
+  attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, long: true, window: 128 }),
+  gatherCase(256, 37),
   poolCase(256),
   l2Case(768),
 ];

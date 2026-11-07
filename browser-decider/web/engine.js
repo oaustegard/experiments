@@ -4,14 +4,16 @@
 //   const logits = await eng.score([{ ids, pos }, ...]);   // Float32Array per sequence, one logit per [MASK]
 //
 // This is ettin-native's SmallEngine (web/engine.js there) with three changes: sequences up to 1024
-// tokens (vendored runtime.js, MAX_SEQ), attention that loops over keys beyond one workgroup
-// (attentionLong in wgsl/kernels.js), and, in place of mean pooling + dense + l2, a gather of the
+// tokens (SeqEngine's maxSeq option), attention that loops over keys beyond one workgroup
+// (attentionLong in _lib/wgsl/kernels.js), and, in place of mean pooling + dense + l2, a gather of the
 // final hidden state at each option's [MASK] position. The decision head (256 -> 256 GELU, LayerNorm,
 // -> 1) runs in JS on those few rows. run/pack.py writes the weights and its `Ref` class is the
 // NumPy spec this follows.
 
-import { MAX_SEQ, SeqEngine } from "./wgsl/runtime.js";
-import { GELU, KERNELS, attentionLong, matmul, norm } from "./wgsl/kernels.js";
+import { SeqEngine } from "../../_lib/wgsl/runtime.js";
+import { GELU, KERNELS, attentionLong, matmul, norm } from "../../_lib/wgsl/kernels.js";
+
+const MAX_SEQ = 1024;   // decisions run to ~700 tokens; attentionLong holds 1024 keys
 
 const NONE = 0xffffffff;
 const HEADER = /* wgsl */ `
@@ -98,7 +100,7 @@ export class DeciderEngine extends SeqEngine {
   }
 
   constructor(device, manifest, opts) {
-    super(device, manifest, opts);
+    super(device, manifest, { ...opts, maxSeq: MAX_SEQ });
     this.maxPos = opts.maxPos ?? 256;   // option positions per batch
     this.dim = manifest.hidden;
   }

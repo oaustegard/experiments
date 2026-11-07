@@ -1640,7 +1640,7 @@ the result.
   fails validation; every later dispatch in the command buffer is dropped and the readback holds stale or zero data, with
   no exception. `browser-decider`'s gather kernel skipped the `dn` uniform: logits were garbage and SwiftShader "timed"
   1,700 tokens at 6 ms. Read every binding (a no-op comparison is enough), and push an error scope around the first run
-  of a new engine. (`browser-decider/web/wgsl/kernels.js`, RESULTS Log)
+  of a new engine. (`attentionLong` in `_lib/wgsl/kernels.js`, from browser-decider; RESULTS Log)
 - **A remote runner that pipes a trainer through `grep` reports its crashes as success.** The pipeline's exit code is
   grep's. `browser-decider`'s Colab runner logged nine CUDA out-of-memory crashes as `rc=0`. Run the command under
   `bash -o pipefail`. Two training jobs sharing one GPU is also where the OOM came from: Monad (64 layers × 1,000 tokens ×

@@ -17,7 +17,7 @@
 // Only the shaders a model's steps use are compiled, after _build, so unused kernel variants cost
 // no start-up time. See _lib/wgsl/README.md for the generic-engine plan.
 
-export const MAX_SEQ = 128;
+export const MAX_SEQ = 128;   // default longest sequence; an engine can raise it with opts.maxSeq
 export const NONE = 0xffffffff;
 
 // Every kernel's bindings 0 and 1: the step's static parameters and the batch's sizes.
@@ -69,7 +69,8 @@ export function tensorsOf(manifest) {
 
 export class SeqEngine {
   // data: the weight bytes (ArrayBuffer or typed array). opts.maxTokens bounds one batch (all
-  // sequences together), opts.maxSeqs its sequence count; each sequence is at most MAX_SEQ tokens.
+  // sequences together), opts.maxSeqs its sequence count; each sequence is at most opts.maxSeq
+  // tokens (default MAX_SEQ; the attention kernel in kernels.js holds 128, attentionLong 1024).
   static async create(device, manifest, data, opts = {}) {
     const e = new this(device, manifest, opts);
     const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
@@ -91,6 +92,7 @@ export class SeqEngine {
     this.m = manifest;
     this.maxTokens = opts.maxTokens ?? 512;
     this.maxSeqs = opts.maxSeqs ?? 64;
+    this.maxSeq = opts.maxSeq ?? MAX_SEQ;
     this.dim = 768;
   }
 
@@ -180,7 +182,7 @@ export class SeqEngine {
     const tok = new Uint32Array(T * 4), seqs = new Uint32Array(B * 4);
     let o = 0;
     batch.forEach((ids, b) => {
-      if (!ids.length || ids.length > MAX_SEQ) throw new Error(`sequence length ${ids.length} not in 1..${MAX_SEQ}`);
+      if (!ids.length || ids.length > this.maxSeq) throw new Error(`sequence length ${ids.length} not in 1..${this.maxSeq}`);
       seqs.set([o, ids.length], b * 4);
       ids.forEach((id, j) => tok.set([id, j, b], (o + j) * 4));
       o += ids.length;

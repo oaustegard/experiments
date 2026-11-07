@@ -19,13 +19,21 @@
     {
       "title": "Spiky Ball Decider",
       "experiment": "adapter-library",
-      "path": "adapter-library/web",
+      "path": [
+        "adapter-library/web",
+        "_lib/wgsl/runtime.js",
+        "_lib/wgsl/kernels.js"
+      ],
       "blurb": "Paste a bank transaction, an email or a review: a router picks one of three 0.5 MB specialists on a shared 11 MB model on your GPU, or says none fits, and a memory of your corrections learns how you file things (mark five Amazon charges as household and the sixth follows)"
     },
     {
       "title": "Browser Decider",
       "experiment": "browser-decider",
-      "path": "browser-decider/web",
+      "path": [
+        "browser-decider/web",
+        "_lib/wgsl/runtime.js",
+        "_lib/wgsl/kernels.js"
+      ],
       "blurb": "A 10 MB decision model on your GPU: give it a support thread, an invoice, an alert or an agent log and typed questions, and it returns a probability for every option in about 20 ms. Trained on four workflows, weak on anything else"
     },
     {

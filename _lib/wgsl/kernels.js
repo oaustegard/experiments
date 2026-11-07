@@ -313,3 +313,84 @@ export function attention(e, Q, K, V, O, { nh, nkv = nh, hd, fused = false, wind
 export function pool(e, X, Y, H) { e.step("pool", { a: [H] }, [e.b.seqs, X, Y], (n) => [n[1]]); }
 
 export function l2(e, X, Y, D) { e.step("l2", { a: [D] }, [X, Y], (n) => [n[1]]); }
+
+// Attention over sequences longer than one workgroup (up to 1024 keys), from browser-decider; an engine
+// that uses it passes maxSeq up to 1024 to SeqEngine.
+// One workgroup per (token, head); each of the 128 threads scores keys i, i+128, ... of the token's
+// window (the whole sequence for global layers, |pi - pj| <= window/2 for local ones), then the
+// first hd threads accumulate V. Fused [T, 3H] qkv layout, as in attnWGSL(hd, true).
+const attnLongWGSL = (hd) => HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> tok: array<vec4<u32>>;
+@group(0) @binding(3) var<storage, read> seqs: array<vec4<u32>>;
+@group(0) @binding(4) var<storage, read> Q: array<f32>;
+@group(0) @binding(5) var<storage, read> Kv: array<vec4<f32>>;
+@group(0) @binding(6) var<storage, read> V: array<f32>;
+@group(0) @binding(7) var<storage, read_write> O: array<f32>;
+var<workgroup> qs: array<vec4<f32>, ${hd / 4}>;
+var<workgroup> pr: array<f32, 1024>;
+var<workgroup> red: array<f32, 128>;
+@compute @workgroup_size(128)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
+  let t = wid.x; let h = wid.y;
+  if (t >= dn.n.x) { return; }
+  let nh = p.a.x; let hd = ${hd}u; let hd4 = ${hd / 4}u;
+  let st = 3u * nh * hd; let ko = nh * hd; let vo = 2u * nh * hd;
+  let tk = tok[t];
+  let sq = seqs[tk.z];
+  let start = sq.x; let len = sq.y; let pi = tk.y;
+  var lo = 0u; var hi = len;
+  if (p.b.x != 0u) {
+    let w2 = p.b.x / 2u;
+    lo = select(0u, pi - w2, pi > w2);
+    hi = min(len, pi + w2 + 1u);
+  }
+  let n = hi - lo;
+  let qb = t * st + h * hd;
+  if (i < hd4) { qs[i] = vec4<f32>(Q[qb + 4u * i], Q[qb + 4u * i + 1u], Q[qb + 4u * i + 2u], Q[qb + 4u * i + 3u]); }
+  workgroupBarrier();
+  var mx = -3.0e38;
+  for (var j = i; j < n; j += 128u) {
+    let kb = ((start + lo + j) * st + ko + h * hd) / 4u;
+    var d = 0.0;
+    for (var c = 0u; c < hd4; c++) { d += dot(qs[c], Kv[kb + c]); }
+    let s = d * p.f.x;
+    pr[j] = s;
+    mx = max(mx, s);
+  }
+  red[i] = mx;
+  workgroupBarrier();
+  for (var s = 64u; s > 0u; s >>= 1u) { if (i < s) { red[i] = max(red[i], red[i + s]); } workgroupBarrier(); }
+  let M = red[0];
+  workgroupBarrier();
+  var sum = 0.0;
+  for (var j = i; j < n; j += 128u) { let e = exp(pr[j] - M); pr[j] = e; sum += e; }
+  red[i] = sum;
+  workgroupBarrier();
+  for (var s = 64u; s > 0u; s >>= 1u) { if (i < s) { red[i] += red[i + s]; } workgroupBarrier(); }
+  let inv = 1.0 / red[0];
+  if (i < hd) {
+    var a = 0.0;
+    for (var j = 0u; j < n; j++) { a += pr[j] * V[(start + lo + j) * st + vo + h * hd + i]; }
+    O[(t * nh + h) * hd + i] = a * inv;
+  }
+}`;
+
+export function attentionLong(e, QKV, O, { nh, hd, window = 0 }) {
+  if (hd % 4 || hd > 128) throw new Error(`attentionLong: head dim ${hd}`);
+  const k = variant(e, `attnlong_${hd}`, () => attnLongWGSL(hd));
+  e.step(k, { a: [nh], b: [window], f: [1 / Math.sqrt(hd)] }, [e.b.tok, e.b.seqs, QKV, QKV, QKV, O], (n) => [n[0], nh]);
+}
+
+// Copy rows `idx` (token indexes into the packed batch) of X [T, H] into Y [P, H].  a.x = H, a.y = P.
+const GATHER = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> idx: array<u32>;
+@group(0) @binding(3) var<storage, read> X: array<f32>;
+@group(0) @binding(4) var<storage, read_write> Y: array<f32>;
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let r = wid.x; let H = p.a.x;
+  if (r >= p.a.y || dn.n.x == 0u) { return; }  // dn read so the auto layout keeps binding 1
+  let src = idx[r];
+  for (var j = l; j < H; j += 64u) { Y[r * H + j] = X[src * H + j]; }
+}`;
+KERNELS.gather = GATHER;

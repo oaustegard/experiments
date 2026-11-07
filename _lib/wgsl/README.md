@@ -1,16 +1,18 @@
-# `_lib/wgsl/`: shared code for the hand-written WebGPU encoders
+# `_lib/wgsl/`: the shared WebGPU kernel library
 
-Three experiments run text encoders on WGSL kernels written here rather than on onnxruntime-web:
-`eg2-wgsl-engine` (EmbeddingGemma 2, the 4-layer cut and the full 24 layers), `ettin-native`
-(Ettin-17m and leaf-ir) and the older `leaf-wasm/web/leaf-gpu.js`. They began as copies of each other.
-This directory is where the copies are merged, so that the next model costs a model description
-instead of another engine.
+The hand-written WGSL models in this repo (text encoders, decision models, a decoder, LoRA and
+full-weight trainers) began as copies of each other. This directory is where the copies are merged:
+one shape-specialized generator per op, each with a parity case, and a small runtime the engines
+build on. Engines importing it today: `eg2-wgsl-engine` (EmbeddingGemma 2), `ettin-native`
+(Ettin-17m, leaf-ir), `browser-decider`, `adapter-library`, `moederncolbert-bench` and `lfm-wgsl`.
+The migration plan for the rest is under "Kernel library" below.
 
 | File | What |
 |---|---|
 | `runtime.js` | `SeqEngine` base class: uniform layout (`HEADER`), weight readers (`BYTE`), shader compilation, one static uniform and bind group per dispatch, packed variable-length batches, whole-file upload with binding windows, aligned per-tensor upload, `embed` / `embedTo` / `probe` / `destroy` |
 | `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2` |
 | `tests/ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references, and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
+| `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider and adapter-library, add one per migrated engine |
 | `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
 
 An engine subclasses `SeqEngine`, sets `this.shaders = { ...KERNELS, ...ownShaders }`, and records
@@ -21,9 +23,10 @@ made for the site repo.
 
 ## Checks
 
-Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (19 on
+Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (22 on
 2026-11-07: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
-residual modes; attention fused and separate, grouped-query, windowed, head dim 32 to 256; pool; l2)
+residual modes; attention fused and separate, grouped-query, windowed, head dim 32 to 256; attentionLong to
+1,024 tokens; gather; pool; l2)
 on random inputs and a packed batch of five sequences (1 to 128 tokens), against a float64 reference
 in the same file. A case passes at max |gpu - ref| <= 1e-4 max |ref|; today's worst is 2.4e-7. It
 takes 7 s. Injecting three bugs (swapped q4 nibbles, a window off by one, the pool divisor off by
@@ -82,10 +85,13 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
 
 0. **Per-op test spine** (done 2026-11-07): `tests/ops.js`, `tests/check_ops.mjs`, bridge job
    `wgsl-ops` for the per-op baseline.
-1. **Fold the browser-decider / adapter-library fork back.** `MAX_SEQ` becomes an engine option, the
-   long-sequence attention and the gather move here with cases, and both pages vendor through
-   `vendor.py`. Removes two copies of this directory; gate is the decider's 0.745 on its 2,000 test
-   decisions and the adapter scores unchanged.
+1. **Fold the browser-decider / adapter-library fork back** (done 2026-11-07). `maxSeq` is a
+   SeqEngine option (default 128, the two decider engines pass 1024), `attentionLong` and `gather`
+   live in `kernels.js` with cases, both `web/wgsl/` copies are gone and the engines import
+   `../../_lib/wgsl/`, which `pages.json` publishes with them. `tests/engine_ab.mjs` gives max |diff|
+   0 against the forked versions for both engines (sequences of 1 to 1,024 tokens, router and a
+   spike), and adapter-library's own page check passes its fixtures (6/6 argmax, logits within
+   3.9e-5 of NumPy).
 2. **Forward ops duplicated across engines**: token-table embeds (q4, t3, t4, rhq, hash), rope, the
    gated MLPs (glu, geglu, swiglu, gelumul). ettin-native, eg2, the decider and adapter-library
    switch to them.
