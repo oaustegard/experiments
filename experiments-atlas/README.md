@@ -9,6 +9,7 @@ Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experime
 - `clusters.py` holds the cluster assignment: one primary cluster per experiment directory.
 - `data.json` holds the per-experiment purpose, date, status and secondary cluster.
 - `tpl.html` is the page with a `__DATA__` placeholder; `python3 build.py` inlines `data.json` into it and writes `web/index.html`. To add or move an experiment, edit `clusters.py` and `data.json`, then run `build.py`.
+- `web/og.png` is the 1200x630 link-preview image, rendered from the page by `make_og.js` (needs Playwright). Rerun it after a visible change to the map.
 - `_lib/` is left off because it is shared helper code and not an experiment.
 
 ## Known gaps
