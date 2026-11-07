@@ -29,7 +29,10 @@ in the same file. A case passes at max |gpu - ref| <= 1e-4 max |ref|; today's wo
 takes 7 s. Injecting three bugs (swapped q4 nibbles, a window off by one, the pool divisor off by
 one) failed the five cases that exercise them. On a real GPU the same cases are timed per op by the
 bridge job `gpu-bridge/jobs/wgsl-ops` (inputs `{ sha, only, reps, rounds }`); that is the per-op
-baseline a kernel change is compared against.
+baseline a kernel change is compared against. First run, `wgsl-ops-1` on the Mac (apple metal-3,
+Chrome 156, 2026-11-07): 19/19 pass, worst 2.4e-7; 0.006 to 0.040 ms per dispatch at these small
+shapes, so the numbers mostly measure dispatch cost and catch regressions, not throughput
+(`tests/results/wgsl-ops-1-mac.json`).
 
 Per engine, in headless Chromium on SwiftShader:
 
