@@ -349,6 +349,28 @@ fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: 
   if (p.N == 2u) { ${ST2(half, "X", "p.HW3 + i", "x0", "x1")} }
 }`;
 
+// Every res block's FiLM projection for every sampling step at once. E holds the 256-d embedding per
+// (step, batch item); Wf holds each projection row with its bias as element EMB; Dst maps a row to its
+// place in one step's FiLM block (base, and the stride between batch items). Dispatch
+// (ceil(rows / 64), steps * N).
+const WGSL_FILM = /* wgsl */`
+struct P { rows:u32, N:u32, L:u32, _a:u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> E: array<f32>;
+@group(0) @binding(2) var<storage, read> Wf: array<f32>;
+@group(0) @binding(3) var<storage, read> Dst: array<u32>;
+@group(0) @binding(4) var<storage, read_write> Out: array<f32>;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  let r = gid.x;
+  if (r >= p.rows) { return; }
+  let sn = gid.y; let s = sn / p.N; let n = sn % p.N;
+  let wb = r * ${EMB + 1}u; let eb = sn * ${EMB}u;
+  var acc = Wf[wb + ${EMB}u];
+  for (var k = 0u; k < ${EMB}u; k++) { acc += Wf[wb + k] * E[eb + k]; }
+  Out[s * p.L + Dst[2u * r] + n * Dst[2u * r + 1u]] = acc;
+}`;
+
 // Draws the 3 x H x W image in D to the canvas, scaled to fit: nearest (interp = 0) or bilinear.
 const WGSL_SHOW = /* wgsl */`
 struct P { H:u32, W:u32, scale:f32, interp:u32 }
@@ -462,6 +484,25 @@ export class ImageDiffusion {
     for (const [name, , cout] of this.blocks) { this.filmOff[name] = off; off += 2 * cout * 2; }
     this.filmLen = off;
     this.film = device.createBuffer({ size: off * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    // the FiLM projections of all blocks as one [rows][EMB + 1] matrix (bias last) for WGSL_FILM
+    const rows = this.blocks.reduce((s, b) => s + 2 * b[2], 0);
+    const wf = new Float32Array(rows * (EMB + 1)), dst = new Uint32Array(2 * rows);
+    let r = 0;
+    for (const [name, , cout] of this.blocks) {
+      const W = this.get(`${name}.emb.weight`), b = this.get(`${name}.emb.bias`);
+      for (let j = 0; j < 2 * cout; j++, r++) {
+        wf.set(W.subarray(j * EMB, (j + 1) * EMB), r * (EMB + 1));
+        wf[r * (EMB + 1) + EMB] = b[j];
+        dst[2 * r] = this.filmOff[name] + j; dst[2 * r + 1] = 2 * cout;
+      }
+    }
+    this.filmRows = rows;
+    const st = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
+    this.filmW = device.createBuffer({ size: wf.byteLength, usage: st });
+    device.queue.writeBuffer(this.filmW, 0, wf);
+    this.filmDst = device.createBuffer({ size: dst.byteLength, usage: st });
+    device.queue.writeBuffer(this.filmDst, 0, dst);
+    this.pipe.film = mk(WGSL_FILM);
     this.planKey = null;
   }
 
@@ -493,8 +534,8 @@ export class ImageDiffusion {
     return y;
   }
 
-  // silu(t2(silu(t1(temb(t)))) + cls[y]) for one item, then every block's FiLM projection
-  filmFor(t, y) {
+  // silu(t2(silu(t1(temb(t)))) + cls[y]) for one item: the 256-d vector every FiLM projection reads
+  embed(t, y) {
     const half = TDIM / 2, te = new Float32Array(TDIM);
     for (let i = 0; i < half; i++) {
       const a = t * 1000 * Math.exp(-Math.log(10000) * i / half);
@@ -503,7 +544,12 @@ export class ImageDiffusion {
     const silu = (v) => v.map((z) => z / (1 + Math.exp(-z)));
     const h = this.linear("t2", silu(this.linear("t1", te)));
     const ce = this.get("cls.weight").subarray(y * EMB, (y + 1) * EMB);
-    const e = silu(h.map((v, i) => v + ce[i]));
+    return silu(h.map((v, i) => v + ce[i]));
+  }
+
+  // every block's FiLM projection on the CPU (forward() uses it; sample() runs WGSL_FILM instead)
+  filmFor(t, y) {
+    const e = this.embed(t, y);
     const out = {};
     for (const [name] of this.blocks) out[name] = this.linear(`${name}.emb`, e);
     return out;
@@ -708,18 +754,31 @@ export class ImageDiffusion {
     dev.queue.writeBuffer(this.sBuf, 0, x0);                       // f32 state
     dev.queue.writeBuffer(this.xBuf, 0, packAct(xs, this.half));   // network input, N copies
     const ys = N === 2 ? [cls, this.nclass] : [cls];
-    const L = this.filmLen, films = new Float32Array(steps * L), us = new ArrayBuffer(steps * 32);
+    const L = this.filmLen, es = new Float32Array(steps * N * EMB), us = new ArrayBuffer(steps * 32);
     for (let i = 0; i < steps; i++) {
       const t = 1 - i / steps, tn = 1 - (i + 1) / steps;
-      this.filmData(t, ys, films, i * L);
+      ys.forEach((y, n) => es.set(this.embed(t, y), (i * N + n) * EMB));
       const dv = new DataView(us, i * 32, 32);
       dv.setUint32(0, N, true); dv.setUint32(4, 3 * H * W, true);
       dv.setFloat32(8, t, true); dv.setFloat32(12, tn - t, true); dv.setFloat32(16, cfg, true);
     }
-    const fAll = dev.createBuffer({ size: films.byteLength, usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+    // FiLM vectors for all steps, computed on the GPU into fAll
+    const fAll = dev.createBuffer({ size: steps * L * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
     const uAll = dev.createBuffer({ size: us.byteLength, usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
-    dev.queue.writeBuffer(fAll, 0, films);
+    const eBuf = dev.createBuffer({ size: es.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    const fU = dev.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    dev.queue.writeBuffer(eBuf, 0, es);
+    dev.queue.writeBuffer(fU, 0, new Uint32Array([this.filmRows, N, L, 0]));
     dev.queue.writeBuffer(uAll, 0, us);
+    {
+      const bg = dev.createBindGroup({ layout: this.pipe.film.getBindGroupLayout(0), entries:
+        [fU, eBuf, this.filmW, this.filmDst, fAll].map((buffer, binding) => ({ binding, resource: { buffer } })) });
+      const enc = dev.createCommandEncoder(), pass = enc.beginComputePass();
+      pass.setPipeline(this.pipe.film); pass.setBindGroup(0, bg);
+      pass.dispatchWorkgroups(Math.ceil(this.filmRows / 64), steps * N);
+      pass.end();
+      dev.queue.submit([enc.finish()]);
+    }
     let prev = null, stopped = false;
     try {
       for (let i = 0; i < steps; i++) {
@@ -740,7 +799,7 @@ export class ImageDiffusion {
       }
       if (prev) await prev;
     } finally {
-      fAll.destroy(); uAll.destroy();
+      fAll.destroy(); uAll.destroy(); eBuf.destroy(); fU.destroy();
     }
     if (stopped) return false;
     // final state into the display buffer
