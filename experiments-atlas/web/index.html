@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: header strip with search and cluster chips, radial map filling the stage, detail card beside (desktop) or below (phone). */
+/* Layout: header strip with search and cluster filter buttons, radial map filling the stage, detail card beside (desktop) or below (phone). */
 :root{
   --bg:#f6f7f4; --surface:#ffffff; --fg:#1d2321; --muted:#5d6762; --line:#d5dad5; --accent:#2f6b5a;
   --c1:#2a78b8;--c2:#c2571a;--c3:#2f8f5b;--c4:#b8406a;--c5:#7a58b8;--c6:#8a6d12;--c7:#18858f;--c8:#c03a3a;--c9:#5f7f1f;--c10:#a0509a;--c11:#476cc7;--c12:#9a5b2c;
@@ -60,7 +60,7 @@ aside a{color:var(--accent);font-weight:500}
 <div class="wrap">
 <header>
 <h1>Experiments Atlas</h1>
-<p class="sub">Every directory in <b>oaustegard/experiments</b>, grouped by theme. <b id="n"></b> experiments in <b id="nc"></b> clusters, from the repo index as of 2026-11-07. Click a cluster name or chip to fold or unfold it; click an experiment for its purpose and link.</p>
+<p class="sub">Every experiment directory in <b>oaustegard/experiments</b> (except the shared <code>_lib/</code>), grouped by theme. <b id="n"></b> experiments in <b id="nc"></b> clusters, with purposes taken from each directory's README or the repo's README index, as of 2026-11-07. Click a cluster name or its filter button to fold or unfold it; click an experiment for its purpose and link.</p>
 </header>
 <div class="controls">
 <input id="q" type="search" placeholder="Filter by name or purpose, e.g. remex, WGSL, Haiku" aria-label="Filter experiments">
