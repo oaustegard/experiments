@@ -1,4 +1,4 @@
-// Per-op parity of the shared WGSL kernels, in headless Chromium on SwiftShader WebGPU.
+// Per-op parity of the shared WGSL kernels (ops.js) and the training kernels (train_ops.js), in headless Chromium on SwiftShader WebGPU.
 //
 //   node _lib/wgsl/tests/check_ops.mjs [filter] [--reps N] [--json out.json]
 //
@@ -39,8 +39,10 @@ const out = await page.evaluate(async ([only, reps]) => {
   const device = await adapter.requestDevice();
   device.addEventListener("uncapturederror", (e) => console.log("GPU error: " + e.error.message));
   const { runOps } = await import("/_lib/wgsl/tests/ops.js");
-  const info = adapter.info ?? {};
-  return { device: `${info.vendor} ${info.architecture} ${info.description}`.trim(), results: await runOps(device, { only, reps, log: (m) => console.log(m) }) };
+  const { runTrainOps } = await import("/_lib/wgsl/tests/train_ops.js");
+  const info = adapter.info ?? {}, log = (m) => console.log(m);
+  const results = [...await runOps(device, { only, reps, log }), ...await runTrainOps(device, { only, log })];
+  return { device: `${info.vendor} ${info.architecture} ${info.description}`.trim(), results };
 }, [only, reps]);
 await browser.close();
 server.close();

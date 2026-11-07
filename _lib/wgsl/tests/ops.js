@@ -16,14 +16,14 @@ import { KERNELS, matmul, norm, attention, attentionLong, pool, l2, embed, rope,
 const U = GPUBufferUsage;
 
 // ---- deterministic inputs ----------------------------------------------------------------------
-function rng(seed) {
+export function rng(seed) {
   let s = seed >>> 0;
   return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
-const randn = (r, n, sc = 1) => Float32Array.from({ length: n }, () => sc * Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()));
+export const randn = (r, n, sc = 1) => Float32Array.from({ length: n }, () => sc * Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()));
 
 // GELU with the same erf approximation as the kernel (A&S 7.1.26, |error| < 1.5e-7).
-function gelu(x) {
+export function gelu(x) {
   const a = Math.abs(x) * Math.SQRT1_2, t = 1 / (1 + 0.3275911 * a);
   const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-a * a);
   return 0.5 * x * (1 + Math.sign(x) * y);

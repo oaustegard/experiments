@@ -11,7 +11,7 @@ The migration plan for the rest is under "Kernel library" below.
 |---|---|
 | `runtime.js` | `SeqEngine` base class: uniform layout (`HEADER`), weight readers (`BYTE`), shader compilation, one static uniform and bind group per dispatch, packed variable-length batches, whole-file upload with binding windows, aligned per-tensor upload, `embed` / `embedTo` / `probe` / `destroy` |
 | `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2`, `attentionLong` and `gather` (sequences to 1,024 tokens), `embed` (t4 / t3 token tables), `ropeTable` and `rope`, `gated` (gelu, gelu_tanh, silu) |
-| `tests/ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references, and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
+| `tests/ops.js`, `tests/train_ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references (finite differences for the backward kernels), and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
 | `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider, adapter-library, ettin-native, eg2-cut, moedern-1.5M, lora-trainer and distill-trainer (weights not in git are downloaded once to a cache), add one per migrated engine |
 | `train/spec.js`, `train/kernels.js`, `train/nce.js` | training kernels in the trainers' spec format (named uniforms and bindings, dynamic uniform offsets) and `SpecRunner`, the dispatch runner both trainers extend: LoRA and full-weight forward and backward passes, AdamW, the cosine and InfoNCE losses |
 | `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
@@ -38,6 +38,16 @@ baseline a kernel change is compared against. First run, `wgsl-ops-1` on the Mac
 Chrome 156, 2026-11-07): 19/19 pass, worst 2.4e-7; 0.006 to 0.040 ms per dispatch at these small
 shapes, so the numbers mostly measure dispatch cost and catch regressions, not throughput
 (`tests/results/wgsl-ops-1-mac.json`).
+
+The same command then runs the training kernels in `tests/train_ops.js` (15 cases): each forward
+kernel against a float64 reference, and each backward kernel against central finite differences of
+that reference in float64 (LayerNorm input, weight and bias grads, also through `ln_wpart` and with
+accumulate; rope; attention global and windowed over a padded batch; GeGLU; bias + GELU and the bias
+column sum; the head projection; segment cross-entropy; gather / scatter; mean pool; cosine loss; the
+token-table gradient through `embed_f`; InfoNCE through `recordNce`; split-K `mm` with strided operands
+and `sumz`; one clipped AdamW step). Same 1e-4 bar; the worst is 6.5e-6 (the AdamW step), the
+gradients 5e-7 or better. Three injected bugs in `ln_bwd`, `attn_bkv` and `ln_pgrad` failed the four
+cases that exercise them. The bridge job runs them after the timed ops (`train: false` skips them).
 
 Per engine, in headless Chromium on SwiftShader:
 
@@ -120,7 +130,8 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    every gradient and one AdamW step; the full-weight trainer under both the cosine and the
    contrastive loss). Both trainers now extend `SpecRunner` in `train/spec.js` (uniform slots, bind
    group cache, `op` / `buf` / `clear` / `flush` / `read`) instead of carrying a copy each; also max
-   |diff| 0. Still to do: finite-difference cases per backward kernel, and the
+   |diff| 0. Every training kernel has a parity case (`tests/train_ops.js`, finite differences for
+   the backward ones). Still to do: the
    forward ops the trainer shares with inference (LayerNorm, rope, attention, GeGLU) as one op where
    the shapes match. That is also where the two conventions meet (the encoders' positional uniform
    header and the trainer's named uniforms with dynamic offsets); the trainer's form is the better op
