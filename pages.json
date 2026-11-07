@@ -33,6 +33,28 @@
       "blurb": "Drop in a picture: it is cut into colour regions and each is filled with a texture (marbled, woven, cracked…) that a small diffusion model dreams on your GPU, picked to match the region's pattern and recoloured to it. Pick textures per region and export the collage"
     },
     {
+      "title": "Splat Collage",
+      "experiment": "texture-collage",
+      "slug": "texture-collage-splat",
+      "path": [
+        "texture-collage/splat/index.html",
+        "texture-collage/splat/app.js",
+        "texture-collage/splat/worker.js",
+        "texture-collage/splat/splatcollage.js",
+        "texture-collage/splat/classes.json",
+        "texture-collage/splat/bank.bin",
+        "texture-collage/splat/bank_meta.json",
+        "texture-collage/splat/og.jpg",
+        "texture-collage/web/collage.js",
+        "texture-collage/web/sample.jpg",
+        "splat-diffusion/web/splatdiff.js",
+        "splat-diffusion/web/model512/manifest.json",
+        "splat-diffusion/web/model512/weights.bin"
+      ],
+      "image": "texture-collage/splat/og.jpg",
+      "blurb": "The texture collage as one WGSL shader with no image pixels: each region of your picture is filled with a texture of 512 splats from a small diffusion model, recoloured to the region, and region edges stay smooth at any zoom. Export it as a single WGSL or HTML file; a 1024 px frame draws in about 3 ms on a Mac"
+    },
+    {
       "title": "Decision Spike Creator",
       "experiment": "decider-lora-creator",
       "path": [
