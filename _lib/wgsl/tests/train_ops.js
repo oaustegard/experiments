@@ -332,7 +332,29 @@ const adamwCase = {
   },
 };
 
-export const trainCases = [lnCase, ropeCase, attnCase(0, 0), attnCase(1, 2), gegluCase, biasGeluCase, headOutCase, lossCase,
+const embedQ4Case = {
+  name: "embed 4-bit table + LayerNorm, copy", op: "embed",
+  async run(rn, r) {
+    const V = 5, IDS = [2, 0, 4, 2], R = IDS.length, eps = 1e-5, wOff = 3;
+    const codes = Array.from({ length: V * H }, () => Math.floor(16 * r())), scales = randn(r, (V * H) / 32, 0.1).map(Math.abs);
+    const packed = new Uint32Array((V * H) / 8);
+    codes.forEach((q, e) => { packed[e >> 3] |= q << ((e % 8) * 4); });
+    const W = cat(randn(r, wOff), randn(r, H, 0.2).map((v) => 1 + v)), base = randn(r, R * H);
+    const bIDS = rn.buf("IDS", R, u32(IDS)), bC = rn.buf("CODES", packed.length, packed), bS = rn.buf("SCALES", scales.length, scales);
+    const bW = rn.buf("W", W.length, W), bX = rn.buf("X", R * H), bY = rn.buf("Y", R * H), bY2 = rn.buf("Y2", R * H, base);
+    rn.op("embed", [bIDS, bC, bS, bW, bX], { R, eps, wOff }, R);
+    rn.op("copy", [bX, bY], { n: R * H, acc: 0 }, Math.ceil((R * H) / 256));
+    rn.op("copy", [bX, bY2], { n: R * H, acc: 1 }, Math.ceil((R * H) / 256));
+    const rows = Float64Array.from({ length: R * H }, (_, e) => {
+      const tok = IDS[Math.floor(e / H)], j = e % H, k = tok * H + j;
+      return (codes[k] - 8) * scales[tok * (H / 32) + Math.floor(j / 32)];
+    });
+    const X = lnRef(rows, R, W.slice(wOff), null, eps);
+    return [["X", await rn.read(bX), X], ["copy", await rn.read(bY), X], ["copy acc", await rn.read(bY2), X.map((v, i) => v + base[i])]];
+  },
+};
+
+export const trainCases = [embedQ4Case, lnCase, ropeCase, attnCase(0, 0), attnCase(1, 2), gegluCase, biasGeluCase, headOutCase, lossCase,
   gatherCase, poolCase, cosCase, embedCase, nceCase, mmCase, adamwCase];
 
 // opts: only (substring of case name or op), seed, tol (default 1e-4). Rows: { name, op, pass, rel, checks: [{ label, rel, n }] }.

@@ -39,9 +39,9 @@ Chrome 156, 2026-11-07): 19/19 pass, worst 2.4e-7; 0.006 to 0.040 ms per dispatc
 shapes, so the numbers mostly measure dispatch cost and catch regressions, not throughput
 (`tests/results/wgsl-ops-1-mac.json`).
 
-The same command then runs the training kernels in `tests/train_ops.js` (15 cases): each forward
+The same command then runs the training kernels in `tests/train_ops.js` (16 cases covering all 35 kernels): each forward
 kernel against a float64 reference, and each backward kernel against central finite differences of
-that reference in float64 (LayerNorm input, weight and bias grads, also through `ln_wpart` and with
+that reference in float64 (the 4-bit embed and copy; LayerNorm input, weight and bias grads, also through `ln_wpart` and with
 accumulate; rope; attention global and windowed over a padded batch; GeGLU; bias + GELU and the bias
 column sum; the head projection; segment cross-entropy; gather / scatter; mean pool; cosine loss; the
 token-table gradient through `embed_f`; InfoNCE through `recordNce`; split-K `mm` with strided operands
