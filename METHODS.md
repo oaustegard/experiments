@@ -1679,6 +1679,14 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **`torch.compile` a dense splat render before fitting thousands of images.** Rendering B × K × P
+  Gaussians in eager PyTorch is a chain of memory-bound elementwise ops; compiled, one batch of 32
+  crops × 1,024 splats × 1,000 steps went from 61 s to 6.1 s on an A100. Check compiled against eager
+  on CPU first (they agreed to 0.0). (`splat-diffusion/train/splats.py`, `render_pix`)
+- **A splat fitter with no length cap leaves needles that a generative model learns.** 0.21% of
+  1,024-splat fits had a long axis over a quarter of the tile, the diffusion model trained on them
+  produced 0.37%, and they draw as straight lines across a texture. A post-hoc filter on long thin splats
+  also removed woven textures' thread splats. Cap the length in the fitter. (`splat-diffusion/RESULTS.md`)
 - **A conv net trained with zero padding makes seamless tiles when sampled with circular padding.** No
   retraining: the wrap makes every edge pixel an interior pixel. Over 12 DTD texture classes the step across
   the tile edge was 1.00 times the step between neighbouring interior pixels, against 3.93 with zero padding,

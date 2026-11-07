@@ -2,6 +2,12 @@
   "_doc": "Pages published to https://austegard.com/experiments/ by .github/workflows/pages.yml. Opt-in: an experiment's HTML is served only when listed here. `path` is a file or a directory (a directory ships its web files: html, js, css, json, images, fonts, wasm, bin). `url` instead links a page hosted elsewhere. Built by _lib/pages_site.py, which fails on a missing path.",
   "pages": [
     {
+      "title": "Splat Diffusion",
+      "experiment": "splat-diffusion",
+      "path": "splat-diffusion/web",
+      "blurb": "A diffusion model written by hand in WGSL generates a texture as 1,024 soft Gaussian splats instead of pixels, in 0.2 s on a Mac: one shader paints them, so the tile repeats seamlessly, stays smooth at any zoom, and exports as a WGSL function"
+    },
+    {
       "title": "Texture Diffusion",
       "experiment": "wgsl-diffusion",
       "path": "wgsl-diffusion/web",
