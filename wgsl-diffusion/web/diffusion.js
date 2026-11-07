@@ -90,6 +90,143 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
   }
 }`;
 
+// v2 conv: register-tiled. A workgroup of 64 threads computes an 8x8 pixel tile x 32 output channels;
+// each thread owns 4 adjacent pixels x 8 channels (8 vec4 accumulators), so one input read feeds 8 FMAs
+// and one vec4 weight read feeds 4 pixels. Weights are laid out [Cin][K*K][Cout] (see relayout()) so the
+// shared-memory load is contiguous. K and STRIDE are pipeline constants, so the tap loops unroll.
+// Split-K: with S > 1 each workgroup covers Cin / S input channels and writes a partial sum; a
+// second pass (WGSL_SPLITSUM) adds the partials, bias and residual. That gives the 8x8 and 16x16
+// layers enough workgroups to fill the GPU.
+const WGSL_CONV2 = /* wgsl */`
+override K: u32 = 3u;
+override STRIDE: u32 = 1u;
+struct P { N:u32, Cin:u32, Hin:u32, Win:u32, Cout:u32, Hout:u32, Wout:u32, circ:u32,
+           xform:u32, res:u32, wOff:u32, bOff:u32, S:u32, cinPer:u32, partial:u32, _a:u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> X: array<f32>;
+@group(0) @binding(2) var<storage, read> Wt: array<f32>;
+@group(0) @binding(3) var<storage, read> AB: array<f32>;
+@group(0) @binding(4) var<storage, read> R: array<f32>;
+@group(0) @binding(5) var<storage, read_write> Y: array<f32>;
+const CIB = 4u;
+var<workgroup> sIn: array<f32, 1156>;     // CIB * 17 * 17
+var<workgroup> sW: array<vec4f, 288>;     // CIB * 9 * 32 / 4
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u32) {
+  let cob = (p.Cout + 31u) / 32u;
+  let s = wg.z % p.S;
+  let rest = wg.z / p.S;
+  let co0 = (rest % cob) * 32u;
+  let n = rest / cob;
+  let T = 7u * STRIDE + K;
+  let KK = K * K;
+  let hk = i32(K / 2u);
+  let ix0 = i32(wg.x * 8u * STRIDE) - hk;
+  let iy0 = i32(wg.y * 8u * STRIDE) - hk;
+  let H = i32(p.Hin); let W = i32(p.Win);
+  let pg = li % 16u; let cog = li / 16u;
+  let prow = pg / 2u; let pcol0 = (pg % 2u) * 4u;
+  var acc = array<vec4f, 8>(vec4f(0.), vec4f(0.), vec4f(0.), vec4f(0.), vec4f(0.), vec4f(0.), vec4f(0.), vec4f(0.));
+  let cBeg = s * p.cinPer;
+  let cEnd = min(cBeg + p.cinPer, p.Cin);
+  for (var ci0 = cBeg; ci0 < cEnd; ci0 += CIB) {
+    let tileN = CIB * T * T;
+    for (var i = li; i < tileN; i += 64u) {
+      let c = i / (T * T); let r = i % (T * T);
+      let ci = ci0 + c;
+      var v = 0.0;
+      if (ci < cEnd) {
+        var iy = iy0 + i32(r / T); var ix = ix0 + i32(r % T);
+        var inb = iy >= 0 && iy < H && ix >= 0 && ix < W;
+        if (p.circ == 1u) { iy = ((iy % H) + H) % H; ix = ((ix % W) + W) % W; inb = true; }
+        if (inb) {
+          v = X[((n * p.Cin + ci) * p.Hin + u32(iy)) * p.Win + u32(ix)];
+          if (p.xform == 1u) {
+            let ab = 2u * (n * p.Cin + ci);
+            let z = AB[ab] * v + AB[ab + 1u];
+            v = z / (1.0 + exp(-z));
+          }
+        }
+      }
+      sIn[i] = v;
+    }
+    let wN = CIB * KK * 8u;
+    for (var i = li; i < wN; i += 64u) {
+      let q4 = i % 8u; let r = i / 8u;
+      let k = r % KK; let c = r / KK;
+      let ci = ci0 + c; let co = co0 + q4 * 4u;
+      var w = vec4f(0.);
+      if (ci < cEnd) {
+        let base = p.wOff + (ci * KK + k) * p.Cout + co;
+        if (co + 3u < p.Cout) {
+          w = vec4f(Wt[base], Wt[base + 1u], Wt[base + 2u], Wt[base + 3u]);
+        } else {
+          for (var j = 0u; j < 4u; j++) { if (co + j < p.Cout) { w[j] = Wt[base + j]; } }
+        }
+      }
+      sW[i] = w;
+    }
+    workgroupBarrier();
+    for (var c = 0u; c < CIB; c++) {
+      for (var ky = 0u; ky < K; ky++) {
+        let rb = (c * T + prow * STRIDE + ky) * T + pcol0 * STRIDE;
+        var seg = array<f32, 9>(0., 0., 0., 0., 0., 0., 0., 0., 0.);
+        for (var j = 0u; j < 3u * STRIDE + K; j++) { seg[j] = sIn[rb + j]; }
+        for (var kx = 0u; kx < K; kx++) {
+          let wb = (c * KK + ky * K + kx) * 8u + cog * 2u;
+          let w0 = sW[wb]; let w1 = sW[wb + 1u];
+          for (var q = 0u; q < 4u; q++) {
+            let v = seg[q * STRIDE + kx];
+            acc[2u * q] += w0 * v;
+            acc[2u * q + 1u] += w1 * v;
+          }
+        }
+      }
+    }
+    workgroupBarrier();
+  }
+  let HW = p.Hout * p.Wout;
+  let oy = wg.y * 8u + prow;
+  for (var q = 0u; q < 4u; q++) {
+    let ox = wg.x * 8u + pcol0 + q;
+    if (ox < p.Wout && oy < p.Hout) {
+      for (var h = 0u; h < 2u; h++) {
+        let a = acc[2u * q + h];
+        for (var j = 0u; j < 4u; j++) {
+          let c = co0 + cog * 8u + h * 4u + j;
+          if (c < p.Cout) {
+            if (p.partial == 1u) {
+              Y[((s * p.N + n) * p.Cout + c) * HW + oy * p.Wout + ox] = a[j];
+            } else {
+              let idx = ((n * p.Cout + c) * p.Hout + oy) * p.Wout + ox;
+              var y = a[j] + Wt[p.bOff + c];
+              if (p.res == 1u) { y += R[idx]; }
+              Y[idx] = y;
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
+const WGSL_SPLITSUM = /* wgsl */`
+struct P { total:u32, S:u32, HW:u32, Cout:u32, bOff:u32, res:u32, _a:u32, _b:u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> Pt: array<f32>;
+@group(0) @binding(2) var<storage, read> Wt: array<f32>;
+@group(0) @binding(3) var<storage, read> R: array<f32>;
+@group(0) @binding(4) var<storage, read_write> Y: array<f32>;
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
+  let i = gid.x + gid.y * nw.x * 256u;
+  if (i >= p.total) { return; }
+  var y = Wt[p.bOff + (i / p.HW) % p.Cout];
+  for (var s = 0u; s < p.S; s++) { y += Pt[s * p.total + i]; }
+  if (p.res == 1u) { y += R[i]; }
+  Y[i] = y;
+}`;
+
 // GroupNorm statistics fused with the affine + FiLM that follow it:
 // writes a, b per (n, c) so the consumer computes silu(a * x + b).
 const WGSL_GNORM = /* wgsl */`
@@ -241,23 +378,33 @@ const BLOCKS = [["e0", 64, 64], ["e1", 64, 128], ["e2", 128, 192], ["e3", 192, 2
                 ["u3", 512, 256], ["u2", 448, 192], ["u1", 320, 128], ["u0", 192, 64]];
 
 export class TextureDiffusion {
-  static async create(device, base) {
+  static async create(device, base, opts = {}) {
     const man = await (await fetch(`${base}/manifest.json`)).json();
     const raw = new Uint16Array(await (await fetch(`${base}/weights.bin`)).arrayBuffer());
-    return new TextureDiffusion(device, man, f16ToF32(raw));
+    return new TextureDiffusion(device, man, f16ToF32(raw), opts);
   }
 
-  constructor(device, man, w) {
+  // opts.kernel: "v2" (register-tiled + split-K, default) or "v1" (the first, simpler conv)
+  constructor(device, man, w, { kernel = "v2", splitTarget = 256 } = {}) {
     this.device = device;
     this.man = man;
     this.w = w;
+    this.kernel = kernel;
+    this.splitTarget = splitTarget;
     this.nclass = man.nclass;
-    const buf = device.createBuffer({ size: w.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(buf, 0, w);
+    const gw = kernel === "v2" ? this.relayout(w) : w;
+    const buf = device.createBuffer({ size: gw.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(buf, 0, gw);
     this.wbuf = buf;
-    const mk = (code) => device.createComputePipeline({
-      layout: "auto", compute: { module: device.createShaderModule({ code }), entryPoint: "main" } });
-    this.pipe = { conv: mk(WGSL_CONV), gnorm: mk(WGSL_GNORM), upcat: mk(WGSL_UPCAT), step: mk(WGSL_STEP) };
+    const mk = (code, constants) => device.createComputePipeline({
+      layout: "auto", compute: { module: device.createShaderModule({ code }), entryPoint: "main", constants } });
+    this.pipe = { conv: mk(WGSL_CONV), gnorm: mk(WGSL_GNORM), upcat: mk(WGSL_UPCAT), step: mk(WGSL_STEP),
+                  splitsum: mk(WGSL_SPLITSUM) };
+    if (kernel === "v2") {
+      const m = new Map();
+      for (const [K, S] of [[3, 1], [3, 2], [1, 1]]) m.set(`${K}_${S}`, mk(WGSL_CONV2, { K, STRIDE: S }));
+      this.conv2 = m;
+    }
     this.dummy = device.createBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
     // FiLM offsets: per block, 2 * cout floats per batch item
     this.filmOff = {};
@@ -266,6 +413,19 @@ export class TextureDiffusion {
     this.filmLen = off;
     this.film = device.createBuffer({ size: off * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     this.planKey = null;
+  }
+
+  // Copy of the weights with every conv kernel moved from [Cout][Cin][K][K] to [Cin][K*K][Cout].
+  relayout(w) {
+    const out = new Float32Array(w);
+    for (const [, [o, s]] of Object.entries(this.man.tensors)) {
+      if (s.length !== 4) continue;
+      const [co, ci, kh, kw] = s, KK = kh * kw;
+      for (let a = 0; a < co; a++)
+        for (let b = 0; b < ci; b++)
+          for (let k = 0; k < KK; k++) out[o + (b * KK + k) * co + a] = w[o + (a * ci + b) * KK + k];
+    }
+    return out;
   }
 
   T(name) { return this.man.tensors[name]; }
@@ -322,6 +482,25 @@ export class TextureDiffusion {
     const conv = (name, x, cout, { stride = 1, K = 3, ab = null, res = null } = {}) => {
       const ho = stride === 2 ? x.h / 2 : x.h, wo = stride === 2 ? x.w / 2 : x.w;
       const y = tensor(cout, ho, wo);
+      if (this.kernel === "v2") {
+        const cob = Math.ceil(cout / 32), base = Math.ceil(wo / 8) * Math.ceil(ho / 8) * N * cob;
+        let S = 1;
+        while (base * S < this.splitTarget && x.C % (8 * S) === 0 && x.C / (2 * S) >= 16) S *= 2;
+        const u = [N, x.C, x.h, x.w, cout, ho, wo, circ ? 1 : 0, ab ? 1 : 0, res ? 1 : 0,
+                   off(`${name}.weight`), off(`${name}.bias`), S, x.C / S, S > 1 ? 1 : 0, 0];
+        const wg = [Math.ceil(wo / 8), Math.ceil(ho / 8), base / (Math.ceil(wo / 8) * Math.ceil(ho / 8)) * S];
+        const pk = `${K}_${stride}`;
+        if (S === 1) {
+          ops.push({ k: "conv2", pk, ins: [x, ab, res], out: y, u, wg });
+        } else {
+          const part = { id: tid++, size: S * N * cout * ho * wo };
+          tensors.push(part);
+          ops.push({ k: "conv2", pk, ins: [x, ab, null], out: part, u, wg });
+          ops.push({ k: "splitsum", ins: [part, res], out: y,
+                     u: [y.size, S, ho * wo, cout, off(`${name}.bias`), res ? 1 : 0, 0, 0], wg: this.flat(y.size) });
+        }
+        return y;
+      }
       ops.push({ k: "conv", ins: [x, ab, res], out: y,
         u: [N, x.C, x.h, x.w, cout, ho, wo, stride, K, circ ? 1 : 0, ab ? 1 : 0, res ? 1 : 0,
             off(`${name}.weight`), off(`${name}.bias`), 0, 0],
@@ -382,9 +561,10 @@ export class TextureDiffusion {
     this.ops = ops.map((op) => {
       const ub = dev.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
       dev.queue.writeBuffer(ub, 0, new Uint32Array([...op.u, ...new Array(16 - op.u.length).fill(0)]));
-      const p = this.pipe[op.k];
+      const p = op.k === "conv2" ? this.conv2.get(op.pk) : this.pipe[op.k];
       let entries;
-      if (op.k === "conv") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.ins[2]), B(op.out)];
+      if (op.k === "conv" || op.k === "conv2") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.ins[2]), B(op.out)];
+      else if (op.k === "splitsum") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.out)];
       else if (op.k === "gnorm") entries = [ub, B(op.ins[0]), this.wbuf, this.film, B(op.out)];
       else entries = [ub, B(op.ins[0]), B(op.ins[1]), B(op.out)];
       const bg = dev.createBindGroup({ layout: p.getBindGroupLayout(0),

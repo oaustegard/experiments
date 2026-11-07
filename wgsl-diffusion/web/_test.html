@@ -9,9 +9,11 @@ window.runTests = async () => {
     maxBufferSize: adapter.limits.maxBufferSize } });
   const errs = [];
   device.addEventListener("uncapturederror", (e) => errs.push(e.error.message));
-  const m = await TextureDiffusion.create(device, "./test");
   const cases = await (await fetch("./test/cases.json")).json();
   const res = [];
+  const variants = [["v1", {}], ["v2", {}], ["v2-nosplit", { splitTarget: 0 }]];
+  for (const [vname, vopts] of variants) {
+  const m = await TextureDiffusion.create(device, "./test", { kernel: vname.slice(0, 2), ...vopts });
   for (const c of cases) {
     const t0 = performance.now();
     let got, want;
@@ -26,7 +28,9 @@ window.runTests = async () => {
     }
     let maxd = 0, maxw = 0;
     for (let i = 0; i < want.length; i++) { maxd = Math.max(maxd, Math.abs(got[i] - want[i])); maxw = Math.max(maxw, Math.abs(want[i])); }
-    res.push({ kind: c.kind, H: c.H, W: c.W, pad: c.pad, maxd, maxw, rel: maxd / maxw, ms: performance.now() - t0, nan: got.some(Number.isNaN) });
+    res.push({ v: vname, kind: c.kind, H: c.H, W: c.W, pad: c.pad, maxd, maxw, rel: maxd / maxw, ms: performance.now() - t0, nan: got.some(Number.isNaN) });
+  }
+  m.freePlan();
   }
   return { res, errs };
 };
