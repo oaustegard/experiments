@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-06T01:52:02.180038+00:00",
+ "last_run": "2026-11-07T01:51:49.722110+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -462,6 +462,39 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Survey and taxonomy of agentic robotics with no experiments of its own. Sec. 7.6 describes code proposing legal candidates and a fast decision model (it cites TypeSafe's Jev) picking one above a confidence threshold, which matches the existing decide-based routing and changes nothing."
+  },
+  "2611.01860": {
+   "title": "Advances in Agentic Computer Graphics",
+   "first_seen": "2026-11-07",
+   "best_rank": 26,
+   "upvotes": 174,
+   "reviewed": "2026-11-07",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Survey and taxonomy of ~350 LLM-agent graphics papers (specification, base model, harness, tooling); no method or benchmark of its own and the annotation pipeline is unreleased. The transferable pattern (local patch edits checked by visual/programmatic verifiers) is likely already in his harness."
+  },
+  "2610.38355": {
+   "title": "FlatCake: A Flat KVCache Storage Architecture for LLM Serving",
+   "first_seen": "2026-11-07",
+   "best_rank": 29,
+   "upvotes": 170,
+   "reviewed": "2026-11-07",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Write-once, session-contiguous KV-cache storage on DRAM/SSD with GPUDirect streaming; on a Claude Code trace it reports 94% cache hit and 7.6 s vs 12.2 s TTFT against Mooncake. Needs a self-hosted 8xB200 + NVMe + modified SGLang stack and no code is released; the only takeaway for him is to keep shared prompt prefixes byte-stable so provider prefix caches hit."
+  },
+  "2610.28594": {
+   "title": "Learning the 4D World through Point Trajectory Forecasting",
+   "first_seen": "2026-11-07",
+   "best_rank": 30,
+   "upvotes": 166,
+   "reviewed": "2026-11-07",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Video world model on Cosmos 3 Nano that jointly forecasts video and 3D point trajectories for robot control, trained on 32 GH200s. Nothing touches agents, retrieval, browser inference or fitness data."
   }
  }
 }
