@@ -113,10 +113,10 @@ async function main() {
     $(id).addEventListener("input", () => { $(`${id}V`).textContent = $(id).value; if (id === "zoom") draw(); });
   }
   $("smooth").addEventListener("change", draw);
-  // Largest activation at size S is the last concat: 192 channels x S^2 x 2 (guided batch) floats.
-  // Disable sizes whose buffer this GPU cannot bind; 512 needs about 1.2 GB in all.
+  // Largest activation at size S is the last concat: 192 channels x S^2 x 2 (guided batch) values,
+  // stored as f16. Disable sizes whose buffer this GPU cannot bind; 512 needs about 0.6 GB in all.
   for (const b of $("size").children) {
-    if (192 * (+b.dataset.v) ** 2 * 2 * 4 > device.limits.maxStorageBufferBindingSize) {
+    if (192 * (+b.dataset.v) ** 2 * 2 * 2 > device.limits.maxStorageBufferBindingSize) {
       b.disabled = true; b.title = "Too large for this GPU";
     }
   }

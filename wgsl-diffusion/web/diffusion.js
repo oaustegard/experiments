@@ -1,9 +1,21 @@
 // Rectified-flow texture U-Net in hand-written WGSL compute.
-// Layout: activations are f32 NCHW in storage buffers; all weights live in one f32 buffer.
-// Each step: embeddings + FiLM in JS (tiny), then ~75 dispatches in one compute pass.
+// Layout: activations are NCHW in storage buffers, stored as f32 or as f16 pairs packed into u32
+// (pack2x16float, core WGSL, so no shader-f16 feature is needed); arithmetic is always f32.
+// All weights live in one f32 buffer. The sampler state stays f32.
+// Each step: embeddings + FiLM in JS (tiny), then ~80 dispatches in one compute pass.
 
 const G = 16;            // GroupNorm groups
 const TDIM = 128, EMB = 256;
+
+// Storage helpers. half = true: element i of a packed buffer is half i & 1 of word i >> 1, and
+// every writer stores two adjacent elements at once (all widths are even).
+const AT = (half) => (half ? "u32" : "f32");
+const LDFN = (half, name, buf) => half
+  ? `fn ${name}(i: u32) -> f32 { return unpack2x16float(${buf}[i >> 1u])[i & 1u]; }`
+  : `fn ${name}(i: u32) -> f32 { return ${buf}[i]; }`;
+const ST2 = (half, buf, i, a, b) => half
+  ? `${buf}[(${i}) >> 1u] = pack2x16float(vec2f(${a}, ${b}));`
+  : `${buf}[${i}] = ${a}; ${buf}[(${i}) + 1u] = ${b};`;
 
 const WGSL_CONV = /* wgsl */`
 struct P { N:u32, Cin:u32, Hin:u32, Win:u32, Cout:u32, Hout:u32, Wout:u32, stride:u32,
@@ -97,17 +109,20 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u
 // Split-K: with S > 1 each workgroup covers Cin / S input channels and writes a partial sum; a
 // second pass (WGSL_SPLITSUM) adds the partials, bias and residual. That gives the 8x8 and 16x16
 // layers enough workgroups to fill the GPU.
-const WGSL_CONV2 = /* wgsl */`
+const WGSL_CONV2 = (half) => /* wgsl */`
 override K: u32 = 3u;
 override STRIDE: u32 = 1u;
 struct P { N:u32, Cin:u32, Hin:u32, Win:u32, Cout:u32, Hout:u32, Wout:u32, circ:u32,
            xform:u32, res:u32, wOff:u32, bOff:u32, S:u32, cinPer:u32, partial:u32, _a:u32 }
 @group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read> X: array<f32>;
+@group(0) @binding(1) var<storage, read> X: array<${AT(half)}>;
 @group(0) @binding(2) var<storage, read> Wt: array<f32>;
 @group(0) @binding(3) var<storage, read> AB: array<f32>;
-@group(0) @binding(4) var<storage, read> R: array<f32>;
-@group(0) @binding(5) var<storage, read_write> Y: array<f32>;
+@group(0) @binding(4) var<storage, read> R: array<${AT(half)}>;
+@group(0) @binding(5) var<storage, read_write> Y: array<${AT(half)}>;
+@group(0) @binding(6) var<storage, read_write> Pt: array<f32>;     // split-K partial sums
+${LDFN(half, "ldX", "X")}
+${LDFN(half, "ldR", "R")}
 const CIB = 4u;
 var<workgroup> sIn: array<f32, 1156>;     // CIB * 17 * 17
 var<workgroup> sW: array<vec4f, 288>;     // CIB * 9 * 32 / 4
@@ -140,7 +155,7 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
         var inb = iy >= 0 && iy < H && ix >= 0 && ix < W;
         if (p.circ == 1u) { iy = ((iy % H) + H) % H; ix = ((ix % W) + W) % W; inb = true; }
         if (inb) {
-          v = X[((n * p.Cin + ci) * p.Hin + u32(iy)) * p.Win + u32(ix)];
+          v = ldX(((n * p.Cin + ci) * p.Hin + u32(iy)) * p.Win + u32(ix));
           if (p.xform == 1u) {
             let ab = 2u * (n * p.Cin + ci);
             let z = AB[ab] * v + AB[ab + 1u];
@@ -185,23 +200,27 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
     }
     workgroupBarrier();
   }
+  // write pixel pairs (q, q + 1): ox is even and Wout is even, so a pair never straddles a row
   let HW = p.Hout * p.Wout;
   let oy = wg.y * 8u + prow;
-  for (var q = 0u; q < 4u; q++) {
+  for (var q = 0u; q < 4u; q += 2u) {
     let ox = wg.x * 8u + pcol0 + q;
     if (ox < p.Wout && oy < p.Hout) {
-      for (var h = 0u; h < 2u; h++) {
-        let a = acc[2u * q + h];
+      for (var h2 = 0u; h2 < 2u; h2++) {
+        let a0 = acc[2u * q + h2];
+        let a1 = acc[2u * q + 2u + h2];
         for (var j = 0u; j < 4u; j++) {
-          let c = co0 + cog * 8u + h * 4u + j;
+          let c = co0 + cog * 8u + h2 * 4u + j;
           if (c < p.Cout) {
             if (p.partial == 1u) {
-              Y[((s * p.N + n) * p.Cout + c) * HW + oy * p.Wout + ox] = a[j];
+              let pi = ((s * p.N + n) * p.Cout + c) * HW + oy * p.Wout + ox;
+              Pt[pi] = a0[j]; Pt[pi + 1u] = a1[j];
             } else {
               let idx = ((n * p.Cout + c) * p.Hout + oy) * p.Wout + ox;
-              var y = a[j] + Wt[p.bOff + c];
-              if (p.res == 1u) { y += R[idx]; }
-              Y[idx] = y;
+              let b = Wt[p.bOff + c];
+              var y0 = a0[j] + b; var y1 = a1[j] + b;
+              if (p.res == 1u) { y0 += ldR(idx); y1 += ldR(idx + 1u); }
+              ${ST2(half, "Y", "idx", "y0", "y1")}
             }
           }
         }
@@ -210,29 +229,35 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
   }
 }`;
 
-const WGSL_SPLITSUM = /* wgsl */`
+const WGSL_SPLITSUM = (half) => /* wgsl */`
 struct P { total:u32, S:u32, HW:u32, Cout:u32, bOff:u32, res:u32, _a:u32, _b:u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> Pt: array<f32>;
 @group(0) @binding(2) var<storage, read> Wt: array<f32>;
-@group(0) @binding(3) var<storage, read> R: array<f32>;
-@group(0) @binding(4) var<storage, read_write> Y: array<f32>;
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
-  let i = gid.x + gid.y * nw.x * 256u;
-  if (i >= p.total) { return; }
+@group(0) @binding(3) var<storage, read> R: array<${AT(half)}>;
+@group(0) @binding(4) var<storage, read_write> Y: array<${AT(half)}>;
+${LDFN(half, "ldR", "R")}
+fn one(i: u32) -> f32 {
   var y = Wt[p.bOff + (i / p.HW) % p.Cout];
   for (var s = 0u; s < p.S; s++) { y += Pt[s * p.total + i]; }
-  if (p.res == 1u) { y += R[i]; }
-  Y[i] = y;
+  if (p.res == 1u) { y += ldR(i); }
+  return y;
+}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
+  let i = 2u * (gid.x + gid.y * nw.x * 256u);
+  if (i >= p.total) { return; }
+  let y0 = one(i); let y1 = one(i + 1u);
+  ${ST2(half, "Y", "i", "y0", "y1")}
 }`;
 
 // GroupNorm statistics fused with the affine + FiLM that follow it:
 // writes a, b per (n, c) so the consumer computes silu(a * x + b).
-const WGSL_GNORM = /* wgsl */`
+const WGSL_GNORM = (half) => /* wgsl */`
 struct P { N:u32, C:u32, HW:u32, gOff:u32, bOff:u32, film:u32, fOff:u32, _a:u32 }
 @group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read> X: array<f32>;
+@group(0) @binding(1) var<storage, read> X: array<${AT(half)}>;
+${LDFN(half, "ldX", "X")}
 @group(0) @binding(2) var<storage, read> Wt: array<f32>;
 @group(0) @binding(3) var<storage, read> F: array<f32>;
 @group(0) @binding(4) var<storage, read_write> AB: array<f32>;
@@ -245,7 +270,7 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
   let cnt = cpg * p.HW;
   let base = (n * p.C + g * cpg) * p.HW;
   var s = 0.0;
-  for (var i = li; i < cnt; i += 256u) { s += X[base + i]; }
+  for (var i = li; i < cnt; i += 256u) { s += ldX(base + i); }
   red[li] = s;
   workgroupBarrier();
   for (var k = 128u; k > 0u; k >>= 1u) { if (li < k) { red[li] += red[li + k]; } workgroupBarrier(); }
@@ -253,7 +278,7 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
   workgroupBarrier();
   let mean = mean_s;
   var q = 0.0;
-  for (var i = li; i < cnt; i += 256u) { let d = X[base + i] - mean; q += d * d; }
+  for (var i = li; i < cnt; i += 256u) { let d = ldX(base + i) - mean; q += d * d; }
   workgroupBarrier();
   red[li] = q;
   workgroupBarrier();
@@ -274,45 +299,58 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
 }`;
 
 // Optional nearest 2x upsample of A, concatenated with B along channels.
-const WGSL_UPCAT = /* wgsl */`
+const WGSL_UPCAT = (half) => /* wgsl */`
 struct P { N:u32, C1:u32, C2:u32, H:u32, W:u32, up:u32, total:u32, _a:u32 }
 @group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read> A: array<f32>;
-@group(0) @binding(2) var<storage, read> B: array<f32>;
-@group(0) @binding(3) var<storage, read_write> Y: array<f32>;
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
-  let i = gid.x + gid.y * nw.x * 256u;
-  if (i >= p.total) { return; }
+@group(0) @binding(1) var<storage, read> A: array<${AT(half)}>;
+@group(0) @binding(2) var<storage, read> B: array<${AT(half)}>;
+@group(0) @binding(3) var<storage, read_write> Y: array<${AT(half)}>;
+${LDFN(half, "ldA", "A")}
+${LDFN(half, "ldB", "B")}
+fn one(i: u32) -> f32 {
   let C = p.C1 + p.C2;
   let x = i % p.W; let y = (i / p.W) % p.H; let c = (i / (p.W * p.H)) % C; let n = i / (p.W * p.H * C);
   if (c < p.C1) {
     let h = p.H >> p.up; let w = p.W >> p.up;
-    Y[i] = A[((n * p.C1 + c) * h + (y >> p.up)) * w + (x >> p.up)];
-  } else {
-    Y[i] = B[((n * p.C2 + c - p.C1) * p.H + y) * p.W + x];
+    return ldA(((n * p.C1 + c) * h + (y >> p.up)) * w + (x >> p.up));
   }
-}`;
-
-// Euler step with classifier-free guidance. X holds N copies of the state; V the model outputs
-// (cond first, unconditional second when N = 2). Also writes the x0 estimate for display.
-const WGSL_STEP = /* wgsl */`
-struct P { N:u32, HW3:u32, t:f32, dt:f32, cfg:f32, _a:u32, _b:u32, _c:u32 }
-@group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read_write> X: array<f32>;
-@group(0) @binding(2) var<storage, read> V: array<f32>;
-@group(0) @binding(3) var<storage, read_write> D: array<f32>;
+  return ldB(((n * p.C2 + c - p.C1) * p.H + y) * p.W + x);
+}
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
-  let i = gid.x + gid.y * nw.x * 256u;
-  if (i >= p.HW3) { return; }
-  var v = V[i];
-  if (p.N == 2u) { let vu = V[p.HW3 + i]; v = vu + p.cfg * (v - vu); }
-  let x = X[i];
+  let i = 2u * (gid.x + gid.y * nw.x * 256u);
+  if (i >= p.total) { return; }
+  let y0 = one(i); let y1 = one(i + 1u);
+  ${ST2(half, "Y", "i", "y0", "y1")}
+}`;
+
+// Euler step with classifier-free guidance. S is the f32 state; X receives N copies of it as the
+// next network input; V holds the model outputs (cond first, unconditional second when N = 2).
+// Also writes the x0 estimate D for display.
+const WGSL_STEP = (half) => /* wgsl */`
+struct P { N:u32, HW3:u32, t:f32, dt:f32, cfg:f32, _a:u32, _b:u32, _c:u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read_write> S: array<f32>;
+@group(0) @binding(2) var<storage, read> V: array<${AT(half)}>;
+@group(0) @binding(3) var<storage, read_write> D: array<f32>;
+@group(0) @binding(4) var<storage, read_write> X: array<${AT(half)}>;
+${LDFN(half, "ldV", "V")}
+fn one(i: u32) -> f32 {
+  var v = ldV(i);
+  if (p.N == 2u) { let vu = ldV(p.HW3 + i); v = vu + p.cfg * (v - vu); }
+  let x = S[i];
   D[i] = x - p.t * v;
   let xn = x + p.dt * v;
-  X[i] = xn;
-  if (p.N == 2u) { X[p.HW3 + i] = xn; }
+  S[i] = xn;
+  return xn;
+}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(num_workgroups) nw: vec3u) {
+  let i = 2u * (gid.x + gid.y * nw.x * 256u);
+  if (i >= p.HW3) { return; }
+  let x0 = one(i); let x1 = one(i + 1u);
+  ${ST2(half, "X", "i", "x0", "x1")}
+  if (p.N == 2u) { ${ST2(half, "X", "p.HW3 + i", "x0", "x1")} }
 }`;
 
 const WGSL_SHOW = /* wgsl */`
@@ -351,6 +389,40 @@ export function f16ToF32(u16) {
   return out;
 }
 
+const _f = new Float32Array(1), _u = new Uint32Array(_f.buffer);
+// f32 -> f16 bits, round to nearest (ties away), flush below the f16 subnormal range
+export function toHalf(v) {
+  _f[0] = v;
+  const x = _u[0], sgn = (x >>> 16) & 0x8000, e = ((x >>> 23) & 0xff) - 112, m = x & 0x7fffff;
+  if (e >= 31) return sgn | 0x7c00;
+  if (e <= 0) return e < -10 ? sgn : sgn | (((m | 0x800000) >>> (1 - e)) + 0x1000) >>> 13;
+  return sgn | ((e << 10) + ((m + 0x1000) >>> 13));
+}
+
+// Float32Array -> bytes in a storage layout: f32 as is, or f16 pairs packed into u32
+export function packAct(x, half) {
+  if (!half) return x;
+  const u = new Uint16Array(x.length + (x.length & 1));
+  for (let i = 0; i < x.length; i++) u[i] = toHalf(x[i]);
+  return u;
+}
+
+// Rebuild the f32 weight array from weights_q8.bin (see train/export.py write_weights_q8).
+export function dequantQ8(man, bytes) {
+  const w = new Float32Array(man.n);
+  for (const [name, kind, pos, rows] of man.parts) {
+    const [off, shape] = man.tensors[name];
+    const n = shape.reduce((a, b) => a * b, 1);
+    if (kind === "f16") {
+      w.set(f16ToF32(new Uint16Array(bytes, pos, n)), off);
+    } else {
+      const sc = new Float32Array(bytes, pos, rows), q = new Int8Array(bytes, pos + 4 * rows, n), per = n / rows;
+      for (let i = 0; i < n; i++) w[off + i] = q[i] * sc[(i / per) | 0];
+    }
+  }
+  return w;
+}
+
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return () => {
@@ -378,18 +450,27 @@ const BLOCKS = [["e0", 64, 64], ["e1", 64, 128], ["e2", 128, 192], ["e3", 192, 2
                 ["u3", 512, 256], ["u2", 448, 192], ["u1", 320, 128], ["u0", 192, 64]];
 
 export class TextureDiffusion {
+  // opts.weights: "f16" (weights.bin, 16.8 MB) or "q8" (weights_q8.bin, int8 per output row, 8.4 MB)
   static async create(device, base, opts = {}) {
+    if (opts.weights === "q8") {
+      const man = await (await fetch(`${base}/manifest_q8.json`)).json();
+      const bytes = await (await fetch(`${base}/weights_q8.bin`)).arrayBuffer();
+      return new TextureDiffusion(device, man, dequantQ8(man, bytes), opts);
+    }
     const man = await (await fetch(`${base}/manifest.json`)).json();
     const raw = new Uint16Array(await (await fetch(`${base}/weights.bin`)).arrayBuffer());
     return new TextureDiffusion(device, man, f16ToF32(raw), opts);
   }
 
-  // opts.kernel: "v2" (register-tiled + split-K, default) or "v1" (the first, simpler conv)
-  constructor(device, man, w, { kernel = "v2", splitTarget = 256 } = {}) {
+  // opts.kernel: "v2" (register-tiled + split-K, default) or "v1" (the first, simpler conv, f32 only)
+  // opts.act: "f16" (activations stored as packed f16, default with v2) or "f32"
+  constructor(device, man, w, { kernel = "v2", splitTarget = 256, act = "f16" } = {}) {
     this.device = device;
     this.man = man;
     this.w = w;
     this.kernel = kernel;
+    this.half = kernel === "v2" && act === "f16";
+    const half = this.half;
     this.splitTarget = splitTarget;
     this.nclass = man.nclass;
     const gw = kernel === "v2" ? this.relayout(w) : w;
@@ -398,14 +479,17 @@ export class TextureDiffusion {
     this.wbuf = buf;
     const mk = (code, constants) => device.createComputePipeline({
       layout: "auto", compute: { module: device.createShaderModule({ code }), entryPoint: "main", constants } });
-    this.pipe = { conv: mk(WGSL_CONV), gnorm: mk(WGSL_GNORM), upcat: mk(WGSL_UPCAT), step: mk(WGSL_STEP),
-                  splitsum: mk(WGSL_SPLITSUM) };
+    this.pipe = { gnorm: mk(WGSL_GNORM(half)), upcat: mk(WGSL_UPCAT(half)), step: mk(WGSL_STEP(half)) };
     if (kernel === "v2") {
+      this.pipe.splitsum = mk(WGSL_SPLITSUM(half));
       const m = new Map();
-      for (const [K, S] of [[3, 1], [3, 2], [1, 1]]) m.set(`${K}_${S}`, mk(WGSL_CONV2, { K, STRIDE: S }));
+      for (const [K, S] of [[3, 1], [3, 2], [1, 1]]) m.set(`${K}_${S}`, mk(WGSL_CONV2(half), { K, STRIDE: S }));
       this.conv2 = m;
+    } else {
+      this.pipe.conv = mk(WGSL_CONV);
     }
-    this.dummy = device.createBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+    this.dummy = device.createBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });     // read-only slots
+    this.dummyW = device.createBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });    // an unused writable slot
     // FiLM offsets: per block, 2 * cout floats per batch item
     this.filmOff = {};
     let off = 0;
@@ -476,8 +560,12 @@ export class TextureDiffusion {
     const dev = this.device, ops = [], bufs = new Map();
     let tid = 0;
     const tensors = [];
-    const tensor = (C, h, w) => { const t = { id: tid++, size: N * C * h * w, C, h, w }; tensors.push(t); return t; };
-    const abT = (C) => { const t = { id: tid++, size: N * C * 2, ab: true }; tensors.push(t); return t; };
+    const actBytes = (n) => (this.half ? 4 * Math.ceil(n / 2) : 4 * n);
+    const tensor = (C, h, w) => {
+      const size = N * C * h * w, t = { id: tid++, size, bytes: actBytes(size), C, h, w };
+      tensors.push(t); return t;
+    };
+    const abT = (C) => { const t = { id: tid++, size: N * C * 2, bytes: N * C * 2 * 4, ab: true }; tensors.push(t); return t; };
     const off = (name) => this.T(name)[0];
     const conv = (name, x, cout, { stride = 1, K = 3, ab = null, res = null } = {}) => {
       const ho = stride === 2 ? x.h / 2 : x.h, wo = stride === 2 ? x.w / 2 : x.w;
@@ -493,11 +581,11 @@ export class TextureDiffusion {
         if (S === 1) {
           ops.push({ k: "conv2", pk, ins: [x, ab, res], out: y, u, wg });
         } else {
-          const part = { id: tid++, size: S * N * cout * ho * wo };
+          const part = { id: tid++, size: S * N * cout * ho * wo, bytes: 4 * S * N * cout * ho * wo };
           tensors.push(part);
-          ops.push({ k: "conv2", pk, ins: [x, ab, null], out: part, u, wg });
+          ops.push({ k: "conv2", pk, partial: true, ins: [x, ab, null], out: part, u, wg });
           ops.push({ k: "splitsum", ins: [part, res], out: y,
-                     u: [y.size, S, ho * wo, cout, off(`${name}.bias`), res ? 1 : 0, 0, 0], wg: this.flat(y.size) });
+                     u: [y.size, S, ho * wo, cout, off(`${name}.bias`), res ? 1 : 0, 0, 0], wg: this.flat(y.size / 2) });
         }
         return y;
       }
@@ -521,7 +609,7 @@ export class TextureDiffusion {
     };
     const upcat = (a, b, up) => {
       const y = tensor(a.C + b.C, b.h, b.w);
-      ops.push({ k: "upcat", ins: [a, b], out: y, u: [N, a.C, b.C, b.h, b.w, up ? 1 : 0, y.size, 0], wg: this.flat(y.size) });
+      ops.push({ k: "upcat", ins: [a, b], out: y, u: [N, a.C, b.C, b.h, b.w, up ? 1 : 0, y.size, 0], wg: this.flat(y.size / 2) });
       return y;
     };
     const x = tensor(3, H, W);
@@ -541,18 +629,18 @@ export class TextureDiffusion {
     ops.forEach((op, i) => op.ins.forEach((t) => t && last.set(t.id, i)));
     const pool = [], all = [];
     const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
-    const take = (size) => {
+    const take = (bytes) => {       // best fit by byte size
       let bi = -1;
-      for (let i = 0; i < pool.length; i++) if (pool[i].n >= size && (bi < 0 || pool[i].n < pool[bi].n)) bi = i;
+      for (let i = 0; i < pool.length; i++) if (pool[i].n >= bytes && (bi < 0 || pool[i].n < pool[bi].n)) bi = i;
       if (bi >= 0) return pool.splice(bi, 1)[0];
-      const b = { n: size, buf: dev.createBuffer({ size: Math.max(16, size * 4), usage }) };
+      const b = { n: bytes, buf: dev.createBuffer({ size: Math.max(16, bytes), usage }) };
       all.push(b);
       return b;
     };
     const pinned = new Set([x.id, v.id]);
-    bufs.set(x.id, take(x.size));
+    bufs.set(x.id, take(x.bytes));
     ops.forEach((op, i) => {
-      bufs.set(op.out.id, take(op.out.size));
+      bufs.set(op.out.id, take(op.out.bytes));
       for (const t of op.ins) if (t && !pinned.has(t.id) && last.get(t.id) === i) pool.push(bufs.get(t.id));
       if (!pinned.has(op.out.id) && !last.has(op.out.id)) pool.push(bufs.get(op.out.id));
     });
@@ -563,7 +651,11 @@ export class TextureDiffusion {
       dev.queue.writeBuffer(ub, 0, new Uint32Array([...op.u, ...new Array(16 - op.u.length).fill(0)]));
       const p = op.k === "conv2" ? this.conv2.get(op.pk) : this.pipe[op.k];
       let entries;
-      if (op.k === "conv" || op.k === "conv2") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.ins[2]), B(op.out)];
+      if (op.k === "conv") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.ins[2]), B(op.out)];
+      else if (op.k === "conv2") {
+        entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.ins[2]),
+                   op.partial ? this.dummyW : B(op.out), op.partial ? B(op.out) : this.dummyW];
+      }
       else if (op.k === "splitsum") entries = [ub, B(op.ins[0]), this.wbuf, B(op.ins[1]), B(op.out)];
       else if (op.k === "gnorm") entries = [ub, B(op.ins[0]), this.wbuf, this.film, B(op.out)];
       else entries = [ub, B(op.ins[0]), B(op.ins[1]), B(op.out)];
@@ -576,12 +668,14 @@ export class TextureDiffusion {
     this.vBuf = B(v);
     this.N = N; this.H = H; this.W = W; this.circ = circ;
     this.dBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+    this.sBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
     this.stepU = dev.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     this.stepBG = dev.createBindGroup({ layout: this.pipe.step.getBindGroupLayout(0), entries: [
-      { binding: 0, resource: { buffer: this.stepU } }, { binding: 1, resource: { buffer: this.xBuf } },
-      { binding: 2, resource: { buffer: this.vBuf } }, { binding: 3, resource: { buffer: this.dBuf } }] });
+      { binding: 0, resource: { buffer: this.stepU } }, { binding: 1, resource: { buffer: this.sBuf } },
+      { binding: 2, resource: { buffer: this.vBuf } }, { binding: 3, resource: { buffer: this.dBuf } },
+      { binding: 4, resource: { buffer: this.xBuf } }] });
     this.planKey = key;
-    this.bytes = all.reduce((s, b) => s + b.n * 4, 0);
+    this.bytes = all.reduce((s, b) => s + b.n, 0);
   }
 
   flat(n) { const g = Math.ceil(n / 256); return g <= 65535 ? [g, 1, 1] : [16384, Math.ceil(g / 16384), 1]; }
@@ -590,7 +684,7 @@ export class TextureDiffusion {
     if (!this.allBufs) return;
     for (const b of this.allBufs) b.buf.destroy();
     for (const o of this.ops) o.ub.destroy();
-    this.dBuf.destroy(); this.stepU.destroy();
+    this.dBuf.destroy(); this.sBuf.destroy(); this.stepU.destroy();
     this.allBufs = null; this.planKey = null;
   }
 
@@ -605,12 +699,19 @@ export class TextureDiffusion {
   // One model evaluation on an explicit batch (testing).
   async forward(x, t, ys, H, W, circ) {
     this.plan(ys.length, H, W, circ);
-    this.device.queue.writeBuffer(this.xBuf, 0, x);
+    this.device.queue.writeBuffer(this.xBuf, 0, packAct(x, this.half));
     this.writeFilm(t, ys);
     const enc = this.device.createCommandEncoder();
     this.encodeForward(enc);
     this.device.queue.submit([enc.finish()]);
-    return this.read(this.vBuf, ys.length * 3 * H * W);
+    return this.readAct(this.vBuf, ys.length * 3 * H * W);
+  }
+
+  // read n elements of an activation buffer as f32
+  async readAct(buf, n) {
+    if (!this.half) return this.read(buf, n);
+    const words = await this.read(buf, Math.ceil(n / 2));
+    return f16ToF32(new Uint16Array(words.buffer)).subarray(0, n);
   }
 
   async read(buf, n) {
@@ -634,7 +735,8 @@ export class TextureDiffusion {
     const x0 = noise || gaussian(3 * H * W, seed);
     const xs = new Float32Array(N * 3 * H * W);
     for (let n = 0; n < N; n++) xs.set(x0, n * 3 * H * W);
-    dev.queue.writeBuffer(this.xBuf, 0, xs);
+    dev.queue.writeBuffer(this.sBuf, 0, x0);                       // f32 state
+    dev.queue.writeBuffer(this.xBuf, 0, packAct(xs, this.half));   // network input, N copies
     const ys = N === 2 ? [cls, this.nclass] : [cls];
     const L = this.filmLen, films = new Float32Array(steps * L), us = new ArrayBuffer(steps * 32);
     for (let i = 0; i < steps; i++) {
@@ -660,7 +762,7 @@ export class TextureDiffusion {
         this.encodeForward(enc);
         const pass = enc.beginComputePass();
         pass.setPipeline(this.pipe.step); pass.setBindGroup(0, this.stepBG);
-        pass.dispatchWorkgroups(...this.flat(3 * H * W));
+        pass.dispatchWorkgroups(...this.flat(3 * H * W / 2));
         pass.end();
         dev.queue.submit([enc.finish()]);
         if (onStep) await onStep(i, 1 - (i + 1) / steps);
@@ -676,7 +778,7 @@ export class TextureDiffusion {
     if (stopped) return false;
     // final state into the display buffer
     const enc = this.device.createCommandEncoder();
-    enc.copyBufferToBuffer(this.xBuf, 0, this.dBuf, 0, 3 * H * W * 4);
+    enc.copyBufferToBuffer(this.sBuf, 0, this.dBuf, 0, 3 * H * W * 4);
     this.device.queue.submit([enc.finish()]);
     return true;
   }

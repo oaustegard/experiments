@@ -39,6 +39,38 @@ def write_weights(sd, out: Path):
     print(f"{off} params, {(out / 'weights.bin').stat().st_size/1e6:.1f} MB")
 
 
+def write_weights_q8(sd, out: Path):
+    """int8 weights, symmetric per output row, for every tensor with 2+ dims; f16 for the rest.
+
+    weights_q8.bin holds, per tensor in state_dict order, either f16 values or f32 row scales
+    followed by int8 values (each part padded to 4 bytes). manifest_q8.json carries the same
+    "tensors" map as manifest.json (offsets into the dequantized f32 array) plus "parts" =
+    [name, kind, byte_offset, rows] so the loader can rebuild that array.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    man, parts, chunks, off, pos = {}, [], [], 0, 0
+    for k, v in sd.items():
+        a = v.detach().float().cpu().numpy()
+        man[k] = [off, list(v.shape)]
+        off += a.size
+        if a.ndim >= 2:
+            rows = a.reshape(a.shape[0], -1)
+            sc = np.maximum(np.abs(rows).max(1), 1e-12) / 127
+            q = np.clip(np.round(rows / sc[:, None]), -127, 127).astype(np.int8)
+            b = sc.astype(np.float32).tobytes() + q.tobytes()
+            parts.append([k, "q8", pos, int(a.shape[0])])
+        else:
+            b = a.astype(np.float16).tobytes()
+            parts.append([k, "f16", pos, 0])
+        b += b"\0" * (-len(b) % 4)
+        chunks.append(b)
+        pos += len(b)
+    (out / "weights_q8.bin").write_bytes(b"".join(chunks))
+    (out / "manifest_q8.json").write_text(json.dumps({"n": off, "tensors": man, "parts": parts,
+                                                       "nclass": NCLASS, "names": NAMES}))
+    print(f"q8: {pos/1e6:.1f} MB")
+
+
 def f16_roundtrip(model):
     with torch.no_grad():
         for p in model.parameters():
@@ -84,5 +116,6 @@ if __name__ == "__main__":
     if sys.argv[1] == "weights":
         sd = torch.load(sys.argv[2], map_location="cpu")
         write_weights(sd, Path(sys.argv[3]))
+        write_weights_q8(sd, Path(sys.argv[3]))
     elif sys.argv[1] == "fixture":
         fixture(Path(sys.argv[2]))
