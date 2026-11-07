@@ -1,0 +1,22 @@
+<!doctype html><meta charset="utf-8"><title>bank</title>
+<script type="module">
+import { TextureDiffusion } from "../../wgsl-diffusion/web/diffusion.js";
+const adapter = await navigator.gpu.requestAdapter();
+const device = await adapter.requestDevice({ requiredLimits: {
+  maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
+const model = await TextureDiffusion.create(device, "../../wgsl-diffusion/web/model", { weights: "q8" });
+window.names = model.man.names;
+// returns base64 of uint8 RGB (HWC)
+window.gen = async (cls, S, steps, seed, cfg = 3) => {
+  const t0 = performance.now();
+  await model.sample({ cls, H: S, W: S, steps, cfg, seed, circ: true });
+  const d = await model.read(model.dBuf, 3 * S * S);
+  const ms = performance.now() - t0;
+  const u = new Uint8Array(3 * S * S);
+  for (let i = 0; i < S * S; i++) for (let k = 0; k < 3; k++)
+    u[3 * i + k] = Math.round(Math.min(1, Math.max(0, (d[k * S * S + i] + 1) / 2)) * 255);
+  let s = ""; for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192));
+  return { ms, b64: btoa(s) };
+};
+window.ready = true;
+</script>

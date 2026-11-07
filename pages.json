@@ -8,6 +8,17 @@
       "blurb": "Pick a texture class and an 8.4M-parameter diffusion model, written by hand in WGSL, dreams a seamless tile of it on your GPU and repeats it across the screen: 0.4 s at 128×128 and 3.7 s at 512×512 on a Mac, 47 classes from the Describable Textures Dataset"
     },
     {
+      "title": "Texture Collage",
+      "experiment": "texture-collage",
+      "path": [
+        "texture-collage/web",
+        "wgsl-diffusion/web/diffusion.js",
+        "wgsl-diffusion/web/model/manifest_q8.json",
+        "wgsl-diffusion/web/model/weights_q8.bin"
+      ],
+      "blurb": "Drop in a picture: it is cut into colour regions and each is filled with a texture (marbled, woven, cracked…) that a small diffusion model dreams on your GPU, picked to match the region's pattern and recoloured to it. Pick textures per region and export the collage"
+    },
+    {
       "title": "Decision Spike Creator",
       "experiment": "decider-lora-creator",
       "path": [

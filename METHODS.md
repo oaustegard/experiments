@@ -1686,6 +1686,19 @@ the result.
 - **Check weight quantization on the final checkpoint, not an early one.** Symmetric int8 per output row
   cost a diffusion U-Net 42.3 dB PSNR (against f32 sampling) at 15k steps and 34.4 dB at 60k (the
   cause was not measured). f16 activations stayed at about 84 dB at both. (`wgsl-diffusion/run/quant_sim.py`)
+- **A generator trained on DTD draws faces for `freckled`.** `wgsl-diffusion` tiles of that class show
+  skin and eyes (freckles are photographed on faces; the dataset itself was not checked), and a
+  pattern matcher picks them for bright, smooth regions. Leave the class out of automatic choice.
+  (`texture-collage/RESULTS.md` finding 8)
+- **Colour k-means on a blurred image gives every edge a cluster of its own.** The blend band between two
+  flat colours is a colour of its own, and with K above the true count k-means spends a cluster on it: a
+  two-colour test picture came out as three regions. Merging any component whose area is under 2.5
+  times its boundary length, as well as the small ones, removes the bands.
+  (`texture-collage/web/collage.js` `segment`)
+- **Cap the gain when transferring Lab mean and spread onto a texture.** A tile with little chroma
+  spread, scaled up to a region's spread, has its noise amplified and clipped out of gamut, and that
+  shifts the region's mean. Gains capped at 4 (L) and 1.5 (a, b) cut the region-mean error from 1.43 to
+  1.32 ΔE over 12 collages. (`texture-collage/RESULTS.md` finding 3)
 
 - **Centre a teacher's vectors before distilling into them with a cosine loss, and fit the student's head first.** MedCPT's 768-d vectors share a mean component of norm 7.08 against an average length of 9.45, so a student that outputs the mean scores cosine about 0.5 and the run collapses there. Targets of T minus the training-set mean, plus a ridge-fitted output head before step 0, trained normally. The ridge head alone reaches cosine 0.61 to the teacher and still ranks badly (SciFact nDCG@10 0.17), so the layers have to move. (`lifesci-ettin/RESULTS.md` Round 1)
 - **A bias that adds the same constant to every option's logit has a zero gradient under a per-question softmax, and AdamW moves it anyway.** In browser-decider's head the last Linear's bias and the LayerNorm bias before it both cancel in the segment softmax; PyTorch's own gradients for them are float noise (about 1e-8), so a gradient check that divides by them reports errors of 400% or more. Leave tensors whose reference gradient is under about 1e-6 of the total norm out of relative errors. AdamW divides a gradient by its own running size, so these parameters drift by about the learning rate per step on noise, in PyTorch and in any faithful port. (`ettin-wgsl-train/RESULTS.md` finding 4)

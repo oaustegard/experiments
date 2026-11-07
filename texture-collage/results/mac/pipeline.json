@@ -1,0 +1,108 @@
+{
+ "id": "tc-pipe-1",
+ "startedAt": 1794061897379,
+ "finishedAt": 1794061924064,
+ "runMs": 21345.200000047684,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "ndv8g0dm",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "S=64: 237 270 289 262 232 193 186 186 ms, render 459 ms",
+  "S=128: 361 358 358 357 358 385 441 359 ms, render 780 ms",
+  "S=256: 1126 1125 1123 1123 1127 1140 1122 1121 ms, render 852 ms"
+ ],
+ "outputs": {
+  "W": 768,
+  "H": 512,
+  "K": 8,
+  "steps": 20,
+  "model_init_ms": 183.29999995231628,
+  "runs": [
+   {
+    "segment_ms": 418.80000019073486,
+    "describe_ms": 1027.7000000476837,
+    "choose_ms": 0.40000009536743164,
+    "K": 8,
+    "classes": [
+     "veined",
+     "crystalline",
+     "freckled",
+     "freckled",
+     "marbled",
+     "studded",
+     "marbled",
+     "dotted"
+    ]
+   }
+  ],
+  "seg": {
+   "segment_ms": 418.80000019073486,
+   "describe_ms": 1027.7000000476837,
+   "choose_ms": 0.40000009536743164,
+   "K": 8,
+   "classes": [
+    "veined",
+    "crystalline",
+    "freckled",
+    "freckled",
+    "marbled",
+    "studded",
+    "marbled",
+    "dotted"
+   ]
+  },
+  "S64": {
+   "textures_ms": 1854.0000002384186,
+   "per_texture_ms": [
+    236.59999990463257,
+    269.7000000476837,
+    288.90000009536743,
+    262.09999990463257,
+    231.90000009536743,
+    192.79999995231628,
+    186.10000014305115,
+    185.90000009536743
+   ],
+   "render_ms": 458.60000014305115
+  },
+  "S128": {
+   "textures_ms": 2977.2000002861023,
+   "per_texture_ms": [
+    360.7999999523163,
+    358.2999999523163,
+    358.40000009536743,
+    357.40000009536743,
+    357.60000014305115,
+    384.7999999523163,
+    440.5,
+    359.40000009536743
+   ],
+   "render_ms": 780.0999999046326
+  },
+  "collage128": {
+   "npy": "removed; see kodim23_collage128.jpg",
+   "dtype": "u8",
+   "length": 1572864
+  },
+  "S256": {
+   "textures_ms": 9006.199999809265,
+   "per_texture_ms": [
+    1125.7000000476837,
+    1124.5999999046326,
+    1123.4000000953674,
+    1122.5999999046326,
+    1126.6999998092651,
+    1139.9000000953674,
+    1122.2999999523163,
+    1121
+   ],
+   "render_ms": 851.5999999046326
+  },
+  "adapter": null
+ }
+}
