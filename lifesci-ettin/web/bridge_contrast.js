@@ -1,4 +1,4 @@
-// GPU Bridge job: one stretch of a contrastive arm (web/distill.js with loss "nce", web/nce.js).
+// GPU Bridge job: one stretch of a contrastive arm (web/distill.js with loss "nce", _lib/wgsl/train/nce.js).
 // cfg = { sha, arm, V, pad, from, to, total, lr, warm, scale, save, urls: { params, ids, lens, pairs } }
 // pairs: u32 [steps * P * 2], (query row, positive row) per pair, from run/pairs.py; the same file for
 // every arm, since both arms' shards hold the same rows in the same order. A batch is the step's P

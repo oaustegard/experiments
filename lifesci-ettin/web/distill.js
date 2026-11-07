@@ -12,79 +12,11 @@
 // table gradient (the batch's unique tokens and the rows holding each, built on the CPU, one workgroup per
 // unique token: no atomics), mean pooling and the cosine loss.
 
-import { kernels as baseKernels, wgsl, grid, REDUCE } from "../../ettin-wgsl-train/web/train.js";
-import { nceKernels, recordNce } from "./nce.js";
+import { wgsl, grid } from "../../_lib/wgsl/train/spec.js";
+import { fullKernels as kernels } from "../../_lib/wgsl/train/kernels.js";
+import { recordNce } from "../../_lib/wgsl/train/nce.js";
 
 const SMAX = 1024, SLOT = 256, MAX_SLOTS = 4096, KCHUNK = 512, LNCH = 256;
-
-function kernels(C) {
-  const { H, OUT } = C;
-  const K = baseKernels(C);
-  K.embed_f = { u: ["R", "eps:f", "tOff", "wOff"], b: [["IDS", "r", "u32"], ["PRM", "r", "f32"], ["XE", "rw", "f32"], ["X", "rw", "f32"], ["ST", "rw", "f32"]],
-    wg: H, pre: REDUCE(H), body: `
-  if (gi >= p.R) { return; }
-  let j = lid.x;
-  let v = PRM[p.tOff + IDS[gi] * ${H}u + j];
-  XE[gi * ${H}u + j] = v;
-  let mu = wsum(v, j) / ${H}.0;
-  let d = v - mu;
-  let rs = inverseSqrt(wsum(d * d, j) / ${H}.0 + p.eps);
-  X[gi * ${H}u + j] = d * rs * PRM[p.wOff + j];
-  if (j == 0u) { ST[2u * gi] = mu; ST[2u * gi + 1u] = rs; }` };
-  // LayerNorm weight gradient, partial sums over chunks of rows: PART[z, c] = sum_r DY[r, c] * xhat[r, c]
-  K.ln_wpart = { u: ["R", "chunk"], b: [["X", "r", "f32"], ["ST", "r", "f32"], ["DY", "r", "f32"], ["PART", "rw", "f32"]], wg: H, body: `
-  let c = lid.x;
-  let r0 = gi * p.chunk;
-  let r1 = min(p.R, r0 + p.chunk);
-  var s = 0.0;
-  for (var r = r0; r < r1; r = r + 1u) { s = s + DY[r * ${H}u + c] * (X[r * ${H}u + c] - ST[2u * r]) * ST[2u * r + 1u]; }
-  PART[gi * ${H}u + c] = s;` };
-  K.pool = { u: ["B", "S"], b: [["X", "r", "f32"], ["LENS", "r", "u32"], ["PL", "rw", "f32"]], wg: H, body: `
-  if (gi >= p.B) { return; }
-  let n = LENS[gi];
-  var s = 0.0;
-  for (var t = 0u; t < n; t = t + 1u) { s = s + X[(gi * p.S + t) * ${H}u + lid.x]; }
-  PL[gi * ${H}u + lid.x] = s / f32(n);` };
-  K.unpool = { u: ["R", "S"], b: [["DPL", "r", "f32"], ["LENS", "r", "u32"], ["DX", "rw", "f32"]], wg: H, body: `
-  if (gi >= p.R) { return; }
-  let b = gi / p.S;
-  let t = gi % p.S;
-  let n = LENS[b];
-  var v = 0.0;
-  if (t < n) { v = DPL[b * ${H}u + lid.x] / f32(n); }
-  DX[gi * ${H}u + lid.x] = v;` };
-  // loss = mean_b (1 - cos(y_b, t_b)); one workgroup walks the batch
-  K.cosloss = { u: ["B", "slot"], b: [["Y", "r", "f32"], ["TGT", "r", "f32"], ["DY", "rw", "f32"], ["LOSS", "rw", "f32"]], wg: 256, pre: REDUCE(256), body: `
-  let t = lid.x;
-  var tot = 0.0;
-  for (var b = 0u; b < p.B; b = b + 1u) {
-    var yt = 0.0;
-    var yy = 0.0;
-    var tt = 0.0;
-    for (var j = t; j < ${OUT}u; j = j + 256u) { let y = Y[b * ${OUT}u + j]; let g = TGT[b * ${OUT}u + j]; yt = yt + y * g; yy = yy + y * y; tt = tt + g * g; }
-    yt = wsum(yt, t);
-    yy = wsum(yy, t);
-    tt = wsum(tt, t);
-    let ny = sqrt(yy);
-    let nt = sqrt(tt);
-    let cs = yt / (ny * nt);
-    tot = tot + 1.0 - cs;
-    let k = -1.0 / f32(p.B);
-    for (var j = t; j < ${OUT}u; j = j + 256u) {
-      let y = Y[b * ${OUT}u + j];
-      DY[b * ${OUT}u + j] = k * (TGT[b * ${OUT}u + j] / (ny * nt) - cs * y / yy);
-    }
-  }
-  if (t == 0u) { LOSS[p.slot] = tot / f32(p.B); }` };
-  // token-table gradient: one workgroup per unique token u, summing the rows that hold it
-  K.tgrad = { u: ["nU", "tOff"], b: [["UTOK", "r", "u32"], ["USTART", "r", "u32"], ["UROWS", "r", "u32"], ["DXE", "r", "f32"], ["G", "rw", "f32"]], wg: H, body: `
-  if (gi >= p.nU) { return; }
-  var s = 0.0;
-  for (var k = USTART[gi]; k < USTART[gi + 1u]; k = k + 1u) { s = s + DXE[UROWS[k] * ${H}u + lid.x]; }
-  G[p.tOff + UTOK[gi] * ${H}u + lid.x] = s;` };
-  Object.assign(K, nceKernels(C));
-  return K;
-}
 
 export function layoutFor(V, { H = 256, I = 384, L = 7, OUT = 768 } = {}) {
   const lay = [];

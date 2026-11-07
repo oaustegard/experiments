@@ -5,9 +5,8 @@
 // sentence-transformers' MNRL). Backward: dS = (softmax(S) - I) / P, dQn = scale dS Dn,
 // dDn = scale dS^T Qn (both through the trainer's tiled `mm`), then dy = (dyn - yn (yn . dyn)) / |y|.
 //
-// Kernels are in the trainer's spec format (named uniforms, [name, mode, type] bindings, wg, pre,
-// body), self-contained and free of model state, so they can move to _lib/wgsl/train/ with the rest of
-// the training ops (kernel library step 3). Each has a float64 case through run/reference.py nce.
+// Kernels are in spec.js's format, self-contained and free of model state. Moved here from
+// lifesci-ettin/web/nce.js (step 3); lifesci-ettin's run/reference.py nce is the float64 case.
 
 const RED = (n, name, op, init) => /* wgsl */ `
 var<workgroup> ${name}_a: array<f32, ${n}>;

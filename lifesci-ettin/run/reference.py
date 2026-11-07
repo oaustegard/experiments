@@ -2,7 +2,7 @@
 
     python3 -I run/reference.py gradcheck   # fixtures/gradcheck/: one batch, loss, every gradient, one AdamW step
     python3 -I run/reference.py f64 RESULT  # compare a gradcheck result's raw grads against float64
-    python3 -I run/reference.py nce         # fixtures/gradcheck_nce/: the same for the contrastive loss (web/nce.js)
+    python3 -I run/reference.py nce         # fixtures/gradcheck_nce/: the same for the contrastive loss (_lib/wgsl/train/nce.js)
     python3 -I run/reference.py f64nce RESULT
 
 The gradcheck model is e17c with its table cut to the batch's tokens plus random rows (V = 2048), so the

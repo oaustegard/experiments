@@ -149,7 +149,7 @@ shared them). Loss 0.47 to 0.23, in-batch accuracy 0.90 to 0.95. Eval on CPU (`r
 Both kill criteria fired, so step 1 did not run. The PubMed held-out set was not evaluated: its file depends on
 abstracts not kept in the repo, and the arm trains on that task directly.
 
-Built for step 1 and checked, ready for a better data source: `web/nce.js`, the contrastive loss for the WGSL
+Built for step 1 and checked, ready for a better data source: `web/nce.js` (now `_lib/wgsl/train/nce.js`), the contrastive loss for the WGSL
 trainer (`distill.js` `forwardBackward({ loss: "nce" })`), in the trainer's kernel format so it can move to
 `_lib/wgsl/train/`. Against float64 on 8 pairs its largest per-tensor gradient error is 4.6e-6, PyTorch float32's
 3.8e-6 (`gradcheck_nce_f64.json`, SwiftShader, correctness only). `web/bridge_contrast.js` and

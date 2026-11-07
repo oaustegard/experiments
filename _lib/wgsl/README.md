@@ -13,6 +13,7 @@ The migration plan for the rest is under "Kernel library" below.
 | `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2`, `attentionLong` and `gather` (sequences to 1,024 tokens), `embed` (t4 / t3 token tables), `ropeTable` and `rope`, `gated` (gelu, gelu_tanh, silu) |
 | `tests/ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references, and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
 | `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider, adapter-library, ettin-native, eg2-cut and moedern-1.5M (weights not in git are downloaded once to a cache), add one per migrated engine |
+| `train/spec.js`, `train/kernels.js`, `train/nce.js` | training kernels in the trainers' spec format (named uniforms and bindings, dynamic uniform offsets): LoRA and full-weight forward and backward passes, AdamW, the cosine and InfoNCE losses |
 | `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
 
 An engine subclasses `SeqEngine`, sets `this.shaders = { ...KERNELS, ...ownShaders }`, and records
@@ -109,13 +110,21 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    tokens, Ettin 0.7 / 0.7 ms (`wgsl-ab-step2`); decider and spike `score()` 0.98x to 1.03x, after a
    rerun with 12 rounds put the decider's one 1.07x reading at 1.004x (`engine-ab-step2`, `-step2b`,
    in `tests/results/`). MoEdernColBERT was checked on SwiftShader only. LFM's SwiGLU waits for step 5.
-3. **Training ops** into `train/`: the backward kernels, split-K weight gradients and AdamW, with
-   finite-difference cases. ettin-wgsl-train and lifesci-ettin import from here; the forward ops the
-   trainer shares with inference (LayerNorm, rope, attention, GeGLU) become one op where the shapes
-   match. Gate: both gradchecks pass and a fixed-seed loss trajectory is unchanged. This is also
-   where the two kernel conventions meet (the encoders' positional uniform header vs the trainer's
-   named uniforms with dynamic offsets); the trainer's form is the better op description, and moving
-   the encoders to it waits on a bridge A/B showing the dynamic offsets cost nothing.
+3. **Training ops** into `train/` (in progress 2026-11-07). Done: `train/spec.js` (the trainers' spec
+   format, `wgsl()`, `grid()`, the erf GELU and its derivative, the workgroup reductions),
+   `train/kernels.js` (`kernels(C)`, the LoRA trainer's 26 forward and backward kernels, and
+   `fullKernels(C)`, which adds lifesci-ettin's full-weight gradients and pooling losses) and
+   `train/nce.js` (the in-batch contrastive loss). ettin-wgsl-train's `train.js` re-exports them, so
+   decider-lora-creator and the bridge jobs that import it are unchanged. All 60 shaders are
+   byte-identical to before, and `tests/engine_ab.mjs` gives max |diff| 0 for both trainers (loss,
+   every gradient and one AdamW step; the full-weight trainer under both the cosine and the
+   contrastive loss). Still to do: one dispatch runner for both trainers (they carry duplicate copies
+   of the uniform-slot and bind-group code), finite-difference cases per backward kernel, and the
+   forward ops the trainer shares with inference (LayerNorm, rope, attention, GeGLU) as one op where
+   the shapes match. That is also where the two conventions meet (the encoders' positional uniform
+   header and the trainer's named uniforms with dynamic offsets); the trainer's form is the better op
+   description, and moving the encoders to it waits on a bridge A/B showing the dynamic offsets cost
+   nothing.
 4. **MoE ops** from moederncolbert-bench: route, grouped matmul, combine, per-token l2.
 5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention.
 6. **Retrieval ops** (dot, scan, top-k, sort) from tail.js and the bridge jobs, and retire

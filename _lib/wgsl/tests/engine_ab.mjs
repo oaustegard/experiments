@@ -100,6 +100,47 @@ const CASES = {
     }
     return out;
   }` },
+  // Trainers: one forward/backward and one AdamW step on a seeded batch; outputs are loss, every
+  // gradient, the updated parameters.
+  "lora-trainer": { tol: 0, dirs: ["ettin-wgsl-train/web", "_lib/wgsl", "bsky-account-decider/web/models/account"], src: `async ({ device, load, bytes, json }, which) => {
+    const { Trainer } = await load("ettin-wgsl-train/web/train.js", which);
+    const base = "bsky-account-decider/web/models/account/";
+    const manifest = await json(base + "manifest.json"), weights = await bytes(base + "weights.bin");
+    const B = 4, S = 96, K = 2;
+    const tr = await Trainer.create(device, { manifest, weights, maxRows: B * S, maxSeqs: B, maxPool: B * K, maxSeg: B });
+    let s = 5; const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    const prm = Float32Array.from({ length: tr.nParams }, () => (rnd() - 0.5) * 0.05);
+    tr.setParams(prm);
+    const lens = Int32Array.from([96, 40, 7, 63]), ids = new Int32Array(B * S), pos = new Int32Array(B * K), gold = new Float32Array(B * K);
+    for (let b = 0; b < B; b++) { for (let j = 0; j < S; j++) ids[b * S + j] = j < lens[b] ? 1000 + Math.floor(rnd() * 30000) : 50283; pos[b * K] = b * S + 1; pos[b * K + 1] = b * S + 4; gold[b * K + (b % 2)] = 1; }
+    tr.loadBatch({ ids, B, S, lens, pos, seg: new Int32Array(B).fill(K), gold });
+    tr.forwardBackward({ T: 1, slot: 0 });
+    await tr.flush();
+    const out = [await tr.read(tr.LOSS, 1), await tr.read(tr.GRD)];
+    tr.adamStep({ lr: 1e-3, lrHead: 1e-3, wd: 0.01, step: 1, clip: 1 });
+    out.push(await tr.read(tr.PRM));
+    return out;
+  }` },
+  "distill-trainer": { tol: 0, dirs: ["lifesci-ettin/web", "ettin-wgsl-train/web", "_lib/wgsl"], src: `async ({ device, load }, which) => {
+    const { DistillTrainer } = await load("lifesci-ettin/web/distill.js", which);
+    const V = 2048, B = 8, S = 48;
+    const out = [];
+    for (const loss of ["cos", "nce"]) {
+      const tr = await DistillTrainer.create(device, { V, maxRows: B * S, maxSeqs: B });
+      let s = 9; const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+      tr.setParams(Float32Array.from({ length: tr.nParams }, () => (rnd() - 0.5) * 0.1));
+      const lens = Int32Array.from({ length: B }, (_, b) => 5 + ((b * 13) % (S - 5))), ids = new Int32Array(B * S);
+      for (let b = 0; b < B; b++) for (let j = 0; j < S; j++) ids[b * S + j] = j < lens[b] ? Math.floor(rnd() * V) : 0;
+      tr.loadBatch({ ids, B, S, lens, tgt: loss === "cos" ? Float32Array.from({ length: B * 768 }, () => rnd() - 0.5) : null });
+      await tr.flush();
+      tr.forwardBackward({ slot: 0, loss, scale: 20 });
+      await tr.flush();
+      out.push(await tr.read(tr.LOSS, 1), await tr.read(tr.GRD));
+      tr.adamStep({ lr: 1e-4, wd: 0.01, step: 1, clip: 1 });
+      out.push(await tr.read(tr.PRM));
+    }
+    return out;
+  }` },
 };
 
 const CACHE = process.env.EXPERIMENTS_AB_CACHE ?? path.join(os.tmpdir(), "engine-ab-cache");
@@ -150,7 +191,7 @@ for (const n of names) {
       const a = await run(ctx, "old"), b = await run(ctx, "new");
       let maxDiff = 0, maxAbs = 0, n = 0;
       if (a.length !== b.length) return { error: `old gave ${a.length} outputs, new ${b.length}` };
-      a.forEach((x, i) => { for (let j = 0; j < x.length; j++) { maxDiff = Math.max(maxDiff, Math.abs(x[j] - b[i][j])); maxAbs = Math.max(maxAbs, Math.abs(x[j])); n++; } });
+      a.forEach((x, i) => { for (let j = 0; j < x.length; j++) { const d = Math.abs(x[j] - b[i][j]); maxDiff = Math.max(maxDiff, Number.isNaN(d) ? Infinity : d); maxAbs = Math.max(maxAbs, Math.abs(x[j])); n++; } });
       return { outputs: a.length, values: n, maxDiff, maxAbs, gpuErrors: errs };
     } catch (e) { return { error: String(e.stack || e), gpuErrors: errs }; }
   }, [CASES[n].src]);
