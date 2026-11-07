@@ -108,3 +108,37 @@ export function regionColourError(a, b, seg) {
   for (let k = 0; k < K; k++) e += (n[k] / N) * Math.hypot(...[0, 1, 2].map((c) => (sa[3 * k + c] - sb[3 * k + c]) / n[k]));
   return e;
 }
+
+// Repeat visibility: per region, the correlation of the collage's L with itself shifted by one tile
+// period along each tile axis (the axes turned by the fill's rotation), over pixels where both ends lie
+// in the region. A plain repeat scores near 1; a fill with no repeat grid scores near the texture's
+// own correlation at that distance. Area-weighted over regions big enough to hold two periods.
+export function repeatCorrelation(b, seg, info) {
+  const { W, H, K, labels } = seg;
+  let tot = 0, wt = 0;
+  for (let k = 0; k < K; k++) {
+    const { phi, period } = info[k];
+    let rs = [];
+    for (const a of [phi, phi + Math.PI / 2]) {
+      const dx = Math.round(period * Math.cos(a)), dy = Math.round(period * Math.sin(a));
+      let n = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+      for (let y = 0; y < H; y++) {
+        const y2 = y + dy; if (y2 < 0 || y2 >= H) continue;
+        for (let x = 0; x < W; x++) {
+          const x2 = x + dx; if (x2 < 0 || x2 >= W) continue;
+          const i = y * W + x, j = y2 * W + x2;
+          if (labels[i] !== k || labels[j] !== k) continue;
+          const p = b[3 * i], q = b[3 * j];
+          n++; sx += p; sy += q; sxx += p * p; syy += q * q; sxy += p * q;
+        }
+      }
+      if (n < 500) continue;
+      const cv = sxy / n - (sx / n) * (sy / n), vx = sxx / n - (sx / n) ** 2, vy = syy / n - (sy / n) ** 2;
+      if (vx > 1e-6 && vy > 1e-6) rs.push(cv / Math.sqrt(vx * vy));
+    }
+    if (!rs.length) continue;
+    const w = seg.stats[k].frac;
+    tot += w * rs.reduce((a, c) => a + c, 0) / rs.length; wt += w;
+  }
+  return wt ? tot / wt : NaN;
+}

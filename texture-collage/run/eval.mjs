@@ -37,8 +37,9 @@ const ARMS = {
   "strength:0": { strength: 0 },
   "strength:16": { strength: 16 },
   "gain:uncapped": { maxGainL: 1e9, maxGainAB: 1e9 },
+  "repeat:plain": { stochastic: false },
 };
-const SAVE = new Set(["structure", "colour", "random", "tint:local", "tint:none colour", "feather:0", "solid"]);
+const SAVE = new Set(["repeat:plain", "structure", "colour", "random", "tint:local", "tint:none colour", "feather:0", "solid"]);
 fs.mkdirSync("out", { recursive: true });
 
 const rows = [];
@@ -71,11 +72,12 @@ for (const f of files) {
         const pick = C.chooseClasses(regions, table, opt);
         const tex = pick.map((p) => prep(p.cls, p.scale));
         t = performance.now();
-        const out = C.render(lab, seg, tex, { ...opt, scales: pick.map((p) => p.scale), rdesc });
+        const info = [];
+        const out = C.render(lab, seg, tex, { ...opt, scales: pick.map((p) => p.scale), rdesc, info });
         const tRender = performance.now() - t;
         const sc = score(out);
         rows.push({ image: name, K, arm, rep: seed, segK: seg.K, classes: pick.map((p) => table.names[p.cls]),
-          scalesUsed: pick.map((p) => p.scale), tSeg, tDesc, tRender, ...sc });
+          scalesUsed: pick.map((p) => p.scale), tSeg, tDesc, tRender, ...sc, repeatCorr: M.repeatCorrelation(out, seg, info) });
         if (SAVE.has(arm) && seed === reps[0]) writePPM(`out/${name}-K${K}-${arm.replace(/[: ]/g, "_")}.ppm`, C.labToRgba(out, N), W, H);
       }
     }
@@ -84,7 +86,7 @@ for (const f of files) {
 }
 // aggregate: mean over images (and random reps), per K and arm
 const agg = {};
-const keys = ["dE", "dEreg", "ssim", "gmsd", "gmsdEdge", "dist", "orientErr", "tRender"];
+const keys = ["repeatCorr", "dE", "dEreg", "ssim", "gmsd", "gmsdEdge", "dist", "orientErr", "tRender"];
 for (const r of rows) {
   const a = (agg[`K${r.K}`] ??= {})[r.arm] ??= { n: 0 };
   a.n++;

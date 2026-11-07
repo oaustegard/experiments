@@ -364,7 +364,7 @@ export function chooseClasses(regions, table, { mode = "structure", distinct = f
 export function render(lab, seg, tex, opts = {}) {
   const { W, H, K, labels } = seg, N = W * H;
   const { tint = "region", feather = 2, strength = 8, align = true, scales = [], rdesc = [], localR = null,
-    maxGainL = 4, maxGainAB = 1.5 } = opts;
+    maxGainL = 4, maxGainAB = 1.5, stochastic = true, cells = 2 } = opts;
   const out = new Float32Array(3 * N);
   // soft weights per region
   let wts = null;
@@ -397,13 +397,15 @@ export function render(lab, seg, tex, opts = {}) {
     // region's spread and clipped out of gamut, shifting the region's colour
     const gain = [0, 1, 2].map((c) => Math.min(c ? maxGainAB : maxGainL, so[c] / Math.max(0.5, t.stats.std[c])));
     P.push({ t, cs: Math.cos(phi) / sc, sn: Math.sin(phi) / sc, gain, mean: st.mean, tm: t.stats.mean });
+    if (opts.info) opts.info[k] = { phi, period: t.S * sc };
   }
-  const px = new Float32Array(3);
+  const px = new Float32Array(3), tap = new Float32Array(3);
   const one = (k, x, y, i) => {
     const p = P[k], t = p.t;
     const u = x * p.cs + y * p.sn, v = -x * p.sn + y * p.cs;
+    if (stochastic) stochasticSample(t, u, v, cells, tap);
     for (let c = 0; c < 3; c++) {
-      const s = sampleWrap(t.lab, t.S, u, v, c, 3);
+      const s = stochastic ? tap[c] : sampleWrap(t.lab, t.S, u, v, c, 3);
       if (tint === "none") px[c] = s;
       else px[c] = (tint === "local" ? base[3 * i + c] : p.mean[c]) + (s - p.tm[c]) * p.gain[c];
     }
@@ -434,6 +436,32 @@ export function regionDescriptors(lab, seg) {
     out.push(describe(L, m, W, H));
   }
   return out;
+}
+
+// Stochastic tiling (Heitz & Neyret 2018, as splat-diffusion's WGSL_BLIT mode 1): the tile is cut by a
+// triangle grid with `cells` triangles' worth of edge per tile; each corner of the triangle around (u, v)
+// reads the tile at its own random offset, and the three taps are blended around the tile's mean with
+// weights normalised by sqrt(sum w^2), which keeps the texture's variance. The repeat grid disappears.
+// u, v in tile pixels; writes Lab into out.
+const fract = (x) => x - Math.floor(x);
+function hash2(qx, qy) {
+  return [fract(Math.sin(qx * 127.1 + qy * 311.7) * 43758.5453), fract(Math.sin(qx * 269.5 + qy * 183.3) * 43758.5453)];
+}
+export function stochasticSample(t, u, v, cells, out) {
+  const S = t.S, m = t.stats.mean;
+  const sx = (u / S) * cells, sy = (v / S) * cells;
+  const kx = sx - 0.57735027 * sy, ky = 1.15470054 * sy;
+  const bx = Math.floor(kx), by = Math.floor(ky), fx = kx - bx, fy = ky - by, z = 1 - fx - fy;
+  let w, V;
+  if (z > 0) { w = [z, fy, fx]; V = [[bx, by], [bx, by + 1], [bx + 1, by]]; }
+  else { w = [-z, 1 - fy, 1 - fx]; V = [[bx + 1, by + 1], [bx + 1, by], [bx, by + 1]]; }
+  const norm = 1 / Math.sqrt(w[0] * w[0] + w[1] * w[1] + w[2] * w[2]);
+  out[0] = out[1] = out[2] = 0;
+  for (let j = 0; j < 3; j++) {
+    const [hx, hy] = hash2(V[j][0], V[j][1]), uu = u + hx * S, vv = v + hy * S;
+    for (let c = 0; c < 3; c++) out[c] += w[j] * (sampleWrap(t.lab, S, uu, vv, c, 3) - m[c]);
+  }
+  for (let c = 0; c < 3; c++) out[c] = m[c] + out[c] * norm;
 }
 
 // Prepare a tile for render(): Lab, stats and orientation at the scale it will be shown.

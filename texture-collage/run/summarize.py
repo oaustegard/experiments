@@ -5,7 +5,7 @@ d = Path(__file__).resolve().parents[1]
 e = json.load(open(d / "results/eval.json"))
 rows = json.load(open(d / "results/eval_rows.json"))
 arms = list(e["arms"]["K6"].keys())
-cols = ["dE", "dEreg", "ssim", "gmsd", "gmsdEdge", "dist", "orientErr"]
+cols = ["repeatCorr", "dE", "dEreg", "ssim", "gmsd", "gmsdEdge", "dist", "orientErr"]
 # pooled over K: mean over all rows of the arm
 pooled = {}
 for a in arms:
@@ -13,11 +13,11 @@ for a in arms:
     pooled[a] = {c: sum(r[c] for r in rs if r.get(c) == r.get(c) and r.get(c) is not None) / max(1, sum(1 for r in rs if r.get(c) == r.get(c) and r.get(c) is not None)) for c in cols}
     pooled[a]["n"] = len(rs)
 json.dump(pooled, open(d / "results/eval_pooled.json", "w"), indent=1)
-print("| arm | n | ΔE blur | ΔE region | SSIM | GMSD | GMSD edges | structure dist | orient err (rad) |")
-print("|---|---|---|---|---|---|---|---|---|")
+print("| arm | n | repeat corr | ΔE blur | ΔE region | SSIM | GMSD | GMSD edges | structure dist | orient err (rad) |")
+print("|---|---|---|---|---|---|---|---|---|---|")
 for a in arms:
     p = pooled[a]
-    print(f"| {a} | {p['n']} | " + " | ".join(f"{p[c]:.3f}" if c in ('ssim', 'gmsd', 'gmsdEdge', 'orientErr') else f"{p[c]:.2f}" for c in cols) + " |")
+    print(f"| {a} | {p['n']} | " + " | ".join(f"{p[c]:.3f}" if c in ('repeatCorr', 'ssim', 'gmsd', 'gmsdEdge', 'orientErr') else f"{p[c]:.2f}" for c in cols) + " |")
 # paired wins: structure vs each other choice arm, per image x K
 by = {}
 for r in rows:

@@ -110,7 +110,7 @@ async function render() {
         if (!seg) break;
         const e0 = epoch, W = img.W, H = img.H;
         const tiles = regions.map((r) => { const t = tileFor(r); return { key: t.key, rgb: t.rgb.slice().buffer, S: t.S, scale: r.scale }; });
-        const opts = { tint: segVal("tint"), feather: +$("feather").value, strength: +$("strength").value, align: $("align").checked };
+        const opts = { tint: segVal("tint"), feather: +$("feather").value, strength: +$("strength").value, align: $("align").checked, stochastic: $("stoch").checked };
         let r;
         try { r = await call("render", { tiles, opts }, tiles.map((t) => t.rgb)); }
         catch (e) { if (e0 === epoch) throw e; continue; }       // the regions changed under it: drop it
@@ -280,6 +280,7 @@ async function main() {
   $("strength").addEventListener("change", render);
   $("feather").addEventListener("change", render);
   $("align").addEventListener("change", render);
+  $("stoch").addEventListener("change", render);
   $("distinct").addEventListener("change", () => { regions.forEach((r) => { r.manual = false; }); choose(); });
   segControl("detail", () => source && loadImage(source));
   segControl("mode", () => { regions.forEach((r) => { r.manual = false; }); choose(); });
