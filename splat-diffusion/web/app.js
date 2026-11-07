@@ -5,7 +5,12 @@ const canvas = $("c"), status = $("status"), bar = $("bar").firstElementChild;
 const PRETTY = ["marbled", "veined", "crystalline", "swirly", "paisley", "honeycombed", "scaly", "cracked",
   "lacelike", "bubbly", "woven", "knitted", "braided", "frilly", "spiralled", "stratified", "zigzagged", "cobwebbed"];
 
-let model, painter, device, names, running = false, cancel = false, ready = false;
+let model, painter, device, names, running = false, cancel = false, ready = false, painting = false;
+// 1,024 splats by default; 512 on phones, where the model and the paint cost half as much
+const MODELS = { 1024: "./model", 512: "./model512" };
+const PHONE = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 820);
+const cache = {};
+let K = PHONE ? 512 : 1024;
 let seed = (Math.random() * 1e9) | 0;
 const view = { tile: 384, ox: 0, oy: 0 };   // tile size in CSS px, pan offset in tile units
 
@@ -19,7 +24,7 @@ function resize() {
 function draw() {
   if (!ready) return;
   const dpr = canvas.width / innerWidth;
-  painter.draw(model.b.splats, model.K, view.tile * dpr, view.ox, view.oy);
+  painter.draw(view.tile * dpr, view.ox, view.oy);
 }
 
 async function generate() {
@@ -32,12 +37,19 @@ async function generate() {
     const done = await model.sample({ cls, steps, cfg, seed,
       onStep: async (i) => {
         ready = true;
-        draw();
+        // skip a preview frame while the last one is still on the GPU, so previews never queue up
+        if (!painting) {
+          painting = true;
+          painter.setSplats(model.b.splats, model.K);
+          draw();
+          device.queue.onSubmittedWorkDone().then(() => { painting = false; });
+        }
         bar.style.width = `${(100 * (i + 1)) / steps}%`;
         status.textContent = `${names[cls]} · step ${i + 1}/${steps} · ${((performance.now() - t0) / (i + 1)).toFixed(0)} ms/step`;
       },
       shouldStop: () => cancel });
     await device.queue.onSubmittedWorkDone();
+    painter.setSplats(model.b.splats, model.K);
     draw();
     status.textContent = done ? `${names[cls]} · ${model.K} splats · ${steps} steps in ${((performance.now() - t0) / 1000).toFixed(2)} s · seed ${seed}` : "Stopped";
   } catch (e) {
@@ -94,6 +106,11 @@ function zoomAt(x, y, f) {
   draw();
 }
 
+async function loadModel(k) {
+  if (!cache[k]) cache[k] = await SplatDiffusion.create(device, MODELS[k]);
+  return cache[k];
+}
+
 async function main() {
   const adapter = navigator.gpu && await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
   if (!adapter) { $("nogpu").style.display = "grid"; $("panel").style.display = "none"; return; }
@@ -101,7 +118,9 @@ async function main() {
     maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize, maxBufferSize: adapter.limits.maxBufferSize } });
   device.lost.then((i) => { status.textContent = `GPU device lost: ${i.message}`; });
   painter = new Painter(device, canvas, navigator.gpu.getPreferredCanvasFormat());
-  model = await SplatDiffusion.create(device, "./model");
+  const q0 = new URLSearchParams(location.search);
+  if (q0.has("k") && MODELS[q0.get("k")]) K = +q0.get("k");
+  model = await loadModel(K);
   names = model.man.names;
   const sel = $("cls");
   names.map((n, i) => [n, i]).sort().forEach(([n, i]) => sel.add(new Option(n, i)));
@@ -121,6 +140,14 @@ async function main() {
   $("go").addEventListener("click", generate);
   $("rnd").addEventListener("click", () => { pickRandom(); if (!running) generate(); });
   $("wgsl").addEventListener("click", exportWGSL);
+  $("splats").value = String(K);
+  $("splats").addEventListener("change", async () => {
+    if (running) { cancel = true; while (running) await new Promise((r) => setTimeout(r, 50)); }
+    K = +$("splats").value;
+    status.textContent = `Loading the ${K}-splat model…`;
+    model = await loadModel(K);
+    generate();
+  });
   $("min").addEventListener("click", () => {
     const p = $("panel"); p.classList.toggle("min"); $("min").textContent = p.classList.contains("min") ? "+" : "–";
   });

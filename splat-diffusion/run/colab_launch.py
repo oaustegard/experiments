@@ -15,7 +15,7 @@ import pathlib, subprocess
 d = pathlib.Path("/content/sd"); d.mkdir(exist_ok=True)
 for n, t in {files!r}.items():
     (d / n).write_text(t)
-subprocess.Popen("cd /content/sd && nohup sh -c 'python fit_dataset.py --out run --K {K} --bs 32 --steps 1000 && python train.py --out run --steps {steps}' > stdout.txt 2>&1 &", shell=True)
+subprocess.Popen("cd /content/sd && nohup sh -c 'python fit_dataset.py --out run --K {K} --bs {64 if K <= 512 else 32} --steps 1000 && python train.py --out run --steps {steps}' > stdout.txt 2>&1 &", shell=True)
 print("launched")
 '''
 Path("/tmp/claude-0/sd_launch.py").write_text(cell)

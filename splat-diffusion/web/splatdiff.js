@@ -471,32 +471,89 @@ export class SplatDiffusion {
   async splats() { return this.read(this.b.splats, this.K * 8); }
 }
 
+// Blits a cached tile texture across the canvas with a repeating sampler.
+const WGSL_BLIT = /* wgsl */`
+struct P { tilePx:f32, offX:f32, offY:f32, _a:f32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var tex: texture_2d<f32>;
+@group(0) @binding(2) var smp: sampler;
+@vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
+  let xy = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
+  return vec4f(xy * 2.0 - 1.0, 0.0, 1.0);
+}
+@fragment fn fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+  return vec4f(textureSample(tex, smp, pos.xy / p.tilePx + vec2f(p.offX, p.offY)).rgb, 1.0);
+}`;
+
+// Paints the splats. While a tile is at most MAX_TILE device pixels it is painted once into a texture
+// (cost tile^2 x K, only when the splats change) and repeated with a sampler; zoomed in further, every
+// pixel evaluates the splats directly so edges stay smooth. Phones paint far fewer splat-pixel pairs.
+const MAX_TILE = 1024;
+
 export class Painter {
   constructor(device, canvas, format) {
     this.device = device;
+    this.format = format;
     this.ctx = canvas.getContext("webgpu");
     this.ctx.configure({ device, format, alphaMode: "opaque" });
     const mod = device.createShaderModule({ code: WGSL_PAINT });
-    this.pipe = device.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" },
-      fragment: { module: mod, entryPoint: "fs", targets: [{ format }] } });
+    const mk = (fmt) => device.createRenderPipeline({ layout: "auto", vertex: { module: mod, entryPoint: "vs" },
+      fragment: { module: mod, entryPoint: "fs", targets: [{ format: fmt }] } });
+    this.pipe = mk(format);
+    this.tilePipe = mk("rgba8unorm");
+    const bm = device.createShaderModule({ code: WGSL_BLIT });
+    this.blitPipe = device.createRenderPipeline({ layout: "auto", vertex: { module: bm, entryPoint: "vs" },
+      fragment: { module: bm, entryPoint: "fs", targets: [{ format }] } });
+    this.sampler = device.createSampler({ addressModeU: "repeat", addressModeV: "repeat", magFilter: "linear", minFilter: "linear" });
     this.u = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.tu = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.dirty = true;
   }
 
-  draw(splatBuf, K, tilePx, offX = 0, offY = 0) {
-    const u = new ArrayBuffer(16), dv = new DataView(u);
-    dv.setUint32(0, K, true); dv.setFloat32(4, tilePx, true); dv.setFloat32(8, offX, true); dv.setFloat32(12, offY, true);
-    this.device.queue.writeBuffer(this.u, 0, u);
-    if (this.src !== splatBuf) {
-      this.bg = this.device.createBindGroup({ layout: this.pipe.getBindGroupLayout(0), entries: [
-        { binding: 0, resource: { buffer: this.u } }, { binding: 1, resource: { buffer: splatBuf } }] });
-      this.src = splatBuf;
+  // call whenever the splat buffer's contents change
+  setSplats(splatBuf, K) { this.splatBuf = splatBuf; this.K = K; this.dirty = true; }
+
+  uni(buf, a, b, c, d, firstU32 = false) {
+    const ab = new ArrayBuffer(16), dv = new DataView(ab);
+    if (firstU32) dv.setUint32(0, a, true); else dv.setFloat32(0, a, true);
+    dv.setFloat32(4, b, true); dv.setFloat32(8, c, true); dv.setFloat32(12, d, true);
+    this.device.queue.writeBuffer(buf, 0, ab);
+  }
+
+  draw(tilePx, offX = 0, offY = 0) {
+    if (!this.splatBuf) return;
+    const dev = this.device, enc = dev.createCommandEncoder();
+    const view = this.ctx.getCurrentTexture().createView();
+    if (tilePx <= MAX_TILE) {
+      const res = Math.min(MAX_TILE, 2 ** Math.ceil(Math.log2(Math.max(64, tilePx))));
+      if (!this.tex || this.tex.width !== res) {
+        if (this.tex) this.tex.destroy();
+        this.tex = dev.createTexture({ size: [res, res], format: "rgba8unorm",
+          usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
+        this.dirty = true;
+        this.blitBG = dev.createBindGroup({ layout: this.blitPipe.getBindGroupLayout(0), entries: [
+          { binding: 0, resource: { buffer: this.tu } }, { binding: 1, resource: this.tex.createView() },
+          { binding: 2, resource: this.sampler }] });
+      }
+      if (this.dirty) {
+        this.uni(this.u, this.K, res, 0, 0, true);
+        const bg = dev.createBindGroup({ layout: this.tilePipe.getBindGroupLayout(0), entries: [
+          { binding: 0, resource: { buffer: this.u } }, { binding: 1, resource: { buffer: this.splatBuf } }] });
+        const tp = enc.beginRenderPass({ colorAttachments: [{ view: this.tex.createView(), loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
+        tp.setPipeline(this.tilePipe); tp.setBindGroup(0, bg); tp.draw(3); tp.end();
+        this.dirty = false;
+      }
+      this.uni(this.tu, tilePx, offX, offY, 0);
+      const pass = enc.beginRenderPass({ colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
+      pass.setPipeline(this.blitPipe); pass.setBindGroup(0, this.blitBG); pass.draw(3); pass.end();
+    } else {
+      this.uni(this.u, this.K, tilePx, offX, offY, true);
+      const bg = dev.createBindGroup({ layout: this.pipe.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: this.u } }, { binding: 1, resource: { buffer: this.splatBuf } }] });
+      const pass = enc.beginRenderPass({ colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
+      pass.setPipeline(this.pipe); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
     }
-    const enc = this.device.createCommandEncoder();
-    const pass = enc.beginRenderPass({ colorAttachments: [{ view: this.ctx.getCurrentTexture().createView(),
-      loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 1] }] });
-    pass.setPipeline(this.pipe); pass.setBindGroup(0, this.bg); pass.draw(3);
-    pass.end();
-    this.device.queue.submit([enc.finish()]);
+    dev.queue.submit([enc.finish()]);
   }
 }
 
