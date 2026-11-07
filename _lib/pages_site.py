@@ -8,7 +8,7 @@ OUT/index.html (the listing) and OUT/.nojekyll. Exits 1 when a listed path does
 not exist or an entry has neither `path` nor `url`, so a stale manifest fails CI
 instead of shipping a dead link.
 """
-import html, json, shutil, sys
+import html, json, re, shutil, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,11 +17,47 @@ WEB = {".html", ".htm", ".js", ".mjs", ".css", ".json", ".png", ".jpg", ".jpeg",
 MAX_FILE = 50 * 1024 * 1024  # GitHub Pages rejects files over 100 MB; stay well under
 
 
-def copy_file(src, out):
-    """Copy one file; an HTML page with no charset declaration gets one, or browsers read UTF-8 as Windows-1252."""
+SITE = "https://austegard.com/experiments/"
+
+
+def slug_of(e):
+    return e.get("slug") or e.get("experiment", "")
+
+
+def og_rel(e):
+    """Path, relative to the repo root and the site, of the entry's link-preview image."""
+    return e.get("image") or f"og/{slug_of(e)}.jpg"
+
+
+def og_tags(e):
+    d = html.escape(e.get("blurb", ""), quote=True)
+    t = html.escape(e.get("title", ""), quote=True)
+    return (f'<meta property="og:type" content="website">\n<meta property="og:title" content="{t}">\n'
+            f'<meta property="og:description" content="{d}">\n<meta property="og:image" content="{SITE}{og_rel(e)}">\n'
+            f'<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
+            f'<meta property="og:image:alt" content="{t}">\n<meta name="twitter:card" content="summary_large_image">\n')
+
+
+def add_og(text, e):
+    """Insert Open Graph tags into a page that declares no og:image, inside <head> so the doctype stays first."""
+    if "og:image" in text:
+        return text
+    tags = og_tags(e)
+    for pat in (r"<head[^>]*>", r"<html[^>]*>", r"<!doctype[^>]*>"):
+        m = re.search(pat, text, re.I)
+        if m:
+            return text[:m.end()] + "\n" + tags + text[m.end():]
+    return tags + text
+
+
+def copy_file(src, out, entry=None):
+    """Copy one file; an HTML page with no charset declaration gets one, or browsers read UTF-8 as Windows-1252.
+    A listed HTML page with no og:image gets the entry's Open Graph tags."""
     out.parent.mkdir(parents=True, exist_ok=True)
     if src.suffix.lower() in (".html", ".htm"):
         text = src.read_text(encoding="utf-8")
+        if entry is not None:
+            text = add_og(text, entry)
         if "charset" not in text[:2048].lower():
             text = '<meta charset="utf-8">\n' + text
         out.write_text(text, encoding="utf-8")
@@ -29,13 +65,13 @@ def copy_file(src, out):
         shutil.copy2(src, out)
 
 
-def copy_dir(src, dst):
+def copy_dir(src, dst, entry=None):
     n = 0
     for f in sorted(src.rglob("*")):
         if f.is_file() and f.suffix.lower() in WEB and not any(p.startswith((".", "_", "__")) for p in f.relative_to(src).parts):
             if f.stat().st_size > MAX_FILE:
                 raise SystemExit(f"pages: {f.relative_to(ROOT)} is over {MAX_FILE >> 20} MB")
-            copy_file(f, dst / f.relative_to(src)); n += 1
+            copy_file(f, dst / f.relative_to(src), entry); n += 1
     return n
 
 
@@ -47,6 +83,11 @@ def build(out):
     errors, rows = [], []
     for e in manifest["pages"]:
         title, exp = e.get("title", "?"), e.get("experiment", "")
+        img = ROOT / og_rel(e)
+        if not img.is_file():
+            errors.append(f"{title}: no link-preview image at {og_rel(e)} (node _lib/og_cards.mjs)")
+        else:
+            copy_file(img, out / og_rel(e))
         if "url" in e:
             rows.append((e, [e["url"]], True)); continue
         paths = e.get("path")
@@ -61,9 +102,9 @@ def build(out):
             if src.is_dir():
                 if not (src / "index.html").exists():
                     errors.append(f"{title}: directory {rel} has no index.html"); continue
-                copy_dir(src, out / rel); links.append(rel.rstrip("/") + "/")
+                copy_dir(src, out / rel, e); links.append(rel.rstrip("/") + "/")
             else:
-                copy_file(src, out / rel); links.append(rel)
+                copy_file(src, out / rel, e); links.append(rel)
         if links:
             rows.append((e, links, False))
     if errors:
@@ -83,7 +124,8 @@ def index_html(rows):
         if len(links) > 1:
             more = '<p class="more">' + " · ".join(f'<a href="{esc(l)}">{esc(Path(l).stem)}</a>' for l in links) + "</p>"
         exp = esc(e.get("experiment", ""))
-        return (f'<li><a href="{esc(links[0])}">{esc(e["title"])}</a>{" <span class=ext>↗</span>" if ext else ""}'
+        return (f'<li><a class="thumb" href="{esc(links[0])}"><img src="{esc(og_rel(e))}" width="1200" height="630" loading="lazy" alt="{esc(e["title"])}"></a>'
+                f'<a href="{esc(links[0])}">{esc(e["title"])}</a>{" <span class=ext>↗</span>" if ext else ""}'
                 f'<p>{esc(e.get("blurb", ""))}</p>{more}'
                 f'<small><a href="https://github.com/oaustegard/experiments/tree/main/{exp}">{exp}</a></small></li>')
     items = "\n".join(item(*r) for r in rows)
@@ -94,15 +136,23 @@ def index_html(rows):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Experiments: full index</title>
 <meta name="description" content="Every interactive page in oaustegard/experiments, generated from the repository.">
+<meta property="og:title" content="Experiments: full index">
+<meta property="og:description" content="Every interactive page in oaustegard/experiments.">
+<meta property="og:image" content="{SITE}og/index.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root {{ --bg: #fbfaf7; --fg: #1d1f24; --dim: #5d6370; --accent: #2f5d8a; --rule: #e3e0d8; color-scheme: light; }}
 @media (prefers-color-scheme: dark) {{ :root {{ --bg: #14161b; --fg: #e6e4df; --dim: #9aa0ab; --accent: #8db4dc; --rule: #2a2d35; color-scheme: dark; }} }}
 body {{ background: var(--bg); color: var(--fg); font: 17px/1.55 Georgia, "Iowan Old Style", serif; margin: 0; padding-block: 48px; padding-inline: 16px; }}
-main {{ max-width: 680px; margin: 0 auto; }}
+main {{ max-width: 1120px; margin: 0 auto; }}
 h1 {{ font-weight: 400; font-size: 34px; margin: 0; }}
-.lede {{ color: var(--dim); margin: 8px 0 32px; }}
-ul {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 22px; }}
-li {{ border-top: 1px solid var(--rule); padding-top: 16px; }}
+.lede {{ color: var(--dim); margin: 8px 0 32px; max-width: 680px; }}
+ul {{ list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 28px 22px; }}
+li {{ border-top: 1px solid var(--rule); padding-top: 14px; min-width: 0; }}
+a.thumb {{ display: block; margin-bottom: 10px; }}
+a.thumb img {{ display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border: 1px solid var(--rule); border-radius: 6px; background: var(--rule); }}
 li > a {{ font-size: 21px; color: var(--accent); text-decoration: none; }}
 li > a:hover {{ text-decoration: underline; }}
 li p {{ margin: 4px 0 2px; }}

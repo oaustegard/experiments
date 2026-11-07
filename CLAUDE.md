@@ -181,6 +181,11 @@ other 86 predate the rule and fail the lint until retrofitted.
    of files, or a directory (its web files ship), or `url` for a page hosted
    elsewhere. `python3 _lib/pages_site.py` builds `_site/` locally and exits 1
    on a dead entry, and so does `test_pages_manifest_builds`.
+   **Every entry needs a link-preview image** (Oskar: "we always need an og:image"): `og/<slug>.jpg`, 1200x630,
+   made by `NODE_PATH=$(npm root -g) node _lib/og_cards.mjs` (screenshots the page into a card; `--only slug` for
+   one entry; `og/overrides.json` forces a text-only card for a page that renders blank headless). The build fails
+   without it, adds the Open Graph tags to any listed page that lacks them, and shows the image on the index.
+   A page may ship its own and name it in `image`. Entries sharing an `experiment` need distinct `slug`s.
 5. Regenerable artifacts (logs, checkpoints, large caches, downloaded models)
    into a `.gitignore` **inside that experiment's directory** — the
    convention here is per-experiment, there is no root `.gitignore`.
