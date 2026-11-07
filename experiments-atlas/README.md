@@ -2,7 +2,7 @@
 
 A clustered mind map of every experiment in this repo: a d3 radial tree with 217 experiments in 12 themed clusters. Click a cluster to fold or unfold it, search to fade non-matches, click an experiment for its purpose, date, status and a link to its directory on GitHub.
 
-Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experiments/experiments-atlas/).
+Page: [`web/index.html`](web/index.html) (live at https://austegard.com/experiments/experiments-atlas/web/).
 
 ## Data
 
