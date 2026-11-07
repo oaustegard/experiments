@@ -1683,6 +1683,11 @@ the result.
   Gaussians in eager PyTorch is a chain of memory-bound elementwise ops; compiled, one batch of 32
   crops × 1,024 splats × 1,000 steps went from 61 s to 6.1 s on an A100. Check compiled against eager
   on CPU first (they agreed to 0.0). (`splat-diffusion/train/splats.py`, `render_pix`)
+- **Opaque, depth-ordered splats beat additive Gaussians for generating textures, and stay an unordered set.**
+  Give each splat an opacity, an edge sharpness (footprint exp(-q^p/2), p = 1 + softplus(s)) and a depth,
+  composite front to back by depth, and keep the depth as an ordinary feature: the denoiser still sees a set.
+  Fits of 1,024 splats to DTD crops rose from 25.2 to 30.4 dB (median batch) with hard edges, and the generated
+  textures stopped looking blurred. (`splat-diffusion/train/splats.py`, `web/splatdiff.js` `WGSL_SORT`)
 - **A splat fitter with no length cap leaves needles that a generative model learns.** 0.21% of
   1,024-splat fits had a long axis over a quarter of the tile, the diffusion model trained on them
   produced 0.37%, and they draw as straight lines across a texture. A post-hoc filter on long thin splats

@@ -1,106 +1,123 @@
-# splat-diffusion — a diffusion model that generates textures as Gaussian splats
+# splat-diffusion — a diffusion model that generates textures as splats
 
-A texture here is not a grid of pixels but a list of 1,024 soft, coloured Gaussian splats, and a
-diffusion model written by hand in WGSL (WebGPU's shader language) generates that list directly, in
-the browser. One fragment
-shader paints the splats, so the tile repeats seamlessly and stays smooth at any zoom, and the page
-exports the result as a standalone WGSL function. It is the splat counterpart to
+A texture here is not a grid of pixels but a list of 1,024 (or 512) opaque, layered ellipses ("splats"),
+each with a colour, an opacity, an edge sharpness and a depth. A diffusion model written by hand in WGSL
+(WebGPU's shader language) generates that list directly, in the browser, and one fragment shader paints
+it front to back. The tile repeats seamlessly, stays sharp at any zoom, and the page exports the result
+as a standalone WGSL function. It is the splat counterpart to
 [`wgsl-diffusion/`](../wgsl-diffusion/RESULTS.md), which generates pixels, in the spirit of
 [`image-to-wgsl/`](../image-to-wgsl/RESULTS.md), which stores one photo as splats.
 
 Live page: [austegard.com/experiments/splat-diffusion/web/](https://austegard.com/experiments/splat-diffusion/web/)
-(`web/index.html`); WebGPU required (Chrome or Edge 113+, Safari 26+, Firefox 141+). Pick one of the 47 DTD
-texture classes and press Generate; the splats are drawn at every denoising step. Drag to pan, scroll or pinch to
-zoom; Export WGSL downloads the texture as a shader function.
+(`web/index.html`). It needs WebGPU: Chrome or Edge 113+, Safari 26+ or Firefox 141+.
+- **Generate:** pick one of the 47 texture classes of the Describable Textures Dataset (DTD) and press Generate. The splats are drawn at every
+  denoising step.
+- **Navigate:** drag to pan; scroll or pinch to zoom.
+- **Splat count:** the Splats menu picks 1,024 or 512. Phones default to 512.
+- **Hiding the repeat:** "Hide the repeat" blends randomly offset copies of the tile so no grid shows.
+- **Export WGSL:** downloads the texture as a shader function.
 
-![12 classes; each 128×128 tile is drawn 2×2](results/gallery_tiled.png)
+![12 classes, 1,024 splats; each 128×128 tile is drawn 2×2](results/gallery_v2_1024.png)
 
 ## Answer
 
-Can diffusion generate splats instead of pixels, in WGSL? Yes. A 9.7M-parameter transformer that treats the splats as an unordered set,
-trained on 11,280 splat lists fitted to crops of the Describable Textures Dataset (DTD), denoises
-1,024 splats in 24 steps with classifier-free guidance in 223 ms on a Mac's GPU (WebGPU reports only "apple metal-3"). <!-- @evidence[[results/bench_mac.json#sample.s24_cfg3.total_ms]] -->
-Painting a 2048×2048 frame of them takes 24 ms. <!-- @evidence[[results/bench_mac.json#paint.px2048.ms_incl_readback]] -->
-The GPU's final splat features match PyTorch running the same weights to within 1.2e-5. <!-- @evidence[[results/bench_mac.json#correctness.state_max_abs]] -->
+Can diffusion generate splats instead of pixels, in WGSL, and look good? Yes, once the splats are opaque
+and layered rather than soft and additive. A 9.7M-parameter transformer that treats the splats as an
+unordered set was trained on 11,280 splat lists fitted to crops of the Describable Textures Dataset (DTD).
+Generating one 512-splat texture (24 denoising steps with classifier-free guidance) takes 137 ms <!-- @evidence[[results/bench_mac_v2_512.json#sample.s24_cfg3.total_ms]] -->
+on a Mac's GPU (WebGPU reports only "apple metal-3"); the 1,024-splat model was not timed.
+The generated splat features match PyTorch running the same weights to within 4.1e-5 (largest absolute difference). <!-- @evidence[[results/bench_mac_v2_512.json#correctness.state_max_abs]] -->
 
-By eye, the textures are softer and less class-specific than those of the pixel model in
-`wgsl-diffusion/`. Two limits come from the training data rather than the model. First, the fits
-themselves are soft: 1,024 splats reproduce a 128×128 crop at a median 25.3 dB PSNR, a visibly blurred copy. <!-- @evidence[[results/fit_summary.json#fit_psnr_db.median]] -->
-Second, the fits contain long, thin "needle" splats, which the model learned and draws as straight
-lines across some tiles (veined, crystalline and cracked in the gallery). A fitter that caps splat length, then more splats per tile, are the next changes
-that would move the answer.
+The first version used soft additive Gaussians. Its textures were blurry, because a median fit of 1,024
+such splats reproduced its training crop at only 25.2 dB PSNR (peak signal-to-noise ratio; higher is closer). Giving each splat an
+opacity, an edge sharpness and a depth, and compositing front to back, raised that to 30.4 dB, <!-- @evidence[[results/fit_summary_v2.json#1024.batch_median_psnr.median]] -->
+with hard edges. Capping splat length removed the "needle" lines (long thin splats drawn as straight streaks across a tile), and removing the lighting from the
+training crops took away the light patches that made the repeat obvious. The textures are still made of
+visible blobs at close range. More splats per tile is the next change that would move the answer.
 
 ## Findings
 
-1. Twenty-four guided denoising steps over 1,024 splats take 223 ms on the Mac's GPU, against 3.6 s for PyTorch on 4 CPU cores (Round 2, `results/bench_mac.json`). <!-- @evidence[[results/bench_mac.json#sample.s24_cfg3.total_ms]] -->
-2. The WGSL runtime matches PyTorch: on the Mac the final state of a 24-step guided sample is within 1.2e-5, and the painted 128×128 tile within 0.50 of an 8-bit level (Round 2, `results/bench_mac.json`). <!-- @evidence[[results/bench_mac.json#correctness.paint_max_levels]] --> <!-- @evidence[[results/bench_mac.json#correctness.state_max_abs]] -->
-3. Fit quality bounds the output: 1,024 additive splats reach a median 25.3 dB on a 128×128 DTD crop, with 10th and 90th percentiles of 19.1 and 32.2 dB (Round 1, `results/fit_summary.json`). <!-- @evidence[[results/fit_summary.json#fit_psnr_db.p10]] --> <!-- @evidence[[results/fit_summary.json#fit_psnr_db.p90]] -->
-4. Needle splats come from the fits, and the model draws them more often: 0.21% of fitted splats have a long axis over a quarter of the tile, against 0.37% of generated splats (Round 2, `results/fit_summary.json`). <!-- @evidence[[results/fit_summary.json#needles_sigma_max_gt_0p25.data_frac]] -->
-5. Removing thin, long splats at decode time is not a fix. A woven texture (a DTD class) used 41 of its 1,024 splats that way, as threads, and a straight line in bubbly survived the filter (Round 2, `results/needle_filter_cmp.png`).
-6. On the training side, compiling the fitting render with `torch.compile` made it about ten times faster on an A100 (61 s to 6.1 s per 32 crops at 1,000 steps), which turned a six-hour dataset into 36 minutes (Round 1, `results/fit_log.jsonl`). <!-- @evidence[[results/fit_summary.json#fit_minutes]] -->
-7. A 512-splat model for phones samples in 139 ms on the Mac against 223 ms for 1,024 splats, from fits that are 2 dB softer (median batch 23.5 dB against 25.3), with the same 19.4 MB of weights (Round 3, `results/bench_mac_512.json`). <!-- @evidence[[results/bench_mac_512.json#sample.s24_cfg3.total_ms]] -->
-8. On an iPhone the GPU work is correct (no NaN at any step; per-step paint statistics equal to PyTorch's at 96, 1024 and 1600 px) and 24 guided steps of the 1,024-splat model take 4.2 s; the texture vanishing on the page around step 15 was not reproduced by any bridge job (Round 3, bridge jobs `sd-phone-1` to `sd-phone-5`).
+Rounds are the four build stages recorded in the Log: the first additive model, needles and timing, phones and the repeat, and the opaque splats. PSNR figures are medians over fitting batches of 32 or 64 crops.
+
+1. Opaque layered splats fit DTD crops far better than additive ones: the median batch reaches 30.4 dB with 1,024 splats and 28.1 dB with 512, against 25.2 and 23.5 dB for additive splats (Round 4, `results/fit_summary_v2.json`). <!-- @evidence[[results/fit_summary_v2.json#512.batch_median_psnr.median]] -->
+2. The generated textures have hard edges and recognisable class structure, such as pebbles for scaly and a black-and-white weave for woven, with no needle lines (Round 4, `results/gallery_v2_1024.png`, `results/gallery_v2_512.png`).
+3. Sampling is fast: 24 guided steps over 512 splats take 137 ms on the Mac, and a 2048×2048 paint takes 22 ms (Round 4, `results/bench_mac_v2_512.json`). <!-- @evidence[[results/bench_mac_v2_512.json#paint.px2048.ms_incl_readback]] -->
+4. The WGSL runtime matches PyTorch on the Mac: the final state is within 4.1e-5, and the painted tile within 0.63 of an 8-bit level. That covers decode, the GPU depth sort and front-to-back paint (Round 4, `results/bench_mac_v2_512.json`). <!-- @evidence[[results/bench_mac_v2_512.json#correctness.paint_max_levels]] -->
+5. Needle splats came from the fitter, not the model. A penalty on any long axis beyond 0.2 of the tile removed them. In the additive version, 0.21% of fitted splats had a long axis over a quarter of the tile and the model drew 0.37%, so the model copied the fits' needles and slightly exaggerated them (Round 2, `results/fit_summary.json`). <!-- @evidence[[results/fit_summary.json#needles_sigma_max_gt_0p25.data_frac]] -->
+6. Stochastic tiling hides the repeat: each screen point blends three randomly offset copies of the tile, keeping the tile's average colour and contrast. The separate experiment `texture-collage/`, which adopted it, measured its repeat correlation falling from 0.931 to −0.006 (Round 3, `results/stochastic_tiling_cmp.png`).
+7. On an iPhone the GPU work is correct: there was no NaN at any step, and per-step paint statistics equal PyTorch's at 96, 1024 and 1600 px. Oskar saw the texture vanish around step 15 on the iPhone page; no test job on the phone (through the GPU bridge, see Method) reproduced it, and whether the later drawing change fixed it is still open (Round 3).
+8. `torch.compile` made fitting about ten times faster on an A100: the first full fit of 11,280 crops took 36 minutes instead of about six hours (Round 1, `results/fit_summary.json`). <!-- @evidence[[results/fit_summary.json#fit_minutes]] -->
 
 ## Method
 
-**Representation** (`train/splats.py`). A splat is a position on the unit torus, a lower-triangular
-precision factor [[eᵃ, 0], [b, eᶜ]] and an RGB colour of either sign. The image is a mid-grey
-background plus the sum of every splat's colour times its Gaussian. Blending is additive, so the
-order of the splats does not matter. Distances wrap around the tile, so every texture tiles without a
-seam. For diffusion each splat becomes 10 numbers: cos and sin of each coordinate (no discontinuity
-where the torus wraps), a, b, c, and the colour, standardised per feature.
+**Representation** (`train/splats.py`).
+- **Splat parameters:** a position on the unit torus, a lower-triangular precision factor
+  [[eᵃ, 0], [b, eᶜ]], an RGB colour, an opacity logit o, an edge sharpness s and a depth z.
+- **Footprint:** 0.99·sigmoid(o)·exp(−½ q^p), where q = |A d|² and p = 1 + softplus(s). With p = 1 it
+  is a Gaussian; larger p gives a flat top with a crisp edge.
+- **Compositing:** splats composite front to back in order of z. Distances wrap around the tile, so
+  every texture tiles seamlessly.
+- **Diffusion features:** each splat is 13 numbers: cos and sin of each coordinate, a, b, c, the colour,
+  o, s and z, standardised per feature. The depth is an ordinary feature, so the model sees an
+  unordered set and only the renderer sorts.
 
-**Data** (`train/fit_dataset.py`). Every DTD image (5,640) is resized so its short side is 192 or 288,
-and one random 128×128 crop is taken at each scale. 1,024 splats are fitted to each crop by Adam over
-1,000 steps on 4,096 random pixels per step, from random positions with colours sampled from the crop.
+**Data** (`train/fit_dataset.py`).
+- **Crops:** each DTD image (5,640) is resized so its short side is 192 or 288, and has its lighting
+  removed (image − Gaussian blur at 24 px + mean). One random 128×128 crop is taken at each scale.
+- **Fitting:** K splats are fitted per crop with Adam for 1,000 steps on 4,096 random pixels per step.
+  Splats start back to front with sizes shrinking toward the front.
+- **Length cap:** a penalty applies to any long axis beyond 0.2 of the tile.
+- **Run times:** fitting took 87 minutes for 1,024 splats on an A100, <!-- @evidence[[results/fit_summary_v2.json#1024.fit_minutes]] -->
+  and 30 minutes for 512 on an RTX PRO 6000 Blackwell (the GPU Colab calls "G4").
 
 **Model** (`train/model.py`). A transformer of 8 blocks, width 256 and 4 heads, with no positional
-encoding, so it does not depend on the order of the splats. Each block uses DiT-style adaLN-Zero:
-LayerNorm without affine, plus shift, scale and gate from a vector that sums a timestep embedding and
+encoding. Each block uses DiT-style adaLN-Zero: shift, scale and gate come from a timestep embedding plus
 a class embedding (with a null class for guidance).
 
-**Training** (`train/train.py`). Rectified flow on the normalised features with logit-normal t and
-10% class dropout. Every example gets a random torus translation and random x/y flips. These are
-exact symmetries of the representation, checked to 0.0 against rolled and flipped renders. The run
-was 40,000 steps at batch 64, AdamW at 2e-4 with cosine decay and EMA 0.9995, on a Colab A100 in 49
-minutes.
+**Training** (`train/train.py`). Rectified flow on the normalised features, with logit-normal t and 10%
+class dropout. Each example gets a random torus translation and random x/y flips, which are exact
+symmetries of the representation. Each run was 40,000 steps at batch 64, AdamW at 2e-4 with cosine decay
+and EMA 0.9995: about 50 minutes on either GPU.
 
 **Runtime** (`web/splatdiff.js`).
-- **Matmul:** a strided batched matmul (64×64 tiles, 4×4 outputs per thread) serves every linear layer
-  and both attention products, with GELU and gated-residual epilogues.
-- **Other kernels:** a row softmax, LayerNorm with adaLN modulation, the Euler step with guidance, and
-  a decoder from features to splats.
-- **Painter:** a fragment shader loops over all splats per pixel, with the torus wrap.
-- **Shader export:** `bakeShader` writes the splat list into a standalone WGSL function as a `vec4f`
-  array, which keeps it under WebKit's limit of 2,047 elements per const array.
+- **Transformer:** a strided batched matmul for every linear layer and both attention products, with
+  row softmax, LayerNorm with adaLN modulation, and the Euler step with guidance.
+- **Decode and sort:** a decoder turns features into splats, and a GPU depth sort ranks each splat by
+  counting the splats behind it.
+- **Painter:** composites front to back and stops once a pixel is covered. It paints one tile of at most
+  1024 px into a texture, which the screen repeats on a grid or with stochastic tiling. All drawing
+  happens in `requestAnimationFrame`.
+- **Export:** `bakeShader` writes three arrays of K elements each, which stays under WebKit's limit of
+  2,047 elements per const array.
 
 **Checks.**
-- **SwiftShader:** `run/test_gpu.mjs` runs `web/_test.html` in headless Chromium against fixtures from
+- **SwiftShader** (Chromium's software GPU): `run/test_gpu.mjs` runs `web/_test.html` on SwiftShader against fixtures from
   `train/export.py fixture` (64 splats, random weights). It checks a forward pass, a 3-step guided
-  sample, the decoder and the painter.
-- **Mac:** `bridge/bench_job.js` runs on Oskar's Mac through the GPU bridge (a page there that runs WebGPU jobs pushed to a repo and commits the results back). It reports timings plus
-  a 24-step sample from fixed noise, which `run/ref_from_bin.py` compares with PyTorch on the exported
-  weights.
+  sample, decode + sort and the painter.
+- **Mac and iPhone:** `bridge/*.js` jobs run on Oskar's Mac and iPhone through the GPU bridge, a page on
+  each device that runs WebGPU jobs pushed to a repo and commits the results back. They report timings
+  and a fixed-noise sample, which `run/ref_from_bin.py` compares with PyTorch.
 
 **Prior art.**
 - **Searches:** one search found no diffusion model over sets of 2D splats.
 - **Nearest work, 3D:** [DiffSplat](https://arxiv.org/html/2501.16764v1) lays 3D splat attributes out as
-  images for a pretrained image model. Henderson et al., cited in
-  [arXiv 2508.21542](https://arxiv.org/pdf/2508.21542), denoise 3D splats directly.
-- **Set denoising:** denoising an unordered set with a transformer is the point-cloud diffusion recipe.
-- **Representation:** additive 2D Gaussians as an image representation is GaussianImage's.
+  images; Henderson et al., cited in [arXiv 2508.21542](https://arxiv.org/pdf/2508.21542), denoise 3D
+  splats directly.
+- **Set denoising:** a transformer over an unordered set is the point-cloud diffusion recipe.
+- **Opaque layered splats:** ordered alpha compositing is what `image-to-wgsl/` does for one photo.
 
 **Not done.**
-- **Fitting:** no fitter that caps splat length, and no counts above 1,024.
-- **Phones:** none was tested.
-- **Painter speed:** no faster painter, such as caching the tile in a texture.
+- **More detail:** no splat counts above 1,024 and no crops smaller than 128 px, either of which would
+  put more splats per pixel.
+- **iPhone page:** not confirmed fixed after the `requestAnimationFrame` change.
+- **Mac timing for the 1,024 model:** not measured; the 1,024 additive model took 223 ms.
 
 **Reproducing.**
 
 ```bash
-python3 train/fit_dataset.py --out run1 --K 1024 --bs 32 --steps 1000   # CUDA GPU, ~36 min on an A100
-python3 train/train.py --out run1 --steps 40000                          # ~49 min on an A100
-python3 train/export.py weights run1/ema.pt run1/stats.json web/model
+python3 train/fit_dataset.py --out run1 --K 1024 --bs 32 --steps 1000   # downloads DTD itself; CUDA GPU, ~87 min on an A100
+python3 train/train.py --out run1 --steps 40000                          # ~50 min; writes run1/ema.pt and run1/stats.json
+python3 train/export.py weights run1/ema.pt run1/stats.json web/model     # web/model512 for --K 512
 python3 train/export.py fixture web/test 64 && node run/test_gpu.mjs     # WGSL against PyTorch
 ```
 
@@ -155,3 +172,23 @@ then "There's no error, the diffusing image just disappears at around step 15, d
   splats give analytically (colour × 2π / det A). `results/stochastic_tiling_cmp.png` shows grid against
   stochastic for crystalline and woven. The sibling `texture-collage/` adopted it and measured its repeat
   correlation falling from 0.931 to −0.006.
+
+### Round 4 — opaque layered splats, length cap and lighting removal (2026-11-07)
+
+Oskar: "Yeah not so sure about the end results here; so very diffused and 'unfocused'", then "Make the
+changes".
+
+- **Probe:** on four CPU probe crops (512 splats, 400 steps), opaque layered splats fitted 20.8 to
+  24.3 dB against 17.6 to 21.7 dB for additive ones. The chain links, fibres and paisley outline came out
+  crisp. The length cap held: the longest fitted splat was 0.25 of the tile.
+- **Runs:** two full fits and trainings ran in parallel. Colab refused a second A100, so the 512 run used
+  a G4 (RTX PRO 6000 Blackwell). The 512 fit took 30 minutes at a median batch of 28.1 dB; the 1,024 fit
+  took 87 minutes at 30.4 dB.
+- **WGSL:** the new runtime (13 features, GPU depth sort, front-to-back painter, three-array baked
+  shader) matched PyTorch on SwiftShader the first time: forward 4.4e-6, sample 3.5e-6, decode + sort
+  3.5e-5, paint within 0.5 of an 8-bit level. On the Mac, the 512 model sampled in 137 ms and matched
+  PyTorch to 4.1e-5.
+- **Rollout:** the page shipped the 512 model first and skipped the old-format 1,024 model until the new
+  one landed.
+- **Machines:** both VMs were stopped when their runs finished.
+
