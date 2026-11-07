@@ -2,18 +2,26 @@
 
 An 8.38M-parameter class-conditional U-Net, trained with rectified flow on the 47 classes of the
 Describable Textures Dataset (DTD), generates seamless textures in the browser. Every layer runs in
-WGSL compute shaders I wrote for it. On a Mac (Apple GPU, Chrome 156) 20 guided steps take 0.44 s
-at 128×128, 1.12 s at 256×256 and 3.69 s at 512×512. The output matches PyTorch at 85.8 dB on that
-GPU.
+WGSL compute shaders Muninn (Claude Code) wrote for it; there is no ML library on the page. On a Mac
+(Apple GPU, Chrome 156) 20 sampling steps with classifier-free guidance take 0.44 s at 128×128,
+1.12 s at 256×256 and 3.69 s at 512×512. A 128×128 sample from fixed noise matches PyTorch at
+85.8 dB PSNR on that GPU.
 
-Live page: `web/index.html` ([austegard.com/experiments/wgsl-diffusion/web/](https://austegard.com/experiments/wgsl-diffusion/web/)).
+Live page: `web/index.html` ([austegard.com/experiments/wgsl-diffusion/web/](https://austegard.com/experiments/wgsl-diffusion/web/)),
+WebGPU required (Chrome or Edge 113+, Safari 26+, Firefox 141+). Pick a texture class and press
+Generate: the page shows the model's current estimate of the clean image at every step, then repeats
+the finished tile across the screen. Size (64 to 512 px), steps, guidance strength and zoom are
+sliders; Seamless toggles circular padding, Auto-dream cycles random classes, Save PNG downloads the tile.
 
-![12 classes, each 128×128 tile drawn 2×2](results/gallery_tiled.png)
+![12 classes; each 128×128 tile is drawn 2×2, so a seam would show as a cross in the middle](results/gallery_tiled.png)
 
 Oskar, 2026-11-07: "Can we implement diffusion in wgsl? We sorta kinda achieved the _effect_ with
-the image to shaders experiment - but that used a real image as the target", prompted by SKILD
-([arXiv 2605.26032](https://arxiv.org/abs/2605.26032)). He picked textures ("Go for purtty") over
-critical Ising configurations, then asked for a faster kernel, 512×512 tiles and quantization.
+the image to shaders experiment - but that used a real image as the target" (that is
+[`image-to-wgsl/`](../image-to-wgsl/RESULTS.md), which fits one photo). He had been reading SKILD
+([arXiv 2605.26032](https://arxiv.org/abs/2605.26032)), a diffusion model that noises frequencies
+in order and trains on CIFAR-10, ImageNet and critical Ising spin fields. Offered Ising fields or
+textures as the dataset, he picked textures ("Go for purtty"), then asked for a faster conv kernel
+than the first one, 512×512 tiles and quantization.
 
 ## Model and training
 
@@ -35,8 +43,8 @@ critical Ising configurations, then asked for a faster kernel, 512×512 tiles an
 
 The SKILD paper's own model is a 121M-parameter NCSN++ U-Net sampled in 1,000 steps, about 103 s per
 image on a Titan RTX by its Table E.12. Its frequency-ordered (DCT) forward process is not used here.
-Plain rectified flow already resolves coarse structure first, which the page shows as the x₀ estimate
-sharpens.
+Plain rectified flow already resolves coarse structure first, which shows on the page as the
+per-step estimate of the clean image (x₀) sharpens.
 
 ## Seamless tiles from circular padding
 
@@ -50,15 +58,17 @@ classes at 128×128 (`results/seam.json`):
 | zero | 3.93 |
 | circular | 1.00 |
 
-A tile can be generated larger than the 64×64 training crops. Its features stay at the trained scale,
-so a 512 tile has more cracks or cells before it repeats, not bigger ones.
+A tile can be generated larger than the 64×64 training crops. Its features stay at the trained scale:
+a 512 tile holds more cracks or cells before it repeats, each the size it is in a 128 tile.
 
 ## The WGSL runtime
 
-`web/diffusion.js` holds every kernel and the planner. One sampling step is about 80 dispatches in a
-single compute pass:
+`web/diffusion.js` holds every kernel and the planner, which turns the layer list into dispatches and
+GPU buffers for one image size. Guidance runs the network on a batch of two each step, the chosen class
+and the null class. One sampling step is about 80 dispatches in a single compute pass:
 
-- **conv (v2)**: an 8×8 pixel tile × 32 output channels per workgroup of 64 threads; each thread keeps
+- **conv** (v2; v1, the first version kept for comparison, has each thread compute one pixel × 16
+  channels): an 8×8 pixel tile × 32 output channels per workgroup of 64 threads; each thread keeps
   4 adjacent pixels × 8 channels in vec4 accumulators. Input tiles and weights go through workgroup
   memory 4 input channels at a time. The GroupNorm affine, FiLM and SiLU of the conv's input are
   applied as each value is loaded, so normalized activations are never written out. Weights are
@@ -79,18 +89,20 @@ needed. Arithmetic and the sampler state stay f32.
 
 ## Correctness
 
-- SwiftShader in headless Chromium (`run/test_gpu.mjs`, fixtures from `train/export.py fixture` with
+- SwiftShader (Chromium's software GPU) in headless Chromium (`run/test_gpu.mjs`, fixtures from `train/export.py fixture` with
   random weights): forward passes at 64×64 zero-padded, 48×80 and 64×64 circular, plus a 3-step guided
   sample, all within 9e-6 relative of PyTorch for v1, v2 and v2 without split-K. The f16-storage
   variants come within 1e-3 relative (f16's own precision) on a forward pass and 3.6e-3 on the sample.
-- Apple GPU through the GPU bridge, final weights (`results/bench_mac.json`): a 128×128 sample, 20 steps,
+- Apple GPU through the GPU bridge (a page on Oskar's Mac that runs WebGPU jobs pushed to a repo and
+  commits the results back), final weights (`results/bench_mac.json`): a 128×128 sample, 20 steps,
   guidance 3, from fixed noise, against PyTorch f32 on the same f16 weights: max difference 5.0e-4,
-  85.8 dB. With f32 storage the same comparison was 141.8 dB (job `wd-f16-1`, 10k-step weights).
+  85.8 dB PSNR. On earlier 10k-step weights, f32 storage gave 141.8 dB and f16 storage 86.7 dB in the
+  same test.
 
 ## Speed and memory on the Mac
 
-20 steps, guidance 3 (two batch items), seamless, f16 storage, split-K target 256; the job reports
-`apple metal-3`, Chrome 156 (bridge job `wd-final-1`):
+20 steps, guidance 3, seamless, f16 storage; split-K is used when a conv has fewer than 256 workgroups.
+The adapter reports `apple metal-3`, Chrome 156:
 
 | size | 20 steps | per step | GPU buffers |
 |---|---|---|---|
@@ -101,10 +113,10 @@ needed. Arithmetic and the sampler state stay f32.
 | 384² | 2.20 s | 110 ms | 323 MB |
 | 512² | 3.69 s | 185 ms | 574 MB |
 
-Without guidance (one batch item) 128² takes 0.26 s. PyTorch on the container's 4 CPUs takes 2.7 s for
-the guided 128² run.
+Without guidance (one batch item) 128² takes 0.26 s. PyTorch on 4 CPU cores of the cloud container
+this was built in takes 2.7 s for the guided 128² run.
 
-How each change moved the numbers (20 guided steps, same Mac; jobs `wd-bench-2`, `wd-kern-1`, `wd-f16-1`):
+How each change moved the numbers (20 guided steps, same Mac; blank cells were not measured):
 
 | change | 64² | 256² | 512² memory |
 |---|---|---|---|
@@ -113,8 +125,9 @@ How each change moved the numbers (20 guided steps, same Mac; jobs `wd-bench-2`,
 | v2 conv, split-K target 256 | 267 ms | 1044 ms | 1147 MB |
 | f16 activation storage | 271 ms | 1121 ms | 574 MB |
 
-v1 reached 1.5 TFLOP/s at 256² and v2 about 3.2. Precomputing FiLM and keeping one step queued ahead
-changed nothing measurable (`wd-bench-2` against `wd-bench-1`), so the remaining 64² time is GPU-side.
+v1 reached 1.5 TFLOP/s at 256² and v2 about 3.2. Computing every step's FiLM vectors before sampling
+and submitting each step before waiting on the previous one changed nothing measurable, so the
+remaining 64² time is spent on the GPU.
 f16 storage costs 3–7% speed on this GPU and halves memory. The page disables a size when its largest
 buffer exceeds the adapter's `maxStorageBufferBindingSize`.
 
@@ -129,9 +142,10 @@ same noise with the f32 run, over 8 classes at 128×128 (final weights, `results
 | bf16 activations | 65.4 dB | 55.5 dB |
 | int8 weights, symmetric per output row | 34.4 dB | 29.9 dB |
 
-On the 15k-step checkpoint int8 weights gave 42.3 dB; the trained weights quantize worse. The page loads
-the f16 weights. `export.py` also writes `weights_q8.bin` (8.4 MB) and `create(..., {weights: "q8"})`
-loads it.
+Above about 40 dB the difference is not visible at 8 bits per channel; 30 to 35 dB can show in smooth
+gradients. An intermediate 15k-step checkpoint gave 42.3 dB with int8 weights, so the final weights
+quantize worse. The page loads the f16 weights. `export.py` also writes `weights_q8.bin` (8.4 MB), and
+`TextureDiffusion.create(device, "./model", {weights: "q8"})` in `diffusion.js` loads it.
 
 ## Prior art
 
@@ -149,10 +163,20 @@ those searches.
 - Better int8 weights (per input-channel groups, or quantization-aware fine-tuning) were not tried.
 - SKILD's frequency-space forward process was not tried.
 
+## Reproducing
+
+```bash
+python3 train/train.py --out run1 --steps 60000          # on a CUDA GPU (87 min on an A100)
+python3 train/export.py weights run1/ema.pt web/model     # f16 and int8 weight files
+python3 train/export.py fixture web/test && node run/test_gpu.mjs   # WGSL against PyTorch
+cd web && python3 -m http.server 8000                     # open http://127.0.0.1:8000/
+```
+
 ## Files
 
 - `train/model.py`, `train/train.py`, `train/export.py`: model, Colab training, f16/int8 export and test fixtures.
-- `run/colab_launch.py`, `run/keepalive.sh`: start training on a Colab VM and mirror it here.
+- `run/colab_launch.py`, `run/keepalive.sh`: start training on a Colab VM, keep it alive, and copy the
+  log, samples and checkpoint back to the local machine.
 - `run/test_gpu.mjs` with `web/_test.html`: SwiftShader check against the fixtures. `run/shot.mjs`: page screenshot.
 - `run/seam_check.py`, `run/quant_sim.py`, `run/gallery.py`, `run/ref_from_bin.py`: measurements.
 - `bridge/*.js`: GPU-bridge jobs for the Mac timings and correctness.
