@@ -71,20 +71,21 @@ export function recolourSplats(sp, K, tileStats, reg, { tint = "region", strengt
 // Majority label of the full-resolution segmentation in each cell of an LW x LH grid.
 export function labelMap(seg, LW) {
   const { W, H, labels, K } = seg;
-  const LH = Math.max(2, Math.round((LW * H) / W));
+  // square cells of W / LW reference px, as the shader assumes on both axes
+  const cw = W / LW, LH = Math.max(2, Math.ceil(H / cw));
   const out = new Uint8Array(LW * LH), cnt = new Uint32Array(K);
   for (let j = 0; j < LH; j++) for (let i = 0; i < LW; i++) {
-    const x0 = Math.floor((i * W) / LW), x1 = Math.max(x0 + 1, Math.floor(((i + 1) * W) / LW));
-    const y0 = Math.floor((j * H) / LH), y1 = Math.max(y0 + 1, Math.floor(((j + 1) * H) / LH));
+    const x0 = Math.floor(i * cw), x1 = Math.max(x0 + 1, Math.min(W, Math.floor((i + 1) * cw)));
+    const y0 = Math.min(H - 1, Math.floor(j * cw)), y1 = Math.max(y0 + 1, Math.min(H, Math.floor((j + 1) * cw)));
     cnt.fill(0);
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) cnt[labels[y * W + x]]++;
     let bk = 0; for (let k = 1; k < K; k++) if (cnt[k] > cnt[bk]) bk = k;
     out[j * LW + i] = bk;
   }
   // distance from each cell centre to the nearest pixel of another region, in cells, capped at DMAX
-  const dist = new Float32Array(LW * LH), cw = W / LW, R = Math.ceil(DMAX * cw) + 1;
+  const dist = new Float32Array(LW * LH), R = Math.ceil(DMAX * cw) + 1;
   for (let j = 0; j < LH; j++) for (let i = 0; i < LW; i++) {
-    const cx = (i + 0.5) * cw, cy = (j + 0.5) * (H / LH), l = out[j * LW + i];
+    const cx = (i + 0.5) * cw, cy = (j + 0.5) * cw, l = out[j * LW + i];
     let best = DMAX * cw;
     for (let y = Math.max(0, Math.floor(cy - R)); y < Math.min(H, Math.ceil(cy + R)); y++)
       for (let x = Math.max(0, Math.floor(cx - R)); x < Math.min(W, Math.ceil(cx + R)); x++) {

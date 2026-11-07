@@ -811,6 +811,10 @@ survives exactly the sanity checks people run.
   `--use-vulkan=swiftshader` fixes it; `WebGPUService`, `--headless=new` and
   `--enable-unsafe-swiftshader` do not. Listen on `device.lost`, or a dead device reads as a page
   that renders nothing. (`navier-stokes-explainer/run/verify.mjs`)
+- **In headless Chromium on SwiftShader, closing a second WebGPU page loses the first page's GPU
+  instance.** Every later GPU call on the first page fails with "A valid external Instance reference no
+  longer exists". Check a second WebGPU page (an exported viewer, say) in its own browser, after the first
+  is done. (`texture-collage/splat/run/check_page.mjs`)
 - **`importExternalTexture` in headless Chromium needs `--use-angle=swiftshader` and
   `--use-vulkan=swiftshader` together.** With the ANGLE flag alone the import returns an invalid
   texture and the bind group fails validation; with the Vulkan flag alone, or neither, it throws
@@ -1712,6 +1716,14 @@ the result.
   spread, scaled up to a region's spread, has its noise amplified and clipped out of gamut, and that
   shifts the region's mean. Gains capped at 4 (L) and 1.5 (a, b) cut the region-mean error from 1.43 to
   1.32 ΔE over 12 collages. (`texture-collage/RESULTS.md` finding 3)
+- **To keep region edges smooth when a coarse label map is zoomed, store each cell's distance to its
+  region's edge as well as its label.** Rebuild by interpolating, for each label among the 4 nearest
+  cells, +distance where the cell has that label and −distance where it does not, and take the largest.
+  At 192 cells on a 768 px picture this mislabelled 0.72% of pixels against 3.50% for nearest labels,
+  3.07% for bilinear label weights and 2.81% for a 3×3 B-spline, and it traces diagonals straight
+  where the others keep the map's stairs; 96 cells with distances matched 192 without. Use square cells: a
+  map whose rows were H / round(H / cell) apart drifted from a shader assuming square cells and made 256
+  cells worse than 192. (`texture-collage/splat/splatcollage.js` `labelMap`, `RESULTS.md` round 3)
 
 - **Centre a teacher's vectors before distilling into them with a cosine loss, and fit the student's head first.** MedCPT's 768-d vectors share a mean component of norm 7.08 against an average length of 9.45, so a student that outputs the mean scores cosine about 0.5 and the run collapses there. Targets of T minus the training-set mean, plus a ridge-fitted output head before step 0, trained normally. The ridge head alone reaches cosine 0.61 to the teacher and still ranks badly (SciFact nDCG@10 0.17), so the layers have to move. (`lifesci-ettin/RESULTS.md` Round 1)
 - **A bias that adds the same constant to every option's logit has a zero gradient under a per-question softmax, and AdamW moves it anyway.** In browser-decider's head the last Linear's bias and the LayerNorm bias before it both cancel in the segment softmax; PyTorch's own gradients for them are float noise (about 1e-8), so a gradient check that divides by them reports errors of 400% or more. Leave tensors whose reference gradient is under about 1e-6 of the total norm out of relative errors. AdamW divides a gradient by its own running size, so these parameters drift by about the learning rate per step on noise, in PyTorch and in any faithful port. (`ettin-wgsl-train/RESULTS.md` finding 4)

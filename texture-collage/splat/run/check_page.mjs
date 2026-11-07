@@ -61,7 +61,8 @@ if (await page.evaluate(() => window.app.gpu)) {
   n = await renders();
   await page.fill("#K", "7"); await page.dispatchEvent("#K", "change");
   await page.waitForFunction((n) => window.app.renders > n && window.app.regions().length <= 7, n, { timeout: 300000 });
-  if (await page.evaluate(() => document.getElementById("go").textContent === "Stop")) await page.click("#go");
+  // clicked from the page: on SwiftShader a frame takes ~17 s, and Playwright waits for the button to be "stable"
+  await page.evaluate(() => { const g = document.getElementById("go"); if (g.textContent === "Stop") g.click(); });
   await page.waitForFunction(() => document.getElementById("go").textContent !== "Stop", null, { timeout: 600000 });
   n = await renders();
   await page.click('#tint [data-v="none"]');

@@ -63,6 +63,7 @@ for (const f of files) {
       }
       geom.push(g);
     } }
+    if (process.env.GEOM_ONLY) { console.log(`${name} K=${K} geometry`); continue; }
     for (const [arm, o] of Object.entries(ARMS)) {
       const opt = { ...DEF, ...o };
       const t = performance.now();
@@ -95,6 +96,14 @@ for (const g of geom) {
 for (const a of Object.values(gagg)) {
   a.wrongFrac = +(a.wrongFrac / a.n).toFixed(5);
   for (const K of [6, 12]) if (a[`K${K}`]) { const b = a[`K${K}`]; a[`K${K}`] = { bytes: Math.round(b.bytes / b.n), gzip: Math.round(b.gzip / b.n) }; }
+}
+if (process.env.GEOM_ONLY) {
+  const e = JSON.parse(fs.readFileSync("results/eval.json", "utf8"));
+  e.geometry = gagg;
+  fs.writeFileSync("results/eval.json", JSON.stringify(e, null, 1));
+  fs.writeFileSync("results/geometry_rows.json", JSON.stringify(geom));
+  console.log(JSON.stringify(gagg, null, 1));
+  process.exit(0);
 }
 fs.writeFileSync("results/eval_rows.json", JSON.stringify(rows));
 fs.writeFileSync("results/geometry_rows.json", JSON.stringify(geom));
