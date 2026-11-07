@@ -91,7 +91,9 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    `../../_lib/wgsl/`, which `pages.json` publishes with them. `tests/engine_ab.mjs` gives max |diff|
    0 against the forked versions for both engines (sequences of 1 to 1,024 tokens, router and a
    spike), and adapter-library's own page check passes its fixtures (6/6 argmax, logits within
-   3.9e-5 of NumPy).
+   3.9e-5 of NumPy). On the Mac (bridge job `engine-ab`, run `engine-ab-1`, apple metal-3) outputs
+   are identical and `score()` time is within 0.98x to 1.01x of the fork for 60, 829 and 1,500 tokens
+   (`tests/results/engine-ab-1-mac.json`).
 2. **Forward ops duplicated across engines**: token-table embeds (q4, t3, t4, rhq, hash), rope, the
    gated MLPs (glu, geglu, swiglu, gelumul). ettin-native, eg2, the decider and adapter-library
    switch to them.
