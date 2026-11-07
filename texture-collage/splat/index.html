@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Splat Collage</title>
+<meta name="description" content="Cut a picture into regions and fill each with a texture of splats from a diffusion model; the whole collage is one WGSL shader, sharp at any zoom.">
+<style>
+  :root {
+    --bg: #0b0b0d; --panel: #141418; --line: rgba(255, 255, 255, 0.12);
+    --fg: #ece9e4; --dim: #a29d96; --accent: #f0b46a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; height: 100vh; overflow: hidden; }
+  #stage { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  #stage.drag { outline: 2px dashed var(--accent); outline-offset: -10px; }
+  #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #gl { cursor: grab; touch-action: none; }
+  #gl.drag { cursor: grabbing; }
+  #flat { display: none; pointer-events: none; }
+  #panel { width: 350px; flex: none; background: var(--panel); border-left: 1px solid var(--line);
+    padding: 14px 16px 16px; overflow-y: auto; }
+  h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  .sub { color: var(--dim); font-size: 12px; margin: 3px 0 10px; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); font-weight: 600;
+    margin: 14px 0 4px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+  .row > label { width: 84px; color: var(--dim); font-size: 12px; flex: none; }
+  .row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .row output { width: 30px; text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); font-size: 12px; }
+  select, .seg button, .btn { background: rgba(255,255,255,0.06); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 13px; }
+  select { text-transform: capitalize; min-width: 0; }
+  .seg { display: flex; flex: 1; min-width: 0; }
+  .seg button { flex: 1; border-radius: 0; cursor: pointer; padding: 5px 0; font-size: 12px; }
+  .seg button:first-child { border-radius: 8px 0 0 8px; }
+  .seg button:last-child { border-radius: 0 8px 8px 0; }
+  .seg button[aria-pressed=true] { background: var(--accent); color: #1b1309; border-color: var(--accent); }
+  .btn { cursor: pointer; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.go { background: var(--accent); color: #1b1309; border-color: var(--accent); font-weight: 600; flex: 1; }
+  .checks { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--dim); margin: 6px 0; }
+  .checks input { accent-color: var(--accent); }
+  .hint { font-size: 11px; color: var(--dim); margin: 2px 0 6px; }
+  #regions { display: grid; gap: 5px; }
+  .reg { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 6px; align-items: center; border-radius: 8px; padding: 2px; }
+  .reg.hot { background: rgba(240, 180, 106, 0.18); }
+  .reg .sw { width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--line); }
+  .reg select { padding: 4px 6px; font-size: 12px; }
+  .reg .pct { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; width: 30px; text-align: right; }
+  .reg .btn { padding: 3px 7px; font-size: 12px; }
+  .reg .tag { font-size: 10px; color: var(--accent); }
+  #status { font-size: 12px; color: var(--dim); min-height: 2.8em; font-variant-numeric: tabular-nums; margin-top: 8px; }
+  #bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  #bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.08s linear; }
+  a { color: var(--accent); }
+  @media (max-width: 760px) {
+    body { flex-direction: column; overflow: auto; height: auto; }
+    #stage { height: 62vh; flex: none; }
+    #panel { width: 100%; border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+  }
+</style>
+
+</head>
+<body>
+<div id="stage"><canvas id="gl" aria-label="Collage"></canvas><canvas id="flat" aria-hidden="true"></canvas></div>
+<div id="panel">
+  <h1>Splat Collage</h1>
+  <div class="sub">Cuts a picture into colour regions and fills each one with a texture made of 512 soft-edged
+    splats by <a href="../../../splat-diffusion/web/">Splat Diffusion</a>, a small diffusion model that runs on your GPU.
+    The whole collage is one shader with no pixels in it: zoom in as far as you like, and export it as a single
+    WGSL or HTML file. Needs WebGPU.
+    <a href="https://github.com/oaustegard/experiments/tree/main/texture-collage">Source and measurements</a>
+    · <a href="../web/">pixel version</a></div>
+  <div class="row"><button class="btn go" id="open">Open image…</button><button class="btn" id="sample">Sample picture</button>
+    <input type="file" id="file" accept="image/*" hidden></div>
+  <div class="hint">Or drop or paste an image. Nothing leaves your browser. Scroll or pinch to zoom, drag to pan.</div>
+
+  <h2>Regions</h2>
+  <div class="row"><label for="K">How many</label><input id="K" type="range" min="3" max="32" value="10"><output id="KV">10</output></div>
+  <div class="row"><label title="Cells along the long side of the region map stored in the shader">Map cells</label><div class="seg" id="lw">
+    <button data-v="96">96</button><button data-v="128">128</button><button data-v="192" aria-pressed="true">192</button><button data-v="256">256</button></div></div>
+  <div class="row"><label>Edges</label><div class="seg" id="mode">
+    <button data-v="distance" aria-pressed="true" title="Each map cell also stores how far it is from its region's edge, so edges are traced between cells: smooth and close to the picture's at any zoom">Smooth</button>
+    <button data-v="spline" title="Edges rounded across each 3 x 3 block of map cells: smaller data, softer corners">Rounded</button>
+    <button data-v="nearest" title="Each map cell is one region: square steps">Blocky</button></div></div>
+  <div class="row"><label for="blend" title="Width of the soft blend between regions, in picture pixels; 0 is a crisp edge at any zoom">Edge blend</label><input id="blend" type="range" min="0" max="8" step="0.5" value="0"><output id="blendV">0</output></div>
+
+  <h2>Textures</h2>
+  <div class="row"><label title="How each region's kind of texture is picked">Kind by</label><div class="seg" id="pick">
+    <button data-v="structure" aria-pressed="true" title="Texture whose busyness, orientation and speckle match the region">Pattern</button>
+    <button data-v="colour" title="Texture whose own colours are closest to the region's">Colour</button>
+    <button data-v="random">Random</button></div></div>
+  <div class="row"><label title="Splat colours are changed before the shader is built">Recolour</label><div class="seg" id="tint">
+    <button data-v="region" aria-pressed="true" title="The region's average colour, with the texture's light and dark detail">To region</button>
+    <button data-v="none" title="The texture's own colours">Off</button></div></div>
+  <div class="row"><label title="1x repeats the texture every 128 picture pixels">Texture size</label><div class="seg" id="scale">
+    <button data-v="auto" aria-pressed="true" title="1x or 2x, whichever matches the region better">Auto</button>
+    <button data-v="1">1×</button><button data-v="2">2×</button></div></div>
+  <div class="row"><label for="strength" title="Minimum contrast of the texture detail, so flat regions still show texture">Min contrast</label><input id="strength" type="range" min="0" max="24" value="8"><output id="strengthV">8</output></div>
+  <div class="checks">
+    <label title="Turn each texture so its grain runs the way the region's does"><input type="checkbox" id="align" checked> Turn textures to follow the picture's streaks</label>
+    <label title="Never give two regions the same texture class"><input type="checkbox" id="distinct"> No two regions share a kind</label>
+  </div>
+  <div id="regions"></div>
+  <div class="hint">One row per region, largest first. Click the picture to highlight a region's row. Its menu sets the kind of texture;
+    ↻ generates a new texture of that kind once the model has loaded.</div>
+
+  <h2>New textures</h2>
+  <div class="hint">The collage starts from one stored texture per kind. This dreams a new one for every region on your GPU,
+    about 0.14 s each on a recent Mac.</div>
+  <div class="row"><label for="steps" title="More steps: cleaner, slower">Steps</label><input id="steps" type="range" min="6" max="40" value="24"><output id="stepsV">24</output></div>
+  <div class="row"><button class="btn go" id="go" disabled>Generate fresh textures</button></div>
+
+  <h2>View and export</h2>
+  <div class="row"><label>Show</label><div class="seg" id="view">
+    <button data-v="collage" aria-pressed="true">Collage</button><button data-v="regions" title="Each region in its average colour">Flat colours</button><button data-v="original">Original</button></div></div>
+  <div class="row"><button class="btn" id="fit" style="flex:1">Fit to screen</button></div>
+  <div class="row"><button class="btn" id="wgsl" style="flex:1" title="The collage as one WGSL function, collage(p, px)">WGSL</button>
+    <button class="btn" id="html" style="flex:1" title="A single HTML file that renders the collage with WebGPU, with zoom and pan">HTML</button>
+    <button class="btn" id="png" style="flex:1" title="A picture rendered from the shader at the chosen width">PNG</button></div>
+  <div class="row"><label for="pngw">PNG width</label><div class="seg" id="pngw">
+    <button data-v="1">1×</button><button data-v="2" aria-pressed="true">2×</button><button data-v="4">4×</button><button data-v="8">8×</button></div></div>
+  <div id="bar"><i></i></div>
+  <div id="status">Loading…</div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
