@@ -115,12 +115,14 @@ async function loadModel(k) {
     try {
       cache[k] = await SplatDiffusion.create(device, MODELS[k]);
     } catch (e) {
-      if (k === 1024) throw e;
-      console.warn(`no ${k}-splat model (${e.message}); using 1,024`);
-      K = 1024;
+      const other = k === 1024 ? 512 : 1024;
       const o = [...$("splats").options].find((x) => x.value === String(k));
       if (o) o.remove();
-      return loadModel(1024);
+      if (!$("splats").options.length) throw e;
+      console.warn(`no ${k}-splat model (${e.message}); using ${other}`);
+      K = other;
+      $("splats").value = String(other);
+      return loadModel(other);
     }
   }
   return cache[k];

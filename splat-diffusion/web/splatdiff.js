@@ -265,6 +265,7 @@ export function gaussian(n, seed) {
 export class SplatDiffusion {
   static async create(device, base) {
     const man = await (await fetch(`${base}/manifest.json`)).json();
+    if (man.repr !== "opaque") throw new Error(`${base} holds an older splat format`);
     const raw = new Uint16Array(await (await fetch(`${base}/weights.bin`)).arrayBuffer());
     return new SplatDiffusion(device, man, f16ToF32(raw));
   }
