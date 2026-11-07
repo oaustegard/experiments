@@ -10,28 +10,29 @@ Scores are nDCG@10.
 
 ## Answer
 
-Not yet. The new table costs almost nothing but has not added anything, and no training goal tried so far beats e17c across the board.
+Not yet. The new table costs almost nothing but adds nothing, and no training run so far beats e17c.
 
-Round 2 isolated the table. Two arms started from e17c and copied e17c's own vectors for 2 epochs on PubMed; they differ only in the table. The 32K PubMed table landed within 0.014 of Ettin's table on every set. On TREC-COVID the 32K arm scored 0.607 <!-- @evidence[[results/eval_self_ls32_e2.json#trec-covid.ndcg@10]] -->
+Round 2 isolated the table: two arms copied e17c's own vectors on PubMed, differing only in the table, and the 32K table landed within 0.014 of Ettin's on every set. On TREC-COVID the 32K arm scored 0.607 <!-- @evidence[[results/eval_self_ls32_e2.json#trec-covid.ndcg@10]] -->
 against 0.621 for Ettin's table <!-- @evidence[[results/eval_self_stock_e2.json#trec-covid.ndcg@10]] -->. So the swap is close to lossless, with a 35% smaller table and 9% shorter inputs.
 
-Two training goals have failed, so the table comparison under a better goal has not run. Round 1 copied MedCPT and dropped TREC-COVID from 0.609 <!-- @evidence[[results/eval_e17c.json#trec-covid.ndcg@10]] --> to 0.448 <!-- @evidence[[results/eval_stock_e2.json#trec-covid.ndcg@10]] -->. Round 3 trained e17c contrastively on PubMed titles as queries against their abstract passages. 1,000 steps left SciFact unchanged, +0.002 <!-- @evidence[[results/compare_k0.json#scifact.k0_minus_e17c.0]] -->, and cut TREC-COVID to 0.388 <!-- @evidence[[results/compare_k0.json#trec-covid.k0]] -->.
+Three training runs failed, so the table comparison under a better goal has not run. Round 1 copied MedCPT and dropped TREC-COVID from 0.609 <!-- @evidence[[results/eval_e17c.json#trec-covid.ndcg@10]] --> to 0.448 <!-- @evidence[[results/eval_stock_e2.json#trec-covid.ndcg@10]] -->. Rounds 3 and 4 trained e17c contrastively for 1,000 steps. PubMed titles against their abstracts left SciFact unchanged, +0.002 <!-- @evidence[[results/compare_k0.json#scifact.k0_minus_e17c.0]] -->, and cut TREC-COVID to 0.388 <!-- @evidence[[results/compare_k0.json#trec-covid.k0]] -->. Real NIH consumer questions (MedQuAD) cut TREC-COVID to 0.454 <!-- @evidence[[results/compare_k4.json#trec-covid.k4]] --> and SciFact by 0.067.
 
-PubMed titles are too narrow a query signal; whatever the model learns from them costs it on questions. What would change this is training on real search queries, or keeping e17c's own vectors as a second loss term.
+Two unrelated data sources doing the same damage points at the full-weight update, not the data. A run that holds e17c in place (self-distillation term, lower learning rate or adapters) and still gains would change this.
 
 ## Findings
 
 1. Contrastive training on PubMed title→passage pairs does not transfer and damages TREC-COVID (`compare_k0.json`, Round 3). Against e17c, 1,000 steps gave SciFact +0.002 (interval −0.022 to +0.027) and NFCorpus +0.012 <!-- @evidence[[results/compare_k0.json#nfcorpus.k0_minus_e17c.0]] -->. TREC-COVID changed by −0.221 <!-- @evidence[[results/compare_k0.json#trec-covid.k0_minus_e17c.0]] -->; 36 of 50 queries lost more than 0.05. The same eval path gives e17c its bridge score exactly, so the drop is not an artifact.
-2. The 32K table can replace Ettin's with little loss when the teacher stays e17c (`eval_self_*.json`, Round 2). Copying e17c with Ettin's table kept e17c's scores within 0.012; the 32K arm was within 0.014 of that on all four sets, NFCorpus 0.245 against 0.254 <!-- @evidence[[results/eval_self_ls32_e2.json#nfcorpus.ndcg@10]] -->. Its loss was still falling (0.019 against 0.004), so more steps may close the gap.
-3. With MedCPT as teacher, domain vocab arms tie stock on SciFact and NFCorpus and lose on TREC-COVID (`compare.json`, paired bootstrap, 10,000 resamples). SciFact 50K minus stock +0.014, interval −0.006 to +0.034. <!-- @evidence[[results/compare.json#scifact.ls50_minus_stock.0]] --> NFCorpus 50K minus stock −0.001. <!-- @evidence[[results/compare.json#nfcorpus.ls50_minus_stock.0]] --> TREC-COVID −0.069 for 32K and −0.047 for 50K.
-4. The slice that the vocab was meant to help does not move (`compare.json`). On SciFact, 92 queries hold a word that Ettin splits into three or more pieces and the 50K vocab keeps whole. Their delta is +0.009, <!-- @evidence[[results/compare.json#scifact.ls50_slice.delta_with_term.0]] --> against +0.016 for the other queries.
-5. Distilling from MedCPT helps on PubMed-like data and hurts out of distribution (eval_*.json, compare.json). SciFact gains 0.064 over e17c. <!-- @evidence[[results/compare.json#scifact.stock_e2_minus_e17c.0]] --> TREC-COVID (CORD-19) changes by −0.161. <!-- @evidence[[results/compare.json#trec-covid.stock_e2_minus_e17c.0]] --> On TREC-COVID e17c beat its own teacher, 0.609 against MedCPT's 0.593, <!-- @evidence[[results/eval_medcpt.json#trec-covid.ndcg@10]] --> so copying the teacher left little room to gain there.
-6. The students match the teacher only loosely (`trec_cross.json`; the per-length agreement is in Round 1b). On TREC-COVID documents the stock student's vectors have mean cosine 0.81 with MedCPT's, and 0.76 on the 23% of documents that are a title only. Student documents with MedCPT's query vectors score 0.509. <!-- @evidence[[results/trec_cross.json#stock_e2.teacherQ_studentD]] --> Student queries with MedCPT's documents score 0.444. <!-- @evidence[[results/trec_cross.json#stock_e2.studentQ_teacherD]] --> Both sides lose fidelity. With student queries all three arms land within 0.01; with student documents the 32K and 50K arms score about 0.05 below stock, so their TREC-COVID loss sits on the document side.
-7. The vocab compresses text and lowers training loss without helping retrieval (tokenizers.json, shards_meta.json, results/train/). Held-out abstracts drop from 359 to 326 tokens for 32K. <!-- @evidence[[results/tokenizers.json#tokens_per_heldout_abstract.ls32]] --> Rows cut at 128 tokens drop from 17% to 6%. Last-100-step loss is 0.1105 for 50K <!-- @evidence[[results/train/lse-ls50-5025-10050.summary.json#loss_last100]] -->
+2. Real consumer-health questions do the same damage as titles (`compare_k4.json`, Round 4). 1,000 steps on MedQuAD: SciFact −0.067 <!-- @evidence[[results/compare_k4.json#scifact.k4_minus_e17c.0]] -->, NFCorpus −0.002, TREC-COVID −0.155 <!-- @evidence[[results/compare_k4.json#trec-covid.k4_minus_e17c.0]] -->. In-batch accuracy reached 0.98, so the model fit the questions it was given.
+3. The 32K table can replace Ettin's with little loss when the teacher stays e17c (`eval_self_*.json`, Round 2). Copying e17c with Ettin's table kept e17c's scores within 0.012; the 32K arm was within 0.014 of that on all four sets, NFCorpus 0.245 against 0.254 <!-- @evidence[[results/eval_self_ls32_e2.json#nfcorpus.ndcg@10]] -->. Its loss was still falling (0.019 against 0.004), so more steps may close the gap.
+4. With MedCPT as teacher, domain vocab arms tie stock on SciFact and NFCorpus and lose on TREC-COVID (`compare.json`, paired bootstrap, 10,000 resamples). SciFact 50K minus stock +0.014, interval −0.006 to +0.034. <!-- @evidence[[results/compare.json#scifact.ls50_minus_stock.0]] --> NFCorpus 50K minus stock −0.001. <!-- @evidence[[results/compare.json#nfcorpus.ls50_minus_stock.0]] --> TREC-COVID −0.069 for 32K and −0.047 for 50K.
+5. The slice that the vocab was meant to help does not move (`compare.json`). On SciFact, 92 queries hold a word that Ettin splits into three or more pieces and the 50K vocab keeps whole. Their delta is +0.009, <!-- @evidence[[results/compare.json#scifact.ls50_slice.delta_with_term.0]] --> against +0.016 for the other queries.
+6. Distilling from MedCPT helps on PubMed-like data and hurts out of distribution (eval_*.json, compare.json). SciFact gains 0.064 over e17c. <!-- @evidence[[results/compare.json#scifact.stock_e2_minus_e17c.0]] --> TREC-COVID (CORD-19) changes by −0.161. <!-- @evidence[[results/compare.json#trec-covid.stock_e2_minus_e17c.0]] --> On TREC-COVID e17c beat its own teacher, 0.609 against MedCPT's 0.593, <!-- @evidence[[results/eval_medcpt.json#trec-covid.ndcg@10]] --> so copying the teacher left little room to gain there.
+7. The students match the teacher only loosely (`trec_cross.json`; the per-length agreement is in Round 1b). On TREC-COVID documents the stock student's vectors have mean cosine 0.81 with MedCPT's, and 0.76 on the 23% of documents that are a title only. Student documents with MedCPT's query vectors score 0.509. <!-- @evidence[[results/trec_cross.json#stock_e2.teacherQ_studentD]] --> Student queries with MedCPT's documents score 0.444. <!-- @evidence[[results/trec_cross.json#stock_e2.studentQ_teacherD]] --> Both sides lose fidelity. With student queries all three arms land within 0.01; with student documents the 32K and 50K arms score about 0.05 below stock, so their TREC-COVID loss sits on the document side.
+8. The vocab compresses text and lowers training loss without helping retrieval (tokenizers.json, shards_meta.json, results/train/). Held-out abstracts drop from 359 to 326 tokens for 32K. <!-- @evidence[[results/tokenizers.json#tokens_per_heldout_abstract.ls32]] --> Rows cut at 128 tokens drop from 17% to 6%. Last-100-step loss is 0.1105 for 50K <!-- @evidence[[results/train/lse-ls50-5025-10050.summary.json#loss_last100]] -->
    and 0.118 for stock. <!-- @evidence[[results/train/lse-stock-5025-10050.summary.json#loss_last100]] --> Lower loss in the teacher's space did not turn into better ranking.
-8. Training at 128 tokens may cost some long-document ability, though it is unlikely to explain the whole TREC-COVID drop (`trunc_scifact.json`). On SciFact the trained student still gains from 512-token documents, scoring 0.637 at 128 tokens <!-- @evidence[[results/trunc_scifact.json#stock_e2@128]] -->
+9. Training at 128 tokens may cost some long-document ability, though it is unlikely to explain the whole TREC-COVID drop (`trunc_scifact.json`). On SciFact the trained student still gains from 512-token documents, scoring 0.637 at 128 tokens <!-- @evidence[[results/trunc_scifact.json#stock_e2@128]] -->
    and 0.647 at 512. That gain is a seventh of e17c's (0.515 to 0.583).
-9. Full-weight training of Ettin runs in the browser (results/train/). The WGSL trainer took 133 to 143 ms per step at batch 128 on Oskar's Mac through the browser WebGPU bridge (adapter apple metal-3); the second ls50 job ran at 143.2 ms. <!-- @evidence[[results/train/lse-ls50-5025-10050.summary.json#msPerStep]] --> One epoch took about 12 minutes. The gradcheck against PyTorch in float64 passes.
+10. Full-weight training of Ettin runs in the browser (results/train/). The WGSL trainer took 133 to 143 ms per step at batch 128 on Oskar's Mac through the browser WebGPU bridge (adapter apple metal-3); the second ls50 job ran at 143.2 ms. <!-- @evidence[[results/train/lse-ls50-5025-10050.summary.json#msPerStep]] --> One epoch took about 12 minutes. The gradcheck against PyTorch in float64 passes.
 
 ## Method
 
@@ -154,4 +155,27 @@ trainer (`distill.js` `forwardBackward({ loss: "nce" })`), in the trainer's kern
 `_lib/wgsl/train/`. Against float64 on 8 pairs its largest per-tensor gradient error is 4.6e-6, PyTorch float32's
 3.8e-6 (`gradcheck_nce_f64.json`, SwiftShader, correctness only). `web/bridge_contrast.js` and
 `run/submit_contrast.py` run an arm on the bridge.
+
+### Round 4 (2026-11-07): real questions, kill test
+
+Oskar chose real biomedical queries as the next variable. Licence scan: TripClick (5.2M health-search clicks) is
+non-commercial and its users report they may not publish trained models; BMRetriever's released set (5 GB, tagged
+MIT) samples as mostly MS MARCO and general web questions, which carry their own terms; BioASQ needs registration
+and the open mirror holds 209 questions. MedQuAD (CC BY 4.0) was usable: 16,326 NIH consumer-health questions with
+an answer (`run/pairs_medquad.py`, `pairs_mq_stats.json`). Positive = the answer's first passage of at most 90 words.
+
+Preflight (posted before training): round 3's recipe exactly, only the pairs change; 1,000 steps is 3.9 passes.
+Prediction: NFCorpus +0.01 to +0.03, TREC-COVID −0.03 to +0.02, SciFact −0.02 to +0.01. Kill: TREC-COVID drops
+more than 0.03 or no set gains 0.01. LLM-written questions for the 155K abstracts were offered as a second arm;
+the Gemini gateway returned 402 (no credits) that day.
+
+| nDCG@10 | SciFact | NFCorpus | TREC-COVID |
+|---|---|---|---|
+| e17c | 0.583 | 0.255 | 0.609 |
+| round 3, PubMed titles | 0.585 | 0.267 | 0.388 |
+| round 4, MedQuAD questions | 0.516 | 0.253 | 0.454 |
+
+Loss 0.34 to 0.06, in-batch accuracy 0.98 at the end; 1.2 s per step on 4 CPUs. Every prediction missed low and
+both kill criteria fired. With two unrelated pair sets landing in the same place, the recipe (full-weight AdamW
+at lr 5e-5 from an already tuned model) is the shared cause to test next, not another data source.
 
