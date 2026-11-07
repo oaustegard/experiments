@@ -13,6 +13,7 @@
 // unique token: no atomics), mean pooling and the cosine loss.
 
 import { kernels as baseKernels, wgsl, grid, REDUCE } from "../../ettin-wgsl-train/web/train.js";
+import { nceKernels, recordNce } from "./nce.js";
 
 const SMAX = 1024, SLOT = 256, MAX_SLOTS = 4096, KCHUNK = 512, LNCH = 256;
 
@@ -81,6 +82,7 @@ function kernels(C) {
   var s = 0.0;
   for (var k = USTART[gi]; k < USTART[gi + 1u]; k = k + 1u) { s = s + DXE[UROWS[k] * ${H}u + lid.x]; }
   G[p.tOff + UTOK[gi] * ${H}u + lid.x] = s;` };
+  Object.assign(K, nceKernels(C));
   return K;
 }
 
@@ -159,6 +161,8 @@ export class DistillTrainer {
     A("DH", R * H); A("DXM", R * H); A("DQR", R * 2 * H); A("DQKV", R * 3 * H); A("DD", R * NH);
     A("HF", R * H); A("STF", 2 * R); A("DHF", R * H);
     A("PL", B * H); A("Y", B * OUT); A("TGT", B * OUT); A("DY", B * OUT); A("DPL", B * H);
+    // contrastive loss (web/nce.js): B / 2 pairs
+    A("YN", B * OUT); A("NR", B); A("DYN", B * OUT); A("SIM", (B / 2) ** 2); A("DS", (B / 2) ** 2); A("LROW", B / 2);
     this.ZMAX = Math.ceil(R / KCHUNK);
     A("PART", Math.max(this.ZMAX * 3 * H * H, Math.ceil(R / LNCH) * H));
     this.IDS = this.#buf("IDS", R);
@@ -325,11 +329,16 @@ export class DistillTrainer {
       [Math.ceil(OUT / 64), Math.ceil(B / 64), 1]);
   }
 
-  forwardBackward({ slot = 0 } = {}) {
+  // loss "cos": 1 - cos to the targets; "nce": rows 0..B/2-1 are queries and B/2..B-1 their positives
+  // (web/nce.js), scale = 1 / temperature
+  forwardBackward({ slot = 0, loss = "cos", scale = 20 } = {}) {
     const { H, I, L, NH, OUT } = this.C, { R, S, B, nU } = this.b;
     this.clear(this.GRD);
     this.forward();
-    this.op("cosloss", [this.Y, this.TGT, this.DY, this.LOSS], { B, slot }, 1);
+    if (loss === "nce") {
+      if (B % 2) throw new Error("nce needs an even batch: queries then their positives");
+      recordNce(this, { P: B / 2, scale, slot });
+    } else this.op("cosloss", [this.Y, this.TGT, this.DY, this.LOSS], { B, slot }, 1);
     // dense: dW = DY^T PL; dPL = DY W
     this.op("mm", [this.DY, this.PL, this.GRD], { M: OUT, N: H, K: B, kChunk: B, aOff: 0, aRS: 1, aCS: OUT, bOff: 0, bRS: H, bCS: 1, cOff: this.poff.dense, cRS: H, cCS: 1, alpha: 1 },
       [Math.ceil(H / 64), Math.ceil(OUT / 64), 1]);

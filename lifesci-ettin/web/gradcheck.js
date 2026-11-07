@@ -2,9 +2,11 @@
 // tensor, one AdamW step. `get(path)` fetches a file relative to this experiment directory.
 import { DistillTrainer } from "./distill.js";
 
-export async function gradcheck(device, get) {
-  const meta = JSON.parse(new TextDecoder().decode(await get("fixtures/gradcheck/meta.json")));
-  const bin = async (n, T = Float32Array) => new T((await get(`fixtures/gradcheck/${n}.bin`)).slice().buffer);
+// opts.fixture: "gradcheck" (cosine loss) or "gradcheck_nce" (contrastive, run/reference.py nce)
+export async function gradcheck(device, get, opts = {}) {
+  const dir = opts.fixture || "gradcheck";
+  const meta = JSON.parse(new TextDecoder().decode(await get(`fixtures/${dir}/meta.json`)));
+  const bin = async (n, T = Float32Array) => new T((await get(`fixtures/${dir}/${n}.bin`)).slice().buffer);
   const t0 = performance.now();
   const tr = await DistillTrainer.create(device, { V: meta.V, maxRows: meta.B * meta.S, maxSeqs: meta.B });
   const initMs = performance.now() - t0;
@@ -12,10 +14,10 @@ export async function gradcheck(device, get) {
   meta.layout.forEach((x, i) => { if (x.name !== tr.layout[i].name || x.offset !== tr.layout[i].offset) throw new Error(`layout ${x.name}`); });
   const p0 = await bin("params0"), gref = await bin("grads"), p1ref = await bin("params1");
   tr.setParams(p0);
-  tr.loadBatch({ ids: await bin("ids", Int32Array), B: meta.B, S: meta.S, lens: await bin("lens", Int32Array), tgt: await bin("tgt") });
+  tr.loadBatch({ ids: await bin("ids", Int32Array), B: meta.B, S: meta.S, lens: await bin("lens", Int32Array), tgt: meta.loss_kind === "nce" ? null : await bin("tgt") });
   await tr.flush();
   const t1 = performance.now();
-  tr.forwardBackward({ slot: 0 });
+  tr.forwardBackward({ slot: 0, loss: meta.loss_kind || "cos", scale: meta.scale });
   await tr.flush();
   const stepMs = performance.now() - t1;
   const loss = (await tr.read(tr.LOSS, 1))[0];
