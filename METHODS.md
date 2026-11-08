@@ -3727,6 +3727,33 @@ The traps, each of which cost a revision:
   `arr.ctypes.data` as `c_void_p` and check dtype and contiguity once in
   Python. (`rht-operator-native/ERRORS.md` #4)
 
+### Judging a worker's attempt: setup traps (jev-judge)
+
+Lessons from measuring Jev as a completion judge on 158 worker attempts (`temporal-routing-headroom/jev-judge/RESULTS.md`):
+
+- **Split a judge eval by outcome stratum, and before any attempt is judged.** A hash split by task put four of the five
+  failure-prone tasks in test and left dev one failure in 28 attempts, which also made the "20 test failures" floor
+  unreachable. Check the failure count per split before the first judge call, stratify by "task has any failure", and
+  record the change while the judge has still seen nothing.
+- **Report a within-task AUROC beside the pooled one.** Pooled AUROC 0.75-0.77 on test was the judge recognising hard
+  tasks; within a task it was 0.25-0.45, below chance. A judge input that varies by task and a label that varies by task
+  will produce a pooled score on their own. Resample tasks, not attempts, for the intervals.
+- **A "0.3-0.9 band holds the errors" share needs the band's base rate.** Q3's misjudgements were 84% mid-band, but 66%
+  of all its scores were mid-band, and Q1's 100% sat against a 95% base rate. A judge whose probabilities are compressed
+  puts everything in the band. The Hightouch mechanism is errors in the band while correct calls sit outside it.
+- **Strip run paths from a diff before a judge sees it.** `diff -ru` headers carry the worktree path, which here held the
+  arm name (`.../haiku_r1/...`). Rewrite `---`/`+++` to task-relative paths.
+- **Never `git init` inside a worktree the grader will inspect.** `grade_agentic` counts `.git/` as out-of-package edits and
+  sets `tampered_tests` on every attempt. Diff against the pristine task copy instead, and pass `-x .git` when a worktree
+  was git-initialised, or `diff` reads binary objects and fails to decode.
+- **Launch worker volume as headless `claude -p` children, one background job.** 144 attempts cost $4.58 and ran in
+  minutes, with `--effort` settable, against one parent turn per Agent spawn. Peak context was 11-15K tokens headless
+  against 80K+ for an Agent-tool spawn (the ~55K prefix), so costs from the two harnesses do not mix. Auto-mode may block
+  the first `claude -p` launch ("Create Unsafe Agents"); a Bash permission rule for `claude -p` clears it.
+- **Call Jev from a script at `api.typesafe.ai/v1/systemone` with a pinned id (`jev-1.14.0`).** The MCP `decide` tool
+  cannot be driven from a script, and `scripts/model_advisor._jev` uses the floating `jev-latest`. Probabilities come back
+  at 0.01 resolution; four calls per attempt took five seconds for 52 attempts.
+
 ## Negative results — do not re-derive
 
 ### Jev ranks lint hits well but cannot settle them: probabilities stay in the middle (jev-prose-lint)

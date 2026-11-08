@@ -18,6 +18,8 @@ against the 37% the skill measured on generation work; and handing rung 2 the fi
 stated reasoning changed nothing (13/15 against 12/15, 1% fewer tokens), so the informed
 retry's value sits in the patch and the failing assertions.
 
+**Follow-up: [`jev-judge/`](jev-judge/RESULTS.md)** measures Jev as a completion judge on 158 attempts from these tasks. Verdict PARTIAL by its pre-registered rule, NO-GO in practice: no attempt-level signal within a task.
+
 ## Relation to orchestrated-coding-pareto
 
 `orchestrated-coding-pareto` is single-shot: `spec.md` in, one Python module out, hidden
