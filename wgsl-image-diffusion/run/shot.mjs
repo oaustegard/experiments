@@ -17,7 +17,7 @@ try {
   page.on("console", (m) => console.log("[page]", m.type(), m.text().slice(0, 600)));
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
   await page.goto(`http://127.0.0.1:${port}/index.html${query}`);
-  await page.waitForFunction(() => /steps in|Error|lost/.test(document.getElementById("status").textContent), null, { timeout: 600000 });
+  await page.waitForFunction(() => / s · seed|Stopped|Error|lost/.test(document.getElementById("status").textContent), null, { timeout: 600000 });
   console.log("status:", await page.textContent("#status"));
   await page.screenshot({ path: out });
 } finally { await browser.close(); srv.kill(); }
