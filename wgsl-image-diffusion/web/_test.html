@@ -22,6 +22,11 @@ window.runTests = async (only) => {
       if (c.kind === "forward") {
         got = await m.forward(new Float32Array(c.x), c.t, c.y, c.H, c.W);
         want = c.v;
+      } else if (c.kind === "edit") {
+        await m.sample({ cls: c.mix, H: c.H, W: c.W, steps: c.steps, cfg: c.cfg, noise: new Float32Array(c.noise),
+                         init: new Float32Array(c.init), strength: c.strength, mask: new Float32Array(c.mask) });
+        got = (await m.read(m.dBuf, 3 * c.H * c.W)).map((v) => Math.max(-1, Math.min(1, v)));
+        want = c.out;
       } else {
         await m.sample({ cls: c.y, H: c.H, W: c.W, steps: c.steps, cfg: c.cfg, noise: new Float32Array(c.noise) });
         got = (await m.read(m.dBuf, 3 * c.H * c.W)).map((v) => Math.max(-1, Math.min(1, v)));

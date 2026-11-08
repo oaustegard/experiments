@@ -71,6 +71,15 @@ def fixture(out: Path):
     xs = sample(m, torch.tensor([2]), 32, 32, steps=3, cfg=2.5, noise=noise)
     cases.append({"kind": "sample", "H": 32, "W": 32, "steps": 3, "cfg": 2.5, "y": 2,
                   "noise": noise.numpy().ravel().tolist(), "out": xs.numpy().ravel().tolist()})
+    # image to image with a mask and a class blend: the page's steering path
+    init = torch.rand(1, 3, 32, 32, generator=g) * 2 - 1
+    mask = torch.zeros(32, 32); mask[8:24, 4:20] = 1
+    noise = torch.randn(1, 3, 32, 32, generator=g)
+    mix = [0.3, 0.0, 0.7, 0.0]
+    xs = sample(m, torch.tensor([0]), 32, 32, steps=5, cfg=2.0, noise=noise, init=init, strength=0.6, mask=mask, mix=mix)
+    cases.append({"kind": "edit", "H": 32, "W": 32, "steps": 5, "cfg": 2.0, "mix": mix, "strength": 0.6,
+                  "init": init.numpy().ravel().tolist(), "mask": mask.numpy().ravel().tolist(),
+                  "noise": noise.numpy().ravel().tolist(), "out": xs.numpy().ravel().tolist()})
     (out / "cases.json").write_text(json.dumps(cases))
     print(f"{len(cases)} cases")
 

@@ -157,23 +157,50 @@ class UNet(nn.Module):
 
 
 @torch.no_grad()
-def sample(model, y, H=64, W=64, steps=20, cfg=2.0, seed=0, device="cpu", noise=None):
-    """Euler rectified-flow sampler, t: 1 -> 0. y: LongTensor of class ids."""
+def sample(model, y, H=64, W=64, steps=20, cfg=2.0, seed=0, device="cpu", noise=None, init=None, strength=1.0,
+           mask=None, mix=None):
+    """Euler rectified-flow sampler, t: 1 -> 0. y: LongTensor of class ids.
+
+    The same options as web/diffusion.js sample(): init (B x 3 x H x W in [-1, 1]) starts at t = strength
+    from init noised to that time and takes round(steps * strength) steps; mask (H x W, 1 = generate) then
+    resets the unmasked pixels to init noised to each new time; mix (weights over nclass + 1 classes)
+    replaces the class embedding of y with that blend."""
     g = torch.Generator(device="cpu").manual_seed(seed)
-    x = noise.clone() if noise is not None else torch.randn(len(y), 3, H, W, generator=g)
-    x = x.to(device)
+    eps = noise.clone() if noise is not None else torch.randn(len(y), 3, H, W, generator=g)
+    eps = eps.to(device)
     y = y.to(device)
     null = torch.full_like(y, model.nclass)
-    ts = torch.linspace(1, 0, steps + 1)
-    for i in range(steps):
-        t = torch.full((len(y),), float(ts[i]), device=device)
-        if cfg == 1.0:
-            v = model(x, t, y)
-        else:
-            v2 = model(torch.cat([x, x]), torch.cat([t, t]), torch.cat([y, null]))
-            vc, vu = v2.chunk(2)
-            v = vu + cfg * (vc - vu)
-        x = x + (float(ts[i + 1]) - float(ts[i])) * v
+    t0 = min(1.0, max(0.02, strength)) if init is not None else 1.0
+    if init is not None:
+        steps = max(1, round(steps * t0))
+        init = init.to(device)
+        x = (1 - t0) * init + t0 * eps
+    else:
+        x = eps
+    if mask is not None:
+        mask = mask.to(device)[None, None]
+    ts = [t0 * (1 - i / steps) for i in range(steps + 1)]
+    old = None
+    if mix is not None:          # the conditional item's class embedding becomes the blend
+        old = model.cls.weight.data.clone()
+        blend = (torch.tensor(mix, dtype=old.dtype, device=old.device)[:, None] * old).sum(0)
+        model.cls.weight.data[y[0]] = blend
+    try:
+        for i in range(steps):
+            t = torch.full((len(y),), float(ts[i]), device=device)
+            if cfg == 1.0:
+                v = model(x, t, y)
+            else:
+                v2 = model(torch.cat([x, x]), torch.cat([t, t]), torch.cat([y, null]))
+                vc, vu = v2.chunk(2)
+                v = vu + cfg * (vc - vu)
+            x = x + (ts[i + 1] - ts[i]) * v
+            if mask is not None and init is not None:
+                tn = ts[i + 1]
+                x = mask * x + (1 - mask) * ((1 - tn) * init + tn * eps)
+    finally:
+        if old is not None:
+            model.cls.weight.data.copy_(old)
     return x.clamp(-1, 1)
 
 

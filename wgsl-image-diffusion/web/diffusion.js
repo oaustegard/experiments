@@ -322,21 +322,33 @@ fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_index) li: u
 
 // Euler step with classifier-free guidance. S is the f32 state; X receives N copies of it as the
 // next network input; V holds the model outputs (cond first, unconditional second when N = 2).
-// Also writes the x0 estimate D for display.
+// Also writes the x0 estimate D for display. With inpaint = 1, pixels where the mask M is 0 are reset
+// after every step to the known image K noised to the new time with the starting noise E, so only
+// the masked region is generated (and the final step lands exactly on K outside it).
 const WGSL_STEP = (half) => /* wgsl */`
-struct P { N:u32, HW3:u32, t:f32, dt:f32, cfg:f32, _a:u32, _b:u32, _c:u32 }
+struct P { N:u32, HW3:u32, t:f32, dt:f32, cfg:f32, inpaint:u32, _b:u32, _c:u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read_write> S: array<f32>;
 @group(0) @binding(2) var<storage, read> V: array<${AT(half)}>;
 @group(0) @binding(3) var<storage, read_write> D: array<f32>;
 @group(0) @binding(4) var<storage, read_write> X: array<${AT(half)}>;
+@group(0) @binding(5) var<storage, read> K: array<f32>;
+@group(0) @binding(6) var<storage, read> M: array<f32>;
+@group(0) @binding(7) var<storage, read> E: array<f32>;
 ${LDFN(half, "ldV", "V")}
 fn one(i: u32) -> f32 {
   var v = ldV(i);
   if (p.N == 2u) { let vu = ldV(p.HW3 + i); v = vu + p.cfg * (v - vu); }
   let x = S[i];
-  D[i] = x - p.t * v;
-  let xn = x + p.dt * v;
+  var d = x - p.t * v;
+  var xn = x + p.dt * v;
+  if (p.inpaint == 1u) {
+    let m = M[i % (p.HW3 / 3u)];
+    let tn = p.t + p.dt;
+    xn = m * xn + (1.0 - m) * ((1.0 - tn) * K[i] + tn * E[i]);
+    d = m * d + (1.0 - m) * K[i];
+  }
+  D[i] = d;
   S[i] = xn;
   return xn;
 }
@@ -534,7 +546,8 @@ export class ImageDiffusion {
     return y;
   }
 
-  // silu(t2(silu(t1(temb(t)))) + cls[y]) for one item: the 256-d vector every FiLM projection reads
+  // silu(t2(silu(t1(temb(t)))) + cls[y]) for one item: the 256-d vector every FiLM projection reads.
+  // y is a class index, or an array of weights over the classes (a blend of their embeddings).
   embed(t, y) {
     const half = TDIM / 2, te = new Float32Array(TDIM);
     for (let i = 0; i < half; i++) {
@@ -543,7 +556,12 @@ export class ImageDiffusion {
     }
     const silu = (v) => v.map((z) => z / (1 + Math.exp(-z)));
     const h = this.linear("t2", silu(this.linear("t1", te)));
-    const ce = this.get("cls.weight").subarray(y * EMB, (y + 1) * EMB);
+    const C = this.get("cls.weight"), ce = new Float32Array(EMB);
+    const ws = Array.isArray(y) ? y : null;
+    for (let k = 0; k <= this.nclass; k++) {
+      const w = ws ? ws[k] || 0 : +(k === y);
+      if (w) for (let i = 0; i < EMB; i++) ce[i] += w * C[k * EMB + i];
+    }
     return silu(h.map((v, i) => v + ce[i]));
   }
 
@@ -686,10 +704,12 @@ export class ImageDiffusion {
     this.dBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: su });
     this.sBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: su });
     this.stepU = dev.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    this.stepBG = dev.createBindGroup({ layout: this.pipe.step.getBindGroupLayout(0), entries: [
-      { binding: 0, resource: { buffer: this.stepU } }, { binding: 1, resource: { buffer: this.sBuf } },
-      { binding: 2, resource: { buffer: this.vBuf } }, { binding: 3, resource: { buffer: this.dBuf } },
-      { binding: 4, resource: { buffer: this.xBuf } }] });
+    this.kBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: su });     // known image (inpainting)
+    this.mBuf = dev.createBuffer({ size: H * W * 4, usage: su });         // mask, 1 = generate
+    this.eBuf = dev.createBuffer({ size: 3 * H * W * 4, usage: su });     // starting noise
+    this.stepBG = dev.createBindGroup({ layout: this.pipe.step.getBindGroupLayout(0), entries:
+      [this.stepU, this.sBuf, this.vBuf, this.dBuf, this.xBuf, this.kBuf, this.mBuf, this.eBuf]
+        .map((buffer, binding) => ({ binding, resource: { buffer } })) });
     this.planKey = key;
     this.bytes = all.reduce((s, b) => s + b.n, 0);
   }
@@ -701,6 +721,7 @@ export class ImageDiffusion {
     for (const b of this.allBufs) b.buf.destroy();
     for (const o of this.ops) o.ub.destroy();
     this.dBuf.destroy(); this.sBuf.destroy(); this.stepU.destroy();
+    this.kBuf.destroy(); this.mBuf.destroy(); this.eBuf.destroy();
     this.allBufs = null; this.planKey = null;
   }
 
@@ -741,14 +762,32 @@ export class ImageDiffusion {
     return out;
   }
 
-  // Euler sampler, t: 1 -> 0. FiLM vectors and step uniforms for every step are uploaded up front,
+  // Euler sampler, t: 1 -> 0. cls: a class index or an array of class weights (a blend).
+  // Image to image: with init (3 x H x W in [-1, 1]) sampling starts at t = strength from init noised to
+  // that time and takes round(steps * strength) steps, so low strength keeps more of init. With mask
+  // (H x W, 1 = generate, 0 = keep) as well, only the masked region changes. FiLM vectors and step uniforms for every step are uploaded up front,
   // and one step stays queued ahead of the one the CPU waits on, so the GPU never idles between steps.
   // onStep(i, t) runs right after step i is submitted: a draw issued there shows that step's x0 estimate.
-  async sample({ cls, H = 64, W = 64, steps = 20, cfg = 2, seed = 0, noise = null, onStep = null, shouldStop = null }) {
+  async sample({ cls, H = 64, W = 64, steps = 20, cfg = 2, seed = 0, noise = null, init = null, strength = 1,
+                  mask = null, onStep = null, shouldStop = null }) {
     const N = cfg === 1 ? 1 : 2;
     this.plan(N, H, W);
     const dev = this.device;
-    const x0 = noise || gaussian(3 * H * W, seed);
+    const eps = noise || gaussian(3 * H * W, seed);
+    const t0 = init ? Math.min(1, Math.max(0.02, strength)) : 1;
+    if (init) steps = Math.max(1, Math.round(steps * t0));
+    const tAt = (i) => t0 * (1 - i / steps);
+    let x0 = eps;
+    if (init) {
+      x0 = new Float32Array(eps.length);
+      for (let i = 0; i < x0.length; i++) x0[i] = (1 - t0) * init[i] + t0 * eps[i];
+    }
+    const inpaint = init && mask ? 1 : 0;
+    if (inpaint) {
+      dev.queue.writeBuffer(this.kBuf, 0, init);
+      dev.queue.writeBuffer(this.mBuf, 0, mask);
+      dev.queue.writeBuffer(this.eBuf, 0, eps);
+    }
     const xs = new Float32Array(N * 3 * H * W);
     for (let n = 0; n < N; n++) xs.set(x0, n * 3 * H * W);
     dev.queue.writeBuffer(this.sBuf, 0, x0);                       // f32 state
@@ -756,11 +795,12 @@ export class ImageDiffusion {
     const ys = N === 2 ? [cls, this.nclass] : [cls];
     const L = this.filmLen, es = new Float32Array(steps * N * EMB), us = new ArrayBuffer(steps * 32);
     for (let i = 0; i < steps; i++) {
-      const t = 1 - i / steps, tn = 1 - (i + 1) / steps;
+      const t = tAt(i), tn = tAt(i + 1);
       ys.forEach((y, n) => es.set(this.embed(t, y), (i * N + n) * EMB));
       const dv = new DataView(us, i * 32, 32);
       dv.setUint32(0, N, true); dv.setUint32(4, 3 * H * W, true);
       dv.setFloat32(8, t, true); dv.setFloat32(12, tn - t, true); dv.setFloat32(16, cfg, true);
+      dv.setUint32(20, inpaint, true);
     }
     // FiLM vectors for all steps, computed on the GPU into fAll
     const fAll = dev.createBuffer({ size: steps * L * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
@@ -791,7 +831,7 @@ export class ImageDiffusion {
         pass.dispatchWorkgroups(...this.flat(3 * H * W / 2));
         pass.end();
         dev.queue.submit([enc.finish()]);
-        if (onStep) await onStep(i, 1 - (i + 1) / steps);
+        if (onStep) await onStep(i, tAt(i + 1), steps);
         const done = dev.queue.onSubmittedWorkDone();
         if (prev) await prev;
         prev = done;

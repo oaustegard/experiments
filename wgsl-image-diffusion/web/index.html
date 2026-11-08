@@ -19,6 +19,12 @@
   #stage { position: relative; width: 100%; aspect-ratio: 1; background: #000; border-radius: 12px; overflow: hidden;
     border: 1px solid var(--line); }
   #c { width: 100%; height: 100%; display: block; }
+  #ov { position: absolute; inset: 0; width: 100%; height: 100%; display: none; touch-action: none; cursor: crosshair; }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  .tools .btn { padding: 5px 8px; font-size: 12px; }
+  input[type=color] { width: 34px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; }
+  select { background: rgba(255,255,255,0.06); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 5px; font: inherit; font-size: 13px; }
+  [hidden] { display: none !important; }
   #panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 12px; }
   h1 { font-size: 16px; margin: 0; font-weight: 600; }
   .sub { color: var(--dim); font-size: 12px; margin: 4px 0 12px; }
@@ -51,13 +57,29 @@
 <body>
 <div id="nogpu"><p>This page needs WebGPU: Chrome or Edge 113+, Safari 26+, or Firefox 141+.</p></div>
 <main id="app">
-  <div id="stage"><canvas id="c"></canvas></div>
+  <div id="stage"><canvas id="c"></canvas><canvas id="ov"></canvas></div>
   <div id="panel">
     <h1 id="title">Animal Diffusion</h1>
     <div class="sub" id="sub"></div>
     <div class="row"><label>Model</label><div class="seg" id="mdl">
       <button data-v="animals">Animals</button><button data-v="faces">Faces</button></div></div>
     <div class="row"><label id="clsLabel">Animal</label><div class="seg" id="cls"></div></div>
+    <div class="row"><label for="blend">Blend with</label><select id="blend"><option value="-1">nothing</option></select>
+      <input id="blendAmt" type="range" min="0" max="1" step="0.05" value="0.5"><output id="blendAmtV">0.5</output></div>
+    <div class="row"><label>Start from</label><div class="seg" id="mode">
+      <button data-v="noise">Noise</button><button data-v="picture">A picture</button></div></div>
+    <div id="picRows" hidden>
+      <div class="tools"><button class="btn" id="upBtn">Upload photo</button><button class="btn" id="useRes">Use current result</button>
+        <button class="btn" id="sketch">Blank sketch</button><input type="file" id="file" accept="image/*" hidden></div>
+      <div class="row"><label for="strength">Strength</label><input id="strength" type="range" min="0.1" max="1" step="0.05" value="0.6"><output id="strengthV">0.6</output></div>
+      <div class="row"><label>Brush</label><div class="seg" id="tool">
+        <button data-v="paint" aria-pressed="true">Paint</button><button data-v="mask">Mark to redo</button></div></div>
+      <div class="row"><label for="brush">Brush size</label><input id="brush" type="range" min="1" max="16" value="6"><output id="brushV">6</output>
+        <input type="color" id="color" value="#c8783c" title="Paint colour"></div>
+      <div class="tools"><button class="btn" id="clearMask">Clear marks</button><button class="btn" id="showSrc">Show / hide picture</button></div>
+      <div class="hint">Draw on the large square. Paint changes the picture; pink marks the area to redo, and the rest stays as it is.
+        Strength sets how far the result may move from the picture: low keeps it close, 1 keeps only the rough layout.</div>
+    </div>
     <div class="row"><label for="steps">Steps</label><input id="steps" type="range" min="4" max="64" value="24"><output id="stepsV">24</output></div>
     <div class="row"><label for="cfg">Guidance</label><input id="cfg" type="range" min="1" max="5" step="0.25" value="2"><output id="cfgV">2</output></div>
     <div class="hint">More steps: cleaner and slower. Higher guidance pulls the picture toward the chosen <span id="what">animal</span>: more typical, less varied. Guidance 1 turns that off.</div>
@@ -70,7 +92,7 @@
     <div id="bar"><i></i></div>
     <div id="status">Loading model (46 MB)…</div>
   </div>
-  <div id="hist" title="Click one to draw it again from the same noise"></div>
+  <div id="hist" title="Click one to edit it as a picture"></div>
 </main>
 <script type="module" src="app.js"></script>
 </body>
