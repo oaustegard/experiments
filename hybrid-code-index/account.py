@@ -49,6 +49,11 @@ import hcindex as H  # noqa: E402
 
 DIM, BITS, SEED, ROT = 384, 2, 0, "rht"
 
+# Data repos, not code. gpu-bridge-comms is ~3 GB of job/result blobs and
+# cloning it takes the runner down; skip anything else that size too.
+EXCLUDE = {"gpu-bridge-comms"}
+MAX_REPO_KB = 2_000_000
+
 
 def tokenizer_sha256() -> str:
     """Hash the *logic* of `hcindex.tokens`, ignoring comments and formatting.
@@ -113,6 +118,13 @@ def cmd_plan(a) -> None:
             # forks are upstream code, not this account's decisions; archived
             # repos never change so they cost nothing to keep
             if not r.get("fork") and not r.get("disabled")]
+    keep = [r for r in keep if r["full_name"].split("/")[1] not in EXCLUDE]
+    big = [r["full_name"].split("/")[1] for r in keep
+           if r.get("size", 0) > MAX_REPO_KB]
+    if big:
+        print(f"::warning::skipping repos over {MAX_REPO_KB//1000} MB: "
+              f"{', '.join(big)}", flush=True)
+    keep = [r for r in keep if r["full_name"].split("/")[1] not in big]
     now = {r["full_name"].split("/")[1]: r["pushed_at"] for r in keep}
     # repo size in KB, only ever used as a shard-balancing fallback for repos
     # the previous manifest has never seen
@@ -186,7 +198,10 @@ def cmd_clone(a) -> None:
         if depth:
             cmd += ["--depth", str(depth)]
         cmd += [f"https://github.com/{plan['owner']}/{name}.git", str(dest)]
-        subprocess.run(cmd, check=False, capture_output=True)
+        r = subprocess.run(cmd, check=False, capture_output=True, text=True)
+        if r.returncode:
+            print(f"::warning::clone failed: {name}: {r.stderr.strip()[-200:]}",
+                  flush=True)
     got = sum(1 for p in root.iterdir() if p.is_dir())
     print(f"cloned {got}/{len(plan['repos'])} repos at depth "
           f"{depth or 'full'} in {time.time()-t0:.0f}s", flush=True)

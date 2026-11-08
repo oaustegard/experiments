@@ -230,6 +230,18 @@ def main() -> None:
             check("without them the clone is depth 1",
                   run(settled)["clone_depth"] == 1,
                   "the old hardcoded --depth 50 carried history nothing read")
+
+            # A data repo in the account took the runner down mid-clone
+            # (account-index runs 595 onward, Nov 2026): the plan must drop it,
+            # and anything over the size cap, before clone ever sees the list.
+            A.api = lambda path, token: [
+                {"full_name": "oaustegard/alpha", "pushed_at": "t", "size": 10},
+                {"full_name": "oaustegard/gpu-bridge-comms", "pushed_at": "t",
+                 "size": 2_941_207},
+                {"full_name": "oaustegard/huge", "pushed_at": "t",
+                 "size": A.MAX_REPO_KB + 1}]
+            check("excluded and oversized repos never reach the plan",
+                  sorted(run({"repos": {}})["repos"]) == ["alpha"])
         finally:
             A.api = real_api
             if real_env is None:
