@@ -7,23 +7,31 @@ can also start from a picture you upload or sketch, redo only a part you paint o
 
 Live page: [austegard.com/experiments/wgsl-image-diffusion/web/](https://austegard.com/experiments/wgsl-image-diffusion/web/)
 (`web/index.html`; `?m=faces` opens the face model). It needs WebGPU: Chrome or Edge 113+, Safari 26+ or
-Firefox 141+.
+Firefox 141+. Pick an animal (or a kind of face) and press Generate to watch the picture form step by step.
+"Start from: A picture" lets you upload a photo, start a sketch, or reuse the result; Strength sets how far
+the result may move from that picture (low stays close, 1 keeps only the rough layout). The "Mark to redo"
+brush paints the part to regenerate while the rest stays fixed, and "Blend with" mixes two classes. The
+trained weights ship with the page (`web/model`, `web/model-faces`, 46.5 MB each).
 
 ![24 samples from the animal model at 60k steps: cats, dogs, wild animals](results/samples_afhq_060000.png)
 
 ## Answer
 
-Oskar Austegard, who runs this repo, asked whether the texture diffusion model of `wgsl-diffusion` could
-be taken from textures to images, and what that would take. It can, without leaving the browser. The step
-from textures to images needed self-attention (so the left eye agrees with the right one), more channels,
-and 10 to 100 times more training images; the WGSL runtime needed an attention kernel and little else.
-A 23.2M-parameter U-Net with attention at 16×16 and 8×8, trained for 60,000 steps (about 4 hours on a Colab
-A100, roughly 27 compute units per model), draws a 64×64 animal face in 401 ms for 24 guided steps on a Mac. <!-- @evidence[[results/mac_afhq.json#outputs.runs.1.total_ms]] -->
-The Mac output matches PyTorch at 77.5 dB PSNR from the same noise. <!-- @evidence[[results/mac_vs_torch_afhq.json#psnr_db]] -->
-Quality is that of a small model trained briefly: FID-5k 7.66 for the animals at the best setting, <!-- @evidence[[results/afhq_eval.jsonl#5.fid]] -->
-against 1.45 for 5,000 real training images scored the same way, <!-- @evidence[[results/afhq_floor.json#fid]] -->
-and no sign that the model copies its training photos.
-A bigger model, more steps, or a 128×128 version would change the quality numbers, not the answer.
+Oskar Austegard, who runs this repo, asked whether the earlier `wgsl-diffusion` experiment, a small
+model that makes seamless textures in the browser, could make images instead, and what that would take.
+It can. Textures repeat, so a network that sees only nearby pixels suffices; a face needs distant parts to
+agree (left eye with right), which takes self-attention, more channels and 3 to 30 times more training
+images; the runtime needed little beyond an attention kernel.
+
+A 23.2M-parameter U-Net with attention at 16×16 and 8×8, trained for 60,000 steps (about 4 hours and 27
+Colab compute units per model), draws a 64×64 animal face in 401 ms for 24 guided denoising steps on a Mac. <!-- @evidence[[results/mac_afhq.json#outputs.runs.1.total_ms]] -->
+A sample drawn there from fixed noise matches PyTorch's at 77.5 dB PSNR. <!-- @evidence[[results/mac_vs_torch_afhq.json#psnr_db]] -->
+FID-5k (how far 5,000 samples sit from the training set in an image classifier's feature space; lower is
+better) is 7.66 for the animals <!-- @evidence[[results/afhq_eval.jsonl#5.fid]] -->
+and 8.85 for the faces at 48 steps, <!-- @evidence[[results/celeba_eval.jsonl#4.fid]] -->
+against 1.45 and 2.55 for 5,000 real training images, <!-- @evidence[[results/afhq_floor.json#fid]] --> <!-- @evidence[[results/celeba_floor.json#fid]] -->
+and neither model copies its training photos. The page also steers without retraining: start from a
+picture, redo a painted-over part, or blend classes.
 
 ## Findings
 
@@ -33,8 +41,8 @@ A bigger model, more steps, or a 128×128 version would change the quality numbe
 4. **Attention is cheap at this size**: a guided 64×64 forward pass takes 15.3 ms on the Mac and 13.8 ms with the attention dispatches skipped (Round 3, `results/mac_afhq.json`). <!-- @evidence[[results/mac_afhq.json#outputs.fwd_ms]] --> <!-- @evidence[[results/mac_afhq.json#outputs.fwd_no_attn_ms]] -->
 5. **Animal quality, FID-5k against all 15,803 training images:** 7.66 at guidance 2 with 48 steps; with 24 steps 8.10 at guidance 1.5, 8.50 at 2, 8.55 without guidance and 10.15 at 3; with 12 steps 10.97 (Round 3, `results/afhq_eval.jsonl`). The floor, 5,000 real images against all of them, is 1.45. <!-- @evidence[[results/afhq_eval.jsonl#5.fid]] --> <!-- @evidence[[results/afhq_eval.jsonl#1.fid]] --> <!-- @evidence[[results/afhq_eval.jsonl#4.fid]] --> <!-- @evidence[[results/afhq_floor.json#fid]] -->
 6. **The animal model does not copy training photos.** In Inception feature space the median sample is 7.13 from its nearest training image, against 6.41 between a training image and its nearest other one, and none of 1,000 samples is closer to a training image than the closest 1% of real pairs (Round 3, `results/afhq_copy_check.json`; the 24 closest pairs are in `results/afhq_copy_check.png`). <!-- @evidence[[results/afhq_copy_check.json#gen_nn_median]] --> <!-- @evidence[[results/afhq_copy_check.json#real_nn_median]] -->
-7. **Face quality:** the evaluation is still running.
-8. **Steering needs no retraining.** Starting from a picture noised to t = strength, holding unmasked pixels to the picture noised to each new time, and blending class embeddings all change only the sampler; a case with all three matches PyTorch at 2e-6 relative error in f32 (Round 5, `web/_test.html`, `run/test_gpu.mjs`).
+7. **Face quality, FID-5k against all 162,770 training images:** 8.85 at guidance 2 with 48 steps, against 13.36 with 24 steps (no 12-step run); 13.19 at guidance 1.5 and 14.47 at 3 with 24 steps (Round 4, `results/celeba_eval.jsonl`). The floor is 2.55. Doubling the steps helps the faces far more than the animals (13.36 to 8.85 against 8.50 to 7.66), so the page's default went from 24 to 40 steps (about 0.67 s on the Mac, by the measured 16.7 ms per step). No copying either: median nearest-training distance 8.55 against 8.32 for real pairs, and no sample nearer than the closest 1% of real pairs (`results/celeba_copy_check.json`). <!-- @evidence[[results/celeba_eval.jsonl#4.fid]] --> <!-- @evidence[[results/celeba_eval.jsonl#2.fid]] --> <!-- @evidence[[results/celeba_floor.json#fid]] --> <!-- @evidence[[results/celeba_copy_check.json#gen_nn_median]] -->
+8. **Steering needs no retraining.** Three changes to the sampler alone: start part-way through denoising from your picture with noise added (how far is the strength); after every step, put the unmarked pixels back to your picture with the matching amount of noise, so only the marked part is generated; and average two classes' embeddings. The network is untouched; a case with all three matches PyTorch at 2e-6 relative error in f32 (Round 5, `web/_test.html`, `run/test_gpu.mjs`).
 
 ## Method
 
@@ -98,7 +106,8 @@ replacement method of diffusion inpainting.
 no text prompts (that needs a text encoder and captioned data), and no ablation without attention.
 
 **Cost.** About 4.1 A100 hours per model at 6.73 compute units per hour, plus about an hour for
-evaluation, restarts and the overlap in ERRORS.md #1: about 63 units in all.
+evaluation, restarts and 19 minutes when a forgotten first training run shared the GPU (ERRORS.md #1):
+about 63 units in all.
 
 **Reproducing.**
 
@@ -118,7 +127,7 @@ cd web && python3 -m http.server 8000                                  # open ht
 Oskar: "Ok, so we know we can generate textures with diffusion on wgsl; can we generate _images_? What
 would that take?" Three options were offered (class-conditional 64² with attention; a latent model over a
 pretrained VAE; a port of SD-Turbo or SDXS). He picked the first. Built the model, trainer, exporter and
-runtime; all four runtime variants matched PyTorch on SwiftShader (f32 about 3e-6 relative, packed f16
+runtime; f32 and f16 storage, each with and without split-K, matched PyTorch on SwiftShader (f32 about 3e-6 relative, packed f16
 about 1e-3 with random weights). Training started on a Colab A100 at 80k steps, was cut to 60k after the
 first speed reading (23.3 s per 100 steps), and the restart left the first run alive for 19 minutes
 (ERRORS.md #1).
@@ -140,7 +149,7 @@ worse. The copy check found no copies. Published the page.
 Oskar asked for other subjects; faces were picked for the strongest demonstration. CelebA's two labels
 give four classes. The account allowed two A100s at a time and the other one was busy, so the face run
 waited for the animal evaluation on the same VM; launched beside it, it ran out of GPU memory. 60,000
-steps in 3.9 hours.
+steps in 3.9 hours. FID-5k as in Finding 7; 48 steps gave the largest gain of any setting.
 
 ### Round 5 — steering (2026-11-08)
 
@@ -148,4 +157,5 @@ Oskar: the page is "interesting for two seconds" but "not very compelling when t
 generation". Added start-from-a-picture (upload, sketch or reuse a result, with a strength), a paint-over
 mask that redoes only the marked area, and class blending, all in the sampler. In the UI check, redoing a
 marked strip of fur changed it by 3.4 levels per pixel on average and the unmarked part by 0.15: the
-context constrains fur so much that the redo looks alike, so marking eyes or a whole head shows more.
+surrounding fur leaves the model little choice, so the redone strip looks much like the old one;
+marking the eyes or a whole head gives visibly different results.
