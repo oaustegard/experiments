@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 16.0,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/template_render/repo/solution/util.py /home/user/runs/jev/opus-high_r2/template_render/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/template_render/repo/solution/util.py\t2026-11-07 17:34:52.327429776 +0000\n+++ /home/user/runs/jev/opus-high_r2/template_render/solution/util.py\t2026-11-08 01:45:36.713496447 +0000\n@@ -1,4 +1,4 @@\n import re\n \n \n-_NAME = re.compile(r\"[A-Za-z_][A-Za-z0-9_]*?\")\n+_NAME = re.compile(r\"[A-Za-z_][A-Za-z0-9_]*\")\n"
 }

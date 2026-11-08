@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 9.4,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py /home/user/runs/jev/sonnet-low_r1/glob_match/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py\t2026-11-07 17:34:52.326309874 +0000\n+++ /home/user/runs/jev/sonnet-low_r1/glob_match/solution/util.py\t2026-11-08 01:43:13.198547319 +0000\n@@ -1,32 +1,32 @@\n def _parse_class(seg: str, i: int):\n     \"\"\"Parse a class starting at seg[i] == '['; return (matcher, next_index).\"\"\"\n     j = i + 1\n     negate = False\n     if j < len(seg) and seg[j] == \"!\":\n         negate = True\n         j += 1\n     chars = set()\n     ranges = []\n     first = True\n     while True:\n         if j >= len(seg):\n             raise ValueError(\"unterminated character class\")\n         c = seg[j]\n         if c == \"]\" and not first:\n             j += 1\n             break\n         first = False\n         if (j + 2 < len(seg) and seg[j + 1] == \"-\" and seg[j + 2] != \"]\"):\n             ranges.append((c, seg[j + 2]))\n             j += 3\n         else:\n             chars.add(c)\n             j += 1\n \n     def match(ch):\n         if ch == \"/\":\n             return False\n-        hit = ch in chars\n+        hit = ch in chars or any(lo <= ch <= hi for lo, hi in ranges)\n         return hit != negate\n \n     return match, j\n"
 }

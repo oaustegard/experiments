@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 12.1,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py /home/user/runs/jev/haiku_r1/parse_range/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py\t2026-11-07 17:34:52.326782092 +0000\n+++ /home/user/runs/jev/haiku_r1/parse_range/solution/core.py\t2026-11-08 01:42:51.681059445 +0000\n@@ -1,28 +1,28 @@\n import re\n \n \n _SINGLE = re.compile(r\"^-?\\d+$\")\n \n \n _RANGE = re.compile(r\"^(-?\\d+)\\s*-\\s*(-?\\d+)$\")\n \n \n def parse_range(s: str) -> list[int]:\n     if s.strip() == \"\":\n         return []\n     out = set()\n     for token in s.split(\",\"):\n         token = token.strip()\n         if not token:\n             raise ValueError(\"empty token\")\n         if _SINGLE.match(token):\n             out.add(int(token))\n             continue\n         m = _RANGE.match(token)\n         if not m:\n             raise ValueError(f\"bad token: {token!r}\")\n         a, b = int(m.group(1)), int(m.group(2))\n         if a > b:\n             raise ValueError(f\"reversed range: {token!r}\")\n-        out.update(range(a, b))\n+        out.update(range(a, b + 1))\n     return sorted(out)\n"
 }

@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 10.2,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/toposort_lex/repo/solution/util.py /home/user/runs/jev/sonnet-low_r2/toposort_lex/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/toposort_lex/repo/solution/util.py\t2026-11-07 17:34:52.327725108 +0000\n+++ /home/user/runs/jev/sonnet-low_r2/toposort_lex/solution/util.py\t2026-11-08 01:45:01.941067188 +0000\n@@ -1,35 +1,35 @@\n import heapq\n from collections import defaultdict\n \n \n class CycleError(ValueError):\n     def __init__(self, cycle):\n         super().__init__(f\"cycle detected: {cycle}\")\n         self.cycle = cycle\n \n \n def _find_cycle(adj, nodes):\n     color = {n: 0 for n in nodes}  # 0 white, 1 gray, 2 black\n     stack = []\n \n     def dfs(u):\n         color[u] = 1\n         stack.append(u)\n         for v in sorted(adj[u]):\n             if color[v] == 1:\n                 i = stack.index(v)\n-                return stack[i + 1:]\n+                return stack[i:]\n             if color[v] == 0:\n                 found = dfs(v)\n                 if found:\n                     return found\n         stack.pop()\n         color[u] = 2\n         return None\n \n     for n in sorted(nodes):\n         if color[n] == 0:\n             found = dfs(n)\n             if found:\n                 return found\n     return None\n"
 }

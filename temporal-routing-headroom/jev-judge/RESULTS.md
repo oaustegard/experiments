@@ -32,7 +32,8 @@ the headless Haiku arm).
 attempt (5 tasks) and tasks with none (9) are ordered separately by sha1 of `jev-judge-split:<task>`;
 dev is the first 2 of each stratum (`interval_merge`, `lru_ttl`, `parse_range`, `toposort_lex`),
 test is the other 10. Prompts are fixed on dev only; no few-shot examples from test. The ladder
-simulation weights replicates 1–2 only, since replicates 3–6 oversample the five failure-prone tasks.
+simulation draws attempts from all replicates of a task and weights tasks equally, so the extra replicates
+on the five failure-prone tasks sharpen their estimates without changing the task mix.
 
 **Judge questions** (Jev via `decide`, one binary question each; inputs are issue text, diff,
 worker summary and visible-test output, never the held-out result):
@@ -45,6 +46,21 @@ bootstrap 95% CI resampled by task. Error placement: the fraction of misjudgemen
 side of 0.5) with P in 0.3–0.9. Simulated ladder: accept if P > hi, escalate if P < lo, mid-band gets
 an informed retry; sweep (lo, hi) on dev, report test. Costs from measured per-attempt usage.
 Combination: logistic on [tests_green, P_Q1..Q4]; reported as degenerate if tests_green is constant.
+
+**Ladder simulation (fixed before the test split was judged).** Rungs: Haiku 5.5, Sonnet 5.5 low, Opus 5.5
+high. At each rung one attempt is drawn uniformly from that arm's replicates of the task and judged by the
+primary question (P = P(pass)). Accept if P > hi; escalate if P < lo; in between, one retry at the same
+rung (a fresh attempt, not an informed one, so conservative against the informed retry that rescued 3/3
+in `3e850450`), accepted unless its P < lo, in which case escalate. The last rung accepts whatever it
+produced. Expected solved rate and cost are computed exactly by averaging over draws, tasks weighted
+equally. Baselines: always-Haiku, always-Sonnet, always-Opus; visible-gated (accepts the first attempt,
+because visible tests were green on every attempt); held-out-gated (escalates on held-out failure, free
+and exact). (lo, hi) is swept on a 0.05 grid on dev: among points with solved rate within 5 points of the
+held-out-gated ladder, the cheapest; if none qualifies, the highest solved rate. Costs: measured
+`claude -p` cost per attempt, plus a second model that adds the ~55K-token Claude Code prefix a fresh
+Agent-tool spawn writes to cache (`3e850450`, `harness/subagent_cost.py` prices) at each model's cache-write
+rate. Jev is priced at an assumed $0.001 per judged attempt (the call is a fraction of a cent; usage logs
+about 3.8K input tokens per question), with $0 and $0.003 as sensitivity.
 
 **Decision rule (fixed before the test split was judged).** The primary question is the one with the
 best dev AUROC. Evaluated on test:
@@ -86,3 +102,17 @@ Before Jev saw any attempt I ran replicates 3–6 on those five tasks (60 attemp
 the hash split with the stratified one above. Result: 144 headless + 14 pilot attempts; dev 52 attempts
 with 13 failures, test 106 with 38. Peak context per attempt is 11–15K tokens headless (the Agent-tool
 prefix is what made the pilot 80K+). Visible tests are green on all 144, as in the pilot.
+
+### Round 3, 2026-11-08: prompts fixed on dev
+
+Jev `jev-1.14.0` via `api.typesafe.ai` (the backend of the Muninn `decide` tool), one call per question
+per attempt. Dev split, 52 attempts, 4 tasks, 13 failures. v1 (3-line diff context): pooled AUROC Q1 0.68,
+Q2 0.64, Q3 0.62, Q4 0.78; TPR 1.00 and TNR 0.00 for Q1, Q3 and Q4 at 0.5 (Jev answers yes to everything);
+within-task AUROC 0.38, 0.62, 0.33, 0.64. On `lru_ttl` Q1 and Q3 scored failures above passes. The
+failing attempts leave `__len__` unpurged and the passing ones add `self._purge()` there; both are in the
+diff context, so the information is present and Jev is not using it. v2 (30-line diff context, Q1 and Q3
+told to check unchanged code in the context for the same faulty assumption): pooled AUROC Q1 0.79, Q2
+0.63, Q3 0.79, Q4 0.68; within-task AUROC 0.42, 0.61, 0.41, 0.42. The pooled gain is between-task (Jev
+learns which tasks are hard) and not attempt-level. One revision only, to limit overfitting 4 dev tasks.
+v2 is frozen. Primary question by the pre-registered rule: Q3 (dev AUROC 0.789 against Q1's 0.787; a margin
+this small is a tie, and all four questions are reported on test).

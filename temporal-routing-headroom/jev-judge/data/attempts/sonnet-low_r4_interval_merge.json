@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 9.8,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py /home/user/runs/jev/sonnet-low_r4/interval_merge/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py\t2026-11-07 17:34:52.326501616 +0000\n+++ /home/user/runs/jev/sonnet-low_r4/interval_merge/solution/core.py\t2026-11-08 01:47:33.359344303 +0000\n@@ -1,21 +1,21 @@\n def merge(intervals, join_touching: bool = True):\n     for a, b in intervals:\n         if a > b:\n             raise ValueError(f\"reversed interval: ({a}, {b})\")\n     ivs = sorted((tuple(iv) for iv in intervals))\n     out = []\n     for a, b in ivs:\n         if out:\n             pa, pb = out[-1]\n             if a < pb or (a, b) == (pa, pb) or (a == pb and (join_touching or a == b == pb == pa)):\n                 # overlap, exact duplicate, or touching (joined by flag or identical points)\n-                out[-1] = (pa, b)\n+                out[-1] = (pa, max(pb, b))\n                 continue\n             if a == pb and not join_touching:\n                 # touching, not joined -- but identical degenerate duplicates collapse\n                 if (a, b) == (pa, pb):\n                     continue\n                 out.append((a, b))\n                 continue\n         out.append((a, b))\n     return out\n"
 }

@@ -37,5 +37,6 @@
  },
  "is_error": false,
  "wall_s": 8.5,
- "stderr": ""
+ "stderr": "",
+ "diff_wide": "diff -ruN -U30 -x __pycache__ -x .pytest_cache -x .git -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/wrap_text/repo/solution/core.py /home/user/runs/jev/sonnet-low_r5/wrap_text/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/wrap_text/repo/solution/core.py\t2026-11-07 17:34:52.327880829 +0000\n+++ /home/user/runs/jev/sonnet-low_r5/wrap_text/solution/core.py\t2026-11-08 01:48:06.205743853 +0000\n@@ -10,31 +10,31 @@\n                 lines.append(w[:width])\n                 w = w[width:]\n             cur = w  # final chunk starts the new current line\n         elif not cur:\n             cur = w\n         elif len(cur) + 1 + len(w) <= width:\n             cur += \" \" + w\n         else:\n             lines.append(cur)\n             cur = w\n     if cur:\n         lines.append(cur)\n     return lines\n \n \n def wrap_text(text: str, width: int) -> str:\n     if width < 1:\n         raise ValueError(\"width must be >= 1\")\n     paragraphs = []\n     current = []\n     for line in text.split(\"\\n\"):\n         if line == \"\":\n             if current:\n                 paragraphs.append(current)\n                 current = []\n         else:\n             current.extend(line.split())\n     if current:\n         paragraphs.append(current)\n     blocks = [\"\\n\".join(_wrap_paragraph(words, width)) for words in paragraphs]\n-    return \"\\n\".join(blocks)\n+    return \"\\n\\n\".join(blocks)\n"
 }
