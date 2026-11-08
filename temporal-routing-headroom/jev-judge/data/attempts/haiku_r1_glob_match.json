@@ -1,0 +1,41 @@
+{
+ "arm": "haiku",
+ "model": "claude-haiku-5-5",
+ "effort": null,
+ "task": "glob_match",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n____________________________ test_char_class_range _____________________________\n    def test_char_class_range():\n>       assert glob_match(\"[a-z]x\", \"mx\")\nE       AssertionError: assert False\nE        +  where False = glob_match('[a-z]x', 'mx')\ntests/test_public.py:6: AssertionError\n___________________________ test_char_class_negation ___________________________\n    def test_char_class_negation():\n        assert glob_match(\"[!a-c]x\", \"dx\")\n>       assert not glob_match(\"[!a-c]x\", \"ax\")\nE       AssertionError: assert not True\nE        +  where True = glob_match('[!a-c]x', 'ax')\ntests/test_public.py:13: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_char_class_range - AssertionError: assert F...\nFAILED tests/test_public.py::test_char_class_negation - AssertionError: asser...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `glob_match`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py /home/user/runs/jev/haiku_r1/glob_match/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py\t2026-11-07 17:34:52.326309874 +0000\n+++ /home/user/runs/jev/haiku_r1/glob_match/solution/util.py\t2026-11-08 01:42:41.133058818 +0000\n@@ -26,7 +26,7 @@\n     def match(ch):\n         if ch == \"/\":\n             return False\n-        hit = ch in chars\n+        hit = ch in chars or any(lo <= ch <= hi for lo, hi in ranges)\n         return hit != negate\n \n     return match, j\n",
+ "summary": "The visible suite now passes (2 passed). I changed one file, `solution/util.py`. The cause was in `_parse_class`: it correctly parsed `a-z`-style ranges into a `ranges` list, but the returned `match()` function only tested membership in `chars`, so range members never matched. This made `[a-z]` reject `m` and made `[!a-c]` accept `a`. I changed the membership test to `ch in chars or any(lo <= ch <= hi for lo, hi in ranges)`, which leaves negation and the `/` exclusion unchanged. The public API (`glob_match`) and the tests directory are untouched.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "21/21",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 12363,
+ "model_calls": 4,
+ "num_turns": 5,
+ "cost_usd": 0.0020280800000000002,
+ "model_usage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 1073,
+   "cacheReadInputTokens": 36778,
+   "cacheCreationInputTokens": 5615,
+   "webSearchRequests": 0,
+   "costUSD": 0.0020280800000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 180,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 5615,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 11.5,
+ "stderr": ""
+}

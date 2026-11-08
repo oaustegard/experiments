@@ -1,0 +1,41 @@
+{
+ "arm": "haiku",
+ "model": "claude-haiku-5-5",
+ "effort": null,
+ "task": "toposort_lex",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n___________________________ test_two_cycle_reported ____________________________\n    def test_two_cycle_reported():\n        edges = [(\"a\", \"b\"), (\"b\", \"a\")]\n        with pytest.raises(CycleError) as ei:\n            toposort(edges)\n>       _check_cycle(ei.value, edges)\ntests/test_public.py:17: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nexc = CycleError(\"cycle detected: ['b']\"), edges = [('a', 'b'), ('b', 'a')]\n    def _check_cycle(exc, edges):\n        edge_set = set(edges)\n        cyc = exc.cycle\n        assert isinstance(cyc, list) and len(cyc) >= 1\n        assert len(set(cyc)) == len(cyc), \"cycle nodes must be distinct\"\n        for i in range(len(cyc) - 1):\n            assert (cyc[i], cyc[i + 1]) in edge_set\n>       assert (cyc[-1], cyc[0]) in edge_set\nE       AssertionError: assert ('b', 'b') in {('a', 'b'), ('b', 'a')}\ntests/test_public.py:10: AssertionError\n___________________________ test_self_loop_reported ____________________________\n    def test_self_loop_reported():\n        edges = [(\"a\", \"a\")]\n...\nFAILED tests/test_public.py::test_self_loop_reported - assert (False)\nFAILED tests/test_public.py::test_cycle_in_larger_graph - AssertionError: ass...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `toposort, CycleError`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/toposort_lex/repo/solution/util.py /home/user/runs/jev/haiku_r1/toposort_lex/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/toposort_lex/repo/solution/util.py\t2026-11-07 17:34:52.327725108 +0000\n+++ /home/user/runs/jev/haiku_r1/toposort_lex/solution/util.py\t2026-11-08 01:43:05.121060244 +0000\n@@ -18,7 +18,7 @@\n         for v in sorted(adj[u]):\n             if color[v] == 1:\n                 i = stack.index(v)\n-                return stack[i + 1:]\n+                return stack[i:]\n             if color[v] == 0:\n                 found = dfs(v)\n                 if found:\n",
+ "summary": "The visible suite now passes (3/3). I changed one line in `solution/util.py`: in `_find_cycle`, the back-edge case returned `stack[i + 1:]`, which dropped the node the back edge points to. For `a\u2192b\u2192a` that reported `['b']`, and for a self-loop it reported `[]`, which the caller treats as \"no cycle\" and returned `None`. The fix changes the slice to `stack[i:]`, so the reported cycle starts at the node the back edge returns to. I also spot-checked the outputs: `['a', 'b']`, `['a']`, and `['b', 'c', 'd']` are all valid cycles. I did not touch `tests/`, `core.py`, or the public API.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "13/13",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 13403,
+ "model_calls": 4,
+ "num_turns": 5,
+ "cost_usd": 0.0024839600000000003,
+ "model_usage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 1543,
+   "cacheReadInputTokens": 38066,
+   "cacheCreationInputTokens": 6655,
+   "webSearchRequests": 0,
+   "costUSD": 0.0024839600000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 451,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 6655,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 12.7,
+ "stderr": ""
+}

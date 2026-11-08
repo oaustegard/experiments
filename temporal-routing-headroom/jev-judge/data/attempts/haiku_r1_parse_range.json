@@ -1,0 +1,41 @@
+{
+ "arm": "haiku",
+ "model": "claude-haiku-5-5",
+ "effort": null,
+ "task": "parse_range",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n___________________________ test_mixed_sorted_dedup ____________________________\n    def test_mixed_sorted_dedup():\n>       assert parse_range(\"7-9,5,1-3,8\") == [1, 2, 3, 5, 7, 8, 9]\nE       assert [1, 2, 5, 7, 8] == [1, 2, 3, 5, 7, 8, ...]\nE         \nE         At index 2 diff: 5 != 3\nE         Right contains 2 more items, first extra item: 8\nE         Use -v to get more diff\ntests/test_public.py:6: AssertionError\n_____________________________ test_negative_range ______________________________\n    def test_negative_range():\n>       assert parse_range(\"-3--1\") == [-3, -2, -1]\nE       assert [-3, -2] == [-3, -2, -1]\nE         \nE         Right contains one more item: -1\nE         Use -v to get more diff\ntests/test_public.py:10: AssertionError\n__________________________ test_negative_to_positive ___________________________\n    def test_negative_to_positive():\n>       assert parse_range(\"-2-1\") == [-2, -1, 0, 1]\nE       assert [-2, -1, 0] == [-2, -1, 0, 1]\nE         \n...\nFAILED tests/test_public.py::test_negative_range - assert [-3, -2] == [-3, -2...\nFAILED tests/test_public.py::test_negative_to_positive - assert [-2, -1, 0] =...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `parse_range`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py /home/user/runs/jev/haiku_r1/parse_range/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py\t2026-11-07 17:34:52.326782092 +0000\n+++ /home/user/runs/jev/haiku_r1/parse_range/solution/core.py\t2026-11-08 01:42:51.681059445 +0000\n@@ -24,5 +24,5 @@\n         a, b = int(m.group(1)), int(m.group(2))\n         if a > b:\n             raise ValueError(f\"reversed range: {token!r}\")\n-        out.update(range(a, b))\n+        out.update(range(a, b + 1))\n     return sorted(out)\n",
+ "summary": "The visible suite now passes (3 of 3). I changed one line in `solution/core.py`: the range expansion in `parse_range` used `range(a, b)`, which drops the upper endpoint, so `1-3` yielded `[1, 2]` and `-3--1` yielded `[-3, -2]`. It now uses `range(a, b + 1)`, so both endpoints are included. Nothing under `tests/` was touched, the public API (`parse_range`) is unchanged, and no files were added. I did not check edge cases beyond the visible tests, such as a single-value range like `5-5`, which the new code handles as `[5]` by reading the code but which I did not run.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "19/19",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 11504,
+ "model_calls": 4,
+ "num_turns": 5,
+ "cost_usd": 0.0018339400000000003,
+ "model_usage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 1036,
+   "cacheReadInputTokens": 36394,
+   "cacheCreationInputTokens": 4756,
+   "webSearchRequests": 0,
+   "costUSD": 0.0018339400000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 159,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 4756,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 12.1,
+ "stderr": ""
+}
