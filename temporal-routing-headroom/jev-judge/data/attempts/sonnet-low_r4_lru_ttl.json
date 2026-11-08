@@ -1,0 +1,41 @@
+{
+ "arm": "sonnet-low",
+ "model": "claude-sonnet-5-5",
+ "effort": "low",
+ "task": "lru_ttl",
+ "replicate": 4,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nF                                                                        [100%]\n=================================== FAILURES ===================================\n__________________________ test_expiry_at_exactly_ttl __________________________\n    def test_expiry_at_exactly_ttl():\n        c = Clock()\n        cache = TTLCache(2, 10.0, c)\n        cache.put(\"a\", 1)\n        c.t = 10.0\n>       assert cache.get(\"a\") is None\nE       AssertionError: assert 1 is None\nE        +  where 1 = get('a')\nE        +    where get = <solution.core.TTLCache object at 0x...>.get\ntests/test_public.py:14: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_expiry_at_exactly_ttl - AssertionError: ass...\n1 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `TTLCache`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/lru_ttl/repo/solution/core.py /home/user/runs/jev/sonnet-low_r4/lru_ttl/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/lru_ttl/repo/solution/core.py\t2026-11-07 17:34:52.326620089 +0000\n+++ /home/user/runs/jev/sonnet-low_r4/lru_ttl/solution/core.py\t2026-11-08 01:47:33.315158323 +0000\n@@ -9,7 +9,7 @@\n         self._data = OrderedDict()  # key -> (value, inserted_at); end = MRU\n \n     def _expired(self, ts) -> bool:\n-        return self.clock() - ts > self.ttl\n+        return self.clock() - ts >= self.ttl\n \n     def _purge(self):\n         dead = [k for k, (_, ts) in self._data.items() if self._expired(ts)]\n@@ -20,10 +20,9 @@\n         if key in self._data:\n             del self._data[key]\n         else:\n-            live = sum(1 for _, ts in self._data.values() if not self._expired(ts))\n-            if live >= self.capacity:\n+            if len(self._data) >= self.capacity:\n                 self._purge()\n-                if len(self._data) >= self.capacity:\n+                while len(self._data) >= self.capacity:\n                     self._data.popitem(last=False)\n         self._data[key] = (value, self.clock())\n \n@@ -38,4 +37,5 @@\n         return value\n \n     def __len__(self) -> int:\n+        self._purge()\n         return len(self._data)\n",
+ "summary": "I fixed the bug in `solution/core.py`, and the visible suite now passes (1 test).\n\n- **Cause:** `_expired` used `age > ttl`, so an entry at exactly its TTL still counted as live. It now uses `age >= ttl`.\n- **Extra fix in `put`:** it counted only live entries against capacity, so a full cache holding expired entries could grow past capacity. It now purges expired entries once the cache is full, then evicts the least-recently-used entries until there is room.\n- **Extra fix in `__len__`:** it now purges expired entries first, so it no longer counts dead ones.\n\nI made the last two changes without a failing test for them, so the visible suite doesn't exercise them.",
+ "visible_output": ".                                                                        [100%]\n1 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "12/12",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 9657,
+ "model_calls": 3,
+ "num_turns": 3,
+ "cost_usd": 0.025449600000000003,
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 830,
+   "cacheReadInputTokens": 22896,
+   "cacheCreationInputTokens": 3712,
+   "webSearchRequests": 0,
+   "costUSD": 0.025449600000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 111,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 3712,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 11.2,
+ "stderr": ""
+}

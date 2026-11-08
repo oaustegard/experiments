@@ -21,14 +21,18 @@ This section is rewritten when the test split has been read.
 
 **Data.** Every worker attempt on the 14 `temporal-routing-headroom` seeded-bug tasks, with issue
 text, final diff, worker summary, visible-test output, and the held-out suite result as ground truth.
-Arms: Haiku 5.5, Sonnet 5.5 at low effort, Opus 5.5 at high effort, two replicates each, run as
-headless `claude -p` children (effort settable, one background job), plus the 14-attempt Haiku pilot
+Arms: Haiku 5.5, Sonnet 5.5 at low effort, Opus 5.5 at high effort, run as
+headless `claude -p` children (effort settable, one background job): 2 replicates on all 14 tasks, then
+replicates 3–6 on the five failure-prone tasks (144 attempts, $4.58), plus the 14-attempt Haiku pilot
 run through the Agent tool (larger prefix, different harness; kept as its own arm, not pooled with
 the headless Haiku arm).
 
 **Split.** By task, never by attempt, so replicates and arms of one task do not straddle it.
-`split.json`: sha1 of `jev-judge-split:<task>` ascending, first 4 tasks dev, remaining 10 test.
-Prompts are fixed on dev only; no few-shot examples from test.
+`split.json`, amended in Round 2 before any judging: tasks with at least one held-out failure in any
+attempt (5 tasks) and tasks with none (9) are ordered separately by sha1 of `jev-judge-split:<task>`;
+dev is the first 2 of each stratum (`interval_merge`, `lru_ttl`, `parse_range`, `toposort_lex`),
+test is the other 10. Prompts are fixed on dev only; no few-shot examples from test. The ladder
+simulation weights replicates 1–2 only, since replicates 3–6 oversample the five failure-prone tasks.
 
 **Judge questions** (Jev via `decide`, one binary question each; inputs are issue text, diff,
 worker summary and visible-test output, never the held-out result):
@@ -71,3 +75,14 @@ context 80–86K tokens per attempt, almost all the ~55K spawn prefix; none reac
 `cron_next` worker named the AND-versus-OR second defect in its summary and left it. Harness note:
 `git init` inside a worktree makes `grade_agentic` flag `tampered_tests` on every attempt, so diffs
 are taken against the pristine task copy instead.
+
+### Round 2, 2026-11-08: headless run and split amendment
+
+84 attempts (3 arms x 2 replicates x 14 tasks): Haiku 21/28, Sonnet low 22/28, Opus high 25/28 pass the
+held-out suite; no errors, no tampering; $2.56. All 20 failures sat in five tasks (`cron_next`,
+`wrap_text`, `lru_ttl`, `stack_vm`, `interval_merge`), and the hash split had put four of them in test,
+leaving dev one failure in 28 attempts and no way to hit the INCONCLUSIVE floor of 20 test failures.
+Before Jev saw any attempt I ran replicates 3–6 on those five tasks (60 attempts, $2.02) and replaced
+the hash split with the stratified one above. Result: 144 headless + 14 pilot attempts; dev 52 attempts
+with 13 failures, test 106 with 38. Peak context per attempt is 11–15K tokens headless (the Agent-tool
+prefix is what made the pilot 80K+). Visible tests are green on all 144, as in the pilot.

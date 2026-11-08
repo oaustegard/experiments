@@ -1,0 +1,41 @@
+{
+ "arm": "haiku",
+ "model": "claude-haiku-5-5",
+ "effort": null,
+ "task": "interval_merge",
+ "replicate": 6,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n________________________ test_containment_always_merges ________________________\n    def test_containment_always_merges():\n>       assert merge([(1, 4), (2, 3)], join_touching=False) == [(1, 4)]\nE       assert [(1, 3)] == [(1, 4)]\nE         \nE         At index 0 diff: (1, 3) != (1, 4)\nE         Use -v to get more diff\ntests/test_public.py:6: AssertionError\n__________________________ test_point_inside_interval __________________________\n    def test_point_inside_interval():\n>       assert merge([(1, 3), (2, 2)], join_touching=False) == [(1, 3)]\nE       assert [(1, 2)] == [(1, 3)]\nE         \nE         At index 0 diff: (1, 2) != (1, 3)\nE         Use -v to get more diff\ntests/test_public.py:10: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_containment_always_merges - assert [(1, 3)]...\nFAILED tests/test_public.py::test_point_inside_interval - assert [(1, 2)] == ...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `merge`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py /home/user/runs/jev/haiku_r6/interval_merge/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py\t2026-11-07 17:34:52.326501616 +0000\n+++ /home/user/runs/jev/haiku_r6/interval_merge/solution/core.py\t2026-11-08 01:48:40.301080168 +0000\n@@ -7,15 +7,12 @@\n     for a, b in ivs:\n         if out:\n             pa, pb = out[-1]\n-            if a < pb or (a, b) == (pa, pb) or (a == pb and (join_touching or a == b == pb == pa)):\n-                # overlap, exact duplicate, or touching (joined by flag or identical points)\n-                out[-1] = (pa, b)\n+            if (a, b) == (pa, pb):\n+                # exact duplicate collapses\n                 continue\n-            if a == pb and not join_touching:\n-                # touching, not joined -- but identical degenerate duplicates collapse\n-                if (a, b) == (pa, pb):\n-                    continue\n-                out.append((a, b))\n+            if a < pb or (join_touching and a == pb):\n+                # overlap or containment (end must never shrink), or touching when joined\n+                out[-1] = (pa, max(pb, b))\n                 continue\n         out.append((a, b))\n     return out\n",
+ "summary": "The visible suite now passes (2 passed). I changed only `solution/core.py`. The cause was in the merge loop: when a new interval was contained in the previous one, the code set the merged end to the new interval's end instead of the larger of the two, so `(1, 4)` followed by `(2, 3)` shrank to `(1, 3)`. The fix sets the end to `max(pb, b)`, and I restructured the loop so that exact duplicates are skipped first, then overlaps and containment are merged, and touching intervals are joined only when `join_touching=True`. Spot checks match the intended semantics: `[(1,4),(2,3)]` gives `[(1,4)]`, `[(1,2),(2,3)]` gives `[(1,2),(2,3)]` without the flag and `[(1,3)]` with it, and duplicate points collapse. The public `merge` signature and the `ValueError` on reversed intervals are unchanged, and nothing under `tests/` was touched.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "17/17",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 12078,
+ "model_calls": 3,
+ "num_turns": 4,
+ "cost_usd": 0.0023092300000000002,
+ "model_usage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 1970,
+   "cacheReadInputTokens": 25763,
+   "cacheCreationInputTokens": 5330,
+   "webSearchRequests": 0,
+   "costUSD": 0.0023092300000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 611,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 5330,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 14.6,
+ "stderr": ""
+}

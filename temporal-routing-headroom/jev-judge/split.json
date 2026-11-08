@@ -1,21 +1,42 @@
 {
- "rule": "sha1('jev-judge-split:'+task) ascending; first 4 = dev (~30% of 14 tasks), rest = test. Split by TASK so replicates and arms of one task never straddle.",
+ "rule": "AMENDED 2026-11-08 before any judging (original: sha1 order, first 4 tasks dev, 1 dev failure in 28 attempts). Stratified by task: tasks with >=1 held-out failure in any attempt vs none; within each stratum sha1('jev-judge-split:'+task) ascending; dev = first 2 failing-stratum + first 2 passing-stratum tasks, rest test.",
  "dev": [
-  "csv_line",
   "interval_merge",
+  "lru_ttl",
   "parse_range",
   "toposort_lex"
  ],
  "test": [
   "cron_next",
+  "csv_line",
   "expr_eval",
   "glob_match",
-  "lru_ttl",
   "roman_strict",
   "semver_cmp",
   "stack_vm",
   "template_render",
   "text_table",
   "wrap_text"
- ]
+ ],
+ "original": {
+  "rule": "sha1('jev-judge-split:'+task) ascending; first 4 = dev (~30% of 14 tasks), rest = test. Split by TASK so replicates and arms of one task never straddle.",
+  "dev": [
+   "csv_line",
+   "interval_merge",
+   "parse_range",
+   "toposort_lex"
+  ],
+  "test": [
+   "cron_next",
+   "expr_eval",
+   "glob_match",
+   "lru_ttl",
+   "roman_strict",
+   "semver_cmp",
+   "stack_vm",
+   "template_render",
+   "text_table",
+   "wrap_text"
+  ]
+ }
 }
