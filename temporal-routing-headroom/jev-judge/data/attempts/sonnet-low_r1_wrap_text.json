@@ -1,0 +1,41 @@
+{
+ "arm": "sonnet-low",
+ "model": "claude-sonnet-5-5",
+ "effort": "low",
+ "task": "wrap_text",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n_______________________________ test_paragraphs ________________________________\n    def test_paragraphs():\n>       assert wrap_text(\"a\\n\\nb\", 10) == \"a\\n\\nb\"\nE       AssertionError: assert 'a\\nb' == 'a\\n\\nb'\nE         \nE           a\nE         - \nE           b\ntests/test_public.py:6: AssertionError\n__________________________ test_multi_paragraph_wrap ___________________________\n    def test_multi_paragraph_wrap():\n        text = \"one two three four\\n\\nfive six seven\"\n>       assert wrap_text(text, 9) == \"one two\\nthree\\nfour\\n\\nfive six\\nseven\"\nE       AssertionError: assert 'one two\\nthr...ve six\\nseven' == 'one two\\nthr...ve six\\nseven'\nE         \nE           one two\nE           three\nE           four\nE         - \nE           five six\nE           seven\ntests/test_public.py:12: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_paragraphs - AssertionError: assert 'a\\nb' ...\nFAILED tests/test_public.py::test_multi_paragraph_wrap - AssertionError: asse...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `wrap_text`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/wrap_text/repo/solution/core.py /home/user/runs/jev/sonnet-low_r1/wrap_text/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/wrap_text/repo/solution/core.py\t2026-11-07 17:34:52.327880829 +0000\n+++ /home/user/runs/jev/sonnet-low_r1/wrap_text/solution/core.py\t2026-11-08 01:43:27.388631024 +0000\n@@ -37,4 +37,4 @@\n     if current:\n         paragraphs.append(current)\n     blocks = [\"\\n\".join(_wrap_paragraph(words, width)) for words in paragraphs]\n-    return \"\\n\".join(blocks)\n+    return \"\\n\\n\".join(blocks)\n",
+ "summary": "I fixed the bug in `solution/core.py`, and the visible suite now passes (2 tests). `wrap_text` was joining the wrapped paragraphs with a single `\"\\n\"`, so the blank line between paragraphs disappeared. It now joins them with `\"\\n\\n\"`.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": false,
+ "heldout": "15/16",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 9474,
+ "model_calls": 3,
+ "num_turns": 3,
+ "cost_usd": 0.020110999999999997,
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 368,
+   "cacheReadInputTokens": 23030,
+   "cacheCreationInputTokens": 3529,
+   "webSearchRequests": 0,
+   "costUSD": 0.020110999999999997,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 3529,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 8.2,
+ "stderr": ""
+}

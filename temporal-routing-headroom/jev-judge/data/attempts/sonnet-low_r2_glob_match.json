@@ -1,0 +1,41 @@
+{
+ "arm": "sonnet-low",
+ "model": "claude-sonnet-5-5",
+ "effort": "low",
+ "task": "glob_match",
+ "replicate": 2,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n____________________________ test_char_class_range _____________________________\n    def test_char_class_range():\n>       assert glob_match(\"[a-z]x\", \"mx\")\nE       AssertionError: assert False\nE        +  where False = glob_match('[a-z]x', 'mx')\ntests/test_public.py:6: AssertionError\n___________________________ test_char_class_negation ___________________________\n    def test_char_class_negation():\n        assert glob_match(\"[!a-c]x\", \"dx\")\n>       assert not glob_match(\"[!a-c]x\", \"ax\")\nE       AssertionError: assert not True\nE        +  where True = glob_match('[!a-c]x', 'ax')\ntests/test_public.py:13: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_char_class_range - AssertionError: assert F...\nFAILED tests/test_public.py::test_char_class_negation - AssertionError: asser...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `glob_match`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py /home/user/runs/jev/sonnet-low_r2/glob_match/solution/util.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/glob_match/repo/solution/util.py\t2026-11-07 17:34:52.326309874 +0000\n+++ /home/user/runs/jev/sonnet-low_r2/glob_match/solution/util.py\t2026-11-08 01:44:46.194032007 +0000\n@@ -26,7 +26,7 @@\n     def match(ch):\n         if ch == \"/\":\n             return False\n-        hit = ch in chars\n+        hit = ch in chars or any(a <= ch <= b for a, b in ranges)\n         return hit != negate\n \n     return match, j\n",
+ "summary": "I fixed it in `solution/util.py`, and the visible suite now passes (2 tests). `_parse_class` collected character ranges like `a-z` into a `ranges` list, but the `match` function only checked the individual `chars` set and never looked at `ranges`. That made `[a-z]` fail to match `m`. It also made `[!a-c]` wrongly accept `a`, because the negation was applied to a membership test that ignored the range. `match` now also returns a hit when the character falls inside any stored range.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "21/21",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 10157,
+ "model_calls": 3,
+ "num_turns": 3,
+ "cost_usd": 0.023799,
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 457,
+   "cacheReadInputTokens": 23690,
+   "cacheCreationInputTokens": 4212,
+   "webSearchRequests": 0,
+   "costUSD": 0.023799,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 4212,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 9.8,
+ "stderr": ""
+}

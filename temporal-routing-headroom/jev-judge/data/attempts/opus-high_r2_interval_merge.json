@@ -1,0 +1,41 @@
+{
+ "arm": "opus-high",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "task": "interval_merge",
+ "replicate": 2,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n________________________ test_containment_always_merges ________________________\n    def test_containment_always_merges():\n>       assert merge([(1, 4), (2, 3)], join_touching=False) == [(1, 4)]\nE       assert [(1, 3)] == [(1, 4)]\nE         \nE         At index 0 diff: (1, 3) != (1, 4)\nE         Use -v to get more diff\ntests/test_public.py:6: AssertionError\n__________________________ test_point_inside_interval __________________________\n    def test_point_inside_interval():\n>       assert merge([(1, 3), (2, 2)], join_touching=False) == [(1, 3)]\nE       assert [(1, 2)] == [(1, 3)]\nE         \nE         At index 0 diff: (1, 2) != (1, 3)\nE         Use -v to get more diff\ntests/test_public.py:10: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_containment_always_merges - assert [(1, 3)]...\nFAILED tests/test_public.py::test_point_inside_interval - assert [(1, 2)] == ...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `merge`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py /home/user/runs/jev/opus-high_r2/interval_merge/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/interval_merge/repo/solution/core.py\t2026-11-07 17:34:52.326501616 +0000\n+++ /home/user/runs/jev/opus-high_r2/interval_merge/solution/core.py\t2026-11-08 01:45:20.681924244 +0000\n@@ -9,7 +9,7 @@\n             pa, pb = out[-1]\n             if a < pb or (a, b) == (pa, pb) or (a == pb and (join_touching or a == b == pb == pa)):\n                 # overlap, exact duplicate, or touching (joined by flag or identical points)\n-                out[-1] = (pa, b)\n+                out[-1] = (pa, max(pb, b))\n                 continue\n             if a == pb and not join_touching:\n                 # touching, not joined -- but identical degenerate duplicates collapse\n",
+ "summary": "I changed one file, `solution/core.py`, and the visible suite now passes (2 passed). The bug was in the merge step of `merge`: when an interval overlapped the previous one, the code replaced the merged result with `(pa, b)`, taking the new interval's end instead of whichever end was larger. That made sense only when the new interval reached further. When it sat inside the previous one, as with `(1, 4)` and `(2, 3)`, or `(1, 3)` and the point `(2, 2)`, the merged result got shorter and became `(1, 3)` or `(1, 2)`. The fix keeps the larger end with `out[-1] = (pa, max(pb, b))`, so it applies to every overlap rather than to the tested inputs only. I also checked a few other cases by hand: touching intervals still join when `join_touching` is on and stay separate when it's off, an interval holding one and overlapping another merges to `(1, 6)`, and duplicate points collapse to one. One thing I left as it was: with `join_touching=False`, a point sitting exactly on the previous interval's end, like `(1, 2)` and `(2, 2)`, is still kept separate. The original condition seems to do that on purpose, and the issue doesn't say otherwise.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "17/17",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 10484,
+ "model_calls": 4,
+ "num_turns": 4,
+ "cost_usd": 0.07078759999999999,
+ "model_usage": {
+  "claude-opus-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 1372,
+   "cacheReadInputTokens": 33058,
+   "cacheCreationInputTokens": 4588,
+   "webSearchRequests": 0,
+   "costUSD": 0.07078759999999999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 485,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 4588,
+   "canonicalModel": "claude-opus-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 21.6,
+ "stderr": ""
+}

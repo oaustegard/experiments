@@ -1,0 +1,41 @@
+{
+ "arm": "haiku",
+ "model": "claude-haiku-5-5",
+ "effort": null,
+ "task": "text_table",
+ "replicate": 2,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n______________________________ test_exact_example ______________________________\n    def test_exact_example():\n        out = format_table([[1, \"hi\"], [22, \"world!\"]], [\"n\", \"word\"], max_col_width=5)\n        expected = (\n            \"+----+-------+\\n\"\n            \"| n  | word  |\\n\"\n            \"+----+-------+\\n\"\n            \"| 1  | hi    |\\n\"\n            \"| 22 | world |\\n\"\n            \"|    | !     |\\n\"\n            \"+----+-------+\"\n        )\n>       assert out == expected\nE       AssertionError: assert '+----+------...----+-------+' == '+----+------...----+-------+'\nE         \nE           +----+-------+\nE         - | n  | word  |\nE         ?     -       -\nE         + | n | word |\nE           +----+-------+\nE         - | 1  | hi    |...\nE         \n...\nFAILED tests/test_public.py::test_header_wider_than_data - AssertionError: as...\nFAILED tests/test_public.py::test_newline_then_wrap - AssertionError: assert ...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `format_table`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/text_table/repo/solution/core.py /home/user/runs/jev/haiku_r2/text_table/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/text_table/repo/solution/core.py\t2026-11-07 17:34:52.327587675 +0000\n+++ /home/user/runs/jev/haiku_r2/text_table/solution/core.py\t2026-11-08 01:44:39.633065862 +0000\n@@ -5,7 +5,7 @@\n         if line == \"\":\n             out.append(\"\")\n             continue\n-        while len(line) > width - 1:\n+        while len(line) > width:\n             out.append(line[:width])\n             line = line[width:]\n         out.append(line)\n@@ -13,7 +13,7 @@\n \n \n def _align(text, width, a):\n-    pad = max(0, width - len(text) - 1)\n+    pad = max(0, width - len(text))\n     if a == \"l\":\n         return text + \" \" * pad\n     if a == \"r\":\n",
+ "summary": "The visible suite now passes (3/3). I changed only `solution/core.py`, in two lines. The cause was an off-by-one in the cell width arithmetic: the column width `w` is the content width, and the borders are drawn `w + 2` wide, so each cell should hold exactly `w` characters. `_cell_lines` wrapped text at `width - 1`, which caused the extra wrapped rows (\"header\" split into \"heade\" and \"r\", and \"cdef\" split too early). `_align` padded to `width - len - 1`, which left one column short (\"n\" rendered as \" n \" in a width-2 column). I changed the wrap condition to `len(line) > width` and the padding to `width - len(text)`. The public API (`format_table`) is unchanged, and nothing under `tests/` was touched.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "15/15",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 13576,
+ "model_calls": 4,
+ "num_turns": 6,
+ "cost_usd": 0.00281012,
+ "model_usage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 2141,
+   "cacheReadInputTokens": 37322,
+   "cacheCreationInputTokens": 6828,
+   "webSearchRequests": 0,
+   "costUSD": 0.00281012,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1023,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 6828,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 16.0,
+ "stderr": ""
+}

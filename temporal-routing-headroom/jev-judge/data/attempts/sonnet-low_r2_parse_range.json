@@ -1,0 +1,41 @@
+{
+ "arm": "sonnet-low",
+ "model": "claude-sonnet-5-5",
+ "effort": "low",
+ "task": "parse_range",
+ "replicate": 2,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n___________________________ test_mixed_sorted_dedup ____________________________\n    def test_mixed_sorted_dedup():\n>       assert parse_range(\"7-9,5,1-3,8\") == [1, 2, 3, 5, 7, 8, 9]\nE       assert [1, 2, 5, 7, 8] == [1, 2, 3, 5, 7, 8, ...]\nE         \nE         At index 2 diff: 5 != 3\nE         Right contains 2 more items, first extra item: 8\nE         Use -v to get more diff\ntests/test_public.py:6: AssertionError\n_____________________________ test_negative_range ______________________________\n    def test_negative_range():\n>       assert parse_range(\"-3--1\") == [-3, -2, -1]\nE       assert [-3, -2] == [-3, -2, -1]\nE         \nE         Right contains one more item: -1\nE         Use -v to get more diff\ntests/test_public.py:10: AssertionError\n__________________________ test_negative_to_positive ___________________________\n    def test_negative_to_positive():\n>       assert parse_range(\"-2-1\") == [-2, -1, 0, 1]\nE       assert [-2, -1, 0] == [-2, -1, 0, 1]\nE         \n...\nFAILED tests/test_public.py::test_negative_range - assert [-3, -2] == [-3, -2...\nFAILED tests/test_public.py::test_negative_to_positive - assert [-2, -1, 0] =...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `parse_range`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py /home/user/runs/jev/sonnet-low_r2/parse_range/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/parse_range/repo/solution/core.py\t2026-11-07 17:34:52.326782092 +0000\n+++ /home/user/runs/jev/sonnet-low_r2/parse_range/solution/core.py\t2026-11-08 01:44:50.936953024 +0000\n@@ -24,5 +24,5 @@\n         a, b = int(m.group(1)), int(m.group(2))\n         if a > b:\n             raise ValueError(f\"reversed range: {token!r}\")\n-        out.update(range(a, b))\n+        out.update(range(a, b + 1))\n     return sorted(out)\n",
+ "summary": "I fixed an off-by-one in `solution/core.py`, and the visible suite now passes (3 tests). `parse_range` built each range with `range(a, b)`, which leaves out the end value. So `\"1-3\"` gave `[1, 2]`, and `\"-3--1\"` and `\"-2-1\"` each lost their last element. I changed it to `range(a, b + 1)` so both ends are included. I made no other changes and didn't touch `tests/`.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "19/19",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 9443,
+ "model_calls": 3,
+ "num_turns": 3,
+ "cost_usd": 0.0203147,
+ "model_usage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 401,
+   "cacheReadInputTokens": 23007,
+   "cacheCreationInputTokens": 3498,
+   "webSearchRequests": 0,
+   "costUSD": 0.0203147,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 3498,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 9.0,
+ "stderr": ""
+}

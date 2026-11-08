@@ -1,0 +1,41 @@
+{
+ "arm": "opus-high",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "task": "roman_strict",
+ "replicate": 2,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n______________________________ test_basic_values _______________________________\n    def test_basic_values():\n        assert from_roman(\"I\") == 1\n        assert from_roman(\"IV\") == 4\n        assert from_roman(\"IX\") == 9\n        assert from_roman(\"XIV\") == 14\n        assert from_roman(\"XL\") == 40\n        assert from_roman(\"XC\") == 90\n        assert from_roman(\"CD\") == 400\n>       assert from_roman(\"CM\") == 900\n               ^^^^^^^^^^^^^^^^\ntests/test_public.py:23: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \ns = 'CM'\n    def from_roman(s: str) -> int:\n        if not isinstance(s, str) or s not in _TABLE:\n>           raise ValueError(f\"not a strict Roman numeral: {s!r}\")\nE           ValueError: not a strict Roman numeral: 'CM'\n_________________________________ test_famous __________________________________\n    def test_famous():\n>       assert from_roman(\"MCMXCIV\") == 1994\n               ^^^^^^^^^^^^^^^^^^^^^\n...\nFAILED tests/test_public.py::test_famous - ValueError: not a strict Roman num...\nFAILED tests/test_public.py::test_full_roundtrip_1_to_3999 - ValueError: not ...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `from_roman`.\n",
+ "diff": "diff -ruN -x __pycache__ -x .pytest_cache -x issue.md -x '*.pyc' /home/user/experiments/temporal-routing-headroom/tasks/roman_strict/repo/solution/core.py /home/user/runs/jev/opus-high_r2/roman_strict/solution/core.py\n--- /home/user/experiments/temporal-routing-headroom/tasks/roman_strict/repo/solution/core.py\t2026-11-07 17:34:52.326943661 +0000\n+++ /home/user/runs/jev/opus-high_r2/roman_strict/solution/core.py\t2026-11-08 01:45:29.464590286 +0000\n@@ -1,4 +1,4 @@\n-_VALS = [(1000, \"M\"), (900, \"DCCCC\"), (500, \"D\"), (400, \"CD\"), (100, \"C\"),\n+_VALS = [(1000, \"M\"), (900, \"CM\"), (500, \"D\"), (400, \"CD\"), (100, \"C\"),\n          (90, \"XC\"), (50, \"L\"), (40, \"XL\"), (10, \"X\"), (9, \"IX\"),\n          (5, \"V\"), (4, \"IV\"), (1, \"I\")]\n \n",
+ "summary": "I fixed the bug by changing one entry in `solution/core.py`, and the visible suite now passes (3 passed). `from_roman` checks input against a lookup table, `_TABLE`, which is built by running `_to_roman` over 1\u20133999. That function works from the symbol list `_VALS`, which paired 900 with the long form `\"DCCCC\"` instead of the standard subtractive `\"CM\"`. So every value containing 900 (900\u2013999, 1900\u20131999, and so on) went into the table in the non-standard form. Valid input like `\"CM\"` or `\"MCMXCIV\"` was then rejected as \"not a strict Roman numeral\". Changing that entry to `(900, \"CM\")` makes the table hold the standard form for every number from 1 to 3999. The strict check still works as intended: it only accepts standard numerals, so long forms like `\"DCCCC\"` are now rejected.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "35/35",
+ "tampered_tests": false,
+ "edits_outside_package": [],
+ "peak_ctx": 9966,
+ "model_calls": 3,
+ "num_turns": 3,
+ "cost_usd": 0.0496194,
+ "model_usage": {
+  "claude-opus-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 617,
+   "cacheReadInputTokens": 23477,
+   "cacheCreationInputTokens": 4070,
+   "webSearchRequests": 0,
+   "costUSD": 0.0496194,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 51,
+   "cacheCreationEphemeral5mInputTokens": 0,
+   "cacheCreationEphemeral1hInputTokens": 4070,
+   "canonicalModel": "claude-opus-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "is_error": false,
+ "wall_s": 13.4,
+ "stderr": ""
+}
