@@ -1,0 +1,14 @@
+{
+ "arm": "haiku-5.5",
+ "task": "glob_match",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n____________________________ test_char_class_range _____________________________\n    def test_char_class_range():\n>       assert glob_match(\"[a-z]x\", \"mx\")\nE       AssertionError: assert False\nE        +  where False = glob_match('[a-z]x', 'mx')\ntests/test_public.py:6: AssertionError\n___________________________ test_char_class_negation ___________________________\n    def test_char_class_negation():\n        assert glob_match(\"[!a-c]x\", \"dx\")\n>       assert not glob_match(\"[!a-c]x\", \"ax\")\nE       AssertionError: assert not True\nE        +  where True = glob_match('[!a-c]x', 'ax')\ntests/test_public.py:13: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_public.py::test_char_class_range - AssertionError: assert F...\nFAILED tests/test_public.py::test_char_class_negation - AssertionError: asser...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `glob_match`.\n",
+ "diff": "diff --git a/solution/util.py b/solution/util.py\nindex 8ea61ee..ef6fba5 100644\n--- a/solution/util.py\n+++ b/solution/util.py\n@@ -26,7 +26,7 @@ def _parse_class(seg: str, i: int):\n     def match(ch):\n         if ch == \"/\":\n             return False\n-        hit = ch in chars\n+        hit = ch in chars or any(lo <= ch <= hi for lo, hi in ranges)\n         return hit != negate\n \n     return match, j\n",
+ "summary": "The cause is in `solution/util.py`: `_parse_class` collects `a-z` style ranges into `ranges`, but the matcher only checks `chars`, so ranges never match. I'll fix the matcher to check ranges too.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "21/21",
+ "peak_ctx": 82030,
+ "agent": "aa6cbb3af4c911386"
+}

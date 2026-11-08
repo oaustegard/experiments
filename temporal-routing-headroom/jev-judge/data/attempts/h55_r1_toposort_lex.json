@@ -1,0 +1,14 @@
+{
+ "arm": "haiku-5.5",
+ "task": "toposort_lex",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n___________________________ test_two_cycle_reported ____________________________\n    def test_two_cycle_reported():\n        edges = [(\"a\", \"b\"), (\"b\", \"a\")]\n        with pytest.raises(CycleError) as ei:\n            toposort(edges)\n>       _check_cycle(ei.value, edges)\ntests/test_public.py:17: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nexc = CycleError(\"cycle detected: ['b']\"), edges = [('a', 'b'), ('b', 'a')]\n    def _check_cycle(exc, edges):\n        edge_set = set(edges)\n        cyc = exc.cycle\n        assert isinstance(cyc, list) and len(cyc) >= 1\n        assert len(set(cyc)) == len(cyc), \"cycle nodes must be distinct\"\n        for i in range(len(cyc) - 1):\n            assert (cyc[i], cyc[i + 1]) in edge_set\n>       assert (cyc[-1], cyc[0]) in edge_set\nE       AssertionError: assert ('b', 'b') in {('a', 'b'), ('b', 'a')}\ntests/test_public.py:10: AssertionError\n___________________________ test_self_loop_reported ____________________________\n    def test_self_loop_reported():\n        edges = [(\"a\", \"a\")]\n...\nFAILED tests/test_public.py::test_self_loop_reported - assert (False)\nFAILED tests/test_public.py::test_cycle_in_larger_graph - AssertionError: ass...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `toposort, CycleError`.\n",
+ "diff": "diff --git a/solution/util.py b/solution/util.py\nindex 23af672..b1c9adb 100644\n--- a/solution/util.py\n+++ b/solution/util.py\n@@ -18,7 +18,7 @@ def _find_cycle(adj, nodes):\n         for v in sorted(adj[u]):\n             if color[v] == 1:\n                 i = stack.index(v)\n-                return stack[i + 1:]\n+                return stack[i:]\n             if color[v] == 0:\n                 found = dfs(v)\n                 if found:\n",
+ "summary": "The cause is in `_find_cycle` in `solution/util.py`. When a back-edge to a gray node `v` is found, it returns `stack[i + 1:]`, which drops `v` itself, so the reported cycle is missing its first node. For `a->b->a` it reports `[b]` instead of `[a, b]`, and for a self-loop it reports `[]`, which then surfaces as `None`. The fix is to slice from `i`.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "13/13",
+ "peak_ctx": 82195,
+ "agent": "a67d13dfbc0740f1f"
+}

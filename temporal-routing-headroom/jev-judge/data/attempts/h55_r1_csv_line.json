@@ -1,0 +1,14 @@
+{
+ "arm": "haiku-5.5",
+ "task": "csv_line",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFF                                                                       [100%]\n=================================== FAILURES ===================================\n_____________________________ test_escaped_quotes ______________________________\n    def test_escaped_quotes():\n>       assert parse_csv_line('\"he said \"\"hi\"\"\",x') == ['he said \"hi\"', \"x\"]\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_public.py:6: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nline = '\"he said \"\"hi\"\"\",x'\n    def parse_csv_line(line: str) -> list[str]:\n        fields = []\n        buf = []\n        i = 0\n        n = len(line)\n        while True:\n            # parse one field starting at i\n            if i < n and line[i] == '\"':\n                i += 1\n                closed = False\n                while i < n:\n                    ch = line[i]\n                    if ch == '\"':\n                        if i + 1 < n and line[i + 1] == \"'\":\n                            buf.append('\"')\n...\nFAILED tests/test_public.py::test_escaped_quotes - ValueError: character afte...\nFAILED tests/test_public.py::test_only_escaped_quote - ValueError: character ...\n2 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `parse_csv_line`.\n",
+ "diff": "diff --git a/solution/core.py b/solution/core.py\nindex c7bb070..96947b4 100644\n--- a/solution/core.py\n+++ b/solution/core.py\n@@ -11,7 +11,7 @@ def parse_csv_line(line: str) -> list[str]:\n             while i < n:\n                 ch = line[i]\n                 if ch == '\"':\n-                    if i + 1 < n and line[i + 1] == \"'\":\n+                    if i + 1 < n and line[i + 1] == '\"':\n                         buf.append('\"')\n                         i += 2\n                     else:\n",
+ "summary": "The cause is a typo in the escaped-quote check: it compares the next character to `\"'\"` (a single quote) instead of `'\"'`. I'll fix that one character.",
+ "visible_output": "..                                                                       [100%]\n2 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "18/18",
+ "peak_ctx": 80647,
+ "agent": "a0eb9387cc5cf1e36"
+}

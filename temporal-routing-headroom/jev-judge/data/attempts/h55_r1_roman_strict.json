@@ -1,0 +1,14 @@
+{
+ "arm": "haiku-5.5",
+ "task": "roman_strict",
+ "replicate": 1,
+ "issue": "# Bug report\n\nThe test suite in this repository fails.\n\n```\n$ python -m pytest tests/ -q\nFFF                                                                      [100%]\n=================================== FAILURES ===================================\n______________________________ test_basic_values _______________________________\n    def test_basic_values():\n        assert from_roman(\"I\") == 1\n        assert from_roman(\"IV\") == 4\n        assert from_roman(\"IX\") == 9\n        assert from_roman(\"XIV\") == 14\n        assert from_roman(\"XL\") == 40\n        assert from_roman(\"XC\") == 90\n        assert from_roman(\"CD\") == 400\n>       assert from_roman(\"CM\") == 900\n               ^^^^^^^^^^^^^^^^\ntests/test_public.py:23: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \ns = 'CM'\n    def from_roman(s: str) -> int:\n        if not isinstance(s, str) or s not in _TABLE:\n>           raise ValueError(f\"not a strict Roman numeral: {s!r}\")\nE           ValueError: not a strict Roman numeral: 'CM'\n_________________________________ test_famous __________________________________\n    def test_famous():\n>       assert from_roman(\"MCMXCIV\") == 1994\n               ^^^^^^^^^^^^^^^^^^^^^\n...\nFAILED tests/test_public.py::test_famous - ValueError: not a strict Roman num...\nFAILED tests/test_public.py::test_full_roundtrip_1_to_3999 - ValueError: not ...\n3 failed in <duration>\n```\n\nFix the source so that the suite passes.\n\nConstraints:\n- Do not modify anything under `tests/`.\n- Do not add new dependencies; the standard library is all that is available.\n- Keep the public API of the `solution` package unchanged: `from_roman`.\n",
+ "diff": "diff --git a/solution/core.py b/solution/core.py\nindex 32a358e..4cc0348 100644\n--- a/solution/core.py\n+++ b/solution/core.py\n@@ -1,4 +1,4 @@\n-_VALS = [(1000, \"M\"), (900, \"DCCCC\"), (500, \"D\"), (400, \"CD\"), (100, \"C\"),\n+_VALS = [(1000, \"M\"), (900, \"CM\"), (500, \"D\"), (400, \"CD\"), (100, \"C\"),\n          (90, \"XC\"), (50, \"L\"), (40, \"XL\"), (10, \"X\"), (9, \"IX\"),\n          (5, \"V\"), (4, \"IV\"), (1, \"I\")]\n \n",
+ "summary": "The cause is a typo in `solution/core.py`: the 900 entry in `_VALS` is `\"DCCCC\"` instead of `\"CM\"`. The lookup table is built from `_VALS`, so `CM` and every numeral above 899 are missing. I'll fix that entry.",
+ "visible_output": "...                                                                      [100%]\n3 passed in 0.01s\n",
+ "visible_green": true,
+ "heldout_pass": true,
+ "heldout": "35/35",
+ "peak_ctx": 81456,
+ "agent": "a5326af5009593a48"
+}
