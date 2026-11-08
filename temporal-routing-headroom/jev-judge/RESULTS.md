@@ -15,7 +15,7 @@ This section is rewritten when the test split has been read.
 
 1. Visible tests are green on every attempt in the pilot (14/14), including all 4 held-out failures.
    Workers stop when the visible suite passes, so that signal is constant by construction
-   (2026-11-08 pilot, `data/attempts/`).
+   (Round 1, pilot; `data/attempts/`).
 
 ## Method
 
@@ -63,7 +63,7 @@ against, not a baseline it must beat.
 
 ## Log
 
-### 2026-11-08: pilot
+### Round 1, 2026-11-08: pilot
 
 Haiku 5.5 rung 1 via the Agent tool, one replicate, 14 tasks, artifacts captured per attempt
 (`data/attempts/`). 10 pass, 4 fail (`cron_next`, `interval_merge`, `lru_ttl`, `wrap_text`). Peak
