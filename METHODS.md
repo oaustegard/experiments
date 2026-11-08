@@ -663,6 +663,8 @@ survives exactly the sanity checks people run.
 | Deep zoom for a splat image: a pyramid of 256-px tiles (2^L times the fit, last level the source), each a small splat list trained over a per-pixel background (the render of the coarser levels), on its crop widened by 16 px, drawn clipped to its core so the screen shows exactly what was trained. On six DIV2K photos it beat tiles fitted alone with the same splats by 0.3 to 1.8 dB; training every prefix cost 0.3 dB; seams cost about 0.3 dB on the boundary pixels only; 0.3-0.65 s a tile on an M5 Max. Drawn as a second instanced pass from a storage buffer with a clip rectangle per tile | `image-to-wgsl/web/deepzoom.js` (`DeepZoom`, `pyramid`, `cropCam`), `web/instanced.js` (`setDetail`, `readback`); measured by `bridge/deepzoom_job.js` | small |
 | Conv U-Net inference in WGSL compute: a 3×3 conv where each of 64 threads keeps 4 adjacent pixels × 8 output channels in vec4 accumulators (an 8×8 × 32-channel tile per workgroup), weights re-laid out to [Cin][K·K][Cout] at load, K and stride as pipeline-overridable constants, the previous GroupNorm affine + FiLM + SiLU applied as each input is loaded, and split-K (up to 16 ways, with a second pass for partials, bias and residual) for layers with under 256 workgroups. 2.2x faster than one pixel × 16 channels per thread at 256² on an Apple GPU (2260 → 1044 ms for 20 guided steps of an 8.4M-parameter U-Net); matches PyTorch to 1e-6 relative | `wgsl-diffusion/web/diffusion.js` (`WGSL_CONV2`, `WGSL_SPLITSUM`, `plan`; check: `run/test_gpu.mjs`, `bridge/kernel_job.js`) | small |
 
+| Self-attention for a diffusion U-Net in WGSL compute: one thread per query keeps q and its output accumulator (head dim 64) in registers, streams K and V through workgroup memory 16 keys at a time with a one-pass softmax (running max and sum), and writes f32 because packed-f16 pairs written by two threads would race. Plus every block's FiLM vector for every sampling step in one kernel: in JS they cost ~12 ms per step and were 60% of a 64² guided step (937 → 402 ms for 24 steps on a Mac). Matches PyTorch to 3e-6 (f32), 77–84 dB on trained models | `wgsl-image-diffusion/web/diffusion.js` (`WGSL_ATTN`, `WGSL_FILM`; check: `run/test_gpu.mjs`, `bridge/bench_job.js`) | small |
+| Steering a trained diffusion model with no retraining, in the sampler alone: start at t = strength from a picture noised to that time (SDEdit), reset unmasked pixels after each step to the picture noised to the new time with the starting noise (inpainting by replacement; the last step lands on the picture), and condition on a weighted sum of class embeddings. Done inside the WGSL Euler step | `wgsl-image-diffusion/web/diffusion.js` (`WGSL_STEP`, `sample`), `train/model.py` (`sample`, the PyTorch reference) | trivial |
 ---
 
 ## Environment gotchas (this container)
@@ -1686,6 +1688,18 @@ the result.
   check the live file afterwards. (`browser-decider`, 2026-11-06)
 
 ## Numerical / ML gotchas
+
+- **clean-fid 0.1.35 calls `scipy.linalg.sqrtm(..., disp=False)`, which current scipy rejects** (TypeError).
+  Take its Inception features (`fid.get_folder_features` with `build_feature_extractor("clean", device)`)
+  and compute the Fréchet distance yourself; keep the real features to reuse for a nearest-neighbour copy
+  check. FID-5k reads higher than published FID-50k, so report it beside a real-vs-real floor at the same n
+  (AFHQv2: 1.45; CelebA: 2.55). (`wgsl-image-diffusion/train/eval.py`)
+- **`pkill -f 'python -u train.py'` does not match a process started as `python3 -u train.py`.** A
+  restart that relied on it left the old Colab training run alive beside the new one, at half speed and
+  writing into the same run directory. Kill by PID from `ps`, and check `ps` before relaunching.
+  (`wgsl-image-diffusion/ERRORS.md` #1)
+- **`smooth` is a reserved word in WGSL**; a uniform struct field named `smooth` fails shader creation.
+  (`wgsl-image-diffusion/web/diffusion.js`)
 
 - **`torch.compile` a dense splat render before fitting thousands of images.** Rendering B × K × P
   Gaussians in eager PyTorch is a chain of memory-bound elementwise ops; compiled, one batch of 32
