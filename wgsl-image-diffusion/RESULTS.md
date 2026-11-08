@@ -20,24 +20,24 @@ trained weights ship with the page (`web/model`, `web/model-faces`, 46.5 MB each
 Oskar Austegard, who runs this repo, asked whether the earlier `wgsl-diffusion` experiment, a small
 model that makes seamless textures in the browser, could make images instead, and what that would take.
 It can. Textures repeat, so a network that sees only nearby pixels suffices; a face needs distant parts to
-agree (left eye with right), which takes self-attention, more channels and 3 to 30 times more training
+agree (left eye with right), which takes self-attention, more channels and 3 to 30 times its 5,640 training
 images; the runtime needed little beyond an attention kernel.
 
 A 23.2M-parameter U-Net with attention at 16×16 and 8×8, trained for 60,000 steps (about 4 hours and 27
 Colab compute units per model), draws a 64×64 animal face in 401 ms for 24 guided denoising steps on a Mac. <!-- @evidence[[results/mac_afhq.json#outputs.runs.1.total_ms]] -->
-A sample drawn there from fixed noise matches PyTorch's at 77.5 dB PSNR. <!-- @evidence[[results/mac_vs_torch_afhq.json#psnr_db]] -->
+A fixed-noise sample there matches PyTorch's at 77.5 dB PSNR. <!-- @evidence[[results/mac_vs_torch_afhq.json#psnr_db]] -->
 FID-5k (how far 5,000 samples sit from the training set in an image classifier's feature space; lower is
 better) is 7.66 for the animals <!-- @evidence[[results/afhq_eval.jsonl#5.fid]] -->
 and 8.85 for the faces at 48 steps, <!-- @evidence[[results/celeba_eval.jsonl#4.fid]] -->
-against 1.45 and 2.55 for 5,000 real training images, <!-- @evidence[[results/afhq_floor.json#fid]] --> <!-- @evidence[[results/celeba_floor.json#fid]] -->
-and neither model copies its training photos. The page also steers without retraining: start from a
-picture, redo a painted-over part, or blend classes.
+against floors of 1.45 and 2.55 (5,000 real images: the best possible), <!-- @evidence[[results/afhq_floor.json#fid]] --> <!-- @evidence[[results/celeba_floor.json#fid]] -->
+and neither model copies training photos. The page steers without retraining: start from a
+picture, redo a painted-over part, blend classes.
 
 ## Findings
 
 1. **The animal model runs at 401 ms for 24 guided steps on a Mac and matches PyTorch at 77.5 dB PSNR** from fixed noise with the final weights (Round 3, `results/mac_afhq.json`, `results/mac_vs_torch_afhq.json`). <!-- @evidence[[results/mac_afhq.json#outputs.runs.1.total_ms]] --> <!-- @evidence[[results/mac_vs_torch_afhq.json#psnr_db]] -->
 2. **The face model is as fast (387 ms) and matches PyTorch at 84.4 dB** (Round 4, `results/mac_celeba.json`, `results/mac_vs_torch_celeba.json`). <!-- @evidence[[results/mac_celeba.json#outputs.runs.1.total_ms]] --> <!-- @evidence[[results/mac_vs_torch_celeba.json#psnr_db]] -->
-3. **Computing the conditioning vectors on the CPU cost more than the network.** Each step needs every res block's FiLM projection (26 blocks, 2.0M multiply-adds per call), about 12 ms per call in JavaScript; moving them to one WGSL kernel for all steps took 24 guided steps from 937 ms to 402 ms with the same weights (Round 2, `results/mac_fixture.json`, `results/mac_fixture_gpufilm.json`). <!-- @evidence[[results/mac_fixture.json#outputs.runs.1.total_ms]] --> <!-- @evidence[[results/mac_fixture_gpufilm.json#outputs.runs.1.total_ms]] -->
+3. **Computing the conditioning vectors on the CPU cost more than the network.** Each step needs every res block's FiLM projection (26 blocks, 2.0M multiply-adds per call), about 12 ms per call in JavaScript, and a guided step makes two calls (the chosen class and the unconditional one); moving them to one WGSL kernel for all steps took 24 guided steps from 937 ms to 402 ms with the same weights (Round 2, `results/mac_fixture.json`, `results/mac_fixture_gpufilm.json`). <!-- @evidence[[results/mac_fixture.json#outputs.runs.1.total_ms]] --> <!-- @evidence[[results/mac_fixture_gpufilm.json#outputs.runs.1.total_ms]] -->
 4. **Attention is cheap at this size**: a guided 64×64 forward pass takes 15.3 ms on the Mac and 13.8 ms with the attention dispatches skipped (Round 3, `results/mac_afhq.json`). <!-- @evidence[[results/mac_afhq.json#outputs.fwd_ms]] --> <!-- @evidence[[results/mac_afhq.json#outputs.fwd_no_attn_ms]] -->
 5. **Animal quality, FID-5k against all 15,803 training images:** 7.66 at guidance 2 with 48 steps; with 24 steps 8.10 at guidance 1.5, 8.50 at 2, 8.55 without guidance and 10.15 at 3; with 12 steps 10.97 (Round 3, `results/afhq_eval.jsonl`). The floor, 5,000 real images against all of them, is 1.45. <!-- @evidence[[results/afhq_eval.jsonl#5.fid]] --> <!-- @evidence[[results/afhq_eval.jsonl#1.fid]] --> <!-- @evidence[[results/afhq_eval.jsonl#4.fid]] --> <!-- @evidence[[results/afhq_floor.json#fid]] -->
 6. **The animal model does not copy training photos.** In Inception feature space the median sample is 7.13 from its nearest training image, against 6.41 between a training image and its nearest other one, and none of 1,000 samples is closer to a training image than the closest 1% of real pairs (Round 3, `results/afhq_copy_check.json`; the 24 closest pairs are in `results/afhq_copy_check.png`). <!-- @evidence[[results/afhq_copy_check.json#gen_nn_median]] --> <!-- @evidence[[results/afhq_copy_check.json#real_nn_median]] -->
@@ -57,7 +57,10 @@ AFHQ is CC BY-NC 4.0 and CelebA is for non-commercial research.
 block at 16×16 and 8×8 a multi-head self-attention block (head dimension 64; GroupNorm, a 1×1 conv to
 q, k, v, attention, a 1×1 output projection initialised to zero, residual). The skip from each level is
 concatenated once, at the first up block. Time and class embeddings (plus a null class for guidance) are
-summed into one 256-d vector that sets every block's FiLM. 23.2M parameters, 46.5 MB as f16.
+summed into one 256-d vector that sets every block's FiLM (a per-channel scale and shift after its
+normalisation, which is how the time and class reach the network). Guidance (classifier-free) runs each step
+on the chosen class and on a null class and pushes the result away from the null one by the guidance factor;
+1 turns it off. 23.2M parameters, 46.5 MB as f16.
 `layout()` lists the forward pass as ops, and the exporter writes that list into `manifest.json`, so the
 runtime builds the network from the same list.
 
@@ -85,7 +88,7 @@ packed-f16 activations, liveness-based buffer reuse) plus:
   positions, not a multiple of the 64-query workgroup or 16-key tile) and 32×32, a 3-step guided sample,
   and a 5-step sample with a picture, a mask and a class blend, for f32 and f16 storage with and without
   split-K.
-- **Apple GPU:** `bridge/bench_job.js` runs on Oskar's Mac through the GPU bridge and returns the same
+- **Apple GPU:** `bridge/bench_job.js` runs on Oskar's Mac (Chrome 156; WebGPU names the GPU only "apple metal-3") through the GPU bridge, a page there that runs WebGPU jobs pushed to a repo, and returns the same
   checks, timings and a sample from fixed noise; `run/compare_mac.py` builds the PyTorch reference from
   the exported `weights.bin` itself.
 - **Quality:** `train/eval.py` draws 5,000 class-balanced samples per setting and computes FID with
