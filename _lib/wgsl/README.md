@@ -143,7 +143,9 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    (both matmul paths) gives max |diff| 0. Eleven per-op cases; the router is compared as its gates
    plus each slot's expert rebuilt from the lists, since the atomics leave list order free.
    Injected bugs in the router's lists, the 8-row grouped matmul and the combine failed their cases.
-   No engine timing run on the Mac: the shaders and dispatch sequence are unchanged.
+   On the Mac (apple metal-3, `wgsl-ops-step4`) all 58 cases pass, the MoE ones at 4.3e-7 or better,
+   0.005 to 0.08 ms each (`tests/results/wgsl-ops-step4-mac.json`). No engine timing run: the
+   shaders and dispatch sequence are unchanged.
 5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention. Skipped
    (Oskar, 2026-11-08).
 6. **Retrieval ops** (dot, scan, top-k, sort) from tail.js and the bridge jobs, and retire

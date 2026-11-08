@@ -1,0 +1,900 @@
+{
+ "id": "wgsl-ops-step4",
+ "startedAt": 1794149586477,
+ "finishedAt": 1794149603226,
+ "runMs": 12614.700000047684,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "ndv8g0dm",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "ok   matmul_f32_64x64 rel 1.06e-7 0.016 ms",
+  "ok   matmul_f32_96x256_bias_gelu rel 1.19e-7 0.015 ms",
+  "ok   matmul_f32_32x128_seqrows_alpha rel 8.93e-8 0.008 ms",
+  "ok   matmul_i8_64x256 rel 1.16e-7 0.011 ms",
+  "ok   matmul_i8_32x96_bias_acc rel 8.11e-8 0.010 ms",
+  "ok   matmul_q4_64x256 rel 1.02e-7 0.015 ms",
+  "ok   matmul_q4_32x768_gelu_acc rel 1.30e-7 0.035 ms",
+  "ok   norm_rms_256_m0 rel 1.13e-7 0.016 ms",
+  "ok   norm_rms_384_m2 rel 1.08e-7 0.018 ms",
+  "ok   norm_ln_256_m0 rel 8.90e-8 0.019 ms",
+  "ok   norm_ln_256_m1_b rel 1.11e-7 0.020 ms",
+  "ok   norm_ln_512_m0_b rel 8.60e-8 0.022 ms",
+  "ok   norm_rms_64_m1 rel 6.65e-8 0.014 ms",
+  "ok   attn_h4kv4_d64_fused rel 1.35e-7 0.028 ms",
+  "ok   attn_h4kv4_d64_fused_w16 rel 1.49e-7 0.026 ms",
+  "ok   attn_h4kv2_d32 rel 2.11e-7 0.025 ms",
+  "ok   attn_h3kv1_d256_w64 rel 2.36e-7 0.040 ms",
+  "ok   attnlong_h4kv4_d64_fused rel 1.69e-7 0.572 ms",
+  "ok   attnlong_h4kv4_d64_fused_w128 rel 1.99e-7 0.139 ms",
+  "ok   gather_256_37 rel 0.00e+0 0.004 ms",
+  "ok   embed_t4_256 rel 0.00e+0 0.004 ms",
+  "ok   embed_t3_512_alpha rel 1.16e-7 0.006 ms",
+  "ok   embed_t3_256_pos rel 4.18e-8 0.005 ms",
+  "ok   rope_h4_d64_p2_t2s1 rel 4.93e-8 0.005 ms",
+  "ok   rope_h3_d32_p1_t1s0 rel 4.98e-8 0.006 ms",
+  "ok   gated_gelu_384_cat rel 7.49e-8 0.005 ms",
+  "ok   gated_gelu_96_cat_x2 rel 7.10e-8 0.005 ms",
+  "ok   gated_gelu_tanh_256_inplace rel 6.39e-8 0.009 ms",
+  "ok   gated_silu_160_inplace rel 9.68e-8 0.009 ms",
+  "ok   pool_256 rel 3.90e-8 0.023 ms",
+  "ok   l2_768 rel 1.00e-7 0.010 ms",
+  "ok   moe_route_e8_h96 rel 1.53e-8 0.017 ms",
+  "ok   moe_route_e5_h256 rel 2.71e-8 0.020 ms",
+  "ok   moe_matmul_tiled_mode1_e4_128x96 rel 2.98e-7 0.032 ms",
+  "ok   moe_matmul_tiled_mode2_e8_64x48 rel 3.02e-7 0.015 ms",
+  "ok   moe_gmm_mode1_e4_96x128 rel 1.28e-7 0.016 ms",
+  "ok   moe_gmm_mode2_e8_64x64 rel 1.08e-7 0.014 ms",
+  "ok   matmul_tiled_128x80 rel 3.09e-7 0.029 ms",
+  "ok   matmul_tiled_64x256_acc rel 4.25e-7 0.081 ms",
+  "ok   moe_combine_96 rel 6.86e-8 0.005 ms",
+  "ok   l2tok_128 rel 1.32e-7 0.007 ms",
+  "ok   l2tok_64 rel 9.12e-8 0.007 ms",
+  "ok   train embed 4-bit table + LayerNorm, copy rel 7.23e-8 (worst X)",
+  "ok   train ln fwd, bwd, weight grads rel 1.10e-7 (worst dW)",
+  "ok   train rope fwd, bwd rel 7.10e-8 (worst QR)",
+  "ok   train attn fwd, bwd global rel 3.08e-7 (worst dQR)",
+  "ok   train attn fwd, bwd window 2 rel 3.86e-7 (worst dQR)",
+  "ok   train geglu fwd, bwd rel 4.33e-7 (worst dU)",
+  "ok   train bias_gelu fwd, gelu_bwd, colsum rel 3.98e-7 (worst dZ)",
+  "ok   train head_out fwd, bwd rel 1.10e-7 (worst Y)",
+  "ok   train segment softmax cross-entropy rel 1.23e-7 (worst dZ)",
+  "ok   train gather fwd, scatter bwd rel 1.33e-10 (worst dX)",
+  "ok   train mean pool fwd, unpool bwd rel 7.09e-8 (worst PL)",
+  "ok   train cosine loss rel 1.39e-7 (worst dY)",
+  "ok   train embed_f fwd, token-table and LN-weight grads rel 1.36e-7 (worst X)",
+  "ok   train InfoNCE loss through recordNce rel 2.47e-7 (worst dY)",
+  "ok   train mm split-K, sumz, strided operands rel 2.46e-7 (worst (AB)^T)",
+  "ok   train grad norm, clip, AdamW step rel 1.99e-5 (worst P step)"
+ ],
+ "outputs": {
+  "cfg": {
+   "sha": "130745807c581c07427d0cae039567869bfa9406",
+   "reps": 200,
+   "rounds": 7
+  },
+  "pass": 58,
+  "total": 58,
+  "results": [
+   {
+    "name": "matmul_f32_64x64",
+    "op": "matmul",
+    "pass": true,
+    "rel": 1.0578379207118506e-7,
+    "maxErr": 4.168262091042152e-7,
+    "cos": 0.9999999999999926,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.01600000023841858
+   },
+   {
+    "name": "matmul_f32_96x256_bias_gelu",
+    "op": "matmul",
+    "pass": true,
+    "rel": 1.1937307710675956e-7,
+    "maxErr": 6.174763562682983e-7,
+    "cos": 0.9999999999999905,
+    "n": 18144,
+    "dispatches": 1,
+    "ms": 0.014500000476837159
+   },
+   {
+    "name": "matmul_f32_32x128_seqrows_alpha",
+    "op": "matmul",
+    "pass": true,
+    "rel": 8.927177740645615e-8,
+    "maxErr": 1.3025435285918263e-7,
+    "cos": 0.9999999999999962,
+    "n": 160,
+    "dispatches": 1,
+    "ms": 0.007999999523162842
+   },
+   {
+    "name": "matmul_i8_64x256",
+    "op": "matmul",
+    "pass": true,
+    "rel": 1.1581795819475341e-7,
+    "maxErr": 7.652229019328161e-7,
+    "cos": 0.9999999999999921,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.010500000715255737
+   },
+   {
+    "name": "matmul_i8_32x96_bias_acc",
+    "op": "matmul",
+    "pass": true,
+    "rel": 8.109368424442295e-8,
+    "maxErr": 7.615303987407174e-7,
+    "cos": 0.999999999999992,
+    "n": 6048,
+    "dispatches": 1,
+    "ms": 0.01
+   },
+   {
+    "name": "matmul_q4_64x256",
+    "op": "matmul",
+    "pass": true,
+    "rel": 1.0190905122528563e-7,
+    "maxErr": 7.957734053931631e-7,
+    "cos": 0.9999999999999839,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.015
+   },
+   {
+    "name": "matmul_q4_32x768_gelu_acc",
+    "op": "matmul",
+    "pass": true,
+    "rel": 1.3013243975072704e-7,
+    "maxErr": 9.649640677622529e-7,
+    "cos": 0.9999999999999923,
+    "n": 6048,
+    "dispatches": 1,
+    "ms": 0.035
+   },
+   {
+    "name": "norm_rms_256_m0",
+    "op": "norm",
+    "pass": true,
+    "rel": 1.1318629425482122e-7,
+    "maxErr": 8.977540089105673e-7,
+    "cos": 0.9999999999999826,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.01649999976158142
+   },
+   {
+    "name": "norm_rms_384_m2",
+    "op": "norm",
+    "pass": true,
+    "rel": 1.0799242079424656e-7,
+    "maxErr": 8.573154826052587e-7,
+    "cos": 0.9999999999999782,
+    "n": 72576,
+    "dispatches": 1,
+    "ms": 0.0175
+   },
+   {
+    "name": "norm_ln_256_m0",
+    "op": "norm",
+    "pass": true,
+    "rel": 8.896548584722602e-8,
+    "maxErr": 8.851634039075407e-7,
+    "cos": 0.9999999999999762,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.019499999284744263
+   },
+   {
+    "name": "norm_ln_256_m1_b",
+    "op": "norm",
+    "pass": true,
+    "rel": 1.106539732097548e-7,
+    "maxErr": 9.933396061256872e-7,
+    "cos": 0.999999999999982,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.019500000476837157
+   },
+   {
+    "name": "norm_ln_512_m0_b",
+    "op": "norm",
+    "pass": true,
+    "rel": 8.595466453918199e-8,
+    "maxErr": 0.0000011459606188424232,
+    "cos": 0.9999999999999517,
+    "n": 96768,
+    "dispatches": 1,
+    "ms": 0.021999999284744262
+   },
+   {
+    "name": "norm_rms_64_m1",
+    "op": "norm",
+    "pass": true,
+    "rel": 6.651711978469551e-8,
+    "maxErr": 5.844785855302348e-7,
+    "cos": 0.9999999999999905,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.01350000023841858
+   },
+   {
+    "name": "attn_h4kv4_d64_fused",
+    "op": "attention",
+    "pass": true,
+    "rel": 1.3536337376724395e-7,
+    "maxErr": 4.1111643744873305e-7,
+    "cos": 0.9999999999999698,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.02799999952316284
+   },
+   {
+    "name": "attn_h4kv4_d64_fused_w16",
+    "op": "attention",
+    "pass": true,
+    "rel": 1.4861910372754838e-7,
+    "maxErr": 5.242112490755346e-7,
+    "cos": 0.9999999999999724,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.02600000023841858
+   },
+   {
+    "name": "attn_h4kv2_d32",
+    "op": "attention",
+    "pass": true,
+    "rel": 2.1132130734585588e-7,
+    "maxErr": 5.03701285681224e-7,
+    "cos": 0.999999999999981,
+    "n": 24192,
+    "dispatches": 1,
+    "ms": 0.025499999523162842
+   },
+   {
+    "name": "attn_h3kv1_d256_w64",
+    "op": "attention",
+    "pass": true,
+    "rel": 2.3561334494857474e-7,
+    "maxErr": 8.492010739047373e-7,
+    "cos": 0.9999999999999387,
+    "n": 145152,
+    "dispatches": 1,
+    "ms": 0.04
+   },
+   {
+    "name": "attnlong_h4kv4_d64_fused",
+    "op": "attentionLong",
+    "pass": true,
+    "rel": 1.693024449323029e-7,
+    "maxErr": 5.393769815231764e-7,
+    "cos": 0.9999999999998829,
+    "n": 289280,
+    "dispatches": 1,
+    "ms": 0.5720000004768372
+   },
+   {
+    "name": "attnlong_h4kv4_d64_fused_w128",
+    "op": "attentionLong",
+    "pass": true,
+    "rel": 1.9926560175506617e-7,
+    "maxErr": 6.327236711234363e-7,
+    "cos": 0.9999999999998815,
+    "n": 289280,
+    "dispatches": 1,
+    "ms": 0.13949999928474427
+   },
+   {
+    "name": "gather_256_37",
+    "op": "gather",
+    "pass": true,
+    "rel": 0,
+    "maxErr": 0,
+    "cos": 1,
+    "n": 9472,
+    "dispatches": 1,
+    "ms": 0.0035000002384185792
+   },
+   {
+    "name": "embed_t4_256",
+    "op": "embed",
+    "pass": true,
+    "rel": 0,
+    "maxErr": 0,
+    "cos": 1,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.0035000002384185792
+   },
+   {
+    "name": "embed_t3_512_alpha",
+    "op": "embed",
+    "pass": true,
+    "rel": 1.1649846813700422e-7,
+    "maxErr": 0.0000010986328131679102,
+    "cos": 0.9999999999999664,
+    "n": 96768,
+    "dispatches": 1,
+    "ms": 0.005500000715255737
+   },
+   {
+    "name": "embed_t3_256_pos",
+    "op": "embed",
+    "pass": true,
+    "rel": 4.1812249952292224e-8,
+    "maxErr": 2.384185791015625e-7,
+    "cos": 0.9999999999999857,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.005499999523162841
+   },
+   {
+    "name": "rope_h4_d64_p2_t2s1",
+    "op": "rope",
+    "pass": true,
+    "rel": 4.9307808242503255e-8,
+    "maxErr": 2.2451625625308225e-7,
+    "cos": 0.999999999999972,
+    "n": 145152,
+    "dispatches": 1,
+    "ms": 0.005
+   },
+   {
+    "name": "rope_h3_d32_p1_t1s0",
+    "op": "rope",
+    "pass": true,
+    "rel": 4.9786668077555436e-8,
+    "maxErr": 2.1383597781365893e-7,
+    "cos": 0.9999999999999876,
+    "n": 18144,
+    "dispatches": 1,
+    "ms": 0.006000000238418579
+   },
+   {
+    "name": "gated_gelu_384_cat",
+    "op": "gated",
+    "pass": true,
+    "rel": 7.488987283662609e-8,
+    "maxErr": 0.000003299592719940847,
+    "cos": 1.000000000000002,
+    "n": 72576,
+    "dispatches": 1,
+    "ms": 0.005
+   },
+   {
+    "name": "gated_gelu_96_cat_x2",
+    "op": "gated",
+    "pass": true,
+    "rel": 7.102363232223521e-8,
+    "maxErr": 0.0000027715907719993993,
+    "cos": 0.9999999999999858,
+    "n": 36288,
+    "dispatches": 1,
+    "ms": 0.004500000476837158
+   },
+   {
+    "name": "gated_gelu_tanh_256_inplace",
+    "op": "gated",
+    "pass": true,
+    "rel": 6.39329070581165e-8,
+    "maxErr": 0.0000010655394593328538,
+    "cos": 0.9999999999999818,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.008500000238418579
+   },
+   {
+    "name": "gated_silu_160_inplace",
+    "op": "gated",
+    "pass": true,
+    "rel": 9.678390255451142e-8,
+    "maxErr": 0.0000013320656417903365,
+    "cos": 0.9999999999999872,
+    "n": 30240,
+    "dispatches": 1,
+    "ms": 0.008500000238418579
+   },
+   {
+    "name": "pool_256",
+    "op": "pool",
+    "pass": true,
+    "rel": 3.898324062888637e-8,
+    "maxErr": 9.792191646429416e-8,
+    "cos": 0.9999999999999958,
+    "n": 1280,
+    "dispatches": 1,
+    "ms": 0.023000000715255736
+   },
+   {
+    "name": "l2_768",
+    "op": "l2",
+    "pass": true,
+    "rel": 1.0007291907095973e-7,
+    "maxErr": 1.2720581643588247e-8,
+    "cos": 0.9999999999999947,
+    "n": 3840,
+    "dispatches": 1,
+    "ms": 0.009500000476837158
+   },
+   {
+    "name": "moe_route_e8_h96",
+    "op": "route",
+    "pass": true,
+    "rel": 1.530537052651937e-8,
+    "maxErr": 1.0713759368563558e-7,
+    "cos": 1,
+    "n": 378,
+    "dispatches": 2,
+    "ms": 0.01699999928474426
+   },
+   {
+    "name": "moe_route_e5_h256",
+    "op": "route",
+    "pass": true,
+    "rel": 2.7122849133309757e-8,
+    "maxErr": 1.0849139653323903e-7,
+    "cos": 0.9999999999999998,
+    "n": 378,
+    "dispatches": 2,
+    "ms": 0.02
+   },
+   {
+    "name": "moe_matmul_tiled_mode1_e4_128x96",
+    "op": "expertMatmul",
+    "pass": true,
+    "rel": 2.984005391485145e-7,
+    "maxErr": 0.0000014681207609612557,
+    "cos": 0.9999999999999635,
+    "n": 48384,
+    "dispatches": 1,
+    "ms": 0.03150000095367431
+   },
+   {
+    "name": "moe_matmul_tiled_mode2_e8_64x48",
+    "op": "expertMatmul",
+    "pass": true,
+    "rel": 3.0207493139846796e-7,
+    "maxErr": 0.0000012713278083609225,
+    "cos": 0.9999999999999728,
+    "n": 24192,
+    "dispatches": 1,
+    "ms": 0.015499999523162842
+   },
+   {
+    "name": "moe_gmm_mode1_e4_96x128",
+    "op": "expertMatmul",
+    "pass": true,
+    "rel": 1.2836306211422261e-7,
+    "maxErr": 5.336902941799337e-7,
+    "cos": 0.9999999999999757,
+    "n": 36288,
+    "dispatches": 1,
+    "ms": 0.01649999976158142
+   },
+   {
+    "name": "moe_gmm_mode2_e8_64x64",
+    "op": "expertMatmul",
+    "pass": true,
+    "rel": 1.0836628834983025e-7,
+    "maxErr": 4.861049331950085e-7,
+    "cos": 0.9999999999999792,
+    "n": 24192,
+    "dispatches": 1,
+    "ms": 0.01350000023841858
+   },
+   {
+    "name": "matmul_tiled_128x80",
+    "op": "matmulTiled",
+    "pass": true,
+    "rel": 3.0909540941956306e-7,
+    "maxErr": 0.0000011223341807031773,
+    "cos": 0.9999999999999747,
+    "n": 24192,
+    "dispatches": 1,
+    "ms": 0.028500000238418578
+   },
+   {
+    "name": "matmul_tiled_64x256_acc",
+    "op": "matmulTiled",
+    "pass": true,
+    "rel": 4.2503679186445976e-7,
+    "maxErr": 0.000002132810308808075,
+    "cos": 0.9999999999999738,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.08050000071525573
+   },
+   {
+    "name": "moe_combine_96",
+    "op": "combine",
+    "pass": true,
+    "rel": 6.859456147287488e-8,
+    "maxErr": 3.7486309523160344e-7,
+    "cos": 0.9999999999999893,
+    "n": 18144,
+    "dispatches": 1,
+    "ms": 0.005499999523162841
+   },
+   {
+    "name": "l2tok_128",
+    "op": "l2tok",
+    "pass": true,
+    "rel": 1.3186990015684372e-7,
+    "maxErr": 4.751598470242868e-8,
+    "cos": 0.9999999999999929,
+    "n": 24192,
+    "dispatches": 1,
+    "ms": 0.006500000953674316
+   },
+   {
+    "name": "l2tok_64",
+    "op": "l2tok",
+    "pass": true,
+    "rel": 9.122295903201723e-8,
+    "maxErr": 4.513387280580261e-8,
+    "cos": 0.9999999999999889,
+    "n": 12096,
+    "dispatches": 1,
+    "ms": 0.0070000004768371584
+   },
+   {
+    "name": "train embed 4-bit table + LayerNorm, copy",
+    "op": "embed",
+    "pass": true,
+    "rel": 7.23439622754652e-8,
+    "checks": [
+     {
+      "label": "X",
+      "rel": 7.23439622754652e-8,
+      "n": 256
+     },
+     {
+      "label": "copy",
+      "rel": 7.23439622754652e-8,
+      "n": 256
+     },
+     {
+      "label": "copy acc",
+      "rel": 6.994202810841274e-8,
+      "n": 256
+     }
+    ]
+   },
+   {
+    "name": "train ln fwd, bwd, weight grads",
+    "op": "ln_bwd",
+    "pass": true,
+    "rel": 1.1003017442272645e-7,
+    "checks": [
+     {
+      "label": "Y",
+      "rel": 7.351264564200845e-8,
+      "n": 320
+     },
+     {
+      "label": "dX",
+      "rel": 9.551607683223137e-8,
+      "n": 320
+     },
+     {
+      "label": "dX acc",
+      "rel": 8.202563787907519e-8,
+      "n": 320
+     },
+     {
+      "label": "dW",
+      "rel": 1.1003017442272645e-7,
+      "n": 64
+     },
+     {
+      "label": "dB",
+      "rel": 4.826489681961529e-8,
+      "n": 64
+     },
+     {
+      "label": "dW ln_wpart",
+      "rel": 6.034310949800386e-8,
+      "n": 64
+     }
+    ]
+   },
+   {
+    "name": "train rope fwd, bwd",
+    "op": "rope_bwd",
+    "pass": true,
+    "rel": 7.098758186570513e-8,
+    "checks": [
+     {
+      "label": "QR",
+      "rel": 7.098758186570513e-8,
+      "n": 1024
+     },
+     {
+      "label": "dQKV",
+      "rel": 4.8307141387243895e-8,
+      "n": 1536
+     }
+    ]
+   },
+   {
+    "name": "train attn fwd, bwd global",
+    "op": "attn_bkv",
+    "pass": true,
+    "rel": 3.0757016173378305e-7,
+    "checks": [
+     {
+      "label": "O",
+      "rel": 1.1164337792488109e-7,
+      "n": 768
+     },
+     {
+      "label": "dQR",
+      "rel": 3.0757016173378305e-7,
+      "n": 1536
+     },
+     {
+      "label": "dQKV",
+      "rel": 1.8834333732079352e-7,
+      "n": 2304
+     }
+    ]
+   },
+   {
+    "name": "train attn fwd, bwd window 2",
+    "op": "attn_bkv",
+    "pass": true,
+    "rel": 3.8643187489014345e-7,
+    "checks": [
+     {
+      "label": "O",
+      "rel": 1.7102651078297837e-7,
+      "n": 768
+     },
+     {
+      "label": "dQR",
+      "rel": 3.8643187489014345e-7,
+      "n": 1536
+     },
+     {
+      "label": "dQKV",
+      "rel": 2.1459735696185014e-7,
+      "n": 2304
+     }
+    ]
+   },
+   {
+    "name": "train geglu fwd, bwd",
+    "op": "geglu_bwd",
+    "pass": true,
+    "rel": 4.3344824148631526e-7,
+    "checks": [
+     {
+      "label": "G",
+      "rel": 6.956845671211866e-8,
+      "n": 144
+     },
+     {
+      "label": "dU",
+      "rel": 4.3344824148631526e-7,
+      "n": 288
+     }
+    ]
+   },
+   {
+    "name": "train bias_gelu fwd, gelu_bwd, colsum",
+    "op": "gelu_bwd",
+    "pass": true,
+    "rel": 3.9831304971017695e-7,
+    "checks": [
+     {
+      "label": "A",
+      "rel": 8.028623136151779e-8,
+      "n": 192
+     },
+     {
+      "label": "dZ",
+      "rel": 3.9831304971017695e-7,
+      "n": 192
+     },
+     {
+      "label": "dB colsum",
+      "rel": 2.597580933833542e-7,
+      "n": 64
+     }
+    ]
+   },
+   {
+    "name": "train head_out fwd, bwd",
+    "op": "head_out_bwd",
+    "pass": true,
+    "rel": 1.0961296204886795e-7,
+    "checks": [
+     {
+      "label": "Y",
+      "rel": 1.0961296204886795e-7,
+      "n": 4
+     },
+     {
+      "label": "dX",
+      "rel": 3.586548378609735e-8,
+      "n": 256
+     },
+     {
+      "label": "dW",
+      "rel": 5.3361402047529487e-8,
+      "n": 64
+     },
+     {
+      "label": "dB",
+      "rel": 1.9111357407063427e-8,
+      "n": 1
+     }
+    ]
+   },
+   {
+    "name": "train segment softmax cross-entropy",
+    "op": "loss",
+    "pass": true,
+    "rel": 1.2317534751695033e-7,
+    "checks": [
+     {
+      "label": "loss",
+      "rel": 3.1340732563325836e-8,
+      "n": 1
+     },
+     {
+      "label": "dZ",
+      "rel": 1.2317534751695033e-7,
+      "n": 9
+     }
+    ]
+   },
+   {
+    "name": "train gather fwd, scatter bwd",
+    "op": "scatter",
+    "pass": true,
+    "rel": 1.3334027601171288e-10,
+    "checks": [
+     {
+      "label": "Y",
+      "rel": 0,
+      "n": 192
+     },
+     {
+      "label": "dX",
+      "rel": 1.3334027601171288e-10,
+      "n": 384
+     }
+    ]
+   },
+   {
+    "name": "train mean pool fwd, unpool bwd",
+    "op": "unpool",
+    "pass": true,
+    "rel": 7.089121704169345e-8,
+    "checks": [
+     {
+      "label": "PL",
+      "rel": 7.089121704169345e-8,
+      "n": 128
+     },
+     {
+      "label": "dX",
+      "rel": 4.28136652567447e-8,
+      "n": 640
+     }
+    ]
+   },
+   {
+    "name": "train cosine loss",
+    "op": "cosloss",
+    "pass": true,
+    "rel": 1.3945181029684627e-7,
+    "checks": [
+     {
+      "label": "loss",
+      "rel": 4.4439362990981155e-8,
+      "n": 1
+     },
+     {
+      "label": "dY",
+      "rel": 1.3945181029684627e-7,
+      "n": 288
+     }
+    ]
+   },
+   {
+    "name": "train embed_f fwd, token-table and LN-weight grads",
+    "op": "tgrad",
+    "pass": true,
+    "rel": 1.3563805703193638e-7,
+    "checks": [
+     {
+      "label": "X",
+      "rel": 1.3563805703193638e-7,
+      "n": 384
+     },
+     {
+      "label": "dTable",
+      "rel": 9.058699131423613e-8,
+      "n": 448
+     },
+     {
+      "label": "dW",
+      "rel": 3.302950610987718e-8,
+      "n": 64
+     }
+    ]
+   },
+   {
+    "name": "train InfoNCE loss through recordNce",
+    "op": "nce",
+    "pass": true,
+    "rel": 2.4709339154376555e-7,
+    "checks": [
+     {
+      "label": "loss",
+      "rel": 1.2904295443057712e-7,
+      "n": 1
+     },
+     {
+      "label": "dY",
+      "rel": 2.4709339154376555e-7,
+      "n": 576
+     }
+    ]
+   },
+   {
+    "name": "train mm split-K, sumz, strided operands",
+    "op": "mm",
+    "pass": true,
+    "rel": 2.456906128001421e-7,
+    "checks": [
+     {
+      "label": "C += 0.5 AB",
+      "rel": 2.2758959726787534e-7,
+      "n": 2590
+     },
+     {
+      "label": "(AB)^T",
+      "rel": 2.456906128001421e-7,
+      "n": 2590
+     }
+    ]
+   },
+   {
+    "name": "train grad norm, clip, AdamW step",
+    "op": "adamw",
+    "pass": true,
+    "rel": 0.000019881832890960063,
+    "checks": [
+     {
+      "label": "norm",
+      "rel": 2.1724966687555513e-8,
+      "n": 1
+     },
+     {
+      "label": "M",
+      "rel": 8.041597961595662e-8,
+      "n": 300
+     },
+     {
+      "label": "V",
+      "rel": 5.7067548616067636e-8,
+      "n": 300
+     },
+     {
+      "label": "P step",
+      "rel": 0.000019881832890960063,
+      "n": 300
+     }
+    ]
+   }
+  ]
+ }
+}
