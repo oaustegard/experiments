@@ -6,29 +6,30 @@ Opus accuracy at 0.23–0.55x cost because Jev's errors sat near 50% (Muninn 020
 
 ## Answer
 
-Can Jev judge a worker's finished attempt well enough to sit on the decision path of a Haiku → Sonnet →
-Opus ladder? Not on this task family. The pre-registered rule gives PARTIAL (mid-band condition met, ladder
-condition failed); my reading is NO-GO. On 106 test attempts (10 tasks,
-38 held-out failures) the primary question, Q3, ranks attempts with AUROC 0.75 <!-- @evidence[[results/v2_test.json#questions.Q3.auroc]] -->,
-but that is between-task: within a task it scores failing attempts about as high as passing ones
-(within-task AUROC 0.45 <!-- @evidence[[results/v2_test.json#questions.Q3.within_task_auroc]] -->; Q1 0.25 <!-- @evidence[[results/v2_test.json#questions.Q1.within_task_auroc]] -->).
-It never answers no (TNR 0.00). 84% of its misjudgements sit in 0.3–0.9 <!-- @evidence[[results/v2_test.json#questions.Q3.frac_wrong_midband]] -->,
-but so do 66% of all its scores <!-- @evidence[[results/extras_test.json#Q3_band_base_rate]] -->, so that share
-is compression, not Hightouch's mechanism. The simulated ladder solves 0.82 <!-- @evidence[[results/v2_ladder_test.json#models.headless/jev_mid.policies.jev_ladder.0]] -->
-at 0.91x the cost of always-Opus against Opus's 0.87; the held-out-gated ladder solves 0.91 at a third of Opus's cost.
-Q1 and Q3 carry a task-difficulty prior (pooled AUROC 0.77 and 0.75, intervals 0.43–0.97), the
-model advisor's job. Change this with a judge that can run the code, or failures that differ by more than sites patched.
+Jev is a small model, called through Muninn's `decide` tool, that returns a probability for a yes/no question. Can it judge a worker's finished attempt well enough to decide when to escalate up a Haiku →
+Sonnet → Opus ladder? Not on this family. On 106 test attempts (10 tasks, 38 failing the held-out tests), its primary question Q3 ("the change addresses every site in the issue") ranks attempts with
+AUROC 0.75 <!-- @evidence[[results/v2_test.json#questions.Q3.auroc]] -->, but within one task it rates failing
+attempts as high as passing ones (0.45 <!-- @evidence[[results/v2_test.json#questions.Q3.within_task_auroc]] -->;
+AUROC is the chance a random pass outranks a random fail, 0.5 being chance). The pre-registered rule says
+PARTIAL, because its NO-GO trigger, confident errors, was not met: 84% of Q3's misjudgements fall in 0.3–0.9 <!-- @evidence[[results/v2_test.json#questions.Q3.frac_wrong_midband]] -->.
+I call it NO-GO anyway: that share is compression, as 66% of all its scores sit there <!-- @evidence[[results/extras_test.json#Q3_band_base_rate]] -->.
+The simulated ladder solves 0.82 <!-- @evidence[[results/v2_ladder_test.json#models.headless/jev_mid.policies.jev_ladder.0]] -->
+against 0.87 for always-Opus, at 0.91 of its cost (Finding 2). A diff-size count beats every question within a task (Finding 3). Q1 and Q3 carry only a task-difficulty prior, the model advisor's job. A judge that can run
+the code, or failures not defined by sites patched, would change this.
 
 ## Findings
 
+Ordered by weight, each with its round and the number that carries it.
+
 1. Jev has no attempt-level signal on this family. Within-task AUROC on test is 0.25 (Q1), 0.35 (Q2), 0.45 (Q3), 0.35 (Q4), all at or below chance; the pooled AUROC of 0.57–0.77 is task difficulty (Round 4, `results/v2_test.json`).
-2. A diff-size count beats every question within a task: larger diffs pass, AUROC 0.07 for smaller ones, i.e. 0.93 for larger <!-- @evidence[[results/extras_test.json#diff_size_within_task_auroc]] -->. Failures here are one-site fixes. Exploratory, run after the test split was read (Round 4).
-3. Q1, Q3 and Q4 answer yes to nearly everything at 0.5 (TNR 0.16, 0.00, 0.00); Q2 is the only question that splits (TPR 0.82, TNR 0.58). Jev's probabilities for Q1 sit in 0.3–0.9 on 95% of attempts, so a 0.3–0.9 band cannot isolate its errors (Round 4).
-4. The information is present and unused: on `lru_ttl` the failing diffs leave `__len__` unpurged in plain view of a 30-line context, and Jev scored them above the passing ones that add the `_purge()` call (Round 3, dev).
-5. Wider diff context raised pooled dev AUROC (Q1 0.68 to 0.79, Q3 0.62 to 0.79) and left within-task AUROC at 0.4, so it taught Jev which tasks are hard, not which attempts are right (Round 3, `results/v1_dev.json`, `results/v2_dev.json`).
-6. Combining Q1–Q4 by logistic regression does not help: leave-one-task-out AUROC 0.44 <!-- @evidence[[results/extras_test.json#logit_Q1-4_loto_auroc]] -->. `tests_green` is constant (14/14 pilot, 144/144 headless), so "beyond visible tests" cannot be fitted (Round 4).
-7. The dev-chosen thresholds (lo 0.9, hi 0.95) escalate almost everything, because Jev's scores cluster below 0.9; the ladder then costs nearly as much as always-Opus and solves less. No (lo, hi) on dev came within 5 points of the held-out-gated ladder (Round 3, `results/v2_ladder_dev.json`).
-8. Headless `claude -p` workers cost $0.002 (Haiku), $0.02 (Sonnet low) and $0.06 (Opus high) per attempt, with peak context of 11–15K tokens. The Agent-tool spawn adds a ~55K-token prefix: priced that way the same ladder is $0.30 against Opus's $0.34 (Round 2, Round 4).
+2. The simulated test ladder at the dev-chosen thresholds solves 0.82 at 0.91x the cost of always-Opus (bootstrap 0.57–1.21), which solves 0.87. Visible-gated solves 0.80 at 0.04x, and the free held-out-gated ladder 0.91 at 0.33x, so Jev's ladder is 9 points under the free gate and no cheaper than Opus (Round 4, `results/v2_ladder_test.json`).
+3. A diff-size count beats every question within a task: larger diffs pass, AUROC 0.07 for smaller ones, i.e. 0.93 for larger <!-- @evidence[[results/extras_test.json#diff_size_within_task_auroc]] -->. Failures here are one-site fixes. Exploratory, run after the test split was read (Round 4).
+4. Q1, Q3 and Q4 answer yes to nearly everything at 0.5 (TNR 0.16, 0.00, 0.00); Q2 is the only question that splits (TPR 0.82, TNR 0.58). Jev's probabilities for Q1 sit in 0.3–0.9 on 95% of attempts, so a 0.3–0.9 band cannot isolate its errors (Round 4).
+5. The information is present and unused: on `lru_ttl` the failing diffs leave `__len__` unpurged in plain view of a 30-line context, and Jev scored them above the passing ones that add the `_purge()` call (Round 3, dev).
+6. Wider diff context raised pooled dev AUROC (Q1 0.68 to 0.79, Q3 0.62 to 0.79) and left within-task AUROC at 0.4, so it taught Jev which tasks are hard, not which attempts are right (Round 3, `results/v1_dev.json`, `results/v2_dev.json`).
+7. Combining Q1–Q4 by logistic regression does not help: leave-one-task-out AUROC 0.44 <!-- @evidence[[results/extras_test.json#logit_Q1-4_loto_auroc]] -->. `tests_green` is constant (14/14 pilot, 144/144 headless), so "beyond visible tests" cannot be fitted (Round 4).
+8. The dev-chosen thresholds (lo 0.9, hi 0.95) escalate almost everything, because Jev's scores cluster below 0.9; the ladder then costs nearly as much as always-Opus and solves less. No (lo, hi) on dev came within 5 points of the held-out-gated ladder (Round 3, `results/v2_ladder_dev.json`).
+9. Headless `claude -p` workers cost $0.002 (Haiku), $0.02 (Sonnet low) and $0.06 (Opus high) per attempt, with peak context of 11–15K tokens. The Agent-tool spawn adds a ~55K-token prefix: priced that way the same ladder is $0.30 against Opus's $0.34 (Round 2, Round 4).
 
 ## Method
 
