@@ -526,3 +526,231 @@ export function gated(e, A, B, Y, { I, act = "gelu", sa, oa = 0, sb, ob = 0, row
   e.step(k, { a: [sa ?? I, oa, sb ?? I, ob], b: [rowsSel, mult] }, inPlace ? [A, B] : [A, B, Y],
     (n) => split(Math.ceil(n[rowsSel] * mult * I / 256)));
 }
+
+// ---- mixture-of-experts ops (from moederncolbert-bench, step 4) -----------------------------------
+// Top-2 routing over E <= 8 experts with per-expert row lists, grouped matmuls that walk only the
+// routed rows, the gate-weighted combine, and per-token L2. A routed slot is 2t + k for token t and
+// choice k; list[e * cap + i] is the i-th slot routed to expert e, cnt[e] their number.
+// Router: softmax over E <= 8 experts, top-2, renormalized; appends slot 2t+k to expert e's list
+// and stores its gate. One workgroup of 64 per token. p.a = (H, router word offset, E, list cap).
+const MOE_ROUTE = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> x: array<f32>;
+@group(0) @binding(4) var<storage, read_write> cnt: array<atomic<u32>>;
+@group(0) @binding(5) var<storage, read_write> list: array<u32>;
+@group(0) @binding(6) var<storage, read_write> gw: array<f32>;
+${BYTE}
+var<workgroup> red: array<f32, 512>;
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let t = wid.x + wid.y * 65535u;
+  if (t >= dn.n.x) { return; }
+  let H = p.a.x; let E = p.a.z;
+  var part = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  for (var j = l; j < H; j += 64u) {
+    let a = x[t * H + j];
+    for (var e = 0u; e < E; e++) { part[e] += a * wf32(p.a.y + e * H + j); }
+  }
+  for (var e = 0u; e < 8u; e++) { red[e * 64u + l] = part[e]; }
+  workgroupBarrier();
+  for (var k = 32u; k > 0u; k >>= 1u) {
+    if (l < k) { for (var e = 0u; e < 8u; e++) { red[e * 64u + l] += red[e * 64u + l + k]; } }
+    workgroupBarrier();
+  }
+  if (l != 0u) { return; }
+  var mx = -3.0e38;
+  for (var e = 0u; e < E; e++) { mx = max(mx, red[e * 64u]); }
+  var pr = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  var z = 0.0;
+  for (var e = 0u; e < E; e++) { pr[e] = exp(red[e * 64u] - mx); z += pr[e]; }
+  var i0 = 0u;
+  for (var e = 1u; e < E; e++) { if (pr[e] > pr[i0]) { i0 = e; } }
+  var i1 = select(0u, 1u, i0 == 0u);
+  for (var e = 0u; e < E; e++) { if (e != i0 && pr[e] > pr[i1]) { i1 = e; } }
+  let w0 = pr[i0] / z; let w1 = pr[i1] / z;
+  let n = w0 + w1 + 1e-9;
+  gw[2u * t] = w0 / n; gw[2u * t + 1u] = w1 / n;
+  list[i0 * p.a.w + atomicAdd(&cnt[i0], 1u)] = 2u * t;
+  list[i1 * p.a.w + atomicAdd(&cnt[i1], 1u)] = 2u * t + 1u;
+}`;
+// Zero the 8 per-expert counts before routing (p.a.x = 0).
+const MOE_ZERO = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read_write> cnt: array<u32>;
+@compute @workgroup_size(8)
+fn main(@builtin(local_invocation_index) l: u32) { cnt[l] = p.a.x * dn.n.w; }`;
+// Grouped matmul over the routed rows of expert e = wid.z (at most one slot per token, so the
+// grid covers T rows per expert and idle workgroups exit at once): Y[slot, n] = sum_k X[row(slot), k] W_e[n, k],
+// W_e f32 [N, K] at word p.a.x + e * N * K. row(slot) = slot / 2 (p.b.x = 1, reading token rows)
+// or slot (p.b.x = 0). Same 32 columns x 8 k-splits x 8 rows layout as the shared template.
+// p.a = (weight word offset, N, K, list cap).
+const MOE_GMM = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> cnt: array<u32>;
+@group(0) @binding(4) var<storage, read> list: array<u32>;
+@group(0) @binding(5) var<storage, read> X: array<vec4<f32>>;
+@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
+var<workgroup> red: array<f32, 2048>;
+var<workgroup> wrows: u32;
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let e = wid.z;
+  if (dn.n.x == 0u) { return; }
+  if (l == 0u) { wrows = cnt[e]; }
+  let rows = workgroupUniformLoad(&wrows);
+  let r0 = wid.y * 8u;
+  if (r0 >= rows) { return; }
+  let N = p.a.y; let K = p.a.z; let K4 = K / 4u;
+  let nl = l % 32u; let ks = l / 32u;
+  let n = wid.x * 32u + nl;
+  let wb = p.a.x + e * N * K + n * K;
+  let bps = K4 / 8u;
+  var rr: array<u32, 8>;
+  var slot: array<u32, 8>;
+  for (var t = 0u; t < 8u; t++) {
+    let s = list[e * p.a.w + min(r0 + t, rows - 1u)];
+    slot[t] = s;
+    rr[t] = select(s, s / 2u, p.b.x == 1u) * K4;
+  }
+  var acc = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  for (var b = ks * bps; b < (ks + 1u) * bps; b++) {
+    let o = wb + b * 4u;
+    let wv = vec4<f32>(bitcast<f32>(W[o]), bitcast<f32>(W[o + 1u]), bitcast<f32>(W[o + 2u]), bitcast<f32>(W[o + 3u]));
+    for (var t = 0u; t < 8u; t++) { acc[t] += dot(wv, X[rr[t] + b]); }
+  }
+  for (var t = 0u; t < 8u; t++) { red[(ks * 8u + t) * 32u + nl] = acc[t]; }
+  workgroupBarrier();
+  let t = l / 32u;
+  if (r0 + t >= rows) { return; }
+  var s = 0.0;
+  for (var j = 0u; j < 8u; j++) { s += red[(j * 8u + t) * 32u + nl]; }
+  Y[slot[t] * N + n] = s;
+}`;
+// Tiled f32 matmul for batches: Y[out(r), n] (+)= sum_k X[in(r), k] W_e[n, k], W_e [N, K] at word
+// p.a.x + e * N * K, e = wid.z. 64 x 64 output tile per workgroup of 256, 4 x 4 per thread, K in
+// steps of 16 through workgroup memory. p.b.x row mode: 0 dense (r < tokens, in = out = r);
+// 1 expert rows, in = slot / 2 (a token), out = slot; 2 expert rows, in = out = slot.
+// p.b.y = 1 accumulates into Y. p.a = (weight word offset, N, K, list cap). N % 64 = 0, K % 16 = 0.
+const MATMUL_TILED = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<f32>;
+@group(0) @binding(3) var<storage, read> cnt: array<u32>;
+@group(0) @binding(4) var<storage, read> list: array<u32>;
+@group(0) @binding(5) var<storage, read> X: array<f32>;
+@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
+var<workgroup> xs: array<f32, 1024>;
+var<workgroup> ws: array<f32, 1024>;
+var<workgroup> wrows: u32;
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let e = wid.z; let mode = p.b.x;
+  if (l == 0u) { wrows = select(cnt[e], dn.n.x, mode == 0u); }
+  let rows = workgroupUniformLoad(&wrows);
+  let r0 = wid.y * 64u;
+  if (r0 >= rows) { return; }
+  let N = p.a.y; let K = p.a.z; let n0 = wid.x * 64u;
+  let wb = p.a.x + e * N * K;
+  let tx = l % 16u; let ty = l / 16u;
+  // the 4 tile rows this thread loads (r = l / 4 for loading; 4 k values each)
+  let lr = l / 4u; let lk = (l % 4u) * 4u;
+  var inRow = 0u; var valid = r0 + lr < rows;
+  if (valid) {
+    if (mode == 0u) { inRow = r0 + lr; }
+    else { let s = list[e * p.a.w + r0 + lr]; inRow = select(s, s / 2u, mode == 1u); }
+  }
+  var acc: array<vec4<f32>, 4>;
+  for (var i = 0u; i < 4u; i++) { acc[i] = vec4<f32>(0.0); }
+  for (var k0 = 0u; k0 < K; k0 += 16u) {
+    for (var i = 0u; i < 4u; i++) {
+      xs[lr * 16u + lk + i] = select(0.0, X[inRow * K + k0 + lk + i], valid);
+      ws[lr * 16u + lk + i] = W[wb + (n0 + lr) * K + k0 + lk + i];
+    }
+    workgroupBarrier();
+    for (var k = 0u; k < 16u; k++) {
+      let w = vec4<f32>(ws[(tx * 4u) * 16u + k], ws[(tx * 4u + 1u) * 16u + k], ws[(tx * 4u + 2u) * 16u + k], ws[(tx * 4u + 3u) * 16u + k]);
+      for (var i = 0u; i < 4u; i++) { acc[i] += xs[(ty * 4u + i) * 16u + k] * w; }
+    }
+    workgroupBarrier();
+  }
+  for (var i = 0u; i < 4u; i++) {
+    let r = r0 + ty * 4u + i;
+    if (r >= rows) { break; }
+    var o = r;
+    if (mode != 0u) { o = list[e * p.a.w + r]; }
+    for (var c = 0u; c < 4u; c++) {
+      let idx = o * N + n0 + tx * 4u + c;
+      if (p.b.y == 1u) { Y[idx] += acc[i][c]; } else { Y[idx] = acc[i][c]; }
+    }
+  }
+}`;
+// x[t] += gw[2t] od[2t] + gw[2t+1] od[2t+1].  p.a.x = H.
+const MOE_COMBINE = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> od: array<f32>;
+@group(0) @binding(3) var<storage, read> gw: array<f32>;
+@group(0) @binding(4) var<storage, read_write> x: array<f32>;
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let H = p.a.x;
+  let idx = gid.x + gid.y * 65535u * 256u;
+  if (idx >= dn.n.x * H) { return; }
+  let t = idx / H; let j = idx % H;
+  x[idx] += gw[2u * t] * od[(2u * t) * H + j] + gw[2u * t + 1u] * od[(2u * t + 1u) * H + j];
+}`;
+// L2-normalize each row of D (a power of two up to 256); X is read from word offset p.a.x.
+const l2tokWGSL = (D) => HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> x: array<f32>;
+@group(0) @binding(3) var<storage, read_write> y: array<f32>;
+var<workgroup> red: array<f32, ${D}>;
+@compute @workgroup_size(${D})
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
+  let r = wid.x + wid.y * 65535u;
+  if (r >= dn.n.x) { return; }
+  let a = x[r * ${D}u + i + p.a.x];
+  red[i] = a * a;
+  workgroupBarrier();
+  for (var k = ${D / 2}u; k > 0u; k >>= 1u) { if (i < k) { red[i] += red[i + k]; } workgroupBarrier(); }
+  y[r * ${D}u + i] = a / max(sqrt(red[0]), 1e-12);
+}`;
+
+Object.assign(KERNELS, { moe_route: MOE_ROUTE, moe_zero: MOE_ZERO, moe_gmm: MOE_GMM, moe_combine: MOE_COMBINE, matmul_tiled: MATMUL_TILED });
+
+const flat256 = (n) => split(Math.ceil(n / 256));
+
+// Route each token: zero the counts, then the router (W at word wOff, [E, H]) fills cnt, list and the
+// renormalized top-2 gates gw [2T]. cap = list capacity per expert (2 * maxTokens is always enough).
+export function route(e, W, X, cnt, list, gw, { H, wOff, E, cap }) {
+  if (E > 8) throw new Error(`route: ${E} experts, at most 8`);
+  e.step("moe_zero", {}, [cnt], () => [1]);
+  e.step("moe_route", { a: [H, wOff, E, cap] }, [W, X, cnt, list, gw], (n) => split(n[0]));
+}
+
+// Expert weights f32 [E, N, K] at word wOff. mode 1 reads token rows (slot / 2) and writes slot rows;
+// mode 2 reads and writes slot rows. kernel "tiled" (64 x 64 tiles, N % 64, K % 16) or "rows" (8 rows
+// x 32 columns, N % 32, K % 32; mode 2 is written as row mode 0 in that kernel's convention).
+export function expertMatmul(e, W, cnt, list, X, Y, { wOff, N, K, E, cap, mode, kernel = "tiled" }) {
+  if (mode !== 1 && mode !== 2) throw new Error(`expertMatmul: mode ${mode}`);
+  if (kernel === "tiled") {
+    if (N % 64 || K % 16) throw new Error(`expertMatmul tiled: N ${N} % 64, K ${K} % 16`);
+    e.step("matmul_tiled", { a: [wOff, N, K, cap], b: [mode, 0] }, [W, cnt, list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), E]);
+  } else {
+    if (N % 32 || K % 32) throw new Error(`expertMatmul rows: N ${N} % 32, K ${K} % 32`);
+    e.step("moe_gmm", { a: [wOff, N, K, cap], b: [mode === 1 ? 1 : 0] }, [W, cnt, list, X, Y], (n) => [N / 32, Math.ceil(n[0] / 8), E]);
+  }
+}
+
+// Dense f32 Y (+)= X W^T over all tokens on the 64 x 64 tiled kernel (N % 64, K % 16). cnt and list are
+// bound but unread in this mode; pass any two storage buffers (an MoE engine passes its own).
+export function matmulTiled(e, W, X, Y, { wOff, N, K, cnt, list, accumulate = false }) {
+  if (N % 64 || K % 16) throw new Error(`matmulTiled: N ${N} % 64, K ${K} % 16`);
+  e.step("matmul_tiled", { a: [wOff, N, K, 0], b: [0, accumulate ? 1 : 0] }, [W, cnt, list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), 1]);
+}
+
+// X[t] += gw[2t] od[2t] + gw[2t+1] od[2t+1] for rows of H.
+export function combine(e, od, gw, X, { H }) {
+  e.step("moe_combine", { a: [H] }, [od, gw, X], (n) => flat256(n[0] * H));
+}
+
+// Y[t] = X[t] / |X[t]| for every token row of D.
+export function l2tok(e, X, Y, { D, off = 0 }) {
+  if (D > 256 || D & (D - 1)) throw new Error(`l2tok: D ${D} must be a power of two up to 256`);
+  const k = variant(e, `l2tok_${D}`, () => l2tokWGSL(D));
+  e.step(k, { a: [off] }, [X, Y], (n) => split(n[0]));
+}

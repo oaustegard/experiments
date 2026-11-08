@@ -11,11 +11,12 @@
 // [CLS] [Q] ... [SEP] padded with [MASK] to 32 and keep all 32. A sequence is at most 512 tokens.
 // Matmuls run on a 64 x 64 tiled f32 kernel (opts.kernel "template" switches to the shared 8-row
 // kernels.js matmul). The MoE runs sparsely: a router kernel appends each (token, slot) to its
-// expert's list, and grouped matmuls walk only those rows.
+// expert's list, and grouped matmuls walk only those rows. Those MoE ops live in _lib/wgsl/kernels.js
+// (kernel library step 4); the hash embedding, RMSNorm and 512-token attention are still this file's.
 // The 115M size's gated-conv layers are not implemented.
 
 import { BYTE, HEADER, SeqEngine } from "../../_lib/wgsl/runtime.js";
-import { KERNELS, gated, matmul, rope, ropeTable } from "../../_lib/wgsl/kernels.js";
+import { KERNELS, combine, expertMatmul, gated, l2tok, matmul, matmulTiled, rope, ropeTable, route } from "../../_lib/wgsl/kernels.js";
 
 export const MAX_LEN = 512;
 
@@ -147,192 +148,9 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   O[(t * nh + h) * 64u + i] = acc * inv;
 }`,
 
-  // Router: softmax over E <= 8 experts, top-2, renormalized; appends slot 2t+k to expert e's list
-  // and stores its gate. One workgroup of 64 per token. p.a = (H, router word offset, E, list cap).
-  route: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> x: array<f32>;
-@group(0) @binding(4) var<storage, read_write> cnt: array<atomic<u32>>;
-@group(0) @binding(5) var<storage, read_write> list: array<u32>;
-@group(0) @binding(6) var<storage, read_write> gw: array<f32>;
-${BYTE}
-var<workgroup> red: array<f32, 512>;
-@compute @workgroup_size(64)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let t = wid.x + wid.y * 65535u;
-  if (t >= dn.n.x) { return; }
-  let H = p.a.x; let E = p.a.z;
-  var part = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  for (var j = l; j < H; j += 64u) {
-    let a = x[t * H + j];
-    for (var e = 0u; e < E; e++) { part[e] += a * wf32(p.a.y + e * H + j); }
-  }
-  for (var e = 0u; e < 8u; e++) { red[e * 64u + l] = part[e]; }
-  workgroupBarrier();
-  for (var k = 32u; k > 0u; k >>= 1u) {
-    if (l < k) { for (var e = 0u; e < 8u; e++) { red[e * 64u + l] += red[e * 64u + l + k]; } }
-    workgroupBarrier();
-  }
-  if (l != 0u) { return; }
-  var mx = -3.0e38;
-  for (var e = 0u; e < E; e++) { mx = max(mx, red[e * 64u]); }
-  var pr = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  var z = 0.0;
-  for (var e = 0u; e < E; e++) { pr[e] = exp(red[e * 64u] - mx); z += pr[e]; }
-  var i0 = 0u;
-  for (var e = 1u; e < E; e++) { if (pr[e] > pr[i0]) { i0 = e; } }
-  var i1 = select(0u, 1u, i0 == 0u);
-  for (var e = 0u; e < E; e++) { if (e != i0 && pr[e] > pr[i1]) { i1 = e; } }
-  let w0 = pr[i0] / z; let w1 = pr[i1] / z;
-  let n = w0 + w1 + 1e-9;
-  gw[2u * t] = w0 / n; gw[2u * t + 1u] = w1 / n;
-  list[i0 * p.a.w + atomicAdd(&cnt[i0], 1u)] = 2u * t;
-  list[i1 * p.a.w + atomicAdd(&cnt[i1], 1u)] = 2u * t + 1u;
-}`,
-
-  zero: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read_write> cnt: array<u32>;
-@compute @workgroup_size(8)
-fn main(@builtin(local_invocation_index) l: u32) { cnt[l] = p.a.x * dn.n.w; }`,
-
-  // Grouped matmul over the routed rows of expert e = wid.z (at most one slot per token, so the
-  // grid covers T rows per expert and idle workgroups exit at once): Y[slot, n] = sum_k X[row(slot), k] W_e[n, k],
-  // W_e f32 [N, K] at word p.a.x + e * N * K. row(slot) = slot / 2 (p.b.x = 1, reading token rows)
-  // or slot (p.b.x = 0). Same 32 columns x 8 k-splits x 8 rows layout as the shared template.
-  // p.a = (weight word offset, N, K, list cap).
-  gmm: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<u32>;
-@group(0) @binding(3) var<storage, read> cnt: array<u32>;
-@group(0) @binding(4) var<storage, read> list: array<u32>;
-@group(0) @binding(5) var<storage, read> X: array<vec4<f32>>;
-@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
-var<workgroup> red: array<f32, 2048>;
-var<workgroup> wrows: u32;
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let e = wid.z;
-  if (dn.n.x == 0u) { return; }
-  if (l == 0u) { wrows = cnt[e]; }
-  let rows = workgroupUniformLoad(&wrows);
-  let r0 = wid.y * 8u;
-  if (r0 >= rows) { return; }
-  let N = p.a.y; let K = p.a.z; let K4 = K / 4u;
-  let nl = l % 32u; let ks = l / 32u;
-  let n = wid.x * 32u + nl;
-  let wb = p.a.x + e * N * K + n * K;
-  let bps = K4 / 8u;
-  var rr: array<u32, 8>;
-  var slot: array<u32, 8>;
-  for (var t = 0u; t < 8u; t++) {
-    let s = list[e * p.a.w + min(r0 + t, rows - 1u)];
-    slot[t] = s;
-    rr[t] = select(s, s / 2u, p.b.x == 1u) * K4;
-  }
-  var acc = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-  for (var b = ks * bps; b < (ks + 1u) * bps; b++) {
-    let o = wb + b * 4u;
-    let wv = vec4<f32>(bitcast<f32>(W[o]), bitcast<f32>(W[o + 1u]), bitcast<f32>(W[o + 2u]), bitcast<f32>(W[o + 3u]));
-    for (var t = 0u; t < 8u; t++) { acc[t] += dot(wv, X[rr[t] + b]); }
-  }
-  for (var t = 0u; t < 8u; t++) { red[(ks * 8u + t) * 32u + nl] = acc[t]; }
-  workgroupBarrier();
-  let t = l / 32u;
-  if (r0 + t >= rows) { return; }
-  var s = 0.0;
-  for (var j = 0u; j < 8u; j++) { s += red[(j * 8u + t) * 32u + nl]; }
-  Y[slot[t] * N + n] = s;
-}`,
-
-  // Tiled f32 matmul for batches: Y[out(r), n] (+)= sum_k X[in(r), k] W_e[n, k], W_e [N, K] at word
-  // p.a.x + e * N * K, e = wid.z. 64 x 64 output tile per workgroup of 256, 4 x 4 per thread, K in
-  // steps of 16 through workgroup memory. p.b.x row mode: 0 dense (r < tokens, in = out = r);
-  // 1 expert rows, in = slot / 2 (a token), out = slot; 2 expert rows, in = out = slot.
-  // p.b.y = 1 accumulates into Y. p.a = (weight word offset, N, K, list cap). N % 64 = 0, K % 16 = 0.
-  mmt: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> W: array<f32>;
-@group(0) @binding(3) var<storage, read> cnt: array<u32>;
-@group(0) @binding(4) var<storage, read> list: array<u32>;
-@group(0) @binding(5) var<storage, read> X: array<f32>;
-@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
-var<workgroup> xs: array<f32, 1024>;
-var<workgroup> ws: array<f32, 1024>;
-var<workgroup> wrows: u32;
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
-  let e = wid.z; let mode = p.b.x;
-  if (l == 0u) { wrows = select(cnt[e], dn.n.x, mode == 0u); }
-  let rows = workgroupUniformLoad(&wrows);
-  let r0 = wid.y * 64u;
-  if (r0 >= rows) { return; }
-  let N = p.a.y; let K = p.a.z; let n0 = wid.x * 64u;
-  let wb = p.a.x + e * N * K;
-  let tx = l % 16u; let ty = l / 16u;
-  // the 4 tile rows this thread loads (r = l / 4 for loading; 4 k values each)
-  let lr = l / 4u; let lk = (l % 4u) * 4u;
-  var inRow = 0u; var valid = r0 + lr < rows;
-  if (valid) {
-    if (mode == 0u) { inRow = r0 + lr; }
-    else { let s = list[e * p.a.w + r0 + lr]; inRow = select(s, s / 2u, mode == 1u); }
-  }
-  var acc: array<vec4<f32>, 4>;
-  for (var i = 0u; i < 4u; i++) { acc[i] = vec4<f32>(0.0); }
-  for (var k0 = 0u; k0 < K; k0 += 16u) {
-    for (var i = 0u; i < 4u; i++) {
-      xs[lr * 16u + lk + i] = select(0.0, X[inRow * K + k0 + lk + i], valid);
-      ws[lr * 16u + lk + i] = W[wb + (n0 + lr) * K + k0 + lk + i];
-    }
-    workgroupBarrier();
-    for (var k = 0u; k < 16u; k++) {
-      let w = vec4<f32>(ws[(tx * 4u) * 16u + k], ws[(tx * 4u + 1u) * 16u + k], ws[(tx * 4u + 2u) * 16u + k], ws[(tx * 4u + 3u) * 16u + k]);
-      for (var i = 0u; i < 4u; i++) { acc[i] += xs[(ty * 4u + i) * 16u + k] * w; }
-    }
-    workgroupBarrier();
-  }
-  for (var i = 0u; i < 4u; i++) {
-    let r = r0 + ty * 4u + i;
-    if (r >= rows) { break; }
-    var o = r;
-    if (mode != 0u) { o = list[e * p.a.w + r]; }
-    for (var c = 0u; c < 4u; c++) {
-      let idx = o * N + n0 + tx * 4u + c;
-      if (p.b.y == 1u) { Y[idx] += acc[i][c]; } else { Y[idx] = acc[i][c]; }
-    }
-  }
-}`,
-
-  // x[t] += gw[2t] od[2t] + gw[2t+1] od[2t+1].  p.a.x = H.
-  combine: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> od: array<f32>;
-@group(0) @binding(3) var<storage, read> gw: array<f32>;
-@group(0) @binding(4) var<storage, read_write> x: array<f32>;
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let H = p.a.x;
-  let idx = gid.x + gid.y * 65535u * 256u;
-  if (idx >= dn.n.x * H) { return; }
-  let t = idx / H; let j = idx % H;
-  x[idx] += gw[2u * t] * od[(2u * t) * H + j] + gw[2u * t + 1u] * od[(2u * t + 1u) * H + j];
-}`,
-
-  // L2-normalize each token row of 128.
-  l2tok: HEADER + /* wgsl */ `
-@group(0) @binding(2) var<storage, read> x: array<f32>;
-@group(0) @binding(3) var<storage, read_write> y: array<f32>;
-var<workgroup> red: array<f32, 128>;
-@compute @workgroup_size(128)
-fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) i: u32) {
-  let r = wid.x + wid.y * 65535u;
-  if (r >= dn.n.x) { return; }
-  let a = x[r * 128u + i + p.a.x];
-  red[i] = a * a;
-  workgroupBarrier();
-  for (var k = 64u; k > 0u; k >>= 1u) { if (i < k) { red[i] += red[i + k]; } workgroupBarrier(); }
-  y[r * 128u + i] = a / max(sqrt(red[0]), 1e-12);
-}`,
 };
 
 const rows2d = (n) => (n <= 65535 ? [n] : [65535, Math.ceil(n / 65535)]);
-const flat = (n) => { const g = Math.ceil(n / 256); return g <= 65535 ? [g] : [65535, Math.ceil(g / 65535)]; };
 
 export class MoEdernEngine extends SeqEngine {
   // manifest: { config (config.json), dense: 1_Dense safetensors bytes }; data: model.safetensors bytes.
@@ -404,11 +222,9 @@ export class MoEdernEngine extends SeqEngine {
     // matmul and the 8-row grouped gmm (the shape the query engines were tuned on).
     const tiled = this.kernel === "tiled";
     const mm = (wOff, N, K, X, Y, opts = {}) => tiled
-      ? step("mmt", { a: [wOff, N, K, cap], b: [0, opts.accumulate ? 1 : 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), 1])
+      ? matmulTiled(this, W, X, Y, { wOff, N, K, cnt: b.cnt, list: b.list, accumulate: opts.accumulate })
       : matmul(this, { fmt: "f32", offs: [wOff], N, K }, W, X, Y, opts);
-    const gmm = (wOff, N, K, X, Y, mode) => tiled
-      ? step("mmt", { a: [wOff, N, K, cap], b: [mode, 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 64, Math.ceil(n[0] / 64), E])
-      : step("gmm", { a: [wOff, N, K, cap], b: [mode === 1 ? 1 : 0] }, [W, b.cnt, b.list, X, Y], (n) => [N / 32, Math.ceil(n[0] / 8), E]);
+    const gmm = (wOff, N, K, X, Y, mode) => expertMatmul(this, W, b.cnt, b.list, X, Y, { wOff, N, K, E, cap, mode, kernel: tiled ? "tiled" : "rows" });
     const rms = (wOff, X, Y) => step("rms", { a: [H, wOff], f: [eps] }, [W, X, Y], (n) => rows2d(n[0]));
 
     step("embed", { a: [H, P, off.table, off.proj], b: [off.lnw, off.lnb], f: [1e-5] }, [W, b.tok, b.x], (n) => rows2d(n[0]));
@@ -420,12 +236,11 @@ export class MoEdernEngine extends SeqEngine {
       step("attn", { a: [nh, nkv], f: [1 / Math.sqrt(hd)] }, [b.tok, b.seqs, b.q, b.k, b.v, b.o], (n) => [n[0], nh]);
       mm(L.o, H, H, b.o, b.x, { accumulate: true });
       rms(L.fnorm, b.x, b.a);
-      step("zero", {}, [b.cnt], () => [1]);
-      step("route", { a: [H, L.router, E, cap] }, [W, b.a, b.cnt, b.list, b.gw], (n) => rows2d(n[0]));
+      route(this, W, b.a, b.cnt, b.list, b.gw, { H, wOff: L.router, E, cap });
       gmm(L.gu, 2 * He, H, b.a, b.u, 1);
       gated(this, b.u, b.u, b.g, { I: He, sa: 2 * He, sb: 2 * He, ob: He, mult: 2 });
       gmm(L.down, H, He, b.g, b.od, 2);
-      step("combine", { a: [H] }, [b.od, b.gw, b.x], (n) => flat(n[0] * H));
+      combine(this, b.od, b.gw, b.x, { H });
       // shared expert, accumulated straight into the residual
       mm(L.sgu, 2 * He, H, b.a, b.u);
       gated(this, b.u, b.u, b.g, { I: He, sa: 2 * He, sb: 2 * He, ob: He });
@@ -433,7 +248,7 @@ export class MoEdernEngine extends SeqEngine {
     }
     rms(off.final, b.x, b.a);
     mm(off.dense, 128, H, b.a, b.d);
-    step("l2tok", {}, [b.d, b.out], (n) => rows2d(n[0]));
+    l2tok(this, b.d, b.out, { D: 128 });
   }
 
   // SeqEngine._record with sequences up to MAX_LEN tokens.

@@ -11,7 +11,7 @@
 // Run headless: node _lib/wgsl/tests/check_ops.mjs. On a real GPU: gpu-bridge/jobs/wgsl-ops.
 
 import { SeqEngine, NONE } from "../runtime.js";
-import { KERNELS, matmul, norm, attention, attentionLong, pool, l2, embed, rope, ropeTable, gated } from "../kernels.js";
+import { KERNELS, matmul, norm, attention, attentionLong, pool, l2, embed, rope, ropeTable, gated, route, expertMatmul, matmulTiled, combine, l2tok } from "../kernels.js";
 
 const U = GPUBufferUsage;
 
@@ -393,6 +393,130 @@ const l2Case = (D) => ({
 // The shapes the shipped engines use (EG2: H 768, hd 256, nh 3 / nkv 1, window 512, q4; Ettin-17m: H 256,
 // hd 64, nh 4, fused qkv, int8 or f32, window 128, and in the decider up to 1024 tokens with
 // attentionLong; MoEdernColBERT: rms, f32), at sizes SwiftShader runs in seconds.
+// ---- MoE ops (step 4) ------------------------------------------------------------------------------
+// A random top-2 assignment: two distinct experts per token, each expert's slot list in shuffled order.
+function assign(r, T, E) {
+  const ex = new Int32Array(2 * T), lists = Array.from({ length: E }, () => []);
+  for (let t = 0; t < T; t++) {
+    const a = Math.floor(r() * E); let b = Math.floor(r() * (E - 1)); if (b >= a) b++;
+    ex[2 * t] = a; ex[2 * t + 1] = b; lists[a].push(2 * t); lists[b].push(2 * t + 1);
+  }
+  for (const l of lists) for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; }
+  const cap = 2 * T, cnt = new Uint32Array(8), list = new Uint32Array(E * cap);
+  lists.forEach((l, e) => { cnt[e] = l.length; list.set(l, e * cap); });
+  return { ex, cnt, list, cap };
+}
+
+// Router: compared as the gates followed by each slot's expert (rebuilt from cnt and list, so a lost or
+// duplicated slot shows up as a wrong expert).
+function routeCase(E, H) {
+  return {
+    name: `moe_route_e${E}_h${H}`, op: "route",
+    async run(device, r) {
+      const bt = packed(LENS), T = bt.T, cap = 2 * T;
+      const X = randn(r, T * H), Wr = randn(r, E * H, 1 / Math.sqrt(H));
+      const ref = new Float64Array(4 * T);
+      for (let t = 0; t < T; t++) {
+        const lg = Array.from({ length: E }, (_, e) => { let a = 0; for (let j = 0; j < H; j++) a += X[t * H + j] * Wr[e * H + j]; return a; });
+        const mx = Math.max(...lg), pr = lg.map((v) => Math.exp(v - mx)), z = pr.reduce((a, b) => a + b, 0);
+        const i0 = pr.indexOf(Math.max(...pr)); let i1 = i0 === 0 ? 1 : 0;
+        for (let e = 0; e < E; e++) if (e !== i0 && pr[e] > pr[i1]) i1 = e;
+        const w0 = pr[i0] / z, w1 = pr[i1] / z, n = w0 + w1 + 1e-9;
+        ref[2 * t] = w0 / n; ref[2 * t + 1] = w1 / n; ref[2 * T + 2 * t] = i0; ref[2 * T + 2 * t + 1] = i1;
+      }
+      let cntB, listB;
+      const { e, out } = await harness(device, bt, (e) => {
+        const words = new Words(), wOff = words.f32(Wr), W = e.upload(words.array, "W"), Xb = e.upload(X, "x");
+        cntB = e.buf(8, "cnt"); listB = e.buf(E * cap, "list");
+        const gw = e.buf(2 * T, "gw");
+        route(e, W, Xb, cntB, listB, gw, { H, wOff, E, cap });
+        return { buf: gw, n: 2 * T, post: async (g) => {
+          const cnt = new Uint32Array((await readBuf(device, cntB, 8)).buffer), list = new Uint32Array((await readBuf(device, listB, E * cap)).buffer);
+          const ex = new Float32Array(2 * T).fill(-1);
+          for (let k = 0; k < E; k++) for (let i = 0; i < cnt[k]; i++) { const s = list[k * cap + i]; ex[s] = ex[s] === -1 ? k : 99; }
+          const o = new Float32Array(4 * T); o.set(g); o.set(ex, 2 * T); return o;
+        } };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+// Grouped matmul over a host-made assignment. mode 1: token rows in, slot rows out; mode 2: slot rows both.
+function expertCase(kernel, mode, { E, N, K }) {
+  return {
+    name: `moe_${kernel === "tiled" ? "matmul_tiled" : "gmm"}_mode${mode}_e${E}_${N}x${K}`, op: "expertMatmul",
+    async run(device, r) {
+      const bt = packed(LENS), T = bt.T, { ex, cnt, list, cap } = assign(r, T, E);
+      const rows = mode === 1 ? T : 2 * T, X = randn(r, rows * K), Wd = randn(r, E * N * K, 1 / Math.sqrt(K));
+      const ref = new Float64Array(2 * T * N);
+      for (let s = 0; s < 2 * T; s++) {
+        const xr = mode === 1 ? s >> 1 : s, w = ex[s] * N * K;
+        for (let n = 0; n < N; n++) { let a = 0; for (let k = 0; k < K; k++) a += X[xr * K + k] * Wd[w + n * K + k]; ref[s * N + n] = a; }
+      }
+      const { e, out } = await harness(device, bt, (e) => {
+        const words = new Words(); words.f32([1, 2, 3]); const wOff = words.f32(Wd);
+        const W = e.upload(words.array, "W"), Xb = e.upload(X, "x"), Y = e.buf(2 * T * N, "y");
+        expertMatmul(e, W, e.upload(cnt, "cnt"), e.upload(list, "list"), Xb, Y, { wOff, N, K, E, cap, mode, kernel });
+        return { buf: Y, n: 2 * T * N };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+function tiledCase({ N, K, accumulate }) {
+  return {
+    name: `matmul_tiled_${N}x${K}${accumulate ? "_acc" : ""}`, op: "matmulTiled",
+    async run(device, r) {
+      const bt = packed(LENS), T = bt.T, X = randn(r, T * K), Wd = randn(r, N * K, 1 / Math.sqrt(K)), base = randn(r, T * N);
+      const ref = new Float64Array(T * N);
+      for (let t = 0; t < T; t++) for (let n = 0; n < N; n++) { let a = accumulate ? base[t * N + n] : 0; for (let k = 0; k < K; k++) a += X[t * K + k] * Wd[n * K + k]; ref[t * N + n] = a; }
+      const { e, out } = await harness(device, bt, (e) => {
+        const words = new Words(); words.f32([7]); const wOff = words.f32(Wd);
+        const W = e.upload(words.array, "W"), Y = e.buf(T * N, "y", U.COPY_DST), dummy = e.buf(4, "unused");
+        device.queue.writeBuffer(Y, 0, base);
+        matmulTiled(e, W, e.upload(X, "x"), Y, { wOff, N, K, cnt: dummy, list: dummy, accumulate });
+        return { buf: Y, n: T * N, reset: () => device.queue.writeBuffer(Y, 0, base) };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+function combineCase(H) {
+  return {
+    name: `moe_combine_${H}`, op: "combine",
+    async run(device, r) {
+      const bt = packed(LENS), T = bt.T, od = randn(r, 2 * T * H), gw = Float32Array.from({ length: 2 * T }, () => r()), x = randn(r, T * H);
+      const ref = Float64Array.from({ length: T * H }, (_, i) => { const t = Math.floor(i / H), j = i % H; return x[i] + gw[2 * t] * od[2 * t * H + j] + gw[2 * t + 1] * od[(2 * t + 1) * H + j]; });
+      const { e, out } = await harness(device, bt, (e) => {
+        const X = e.buf(T * H, "x", U.COPY_DST);
+        device.queue.writeBuffer(X, 0, x);
+        combine(e, e.upload(od, "od"), e.upload(gw, "gw"), X, { H });
+        return { buf: X, n: T * H, reset: () => device.queue.writeBuffer(X, 0, x) };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
+function l2tokCase(D) {
+  return {
+    name: `l2tok_${D}`, op: "l2tok",
+    async run(device, r) {
+      const bt = packed(LENS), T = bt.T, x = randn(r, T * D), ref = new Float64Array(T * D);
+      for (let t = 0; t < T; t++) { let s = 0; for (let j = 0; j < D; j++) s += x[t * D + j] ** 2; s = Math.sqrt(s); for (let j = 0; j < D; j++) ref[t * D + j] = x[t * D + j] / s; }
+      const { e, out } = await harness(device, bt, (e) => {
+        const Y = e.buf(T * D, "y");
+        l2tok(e, e.upload(x, "x"), Y, { D });
+        return { buf: Y, n: T * D };
+      });
+      return { e, bt, out, ref };
+    },
+  };
+}
+
 export const cases = [
   matmulCase("f32", { N: 64, K: 64 }),
   matmulCase("f32", { N: 96, K: 256, bias: true, geluOn: true }),
@@ -425,6 +549,17 @@ export const cases = [
   gatedCase("silu", 160, "inplace"),
   poolCase(256),
   l2Case(768),
+  routeCase(8, 96),
+  routeCase(5, 256),
+  expertCase("tiled", 1, { E: 4, N: 128, K: 96 }),
+  expertCase("tiled", 2, { E: 8, N: 64, K: 48 }),
+  expertCase("rows", 1, { E: 4, N: 96, K: 128 }),
+  expertCase("rows", 2, { E: 8, N: 64, K: 64 }),
+  tiledCase({ N: 128, K: 80, accumulate: false }),
+  tiledCase({ N: 64, K: 256, accumulate: true }),
+  combineCase(96),
+  l2tokCase(128),
+  l2tokCase(64),
 ];
 
 // opts: only (substring of case name or op), seed, tol (default 1e-4), reps (0: no timing), rounds.
@@ -439,9 +574,10 @@ export async function runOps(device, { only = "", seed = 1, tol = 1e-4, reps = 0
       const enc = device.createCommandEncoder();
       e._record(enc, bt.batch);
       device.queue.submit([enc.finish()]);
-      const got = await readBuf(device, out.buf, out.n);
+      let got = await readBuf(device, out.buf, out.n);
+      if (out.post) got = await out.post(got);   // a case that compares a derived view (the router)
       let maxErr = 0, maxRef = 0, dot = 0, ga = 0, rb = 0;
-      for (let i = 0; i < out.n; i++) {
+      for (let i = 0; i < got.length; i++) {
         maxErr = Math.max(maxErr, Math.abs(got[i] - ref[i])); maxRef = Math.max(maxRef, Math.abs(ref[i]));
         dot += got[i] * ref[i]; ga += got[i] * got[i]; rb += ref[i] * ref[i];
       }

@@ -10,7 +10,7 @@ The migration plan for the rest is under "Kernel library" below.
 | File | What |
 |---|---|
 | `runtime.js` | `SeqEngine` base class: uniform layout (`HEADER`), weight readers (`BYTE`), shader compilation, one static uniform and bind group per dispatch, packed variable-length batches, whole-file upload with binding windows, aligned per-tensor upload, `embed` / `embedTo` / `probe` / `destroy` |
-| `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2`, `attentionLong` and `gather` (sequences to 1,024 tokens), `embed` (t4 / t3 token tables), `ropeTable` and `rope`, `gated` (gelu, gelu_tanh, silu) |
+| `kernels.js` | block templates and their recording helpers: `matmul` (weight formats q4 MatMulNBits, int8 per column, f32, each a WGSL snippet for one k-block inside a common loop and epilogue: alpha, column scale, bias, GELU, accumulate), `norm` (RMS or LayerNorm, residual before or after, layer scalar), `attention` (grouped-query, sliding window, separate or fused qkv, head dim up to 512), `pool`, `l2`, `attentionLong` and `gather` (sequences to 1,024 tokens), `embed` (t4 / t3 token tables), `ropeTable` and `rope`, `gated` (gelu, gelu_tanh, silu); the MoE ops `route` (top-2 of up to 8 experts into per-expert row lists), `expertMatmul` (grouped f32 matmul over the routed rows, 64 x 64 tiled or 8-row), `matmulTiled` (the same tiled kernel over all tokens), `combine` (gate-weighted sum into the residual) and `l2tok` |
 | `tests/ops.js`, `tests/train_ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references (finite differences for the backward kernels), and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
 | `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider, adapter-library, ettin-native, eg2-cut, moedern-1.5M, lora-trainer and distill-trainer (weights not in git are downloaded once to a cache), add one per migrated engine |
 | `train/spec.js`, `train/kernels.js`, `train/nce.js` | training kernels in the trainers' spec format (named uniforms and bindings, dynamic uniform offsets) and `SpecRunner`, the dispatch runner both trainers extend: LoRA and full-weight forward and backward passes, AdamW, the cosine and InfoNCE losses |
@@ -24,11 +24,12 @@ made for the site repo.
 
 ## Checks
 
-Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (31 on
-2026-11-07: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
+Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (42 on
+2026-11-08: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
 residual modes; attention fused and separate, grouped-query, windowed, head dim 32 to 256; attentionLong to
 1,024 tokens; gather; embed t4 / t3 with alpha and position rows; rope fused and plain; gated gelu,
-gelu_tanh and silu; pool; l2)
+gelu_tanh and silu; pool; l2; the MoE router, grouped matmuls in both kernels and row modes, tiled
+matmul, combine, l2tok)
 on random inputs and a packed batch of five sequences (1 to 128 tokens), against a float64 reference
 in the same file. A case passes at max |gpu - ref| <= 1e-4 max |ref|; today's worst is 2.4e-7. It
 takes 7 s. Injecting three bugs (swapped q4 nibbles, a window off by one, the pool divisor off by
@@ -136,8 +137,15 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    from the inference ones (Oskar, 2026-11-07): the trainer pads batches and saves values for the
    backward pass, inference packs variable-length sequences, and merging them would mean rewriting
    the backward kernels or slowing inference to remove about four kernels.
-4. **MoE ops** from moederncolbert-bench: route, grouped matmul, combine, per-token l2.
-5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention.
+4. **MoE ops** from moederncolbert-bench (done 2026-11-08): `route`, `expertMatmul`, `matmulTiled`,
+   `combine` and `l2tok` in `kernels.js`, their six shaders byte-identical to the engine's, which now
+   defines only its hash embedding, RMSNorm and 512-token attention. `engine_ab.mjs moedern-1.5M`
+   (both matmul paths) gives max |diff| 0. Eleven per-op cases; the router is compared as its gates
+   plus each slot's expert rebuilt from the lists, since the atomics leave list order free.
+   Injected bugs in the router's lists, the 8-row grouped matmul and the combine failed their cases.
+   No engine timing run on the Mac: the shaders and dispatch sequence are unchanged.
+5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention. Skipped
+   (Oskar, 2026-11-08).
 6. **Retrieval ops** (dot, scan, top-k, sort) from tail.js and the bridge jobs, and retire
    `leaf-gpu.js`.
 
