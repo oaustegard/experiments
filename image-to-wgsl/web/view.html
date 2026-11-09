@@ -10,7 +10,7 @@ const msg = document.getElementById("msg"), cv = document.querySelector("canvas"
 const say = (t) => { msg.textContent = t; };
 try {
   const src = q.get("src");
-  if (!src) { say("Add ?src=URL of a splat .bin file, for example ?src=blobs/kodim23.bin"); throw 0; }
+  if (!src) { say("Add ?src=URL of a splat file to draw it, for example ?src=blobs/kodim23.bin. A splat file (.bin) is the packed list of soft ellipses that the image-to-wgsl page fits to a picture; that page's \"Download the splat list\" link makes one."); throw 0; }
   const ad = await navigator.gpu?.requestAdapter();
   if (!ad) { say("WebGPU is not available in this browser."); throw 0; }
   const res = await fetch(src);

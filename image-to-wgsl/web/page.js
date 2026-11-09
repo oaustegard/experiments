@@ -88,7 +88,7 @@ function load(entry) {
     $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
     const bin = emitBin(entry);
     $("dlb").href = URL.createObjectURL(new Blob([bin], { type: "application/octet-stream" }));
-    $("dlb").textContent = `Download the splat data (.bin, ${(bin.byteLength / 1000).toFixed(1)} KB)`;
+    $("dlb").textContent = `Download the splat list (.bin, ${(bin.byteLength / 1000).toFixed(1)} KB)`;
   }
   cam.z = 1; cam.x = cam.y = 0.5; applyCam();
   $("dzrow").hidden = !dz; dzStatus();
