@@ -244,6 +244,7 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`py-wasm-bench/`](py-wasm-bench/RESULTS.md) | 2026-10-18 | **done — py2wasm runs 0.85–1.26x plain CPython-in-wasm (not the claimed 2.5–3x); mypyc-on-WASI hits 20x native CPython only where values stay in locals, and stays below 1x on `list[float]` kernels; hand C→wasm is 13–42x native CPython; SPy reaches 1.9–29x native CPython without libpython; a Python→WGSL `@kernel` prototype is correct on SwiftShader** | [`RESULTS.md`](py-wasm-bench/RESULTS.md) + [`bench.py`](py-wasm-bench/bench.py) + [`arms/wgsl/pykernel.py`](py-wasm-bench/arms/wgsl/pykernel.py) | Oskar: *"Could we improve on current platform tooling for converting code to run under wasm and/or webgpu?"* Nine arms × four checksum-verified kernels under wasmtime and node. The gap to the ceiling is value representation (boxed list elements), and SPy, which lowers typed lists to flat buffers, is the fastest Python-derived arm on every kernel. |
 | [`moederncolbert-bench/`](moederncolbert-bench/RESULTS.md) | 2026-10-26 | done | [`RESULTS.md`](moederncolbert-bench/RESULTS.md) + [`web/engine.js`](moederncolbert-bench/web/engine.js) | SauerkrautLM-MoEdernColBERT 1.5M/27M/115M: sizes do not share a vector space (mixed pairs at chance on NanoBEIR); WGSL engine runs 1.5M at 0.46 ms and 27M at 0.96 ms per query on the Mac, at parity with the EG2 cut and Ettin engines |
 | [`navier-stokes-explainer/`](navier-stokes-explainer/README.md) | 2026-10-19 | done — interactive page | [`web/index.html`](navier-stokes-explainer/web/index.html) ([live](https://austegard.com/experiments/navier-stokes-explainer/web/)) + [`run/verify.mjs`](navier-stokes-explainer/run/verify.mjs) | [#101](https://github.com/oaustegard/experiments/issues/101). Five-chapter WebGPU explainer: toggleable NS terms, a cylinder wake under a Reynolds slider, 2D vs 3D vortex stretching (filament rings), the Beale–Kato–Majda integral with a live energy spectrum, and the 2026 blowup results. The OpenAI result is forced (Clay C, D as corollary); the unforced alternatives stay open. |
+| [`haiku-swarm-poc/`](haiku-swarm-poc/RESULTS.md) | 2026-11-09 | done | [`RESULTS.md`](haiku-swarm-poc/RESULTS.md) + [`results/curves.png`](haiku-swarm-poc/results/curves.png) | [#111](https://github.com/oaustegard/experiments/issues/111). SwarmEvolve (arXiv 2611.08483) rebuilt as text for an API model: rounds of short Haiku 5.5 ideas feeding one Haiku writer, against stock OpenEvolve on Sonnet 5.5 at equal dollars, on circle, Heilbronn and hexagon packing. Against the best Sonnet effort level the swarm reaches 99% of the reference 17-33x cheaper on circle packing and 9-17x on hexagon, overlapping on Heilbronn; Sonnet matches its final scores by $3. |
 | [`reviews/`](reviews/) | 2026-04-21 | done | the `.md` files are the results | freeform repo reviews |
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
@@ -1943,6 +1944,14 @@ solver (MacCormack advection, Jacobi viscosity and pressure) and a 3D vortex-fil
 all-pairs Biot–Savart. `run/verify.mjs` drives every chapter in headless Chromium and screenshots
 it. Headless WebGPU canvases need `--use-vulkan=swiftshader` (METHODS.md). Chapter 5 corrects
 Muninn memory c43844eb: the 2026 OpenAI blowup is forced.
+
+### `haiku-swarm-poc/` — a Haiku swarm against a Sonnet loop at equal spend
+
+SwarmEvolve's agents think in an open model's hidden states; with Claude behind an API the nearest copy is
+many short text ideas from Haiku 5.5 and one Haiku writer per swarm. Compared with stock OpenEvolve driving
+Sonnet 5.5 at the same list-price spend, three seeds per arm, on three of OpenEvolve's math examples. All model
+calls are headless `claude -p` children metered by `gateway.py`; OpenEvolve and every model-written program run
+in the hub's `scripts/jail.sh`. Ran as ten lanes across sibling sessions (`run_all.py --lane N`).
 
 ### `answer-search-1bit/` — 1-bit vs 2-bit index for Bluesky Answer Search
 

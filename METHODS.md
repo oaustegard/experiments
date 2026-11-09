@@ -669,6 +669,19 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`claude -p` as a metered model call: ~1.4K harness tokens per call, 1-hour cache writes, no way to switch Haiku's
+  thinking off.** Even with `--tools "" --strict-mcp-config --setting-sources "" --disable-slash-commands
+  --exclude-dynamic-system-prompt-sections --system-prompt-file`, each call carries about 550 cached and 810
+  freshly written tokens of the CLI's own. The CLI writes prompt cache at the 1-hour rate (2x input); set
+  `FORCE_PROMPT_CACHING_5M=1` (or `CLAUDE_CODE_PROMPT_CACHE_TTL=5m`) for calls seconds apart, at 1.25x. Haiku 5.5
+  thinks adaptively: `MAX_THINKING_TOKENS=0` and `alwaysThinkingEnabled: false` are ignored, and an output cap
+  below the model's need fails the call while billing it. `--output-format stream-json --verbose` carries a
+  `rate_limit_event` with five-hour and seven-day utilisation, enough to schedule runs around the usage window.
+  (`haiku-swarm-poc/gateway.py`)
+- **Stock OpenEvolve can run fully jailed against a host-side model gateway through a Unix socket.** The jail's
+  network namespace has only `lo`; a path-based Unix socket crosses it, so a small TCP-to-socket forwarder inside
+  the jail gives OpenEvolve an OpenAI-compatible endpoint and nothing else. (`haiku-swarm-poc/jailside/bridge.py`)
+
 - **A game loop that caps time per frame runs slower than real time on SwiftShader, so wait on game state.**
   A WebGPU game drew 8.5 frames a second in headless Chromium on SwiftShader and capped each frame at 0.05 s of
   game time, so its 1.7 s respawn delay took about 4 s of wall clock and a 4 s `waitForTimeout` read it as stuck.
@@ -3777,6 +3790,14 @@ Lessons from measuring Jev as a completion judge on 158 worker attempts (`tempor
   at 0.01 resolution; four calls per attempt took five seconds for 52 attempts.
 
 ## Negative results — do not re-derive
+
+### OpenEvolve's hexagon-packing evaluator accepts a 1e-9 outer hexagon (haiku-swarm-poc)
+
+`examples/alphaevolve_math_problems/hexagon_packing` tests containment with an absolute 1e-6 tolerance on an
+unnormalised cross product, so an outer hexagon of side 1e-9 passes every check and scores ~3.9e9. A buggy
+program found it without trying to. Bound the score by geometry (11 unit hexagons need an outer side of at least
+the square root of 11) or re-verify with normalised edge distances (`haiku-swarm-poc/jailside/strict_hex.py`).
+Any evolutionary search will climb a loophole like this and spend its remaining budget refining it.
 
 ### Jev ranks lint hits well but cannot settle them: probabilities stay in the middle (jev-prose-lint)
 

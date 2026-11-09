@@ -24,7 +24,7 @@ WALL = {"A": 3600, "Am": 3600, "Al": 3600, "B": 3600, "C": 3600, "L": 3600, "T":
 ARMS = {"A": "A  Sonnet loop (OpenEvolve), effort high", "Am": "Am Sonnet loop, effort medium",
         "Al": "Al Sonnet loop, effort low", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer",
         "L": "L  Haiku swarm, all effort low"}
-COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "L": "#eda100", "Am": "#e87ba4", "Al": "#008300",
+COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "L": "#eda100", "Am": "#e87ba4", "Al": "#6250d6",
           "T0": "#2a78d6", "T1": "#eb6834", "T2": "#1baf7a", "T3": "#eda100"}
 PROBLEM_NAMES = {"circle": "Circle packing, n=26 (1.0 = best known, 2.635983)",
                  "heilbronn": "Heilbronn triangle, n=11 (1.0 = AlphaEvolve's construction)",
@@ -194,7 +194,7 @@ def plot(all_runs, problem):
     groups = {k: v for k, v in groups.items() if v}
     if not groups:
         return
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), facecolor="#fcfcfb")
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5.4), facecolor="#fcfcfb")
     xs = np.geomspace(0.003, 3.3, 400)
     ts = np.geomspace(0.05, 60, 400)
     for arm, g in groups.items():
@@ -214,7 +214,8 @@ def plot(all_runs, problem):
         ax.axhline(1.0, color="#9a9994", linewidth=1, linestyle=(0, (4, 3)))
     axes[1].text(0.004, 1.0, "best known" if problem == "circle" else "AlphaEvolve", fontsize=8.5,
                  color="#52514e", va="top")
-    axes[0].set_ylabel("best score (sum of radii / 2.635983)", color="#52514e")
+    axes[0].set_ylabel("best score (sum of radii / 2.635983)" if problem == "circle"
+                       else "best score (1.0 = AlphaEvolve)", color="#52514e")
     axes[0].set_title("Best score against spend", loc="left", fontsize=11, color="#0b0b0b")
     axes[1].set_title("Same, zoomed to the top", loc="left", fontsize=11, color="#0b0b0b")
     finals = [max((e["score"] for e in r["events"]), default=0) for g in groups.values() for r in g]
@@ -222,10 +223,12 @@ def plot(all_runs, problem):
     axes[1].set_ylim(lo, max(1.0005, max(finals) + 0.005))
     fig.suptitle(PROBLEM_NAMES[problem], x=0.01, ha="left", fontsize=12, color="#0b0b0b")
     axes[2].set_title("Best score against wall clock", loc="left", fontsize=11, color="#0b0b0b")
-    axes[0].legend(frameon=False, fontsize=9, loc="lower right", bbox_to_anchor=(1, 0.1))
-    fig.text(0.01, 0.01, "Line: mean over seeds, drawn while every seed is still running. Band: lowest to highest seed.",
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=9, loc="lower center", ncol=3,
+               bbox_to_anchor=(0.5, 0.0))
+    fig.text(0.01, 0.105, "Line: mean over seeds, drawn while every seed is still running. Band: lowest to highest seed.",
              fontsize=8.5, color="#52514e")
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.tight_layout(rect=(0, 0.13, 1, 1))
     fig.savefig(OUT / ("curves.png" if problem == "circle" else f"curves_{problem}.png"), dpi=150,
                 facecolor=fig.get_facecolor())
     plt.close(fig)
@@ -305,6 +308,42 @@ Plots, written once a problem has runs: `curves.png` (circle packing), `curves_h
 """
 
 
+def headline(rows, summary):
+    """Per problem and arm: the spreads RESULTS.md cites, so each number has one source."""
+    out = {}
+    for prob in {r["problem"] for r in rows}:
+        for arm in {r["arm"] for r in rows if r["problem"] == prob}:
+            rs = [r for r in rows if r["problem"] == prob and r["arm"] == arm]
+            def span(vals):
+                v = [x for x in vals if x is not None]
+                return {"min": min(v), "max": max(v), "n": len(v), "never": len(vals) - len(v)} if v else {"n": 0, "never": len(vals)}
+            out.setdefault(prob, {})[arm] = {
+                "seeds": len(rs),
+                "spent": span([r["spent"] for r in rs]),
+                "minutes": span([r["elapsed_min"] for r in rs]),
+                "best": span([r["best"] for r in rs]),
+                "best_at_0.05": span([r["best_at"]["0.05"] for r in rs]),
+                "best_at_0.25": span([r["best_at"]["0.25"] for r in rs]),
+                "best_at_1": span([r["best_at"]["1.0"] for r in rs]),
+                "usd_to_0.99": span([r["dollars_to"]["0.99"] for r in rs]),
+                "usd_to_0.999": span([r["dollars_to"]["0.999"] for r in rs]),
+                "programs_per_usd": span([r["programs_per_dollar"] for r in rs]),
+            }
+    out["tuning"] = {r["run"]: {"K": r["K"], "N": r["N"], "usd_to_0.99": r["dollars_to"]["0.99"],
+                                "usd_to_0.999": r["dollars_to"]["0.999"], "spent": r["spent"]}
+                     for r in rows if r["arm"] == "T"}
+    tot = {"all": 0.0, "sonnet": 0.0, "haiku_swarm": 0.0}
+    for r in rows:
+        tot["all"] += r["spent"]
+        tot["sonnet" if r["arm"] in ("A", "Am", "Al", "C") else "haiku_swarm"] += r["spent"]
+    out["total_list_usd_48_runs"] = {k: round(v, 2) for k, v in tot.items()}
+    api = {"sonnet": 0.0, "haiku_swarm": 0.0}
+    for r in rows:
+        api["sonnet" if r["arm"] in ("A", "Am", "Al", "C") else "haiku_swarm"] += r["spent_api"]
+    out["api_equiv_usd_48_runs"] = {k: round(v, 2) for k, v in api.items()}
+    return out
+
+
 def main():
     runs = load()
     rows = [per_run(r) for r in runs.values()]
@@ -316,6 +355,7 @@ def main():
     summary = {"runs": rows, "matched": {p: {"baseline": base_for(p), **matched(runs, p, base_for(p))}
                                          for p in problems_present}}
     (OUT / "summary.json").write_text(json.dumps(summary, indent=1))
+    (OUT / "headline.json").write_text(json.dumps(headline(rows, summary), indent=1))
     md = [LEGEND]
     for prob in problems_present:
         prow =[r for r in rows if r["problem"] == prob and r["arm"] in ("A", "Am", "Al", "B", "C", "L")]
