@@ -78,11 +78,11 @@ class Run:
             self.rng.setstate(_tuplify(st["rng"]))
         if self.clock_path.exists():
             used = json.loads(self.clock_path.read_text())["used"]
-        self.t0 = time.time() - used
+        self.t0 = time.time() - used - self.gw.paused_before(time.time())
 
     # ----------------------------------------------------------- bookkeeping
     def elapsed(self) -> float:
-        return time.time() - self.t0
+        return time.time() - self.t0 - self.gw.paused_before(time.time())
 
     def save(self):
         tmp = self.archive_path.with_suffix(".tmp")

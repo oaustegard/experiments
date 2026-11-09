@@ -63,7 +63,7 @@ def kill_group(proc: subprocess.Popen):
             continue
 
 
-def build_events(d: Path, t0: float, problem: str = "circle") -> list[dict]:
+def build_events(d: Path, t0: float, problem: str = "circle", paused=lambda t: 0.0) -> list[dict]:
     """One event per program: its last evaluation stage, at the spend reached by then."""
     rows = [json.loads(l) for l in (d / "evals.jsonl").read_text().splitlines()] if (d / "evals.jsonl").exists() else []
     rows.sort(key=lambda r: r["t"])
@@ -77,7 +77,7 @@ def build_events(d: Path, t0: float, problem: str = "circle") -> list[dict]:
         spent = sum(l["cost"] for l in ledger if l["t_end"] <= r["t"])
         spent_api = sum(l["cost_api"] for l in ledger if l["t_end"] <= r["t"])
         m = r["metrics"]
-        events.append({"kind": "eval", "sha": r["sha"], "score": score_of(m, problem), "te": r["t"] - t0,
+        events.append({"kind": "eval", "sha": r["sha"], "score": score_of(m, problem), "te": r["t"] - t0 - paused(r["t"]),
                        "spent": spent, "spent_api": spent_api, "stage": r["fn"],
                        "error": str(m.get("error", ""))[:200] or None})
     return events
@@ -127,13 +127,13 @@ def main(argv=None):
         if gw.spent >= a.cap:
             stopped_by = "cap"
             break
-        if time.time() - t0 >= a.wall:
+        if time.time() - t0 - gw.paused_before(time.time()) >= a.wall:
             stopped_by = "wall"
             break
-    elapsed = time.time() - t0
+    elapsed = time.time() - t0 - gw.paused_before(time.time())
     kill_group(proc)
     srv.shutdown()
-    events = build_events(d, t0, a.problem)
+    events = build_events(d, t0, a.problem, gw.paused_before)
     with (d / "events.jsonl").open("w") as f:
         for e in events:
             f.write(json.dumps(e) + "\n")

@@ -89,13 +89,14 @@ class Gateway:
     run_dir: Path
     cap: float
     max_parallel: int = 16
-    quota_stop: float = 0.90        # five-hour window utilisation that aborts the run
+    quota_stop: float = 0.90        # five-hour window utilisation that pauses the run until it resets
     week_stop: float = 0.45         # seven-day utilisation that aborts the run
     overhead: dict = field(default_factory=dict)
     spent: float = 0.0
     spent_api: float = 0.0
     calls: int = 0
     last_quota: dict = field(default_factory=dict)
+    pauses: list = field(default_factory=list)   # [(start, end)] quota waits, excluded from wall clock
 
     def __post_init__(self):
         self.run_dir = Path(self.run_dir)
@@ -103,6 +104,12 @@ class Gateway:
         self.ledger = self.run_dir / "ledger.jsonl"
         self._lock = threading.Lock()
         self._sem = threading.BoundedSemaphore(self.max_parallel)
+        self._pause_lock = threading.Lock()
+        pf = self.run_dir / "pauses.jsonl"
+        if pf.exists():
+            for line in pf.read_text().splitlines():
+                r = json.loads(line)
+                self.pauses.append((r["start"], min(r["until"], time.time())))
         self._cwd = tempfile.mkdtemp(prefix="hsp-cc-")
         self.t0 = time.time()
         (self.run_dir / "cache_ttl").write_text(CACHE_TTL)
@@ -123,6 +130,8 @@ class Gateway:
              retries: int = 2, check_budget: bool = True) -> dict:
         model = ALIASES.get(model, model)
         for attempt in range(retries + 1):
+            with self._pause_lock:
+                pass                  # blocks while another call holds a quota pause
             if check_budget and self.spent >= self.cap:
                 raise BudgetExceeded(f"spent {self.spent:.4f} >= cap {self.cap}")
             with self._sem:
@@ -177,6 +186,7 @@ class Gateway:
             win = quota.get("unifiedWindows") or {}
             rec["quota"] = {k: win.get(k, {}).get("utilization") for k in ("five_hour", "seven_day")}
             rec["quota"]["status"] = quota.get("status")
+            rec["quota"]["five_hour_resets"] = (win.get("five_hour") or {}).get("resetsAt")
         if result is None:
             rec["error"] = f"rc={rc} no result; stderr={stderr[-400:]}"
             return rec
@@ -215,8 +225,27 @@ class Gateway:
             q = rec.get("quota") or {}
             if q:
                 self.last_quota = q
-        if q and ((q.get("five_hour") or 0) >= self.quota_stop or (q.get("seven_day") or 0) >= self.week_stop):
+        if q and (q.get("seven_day") or 0) >= self.week_stop:
             raise QuotaGuard(f"quota utilisation {q}")
+        if q and (q.get("five_hour") or 0) >= self.quota_stop:
+            self._wait_for_reset(q)
+
+    def _wait_for_reset(self, q: dict):
+        """Hold every call until the five-hour window resets. The pause is logged
+        and subtracted from the run's wall clock; spend is unaffected."""
+        with self._pause_lock:
+            reset = q.get("five_hour_resets") or (time.time() + 1800)
+            now = time.time()
+            if now >= reset or (self.pauses and self.pauses[-1][1] >= reset):
+                return
+            with (self.run_dir / "pauses.jsonl").open("a") as f:
+                f.write(json.dumps({"start": now, "until": reset + 30, "quota": q}) + "\n")
+            time.sleep(max(0, reset + 30 - now))
+            self.pauses.append((now, time.time()))
+
+    def paused_before(self, t: float) -> float:
+        """Seconds of quota pause that ended before time t."""
+        return sum(min(e, t) - s for s, e in self.pauses if s < t)
 
     # ------------------------------------------------------------ calibration
     def calibrate(self, models=("claude-haiku-5-5", "claude-sonnet-5-5")):
