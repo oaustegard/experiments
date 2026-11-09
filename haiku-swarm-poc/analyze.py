@@ -1,0 +1,256 @@
+"""Curves, tables and plots from results/runs/*/{summary.json,events.jsonl}.
+
+A run's curve is the best score among programs evaluated so far, as a function
+of dollars spent when each evaluation finished (and, separately, of wall-clock
+minutes). Only evaluations inside the run's wall-clock ceiling count. The
+initial program is scored at $0.
+
+Writes results/summary.json, results/table.md, results/curves.png and, when
+the tuning runs exist, results/tuning.png.
+"""
+
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+R = HERE / "results"
+WALL = {"A": 3600, "B": 3600, "C": 3600, "T": 1800}
+ARMS = {"A": "A  Sonnet loop (OpenEvolve)", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer"}
+COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "T0": "#2a78d6", "T1": "#eb6834", "T2": "#1baf7a", "T3": "#eda100"}
+CHECK_SPEND = [0.02, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 3.0]
+THRESHOLDS = [0.99, 0.999, 0.9999]
+
+
+def load():
+    runs = {}
+    for d in sorted((R / "runs").glob("*")):
+        if not (d / "summary.json").exists() or not (d / "events.jsonl").exists():
+            continue
+        s = json.loads((d / "summary.json").read_text())
+        arm = d.name[0]
+        ev = [json.loads(l) for l in (d / "events.jsonl").read_text().splitlines() if l.strip()]
+        ev = [e for e in ev if e.get("kind") == "eval" and e["te"] <= WALL[arm]]
+        ev.sort(key=lambda e: e["spent"])
+        runs[d.name] = {"arm": arm, "summary": s, "events": ev}
+    return runs
+
+
+def best_at(ev, x, key="spent"):
+    vals = [e["score"] for e in ev if e[key] <= x]
+    return max(vals) if vals else float("nan")
+
+
+def first_reach(ev, thr, key="spent"):
+    hits = [e[key] for e in ev if e["score"] >= thr]
+    return min(hits) if hits else None
+
+
+def final_x(run, key="spent"):
+    s = run["summary"]
+    if key == "spent":
+        return s["spent"]
+    if key == "spent_api":
+        return s.get("spent_api", s["spent"])
+    return min(s.get("elapsed", WALL[run["arm"]]), WALL[run["arm"]])
+
+
+def per_run(run):
+    ev, s = run["events"], run["summary"]
+    spent = s["spent"]
+    progs = len({e["sha"] for e in ev})
+    return {
+        "run": s["run"], "arm": run["arm"], "seed": s.get("seed"), "spent": round(spent, 4),
+        "spent_api": round(s.get("spent_api", float("nan")), 4), "elapsed_min": round(s.get("elapsed", 0) / 60, 1),
+        "stopped_by": s.get("stopped_by"), "programs": progs,
+        "programs_per_dollar": round(progs / spent, 1) if spent else None,
+        "best": round(max(e["score"] for e in ev), 6) if ev else None,
+        "best_at": {str(x): (round(best_at(ev, x), 6) if x <= spent + 1e-9 else None) for x in CHECK_SPEND},
+        "dollars_to": {str(t): (round(v, 4) if (v := first_reach(ev, t)) is not None else None) for t in THRESHOLDS},
+        "dollars_api_to": {str(t): (round(v, 4) if (v := first_reach(ev, t, "spent_api")) is not None else None)
+                           for t in THRESHOLDS},
+        "minutes_to": {str(t): (round(v / 60, 2) if (v := first_reach(ev, t, "te")) is not None else None)
+                       for t in THRESHOLDS},
+        "K": s.get("K"), "N": s.get("N"),
+    }
+
+
+def matched(runs):
+    """Seed-paired comparison of B (and C) against A at equal dollars spent."""
+    out = {}
+    for other in ("B", "C"):
+        rows = []
+        for seed in (1, 2, 3):
+            a, o = runs.get(f"A-s{seed}"), runs.get(f"{other}-s{seed}")
+            if not a or not o:
+                continue
+            m = min(a["summary"]["spent"], o["summary"]["spent"])
+            pts = [x for x in CHECK_SPEND if x <= m] + [m]
+            rows.append({"seed": seed, "common_spend": round(m, 4),
+                         "diff": {str(round(x, 4)): round(best_at(o["events"], x) - best_at(a["events"], x), 6)
+                                  for x in pts}})
+        verdict = {}
+        if len(rows) == 3:
+            common = min(r["common_spend"] for r in rows)
+            for x in [x for x in CHECK_SPEND if x <= common] + [common]:
+                diffs = [best_at(runs[f"{other}-s{r['seed']}"]["events"], x) - best_at(runs[f"A-s{r['seed']}"]["events"], x)
+                         for r in rows]
+                verdict[str(round(x, 4))] = {"diffs": [round(d, 6) for d in diffs],
+                                            "beats_on_all_3": all(d > 0 for d in diffs),
+                                            "worst_beats_best": min(best_at(runs[f"{other}-s{r['seed']}"]["events"], x) for r in rows)
+                                            > max(best_at(runs[f"A-s{r['seed']}"]["events"], x) for r in rows)}
+        out[other] = {"per_seed": rows, "verdict": verdict}
+    return out
+
+
+def fmt(v, nd=4):
+    return "—" if v is None or (isinstance(v, float) and math.isnan(v)) else f"{v:.{nd}f}"
+
+
+def table(rows):
+    lines = ["| run | spent $ | API-equiv $ | min | programs | programs/$ | best | $ to 0.99 | $ to 0.999 | $ to 0.9999 | stopped by |",
+             "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in rows:
+        lines.append(f"| {r['run']} | {r['spent']:.3f} | {fmt(r['spent_api'], 3)} | {r['elapsed_min']} | {r['programs']} | "
+                     f"{fmt(r['programs_per_dollar'], 0)} | {fmt(r['best'], 5)} | {fmt(r['dollars_to']['0.99'])} | "
+                     f"{fmt(r['dollars_to']['0.999'])} | {fmt(r['dollars_to']['0.9999'])} | {r['stopped_by']} |")
+    return "\n".join(lines)
+
+
+def arm_table(runs, rows):
+    lines = ["| arm | seeds | mean spent $ | programs/$ (mean) | best (mean, range) | $ to 0.99 (mean, range) | $ to 0.999 (mean, range) |",
+             "|---|---|---|---|---|---|---|"]
+    for arm in ("A", "B", "C"):
+        rs = [r for r in rows if r["arm"] == arm]
+        if not rs:
+            continue
+
+        def mr(vals, nd=4):
+            v = [x for x in vals if x is not None]
+            if not v:
+                return "—"
+            miss = len(vals) - len(v)
+            s = f"{np.mean(v):.{nd}f} ({min(v):.{nd}f}–{max(v):.{nd}f})"
+            return s + (f", {miss} never" if miss else "")
+        lines.append(f"| {ARMS[arm]} | {len(rs)} | {np.mean([r['spent'] for r in rs]):.3f} | "
+                     f"{np.mean([r['programs_per_dollar'] or 0 for r in rs]):.0f} | {mr([r['best'] for r in rs], 5)} | "
+                     f"{mr([r['dollars_to']['0.99'] for r in rs])} | {mr([r['dollars_to']['0.999'] for r in rs])} |")
+    return "\n".join(lines)
+
+
+def band(ax, group, key, xs, color, label, xscale=1.0):
+    ys = np.array([[best_at(r["events"], x, key) if x <= final_x(r, key) + 1e-9 else np.nan for x in xs]
+                   for r in group])
+    full = ~np.isnan(ys).any(axis=0)       # mean only where every seed is still running
+    if not full.any():
+        return
+    px = xs[full] / xscale
+    ax.fill_between(px, np.nanmin(ys[:, full], axis=0), np.nanmax(ys[:, full], axis=0),
+                    color=color, alpha=0.18, linewidth=0)
+    ax.plot(px, np.nanmean(ys[:, full], axis=0), color=color, linewidth=2, label=label)
+
+
+def style(ax):
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color("#9a9994")
+    ax.tick_params(colors="#52514e", labelsize=9)
+    ax.grid(True, color="#e6e5e0", linewidth=0.8)
+    ax.set_axisbelow(True)
+
+
+def plot(runs):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    groups = {arm: [r for r in runs.values() if r["arm"] == arm] for arm in ("A", "B", "C")}
+    groups = {k: v for k, v in groups.items() if v}
+    if not groups:
+        return
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), facecolor="#fcfcfb")
+    xs = np.geomspace(0.003, 3.3, 400)
+    ts = np.geomspace(0.05, 60, 400)
+    for arm, g in groups.items():
+        band(axes[0], g, "spent", xs, COLORS[arm], f"{ARMS[arm]} (n={len(g)})")
+        band(axes[1], g, "spent", xs, COLORS[arm], ARMS[arm])
+        band(axes[2], g, "te", ts * 60, COLORS[arm], ARMS[arm], xscale=60)
+    for ax in axes:
+        ax.set_facecolor("#fcfcfb")
+        style(ax)
+    for ax in axes[:2]:
+        ax.set_xscale("log")
+        ax.set_xlabel("dollars spent (list price, as billed)", color="#52514e")
+    axes[2].set_xscale("log")
+    axes[2].set_xlim(0.05, 60)
+    axes[2].set_xlabel("wall-clock minutes", color="#52514e")
+    for ax in axes:
+        ax.axhline(1.0, color="#9a9994", linewidth=1, linestyle=(0, (4, 3)))
+    axes[1].text(0.004, 0.99985, "best known, 2.635983", fontsize=8.5, color="#52514e", va="top")
+    axes[0].set_ylabel("best score (sum of radii / 2.635983)", color="#52514e")
+    axes[0].set_title("Best score against spend", loc="left", fontsize=11, color="#0b0b0b")
+    axes[1].set_title("Same, near the best known value", loc="left", fontsize=11, color="#0b0b0b")
+    axes[1].set_ylim(0.98, 1.0005)
+    axes[2].set_title("Best score against wall clock", loc="left", fontsize=11, color="#0b0b0b")
+    axes[0].legend(frameon=False, fontsize=9, loc="lower right", bbox_to_anchor=(1, 0.1))
+    fig.text(0.01, 0.01, "Line: mean over seeds, drawn while every seed is still running. Band: lowest to highest seed.",
+             fontsize=8.5, color="#52514e")
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.savefig(R / "curves.png", dpi=150, facecolor=fig.get_facecolor())
+    plt.close(fig)
+
+
+def plot_tuning(runs):
+    t = sorted((r for r in runs.values() if r["arm"] == "T"), key=lambda r: r["summary"]["run"])
+    if not t:
+        return
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(7.5, 4.4), facecolor="#fcfcfb")
+    ax.set_facecolor("#fcfcfb")
+    xs = np.geomspace(0.003, 1.1, 300)
+    for i, r in enumerate(t):
+        s = r["summary"]
+        ys = [best_at(r["events"], x) if x <= s["spent"] + 1e-9 else np.nan for x in xs]
+        ax.plot(xs, ys, color=COLORS[f"T{i}"], linewidth=2, label=f"K={s['K']}, N={s['N']}")
+    style(ax)
+    ax.set_xscale("log")
+    ax.set_ylim(0.9, 1.0005)
+    ax.set_xlabel("dollars spent", color="#52514e")
+    ax.set_ylabel("best score", color="#52514e")
+    ax.set_title("Swarm shape, one seed each (exploratory)", loc="left", fontsize=11)
+    ax.legend(frameon=False, fontsize=9, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(R / "tuning.png", dpi=150, facecolor=fig.get_facecolor())
+    plt.close(fig)
+
+
+def main():
+    runs = load()
+    rows = [per_run(r) for r in runs.values()]
+    main_rows = [r for r in rows if r["arm"] in "ABC"]
+    tune_rows = [r for r in rows if r["arm"] == "T"]
+    summary = {"runs": rows, "matched": matched(runs)}
+    (R / "summary.json").write_text(json.dumps(summary, indent=1))
+    md = ["## Per arm", "", arm_table(runs, main_rows), "", "## Per run", "", table(main_rows)]
+    if tune_rows:
+        md += ["", "## Tuning (one seed, $1 cap, 30 min)", "", table(tune_rows)]
+    for other, m in summary["matched"].items():
+        if m["verdict"]:
+            md += ["", f"## {other} minus A at matched spend (seed-paired best-score differences)", "",
+                   "| spend $ | seed 1 | seed 2 | seed 3 | beats on all 3 | worst beats best |", "|---|---|---|---|---|---|"]
+            for x, v in m["verdict"].items():
+                md.append(f"| {x} | " + " | ".join(f"{d:+.5f}" for d in v["diffs"]) +
+                          f" | {'yes' if v['beats_on_all_3'] else 'no'} | {'yes' if v['worst_beats_best'] else 'no'} |")
+    (R / "table.md").write_text("\n".join(md) + "\n")
+    plot(runs)
+    plot_tuning(runs)
+    print("analysis ->", R / "table.md")
+
+
+if __name__ == "__main__":
+    main()
