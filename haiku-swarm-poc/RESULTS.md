@@ -1,4 +1,4 @@
-# RESULTS: a Haiku swarm against a Sonnet loop at equal spend
+# RESULTS: a Haiku swarm gets near the best answer far more cheaply than a Sonnet loop
 
 A proof of concept after SwarmEvolve (Jiang and Karniadakis, Brown University, arXiv 2611.08483). SwarmEvolve
 improves a program against an automatic scorer: each round, dozens of small agents run inside one open-weights
@@ -10,12 +10,16 @@ internal activations are out of reach, so this experiment tests the nearest thin
 cheap Haiku 5.5 calls, each proposing a short idea in text from a different angle, and one Haiku call per group
 ("swarm") that writes the program from the ideas. The comparison is stock OpenEvolve driving Sonnet 5.5, a
 model about 20 times dearer per token, at the same dollar cost. Problems are three geometry optimisations with
-a scorer and a published reference value, so a score of 1.0 means matching the reference. Effort is the
+a scorer and a published reference value, so a score of 1.0 means matching the reference: the best known
+circle packing, and AlphaEvolve's constructions for the other two (which can be beaten, hence scores above 1.0).
+The Heilbronn problem places 11 points in a triangle to make the smallest triangle any three of them form as
+large as possible. Effort is the
 thinking-budget setting of a model call (low, medium, high). Tracking issue: oaustegard/experiments#111.
 
 Arm names used below: **Al / Am / A** are the Sonnet loop at effort low / medium / high; **B** is the Haiku
 swarm; **L** is the swarm with every call at effort low; **C** is the swarm with Sonnet as the writer; **T** is
-the swarm with other group sizes. Method has the details.
+the swarm with other group sizes (K swarms of N proposers; T-K4N0 means 4 swarms with no proposers, the writer
+alone). Method has the details.
 
 ## Answer
 
@@ -23,13 +27,14 @@ At the same dollars spent, does a Haiku swarm find better programs than a Sonnet
 reference much more cheaply, and it does not end higher. Against the best Sonnet effort level for each problem,
 the swarm reached 99% of the reference 17 to 33 times cheaper on circle packing ($0.013 to $0.019 <!-- @evidence[[results/headline.json#/circle/B/usd_to_0.99/max]] -->,
 Sonnet at medium $0.32 to $0.44 <!-- @evidence[[results/headline.json#/circle/Am/usd_to_0.99/max]] -->) and 9 to 17 times cheaper on hexagon packing
-($0.035 to $0.060, Sonnet at high $0.53 to $0.58 <!-- @evidence[[results/headline.json#/hexagon/A/usd_to_0.99/max]] -->). On the Heilbronn triangle the ranges
-overlap ($0.09 to $0.50 against $0.77 to $1.02 <!-- @evidence[[results/headline.json#/heilbronn/Am/usd_to_0.99/max]] -->). Matched seed against seed, the swarm scored
-higher than the Sonnet loop at effort low on every seed from $0.05 to $0.25 on all three problems, which is
-the test fixed before the runs. Given its full $3, Sonnet reached the same final scores, slightly better ones on
-hexagon, and got there faster in wall-clock time; the swarms ran out of their 60 minutes after about $1.
+($0.035 to $0.060, Sonnet at high $0.53 to $0.58 <!-- @evidence[[results/headline.json#/hexagon/A/usd_to_0.99/max]] -->). On the Heilbronn triangle the gap is
+smaller: the swarm's slowest seed ($0.50) still beat Sonnet's fastest ($0.77 to $1.02 <!-- @evidence[[results/headline.json#/heilbronn/Am/usd_to_0.99/max]] -->).
+The test set before the runs, the swarm scoring higher on all three paired seeds at matched spend, holds from
+$0.05 to $0.25 on every problem. Given its full $3, Sonnet reached the same final scores, slightly better on
+hexagon, in a fraction of the wall-clock time; the swarms ran out of their 60 minutes at about $1.
 
-What would change this: problems that small independent edits cannot solve, or a Sonnet harness tuned for cost.
+Limits: three small geometry problems with exact, cheap scorers, one of which had a loophole (Finding 8). What
+would change this: tasks without a cheap scorer, or problems that small independent edits cannot solve.
 
 ## Findings
 
@@ -38,14 +43,19 @@ What would change this: problems that small independent edits cannot solve, or a
    <!-- @evidence[[results/headline.json#/circle/B/usd_to_0.99/min]] -->
    (effort medium), hexagon $0.035 to $0.060 against $0.53 to $0.58 (high) <!-- @evidence[[results/headline.json#/hexagon/B/usd_to_0.99/min]] -->,
    Heilbronn $0.09 to $0.50 against $0.77 to $1.02 (medium) <!-- @evidence[[results/headline.json#/heilbronn/B/usd_to_0.99/min]] -->.
-   Against Sonnet at effort low, the baseline fixed beforehand, the gaps are wider: $0.36 to $0.37 on circle
+   These ratios pool seeds (slowest against fastest, and the reverse), and the best Sonnet arm is picked per
+   problem after the fact, which favours Sonnet. Against Sonnet at effort low, the baseline used for the
+   seed-paired test, the gaps are wider: $0.36 to $0.37 on circle
    <!-- @evidence[[results/headline.json#/circle/Al/usd_to_0.99/min]] -->
    and $2.39 to $2.55 on hexagon with one seed never reaching 99% <!-- @evidence[[results/headline.json#/hexagon/Al/usd_to_0.99/min]] -->. (`results/headline.json`)
 2. **Early on, every swarm seed beat its paired Sonnet seed.** Best score at $0.25: circle 0.998 to 1.0 against
    0.963 to 0.964 <!-- @evidence[[results/headline.json#/circle/Al/best_at_0.25/max]] -->;
    Heilbronn 0.928 to 1.0 against 0.790 to 0.835 <!-- @evidence[[results/headline.json#/heilbronn/B/best_at_0.25/min]] --> <!-- @evidence[[results/headline.json#/heilbronn/Al/best_at_0.25/min]] -->;
    hexagon 0.995 to 0.998 against 0.981 to 0.982 <!-- @evidence[[results/headline.json#/hexagon/B/best_at_0.25/min]] --> <!-- @evidence[[results/headline.json#/hexagon/Al/best_at_0.25/min]] -->.
-   The seed-paired tables in `results/table.md` ("B minus Al") show the same at $0.05 and $0.10.
+   The seed-paired tables in `results/table.md` ("B minus Al") show the same at $0.05 and $0.10. The test was
+   written against Sonnet at effort high; that arm was replaced by effort low after circle packing showed no
+   effect of effort, and on the two harder problems the swarm also beats effort high seed for seed from $0.10 to
+   $0.50.
 3. **Sonnet matches the swarm's final scores once it spends about $3, and gets there sooner in time.** The swarms
    stopped at the 60-minute limit after $0.89 to $1.39 <!-- @evidence[[results/headline.json#/circle/B/spent/max]] -->
    Sonnet spent its $3 in 7 to 42 minutes and ended at circle 0.998 to 1.0 (effort low), Heilbronn 1.0 on all
@@ -148,7 +158,7 @@ effort, so the remaining effort-high runs were dropped to save quota (`skip.txt`
 ### Round 3, 2026-11-09: complete grid
 
 All 46 runs in scope finished, plus two effort-high Sonnet runs that had already started when that arm was
-dropped. The hexagon results changed the reading of Sonnet's effort (Finding 5). The hexagon evaluator loophole
+dropped. The hexagon results changed the reading of Sonnet's effort (Finding 4). The hexagon evaluator loophole
 surfaced in hx-L-s2 (Finding 8). The three hexagon scores above 1.0 were re-checked in the jail with normalised
 edge distances and separating-axis gaps at a 1e-9 tolerance (`jailside/strict_hex.py`): all pass, and hx-A-s2's
 1.0008 reproduces, while hx-A-s1 and hx-B-s1 re-run lower (1.0004 and 0.9991) because their programs optimise
