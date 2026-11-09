@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-08T01:51:37.585784+00:00",
+ "last_run": "2026-11-09T01:52:38.819621+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -528,6 +528,50 @@
    "practical": "NONE",
    "attempts": 1,
    "review": "Robot VLA with discrete motion tokens and an RL reward for matching imagined to observed futures; small gains on near-saturated LIBERO (97.3% vs 96.9% for pi0.5). Nothing transfers to his stack."
+  },
+  "2610.37741": {
+   "title": "Agentic Backdoors via Pretraining Poisoning",
+   "first_seen": "2026-11-09",
+   "best_rank": 29,
+   "upvotes": 158,
+   "reviewed": "2026-11-09",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Poisoning 0.1% of pretraining with ordinary prose implants a curl|bash backdoor in a Qwen3 CLI agent that survives SFT/DPO/GRPO (92.7% Pass@32 ASR at 4B, 0.0% on clean prompts; code at github.com/safety-research/agentic-backdoor). Not replicable without a pretraining budget, but it argues that input filtering is weak against ordinary-string triggers, so Muninn/Claude Code subagents need a hard pre-execution block on pipe-to-shell and similar high-risk actions, independent of model output. The authors propose this defence without testing it, and scaling is measured only up to 4B."
+  },
+  "2611.06910": {
+   "title": "FrontierPhysics: Evaluating Agents for End-to-End Physics Research",
+   "first_seen": "2026-11-09",
+   "best_rank": 25,
+   "upvotes": 169,
+   "reviewed": "2026-11-09",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A 56-task end-to-end physics research benchmark; the best result is Opus 5.5 in Claude Code at 27.4% Pass@1, with a wide CI. The transferable point is grader error: a same-family reviewer agent was more lenient on its own family's rollouts, and wrongly failed 9 of 168 rollouts, so same-family LLM judges need checking."
+  },
+  "2611.08449": {
+   "title": "VFlash: Fast, Accurate Visual Planning via Flash Primitive Decoding",
+   "first_seen": "2026-11-09",
+   "best_rank": 26,
+   "upvotes": 169,
+   "reviewed": "2026-11-09",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "One-pass drafting of structured visual primitives over a frozen 4B VLM gives about 5x lower step latency on NVIDIA hardware. Nothing applies to browser or WebGPU inference, and the headline success gain is confounded by a swapped text encoder. Drafting a schema-known output as one block and checking validity is the only idea worth keeping."
+  },
+  "2610.21375": {
+   "title": "Memorilla: Latent Semantic Memory for LLMs",
+   "first_seen": "2026-11-09",
+   "best_rank": 30,
+   "upvotes": 158,
+   "reviewed": "2026-11-09",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Compresses a document store into 16 soft memory tokens injected into a frozen Qwen3-8B (FactKG 84.3% vs 80.4% for full context). It needs an open-weight decoder plus training, and nothing is released. The useful datapoint is that RAG falls from 78.7 to 51.8 as composed facts go from 1 to 4, a multi-hop weakness that matters for recall design."
   }
  }
 }
