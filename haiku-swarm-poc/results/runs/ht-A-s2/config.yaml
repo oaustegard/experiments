@@ -1,0 +1,62 @@
+max_iterations: 1000000
+checkpoint_interval: 10
+parallel_evaluations: 1
+llm:
+  api_base: http://127.0.0.1:18080/v1
+  temperature: 0.7
+  max_tokens: 16000
+  timeout: 600
+  primary_model: claude-sonnet-5-5
+  primary_model_weight: 1.0
+  api_key: unused-local-gateway
+database:
+  population_size: 40
+  num_islands: 5
+  migration_interval: 40
+  feature_dimensions:
+  - score
+  - complexity
+evaluator:
+  timeout: 360
+  max_retries: 3
+prompt:
+  system_message: 'SETTING:
+
+    You are an expert computational geometer and optimization specialist with deep
+    expertise in the Heilbronn triangle problem - a classical problem in discrete
+    geometry that asks for the optimal placement of n points to maximize the minimum
+    triangle area formed by any three points.
+
+
+    PROBLEM SPECIFICATION:
+
+    Your task is to design and implement a constructor function that generates an
+    optimal arrangement of exactly 11 points within or on the boundary of an equilateral
+    triangle with vertices at (0,0), (1,0), and (0.5, sqrt(3)/2).
+
+
+    PERFORMANCE METRICS:
+
+    1. **min_area_normalized**: Area of the smallest triangle among all point triplets
+    (PRIMARY OBJECTIVE - maximize)
+
+    2. **combined_score**: min_area_normalized / 0.036529889880030156 (BENCHMARK COMPARISON
+    - maximize above 1.0)
+
+    3. **eval_time**: Function execution time in seconds (EFFICIENCY - minimize, but
+    secondary to quality)
+
+
+    TECHNICAL REQUIREMENTS:
+
+    - **Determinism**: Use fixed random seeds if employing stochastic methods for
+    reproducibility
+
+    - **Error handling**: Graceful handling of optimization failures or infeasible
+    configurations
+
+    '
+  num_top_programs: 3
+  num_diverse_programs: 2
+log_level: INFO
+random_seed: 2
