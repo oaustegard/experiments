@@ -84,17 +84,17 @@ def per_run(run):
     }
 
 
-def matched(all_runs, problem):
-    """Seed-paired comparison of each swarm arm against A at equal dollars spent."""
+def matched(all_runs, problem, base="A"):
+    """Seed-paired comparison of each other arm against a Sonnet baseline at equal dollars spent."""
     runs = {}
     for r in all_runs.values():
         if r["problem"] == problem and r["summary"].get("seed") in (1, 2, 3):
             runs[f"{r['arm']}-s{r['summary']['seed']}"] = r
     out = {}
-    for other in ("B", "C", "L", "Am", "Al"):
+    for other in [o for o in ("B", "C", "L", "Am", "Al", "A") if o != base]:
         rows = []
         for seed in (1, 2, 3):
-            a, o = runs.get(f"A-s{seed}"), runs.get(f"{other}-s{seed}")
+            a, o = runs.get(f"{base}-s{seed}"), runs.get(f"{other}-s{seed}")
             if not a or not o:
                 continue
             m = min(a["summary"]["spent"], o["summary"]["spent"])
@@ -106,12 +106,12 @@ def matched(all_runs, problem):
         if len(rows) == 3:
             common = min(r["common_spend"] for r in rows)
             for x in [x for x in CHECK_SPEND if x <= common] + [common]:
-                diffs = [best_at(runs[f"{other}-s{r['seed']}"]["events"], x) - best_at(runs[f"A-s{r['seed']}"]["events"], x)
+                diffs = [best_at(runs[f"{other}-s{r['seed']}"]["events"], x) - best_at(runs[f"{base}-s{r['seed']}"]["events"], x)
                          for r in rows]
                 verdict[str(round(x, 4))] = {"diffs": [round(d, 6) for d in diffs],
                                             "beats_on_all_3": all(d > 0 for d in diffs),
                                             "worst_beats_best": min(best_at(runs[f"{other}-s{r['seed']}"]["events"], x) for r in rows)
-                                            > max(best_at(runs[f"A-s{r['seed']}"]["events"], x) for r in rows)}
+                                            > max(best_at(runs[f"{base}-s{r['seed']}"]["events"], x) for r in rows)}
         out[other] = {"per_seed": rows, "verdict": verdict}
     return out
 
@@ -257,7 +257,9 @@ Plots, written once a problem has runs: `curves.png` (circle packing), `curves_h
 `curves_hexagon.png`, `tuning.png`.
 
 - **Question.** Does a swarm of cheap Haiku 5.5 calls find better programs than a Sonnet 5.5 loop for the
-  same dollars? The pre-set test: B beats A at matched spend on all three seeds.
+  same dollars? The pre-set test: B beats the Sonnet loop at matched spend on all three seeds. Sonnet's
+  effort level made no visible difference to the loop on circle packing, so the remaining effort-high runs
+  were dropped and Al (effort low, 3 seeds per problem) is the baseline; A rows are what ran before that.
 - **Problems.** Circle packing: place 26 circles in a unit square, maximize the sum of radii. Heilbronn
   triangle: place 11 points in an equilateral triangle, maximize the smallest area of a triangle any three of
   them form. Hexagon packing: fit 11 unit hexagons in the smallest regular hexagon; scored as 1 / outer side
@@ -292,7 +294,7 @@ def main():
     runs = load()
     rows = [per_run(r) for r in runs.values()]
     problems_present = [p for p in PROBLEM_NAMES if any(r["problem"] == p for r in rows)]
-    summary = {"runs": rows, "matched": {p: matched(runs, p) for p in problems_present}}
+    summary = {"runs": rows, "matched": {p: matched(runs, p, "Al") for p in problems_present}}
     (R / "summary.json").write_text(json.dumps(summary, indent=1))
     md = [LEGEND]
     for prob in problems_present:
@@ -300,7 +302,7 @@ def main():
         md += [f"# {PROBLEM_NAMES[prob]}", "", "## Per arm", "", arm_table(runs, prow), "", "## Per run", "", table(prow)]
         for other, m in summary["matched"][prob].items():
             if m["verdict"]:
-                md += ["", f"## {other} minus A at matched spend (seed-paired best-score differences)", "",
+                md += ["", f"## {other} minus Al (Sonnet loop, effort low) at matched spend (seed-paired best-score differences)", "",
                        "| spend $ | seed 1 | seed 2 | seed 3 | beats on all 3 | worst beats best |",
                        "|---|---|---|---|---|---|"]
                 for x, v in m["verdict"].items():

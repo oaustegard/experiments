@@ -78,6 +78,17 @@ LANES = {
 }
 
 
+# Runs dropped after they were scheduled. Read again before every pick, so a
+# running scheduler honours a change to this file without a restart.
+SKIP_FILE = HERE / "skip.txt"
+
+
+def skipped() -> set:
+    if not SKIP_FILE.exists():
+        return set()
+    return {l.split("#")[0].strip() for l in SKIP_FILE.read_text().splitlines()} - {""}
+
+
 def haiku_only(args: list) -> bool:
     """A swarm run whose writer is Haiku makes no Sonnet calls."""
     return args[0] == "swarm.py" and "sonnet" not in args
@@ -154,6 +165,10 @@ def main():
     failures = {}
     while pending:
         for run_id, args in list(pending):
+            if run_id in skipped():
+                print(time.strftime("%H:%M:%S"), run_id, "dropped (skip.txt)", flush=True)
+                pending.remove((run_id, args))
+                continue
             stale_ttl(run_id)
             if (JAIL / "runs" / run_id / "DONE").exists():
                 collect(run_id)
