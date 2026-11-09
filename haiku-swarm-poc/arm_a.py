@@ -24,6 +24,7 @@ from pathlib import Path
 
 import yaml
 
+import problems
 from common import JAIL, give_to_nobody, jail_cmd, run_dir, score_of, setup_jail
 from gateway import Gateway, serve_openai
 
@@ -32,13 +33,18 @@ EFFORT = "high"   # Sonnet 5.5's API default; OpenEvolve sends no effort of its 
 PORT = 18080
 
 
-def write_config(d: Path, seed: int):
-    cfg = yaml.safe_load((JAIL / "problem" / "config_phase_1.yaml").read_text())
+def write_config(d: Path, seed: int, spec: dict):
+    cfg = yaml.safe_load((JAIL / spec["jail_dir"] / spec["config"]).read_text())
     llm = cfg["llm"]
-    for k in ("primary_model", "primary_model_weight", "secondary_model", "secondary_model_weight"):
+    for k in ("primary_model", "primary_model_weight", "secondary_model", "secondary_model_weight", "models"):
         llm.pop(k, None)
     llm.update(primary_model=MODEL, primary_model_weight=1.0,
                api_base=f"http://127.0.0.1:{PORT}/v1", api_key="unused-local-gateway")
+    if spec["name"] != "circle":
+        # The AlphaEvolve examples were configured for gpt-4 (max_tokens 4000, timeout
+        # 120 s). A reasoning model needs room for its thinking, or every long answer
+        # fails and is billed anyway; circle packing's config already had 8192 / 600.
+        llm.update(max_tokens=16000, timeout=600)
     cfg["max_iterations"] = 1_000_000
     cfg["random_seed"] = seed
     (d / "config.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False))
@@ -57,7 +63,7 @@ def kill_group(proc: subprocess.Popen):
             continue
 
 
-def build_events(d: Path, t0: float) -> list[dict]:
+def build_events(d: Path, t0: float, problem: str = "circle") -> list[dict]:
     """One event per program: its last evaluation stage, at the spend reached by then."""
     rows = [json.loads(l) for l in (d / "evals.jsonl").read_text().splitlines()] if (d / "evals.jsonl").exists() else []
     rows.sort(key=lambda r: r["t"])
@@ -71,7 +77,7 @@ def build_events(d: Path, t0: float) -> list[dict]:
         spent = sum(l["cost"] for l in ledger if l["t_end"] <= r["t"])
         spent_api = sum(l["cost_api"] for l in ledger if l["t_end"] <= r["t"])
         m = r["metrics"]
-        events.append({"kind": "eval", "sha": r["sha"], "score": score_of(m), "te": r["t"] - t0,
+        events.append({"kind": "eval", "sha": r["sha"], "score": score_of(m, problem), "te": r["t"] - t0,
                        "spent": spent, "spent_api": spent_api, "stage": r["fn"],
                        "error": str(m.get("error", ""))[:200] or None})
     return events
@@ -83,6 +89,8 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--cap", type=float, default=3.0)
     ap.add_argument("--wall", type=float, default=3600)
+    ap.add_argument("--problem", default="circle", choices=list(problems.PROBLEMS))
+    ap.add_argument("--effort", default=EFFORT)
     a = ap.parse_args(argv)
     setup_jail()
     d = run_dir(a.run_id)
@@ -98,15 +106,17 @@ def main(argv=None):
     calib = JAIL / "runs" / "_calib" / "overhead.json"
     if calib.exists():
         gw.overhead = json.loads(calib.read_text())
-    write_config(d, a.seed)
-    srv = serve_openai(gw, str(d / "llm.sock"), effort=EFFORT)
+    spec = problems.get(a.problem)
+    write_config(d, a.seed, spec)
+    srv = serve_openai(gw, str(d / "llm.sock"), effort=a.effort)
     give_to_nobody(d)
     rel = d.relative_to(JAIL)
     log = open(d / "driver.log", "w")
     t0 = time.time()
     (d / "t0").write_text(str(t0))
     proc = subprocess.Popen(jail_cmd("sh", "jailside/run_oe.sh", str(rel),
-                                     env={"HSP_EVAL_LOG": f"{JAIL}/{rel}/evals.jsonl"}),
+                                     env={"HSP_EVAL_LOG": f"{JAIL}/{rel}/evals.jsonl",
+                                          "HSP_PROBLEM_DIR": spec["jail_dir"]}),
                             stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     stopped_by = "exit"
     while True:
@@ -122,13 +132,13 @@ def main(argv=None):
     elapsed = time.time() - t0
     kill_group(proc)
     srv.shutdown()
-    events = build_events(d, t0)
+    events = build_events(d, t0, a.problem)
     with (d / "events.jsonl").open("w") as f:
         for e in events:
             f.write(json.dumps(e) + "\n")
     ev = [e for e in events if e["te"] <= a.wall]
     best = max(ev, key=lambda e: e["score"]) if ev else None
-    summary = {"run": a.run_id, "arm": "A", "seed": a.seed, "model": MODEL, "effort": EFFORT,
+    summary = {"run": a.run_id, "arm": "A", "problem": a.problem, "seed": a.seed, "model": MODEL, "effort": a.effort,
                "cap": a.cap, "spent": gw.spent, "spent_api": gw.spent_api, "calls": gw.calls,
                "elapsed": elapsed, "programs": len({e["sha"] for e in ev}),
                "best_score": best["score"] if best else None, "stopped_by": stopped_by,

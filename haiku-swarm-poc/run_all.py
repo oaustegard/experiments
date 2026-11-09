@@ -31,7 +31,6 @@ WALL = 3600
 FIVE_HOUR_WAIT = 0.75
 WEEK_STOP = 0.40
 BUDGET_MIN = 112
-EST_MIN = {"A": 15, "B": 63, "C": 63, "T": 33}   # worst case per run, minutes
 
 MAIN = []
 for s in (1, 2, 3):
@@ -42,7 +41,30 @@ for s in (1, 2, 3):
 TUNE = [(f"T-K{k}N{n}", ["swarm.py", f"T-K{k}N{n}", "--arm", f"T", "--seed", "11", "--K", str(k), "--N", str(n),
                          "--synth", "haiku", "--cap", "1.0", "--wall", "1800"])
         for k, n in ((4, 8), (4, 0), (8, 4), (2, 16))]
-SCHEDULE = MAIN + TUNE
+# Phase 2 (2026-11-09, Oskar: smaller reasoning budgets, harder tasks).
+# L = the swarm at the smallest budget claude -p allows: proposers and the
+# synthesizer both at effort low (Haiku 5.5's thinking cannot be switched off or
+# capped through the CLI; measured). Harder tasks: Heilbronn triangle n=11 and
+# hexagon packing n=11, OpenEvolve's AlphaEvolve examples.
+LOW = ["--prop-effort", "low", "--synth-effort", "low"]
+PHASE2 = []
+for prob, tag in (("heilbronn", "ht"), ("hexagon", "hx")):
+    for s in (1, 2, 3):
+        PHASE2 += [(f"{tag}-A-s{s}", ["arm_a.py", f"{tag}-A-s{s}", "--seed", str(s), "--problem", prob]),
+                   (f"{tag}-B-s{s}", ["swarm.py", f"{tag}-B-s{s}", "--arm", "B", "--seed", str(s), "--problem", prob]),
+                   (f"{tag}-L-s{s}", ["swarm.py", f"{tag}-L-s{s}", "--arm", "L", "--seed", str(s), "--problem", prob, *LOW])]
+    if prob == "heilbronn":
+        PHASE2 += [(f"L-s{s}", ["swarm.py", f"L-s{s}", "--arm", "L", "--seed", str(s), *LOW]) for s in (1, 2, 3)]
+SCHEDULE = MAIN + PHASE2 + TUNE
+
+
+def est_min(run_id: str, args: list) -> int:
+    """Worst-case minutes for a run, so the schedule pauses before the 2 h limit."""
+    if run_id.startswith("T-"):
+        return 33
+    if run_id.startswith("A-"):
+        return 15          # circle packing's Arm A hits the cap in under 10 minutes
+    return 63
 
 
 def quota() -> dict:
@@ -78,7 +100,7 @@ def main():
         if (JAIL / "runs" / run_id / "DONE").exists():
             collect(run_id)
             continue
-        est = EST_MIN[run_id[0]]
+        est = est_min(run_id, args)
         if (time.time() - t_launch) / 60 + est > BUDGET_MIN:
             print(time.strftime("%H:%M:%S"), "schedule paused -> relaunch (next:", run_id, ")", flush=True)
             return

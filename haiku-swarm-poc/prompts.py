@@ -70,10 +70,17 @@ STYLES = [
 IDEA_WORDS = 45  # ~60 tokens; ideas are cut to this many words before the synthesizer sees them
 
 
-def program_block(p: dict, label: str) -> str:
+def _texts(spec):
+    if spec is None:
+        return PROBLEM, INTERFACE, "score (sum_radii / 2.635983)", ("sum_radii", "validity", "eval_time"), "run_packing"
+    return spec["system_message"], spec["interface"], spec["score_label"], spec["show"], spec["entry"]
+
+
+def program_block(p: dict, label: str, spec: dict | None = None) -> str:
     m = p.get("metrics") or {}
-    lines = [f"### {label}", f"score (sum_radii / 2.635983): {p.get('score', 0.0):.6f}"]
-    for k in ("sum_radii", "validity", "eval_time"):
+    _, _, score_label, show, _ = _texts(spec)
+    lines = [f"### {label}", f"{score_label}: {p.get('score', 0.0):.6f}"]
+    for k in show:
         if k in m:
             lines.append(f"{k}: {m[k]}")
     if m.get("error"):
@@ -82,13 +89,14 @@ def program_block(p: dict, label: str) -> str:
     return "\n".join(lines)
 
 
-def proposer_system(parent: dict | None) -> str:
+def proposer_system(parent: dict | None, spec: dict | None = None) -> str:
+    problem, interface, *_ = _texts(spec)
     head = ("You are one member of a research team improving a program. Teammates each "
             "propose one idea from a different angle; a lead programmer then writes the "
-            "next version from the ideas.\n\n## Problem\n" + PROBLEM + "\n" + INTERFACE)
+            "next version from the ideas.\n\n## Problem\n" + problem + "\n" + interface)
     if parent is None:
         return head + "\n\nThere is no program for you to read: propose from the problem alone."
-    return head + "\n\n## Program\n" + program_block(parent, "Current program")
+    return head + "\n\n## Program\n" + program_block(parent, "Current program", spec)
 
 
 def proposer_user(focus_phrase: str, focus: str, style: str) -> str:
@@ -97,16 +105,18 @@ def proposer_user(focus_phrase: str, focus: str, style: str) -> str:
             f"only, in at most {IDEA_WORDS} words: no code, no preamble.")
 
 
-def synth_system(parents: list[dict]) -> str:
+def synth_system(parents: list[dict], spec: dict | None = None) -> str:
+    problem, interface, *_ = _texts(spec)
     s = ("You are the lead programmer of a research team improving a program.\n\n## Problem\n"
-         + PROBLEM + "\n" + INTERFACE)
+         + problem + "\n" + interface)
     if parents:
-        s += "\n\n## Programs\n" + "\n\n".join(program_block(p, f"Program {chr(65 + i)}")
+        s += "\n\n## Programs\n" + "\n\n".join(program_block(p, f"Program {chr(65 + i)}", spec)
                                            for i, p in enumerate(parents))
     return s
 
 
-def synth_user(ideas: list[str], n_parents: int) -> str:
+def synth_user(ideas: list[str], n_parents: int, spec: dict | None = None) -> str:
+    entry = _texts(spec)[4]
     if ideas:
         body = "Your teammates proposed these ideas:\n\n" + "\n".join(
             f"{i + 1}. {t}" for i, t in enumerate(ideas))
@@ -116,5 +126,5 @@ def synth_user(ideas: list[str], n_parents: int) -> str:
     if n_parents > 1:
         body += " Draw on the best parts of each program above."
     return (body + "\n\nReply with at most two sentences describing your direction, then the "
-            "complete program in a single ```python block. The program must define run_packing() "
-            "as specified.")
+            "complete program in a single ```python block. The program must define "
+            f"{entry}() as specified.")

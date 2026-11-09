@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "problem"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / os.environ.get("HSP_PROBLEM_DIR", "problem")))
 import evaluator as _stock  # noqa: E402
 
 LOG = os.environ.get("HSP_EVAL_LOG")
@@ -36,9 +36,12 @@ def evaluate(program_path):
     t0 = time.time(); m = _stock.evaluate(program_path); _log("evaluate", program_path, m, t0); return m
 
 
-def evaluate_stage1(program_path):
-    t0 = time.time(); m = _stock.evaluate_stage1(program_path); _log("stage1", program_path, m, t0); return m
+# Stage functions exist only where the stock evaluator has them, so OpenEvolve
+# sees the same cascade (or none) that it would see without this wrapper.
+if hasattr(_stock, "evaluate_stage1"):
+    def evaluate_stage1(program_path):
+        t0 = time.time(); m = _stock.evaluate_stage1(program_path); _log("stage1", program_path, m, t0); return m
 
-
-def evaluate_stage2(program_path):
-    t0 = time.time(); m = _stock.evaluate_stage2(program_path); _log("stage2", program_path, m, t0); return m
+if hasattr(_stock, "evaluate_stage2"):
+    def evaluate_stage2(program_path):
+        t0 = time.time(); m = _stock.evaluate_stage2(program_path); _log("stage2", program_path, m, t0); return m

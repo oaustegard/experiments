@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PROBLEM = HERE.parent / "problem"
+PROBLEM = HERE.parent / (sys.argv[sys.argv.index("--problem") + 1] if "--problem" in sys.argv else "problem")
 ONE = ("import json,sys; sys.path.insert(0, sys.argv[1]); import evaluator; "
        "m = evaluator.evaluate(sys.argv[2]); "
        "print('@@RESULT@@' + json.dumps({k: v for k, v in m.items() if isinstance(v, (int, float, str))}))")

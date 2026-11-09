@@ -17,9 +17,14 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 R = HERE / "results"
-WALL = {"A": 3600, "B": 3600, "C": 3600, "T": 1800}
-ARMS = {"A": "A  Sonnet loop (OpenEvolve)", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer"}
-COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "T0": "#2a78d6", "T1": "#eb6834", "T2": "#1baf7a", "T3": "#eda100"}
+WALL = {"A": 3600, "B": 3600, "C": 3600, "L": 3600, "T": 1800}
+ARMS = {"A": "A  Sonnet loop (OpenEvolve)", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer",
+        "L": "L  Haiku swarm, all effort low"}
+COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "L": "#eda100",
+          "T0": "#2a78d6", "T1": "#eb6834", "T2": "#1baf7a", "T3": "#eda100"}
+PROBLEM_NAMES = {"circle": "Circle packing, n=26 (1.0 = best known, 2.635983)",
+                 "heilbronn": "Heilbronn triangle, n=11 (1.0 = AlphaEvolve's construction)",
+                 "hexagon": "Hexagon packing, n=11 (1.0 = AlphaEvolve's construction)"}
 CHECK_SPEND = [0.02, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 3.0]
 THRESHOLDS = [0.99, 0.999, 0.9999]
 
@@ -30,11 +35,12 @@ def load():
         if not (d / "summary.json").exists() or not (d / "events.jsonl").exists():
             continue
         s = json.loads((d / "summary.json").read_text())
-        arm = d.name[0]
+        arm = s.get("arm") or d.name[0]
+        problem = s.get("problem", "circle")
         ev = [json.loads(l) for l in (d / "events.jsonl").read_text().splitlines() if l.strip()]
         ev = [e for e in ev if e.get("kind") == "eval" and e["te"] <= WALL[arm]]
         ev.sort(key=lambda e: e["spent"])
-        runs[d.name] = {"arm": arm, "summary": s, "events": ev}
+        runs[d.name] = {"arm": arm, "problem": problem, "summary": s, "events": ev}
     return runs
 
 
@@ -73,14 +79,18 @@ def per_run(run):
                            for t in THRESHOLDS},
         "minutes_to": {str(t): (round(v / 60, 2) if (v := first_reach(ev, t, "te")) is not None else None)
                        for t in THRESHOLDS},
-        "K": s.get("K"), "N": s.get("N"),
+        "K": s.get("K"), "N": s.get("N"), "problem": run["problem"],
     }
 
 
-def matched(runs):
-    """Seed-paired comparison of B (and C) against A at equal dollars spent."""
+def matched(all_runs, problem):
+    """Seed-paired comparison of each swarm arm against A at equal dollars spent."""
+    runs = {}
+    for r in all_runs.values():
+        if r["problem"] == problem and r["summary"].get("seed") in (1, 2, 3):
+            runs[f"{r['arm']}-s{r['summary']['seed']}"] = r
     out = {}
-    for other in ("B", "C"):
+    for other in ("B", "C", "L"):
         rows = []
         for seed in (1, 2, 3):
             a, o = runs.get(f"A-s{seed}"), runs.get(f"{other}-s{seed}")
@@ -122,7 +132,7 @@ def table(rows):
 def arm_table(runs, rows):
     lines = ["| arm | seeds | mean spent $ | programs/$ (mean) | best (mean, range) | $ to 0.99 (mean, range) | $ to 0.999 (mean, range) |",
              "|---|---|---|---|---|---|---|"]
-    for arm in ("A", "B", "C"):
+    for arm in ("A", "B", "C", "L"):
         rs = [r for r in rows if r["arm"] == arm]
         if not rs:
             continue
@@ -162,12 +172,13 @@ def style(ax):
     ax.set_axisbelow(True)
 
 
-def plot(runs):
+def plot(all_runs, problem):
+    runs = {k: v for k, v in all_runs.items() if v["problem"] == problem}
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    groups = {arm: [r for r in runs.values() if r["arm"] == arm] for arm in ("A", "B", "C")}
+    groups = {arm: [r for r in runs.values() if r["arm"] == arm] for arm in ("A", "B", "C", "L")}
     groups = {k: v for k, v in groups.items() if v}
     if not groups:
         return
@@ -189,17 +200,22 @@ def plot(runs):
     axes[2].set_xlabel("wall-clock minutes", color="#52514e")
     for ax in axes:
         ax.axhline(1.0, color="#9a9994", linewidth=1, linestyle=(0, (4, 3)))
-    axes[1].text(0.004, 0.99985, "best known, 2.635983", fontsize=8.5, color="#52514e", va="top")
+    axes[1].text(0.004, 1.0, "best known" if problem == "circle" else "AlphaEvolve", fontsize=8.5,
+                 color="#52514e", va="top")
     axes[0].set_ylabel("best score (sum of radii / 2.635983)", color="#52514e")
     axes[0].set_title("Best score against spend", loc="left", fontsize=11, color="#0b0b0b")
-    axes[1].set_title("Same, near the best known value", loc="left", fontsize=11, color="#0b0b0b")
-    axes[1].set_ylim(0.98, 1.0005)
+    axes[1].set_title("Same, zoomed to the top", loc="left", fontsize=11, color="#0b0b0b")
+    finals = [max((e["score"] for e in r["events"]), default=0) for g in groups.values() for r in g]
+    lo = 0.98 if problem == "circle" else max(0.0, min(finals) - 0.05)
+    axes[1].set_ylim(lo, max(1.0005, max(finals) + 0.005))
+    fig.suptitle(PROBLEM_NAMES[problem], x=0.01, ha="left", fontsize=12, color="#0b0b0b")
     axes[2].set_title("Best score against wall clock", loc="left", fontsize=11, color="#0b0b0b")
     axes[0].legend(frameon=False, fontsize=9, loc="lower right", bbox_to_anchor=(1, 0.1))
     fig.text(0.01, 0.01, "Line: mean over seeds, drawn while every seed is still running. Band: lowest to highest seed.",
              fontsize=8.5, color="#52514e")
     fig.tight_layout(rect=(0, 0.04, 1, 1))
-    fig.savefig(R / "curves.png", dpi=150, facecolor=fig.get_facecolor())
+    fig.savefig(R / ("curves.png" if problem == "circle" else f"curves_{problem}.png"), dpi=150,
+                facecolor=fig.get_facecolor())
     plt.close(fig)
 
 
@@ -232,22 +248,27 @@ def plot_tuning(runs):
 def main():
     runs = load()
     rows = [per_run(r) for r in runs.values()]
-    main_rows = [r for r in rows if r["arm"] in "ABC"]
-    tune_rows = [r for r in rows if r["arm"] == "T"]
-    summary = {"runs": rows, "matched": matched(runs)}
+    problems_present = [p for p in PROBLEM_NAMES if any(r["problem"] == p for r in rows)]
+    summary = {"runs": rows, "matched": {p: matched(runs, p) for p in problems_present}}
     (R / "summary.json").write_text(json.dumps(summary, indent=1))
-    md = ["## Per arm", "", arm_table(runs, main_rows), "", "## Per run", "", table(main_rows)]
+    md = []
+    for prob in problems_present:
+        prow = [r for r in rows if r["problem"] == prob and r["arm"] in "ABCL"]
+        md += [f"# {PROBLEM_NAMES[prob]}", "", "## Per arm", "", arm_table(runs, prow), "", "## Per run", "", table(prow)]
+        for other, m in summary["matched"][prob].items():
+            if m["verdict"]:
+                md += ["", f"## {other} minus A at matched spend (seed-paired best-score differences)", "",
+                       "| spend $ | seed 1 | seed 2 | seed 3 | beats on all 3 | worst beats best |",
+                       "|---|---|---|---|---|---|"]
+                for x, v in m["verdict"].items():
+                    md.append(f"| {x} | " + " | ".join(f"{d:+.5f}" for d in v["diffs"]) +
+                              f" | {'yes' if v['beats_on_all_3'] else 'no'} | {'yes' if v['worst_beats_best'] else 'no'} |")
+        md.append("")
+        plot(runs, prob)
+    tune_rows = [r for r in rows if r["arm"] == "T"]
     if tune_rows:
-        md += ["", "## Tuning (one seed, $1 cap, 30 min)", "", table(tune_rows)]
-    for other, m in summary["matched"].items():
-        if m["verdict"]:
-            md += ["", f"## {other} minus A at matched spend (seed-paired best-score differences)", "",
-                   "| spend $ | seed 1 | seed 2 | seed 3 | beats on all 3 | worst beats best |", "|---|---|---|---|---|---|"]
-            for x, v in m["verdict"].items():
-                md.append(f"| {x} | " + " | ".join(f"{d:+.5f}" for d in v["diffs"]) +
-                          f" | {'yes' if v['beats_on_all_3'] else 'no'} | {'yes' if v['worst_beats_best'] else 'no'} |")
+        md += ["# Tuning: circle packing, one seed, $1 cap, 30 min", "", table(tune_rows)]
     (R / "table.md").write_text("\n".join(md) + "\n")
-    plot(runs)
     plot_tuning(runs)
     print("analysis ->", R / "table.md")
 

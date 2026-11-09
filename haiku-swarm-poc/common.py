@@ -28,9 +28,13 @@ def setup_jail():
     """Copy the problem and jail-side scripts in; idempotent."""
     if not (JAIL / ".deps" / "openevolve").exists():
         raise SystemExit("missing OpenEvolve in the jail: see README.md, Setup")
-    (JAIL / "problem").mkdir(parents=True, exist_ok=True)
-    for f in ("initial_program.py", "evaluator.py", "config_phase_1.yaml"):
-        shutil.copy(OE_EXAMPLE / f, JAIL / "problem" / f)
+    import problems
+    for name, spec in problems.PROBLEMS.items():
+        dst = JAIL / spec["jail_dir"]
+        dst.mkdir(parents=True, exist_ok=True)
+        for f in ("initial_program.py", "evaluator.py", spec["config"]):
+            shutil.copy(spec["src"] / f, dst / f)
+        os.chmod(dst, 0o755)
     shutil.copytree(HERE / "jailside", JAIL / "jailside", dirs_exist_ok=True)
     (JAIL / "runs").mkdir(exist_ok=True)
     for p in (JAIL, JAIL / "problem", JAIL / "jailside", JAIL / "runs"):
@@ -61,12 +65,13 @@ def jail_cmd(*cmd, env: dict | None = None) -> list[str]:
     return args + ["--", *cmd]
 
 
-def jail_eval(prog_dir: Path, timeout: float = 60, workers: int = 4) -> dict:
+def jail_eval(prog_dir: Path, timeout: float = 60, workers: int = 4, problem_dir: str = "problem") -> dict:
     """Score every *.py in prog_dir inside the jail; returns {name: {metrics, t, dt}}."""
     give_to_nobody(prog_dir)
     rel = prog_dir.relative_to(JAIL)
     p = subprocess.run(jail_cmd("python3", "jailside/evalkit.py", str(rel),
-                                "--timeout", str(timeout), "--workers", str(workers)),
+                                "--timeout", str(timeout), "--workers", str(workers),
+                                "--problem", problem_dir),
                        capture_output=True, text=True, timeout=timeout * 4 + 120)
     res = prog_dir / "results.json"
     if not res.exists():
@@ -74,9 +79,12 @@ def jail_eval(prog_dir: Path, timeout: float = 60, workers: int = 4) -> dict:
     return json.loads(res.read_text())
 
 
-def score_of(metrics: dict) -> float:
-    """sum_radii / best known, 0 for an invalid packing. Recomputed, not read
-    from combined_score, so the normalisation cannot drift with an env var."""
+def score_of(metrics: dict, problem: str = "circle") -> float:
+    """Circle packing: sum_radii / best known, 0 for an invalid packing,
+    recomputed rather than read from combined_score so the normalisation cannot
+    drift with an env var. Other problems: the evaluator's combined_score."""
+    if problem != "circle":
+        return float((metrics or {}).get("combined_score", 0) or 0)
     if not metrics or float(metrics.get("validity", 0) or 0) < 1:
         return 0.0
     return float(metrics.get("sum_radii", 0) or 0) / BEST_KNOWN
