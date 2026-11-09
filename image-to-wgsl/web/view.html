@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Splat image</title>
+<style>html,body{margin:0;height:100%;background:#fff;color:#222;font:14px/1.4 system-ui,sans-serif}canvas{width:100%;height:100%;display:block}#msg{position:fixed;left:12px;bottom:10px;color:#777}</style>
+<canvas></canvas><div id="msg"></div>
+<script type="module">
+// Draws a splat file (.bin from the "Download the splat data" link, or web/export_bin.mjs) fetched from ?src=URL.
+// ?n=K draws only the first K splats. The URL may be on another origin if that server sends CORS headers.
+import { readBin } from "./trainer.js";
+import { emitInstanced, createRenderer } from "./instanced.js";
+const msg = document.getElementById("msg"), cv = document.querySelector("canvas"), q = new URLSearchParams(location.search);
+const say = (t) => { msg.textContent = t; };
+try {
+  const src = q.get("src");
+  if (!src) { say("Add ?src=URL of a splat .bin file, for example ?src=blobs/kodim23.bin"); throw 0; }
+  const ad = await navigator.gpu?.requestAdapter();
+  if (!ad) { say("WebGPU is not available in this browser."); throw 0; }
+  const res = await fetch(src);
+  if (!res.ok) { say(`Could not fetch ${src}: HTTP ${res.status}`); throw 0; }
+  const r = readBin(await res.arrayBuffer());
+  const n = Math.min(r.n, +q.get("n") || r.n);
+  const dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
+  const ctx = cv.getContext("webgpu"), fmt = navigator.gpu.getPreferredCanvasFormat();
+  ctx.configure({ device: dev, format: fmt, alphaMode: "premultiplied" });
+  const rd = createRenderer(dev, fmt, emitInstanced(r, n));
+  const draw = () => {
+    const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    rd.draw(ctx.getCurrentTexture().createView(), w, h, n);
+  };
+  new ResizeObserver(draw).observe(cv);
+  draw();
+  say(`${n.toLocaleString()}${n < r.total ? " of " + r.total.toLocaleString() : ""} splats`);
+} catch (e) { if (e) say(String(e.message || e)); }
+</script>

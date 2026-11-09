@@ -411,6 +411,43 @@ export function packBits(fields) {      // [[value, bits]] -> u32 words + one ze
   return words;
 }
 
+// Binary form of a splat list, little-endian: "SPL1", n (u32), A (f32), then the packed words the shaders embed
+// (12 background colour fields, then n splats of 61 bits each) and one zero pad word. The bytes are already
+// near their entropy, so gzip gains almost nothing (62,480 B -> 62,370 B at 8,192 splats). The splats are in
+// painting order, so a file cut off after k bytes still holds a whole-splat prefix; readBin returns what it can.
+export function emitBin(r, n = null) {
+  const N = n ?? r.n;
+  const fields = [];
+  for (const v of r.bg) fields.push([v, LAYOUT.bbg]);
+  for (let i = 0; i < N; i++) for (let f = 0; f < 10; f++) fields.push([r.P[i * 10 + f], B[f]]);
+  const words = packBits(fields);
+  const out = new ArrayBuffer(12 + 4 * words.length), dv = new DataView(out);
+  dv.setUint32(0, 0x314C5053, true); dv.setUint32(4, N, true); dv.setFloat32(8, r.A, true);
+  words.forEach((w, i) => dv.setUint32(12 + 4 * i, w, true));
+  return out;
+}
+
+// -> {n, total, A, P, bg}: n whole splats present in these bytes (total is the count the header promises).
+export function readBin(buf) {
+  const dv = new DataView(buf);
+  if (buf.byteLength < 12 || dv.getUint32(0, true) !== 0x314C5053) throw new Error("not a splat file (missing SPL1 header)");
+  const total = dv.getUint32(4, true), A = dv.getFloat32(8, true), per = B.reduce((a, b) => a + b, 0), head = 12 * LAYOUT.bbg;
+  const nw = (buf.byteLength - 12) >>> 2, words = new Uint32Array(nw);
+  for (let i = 0; i < nw; i++) words[i] = dv.getUint32(12 + 4 * i, true);
+  if (32 * nw < head) throw new Error("splat file cut off inside the header");
+  const n = Math.min(total, Math.floor((32 * nw - head) / per));
+  const get = (off, b) => {
+    const w = off >>> 5, s = off & 31;
+    let v = words[w] >>> s;
+    if (s + b > 32) v |= (words[w + 1] ?? 0) << (32 - s);
+    return v & ((1 << b) - 1);
+  };
+  const bg = new Int32Array(12), P = new Int32Array(n * 10);
+  for (let i = 0; i < 12; i++) bg[i] = get(i * LAYOUT.bbg, LAYOUT.bbg);
+  for (let i = 0; i < n; i++) { let o = head + i * per; for (let f = 0; f < 10; f++) { P[i * 10 + f] = get(o, B[f]); o += B[f]; } }
+  return { n, total, A, P, bg };
+}
+
 // One self-contained shader: uniform vec4f(width, height, time, 0); time <= 0 paints everything,
 // time t > 0 paints the first N * min(1, (t / 6)^2) splats.
 export function emitWGSL(r, n = null, paintSeconds = 6) {

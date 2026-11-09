@@ -1,7 +1,7 @@
 // Gallery viewer plus the in-browser encoder ("Your image").
 import { IMAGES } from "./shaders.js";
 import { emitInstanced, createRenderer } from "./instanced.js";
-import { gzipSize, emitWGSL, checkpoints, normaliseFocus } from "./trainer.js";
+import { gzipSize, emitWGSL, emitBin, checkpoints, normaliseFocus } from "./trainer.js";
 import { encodeGPU, probeGPU } from "./gputrain.js";
 import { DeepZoom } from "./deepzoom.js";
 
@@ -86,6 +86,9 @@ function load(entry) {
   if (entry.own) {
     $("dlw").href = URL.createObjectURL(new Blob([entry.wgsl], { type: "text/plain" }));
     $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
+    const bin = emitBin(entry);
+    $("dlb").href = URL.createObjectURL(new Blob([bin], { type: "application/octet-stream" }));
+    $("dlb").textContent = `Download the splat data (.bin, ${(bin.byteLength / 1000).toFixed(1)} KB)`;
   }
   cam.z = 1; cam.x = cam.y = 0.5; applyCam();
   $("dzrow").hidden = !dz; dzStatus();
