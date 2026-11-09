@@ -271,7 +271,6 @@ def main():
     problems_present = [p for p in PROBLEM_NAMES if any(r["problem"] == p for r in rows)]
     summary = {"runs": rows, "matched": {p: matched(runs, p) for p in problems_present}}
     (R / "summary.json").write_text(json.dumps(summary, indent=1))
-    md = []
     md = [LEGEND]
     for prob in problems_present:
         prow =[r for r in rows if r["problem"] == prob and r["arm"] in "ABCL"]
