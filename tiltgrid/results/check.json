@@ -1,0 +1,144 @@
+{
+ "gpu": true,
+ "fps": 8.5,
+ "checks": {
+  "keys move the marble toward screen-bottom (+x+z)": {
+   "pass": true,
+   "detail": {
+    "p0": [
+     4.5,
+     8,
+     2.5
+    ],
+    "p1": [
+     5.299148089937377,
+     8,
+     3.299148089937376
+    ]
+   }
+  },
+  "deviceorientation turns tilt on": {
+   "pass": true,
+   "detail": {
+    "on": true,
+    "raw": [
+     0.2241438680420134,
+     -0.49999999999999994
+    ],
+    "base": [
+     0,
+     -0.49999999999999994
+    ]
+   }
+  },
+  "course \"Practice Run\" reachable by autopilot": {
+   "pass": true,
+   "detail": {
+    "course": "Practice Run",
+    "fate": "goal",
+    "t": 12.4,
+    "waypoint": 9,
+    "of": 10,
+    "pos": [
+     5.9,
+     3,
+     34
+    ],
+    "maxDrop": 1,
+    "budget": 45
+   }
+  },
+  "course \"Zigzag Ice\" reachable by autopilot": {
+   "pass": true,
+   "detail": {
+    "course": "Zigzag Ice",
+    "fate": "goal",
+    "t": 21.4,
+    "waypoint": 15,
+    "of": 16,
+    "pos": [
+     15.48,
+     2.5,
+     40
+    ],
+    "maxDrop": 0,
+    "budget": 40
+   }
+  },
+  "course \"The Spire\" reachable by autopilot": {
+   "pass": true,
+   "detail": {
+    "course": "The Spire",
+    "fate": "goal",
+    "t": 18.3,
+    "waypoint": 12,
+    "of": 13,
+    "pos": [
+     11.15,
+     4.5,
+     48
+    ],
+    "maxDrop": 1,
+    "budget": 40
+   }
+  },
+  "course \"Neon Gauntlet\" reachable by autopilot": {
+   "pass": true,
+   "detail": {
+    "course": "Neon Gauntlet",
+    "fate": "goal",
+    "t": 23.4,
+    "waypoint": 14,
+    "of": 15,
+    "pos": [
+     10,
+     8,
+     54
+    ],
+    "maxDrop": 1,
+    "budget": 45
+   }
+  },
+  "falling off the grid kills": {
+   "pass": true,
+   "detail": {
+    "voidState": "dead",
+    "voidMsg": "Lost in the void",
+    "respawned": "play",
+    "shatterMsg": "Shattered",
+    "shards": 18
+   }
+  },
+  "dead marble respawns": {
+   "pass": true,
+   "detail": {
+    "voidState": "dead",
+    "voidMsg": "Lost in the void",
+    "respawned": "play",
+    "shatterMsg": "Shattered",
+    "shards": 18
+   }
+  },
+  "a 4-unit fall shatters": {
+   "pass": true,
+   "detail": {
+    "voidState": "dead",
+    "voidMsg": "Lost in the void",
+    "respawned": "play",
+    "shatterMsg": "Shattered",
+    "shards": 18
+   }
+  },
+  "music sequencer is advancing": {
+   "pass": true,
+   "detail": {
+    "state": "running",
+    "step": 308
+   }
+  },
+  "no console errors": {
+   "pass": true,
+   "detail": []
+  }
+ }
+}
