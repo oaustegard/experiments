@@ -672,11 +672,11 @@ survives exactly the sanity checks people run.
 - **A game loop that caps time per frame runs slower than real time on SwiftShader, so wait on game state.**
   A WebGPU game drew 8.5 frames a second in headless Chromium on SwiftShader and capped each frame at 0.05 s of
   game time, so its 1.7 s respawn delay took about 4 s of wall clock and a 4 s `waitForTimeout` read it as stuck.
-  Poll the page's own state (`waitForFunction(() => game.state === 'play')`) instead. (`tiltgrid/run/check.mjs`)
+  Poll the page's own state (`waitForFunction(() => game.state === 'play')`) instead. (oaustegard.github.io `games/tiltgrid/tests/check.mjs`)
 - **`el.hidden = true` does nothing to an element whose own rule sets `display`.** An author `display: grid` on
   `.overlay` outranks the browser's default `[hidden] { display: none }`, so a title card stayed over a running
   game. Pages outside the Artifact skeleton (which adds the reset) need `[hidden] { display: none !important; }`.
-  (`tiltgrid/ERRORS.md`)
+  (oaustegard.github.io `games/tiltgrid/ERRORS.md`)
 - **Headless Chromium on SwiftShader does not offer `shader-f16`, so store f16 as pairs packed into u32.**
   `pack2x16float` / `unpack2x16float` are core WGSL and work on every adapter. Make each thread write two
   adjacent elements (keep widths even) so no two threads share a word. In `wgsl-diffusion` it halved activation
