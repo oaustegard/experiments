@@ -28,7 +28,8 @@ HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
 CAP = 3.0
 WALL = 3600
-FIVE_HOUR_WAIT = 0.75
+FIVE_HOUR_WAIT = 0.75        # a run that calls Sonnet starts only below this five-hour utilisation
+FIVE_HOUR_WAIT_HAIKU = 0.93  # a Haiku-only run (swarm with a Haiku writer) may start up to this
 WEEK_STOP = 0.40
 BUDGET_MIN = 112
 
@@ -75,6 +76,11 @@ LANES = {
     **{3 + s: [f"ht-{a}-s{s}" for a in ("A", "B", "L", "Am", "Al")] for s in (1, 2, 3)},
     **{6 + s: [f"hx-{a}-s{s}" for a in ("A", "B", "L", "Am", "Al")] for s in (1, 2, 3)},
 }
+
+
+def haiku_only(args: list) -> bool:
+    """A swarm run whose writer is Haiku makes no Sonnet calls."""
+    return args[0] == "swarm.py" and "sonnet" not in args
 
 
 def est_min(run_id: str, args: list) -> int:
@@ -144,24 +150,37 @@ def main():
     if not calib.exists():
         Gateway(run_dir("_calib"), cap=1.0).calibrate()
     (RESULTS / "logs").mkdir(parents=True, exist_ok=True)
-    for run_id, args in schedule:
-        stale_ttl(run_id)
-        if (JAIL / "runs" / run_id / "DONE").exists():
-            collect(run_id)
-            continue
-        est = est_min(run_id, args)
-        if (time.time() - t_launch) / 60 + est > BUDGET_MIN:
-            print(time.strftime("%H:%M:%S"), "schedule paused -> relaunch (next:", run_id, ")", flush=True)
+    pending = list(schedule)
+    failures = {}
+    while pending:
+        for run_id, args in list(pending):
+            stale_ttl(run_id)
+            if (JAIL / "runs" / run_id / "DONE").exists():
+                collect(run_id)
+                pending.remove((run_id, args))
+        if not pending:
+            break
+        q = quota()
+        if (q.get("seven_day") or 0) >= WEEK_STOP:
+            print("schedule stopped: seven-day utilisation", q, flush=True)
             return
-        while True:
-            q = quota()
-            print(time.strftime("%H:%M:%S"), run_id, "quota", q, flush=True)
-            if (q.get("seven_day") or 0) >= WEEK_STOP:
-                print("schedule stopped: seven-day utilisation", q, flush=True)
+        five = q.get("five_hour") or 0
+        # Lane order, except that a Haiku-only run goes ahead of a Sonnet run the
+        # five-hour window is holding back.
+        ready = [(r, a) for r, a in pending if five < (FIVE_HOUR_WAIT_HAIKU if haiku_only(a) else FIVE_HOUR_WAIT)]
+        fits = [(r, a) for r, a in ready if (time.time() - t_launch) / 60 + est_min(r, a) <= BUDGET_MIN]
+        if not fits:
+            if ready:
+                print(time.strftime("%H:%M:%S"), "schedule paused -> relaunch (next:", ready[0][0], ")", flush=True)
                 return
-            if (q.get("five_hour") or 0) < FIVE_HOUR_WAIT:
-                break
+            print(time.strftime("%H:%M:%S"), "waiting for the five-hour window", q, flush=True)
+            if (time.time() - t_launch) / 60 + 10 > BUDGET_MIN:
+                print(time.strftime("%H:%M:%S"), "schedule paused -> relaunch (waiting on quota)", flush=True)
+                return
             time.sleep(600)
+            continue
+        run_id, args = fits[0]
+        print(time.strftime("%H:%M:%S"), run_id, "quota", q, flush=True)
         extra = [] if "--cap" in args else ["--cap", str(CAP), "--wall", str(WALL)]
         with open(RESULTS / "logs" / f"{run_id}.log", "a") as log:
             p = subprocess.run([sys.executable, *args, *extra], cwd=HERE, stdout=log, stderr=subprocess.STDOUT)
@@ -170,9 +189,16 @@ def main():
         if p.returncode != 0:
             tail = (RESULTS / "logs" / f"{run_id}.log").read_text()[-1500:]
             print(tail, flush=True)
-            if "QuotaGuard" in tail:
-                print("schedule stopped: quota guard", flush=True)
+            q2 = quota()
+            if (q2.get("seven_day") or 0) >= WEEK_STOP:
+                print("schedule stopped: quota guard", q2, flush=True)
                 return
+            # A run that ends without DONE is retried (a swarm resumes, Arm A restarts),
+            # but not forever: a third failure drops it from this launch.
+            failures[run_id] = failures.get(run_id, 0) + 1
+            if failures[run_id] >= 3:
+                print(time.strftime("%H:%M:%S"), run_id, "failed 3 times; skipped this launch", flush=True)
+                pending.remove((run_id, args))
         if (HERE / "analyze.py").exists() and not opts.no_analyze:
             with open(RESULTS / "logs" / "analyze.log", "a") as log:
                 try:

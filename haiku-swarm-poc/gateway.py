@@ -89,7 +89,8 @@ class Gateway:
     run_dir: Path
     cap: float
     max_parallel: int = 16
-    quota_stop: float = 0.90        # five-hour window utilisation that pauses the run until it resets
+    quota_stop: float = 0.90        # five-hour utilisation that pauses a run with Sonnet calls until it resets
+    quota_stop_haiku: float = 0.97  # Haiku calls cost ~20x less, so a Haiku-only run keeps going longer
     week_stop: float = 0.45         # seven-day utilisation that aborts the run
     overhead: dict = field(default_factory=dict)
     spent: float = 0.0
@@ -132,6 +133,8 @@ class Gateway:
         for attempt in range(retries + 1):
             with self._pause_lock:
                 pass                  # blocks while another call holds a quota pause
+            if model != "claude-haiku-5-5" and (self.last_quota.get("five_hour") or 0) >= self.quota_stop:
+                self._wait_for_reset(self.last_quota)
             if check_budget and self.spent >= self.cap:
                 raise BudgetExceeded(f"spent {self.spent:.4f} >= cap {self.cap}")
             with self._sem:
@@ -227,7 +230,8 @@ class Gateway:
                 self.last_quota = q
         if q and (q.get("seven_day") or 0) >= self.week_stop:
             raise QuotaGuard(f"quota utilisation {q}")
-        if q and (q.get("five_hour") or 0) >= self.quota_stop:
+        limit = self.quota_stop_haiku if rec.get("model") == "claude-haiku-5-5" else self.quota_stop
+        if q and (q.get("five_hour") or 0) >= limit:
             self._wait_for_reset(q)
 
     def _wait_for_reset(self, q: dict):
