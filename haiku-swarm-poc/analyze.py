@@ -43,6 +43,13 @@ def load():
         problem = s.get("problem", "circle")
         ev = [json.loads(l) for l in (d / "events.jsonl").read_text().splitlines() if l.strip()]
         ev = [e for e in ev if e.get("kind") == "eval" and e["te"] <= WALL[arm]]
+        if problem == "hexagon":
+            # Scores the stock evaluator gave to geometrically impossible packings
+            # (see common.score_of) count as invalid.
+            from common import HEX_MAX_SCORE
+            for e in ev:
+                if e["score"] > HEX_MAX_SCORE:
+                    e["score"], e["invalid_accepted"] = 0.0, True
         ev.sort(key=lambda e: e["spent"])
         runs[d.name] = {"arm": arm, "problem": problem, "summary": s, "events": ev}
     return runs

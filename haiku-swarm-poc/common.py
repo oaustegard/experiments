@@ -22,6 +22,8 @@ JAIL_SH = Path(os.environ.get("HSP_JAIL_SH", "/home/user/claude-workspace/script
 OE_EXAMPLE = Path(os.environ.get("HSP_OE_EXAMPLE", "/tmp/src/openevolve/examples/circle_packing"))
 BEST_KNOWN = 2.635983
 NOBODY = 65534
+HEX_MIN_SIDE = 11 ** 0.5      # area bound for 11 unit hexagons inside one regular hexagon
+HEX_MAX_SCORE = 3.930092 / HEX_MIN_SIDE   # ~1.185: any higher hexagon score is impossible
 
 
 def setup_jail():
@@ -83,6 +85,14 @@ def score_of(metrics: dict, problem: str = "circle") -> float:
     """Circle packing: sum_radii / best known, 0 for an invalid packing,
     recomputed rather than read from combined_score so the normalisation cannot
     drift with an env var. Other problems: the evaluator's combined_score."""
+    if problem == "hexagon":
+        # The stock hexagon evaluator tests containment with an absolute tolerance on an
+        # unnormalised cross product, so a tiny outer hexagon (side 1e-9) passes every
+        # check and scores ~3.9e9 (hx-L-s2, 2026-11-09). Eleven unit hexagons have
+        # area 11 x unit, so the outer side can never be below sqrt(11).
+        inv = (metrics or {}).get("inv_outer_hex_side_length")
+        if inv and 1.0 / float(inv) < HEX_MIN_SIDE:
+            return 0.0
     if problem != "circle":
         return float((metrics or {}).get("combined_score", 0) or 0)
     if not metrics or float(metrics.get("validity", 0) or 0) < 1:
