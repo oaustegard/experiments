@@ -91,6 +91,7 @@ def main(argv=None):
     ap.add_argument("--wall", type=float, default=3600)
     ap.add_argument("--problem", default="circle", choices=list(problems.PROBLEMS))
     ap.add_argument("--effort", default=EFFORT)
+    ap.add_argument("--arm", default="A")
     a = ap.parse_args(argv)
     setup_jail()
     d = run_dir(a.run_id)
@@ -138,7 +139,7 @@ def main(argv=None):
             f.write(json.dumps(e) + "\n")
     ev = [e for e in events if e["te"] <= a.wall]
     best = max(ev, key=lambda e: e["score"]) if ev else None
-    summary = {"run": a.run_id, "arm": "A", "problem": a.problem, "seed": a.seed, "model": MODEL, "effort": a.effort,
+    summary = {"run": a.run_id, "arm": a.arm, "problem": a.problem, "seed": a.seed, "model": MODEL, "effort": a.effort,
                "cap": a.cap, "spent": gw.spent, "spent_api": gw.spent_api, "calls": gw.calls,
                "elapsed": elapsed, "programs": len({e["sha"] for e in ev}),
                "best_score": best["score"] if best else None, "stopped_by": stopped_by,

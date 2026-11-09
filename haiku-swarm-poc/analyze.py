@@ -17,10 +17,11 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 R = HERE / "results"
-WALL = {"A": 3600, "B": 3600, "C": 3600, "L": 3600, "T": 1800}
-ARMS = {"A": "A  Sonnet loop (OpenEvolve)", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer",
+WALL = {"A": 3600, "Am": 3600, "Al": 3600, "B": 3600, "C": 3600, "L": 3600, "T": 1800}
+ARMS = {"A": "A  Sonnet loop (OpenEvolve), effort high", "Am": "Am Sonnet loop, effort medium",
+        "Al": "Al Sonnet loop, effort low", "B": "B  Haiku swarm", "C": "C  Haiku proposers, Sonnet writer",
         "L": "L  Haiku swarm, all effort low"}
-COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "L": "#eda100",
+COLORS = {"A": "#2a78d6", "B": "#eb6834", "C": "#1baf7a", "L": "#eda100", "Am": "#e87ba4", "Al": "#008300",
           "T0": "#2a78d6", "T1": "#eb6834", "T2": "#1baf7a", "T3": "#eda100"}
 PROBLEM_NAMES = {"circle": "Circle packing, n=26 (1.0 = best known, 2.635983)",
                  "heilbronn": "Heilbronn triangle, n=11 (1.0 = AlphaEvolve's construction)",
@@ -90,7 +91,7 @@ def matched(all_runs, problem):
         if r["problem"] == problem and r["summary"].get("seed") in (1, 2, 3):
             runs[f"{r['arm']}-s{r['summary']['seed']}"] = r
     out = {}
-    for other in ("B", "C", "L"):
+    for other in ("B", "C", "L", "Am", "Al"):
         rows = []
         for seed in (1, 2, 3):
             a, o = runs.get(f"A-s{seed}"), runs.get(f"{other}-s{seed}")
@@ -132,7 +133,7 @@ def table(rows):
 def arm_table(runs, rows):
     lines = ["| arm | seeds | mean spent $ | programs/$ (mean) | best (mean, range) | $ to 0.99 (mean, range) | $ to 0.999 (mean, range) |",
              "|---|---|---|---|---|---|---|"]
-    for arm in ("A", "B", "C", "L"):
+    for arm in ("A", "Am", "Al", "B", "C", "L"):
         rs = [r for r in rows if r["arm"] == arm]
         if not rs:
             continue
@@ -178,7 +179,7 @@ def plot(all_runs, problem):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    groups = {arm: [r for r in runs.values() if r["arm"] == arm] for arm in ("A", "B", "C", "L")}
+    groups = {arm: [r for r in runs.values() if r["arm"] == arm] for arm in ("A", "Am", "Al", "B", "C", "L")}
     groups = {k: v for k, v in groups.items() if v}
     if not groups:
         return
@@ -273,7 +274,7 @@ def main():
     (R / "summary.json").write_text(json.dumps(summary, indent=1))
     md = [LEGEND]
     for prob in problems_present:
-        prow =[r for r in rows if r["problem"] == prob and r["arm"] in "ABCL"]
+        prow =[r for r in rows if r["problem"] == prob and r["arm"] in ("A", "Am", "Al", "B", "C", "L")]
         md += [f"# {PROBLEM_NAMES[prob]}", "", "## Per arm", "", arm_table(runs, prow), "", "## Per run", "", table(prow)]
         for other, m in summary["matched"][prob].items():
             if m["verdict"]:

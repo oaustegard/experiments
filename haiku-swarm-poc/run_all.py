@@ -55,14 +55,33 @@ for prob, tag in (("heilbronn", "ht"), ("hexagon", "hx")):
                    (f"{tag}-L-s{s}", ["swarm.py", f"{tag}-L-s{s}", "--arm", "L", "--seed", str(s), "--problem", prob, *LOW])]
     if prob == "heilbronn":
         PHASE2 += [(f"L-s{s}", ["swarm.py", f"L-s{s}", "--arm", "L", "--seed", str(s), *LOW]) for s in (1, 2, 3)]
-SCHEDULE = MAIN + PHASE2 + TUNE
+# Phase 3 (2026-11-09, Oskar: Sonnet at lower effort too). Am / Al: Arm A with
+# Sonnet at effort medium / low, every problem, three seeds.
+PHASE3 = []
+for prob, tag in (("circle", ""), ("heilbronn", "ht-"), ("hexagon", "hx-")):
+    for arm, eff in (("Am", "medium"), ("Al", "low")):
+        for s in (1, 2, 3):
+            rid = f"{tag}{arm}-s{s}"
+            PHASE3.append((rid, ["arm_a.py", rid, "--seed", str(s), "--problem", prob, "--effort", eff, "--arm", arm]))
+SCHEDULE = MAIN + PHASE2 + PHASE3 + TUNE
+
+# Lanes: one per session, each session a separate 4-vCPU container, so runs never
+# share a CPU. Lane 0 is the parent session; the others are sibling sessions.
+LANES = {
+    0: ["A-s1", "B-s1", "C-s1", "A-s2", "B-s2", "A-s3", "B-s3"],
+    1: ["L-s1", "L-s2", "L-s3", "T-K4N8", "T-K4N0"],
+    2: ["Am-s1", "Am-s2", "Am-s3", "C-s2", "T-K8N4"],
+    3: ["Al-s1", "Al-s2", "Al-s3", "C-s3", "T-K2N16"],
+    **{3 + s: [f"ht-{a}-s{s}" for a in ("A", "B", "L", "Am", "Al")] for s in (1, 2, 3)},
+    **{6 + s: [f"hx-{a}-s{s}" for a in ("A", "B", "L", "Am", "Al")] for s in (1, 2, 3)},
+}
 
 
 def est_min(run_id: str, args: list) -> int:
     """Worst-case minutes for a run, so the schedule pauses before the 2 h limit."""
     if run_id.startswith("T-"):
         return 33
-    if run_id.startswith("A-"):
+    if run_id.startswith("A-") and "--effort" not in args:
         return 15          # circle packing's Arm A hits the cap in under 10 minutes
     return 63
 
@@ -90,13 +109,23 @@ def collect(run_id: str):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--lane", type=int, default=None, help="run only this lane's runs")
+    ap.add_argument("--no-analyze", action="store_true")
+    opts = ap.parse_args()
     t_launch = time.time()
+    schedule = SCHEDULE
+    if opts.lane is not None:
+        ids = LANES[opts.lane]
+        by_id = dict(SCHEDULE)
+        schedule = [(i, by_id[i]) for i in ids]
     setup_jail()
     calib = JAIL / "runs" / "_calib" / "overhead.json"
     if not calib.exists():
         Gateway(run_dir("_calib"), cap=1.0).calibrate()
     (RESULTS / "logs").mkdir(parents=True, exist_ok=True)
-    for run_id, args in SCHEDULE:
+    for run_id, args in schedule:
         if (JAIL / "runs" / run_id / "DONE").exists():
             collect(run_id)
             continue
@@ -124,7 +153,7 @@ def main():
             if "QuotaGuard" in tail:
                 print("schedule stopped: quota guard", flush=True)
                 return
-        if (HERE / "analyze.py").exists():
+        if (HERE / "analyze.py").exists() and not opts.no_analyze:
             with open(RESULTS / "logs" / "analyze.log", "a") as log:
                 try:
                     subprocess.run([sys.executable, "analyze.py"], cwd=HERE, timeout=300,
