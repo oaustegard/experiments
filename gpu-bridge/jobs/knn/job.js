@@ -3,7 +3,8 @@
 // keeps a per-thread top-10 per query, then merges the 256 thread lists with a tree argmax.
 // Options (inputs): docDtype "f32" (default) or "f16" (docs as Uint16Array halves, needs shader-f16);
 // cache "store" keeps the docs buffer on the GPU in ctx.cache for later jobs, "use" runs against it
-// with only queries sent. Defaults reproduce knn-1.
+// with only queries sent. Defaults reproduce knn-1. The kernel is _lib/wgsl/retrieval.js knnWGSL at
+// inputs.sha (default main).
 const { docs, queries, docDtype = "f32", cache = null } = ctx.inputs;
 const D = 256, K = 10, QB = 4, WG = 256, KEY = "knn-docs-" + docDtype;
 const Q = queries.length / D;
@@ -13,82 +14,15 @@ if (docDtype === "f16" && !dev.features.has("shader-f16")) throw new Error("this
 const cached = cache === "use" ? ctx.cache.get(KEY) : null;
 if (cache === "use" && !cached) throw new Error(`no ${KEY} in the worker cache: run a job with cache "store" first in this tab`);
 const N = cached ? cached.N : docs.length / D;
-const wgsl = `${docDtype === "f16" ? "enable f16;" : ""}
-const K: u32 = ${K}u; const QB: u32 = ${QB}u; const WG: u32 = ${WG}u; const DV: u32 = ${D / 4}u;
-struct P { n: u32, nq: u32 }
-@group(0) @binding(0) var<storage, read> docs: array<${docDtype === "f16" ? "vec4<f16>" : "vec4f"}>;
-@group(0) @binding(1) var<storage, read> qs: array<vec4f>;
-@group(0) @binding(2) var<storage, read_write> outIdx: array<u32>;
-@group(0) @binding(3) var<storage, read_write> outScore: array<f32>;
-@group(0) @binding(4) var<uniform> p: P;
-var<workgroup> qsh: array<vec4f, ${QB * D / 4}>;
-var<workgroup> cs: array<f32, ${WG * K}>;
-var<workgroup> ci: array<u32, ${WG * K}>;
-var<workgroup> rv: array<f32, ${WG}>;
-var<workgroup> rt: array<u32, ${WG}>;
-@compute @workgroup_size(${WG})
-fn main(@builtin(local_invocation_index) t: u32, @builtin(workgroup_id) w: vec3u) {
-  let q0 = w.x * QB;
-  for (var i = t; i < QB * DV; i += WG) { qsh[i] = qs[q0 * DV + i]; }
-  workgroupBarrier();
-  var bs: array<f32, ${QB * K}>;
-  var bi: array<u32, ${QB * K}>;
-  for (var i = 0u; i < QB * K; i++) { bs[i] = -1e30; bi[i] = 0u; }
-  for (var j = t; j < p.n; j += WG) {
-    var acc = vec4f(0.0);
-    for (var d = 0u; d < DV; d++) {
-      let x = vec4f(docs[j * DV + d]);
-      acc += vec4f(dot(x, qsh[d]), dot(x, qsh[DV + d]), dot(x, qsh[2u * DV + d]), dot(x, qsh[3u * DV + d]));
-    }
-    for (var q = 0u; q < QB; q++) {
-      let s = acc[q];
-      let base = q * K;
-      if (s > bs[base + K - 1u]) {
-        var pos = K - 1u;
-        loop {
-          if (pos == 0u) { break; }
-          if (bs[base + pos - 1u] >= s) { break; }
-          bs[base + pos] = bs[base + pos - 1u]; bi[base + pos] = bi[base + pos - 1u];
-          pos = pos - 1u;
-        }
-        bs[base + pos] = s; bi[base + pos] = j;
-      }
-    }
-  }
-  for (var q = 0u; q < QB; q++) {
-    for (var k = 0u; k < K; k++) { cs[t * K + k] = bs[q * K + k]; ci[t * K + k] = bi[q * K + k]; }
-    var h = 0u;
-    workgroupBarrier();
-    for (var k = 0u; k < K; k++) {
-      if (h < K) { rv[t] = cs[t * K + h]; } else { rv[t] = -1e30; }
-      rt[t] = t;
-      workgroupBarrier();
-      for (var s = WG / 2u; s > 0u; s = s >> 1u) {
-        if (t < s && rv[t + s] > rv[t]) { rv[t] = rv[t + s]; rt[t] = rt[t + s]; }
-        workgroupBarrier();
-      }
-      let win = rt[0];
-      workgroupBarrier();
-      if (t == win) {
-        outScore[(q0 + q) * K + k] = cs[t * K + h];
-        outIdx[(q0 + q) * K + k] = ci[t * K + h];
-        h = h + 1u;
-      }
-    }
-    workgroupBarrier();
-  }
-}`;
-const module = dev.createShaderModule({ code: wgsl });
-const errs = (await module.getCompilationInfo()).messages.filter((m) => m.type === "error");
-if (errs.length) throw new Error("WGSL: " + errs.map((m) => `${m.lineNum}:${m.linePos} ${m.message}`).join("; "));
-const pipe = await dev.createComputePipelineAsync({ layout: "auto", compute: { module, entryPoint: "main" } });
+const LIB = await ctx.importModule(`https://cdn.jsdelivr.net/gh/oaustegard/experiments@${ctx.inputs.sha ?? "main"}/_lib/wgsl/retrieval.js`);
+const [pipe] = await LIB.compile(dev, LIB.knnWGSL({ D, K, QB, WG, f16: docDtype === "f16" }));
 const S = GPUBufferUsage.STORAGE, CD = GPUBufferUsage.COPY_DST, CS = GPUBufferUsage.COPY_SRC;
 const buf = (size, usage) => dev.createBuffer({ size, usage });
 const bDocs = cached ? cached.buf : buf(docs.byteLength, S | CD), bQ = buf(queries.byteLength, S | CD);
 const tUp0 = performance.now();
 const bIdx = buf(Q * K * 4, S | CS), bScore = buf(Q * K * 4, S | CS), bP = buf(16, GPUBufferUsage.UNIFORM | CD);
 if (!cached) dev.queue.writeBuffer(bDocs, 0, docs);
-dev.queue.writeBuffer(bQ, 0, queries); dev.queue.writeBuffer(bP, 0, new Uint32Array([N, Q, 0, 0]));
+dev.queue.writeBuffer(bQ, 0, queries); dev.queue.writeBuffer(bP, 0, new Uint32Array([N, 0, 0, 0]));
 const bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [bDocs, bQ, bIdx, bScore, bP].map((buffer, binding) => ({ binding, resource: { buffer } })) });
 const ITERS = 6, hasTs = dev.features.has("timestamp-query");
 const qset = hasTs ? dev.createQuerySet({ type: "timestamp", count: 2 * ITERS }) : null;

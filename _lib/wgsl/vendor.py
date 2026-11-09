@@ -1,6 +1,6 @@
 """Copy a WGSL engine and the shared modules it imports into one directory of a site repo.
 
-Engines here import `../../_lib/wgsl/runtime.js` and `../../_lib/wgsl/kernels.js`. A page published
+Engines here import `../../_lib/wgsl/runtime.js`, `kernels.js` and (tail.js) `retrieval.js`. A page published
 outside this repo gets the engine next to `wgsl-runtime.js` and `wgsl-kernels.js`, with the imports
 rewritten, so the set works from any directory.
 
@@ -12,9 +12,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 RUNTIME = HERE / "runtime.js"
 KERNELS = HERE / "kernels.js"
+RETRIEVAL = HERE / "retrieval.js"
 # module -> (import specifier in an engine, vendored file name)
 MODULES = {RUNTIME: ('"../../_lib/wgsl/runtime.js"', "wgsl-runtime.js"),
-           KERNELS: ('"../../_lib/wgsl/kernels.js"', "wgsl-kernels.js")}
+           KERNELS: ('"../../_lib/wgsl/kernels.js"', "wgsl-kernels.js"),
+           RETRIEVAL: ('"../../_lib/wgsl/retrieval.js"', "wgsl-retrieval.js")}
 
 
 def vendored_engine(engine: Path) -> str:
@@ -32,7 +34,8 @@ def vendored_engine(engine: Path) -> str:
 def vendored_modules() -> dict:
     """{file name: source} for the shared modules, kernels.js importing the vendored runtime."""
     return {"wgsl-runtime.js": RUNTIME.read_text(),
-            "wgsl-kernels.js": KERNELS.read_text().replace('"./runtime.js"', '"./wgsl-runtime.js"')}
+            "wgsl-kernels.js": KERNELS.read_text().replace('"./runtime.js"', '"./wgsl-runtime.js"'),
+            "wgsl-retrieval.js": RETRIEVAL.read_text()}
 
 
 def vendor_engine(engine: Path, out_dir: Path, name: str = "engine.js") -> None:

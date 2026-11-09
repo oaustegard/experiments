@@ -1,11 +1,12 @@
-// tail.js: WebGPU fused tail for EG2 / remex 2-bit codes. ES module, no dependencies.
+// tail.js: WebGPU fused tail for EG2 / remex 2-bit codes. ES module; its top-k kernel is _lib/wgsl/retrieval.js.
 // Contract: SPEC.md (same directory tree)
+
+import { TOPK, TOPK_CHUNK } from "../../_lib/wgsl/retrieval.js";
 
 const D = 768;
 const WORDS = 48;              // u32 words per packed vector (192 bytes)
 const LUT_STRIDE = 3073;       // 768*4 LUT entries, then the query offset
 const MAX_DIM = 65535;         // max workgroups per dispatch dimension
-const TOPK_CHUNK = 1024;       // (score, index) pairs per top-k workgroup
 const TOPK_MAX = 256;          // k limit, so each top-k pass shrinks the input at least 4x
 const ENC_TILE = 4;            // vectors per encode workgroup (the vec4 lanes in ENCODE)
 
@@ -355,83 +356,8 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid:
 }
 `;
 
-// Top-k, one pass: each workgroup bitonic-sorts a chunk of 1024 (score, index) pairs in workgroup
-// memory and writes its best k. Order: higher score first, lower index on ties (the topkRef order).
-// Pass 1 reads scores [nq, capacity] with implicit indices; later passes read the previous pass's
-// candidates. The host repeats passes until one chunk remains. Padding: -FLT_MAX with index
-// 0xffffffff, which sorts after every finite score (WGSL rejects a -inf constant).
-const TOPK = /* wgsl */ `
-struct TopP {
-  n: u32,          // valid entries per query in the input
-  in_stride: u32,  // input row stride per query
-  out_stride: u32, // output row stride per query (= chunks * k)
-  k: u32,
-  implicit: u32,   // 1: index = position in the row (pass 1)
-  pad0: u32,
-  pad1: u32,
-  pad2: u32,
-}
-@group(0) @binding(0) var<uniform> tp: TopP;
-@group(0) @binding(1) var<storage, read> sin: array<f32>;
-@group(0) @binding(2) var<storage, read> iin: array<u32>;
-@group(0) @binding(3) var<storage, read_write> sout: array<f32>;
-@group(0) @binding(4) var<storage, read_write> iout: array<u32>;
-
-const CH: u32 = 1024u;
-var<workgroup> ks: array<f32, 1024>;
-var<workgroup> ki: array<u32, 1024>;
-
-fn before(sa: f32, ia: u32, sb: f32, ib: u32) -> bool {
-  return sa > sb || (sa == sb && ia < ib);
-}
-
-@compute @workgroup_size(256)
-fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_id) lid: vec3<u32>) {
-  let tid = lid.x;
-  let q = wg.y;
-  let base = wg.x * CH;
-  for (var t: u32 = tid; t < CH; t += 256u) {
-    let p = base + t;
-    if (p < tp.n) {
-      ks[t] = sin[q * tp.in_stride + p];
-      if (tp.implicit != 0u) {
-        ki[t] = p;
-      } else {
-        ki[t] = iin[q * tp.in_stride + p];
-      }
-    } else {
-      ks[t] = bitcast<f32>(0xff7fffffu);   // -FLT_MAX
-      ki[t] = 0xffffffffu;
-    }
-  }
-  workgroupBarrier();
-
-  for (var size: u32 = 2u; size <= CH; size = size << 1u) {
-    for (var stride: u32 = size >> 1u; stride > 0u; stride = stride >> 1u) {
-      for (var h: u32 = 0u; h < 2u; h += 1u) {
-        let pr = tid + 256u * h;                       // pair 0..511
-        let i = 2u * stride * (pr / stride) + pr % stride;
-        let j = i + stride;
-        let si = ks[i]; let ii = ki[i];
-        let sj = ks[j]; let ij = ki[j];
-        // blocks with (i & size) == 0 end best-first, the others worst-first; the last size is all best-first
-        let want_first = (i & size) == 0u;
-        if (before(sj, ij, si, ii) == want_first) {
-          ks[i] = sj; ki[i] = ij;
-          ks[j] = si; ki[j] = ii;
-        }
-      }
-      workgroupBarrier();
-    }
-  }
-
-  for (var t: u32 = tid; t < tp.k; t += 256u) {
-    let o = q * tp.out_stride + wg.x * tp.k + t;
-    sout[o] = ks[t];
-    iout[o] = ki[t];
-  }
-}
-`;
+// Top-k (one pass per call; the host repeats passes until one chunk remains) lives in
+// _lib/wgsl/retrieval.js as TOPK, kernel library step 6.
 
 // Randomized Hadamard rotation, remex's RHTOperator.rotate_rows for d = 768: for r = rounds-1 .. 0,
 // an unnormalized FWHT over each 256-wide block (pairs (i, i+h) for h = 1, 2, .., 128, in remex's

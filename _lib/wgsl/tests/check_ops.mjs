@@ -36,12 +36,14 @@ await page.goto(`http://127.0.0.1:${server.address().port}/`);
 const out = await page.evaluate(async ([only, reps]) => {
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) return { error: "no WebGPU adapter" };
-  const device = await adapter.requestDevice();
+  // the radix sort's scatter needs 17 KB of workgroup memory, over WebGPU's 16 KB default
+  const device = await adapter.requestDevice({ requiredLimits: { maxComputeWorkgroupStorageSize: adapter.limits.maxComputeWorkgroupStorageSize } });
   device.addEventListener("uncapturederror", (e) => console.log("GPU error: " + e.error.message));
   const { runOps } = await import("/_lib/wgsl/tests/ops.js");
   const { runTrainOps } = await import("/_lib/wgsl/tests/train_ops.js");
+  const { runRetrievalOps } = await import("/_lib/wgsl/tests/retrieval_ops.js");
   const info = adapter.info ?? {}, log = (m) => console.log(m);
-  const results = [...await runOps(device, { only, reps, log }), ...await runTrainOps(device, { only, log })];
+  const results = [...await runOps(device, { only, reps, log }), ...await runTrainOps(device, { only, log }), ...await runRetrievalOps(device, { only, log })];
   return { device: `${info.vendor} ${info.architecture} ${info.description}`.trim(), results };
 }, [only, reps]);
 await browser.close();
