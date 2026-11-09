@@ -108,6 +108,25 @@ def collect(run_id: str):
         shutil.copy(best, dst / "best_program.py")
 
 
+def stale_ttl(run_id: str):
+    """A run made before the switch to 5-minute cache writes (no cache_ttl file
+    saying 5m) is set aside, results included, and runs again under the new rule."""
+    from gateway import CACHE_TTL
+    d = JAIL / "runs" / run_id
+    if not d.exists() or not any(d.iterdir()):
+        return
+    marker = d / "cache_ttl"
+    if marker.exists() and marker.read_text().strip() == CACHE_TTL:
+        return
+    tag = f"{run_id}.ttl1h-{int(time.time())}"
+    shutil.move(str(d), str(d.parent / tag))
+    old = RESULTS / "runs" / run_id
+    if old.exists():
+        (RESULTS / "runs_ttl1h").mkdir(parents=True, exist_ok=True)
+        shutil.move(str(old), str(RESULTS / "runs_ttl1h" / run_id))
+    print(time.strftime("%H:%M:%S"), run_id, "set aside (1-hour cache writes) ->", tag, flush=True)
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -126,6 +145,7 @@ def main():
         Gateway(run_dir("_calib"), cap=1.0).calibrate()
     (RESULTS / "logs").mkdir(parents=True, exist_ok=True)
     for run_id, args in schedule:
+        stale_ttl(run_id)
         if (JAIL / "runs" / run_id / "DONE").exists():
             collect(run_id)
             continue

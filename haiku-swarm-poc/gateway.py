@@ -42,6 +42,10 @@ PRICES = {
 }
 READ_MULT, W5M_MULT, W1H_MULT = 0.10, 1.25, 2.00
 HAIKU_LONG = 100_000
+# Calls that share a prefix land seconds apart, so the 5-minute cache TTL is the
+# right one, and its writes cost 1.25x input against the CLI's default 1-hour 2x.
+# Every run since 2026-11-09 14:10Z uses it; a run dir records it in `cache_ttl`.
+CACHE_TTL = "5m"
 
 ALIASES = {"haiku": "claude-haiku-5-5", "sonnet": "claude-sonnet-5-5"}
 
@@ -101,6 +105,7 @@ class Gateway:
         self._sem = threading.BoundedSemaphore(self.max_parallel)
         self._cwd = tempfile.mkdtemp(prefix="hsp-cc-")
         self.t0 = time.time()
+        (self.run_dir / "cache_ttl").write_text(CACHE_TTL)
         # Resume: re-read an existing ledger so the cap holds across restarts.
         if self.ledger.exists():
             for line in self.ledger.read_text().splitlines():
@@ -143,7 +148,8 @@ class Gateway:
                "--disable-slash-commands", "--exclude-dynamic-system-prompt-sections",
                "--effort", effort, "--system-prompt-file", str(sp)]
         env = dict(os.environ, CLAUDE_CODE_EFFORT_LEVEL=effort,
-                   CLAUDE_CODE_MAX_OUTPUT_TOKENS=str(max_tokens))
+                   CLAUDE_CODE_MAX_OUTPUT_TOKENS=str(max_tokens),
+                   FORCE_PROMPT_CACHING_5M="1", CLAUDE_CODE_PROMPT_CACHE_TTL=CACHE_TTL)
         t_start = time.time()
         try:
             p = subprocess.run(cmd, input=user, capture_output=True, text=True,
