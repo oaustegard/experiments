@@ -397,9 +397,10 @@ KERNELS.gather = GATHER;
 
 // ---- Token-table embedding --------------------------------------------------------------------------
 // y[t, j] = alpha * table(id)[j] (+ pos[position, j] + type0[j], BERT). One workgroup of 64 per token,
-// thread l holding columns l + 64 i. Row formats, each with one fp16 scale per 32 values:
+// thread l holding columns l + 64 i. Row formats (t4 and t3 with one fp16 scale per 32 values):
 //   t4  symmetric 4-bit, two per byte, low nibble = even column, value (code - 8) * scale
 //   t3  3-bit, eight per 3 bytes (little-endian bitstream), a zero-point byte per 32, (code - zp) * scale
+//   t8  int8, one f32 scale per row instead (leaf-wasm's int8 file); scales is then a byte offset to [V] f32
 // H, the format and the options are WGSL constants. Uniform: a = (codes, scales, zero points) byte
 // offsets and the position-table word offset; b.x = type0 word offset; f.x = alpha.
 const EMBED_FMT = {
@@ -409,7 +410,11 @@ const EMBED_FMT = {
     let word = wbyte(cb) | (wbyte(cb + 1u) << 8u) | (wbyte(cb + 2u) << 16u);
     let z = f32(wbyte(p.a.z + id * G + j / 32u));
     var v = (f32((word >> (3u * (j & 7u))) & 7u) - z) * s;`,
+  t8: `let b = wbyte(p.a.x + id * H + j);
+    var v = (f32(b) - select(0.0, 256.0, b > 127u)) * wf32(p.a.y / 4u + id);`,
 };
+// The per-32 fp16 scale line t4 and t3 share; t8 reads its one f32 scale per row itself.
+const EMBED_SCALE = (fmt) => (fmt === "t8" ? "" : "let s = wf16(p.a.y + (id * G + j / 32u) * 2u);");
 const embedWGSL = (fmt, H, alpha, pos) => HEADER + /* wgsl */ `
 @group(0) @binding(2) var<storage, read> W: array<u32>;
 @group(0) @binding(3) var<storage, read> tok: array<vec4<u32>>;
@@ -423,7 +428,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   if (t >= dn.n.x) { return; }
   let id = tok[t].x;
   for (var j = l; j < H; j += 64u) {
-    let s = wf16(p.a.y + (id * G + j / 32u) * 2u);
+    ${EMBED_SCALE(fmt)}
     ${EMBED_FMT[fmt]}
     ${alpha ? "v = v * p.f.x;" : ""}
     ${pos ? "v += wf32(p.a.w + tok[t].y * H + j) + wf32(p.b.x + j);" : ""}

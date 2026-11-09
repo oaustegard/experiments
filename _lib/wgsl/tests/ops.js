@@ -262,14 +262,16 @@ function embedCase(fmt, H, { alpha = 1, pos = false } = {}) {
     name: `embed_${fmt}_${H}${alpha !== 1 ? "_alpha" : ""}${pos ? "_pos" : ""}`, op: "embed",
     async run(device, r) {
       const bt = packed(LENS), V = 97, G = H / 32;
-      const codes = Uint8Array.from({ length: V * H }, () => Math.floor(r() * (fmt === "t4" ? 16 : 8)));
+      const codes = Uint8Array.from({ length: V * H }, () => Math.floor(r() * ({ t4: 16, t8: 256 }[fmt] ?? 8)));
+      const rowSc = Float32Array.from({ length: V }, () => (0.2 + r()) * 0.01);   // t8: one f32 scale per row
       const zp = Uint8Array.from({ length: V * G }, () => Math.floor(r() * 8));
       const sc = Uint16Array.from({ length: V * G }, () => toHalf((0.2 + r()) * 0.05));
       const by = new Bytes();
       let packedCodes;
-      if (fmt === "t4") { packedCodes = new Uint8Array(V * H / 2); for (let i = 0; i < V * H; i++) packedCodes[i >> 1] |= codes[i] << (4 * (i & 1)); }
+      if (fmt === "t8") packedCodes = codes;   // int8 as bytes; the kernel sign-extends
+      else if (fmt === "t4") { packedCodes = new Uint8Array(V * H / 2); for (let i = 0; i < V * H; i++) packedCodes[i >> 1] |= codes[i] << (4 * (i & 1)); }
       else { packedCodes = new Uint8Array(V * H * 3 / 8); for (let i = 0; i < V * H; i += 8) { let w = 0; for (let k = 0; k < 8; k++) w |= codes[i + k] << (3 * k); packedCodes.set([w & 255, (w >> 8) & 255, (w >> 16) & 255], i * 3 / 8); } }
-      const t = { fmt, codes: by.put(packedCodes), scales: by.put(new Uint8Array(sc.buffer)), zp: by.put(zp) };
+      const t = { fmt, codes: by.put(packedCodes), scales: by.put(new Uint8Array((fmt === "t8" ? rowSc : sc).buffer)), zp: by.put(zp) };
       const words = by.array, maxPos = 128;
       const pw = pos ? randn(r, maxPos * H) : null, t0 = pos ? randn(r, H) : null;
       const wl = new Words(); wl.w = Array.from(words);
@@ -280,7 +282,7 @@ function embedCase(fmt, H, { alpha = 1, pos = false } = {}) {
       ids.forEach((s) => s.forEach((id, p) => {
         for (let j = 0; j < H; j++) {
           const sv = fromHalf(sc[id * G + (j >> 5)]), c = codes[id * H + j];
-          let v = (c - (fmt === "t4" ? 8 : zp[id * G + (j >> 5)])) * sv * alpha;
+          let v = fmt === "t8" ? (c > 127 ? c - 256 : c) * rowSc[id] * alpha : (c - (fmt === "t4" ? 8 : zp[id * G + (j >> 5)])) * sv * alpha;
           if (pos) v += pw[p * H + j] + t0[j];
           ref[o * H + j] = v;
         }
@@ -541,6 +543,7 @@ export const cases = [
   embedCase("t4", 256),
   embedCase("t3", 512, { alpha: 22.627 }),
   embedCase("t3", 256, { pos: true }),
+  embedCase("t8", 384, { pos: true }),
   ropeCase({ nh: 4, hd: 64, parts: 2, tables: 2, sel: 1 }),
   ropeCase({ nh: 3, hd: 32, parts: 1, tables: 1, sel: 0 }),
   gatedCase("gelu", 384, "cat"),

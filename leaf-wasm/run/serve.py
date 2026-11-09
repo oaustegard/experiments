@@ -1,6 +1,7 @@
 """Static server for leaf-wasm pages that also accepts uploads from them.
 
-Usage: python3 run/serve.py [port]     (default 8766, binds 127.0.0.1, serves the leaf-wasm root)
+Usage: python3 run/serve.py [port]     (default 8766, binds 127.0.0.1, serves the repo root: open
+       /leaf-wasm/web/gpu.html; the WebGPU engine imports ettin-native and _lib/wgsl from there)
 
 GET serves files (symlinks followed, so out/posts.jsonl and out/q can point at the corpus and
 queries elsewhere in the repo). PUT /upload/<name> writes the body to out/gpu/<name>, so a
@@ -40,4 +41,4 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8766
-    http.server.ThreadingHTTPServer(("127.0.0.1", port), partial(Handler, directory=str(ROOT))).serve_forever()
+    http.server.ThreadingHTTPServer(("127.0.0.1", port), partial(Handler, directory=str(ROOT.parent))).serve_forever()

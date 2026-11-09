@@ -8,8 +8,8 @@
 //   const vecs = await eng.embed([ids0, ids1, ...]);   // Float32Array[B * 768], unit rows
 //
 // Weights stay in their shipped formats: int8 matmul codes with one f32 scale per output column
-// (transposed once at init from the file's [K, N] to [N, K]), a 4-bit (packed nibbles, fp16 scale per 32) or 3-bit (eg2-layer-student layout)
-// token table, f32 norms and biases. Activations are f32 throughout. Several sequences run in one
+// (transposed once at init from the file's [K, N] to [N, K]), a 4-bit (packed nibbles, fp16 scale per 32), 3-bit (eg2-layer-student layout)
+// or int8 (f32 scale per row, leaf-wasm's file through leaf-wasm/web/leaf-engine.js) token table, f32 norms and biases. Activations are f32 throughout. Several sequences run in one
 // pass, packed back to back; attention stays inside each sequence.
 // Every kernel is a shared template in _lib/wgsl/kernels.js (matmul, norm, attention, pool, l2);
 // so are the token-table gather, RoPE and the GLU. Batching, dispatch recording, weight
@@ -82,7 +82,7 @@ export class SmallEngine extends SeqEngine {
       norm(this, "ln", this.W, word(w), X, Y, { D: H, eps: m.eps, bOff: b ? word(b) : NONE, mode, rowsSel });
 
     const tb = m.table;
-    embed(this, this.W, B_.e, { fmt: tb.bits === 4 ? "t4" : "t3", codes: tb.codes.offset, scales: tb.scales.offset, zp: tb.zp?.offset },
+    embed(this, this.W, B_.e, { fmt: { 4: "t4", 8: "t8" }[tb.bits] ?? "t3", codes: tb.codes.offset, scales: tb.scales.offset, zp: tb.zp?.offset },
           { H, pos: bert ? word(m.pos) : NONE, type0: bert ? word(m.type0) : 0 });
     if (!bert) {
       ln(m.emb_norm, null, B_.e, B_.h);

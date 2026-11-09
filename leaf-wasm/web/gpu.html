@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>leaf-gpu parity</title>
+<title>leaf-ir WebGPU parity</title>
 <style>
   :root { --bg: #fff; --fg: #1b1b1b; --muted: #666; --ok: #17803d; --bad: #b42318; --card: #f4f4f2; }
   @media (prefers-color-scheme: dark) { :root { --bg: #151515; --fg: #e8e8e6; --muted: #9a9a9a; --ok: #4ac26b; --bad: #f97066; --card: #222; } }
@@ -14,14 +14,14 @@
 </style>
 </head>
 <body>
-<h1>leaf-gpu parity</h1>
-<p>WebGPU forward pass (leaf-gpu.js) vs the JS + WASM engine (leaf.js) on the same int8 weights, and vs ORT fp32,
-on the 460 fixtures from run/ref.py. Served from the leaf-wasm root (needs out/).</p>
+<h1>leaf-ir WebGPU parity</h1>
+<p>WebGPU forward pass (leaf-engine.js: ettin-native's SmallEngine on the shared kernels in _lib/wgsl) vs the JS + WASM engine (leaf.js) on the same int8 weights, and vs ORT fp32,
+on the 460 fixtures from run/ref.py. Served from the repo root by run/serve.py (needs out/).</p>
 <div id="status">running…</div>
 <pre id="out"></pre>
 <script type="module">
 import { createLeaf } from "./leaf.js";
-import { createLeafGPU } from "./leaf-gpu.js";
+import { createLeafEngine as createLeafGPU } from "./leaf-engine.js";
 
 const $ = (id) => document.getElementById(id);
 const get = async (u, kind) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u}: ${r.status}`); return r[kind](); };

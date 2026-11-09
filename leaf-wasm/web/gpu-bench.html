@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>leaf-gpu bench</title>
+<title>leaf-ir WebGPU bench</title>
 <style>
   :root { --bg: #fff; --fg: #1b1b1b; --muted: #666; --ok: #17803d; --bad: #b42318; --card: #f4f4f2; }
   @media (prefers-color-scheme: dark) { :root { --bg: #151515; --fg: #e8e8e6; --muted: #9a9a9a; --ok: #4ac26b; --bad: #f97066; --card: #222; } }
@@ -15,8 +15,8 @@
 </style>
 </head>
 <body>
-<h1>leaf-gpu bench</h1>
-<p>WebGPU engine (leaf-gpu.js) against the WASM engine (leaf.js), same int8 weights, same page, same session.
+<h1>leaf-ir WebGPU bench</h1>
+<p>WebGPU engine (leaf-engine.js, the shared kernels in _lib/wgsl) against the WASM engine (leaf.js), same int8 weights, same page, same session.
 ?mode=latency,batch,corpus picks the parts; corpus encodes all 61,686 posts and 1,498 queries and uploads the
 vectors to run/serve.py for run/score_vectors.py. Run only while holding embed-coord's cpu.lock.</p>
 <button id="run">Run</button><button id="copy" disabled>Copy JSON</button>
@@ -24,7 +24,7 @@ vectors to run/serve.py for run/score_vectors.py. Run only while holding embed-c
 <pre id="out"></pre>
 <script type="module">
 import { createLeaf, QUERY_PROMPT } from "./leaf.js";
-import { createLeafGPU } from "./leaf-gpu.js";
+import { createLeafEngine as createLeafGPU } from "./leaf-engine.js";
 
 const params = new URLSearchParams(location.search);
 const MODES = (params.get("mode") || "latency,batch").split(",");

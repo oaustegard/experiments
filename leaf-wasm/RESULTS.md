@@ -103,7 +103,14 @@ At +-31 the runtime-free route is about 16 MB on the wire (weights 15.85 + vocab
 engine ~0.01), against about 19.2 MB for MongoDB's int8 on onnxruntime-web (15.85 + 3.07
 runtime + tokenizer.json ~0.25).
 
-## WebGPU engine (web/leaf-gpu.js)
+## WebGPU engine (web/leaf-gpu.js, retired 2026-11-09)
+
+`web/leaf-gpu.js` was retired in the shared kernel library's step 6 (`_lib/wgsl/README.md`). The two
+pages now run `web/leaf-engine.js`, which feeds the same int8 file to ettin-native's SmallEngine on
+the shared kernels: against leaf-gpu.js on 24 sequences of 1 to 127 tokens the minimum cosine is
+0.9999999999988, and against leaf.js 0.9999999999986 (SwiftShader). The numbers below are
+leaf-gpu.js's and were not re-measured on the new engine.
+
 
 Five WGSL kernels on the same int8 file (`results/gpu_bench.json`, `results/leafgpu.json`):
 5.0 ms per real query on an M1 against 10.8 ms for the WASM engine; 61,686 posts in 102 s;

@@ -14,7 +14,9 @@ The migration plan for the rest is under "Kernel library" below.
 | `tests/ops.js`, `tests/train_ops.js`, `tests/check_ops.mjs` | per-op parity cases against float64 references (finite differences for the backward kernels), and their headless runner; the same cases time each op on a real GPU through `gpu-bridge/jobs/wgsl-ops` |
 | `tests/engine_ab.mjs` | an engine at a git ref against the working tree, same weights and inputs, max \|diff\| (0 expected when a move changes no shader); cases for browser-decider, adapter-library, ettin-native, eg2-cut, moedern-1.5M, lora-trainer and distill-trainer (weights not in git are downloaded once to a cache), add one per migrated engine |
 | `train/spec.js`, `train/kernels.js`, `train/nce.js` | training kernels in the trainers' spec format (named uniforms and bindings, dynamic uniform offsets) and `SpecRunner`, the dispatch runner both trainers extend: LoRA and full-weight forward and backward passes, AdamW, the cosine and InfoNCE losses |
-| `vendor.py` | copies an engine plus `runtime.js` (as `wgsl-runtime.js`) into a site directory, rewriting the import |
+| `retrieval.js` | device-level retrieval ops with dispatch planners: `knnWGSL` (fused dot + top-K over a doc matrix, f32 or f16 docs, or a self-excluding kNN graph), `TOPK` + `planTopk` (multi-pass top-k over score rows), `SCAN` + `planScan` (exclusive prefix sum), `radixWGSL` + `planSort` (LSD radix sort, needs 17 KB of workgroup memory) |
+| `tests/train_ops.js`, `tests/retrieval_ops.js` | the training kernels' and retrieval ops' parity cases, run by `check_ops.mjs` and the `wgsl-ops` bridge job after `ops.js` |
+| `vendor.py` | copies an engine plus `runtime.js`, `kernels.js` and `retrieval.js` (as `wgsl-*.js`) into a site directory, rewriting the imports |
 
 An engine subclasses `SeqEngine`, sets `this.shaders = { ...KERNELS, ...ownShaders }`, and records
 its forward pass in `_build(bytes)` with the `kernels.js` helpers and `this.step(kind, params, bufs,
@@ -24,10 +26,10 @@ made for the site repo.
 
 ## Checks
 
-Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (42 on
-2026-11-08: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
+Per op: `node _lib/wgsl/tests/check_ops.mjs [filter]` runs every case in `tests/ops.js` (43 on
+2026-11-09: each matmul format with bias, GELU, accumulate and alpha; RMS and LayerNorm in all three
 residual modes; attention fused and separate, grouped-query, windowed, head dim 32 to 256; attentionLong to
-1,024 tokens; gather; embed t4 / t3 with alpha and position rows; rope fused and plain; gated gelu,
+1,024 tokens; gather; embed t4 / t3 / t8 with alpha and position rows; rope fused and plain; gated gelu,
 gelu_tanh and silu; pool; l2; the MoE router, grouped matmuls in both kernels and row modes, tiled
 matmul, combine, l2tok)
 on random inputs and a packed batch of five sequences (1 to 128 tokens), against a float64 reference
@@ -86,8 +88,8 @@ Inventory of the WGSL ML code outside this directory:
 | `lfm-wgsl/web/lfm.js`, `lfm3.js` | decoder: embed, gemv, short conv with state, rope into KV cache, cached attention, swiglu, last-token | imports runtime and the q4 matmul |
 | `ettin-wgsl-train/web/train.js` | 26 forward and backward kernels: embed, ln, ln_bwd, ln_pgrad, tiled mm, sumz, rope, rope_bwd, attn, attn_bq, attn_bkv, geglu, geglu_bwd, gather, scatter, bias_gelu, gelu_bwd, colsum, head_out, head_out_bwd, loss, sqsum, norm, adamw | own spec format (named uniforms and bindings), own runtime with dynamic uniform offsets |
 | `lifesci-ettin/web/distill.js` | full-weight gradients: embed_f, ln_wpart, pool, unpool, cosloss, tgrad | imports train.js |
-| `leaf-wasm/web/leaf-gpu.js` | embed, matmul, attn, addln, pool | standalone, the oldest copy |
-| `embeddinggemma2-webgpu-tail/web/tail.js`, `gpu-bridge/jobs/{knn,knngraph,scan,sort}` | retrieval: encode, dot_row, scan, colsum, topk, sort | standalone |
+| `leaf-wasm/web/leaf-gpu.js` | embed, matmul, attn, addln, pool | retired in step 6 (`leaf-engine.js` runs the same file on SmallEngine) |
+| `embeddinggemma2-webgpu-tail/web/tail.js`, `gpu-bridge/jobs/{knn,knngraph,scan,sort}` | retrieval: encode, dot_row, scan, colsum, topk, sort | top-k, kNN, scan and sort in `retrieval.js` since step 6; tail.js keeps its remex-specific encode, prep, LUT scan and colsum |
 | `trm-doom`, `image-to-wgsl`, `ettin-kernel-profile` | small one-off models and a profiling job | standalone |
 
 Not WGSL, so nothing to fold: `hier-router` (PyTorch; its routers would run on adapter-library's
@@ -148,8 +150,19 @@ Migration order. Every step ends with that engine's own check at cosine >= 0.999
    shaders and dispatch sequence are unchanged.
 5. **Decoder ops** from lfm-wgsl: gemv, short conv with state, KV-cache rope and attention. Skipped
    (Oskar, 2026-11-08).
-6. **Retrieval ops** (dot, scan, top-k, sort) from tail.js and the bridge jobs, and retire
-   `leaf-gpu.js`.
+6. **Retrieval ops** (done 2026-11-09) into `retrieval.js`: tail.js's top-k (shader byte-identical,
+   tail.js imports it; its own edge-case page `test_topk.html` gives 0 mismatches over 10 cases), and
+   the bridge jobs' kNN, scan and sort (scan and sort byte-identical; knn and knngraph merged into one
+   template with `excludeSelf`). The four jobs import the module at `inputs.sha` (default `main`).
+   Five exact-reference cases in `tests/retrieval_ops.js`. tail.js's encode, query prep, LUT scan and
+   colsum stay in tail.js: they are remex-format specific and have one user.
+   `leaf-gpu.js` is retired. `leaf-wasm/web/leaf-engine.js` maps leaf.js's int8 file onto ettin-native's
+   SmallEngine (q/k/v split by column, a zero type row) with one new kernel option, the `t8` int8
+   token table with an f32 scale per row. Against leaf-gpu.js on 24 sequences of 1 to 127 tokens the
+   minimum cosine is 0.9999999999988, against leaf.js 0.9999999999986 (SwiftShader). The int8 file is
+   not hosted anywhere a bridge job can fetch it, so the new path has no Mac timing of its own; the
+   same SmallEngine runs leaf-ir's t4 build at 3.8 ms on the Mac (ettin-native RESULTS) against
+   leaf-gpu.js's 5.0 ms (leaf-wasm RESULTS). The other five engines stay bit-identical (`engine_ab.mjs`).
 
 trm-doom and image-to-wgsl stay where they are until a second experiment needs one of their ops.
 
@@ -166,7 +179,7 @@ ported model at parity and no Metal slowdown beyond 5% (EG2 cut 0.7 ms per short
    int8 per column, f32), one attention template (GQA, sliding window, fused-qkv strides, head dim
    64 to 512), one norm (RMS and LayerNorm), shapes as WGSL constants instead of uniforms.
 3. **Model spec and buffer planner**: `model.json` per model replaces each hand-wired `_build`;
-   activation buffers reused by liveness. Retire `leaf-gpu.js`.
+   activation buffers reused by liveness.
 4. **ONNX importer and one verifier**: specs generated from the ONNX files plus a rule file per
    model family; a NumPy interpreter of the spec replaces each `ref.py`, and parity reports the
    first diverging named tensor.
