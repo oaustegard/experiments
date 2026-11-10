@@ -82,14 +82,16 @@ function load(entry) {
     return b;
   }));
   note(entry);
-  $("dl").hidden = !entry.own;
-  if (entry.own) {
-    $("dlw").href = URL.createObjectURL(new Blob([entry.wgsl], { type: "text/plain" }));
-    $("dlh").href = URL.createObjectURL(new Blob([standalone(entry)], { type: "text/html" }));
-    const bin = emitBin(entry);
-    $("dlb").href = URL.createObjectURL(new Blob([bin], { type: "application/octet-stream" }));
-    $("dlb").textContent = `Download the splat list (.bin, ${(bin.byteLength / 1000).toFixed(1)} KB)`;
+  // every picture exports: the gallery's lists and the visitor's own image alike (built once per entry)
+  if (!entry.dl) {
+    const bin = emitBin(entry), url = (part, type) => URL.createObjectURL(new Blob([part], { type }));
+    entry.dl = { wgsl: url(entry.wgsl, "text/plain"), html: url(standalone(entry), "text/html"), bin: url(bin, "application/octet-stream"), kb: (bin.byteLength / 1000).toFixed(1) };
   }
+  const name = entry.own ? "image" : entry.id;
+  $("dlw").href = entry.dl.wgsl; $("dlw").download = `${name}.wgsl`;
+  $("dlh").href = entry.dl.html; $("dlh").download = `${name}-shader.html`;
+  $("dlb").href = entry.dl.bin; $("dlb").download = `${name}.bin`;
+  $("dlb").textContent = `Export the splat list (.bin, ${entry.dl.kb} KB)`;
   cam.z = 1; cam.x = cam.y = 0.5; applyCam();
   $("dzrow").hidden = !dz; dzStatus();
   setView(views.includes(view) ? view : "shader");
