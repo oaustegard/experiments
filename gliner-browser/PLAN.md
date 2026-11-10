@@ -68,9 +68,9 @@ Baselines re-run in the same harness: `urchade/gliner_small-v2.1` (611 MB fp32,
 | A8 | 32m | span | no | 5e-5 / 1e-4 | 32 x 12k | hidden 384 |
 
 Why these: the upstream learning rate was tuned for DeBERTa and our 17M runs
-have wanted about 8e-5. The BiLSTM is sequential, which is the one part of the
-head a GPU cannot batch, so its accuracy value decides whether the browser
-carries it. The span head is otherwise gathers, two MLPs and a dot product.
+have wanted about 8e-5. The BiLSTM is sequential, so it would run on the CPU
+(JavaScript or WASM) between the GPU encoder and the head; its accuracy value
+against its measured milliseconds decides whether the browser carries it. The span head is otherwise gathers, two MLPs and a dot product.
 Upstream tokenizes each word without the leading-space marker, which hands a
 BPE model word forms it rarely saw in pre-training; A6 tests that.
 
@@ -79,8 +79,13 @@ Later rounds, in order, each gated on the one before:
    unlabelled text with sampled label sets.
 3. Pack (4-bit token table, int8 layers), NumPy reference, F1 of the packed
    model on the full benchmark.
-4. WGSL: hidden-row readback, span kernel, label scoring; parity headless, then
-   timing on a real GPU through the GPU Bridge.
+4. Browser runtime, hybrid by design (Oskar, 2026-11-10: not WGSL only; WASM
+   plus WGSL or plain JavaScript are all fine, the GPU is used where it pays).
+   The encoder runs on the existing WGSL engine with a hidden-row readback.
+   Everything after it (BiLSTM if kept, span head, label scoring, decoding) is
+   built first in JavaScript, timed per stage on a real GPU through the GPU
+   Bridge, and moved to WGSL or WASM only where its share of the time earns it.
+   Parity is checked headless first.
 5. Page: text box, label chips, highlighted entities.
 
 ## Predictions
