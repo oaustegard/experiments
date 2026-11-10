@@ -30,7 +30,7 @@ untested, so the tilt and shake behaviour described here is what the code is wri
 | **Dip** | draws a new film |
 | **Loop** / **Frame** | switches to the round wand, or back to the rectangular frame; the button names the shape you would get |
 | **Tilt** | turns the motion sensors on or off. It appears on phones; Android needs no permission |
-| **Full** | hides the title and controls and lets the frame fill the window (and the screen, where the browser allows it). ✕ or `F` leaves |
+| **Full** | hides the title and controls and lets the frame fill the window (and the screen, where the browser allows it). `F` toggles it and ✕ leaves |
 | **About** | drainage speed, whether the film pops by itself, sound |
 | keyboard | `D` dips; the space bar pops, or dips when the frame is empty |
 
@@ -74,7 +74,7 @@ The state is two numbers per grid cell, the vorticity ω of the flow and the thi
   film within about two cells of the wire loses thickness at a rate of up to 1.1 per second (it would halve
   in 0.6 s), in patches that come and go.
 - **Evaporation** E is 0.9 nm per second everywhere.
-- **Black film.** Below 42 nm a cell relaxes to 6 nm, and black film converts neighbouring film thinner
+- **Black film.** Film thinner than about 30 nm reflects almost nothing, which is the black of the introduction. The simulation's own threshold is a little higher: below 42 nm a cell relaxes to 6 nm (at 5 per second), and black film converts neighbouring film thinner
   than 115 nm. This is a rule, not physics: it reproduces the sharp edge between black film and the
   silvery-white film next to it. Sources put Newton black film near 4 nm and common black film anywhere
   from 7 to 50 nm.
@@ -88,7 +88,7 @@ sloshes the film without any extra code. Browsers disagree about its sign; the p
 agrees with the orientation event.
 
 Each step is 31 compute dispatches: one to move ω and h along the flow (a clamped cubic lookup at the point
-the flow came from), one for the forces, 28 half-sweeps for ψ (each sweep updates the grid in two halves) and one for the velocity. The grid is 320
+the flow came from), one for the forces (computed from the thickness the first pass has just moved), 28 half-sweeps for ψ (each sweep updates the grid in two halves) and one for the velocity. The grid is 320
 cells on the short side and up to 2.2 times that on the long side (`?n=` changes it). A step covers one
 frame, between 1/240 and 1/30 s; the checks use 1/60 s.
 
@@ -150,7 +150,7 @@ step is 1/60 s, and heights run from 0 at the top of the grid to 1 at the bottom
 | check | measured |
 |---|---|
 | colour table against the reference | mean ΔE76 0.07, worst 0.22, 567 colours |
-| no film is black; 6 nm film nearly so; 100 nm film is bright and nearly white | luminance 0, 0.0007, 0.0775 |
+| an empty frame draws black; 6 nm film nearly so; 100 nm film is bright and nearly white | luminance 0, 0.0007, 0.0775 |
 | film layered thin over thick, diffusion off, 300 steps | peak speed exactly 0 |
 | gravity turned sideways under that film | thickness-weighted centre moves 0.495 → 0.562 of the width |
 | film layered thick over thin, 25 s | overturns: the thickness-weighted height moves down, 0.410 → 0.536 |
@@ -177,14 +177,14 @@ Three things the checks caught or explained:
    fast. Diffusion now runs in the second pass on the moved field, where it only averages.
 3. **A resting film creeps at the rounded corners.** With diffusion on, a film layered thin over thick
    moves at 0.21 cells/s. The wire lets no thickness through, so layers must meet it at right angles; where
-   the wire is neither level nor upright the layers bend, and bent layers drive a flow. This is a real
+   the wire is neither horizontal nor vertical the layers bend, and bent layers drive a flow. This is a real
    effect of diffusion in a stratified fluid, here exaggerated because the diffusion is larger than a real
    film's. The rest check turns diffusion off for that reason.
 
 ## Prior work
 
 Three web searches found no soap film simulated in a browser with thickness-driven colour. They found the
-offline work whose model of the film this follows: Huang et al.,
+offline work that simulates the same thickness field in order to render bubbles: Huang et al.,
 [*Chemomechanical simulation of soap film flow on spherical bubbles*](https://cg.cs.uni-bonn.de/backend/v1/files/publications/HuangEtAl-SoapBubbles-SIGGRAPH2020.pdf)
 (SIGGRAPH 2020), who advect thickness over a spherical bubble, and Ishida et al.,
 [*A model for soap film dynamics with evolving thickness*](https://cs.uwaterloo.ca/~thachisu/spthick.pdf)
