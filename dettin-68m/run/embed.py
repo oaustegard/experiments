@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get("DETTIN_DATA", "/content/data"))
 WORK = Path(os.environ.get("DETTIN_WORK", "/content/work"))
 DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+EMB_FILE = os.environ.get("DETTIN_EMB", "emb_data.json")   # a second eval set swaps this file
 TEACHER = "Alibaba-NLP/gte-modernbert-base"
 DOC_LEN, Q_LEN, SCALE = 1024, 64, 30.0
 
@@ -106,7 +107,7 @@ def st_encode(name, texts, max_len, bs=64, pool="cls", prefix=""):
 
 def teacher():
     sec = load_sections()
-    d = json.loads((DATA / "emb_data.json").read_text())
+    d = json.loads((DATA / EMB_FILE).read_text())
     WORK.mkdir(parents=True, exist_ok=True)
     sids = sorted(sec)
     t0 = time.time()
@@ -128,7 +129,7 @@ def train(a):
     torch.manual_seed(a.seed)
     rng = random.Random(a.seed)
     sec = load_sections()
-    d = json.loads((DATA / "emb_data.json").read_text())
+    d = json.loads((DATA / EMB_FILE).read_text())
     tok = AutoTokenizer.from_pretrained(a.init)
     model = Emb(a.init).to(DEV)
     if a.gc:   # the 68M joint stage at batch 24 does not fit a 40 GB A100 without it
@@ -270,7 +271,7 @@ def beir(name):
 
 def evaluate(a):
     sec = load_sections()
-    d = json.loads((DATA / "emb_data.json").read_text())
+    d = json.loads((DATA / EMB_FILE).read_text())
     name = (a.name or f"base-{a.baseline}") + a.suffix
     if a.baseline:
         spec = {"gte": (TEACHER, TEACHER, "cls", 8192), "capemox": ("capemox/ettin-encoder-68m-contrastive-2.5m",) * 2 + ("mean", 256),
