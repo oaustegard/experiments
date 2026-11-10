@@ -75,10 +75,13 @@ def encode(model, tok, texts, max_len, bs=64):
     return out
 
 
+TOK_OF = {"capemox/ettin-encoder-68m-contrastive-2.5m": "jhu-clsp/ettin-encoder-68m"}   # saved under transformers 5
+
+
 @torch.no_grad()
 def st_encode(name, texts, max_len, bs=64, pool="cls", prefix=""):
     """A baseline or the teacher through plain transformers: CLS or mean pooling, unit length."""
-    tok = AutoTokenizer.from_pretrained(name)
+    tok = AutoTokenizer.from_pretrained(TOK_OF.get(name, name))
     model = AutoModel.from_pretrained(name).to(DEV).eval()
     order = sorted(range(len(texts)), key=lambda i: len(texts[i]))
     out = None
@@ -128,6 +131,8 @@ def train(a):
     d = json.loads((DATA / "emb_data.json").read_text())
     tok = AutoTokenizer.from_pretrained(a.init)
     model = Emb(a.init).to(DEV)
+    if a.gc:   # the 68M joint stage at batch 24 does not fit a 40 GB A100 without it
+        model.enc.gradient_checkpointing_enable()
     if a.from_ckpt:
         model.load_state_dict(torch.load(WORK / "ckpt" / f"{a.from_ckpt}.pt", map_location=DEV))
     tsid = json.loads((WORK / "teacher_docs.json").read_text())
@@ -266,7 +271,7 @@ def beir(name):
 def evaluate(a):
     sec = load_sections()
     d = json.loads((DATA / "emb_data.json").read_text())
-    name = a.name or f"base-{a.baseline}"
+    name = (a.name or f"base-{a.baseline}") + a.suffix
     if a.baseline:
         spec = {"gte": (TEACHER, TEACHER, "cls", 8192), "capemox": ("capemox/ettin-encoder-68m-contrastive-2.5m",) * 2 + ("mean", 256),
                 "medcpt": ("ncbi/MedCPT-Query-Encoder", "ncbi/MedCPT-Article-Encoder", "cls", 512),
@@ -279,13 +284,13 @@ def evaluate(a):
         def enc_d(texts, max_len):
             return st_encode(spec[1], texts, min(max_len, spec[3]), bs=48, pool=spec[2])
     else:
+        name = a.name + ("-q" if a.quant else "") + a.suffix
         meta = json.loads((WORK / "ckpt" / f"{a.name}.json").read_text())
         tok = AutoTokenizer.from_pretrained(meta["init"])
         model = Emb(meta["init"]).to(DEV)
         model.load_state_dict(torch.load(WORK / "ckpt" / f"{a.name}.pt", map_location=DEV))
         if a.quant:
             fake_quant(model)
-            name += "-q"
 
         def enc_q(texts):
             return encode(model, tok, texts, Q_LEN, bs=256)
@@ -344,11 +349,13 @@ def main():
     t.add_argument("--bs", type=int, default=48)
     t.add_argument("--lr", type=float, default=1e-4)
     t.add_argument("--seed", type=int, default=0)
+    t.add_argument("--gc", action="store_true", help="gradient checkpointing in the encoder")
     e = sub.add_parser("eval")
     e.add_argument("name", nargs="?")
     e.add_argument("--baseline")
     e.add_argument("--quant", action="store_true")
     e.add_argument("--no-beir", action="store_true")
+    e.add_argument("--suffix", default="", help="appended to the results file name")
     a = ap.parse_args()
     if a.cmd == "teacher":
         teacher()
