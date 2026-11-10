@@ -38,7 +38,10 @@ print("started pid", p.pid)
 
 
 def colab(*args, timeout=300):
-    return subprocess.run(["colab", *args], capture_output=True, text=True, timeout=timeout, check=False)
+    try:
+        return subprocess.run(["colab", *args], capture_output=True, text=True, timeout=timeout, check=False)
+    except subprocess.TimeoutExpired:   # a hung CLI call counts as a miss, it must not end the driver
+        return subprocess.CompletedProcess(args, 124, "", "timeout")
 
 
 def main():
