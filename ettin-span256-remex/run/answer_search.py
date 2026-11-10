@@ -7,7 +7,7 @@ posts are embedded with the site's Ettin model by refresh.py's own Ettin class, 
 to 256 with refresh.fold_basis (the same C the builder uses), and each arm is a remex 2.1.0 index scored by
 search_adc, the estimate the page's GPU scan computes.
 
-Arms: 768 at 1 bit (what shipped), 768 at 2 bits, 256 folded at 3 and 4 bits (4 is the new index). All are
+Arms: 768 at 1 bit (what shipped), 768 at 2 bits, 256 folded at 2, 3 and 4 bits. All are
 centred on the snapshot's mean (folded for the 256 arms). Reference: exact fp32 search, which is the same at
 768 and 256. Queries: answer-search-1bit's 60 keyword queries, and 200 snippet queries (the first six words of
 200 random posts of at least eight words, random.Random(42), from this snapshot). Per query: recall@10 and
@@ -81,6 +81,7 @@ def main():
     t0 = time.time()
     qz = {"768x1": remex.Quantizer(768, bits=1, seed=42, mean=mu768),
           "768x2": remex.Quantizer(768, bits=2, seed=42, mean=mu768),
+          "256x2": remex.Quantizer(256, bits=2, seed=42, rotation="none", mean=mu256),
           "256x3": remex.Quantizer(256, bits=3, seed=42, rotation="none", mean=mu256),
           "256x4": remex.Quantizer(256, bits=4, seed=42, rotation="none", mean=mu256)}
     cv = {k: q.encode(X if k.startswith("768") else Y) for k, q in qz.items()}
@@ -132,7 +133,7 @@ def main():
                           "picks": len(set(picks(list(got), qv)) & ref)}
             rows.append(row)
         s = {k: {m: boot([r[k][m] for r in rows]) for m in ("r10", "r40", "picks")} for k in arms}
-        for a in ("256x4", "256x3", "768x2"):
+        for a in ("256x4", "256x3", "256x2", "768x2"):
             s[f"{a}-768x1"] = {m: boot([r[a][m] - r["768x1"][m] for r in rows]) for m in ("r10", "r40", "picks")}
         s["n_queries"] = len(rows)
         res["sets"][name] = s
