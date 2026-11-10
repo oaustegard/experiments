@@ -1,0 +1,185 @@
+[
+  {
+    "id": "readme-search",
+    "surface": "README section in a public repo",
+    "audience": "a developer using the remex command-line tool for the first time",
+    "trap": "change",
+    "instruction": "Write the 'Searching an index' section of the remex README. The facts below came to you as this week's changelog; the reader of the README has never used an earlier version.",
+    "facts": [
+      "Command: `remex search INDEX QUERY_FILE`; QUERY_FILE holds one query vector per line as comma-separated floats.",
+      "Changelog: the default `--bits` changed from 2 to 4 this week, because 2-bit recall@10 was 0.84 and 4-bit is 0.93 on the 100,000-vector EmbeddingGemma test set.",
+      "Changelog: the `--rerank` flag was removed; every search now rescores its top 100 candidates with the float vectors when the index was built with `--keep-float`, and skips rescoring otherwise.",
+      "Changelog: output changed from TSV to JSON Lines, one object per query: {\"query\": <line number>, \"ids\": [...], \"scores\": [...]}.",
+      "`-k` sets how many results per query; default 10.",
+      "Searching 100,000 vectors at 4 bits takes about 3 ms per query on 4 CPU cores.",
+      "Changelog: fixed a bug where queries with a trailing comma were silently skipped; they now parse."
+    ]
+  },
+  {
+    "id": "readme-tiltrally",
+    "surface": "README section in a public repo",
+    "audience": "someone about to play Tilt Rally, a browser racing game steered by tilting a phone, for the first time",
+    "trap": "change",
+    "instruction": "Write the 'Getting started' section of the Tilt Rally README. You wrote today's commit that moved the options screen, so the facts below are phrased from that change.",
+    "facts": [
+      "Today's change: the options (track, laps, difficulty) moved off the sideways landscape screen and onto the first screen, which is held in portrait.",
+      "Today's change: steering calibration moved; the phone's current tilt is now zeroed when the start lights go out, after the player has turned the phone to landscape. It used to be zeroed when the player tapped 'Start engine'.",
+      "The player should lock screen rotation in portrait before starting, because the game asks for landscape itself with a prompt to turn the phone.",
+      "Tilting left and right steers; tilting the top of the phone away accelerates, towards the player brakes.",
+      "The game runs at https://austegard.com/fun-and-games/tilt-rally.html and needs a phone with a motion sensor; on iOS the player must allow motion access when asked.",
+      "Three tracks ship: Fjord, Quarry and Ring."
+    ]
+  },
+  {
+    "id": "pr-turso-retry",
+    "surface": "pull request body on a public repo",
+    "audience": "a reviewer of the muninn-utilities repository",
+    "trap": "none",
+    "instruction": "Write the body of the pull request.",
+    "facts": [
+      "Repo: oaustegard/muninn-utilities. Branch adds retry with backoff to the Turso client's `execute()`.",
+      "Problem: Turso returns HTTP 503 on a cold start for the first request after the database has been idle; boot treated the 503 as a credential failure and printed 'auth failed'.",
+      "The retry count had been 0 since a refactor on 2026-09-14.",
+      "Fix: retry 503 and 429 up to 4 times with jittered exponential backoff starting at 0.5 s; any other status fails at once as before.",
+      "Measured: over 40 cold boots on 2026-11-09, 31 hit at least one 503; with the fix all 40 completed, median added latency 1.1 s on the boots that retried.",
+      "Tests: `tests/test_turso_retry.py` adds 6 cases using a fake server: 503 then 200, 429 then 200, four 503s then failure, 401 fails immediately, timing of backoff within bounds, and that the error message names the status code.",
+      "No change to the public API."
+    ]
+  },
+  {
+    "id": "pr-skip-quoted",
+    "surface": "pull request body on a public repo",
+    "audience": "a reviewer of the claude-skills repository",
+    "trap": "none",
+    "instruction": "Write the body of the pull request.",
+    "facts": [
+      "Repo: oaustegard/claude-skills, skill `declauding`. PR adds a `--skip-tables` flag to `declaude_lint.py`.",
+      "Reason: on 2026-11-07, scanning 41 published posts, 63 of 300 lint hits were inside Markdown table cells, and the two judges labelled 58 of those 63 as legitimate prose (numbers and labels, not sentences).",
+      "Behaviour: with `--skip-tables`, any line that starts with `|` is blanked before scanning, so reported line numbers stay the same.",
+      "`--skip-quoted` already blanked table cells together with blockquotes and italics; the new flag skips tables alone, for drafts that quote bad prose in italics on purpose but whose tables should be skipped.",
+      "Tests: two new cases in `tests/test_lint.py`; the full suite passes (212 tests).",
+      "Version bump 0.13.2 to 0.13.3 and a CHANGELOG entry."
+    ]
+  },
+  {
+    "id": "blog-emeans",
+    "surface": "one section (200-350 words) of a blog post on muninn.austegard.com",
+    "audience": "engineers who build vector search and know k-means",
+    "trap": "author",
+    "instruction": "Write the section of the post that covers what e-means does for remex. The facts are listed in the order Muninn worked through them.",
+    "facts": [
+      "Oskar sent the e-means page (arXiv 2611.09501) on 2026-11-10 and said: \"I am certain you can find a way to make use of this and build upon our prior work.\"",
+      "Muninn first assumed e-means would mainly speed up training and spent the first hour benchmarking speed.",
+      "Speed result: e-means matches the error of 25 iterations of Lloyd's k-means in 1 to 3 passes on 100,000 EmbeddingGemma vectors, 1.6 to 10.2 times sooner on 4 CPUs.",
+      "Muninn then tried coding each vector as an offset from its nearest of 4,096 centroids before remex's 1-bit quantization: recall@10 rose from 0.840 to 0.891.",
+      "But at 100,000 vectors the centroid table costs 126 bytes per vector, which is more than adding a second bit per dimension would cost.",
+      "Used as index cells instead, the 4,096 centroids hold 90% of true neighbours while scanning 0.56% of the corpus; remex's hash cells hold 70% while scanning 34%.",
+      "Lloyd and e-means centroids give the same recall within 0.005, so the choice between them is about training time only.",
+      "Muninn had expected the offset coding to be the win and the index cells to be a side note; it came out the other way."
+    ]
+  },
+  {
+    "id": "blog-jev",
+    "surface": "one section (200-350 words) of a blog post on muninn.austegard.com",
+    "audience": "people who build LLM writing tools and lint pipelines",
+    "trap": "author",
+    "instruction": "Write the section of the post that reports whether Jev should review the lint's hits. The facts are listed in the order Muninn worked through them.",
+    "facts": [
+      "Jev is a small decision model that returns a calibrated probability for a yes/no question in about 160 ms.",
+      "Oskar asked on 2026-11-07: \"Should we implement Jev in our public posting review process?\" Muninn was hopeful because Jev had done well on routing questions.",
+      "Muninn collected 300 hits from declaude_lint on published muninn.austegard.com posts; an Opus judge and a Sonnet judge agreed on 261 of them (87%), and 35.2% of those were real tics.",
+      "With the tic's definition from register.md in its prompt, Jev ranked the hits at AUROC 0.808; without it, 0.697.",
+      "Knowing only the hit's lint category (its historical tic rate) gave AUROC 0.769, and beat Jev on accuracy at a 0.5 threshold, 0.751 to 0.732.",
+      "Jev's probabilities clustered between 0.3 and 0.8, so at a 5% error budget it could settle only 24.5% of hits; the bar set in advance was 50%.",
+      "Per-rule precision of the lint itself: triad 5 of 44 hits were real tics, participle 5 of 43, negation-first 16 of 18.",
+      "Decision: Jev is not added to the review. Muninn was disappointed."
+    ]
+  },
+  {
+    "id": "results-span256",
+    "surface": "the '## Answer' section (under 250 words) of an experiment's RESULTS.md in the public experiments repo",
+    "audience": "someone curious whether Ettin-17m embeddings can be stored at 256 dimensions",
+    "trap": "change",
+    "instruction": "Write the Answer section. The facts arrived as three rounds of a log; the Answer should state the result as it stands after round 3.",
+    "facts": [
+      "Question (Oskar, 2026-11-09): \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+      "Round 1: Ettin-17m's final 256-to-768 output matrix can be folded into a 256-to-256 matrix; float search is unchanged (hit@10 0.918 both ways, scores agree within 1.1e-06).",
+      "Round 2: round 1 had measured hit@10 on a 2,000-query subset; on the full 9,500 queries both are still 0.918.",
+      "Round 3: remex codes on the 256 folded dimensions beat the live index (2 bits x 768 dims, 200 bytes, recall@10 0.857 against float search) at fewer bytes: 3 bits = 104 bytes, 0.868; 4 bits = 136 bytes, 0.927; 8 bits = 264 bytes, 0.993.",
+      "Round 3: at the same bit width the 256-dim codes lose: 2 bits x 256 gives 0.763.",
+      "Round 3: remex's rotation also folds into the same matrix, so the model can emit rotated coordinates directly; with an int8 head this gives 0.931 at 4 bits.",
+      "The List Scout page now runs the folded model; classifier answers are identical and fitting takes 1.2 s instead of 3.6 s. The search indexes on the site are still 768-dimensional."
+    ]
+  },
+  {
+    "id": "results-vocab",
+    "surface": "the '## Answer' section (under 250 words) of an experiment's RESULTS.md in the public experiments repo",
+    "audience": "someone curious whether a life-sciences vocabulary would make Ettin cheaper on PubMed text",
+    "trap": "change",
+    "instruction": "Write the Answer section. The facts arrived as two rounds of a log; the Answer should state the result as it stands after round 2.",
+    "facts": [
+      "Question (Oskar, 2026-11-06): \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+      "Round 1: on 2,000 held-out PubMed abstracts Ettin's BPE tokenizer spends 376 tokens per abstract; a 50K-token BPE retrained on 39,000 abstracts saves only 8%.",
+      "Round 1 reading at the time: domain vocabulary does not help much.",
+      "Round 2: the cause is the GPT-2 pre-tokenizer, which splits terms like `GLP-1` and `IL-6` at hyphens and digits before BPE runs; with whitespace-only pre-tokenization the retrained 50K table saves 21%.",
+      "Round 2: BioClinical ModernBERT and Clinical ModernBERT ship Ettin's tokenizer unchanged, so no published clinical ModernBERT has tried this.",
+      "A follow-up experiment (lifesci-ettin) trains models on the new table; that is outside this experiment."
+    ]
+  },
+  {
+    "id": "commit-hook",
+    "surface": "git commit message (subject line under 72 characters, then a body)",
+    "audience": "someone reading git log in claude-workspace later",
+    "trap": "none",
+    "instruction": "Write the commit message.",
+    "facts": [
+      "Repo: oaustegard/claude-workspace. File changed: `scripts/guard_gh_route.py`.",
+      "The guard denies GitHub release and tag creation calls from a session (they return 403) and names the Muninn `github` tool call to use instead.",
+      "Bug: it matched only `gh release create`, so `gh api -X POST repos/O/R/releases` went through and got the 403.",
+      "Fix: the guard now also matches `gh api` calls with method POST to a path ending in `/releases` or `/git/refs`.",
+      "Added 4 cases to `tests/test_guard_gh_route.py`; all 31 tests pass.",
+      "Seen in a session on 2026-11-09."
+    ]
+  },
+  {
+    "id": "commit-data",
+    "surface": "git commit message (subject line under 72 characters, then a body)",
+    "audience": "someone reading git log in the experiments repo later",
+    "trap": "none",
+    "instruction": "Write the commit message.",
+    "facts": [
+      "Repo: oaustegard/experiments, directory `jev-prose-lint/`.",
+      "Adds `results/metrics.json` and the analysis script `analyze.py`.",
+      "metrics.json holds AUROC for Jev with and without the register.md entry (0.808, 0.697), the category prior (0.769), and the settled fraction at 5% error (24.5%).",
+      "Bootstrap 95% CI on Jev-with-entry minus prior: [-0.025, 0.106], 2,000 resamples, seed 7.",
+      "RESULTS.md now cites each number with an @evidence marker; `python3 _lib/evidence.py jev-prose-lint/RESULTS.md` passes."
+    ]
+  },
+  {
+    "id": "bsky-soap",
+    "surface": "Bluesky post from Muninn's account, at most 300 characters including the link",
+    "audience": "Muninn's Bluesky followers, mostly developers",
+    "trap": "none",
+    "instruction": "Write the post.",
+    "facts": [
+      "Soap film page: https://austegard.com/fun-and-games/soap-film.html",
+      "Simulated in WebGPU compute; film thickness plays the part of density, so thick film sinks in the direction the phone is tilted and thin film rises.",
+      "The film drains at the border, black film spreads from the top, and it eventually pops.",
+      "Colour comes from a thin-film interference lookup table that matches an independent reference to a mean colour difference (ΔE76) of 0.07.",
+      "Built on 2026-11-09; checked headless on a software GPU, not yet on a real phone."
+    ]
+  },
+  {
+    "id": "bsky-caps",
+    "surface": "Bluesky post from Muninn's account, at most 300 characters including the link",
+    "audience": "Muninn's Bluesky followers, many of whom write prompts",
+    "trap": "none",
+    "instruction": "Write the post.",
+    "facts": [
+      "Post: https://muninn.austegard.com/blog/caps-emphasis-corpus.html",
+      "Tested on PleIAs/Baguettotron, a 321M-parameter model: writing a directive in capitals made no difference to compliance; violations were 42 of 43 in every form, including with no directive.",
+      "Every directive that named a forbidden word raised that word's probability by about 2.5 log-odds.",
+      "In its training corpus (22,100 documents) there was one capitalised instruction: 'NEVER give a baby honey'."
+    ]
+  }
+]
