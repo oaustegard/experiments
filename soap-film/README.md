@@ -2,7 +2,7 @@
 
 A soap film in a wire frame, simulated and drawn on the GPU in a browser tab. Tilt the phone and the film
 pours toward the low side. Drag across it and it swirls as if you blew on it. Leave it alone and it drains,
-turns black from the top and pops. The colours are not painted: each pixel's colour is computed from the
+turns black from the top (film thinner than about 30 nm reflects almost nothing) and pops. The colours are not painted: each pixel's colour is computed from the
 film's thickness at that point, by the same interference that colours a real film.
 
 Live: <https://austegard.com/fun-and-games/soap-film.html>. The page is one file,
@@ -12,7 +12,7 @@ this directory holds the write-up, the checks and the colour reference.
 ![The same film at 4, 12, 30, 60 and 100 seconds after dipping](sheet.jpg)
 
 The strip shows one film 4, 12, 30, 60 and 100 seconds after dipping, rendered by the page's own shaders
-on a 192 × 304 grid. Thick film sinks and the colours sort into bands, thin plumes rise from the bottom
+on a 192 × 304 grid, smaller than the page's own so that it renders quickly. Thick film sinks and the colours sort into bands, thin plumes rise from the bottom
 edge, and black film spreads down from the top.
 
 **Not yet run on a real GPU or a phone.** Everything here was checked in headless Chromium on SwiftShader,
@@ -26,13 +26,16 @@ untested, so the tilt and shake behaviour described here is what the code is wri
 | drag | blows on the film along the stroke, and shows the thickness under the pointer in nanometres |
 | tap or click | pops the film at that point; on an empty frame it dips a new one |
 | tilt, shake | gravity in the film follows the phone, so the film pours and sloshes. iOS asks for motion access when you press **Tilt** |
-| the dial | sets gravity by hand: drag it, or focus it and use the arrow keys. Double-click resets it |
-| **Dip** | draws a new film. **Loop / Frame** switches between a round wand and a rectangular frame |
+| the round dial beside the buttons | sets gravity by hand: drag it, or focus it and use the arrow keys. Double-click resets it |
+| **Dip** | draws a new film |
+| **Loop** / **Frame** | switches to the round wand, or back to the rectangular frame; the button names the shape you would get |
+| **Tilt** | turns the motion sensors on or off. It appears on phones; Android needs no permission |
+| **Full** | hides the title and controls and lets the frame fill the window (and the screen, where the browser allows it). ✕ or `F` leaves |
 | **About** | drainage speed, whether the film pops by itself, sound |
 | keyboard | `D` dips; the space bar pops, or dips when the frame is empty |
 
-The bar under the film is the colour table at normal incidence, 0 to 1,500 nm. `?shape=loop` starts with
-the round wand and `?n=256` sets the grid.
+The bar under the film shows the colour the film reflects at each thickness from 0 to 1,500 nm, seen head-on. `?shape=loop` starts with
+the round wand and `?n=256` sets the number of grid cells on the short side (320 by default).
 
 ## The film as a fluid
 
@@ -85,17 +88,17 @@ sloshes the film without any extra code. Browsers disagree about its sign; the p
 agrees with the orientation event.
 
 Each step is 31 compute dispatches: one to move ω and h along the flow (a clamped cubic lookup at the point
-the flow came from), one for the forces, 28 half-sweeps for ψ and one for the velocity. The grid is 320
+the flow came from), one for the forces, 28 half-sweeps for ψ (each sweep updates the grid in two halves) and one for the velocity. The grid is 320
 cells on the short side and up to 2.2 times that on the long side (`?n=` changes it). A step covers one
 frame, between 1/240 and 1/30 s; the checks use 1/60 s.
 
-The cubic lookup that moves thickness is the one place where thickness is not conserved exactly. The flow has no divergence, but a clamped
+The cubic lookup that moves thickness is the one place, drainage aside, where thickness is not conserved exactly. The flow has no divergence, but a clamped
 cubic interpolation does not preserve the total, and the checks measure a loss of 0.175 % over 25 s.
 
 ## Colour
 
 Light reflects off the front and the back of the film, and the two reflections interfere. For a film of
-thickness d and index n, the reflectance at wavelength λ is the Airy formula
+thickness d and refractive index n, the reflectance at wavelength λ is the Airy formula
 
 ```
 R = 2r²(1 − cos δ) / (1 + r⁴ − 2r² cos δ),   δ = 4π n d cos θ / λ
@@ -135,7 +138,7 @@ Thickness is read with a cubic B-spline, since any kink in it would show as a ki
 The wire is a tube around the frame's outline, shaded by the same room.
 
 A pop opens a hole that crosses the frame in about a third of a second. A real one is far faster: the rim
-of a 100 nm film retracts at √(2σ/ρh), about 24 m/s for a surface tension of 0.03 N/m (my assumed figure
+of a 100 nm film retracts at √(2σ/ρh), about 24 m/s for a surface tension of 0.03 N/m (an assumed figure
 for soapy water), which clears a 10 cm frame in 4 ms.
 
 ## Checks
@@ -164,7 +167,7 @@ step is 1/60 s, and heights run from 0 at the top of the grid to 1 at the bottom
 Three things the checks caught or explained:
 
 1. **Layered film rang until it blew up.** The first version of the step computed buoyancy from the
-   thickness before moving it. After one hard stroke on a 192-cell loop, grid-scale waves grew for 70 steps
+   thickness before moving it. After one fast drag across the round wand, 192 cells wide, grid-scale waves grew for 70 steps
    until thickness ran from 6 to 3,180 nm (it had been 59 to 939) and vorticity sat at its ±60 limit. Updating vorticity and
    thickness each from the other's old value is forward Euler on an oscillator, which gains energy every
    step. The step is now two passes, and the second computes buoyancy from the thickness the first has
@@ -181,7 +184,7 @@ Three things the checks caught or explained:
 ## Prior work
 
 Three web searches found no soap film simulated in a browser with thickness-driven colour. They found the
-offline work this borrows its picture from: Huang et al.,
+offline work whose model of the film this follows: Huang et al.,
 [*Chemomechanical simulation of soap film flow on spherical bubbles*](https://cg.cs.uni-bonn.de/backend/v1/files/publications/HuangEtAl-SoapBubbles-SIGGRAPH2020.pdf)
 (SIGGRAPH 2020), who advect thickness over a spherical bubble, and Ishida et al.,
 [*A model for soap film dynamics with evolving thickness*](https://cs.uwaterloo.ca/~thachisu/spthick.pdf)

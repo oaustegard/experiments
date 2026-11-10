@@ -149,8 +149,13 @@ await film('n=96&shape=loop&kind=fresh&seed=2', async (page, errors) => {
   await page.click('#shape'); await page.waitForTimeout(600);
   await page.click('#info'); const open1 = await page.evaluate(() => document.getElementById('about').open);
   await page.click('#close'); await page.click('#dip'); await page.waitForTimeout(400);
+  await page.click('#full'); await page.waitForTimeout(500);
+  const full = await page.evaluate(() => ({ hud: getComputedStyle(document.getElementById('hud')).display, exit: !document.getElementById('exit').hidden }));
+  await page.screenshot({ path: path.resolve(import.meta.dirname, '../out/full.png') }).catch(() => {});
+  await page.click('#exit'); await page.waitForTimeout(400);
+  const back = await page.evaluate(() => getComputedStyle(document.getElementById('hud')).display);
   const label = await page.textContent('#shape');
-  check('the live page runs and its controls work', ui.nogpu && errors.length === 0 && open1 && label === 'Frame', `canvas ${ui.canvas.join('x')}, buttons ${ui.buttons.join('/')}, about opened ${open1}, shape button now "${label}", errors: ${errors.slice(0, 3).join(' | ') || 'none'}`);
+  check('the live page runs and its controls work', ui.nogpu && errors.length === 0 && open1 && label === 'Frame' && full.hud === 'none' && full.exit && back !== 'none', `canvas ${ui.canvas.join('x')}, buttons ${ui.buttons.join('/')}, about opened ${open1}, shape button now "${label}", full screen hides the controls ${full.hud === 'none'} and ✕ restores them ${back !== 'none'}, errors: ${errors.slice(0, 3).join(' | ') || 'none'}`);
   await page.screenshot({ path: path.resolve(import.meta.dirname, '../out/page.png') }).catch(() => {});
   await browser.close();
 }
