@@ -87,6 +87,14 @@ Later rounds, in order, each gated on the one before:
    Bridge, and moved to WGSL or WASM only where its share of the time earns it.
    Parity is checked headless first.
 5. Page: text box, label chips, highlighted entities.
+6. In-browser LoRA trainer (Oskar, 2026-11-10: a LoRA tool that runs in a
+   browser on a capable laptop is worth having, as with the Spiky Ball
+   trainer). Extend `ettin-wgsl-train`'s `Trainer` with the GLiNER head's
+   forward and backward (gathers, span MLPs, span x label scores, focal loss)
+   and a JavaScript port of GLiNER's batch construction, so a user can adapt
+   the shipped packed model to their own entity types from a few labelled
+   examples. Checked against PyTorch with the existing gradient-check harness,
+   run on a real GPU through the GPU Bridge. Depends on rounds 3 and 4.
 
 ## Predictions
 
