@@ -5478,3 +5478,15 @@ their mean cut to rank 8 beat a fresh adapter by 1.8 points at 64 and at 1,200 l
 beat, not a law. It does not contradict browser-decider's no-transfer finding: there the spikes were applied
 untrained; here they only initialize training. (`decider-lora-creator/RESULTS.md` finding 8)
 
+
+### Muse Ember through the AI Gateway: a shared 50/min limit, and effort low is not Haiku's effort low (haiku-swarm-poc)
+
+Two things a fan-out onto `muse-ember-1.0` hits. First, the Cloudflare AI Gateway `claude-and-friends`, which the
+hub's `muse.py` routes through, rate-limits all its traffic together (Gemini included): 50 requests per fixed
+minute until 2026-11-10, 200 since. Its 429 carries code 2003 and comes from Cloudflare; Meta's own headers allowed
+3,000 requests and 4M tokens a minute. Three concurrent swarms stalled on it, so space request starts in the client
+(`haiku-swarm-poc/gateway.py`, `_muse_slot`). Second, the same effort name buys different work: at effort low Ember
+proposers spent 600 to 770 reasoning tokens a call against Haiku 5.5's 116 to 133, and Meta's prompt cache served 2
+to 6% of their input against Anthropic's 63 to 68%, so Ember's cheaper cached price did not reach the bill. A
+per-token price comparison across providers says little until both the reasoning length and the cache hit rate
+are measured on the actual prompt shape. Ember accepts `minimal`, which `claude -p` cannot give Haiku.

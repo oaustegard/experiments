@@ -24,14 +24,15 @@ alone). Method has the details.
 ## Answer
 
 At the same dollars spent, does a Haiku swarm find better programs than a Sonnet loop? It gets near the
-reference much more cheaply, and it does not end higher. Against the best Sonnet effort level for each problem,
+reference much more cheaply and does not end higher. Against Sonnet's best effort level per problem,
 the swarm reached 99% of the reference 17 to 33 times cheaper on circle packing ($0.013 to $0.019 <!-- @evidence[[results/headline.json#/circle/B/usd_to_0.99/max]] -->,
 Sonnet at medium $0.32 to $0.44 <!-- @evidence[[results/headline.json#/circle/Am/usd_to_0.99/max]] -->) and 9 to 17 times cheaper on hexagon packing
 ($0.035 to $0.060, Sonnet at high $0.53 to $0.58 <!-- @evidence[[results/headline.json#/hexagon/A/usd_to_0.99/max]] -->). On the Heilbronn triangle the gap is
 smaller: the swarm's slowest seed ($0.50) still beat Sonnet's fastest ($0.77 to $1.02 <!-- @evidence[[results/headline.json#/heilbronn/Am/usd_to_0.99/max]] -->).
 The test set before the runs, the swarm scoring higher on all three paired seeds at matched spend, holds from
-$0.05 to $0.25 on every problem. Given its full $3, Sonnet reached the same final scores, slightly better on
-hexagon, in a fraction of the wall-clock time; the swarms ran out of their 60 minutes at about $1.
+$0.05 to $0.25 on every problem. With its full $3, Sonnet ended level with the swarm, in less wall-clock time.
+
+One Muse Ember seed per problem, at Haiku's prices, landed inside or beside the Haiku range (Finding 9).
 
 Limits: three small geometry problems with exact, cheap scorers, one of which had a loophole (Finding 8). What
 would change this: tasks without a cheap scorer, or problems that small independent edits cannot solve.
@@ -84,6 +85,16 @@ would change this: tasks without a cheap scorer, or problems that small independ
    Eleven unit hexagons cover 11 times one hexagon's area, so the outer side can never be below the square root
    of 11; scores past that bound now count as 0. The affected run (hx-L-s2) spent its last 40 minutes refining the
    broken program. The other two evaluators were not audited. (`common.py`, `score_of`)
+
+9. **A swarm on Muse Ember costs about what the Haiku swarm costs, from different tokens.** One seed per
+   problem, every call on `muse-ember-1.0` through the hub's `muse.py`, same driver, prompts and efforts as arm B.
+   Dollars to 99%: circle $0.018 <!-- @evidence[[results/ember.json#/E-s1/usd99]] --> (Haiku $0.013 to $0.019), hexagon $0.040 <!-- @evidence[[results/ember.json#/hx-E-s1/usd99]] --> (Haiku $0.035 to $0.060), Heilbronn
+   $0.63 <!-- @evidence[[results/ember.json#/ht-E-s1/usd99]] --> (Haiku $0.09 to $0.50, Sonnet at medium $0.77 to $1.02). Ember's cached input is a quarter of Haiku's
+   price and its calls carry no CLI overhead, but at effort low its proposers reasoned about five times as long
+   (600 to 770 reasoning tokens a call against Haiku's 116 to 133) and its cache served 2 to 6% of their input
+   against Haiku's 63 to 68%, so a proposer call cost $0.0006 to $0.0007 against Haiku's $0.0004 and proposers took
+   53 to 58% of spend <!-- @evidence[[results/ember.json#/E-s1/prop_share]] -->. The hexagon run ended at 0.9976 <!-- @evidence[[results/ember.json#/hx-E-s1/best]] --> on its $0.50 cap without reaching 0.999. One seed each, so
+   this places Ember inside or beside the Haiku range; it does not rank the two (Round 4).
 
 ## Method
 
@@ -164,3 +175,45 @@ edge distances and separating-axis gaps at a 1e-9 tolerance (`jailside/strict_he
 1.0008 reproduces, while hx-A-s1 and hx-B-s1 re-run lower (1.0004 and 0.9991) because their programs optimise
 with randomness or a time budget. Plots: `results/curves.png`, `results/curves_heilbronn.png`,
 `results/curves_hexagon.png`, `results/tuning.png`; tables: `results/table.md`.
+
+### Round 4, 2026-11-10: the swarm on Muse Ember
+
+Asked: a reply to the post suggested Meta's Muse Ember ($0.10 per million input tokens, $0.004 cached, $0.50
+output, up to 200K) as a third model, to test how much of the saving depends on Haiku. Oskar: run a sample, not the
+full suite, through the Muse Spark tooling.
+
+Ran: arm E, which is arm B with proposers and writer on `muse-ember-1.0` (`--prop-model ember --synth ember`),
+proposers at effort low and writer at medium, K=4, N=8, seed 1 on each problem. Calls go through the hub's
+`scripts/muse.py` (gate, hub ledger) and the Cloudflare AI Gateway. Ember has no contributor tier, so every call
+was standard. Caps: circle $0.30, hexagon $0.50, Heilbronn $1.00, each above the most any Haiku seed needed to
+reach 99%. Run one after another in one container.
+
+What broke: three runs started at once stalled on 429 code 2003, which is the AI Gateway's own limit of 50
+requests per fixed minute for all its callers, not Meta's (Meta's headers allow 3,000 requests and 4M tokens a
+minute). They were stopped and restarted one at a time, with request starts spaced to 40 a minute. Oskar then raised
+the gateway to 200 a minute; the Heilbronn run used 160. The throttle stretches wall-clock time, so the axis here is
+dollars only. No call failed in the three runs that count.
+
+| run | spent $ | programs/$ | best | best at $0.05 | best at $0.25 | $ to 0.99 | $ to 0.999 | proposer share |
+|---|---|---|---|---|---|---|---|---|
+| E-s1 (circle) | 0.30 | 123 | 1.0000 | 0.9980 | 1.0000 | 0.0176 | 0.0534 | 58% |
+| hx-E-s1 (hexagon) | 0.51 | 82 | 0.9976 | 0.9949 | 0.9967 | 0.0399 | — | 53% |
+| ht-E-s1 (Heilbronn) | 1.01 | 98 | 1.0000 | 0.9140 | 0.9275 | 0.6343 | 0.6343 | 54% |
+
+Per call, seed 1 of each arm:
+
+| | Ember proposer | Haiku proposer | Ember writer | Haiku writer |
+|---|---|---|---|---|
+| prompt tokens | 2,854 to 3,288 | 4,905 to 5,796 | 5,716 to 6,677 | 9,019 to 10,248 |
+| share read from cache | 2 to 6% | 63 to 68% | 0% | 11 to 13% |
+| reasoning tokens | 596 to 772 | 116 to 133 | 1,920 to 6,105 | 2,702 to 7,332 |
+| $ per call | 0.0006 to 0.0007 | 0.0004 | 0.0035 to 0.0055 | 0.0048 to 0.0067 |
+
+Haiku's prompt counts include the ~1,370 tokens `claude -p` adds to every call. Full table, with Haiku's three
+seeds and Sonnet's best effort beside each Ember run: `results/ember_table.md` (`python3 compare_ember.py`).
+
+Reading at the time: the Ember swarm reached 99% for less than Sonnet's best effort level on all three problems,
+narrowly on Heilbronn, in one seed each. Ember cost more per proposer call, because its proposers reasoned longer
+and rarely hit Meta's cache, and less per writer call. Untried: proposers at
+`minimal`, which Ember accepts and Haiku through `claude -p` does not, and whether Meta's cache needs the first
+call of a shared prefix to finish before the others are sent.
