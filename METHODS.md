@@ -1087,6 +1087,28 @@ survives exactly the sanity checks people run.
   Spending the saved bytes on bit width pays: 3 bits × 512 (192 B) beats 2 bits × 768 (192 B) by
   +0.056. Rotation beats the Matryoshka prefix at every width. For a quantized ONNX model the basis comes from the
   dequantized projection weight (MatMulNBits, low nibble first), so no data is needed. (`eg2-span512-remex/`)
+- **A projection head wider than the encoder can be replaced inside the model, and a quantizer's rotation folds into the same matrix.**
+  Ettin-17m pools 256 numbers and widens them to 768 with one bias-free matrix W. With W = A S Bᵀ (SVD), the 256 × 256
+  head A S gives float search identical to the 768-dim model (scores within 1.1e-06 on 61,686 posts), and multiplying
+  it by remex's rotation makes the model emit rotated coordinates, so encoding with `rotation="none"` reproduces remex's
+  own codes (99.9997% of 4-bit codes with an fp32 head, 97.9% with an int8 ±127 head, each miss one level away). The rotation is still needed: quantizing the SVD coordinates directly costs 0.035
+  recall@10 at 4 bits. Dropping the head and using the pooled state is a different model (0.602 top-10 agreement),
+  because W stretches directions unequally. As with EG2, fewer dims lose at the same bit width (2 bits: 0.763 vs 0.857)
+  and win at the same bytes (3 bits × 256 at 104 B: 0.868 vs 0.721 for 1 bit × 768). A head with a bias needs one more
+  dimension. (`ettin-span256-remex/RESULTS.md`)
+- **onnxruntime's default optimization level changes the output of a weight-only-int8 graph.** On the Ettin-17m package
+  (`DequantizeLinear → MatMul` pairs, activations in fp32), `ORT_ENABLE_ALL` vectors have a median cosine of 0.9997 to
+  the graph as written, and a check of pooled state × dequantized weight against the model output fails by 0.003. At
+  `ORT_ENABLE_BASIC` the same check passes at 2e-07. Use BASIC whenever a result has to match the graph's own
+  arithmetic, such as parity with a hand-written engine or surgery on one layer. (`ettin-span256-remex/run/embed.py`)
+- **A narrower int8 layer needs a wider code range, and int8 variants are judged against the fp32 layer.** Against the
+  fp32 checkpoint head, Ettin's shipped 768-wide head (int8, ±63) agrees on 0.989 of the top 10. A folded 256-wide
+  head agrees on 0.985 at ±63 and 0.992 at ±127: it has a third of the columns to average rounding noise over.
+  Compared against the shipped model instead, every new rounding is also charged for the rounding the package already
+  carries, which first made a second rounding look like the cause. (`ettin-span256-remex/run/fold.py`)
+- **A bias-free final LayerNorm before mean pooling removes one dimension.** Ettin-17m's pooled states have rank 255,
+  not 256 (256th singular value 1e-08 of the first): the norm subtracts each token's mean and has no bias to put it
+  back, and pooling is linear. Check the pooled spectrum before assuming hidden size equals rank. (`ettin-span256-remex/`)
 - **remex `search_batch` is not an ADC scan.** It scores against a cached dequantized float matrix
   (100k x 768 fp32, ~300 MB) and ran 20 queries over 100k in 43 ms; the codes-only `search_adc` took
   7.5 s for the same work. Compare a codes-only implementation (a GPU scan, a WASM scan) with
