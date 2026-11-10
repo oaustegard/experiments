@@ -1,6 +1,6 @@
 """Score fresh checkpoints at full precision and packed at +-63 and +-31 codes, on the GPU.
 
-    python3 run/quant_levels.py NAME [NAME ...]      # out/ckpt/NAME/{best.pt,meta.json}
+    python3 run/quant_levels.py [--data CASES.jsonl] NAME [NAME ...]      # out/ckpt/NAME/{best.pt,meta.json}
 
 For each variant the checkpoint goes through pack.pack(), the exact bytes a browser file would hold, and
 the dequantized weights are read back from those bytes (via pack.Ref) into the PyTorch model, so the
@@ -52,8 +52,14 @@ def codes_bytes(man, data):
 
 def main():
     from transformers import AutoConfig
-    te = examples([c for w in WORKFLOWS for c in load_cases(w, "test")])
-    for name in sys.argv[1:]:
+    args = sys.argv[1:]
+    if args and args[0] == "--data":   # a cases JSONL (train_enc.py --data) instead of Typed Decisions
+        with open(args[1]) as f:
+            te = examples([c for c in map(json.loads, f) if c["split"] == "test"])
+        args = args[2:]
+    else:
+        te = examples([c for w in WORKFLOWS for c in load_cases(w, "test")])
+    for name in args:
         ck = ROOT / "out" / "ckpt" / name
         meta = json.loads((ck / "meta.json").read_text())
         temps = meta["temps"]
@@ -78,6 +84,8 @@ def main():
             by = {}
             for t in ("noul", "choice", "score"):
                 sel = [i for i, e in enumerate(te) if e["type"] == t]
+                if not sel:
+                    continue
                 by[t] = score_examples([te[i] for i in sel], [probs[i] for i in sel])[0]["accuracy"]
             par = max(float(np.abs(ref.logits(d["ids"], d["pos"]) - z).max()) for d, z in zip(data_te[:6], logits[:6]))
             res["variants"][v] = {"test": summ, "by_type": by, "file_bytes": len(data),
