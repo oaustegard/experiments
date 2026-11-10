@@ -194,8 +194,16 @@ def _pack_mod():
     return pack
 
 
-def pack_base(model_id, out_dir, variant="t4-w8L63", emb_ckpt=None):
-    """Pack a stock encoder (spikes bring the head), or an embedder checkpoint from run/embed.py with its 768-d head."""
+def fold_head(W):
+    """A bias-free H -> 768 head W has rank at most H, so W = U S Vt and the H x H head S Vt gives vectors
+    with the same lengths and inner products as W's (U has orthonormal columns). Search results are identical."""
+    _, S, Vt = np.linalg.svd(W.astype(np.float64), full_matrices=False)
+    return (S[:, None] * Vt).astype(np.float32)
+
+
+def pack_base(model_id, out_dir, variant="t4-w8L63", emb_ckpt=None, fold=False):
+    """Pack a stock encoder (spikes bring the head), or an embedder checkpoint from run/embed.py with its
+    768-d head, or with --fold that head folded to the encoder's own width."""
     from huggingface_hub import snapshot_download
     from transformers import AutoConfig, AutoModel
     pack = _pack_mod()
@@ -214,6 +222,8 @@ def pack_base(model_id, out_dir, variant="t4-w8L63", emb_ckpt=None):
     if emb_ckpt:
         del man["head"]                      # the zero decision head stays in the file but is not read
         w = np.ascontiguousarray(st["head.weight"].numpy().astype(np.float32))
+        if fold:
+            w = np.ascontiguousarray(fold_head(w))
         pad = (-len(data)) % 4
         man["embed_head"] = {"offset": len(data) + pad, "length": w.nbytes, "dims": list(w.shape), "dtype": "float32"}
         data = data + b"\0" * pad + w.tobytes()
@@ -261,6 +271,7 @@ if __name__ == "__main__":
     p.add_argument("out")
     p.add_argument("--variant", default="t4-w8L63")
     p.add_argument("--emb-ckpt")
+    p.add_argument("--fold", action="store_true", help="fold the 768-d embedding head to the encoder width")
     c = sub.add_parser("check")
     c.add_argument("pack")
     c.add_argument("--spike")
@@ -268,6 +279,6 @@ if __name__ == "__main__":
     c.add_argument("--n", type=int, default=40)
     a = ap.parse_args()
     if a.cmd == "pack-base":
-        pack_base(a.model, a.out, a.variant, a.emb_ckpt)
+        pack_base(a.model, a.out, a.variant, a.emb_ckpt, a.fold)
     else:
         check(a.pack, a.spike, a.workflow, a.n)
