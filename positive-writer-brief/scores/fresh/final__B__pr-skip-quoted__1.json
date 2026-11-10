@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "The judges are never introduced (people? models? which process?). Also, \"legitimate prose\" is unclear. The reason given is that cells hold numbers and labels, not sentences, so it is not clear what \"legitimate\" means or whether the hits were false positives."
+  },
+  {
+   "quote": "Use it on drafts that quote bad prose in italics on purpose, where the italics should still be linted but the tables should not.",
+   "why": "This seems backwards. Bad prose quoted on purpose in italics is the case where you would want italics skipped. The text says the italics should still be linted, so the intended use is unclear."
+  },
+  {
+   "quote": "300 lint hits",
+   "why": "The text never says what the linter looks for (what \"declauding\" means or what counts as a hit), so the significance of these counts and of \"legitimate\" is hard to judge."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag that blanks Markdown table lines, keeping line numbers intact, because most lint hits in tables in a recent scan were judged not to be real problems. Unlike `--skip-quoted`, it leaves italics and blockquotes linted."
+}

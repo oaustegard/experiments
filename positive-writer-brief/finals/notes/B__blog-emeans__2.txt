@@ -1,0 +1,9 @@
+I rewrote the header. It credited the gain to e-means and claimed "60 times more selective", but the draft itself says Lloyd and e-means centroids give the same recall, and the 60x ratio of scan fractions ignores the gap between 90% and 70% recall. I restored the dropped fact that you first assumed e-means was a speed-up and spent an hour benchmarking it, and I broke up the short choppy sentences in the speed paragraph.
+
+I cut four claims the facts don't support:
+- that the index-cell figures came from the 100,000-vector corpus;
+- that speed is "the gain the paper advertises";
+- that a second bit buys the same recall ("more expensive way to buy recall");
+- the next step of replacing the hash cells, plus the restating closer before it.
+
+The lint found nothing, and steps 2a, 2b, 4a and 5 were not run. I did their checks by eye on text I edited myself, so those checks were not independent.

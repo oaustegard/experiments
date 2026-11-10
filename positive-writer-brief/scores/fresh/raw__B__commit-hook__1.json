@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "it names the Muninn `github` tool\ncall to use instead",
+   "why": "Muninn is never explained (a system? a tool server?), and the message doesn't say what the `github` tool call looks like, so the replacement is unclear."
+  },
+  {
+   "quote": "because those calls return 403",
+   "why": "It doesn't say why they return 403 (a session restriction? credentials?), so 'from a session' and the reason for the guard remain unclear."
+  }
+ ],
+ "point": "The commit extends the guard_gh_route guard, which previously caught only `gh release create`, so it also blocks `gh api` POSTs to `/releases` and `/git/refs` paths that would otherwise return 403, and it adds tests for these cases."
+}

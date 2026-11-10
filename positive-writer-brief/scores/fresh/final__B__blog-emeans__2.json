@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "Remex is never introduced. It isn't clear whether it's a system, a library or the author's earlier work. 'Hash cells' is also undefined, so there's no way to tell what the baseline is."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "The 'prior work' is never described, and 'our' refers to Oskar and the author. The reader can't tell what is being built upon."
+  },
+  {
+   "quote": "Oskar sent the e-means page (arXiv 2611.09501)",
+   "why": "Oskar is not introduced. e-means is never defined, and the text doesn't say it is a k-means variant. The arXiv ID is also odd, though that is a minor point."
+  },
+  {
+   "quote": "I had expected offset coding to be the win and the index cells to be a side note, and it came out the other way.",
+   "why": "Offset coding hasn't been introduced yet. The later paragraph shows it costs too much, but the reader has no context for the term here."
+  },
+  {
+   "quote": "before remex's 1-bit quantization",
+   "why": "The remex quantizer is never explained. The reader doesn't know what 1-bit per dimension means here or what the Recall@10 baseline of 0.840 refers to."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids amortized over 100,000 vectors only gives 126 bytes if the centroids are about 3,000 dimensions of float32, which doesn't match EmbeddingGemma's dimensionality. The reader can't verify it. The comparison with a second bit per dimension is also given without the numbers."
+  },
+  {
+   "quote": "in 1 to 3 passes, which is 1.6 to 10.2 times sooner on 4 CPUs",
+   "why": "The unit of comparison is unclear. A pass isn't defined, and the speedup range doesn't map clearly to the pass counts. It's also unclear whether Lloyd's 25 iterations are the baseline."
+  },
+  {
+   "quote": "I assumed e-means would mainly speed up training, so I spent the first hour benchmarking speed.",
+   "why": "This implies e-means is a faster trainer, but the text never says what e-means is. It also doesn't say how its result relates to the heading, which is about index cells."
+  },
+  {
+   "quote": "Used as index cells, 4,096 centroids hold 90% of true neighbours while scanning 0.56% of the corpus.",
+   "why": "The text doesn't say which centroids (Lloyd or e-means), what corpus size, or how many cells are probed. 0.56% of 100,000 vectors is about 560 vectors, which is not a clear match with 4,096 cells. The 90% figure is therefore hard to interpret."
+  }
+ ],
+ "point": "Using k-means-style centroids as index cells retrieves far more true neighbours per vector scanned than remex's hash cells do, and that matters more than the offset coding, whose centroid table is too costly, and it doesn't depend on whether the centroids come from Lloyd or e-means."
+}

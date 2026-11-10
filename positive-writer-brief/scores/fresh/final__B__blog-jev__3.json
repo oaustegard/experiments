@@ -1,0 +1,29 @@
+{
+ "point": "Jev, a small calibrated decision model, ranked lint hits slightly better than a category-only baseline, but its probabilities were too uncertain to settle enough hits within a 5% error budget (24.5% against a 50% bar), so it is not used and the better move is tightening the triad and participle rules.",
+ "stumbles": [
+  {
+   "quote": "declaude_lint",
+   "why": "The tool is never explained. I can't tell what it lints, what a \"hit\" is, or what a \"tic\" is, and the text never says what the lint categories are."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "register.md is an unexplained file. I don't know what it holds or how the definition went into Jev's prompt."
+  },
+  {
+   "quote": "The bar set before the test was 50%.",
+   "why": "The text never says 50% of what. I have to infer that it is the share of hits Jev settles alone. It also doesn't say how the 24.5% was computed from the probabilities."
+  },
+  {
+   "quote": "That baseline also beat Jev on accuracy at a 0.5 threshold, 0.751 to 0.732.",
+   "why": "\"Also\" implies the baseline beat Jev on AUROC too. But the baseline's 0.769 is below Jev's 0.808 with the definition and above Jev's 0.697 without it. The text doesn't say which Jev variant the accuracy figure uses."
+  },
+  {
+   "quote": "| triad | 5 / 44 |\n| participle | 5 / 43 |\n| negation-first | 16 / 18 |",
+   "why": "These three rows total 105 hits, not the 261 agreed hits or the 300 total, and the text doesn't say which set they come from. 26/105 is about 25%, which doesn't match the 35.2% real-tic rate. The other rules are missing and the table is not labelled as a subset."
+  },
+  {
+   "quote": "Jev had done well on routing questions",
+   "why": "This refers to earlier Jev work the text doesn't describe, so I can't tell what \"well\" or \"routing\" means. Oskar's role is also unexplained."
+  }
+ ]
+}

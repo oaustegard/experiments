@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained (a tool, system, or agent?), and the `github` tool call is not described, so the replacement is unclear to a reader without prior context."
+  },
+  {
+   "quote": "because those calls return 403",
+   "why": "The text doesn't say why the calls return 403 (permissions, token scope, or sandbox policy), so the reason for the guard is unclear."
+  },
+  {
+   "quote": "from a session",
+   "why": "'Session' is not defined. It presumably means an AI agent session, but that isn't stated."
+  }
+ ],
+ "point": "The commit extends the gh-route guard, which previously blocked only `gh release create`, so it also blocks `gh api` POSTs to paths ending in /releases or /git/refs, and it adds 4 tests."
+}

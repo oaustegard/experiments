@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "retries HTTP 503 and 429 responses up to 4 times",
+   "why": "Test 3 says \"four 503s: fails\". Four retries would mean five attempts, so four 503s wouldn't necessarily exhaust them. The text doesn't say whether 4 counts retries or total attempts."
+  },
+  {
+   "quote": "backoff timing stays within its bounds",
+   "why": "The text never gives the bounds. It says only \"exponential with jitter\" and \"starts at 0.5 s\", with no multiplier, cap or jitter range, so I can't tell what the test checks."
+  },
+  {
+   "quote": "The request was never retried, because the retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "This assumes I know about an earlier retry mechanism and the refactor that zeroed it. The text doesn't say what the count configured or where it lived. It also clashes with \"fails at once, as it did before\" and with the claim that the change adds retries."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "\"Boot\" is never explained. I can't tell whether it is a startup routine, a module or a process, or how it relates to `execute()`."
+  }
+ ],
+ "point": "The Turso client's `execute()` now retries 503 and 429 with jittered exponential backoff, so cold-start 503s no longer show up as `auth failed`. The text leaves the retry count (4 retries or 4 attempts) and the backoff bounds unclear."
+}

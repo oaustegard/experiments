@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "\"The two judges\" are never introduced (human reviewers? LLMs?). Also, \"legitimate prose\" is confusing: the cells are said to hold numbers and labels, not sentences, so it's unclear what was judged legitimate or whether the hits were false positives."
+  },
+  {
+   "quote": "`--skip-quoted` already blanked table cells, but it also blanked blockquotes and italics.",
+   "why": "The text doesn't say this flag exists in the linter or how it is defined. It also doesn't explain why a new flag is needed instead of narrowing this one, though the next paragraph partly answers that."
+  },
+  {
+   "quote": "a lint scan of 41 published posts reported 300 hits",
+   "why": "The text never explains what a \"hit\" is, meaning what the linter detects. The name `declaude_lint.py` and the \"declauding\" skill aren't explained either."
+  },
+  {
+   "quote": "drafts that quote bad prose in italics on purpose",
+   "why": "It isn't clear what \"bad prose\" means or why italics mark it. This relies on an unstated convention of the declauding skill."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declaude linter that blanks lines starting with `|`, keeping line numbers intact. The aim is to cut false-positive hits in table cells without also skipping italics and blockquotes, as `--skip-quoted` does."
+}

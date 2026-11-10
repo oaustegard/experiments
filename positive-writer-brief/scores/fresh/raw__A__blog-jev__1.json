@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review declaude_lint's hits before a post goes out.",
+   "why": "Neither declaude_lint nor its purpose is explained. It is unclear what the lint checks or what a 'hit' is. The sentence also reads oddly against the question, which asks about Jev in the posting review process."
+  },
+  {
+   "quote": "35.2% of those 261 were real tics.",
+   "why": "'Tics' is never defined. The reader has to guess what counts as a real tic versus a false hit."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "register.md is an unexplained file. The reader can't tell what it holds or how it was put into the prompt."
+  },
+  {
+   "quote": "A baseline that knows only the hit's lint category, which gives it the category's historical tic rate, reached 0.769.",
+   "why": "It is unclear what 'historical' means here and which data the rate comes from. It may be the same 261 hits, which would leak labels. Also unclear whether this baseline is the same as 'without the definition'."
+  },
+  {
+   "quote": "At a 5% error budget it could settle only 24.5% of hits.",
+   "why": "'Settle' and 'error budget' are not defined. The reader can't tell whether Jev decides hits automatically or what the 5% measures. The heading says 'a quarter', which matches 24.5% only loosely."
+  },
+  {
+   "quote": "The bar we set in advance was 50%.",
+   "why": "It is not stated what the 50% measures. Presumably it is the share of hits settled, but the text doesn't say."
+  },
+  {
+   "quote": "Jev is a small decision model that returns a calibrated probability for a yes/no question in about 160 ms. It had done well on routing questions",
+   "why": "Which model Jev is, and what the earlier routing questions were, is unexplained. 'Done well' has no numbers."
+  },
+  {
+   "quote": "Jev is not added to the review. I was disappointed.",
+   "why": "The title says Jev 'settles a quarter of the lint's hits and stays out of the review'. That is mildly ambiguous. The reader can't tell whether it settles hits somewhere else or only in the test. The last paragraph on per-rule precision also isn't tied to the conclusion."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested on judging whether declaude_lint hits are real writing tics. It beat a simple category-rate baseline only when given the tic definition, and it settled 24.5% of hits at a 5% error budget against a 50% bar, so it was kept out of the posting review."
+}

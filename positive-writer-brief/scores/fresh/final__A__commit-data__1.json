@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "'Jev' and 'the register.md entry' are never explained; unclear whether Jev is a model, tool, or person, or what the entry is."
+  },
+  {
+   "quote": "Fraction settled at 5% error: 24.5%",
+   "why": "'Settled' is undefined; unclear what is settled or how 5% error is defined."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "'Category prior' is not explained; the baseline it represents and the category involved are unknown."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker",
+   "why": "'now' implies an earlier state, and the @evidence marker convention is not explained. RESULTS.md is not part of the described changes."
+  },
+  {
+   "quote": "so the interval includes zero",
+   "why": "The text never says what this implies, such as no clear difference from the prior. This sits oddly beside the 0.808 vs 0.769 headline."
+  }
+ ],
+ "point": "The commit adds analyze.py and the metrics.json it produces, which show Jev's AUROC with the register.md entry (0.808) not clearly beating the category prior (0.769), since the bootstrap CI includes zero, and it makes RESULTS.md cite those numbers in a way that passes the evidence checker."
+}

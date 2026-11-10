@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 of this experiment measured the 8% figure and concluded that domain vocabulary does not help much. Round 2 traced the shortfall to the pre-tokenizer and replaces that conclusion.",
+   "why": "Refers to earlier rounds the text never describes. It is unclear what Round 1 and Round 2 were, or whether this write-up is Round 2. It also sits oddly beside the 8% figure, which is presented as a current result."
+  },
+  {
+   "quote": "Oskar's question on 2026-11-06",
+   "why": "Oskar is never introduced, so his role and why his question matters are unexplained."
+  },
+  {
+   "quote": "`lifesci-ettin`",
+   "why": "Names a follow-up experiment without saying where it lives or what it covers. The 'token-table half' also implies a second half that is never spelled out."
+  },
+  {
+   "quote": "Ettin's tokenizer averages 376 tokens per abstract on that set.",
+   "why": "The baseline is given but the new tokenizer's absolute count is not, and 'cheaper' is never defined. The reader has to infer that cost means token count."
+  },
+  {
+   "quote": "BioClinical ModernBERT and Clinical ModernBERT both ship Ettin's tokenizer unchanged.",
+   "why": "Neither model is explained, and the sentence does not say how this relates to Ettin or to the question."
+  }
+ ],
+ "point": "A 50K BPE vocabulary retrained on PubMed cuts tokens by 21% against Ettin's tokenizer, but only if the GPT-2 pre-tokenizer is also swapped for whitespace-only splitting. Retraining the table alone saves just 8%."
+}

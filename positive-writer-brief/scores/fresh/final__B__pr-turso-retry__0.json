@@ -1,0 +1,9 @@
+{
+ "point": "This PR makes the Turso client's execute() retry up to 4 times with jittered backoff on 503 and 429, which fixes cold-start boot failures that a 2026-09-14 refactor introduced, and the author measured it and added tests.",
+ "stumbles": [
+  {
+   "quote": "four 503s: fails",
+   "why": "The change allows up to 4 retries, which is 5 attempts. Four 503s followed by a 200 would succeed, so this case contradicts the retry limit unless the server keeps returning 503. The text doesn't say which."
+  }
+ ]
+}

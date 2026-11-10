@@ -1,0 +1,3 @@
+I made three small edits. In step 5 I cut "so that position becomes neutral", because it only restated the calibration clause before it (a welded epigram, register entry 39). In step 1 I took out "an unlocked screen would rotate before it asks". That is a cause the facts don't state, so the step now just says the game prompts for landscape itself. In step 3 I changed "upright" to "in portrait" so it uses the same word as step 1.
+
+I found no factual contradictions, and nothing in the draft describes the old layout or tapping Start engine to calibrate. I left the short sentences the linter flagged alone because they are instruction steps and control bullets. The newcomer read and the other checks were done by me rather than by an independent reader.

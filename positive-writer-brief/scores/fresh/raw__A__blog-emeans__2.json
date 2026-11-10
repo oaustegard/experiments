@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells hold 70% while scanning 34%.",
+   "why": "remex is never explained (a library? the author's project?), nor are its hash cells. The reader can't tell what is being compared or how the hash cells work."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes. The reader doesn't know who Oskar is or what the prior work was."
+  },
+  {
+   "quote": "e-means",
+   "why": "Never defined. Only an arXiv ID is given. A k-means reader can't tell how it differs from Lloyd's or what a 'pass' is."
+  },
+  {
+   "quote": "matches the error of 25 iterations of Lloyd's k-means in 1 to 3 passes",
+   "why": "'Passes' is not defined and is not mapped to iterations. 'Error' is not defined either (quantization MSE?)."
+  },
+  {
+   "quote": "Next I coded each vector as an offset from its nearest of the 4,096 centroids before remex's 1-bit quantization.",
+   "why": "It's unclear how the offset coding and the 1-bit quantization combine. The 'offsets' of the title are only explained here, and never as a headline result."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids × 768 dims × 4 bytes / 100,000 vectors is about 126, but the dimension and the float width are never stated. 'More than adding a second bit per dimension' is not quantified, so it can't be checked."
+  },
+  {
+   "quote": "Recall@10 rose from 0.840 to 0.891.",
+   "why": "The index-cell figures use '90% of true neighbours'. It is unclear whether this is the same metric, and the baseline for 0.840 is not stated."
+  },
+  {
+   "quote": "Centroids from Lloyd and from e-means give the same recall within 0.005, so the choice between the two algorithms affects only training time.",
+   "why": "It is unclear which recall this is (index cells or offsets). It also sits oddly with the opening claim that e-means centroids are what is worth using. The 90% vs 70% comparison is against hash cells, not Lloyd."
+  },
+  {
+   "quote": "I had expected the offset coding to be the main result and the index cells to be a side note.",
+   "why": "This contradicts the earlier 'I assumed the gain would mostly be training speed'. The expectation moves from training speed to offset coding. The index cells are also said to come 'after that', but the offset step is called the second attempt."
+  }
+ ],
+ "point": "Using e-means (or Lloyd) centroids as index cells for remex gives far better recall per scanned fraction than remex's hash cells, which is more valuable than using them as offsets for quantization or for faster training."
+}

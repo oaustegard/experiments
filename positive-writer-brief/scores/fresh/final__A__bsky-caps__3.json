@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form",
+   "why": "Unclear what is being counted: 42 of 43 what, and what 'form' means (caps, lowercase, other phrasings?). The violation is never defined."
+  },
+  {
+   "quote": "even with no directive",
+   "why": "Directive is not defined and the baseline isn't explained; it's unclear what the model was told or tested on."
+  },
+  {
+   "quote": "Every directive naming a forbidden word raised its log-odds ~2.5.",
+   "why": "Log-odds of what? Presumably of the model producing the forbidden word, but it isn't stated. It also seems to conflict with 'caps changed nothing' unless the reader infers that naming the word backfires."
+  },
+  {
+   "quote": "The 22,100-doc corpus",
+   "why": "'The' implies a known corpus; the text never says it's the model's training corpus or how it relates to the 321M model."
+  },
+  {
+   "quote": "had one instruction in caps: 'NEVER give a baby honey'.",
+   "why": "The relevance is unstated: is it a point about how rare caps are in training data, or a safety example? The link to the experiment is left implicit."
+  }
+ ],
+ "point": "In a small 321M model, writing instructions in caps made no difference to rule violations, while naming the forbidden word in any directive made it more likely to appear, possibly because the training corpus almost never used caps emphasis."
+}

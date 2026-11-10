@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "Never explained: presumably a small language model, and 321M presumably parameters, but the text doesn't say so."
+  },
+  {
+   "quote": "ignored caps: 42/43 violations with the directive in any form, or none.",
+   "why": "Unclear what the test was. It doesn't say what the 'caps' directive was, what a violation is, or what 'in any form, or none' means. 42/43 could be the violation rate or something else, and it is unclear whether 'none' means no directive."
+  },
+  {
+   "quote": "Any directive naming the forbidden word raised its log-odds ~2.5.",
+   "why": "The 'forbidden word' is never identified. 'Its' is ambiguous. The text doesn't say what the log-odds are of (the word appearing?), and it doesn't say whether ~2.5 applies to caps and non-caps directives alike."
+  },
+  {
+   "quote": "Its 22,100 training docs hold one caps instruction: 'NEVER give a baby honey'.",
+   "why": "Its relevance to the earlier claims is not stated. The text does not say whether this shows the model never learned caps emphasis, and 'one caps instruction' is unclear when the text doesn't say how the docs were searched."
+  }
+ ],
+ "point": "A tiny model, Baguettotron, almost never obeyed prohibitions whether or not they were in caps, and naming the forbidden word made it more likely to say it. That is probably because its training data has almost no caps-emphasized instructions."
+}

@@ -1,0 +1,1 @@
+Baguettotron (321M) ignored caps: 42/43 violations with the directive in any form, or none. Any directive naming the forbidden word raised its log-odds ~2.5. Its 22,100 training docs hold one caps instruction: 'NEVER give a baby honey'. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

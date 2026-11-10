@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn and its `github` tool are never explained; a reader doesn't know what system this is or how to call it."
+  },
+  {
+   "quote": "since\nthose calls return 403",
+   "why": "Doesn't say why a session gets 403 (e.g., token permissions), so the rationale is unclear, though the guard's purpose can be inferred."
+  }
+ ],
+ "point": "The commit extends the guard that blocks GitHub release/tag creation from sessions so it also catches `gh api` POST calls to `/releases` and `/git/refs` paths, not just `gh release create`, and adds tests."
+}

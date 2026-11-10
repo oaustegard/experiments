@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev had done well on routing questions, so I was hopeful.",
+   "why": "Refers to prior Jev work on routing questions that the text never describes; the reader doesn't know what that was or why it predicts success here."
+  },
+  {
+   "quote": "With the tic's definition from register.md in its prompt",
+   "why": "'The tic' and register.md are never explained. The reader doesn't know what a tic is, which tic is meant, or what register.md contains."
+  },
+  {
+   "quote": "Of those 261, 35.2% were real tics.",
+   "why": "'Real tics' is undefined. It's also unclear whether Jev was scored only on the 261 agreed hits or on all 300, and the table counts (44+43+18 = 105) are not tied to this set."
+  },
+  {
+   "quote": "at a 5% error budget it could settle only 24.5% of hits",
+   "why": "'Settle' and 'error budget' are not defined. The reader can't tell how coverage is computed from the calibration, e.g. that Jev answers only when confident and the error is capped at 5%."
+  },
+  {
+   "quote": "The bar set in advance was 50%.",
+   "why": "Introduced late and without saying what is measured. The opening says 'the bar set in advance' as if it were known. It is presumably the 50% settled fraction, but this is never stated."
+  },
+  {
+   "quote": "At a 0.5 threshold the baseline also beat Jev on accuracy, 0.751 to 0.732.",
+   "why": "It's unclear which Jev variant (with or without the definition) has 0.732. 'Also beat Jev' sits oddly after the AUROC figures, where the baseline (0.769) beat only the no-definition Jev (0.697) and lost to the definition one (0.808)."
+  },
+  {
+   "quote": "Jev will not review declaude_lint's hits on public posts.",
+   "why": "'declaude_lint' is not explained, and 'Oskar' and 'our public posting review process' are not introduced. The reader doesn't know what the lint does or who the people are."
+  },
+  {
+   "quote": "It ranks the hits better than chance, but",
+   "why": "This sits uneasily with the later finding that a trivial category baseline ranks nearly as well (0.769 vs 0.808). The point of comparison is not made explicit."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, ranked lint hits fairly well (AUROC 0.808) but was too poorly calibrated to settle even half of the hits at a 5% error rate (24.5% against a 50% bar), so it won't be added to public-post review."
+}

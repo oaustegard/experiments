@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "four 503s, then failure",
+   "why": "The text says `execute()` makes up to 4 retries, which is 5 attempts. Four 503s would then be followed by a fifth attempt, not a failure. The test reads as 3 retries, or else it means five 503s. The two statements disagree."
+  },
+  {
+   "quote": "The retry count had been 0 since a refactor on 2026-09-14",
+   "why": "The text never says what the refactor changed or what the retry count was before it. A reader can't tell whether retries were removed or never existed. The phrase also assumes the reader knows an earlier version."
+  },
+  {
+   "quote": "backoff timing stays within bounds",
+   "why": "The bounds are never given. The text states only the 0.5 s start and the jitter, with no growth factor, cap or jitter range, so the test's pass criterion can't be checked."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "\"Boot\" is not explained. It is probably a startup routine that calls the client, but the text doesn't say what it is or where it lives."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry HTTP 503 and 429 with jittered exponential backoff, so cold-start 503s no longer show up as `auth failed` at boot, and every other status still fails immediately."
+}

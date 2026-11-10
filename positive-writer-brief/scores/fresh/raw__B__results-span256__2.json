@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked the question on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"reversing the widening\" refers to an unstated earlier discussion. It's unclear what widening is, though it may mean the 256-to-768 final layer."
+  },
+  {
+   "quote": "The live index uses 2 bits × 768 dims, takes 200 bytes and reaches 0.857.",
+   "why": "\"Live index\" is never defined. The 200 bytes doesn't obviously match 2×768 bits (192 bytes), so the overhead is unexplained."
+  },
+  {
+   "quote": "the 256-dim remex codes",
+   "why": "\"remex\" is never explained. It appears to be a quantization method, but that is only a guess."
+  },
+  {
+   "quote": "Yes. You can store Ettin-17m embeddings at 256 dimensions without losing float search quality.",
+   "why": "The opening \"Yes\" is qualified later (\"The answer changes once the vectors are quantized\"). The text doesn't say clearly that the Yes covers float storage only, and the quantized results are mixed."
+  },
+  {
+   "quote": "At the same bit width, the 256-dim codes do worse: 2 bits × 256 dims reaches recall@10 of 0.763.",
+   "why": "The comparison is hard to follow. The table's \"recall@10 vs float\" is a different metric from the earlier hit@10, and it is unclear whether 0.763 and 0.857 use the same baseline."
+  },
+  {
+   "quote": "With an int8 head, that setup reaches 0.931 at 4 bits.",
+   "why": "\"int8 head\" and \"that setup\" are unexplained. It is unclear whether the head is the final layer, and what the comparison point is (0.927 at 4 bits)."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier gives identical answers, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout and its classifier are never introduced, and it is unclear what is being fitted. The \"site's search indexes\" line also assumes unexplained context."
+  }
+ ],
+ "point": "Ettin-17m's 768-dim output can be folded exactly into 256 dims with no loss in float search quality, but quantized 256-dim codes need about 3 or more bits per dimension to beat the current 2-bit 768-dim index."
+}

@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "`--keep-float`",
+   "why": "The search section refers to an index built with this flag, but the text never explains the build command or the flag. I can't tell how to build an index with float vectors kept."
+  },
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "It doesn't say whether line numbers start at 0 or 1. That matters when I match results to queries."
+  },
+  {
+   "quote": "recall@10 is 0.93 at 4 bits and 0.84 at 2 bits",
+   "why": "It doesn't say what recall is measured against, such as exact float search. It also doesn't say whether rescoring was on. I can't tell if the figures apply to my index."
+  },
+  {
+   "quote": "`--bits N` sets the quantization width used for the search.",
+   "why": "It's unclear whether the index was already quantized at build time. If so, I don't know what bit widths are allowed or whether a value above the build width works. The text gives only 2 and 4."
+  }
+ ],
+ "point": "`remex search` takes an index and a file of comma-separated query vectors. It returns the top-k IDs and scores per query as JSON Lines. `--bits` trades recall for speed, and indexes built with `--keep-float` also rescore the top 100 candidates."
+}

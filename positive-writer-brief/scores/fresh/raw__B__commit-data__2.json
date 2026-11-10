@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev, register.md, and 'the entry' are never explained; unclear what is being evaluated or what the entry is."
+  },
+  {
+   "quote": "category prior",
+   "why": "Baseline is not defined; unclear what categories or prior this refers to."
+  },
+  {
+   "quote": "Settled fraction at 5% error",
+   "why": "'Settled' is undefined, and it is unclear what is being settled or what error is meant."
+  },
+  {
+   "quote": "RESULTS.md now cites each number with an @evidence marker.",
+   "why": "'now' implies an earlier state, and the @evidence marker format is not explained. It is unclear whether RESULTS.md existed before this commit or what it contains."
+  },
+  {
+   "quote": "At this sample size, Jev with the entry does not separate from the category prior.",
+   "why": "The sample size is never given. It also sits oddly beside the 0.808 vs 0.769 AUROC figures without saying the gap is not significant."
+  }
+ ],
+ "point": "The commit adds metrics.json and analyze.py so RESULTS.md numbers are traceable, and the headline result is that Jev with the entry (AUROC 0.808) is not distinguishable from the category prior (0.769) because the bootstrap CI includes zero."
+}

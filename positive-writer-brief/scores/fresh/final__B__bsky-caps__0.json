@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what the ratio means: 42 of 43 prompts violated? Does it mean the model almost always failed to comply? 'Every form' is also undefined."
+  },
+  {
+   "quote": "Naming a forbidden word raised it ~2.5 log-odds.",
+   "why": "'It' is ambiguous (compliance or violation?), and the direction and the comparison baseline are unclear."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "Never explained that this is a small language model; 321M is unlabeled (parameters?)."
+  },
+  {
+   "quote": "CAPS didn't change compliance",
+   "why": "Doesn't say what task or instruction was being complied with (avoiding forbidden words?), so 'compliance' and 'violations' are undefined."
+  },
+  {
+   "quote": "Its 22,100 training docs contain one caps instruction",
+   "why": "Unclear whether this is the full training corpus or a sample, and how it connects to the results (the implication is left unstated)."
+  }
+ ],
+ "point": "A tiny model, Baguettotron, ignored forbidden-word instructions regardless of capitalization, though naming the word changed behavior, which may be because its training data has almost no all-caps instructions."
+}

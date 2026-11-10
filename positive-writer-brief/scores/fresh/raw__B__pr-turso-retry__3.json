@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The client could not retry it because the retry count has been 0 since a refactor on 2026-09-14.",
+   "why": "Refers to an unexplained refactor and a retry count setting. It doesn't say where the count is configured or why it became 0. It also sits oddly with the Change section, which says `execute()` now retries up to 4 times, without saying the count was changed."
+  },
+  {
+   "quote": "Boot read that 503 as a credential failure and printed \"auth failed\".",
+   "why": "\"Boot\" is never explained. It could be a startup routine, a script or a component. It's unclear how it relates to `execute()` or why it turns a 503 into an auth error."
+  },
+  {
+   "quote": "four 503s: fails",
+   "why": "This is ambiguous against \"retries ... up to 4 times\". Four 503s would be the initial try plus three retries, which would not exhaust 4 retries. It's unclear whether the test covers four total responses or five."
+  },
+  {
+   "quote": "The public API is unchanged.",
+   "why": "The text doesn't say what the public API is. It also says the error message now names the status code, which may change observable behavior."
+  }
+ ],
+ "point": "The PR makes Turso's `execute()` retry HTTP 503 and 429 with jittered backoff, so cold-start 503s no longer show up as \\\"auth failed\\\" at boot. It backs this with 40 cold-boot runs and 6 new tests."
+}

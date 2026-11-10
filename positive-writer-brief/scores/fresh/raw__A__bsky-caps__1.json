@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42 of 43 violations with the directive in any form, or with none",
+   "why": "Unclear what the 43 trials are, what a 'violation' is (using the forbidden word?), and what 'directive in any form, or with none' covers. The ratio seems to be per condition, but the text doesn't say."
+  },
+  {
+   "quote": "Naming the forbidden word raised its log-odds by about 2.5.",
+   "why": "It doesn't say which word is forbidden or what task it applies to. It also doesn't say whether 'naming' means putting the word in the prompt. The log-odds of what, and relative to what baseline, is unstated."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "The name is never explained. A reader can only guess it is a small language model, and 321M presumably means parameters."
+  },
+  {
+   "quote": "Of 22,100 training documents, one has a caps instruction: 'NEVER give a baby honey'.",
+   "why": "The link to the earlier findings is implied but not stated, presumably that caps emphasis is nearly absent from the training data. The corpus isn't identified either."
+  }
+ ],
+ "point": "A tiny 321M model ignored all-caps instructions, and even mentioning the forbidden word made it more likely to say it. The likely reason is that its training corpus almost never contains caps-emphasized instructions."
+}

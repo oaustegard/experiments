@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form and with no directive",
+   "why": "Unclear what the violations are (violations of what rule?), what 42/43 counts (trials? prompts?), and what 'every form' means. 'No directive' conflicts with 'CAPS made no difference' unless you know a baseline was tested."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "The reader doesn't know the task: what forbidden word, forbidden by what, or the log-odds of what (the model producing it). The scale of 2.5 and the units are also unclear."
+  },
+  {
+   "quote": "Its 22,100-doc corpus has one CAPS instruction",
+   "why": "'Its' presumably means the model's training corpus, but this isn't stated. The link between the corpus and the behavior is left implicit."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model is never explained. 321M presumably means parameters, but this isn't said, and the reader doesn't know it's a small model."
+  }
+ ],
+ "point": "ALL-CAPS emphasis did nothing to curb forbidden-word use in a tiny model, and naming the word made it more likely, possibly because its training corpus almost never contains CAPS instructions."
+}

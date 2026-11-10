@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose, because table cells hold numbers and labels rather than sentences.",
+   "why": "\"The two judges\" are never introduced (humans? models?). The sentence also contradicts itself: it says the cells were labelled \"legitimate prose\", but the reason given is that table cells are not prose. The intended meaning is probably that the hits were false positives."
+  },
+  {
+   "quote": "63 of its 300 hits were inside Markdown table cells.",
+   "why": "Only 58 of 63 (about 19% of all hits) were judged false positives. It is unclear why that justifies a flag, and the 5 remaining hits are not discussed."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, along with blockquotes and italics.",
+   "why": "This makes the new flag look redundant. The justification only appears in the next sentence. It also conflicts with the claim that `--skip-tables` \"still scans everything else\", unless you already know the flags differ in scope."
+  },
+  {
+   "quote": "the linter",
+   "why": "\"declaude_lint.py\" and the \"declauding\" skill are never explained. You can't tell what a \"hit\" is or what \"legitimate prose\" means as a lint result."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declauding linter that blanks lines starting with `|` (keeping line numbers) so table cells stop producing false positives, and unlike `--skip-quoted` it still lints italics and blockquotes."
+}

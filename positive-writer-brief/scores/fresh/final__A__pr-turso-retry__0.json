@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "Relies on an unexplained earlier state: it doesn't say what the retry count was before, or what the refactor was. It also reads as if retries already existed, while the first sentence says this PR adds them."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "\"Boot\" is never explained. It could be a startup routine, a module or a script, and the text doesn't say how it relates to `execute()`."
+  },
+  {
+   "quote": "retries 503 and 429 up to 4 times",
+   "why": "Ambiguous: 4 retries or 4 total attempts. The test \"four 503s, then failure\" doesn't settle it, because 4 retries would mean 5 attempts, which that test wouldn't exhaust."
+  },
+  {
+   "quote": "the error message names the status code",
+   "why": "Unclear which error message is meant. It may be the final failure after retries are exhausted, or the one for non-retried statuses. It also doesn't say whether it replaces the misleading `auth failed`."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry 503 and 429 responses with jittered exponential backoff, so cold-start 503s no longer show up as a false `auth failed` at boot. It was measured on 40 cold boots and covered by 6 new tests."
+}

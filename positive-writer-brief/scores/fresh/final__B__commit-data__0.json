@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev and the register.md entry are never explained; a reader can't tell what is being compared (a model? a lint tool?)."
+  },
+  {
+   "quote": "AUROC, category prior: 0.769",
+   "why": "\"category prior\" is undefined; it is unclear what baseline this is or what the AUROC is predicting."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "\"Settled fraction\" and what error is being held at 5% are not explained."
+  },
+  {
+   "quote": "an @evidence marker",
+   "why": "The marker's format and the checker's rules are not described; the reader must guess how it points into metrics.json."
+  },
+  {
+   "quote": "The interval includes zero, so this data\ndoes not separate Jev-with-entry from the prior.",
+   "why": "This is hard to square with the headline numbers (0.808 vs 0.769) unless the reader already knows the CI is on a paired difference. It also doesn't say whether the 'without entry' result differs from the prior."
+  }
+ ],
+ "point": "The commit adds metrics.json and analyze.py so RESULTS.md's numbers are traceable, and the headline finding is that Jev with the register.md entry (AUROC 0.808) cannot be statistically distinguished from a category-prior baseline (0.769)."
+}

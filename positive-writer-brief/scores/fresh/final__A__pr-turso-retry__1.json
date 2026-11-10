@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "Any other status fails at once, as it did before.",
+   "why": "Slightly conflicts with the Problem section: the retry count was 0, so even 503 and 429 failed at once before. It's ambiguous what 'as it did before' covers, though it is probably fine for other statuses."
+  },
+  {
+   "quote": "four 503s in a row end in failure",
+   "why": "'Retries up to 4 times' means 5 attempts in total. Four 503s would then not exhaust the retries, so a fifth attempt could still succeed. It is unclear whether 4 counts retries or total attempts."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "'Boot' is never explained. It is unclear whether it means an application startup path, and why a 503 would be mapped to an auth error. The text doesn't say whether that mapping was fixed. The final test only says the error message names the status code."
+  },
+  {
+   "quote": "since a refactor on 2026-09-14",
+   "why": "The refactor is not identified. It is unclear whether it was in this repo or what it changed, and the text doesn't say whether this PR restores the old behavior or sets a new count."
+  }
+ ],
+ "point": "The PR makes the Turso client's execute() retry 503 and 429 responses up to 4 times with jittered backoff. This fixes cold-start boot failures that were wrongly reported as auth failures, and the PR backs it with measurements and six tests."
+}

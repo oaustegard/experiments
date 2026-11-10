@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "The judges are never introduced (who or what they are, or what they were judging). Also unclear: 'legitimate prose' is odd since the cells are said to hold numbers and labels, not sentences, so it's unclear whether these were false positives."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it blanks blockquotes and italics along with them.",
+   "why": "Doesn't say what 'quoted' covers beyond this, and a reader might ask why the existing flag isn't enough. It's resolved later, but 'declaude_lint' and what the linter flags ('hits') are never explained."
+  },
+  {
+   "quote": "300 lint hits",
+   "why": "'Lint hits' and what the linter looks for are never defined, so it's unclear what a hit means or why table hits are a problem."
+  },
+  {
+   "quote": "the linter blanks every line that starts with `|` before scanning",
+   "why": "Tension with 'skips tables': table rows indented or without leading pipes would not be matched, and the text claims it skips tables generally."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declaude linter that blanks Markdown table lines, preserving line numbers, so tables can be skipped without also skipping italics or blockquotes the way `--skip-quoted` does."
+}

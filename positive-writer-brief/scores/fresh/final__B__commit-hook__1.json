@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "it names the Muninn `github` tool\ncall to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or how it avoids the 403. A reader outside the project can't tell what to use."
+  },
+  {
+   "quote": "because those calls return 403",
+   "why": "The text doesn't say why a session gets 403, such as missing token scope or a sandbox restriction. That makes it hard to judge whether the guard is the right fix."
+  }
+ ],
+ "point": "The guard that blocks GitHub release and tag creation from a session, because those calls return 403, now also catches `gh api` POSTs to `/releases` and `/git/refs`, and 4 new tests cover the change."
+}

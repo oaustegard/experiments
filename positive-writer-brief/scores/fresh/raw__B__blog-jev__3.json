@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review declaude_lint's hits on public posts.",
+   "why": "declaude_lint is never explained (what it is, what a 'hit' or 'tic' is). Also 'review' is ambiguous: Jev is later described as not part of the review process, so the sentence reads oddly."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "register.md and what a 'tic' is are not explained; the reader can't tell what the definition contains."
+  },
+  {
+   "quote": "At a 5% error budget it could settle 24.5% of hits on its own.",
+   "why": "'Settle' and 'error budget' are not defined. The 24.5% figure is never derived from the numbers given later, and the reader can't tell whether it is the best case or a measured result."
+  },
+  {
+   "quote": "The bar set before the test was 50%.",
+   "why": "It doesn't say who set the bar, or that it means the fraction of hits settled automatically. The reader has to infer that."
+  },
+  {
+   "quote": "Jev had done well on routing questions, and I expected it to do well here too.",
+   "why": "This leans on earlier unexplained work: what routing questions were, and how Jev was judged to have done well."
+  },
+  {
+   "quote": "They agreed on 261 of them (87%), and 35.2% of those were real tics.",
+   "why": "The text doesn't say whether the analysis uses only the 261 agreed hits or all 300. The per-rule table totals (44+43+18=105) don't obviously match either set. The rule list also looks partial, with no explanation."
+  },
+  {
+   "quote": "A baseline that knows only the hit's lint category, and so its historical tic rate, scored 0.769.",
+   "why": "'Historical tic rate' is unexplained. It isn't clear where the history comes from, or whether it was computed on the test set."
+  },
+  {
+   "quote": "That baseline also beat Jev on accuracy at a 0.5 threshold, 0.751 to 0.732.",
+   "why": "The AUROC 0.808 for Jev is with the definition, but it's unclear which Jev variant has the 0.732 accuracy. The baseline is also described as beating Jev, even though Jev's AUROC (0.808) is higher."
+  },
+  {
+   "quote": "Jev ranked the hits reasonably well but gave few confident answers.",
+   "why": "This sits uneasily with the heading's claim that Jev settles 24.5% of hits. The reader can't tell whether 24.5% counts as 'few', and the text doesn't connect the two figures."
+  },
+  {
+   "quote": "the category baseline already captures that difference",
+   "why": "The table shows only counts for three rules, not baseline output. 'Triad and participle... mostly false alarms' is true (5/44, 5/43), but nothing in the text shows the baseline itself captures this."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, ranked lint hits only modestly better than a category baseline and was too unconfident to settle even half the hits at a 5% error budget, so it is excluded from review, and tightening the noisy lint rules is the better investment."
+}

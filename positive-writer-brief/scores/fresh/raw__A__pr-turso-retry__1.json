@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Nothing retried the request, because the retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "The text never says what the refactor was or where the retry count is configured. It also conflicts with the opening, which says execute() now retries, and with \"Any other status fails at once, as it did before.\" The reader can't tell whether 503s and 429s used to be retried at all."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "\"Boot\" is never explained. It could be a startup routine or a module. The text also doesn't say why a 503 was mapped to an auth failure. The Change section doesn't say whether that mapping was fixed, so a 503 that survives all retries may still print `auth failed`."
+  },
+  {
+   "quote": "the error message names the status code",
+   "why": "The text never describes an error-message change in the Change section. It's unclear whether this is new behaviour or existing behaviour, and whether it replaces `auth failed`."
+  },
+  {
+   "quote": "Of 40 cold boots run on 2026-11-09, 31 got at least one 503. With the fix, all 40 boots completed.",
+   "why": "It is unclear whether the 40 boots with the fix are the same 40 boots or a separate run. It is also unclear what the baseline outcome was for the 31 that hit a 503, since the 'before' completion rate isn't given."
+  },
+  {
+   "quote": "at most 4 times",
+   "why": "This is ambiguous between 4 retries (5 attempts) and 4 attempts in total. The test \"four 503s in a row end in failure\" fits 4 total attempts and contradicts 4 retries, which would let a fifth attempt succeed."
+  }
+ ],
+ "point": "The PR makes the Turso client's execute() retry HTTP 503 and 429 with jittered exponential backoff, up to 4 times, so cold-start 503s no longer break boot. Other statuses still fail immediately."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "Never explained: a model name, presumably a small language model, and 321M is presumably parameters, but this is not stated."
+  },
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what was tested. Does 42/43 mean 42 of 43 trials violated the rule? What are the 'forms' (caps, lowercase, etc.)? What is the 'directive'? 'No directive' is confusing next to 'compliance'."
+  },
+  {
+   "quote": "Naming a forbidden word raised its probability ~2.5 log-odds.",
+   "why": "It is unclear where the word was named (in the prompt?) or what the baseline was. It also seems to conflict with or complicate the compliance claim, since mentioning a word backfires."
+  },
+  {
+   "quote": "Its 22,100 docs held one caps instruction",
+   "why": "'Its' is ambiguous (the model's training corpus?). Never says these docs are the training data. Also unclear why this one-instruction fact matters to the result."
+  },
+  {
+   "quote": "'NEVER give a baby honey'",
+   "why": "The quote is offered without context. The reader has to infer that it is the only all-caps instruction in the corpus and that it explains why caps had no effect."
+  }
+ ],
+ "point": "A tiny model, Baguettotron, ignored forbidden-word instructions whether or not they were in caps, and naming the word made it likelier to appear. The likely reason is that its training corpus held almost no caps instructions."
+}

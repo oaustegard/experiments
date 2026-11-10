@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review the lint's hits.",
+   "why": "\"Jev\" is used before it is explained, and \"the lint\" is never defined. The text only says later that Jev is a decision model and that the lint is declaude_lint."
+  },
+  {
+   "quote": "declaude_lint",
+   "why": "This tool name is never explained. We can't tell what it checks for or what a \"hit\" is."
+  },
+  {
+   "quote": "real tics",
+   "why": "\"Tic\" is never defined. We can only infer that it means a true positive for some writing pattern."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "register.md is an unexplained file. It isn't clear which tic or which definition is meant, or why the definition goes in the prompt."
+  },
+  {
+   "quote": "It ranks them only a little better than the lint category does on its own",
+   "why": "This is the opening claim, and it conflicts with the numbers. Jev with the definition scores 0.808 against 0.769 for the baseline, but without it scores 0.697, which is worse than the baseline. The text doesn't say which Jev setup it means."
+  },
+  {
+   "quote": "At a 5% error budget, that let it settle only 24.5% of hits on its own.",
+   "why": "\"Settle\" is never defined. It isn't clear how a 5% error budget turns probabilities into settled hits, or which Jev setup the 24.5% comes from."
+  },
+  {
+   "quote": "The bar I set in advance was 50%.",
+   "why": "We aren't told what the bar measures. It presumably is the share of hits settled, but that is never said."
+  },
+  {
+   "quote": "Five of 44 triad hits were real tics, as were 5 of 43 participle hits and 16 of 18 negation-first hits.",
+   "why": "The terms triad, participle and negation-first are unexplained lint rules. The counts also appear to be drawn from the 261 agreed hits, which the text doesn't say."
+  },
+  {
+   "quote": "It had done well on routing questions, so I was hopeful.",
+   "why": "This refers to earlier Jev work that the text never describes."
+  },
+  {
+   "quote": "An Opus judge and a Sonnet judge agreed on 261 of them (87%), and 35.2% of those 261 were real tics.",
+   "why": "It isn't clear how \"real tic\" was decided. It might be the judges' shared label, but that is not stated. Also, 5+5+16 is 26 out of 105 hits, which doesn't obviously connect to the 35.2%."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested as a reviewer of lint hits for tic patterns. It did not beat a simple per-category baseline by much and settled only 24.5% of hits against a 50% bar, so it was not added to the review process."
+}

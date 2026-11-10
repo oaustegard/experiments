@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review declaude_lint's hits on public posts.",
+   "why": "declaude_lint is never explained (what it is, what a 'hit' or 'tic' means). Jev's role is also unclear until later."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07, \"Should we implement Jev in our public posting review process?\"",
+   "why": "Oskar is not introduced. The question refers to a review process that the text doesn't describe."
+  },
+  {
+   "quote": "With the tic's definition from register.md in its prompt",
+   "why": "register.md is never explained, and neither is the definition of 'tic' it holds. 'The tic' reads as if a particular tic had already been named."
+  },
+  {
+   "quote": "Jev ranked the hits at AUROC 0.808.",
+   "why": "The text doesn't say what the ranking is for. It also doesn't say whether the 0.808 figure is above or below any benchmark until the baseline follows."
+  },
+  {
+   "quote": "so at a 5% error budget it could settle only 24.5% of hits",
+   "why": "'Settle' and 'error budget' are not defined. The reader can't tell how a probability becomes a settled hit, or what the 5% applies to."
+  },
+  {
+   "quote": "The bar set in advance was 50%.",
+   "why": "The text never says who set the bar or why it was 50%. It also doesn't say whether the bar refers to the share of hits settled."
+  },
+  {
+   "quote": "The lint's own precision varies by rule: 5 of 44 triad hits were real tics, 5 of 43 participle hits, and 16 of 18 negation-first hits.",
+   "why": "The rules are not defined (triad, participle, negation-first). The counts total 105 hits, so it's unclear how they relate to the 261 agreed hits or the 35.2% rate. It's also unclear whether they are the baseline's categories."
+  },
+  {
+   "quote": "Jev is not added to the review.",
+   "why": "This contradicts the opening, 'Jev will not review', only in tense and framing. The reader can't tell whether Jev was ever part of the review or was only proposed."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested as a reviewer of lint hits on public posts. It settled only 24.5% of hits at a 5% error budget, well short of the 50% bar, and barely beat a category-only baseline, so it was not adopted."
+}

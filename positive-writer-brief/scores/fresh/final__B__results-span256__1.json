@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "Yes. Ettin-17m embeddings can be stored at 256 dimensions without any loss in float search.",
+   "why": "The opening 'Yes' is then qualified: quantized, the 256-dim codes need more bits and at 2 bits do worse than the live index. The headline reads as unconditional but is only true for float."
+  },
+  {
+   "quote": "The model's last layer is a 256-to-768 output matrix, and it folds into a 256-to-256 matrix.",
+   "why": "It never says what 'folds' means or why a 256-to-768 projection can collapse into 256-to-256 (presumably a following linear step or a 768-dim query side). The mechanism is unexplained."
+  },
+  {
+   "quote": "The live index stores 2-bit remex codes on 768 dimensions: 200 bytes per vector",
+   "why": "'remex' and 'the live index' are never explained. 2 bits × 768 is 192 bytes, so the 200 is unexplained (overhead?). Compare 256 dims at 3 bits = 96 bytes but listed as 104, and the table's 2-bit row has '—' for bytes."
+  },
+  {
+   "quote": "| 2 bits × 256 | — | 0.763 |",
+   "why": "The bytes cell is blank, so the 2-bit comparison on size is missing."
+  },
+  {
+   "quote": "with recall@10 of 0.857 against float search",
+   "why": "Recall here is measured against float search, whereas hit@10 earlier is a different metric (against what labels?). Neither metric is defined, and the baseline for the table's recall is unclear."
+  },
+  {
+   "quote": "At 8 bits they beat it too, but they take 264 bytes against its 200.",
+   "why": "The preceding sentence says 'in fewer bytes', and this one breaks that. Also 'beat it' for 2-bit is false (0.763 < 0.857), so the claim is only for 3 bits and above."
+  },
+  {
+   "quote": "remex's rotation folds into the same matrix, so the model can output rotated coordinates directly. With an int8 head, 4-bit codes on those coordinates reach 0.931.",
+   "why": "The rotation, 'int8 head', and 'those coordinates' are not explained. It is unclear whether 0.931 is comparable to the 0.927 in the table or is a separate setup."
+  },
+  {
+   "quote": "The List Scout page runs the folded model.",
+   "why": "'List Scout page' is an unexplained name, and the reader does not know what the classifier is or what 'fitting' means."
+  },
+  {
+   "quote": "Its classifier answers are identical, and fitting takes 1.2 s where it used to take 3.6 s.",
+   "why": "'Classifier' and 'fitting' are undefined, and the earlier timing is not tied to any stated setup."
+  },
+  {
+   "quote": "The search indexes on the site are still 768-dimensional.",
+   "why": "'The site' is unexplained. It is unclear whether this means the recommendation was not applied, or how it relates to 'live index'."
+  }
+ ],
+ "point": "Folding the output matrix lets Ettin-17m store 256 dimensions with no float-search loss, but quantized 256-dim codes need 3 or more bits to beat the current 2-bit 768-dim index on recall."
+}

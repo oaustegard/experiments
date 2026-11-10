@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "The judges are never introduced (humans? models?), and the label is confusing. Cells that hold numbers and labels are called 'legitimate prose' even though the next clause says they aren't sentences. It's also unclear whether 'legitimate' means the hits were false positives."
+  },
+  {
+   "quote": "`--skip-quoted` already blanked table cells, along with blockquotes and italics.",
+   "why": "The past tense 'already blanked' implies existing behaviour, but it is not clear whether this still holds. It also overlaps with the new flag without saying why the new flag is needed beyond the italics case."
+  },
+  {
+   "quote": "blanks every line that starts with `|` before the scan runs, so it reports no hits from Markdown table cells.",
+   "why": "This is not strictly true. Table lines that are indented or don't start with `|` are not blanked. The summary also says 'blanks' while the Behaviour section says lines are replaced with empty lines, which is consistent but never says what a 'hit' is."
+  },
+  {
+   "quote": "`declaude_lint.py`",
+   "why": "The tool's purpose is never explained: what 'declaude' means, what counts as a lint hit, and what a 'bad prose' pattern is."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the linter so it ignores Markdown table lines, which produced many hits that the judges mostly labelled as legitimate. The flag keeps line numbers intact and, unlike `--skip-quoted`, leaves italics and quotes scanned."
+}

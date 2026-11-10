@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "That figure only holds when the pre-tokenizer splits on whitespace alone.",
+   "why": "\"That figure\" is ambiguous and the 21% setup is only implied; it also appears before the pre-tokenizer is introduced. The next sentence, \"Ettin's tokenizer spends 376 tokens per abstract on the same set,\" gives no retrained-table count to compare against."
+  },
+  {
+   "quote": "Ettin's tokenizer spends 376 tokens per abstract on the same set.",
+   "why": "It comes right after the whitespace-only caveat, so it reads as if it applies only to that condition. The baseline is never tied to the 21% or the 8%, and the retrained table's per-abstract count is missing."
+  },
+  {
+   "quote": "The pre-tokenizer accounts for most of the difference.",
+   "why": "The 'difference' is unclear, and the text never says what pre-tokenizer the 21% setup uses beyond 'whitespace alone'. 21% vs 8% is implied but not stated."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06 whether \"we [could] create an entirely custom domain Ettin model with custom token table ... for life sciences\".",
+   "why": "Oskar is never introduced, and the quote is elided and edited."
+  },
+  {
+   "quote": "Training models on the new table is the subject of a separate experiment, lifesci-ettin",
+   "why": "It refers to an experiment I can't see, with no explanation of its status."
+  },
+  {
+   "quote": "Retraining the vocabulary helps only if the pre-tokenization changes with it.",
+   "why": "This overstates the result, because the text itself says the retrained table still saves 8% with the GPT-2 pre-tokenizer."
+  }
+ ],
+ "point": "A PubMed-retrained 50K BPE vocabulary cuts token counts by about 21% against Ettin's tokenizer, but only if the pre-tokenizer is also changed to whitespace-only. With Ettin's GPT-2 pre-tokenizer the saving is only 8%."
+}

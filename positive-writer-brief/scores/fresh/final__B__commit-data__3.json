@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev and register.md are never explained; the reader can't tell what Jev is (a model? a linter?) or what the entry is."
+  },
+  {
+   "quote": "Settled fraction at 5% error",
+   "why": "'Settled' is undefined: it isn't clear what is settled, or how it relates to a 5% error rate."
+  },
+  {
+   "quote": "category prior",
+   "why": "The baseline isn't described, so the reader can't tell what 'category' refers to or how the prior is built."
+  },
+  {
+   "quote": "@evidence marker",
+   "why": "The marker syntax and its meaning aren't explained. The reader also can't tell what `_lib/evidence.py` checks beyond 'passes'."
+  },
+  {
+   "quote": "AUROC, Jev with the register.md entry: 0.808",
+   "why": "The task or labels being scored aren't stated. The text also doesn't say whether the 0.808 vs 0.769 gap is the quantity in the CI, so the reader has to work that out."
+  }
+ ],
+ "point": "The commit adds metrics.json and analyze.py so each RESULTS.md number is traceable, and the headline result is that Jev with the entry (AUROC 0.808) is not distinguishable from the category prior (0.769) because the bootstrap CI includes zero."
+}

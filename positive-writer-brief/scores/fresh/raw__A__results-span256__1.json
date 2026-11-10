@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "by reversing the widening",
+   "why": "The text never explains what 'the widening' is. It only implies later that the output matrix expands 256 to 768."
+  },
+  {
+   "quote": "the live index",
+   "why": "It isn't clear which index this is, or where it is live. Only the last line hints that it's a site index."
+  },
+  {
+   "quote": "Remex's rotation also folds into the same matrix",
+   "why": "Remex is never explained (a quantizer?), and neither is its rotation. It also isn't clear why the rotation can be folded in."
+  },
+  {
+   "quote": "With an int8 head, this reaches 0.931 at 4 bits.",
+   "why": "'int8 head' is undefined. It's unclear whether it means the output layer is stored in int8, and what it is compared against."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model.",
+   "why": "List Scout is an unexplained name. The classifier and what it is fitted on are never introduced."
+  },
+  {
+   "quote": "Oskar asked",
+   "why": "Oskar is an unexplained name. It's unclear who he is, and the date adds nothing to the answer."
+  },
+  {
+   "quote": "With quantized codes, the 256 folded dimensions beat the live index while using fewer bytes.",
+   "why": "This seems to contradict the later claim that 256-dimensional codes lose. The comparison only holds at 3 bits or more, not at the same bit width, and 8 bits uses more bytes (264 vs 200)."
+  },
+  {
+   "quote": "recall@10 0.857 against float search",
+   "why": "The text doesn't say whether this is measured against the float search of the same model. It also doesn't define the difference from hit@10 earlier."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix lets you store 256-dimensional vectors with identical float search results, and with quantization they beat the current 768-dimensional index at 3 or more bits."
+}

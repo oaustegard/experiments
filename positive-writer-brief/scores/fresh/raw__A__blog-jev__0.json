@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review declaude_lint's hits on public posts.",
+   "why": "declaude_lint is never explained (what it checks, what a 'hit' is). Jev is also named before it is defined, and 'will not review' is stated before the reasoning."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "'tic' is never defined, and register.md is an unexplained file. The reader can't tell what is being classified."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is unexplained. The question is also about 'implementing Jev' in a process, which the text never describes."
+  },
+  {
+   "quote": "It had done well on routing questions",
+   "why": "This refers to earlier work that the text doesn't describe. 'Routing questions' has no context."
+  },
+  {
+   "quote": "so at a 5% error budget it could settle only 24.5% of hits",
+   "why": "'Settle' and 'error budget' are not defined. The reader can't tell how coverage is computed from the probabilities or what is being settled."
+  },
+  {
+   "quote": "The bar we set in advance was 50%.",
+   "why": "The 50% bar refers to coverage, but the text doesn't say this clearly, and it is easily confused with the 0.5 threshold."
+  },
+  {
+   "quote": "35.2% of those 261 were real tics",
+   "why": "This base rate is in tension with the per-rule counts that follow (5/44, 5/43, 16/18). Those cover only part of the 261 hits, and the other rules are not shown. It also isn't clear that 'precision' means the share of hits that are tics."
+  },
+  {
+   "quote": "At a 0.5 threshold the baseline also beat Jev on accuracy, 0.751 to 0.732.",
+   "why": "The 'also' implies the baseline beat Jev on AUROC, but 0.769 is below Jev's 0.808 with the definition. It only beats the no-definition run (0.697). Which Jev configuration is meant is unclear."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, ranked lint hits only modestly better than a per-category base rate and could settle just 24.5% of hits at a 5% error budget against a 50% bar, so it was not added to the public-post review."
+}

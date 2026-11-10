@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The first round of this experiment kept that pre-tokenizer and concluded that domain vocabulary does not help much.",
+   "why": "Refers to an earlier round never described; the reader doesn't know what it measured or how it relates to the current numbers."
+  },
+  {
+   "quote": "Retraining the table alone saves 8%.",
+   "why": "Unclear baseline and setup (same 50K size, same data?). It's also not stated that this is the first-round result, so the link to the 'small saving' below is implicit."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06",
+   "why": "Oskar is not introduced. The reader can't tell who he is or why his question matters."
+  },
+  {
+   "quote": "The pre-tokenizer caused that small saving, and the vocabulary did not.",
+   "why": "Ambiguous causal wording. It means the pre-tokenizer limited the saving, but it reads as if the pre-tokenizer caused a saving."
+  },
+  {
+   "quote": "The follow-up experiment, lifesci-ettin, trains models on the new table to find out.",
+   "why": "Unexplained name and location. It is unclear whether this experiment exists yet or has results."
+  }
+ ],
+ "point": "A custom 50K BPE vocabulary trained on PubMed with whitespace-only pre-tokenization cuts Ettin's token count on PubMed abstracts by 21%, versus 8% from retraining the vocabulary alone, though whether model accuracy holds up is untested."
+}

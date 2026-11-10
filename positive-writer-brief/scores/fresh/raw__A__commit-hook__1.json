@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear whether `github` is a tool in this repo or in an external system."
+  },
+  {
+   "quote": "since\nthose calls return 403",
+   "why": "The text doesn't say why they return 403, for example a missing permission or credential in sessions. It also doesn't say which sessions are affected."
+  }
+ ],
+ "point": "The guard that blocks GitHub release and tag creation via `gh release create` now also blocks `gh api` POST calls to paths ending in `/releases` or `/git/refs`, which previously slipped through and failed with a 403."
+}

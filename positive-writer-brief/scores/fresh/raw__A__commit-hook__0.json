@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names\nthe Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or how it differs from `gh`. A reader who doesn't know the project can't tell what the guard recommends."
+  },
+  {
+   "quote": "GitHub returns 403 when a session tries to create a release or a tag.",
+   "why": "It doesn't say what \"session\" means (an agent session?) or why GitHub refuses. A reader can't tell whether the 403 comes from a permission or token limit, or whether it is expected."
+  }
+ ],
+ "point": "The commit extends the guard script so that it also blocks `gh api` POST calls to `/releases` and `/git/refs`, not only `gh release create`. It does this to catch calls that would hit a 403, and it adds 4 tests."
+}

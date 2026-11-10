@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose: the cells held numbers and labels, not sentences.",
+   "why": "\"The two judges\" are never introduced. The sentence also contradicts itself: cells holding numbers and labels, not sentences, are not \"legitimate prose\". The intended label is probably \"false positives\" or \"not prose\"."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "The flag is never defined, so I can't tell whether it is an existing flag or what it does. If it already blanks tables, the need for the new flag is unclear until the last sentence."
+  },
+  {
+   "quote": "It is meant for drafts that quote bad prose in italics on purpose and still need their tables skipped.",
+   "why": "This is the only reason given for the flag. It doesn't connect to the 63-hit table-cell evidence, which has nothing to do with italics."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The text doesn't say what the linter looks for or what a \"hit\" is. It also doesn't say how 58 of 63 false hits supports the flag."
+  },
+  {
+   "quote": "With the flag set, the linter skips Markdown table rows and still scans the rest of the draft.",
+   "why": "\"Draft\" and \"the declauding skill\" are used without explanation. It's unclear what the linter is checking for."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag that blanks Markdown table lines before linting, so line numbers stay correct, because most table-cell lint hits were false positives. The rationale is muddled by undefined judges and an unexplained `--skip-quoted`."
+}

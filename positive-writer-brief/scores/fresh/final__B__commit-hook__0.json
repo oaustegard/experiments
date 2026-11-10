@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "the Muninn `github` tool call",
+   "why": "Muninn is never explained; the reader can't tell what it is or how its github tool differs from gh."
+  },
+  {
+   "quote": "because those calls return 403 there",
+   "why": "\"there\" and \"a session\" are undefined. The text doesn't say what kind of session this is or why it returns 403 for these calls."
+  }
+ ],
+ "point": "The commit extends the gh-route guard so it also blocks `gh api` POSTs to /releases and /git/refs, not only `gh release create`, because those calls fail with 403 in sessions, and it adds tests for this."
+}

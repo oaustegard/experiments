@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "That was the round 1 result, and the reading at the time was that domain vocabulary does not help much.",
+   "why": "Refers to an earlier round/experiment never described; the reader doesn't know what round 1 was or its setup."
+  },
+  {
+   "quote": "In round 2 I traced the gap to the GPT-2 pre-tokenizer",
+   "why": "Unclear whether round 2 is this experiment or another; 'the gap' (8% vs 21%) is only implied. Also doesn't say Ettin's tokenizer uses the GPT-2 pre-tokenizer."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06:",
+   "why": "Oskar is an unexplained name, and the quote is elided, so it's unclear why it matters to the answer."
+  },
+  {
+   "quote": "provided the pre-tokenizer changes along with the token table",
+   "why": "Slightly unclear what the 21% comparison baseline is versus 8%; it's not stated that the 21% setup differs only in pre-tokenizer (whitespace-only), and whitespace-only is not explained as a change from GPT-2."
+  },
+  {
+   "quote": "`lifesci-ettin`",
+   "why": "Follow-up experiment named without explanation or location; unclear whether it exists yet."
+  },
+  {
+   "quote": "As far as the published models show, nobody has tried it.",
+   "why": "Seems to conflict mildly with the BioClinical ModernBERT mention, and it's unclear how that relates to 'cheaper'. Also 'it' is ambiguous."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed with whitespace-only pre-tokenization cuts Ettin's tokens per abstract by about 21% (versus 8% from retraining the table alone), though this measures only token count, not model quality."
+}

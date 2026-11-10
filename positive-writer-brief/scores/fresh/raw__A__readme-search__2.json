@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "`--bits` sets the quantization width used for the search.",
+   "why": "The text never says how this relates to the index. It doesn't say whether the index must have been built with a matching bit width, or what quantization the index uses. Nothing here explains how to build an index."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "`--keep-float` is a build option that this section never introduces, and the build command is not shown. A reader can't tell how to check or set it."
+  },
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "It doesn't say whether numbering starts at 0 or 1. The example shows `\"query\": 1`, which doesn't settle it."
+  },
+  {
+   "quote": "`ids` and `scores` hold the matched vectors and their scores.",
+   "why": "It doesn't say what the ids refer to (the position in the build input or something else). It also doesn't say whether a higher score is better, or whether scores are similarity or distance."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates",
+   "why": "It's unclear whether 100 is fixed or configurable. It's also unclear what happens when `-k` is greater than 100. The text doesn't say whether `--bits` affects the candidate stage only."
+  },
+  {
+   "quote": "the 100,000-vector EmbeddingGemma test set",
+   "why": "The test set is not explained or linked. The recall figures also don't say whether they were measured with or without rescoring, so they are hard to interpret."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` reads comma-separated query vectors and writes JSON Lines of top-k ids and scores. `--bits` trades recall for speed, and rescoring happens only if the index was built with `--keep-float`."
+}

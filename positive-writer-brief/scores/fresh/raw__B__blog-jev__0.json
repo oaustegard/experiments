@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev had done well on routing questions, so I expected it to do well here.",
+   "why": "Refers to prior Jev work on routing questions that the text never describes."
+  },
+  {
+   "quote": "With the tic's definition from register.md in its prompt",
+   "why": "'The tic' and register.md are never explained; it is unclear what a tic is or what the definition says."
+  },
+  {
+   "quote": "declaude_lint's hits",
+   "why": "declaude_lint is never explained; the reader cannot tell what the lint does or what a 'hit' is."
+  },
+  {
+   "quote": "at a 5% error budget it could settle only 24.5% of hits",
+   "why": "'Settle' and 'error budget' are not defined; it is unclear what counts as settling a hit or what the 5% applies to."
+  },
+  {
+   "quote": "The bar we set in advance was 50%.",
+   "why": "The text never says what the 50% measures. It is implied to be the share of hits settled, but that is not stated."
+  },
+  {
+   "quote": "Of those 261, 35.2% were real tics.",
+   "why": "The text does not say whether the 261 agreed labels are the ground truth for scoring. It also does not say how the other 39 hits were handled."
+  },
+  {
+   "quote": "| triad | 5 / 44 |\n| participle | 5 / 43 |\n| negation-first | 16 / 18 |",
+   "why": "The counts total 105 hits, not 261 or 300. The text does not say which subset these come from, and the rule names are not explained."
+  },
+  {
+   "quote": "It ranks the hits better than chance, but it can confidently decide too few of them to save a human any work.",
+   "why": "This conflicts with the section's later 24.5% result, since settling 24.5% of hits would save some work. 'Any work' overstates it."
+  },
+  {
+   "quote": "Jev is a small decision model.",
+   "why": "Jev's origin and what it is are never explained. 'Oskar' also appears with no introduction."
+  }
+ ],
+ "point": "Jev ranks lint hits better than chance, but it is poorly calibrated and settles only 24.5% of hits against a 50% bar, so it is not being added to public post review."
+}

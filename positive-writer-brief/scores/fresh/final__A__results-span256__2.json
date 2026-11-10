@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "by reversing the widening?\"",
+   "why": "\"The widening\" is never introduced before this; it's only later implied to be the 256-to-768 projection."
+  },
+  {
+   "quote": "The live index stores remex codes",
+   "why": "\"Remex\" is never explained (a quantizer? a library?), and \"live index\" is not defined."
+  },
+  {
+   "quote": "Remex's rotation folds into the same matrix",
+   "why": "The text never says what rotation Remex applies or why it can be folded in. It also doesn't say what \"emit rotated coordinates directly\" means."
+  },
+  {
+   "quote": "With an int8 head, 4-bit codes reach 0.931.",
+   "why": "\"int8 head\" is unexplained. It's unclear whether the recall is measured against float search, and no table row or baseline is given for it."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model.",
+   "why": "\"List Scout\" is an unexplained name, and so is its classifier. It's unclear what is being fit, or why this matters for the embedding storage question."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is not introduced. This is a minor point, because the question is quoted."
+  },
+  {
+   "quote": "Hit@10 is 0.918 both ways on all 9,500 queries",
+   "why": "The text never says what the queries or the corpus are. Hit@10 is also a different metric from recall@10 (used later), and the text doesn't explain the difference."
+  },
+  {
+   "quote": "200 bytes per vector",
+   "why": "The arithmetic doesn't obviously work. 2 bits × 768 is 192 bytes, so the extra 8 bytes (likely a norm or scale) is never explained. The same gap applies to the other rows: 3×256 is 96 bytes but is listed as 104."
+  }
+ ],
+ "point": "You can store Ettin-17m embeddings at 256 dimensions with no loss in float search, but quantized storage only improves if you spend 3 or more bits per dimension on the 256-dimensional vectors."
+}

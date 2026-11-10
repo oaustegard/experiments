@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "The live index uses 2-bit remex codes on 768 dimensions: 200 bytes per vector and recall@10 of 0.857 against float search.",
+   "why": "\"remex\" and \"the live index\" are never explained. The byte count is also unclear. 2 bits × 768 would be 192 bytes, so I can't tell what the other 8 bytes are."
+  },
+  {
+   "quote": "| 2 bits × 256 | — | 0.763 |",
+   "why": "The bytes cell is blank, so I can't compare it with the live index's 200 bytes. A reader could work out 64 bytes, but the table doesn't say so."
+  },
+  {
+   "quote": "At 3 bits and above they do better than the live index and take fewer bytes, with the exception of 8 bits, which takes more.",
+   "why": "The sentence says 3 bits and above take fewer bytes, then makes an exception for 8 bits. That is a contradiction in the claim. The 4-bit row (136) is also not clearly better than the 3-bit row for the same reason. The 8-bit row also has better recall, so the 'exception' only applies to bytes."
+  },
+  {
+   "quote": "remex's rotation folds into the same matrix, so the model can output rotated coordinates directly. With an int8 head, this gives 0.931 at 4 bits.",
+   "why": "The text never explains what the rotation is, or what the \"int8 head\" is. It also doesn't say what 0.931 measures (recall@10 or hit@10?). It isn't clear whether this is better than the 0.927 above, or in what way."
+  },
+  {
+   "quote": "Yes. Ettin-17m embeddings can be stored at 256 dimensions without any loss in float search.",
+   "why": "The opening answer is 'without any loss', but the text then says 2-bit 256-dim codes do worse (0.763 vs 0.857). The claim holds for float search only, and the reader has to work out that the quantized results are a separate question."
+  },
+  {
+   "quote": "The List Scout page runs the folded model now. Its classifier answers are identical, and fitting takes 1.2 s where it used to take 3.6 s.",
+   "why": "\"List Scout\" is never introduced, and the text doesn't say what classifier is being fitted or what it has to do with the embeddings."
+  },
+  {
+   "quote": "On all 9,500 queries, hit@10 is 0.918",
+   "why": "\"hit@10\" is not defined and the query set is not described. The reader also can't tell how it relates to recall@10 against float search."
+  }
+ ],
+ "point": "Folding the 256-to-768 output matrix into a 256-to-256 one loses nothing in float search (hit@10 0.918 both ways), and at 3–4 bits per dimension the 256-dimension codes beat the current 2-bit 768-dimension index on recall, though several terms and numbers in the text are left unexplained."
+}

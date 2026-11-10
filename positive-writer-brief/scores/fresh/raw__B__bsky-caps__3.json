@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what was tested: violations of what rule, what 'forms' (caps, lowercase, etc.), and whether 42/43 is a rate across trials or prompts. 'No directive' is also unexplained."
+  },
+  {
+   "quote": "Naming a forbidden word raised its odds ~2.5 log-odds.",
+   "why": "The 'forbidden word' and the setup aren't defined. It's also unclear whether this means the model became more likely to say the word. 'Raised its odds ~2.5 log-odds' is awkward as well."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "The model name is not explained. A reader doesn't know it's a small language model, and 321M is presumably the parameter count."
+  },
+  {
+   "quote": "Its corpus (22,100 docs) had one caps instruction: 'NEVER give a baby honey'.",
+   "why": "'Its corpus' presumably means the training corpus, but that isn't stated. The link to the findings is also left implicit, as is whether the 22,100 docs were all of the training data."
+  }
+ ],
+ "point": "On a tiny model called Baguettotron, ALL-CAPS emphasis didn't reduce rule violations, and mentioning a forbidden word made it more likely to appear. This may be because its training data had almost no capitalized instructions."
+}

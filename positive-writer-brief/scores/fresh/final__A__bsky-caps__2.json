@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Caps made no difference",
+   "why": "Unclear what 'caps' means at first (capitalized emphasis like NEVER in instructions); only inferred later from the baby honey example."
+  },
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what is being counted: 42 of 43 what? Trials? 'Every form' of what (phrasing variants)? 'Violations' of what rule is never stated."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "Unclear whose log-odds (the model's probability of producing the word) and relative to what baseline; seems to conflict with 'no difference' unless naming differs from caps."
+  },
+  {
+   "quote": "even with no directive",
+   "why": "Not explained what the directive is or what task the model was given; it is unclear how a violation can occur with no rule."
+  },
+  {
+   "quote": "Its 22,100-doc corpus had one caps instruction",
+   "why": "Unclear what 'its' refers to (the model's training corpus) and how this relates to the finding; the implied explanation (model never learned caps emphasis) is left unstated."
+  }
+ ],
+ "point": "A tiny model (Baguettotron, 321M) ignored all-caps emphasis in instructions, likely because its training data had almost none, and merely naming a forbidden word made it more likely to produce it."
+}

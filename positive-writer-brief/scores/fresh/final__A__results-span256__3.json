@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "by reversing the widening?\"",
+   "why": "\"The widening\" is never explained. The reader doesn't know what was widened (the output matrix going from 256 to 768?) or that it was a known design feature."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is never introduced, and the quoted question depends on an earlier conversation. \"These\" in \"trim these\" has no stated referent."
+  },
+  {
+   "quote": "the live index",
+   "why": "The text never says what the live index is, where it runs, or how it relates to the site's search indexes. It is used as the baseline without a definition."
+  },
+  {
+   "quote": "Quantized vectors need more bits per dimension at 256 dimensions. At 3 and 4 bits they still take fewer bytes than the live index and score higher.",
+   "why": "The 3-bit row scores 0.868 and the live index scores 0.857, so \"score higher\" holds. The 4-bit row's 136 bytes is fine too. But the claim is vague about which baseline the \"higher\" refers to, and the sentence is confusing next to the later line that 256-dimensional codes lose at equal bit width."
+  },
+  {
+   "quote": "These are the remex codes on the 256 folded dimensions:",
+   "why": "\"remex\" is never explained. It could be a library, a quantizer, or a codec."
+  },
+  {
+   "quote": "remex's rotation folds into the same matrix too, so the model can emit rotated coordinates directly. With an int8 head, the rotated codes reach 0.931 at 4 bits.",
+   "why": "The rotation is never described. \"Int8 head\" is undefined, and it is unclear whether it is a new setup or how it differs from the table above. The 0.931 has no baseline to compare it to."
+  },
+  {
+   "quote": "The List Scout page runs the folded model.",
+   "why": "\"List Scout page\" is an unexplained name. The reader doesn't know what site it is on or what classifier it runs, and \"fitting\" is never defined."
+  },
+  {
+   "quote": "hit@10 is 0.918",
+   "why": "The hit@10 metric and the set of 9,500 queries are not defined. The text also switches to \"recall@10 against float search\" without saying how the two metrics differ."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions costs nothing for float search (hit@10 0.918 both ways), and 3–4-bit quantized codes at 256 dimensions are smaller and score higher than the current 2-bit 768-dimensional index, though the text leaves several terms undefined."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Ettin",
+   "why": "Never explained; a first-time reader doesn't know it's a ModernBERT-style encoder model family or what its tokenizer is."
+  },
+  {
+   "quote": "Oskar asked the question on 2026-11-06",
+   "why": "Oskar is an unexplained name, and the quoted question has an elided middle (\"...\"), so the original context is missing."
+  },
+  {
+   "quote": "`lifesci-ettin`",
+   "why": "Refers to a separate experiment not described or linked, so it's unclear where it lives or what it covers."
+  },
+  {
+   "quote": "Yes. A life-sciences vocabulary makes Ettin cheaper on PubMed text, but only when the pre-tokenizer stops splitting biomedical terms.",
+   "why": "The answer is stated as a general yes, but the evidence is one 50K retrained BPE on 39,000 abstracts. \"Cheaper\" is only defined as token count, not compute or cost, until the last paragraph."
+  },
+  {
+   "quote": "Retraining the vocabulary on its own is therefore not enough to get the saving.",
+   "why": "It sits awkwardly with the 8% saving from retraining alone, since the text doesn't say whether 8% counts as a worthwhile saving."
+  }
+ ],
+ "point": "On PubMed abstracts, a 50K BPE vocabulary retrained with whitespace-only pre-tokenization needs about 21% fewer tokens than Ettin's tokenizer, and most of that gain comes from changing the pre-tokenizer rather than from retraining the vocabulary (8%)."
+}

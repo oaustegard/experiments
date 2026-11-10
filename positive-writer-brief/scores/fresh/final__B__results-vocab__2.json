@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Ettin's tokenizer spends 376 tokens per abstract",
+   "why": "Ettin is never explained (a model family?), and the baseline tokenizer is not described. The reader can't tell if it's a general-domain tokenizer."
+  },
+  {
+   "quote": "Yes, a life-sciences vocabulary makes Ettin cheaper on PubMed text, provided the pre-tokenizer changes with it.",
+   "why": "The headline 'Yes' is conditional. The 8% saving with the GPT-2 pre-tokenizer that Ettin actually uses sits uneasily with it. It is also unclear whether 'cheaper' means fewer tokens or compute cost."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06 whether \"we [could] create an entirely custom domain Ettin model with custom token table ... for life sciences\".",
+   "why": "Oskar is an unexplained name. The quote is elided and bracketed, and it appears with no context."
+  },
+  {
+   "quote": "This experiment answers the token-table half of that question.",
+   "why": "The two halves of the question are never laid out, so the reader must infer what the other half is."
+  },
+  {
+   "quote": "lifesci-ettin",
+   "why": "It names a separate experiment with no location or explanation. It is unclear whether it exists yet."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried a retrained table",
+   "why": "This is a broad claim about all published models. It rests only on two models that were named, and it doesn't follow from them. BioClinical ModernBERT and Clinical ModernBERT are not explained."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed cuts token counts by 21% if the pre-tokenizer splits on whitespace only, but by just 8% with Ettin's GPT-2 pre-tokenizer, because that pre-tokenizer breaks terms like GLP-1 apart."
+}

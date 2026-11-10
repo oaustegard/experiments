@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose: numbers and labels, not sentences.",
+   "why": "The judges are never introduced (humans? LLMs? what criteria?). Also 'legitimate prose' is confusing, since the gloss says they are not sentences. It is unclear whether 'legitimate' means the hits were false positives."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, along with blockquotes and italics.",
+   "why": "The flag is not introduced earlier, so the reader doesn't know it exists or where it lives. It also seems to make `--skip-tables` redundant until the next sentence explains the difference."
+  },
+  {
+   "quote": "any line that starts with `|` is blanked before scanning",
+   "why": "This says lines, while the summary says table rows and the other section says table cells. The reader can't tell whether table lines with leading whitespace, or cells inside rows, are handled."
+  },
+  {
+   "quote": "A scan of 41 published posts on 2026-11-07 produced 300 lint hits",
+   "why": "The text doesn't say what 'lint hits' are, what the linter detects, or what a 'declauding' skill is. Without that, the 58-of-63 figure is hard to interpret."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag that blanks lines starting with `|` before linting, because most table hits in published posts were false positives, and it leaves italics and blockquotes linted, unlike `--skip-quoted`."
+}

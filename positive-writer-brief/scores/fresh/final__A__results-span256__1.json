@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "On 2026-11-09 Oskar asked: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"the widening\" and \"that\" refer to an earlier conversation the text never describes."
+  },
+  {
+   "quote": "Yes.",
+   "why": "The answer says yes, but the quantized results show a penalty at equal bit width (0.763 vs 0.857). \"Without penalty\" holds only for float search, so the opening seems to conflict with later results."
+  },
+  {
+   "quote": "the live index",
+   "why": "Never defined. I can't tell what the live index is or where it runs. It seems to be the 768-dimensional 2-bit index on the site, but the text never says so."
+  },
+  {
+   "quote": "remex codes",
+   "why": "Remex is never explained. I don't know if it is a quantizer, a library or a method, and the \"rotation\" mentioned later is also unexplained."
+  },
+  {
+   "quote": "Remex's rotation also folds into the same matrix, so the model can emit rotated coordinates directly. With an int8 head, this reaches 0.931 at 4 bits.",
+   "why": "Unclear what an \"int8 head\" is or how it differs from the folded matrix. It is also unclear whether 0.931 is recall@10 and whether it is compared against 0.927."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model.",
+   "why": "List Scout is an unexplained name. \"Classifier\" and \"fitting\" suggest a different task from the search experiment, and the text doesn't explain the link."
+  },
+  {
+   "quote": "Float search returns the same results either way: hit@10 is 0.918 for both on all 9,500 queries",
+   "why": "hit@10 is a different metric from recall@10, and neither is defined. It is unclear what the 9,500 queries are or what ground truth hit@10 uses."
+  },
+  {
+   "quote": "The 3-bit and 4-bit codes beat the live index in fewer bytes.",
+   "why": "The 3-bit code takes 104 bytes and the 4-bit code takes 136 bytes. Both are fewer than 200, but the byte sizes don't obviously match the bit math (256×3 bits is 96 bytes). The extra bytes are unexplained."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions leaves float search unchanged, and 3–4 bit quantized codes on those dimensions beat the current 2-bit 768-dimensional index. At the same bit width, though, the 256-dimensional codes do worse."
+}

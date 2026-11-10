@@ -1,0 +1,46 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev is not joining the public posting review.",
+   "why": "Jev is introduced without saying who or what it is beyond a vague description, and the 'public posting review' process is never explained. Oskar is also not introduced."
+  },
+  {
+   "quote": "Jev had done well on routing questions.",
+   "why": "This refers to earlier work that the text doesn't describe. The reader can't tell what routing questions were or how Jev did on them."
+  },
+  {
+   "quote": "declaude_lint",
+   "just": "",
+   "why": "The tool is named but never explained. The reader doesn't know what it flags or what a 'hit' is."
+  },
+  {
+   "quote": "real tics",
+   "why": "'Tic' is never defined in the text. It only points to a definition in register.md, which the reader can't see."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "The file and the definition are not explained or included, so the reader doesn't know what the tic is."
+  },
+  {
+   "quote": "A baseline that knows only the hit's lint category, which gives it the category's historical tic rate",
+   "why": "The source of the 'historical' rate is unclear. If it came from these same 261 labelled hits, the comparison is leaky. The text doesn't say."
+  },
+  {
+   "quote": "At a 5% error budget it could settle only 24.5% of hits on its own",
+   "why": "'Settle' and 'error budget' are not defined. The reader can't tell what settling a hit means or how the 5% is measured. The headline says 'a quarter', which loosely matches 24.5%."
+  },
+  {
+   "quote": "the bar set in advance was 50%",
+   "why": "The reader doesn't know who set the bar or why it was 50%. It is also unclear whether the 50% refers to the share of hits settled."
+  },
+  {
+   "quote": "At a 0.5 threshold that baseline beat Jev on accuracy, 0.751 to 0.732.",
+   "why": "It is unclear which Jev variant this compares against, with or without the definition. The baseline also beats Jev on accuracy but loses on AUROC, and the text doesn't reconcile the two."
+  },
+  {
+   "quote": "5 of 44 triad hits were real tics, as were 5 of 43 participle hits and 16 of 18 negation-first hits.",
+   "why": "'Triad', 'participle' and 'negation-first' are lint rules that are never explained. The counts are also not tied to the 261 agreed hits, and they don't visibly add up to the 35.2% rate."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested on labelled lint hits. It beat a category-only baseline on ranking but not on accuracy, and it settled only about a quarter of hits against a 50% target, so it isn't going into public posting review."
+}

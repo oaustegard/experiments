@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 measured the 8% and read it as evidence that domain vocabulary does not help much. Round 2 traced the shortfall to the pre-tokenizer.",
+   "why": "Refers to Round 1 and Round 2 as if the reader knows them. The text never says what those rounds were or whether this document is Round 2."
+  },
+  {
+   "quote": "The question came from Oskar on 2026-11-06",
+   "why": "Oskar is not introduced, so the reader can't tell who he is or why his question matters."
+  },
+  {
+   "quote": "This experiment answers the tokenizer half of it.",
+   "why": "The text doesn't say what the other half is until the next sentence. 'It' also refers to a quote whose full wording is elided with '...'."
+  },
+  {
+   "quote": "Training models on the new table is the follow-up experiment, lifesci-ettin.",
+   "why": "The text doesn't explain where lifesci-ettin lives or what it covers. It also doesn't say whether it exists yet."
+  },
+  {
+   "quote": "saves 21%",
+   "why": "The text doesn't say what the 21% is measured against. The reader can infer it is the 376-token baseline, but that is not stated. This also sits oddly with 'about a fifth cheaper' and with 'cheaper', which isn't defined as fewer tokens."
+  }
+ ],
+ "point": "A 50K BPE vocabulary retrained on PubMed text cuts tokens per abstract by about 21% versus Ettin's tokenizer, but only if whitespace-only pre-tokenization replaces the GPT-2 pre-tokenizer. With the GPT-2 pre-tokenizer the saving is only 8%."
+}

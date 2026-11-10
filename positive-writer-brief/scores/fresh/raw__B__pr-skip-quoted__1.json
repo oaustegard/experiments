@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of the 63 as legitimate prose: the cells held numbers and labels, not sentences.",
+   "why": "Contradicts itself and the PR's purpose. Cells of numbers and labels are not prose, and the hits were presumably false positives. 'Legitimate prose' reads as if the hits were valid. The two judges are also never introduced."
+  },
+  {
+   "quote": "The two judges",
+   "why": "The text never says who or what the judges are (humans or models) or how they labelled the hits."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, and it also blanks blockquotes and italics.",
+   "why": "Not clear how it relates to the new flag. Also, 'table cells' versus 'every line that starts with `|`' describes different scopes, so the two flags may not blank the same table text."
+  },
+  {
+   "quote": "we scanned 41 published posts and got 300 lint hits",
+   "why": "The text never explains what the linter checks for or what a 'hit' is. 'declauding' and 'declaude_lint.py' are not explained either."
+  },
+  {
+   "quote": "blanks every line that starts with `|`",
+   "why": "It is not stated whether leading whitespace counts. Table rows that are indented, or that don't start with `|`, would be missed, which conflicts with 'does not scan Markdown table rows'."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the linter that blanks Markdown table lines, so tables are not scanned, while italics and blockquotes are still linted. The justification is that most table hits were false positives, but the text states this confusingly."
+}

@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "does that mean we could trim these to 256 length vectors without penalty by reversing the widening?",
+   "why": "\"That\" and \"the widening\" refer to an earlier conversation/finding never explained; the reader doesn't know what was widened."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is an unexplained name, and the quoted question is not tied to the answer."
+  },
+  {
+   "quote": "quantized 256-dim codes beat the live 768-dim index at fewer bytes",
+   "why": "Contradicts the later statement that at the same bit width the 256-dim codes lose, and that 2×256 (0.763) is worse than live 0.857. It only holds at 3+ bits, and 'live' is not defined."
+  },
+  {
+   "quote": "remex codes",
+   "why": "remex is never explained (a quantizer library?), and nor is its rotation."
+  },
+  {
+   "quote": "200 bytes per vector",
+   "why": "2 bits × 768 dims is 192 bytes, so 200 is unexplained (overhead?). Also, the 2×256 row has \"—\" for bytes, though it is derivable, and 3×256=104 and 4×256=136 imply an unstated overhead of 8 bytes."
+  },
+  {
+   "quote": "recall@10 0.857 against float search",
+   "why": "Recall is measured against float search, while hit@10 is a different, unexplained metric; the two aren't comparable, and it's unclear what hit@10 counts as a hit."
+  },
+  {
+   "quote": "With an int8 head this reaches 0.931 at 4 bits.",
+   "why": "\"int8 head\" is unexplained, and it's unclear whether the 0.931 is recall@10 and how it relates to the 0.927 in the table."
+  },
+  {
+   "quote": "The List Scout page runs the folded model now.",
+   "why": "List Scout is an unexplained name; \"its classifier\" and \"fitting\" are also undefined, and the relevance to the search question is unclear."
+  },
+  {
+   "quote": "The site's search indexes are still 768-dimensional.",
+   "why": "Conflicts somewhat with \"the live index\", leaving unclear which index is meant and whether the site has one or several."
+  }
+ ],
+ "point": "Folding the final 256→768 projection lets Ettin-17m emit 256-dim vectors with identical float search, but quantized 256-dim codes only beat the live 2-bit 768-dim index at 3 or more bits per dimension."
+}

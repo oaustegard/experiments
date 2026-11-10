@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, so a first-time reader can't tell what it is or where the `github` tool lives."
+  },
+  {
+   "quote": "because they return 403",
+   "why": "It doesn't say why they return 403, for example a session permission limit. The reader can't judge whether the guard is still needed."
+  }
+ ],
+ "point": "The route guard now also denies `gh api` POST calls to `/releases` and `/git/refs` paths, because these calls return 403 from a session, and the commit adds tests for the new cases."
+}

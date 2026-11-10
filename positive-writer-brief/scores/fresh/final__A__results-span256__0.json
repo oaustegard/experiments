@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Yes for float search. At the same bit width, compressed codes lose recall.",
+   "why": "The opening answer is unclear: the question hasn't been stated yet, and the 'same bit width' claim is not explained. The table later shows fewer dims at higher bits winning, so it's hard to see what is being compared."
+  },
+  {
+   "quote": "does that mean we could trim these to 256 length vectors without penalty by reversing the widening?",
+   "why": "'That' refers to an earlier conversation the reader never saw. 'The widening' is not explained until the next sentence, and Oskar is not introduced."
+  },
+  {
+   "quote": "Float search on the folded 256-dimensional vectors matches the original.",
+   "why": "'Folded' is used before it is defined. It is not clear whether it means an exact linear merge of the output matrix or an approximation."
+  },
+  {
+   "quote": "The live index stores remex codes at 2 bits × 768 dimensions (200 bytes).",
+   "why": "'Remex' and 'live index' are never explained. 2×768 bits is 192 bytes, so the 200 figure is unexplained overhead, and the table gives 104 bytes for 3×256 (96 plus 8). The 8-byte overhead is never stated."
+  },
+  {
+   "quote": "| 2 × 256 | — | 0.763 |",
+   "why": "The bytes cell is blank, so the reader has to guess the size. It is the only row without a byte count."
+  },
+  {
+   "quote": "Yes for float search.",
+   "why": "The 'Yes' is qualified by the table: 2-bit codes at 256 dims lose recall (0.763 vs 0.857). The answer to 'without penalty' is only true for float or for 3 bits and above, and the text never says so plainly."
+  },
+  {
+   "quote": "Remex's rotation also folds into the same matrix, so the model can emit rotated coordinates directly. With an int8 head, this gives 0.931 at 4 bits.",
+   "why": "'Rotation' and 'int8 head' are not explained. It is unclear whether the 0.931 is comparable to the 0.927 in the table, and it is unclear what 'this' refers to."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "'List Scout page' is an unexplained name. It is unclear what classifier is being fitted or how it relates to the embedding question."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions leaves float search unchanged, and 3- or 4-bit remex codes on those dimensions beat the 2×768 live index with fewer bytes, but 2 bits at 256 dimensions is worse."
+}

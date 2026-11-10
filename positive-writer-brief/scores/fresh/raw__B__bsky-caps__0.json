@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what this ratio means: 42 of 43 prompts violated? Also 'every form' (of CAPS? of directive?) and 'violations' of what rule are never defined."
+  },
+  {
+   "quote": "even with no directive",
+   "why": "The directive isn't described. It's unclear what the model was told to do or avoid, and if there was no directive, what counts as a violation."
+  },
+  {
+   "quote": "Naming a forbidden word raised it ~2.5 log-odds.",
+   "why": "'It' is ambiguous (compliance or violation rate?). 'Raised' is also unclear in direction, and the baseline is missing. It seems to conflict with the claim that violations are already near-ceiling at 42/43."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "Unexplained name. A reader can guess it's a 321M-parameter model but not what it is or who made it."
+  },
+  {
+   "quote": "Its 22,100 training docs hold one caps instruction",
+   "why": "'Its' presumably refers to Baguettotron's training corpus, but this is never stated. The link between this fact and the compliance result is left implicit."
+  }
+ ],
+ "point": "A tiny 321M model ignored forbidden-word instructions nearly always regardless of CAPS emphasis, only naming the word shifted behavior, and that may be because its training data contains almost no caps instructions."
+}

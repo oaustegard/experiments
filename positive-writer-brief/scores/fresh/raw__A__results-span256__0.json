@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"that\" and \"the widening\" refer to an earlier discussion the text never gives. The reader can't tell what was widened."
+  },
+  {
+   "quote": "Ettin-17m's final output matrix maps 256 dimensions to 768, and it can be folded into a 256-to-256 matrix.",
+   "why": "It doesn't say what \"folded\" means or which matrix it is folded with. A 256-to-768 map followed by something can only become 256-to-256 if a later 768-to-256 step exists, and none is described."
+  },
+  {
+   "quote": "Hit@10 is 0.918 both ways on all 9,500 queries",
+   "why": "The text doesn't define Hit@10, the query set, or what is being retrieved. It also doesn't say how Hit@10 differs from recall@10, which is used next."
+  },
+  {
+   "quote": "The live index stores remex codes at 2 bits × 768 dimensions (200 bytes)",
+   "why": "\"Remex\" and \"live index\" are never explained. The byte count looks off: 2×768 bits is 192 bytes, so the extra 8 bytes are unexplained. The same applies to 3×256 = 96 vs 104, and the other rows."
+  },
+  {
+   "quote": "| 2 × 256 | — | 0.763 |",
+   "why": "The bytes cell is blank, and the row is out of order in the table. The reader can't compare its size with the others."
+  },
+  {
+   "quote": "reaches recall@10 of 0.857 against float search",
+   "why": "It's unclear whether recall is measured against the float results of the 768-dimensional or the folded vectors. The reader also can't tell whether 0.857 and 0.927 share one baseline."
+  },
+  {
+   "quote": "Remex's rotation also folds into the same matrix, so the model can emit rotated coordinates directly. With an int8 head, this gives 0.931 at 4 bits.",
+   "why": "The rotation is never introduced. \"int8 head\" is undefined, and it's unclear whether it's a quantized folded matrix. The text doesn't say what 0.931 is compared with, though 0.927 appears to be the comparison."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "\"List Scout page\" is an unexplained name. The text doesn't say what is being fit, or why a classifier appears in an embedding-storage result."
+  },
+  {
+   "quote": "The search indexes on the site are still 768-dimensional.",
+   "why": "This could contradict \"live index\" and \"The List Scout page now runs the folded model\", since the reader can't tell which indexes are meant. It also leaves the headline \"Yes\" unclear: the finding is tested but not deployed."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions leaves float search unchanged, and 3- or 4-bit codes on those 256 dimensions beat the current 2-bit, 768-dimension index at fewer bytes. At the same 2-bit width, 256 dimensions do worse."
+}

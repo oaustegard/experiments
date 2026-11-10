@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells",
+   "why": "remex is never explained (a library? the author's project?), nor how its hash cells work, so the baseline is opaque."
+  },
+  {
+   "quote": "That is the main thing e-means does for remex",
+   "why": "e-means is not defined, and the sentence says it makes training cheap, but the comparison above is about centroids vs hash cells, not e-means specifically. The link is unclear."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes. Oskar is also not introduced."
+  },
+  {
+   "quote": "in 1 to 3 passes, 1.6 to 10.2 times sooner on 4 CPUs",
+   "why": "It is unclear what a 'pass' is compared with a Lloyd iteration. The speedup baseline is also unspecified (wall-clock vs 25 Lloyd iterations?)."
+  },
+  {
+   "quote": "remex then applies its 1-bit quantization to that offset",
+   "why": "The remex 1-bit quantization is never explained. The 0.840 baseline recall is not stated as being 1-bit without residuals, so the comparison is implicit."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "Not derivable: 4,096 centroids at 768 dims in float32 is about 12.6 MB, which is 126 bytes per vector over 100,000 vectors. The dimension and the amortization are never stated. Also 'more than a second bit per dimension' is not quantified (768 dims would be 96 bytes)."
+  },
+  {
+   "quote": "I had expected residual coding to be the main result and the index cells to be a footnote. It turned out the other way round.",
+   "why": "Earlier the author said they expected the benefit to be training speed, not residual coding. This contradicts that, and the heading and intro never framed residual coding as the expected result."
+  },
+  {
+   "quote": "What e-means changes is training time, and the speedup above is the full extent of it.",
+   "why": "This conflicts with the earlier claim that e-means is what makes the index cells work well. The text says it does not change search quality, so the opening 'main thing e-means does' reads as inconsistent."
+  }
+ ],
+ "point": "Using 4,096 k-means centroids as index cells beats remex's hash cells (90% recall at 0.56% scanned vs 70% at 34%), and e-means only makes training those centroids faster without changing quality, while residual coding costs too much memory at this corpus size."
+}

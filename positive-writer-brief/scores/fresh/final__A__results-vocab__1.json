@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 measured only that configuration and concluded that domain vocabulary does not help much. Round 2 traced the small saving to the pre-tokenizer",
+   "why": "Rounds 1 and 2 are never introduced; the reader doesn't know these are earlier experiment stages or where they are documented. It also isn't clear whether the 21% and 8% figures come from Round 2."
+  },
+  {
+   "quote": "Neither has tried a domain token table, and so no published clinical ModernBERT has either.",
+   "why": "This is a logical leap. Two models are named, but the claim covers all published clinical ModernBERTs, and the text gives no evidence for that."
+  },
+  {
+   "quote": "On 2026-11-06 Oskar asked:",
+   "why": "Oskar is not introduced, so the reader doesn't know who he is or why his question matters. The quote also has an ellipsis in the middle."
+  },
+  {
+   "quote": "A follow-up experiment, lifesci-ettin, trains models on the new table.",
+   "why": "The tense is unclear. It could mean the experiment is planned or already done, and the text doesn't say where it lives or what it found."
+  },
+  {
+   "quote": "Yes. A life-sciences vocabulary makes Ettin cheaper on PubMed text",
+   "why": "The text never says what \"cheaper\" means. Only token count per abstract is given, and nothing about compute or cost. \"Yes\" also answers a question the text hasn't stated yet."
+  },
+  {
+   "quote": "BioClinical ModernBERT and Clinical ModernBERT ship Ettin's tokenizer unchanged.",
+   "why": "Ettin and ModernBERT are never explained, and neither is how they relate. The reader can't tell why models named ModernBERT would use Ettin's tokenizer."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed abstracts cuts tokens per abstract by 21% versus Ettin's tokenizer, but only if the GPT-2 pre-tokenizer is also replaced with whitespace-only splitting. Retraining only the table saves 8%."
+}

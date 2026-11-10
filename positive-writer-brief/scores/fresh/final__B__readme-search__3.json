@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "Doesn't say whether line numbers are 0- or 1-based. The example shows `\"query\": 1`, but it's unclear whether that is the first line or the second."
+  },
+  {
+   "quote": "`remex search INDEX QUERY_FILE`",
+   "why": "INDEX is never explained. The text doesn't say how an index is created, apart from a passing mention of `--keep-float` at build time, so I can't tell what to pass."
+  },
+  {
+   "quote": "If you built the index with `--keep-float`",
+   "why": "Refers to a build command and flag that this text never introduces. I don't know how to build an index or what the flag does."
+  },
+  {
+   "quote": "| `--bits` | 4 | Bit width used for the search |",
+   "why": "Unclear what bit width means here. It's also unclear whether it must be compatible with the bit width used to build the index, or whether it can exceed it."
+  },
+  {
+   "quote": "recall@10 is 0.93 at 4 bits and 0.84 at 2 bits.",
+   "why": "The metric isn't defined. It also isn't stated whether this was measured with rescoring, and the \"EmbeddingGemma test set\" is not explained."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates against the float vectors",
+   "why": "Unclear how this interacts with `-k`. For example, it doesn't say what happens if k is greater than 100, or whether rescoring changes the scores that are reported."
+  },
+  {
+   "quote": "`ids` and `scores` are parallel arrays.",
+   "why": "The example shows `[...]`, and the text doesn't say what the scores mean (similarity or distance) or how they are ordered. Whether higher is better is unknown."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` takes a file of comma-separated query vectors and prints one JSON line per query with its nearest ids and scores. You can tune the results with `-k` and `--bits`, which trade recall against speed, and rescoring happens only if the index was built with `--keep-float`."
+}

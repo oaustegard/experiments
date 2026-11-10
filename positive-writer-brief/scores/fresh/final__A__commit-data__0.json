@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "'Jev' and 'the register.md entry' are never explained; unclear what is being scored or what the entry is."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "'category prior' is undefined; the baseline is not described."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "'Settled fraction' and what error is being measured are not explained."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker.",
+   "why": "'now' implies an earlier state of RESULTS.md, and the @evidence marker convention is not explained. The file is also not part of the described change."
+  },
+  {
+   "quote": "`python3 _lib/evidence.py jev-prose-lint/RESULTS.md` passes.",
+   "why": "It is unclear what the check verifies. It also assumes RESULTS.md changed in this commit, though the subject only lists metrics.json and analyze.py."
+  }
+ ],
+ "point": "The commit adds a metrics.json and an analysis script for the jev-prose-lint experiment, recording AUROC scores in which Jev with its entry only narrowly beats a prior baseline (the CI includes zero), plus a settled-fraction figure, with RESULTS.md citing them."
+}

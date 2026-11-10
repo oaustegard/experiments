@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "Jev and the register.md entry are never explained; a first-time reader can't tell what is being scored or what the entry is."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "\"category prior\" is undefined: it's unclear what category or what baseline this is."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "\"Settled fraction\" and what the 5% error refers to are not defined."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker",
+   "why": "The @evidence marker convention and the check in _lib/evidence.py are not explained. \"now\" also implies an earlier state of RESULTS.md that the text doesn't describe."
+  },
+  {
+   "quote": "The interval\nincludes zero.",
+   "why": "The text doesn't say what that implies. It's unclear whether the 0.808 vs 0.769 difference is meant to count as real."
+  }
+ ],
+ "point": "The commit adds analyze.py and results/metrics.json for the jev-prose-lint experiment. They report AUROCs of 0.808 for Jev with the entry, 0.697 without it and 0.769 for the prior. The bootstrap CI on the with-entry-minus-prior difference includes zero, so the gain over the prior is not clearly established."
+}

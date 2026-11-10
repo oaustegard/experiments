@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "Jev and the register.md entry are never explained. It's unclear what Jev is (a model? a linter?) or what the entry contains."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "The text doesn't say what the category prior is or what is being classified, so the baseline has no meaning."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "'Settled' isn't defined, and neither is what the 5% error refers to."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker",
+   "why": "The @evidence marker convention and the _lib/evidence.py check are never described. 'Now' also implies an earlier RESULTS.md that the text doesn't describe."
+  }
+ ],
+ "point": "The commit adds a script and a metrics file reporting that Jev with the register.md entry scores 0.808 AUROC, but its edge over the category prior (0.769) isn't distinguishable from zero because the bootstrap CI spans zero."
+}

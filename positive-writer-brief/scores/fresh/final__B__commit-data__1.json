@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev, the register.md entry, and what 'with/without the entry' means are never explained; the reader can't tell what is being compared."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "'Settled' is undefined, so the reader can't tell what the fraction measures."
+  },
+  {
+   "quote": "AUROC, category prior: 0.769",
+   "why": "The 'category prior' baseline is not explained, and neither is the task the AUROC is scoring."
+  },
+  {
+   "quote": "RESULTS.md cites each number with an @evidence marker.",
+   "why": "The @evidence marker format is not described, and _lib/evidence.py is not explained. The reader can't tell what 'passes' checks."
+  }
+ ],
+ "point": "The commit adds checked-in metrics and an analysis script so RESULTS.md numbers are traceable. The numbers show Jev with the entry (0.808 AUROC) is not shown to beat the category prior (0.769), because the bootstrap CI includes zero."
+}

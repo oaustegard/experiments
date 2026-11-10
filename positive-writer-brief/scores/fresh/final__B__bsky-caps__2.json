@@ -1,0 +1,22 @@
+{
+ "stumbles": [
+  {
+   "quote": "Caps changed nothing for Baguettotron (321M)",
+   "why": "Baguettotron is never explained; I can't tell it's a small language model, and 321M is an unlabeled size (parameters?)."
+  },
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what the 43 trials are, what a 'violation' is, or what 'every form' covers. The task and the forbidden word are never defined."
+  },
+  {
+   "quote": "Naming the forbidden word raised it ~2.5 log-odds.",
+   "době": "",
+   "why": "'It' is ambiguous (violation rate?). The setup is unexplained: what naming means and why it raises violations. It also sits oddly beside 'changed nothing'."
+  },
+  {
+   "quote": "Its 22,100 training docs hold one capitalised instruction",
+   "why": "It's unclear whether this is the whole training corpus. The link to the caps result is implied, not stated."
+  }
+ ],
+ "point": "A small model (Baguettotron) ignored capitalised emphasis in prompts, nearly always violating the constraint, and naming the forbidden word made violations more likely, probably because its training data has almost no capitalised instructions."
+}

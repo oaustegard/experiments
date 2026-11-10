@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's current hash cells give 70% of true neighbours and scan 34%.",
+   "why": "remex is never explained (a library? the author's project?), nor are its hash cells (LSH? what scheme?). Without that, the baseline is not interpretable."
+  },
+  {
+   "quote": "Centroids from Lloyd's k-means and from e-means (arXiv 2611.09501) give the same recall within 0.005.",
+   "why": "e-means is never described. Readers cannot tell what it is or why it would train faster. The recall metric is also unspecified: the earlier 90% and this 0.005 are not obviously on the same scale or at the same k/nprobe."
+  },
+  {
+   "quote": "it matches the error of 25 Lloyd iterations in 1 to 3 passes. On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "'Error' is undefined (quantization MSE?). 'Passes' is not defined relative to Lloyd iterations. The speedup range is not tied to the 1 to 3 pass range, and it is unclear why 1 pass could give 10x while 3 gives 1.6x."
+  },
+  {
+   "quote": "Before remex applies its 1-bit quantization, I coded each vector as an offset from its nearest centroid among the 4,096.",
+   "why": "The 1-bit quantization scheme is never explained (per dimension? after rotation?). 'Recall@10' of 0.840 and 0.891 has no stated baseline setup. It is unclear which figure is the baseline and whether it is comparable to the 90% index-cell recall."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids × 768 dims × 4 bytes / 100,000 is about 126, but the dimension and float width are never given. The claim is unverifiable. Also, 'a second bit per dimension would cost less than that' is asserted without the byte count (768 bits = 96 bytes), so it cannot be checked."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Oskar and 'our prior work' are unexplained references to something the text never describes."
+  },
+  {
+   "quote": "Next I expected offset coding to be the main result, with index cells as a side note. The results came out the other way around.",
+   "why": "Reads as though the hour of speed benchmarking was a separate step, and it is unclear what the 'other way around' reverses. Also 'Next' is reused in the final paragraph for a different meaning."
+  },
+  {
+   "quote": "Which algorithm trains those centroids hardly matters.",
+   "why": "This conflicts with the later claim that e-means is chosen because it is faster, and with the speed result. The text says training time is the only difference, but the conclusion is framed as if the choice matters. Taken alone, the contradiction is mild but confusing."
+  }
+ ],
+ "point": "Trained k-means centroids work much better than remex's hash cells as index cells (90% recall scanning 0.56% vs 70% scanning 34%). Either training algorithm gives the same recall, and e-means is faster. At 100k vectors, using the centroids for offset coding is not worth its storage cost compared with a second bit."
+}

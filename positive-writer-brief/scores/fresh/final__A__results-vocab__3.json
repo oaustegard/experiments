@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 of this experiment measured the 8% figure and concluded that domain vocabulary does not help much. Round 2 traced the shortfall to the pre-tokenizer and replaces that conclusion.",
+   "why": "Refers to rounds the reader has never seen. It's unclear whether this text is Round 2 or what Round 1 did. The 8% figure is also given earlier without saying it came from Round 1."
+  },
+  {
+   "quote": "Oskar's question on 2026-11-06",
+   "why": "Oskar is not introduced, so the reader doesn't know who he is or why his question matters."
+  },
+  {
+   "quote": "`lifesci-ettin`",
+   "why": "Named as a separate follow-up experiment without saying where it lives or what it covers. The reader can't tell whether it exists yet."
+  },
+  {
+   "quote": "This experiment answers the token-table half.",
+   "why": "The other half is only implied. The question's wording, 'custom domain Ettin model', is never tied to the two halves."
+  },
+  {
+   "quote": "uses 21% fewer tokens than Ettin's tokenizer",
+   "why": "The comparison is on a different footing from the 8% case. The text doesn't say whether the 8% is measured against the same baseline and test set, and 'cheaper' is never defined beyond token count."
+  },
+  {
+   "quote": "Ettin's GPT-2 pre-tokenizer",
+   "why": "The reader isn't told that Ettin's pre-tokenizer is GPT-2-style, or what 'whitespace-only' changes besides hyphen and digit splitting. Ettin itself is never explained."
+  }
+ ],
+ "point": "A BPE vocabulary retrained on PubMed cuts token counts by 21% against Ettin's tokenizer, but only if the GPT-2 pre-tokenizer is also replaced with whitespace-only splitting. With the pre-tokenizer kept, the saving is just 8%, and no model has yet been trained on the new table."
+}

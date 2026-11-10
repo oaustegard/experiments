@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "by reversing the widening?\"",
+   "why": "The 'widening' is never explained; the reader doesn't know what was widened or when (the text later implies a 256-to-768 output matrix)."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is not introduced, and the question depends on an earlier conversation that the text doesn't give."
+  },
+  {
+   "quote": "The live index stores remex codes at 2 bits × 768 dims in 200 bytes",
+   "why": "'Remex' is never defined. 'Live index' is also unexplained. The byte count is not shown to follow from 2×768 bits, which would be 192 bytes, so the extra 8 bytes are unexplained."
+  },
+  {
+   "quote": "Remex codes on the 256 folded dimensions beat that recall at every width below.",
+   "why": "The 2-bit 256-dim result of 0.763 is below 0.857, and it appears later as an exception. 'Every width below' therefore seems to contradict that line, and the table covers only 3, 4 and 8 bits."
+  },
+  {
+   "quote": "The remex rotation also folds into the same matrix",
+   "why": "The rotation is never introduced, so it's unclear what it is and why it can be folded."
+  },
+  {
+   "quote": "With an int8 head this reaches 0.931 at 4 bits.",
+   "why": "'int8 head' is not defined. It's unclear whether it means the folded output matrix is quantized, and what the comparison baseline is (0.927 without it)."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier answers are identical to before, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout, its classifier and what is being fitted are all unexplained, and 'before' is never specified."
+  },
+  {
+   "quote": "At 3 and 4 bits they also use fewer bytes. At 8 bits they use more.",
+   "why": "The reader has to compare against 200 bytes. This is clear enough only if they notice that 136 and 104 are below 200 and 264 is above it. Also, 4-bit at 136 bytes does not fit 256×4/8=128 plus the same 8 bytes of overhead, though the overhead is never stated."
+  }
+ ],
+ "point": "Ettin-17m's 256-dim folded embeddings match the 768-dim ones on float search (hit@10 0.918), and remex codes at 3 or 4 bits on 256 dims beat the current 2-bit 768-dim index's recall. At 3 and 4 bits they are also smaller."
+}

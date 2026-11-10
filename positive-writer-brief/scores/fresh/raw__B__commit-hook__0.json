@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "it names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained; unclear what it is or how its `github` tool is invoked."
+  },
+  {
+   "quote": "because those calls return 403 there",
+   "why": "\"there\" and \"a session\" are undefined; unclear what kind of session or why it returns 403."
+  }
+ ],
+ "point": "The commit extends a guard script so it also blocks `gh api` POSTs to /releases and /git/refs, not just `gh release create`, redirecting to a Muninn `github` tool."
+}

@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42 of 43 violations in every form, even with no directive",
+   "why": "Unclear what the 43 violations are, what 'every form' means (caps, lowercase, other phrasings?), and what a 'violation' is measured against. The 'no directive' case is also unexplained."
+  },
+  {
+   "quote": "Caps made no difference on Baguettotron (321M)",
+   "why": "Baguettotron is never explained; I can't tell it's a small language model, and '321M' is presumably parameters but isn't said."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "It's unclear whether this is the probability of the model producing the word, in what direction it was measured, and how it relates to caps. It also seems to contradict or sit oddly beside 'no difference'."
+  },
+  {
+   "quote": "Its 22,100 training docs hold one caps instruction: 'NEVER give a baby honey'.",
+   "why": "The link to the finding is implied and not stated. Presumably caps instructions are nearly absent from training data, which would explain the null result, but the post never says so."
+  }
+ ],
+ "point": "A tiny 321M model ignored capitalized prohibitions, with 42 of 43 violations whatever the form, and merely naming a forbidden word made it likelier to appear, which may be because its training data has almost no caps instructions."
+}

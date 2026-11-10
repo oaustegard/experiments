@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "`--bits` sets the quantization width used for the search.",
+   "why": "The text never says what is being quantized or how this relates to the index. It doesn't say whether the width has to match a build-time setting or whether it can be chosen freely at search time."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "The text never explains how to build an index. `--keep-float` is a build option that appears nowhere else, and no build command is shown."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates against the float vectors",
+   "why": "It is unclear how this interacts with `-k`. It is also unclear whether `-k` larger than 100 is allowed, and whether the 4-bit and 2-bit recall figures include rescoring."
+  },
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "The text doesn't say whether numbering starts at 0 or 1. The example shows 1, which suggests 1-based, but that is not stated."
+  },
+  {
+   "quote": "4 bits gives a recall@10 of 0.93 and 2 bits gives 0.84",
+   "why": "The text doesn't define recall@10 or say what it is measured against. It also doesn't say whether the figures assume rescoring, and 'EmbeddingGemma test set' is not explained."
+  }
+ ],
+ "point": "remex search takes an index and a file of comma-separated query vectors, returns top-k ids and scores per query as JSON Lines, and lets you trade recall for speed with --bits, with optional float rescoring if the index was built with --keep-float."
+}

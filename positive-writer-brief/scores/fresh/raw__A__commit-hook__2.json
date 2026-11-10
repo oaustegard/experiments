@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or how it differs from gh. A reader can't tell what the guard actually tells the user."
+  },
+  {
+   "quote": "because they return 403",
+   "why": "The text doesn't say why these calls return 403 (permissions, token scope, or sandbox). It also doesn't say whether the 403 is the reason for the guard or only its trigger."
+  },
+  {
+   "quote": "denies GitHub release and tag creation calls",
+   "why": "The guard is said to cover tag creation, but the original match is only `gh release create`, and the new match covers `/git/refs`. The text never links refs to tags or says how tag creation was matched before."
+  }
+ ],
+ "point": "The route guard script now also blocks `gh api` POSTs to `/releases` and `/git/refs` paths, not just `gh release create`, so those calls get redirected to the Muninn `github` tool instead of failing with a 403."
+}

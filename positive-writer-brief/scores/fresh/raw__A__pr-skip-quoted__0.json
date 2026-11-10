@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "\"The two judges\" are never introduced (humans? models? a process?). Also \"legitimate prose\" is unclear: it seems to mean the hits were false positives, but the text says the cells held numbers and labels, not sentences, so calling them prose is confusing."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "It conflicts with the claim that `--skip-tables` blanks lines starting with `|`. The text doesn't say how `--skip-quoted` finds table cells, and the point of the comparison is hard to follow without that."
+  },
+  {
+   "quote": "Some drafts quote bad prose in italics on purpose and should still have those italics scanned",
+   "why": "This is confusing because the linter is meant to flag bad prose, and the text doesn't say why intentionally quoted bad prose should be flagged rather than skipped."
+  },
+  {
+   "quote": "declaude_lint.py",
+   "why": "The text never says what this linter checks for (\"declaude\" is unexplained), so \"lint hits\" and \"legitimate prose\" have no clear meaning."
+  },
+  {
+   "quote": "blanks every line that starts with `|`",
+   "why": "It's unclear whether lines with leading whitespace before `|` count. It's also unclear whether table separator rows or pipe-starting lines that aren't tables count."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the linter so Markdown table lines are skipped without changing line numbers, and it does this without the italics and blockquote skipping that `--skip-quoted` also does."
+}

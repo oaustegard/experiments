@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "The text never explains how an index is built or that a `--keep-float` flag exists on a build command. The `remex search` flags table doesn't list it."
+  },
+  {
+   "quote": "`INDEX`",
+   "why": "The text doesn't say what INDEX is (a file or a directory) or how to create one. No build command is shown."
+  },
+  {
+   "quote": "`--bits` | `4` | Bits per dimension used for the search",
+   "why": "It's unclear how a search can use a different bit width than the index was built with. The text doesn't say whether the index must be built with matching or higher bits, or what happens if it isn't."
+  },
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`.",
+   "why": "It doesn't say whether numbering starts at 0 or 1. The example shows 1 but doesn't say which line it refers to."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` reads comma-separated query vectors and prints the top-k neighbours per query as JSON Lines, with `-k` and `--bits` trading recall against speed, and with automatic rescoring only if the index was built with `--keep-float`."
+}

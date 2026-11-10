@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev, register.md, and 'the entry' are never explained; unclear what is being tested or what the entry is."
+  },
+  {
+   "quote": "AUROC, category prior: 0.769",
+   "why": "'Category prior' baseline is not defined; unclear what categories or what is being predicted."
+  },
+  {
+   "quote": "Settled fraction at 5% error: 24.5%",
+   "why": "'Settled' is undefined, and it is unclear what the 5% error refers to."
+  },
+  {
+   "quote": "RESULTS.md cites each number with an @evidence marker.",
+   "why": "The @evidence marker convention and what _lib/evidence.py checks are not explained. RESULTS.md is also not shown as added or changed, so 'cite' in the subject is ambiguous."
+  },
+  {
+   "quote": "Jev with the entry does not separate from the category prior.",
+   "why": "This is a conclusion drawn from the CI, but the text does not say whether the 0.039 AUROC gap (0.808 vs 0.769) is the statistic or what 'separate' means. The two readings can look inconsistent."
+  }
+ ],
+ "point": "The commit adds a metrics file and the script that generates it so RESULTS.md numbers are traceable, and the main finding is that Jev with the entry (AUROC 0.808) is not statistically distinguishable from the category prior (0.769)."
+}

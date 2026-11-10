@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "by reversing the widening?",
+   "why": "\"The widening\" is never explained. The text only later implies a 256-to-768 output matrix, so the question's referent is unclear."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is not introduced. The reader doesn't know who he is or what \"these\" vectors refer to."
+  },
+  {
+   "quote": "Quantized vectors need more bits per dimension at 256 dimensions, and they still take fewer bytes than the live index.",
+   "why": "\"The live index\" is not defined. The claim is also only partly backed by the table: 8 bits at 264 bytes is more than the live index's 200 bytes, which contradicts \"fewer bytes\"."
+  },
+  {
+   "quote": "These are the remex codes on the 256 folded dimensions:",
+   "why": "\"remex\" is never explained. It is unclear whether it is a library or a quantization method."
+  },
+  {
+   "quote": "The live index stores 2 bits × 768 dimensions in 200 bytes",
+   "why": "The arithmetic doesn't obviously work. 2 bits × 768 is 192 bytes, so the extra 8 bytes are unexplained. The table's byte counts have similar unexplained overhead."
+  },
+  {
+   "quote": "remex's rotation folds into the same matrix too, so the model can emit rotated coordinates directly. With an int8 head, this gives 0.931 at 4 bits.",
+   "why": "\"Rotation\" and \"int8 head\" are unexplained. It is unclear how this differs from the 4-bit row, which scores 0.927, or what is being compared."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model.",
+   "why": "\"List Scout page\" is an unexplained name, and it is unclear how it relates to the experiment. \"Its classifier answers\" has no stated basis for comparison either."
+  },
+  {
+   "quote": "The search indexes on the site are still 768-dimensional.",
+   "why": "\"The site\" is not identified. This seems to conflict with \"the live index\" being compared as if it were the baseline, and it is unclear whether the live index is one of these indexes."
+  }
+ ],
+ "point": "Folding the output matrix lets Ettin-17m use 256-dimensional vectors with no loss in float search (hit@10 0.918 either way), and 4-bit or 8-bit codes at 256 dimensions beat the current 2-bit 768-dimensional index on recall."
+}

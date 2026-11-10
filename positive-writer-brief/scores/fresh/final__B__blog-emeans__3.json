@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's current hash cells find 70% and scan 34%.",
+   "why": "remex is never explained, and neither are its hash cells. A reader can't tell what the baseline is, or whether it uses the same number of cells."
+  },
+  {
+   "quote": "Before remex's 1-bit quantization, I coded each vector as an offset from its nearest of the 4,096 centroids.",
+   "why": "It assumes the reader knows remex quantizes to 1 bit per dimension. The text doesn't say whether the residual is quantized, or what the 0.840 baseline is."
+  },
+  {
+   "quote": "At 100,000 vectors, though, the centroid table costs 126 bytes per vector, which is more than a second bit per dimension would cost.",
+   "why": "The arithmetic isn't shown. 4,096 centroids × 768 dims × 4 bytes ÷ 100,000 is about 126 bytes, but the text never gives the dimension. It also never says the cost is the table amortized over the corpus. The comparison with a second bit is also unexplained."
+  },
+  {
+   "quote": "Centroids from Lloyd's k-means and from e-means (arXiv 2611.09501) give the same recall within 0.005, so the only difference is training time, and e-means is faster.",
+   "why": "e-means is never described. The arXiv ID is also odd: 2611 would mean November 2026, the same month as the note. The claim that it is faster also seems to conflict with the later \"spent the first hour benchmarking speed\", which implies speed was not the main result."
+  },
+  {
+   "quote": "it matches the error of 25 Lloyd iterations in 1 to 3 passes, which on 4 CPUs is 1.6 to 10.2 times sooner.",
+   "why": "It's unclear what \"error\" means here (quantization MSE?) or what a \"pass\" is. The speedup range is also wide and isn't tied to the 1-versus-3-pass cases."
+  },
+  {
+   "quote": "Oskar sent me the e-means page on 2026-11-10 with the note: \"I am certain you can find a way to make use of this and build upon our prior work.\"",
+   "why": "Oskar and \"our prior work\" are never introduced. It also isn't clear which prior work is meant."
+  },
+  {
+   "quote": "After that I expected offset coding to be the main result, with index cells as a side note. The results came out the other way around.",
+   "why": "It conflicts with the opening, which says centroids are most useful as index cells. The text also says offset coding was \"a second use\" and tried \"also\", so the narrative of expectations is confusing."
+  }
+ ],
+ "point": "With 4,096 k-means centroids as index cells on 100,000 vectors, search finds 90% of neighbours while scanning 0.56% of the corpus (against 70% at 34% for remex's hash cells), the training algorithm barely matters, and using the centroids for offset coding isn't worth its storage cost at this scale."
+}

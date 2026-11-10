@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42 of 43 violations in every form, even with no directive",
+   "why": "Unclear what the violations are, what 'form' means (caps, lowercase?), and what a 'directive' is here. The setup is never explained, so the 42/43 figure has no baseline."
+  },
+  {
+   "quote": "Naming a forbidden word raised it ~2.5 log-odds.",
+   "why": "'It' has no clear referent (violation probability?). It also isn't clear what 'naming' means, or how this squares with 'changed nothing' for capitals."
+  },
+  {
+   "quote": "The 22,100-doc corpus had one instruction in capitals",
+   "why": "The corpus is never introduced. It's unclear whether it's the training data for the 321M model, and why the single capitalized instruction matters. The connection to the earlier findings is left implicit."
+  },
+  {
+   "quote": "On a 321M model",
+   "why": "Unclear what the model is (a pretrained or custom small model?) and what the task was."
+  }
+ ],
+ "point": "Capitalizing emphasis didn't reduce rule violations in a small 321M-parameter model, apparently because its training corpus had almost no capitalized instructions, while naming the forbidden word made violations more likely."
+}

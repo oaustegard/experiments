@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "`--keep-float`",
+   "why": "Refers to an index build option, but the text never explains how indexes are built (no `remex build` command or flag docs), so I can't tell how to get an index with or without it."
+  },
+  {
+   "quote": "Bits used for the search",
+   "why": "Unclear how this relates to the index. It doesn't say whether the index must be built with a particular bit width, or whether `--bits` can exceed what the index stores."
+  },
+  {
+   "quote": "`ids` and `scores` hold `k` entries each",
+   "why": "Doesn't say what the ids refer to (line number in the indexed data?). It also doesn't say whether scores are similarities or distances, or what ordering they follow."
+  },
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`",
+   "why": "Doesn't say whether numbering starts at 0 or 1. The example shows 1, but it is not clear whether that is the first line."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` reads comma-separated query vectors, one per line, and prints JSON Lines of the top-k neighbour ids and scores per query. It defaults to 4-bit search, and it rescores automatically only if the index was built with `--keep-float`."
+}

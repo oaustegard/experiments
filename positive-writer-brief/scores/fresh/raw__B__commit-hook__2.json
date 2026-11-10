@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "It names the Muninn\n`github` tool call to use instead.",
+   "why": "Muninn is never explained, and the commit doesn't say what the `github` tool is or where it comes from. A reader without that context can't tell what the guard recommends."
+  },
+  {
+   "quote": "because those calls return 403",
+   "why": "The text doesn't say why the calls return 403, for example a session credential limit. The guard's premise is therefore unexplained. This is minor."
+  }
+ ],
+ "point": "The commit extends the gh-route guard so that `gh api` POSTs to /releases or /git/refs are blocked like `gh release create`, and it adds 4 tests for the new cases."
+}

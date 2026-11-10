@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42 of 43 violations in every form, even with no directive",
+   "why": "Unclear what the violations are, what 'every form' means, and how 42 of 43 relates to the conditions. It could be a count of trials or a rate, and I can't tell."
+  },
+  {
+   "quote": "caps on a directive changed nothing",
+   "why": "I don't know what directive was tested, what the model was asked to do, or what 'changed nothing' was measured against."
+  },
+  {
+   "quote": "Naming a forbidden word added ~2.5 log-odds to it.",
+   "why": "'It' is ambiguous, and I can't tell whether it means the word's probability of being produced. The context for the log-odds is also missing."
+  },
+  {
+   "quote": "One caps instruction in 22,100 training docs: 'NEVER give a baby honey'.",
+   "why": "This is a fragment. I can't tell whether it's a finding (only one caps instruction exists in the corpus) or an example, or how it connects to the experiment above."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "The name and '321M' are never explained. I would have to guess it's a small language model with 321M parameters."
+  }
+ ],
+ "point": "In a small 321M-parameter model, writing a prohibition in caps didn't reduce violations, and naming the forbidden word made it more likely to appear, which may be because caps instructions are almost absent from the training data."
+}

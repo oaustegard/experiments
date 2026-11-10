@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations with every form of directive, or none",
+   "why": "Unclear: 42 of 43 what (trials? prompts?), and 'or none' is ambiguous. It could mean violations occurred with every directive form or with no directive at all."
+  },
+  {
+   "quote": "CAPS didn't change compliance",
+   "why": "Compliance with what task or instruction is never stated. It is also unclear how this squares with 42/43 violations."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "It doesn't say the log-odds of the model producing that word, or relative to what baseline. It also doesn't say whether this is a natural-log or other scale."
+  },
+  {
+   "quote": "Its 22,100-doc corpus: one CAPS instruction, 'NEVER give a baby honey'.",
+   "why": "'Its' is ambiguous (the model's training corpus?). The sentence doesn't say that the corpus contains exactly one CAPS instruction, and the point of that fact isn't stated."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "Unexplained model name. '321M' is presumably parameters but isn't stated."
+  }
+ ],
+ "point": "A tiny model trained on a corpus with almost no CAPS instructions ignored CAPS emphasis and nearly always violated prohibitions, while naming the forbidden word made it more likely to say it."
+}

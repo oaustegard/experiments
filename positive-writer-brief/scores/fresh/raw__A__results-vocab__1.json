@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 measured only that configuration and concluded that domain vocabulary does not help much. Round 2 traced the small saving to the pre-tokenizer, and that conclusion no longer holds.",
+   "why": "Rounds 1 and 2 are never introduced; a first-time reader doesn't know what earlier experiment or version these refer to."
+  },
+  {
+   "quote": "Ettin's tokenizer spends 376 tokens per abstract.",
+   "why": "Unclear whether this is the baseline on the 2,000 held-out abstracts, and the retrained figure is never stated, so the 21% can't be checked."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06 whether \"we [could] create an entirely custom domain Ettin model with custom token table ... for life sciences\".",
+   "why": "Oskar is unexplained, and the quote is elided and bracketed, so the question's context is unclear."
+  },
+  {
+   "quote": "The follow-up experiment, lifesci-ettin, trains models on the new table, and this experiment does not cover it.",
+   "why": "Ambiguous: it is unclear whether lifesci-ettin exists yet or is only planned, and \"trains\" reads as if it is done."
+  },
+  {
+   "quote": "This experiment answers the tokenizer half of that question.",
+   "why": "The other half is only implied to be model training, and \"cheaper\" is taken to mean fewer tokens, never stated as cost in compute or money."
+  }
+ ],
+ "point": "A 50K BPE retrained on PubMed abstracts with whitespace-only pre-tokenization cuts tokens by 21% versus Ettin's tokenizer, but keeping the GPT-2 pre-tokenizer cuts only 8%, so the pre-tokenizer matters as much as the vocabulary."
+}

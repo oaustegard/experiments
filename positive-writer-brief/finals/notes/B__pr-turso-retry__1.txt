@@ -1,0 +1,9 @@
+I changed only a few lines, since the draft was mostly plain already. I merged the two opening sentences about retries and changed "has been 0" to "had been 0", because the fix changes that count. I left the numbered test list alone: it is a real list, so the lint's cadence flag doesn't apply. The participle flag on "including 401" was a false positive, though I moved the phrase to the end of the line anyway.
+
+There are two factual problems for the author.
+
+1. The draft said "Without the fix, 31 of the 40 hit at least one 503." The facts don't say those 31 boots ran without the fix. The 1.1 s median for "boots that retried" suggests the 503s happened on fixed runs too. I dropped "without the fix", so please confirm which runs the 31 came from.
+
+2. The draft said "so a cold-start 503 can no longer show up as an auth failure." The facts only say the error message names the status code. They don't say boot no longer prints `auth failed`. I removed that clause; add it back if boot's handling actually changed.
+
+The structural review, ranker, newcomer read and diff check weren't available in this run, so I did those checks by eye.

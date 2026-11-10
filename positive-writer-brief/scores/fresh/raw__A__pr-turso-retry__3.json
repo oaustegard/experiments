@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The retry count had been 0 since the refactor on 2026-09-14, so `execute()` never tried the request a second time.",
+   "why": "\"The refactor\" is never explained, so a first-time reader doesn't know which refactor this was or why it set the retry count to 0. \"Retry count\" is also ambiguous: it could mean a config value or a default."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed \"auth failed\".",
+   "why": "\"Boot\" is not defined. It could be application startup or a boot script. The text also never says why a 503 was read as an auth error, and the fix doesn't mention changing that."
+  },
+  {
+   "quote": "Any other status fails at once, as it did before.",
+   "why": "This conflicts with the Problem section, which says the retry count was 0 and so even 503 was not retried. The text doesn't say whether \"before\" means before the refactor or just before this change."
+  },
+  {
+   "quote": "the error message names the status code",
+   "why": "The Change section never says error messages were changed. A reader can't tell whether this is new behavior or existing behavior. It also doesn't say whether the \"auth failed\" message is still printed on a 503."
+  },
+  {
+   "quote": "up to 4 times, with jittered exponential backoff that starts at 0.5 s",
+   "why": "This is ambiguous. It could mean 4 retries (5 attempts in total) or 4 attempts. The test \"four 503s, then failure\" doesn't settle it, because it would fail after 4 attempts or after 5. The backoff multiplier and cap are also missing, and the \"bounds\" the timing test checks are never stated."
+  }
+ ],
+ "point": "The PR adds retry with jittered exponential backoff on 503 and 429 to the Turso client's `execute()`, so cold-start 503s no longer fail boot, and it backs this with a 40-boot measurement and 6 tests."
+}

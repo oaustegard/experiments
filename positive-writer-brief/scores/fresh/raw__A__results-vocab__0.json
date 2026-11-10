@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Round 1 measured the 8% and concluded that domain vocabulary does not help much. Round 2 traced the gap to the pre-tokenizer, which changes that conclusion.",
+   "why": "Rounds 1 and 2 are never introduced. It's unclear whether they are earlier experiments or stages of this one, and the text doesn't say what Round 2 measured."
+  },
+  {
+   "quote": "The question came from Oskar on 2026-11-06",
+   "why": "Oskar is not introduced, so his role is unclear. The text also doesn't say whether 'This experiment' is Round 2 or something else."
+  },
+  {
+   "quote": "saves 21%",
+   "why": "The text never says what the saving is measured against. It could be 376 tokens per abstract, but that isn't stated. 'About a fifth cheaper' also assumes cost means token count."
+  },
+  {
+   "quote": "Training models on the new table is the follow-up experiment, lifesci-ettin.",
+   "why": "'lifesci-ettin' is a name with no explanation of where it lives or whether it exists yet. 'The tokenizer half' also implies a second half that is only vaguely described."
+  },
+  {
+   "quote": "with whitespace-only pre-tokenization",
+   "why": "The text doesn't explain what this means. It is also unclear whether it is the same thing as 'changes along with the token table', or whether the 8% case differs only in the pre-tokenizer."
+  }
+ ],
+ "point": "A retrained 50K BPE vocabulary cuts tokens on PubMed abstracts by 21% against Ettin's tokenizer, but only 8% if the GPT-2 pre-tokenizer is kept, so the pre-tokenizer matters as much as the vocabulary."
+}

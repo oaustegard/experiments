@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, so a first-time reader can't tell what it is or what the `github` tool call is. The message doesn't say which call the guard suggests."
+  },
+  {
+   "quote": "from a session",
+   "why": "The message doesn't say what kind of session this is. It could be an agent session or a sandbox, and that matters for why the calls return 403."
+  }
+ ],
+ "point": "The commit extends the guard script so it also blocks `gh api` POSTs to `/releases` and `/git/refs`, which return 403 just like `gh release create` does, and it adds tests for the new cases."
+}

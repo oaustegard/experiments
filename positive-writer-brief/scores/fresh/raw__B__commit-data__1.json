@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the register.md entry",
+   "why": "Jev, register.md and 'the entry' are never explained; unclear what the system is or what entry was added."
+  },
+  {
+   "quote": "category prior",
+   "why": "Not defined; unclear what baseline this is."
+  },
+  {
+   "quote": "Settled fraction at 5% error",
+   "why": "'Settled' is undefined jargon; unclear what is settled or how the 5% error is applied."
+  },
+  {
+   "quote": "RESULTS.md cites each number with an @evidence marker.",
+   "why": "The @evidence marker convention and what _lib/evidence.py checks are not explained."
+  },
+  {
+   "quote": "At this sample size",
+   "why": "The sample size is never stated, so the claim can't be assessed."
+  },
+  {
+   "quote": "AUROC, Jev with the register.md entry: 0.808",
+   "why": "The target of the AUROC is unstated, such as the task or labels. The CI of [-0.025, 0.106] is consistent with the 0.039 difference, but the text never says that."
+  }
+ ],
+ "point": "The commit adds metrics.json and analyze.py so each RESULTS.md number is traceable, and the numbers show Jev with its register.md entry has not been shown to beat the category prior, since the CI includes zero."
+}

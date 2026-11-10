@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose.",
+   "why": "The judges are never introduced (who or what they are, how they label). It's also unclear what 'legitimate prose' means here: that the hits were false positives, or that the cells were real prose."
+  },
+  {
+   "quote": "Most table cells hold numbers and labels rather than sentences",
+   "why": "This sits awkwardly with the preceding claim that judges labelled 58 of 63 table hits as 'legitimate prose'. Cells that are numbers and labels aren't prose, so the evidence and the explanation don't obviously agree."
+  },
+  {
+   "quote": "register rules written for sentences",
+   "why": "'Register rules' are never explained. The reader doesn't know what the linter's rules check, so the misfire claim can't be followed."
+  },
+  {
+   "quote": "`--skip-quoted` already blanked table cells, along with blockquotes and italics.",
+   "why": "It's unclear how the existing flag relates to the new one. If it already covered tables, the motivation is only the italics-still-scanned case, yet the Why section justifies the change by table hit rates alone."
+  }
+ ],
+ "point": "The PR adds an opt-in `--skip-tables` flag to the linter that blanks table lines, keeping line numbers, because most table-cell hits in a sample run were judged false alarms."
+}

@@ -1,0 +1,26 @@
+{
+ "stumbles": [
+  {
+   "quote": "The first round of this experiment measured that 8% and concluded that domain vocabulary does not help much. The second round traced the small saving to the pre-tokenizer.",
+   "why": "Refers to earlier rounds the reader hasn't seen; unclear what differed between rounds, and it sits oddly with the opening 'Yes'."
+  },
+  {
+   "quote": "Oskar asked the question on 2026-11-06",
+   "why": "Oskar is never introduced, so the reader doesn't know who he is or why his question matters."
+  },
+  {
+   "quote": "the follow-up experiment `lifesci-ettin` tests it",
+   "why": "Names an experiment the text doesn't explain or locate, and it's unclear whether it has been run or what it found."
+  },
+  {
+   "quote": "uses 21% fewer tokens than Ettin's tokenizer",
+   "why": "Doesn't say if the comparison is against the 376-token average, and 'cheaper' is never tied to compute or cost. Ettin itself is also never explained."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this.",
+   "few": "",
+   "why": "This is a broad claim that doesn't follow from the two models named. It assumes those are the only clinical ModernBERTs, and the text never explains what they are."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed abstracts and also switching to whitespace-only pre-tokenization cuts token counts by 21% against Ettin's tokenizer, but keeping GPT-2 pre-tokenization saves only 8%, and whether a model trained on it performs well is untested."
+}

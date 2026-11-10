@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes."
+  },
+  {
+   "quote": "its main use for remex would be faster training",
+   "why": "remex is never explained (apparently a quantization/search library); we can't tell what it is or what it trains."
+  },
+  {
+   "quote": "remex's 1-bit quantization",
+   "why": "Unexplained prior system; unclear what the quantizer is, how it's applied per dimension, or what the baseline is."
+  },
+  {
+   "quote": "e-means reaches the error of 25 iterations of Lloyd's k-means in 1 to 3 passes",
+   "why": "e-means is never described. 'Passes' is not defined, and it's unclear whether a pass is comparable to a Lloyd iteration."
+  },
+  {
+   "quote": "On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "Unclear whether the speedup is wall-clock or iterations, and which pass count maps to which speedup. The baseline and k are not given."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "This doesn't follow from the text. 4,096 centroids over 100,000 vectors is amortised, and the dimension and precision are not given. It is also compared to a second bit per dimension with no figure for that cost."
+  },
+  {
+   "quote": "remex's hash cells find 70% while scanning 34%.",
+   "why": "The hash-cell method is not explained. The comparison also isn't like for like: the 90% recall is of 'true neighbours' with no stated k, whereas the earlier figure was recall@10."
+  },
+  {
+   "quote": "A search that scans 0.56% of the corpus finds 90% of the true neighbours.",
+   "why": "0.56% of the corpus is about 1/178, but with 4,096 cells a single cell would be about 0.024%. The number of cells probed (nprobe) is never given, so the scan fraction can't be reproduced."
+  },
+  {
+   "quote": "I had expected the offset coding to be the result and the index cells to be a side note; it came out the other way.",
+   "why": "This conflicts with the earlier statement that the expected main use was faster training. Which expectation was real is unclear."
+  }
+ ],
+ "point": "Using 4,096 k-means centroids as index cells (IVF-style) reached 90% recall while scanning only 0.56% of the corpus, which is far better than the author's hash cells. This mattered more than the faster e-means training or the offset coding, and Lloyd and e-means centroids give the same recall."
+}

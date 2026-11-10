@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "Doesn't say whether line numbers start at 0 or 1. The example shows `\"query\": 1`, but the reader can't tell whether that is the first line or the second."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`, each search rescores its top 100 candidates",
+   "why": "`--keep-float` is a build option, and the text never explains it or the build command. A reader can't tell how to build an index this way. It also doesn't say what happens if `-k` is greater than 100."
+  },
+  {
+   "quote": "`--bits N` sets the quantization width used for the search.",
+   "why": "The text doesn't say which values of N are valid. It only mentions 2 and 4. It also doesn't say whether the width has to be at most the width the index was built with."
+  }
+ ],
+ "point": "`remex search` takes an index and a file of comma-separated query vectors and writes top-k ids and scores as JSON Lines. `--bits` trades recall for speed, and rescoring happens only if the index was built with `--keep-float`."
+}

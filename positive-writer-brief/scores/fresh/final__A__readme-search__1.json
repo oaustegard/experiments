@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "Rescoring depends only on how the index was built.",
+   "why": "Says rescoring depends only on build, but the `--bits` section and search flags are separate; it's unclear whether any search flag can enable/disable rescoring or whether `--keep-float` is a build option of a command not shown. The README never shows how to build an index."
+  },
+  {
+   "quote": "If it was built with `--keep-float`",
+   "why": "The build command is never shown or explained here, so I don't know where this flag goes or what it stores."
+  },
+  {
+   "quote": "`--bits` sets the quantization width used for the search.",
+   "why": "Unclear whether the index must have been built with a matching bit width, and what values are valid besides 2 and 4."
+  },
+  {
+   "quote": "each search rescores its top 100 candidates",
+   "why": "Unclear how this interacts with `-k` (e.g. if k exceeds 100) and whether the 100 is configurable."
+  },
+  {
+   "quote": "recall@10 is 0.93 at 4 bits",
+   "why": "Doesn't say whether this figure is with or without rescoring, so it can't be tied to the rescoring paragraph. 'EmbeddingGemma test set' is also unexplained."
+  },
+  {
+   "quote": "`scores[i]` is the score for `ids[i]`.",
+   "why": "Doesn't say what the score is (distance or similarity) or whether higher is better, nor what the ids refer to."
+  },
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`.",
+   "why": "Doesn't say whether numbering starts at 0 or 1; the example shows 1 but it's not stated, and blank lines are not addressed."
+  }
+ ],
+ "point": "remex search takes an index and a file of comma-separated query vectors, returns top-k ids and scores per query as JSON Lines, and trades recall for speed via --bits, with float rescoring only if the index was built with --keep-float."
+}

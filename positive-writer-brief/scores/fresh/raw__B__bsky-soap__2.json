@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "ΔE76 0.07 vs a reference",
+   "why": "Doesn't say what the reference is (a physical photo, a physics model, another renderer). A ΔE of 0.07 is also far below visible difference, so I can't tell what was compared."
+  },
+  {
+   "quote": "interference LUT",
+   "why": "Doesn't say what the lookup table maps (thickness to colour?) or where it comes from. Most readers can guess, but not with confidence."
+  },
+  {
+   "quote": "Only tested headless.",
+   "why": "Unclear what it means for a phone-tilt demo. I can't tell if it was never run on a real device or GPU, or if tilt and sensors were never tried. It also sits oddly beside a precise colour metric."
+  },
+  {
+   "quote": "black film spreads from the top",
+   "why": "Doesn't say what black film is. I would have to know the thin-film term (the thinnest film that appears black just before popping) to follow it."
+  },
+  {
+   "quote": "thickness acts as density",
+   "why": "Unclear whether this is the simulation's rule or a physical claim. It also isn't clear how tilt gives the sinking and rising direction."
+  }
+ ],
+ "point": "A WebGPU compute-shader soap film demo that you can tilt on a phone: thick film sinks, thin film rises, the edge drains, and it pops. Its colours come from an interference lookup table checked against a reference, but it has only been tested headless."
+}

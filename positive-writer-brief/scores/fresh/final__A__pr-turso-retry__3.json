@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "four 503s, then failure",
+   "why": "The text says execute() retries up to 4 times, which makes 5 attempts. Four 503s followed by failure could mean the fifth attempt also fails, or that only four attempts are made. I can't tell whether this case matches the stated retry count."
+  },
+  {
+   "quote": "backoff timing stays within bounds",
+   "why": "The bounds are never given. The text says only that the backoff is jittered, exponential and starts at 0.5 s, with no cap or jitter range. I can't tell what the test checks."
+  },
+  {
+   "quote": "Over 40 cold boots on 2026-11-09, 31 hit at least one 503. With the fix, all 40 completed.",
+   "why": "It's unclear whether these are the same 40 boots with and without the fix, or whether the fix was applied for the whole run. Without that, I can't tell what the 31 and the 40 are being compared to."
+  }
+ ],
+ "point": "The PR adds retry with jittered exponential backoff, for 503 and 429 only, up to 4 times, to the Turso client's execute(). This fixes cold-start 503s that boot misreported as \"auth failed\", and the PR backs the fix with a measurement and 6 tests."
+}

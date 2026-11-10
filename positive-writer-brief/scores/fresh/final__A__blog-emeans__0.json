@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "Remex is never explained (a tool? the author's project?), and 'hash cells' is undefined: no hashing scheme or how it partitions the corpus is described."
+  },
+  {
+   "quote": "I had expected this result to be a side note.",
+   "why": "It's unclear what result is meant, and it conflicts with the title and with the later statements that other results were expected to be the main one. Which result was expected to be primary is never stated."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "'Our prior work' refers to an earlier project (presumably remex) that the text never describes. Oskar is also never introduced."
+  },
+  {
+   "quote": "e-means",
+   "why": "It is never defined beyond an arXiv ID. A k-means reader can't tell how it differs from Lloyd's, and 'passes' vs 'iterations' is left unclear."
+  },
+  {
+   "quote": "in 1 to 3 passes",
+   "why": "'Passes' is not defined and is not tied to Lloyd iterations. It's unclear whether one pass costs the same as one Lloyd iteration, so the 1.6 to 10.2 times speedup can't be interpreted."
+  },
+  {
+   "quote": "before remex's 1-bit quantization",
+   "why": "The quantization is not described: 1 bit per dimension of what, and what is the residual coding? The 0.840 baseline is not identified as the 1-bit recall without centroids."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "Not derivable from the text. 4,096 centroids times the dimension (768?) divided by 100,000 vectors would give about this figure, but the dimension is never given. The comparison to 'a second bit per dimension' also depends on that unstated dimension."
+  },
+  {
+   "quote": "Recall@10 rose from 0.840 to 0.891, and I had expected this to be the main result.",
+   "why": "Recall@10 is not clearly the same metric as '90% of true neighbours'. Neither the number of neighbours nor the setup (probe count, quantized or exact) is given, and this is again an 'expected' result."
+  },
+  {
+   "quote": "Lloyd and e-means centroids give the same recall within 0.005, so the choice between them comes down to training time.",
+   "why": "It is unclear which recall is meant (index-cell or residual-coding). It also seems to undercut the earlier claim that e-means centroids are best as index cells, since Lloyd's would do as well."
+  }
+ ],
+ "point": "E-means centroids make very efficient index cells (90% recall at 0.56% scanned versus 70% at 34% for remex's hash cells), which the author didn't expect. Using them for residual coding improves recall but costs more than just adding a bit per dimension, and e-means and Lloyd's centroids give equal recall, so e-means is chosen only for faster training."
+}

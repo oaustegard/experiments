@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "Doesn't say whether line numbers start at 0 or 1. The example output shows `\"query\": 1`, which doesn't settle it, because the example doesn't say which input line it corresponds to."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "The text never explains how an index is built. It doesn't mention a build command, and `--keep-float` isn't in the options table, so I can't tell where this flag goes."
+  },
+  {
+   "quote": "`remex search INDEX QUERY_FILE`",
+   "why": "INDEX is never described. I don't know whether it's a file or a directory, or how to create one."
+  },
+  {
+   "quote": "`--bits` | 4 | Bits per dimension used for the search",
+   "why": "This could contradict the index. If the index was built at some bit width, I can't tell whether `--bits` can exceed it or whether it selects a lower-precision view of the same index. The recall figures for 2 and 4 bits imply it is selectable at search time."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates against the float vectors",
+   "why": "Doesn't say what happens when -k is greater than 100. It also doesn't say whether rescoring changes the scores or only the order."
+  },
+  {
+   "quote": "recall@10 is 0.93 at 4 bits and 0.84 at 2 bits",
+   "why": "Recall is not defined here, and it isn't stated whether it was measured with rescoring. \"EmbeddingGemma test set\" is also not explained."
+  }
+ ],
+ "point": "`remex search` takes an index and a file of comma-separated query vectors, prints each query's nearest neighbours as JSON Lines, and lets you trade accuracy for speed with `--bits` and `-k`. It rescores against float vectors only if the index was built with `--keep-float`."
+}

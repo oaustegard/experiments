@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose, because table cells hold numbers and labels and not sentences.",
+   "why": "\"The two judges\" are never introduced (humans? models?). Also, \"legitimate prose\" is ambiguous: it could mean the hits were false positives or real problems. The reason given (cells aren't sentences) suggests the hits were false positives, so the wording reads as contradictory."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "This flag is not explained elsewhere, and the text never says whether it exists in the same linter or how it is used."
+  },
+  {
+   "quote": "It is meant for drafts that quote bad prose in italics on purpose and still need their tables skipped.",
+   "why": "The text never explains why such drafts need a flag that skips only tables. It also never says what \"bad prose\" means or what the linter flags, so the purpose of the whole tool is unclear."
+  },
+  {
+   "quote": "With the flag set, the linter skips Markdown table rows and still scans the rest of the draft.",
+   "why": "The text never says what `declaude_lint.py` or the `declauding` skill is for, and it never defines \"hits\". A reader who has not seen the project cannot tell what is being linted."
+  },
+  {
+   "quote": "every line that starts with `|` is blanked before scanning",
+   "why": "A table row indented or preceded by whitespace would not start with `|`. The text does not say whether those rows are skipped. It also does not say how table separator rows and tables without leading pipes are handled."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declauding linter. The flag blanks lines that start with `|`, so line numbers stay correct. It is a narrower alternative to `--skip-quoted`, and the PR justifies it with a scan where most table hits were judged not to be real problems."
+}

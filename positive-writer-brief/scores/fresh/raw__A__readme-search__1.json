@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "If the index was built with `--keep-float`, each search rescores its top 100 candidates against the float vectors",
+   "why": "`--keep-float` is a build option, but the text never says which command builds an index (or how). A first-time reader can't tell how to use it."
+  },
+  {
+   "quote": "`--bits` sets the quantization width used for the search.",
+   "why": "It doesn't say whether the width must match how the index was built, or what quantization applies to. It also doesn't say whether the index supports every value, or only 2 and 4."
+  },
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`.",
+   "why": "It doesn't say whether numbering starts at 0 or 1. The example shows 1, but that is only one sample."
+  },
+  {
+   "quote": "each search rescores its top 100 candidates",
+   "why": "It doesn't say what happens when `-k` is greater than 100. It also doesn't say whether the recall and speed figures were measured with or without rescoring."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` reads one comma-separated vector per line and prints JSON Lines of ids and scores for each query, with `-k` and `--bits` trading speed against recall, and rescoring happening only if the index was built with `--keep-float`."
+}

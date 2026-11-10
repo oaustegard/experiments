@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "four 503s: fails",
+   "why": "The text says up to 4 retries, which means 5 attempts. Four 503s followed by a success would then succeed. The case doesn't say whether the server keeps returning 503 after the fourth, so I can't tell what it tests or whether it matches the retry limit."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "'Boot' is never explained. I can't tell which process or startup path calls `execute()`, or why a 503 would be reported as an auth error. The change list doesn't say whether the message was fixed, apart from naming the status code."
+  },
+  {
+   "quote": "The retry count had been 0 since a refactor on 2026-09-14",
+   "why": "It refers to an earlier refactor and an earlier retry setting that the text never shows. I can't tell whether this change restores old behavior or adds a new mechanism. 'Any other status fails at once, as it did before' leaves the same question open."
+  }
+ ],
+ "point": "The PR makes Turso's `execute()` retry up to 4 times with jittered exponential backoff on 503 and 429, so cold-start 503s no longer fail boot, and it keeps the public API unchanged."
+}

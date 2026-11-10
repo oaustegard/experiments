@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what the violations are, what task or rule was tested, and what 'every form' means (caps, lowercase, etc.). 'No directive' is also unexplained."
+  },
+  {
+   "quote": "Naming the forbidden word added ~2.5 log-odds to it.",
+   "why": "The 'forbidden word' is never identified, and it's unclear which instruction or prompt forbade it. 'Added to it' is ambiguous: it could mean the word's probability or the violation rate."
+  },
+  {
+   "quote": "Baguettotron (321M)",
+   "why": "Never explained. A reader can't tell this is a small language model, and '321M' (parameters?) is unlabeled."
+  },
+  {
+   "quote": "The 22,100-doc corpus's one capitalised instruction",
+   "why": "It's unclear which corpus this is (training data for the model?) and why it matters. 'One' suggests that it's the only capitalised instruction, but that is not stated."
+  }
+ ],
+ "point": "Capitalising instructions did not stop a tiny model from violating them, and naming the forbidden word made it more likely, which may be because its training corpus has almost no capitalised instructions."
+}

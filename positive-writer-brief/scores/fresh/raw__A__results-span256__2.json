@@ -1,0 +1,49 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-09",
+   "why": "Oskar is never introduced, and the quoted question leans on a prior conversation. The 'that' in 'does that mean' has no referent."
+  },
+  {
+   "quote": "by reversing the widening",
+   "why": "The 'widening' is not explained at this point. It only becomes clear from the next sentence, which says the last layer projects 256 up to 768."
+  },
+  {
+   "quote": "That output matrix folds into a 256-to-256 matrix",
+   "why": "'Folds' is not defined. It is unclear what is multiplied with what, or why a 256-to-256 matrix results."
+  },
+  {
+   "quote": "Hit@10 is 0.918 both ways on all 9,500 queries",
+   "why": "The text never says what dataset or task the queries come from. Hit@10 is also not defined, and it is not related to the recall@10 used later."
+  },
+  {
+   "quote": "The live index stores remex codes at 2 bits × 768 dimensions: 200 bytes per vector",
+   "why": "'Remex' and 'the live index' are never explained. The byte count does not match 2×768 bits, which is 192 bytes, so there is some unstated overhead."
+  },
+  {
+   "quote": "Quantized storage also gets cheaper, but only at a higher bit width.",
+   "why": "This seems to contradict the table and the later line. 3×256 is cheaper than the live index, but the 2-bit 256 option is worse. 'Cheaper at a higher bit width' is confusing, and the claim is only true if 'cheaper' means at equal recall."
+  },
+  {
+   "quote": "At the same width the shorter codes lose: 2 bits × 256 gives 0.763.",
+   "why": "'Same width' is ambiguous. It means the same bits per dimension, not the same bytes. Also, 2×256 is missing from the table."
+  },
+  {
+   "quote": "Remex's rotation folds into the same matrix, so the model can emit rotated coordinates directly.",
+   "why": "The rotation is never introduced. It is unclear how it relates to the quantization described earlier."
+  },
+  {
+   "quote": "With an int8 head, 4-bit codes reach 0.931.",
+   "why": "'int8 head' is undefined, and it is unclear whether it is a change to the model. The result is also not in the table, and the byte cost is not given."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier gives identical answers, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout is an unexplained name, and so is its classifier. It is unclear what is being fitted, and the claim is unrelated to the storage question."
+  },
+  {
+   "quote": "The search indexes on the site are still 768-dimensional.",
+   "why": "'The site' is not identified. It is unclear whether this contradicts 'The live index' using 768 dimensions, or whether it just repeats it."
+  }
+ ],
+ "point": "Ettin-17m's 768-dimensional outputs can be folded down to 256 dimensions with no loss in float search (Hit@10 of 0.918 both ways), and quantized 256-dimension codes do better than the current 2-bit 768-dimension index once you use 3 or more bits per dimension."
+}

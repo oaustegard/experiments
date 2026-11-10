@@ -1,0 +1,9 @@
+{
+ "stumbles": [
+  {
+   "quote": "four 503s: fails",
+   "why": "The Change section says `execute()` retries up to 4 times, which makes 5 attempts. Four 503s followed by a success would then succeed, not fail. The case only fits if the fake server keeps returning 503, or if the limit is really 4 attempts. The text doesn't say which."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry HTTP 503 and 429 with jittered exponential backoff, so cold-start 503s no longer show up as a false \"auth failed\" at boot. Other errors still fail immediately, and the PR backs this with a measurement and 6 tests."
+}

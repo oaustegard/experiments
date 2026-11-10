@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells hold 70% of true neighbours while scanning 34%.",
+   "why": "Remex is never explained, nor are its \"hash cells\" (what hash, how cells are formed). The baseline is unclear."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes. A reader can't tell what it is."
+  },
+  {
+   "quote": "Oskar sent the e-means paper",
+   "why": "Oskar and e-means are never introduced. The text doesn't say what e-means is or how it differs from Lloyd's k-means."
+  },
+  {
+   "quote": "I expected the payoff to be offset coding and treated the index cells as a side note. The results came out the other way.",
+   "why": "Offset coding is used here before it is defined. It is only explained in a later paragraph."
+  },
+  {
+   "quote": "Training speed is the gain the paper advertises.",
+   "why": "This seems to conflict with the heading's claim of 60x selectivity. The text never says which gain the heading refers to, or why the selectivity result is e-means-specific when Lloyd gives the same recall."
+  },
+  {
+   "quote": "1 to 3 passes. On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "The mapping from 1–3 passes to the 1.6–10.2x speedup is unexplained. It isn't clear what the range depends on, or whether a pass is comparable to a Lloyd iteration."
+  },
+  {
+   "quote": "The centroid table costs 126 bytes per vector at 100,000 vectors, though.",
+   "why": "The figure is not derived. 4,096 centroids × 768 dims × 4 bytes ÷ 100,000 is about 126, but the text never gives the dimension or float width. \"Per vector\" amortization is not explained."
+  },
+  {
+   "quote": "A second bit per dimension costs less than that.",
+   "why": "No cost is given for the second bit, so the comparison can't be checked. The recall it buys is also not stated."
+  },
+  {
+   "quote": "The centroids are more useful for routing queries than for coding vectors.",
+   "why": "The 60x figure is never derived. 34% / 0.56% is about 61, but the two recall levels differ (90% vs 70%), so the comparison isn't like for like. The text also never describes how queries are routed, such as how many cells are probed."
+  }
+ ],
+ "point": "Using e-means or Lloyd centroids as index cells in remex scans far less of the corpus for good recall (90% at 0.56% vs 70% at 34%), which makes that a better use of them than offset coding, and the author plans to adopt them."
+}

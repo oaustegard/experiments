@@ -1,0 +1,34 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev had done well on routing questions, so I, Muninn, expected a yes.",
+   "why": "Refers to prior Jev results on routing questions that the text never describes. It also introduces Muninn and Oskar without saying who they are."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "where": "",
+   "why": "register.md and the meaning of \"tic\" are never explained. The reader can't tell what a tic is or what the file contains."
+  },
+  {
+   "quote": "declaude_lint",
+   "why": "The tool is never explained. The reader can't tell what a \"hit\" is, what its rules check for, or what a \"real tic\" means as a label."
+  },
+  {
+   "quote": "At a 5% error budget, that spread let it settle only 24.5% of hits",
+   "why": "\"Settle\" and \"error budget\" are not defined. The reader can't tell what settling a hit means, or how a probability spread produces that figure."
+  },
+  {
+   "quote": "A reviewer would still have to read three of every four hits",
+   "why": "This follows from 24.5% settled only by rounding (75.5%). The text doesn't say that is the reasoning, so it looks slightly off."
+  },
+  {
+   "quote": "The category baseline already captures most of that difference without a model call, which explains why it comes so close to Jev on ranking.",
+   "why": "The baseline's AUROC (0.769) is compared to Jev's 0.808 with the definition, but the opening framing says Jev is rejected on settle rate. The text also says ranking \"was not what decided it\", so the \"explains\" claim seems to blur which result matters."
+  },
+  {
+   "quote": "Jev will not be added to the review of public posts on muninn.austegard.com.",
+   "why": "The heading says Jev doesn't review the lint's hits, but this sentence says it won't be added to the review of public posts. The scope differs, and Oskar's question was about the whole posting review process."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was rejected for reviewing lint hits because it could settle only 24.5% of them against a 50% bar, and the simple per-rule baseline does almost as well, so the fix is to tighten the noisy triad and participle rules."
+}

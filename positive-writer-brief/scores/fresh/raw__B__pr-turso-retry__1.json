@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "3. four 503s: fails",
+   "why": "The text says `execute()` retries up to 4 times, which allows 5 attempts. Four 503s followed by a failure would mean only 4 attempts, or 3 retries. It is unclear which is intended, and the case seems to contradict the retry count."
+  },
+  {
+   "quote": "5. backoff timing stays within its bounds",
+   "why": "The bounds are never given. The text states only a 0.5 s start. It gives no jitter range, growth factor or cap, so I can't tell what the test checks."
+  },
+  {
+   "quote": "because the retry count has been 0 since a refactor on 2026-09-14",
+   "why": "The text doesn't say where this retry count lives, such as a config value or a parameter. It also doesn't say what the refactor was. The reader has to guess how a retry count of 0 relates to the new code."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry HTTP 503 and 429 with jittered exponential backoff, so cold-start 503s stop failing and stop being reported as auth failures. All other statuses still fail at once."
+}

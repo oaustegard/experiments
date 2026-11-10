@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "retries 503 and 429 up to 4 times",
+   "why": "This conflicts with the test \"four 503s, then failure\". Four retries means five attempts, so four 503s would not yet exhaust the retries. It is unclear whether 4 counts retries or total attempts."
+  },
+  {
+   "quote": "The retry count had been 0 since a refactor on 2026-09-14, so nothing retried the request.",
+   "why": "The text never says what the \"retry count\" is, such as a config value or a constant. It also doesn't say what the refactor was, or whether this change restores a setting or adds new logic. I can't tell how the 0 relates to the new \"up to 4 times\"."
+  }
+ ],
+ "point": "The PR makes the Turso client's execute() retry 503 and 429 responses with exponential backoff, so cold-start 503s no longer cause boot to fail with a misleading \"auth failed\". Cold-boot runs and six new tests back it up."
+}

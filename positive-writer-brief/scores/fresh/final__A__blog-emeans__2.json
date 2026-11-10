@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells hold 70% while scanning 34%.",
+   "why": "remex is never explained (a library? your own system?), nor are its \"hash cells\"; the comparison baseline is opaque."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes; Oskar is also unintroduced."
+  },
+  {
+   "quote": "e-means",
+   "why": "Never defined beyond an arXiv ID; we can't tell what the algorithm is or how it differs from Lloyd's, and \"1 to 3 passes\" is unclear."
+  },
+  {
+   "quote": "coded each vector as an offset from its nearest of the 4,096 centroids before remex's 1-bit quantization",
+   "why": "Assumes knowledge of remex's quantization pipeline; \"offsets\" in the title is only explained here, and the baseline for recall 0.840 is not stated."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "4,096 centroids over 100,000 vectors with EmbeddingGemma dimensions (unstated) gives a figure that can't be checked; the dimension is not given, and the comparison to \"a second bit per dimension\" has no stated cost."
+  },
+  {
+   "quote": "Used as index cells, the 4,096 centroids that e-means trains hold 90% of true neighbours while scanning 0.56% of the corpus.",
+   "why": "Not stated how the 90% is measured (recall at what k, how many cells probed), and the later \"within 0.005\" recall claim uses a different, unspecified metric; the \"index cells\" experiment is only described after the fact with no details."
+  },
+  {
+   "quote": "I assumed the gain would mostly be training speed and spent the first hour benchmarking it.",
+   "why": "Seems to conflict with the later statement that the offset coding was expected to be the main result; the text gives two different prior expectations."
+  }
+ ],
+ "point": "Trained centroids (from e-means or Lloyd, equal in quality) work much better as index cells than as quantization offsets, with e-means mainly just faster to train."
+}

@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "\"Remex\" is never explained (a library? the author's earlier system?). \"Hash cells\" is also undefined, so the baseline is unclear."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work by the author and Oskar that the text never describes. Oskar is also never introduced."
+  },
+  {
+   "quote": "before remex's 1-bit quantization",
+   "why": "Remex's quantization is assumed known. It is unclear what is quantized or how, and it is unclear what the baseline recall of 0.840 refers to."
+  },
+  {
+   "quote": "e-means",
+   "why": "The method is never defined beyond an arXiv ID. The reader can't tell how it differs from Lloyd's k-means, or what \"passes\" means compared with iterations."
+  },
+  {
+   "quote": "I had expected this result to be a side note.",
+   "why": "The text does not say what the expected main result was until later. \"This result\" is ambiguous, and the section title and opening claim don't set it up."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids × the dimension × bytes, divided by 100,000 vectors, gives 126 only for a specific dimension and precision (768 dimensions at 4 bytes gives about 126), but none of these is stated. The reader can't check it."
+  },
+  {
+   "quote": "A second bit per dimension would cost less than that.",
+   "why": "The comparison is implicit. It is unclear whether 2-bit quantization would achieve equal recall, and the conclusion is left unstated. It also relies on the unstated dimension."
+  },
+  {
+   "quote": "Lloyd and e-means centroids give the same recall within 0.005, so the choice between them comes down to training time.",
+   "why": "It is unclear which recall this refers to (index-cell recall or residual-coding recall). It also sits oddly with the heading that says the centroids work best as index cells."
+  },
+  {
+   "quote": "Used as index cells, 4,096 e-means centroids hold 90% of true neighbours while scanning 0.56% of the corpus.",
+   "why": "The probe setup is not given: how many cells are probed, at what k, and on what corpus size. 0.56% of 4,096 cells is about 23 cells' worth only if cells are equal-sized, which isn't stated."
+  }
+ ],
+ "point": "E-means centroids are better used as index cells (90% recall at 0.56% scanned) than as residual-coding anchors or as a training-speed win, and they match Lloyd's recall."
+}

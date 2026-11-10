@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "The judges are never introduced (human or model, what they judged). Also \"legitimate prose\" is unclear: it seems to mean the hits were false positives, but it reads as if the lint hits were valid."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "It's unclear why `--skip-quoted` isn't enough, since it already skips tables. The next sentence explains this, but the sentence itself seems to conflict with the need for the new flag."
+  },
+  {
+   "quote": "Some drafts quote bad prose in italics on purpose and should still have those italics scanned",
+   "why": "It's not explained why deliberately quoted bad prose should be linted, or what \"bad prose\" means here. The linter's purpose (\"declaude\") is never stated."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the linter. It skips only Markdown table lines, so line numbers don't shift, and it avoids the many false hits in table cells without also skipping italics or blockquotes as `--skip-quoted` does."
+}

@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "That was the round 1 result, and the reading at the time was that domain vocabulary does not help much.",
+   "why": "Refers to an earlier round/version of the project that the text never describes (what was run, by whom, on what data)."
+  },
+  {
+   "quote": "Round 2 found the cause in the GPT-2 pre-tokenizer",
+   "why": "Unclear whether Round 2 is this experiment or another. It also doesn't explain how GPT-2's pre-tokenizer relates to Ettin's tokenizer, which was described as its own BPE."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06: \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+   "why": "Oskar is not introduced. The quote is elided, and it is not clear how it connects to the answer given (token count only, no model trained)."
+  },
+  {
+   "quote": "A 50K-token BPE retrained on 39,000 abstracts, with whitespace-only pre-tokenization, saves 21%.",
+   "why": "The 21% saving is not tied to the 376-token baseline. The comparison also mixes vocabulary size and training data, since Ettin's vocabulary size isn't given."
+  },
+  {
+   "quote": "`lifesci-ettin`",
+   "why": "Refers to a follow-up experiment with no explanation of where it lives or what it contains."
+  },
+  {
+   "quote": "Yes. A life-sciences vocabulary makes Ettin about a fifth cheaper",
+   "why": "\"Cheaper\" is only measured as fewer tokens per abstract. The text says later that no model was trained, so cost savings are inferred rather than measured."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed abstracts and switching to whitespace-only pre-tokenization cuts tokens per abstract by about 21% compared with Ettin's tokenizer, while retraining the table alone saves only 8%. This is a token-count result only, and no model has been trained yet."
+}

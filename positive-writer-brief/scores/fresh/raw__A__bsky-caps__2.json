@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what the 43 items are, what a 'violation' is, or what 'every form' means. It could be 42 of 43 prompts violated, but that is never stated. It also doesn't say what the directive was."
+  },
+  {
+   "quote": "Caps didn't change compliance",
+   "why": "Compliance with what? The text never says which instruction or task the model was given, or what caps were compared against."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "Unclear whether this means the word was more likely to be generated, and in what context or compared to what baseline. It's also unclear how it fits with the compliance result."
+  },
+  {
+   "quote": "Its 22,100-doc corpus had one caps instruction: 'NEVER give a baby honey'.",
+   "why": "'Its' presumably refers to the model's training corpus, but that isn't stated. The link between this one example and the findings is also left implicit."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The name is unexplained. A reader may not know it is a small language model, or that 321M means parameters."
+  }
+ ],
+ "point": "A tiny 321M-parameter model ignored instructions whether or not they were in caps, and mentioning a forbidden word made it more likely to say it, possibly because its training data had almost no caps instructions."
+}

@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or what call it names. A reader without prior context can't tell what the guard recommends."
+  },
+  {
+   "quote": "from a session",
+   "why": "It's unclear what kind of session this means (an agent session? a sandbox?), and why release creation returns 403 there. The 403 cause is assumed rather than stated."
+  }
+ ],
+ "point": "The guard script now blocks `gh api` POSTs to paths ending in /releases or /git/refs, as well as `gh release create`, because those calls return 403 in a session, and the commit adds 4 tests."
+}

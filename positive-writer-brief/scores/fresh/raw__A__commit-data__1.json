@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "Jev and the register.md entry are never explained; unclear what is being scored or what the entry is."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "Unclear what the 'category prior' is as a baseline, or what task the AUROC measures."
+  },
+  {
+   "quote": "Fraction settled at 5% error: 24.5%",
+   "why": "'Settled' is undefined, and it is unclear what the 5% error refers to."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker",
+   "why": "The @evidence marker convention is not explained. 'now' implies an earlier RESULTS.md that the text doesn't describe."
+  },
+  {
+   "quote": "`python3 _lib/evidence.py jev-prose-lint/RESULTS.md`",
+   "why": "The checker's behavior is not described, so it is unclear what 'passes' guarantees. It also implies a particular working directory."
+  }
+ ],
+ "point": "The commit adds the metrics file and its generating script for a Jev prose-lint experiment. Jev with the entry scores 0.808 AUROC against 0.769 for the prior, but the bootstrap CI includes zero, so the improvement isn't clearly real."
+}

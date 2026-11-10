@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of the 63 as legitimate prose: the cells held numbers and labels, not sentences.",
+   "why": "The text never says who or what the \"two judges\" are. \"Legitimate prose\" also contradicts the clause after the colon, which says the cells weren't sentences. I can't tell whether the 58 hits were false positives or real ones."
+  },
+  {
+   "quote": "I ran the linter over 41 published posts and got 300 hits.",
+   "why": "The text never says what the linter looks for or what counts as a \"hit\". \"declaude\" is unexplained. Without that, I can't judge whether table hits are noise."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, along with blockquotes and italics.",
+   "why": "The flag is introduced as if I already knew it. The text doesn't say how it is activated or how it differs in detail. It also doesn't say why `--skip-tables` should exist alongside it, beyond the italics case."
+  },
+  {
+   "quote": "blanks every line that starts with `|`",
+   "why": "The text calls the target \"Markdown tables\" and \"table cells\". Tables without a leading pipe, or indented ones, aren't covered, and the text doesn't say whether that is intended."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declauding linter that blanks lines starting with `|`, so table cells aren't flagged and line numbers stay correct, and it exists separately from `--skip-quoted` so italics are still linted."
+}

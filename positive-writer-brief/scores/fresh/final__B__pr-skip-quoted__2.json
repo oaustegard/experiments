@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of the 63 as legitimate prose: the cells held numbers and labels rather than sentences.",
+   "why": "The judges are never introduced. The sentence also contradicts itself: cells holding numbers and labels are not prose, and the motivation only makes sense if the 58 were false positives, not legitimate prose. 'Legitimate' is ambiguous because it could mean either 'fine' or 'real prose'."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, along with blockquotes and italics.",
+   "why": "This makes the new flag look redundant, and the reader must infer the difference from the next sentence. 'Table cells' also differs from the 'lines that start with |' rule used for the new flag."
+  },
+  {
+   "quote": "It is meant for drafts that quote bad prose in italics on purpose",
+   "why": "'Bad prose' is not defined, and the text does not say what the linter flags. The 'declauding' skill and 'declaude_lint.py' are never explained either, so the reader cannot tell what a 'hit' is."
+  },
+  {
+   "quote": "A lint run over 41 published posts on 2026-11-07 produced 300 hits.",
+   "why": "The text does not say which posts or which linter configuration were used. It also does not say how the 300 hits split beyond tables, or whether 'hits' means true problems or flagged patterns."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declauding linter that blanks table lines before scanning, and the reason given is that most table hits in a recent scan were judged false positives. That reason is garbled by the 'legitimate prose' wording."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked the question on 2026-11-06",
+   "why": "Oskar is never introduced, and the quoted question is about a fully custom model, not the tokenizer comparison. The reader can't tell who he is or why his question matters."
+  },
+  {
+   "quote": "so most of the 21% comes from changing the pre-tokenizer, not from the new vocabulary alone",
+   "why": "The text says 21% with whitespace-only and 8% with GPT-2, so about 13 of the 21 points come from the pre-tokenizer. That conflicts with the opening 'Yes... cheaper' framing, which credits the vocabulary. It also never reports a baseline of Ettin's own vocabulary with the pre-tokenizer changed, so the split between the two effects is unclear."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this.",
+   "why": "This doesn't follow from the premise. Shipping Ettin's tokenizer shows only that those two models didn't change it. It doesn't show that no clinical ModernBERT has tried it, and the text names only two models."
+  },
+  {
+   "quote": "A separate follow-up experiment, `lifesci-ettin`, trains models on the new table.",
+   "why": "'The new table' is ambiguous. It could mean the 50K table with whitespace-only pre-tokenization or the GPT-2 one. Also, 'table' and 'vocabulary' are used interchangeably without explanation."
+  },
+  {
+   "quote": "uses 21% fewer tokens than Ettin's tokenizer",
+   "why": "It isn't clear whether the comparison is against Ettin's tokenizer with its own GPT-2 pre-tokenizer, which is presumably 376 tokens per abstract. The text also doesn't say whether 'cheaper' means token count only, since cost in compute isn't measured."
+  }
+ ],
+ "point": "A PubMed-specific 50K BPE vocabulary cuts tokens by 21% only with whitespace-only pre-tokenization, and by just 8% with Ettin's GPT-2 pre-tokenizer, so most of the gain comes from the pre-tokenizer."
+}

@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked the question on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and the quote refers to \"that\" and \"the widening\" from a prior conversation. It sits mid-answer and doesn't help the reader."
+  },
+  {
+   "quote": "The live index stores remex codes at 2 bits × 768 dims in 200 bytes",
+   "why": "\"remex\" and \"the live index\" are never explained. The byte count also doesn't clearly follow from 2 bits × 768 (192 bytes), and the extra 8 bytes are unexplained."
+  },
+  {
+   "quote": "Quantized codes on the 256 folded dimensions beat the live index while using fewer bytes.",
+   "why": "This is only partly true. The 3-bit row (0.868 vs 0.857) beats the live index at fewer bytes, but 4-bit (136 bytes) and 8-bit (264 bytes) are not clearly fewer than 200 bytes, so the claim contradicts the table for 8 bits."
+  },
+  {
+   "quote": "At the same bit width the 256-dim codes do worse: 2 bits × 256 gives 0.763.",
+   "why": "It compares against 0.857, which is recall for 2 bits × 768, but doesn't say so. The 2-bit row is also missing from the table."
+  },
+  {
+   "quote": "remex's rotation folds into the same matrix too, so the model can output rotated coordinates directly. With an int8 head this reaches 0.931 at 4 bits.",
+   "why": "\"rotation\" and \"int8 head\" are unexplained, and it's unclear whether 0.931 is recall@10 and how it compares to 0.927."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout and its classifier are never introduced, and \"fitting\" is unclear. The relevance to the question is unstated."
+  },
+  {
+   "quote": "hit@10 is 0.918 for both the 768-dim and the folded 256-dim embeddings, and their scores agree within 1.1e-06.",
+   "why": "hit@10 and \"scores\" are undefined, as is the \"9,500 queries\" set. It's unclear whether recall@10 is measured against float search or ground truth."
+  }
+ ],
+ "point": "Ettin-17m's final 256-to-768 output matrix can be folded so 256-dim embeddings match 768-dim float search quality, and quantizing those 256 dims with more bits per dimension can beat the current 2-bit 768-dim index, though the site's indexes haven't been changed."
+}

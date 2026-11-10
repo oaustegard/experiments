@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "The text never says who or what \"the two judges\" are (people, models, a test harness). \"Legitimate\" is also unexplained: it seems to mean not a real violation."
+  },
+  {
+   "quote": "because the cells held numbers and labels rather than sentences",
+   "why": "This conflicts with calling the cells \"legitimate prose\". The cells are said to be numbers and labels, not sentences, so they are not prose at all."
+  },
+  {
+   "quote": "It reported 300 hits",
+   "why": "The text never says what counts as a hit, meaning which patterns the linter flags. That makes it hard to see why table cells would trigger it."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag that blanks only lines starting with `|`, so the linter ignores Markdown tables, which produced many false positives, while italics and blockquotes are still scanned."
+}

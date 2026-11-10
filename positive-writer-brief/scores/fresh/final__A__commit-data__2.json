@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC for Jev with the register.md entry: 0.808",
+   "why": "Jev and the register.md entry are never explained; unclear what Jev is (a model? a linter?) or what the entry is."
+  },
+  {
+   "quote": "AUROC for the category prior: 0.769",
+   "why": "\"Category prior\" is undefined: unclear what categories or what baseline this is."
+  },
+  {
+   "quote": "Fraction settled at 5% error: 24.5%",
+   "why": "\"Settled\" is undefined; unclear what is settled, or what 5% error means."
+  },
+  {
+   "quote": "RESULTS.md now cites each of these numbers with an @evidence marker.",
+   "why": "\"@evidence marker\" and RESULTS.md's prior state are not explained; the reader cannot tell what the marker does or what is checked."
+  },
+  {
+   "quote": "`python3 _lib/evidence.py jev-prose-lint/RESULTS.md` passes.",
+   "why": "The checker's purpose is not stated, so \"passes\" has no clear meaning."
+  },
+  {
+   "quote": "The interval includes zero.",
+   "why": "The implication is left unsaid: does Jev-with-entry beat the prior or not? It is also unclear why 0.808 vs 0.769 is cited as a result."
+  }
+ ],
+ "point": "The commit adds an analysis script and a metrics file reporting AUROCs for Jev with and without a register.md entry versus a category prior, with a bootstrap CI that includes zero, so the improvement over the prior is not clearly significant."
+}

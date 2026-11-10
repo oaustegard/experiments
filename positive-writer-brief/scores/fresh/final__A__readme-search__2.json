@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "`--bits` sets the quantization width used for the search.",
+   "why": "The text never explains how the search quantization relates to the index. It doesn't say whether the index must have been built with matching bits, or what quantization is applied to."
+  },
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "It doesn't say whether line numbers start at 0 or 1, so the output can't be mapped back to queries reliably."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates",
+   "why": "This conflicts with -k, which is not capped. It doesn't say what happens if -k is greater than 100. It also doesn't say whether rescoring changes the scores or only the ranking."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "The text never describes the build command or this flag, and it doesn't say where they are documented. A first-time reader can't tell how to check how an existing index was built."
+  }
+ ],
+ "point": "remex search reads comma-separated query vectors from a file, returns the top-k IDs and scores per query as JSON Lines, and lets you trade recall for speed with --bits. It rescores candidates only if the index was built with --keep-float."
+}

@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`.",
+   "why": "Doesn't say whether line numbers start at 0 or 1. The example output shows `\"query\": 1`, which doesn't settle it."
+  },
+  {
+   "quote": "`ids` and `scores` hold one entry for each of the `k` results.",
+   "why": "Doesn't say what the ids refer to (position in the index? something assigned at build time?). Doesn't say whether scores are distances or similarities, or what order they come in."
+  },
+  {
+   "quote": "Bit width used for the search",
+   "why": "The text never says what bit width means here. It doesn't say whether the index has to be built with a matching width, or which values are valid beyond 2 and 4."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates with the float vectors",
+   "why": "Doesn't say how this interacts with `-k` (for example, k above 100). It also doesn't say whether the recall and latency figures include rescoring."
+  },
+  {
+   "quote": "At 4 bits, recall@10 is 0.93 on the 100,000-vector EmbeddingGemma test set.",
+   "why": "The 'EmbeddingGemma test set' is never explained. The text also doesn't say whether rescoring was on for this figure."
+  },
+  {
+   "quote": "build the index with `--keep-float`",
+   "why": "The build command isn't shown anywhere in this section, and `--keep-float` is not documented here. A first-time reader doesn't know how to build an index."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` reads comma-separated query vectors, one per line, and prints nearest neighbours as JSON Lines. `-k` and `--bits` control the result count and search precision, and rescoring only happens if the index was built with `--keep-float`."
+}

@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"that\" and \"the widening\" refer to an earlier conversation or finding the text never describes."
+  },
+  {
+   "quote": "Ettin-17m's final output matrix maps 256 dimensions to 768, and it folds into a 256-to-256 matrix.",
+   "why": "\"Folds into\" is never explained. It's unclear what is folded with what, or why this gives a 256-dim output equal to the 768-dim one."
+  },
+  {
+   "quote": "the live index (2 bits × 768 dims, 200 bytes)",
+   "why": "\"Live index\" is not defined. It is also unclear how 2 bits × 768 dims comes to 200 bytes, since the raw bits would be 192 bytes. The extra bytes are unexplained."
+  },
+  {
+   "quote": "remex codes on the 256 folded dimensions",
+   "why": "\"remex\" is never introduced. It could be a quantizer, a library, or something else."
+  },
+  {
+   "quote": "With more bits per dimension, remex codes on the 256 folded dimensions beat the live index on recall and still use fewer bytes:",
+   "why": "The 8-bit row uses 264 bytes, which is more than the live index's 200 bytes, so \"fewer bytes\" contradicts the table. The 3-bit recall of 0.868 is also compared with a different metric basis."
+  },
+  {
+   "quote": "The remex rotation also folds into the same matrix, so the model can output rotated coordinates directly. With an int8 head, that setup reaches 0.931 at 4 bits.",
+   "why": "The rotation and the \"int8 head\" are not explained. It's unclear whether the 0.931 is comparable to the 0.927 in the table, or what \"that setup\" is."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier gives identical answers, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "\"List Scout page\" and its classifier are unexplained. It's unclear what is being fit and how this bears on the question."
+  },
+  {
+   "quote": "On all 9,500 queries, hit@10 is 0.918",
+   "why": "The text never says what dataset or task the queries come from, or what hit@10 measures. It's also unclear how this relates to recall@10 \"vs float\" used later."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions loses nothing for float search, but quantized 256-dim codes need about 4 or more bits per dimension to beat the current 2-bit 768-dim index."
+}

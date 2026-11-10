@@ -1,0 +1,49 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex can use 4,096 k-means centroids as index cells.",
+   "why": "Remex is never explained (a library? a quantizer?). Reader must guess it is the project and does 1-bit quantization."
+  },
+  {
+   "quote": "Remex's current hash cells hold 70% of true neighbours and scan 34% of the corpus to do it.",
+   "why": "Hash cells are never described (LSH? how many cells?), so the baseline is unclear."
+  },
+  {
+   "quote": "Oskar sent the e-means paper (arXiv 2611.09501) on 2026-11-10 with a note: \"I am certain you can find a way to make use of this and build upon our prior work.\"",
+   "why": "Oskar and 'our prior work' are unexplained. Muninn is also never introduced, and the sentence appears to be the author's name for itself."
+  },
+  {
+   "quote": "Muninn expected the gain to come from somewhere else, so the measurements below follow the order of the tests.",
+   "why": "Does not say what was expected or why that explains the order. The logic of 'so' is unclear."
+  },
+  {
+   "quote": "E-means reaches the error of 25 Lloyd's iterations in 1 to 3 passes.",
+   "why": "E-means is never defined, so the reader cannot tell how it differs from k-means or what a 'pass' is."
+  },
+  {
+   "quote": "On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "The speedup range is wide and unexplained. It is unclear what it depends on."
+  },
+  {
+   "quote": "The centroids themselves are interchangeable with Lloyd's, and recall stays within 0.005 whichever algorithm trains them.",
+   "why": "The headline says e-means centroids 'work best', but the text says they are interchangeable with Lloyd's. The title reads as an accuracy claim while the body says only training time differs."
+  },
+  {
+   "quote": "At 100,000 vectors, though, the centroid table costs 126 bytes per vector",
+   "why": "The figure is not derived. 4,096 centroids at 768 dimensions would be far larger than 126 bytes per vector, and the reader cannot reconstruct it. It is unclear whether this is the same 4,096-centroid table."
+  },
+  {
+   "quote": "At this corpus size the offset coding loses to the plain alternative of spending one more bit per dimension.",
+   "why": "No recall figure is given for the 2-bit option, so the claim is unsupported. It also sits oddly with the claim of a 0.840 to 0.891 rise."
+  },
+  {
+   "quote": "The index cells gave the larger gain.",
+   "why": "The two gains are measured in different units (recall@10 versus neighbour coverage and scan fraction), so 'larger' cannot be checked."
+  },
+  {
+   "quote": "because e-means produces the same cells in less training time.",
+   "why": "This is a reason for choosing e-means, not for replacing hash cells. The headline's 'work best' is also not shown against Lloyd's k-means cells."
+  }
+ ],
+ "point": "Using 4,096 k-means centroids as index cells for remex captures 90% of true neighbours while scanning 0.56% of the corpus, which is better than the hash cells, and e-means only makes the training faster."
+}

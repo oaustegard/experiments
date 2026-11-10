@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The first round of this experiment kept that pre-tokenizer and concluded that domain vocabulary does not help much.",
+   "why": "Refers to an earlier round/version the reader has never seen; it isn't explained what was run or where that conclusion was published."
+  },
+  {
+   "quote": "Retraining the table alone saves 8%.",
+   "why": "Unclear baseline and setup: it's not stated whether 8% is measured against Ettin's tokenizer on the same 2,000 abstracts, or what 'table alone' (GPT-2 pre-tokenizer kept) precisely means until later."
+  },
+  {
+   "quote": "The experiment answers Oskar's question of 2026-11-06",
+   "why": "Oskar is an unexplained name, and the quote is truncated with an ellipsis, so the question is not fully known."
+  },
+  {
+   "quote": "the follow-up experiment, lifesci-ettin",
+   "why": "Named without explanation of where it lives or its status; it's unclear whether it exists or has results."
+  },
+  {
+   "quote": "Ettin's tokenizer spends 376 tokens per abstract on that set.",
+   "why": "Ambiguous whether the 376 is a mean or median, and the reader can't easily tell how it relates to the 21% (i.e. the new tokenizer's count) without computing it."
+  }
+ ],
+ "point": "A PubMed-trained 50K BPE vocabulary cuts token counts by 21% versus Ettin's tokenizer, but only if whitespace-only pre-tokenization replaces the GPT-2 splitter (table alone gives 8%), and it is still unproven whether a model trained on it keeps accuracy."
+}

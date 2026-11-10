@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "build upon our prior work",
+   "why": "The prior work is never identified. Readers don't know what \"our\" refers to or what was built before."
+  },
+  {
+   "quote": "before remex's 1-bit quantization",
+   "why": "remex is never explained. It's unclear whether it's a library, a method or the author's own tool, and the reader can't tell what its quantization does."
+  },
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "The baseline is undefined. The text never says what remex's hash cells are, and it doesn't explain how they act as index cells."
+  },
+  {
+   "quote": "the e-means page (arXiv 2611.09501)",
+   "why": "e-means is never defined, and \"page\" is ambiguous. The text only implies it's a faster k-means variant, and \"1 to 3 passes\" is unclear."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids at 768 dimensions in float32 is about 12 MB, which is about 126 bytes per vector at 100,000 vectors, but the dimension and precision are never stated. The comparison to a second bit per dimension also can't be checked."
+  },
+  {
+   "quote": "They hold 90% of true neighbours while scanning 0.56% of the corpus.",
+   "why": "The metric is undefined. It doesn't say how many cells are probed, and 0.56% is about 1/180 of the corpus, which is much more than one cell of 4,096 (0.024%). The probe count is missing."
+  },
+  {
+   "quote": "The 4,096 centroids work best as index cells",
+   "why": "The heading says the centroids work best as index cells. The body only compares them with remex's hash cells, and the offset coding it dismisses wasn't compared on equal terms."
+  },
+  {
+   "quote": "so the choice between the two algorithms comes down to training time",
+   "why": "This conflicts with the opening, where the author spent the first hour on speed and expected the payoff there. It then says the results came out the other way, so the conclusion is muddled about whether speed matters."
+  },
+  {
+   "quote": "On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "The comparison is unclear. It doesn't say whether the speedup is against 25 Lloyd iterations or per pass, or what the range varies over."
+  }
+ ],
+ "point": "The author found that e-means or Lloyd centroids work much better as IVF-style index cells than as offset-coding for quantization, with e-means mainly giving faster training at equal recall."
+}

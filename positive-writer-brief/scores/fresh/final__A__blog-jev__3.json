@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev will not review the lint's hits.",
+   "why": "Jev and \"the lint\" (declaude_lint) are used before being introduced. The opening treats Jev as known, and it is only described as a decision model in the next paragraph. \"The lint\" is never explained as a tool that flags LLM-style tics."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is not introduced, so his role is unclear. \"Public posting review process\" is also not described."
+  },
+  {
+   "quote": "It had done well on routing questions",
+   "why": "It refers to earlier work that the text never describes. \"Routing questions\" is undefined."
+  },
+  {
+   "quote": "the tic's definition from register.md",
+   "why": "\"Tic\" is never defined, and register.md is not explained. I can't tell what a real tic is or what the definition says."
+  },
+  {
+   "quote": "At a 5% error budget, that let it settle only 24.5% of hits.",
+   "why": "\"Settle\" and \"error budget\" are not defined. I can't tell what it means for a hit to be settled, or whether 5% is an error rate on the settled hits. The heading's \"bar of 50\" also isn't tied to 50% of hits until the end."
+  },
+  {
+   "quote": "It ranks them only a little better than the lint category does on its own",
+   "why": "This conflicts with the numbers. Jev with the definition scores 0.808 against 0.769 for the baseline, but without the definition it scores 0.697, which is worse than the baseline. The text doesn't say which Jev setting the opening claim refers to."
+  },
+  {
+   "quote": "35.2% of those 261 were real tics.",
+   "why": "It doesn't say how the 261 judged hits were labeled as real tics. The 39 hits where the judges disagreed are left out. The per-rule counts (5/44, 5/43, 16/18) also don't clearly connect to the 261 total."
+  },
+  {
+   "quote": "At a 0.5 threshold the baseline was more accurate than Jev, 0.751 to 0.732.",
+   "why": "It doesn't say which Jev variant the 0.732 refers to. It is probably the one with the definition, but that isn't stated."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested on lint hits for tics and did not beat a category-only baseline by enough to settle half of the hits at a 5% error budget (it settled 24.5%), so it was not added to the review process."
+}

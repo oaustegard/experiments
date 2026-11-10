@@ -1,0 +1,9 @@
+{
+ "stumbles": [
+  {
+   "quote": "four 503s, then failure",
+   "why": "The text says up to 4 retries, which is 5 attempts in total. Four 503s would therefore not exhaust the retries, because a fifth attempt would still follow. I can't tell whether the fifth attempt also returns 503 or whether the limit is really 4 attempts. The test description and the retry count seem to disagree."
+  }
+ ],
+ "point": "The Turso client's execute() now retries HTTP 503 and 429 up to 4 times with jittered exponential backoff. This fixes cold-start 503s that were wrongly reported as auth failures, and it leaves other statuses failing immediately."
+}
