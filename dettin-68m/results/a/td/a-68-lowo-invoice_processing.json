@@ -1,0 +1,187 @@
+{
+ "name": "a-68-lowo-invoice_processing",
+ "args": {
+  "name": "a-68-lowo-invoice_processing",
+  "init": "stock68",
+  "train": [
+   "agent_trace_observability",
+   "customer_service",
+   "security_incidents"
+  ],
+  "test": [
+   "invoice_processing"
+  ],
+  "epochs": 10,
+  "lr": 8e-05,
+  "bs": 16,
+  "seed": 0,
+  "max_steps": 0,
+  "n_cases": 0,
+  "draw": 0,
+  "data": null,
+  "max_train_accounts": 0,
+  "out_root": null,
+  "amp": true,
+  "max_len": 0
+ },
+ "best_epoch": 6,
+ "temps": {
+  "choice": 1.1197575571600529,
+  "noul": 1.1197575571600529,
+  "score": 1.1197575571600529
+ },
+ "test": {
+  "n_decisions": 500,
+  "accuracy": 0.404,
+  "kl_from_gold": 0.5574177012598396,
+  "brier": 0.3358720059129309,
+  "ece": 0.07218815500106628
+ },
+ "test_raw_T1": {
+  "n_decisions": 500,
+  "accuracy": 0.404,
+  "kl_from_gold": 0.5698965493116925,
+  "brier": 0.3409821270936745,
+  "ece": 0.09817809456632658
+ },
+ "by": {
+  "workflow=invoice_processing": {
+   "n_decisions": 500,
+   "accuracy": 0.404,
+   "kl_from_gold": 0.5574177012598396,
+   "brier": 0.3358720059129309,
+   "ece": 0.07218815500106628
+  },
+  "type=choice": {
+   "n_decisions": 100,
+   "accuracy": 0.45,
+   "kl_from_gold": 0.5629909825477628,
+   "brier": 0.29036793963797974,
+   "ece": 0.03112586770003559
+  },
+  "type=noul": {
+   "n_decisions": 200,
+   "accuracy": 0.47,
+   "kl_from_gold": 0.48017537836974633,
+   "brier": 0.3842645310395688,
+   "ece": 0.07249039592326739
+  },
+  "type=score": {
+   "n_decisions": 200,
+   "accuracy": 0.315,
+   "kl_from_gold": 0.6318733835059711,
+   "brier": 0.31023151392376863,
+   "ece": 0.12204761537178421
+  },
+  "q=invoice_processing/discrepancy_severity": {
+   "n_decisions": 100,
+   "accuracy": 0.12,
+   "kl_from_gold": 1.0055924279141353,
+   "brier": 0.49154221395393294,
+   "ece": 0.22893580047998574
+  },
+  "q=invoice_processing/disposition": {
+   "n_decisions": 100,
+   "accuracy": 0.45,
+   "kl_from_gold": 0.5629909825477628,
+   "brier": 0.29036793963797974,
+   "ece": 0.03112586770003559
+  },
+  "q=invoice_processing/duplicate": {
+   "n_decisions": 100,
+   "accuracy": 0.47,
+   "kl_from_gold": 0.5100542466279474,
+   "brier": 0.4050054998079197,
+   "ece": 0.07643746364679041
+  },
+  "q=invoice_processing/matches_order": {
+   "n_decisions": 100,
+   "accuracy": 0.47,
+   "kl_from_gold": 0.45029651011154526,
+   "brier": 0.3635235622712179,
+   "ece": 0.06854332819974318
+  },
+  "q=invoice_processing/urgency": {
+   "n_decisions": 100,
+   "accuracy": 0.51,
+   "kl_from_gold": 0.2581543390978068,
+   "brier": 0.12892081389360435,
+   "ece": 0.11410879247017475
+  }
+ },
+ "log": [
+  {
+   "epoch": 0,
+   "train_loss": 1.1373165294410676,
+   "val_kl": 0.2352410201504337,
+   "val_acc": 0.6133333333333333,
+   "sec": 23.949709177017212
+  },
+  {
+   "epoch": 1,
+   "train_loss": 1.000261962648452,
+   "val_kl": 0.15032427655381508,
+   "val_acc": 0.7044444444444444,
+   "sec": 18.967793941497803
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.9206851260868583,
+   "val_kl": 0.1314070668292371,
+   "val_acc": 0.7466666666666667,
+   "sec": 18.78120183944702
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.8798244196598924,
+   "val_kl": 0.1234842949188937,
+   "val_acc": 0.7444444444444445,
+   "sec": 18.624770879745483
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.8603155363028444,
+   "val_kl": 0.11005281133153717,
+   "val_acc": 0.7488888888888889,
+   "sec": 19.1740243434906
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.8452507940333659,
+   "val_kl": 0.10554125320267341,
+   "val_acc": 0.7777777777777778,
+   "sec": 19.34356927871704
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.8349234312772751,
+   "val_kl": 0.10404394535704044,
+   "val_acc": 0.7555555555555555,
+   "sec": 19.10511088371277
+  },
+  {
+   "epoch": 7,
+   "train_loss": 0.826641379378912,
+   "val_kl": 0.10627844586728995,
+   "val_acc": 0.7666666666666667,
+   "sec": 18.762144327163696
+  },
+  {
+   "epoch": 8,
+   "train_loss": 0.8216729458626799,
+   "val_kl": 0.10535635442926956,
+   "val_acc": 0.7733333333333333,
+   "sec": 18.72005867958069
+  },
+  {
+   "epoch": 9,
+   "train_loss": 0.8183080284144935,
+   "val_kl": 0.10573108489937375,
+   "val_acc": 0.7688888888888888,
+   "sec": 18.88516139984131
+  }
+ ],
+ "wall_sec": 208.55062985420227,
+ "device": "cuda",
+ "n_params": 68408833
+}

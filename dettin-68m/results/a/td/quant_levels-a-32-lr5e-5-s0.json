@@ -1,0 +1,66 @@
+{
+ "name": "a-32-lr5e-5-s0",
+ "temps": {
+  "choice": 1.1197575571600529,
+  "noul": 0.9815755395206851,
+  "score": 1.0716605503815122
+ },
+ "variants": {
+  "fp32": {
+   "test": {
+    "n_decisions": 2000,
+    "accuracy": 0.752,
+    "kl_from_gold": 0.11358754378669882,
+    "brier": 0.06360290659408566,
+    "ece": 0.13592262809187783
+   },
+   "by_type": {
+    "noul": 0.8266666666666667,
+    "choice": 0.7233333333333334,
+    "score": 0.7175
+   },
+   "file_bytes": 128128512,
+   "file_brotli": 117595230,
+   "matmul_brotli": 46117657,
+   "parity_max_abs_logit_vs_ref": 5.27501106262207e-06
+  },
+  "t4-w8L63": {
+   "test": {
+    "n_decisions": 2000,
+    "accuracy": 0.756,
+    "kl_from_gold": 0.11443590504728846,
+    "brier": 0.06396126081781868,
+    "ece": 0.14777048983368687
+   },
+   "by_type": {
+    "noul": 0.8283333333333334,
+    "choice": 0.7383333333333333,
+    "score": 0.715
+   },
+   "file_bytes": 24164352,
+   "file_brotli": 20004104,
+   "matmul_brotli": 9691724,
+   "parity_max_abs_logit_vs_ref": 3.814697265625e-06,
+   "top_agree_with_fp32": 0.9425
+  },
+  "t4-w8L31": {
+   "test": {
+    "n_decisions": 2000,
+    "accuracy": 0.749,
+    "kl_from_gold": 0.11546578296061588,
+    "brier": 0.06485547649634897,
+    "ece": 0.13525451521941134
+   },
+   "by_type": {
+    "noul": 0.8216666666666667,
+    "choice": 0.7333333333333333,
+    "score": 0.70625
+   },
+   "file_bytes": 24164352,
+   "file_brotli": 18407037,
+   "matmul_brotli": 8093451,
+   "parity_max_abs_logit_vs_ref": 5.02169132232666e-06,
+   "top_agree_with_fp32": 0.9315
+  }
+ }
+}
