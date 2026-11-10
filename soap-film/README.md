@@ -23,19 +23,16 @@ untested, so the tilt and shake behaviour described here is what the code is wri
 
 | input | effect |
 |---|---|
-| drag | blows on the film along the stroke, and shows the thickness under the pointer in nanometres |
-| tap or click | pops the film at that point; on an empty frame it dips a new one |
-| tilt, shake | gravity in the film follows the phone, so the film pours and sloshes. iOS asks for motion access when you press **Tilt** |
-| the round dial beside the buttons | sets gravity by hand: drag it, or focus it and use the arrow keys. Double-click resets it |
-| **Dip** | draws a new film |
-| **Loop** / **Frame** | switches to the round wand, or back to the rectangular frame; the button names the shape you would get |
-| **Tilt** | turns the motion sensors on or off. It appears on phones; Android needs no permission |
-| **Full** | hides the title and controls and lets the frame fill the window (and the screen, where the browser allows it). `F` toggles it and ✕ leaves |
-| **About** | drainage speed, whether the film pops by itself, sound |
-| keyboard | `D` dips; the space bar pops, or dips when the frame is empty |
+| drag | blows on the film along the stroke |
+| tap or click | pops the film at that point. A new film follows after about a second |
+| tilt, shake | on a phone, gravity in the film follows the phone, so the film pours and sloshes. iOS asks for motion access when you press **Use tilt** |
+| the small dial (computers only) | sets which way is down: drag it, or focus it and use the arrow keys. Double-click resets it |
+| **New film** | draws a new film at once |
+| **Full screen** | hides the title and buttons and lets the frame fill the window, and the screen where the browser allows it. `F` toggles it and ✕ leaves |
+| **About** | what the page does, a round wand in place of the rectangular frame, drainage speed, whether the film pops by itself, sound, and a strip showing the colour the film reflects at each thickness |
+| keyboard | `D` draws a new film; the space bar pops the current one |
 
-The bar under the film shows the colour the film reflects at each thickness from 0 to 1,500 nm, seen head-on. `?shape=loop` starts with
-the round wand and `?n=256` sets the number of grid cells on the short side (320 by default).
+`?shape=loop` starts with the round wand and `?n=256` sets the number of grid cells on the short side (320 by default).
 
 ## The film as a fluid
 
