@@ -321,7 +321,7 @@ def evaluate(a):
         by_style.setdefault(q.get("style", "?"), []).append(x)
     res["sections_by_style"] = {k: float(np.mean(v)) for k, v in by_style.items()}
     print(f"[{name}] sections {json.dumps(res['sections'])}", flush=True)
-    for b in ([] if a.no_beir else ["scifact", "nfcorpus", "trec-covid"]):
+    for b in ([] if a.no_beir else ["scifact", "nfcorpus"]):   # TREC-COVID dropped 2026-11-10: no teacher here is good at it
         try:
             docs, qs, rel = beir(b)
             Sb = enc_q(qs) @ enc_d(docs, 512).T
