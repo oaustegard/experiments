@@ -62,7 +62,7 @@ rezip()
 names = [f"b-{s}-haiku-s0" for s in ("17", "32", "68")]
 todo = [n for n in names if not (BD / "results" / f"quant_levels-{n}.json").exists()]
 if todo:
-    r = sh(f"python3 -u run/quant_levels.py --data {DATA}/cases_haiku.jsonl {' '.join(todo)} 2>&1 | grep --line-buffered -v -i warning", cwd=BD)
+    r = sh(f"QL_PARITY=1 python3 -u run/quant_levels.py --data {DATA}/cases_haiku.jsonl {' '.join(todo)} 2>&1 | grep --line-buffered -v -i warning", cwd=BD)
     say(f"QUANT_DONE rc={r.returncode}")
     rezip()
 for size in ("68", "17", "32"):

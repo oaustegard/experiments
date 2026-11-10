@@ -120,7 +120,7 @@ def cases():
             else:
                 g.pop("role")
             out.append(sec_case(sid, g, "train"))
-        out += [rel_case(p, "train", jrel[p]) for p in rel_ids]
+        out += [rel_case(p, "train", jrel[p]["relevance"]) for p in rel_ids]
         rng2 = random.Random(1)
         rng2.shuffle(out)
         (UP / f"cases_{teacher}.jsonl").write_text("".join(json.dumps(c) + "\n" for c in out + test))
@@ -133,7 +133,7 @@ def emb():
     rng = random.Random(0)
 
     def exp_rel(pid):
-        p = jrel.get(pid)
+        p = (jrel.get(pid) or {}).get("relevance")
         return sum(int(k) * v for k, v in p.items()) if p else None
 
     train_pairs, dropped, kept_neg = [], 0, 0

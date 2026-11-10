@@ -11,6 +11,7 @@ Writes results/quant_levels-NAME.json: score per variant, brotli bytes of the wh
 the matmul codes alone, parity.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from pack import Ref, pack  # noqa: E402
 from train_enc import DEV, Decider, Enc, predict, probs_at  # noqa: E402
 
 VARIANTS = ["fp32", "t4-w8L63", "t4-w8L31"]
+NPAR = int(os.environ.get("QL_PARITY", "6"))   # questions checked against the NumPy reference (minutes each at 68M)
 LIN = {"Wqkv": "attn.Wqkv.weight", "Wo": "attn.Wo.weight", "Wi": "mlp.Wi.weight", "Wo_mlp": "mlp.Wo.weight"}
 
 
@@ -87,7 +89,7 @@ def main():
                 if not sel:
                     continue
                 by[t] = score_examples([te[i] for i in sel], [probs[i] for i in sel])[0]["accuracy"]
-            par = max(float(np.abs(ref.logits(d["ids"], d["pos"]) - z).max()) for d, z in zip(data_te[:6], logits[:6]))
+            par = max(float(np.abs(ref.logits(d["ids"], d["pos"]) - z).max()) for d, z in zip(data_te[:NPAR], logits[:NPAR]))
             res["variants"][v] = {"test": summ, "by_type": by, "file_bytes": len(data),
                                   "file_brotli": len(brotli.compress(data, quality=11)),
                                   "matmul_brotli": len(brotli.compress(codes_bytes(man, data), quality=11)),
