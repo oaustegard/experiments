@@ -30,16 +30,15 @@ For the second: better at fewer bytes, worse at the same bit width. Recall@10, r
 - 2 bits × 256 folded (72 B): 0.763 <!-- @evidence[[results/recall.json#arms.span256_c_b2.recall_at_10_real.mean]] -->
 - 3 bits × 256 folded (104 B): 0.868 <!-- @evidence[[results/recall.json#arms.span256_c_b3.recall_at_10_real.mean]] -->
 - 4 bits × 256 folded (136 B): 0.927 <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
-- 8 bits × 256 folded (264 B): 0.993 <!-- @evidence[[results/recall.json#arms.span256_c_b8.recall_at_10_real.mean]] -->
 
 Yes to the third. With remex's rotation multiplied into that matrix, the model emits rotated coordinates.
 With that matrix stored as int8, the 4-bit index scores 0.931, <!-- @evidence[[results/recall.json#arms.integrated256_c_b4.recall_at_10_real.mean]] -->
 within the 0.005 range that remex seeds give the 0.927.
 
-Hit@10 does not separate these: each one at 2 bits or more is within 0.01 of float search. Queries with relevance
-labels would show whether the recall gains matter.
+Hit@10 does not separate these, all within 0.01 of float search at 2 bits or more.
 
-The fold now runs on the site: List Scout embeds posts at 256 dims and its classifier's answers are unchanged.
+On the site, List Scout and Answer Search run the folded model. Answer Search keeps 3 bits × 256 at its old 104 B
+per post and quotes 9.70 of exact search's 10 sentences, where 1 bit × 768 quoted 9.28. <!-- @evidence[[results/answer_search.json#sets.keyword.256x3.picks.mean]] -->
 
 ## Findings
 
@@ -75,27 +74,33 @@ The fold now runs on the site: List Scout embeds posts at 256 dims and its class
    On 2,700 real posts the fit takes 1.20 s at 256 dims <!-- @evidence[[results/site.json#fit_seconds_node.dims_256_first]] -->
    against 3.64 s at 768. <!-- @evidence[[results/site.json#fit_seconds_node.dims_768_first]] -->
    (round 2)
-7. **Dropping the head is not the fold.** The pooled 256 numbers, used directly, agree with the model on
+7. **Answer Search gains at the same size.** On its live snapshot (83,417 posts) and its own metric, the 10
+   sentences it quotes, 3 bits × 256 (104 B) matches exact search on 9.70 of 10 keyword queries' sentences <!-- @evidence[[results/answer_search.json#sets.keyword.256x3.picks.mean]] -->
+   against 9.28 for the 1 bit × 768 (104 B) it replaced, <!-- @evidence[[results/answer_search.json#sets.keyword.768x1.picks.mean]] -->
+   and 9.78 against 9.23 on snippet queries. <!-- @evidence[[results/answer_search.json#sets.snippet.256x3.picks.mean]] -->
+   2 bits × 256 (72 B) still beats it, by 0.22 on keyword queries. <!-- @evidence[[results/answer_search.json#sets.keyword.256x2-768x1.picks.mean]] -->
+   (round 3)
+8. **Dropping the head is not the fold.** The pooled 256 numbers, used directly, agree with the model on
    0.602 of the top 10. <!-- @evidence[[results/span.json#control_pooled_no_head.real.top10_recall]] -->
    The head stretches some directions 10.9 times more than others, <!-- @evidence[[results/span.json#head.condition]] -->
    and the fold keeps that stretch.
-8. **Truncation is not the fold either.** The first 256 of the 768 coordinates agree with the model on
+9. **Truncation is not the fold either.** The first 256 of the 768 coordinates agree with the model on
    0.914 of the float top 10, <!-- @evidence[[results/span.json#control_prefix256.real.top10_recall]] -->
    and their 8-bit codes stay there, at 0.914. <!-- @evidence[[results/recall.json#arms.prefix256_c_b8.recall_at_10_real.mean]] -->
-9. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** The shipped head is an int8
+10. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** The shipped head is an int8
    rounding of the float head in the training checkpoint. All three figures are top-10 agreement with that float
    head. The int8 head in the Answer is the ±127 one, rounded from the checkpoint. The shipped 768-wide head, int8 in ±63, scores 0.989. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.shipped_int8_768_L63.real.top10_recall]] -->
    The 256-wide head with the rotation multiplied in scores 0.985 at ±63 <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L63_remex_rotated.real.top10_recall]] -->
    and 0.992 at ±127. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L127_remex_rotated.real.top10_recall]] -->
    The head shrinks from 199,680 bytes <!-- @evidence[[results/span.json#head_bytes.shipped_int8_768]] -->
    to 66,560. <!-- @evidence[[results/span.json#head_bytes.folded_int8_256]] -->
-10. **Centring on the corpus mean does not change recall at 2 bits or more.** 4 bits × 256 scores 0.927 centred <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
+11. **Centring on the corpus mean does not change recall at 2 bits or more.** 4 bits × 256 scores 0.927 centred <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
    and 0.928 uncentred. <!-- @evidence[[results/recall.json#arms.span256_u_b4.recall_at_10_real.mean]] -->
-11. **The vectors occupy 255 dimensions, one fewer than the 256 the fold keeps.** The final LayerNorm has no bias, so
+12. **The vectors occupy 255 dimensions, one fewer than the 256 the fold keeps.** The final LayerNorm has no bias, so
     it removes each token's mean, and mean pooling keeps that constraint: the 256th singular value of the pooled
     states is 1.0e-08 of the first. <!-- @evidence[[results/span.json#span.pooled_sv_ratio_256]] -->
     A 255-dim fold was not tried; it would save one coordinate.
-12. **onnxruntime at its default optimization level, `ORT_ENABLE_ALL`, changes this model's output.** Its vectors
+13. **onnxruntime at its default optimization level, `ORT_ENABLE_ALL`, changes this model's output.** Its vectors
     have a median cosine of 0.9997 to the graph as written. <!-- @evidence[[results/embed.json#sets.docs.cos_to_ORT_ENABLE_ALL.median]] -->
     At `ORT_ENABLE_BASIC`, the model's output equals the pooled state times the dequantized weight to 2.1e-07. <!-- @evidence[[results/embed.json#sets.docs.head_parity_max_abs]] -->
     Every vector in this experiment was made at `ORT_ENABLE_BASIC`.
@@ -133,9 +138,8 @@ five remex seeds on six arms. The table and the Answer use seed 42, the seed of 
 rows itself, an fp32 head with the rotation multiplied in, and the int8 ±127 rounding of that head, the last two
 encoded with `rotation="none"`.
 
-**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The site's indexes
-are unchanged: the embedders page and Answer Search still store and scan 768-dim codes, and moving them to 256
-needs a scan shader for 256 dims at 3 or 4 bits, which does not exist yet. leaf-ir, the second
+**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The embedders
+page still stores and scans 768-dim codes. leaf-ir, the second
 model on that page, has a head with a bias (384 → 768), which puts its vectors in a 385-dim affine set and needs a
 different fold.
 
@@ -244,3 +248,32 @@ Both copies of the engine take a 256 or 768 wide output: the site's `bsky/embedd
 All browser runs are headless Chromium on SwiftShader, which checks arithmetic and says nothing about speed on a
 real GPU. The fit timing is CPU JavaScript, which is also what the page runs. Site commit `0ddeb9c`; the test is
 `tests/embedders-fold.mjs` there.
+
+### Round 3 (2026-11-10): Answer Search at 256 numbers
+
+Asked: "move Answer Search to 256 dims @4 bit", then, after the first numbers, whether 2 or 3 bits at 256 hold up
+against the 1 bit × 768 it shipped with, then "go with 3 bits".
+
+`run/answer_search.py` repeats `answer-search-1bit`'s measurement on the live snapshot built 2026-11-10 05:44Z
+(83,417 posts): every post embedded with the site's model (6.3 min on 4 vCPUs), folded with the builder's own
+`fold_basis`, each arm a remex 2.1.0 index scored by `search_adc`, against exact fp32 search. Picks are the page's
+10 quoted sentences (best sentence of each of the top 40 posts), counted when they match the fp32 ranking's.
+
+| index | bytes per post | picks, keyword (60) | picks, snippet (200) | recall@10 keyword / snippet |
+|---|---|---|---|---|
+| 768 × 1 bit (shipped) | 104 | 9.28 | 9.23 | 0.83 / 0.75 |
+| 768 × 2 bits | 200 | 9.65 | 9.80 | 0.90 / 0.86 |
+| 256 × 2 bits | 72 | 9.50 | 9.48 | 0.85 / 0.77 |
+| 256 × 3 bits | 104 | 9.70 | 9.78 | 0.94 / 0.88 |
+| 256 × 4 bits | 136 | 9.82 | 9.90 | 0.95 / 0.93 |
+
+Paired against 768 × 1 bit (95% intervals): 256 × 3 bits +0.42 picks [0.22, 0.63] keyword and +0.55 [0.43, 0.67]
+snippet; 256 × 2 bits +0.22 [0.00, 0.45] and +0.25 [0.12, 0.37]; 256 × 4 bits +0.53 and +0.67.
+
+The site build (oaustegard.github.io, `scripts/answer-search/refresh.py`, `bsky/answer-search/scan256.js`) stores
+the codes as bit-planes, one per code bit, so one WGSL scan reads 2, 3 or 4 bits. The page embeds new posts and
+encodes them on the host the way remex does. `tests/answer-search-index.mjs` there checks, in headless Chromium,
+the GPU top 40 against a host computation of the same score, page-encoded codes against the builder's, and that
+posts find themselves by their own text. It first failed on a race older than this change: a search and the
+page's once-a-minute catch-up could call the engine at once, and its readback buffer cannot be mapped twice. The
+page now queues engine calls.

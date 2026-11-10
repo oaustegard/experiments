@@ -1103,6 +1103,14 @@ survives exactly the sanity checks people run.
   fold of the shipped head in float32 for this: then every folded vector is the old vector times one fixed
   orthonormal matrix, so stored 768-dim artifacts convert without re-embedding. (`ettin-span256-remex` round 2,
   `run/site_fold.py`)
+- **Store low-bit codes as bit-planes when a GPU scan has to read several widths.** remex packs 3-bit codes eight
+  to three bytes, which straddle u32 words. Writing each post's codes as one 256-bit plane per code bit (top bit
+  first, `np.packbits` order) lets one WGSL loop read 2, 3 or 4 bits by OR-ing the same bit of each plane, with
+  the width as a shader constant, at the same bytes as remex's packing. The first planes alone are the
+  coarser codes. (`ettin-span256-remex` round 3; oaustegard.github.io `bsky/answer-search/scan256.js`)
+- **On a fixed byte budget, compare widths on the page's own metric before shipping one.** Answer Search's
+  1 bit × 768 (104 B) and 3 bits × 256 folded (104 B) cost the same; the second quotes 9.70 of exact search's 10
+  sentences against 9.28, and 4 bits × 256 adds only 0.12 more for 31% more bytes. (`ettin-span256-remex` round 3)
 - **onnxruntime's default optimization level changes the output of a weight-only-int8 graph.** On the Ettin-17m package
   (`DequantizeLinear → MatMul` pairs, activations in fp32), `ORT_ENABLE_ALL` vectors have a median cosine of 0.9997 to
   the graph as written, and a check of pooled state × dequantized weight against the model output fails by 0.003. At
