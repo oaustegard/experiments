@@ -1,14 +1,17 @@
 """Part C embedder on a Colab GPU VM. Expects /content/data/sections.jsonl.gz and emb_data.json.
 
   teacher vectors (gte-modernbert-base) for every section and training query
-  per size 17/32/68: distill (teacher pull alone), then joint (contrastive + pull) from that checkpoint
-  68M: contrastive alone from the stock encoder; the joint model with its encoder rounded as packed
+  per size 17/32/68: distill (teacher pull alone)
   baselines on the same eval path: the teacher, capemox 68M, MedCPT, bge-small
+  then, once the Jev-filtered negatives are uploaded: joint (contrastive + pull) from each distill
+  checkpoint; at 68M also contrastive alone from the stock encoder, and the joint model with its
+  encoder rounded as packed
 Each eval writes results/emb_<name>.json; they are re-zipped to /content/dettin_c.zip as they land.
 Log: /content/dettin_c.log, ends with ALL_DONE.
 """
 import os
 import subprocess
+import time
 import zipfile
 from pathlib import Path
 
@@ -49,13 +52,21 @@ if not have("/content/work/teacher_queries.npy"):
 if not have(D / "results/emb_base-gte.json"):
     sh(f"{E} eval --baseline gte")
 for size in ("68", "17", "32"):
-    m = MODELS[size]
     if not have(f"/content/work/ckpt/e{size}-distill.pt"):
-        sh(f"{E} train e{size}-distill --init {m} --stage distill --epochs 2 --bs 64 --lr 1e-4")
+        sh(f"{E} train e{size}-distill --init {MODELS[size]} --stage distill --epochs 2 --bs 64 --lr 1e-4")
     if not have(D / f"results/emb_e{size}-distill.json"):
         sh(f"{E} eval e{size}-distill" + ("" if size == "68" else " --no-beir"))
+for b in ("capemox", "medcpt", "bge-small"):
+    if not have(D / f"results/emb_base-{b}.json"):
+        sh(f"{E} eval --baseline {b}")
+# The contrastive stages need emb_data.json with Jev-filtered negatives; the local side uploads it and
+# then /content/data/emb_ready. The stages above do not read the negatives, so they run first.
+while not have("/content/data/emb_ready"):
+    time.sleep(20)
+say("STAGE negatives ready")
+for size in ("68", "17", "32"):
     if not have(f"/content/work/ckpt/e{size}-joint.pt"):
-        sh(f"{E} train e{size}-joint --init {m} --stage joint --from e{size}-distill --epochs 3 --bs 24 --lr 5e-5")
+        sh(f"{E} train e{size}-joint --init {MODELS[size]} --stage joint --from e{size}-distill --epochs 3 --bs 24 --lr 5e-5")
     if not have(D / f"results/emb_e{size}-joint.json"):
         sh(f"{E} eval e{size}-joint")
 if not have("/content/work/ckpt/e68-contrast.pt"):
@@ -64,9 +75,6 @@ if not have(D / "results/emb_e68-contrast.json"):
     sh(f"{E} eval e68-contrast")
 if not have(D / "results/emb_e68-joint-q.json"):
     sh(f"{E} eval e68-joint --quant")
-for b in ("capemox", "medcpt", "bge-small"):
-    if not have(D / f"results/emb_base-{b}.json"):
-        sh(f"{E} eval --baseline {b}")
 with zipfile.ZipFile("/content/dettin_c_e68.zip.part", "w", zipfile.ZIP_STORED) as z:
     z.write("/content/work/ckpt/e68-joint.pt", "e68-joint.pt")
     z.write("/content/work/ckpt/e68-joint.json", "e68-joint.json")
