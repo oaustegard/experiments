@@ -53,11 +53,12 @@ MUSE_MODELS = {"muse-ember-1.0": ("ember", "1.0")}
 #: What the prompts contain: OpenEvolve's public example programs, this repo's
 #: prompts, and programs the models wrote from them.
 MUSE_SOURCE = "public-repo:oaustegard/experiments"
-#: The Cloudflare AI Gateway that muse.py routes through allows 50 requests per
+#: The Cloudflare AI Gateway that muse.py routes through allowed 50 requests per
 #: fixed 60 s window for ALL of its traffic (Gemini included), and answers 429
 #: code 2003 above it: three concurrent Ember swarms stalled on it on
-#: 2026-11-10. Request starts are spaced to stay under it with headroom.
-MUSE_RPM = float(os.environ.get("HSP_MUSE_RPM", "40"))
+#: 2026-11-10. Raised to 200/min that day; request starts are spaced to stay
+#: under it with headroom for its other callers.
+MUSE_RPM = float(os.environ.get("HSP_MUSE_RPM", "160"))
 _muse_lock = threading.Lock()
 _muse_next = [0.0]
 
