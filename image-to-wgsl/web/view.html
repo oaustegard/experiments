@@ -1,33 +1,58 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Splat image</title>
-<style>html,body{margin:0;height:100%;background:#fff;color:#222;font:14px/1.4 system-ui,sans-serif}canvas{width:100%;height:100%;display:block}#msg{position:fixed;left:12px;bottom:10px;color:#777}</style>
-<canvas></canvas><div id="msg"></div>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Splat image viewer</title>
+<style>html,body{margin:0;height:100%;background:#fff;color:#222;font:14px/1.4 system-ui,sans-serif}canvas{width:100%;height:100%;display:block}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 12px;background:rgba(255,255,255,.88);color:#555}
+#bar label{border:1px solid #bbb;border-radius:6px;padding:4px 10px;background:#fff;color:#222;cursor:pointer}#msg{flex:1;min-width:200px}</style>
+<canvas></canvas>
+<div id="bar"><label>Open a splat file (.bin)<input id="file" type="file" accept=".bin" hidden></label><span id="msg"></span></div>
 <script type="module">
-// Draws a splat file (.bin from the "Download the splat data" link, or web/export_bin.mjs) fetched from ?src=URL.
-// ?n=K draws only the first K splats. The URL may be on another origin if that server sends CORS headers.
+// Draws a splat file: the .bin that the image-to-wgsl page exports (or web/export_bin.mjs writes).
+// It comes from the file chooser, a file dropped on the page, or ?src=URL (that server must send CORS headers
+// when it is on another origin). ?n=K draws only the first K splats.
 import { readBin } from "./trainer.js";
 import { emitInstanced, createRenderer } from "./instanced.js";
 const msg = document.getElementById("msg"), cv = document.querySelector("canvas"), q = new URLSearchParams(location.search);
 const say = (t) => { msg.textContent = t; };
-try {
-  const src = q.get("src");
-  if (!src) { say("Add ?src=URL of a splat file to draw it, for example ?src=blobs/kodim23.bin. A splat file (.bin) is the packed list of soft ellipses that the image-to-wgsl page fits to a picture; that page's \"Download the splat list\" link makes one."); throw 0; }
+let dev, ctx, fmt, rd, shown = 0;
+
+async function setup() {
+  if (dev) return true;
   const ad = await navigator.gpu?.requestAdapter();
-  if (!ad) { say("WebGPU is not available in this browser."); throw 0; }
-  const res = await fetch(src);
-  if (!res.ok) { say(`Could not fetch ${src}: HTTP ${res.status}`); throw 0; }
-  const r = readBin(await res.arrayBuffer());
-  const n = Math.min(r.n, +q.get("n") || r.n);
-  const dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
-  const ctx = cv.getContext("webgpu"), fmt = navigator.gpu.getPreferredCanvasFormat();
+  if (!ad) { say("WebGPU is not available in this browser."); return false; }
+  dev = await ad.requestDevice({ requiredFeatures: ad.features.has("float32-blendable") ? ["float32-blendable"] : [] });
+  ctx = cv.getContext("webgpu"); fmt = navigator.gpu.getPreferredCanvasFormat();
   ctx.configure({ device: dev, format: fmt, alphaMode: "premultiplied" });
-  const rd = createRenderer(dev, fmt, emitInstanced(r, n));
-  const draw = () => {
-    const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
-    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-    rd.draw(ctx.getCurrentTexture().createView(), w, h, n);
-  };
   new ResizeObserver(draw).observe(cv);
-  draw();
-  say(`${n.toLocaleString()}${n < r.total ? " of " + r.total.toLocaleString() : ""} splats`);
-} catch (e) { if (e) say(String(e.message || e)); }
+  return true;
+}
+function draw() {
+  if (!rd) return;
+  const w = Math.max(1, Math.round(cv.clientWidth * devicePixelRatio)), h = Math.max(1, Math.round(cv.clientHeight * devicePixelRatio));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  rd.draw(ctx.getCurrentTexture().createView(), w, h, shown);
+}
+async function show(buf, name) {
+  try {
+    if (!(await setup())) return;
+    const r = readBin(buf);
+    shown = Math.min(r.n, +q.get("n") || r.n);
+    rd?.destroy();
+    rd = createRenderer(dev, fmt, emitInstanced(r, shown));
+    draw();
+    say(`${name}: ${shown.toLocaleString()}${shown < r.total ? " of " + r.total.toLocaleString() : ""} splats`);
+  } catch (e) { say(`${name}: ${e.message || e}`); }
+}
+const openFile = async (f) => { if (f) show(await f.arrayBuffer(), f.name); };
+
+document.getElementById("file").onchange = (e) => openFile(e.target.files[0]);
+addEventListener("dragover", (e) => e.preventDefault());
+addEventListener("drop", (e) => { e.preventDefault(); openFile(e.dataTransfer.files[0]); });
+
+const src = q.get("src");
+if (src) {
+  try {
+    const res = await fetch(src);
+    if (!res.ok) say(`Could not fetch ${src}: HTTP ${res.status}`);
+    else await show(await res.arrayBuffer(), src.split("/").pop() || src);
+  } catch (e) { say(`Could not fetch ${src}: ${e.message || e}`); }
+} else say("A splat file is the packed list of soft ellipses that the image-to-wgsl page fits to a picture. Choose one here or drop it on this page; to load one from a web address, add ?src=URL.");
 </script>
