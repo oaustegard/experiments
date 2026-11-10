@@ -3,11 +3,11 @@
 Ettin-17m is the 10 MB text embedder behind [austegard.com/bsky/embedders](https://austegard.com/bsky/embedders/)
 ([`ettin-native`](../ettin-native/RESULTS.md)). Its encoder is 256 wide. Its last layer is a plain matrix that widens
 the pooled 256 numbers to 768, left over from distilling it toward a 768-dim teacher. So every vector it emits is a
-linear function of 256 numbers.
+linear function of 256 numbers. That last matrix is called the head below.
 
-The search page stores each of its 61,686 Bluesky posts as [remex](https://github.com/oaustegard/remex) codes: remex
+That page stores each of its 61,686 Bluesky posts as [remex](https://github.com/oaustegard/remex) codes: remex
 rotates a vector and rounds each coordinate to a few bits. The live index uses 2 bits for each of the 768 coordinates,
-which with two stored floats comes to 200 bytes per post. Three questions:
+which with two stored floats per post (a scale and a bias) comes to 200 bytes. Three questions:
 
 1. Can the model emit 256 numbers instead of 768 and return the same search results?
 2. Are remex codes of those 256 numbers better or worse than the live index at the same size?
@@ -16,7 +16,7 @@ which with two stored floats comes to 200 bytes per post. Three questions:
 Recall@10 below is the share of the exact float top 10 that a compressed index returns. It measures agreement with
 uncompressed search, not relevance judged by a person. Hit@10 is how often a synthetic query finds the post it was
 written from. "Real" queries are 1,000 MS MARCO questions on tech and AI topics. Byte counts include the 8 bytes of
-stored floats.
+stored floats. An arm is one configuration under test.
 
 ## Answer
 
@@ -24,7 +24,7 @@ Yes to the first. Replacing the 256 → 768 matrix with a 256 → 256 matrix tak
 0.9999 of the 768-dim float top 10, <!-- @evidence[[results/span.json#fp32_folded.real.top10_recall]] -->
 and a float vector takes 1,024 bytes where it took 3,072.
 
-For the second, the folded codes are better at the same size and worse at the same bit width. Recall@10 on the real
+For the second, the folded codes are better at fewer bytes and worse at the same bit width. Recall@10 on the real
 queries, remex seed 42:
 
 - live index, 2 bits × 768 dims (200 B): 0.857 <!-- @evidence[[results/recall.json#arms.full768_c_b2.recall_at_10_real.mean]] -->
@@ -33,12 +33,12 @@ queries, remex seed 42:
 - 4 bits × 256 folded (136 B): 0.927 <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
 - 8 bits × 256 folded (264 B): 0.993 <!-- @evidence[[results/recall.json#arms.span256_c_b8.recall_at_10_real.mean]] -->
 
-Yes to the third. Multiplying remex's rotation into the 256 × 256 matrix makes the model emit rotated coordinates.
+Yes to the third. With remex's rotation multiplied into that matrix, the model emits rotated coordinates.
 With that matrix stored as int8, the 4-bit index scores 0.931, <!-- @evidence[[results/recall.json#arms.integrated256_c_b4.recall_at_10_real.mean]] -->
-which is within seed spread of the 0.927 above.
+0.004 above the 0.927 in the list. Five remex seeds alone move that figure over a range of 0.005.
 
 Hit@10 does not separate these configurations: each one at 2 bits or more is within 0.01 of float search. Queries
-with relevance labels would show whether the recall differences matter.
+with relevance labels would show whether the recall gains matter.
 
 ## Findings
 
@@ -59,7 +59,8 @@ with relevance labels would show whether the recall differences matter.
    and 0.928 for 4 bits × 256. <!-- @evidence[[results/recall.json#seeds.span256_c_b4.recall_at_10_real.mean]] -->
 3. **At the same bit width, 256 dims lose.** Against 2 bits × 768, 2 bits × 256 changes recall by -0.094. <!-- @evidence[[results/recall.json#arms.span256_c_b2.recall_at_10_real_minus_live.mean]] -->
    It holds a third of the bits.
-4. **The rotation is still needed after the fold.** At 4 bits, quantizing the 256 SVD coordinates with no rotation
+4. **The folded coordinates need remex's rotation.** The SVD coordinates have unequal spread, and remex's rounding
+   levels assume every coordinate has the same spread, which the rotation provides. At 4 bits, quantizing the 256 SVD coordinates with no rotation
    scores 0.892 <!-- @evidence[[results/recall.json#arms.span256_norot_c_b4.recall_at_10_real.mean]] -->
    against 0.927 with it. <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
 5. **A head with the rotation multiplied in produces remex's own codes.** With an fp32 head,
@@ -73,8 +74,9 @@ with relevance labels would show whether the recall differences matter.
 7. **Truncation is not the fold either.** The first 256 of the 768 coordinates agree with the model on
    0.914 of the float top 10, <!-- @evidence[[results/span.json#control_prefix256.real.top10_recall]] -->
    and their 8-bit codes stay there, at 0.914. <!-- @evidence[[results/recall.json#arms.prefix256_c_b8.recall_at_10_real.mean]] -->
-8. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** All three figures are top-10
-   agreement with the fp32 checkpoint's head. The shipped 768-wide head, int8 in ±63, scores 0.989. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.shipped_int8_768_L63.real.top10_recall]] -->
+8. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** The shipped head is an int8
+   rounding of the float head in the training checkpoint. All three figures are top-10 agreement with that float
+   head. The int8 head in the Answer is the ±127 one, rounded from the checkpoint. The shipped 768-wide head, int8 in ±63, scores 0.989. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.shipped_int8_768_L63.real.top10_recall]] -->
    The 256-wide head with the rotation multiplied in scores 0.985 at ±63 <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L63_remex_rotated.real.top10_recall]] -->
    and 0.992 at ±127. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L127_remex_rotated.real.top10_recall]] -->
    The head shrinks from 199,680 bytes <!-- @evidence[[results/span.json#head_bytes.shipped_int8_768]] -->
@@ -84,9 +86,11 @@ with relevance labels would show whether the recall differences matter.
 10. **The vectors occupy 255 dimensions, one fewer than the 256 the fold keeps.** The final LayerNorm has no bias, so
     it removes each token's mean, and mean pooling keeps that constraint: the 256th singular value of the pooled
     states is 1.0e-08 of the first. <!-- @evidence[[results/span.json#span.pooled_sv_ratio_256]] -->
+    A 255-dim fold was not tried; it would save one coordinate.
 11. **onnxruntime at its default optimization level, `ORT_ENABLE_ALL`, changes this model's output.** Its vectors
     have a median cosine of 0.9997 to the graph as written. <!-- @evidence[[results/embed.json#sets.docs.cos_to_ORT_ENABLE_ALL.median]] -->
     At `ORT_ENABLE_BASIC`, the model's output equals the pooled state times the dequantized weight to 2.1e-07. <!-- @evidence[[results/embed.json#sets.docs.head_parity_max_abs]] -->
+    Every vector in this experiment was made at `ORT_ENABLE_BASIC`.
 
 ## Method
 
@@ -121,17 +125,21 @@ five remex seeds on six arms. The table and the Answer use seed 42, the seed of 
 rows itself, an fp32 head with the rotation multiplied in, and the int8 ±127 rounding of that head, the last two
 encoded with `rotation="none"`.
 
-**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The WGSL engine and
-the live index are unchanged. leaf-ir's head has a bias (384 → 768), which puts its vectors in a 385-dim affine set
-and needs a different fold.
+**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The page's
+hand-written WebGPU engine (`ettin-native/web/engine.js`) and its live index are unchanged. leaf-ir, the second
+model on that page, has a head with a bias (384 → 768), which puts its vectors in a 385-dim affine set and needs a
+different fold.
 
 **Prior work.** [`eg2-span512-remex`](../eg2-span512-remex/RESULTS.md) did the 768 → 512 version on EmbeddingGemma 2
 vectors after the model; this folds the basis and the rotation into the model's own last layer. Two web searches
 found rotation before scalar quantization (TurboQuant and its variants) and the observation that stacked linear
 layers merge, and did not find this composition on an embedder's projection head.
 
-**Reproduce.** Unzip the two release assets under `out/rel/onnx/` and `out/rel/st/`, put `corpus.json.gz` in `out/`
-and the two query files in `out/q/`, then `python3 -I run/embed.py`, `run/fold.py`, `run/eval.py`, `run/parity.py`.
+**Reproduce.** The two zips are assets of release `ettin-native-20261021` of `oaustegard/experiments`; unzip them
+under `out/rel/onnx/` and `out/rel/st/`. Put `https://austegard.com/bsky/embedders/data/corpus.json.gz` in `out/`.
+Put `synth_test.jsonl` and `real_test.jsonl` in `out/q/`; they are under
+`https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/embeddings/bsky-ai-list/embeddinggemma-2-q4/query-targets-v1/`
+(the set is named for the model it was first built for; only the query text is used here). Then `python3 -I run/embed.py`, `run/fold.py`, `run/eval.py`, `run/parity.py`.
 About 2, 1, 5 and 1 minutes on 4 vCPUs.
 
 ## Log
