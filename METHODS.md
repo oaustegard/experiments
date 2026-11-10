@@ -1096,6 +1096,13 @@ survives exactly the sanity checks people run.
   because W stretches directions unequally. As with EG2, fewer dims lose at the same bit width (2 bits: 0.763 vs 0.857)
   and win at the same bytes (3 bits × 256 at 104 B: 0.868 vs 0.721 for 1 bit × 768). A head with a bias needs one more
   dimension. (`ettin-span256-remex/RESULTS.md`)
+- **Ship a changed last layer as a small file beside the model, not as a second model.** Four site pages share one
+  11.6 MB Ettin `model.onnx`, and only one of them wanted the 256-dim fold. A 262 KB float32 head file plus an engine
+  option that appends it to the weight bytes and repoints the last matmul gave that page 256 dims with the other
+  three untouched (their vectors bit-identical to before) and no second copy for browsers to cache. Use the exact
+  fold of the shipped head in float32 for this: then every folded vector is the old vector times one fixed
+  orthonormal matrix, so stored 768-dim artifacts convert without re-embedding. (`ettin-span256-remex` round 2,
+  `run/site_fold.py`)
 - **onnxruntime's default optimization level changes the output of a weight-only-int8 graph.** On the Ettin-17m package
   (`DequantizeLinear → MatMul` pairs, activations in fp32), `ORT_ENABLE_ALL` vectors have a median cosine of 0.9997 to
   the graph as written, and a check of pooled state × dequantized weight against the model output fails by 0.003. At

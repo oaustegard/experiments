@@ -5,7 +5,7 @@
 // run/ref.py is the NumPy spec it follows.
 //
 //   const eng = await SmallEngine.create(device, manifest, modelOnnxBytes);
-//   const vecs = await eng.embed([ids0, ids1, ...]);   // Float32Array[B * 768], unit rows
+//   const vecs = await eng.embed([ids0, ids1, ...]);   // Float32Array[B * eng.dim], unit rows
 //
 // Weights stay in their shipped formats: int8 matmul codes with one f32 scale per output column
 // (transposed once at init from the file's [K, N] to [N, K]), a 4-bit (packed nibbles, fp16 scale per 32), 3-bit (eg2-layer-student layout)
@@ -17,6 +17,31 @@
 
 import { MAX_SEQ, NONE, SeqEngine } from "../../_lib/wgsl/runtime.js";
 import { KERNELS, attention, embed, gated, l2, matmul, norm, pool, rope, ropeTable } from "../../_lib/wgsl/kernels.js";
+
+// Ettin-17m pools 256 numbers and widens them to 768, so its 768 outputs carry 256 numbers' worth of
+// vector. foldHead returns a manifest and weight bytes for the same model with that last matrix swapped
+// for the 256 -> 256 one in fold256.f32 (float32 [256][256], row n = the weights of output n; written by
+// ettin-span256-remex/run/site_fold.py):
+//
+//   const [m256, bytes256] = foldHead(manifest, modelOnnxBytes, fold256Bytes);
+//   const eng = await SmallEngine.create(device, m256, bytes256);   // eng.dim === 256
+//
+// Every inner product between two outputs is the same as at 768 (the 256 are the 768 in an orthonormal
+// basis of the head's span, rotated the way remex rotates before quantizing). The model's bytes are
+// copied once with the head appended; the 768-wide head stays in them, unused.
+export function foldHead(manifest, data, head) {
+  const m = structuredClone(manifest), d = m.dense;
+  const u8 = (x) => (x instanceof ArrayBuffer ? new Uint8Array(x) : new Uint8Array(x.buffer, x.byteOffset, x.byteLength));
+  const model = u8(data), h = u8(head);
+  if (m.dim !== 768 || !d || d.K !== 256 || d.b) throw new Error("foldHead: expected a bias-free 256 -> 768 head");
+  if (h.byteLength !== 256 * 256 * 4) throw new Error(`foldHead: fold256.f32 is ${h.byteLength} bytes, expected ${256 * 256 * 4}`);
+  const bytes = new Uint8Array(model.byteLength + h.byteLength);
+  bytes.set(model, 0);
+  bytes.set(h, model.byteLength);
+  m.dim = 256;
+  m.dense = { f32_t: { offset: model.byteLength, length: h.byteLength }, K: 256, N: 256 };
+  return [m, bytes];
+}
 
 export class SmallEngine extends SeqEngine {
   // manifest: web/models/<pkg>/manifest.json (copied; offsets are rewritten); data: model.onnx bytes.
@@ -34,7 +59,8 @@ export class SmallEngine extends SeqEngine {
   async _build(bytes) {
     const dev = this.device, m = this.m, T = this.maxTokens, B = this.maxSeqs;
     const H = m.hidden, nh = m.heads, D = H / nh;
-    if (m.dim !== 768 || D > 64 || H > 512 || H % 32) throw new Error("unexpected manifest shape");
+    const dim = m.dim;
+    if ((dim !== 768 && dim !== 256) || m.dense.N !== dim || D > 64 || H > 512 || H % 32) throw new Error("unexpected manifest shape");
     // The manifest gives each tensor's byte range inside model.onnx, where protobuf leaves them
     // unaligned. Copy every tensor once into a 4-byte-aligned buffer and point the manifest at it.
     bytes = this.uploadPacked(bytes);
@@ -49,7 +75,7 @@ export class SmallEngine extends SeqEngine {
       tok: buf(T * 4, "tok", U.COPY_DST), seqs: buf(B * 4, "seqs", U.COPY_DST),
       e: buf(T * H, "e"), h: buf(T * H, "h"), a: buf(T * H, "a"), o: buf(T * H, "o"), t: buf(T * H, "t"),
       qkv: buf(T * 3 * H, "qkv"), u: buf(T * (bert ? I : 2 * I), "u"), g: buf(T * I, "g"),
-      pooled: buf(B * H, "pooled"), d: buf(B * 768, "d"), out: buf(B * 768, "out"),
+      pooled: buf(B * H, "pooled"), d: buf(B * dim, "d"), out: buf(B * dim, "out"),
     };
     this.b = B_;
     this.shaders = { ...KERNELS };
@@ -114,6 +140,6 @@ export class SmallEngine extends SeqEngine {
       pool(this, B_.h, B_.pooled, H);
     }
     mm(m.dense, B_.pooled, B_.d, 0, 1);
-    l2(this, B_.d, B_.out, 768);
+    l2(this, B_.d, B_.out, dim);
   }
 }

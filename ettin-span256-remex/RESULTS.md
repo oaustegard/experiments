@@ -20,12 +20,11 @@ stored floats. An arm is one configuration under test.
 
 ## Answer
 
-Yes to the first. Replacing the 256 → 768 matrix with a 256 → 256 matrix taken from its SVD returns
+Yes to the first. A 256 → 256 matrix taken from the SVD of the 256 → 768 one returns
 0.9999 of the 768-dim float top 10, <!-- @evidence[[results/span.json#fp32_folded.real.top10_recall]] -->
-and a float vector takes 1,024 bytes where it took 3,072.
+and a float vector shrinks from 3,072 bytes to 1,024.
 
-For the second, the folded codes are better at fewer bytes and worse at the same bit width. Recall@10 on the real
-queries, remex seed 42:
+For the second: better at fewer bytes, worse at the same bit width. Recall@10, real queries:
 
 - live index, 2 bits × 768 dims (200 B): 0.857 <!-- @evidence[[results/recall.json#arms.full768_c_b2.recall_at_10_real.mean]] -->
 - 2 bits × 256 folded (72 B): 0.763 <!-- @evidence[[results/recall.json#arms.span256_c_b2.recall_at_10_real.mean]] -->
@@ -35,10 +34,12 @@ queries, remex seed 42:
 
 Yes to the third. With remex's rotation multiplied into that matrix, the model emits rotated coordinates.
 With that matrix stored as int8, the 4-bit index scores 0.931, <!-- @evidence[[results/recall.json#arms.integrated256_c_b4.recall_at_10_real.mean]] -->
-0.004 above the 0.927 in the list. Five remex seeds alone move that figure over a range of 0.005.
+within the 0.005 range that remex seeds give the 0.927.
 
-Hit@10 does not separate these configurations: each one at 2 bits or more is within 0.01 of float search. Queries
-with relevance labels would show whether the recall gains matter.
+Hit@10 does not separate these: each one at 2 bits or more is within 0.01 of float search. Queries with relevance
+labels would show whether the recall gains matter.
+
+The fold now runs on the site: List Scout embeds posts at 256 dims and its classifier's answers are unchanged.
 
 ## Findings
 
@@ -67,27 +68,34 @@ with relevance labels would show whether the recall gains matter.
    99.9997% of the 4-bit codes equal the ones remex produces by rotating the rows itself. <!-- @evidence[[results/parity.json#fp32_head.codes_equal_share]] -->
    With the head rounded to int8, 97.9% are equal, <!-- @evidence[[results/parity.json#int8_head.codes_equal_share]] -->
    and every code that differs is one level away. (`run/parity.py`)
-6. **Dropping the head is not the fold.** The pooled 256 numbers, used directly, agree with the model on
+6. **The fold runs in the page's WebGPU engine, and List Scout uses it.** The site keeps one model file and adds
+   the 256 × 256 head as a 262,144-byte file that the engine swaps in. <!-- @evidence[[results/site.json#head_file_bytes]] -->
+   In headless Chromium the engine's inner products at 256 and 768 dims differ by at most 6.9e-08, <!-- @evidence[[results/site.json#engine.gram_max_diff_768_vs_256]] -->
+   and List Scout's logistic regression, trained on either, gives probabilities within 6.0e-08. <!-- @evidence[[results/site.json#classifier_on_engine_vectors.max_abs_P_diff]] -->
+   On 2,700 real posts the fit takes 1.20 s at 256 dims <!-- @evidence[[results/site.json#fit_seconds_node.dims_256_first]] -->
+   against 3.64 s at 768. <!-- @evidence[[results/site.json#fit_seconds_node.dims_768_first]] -->
+   (round 2)
+7. **Dropping the head is not the fold.** The pooled 256 numbers, used directly, agree with the model on
    0.602 of the top 10. <!-- @evidence[[results/span.json#control_pooled_no_head.real.top10_recall]] -->
    The head stretches some directions 10.9 times more than others, <!-- @evidence[[results/span.json#head.condition]] -->
    and the fold keeps that stretch.
-7. **Truncation is not the fold either.** The first 256 of the 768 coordinates agree with the model on
+8. **Truncation is not the fold either.** The first 256 of the 768 coordinates agree with the model on
    0.914 of the float top 10, <!-- @evidence[[results/span.json#control_prefix256.real.top10_recall]] -->
    and their 8-bit codes stay there, at 0.914. <!-- @evidence[[results/recall.json#arms.prefix256_c_b8.recall_at_10_real.mean]] -->
-8. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** The shipped head is an int8
+9. **A 256-wide int8 head needs codes in ±127 to be as faithful as the shipped head.** The shipped head is an int8
    rounding of the float head in the training checkpoint. All three figures are top-10 agreement with that float
    head. The int8 head in the Answer is the ±127 one, rounded from the checkpoint. The shipped 768-wide head, int8 in ±63, scores 0.989. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.shipped_int8_768_L63.real.top10_recall]] -->
    The 256-wide head with the rotation multiplied in scores 0.985 at ±63 <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L63_remex_rotated.real.top10_recall]] -->
    and 0.992 at ±127. <!-- @evidence[[results/span.json#vs_fp32_checkpoint_head.folded_int8_256_L127_remex_rotated.real.top10_recall]] -->
    The head shrinks from 199,680 bytes <!-- @evidence[[results/span.json#head_bytes.shipped_int8_768]] -->
    to 66,560. <!-- @evidence[[results/span.json#head_bytes.folded_int8_256]] -->
-9. **Centring on the corpus mean does not change recall at 2 bits or more.** 4 bits × 256 scores 0.927 centred <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
+10. **Centring on the corpus mean does not change recall at 2 bits or more.** 4 bits × 256 scores 0.927 centred <!-- @evidence[[results/recall.json#arms.span256_c_b4.recall_at_10_real.mean]] -->
    and 0.928 uncentred. <!-- @evidence[[results/recall.json#arms.span256_u_b4.recall_at_10_real.mean]] -->
-10. **The vectors occupy 255 dimensions, one fewer than the 256 the fold keeps.** The final LayerNorm has no bias, so
+11. **The vectors occupy 255 dimensions, one fewer than the 256 the fold keeps.** The final LayerNorm has no bias, so
     it removes each token's mean, and mean pooling keeps that constraint: the 256th singular value of the pooled
     states is 1.0e-08 of the first. <!-- @evidence[[results/span.json#span.pooled_sv_ratio_256]] -->
     A 255-dim fold was not tried; it would save one coordinate.
-11. **onnxruntime at its default optimization level, `ORT_ENABLE_ALL`, changes this model's output.** Its vectors
+12. **onnxruntime at its default optimization level, `ORT_ENABLE_ALL`, changes this model's output.** Its vectors
     have a median cosine of 0.9997 to the graph as written. <!-- @evidence[[results/embed.json#sets.docs.cos_to_ORT_ENABLE_ALL.median]] -->
     At `ORT_ENABLE_BASIC`, the model's output equals the pooled state times the dequantized weight to 2.1e-07. <!-- @evidence[[results/embed.json#sets.docs.head_parity_max_abs]] -->
     Every vector in this experiment was made at `ORT_ENABLE_BASIC`.
@@ -125,8 +133,9 @@ five remex seeds on six arms. The table and the Answer use seed 42, the seed of 
 rows itself, an fp32 head with the rotation multiplied in, and the int8 ±127 rounding of that head, the last two
 encoded with `rotation="none"`.
 
-**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The page's
-hand-written WebGPU engine (`ettin-native/web/engine.js`) and its live index are unchanged. leaf-ir, the second
+**Not run.** remex has no 6-bit width, so no folded arm sits at exactly the live index's 200 B. The site's indexes
+are unchanged: the embedders page and Answer Search still store and scan 768-dim codes, and moving them to 256
+needs a scan shader for 256 dims at 3 or 4 bits, which does not exist yet. leaf-ir, the second
 model on that page, has a head with a bias (384 → 768), which puts its vectors in a 385-dim affine set and needs a
 different fold.
 
@@ -205,3 +214,33 @@ Seed spread over five remex seeds (mean, sd), recall@10 real: 1 bit × 768 0.717
 differences between arms.
 
 Wall clock: embedding 99 s for the posts, the whole of `eval.py` 5 min, all on 4 vCPUs. No paid compute.
+
+### Round 2 (2026-11-09): the fold on the site for List Scout
+
+Asked: "Do it", after the check that List Scout's classifier gives the same answers at 256 dims.
+
+List Scout (austegard.com/bsky/list-scout/) trains a logistic regression in the tab on Ettin vectors. It shares one
+`model.onnx` with three other pages, two of which search 768-dim indexes. So the model file was left alone:
+`run/site_fold.py` writes the 256 × 256 head as `fold256.f32` (float32, 262,144 bytes) beside it, and `foldHead` in
+the engine appends it to the weights and points the last matmul at it. The head here is the exact fold of the
+shipped int8 head with remex's rotation multiplied in, in float32, so a folded vector is the 768-dim vector times a
+fixed matrix with orthonormal columns. The int8 ±127 head of round 1 was not used: it differs slightly from the
+shipped head, and exact agreement with the 768-dim pages mattered more than 196 KB.
+
+Both copies of the engine take a 256 or 768 wide output: the site's `bsky/embedders/engine.js` and
+`ettin-native/web/engine.js` here, which `ettin-native/run/publish_site.py` publishes along with the head file.
+
+| check | result |
+|---|---|
+| engine, 64 random token sequences: inner products at 256 against 768 | max difference 6.9e-08 |
+| List Scout's classifier trained on each width, same sequences | max difference in P 6.0e-08, 0 decisions differ |
+| the same classifier on 7,700 real posts (node, round 1 vectors) | max difference in P 1.2e-07, 0 decisions differ |
+| List Scout's own loader on 8 real posts against a plain 768-dim engine | 256 numbers per post, inner products within 2.7e-08 |
+| patched engine against the previous one at 768, Ettin and leaf-ir | max difference 0 over 9,216 values each |
+| this repo's engine against the site's, 768 and 256 | 8.9e-08 and 1.0e-07 |
+| a head file with one row scaled by 1.5 | 4 of the test's 14 checks fail |
+| classifier fit, 2,700 posts, 600 iterations, node | 3.64 s at 768, 1.20 s at 256 |
+
+All browser runs are headless Chromium on SwiftShader, which checks arithmetic and says nothing about speed on a
+real GPU. The fit timing is CPU JavaScript, which is also what the page runs. Site commit `0ddeb9c`; the test is
+`tests/embedders-fold.mjs` there.

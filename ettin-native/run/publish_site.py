@@ -7,6 +7,8 @@ Layout written under SITE_REPO/bsky/embedders/:
   index.html, demo.js (paths block rewritten), sw.js, engine.js (ettin-native) + wgsl-runtime.js + wgsl-kernels.js, tail.js
   (embeddinggemma2-webgpu-tail, the tested version), README.md
   models/{ettin,leaf}/  model.onnx, tokenizer.json, meta.json, manifest.json
+  models/ettin/fold256.{f32,json}  the 256 -> 256 head that replaces Ettin's 256 -> 768 one (engine.js foldHead),
+                        written by ettin-span256-remex/run/site_fold.py; bsky/list-scout runs the model with it
   models/eg2/manifest.json   the t3w engine manifest (eg2-wgsl-engine/web/manifest.json). Since
                         2026-10-23 bsky/image-search/model/ holds a different build (67K rhq) and the
                         t3w cut this page uses lives in model/ort/, so the manifest ships here.
@@ -16,6 +18,7 @@ Refuses to run if the shared image-search files differ from the ones the demo wa
 """
 import gzip
 import hashlib
+import importlib.util
 import json
 import re
 import shutil
@@ -26,6 +29,9 @@ ROOT = Path(__file__).resolve().parent.parent
 EXP = ROOT.parent
 sys.path.insert(0, str(EXP))
 from _lib.wgsl.vendor import vendor_engine, vendored_engine, vendored_modules  # noqa: E402
+_s = importlib.util.spec_from_file_location("site_fold", EXP / "ettin-span256-remex" / "run" / "site_fold.py")
+site_fold = importlib.util.module_from_spec(_s)
+_s.loader.exec_module(site_fold)
 DEMO = ROOT / "web" / "demo"
 TAILW = EXP / "embeddinggemma2-webgpu-tail" / "web"
 
@@ -56,6 +62,11 @@ Ettin-17m and leaf-ir search indexes of the posts they embedded themselves. The 
 full-EG2 index and shares its engine and remex parameters with ../image-search/, and its weights
 with that page's onnxruntime fallback (../image-search/model/ort/). The cut's engine manifest is
 models/eg2/manifest.json, because ../image-search/model/manifest.json now describes a different build.
+
+`models/ettin/fold256.f32` is a 256 -> 256 replacement for the last matrix of Ettin-17m, which widens
+256 pooled numbers to 768. `foldHead` in `engine.js` runs the model with it, giving 256 numbers per text
+whose inner products are the same as the 768's (oaustegard/experiments `ettin-span256-remex`). This page
+still searches its 768-dim indexes; ../list-scout/ uses the 256.
 
 Built by oaustegard/experiments `ettin-native/run/publish_site.py`; write-up in
 `ettin-native/RESULTS.md`. Needs WebGPU (Chrome, Edge, Safari 26+).
@@ -95,6 +106,8 @@ def main():
         (out / "models" / key).mkdir(parents=True)
         for f in ("model.onnx", "tokenizer.json", "meta.json", "manifest.json"):
             shutil.copy(ROOT / "web" / "models" / pkg / f, out / "models" / key / f)
+        if key == "ettin":  # the 256-dim head bsky/list-scout runs the model with (engine.js foldHead)
+            site_fold.write(out / "models" / key)
         src = DEMO / "index" / pkg
         (out / "index" / key).mkdir(parents=True)
         shutil.copy(src / "index.json", out / "index" / key / "index.json")
