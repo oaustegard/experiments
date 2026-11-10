@@ -1,0 +1,94 @@
+{
+ "name": "check_small21_ai60",
+ "model": "urchade/gliner_small-v2.1",
+ "class": "UniEncoderSpanGLiNER",
+ "params": 152648704,
+ "prefix_space": false,
+ "versions": {
+  "python": "3.13.18",
+  "gliner": "0.2.30",
+  "torch": "2.14.1+cpu",
+  "transformers": "4.57.1",
+  "tokenizers": "0.22.2",
+  "accelerate": "1.15.0",
+  "huggingface_hub": "0.36.2",
+  "safetensors": "0.8.0",
+  "cuda": null,
+  "gpu": null
+ },
+ "wall_seconds": 14.4,
+ "bench": {
+  "thresholds": [
+   "0.3",
+   "0.4",
+   "0.5",
+   "0.6"
+  ],
+  "low_threshold": 0.1,
+  "limit": 60,
+  "batch_size": 12,
+  "device": "cpu",
+  "decode": "one library forward per batch (run_batch at the low threshold); library decode_batch (flat_ner=True, multi_label=False) on the same logits at each threshold",
+  "sets": {
+   "CrossNER_AI": {
+    "test": {
+     "n_sent": 60,
+     "n_labels": 14,
+     "seconds": 4.02,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.4713656387665198,
+       "r": 0.4672489082969432,
+       "f1": 0.46929824561403505,
+       "tp": 107,
+       "n_pred": 227,
+       "n_true": 229
+      },
+      "0.4": {
+       "p": 0.51,
+       "r": 0.44541484716157204,
+       "f1": 0.4755244755244756,
+       "tp": 102,
+       "n_pred": 200,
+       "n_true": 229
+      },
+      "0.5": {
+       "p": 0.5542168674698795,
+       "r": 0.4017467248908297,
+       "f1": 0.4658227848101265,
+       "tp": 92,
+       "n_pred": 166,
+       "n_true": 229
+      },
+      "0.6": {
+       "p": 0.589041095890411,
+       "r": 0.37554585152838427,
+       "f1": 0.45866666666666667,
+       "tp": 86,
+       "n_pred": 146,
+       "n_true": 229
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.34104046242774566,
+      "r": 0.5152838427947598,
+      "f1": 0.41043478260869565,
+      "tp": 118,
+      "n_pred": 346,
+      "n_true": 229
+     },
+     "library_evaluate_f1_at_0.5": 0.4658227848101265,
+     "library_evaluate_str": "P: 55.42%\tR: 40.17%\tF1: 46.58%"
+    }
+   }
+  },
+  "seconds": 6.79
+ }
+}

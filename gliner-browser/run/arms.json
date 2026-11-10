@@ -1,0 +1,33 @@
+{
+  "_doc": "Round 1 of PLAN.md. Each arm is one train.py invocation: common flags, then the arm's own (an arm's value wins). Baselines are bench-only: bench.py --model <model> --out results/<name>.json. colab_job.py reads this file; results/<name>.json existing means done.",
+  "common": {
+    "--backbone": "jhu-clsp/ettin-encoder-17m",
+    "--span-mode": "markerV0",
+    "--max-len": 384,
+    "--max-width": 12,
+    "--max-types": 25,
+    "--max-neg-type-ratio": 1,
+    "--dropout": 0.4,
+    "--prefix-space": 0,
+    "--seed": 0,
+    "--amp": 0,
+    "--workers": 2
+  },
+  "arms": {
+    "A0": {"_note": "upstream recipe unchanged (gliner_small-v2.1 config) on 17m", "--rnn": 1, "--lr-enc": 1e-5, "--lr-other": 5e-5, "--batch": 8, "--steps": 30000, "--eval-every": 2500},
+    "A1": {"--rnn": 1, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
+    "A2": {"--rnn": 1, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
+    "A3": {"--rnn": 0, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
+    "A4": {"--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
+    "A5": {"_note": "token-level head (UniEncoderTokenGLiNER)", "--span-mode": "token_level", "--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
+    "A6": {"_note": "every text and label word tokenized with a leading space", "--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000, "--prefix-space": 1},
+    "A7": {"--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000, "--dropout": 0.1},
+    "A8": {"_note": "32m backbone, hidden 384 = its own width, so no projection", "--backbone": "jhu-clsp/ettin-encoder-32m", "--hidden": 384, "--rnn": 0, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000}
+  },
+  "baselines": {
+    "B1_gliner_small-v2.1": {"model": "urchade/gliner_small-v2.1"},
+    "B2_gliner_small-v2.5": {"model": "gliner-community/gliner_small-v2.5"},
+    "B3_gliner-bi-edge-v2.0": {"model": "knowledgator/gliner-bi-edge-v2.0"},
+    "B4_gliner_large-v2.1": {"model": "urchade/gliner_large-v2.1"}
+  }
+}

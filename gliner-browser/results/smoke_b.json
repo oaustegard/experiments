@@ -1,0 +1,939 @@
+{
+ "name": "smoke_b",
+ "args": {
+  "name": "smoke_b",
+  "backbone": "jhu-clsp/ettin-encoder-17m",
+  "span_mode": "markerV0",
+  "rnn": 0,
+  "hidden": null,
+  "lr_enc": 5e-05,
+  "lr_other": 0.0001,
+  "batch": 4,
+  "steps": 30,
+  "dropout": 0.4,
+  "prefix_space": 1,
+  "max_len": 384,
+  "max_width": 12,
+  "max_types": 25,
+  "max_neg_type_ratio": 1,
+  "seed": 0,
+  "amp": 0,
+  "eval_every": 15,
+  "data": "/home/user/experiments/gliner-browser/data/train/pile_mistral.json",
+  "out": "/home/user/experiments/gliner-browser/out",
+  "results": "/home/user/experiments/gliner-browser/results",
+  "bench_limit": 40,
+  "bench_batch": 12,
+  "workers": 1,
+  "log_every": 5,
+  "crash_after_save": 0
+ },
+ "model_config": {
+  "model_name": "jhu-clsp/ettin-encoder-17m",
+  "name": "smoke_b",
+  "span_mode": "markerV0",
+  "hidden_size": 256,
+  "num_rnn_layers": 0,
+  "dropout": 0.4,
+  "max_width": 12,
+  "max_len": 384,
+  "max_types": 25,
+  "max_neg_type_ratio": 1,
+  "subtoken_pooling": "first",
+  "fuse_layers": false,
+  "post_fusion_schema": "",
+  "words_splitter_type": "whitespace",
+  "prefix_space": true,
+  "shuffle_types": true,
+  "random_drop": true,
+  "size_sup": -1
+ },
+ "training": {
+  "loss_alpha": 0.75,
+  "loss_gamma": 0,
+  "loss_prob_margin": 0,
+  "label_smoothing": 0,
+  "loss_reduction": "sum",
+  "negatives": 1.0,
+  "masking": "none",
+  "weight_decay_encoder": 0.1,
+  "weight_decay_other": 0.01,
+  "max_grad_norm": 10.0,
+  "scheduler_type": "cosine",
+  "shuffle_types": true,
+  "random_drop": true,
+  "size_sup": -1,
+  "warmup_ratio": 0.1,
+  "loss_type": "focal",
+  "optimizer": "adamw_torch",
+  "save_total_limit": 1,
+  "pythonhashseed": "0"
+ },
+ "versions": {
+  "python": "3.13.18",
+  "gliner": "0.2.30",
+  "torch": "2.14.1+cpu",
+  "transformers": "4.57.1",
+  "tokenizers": "0.22.2",
+  "accelerate": "1.15.0",
+  "huggingface_hub": "0.36.2",
+  "safetensors": "0.8.0",
+  "cuda": null,
+  "gpu": null
+ },
+ "params": {
+  "total": 19162624,
+  "token_rep_layer.tok_embeddings": 12894976,
+  "token_rep_layer": 3903232,
+  "span_rep_layer": 1838848,
+  "prompt_rep_layer": 525568
+ },
+ "best_step": 15,
+ "best_dev_during_training": 0.0,
+ "best_dev_reloaded": 0.0,
+ "train_seconds": 23.8,
+ "wall_seconds_this_invocation": 33.5,
+ "resumed_from_step": 0,
+ "tokenization_check": {
+  "words": [
+   "John",
+   "works",
+   "at",
+   "Google",
+   "in",
+   "Mountain",
+   "View",
+   "."
+  ],
+  "labels": [
+   "person",
+   "organization name",
+   "location"
+  ],
+  "upstream_ids": [
+   50281,
+   50369,
+   10816,
+   50369,
+   25590,
+   1416,
+   50369,
+   12428,
+   50370,
+   8732,
+   4896,
+   255,
+   17664,
+   249,
+   46,
+   24726,
+   3145,
+   15,
+   50282
+  ],
+  "upstream_tokens": [
+   "[CLS]",
+   "<<ENT>>",
+   "person",
+   "<<ENT>>",
+   "organization",
+   "\u0120name",
+   "<<ENT>>",
+   "location",
+   "<<SEP>>",
+   "John",
+   "works",
+   "at",
+   "Google",
+   "in",
+   "M",
+   "ountain",
+   "View",
+   ".",
+   "[SEP]"
+  ],
+  "ids": [
+   50281,
+   50369,
+   1436,
+   50369,
+   6003,
+   1416,
+   50369,
+   4328,
+   50370,
+   2516,
+   2987,
+   387,
+   5559,
+   275,
+   15939,
+   9182,
+   964,
+   50282
+  ],
+  "tokens": [
+   "[CLS]",
+   "<<ENT>>",
+   "\u0120person",
+   "<<ENT>>",
+   "\u0120organization",
+   "\u0120name",
+   "<<ENT>>",
+   "\u0120location",
+   "<<SEP>>",
+   "\u0120John",
+   "\u0120works",
+   "\u0120at",
+   "\u0120Google",
+   "\u0120in",
+   "\u0120Mountain",
+   "\u0120View",
+   "\u0120.",
+   "[SEP]"
+  ],
+  "words_mask_equal": true,
+  "prefix_space": true,
+  "ids_equal_upstream": false
+ },
+ "progress": [
+  {
+   "step": 15,
+   "loss": 1448.2225266666667,
+   "dev_mean5": {
+    "0.3": 0.0,
+    "0.4": 0.0,
+    "0.5": 0.0,
+    "0.6": 0.0
+   },
+   "dev_best_threshold": "0.5",
+   "dev_best": 0.0,
+   "dev_f1_at_0.5": {
+    "CrossNER_AI": 0.0,
+    "CrossNER_literature": 0.0,
+    "CrossNER_music": 0.0,
+    "CrossNER_politics": 0.0,
+    "CrossNER_science": 0.0
+   },
+   "lr": 5.868240888334653e-05,
+   "seconds": 11.9,
+   "bench_seconds": 1.6
+  },
+  {
+   "step": 30,
+   "loss": 163.47116666666668,
+   "dev_mean5": {
+    "0.3": 0.0,
+    "0.4": 0.0,
+    "0.5": 0.0,
+    "0.6": 0.0
+   },
+   "dev_best_threshold": "0.5",
+   "dev_best": 0.0,
+   "dev_f1_at_0.5": {
+    "CrossNER_AI": 0.0,
+    "CrossNER_literature": 0.0,
+    "CrossNER_music": 0.0,
+    "CrossNER_politics": 0.0,
+    "CrossNER_science": 0.0
+   },
+   "lr": 0.0,
+   "seconds": 23.5,
+   "bench_seconds": 1.5
+  }
+ ],
+ "bench": {
+  "thresholds": [
+   "0.3",
+   "0.4",
+   "0.5",
+   "0.6"
+  ],
+  "low_threshold": 0.1,
+  "limit": 40,
+  "batch_size": 12,
+  "device": "cpu",
+  "decode": "one library forward per batch (run_batch at the low threshold); library decode_batch (flat_ner=True, multi_label=False) on the same logits at each threshold",
+  "sets": {
+   "CrossNER_AI": {
+    "dev": {
+     "n_sent": 40,
+     "n_labels": 14,
+     "seconds": 0.38,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 189
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 189
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 189
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 189
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 189
+     }
+    },
+    "test": {
+     "n_sent": 40,
+     "n_labels": 14,
+     "seconds": 0.24,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 168
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 168
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 168
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 168
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 168
+     }
+    }
+   },
+   "CrossNER_literature": {
+    "dev": {
+     "n_sent": 40,
+     "n_labels": 12,
+     "seconds": 0.31,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 225
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 225
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 225
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 225
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 225
+     }
+    },
+    "test": {
+     "n_sent": 40,
+     "n_labels": 12,
+     "seconds": 0.28,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 216
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 216
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 216
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 216
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 216
+     }
+    }
+   },
+   "CrossNER_music": {
+    "dev": {
+     "n_sent": 40,
+     "n_labels": 13,
+     "seconds": 0.36,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 308
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 308
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 308
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 308
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 308
+     }
+    },
+    "test": {
+     "n_sent": 40,
+     "n_labels": 13,
+     "seconds": 0.32,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 331
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 331
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 331
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 331
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 331
+     }
+    }
+   },
+   "CrossNER_politics": {
+    "dev": {
+     "n_sent": 40,
+     "n_labels": 9,
+     "seconds": 0.29,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 260
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 260
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 260
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 260
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 260
+     }
+    },
+    "test": {
+     "n_sent": 40,
+     "n_labels": 9,
+     "seconds": 0.33,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 263
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 263
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 263
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 263
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 263
+     }
+    }
+   },
+   "CrossNER_science": {
+    "dev": {
+     "n_sent": 40,
+     "n_labels": 17,
+     "seconds": 0.38,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 206
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 206
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 206
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 206
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 206
+     }
+    },
+    "test": {
+     "n_sent": 40,
+     "n_labels": 17,
+     "seconds": 0.35,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 209
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 209
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 209
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 209
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 209
+     }
+    }
+   },
+   "mit-movie": {
+    "test": {
+     "n_sent": 40,
+     "n_labels": 12,
+     "seconds": 0.13,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 73
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 73
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 73
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 73
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 73
+     }
+    }
+   },
+   "mit-restaurant": {
+    "test": {
+     "n_sent": 40,
+     "n_labels": 8,
+     "seconds": 0.13,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 93
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 93
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 93
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 93
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 93
+     }
+    }
+   }
+  },
+  "test_mean7": {
+   "0.3": 0.0,
+   "0.4": 0.0,
+   "0.5": 0.0,
+   "0.6": 0.0
+  },
+  "dev_mean5": {
+   "0.3": 0.0,
+   "0.4": 0.0,
+   "0.5": 0.0,
+   "0.6": 0.0
+  },
+  "dev_best_threshold": "0.5",
+  "dev_best_mean5": 0.0,
+  "test_mean7_at_dev_best": 0.0,
+  "seconds": 3.58
+ },
+ "best_dir": "out/smoke_b/best"
+}

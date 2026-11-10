@@ -1,0 +1,94 @@
+{
+ "name": "check_biedge_ai60",
+ "model": "knowledgator/gliner-bi-edge-v2.0",
+ "class": "BiEncoderSpanGLiNER",
+ "params": 60800256,
+ "prefix_space": true,
+ "versions": {
+  "python": "3.13.18",
+  "gliner": "0.2.30",
+  "torch": "2.14.1+cpu",
+  "transformers": "4.57.1",
+  "tokenizers": "0.22.2",
+  "accelerate": "1.15.0",
+  "huggingface_hub": "0.36.2",
+  "safetensors": "0.8.0",
+  "cuda": null,
+  "gpu": null
+ },
+ "wall_seconds": 8.4,
+ "bench": {
+  "thresholds": [
+   "0.3",
+   "0.4",
+   "0.5",
+   "0.6"
+  ],
+  "low_threshold": 0.1,
+  "limit": 60,
+  "batch_size": 12,
+  "device": "cpu",
+  "decode": "one library forward per batch (run_batch at the low threshold); library decode_batch (flat_ner=True, multi_label=False) on the same logits at each threshold",
+  "sets": {
+   "CrossNER_AI": {
+    "test": {
+     "n_sent": 60,
+     "n_labels": 14,
+     "seconds": 0.92,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.4275618374558304,
+       "r": 0.5283842794759825,
+       "f1": 0.47265625,
+       "tp": 121,
+       "n_pred": 283,
+       "n_true": 229
+      },
+      "0.4": {
+       "p": 0.4830508474576271,
+       "r": 0.4978165938864629,
+       "f1": 0.49032258064516127,
+       "tp": 114,
+       "n_pred": 236,
+       "n_true": 229
+      },
+      "0.5": {
+       "p": 0.5515463917525774,
+       "r": 0.4672489082969432,
+       "f1": 0.5059101654846335,
+       "tp": 107,
+       "n_pred": 194,
+       "n_true": 229
+      },
+      "0.6": {
+       "p": 0.6402877697841727,
+       "r": 0.388646288209607,
+       "f1": 0.4836956521739131,
+       "tp": 89,
+       "n_pred": 139,
+       "n_true": 229
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.23163841807909605,
+      "r": 0.537117903930131,
+      "f1": 0.32368421052631585,
+      "tp": 123,
+      "n_pred": 531,
+      "n_true": 229
+     },
+     "library_evaluate_f1_at_0.5": 0.5059101654846335,
+     "library_evaluate_str": "P: 55.15%\tR: 46.72%\tF1: 50.59%"
+    }
+   }
+  },
+  "seconds": 1.75
+ }
+}
