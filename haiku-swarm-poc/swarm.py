@@ -31,7 +31,7 @@ import prompts as P
 from common import JAIL, jail_eval, run_dir, score_of, setup_jail
 from gateway import BudgetExceeded, Gateway, QuotaGuard
 
-SYNTH_EFFORT = {"haiku": "medium", "sonnet": "high"}   # each model's API default
+SYNTH_EFFORT = {"haiku": "medium", "sonnet": "high", "ember": "medium"}   # each model's API default; Ember matches Haiku
 REFINE_CAP = 20                                         # SwarmEvolve's per-program refinement cap
 
 
@@ -170,7 +170,7 @@ class Run:
             groups.setdefault(id(a["parent"]), []).append(a)
 
         def propose(a):
-            r = self.gw.call("haiku", P.proposer_system(a["parent"], self.pspec),
+            r = self.gw.call(self.a.prop_model, P.proposer_system(a["parent"], self.pspec),
                              P.proposer_user(a["phrase"], a["focus"], a["style"]),
                              effort=self.a.prop_effort, max_tokens=4000, role="proposer",
                              meta={"round": self.round, "swarm": idx})
@@ -251,7 +251,7 @@ class Run:
                    "prop_effort": self.a.prop_effort,
                    "synth_effort": self.a.synth_effort or SYNTH_EFFORT[self.a.synth],
                    "seed": self.a.seed, "K": self.a.K,
-                   "N": self.a.N, "synth": self.a.synth, "cap": self.a.cap, "spent": self.gw.spent,
+                   "N": self.a.N, "synth": self.a.synth, "prop_model": self.a.prop_model, "cap": self.a.cap, "spent": self.gw.spent,
                    "spent_api": self.gw.spent_api, "calls": self.gw.calls, "rounds": self.round,
                    "elapsed": self.elapsed(), "programs": len(self.archive),
                    "best_score": best["score"], "best_sum": best["metrics"].get("sum_radii"),
@@ -272,7 +272,8 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--K", type=int, default=4)
     ap.add_argument("--N", type=int, default=8)
-    ap.add_argument("--synth", default="haiku", choices=["haiku", "sonnet"])
+    ap.add_argument("--synth", default="haiku", choices=["haiku", "sonnet", "ember"])
+    ap.add_argument("--prop-model", dest="prop_model", default="haiku", choices=["haiku", "ember"])
     ap.add_argument("--cap", type=float, default=3.0)
     ap.add_argument("--wall", type=float, default=3600)
     ap.add_argument("--problem", default="circle", choices=list(problems.PROBLEMS))

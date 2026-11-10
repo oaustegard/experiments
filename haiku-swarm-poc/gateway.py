@@ -39,15 +39,42 @@ from pathlib import Path
 PRICES = {
     "claude-haiku-5-5": {"inp": 0.10, "out": 0.50},
     "claude-sonnet-5-5": {"inp": 2.00, "out": 10.00},
+    # Meta's list price for prompts up to 200K tokens (research.meta.ai/blog/muse-ember,
+    # 2026-11-09): cached input $0.004/M, a twenty-fifth of input, and no charge
+    # for writing the cache. Above 200K every rate triples.
+    "muse-ember-1.0": {"inp": 0.10, "out": 0.50, "read_mult": 0.04, "long": (200_000, 3.0)},
 }
 READ_MULT, W5M_MULT, W1H_MULT = 0.10, 1.25, 2.00
 HAIKU_LONG = 100_000
+#: Models served by Meta's Model API, called through the hub's scripts/muse.py
+#: (its provenance gate and ledger) instead of `claude -p`.
+MUSE_DIR = Path(os.environ.get("HSP_MUSE_DIR", "/home/user/claude-workspace/scripts"))
+MUSE_MODELS = {"muse-ember-1.0": ("ember", "1.0")}
+#: What the prompts contain: OpenEvolve's public example programs, this repo's
+#: prompts, and programs the models wrote from them.
+MUSE_SOURCE = "public-repo:oaustegard/experiments"
+#: The Cloudflare AI Gateway that muse.py routes through allows 50 requests per
+#: fixed 60 s window for ALL of its traffic (Gemini included), and answers 429
+#: code 2003 above it: three concurrent Ember swarms stalled on it on
+#: 2026-11-10. Request starts are spaced to stay under it with headroom.
+MUSE_RPM = float(os.environ.get("HSP_MUSE_RPM", "40"))
+_muse_lock = threading.Lock()
+_muse_next = [0.0]
+
+
+def _muse_slot():
+    """Block until this process may start another Muse request."""
+    with _muse_lock:
+        now = time.time()
+        start = max(now, _muse_next[0])
+        _muse_next[0] = start + 60.0 / MUSE_RPM
+    time.sleep(max(0.0, start - time.time()))
 # Calls that share a prefix land seconds apart, so the 5-minute cache TTL is the
 # right one, and its writes cost 1.25x input against the CLI's default 1-hour 2x.
 # Every run since 2026-11-09 14:10Z uses it; a run dir records it in `cache_ttl`.
 CACHE_TTL = "5m"
 
-ALIASES = {"haiku": "claude-haiku-5-5", "sonnet": "claude-sonnet-5-5"}
+ALIASES = {"haiku": "claude-haiku-5-5", "sonnet": "claude-sonnet-5-5", "ember": "muse-ember-1.0"}
 
 
 class BudgetExceeded(RuntimeError):
@@ -78,10 +105,12 @@ def price(model: str, u: dict, overhead: dict | None = None, api_equiv: bool = F
         inp = max(0, inp - o_new)
         read = max(0, read - o_read)
     total_in = inp + read + w5 + w1
-    mult = 5.0 if (model == "claude-haiku-5-5" and total_in > HAIKU_LONG) else 1.0
+    threshold, long_mult = p.get("long", (HAIKU_LONG, 5.0) if model == "claude-haiku-5-5" else (None, 1.0))
+    mult = long_mult if (threshold and total_in > threshold) else 1.0
     ip, op = p["inp"] * mult / 1e6, p["out"] * mult / 1e6
     w1_mult = W5M_MULT if api_equiv else W1H_MULT
-    return inp * ip + out * op + read * ip * READ_MULT + w5 * ip * W5M_MULT + w1 * ip * w1_mult
+    read_mult = p.get("read_mult", READ_MULT)
+    return inp * ip + out * op + read * ip * read_mult + w5 * ip * W5M_MULT + w1 * ip * w1_mult
 
 
 @dataclass
@@ -140,7 +169,10 @@ class Gateway:
             with self._sem:
                 if check_budget and self.spent >= self.cap:
                     raise BudgetExceeded(f"spent {self.spent:.4f} >= cap {self.cap}")
-                rec = self._run_cli(model, system, user, effort, max_tokens)
+                if model in MUSE_MODELS:
+                    rec = self._run_muse(model, system, user, effort, max_tokens)
+                else:
+                    rec = self._run_cli(model, system, user, effort, max_tokens)
             rec.update(role=role, meta=meta or {}, attempt=attempt)
             self._record(rec)
             if rec["ok"]:
@@ -211,6 +243,44 @@ class Gateway:
             rec["error"] = str(result.get("result") or result.get("subtype"))[:400]
             return rec
         rec["text"] = result.get("result") or ""
+        rec["ok"] = True
+        return rec
+
+    def _run_muse(self, model, system, user, effort, max_tokens) -> dict:
+        """One call through the hub's muse.py: gate, send, hub ledger. Meta reports
+        cached prompt tokens and bills no cache writes, so the usage maps onto
+        uncached input, cache reads and output. Ember has no harness overhead, so
+        `cost_api` equals `cost`."""
+        import sys
+        if str(MUSE_DIR) not in sys.path:
+            sys.path.insert(0, str(MUSE_DIR))
+        import muse
+        family, version = MUSE_MODELS[model]
+        _muse_slot()
+        t_start = time.time()
+        # muse.ask says why it failed on stderr, which goes to the run's log;
+        # sys.stderr is process-wide, so it cannot be captured per thread.
+        out = muse.ask(user, MUSE_SOURCE, system=system, family=family, version=version,
+                       reasoning_effort=effort, max_tokens=max_tokens, timeout=600)
+        t_end = time.time()
+        rec = {"t_start": t_start, "t_end": t_end, "model": model, "effort": effort,
+               "ok": False, "text": "", "usage": {}, "cost": 0.0, "cost_api": 0.0,
+               "cost_cc": None, "error": None}
+        if out is None:
+            # A call that failed after Meta billed it (finish_reason length) is in the
+            # hub ledger with its usage; the cost here would undercount it.
+            rec["error"] = "muse.ask returned None; the reason is in the run log"
+            return rec
+        u = out.get("usage") or {}
+        cached = (u.get("prompt_tokens_details") or {}).get("cached_tokens") or 0
+        rec["usage"] = {"inputTokens": (u.get("prompt_tokens") or 0) - cached,
+                        "outputTokens": u.get("completion_tokens") or 0,
+                        "cacheReadInputTokens": cached, "cacheCreationInputTokens": 0,
+                        "thinkingTokens": (u.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0}
+        rec["cost"] = rec["cost_api"] = price(model, rec["usage"])
+        rec["stop_reason"] = out.get("finish")
+        rec["muse_id"] = out.get("id")
+        rec["text"] = out["text"]
         rec["ok"] = True
         return rec
 
