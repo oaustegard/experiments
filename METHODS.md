@@ -1710,6 +1710,24 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **In an explicit buoyancy solver, compute the buoyancy force from the scalar after advecting it.** Updating
+  vorticity from the old thickness and thickness from the old flow is forward Euler on an oscillator: a stably
+  layered fluid gains energy at about N²·dt/2 per second (N the buoyancy frequency) and rings once that exceeds
+  the drag. In the soap film a hard stroke sharpened the layers enough, and 70 steps later thickness ran from 6
+  to 3,180 nm (it had been 59 to 939). Advect in one pass and apply the force from the moved field in a second;
+  that is stable for N·dt < 2. (oaustegard.github.io `fun-and-games/soap-film.html`, `ADVECT` and `FORCE`)
+- **Apply diffusion to the advected field, not to the field before advection.** `advected + k·∇²(old)` can exceed
+  the largest value anywhere when the flow is fast, because the Laplacian comes from the arrival cell and the
+  value from the departure cell. `moved + k·∇²(moved)` with 4k < 1 is an average and cannot. Check it as a
+  maximum principle: with sources off, min and max must stay inside their starting range. (`soap-film/run/check.mjs`, 5b)
+- **A stratified scalar with diffusion and no-flux walls is not at rest where a wall is neither level nor
+  upright.** Layers must meet the wall at right angles, so they bend there and drive a slow flow (0.21 cells/s
+  at the rounded corners of the soap film's frame). Turn diffusion off to test hydrostatic balance, which was
+  then exact: peak speed 0. (`soap-film/README.md`, Checks)
+- **For colour from a spectrum, carry the 5 nm CIE tables; the analytic observer fit plus a blackbody for D65
+  is visibly off.** On thin-film interference colours, Wyman, Sloan and Shirley's fit with a 6,504 K blackbody
+  differed from a colour-science reference by a mean ΔE76 of 1.92 and 8.60 at worst (dark purples). The 5 nm
+  CIE 1931 and D65 tables, interpolated to 2.5 nm, gave 0.07 and 0.22, for 2 KB of numbers. (`soap-film/run/ref_lut.py`)
 - **clean-fid 0.1.35 calls `scipy.linalg.sqrtm(..., disp=False)`, which current scipy rejects** (TypeError).
   Take its Inception features (`fid.get_folder_features` with `build_feature_extractor("clean", device)`)
   and compute the Fréchet distance yourself; keep the real features to reuse for a nearest-neighbour copy

@@ -1,0 +1,91 @@
+{
+ "ran": "2026-11-10",
+ "gpu": "SwiftShader (headless Chromium)",
+ "results": [
+  {
+   "name": "page loads with a WebGPU device",
+   "pass": true,
+   "detail": "grid 64x96, adapter \"google swiftshader\", 0 console errors "
+  },
+  {
+   "name": "colour table matches the reference (page_dispersion)",
+   "pass": true,
+   "detail": "mean ΔE76 0.07, worst 0.22 at 530 nm, 567 colours"
+  },
+  {
+   "name": "colour table matches the reference (constant_index)",
+   "pass": true,
+   "detail": "mean ΔE76 2.09, worst 7.80 at 630 nm, 567 colours"
+  },
+  {
+   "name": "no film is black, black film nearly so, 100 nm is the bright first-order white",
+   "pass": true,
+   "detail": "luminance 0 nm 0, 6 nm 0.00071, 100 nm 0.0775 rgb 0.073,0.079,0.074"
+  },
+  {
+   "name": "stratified film at rest stays at rest",
+   "pass": true,
+   "detail": "after 300 steps: peak speed 0.00e+0 cells/s, mean thickness 750.00 -> 750.00 nm"
+  },
+  {
+   "name": "thick film pours toward gravity when it turns",
+   "pass": true,
+   "detail": "thickness-weighted x 0.495 -> 0.562 of the width, peak speed 15.1 cells/s"
+  },
+  {
+   "name": "thick film on top overturns",
+   "pass": true,
+   "detail": "thickness-weighted height 0.410 -> 0.536 (1 = bottom) in 25 s"
+  },
+  {
+   "name": "thickness is conserved without drainage",
+   "pass": true,
+   "detail": "mean 749.82 -> 748.51 nm (-0.175 %) over 1500 steps"
+  },
+  {
+   "name": "with no gravity the flow only decays",
+   "pass": true,
+   "detail": "mean |vorticity| x0.370 in 2 s (drag alone gives x0.407), thickness-weighted height moved -0.0019"
+  },
+  {
+   "name": "a breath makes a vortex pair moving its way",
+   "pass": true,
+   "detail": "vorticity above -24.30 and below 23.38 1/s, flow at the breath (85.8, -1.3) cells/s"
+  },
+  {
+   "name": "a hard breath keeps thickness inside its starting range",
+   "pass": true,
+   "detail": "thickness 210.3..972.4 nm before, 225.8..964.3 nm 4 s after; peak speed 6.5 cells/s"
+  },
+  {
+   "name": "the film drains and black film forms at the top",
+   "pass": true,
+   "detail": "mean 180 -> 120 nm in 15 s; black cells: top half 2102, bottom half 0; thinnest 6.0 nm"
+  },
+  {
+   "name": "black film draws nearly as dark as no film, thicker film draws bright",
+   "pass": true,
+   "detail": "rgb at the top with black film 39,45,54 and with no film 33,37,44; lower down with film 150,64,105 and without 37,41,49"
+  },
+  {
+   "name": "a pop opens a hole that empties the frame",
+   "pass": true,
+   "detail": "film gone: 57 % after 0.1 s, 100 % after 0.77 s"
+  },
+  {
+   "name": "dipping again makes a new film",
+   "pass": true,
+   "detail": "mean thickness 537 nm, 11432 cells of film"
+  },
+  {
+   "name": "the loop holds a round film that sorts by thickness",
+   "pass": true,
+   "detail": "5808 cells against 5809 for the disc; thickness-weighted height 0.547 -> 0.557"
+  },
+  {
+   "name": "the live page runs and its controls work",
+   "pass": true,
+   "detail": "canvas 420x800, buttons Dip/Tilt/Loop/About/Close, about opened true, shape button now \"Frame\", errors: none"
+  }
+ ]
+}
