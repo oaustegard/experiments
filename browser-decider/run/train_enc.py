@@ -32,10 +32,14 @@ DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INITS = {
     "e17c": ROOT / "out/base/st-ettin17m-tuned-e17-cap-c-epoch1/epoch1",
     "stock": "jhu-clsp/ettin-encoder-17m",
+    "stock32": "jhu-clsp/ettin-encoder-32m",
+    "stock68": "jhu-clsp/ettin-encoder-68m",
+    "stock150": "jhu-clsp/ettin-encoder-150m",
     "monad": "PleIAs/Monad",
 }
 CAUSAL = {"monad"}
 MAX_LEN = 1024
+AMP = False   # --amp: bf16 autocast on CUDA (dettin-68m); off reproduces the fp32 runs
 
 
 class Enc:
@@ -92,8 +96,9 @@ class Decider(nn.Module):
         self.head = nn.Sequential(nn.Linear(h, h), nn.GELU(), nn.LayerNorm(h), nn.Linear(h, 1))
 
     def forward(self, ids, att, pos_b, pos_t):
-        hs = self.enc(input_ids=ids, attention_mask=att).last_hidden_state
-        return self.head(hs[pos_b, pos_t]).squeeze(-1)  # one logit per option, flat
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=AMP and ids.is_cuda):
+            hs = self.enc(input_ids=ids, attention_mask=att).last_hidden_state
+        return self.head(hs[pos_b, pos_t].float()).squeeze(-1)  # one logit per option, flat
 
 
 def collate(batch, pad_id):
@@ -187,7 +192,13 @@ def main():
                     "account) instead of Typed Decisions; --train/--test are then ignored")
     ap.add_argument("--max-train-accounts", type=int, default=0, help="with --data: keep N training accounts")
     ap.add_argument("--out-root", help="write results/ and out/ckpt/ under this directory instead")
+    ap.add_argument("--amp", action="store_true", help="bf16 autocast for the encoder on CUDA")
+    ap.add_argument("--max-len", type=int, default=0, help="token budget per sequence (default 1024)")
     a = ap.parse_args()
+    global AMP, MAX_LEN
+    AMP = a.amp
+    if a.max_len:
+        MAX_LEN = a.max_len
 
     torch.set_num_threads(4)
     torch.manual_seed(a.seed)

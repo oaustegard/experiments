@@ -9,6 +9,7 @@ kept in out/adapters/<name>.pt for the fallback and warm arms.
 import argparse
 import json
 import math
+import os
 import random
 import sys
 import time
@@ -25,8 +26,16 @@ from train_enc import (DEV, Decider, Enc, batches, collate, fit_temps, kl_mean, 
                        probs_at, seg_softmax)
 
 RANK, ALPHA, TARGETS = 8, 16, {"Wqkv", "Wo", "Wi"}
-LR_FULL, LR_LORA = 8e-5, 5e-4
-RES, OUT = ROOT / "results", ROOT / "out"
+# dettin-68m reruns these arms on a larger base: AL_BASE names the encoder, AL_OUT_ROOT keeps its
+# results apart from the 17M ones committed here, AL_LR_FULL / AL_LR_LORA override the rates, AL_AMP=1
+# turns on bf16 autocast in the shared trainer.
+BASE_ID = os.environ.get("AL_BASE", "jhu-clsp/ettin-encoder-17m")
+LR_FULL, LR_LORA = float(os.environ.get("AL_LR_FULL", "8e-5")), float(os.environ.get("AL_LR_LORA", "5e-4"))
+_R = Path(os.environ["AL_OUT_ROOT"]) if os.environ.get("AL_OUT_ROOT") else ROOT
+RES, OUT = _R / "results", _R / "out"
+if os.environ.get("AL_AMP"):
+    import train_enc as _te
+    _te.AMP = True
 _INIT = None
 
 
@@ -34,7 +43,7 @@ def stock_path():
     global _INIT
     if _INIT is None:
         from huggingface_hub import snapshot_download
-        _INIT = snapshot_download("jhu-clsp/ettin-encoder-17m", allow_patterns=["*.json", "*.bin", "*.safetensors"])
+        _INIT = snapshot_download(BASE_ID, allow_patterns=["*.json", "*.bin", "*.safetensors"])
     return _INIT
 
 
