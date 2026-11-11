@@ -1,0 +1,155 @@
+{
+ "n_articles": 150,
+ "agreement": {
+  "study_type": 0.88,
+  "field": 0.867,
+  "human_samples": 0.96,
+  "immunoassay": 0.987
+ },
+ "prior": {
+  "study_type": 0.326,
+  "field": 0.169,
+  "human_samples": 0.542,
+  "immunoassay": 0.878
+ },
+ "arms": {
+  "haiku plain1": {
+   "study_type": 0.909,
+   "field": 0.869,
+   "human_samples": 0.993,
+   "immunoassay": 0.966,
+   "mean": 0.934,
+   "n": 130
+  },
+  "haiku plain2": {
+   "study_type": 0.879,
+   "field": 0.892,
+   "human_samples": 0.993,
+   "immunoassay": 0.966,
+   "mean": 0.932,
+   "n": 130
+  },
+  "haiku plain3": {
+   "study_type": 0.894,
+   "field": 0.877,
+   "human_samples": 0.993,
+   "immunoassay": 0.966,
+   "mean": 0.932,
+   "n": 130
+  },
+  "haiku methods": {
+   "study_type": 0.962,
+   "field": 0.908,
+   "human_samples": 0.993,
+   "immunoassay": 0.959,
+   "mean": 0.956,
+   "n": 130
+  },
+  "haiku sceptic": {
+   "study_type": 0.947,
+   "field": 0.938,
+   "human_samples": 1.0,
+   "immunoassay": 0.966,
+   "mean": 0.963,
+   "n": 130
+  },
+  "haiku icl": {
+   "study_type": 0.917,
+   "field": 0.877,
+   "human_samples": 0.993,
+   "immunoassay": 0.946,
+   "mean": 0.933,
+   "n": 130
+  },
+  "stack: plain x3": {
+   "study_type": 0.909,
+   "field": 0.892,
+   "human_samples": 1.0,
+   "immunoassay": 0.966,
+   "mean": 0.942,
+   "n": 130
+  },
+  "stack: plain + methods + sceptic": {
+   "study_type": 0.962,
+   "field": 0.931,
+   "human_samples": 1.0,
+   "immunoassay": 0.966,
+   "mean": 0.965,
+   "n": 130
+  },
+  "stack: icl + methods + sceptic": {
+   "study_type": 0.947,
+   "field": 0.931,
+   "human_samples": 1.0,
+   "immunoassay": 0.966,
+   "mean": 0.961,
+   "n": 130
+  },
+  "jev": {
+   "study_type": 0.955,
+   "field": 0.954,
+   "human_samples": 0.986,
+   "immunoassay": 0.966,
+   "mean": 0.965,
+   "n": 130
+  }
+ },
+ "three_angles_unanimous_share": {
+  "study_type": 0.867,
+  "field": 0.82,
+  "human_samples": 0.96,
+  "immunoassay": 0.987
+ },
+ "runs": {
+  "paper_dev_haiku": {
+   "usd": 0.051,
+   "calls": 30,
+   "seconds_median": 2.58
+  },
+  "paper_dev_opus": {
+   "usd": 2.171,
+   "calls": 30,
+   "seconds_median": 5.0
+  },
+  "paper_gold_opus": {
+   "usd": 8.823,
+   "calls": 150,
+   "seconds_median": 2.75
+  },
+  "paper_gold_sonnet": {
+   "usd": 4.108,
+   "calls": 150,
+   "seconds_median": 2.04
+  },
+  "paper_haiku_icl": {
+   "usd": 0.22,
+   "calls": 150,
+   "seconds_median": 2.28
+  },
+  "paper_haiku_methods": {
+   "usd": 0.223,
+   "calls": 150,
+   "seconds_median": 2.46
+  },
+  "paper_haiku_plain1": {
+   "usd": 0.217,
+   "calls": 150,
+   "seconds_median": 2.18
+  },
+  "paper_haiku_plain2": {
+   "usd": 0.217,
+   "calls": 150,
+   "seconds_median": 2.09
+  },
+  "paper_haiku_plain3": {
+   "usd": 0.048,
+   "calls": 150,
+   "seconds_median": 2.08
+  },
+  "paper_haiku_sceptic": {
+   "usd": 0.226,
+   "calls": 150,
+   "seconds_median": 2.54
+  }
+ }
+}
