@@ -14,20 +14,144 @@
     "--workers": 2
   },
   "arms": {
-    "A0": {"_note": "upstream recipe unchanged (gliner_small-v2.1 config) on 17m", "--rnn": 1, "--lr-enc": 1e-5, "--lr-other": 5e-5, "--batch": 8, "--steps": 30000, "--eval-every": 2500},
-    "A1": {"--rnn": 1, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
-    "A2": {"--rnn": 1, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
-    "A3": {"--rnn": 0, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
-    "A4": {"--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
-    "A5": {"_note": "token-level head (UniEncoderTokenGLiNER)", "--span-mode": "token_level", "--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000},
-    "A6": {"_note": "every text and label word tokenized with a leading space", "--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000, "--prefix-space": 1},
-    "A7": {"--rnn": 0, "--lr-enc": 1.5e-4, "--lr-other": 3e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000, "--dropout": 0.1},
-    "A8": {"_note": "32m backbone, hidden 384 = its own width, so no projection", "--backbone": "jhu-clsp/ettin-encoder-32m", "--hidden": 384, "--rnn": 0, "--lr-enc": 5e-5, "--lr-other": 1e-4, "--batch": 32, "--steps": 12000, "--eval-every": 1000}
+    "A0": {
+      "_note": "upstream recipe unchanged (gliner_small-v2.1 config) on 17m",
+      "--rnn": 1,
+      "--lr-enc": 1e-05,
+      "--lr-other": 5e-05,
+      "--batch": 8,
+      "--steps": 30000,
+      "--eval-every": 2500
+    },
+    "A1": {
+      "--rnn": 1,
+      "--lr-enc": 5e-05,
+      "--lr-other": 0.0001,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A2": {
+      "--rnn": 1,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A3": {
+      "--rnn": 0,
+      "--lr-enc": 5e-05,
+      "--lr-other": 0.0001,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A4": {
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A5": {
+      "_note": "token-level head (UniEncoderTokenGLiNER)",
+      "--span-mode": "token_level",
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A6": {
+      "_note": "every text and label word tokenized with a leading space",
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--prefix-space": 1
+    },
+    "A7": {
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--dropout": 0.1
+    },
+    "A8": {
+      "_note": "32m backbone, hidden 384 = its own width, so no projection",
+      "--backbone": "jhu-clsp/ettin-encoder-32m",
+      "--hidden": 384,
+      "--rnn": 0,
+      "--lr-enc": 5e-05,
+      "--lr-other": 0.0001,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000
+    },
+    "A9": {
+      "_note": "A6 + BiLSTM",
+      "--rnn": 1,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--prefix-space": 1
+    },
+    "A10": {
+      "_note": "A6 with token-level head",
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--prefix-space": 1,
+      "--span-mode": "token_level"
+    },
+    "A11": {
+      "_note": "A6 with dropout 0.1",
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--prefix-space": 1,
+      "--dropout": 0.1
+    },
+    "A12": {
+      "_note": "A6 on 32m, hidden 384",
+      "--rnn": 0,
+      "--lr-enc": 0.00015,
+      "--lr-other": 0.0003,
+      "--batch": 32,
+      "--steps": 12000,
+      "--eval-every": 1000,
+      "--prefix-space": 1,
+      "--backbone": "jhu-clsp/ettin-encoder-32m",
+      "--hidden": 384
+    }
   },
   "baselines": {
-    "B1_gliner_small-v2.1": {"model": "urchade/gliner_small-v2.1"},
-    "B2_gliner_small-v2.5": {"model": "gliner-community/gliner_small-v2.5"},
-    "B3_gliner-bi-edge-v2.0": {"model": "knowledgator/gliner-bi-edge-v2.0"},
-    "B4_gliner_large-v2.1": {"model": "urchade/gliner_large-v2.1"}
+    "B1_gliner_small-v2.1": {
+      "model": "urchade/gliner_small-v2.1"
+    },
+    "B2_gliner_small-v2.5": {
+      "model": "gliner-community/gliner_small-v2.5"
+    },
+    "B3_gliner-bi-edge-v2.0": {
+      "model": "knowledgator/gliner-bi-edge-v2.0"
+    },
+    "B4_gliner_large-v2.1": {
+      "model": "urchade/gliner_large-v2.1"
+    }
   }
 }

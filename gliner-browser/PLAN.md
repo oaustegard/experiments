@@ -74,6 +74,14 @@ against its measured milliseconds decides whether the browser carries it. The sp
 Upstream tokenizes each word without the leading-space marker, which hands a
 BPE model word forms it rarely saw in pre-training; A6 tests that.
 
+Amendment, 2026-11-11 00:08 UTC, after A3, A4 and A6 reported (test mean at
+0.5: 25.1, 29.8, 36.7): leading-space tokenization is worth about 7 points, far
+more than P5 predicted, so every remaining comparison is re-based on A6 instead
+of A4. A1, A2, A5, A7 and A8 are dropped unrun and replaced by A9 (A6 plus
+BiLSTM), A10 (A6 with the token-level head), A11 (A6 with dropout 0.1) and A12
+(A6 on 32m, hidden 384, same learning rate). P3, P4 and P6 are scored on these
+against A6. A0 runs as planned.
+
 Later rounds, in order, each gated on the one before:
 2. Data scale (NuNER) and distillation from a large GLiNER teacher on
    unlabelled text with sampled label sets.
