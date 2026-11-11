@@ -11,7 +11,8 @@
     "--prefix-space": 0,
     "--seed": 0,
     "--amp": 0,
-    "--workers": 2
+    "--workers": 2,
+    "--max-oom-skips": 5
   },
   "arms": {
     "A0": {
@@ -103,8 +104,7 @@
       "--batch": 32,
       "--steps": 12000,
       "--eval-every": 1000,
-      "--prefix-space": 1,
-      "--max-oom-skips": 5
+      "--prefix-space": 1
     },
     "A10": {
       "_note": "A6 with token-level head",
