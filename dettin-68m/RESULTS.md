@@ -242,3 +242,37 @@ spike per use case makes generality a luxury, and of the two goals a stronger sp
 the embedder. The embedder's weak public scores have the same shape as `lifesci-ettin`'s: a small amount of
 domain training was expected to supply retrieval ability that the starting weights did not have. A learning
 curve for the teacher stage over more and broader text would test that; it was proposed and not run.
+
+### Follow-ups the same evening (2026-11-10)
+
+**Triangulation: three other spikes answering a held-out workflow** (`run/triangulate.py`, `results/triangulate.json`).
+Oskar asked whether a spike library could answer a domain it has no spike for by running the three nearest
+spikes and weighting their answers by distance. For each Typed Decisions workflow its own 68M spike was set
+aside and the other three answered its 100 test cases. Distance was the cosine between the case's state,
+mean-pooled through the frozen base, and the centroid of each spike's training states. Mean accuracy over the
+four workflows: the workflow's own spike 0.763, a uniform average of the other three 0.347, the
+distance-weighted average 0.349, the nearest spike alone 0.363, the best single spike chosen after the fact
+0.425, always answering with the most common training label 0.482. No combination reached the most-common-label
+baseline. The distance carried almost no signal: one workflow (security incidents) was the nearest centroid
+for nearly every case of the other three, and the weight on the nearest spike averaged 0.37 to 0.45 of 1.
+Four unrelated workflows are a hard case for this idea; it was not tried on a library with near neighbours.
+
+**Haiku reading a whole article** (`run/paper.py`, `results/paper.json`). Oskar's idea: use Haiku at low effort as
+the decision model itself, on the full paper, and stack calls with skewed instructions. 150 test articles
+(median 3,850 words), four article-level questions, gold where Sonnet and Opus agree on the full text (0.87 to
+0.99 of articles), one article per call.
+
+| arm | study type | field | human samples | immunoassay | mean |
+|---|---|---|---|---|---|
+| plain instruction, three separate runs | 0.909, 0.879, 0.894 | 0.869, 0.892, 0.877 | 0.993 | 0.966 | 0.933, 0.932, 0.932 |
+| "decide from what the methods and results report" | 0.962 | 0.908 | 0.993 | 0.959 | 0.956 |
+| "start from the least committal answer" | 0.947 | 0.938 | 1.000 | 0.966 | 0.963 |
+| plain plus six worked examples | 0.917 | 0.877 | 0.993 | 0.946 | 0.933 |
+| three plain calls, majority vote | 0.909 | 0.892 | 1.000 | 0.966 | 0.942 |
+| plain, methods and least-committal, majority vote | 0.962 | 0.931 | 1.000 | 0.966 | 0.965 |
+| Jev on the full article | 0.955 | 0.954 | 0.986 | 0.966 | 0.965 |
+
+A better instruction did as much as the stack. The worked examples were six sentences from dev articles where
+plain Haiku and Opus disagreed, all on study type and field, so that arm is a weak test of examples. With about
+130 agreed items per question, 0.03 on one question is four articles. A Haiku call cost $0.0015 per article at
+list price and took a median of 2.1 to 2.5 seconds; Jev cost $0.0003. The gold for this test cost $15.

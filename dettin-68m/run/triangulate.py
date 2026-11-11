@@ -66,12 +66,11 @@ def main():
                 opts = list(g)
                 gold = max(g, key=g.get)
                 P = np.array([[probs[(s, w)][i][q][o] for o in opts] for s in others])
-                top = lambda v: opts[int(np.argmax(v))]   # noqa: E731
-                hits["uniform"].append(top(P.mean(0)) == gold)
-                hits["weighted"].append(top(wts[i] @ P) == gold)
-                hits["nearest"].append(top(P[int(np.argmax(sims[i]))]) == gold)
+                hits["uniform"].append(opts[int(np.argmax(P.mean(0)))] == gold)
+                hits["weighted"].append(opts[int(np.argmax(wts[i] @ P))] == gold)
+                hits["nearest"].append(opts[int(np.argmax(P[int(np.argmax(sims[i]))]))] == gold)
                 for k, s in enumerate(others):
-                    hits[f"single:{s}"].append(top(P[k]) == gold)
+                    hits[f"single:{s}"].append(opts[int(np.argmax(P[k]))] == gold)
                 own = probs[(w, w)][i][q]
                 hits["own_spike"].append(max(own, key=own.get) == gold)
                 tops = [max(t["gold"][q]["probabilities"], key=t["gold"][q]["probabilities"].get) for t in train if q in t["gold"]]

@@ -1,0 +1,85 @@
+{
+ "tau": 0.02,
+ "by_workflow": {
+  "agent_trace_observability": {
+   "own_spike": 0.7,
+   "uniform": 0.37,
+   "weighted": 0.382,
+   "nearest": 0.322,
+   "most_common_train": 0.37,
+   "single:customer_service": 0.382,
+   "single:invoice_processing": 0.304,
+   "single:security_incidents": 0.322,
+   "best_single_after_the_fact": 0.382,
+   "mean_weight_on_nearest": 0.453,
+   "nearest_spike_share": {
+    "customer_service": 0.0,
+    "invoice_processing": 0.0,
+    "security_incidents": 1.0
+   }
+  },
+  "customer_service": {
+   "own_spike": 0.752,
+   "uniform": 0.32,
+   "weighted": 0.322,
+   "nearest": 0.316,
+   "most_common_train": 0.446,
+   "single:agent_trace_observability": 0.36,
+   "single:invoice_processing": 0.38,
+   "single:security_incidents": 0.298,
+   "best_single_after_the_fact": 0.38,
+   "mean_weight_on_nearest": 0.41,
+   "nearest_spike_share": {
+    "agent_trace_observability": 0.0,
+    "invoice_processing": 0.06,
+    "security_incidents": 0.94
+   }
+  },
+  "invoice_processing": {
+   "own_spike": 0.854,
+   "uniform": 0.4,
+   "weighted": 0.398,
+   "nearest": 0.356,
+   "most_common_train": 0.522,
+   "single:agent_trace_observability": 0.284,
+   "single:customer_service": 0.486,
+   "single:security_incidents": 0.356,
+   "best_single_after_the_fact": 0.486,
+   "mean_weight_on_nearest": 0.374,
+   "nearest_spike_share": {
+    "agent_trace_observability": 0.0,
+    "customer_service": 0.0,
+    "security_incidents": 1.0
+   }
+  },
+  "security_incidents": {
+   "own_spike": 0.746,
+   "uniform": 0.296,
+   "weighted": 0.292,
+   "nearest": 0.458,
+   "most_common_train": 0.588,
+   "single:agent_trace_observability": 0.45,
+   "single:customer_service": 0.288,
+   "single:invoice_processing": 0.39,
+   "best_single_after_the_fact": 0.45,
+   "mean_weight_on_nearest": 0.375,
+   "nearest_spike_share": {
+    "agent_trace_observability": 0.92,
+    "customer_service": 0.08,
+    "invoice_processing": 0.0
+   }
+  }
+ },
+ "mean": {
+  "own_spike": 0.763,
+  "uniform": 0.3465,
+  "weighted": 0.3485,
+  "nearest": 0.363,
+  "best_single_after_the_fact": 0.4245,
+  "most_common_train": 0.4815
+ },
+ "reference": {
+  "full_fine_tune_on_the_other_three_68m": 0.4135,
+  "prior_from_dataset_card": 0.47
+ }
+}
