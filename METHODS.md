@@ -5500,3 +5500,40 @@ proposers spent 600 to 770 reasoning tokens a call against Haiku 5.5's 116 to 13
 to 6% of their input against Anthropic's 63 to 68%, so Ember's cheaper cached price did not reach the bill. A
 per-token price comparison across providers says little until both the reasoning length and the cache hit rate
 are measured on the actual prompt shape. Ember accepts `minimal`, which `claude -p` cannot give Haiku.
+
+### Training small encoders on labelled domain text: what the 68M run changed (dettin-68m)
+
+- **Eval queries a model writes from the passage are a word-matching test.** On 1,186 Sonnet-written queries
+  over 28,073 article sections BM25 scored nDCG@10 0.910 and the dense teacher 0.874. After Sonnet reworded the
+  queries to avoid the section's own terms, BM25 fell to 0.500 and the ranking of dense models changed. Score
+  BM25 first; if it leads, reword the queries before reading anything else from the set. (`run/bm25_eval.py`)
+- **A contrastive-only embedder passes the word-matching test and fails the reworded one.** Ettin-68m trained on
+  21K query and section pairs alone scored 0.900 on the original queries and 0.437 on the reworded ones; the
+  same pairs with a cosine pull toward a teacher's vectors scored 0.733. (`run/embed.py`)
+- **A distilled student is capped by its teacher, and by how much text the pull sees.** Check the teacher on
+  every eval before training. With 1,960 steps over 41K sections the student tied the teacher in-domain and sat
+  0.15 below it on SciFact. Do not read an in-domain tie as a general embedder.
+- **Name the starting checkpoint before the first run, and ask when it was tuned for something else.**
+  `lifesci-ettin` started five rounds from e17c, a model distilled on Bluesky posts, because it was the embedder
+  on disk. It scores 0.583 on SciFact where a 33M general embedder scores 0.713.
+- **An eval pool must not depend on the training negatives.** The distractor pool was built from "sections not
+  used in training pairs", so re-filtering the negatives changed the pool (27,148 to 28,073) and the early
+  scores had to be rerun. Fix the pool from ids alone, before any pair is built. (`run/build.py`)
+- **Pick the bulk labeller on a gold set, and keep the loser as an arm.** Against items where Sonnet and Opus
+  agree, Haiku in batches of 8 sections scored 0.940 over eight questions and Jev 0.883, with most of the gap on
+  one rubric (0.849 against 0.621). The student trained on Jev's labels scored 0.850 against 0.875. The gold
+  judges and Haiku are one model family, which may favour Haiku.
+- **TypeSafe credits can run out mid-run, and everything that calls Jev stops with them.** 87.6M input tokens
+  (about $3.70) emptied the account; the labeller returned HTTP 402 `billing_error` and the `decide` tool, the
+  delegation context filter and the model advisor went down with it. Check the balance before a bulk run and
+  treat 402 as fatal, not retryable. (`run/jev_label.py` breaks on 400, 413 and 422 only.)
+- **Safety filters refuse some life-science batches.** 7 of 2,716 Haiku labelling batches and a few Sonnet and
+  Opus batches of PMC sections were refused; batching means one flagged section costs its whole batch. Leave
+  them out and count them; do not reword.
+- **Costs at 68M that were free at 17M.** `pack.Ref`, the NumPy reference, takes minutes per question, and
+  brotli at quality 11 on a 274 MB fp32 file takes minutes per variant: six parity questions cost about 25 A100
+  minutes. Set `QL_PARITY=1`. The contrastive stage at batch 24 with 1,024-token documents does not fit a 40 GB
+  A100 without gradient checkpointing.
+- **A local driver that keeps a Colab VM alive dies at the harness's two-hour background limit, on a hung
+  `colab` call, and on a container restart.** The remote job runs on. Start the job detached, make the driver
+  attachable, catch `TimeoutExpired`, and re-attach from the check-in. (`run/colab_drive.py`)
