@@ -1,11 +1,423 @@
 {
  "done": true,
  "packs": {
+  "gliner-bi-edge-v2.0-fp32": {
+   "pkg": "gliner-bi-edge-v2.0-fp32",
+   "variant": "fp32",
+   "head": "fp32",
+   "initMs": 1399.2999999999302,
+   "gpuErrors": [],
+   "labels": 42,
+   "labelIdsMatch": 42,
+   "labelVecMaxAbsDiff": 4.470348358154297e-7,
+   "labelVecMaxAbs": 1.3306519985198975,
+   "labelHiddenMaxAbsDiff": 6.165355443954468e-7,
+   "cases": [
+    {
+     "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
+     "tokens": 19,
+     "words": 15,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.000014781951904296875,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      }
+     }
+    },
+    {
+     "text": "John Smith works at Google in Zürich, isn't it?",
+     "tokens": 17,
+     "words": 13,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.00002288818359375,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 4.470348358154297e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 4.470348358154297e-7
+      }
+     }
+    },
+    {
+     "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
+     "tokens": 28,
+     "words": 15,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.0000247955322265625,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 2.980232238769531e-7
+      }
+     }
+    },
+    {
+     "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
+     "tokens": 28,
+     "words": 18,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.000012874603271484375,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 0
+      },
+      "0.3": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 0
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 0
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 0
+      }
+     }
+    },
+    {
+     "text": "Barack Obama met Angela Merkel in Berlin.",
+     "tokens": 10,
+     "words": 8,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.00000858306884765625,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.7881393432617188e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.7881393432617188e-7
+      }
+     }
+    },
+    {
+     "text": "Marie Curie discovered polonium and radium at the University of Paris .",
+     "tokens": 17,
+     "words": 12,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.00002288818359375,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 1.1920928955078125e-7
+      }
+     }
+    },
+    {
+     "text": "show me a 1990s comedy starring jim carrey",
+     "tokens": 13,
+     "words": 8,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.000011920928955078125,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 1.1920928955078125e-7
+      }
+     }
+    },
+    {
+     "text": "any cheap thai places open after 10 pm near downtown",
+     "tokens": 13,
+     "words": 10,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.0000095367431640625,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 5.364418029785156e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 5.364418029785156e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 5.364418029785156e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 4,
+       "worstScoreDiff": 5.364418029785156e-7
+      }
+     }
+    },
+    {
+     "text": "東京 is the capital of Japan; 大阪 is not.",
+     "tokens": 20,
+     "words": 11,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.00001049041748046875,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 5.960464477539063e-8
+      },
+      "0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.4901161193847656e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 5.960464477539063e-8
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 3,
+       "worstScoreDiff": 1.4901161193847656e-7
+      }
+     }
+    },
+    {
+     "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
+     "tokens": 14,
+     "words": 10,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.00000476837158203125,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 2,
+       "worstScoreDiff": 2.980232238769531e-7
+      }
+     }
+    },
+    {
+     "text": "A",
+     "tokens": 3,
+     "words": 1,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.0000012516975402832031,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 2.980232238769531e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 1,
+       "worstScoreDiff": 2.980232238769531e-7
+      }
+     }
+    },
+    {
+     "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
+     "tokens": 19,
+     "words": 15,
+     "ids": true,
+     "words_ok": true,
+     "logitMaxAbsDiff": 0.0000133514404296875,
+     "logitShapeOk": true,
+     "entities": {
+      "0.5": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "0.3": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.5": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 1.1920928955078125e-7
+      },
+      "bias 0.3": {
+       "ok": true,
+       "n": 5,
+       "worstScoreDiff": 1.1920928955078125e-7
+      }
+     }
+    }
+   ],
+   "nCases": 12,
+   "tokenIdsMatch": 12,
+   "wordsMatch": 12,
+   "wordsMaskMatch": 12,
+   "caseLabelIdsMatch": 12,
+   "labelNormMatch": 12,
+   "logitShapeMatch": 12,
+   "logitMaxAbsDiff": 0.0000247955322265625,
+   "logitMaxAbs": 28.7237491607666,
+   "entityChecks": 48,
+   "entityMatches": 48,
+   "entityWorstScoreDiff": 5.364418029785156e-7,
+   "batching": {
+    "texts": 12,
+    "oneBatch": {
+     "batches": 1,
+     "maxAbsDiff": 0
+    },
+    "split": {
+     "batches": 6,
+     "maxAbsDiff": 0
+    },
+    "splitNoPipeline": {
+     "maxAbsDiff": 0
+    }
+   }
+  },
   "gliner-bi-edge-v2.0-t4-w8L63-h8": {
    "pkg": "gliner-bi-edge-v2.0-t4-w8L63-h8",
    "variant": "t4-w8L63",
    "head": "int8",
-   "initMs": 1213.7999999999884,
+   "initMs": 1359.2999999999302,
    "gpuErrors": [],
    "labels": 42,
    "labelIdsMatch": 42,
@@ -20,6 +432,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00001239776611328125,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -50,6 +463,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.000014781951904296875,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -80,6 +494,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00001621246337890625,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -110,6 +525,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.0000171661376953125,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -140,6 +556,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00000858306884765625,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -170,6 +587,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.000011444091796875,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -200,6 +618,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00001239776611328125,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -230,6 +649,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00000762939453125,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -260,6 +680,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.0000247955322265625,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -290,6 +711,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.00000858306884765625,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -320,6 +742,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 3.948807716369629e-7,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -350,6 +773,7 @@
      "ids": true,
      "words_ok": true,
      "logitMaxAbsDiff": 0.0000171661376953125,
+     "logitShapeOk": true,
      "entities": {
       "0.5": {
        "ok": true,
@@ -380,6 +804,7 @@
    "wordsMaskMatch": 12,
    "caseLabelIdsMatch": 12,
    "labelNormMatch": 12,
+   "logitShapeMatch": 12,
    "logitMaxAbsDiff": 0.0000247955322265625,
    "logitMaxAbs": 27.730575561523438,
    "entityChecks": 48,
@@ -389,14 +814,14 @@
     "texts": 12,
     "oneBatch": {
      "batches": 1,
-     "maxAbsDiff": null
+     "maxAbsDiff": 0
     },
     "split": {
      "batches": 6,
-     "maxAbsDiff": null
+     "maxAbsDiff": 0
     },
     "splitNoPipeline": {
-     "maxAbsDiff": null
+     "maxAbsDiff": 0
     }
    }
   }
@@ -406,55 +831,55 @@
   "labels20_cold": {
    "labels": 20,
    "labelTokens": 62,
-   "labelEncoderMsPerLabel": 21.175,
-   "labelProjectionMsPerLabel": 1.7949999999982538,
-   "labelTokenizeMsPerLabel": 0.00500000000174623
+   "labelEncoderMsPerLabel": 22.054999999998834,
+   "labelProjectionMsPerLabel": 1.575,
+   "labelTokenizeMsPerLabel": 0.020000000001164153
   },
   "labels50_cold": {
    "labels": 50,
    "labelTokens": 162,
-   "labelEncoderMsPerLabel": 23.79600000000093,
-   "labelProjectionMsPerLabel": 1.3,
-   "labelTokenizeMsPerLabel": 0.011999999999534338
+   "labelEncoderMsPerLabel": 22.361999999999533,
+   "labelProjectionMsPerLabel": 1.884000000001397,
+   "labelTokenizeMsPerLabel": 0.00800000000046566
   },
   "stream20": {
-   "texts": 20,
-   "tokens": 908,
-   "words": 746,
+   "texts": 100,
+   "tokens": 4388,
+   "words": 3512,
    "batches": 1,
-   "tokenizeMsPerTextColdCache": 0.7050000000017462,
-   "tokenizeMsPerText": 0.014999999999417923,
-   "spanHeadMsPerText": 91.23499999999767,
-   "spanWordsMsPerText": 82.77999999999884,
-   "spanScoreMsPerText": 8.454999999998837,
-   "decodeMsPerText": 0.040000000002328305,
-   "spanWordsMsPerWord": 2.219302949061631
+   "tokenizeMsPerTextColdCache": 0.3640000000002328,
+   "tokenizeMsPerText": 0.022000000001862644,
+   "spanHeadMsPerText": 83.03599999999628,
+   "spanWordsMsPerText": 75.59900000000373,
+   "spanScoreMsPerText": 7.436999999992549,
+   "decodeMsPerText": 0.026999999999534337,
+   "spanWordsMsPerWord": 2.1525911161732267
   },
   "text256": {
    "tokens": 256,
    "words": 227,
    "labels": 10,
-   "tokenizeMs": 0.2000000000698492,
-   "spanWordsMs": 436,
-   "spanScoreMs": 42.59999999997672,
-   "spanHeadMs": 475.4000000000233,
-   "decodeMs": 0.09999999997671694
+   "tokenizeMs": 0.19999999995343387,
+   "spanWordsMs": 431.9000000001397,
+   "spanScoreMs": 35.89999999990687,
+   "spanHeadMs": 467.80000000004657,
+   "decodeMs": 0
   },
   "text30": {
    "tokens": 30,
    "words": 27,
    "labels": 10,
-   "tokenizeMs": 0.09999999997671694,
-   "spanWordsMs": 59.40000000002328,
-   "spanScoreMs": 4.299999999930151,
-   "spanHeadMs": 63.5,
+   "tokenizeMs": 0,
+   "spanWordsMs": 55.60000000009313,
+   "spanScoreMs": 3.5999999998603016,
+   "spanHeadMs": 59.199999999953434,
    "decodeMs": 0
   },
   "note": "headless Chromium, JavaScript stages only (the text encoder ran on SwiftShader, whose timings are not reported)",
   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
   "hardwareConcurrency": 4
  },
- "wallS": 384.381,
+ "wallS": 961.047,
  "console_errors": [],
  "tolerance": {
   "ids": "exact",
@@ -462,5 +887,5 @@
   "logits": "max |diff| < 2e-3 (reported)",
   "batching": "max |diff| < 1e-5"
  },
- "pass": false
+ "pass": true
 }
