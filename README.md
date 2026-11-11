@@ -346,8 +346,8 @@ Page: https://austegard.com/experiments/decider-lora-creator/web/. See
 ### `dettin-68m/` — the decision-model recipe at 68M, and life-science article sections
 
 The Ettin-17m decision recipe (cross-encoder fine-tune, 4-bit and int8 packing, swappable LoRA spikes) rerun at
-17M, 32M and 68M under one code path, then applied to 69,006 CC BY article sections from Europe PMC with labels
-written by Haiku and Jev and gold from Sonnet and Opus. The decision side carries: 0.770 on Typed Decisions at
+17M, 32M and 68M under one code path, then applied to 69,006 CC BY article sections from Europe PMC with training
+labels from Haiku 5.5 and Jev (TypeSafe's hosted decision model) and gold labels from Sonnet and Opus. The decision side carries: 0.770 on Typed Decisions at
 68M, a 58.3 MB packed file, spikes that match full fine-tunes, and a Python runtime (`run/dettin.py`) that
 loads the packed base and swaps spikes on GPU or CPU. The embedder side works only in its own domain: it ties
 its teacher on reworded section queries and falls well short on SciFact and NFCorpus. BM25 beat every dense

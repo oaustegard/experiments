@@ -2,10 +2,12 @@
 
 Ettin is a family of open ModernBERT-style encoders from 17M to 1B parameters. Earlier experiments here
 turned the 17M one into a small "decision model": it reads a piece of text and a typed question (yes/no, pick
-one option, or a level on a rubric) and returns a probability for each answer. That recipe has three parts. The
+one option, or a level on a rubric) and returns a probability for each answer. Jev, TypeSafe's hosted model, is
+the commercial product of this kind; Typed Decisions is a public benchmark for it, four business workflows with
+five questions per case. That recipe has three parts. The
 encoder is fine-tuned as a cross-encoder (`browser-decider`). Its weights are packed to a 4-bit token table and
-int8 matrices, 68 MB down to about 10. And a task can be added as a small swappable LoRA adapter, a "spike", on
-a frozen base (`adapter-library`).
+int8 matrices, 68 MB down to about 10. And a task can be added as a small swappable LoRA adapter (rank 8 here), called a "spike",
+on a frozen base (`adapter-library`).
 
 Two questions, asked by Oskar on 2026-11-10. Does the recipe carry to the 68M encoder, where the published GLUE
 curve bends? And can the same encoders be trained on life-science text at the length of an article section, as
@@ -18,23 +20,23 @@ The decision recipe carries to 68M. The section embedder works only inside its o
 
 On the public Typed Decisions benchmark a fine-tuned 68M scores 0.770 <!-- @evidence[[results/summary.json#td.68.acc_mean]] -->
 against 0.736 for 17M <!-- @evidence[[results/summary.json#td.17.acc_mean]] -->, and the packed 58.3 MB <!-- @evidence[[results/summary.json#td.68.packed_mb]] -->
-file scores the same as full precision. Rank-8 spikes on the frozen stock 68M match full fine-tunes.
+file scores the same as full precision. Spikes on the frozen stock 68M come within 0.004 of full fine-tunes.
 
 On nine life-science questions, scored on test items where two stronger models agree, spikes on the stock 68M
 reach 0.892 <!-- @evidence[[results/summary.json#ls.spikes68]] --> and a full fine-tune 0.875 <!-- @evidence[[results/summary.json#ls.68.macro]] -->;
 17M reaches 0.856 <!-- @evidence[[results/summary.json#ls.17.macro]] -->. Neither size transfers to tasks it was
 not trained on.
 
-The 68M embedder ties its 149M teacher on reworded section queries, 0.733 <!-- @evidence[[results/summary.json#emb.e68-joint.para]] -->
+The 68M embedder ties the 149M model it was distilled from on reworded section queries, 0.733 <!-- @evidence[[results/summary.json#emb.e68-joint.para]] -->
 against 0.730 <!-- @evidence[[results/summary.json#emb.base-gte.para]] --> nDCG@10, but scores 0.612 <!-- @evidence[[results/summary.json#emb.e68-joint.scifact]] -->
 on SciFact where a 33M general embedder scores 0.713 <!-- @evidence[[results/summary.json#emb.base-bge-small.scifact]] -->.
-A longer teacher stage on broader text, which was not run, is what could change that.
+A longer distillation on broader text, which was not run, is what could change that.
 
 ## Findings
 
 1. **Typed Decisions accuracy rises with size at every step.** Three seeds each: 17M 0.736 <!-- @evidence[[results/summary.json#td.17.acc_mean]] -->,
    32M 0.751 <!-- @evidence[[results/summary.json#td.32.acc_mean]] -->, 68M 0.770 <!-- @evidence[[results/summary.json#td.68.acc_mean]] -->.
-   The second step, +0.019 <!-- @evidence[[results/summary.json#td.step_32_68]] -->, is as large as the first, +0.015 <!-- @evidence[[results/summary.json#td.step_17_32]] -->,
+   The second step, +0.019 <!-- @evidence[[results/summary.json#td.step_32_68]] -->, is larger than the first, +0.015 <!-- @evidence[[results/summary.json#td.step_17_32]] -->,
    and the spread across seeds shrinks from 0.009 <!-- @evidence[[results/summary.json#td.17.acc_sd]] --> to 0.001 <!-- @evidence[[results/summary.json#td.68.acc_sd]] -->
    (`results/a/td/`).
 2. **Packing costs nothing measurable at 68M.** The 4-bit table and int8 matrices take the 68M from 273.6 MB <!-- @evidence[[results/summary.json#td.68.fp32_mb]] -->
@@ -42,30 +44,30 @@ A longer teacher stage on broader text, which was not run, is what could change 
    The packed model scores 0.772 <!-- @evidence[[results/summary.json#td.68.packed63]] --> against 0.772 <!-- @evidence[[results/summary.json#td.68.fp32]] -->
    and picks the same answer on 0.986 <!-- @evidence[[results/summary.json#td.68.packed63_agree]] --> of questions; at 17M that agreement is 0.929 <!-- @evidence[[results/summary.json#td.17.packed63_agree]] -->.
    The ratio is 4.7x, not the 17M's 5.9x, because the token table is a smaller share of a larger model.
-3. **Spikes match full fine-tunes on the 68M.** On Typed Decisions a rank-8 spike with 1,236,993 <!-- @evidence[[results/summary.json#td.spike_trainable]] -->
+3. **Spikes come within 0.004 of full fine-tunes on the 68M.** On Typed Decisions a rank-8 spike with 1,236,993 <!-- @evidence[[results/summary.json#td.spike_trainable]] -->
    trainable weights averages 0.765 <!-- @evidence[[results/summary.json#td.spike_lora68]] --> against 0.769 <!-- @evidence[[results/summary.json#td.spike_full68]] -->
-   for a full fine-tune per workflow (12 runs each). On the life-science questions three spikes average 0.892 <!-- @evidence[[results/summary.json#ls.spikes68]] -->
+   for a full fine-tune per workflow (12 runs each; the spike leads on one workflow of four). On the life-science questions three spikes, one per question group, average 0.892 <!-- @evidence[[results/summary.json#ls.spikes68]] -->
    against 0.875 <!-- @evidence[[results/summary.json#ls.68.macro]] --> for one full fine-tune over all nine questions.
 4. **On life-science decisions most of the size gain arrives by 32M.** Mean accuracy over nine questions, three
    seeds: 17M 0.856 <!-- @evidence[[results/summary.json#ls.17.macro]] -->, 32M 0.871 <!-- @evidence[[results/summary.json#ls.32.macro]] -->,
    68M 0.875 <!-- @evidence[[results/summary.json#ls.68.macro]] -->. The step from 17M to 32M is +0.015 <!-- @evidence[[results/summary.json#ls.steps.32_minus_17.delta]] -->
    with a 95% interval of 0.009 to 0.022; the step from 32M to 68M is +0.004 <!-- @evidence[[results/summary.json#ls.steps.68_minus_32.delta]] -->
    with an interval that includes zero (`results/decisions.json`).
-5. **Haiku was the better labeller, and the students stay below it.** On eight section questions Haiku 5.5
+5. **Haiku was the better labeller on six of eight questions, and the students stay below it.** On eight section questions Haiku 5.5
    agrees with the gold labels on 0.940 <!-- @evidence[[results/summary.json#ls.haiku_macro8]] --> and Jev on 0.883 <!-- @evidence[[results/summary.json#ls.jev_macro8]] -->;
    the widest gap is the reproducibility rubric, 0.849 <!-- @evidence[[results/summary.json#ls.haiku.detail]] --> against 0.621 <!-- @evidence[[results/summary.json#ls.jev.detail]] -->.
-   The 68M trained on Haiku's labels reaches 0.893 <!-- @evidence[[results/summary.json#ls.macro8.68]] --> on those eight.
+   The fully fine-tuned 68M trained on Haiku's labels reaches 0.893 <!-- @evidence[[results/summary.json#ls.macro8.68]] --> on those eight.
    The same model trained on Jev's labels scores 0.850 <!-- @evidence[[results/summary.json#ls.jev_teacher68]] --> over all nine.
    The gold judges are Claude models, which may favour Haiku.
 6. **Size does not buy transfer to unrelated tasks.** With one Typed Decisions workflow held out the 68M scores
    0.413 <!-- @evidence[[results/summary.json#td.lowo68]] -->, below the 0.470 that always picking the most common
-   answer gets (17M: 0.353). On the hub's 104 unrelated decisions the 68M specialist scores 0.298 <!-- @evidence[[results/ood_td68.json#accuracy]] -->
+   answer gets (17M: 0.353). On 104 unrelated decisions (card intents, guardrail yes/no questions and rubric scores, from `claude-workspace`) the 68M Typed Decisions model scores 0.298 <!-- @evidence[[results/ood_td68.json#accuracy]] -->
    and the 17M 0.279 <!-- @evidence[[results/ood_td68.json#reference_17m_10_epochs]] -->; Jev scores 0.894.
-7. **The section embedder ties its teacher on reworded queries and grows steeply with size.** nDCG@10 on 1,186
+7. **The section embedder ties its teacher on reworded queries, and each size step is large.** nDCG@10 on 1,186
    reworded queries over 28,073 sections: 17M 0.526 <!-- @evidence[[results/summary.json#emb.e17-joint.para]] -->,
    32M 0.646 <!-- @evidence[[results/summary.json#emb.e32-joint.para]] -->, 68M 0.733 <!-- @evidence[[results/summary.json#emb.e68-joint.para]] -->;
    the teacher 0.730 <!-- @evidence[[results/summary.json#emb.base-gte.para]] -->, bge-small 0.664 <!-- @evidence[[results/summary.json#emb.base-bge-small.para]] -->,
-   BM25 0.500 <!-- @evidence[[results/summary.json#emb.base-bm25.para]] -->. Rounding the encoder as packed leaves it at 0.734 <!-- @evidence[[results/summary.json#emb.e68-joint-q.para]] -->.
+   BM25 0.500 <!-- @evidence[[results/summary.json#emb.base-bm25.para]] -->. With its encoder rounded to the packed format it scores 0.734 <!-- @evidence[[results/summary.json#emb.e68-joint-q.para]] -->.
 8. **It is not a general biomedical embedder.** On SciFact the 68M scores 0.612 <!-- @evidence[[results/summary.json#emb.e68-joint.scifact]] -->
    against 0.765 <!-- @evidence[[results/summary.json#emb.base-gte.scifact]] --> for its teacher, and on NFCorpus 0.219 <!-- @evidence[[results/summary.json#emb.e68-joint.nfcorpus]] -->
    against 0.344 <!-- @evidence[[results/summary.json#emb.base-gte.nfcorpus]] -->. The teacher stage saw 41K sections for 1,960 steps and
@@ -163,7 +165,9 @@ traces 0.713 and 0.721. On an A100 a 68M spike for one workflow trains in one to
 
 **Gold check.** Sonnet and Opus agreement per question: article part 0.970, study type 0.881, field 0.884,
 immunoassay 0.992, human samples 0.970, quantitative result 0.967, reproducibility 0.714, evidence 0.830,
-relevance 0.811 (within one level on every pair). The immunoassay flag is "no" for 98% of sections, so accuracy
+relevance 0.811 (within one level on every pair). Items left after the agreement filter, in that order from
+study type: 348, 349, 392, 383, 382, 282, 328 of 395 sections and 554 of 683 pairs; the article-part question
+uses the 383 sections whose heading names one part. The immunoassay flag is "no" for 98% of sections, so accuracy
 says little there; the 68M ranks the positives at AUROC 0.982. Opus graded 98 of 188 same-article sections as
 partly or directly answering the query, which is why those are filtered as negatives.
 
@@ -192,7 +196,7 @@ Packed against full precision on all 3,818 test decisions: 17M 0.795 and 0.799, 
 | gte-modernbert-base, the teacher | 0.874 | 0.730 | 0.765 | 0.344 |
 | bge-small | 0.833 | 0.664 | 0.713 | 0.343 |
 | MedCPT | 0.751 | 0.485 | 0.711 | 0.321 |
-| capemox Ettin-68m embedder | 0.551 | 0.265 | 0.448 | 0.199 |
+| `capemox/ettin-encoder-68m-contrastive-2.5m`, a published general Ettin-68m embedder | 0.551 | 0.265 | 0.448 | 0.199 |
 | 17M, both stages | 0.862 | 0.526 | 0.483 | 0.144 |
 | 32M, both stages | 0.903 | 0.646 | 0.592 | 0.185 |
 | 68M, both stages | 0.920 | 0.733 | 0.612 | 0.219 |
@@ -207,6 +211,14 @@ The folded 512-d packed embedder returns the same top 10 as the 768-d build on 1
 test decisions through `dettin.py` (0.7725 recorded on Colab) at about 393 ms per five-question case. Spikes
 trained against the fp32 stock base, loaded onto the packed stock base: invoices 0.854 (0.858 on fp32),
 customer service 0.752 (0.750).
+
+**Haiku as an online decision model.** Oskar asked how the Haiku labelling run was configured and whether Haiku
+could be the decision model itself. The labelling runs set no effort and put 5 or 8 sections in a call.
+A second run put one section in a call at low effort (`results/haiku_single_low.json`, 388 sections scored by
+both): 0.910 over the eight section questions against 0.941 for the batched run, a median of 2.3 seconds per
+call and $0.0004 per section at list price. The two runs give the same answer on 77% (reproducibility rubric)
+to 99.7% (immunoassay) of sections. For comparison Jev scored 0.883 at 0.46 seconds per section, and a 68M
+spike answers in about 30 ms on an A100 with no API call.
 
 **What went wrong.**
 - TypeSafe credits ran out after 87.6M Jev input tokens, 43,857 of 83,558 pair ratings in. No eval pair was
