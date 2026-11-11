@@ -58,7 +58,10 @@ def run(a):
             text = custom.get(angle, angle)
             if angle not in decide.ANGLES and angle not in custom:
                 sys.exit(f"unknown angle {angle}")
-            path = OUT / f"{name}__{angle}.jsonl"
+            # --tag runs decide.py's own k-sample path (option shuffle, its pooling) under the tag's name;
+            # sample 0 of it is the single call
+            k, texts = (a.k, list(decide.STACK)[:a.k] if a.k > 1 else [text]) if a.tag else (1, [text])
+            path = OUT / f"{name}__{a.tag or angle}.jsonl"
             done = set()
             if path.exists():
                 done = {json.loads(x)["id"] for x in path.read_text().splitlines() if x.strip()}
@@ -67,16 +70,16 @@ def run(a):
             errors = [0]
 
             def one(item):
-                rows = decide.evaluate([item], 1, transport, angles=[text])
+                rows = decide.evaluate([item], k, transport, angles=texts)
                 if any(r.get("error") for r in rows):
                     errors[0] += 1
                     return  # left out of the file so a rerun retries it
                 with lock, path.open("a") as f:
                     for r in rows:
-                        f.write(json.dumps({k: r[k] for k in ("id", "name", "type", "label", "raw", "usage") if k in r}
+                        f.write(json.dumps({k: r[k] for k in ("id", "name", "type", "label", "raw", "per_sample", "usage") if k in r}
                                            | ({"refusal": True} if r.get("refusal") else {})) + "\n")
 
-            with ThreadPoolExecutor(max_workers=a.workers) as ex:
+            with ThreadPoolExecutor(max_workers=max(1, a.workers // k)) as ex:
                 list(ex.map(one, todo))
             print(f"RUN_DONE {name} {angle} items={len(todo)} errors={errors[0]}", flush=True)
     print("done", flush=True)
@@ -180,5 +183,7 @@ if __name__ == "__main__":
     ap.add_argument("--stacks", default="")
     ap.add_argument("--all-stacks", action="store_true")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--tag", default="", help="run decide.py's k-sample stack and save under this name")
+    ap.add_argument("--k", type=int, default=3)
     a = ap.parse_args()
     run(a) if a.cmd == "run" else summary(a)
