@@ -26,8 +26,8 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import tasks as T  # noqa: E402
-from suite import FIELDS  # noqa: E402
+import tasks as T
+from suite import FIELDS
 
 ROOT = Path(__file__).resolve().parents[1]
 N_TEST, N_DEV, MAX_WORDS = 150, 30, 9000
