@@ -1,0 +1,331 @@
+{
+ "id": "gliner-web-2",
+ "startedAt": 1794370314017,
+ "finishedAt": 1794370417154,
+ "runMs": 94052.80000000075,
+ "adapter": null,
+ "device": "Mac",
+ "tab": "ob2jpoa6",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [],
+ "outputs": {
+  "describe": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "",
+   "description": "",
+   "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+   ],
+   "limits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxComputeWorkgroupsPerDimension": 65535
+   }
+  },
+  "model": {
+   "variant": "t4-w8L63",
+   "headFormat": "int8",
+   "weightBytes": 47141616
+  },
+  "setupMs": 458.8999999985099,
+  "parity": {
+   "labelVecMaxAbsDiff": 4.76837158203125e-07,
+   "heads": {
+    "gpu": {
+     "head": "gpu",
+     "cases": 12,
+     "ids": 12,
+     "labelIds": 12,
+     "logitMaxAbsDiff": 2.193450927734375e-05,
+     "entityChecks": 24,
+     "entityMatches": 24,
+     "entityWorstScoreDiff": 5.364418029785156e-07,
+     "headsUsed": [
+      "gpu"
+     ],
+     "mismatches": [],
+     "pass": true
+    },
+    "js": {
+     "head": "js",
+     "cases": 12,
+     "ids": 12,
+     "labelIds": 12,
+     "logitMaxAbsDiff": 2.193450927734375e-05,
+     "entityChecks": 24,
+     "entityMatches": 24,
+     "entityWorstScoreDiff": 5.364418029785156e-07,
+     "headsUsed": [
+      "js"
+     ],
+     "mismatches": [],
+     "pass": true
+    }
+   },
+   "headsMaxAbsDiff": 3.814697265625e-06,
+   "pass": true
+  },
+  "timing": {
+   "labelEncoderCold": {
+    "labels10": {
+     "labels": 10,
+     "labelTokens": 31,
+     "labelEncoderMs": 548.6999999992549,
+     "labelProjectionMs": 70.89999999850988,
+     "labelTokenizeMs": 0.10000000149011612,
+     "msPerLabel": 61.980000000074504
+    },
+    "labels20": {
+     "labels": 20,
+     "labelTokens": 62,
+     "labelEncoderMs": 1015.0999999977648,
+     "labelProjectionMs": 112.30000000074506,
+     "labelTokenizeMs": 0.19999999925494194,
+     "msPerLabel": 56.384999999962744
+    },
+    "labels50": {
+     "labels": 50,
+     "labelTokens": 162,
+     "labelEncoderMs": 2536.7000000029802,
+     "labelProjectionMs": 221.09999999776483,
+     "labelTokenizeMs": 1,
+     "msPerLabel": 55.184000000059605
+    }
+   },
+   "gpu": {
+    "text256_labels10": {
+     "head": "gpu",
+     "tokens": 256,
+     "words": 227,
+     "labels": 10,
+     "median": {
+      "tokenizeMs": 0.20000000298023224,
+      "textEncoderGpuMs": 4.5,
+      "readbackMs": 0.19999999925494194,
+      "spanWordsMs": 0,
+      "spanScoreMs": 0,
+      "spanHeadMs": 0,
+      "decodeMs": 0.09999999776482582,
+      "totalMs": 5.300000000745058
+     },
+     "wallMsMedian": 5.300000000745058
+    },
+    "text30_labels10": {
+     "head": "gpu",
+     "tokens": 30,
+     "words": 27,
+     "labels": 10,
+     "median": {
+      "tokenizeMs": 0,
+      "textEncoderGpuMs": 1.699999999254942,
+      "readbackMs": 0.10000000149011612,
+      "spanWordsMs": 0,
+      "spanScoreMs": 0,
+      "spanHeadMs": 0,
+      "decodeMs": 0,
+      "totalMs": 1.8999999985098839
+     },
+     "wallMsMedian": 1.8999999985098839
+    },
+    "text30_labels50": {
+     "head": "gpu",
+     "tokens": 30,
+     "words": 27,
+     "labels": 50,
+     "median": {
+      "tokenizeMs": 0,
+      "textEncoderGpuMs": 1.5,
+      "readbackMs": 0.10000000149011612,
+      "spanWordsMs": 0,
+      "spanScoreMs": 0,
+      "spanHeadMs": 0,
+      "decodeMs": 0,
+      "totalMs": 1.699999999254942
+     },
+     "wallMsMedian": 1.699999999254942
+    },
+    "batch100_labels20_pipelined": {
+     "head": "gpu",
+     "texts": 100,
+     "tokens": 4388,
+     "words": 3512,
+     "batches": 2,
+     "labels": 20,
+     "median": {
+      "tokenizeMs": 1.5999999977648258,
+      "textEncoderGpuMs": 31.899999998509884,
+      "readbackMs": 1.2000000029802322,
+      "spanWordsMs": 0,
+      "spanScoreMs": 0.19999999552965164,
+      "spanHeadMs": 0.29999999701976776,
+      "decodeMs": 2.9000000059604645,
+      "totalMs": 36.599999997764826
+     },
+     "wallMsMedian": 36.599999997764826,
+     "textsPerSecond": 2732.240437325329,
+     "perText": {
+      "tokenizeMs": 0.01599999997764826,
+      "textEncoderGpuMs": 0.3189999999850988,
+      "readbackMs": 0.012000000029802322,
+      "spanWordsMs": 0,
+      "spanScoreMs": 0.0019999999552965165,
+      "decodeMs": 0.029000000059604646
+     }
+    },
+    "batch100_labels20_serial": {
+     "head": "gpu",
+     "texts": 100,
+     "tokens": 4388,
+     "words": 3512,
+     "batches": 2,
+     "labels": 20,
+     "median": {
+      "tokenizeMs": 1.699999999254942,
+      "textEncoderGpuMs": 32.899999998509884,
+      "readbackMs": 1.2000000029802322,
+      "spanWordsMs": 0.09999999776482582,
+      "spanScoreMs": 0.09999999776482582,
+      "spanHeadMs": 0.09999999776482582,
+      "decodeMs": 3.100000001490116,
+      "totalMs": 40.900000002235174
+     },
+     "wallMsMedian": 40.900000002235174,
+     "textsPerSecond": 2444.9877749275065,
+     "perText": {
+      "tokenizeMs": 0.01699999999254942,
+      "textEncoderGpuMs": 0.3289999999850988,
+      "readbackMs": 0.012000000029802322,
+      "spanWordsMs": 0.0009999999776482583,
+      "spanScoreMs": 0.0009999999776482583,
+      "decodeMs": 0.03100000001490116
+     }
+    }
+   },
+   "js": {
+    "text256_labels10": {
+     "head": "js",
+     "tokens": 256,
+     "words": 227,
+     "labels": 10,
+     "median": {
+      "tokenizeMs": 0.20000000298023224,
+      "textEncoderGpuMs": 11,
+      "readbackMs": 0.3999999985098839,
+      "spanWordsMs": 970.6000000014901,
+      "spanScoreMs": 101.09999999776483,
+      "spanHeadMs": 1071.699999999255,
+      "decodeMs": 0.10000000149011612,
+      "totalMs": 1083.5
+     },
+     "wallMsMedian": 1083.5
+    },
+    "text30_labels10": {
+     "head": "js",
+     "tokens": 30,
+     "words": 27,
+     "labels": 10,
+     "median": {
+      "tokenizeMs": 0.09999999776482582,
+      "textEncoderGpuMs": 3.7999999970197678,
+      "readbackMs": 0.30000000074505806,
+      "spanWordsMs": 126.90000000223517,
+      "spanScoreMs": 8.599999997764826,
+      "spanHeadMs": 135.5,
+      "decodeMs": 0,
+      "totalMs": 139.89999999850988
+     },
+     "wallMsMedian": 140
+    },
+    "text30_labels50": {
+     "head": "js",
+     "tokens": 30,
+     "words": 27,
+     "labels": 50,
+     "median": {
+      "tokenizeMs": 0.09999999776482582,
+      "textEncoderGpuMs": 4.199999999254942,
+      "readbackMs": 0.19999999925494194,
+      "spanWordsMs": 117,
+      "spanScoreMs": 30.900000002235174,
+      "spanHeadMs": 147.90000000223517,
+      "decodeMs": 0.09999999776482582,
+      "totalMs": 152.59999999776483
+     },
+     "wallMsMedian": 152.59999999776483
+    },
+    "batch100_labels20_pipelined": {
+     "head": "js",
+     "texts": 100,
+     "tokens": 4388,
+     "words": 3512,
+     "batches": 2,
+     "labels": 20,
+     "median": {
+      "tokenizeMs": 1.9000000022351742,
+      "textEncoderGpuMs": 3209.099999997765,
+      "readbackMs": 1.5,
+      "spanWordsMs": 8115.400000002235,
+      "spanScoreMs": 1047,
+      "spanHeadMs": 9162.400000002235,
+      "decodeMs": 1.7999999970197678,
+      "totalMs": 9203.300000000745
+     },
+     "wallMsMedian": 9203.300000000745,
+     "textsPerSecond": 10.865667749610672,
+     "perText": {
+      "tokenizeMs": 0.01900000002235174,
+      "textEncoderGpuMs": 32.09099999997765,
+      "readbackMs": 0.015,
+      "spanWordsMs": 81.15400000002235,
+      "spanScoreMs": 10.47,
+      "decodeMs": 0.01799999997019768
+     }
+    },
+    "batch100_labels20_serial": {
+     "head": "js",
+     "texts": 100,
+     "tokens": 4388,
+     "words": 3512,
+     "batches": 2,
+     "labels": 20,
+     "median": {
+      "tokenizeMs": 1.9000000022351742,
+      "textEncoderGpuMs": 52.100000001490116,
+      "readbackMs": 1.5999999977648258,
+      "spanWordsMs": 11117.299999993294,
+      "spanScoreMs": 1213.9000000208616,
+      "spanHeadMs": 12331.200000014156,
+      "decodeMs": 4.599999990314245,
+      "totalMs": 12393.800000000745
+     },
+     "wallMsMedian": 12393.900000002235,
+     "textsPerSecond": 8.068485303252565,
+     "perText": {
+      "tokenizeMs": 0.01900000002235174,
+      "textEncoderGpuMs": 0.5210000000149012,
+      "readbackMs": 0.01599999997764826,
+      "spanWordsMs": 111.17299999993294,
+      "spanScoreMs": 12.139000000208616,
+      "decodeMs": 0.04599999990314245
+     }
+    }
+   }
+  },
+  "reps": 3,
+  "heads": [
+   "gpu",
+   "js"
+  ],
+  "note": "textEncoderGpuMs is submit-to-onSubmittedWorkDone (with head gpu / gpu-words it includes the span head's GPU work); in the pipelined batch run it overlaps the previous batch's JavaScript, so take stage shares from the serial run"
+ }
+}
