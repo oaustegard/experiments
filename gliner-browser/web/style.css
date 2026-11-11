@@ -63,7 +63,7 @@ textarea { resize: vertical; line-height: 1.55; }
 .threshold input[type="range"] { width: 100%; accent-color: var(--accent); }
 .threshold output { font-variant-numeric: tabular-nums; font-weight: 400; }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.tabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 8px 12px; color: var(--muted); }
 .tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
 
@@ -97,6 +97,23 @@ mark.ent .tag { font-size: .7rem; font-weight: 600; color: var(--ce); margin-lef
 .detail li:first-child { border-top: 0; }
 .detail .post { white-space: pre-wrap; overflow-wrap: anywhere; }
 .detail .meta { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+.tabs .copy-link { margin: 0 0 6px auto; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; color: var(--fg); font-size: .875rem; }
+.fh-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px 12px; align-items: end; }
+.fh-buttons { display: flex; gap: 8px; }
+.fh-buttons button { flex: 1 1 auto; }
+.fh-field { display: flex; flex-direction: column; gap: 2px; font-size: .85rem; color: var(--muted); min-width: 0; }
+.fh-field select, .fh-field input { color: var(--fg); width: 100%; min-width: 0; }
+.fh-field input[type="number"] { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.fh-wide { grid-column: span 2; }
+@media (max-width: 420px) { .fh-wide { grid-column: auto; } }
+#fh-totals { margin-top: -4px; }
+.linkdoc { margin-top: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 8px 14px; font-size: .925rem; }
+.linkdoc summary { cursor: pointer; font-weight: 600; }
+.linkdoc dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0; }
+.linkdoc dt { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .85rem; }
+.linkdoc dd { margin: 0; min-width: 0; }
+.linkdoc code { font-size: .85rem; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .linkdoc dl { grid-template-columns: 1fr; } .linkdoc dd { margin: 0 0 6px 12px; } }
 footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 footer h2 { color: var(--fg); }
 footer p { max-width: 75ch; }

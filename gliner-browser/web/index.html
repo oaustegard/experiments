@@ -50,6 +50,8 @@
 <nav class="tabs" role="tablist">
   <button role="tab" id="tab-text" aria-selected="true" aria-controls="panel-text">Text</button>
   <button role="tab" id="tab-bsky" aria-selected="false" aria-controls="panel-bsky">Bluesky posts</button>
+  <button role="tab" id="tab-firehose" aria-selected="false" aria-controls="panel-firehose">Firehose</button>
+  <button type="button" id="copy-link" class="copy-link" title="Copy a link that opens this page with the current settings">Copy link</button>
 </nav>
 
 <section id="panel-text" role="tabpanel" aria-labelledby="tab-text">
@@ -79,6 +81,78 @@
   <div id="groups" class="groups"></div>
 </section>
 
+<section id="panel-firehose" role="tabpanel" aria-labelledby="tab-firehose" hidden>
+  <form id="fh-form" class="fh-form">
+    <div class="fh-buttons">
+      <button id="fh-start" type="button" class="primary">Start</button>
+      <button id="fh-stop" type="button" hidden>Stop</button>
+    </div>
+    <label class="fh-field">Sample
+      <select id="fh-sample">
+        <option value="1">all posts</option>
+        <option value="2">1 in 2</option>
+        <option value="5">1 in 5</option>
+        <option value="10">1 in 10</option>
+        <option value="50">1 in 50</option>
+        <option value="100">1 in 100</option>
+      </select></label>
+    <label class="fh-field">Language
+      <select id="fh-lang">
+        <option value="any">any</option>
+        <option value="en" selected>English (en)</option>
+        <option value="ja">Japanese (ja)</option>
+        <option value="pt">Portuguese (pt)</option>
+        <option value="es">Spanish (es)</option>
+        <option value="de">German (de)</option>
+        <option value="fr">French (fr)</option>
+        <option value="ko">Korean (ko)</option>
+      </select></label>
+    <label class="fh-field">Min. length
+      <input id="fh-minlen" type="number" min="0" max="10000" step="1" value="20" inputmode="numeric"></label>
+    <label class="fh-field fh-wide">Include words
+      <input id="fh-include" type="text" placeholder="at least one of, e.g. apple, google" autocomplete="off" spellcheck="false"></label>
+    <label class="fh-field fh-wide">Exclude words
+      <input id="fh-exclude" type="text" placeholder="none of, e.g. giveaway" autocomplete="off" spellcheck="false"></label>
+    <label class="fh-field">Window
+      <select id="fh-window">
+        <option value="1000">last 1,000 analysed posts</option>
+        <option value="5000">last 5,000 analysed posts</option>
+        <option value="20000">last 20,000 analysed posts</option>
+      </select></label>
+    <label class="check"><input id="fh-skip-replies" type="checkbox" checked> skip replies</label>
+  </form>
+  <p class="muted small">New public posts from all of Bluesky as they are written, through Bluesky's Jetstream service. The filters
+  run first, then the sample keeps exactly one post in N of those that passed; counts below are for the analysed posts in the window.
+  Authors are shown by their DID. The connection closes when you leave this tab or the page stays hidden for a minute.</p>
+  <p id="fh-stats" class="facts" role="status"></p>
+  <p id="fh-totals" class="facts"></p>
+  <div id="fh-detail" class="detail" hidden></div>
+  <div id="fh-groups" class="groups"></div>
+</section>
+
+<details class="linkdoc">
+  <summary>Link to this</summary>
+  <p><strong>Copy link</strong> copies the address of the page with its current settings. A link can carry these parameters;
+  anything missing or malformed keeps its default.</p>
+  <dl>
+    <dt><code>labels</code></dt><dd>entity types, comma-separated, in place of the defaults</dd>
+    <dt><code>threshold</code></dt><dd>0.05 to 0.95</dd>
+    <dt><code>mode</code></dt><dd><code>text</code>, <code>bluesky</code> or <code>firehose</code></dd>
+    <dt><code>text</code></dt><dd>text mode with this text</dd>
+    <dt><code>source</code></dt><dd>a handle, a bsky.app profile, list or feed link, or an at:// URI: opens Bluesky mode and fetches and
+      analyses as soon as the model has loaded</dd>
+    <dt><code>n</code>, <code>reposts</code></dt><dd>how many posts (up to 1,000); <code>reposts=1</code> includes reposts</dd>
+    <dt><code>sample</code>, <code>lang</code>, <code>replies</code>, <code>minlen</code>, <code>include</code>, <code>exclude</code>, <code>window</code></dt>
+    <dd>firehose settings: 1 in <code>sample</code> (1, 2, 5, 10, 50, 100); a language code or <code>any</code>; <code>replies=1</code> keeps replies;
+      minimum characters; comma-separated words; window size in analysed posts</dd>
+    <dt><code>start</code></dt><dd><code>start=1</code> connects to the firehose once the model has loaded. Without it a firehose link
+      only sets the page up, and the connection waits for Start.</dd>
+  </dl>
+  <p>Examples: <a href="?source=bsky.app&amp;n=200&amp;labels=person,company,product">the last 200 posts by @bsky.app, for people, companies
+  and products</a>; <a href="?mode=firehose&amp;sample=10&amp;lang=en&amp;labels=person,company&amp;start=1">one in ten new English posts
+  from the firehose, for people and companies</a>.</p>
+</details>
+
 <footer>
   <h2>How it works</h2>
   <p>The model is <a href="https://huggingface.co/knowledgator/gliner-bi-edge-v2.0">knowledgator/gliner-bi-edge-v2.0</a> (Apache-2.0), a GLiNER
@@ -86,7 +160,7 @@
   against every type. Packed with 4-bit and 8-bit weights it downloads as 40 MB (49 MB uncompressed) and is cached by the browser. On the GPU,
   through WebGPU: the text encoder and the span head's per-word layers and span scores. In JavaScript: tokenising, encoding the entity types
   (once per type), and picking the non-overlapping spans above the threshold. Nothing leaves the browser except the requests that fetch
-  Bluesky posts.</p>
+  Bluesky posts and, in firehose mode, the connection that receives them.</p>
 </footer>
 </main>
 <script type="module" src="app.js"></script>

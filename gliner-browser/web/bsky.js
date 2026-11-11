@@ -92,11 +92,15 @@ export function normEntity(s) {
 }
 
 // Entities grouped per label, then per normalised name, counting posts (an entity twice in one post counts once).
+// Posts can be removed again (the firehose's rolling window): their entities' counts go down, and an entity
+// or label left with no posts disappears.
 export class EntityGroups {
-  constructor() { this.posts = []; this.g = new Map(); }
-  // post: { text, url, ... }; ents: ner.extract's list for post.text
+  constructor() { this.posts = new Map(); this.g = new Map(); this.next = 0; }
+  get size() { return this.posts.size; }
+  // post: { text, url, ... }; ents: ner.extract's list for post.text. Returns the post's id.
   add(post, ents) {
-    const pi = this.posts.push({ ...post, ents }) - 1;
+    const pi = this.next++;
+    this.posts.set(pi, { ...post, ents });
     for (const e of ents) {
       const key = normEntity(e.text);
       if (!key) continue;
@@ -108,8 +112,25 @@ export class EntityGroups {
       x.posts.add(pi);
       x.mentions++;
     }
+    return pi;
   }
-  // [{ label, entities: [{ key, name, count, mentions, posts: [index] }] }], labels in `order` first;
+  remove(pi) {
+    const p = this.posts.get(pi);
+    if (!p) return false;
+    this.posts.delete(pi);
+    for (const e of p.ents) {
+      const key = normEntity(e.text), byLabel = this.g.get(e.label), x = byLabel?.get(key);
+      if (!x) continue;
+      const c = (x.forms.get(e.text) || 0) - 1;
+      if (c > 0) x.forms.set(e.text, c); else x.forms.delete(e.text);
+      x.posts.delete(pi);
+      x.mentions--;
+      if (!x.posts.size) { byLabel.delete(key); if (!byLabel.size) this.g.delete(e.label); }
+    }
+    return true;
+  }
+  post(pi) { return this.posts.get(pi); }
+  // [{ label, entities: [{ key, name, count, mentions, posts: [id, oldest first] }] }], labels in `order` first;
   // entities by post count, then mentions, then name. name: the most frequent surface form (first seen on a tie).
   view(order = []) {
     const labels = [...new Set([...order.filter((l) => this.g.has(l)), ...this.g.keys()])];
