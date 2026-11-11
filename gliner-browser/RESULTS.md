@@ -3,43 +3,54 @@
 Named-entity recognition marks the spans of a text that name things: people, companies, places, drugs, songs.
 GLiNER does it zero-shot. The entity types are given as plain words when the model runs ("person", "song title",
 anything), and the model scores every span of up to 12 words against every type. The question here was whether a
-GLiNER can run inside a web page from a small download, on the hand-written WebGPU engine the other Ettin
-experiments in this repo use, and how much accuracy that costs.
+GLiNER can run inside a web page from a small download, and how much accuracy that costs. The page runs the model on
+a hand-written WebGPU engine, the browser interface for running programs on the graphics card, which the other
+experiments in this repo share. Those experiments use Ettin, a family of small text encoders (17M and 32M parameters
+here) that turn text into vectors. Oskar, who asked for the work, wanted the download small.
 
 Accuracy is measured on the 7-set zero-shot benchmark from the GLiNER paper (CrossNER AI, literature, music,
 politics and science; MIT Movie; MIT Restaurant). The score is entity-level exact-match F1 per set, averaged over
-the seven sets, in points out of 100, at the library's default threshold of 0.5.
+the seven sets, in points out of 100. Each span gets a score between 0 and 1 and counts as an entity when the score reaches the
+threshold, which is 0.5 by default in the GLiNER library. The score is reported at that default and at a threshold
+picked on the dev split, the part of each set used for choosing settings.
 
 Two directions were tried, in this order. Round 1 trained a new GLiNER on the 17M-parameter Ettin encoder and was
-closed early. The later rounds packed an existing model, `knowledgator/gliner-bi-edge-v2.0`, and built a browser
-runtime and a page for it. Predictions P1 to P12 were written into [`PLAN.md`](PLAN.md) before each stage. The page
-is live at https://austegard.com/experiments/gliner-browser/web/.
+closed early, after four of its training runs had reported. The later work packed an existing model,
+`knowledgator/gliner-bi-edge-v2.0`, and built a browser runtime and a page for it. Packing means storing the model's
+weights in fewer bits so the download is smaller: the token tables (one vector per word piece) at 4 bits per number
+and the encoder layers as 8-bit integers (int8) in place of 32-bit floats (fp32), while the arithmetic still runs in
+fp32. The plan numbered the rounds 1 (recipe), 2 (more data and distillation, never run), 3 (packing), 4 (browser
+runtime), 5 (page) and 6 (an in-browser LoRA trainer, not built); the Log names the later stages instead of
+numbering them. Predictions P1 to P12 were written into [`PLAN.md`](PLAN.md) before each stage, and the Log gives
+each one's wording and verdict in the stage where it was scored. The page is live at
+https://austegard.com/experiments/gliner-browser/web/.
 
 ## Answer
 
-Yes. `knowledgator/gliner-bi-edge-v2.0`, a 60.8M-parameter GLiNER, runs in a browser tab with no measurable loss of accuracy. <!-- @evidence[[results/summary.json#baselines.B3.params_M]] -->
-Packed with 4-bit vocabulary tables and int8 weights it scores 54.28 against 54.23 unpacked, and the browser returns the same entities as the packed reference. <!-- @evidence[[results/summary.json#pack_cost.all_t4-w8L63.test_at_05]] --> <!-- @evidence[[results/summary.json#pack_cost.fp32.test_at_05]] -->
+Yes. `knowledgator/gliner-bi-edge-v2.0`, a 60.8M-parameter GLiNER, runs in a browser tab with no loss in the benchmark's mean score. <!-- @evidence[[results/summary.json#baselines.B3.params_M]] -->
+Packed with 4-bit token tables and int8 weights it scores 54.28 against 54.23 unpacked, and the browser returns the same entities as the packed reference. <!-- @evidence[[results/summary.json#pack_cost.all_t4-w8L63.test_at_05]] --> <!-- @evidence[[results/summary.json#pack_cost.fp32.test_at_05]] -->
 The packed files are 49.5 MB, or 39.9 MB with brotli compression, down from 241.4 MB. <!-- @evidence[[results/summary.json#sizes.shipped_pack_q11.download_raw_MB]] --> <!-- @evidence[[results/summary.json#sizes.shipped_pack_q11.download_brotli_MB]] --> <!-- @evidence[[results/summary.json#sizes.fp32.download_raw_MB]] -->
-On a MacBook's GPU, a 256-token text with 10 entity types goes from text to entities in 5.3 ms. <!-- @evidence[[results/summary.json#mac.gpu_head_256tok_10lab_total_ms]] -->
+On one Mac's GPU, a 256-token text with 10 encoded entity types takes 5.3 ms. <!-- @evidence[[results/summary.json#mac.gpu_head_256tok_10lab_total_ms]] -->
 Each new entity type costs about 62 ms once, to encode it in JavaScript; the page then caches it. <!-- @evidence[[results/summary.json#mac.label_encoder_ms_per_label_10]] -->
 
-A GLiNER trained on Ettin-17m from 19,724 open passages fell far short. The best arm scored 36.7, 17.9 points under `gliner_small-v2.1`. <!-- @evidence[[results/summary.json#round1.best_arm_gap_to_B1]] -->
+A GLiNER trained on Ettin-17m from 19,724 open passages fell far short. The best run (A6) scored 36.7, 17.9 points under `gliner_small-v2.1`. <!-- @evidence[[results/summary.json#round1.best_arm_gap_to_B1]] -->
 
-Two measurements would change this answer. One is accuracy on the page's own kind of text, such as Bluesky posts, which was not measured. The other is a 17M text encoder trained on the 10M labelled samples the 32M model had, which are not public.
+Two measurements would change this answer. One is accuracy on Bluesky posts, which was not measured. The other is a 17M text encoder trained on the 10M GPT-4o-labelled samples behind the published Ettin-32m model, which are not public.
 
 ## Findings
 
 1. **Packing costs no measurable accuracy.** The full pack scores 54.28 against 54.23 in fp32. <!-- @evidence[[results/summary.json#pack_cost.all_t4-w8L63.test_at_05]] -->
-   Quantizing one part at a time moved the score by at most 0.19 points, with one exception. <!-- @evidence[[results/summary.json#pack_cost.text_table_t4.delta_test_at_05]] -->
+   Quantizing one part at a time (storing just that part at lower precision) moved the score by at most 0.19 points, with one exception. <!-- @evidence[[results/summary.json#pack_cost.text_table_t4.delta_test_at_05]] -->
    The exception is the text encoder's layers with int8 codes held to ±31, which cost 0.48. <!-- @evidence[[results/summary.json#pack_cost.text_layers_L31.cost_test_at_05]] -->
-   The fp32 pack matches the library on 48 of 48 benchmark cells. (`results/pack_cost_biedge.json`) <!-- @evidence[[results/summary.json#pack_cost_fp32_check.cells]] -->
-2. **The browser gives the same entities as the reference.** Headless Chromium matched 48 of 48 entity checks on both packs and both span heads. <!-- @evidence[[results/summary.json#/web_parity/gliner-bi-edge-v2.0-t4-w8L63-h8/entity_matches]] -->
-   Logits agree within 2.5e-5 there and within 2.2e-5 on the Mac. <!-- @evidence[[results/summary.json#/web_parity/gliner-bi-edge-v2.0-fp32/logit_max_abs_diff]] --> <!-- @evidence[[results/summary.json#mac.parity_logit_max_abs_diff]] -->
+   The fp32 pack matches the library on 48 of 48 benchmark cells, which are the 7 test and 5 dev sets at 4 thresholds each. (`results/pack_cost_biedge.json`) <!-- @evidence[[results/summary.json#pack_cost_fp32_check.cells]] -->
+   Individual predictions do change, since 19% of entities at 0.5 differ from fp32, and the mean score does not move. (Log, packing section)
+2. **The browser gives the same entities as the reference.** Headless Chromium matched the NumPy reference on 48 of 48 entity checks per pack, on both packs and both span heads. These are not the 48 benchmark cells of finding 1. <!-- @evidence[[results/summary.json#/web_parity/gliner-bi-edge-v2.0-t4-w8L63-h8/entity_matches]] -->
+   Logits, the raw scores the model gives each span and entity type before the threshold, differ from the reference by at most 2.5e-5 in headless Chromium and by at most 2.2e-5 on the Mac. <!-- @evidence[[results/summary.json#/web_parity/gliner-bi-edge-v2.0-fp32/logit_max_abs_diff]] --> <!-- @evidence[[results/summary.json#mac.parity_logit_max_abs_diff]] -->
    The NumPy reference itself is within 1.1e-4 of the library on the 55 inputs of up to 1,024 tokens. <!-- @evidence[[results/summary.json#reference_parity.max_abs_logit_diff_up_to_1024_tokens]] --> <!-- @evidence[[results/summary.json#reference_parity.inputs_up_to_1024_tokens]] -->
    (`results/web_parity.json`, `results/bridge_gliner-web-2.json`, `results/pack_parity_biedge.json`)
-3. **The span head's per-word layers belong on the GPU, beside the encoder.** On the Mac, a 30-token text took 139.9 ms with the span head in JavaScript. <!-- @evidence[[results/summary.json#mac.js_head_30tok_10lab_total_ms]] -->
+3. **The span head's per-word layers belong on the GPU, beside the encoder.** The span head takes the text encoder's word vectors and the entity-type vectors and scores each span of words against each type; its per-word layers are dense layers applied to every word's vector. On the Mac, a 30-token text took 139.9 ms with the span head in JavaScript. <!-- @evidence[[results/summary.json#mac.js_head_30tok_10lab_total_ms]] -->
    Of that, 126.9 ms went to the per-word dense layers. <!-- @evidence[[results/summary.json#mac.js_head_30tok_10lab_span_words_ms]] -->
-   With the head in the encoder's GPU submit the whole text took 1.9 ms. <!-- @evidence[[results/summary.json#mac.gpu_head_30tok_10lab_total_ms]] -->
+   With the head in the encoder's GPU submit, the single batch of work sent to the graphics card, the whole text took 1.9 ms. <!-- @evidence[[results/summary.json#mac.gpu_head_30tok_10lab_total_ms]] -->
    (`results/bridge_gliner-web-2.json`)
 4. **Batches of short texts run at 2,732 texts a second on the Mac.** That is 100 texts of 4,388 tokens in all, with 20 entity types, pipelined. <!-- @evidence[[results/summary.json#mac.batch100_texts_per_second_pipelined]] --> <!-- @evidence[[results/summary.json#mac.batch100_tokens]] -->
    Run serially it is 2,445 texts a second, and 8.07 with the JavaScript head. <!-- @evidence[[results/summary.json#mac.batch100_texts_per_second_serial]] --> <!-- @evidence[[results/summary.json#mac.batch100_js_head_texts_per_second_serial]] -->
@@ -48,9 +59,9 @@ Two measurements would change this answer. One is accuracy on the page's own kin
    A fresh set of 10 types costs 619.6 ms before the first text, against 5.3 ms for a 256-token text once they are cached. <!-- @evidence[[results/summary.json#mac.label_set_10_cold_ms]] --> <!-- @evidence[[results/summary.json#mac.gpu_head_256tok_10lab_total_ms]] -->
    (`results/bridge_gliner-web-2.json`)
 6. **Retraining GLiNER on stock Ettin-17m fell 17.9 points short.** <!-- @evidence[[results/summary.json#round1.best_arm_gap_to_B1]] -->
-   The best arm, A6, scored 36.7 against 54.6 for `gliner_small-v2.1` in the same harness. <!-- @evidence[[results/summary.json#arms.A6.test_at_05]] --> <!-- @evidence[[results/summary.json#baselines.B1.test_at_05]] -->
+   The best arm, A6, scored 36.7 against 54.6 for `gliner_small-v2.1` in the same harness. That model is the bar because the round-1 goal was to come within 10 points of it. <!-- @evidence[[results/summary.json#arms.A6.test_at_05]] --> <!-- @evidence[[results/summary.json#baselines.B1.test_at_05]] -->
    The upstream recipe unchanged (A0) scored 21.1. <!-- @evidence[[results/summary.json#arms.A0.test_at_05]] -->
-   Oskar had asked for an existing GLiNER to be packed, so this direction was a misreading and was closed after four arms. (Round 1, `results/A0.json` to `results/A6.json`)
+   Oskar had asked for an existing GLiNER to be packed, so this direction was a misreading and was closed early. Four arms (A0, A3, A4, A6) had reported, two more (A9, A10) stopped on out-of-memory batches and two (A11, A12) were never finished. (Round 1, `results/A0.json` to `results/A6.json`)
 7. **Tokenizing each word with its leading space was worth 6.9 points on Ettin-17m.** <!-- @evidence[[results/summary.json#round1.leading_space_gain]] -->
    The upstream library tokenizes words without the leading-space form a BPE tokenizer uses mid-sentence, so "Mountain" became "M" + "ountain". At each arm's dev-chosen threshold the gain was 8.1. <!-- @evidence[[results/summary.json#round1.leading_space_gain_at_dev_best]] -->
    (Round 1, A6 against A4, `results/A6.json` `tokenization_check`)
@@ -58,15 +69,17 @@ Two measurements would change this answer. One is accuracy on the page's own kin
    With brotli the text encoder is 19.5 MB, the label encoder 14.8 MB and the span head 5.0 MB. <!-- @evidence[[results/summary.json#sizes.shipped_pack_q11.text_encoder_brotli_MB]] --> <!-- @evidence[[results/summary.json#sizes.shipped_pack_q11.label_encoder_brotli_MB]] --> <!-- @evidence[[results/summary.json#sizes.shipped_pack_q11.span_head_brotli_MB]] -->
    The library builds a BiLSTM for this model and never calls it, so the pack leaves out its 887,808 parameters. <!-- @evidence[[web/models/gliner-bi-edge-v2.0-t4-w8L63-h8/manifest.json#dropped.2]] -->
    (`results/pack_cost_biedge.json` `sizes`)
-9. **In this harness `gliner_small-v2.5` is the strongest baseline.** It scored 58.5 at threshold 0.5, ahead of `gliner_large-v2.1` at 57.5. <!-- @evidence[[results/summary.json#baselines.B2.test_at_05]] --> <!-- @evidence[[results/summary.json#baselines.B4.test_at_05]] -->
+9. **Of the four baselines re-run in this harness, `gliner_small-v2.5` is the strongest.** It scored 58.5 at threshold 0.5, ahead of `gliner_large-v2.1` at 57.5. <!-- @evidence[[results/summary.json#baselines.B2.test_at_05]] --> <!-- @evidence[[results/summary.json#baselines.B4.test_at_05]] -->
    `gliner-bi-edge-v2.0` scored 54.2, close to the 54.0 on its card, which uses threshold 0.4. <!-- @evidence[[results/summary.json#baselines.B3.test_at_05]] -->
+   The packed model's 54.28 is therefore below both the 58.5 and the 57.5 baselines, which is the accuracy given up by choosing this model.
    (Round 1, `results/B1_gliner_small-v2.1.json` to `results/B4_gliner_large-v2.1.json`)
 
 ## Method
 
 **Benchmark.** The seven test sets come from InstructUIE's `IE_INSTRUCTIONS.zip`: 6,467 sentences. The score is
 entity-level exact-match micro F1 per set with greedy flat decoding, as in the GLiNER library's evaluator, and the
-unweighted mean of the seven. It is reported at threshold 0.5 and at the threshold chosen on dev. Selection of
+unweighted mean of the seven. It is reported at threshold 0.5 and at the threshold chosen on dev, the development
+split held apart from the test sentences for choosing settings. Selection of
 checkpoints, thresholds and arms used only the five CrossNER dev sets, because the MIT dev files are
 byte-identical to their test files. Every baseline was re-run in this harness, since the paper's numbers do not
 reproduce with the released weights (GLiNER issue 54). A 60-sentence check matched the library's own evaluator on
@@ -74,11 +87,16 @@ reproduce with the released weights (GLiNER issue 54). A 60-sentence check match
 
 **Round 1 arms.** Stock `jhu-clsp/ettin-encoder-17m` (7 layers, hidden 256) under the upstream `gliner` library,
 uni-encoder, span head (markerV0), trained on `urchade/pile-mistral-v0.1` (19,724 passages, Apache-2.0), seed 0,
-on one Colab L4. Arms varied learning rate, the BiLSTM, the head type and leading-space tokenization; the table is
-in the log and in `run/arms.json`.
+on one Colab L4. An arm is one training run. Arms varied learning rate, the BiLSTM (a layer that reads the words in order, in both
+directions, between the encoder and the span head), the head type and leading-space tokenization; the table is in the
+log and in `run/arms.json`. Of the arms that reported, A0 is the upstream recipe, A3 and A4 drop the BiLSTM at two
+learning rates, and A6 is A4 with leading-space tokenization. The span head is the markerV0 type, the library's name
+for its span-scoring head.
 
-**Packing.** `run/gpack.py` writes 4-bit token tables, the vocabulary embeddings (`t4`), int8 per-column codes for the encoder layers held to
-±63 (`w8L63`) or ±31 (`w8L31`), and optionally int8 span-head and projection matrices (`h8`). Activations stay in
+**Packing.** `run/gpack.py` keeps every weight but stores it in fewer bits, and drops only the unused BiLSTM.
+It writes 4-bit token tables, the vocabulary embeddings with one vector per word piece (`t4`), int8 per-column codes
+for the encoder layers held to ±63 (`w8L63`) or ±31 (`w8L31`), and optionally int8 span-head and projection matrices
+(`h8`). Rounding to fewer bits is what it loses. Activations, the values computed while the model runs, stay in
 fp32. `run/gref.py` is a NumPy reference that runs the packed file; its fp32 output is checked against the library
 on 56 inputs, and each packed variant is benchmarked on all 8,587 dev and test sentences. One part (text table,
 text layers, label table, label layers, heads) was quantized at a time, then all together.
@@ -161,8 +179,10 @@ Predictions:
   The packer was only checked for logit parity on smoke checkpoints (3.7e-5 from the library). P10 and P11 replaced it.
 
 Reading at the time: with 19,724 training passages a 17M backbone ends about 18 points short, and the published
-Ettin-32m GLiNER needed 10M labelled samples to reach 54. At 01:20 UTC Oskar said he had meant the Ettin shrink-and-pack pattern to be applied to an
-existing GLiNER. Round 1 had retrained one from stock Ettin instead, which was a misreading of the request; the plan commit (20:37 UTC) and the change of direction (01:18 UTC) are about four and a half hours apart.
+Ettin-32m GLiNER needed 10M labelled samples to reach 54. Oskar, who had asked for the work, then said he had meant the Ettin shrink-and-pack pattern to be applied to an
+existing GLiNER. Round 1 had retrained one from stock Ettin instead, which was a misreading of the request. The plan
+dates his message 01:20 UTC and this log starts the packing stage at 01:18 UTC, so the change of direction came about
+four and a half hours after the plan commit (20:37 UTC).
 Its lasting results are the leading-space effect and the four baselines.
 
 Operations: the restart script (`run/colab_restart.py`, commit e9dc3ed7) brackets its `pkill -f` patterns
@@ -209,8 +229,9 @@ encoder on a 27-token text and 7.7 ms per label for the label encoder.
 Predictions:
 
 - P10, the download between 30 and 40 MB (text encoder about 23 MB, label encoder about 12 MB): hit at brotli
-  quality 11 (39.9 MB), with the parts off in opposite directions (19.5 and 14.8 MB). The files measure 40.3 MB at
-  quality 9, and a server that sends them uncompressed sends 49.5 MB.
+  quality 11 (39.9 MB), with the parts off in opposite directions (19.5 and 14.8 MB). The files committed under
+  `web/models/` measure 40.3 MB at quality 9, just above the predicted range, and a server that sends them
+  uncompressed sends 49.5 MB.
 - P11, packing costs at most 1.5 points: hit, +0.04.
 - P12, the label encoder contributes less than a third of the loss: not decidable. There was no loss to divide; the
   label-encoder-only arms moved −0.04 and +0.15.
