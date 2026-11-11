@@ -1,0 +1,170 @@
+{
+ "name": "b-32-haiku-s1",
+ "args": {
+  "name": "b-32-haiku-s1",
+  "init": "stock32",
+  "train": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "test": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "epochs": 2,
+  "lr": 5e-05,
+  "bs": 16,
+  "seed": 1,
+  "max_steps": 0,
+  "n_cases": 0,
+  "draw": 0,
+  "data": "/content/data/cases_haiku.jsonl",
+  "max_train_accounts": 0,
+  "out_root": null,
+  "amp": true,
+  "max_len": 1024
+ },
+ "best_epoch": 1,
+ "temps": {
+  "choice": 1.5909556311269324,
+  "noul": 1.5226192280498758,
+  "score": 1.394626115261553
+ },
+ "test": {
+  "n_decisions": 3818,
+  "accuracy": 0.8318491356731272,
+  "kl_from_gold": 0.3862021886548208,
+  "brier": 0.19559463417672857,
+  "ece": 0.028235696443356117
+ },
+ "test_raw_T1": {
+  "n_decisions": 3818,
+  "accuracy": 0.8318491356731272,
+  "kl_from_gold": 0.420736181617976,
+  "brier": 0.20065929507764804,
+  "ece": 0.04578025157300576
+ },
+ "by": {
+  "workflow=ls_relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.7013177159590044,
+   "kl_from_gold": 0.6397561400631065,
+   "brier": 0.35011339024290994,
+   "ece": 0.14493287100289753
+  },
+  "workflow=ls_section": {
+   "n_decisions": 3135,
+   "accuracy": 0.8602870813397129,
+   "kl_from_gold": 0.3309622049827764,
+   "brier": 0.16193073931446322,
+   "ece": 0.01671792751878045
+  },
+  "type=choice": {
+   "n_decisions": 1160,
+   "accuracy": 0.8068965517241379,
+   "kl_from_gold": 0.5144996326785362,
+   "brier": 0.23397555950072496,
+   "ece": 0.024718516944958635
+  },
+  "type=noul": {
+   "n_decisions": 1185,
+   "accuracy": 0.9383966244725739,
+   "kl_from_gold": 0.14224992056279867,
+   "brier": 0.08175750980318354,
+   "ece": 0.01324253781766753
+  },
+  "type=score": {
+   "n_decisions": 1473,
+   "accuracy": 0.7657841140529531,
+   "kl_from_gold": 0.48142174236937363,
+   "brier": 0.256949093787601,
+   "ece": 0.06678329582086195
+  },
+  "q=ls_relevance/relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.7013177159590044,
+   "kl_from_gold": 0.6397561400631065,
+   "brier": 0.35011339024290994,
+   "ece": 0.14493287100289753
+  },
+  "q=ls_section/detail": {
+   "n_decisions": 395,
+   "accuracy": 0.739240506329114,
+   "kl_from_gold": 0.46158836019748634,
+   "brier": 0.2322615872794941,
+   "ece": 0.09903681929748336
+  },
+  "q=ls_section/evidence": {
+   "n_decisions": 395,
+   "accuracy": 0.9037974683544304,
+   "kl_from_gold": 0.22747691283285684,
+   "brier": 0.12054491807045221,
+   "ece": 0.032716886786368
+  },
+  "q=ls_section/field": {
+   "n_decisions": 395,
+   "accuracy": 0.7493670886075949,
+   "kl_from_gold": 0.6615469238598005,
+   "brier": 0.29812084689490087,
+   "ece": 0.04369838268445615
+  },
+  "q=ls_section/human_samples": {
+   "n_decisions": 395,
+   "accuracy": 0.9012658227848102,
+   "kl_from_gold": 0.22062901381848024,
+   "brier": 0.13398436918443377,
+   "ece": 0.029490496471583902
+  },
+  "q=ls_section/immunoassay": {
+   "n_decisions": 395,
+   "accuracy": 0.9822784810126582,
+   "kl_from_gold": 0.04859258877211603,
+   "brier": 0.020623025837501138,
+   "ece": 0.009074254073156244
+  },
+  "q=ls_section/quantitative_result": {
+   "n_decisions": 395,
+   "accuracy": 0.9316455696202531,
+   "kl_from_gold": 0.15752815909779974,
+   "brier": 0.09066513438761571,
+   "ece": 0.019228993808282555
+  },
+  "q=ls_section/role": {
+   "n_decisions": 370,
+   "accuracy": 0.9216216216216216,
+   "kl_from_gold": 0.25454490583472844,
+   "brier": 0.11602400372405781,
+   "ece": 0.03909393340454886
+  },
+  "q=ls_section/study_type": {
+   "n_decisions": 395,
+   "accuracy": 0.7569620253164557,
+   "kl_from_gold": 0.6109542375281802,
+   "brier": 0.28031653954292085,
+   "ece": 0.04483814463445574
+  }
+ },
+ "log": [
+  {
+   "epoch": 0,
+   "train_loss": 0.6670559395727886,
+   "val_kl": 0.428892226466579,
+   "val_acc": 0.7901910828025478,
+   "sec": 233.47965145111084
+  },
+  {
+   "epoch": 1,
+   "train_loss": 0.4052755640279223,
+   "val_kl": 0.42878518733129695,
+   "val_acc": 0.8092993630573249,
+   "sec": 226.8565318584442
+  }
+ ],
+ "wall_sec": 655.8722243309021,
+ "device": "cuda",
+ "n_params": 32032129
+}

@@ -1,0 +1,170 @@
+{
+ "name": "b-17-haiku-s1",
+ "args": {
+  "name": "b-17-haiku-s1",
+  "init": "stock",
+  "train": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "test": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "epochs": 2,
+  "lr": 8e-05,
+  "bs": 16,
+  "seed": 1,
+  "max_steps": 0,
+  "n_cases": 0,
+  "draw": 0,
+  "data": "/content/data/cases_haiku.jsonl",
+  "max_train_accounts": 0,
+  "out_root": null,
+  "amp": true,
+  "max_len": 1024
+ },
+ "best_epoch": 1,
+ "temps": {
+  "choice": 1.5226192280498758,
+  "noul": 1.5909556311269324,
+  "score": 1.4572180821818477
+ },
+ "test": {
+  "n_decisions": 3818,
+  "accuracy": 0.8135149292823468,
+  "kl_from_gold": 0.4264110810091357,
+  "brier": 0.2158534600456882,
+  "ece": 0.02205137528250669
+ },
+ "test_raw_T1": {
+  "n_decisions": 3818,
+  "accuracy": 0.8135149292823468,
+  "kl_from_gold": 0.4609524188413,
+  "brier": 0.2210589079598694,
+  "ece": 0.044101275864999616
+ },
+ "by": {
+  "workflow=ls_relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.6530014641288433,
+   "kl_from_gold": 0.7057220199008154,
+   "brier": 0.38468170472195934,
+   "ece": 0.12647814976392704
+  },
+  "workflow=ls_section": {
+   "n_decisions": 3135,
+   "accuracy": 0.8484848484848485,
+   "kl_from_gold": 0.3655596069220489,
+   "brier": 0.1790720593714001,
+   "ece": 0.015472256656190413
+  },
+  "type=choice": {
+   "n_decisions": 1160,
+   "accuracy": 0.7836206896551724,
+   "kl_from_gold": 0.5762834473590835,
+   "brier": 0.2620530297075501,
+   "ece": 0.019618994947733958
+  },
+  "type=noul": {
+   "n_decisions": 1185,
+   "accuracy": 0.9282700421940928,
+   "kl_from_gold": 0.16544058756875063,
+   "brier": 0.09563393234271497,
+   "ece": 0.013894001180756609
+  },
+  "type=score": {
+   "n_decisions": 1473,
+   "accuracy": 0.7447386286490156,
+   "kl_from_gold": 0.5183310333247617,
+   "brier": 0.2761851908808976,
+   "ece": 0.0544725208447429
+  },
+  "q=ls_relevance/relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.6530014641288433,
+   "kl_from_gold": 0.7057220199008154,
+   "brier": 0.38468170472195934,
+   "ece": 0.12647814976392704
+  },
+  "q=ls_section/detail": {
+   "n_decisions": 395,
+   "accuracy": 0.7544303797468355,
+   "kl_from_gold": 0.47262903818582186,
+   "brier": 0.2395794039451045,
+   "ece": 0.06520139965277018
+  },
+  "q=ls_section/evidence": {
+   "n_decisions": 395,
+   "accuracy": 0.8936708860759494,
+   "kl_from_gold": 0.2400126643334616,
+   "brier": 0.12518814502315856,
+   "ece": 0.025061514902215736
+  },
+  "q=ls_section/field": {
+   "n_decisions": 395,
+   "accuracy": 0.7468354430379747,
+   "kl_from_gold": 0.7064459250691957,
+   "brier": 0.3087657137502646,
+   "ece": 0.049435188323127585
+  },
+  "q=ls_section/human_samples": {
+   "n_decisions": 395,
+   "accuracy": 0.8987341772151899,
+   "kl_from_gold": 0.2508354197871072,
+   "brier": 0.1508321450114903,
+   "ece": 0.0335172936120491
+  },
+  "q=ls_section/immunoassay": {
+   "n_decisions": 395,
+   "accuracy": 0.979746835443038,
+   "kl_from_gold": 0.051415717052551865,
+   "brier": 0.0215655090267672,
+   "ece": 0.007424823340128324
+  },
+  "q=ls_section/quantitative_result": {
+   "n_decisions": 395,
+   "accuracy": 0.9063291139240506,
+   "kl_from_gold": 0.19407062586659282,
+   "brier": 0.11450414298988743,
+   "ece": 0.021633935113085583
+  },
+  "q=ls_section/role": {
+   "n_decisions": 370,
+   "accuracy": 0.9027027027027027,
+   "kl_from_gold": 0.2970497369765511,
+   "brier": 0.139474120484755,
+   "ece": 0.04166693186027334
+  },
+  "q=ls_section/study_type": {
+   "n_decisions": 395,
+   "accuracy": 0.7088607594936709,
+   "kl_from_gold": 0.7076816603870397,
+   "brier": 0.3301610960760615,
+   "ece": 0.06460387823426146
+  }
+ },
+ "log": [
+  {
+   "epoch": 0,
+   "train_loss": 0.7002448616368392,
+   "val_kl": 0.4673170940667627,
+   "val_acc": 0.7773248407643312,
+   "sec": 164.78366661071777
+  },
+  {
+   "epoch": 1,
+   "train_loss": 0.4334189134275698,
+   "val_kl": 0.45730623291236255,
+   "val_acc": 0.7909554140127388,
+   "sec": 158.3728277683258
+  }
+ ],
+ "wall_sec": 509.89844036102295,
+ "device": "cuda",
+ "n_params": 16864001
+}

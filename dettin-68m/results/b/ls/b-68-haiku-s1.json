@@ -1,0 +1,170 @@
+{
+ "name": "b-68-haiku-s1",
+ "args": {
+  "name": "b-68-haiku-s1",
+  "init": "stock68",
+  "train": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "test": [
+   "agent_trace_observability",
+   "customer_service",
+   "invoice_processing",
+   "security_incidents"
+  ],
+  "epochs": 2,
+  "lr": 8e-05,
+  "bs": 16,
+  "seed": 1,
+  "max_steps": 0,
+  "n_cases": 0,
+  "draw": 0,
+  "data": "/content/data/cases_haiku.jsonl",
+  "max_train_accounts": 0,
+  "out_root": null,
+  "amp": true,
+  "max_len": 1024
+ },
+ "best_epoch": 0,
+ "temps": {
+  "choice": 1.1700131971552696,
+  "noul": 1.5909556311269324,
+  "score": 1.1700131971552696
+ },
+ "test": {
+  "n_decisions": 3818,
+  "accuracy": 0.8101100052383446,
+  "kl_from_gold": 0.3909066355064456,
+  "brier": 0.1994267212594978,
+  "ece": 0.01736555422286532
+ },
+ "test_raw_T1": {
+  "n_decisions": 3818,
+  "accuracy": 0.8101100052383446,
+  "kl_from_gold": 0.3983254327934678,
+  "brier": 0.20052474201025425,
+  "ece": 0.032223952818545495
+ },
+ "by": {
+  "workflow=ls_relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.705710102489019,
+   "kl_from_gold": 0.6067607254581742,
+   "brier": 0.3290293616017892,
+   "ece": 0.1306581847326114
+  },
+  "workflow=ls_section": {
+   "n_decisions": 3135,
+   "accuracy": 0.8328548644338118,
+   "kl_from_gold": 0.3438800506780467,
+   "brier": 0.1711911221035855,
+   "ece": 0.024540225847670013
+  },
+  "type=choice": {
+   "n_decisions": 1160,
+   "accuracy": 0.7887931034482759,
+   "kl_from_gold": 0.5462280767176728,
+   "brier": 0.2559954968640271,
+   "ece": 0.029379669239225907
+  },
+  "type=noul": {
+   "n_decisions": 1185,
+   "accuracy": 0.9375527426160337,
+   "kl_from_gold": 0.1322700521746802,
+   "brier": 0.07128435253107956,
+   "ece": 0.008857937126428453
+  },
+  "type=score": {
+   "n_decisions": 1473,
+   "accuracy": 0.7243720298710116,
+   "kl_from_gold": 0.476657809602249,
+   "brier": 0.25796638673262856,
+   "ece": 0.04065594908464629
+  },
+  "q=ls_relevance/relevance": {
+   "n_decisions": 683,
+   "accuracy": 0.705710102489019,
+   "kl_from_gold": 0.6067607254581742,
+   "brier": 0.3290293616017892,
+   "ece": 0.1306581847326114
+  },
+  "q=ls_section/detail": {
+   "n_decisions": 395,
+   "accuracy": 0.6632911392405063,
+   "kl_from_gold": 0.5167652679152486,
+   "brier": 0.27358371501526657,
+   "ece": 0.1249523306063059
+  },
+  "q=ls_section/evidence": {
+   "n_decisions": 395,
+   "accuracy": 0.8177215189873418,
+   "kl_from_gold": 0.21158758792318133,
+   "brier": 0.11947307911926477,
+   "ece": 0.08353376512124742
+  },
+  "q=ls_section/field": {
+   "n_decisions": 395,
+   "accuracy": 0.7240506329113924,
+   "kl_from_gold": 0.6923984496580019,
+   "brier": 0.32159405076119135,
+   "ece": 0.05841998701663658
+  },
+  "q=ls_section/human_samples": {
+   "n_decisions": 395,
+   "accuracy": 0.9088607594936708,
+   "kl_from_gold": 0.19085308264385487,
+   "brier": 0.10707813512241529,
+   "ece": 0.009121373647767899
+  },
+  "q=ls_section/immunoassay": {
+   "n_decisions": 395,
+   "accuracy": 0.9822784810126582,
+   "kl_from_gold": 0.052523412178158445,
+   "brier": 0.020219793219218136,
+   "ece": 0.012659950485579946
+  },
+  "q=ls_section/quantitative_result": {
+   "n_decisions": 395,
+   "accuracy": 0.9215189873417722,
+   "kl_from_gold": 0.1534336617020273,
+   "brier": 0.0865551292516053,
+   "ece": 0.00951279453194393
+  },
+  "q=ls_section/role": {
+   "n_decisions": 370,
+   "accuracy": 0.9054054054054054,
+   "kl_from_gold": 0.311735503759534,
+   "brier": 0.14335623636120645,
+   "ece": 0.03449931216270652
+  },
+  "q=ls_section/study_type": {
+   "n_decisions": 395,
+   "accuracy": 0.7443037974683544,
+   "kl_from_gold": 0.6197089746495246,
+   "brier": 0.2959071363492518,
+   "ece": 0.03368974996702783
+  }
+ },
+ "log": [
+  {
+   "epoch": 0,
+   "train_loss": 0.6088058062131574,
+   "val_kl": 0.4041796482604,
+   "val_acc": 0.8048407643312102,
+   "sec": 430.37815713882446
+  },
+  {
+   "epoch": 1,
+   "train_loss": 0.3421189506385939,
+   "val_kl": 0.4076300789640928,
+   "val_acc": 0.8315923566878981,
+   "sec": 424.7649097442627
+  }
+ ],
+ "wall_sec": 1049.4703705310822,
+ "device": "cuda",
+ "n_params": 68408833
+}
