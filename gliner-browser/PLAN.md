@@ -129,3 +129,32 @@ download under 25 MB within 10 points of gliner_small-v2.1 re-run.
 
 Colab L4, one session, arms run serially and resume-safe. Budget 20 units for
 round 1.
+
+## Change of direction, 2026-11-11 01:20 UTC
+
+Oskar: the Ettin shrink-and-pack pattern was meant to be applied to an existing
+GLiNER, not to a GLiNER retrained from stock Ettin. Round 1 is closed early:
+A0, A3, A4 and A6 reported (21.1, 25.1, 29.8, 36.7 on the 7-set test mean at
+0.5, against 54.6 for gliner_small-v2.1); A9 and A10 each stopped on an
+out-of-memory batch and A11 and A12 were not finished. With 19,724 training
+passages a 17M backbone is 18 points short, and the published Ettin-32m GLiNER
+needed 10M labelled samples to reach 54.
+
+New base: `knowledgator/gliner-bi-edge-v2.0` (Apache-2.0), 54.2 in our harness.
+Its text encoder is Ettin-32m, which our packer and WGSL engine already run;
+its head is the markerV0 span head plus a BiLSTM, which the NumPy reference
+already reproduces; its label encoder is all-MiniLM-L6-v2 (a BERT), which is
+new. Labels are short and can be cached per label set, so the label encoder is
+a candidate for plain JavaScript or WASM.
+
+Order of work:
+1. Pack it: 4-bit token tables, int8 layers and heads; NumPy reference with
+   parity against the library; F1 of each packed variant on the full benchmark.
+2. Shrink further only where the measurement says it pays (label encoder
+   depth or width, code range, table bits).
+3. Browser runtime, page and LoRA trainer as in rounds 4 to 6 above.
+
+Predictions: P10, the packed download is between 30 and 40 MB (text encoder
+about 23 MB, label encoder about 12 MB). P11, packing at 4-bit tables and int8
+weights costs at most 1.5 points of the 54.2. P12, the label encoder at int8
+contributes less than a third of that loss.
