@@ -1,6 +1,7 @@
 // Zero-shot NER in the browser: gliner-bi-edge-v2.0 (Ettin-32m text encoder, MiniLM label encoder,
-// markerV0 span head), packed by run/gpack.py. The text encoder runs on WebGPU (engine.js); the label
-// encoder, span head and decoding run in plain JavaScript (jshead.js). run/gref.py (GRefBi) is the spec.
+// markerV0 span head), packed by run/gpack.py. The text encoder and the span head's per-word layers and
+// span x label scores run on WebGPU (engine.js); the label encoder, the label side of the span head and
+// decoding run in plain JavaScript (jshead.js). run/gref.py (GRefBi) is the spec.
 //
 //   const ner = await NER.load("models/gliner-bi-edge-v2.0-t4-w8L63-h8/");
 //   await ner.setLabels(["person", "company", "city"]);      // encoded once, cached per label string
@@ -8,9 +9,14 @@
 //   // [{ start, end, text, label, score }], start/end in code points (GRef's offsets); u16Start/u16End
 //   // index the JavaScript string (text === str.slice(u16Start, u16End))
 //   const many = await ner.extract(posts);                     // string[] -> one list per text
-//   ner.lastTimings                                            // ms per stage, token and word counts
+//   ner.lastTimings                                            // ms per stage, token and word counts (textEncoderGpuMs is
+//                                                              // submit to done: with the GPU head it covers the head too)
 //   ner.labelTimings                                           // the last setLabels(): label tokenize / encoder / projection ms
 //   (lastTimings.labelEncoderMs is that cost when extract() was given { labels }, else 0: label vectors are cached)
+// Span head: { head: "gpu" } (the default) runs it in the encoder's submit and reads back scores;
+// { head: "js" } reads back word vectors and runs jshead.js's SpanHead (the fallback, and parity's
+// second arm); { head: "gpu-words" } reads back the per-word vectors and scores in JavaScript (timing
+// only). More than the engine's maxLabels (128) labels fall back to "js". Set per call or at load.
 // Texts are limited to the encoder's 1,024-token window (attentionLong); a longer one throws unless
 // extract(..., { truncate: true }), which drops the words past it. GRef itself runs to model_max_length 8,192.
 //
@@ -22,10 +28,13 @@ import { Pack, LabelEncoder, SpanHead, decodeSpans, splitWords } from "./jshead.
 
 export const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/dist/tokenizers.mjs";
 const now = () => performance.now();
+const NONE = 0xffffffff;
+export const HEAD_MODES = ["gpu", "js", "gpu-words"];
 
 export class NER {
   // modelUrl: directory with manifest.json, weights.bin, tokenizer.json, labels_tokenizer.json.
-  // opts: device (a GPUDevice), tokenizers (the imported tokenizer module), maxTokens, maxSeqs, maxPos.
+  // opts: device (a GPUDevice), tokenizers (the imported tokenizer module), maxTokens, maxSeqs, maxPos
+  // (word rows per batch, 2,048), head ("gpu" | "js": the default span head), maxLabels (GPU head, 128).
   static async load(modelUrl, opts = {}) {
     const base = new URL(modelUrl.endsWith("/") ? modelUrl : modelUrl + "/", globalThis.location?.href);
     const t0 = now();
@@ -54,8 +63,8 @@ export class NER {
     }
     const { Tokenizer } = opts.tokenizers ?? await import(TOKENIZERS);
     const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
-    const engine = await TextEngine.create(device, manifest, bytes,
-      { maxTokens: opts.maxTokens ?? 8192, maxSeqs: opts.maxSeqs ?? 512, maxPos: opts.maxPos ?? 8192 });
+    const engine = await TextEngine.create(device, manifest, bytes, { maxTokens: opts.maxTokens ?? 8192, maxSeqs: opts.maxSeqs ?? 512,
+      maxPos: opts.maxPos ?? 2048, ghead: manifest.ghead, maxWidth: g.max_width, maxLabels: opts.maxLabels ?? 128 });
     const pack = new Pack(bytes);
     const ner = new NER();
     Object.assign(ner, {
@@ -63,7 +72,7 @@ export class NER {
       tok: new Tokenizer(tj, {}), ltok: new Tokenizer(ltj, {}),
       lenc: new LabelEncoder(pack, manifest.label_encoder),
       head: new SpanHead(pack, manifest.ghead, g.max_width),
-      wcache: new Map(), lcache: new Map(), labels: null,
+      wcache: new Map(), lcache: new Map(), labels: null, headMode: opts.head ?? "gpu",
       info: { initMs: now() - t0, weightBytes: bytes.byteLength, variant: manifest.variant, headFormat: manifest.head_format },
       lastTimings: null, labelTimings: null,
     });
@@ -146,6 +155,7 @@ export class NER {
     const Q = new Float32Array(C * D), R = new Float64Array(C);
     norm.forEach((l, c) => { const e = this.lcache.get(l); Q.set(e.q, c * D); R[c] = e.r; });
     this.labels = norm; this.Q = Q; this.R = R;
+    if (this.engine.hb && C <= this.engine.maxLabels) this.engine.setLabels(Q, R, C);
     tm.totalMs = now() - t0;
     this.labelTimings = tm;
     return tm;
@@ -155,14 +165,18 @@ export class NER {
   // texts: string or string[]. opts: threshold (0.5), flat (true), multiLabel (false), labels (calls
   // setLabels first), truncate (false), pipeline (true: span head of batch i while the GPU encodes i + 1),
   // batchTokens (cap a GPU batch below the engine's maxTokens), keepLogits (store per-text logits
-  // [n, K, C] in this.lastLogits).
+  // [n, K, C] in this.lastLogits), head ("gpu" | "js" | "gpu-words", default this.headMode).
   async extract(texts, opts = {}) {
     const { threshold = 0.5, flat = true, multiLabel = false, truncate = false, pipeline = true, keepLogits = false } = opts;
     let labelT = null;
     if (opts.labels) labelT = await this.setLabels(opts.labels);
     if (!this.labels) throw new Error("call setLabels(labels) before extract()");
     const single = typeof texts === "string", list = single ? [texts] : Array.from(texts);
-    const tm = { texts: list.length, labels: this.labels.length, tokens: 0, words: 0, batches: 0,
+    const C = this.labels.length, K = this.g.max_width, H = this.head.H, D = this.head.D, e = this.engine;
+    let mode = opts.head ?? this.headMode;
+    if (!HEAD_MODES.includes(mode)) throw new Error(`head ${mode}: one of ${HEAD_MODES.join(", ")}`);
+    if (mode !== "js" && (!C || !e.headRows(C))) mode = "js";   // no labels, or more than the GPU head holds
+    const tm = { head: mode, texts: list.length, labels: this.labels.length, tokens: 0, words: 0, batches: 0,
       tokenizeMs: 0, textEncoderGpuMs: 0, readbackMs: 0, labelEncoderMs: labelT ? labelT.labelTokenizeMs + labelT.labelEncoderMs + labelT.labelProjectionMs : 0,
       spanHeadMs: 0, spanWordsMs: 0, spanScoreMs: 0, decodeMs: 0, totalMs: 0 };
     const T0 = now();
@@ -171,30 +185,32 @@ export class NER {
     const results = list.map(() => []);
     const logits = keepLogits ? list.map(() => null) : null;
     // batches of texts, within the engine's token / sequence / row limits
-    const e = this.engine, batches = [], maxTok = Math.min(e.maxTokens, opts.batchTokens ?? Infinity);
+    const batches = [], maxTok = Math.min(e.maxTokens, opts.batchTokens ?? Infinity), maxRows = mode === "js" ? e.maxPos : e.headRows(C);
     let cur = [], toks = 0, rows = 0;
     preps.forEach((p, i) => {
       if (!p) return;
       tm.tokens += p.ids.length; tm.words += p.n;
-      if (cur.length && (toks + p.ids.length > maxTok || cur.length >= e.maxSeqs || rows + p.n > e.maxPos)) { batches.push(cur); cur = []; toks = 0; rows = 0; }
+      if (cur.length && (toks + p.ids.length > maxTok || cur.length >= e.maxSeqs || rows + p.n > maxRows)) { batches.push(cur); cur = []; toks = 0; rows = 0; }
       cur.push(i); toks += p.ids.length; rows += p.n;
     });
     if (cur.length) batches.push(cur);
     tm.batches = batches.length;
-    const C = this.labels.length, K = this.g.max_width, H = this.head.H;
     const T = this.g.logit_temperature ?? 1, b = this.g.logit_bias ?? 0;
+    // one gathered row per word (NONE: a word with no subtoken gets a zero row, GRef.words_from_hidden);
+    // lim: the span widths each row starts (words left in its text, at most K)
     const submit = (bi) => {
-      const idx = [];
+      const idx = [], lim = [];
       let off = 0;
       for (const i of batches[bi]) {
         const p = preps[i];
-        for (let w = 0; w < p.n; w++) if (p.first[w] >= 0) idx.push(off + p.first[w]);
+        for (let w = 0; w < p.n; w++) { idx.push(p.first[w] >= 0 ? off + p.first[w] : NONE); lim.push(Math.min(K, p.n - w)); }
         off += p.ids.length;
       }
-      return e.submit(batches[bi].map((i) => preps[i].ids), new Uint32Array(idx));
+      const head = mode === "js" ? null : { lim: new Uint32Array(lim), words: mode === "gpu-words" };
+      return e.submit(batches[bi].map((i) => preps[i].ids), new Uint32Array(idx), head);
     };
     let job = batches.length ? submit(0) : null;
-    let Wbuf = new Float32Array(0), Z = new Float32Array(0);
+    let Z = new Float32Array(0);
     for (let bi = 0; bi < batches.length; bi++) {
       const r = await job.read();
       tm.textEncoderGpuMs += r.gpuMs; tm.readbackMs += r.readMs;
@@ -202,21 +218,24 @@ export class NER {
       if (pipeline && bi + 1 < batches.length) job = submit(bi + 1);
       let ro = 0;
       for (const i of batches[bi]) {
-        const p = preps[i], n = p.n;
-        // word vectors: the gathered row at each word's first subtoken, zeros for a word with none (GRef.words_from_hidden)
-        let W;
-        if (p.first.every((t) => t >= 0)) { W = r.rows.subarray(ro * H, (ro + n) * H); ro += n; }
-        else {
-          if (Wbuf.length < n * H) Wbuf = new Float32Array(n * H);
-          W = Wbuf.subarray(0, n * H); W.fill(0);
-          for (let w = 0; w < n; w++) if (p.first[w] >= 0) { W.set(r.rows.subarray(ro * H, (ro + 1) * H), w * H); ro++; }
-        }
+        const p = preps[i], n = p.n, r0 = ro;
+        ro += n;
         if (!C) continue;
         const t1 = now();
-        const { A, B } = this.head.words(W, n);
-        const t2 = now();
-        if (Z.length < n * K * C) Z = new Float32Array(n * K * C);
-        const z = this.head.scores(A, B, n, this.Q, this.R, C, Z);
+        let z, t2;
+        if (mode === "gpu") {
+          // scores [n, K, C] straight from the GPU; spans past the text's last word were not written
+          z = r.scores.subarray(r0 * K * C, (r0 + n) * K * C);
+          t2 = now();
+          for (let s = Math.max(0, n - K + 1); s < n; s++) z.fill(-Infinity, (s * K + n - s) * C, (s + 1) * K * C);
+        } else {
+          let A, B;
+          if (mode === "js") ({ A, B } = this.head.words(r.rows.subarray(r0 * H, (r0 + n) * H), n));   // word vectors -> A, B
+          else { A = r.A.subarray(r0 * D, (r0 + n) * D); B = r.B.subarray(r0 * D, (r0 + n) * D); }
+          t2 = now();
+          if (Z.length < n * K * C) Z = new Float32Array(n * K * C);
+          z = this.head.scores(A, B, n, this.Q, this.R, C, Z);
+        }
         const t3 = now();
         const spans = decodeSpans(z, n, K, C, threshold, { flat, multiLabel, T, b });
         results[i] = spans.map((s) => {

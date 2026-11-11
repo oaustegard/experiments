@@ -5,825 +5,1699 @@
    "pkg": "gliner-bi-edge-v2.0-fp32",
    "variant": "fp32",
    "head": "fp32",
-   "initMs": 1399.2999999999302,
+   "initMs": 1508.2999999998137,
    "gpuErrors": [],
    "labels": 42,
    "labelIdsMatch": 42,
    "labelVecMaxAbsDiff": 4.470348358154297e-7,
    "labelVecMaxAbs": 1.3306519985198975,
    "labelHiddenMaxAbsDiff": 6.165355443954468e-7,
-   "cases": [
-    {
-     "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
-     "tokens": 19,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.000014781951904296875,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+   "heads": {
+    "gpu": {
+     "cases": [
+      {
+       "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000152587890625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "John Smith works at Google in Zürich, isn't it?",
+       "tokens": 17,
+       "words": 13,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00002288818359375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.470348358154297e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.470348358154297e-7
+        }
+       }
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
+       "tokens": 28,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000247955322265625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
       },
-      "bias 0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
+       "tokens": 28,
+       "words": 18,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000133514404296875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        }
+       }
+      },
+      {
+       "text": "Barack Obama met Angela Merkel in Berlin.",
+       "tokens": 10,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00000858306884765625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
+      },
+      {
+       "text": "Marie Curie discovered polonium and radium at the University of Paris .",
+       "tokens": 17,
+       "words": 12,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00002288818359375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "show me a 1990s comedy starring jim carrey",
+       "tokens": 13,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00001239776611328125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "any cheap thai places open after 10 pm near downtown",
+       "tokens": 13,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000095367431640625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        }
+       }
+      },
+      {
+       "text": "東京 is the capital of Japan; 大阪 is not.",
+       "tokens": 20,
+       "words": 11,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.000011444091796875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.4901161193847656e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.4901161193847656e-7
+        }
+       }
+      },
+      {
+       "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
+       "tokens": 14,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.000005245208740234375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
+      },
+      {
+       "text": "A",
+       "tokens": 3,
+       "words": 1,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000012367963790893555,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
+      },
+      {
+       "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00001239776611328125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
       }
-     }
-    },
-    {
-     "text": "John Smith works at Google in Zürich, isn't it?",
-     "tokens": 17,
-     "words": 13,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00002288818359375,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.470348358154297e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.470348358154297e-7
-      }
-     }
-    },
-    {
-     "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
-     "tokens": 28,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
+     ],
+     "nCases": 12,
+     "tokenIdsMatch": 12,
+     "wordsMatch": 12,
+     "wordsMaskMatch": 12,
+     "caseLabelIdsMatch": 12,
+     "labelNormMatch": 12,
+     "logitShapeMatch": 12,
      "logitMaxAbsDiff": 0.0000247955322265625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
+     "logitMaxAbs": 28.7237491607666,
+     "entityChecks": 48,
+     "entityMatches": 48,
+     "entityWorstScoreDiff": 5.364418029785156e-7,
+     "batching": {
+      "texts": 12,
+      "oneBatch": {
+       "batches": 1,
+       "maxAbsDiff": 0
       },
-      "0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
+      "split": {
+       "batches": 6,
+       "maxAbsDiff": 0
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
+      "splitNoPipeline": {
+       "maxAbsDiff": 0
       }
-     }
+     },
+     "headsUsed": [
+      "gpu"
+     ]
     },
-    {
-     "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
-     "tokens": 28,
-     "words": 18,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.000012874603271484375,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 0
+    "js": {
+     "cases": [
+      {
+       "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.000014781951904296875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 0
+      {
+       "text": "John Smith works at Google in Zürich, isn't it?",
+       "tokens": 17,
+       "words": 13,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00002288818359375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.470348358154297e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.470348358154297e-7
+        }
+       }
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 0
+      {
+       "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
+       "tokens": 28,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000247955322265625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
       },
-      "bias 0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 0
+      {
+       "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
+       "tokens": 28,
+       "words": 18,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.000012874603271484375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 0
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 0
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 0
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 0
+        }
+       }
+      },
+      {
+       "text": "Barack Obama met Angela Merkel in Berlin.",
+       "tokens": 10,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00000858306884765625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
+      },
+      {
+       "text": "Marie Curie discovered polonium and radium at the University of Paris .",
+       "tokens": 17,
+       "words": 12,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00002288818359375,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "show me a 1990s comedy starring jim carrey",
+       "tokens": 13,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.000011920928955078125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "any cheap thai places open after 10 pm near downtown",
+       "tokens": 13,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000095367431640625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 5.364418029785156e-7
+        }
+       }
+      },
+      {
+       "text": "東京 is the capital of Japan; 大阪 is not.",
+       "tokens": 20,
+       "words": 11,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00001049041748046875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.4901161193847656e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.4901161193847656e-7
+        }
+       }
+      },
+      {
+       "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
+       "tokens": 14,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00000476837158203125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
+      },
+      {
+       "text": "A",
+       "tokens": 3,
+       "words": 1,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000012516975402832031,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
+      },
+      {
+       "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000133514404296875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
       }
-     }
-    },
-    {
-     "text": "Barack Obama met Angela Merkel in Berlin.",
-     "tokens": 10,
-     "words": 8,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00000858306884765625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
+     ],
+     "nCases": 12,
+     "tokenIdsMatch": 12,
+     "wordsMatch": 12,
+     "wordsMaskMatch": 12,
+     "caseLabelIdsMatch": 12,
+     "labelNormMatch": 12,
+     "logitShapeMatch": 12,
+     "logitMaxAbsDiff": 0.0000247955322265625,
+     "logitMaxAbs": 28.7237491607666,
+     "entityChecks": 48,
+     "entityMatches": 48,
+     "entityWorstScoreDiff": 5.364418029785156e-7,
+     "batching": {
+      "texts": 12,
+      "oneBatch": {
+       "batches": 1,
+       "maxAbsDiff": 0
       },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
+      "split": {
+       "batches": 6,
+       "maxAbsDiff": 0
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
+      "splitNoPipeline": {
+       "maxAbsDiff": 0
       }
-     }
-    },
-    {
-     "text": "Marie Curie discovered polonium and radium at the University of Paris .",
-     "tokens": 17,
-     "words": 12,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00002288818359375,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      }
-     }
-    },
-    {
-     "text": "show me a 1990s comedy starring jim carrey",
-     "tokens": 13,
-     "words": 8,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.000011920928955078125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      }
-     }
-    },
-    {
-     "text": "any cheap thai places open after 10 pm near downtown",
-     "tokens": 13,
-     "words": 10,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.0000095367431640625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 5.364418029785156e-7
-      }
-     }
-    },
-    {
-     "text": "東京 is the capital of Japan; 大阪 is not.",
-     "tokens": 20,
-     "words": 11,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00001049041748046875,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 5.960464477539063e-8
-      },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.4901161193847656e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 5.960464477539063e-8
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.4901161193847656e-7
-      }
-     }
-    },
-    {
-     "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
-     "tokens": 14,
-     "words": 10,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00000476837158203125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 2.980232238769531e-7
-      }
-     }
-    },
-    {
-     "text": "A",
-     "tokens": 3,
-     "words": 1,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.0000012516975402832031,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 2.980232238769531e-7
-      }
-     }
-    },
-    {
-     "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
-     "tokens": 19,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.0000133514404296875,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 1.1920928955078125e-7
-      }
-     }
+     },
+     "headsUsed": [
+      "js"
+     ]
     }
-   ],
-   "nCases": 12,
-   "tokenIdsMatch": 12,
-   "wordsMatch": 12,
-   "wordsMaskMatch": 12,
-   "caseLabelIdsMatch": 12,
-   "labelNormMatch": 12,
-   "logitShapeMatch": 12,
-   "logitMaxAbsDiff": 0.0000247955322265625,
-   "logitMaxAbs": 28.7237491607666,
-   "entityChecks": 48,
-   "entityMatches": 48,
-   "entityWorstScoreDiff": 5.364418029785156e-7,
-   "batching": {
-    "texts": 12,
-    "oneBatch": {
-     "batches": 1,
-     "maxAbsDiff": 0
-    },
-    "split": {
-     "batches": 6,
-     "maxAbsDiff": 0
-    },
-    "splitNoPipeline": {
-     "maxAbsDiff": 0
-    }
-   }
+   },
+   "headsMaxAbsDiff": 0.000003814697265625
   },
   "gliner-bi-edge-v2.0-t4-w8L63-h8": {
    "pkg": "gliner-bi-edge-v2.0-t4-w8L63-h8",
    "variant": "t4-w8L63",
    "head": "int8",
-   "initMs": 1359.2999999999302,
+   "initMs": 1423.3999999994412,
    "gpuErrors": [],
    "labels": 42,
    "labelIdsMatch": 42,
    "labelVecMaxAbsDiff": 4.76837158203125e-7,
    "labelVecMaxAbs": 1.3262529373168945,
    "labelHiddenMaxAbsDiff": 7.748603820800781e-7,
-   "cases": [
-    {
-     "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
-     "tokens": 19,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00001239776611328125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+   "heads": {
+    "gpu": {
+     "cases": [
+      {
+       "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000133514404296875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "John Smith works at Google in Zürich, isn't it?",
+       "tokens": 17,
+       "words": 13,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000152587890625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
+       "tokens": 28,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00001621246337890625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
       },
-      "bias 0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.7881393432617188e-7
+      {
+       "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
+       "tokens": 28,
+       "words": 18,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000171661376953125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        }
+       }
+      },
+      {
+       "text": "Barack Obama met Angela Merkel in Berlin.",
+       "tokens": 10,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000095367431640625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        }
+       }
+      },
+      {
+       "text": "Marie Curie discovered polonium and radium at the University of Paris .",
+       "tokens": 17,
+       "words": 12,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00001239776611328125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "show me a 1990s comedy starring jim carrey",
+       "tokens": 13,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.000011444091796875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 3.8743019104003906e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 3.8743019104003906e-7
+        }
+       }
+      },
+      {
+       "text": "any cheap thai places open after 10 pm near downtown",
+       "tokens": 13,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00000762939453125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        }
+       }
+      },
+      {
+       "text": "東京 is the capital of Japan; 大阪 is not.",
+       "tokens": 20,
+       "words": 11,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000247955322265625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
+      },
+      {
+       "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
+       "tokens": 14,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.00000858306884765625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        }
+       }
+      },
+      {
+       "text": "A",
+       "tokens": 3,
+       "words": 1,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 4.377216100692749e-7,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 0,
+         "worstScoreDiff": 0
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 8.940696716308594e-8
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 0,
+         "worstScoreDiff": 0
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 8.940696716308594e-8
+        }
+       }
+      },
+      {
+       "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "gpu",
+       "logitMaxAbsDiff": 0.0000171661376953125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        }
+       }
       }
-     }
-    },
-    {
-     "text": "John Smith works at Google in Zürich, isn't it?",
-     "tokens": 17,
-     "words": 13,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.000014781951904296875,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 5.960464477539063e-8
-      },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 5.960464477539063e-8
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 1.7881393432617188e-7
-      }
-     }
-    },
-    {
-     "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
-     "tokens": 28,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00001621246337890625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.980232238769531e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 2.980232238769531e-7
-      }
-     }
-    },
-    {
-     "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
-     "tokens": 28,
-     "words": 18,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.0000171661376953125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
-      }
-     }
-    },
-    {
-     "text": "Barack Obama met Angela Merkel in Berlin.",
-     "tokens": 10,
-     "words": 8,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00000858306884765625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.172325134277344e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.172325134277344e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.172325134277344e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 4.172325134277344e-7
-      }
-     }
-    },
-    {
-     "text": "Marie Curie discovered polonium and radium at the University of Paris .",
-     "tokens": 17,
-     "words": 12,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.000011444091796875,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 1.1920928955078125e-7
-      }
-     }
-    },
-    {
-     "text": "show me a 1990s comedy starring jim carrey",
-     "tokens": 13,
-     "words": 8,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00001239776611328125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 3.8743019104003906e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 3.8743019104003906e-7
-      }
-     }
-    },
-    {
-     "text": "any cheap thai places open after 10 pm near downtown",
-     "tokens": 13,
-     "words": 10,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00000762939453125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.384185791015625e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.384185791015625e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.384185791015625e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 4,
-       "worstScoreDiff": 2.384185791015625e-7
-      }
-     }
-    },
-    {
-     "text": "東京 is the capital of Japan; 大阪 is not.",
-     "tokens": 20,
-     "words": 11,
-     "ids": true,
-     "words_ok": true,
+     ],
+     "nCases": 12,
+     "tokenIdsMatch": 12,
+     "wordsMatch": 12,
+     "wordsMaskMatch": 12,
+     "caseLabelIdsMatch": 12,
+     "labelNormMatch": 12,
+     "logitShapeMatch": 12,
      "logitMaxAbsDiff": 0.0000247955322265625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
+     "logitMaxAbs": 27.730575561523438,
+     "entityChecks": 48,
+     "entityMatches": 48,
+     "entityWorstScoreDiff": 5.364418029785156e-7,
+     "batching": {
+      "texts": 12,
+      "oneBatch": {
+       "batches": 1,
+       "maxAbsDiff": 0
       },
-      "0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 2.086162567138672e-7
+      "split": {
+       "batches": 6,
+       "maxAbsDiff": 0
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 1.1920928955078125e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 3,
-       "worstScoreDiff": 2.086162567138672e-7
+      "splitNoPipeline": {
+       "maxAbsDiff": 0
       }
-     }
+     },
+     "headsUsed": [
+      "gpu"
+     ]
     },
-    {
-     "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
-     "tokens": 14,
-     "words": 10,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.00000858306884765625,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 3.5762786865234375e-7
+    "js": {
+     "cases": [
+      {
+       "text": "Typical generative model approaches include naive Bayes classifiers , Gaussian mixture models and others .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00001239776611328125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 3.5762786865234375e-7
+      {
+       "text": "John Smith works at Google in Zürich, isn't it?",
+       "tokens": 17,
+       "words": 13,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.000014781951904296875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 5.960464477539063e-8
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 1.7881393432617188e-7
+        }
+       }
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 3.5762786865234375e-7
+      {
+       "text": "Björk Guðmundsdóttir released Homogenic in 1997 — produced with Mark Bell (LFO).",
+       "tokens": 28,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00001621246337890625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.980232238769531e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 2.980232238769531e-7
+        }
+       }
       },
-      "bias 0.3": {
-       "ok": true,
-       "n": 2,
-       "worstScoreDiff": 3.5762786865234375e-7
+      {
+       "text": "The U.S. Senate passed the state-of-the-art bill 52-48 on 3/4/2021.",
+       "tokens": 28,
+       "words": 18,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000171661376953125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "Barack Obama met Angela Merkel in Berlin.",
+       "tokens": 10,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00000858306884765625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 4.172325134277344e-7
+        }
+       }
+      },
+      {
+       "text": "Marie Curie discovered polonium and radium at the University of Paris .",
+       "tokens": 17,
+       "words": 12,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.000011444091796875,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 1.1920928955078125e-7
+        }
+       }
+      },
+      {
+       "text": "show me a 1990s comedy starring jim carrey",
+       "tokens": 13,
+       "words": 8,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00001239776611328125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 3.8743019104003906e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 3.8743019104003906e-7
+        }
+       }
+      },
+      {
+       "text": "any cheap thai places open after 10 pm near downtown",
+       "tokens": 13,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00000762939453125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 4,
+         "worstScoreDiff": 2.384185791015625e-7
+        }
+       }
+      },
+      {
+       "text": "東京 is the capital of Japan; 大阪 is not.",
+       "tokens": 20,
+       "words": 11,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000247955322265625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 2.086162567138672e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 1.1920928955078125e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 3,
+         "worstScoreDiff": 2.086162567138672e-7
+        }
+       }
+      },
+      {
+       "text": "Emoji 🙂 test: Apple's iPhone 15 Pro",
+       "tokens": 14,
+       "words": 10,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.00000858306884765625,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 2,
+         "worstScoreDiff": 3.5762786865234375e-7
+        }
+       }
+      },
+      {
+       "text": "A",
+       "tokens": 3,
+       "words": 1,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 3.948807716369629e-7,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 0,
+         "worstScoreDiff": 0
+        },
+        "0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 8.940696716308594e-8
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 0,
+         "worstScoreDiff": 0
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 1,
+         "worstScoreDiff": 8.940696716308594e-8
+        }
+       }
+      },
+      {
+       "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
+       "tokens": 19,
+       "words": 15,
+       "ids": true,
+       "words_ok": true,
+       "head": "js",
+       "logitMaxAbsDiff": 0.0000171661376953125,
+       "logitShapeOk": true,
+       "entities": {
+        "0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.5": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        },
+        "bias 0.3": {
+         "ok": true,
+         "n": 5,
+         "worstScoreDiff": 5.364418029785156e-7
+        }
+       }
       }
-     }
-    },
-    {
-     "text": "A",
-     "tokens": 3,
-     "words": 1,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 3.948807716369629e-7,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 0,
-       "worstScoreDiff": 0
+     ],
+     "nCases": 12,
+     "tokenIdsMatch": 12,
+     "wordsMatch": 12,
+     "wordsMaskMatch": 12,
+     "caseLabelIdsMatch": 12,
+     "labelNormMatch": 12,
+     "logitShapeMatch": 12,
+     "logitMaxAbsDiff": 0.0000247955322265625,
+     "logitMaxAbs": 27.730575561523438,
+     "entityChecks": 48,
+     "entityMatches": 48,
+     "entityWorstScoreDiff": 5.364418029785156e-7,
+     "batching": {
+      "texts": 12,
+      "oneBatch": {
+       "batches": 1,
+       "maxAbsDiff": 0
       },
-      "0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 8.940696716308594e-8
+      "split": {
+       "batches": 6,
+       "maxAbsDiff": 0
       },
-      "bias 0.5": {
-       "ok": true,
-       "n": 0,
-       "worstScoreDiff": 0
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 1,
-       "worstScoreDiff": 8.940696716308594e-8
+      "splitNoPipeline": {
+       "maxAbsDiff": 0
       }
-     }
-    },
-    {
-     "text": "Lisp, Prolog and Python are programming languages used in AI research at MIT .",
-     "tokens": 19,
-     "words": 15,
-     "ids": true,
-     "words_ok": true,
-     "logitMaxAbsDiff": 0.0000171661376953125,
-     "logitShapeOk": true,
-     "entities": {
-      "0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "bias 0.5": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 5.364418029785156e-7
-      },
-      "bias 0.3": {
-       "ok": true,
-       "n": 5,
-       "worstScoreDiff": 5.364418029785156e-7
-      }
-     }
+     },
+     "headsUsed": [
+      "js"
+     ]
     }
-   ],
-   "nCases": 12,
-   "tokenIdsMatch": 12,
-   "wordsMatch": 12,
-   "wordsMaskMatch": 12,
-   "caseLabelIdsMatch": 12,
-   "labelNormMatch": 12,
-   "logitShapeMatch": 12,
-   "logitMaxAbsDiff": 0.0000247955322265625,
-   "logitMaxAbs": 27.730575561523438,
-   "entityChecks": 48,
-   "entityMatches": 48,
-   "entityWorstScoreDiff": 5.364418029785156e-7,
-   "batching": {
-    "texts": 12,
-    "oneBatch": {
-     "batches": 1,
-     "maxAbsDiff": 0
-    },
-    "split": {
-     "batches": 6,
-     "maxAbsDiff": 0
-    },
-    "splitNoPipeline": {
-     "maxAbsDiff": 0
-    }
-   }
+   },
+   "headsMaxAbsDiff": 0.0000019073486328125
   }
  },
  "cpu": {
@@ -831,61 +1705,161 @@
   "labels20_cold": {
    "labels": 20,
    "labelTokens": 62,
-   "labelEncoderMsPerLabel": 22.054999999998834,
-   "labelProjectionMsPerLabel": 1.575,
-   "labelTokenizeMsPerLabel": 0.020000000001164153
+   "labelEncoderMsPerLabel": 22.19000000003725,
+   "labelProjectionMsPerLabel": 2.089999999990687,
+   "labelTokenizeMsPerLabel": 0.009999999962747096
   },
   "labels50_cold": {
    "labels": 50,
    "labelTokens": 162,
-   "labelEncoderMsPerLabel": 22.361999999999533,
-   "labelProjectionMsPerLabel": 1.884000000001397,
-   "labelTokenizeMsPerLabel": 0.00800000000046566
+   "labelEncoderMsPerLabel": 20.855999999996275,
+   "labelProjectionMsPerLabel": 2.05,
+   "labelTokenizeMsPerLabel": 0.00599999999627471
   },
-  "stream20": {
-   "texts": 100,
-   "tokens": 4388,
-   "words": 3512,
-   "batches": 1,
-   "tokenizeMsPerTextColdCache": 0.3640000000002328,
-   "tokenizeMsPerText": 0.022000000001862644,
-   "spanHeadMsPerText": 83.03599999999628,
-   "spanWordsMsPerText": 75.59900000000373,
-   "spanScoreMsPerText": 7.436999999992549,
-   "decodeMsPerText": 0.026999999999534337,
-   "spanWordsMsPerWord": 2.1525911161732267
+  "js": {
+   "stream20": {
+    "head": "js",
+    "texts": 30,
+    "tokens": 1313,
+    "words": 1081,
+    "batches": 1,
+    "tokenizeMsPerTextColdCache": 0.5433333333271245,
+    "tokenizeMsPerText": 0.06333333334575096,
+    "spanHeadMsPerText": 87.96999999992549,
+    "spanWordsMsPerText": 80.20333333319674,
+    "spanScoreMsPerText": 7.766666666728755,
+    "decodeMsPerText": 0.04000000006829699,
+    "spanWordsMsPerWord": 2.225809435703887,
+    "swiftshaderGpuMsPerText": 2783.636666666654,
+    "readbackMsPerText": 0.08666666668529312
+   },
+   "text256": {
+    "head": "js",
+    "tokens": 256,
+    "words": 227,
+    "labels": 10,
+    "tokenizeMs": 0.20000000018626451,
+    "spanWordsMs": 473.19999999925494,
+    "spanScoreMs": 37.200000000186265,
+    "spanHeadMs": 510.3999999994412,
+    "decodeMs": 0.09999999962747097,
+    "swiftshaderGpuMs": 17448.299999999814,
+    "readbackMs": 0.6999999992549419
+   },
+   "text30": {
+    "head": "js",
+    "tokens": 30,
+    "words": 27,
+    "labels": 10,
+    "tokenizeMs": 0,
+    "spanWordsMs": 60.09999999962747,
+    "spanScoreMs": 4,
+    "spanHeadMs": 64.09999999962747,
+    "decodeMs": 0,
+    "swiftshaderGpuMs": 2233.7999999998137,
+    "readbackMs": 0.40000000037252903
+   }
   },
-  "text256": {
-   "tokens": 256,
-   "words": 227,
-   "labels": 10,
-   "tokenizeMs": 0.19999999995343387,
-   "spanWordsMs": 431.9000000001397,
-   "spanScoreMs": 35.89999999990687,
-   "spanHeadMs": 467.80000000004657,
-   "decodeMs": 0
+  "gpu": {
+   "stream20": {
+    "head": "gpu",
+    "texts": 30,
+    "tokens": 1313,
+    "words": 1081,
+    "batches": 1,
+    "tokenizeMsPerTextColdCache": 0.19333333332712452,
+    "tokenizeMsPerText": 0.02333333333954215,
+    "spanHeadMsPerText": 0,
+    "spanWordsMsPerText": 0,
+    "spanScoreMsPerText": 0,
+    "decodeMsPerText": 0.016666666666666666,
+    "spanWordsMsPerWord": 0,
+    "swiftshaderGpuMsPerText": 3225.429999999981,
+    "readbackMsPerText": 0.06333333334575096
+   },
+   "text256": {
+    "head": "gpu",
+    "tokens": 256,
+    "words": 227,
+    "labels": 10,
+    "tokenizeMs": 0.20000000018626451,
+    "spanWordsMs": 0,
+    "spanScoreMs": 0,
+    "spanHeadMs": 0,
+    "decodeMs": 0.09999999962747097,
+    "swiftshaderGpuMs": 20394,
+    "readbackMs": 0.6000000005587935
+   },
+   "text30": {
+    "head": "gpu",
+    "tokens": 30,
+    "words": 27,
+    "labels": 10,
+    "tokenizeMs": 0,
+    "spanWordsMs": 0,
+    "spanScoreMs": 0,
+    "spanHeadMs": 0,
+    "decodeMs": 0,
+    "swiftshaderGpuMs": 2804.199999999255,
+    "readbackMs": 0.5
+   }
   },
-  "text30": {
-   "tokens": 30,
-   "words": 27,
-   "labels": 10,
-   "tokenizeMs": 0,
-   "spanWordsMs": 55.60000000009313,
-   "spanScoreMs": 3.5999999998603016,
-   "spanHeadMs": 59.199999999953434,
-   "decodeMs": 0
+  "gpu-words": {
+   "stream20": {
+    "head": "gpu-words",
+    "texts": 30,
+    "tokens": 1313,
+    "words": 1081,
+    "batches": 1,
+    "tokenizeMsPerTextColdCache": 0.13666666665424904,
+    "tokenizeMsPerText": 0.17000000001862645,
+    "spanHeadMsPerText": 7.939999999975165,
+    "spanWordsMsPerText": 0.003333333320915699,
+    "spanScoreMsPerText": 7.936666666654249,
+    "decodeMsPerText": 0.026666666691501934,
+    "spanWordsMsPerWord": 0.00009250693767573633,
+    "swiftshaderGpuMsPerText": 3202.5866666666543,
+    "readbackMsPerText": 0.5533333333519598
+   },
+   "text256": {
+    "head": "gpu-words",
+    "tokens": 256,
+    "words": 227,
+    "labels": 10,
+    "tokenizeMs": 0.10000000055879354,
+    "spanWordsMs": 0,
+    "spanScoreMs": 41,
+    "spanHeadMs": 41,
+    "decodeMs": 0.09999999962747097,
+    "swiftshaderGpuMs": 20347.700000000186,
+    "readbackMs": 3.5
+   },
+   "text30": {
+    "head": "gpu-words",
+    "tokens": 30,
+    "words": 27,
+    "labels": 10,
+    "tokenizeMs": 0,
+    "spanWordsMs": 0,
+    "spanScoreMs": 4,
+    "spanHeadMs": 4,
+    "decodeMs": 0,
+    "swiftshaderGpuMs": 2732.9000000003725,
+    "readbackMs": 0.7000000001862645
+   }
   },
-  "note": "headless Chromium, JavaScript stages only (the text encoder ran on SwiftShader, whose timings are not reported)",
+  "note": "headless Chromium; JavaScript stage times are real, swiftshaderGpuMs / readbackMs are SwiftShader's CPU emulation of the GPU work (text encoder, plus the span head for head gpu / gpu-words) and say nothing about a GPU",
   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
   "hardwareConcurrency": 4
  },
- "wallS": 961.047,
+ "wallS": 1583.349,
  "console_errors": [],
  "tolerance": {
   "ids": "exact",
   "entities": "same spans, labels, offsets and text; |score diff| <= 1e-3",
   "logits": "max |diff| < 2e-3 (reported)",
-  "batching": "max |diff| < 1e-5"
+  "batching": "max |diff| < 1e-5",
+  "heads": "each head passes alone and ran as itself (no fallback); gpu vs js logits max |diff| < 2e-3"
  },
  "pass": true
 }

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entity Finder</title>
+<meta name="description" content="Zero-shot named-entity recognition with entity types you type yourself, running entirely in your browser tab on WebGPU.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<header>
+  <h1>Find names in text, for entity types you choose</h1>
+  <p class="lede">Type the kinds of things you want found (<em>person</em>, <em>company</em>, <em>drug</em>, <em>bird species</em>, anything) and a
+  small named-entity model marks them in the text. The model runs on your GPU inside this tab; your text is not sent anywhere.</p>
+</header>
+
+<div id="status" class="status" role="status" aria-live="polite">
+  <span id="status-text">Starting…</span>
+  <progress id="status-bar" max="1" value="0" hidden></progress>
+</div>
+
+<section class="controls" aria-label="Entity types and threshold">
+  <div class="field">
+    <span class="field-label" id="labels-title">Entity types</span>
+    <div id="chips" class="chips" aria-labelledby="labels-title"></div>
+    <div class="chip-add">
+      <input id="label-input" type="text" placeholder="add a type, e.g. musician" aria-label="Add an entity type" autocomplete="off">
+      <button id="label-add" type="button">Add</button>
+    </div>
+    <div class="presets" aria-label="Presets">
+      <span class="muted">Presets:</span>
+      <button type="button" class="preset" data-labels="person">people</button>
+      <button type="button" class="preset" data-labels="company">companies</button>
+      <button type="button" class="preset" data-labels="location">places</button>
+      <button type="button" class="preset" data-labels="product">products</button>
+      <button type="button" class="preset" data-labels="date">dates</button>
+      <button type="button" class="preset" data-labels="event">events</button>
+      <button type="button" class="preset" data-labels="organization">organizations</button>
+      <button type="button" class="preset" data-reset>reset</button>
+    </div>
+  </div>
+  <div class="field threshold">
+    <label for="threshold" class="field-label">Threshold <output id="threshold-val">0.50</output></label>
+    <input id="threshold" type="range" min="0.05" max="0.95" step="0.05" value="0.5">
+    <span class="muted small">lower finds more, with more mistakes</span>
+  </div>
+</section>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-text" aria-selected="true" aria-controls="panel-text">Text</button>
+  <button role="tab" id="tab-bsky" aria-selected="false" aria-controls="panel-bsky">Bluesky posts</button>
+</nav>
+
+<section id="panel-text" role="tabpanel" aria-labelledby="tab-text">
+  <textarea id="text" rows="6" spellcheck="false" aria-label="Text to analyse"></textarea>
+  <div id="legend" class="legend" aria-label="Legend"></div>
+  <div id="out" class="out" aria-live="polite"></div>
+  <p id="facts" class="facts"></p>
+</section>
+
+<section id="panel-bsky" role="tabpanel" aria-labelledby="tab-bsky" hidden>
+  <form id="bsky-form" class="bsky-form">
+    <input id="bsky-input" type="text" placeholder="handle, or a bsky.app profile, list or feed link" aria-label="Bluesky handle, list URL or feed URL" autocomplete="off" spellcheck="false">
+    <select id="bsky-count" aria-label="How many posts">
+      <option value="200">200 posts</option>
+      <option value="500">500 posts</option>
+      <option value="1000">1,000 posts</option>
+    </select>
+    <label class="check"><input id="bsky-reposts" type="checkbox"> include reposts</label>
+    <button id="bsky-run" type="submit" class="primary">Fetch and analyse</button>
+    <button id="bsky-stop" type="button" hidden>Stop</button>
+  </form>
+  <p class="muted small">Examples: <button type="button" class="linkish" data-example="bsky.app">bsky.app</button>,
+  <button type="button" class="linkish" data-example="https://bsky.app/profile/bsky.app/feed/whats-hot">Discover feed</button>.
+  Posts come from Bluesky's public API, without logging in.</p>
+  <p id="bsky-progress" class="facts"></p>
+  <div id="bsky-detail" class="detail" hidden></div>
+  <div id="groups" class="groups"></div>
+</section>
+
+<footer>
+  <h2>How it works</h2>
+  <p>The model is <a href="https://huggingface.co/knowledgator/gliner-bi-edge-v2.0">knowledgator/gliner-bi-edge-v2.0</a> (Apache-2.0), a GLiNER
+  bi-encoder: one small encoder reads the text, another reads each entity type you type, and a span head scores every run of up to 12 words
+  against every type. Packed with 4-bit and 8-bit weights it downloads as 40 MB (49 MB uncompressed) and is cached by the browser. On the GPU,
+  through WebGPU: the text encoder and the span head's per-word layers and span scores. In JavaScript: tokenising, encoding the entity types
+  (once per type), and picking the non-overlapping spans above the threshold. Nothing leaves the browser except the requests that fetch
+  Bluesky posts.</p>
+</footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

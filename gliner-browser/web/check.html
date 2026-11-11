@@ -14,11 +14,12 @@
 </head>
 <body>
 <h1 style="font-size:16px">GLiNER runtime check</h1>
-<p>Test harness for the browser zero-shot NER runtime (ner.js: Ettin-32m text encoder on WebGPU, label
-encoder and span head in JavaScript). For each packed model in <code>?pkgs=a,b</code> (directories under
-<code>models/</code>) it compares token ids, label ids, label vectors, span logits and decoded entities with
-the NumPy reference's fixtures.json, checks that batched and split runs give the same logits, and, with
-<code>?bench=</code>, times the JavaScript stages. Normally driven headless by <code>run/check_web.mjs</code>;
+<p>Test harness for the browser zero-shot NER runtime (ner.js: Ettin-32m text encoder and the span head's
+per-word layers and scores on WebGPU, label encoder in JavaScript, the span head also in JavaScript as a
+fallback). For each packed model in <code>?pkgs=a,b</code> (directories under <code>models/</code>) and each
+span head in <code>?heads=gpu,js</code> it compares token ids, label ids, label vectors, span logits and
+decoded entities with the NumPy reference's fixtures.json, checks that batched and split runs give the same
+logits, compares the two heads' logits, and, with <code>?bench=</code>, times the stages per head. Normally driven headless by <code>run/check_web.mjs</code>;
 results print below and land in <code>window.check</code>.</p>
 <p id="status">running</p>
 <pre id="log"></pre>
@@ -27,6 +28,8 @@ import { NER } from "./ner.js";
 const Q = new URLSearchParams(location.search);
 // ?pkgs= (empty) checks nothing: run/smoke_bridge_job.mjs uses the page only as a WebGPU origin
 const pkgs = (Q.get("pkgs") ?? "gliner-bi-edge-v2.0-fp32,gliner-bi-edge-v2.0-t4-w8L63-h8").split(",").filter(Boolean);
+const heads = (Q.get("heads") ?? "gpu,js").split(",").filter(Boolean);
+const benchHeads = (Q.get("benchheads") ?? "js,gpu,gpu-words").split(",").filter(Boolean);
 const bench = Q.get("bench"), nBench = +(Q.get("nbench") || 100), timePkg = Q.get("timepkg") || pkgs[pkgs.length - 1];
 const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
 const res = window.check = { done: false, packs: {} };
@@ -77,7 +80,23 @@ async function checkPack(pkg) {
   const hid = ner.lenc.encode([first.input_ids], true).hidden;
   Object.assign(r, { labels: Object.keys(L).length, labelIdsMatch: labIdsOk, labelVecMaxAbsDiff: labVecMax, labelVecMaxAbs: labVecRef,
     labelHiddenMaxAbsDiff: maxAbs(hid, fx.label_encoder.first_label_hidden.flat()) });
+  log(`${pkg}: label ids ${labIdsOk}/${r.labels}, label vec max|d| ${labVecMax.toExponential(2)}, first label hidden max|d| ${r.labelHiddenMaxAbsDiff.toExponential(2)}`);
 
+  r.heads = {};
+  const zs = {};
+  for (const h of heads) {
+    ner.headMode = h;
+    const { hr, z } = await checkCases(ner, fx, pkg, h);
+    r.heads[h] = hr; zs[h] = z;
+  }
+  // the heads against each other, per case logits
+  if (zs.gpu && zs.js) r.headsMaxAbsDiff = Math.max(...zs.gpu.map((z, i) => maxAbs(z, zs.js[i])));
+  ner.headMode = "gpu";
+  return { ner, r };
+}
+
+async function checkCases(ner, fx, pkg, head) {
+  const r = {}, caseZ = [];
   // per case: token ids, words, words_mask, label ids, logits, entities at 0.5 / 0.3 (and with the fixture's bias)
   const K = ner.g.max_width;
   let shapeOkN = 0, tokOk = 0, wordsOk = 0, maskOk = 0, caseLabOk = 0, normOk = 0, zMax = 0, zRef = 0, entOk = 0, entN = 0, scoreWorst = 0;
@@ -94,6 +113,8 @@ async function checkPack(pkg) {
     normOk += same(ner.labels, c.labels);
     const e5 = await ner.extract(c.text, { threshold: 0.5, keepLogits: true });
     const z = ner.lastLogits[0], C = c.labels.length;
+    caseZ.push(z);
+    cr.head = ner.lastTimings.head;
     let dz = 0;
     let shapeOk = z.length === c.logits.length * K * C;
     c.logits.forEach((row, s) => row.forEach((kk, k) => {
@@ -110,7 +131,7 @@ async function checkPack(pkg) {
     for (const [nm, g, e] of [["", got, c.entities], ["bias ", gotB, c.entities_bias]]) for (const t of ["0.5", "0.3"]) {
       const w = entsMatch(g[t], e[t]);
       entN++; if (w !== null) { entOk++; scoreWorst = Math.max(scoreWorst, w); }
-      else log(`  MISMATCH ${pkg} "${c.text.slice(0, 40)}" ${nm}${t}: got ${JSON.stringify(g[t])} want ${JSON.stringify(e[t])}`);
+      else log(`  MISMATCH ${pkg} ${head} "${c.text.slice(0, 40)}" ${nm}${t}: got ${JSON.stringify(g[t])} want ${JSON.stringify(e[t])}`);
       cr.entities[nm + t] = { ok: w !== null, n: e[t].length, worstScoreDiff: w };
     }
     r.cases.push(cr);
@@ -134,10 +155,11 @@ async function checkPack(pkg) {
   const dSplitNp = cmp(ner.lastLogits);
   r.batching = { texts: texts.length, oneBatch: { batches: allBatches, maxAbsDiff: dAll }, split: { batches: nSplit, maxAbsDiff: dSplit },
     splitNoPipeline: { maxAbsDiff: dSplitNp } };
-  log(`${pkg}: ids ${tokOk}/${fx.cases.length}, words ${wordsOk}, mask ${maskOk}, label ids ${labIdsOk}/${r.labels} + ${caseLabOk} cases, ` +
-      `label vec max|d| ${labVecMax.toExponential(2)}, logits max|d| ${zMax.toExponential(2)} (|z| up to ${zRef.toFixed(1)}), ` +
+  r.headsUsed = [...new Set(r.cases.map((c) => c.head))];
+  log(`${pkg} head ${head}: ids ${tokOk}/${fx.cases.length}, words ${wordsOk}, mask ${maskOk}, label ids ${caseLabOk} cases, ` +
+      `logits max|d| ${zMax.toExponential(2)} (|z| up to ${zRef.toFixed(1)}), ` +
       `entities ${entOk}/${entN} (worst score gap ${scoreWorst.toExponential(1)}), batch d ${dAll} / split(${nSplit}) d ${dSplit} / no-pipeline d ${dSplitNp}`);
-  return { ner, r };
+  return { hr: r, z: caseZ };
 }
 
 // JavaScript stage timings (SwiftShader GPU numbers are not reported: they are not GPU timings)
@@ -150,35 +172,41 @@ async function cpuTimings(ner, bt) {
     out[`labels${nl}_cold`] = { labels: nl, labelTokens: tm.labelTokens, labelEncoderMsPerLabel: tm.labelEncoderMs / nl,
       labelProjectionMsPerLabel: tm.labelProjectionMs / nl, labelTokenizeMsPerLabel: tm.labelTokenizeMs / nl };
   }
-  // a stream of short texts, 20 labels: per-text JavaScript stages
-  await ner.setLabels(bt.labels20);
-  const texts = bt.texts.slice(0, nBench);
-  ner.wcache.clear();
-  await ner.extract(texts);
-  const cold = ner.lastTimings;
-  await ner.extract(texts);
-  const t = ner.lastTimings;
-  const per = (k) => t[k] / t.texts;
-  out.stream20 = { texts: t.texts, tokens: t.tokens, words: t.words, batches: t.batches, tokenizeMsPerTextColdCache: cold.tokenizeMs / cold.texts,
-    tokenizeMsPerText: per("tokenizeMs"), spanHeadMsPerText: per("spanHeadMs"), spanWordsMsPerText: per("spanWordsMs"),
-    spanScoreMsPerText: per("spanScoreMs"), decodeMsPerText: per("decodeMs"), spanWordsMsPerWord: t.spanWordsMs / t.words };
-  // one long and one short text, 10 labels
-  await ner.setLabels(bt.labels10);
+  // per span head: a stream of short texts with 20 labels, then one long and one short text with 10.
+  // gpuMs (submit to done, text encoder plus any GPU head) is SwiftShader's, i.e. CPU emulation: kept only
+  // to see what moved, not as a GPU timing.
   const make = (target) => {   // words from the sample until the text has `target` tokens (or just under)
     const words = bt.texts.join(" ").split(" ");
     let k = 1;
     while (k < words.length && ner.prepare(words.slice(0, k + 1).join(" ")).ids.length <= target) k++;
     return words.slice(0, k).join(" ");
   };
-  for (const [name, target] of [["text256", 256], ["text30", 30]]) {
-    const text = make(target), runs = [];
-    await ner.extract(text);
-    for (let i = 0; i < 5; i++) { await ner.extract(text); runs.push(ner.lastTimings); }
-    out[name] = { tokens: runs[0].tokens, words: runs[0].words, labels: 10, tokenizeMs: med(runs.map((x) => x.tokenizeMs)),
-      spanWordsMs: med(runs.map((x) => x.spanWordsMs)), spanScoreMs: med(runs.map((x) => x.spanScoreMs)),
-      spanHeadMs: med(runs.map((x) => x.spanHeadMs)), decodeMs: med(runs.map((x) => x.decodeMs)) };
+  const texts = bt.texts.slice(0, nBench);
+  for (const head of benchHeads) {
+    const o = out[head] = {};
+    await ner.setLabels(bt.labels20);
+    ner.wcache.clear();
+    await ner.extract(texts, { head });
+    const cold = ner.lastTimings;
+    await ner.extract(texts, { head });
+    const t = ner.lastTimings;
+    const per = (k) => t[k] / t.texts;
+    o.stream20 = { head: t.head, texts: t.texts, tokens: t.tokens, words: t.words, batches: t.batches, tokenizeMsPerTextColdCache: cold.tokenizeMs / cold.texts,
+      tokenizeMsPerText: per("tokenizeMs"), spanHeadMsPerText: per("spanHeadMs"), spanWordsMsPerText: per("spanWordsMs"),
+      spanScoreMsPerText: per("spanScoreMs"), decodeMsPerText: per("decodeMs"), spanWordsMsPerWord: t.spanWordsMs / t.words,
+      swiftshaderGpuMsPerText: per("textEncoderGpuMs"), readbackMsPerText: per("readbackMs") };
+    await ner.setLabels(bt.labels10);
+    for (const [name, target] of [["text256", 256], ["text30", 30]]) {
+      const text = make(target), runs = [];
+      await ner.extract(text, { head });
+      for (let i = 0; i < 5; i++) { await ner.extract(text, { head }); runs.push(ner.lastTimings); }
+      const m = (k) => med(runs.map((x) => x[k]));
+      o[name] = { head: runs[0].head, tokens: runs[0].tokens, words: runs[0].words, labels: 10, tokenizeMs: m("tokenizeMs"),
+        spanWordsMs: m("spanWordsMs"), spanScoreMs: m("spanScoreMs"), spanHeadMs: m("spanHeadMs"), decodeMs: m("decodeMs"),
+        swiftshaderGpuMs: m("textEncoderGpuMs"), readbackMs: m("readbackMs") };
+    }
   }
-  out.note = "headless Chromium, JavaScript stages only (the text encoder ran on SwiftShader, whose timings are not reported)";
+  out.note = "headless Chromium; JavaScript stage times are real, swiftshaderGpuMs / readbackMs are SwiftShader's CPU emulation of the GPU work (text encoder, plus the span head for head gpu / gpu-words) and say nothing about a GPU";
   out.userAgent = navigator.userAgent; out.hardwareConcurrency = navigator.hardwareConcurrency;
   return out;
 }

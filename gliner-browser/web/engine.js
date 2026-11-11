@@ -19,10 +19,15 @@
 //     dispatched over exactly the batch's row count, in 2-D past 65,535 rows.
 //   - submit() and read() are separate so a caller can run the CPU head on one batch while the GPU
 //     encodes the next.
-// run/gref.py (GRefBi.reps -> browser-decider's Ref.hidden) is the NumPy spec.
+//   - optional span head (opts.ghead, from the GLiNER manifest): the per-word start / end MLPs and the
+//     two halves of out_project.0 run on the gathered rows in the same submit, then the span x label
+//     scores (relu(a_s + b_{s+k}) . q_c + r_c, GRef's factorised form), so a batch reads back
+//     [rows, K, C] scores instead of [rows, hidden] word vectors. Head weights int8 or fp32, as packed.
+// run/gref.py (GRefBi.reps -> browser-decider's Ref.hidden, GRef.span_logits) is the NumPy spec.
 
 import { SeqEngine, HEADER, BYTE, split } from "../../_lib/wgsl/runtime.js";
 import { KERNELS, attentionLong, embed, gated, matmul, norm, rope, ropeTable } from "../../_lib/wgsl/kernels.js";
+import { Pack } from "./jshead.js";
 
 export const MAX_SEQ = 1024;   // attentionLong holds 1,024 keys; the RoPE table is built to this length
 const NONE = 0xffffffff;
@@ -52,7 +57,67 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
   let r = wid.x + wid.y * 65535u; let H = p.a.x;
   if (r >= p.a.y || dn.n.x == 0u) { return; }
   let src = idx[r];
+  if (src == 0xffffffffu) { for (var j = l; j < H; j += 64u) { Y[r * H + j] = 0.0; } return; }   // a word with no subtoken
   for (var j = l; j < H; j += 64u) { Y[r * H + j] = X[src * H + j]; }
+}`;
+
+// Y[i] = max(Y[i], 0) over the first dn.n[p.a.y] rows of p.a.x floats.
+const RELU = HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read_write> Y: array<f32>;
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let i = (wid.x + wid.y * 65535u) * 64u + l;
+  if (i < dn.n[p.a.y] * p.a.x) { Y[i] = max(Y[i], 0.0); }
+}`;
+
+// Span x label scores for the gathered word rows: Z[(r * K + k) * C + c] = R[c] + sum_j relu(A[r, j] +
+// B[r + k, j]) Q[c, j] for k < lim[r] (the words left in r's text, at most K); other entries are not
+// written (the caller fills them with -Infinity). One workgroup of 64 per (r, k), thread l holding
+// j = l + 64 i; labels four at a time with a tree reduction. Rows dn.n.z, labels dn.n.w. No early
+// return: every thread reaches every barrier, and lim is only read to gate the writes.
+const scoresWGSL = (D, K) => HEADER + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> A: array<f32>;
+@group(0) @binding(3) var<storage, read> B: array<f32>;
+@group(0) @binding(4) var<storage, read> Q: array<f32>;
+@group(0) @binding(5) var<storage, read> R: array<f32>;
+@group(0) @binding(6) var<storage, read> lim: array<u32>;
+@group(0) @binding(7) var<storage, read_write> Z: array<f32>;
+const D = ${D}u;
+const K = ${K}u;
+const PER = ${D / 64}u;
+var<workgroup> red: array<vec4<f32>, 64>;
+@compute @workgroup_size(64)
+fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let g = wid.x + wid.y * 65535u;
+  let rows = dn.n.z; let C = dn.n.w + 0u * p.a.x;   // p read so binding 0 stays in the layout
+  let live = g < rows * K;
+  let r = min(g / K, max(rows, 1u) - 1u); let k = g % K;
+  let valid = live && k < lim[r];
+  var v: array<f32, ${D / 64}>;
+  for (var i = 0u; i < PER; i++) {
+    let j = l + 64u * i;
+    var x = 0.0;
+    if (valid) { x = max(A[r * D + j] + B[(r + k) * D + j], 0.0); }
+    v[i] = x;
+  }
+  for (var c0 = 0u; c0 < C; c0 += 4u) {
+    var acc = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+    for (var i = 0u; i < PER; i++) {
+      let j = l + 64u * i;
+      acc += v[i] * vec4<f32>(Q[c0 * D + j], Q[(c0 + 1u) * D + j], Q[(c0 + 2u) * D + j], Q[(c0 + 3u) * D + j]);
+    }
+    red[l] = acc;
+    workgroupBarrier();
+    for (var s = 32u; s > 0u; s >>= 1u) {
+      if (l < s) { red[l] += red[l + s]; }
+      workgroupBarrier();
+    }
+    if (l == 0u && valid) {
+      let o = g * C;
+      for (var t = 0u; t < 4u; t++) { if (c0 + t < C) { Z[o + c0 + t] = red[0][t] + R[c0 + t]; } }
+    }
+    workgroupBarrier();
+  }
 }`;
 
 // The text-encoder part of a GLiNER packed manifest (browser-decider's schema at the top level).
@@ -72,7 +137,14 @@ export class TextEngine extends SeqEngine {
     this.maxPos = opts.maxPos ?? 8192;
     this.dim = manifest.hidden;
     this._nPos = 1;
+    this.ghead = opts.ghead ? structuredClone(opts.ghead) : null;   // span head records (offsets into the weight file)
+    this.K = opts.maxWidth ?? 12;
+    this.maxLabels = opts.maxLabels ?? 128;
+    this.scoreCap = opts.scoreCap ?? this.maxPos * this.K * 64;      // floats in the scores buffer: rows * K * C must fit
   }
+
+  // Most word rows one batch may hold with C labels in the GPU head (scores buffer), and whether it runs at all.
+  headRows(C) { return this.ghead && C <= this.maxLabels ? Math.min(this.maxPos, Math.floor(this.scoreCap / (this.K * Math.max(C, 1)))) : 0; }
 
   async _build(bytes) {
     const m = this.m, T = this.maxTokens;
@@ -80,6 +152,7 @@ export class TextEngine extends SeqEngine {
     if (m.arch !== "modernbert") throw new Error(`text encoder arch ${m.arch}`);
     if (H % 64 || D % 4 || D > 128) throw new Error(`hidden ${H} / head dim ${D} not supported by the kernels`);
     if (![4, 32].includes(m.table.bits)) throw new Error(`token table bits ${m.table.bits} (engine runs 4 and 32)`);
+    const head = this.ghead ? this._headWeights(bytes) : null;   // from the original file offsets, before packing
     bytes = this.uploadPacked(bytes);   // rewrites this.m's offsets to the packed buffer
     const U = GPUBufferUsage, buf = (n, label, extra) => this.buf(n, label, extra);
     this.rope = this.upload(ropeTable([m.theta_global, m.theta_local], D, MAX_SEQ), "rope");
@@ -141,39 +214,128 @@ export class TextEngine extends SeqEngine {
     this.steps[this.steps.length - 1].entries[0] = { binding: 0, resource: { buffer: this.gatherU } };
     this.readPos = this.device.createBuffer({ size: this.maxPos * H * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST, label: "readback rows" });
     this._owned.push(this.readPos);
+    this.nEnc = this.steps.length;   // steps past this are the span head, recorded only when a batch asks for it
+    if (head) this._buildHead(head);
+  }
+
+  // Head weights as two GPU buffers: HW (f32 words: scales, biases, fp32 matrices) and HWt (int8 codes,
+  // [N, K] rows, the layout matmul_i8 reads). out_project.0 is split at H into the start and end halves.
+  _headWeights(bytes) {
+    const pack = new Pack(bytes), gh = this.ghead;
+    const f32 = [], i8 = [];
+    let nf = 0, ni = 0;
+    const addF = (a) => { f32.push(a); const o = nf; nf += a.length; return o; };
+    const addI = (a) => { i8.push(a); const o = ni; ni += a.length; return o / 4; };
+    const lin = (L) => L.s ? { fmt: "i8", offs: [addI(L.w), addF(L.s)], N: L.N, K: L.K } : { fmt: "f32", offs: [addF(L.w)], N: L.N, K: L.K };
+    const mlp = (r) => ({ l0: lin(pack.lin(r.l0)), b0: addF(pack.f32(r.b0)), l1: lin(pack.lin(r.l1)), b1: addF(pack.f32(r.b1)) });
+    const start = mlp(gh.start), end = mlp(gh.end);
+    const o0 = pack.lin(gh.out.l0), H = start.l1.N;
+    if (o0.K !== 2 * H) throw new Error("out_project.0 must take concat(start, end)");
+    const W1a = lin(Pack.kslice(o0, 0, H)), W1b = lin(Pack.kslice(o0, H, H)), b1 = addF(pack.f32(gh.out.b0));
+    for (const w of [start.l0, start.l1, end.l0, end.l1, W1a, W1b]) if (w.K % 32 || w.N % 32) throw new Error(`head matmul shape ${w.N} x ${w.K}`);
+    const F = new Float32Array(nf), I = new Int8Array(Math.max(ni, 4));
+    let o = 0; for (const a of f32) { F.set(a, o); o += a.length; }
+    o = 0; for (const a of i8) { I.set(a, o); o += a.length; }
+    return { start, end, W1a, W1b, b1, H, D: W1a.N, F, I, hasI8: ni > 0 };
+  }
+
+  // Record the head after the gather: start / end MLPs (ReLU after each layer: GRef applies one to the
+  // MLP output too), the out_project.0 halves, then the scores. Rows are dn.n.z (the gathered words).
+  _buildHead(h) {
+    const U = GPUBufferUsage, P = this.maxPos, H = h.H, D = h.D, I0 = h.start.l0.N;
+    if (D % 64 || D > 4096) throw new Error(`head width ${D}`);
+    this.headD = D;
+    const HW = this.upload(h.F, "head f32"), HWt = h.hasI8 ? this.upload(h.I, "head int8 [N, K]") : null;
+    const Lp = Math.ceil(this.maxLabels / 4) * 4 + 4;
+    const B_ = this.hb = {
+      hid: this.buf(P * I0, "head mlp hidden"), S: this.buf(P * H, "start"), E: this.buf(P * H, "end"),
+      A: this.buf(P * D, "a"), B: this.buf(P * D, "b"),
+      Q: this.buf(Lp * D, "label q", U.COPY_DST), R: this.buf(Lp, "label r", U.COPY_DST),
+      lim: this.buf(P, "lim", U.COPY_DST), Z: this.buf(this.scoreCap, "scores"),
+    };
+    this.shaders.relu = RELU;
+    this.shaders.span_scores = scoresWGSL(D, this.K);
+    const mm = (w, X, Y, bias) => matmul(this, w, HW, X, Y, { rowsSel: 2, bias, Wt: HWt ?? undefined });
+    const relu = (Y, N) => this.step("relu", { a: [N, 2] }, [Y], (n) => split(Math.ceil(n[2] * N / 64)));
+    for (const [m, Y] of [[h.start, B_.S], [h.end, B_.E]]) {
+      mm(m.l0, this.b.out, B_.hid, m.b0); relu(B_.hid, I0);
+      mm(m.l1, B_.hid, Y, m.b1); relu(Y, H);
+    }
+    mm(h.W1a, B_.S, B_.A, h.b1);
+    mm(h.W1b, B_.E, B_.B);
+    this.nWords = this.steps.length;   // steps up to here give A and B
+    this.step("span_scores", {}, [B_.A, B_.B, B_.Q, B_.R, B_.lim, B_.Z], (n) => split(n[2] * this.K));
+    this.readZ = this.device.createBuffer({ size: this.scoreCap * 4, usage: U.MAP_READ | U.COPY_DST, label: "readback scores" });
+    this._owned.push(this.readZ);
+  }
+
+  // The current label set for the GPU head: q [C, D] and r [C] (SpanHead.labels, in the label order).
+  setLabels(q, r, C) {
+    if (!this.hb) throw new Error("engine built without a span head");
+    if (C > this.maxLabels) throw new Error(`${C} labels exceed the GPU head's ${this.maxLabels}`);
+    if (C) {
+      this.device.queue.writeBuffer(this.hb.Q, 0, q.subarray(0, C * this.headD));
+      this.device.queue.writeBuffer(this.hb.R, 0, Float32Array.from(r.subarray(0, C)));
+    }
+    this.C = C;
   }
 
   // Encode a batch (arrays of token ids, each at most MAX_SEQ) and gather the final hidden rows at
-  // idx (indexes into the packed token axis: sequence offset + position). Returns { read() } whose
-  // promise gives { rows, gpuMs, readMs }. One readback buffer: read() a job before submitting the next.
-  submit(batch, idx) {
+  // idx (indexes into the packed token axis: sequence offset + position; NONE gives a zero row). Returns
+  // { read() } whose promise gives { rows, gpuMs, readMs }. One readback buffer per kind: read() a job
+  // before submitting the next.
+  // head (the engine's span head, after setLabels): { lim: Uint32Array per row, words: false } adds the
+  // head and reads back scores [rows, K, C] (rows unset, entries with k >= lim[r] unwritten); words: true
+  // stops after out_project.0 and reads back A and B [rows, D] each (to time JavaScript scoring against it).
+  submit(batch, idx, head = null) {
     const H = this.dim, P = idx.length;
     if (P > this.maxPos) throw new Error(`${P} rows exceed maxPos ${this.maxPos}`);
     if (this._pending) throw new Error("read() the previous batch before submitting another");
+    if (head && P > this.headRows(this.C)) throw new Error(`${P} rows exceed the GPU head's ${this.headRows(this.C)} at ${this.C} labels`);
     this._nPos = Math.max(P, 1);
     const u = new ArrayBuffer(48);
     new Uint32Array(u, 0, 2).set([H, P]);
-    this.device.queue.writeBuffer(this.gatherU, 0, u);
-    if (P) this.device.queue.writeBuffer(this.b.idx, 0, idx);
+    const q = this.device.queue;
+    q.writeBuffer(this.gatherU, 0, u);
+    if (P) q.writeBuffer(this.b.idx, 0, idx);
     const enc = this.device.createCommandEncoder();
-    this._record(enc, batch);
-    const n = P * H * 4;
-    if (n) enc.copyBufferToBuffer(this.b.out, 0, this.readPos, 0, n);
-    this.device.queue.submit([enc.finish()]);
+    this._record(enc, batch, this.nEnc);
+    let rd, n, kind;
+    if (!head) { kind = "rows"; rd = this.readPos; n = P * H * 4; if (n) enc.copyBufferToBuffer(this.b.out, 0, rd, 0, n); }
+    else {
+      const T = batch.reduce((a, x) => a + x.length, 0), nn = [T, batch.length, P, this.C];
+      q.writeBuffer(this.dyn, 0, new Uint32Array(nn));   // after _record's [T, B, 0, 0]: same submit, last write wins
+      q.writeBuffer(this.hb.lim, 0, head.lim);
+      const pass = enc.beginComputePass();
+      for (const s of this.steps.slice(this.nEnc, head.words ? this.nWords : this.steps.length)) {
+        pass.setPipeline(this.pipes[s.kind]); pass.setBindGroup(0, s.bg); pass.dispatchWorkgroups(...s.grid(nn));
+      }
+      pass.end();
+      if (head.words) {
+        kind = "ab"; n = P * this.headD * 4;
+        this.readAB ??= (() => { const b = this.device.createBuffer({ size: 2 * this.maxPos * this.headD * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST, label: "readback a, b" }); this._owned.push(b); return b; })();
+        rd = this.readAB;
+        if (n) { enc.copyBufferToBuffer(this.hb.A, 0, rd, 0, n); enc.copyBufferToBuffer(this.hb.B, 0, rd, n, n); }
+        n *= 2;
+      } else { kind = "scores"; rd = this.readZ; n = P * this.K * this.C * 4; if (n) enc.copyBufferToBuffer(this.hb.Z, 0, rd, 0, n); }
+    }
+    q.submit([enc.finish()]);
     const t0 = performance.now();
     this._pending = true;
     return {
       read: async () => {
         await this.device.queue.onSubmittedWorkDone();
         const t1 = performance.now();
-        let rows = new Float32Array(0);
+        let out = new Float32Array(0);
         if (n) {
-          await this.readPos.mapAsync(GPUMapMode.READ, 0, n);
-          rows = new Float32Array(this.readPos.getMappedRange(0, n).slice(0));
-          this.readPos.unmap();
+          await rd.mapAsync(GPUMapMode.READ, 0, n);
+          out = new Float32Array(rd.getMappedRange(0, n).slice(0));
+          rd.unmap();
         }
         this._pending = false;
-        return { rows, gpuMs: t1 - t0, readMs: performance.now() - t1 };
+        const r = { gpuMs: t1 - t0, readMs: performance.now() - t1 };
+        if (kind === "ab") { const h = out.length / 2; r.A = out.subarray(0, h); r.B = out.subarray(h); } else r[kind] = out;
+        return r;
       },
     };
   }

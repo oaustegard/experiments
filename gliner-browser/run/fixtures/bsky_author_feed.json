@@ -1,0 +1,576 @@
+{
+ "_doc": "Stub public AppView responses for run/page_smoke.mjs: a fictional account's author feed in two pages (cursor 'p2'), 30 posts plus two reposts the page must skip by default. resolveHandle answers with the DID.",
+ "did": "did:plc:fixture00000000000000001",
+ "handle": "fixture.example.com",
+ "pages": {
+  "": {
+   "cursor": "p2",
+   "feed": [
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0000",
+      "cid": "bafy0",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Microsoft just announced a new data centre in Lisbon. Big week for Portugal.",
+       "createdAt": "2026-11-01T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-01T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0001",
+      "cid": "bafy1",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Spent the afternoon at the Microsoft office in Lisbon talking about Copilot.",
+       "createdAt": "2026-11-02T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-02T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0002",
+      "cid": "bafy2",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Microsoft's earnings call is on Tuesday. Expecting Satya Nadella to talk about AI again.",
+       "createdAt": "2026-11-03T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-03T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0003",
+      "cid": "bafy3",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Satya Nadella on stage in Lisbon today, nice talk.",
+       "createdAt": "2026-11-04T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-04T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0004",
+      "cid": "bafy4",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Taylor Swift played Lisbon last night and the whole city sang along.",
+       "createdAt": "2026-11-05T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-05T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0005",
+      "cid": "bafy5",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Can't believe Taylor Swift's tour is coming back to Europe in 2026.",
+       "createdAt": "2026-11-06T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-06T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0006",
+      "cid": "bafy6",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Google released the Pixel 10 and honestly the camera is great.",
+       "createdAt": "2026-11-07T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-07T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0007",
+      "cid": "bafy7",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "My Pixel 10 arrived today from Google, setup took five minutes.",
+       "createdAt": "2026-11-08T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-08T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0008",
+      "cid": "bafy8",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Apple is reportedly working on a cheaper iPhone for India.",
+       "createdAt": "2026-11-09T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-09T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0009",
+      "cid": "bafy9",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Tim Cook visited Mumbai to open another Apple store.",
+       "createdAt": "2026-11-10T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-10T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0010",
+      "cid": "bafy10",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Flying from Berlin to Lisbon on Friday for Web Summit.",
+       "createdAt": "2026-11-01T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-01T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0011",
+      "cid": "bafy11",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Web Summit in Lisbon starts on 10 November this year.",
+       "createdAt": "2026-11-02T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-02T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0012",
+      "cid": "bafy12",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Elon Musk says Tesla will ship the new Model Y in March.",
+       "createdAt": "2026-11-03T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-03T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0013",
+      "cid": "bafy13",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Tesla's Model Y is still the best selling car in Norway.",
+       "createdAt": "2026-11-04T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-04T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:other000000000000000001/app.bsky.feed.post/3rep0100",
+      "cid": "bafy100",
+      "author": {
+       "did": "did:plc:other000000000000000001",
+       "handle": "someone.else.example",
+       "displayName": "Someone"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Reposted: Microsoft opens office in Lisbon, says Microsoft.",
+       "createdAt": "2026-11-01T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-01T12:00:01.000Z"
+     },
+     "reason": {
+      "$type": "app.bsky.feed.defs#reasonRepost",
+      "by": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com"
+      },
+      "indexedAt": "2026-11-05T00:00:00.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0014",
+      "cid": "bafy14",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Reading about Ada Lovelace and Charles Babbage on a rainy Sunday in London.",
+       "createdAt": "2026-11-05T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-05T12:00:01.000Z"
+     }
+    }
+   ]
+  },
+  "p2": {
+   "feed": [
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0015",
+      "cid": "bafy15",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "London to Paris on the Eurostar takes about two and a half hours.",
+       "createdAt": "2026-11-06T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-06T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0016",
+      "cid": "bafy16",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "OpenAI shipped a new model and everyone in San Francisco is talking about it.",
+       "createdAt": "2026-11-07T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-07T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0017",
+      "cid": "bafy17",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Sam Altman says OpenAI will open an office in Tokyo next year.",
+       "createdAt": "2026-11-08T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-08T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0018",
+      "cid": "bafy18",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Nvidia stock hit a new record on Monday after Jensen Huang's keynote.",
+       "createdAt": "2026-11-09T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-09T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0019",
+      "cid": "bafy19",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Jensen Huang gave the keynote in Taipei wearing the usual leather jacket.",
+       "createdAt": "2026-11-10T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-10T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0020",
+      "cid": "bafy20",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Coffee in Lisbon is cheaper than anywhere in Amsterdam.",
+       "createdAt": "2026-11-01T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-01T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0021",
+      "cid": "bafy21",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Amsterdam canals are frozen for the first time since 2012.",
+       "createdAt": "2026-11-02T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-02T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0022",
+      "cid": "bafy22",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "@microsoft please fix Teams on Linux, it crashes every morning.",
+       "createdAt": "2026-11-03T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-03T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0023",
+      "cid": "bafy23",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Samsung announced the Galaxy S26 in Seoul on 25 February.",
+       "createdAt": "2026-11-04T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-04T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0024",
+      "cid": "bafy24",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "My Galaxy S26 from Samsung has a better screen than my old phone.",
+       "createdAt": "2026-11-05T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-05T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0025",
+      "cid": "bafy25",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Visited the Louvre in Paris with my sister on Saturday.",
+       "createdAt": "2026-11-06T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-06T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0026",
+      "cid": "bafy26",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Paris in December is cold but beautiful.",
+       "createdAt": "2026-11-07T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-07T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0027",
+      "cid": "bafy27",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Spotify Wrapped dropped on 3 December and my top artist is Taylor Swift again.",
+       "createdAt": "2026-11-08T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-08T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0028",
+      "cid": "bafy28",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Netflix is raising prices in Canada starting in January.",
+       "createdAt": "2026-11-09T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-09T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:fixture00000000000000001/app.bsky.feed.post/3kfx0029",
+      "cid": "bafy29",
+      "author": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com",
+       "displayName": "Fixture Account"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Just finished a 10 km run along the river in Lisbon.",
+       "createdAt": "2026-11-10T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-10T12:00:01.000Z"
+     }
+    },
+    {
+     "post": {
+      "uri": "at://did:plc:other000000000000000001/app.bsky.feed.post/3rep0101",
+      "cid": "bafy101",
+      "author": {
+       "did": "did:plc:other000000000000000001",
+       "handle": "someone.else.example",
+       "displayName": "Someone"
+      },
+      "record": {
+       "$type": "app.bsky.feed.post",
+       "text": "Reposted: Microsoft Microsoft Microsoft in Lisbon.",
+       "createdAt": "2026-11-02T12:00:00.000Z"
+      },
+      "indexedAt": "2026-11-02T12:00:01.000Z"
+     },
+     "reason": {
+      "$type": "app.bsky.feed.defs#reasonRepost",
+      "by": {
+       "did": "did:plc:fixture00000000000000001",
+       "handle": "fixture.example.com"
+      },
+      "indexedAt": "2026-11-05T00:00:00.000Z"
+     }
+    }
+   ]
+  }
+ }
+}

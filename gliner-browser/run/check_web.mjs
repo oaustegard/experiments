@@ -1,7 +1,10 @@
 // Run web/check.html in headless Chromium (SwiftShader WebGPU): the browser NER runtime against the
 // NumPy reference's fixtures for each packed model, then the JavaScript stage timings.
 //
-//   node run/check_web.mjs TOKENIZERS_MJS [--pkgs a,b] [--nbench N]
+//   node run/check_web.mjs TOKENIZERS_MJS [--pkgs a,b] [--heads gpu,js] [--nbench N] [--benchheads js,gpu,gpu-words] [--out FILE]
+//
+// Every pack is checked with each span head (gpu: per-word layers and scores on WebGPU; js: jshead.js),
+// and the two heads' logits against each other.
 //
 // TOKENIZERS_MJS: a local copy of @huggingface/tokenizers@0.2.0/dist/tokenizers.mjs (npm pack it
 // anywhere). The page imports that file from jsDelivr; the container's Chromium has no proxied egress,
@@ -23,6 +26,9 @@ const opt = (k, d) => { const i = args.indexOf(k); return i > 0 ? args[i + 1] : 
 if (!tokLib || !existsSync(tokLib)) { console.error("usage: node run/check_web.mjs TOKENIZERS_MJS [--pkgs a,b] [--nbench N]"); process.exit(2); }
 const pkgs = opt("--pkgs", "gliner-bi-edge-v2.0-fp32,gliner-bi-edge-v2.0-t4-w8L63-h8");
 const nbench = opt("--nbench", "100");
+const heads = opt("--heads", "gpu,js");
+const benchHeads = opt("--benchheads", "js,gpu,gpu-words");
+const outFile = opt("--out", "results/web_parity.json");
 const bench = existsSync(resolve(ROOT, "out", "web_bench_texts.json")) ? "../out/web_bench_texts.json" : "";
 const port = 8700 + Math.floor(Math.random() * 200);
 const server = spawn("python3", ["-m", "http.server", String(port), "--bind", "127.0.0.1"], { cwd: REPO, stdio: "ignore" });
@@ -36,7 +42,7 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.route("https://cdn.jsdelivr.net/**", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: readFileSync(tokLib) }));
   const t0 = Date.now();
-  await page.goto(`http://127.0.0.1:${port}/${ROOT.split("/").pop()}/web/check.html?pkgs=${pkgs}&bench=${bench}&nbench=${nbench}`);
+  await page.goto(`http://127.0.0.1:${port}/${ROOT.split("/").pop()}/web/check.html?pkgs=${pkgs}&heads=${heads}&bench=${bench}&nbench=${nbench}&benchheads=${benchHeads}`);
   await page.waitForFunction("window.check && window.check.done", null, { timeout: 3_600_000 });
   res = await page.evaluate("window.check");
   res.wallS = (Date.now() - t0) / 1000;
@@ -45,19 +51,23 @@ try {
   server.kill();
 }
 res.console_errors = errors;
-res.tolerance = { ids: "exact", entities: "same spans, labels, offsets and text; |score diff| <= 1e-3", logits: "max |diff| < 2e-3 (reported)", batching: "max |diff| < 1e-5" };
+res.tolerance = { ids: "exact", entities: "same spans, labels, offsets and text; |score diff| <= 1e-3", logits: "max |diff| < 2e-3 (reported)", batching: "max |diff| < 1e-5",
+  heads: "each head passes alone and ran as itself (no fallback); gpu vs js logits max |diff| < 2e-3" };
 const checks = [];
 for (const [pkg, r] of Object.entries(res.packs || {})) {
-  const ok = !r.gpuErrors.length && r.tokenIdsMatch === r.nCases && r.wordsMatch === r.nCases && r.wordsMaskMatch === r.nCases
-    && r.caseLabelIdsMatch === r.nCases && r.labelNormMatch === r.nCases && r.logitShapeMatch === r.nCases && r.labelIdsMatch === r.labels
-    && r.entityMatches === r.entityChecks && r.logitMaxAbsDiff < 2e-3
-    && r.batching.oneBatch.maxAbsDiff < 1e-5 && r.batching.split.maxAbsDiff < 1e-5 && r.batching.splitNoPipeline.maxAbsDiff < 1e-5;
-  checks.push([pkg, ok]);
+  const headOk = (h, x) => x.tokenIdsMatch === x.nCases && x.wordsMatch === x.nCases && x.wordsMaskMatch === x.nCases
+    && x.caseLabelIdsMatch === x.nCases && x.labelNormMatch === x.nCases && x.logitShapeMatch === x.nCases
+    && x.entityMatches === x.entityChecks && x.logitMaxAbsDiff < 2e-3 && x.headsUsed.length === 1 && x.headsUsed[0] === h
+    && x.batching.oneBatch.maxAbsDiff < 1e-5 && x.batching.split.maxAbsDiff < 1e-5 && x.batching.splitNoPipeline.maxAbsDiff < 1e-5;
+  const hs = Object.entries(r.heads);
+  for (const [h, x] of hs) checks.push([`${pkg}/${h}`, headOk(h, x)]);
+  checks.push([pkg, !r.gpuErrors.length && r.labelIdsMatch === r.labels && hs.length > 0 && (r.headsMaxAbsDiff ?? 0) < 2e-3]);
 }
 res.pass = !res.error && checks.length > 0 && checks.every(([, ok]) => ok);
 mkdirSync(resolve(ROOT, "results"), { recursive: true });
-writeFileSync(resolve(ROOT, "results", "web_parity.json"), JSON.stringify(res, null, 1));
-const brief = Object.fromEntries(Object.entries(res.packs || {}).map(([k, r]) => { const { cases, ...rest } = r; return [k, rest]; }));
+writeFileSync(resolve(ROOT, outFile), JSON.stringify(res, null, 1));
+const brief = Object.fromEntries(Object.entries(res.packs || {}).map(([k, r]) => [k, { ...r,
+  heads: Object.fromEntries(Object.entries(r.heads || {}).map(([h, x]) => { const { cases, ...rest } = x; return [h, rest]; })) }]));
 console.log(JSON.stringify({ error: res.error, packs: brief, cpu: res.cpu, wallS: res.wallS, console_errors: errors.slice(0, 10) }, null, 1));
 console.log(res.pass ? "PASS" : "FAIL", checks.map(([p, ok]) => `${p}:${ok ? "ok" : "FAIL"}`).join(" "));
 process.exit(res.pass ? 0 : 1);
