@@ -1,0 +1,718 @@
+{
+ "name": "gbench_smoke_b-t4-w8L63",
+ "model": "web/models/smoke_b-t4-w8L63",
+ "class": "GRef(markerV0)",
+ "variant": "t4-w8L63",
+ "head_format": "fp32",
+ "prefix_space": true,
+ "logit_bias_extra": 0.0,
+ "versions": {
+  "python": "3.13.18",
+  "gliner": "0.2.30",
+  "torch": "2.14.1+cpu",
+  "transformers": "4.57.1",
+  "tokenizers": "0.22.2",
+  "accelerate": "1.15.0",
+  "huggingface_hub": "0.36.2",
+  "safetensors": "0.8.0",
+  "cuda": null,
+  "gpu": null
+ },
+ "wall_seconds": 170.2,
+ "gref_sentences": 8587,
+ "gref_seconds": 169.97,
+ "gref_sentences_per_second": 50.5,
+ "bench": {
+  "thresholds": [
+   "0.3",
+   "0.4",
+   "0.5",
+   "0.6"
+  ],
+  "low_threshold": 0.1,
+  "limit": null,
+  "batch_size": 12,
+  "device": "numpy (GRef)",
+  "decode": "one library forward per batch (run_batch at the low threshold); library decode_batch (flat_ner=True, multi_label=False) on the same logits at each threshold",
+  "sets": {
+   "CrossNER_AI": {
+    "dev": {
+     "n_sent": 350,
+     "n_labels": 14,
+     "seconds": 8.0,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1545
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1545
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1545
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1545
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 1545
+     }
+    },
+    "test": {
+     "n_sent": 431,
+     "n_labels": 14,
+     "seconds": 9.39,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1804
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1804
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1804
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 1804
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 1804
+     }
+    }
+   },
+   "CrossNER_literature": {
+    "dev": {
+     "n_sent": 400,
+     "n_labels": 12,
+     "seconds": 9.77,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2125
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2125
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2125
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2125
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 2125
+     }
+    },
+    "test": {
+     "n_sent": 416,
+     "n_labels": 12,
+     "seconds": 10.81,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2263
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2263
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2263
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2263
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 2263
+     }
+    }
+   },
+   "CrossNER_music": {
+    "dev": {
+     "n_sent": 380,
+     "n_labels": 13,
+     "seconds": 10.79,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2679
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2679
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2679
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2679
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 2679
+     }
+    },
+    "test": {
+     "n_sent": 465,
+     "n_labels": 13,
+     "seconds": 13.01,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3334
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3334
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3334
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3334
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 3334
+     }
+    }
+   },
+   "CrossNER_politics": {
+    "dev": {
+     "n_sent": 540,
+     "n_labels": 9,
+     "seconds": 13.79,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3472
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3472
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3472
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3472
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 3472
+     }
+    },
+    "test": {
+     "n_sent": 650,
+     "n_labels": 9,
+     "seconds": 15.6,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 4200
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 4200
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 4200
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 4200
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 4200
+     }
+    }
+   },
+   "CrossNER_science": {
+    "dev": {
+     "n_sent": 450,
+     "n_labels": 17,
+     "seconds": 13.72,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2537
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2537
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2537
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 2537
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 2537
+     }
+    },
+    "test": {
+     "n_sent": 543,
+     "n_labels": 17,
+     "seconds": 16.6,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3088
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3088
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3088
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3088
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 3088
+     }
+    }
+   },
+   "mit-movie": {
+    "test": {
+     "n_sent": 2442,
+     "n_labels": 12,
+     "seconds": 32.51,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 5338
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 5338
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 5338
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 5338
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 5338
+     }
+    }
+   },
+   "mit-restaurant": {
+    "test": {
+     "n_sent": 1520,
+     "n_labels": 8,
+     "seconds": 15.99,
+     "by_threshold": {
+      "0.3": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3150
+      },
+      "0.4": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3150
+      },
+      "0.5": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3150
+      },
+      "0.6": {
+       "p": 0.0,
+       "r": 0.0,
+       "f1": 0.0,
+       "tp": 0,
+       "n_pred": 0,
+       "n_true": 3150
+      }
+     },
+     "filter_mismatch_sentences": {
+      "0.3": 0,
+      "0.4": 0,
+      "0.5": 0,
+      "0.6": 0
+     },
+     "low_threshold": {
+      "t": 0.1,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "n_pred": 0,
+      "n_true": 3150
+     }
+    }
+   }
+  },
+  "test_mean7": {
+   "0.3": 0.0,
+   "0.4": 0.0,
+   "0.5": 0.0,
+   "0.6": 0.0
+  },
+  "dev_mean5": {
+   "0.3": 0.0,
+   "0.4": 0.0,
+   "0.5": 0.0,
+   "0.6": 0.0
+  },
+  "dev_best_threshold": "0.5",
+  "dev_best_mean5": 0.0,
+  "test_mean7_at_dev_best": 0.0,
+  "seconds": 170.09
+ }
+}
