@@ -678,6 +678,7 @@ survives exactly the sanity checks people run.
   below the model's need fails the call while billing it. `--output-format stream-json --verbose` carries a
   `rate_limit_event` with five-hour and seven-day utilisation, enough to schedule runs around the usage window.
   (`haiku-swarm-poc/gateway.py`)
+- **A large shared prefix in the first user message does not cache across `claude -p` processes.** Two identical Opus 5.5 calls carrying a 30k-token memory block ahead of the task: the second read 1,340 cached tokens and wrote the other ~30k again, about $0.25 per call. Per-session context sits between the system prompt and the first user message, so only the system prompt and CLI preamble share a prefix. Within one session (`--resume`) caching works. Putting the shared block in `--system-prompt` probably caches, but this is untested; measure two calls before launching volume. (`memory-trap-self-pilot/cli.py`)
 - **Stock OpenEvolve can run fully jailed against a host-side model gateway through a Unix socket.** The jail's
   network namespace has only `lo`; a path-based Unix socket crosses it, so a small TCP-to-socket forwarder inside
   the jail gives OpenEvolve an OpenAI-compatible endpoint and nothing else. (`haiku-swarm-poc/jailside/bridge.py`)
