@@ -25,12 +25,20 @@ results print below and land in <code>window.check</code>.</p>
 <script type="module">
 import { NER } from "./ner.js";
 const Q = new URLSearchParams(location.search);
-const pkgs = (Q.get("pkgs") || "gliner-bi-edge-v2.0-fp32,gliner-bi-edge-v2.0-t4-w8L63-h8").split(",");
+// ?pkgs= (empty) checks nothing: run/smoke_bridge_job.mjs uses the page only as a WebGPU origin
+const pkgs = (Q.get("pkgs") ?? "gliner-bi-edge-v2.0-fp32,gliner-bi-edge-v2.0-t4-w8L63-h8").split(",").filter(Boolean);
 const bench = Q.get("bench"), nBench = +(Q.get("nbench") || 100), timePkg = Q.get("timepkg") || pkgs[pkgs.length - 1];
 const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
 const res = window.check = { done: false, packs: {} };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const maxAbs = (a, b) => { let d = 0; for (let i = 0; i < a.length; i++) d = Math.max(d, Math.abs(a[i] - b[i])); return d; };
+// max |a - b| over equal-length arrays; equal entries (including the -Infinity of spans past the last word) count 0,
+// a length mismatch or a non-finite entry on one side only counts Infinity (JSON null in the results)
+const maxAbs = (a, b) => {
+  if (a.length !== b.length) return Infinity;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d = Math.max(d, Math.abs(a[i] - b[i]));
+  return d;
+};
 
 // entities equal: same count, offsets, label and text exact, |score difference| <= tol; returns the worst score gap or null on mismatch
 function entsMatch(got, exp, tol = 1e-3) {
@@ -72,7 +80,7 @@ async function checkPack(pkg) {
 
   // per case: token ids, words, words_mask, label ids, logits, entities at 0.5 / 0.3 (and with the fixture's bias)
   const K = ner.g.max_width;
-  let tokOk = 0, wordsOk = 0, maskOk = 0, caseLabOk = 0, normOk = 0, zMax = 0, zRef = 0, entOk = 0, entN = 0, scoreWorst = 0;
+  let shapeOkN = 0, tokOk = 0, wordsOk = 0, maskOk = 0, caseLabOk = 0, normOk = 0, zMax = 0, zRef = 0, entOk = 0, entN = 0, scoreWorst = 0;
   r.cases = [];
   for (const c of fx.cases) {
     const p = ner.prepare(c.text);
@@ -87,8 +95,12 @@ async function checkPack(pkg) {
     const e5 = await ner.extract(c.text, { threshold: 0.5, keepLogits: true });
     const z = ner.lastLogits[0], C = c.labels.length;
     let dz = 0;
-    c.logits.forEach((row, s) => row.forEach((kk, k) => { if (kk) kk.forEach((v, cc) => { dz = Math.max(dz, Math.abs(v - z[(s * K + k) * C + cc])); zRef = Math.max(zRef, Math.abs(v)); }); }));
-    cr.logitMaxAbsDiff = dz; zMax = Math.max(zMax, dz);
+    let shapeOk = z.length === c.logits.length * K * C;
+    c.logits.forEach((row, s) => row.forEach((kk, k) => {
+      if (kk) kk.forEach((v, cc) => { const g = z[(s * K + k) * C + cc]; if (!Number.isFinite(g)) shapeOk = false; dz = Math.max(dz, Math.abs(v - g)); zRef = Math.max(zRef, Math.abs(v)); });
+      else for (let cc = 0; cc < C; cc++) if (z[(s * K + k) * C + cc] !== -Infinity) shapeOk = false;   // past the last word
+    }));
+    cr.logitMaxAbsDiff = dz; zMax = Math.max(zMax, dz); cr.logitShapeOk = shapeOk; shapeOkN += shapeOk;
     const got = { "0.5": e5, "0.3": await ner.extract(c.text, { threshold: 0.3 }) };
     const b0 = ner.g.logit_bias;
     ner.g.logit_bias = b0 + (fx.bias_test?.extra_logit_bias ?? 0);
@@ -104,7 +116,7 @@ async function checkPack(pkg) {
     r.cases.push(cr);
   }
   Object.assign(r, { nCases: fx.cases.length, tokenIdsMatch: tokOk, wordsMatch: wordsOk, wordsMaskMatch: maskOk, caseLabelIdsMatch: caseLabOk,
-    labelNormMatch: normOk, logitMaxAbsDiff: zMax, logitMaxAbs: zRef, entityChecks: entN, entityMatches: entOk, entityWorstScoreDiff: scoreWorst });
+    labelNormMatch: normOk, logitShapeMatch: shapeOkN, logitMaxAbsDiff: zMax, logitMaxAbs: zRef, entityChecks: entN, entityMatches: entOk, entityWorstScoreDiff: scoreWorst });
 
   // batching: all 12 texts with one label set in one pass, and split into many small batches (pipelined
   // and not) must give the logits of one text at a time

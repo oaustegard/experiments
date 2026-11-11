@@ -9,6 +9,10 @@
 //   // index the JavaScript string (text === str.slice(u16Start, u16End))
 //   const many = await ner.extract(posts);                     // string[] -> one list per text
 //   ner.lastTimings                                            // ms per stage, token and word counts
+//   ner.labelTimings                                           // the last setLabels(): label tokenize / encoder / projection ms
+//   (lastTimings.labelEncoderMs is that cost when extract() was given { labels }, else 0: label vectors are cached)
+// Texts are limited to the encoder's 1,024-token window (attentionLong); a longer one throws unless
+// extract(..., { truncate: true }), which drops the words past it. GRef itself runs to model_max_length 8,192.
 //
 // Many short texts go through the text encoder together (packed batches of up to maxTokens tokens /
 // maxSeqs texts); the span head and decoding then run per text, overlapped with the next batch's GPU work.
@@ -63,6 +67,7 @@ export class NER {
       info: { initMs: now() - t0, weightBytes: bytes.byteLength, variant: manifest.variant, headFormat: manifest.head_format },
       lastTimings: null, labelTimings: null,
     });
+    pack.bytes = null;   // the JavaScript stages hold their own copies; let the weight file go
     return ner;
   }
 

@@ -49,7 +49,7 @@ res.tolerance = { ids: "exact", entities: "same spans, labels, offsets and text;
 const checks = [];
 for (const [pkg, r] of Object.entries(res.packs || {})) {
   const ok = !r.gpuErrors.length && r.tokenIdsMatch === r.nCases && r.wordsMatch === r.nCases && r.wordsMaskMatch === r.nCases
-    && r.caseLabelIdsMatch === r.nCases && r.labelNormMatch === r.nCases && r.labelIdsMatch === r.labels
+    && r.caseLabelIdsMatch === r.nCases && r.labelNormMatch === r.nCases && r.logitShapeMatch === r.nCases && r.labelIdsMatch === r.labels
     && r.entityMatches === r.entityChecks && r.logitMaxAbsDiff < 2e-3
     && r.batching.oneBatch.maxAbsDiff < 1e-5 && r.batching.split.maxAbsDiff < 1e-5 && r.batching.splitNoPipeline.maxAbsDiff < 1e-5;
   checks.push([pkg, ok]);
