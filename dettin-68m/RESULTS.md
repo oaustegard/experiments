@@ -24,7 +24,7 @@ file scores the same as full precision. Spikes on the frozen stock 68M come with
 
 On nine life-science questions, scored on test items where two stronger models agree, spikes on the stock 68M
 reach 0.892 <!-- @evidence[[results/summary.json#ls.spikes68]] --> and a full fine-tune 0.875 <!-- @evidence[[results/summary.json#ls.68.macro]] -->;
-17M reaches 0.856 <!-- @evidence[[results/summary.json#ls.17.macro]] -->. Neither size transfers to tasks it was
+17M reaches 0.856 <!-- @evidence[[results/summary.json#ls.17.macro]] -->. Neither the 17M nor the 68M transfers to tasks it was
 not trained on.
 
 The 68M embedder ties the 149M model it was distilled from on reworded section queries, 0.733 <!-- @evidence[[results/summary.json#emb.e68-joint.para]] -->
@@ -53,7 +53,7 @@ A longer distillation on broader text, which was not run, is what could change t
    68M 0.875 <!-- @evidence[[results/summary.json#ls.68.macro]] -->. The step from 17M to 32M is +0.015 <!-- @evidence[[results/summary.json#ls.steps.32_minus_17.delta]] -->
    with a 95% interval of 0.009 to 0.022; the step from 32M to 68M is +0.004 <!-- @evidence[[results/summary.json#ls.steps.68_minus_32.delta]] -->
    with an interval that includes zero (`results/decisions.json`).
-5. **Haiku was the better labeller on six of eight questions, and the students stay below it.** On eight section questions Haiku 5.5
+5. **Haiku was the better labeller on seven of eight questions, and the students stay below it.** On eight section questions Haiku 5.5 (Anthropic's small Claude model)
    agrees with the gold labels on 0.940 <!-- @evidence[[results/summary.json#ls.haiku_macro8]] --> and Jev on 0.883 <!-- @evidence[[results/summary.json#ls.jev_macro8]] -->;
    the widest gap is the reproducibility rubric, 0.849 <!-- @evidence[[results/summary.json#ls.haiku.detail]] --> against 0.621 <!-- @evidence[[results/summary.json#ls.jev.detail]] -->.
    The fully fine-tuned 68M trained on Haiku's labels reaches 0.893 <!-- @evidence[[results/summary.json#ls.macro8.68]] --> on those eight.
@@ -66,7 +66,7 @@ A longer distillation on broader text, which was not run, is what could change t
 7. **The section embedder ties its teacher on reworded queries, and each size step is large.** nDCG@10 on 1,186
    reworded queries over 28,073 sections: 17M 0.526 <!-- @evidence[[results/summary.json#emb.e17-joint.para]] -->,
    32M 0.646 <!-- @evidence[[results/summary.json#emb.e32-joint.para]] -->, 68M 0.733 <!-- @evidence[[results/summary.json#emb.e68-joint.para]] -->;
-   the teacher 0.730 <!-- @evidence[[results/summary.json#emb.base-gte.para]] -->, bge-small 0.664 <!-- @evidence[[results/summary.json#emb.base-bge-small.para]] -->,
+   its teacher (`gte-modernbert-base`, 149M) 0.730 <!-- @evidence[[results/summary.json#emb.base-gte.para]] -->, bge-small 0.664 <!-- @evidence[[results/summary.json#emb.base-bge-small.para]] -->,
    BM25 0.500 <!-- @evidence[[results/summary.json#emb.base-bm25.para]] -->. With its encoder rounded to the packed format it scores 0.734 <!-- @evidence[[results/summary.json#emb.e68-joint-q.para]] -->.
 8. **It is not a general biomedical embedder.** On SciFact the 68M scores 0.612 <!-- @evidence[[results/summary.json#emb.e68-joint.scifact]] -->
    against 0.765 <!-- @evidence[[results/summary.json#emb.base-gte.scifact]] --> for its teacher, and on NFCorpus 0.219 <!-- @evidence[[results/summary.json#emb.e68-joint.nfcorpus]] -->
@@ -159,7 +159,7 @@ the pair ratings.
 | P8 | 68M, 512 tokens, 4 CPU threads: 150–300 ms; more than 300 sections per second on a Colab GPU | 162 ms; 1,005 per second on an A100 (no L4 run): held |
 
 **Part A.** Learning rates chosen on validation: 5e-5 at 32M, 8e-5 at 68M. Held-out workflow at 68M: 0.412, 0.414,
-0.404, 0.424. The ±31 packed variant of the 68M scores 0.774 at 41.3 MB after brotli. Spikes by workflow, spike
+0.404, 0.424. The packed variant of the 68M that stores int8 codes in ±31 instead of ±63 scores 0.774 at 41.3 MB after brotli. Spikes by workflow, spike
 then full fine-tune: invoices 0.847 and 0.821, customer service 0.755 and 0.777, security 0.747 and 0.755, agent
 traces 0.713 and 0.721. On an A100 a 68M spike for one workflow trains in one to two minutes.
 
