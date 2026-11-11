@@ -1,0 +1,290 @@
+{
+ "bundled": {
+  "old: 3 samples, default effort": {
+   "n": 104,
+   "accuracy": 0.846,
+   "ece": 0.088,
+   "auroc": 0.869
+  },
+  "1 sample, default effort, plain": {
+   "n": 104,
+   "accuracy": 0.865,
+   "ece": 0.069,
+   "auroc": 0.803
+  },
+  "old request": {
+   "latency_ms_median": 6320,
+   "cost_usd_mean": 0.00123,
+   "requests": 104
+  },
+  "old by type": {
+   "predicate": {
+    "n": 24,
+    "accuracy": 0.875,
+    "ece": 0.118,
+    "auroc": 0.833
+   },
+   "choice": {
+    "n": 64,
+    "accuracy": 0.828,
+    "ece": 0.094,
+    "auroc": 0.913
+   },
+   "score": {
+    "n": 16,
+    "accuracy": 0.875,
+    "ece": 0.176,
+    "auroc": 0.857
+   }
+  },
+  "stack: plain + literal + sceptic, low effort": {
+   "n": 104,
+   "accuracy": 0.846,
+   "ece": 0.101,
+   "auroc": 0.893
+  },
+  "1 sample, low effort, plain": {
+   "n": 104,
+   "accuracy": 0.885,
+   "ece": 0.114,
+   "auroc": 0.811
+  },
+  "1 sample, low effort, literal": {
+   "n": 104,
+   "accuracy": 0.846,
+   "ece": 0.049,
+   "auroc": 0.788
+  },
+  "1 sample, low effort, sceptic": {
+   "n": 104,
+   "accuracy": 0.865,
+   "ece": 0.079,
+   "auroc": 0.792
+  },
+  "stack, unanimous": {
+   "n": 91,
+   "accuracy": 0.912,
+   "ece": 0.085,
+   "auroc": 0.843
+  },
+  "stack, split": {
+   "n": 13,
+   "accuracy": 0.385,
+   "ece": 0.261,
+   "auroc": 0.95
+  },
+  "stack request": {
+   "latency_ms_median": 6034,
+   "cost_usd_mean": 0.00104,
+   "requests": 104
+  },
+  "stack by type": {
+   "predicate": {
+    "n": 24,
+    "accuracy": 0.958,
+    "ece": 0.102,
+    "auroc": 0.783
+   },
+   "choice": {
+    "n": 64,
+    "accuracy": 0.812,
+    "ece": 0.108,
+    "auroc": 0.897
+   },
+   "score": {
+    "n": 16,
+    "accuracy": 0.812,
+    "ece": 0.263,
+    "auroc": 0.949
+   }
+  }
+ },
+ "papers": {
+  "old: 3 samples, default effort": {
+   "n": 554,
+   "accuracy": 0.944,
+   "ece": 0.079,
+   "auroc": 0.863
+  },
+  "1 sample, default effort, plain": {
+   "n": 554,
+   "accuracy": 0.908,
+   "ece": 0.038,
+   "auroc": 0.893
+  },
+  "old request": {
+   "latency_ms_median": 6763,
+   "cost_usd_mean": 0.00755,
+   "requests": 150
+  },
+  "old by type": {
+   "predicate": {
+    "n": 292,
+    "accuracy": 0.955,
+    "ece": 0.02,
+    "auroc": 0.91
+   },
+   "choice": {
+    "n": 262,
+    "accuracy": 0.931,
+    "ece": 0.154,
+    "auroc": 0.902
+   }
+  },
+  "stack: plain + literal + sceptic, low effort": {
+   "n": 554,
+   "accuracy": 0.935,
+   "ece": 0.073,
+   "auroc": 0.869
+  },
+  "1 sample, low effort, plain": {
+   "n": 554,
+   "accuracy": 0.908,
+   "ece": 0.035,
+   "auroc": 0.883
+  },
+  "1 sample, low effort, literal": {
+   "n": 554,
+   "accuracy": 0.928,
+   "ece": 0.063,
+   "auroc": 0.835
+  },
+  "1 sample, low effort, sceptic": {
+   "n": 554,
+   "accuracy": 0.931,
+   "ece": 0.051,
+   "auroc": 0.83
+  },
+  "stack, unanimous": {
+   "n": 501,
+   "accuracy": 0.964,
+   "ece": 0.068,
+   "auroc": 0.82
+  },
+  "stack, split": {
+   "n": 53,
+   "accuracy": 0.66,
+   "ece": 0.128,
+   "auroc": 0.629
+  },
+  "stack request": {
+   "latency_ms_median": 6724,
+   "cost_usd_mean": 0.0055,
+   "requests": 150
+  },
+  "stack by type": {
+   "predicate": {
+    "n": 292,
+    "accuracy": 0.949,
+    "ece": 0.018,
+    "auroc": 0.923
+   },
+   "choice": {
+    "n": 262,
+    "accuracy": 0.92,
+    "ece": 0.145,
+    "auroc": 0.888
+   }
+  }
+ },
+ "sections": {
+  "old: 3 samples, default effort": {
+   "n": 1070,
+   "accuracy": 0.886,
+   "ece": 0.083,
+   "auroc": 0.852
+  },
+  "1 sample, default effort, plain": {
+   "n": 1070,
+   "accuracy": 0.871,
+   "ece": 0.05,
+   "auroc": 0.799
+  },
+  "old request": {
+   "latency_ms_median": 9149,
+   "cost_usd_mean": 0.00337,
+   "requests": 150
+  },
+  "old by type": {
+   "predicate": {
+    "n": 440,
+    "accuracy": 0.955,
+    "ece": 0.053,
+    "auroc": 0.924
+   },
+   "choice": {
+    "n": 403,
+    "accuracy": 0.873,
+    "ece": 0.104,
+    "auroc": 0.815
+   },
+   "score": {
+    "n": 227,
+    "accuracy": 0.775,
+    "ece": 0.121,
+    "auroc": 0.719
+   }
+  },
+  "stack: plain + literal + sceptic, low effort": {
+   "n": 1070,
+   "accuracy": 0.866,
+   "ece": 0.075,
+   "auroc": 0.852
+  },
+  "1 sample, low effort, plain": {
+   "n": 1070,
+   "accuracy": 0.846,
+   "ece": 0.044,
+   "auroc": 0.79
+  },
+  "1 sample, low effort, literal": {
+   "n": 1070,
+   "accuracy": 0.848,
+   "ece": 0.039,
+   "auroc": 0.827
+  },
+  "1 sample, low effort, sceptic": {
+   "n": 1070,
+   "accuracy": 0.858,
+   "ece": 0.037,
+   "auroc": 0.817
+  },
+  "stack, unanimous": {
+   "n": 859,
+   "accuracy": 0.939,
+   "ece": 0.079,
+   "auroc": 0.799
+  },
+  "stack, split": {
+   "n": 211,
+   "accuracy": 0.569,
+   "ece": 0.095,
+   "auroc": 0.604
+  },
+  "stack request": {
+   "latency_ms_median": 8615,
+   "cost_usd_mean": 0.0027,
+   "requests": 150
+  },
+  "stack by type": {
+   "predicate": {
+    "n": 440,
+    "accuracy": 0.939,
+    "ece": 0.033,
+    "auroc": 0.918
+   },
+   "choice": {
+    "n": 403,
+    "accuracy": 0.876,
+    "ece": 0.115,
+    "auroc": 0.794
+   },
+   "score": {
+    "n": 227,
+    "accuracy": 0.709,
+    "ece": 0.097,
+    "auroc": 0.748
+   }
+  }
+ }
+}
