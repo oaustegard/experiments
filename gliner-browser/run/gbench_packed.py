@@ -16,14 +16,16 @@ identical.
 """
 import argparse
 import json
+import os
 import sys
 import time
 import warnings
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+os.environ.setdefault("HF_HOME", str(Path(__file__).resolve().parents[1] / "data" / "hf"))
 import bench  # noqa: E402
-from gref import GRef  # noqa: E402
+import gref  # noqa: E402
 
 
 class GModel:
@@ -75,11 +77,11 @@ def main():
     ap.add_argument("--splits", default="dev,test")
     ap.add_argument("--sets", default=None)
     ap.add_argument("--logit-bias", type=float, default=0.0)
-    ap.add_argument("--verify-ckpt", type=Path, default=None)
+    ap.add_argument("--verify-ckpt", default=None, help="checkpoint dir or cached hub id")
     a = ap.parse_args()
     warnings.filterwarnings("ignore")
     t0 = time.time()
-    g = GRef(a.model)
+    g = gref.load(a.model)
     g.b += a.logit_bias
     gm = GModel(g)
     bench.predict = gref_predict            # run_bench -> bench_split -> predict (module global)
@@ -87,7 +89,7 @@ def main():
     sets = a.sets.split(",") if a.sets else None
     res = bench.run_bench(gm, splits=splits, sets=sets, limit=a.limit)
     sps = gm.n_sent / gm.seconds if gm.seconds else None
-    out = {"name": a.out.stem, "model": str(a.model), "class": f"GRef({g.g['span_mode']})",
+    out = {"name": a.out.stem, "model": str(a.model), "class": f"{type(g).__name__}({g.g['span_mode']})",
            "variant": g.m["variant"], "head_format": g.m["head_format"], "prefix_space": g.g["prefix_space"],
            "logit_bias_extra": a.logit_bias, "versions": bench.versions(), "wall_seconds": round(time.time() - t0, 1),
            "gref_sentences": gm.n_sent, "gref_seconds": round(gm.seconds, 2),

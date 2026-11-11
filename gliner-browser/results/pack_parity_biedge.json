@@ -1,0 +1,1217 @@
+{
+ "gliner-bi-edge-v2.0": {
+  "checkpoint": "knowledgator/gliner-bi-edge-v2.0",
+  "encoder_kind": "bi",
+  "shift_mode": "none",
+  "span_mode": "markerV0",
+  "num_rnn_layers": 0,
+  "prefix_space": true,
+  "max_len": 2048,
+  "max_width": 12,
+  "a_logits_fp32_vs_library": {
+   "n_inputs": 56,
+   "all_ids_equal": true,
+   "all_words_mask_equal": true,
+   "all_shapes_equal": true,
+   "max_abs_logit_diff": 0.00153350830078125,
+   "median_of_per_input_max": 2.0503997802734375e-05,
+   "largest_abs_logit": 48.061580657958984,
+   "library_seconds": 8.02,
+   "gref_seconds": 28.57,
+   "all_label_ids_equal": true,
+   "label_vec_max_abs_diff": 8.940696716308594e-07,
+   "naive_vs_factorised_max": 2.6702880859375e-05,
+   "naive_vs_library_max": 0.0015354156494140625
+  },
+  "b_entities_vs_predict_entities": {
+   "extra_logit_bias": 0.0,
+   "own_bias@0.5": {
+    "inputs_identical": 56,
+    "inputs": 56,
+    "entities": 260,
+    "max_score_diff": 2.562999725341797e-06,
+    "failures": []
+   },
+   "own_bias@0.3": {
+    "inputs_identical": 56,
+    "inputs": 56,
+    "entities": 460,
+    "max_score_diff": 3.0994415283203125e-06,
+    "failures": []
+   }
+  },
+  "c_quantized_vs_fp32": {
+   "t4-w8L63": {
+    "max_abs_logit_diff": 20.18313217163086,
+    "mean_abs_logit_diff": 0.4022540128331208,
+    "own_bias@0.5": {
+     "fp32_entities": 260,
+     "variant_entities": 274,
+     "common": 239,
+     "changed_fraction": 0.18983050847457628
+    },
+    "own_bias@0.3": {
+     "fp32_entities": 460,
+     "variant_entities": 466,
+     "common": 425,
+     "changed_fraction": 0.15169660678642716
+    }
+   },
+   "t4-w8L31": {
+    "max_abs_logit_diff": 14.788966178894043,
+    "mean_abs_logit_diff": 0.5181819954086354,
+    "own_bias@0.5": {
+     "fp32_entities": 260,
+     "variant_entities": 260,
+     "common": 234,
+     "changed_fraction": 0.18181818181818182
+    },
+    "own_bias@0.3": {
+     "fp32_entities": 460,
+     "variant_entities": 457,
+     "common": 419,
+     "changed_fraction": 0.15863453815261044
+    }
+   },
+   "t4-w8L63+h8": {
+    "max_abs_logit_diff": 20.186616897583008,
+    "mean_abs_logit_diff": 0.4022937616586612,
+    "own_bias@0.5": {
+     "fp32_entities": 260,
+     "variant_entities": 274,
+     "common": 239,
+     "changed_fraction": 0.18983050847457628
+    },
+    "own_bias@0.3": {
+     "fp32_entities": 460,
+     "variant_entities": 466,
+     "common": 425,
+     "changed_fraction": 0.15169660678642716
+    }
+   },
+   "t4-w8L63_error_split": {
+    "table4_only": {
+     "max_abs_logit_diff": 19.007858276367188,
+     "mean_abs_logit_diff": 0.35724392533302307
+    },
+    "layers8_only": {
+     "max_abs_logit_diff": 7.393867492675781,
+     "mean_abs_logit_diff": 0.1948123574256897
+    },
+    "label_encoder_t4-w8L63_only": {
+     "max_abs_logit_diff": 0.6672744750976562,
+     "mean_abs_logit_diff": 0.034545429050922394
+    },
+    "head_int8_only": {
+     "max_abs_logit_diff": 0.09496879577636719,
+     "mean_abs_logit_diff": 0.010204985737800598
+    },
+    "fp32_logit_std": 4.318043231964111
+   }
+  },
+  "per_input": [
+   {
+    "kind": "handmade",
+    "n_words": 15,
+    "n_labels": 3,
+    "n_tokens": 19,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.049041748046875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.5495107769966125e-07,
+    "max_abs_logit": 19.329984664916992,
+    "naive_vs_factorised": 2.86102294921875e-06,
+    "naive_vs_library": 1.1444091796875e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 13,
+    "n_labels": 3,
+    "n_tokens": 17,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.9073486328125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.6193599700927734e-07,
+    "max_abs_logit": 27.910106658935547,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 15,
+    "n_labels": 5,
+    "n_tokens": 28,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.86102294921875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 28.723730087280273,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.765655517578125e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 18,
+    "n_labels": 3,
+    "n_tokens": 28,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.71661376953125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 19.568275451660156,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.71661376953125e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 8,
+    "n_labels": 3,
+    "n_tokens": 10,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 9.5367431640625e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 2.384185791015625e-07,
+    "max_abs_logit": 16.36361312866211,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 8.58306884765625e-06
+   },
+   {
+    "kind": "handmade",
+    "n_words": 12,
+    "n_labels": 28,
+    "n_tokens": 17,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.71661376953125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 19.999242782592773,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 8,
+    "n_labels": 4,
+    "n_tokens": 13,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 9.5367431640625e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.842877388000488e-07,
+    "max_abs_logit": 12.445610046386719,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.049041748046875e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 10,
+    "n_labels": 5,
+    "n_tokens": 13,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 9.5367431640625e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 11.194348335266113,
+    "naive_vs_factorised": 1.430511474609375e-06,
+    "naive_vs_library": 9.059906005859375e-06
+   },
+   {
+    "kind": "handmade",
+    "n_words": 11,
+    "n_labels": 2,
+    "n_tokens": 20,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.4332275390625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 25.555816650390625,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 3.4332275390625e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 10,
+    "n_labels": 2,
+    "n_tokens": 14,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.049041748046875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 2.980232238769531e-07,
+    "max_abs_logit": 10.185810089111328,
+    "naive_vs_factorised": 9.5367431640625e-07,
+    "naive_vs_library": 1.0013580322265625e-05
+   },
+   {
+    "kind": "handmade",
+    "n_words": 1,
+    "n_labels": 1,
+    "n_tokens": 3,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 9.238719940185547e-07,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 0.13921183347702026,
+    "naive_vs_factorised": 5.960464477539063e-08,
+    "naive_vs_library": 8.642673492431641e-07
+   },
+   {
+    "kind": "handmade",
+    "n_words": 15,
+    "n_labels": 3,
+    "n_tokens": 19,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.574920654296875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 22.04252815246582,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.6702880859375e-05
+   },
+   {
+    "kind": "long (2123 words > max_len 2048)",
+    "n_words": 2048,
+    "n_labels": 9,
+    "n_tokens": 2597,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 0.00153350830078125,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 48.061580657958984,
+    "naive_vs_factorised": 2.6702880859375e-05,
+    "naive_vs_library": 0.0015354156494140625
+   },
+   {
+    "kind": "59 labels > max_types 100",
+    "n_words": 29,
+    "n_labels": 58,
+    "n_tokens": 41,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.47955322265625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 6.407499313354492e-07,
+    "max_abs_logit": 22.686538696289062,
+    "naive_vs_factorised": 1.430511474609375e-05,
+    "naive_vs_library": 2.384185791015625e-05
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 20,
+    "n_labels": 14,
+    "n_tokens": 22,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.9073486328125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 21.853307723999023,
+    "naive_vs_factorised": 2.86102294921875e-06,
+    "naive_vs_library": 1.811981201171875e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 29,
+    "n_labels": 2,
+    "n_tokens": 47,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.86102294921875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.842877388000488e-07,
+    "max_abs_logit": 28.39352798461914,
+    "naive_vs_factorised": 5.7220458984375e-06,
+    "naive_vs_library": 2.86102294921875e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 26,
+    "n_labels": 13,
+    "n_tokens": 30,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.86102294921875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 31.97171974182129,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.6702880859375e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 42,
+    "n_labels": 9,
+    "n_tokens": 53,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.288818359375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 21.8116397857666,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.47955322265625e-05
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 28,
+    "n_labels": 17,
+    "n_tokens": 32,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.0517578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 21.512245178222656,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.86102294921875e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 9,
+    "n_labels": 1,
+    "n_tokens": 14,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.337860107421875e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 6.477151870727539,
+    "naive_vs_factorised": 9.5367431640625e-07,
+    "naive_vs_library": 2.86102294921875e-06
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 1,
+    "n_labels": 8,
+    "n_tokens": 3,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.6226043701171875e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.066394805908203e-07,
+    "max_abs_logit": 3.5902745723724365,
+    "naive_vs_factorised": 4.76837158203125e-07,
+    "naive_vs_library": 2.1457672119140625e-06
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 36,
+    "n_labels": 14,
+    "n_tokens": 50,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.09808349609375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 21.210731506347656,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.193450927734375e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 32,
+    "n_labels": 12,
+    "n_tokens": 43,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.0517578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 27.66472816467285,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.6702880859375e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 30,
+    "n_labels": 5,
+    "n_tokens": 38,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.002716064453125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 6.407499313354492e-07,
+    "max_abs_logit": 20.9811954498291,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.002716064453125e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 56,
+    "n_labels": 9,
+    "n_tokens": 76,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 6.4849853515625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 37.20269012451172,
+    "naive_vs_factorised": 7.62939453125e-06,
+    "naive_vs_library": 6.4849853515625e-05
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 32,
+    "n_labels": 17,
+    "n_tokens": 44,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.0517578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 34.22267532348633,
+    "naive_vs_factorised": 5.7220458984375e-06,
+    "naive_vs_library": 2.86102294921875e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 10,
+    "n_labels": 12,
+    "n_tokens": 12,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.239776611328125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.364418029785156e-07,
+    "max_abs_logit": 17.706233978271484,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.239776611328125e-05
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 6,
+    "n_labels": 3,
+    "n_tokens": 10,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 7.152557373046875e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.8743019104003906e-07,
+    "max_abs_logit": 6.491549491882324,
+    "naive_vs_factorised": 9.5367431640625e-07,
+    "naive_vs_library": 7.62939453125e-06
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 21,
+    "n_labels": 14,
+    "n_tokens": 23,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.811981201171875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 18.876632690429688,
+    "naive_vs_factorised": 2.86102294921875e-06,
+    "naive_vs_library": 2.002716064453125e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 34,
+    "n_labels": 12,
+    "n_tokens": 42,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.002716064453125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 23.810949325561523,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 60,
+    "n_labels": 13,
+    "n_tokens": 69,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.337860107421875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 23.10416603088379,
+    "naive_vs_factorised": 5.7220458984375e-06,
+    "naive_vs_library": 3.4332275390625e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 22,
+    "n_labels": 2,
+    "n_tokens": 24,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.09808349609375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.8743019104003906e-07,
+    "max_abs_logit": 18.873886108398438,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 57,
+    "n_labels": 17,
+    "n_tokens": 73,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.4332275390625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 33.22922897338867,
+    "naive_vs_factorised": 7.62939453125e-06,
+    "naive_vs_library": 3.62396240234375e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 15,
+    "n_labels": 12,
+    "n_tokens": 19,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.47955322265625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.364418029785156e-07,
+    "max_abs_logit": 20.58672332763672,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 2.574920654296875e-05
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 11,
+    "n_labels": 8,
+    "n_tokens": 13,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 9.5367431640625e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.066394805908203e-07,
+    "max_abs_logit": 11.731502532958984,
+    "naive_vs_factorised": 2.384185791015625e-06,
+    "naive_vs_library": 8.58306884765625e-06
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 20,
+    "n_labels": 6,
+    "n_tokens": 22,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.430511474609375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.066394805908203e-07,
+    "max_abs_logit": 18.962682723999023,
+    "naive_vs_factorised": 2.86102294921875e-06,
+    "naive_vs_library": 1.430511474609375e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 12,
+    "n_labels": 12,
+    "n_tokens": 21,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.621246337890625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 18.39023780822754,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.52587890625e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 41,
+    "n_labels": 13,
+    "n_tokens": 51,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.24249267578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 29.32803726196289,
+    "naive_vs_factorised": 5.7220458984375e-06,
+    "naive_vs_library": 3.0517578125e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 64,
+    "n_labels": 9,
+    "n_tokens": 76,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 0.000110626220703125,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 24.013980865478516,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 0.000110626220703125
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 39,
+    "n_labels": 1,
+    "n_tokens": 44,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.621246337890625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.423782229423523e-07,
+    "max_abs_logit": 24.452838897705078,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.71661376953125e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 27,
+    "n_labels": 12,
+    "n_tokens": 33,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.0517578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.364418029785156e-07,
+    "max_abs_logit": 19.910287857055664,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 3.0517578125e-05
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 3,
+    "n_labels": 8,
+    "n_tokens": 5,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 5.7220458984375e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.066394805908203e-07,
+    "max_abs_logit": 6.8459792137146,
+    "naive_vs_factorised": 4.76837158203125e-07,
+    "naive_vs_library": 5.245208740234375e-06
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 60,
+    "n_labels": 14,
+    "n_tokens": 62,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.0517578125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 24.80265998840332,
+    "naive_vs_factorised": 7.62939453125e-06,
+    "naive_vs_library": 3.0517578125e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 69,
+    "n_labels": 5,
+    "n_tokens": 75,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.6702880859375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.842877388000488e-07,
+    "max_abs_logit": 25.84781837463379,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.47955322265625e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 35,
+    "n_labels": 13,
+    "n_tokens": 49,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.384185791015625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 25.25326919555664,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.288818359375e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 43,
+    "n_labels": 9,
+    "n_tokens": 56,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 3.3855438232421875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 27.921476364135742,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 3.4332275390625e-05
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 37,
+    "n_labels": 17,
+    "n_tokens": 42,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.6702880859375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 22.8946475982666,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.6702880859375e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 11,
+    "n_labels": 3,
+    "n_tokens": 13,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.1444091796875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.8743019104003906e-07,
+    "max_abs_logit": 14.90435791015625,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.239776611328125e-05
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 6,
+    "n_labels": 8,
+    "n_tokens": 10,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 7.152557373046875e-06,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.066394805908203e-07,
+    "max_abs_logit": 8.421091079711914,
+    "naive_vs_factorised": 9.5367431640625e-07,
+    "naive_vs_library": 7.62939453125e-06
+   },
+   {
+    "kind": "bench CrossNER_AI",
+    "n_words": 33,
+    "n_labels": 14,
+    "n_tokens": 37,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.384185791015625e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 24.68731689453125,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 2.288818359375e-05
+   },
+   {
+    "kind": "bench CrossNER_literature",
+    "n_words": 20,
+    "n_labels": 12,
+    "n_tokens": 29,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.71661376953125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 22.64395523071289,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.71661376953125e-05
+   },
+   {
+    "kind": "bench CrossNER_music",
+    "n_words": 40,
+    "n_labels": 3,
+    "n_tokens": 44,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.09808349609375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.5762786865234375e-07,
+    "max_abs_logit": 24.94915199279785,
+    "naive_vs_factorised": 5.7220458984375e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "bench CrossNER_politics",
+    "n_words": 35,
+    "n_labels": 9,
+    "n_tokens": 43,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.811981201171875e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 4.76837158203125e-07,
+    "max_abs_logit": 23.063739776611328,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.71661376953125e-05
+   },
+   {
+    "kind": "bench CrossNER_science",
+    "n_words": 23,
+    "n_labels": 17,
+    "n_tokens": 28,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 2.09808349609375e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 8.940696716308594e-07,
+    "max_abs_logit": 22.31821632385254,
+    "naive_vs_factorised": 3.814697265625e-06,
+    "naive_vs_library": 1.9073486328125e-05
+   },
+   {
+    "kind": "bench mit-movie",
+    "n_words": 16,
+    "n_labels": 12,
+    "n_tokens": 19,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.71661376953125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 5.364418029785156e-07,
+    "max_abs_logit": 16.956371307373047,
+    "naive_vs_factorised": 1.9073486328125e-06,
+    "naive_vs_library": 1.71661376953125e-05
+   },
+   {
+    "kind": "bench mit-restaurant",
+    "n_words": 7,
+    "n_labels": 2,
+    "n_tokens": 9,
+    "ids_equal": true,
+    "words_mask_equal": true,
+    "words_equal": true,
+    "shape_equal": true,
+    "max_abs": 1.239776611328125e-05,
+    "label_ids_equal": true,
+    "label_vec_max_abs": 3.8743019104003906e-07,
+    "max_abs_logit": 9.741668701171875,
+    "naive_vs_factorised": 9.5367431640625e-07,
+    "naive_vs_library": 1.239776611328125e-05
+   }
+  ],
+  "sizes": {
+   "fp32": {
+    "brotli_quality": 9,
+    "text_token_table": {
+     "raw": 77365248,
+     "brotli": 71503688
+    },
+    "text_layers": {
+     "raw": 50167296,
+     "brotli": 46543293
+    },
+    "projection": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "label_token_table": {
+     "raw": 46881792,
+     "brotli": 42645429
+    },
+    "label_layers": {
+     "raw": 43378176,
+     "brotli": 40152994
+    },
+    "bilstm": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "span_head": {
+     "raw": 21264384,
+     "brotli": 19638788
+    },
+    "weights_total": {
+     "raw": 239056896,
+     "brotli": 220484192
+    },
+    "tokenizer.json": {
+     "raw": 1774273,
+     "brotli": 519553
+    },
+    "labels_tokenizer.json": {
+     "raw": 527370,
+     "brotli": 178001
+    },
+    "manifest.json": {
+     "raw": 18214,
+     "brotli": 2504
+    },
+    "download_total": {
+     "raw": 241376753,
+     "brotli": 221184250
+    }
+   },
+   "t4-w8L63": {
+    "brotli_quality": 9,
+    "text_token_table": {
+     "raw": 10879488,
+     "brotli": 9720009
+    },
+    "text_layers": {
+     "raw": 12688896,
+     "brotli": 9898996
+    },
+    "projection": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "label_token_table": {
+     "raw": 6592752,
+     "brotli": 5888463
+    },
+    "label_layers": {
+     "raw": 11610624,
+     "brotli": 9068929
+    },
+    "bilstm": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "span_head": {
+     "raw": 21264384,
+     "brotli": 19638788
+    },
+    "weights_total": {
+     "raw": 63036144,
+     "brotli": 54215185
+    },
+    "tokenizer.json": {
+     "raw": 1774273,
+     "brotli": 519553
+    },
+    "labels_tokenizer.json": {
+     "raw": 527370,
+     "brotli": 178001
+    },
+    "manifest.json": {
+     "raw": 22817,
+     "brotli": 2897
+    },
+    "download_total": {
+     "raw": 65360604,
+     "brotli": 54915636
+    }
+   },
+   "t4-w8L31": {
+    "brotli_quality": 9,
+    "text_token_table": {
+     "raw": 10879488,
+     "brotli": 9720009
+    },
+    "text_layers": {
+     "raw": 12688896,
+     "brotli": 8508630
+    },
+    "projection": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "label_token_table": {
+     "raw": 6592752,
+     "brotli": 5888463
+    },
+    "label_layers": {
+     "raw": 11610624,
+     "brotli": 7897128
+    },
+    "bilstm": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "span_head": {
+     "raw": 21264384,
+     "brotli": 19638788
+    },
+    "weights_total": {
+     "raw": 63036144,
+     "brotli": 51653018
+    },
+    "tokenizer.json": {
+     "raw": 1774273,
+     "brotli": 519553
+    },
+    "labels_tokenizer.json": {
+     "raw": 527370,
+     "brotli": 178001
+    },
+    "manifest.json": {
+     "raw": 22817,
+     "brotli": 2897
+    },
+    "download_total": {
+     "raw": 65360604,
+     "brotli": 52353469
+    }
+   },
+   "t4-w8L63+h8": {
+    "brotli_quality": 9,
+    "text_token_table": {
+     "raw": 10879488,
+     "brotli": 9720009
+    },
+    "text_layers": {
+     "raw": 12688896,
+     "brotli": 9898996
+    },
+    "projection": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "label_token_table": {
+     "raw": 6592752,
+     "brotli": 5888463
+    },
+    "label_layers": {
+     "raw": 11610624,
+     "brotli": 9068929
+    },
+    "bilstm": {
+     "raw": 0,
+     "brotli": 0
+    },
+    "span_head": {
+     "raw": 5369856,
+     "brotli": 5034034
+    },
+    "weights_total": {
+     "raw": 47141616,
+     "brotli": 39610431
+    },
+    "tokenizer.json": {
+     "raw": 1774273,
+     "brotli": 519553
+    },
+    "labels_tokenizer.json": {
+     "raw": 527370,
+     "brotli": 178001
+    },
+    "manifest.json": {
+     "raw": 23382,
+     "brotli": 2915
+    },
+    "download_total": {
+     "raw": 49466641,
+     "brotli": 40310900
+    }
+   }
+  }
+ }
+}
