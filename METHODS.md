@@ -1299,7 +1299,9 @@ survives exactly the sanity checks people run.
   jobs in this container do not reliably survive the tool call that launched
   them; two multi-minute fine-tunes died mid-compile with no exit line. Use the
   harness's own `run_in_background` for anything longer than a tool call.
-  (`needle-bsky/ERRORS.md` #3)
+  (`needle-bsky/ERRORS.md` #3) Bracketing one character of the pattern also works, inside `bash -c` too:
+  `pkill -f 'run/[t]rain.py'` matches `run/train.py` and not its own command line, which holds `[t]`.
+  (`gliner-browser/run/colab_restart.py`)
 
 - **A CCotw session can have `WebSearch` working and `WebFetch` blocked for
   every domain — research is still possible, but every figure becomes
@@ -1747,6 +1749,18 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **The `gliner` library tokenizes each word without its leading space, which costs a BPE backbone about 7 points.**
+  It passes words to the tokenizer one at a time, so on a GPT-2-style BPE (Ettin, ModernBERT) every word gets the
+  form the model saw only at the start of a text: `Mountain` became `M` + `ountain`. Training Ettin-17m with every
+  word tokenized as `ĠMountain` raised the 7-set zero-shot F1 from 29.8 to 36.7 at threshold 0.5, all else equal.
+  Check the token ids of one sentence against the tokenizer run on the whole sentence before training any GLiNER on a
+  BPE encoder. (`gliner-browser/results/A4.json`
+  and `A6.json`, `tokenization_check`)
+- **Check that a layer is used before porting it: `gliner`'s bi-encoder builds a BiLSTM it never calls.**
+  `BiEncoderSpanModel` constructs `rnn` (887,808 parameters in `gliner-bi-edge-v2.0`), and its forward never
+  applies it in `gliner` 0.2.30 or 0.2.22; zeroing the weights changes the logits by 0.0. A sequential BiLSTM would
+  have needed its own CPU stage in the browser. Zero a layer's weights, or hook its forward, and compare logits
+  before writing a kernel for it. (`gliner-browser/run/gpack.py`, the pack's `manifest.json` `dropped`)
 - **In an explicit buoyancy solver, compute the buoyancy force from the scalar after advecting it.** The soap-film
   solver carries vorticity and a thickness field that acts as density. Updating vorticity from the old
   thickness and thickness from the old flow is forward Euler on an oscillator: a stably
@@ -4298,6 +4312,15 @@ On three fresh checkpoints packed from fp32, ±31 per-column int8 codes cost 0.0
 instead of requantizing from fp32 overstated the cost fourfold (0.0085).
 (`browser-decider/results/quant_levels-summary.json`)
 
+### Weight-only packing costs a 32M GLiNER nothing; ±31 on its text layers costs 0.48 (gliner-browser)
+
+`gliner-bi-edge-v2.0` (Ettin-32m text encoder, MiniLM label encoder, span head) packed with 4-bit token tables,
+int8 layers at ±63 and int8 heads scored 54.28 on the 7-set zero-shot benchmark against 54.23 in fp32, and its
+files went from 241.4 to 49.5 MB (39.9 MB brotli). Quantizing one part at a time moved the score by at most 0.19,
+except the text layers at ±31, which cost 0.48; the ±31 that held on the Ettin-17m decider does not carry over
+here. Activations stayed in fp32. Individual predictions still move (19% of entities at 0.5 changed on 56 inputs),
+so score packing on the full benchmark. (`gliner-browser/results/pack_cost_biedge.json`)
+
 ### Merge a LoRA into ±31 int8 codes at the base scale / 4, not back to ±31 (ettin-kernel-profile)
 
 Codes held to ±31 leave int8 room to absorb a merged LoRA delta. Set each column's scale to the base scale / 4
@@ -4315,6 +4338,15 @@ binding 1.47 µs, so the Ettin-17m decider's 122 dispatches are 3% of a 6 ms dec
 there are no stalls between kernels for fusion to remove. Time "drop one kernel group" arms of the real graph as
 well: outputs are wrong but timing is valid, and dropping the LoRA side path gives the merged model's cost exactly.
 GPU time is not page time: the same decision took 14 ms in `score()`. (`ettin-kernel-profile/web/profile_job.js`)
+
+### Per-word dense layers belong in the encoder's GPU submit (gliner-browser)
+
+GLiNER's span head runs two dense layers on every word before scoring spans against labels. On the Mac (Chrome
+157, Apple GPU) a 30-token text took 139.9 ms with the head in plain JavaScript after reading back the encoder's
+word rows, 126.9 ms of it in those per-word layers; with the layers and the span by label scores in the same GPU
+submit as the encoder and only the scores read back, the whole text took 1.9 ms. A 100-text batch went from 8.07
+to 2,445 texts a second. A CPU stage is cheap only when its work per word is small; a hidden-by-hidden matmul per
+word is not. (`gliner-browser/results/bridge_gliner-web-2.json`)
 
 ### LFM2.5-350M does not get stuck in repetition loops (weight-space-edit)
 
