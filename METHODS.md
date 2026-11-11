@@ -5521,6 +5521,23 @@ beat, not a law. It does not contradict browser-decider's no-transfer finding: t
 untrained; here they only initialize training. (`decider-lora-creator/RESULTS.md` finding 8)
 
 
+### Have a model quote the deciding evidence before it states probabilities; give pooled answers their own temperature (haiku-decider)
+
+- **Finding.** Haiku 5.5 answering typed questions with verbalised probabilities gained more from one output
+  field than from any reading instruction: a `cue` written before `probabilities` (the few words of the evidence
+  that decide the question, quoted, or "none") lifted one call from 0.868 to 0.902 averaged over three dev sets,
+  where the best of five instructions (decide between the two best options, read literally, start sceptical,
+  treat descriptions as tests) reached 0.886. On the held-out half one call went from 0.931 to 0.969 on whole
+  articles and a three-call stack from 0.870 to 0.906 on sections, level with Jev on the same answers.
+- **Finding.** Verbalised probabilities came out underconfident, and averaging three samples flattened them
+  further: fitted temperatures were 0.74 / 0.60 / 0.81 (predicate / choice / score) for one call and 0.44 / 0.52 /
+  0.50 for the pool. One temperature for both left pooled ECE at 0.10 to 0.15; separate ones reached 0.013 to
+  0.015 cross-validated.
+- **Rule.** When a prompted LLM is the classifier, put a quoted-evidence field ahead of the answer in the output
+  schema before tuning instructions, and fit calibration separately for each sample count you ship. Pick prompts
+  on a dev half: candidates scored as single runs can be pooled offline into any stack. (`haiku-decider/RESULTS.md`,
+  `run/prompts.py`)
+
 ### Muse Ember through the AI Gateway: a shared 50/min limit, and effort low is not Haiku's effort low (haiku-swarm-poc)
 
 Two things a fan-out onto `muse-ember-1.0` hits. First, the Cloudflare AI Gateway `claude-and-friends`, which the
