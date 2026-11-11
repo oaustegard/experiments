@@ -183,6 +183,7 @@ def main():
     ap.add_argument("--bench-limit", type=int, default=None, help="first N sentences per bench split")
     ap.add_argument("--bench-batch", type=int, default=12)
     ap.add_argument("--workers", type=int, default=1, help="dataloader workers")
+    ap.add_argument("--max-oom-skips", type=int, default=0, help="batches the Trainer may skip for OOM before the arm fails")
     ap.add_argument("--log-every", type=int, default=50)
     ap.add_argument("--crash-after-save", type=int, default=0, help="test hook: die right after this step's checkpoint")
     a = ap.parse_args()
@@ -250,7 +251,7 @@ def main():
             self.t, self.s, self.b, self.dead = time.time(), None, 0.0, 0
 
         def on_step_end(self, args, state, control, **kw):
-            if oom["n"]:
+            if oom["n"] > a.max_oom_skips:
                 raise RuntimeError(f"the Trainer skipped {oom['n']} batch(es) for OOM")
             if state.global_step >= state.max_steps:
                 control.should_evaluate = True      # always bench the final step
