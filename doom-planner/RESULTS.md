@@ -4,8 +4,7 @@ Oskar, 2026-11-12, after asking whether a Haiku agent running at low
 reasoning effort could play Doom: *"What if it was treated as a decision model with a war game-like
 multiple scenarios, pick the best one, approach?"*, then *"Build it in
 experiments."* Live page with the three videos:
-[Doom by Rollouts](https://claude.ai/artifact/LTAJbziwPNEFX8E49modKu)
-(private until shared).
+[Doom by Rollouts](https://austegard.com/experiments/doom-planner/web/).
 
 ## Answer
 
@@ -48,7 +47,7 @@ random or greedy baseline would make them measurements.
    level up.** 197 calls <!-- @evidence[[results/summary.json#e1m1-judged.judge.calls]] -->
    at 5.56 s each; <!-- @evidence[[results/summary.json#e1m1-judged.judge.mean_seconds]] -->
    it kept the planner's top-scoring option 66.5% of the time <!-- @evidence[[results/summary.json#e1m1-judged.judge.picked_planner_top_share]] -->
-   and the exit came at 216.8 s instead of 162.5 s. One run. Haiku sees the
+   and the exit came at 216.8 s instead of 162.5 s, in a single run. Haiku sees the
    planner's scores, with the top option listed first, which may anchor it;
    that is untested. (`e1m1-judged`)
 4. **E1M2 is where it stops.** The 15-minute run repeats the 5-minute run
@@ -60,8 +59,8 @@ random or greedy baseline would make them measurements.
    Doom reads its graphics and maps from a WAD file. Until the WAD was loaded
    into memory before the first fork, about a third of the copies crashed
    while loading graphics and scored as 0, and two identical runs diverged at
-   the first decision. After the fix two runs produce byte-identical
-   decision logs. (Log, "Determinism")
+   the first decision. After the fix two runs produce decision logs
+   with matching MD5 checksums. (Log, "Determinism")
 6. **A planner that re-plans every few steps needs a "keep going" option and
    must finish plans that reach the goal.** Without the first, two
    turn-then-run plans (turn 90°, then run forward) restarted each other 122 times each and the player
@@ -103,7 +102,7 @@ random or greedy baseline would make them measurements.
   from where it is" with a bonus of 10.
 - **Scenarios.** Each option runs under 3 perturbations of Doom's random
   number generator state (its seeds and its table positions). The real game's seed is never used, so the
-  planner sees plausible futures, not the actual one.
+  planner never sees the actual future.
 - **Score of a rollout.** 12 × damage dealt + 150 × kills − 10 × damage taken
   − 3,000 × death + 4 × new wall lines drawn + 25 × new 128-unit cells entered
   + 40 × items − 2 × ammo spent + (10,000 + 50 × tics left) × level exit
@@ -141,7 +140,7 @@ run reported here, ran inside it.
 The smoke video had 212 frames for 350 tics. `D_Display` calls
 `D_BuildNewTiccmds`, which runs `I_StartTic` once per tic the clock has
 advanced, and a clock that moved on every call ran it about 1.65 times per
-tic, shortening every rollout. Fixed: the clock moves only in the screen-wipe
+tic. That shortened every rollout. Fixed: the clock moves only in the screen-wipe
 loop, and `I_StartTic` acts once per `gametic`.
 
 Two identical 60-second runs still diverged. Decision 0's per-scenario scores
@@ -149,7 +148,7 @@ were exactly 0.0 in a random third of the slots; the children had died with
 SIGSEGV in `R_CachePatchNum`. All forked children share the parent's open
 WAD file and its read position, and children loading lumps at the same time
 read each other's bytes. Loading the WAD into memory in `I_InitGraphics`
-fixed it: two runs then wrote byte-identical decision logs. Every run before
+fixed it: two runs then wrote decision logs with matching MD5 checksums. Every run before
 this fix was discarded, including an exit-assisted run that appeared to
 finish E1M1 in 24 s. Unwritten slots now start as NaN and abort the run.
 

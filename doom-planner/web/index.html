@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doom by Rollouts</title>
+<meta name="description" content="A Doom player that decides by trying each move in copies of the game and keeping the one that worked out best.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of explanation, a five-step walk-through of a decision, then one card per run (video beside its numbers). */
+/* One deliberate dark look: Doom's tech-base panels and amber status-bar numerals. */
+:root {
+  color-scheme: dark;
+  --bg: #161a1b;
+  --panel: #1f2526;
+  --rule: #2f3a3b;
+  --fg: #d8ded6;
+  --muted: #95a39d;
+  --amber: #e2a83a;
+  --teal: #6fb3a8;
+  --red: #d0563c;
+  --display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 40px 16px 64px; }
+header { display: grid; gap: 14px; margin-bottom: 8px; }
+.kicker { font: 500 13px var(--mono); color: var(--amber); letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { font: 800 clamp(40px, 7vw, 72px)/0.95 var(--display); letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
+h2 { font: 600 28px/1.1 var(--display); margin: 0; text-wrap: balance; }
+h3 { font: 600 24px/1.1 var(--display); margin: 0; color: var(--amber); }
+p { margin: 0; max-width: 68ch; }
+.lede { font-size: 19px; }
+section { margin-top: 44px; display: grid; gap: 16px; }
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; max-width: 76ch; }
+ol.steps li { counter-increment: step; display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 12px;
+  background: var(--panel); padding: 14px 16px; border-left: 3px solid var(--teal); }
+ol.steps li::before { content: counter(step); font: 600 26px/1 var(--display); color: var(--amber); }
+ol.steps b { color: var(--fg); }
+.note { color: var(--muted); font-size: 15px; }
+.runs { display: grid; gap: 28px; }
+.run { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 24px; align-items: start;
+  border-top: 1px solid var(--rule); padding-top: 24px; }
+.frame { background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+.frame video { width: 100%; height: 100%; display: block; }
+.meta { display: grid; gap: 12px; min-width: 0; }
+.meta p { color: var(--muted); font-size: 15px; }
+dl { margin: 0; border-top: 1px solid var(--rule); }
+dl div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+dt { color: var(--muted); font-size: 14px; }
+dd { margin: 0; font: 500 15px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+a { color: var(--teal); text-underline-offset: 3px; }
+a:focus-visible, video:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 72ch; }
+li::marker { color: var(--red); }
+footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+code { font: 14px var(--mono); color: var(--amber); }
+@media (max-width: 760px) { .run { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">oaustegard/experiments · doom-planner</div>
+    <h1>Doom by Rollouts</h1>
+    <p class="lede">This Doom player, called the planner below, decides what to do by trying moves out in copies of the game. Four times a second it copies the game, tries a different move in each copy, and plays whichever move worked out best. Each copy played out this way is called a rollout. The planner reads the game's internal state and never looks at the screen.</p>
+  </header>
+
+  <section>
+    <h2>Each decision tries 30 options in 90 copies of the game</h2>
+    <p>Doom updates its world 35 times a second, and each update is called a tic. Every 8 tics, about a quarter of a second, the player pauses the real game and does this:</p>
+    <ol class="steps">
+      <li><span><b>Copy the game 90 times.</b> The game is a program running on Linux, which can duplicate itself (the <code>fork</code> system call). Each copy holds the whole game as it stands: the map, every monster, every door, and the player's position, health and ammo.</span></li>
+      <li><span><b>Give each copy one option to try.</b> There are 30 options, such as walk forward, turn left while firing, strafe right, walk into a door pressing "use", turn 90° and then run, or keep doing what it was already doing. Each option is tried in three copies.</span></li>
+      <li><span><b>Roll different dice in each of the three.</b> Doom uses random numbers to decide whether a shot hits, how much damage it does and where a monster wanders. Each of the three copies has its random numbers reseeded differently from the other two, so they show three ways the next moment could go. The reseeding is the same in every run, so a run repeats exactly. None of them uses the real game's random numbers, so the player never sees the future that will actually happen.</span></li>
+      <li><span><b>Let each copy play for a second and a half, then score it.</b> After 52 tics, each copy reports points for damage it dealt, kills, items picked up, walls it saw for the first time, and getting closer to parts of the map it has not seen yet. "Closer" is walking distance, measured through the map's rooms and doorways, so a wall between the player and an unexplored room does not count as close. It loses points for damage it took, ammo it used and standing still. Reaching the exit earns a large bonus, and dying a large penalty.</span></li>
+      <li><span><b>Pick the option, play it, repeat.</b> Each option's three scores are averaged, and the average is pulled halfway toward the worst of the three, so a move that is usually good but sometimes fatal loses to a steadier one. The best option is played in the real game for 8 tics, and then the player decides again.</span></li>
+    </ol>
+    <p class="note">A 5-minute game takes about 1,300 decisions and 117,000 copies, which run in about four minutes on four CPU cores. The player knows the map's layout, which it needs to measure walking distance, but in two of the three runs below it is not told where the exit is. The first level, E1M1, ends at a wall switch. The map tells the player where every wall switch is, and once nothing unexplored is left within reach it goes and presses the ones it has not tried.</p>
+  </section>
+
+  <section>
+    <h2>All three runs cleared the first level within five minutes</h2>
+    <p>Times are game time. Each video is the game as it was played, every frame, at normal speed, on the middle difficulty ("Hurt Me Plenty"). The caption at the top left shows each decision: the option played (marked "plan", or "JUDGE" when Haiku, Anthropic's smallest Claude model, chose it), its score, and the next two options with their scores. After the exit, each run carries on into the second level, E1M2.</p>
+    <div class="runs">
+      <article class="run">
+        <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-explore.mp4"></video></div>
+        <div class="meta">
+          <h3>Exploring without exit knowledge</h3>
+          <p>No knowledge of the exit. The planner explores, fights, and once nothing unseen is reachable it goes to press the switches it has not tried.</p>
+          <dl><div><dt>E1M1 exit</dt><dd>2:43</dd></div><div><dt>E1M1 kills</dt><dd>6 of 6</dd></div><div><dt>Deaths in 5 min, any level</dt><dd>0</dd></div><div><dt>Decisions</dt><dd>1,302</dd></div><div><dt>Rollouts (copies played out)</dt><dd>117,174</dd></div></dl>
+        </div>
+      </article>
+      <article class="run">
+        <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-assisted.mp4"></video></div>
+        <div class="meta">
+          <h3>Exit-assisted</h3>
+          <p>The same planner, also told where the exit switch is and given points for walking toward it.</p>
+          <dl><div><dt>E1M1 exit</dt><dd>0:58</dd></div><div><dt>E1M1 kills</dt><dd>3 of 6</dd></div><div><dt>Deaths in 5 min, any level</dt><dd>1</dd></div><div><dt>Decisions</dt><dd>1,302</dd></div><div><dt>Rollouts (copies played out)</dt><dd>117,171</dd></div></dl>
+        </div>
+      </article>
+      <article class="run">
+        <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-judged.mp4"></video></div>
+        <div class="meta">
+          <h3>Exploring with Haiku on close calls</h3>
+          <p>As the first run, but when the two best options score within 10% of each other, Haiku makes the call. It sees a picture of the screen now and of where each close option leads 1.5 s later, with their scores, plus a one-line note the previous Haiku call left about where the player was heading. It runs at low reasoning effort, about 5.6 s per call, which stretched this run to 24 minutes of real time. Haiku's answers can vary, so this run would not repeat exactly.</p>
+          <dl><div><dt>E1M1 exit</dt><dd>3:37</dd></div><div><dt>E1M1 kills</dt><dd>6 of 6</dd></div><div><dt>Deaths in 5 min, any level</dt><dd>0</dd></div><div><dt>Decisions</dt><dd>1,301</dd></div><div><dt>Rollouts (copies played out)</dt><dd>117,084</dd></div><div><dt>Haiku calls</dt><dd>197 (5.56 s each)</dd></div><div><dt>Haiku kept the planner's top pick</dt><dd>66%</dd></div></dl>
+        </div>
+      </article>
+    </div>
+    <p>Left to play for 15 minutes without exit knowledge, the same planner finished E1M1 at 2:43 (the same game, since runs repeat exactly) and spent the remaining 12 minutes on E1M2 without finding its exit, with 0 deaths and 4 kills there. <a href="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1-long.mp4">Watch the 15-minute run</a>.</p>
+  </section>
+
+  <section>
+    <h2>Copies were enough for E1M1 and not for E1M2</h2>
+    <p>Trying moves in copies of the game was enough to clear the first level, E1M1, with no idea where the exit was: all six monsters killed, no deaths, exit at 2:43. Knowing where the exit is cut that to under a minute, but the player skipped half the fights and died once on the next level. Asking Haiku to choose between close options did not help in this one run: it overrode the planner on a third of its 197 calls, and the level took 3:37 instead of 2:43. Each setting ran once, so these runs show what the player can do; they do not measure how often it does it.</p>
+    <p>The second level, E1M2, is where the player gets stuck. That map has a door that needs the red key, which the walking-distance measure treats as an ordinary door, so it can pull the player toward a door it cannot open. The map also has lifts, which the walking-distance measure leaves out. Which of these stands between the start and the exit has not been traced.</p>
+  </section>
+
+  <section>
+    <h2>These rules stop the planner stalling in rooms it has already explored</h2>
+    <ul>
+      <li>"Turn 90°, then run" takes longer than the 8 tics between decisions, so one of the 30 options is "keep doing what you were doing", picked up where it left off. Without it, the turn would restart at every decision and never get to the running part.</li>
+      <li>An option that reaches the exit in all three copies is played through to the end instead of for 8 tics.</li>
+      <li>The score includes walking distance to the nearest wall segment the player has not seen yet. A second and a half of play rarely reveals anything new once a room is explored, and without this pull every option scores about the same.</li>
+      <li>Some wall segments never count as unexplored: open doorways between two rooms of the same floor and ceiling height, which Doom never draws and so never "sees", and segments next to where the player has already been.</li>
+      <li>A target that stays the nearest for about six seconds with nothing new seen is dropped as unreachable.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Engine: PrBoom 2.5, a Doom source port, compiled for Linux and run with no screen and no network. Game data: the shareware DOOM1.WAD.</span>
+    <span>Code and writeup: <a href="https://github.com/oaustegard/experiments/tree/main/doom-planner">oaustegard/experiments/doom-planner</a>. Related: VideoGameBench Lite pauses a game while a vision-language model chooses each action from the screen; its best model averaged 0.48% progress through its games, Doom among them.</span>
+  </footer>
+</div>
+</body>
+</html>
