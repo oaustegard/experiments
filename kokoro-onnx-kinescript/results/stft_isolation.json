@@ -1,0 +1,39 @@
+{
+ "note": "Transcribed from the stdout of the two hybrid runs logged in RESULTS.md (Log, round 3): Kokoro torch 3.12, first three narration lines, torch.manual_seed(1) before each run so the vocoder noise is identical; band = energy difference in dB against TorchSTFT forward + inverse.",
+ "torch_fwd_fixed_custom_inv": {
+  "corr": 1.0,
+  "bands_db": [
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "custom_fwd_torch_inv": {
+  "corr": 0.9963,
+  "bands_db": [
+   -0.25,
+   -0.53,
+   0.34,
+   0.37
+  ]
+ },
+ "custom_fwd_nyquist_zeroed_torch_inv": {
+  "corr": 1.0,
+  "bands_db": [
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "nyquist_phase_flips": {
+  "frames_differing_over_1rad": 308,
+  "frames": 955,
+  "after_zeroing": 0
+ },
+ "nyquist_forward_imag_weight_max": 4.084381860231922e-15,
+ "inverse_rel_err_unfixed": 0.383,
+ "inverse_rel_err_fixed": 0.0025,
+ "inverse_fixed_interior_max_abs": 1.19e-07
+}

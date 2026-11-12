@@ -26,6 +26,7 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`kokoro-onnx-kinescript/`](kokoro-onnx-kinescript/RESULTS.md) | 2026-11-12 | **done; plugin change half applied. Kinescript's Kokoro text-to-speech plugin runs on Python 3.13 without PyTorch, using an ONNX export of the same model: all 337 word times match the PyTorch plugin, ~840 MB vs 1.7 GB on disk. The export's audio is tilted (+2.9 dB below 1 kHz, about −2.2 dB above) by two flaws in kokoro's custom STFT; the inverse-transform fix is in the plugin, the forward-transform fix is verified in PyTorch only** | [`RESULTS.md`](kokoro-onnx-kinescript/RESULTS.md) | Oskar asked whether Kokoro runs on a newer Python, since Kinescript needed a separate Python 3.12 environment for it |
 | [`colbert-pooling-explainer/`](colbert-pooling-explainer/README.md) | 2026-11-12 | **done — a 2¼-minute narrated Kinescript explainer: single vector vs ColBERT, MaxSim, the 118 KB/doc cost, Ward pooling, remex (center, rotate, snap to levels), and the measured trade from `lateon-pool-remex` (1-bit 0.718 vs ¼ tokens at 4 bits 0.758 vs full 0.763 at ~4 KB/doc). Kinescript 2.5 rendered it on 4 CPUs at 98 fps** | [`README.md`](colbert-pooling-explainer/README.md) + `explainer.mp4` + `build_scene.py` | Oskar: *"craft an explanatory video for the concepts starting with ColBERT all the way through pooling and remex"* |
 | [`lateon-pool-remex/`](lateon-pool-remex/RESULTS.md) | 2026-11-12 | **done — merging similar token vectors (Ward clustering) plus remex quantization on LateOn, a strong ColBERT never trained for pooling. At ~4 KB/doc, pooling to a quarter of the tokens at 4 bits beats unpooled 1-bit by +0.040 / +0.0125 nDCG@10 (SciFact / NFCorpus), under each of 4 quantizer rotations. Letting the quantizer's error decide how far each document's Ward tree is cut gains +0.013 on SciFact and −0.002 on NFCorpus against uniform pooling at the same size, so it is not a general win** | [`RESULTS.md`](lateon-pool-remex/RESULTS.md) + `encode.py` + `bench.py` + `bench2.py` + `report.py` | Oskar: *"investigate a training-unaware hierarchical pooling of a modern ColBERT embedder, with integrated remex quantization"* |
 | [`meta2-paperwatch/`](meta2-paperwatch/README.md) | 2026-11-12 | **done — Meta 2 (arXiv 2611.05139) applied to the paper-watch Haiku reviewer: its distilled rating guide mostly taught Haiku to answer LOW (agreement 0.44 → 0.69, but always-LOW scores 0.67, and real MEDIUMs were missed), and its review-checking step changed no ratings at 2.8x the tokens. Adopt neither.** | [`README.md`](meta2-paperwatch/README.md) | [#112](https://github.com/oaustegard/experiments/issues/112) |
@@ -262,6 +263,17 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `kokoro-onnx-kinescript/` — Kokoro for Kinescript on Python 3.13 without PyTorch
+
+Runs Kinescript's `kinescript-kokoro` plugin five ways on the ten narration lines of `colbert-pooling-explainer`:
+PyTorch on 3.12 (the reference) and 3.13, and a new ONNX engine on 3.13 (misaki for phonemes, kokoro-onnx's
+`model-files-v1.1` export with a `duration` output, KPipeline's word-timing rule) in fp32, fp16 and int8. Word
+times are identical to the sample. The export's audio is tilted by kokoro's `CustomSTFT` (missing inverse
+weights, and a Nyquist phase flip in the forward transform). Overriding the inverse weights at load time (in the plugin)
+removes most of it; zeroing the forward Nyquist row removes the rest, checked exactly in seeded PyTorch but not yet in the plugin. The plugin change lives on the `kokoro-onnx` branch
+of drknowhow/kinescript (local, unpushed). Scripts: `make_requests.py`, `bench.py`, `run_arms.sh` (jail),
+`compare.py`, `tilt.py`, `stft_probe.py`.
 
 ### `lateon-pool-remex/` — pooling and remex coding on LateOn, with a codec-set pooling cut
 

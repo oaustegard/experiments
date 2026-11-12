@@ -1,0 +1,62 @@
+[
+ {
+  "id": "vo1",
+  "text": "Most search engines squeeze a document into one vector. [ColBERT](/kQlbˈɛə/) keeps one for every token. Here's how it scores, why that gets big, and how to make it small.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo2",
+  "text": "A single-vector model averages the whole text into one point. [ColBERT](/kQlbˈɛə/) gives each token its own vector, a hundred and twenty-eight numbers long. So a specific word, like the D in vitamin D, keeps its own say in the score.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo3",
+  "text": "To score a document, each query token looks for its most similar document token. Take that best match for every query token, and add them up. That's max-sim: late interaction, because query and document only meet at the end.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo4",
+  "text": "The catch is size. LateOn, a strong [ColBERT](/kQlbˈɛə/) model, keeps about two hundred and thirty vectors per document. At four bytes a number, that's a hundred and eighteen kilobytes, for every single document.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo5",
+  "text": "There are two ways to shrink it. Keep fewer vectors. Or spend fewer bits on each one.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo6",
+  "text": "Pooling merges tokens that point the same way. Ward clustering groups a document's tokens, and each group becomes its average. Pool by two, and half the vectors remain. Pool by four, and a quarter.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo7",
+  "text": "Quantizing is [remex](/ɹˈiːmɛks/)'s job. LateOn's vectors crowd into a narrow cone, so [remex](/ɹˈiːmɛks/) first subtracts their average. Then it rotates them, and snaps every coordinate to a few levels: sixteen levels at four bits. Just two at one bit.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo8",
+  "text": "So which wins at the same size? On SciFact, at about four kilobytes per document, every token at one bit scores point seven two. A quarter of the tokens at four bits scores point seven six: nearly the full index, at one thirtieth of its size.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo9",
+  "text": "We also let the quantizer decide how far to pool: merge until the merge error matches the coding error. That's free at three and four bits. But it didn't beat plain pooling. It won on one dataset, and lost on the other.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ },
+ {
+  "id": "vo10",
+  "text": "So, for a token index: pool the tokens, keep at least two bits, and center before you quantize.",
+  "speaker": "bm_fable,bm_fable,bm_lewis",
+  "rate": 0.88
+ }
+]

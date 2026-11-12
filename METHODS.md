@@ -669,6 +669,23 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Kokoro on Python 3.13: install misaki with `--no-deps --ignore-requires-python`, never `misaki[en]`.**
+  misaki 0.9.4's `<3.13` pin is stale (it runs on 3.13). But `misaki[en]` pulls `spacy-curated-transformers`,
+  whose 2.x needs thinc 9 while spaCy 3.8 uses 8.3. With the pin bypassed, pip then falls back to an old spaCy
+  source build that fails on blis. Install spacy, num2words, phonemizer-fork, espeakng-loader, addict and regex
+  normally. Only `G2P(trf=True)` needs curated-transformers. (`kokoro-onnx-kinescript` Finding 2)
+- **Kokoro ONNX exports (kokoro-onnx's, or any traced with `KModel(disable_complex=True)`) sound different from
+  PyTorch Kokoro.** kokoro's `CustomSTFT`, the STFT used for export, gets two things wrong against
+  `torch.stft`/`torch.istft`. Its inverse omits the one-sided ×2 and the overlap-window normalisation, giving
+  +2.9 dB below 1 kHz and about −2.2 dB above relative to PyTorch. Its forward Nyquist sine row is 4e-15 instead of
+  0, which flips that bin's phase between ±π in 308 of 955 frames. Fix both at load time by passing corrected
+  weights for the `kmodel.decoder.generator.stft.*` initializers to `onnxruntime.SessionOptions.add_initializer`
+  (formulas in `kokoro-onnx-kinescript/stft_probe.py`, `stft_correction`). (`kokoro-onnx-kinescript` Findings 4, 5)
+
+- **A model with random noise inside (Kokoro's vocoder, any NSF source) needs a second run of the reference arm as
+  the floor.** Two PyTorch Kokoro runs correlate at 0.985, not 1.0. Seed with `torch.manual_seed` for exact A/B
+  tests of a component swap. (`kokoro-onnx-kinescript` round 3)
+
 - **Slicing inside a loop over an `np.load(...npz)` handle re-reads the whole array each time.**
   `NpzFile.__getitem__` decompresses the member on every `z["T"]` (here the token-vector array), and a slice of each copy is a view that pins
   it: merging 1,000 per-document slices from a 130 MB chunk took 13 GB and an OOM (exit 137). Read each member

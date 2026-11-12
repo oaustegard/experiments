@@ -1,0 +1,172 @@
+# RESULTS: Kokoro voices for Kinescript on Python 3.13, without PyTorch
+
+Kinescript's voice plugin (`plugins/kinescript-kokoro` in drknowhow/kinescript) speaks a scene's narration with
+Kokoro-82M and returns the time of every word, which scenes use for cues and captions. It calls the `kokoro`
+package, which needs PyTorch and declares Python below 3.13. So on a 3.13 system it runs from a separate
+Python 3.12 environment of about 1.4 GB. This experiment asks whether it can run on 3.13 directly, and what that
+costs in word timing, audio and pronunciation control.
+
+## Answer
+
+Yes. An ONNX export of the same model (published by the kokoro-onnx project) runs on Python 3.13 with no PyTorch and no 3.12 environment. Text still
+goes through misaki, so pronunciation links, stress marks and number flags work unchanged. Against the PyTorch
+plugin, on the ten narration lines of `colbert-pooling-explainer`, all 337 word start and end times matched
+exactly, and so did every phoneme. <!-- @evidence[[results/compare.json#onnx.words_exact]] --> The ONNX
+route is about 840 MB on disk against 1,716 MB <!-- @evidence[[results/disk.json#torch_route_total_mb]] -->, and
+loads in 2.55 s against 10.4 s <!-- @evidence[[results/compare.json#onnx.load_s]] -->.
+
+The published export does not sound like the PyTorch model as shipped. It runs kokoro's `CustomSTFT`, whose
+inverse transform leaves out two weights that `torch.istft` applies. The voice comes out +2.9 dB below 1 kHz <!-- @evidence[[results/tilt.json#onnx-export vs torch312.0-1k_db]] -->
+and about 2.2 dB quieter above it.
+The plugin now replaces the inverse transform's weights at load time, which leaves at most 0.52 dB in any band
+(Finding 6). The rest comes from a flaw in the forward transform. Zeroing one weight row fixes it exactly in PyTorch,
+but that change is not yet in the plugin (Findings 4 and 5).
+
+What would change this: a listening test; every audio comparison here is spectral.
+
+## Findings
+
+1. **Word times and phonemes are identical between the ONNX and PyTorch engines.** All 337 words matched to the sample on start and end,
+   <!-- @evidence[[results/compare.json#onnx.words_exact]] --> the phone lists are equal,
+   and total audio is 125.1 s in both <!-- @evidence[[results/compare.json#onnx.audio_s]] -->. The duration
+   predictor is the same network, and the plugin's ONNX engine applies KPipeline's own `join_timestamps` rule to
+   the export's `duration` output. Pace is 171.8 wpm in both <!-- @evidence[[results/compare.json#onnx.wpm]] -->.
+   (round 1)
+2. **misaki 0.9.4 runs on Python 3.13 once its `requires_python <3.13` is bypassed.** Phoneme links
+   (`[ColBERT](/kQlbˈɛə/)`), `[she](+2)` stress, `[150](#a&#)` number flags, the espeak fallback and spaCy 3.8.18
+   with `en_core_web_sm` all work. The pin is stale, and an unreleased misaki pull request (#85) enables 3.13.
+   `misaki[en]` cannot be installed as-is on 3.13, though. Its `spacy-curated-transformers` 2.x needs thinc 9,
+   which no released spaCy 3.8 accepts, so pip falls back to an old spaCy that fails to build from source. Only
+   `G2P(trf=True)` needs that package, and Kokoro never sets it, so leave it out. (round 1)
+3. **PyTorch Kokoro 0.9.4 also runs on 3.13 under the same bypass.** Its word times are identical and its audio
+   is within run-to-run noise (correlation 0.9848 <!-- @evidence[[results/compare.json#torch313.corr_mean]] -->
+   against 0.9849 for a second 3.12 run). That removes the separate 3.12 interpreter, but not PyTorch
+   (the 3.13 venv is 1.5 GB). (round 1)
+4. **The kokoro-onnx export tilts the spectrum because of kokoro's `CustomSTFT`, not the ONNX conversion.**
+   PyTorch Kokoro with `disable_complex=True`, the setting the export uses, shows the same tilt: +2.9 dB below
+   1 kHz and −2.62 dB at 1–3 kHz <!-- @evidence[[results/tilt.json#torch312-customstft vs torch312.1-3k_db]] -->.
+   The ONNX export matches it within noise (correlation 0.9897).
+   <!-- @evidence[[results/tilt.json#onnx-export vs torch312-customstft.corr]] --> The inverse transform's
+   one-sided inverse DFT does not double bins 1–9 and does not divide by the overlap-added squared window
+   (1.5 at n_fft 20, hop 5). Against `torch.istft`, that scales DC and Nyquist by 1.5 and every other bin by
+   0.75. Rescaling those rows gives an inverse that matches `torch.istft` to 1.2e-7 inside the signal. (round 2)
+5. **The remaining ±0.5 dB comes from the forward transform's Nyquist phase.** The −sin row for bin 10 is
+   about 4e-15 rather than 0 in float32. That bin's phase, an input to the vocoder, then lands at −π instead of
+   π in 308 of 955 frames <!-- @evidence[[results/stft_isolation.json#nyquist_phase_flips.frames_differing_over_1rad]] -->.
+   With the vocoder noise seeded, Kokoro with the PyTorch forward STFT and the fixed custom inverse matches stock
+   PyTorch exactly (correlation 1.0, 0.00 dB per band). The custom forward with that row zeroed does too.
+   (round 3)
+6. **The plugin's ONNX engine, which overrides only the inverse weights, is within 0.52 dB of PyTorch in every band.** It
+   measures −0.24, −0.52, +0.30 and +0.36 dB across the four bands, at correlation 0.9825 <!-- @evidence[[results/tilt.json#onnx vs torch312.corr]] -->
+   against a PyTorch run-to-run floor of 0.9849.
+   It matches PyTorch run with the same inverse fix within noise (0.9838). (round 2)
+7. **The int8 and fp16 exports are not worth using on CPU.** int8 runs 2.9 times slower than fp32 (86.5 s). <!-- @evidence[[results/compare.json#onnx-int8.synth_s]] -->
+   Its durations move too: only 71 of 337 words
+   keep their times exactly. fp16 saves no time. Its initializers are renamed, so the STFT fix cannot reach it,
+   and its word lists diverge on one line. (rounds 1–2)
+
+## Method
+
+**Fixture.** The ten narration lines of `colbert-pooling-explainer/scene.json` (337 words), as `kine voice` sends
+them: `[[mark]]`s removed, whitespace collapsed (`make_requests.py` repeats `split_marks` and `untag`). Speaker
+`bm_fable,bm_fable,bm_lewis` (a 2:1 blend), rate 0.88, British pipeline.
+
+**Arms.** Each runs `kinescript_kokoro.synth` from the plugin, under `bench.py`, inside claude-workspace's
+`scripts/jail.sh` (no network, runs as `nobody`), on 4 CPU cores:
+
+| arm | Python | engine |
+|---|---|---|
+| `torch312`, `torch312b` | 3.12.13 | kokoro 0.9.4 + PyTorch 2.15.0 CPU (the parent session's setup) |
+| `torch313` | 3.13.18 | the same, installed with `--ignore-requires-python` for kokoro and misaki only |
+| `onnx`, `onnxb` | 3.13.18 | the plugin's ONNX engine: misaki 0.9.4 + onnxruntime 1.31.1, `kokoro-v1.0.onnx` from kokoro-onnx's `model-files-v1.1`, inverse STFT reweighted |
+| `onnx-export` | 3.13.18 | the same with `KOKORO_ONNX_ISTFT=export` (the export's own weights) |
+| `onnx-fp16`, `onnx-int8` | 3.13.18 | the reduced-precision files from the same release |
+
+`stft_probe.py` adds two PyTorch arms outside the plugin: `torch312-customstft` (`KModel(disable_complex=True)`)
+and `torch312-customstft-fixed` (the same with the inverse rows rescaled).
+
+**Metrics.** `compare.py` reads, for each arm against `torch312`: per-word start and end differences, phone-list
+equality, wpm over speaking time, length difference, waveform correlation and mean log-spectral distance.
+`tilt.py` reads total energy and energy per band (0–1, 1–3, 3–6 and 6–12 kHz). Kokoro's vocoder adds random
+noise on every call, in both engines, so audio numbers are read against a second run of the same arm, not
+against 1.0. The STFT isolation in round 3 used seeded PyTorch runs, which are deterministic, so those numbers are exact.
+
+**Disk** (`results/disk.json`): PyTorch route = the 3.12 venv (1.4 GB, of which PyTorch is 776 MB) plus the
+Hugging Face weights (316 MB). ONNX route = a 3.13 venv (503 MB, mostly spaCy 127 MB and onnxruntime 67 MB)
+plus the model (311 MB) and voices file (27 MB). The voices file holds the same 54 voice packs as the `.pt` files,
+bit for bit.
+
+**Setup** (venvs under `/opt`, world-readable for the jail):
+
+```bash
+# ONNX route, Python 3.13: no torch, no spacy-curated-transformers
+python3.13 -m venv /opt/konnx
+/opt/konnx/bin/pip install --no-deps --ignore-requires-python misaki==0.9.4
+/opt/konnx/bin/pip install onnxruntime numpy phonemizer-fork espeakng-loader addict regex num2words spacy \
+  https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+# model: https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/{kokoro-v1.0.onnx,voices-v1.0.bin}
+```
+
+## Log
+
+### Round 1: does anything run on 3.13, and do the word times hold (2026-11-12)
+
+Asked: can Kinescript's Kokoro voice run on 3.13 without the 3.12 environment; can kokoro-onnx give word times.
+
+kokoro-onnx 0.6.1's own word timing works only for exports with a `duration` output. The `model-files-v1.0`
+release's `kokoro-v1.0.onnx` has only `audio`. The `model-files-v1.1` release's file of the same name has
+`waveform` and `duration` and embeds `config.json`. kokoro-onnx phonemizes with espeak. Using its `create_timed`
+directly would therefore lose misaki's links, stress and number flags. So the plugin's new engine keeps misaki,
+feeds its phonemes to the graph and times words with KPipeline's own rule (ported in `onnx.py`).
+
+Installing PyTorch kokoro on 3.13 with `pip install --ignore-requires-python ... misaki[en]` failed: pip built
+spaCy from source, and blis failed to compile. The cause was the `spacy-curated-transformers` extra (Finding 2).
+Installing the dependencies normally, then only kokoro and misaki with `--no-deps --ignore-requires-python`,
+worked.
+
+| arm | words exact (of 337) | wpm | load s | speak s | peak RSS MB |
+|---|---|---|---|---|---|
+| torch312 | 337 | 171.8 | 10.4 | 36.8 | 1,881 |
+| torch313 | 337 | 171.8 | 5.3 | 38.2 | 1,886 |
+| onnx (export STFT) | 337 | 171.8 | 2.8 | 31.9 | 990 |
+| onnx-fp16 | 324 | 171.8 | 3.0 | 33.4 | 1,016 |
+| onnx-int8 | 71 | 171.6 | 2.5 | 90.3 | 814 |
+
+Reading at the time: timing parity holds. However, ONNX audio correlated 0.900 with PyTorch, against 0.985 between
+two PyTorch runs, and its log-spectral distance was 2.89 dB against 1.25 dB. The ONNX output was also not
+deterministic (0.989 between its own runs), so the gap was not just noise.
+
+### Round 2: where the tone difference comes from (2026-11-12)
+
+The ONNX output was +1.5 dB louder overall and −2 dB above 6 kHz, a tilt rather than noise. PyTorch with
+`disable_complex=True` reproduced it exactly. Reading `kokoro/custom_stft.py` gave the predicted per-bin factors:
+1.5 for DC and Nyquist and 0.75 for the rest, which is +3.5 dB below about 600 Hz and −2.5 dB above. Bins are
+1.2 kHz wide at n_fft 20. The measurement was +2.9, −2.62, −2.21 and −1.99 dB. Rescaling the inverse rows by
+(2 or 1) / 1.5 fixed it in PyTorch.
+
+The plugin applies the same rescaling through `onnxruntime.SessionOptions.add_initializer`, with no `onnx`
+dependency and no rewritten model file. Zeroed weights produced silence on fp32 and int8, so the override reaches
+those graphs. On fp16 it was ignored, because that file's initializers are renamed.
+
+| pair | corr | 0–1k | 1–3k | 3–6k | 6–12k dB |
+|---|---|---|---|---|---|
+| torch312b vs torch312 (floor) | 0.9849 | −0.00 | −0.02 | +0.01 | −0.01 |
+| onnx-export vs torch312 | 0.9005 | +2.90 | −2.62 | −2.20 | −2.00 |
+| onnx-export vs torch312-customstft | 0.9897 | +0.00 | −0.00 | +0.01 | −0.01 |
+| onnx (inverse fixed) vs torch312 | 0.9825 | −0.24 | −0.52 | +0.30 | +0.36 |
+| onnx (inverse fixed) vs torch312-customstft-fixed | 0.9838 | +0.00 | +0.00 | −0.01 | −0.00 |
+
+### Round 3: the last half decibel (2026-11-12)
+
+The residual ±0.5 dB was systematic, since PyTorch's own spread is ±0.02 dB. With `torch.manual_seed(1)` before
+each run, Kokoro is deterministic, which allows exact A/B tests on three lines:
+
+| STFT used by the vocoder | corr vs stock | bands dB |
+|---|---|---|
+| PyTorch forward + fixed custom inverse | 1.0000 | 0.00 0.00 0.00 0.00 |
+| custom forward + PyTorch inverse | 0.9963 | −0.25 −0.53 +0.34 +0.37 |
+| custom forward, Nyquist −sin row zeroed + PyTorch inverse | 1.0000 | 0.00 0.00 0.00 0.00 |
+
+The custom forward transform's Nyquist phase differed by more than 1 rad from `torch.angle` in 308 of 955
+frames, and in none after zeroing the row. The plugin change that also overrides `weight_forward_imag` is written
+but not applied or measured: the session's permission classifier stopped the command that applied and checked it.
