@@ -10,14 +10,15 @@ A 2¼-minute explainer, made with [Kinescript](https://github.com/drknowhow/kine
 5. pooling: Ward clustering merges tokens that point the same way into their mean
 6. remex: subtract the corpus mean (LateOn's vectors sit in a narrow cone), rotate, snap each coordinate to
    Lloyd-Max levels (16 at 4 bits, 2 at 1 bit)
-7. the measured trade at about 4 KB per document on SciFact: all tokens at 1 bit 0.718 nDCG@10, a quarter of the
-   tokens at 4 bits 0.758, the full float index 0.763
-8. letting the quantizer set the pooling: free at 3–4 bits, +0.013 on SciFact and −0.002 on NFCorpus against uniform
-   pooling, so no general win
+7. the measured trade on SciFact, scored through remex's `RemexIndex` search: all tokens at 1 bit 0.749 nDCG@10 in
+   5.5 KB per document, a quarter of the tokens at 4 bits 0.760 in 4.2 KB, the full float index 0.763 in 118 KB
+8. letting the quantizer set the pooling: +0.009 on SciFact and −0.003 on NFCorpus against uniform pooling, so no
+   general win
 9. the takeaway: pool, keep at least 2 bits, center before quantizing
 
-Every number comes from [`lateon-pool-remex`](../lateon-pool-remex/RESULTS.md) (the 4-rotation means in its
-`summary.json`). The MaxSim similarities (0.93, 0.88, 0.91) and the dot layouts are illustrations, not measurements.
+Every number comes from [`lateon-pool-remex`](../lateon-pool-remex/RESULTS.md) round 3 (the 4-seed means in its
+`summary3.json`). The first render used round-2 numbers scored as `q · decode(x)`, which put 1-bit codes at 0.718;
+sections 8 and 9 were re-voiced and re-rendered with the corrected figures (2:15, 4,049 frames, 34 s). The MaxSim similarities (0.93, 0.88, 0.91) and the dot layouts are illustrations, not measurements.
 
 ## Files
 

@@ -1,25 +1,24 @@
 # lateon-pool-remex — token pooling and remex coding on a strong ColBERT that was never trained to be pooled
 
-**Started:** 2026-11-12 · **Status:** done (SciFact, NFCorpus) · **Runtime:** encode 14 min (SciFact) and 32 min (NFCorpus), bench 87 min, 4 vCPU
+**Started:** 2026-11-12 · **Status:** done (SciFact, NFCorpus; round 3 rescored through RemexIndex) · **Runtime:** encode 14 min (SciFact) and 32 min (NFCorpus), bench 87 min, 4 vCPU
 
 ## Answer
 
 A ColBERT index stores a vector per token and shrinks by **pooling** (merging a document's similar tokens) and by **quantizing** (fewer bits per vector; here remex: subtract the corpus mean, rotate, quantize each coordinate). For [LateOn](https://huggingface.co/lightonai/LateOn), a strong ColBERT never trained to be pooled: does pooling plus more bits beat unpooled 1-bit codes at the same bytes, and does letting the quantizer's error set each document's pooling help?
 
-Pooling plus ≥2 bits wins. At about 4 KB per document, sentence-transformers' pooling to a quarter of the tokens at 4 bits beats unpooled 1-bit by +0.040 nDCG@10 on SciFact <!-- @evidence[[summary.json#scifact.iso.st pf4 4-bit vs none 1-bit.delta.0]] --> and +0.0125 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.st pf4 4-bit vs none 1-bit.delta.0]] -->, under all four rotations of the quantizer tried, at 1/30 of the fp32 size.
+Pooling plus 2 to 4 bits matches or beats unpooled 1-bit codes in fewer bytes, by about 0.01 nDCG@10. Scored through remex's own `RemexIndex` search, half the tokens at 2 bits beats every token at 1 bit by +0.012 on SciFact <!-- @evidence[[summary3.json#scifact.pairs.st pf2 2-bit vs none 1-bit.delta.0]] --> and +0.008 on NFCorpus <!-- @evidence[[summary3.json#nfcorpus.pairs.st pf2 2-bit vs none 1-bit.delta.0]] -->, both intervals clear of zero, at 16% fewer bytes.
 
-Letting the quantizer set the pooling depends on the corpus. Against uniform pooling with the same tokens and bits it gains +0.013 on SciFact <!-- @evidence[[summary.json#scifact.contrasts.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] --> and −0.002 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.contrasts.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] --> at 2 bits, with every rotation agreeing. Short of measuring your corpus, use uniform pooling at ≥2 bits.
+Letting the quantizer set the pooling depends on the corpus: against uniform pooling at the same size it scores +0.0095 on SciFact <!-- @evidence[[summary3.json#scifact.pairs.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] --> and −0.0034 on NFCorpus <!-- @evidence[[summary3.json#nfcorpus.pairs.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] -->. Use uniform pooling.
 
 ## Findings
 
-1. **Pooling plus ≥2 bits beats unpooled 1-bit at about the same bytes, on both corpora, in all four rotations** (Round 2, "same or fewer bytes" tables). Absolute SciFact scores: unpooled fp32 0.763, unpooled 1-bit 0.718, pool factor 4 at 4 bits 0.758. Pool factor 4 at 4 bits against unpooled 1-bit: +0.040 <!-- @evidence[[summary.json#scifact.iso.st pf4 4-bit vs none 1-bit.delta.0]] --> and +0.0125 <!-- @evidence[[summary.json#nfcorpus.iso.st pf4 4-bit vs none 1-bit.delta.0]] --> (SciFact, NFCorpus); pool factor 2 at 2 bits: +0.041 <!-- @evidence[[summary.json#scifact.iso.st pf2 2-bit vs none 1-bit.delta.0]] --> and +0.0134 <!-- @evidence[[summary.json#nfcorpus.iso.st pf2 2-bit vs none 1-bit.delta.0]] -->; the two splits tie (−0.0007 <!-- @evidence[[summary.json#scifact.iso.st pf4 4-bit vs st pf2 2-bit.delta.0]] -->, −0.0008 <!-- @evidence[[summary.json#nfcorpus.iso.st pf4 4-bit vs st pf2 2-bit.delta.0]] -->). Against a 1-bit code that also drops the 2-byte per-vector scalar described in finding 5 (3.7–3.8 KB), pool factor 2 at 2 bits still wins by +0.0166 <!-- @evidence[[summary.json#scifact.iso.st pf2 2-bit vs none 1-bit no-side.delta.0]] --> and +0.018 <!-- @evidence[[summary.json#nfcorpus.iso.st pf2 2-bit vs none 1-bit no-side.delta.0]] -->, CIs clear of zero. This is the rule `token-pooling-remex` wrote into METHODS.md (when going from 2 bits to 1 bit costs more than pooling, pool and keep ≥2 bits), now on a strong model that was never trained to be pooled.
-2. **Letting the quantizer set the pooling helps on SciFact and hurts slightly on NFCorpus** (Round 2, "adaptive against uniform" tables). The integrated cut (Method) cuts each document's Ward tree where the pooling error reaches c times the quantizer's per-token error, so documents with many near-duplicate tokens pool more. Against uniform Ward pooling with the same total tokens and bits: at 2 bits, c = 1, +0.013 on SciFact (4 of 4 rotations, CI clear) <!-- @evidence[[summary.json#scifact.contrasts.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] --> and −0.002 on NFCorpus (0 of 4, CI spans zero) <!-- @evidence[[summary.json#nfcorpus.contrasts.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] -->; at 3 bits, c = 4, +0.008 (3 of 4, CI spans zero) <!-- @evidence[[summary.json#scifact.contrasts.adapt c4@3 3-bit vs match c4@3 3-bit.delta.0]] --> and −0.007 (0 of 4, CI clear) <!-- @evidence[[summary.json#nfcorpus.contrasts.adapt c4@3 3-bit vs match c4@3 3-bit.delta.0]] -->. Against library pool factor 4 at 4 bits at the same bytes, the 3-bit cut is +0.013 on SciFact <!-- @evidence[[summary.json#scifact.iso.adapt c4@3 3-bit vs st pf4 4-bit.delta.0]] --> and −0.005 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.adapt c4@3 3-bit vs st pf4 4-bit.delta.0]] -->. The same cut on the library's tree behaves the same way.
-3. **Pooling up to the quantizer's error is free at 3 and 4 bits, not below** (Round 2, integrated-cut tables). At c = 1 and 3 bits the cut keeps 73% of tokens and scores +0.0001 <!-- @evidence[[summary.json#scifact.adapt.adapt c1@3.vs_none.0]] --> and −0.0012 <!-- @evidence[[summary.json#nfcorpus.adapt.adapt c1@3.vs_none.0]] --> against unpooled 3-bit; c = 2 keeps 54% at −0.0018 <!-- @evidence[[summary.json#scifact.adapt.adapt c2@3.vs_none.0]] --> and −0.0021 <!-- @evidence[[summary.json#nfcorpus.adapt.adapt c2@3.vs_none.0]] -->. At 1 bit, c = 1 keeps 10% of tokens and loses −0.060 <!-- @evidence[[summary.json#scifact.adapt.adapt c1@1.vs_none.0]] --> and −0.0267 <!-- @evidence[[summary.json#nfcorpus.adapt.adapt c1@1.vs_none.0]] -->: a merge costs retrieval more than random coding noise of the same mean squared size.
-4. **Selective pooling with no quantization also splits by corpus, uniform pooling does not** (Round 1). The integrated cut at c = 4, 3 bits (34% of tokens kept), scored without quantizing: +0.016 on SciFact <!-- @evidence[[summary.json#scifact.contrasts.adapt c4@3 fp32 vs none fp32.delta.0]] --> and −0.011 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.contrasts.adapt c4@3 fp32 vs none fp32.delta.0]] -->, both CIs clear of zero. Library pool factor 4 at fp32: +0.0017 <!-- @evidence[[summary.json#scifact.rows.st pf4 fp32.delta.0]] --> and −0.0044 <!-- @evidence[[summary.json#nfcorpus.rows.st pf4 fp32.delta.0]] -->, both CIs spanning zero. Which tokens the threshold merges is what SciFact rewards and NFCorpus does not, the likely source of finding 2's flip.
-5. **Centered remex needs a per-vector scalar; `token-pooling-remex` did not count it** (Round 1, method check). remex 2.1 centered codes store ‖x−μ‖ and μ·(x−μ) per vector. For a unit vector both follow from one number, kept here as fp16 μ·(x−μ): 2 bytes, identical retrieval to remex's float32 fields. At 1 bit and 128 dimensions that adds 12.5% to the 16 code bytes. Decoding with the corpus average instead (codes only) moves 1-bit scores by +0.025 on SciFact (4 of 4) <!-- @evidence[[summary.json#scifact.side.none 1-bit no-side vs none 1-bit.delta.0]] --> and −0.0046 on NFCorpus (0 of 4) <!-- @evidence[[summary.json#nfcorpus.side.none 1-bit no-side vs none 1-bit.delta.0]] -->. So on SciFact the codes-only 1-bit is the stronger baseline, which is why finding 1 also reports the margin against it.
-6. **LateOn's tokens sit in a narrow cone and 1 bit is what costs** (Round 1). The corpus mean has norm 0.972 (0.54 for the `token-pooling-remex` models). Unpooled 2-bit costs −0.003 on both corpora <!-- @evidence[[summary.json#scifact.drops.fp32_to_two_bit.0]] -->; 2 bits to 1 bit costs −0.042 on SciFact <!-- @evidence[[summary.json#scifact.drops.two_to_one_bit.0]] --> and −0.016 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.drops.two_to_one_bit.0]] -->. One rotation seed moves a pooled 2-bit arm by up to 0.019 on SciFact, so no single-rotation comparison of quantized arms is trusted below about 0.02 (fp32 arms have no rotation).
-7. **For uniform pooling use the library's tree; under the integrated cut the tree does not matter.** The library feeds 1−cos (half the squared distance) into Ward linkage as if it were a distance, which changes the merge order compared with Ward on the vectors themselves. At a uniform pool factor 4, true Ward on the unit vectors lost −0.0146 on SciFact at fp32 <!-- @evidence[[summary.json#scifact.contrasts.wu pf4 fp32 vs st pf4 fp32.delta.0]] --> (one run, CI clear) and tied on NFCorpus. Under the integrated cut the two trees score within ±0.004 on both corpora (Round 2).
-8. **The encode reproduces the model card**: unpooled fp32 scores 0.7626 on SciFact <!-- @evidence[[summary.json#scifact.rows.none fp32.ndcg]] --> and 0.3817 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.rows.none fp32.ndcg]] --> against 0.766 and 0.378 on the card.
+1. **Pooling plus more bits matches or beats unpooled 1-bit codes in fewer bytes** (Round 3, RemexIndex search, four seeds). Half the tokens at 2 bits against every token at 1 bit: +0.012 on SciFact <!-- @evidence[[summary3.json#scifact.pairs.st pf2 2-bit vs none 1-bit.delta.0]] --> and +0.008 on NFCorpus <!-- @evidence[[summary3.json#nfcorpus.pairs.st pf2 2-bit vs none 1-bit.delta.0]] -->, intervals clear of zero, 4 of 4 seeds, at 4.6 and 4.8 KB against 5.5 and 5.7 KB. A quarter of the tokens at 4 bits: +0.012 <!-- @evidence[[summary3.json#scifact.pairs.st pf4 4-bit vs none 1-bit.delta.0]] --> and +0.006 <!-- @evidence[[summary3.json#nfcorpus.pairs.st pf4 4-bit vs none 1-bit.delta.0]] -->, both intervals starting at −0.001, at 4.2 and 4.3 KB. A quarter at 2 bits ties every token at 1 bit (+0.003 <!-- @evidence[[summary3.json#scifact.pairs.st pf4 2-bit vs none 1-bit.delta.0]] -->, +0.005 <!-- @evidence[[summary3.json#nfcorpus.pairs.st pf4 2-bit vs none 1-bit.delta.0]] -->) at 42% of its bytes.
+2. **Rounds 1 and 2 scored codes as q·decode(x), which understates 1-bit codes by about 0.03** (Round 3, `ERRORS.md` #2). remex's index search scales each vector's residual by its stored length and divides by the expected cosine of a code; at 1 bit that ranks better. Unpooled 1-bit LateOn scores 0.7486 on SciFact through `RemexIndex` <!-- @evidence[[summary3.json#scifact.rows.none 1-bit.ndcg]] --> against 0.7175 by decode (Round 2). The step from 2 bits to 1 costs 0.010 <!-- @evidence[[summary3.json#scifact.pairs.none 2-bit vs none 1-bit.delta.0]] --> and 0.0085 <!-- @evidence[[summary3.json#nfcorpus.pairs.none 2-bit vs none 1-bit.delta.0]] -->, not 0.042 and 0.016. Rounds 1 and 2 remain in the log as decode-path measurements.
+3. **Letting the quantizer set the pooling helps SciFact and not NFCorpus** (Round 3). The cut stops each document's Ward tree where merging moves the tokens as far as the codec's own error at that bit width. At 2 bits against uniform pooling to the same token count: +0.0095 on SciFact (4 of 4 seeds) <!-- @evidence[[summary3.json#scifact.pairs.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] -->, interval 0.000 to 0.019, and −0.0034 on NFCorpus (0 of 4) <!-- @evidence[[summary3.json#nfcorpus.pairs.adapt c1@2 2-bit vs match c1@2 2-bit.delta.0]] -->, interval spanning zero. It is the best of 16 settings, chosen after the runs.
+4. **The cut's selection splits the same way with no quantization at all** (Round 1, exact MaxSim on floats, unaffected by the scoring error). The 2-bit cut's tokens score +0.013 against the full index on SciFact <!-- @evidence[[summary.json#scifact.contrasts.adapt c1@2 fp32 vs none fp32.delta.0]] --> and −0.0069 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.contrasts.adapt c1@2 fp32 vs none fp32.delta.0]] -->, both intervals clear of zero. Uniform pooling to a quarter shows no split: +0.0017 <!-- @evidence[[summary.json#scifact.rows.st pf4 fp32.delta.0]] --> and −0.0044 <!-- @evidence[[summary.json#nfcorpus.rows.st pf4 fp32.delta.0]] -->.
+5. **Quantizing to 4 or 8 bits costs nothing measurable; 1 bit is where the loss is** (Round 3). Unpooled 8-bit codes score 0.7626 on SciFact <!-- @evidence[[summary3.json#scifact.rows.none 8-bit.ndcg]] -->, the same as floats (0.7626 <!-- @evidence[[summary.json#scifact.rows.none fp32.ndcg]] -->). A quarter of the tokens at 4 bits against unpooled 8-bit codes: −0.0023 <!-- @evidence[[summary3.json#scifact.pairs.st pf4 4-bit vs none 8-bit.delta.0]] --> and −0.0052 <!-- @evidence[[summary3.json#nfcorpus.pairs.st pf4 4-bit vs none 8-bit.delta.0]] -->, intervals spanning zero.
+6. **remex's centered codes carry two float32 numbers per vector** (Round 1). `RemexIndex.nbytes` counts them: 8 bytes on top of 16 code bytes at 1 bit, 128-d. For unit vectors both follow from one number, so fp16 μ·(x−μ) (2 bytes) gives an identical decode. That saving is not in remex. Round 3's sizes are remex's own counts.
+7. **The encode reproduces the model card**: unpooled fp32 scores 0.7626 on SciFact <!-- @evidence[[summary.json#scifact.rows.none fp32.ndcg]] --> and 0.3817 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.rows.none fp32.ndcg]] --> against 0.766 and 0.378 on the card.
 
 ## Method
 
@@ -107,6 +106,107 @@ The side-scalar effect also splits by corpus.
 
 Costs: bench 59 min on SciFact and 28 min on NFCorpus (both rounds), mostly brute-force MaxSim; building a
 Ward forest over a corpus took 10–20 s.
+
+### Round 3 (2026-11-12): every comparison rescored through remex's own index search
+
+**Why:** while adding token pooling to `RemexIndex` for sentence-transformers 6.3 (remex 2.2.0), a full-corpus
+check through `RemexIndex` scored unpooled 1-bit LateOn at 0.751 on SciFact. Rounds 1 and 2 had 0.718 for the same
+codes. They scored MaxSim on decoded vectors, `q · decode(x)`. `RemexIndex` scores with remex's centered search
+estimator (remex `CLAUDE.md`, design decision 4): residual length divided by the expected cosine of a code, plus the
+stored `μ·r`. The two agree closely at 4 bits and differ at 1 bit (`ERRORS.md` #2).
+
+**Ran:** `bench3.py` re-scored unpooled 1/2/4/8-bit and library pooling (factor 2 at 2/4 bits, factor 4 at 2/4/8
+bits) through `RemexIndex(similarity="maxsim", center=True)`, seeds 42, 1, 2, 3, on both corpora. `bench3b.py`
+re-scored the quantizer-matched cut and its uniform control at four settings. Sizes are remex's own `nbytes`.
+`report3.py` writes `summary3.json` and the round-3 tables.
+
+**Reading.** The direction of every round-1/2 finding held and the 1-bit margins shrank to about a third. Pooling plus
+2–4 bits still matches or beats 1-bit codes in fewer bytes. Half the tokens at 2 bits is now the arm whose intervals
+clear zero on both corpora. The cut's corpus split survived at +0.0095 / −0.0034. The blog post and explainer video
+were corrected the same day.
+
+#### scifact, scored by RemexIndex search (mean over seeds)
+
+| arm | tok/doc | B/doc | nDCG@10 | seeds | range |
+|---|---:|---:|---:|---:|---|
+| none 1-bit | 229.9 | 5,518 | 0.7486 | 4 | 0.7364–0.7604 |
+| none 2-bit | 229.9 | 9,196 | 0.7589 | 4 | 0.7543–0.7629 |
+| none 4-bit | 229.9 | 16,553 | 0.7638 | 4 | 0.7605–0.7652 |
+| none 8-bit | 229.9 | 31,268 | 0.7626 | 4 | 0.7624–0.7629 |
+| st pf2 2-bit | 115.2 | 4,608 | 0.7601 | 4 | 0.7563–0.7626 |
+| st pf2 4-bit | 115.2 | 8,295 | 0.7659 | 4 | 0.7630–0.7695 |
+| st pf4 2-bit | 57.9 | 2,314 | 0.7512 | 4 | 0.7460–0.7538 |
+| st pf4 4-bit | 57.9 | 4,165 | 0.7602 | 4 | 0.7587–0.7622 |
+| st pf4 8-bit | 57.9 | 7,868 | 0.7644 | 4 | 0.7637–0.7656 |
+| adapt c1@2 2-bit | 88.5 | 3,538 | 0.7688 | 4 | 0.7669–0.7715 |
+| match c1@2 2-bit | 88.5 | 3,538 | 0.7593 | 4 | 0.7531–0.7630 |
+| adapt c4@3 3-bit | 78.8 | 4,413 | 0.7713 | 4 | 0.7687–0.7739 |
+| match c4@3 3-bit | 78.8 | 4,413 | 0.7621 | 4 | 0.7543–0.7665 |
+| adapt c2@3 3-bit | 123.8 | 6,936 | 0.7638 | 4 | 0.7611–0.7684 |
+| match c2@3 3-bit | 123.9 | 6,936 | 0.7636 | 4 | 0.7621–0.7653 |
+| adapt c1@3 3-bit | 167.6 | 9,384 | 0.7621 | 4 | 0.7596–0.7651 |
+| match c1@3 3-bit | 167.6 | 9,384 | 0.7595 | 4 | 0.7564–0.7627 |
+
+| a | b | B/doc a / b | Δ a − b [95% CI] | seeds with a > b |
+|---|---|---|---|---|
+| st pf4 4-bit | none 1-bit | 4,165 / 5,518 | +0.0116 [-0.0014, +0.0251] | 3 of 4 |
+| st pf2 2-bit | none 1-bit | 4,608 / 5,518 | +0.0115 [+0.0012, +0.0222] | 4 of 4 |
+| st pf4 4-bit | st pf2 2-bit | 4,165 / 4,608 | +0.0002 [-0.0136, +0.0141] | 2 of 4 |
+| st pf4 2-bit | none 1-bit | 2,314 / 5,518 | +0.0026 [-0.0069, +0.0123] | 2 of 4 |
+| st pf2 4-bit | none 2-bit | 8,295 / 9,196 | +0.0070 [-0.0013, +0.0151] | 4 of 4 |
+| none 2-bit | none 1-bit | 9,196 / 5,518 | +0.0103 [+0.0016, +0.0190] | 3 of 4 |
+| st pf4 4-bit | none 8-bit | 4,165 / 31,268 | -0.0023 [-0.0180, +0.0128] | 0 of 4 |
+| st pf4 8-bit | none 8-bit | 7,868 / 31,268 | +0.0018 [-0.0138, +0.0170] | 4 of 4 |
+| none 4-bit | none 8-bit | 16,553 / 31,268 | +0.0013 [-0.0034, +0.0061] | 3 of 4 |
+| adapt c1@2 2-bit | match c1@2 2-bit | 3,538 / 3,538 | +0.0095 [+0.0004, +0.0193] | 4 of 4 |
+| adapt c4@3 3-bit | match c4@3 3-bit | 4,413 / 4,413 | +0.0092 [-0.0000, +0.0186] | 4 of 4 |
+| adapt c2@3 3-bit | match c2@3 3-bit | 6,936 / 6,936 | +0.0002 [-0.0054, +0.0059] | 1 of 4 |
+| adapt c1@3 3-bit | match c1@3 3-bit | 9,384 / 9,384 | +0.0026 [-0.0006, +0.0065] | 3 of 4 |
+| adapt c1@2 2-bit | st pf4 4-bit | 3,538 / 4,165 | +0.0086 [-0.0059, +0.0234] | 4 of 4 |
+| adapt c1@2 2-bit | none 1-bit | 3,538 / 5,518 | +0.0202 [+0.0091, +0.0322] | 4 of 4 |
+| adapt c1@3 3-bit | none 4-bit | 9,384 / 16,553 | -0.0018 [-0.0074, +0.0038] | 0 of 4 |
+
+#### nfcorpus, scored by RemexIndex search (mean over seeds)
+
+| arm | tok/doc | B/doc | nDCG@10 | seeds | range |
+|---|---:|---:|---:|---:|---|
+| none 1-bit | 237.4 | 5,698 | 0.3702 | 4 | 0.3659–0.3730 |
+| none 2-bit | 237.4 | 9,497 | 0.3788 | 4 | 0.3781–0.3793 |
+| none 4-bit | 237.4 | 17,095 | 0.3806 | 4 | 0.3797–0.3814 |
+| none 8-bit | 237.4 | 32,291 | 0.3818 | 4 | 0.3816–0.3820 |
+| st pf2 2-bit | 119.0 | 4,759 | 0.3781 | 4 | 0.3766–0.3813 |
+| st pf2 4-bit | 119.0 | 8,566 | 0.3804 | 4 | 0.3796–0.3812 |
+| st pf4 2-bit | 59.7 | 2,389 | 0.3750 | 4 | 0.3715–0.3798 |
+| st pf4 4-bit | 59.7 | 4,300 | 0.3766 | 4 | 0.3751–0.3781 |
+| st pf4 8-bit | 59.7 | 8,123 | 0.3773 | 4 | 0.3768–0.3779 |
+| adapt c1@2 2-bit | 92.8 | 3,710 | 0.3709 | 4 | 0.3695–0.3729 |
+| match c1@2 2-bit | 92.8 | 3,710 | 0.3743 | 4 | 0.3715–0.3765 |
+| adapt c4@3 3-bit | 82.7 | 4,631 | 0.3714 | 4 | 0.3704–0.3725 |
+| match c4@3 3-bit | 82.7 | 4,631 | 0.3765 | 4 | 0.3743–0.3797 |
+| adapt c2@3 3-bit | 129.2 | 7,236 | 0.3761 | 4 | 0.3752–0.3774 |
+| match c2@3 3-bit | 129.2 | 7,236 | 0.3767 | 4 | 0.3752–0.3783 |
+| adapt c1@3 3-bit | 172.3 | 9,647 | 0.3785 | 4 | 0.3775–0.3805 |
+| match c1@3 3-bit | 172.3 | 9,647 | 0.3796 | 4 | 0.3785–0.3809 |
+
+| a | b | B/doc a / b | Δ a − b [95% CI] | seeds with a > b |
+|---|---|---|---|---|
+| st pf4 4-bit | none 1-bit | 4,300 / 5,698 | +0.0064 [-0.0012, +0.0142] | 4 of 4 |
+| st pf2 2-bit | none 1-bit | 4,759 / 5,698 | +0.0079 [+0.0026, +0.0136] | 4 of 4 |
+| st pf4 4-bit | st pf2 2-bit | 4,300 / 4,759 | -0.0015 [-0.0077, +0.0046] | 1 of 4 |
+| st pf4 2-bit | none 1-bit | 2,389 / 5,698 | +0.0048 [-0.0026, +0.0127] | 3 of 4 |
+| st pf2 4-bit | none 2-bit | 8,566 / 9,497 | +0.0017 [-0.0019, +0.0053] | 4 of 4 |
+| none 2-bit | none 1-bit | 9,497 / 5,698 | +0.0085 [+0.0039, +0.0135] | 4 of 4 |
+| st pf4 4-bit | none 8-bit | 4,300 / 32,291 | -0.0052 [-0.0119, +0.0014] | 0 of 4 |
+| st pf4 8-bit | none 8-bit | 8,123 / 32,291 | -0.0045 [-0.0113, +0.0024] | 0 of 4 |
+| none 4-bit | none 8-bit | 17,095 / 32,291 | -0.0012 [-0.0030, +0.0007] | 0 of 4 |
+| adapt c1@2 2-bit | match c1@2 2-bit | 3,710 / 3,710 | -0.0034 [-0.0084, +0.0013] | 0 of 4 |
+| adapt c4@3 3-bit | match c4@3 3-bit | 4,631 / 4,631 | -0.0051 [-0.0107, +0.0003] | 0 of 4 |
+| adapt c2@3 3-bit | match c2@3 3-bit | 7,236 / 7,236 | -0.0007 [-0.0038, +0.0024] | 2 of 4 |
+| adapt c1@3 3-bit | match c1@3 3-bit | 9,647 / 9,647 | -0.0011 [-0.0030, +0.0008] | 0 of 4 |
+| adapt c1@2 2-bit | st pf4 4-bit | 3,710 / 4,300 | -0.0057 [-0.0123, +0.0008] | 0 of 4 |
+| adapt c1@2 2-bit | none 1-bit | 3,710 / 5,698 | +0.0006 [-0.0051, +0.0064] | 2 of 4 |
+| adapt c1@3 3-bit | none 4-bit | 9,647 / 17,095 | -0.0021 [-0.0048, +0.0005] | 0 of 4 |
+
 
 <!-- tables:start -->
 ### scifact: every arm (nDCG@10 averaged over the rotations run, n = count, range = lowest to highest single run; Δ = arm − unpooled fp32, 95% paired bootstrap over queries; B/doc counts 2 B of side scalar per coded vector except `no-side` arms)

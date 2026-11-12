@@ -356,13 +356,13 @@ text("s9vs", "against uniform pooling at the same size (nDCG@10):", "50%", 480, 
 AX = 960
 add({"id": "s9ax", "type": "line", "points": [[AX, 540], [AX, 800]], "stroke": "#5a6378", "strokeWidth": 3,
      "at": "vo9:but+0.2", "enter": "draw"}, k)
-add({"id": "s9b1", "type": "rect", "x": AX, "y": 600, "anchor": "left", "w": 0.013 * 30000, "h": 70, "fill": GREEN,
+add({"id": "s9b1", "type": "rect", "x": AX, "y": 600, "anchor": "left", "w": 0.0095 * 30000, "h": 70, "fill": GREEN,
      "radius": 8, "at": "vo9:but+0.5", "enter": "wipe"}, k)
-text("s9l1", "SciFact  +0.013", AX + 0.013 * 30000 + 30, 600, k, "vo9:but+0.8", size=46, fill=GREEN, font=MONO,
+text("s9l1", "SciFact  +0.009", AX + 0.0095 * 30000 + 30, 600, k, "vo9:but+0.8", size=46, fill=GREEN, font=MONO,
      anchor="left", enter="fade")
-add({"id": "s9b2", "type": "rect", "x": AX, "y": 730, "anchor": "right", "w": 0.002 * 30000, "h": 70, "fill": RED,
+add({"id": "s9b2", "type": "rect", "x": AX, "y": 730, "anchor": "right", "w": 0.0034 * 30000, "h": 70, "fill": RED,
      "radius": 8, "at": "vo9:lost", "enter": "wipe-left"}, k)
-text("s9l2", "NFCorpus  −0.002", AX - 0.002 * 30000 - 30, 730, k, "vo9:lost+0.2", size=46, fill=RED, font=MONO,
+text("s9l2", "NFCorpus  −0.003", AX - 0.0034 * 30000 - 30, 730, k, "vo9:lost+0.2", size=46, fill=RED, font=MONO,
      anchor="right", enter="fade")
 
 # ---------------------------------------------------------------------------------------------- 10 takeaway

@@ -2973,17 +2973,20 @@ the result.
   +0.01 on SciFact and ~0 on NFCorpus (1 of 12 CIs clear of zero): a
   300-query corpus cannot resolve the post's NanoBEIR gain.
   (`token-pooling-remex/RESULTS.md`)
-- **The pool-then-more-bits rule holds on a strong ColBERT never trained for pooling, and letting the codec
-  set how much to pool does not beat uniform pooling.** LateOn (ModernBERT, 128-d, BEIR 57.2), centered remex:
-  library pool factor 4 at 4 bits beats unpooled 1-bit at ~4 KB/doc by +0.040 / +0.0125 nDCG@10 (SciFact /
-  NFCorpus), 4 of 4 rotations each; pf4 4-bit and pf2 2-bit tie. Against codes-only 1-bit (no side
-  scalar, which was better on SciFact) pf2 2-bit still wins by +0.017 / +0.018. A Ward cut at "pooling error ≤ c × the
-  codec's measured per-token error" keeps 73% of tokens free at 3 bits (c = 1) and 54% at c = 2, but against
-  uniform pooling at the same tokens and bits it scores +0.013 on SciFact and −0.002 to −0.007 on NFCorpus,
-  every rotation agreeing within a corpus. Below 3 bits the rule over-pools (1 bit, c = 1: 10% of tokens,
-  −0.06 / −0.03): a merge's systematic error costs more than random coding error of the same size. Pooling
-  alone at fp32 also splits by corpus (+0.016 / −0.011). Default: uniform pooling, ≥2 bits; check pooling at
-  fp32 on the target corpus before reading anything into an adaptive scheme. (`lateon-pool-remex/RESULTS.md`)
+- **The pool-then-more-bits rule holds on a strong ColBERT never trained for pooling, by about 0.01, and letting
+  the codec set how much to pool does not beat uniform pooling.** LateOn (ModernBERT, 128-d), scored through remex's
+  own `RemexIndex` search, four seeds: half the tokens at 2 bits beats unpooled 1-bit codes by +0.012 / +0.008
+  nDCG@10 (SciFact / NFCorpus, intervals clear of zero) at 16% fewer bytes; a quarter at 4 bits by +0.012 / +0.006
+  (intervals from −0.001). A Ward cut at "pooling error ≤ the codec's per-token error" scores +0.0095 / −0.0034
+  against uniform pooling at the same size, and its token selection splits the same way in floats (+0.013 / −0.007).
+  Default: uniform pooling, ≥2 bits. remex ≥ 2.2.0 takes the pooling module as `RemexIndex(..., token_pooling=...)`.
+  (`lateon-pool-remex/RESULTS.md`)
+- **Score remex codes through remex's search, not as `q · decode(x)`, or 1-bit results come out about 0.03 low.**
+  remex's centered decode and its search estimator are different estimates of the same code; the search divides by
+  the expected cosine of a code and ranks better at low bit widths. Unpooled 1-bit LateOn: 0.718 by decode, 0.749
+  through `RemexIndex` (SciFact). A bench that decodes once and runs its own MaxSim is convenient, but it is not what
+  a remex user gets. Results from experiments that did it (`token-pooling-remex`, `mxbai-edge-remex-quant`,
+  `lateon-pool-remex` rounds 1–2) overstate what 1 bit costs. (`lateon-pool-remex/ERRORS.md` #2)
 - **Centered remex codes carry a per-vector scalar; count it.** remex 2.1's centered `CompressedVectors` hold
   `norms` = ‖x−μ‖ and `mean_dots` = μ·(x−μ) per row in float32. For unit-norm x both follow from one number
   (‖x−μ‖² = 1 − 2μ·x + ‖μ‖²): store μ·(x−μ) as fp16 (2 B), not μ·x, whose fp16 spacing near ‖μ‖² ≈ 0.95 is

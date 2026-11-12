@@ -103,6 +103,11 @@ The byte counts above are codes only, so every coded arm here is 2 B/vector shor
 the code bytes. Counting it makes unpooled 1-bit dearer than the pooled arms it was compared with, which
 strengthens the same-byte findings rather than reversing them. The tables are left as they ran.
 
+A second caveat from `lateon-pool-remex` round 3: this experiment scored codes as `q · decode(x)`, and remex's index
+search ranks 1-bit codes better (on LateOn, 0.749 against 0.718 on SciFact), so the margins here against 1-bit
+codes are overstated by roughly that much. The direction held on LateOn when rescored; this experiment was not
+rescored.
+
 <!-- tables:start -->
 ### scifact: every arm (nDCG@10; Δ = arm − the same model's unpooled fp32; aware − baseline = paired per-query difference of absolute nDCG@10; all CIs 95% paired bootstrap)
 
