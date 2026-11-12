@@ -58,9 +58,10 @@ VO = [
     f"[[subtract]]subtracts their average. Then it [[rotate]]rotates them, and [[snap]]snaps every coordinate "
     f"to a few levels: sixteen levels at four bits. Just [[one]]two at one bit.",
     # 8 result
-    f"So which wins at the same size? On SciFact, at about four kilobytes per document, [[every]]every token "
-    f"at one bit scores point seven two. [[quarter]]A quarter of the tokens at four bits scores point seven "
-    f"six: [[nearly]]nearly the full index, at one thirtieth of its size.",
+    f"So which wins at a similar size? On SciFact, [[every]]every token at one bit takes five and a half "
+    f"kilobytes per document and scores point seven four nine. [[quarter]]A quarter of the tokens at four bits "
+    f"takes four point two kilobytes and scores point seven six oh: [[nearly]]nearly the full index, at under "
+    f"four percent of its size.",
     # 9 integrated
     f"We also let the quantizer decide how far to pool: merge until the merge error matches the coding "
     f"error. [[free]]That's free at three and four bits. [[but]]But it didn't beat plain pooling. It won on "
@@ -325,11 +326,11 @@ numline("s7n1", 760, LM1, "1 bit: 2 levels", ACC, "vo7:one")
 
 # ---------------------------------------------------------------------------------------------- 8 result
 k = 8
-text("s8h", "Same size, about 4 KB per document  ·  SciFact", "50%", 120, k, "vo8.in+0.2", size=52, weight=700,
+text("s8h", "Fewer bytes, a higher score  ·  SciFact", "50%", 120, k, "vo8.in+0.2", size=52, weight=700,
      enter="rise")
 text("s8m", "nDCG@10, higher is better", "50%", 190, k, "vo8.in+0.4", size=40, fill=DIM, enter="fade")
-COLS = [("every", "all 230 tokens", "1 bit each", "4.1 KB", 0.718, DIM, 380),
-        ("quarter", "¼ of the tokens", "4 bits each", "3.8 KB", 0.758, ACC, 960),
+COLS = [("every", "all 230 tokens", "1 bit each", "5.5 KB", 0.749, DIM, 380),
+        ("quarter", "¼ of the tokens", "4 bits each", "4.2 KB", 0.760, ACC, 960),
         ("nearly", "full index", "32-bit floats", "118 KB", 0.763, BLUE, 1540)]
 for i, (mark, l1, l2, kb, score, col, cx) in enumerate(COLS):
     at = f"vo8:{mark}"
@@ -341,7 +342,7 @@ for i, (mark, l1, l2, kb, score, col, cx) in enumerate(COLS):
          "x": cx, "y": 590, "size": 110, "weight": 800, "font": MONO, "fill": col, "at": f"{at}+0.3",
          "enter": "fade"}, k)
     text(f"s8k{i}", kb, cx, 720, k, f"{at}+0.5", size=56, font=MONO, fill=INK, enter="fade")
-add({"id": "s8x", "type": "text", "text": "1/30 of the full index", "x": 960, "y": 790, "size": 38, "fill": ACC,
+add({"id": "s8x", "type": "text", "text": "under 4% of the full index", "x": 960, "y": 790, "size": 38, "fill": ACC,
      "weight": 700, "at": "vo8:nearly+0.6", "enter": "fade"}, k)
 
 # ---------------------------------------------------------------------------------------------- 9 integrated
