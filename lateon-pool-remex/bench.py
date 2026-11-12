@@ -18,7 +18,7 @@ Three pooling families, every one scored after centered remex coding:
           arm: same bits, same bytes, uniform instead of adaptive allocation.
 
 Codec: centered remex (Quantizer(128, b, mean=corpus_mean of the coded tokens)).
-Each coded vector carries one fp16 side scalar s = mu.x; for a unit vector it gives
+Each coded vector carries one fp16 side scalar t = mu.(x-mu) (s = mu.x = t + ||mu||^2); for a unit vector it gives
 both stored fields exactly (||x-mu||^2 = 1 - 2s + ||mu||^2, mu.(x-mu) = s - ||mu||^2),
 so the decode here rebuilds them from the fp16 s, and bytes count it:
   bytes/vector = 128*b/8 + 2   (fp32 arms: 512).
@@ -76,7 +76,9 @@ def code(T, bits, seed=42, rotation=None, side="fp16"):
         mm = float(mu64 @ mu64)
         s = T.astype(np.float64) @ mu64
         if side == "fp16":
-            s = s.astype(np.float16).astype(np.float64)
+            # store t = mu.(x-mu) (near 0) rather than mu.x (near ||mu||^2 ~ 0.95 on LateOn): same 2 bytes,
+            # ~20x smaller fp16 error on an anisotropic corpus
+            s = (s - mm).astype(np.float16).astype(np.float64) + mm
         elif side == "none":
             s = np.full_like(s, s.mean())
         cv.mean_dots = (s - mm).astype(np.float32)
