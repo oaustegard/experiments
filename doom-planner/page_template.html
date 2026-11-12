@@ -1,0 +1,107 @@
+<title>Doom by Rollouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of briefing text, a planner diagram, then one card per run (video beside its numbers). */
+/* Single deliberate dark look: Doom's tech-base panels, amber status-bar numerals. */
+:root {
+  color-scheme: dark;
+  --bg: #161a1b;
+  --panel: #1f2526;
+  --rule: #2f3a3b;
+  --fg: #d8ded6;
+  --muted: #95a39d;
+  --amber: #e2a83a;
+  --teal: #6fb3a8;
+  --red: #d0563c;
+  --display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: grid; gap: 12px; margin-bottom: 36px; }
+.kicker { font: 500 13px var(--mono); color: var(--amber); letter-spacing: 0.08em; text-transform: uppercase; }
+h1 { font: 800 clamp(40px, 7vw, 72px)/0.95 var(--display); letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
+h2 { font: 600 28px/1.1 var(--display); margin: 0 0 12px; color: var(--fg); text-wrap: balance; }
+h3 { font: 600 24px/1.1 var(--display); margin: 0; color: var(--amber); }
+p { margin: 0; max-width: 68ch; }
+.lede { font-size: 18px; color: var(--fg); }
+section { margin-top: 48px; display: grid; gap: 16px; }
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.step { background: var(--panel); border-top: 3px solid var(--teal); padding: 12px; display: grid; gap: 4px; }
+.step b { font: 500 22px var(--mono); color: var(--amber); font-variant-numeric: tabular-nums; }
+.step span { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.runs { display: grid; gap: 28px; }
+.run { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 24px; align-items: start;
+  border-top: 1px solid var(--rule); padding-top: 24px; }
+.frame { background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+.frame video { width: 100%; height: 100%; display: block; }
+.novideo { display: grid; place-items: center; height: 100%; color: var(--muted); font: 14px var(--mono); }
+.meta { display: grid; gap: 12px; min-width: 0; }
+.meta p { color: var(--muted); font-size: 15px; }
+dl { display: grid; grid-template-columns: 1fr; margin: 0; border-top: 1px solid var(--rule); }
+dl div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+dt { color: var(--muted); font-size: 14px; }
+dd { margin: 0; font: 500 15px var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; text-align: right; }
+a { color: var(--teal); text-underline-offset: 3px; }
+a:focus-visible, video:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 72ch; }
+li::marker { color: var(--red); }
+footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+code { font: 14px var(--mono); color: var(--amber); }
+@media (max-width: 760px) {
+  .run { grid-template-columns: minmax(0, 1fr); }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">oaustegard/experiments · doom-planner</div>
+    <h1>Doom by Rollouts</h1>
+    <p class="lede">A Doom player that never looks at the screen to decide. Every 8 game tics (0.23 s) it copies the running game 90 times, plays out each of 30 options under 3 different dice rolls for a second and a half, scores what happened from the engine's own state, and does the move that held up best. None of the copies uses the game's real dice, so it plans against futures that could happen, not the one that will.</p>
+  </header>
+
+  <section>
+    <h2>One decision, every 0.23 seconds</h2>
+    <div class="flow">
+      <div class="step"><b>fork</b><span>The whole game process, copied in memory.</span></div>
+      <div class="step"><b>30 × 3</b><span>Options (walk, turn, strafe, fire, use, turn-then-run, keep going) under three reseeded random number generators.</span></div>
+      <div class="step"><b>52 tics</b><span>Each copy plays its move for 1.5 s with the real monsters, physics and doors.</span></div>
+      <div class="step"><b>score</b><span>Damage dealt and taken, kills, deaths, new walls seen, walking distance to unexplored space, the exit.</span></div>
+      <div class="step"><b>8 tics</b><span>The move with the best average, pulled toward its worst case, is played for real. Then again.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Three runs of five minutes on E1M1</h2>
+    <p>Videos are the real game as played, every frame, at normal speed. The caption at the top left shows each decision: the move chosen, its score and the next two options.</p>
+    <div class="runs">{{RUNS}}
+    </div>
+    <p>{{LONG}}</p>
+  </section>
+
+  <section>
+    <h2>Reading the results</h2>
+    <p>Rollouts alone, with no idea where the exit is, cleared E1M1: all six monsters, no deaths, exit at 2:42. Knowing the exit's position cut that to under a minute, at the cost of skipping half the fights and dying once on the next map. Handing close calls to Haiku did not help in this one run: it overrode the planner on a third of its 197 calls and the level took 3:37 instead of 2:42. One run each is an anecdote, not a measurement.</p>
+    <p>E1M2 is where the approach runs out. The map has a red-key door, which the planner's model of where a player can walk treats as an ordinary door, and 17 lift lines, which it does not model at all. I have not traced which of these stands between the start and the exit.</p>
+  </section>
+
+  <section>
+    <h2>What it took to get here</h2>
+    <ul>
+      <li>The forked copies shared one open WAD file, and with it one read position. Copies loading graphics at the same moment read each other's bytes; a third of them crashed and scored as zero. The WAD now loads into memory before the first fork, and two identical runs produce identical decisions.</li>
+      <li>Re-planning every 8 tics restarted "turn, then run" plans, so the player turned in place. A "keep going" option fixed that, and a plan predicted to reach the exit is now played to the end. Before that the player stood at the exit switch for six seconds while every copy predicted pressing it.</li>
+      <li>A second and a half of lookahead sees nothing new once a room is explored. Walking distance to the nearest unseen wall, through the map's rooms and doors, gives the planner somewhere to go.</li>
+      <li>Doom never draws a doorway between rooms of equal height, so it never counts as seen. Those lines, and lines the player has walked past, no longer pull the planner toward them.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Engine: PrBoom 2.5 from retro-go, run headless on Linux in the session's network-less jail. Shareware DOOM1.WAD, skill 3 (Hurt Me Plenty).</span>
+    <span>Source and writeup: <code>oaustegard/experiments/doom-planner</code>. Prior art: VideoGameBench Lite pauses the game while a vision model picks each action from the screen.</span>
+  </footer>
+</div>

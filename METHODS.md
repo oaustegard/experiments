@@ -1782,6 +1782,19 @@ the result.
   (`.bin`, `.json`) does not deploy.** The page kept serving the old weights. Dispatch the workflow
   (`POST /repos/oaustegard/experiments/actions/workflows/pages.yml/dispatches`, `{"ref": "main"}`) and
   check the live file afterwards. (`browser-decider`, 2026-11-06)
+- **Forked children share their parent's open files, offset included.** A program that `fork()`s copies of
+  itself (rollouts, snapshots, workers) and reads a file opened before the fork has one file description,
+  and one `fseek` position, across every copy. Children loading data at the same moment read each other's
+  bytes. In `doom-planner` that corrupted Doom's lump cache: about a third of the rollouts crashed in
+  `R_CachePatchNum`, their result slots read as 0, and two identical runs diverged at the first decision.
+  Read such files fully into memory (or reopen them in the child) before the first fork. A slot a child
+  never writes should start as NaN, not 0, so a crash shows up instead of scoring as "nothing happened".
+  (`doom-planner/src/host_main.c`, `wads_to_memory`)
+- **`subprocess.Popen(text=True)` on a program that prints raw bytes kills the program.** One non-UTF-8 byte
+  raises `UnicodeDecodeError` in the reading loop; the Python side dies, the pipe closes, and the child is
+  killed by SIGPIPE on its next write, with no message of its own. Pass `encoding="utf-8", errors="replace"`
+  (or read bytes) whenever the child is not yours. PrBoom prints such a byte on a level change.
+  (`doom-planner/play.py`)
 
 ## Numerical / ML gotchas
 
@@ -3502,6 +3515,24 @@ The traps, each of which cost a revision:
   and a page can search on the first half and upgrade when the rest arrives.
 - **Rule.** Before choosing a bit width from recall, measure the metric after the pipeline's later stages;
   the gap between the two decides how far the first stage can be compressed. (`answer-search-1bit/RESULTS.md`)
+
+### A receding-horizon planner needs a "continue" option and a long-range potential (doom-planner)
+
+- **Re-planning every few steps restarts multi-phase plans.** A plan "turn 90 degrees, then run" chosen
+  again after 8 of its 52 tics starts its turn over; two such plans alternated 122 times each and the player
+  stood still. Score "the current plan, resumed from where it is" as one more option (with a small bonus),
+  and when the chosen plan reaches the goal in every scenario, play it to the end. Without the second rule
+  the player stood at Doom's exit switch for 6 s with every rollout predicting the exit.
+- **Short rollouts need a potential that sees past the horizon.** With 1.5 s rollouts the score surface was
+  flat (every option 0) once the nearby area was seen, and the planner backed into a wall. Walking distance
+  to the nearest unseen wall, as a shortest path through the map's sector graph, gave it a gradient;
+  straight-line distance pointed through walls and pinned the player beside the nearest one.
+- **"Seen" needs a definition the target cannot dodge.** Doom never draws a portal line between two
+  sectors of equal height, so it is never marked seen and stays the nearest target forever. Exclude what
+  the renderer cannot draw, count lines near where the player has been as seen, and drop a target (and its
+  neighbours) that has stayed nearest for 25 decisions with no progress.
+- **Rule.** Before blaming the scoring, check that a planner of this kind can finish a plan, and that
+  every target it is pulled toward can actually be reached. (`doom-planner/RESULTS.md`)
 
 ## Cache and measurement hygiene
 

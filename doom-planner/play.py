@@ -154,7 +154,7 @@ def main():
     ap.add_argument("--judge", action="store_true")
     ap.add_argument("--assist-exit", action="store_true")
     ap.add_argument("--scenarios", type=int, default=3)
-    ap.add_argument("--horizon", type=int, default=35)
+    ap.add_argument("--horizon", type=int, default=52)
     ap.add_argument("--commit", type=int, default=8)
     ap.add_argument("--risk", type=float, default=0.5)
     ap.add_argument("--skill", type=int, default=3)
@@ -185,7 +185,8 @@ def main():
 
     t0 = time.time()
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, text=True, bufsize=1)
+                            stderr=subprocess.STDOUT, text=True, bufsize=1,
+                            encoding="utf-8", errors="replace")  # the engine prints raw bytes
     note, judge_s, judged = "", 0.0, 0
     for line in proc.stdout:
         line = line.rstrip("\n")
@@ -205,10 +206,14 @@ def main():
             continue
         events.write(line + "\n")
         events.flush()
-        if line.startswith(("START", "STATUS", "LEVEL", "DIED", "END")):
+        if line.startswith(("START", "STATUS", "LEVEL", "DIED", "END", "GIVEUP", "RESET")):
             print(line, flush=True)
     proc.wait()
     wall = time.time() - t0
+    print(f"doom_host exit status {proc.returncode}", flush=True)
+    if not (jd / "run" / "summary.json").exists():
+        sys.exit(f"no summary.json: doom_host ended early (status {proc.returncode}); "
+                 f"see {out_dir / 'events.log'}")
 
     run = jd / "run"
     for f in ("summary.json", "decisions.jsonl", "video.mp4"):
@@ -219,10 +224,14 @@ def main():
     video = out_dir / "video.mp4"
     annotated = out_dir / "video_annotated.mp4"
     subtitles(out_dir / "decisions.jsonl", out_dir / "captions.ass")
-    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(video),
-                    "-vf", f"subtitles={out_dir / 'captions.ass'}", "-c:v", "libx264",
-                    "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p",
-                    str(annotated)], check=True)
+    captions = out_dir / "captions.ass"
+    # 640x480 for R2; 480x360 under the 15 MB limit for an Artifact asset
+    for out, size, crf in ((annotated, "640:480:flags=neighbor", "28"),
+                           (out_dir / "video_small.mp4", "480:360:flags=bilinear", "31")):
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(video),
+                        "-vf", f"scale={size},subtitles={captions}", "-c:v", "libx264",
+                        "-preset", "medium", "-crf", crf, "-pix_fmt", "yuv420p", str(out)],
+                       check=True)
 
     url = None
     if not args.no_upload:
