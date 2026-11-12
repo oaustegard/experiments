@@ -4,11 +4,11 @@
 
 ## Answer
 
-A ColBERT-style index stores a vector per document token and shrinks by **pooling** (merging similar tokens) or **quantizing** (fewer bits per vector). Hugging Face's [token-pooling post](https://huggingface.co/blog/token-pooling) trains a model so pooling costs less. At a fixed index size, should a text token index pool, quantize harder, or both, and does that training change it?
+A ColBERT-style index stores a vector per document token and shrinks by **pooling** (merging similar tokens) or **quantizing** (fewer bits per vector). Hugging Face's [token-pooling post](https://huggingface.co/blog/token-pooling) trains a model so pooling costs less. At a fixed index size, should a text index pool, quantize harder, or both, and does that training change it?
 
-At about 5 KB per document, pooling to a quarter of the tokens at 4 bits beats every token at 1 bit. For the pooling-aware model the margin is +0.044 nDCG@10 on SciFact <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs none 1-bit.aware.0]] --> and +0.022 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.pf4 4-bit vs none 1-bit.aware.0]] -->; the baseline gains less. At about 10 KB per document the difference is 0.01 or less. A 32-vector cap at 4 bits scores 0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] -->, better than unpooled 1-bit at under half the bytes. Pooling-aware training cut pooling's cost by about 0.01 on SciFact; on NFCorpus the effect is too small to resolve.
+At about 5 KB per document, pooling to a quarter of the tokens at 4 bits beats every token at 1 bit. For the pooling-aware model the margin is +0.044 nDCG@10 on SciFact <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs none 1-bit.aware.0]] --> and +0.022 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.pf4 4-bit vs none 1-bit.aware.0]] -->. At about 10 KB per document the difference is 0.01 or less. For the aware model, a 32-vector cap at 4 bits (0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] -->, one run) beats unpooled 1-bit at under half the bytes. Pooling-aware training cut pooling's cost by about 0.01 on SciFact; on NFCorpus the effect is too small to resolve.
 
-The cost of 1 bit decides it: 2 bits to 1 bit on unpooled tokens costs −0.045 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.two_to_one_bit]] -->, more than pooling by 4 costs. Where 1-bit is nearly free (NeoMME, `neomme-remex-quant`), quantizing wins.
+The cost of 1 bit decides it: 2 bits to 1 bit on unpooled tokens costs −0.045 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.two_to_one_bit]] -->, more than pooling by 4 costs. Where 1-bit is nearly free (NeoMME, sibling experiment `neomme-remex-quant`), quantizing wins.
 
 ## Findings
 
@@ -22,7 +22,7 @@ The cost of 1 bit decides it: 2 bits to 1 bit on unpooled tokens costs −0.045 
 3. **At about 10 KB per document the trade is a wash** (Round 1, table 2). Pool factor 2 at 4 bits against unpooled 2-bit is +0.010 for aware on SciFact <!-- @evidence[[summary.json#scifact.iso.pf2 4-bit vs none 2-bit.aware.0]] --> and within ±0.005, CIs spanning zero, in the other three cells. Unpooled 2-bit already costs only −0.010 against fp32 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.fp32_to_two_bit]] -->.
 4. **Pooling-aware training cut what pooling loses by about 0.01 on SciFact and by an unresolvable amount on NFCorpus; one of twelve comparisons clears zero** (Round 1, table 3). At pool factor 4, fp32: +0.011 on SciFact <!-- @evidence[[summary.json#scifact.pool_cost.pf4 fp32.diff.0]] --> and −0.000 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.pool_cost.pf4 fp32.diff.0]] -->, against about +0.017 for the same quantity in the post's NanoBEIR numbers (a 13-dataset BEIR subset; pooling cost 1.16 points for aware and 2.81 for baseline).
 5. **Unpooled, the two checkpoints tie**: +0.002 on SciFact <!-- @evidence[[summary.json#scifact.rows.none fp32.aware_minus_baseline.0]] --> and −0.007 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.rows.none fp32.aware_minus_baseline.0]] -->, CIs spanning zero, so the extra training objective has no measurable cost (Round 1, table 1).
-6. **Capping documents at 16 vectors is expensive** (Round 1, table 1): −0.056 on SciFact for aware at fp32 <!-- @evidence[[summary.json#scifact.rows.mt16 fp32.aware_delta]] -->. A 32-vector cap at 4 bits scores 0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] --> at 2,048 bytes per document, against about 0.603 for unpooled 1-bit at 4,783 bytes (one rotation run; `mt32` has no second seed) <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.bytes]] -->.
+6. **Capping documents at 16 vectors is expensive** (Round 1, table 1): −0.056 on SciFact for aware at fp32 <!-- @evidence[[summary.json#scifact.rows.mt16 fp32.aware_delta]] -->. A 32-vector cap at 4 bits scores 0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] --> at 2,048 bytes per document, against about 0.603 for unpooled 1-bit at 4,783 bytes (one rotation run; `mt32` has no second seed). On NFCorpus the cap beats unpooled 1-bit for aware (0.284 vs 0.272) but not for baseline (0.283 vs 0.285) <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.bytes]] -->.
 
 ## Method
 
@@ -36,7 +36,7 @@ The cost of 1 bit decides it: 2 bits to 1 bit on unpooled tokens costs −0.045 
   323 queries, graded qrels, 326 tokens/doc).
 - **Pooling** (`HierarchicalTokenPooling`, the post's implementation): Ward hierarchical clustering of
   each document's tokens on cosine distance, each cluster replaced by its mean and re-normalised to unit
-  length; the first token ([CLS]) is never merged; queries are never pooled. Arms: `none`;
+  length; the first token ([CLS]) is never merged. Arms: `none`;
   `pf2`/`pf3`/`pf4` = pool factor, clustering each document down to about 1/2, 1/3 or 1/4 of its
   tokens; `mt32`/`mt16` = clustering each document down to at most 32 or 16 vectors.
 - **Quantization:** [remex](https://github.com/oaustegard/remex) 2.1.0, a vector codec: a random orthogonal rotation, then a
