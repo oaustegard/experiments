@@ -2,10 +2,11 @@
 
 A Doom player that decides by playing out futures instead of reading the
 screen. Doom advances in steps of 1/35 s called tics. Every 8 tics (0.23 s)
-the planner copies the running game 90 times: 30 options (29 moves plus
-"keep going", which resumes a move that takes longer than 8 tics, such
-as "turn 90°, then run") under 3 scenarios, each a copy with its random number generator
-reseeded, played for 52 tics (1.5 s). Each copy is scored from engine state: damage dealt and taken,
+the planner copies the running game 90 times: each of 30 options is tried in
+3 copies, and each copy has its random number generator reseeded differently.
+29 options are moves; the 30th, "keep going", resumes a move that takes
+longer than 8 tics, such as "turn 90°, then run". Each copy plays its option
+for 52 tics (1.5 s). Each copy is scored from engine state: damage dealt and taken,
 kills, deaths, items, ammo used, standing still, walls seen for the first
 time, walking distance to unexplored space, and a bonus for reaching the
 exit. The planner plays the move with the best average score,
@@ -19,14 +20,15 @@ in 2:43 of game time with all six monsters killed and no deaths; it did not
 find the second level's exit in 15 minutes.
 
 Results, method and the log of what broke: [`RESULTS.md`](RESULTS.md). Videos
-of the three 5-minute runs are on the [Doom by Rollouts](https://austegard.com/experiments/doom-planner/web/)
+of three 5-minute runs (exploring with no exit knowledge, told where the exit
+is, and with Haiku on close calls) are on the [Doom by Rollouts](https://austegard.com/experiments/doom-planner/web/)
 page and full-size on Cloudflare R2, at the public
 URLs in `results/*.json`.
 
 Prior art: VideoGameBench Lite pauses the emulator while a vision-language
 model picks each action from the screen (arXiv 2505.18134); the best model's
 average progress through the games was 0.48%, Doom among them. Two searches did not find a Doom agent that
-forks the engine and judges real outcomes.
+forks the engine and scores the outcomes it actually plays out.
 
 ## Layout
 
@@ -47,7 +49,8 @@ signed in. `play.py` runs the game inside `scripts/jail.sh` from
 `oaustegard/claude-workspace`, a sandbox with no network, and expects that
 repository at `/home/user/claude-workspace`; edit the `JAIL` path at the top
 of `play.py` to point elsewhere. Uploading writes to the `austegard-media` R2
-bucket through that repository's `scripts/embstore.py`, with the
+bucket through that repository's `scripts/embstore.py` (a general R2
+uploader), with the
 `CF_ACCOUNT_ID` and `CF_API_TOKEN` environment variables, so use
 `--no-upload` without access to that bucket.
 

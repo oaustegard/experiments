@@ -71,12 +71,12 @@ code { font: 14px var(--mono); color: var(--amber); }
 
   <section>
     <h2>Each decision tries 30 options in 90 copies of the game</h2>
-    <p>Doom updates its world 35 times a second, and each update is called a tic. Every 8 tics, about a quarter of a second, the player pauses the real game and does this:</p>
+    <p>Doom updates its world 35 times a second, and each update is called a tic. Every 8 tics, about a quarter of a second, the planner pauses the real game and does this:</p>
     <ol class="steps">
       <li><span><b>Copy the game 90 times.</b> The game is a program running on Linux, which can duplicate itself (the <code>fork</code> system call). Each copy holds the whole game as it stands: the map, every monster, every door, and the player's position, health and ammo.</span></li>
       <li><span><b>Give each copy one option to try.</b> There are 30 options, such as walk forward, turn left while firing, strafe right, walk into a door pressing "use", turn 90° and then run, or keep doing what it was already doing. Each option is tried in three copies.</span></li>
       <li><span><b>Roll different dice in each of the three.</b> Doom uses random numbers to decide whether a shot hits, how much damage it does and where a monster wanders. Each of the three copies has its random numbers reseeded differently from the other two, so they show three ways the next moment could go. The reseeding is the same in every run, so a run repeats exactly. None of them uses the real game's random numbers, so the player never sees the future that will actually happen.</span></li>
-      <li><span><b>Let each copy play for a second and a half, then score it.</b> After 52 tics, each copy reports points for damage it dealt, kills, items picked up, walls it saw for the first time, and getting closer to parts of the map it has not seen yet. "Closer" is walking distance, measured through the map's rooms and doorways, so a wall between the player and an unexplored room does not count as close. It loses points for damage it took, ammo it used and standing still. Reaching the exit earns a large bonus, and dying a large penalty.</span></li>
+      <li><span><b>Let each copy play for a second and a half, then score it.</b> After 52 tics, each copy reports points for damage it dealt, kills, items picked up, walls it saw for the first time, and getting closer to parts of the map it has not seen yet. "Closer" is walking distance, measured through the map's rooms and doorways, so a wall between the player and an unexplored room does not count as close. It loses points for damage it took, ammo it used and standing still. A copy that reaches the exit, which the game itself reports, earns a large bonus, and dying costs a large penalty.</span></li>
       <li><span><b>Pick the option, play it, repeat.</b> Each option's three scores are averaged, and the average is pulled halfway toward the worst of the three, so a move that is usually good but sometimes fatal loses to a steadier one. The best option is played in the real game for 8 tics, and then the player decides again.</span></li>
     </ol>
     <p class="note">A 5-minute game takes about 1,300 decisions and 117,000 copies, which run in about four minutes on four CPU cores. The player knows the map's layout, which it needs to measure walking distance, but in two of the three runs below it is not told where the exit is. The first level, E1M1, ends at a wall switch. The map tells the player where every wall switch is, and once nothing unexplored is left within reach it goes and presses the ones it has not tried.</p>
@@ -97,13 +97,13 @@ code { font: 14px var(--mono); color: var(--amber); }
   </section>
 
   <section>
-    <h2>These rules stop the planner stalling in rooms it has already explored</h2>
+    <h2>Five rules keep the planner from stalling</h2>
     <ul>
       <li>"Turn 90°, then run" takes longer than the 8 tics between decisions, so one of the 30 options is "keep doing what you were doing", picked up where it left off. Without it, the turn would restart at every decision and never get to the running part.</li>
       <li>An option that reaches the exit in all three copies is played through to the end instead of for 8 tics.</li>
       <li>The score includes walking distance to the nearest wall segment the player has not seen yet. A second and a half of play rarely reveals anything new once a room is explored, and without this pull every option scores about the same.</li>
       <li>Some wall segments never count as unexplored: open doorways between two rooms of the same floor and ceiling height, which Doom never draws and so never "sees", and segments next to where the player has already been.</li>
-      <li>A target that stays the nearest for about six seconds with nothing new seen is dropped as unreachable.</li>
+      <li>An unexplored segment that stays the nearest for about six seconds with nothing new seen is dropped as unreachable.</li>
     </ul>
   </section>
 
