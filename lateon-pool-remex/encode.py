@@ -84,9 +84,12 @@ def main(corpora):
             print(f"[{corpus}] chunk {c + 1}/{n_chunks} {time.time() - t0:.0f}s", flush=True)
         per_doc = [None] * len(docs)
         for c in range(n_chunks):
-            z = np.load(out / "chunks" / f"{c:04d}.npz")
-            for j, i in enumerate(z["idx"]):
-                per_doc[i] = z["T"][z["off"][j]:z["off"][j + 1]]
+            # read each array ONCE: NpzFile re-reads the whole array on every z[...] access,
+            # and a slice of each fresh copy kept ~1000 copies alive (13 GB OOM, ERRORS.md #1)
+            with np.load(out / "chunks" / f"{c:04d}.npz") as z:
+                idx, Tc, offc = z["idx"], z["T"], z["off"]
+            for j, i in enumerate(idx):
+                per_doc[i] = Tc[offc[j]:offc[j + 1]]
         T, off = flatten(per_doc)
         Q = m.encode_query(queries, batch_size=32, show_progress_bar=False)
         QT, qoff = flatten(Q)
