@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-11T01:50:57.987276+00:00",
+ "last_run": "2026-11-12T01:51:49.794978+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -594,6 +594,39 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Survey of mech-interp for safety (SAEs, probing, circuits, model diffing); no tool or benchmark of its own. Usable hygiene: report dead-feature rate and seed stability for any SAE, and it cites a 2026 study where activation-reading gave no uplift over transcript-only baselines for predicting behaviour, so cheap behavioural checks come first."
+  },
+  "2611.05139": {
+   "title": "Meta 2: Precomputing Reusable Knowledge for Online Harness Evolution in Long-Horizon Agents",
+   "first_seen": "2026-11-12",
+   "best_rank": 28,
+   "upvotes": 0,
+   "reviewed": "2026-11-12",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Frozen offline-distilled Meta-Skill guides a separate evolver that makes KEEP/EVOLVE edits per task and resets them afterward; 81.00 vs 73.33 (Meta-Harness, ±4.4) on Terminal-Bench 2.1. The adoptable pieces are a separate evolver call and per-task edit reset (carrying edits across tasks drops 81.00→78.33 and 44.44→39.11 on DeepSWE). No code, only a project page."
+  },
+  "2611.03178": {
+   "title": "CoworkOS: Scaling Agent Coworkers for Real-world Automation",
+   "first_seen": "2026-11-12",
+   "best_rank": 29,
+   "upvotes": 0,
+   "reviewed": "2026-11-12",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Cowork harness (main agent + coordinator runtime + subagents, jobs, memory) whose margins over DeepSeek Harness/OpenHands are under a point from single runs. Architecture overlaps what Muninn already does. Code at github.com/RUC-NLPIR/CoworkOS."
+  },
+  "2611.08373": {
+   "title": "SLA: Scaling Spatial-Language-Action Model via Continual Pre-training",
+   "first_seen": "2026-11-12",
+   "best_rank": 27,
+   "upvotes": 0,
+   "reviewed": "2026-11-12",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Robot VLA continual pre-training with a 3D-feature alignment loss; outside his work and far beyond a weeks-scale budget."
   }
  }
 }
