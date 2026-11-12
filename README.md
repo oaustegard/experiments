@@ -1,7 +1,7 @@
 # Experiments
 
 Research and build experiments by Oskar Austegard and Muninn, his Claude-based
-assistant: 231 of them as of 2026-11-12, one directory each. Most fall into a
+assistant: 236 of them as of 2026-11-12, one directory each. Most fall into a
 few threads: small models running in the browser on hand-written WebGPU
 kernels, embedding compression (remex), small decision models and LoRA
 adapters, and WebGPU toys, games and media.
@@ -264,6 +264,16 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `doom-planner/` — Doom played by forking the game and scoring the futures
+
+`doom_host` is PrBoom 2.5 (the engine from `oaustegard/m5`) built headless for Linux with a planner in
+`src/host_main.c`: every 8 tics it forks the game per (move, reseeded scenario), plays each copy 52 tics, scores
+it from engine state (damage, kills, deaths, walls seen, walking distance to unexplored space or untried switches,
+the exit) and plays the best risk-adjusted move. `play.py` runs it in the hub jail, answers optional JUDGE
+requests with `claude -p` Haiku, captions the video from the decision log and uploads it to R2. `report.py`
+writes `results/summary.json`; `make_page.py` builds the published page. Videos:
+`https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/<run>.mp4`.
 
 ### `kokoro-onnx-kinescript/` — Kokoro for Kinescript on Python 3.13 without PyTorch
 
@@ -2080,16 +2090,6 @@ Encodes SciFact and NFCorpus with `tomaarsen/mve-ModernBERT-base-token-pooling` 
 2/3/4, max 32/16 tokens), codes them with centered remex 4/2/1-bit, and scores by brute-force MaxSim.
 Encodings live in `.work/` (gitignored); `report.py` rebuilds the tables from the committed JSON and
 per-query npz files.
-
-### `doom-planner/` — Doom played by forking the game and scoring the futures
-
-`doom_host` is PrBoom 2.5 (the engine from `oaustegard/m5`) built headless for Linux with a planner in
-`src/host_main.c`: every 8 tics it forks the game per (move, reseeded scenario), plays each copy 52 tics, scores
-it from engine state (damage, kills, deaths, walls seen, walking distance to unexplored space or untried switches,
-the exit) and plays the best risk-adjusted move. `play.py` runs it in the hub jail, answers optional JUDGE
-requests with `claude -p` Haiku, captions the video from the decision log and uploads it to R2. `report.py`
-writes `results/summary.json`; `make_page.py` builds the published page. Videos:
-`https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/<run>.mp4`.
 
 ### `meta2-paperwatch/` — Meta 2's frozen Meta-Skill and evolver on the paper-watch reviewer
 
