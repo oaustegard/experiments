@@ -1,0 +1,776 @@
+{
+ "2610.18861": {
+  "title": "Hybrid Reasoning Agents",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Math RL gains over ARPO are inside the paper's own noise. At 8B: AIME25 39.2 vs 37.1, AIME26 43.3 vs 41.5, MATH500 84.6 vs 82.8. The reported 95% CI on math is \u00b13.8 points, so these differences are not distinguishable. The larger gains are on agentic search, e.g. WebWalker 42.5 vs ARPO 32.0 at 8B. The headline 2.7\u20133.7\u00d7 cost saving (Table 9) is an estimate, not a measurement: it counts decoding FLOPs only, excludes prefill, attention and tool execution, and assumes 10% H100 utilization.",
+  "code_weights": "not stated (no repo or weights linked; the paper says it built custom verl/vLLM extensions but releases nothing)",
+  "why": "The method requires full-parameter SFT plus RL on Qwen3-Base, run on 32 H100s with a modified serving engine that carries a persistent KV cache, so it cannot be used with Muninn's API-model stack or its subagent routing. Nothing here can be adopted, prompted, or tested in weeks. The latent-mode KV 'working memory' does not transfer to his external SQLite memory or to an EmbeddingGemma/WebGPU setup. The efficiency and accuracy headlines rest on modest math deltas within the reported CI and on FLOP-based cost estimates.",
+  "confidence": "high"
+ },
+ "2610.31642": {
+  "title": "A Fix for Softmax and Cross-Entropy",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Precision cliffs where standard CE zeroes the target gradient: logit margin \u22485.5 in bf16, 16.6 in fp32, 36.7 in fp64. On a+b mod 31 (\u03bb=1, \u03b5=1e-8, fp32, 5 seeds), test accuracy is 100\u00b10% for fixed CE vs 94.3\u00b15.4% for standard CE; this gap is about one std, and fp64 standard CE already gets 100%. Without weight decay (a\u00b2+b\u00b2 mod 97), a single spike drops standard CE from 61% to 23% test accuracy, while fixed CE reaches 85%.",
+  "code_weights": "No repo or weights linked; short JAX implementations of log_softmax, softmax, cross_entropy and soft_target_cross_entropy are printed inline in the paper.",
+  "why": "The fix targets training-time gradients, and every experiment is a toy grokking or modular-arithmetic distillation run. He doesn't train or distill models, and his WebGPU EmbeddingGemma inference only uses forward softmax, where the bug merely rounds the top log-prob to 0. The inline JAX snippet is easy to copy if he ever fine-tunes or distills a small model in bf16, but nothing here changes a current design decision.",
+  "confidence": "high"
+ },
+ "2610.18773": {
+  "title": "Jeva: System One Models from First Principles",
+  "first_seen": "2026-11-01",
+  "practical": "HIGH",
+  "passes": [
+   "HIGH",
+   "HIGH"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Typed Decisions accuracy 78.30% vs InternDecision-4B 78.70%: no gain on the paper's own headline typed benchmark. BANKING77 K=16 null-detection AUROC 98.66% vs 93.61% for KEV-BF16 and 84.27% for InternDecision-4B; the baselines were run through an auxiliary 'is any candidate valid' Noul adapter, which may handicap them. Choice flip rate 0% vs 17-27% for the Jev, InternDecision and JevK5 baselines; this holds by construction. Hybrid option-cache p50 latency on MLDR at 100% option reuse falls from 2,102 to 75 ms (about 28x) on one H200 with no decision changes. No seeds or run-to-run variance are reported anywhere.",
+  "code_weights": "Stated in the paper: https://huggingface.co/LIQIIIII/Jeva-4B and https://github.com/LiQiiiii/Jeva (project page liqiiiii.github.io/Jeva)",
+  "why": "This maps directly onto his `decide` routing, triage and gating tool, and the weights and code are released. He can benchmark Jeva-4B against `decide` on his own tool and skill registries within days. He can also adopt the architectural pattern without the model: a separate coverage sigmoid on the max score for null, instead of a 'None' option inside the softmax, plus per-option K/V caching of persistent tool and skill descriptions; this could change how `decide` handles abstention and candidate order. Skepticism is warranted: on Typed Decisions it only ties the strongest baseline; the large gains on null detection and Mind2Web come against adapter-wrapped baselines with no variance reported; and a 4B Qwen backbone with latency measured on an H200 is neither cheap nor browser-deployable.",
+  "confidence": "medium"
+ },
+ "2610.06805": {
+  "title": "H-JEPA: End-to-End Learning of Hierarchical World Models for Visual Planning",
+  "first_seen": "2026-11-01",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Visual AntMaze, 50 tasks x 3 seeds: 3-level H-JEPA reaches 73.3\u00b13.5% success against flat LeWM at 18.0\u00b13.5% and HWM at roughly half of H-JEPA. Gains are not uniform. On Push-T the 3-level model drops to 17.3\u00b13.5% against LeWM at 40.0\u00b12.3%, and 4-level falls to 0.7%. On Cube, projected-cost ablations roughly halve success. DROID results are offline, open-loop Fr\u00e9chet fidelity on 16 clips; the paper says a fidelity gap shows one planner is better but not by how much.",
+  "code_weights": "Code: https://github.com/kevinghst/H-JEPA; website https://h-jepa.com/. A re-encoded DROID corpus and build script are stated as released.",
+  "why": "This is a robotics and visual-control world-model paper: hierarchical action-conditioned JEPAs planned by gradient descent in simulated mazes and manipulation tasks. It touches nothing in the reader's stack (LLM agent memory, routing, retrieval and quantization, WebGPU embedding inference, Claude Code tooling). The AntMaze gain is real and well outside its SE, but it reverses on short-episode tasks. The only loosely transferable idea, scoring goals in a coarser abstraction space and decomposing into subgoals, is too generic to change any concrete design decision of his.",
+  "confidence": "high"
+ },
+ "2610.08144": {
+  "title": "Navier-Stokes lost in translation",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "Checked against the paper's own text: (1) Lemma 8.6 eq. (8.19) in the NL paper needs m+4 derivatives, but the cited Lean theorem norm_derivativeWord_inverse_le needs m+5 (sum over (1+|k1|+|k2|)^-4 instead of (1+|k|)^-3), so the Lean result is weaker. (2) The pressure-flux bound (10.19) depends only on B_R; the Lean version adds A_R and uses a different argument (Sobolev embedding plus L2 Riesz instead of L^{3/2} Riesz). (3) The theory result shows that resolving existence presuppositions is \u03a3^0_l-complete for every l, so SCI=\u221e. That result comes from DPRM/Post and is a reframing of known computability, not a new empirical result. The case studies are 2 toy chatbot examples plus 2 Navier-Stokes discrepancies. No systematic rate is measured.",
+  "code_weights": "No code of their own. It links OpenAI's third-party repo openai/NavierStokesAndEuler at commit f9e8bc5 and an 'experiment' PDF on damtp.cam.ac.uk.",
+  "why": "This is a critique and position paper on Lean autoformalisation fidelity, with a computability-theory appendix. It gives the reader nothing to adopt, replicate or benchmark for Muninn, retrieval, quantisation or WebGPU work. The one transferable lesson is already standard practice: an outcome-only checker such as 'compiles' or 'tests pass' lets a delegated subagent quietly swap in a different argument or task. It does not change any specific design decision, such as his decide gating or subagent verification.",
+  "confidence": "high"
+ },
+ "2610.06833": {
+  "title": "Towards Looped Models Done Right, Part II: Rethinking at Fixed Points",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "1.6B scale, single seed. The learned prior (\u03bbH=0.01) gets a 60.00 downstream average vs Fixed PLN-5 at 59.30, and GSM8K 47.92 vs 47.61, which is likely within noise. OrthoInj gets 59.26 vs Parcae-Decay at 59.22, and actually loses on GSM8K (51.71 vs 52.92). The terminal-KV-sharing claim checks out: fixed-depth training falls from 50.64 GSM8K with full cache to 21.23 with sharing, while learned/PLN priors lose almost nothing. Distilled prefill is 1.79x faster (1482\u2192830 ms at L) but costs 4.5 downstream points. RL rollout-state reuse is about 2x faster per update (2.77\u21921.39 s), with a stated run-to-run variation of 1.6 points on GSM8K.",
+  "code_weights": "Code: https://github.com/ifm-ai/xllm-loop. Released weights not stated.",
+  "why": "Every technique here (learned depth prior, orthogonal injection, terminal KV sharing, distilled prefill, Neumann RL updates) requires pretraining or RL on a looped Huginn-style model at 21\u2013344B tokens. Nothing transfers to his Gemma/Claude-based stack or his WebGPU EmbeddingGemma kernels. The headline method gains over baselines are fractions of a point from single seeds. The one robust finding is that fixed-depth looped models break under KV sharing, which matters only if he ever serves a looped model in-browser; no such weights are offered.",
+  "confidence": "high"
+ },
+ "2610.29162": {
+  "title": "Why is AI-generated language so hard to understand?",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Opus 5.5 scored lower than Opus 5 on 19 of 21 difficulty-linked comparisons, with non-overlapping 95% CIs in only 8. The main 'overuse' result is measured against NLLB round-trip paraphrases. Translation is known to normalize text toward frequent forms, so a drop in rare n-grams after the round trip is partly built into the method. The human-corpus comparison only clearly holds for inanimate subjects and rare n-grams. Sample per model is 10 chat conversations and 5 coding sessions, and the paired tests are not corrected for multiple comparisons. In the RL proof of concept (Qwen2.5-1.5B, GRPO, length penalty \u03bb>0), preference for the short variant is near-categorical (>98%) only without KL. With \u03b2=0.04 it is gradual, and far transfer appears in just 1 of 4 alternations (genitive, no-KL only).",
+  "code_weights": "not stated (no repo or data link; the denominal-verb and inanimacy classifier is an external product, Jev at typesafe.ai; the Pi harness is third-party)",
+  "why": "This is a descriptive psycholinguistics paper plus a toy RL demo. It gives Muninn's routing, memory, retrieval or WebGPU work nothing to adopt or replicate in weeks. The one usable takeaway is soft and already intuitive: length or token pressure pushes models toward denser, less readable phrasing, and model versions differ, which matters only when picking which model writes human-facing prose. That is too weakly quantified (small n, translation baseline confounded with frequency normalization) to change a design decision.",
+  "confidence": "high"
+ },
+ "2610.30136": {
+  "title": "Agentic World Action Models",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "RoboTwin 2.0 average 50.7% vs pi0.5 41.3%. The gain is all in the clean setting (80.8 vs WLA 64.8); under randomization the default mode scores 20.6, below pi0.5's 27.7. Real-world rubric average is 71.1 vs DreamZero 46.0, over 8 tasks x 3 seeds x 16 rollouts, and the rubric was written by the authors. Hybrid code/action arbitration lowers clean success from 80.8 to 63.1 while raising random from 20.6 to 29.2. The authors say this hybrid comparison is confounded by different demo-collection pipelines.",
+  "code_weights": "Project page only (https://agentic-wam.github.io/); no code, weights, dataset or skill-library release is linked in the paper",
+  "why": "This is a robot-manipulation world-action model built on Cosmos-2B and SDAR-1.7B and trained on about 2,900 h of robot and human data across 48 H100s, so the reader can neither run nor replicate it. The only transferable ideas are mild. One is a coordinator-agent protocol that admits a skill only if it recurs across at least two tasks and reuses cached annotations when the evidence matches. The other is a cautionary finding: gating code execution on validity alone, without estimating its advantage over the alternative, hurt clean performance. That loosely echoes calibrated gating in his decide tool, but it does not clearly change any of his design decisions.",
+  "confidence": "high"
+ },
+ "2610.13928": {
+  "title": "AI Models Can Provably Hide Arbitrary Capabilities",
+  "first_seen": "2026-11-01",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Encrypted chemistry model after 500-step SFT: 50.9\u00b11.0%, vs 50.6% for a random-network locker control and 92.8% for the password-locked baseline. Correct-trigger accuracy is only 73.5% (password-locked: 92.7%). Hiding a 672-ternary-weight 64\u21928\u219216\u21922 MLP takes a 38-layer, ~2.07e9 dense-parameter host (1.9e6 nonzero, ~95% of it hash circuitry). GCG on 8-bit triggers 'succeeds' only by exhausting all 2^8 candidates, so the security rests on trigger size, not on the experiments.",
+  "code_weights": "not stated (the paper says 'we release our models' and mentions 'our repository', but gives no URL)",
+  "why": "This is an AI-safety threat-model paper about cryptographically locked backdoors as a limit on capability audits. It offers nothing the reader could adopt for agent memory, routing, retrieval/quantization, WebGPU inference or Claude Code tooling. The overhead is massive, the full construction was never integrated into a real pretrained model (only single GLU units were checked in Gemma 3 270M), and it changes none of his design decisions. The weight-statistics obfuscation table is a curiosity, not a tool.",
+  "confidence": "high"
+ },
+ "2610.26825": {
+  "title": "MemT-1.0: Towards Memory-Native Evolution",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Table 2 Memory AVG on the same Qwen3.6-35B-A3B backbone: MemT-1.0-Nano 46.97, DenseRAG 56.49, Full Context 66.27, MemOS 68.46. That is about 9.5 points below plain RAG and about 21 points below external memory systems, which undercuts the abstract's claim of being 'competitive with retrieval-augmented methods'. MemT only leads the parametric-memory group, where the best other method is Temp-LoRA at 38.08. SWE-bench Verified Before Execution avg success: native memory 69.33 vs textual experience 68.87 vs none 66.07. That is 3 runs on 500 tasks, so the native-vs-textual gap is within noise. The 1.86x speedup at 128K is against HF single-request full-context inference.",
+  "code_weights": "GitHub github.com/MemTensor/MemT-1.0 and HF collection huggingface.co/collections/MemTensor/memt-1, both linked on the title page",
+  "why": "The released models are 36B and 288B MoEs with recurrent memory baked into the weights. They cannot run in his browser or WebGPU stack, and they cannot slot into a Claude-based Muninn. The paper's own table shows external textual memory (MemOS/Mem0/RAG) beating native memory by 10\u201320 points. That confirms his existing SQLite/FTS + RAG design rather than changing it. The token-level vs turn-level ablation (-6 points) and the stable GDN-2 analysis are of interest only if he were training recurrent memory, and he isn't.",
+  "confidence": "high"
+ },
+ "2610.10528": {
+  "title": "Long-WAM: Scaling the Context of World-Action Models",
+  "first_seen": "2026-11-01",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "LOW",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "RoboCasa GR-1 success 63.3% (0.0 s history) -> 78.7% (19.2 s). The paper is inconsistent here: Table 4 labels 63.3 as the 2.4 s result, while the ablation text gives 66.3 at 2.4 s. The bidirectional init stays flat (61.7 -> 61.6 at 19.2 s). The headline 107.4 ms/chunk on RTX 5090 is measured at 2.4 s context, not at the 19.2 s setting behind the accuracy headline, which costs 341.0 ms. RoboTwin gains over ABot-M0.5/LingBot-VA 2.0 are 0.3-0.8 pt, likely within noise. Real-robot results use 20 trials per condition.",
+  "code_weights": "https://github.com/NVlabs/LongLive/tree/main/Long-WAM (code linked; weights not explicitly stated)",
+  "why": "This is a robot world-action model that needs 30k H100-hours of pretraining and GB200 fine-tuning, outside every area of the reader's stack. The reusable bits are already standard and are CUDA/NVFP4-specific rather than WebGPU: online-softmax merging of separate KV buffers, and quantizing the Q/K/V input once. The planner + executor result (GPT-6 Astra + Long-WAM) only loosely echoes his small-model/delegation thesis and changes no routing or memory design decision.",
+  "confidence": "high"
+ },
+ "2610.11959": {
+  "title": "MiMo-V2.6: Scaling Reinforcement Learning Towards Self-Improvement",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "The released 9B SFT distill improves on Qwen3.5-9B by +1.1 on SWE-bench Verified (61.1 vs 60.0, avg@3) and +12.6 on SWE-bench Pro (44.6 vs 32.0). The larger gains are post-RL (Verified 66.2, Terminal Bench 2.1 52.8), and those are domain-specific checkpoints the paper does not say it releases. Flagship Pro (1.02T/42B active) scores 71.9 on DeepSWE vs Claude Opus 5 at 74.0, and several headline results are on internal MiMo benches. On held-out harnesses (codex/claude code/mini-swe-agent), mean Pass@1 rises from about 50% to 66% for the big model, single run with no variance reported.",
+  "code_weights": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B (SFT checkpoint only) and a training log at https://mimo.xiaomi.com/rl/mimo-v26. The RL framework, environments and mini-harness are claimed open-source, but no repo link is given in the text.",
+  "why": "This is a $0.9\u20132.6M frontier RL training report: router freezing, Muon/MXFP4, and groupwise grading all require training budgets he does not have. The one adoptable artifact is a 9B agentic distill. It is too large for his in-browser WebGPU setting, and its released SFT form barely beats base Qwen on SWE-bench Verified, so it is at best something to trial as a self-hosted cheap subagent. The reward-hacking taxonomy (agents fetching upstream fixes via pip, curl or git clone) and the cross-harness transfer result are interesting reading for Claude Code harness design, but they change none of his concrete decisions.",
+  "confidence": "high"
+ },
+ "2610.18615": {
+  "title": "VideoJev: System One Model for Video Understanding and Interaction",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Grounding: VideoJev-4B mean mIoU 65.3 vs Qwen3.5-4B 58.6 (+6.7) and TimeLens2-4B 62.0, at 0.276 s vs 0.763 s per query (2.8x). QA: VideoJev-4B 74.3 vs Qwen3.5-4B Thinking 74.9 at 1.12 s vs 144.9 s (129x), but only +1.9 over an AR SFT control trained on the same data (+1.3 on grounding). Joint vs cached inference: +0.3\u20130.8. All are single runs with no seeds or error bars, so the control and joint-mode gains are near noise. QA probabilities overestimate correctness (ECE 8.1\u20138.7 pp, no calibration training).",
+  "code_weights": "not stated (no code or weight links in the paper)",
+  "why": "This is a video-MLLM recipe: a scoring head replaces decoding, trained on 64 H200s with an internal 240K-QA corpus, and no released models. It gives the reader nothing to run in browser, agent or KB work. The one transferable lesson is about packing several forced-choice questions after one shared prefix without answer slots: it held up when the model was trained for it, but untrained autoregressive readouts degraded (60.0\u219258.7, and 1,418 of 1,446 later turns emitted <|im_end|> unless answers were masked). That is a caution if he batches several `decide` questions into one prompt, not something to adopt.",
+  "confidence": "high"
+ },
+ "2610.06783": {
+  "title": "Truly Subquadratic 3SUM and Truly Subcubic APSP via Triangles in Sparse Lopsided Graphs",
+  "first_seen": "2026-11-01",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "Main result: 3SUM in O(n^1.9992) vs the textbook O(n^2), and APSP in O(n^2.9995) vs O(n^3). These are asymptotic exponent savings of about 0.0008 and 0.0005, and the authors say the hidden constants are 'enormous'. The core thin-product algorithm needs N \u2265 D^18 and saves only D^0.063 (Thm 5: D^(1/18)). With N=10^6 that allows D \u2264 ~2, and even with N=4^18\u22487\u00d710^10 it allows only D=4, so there is no regime relevant to embedding dot-products or retrieval scoring.",
+  "code_weights": "not stated (Lean 4/Mathlib verification is mentioned, but no repository is linked)",
+  "why": "This is a landmark fine-grained-complexity result: it refutes the 3SUM and APSP hypotheses and the algorithm was found by Claude. It is purely asymptotic and galactic, and the paper itself calls it impractical. The one superficial overlap, computing selected entries of a thin matrix product (like scoring chosen query\u2013doc pairs), only applies at inner dimensions far too small for real embeddings, so it changes no design decision in his retrieval, quantization, WebGPU or agent stack.",
+  "confidence": "high"
+ },
+ "2610.20533": {
+  "title": "Generative Representation Learning for Scalable Latent Tokenization",
+  "first_seen": "2026-11-01",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Table 4: FID-50K 2.18 (RePR-78M + JiT-L 440ep, 3.49e20 FLOPs) vs 2.36 for pixel JiT-L 600ep at 3.57e20 FLOPs. Each is a single run with no variance reported, so a 0.18 FID gap is not shown to exceed noise. The headline '7x fewer FLOPs than DINOv2' (Table 8 fit gives 1.504e21 vs 1.17e22) is an extrapolation of a power-law fit beyond the measured range, not a measured result. Replicating the scaling plots is estimated at about 250 h on an 8xB200 node.",
+  "code_weights": "Code: https://github.com/AlanBaade/repr (stated in abstract). No released weights stated.",
+  "why": "This is a self-supervised image-tokenizer objective for pixel diffusion on ImageNet/GPIC. It does not touch LLM agents, retrieval, quantization, text embeddings or small-model browser inference, and using it needs a large pretraining budget. Its feature-suppression critique of contrastive objectives is the only point loosely adjacent to embedding work. Even that is shown only on a synthetic watermark setup and does not change any of his retrieval or embedding design decisions.",
+  "confidence": "high"
+ },
+ "2610.32285": {
+  "title": "Trial by Trace: Benchmarking AI Agent Harnesses for Reliability and Failure Attribution",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Harness macro ranges from 59.8% (Codex) to 72.0% (OpenClaw); Claude Code is 71.2% macro and has the highest Agent pass rate, 44.0% versus 35.8\u201340.0% for the others. Each of the 3,420 cells is a single selected execution, some of them replacements from recovery, so between-harness gaps of about 1\u20138 points have no repeatability estimate. The 31.1% 'success despite harness-criterion failure' figure depends on the semantic Judge (deepseek-v4-flash), and judge agreement was not measured. Judge token budgets also varied: 4k in 1,966 evaluations, 8k in 1,452, 32k in two.",
+  "code_weights": "not stated. The paper says 'the public project repository is linked on the title page', but the title page in the supplied text has no URL.",
+  "why": "The topic overlaps his Claude Code harness and Muninn subagent work. The useful takeaway is a checklist of harness obligations, such as faithful exit-code and timeout delivery, child-agent completion delivery and compaction fidelity, rather than anything he could adopt directly. The harness rankings come from single runs, an LLM judge whose agreement was never checked, and recovery-selected cells, so they should not drive a choice of harness. Without a linked repo there is no tool or task suite he can run against his own harness within weeks.",
+  "confidence": "medium"
+ },
+ "2610.24087": {
+  "title": "OR-License: Evaluating LLM Agents as Real-World Operations Research Practitioners",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Best DAQ in Table 1 is Grok 4.6 at 86.55% (feasibility 88.39%) under Claude Code, against an expert reference of 100%. GPT-5.6 Sol scores 85.02 and Gemini 3.8 Flash 82.94, but the mean within-task SDs are \u00b113\u201319, so the top ranks sit inside run-to-run noise. Harness swap (Table 7): GPT-5.6 Sol goes 85.02\u219293.59 DAQ under Codex while GLM-5.3-Flash goes 63.21\u219234.42, so the harness can move a model by about 30 points. The ORSim flat full-catalog selector beats the summary-index and KG selectors (faithfulness 98.71 vs 87.50 vs 74.50; adversarial pass^1 98.82 vs 76.24 vs 81.65), but only on small per-instance rule catalogs, 204 queries over 5 instances.",
+  "code_weights": "Code https://github.com/NineAbyss/OR-License; dataset https://huggingface.co/datasets/OR-License/OR-License; site https://www.or-license.com/",
+  "why": "This is an operations-research agent benchmark (scheduling, blending, bike rebalancing) and the reader does no OR work, so there is nothing here to adopt directly. Two side findings are worth a glance. Cheap-model results flip with the harness (GLM halves under Codex), which argues for evaluating subagent routing choices inside his actual harness and not from leaderboards. The selector \u2192 deterministic gate \u2192 responder pattern, where flat selection over the full catalog beat summary and KG indexes, is a reasonable guarded-disclosure design for small fact catalogs. Neither finding is strong enough to change a Muninn memory or routing decision on its own.",
+  "confidence": "high"
+ },
+ "2610.08077": {
+  "title": "Self-Retrospection Distillation",
+  "first_seen": "2026-11-01",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Qwen3.5-4B GRPO\u2192GRPO+SRD Math avg 46.22\u219256.25 (+10.03 pp) and 9B OPSD\u2192OPSD+SRD 39.70\u219256.92 (+17.22 pp). These are avg@8 on AIME sets of 30 problems from single runs, so per-benchmark swings of a few points are plausibly noise; the paper itself says 'one seed'. The 2B headline (0.0% vs 60.6%) is training success on code with dynamic sampling disabled, not held-out eval. Test-time foresight (RQ5) is 'nearly inert': 1 of 4 checkpoints gains 5 pp, the other 3 move by 2\u201311 rollouts out of 800.",
+  "code_weights": "not stated (the abstract ends with the word 'Code' but no URL is given; no weights linked)",
+  "why": "This is a post-training auxiliary loss that requires RL/self-distillation runs on 8\u00d7H200, so the reader cannot adopt it in his agent or browser stack. The only transferable pieces are the [Error]/[Rule]/[Example] pitfall-extraction and aggregation prompts, which could be reused to write memories from failed subagent runs. However, the paper's own RQ5 finds that emitting predicted pitfalls before acting gives essentially no gain and can mislead, which argues against injecting 'anticipated pitfalls' into boot context without grounding them in actual failures.",
+  "confidence": "high"
+ },
+ "2610.39302": {
+  "title": "Proving and Improving the Platonic Representation Hypothesis with JEPAs",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "WIT-1024 mutual 10-NN with DINOv2-B: the 109M good-view text JEPA scores .184 (3-seed mean) vs Qwen2.5-72B .154 and CLIP text .124. A 4th seed at the doubled SIGReg weight scored .121, and the weight was then chosen on WIT; the 4-seed mean is .168. The '42x fewer samples' compares good views at 21.6M samples (.109) with the only next-token checkpoint scored, at 900M (.111). No earlier next-token checkpoints were measured, so the ratio is an upper estimate. For text-only use, STS-B is .632 vs all-mpnet-base-v2 .834, so it is a weaker sentence embedder than off-the-shelf options.",
+  "code_weights": "Code: https://github.com/galilai-group/prh-proof ; live demo: https://huggingface.co/spaces/galilai-group/prh_demo. Released encoder weights are not explicitly stated.",
+  "why": "This is a cross-modal alignment theory paper with a text-JEPA recipe that needs grouped multi-caption data and multi-GPU training at scale. Its standalone text embeddings are clearly worse than mpnet on STS, so it gives nothing to swap into remex/remax_kb or the in-browser EmbeddingGemma pipeline. The scale win depends on LLaVA (CLIP ViT-L) recaptions and a SIGReg weight tuned on the benchmark. The one transferable idea, using different paraphrases or observations of the same entity as positives rather than corruptions of one text, only matters if he trains his own embedder, which he does not.",
+  "confidence": "high"
+ },
+ "2610.20331": {
+  "title": "Are We Overthinking One-Step Generation?",
+  "first_seen": "2026-11-02",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "ImageNet 256 one-step: Priming-L(160ep) FID 1.19 / FDr5 7.10 at 238.95 EFLOPs vs Drifting-L 1.61 at 1476 EFLOPs and W-Flow XL/2 1.33 at 3744 EFLOPs (Table 1). Each result is the mean of 3 sampling seeds from a single trained checkpoint, so training-run variance is not measured. T2I: one-step GenEval 0.818 vs one-step MeanFlow 0.548, but 100-step flow matching scores 0.873.",
+  "code_weights": "Code at https://github.com/JaeyeonKim01/priming (codebase stated as open-sourced); no weights link stated",
+  "why": "This is a training recipe for pixel-space image, text-to-image and world-model generators that needs multi-H200 runs costing hundreds of EFLOPs. It has no bearing on LLM agents, memory, retrieval, quantization or in-browser embedding inference. The compute-efficiency gains look real relative to Drifting and W-Flow, but the reader cannot adopt or test any of it, and it changes none of his design decisions.",
+  "confidence": "high"
+ },
+ "2610.10515": {
+  "title": "RoboJEPA: Scaling Robotic Latent World Models",
+  "first_seen": "2026-11-02",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "Fitting scaling-law curves on the 22M\u20132B models gives held-out error on the 4B/8B models of 0.6e-3 (DROID) and 1.4e-3 (RoboCasa) for the second-order power law, against 2.0e-3 and 3.7e-3 for a plain power law (Table 2). That is a single fit, with no run-to-run variance reported. On the real Franka robot, RoboJEPA-8B reaches 67% grasp success and 50% object-lift success, against 5% and 0% for pi0.5. However, pi0.5 gets 53% on pick-and-place versus 27% for the 8B model. The comparison mixes text goals with image goals and has only 30 episodes per cell. Per-size results are not monotonic: on pick-and-place, 22M scores 17% and 1B scores 10% (Table 12).",
+  "code_weights": "https://github.com/facebookresearch/robo_jepa (training and robot-deployment code and checkpoints stated as released); site https://robojepa.github.io",
+  "why": "This is a robotics world-model scaling study: an 8B predictor on a frozen V-JEPA 2.1-G encoder, trained up to ~1e23 FLOPs, with CEM planning on a GPU cluster wired to a Franka arm. None of that maps onto his agent memory, retrieval and quantization work, or in-browser small-model kernels. The real-robot gains are noisy, 30-episode evaluations against non-comparable VLA baselines. The appendix point that small-batch eager PyTorch is dispatch-bound and AOT compilation fixes it is generic and does not transfer to his WebGPU stack.",
+  "confidence": "high"
+ },
+ "2610.14136": {
+  "title": "Correction Training for Diffusion Models",
+  "first_seen": "2026-11-02",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Table 1: unguided FID at ~250 NFE drops with correction: SiT-XL/2 8.55\u21921.92 (CFG 2.11), SiT-REPA 5.53\u21921.31 (CFG 1.35), JiT 14.86\u21922.96 (CFG 2.35, still better). Distilled student: FID 2.04 at 250 NFE and 2.26 at 83 NFE, vs base 8.62. The extra training is 50K\u2013100K fine-tuning updates at batch 256\u20131024 on XL image diffusion models, and each FID comes from a single evaluation with no seed variance reported.",
+  "code_weights": "not stated (only third-party REPA/DiffusionBench baseline repos and checkpoint are linked; no code or weights for the corrector)",
+  "why": "This is a training recipe for image diffusion models: fine-tune a corrector on ImageNet/T2I DiTs, then iterate it at inference. Nothing here maps to his agent memory, retrieval/quantization, EmbeddingGemma WebGPU kernels, or routing stack. The gains look large relative to their own baselines, but replicating them needs GPU-scale fine-tuning and no code is released, so he has nothing to adopt or test.",
+  "confidence": "high"
+ },
+ "2610.28577": {
+  "title": "Cache Engineering for Agents",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Rolling-drop of old tool-response KV (keeping the last 12) vs 96K-threshold summarization: average cost -27.7%, average score +1.7 pts (e.g. GPT-OSS-120B 53.1 vs 51.0; MiniMax 53.7 vs 52.4, with BCP tied at 58.9). Gains are mostly a few points and no variance is reported for Table 1, so they are likely within run-to-run noise. Serving gain at peak concurrency is 1.18x output throughput and 1.51x P95 latency on a self-hosted 8xA800 SGLang setup. Text-level trimming of the same 12 tool rounds cost 1.85x full context because of re-prefill.",
+  "code_weights": "https://github.com/thu-nics/AKV (code; SGLang-based serving engine)",
+  "why": "The technique needs a custom self-hosted serving engine that can drop and re-position KV entries. Muninn calls hosted APIs, which do not expose this, and the 'API-equivalent' cost savings assume pricing no provider offers. The only portable lesson is that text-level trimming of old tool output breaks prefix caching and costs more than full context (1.85x). That reinforces, rather than changes, the existing design choice to keep tool output append-only or defer compaction under a cached-prefix API.",
+  "confidence": "high"
+ },
+ "2610.05538": {
+  "title": "LiFT: Loop Flow Transformers",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Headline: LiFT-L/2 R10 at K_inf=8 and T=50 gets FID 10.95 at 28.24 TFLOPs, against dense DiT-XL/2 at T=250 with 14.30 at 59.31 TFLOPs. Parameters are 270M vs 675M and training compute 61.98 vs 91.10 EFLOPs. That comparison crosses scales and uses dense XL at 250 steps; dense XL at 50 steps is 15.54 at 11.86 TFLOPs. At equal executed depth every LiFT checkpoint is worse than its dense reference (L/2 R10 20.30 vs dense L/2 16.94). At B/2 the dense model wins at every cost: best LiFT 33.87 vs dense 32.50 at T=25. All results are single runs with no CFG, and absolute FIDs are far from SOTA.",
+  "code_weights": "not stated (the paper shows 'Coming Soon' placeholders only)",
+  "why": "This is a training recipe for class-conditional ImageNet diffusion: 500k updates on 4\u00d7H100 per checkpoint, with no released code or weights. Parameter-light looping is thematically close to his concern about weight bytes for in-browser models, but it requires training from scratch, it is unvalidated for embedding encoders like EmbeddingGemma, and it loses at the small B/2 scale he would care about. Nothing here can be adopted or tested within weeks, and no design decision of his changes.",
+  "confidence": "high"
+ },
+ "2610.12369": {
+  "title": "Embodied Turing Machines: Stateful Code for Robot Recursive Self-Improvement",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "70.24% SR on RoboDojo vs 31.38% for the best leaderboard entry (PhysicalRSI). The comparison is not like-for-like: COAP is per-task code built using the benchmark's published camera parameters, meshes and object sizes, while the baselines are general learned policies. The same programs score 63% on measured state vs 83% on oracle state. The acceptance margin of 4 episodes is only 1-2x the reported rerun noise of 1-3 episodes, and on old tasks 78.4% -> 79.9% (p=0.16) only rules out large regressions.",
+  "code_weights": "not stated (no repo or library link in the paper)",
+  "why": "Simulation-only robotics work that depends on privileged benchmark assets. There is nothing here the reader can adopt for his agent, retrieval or WebGPU stack, and no code is released. The transferable pattern is to compile recurring Muninn subagent decisions into frozen code written offline by a coding agent, gated by parallel branches and a no-regression check with default-off parameters, but that is a familiar engineering idea rather than a tested finding for his setting.",
+  "confidence": "high"
+ },
+ "2610.14224": {
+  "title": "Harness^2: Recursive Agent Harnessing for an Open World",
+  "first_seen": "2026-11-02",
+  "practical": "MEDIUM",
+  "passes": [
+   "MEDIUM",
+   "MEDIUM"
+  ],
+  "ledger": "HIGH",
+  "key_numbers": "Headline +11.5 on WorkBuddy-Bench (GLM-5/OpenCode, 64.2\u219275.7, SD 1.4/2.2) holds up. Against the offline Meta-Harness baseline the margin is mostly noise: Gemini/OpenCode WB 77.5\u00b12.5 vs 76.4\u00b10.7, and Gemini/Codex LAB 75.6 vs 76.5 favours Meta-Harness. JobBench Codex gains of +1.4 (Gemini) and +1.2 (GLM-5) are inside run SDs of 2\u20133.5. The LAB +11.8 for GLM-5 (59.6\u219271.4) is matched by the far simpler ReasoningBank (71.3). k=5 adds a further ~3\u20134 points but multiplies executions per task. Ablations are single numbers without SDs (library removal \u22123.1 on WB, \u22121.8 on JobBench).",
+  "code_weights": "github.com/google-research/harness2 linked in the paper (plus harness2.github.io); full stage prompts printed in Appendix H.",
+  "why": "The core loop (rerun the same task several times under candidate harnesses) does not fit Muninn's non-replayable, cost-sensitive tasks, and it is benchmarked with a stronger Opus editor, so the method itself is not something he would deploy. What he can adopt within days are the printed prompts: the component-cost ordering (skill > script > subagent > plugin > always-on prose, 'if you add always-on text, cut something'), the skill trigger-line validation rule, and the reflector that marks edits 'confounded' unless isolated before writing EXPERIENCE.md. These map directly onto his Claude Code skills/hooks and Muninn memory curation, and could change how he writes and accrues skills.",
+  "confidence": "medium"
+ },
+ "2610.19159": {
+  "title": "Into the Unknown: Benchmarking AI agents on open scientific research problems",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "0/135 submissions valid under strict grading, and 114/135 fail the integrity rubric. Best agent is GPT-6-Astra, which also serves as the judge: 73.33% strict G1 vs Claude-Opus-5.5 at 26.67% (Table 2). In a manual audit, lenient self-verification appears in 58/64 trajectories. Several cross-references are inconsistent. Sec 5.2 says GPT-5.6-Sol 'passes the most nodes' and is 'the only agent' passing integrity, which contradicts Table 2. The text gives D=-0.302 vs -0.324 in Table 3. Node rates in Sec 5.2 (52.55/45.09/59.16%) don't match Table 2 (51.76/44.25/57.36%). Totals of 105 vs 135 submissions conflict.",
+  "code_weights": "Header names 'Code', 'Benchmark & Agent trajectories' and 'Leaderboard' links, but no URLs appear in the supplied text. Treat as not verifiable.",
+  "why": "This is a science-follow-up benchmark (DOE physics/chemistry tasks on 8\u00d7H200) that he would not run. The usable takeaway is generic harness hygiene, already familiar from his Claude Code and subagent work: verify completion against the original plan rather than the executor's own config, and require preregistered plans and log-traceable numbers. The judge grading its own model family, plus the internal numeric contradictions, undercuts the agent rankings as routing evidence.",
+  "confidence": "high"
+ },
+ "2610.35845": {
+  "title": "Work Agents: Systems, Capabilities, and Optimization",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "This is a survey with no experiments of its own; every number is quoted from cited work. VERSE (Table 7): test accuracy 39.20 baseline vs 41.05 with verification plus self-evolution, from one evolution run per condition, so the gap is likely within noise. WorkRover: 70.3% safe repairs vs 60.7% for full regeneration. CompoWorld (cited, matched 1K SFT trajectories): AutomationBench 12.83% \u2192 33.33%, a training result outside his scope.",
+  "code_weights": "not stated. The paper mentions an 'Awesome Work Agents' list and a project homepage but gives no URLs, and no code or models of its own.",
+  "why": "A taxonomy survey of work agents (persistence/openness, five capability families, model/harness/joint optimization) that overlaps Muninn's harness, memory and skills topics but releases nothing to adopt or test. Most cited methods need RL or mid-training budgets. Two pointers are worth skimming. First, the Component Routing finding: put stable recurring behaviour in weights and changing facts and procedures in external context, which supports his current external-memory design rather than changing it. Second, the harness-side skill/memory optimizers (ReasoningBank, ACE, SkillOpt), to follow up in the primary papers.",
+  "confidence": "high"
+ },
+ "2610.14162": {
+  "title": "Next-Concept Modeling: Fast, Parallel Coarse-to-Fine Text Generation",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "LM1B Gen. PPL (GPT-2-large) is 93.05 at 12 NFE vs DUO 97.30 at 128 NFE, at matched entropy (4.31 vs 4.30). That 21x wall-clock claim is against diffusion baselines, not AR. On OWT, NCM is 83.12 vs DUO 77.69 and AR sampling 35.45, so it is worse than both. WMT14 BLEU is 22.6 vs AR 25.2 at the same 99M scale. XSum ROUGE-L is 28.0 vs AURORA-LM 26.6, from a single training seed (42) with no error bars on the conditional tasks.",
+  "code_weights": "https://github.com/HazyResearch/ncm (repo linked in paper; weights not explicitly stated)",
+  "why": "This is a generation-paradigm paper: per-dataset multiscale residual VQ-VAE tokenizers plus roughly 100M generators trained on 13\u2013127B token positions. It beats diffusion LMs on speed, but it still trails AR quality on OWT and WMT. None of it plugs into Muninn routing, the memory and retrieval stack, or browser inference of EmbeddingGemma. The overlap with his residual or multi-bit quantization work is superficial: the codes are learned for generation, not retrieval, and nothing here changes a remex or remax design decision.",
+  "confidence": "high"
+ },
+ "2610.12242": {
+  "title": "TokenRouter: Efficient Serving System for Token-Level LLM Routing",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Against the official R2R code, the gain at N=8 is 2.76x (372.5 vs 134.9 tok/s), and 1.71x of that comes from CUDA-graph engineering rather than the async/delayed-batching ideas. Across model pairs the gain over R2R is 1.99\u20133.21x (Table 3). The 64x headline is against their own 'Std. Serving' SGLang dispatcher. At N=4, TokenRouter's throughput falls below LLM-only for R-Stitch (140.6 vs 150.4 tok/s) and for Co-LLM (76.0 vs 134.8). No run-to-run variance is reported.",
+  "code_weights": "https://github.com/thu-nics/TokenRouter (code linked in the abstract; SGLang 0.5.1 based)",
+  "why": "This is a multi-GPU SGLang serving system for token-level routing between self-hosted models (Qwen3 0.6B/32B on A100s). It needs per-step logits and hidden states from both models, so it cannot apply to Muninn's API-based subagent delegation or to its query-level decide routing. The large multipliers are mostly against weak or self-built baselines. In two of four original-setting cases, token routing lost throughput to simply running the large model, which is a mild caution against token-level routing at all, but it does not change any of his current designs.",
+  "confidence": "high"
+ },
+ "2610.14709": {
+  "title": "Vela: User Behavior as Supervision Sparks LLM Intelligence",
+  "first_seen": "2026-11-02",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "VelaBench 51.5\u219263.0 (+11.5) for Vela-35B-A3B over base Qwen3.6-35B-A3B. This is in-domain, and the same Qwen3.8-2.4T model composes the tasks, generates the SFT trajectories and scores them. General OOD avg 54.2\u219258.2 (+4.0), but the self-generated RFT variant gets 54.2\u219254.2 (0.0, GPQA \u22122.0), which points to the general gains coming from teacher distillation rather than user-behavior supervision. The difficulty-filter ablation is +1.1 avg on user OOD from single runs with no variance reported.",
+  "code_weights": "GitHub link stated (github.com/AllSpark-Research/Vela), but the reproducibility statement only promises future release of templates, prompts and train/eval code. No weights or data are stated; the behavior corpus is proprietary platform data.",
+  "why": "The recipe requires proprietary behavior logs from 100K social-platform users, a 2.4T teacher/judge and 35B-MoE SFT/RL on 48 GPUs, none of which this reader can replicate. The headline gains are confounded by distillation from a 2.4T teacher and a self-judging scorer. The only adoptable idea is the visible-history/hidden-future split with predictive and attribution questions, which could serve as an eval for Muninn's memory recall and boot-context quality, but that alone does not change a design decision.",
+  "confidence": "high"
+ },
+ "2610.20424": {
+  "title": "BizBench: Unveiling Hidden Challenges in Deploying Long-Horizon Agents for Real-World Business",
+  "first_seen": "2026-11-03",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Strict success: Claude Opus 5 at 64.0% (1 run/task) vs GPT-6 Sol at 61.3% (3 runs/task). On 50 tasks, one task is 2pp, so the top two models are inside noise and Opus has no pass^k. DeepSeek-V4.1-Flash ablation (3 runs): 43.3% default, 50.0% with gold docs (+6.7pp, ~10 runs of 150, one model only), 70.0% with full customer disclosure. Tool-call cap at 2\u00d7 the reference count drops it to 26.7%; it averages 191.3 calls vs 111.8 in the Golden traces.",
+  "code_weights": "GitHub https://github.com/ant-intl/BizBench and HF dataset https://huggingface.co/datasets/ant-intl/BizBench (benchmark/data, no model weights)",
+  "why": "This is a payments-domain, customer-simulator benchmark. It offers Muninn nothing direct to adopt, and its 50 tasks with a single Opus run make the cross-model comparisons coarse. The one transferable signal is weak: in a terminology-dense KB, handing the agent gold documents helped far less than full context disclosure, and the cheap model over-read (20 docs vs 5.4 needed). That points to a small-model+KB bottleneck in rule applicability and elicitation rather than recall, but it rests on a single model's ablation. The G\u2227P\u2227F idea, scoring intermediate constraint violations from execution histories rather than final state only, is a reasonable pattern for gating subagent actions, but it is not new enough to change a design decision.",
+  "confidence": "medium"
+ },
+ "2610.40564": {
+  "title": "Training Foundation Models with a Single Algorithm",
+  "first_seen": "2026-11-04",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Real-world 0.76B math RL: Math pass@1 is roughly flat across mixing (MATH 16.1\u201316.9 vs staged 16.98), while MMLU rises from 37.46 (staged) to 40.77 (5% mix) and \u0394held-out loss goes from +0.047 to \u22120.147. Controlled 124M: before RL, unified held-out loss is 2.537\u20132.540, against 4.135 for the best-retaining staged config and 12.36 for the staged config with the best RL score; best staged Base pass@1 after RL is 24.54 (Table 9). Unified's after-RL advantage is shown only in figures, and all comparisons use two seeds. Continual coding: HumanEval+ pass@1 is 24.96 (5% mix) vs 22.94 staged, single comparison.",
+  "code_weights": "GitHub https://github.com/yudasong/unified-training and Hugging Face https://huggingface.co/sfanm/unified-training are linked in the paper.",
+  "why": "This is a training-pipeline paper: it pretrains 124M and 0.76B models from scratch, mixes midtraining data into pretraining and into MaxRL, and uses an asynchronous trainer. The reader does not train or RL-tune foundation models, so he has nothing to adopt or test within weeks. The headline gains are mostly retention, against staged baselines that catastrophically forget. On-task accuracy differences are small, use two seeds, and are tested only at toy scale.",
+  "confidence": "high"
+ },
+ "2610.37381": {
+  "title": "PDRVLA: A Vision-Language-Action Model with Physical Dynamics Representations",
+  "first_seen": "2026-11-04",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "LIBERO 99.3% vs 99.1% (Qwen-RobotManip) and 98.9% (InternVLA-A1.5); RoboTwin 93.6% vs 93.2%; SimplerEnv 81.5% vs 80.8%. All are sub-1pp margins against baselines copied from other papers under their own protocols, from single runs with no variance reported. The world-model supervision ablation gives only a 1.32% relative MSE reduction (0.6439\u21920.6354), and the flow CI includes zero. Subtask conditioning adds +0.3pp on LIBERO-Plus.",
+  "code_weights": "not stated (the only link is to the third-party ImageHash library)",
+  "why": "This is a robot-manipulation VLA built on a 4B backbone and trained on roughly 34k hours of trajectories plus 30M+ VL examples. It has nothing to do with the reader's agent memory, retrieval/quantization, WebGPU inference or Claude Code work, and nothing in it could be adopted or replicated without a large training budget. The headline gains sit within noise of copied baselines. The only loosely transferable observation is that generated chain-of-thought at inference adds nothing over training-time CoT, and that is too domain-specific and weakly evidenced to change any of his design decisions.",
+  "confidence": "high"
+ },
+ "2610.12176": {
+  "title": "Recursive Self-Improvement through Multi-Agent Self-Supervision",
+  "first_seen": "2026-11-04",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Public benchmarks L0\u2192L2 (3 trials, \u00b1SD): ScienceAgentBench 28.8\u00b11.5\u219231.7\u00b12.0, DSBench 0.473\u00b10.029\u21920.482\u00b10.025, AstaBench 0.053\u00b10.002\u21920.067\u00b10.017. All three gains are within noise. Terminal-Bench 2.0 (37.5\u219235.2) and SWE-bench Verified (62.6\u219261.1) both regress. The MLR-Bench gain (1.58\u21922.40) comes from more papers delivered (31\u219250 of 60), not better papers: mean score among delivered papers falls 3.07\u21922.88, and the paired sign test gives p=0.23. On the synthetic held-out tasks, L1 vs L0 wins only 53.9%, with 2 of 3 test tasks below 50%. L2 reaches 69.9% as judged by GPT-5.5 and Opus. The multi-agent token-efficiency claim (68.3% vs 64.0% with 1.4x fewer tokens) is not a matched control: the paper says M+ has different tasks, a different sampler and different checkpoint selection.",
+  "code_weights": "Code linked: https://github.com/SakanaAI/mass, plus a blog at https://pub.sakana.ai/mass/. No weights link is stated.",
+  "why": "The core recipe is LoRA SFT of a 27B model on about 17M tokens of self-generated agent traces (6 H100s, about 19 h per cycle, before search and collection cost). It doesn't fit his stack, and its headline gains on public benchmarks are mostly noise or a higher completion rate. Two pieces are reusable without training: the subagent delegation directive in Appendix B.3 (foreground-only, self-contained assignments, verify before building, bounded deliverables), and output-contract workflow prompts. These could inform Muninn's subagent prompts, but the paper does not evaluate them in isolation. One cautionary finding: an identical prompt and seed flipped from a 6\u20130 win to a 0\u20136 loss. That suggests single-run pairwise comparisons are a poor basis for gating or prompt-search decisions.",
+  "confidence": "high"
+ },
+ "2610.36848": {
+  "title": "Evolving Agent Teams",
+  "first_seen": "2026-11-05",
+  "practical": "MEDIUM",
+  "passes": [
+   "MEDIUM",
+   "MEDIUM"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "MLA decode at matched budget: 0.74x vs 0.51x FlashInfer for Claude Code. This is best-of-two, and the paper itself reports 0.74, 0.75 and 0.721 in different places. Against K-Search at a matched $800, both runs win: 0.721/0.685 vs 0.602/0.598. Solo-agent ablation on MoE offload at a matched $200: 1.056 vs 1.047, which is within noise. On MI350X at $300 the team wins 2.13x vs 1.65x, but that is a single run. The fixed-team ablation (0.31x) is also a single run and used Opus 4.7 while EAT used Opus 4.6, so it is not the clean 'same model' isolation the paper claims.",
+  "code_weights": "https://github.com/caoshiyi/EAT (linked in the abstract)",
+  "why": "The method is built directly on Claude Code: a supervisor spawns and restructures subagents and keeps a persistent LEARNINGS.md/SYNTHESIS.md plus an evolution history. He could replicate this pattern in his harness, or point it at his WebGPU kernels for a few hundred dollars. The decision it bears on is promoting cross-run strategic recommendations (not just facts) into a mandated-read synthesis doc in Muninn's boot context, since the V4\u2192V8 'lost recommendation' failure is the most transferable finding. The headline wins come from multi-day $1-3K runs with n=1-2 and best-of-two reporting, and the matched-budget team-vs-solo margin is small or within noise on the one replicated comparison, so treat the gain as plausible rather than established.",
+  "confidence": "medium"
+ },
+ "2610.11765": {
+  "title": "Thinking Inertia: LLMs Keep Thinking When Told Not To",
+  "first_seen": "2026-11-05",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Open-ended, native think-off (M2) to strict answer-only (M5): mean ETR goes from about 0 to about 40% and mean accuracy drops about 15 pp, with EIR falling from 99.69% to 62.00%. The per-model deltas in Fig G.2 are very uneven: Qwen3-32B loses 49.0 pp on GSM8K and 25.1 pp on MATH, Qwen3-4B changes by +0.1 and +0.5, and Gemini gains 11 to 13 pp but has 0% ETR, because its 'minimal' setting is not actually off. Same-question rewrite, Qwen3-32B only: MCQ to Bool keeps accuracy at 77.8 vs 78.9% and raises ETR from 10.5 to 62.5%; MCQ to open drops accuracy to 52.6%. Judge validity is solid: 98.8% human\u2013GPT-5.5 binary agreement and 97.3% cross-judge agreement.",
+  "code_weights": "not stated (refers to 'evaluation artifacts' and sample IDs but gives no link)",
+  "why": "This is a careful measurement study showing that thinking-off and 'answer only' prompts do not remove visible reasoning on open-ended tasks, and that forcing them to costs accuracy. The usable lessons are mostly confirmatory for someone who already routes through a calibrated yes/no `decide` tool: cheap no-think subagents work best on Boolean or candidate-visible framings, don't force answer-only on open computation, and prefix forcing (`The answer is \\boxed{`) doesn't help. The headline 15 pp trade-off is a mean over very heterogeneous models, and the rewrite result comes from one model, so there is little new to adopt.",
+  "confidence": "medium"
+ },
+ "2610.13912": {
+  "title": "RSI-Anything: Unlocking Recursive Self-Improvement with World Models",
+  "first_seen": "2026-11-05",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "CodeContests (fixed ReasonFlux-Coder-7B, 4 candidates, 600 task-seed runs): static verifier 26.3% \u2192 fixed world-model selector 29.2%, a paired +2.83pp with 95% CI [+0.17, +5.50], barely clear of zero. The adaptive world model's 31.2% (+2.0pp) has no interval reported. LabHorizon L2: 46.01% vs 45.32% for the reference (+0.69pp, inside plausible noise); the 21.80\u219246.01 rise is within their own training run. OSWorld gains are given only as relative percentages (+5.5% over RLAnything) with no absolute success rates.",
+  "code_weights": "GitHub github.com/Gen-Verse/RSI-Anything; HF link is a dataset (huggingface.co/datasets/Gen-Verse/RSI-Anything) despite the 'Models' label. Whether the W1 predictor weights are included is not stated.",
+  "why": "The adoptable idea is to rank N cheap-model candidates with a learned outcome predictor before spending one execution, plus a version-gated rule for when to swap predictor or policy. Muninn's calibrated `decide` gating already covers this in spirit. The concrete gain needs a LoRA-tuned 3B execution predictor and buys about 3pp with a CI touching zero. The GUI, lab and chemistry results rest on a single MiniWoB task, relative-only OSWorld numbers, and unreplicated BO comparisons, so nothing here changes a design decision.",
+  "confidence": "high"
+ },
+ "2610.36077": {
+  "title": "The Trinity: Capability-Driven Recursive Self-Improvement for Multimodal Agents",
+  "first_seen": "2026-11-06",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Headline Train 39.06\u219273.16 and Unseen 37.45\u219263.61 (Table 8), but the H(i) numbers add oracle per-instance Harness selection and skills from 5 prep trials, while H0 gets neither. Table 2 at iteration 1: skills alone 58.86/48.67 vs evolved modules alone 56.95/47.26, so trajectory-summarized skills give at least as much as the whole capability-tree evolution. Routing (Table 4, Unseen): random 46.23, self-routing 52.36, +capability definitions 58.27, +retrieved memory 60.96, oracle 63.61; most train benchmarks have 3 instances and 9\u201327 episodes, with no variance reported.",
+  "code_weights": "GitHub https://github.com/InfRec-Cardinal/The-Trinity and project page https://trinity-rsi.github.io/ are linked in the paper; no weights (frozen Claude Opus 5 backbone).",
+  "why": "The full RSI loop (Creator-generated worlds, Harness tree) costs hundreds of millions of Opus tokens per iteration (405.70M training in iteration 1) on games and robot benchmarks, so it is not something Muninn could replicate in weeks. The headline gain is confounded by oracle routing and skills. The transferable signals are small and already familiar: skills distilled from a few trial runs help about as much as module evolution, and giving a router explicit capability definitions plus retrieved past outcomes (cosine \u22650.5, top-10) helps routing, though the memory increment (+0.9 Train, +2.7 Unseen) is small and untested for noise. Neither result changes how his existing `decide` routing or skills system is designed.",
+  "confidence": "medium"
+ },
+ "2610.20442": {
+  "title": "Towards Agentic Robots: Model, Data, Environment, and Harness",
+  "first_seen": "2026-11-06",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "No experiments of its own; this is a survey of 17 categories across Model, Data, Environment and Harness. The only headline figure is cited from other work: GPT-6 Astra scores 22.48% average success on 42 RoboDojo sim tasks vs DM0.5 at 19.34% and \u03c00.5 at 6.91%. That is a ~3-point gap at low absolute success, with no variance reported here.",
+  "code_weights": "https://github.com/chonghanqin/Awesome-Agentic-Robots (a curated reading list, not code). Many surveyed works link their own repos.",
+  "why": "This is a robotics survey. Its 'Harness' and 'Memory' sections (event-triggered memory writes, stale-record checks, typed failure returns, success conditions per tool) loosely echo Muninn's design, but they are generic principles he likely already applies, and there is nothing to adopt, replicate or benchmark. The topic overlap on 'harness/memory/orchestration' is surface-level; none of it touches his retrieval, quantization, WebGPU or routing work.",
+  "confidence": "high"
+ },
+ "2611.01860": {
+  "title": "Advances in Agentic Computer Graphics",
+  "first_seen": "2026-11-07",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Corpus of 350 papers (2024\u2013Sep 2026) annotated by a GPT-6 Astra agent, with manual relevance checks only. The paper says its save-time checks catch missing fields but 'do not verify the correctness of the classifications'. Visual feedback appears in 77.0% of 304 works that use observations, and 58.2% combine several observation types. Local-patch updates rise from 50.0% to 83.0% over the period, and documentation/rules reach 85.3% in the latest period. These are descriptive counts from unvalidated agent labels, with no baseline or accuracy measure.",
+  "code_weights": "not stated (authors 'plan to release the system publicly'; no link given)",
+  "why": "This is a taxonomy survey of agentic graphics systems (Blender, CAD, scene layout, SVG). It offers no technique, tool or benchmark that bears on Muninn's memory, routing, quantization or WebGPU work. Its agentic literature-annotation pipeline (discovery queue, evidence-backed labels, persistent per-paper records, resumable runs) loosely resembles his paper-rating setup, but it is unreleased and its labels are unvalidated. The general harness points (checkpoint rollback on score drop, a separate critic, retrieving docs into context) are already common practice and are not evaluated here.",
+  "confidence": "high"
+ },
+ "2610.38355": {
+  "title": "FlatCake: A Flat KVCache Storage Architecture for LLM Serving",
+  "first_seen": "2026-11-07",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "At 1.0 QPS on the Claude Code trace with DeepSeek-V4-Flash on 8xB200: mean TTFT 7.57 s vs 12.24 s for Mooncake (1.6x) and delivered hit rate 94.2% vs 64.3%. Mooncake-GDS ties at 16K context (2.32 s vs 2.31 s) but is 1.8x slower at 64K (6.60 s vs 3.74 s). These are single runs with no variance reported, and the FC-MAS ablation gain is only 10-11% mean TTFT.",
+  "code_weights": "not stated",
+  "why": "This is a datacenter KV-cache storage backend for SGLang that needs B200/A100 servers, GPUDirect Storage and NVMe RAID. The reader calls hosted model APIs and does browser-side inference, so there is nothing he could adopt or replicate. The trace observation (98% prefix reuse in Claude Code sessions) only restates the familiar advice to keep prompt prefixes stable for provider caching, so it changes no design decision for Muninn's routing or memory.",
+  "confidence": "high"
+ },
+ "2610.28594": {
+  "title": "Learning the 4D World through Point Trajectory Forecasting",
+  "first_seen": "2026-11-07",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "Same-budget ablation on VP-WorldBench Sim Robot (Table 2/6): VPM(V+T) FVD 67.35 vs VPM(V) 78.52, \u03b43D_avg 50.05 vs 43.62. No seeds or variance are reported, so it is unclear how much of the gain is noise. Real-robot success with vs without point supervision (Table 5): PnP Banana 79.2 vs 58.3, PnP Cube 54.2 vs 43.8, from only 24 trials per task, a sample too small to separate the two reliably.",
+  "code_weights": "Project page plus HF datasets (VPM-Data, VP-WorldBench) are linked. No code or model weights are linked.",
+  "why": "This is a multi-view video world model and robot policy built on Cosmos3-Nano and trained on 32 GH200s with 600K clips. None of the reader's systems is touched: agent memory, routing, retrieval and quantization, WebGPU embedding inference, Claude Code tooling, or Strava data. The auxiliary-supervision finding (persistent point tracks beat per-frame geometry) only matters to people training video diffusion models, so it changes none of his design decisions.",
+  "confidence": "high"
+ },
+ "2611.05306": {
+  "title": "You don't need long context",
+  "first_seen": "2026-11-08",
+  "practical": "MEDIUM",
+  "passes": [
+   "MEDIUM",
+   "MEDIUM"
+  ],
+  "ledger": "HIGH",
+  "key_numbers": "SWE-bench Verified with Opus 4.5: full-history baseline 70.0%; EoCC compaction scores 68.8\u201374.8%; SAC 70.2%. These are single runs on n=500, where \u00b12ppt is roughly sampling noise, so the honest reading is 'no loss', not 'gain'. Real nominal retail cost for Opus falls $420\u2192$296, but for GPT 5.6 Sol it rises $168\u2192$186\u2013203. The headline 2\u20138x 'savings' come from a hypothetical context-tiered pricing model (r=0.20 from vLLM throughput), not from billed prices. Long-input gains (RULER 62.5\u219295.7, BABILong 67\u219292, AA-LCR Opus 65\u219284) compare a grep/file-reading agent against stuffing the whole document into context. Open-weight Qwen3 Coder Next collapses 53.0\u21923.6% at a 16K/12K budget.",
+  "code_weights": "not stated. No repo for mini-agent or the compaction harness. It builds on the existing mini-swe-agent v2.4, and the compaction prompt templates appear in Appendix G.",
+  "why": "Muninn can adopt two things directly: the structured handoff-compaction prompt (verbatim task, established facts, dead ends, remaining plan, completion condition) and the policy of exposing long inputs as files read via grep/bounded reads instead of injecting them. This supports capping subagent context at about 16\u201348K, but the open-weight table shows cheap models can collapse at tight budgets, so test per routed model before lowering caps. The cost claims don't transfer to flat-priced API use, and the accuracy 'improvements' on long-horizon tasks sit within single-run noise.",
+  "confidence": "medium"
+ },
+ "2610.25736": {
+  "title": "Learning from Fleet Experience: A Collective Learning Paradigm for Robots",
+  "first_seen": "2026-11-08",
+  "practical": "LOW",
+  "passes": [
+   "NONE",
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "Phone Packaging success rises from 79.2% (MHG-DAgger init) to 98.3% with 96 robots, over 120 trials on held-out robots. FERT scored below its init at small fleets: 50.8% with 8 robots vs 79.2% init. In the 16-robot ablation, removing failure-guided retrieval drops success from 86.7% to 64.2%. That is one training run per configuration with no seeds reported, though the gap is large relative to the Wilson CIs at n=120.",
+  "code_weights": "Only a project page (cel-robot-learning.github.io) is linked. No code repo or weights are stated in the paper. It builds on RLinf, which is cited, not released here.",
+  "why": "This is a real-robot VLA fine-tuning paper that needs about 96 AgiBot G2 robots and 48 A800 GPUs, so the reader has nothing to adopt or replicate. One idea transfers loosely to Muninn: use the context just before a failure as a query to retrieve and up-weight similar successful traces. That could inform memory or skill retrieval, but it is not tested on anything resembling text agents.",
+  "confidence": "high"
+ },
+ "2610.37666": {
+  "title": "ThinkWorld: World Imagination Reinforces Chain-of-Dynamics Reasoning",
+  "first_seen": "2026-11-08",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "LIBERO-PRO avg 55.6% vs VLA-JEPA 48.5% (a baseline the authors reproduced themselves) and pi0.5 53.2%. In the ablation (Tab. 3), world-imagination RL, the paper's headline contribution, moves the average only 54.4% to 55.6% from a single training seed, which is plausibly within noise. Real robot micro success is 93.3% vs MolmoAct2 at 60.0%, on 120 trials with 5 per setting.",
+  "code_weights": "Project page only (thinkworld-project.github.io); no code or weights linked in the paper",
+  "why": "This is a robotics VLA training recipe: a Qwen3-VL-2B backbone, FAST motion tokens, DINOv3 future prediction and GRPO, trained on 128/64 H100s over 4,276 hours of robot and human video. None of it touches the reader's agent memory, retrieval/quantization, WebGPU or ATProto work. The only loosely transferable idea, using reasoning at training time only so inference latency stays low, is not a decision he can act on.",
+  "confidence": "high"
+ },
+ "2611.06910": {
+  "title": "FrontierPhysics: Evaluating Agents for End-to-End Physics Research",
+  "first_seen": "2026-11-09",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Best config is Claude Opus 5.5 in Claude Code at 27.4% Pass@1 (46/168), with task-bootstrap CI [17.9, 36.9]. GPT-6 Astra (max) 23.2%, Astra (xhigh) 19.6% and GPT-6.1 Sol 19.6% are not statistically separable from it (Table 8). Cost per rollout is about $27 for Opus 5.5 versus $5.33 for GPT-6.1 Sol. The manual audit found 9/168 GPT-6 Astra rollouts were false negatives, which moves its pass rate from 14.9% to 20.2%, so grader error is about the size of the gaps between models.",
+  "code_weights": "not stated. BenchFlow CLI and HuggingFace datasets are mentioned but no URLs are given for tasks, rubrics or rollouts.",
+  "why": "This is a 56-task physics-research benchmark with nothing for the reader to adopt: no technique, no tool he could plausibly run, and no released links. The only transferable observations are that rollouts fail mainly through circular self-verification, and that an Opus 5.5 judge was more lenient on its own model family (Table 6). Both are useful cautions for his subagent gating, but they are anecdotal and he likely knows them already. The top-model ranking sits inside its confidence intervals and adds nothing to his routing beyond the generic point that GPT configurations are cheaper per pass.",
+  "confidence": "high"
+ },
+ "2611.08449": {
+  "title": "VFlash: Fast, Accurate Visual Planning via Flash Primitive Decoding",
+  "first_seen": "2026-11-09",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "LOW",
+   "NONE"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "MolmoSpaces avg success: 70.2% (VFlash plans) vs 62.6% (unmodified WAM baseline) and 61.0% (AR plans). Each row is one training seed and one eval seed, and the baseline keeps a different text encoder, so the gain is not cleanly attributable to the decoder. 3D trajectory ADE, e.g. AgiBot 3D-only: 0.083 m (AR) to 0.042 m (VFlash), consistent across all three datasets and three variants. Speed: ~25x is single-rollout on H100 (3.21 s vs 79.8 s on HOT3D); MolmoSpaces end-to-end is 5.1x on Thor (3,553 ms to 703 ms).",
+  "code_weights": "GitHub https://github.com/NVlabs/Eagle/tree/main/Embodied and project page https://research.nvidia.com/labs/lpr/vflash/ are linked; the paper does not say which drafter or target weights are released.",
+  "why": "This is robotics and driving VLM decoding. It trains a 537M DFlash-style drafter on a fine-tuned 4B target using multi-GPU budgets on millions of examples, and accepts schema-valid coordinate blocks without verification. None of that maps onto Muninn, retrieval/quantization, WebGPU embedding kernels or Claude Code tooling. The one transferable idea is to fill fixed-schema output in a single parallel pass and judge it by task accuracy rather than token agreement, but it needs a trained drafter and special coordinate tokens, which he cannot use with API models.",
+  "confidence": "high"
+ },
+ "2610.37741": {
+  "title": "Agentic Backdoors via Pretraining Poisoning",
+  "first_seen": "2026-11-09",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "4B, declaration poison at 0.1%, ordinary 'anthropic'-path trigger: 92.7% Pass@32 after GRPO (seed range 87.9\u201396.7), but only 50.9% Pass@1. Injected rare-string trigger: 10.5% Pass@32 (seed range 3.8\u201320.0) and 1.8% Pass@1. Demonstration poison reaches only 3.2% (ordinary) and 0.0% (rare) Pass@32. The headline '0.0005% still works' is a single seed at 1.4% Pass@32 / 0.07% Pass@1, non-monotone vs 0.01% (0.8%), so it is within noise. Clean models emit the payload 0%; poisoned models emit it on 0% of clean NL2SH prompts.",
+  "code_weights": "https://github.com/safety-research/agentic-backdoor (code linked in the paper; no released weights stated)",
+  "why": "This is an attack paper whose replication needs multi-day multi-H200 pretraining runs. He does not pretrain models, and the scaling claim covers only 0.6\u20134B. His only actionable takeaway is the paper's own generic advice: gate or deny `curl \u2026 | bash`-style actions before execution, for example with a Claude Code PreToolUse hook or his `decide` gating on subagent shell actions. That defense is standard practice and does not depend on these results. The striking 92.7% figure is a Pass@32 number on a toy CLI agent; the Pass@1 numbers are far lower, and the low-dose results are single-seed noise.",
+  "confidence": "high"
+ },
+ "2610.21375": {
+  "title": "Memorilla: Latent Semantic Memory for LLMs",
+  "first_seen": "2026-11-09",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "FactKG accuracy is 84.33 vs 80.43 for full context and 80.38 for MemoRAG. Those baselines are untrained, while Memorilla is fine-tuned on the benchmark training splits; the fairer comparison is xRAG, also trained per benchmark, at 78.98. PMv2 short-answer accuracy is 44.60 vs 30.90 for xRAG and 27.92 for full context, but PMv2 got extra benchmark-specific fine-tuning. TriviaQA exact match is 57.00 vs 56.60 for MemoRAG on n=500, which is inside noise. Memorilla loses on PubMedQA (59 vs 67-69, n=100) and trails MemoRAG on NarrativeQA ROUGE-L (19.31 vs 20.51).",
+  "code_weights": "The paper says code, data with precomputed embeddings and PersonalizationV4 are being released on https://memory.stanford.edu/. No repository or checkpoint link is given, and that it is live is not verified.",
+  "why": "The method injects learned soft tokens into the input embedding layer of a frozen open decoder (Qwen3-8B). It needs a three-stage curriculum on about 3.3M examples on 4\u00d7H100s plus per-domain fine-tuning, so it cannot attach to a Claude-based Muninn or to his FTS/remax_kb stack. The headline wins over full context and RAG compare a supervised, in-domain-trained module against untrained retrieval. The only transferable finding is the oracle complementarity: latent memory wins on conceptual/multi-entity questions and RAG wins on verbatim 'who/which' recall. That reinforces hybrid retrieval but does not change a decision he could act on within weeks.",
+  "confidence": "high"
+ },
+ "2610.27251": {
+  "title": "AI and The Enclosure of the Scientific Commons",
+  "first_seen": "2026-11-10",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "No experiments or benchmarks. The only quantitative claims are cited from elsewhere: Bartz v. Anthropic settlement of about $1.5B versus hoped-for revenues in the trillions, and Kandpal & Raffel's estimate that the value of training data dominates model cost. Neither number touches anything the reader builds.",
+  "code_weights": "not stated (essay; no code or data)",
+  "why": "This is a humanities/political-economy essay that frames AI as an enclosure of the scientific commons. It offers no technique, tool, benchmark, or finding that bears on Muninn's memory or routing, retrieval and quantization, WebGPU kernels, or the reader's Claude Code tooling. The 'slop spam' point about PR, arXiv and Wikipedia integration processes is anecdotal context and would not change any design decision.",
+  "confidence": "high"
+ },
+ "2611.08438": {
+  "title": "Understanding AI from the Inside: The State of Mechanistic Interpretability for AI Safety",
+  "first_seen": "2026-11-11",
+  "practical": "LOW",
+  "passes": [
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "This is a survey with no new experiments; every number is cited from other papers. (1) Linear probes detect a sleeper-agent backdoor trigger at >99% AUROC (MacDiarmid et al. 2024), but probes do not remove the behaviour. (2) Replacing all MLPs with CLT reconstructions matches the original model's top-1 token on only ~50% of Pile prompts, measured on an 18-layer model. (3) Training a CLT suite for Gemma-2-9B took ~3,844 H100 GPU-hours. One cited result is the most relevant to him: activation-reading tools gave agents no uplift over transcript-only baselines (Karvonen et al. 2026b).",
+  "code_weights": "Notebooks: https://github.com/TSGLAB/Interpretability_Survey_Safety ; website: https://tsglab.github.io/mi_survey/ (worked examples reproducing surveyed findings; the survey itself releases no new models or tools)",
+  "why": "This is a broad mechanistic-interpretability-for-safety survey (SAEs, transcoders/CLTs, circuits, probing). It offers nothing he can adopt for Muninn routing and memory, remex/remax quantization, or WebGPU EmbeddingGemma inference. The interpretability methods need white-box activations and large training budgets. The only decision-relevant point is a cited finding: internals-based tools gave no uplift over transcript-only baselines, which supports his existing black-box `decide`/transcript approach. That confirms his current design rather than changing it.",
+  "confidence": "high"
+ },
+ "2611.08373": {
+  "title": "SLA: Scaling Spatial-Language-Action Model via Continual Pre-training",
+  "first_seen": "2026-11-12",
+  "practical": "NONE",
+  "passes": [
+   "NONE",
+   "NONE"
+  ],
+  "ledger": "NONE",
+  "key_numbers": "RoboTwin 2.0 Clean2Random 72.3% vs pi0.5 46.0% and post-training-only Spatial Forcing 62.6% (Table 3). LIBERO-Plus 87.4% vs Qwen-RobotManip 87.1%, a 0.3-pt margin with no seeds or variance reported. Real-world average 83.8% vs pi0.5 59.8% over 50 object instances per condition. Continual pre-training cost ~110 h on 48 H100s.",
+  "code_weights": "Code: https://github.com/OpenHelix-Team/Spatial-Forcing/tree/master/SLA ; project page https://sla-team.github.io/omnisf_projectpage/ ; released weights not stated",
+  "why": "This is a robotics VLA continual-pre-training recipe that needs a multi-GPU-week budget and robot data. It touches none of the reader's agent, memory, retrieval, quantization, WebGPU or ATProto work, and it changes no design decision there. Every ablation is a single run on RoboTwin. Some effects are suspiciously large (state dropout 0% \u2192 25% moves the score 38.1 \u2192 79.2), and several headline 'SOTA' margins sit within plausible noise.",
+  "confidence": "high"
+ },
+ "2611.05139": {
+  "title": "Meta 2: Precomputing Reusable Knowledge for Online Harness Evolution in Long-Horizon Agents",
+  "first_seen": "2026-11-12",
+  "practical": "MEDIUM",
+  "passes": [
+   "MEDIUM",
+   "MEDIUM"
+  ],
+  "ledger": "MEDIUM",
+  "key_numbers": "Terminal-Bench 2.1 (GPT-5.6-Terra, 60 test tasks x5): 81.00\u00b10.91 vs NexAU seed 66.33 and best harness-evolution baseline Meta-Harness 73.33\u00b14.41. Ablation: an online evolver with no Meta-Skill already reaches 74.67, so roughly half the gain comes from just adding a supervisor. DeepSWE 1.1 (75 tasks x3): 44.44 vs seed 34.67 and Pi agent 39.11\u00b16.71. Resetting edits per task beats persisting them: 81.00 vs 78.33 and 44.44 vs 39.11. With the DeepSeek backbone, 77.67\u00b13.84 vs Continual Harness 74.67\u00b14.62 is within noise.",
+  "code_weights": "Project page only (meta-square.github.io); no code repo or artifacts linked. Full evolver, REFLECT, AGGREGATE and UPDATE prompts and the full learned Meta-Skills are printed in the appendix.",
+  "why": "The adoptable part is a prompt pattern: a same-model supervisor that checks a delegated subagent at fixed checkpoints, uses a small act/hold/avoid rulebook, and has a send-back on completion claims. Because the prompts and rule entries are printed verbatim, Muninn's subagent delegation or a Claude Code Stop hook could test this cheaply. The persist-vs-reset ablation bears on one design decision: keep run-specific corrections out of Muninn's persistent memory and store only abstracted, multi-task lessons. Skepticism is warranted: there is one random split with only 29\u201338 training tasks, Meta2's variance is oddly low compared with every baseline, and online cost roughly doubles over the seed (64.72 vs 34.09).",
+  "confidence": "medium"
+ },
+ "2611.03178": {
+  "title": "CoworkOS: Scaling Agent Coworkers for Real-world Automation",
+  "first_seen": "2026-11-12",
+  "practical": "LOW",
+  "passes": [
+   "MEDIUM",
+   "LOW",
+   "LOW"
+  ],
+  "ledger": "LOW",
+  "key_numbers": "Table 1 (single runs, GLM-5.3 backbone, no variance reported): CoworkOS vs DeepSeek Harness differences are in the noise. Tool Use avg is 55.22 vs 55.31, ML Coding 56.26 vs 56.14, MLE-Bench-Lite 76.90 vs 76.70, Productivity 57.54 vs 56.13. CoworkOS loses outright on Tau-3, AutomationBench, OfficeQA and BrowseComp. RSI headline is 33.19 to 42.95 (+9.76), but AutomationBench alone contributes +33.15/8 \u2248 4.1 points of that, JobBench drops 2.13, and R1 was simply a retrain from base with 244 more seeds. The same eight benchmarks are both the diagnosis targets and the evaluation set, controlled only by a BM25 0.8 similarity filter.",
+  "code_weights": "github.com/RUC-NLPIR/CoworkOS (repo linked), project page and showcase linked; no model weights for the post-trained Qwen3.6-35B-A3B stated",
+  "why": "This is a systems report with no ablations, so none of its mechanisms is shown to matter. The untested mechanisms are: async delegation into a durable Inbox, delegation as an 'evidence contract', deterministic monitors that skip model calls on unchanged samples, writing a memory doc before context reset, and an experiment ledger that separates file-read metrics from narrative claims. Several of these are cheap ideas he could borrow for Muninn's subagent and memory layer from the released repo, but the paper gives no evidence that would change a routing or memory design decision. The harness-vs-harness gains are within run-to-run noise, and the RSI study is benchmark-targeted SFT on a 35B model that he would not replicate.",
+  "confidence": "medium"
+ }
+}

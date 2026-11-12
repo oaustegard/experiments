@@ -678,6 +678,10 @@ survives exactly the sanity checks people run.
   below the model's need fails the call while billing it. `--output-format stream-json --verbose` carries a
   `rate_limit_event` with five-hour and seven-day utilisation, enough to schedule runs around the usage window.
   (`haiku-swarm-poc/gateway.py`)
+- **`claude -p` "You've hit your org's monthly spend limit" can be the account's weekly per-model limit.** On a
+  consumer account the message names an org cap, but its own text gives the weekly reset date. On 2026-11-12 it
+  blocked Opus while Haiku and Sonnet children kept working, so probe the other tiers with a one-token call
+  before stopping a pipeline. Checkpoint per call, so the stage can resume on another model. (`meta2-paperwatch/offline.py`)
 - **A large shared prefix in the first user message does not cache across `claude -p` processes.** Two identical Opus 5.5 calls carrying a 30k-token memory block ahead of the task: the second read 1,340 cached tokens and wrote the other ~30k again, about $0.25 per call. Per-session context sits between the system prompt and the first user message, so only the system prompt and CLI preamble share a prefix. Within one session (`--resume`) caching works. Putting the shared block in `--system-prompt` probably caches, but this is untested; measure two calls before launching volume. (`memory-trap-self-pilot/cli.py`)
 - **A Claude judge reads "lists weaknesses" as "unsound"; check it against a human before reporting over-critique.** In `memory-trap-self-pilot`, the paper's 0/1/2 argument judge and a stricter binary bottom-line judge (both Claude) flagged 6 memory-arm reviews of sound arguments; the user, labelling blind, read all 6 as calling the argument sound and none as too harsh. A tripled judge-measured flaw rate was a change in how much a review criticizes, not in its verdict. Seven labels were enough to see it; label the judge-flagged items first. (`memory-trap-self-pilot/out/human_labels.json`)
 - **Stock OpenEvolve can run fully jailed against a host-side model gateway through a Unix socket.** The jail's
@@ -4370,6 +4374,16 @@ word is not. (`gliner-browser/results/bridge_gliner-web-2.json`)
 
 0 loops in 200 greedy and 100 sampled (T 0.3, min_p 0.15, rep 1.05) GSM8K answers and 64 chat replies at 512 tokens, so the
 MIT post's loop-direction edit (which fixed Qwen3.5-0.8B) has nothing to remove here. Measure the obstacle before editing.
+
+### A distilled rubric that lifts a cheap rater's exact agreement can just be collapsing to the majority class (meta2-paperwatch)
+
+A Meta-Skill distilled from Haiku's rating errors raised exact agreement with gold from 0.44 to 0.69 on 33 papers,
+and answering the majority class (LOW) for every paper scores 0.67. Weighted kappa moved 0.23 to 0.26, and MEDIUM+
+recall fell 1.00 to 0.33. Report an always-majority row and kappa next to any agreement gain on a skewed label set.
+Ask which errors a downstream check already catches: paper-watch's Opus step re-checks only MEDIUM+ ratings, so the
+rubric traded corrected false positives for misses nobody sees. Meta 2's evolver (KEEP/EVOLVE with a send-back) on
+the same drafts changed the rating on about 1 paper in 33 at 2.8x the tokens. Its edits policed how numbers were
+quoted, not the rating. (`meta2-paperwatch/README.md`)
 
 ## Shared code — `_lib/`
 
