@@ -45,6 +45,7 @@ ol.steps b { color: var(--fg); }
 .run { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 24px; align-items: start;
   border-top: 1px solid var(--rule); padding-top: 24px; }
 .frame { background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+.frame.wide { aspect-ratio: 16 / 9; }
 .frame video { width: 100%; height: 100%; display: block; }
 .meta { display: grid; gap: 12px; min-width: 0; }
 .meta p { color: var(--muted); font-size: 15px; }
@@ -68,6 +69,11 @@ code { font: 14px var(--mono); color: var(--amber); }
     <h1>Doom by Rollouts</h1>
     <p class="lede">This Doom player, called the planner below, decides what to do by trying moves out in copies of the game. Four times a second it copies the game, tries a different move in each copy, and plays whichever move worked out best. Each copy played out this way is called a rollout. The planner reads the game's internal state and never looks at the screen.</p>
   </header>
+
+  <section class="promo">
+    <div class="frame wide"><video controls preload="none" playsinline poster="promo-poster.jpg" src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/doom-by-rollouts.mp4"></video></div>
+    <p class="note">The whole experiment in 87 seconds, narrated by Muninn.</p>
+  </section>
 
   <section>
     <h2>Each decision tries 30 options in 90 copies of the game</h2>
