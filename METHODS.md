@@ -670,13 +670,14 @@ survives exactly the sanity checks people run.
 ## Environment gotchas (this container)
 
 - **Slicing inside a loop over an `np.load(...npz)` handle re-reads the whole array each time.**
-  `NpzFile.__getitem__` decompresses the member on every `z["T"]`, and a slice of each copy is a view that pins
+  `NpzFile.__getitem__` decompresses the member on every `z["T"]` (here the token-vector array), and a slice of each copy is a view that pins
   it: merging 1,000 per-document slices from a 130 MB chunk took 13 GB and an OOM (exit 137). Read each member
   once (`with np.load(f) as z: T = z["T"]`) and slice the local array. (`lateon-pool-remex/ERRORS.md` #1)
 - **sentence-transformers 6.3 loads PyLate ColBERT checkpoints without PyLate.** `MultiVectorEncoder("lightonai/LateOn")`
-  reads `pylate.models.Dense.Dense` modules (including `use_residual`), the skiplist and the `[Q]`/`[D]`
-  prefixes, and reproduces the card (SciFact 0.763 vs 0.766). PyLate 1.6 pins sentence-transformers 5.3 and
-  transformers ≤ 5.3, so installing it downgrades both. (`lateon-pool-remex/encode.py`)
+  (`from sentence_transformers import MultiVectorEncoder`) reads `pylate.models.Dense.Dense` modules (including
+  their residual connections), the document punctuation skiplist and the `[Q]`/`[D]` prefixes, and reproduces the
+  model card (SciFact 0.763 vs 0.766). Do not install PyLate alongside: 1.6 pins sentence-transformers 5.3 and
+  transformers ≤ 5.3 and downgrades both. (`lateon-pool-remex/encode.py`)
 - **`claude -p` as a metered model call: ~1.4K harness tokens per call, 1-hour cache writes, no way to switch Haiku's
   thinking off.** Even with `--tools "" --strict-mcp-config --setting-sources "" --disable-slash-commands
   --exclude-dynamic-system-prompt-sections --system-prompt-file`, each call carries about 550 cached and 810
