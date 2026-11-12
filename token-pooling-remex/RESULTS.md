@@ -95,6 +95,14 @@ limit while sharing 4 CPUs with the benches; the last encode (baseline, NFCorpus
 - Not tested: the module's adaptive distance-threshold budget, uncentered codes, other corpora, and
   MaxSim latency, which falls with token count and is the other reason to pool.
 
+### Correction (2026-11-12): bytes left out a per-vector scalar
+
+`lateon-pool-remex` found that remex 2.1's centered codes store two float32 numbers per vector (‖x−μ‖ and
+μ·(x−μ)) and that the decode uses them; for unit vectors one fp16 number carries both, 2 bytes per vector.
+The byte counts above are codes only, so every coded arm here is 2 B/vector short: at 1 bit, 128-d, 12.5% on top of
+the code bytes. Counting it makes unpooled 1-bit dearer than the pooled arms it was compared with, which
+strengthens the same-byte findings rather than reversing them. The tables are left as they ran.
+
 <!-- tables:start -->
 ### scifact: every arm (nDCG@10; Δ = arm − the same model's unpooled fp32; aware − baseline = paired per-query difference of absolute nDCG@10; all CIs 95% paired bootstrap)
 

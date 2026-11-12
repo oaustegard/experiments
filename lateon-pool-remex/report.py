@@ -22,7 +22,10 @@ ISO = [("st pf4 4-bit", "none 1-bit"), ("st pf2 2-bit", "none 1-bit"), ("st pf4 
        ("st pf2 4-bit", "none 2-bit"),
        ("adapt c1@2 2-bit", "none 1-bit"), ("adapt c1@2 2-bit", "st pf4 4-bit"),
        ("adapt c4@3 3-bit", "st pf4 4-bit"), ("adapt c4@3 3-bit", "st pf2 2-bit"),
-       ("cadapt c1@2 2-bit", "st pf4 4-bit"), ("cadapt c4@3 3-bit", "st pf4 4-bit")]
+       ("cadapt c1@2 2-bit", "st pf4 4-bit"), ("cadapt c4@3 3-bit", "st pf4 4-bit"),
+       # against the cheapest 1-bit codec: no side scalar, codes only
+       ("st pf4 4-bit", "none 1-bit no-side"), ("st pf2 2-bit", "none 1-bit no-side"),
+       ("st pf4 4-bit no-side", "none 1-bit no-side")]
 # adaptive allocation against uniform allocation at the same tokens and bits
 CONTRASTS = [("adapt c1@2 2-bit", "match c1@2 2-bit"), ("adapt c1@3 3-bit", "match c1@3 3-bit"),
              ("adapt c2@3 3-bit", "match c2@3 3-bit"), ("adapt c4@3 3-bit", "match c4@3 3-bit"),
@@ -60,6 +63,8 @@ def load(corpus):
     rows = {}
     for line in open(f):
         r = json.loads(line)
+        if "no-side" in r["arm"]:  # round 1 wrote these with the 2 B counted; they carry no side scalar
+            r["bytes_per_doc"] = r["bytes_per_doc_codes_only"]
         rows[r["arm"]] = r
     return rows
 
@@ -240,6 +245,11 @@ def frontier(summary):
             if pts:
                 x, y = zip(*pts)
                 ax.scatter(x, y, c=col, marker=mk, s=30, label=lab, alpha=0.85)
+            if fam in ("none", "st"):  # label the bit width of the reference points
+                for k, r in rows.items():
+                    if r.get("family") == fam and " haar s" not in k and r["bits"] and r["bytes_per_doc"] >= 300:
+                        ax.annotate(f"{r['bits']}b", (r["bytes_per_doc"], float(pq(rows, k).mean())),
+                                    textcoords="offset points", xytext=(4, -9), fontsize=6.5, color=col)
         ax.axhline(rows["none fp32"]["ndcg10"], color="#888", lw=0.8, ls="--", label="unpooled fp32")
         ax.set_xscale("log"); ax.set_xlabel("bytes per document (codes + 2 B per vector)")
         ax.set_ylabel("nDCG@10 (rotation-averaged)"); ax.set_title(f"LateOn, {corpus}")

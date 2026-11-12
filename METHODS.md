@@ -669,6 +669,14 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Slicing inside a loop over an `np.load(...npz)` handle re-reads the whole array each time.**
+  `NpzFile.__getitem__` decompresses the member on every `z["T"]`, and a slice of each copy is a view that pins
+  it: merging 1,000 per-document slices from a 130 MB chunk took 13 GB and an OOM (exit 137). Read each member
+  once (`with np.load(f) as z: T = z["T"]`) and slice the local array. (`lateon-pool-remex/ERRORS.md` #1)
+- **sentence-transformers 6.3 loads PyLate ColBERT checkpoints without PyLate.** `MultiVectorEncoder("lightonai/LateOn")`
+  reads `pylate.models.Dense.Dense` modules (including `use_residual`), the skiplist and the `[Q]`/`[D]`
+  prefixes, and reproduces the card (SciFact 0.763 vs 0.766). PyLate 1.6 pins sentence-transformers 5.3 and
+  transformers ≤ 5.3, so installing it downgrades both. (`lateon-pool-remex/encode.py`)
 - **`claude -p` as a metered model call: ~1.4K harness tokens per call, 1-hour cache writes, no way to switch Haiku's
   thinking off.** Even with `--tools "" --strict-mcp-config --setting-sources "" --disable-slash-commands
   --exclude-dynamic-system-prompt-sections --system-prompt-file`, each call carries about 550 cached and 810
@@ -2934,6 +2942,24 @@ the result.
   +0.01 on SciFact and ~0 on NFCorpus (1 of 12 CIs clear of zero): a
   300-query corpus cannot resolve the post's NanoBEIR gain.
   (`token-pooling-remex/RESULTS.md`)
+- **The pool-then-more-bits rule holds on a strong ColBERT never trained for pooling, and letting the codec
+  set how much to pool does not beat uniform pooling.** LateOn (ModernBERT, 128-d, BEIR 57.2), centered remex:
+  library pool factor 4 at 4 bits beats unpooled 1-bit at ~4 KB/doc by +0.040 / +0.0125 nDCG@10 (SciFact /
+  NFCorpus), 4 of 4 rotations each; pf4 4-bit and pf2 2-bit tie. Against codes-only 1-bit (no side
+  scalar, which was better on SciFact) pf2 2-bit still wins by +0.017 / +0.018. A Ward cut at "pooling error ≤ c × the
+  codec's measured per-token error" keeps 73% of tokens free at 3 bits (c = 1) and 54% at c = 2, but against
+  uniform pooling at the same tokens and bits it scores +0.013 on SciFact and −0.002 to −0.007 on NFCorpus,
+  every rotation agreeing within a corpus. Below 3 bits the rule over-pools (1 bit, c = 1: 10% of tokens,
+  −0.06 / −0.03): a merge's systematic error costs more than random coding error of the same size. Pooling
+  alone at fp32 also splits by corpus (+0.016 / −0.011). Default: uniform pooling, ≥2 bits; check pooling at
+  fp32 on the target corpus before reading anything into an adaptive scheme. (`lateon-pool-remex/RESULTS.md`)
+- **Centered remex codes carry a per-vector scalar; count it.** remex 2.1's centered `CompressedVectors` hold
+  `norms` = ‖x−μ‖ and `mean_dots` = μ·(x−μ) per row in float32. For unit-norm x both follow from one number
+  (‖x−μ‖² = 1 − 2μ·x + ‖μ‖²): store μ·(x−μ) as fp16 (2 B), not μ·x, whose fp16 spacing near ‖μ‖² ≈ 0.95 is
+  20× coarser on an anisotropic head. Rebuilt fields give identical retrieval. At 1 bit, 128-d it adds 12.5% to
+  the 16 code bytes; `token-pooling-remex` counted codes only. Decoding with the corpus-average scalar instead
+  moved 1-bit nDCG by +0.025 on SciFact and −0.005 on NFCorpus, so the bytes are neither free nor reliably
+  needed. (`lateon-pool-remex/RESULTS.md` finding 5)
 - **A resumed bench must rebuild its fidelity reference from the reference
   arm, not from the first arm it happens to compute.** `bench.py` set
   `ref_late` to the tops of whichever late arm ran first; on a resume that was
