@@ -1,6 +1,6 @@
 # RESULTS: a Doom player that plans by playing out futures
 
-Oskar, 2026-11-12, after asking whether a Haiku agent running at low
+Oskar Austegard (who owns this repository), 2026-11-12, after asking whether a Haiku agent running at low
 reasoning effort could play Doom: *"What if it was treated as a decision model with a war game-like
 multiple scenarios, pick the best one, approach?"*, then *"Build it in
 experiments."* Live page with the three videos:
@@ -27,8 +27,9 @@ did not help in its one run: 216.8 s. <!-- @evidence[[results/summary.json#e1m1-
 In 15 minutes it never found E1M2's exit; that map has a red-key door and
 lifts, which its model of where a player can walk does not handle.
 
-These are single runs with no baseline player; several real seeds and a
-random or greedy baseline would make them measurements.
+Claude Opus wrote and tuned the planner; Haiku only breaks close ties in
+one run, so whether Haiku can play Doom is untested. Each setting ran once,
+with no baseline player.
 
 ## Findings
 
@@ -53,7 +54,8 @@ random or greedy baseline would make them measurements.
 4. **E1M2 is where it stops.** The 15-minute run repeats the 5-minute run
    exactly through E1M1 (the game is deterministic), then spends 12 minutes on
    E1M2 without reaching the exit. It abandoned 124 targets <!-- @evidence[[results/summary.json#e1-long.giveups]] -->
-   it could not reach; the identical 5-minute run abandoned 31 in all, <!-- @evidence[[results/summary.json#e1m1-explore.giveups]] -->
+   (unseen walls or switches it was heading for and could not reach); the
+   identical 5-minute run abandoned 31 in all, <!-- @evidence[[results/summary.json#e1m1-explore.giveups]] -->
    so at least 93 were on E1M2. (`e1-long`)
 5. **Forked copies shared one open game-data file and corrupted each other.**
    Doom reads its graphics and maps from a WAD file. Until the WAD was loaded
@@ -73,7 +75,7 @@ random or greedy baseline would make them measurements.
 8. **Rollouts are cheap.** On 4 CPUs the planner ran 27,141 tics of rollout play <!-- @evidence[[results/summary.json#e1m1-explore.rollout_tics_per_wall_second]] -->
    per second of wall time, so 5 minutes of game time with 117,174 rollouts <!-- @evidence[[results/summary.json#e1m1-explore.rollouts]] -->
    took 224.5 s, <!-- @evidence[[results/summary.json#e1m1-explore.wall_seconds]] -->
-   an upper bound because the judged run shared the CPUs. (The first decision
+   which overstates the wall time because the judged run shared the CPUs. (The first decision
    on each map has no "keep going" option, hence 6 fewer than 1,302 × 90.) The judged run took
    1432.8 s, <!-- @evidence[[results/summary.json#e1m1-judged.wall_seconds]] -->
    most of it waiting on Haiku.
@@ -95,10 +97,17 @@ random or greedy baseline would make them measurements.
   with no network (`scripts/jail.sh` from `oaustegard/claude-workspace`) and
   talks to `play.py` over stdin/stdout. Every frame of the real game (not the
   rollouts) goes to ffmpeg.
+- **Roles.** Claude Opus, in a Claude Code session, wrote `src/host_main.c`
+  (1,164 lines) and `play.py` (250 lines), chose the options, score weights
+  and anti-stall rules, and tuned them over about eight rounds by reading the
+  planner's videos and decision logs (Log, "Getting unstuck"). The first two
+  runs consult no model during play. In the judged run, Haiku answers 197 of
+  1,301 decisions, each a choice among the 2 to 4 options the planner scored
+  highest.
 - **Options per decision.** 18 combinations of forward/back/none × turn
   left/right/none × fire, strafe left/right with and without fire, walk
-  forward pressing use, use in place, five turn-then-run plans (45°, 90°
-  either way, 180°, then run and pulse use), and "continue the current plan
+  forward pressing use, use in place, five turn-then-run plans (45° left or
+  right, 90° left or right, or 180°, then run and pulse use), and "continue the current plan
   from where it is" with a bonus of 10.
 - **Scenarios.** Each option runs under 3 perturbations of Doom's random
   number generator state (its seeds and its table positions). The real game's seed is never used, so the
@@ -111,8 +120,15 @@ random or greedy baseline would make them measurements.
   add 1.0 × walking distance gained toward an exit line. An option's value is
   the mean over scenarios minus half the gap to the worst.
 - **Walking distance** is Dijkstra over line midpoints through two-sided
-  lines with a 56-unit opening and at most a 24-unit step, plus manual doors.
+  lines whose opening is at least 56 units tall with a step of at most 24 units,
+  plus manual doors.
   It does not model lifts, keys or switches that open remote doors.
+- **Targets and give-ups.** The walking-distance target is the nearest wall
+  line not yet drawn. Lines Doom never draws (open portals between sectors of
+  equal height) and lines within 128 units of anywhere the player has stood do
+  not count. A target that stays nearest for 25 decisions with no new line
+  drawn is dropped, with every line within 192 units of it. When no target is
+  reachable, the target becomes the nearest wall switch not yet used.
 - **Commit.** The chosen option plays for 8 tics, or to the end of its
   horizon when it reaches the exit in every scenario.
 - **Judge (judged run only).** When the two best options score within 10% of
@@ -121,8 +137,9 @@ random or greedy baseline would make them measurements.
   `claude -p --model haiku --effort low` with only the Read tool. It answers
   `PICK <letter>` and a note of at most 25 words, which the next call sees.
 - **Runs.** One per setting, 5 minutes of game time each, plus one 15-minute
-  unassisted run. Runs are deterministic: the same settings give the same
-  decisions.
+  unassisted run. Runs without the judge are deterministic: the same settings
+  give the same decisions. Haiku's answers can vary, so the judged run would
+  not repeat exactly.
 - **Outputs.** `results/<run>.json` and `results/summary.json` (`report.py`);
   videos on R2 under `video/doom-planner/`, linked from each results file;
   `runs/` (gitignored) holds frames, decision logs and judge logs.

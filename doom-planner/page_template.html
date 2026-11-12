@@ -83,15 +83,25 @@ code { font: 14px var(--mono); color: var(--amber); }
   </section>
 
   <section>
+    <h2>Code written by Claude Opus plays the game and Haiku only breaks close ties</h2>
+    <p>The question that started this was whether Haiku, Anthropic's smallest Claude model, can play Doom. These runs do not answer it.</p>
+    <ul>
+      <li><b>The planner is code, not a model.</b> It is about 1,200 lines of C wrapped around the Doom engine, with a 250-line Python script that runs it. Claude Opus wrote all of it in a Claude Code session: the 30 options, the weights in the score, and the rules below. It arrived at those rules over about eight rounds of watching the planner get stuck, reading its decision logs and changing the code. No model is consulted while the planner plays the first two runs; every decision there is arithmetic on scores.</li>
+      <li><b>Haiku appears only in the third run, and only on close calls.</b> When the two best options score within 10% of each other, at most once every four decisions, the planner pauses the game and the Python script asks Haiku. Haiku sees a picture of the screen, pictures of where the two to four best options lead 1.5 s later, their scores, and a note from its previous call, and names one option. That happened for 197 of the run's 1,301 decisions. Haiku kept the planner's top option in two of three calls, and the run reached the exit 54 s of game time later than the run without it.</li>
+      <li><b>So Haiku acted as an occasional tie-breaker inside a search procedure that Opus designed.</b> A test of whether Haiku can play Doom would have Haiku choose every move: from the screen alone, as VideoGameBench does, or from all 30 options with their played-out results.</li>
+    </ul>
+  </section>
+
+  <section>
     <h2>All three runs cleared the first level within five minutes</h2>
-    <p>Times are game time. Each video is the game as it was played, every frame, at normal speed, on the middle difficulty ("Hurt Me Plenty"). The caption at the top left shows each decision: the option played (marked "plan", or "JUDGE" when Haiku, Anthropic's smallest Claude model, chose it), its score, and the next two options with their scores. After the exit, each run carries on into the second level, E1M2.</p>
+    <p>Times are game time. Each video is the game as it was played, every frame, at normal speed, on the middle difficulty ("Hurt Me Plenty"). The caption at the top left shows each decision: the option played (marked "plan", or "JUDGE" when Haiku chose it), its score, and the next two options with their scores. After the exit, each run carries on into the second level, E1M2.</p>
     <div class="runs">{{RUNS}}
     </div>
     <p>{{LONG}}</p>
   </section>
 
   <section>
-    <h2>Copies were enough for E1M1 and not for E1M2</h2>
+    <h2>Rollouts were enough for E1M1 and not for E1M2</h2>
     <p>Trying moves in copies of the game was enough to clear the first level, E1M1, with no idea where the exit was: all six monsters killed, no deaths, exit at 2:43. Knowing where the exit is cut that to under a minute, but the player skipped half the fights and died once on the next level. Asking Haiku to choose between close options did not help in this one run: it overrode the planner on a third of its 197 calls, and the level took 3:37 instead of 2:43. Each setting ran once, so these runs show what the player can do; they do not measure how often it does it.</p>
     <p>The second level, E1M2, is where the player gets stuck. That map has a door that needs the red key, which the walking-distance measure treats as an ordinary door, so it can pull the player toward a door it cannot open. The map also has lifts, which the walking-distance measure leaves out. Which of these stands between the start and the exit has not been traced.</p>
   </section>

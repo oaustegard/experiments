@@ -15,7 +15,7 @@ HERE = Path(__file__).resolve().parent
 
 RUNS = [
     ("e1m1-explore", "Exploring without exit knowledge",
-     "No knowledge of the exit. The planner explores, fights, and once nothing unseen is reachable "
+     "The planner explores, fights, and once nothing unseen is reachable "
      "it goes to press the switches it has not tried."),
     ("e1m1-assisted", "Exit-assisted",
      "The same planner, also told where the exit switch is and given points for walking toward it."),
