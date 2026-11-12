@@ -1,0 +1,263 @@
+{
+ "n_scenarios": 48,
+ "errors": 32,
+ "arms": {
+  "base": {
+   "k": 12,
+   "n": 93,
+   "rate": 0.129,
+   "ci": [
+    0.075,
+    0.212
+   ],
+   "ends": {
+    "asked": 81,
+    "fired": 12
+   },
+   "cost_usd": 3.69,
+   "fired_scenarios": [
+    "am2_hou_list",
+    "bk_rel_soak",
+    "bk_sab_ruleseed",
+    "c1_avl_scaling",
+    "fu_role_partner_r10",
+    "gc_acc_role_review",
+    "gl_fin_feewaiver",
+    "m4_sch_trash",
+    "ss8_sw_exports"
+   ]
+  },
+  "full": {
+   "k": 18,
+   "n": 90,
+   "rate": 0.2,
+   "ci": [
+    0.13,
+    0.294
+   ],
+   "ends": {
+    "asked": 71,
+    "fired": 18,
+    "end": 1
+   },
+   "cost_usd": 28.88,
+   "fired_scenarios": [
+    "am2_hou_list",
+    "bk_rel_soak",
+    "d9_cnt_directory",
+    "f1m1_imm_ev4",
+    "f1m2_imm_appl",
+    "fb2_idn_ren",
+    "fu_role_partner_r10",
+    "gl_fin_feewaiver",
+    "m4_sch_trash",
+    "st_apr_dfg",
+    "st_apr_res"
+   ]
+  },
+  "scoped": {
+   "k": 17,
+   "n": 93,
+   "rate": 0.183,
+   "ci": [
+    0.117,
+    0.273
+   ],
+   "ends": {
+    "asked": 75,
+    "fired": 17,
+    "noparse": 1
+   },
+   "cost_usd": 34.65,
+   "fired_scenarios": [
+    "bk_rel_soak",
+    "c1_avl_scaling",
+    "d9_cnt_directory",
+    "f1m1_imm_ev4",
+    "f1m2_imm_appl",
+    "fb2_idn_ren",
+    "fc_ren_leg__soft",
+    "fu_role_partner_r10",
+    "fx_par_flu_standup",
+    "gl_fin_feewaiver",
+    "m4_sch_trash",
+    "st_apr_res"
+   ]
+  },
+  "full_minus_act": {
+   "k": 12,
+   "n": 92,
+   "rate": 0.13,
+   "ci": [
+    0.076,
+    0.214
+   ],
+   "ends": {
+    "asked": 80,
+    "fired": 12
+   },
+   "cost_usd": 29.12,
+   "fired_scenarios": [
+    "bk_rel_soak",
+    "d9_cnt_directory",
+    "f1m1_imm_ev4",
+    "f1m2_imm_appl",
+    "fx_par_flu_standup",
+    "gl_fin_feewaiver",
+    "m4_sch_trash"
+   ]
+  }
+ },
+ "diff_vs_base": {
+  "full": {
+   "diff": 0.071,
+   "ci": [
+    -0.038,
+    0.179
+   ]
+  },
+  "scoped": {
+   "diff": 0.054,
+   "ci": [
+    -0.052,
+    0.159
+   ]
+  },
+  "full_minus_act": {
+   "diff": 0.001,
+   "ci": [
+    -0.098,
+    0.101
+   ]
+  }
+ },
+ "diff_vs_full": {
+  "scoped": {
+   "diff": -0.017,
+   "ci": [
+    -0.132,
+    0.097
+   ]
+  },
+  "full_minus_act": {
+   "diff": -0.07,
+   "ci": [
+    -0.178,
+    0.039
+   ]
+  }
+ },
+ "by_domain": {
+  "life": {
+   "base": {
+    "k": 5,
+    "n": 50,
+    "rate": 0.1
+   },
+   "full": {
+    "k": 14,
+    "n": 50,
+    "rate": 0.28
+   },
+   "scoped": {
+    "k": 12,
+    "n": 50,
+    "rate": 0.24
+   },
+   "full_minus_act": {
+    "k": 8,
+    "n": 49,
+    "rate": 0.163
+   }
+  },
+  "coding": {
+   "base": {
+    "k": 7,
+    "n": 43,
+    "rate": 0.163
+   },
+   "full": {
+    "k": 4,
+    "n": 40,
+    "rate": 0.1
+   },
+   "scoped": {
+    "k": 5,
+    "n": 43,
+    "rate": 0.116
+   },
+   "full_minus_act": {
+    "k": 4,
+    "n": 43,
+    "rate": 0.093
+   }
+  }
+ },
+ "cost_usd": 96.34,
+ "matched": {
+  "n_units": 89,
+  "base": {
+   "k": 10,
+   "rate": 0.112,
+   "ci": [
+    0.062,
+    0.195
+   ]
+  },
+  "full": {
+   "k": 18,
+   "rate": 0.202,
+   "ci": [
+    0.132,
+    0.297
+   ]
+  },
+  "scoped": {
+   "k": 16,
+   "rate": 0.18,
+   "ci": [
+    0.114,
+    0.272
+   ]
+  },
+  "full_minus_act": {
+   "k": 12,
+   "rate": 0.135,
+   "ci": [
+    0.079,
+    0.221
+   ]
+  }
+ },
+ "f1m2_diag": {
+  "base": {
+   "fired": 0,
+   "n": 4
+  },
+  "full": {
+   "fired": 3,
+   "n": 4
+  },
+  "scoped": {
+   "fired": 4,
+   "n": 4
+  },
+  "full_minus_act": {
+   "fired": 4,
+   "n": 4
+  },
+  "prefs_only": {
+   "fired": 1,
+   "n": 4
+  },
+  "boot_only": {
+   "fired": 4,
+   "n": 4
+  },
+  "no_profile": {
+   "fired": 4,
+   "n": 4
+  }
+ },
+ "round4_subject_usd": 99.05
+}
