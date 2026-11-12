@@ -14,7 +14,11 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 PAIRS = [("st pf4 4-bit", "none 1-bit"), ("st pf2 2-bit", "none 1-bit"), ("st pf4 4-bit", "st pf2 2-bit"),
          ("st pf4 2-bit", "none 1-bit"), ("st pf2 4-bit", "none 2-bit"), ("none 2-bit", "none 1-bit"),
-         ("st pf4 4-bit", "none 8-bit"), ("st pf4 8-bit", "none 8-bit"), ("none 4-bit", "none 8-bit")]
+         ("st pf4 4-bit", "none 8-bit"), ("st pf4 8-bit", "none 8-bit"), ("none 4-bit", "none 8-bit"),
+         ("adapt c1@2 2-bit", "match c1@2 2-bit"), ("adapt c4@3 3-bit", "match c4@3 3-bit"),
+         ("adapt c2@3 3-bit", "match c2@3 3-bit"), ("adapt c1@3 3-bit", "match c1@3 3-bit"),
+         ("adapt c1@2 2-bit", "st pf4 4-bit"), ("adapt c1@2 2-bit", "none 1-bit"),
+         ("adapt c1@3 3-bit", "none 4-bit")]
 
 
 def boot(d, n=5000, seed=0):
