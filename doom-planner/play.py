@@ -79,6 +79,79 @@ def ppm_sheet(options, now_path, out_png):
     sheet.save(out_png)
 
 
+PLAY_SYSTEM = {
+    "screen": """You are playing Doom (the shareware episode, starting on its first \
+level, E1M1, on the middle difficulty). Each turn you see the current screen \
+and choose one of the numbered actions; it is played for 8 game tics (0.23 s), \
+and then you choose again. Get to the level's exit (usually a switch on a wall \
+or a marked doorway), kill monsters that are in your way, avoid taking damage, \
+and do not walk back and forth over the same ground. "use" opens doors and \
+presses switches you are facing. Reply with exactly two lines and nothing else:
+PICK <number>
+NOTE <at most 25 words for your next turn: where you are, where you were heading>""",
+    "plan": """You are playing Doom (the shareware episode, starting on its first \
+level, E1M1, on the middle difficulty). Each turn you see the current screen \
+and choose one of the numbered actions; it is played for 8 game tics (0.23 s), \
+and then you choose again. Before you choose, a simulator copied the game and \
+played each action for 1.5 s in several copies with different luck; for each \
+action you get the average outcome: damage dealt and taken, kills, how many \
+copies died or reached the exit, new walls seen, new areas entered, items, ammo \
+used, how much closer it got to unexplored parts of the map (walking distance, \
+in map units), and how far it moved. Get to the level's exit, kill monsters \
+that are in your way, avoid damage, and keep exploring new ground. Reply with \
+exactly two lines and nothing else:
+PICK <number>
+NOTE <at most 25 words for your next turn: where you are, where you were heading>""",
+}
+
+
+def ask_play(req, now_png, note, log):
+    """Haiku chooses the move itself (modes screen and plan)."""
+    mode = req["mode"]
+    if mode == "plan":
+        opts = "\n".join(
+            f"{o['n']}. {o['action']}: dealt {o['damage_dealt']}, taken {o['damage_taken']}, "
+            f"kills {o['kills']}, died in {o['died_in']}/{req['scenarios']}, "
+            f"exit in {o['exited_in']}/{req['scenarios']}, new walls {o['new_walls_seen']}, "
+            f"new areas {o['new_areas']}, items {o['items']}, ammo {o['ammo_used']}, "
+            f"closer {o['closer_to_unexplored']}, moved {o['distance_moved']}"
+            for o in req["options"])
+    else:
+        opts = "\n".join(f"{o['n']}. {o['action']}" for o in req["options"])
+    prompt = (f"Read the image {now_png}: the screen now. Health {req['health']}, armor "
+              f"{req['armor']}, ammo {req['ammo']}.\n\nActions (fwd/back = walk, turnL/turnR = turn, "
+              f"strafeL/strafeR = sidestep, fire, use; 'a>b' = do a, then b; "
+              f"'continue:' = keep doing the current action):\n{opts}\n\n"
+              f"Note from your previous turn: {note or '(none yet)'}")
+    env = dict(os.environ, FORCE_PROMPT_CACHING_5M="1")
+    t0 = time.time()
+    try:
+        out = subprocess.run(
+            ["claude", "-p", "--model", "haiku", "--effort", "low",
+             "--tools", "Read", "--allowedTools", "Read", "--strict-mcp-config",
+             "--setting-sources", "", "--disable-slash-commands",
+             "--system-prompt", PLAY_SYSTEM[mode], prompt],
+            capture_output=True, text=True, timeout=120, env=env)
+        text = out.stdout.strip()
+    except subprocess.TimeoutExpired:
+        text = ""
+    dt = time.time() - t0
+    pick, new_note = None, note
+    for line in text.splitlines():
+        line = line.strip()
+        if line.upper().startswith("PICK"):
+            digits = "".join(ch for ch in line[4:].strip(" :") if ch.isdigit())
+            if digits and 1 <= int(digits) <= len(req["options"]):
+                pick = int(digits)
+        elif line.upper().startswith("NOTE"):
+            new_note = line[4:].strip(" :")[:200]
+    log.write(json.dumps({"seconds": round(dt, 2), "decision": req["decision"], "pick": pick,
+                          "action": req["options"][pick - 1]["action"] if pick else None,
+                          "note": new_note, "raw": text[:400]}) + "\n")
+    log.flush()
+    return pick, new_note, dt
+
+
 def ask_haiku(sheet_png, options, note, log):
     lines = [f"{o['label']}: {o['action']} (planner score {o['score']:.0f}; "
              f"dealt {o['dealt']}, hurt {o['hurt']}, new lines {o['explored']}, "
@@ -133,7 +206,7 @@ def subtitles(decisions_path, ass_path, fps=35):
         end = b["tic"] if b else a["tic"] + 8
         top = a["top"]
         alts = "  ".join(f"{n} {s:.0f}" for n, s, _ in top[1:3])
-        who = "JUDGE" if a["by"] == "judge" else "plan"
+        who = {"judge": "JUDGE", "haiku": "HAIKU", "fallback": "fallback"}.get(a["by"], "plan")
         out.append(f"Dialogue: 0,{ts(a['tic'])},{ts(end)},Default,"
                    f"{who}: {a['chosen']} ({top[0][1]:.0f})\\Nnext: {alts}")
     Path(ass_path).write_text("\n".join(out) + "\n")
@@ -152,6 +225,8 @@ def main():
     ap.add_argument("--name", required=True)
     ap.add_argument("--max-seconds", type=int, default=300)
     ap.add_argument("--judge", action="store_true")
+    ap.add_argument("--haiku-screen", action="store_true", help="Haiku picks every move from the screen")
+    ap.add_argument("--haiku-plan", action="store_true", help="Haiku picks every move from rollout outcomes")
     ap.add_argument("--assist-exit", action="store_true")
     ap.add_argument("--scenarios", type=int, default=3)
     ap.add_argument("--horizon", type=int, default=52)
@@ -173,6 +248,10 @@ def main():
            "--judge-every", str(args.judge_every)]
     if args.judge:
         cmd.append("--judge")
+    if args.haiku_screen:
+        cmd.append("--haiku-screen")
+    if args.haiku_plan:
+        cmd.append("--haiku-plan")
     if args.assist_exit:
         cmd.append("--assist-exit")
 
@@ -190,6 +269,18 @@ def main():
     note, judge_s, judged = "", 0.0, 0
     for line in proc.stdout:
         line = line.rstrip("\n")
+        if line.startswith("ASK "):
+            req = json.loads(line[4:])
+            png = out_dir / "judge" / f"{req['decision']:06d}.png"
+            png.parent.mkdir(exist_ok=True)
+            from PIL import Image
+            Image.open(jd / req["now"]).resize((640, 400)).save(png)
+            pick, note, dt = ask_play(req, png, note, jlog)
+            judge_s += dt
+            judged += 1
+            proc.stdin.write(f"PICK {pick if pick is not None else -1}\n")
+            proc.stdin.flush()
+            continue
         if line.startswith("JUDGE "):
             req = json.loads(line[6:])
             fix = lambda p: str(jd / p)  # paths are relative to the jail's cwd

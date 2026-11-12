@@ -75,6 +75,7 @@ static struct {
     int max_tics;          // stop after this many committed tics
     int record;            // write video.mp4
     int judge;             // ask the outside judge on close calls
+    int mode;              // 0 planner chooses; 1 Haiku from the screen; 2 Haiku from rollout outcomes
     double judge_margin;   // "close" = leader within this fraction of the runner-up
     int judge_every;       // at most one judge call per this many decisions
     int assist_exit;       // reward getting closer to an exit line
@@ -737,6 +738,61 @@ static void crash_handler(int sig)
     _exit(128 + sig);
 }
 
+// Haiku chooses every move. Mode 1 sends only the screen; mode 2 also sends
+// each option's rollout outcomes, averaged over the scenarios, in a fixed
+// order and without the planner's combined score. Returns an option index,
+// or -1 when the answer could not be used.
+static int ask_choice(int nscen)
+{
+    char dir[512];
+    snprintf(dir, sizeof(dir), "%s/judge/%06ld", opt.out, decisions);
+    mkdir(dir, 0755);
+    char now[600];
+    snprintf(now, sizeof(now), "%s/now.ppm", dir);
+    write_ppm(now, framebuffer);
+    player_t *p = &players[consoleplayer];
+    printf("ASK {\"decision\": %ld, \"tic\": %ld, \"mode\": \"%s\", \"now\": \"%s\", "
+           "\"health\": %d, \"armor\": %d, \"ammo\": %d, \"options\": [",
+           decisions, committed_tics, opt.mode == 1 ? "screen" : "plan", now,
+           p->health, p->armorpoints, p->ammo[weaponinfo[p->readyweapon].ammo < NUMAMMO ?
+                                               weaponinfo[p->readyweapon].ammo : 0]);
+    for (int c = 0; c < nopts; c++)
+    {
+        printf("%s{\"n\": %d, \"action\": \"%s\"", c ? ", " : "", c + 1, opt_name[c]);
+        if (opt.mode == 2)
+        {
+            double dealt = 0, hurt = 0, kills = 0, walls = 0, areas = 0, items = 0, ammo = 0,
+                   closer = 0, moved = 0;
+            int died = 0, exited = 0;
+            for (int sc = 0; sc < nscen; sc++)
+            {
+                const result_t *r = &shm_res[c * nscen + sc];
+                dealt += r->dealt; hurt += r->hurt; kills += r->kills; walls += r->explored;
+                areas += r->cells; items += r->items; ammo += r->ammo_used;
+                closer += r->frontier_gain; moved += r->moved;
+                died += r->dead; exited += r->exited;
+            }
+            printf(", \"damage_dealt\": %.0f, \"damage_taken\": %.0f, \"kills\": %.1f, "
+                   "\"died_in\": %d, \"exited_in\": %d, \"new_walls_seen\": %.0f, "
+                   "\"new_areas\": %.1f, \"items\": %.1f, \"ammo_used\": %.0f, "
+                   "\"closer_to_unexplored\": %.0f, \"distance_moved\": %.0f",
+                   dealt / nscen, hurt / nscen, kills / nscen, died, exited, walls / nscen,
+                   areas / nscen, items / nscen, ammo / nscen, closer / nscen, moved / nscen);
+        }
+        printf("}");
+    }
+    printf("], \"scenarios\": %d}\n", nscen);
+    fflush(stdout);
+
+    char line[256];
+    if (!fgets(line, sizeof(line), stdin))
+        return -1;
+    int pick;
+    if (sscanf(line, "PICK %d", &pick) == 1 && pick >= 1 && pick <= nopts)
+        return pick - 1;
+    return -1;
+}
+
 static void decide(void)
 {
     nopts = 0;
@@ -763,6 +819,12 @@ static void decide(void)
     for (int i = 0; i < nslots; i++)
         shm_res[i].score = NAN;   // a child that never reports stays NaN
 
+    if (opt.mode == 1)
+    {
+        // Screen-only play: no rollouts, so every option's result is empty
+        memset(shm_res, 0, sizeof(result_t) * nslots);
+        goto rank;
+    }
     fflush(NULL);
     for (int c = 0; c < nopts; c++)
         for (int s = 0; s < nscen; s++)
@@ -804,6 +866,7 @@ static void decide(void)
             exit(1);
         }
 
+rank:;
     ranked_t rk[MAX_CAND];
     for (int c = 0; c < nopts; c++)
     {
@@ -839,7 +902,22 @@ static void decide(void)
             by = "judge";
         }
     }
-    plan_reaches_exit = 1;
+    if (opt.mode)
+    {
+        int h = ask_choice(nscen);
+        if (h >= 0)
+        {
+            chosen = h;
+            by = "haiku";
+        }
+        else
+        {
+            by = "fallback";
+            if (opt.mode == 1)
+                chosen = cont >= 0 ? cont : 0;
+        }
+    }
+    plan_reaches_exit = opt.mode != 1;
     for (int sc = 0; sc < nscen; sc++)
         if (!shm_res[chosen * nscen + sc].exited)
             plan_reaches_exit = 0;
@@ -1086,6 +1164,8 @@ int main(int argc, char **argv)
         else if (!strcmp(a, "--max-tics")) opt.max_tics = atoi(NEXT);
         else if (!strcmp(a, "--no-record")) opt.record = 0;
         else if (!strcmp(a, "--judge")) opt.judge = 1;
+        else if (!strcmp(a, "--haiku-screen")) opt.mode = 1;
+        else if (!strcmp(a, "--haiku-plan")) opt.mode = 2;
         else if (!strcmp(a, "--judge-margin")) opt.judge_margin = atof(NEXT);
         else if (!strcmp(a, "--judge-every")) opt.judge_every = atoi(NEXT);
         else if (!strcmp(a, "--assist-exit")) opt.assist_exit = 1;
