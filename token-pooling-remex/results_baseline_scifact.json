@@ -1,0 +1,452 @@
+{
+ "model": "baseline",
+ "corpus": "scifact",
+ "n_docs": 5183,
+ "n_tokens": 1549337,
+ "rows": [
+  {
+   "arm": "none fp32",
+   "pooling": "none",
+   "bits": null,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 153050,
+   "ndcg10": 0.656,
+   "delta": 0.0,
+   "ci": [
+    0.0,
+    0.0
+   ],
+   "retained": 1.0
+  },
+  {
+   "arm": "none 4-bit",
+   "pooling": "none",
+   "bits": 4,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 19131,
+   "ndcg10": 0.6581,
+   "delta": 0.0021,
+   "ci": [
+    -0.0037,
+    0.0081
+   ],
+   "retained": 1.0032
+  },
+  {
+   "arm": "none 2-bit",
+   "pooling": "none",
+   "bits": 2,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 9566,
+   "ndcg10": 0.6428,
+   "delta": -0.0132,
+   "ci": [
+    -0.0266,
+    -0.0008
+   ],
+   "retained": 0.9799
+  },
+  {
+   "arm": "none 2-bit haar s1",
+   "pooling": "none",
+   "bits": 2,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 9566,
+   "ndcg10": 0.6505,
+   "seed_arm": true,
+   "delta": -0.0055,
+   "ci": [
+    -0.0166,
+    0.0051
+   ],
+   "retained": 0.9916
+  },
+  {
+   "arm": "none 1-bit",
+   "pooling": "none",
+   "bits": 1,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 4783,
+   "ndcg10": 0.6103,
+   "delta": -0.0457,
+   "ci": [
+    -0.0696,
+    -0.0223
+   ],
+   "retained": 0.9303
+  },
+  {
+   "arm": "none 1-bit haar s1",
+   "pooling": "none",
+   "bits": 1,
+   "tokens_per_doc": 298.93,
+   "bytes_per_doc": 4783,
+   "ndcg10": 0.6028,
+   "seed_arm": true,
+   "delta": -0.0532,
+   "ci": [
+    -0.0741,
+    -0.0337
+   ],
+   "retained": 0.9189
+  },
+  {
+   "arm": "pf2 fp32",
+   "pooling": "pf2",
+   "bits": null,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 76644,
+   "ndcg10": 0.6475,
+   "delta": -0.0085,
+   "ci": [
+    -0.02,
+    0.0023
+   ],
+   "retained": 0.987
+  },
+  {
+   "arm": "pf2 4-bit",
+   "pooling": "pf2",
+   "bits": 4,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 9581,
+   "ndcg10": 0.6462,
+   "delta": -0.0098,
+   "ci": [
+    -0.0225,
+    0.0021
+   ],
+   "retained": 0.9851
+  },
+  {
+   "arm": "pf2 4-bit haar s1",
+   "pooling": "pf2",
+   "bits": 4,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 9581,
+   "ndcg10": 0.6463,
+   "seed_arm": true,
+   "delta": -0.0097,
+   "ci": [
+    -0.0214,
+    0.0013
+   ],
+   "retained": 0.9852
+  },
+  {
+   "arm": "pf2 2-bit",
+   "pooling": "pf2",
+   "bits": 2,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 4790,
+   "ndcg10": 0.6299,
+   "delta": -0.0261,
+   "ci": [
+    -0.0417,
+    -0.0115
+   ],
+   "retained": 0.9602
+  },
+  {
+   "arm": "pf2 2-bit haar s1",
+   "pooling": "pf2",
+   "bits": 2,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 4790,
+   "ndcg10": 0.6342,
+   "seed_arm": true,
+   "delta": -0.0218,
+   "ci": [
+    -0.037,
+    -0.007
+   ],
+   "retained": 0.9668
+  },
+  {
+   "arm": "pf2 1-bit",
+   "pooling": "pf2",
+   "bits": 1,
+   "tokens_per_doc": 149.7,
+   "bytes_per_doc": 2395,
+   "ndcg10": 0.5933,
+   "delta": -0.0627,
+   "ci": [
+    -0.086,
+    -0.0392
+   ],
+   "retained": 0.9044
+  },
+  {
+   "arm": "pf3 fp32",
+   "pooling": "pf3",
+   "bits": null,
+   "tokens_per_doc": 99.98,
+   "bytes_per_doc": 51189,
+   "ndcg10": 0.6471,
+   "delta": -0.0089,
+   "ci": [
+    -0.0208,
+    0.0025
+   ],
+   "retained": 0.9864
+  },
+  {
+   "arm": "pf3 4-bit",
+   "pooling": "pf3",
+   "bits": 4,
+   "tokens_per_doc": 99.98,
+   "bytes_per_doc": 6399,
+   "ndcg10": 0.6454,
+   "delta": -0.0106,
+   "ci": [
+    -0.0227,
+    0.001
+   ],
+   "retained": 0.9838
+  },
+  {
+   "arm": "pf3 2-bit",
+   "pooling": "pf3",
+   "bits": 2,
+   "tokens_per_doc": 99.98,
+   "bytes_per_doc": 3199,
+   "ndcg10": 0.6428,
+   "delta": -0.0132,
+   "ci": [
+    -0.0288,
+    0.0017
+   ],
+   "retained": 0.9799
+  },
+  {
+   "arm": "pf3 1-bit",
+   "pooling": "pf3",
+   "bits": 1,
+   "tokens_per_doc": 99.98,
+   "bytes_per_doc": 1600,
+   "ndcg10": 0.6053,
+   "delta": -0.0507,
+   "ci": [
+    -0.0742,
+    -0.0272
+   ],
+   "retained": 0.9227
+  },
+  {
+   "arm": "pf4 fp32",
+   "pooling": "pf4",
+   "bits": null,
+   "tokens_per_doc": 75.08,
+   "bytes_per_doc": 38440,
+   "ndcg10": 0.6398,
+   "delta": -0.0162,
+   "ci": [
+    -0.0308,
+    -0.0023
+   ],
+   "retained": 0.9753
+  },
+  {
+   "arm": "pf4 4-bit",
+   "pooling": "pf4",
+   "bits": 4,
+   "tokens_per_doc": 75.08,
+   "bytes_per_doc": 4805,
+   "ndcg10": 0.6404,
+   "delta": -0.0156,
+   "ci": [
+    -0.0314,
+    -0.0008
+   ],
+   "retained": 0.9762
+  },
+  {
+   "arm": "pf4 4-bit haar s1",
+   "pooling": "pf4",
+   "bits": 4,
+   "tokens_per_doc": 75.08,
+   "bytes_per_doc": 4805,
+   "ndcg10": 0.6403,
+   "seed_arm": true,
+   "delta": -0.0157,
+   "ci": [
+    -0.0311,
+    -0.0016
+   ],
+   "retained": 0.9761
+  },
+  {
+   "arm": "pf4 2-bit",
+   "pooling": "pf4",
+   "bits": 2,
+   "tokens_per_doc": 75.08,
+   "bytes_per_doc": 2403,
+   "ndcg10": 0.6322,
+   "delta": -0.0238,
+   "ci": [
+    -0.0395,
+    -0.0089
+   ],
+   "retained": 0.9637
+  },
+  {
+   "arm": "pf4 1-bit",
+   "pooling": "pf4",
+   "bits": 1,
+   "tokens_per_doc": 75.08,
+   "bytes_per_doc": 1201,
+   "ndcg10": 0.6041,
+   "delta": -0.0519,
+   "ci": [
+    -0.0774,
+    -0.0256
+   ],
+   "retained": 0.9209
+  },
+  {
+   "arm": "mt32 fp32",
+   "pooling": "mt32",
+   "bits": null,
+   "tokens_per_doc": 32.0,
+   "bytes_per_doc": 16384,
+   "ndcg10": 0.6351,
+   "delta": -0.0209,
+   "ci": [
+    -0.0439,
+    0.0015
+   ],
+   "retained": 0.9681
+  },
+  {
+   "arm": "mt32 4-bit",
+   "pooling": "mt32",
+   "bits": 4,
+   "tokens_per_doc": 32.0,
+   "bytes_per_doc": 2048,
+   "ndcg10": 0.6312,
+   "delta": -0.0248,
+   "ci": [
+    -0.0477,
+    -0.0023
+   ],
+   "retained": 0.9622
+  },
+  {
+   "arm": "mt32 2-bit",
+   "pooling": "mt32",
+   "bits": 2,
+   "tokens_per_doc": 32.0,
+   "bytes_per_doc": 1024,
+   "ndcg10": 0.6086,
+   "delta": -0.0474,
+   "ci": [
+    -0.0719,
+    -0.0222
+   ],
+   "retained": 0.9277
+  },
+  {
+   "arm": "mt32 1-bit",
+   "pooling": "mt32",
+   "bits": 1,
+   "tokens_per_doc": 32.0,
+   "bytes_per_doc": 512,
+   "ndcg10": 0.5622,
+   "delta": -0.0938,
+   "ci": [
+    -0.1235,
+    -0.0639
+   ],
+   "retained": 0.857
+  },
+  {
+   "arm": "mt16 fp32",
+   "pooling": "mt16",
+   "bits": null,
+   "tokens_per_doc": 16.0,
+   "bytes_per_doc": 8192,
+   "ndcg10": 0.5868,
+   "delta": -0.0692,
+   "ci": [
+    -0.0963,
+    -0.0437
+   ],
+   "retained": 0.8945
+  },
+  {
+   "arm": "mt16 4-bit",
+   "pooling": "mt16",
+   "bits": 4,
+   "tokens_per_doc": 16.0,
+   "bytes_per_doc": 1024,
+   "ndcg10": 0.5882,
+   "delta": -0.0678,
+   "ci": [
+    -0.0951,
+    -0.0419
+   ],
+   "retained": 0.8966
+  },
+  {
+   "arm": "mt16 2-bit",
+   "pooling": "mt16",
+   "bits": 2,
+   "tokens_per_doc": 16.0,
+   "bytes_per_doc": 512,
+   "ndcg10": 0.5642,
+   "delta": -0.0918,
+   "ci": [
+    -0.1207,
+    -0.0631
+   ],
+   "retained": 0.8601
+  },
+  {
+   "arm": "mt16 1-bit",
+   "pooling": "mt16",
+   "bits": 1,
+   "tokens_per_doc": 16.0,
+   "bytes_per_doc": 256,
+   "ndcg10": 0.5158,
+   "delta": -0.1402,
+   "ci": [
+    -0.1753,
+    -0.1065
+   ],
+   "retained": 0.7863
+  }
+ ],
+ "geometry": {
+  "none": {
+   "norm_of_mean": 0.546,
+   "anisotropy": 0.546,
+   "pool_seconds": 0.0
+  },
+  "pf2": {
+   "norm_of_mean": 0.552,
+   "anisotropy": 0.552,
+   "pool_seconds": 53.1
+  },
+  "pf3": {
+   "norm_of_mean": 0.546,
+   "anisotropy": 0.546,
+   "pool_seconds": 50.5
+  },
+  "pf4": {
+   "norm_of_mean": 0.545,
+   "anisotropy": 0.545,
+   "pool_seconds": 50.2
+  },
+  "mt32": {
+   "norm_of_mean": 0.559,
+   "anisotropy": 0.559,
+   "pool_seconds": 52.8
+  },
+  "mt16": {
+   "norm_of_mean": 0.564,
+   "anisotropy": 0.564,
+   "pool_seconds": 51.4
+  }
+ },
+ "seconds": 1432
+}

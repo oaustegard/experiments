@@ -2819,7 +2819,9 @@ the result.
   −0.026; remex 2-bit (16x smaller) costs −0.013 [−0.025, −0.002] and remex
   1-bit (32x) −0.013 [−0.028, +0.002]. Pooling's remaining case is compute:
   MaxSim FLOPs scale with token count, and a decode-then-dot codec does not
-  change them. (`neomme-remex-quant/RESULTS.md`)
+  change them. (`neomme-remex-quant/RESULTS.md`) **Qualified by `token-pooling-remex`:** this
+  holds because NeoMME's 1-bit codec was nearly free; see the entry on the
+  2-bit-to-1-bit drop below.
 - **A dense→late-interaction rerank pipeline is capped by the dense head's
   R@100, and quantizing the rerank stage is free.** NeoMME on SciFact: full
   late scan 0.7198; dense fp32 top-100 → late fp32 rerank 0.6854 (dense R@100
@@ -2910,6 +2912,20 @@ the result.
   Measure pooling per modality; do not carry a pooling verdict across.
   Confirmed on a second image corpus (ShiftProject: pool2 +0.007, pool2 +
   1-bit +0.003). (`neomme-remex-quant/RESULTS.md`, findings 2, 9 and 12)
+- **Whether to pool a text token index depends on what 1 bit costs, so measure
+  the 2-bit-to-1-bit drop on the unpooled tokens before choosing.** On the
+  Hugging Face pooling-aware ModernBERT ColBERT and its baseline (128-d,
+  centered remex), unpooled 1-bit costs −0.055 / −0.029 nDCG@10 (SciFact /
+  NFCorpus), and at the same ~5 KB/doc pool factor 4 at 4 bits beats it by
+  +0.044 / +0.022 (aware) and +0.034 / +0.012 (baseline), every CI clear of
+  zero; pool factor 2 at 2 bits ties pool factor 4 at 4 bits. At ~10 KB/doc
+  (2-bit vs pool2 at 4-bit) it is a wash, because ≥2 bits is already nearly
+  free. The older "quantize and skip pooling" verdicts came from NeoMME, where
+  1-bit cost only −0.013, and from mxbai-edge, where the pooled arm was coded
+  *uncentered*. Pooling-aware training itself moved pooling's loss by about
+  +0.01 on SciFact and ~0 on NFCorpus (1 of 12 CIs clear of zero): a
+  300-query corpus cannot resolve the post's NanoBEIR gain.
+  (`token-pooling-remex/RESULTS.md`)
 - **A resumed bench must rebuild its fidelity reference from the reference
   arm, not from the first arm it happens to compute.** `bench.py` set
   `ref_late` to the tops of whichever late arm ran first; on a resume that was

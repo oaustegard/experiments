@@ -1,0 +1,32 @@
+[baseline/nfcorpus] 3633 docs, 1183313 tokens, 323 queries
+  none fp32              tok/doc  325.71  B/doc  166765  nDCG@10 0.3079
+  none 4-bit             tok/doc  325.71  B/doc   20846  nDCG@10 0.3077
+  none 2-bit             tok/doc  325.71  B/doc   10423  nDCG@10 0.3049
+  none 2-bit haar s1     tok/doc  325.71  B/doc   10423  nDCG@10 0.3040
+  none 1-bit             tok/doc  325.71  B/doc    5211  nDCG@10 0.2823
+  none 1-bit haar s1     tok/doc  325.71  B/doc    5211  nDCG@10 0.2877
+  pf2 fp32               tok/doc  163.09  B/doc   83503  nDCG@10 0.3020
+  pf2 4-bit              tok/doc  163.09  B/doc   10438  nDCG@10 0.2994
+  pf2 4-bit haar s1      tok/doc  163.09  B/doc   10438  nDCG@10 0.3002
+  pf2 2-bit              tok/doc  163.09  B/doc    5219  nDCG@10 0.2901
+  pf2 2-bit haar s1      tok/doc  163.09  B/doc    5219  nDCG@10 0.2932
+  pf2 1-bit              tok/doc  163.09  B/doc    2609  nDCG@10 0.2695
+  pf3 fp32               tok/doc  108.90  B/doc   55759  nDCG@10 0.3001
+  pf3 4-bit              tok/doc  108.90  B/doc    6970  nDCG@10 0.2990
+  pf3 2-bit              tok/doc  108.90  B/doc    3485  nDCG@10 0.2919
+  pf3 1-bit              tok/doc  108.90  B/doc    1742  nDCG@10 0.2686
+  pf4 fp32               tok/doc   81.78  B/doc   41871  nDCG@10 0.2985
+  pf4 4-bit              tok/doc   81.78  B/doc    5234  nDCG@10 0.2979
+  pf4 4-bit haar s1      tok/doc   81.78  B/doc    5234  nDCG@10 0.2970
+  pf4 2-bit              tok/doc   81.78  B/doc    2617  nDCG@10 0.2870
+  pf4 1-bit              tok/doc   81.78  B/doc    1308  nDCG@10 0.2661
+  mt32 fp32              tok/doc   32.00  B/doc   16382  nDCG@10 0.2865
+  mt32 4-bit             tok/doc   32.00  B/doc    2048  nDCG@10 0.2831
+  mt32 2-bit             tok/doc   32.00  B/doc    1024  nDCG@10 0.2728
+  mt32 1-bit             tok/doc   32.00  B/doc     512  nDCG@10 0.2518
+  mt16 fp32              tok/doc   16.00  B/doc    8192  nDCG@10 0.2622
+  mt16 4-bit             tok/doc   16.00  B/doc    1024  nDCG@10 0.2625
+  mt16 2-bit             tok/doc   16.00  B/doc     512  nDCG@10 0.2508
+  mt16 1-bit             tok/doc   16.00  B/doc     256  nDCG@10 0.2214
+[baseline/nfcorpus] geometry {'none': {'norm_of_mean': 0.543, 'anisotropy': 0.543, 'pool_seconds': 0.0}, 'pf2': {'norm_of_mean': 0.547, 'anisotropy': 0.547, 'pool_seconds': 10.7}, 'pf3': {'norm_of_mean': 0.54, 'anisotropy': 0.54, 'pool_seconds': 6.3}, 'pf4': {'norm_of_mean': 0.539, 'anisotropy': 0.539, 'pool_seconds': 6.0}, 'mt32': {'norm_of_mean': 0.55, 'anisotropy': 0.55, 'pool_seconds': 5.5}, 'mt16': {'norm_of_mean': 0.558, 'anisotropy': 0.558, 'pool_seconds': 5.3}}
+[baseline/nfcorpus] 523s

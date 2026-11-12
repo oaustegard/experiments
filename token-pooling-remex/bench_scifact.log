@@ -1,0 +1,64 @@
+[aware/scifact] 5183 docs, 1549337 tokens, 300 queries
+  none fp32              tok/doc  298.93  B/doc  153050  nDCG@10 0.6577
+  none 4-bit             tok/doc  298.93  B/doc   19131  nDCG@10 0.6618
+  none 2-bit             tok/doc  298.93  B/doc    9566  nDCG@10 0.6493
+  none 2-bit haar s1     tok/doc  298.93  B/doc    9566  nDCG@10 0.6461
+  none 1-bit             tok/doc  298.93  B/doc    4783  nDCG@10 0.6003
+  none 1-bit haar s1     tok/doc  298.93  B/doc    4783  nDCG@10 0.6056
+  pf2 fp32               tok/doc  149.70  B/doc   76644  nDCG@10 0.6591
+  pf2 4-bit              tok/doc  149.70  B/doc    9581  nDCG@10 0.6571
+  pf2 4-bit haar s1      tok/doc  149.70  B/doc    9581  nDCG@10 0.6580
+  pf2 2-bit              tok/doc  149.70  B/doc    4790  nDCG@10 0.6452
+  pf2 2-bit haar s1      tok/doc  149.70  B/doc    4790  nDCG@10 0.6512
+  pf2 1-bit              tok/doc  149.70  B/doc    2395  nDCG@10 0.5895
+  pf3 fp32               tok/doc   99.98  B/doc   51189  nDCG@10 0.6500
+  pf3 4-bit              tok/doc   99.98  B/doc    6399  nDCG@10 0.6493
+  pf3 2-bit              tok/doc   99.98  B/doc    3199  nDCG@10 0.6384
+  pf3 1-bit              tok/doc   99.98  B/doc    1600  nDCG@10 0.5941
+  pf4 fp32               tok/doc   75.08  B/doc   38440  nDCG@10 0.6520
+  pf4 4-bit              tok/doc   75.08  B/doc    4805  nDCG@10 0.6502
+  pf4 4-bit haar s1      tok/doc   75.08  B/doc    4805  nDCG@10 0.6439
+  pf4 2-bit              tok/doc   75.08  B/doc    2403  nDCG@10 0.6317
+  pf4 1-bit              tok/doc   75.08  B/doc    1201  nDCG@10 0.5768
+  mt32 fp32              tok/doc   32.00  B/doc   16384  nDCG@10 0.6449
+  mt32 4-bit             tok/doc   32.00  B/doc    2048  nDCG@10 0.6438
+  mt32 2-bit             tok/doc   32.00  B/doc    1024  nDCG@10 0.6289
+  mt32 1-bit             tok/doc   32.00  B/doc     512  nDCG@10 0.5612
+  mt16 fp32              tok/doc   16.00  B/doc    8192  nDCG@10 0.6013
+  mt16 4-bit             tok/doc   16.00  B/doc    1024  nDCG@10 0.6020
+  mt16 2-bit             tok/doc   16.00  B/doc     512  nDCG@10 0.5824
+  mt16 1-bit             tok/doc   16.00  B/doc     256  nDCG@10 0.5198
+[aware/scifact] geometry {'none': {'norm_of_mean': 0.539, 'anisotropy': 0.539, 'pool_seconds': 0.0}, 'pf2': {'norm_of_mean': 0.554, 'anisotropy': 0.554, 'pool_seconds': 60.4}, 'pf3': {'norm_of_mean': 0.553, 'anisotropy': 0.553, 'pool_seconds': 52.0}, 'pf4': {'norm_of_mean': 0.553, 'anisotropy': 0.553, 'pool_seconds': 52.7}, 'mt32': {'norm_of_mean': 0.563, 'anisotropy': 0.563, 'pool_seconds': 49.7}, 'mt16': {'norm_of_mean': 0.565, 'anisotropy': 0.565, 'pool_seconds': 53.7}}
+[aware/scifact] 1439s
+[baseline/scifact] 5183 docs, 1549337 tokens, 300 queries
+  none fp32              tok/doc  298.93  B/doc  153050  nDCG@10 0.6560
+  none 4-bit             tok/doc  298.93  B/doc   19131  nDCG@10 0.6581
+  none 2-bit             tok/doc  298.93  B/doc    9566  nDCG@10 0.6428
+  none 2-bit haar s1     tok/doc  298.93  B/doc    9566  nDCG@10 0.6505
+  none 1-bit             tok/doc  298.93  B/doc    4783  nDCG@10 0.6103
+  none 1-bit haar s1     tok/doc  298.93  B/doc    4783  nDCG@10 0.6028
+  pf2 fp32               tok/doc  149.70  B/doc   76644  nDCG@10 0.6475
+  pf2 4-bit              tok/doc  149.70  B/doc    9581  nDCG@10 0.6462
+  pf2 4-bit haar s1      tok/doc  149.70  B/doc    9581  nDCG@10 0.6463
+  pf2 2-bit              tok/doc  149.70  B/doc    4790  nDCG@10 0.6299
+  pf2 2-bit haar s1      tok/doc  149.70  B/doc    4790  nDCG@10 0.6342
+  pf2 1-bit              tok/doc  149.70  B/doc    2395  nDCG@10 0.5933
+  pf3 fp32               tok/doc   99.98  B/doc   51189  nDCG@10 0.6471
+  pf3 4-bit              tok/doc   99.98  B/doc    6399  nDCG@10 0.6454
+  pf3 2-bit              tok/doc   99.98  B/doc    3199  nDCG@10 0.6428
+  pf3 1-bit              tok/doc   99.98  B/doc    1600  nDCG@10 0.6053
+  pf4 fp32               tok/doc   75.08  B/doc   38440  nDCG@10 0.6398
+  pf4 4-bit              tok/doc   75.08  B/doc    4805  nDCG@10 0.6404
+  pf4 4-bit haar s1      tok/doc   75.08  B/doc    4805  nDCG@10 0.6403
+  pf4 2-bit              tok/doc   75.08  B/doc    2403  nDCG@10 0.6322
+  pf4 1-bit              tok/doc   75.08  B/doc    1201  nDCG@10 0.6041
+  mt32 fp32              tok/doc   32.00  B/doc   16384  nDCG@10 0.6351
+  mt32 4-bit             tok/doc   32.00  B/doc    2048  nDCG@10 0.6312
+  mt32 2-bit             tok/doc   32.00  B/doc    1024  nDCG@10 0.6086
+  mt32 1-bit             tok/doc   32.00  B/doc     512  nDCG@10 0.5622
+  mt16 fp32              tok/doc   16.00  B/doc    8192  nDCG@10 0.5868
+  mt16 4-bit             tok/doc   16.00  B/doc    1024  nDCG@10 0.5882
+  mt16 2-bit             tok/doc   16.00  B/doc     512  nDCG@10 0.5642
+  mt16 1-bit             tok/doc   16.00  B/doc     256  nDCG@10 0.5158
+[baseline/scifact] geometry {'none': {'norm_of_mean': 0.546, 'anisotropy': 0.546, 'pool_seconds': 0.0}, 'pf2': {'norm_of_mean': 0.552, 'anisotropy': 0.552, 'pool_seconds': 53.1}, 'pf3': {'norm_of_mean': 0.546, 'anisotropy': 0.546, 'pool_seconds': 50.5}, 'pf4': {'norm_of_mean': 0.545, 'anisotropy': 0.545, 'pool_seconds': 50.2}, 'mt32': {'norm_of_mean': 0.559, 'anisotropy': 0.559, 'pool_seconds': 52.8}, 'mt16': {'norm_of_mean': 0.564, 'anisotropy': 0.564, 'pool_seconds': 51.4}}
+[baseline/scifact] 1432s
