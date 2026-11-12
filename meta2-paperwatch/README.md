@@ -8,18 +8,17 @@ NONE, LOW, MEDIUM or HIGH. Opus then re-checks every MEDIUM or HIGH rating (step
 final ratings are stored in `seen.json`, called *the ledger* below.
 
 This experiment tests the method of [Meta 2](https://arxiv.org/abs/2611.05139) (arXiv 2611.05139) on the Haiku
-reviewer. Offline, Meta 2 distils a short frozen *Meta-Skill* by contrasting runs with and without access to the
-right answer. Online, a separate *evolver* call looks at the agent's output at a checkpoint. It either keeps it
+reviewer. Offline, Meta 2 distils a short frozen *Meta-Skill* by contrasting runs with and without access to the checked rating. Online, a separate *evolver* call looks at the agent's output at a checkpoint. It either keeps it
 (KEEP), or sends the agent back with a notice and possibly a *standing instruction*, a rule added to the agent's
 prompt (EVOLVE). Those edits are discarded when the task ends.
 
 Four conditions, each run three times over 33 test papers:
-- **A**: today's reviewer prompt.
+- **A**: the current `PROCEDURE.md` reviewer prompt.
 - **B**: A plus the Meta-Skill.
 - **C**: B plus an evolver whose edits reset per paper.
 - **D**: C with edits that accumulate across papers.
 
-*Gold* is a fresh Opus rating of each paper. *MEDIUM+* means MEDIUM or HIGH. Issue:
+*Gold* is a new Opus rating of each paper, made without seeing the ledger. *MEDIUM+* means MEDIUM or HIGH. Issue:
 [#112](https://github.com/oaustegard/experiments/issues/112).
 
 ## Answer
@@ -36,7 +35,7 @@ The evolver (C) changed nothing on identical drafts (C − B = +0.00) and used 2
 (D) beat per-paper reset by one paper, which is inside the noise.
 
 The production ledger beats every Haiku condition on kappa (0.54) and recall, though not on exact agreement.
-The Meta-Skill here was distilled by Haiku, and gold is stricter than the ledger: it rated 6 of the ledger's 8
+The Meta-Skill was distilled by Haiku, not Opus, and gold is stricter than the ledger: it rated 6 of the ledger's 8
 MEDIUMs LOW. Spot-checking those six, listed under the recommendation in the Log, would settle which rating
 standard is right.
 
@@ -81,16 +80,12 @@ Gold distribution: 1 HIGH, 4 MEDIUM, 35 LOW, 15 NONE.
 -02) form the offline set, and the remaining 33 (2026-11-02 to -12) form the test set. No test paper or test
 label reaches the Meta-Skill.
 
-**Offline distillation** (`offline.py`). Haiku reviewed each offline paper in two settings. Setting a used the
-plain reviewer prompt, twice. Setting c used the same prompt plus the gold rating and key numbers (verifier
-access), once. One call then distilled the contrasts into the Meta-Skill. Its prompt condenses Meta 2's REFLECT
-/ AGGREGATE / UPDATE stages: act/avoid/hold entries, each needing support from at least 2 papers, conditions
+**Offline distillation** (`offline.py`). Haiku reviewed each offline paper in two settings. A *plain* setting used the reviewer prompt, twice. An *informed* setting used the same prompt plus the gold rating and key numbers
+(Meta 2's verifier access), once. One call then distilled the contrasts into the Meta-Skill. Its prompt condenses Meta 2's three offline stages (extract lessons per paper, merge them across papers, update the skill): act/avoid/hold entries, each needing support from at least 2 papers, conditions
 that can be observed without the answer, and at most 400 words. The result is
-[`meta_skill.md`](meta_skill.md), 368 words, frozen before any test call, and used unedited. The plan was to run this call on Opus.
-Opus hit the account's weekly usage limit, so it ran on Haiku. Meta 2 itself uses one base model for every
-stage, so this is closer to the paper.
+[`meta_skill.md`](meta_skill.md), 368 words, frozen before any test call, and used unedited. The distill call ran on Haiku, matching Meta 2's one-model design (Opus was out of weekly quota).
 
-**Test conditions** (`run_test.py`). All four conditions use Haiku 5.5 through `claude -p` with tools off. Each
+**Test conditions** (`run_test.py`). The evolver runs once, after the reviewer has finished its draft. All four conditions use Haiku 5.5 through `claude -p` with tools off. Each
 ran 3 times over the 33 test papers.
 - **A**: the baseline prompt. Its profile and output format are read live from `paper-watch/PROCEDURE.md`, with
   the full text supplied in the prompt.
@@ -102,8 +97,7 @@ ran 3 times over the 33 test papers.
 - **D**: like C, but standing instructions accumulate through each run in `first_seen` order, and later drafts
   are written under them.
 
-The evolver follows the paper's role split: it never writes the review itself, it only sends notices and
-instructions.
+As in Meta 2, the evolver never writes the review itself; it only sends notices and instructions.
 
 **Metrics** (`analyze.py`). The metrics are:
 - exact agreement with gold
@@ -121,10 +115,7 @@ agreement. A difference of one or two papers is inside the noise.
 Here the text is supplied in the prompt and each paper gets its own call. The Opus step-4 check is not part of
 any condition. It appears only in the ledger row.
 
-**Prior art.** The method is a published one, so the search was for the method's own claims, which come from
-two agentic coding benchmarks. Its limitations section says it has not been tested on tasks with "less explicit
-completion criteria". `repo-index/ask.py` could not be run because its remex index is stale. A `METHODS.md` grep
-found no prior paper-watch calibration work.
+**Prior art.** Meta 2's own results come from two agentic coding benchmarks (Terminal-Bench 2.1, DeepSWE 1.1); its limitations section says it is untested on tasks with "less explicit completion criteria", which a rating task is. No earlier paper-watch calibration experiment exists in this repo.
 
 ## Log
 

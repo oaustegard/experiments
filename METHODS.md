@@ -1719,6 +1719,10 @@ the result.
   request for SYNTH-style "question → reasoning → answer" rows returned "safeguards flagged this message"
   (`reasoning_extraction`) on every retry. Gemini through the Cloudflare gateway wrote the same data. Do not reword
   around the safeguard. (`monad-skygest-finetune/gen_data.py`)
+  The same flag paused a whole interactive Opus session on 2026-11-12, on a subagent handback during an experiment
+  whose subject was distilling one model's reviews into rules for another (Meta 2). The distill call itself (Haiku,
+  rating rules rather than reasoning traces) ran without a flag. The classifier can fire on a conversation's subject,
+  not just on its outputs, so a long distillation session may pause partway through. (`meta2-paperwatch/README.md`)
 - **`gpu-bridge/run/e2e.js` writes its fixtures into the current directory.** Run from the repo root, it leaves
   `bare.git/`, `seed/`, `clone/`, `out/` and a dozen job files there. Run it from a scratch directory.
 
