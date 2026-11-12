@@ -86,6 +86,18 @@ def main():
         out.append(f"{c}: {ja['n_docs']:,} docs, {ja['n_tokens']:,} tokens (same tokenizer and length cap for both models), {nq} queries. "
                    f"Norm of the corpus mean, aware / baseline, by pooling (remex's centering predictor): {g}. "
                    f"Bench time aware {ja['seconds']} s, baseline {jb['seconds']} s on 4 vCPU.\n")
+    # codec costs on unpooled tokens, two-rotation means where available
+    for c in CORPORA:
+        for m in MODELS:
+            if (m, c) not in loaded or c not in summary:
+                continue
+            pq = loaded[m, c][1]
+            mean = lambda n: float(arm(pq, n).mean())
+            summary[c].setdefault("drops", {})[m] = dict(
+                two_to_one_bit=mean("none 1-bit") - mean("none 2-bit"),
+                fp32_to_two_bit=mean("none 2-bit") - mean("none fp32"),
+                fp32_to_one_bit=mean("none 1-bit") - mean("none fp32"),
+                pf4_4bit_vs_fp32=mean("pf4 4-bit") - mean("none fp32"))
     json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
     res = HERE / "RESULTS.md"
     txt = res.read_text() if res.exists() else "<!-- tables:start -->\n<!-- tables:end -->\n"

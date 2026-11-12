@@ -2,24 +2,29 @@
 
 **Started:** 2026-11-11 · **Status:** done (SciFact, NFCorpus) · **Runtime:** encode ~22 min per model per corpus, bench 9–24 min per model per corpus, 4 vCPU
 
-## Question
+## Answer
 
-A late-interaction (ColBERT-style) index stores one vector per document token, so it is large. Two
-ways to shrink it: **pool** (merge similar tokens, storing fewer vectors) or **quantize** (store fewer
-bits per vector). Hugging Face's [token-pooling post](https://huggingface.co/blog/token-pooling)
-(2026-11-11) trains a model with a loss that also scores pooled documents, and reports that pooling to
-a quarter of the tokens then scores 51.23 nDCG@10 on NanoBEIR (13 datasets) against 49.03 for the
-same recipe without that loss, a 2.2-point gap (97.8% vs 94.6% of each model's unpooled score).
+A ColBERT-style index stores a vector per document token and shrinks by **pooling** (merging similar tokens) or **quantizing** (fewer bits per vector). Hugging Face's [token-pooling post](https://huggingface.co/blog/token-pooling) trains a model so pooling costs less. At a fixed index size, should a text token index pool, quantize harder, or both, and does that training change it?
 
-This repo's `METHODS.md` said: "For a text token index, quantize and skip pooling." That came from two
-earlier experiments on models never trained for pooling: `neomme-remex-quant` (NeoMME, 128-d tokens)
-and `mxbai-edge-remex-quant` (mxbai-edge-colbert-v0-32m, 64-d tokens). Two questions:
+At about 5 KB per document, pooling to a quarter of the tokens at 4 bits beats every token at 1 bit. For the pooling-aware model the margin is +0.044 nDCG@10 on SciFact <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs none 1-bit.aware.0]] --> and +0.022 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.pf4 4-bit vs none 1-bit.aware.0]] -->; the baseline gains less. At about 10 KB per document the difference is 0.01 or less. A 32-vector cap at 4 bits scores 0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] -->, better than unpooled 1-bit at under half the bytes. Pooling-aware training cut pooling's cost by about 0.01 on SciFact; on NFCorpus the effect is too small to resolve.
 
-1. At a fixed number of bytes per document, is it better to keep every token at 1 bit, or pool by 2 and
-   use 2 bits, or pool by 4 and use 4 bits?
-2. Does the pooling-aware checkpoint lose less to pooling than an identically trained baseline?
+The cost of 1 bit decides it: 2 bits to 1 bit on unpooled tokens costs −0.045 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.two_to_one_bit]] -->, more than pooling by 4 costs. Where 1-bit is nearly free (NeoMME, `neomme-remex-quant`), quantizing wins.
 
-## Setup
+## Findings
+
+1. **At about 5 KB per document, pool factor 4 at 4 bits beats unpooled 1-bit on both models ("aware" = the pooling-aware checkpoint, "baseline" = same recipe without the pooling term) and both corpora, every 95% CI clear of zero** (Round 1, table 2).
+   - aware: +0.044 on SciFact <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs none 1-bit.aware.0]] -->, +0.022 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.pf4 4-bit vs none 1-bit.aware.0]] -->
+   - baseline: +0.034 on SciFact <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs none 1-bit.baseline.0]] -->, +0.012 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.iso.pf4 4-bit vs none 1-bit.baseline.0]] -->
+   - pool factor 4 at 4 bits and pool factor 2 at 2 bits tie in all four cells, e.g. −0.001 on SciFact for aware <!-- @evidence[[summary.json#scifact.iso.pf4 4-bit vs pf2 2-bit.aware.0]] -->; but pool factor 2 at 2 bits does not clear unpooled 1-bit for baseline on NFCorpus (+0.007, CI −0.002 to +0.015), so pool factor 4 is the safer choice
+2. **The 1-bit codec is what loses** (Round 1, `summary.json` `drops`).
+   - 2-bit to 1-bit on unpooled tokens, aware: −0.045 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.two_to_one_bit]] -->, −0.024 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.drops.aware.two_to_one_bit]] -->
+   - the whole pool-factor-4, 4-bit stack against unpooled fp32 costs far less, aware: −0.011 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.pf4_4bit_vs_fp32]] -->, −0.008 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.drops.aware.pf4_4bit_vs_fp32]] -->
+3. **At about 10 KB per document the trade is a wash** (Round 1, table 2). Pool factor 2 at 4 bits against unpooled 2-bit is +0.010 for aware on SciFact <!-- @evidence[[summary.json#scifact.iso.pf2 4-bit vs none 2-bit.aware.0]] --> and within ±0.005, CIs spanning zero, in the other three cells. Unpooled 2-bit already costs only −0.010 against fp32 on SciFact <!-- @evidence[[summary.json#scifact.drops.aware.fp32_to_two_bit]] -->.
+4. **Pooling-aware training cut what pooling loses by about 0.01 on SciFact and by an unresolvable amount on NFCorpus; one of twelve comparisons clears zero** (Round 1, table 3). At pool factor 4, fp32: +0.011 on SciFact <!-- @evidence[[summary.json#scifact.pool_cost.pf4 fp32.diff.0]] --> and −0.000 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.pool_cost.pf4 fp32.diff.0]] -->, against about +0.017 for the same quantity in the post's NanoBEIR numbers (a 13-dataset BEIR subset; pooling cost 1.16 points for aware and 2.81 for baseline).
+5. **Unpooled, the two checkpoints tie**: +0.002 on SciFact <!-- @evidence[[summary.json#scifact.rows.none fp32.aware_minus_baseline.0]] --> and −0.007 on NFCorpus <!-- @evidence[[summary.json#nfcorpus.rows.none fp32.aware_minus_baseline.0]] -->, CIs spanning zero, so the extra training objective has no measurable cost (Round 1, table 1).
+6. **Capping documents at 16 vectors is expensive** (Round 1, table 1): −0.056 on SciFact for aware at fp32 <!-- @evidence[[summary.json#scifact.rows.mt16 fp32.aware_delta]] -->. A 32-vector cap at 4 bits scores 0.644 on SciFact <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.aware]] --> at 2,048 bytes per document, against about 0.603 for unpooled 1-bit at 4,783 bytes (one rotation run; `mt32` has no second seed) <!-- @evidence[[summary.json#scifact.rows.mt32 4-bit.bytes]] -->.
+
+## Method
 
 - **Models:** `tomaarsen/mve-ModernBERT-base-token-pooling` ("aware") and
   `tomaarsen/mve-ModernBERT-base-token-pooling-baseline` ("baseline"), the post's own pair. Both are
@@ -33,78 +38,62 @@ and `mxbai-edge-remex-quant` (mxbai-edge-colbert-v0-32m, 64-d tokens). Two quest
   each document's tokens on cosine distance, each cluster replaced by its mean and re-normalised to unit
   length; the first token ([CLS]) is never merged; queries are never pooled. Arms: `none`;
   `pf2`/`pf3`/`pf4` = pool factor, clustering each document down to about 1/2, 1/3 or 1/4 of its
-  tokens; `mt32`/`mt16` = clustering each document down to at most 32 or 16 vectors. The module's third
-  budget, an adaptive distance threshold, was not run.
-- **Quantization:** remex 2.1.0, this account's vector codec: a random orthogonal rotation, then a
-  Lloyd-Max scalar quantizer at 1–8 bits per coordinate. Every arm uses its **centered** mode
+  tokens; `mt32`/`mt16` = clustering each document down to at most 32 or 16 vectors.
+- **Quantization:** [remex](https://github.com/oaustegard/remex) 2.1.0, a vector codec: a random orthogonal rotation, then a
+  Lloyd-Max scalar quantizer (levels placed to minimise squared error for the rotated coordinates' distribution) at 1–8 bits per coordinate. Every arm uses its **centered** mode
   (`Quantizer(128, bits, mean=corpus_mean(T))`), which subtracts the mean of the tokens being coded
   before rotating, so the levels are spent on what differs between tokens rather than on their shared
-  direction. Default rotation (remex's randomized Hadamard) for every arm; the arms in the same-byte
-  comparisons also run with a Haar-random rotation at seed 1 (rows marked `haar s1`) to show how much
-  the codec's randomness moves the score. fp32 is the uncompressed reference.
-- **Bytes per document** = tokens/doc × 128 × bits / 8. remex can store a norm per vector; every vector
-  here is unit-norm, so none is stored. The single 512-byte mean per index is left out.
-- **Scoring:** sum-of-MaxSim over every document (no candidate stage), nDCG@10 against qrels.
-  Per-query Δ with a 5,000-resample paired bootstrap, 95% CI. Wherever an arm has a `haar s1` twin,
-  the Findings and tables 2–3 use the per-query mean of its two runs; table 1 lists each run.
+  direction. Default rotation (randomized Hadamard) for every arm; the arms in the same-byte comparisons
+  also run with a Haar-random rotation at seed 1 (rows marked `haar s1`).
+- **Bytes per document** = tokens/doc × 128 × bits / 8. Every vector is unit-norm, so no per-vector
+  norm is stored. The single 512-byte mean per index is left out.
+- **Queries** stay fp32 and unpooled; only document tokens are pooled and coded, so bytes per document is the whole index cost. Ward pooling of a corpus took 40–60 s per setting on 4 vCPU, inside the bench time.
+- **Scoring:** sum-of-MaxSim over every document (no candidate stage), nDCG@10 against qrels. Per-query
+  Δ with a 5,000-resample paired bootstrap, 95% CI. Where an arm has a `haar s1` twin, the Answer,
+  Findings and tables 2–3 use the per-query mean of its two runs; table 1 lists each run.
 
-## Findings
+Reproduce:
 
-1. **At about 5 KB per document, pooling by 4 and coding at 4 bits beats keeping every token at 1 bit,
-   on both models and both corpora.** Against unpooled 1-bit:
-   - aware: +0.044 [+0.026, +0.063] on SciFact, +0.022 [+0.011, +0.032] on NFCorpus;
-   - baseline: +0.034 [+0.016, +0.052] on SciFact, +0.012 [+0.004, +0.022] on NFCorpus.
+```
+pip install "sentence-transformers>=6.3" "remex>=2.1" datasets fastcluster
+python3 encode.py          # .work/<model>/<corpus>/ (gitignored), ~22 min per model per corpus on 4 vCPU
+python3 bench.py           # results_<model>_<corpus>.json + per-query npz
+python3 report.py          # the Log tables and summary.json
+```
 
-   Pooling by 2 at 2 bits ties pooling by 4 at 4 bits (every CI spans zero). It beats unpooled 1-bit in
-   three of the four cells; the fourth is baseline on NFCorpus, +0.007 [−0.002, +0.015]. The 1-bit codec
-   is what loses: going from 2 bits to 1 bit on unpooled tokens costs −0.045 / −0.024 (aware, SciFact /
-   NFCorpus) and −0.040 / −0.019 (baseline). Pool factor 4 at 4 bits costs −0.011 / −0.008 (aware) and
-   −0.016 / −0.011 (baseline) against unpooled fp32.
+## Log
 
-2. **At about 10 KB per document the trade is a wash.** Pool factor 2 at 4 bits against unpooled 2-bit:
-   +0.010 [+0.001, +0.019] for aware on SciFact, and within ±0.005 with CIs spanning zero in the other
-   three cells. Unpooled 2-bit already costs only −0.004 to −0.010 against fp32, so pooling has little
-   to buy back.
+### Round 1 (2026-11-11/12): pooling × centered remex on the aware and baseline checkpoints
 
-3. **Pooling-aware training shrinks what pooling loses by about 0.01 on SciFact and by almost nothing on
-   NFCorpus; one of twelve comparisons clears zero.** Pooled minus unpooled, aware minus baseline
-   (table 3): SciFact +0.003 to +0.015, the one significant cell being pool factor 2 at 2 bits, +0.015
-   [+0.003, +0.027]; NFCorpus −0.000 to +0.009. At pool factor 4, fp32, the comparison the post makes,
-   it is +0.011 [−0.006, +0.028] on SciFact and −0.000 [−0.007, +0.006] on NFCorpus, against the post's
-   +0.022 on NanoBEIR. The direction matches on SciFact; a corpus of about 300 queries cannot resolve
-   an effect of this size.
+**Asked:** after reading the post, Oskar asked for the cheap check: Ward pooling plus centered remex,
+against this repo's earlier compression curves. METHODS.md then said "for a text token index, quantize
+and skip pooling", from `neomme-remex-quant` (NeoMME, 128-d) and `mxbai-edge-remex-quant`
+(mxbai-edge-colbert-v0-32m, 64-d), neither trained for pooling.
 
-4. **Unpooled, the two checkpoints tie** (+0.002 [−0.019, +0.022] on SciFact, −0.007 [−0.017, +0.003]
-   on NFCorpus), so the extra loss term has no measurable cost when no pooling is applied. Both are
-   one-epoch recipe demonstrations rather than tuned retrievers: unpooled SciFact is 0.658 here.
+**Ran:** two models × two corpora × six pooling settings × fp32 and centered remex 4/2/1-bit, plus a
+second rotation seed on the same-byte arms. The first encode chain hit the session's 2-hour background
+limit while sharing 4 CPUs with the benches; the last encode (baseline, NFCorpus) was re-run alone.
 
-5. **Capping each document at 16 vectors is expensive on both models**: −0.056 / −0.037 for aware and
-   −0.069 / −0.046 for baseline at fp32. A cap of 32 costs −0.013 / −0.018 (aware). At 4 bits, `mt32`
-   scores 0.644 on SciFact at 2 KB per document, within 0.014 of fp32 at 1/75 of the bytes.
-
-6. **The norm of the corpus mean is 0.54–0.57** for every pooling arm and both models. That number is
-   remex's predictor for how much centering matters (1.0 = all tokens point the same way). It is
-   moderate; mxbai-edge's tokens, where centering decided the result, sit at 0.94. Every arm here is
-   centered and uncentered remex was not run, so this experiment does not measure what centering
-   contributed.
-
-## What this changes
-
-Whether to pool a text token index depends on what 1 bit costs. Pooling by 4 costs about 0.01 here.
-When the 2-bit-to-1-bit drop on unpooled tokens is larger than that, pool and keep more bits; when it is
-near zero, quantize and skip pooling. This experiment's drop is −0.019 to −0.045. In
-`neomme-remex-quant` the drop was about zero (2-bit and 1-bit both −0.013 on SciFact), which is why
-quantizing won there. In `mxbai-edge-remex-quant` the centered drop was −0.044 / −0.020, as large as
-here, but the pooled arm was coded *uncentered* (pool2 + uncentered 2-bit −0.108 against centered 1-bit
-−0.058, at 2.7 vs 2.1 KB per document), so that comparison never gave pooling a fair codec.
-
-A practical default for a 128-d text token index at 2–5 KB per document: Ward pool factor 4 or a
-32-vector cap, centered 4-bit, rather than unpooled 1-bit. Measure the 2-to-1-bit drop first.
-
-Not tested: the adaptive distance-threshold budget, uncentered codes, other corpora, and MaxSim
-latency, which falls with token count and is the other reason to pool.
-
-## Results
+**Reading at the time.**
+- The SciFact same-byte result was visible from the first bench and held on NFCorpus at about half the
+  size, as NFCorpus scores and gaps run smaller throughout.
+- The post reports pool factor 4 scoring 51.23 against 49.03 on NanoBEIR (unpooled 52.39 and 51.84), so
+  pooling cost aware 1.16 points and baseline 2.81, a difference of about 1.65 points (0.017). Here the
+  same difference of pooling costs is +0.011 on SciFact and −0.000 on NFCorpus, CIs spanning zero: same
+  direction on SciFact, not resolvable at ~300 queries. The pooled scores themselves differ by +0.012 and
+  −0.007 (table 1, `pf4 fp32`).
+- Both checkpoints are one-epoch recipe demonstrations rather than tuned retrievers (unpooled SciFact
+  0.658; mxbai-edge scores 0.745 in `mxbai-edge-remex-quant`).
+- The norm of the corpus mean (remex's predictor for how much centering matters; 1.0 = all tokens point
+  the same way) is 0.54–0.57 for every arm, against 0.94 for mxbai-edge. Uncentered remex was not run.
+- Why the old rule came out the other way: in `neomme-remex-quant` the 2-to-1-bit drop was about zero
+  (2-bit and 1-bit both −0.013 on SciFact). In `mxbai-edge-remex-quant` the centered drop was −0.044 /
+  −0.020, as large as here, but the pooled arm was coded uncentered (pool2 + uncentered 2-bit −0.108
+  against centered 1-bit −0.058, at 2.7 vs 2.1 KB per document), so pooling never got a fair codec.
+- Practical default for a 128-d text token index at 2–5 KB per document: Ward pool factor 4 or a
+  32-vector cap, centered 4-bit, rather than unpooled 1-bit. Measure the 2-to-1-bit drop first.
+- Not tested: the module's adaptive distance-threshold budget, uncentered codes, other corpora, and
+  MaxSim latency, which falls with token count and is the other reason to pool.
 
 <!-- tables:start -->
 ### scifact: every arm (nDCG@10; Δ = arm − the same model's unpooled fp32; aware − baseline = paired per-query difference of absolute nDCG@10; all CIs 95% paired bootstrap)
@@ -220,12 +209,3 @@ scifact: 5,183 docs, 1,549,337 tokens (same tokenizer and length cap for both mo
 nfcorpus: 3,633 docs, 1,183,313 tokens (same tokenizer and length cap for both models), 323 queries. Norm of the corpus mean, aware / baseline, by pooling (remex's centering predictor): none 0.549 / 0.543; pf2 0.563 / 0.547; pf3 0.562 / 0.54; pf4 0.562 / 0.539; mt32 0.565 / 0.55; mt16 0.566 / 0.558. Bench time aware 1141 s, baseline 523 s on 4 vCPU.
 
 <!-- tables:end -->
-
-## Reproduce
-
-```
-pip install "sentence-transformers>=6.3" "remex>=2.1" datasets fastcluster
-python3 encode.py          # writes .work/<model>/<corpus>/ (gitignored), ~22 min per model per corpus on 4 vCPU
-python3 bench.py           # results_<model>_<corpus>.json + per-query npz, ~20 min each
-python3 report.py          # renders the tables above and summary.json
-```
