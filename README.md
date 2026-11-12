@@ -1,26 +1,26 @@
 # Experiments
 
-Random vibe-experiments — one-off explorations and data products. Each
-subdirectory is self-contained: scripts, data, and a results file
-(`RESULTS.md` for pipeline runs, `README.md` for build/recipe artifacts,
-or the artifact itself when it speaks for itself, like an HTML page).
+Research and build experiments by Oskar Austegard and Muninn, his Claude-based
+assistant: 231 of them as of 2026-11-12, one directory each. Most fall into a
+few threads: small models running in the browser on hand-written WebGPU
+kernels, embedding compression (remex), small decision models and LoRA
+adapters, and WebGPU toys, games and media.
 
-**Trust conventions.** [`ANCHORS.md`](ANCHORS.md) registers every published
-constant in use with its *covered range*, because a range gap is invisible from
-inside a green run. Each experiment should carry an `ERRORS.md` (what was wrong,
-how it was caught, which direction it pushed the conclusion — the base rate is
-the most useful calibration number about a body of work) and a `recheck.py`
-(a sub-5-minute fixture that checks the prose against the artifacts, so the
-writeup and the data cannot drift apart between full rebuilds).
-`remex-vs-higgs-ablation/` carries all three and is the reference shape.
+Each directory is self-contained. It holds its scripts and data plus a results
+file: `RESULTS.md` for measurements, `README.md` for things that were built,
+or the page itself when the artifact is a page. Live pages are linked from the
+index below. [`experiments-atlas/`](experiments-atlas/README.md) groups the
+experiments into themed clusters on one map.
 
-Results are reported as they came out. Several of these are negative
-results, one is a correction of earlier rejected work, and one turned
-out to reproduce a 2004 paper rather than extend it — all labelled as
-such rather than quietly dropped.
+Results are written up as they came out, negative ones included. The index
+row for each experiment states its outcome, its date, and the request from
+Oskar that started it.
 
-Migrated from `oaustegard/claude-workspace/experiments/`, which is a
-session-boot repo and was the wrong home for 37 research projects.
+[`ANCHORS.md`](ANCHORS.md) lists every published constant the experiments rely
+on, with the range over which it was checked. An experiment can also carry an
+`ERRORS.md` (each mistake, how it was caught, and which way it moved the
+conclusion) and a `recheck.py` that checks the prose against the artifacts in
+under five minutes. `remex-vs-higgs-ablation/` has all three.
 
 ## Index
 
