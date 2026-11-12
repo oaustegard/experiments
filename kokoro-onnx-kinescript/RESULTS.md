@@ -8,19 +8,19 @@ costs in word timing, audio and pronunciation control.
 
 ## Answer
 
-Yes. An ONNX export of the same model (published by the kokoro-onnx project) runs on Python 3.13 with no PyTorch and no 3.12 environment. Text still
-goes through misaki, so pronunciation links, stress marks and number flags work unchanged. Against the PyTorch
+Yes. An ONNX export of the same model (published by the kokoro-onnx project) runs on Python 3.13 with no
+PyTorch and no 3.12 environment. Text still goes through misaki, so pronunciation links, stress marks and number flags work unchanged. Against the PyTorch
 plugin, on the ten narration lines of `colbert-pooling-explainer`, all 337 word start and end times matched
 exactly, and so did every phoneme. <!-- @evidence[[results/compare.json#onnx.words_exact]] --> The ONNX
 route is about 840 MB on disk against 1,716 MB <!-- @evidence[[results/disk.json#torch_route_total_mb]] -->, and
-loads in 2.55 s against 10.4 s <!-- @evidence[[results/compare.json#onnx.load_s]] -->.
+loads in about 3 s against 10.4 s once the model file is in the disk cache
+(2.909 s <!-- @evidence[[results/compare.json#onnxb.load_s]] -->). Speaking time is about the same as PyTorch's.
 
-The published export does not sound like the PyTorch model as shipped. It runs kokoro's `CustomSTFT`, whose
-inverse transform leaves out two weights that `torch.istft` applies. The voice comes out +2.9 dB below 1 kHz <!-- @evidence[[results/tilt.json#onnx-export vs torch312.0-1k_db]] -->
-and about 2.2 dB quieter above it.
-The plugin now replaces the inverse transform's weights at load time, which leaves at most 0.52 dB in any band
-(Finding 6). The rest comes from a flaw in the forward transform. Zeroing one weight row fixes it exactly in PyTorch,
-but that change is not yet in the plugin (Findings 4 and 5).
+The published export does not sound like the PyTorch model as shipped. It runs kokoro's `CustomSTFT`, which
+gets two things wrong against `torch.stft`/`torch.istft`. The voice comes out +2.9 dB below 1 kHz <!-- @evidence[[results/tilt.json#onnx-export vs torch312.0-1k_db]] -->
+and about 2.2 dB quieter above it. The plugin replaces three of the export's weight tensors when it loads the
+model, after which ONNX and PyTorch differ by at most 0.02 dB in any band, the same as two PyTorch runs (Finding 6).
+The plugin change is drknowhow/kinescript's `kokoro-onnx` branch.
 
 What would change this: a listening test; every audio comparison here is spectral.
 
@@ -56,10 +56,11 @@ What would change this: a listening test; every audio comparison here is spectra
    With the vocoder noise seeded, Kokoro with the PyTorch forward STFT and the fixed custom inverse matches stock
    PyTorch exactly (correlation 1.0, 0.00 dB per band). The custom forward with that row zeroed does too.
    (round 3)
-6. **The plugin's ONNX engine, which overrides only the inverse weights, is within 0.52 dB of PyTorch in every band.** It
-   measures −0.24, −0.52, +0.30 and +0.36 dB across the four bands, at correlation 0.9825 <!-- @evidence[[results/tilt.json#onnx vs torch312.corr]] -->
-   against a PyTorch run-to-run floor of 0.9849.
-   It matches PyTorch run with the same inverse fix within noise (0.9838). (round 2)
+6. **With all three weight tensors replaced, the plugin's ONNX engine matches PyTorch within run-to-run noise.**
+   Energy per band differs by 0.00, −0.01, 0.00 and −0.02 dB (0–1, 1–3, 3–6 and 6–12 kHz), at correlation
+   0.9838 <!-- @evidence[[results/tilt.json#onnx vs torch312.corr]] --> against 0.9849 between two PyTorch runs.
+   Mean log-spectral distance is 1.27 dB <!-- @evidence[[results/compare.json#onnx.spec_db_mean]] --> against
+   1.25 dB for that pair. With only the inverse fixed (round 2) the bands were off by up to 0.52 dB. (round 4)
 7. **The int8 and fp16 exports are not worth using on CPU.** int8 runs 2.9 times slower than fp32 (86.5 s). <!-- @evidence[[results/compare.json#onnx-int8.synth_s]] -->
    Its durations move too: only 71 of 337 words
    keep their times exactly. fp16 saves no time. Its initializers are renamed, so the STFT fix cannot reach it,
@@ -78,8 +79,8 @@ them: `[[mark]]`s removed, whitespace collapsed (`make_requests.py` repeats `spl
 |---|---|---|
 | `torch312`, `torch312b` | 3.12.13 | kokoro 0.9.4 + PyTorch 2.15.0 CPU (the parent session's setup) |
 | `torch313` | 3.13.18 | the same, installed with `--ignore-requires-python` for kokoro and misaki only |
-| `onnx`, `onnxb` | 3.13.18 | the plugin's ONNX engine: misaki 0.9.4 + onnxruntime 1.31.1, `kokoro-v1.0.onnx` from kokoro-onnx's `model-files-v1.1`, inverse STFT reweighted |
-| `onnx-export` | 3.13.18 | the same with `KOKORO_ONNX_ISTFT=export` (the export's own weights) |
+| `onnx`, `onnxb` | 3.13.18 | the plugin's ONNX engine: misaki 0.9.4 + onnxruntime 1.31.1, `kokoro-v1.0.onnx` from kokoro-onnx's `model-files-v1.1`, STFT weights replaced |
+| `onnx-export` | 3.13.18 | the same with `KOKORO_ONNX_STFT=export` (the export's own weights) |
 | `onnx-fp16`, `onnx-int8` | 3.13.18 | the reduced-precision files from the same release |
 
 `stft_probe.py` adds two PyTorch arms outside the plugin: `torch312-customstft` (`KModel(disable_complex=True)`)
@@ -170,3 +171,27 @@ each run, Kokoro is deterministic, which allows exact A/B tests on three lines:
 The custom forward transform's Nyquist phase differed by more than 1 rad from `torch.angle` in 308 of 955
 frames, and in none after zeroing the row. The plugin change that also overrides `weight_forward_imag` is written
 but not applied or measured: the session's permission classifier stopped the command that applied and checked it.
+
+### Round 4: the full fix in the plugin, and an end-to-end run (2026-11-12)
+
+The plugin's ONNX engine now also overrides `weight_forward_imag` (DC and Nyquist rows exactly 0), and the
+switch is `KOKORO_ONNX_STFT=export`. The arms `onnx`, `onnxb` and `onnx-export` were rerun in the jail:
+
+| pair | corr | 0–1k | 1–3k | 3–6k | 6–12k dB |
+|---|---|---|---|---|---|
+| torch312b vs torch312 (floor) | 0.9849 | −0.00 | −0.02 | +0.01 | −0.01 |
+| onnxb vs onnx (floor) | 0.9857 | −0.00 | −0.00 | −0.00 | −0.00 |
+| onnx (full fix) vs torch312 | 0.9838 | 0.00 | −0.01 | 0.00 | −0.02 |
+| onnx-export vs torch312 | 0.9012 | +2.90 | −2.63 | −2.19 | −2.00 |
+
+Word times were again 337 of 337 exact. This session's machine was slower than in round 1, for both engines: the
+export arm took 32.3 s to speak the ten lines here against 29.8 s in round 2. The first `onnx` run's 31 s load was
+a cold disk cache, and the second run loaded in 2.9 s.
+
+End to end: `kine voice` on `colbert-pooling-explainer/scene.json`, with `KINE_VOICE_CMD` running the plugin's
+ONNX engine on Python 3.13 in the jail, made all ten sounds. `kine check` then reported 0 errors and the one
+warning the PyTorch voice-over also gives (`audio-peak`, −0.9 dBTP against a −1.5 ceiling). In a fresh 3.13 venv,
+`pip install --ignore-requires-python ./plugins/kinescript-kokoro` installed misaki, spaCy 3.8.18 and onnxruntime
+with no PyTorch (487 MB before the spaCy model), and its `python -m kinescript_kokoro` honoured phoneme links.
+Kinescript's test suite fails the same 16 tests on the branch as on `main` (docs examples, fonts and schema,
+which depend on this environment), and the new `tests/test_kokoro_onnx.py` passes.

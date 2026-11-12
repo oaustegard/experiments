@@ -8,7 +8,7 @@ for arm in "$@"; do
   case $arm in
     torch312*) py=/opt/kokoro-env/bin/python; env="-e KOKORO_ENGINE=torch -e KOKORO_DEVICE=cpu" ;;
     torch313) py=/opt/k313/bin/python; env="-e KOKORO_ENGINE=torch -e KOKORO_DEVICE=cpu" ;;
-    onnx*-export) py=/opt/konnx/bin/python; env="-e KOKORO_ENGINE=onnx -e KOKORO_ONNX_ISTFT=export -e KOKORO_ONNX_MODEL=$M/kokoro-v1.0.onnx" ;;
+    onnx*-export) py=/opt/konnx/bin/python; env="-e KOKORO_ENGINE=onnx -e KOKORO_ONNX_STFT=export -e KOKORO_ONNX_MODEL=$M/kokoro-v1.0.onnx" ;;
     onnx-fp16) py=/opt/konnx/bin/python; env="-e KOKORO_ENGINE=onnx -e KOKORO_ONNX_MODEL=$M/kokoro-v1.0.fp16.onnx" ;;
     onnx-int8) py=/opt/konnx/bin/python; env="-e KOKORO_ENGINE=onnx -e KOKORO_ONNX_MODEL=$M/kokoro-v1.0.int8.onnx" ;;
     onnx*) py=/opt/konnx/bin/python; env="-e KOKORO_ENGINE=onnx -e KOKORO_ONNX_MODEL=$M/kokoro-v1.0.onnx" ;;
