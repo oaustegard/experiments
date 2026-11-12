@@ -19,6 +19,15 @@ RUNS = [
      "it goes to press the switches it has not tried."),
     ("e1m1-assisted", "Exit-assisted",
      "The same planner, also told where the exit switch is and given points for walking toward it."),
+    ("e1m1-haiku-plan", "Haiku choosing every move from played-out results",
+     "The 90 copies run as before, but Haiku makes every choice. It sees the screen and, for each "
+     "of the 30 options, what happened in its three copies: damage dealt and taken, kills, deaths, "
+     "exits, new walls and areas, items, ammo, distance moved and distance gained toward unexplored "
+     "space. It does not see the planner's combined score or ranking. About 5.4 s per answer. A "
+     "two-hour limit on background jobs stopped the run 2.8 s of game time short of five minutes."),
+    ("e1m1-haiku-screen", "Haiku choosing every move from the screen",
+     "No copies and no scores. Every 8 tics Haiku sees the screen, its health, armor and ammo, and "
+     "the list of 30 options, and picks one. The game waits for each answer, about 4.8 s."),
     ("e1m1-judged", "Exploring with Haiku on close calls",
      "As the first run, but when the two best options score within 10% of each other, Haiku makes the call. "
      "It sees a picture of the screen now and of where each close option leads 1.5 s later, with their "
@@ -48,8 +57,14 @@ def main():
             ("E1M1 kills", f'{s["e1m1_kills"]} of 6'),
             ("Deaths in 5 min, any level", str(s["deaths"])),
             ("Decisions", f'{s["decisions"]:,}'),
-            ("Rollouts (copies played out)", f'{s["rollouts"]:,}'),
         ]
+        if s["rollouts"]:
+            rows.append(("Rollouts (copies played out)", f'{s["rollouts"]:,}'))
+        haiku = s.get("haiku")
+        if haiku:
+            rows.append(("Haiku calls", f'{haiku["calls"]:,} ({haiku["mean_seconds"]} s each)'))
+            if "matched_planner_top_share" in haiku:
+                rows.append(("Haiku picked the planner's top option", f'{haiku["matched_planner_top_share"]:.0%}'))
         if judge:
             rows.append(("Haiku calls", f'{judge["calls"]} ({judge["mean_seconds"]} s each)'))
             rows.append(("Haiku kept the planner's top pick", f'{judge["picked_planner_top_share"]:.0%}'))

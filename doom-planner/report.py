@@ -23,6 +23,8 @@ def run_stats(name):
     deaths = [l for l in events if l.startswith("DIED")]
     options = len(rows[0]["all"]) if rows else 0
     rollouts = sum(len(r["all"]) for r in rows) * s["scenarios"]
+    if res["args"].get("haiku_screen"):
+        rollouts = 0   # screen-only play makes no copies
     out = {
         "game_seconds": s["seconds"],
         "wall_seconds": res["wall_seconds"],
@@ -31,8 +33,11 @@ def run_stats(name):
         "first_exit_seconds": round(level_tics[0] / 35, 1) if level_tics else None,
         "deaths": len(deaths),
         "kills": s["kills"],
-        "e1m1_kills": max((r["kills"] for r in rows if r["map"] == 1), default=0),
+        # A death restarts the level and its kill count, so this is the count
+        # at the last decision on E1M1: the kills of the life that left it
+        "e1m1_kills": next((r["kills"] for r in reversed(rows) if r["map"] == 1), 0),
         "final_map": s["map"],
+        "e1m1_lines_seen_max": max((r["mapped"] for r in rows if r["map"] == 1), default=0),
         "damage_dealt": s["damage_dealt"],
         "decisions": s["decisions"],
         "options_per_decision": options,
@@ -47,6 +52,21 @@ def run_stats(name):
     }
     jpath = rundir / "judge.jsonl"
     judged = [json.loads(l) for l in open(jpath)] if jpath.exists() else []
+    if judged and "decision" in judged[0]:
+        # Haiku chose every move (--haiku-screen / --haiku-plan)
+        haiku_rows = [r for r in rows if r["by"] == "haiku"]
+        out["haiku"] = {
+            "calls": len(judged),
+            "mean_seconds": round(sum(j["seconds"] for j in judged) / len(judged), 2),
+            "unparsed": sum(1 for j in judged if j["pick"] is None),
+            "decisions_by_haiku": len(haiku_rows),
+            "decisions_by_fallback": sum(1 for r in rows if r["by"] == "fallback"),
+        }
+        if res["args"].get("haiku_plan"):
+            same = sum(1 for r in haiku_rows if r["chosen"] == r["top"][0][0])
+            out["haiku"]["matched_planner_top"] = same
+            out["haiku"]["matched_planner_top_share"] = round(same / len(haiku_rows), 3)
+        judged = []
     if judged:
         picks = Counter(j["pick"] for j in judged)
         out["judge"] = {

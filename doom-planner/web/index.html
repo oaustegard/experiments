@@ -79,22 +79,24 @@ code { font: 14px var(--mono); color: var(--amber); }
       <li><span><b>Let each copy play for a second and a half, then score it.</b> After 52 tics, each copy reports points for damage it dealt, kills, items picked up, walls it saw for the first time, and getting closer to parts of the map it has not seen yet. "Closer" is walking distance, measured through the map's rooms and doorways, so a wall between the player and an unexplored room does not count as close. It loses points for damage it took, ammo it used and standing still. A copy that reaches the exit, which the game itself reports, earns a large bonus, and dying costs a large penalty.</span></li>
       <li><span><b>Pick the option, play it, repeat.</b> Each option's three scores are averaged, and the average is pulled halfway toward the worst of the three, so a move that is usually good but sometimes fatal loses to a steadier one. The best option is played in the real game for 8 tics, and then the player decides again.</span></li>
     </ol>
-    <p class="note">A 5-minute game takes about 1,300 decisions and 117,000 copies, which run in about four minutes on four CPU cores. The player knows the map's layout, which it needs to measure walking distance, but in two of the three runs below it is not told where the exit is. The first level, E1M1, ends at a wall switch. The map tells the player where every wall switch is, and once nothing unexplored is left within reach it goes and presses the ones it has not tried.</p>
+    <p class="note">A 5-minute game takes about 1,300 decisions and 117,000 copies, which run in about four minutes on four CPU cores. The player knows the map's layout, which it needs to measure walking distance, but only the exit-assisted run below is told where the exit is. The first level, E1M1, ends at a wall switch. The map tells the player where every wall switch is, and once nothing unexplored is left within reach it goes and presses the ones it has not tried.</p>
   </section>
 
   <section>
-    <h2>Code written by Claude Opus plays the game and Haiku only breaks close ties</h2>
-    <p>The question that started this was whether Haiku, Anthropic's smallest Claude model, can play Doom. These runs do not answer it.</p>
+    <h2>Haiku chose every move in two of the six runs</h2>
+    <p>The question that started this was whether Haiku, Anthropic's smallest Claude model, can play Doom. Four kinds of run separate what Haiku did from what code did.</p>
     <ul>
-      <li><b>The planner is code, not a model.</b> It is about 1,200 lines of C wrapped around the Doom engine, with a 250-line Python script that runs it. Claude Opus wrote all of it in a Claude Code session: the 30 options, the weights in the score, and the rules below. It arrived at those rules over about eight rounds of watching the planner get stuck, reading its decision logs and changing the code. No model is consulted while the planner plays the first two runs; every decision there is arithmetic on scores.</li>
-      <li><b>Haiku appears only in the third run, and only on close calls.</b> When the two best options score within 10% of each other, at most once every four decisions, the planner pauses the game and the Python script asks Haiku. Haiku sees a picture of the screen, pictures of where the two to four best options lead 1.5 s later, their scores, and a note from its previous call, and names one option. That happened for 197 of the run's 1,301 decisions. Haiku kept the planner's top option in two of three calls, and the run reached the exit 54 s of game time later than the run without it.</li>
-      <li><b>So Haiku acted as an occasional tie-breaker inside a search procedure that Opus designed.</b> A test of whether Haiku can play Doom would have Haiku choose every move: from the screen alone, as VideoGameBench does, or from all 30 options with their played-out results.</li>
+      <li><b>The planner alone (two E1M1 runs and the 15-minute run).</b> The planner is code, not a model. It is about 1,200 lines of C wrapped around the Doom engine, with a 250-line Python script that runs it. Claude Opus wrote all of it in a Claude Code session: the 30 options, the weights in the score, and the rules below. It arrived at those rules over about eight rounds of watching the planner get stuck, reading its decision logs and changing the code. In the planner-only runs no model is consulted during play; every decision is arithmetic on scores.</li>
+      <li><b>Haiku from the screen.</b> No copies and no scores: every 8 tics Haiku sees the screen, its health, armor and ammo, and the 30 options, and picks one. The game waits for each answer. This is the test closest to "can Haiku play Doom".</li>
+      <li><b>Haiku from played-out results.</b> The copies run as before, but Haiku picks every move from what happened to each option in its three copies, without the planner's combined score.</li>
+      <li><b>Haiku as a tie-breaker.</b> The planner chooses, and Haiku only picks among the two to four best options when they score within 10% of each other (197 of 1,301 decisions).</li>
     </ul>
+    <p class="note">Every Haiku call uses Haiku at low reasoning effort. In every run, Haiku is told it is playing Doom, on which level and difficulty, that the goal is the exit, and what the actions do. Code, not Haiku, presses "use" to get past the screen between levels and to restart after a death.</p>
   </section>
 
   <section>
-    <h2>All three runs cleared the first level within five minutes</h2>
-    <p>Times are game time. Each video is the game as it was played, every frame, at normal speed, on the middle difficulty ("Hurt Me Plenty"). The caption at the top left shows each decision: the option played (marked "plan", or "JUDGE" when Haiku chose it), its score, and the next two options with their scores. After the exit, each run carries on into the second level, E1M2.</p>
+    <h2>Four of the five E1M1 runs reached the exit within five minutes</h2>
+    <p>Times are game time. Each video is the game as it was played, every frame, at normal speed, on the middle difficulty ("Hurt Me Plenty"). The caption at the top left shows each decision: the option played (marked "plan", "HAIKU" or "JUDGE"), the planner's score for it, and the planner's next two options with their scores. In the screen-only run there are no scores and every number reads 0. After the exit, each run carries on into the second level, E1M2. A death restarts the level with its monsters, so kills count from the last restart.</p>
     <div class="runs">
       <article class="run">
         <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-explore.mp4"></video></div>
@@ -113,6 +115,22 @@ code { font: 14px var(--mono); color: var(--amber); }
         </div>
       </article>
       <article class="run">
+        <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-haiku-plan.mp4"></video></div>
+        <div class="meta">
+          <h3>Haiku choosing every move from played-out results</h3>
+          <p>The 90 copies run as before, but Haiku makes every choice. It sees the screen and, for each of the 30 options, what happened in its three copies: damage dealt and taken, kills, deaths, exits, new walls and areas, items, ammo, distance moved and distance gained toward unexplored space. It does not see the planner's combined score or ranking. About 5.4 s per answer. A two-hour limit on background jobs stopped the run 2.8 s of game time short of five minutes.</p>
+          <dl><div><dt>E1M1 exit</dt><dd>4:27</dd></div><div><dt>E1M1 kills</dt><dd>6 of 6</dd></div><div><dt>Deaths in 5 min, any level</dt><dd>2</dd></div><div><dt>Decisions</dt><dd>1,292</dd></div><div><dt>Rollouts (copies played out)</dt><dd>116,268</dd></div><div><dt>Haiku calls</dt><dd>1,292 (5.36 s each)</dd></div><div><dt>Haiku picked the planner's top option</dt><dd>17%</dd></div></dl>
+        </div>
+      </article>
+      <article class="run">
+        <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-haiku-screen.mp4"></video></div>
+        <div class="meta">
+          <h3>Haiku choosing every move from the screen</h3>
+          <p>No copies and no scores. Every 8 tics Haiku sees the screen, its health, armor and ammo, and the list of 30 options, and picks one. The game waits for each answer, about 4.8 s.</p>
+          <dl><div><dt>E1M1 exit</dt><dd>not reached</dd></div><div><dt>E1M1 kills</dt><dd>0 of 6</dd></div><div><dt>Deaths in 5 min, any level</dt><dd>1</dd></div><div><dt>Decisions</dt><dd>1,311</dd></div><div><dt>Haiku calls</dt><dd>1,311 (4.8 s each)</dd></div></dl>
+        </div>
+      </article>
+      <article class="run">
         <div class="frame"><video controls preload="metadata" playsinline src="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/video/doom-planner/e1m1-judged.mp4"></video></div>
         <div class="meta">
           <h3>Exploring with Haiku on close calls</h3>
@@ -125,9 +143,10 @@ code { font: 14px var(--mono); color: var(--amber); }
   </section>
 
   <section>
-    <h2>Rollouts were enough for E1M1 and not for E1M2</h2>
-    <p>Trying moves in copies of the game was enough to clear the first level, E1M1, with no idea where the exit was: all six monsters killed, no deaths, exit at 2:43. Knowing where the exit is cut that to under a minute, but the player skipped half the fights and died once on the next level. Asking Haiku to choose between close options did not help in this one run: it overrode the planner on a third of its 197 calls, and the level took 3:37 instead of 2:43. Each setting ran once, so these runs show what the player can do; they do not measure how often it does it.</p>
-    <p>The second level, E1M2, is where the player gets stuck. That map has a door that needs the red key, which the walking-distance measure treats as an ordinary door, so it can pull the player toward a door it cannot open. The map also has lifts, which the walking-distance measure leaves out. Which of these stands between the start and the exit has not been traced.</p>
+    <h2>Haiku choosing every move cleared E1M1 only with the played-out results</h2>
+    <p>Given only the screen, Haiku saw about as much of E1M1 in five minutes (318 wall segments) as the planner saw before its exit at 2:43 (322), mostly by walking forward and turning, and noted correctly what it saw ("Fists out, no monsters visible. Green wall on the right, open grass area to the left."). It never found the exit, ran out of ammo, died once and ended with no kills in its last life. Given the outcomes of each option in three played-out copies, Haiku cleared the level at 4:27 with all six monsters killed, after dying twice. It chose the planner's top option only 17% of the time, so it weighed the outcomes its own way. It was slower and less safe than the planner's arithmetic.</p>
+    <p>The planner alone, with no idea where the exit was, cleared E1M1 at 2:43 with no deaths; knowing where the exit is cut that to under a minute. Each setting ran once, so these runs show what each player can do; how often it does so is unmeasured.</p>
+    <p>The second level, E1M2, stopped the planner. That map has a door that needs the red key, which the walking-distance measure treats as an ordinary door, so it can pull the player toward a door it cannot open. The map also has lifts, which the walking-distance measure leaves out. Which of these stands between the start and the exit has not been traced.</p>
   </section>
 
   <section>

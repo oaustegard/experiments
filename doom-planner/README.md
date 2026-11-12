@@ -17,11 +17,13 @@ be asked to choose from pictures of where each one leads.
 
 With no knowledge of where the exit is, it cleared the first level, E1M1,
 in 2:43 of game time with all six monsters killed and no deaths; it did not
-find the second level's exit in 15 minutes.
+find the second level's exit in 15 minutes. Two other runs have Haiku choose
+every move. From the screen alone it did not clear E1M1 in five minutes;
+choosing from each option's played-out outcomes, it cleared it in 4:27 after
+two deaths.
 
 Results, method and the log of what broke: [`RESULTS.md`](RESULTS.md). Videos
-of three 5-minute runs (exploring with no exit knowledge, told where the exit
-is, and with Haiku on close calls) are on the [Doom by Rollouts](https://austegard.com/experiments/doom-planner/web/)
+of the runs are on the [Doom by Rollouts](https://austegard.com/experiments/doom-planner/web/)
 page and full-size on Cloudflare R2, at the public
 URLs in `results/*.json`.
 
@@ -44,8 +46,8 @@ forks the engine and scores the outcomes it actually plays out.
 ## Running it
 
 Needs Linux, `gcc` and `make`, `ffmpeg` with libx264 and libass, and Python 3
-with Pillow. The judge (`--judge`) also needs the `claude` command-line tool,
-signed in. `play.py` runs the game inside `scripts/jail.sh` from
+with Pillow. The Haiku modes (`--judge`, `--haiku-screen`, `--haiku-plan`) also need the
+`claude` command-line tool, signed in. `play.py` runs the game inside `scripts/jail.sh` from
 `oaustegard/claude-workspace`, a sandbox with no network, and expects that
 repository at `/home/user/claude-workspace`; edit the `JAIL` path at the top
 of `play.py` to point elsewhere. Uploading writes to the `austegard-media` R2
@@ -61,14 +63,19 @@ make                                   # builds doom_host
 python3 play.py --name e1m1-explore --max-seconds 300 --no-upload
 python3 play.py --name e1m1-assisted --max-seconds 300 --assist-exit --no-upload
 python3 play.py --name e1m1-judged --max-seconds 300 --judge --no-upload
-python3 report.py e1m1-explore e1m1-assisted e1m1-judged
+python3 play.py --name e1m1-haiku-screen --max-seconds 300 --haiku-screen --no-upload
+python3 play.py --name e1m1-haiku-plan --max-seconds 300 --haiku-plan --no-upload
+python3 report.py e1m1-explore e1m1-assisted e1m1-judged e1m1-haiku-screen e1m1-haiku-plan
 python3 make_page.py                   # only after runs made without --no-upload
 ```
 
 Runs start at E1M1 (`--warp E M` for another map) and carry on into the
 next level after the exit. `--max-seconds` is game time; the 15-minute run
 used `--max-seconds 900`. `--assist-exit` adds points for walking toward the
-level's exit switch; `--judge` hands close calls to Haiku. Each run
+level's exit switch; `--judge` hands close calls to Haiku;
+`--haiku-screen` and `--haiku-plan` have Haiku choose every move, from the
+screen alone or from each option's played-out outcomes. Each Haiku call
+takes about 5 s, so a 5-minute run of either takes close to two hours. Each run
 writes `runs/<name>/` (the raw and captioned videos, `decisions.jsonl` with
 every option's score at every decision, the game's console output, and
 Haiku's answers) and `results/<name>.json`; `report.py` collects those into
