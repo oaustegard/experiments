@@ -142,3 +142,11 @@ wasm memory grows and never shrinks, so whatever onnxruntime touched while build
 
 Served with no isolation headers, `coi.js` registered, reloaded once, and the page ran on four threads (two lines:
 25.3 s of speech in 21.7 s, 497 MB after load).
+
+### Live check (2026-11-13)
+
+`live_check.mjs` opened the published page in headless Chromium through this session's proxy. The service worker
+made it cross-origin isolated (4 wasm threads), the model came from R2 brotli-encoded and decoded to 101.9 MB in
+4.0 s, the session started in 2.4 s, and line 1 (29 words, 10.8 s of speech) took 8.8 s, with no page errors. The
+first deploy failed: Pages publishes only listed web file types, and `.f16` was not one, so the voice packs are
+now `.f16.bin`.
