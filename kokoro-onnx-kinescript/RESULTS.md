@@ -65,6 +65,14 @@ What would change this: a listening test; every audio comparison here is spectra
    Its durations move too: only 71 of 337 words
    keep their times exactly. fp16 saves no time. Its initializers are renamed, so the STFT fix cannot reach it,
    and its word lists diverge on one line. (rounds 1–2)
+8. **Ettin-style packing works for the vocoder, not for the duration path.** Kokoro's token tables are 114k of
+   81.8M parameters, so there is nothing to gain there. With seeded runs, quantizing the 28.4M parameters that set
+   durations (PL-BERT, text encoder, predictor) to int8 moved most word times: 70 of 166 tokens stayed exact, and
+   some moved up to 100 ms. Quantizing the voice packs to int8 moved 18 tokens. Keeping those parts at fp16 and
+   packing the 53.2M decoder weights to int8 rows (codes ±63) kept all 166 exact, at correlation 0.9822
+   <!-- @evidence[[results/pack_probe.json#arms.duration path fp16, decoder int8 ±63.corr]] --> and
+   within 0.2 dB per band. That is about 124 MB against 337 MB. int4 blocks on the decoder cost 0.66 dB below 1 kHz
+   (correlation 0.9676). The Snake activations' `alpha` vectors must stay unpacked: one rounded to 0 gives NaN. (round 5)
 
 ## Method
 
@@ -195,3 +203,33 @@ warning the PyTorch voice-over also gives (`audio-peak`, −0.9 dBTP against a �
 with no PyTorch (487 MB before the spaCy model), and its `python -m kinescript_kokoro` honoured phoneme links.
 Kinescript's test suite fails the same 16 tests on the branch as on `main` (docs examples, fonts and schema,
 which depend on this environment), and the new `tests/test_kokoro_onnx.py` passes.
+
+### Round 5: would ettin-native's packing shrink Kokoro? (2026-11-13)
+
+Asked: can the token tables and weights be packed the way `ettin-native` packs Ettin (int4 tables, weight-only
+int8 per output row with codes held to ±63)? `pack_probe.py` fake-quantizes weights or voice packs in PyTorch and
+speaks the first four narration lines with the vocoder noise seeded, so fp32 against itself is exactly 1.0 and
+every difference comes from the packing. Correlation is meaningless once durations move (the audio shifts), so
+read word times first.
+
+| arm | tokens exact (of 166) | max start shift ms | corr | bands dB (0–1, 1–3, 3–6, 6–12 kHz) |
+|---|---|---|---|---|
+| fp32 again | 166 | 0 | 1.0000 | 0.00 0.00 0.00 0.00 |
+| int8 ±63, all weights | 69 | 50 | (shifted) | +0.04 +0.04 −0.05 +0.21 |
+| int8 ±127, all weights | 70 | 100 | (shifted) | +0.02 +0.02 +0.04 −0.05 |
+| int8 ±63, duration path fp32 | 166 | 0 | 0.9972 | +0.03 0.00 −0.09 +0.19 |
+| duration path fp16, decoder int8 ±63 | 166 | 0 | 0.9822 | +0.03 −0.01 −0.08 +0.20 |
+| int4 blocks of 32, duration path fp32 | 166 | 0 | 0.9676 | −0.66 +0.10 −0.07 +0.14 |
+| int4 blocks of 32, all weights | 12 | 275 | (shifted) | −0.66 +0.21 −0.12 +0.17 |
+| voice packs fp16 | 166 | 0 | 0.9784 | 0.00 −0.01 +0.01 0.00 |
+| voice packs int8 rows | 148 | 25 | (shifted) | −0.01 +0.01 +0.02 −0.03 |
+| voice packs int4 blocks | 53 | 100 | (shifted) | +0.04 +0.50 +0.06 −0.08 |
+
+The first run produced NaN audio for every arm that touched the decoder. The cause was the Snake activations'
+`alpha` (shape (1, C, 1)): one scale over the whole tensor rounds small alphas to 0, and Snake divides by alpha.
+`packable()` now keeps vectors stored as 3-D tensors (`alpha`, `weight_g`) unpacked. The fp16 arms change no word
+times, but not being bit-exact they do change the seeded noise path slightly, hence correlation below 1.
+
+Reading: the duration path and the style vectors feed a rounding step (`round(duration).clamp(min=1)`), so tiny
+weight errors flip whole frames. Packing belongs on the decoder only. This is size only: weights dequantized at load
+run at fp32 speed, unlike onnxruntime's dynamic int8 export, which was 2.9× slower (Finding 7).

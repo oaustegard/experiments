@@ -1,0 +1,139 @@
+{
+ "params": {
+  "packed": 81605830,
+  "total": 81810022,
+  "duration_path": 28421632
+ },
+ "arms": {
+  "fp32 again (determinism check)": {
+   "tokens_exact": 166,
+   "tokens": 166,
+   "start_max_ms": 0.0,
+   "corr": 1.0,
+   "bands_db": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "len_diff_s": 0.0
+  },
+  "int8 rows ±63, all weights": {
+   "tokens_exact": 69,
+   "tokens": 166,
+   "start_max_ms": 50.0,
+   "corr": 0.1021,
+   "bands_db": [
+    0.04,
+    0.04,
+    -0.05,
+    0.21
+   ],
+   "len_diff_s": 0.025
+  },
+  "int8 rows ±127, all weights": {
+   "tokens_exact": 70,
+   "tokens": 166,
+   "start_max_ms": 100.0,
+   "corr": 0.1451,
+   "bands_db": [
+    0.02,
+    0.02,
+    0.04,
+    -0.05
+   ],
+   "len_diff_s": -0.2
+  },
+  "int8 ±63, duration path kept fp32": {
+   "tokens_exact": 166,
+   "tokens": 166,
+   "start_max_ms": 0.0,
+   "corr": 0.9972,
+   "bands_db": [
+    0.03,
+    0.0,
+    -0.09,
+    0.19
+   ],
+   "len_diff_s": 0.0
+  },
+  "int4 blocks of 32, all weights": {
+   "tokens_exact": 12,
+   "tokens": 166,
+   "start_max_ms": 275.0,
+   "corr": 0.0238,
+   "bands_db": [
+    -0.66,
+    0.21,
+    -0.12,
+    0.17
+   ],
+   "len_diff_s": 0.4
+  },
+  "int4 blocks of 32, duration path kept fp32": {
+   "tokens_exact": 166,
+   "tokens": 166,
+   "start_max_ms": 0.0,
+   "corr": 0.9676,
+   "bands_db": [
+    -0.66,
+    0.1,
+    -0.07,
+    0.14
+   ],
+   "len_diff_s": 0.0
+  },
+  "duration path fp16, decoder int8 ±63": {
+   "tokens_exact": 166,
+   "tokens": 166,
+   "start_max_ms": 0.0,
+   "corr": 0.9822,
+   "bands_db": [
+    0.03,
+    -0.01,
+    -0.08,
+    0.2
+   ],
+   "len_diff_s": 0.0
+  },
+  "voice packs fp16": {
+   "tokens_exact": 166,
+   "tokens": 166,
+   "start_max_ms": 0.0,
+   "corr": 0.9784,
+   "bands_db": [
+    0.0,
+    -0.01,
+    0.01,
+    0.0
+   ],
+   "len_diff_s": 0.0
+  },
+  "voice packs int8 rows ±127": {
+   "tokens_exact": 148,
+   "tokens": 166,
+   "start_max_ms": 25.0,
+   "corr": 0.0878,
+   "bands_db": [
+    -0.01,
+    0.01,
+    0.02,
+    -0.03
+   ],
+   "len_diff_s": -0.025
+  },
+  "voice packs int4 blocks": {
+   "tokens_exact": 53,
+   "tokens": 166,
+   "start_max_ms": 100.0,
+   "corr": 0.0747,
+   "bands_db": [
+    0.04,
+    0.5,
+    0.06,
+    -0.08
+   ],
+   "len_diff_s": 0.05
+  }
+ }
+}
