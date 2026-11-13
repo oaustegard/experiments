@@ -93,7 +93,11 @@ ort.env.wasm.numThreads = crossOriginIsolated ? THREADS : 1;
 const [vocab, lines] = await Promise.all(["vocab.json", "lines.json"].map((u) => fetch(u).then((r) => r.json())));
 const speakers = [...new Set(lines.flatMap((l) => l.speaker.split(",")))];
 const packs = {};
-await Promise.all(speakers.map(async (n) => (packs[n] = K.f16ToF32(await (await fetch(`voices/${n}.f16`)).arrayBuffer()))));
+await Promise.all(speakers.map(async (n) => {
+  const res = await fetch(`voices/${n}.f16.bin`);
+  if (!res.ok) throw new Error(`voice ${n}: HTTP ${res.status}`);
+  packs[n] = K.f16ToF32(await res.arrayBuffer());
+}));
 // The model bytes are only needed until onnxruntime has copied them into wasm memory: keep them in this scope
 // (unless ?keep=1, the first measured version) so they can be collected.
 let tFetched, modelMB, keptBytes;

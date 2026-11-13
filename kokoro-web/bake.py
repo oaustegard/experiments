@@ -52,6 +52,6 @@ if __name__ == "__main__":
     (out / "lines.json").write_text(json.dumps(lines, ensure_ascii=False, indent=1))
     packs = np.load(voices)
     for name in sys.argv[5:]:
-        packs[name].reshape(510, 256).astype("<f2").tofile(out / "voices" / f"{name}.f16")
+        packs[name].reshape(510, 256).astype("<f2").tofile(out / "voices" / f"{name}.f16.bin")
     print(len(lines), "lines,", sum(len(x["chunks"]) for x in lines), "chunks;", len(vocab), "symbols;",
           len(sys.argv[5:]), "voices")

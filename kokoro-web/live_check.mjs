@@ -22,6 +22,7 @@ for (let tries = 0; ; tries++) { // the service worker reloads the page once; th
 }
 const loaded = (Date.now() - t0) / 1000;
 const info = await page.evaluate(async () => {
+  if (!window.bench) return { isolated: crossOriginIsolated, status: document.getElementById("status").textContent };
   const r = await window.bench(1);
   return { isolated: crossOriginIsolated, status: document.getElementById("status").textContent, stats: r.stats,
            line: { words: r.lines[0].words.length, ms: Math.round(r.lines[0].ms), seconds: r.lines[0].audio.length / 24000 } };
