@@ -315,3 +315,16 @@ if grid.exists():
     H["grid"]["emeans2_more_than_3pct_lower"] = sum(x < 0.97 for x in er)
     summary["headline"] = H
     json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
+
+
+# ---------- the same fixed-budget comparison at the 25 points-per-cluster break (fourth post review) ----------
+if grid.exists():
+    hi = [g for g in summary["grid_matched_emeans2"] if g["d"] >= 32 and g["n_per_k"] >= 25]
+    tr = [R[g["cell"]]["lloyd25_s"] / next(p[1] for p in R[g["cell"]]["emeans_np"] if p[0] == 2) for g in hi]
+    er = [g["np"]["err_vs_lloyd25"] for g in hi]
+    H["grid"]["jobs_d32plus_nk25"] = len(hi)
+    H["grid"]["lloyd25_time_over_emeans2_d32plus_nk25"] = rng_(tr)
+    H["grid"]["emeans2_err_over_lloyd25_d32plus_nk25"] = rng_(er)
+    H["grid"]["emeans2_more_than_3pct_lower_nk25"] = sum(x < 0.97 for x in er)
+    summary["headline"] = H
+    json.dump(summary, open(HERE / "summary.json", "w"), indent=1)

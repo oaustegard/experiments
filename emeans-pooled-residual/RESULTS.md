@@ -15,11 +15,11 @@ At 2 bits the gain is smaller. On these small corpora (5,183 and 3,633 documents
 as much as the saved bit, so the codings tie at similar size. A corpus large
 enough to spread the table thin would save 35.6% of the bytes (arithmetic, not measured). <!-- @evidence[[summary.json#/headline/scifact/row_bytes_saving_pct]] -->
 
-The k-means trainer barely moves retrieval. At 32 or more dimensions with at least ~50 points per cluster, two
-e-means passes took 1.42 to 12.33 times less time than 25 Lloyd rounds <!-- @evidence[[summary.json#/headline/grid/lloyd25_time_over_emeans2_d32plus_nk50/0]] -->
-and ended at most 1.009 times their error. <!-- @evidence[[summary.json#/headline/grid/emeans2_err_over_lloyd25_d32plus_nk50/1]] -->
-On synthetic data with fewer than ~25 points per cluster it ends at a higher error, and at 3 dimensions it is
-slower than Lloyd from about 256 clusters.
+The k-means trainer barely moves retrieval. In all 35 grid jobs with 32 or more dimensions and at least 25 points
+per cluster, two e-means passes took 1.42 to 12.33 times less time than 25 full-data Lloyd rounds <!-- @evidence[[summary.json#/headline/grid/lloyd25_time_over_emeans2_d32plus_nk25/0]] -->
+and ended at most 1.009 times their error. <!-- @evidence[[summary.json#/headline/grid/emeans2_err_over_lloyd25_d32plus_nk25/1]] -->
+Below 25 points per cluster (synthetic data) it ends higher, and at 3 dimensions it is slower than Lloyd
+from about 256 clusters.
 
 ## Findings
 
@@ -63,6 +63,9 @@ slower than Lloyd from about 256 clusters.
 6. **Where e-means pays depends on the dimension d and the points per cluster n/k, not on k × d.** Speedup here is
    Lloyd's time to reach e-means-2's error over e-means-2's time, same random init (`fig_grid.png`,
    `grid_matched_emeans2`):
+   - d ≥ 32 and n/k ≥ 25, where the error penalty of finding 7 stops (35 jobs): the same ranges, 14 jobs more than 3% lower. <!-- @evidence[[summary.json#/headline/grid/emeans2_more_than_3pct_lower_nk25]] -->
+     Lloyd here uses every point every round; faiss's default (`max_points_per_centroid` 256) would subsample
+     and run faster, which was not measured.
    - d ≥ 32 and n/k ≥ 50 (32 jobs; the 50 cut was drawn after the results): at a fixed budget, two `NumpyEmeans`
      passes took 1.42 to 12.33 times less time than 25 Lloyd rounds <!-- @evidence[[summary.json#/headline/grid/lloyd25_time_over_emeans2_d32plus_nk50/1]] -->
      and ended at 0.8088 to 1.009 of their error, <!-- @evidence[[summary.json#/headline/grid/emeans2_err_over_lloyd25_d32plus_nk50/0]] -->
