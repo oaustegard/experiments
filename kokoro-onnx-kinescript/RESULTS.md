@@ -73,6 +73,12 @@ What would change this: a listening test; every audio comparison here is spectra
    <!-- @evidence[[results/pack_probe.json#arms.duration path fp16, decoder int8 ±63.corr]] --> and
    within 0.2 dB per band. That is about 124 MB against 337 MB. int4 blocks on the decoder cost 0.66 dB below 1 kHz
    (correlation 0.9676). The Snake activations' `alpha` vectors must stay unpacked: one rounded to 0 gives NaN. (round 5)
+9. **A remex-style rotation does not rescue the duration path, and it hurts the vocoder; it does help the voice
+   packs.** A random-sign Hadamard before per-row int8 left the duration path's weight error unchanged (0.0082
+   relative), so word times still moved (88 of 166 exact, against 70 without it). On the vocoder, rotated Lloyd-Max
+   codes spread the error evenly across each kernel's taps, which comes out as hiss: +4.0 dB at 6–12 kHz at 6 bits,
+   where unrotated int4 blocks gave +0.14 dB. On the voice packs, rotated int8 kept 165 of 166 tokens exact <!-- @evidence[[results/remex_probe.json#voice packs: int8 rows, rotated.tokens_exact]] -->
+   against 148 unrotated, so 28 MB of voices pack to about 7 MB. (round 6)
 
 ## Method
 
@@ -233,3 +239,31 @@ times, but not being bit-exact they do change the seeded noise path slightly, he
 Reading: the duration path and the style vectors feed a rounding step (`round(duration).clamp(min=1)`), so tiny
 weight errors flip whole frames. Packing belongs on the decoder only. This is size only: weights dequantized at load
 run at fp32 speed, unlike onnxruntime's dynamic int8 export, which was 2.9× slower (Finding 7).
+
+### Round 6: rotation and Lloyd-Max levels, remex-style (2026-11-13)
+
+Asked: would a remex-like approach (rotate, then snap to Gaussian levels) fix the rounding problem? `remex_probe.py`
+packs one part at a time (the rest fp32): each row is padded to a power of two, multiplied by a random-sign
+Hadamard, coded, and rotated back, which is QuIP#/QuaRot-style incoherence processing undone at load.
+
+| arm | weight rel. error | tokens exact (of 166) | max shift ms | corr | bands dB (0–1, 1–3, 3–6, 6–12 kHz) |
+|---|---|---|---|---|---|
+| duration path: int8 rows | 0.0081 | 70 | 100 | (shifted) | −0.02 −0.01 +0.05 0.00 |
+| duration path: int8 rows, rotated | 0.0082 | 88 | 50 | (shifted) | −0.01 +0.02 0.00 −0.02 |
+| duration path: 6-bit Lloyd-Max, rotated | 0.050 | 43 | 150 | (shifted) | −0.26 −0.27 −0.02 0.00 |
+| duration path: 4-bit Lloyd-Max, rotated | 0.102 | 12 | 250 | (shifted) | −0.32 −0.33 0.00 +0.03 |
+| duration path: 3-bit Lloyd-Max, rotated | 0.182 | 3 | 1013 | (shifted) | −0.26 −0.06 +0.14 −0.01 |
+| decoder: 6-bit Lloyd-Max, rotated | 0.056 | 166 | 0 | 0.8599 | −0.52 +0.85 +1.58 +4.03 |
+| decoder: 4-bit Lloyd-Max, rotated | 0.111 | 166 | 0 | 0.7740 | −1.32 −0.20 +1.65 +3.89 |
+| decoder: 3-bit Lloyd-Max, rotated | 0.193 | 166 | 0 | 0.6403 | −2.63 −1.96 +1.75 +3.05 |
+| voice packs: int8 rows | — | 148 | 25 | (shifted) | −0.01 +0.01 +0.02 −0.03 |
+| voice packs: int8 rows, rotated | — | 165 | 0 | (shifted) | −0.01 +0.02 +0.02 −0.01 |
+| voice packs: 6-bit Lloyd-Max, rotated | — | 147 | 25 | (shifted) | 0.00 −0.07 +0.02 +0.02 |
+| voice packs: 4-bit Lloyd-Max, rotated | — | 33 | 125 | (shifted) | 0.00 −0.24 −0.20 +0.21 |
+
+Reading: rotation pays when a few coordinates set the scale (remex's case: LateOn's vectors crowd into a cone).
+Kokoro's weight rows have no such outliers, so per-row int8 is already near its error floor and rotation changes
+nothing. The duration path does not fail on outliers: it fails because a 0.8% weight error is enough to tip some
+phonemes across a frame boundary (`round(duration)`). What would pack it is a criterion other than exact parity:
+the shifts are whole 25 ms frames, which a caption cannot show. Whether shifted durations sound worse is a
+listening question. The voice packs (style vectors) do carry outlier coordinates, and there rotation helps.
