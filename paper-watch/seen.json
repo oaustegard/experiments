@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-12T01:51:49.794978+00:00",
+ "last_run": "2026-11-13T01:50:25.497360+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -627,6 +627,17 @@
    "practical": "NONE",
    "attempts": 1,
    "review": "Robot VLA continual pre-training with a 3D-feature alignment loss; outside his work and far beyond a weeks-scale budget."
+  },
+  "2611.05266": {
+   "title": "Stabilizing On-Policy Targeted Guidance in Agentic Reinforcement Learning",
+   "first_seen": "2026-11-13",
+   "best_rank": 28,
+   "upvotes": 167,
+   "reviewed": "2026-11-13",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Distills a feedback-conditioned copy of the policy into the live policy, only on turns that fail a judged criterion, inside GRPO-style agentic RL; needs open weights and a large RL run, and no code is released. The transferable design note is to gate corrective feedback to the failing turn rather than the whole context. Evidence is one model, one environment, one run per method, mostly style criteria."
   }
  }
 }
