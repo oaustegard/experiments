@@ -5036,5 +5036,146 @@
     "err_vs_lloyd25": 1.0071
    }
   }
- ]
+ ],
+ "headline": {
+  "scifact": {
+   "resid_1b_gain": [
+    0.0144,
+    0.0206
+   ],
+   "resid_1b_ci_clear": 4,
+   "resid_2b_gain": [
+    0.0057,
+    0.0144
+   ],
+   "drop_2b_to_1b_pf4": 0.0156,
+   "emeans2_fit_speedup": [
+    7.91,
+    12.33
+   ],
+   "emeans2_mse_ratio": [
+    0.9972,
+    1.0086
+   ],
+   "lloyd2_mse_ratio": [
+    1.0653,
+    1.0799
+   ],
+   "trainer_within_0005": {
+    "emeans2": 9,
+    "emeans5": 11,
+    "lloyd2": 10
+   },
+   "trainer_ci_clear": 5,
+   "trainer_ci_clear_favour_lloyd25": 3,
+   "row_bytes_pf4_K16384_emeans2_1b": 1490,
+   "row_bytes_pf4_mean_2b": 2314,
+   "row_bytes_saving_pct": 35.6,
+   "table_bytes_K16384": 809,
+   "tiny_cells_K16384_emeans2": [
+    29.5,
+    41.0
+   ],
+   "tiny_cells_K16384_lloyd25": [
+    244.0,
+    314.5
+   ],
+   "resid_2b_ci_clear": 1
+  },
+  "nfcorpus": {
+   "resid_1b_gain": [
+    0.01,
+    0.0153
+   ],
+   "resid_1b_ci_clear": 6,
+   "resid_2b_gain": [
+    -0.0001,
+    0.003
+   ],
+   "drop_2b_to_1b_pf4": 0.0186,
+   "emeans2_fit_speedup": [
+    7.53,
+    11.88
+   ],
+   "emeans2_mse_ratio": [
+    0.9866,
+    1.0069
+   ],
+   "lloyd2_mse_ratio": [
+    1.0631,
+    1.0843
+   ],
+   "trainer_within_0005": {
+    "emeans2": 11,
+    "emeans5": 12,
+    "lloyd2": 12
+   },
+   "trainer_ci_clear": 5,
+   "trainer_ci_clear_favour_lloyd25": 5,
+   "row_bytes_pf4_K16384_emeans2_1b": 1538,
+   "row_bytes_pf4_mean_2b": 2389,
+   "row_bytes_saving_pct": 35.6,
+   "table_bytes_K16384": 1155,
+   "tiny_cells_K16384_emeans2": [
+    32.5,
+    117.5
+   ],
+   "tiny_cells_K16384_lloyd25": [
+    261.5,
+    531.0
+   ],
+   "resid_2b_ci_clear": 0
+  },
+  "grid": {
+   "np_speedup_d32plus_nk50": [
+    1.42,
+    8.89
+   ],
+   "torch_speedup_d128plus_nk50": [
+    2.22,
+    52.47
+   ],
+   "torch_speedup_d32_nk50": [
+    0.48,
+    8.24
+   ],
+   "gmm_err_k256_1024_d32plus_nk50": [
+    0.8088,
+    0.9956
+   ],
+   "small_nk_d128plus_err": [
+    1.0387,
+    1.3812
+   ],
+   "small_nk_d128plus_cells": 3,
+   "d3_k64_or_less_speedup": [
+    1.28,
+    3.32
+   ],
+   "d3_k256_speedup": [
+    0.68,
+    1.13
+   ],
+   "d3_k1024plus_speedup": [
+    0.1,
+    0.47
+   ],
+   "lateon_np_speedup": [
+    2.58,
+    5.82
+   ],
+   "lateon_torch_speedup": [
+    11.54,
+    23.83
+   ],
+   "lateon_err": [
+    0.9954,
+    1.009
+   ],
+   "torch_vs_np_emeans2_time_d128plus_n1e5plus": [
+    2.0601,
+    9.7491
+   ]
+  }
+ }
 }

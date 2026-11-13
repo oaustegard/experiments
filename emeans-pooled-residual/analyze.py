@@ -198,3 +198,75 @@ if grid.exists():
     axes[0].legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(HERE / "fig_grid.png", dpi=150)
+
+
+# ---------- headline numbers cited by RESULTS.md (each one traceable to a key) ----------
+def rng_(vals):
+    vals = [float(v) for v in vals]
+    return [round(min(vals), 4), round(max(vals), 4)]
+
+
+H = {}
+for corpus in ("scifact", "nfcorpus"):
+    s = summary[corpus]
+    rv = {k: v for k, v in s["residual_vs_mean"].items() if " emeans2 " in k}
+    H[corpus] = {
+        "resid_1b_gain": rng_(v[0] for k, v in rv.items() if k.endswith("1b")),
+        "resid_1b_ci_clear": sum(v[1] > 0 for k, v in rv.items() if k.endswith("1b")),
+        "resid_2b_gain": rng_(v[0] for k, v in rv.items() if k.endswith("2b")),
+        "drop_2b_to_1b_pf4": round(s["arms"]["pf4 K1 mean 2b"]["ndcg"] - s["arms"]["pf4 K1 mean 1b"]["ndcg"], 4),
+        "emeans2_fit_speedup": rng_(v["speedup_vs_lloyd25"] for k, v in s["fit"].items() if k.endswith("emeans2")),
+        "emeans2_mse_ratio": rng_(v["mse_over_lloyd25"] for k, v in s["fit"].items() if k.endswith("emeans2")),
+        "lloyd2_mse_ratio": rng_(v["mse_over_lloyd25"] for k, v in s["fit"].items() if k.endswith("lloyd2")),
+        "trainer_within_0005": {src: sum(abs(v[0]) <= 0.005 for k, v in s["trainer_vs_lloyd25"].items() if f" {src} " in k)
+                                for src in ("emeans2", "emeans5", "lloyd2")},
+        "trainer_ci_clear": sum((v[1] > 0 or v[2] < 0) for v in s["trainer_vs_lloyd25"].values()),
+        "trainer_ci_clear_favour_lloyd25": sum(v[2] < 0 for v in s["trainer_vs_lloyd25"].values()),
+        "row_bytes_pf4_K16384_emeans2_1b": round(s["arms"]["pf4 K16384 emeans2 1b"]["row_bytes"]),
+        "row_bytes_pf4_mean_2b": round(s["arms"]["pf4 K1 mean 2b"]["row_bytes"]),
+        "row_bytes_saving_pct": round(100 * (1 - s["arms"]["pf4 K16384 emeans2 1b"]["row_bytes"]
+                                            / s["arms"]["pf4 K1 mean 2b"]["row_bytes"]), 1),
+        "table_bytes_K16384": round(s["arms"]["pf4 K16384 emeans2 1b"]["table_bytes"]),
+        "tiny_cells_K16384_emeans2": rng_(v["tiny_cells"] for k, v in s["fit"].items() if "K16384 emeans2" in k),
+        "tiny_cells_K16384_lloyd25": rng_(v["tiny_cells"] for k, v in s["fit"].items() if "K16384 lloyd25" in k),
+    }
+if "grid_matched_emeans2" in summary:
+    G = summary["grid_matched_emeans2"]
+    hi = [g for g in G if g["d"] >= 32 and g["n_per_k"] >= 50]
+    H["grid"] = {
+        "np_speedup_d32plus_nk50": rng_(g["np"]["speedup"] for g in hi),
+        "torch_speedup_d128plus_nk50": rng_(g["torch"]["speedup"] for g in hi if g["d"] >= 128),
+        "torch_speedup_d32_nk50": rng_(g["torch"]["speedup"] for g in hi if g["d"] == 32),
+        "gmm_err_k256_1024_d32plus_nk50": rng_(g["np"]["err_vs_lloyd25"] for g in hi
+                                               if g["data"] == "gmm" and 256 <= g["k"] <= 1024),
+        "small_nk_d128plus_err": rng_(g["np"]["err_vs_lloyd25"] for g in G
+                                      if g["d"] >= 128 and g["n_per_k"] < 25),
+        "small_nk_d128plus_cells": sum(1 for g in G if g["d"] >= 128 and g["n_per_k"] < 25),
+        "d3_k64_or_less_speedup": rng_(g["np"]["speedup"] for g in G if g["d"] == 3 and g["n"] >= 100_000 and g["k"] <= 64),
+        "d3_k256_speedup": rng_(g["np"]["speedup"] for g in G if g["d"] == 3 and g["n"] >= 100_000 and g["k"] == 256),
+        "d3_k1024plus_speedup": rng_(g["np"]["speedup"] for g in G if g["d"] == 3 and g["n"] >= 100_000 and g["k"] >= 1024),
+        "lateon_np_speedup": rng_(g["np"]["speedup"] for g in G if g["data"] == "lateon-pf4"),
+        "lateon_torch_speedup": rng_(g["torch"]["speedup"] for g in G if g["data"] == "lateon-pf4"),
+        "lateon_err": rng_(g["np"]["err_vs_lloyd25"] for g in G if g["data"] == "lateon-pf4"),
+    }
+summary["headline"] = H
+json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
+print(json.dumps(H, indent=1))
+
+
+# ---------- extra headline numbers asked for by the fresh-reader review ----------
+for corpus in ("scifact", "nfcorpus"):
+    rv = {k: v for k, v in summary[corpus]["residual_vs_mean"].items() if " emeans2 " in k}
+    H[corpus]["resid_2b_ci_clear"] = sum(v[1] > 0 for k, v in rv.items() if k.endswith("2b"))
+if grid.exists():
+    rows = [json.loads(l) for l in open(grid)]
+    ratio = []
+    for r in rows:
+        if r.get("skipped") or r["d"] < 128 or r["n"] < 100_000:
+            continue
+        t_np = next(p[1] for p in r["emeans_np"] if p[0] == 2)
+        t_to = next(p[1] for p in r["emeans_torch"] if p[0] == 2)
+        ratio.append(t_np / t_to)
+    H["grid"]["torch_vs_np_emeans2_time_d128plus_n1e5plus"] = rng_(ratio)
+summary["headline"] = H
+json.dump(summary, open(HERE / "summary.json", "w"), indent=1)

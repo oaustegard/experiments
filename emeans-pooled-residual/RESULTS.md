@@ -4,114 +4,152 @@
 
 ## Answer
 
-`lateon-pool-remex` codes each Ward-pooled [LateOn](https://huggingface.co/lightonai/LateOn) token as a remex
-offset from one corpus mean. Here each token is coded as an offset from the nearest of K = 1,024 to 16,384
-k-means centroids, with the cell id and a shared fp16 centroid table added to the bytes.
+A ColBERT index stores a 128-number vector per token. `lateon-pool-remex` shrank a LateOn index by merging
+similar tokens and quantizing each vector's offset from one corpus-wide mean to 1–2 bits per number (remex). Does
+coding each vector relative to its nearest of 1,024–16,384 k-means centroids do better? And where does e-means,
+a new mini-batch k-means, beat Lloyd's algorithm?
 
-At 1 bit, residual codes beat the single mean on both corpora: +0.014 to +0.021 nDCG@10 on SciFact and
-+0.010 to +0.015 on NFCorpus (e-means-2 centroids; 10 of 12 CIs clear of zero). That is roughly the size of the
-drop from 2 bits to 1 bit (0.016 on SciFact, 0.019 on NFCorpus, pool factor 4). At 2 bits the gain is +0.006 to
-+0.014 on SciFact and 0 on NFCorpus.
+At 1 bit per number, centroids gain up to +0.021 nDCG@10 on SciFact <!-- @evidence[[summary.json#/headline/scifact/resid_1b_gain/1]] -->
+and +0.015 on NFCorpus, about what a second bit is worth. <!-- @evidence[[summary.json#/headline/nfcorpus/resid_1b_gain/1]] -->
+At 2 bits the gain is smaller and mostly not significant. The corpora are small (5,183 and 3,633 documents),
+so the centroid table costs as much as the saved bit and the two codings tie at similar size. A corpus large
+enough to spread the table thin would save 35.6% of the bytes (arithmetic, not measured). <!-- @evidence[[summary.json#/headline/scifact/row_bytes_saving_pct]] -->
 
-At matched bytes it is a tie. Pool factor 4 at 1 bit against 16,384 centroids, 2.3 KB per document with the
-table, against the single mean at 2 bits, 2.3 KB: +0.005 [−0.007, +0.017] on SciFact, −0.004 [−0.011, +0.003]
-on NFCorpus. The centroid table is 0.8–0.9 KB of each document's 2.3 KB here, because these corpora have
-3,600–5,200 documents. Without the table, as in a corpus large enough to amortize it, the residual 1-bit codes
-take 1.5 KB per document against 2.3 KB, about 35% fewer, at the same nDCG. That last step is arithmetic on the
-measured row bytes, not a measurement on a large corpus.
-
-The trainer does not matter for retrieval. e-means at 2 passes and Lloyd at 2 iterations land within ±0.005
-nDCG@10 of Lloyd at 25 iterations in 20 of 24 and 22 of 24 comparisons. It matters for fit time: e-means-2
-reaches Lloyd-25's k-means error (0.987 to 1.009 of it) 7.5 to 12.3 times sooner, and leaves 30–120 tiny cells
-at K = 16,384 where Lloyd leaves 245–530. Lloyd-2 is as fast as e-means-2 with 6–8% higher error, and retrieves
-just as well.
-
-The grid shows where e-means pays as a k-means trainer:
-
-- **d ≥ 32 and at least ~50 points per cluster:** e-means-2 reaches Lloyd's error 1.4–9 times sooner with
-  `NumpyEmeans`, and 2–52 times sooner with torch `Emeans` on CPU at d ≥ 128 (mixed at d = 32: 0.5–8). On
-  clustered synthetic data at k = 256–1,024 it ends 3–19% lower than Lloyd-25 from random init. On LateOn tokens it ends equal (0.995–1.009) and is 2.6–5.8 times
-  faster (numpy) or 12–24 times (torch).
-- **Fewer than ~25 points per cluster:** e-means-2 ends 3–38% *above* Lloyd-25 at d ≥ 128 (3 cells).
-- **d = 3 (colour), n ≥ 100k:** faster only for k ≤ 64 (1.3–3.3 times). Around k = 256 it breaks even
-  (0.7–1.1); from k = 1,024 it runs at 0.1–0.5 times Lloyd's speed, on synthetic data and on Starry Night
-  pixels alike. (Cells at n = 10k finish in under half a second and are noisy.) The cause is faiss's assignment kernel, not the
-  algorithm: at d = 3 a search over a batch of rows costs 7–44 times more per distance than one search over all
-  rows (growing with k), and the e-means batch law picks small batches at low d.
+The k-means trainer barely moves retrieval. e-means pays at 32 or more dimensions with at least
+~50 points per cluster, reaching Lloyd's error up to 8.89 times sooner in numpy. <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/1]] -->
+With fewer than ~25 points per cluster it ends at a higher error, and at 3 dimensions faiss-based e-means is slower
+than Lloyd from about 256 clusters.
 
 ## Findings
 
-1. **Residual codes recover most of a bit at 1 bit and little at 2.** Paired bootstrap over queries, e-means-2
-   centroids against the single mean at the same pool factor and bits (`summary.json` `residual_vs_mean`):
+1. **At 1 bit, centroid residuals recover about one bit's worth of ranking.** e-means-2 centroids against the
+   single mean, paired bootstrap over queries: SciFact +0.0144 to +0.0206, <!-- @evidence[[summary.json#/headline/scifact/resid_1b_gain/0]] -->
+   4 of 6 CIs clear of zero; <!-- @evidence[[summary.json#/headline/scifact/resid_1b_ci_clear]] -->
+   NFCorpus +0.010 to +0.0153, <!-- @evidence[[summary.json#/headline/nfcorpus/resid_1b_gain/1]] -->
+   6 of 6 clear. <!-- @evidence[[summary.json#/headline/nfcorpus/resid_1b_ci_clear]] -->
+   Going from 2 bits to 1 on the single mean costs 0.0156 on SciFact <!-- @evidence[[summary.json#/headline/scifact/drop_2b_to_1b_pf4]] -->
+   and 0.0186 on NFCorpus. <!-- @evidence[[summary.json#/headline/nfcorpus/drop_2b_to_1b_pf4]] -->
+   (`summary.json` `residual_vs_mean`)
+2. **At 2 bits the gain is smaller and mostly not significant**: SciFact +0.0057 to +0.0144 <!-- @evidence[[summary.json#/headline/scifact/resid_2b_gain/1]] -->
+   with 1 of 6 CIs clear of zero, <!-- @evidence[[summary.json#/headline/scifact/resid_2b_ci_clear]] -->
+   NFCorpus −0.0001 to +0.003 with 0 of 6. <!-- @evidence[[summary.json#/headline/nfcorpus/resid_2b_ci_clear]] -->
+3. **At similar size, with the table counted, 1-bit centroid codes tie 2-bit single-mean codes.** Pool factor 4
+   (pf4: a quarter of each document's tokens kept; pf2: half), K = 16,384 centroids:
+   SciFact 2,299 vs 2,314 B per document, +0.0047 [−0.0073, +0.0172]; <!-- @evidence[[summary.json#/scifact/matched_bytes/pf4 K16384 e-means2 1b vs pf4 mean 2b (~2.3 KB)/delta_ci/2]] -->
+   NFCorpus 2,693 vs 2,389 B (13% larger), −0.0038 [−0.0108, +0.0028]. <!-- @evidence[[summary.json#/nfcorpus/matched_bytes/pf4 K16384 e-means2 1b vs pf4 mean 2b (~2.3 KB)/delta_ci/0]] -->
+   The fp16 table is 809 B per document on SciFact <!-- @evidence[[summary.json#/headline/scifact/table_bytes_K16384]] -->
+   and 1,155 B on NFCorpus <!-- @evidence[[summary.json#/headline/nfcorpus/table_bytes_K16384]] -->
+   because these corpora hold only 5,183 and 3,633 documents. Per-token bytes alone (codes, two side scalars and
+   the cell id, no table): 1,490 against 2,314 on SciFact, 1,538 against 2,389 on NFCorpus. <!-- @evidence[[summary.json#/headline/scifact/row_bytes_pf4_K16384_emeans2_1b]] -->
+   The byte frontier from the pre-chosen e-means-2 arms is in `summary.json` (`frontier_table_included`,
+   `frontier_table_excluded`) and `fig_frontier.png`.
+4. **The trainer barely moves retrieval.** An arm is one pool factor × K × bit width (12 per corpus). Against
+   Lloyd at 25 iterations (Lloyd-25), e-means at 2 passes over the data (e-means-2) is within ±0.005 nDCG@10
+   in 9 of 12 SciFact arms <!-- @evidence[[summary.json#/headline/scifact/trainer_within_0005/emeans2]] -->
+   and 11 of 12 NFCorpus arms; <!-- @evidence[[summary.json#/headline/nfcorpus/trainer_within_0005/emeans2]] -->
+   Lloyd-2 in 10 of 12 <!-- @evidence[[summary.json#/headline/scifact/trainer_within_0005/lloyd2]] -->
+   and 12 of 12. <!-- @evidence[[summary.json#/headline/nfcorpus/trainer_within_0005/lloyd2]] -->
+   Of the 36 trainer-vs-Lloyd-25 comparisons per corpus, 5 have CIs clear of zero <!-- @evidence[[summary.json#/headline/scifact/trainer_ci_clear]] -->
+   and most favour Lloyd-25 (3 of 5 on SciFact, all 5 on NFCorpus, by 0.004–0.006 there). <!-- @evidence[[summary.json#/headline/nfcorpus/trainer_ci_clear_favour_lloyd25]] -->
+5. **e-means-2 fits in a twelfth to an eighth of Lloyd-25's time and ends within 1.4% of its error.** This is
+   total fit time, Lloyd-25's over e-means-2's, on the pooled tokens (d = 128); the grid's matched-error
+   speedup on the same tokens is lower (finding 6). SciFact 7.91 to 12.33 times, <!-- @evidence[[summary.json#/headline/scifact/emeans2_fit_speedup/0]] -->
+   NFCorpus 7.53 to 11.88 times, <!-- @evidence[[summary.json#/headline/nfcorpus/emeans2_fit_speedup/0]] -->
+   at 0.9866 to 1.0086 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/nfcorpus/emeans2_mse_ratio/0]] -->
+   Lloyd-2 costs about the same time at 1.0631 to 1.0843 times the error <!-- @evidence[[summary.json#/headline/nfcorpus/lloyd2_mse_ratio/1]] -->
+   and ranks as well (finding 4). At K = 16,384 e-means-2 leaves 29.5–117.5 tiny cells (under a tenth of the mean
+   cell size, mean over seeds) against Lloyd-25's 244–531. <!-- @evidence[[summary.json#/headline/nfcorpus/tiny_cells_K16384_lloyd25/1]] -->
+6. **Where e-means pays depends on the dimension d and the points per cluster n/k, not on k × d.** Speedup here is
+   Lloyd's time to reach e-means-2's error over e-means-2's time, same random init (`fig_grid.png`,
+   `grid_matched_emeans2`):
+   - d ≥ 32 and n/k ≥ 50: 1.42 to 8.89 times with `NumpyEmeans`; <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/0]] -->
+     2.22 to 52.47 times with torch `Emeans` on CPU at d ≥ 128; <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d128plus_nk50/0]] -->
+     0.48 to 8.24 times with torch at d = 32. <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d32_nk50/0]] -->
+   - LateOn tokens (real, d = 128): 2.58 to 5.82 times numpy, <!-- @evidence[[summary.json#/headline/grid/lateon_np_speedup/1]] -->
+     11.54 to 23.83 times torch, <!-- @evidence[[summary.json#/headline/grid/lateon_torch_speedup/1]] -->
+     ending at 0.9954 to 1.009 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/grid/lateon_err/1]] -->
+   - On the clustered synthetic mixture at k = 256–1,024, e-means-2 ends as low as 0.8088 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/grid/gmm_err_k256_1024_d32plus_nk50/0]] -->
+7. **Below ~25 points per cluster at d ≥ 128, e-means-2 ends 1.0387 to 1.3812 times Lloyd-25's error** (3 cells). <!-- @evidence[[summary.json#/headline/grid/small_nk_d128plus_err/1]] -->
+   The two d ≥ 128 cells at 25–50 points per cluster (n/k = 39) both end below Lloyd-25's error.
+8. **At d = 3, faiss's `NumpyEmeans` is faster than Lloyd only for small k**: 1.28 to 3.32 times at k ≤ 64, <!-- @evidence[[summary.json#/headline/grid/d3_k64_or_less_speedup/1]] -->
+   0.68 to 1.13 at k = 256, <!-- @evidence[[summary.json#/headline/grid/d3_k256_speedup/1]] -->
+   0.1 to 0.47 from k = 1,024 (n ≥ 100k, synthetic data and the pixels of Van Gogh's Starry Night). <!-- @evidence[[summary.json#/headline/grid/d3_k1024plus_speedup/1]] -->
+   faiss's `knn` on a batch of rows costs more per distance than one call over all rows:
+   up to 51.7 times at d = 3, k = 4,096, <!-- @evidence[[results_knn.json#d3_k4096.batch_over_full.32768]] -->
+   1.2 times at d = 32, k = 4,096 for batches of 4,096 (6.9 times for batches of 512), <!-- @evidence[[results_knn.json#d32_k4096.batch_over_full.4096]] -->
+   and no more at d = 128. e-means sizes its mini-batches from a power law in n, k and passes that its authors fitted to their runs (its batch law); at d ≤ 16 it uses the smaller of two such laws, which picks 512–8,192 rows here. A hand-written loop
+   (JS, WGSL) should not pay this; untested.
+9. **torch `Emeans` on CPU runs e-means-2 2.06 to 9.75 times faster than `NumpyEmeans` at d ≥ 128, n ≥ 100k.** <!-- @evidence[[summary.json#/headline/grid/torch_vs_np_emeans2_time_d128plus_n1e5plus/1]] -->
+   A 20k-row smoke test had suggested otherwise (`ERRORS.md` #2).
 
-   | | SciFact 1 bit | SciFact 2 bits | NFCorpus 1 bit | NFCorpus 2 bits |
-   |---|---|---|---|---|
-   | pf4 K=1,024 | +0.016 [+0.001, +0.032] | +0.007 [−0.007, +0.021] | +0.010 [+0.001, +0.019] | −0.000 |
-   | pf4 K=4,096 | +0.016 [+0.000, +0.032] | +0.014 [+0.002, +0.028] | +0.011 [+0.002, +0.019] | +0.000 |
-   | pf4 K=16,384 | +0.020 [+0.006, +0.035] | +0.011 [−0.002, +0.025] | +0.015 [+0.006, +0.024] | +0.002 |
-   | pf2 K=16,384 | +0.021 [+0.006, +0.036] | +0.008 [−0.002, +0.019] | +0.013 [+0.005, +0.022] | +0.002 |
+## Method
 
-   Single-mean baselines: SciFact pf4 0.730 / 0.746 (1 / 2 bits), pf2 0.744 / 0.756; NFCorpus pf4 0.356 / 0.375,
-   pf2 0.358 / 0.377.
-2. **At matched bytes, residual 1-bit ties single-mean 2-bit** (`matched_bytes`). The table is K × 128 × 2 bytes
-   shared by the corpus: 50 B per document at K = 1,024 and 800–920 B at K = 16,384 on these corpora. Cell ids
-   add 1.25–1.75 B per token. The byte frontier built from the pre-chosen e-means-2 arms (not the best of four
-   trainers) is in `summary.json` `frontier_table_included` / `frontier_table_excluded` and `fig_frontier.png`.
-3. **Trainer choice moves nDCG by under 0.005 in most arms** (`trainer_vs_lloyd25`). CIs clear of zero in 10
-   of 72 comparisons, 8 of them favouring Lloyd-25; the largest is SciFact pf2 K = 4,096 at 1 bit, where all three
-   alternatives score 0.011–0.013 below Lloyd-25 (one Lloyd-25 arm unusually high, 0.769).
-4. **e-means-2 matches Lloyd-25's k-means error in a tenth of the time** (`fit`): 7.5–12.3 times sooner on
-   300k–600k pooled tokens, d = 128, at the same error within 1.4%. At K = 16,384 on SciFact pf2: 53 s against
-   631 s.
-5. **The grid's speedup depends on d and on points per cluster, not on k × d.** `fig_grid.png`,
-   `summary.json` `grid_matched_emeans2`: Lloyd's time to reach e-means-2's error divided by e-means-2's time,
-   both from the same random init. Triangles are lower bounds (Lloyd-25 never reached e-means-2's error).
-6. **faiss small-batch assignment is the low-d bottleneck.** `faiss.knn(x, C, 1)` per distance, batch against
-   one full pass (1M rows): d = 3, k = 4,096: 41–44× for batches of 512–32,768; d = 32: 5× at 512, ~1× at
-   ≥ 4,096; d = 128: 0.9–2.0×. At d = 3, k = 4,096, n = 100k, 88% of e-means time is in `knn_L2sqr` on 392
-   batches of 512. A hand-written loop (JS, WGSL) has no such penalty; that port is untested.
-7. **torch `Emeans` on CPU is 2–10× faster than `NumpyEmeans` at d ≥ 128 and n ≥ 100k.** The 20k-row smoke
-   test that suggested otherwise (G3) was too small to show it.
+Tokens: `lateon-pool-remex/encode.py` (LateOn at its model card's settings, SciFact 300 and NFCorpus 323 test queries),
+pooled with sentence-transformers 6.3 `HierarchicalTokenPooling` at factor 4 and 2. Codes: remex 2.2.0
+Lloyd-Max levels and rotation (seed 42). Each token x in cell j is stored as remex codes of the direction of
+r = x − c_j plus fp32 ‖r‖ and c_j·r (8 B, as `RemexIndex` stores), and scored with remex 2's centred estimator
+applied per cell, `q·c + c·r + ‖r‖ (q−c)·û / κ` (û the decoded unit direction, κ remex's expected cosine between û and the true direction), then brute-force MaxSim and nDCG@10. K = 1 (the pooled corpus
+mean) is the control: it scores identically to `remex.Quantizer(mean=)`. Centroids: K = 1,024 / 4,096 / 16,384
+from stepped `faiss.Kmeans` (2 and 25 iterations) and `faiss.contrib.e_means.NumpyEmeans` (2 and 5 passes),
+same random init per seed, seeds 0 and 1, faiss-cpu 1.16.0. Bytes per document count codes, side scalars, the
+cell id and the fp16 centroid table spread over the corpus. CIs: paired bootstrap over queries, 10,000 resamples,
+per-query nDCG averaged over seeds first. Headline comparisons use the e-means-2 arms, chosen before the run.
 
-## Predictions (PLAN.md)
+Grid (`grid.py`): 1,000-component Gaussian mixture, n ∈ {1e4, 1e5, 1e6}, k 16–16,384, d ∈ {3, 32, 128, 768},
+plus Starry Night pixels (n = 625k, d = 3) and LateOn pf4 tokens (n = 300k, d = 128); cells with n·k·d > 2.5e11
+or k > n/8 skipped and listed. Per cell: Lloyd stepped to 25 iterations (time and error per step), `NumpyEmeans`
+and torch `Emeans` at 1, 2, 3, 5 passes; speedup = Lloyd's time to reach e-means-2's error over e-means-2's time
+(a lower bound where Lloyd-25 never gets there). `knn_batch_probe.py` measures faiss's batch penalty.
+`analyze.py` writes `summary.json` (with a `headline` block for the numbers above) and both figures.
 
-| # | prediction | outcome |
+```bash
+python3 ../lateon-pool-remex/encode.py                  # ~30 min, writes ../lateon-pool-remex/.work
+python3 bench.py scifact && python3 bench.py nfcorpus   # resumable; ~2 h and ~1.5 h on 4 vCPU
+python3 grid.py && python3 knn_batch_probe.py           # ~46 min, ~1 min
+python3 analyze.py
+```
+
+## Log
+
+### Round 1 — residual codes on pooled LateOn tokens (2026-11-13)
+
+Asked (Oskar, after reading LookAtMyQuant 2, which fits trellis codebooks with e-means): "What about our
+document vector pooling we just did earlier today?", then "we should [run it] as a matter of being exhaustive".
+Re-encoded (the `.work` cache did not survive the session), then `bench.py` on both corpora: 2 pool factors ×
+(1 control + 3 K × 2 seeds × 4 trainers) × 2 bit widths per corpus. SciFact hit the 2 h job cap at 94 of 100
+rows and resumed (`ERRORS.md` #1).
+
+| # | prediction (PLAN.md) | outcome |
 |---|---|---|
-| P1 | K=1 control matches `Quantizer(mean=)`, near round 3 | **held**: identical nDCG (0.7304 / 0.746), median score diff 1.2e-7; pf4 2-bit 0.746 vs round-3 four-seed 0.751 |
+| P1 | K=1 control matches `Quantizer(mean=)`, near `lateon-pool-remex` round 3 | held: identical nDCG (0.7304 / 0.746 SciFact pf4), median score diff 1.2e-7; pf4 2-bit 0.746 vs round-3 four-seed 0.751 |
 | P2 | K=4096 − K=1, pf4 1 bit, SciFact: +0.005 to +0.015 | slightly above: +0.016 |
 | P3 | same at 2 bits: 0 to +0.008 | above on SciFact (+0.014), held on NFCorpus (+0.000) |
 | P4 | e-means-2 − Lloyd-25 within ±0.005 | 20 of 24 |
 | P5 | Lloyd-2 − Lloyd-25 within ±0.005 | 22 of 24 |
 | P6 | e-means-2 5–15× sooner at K=16384 | held: 11.5–12.3× |
-| P7 | K=16384 loses at equal bytes to K=1 one bit up | **wrong**: ties (+0.005, −0.004, both CIs span zero) |
-| G1 | numpy e-means sooner only where k·d ≳ 1e5 | **wrong**: at d ≥ 32 it is sooner from k = 16 (k·d = 512); at d = 3 it is slower from k = 256 regardless of k·d |
-| G2 | best error < Lloyd-25 for k ≥ 1,024 | mostly; fails where n/k < 25 (3 cells, up to +38%) |
-| G3 | torch CPU not faster | **wrong** at scale (finding 7) |
+| P7 | K=16384 loses at equal bytes to K=1 one bit up | wrong: ties at similar size on both corpora (NFCorpus arm 13% larger), CIs span zero |
 
-## Method
+Reading at the time (finding 2 later qualified the 2-bit half): the residual gain is real at 1 bit and gone at 2; the byte comparison is decided by the
+centroid table, so corpus size decides whether to residualize. The first frontier took the best of four trainers
+per point and was replaced by the pre-chosen e-means-2 arms (`ERRORS.md` #3).
 
-`bench.py`: re-encoded with `lateon-pool-remex/encode.py` (the `.work` cache does not survive a session;
-SciFact fp32 reproduces round 1). sentence-transformers 6.3 `HierarchicalTokenPooling` pf4 / pf2; remex 2.2.0
-codebooks and rotation (seed 42); remex 2's centred estimator applied per cell,
-`q·c + c·r + ||r|| (q−c)·û / κ`, with fp32 `||r||` and `c·r` (8 B per token, as `RemexIndex` stores);
-brute-force MaxSim; centroid seeds 0 and 1, shared random init per seed; faiss-cpu 1.16.0 (`contrib/e_means`
-ships in the wheel). `grid.py`: 1,000-component Gaussian mixture, n ∈ {1e4, 1e5, 1e6}, k 16–16,384,
-d ∈ {3, 32, 128, 768}, plus Starry Night pixels and LateOn pf4 tokens; cells with n·k·d > 2.5e11 or k > n/8
-skipped (listed in `results_grid.jsonl`). `colour_bench.py`: passes-to-error check on two images, before the grid.
-`analyze.py` writes `summary.json` and the figures.
+### Round 2 — where e-means pays: clustering grid (2026-11-13)
 
-## Reproduce
+Asked: "Can we determine some form of heuristic for where it pays off on a speed/size/efficiency Pareto
+frontier?" Before the grid, `colour_bench.py` checked passes-to-error on two images at K = 16 and 56: on Starry
+Night one e-means pass beat 20 Lloyd passes (K = 56 error 258–259 vs 260–263); on a photo one pass matched 4–5
+Lloyd passes and e-means levelled off about 1.5% above Lloyd-20 (`results_colour.json`). Then `grid.py`
+(66 cells run, 17 skipped as too large or k > n/8).
 
-```bash
-python3 ../lateon-pool-remex/encode.py            # ~30 min, writes ../lateon-pool-remex/.work
-python3 bench.py scifact && python3 bench.py nfcorpus   # resumable; ~2 h SciFact, ~1.5 h NFCorpus on 4 vCPU
-python3 grid.py                                    # ~46 min
-python3 analyze.py
-```
+| # | prediction (PLAN.md) | outcome |
+|---|---|---|
+| G1 | numpy e-means sooner only where k·d ≳ 1e5 | wrong: at d ≥ 32 it is sooner from k = 16 (k·d = 512); at d = 3 it is slower from k ≈ 256 whatever k·d is |
+| G2 | best error below Lloyd-25 for k ≥ 1,024 | mostly; fails below 25 points per cluster (3 cells, up to 1.38×) |
+| G3 | torch CPU not faster than numpy | wrong at scale (finding 9) |
 
-## Not done
+Profiling one d = 3 cell put 88% of e-means time in `knn_L2sqr` on 392 batches of 512 rows, which led to
+`knn_batch_probe.py`. Two runs of the probe gave 7–44× and 5–52× at d = 3 (the stored run is the second).
 
-One rotation seed; two centroid seeds. No corpus large enough to show the table amortizing (the 35% figure is
-row bytes only). No search-speed measurement. The JS/WGSL e-means port for the browser tracer is untested; the
-grid measured faiss's kernels only. Synthetic data uses random init; with k-means++ init Lloyd would start
-closer and e-means' error advantage on the mixture would likely shrink.
+Not done: one rotation seed and two centroid seeds; no corpus large enough to show the table amortizing; no
+search-speed measurement; no JS/WGSL e-means port; synthetic data starts from random init, and with k-means++
+Lloyd would start closer, likely shrinking e-means' error advantage there.
