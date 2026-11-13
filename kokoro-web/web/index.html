@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kokoro in the browser</title>
+<script src="coi.js"></script>
+<style>
+  :root { --bg: #f7f6f2; --fg: #1d1d1b; --muted: #6b6a64; --card: #ffffff; --line: #e4e2da; --accent: #c4502c; --hi: #ffe1cf; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --fg: #ecebe6; --muted: #9a9890; --card: #1f1f1d; --line: #33322e; --accent: #f08a5d; --hi: #4a2a1b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 20px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 0.8rem; }
+  .line { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 8px;
+          display: flex; gap: 12px; align-items: flex-start; }
+  .line button { flex: none; border: 1px solid var(--accent); color: var(--accent); background: none; border-radius: 6px;
+                 padding: 4px 12px; font: inherit; cursor: pointer; }
+  .line button:disabled { opacity: 0.4; cursor: default; }
+  .words { line-height: 1.7; }
+  .words span { border-radius: 3px; padding: 0 1px; }
+  .words span.on { background: var(--hi); }
+  .meta { color: var(--muted); font-size: 0.8rem; }
+  #status { color: var(--muted); margin-bottom: 12px; min-height: 1.5em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kokoro in the browser</h1>
+  <p class="lede">Kokoro-82M text-to-speech running in your browser, with each word highlighted at the moment the
+    model says it. The page speaks the fixed lines below: their phonemes were worked out ahead of time, so the browser
+    runs only the model. The first visit downloads an 88 MB model and reloads once to enable threads.
+    <a href="https://github.com/oaustegard/experiments/blob/main/kokoro-web/RESULTS.md">How it was made smaller</a>.</p>
+  <div class="stats" id="stats"></div>
+  <div id="status">Loading…</div>
+  <div id="lines"></div>
+</main>
+<script type="module">
+import * as K from "./kokoro.js";
+
+const q = new URLSearchParams(location.search);
+const ORT = q.get("ort") || "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/";
+// kokoro-v1.0-web: build.py variant mixed+te+n (int8 vocoder, acoustic text encoder and N predictor; fp16 elsewhere),
+// stored brotli-encoded on R2 (88 MB on the wire, 102 MB unpacked).
+const MODEL = q.get("model") || "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/kokoro-web/kokoro-v1.0-web-20261113.onnx";
+const EP = q.get("ep") || "wasm";
+const THREADS = +(q.get("threads") || 0) || Math.min(navigator.hardwareConcurrency || 1, 4);
+
+const stats = {}, statsEl = document.getElementById("stats"), status = document.getElementById("status");
+function stat(key, value, label) {
+  stats[key] = value;
+  let el = document.getElementById("s-" + key);
+  if (!el) { el = document.createElement("div"); el.className = "stat"; el.id = "s-" + key; statsEl.append(el); }
+  el.innerHTML = `<b>${typeof value === "number" ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : value}</b><span>${label}</span>`;
+}
+
+async function fetchBytes(url, onProgress) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  const total = +res.headers.get("content-length") || 0, reader = res.body.getReader(), parts = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); got += value.length; onProgress?.(got, total);
+  }
+  const out = new Uint8Array(got);
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+async function memoryMB() {
+  if (!crossOriginIsolated || !performance.measureUserAgentSpecificMemory) return null;
+  try { return (await performance.measureUserAgentSpecificMemory()).bytes / 1e6; } catch { return null; }
+}
+
+const fail = (e) => { status.textContent = `Error: ${e?.message || e}`; };
+addEventListener("error", (e) => fail(e.error || e.message));
+addEventListener("unhandledrejection", (e) => fail(e.reason));
+const t0 = performance.now();
+const ortModule = await import(ORT + (EP === "webgpu" ? "ort.webgpu.min.mjs" : "ort.wasm.min.mjs"));
+const ort = ortModule.default ?? ortModule;
+ort.env.wasm.wasmPaths = ORT;
+ort.env.wasm.numThreads = crossOriginIsolated ? THREADS : 1;
+const [vocab, lines] = await Promise.all(["vocab.json", "lines.json"].map((u) => fetch(u).then((r) => r.json())));
+const speakers = [...new Set(lines.flatMap((l) => l.speaker.split(",")))];
+const packs = {};
+await Promise.all(speakers.map(async (n) => (packs[n] = K.f16ToF32(await (await fetch(`voices/${n}.f16`)).arrayBuffer()))));
+// The model bytes are only needed until onnxruntime has copied them into wasm memory: keep them in this scope
+// (unless ?keep=1, the first measured version) so they can be collected.
+let tFetched, modelMB, keptBytes;
+const model = await (async () => {
+  const bytes = await fetchBytes(MODEL, (got, total) => (status.textContent = `Downloading the model: ${(got / 1e6).toFixed(0)} of about 102 MB`));
+  tFetched = performance.now();
+  modelMB = bytes.length / 1e6;
+  if (q.get("keep") === "1") keptBytes = bytes;
+  status.textContent = "Starting onnxruntime…";
+  return K.loadModel(ort, bytes, { ep: EP, lean: q.get("lean") === "1" });
+})();
+const tReady = performance.now();
+stat("download", modelMB, "model MB (uncompressed)");
+stat("fetch", (tFetched - t0) / 1000, "s to fetch everything");
+stat("init", (tReady - tFetched) / 1000, "s to start the session");
+stat("backend", `${EP} · ${ort.env.wasm.numThreads} thread${ort.env.wasm.numThreads > 1 ? "s" : ""}`, "backend");
+const mem = await memoryMB();
+if (mem) stat("memory", mem, "MB page memory after load");
+status.textContent = "Ready. Press play on a line.";
+
+const blends = {};
+const packFor = (speaker) => (blends[speaker] ??= K.blend(packs, speaker));
+let ctx;
+function play(audio, spans, words) {
+  ctx ??= new AudioContext({ sampleRate: K.SAMPLE_RATE });
+  const buf = ctx.createBuffer(1, audio.length, K.SAMPLE_RATE);
+  buf.copyToChannel(audio, 0);
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.connect(ctx.destination);
+  const start = ctx.currentTime + 0.05;
+  src.start(start);
+  const tick = () => {
+    const t = ctx.currentTime - start;
+    words.forEach((w, k) => spans[k]?.classList.toggle("on", t >= w.start && t < w.end));
+    if (t < audio.length / K.SAMPLE_RATE) requestAnimationFrame(tick); else spans.forEach((s) => s.classList.remove("on"));
+  };
+  requestAnimationFrame(tick);
+}
+
+const linesEl = document.getElementById("lines");
+for (const line of lines) {
+  const row = document.createElement("div"); row.className = "line";
+  const btn = document.createElement("button"); btn.textContent = "Play";
+  const body = document.createElement("div");
+  const wordsEl = document.createElement("div"); wordsEl.className = "words";
+  wordsEl.textContent = line.text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  const meta = document.createElement("div"); meta.className = "meta";
+  body.append(wordsEl, meta); row.append(btn, body); linesEl.append(row);
+  btn.onclick = async () => {
+    btn.disabled = true;
+    const r = await K.speak(model, vocab, packFor(line.speaker), line);
+    wordsEl.innerHTML = "";
+    const spans = r.words.map((w) => { const s = document.createElement("span"); s.textContent = w.word; return s; });
+    spans.forEach((s, k) => wordsEl.append(s, k < spans.length - 1 ? " " : ""));
+    const secs = r.audio.length / K.SAMPLE_RATE;
+    meta.textContent = `${secs.toFixed(1)} s of speech made in ${(r.ms / 1000).toFixed(2)} s (${(secs / (r.ms / 1000)).toFixed(1)}× real time)`;
+    play(r.audio, spans, r.words);
+    btn.disabled = false;
+  };
+}
+
+// For the headless benchmark: speak every line and hand back audio, word times and timings.
+window.bench = async (n = lines.length) => {
+  const out = [];
+  for (const line of lines.slice(0, n)) {
+    const r = await K.speak(model, vocab, packFor(line.speaker), line);
+    out.push({ id: line.id, ms: r.ms, words: r.words, audio: Array.from(r.audio) });
+  }
+  return { stats, lines: out, memoryMB: await memoryMB() };
+};
+window.ready = true;
+</script>
+</body>
+</html>

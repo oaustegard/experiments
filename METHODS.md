@@ -669,6 +669,22 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Kokoro (StyleTTS 2 family): only the vocoder side packs to int8.** The parts that set durations (BERT, the
+  duration encoder, its LSTM) move word times under int8, and the F0 predictor and the LSTM feeding it move pitch
+  (p90 31 and 27 cents against a 14-cent run-to-run floor) without moving a word. The vocoder, the acoustic text
+  encoder and the N (energy) predictor pack for free. Check pitch with Praat, not waveform correlation, which falls
+  for any pitch change. (`kokoro-web` Finding 1)
+- **onnxruntime folds fp16 + `Cast` weights back to fp32 at load but keeps `DequantizeLinear` int8 weights packed.**
+  An fp16 Kokoro file used as much memory as fp32 (1.33 vs 1.30 GB in the browser); int8 files used 750–800 MB, at the
+  same speed. fp16 saves download only. (`kokoro-web` Finding 6)
+- **Drop the page's copy of the model bytes after `InferenceSession.create`.** onnxruntime-web copies them into wasm
+  memory; keeping the JS buffer cost 117 MB resident on a 102 MB model. wasm memory never shrinks, so the load-time
+  high-water mark stays resident. (`kokoro-web` Finding 4)
+- **wasm threads on GitHub Pages: a service worker that adds COOP/COEP (`kokoro-web/web/coi.js`).** Without isolation
+  onnxruntime-web runs one thread, 2.8× slower for Kokoro. Every cross-origin fetch must use CORS under `require-corp`.
+- **The public R2 bucket serves pre-compressed files: upload with `Content-Encoding: br`.** It answers with that
+  header and CORS for austegard.com, and browsers decode it (`kokoro-web/upload_r2.py`). Files over GitHub's 100 MB
+  limit can live there.
 - **Kokoro on Python 3.13: install misaki with `--no-deps --ignore-requires-python`, never `misaki[en]`.**
   misaki 0.9.4's `<3.13` pin is stale (it runs on 3.13). But `misaki[en]` pulls `spacy-curated-transformers`,
   whose 2.x needs thinc 9 while spaCy 3.8 uses 8.3. With the pin bypassed, pip then falls back to an old spaCy
