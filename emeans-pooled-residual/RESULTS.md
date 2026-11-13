@@ -4,19 +4,20 @@
 
 ## Answer
 
-A ColBERT index stores a 128-number vector per token. `lateon-pool-remex` shrank a LateOn index by merging
+`lateon-pool-remex` shrank a LateOn ColBERT index by merging
 similar tokens and quantizing each vector's offset from one corpus-wide mean to 1–2 bits per number (remex). Does
-coding each vector relative to its nearest of 1,024–16,384 k-means centroids do better? And where does e-means,
+coding each vector relative to its nearest of 1,024–16,384 k-means centroids do better? Where does e-means,
 a new mini-batch k-means, beat Lloyd's algorithm?
 
-At 1 bit per number, centroids gain up to +0.021 nDCG@10 on SciFact <!-- @evidence[[summary.json#/headline/scifact/resid_1b_gain/1]] -->
+At 1 bit, centroids gain up to +0.021 nDCG@10 on SciFact <!-- @evidence[[summary.json#/headline/scifact/resid_1b_gain/1]] -->
 and +0.015 on NFCorpus, about what a second bit is worth. <!-- @evidence[[summary.json#/headline/nfcorpus/resid_1b_gain/1]] -->
-At 2 bits the gain is smaller and mostly not significant. The corpora are small (5,183 and 3,633 documents),
-so the centroid table costs as much as the saved bit and the two codings tie at similar size. A corpus large
+At 2 bits the gain is smaller. On these small corpora (5,183 and 3,633 documents) the centroid table costs
+as much as the saved bit, so the codings tie at similar size. A corpus large
 enough to spread the table thin would save 35.6% of the bytes (arithmetic, not measured). <!-- @evidence[[summary.json#/headline/scifact/row_bytes_saving_pct]] -->
 
-The k-means trainer barely moves retrieval. e-means pays at 32 or more dimensions with at least
-~50 points per cluster: two passes beat 25 Lloyd rounds' error in 27 of 32 such jobs. <!-- @evidence[[summary.json#/headline/grid/np_lower_bounds_d32plus_nk50]] -->
+The k-means trainer barely moves retrieval. At 32 or more dimensions with at least ~50 points per cluster, two
+e-means passes took 1.42 to 12.33 times less time than 25 Lloyd rounds <!-- @evidence[[summary.json#/headline/grid/lloyd25_time_over_emeans2_d32plus_nk50/0]] -->
+and ended at most 1.009 times their error. <!-- @evidence[[summary.json#/headline/grid/emeans2_err_over_lloyd25_d32plus_nk50/1]] -->
 On synthetic data with fewer than ~25 points per cluster it ends at a higher error, and at 3 dimensions it is
 slower than Lloyd from about 256 clusters.
 
@@ -62,7 +63,11 @@ slower than Lloyd from about 256 clusters.
 6. **Where e-means pays depends on the dimension d and the points per cluster n/k, not on k × d.** Speedup here is
    Lloyd's time to reach e-means-2's error over e-means-2's time, same random init (`fig_grid.png`,
    `grid_matched_emeans2`):
-   - d ≥ 32 and n/k ≥ 50: 1.42 to 8.89 times with `NumpyEmeans`; <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/0]] -->
+   - d ≥ 32 and n/k ≥ 50 (32 jobs; the 50 cut was drawn after the results): at a fixed budget, two `NumpyEmeans`
+     passes took 1.42 to 12.33 times less time than 25 Lloyd rounds <!-- @evidence[[summary.json#/headline/grid/lloyd25_time_over_emeans2_d32plus_nk50/1]] -->
+     and ended at 0.8088 to 1.009 of their error, <!-- @evidence[[summary.json#/headline/grid/emeans2_err_over_lloyd25_d32plus_nk50/0]] -->
+     more than 3% lower in 13 jobs. <!-- @evidence[[summary.json#/headline/grid/emeans2_more_than_3pct_lower]] -->
+     Matched-error speedup 1.42 to 8.89 times with `NumpyEmeans`; <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/0]] -->
      in 27 of these 32 jobs Lloyd-25 never reached e-means-2's error, so those ratios are lower bounds; <!-- @evidence[[summary.json#/headline/grid/np_lower_bounds_d32plus_nk50]] -->
      in the other five e-means-2 got there 1.47 to 5.82 times sooner; <!-- @evidence[[summary.json#/headline/grid/np_exact_speedup_d32plus_nk50/0]] -->
      2.22 to 52.47 times with torch `Emeans` on CPU at d ≥ 128, which assigns with PyTorch instead of faiss, so these ratios include a change of library; <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d128plus_nk50/0]] -->

@@ -302,3 +302,16 @@ for corpus in ("scifact",):
     H[corpus]["emeans2_mse_ratio_pf4_K16384"] = summary[corpus]["fit"]["pf4 K16384 emeans2"]["mse_over_lloyd25"]
 summary["headline"] = H
 json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
+
+
+# ---------- fixed-budget comparison in the d >= 32, n/k >= 50 band (third post review) ----------
+if grid.exists():
+    R = {json.loads(l)["cell"]: json.loads(l) for l in open(grid)}
+    hi = [g for g in summary["grid_matched_emeans2"] if g["d"] >= 32 and g["n_per_k"] >= 50]
+    tr = [R[g["cell"]]["lloyd25_s"] / next(p[1] for p in R[g["cell"]]["emeans_np"] if p[0] == 2) for g in hi]
+    er = [g["np"]["err_vs_lloyd25"] for g in hi]
+    H["grid"]["lloyd25_time_over_emeans2_d32plus_nk50"] = rng_(tr)
+    H["grid"]["emeans2_err_over_lloyd25_d32plus_nk50"] = rng_(er)
+    H["grid"]["emeans2_more_than_3pct_lower"] = sum(x < 0.97 for x in er)
+    summary["headline"] = H
+    json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
