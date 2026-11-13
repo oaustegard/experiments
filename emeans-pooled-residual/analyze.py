@@ -270,3 +270,35 @@ if grid.exists():
     H["grid"]["torch_vs_np_emeans2_time_d128plus_n1e5plus"] = rng_(ratio)
 summary["headline"] = H
 json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
+
+
+# ---------- lower bounds in the grid's d >= 32, n/k >= 50 band ----------
+if grid.exists():
+    G = summary["grid_matched_emeans2"]
+    hi = [g for g in G if g["d"] >= 32 and g["n_per_k"] >= 50]
+    H["grid"]["np_jobs_d32plus_nk50"] = len(hi)
+    H["grid"]["np_lower_bounds_d32plus_nk50"] = sum(g["np"]["lower_bound"] for g in hi)
+    H["grid"]["np_exact_speedup_d32plus_nk50"] = rng_(g["np"]["speedup"] for g in hi if not g["np"]["lower_bound"])
+    summary["headline"] = H
+    json.dump(summary, open(HERE / "summary.json", "w"), indent=1)
+
+
+# ---------- regime counts and torch at d = 3 (second post review) ----------
+if grid.exists():
+    G = summary["grid_matched_emeans2"]
+    H["grid"]["jobs_run"] = len(G)
+    H["grid"]["jobs_d3"] = sum(g["d"] == 3 for g in G)
+    H["grid"]["jobs_d32plus_nk_lt25"] = sum(g["d"] >= 32 and g["n_per_k"] < 25 for g in G)
+    H["grid"]["jobs_d32plus_nk_25_50"] = sum(g["d"] >= 32 and 25 <= g["n_per_k"] < 50 for g in G)
+    H["grid"]["err_d32plus_nk_lt25"] = rng_(g["np"]["err_vs_lloyd25"] for g in G if g["d"] >= 32 and g["n_per_k"] < 25)
+    d3 = [g for g in G if g["d"] == 3 and g["n"] >= 100_000]
+    H["grid"]["torch_d3_n1e5"] = rng_(g["torch"]["speedup"] for g in d3 if g["n"] == 100_000)
+    H["grid"]["torch_d3_n600kplus_k1024"] = rng_(g["torch"]["speedup"] for g in d3 if g["n"] > 100_000 and g["k"] == 1024)
+    H["grid"]["torch_d3_k4096plus"] = rng_(g["torch"]["speedup"] for g in d3 if g["k"] >= 4096)
+for corpus in ("scifact",):
+    rows = [json.loads(l) for l in open(HERE / f"results_{corpus}.jsonl")]
+    r = next(r for r in rows if r["pf"] == 4 and r["K"] == 16384)
+    H[corpus]["tokens_per_centroid_pf4_K16384"] = round(r["tokens_per_doc"] * 5183 / 16384, 1)  # 5,183 SciFact docs
+    H[corpus]["emeans2_mse_ratio_pf4_K16384"] = summary[corpus]["fit"]["pf4 K16384 emeans2"]["mse_over_lloyd25"]
+summary["headline"] = H
+json.dump(summary, open(HERE / "summary.json", "w"), indent=1)

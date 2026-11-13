@@ -16,9 +16,9 @@ so the centroid table costs as much as the saved bit and the two codings tie at 
 enough to spread the table thin would save 35.6% of the bytes (arithmetic, not measured). <!-- @evidence[[summary.json#/headline/scifact/row_bytes_saving_pct]] -->
 
 The k-means trainer barely moves retrieval. e-means pays at 32 or more dimensions with at least
-~50 points per cluster, reaching Lloyd's error up to 8.89 times sooner in numpy. <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/1]] -->
-With fewer than ~25 points per cluster it ends at a higher error, and at 3 dimensions faiss-based e-means is slower
-than Lloyd from about 256 clusters.
+~50 points per cluster: two passes beat 25 Lloyd rounds' error in 27 of 32 such jobs. <!-- @evidence[[summary.json#/headline/grid/np_lower_bounds_d32plus_nk50]] -->
+On synthetic data with fewer than ~25 points per cluster it ends at a higher error, and at 3 dimensions it is
+slower than Lloyd from about 256 clusters.
 
 ## Findings
 
@@ -63,21 +63,31 @@ than Lloyd from about 256 clusters.
    Lloyd's time to reach e-means-2's error over e-means-2's time, same random init (`fig_grid.png`,
    `grid_matched_emeans2`):
    - d ≥ 32 and n/k ≥ 50: 1.42 to 8.89 times with `NumpyEmeans`; <!-- @evidence[[summary.json#/headline/grid/np_speedup_d32plus_nk50/0]] -->
-     2.22 to 52.47 times with torch `Emeans` on CPU at d ≥ 128; <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d128plus_nk50/0]] -->
+     in 27 of these 32 jobs Lloyd-25 never reached e-means-2's error, so those ratios are lower bounds; <!-- @evidence[[summary.json#/headline/grid/np_lower_bounds_d32plus_nk50]] -->
+     in the other five e-means-2 got there 1.47 to 5.82 times sooner; <!-- @evidence[[summary.json#/headline/grid/np_exact_speedup_d32plus_nk50/0]] -->
+     2.22 to 52.47 times with torch `Emeans` on CPU at d ≥ 128, which assigns with PyTorch instead of faiss, so these ratios include a change of library; <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d128plus_nk50/0]] -->
      0.48 to 8.24 times with torch at d = 32. <!-- @evidence[[summary.json#/headline/grid/torch_speedup_d32_nk50/0]] -->
    - LateOn tokens (real, d = 128): 2.58 to 5.82 times numpy, <!-- @evidence[[summary.json#/headline/grid/lateon_np_speedup/1]] -->
      11.54 to 23.83 times torch, <!-- @evidence[[summary.json#/headline/grid/lateon_torch_speedup/1]] -->
      ending at 0.9954 to 1.009 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/grid/lateon_err/1]] -->
    - On the clustered synthetic mixture at k = 256–1,024, e-means-2 ends as low as 0.8088 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/grid/gmm_err_k256_1024_d32plus_nk50/0]] -->
 7. **Below ~25 points per cluster at d ≥ 128, e-means-2 ends 1.0387 to 1.3812 times Lloyd-25's error** (3 cells). <!-- @evidence[[summary.json#/headline/grid/small_nk_d128plus_err/1]] -->
-   The two d ≥ 128 cells at 25–50 points per cluster (n/k = 39) both end below Lloyd-25's error.
+   All 5 jobs at d ≥ 32 below 25 points per cluster ended above Lloyd-25's error (up to 1.3812 times); <!-- @evidence[[summary.json#/headline/grid/err_d32plus_nk_lt25/1]] -->
+   the two d ≥ 128 cells at 25–50 points per cluster (n/k = 39) both end below it. This held on the synthetic
+   mixture only: on the real pooled tokens at K = 16,384, 18.3 points per centroid, <!-- @evidence[[summary.json#/headline/scifact/tokens_per_centroid_pf4_K16384]] -->
+   e-means-2 ended at 0.9972 of Lloyd-25's error. <!-- @evidence[[summary.json#/headline/scifact/emeans2_mse_ratio_pf4_K16384]] -->
 8. **At d = 3, faiss's `NumpyEmeans` is faster than Lloyd only for small k**: 1.28 to 3.32 times at k ≤ 64, <!-- @evidence[[summary.json#/headline/grid/d3_k64_or_less_speedup/1]] -->
    0.68 to 1.13 at k = 256, <!-- @evidence[[summary.json#/headline/grid/d3_k256_speedup/1]] -->
    0.1 to 0.47 from k = 1,024 (n ≥ 100k, synthetic data and the pixels of Van Gogh's Starry Night). <!-- @evidence[[summary.json#/headline/grid/d3_k1024plus_speedup/1]] -->
    faiss's `knn` on a batch of rows costs more per distance than one call over all rows:
    up to 51.7 times at d = 3, k = 4,096, <!-- @evidence[[results_knn.json#d3_k4096.batch_over_full.32768]] -->
    1.2 times at d = 32, k = 4,096 for batches of 4,096 (6.9 times for batches of 512), <!-- @evidence[[results_knn.json#d32_k4096.batch_over_full.4096]] -->
-   and no more at d = 128. e-means sizes its mini-batches from a power law in n, k and passes that its authors fitted to their runs (its batch law); at d ≤ 16 it uses the smaller of two such laws, which picks 512–8,192 rows here. A hand-written loop
+   and no more at d = 128. The torch `Emeans`, which does not use faiss, is also slower than Lloyd at d = 3 from
+   k = 4,096 (0.12 to 0.34 times) <!-- @evidence[[summary.json#/headline/grid/torch_d3_k4096plus/0]] -->
+   and at every k for n = 100k (0.26 to 0.55); <!-- @evidence[[summary.json#/headline/grid/torch_d3_n1e5/1]] -->
+   at 625k–1M points it breaks even at k = 1,024 (1.01 to 1.11). <!-- @evidence[[summary.json#/headline/grid/torch_d3_n600kplus_k1024/1]] -->
+   So small batches cost any brute-force assignment more at d = 3 than one full pass does, and faiss's full pass
+   there is unusually cheap (0.029 ns per distance at k = 4,096). <!-- @evidence[[results_knn.json#d3_k4096.full_pass_ns_per_distance]] --> e-means sizes its mini-batches from a power law in n, k and passes that its authors fitted to their runs (its batch law); at d ≤ 16 it uses the smaller of two such laws, which picks 512–8,192 rows here. A hand-written loop
    (JS, WGSL) should not pay this; untested.
 9. **torch `Emeans` on CPU runs e-means-2 2.06 to 9.75 times faster than `NumpyEmeans` at d ≥ 128, n ≥ 100k.** <!-- @evidence[[summary.json#/headline/grid/torch_vs_np_emeans2_time_d128plus_n1e5plus/1]] -->
    A 20k-row smoke test had suggested otherwise (`ERRORS.md` #2).
@@ -139,7 +149,7 @@ Asked: "Can we determine some form of heuristic for where it pays off on a speed
 frontier?" Before the grid, `colour_bench.py` checked passes-to-error on two images at K = 16 and 56: on Starry
 Night one e-means pass beat 20 Lloyd passes (K = 56 error 258–259 vs 260–263); on a photo one pass matched 4–5
 Lloyd passes and e-means levelled off about 1.5% above Lloyd-20 (`results_colour.json`). Then `grid.py`
-(66 cells run, 17 skipped as too large or k > n/8).
+(61 jobs run, 17 skipped as too large or k > n/8).
 
 | # | prediction (PLAN.md) | outcome |
 |---|---|---|
