@@ -1,0 +1,120 @@
+{
+ "n_paired": 100,
+ "errors_dropped": {},
+ "leaked": 1,
+ "presearch_leaks": 0,
+ "agent_leaks": {
+  "WEB": 1,
+  "PSWEB": 0
+ },
+ "arms": {
+  "WEB": {
+   "all": {
+    "n": 100,
+    "f1": 0.3651,
+    "em": 0.24
+   },
+   "no_leak": {
+    "n": 99,
+    "f1": 0.3688,
+    "em": 0.2424
+   },
+   "2hop": {
+    "n": 50,
+    "f1": 0.4419,
+    "em": 0.3
+   },
+   "3-4hop": {
+    "n": 50,
+    "f1": 0.2884,
+    "em": 0.18
+   },
+   "searches_per_q": 1.77,
+   "fetches_per_q": 0.44,
+   "no_search_share": 0.26,
+   "no_answer": 0,
+   "cost_per_q": 0.0241,
+   "wall_s_per_q": 18.436,
+   "extended_mode_searches": 17
+  },
+  "PSWEB": {
+   "all": {
+    "n": 100,
+    "f1": 0.3532,
+    "em": 0.2
+   },
+   "no_leak": {
+    "n": 99,
+    "f1": 0.3568,
+    "em": 0.202
+   },
+   "2hop": {
+    "n": 50,
+    "f1": 0.4295,
+    "em": 0.26
+   },
+   "3-4hop": {
+    "n": 50,
+    "f1": 0.2769,
+    "em": 0.14
+   },
+   "searches_per_q": 1.31,
+   "fetches_per_q": 0.33,
+   "no_search_share": 0.34,
+   "no_answer": 0,
+   "cost_per_q": 0.0311,
+   "wall_s_per_q": 14.153,
+   "extended_mode_searches": 10
+  }
+ },
+ "diff": {
+  "all": {
+   "diff": -0.0119,
+   "ci": [
+    -0.0621,
+    0.0367
+   ]
+  },
+  "no_leak": {
+   "diff": -0.0121,
+   "ci": [
+    -0.0635,
+    0.0353
+   ]
+  },
+  "2hop": {
+   "diff": -0.0124,
+   "ci": [
+    -0.0798,
+    0.0554
+   ]
+  },
+  "3-4hop": {
+   "diff": -0.0115,
+   "ci": [
+    -0.0868,
+    0.0542
+   ]
+  }
+ },
+ "round1_same_questions": {
+  "CB": 0.2843,
+  "AG3": 0.5834,
+  "PSAG3": 0.5883
+ },
+ "containment": {
+  "answer_contains_gold": {
+   "WEB": 0.39,
+   "PSWEB": 0.37
+  },
+  "diff": -0.02,
+  "ci": [
+   -0.09,
+   0.05
+  ],
+  "answer_tokens": {
+   "WEB": 5.61,
+   "PSWEB": 6.45
+  }
+ }
+}

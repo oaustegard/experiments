@@ -3589,10 +3589,14 @@ The traps, each of which cost a revision:
   answer F1 from 0.532 to 0.570. It also beat simply allowing 4 searches by 0.045 (paired bootstrap 95% CI 0.008
   to 0.083). Raising the limit from 3 to 4 changed F1 by -0.008, because Haiku stops early: it averaged 1.97
   searches per question when allowed 4, and answered 29 of 300 with none. With the results in front of it Haiku
-  searched less (1.11 per question) and saw more of the paragraphs the answer needs (0.602 vs 0.525 of them for
+  searched less (1.11 per question) and was shown more of the paragraphs the answer needs (0.602 vs 0.525 of them for
   the 4-search arm). A final-answer re-ask (one extra turn when a rollout ends with no answer) fired on 1 of
-  300, and `decide.py` replies parsed 312/312, so it is not worth adding to either. One dataset and one
-  retriever. (`presearch-reask/RESULTS.md`)
+  300, and `decide.py` replies parsed 312/312, so it is not worth adding to either. This does not carry
+  to Haiku research subagents with Claude Code's WebSearch tool: on 100 of the questions pre-search scored
+  F1 0.353 vs 0.365 without (CI -0.062 to 0.037), while cutting searches from 1.77 to 1.31. That tool's
+  result is links plus a written summary, so pasting it in hands the subagent a guess, not passages. Whether
+  a raw-text retriever on the web would restore the gain is untested, and 100 questions are underpowered: on
+  the same 100, the BM25 arms differed by only 0.005. (`presearch-reask/RESULTS.md`)
 
 - **Run a closed-book arm before scoring document QA on a Wikipedia-derived
   set.** On 20 hard HotpotQA questions with no document, Opus 5.5 answered 17

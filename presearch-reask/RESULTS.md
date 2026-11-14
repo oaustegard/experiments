@@ -6,7 +6,7 @@ options one at a time. Two of them had not been measured in this repo before: **
 pre-search** (send the question verbatim to the search tool once before the model
 starts, outside its tool budget) and a **final-answer turn** (ask once more when a
 rollout ends without an answer). Both were tested on Haiku 5.5, Anthropic's smallest current model,
-called through the Claude Code CLI (`claude -p`) at `--effort low`, its lowest reasoning-effort setting. The model searches by writing a
+called through the Claude Code CLI (`claude -p`); round 1 ran at `--effort low`, its lowest reasoning-effort setting, and round 2 at default effort. The model searches by writing a
 `<search>` tag; it gets a budget of searches and at most budget + 1 model turns, after which the rollout ends. MuSiQue
 questions chain 2 to 4 lookups ("hops"), each needing a different paragraph. The "hub decider" is `scripts/decide.py` in the separate `claude-workspace` repo, which asks Haiku
 fixed-form classification questions and parses a JSON reply; it was checked because a re-ask would only
@@ -14,34 +14,36 @@ be worth adding there if Haiku's replies sometimes fail to parse.
 
 ## Answer
 
-Pre-search is worth adopting; the re-ask is not. The test set was 300 MuSiQue multi-hop questions over a 14,661-paragraph BM25 index.
-Pre-search plus a 3-search tool budget scored F1 0.570 <!-- @evidence[[results/scores.json#arms.PSAG3.all.f1]] -->
-The tool alone scored 0.532 <!-- @evidence[[results/scores.json#arms.AG3.all.f1]] -->
-Pre-search also beat a 4-search budget, which allows the same total of 4 searches (1 pre-search + 3), by 0.045 F1 <!-- @evidence[[results/scores.json#pairs.PSAG3-AG4.all.diff]] -->
-That margin has a 95% CI of 0.008 to 0.083, and pre-search did it with fewer model-written searches (1.11 vs 1.97 per question) and slightly lower cost ($0.0012 vs $0.0014 per question).
-So the gain is not the extra search: allowed 4 searches instead of 3, Haiku wrote only 0.23 more per question on average (1.97 vs 1.74). Why the follow-up searches did better with pre-search is not measured directly; the likely reading is that results for the whole question let Haiku aim its next query at the missing hop.
-The re-ask fired on at most 1 of 300 questions in any arm, and the hub decider at low effort produced 0 unparseable samples out of 312 <!-- @evidence[[results/decider_low.json#unparseable]] -->
-So the re-ask has nothing to recover. The pre-search result rests on one dataset and one retriever.
+Pre-search helped Haiku with a fixed BM25 index, did not help Haiku research subagents on live web search, and the re-ask is not worth adopting.
+On 300 MuSiQue questions over a 14,661-paragraph BM25 index, pre-search plus 3 searches scored F1 0.570 <!-- @evidence[[results/scores.json#arms.PSAG3.all.f1]] -->
+It beat a 4-search budget, the same total of 4 searches, by 0.045 F1 (95% CI 0.008 to 0.083). <!-- @evidence[[results/scores.json#pairs.PSAG3-AG4.all.diff]] -->
+Haiku barely used a fourth search (1.97 vs 1.74 per question), so the gain was not the extra search; the likely cause, not measured directly, is that seeing results for the whole question first improved the follow-up queries.
+With live WebSearch on 100 of the questions, subagents scored F1 0.353 with pre-search and 0.365 without, a difference of -0.012 (CI -0.062 to 0.037). <!-- @evidence[[results/web_scores.json#diff.all.diff]] -->
+It cut searches and run time, but the web tool already returns a written summary, so the pre-search hands Haiku a hedged guess more than evidence.
+The re-ask fired on at most 1 of 300 questions in any arm, and the hub decider at low effort had 0 unparseable samples out of 312. <!-- @evidence[[results/decider_low.json#unparseable]] -->
+A larger web sample could still show a small effect either way; 100 questions only resolve differences of about 0.05 F1.
 
 ## Findings
 
-1. Pre-search plus 3 searches beat 3 searches alone by 0.037 F1 (CI 0.000 to 0.075). <!-- @evidence[[results/scores.json#pairs.PSAG3-AG3.all.diff]] -->
+1. With live web search, pre-search changed how Haiku worked but not how often it was right: F1 0.353 vs 0.365 (CI of the difference -0.062 to 0.037), and gold contained in the answer 0.37 vs 0.39 (CI -0.09 to 0.05). It cut model-written searches from 1.77 to 1.31 per question <!-- @evidence[[results/web_scores.json#arms.PSWEB.searches_per_q]] -->
+   and run time from 18.4 to 14.2 s; 34 of 100 answered from the pre-search alone, against 26 of 100 that answered from memory with no search at all. Run as a separate Haiku call it raised cost per question from $0.024 to $0.031. (`run/web_score.py`, round 2)
+2. Pre-search plus 3 searches beat 3 searches alone by 0.037 F1 (CI 0.000 to 0.075). <!-- @evidence[[results/scores.json#pairs.PSAG3-AG3.all.diff]] -->
    It led 4 searches by 0.045 (CI 0.008 to 0.083). Over 4 searches the lead was +0.031 on 2-hop and +0.059 on 3-4 hop questions; the 3-4 hop CI excludes 0, the 2-hop one does not. (`run/score.py`)
-2. Giving the tool a fourth search did nothing: 4 searches vs 3 differ by -0.008 F1. <!-- @evidence[[results/scores.json#pairs.AG4-AG3.all.diff]] -->
+3. Giving the tool a fourth search did nothing: 4 searches vs 3 differ by -0.008 F1. <!-- @evidence[[results/scores.json#pairs.AG4-AG3.all.diff]] -->
    Haiku used 1.97 searches per question when allowed 4 <!-- @evidence[[results/scores.json#arms.AG4.model_searches_per_q]] -->
    and answered with no search at all on 29 of 300. (`results/search_behaviour.json`)
-3. With pre-search Haiku wrote 1.11 searches per question <!-- @evidence[[results/scores.json#arms.PSAG3.model_searches_per_q]] -->
+4. With pre-search Haiku wrote 1.11 searches per question <!-- @evidence[[results/scores.json#arms.PSAG3.model_searches_per_q]] -->
    and still reached a gold-paragraph recall of 0.602 <!-- @evidence[[results/scores.json#arms.PSAG3.gold_paragraph_recall]] -->
    against 0.525 for the 4-search arm (recall counts every result shown to the model, pre-search included). <!-- @evidence[[results/scores.json#arms.AG4.gold_paragraph_recall]] -->
    Haiku's own first query found gold recall 0.407, <!-- @evidence[[results/search_behaviour.json#AG4.first_query_gold_recall]] -->
    slightly below 0.431 for the verbatim question, <!-- @evidence[[results/search_behaviour.json#PS_verbatim_gold_recall]] -->
    so the first query explains little of the gap; by elimination the rest arises in the follow-up searches, though what made them better was not measured.
-4. The final-answer turn had nothing to do: 1 of 300 questions reached the round cap without an answer in the 3-search arm, 0 in the 4-search arm, and no search past the budget was attempted in any arm. (`results/scores.json` `reask`)
-5. The hub decider (`scripts/decide.py`, 104 items, 3 samples each) at low effort parsed all 312 samples; accuracy 0.808 <!-- @evidence[[results/decider_low.json#report.overall.accuracy]] -->
+5. The final-answer turn had nothing to do: 1 of 300 questions reached the round cap without an answer in the 3-search arm, 0 in the 4-search arm, and no search past the budget was attempted in any arm. (`results/scores.json` `reask`)
+6. The hub decider (`scripts/decide.py`, 104 items, 3 samples each) at low effort parsed all 312 samples; accuracy 0.808 <!-- @evidence[[results/decider_low.json#report.overall.accuracy]] -->
    against 0.846 at default effort; on 104 items one standard error is about 0.04, so the drop is not distinguishable from noise.
-6. Retrieval of any kind carries most of the score. Closed book scored 0.263 F1, <!-- @evidence[[results/scores.json#arms.CB.all.f1]] -->
+7. Retrieval of any kind carries most of the score. Closed book scored 0.263 F1, <!-- @evidence[[results/scores.json#arms.CB.all.f1]] -->
    low enough that most of the questions need the knowledge base; pre-search alone with no tool scored 0.485. <!-- @evidence[[results/scores.json#arms.PS.all.f1]] -->
-7. The whole run (1,500 rollouts) cost $1.48 at list price <!-- @evidence[[results/search_behaviour.json#total]] --> and took 29 minutes at 8 parallel calls.
+8. The whole run (1,500 rollouts) cost $1.48 at list price <!-- @evidence[[results/search_behaviour.json#total]] --> and took 29 minutes at 8 parallel calls.
 
 ## Method
 
@@ -65,6 +67,15 @@ its aliases); paired bootstrap, 10,000 resamples, over the 300 questions. Splits
 hop count and on questions closed book gets wrong (F1 < 0.5). Gold-paragraph recall is the
 share of a question's supporting paragraphs that appeared in any result shown to
 the model.
+
+**Round 2 (web).** 100 of the 300 questions (the first 50 2-hop, 33 3-hop and 17 4-hop in
+`data/eval.jsonl`), run as `claude -p --model haiku` at default effort with WebSearch and WebFetch
+allowed, no search limit and at most 16 turns (`run/web_arms.py`). WEB gets the question; PSWEB also
+gets the raw tool result of one WebSearch on the question verbatim, made first by a separate Haiku call
+that stands in for the orchestrator, whose cost is added to the arm. Tool results were scanned for
+MuSiQue, Hugging Face dataset pages and the dataset's field names; 1 question matched, and dropping it
+changes nothing. A second metric, gold contained in the answer, guards against F1 penalising longer
+answers.
 
 **Decider check.** `run/decider_low.py` wraps the hub's `decide.py` with `--effort
 low` added to its CLI call and counts transport errors, unparseable replies and
@@ -108,3 +119,34 @@ Predictions (PLAN.md) against measurement:
 
 Reading at the time: pre-search is a cheap default for a small model with a search
 tool; the re-ask is not worth carrying into `decide.py`.
+
+### Round 2 — 2026-11-14, research subagents with live web search
+
+Asked: Oskar, *"So this seems worth reaching for especially when using haiku sub agents for research, etc?"*,
+then *"Ok, run that test"*.
+
+| arm | F1 | EM | gold in answer | 2-hop F1 | 3-4 hop F1 | searches/q | fetches/q | no tool use | $/q | wall s/q |
+|---|---|---|---|---|---|---|---|---|---|---|
+| WEB | 0.365 | 0.24 | 0.39 | 0.442 | 0.288 | 1.77 | 0.44 | 26% | 0.024 | 18.4 |
+| PSWEB | 0.353 | 0.20 | 0.37 | 0.430 | 0.277 | 1.31 | 0.33 | 34% | 0.031 | 14.2 |
+
+Paired difference PSWEB - WEB: F1 -0.012 (CI -0.062 to 0.037); 2-hop -0.012, 3-4 hop -0.012, both CIs
+spanning about ±0.07. On the 34 questions PSWEB answered without further tool use it scored 0.478 vs 0.425
+for WEB. Where the two arms differed by more than 0.3 F1, WEB won 7 and PSWEB 6; several PSWEB losses
+were longer answers ("Stanley, North Dakota" for "Stanley"), and PSWEB answers averaged 6.5 tokens vs 5.6.
+The WebSearch tool result is a list of links followed by a written summary that often names a likely
+answer, so the pre-search block is closer to a hedged guess than to the BM25 paragraphs of round 1.
+
+On these same 100 questions round 1 had pre-search plus 3 searches at 0.588 and 3 searches alone at
+0.583, so this subset showed little of round 1's effect even with BM25; 100 questions cannot resolve a
+difference of a few points. Web search scored lower than the closed index (0.365 vs 0.583 for the
+plain-tool arms) because the closed index holds every needed paragraph and the web returns noisier pages.
+
+Predictions: W1 (PSWEB ≥ +0.03) missed, -0.012. W2 (WEB ≤ 2.5 searches, ≥ 10% with none) held, 1.77 and
+26%. W3 (fewer searches with pre-search) held, 1.31 vs 1.77. W4 (no extra cost) missed, $0.031 vs $0.024,
+because the pre-search ran as its own Haiku call. W5 (≥ 5% leakage) missed: 0 pre-search results and 1
+agent result matched. Total cost $5.47, 12.5 minutes at 6 parallel runs.
+
+Reading at the time: do not add pre-search to Haiku research subagents on this evidence. It saves time
+and searches but buys no accuracy, and the orchestrator pays for the extra search.
+
