@@ -41,18 +41,23 @@ for (let i = 0; ; i++) {
 const backend = await page.evaluate(() => document.getElementById("s-backend")?.textContent);
 const t0 = Date.now();
 const clickAt = await page.evaluate(() => performance.now());
-await page.locator(".line button").first().click();
+// TARGET=own clicks Speak on the text box instead of line 1's Play
+const own = process.env.TARGET === "own";
+const SEL = own ? { btn: "#own-play", meta: "#own-meta", words: "#own-words span" } : { btn: ".line button", meta: ".line .meta", words: ".line .words span" };
+if (own && process.env.TEXT) await page.fill("#own-text", process.env.TEXT);
+await page.locator(SEL.btn).first().click();
 const seen = new Set();
 let done = false;
 while (!done && Date.now() - t0 < 300000) {
-  const m = await page.locator(".line .meta").first().textContent();
+  const m = await page.locator(SEL.meta).first().textContent();
   seen.add(m.replace(/\d+ s$/, "N s"));
   if (m.startsWith("Generating")) seen.add(m);
   done = /real time|Error/.test(m) && !/^Playing/.test(m);
   await new Promise((r) => setTimeout(r, 400));
 }
-const state = await page.evaluate((c) => ({ starts: window.__starts.map((x) => ({ after_s: +((x.at - c) / 1000).toFixed(2), samples: x.samples, ctx: x.state })), meta: document.querySelector(".line .meta").textContent,
-  highlighted: document.querySelectorAll(".words span").length }), clickAt);
+const state = await page.evaluate(([c, sel]) => ({ starts: window.__starts.map((x) => ({ after_s: +((x.at - c) / 1000).toFixed(2), samples: x.samples, ctx: x.state })), meta: document.querySelector(sel.meta).textContent,
+  highlighted: document.querySelectorAll(sel.words).length, warn: document.getElementById("own-warn")?.textContent,
+  ps: document.getElementById("own-ps")?.textContent }), [clickAt, SEL]);
 const ticks = [...seen].filter((s) => /^Generating… \d+ s$/.test(s)).length;
 console.log(JSON.stringify({ backend, seconds: (Date.now() - t0) / 1000, clockTicksSeen: ticks, ...state, errors }));
 await browser.close(); server.close();

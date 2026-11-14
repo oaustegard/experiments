@@ -139,9 +139,13 @@ export function sentences(line) {
       if (ps) out.push({ ps, tokens: cur });
       cur = [];
     };
+    // A sentence under `min` phonemes ("Hello.") joins the next: played alone it ends before the next sentence is
+    // made, and the listener hears a gap.
+    const min = 40;
+    const len = () => cur.reduce((a, t) => a + [...t.phonemes].length + (t.ws ? 1 : 0), 0);
     for (const t of chunk.tokens) {
       cur.push(t);
-      if (/^[.!?…]+$/.test(t.phonemes) && t.ws) flush();
+      if (/^[.!?…]+$/.test(t.phonemes) && t.ws && len() >= min) flush();
     }
     flush();
   }

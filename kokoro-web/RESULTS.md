@@ -3,9 +3,9 @@
 Kokoro-82M is the text-to-speech model behind Kinescript's narration. It reports how long each phoneme lasts, so
 every word gets a start and end time, which drive captions and cues. This experiment puts it in a web page with
 onnxruntime-web and asks how small and light it can be made while every word keeps the time the PyTorch model gives
-it and the voice sounds the same. The page speaks a fixed set of lines: their text was turned into phonemes ahead of
-time in Python by misaki, Kokoro's own phonemizer, so the browser runs only the model. Typing your own text would
-need misaki's dictionaries in the page (Finding 2). The page is [live](https://austegard.com/experiments/kokoro-web/web/).
+it and the voice sounds the same. The page speaks ten fixed lines, whose phonemes were worked out ahead of time in
+Python by misaki, Kokoro's own phonemizer, and any text you type, in Muninn's voice, through a JavaScript port of
+misaki's dictionary path (Finding 8). The page is [live](https://austegard.com/experiments/kokoro-web/web/).
 Kokoro's weights and voices are Apache-2.0, kokoro-onnx's export is MIT, and misaki is Apache-2.0.
 
 ## Answer
@@ -35,8 +35,7 @@ and a listening test, since every audio comparison is a measurement.
    against 14.2 between two PyTorch runs. (build round 2, `pitch.py`)
 2. **The model is 95% of the download, the runtime 4%.** As served: model 88.1 MB (brotli), onnxruntime-web's wasm
    3.8 MB (gzip), each voice 0.19 MB, phonemes and page about 10 KB. The model is 95% of it. <!-- @evidence[[results/headline.json#model_share]] -->
-   Phonemizing typed text in the page would add misaki's dictionaries, about 1.4 MB gzip for American or British
-   English. (sizes)
+   Typed text adds misaki's British dictionaries, 1.5 MB gzip. (sizes)
 3. **The browser matches Python onnxruntime.** For the shipped file, all 337 word times are exact, the waveforms
    correlate at 0.967 with Python's run of the same file (two runs of one engine reach 0.985, because the vocoder adds
    random noise), and bands agree within 0.02 dB. The WebGPU backend also gave line 1's 29 word times exactly, on
@@ -57,6 +56,13 @@ and a listening test, since every audio comparison is a measurement.
    file is over GitHub's 100 MB limit, so it lives in a public R2 bucket. Uploaded with `Content-Encoding: br`, it is
    served with that header and with CORS for austegard.com, and the decoded bytes hash the same as the file. Another
    site would host its own copy (`build.py` makes it). (hosting)
+8. **misaki's dictionary path ports to JavaScript closely enough to type into.** `web/g2p.js` replaces spaCy with a
+   small tokenizer and neighbour rules for part of speech, and has no espeak. Against misaki itself (British, espeak
+   off) it gave the same phonemes for 99.4% of the narration's words <!-- @evidence[[results/headline.json#g2p_narration_word_rate]] -->
+   and 98.2% of 2,610 words of this repo's prose. <!-- @evidence[[results/headline.json#g2p_prose_word_rate]] --> The rest are
+   mostly homographs whose reading depends on part of speech ("recall" as a noun, "read" in the past tense). A word in
+   neither dictionary is guessed from at most three dictionary words that spell it (Kinescript → kine + script) or
+   left silent, and the page names it and offers the `[word](/phonemes/)` link. (typed-text round)
 
 ## Method
 
@@ -177,3 +183,29 @@ sentence was ready before the one before it ended, and the line ran 12.2 s again
 was 13.1 s. The rest of the difference is in the speech: a sentence on its own ends as a final sentence does. Word
 times in streaming mode are therefore no longer KPipeline's; the whole-line `speak()` that the PyTorch comparison
 uses is unchanged, and on three lines it gave the same word entries as before the refactor.
+
+### Typed text (2026-11-14)
+
+Oskar: "we should give the user the option to enter their own text for Muninn to speak." `web/g2p.js` ports misaki
+0.9.4's English G2P (lexicon lookup with stress rules, the -s/-ed/-ing stems, special cases for a/an/the/to/in/I/used,
+numbers, currency, links) and KPipeline's chunking; `lexicon-gb.json` carries the British gold and silver dictionaries
+(87k and 110k entries, 5.7 MB, 1.5 MB gzip). spaCy's part-of-speech tags are replaced by neighbour rules: a noun after
+a determiner or preposition, a verb after to, a modal or a subject pronoun, "used" as past tense. `g2p_corpus.py`
+phonemizes 190 sentences with misaki (the narration, 20 edge cases, 160 sentences of this repo's prose) and
+`g2p_check.mjs` compares the port word by word:
+
+| set | words | same phonemes |
+|---|---|---|
+| narration | 338 | 99.4% |
+| edge cases | 192 | 99.0% |
+| prose | 2,610 | 98.2% |
+
+First runs found four bugs, each fixed: a hyphen inside a word read as a dash, decimals read digit by digit where
+misaki goes through Python's float ("1.0" says one), a phoneme link followed by "'s" put the phonemes on the wrong
+token, and all-capital words like NOT spelled out as initials. The edge-case score is two words lower than before the
+guesser, because misaki without espeak leaves those words silent and the port now guesses them.
+
+Typed text plays through the same sentence streaming. A sentence under 40 phonemes now joins the next: "Hello."
+alone played for 1.2 s and left a 2.4 s gap while the next sentence was made. With it joined, the sample text
+started after 4.0 s and played through without a gap. The dictionaries take about 0.7 s to load in Node, and the
+first guess 0.4 s more to index the pieces.
