@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-13T01:50:25.497360+00:00",
+ "last_run": "2026-11-14T01:51:09.159458+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -638,6 +638,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Distills a feedback-conditioned copy of the policy into the live policy, only on turns that fail a judged criterion, inside GRPO-style agentic RL; needs open weights and a large RL run, and no code is released. The transferable design note is to gate corrective feedback to the failing turn rather than the whole context. Evidence is one model, one environment, one run per method, mostly style criteria."
+  },
+  "2611.09501": {
+   "title": "e-means: outperforming k-means (in one-tenth the epochs)",
+   "first_seen": "2026-11-14",
+   "best_rank": 27,
+   "upvotes": 166,
+   "reviewed": "2026-11-14",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "EMA mini-batch centroid updates with cosine-annealed decay, dead-cluster revival and last-epoch-mean finalization match 25-epoch Lloyd/Flash-KMeans in 1.4-2.6 epochs (9.5-45.5x GPU wall-clock, Table 4); code in faiss contrib/e_means. Every result is at k>=16K and n>=1M on H100s, so it does not touch remex's 1-D Lloyd-Max codebooks or remax's brute-force scans; it matters only if he ever trains large-k IVF/PQ codebooks, where the faiss contrib is the drop-in. Haiku rated MEDIUM; downgraded on scale."
   }
  }
 }
