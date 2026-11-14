@@ -2,13 +2,13 @@
 
 HyperSkill (arXiv 2611.15178) credits most of its gain to an "execution protocol" of
 prompt and decoding options that its baselines did not get, and never ablates those
-options one at a time. Two of them had not been measured here before: **question
+options one at a time. Two of them had not been measured in this repo before: **question
 pre-search** (send the question verbatim to the search tool once before the model
 starts, outside its tool budget) and a **final-answer turn** (ask once more when a
 rollout ends without an answer). Both were tested on Haiku 5.5, Anthropic's smallest current model,
-called at `--effort low` (the CLI's lowest reasoning-effort setting). The model searches by writing a
-`<search>` tag; it gets a budget of searches and a round cap of one turn more than the budget, after which
-the rollout ends. The "hub decider" is `scripts/decide.py` in `claude-workspace`, which asks Haiku
+called through the Claude Code CLI (`claude -p`) at `--effort low`, its lowest reasoning-effort setting. The model searches by writing a
+`<search>` tag; it gets a budget of searches and at most budget + 1 model turns, after which the rollout ends. MuSiQue
+questions chain 2 to 4 lookups ("hops"), each needing a different paragraph. The "hub decider" is `scripts/decide.py` in the separate `claude-workspace` repo, which asks Haiku
 fixed-form classification questions and parses a JSON reply; it was checked because a re-ask would only
 be worth adding there if Haiku's replies sometimes fail to parse.
 
@@ -17,11 +17,11 @@ be worth adding there if Haiku's replies sometimes fail to parse.
 Pre-search is worth adopting; the re-ask is not. The test set was 300 MuSiQue multi-hop questions over a 14,661-paragraph BM25 index.
 Pre-search plus a 3-search tool budget scored F1 0.570 <!-- @evidence[[results/scores.json#arms.PSAG3.all.f1]] -->
 The tool alone scored 0.532 <!-- @evidence[[results/scores.json#arms.AG3.all.f1]] -->
-Pre-search also beat a 4-search budget, which gives the model the same number of searches, by 0.045 F1 <!-- @evidence[[results/scores.json#pairs.PSAG3-AG4.all.diff]] -->
-That margin has a 95% CI of 0.008 to 0.083, and pre-search did it with fewer searches and slightly lower cost per question.
-So the gain is not the extra search: allowed 4 searches instead of 3, Haiku wrote only 0.23 more per question on average. Why the follow-up searches did better with pre-search is not measured directly; the likely reading is that results for the whole question let Haiku aim its next query at the missing hop.
-The re-ask fired on 1 of 300 questions per arm, and the hub decider at low effort produced 0 unparseable samples out of 312 <!-- @evidence[[results/decider_low.json#unparseable]] -->
-So the re-ask has nothing to recover. A different backbone or a tighter round cap could change that; the pre-search result rests on one dataset and one retriever.
+Pre-search also beat a 4-search budget, which allows the same total of 4 searches (1 pre-search + 3), by 0.045 F1 <!-- @evidence[[results/scores.json#pairs.PSAG3-AG4.all.diff]] -->
+That margin has a 95% CI of 0.008 to 0.083, and pre-search did it with fewer model-written searches (1.11 vs 1.97 per question) and slightly lower cost ($0.0012 vs $0.0014 per question).
+So the gain is not the extra search: allowed 4 searches instead of 3, Haiku wrote only 0.23 more per question on average (1.97 vs 1.74). Why the follow-up searches did better with pre-search is not measured directly; the likely reading is that results for the whole question let Haiku aim its next query at the missing hop.
+The re-ask fired on at most 1 of 300 questions in any arm, and the hub decider at low effort produced 0 unparseable samples out of 312 <!-- @evidence[[results/decider_low.json#unparseable]] -->
+So the re-ask has nothing to recover. The pre-search result rests on one dataset and one retriever.
 
 ## Findings
 
@@ -32,10 +32,10 @@ So the re-ask has nothing to recover. A different backbone or a tighter round ca
    and answered with no search at all on 29 of 300. (`results/search_behaviour.json`)
 3. With pre-search Haiku wrote 1.11 searches per question <!-- @evidence[[results/scores.json#arms.PSAG3.model_searches_per_q]] -->
    and still reached a gold-paragraph recall of 0.602 <!-- @evidence[[results/scores.json#arms.PSAG3.gold_paragraph_recall]] -->
-   against 0.525 for the 4-search arm. <!-- @evidence[[results/scores.json#arms.AG4.gold_paragraph_recall]] -->
+   against 0.525 for the 4-search arm (recall counts every result shown to the model, pre-search included). <!-- @evidence[[results/scores.json#arms.AG4.gold_paragraph_recall]] -->
    Haiku's own first query found gold recall 0.407, <!-- @evidence[[results/search_behaviour.json#AG4.first_query_gold_recall]] -->
    slightly below 0.431 for the verbatim question, <!-- @evidence[[results/search_behaviour.json#PS_verbatim_gold_recall]] -->
-   so the first query explains little of the gap; the rest arises in the follow-ups.
+   so the first query explains little of the gap; by elimination the rest arises in the follow-up searches, though what made them better was not measured.
 4. The final-answer turn had nothing to do: 1 of 300 questions reached the round cap without an answer in the 3-search arm, 0 in the 4-search arm, and no search past the budget was attempted in any arm. (`results/scores.json` `reask`)
 5. The hub decider (`scripts/decide.py`, 104 items, 3 samples each) at low effort parsed all 312 samples; accuracy 0.808 <!-- @evidence[[results/decider_low.json#report.overall.accuracy]] -->
    against 0.846 at default effort; on 104 items one standard error is about 0.04, so the drop is not distinguishable from noise.
@@ -47,9 +47,9 @@ So the re-ask has nothing to recover. A different backbone or a tighter round ca
 
 **Fixture.** MuSiQue-Answerable dev (HF `bdsaglam/musique`), 300 questions drawn with
 seed 0: 150 2-hop, 100 3-hop, 50 4-hop. The knowledge base is every paragraph of the
-first 1,000 dev questions plus the 300 (14,661 paragraphs after deduplication, so
-each question's 18 MuSiQue distractors are in it). Search is plain BM25 (k1 1.2,
-b 0.75) over `title text`, top 5 per query. HotpotQA was dropped because METHODS.md
+first 1,000 dev questions plus the 300 (14,661 paragraphs after deduplication; each
+question's 20 MuSiQue paragraphs, 2 to 4 supporting and the rest distractors, are in it). Search is plain BM25 (k1 1.2,
+b 0.75) over `title text`, top 5 per query. HotpotQA was not used because METHODS.md
 records it is mostly answered from memory.
 
 **Arms.** All Haiku 5.5 through `claude -p --model haiku --effort low --tools ""`,
@@ -62,7 +62,7 @@ and after answers are scored.
 
 **Metrics.** MuSiQue EM and token F1 (SQuAD normalisation, max over the answer and
 its aliases); paired bootstrap, 10,000 resamples, over the 300 questions. Splits by
-hop count and on questions closed book gets wrong. Gold-paragraph recall is the
+hop count and on questions closed book gets wrong (F1 < 0.5). Gold-paragraph recall is the
 share of a question's supporting paragraphs that appeared in any result shown to
 the model.
 
