@@ -1,0 +1,61 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// The live page's arrangement without a screen: the shipped BotDriver (bot/driver.js) with ?fights=rollout, its
+// own read-step loop, and a frame loop like index.html's that advances the game by wall-clock time and takes the
+// driver's input once per tic. BFS routes stand in for TRM. On SwiftShader everything runs 10-20x slower than on
+// a real GPU, so the game clock runs at `speed` (default 1/15) to keep decisions and game time in proportion.
+// ?map=E1M4&seed=0&tics=700&speed=0.0667&fights=rollout  -> window.RESULT: per-tic trace and summary
+const q = new URLSearchParams(location.search);
+const D = "/oaustegard.github.io/games/doom/";
+try {
+  const { Engine, unpackWad, freshPlayer, W } = await import(D + "engine.js");
+  const { BotDriver } = await import(D + "bot/driver.js");
+  const { OraclePlanner } = await import("../../trm-doom/web/oracle.js");
+  const ad = await navigator.gpu.requestAdapter();
+  const device = await ad.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
+  const wadBytes = new Uint8Array(await (await fetch(D + "e1.wad.gz")).arrayBuffer());
+  const eng = await Engine.create(device, await unpackWad(wadBytes), { width: 320, height: 200, skill: 2, maxWidth: 320, maxHeight: 200 });
+  await eng.loadMap(q.get("map") || "E1M4", { ...freshPlayer(), rng: +(q.get("seed") || 0) & 255 });
+
+  // a BotDriver without BotDriver.create(), which loads TRM: BFS routes, whole-level plans included
+  const drv = Object.create(BotDriver.prototype);
+  const oracle = new OraclePlanner();
+  Object.assign(drv, { device, onStatus: (t) => { drv.lastStatus = t; }, planner: oracle, fast: false, globals: new Map(), cur: {}, gen: 0, plans: 0, planMs: 0 });
+  drv.attach(eng, W);
+  drv.bot.globalPlanner = async () => oracle;
+  if (drv.rollout) drv.rollout.o.slowMs = 1e12; // SwiftShader is slow by design here; keep rollouts on
+
+  const speed = +(q.get("speed") || 1 / 15), maxTics = +(q.get("tics") || 700);
+  const trace = [];
+  let last = performance.now(), acc = 0, tic = 0, inFlight = 0, curSeen = null, staleTics = 0, maxStale = 0;
+  await new Promise((done) => {
+    function frame(now) {
+      if (tic >= maxTics) return done();
+      requestAnimationFrame(frame);
+      if (inFlight >= 2) { last = now; return; }
+      acc += (now - last) * 35 * speed / 1000; last = now;
+      let tics = Math.floor(acc); acc -= tics; if (tics > 4) { tics = 4; acc = 0; }
+      let input = {};
+      if (tics > 0) {
+        // how many tics the driver's input has gone without a fresh step from the bot
+        if (drv.cur === curSeen) { staleTics += tics; maxStale = Math.max(maxStale, staleTics); } else { staleTics = 0; curSeen = drv.cur; }
+        const c = drv.cur;
+        input = drv.input({});
+        const p = drv.bot.s?.p, r = drv.rollout;
+        trace.push([tic, Math.round(input.forward || 0), Math.round(input.side || 0), +(input.turn || 0).toFixed(2), input.fire ? 1 : 0,
+          r?.plan?.name || "", r?.busy ? 1 : 0, staleTics, p ? Math.round(p.x) : null, p ? Math.round(p.y) : null, p?.health ?? null]);
+        tic += tics;
+      }
+      input.frac = acc;
+      const enc = device.createCommandEncoder();
+      eng.encodeFrame(enc, tics, input);
+      device.queue.submit([enc.finish()]);
+      inFlight++; device.queue.onSubmittedWorkDone().then(() => inFlight--);
+    }
+    requestAnimationFrame(frame);
+  });
+  drv.stop();
+  const p = drv.bot.s.p, r = drv.rollout;
+  window.RESULT = { map: q.get("map") || "E1M4", tics: tic, kills: p.kills, health: p.health, dead: p.dead, maxStaleTics: maxStale,
+    decisions: r?.decisions, decisionMs: r ? Math.round(r.ms / Math.max(1, r.decisions)) : null, status: drv.lastStatus, trace };
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>

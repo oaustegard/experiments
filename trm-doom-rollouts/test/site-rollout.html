@@ -22,7 +22,7 @@ try {
   const roll = q.get("arm") === "roll";
   const r = await runLevel({ device, doom, wadBytes, planner, Bot, globalPlanner, map: q.get("map") || "E1M1", skill: +(q.get("skill") || 3),
     maxTics: +(q.get("tics") || 3500), seed: +(q.get("seed") || 0), frameEvery: +(q.get("frames") || 0),
-    wrap: roll ? (bot, fk, ctx, o) => { const r = new RolloutFights(bot, ctx.eng, device, { W: ctx.W, MF: ctx.MF }, { duty: 1, slowMs: 1e9, yieldFn: async () => {}, ...o }); r.decisionsLog = []; Object.defineProperty(r, "stats", { get: () => ({ ...bot.stats, rollout: { decisions: r.decisions, meanMs: Math.round(r.ms / Math.max(1, r.decisions)), chosen: {} } }) }); Object.defineProperty(r, "events", { get: () => bot.events }); return r; } : null, wrapOpts: JSON.parse(q.get("opts") || "{}"),
+    wrap: roll ? (bot, fk, ctx, o) => { const r = new RolloutFights(bot, ctx.eng, device, { W: ctx.W, MF: ctx.MF }, { duty: 1, slowMs: 1e9, blocking: true, yieldFn: async () => {}, ...o }); r.decisionsLog = []; Object.defineProperty(r, "stats", { get: () => ({ ...bot.stats, rollout: { decisions: r.decisions, meanMs: Math.round(r.ms / Math.max(1, r.decisions)), chosen: {} } }) }); Object.defineProperty(r, "events", { get: () => bot.events }); return r; } : null, wrapOpts: JSON.parse(q.get("opts") || "{}"),
     onProgress: (f, d) => console.log("progress " + JSON.stringify(d)) });
   if (r.frames.length) {
     const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode(...u8.subarray(i, i + 8192)); return btoa(s); };
