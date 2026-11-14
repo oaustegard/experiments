@@ -3583,6 +3583,14 @@ The traps, each of which cost a revision:
   flagged, 44 vs 0 with upstream comments, free-identifier recall 0.689 vs 0.303; the 5 neat*
   flags were all dictated by the binary. (`swarm-decomp/pipeline/contamination.py`)
 
+- **Give a small model with a search tool the results for its question before it starts.** Haiku 5.5 at
+  `--effort low` with a BM25 search tool on 300 MuSiQue questions: one search on the verbatim question,
+  prepended outside the budget, lifted F1 from 0.532 to 0.570 and beat a budget raised from 3 to 4 searches by
+  0.045 (CI 0.008 to 0.083). The extra budget did nothing (-0.008): Haiku stops early (1.97 searches of 4, and
+  29/300 answered with none), so a bigger budget is not a substitute. With the results in front of it Haiku
+  searched less (1.11) and found more gold paragraphs (0.602 vs 0.525). A re-ask on a missing answer fired on
+  1/300 and is not worth building for Haiku. (`presearch-reask/RESULTS.md`)
+
 - **Run a closed-book arm before scoring document QA on a Wikipedia-derived
   set.** On 20 hard HotpotQA questions with no document, Opus 5.5 answered 17
   and Sonnet 5 answered 15, so only 3 to 5 questions tested reading at all, and
