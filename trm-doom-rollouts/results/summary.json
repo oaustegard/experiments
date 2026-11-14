@@ -297,6 +297,27 @@
   {
    "gpu": "swiftshader-bfs",
    "map": "E1M6",
+   "seed": 74,
+   "base": {
+    "result": "dead",
+    "seconds": 68.8,
+    "kills": 10,
+    "health": 0,
+    "decisions": null,
+    "decisionMs": null
+   },
+   "roll": {
+    "result": "timeout",
+    "seconds": 200,
+    "kills": 36,
+    "health": 74,
+    "decisions": 651,
+    "decisionMs": 7034
+   }
+  },
+  {
+   "gpu": "swiftshader-bfs",
+   "map": "E1M6",
    "seed": 111,
    "base": {
     "result": "dead",
@@ -377,36 +398,56 @@
    "meanDecisionMs": 434
   },
   "swiftshader-bfs": {
-   "pairs": 11,
+   "pairs": 12,
    "base": {
-    "deaths": 11,
+    "deaths": 12,
     "exits": 0,
-    "kills": 194
+    "kills": 204
    },
    "roll": {
     "deaths": 1,
     "exits": 0,
-    "kills": 424
+    "kills": 460
    },
    "pairsRollDiedBaseLived": 0,
-   "pairsBaseDiedRollLived": 10,
-   "pairsRollMoreKills": 10
+   "pairsBaseDiedRollLived": 11,
+   "pairsRollMoreKills": 11
   },
   "all": {
-   "pairs": 17,
+   "pairs": 18,
    "base": {
-    "deaths": 15,
+    "deaths": 16,
     "exits": 0,
-    "kills": 278
+    "kills": 288
    },
    "roll": {
     "deaths": 1,
     "exits": 1,
-    "kills": 627
+    "kills": 663
    },
    "pairsRollDiedBaseLived": 0,
-   "pairsBaseDiedRollLived": 14,
-   "pairsRollMoreKills": 14
+   "pairsBaseDiedRollLived": 15,
+   "pairsRollMoreKills": 15,
+   "survivalSignP": 6.1e-05,
+   "pairsRollFewerKills": 3,
+   "killsSignP": 0.0075,
+   "pairsBothDied": 1
   }
+ },
+ "decisions": {
+  "total": 7688,
+  "keptBotShare": 0.482,
+  "chosen": {
+   "toward": 1317,
+   "stand": 1209,
+   "right": 508,
+   "bot": 3709,
+   "left": 552,
+   "away": 393
+  }
+ },
+ "macBaselineAllSeeds": {
+  "runs": 18,
+  "deaths": 12
  }
 }

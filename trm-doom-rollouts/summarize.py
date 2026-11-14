@@ -43,3 +43,28 @@ for p in out["pairs"]:
     f = lambda x: f'{x["result"]:8} {x["seconds"]:>6}s k{x["kills"]:<3}'
     print(f'{p["gpu"]:16} {p["map"]} s{p["seed"]:<4} base {f(p["base"])} | roll {f(p["roll"])}')
 print(json.dumps(out["sets"], indent=1))
+
+# sign tests over the pairs, and how often the rollouts kept the bot's own move
+from math import comb
+def two_sided(k, n): return min(1.0, 2 * sum(comb(n, i) for i in range(k, n + 1)) / 2 ** n)
+A = out["sets"]["all"]
+disc = A["pairsBaseDiedRollLived"] + A["pairsRollDiedBaseLived"]
+fewer = sum(p["roll"]["kills"] < p["base"]["kills"] for p in out["pairs"])
+A["survivalSignP"] = float(f"{two_sided(A['pairsBaseDiedRollLived'], disc):.2g}")
+A["pairsRollFewerKills"] = fewer
+A["killsSignP"] = float(f"{two_sided(A['pairsRollMoreKills'], A['pairsRollMoreKills'] + fewer):.2g}")
+A["pairsBothDied"] = sum(p["base"]["result"] == "dead" and p["roll"]["result"] == "dead" for p in out["pairs"])
+chosen, dec = {}, 0
+for f in glob.glob(str(HERE / "results/runs/sw-oracle-roll-*.json")) + glob.glob(str(HERE / "results/bridge/*/result.json")):
+    d = json.loads(Path(f).read_text())
+    runs = (d.get("outputs") or {}).get("runs", []) if "outputs" in d else [d]
+    for r in runs:
+        ro = (r.get("stats") or {}).get("rollout")
+        if not ro or r.get("arm", "roll") != "roll" or ("bridge" in f and r.get("map") is None): continue
+        for k, v in ro["chosen"].items(): chosen[k] = chosen.get(k, 0) + v
+        dec += ro["decisions"]
+out["decisions"] = {"total": dec, "keptBotShare": round(chosen.get("bot", 0) / dec, 3), "chosen": chosen}
+bm = [r for f in glob.glob(str(HERE / "results/bridge/rollfight-base-*/result.json")) for r in (json.loads(Path(f).read_text()).get("outputs") or {}).get("runs", [])]
+out["macBaselineAllSeeds"] = {"runs": len(bm), "deaths": sum(r["result"] == "dead" for r in bm)}
+(HERE / "results/summary.json").write_text(json.dumps(out, indent=1))
+print(json.dumps({k: A[k] for k in ("survivalSignP", "killsSignP", "pairsRollFewerKills", "pairsBothDied")}), json.dumps(out["decisions"]), json.dumps(out["macBaselineAllSeeds"]))

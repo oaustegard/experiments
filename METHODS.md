@@ -3555,6 +3555,27 @@ The traps, each of which cost a revision:
 - **Rule.** Before blaming the scoring, check that a planner of this kind can finish a plan, and that
   every target it is pulled toward can actually be reached. (`doom-planner/RESULTS.md`)
 
+### Forking a GPU-resident game is a buffer copy (trm-doom-rollouts)
+
+- **When a game's whole state lives in GPU storage buffers, `copyBufferToBuffer` aside and back is a fork.**
+  gPu(doom) keeps it in four (sectors, things, line state, World). A restored game replayed 175 tics matched
+  the original word for word, except a bit only drawing sets (the automap's "seen" flag). Tics run without
+  drawing by recording `encodeFrame` into an encoder that is never submitted, since the engine submits the
+  tic kernels itself: 6.8 ms a tic against 38 ms drawn on SwiftShader. Check a fork the same way: replay with
+  the same inputs and hash every buffer.
+- **A rollout's horizon has to reach the first consequence.** At 1 s nearly every combat rollout scored 0 for
+  every move (no shot lands within a second), so the choice fell to tie-breaks; at 2 s, 35 of 37 decisions
+  told the moves apart.
+- **Rollouts in fights only, on top of a scripted bot, are cheap and decisive.** Over 18 same-seed pairs on
+  E1M4 to E1M6 the scripted bot died 16 times and the same bot with rollout fights once. On an Apple GPU a
+  decision of 840 rollout tics took 434 ms. (`trm-doom-rollouts/RESULTS.md`)
+- **Sustained WebGPU load on a laptop needs breaks.** Three 7 to 9 minute rollout jobs back to back on the GPU
+  bridge drove a Mac to a forced shutdown, and an iPhone tab lost its WebGPU device on both jobs it took.
+  Queue one long job at a time and leave cooling time, or duty-cycle the work inside the job.
+- **A learned planner that is fast on a GPU can be unusable on SwiftShader.** The trm-doom TRM planner did
+  not finish 77 s of game in 50 minutes on SwiftShader. Test the control flow with the exact planner it
+  imitates (BFS), and keep TRM runs for a real GPU.
+
 ## Cache and measurement hygiene
 
 - **A byte-matching decompilation runner has to compare relocations by target, and has to be

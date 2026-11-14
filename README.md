@@ -1,7 +1,7 @@
 # Experiments
 
 Research and build experiments by Oskar Austegard and Muninn, his Claude-based
-assistant: 236 of them as of 2026-11-12, one directory each. Most fall into a
+assistant: 241 of them as of 2026-11-14, one directory each. Most fall into a
 few threads: small models running in the browser on hand-written WebGPU
 kernels, embedding compression (remex), small decision models and LoRA
 adapters, and WebGPU toys, games and media.
@@ -26,6 +26,7 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`trm-doom-rollouts/`](trm-doom-rollouts/RESULTS.md) | 2026-11-14 | **done — the trm-doom bot (TRM routes, scripted fights) with fights decided by playing 6 moves 2 s ahead in copies of the game on the GPU. Over 18 same-seed pairs on Freedoom E1M4–E1M6 (200 s each): deaths 16 → 1, kills 288 → 663, exits 0 → 1. Forking gPu(doom) is a copy of four GPU buffers. 6 pairs on a Mac with TRM routes, 12 on SwiftShader with BFS routes, since TRM was too slow there; the Mac overheated on the third rollout job.** | [`RESULTS.md`](trm-doom-rollouts/RESULTS.md) | Oskar, 2026-11-14: "Let's test it to see if our gpu(doom) bot can get better" |
 | [`presearch-reask/`](presearch-reask/RESULTS.md) | 2026-11-14 | **done — two options from HyperSkill's execution protocol (arXiv 2611.15178) tested on Haiku 5.5 at `--effort low`, 300 MuSiQue questions over a 14,661-paragraph BM25 index. Sending the question verbatim to search once before the model starts lifted F1 from 0.532 (3-search tool) to 0.570, and beat a 4-search budget by 0.045 (CI 0.008 to 0.083) with fewer searches (1.11 vs 1.97 per question): Haiku leaves extra searches unused, and (likely, not measured) seeing results first improves its follow-ups. A re-ask for a missing final answer fired on 1 of 300; the claude-workspace `scripts/decide.py` classifier at low effort parsed 312/312 replies, so there is nothing for a re-ask to recover there either. Round 2: Haiku research subagents with live WebSearch on 100 of the questions gained nothing from pre-search (F1 0.353 vs 0.365, CI -0.062 to 0.037); it cut searches 1.77 to 1.31 and run time 18 to 14 s but raised cost $0.024 to $0.031 per question as a separate call, and the web tool's results already carry a written summary. $1.48 + $5.47** | [`RESULTS.md`](presearch-reask/RESULTS.md) + [`PLAN.md`](presearch-reask/PLAN.md) + `run/prep.py` + `run/bm25.py` + `run/arms.py` + `run/score.py` + `run/decider_low.py` + `run/web_arms.py` + `run/web_score.py` + `results/` | Oskar, after the HyperSkill review: *"Is there anything in the scaffolding that may be a target for adoption?"*, then *"Ok try those two. Probably need to run them against Haiku on Low"*; round 2 after *"So this seems worth reaching for especially when using haiku sub agents for research, etc?"*. The two were pre-search and the re-ask, the only protocol options not already measured in this repo. |
 | [`emeans-explainer/`](emeans-explainer/README.md) | 2026-11-13 | **done — a 2½-minute narrated Kinescript explainer in the Muninn brand: Lloyd's k-means vs e-means, the 61-job timing grid (mostly lower bounds), where e-means falls short (synthetic data under 25 points per cluster; 3-d data past ~1,000 centres in faiss), centroid codes for a ColBERT index (1-bit 0.751 vs 2-bit 0.746 at the same 2.3 KB on SciFact), and why the trainer barely moved ranking** | [`README.md`](emeans-explainer/README.md) + `explainer.mp4` | Oskar, 2026-11-13: "I think we need an explainer post once you're done" and "Sure, go for video" |
 | [`emeans-pooled-residual/`](emeans-pooled-residual/RESULTS.md) | 2026-11-13 | **done — LateOn token vectors, merged by hierarchical (Ward) pooling and quantized with remex, coded relative to the nearest of 1k–16k k-means centroids instead of one corpus mean: +0.010 to +0.021 nDCG@10 at 1 bit on SciFact and NFCorpus, smaller and mostly not significant at 2 bits. On these small corpora the shared centroid table costs as much as the saved bit, so the two codings tie at similar size; a corpus large enough to spread the table thin would save ~36% (arithmetic). The k-means trainer barely moves retrieval. Clustering grid (n to 1M, k to 16k, d 3–768): in all 35 jobs at d ≥ 32 with ≥ 25 points per cluster two e-means passes finished 1.4–12.3× sooner than 25 full-data Lloyd rounds and ended at 0.81–1.009 of their error (faiss's default subsampling Lloyd not measured), ends at higher error below ~25 points per cluster on synthetic data (not on the real tokens at 18), and at d = 3 is slower than Lloyd from k ≈ 256, where faiss's full pass is unusually cheap and its batched assignment costs up to 52× more per distance; the PyTorch version is slower there from k = 4,096** | [`RESULTS.md`](emeans-pooled-residual/RESULTS.md) + `summary.json`, `fig_frontier.png`, `fig_grid.png` | Oskar, 2026-11-13, after LookAtMyQuant 2: "What about our document vector pooling we just did earlier today?" and "Can we determine some form of heuristic for where it pays off on a speed/size/efficiency Pareto frontier?" |
@@ -268,6 +269,13 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `trm-doom-rollouts/` — rollout fights for the trm-doom bot
+
+`web/fork.js` saves and restores gPu(doom)'s four state buffers and runs undrawn tics; `web/combat.js` wraps the
+unchanged trm-doom `Bot` and, in a fight, plays 6 moves for 70 tics in 2 reseeded copies each before choosing.
+Both arms ran on the same level, seed and code: on a Mac through the GPU bridge (`bridge/job.js`, TRM routes)
+and on SwiftShader across four containers (`test/batch2.sh`, BFS routes). `summarize.py` pairs them.
 
 ### `presearch-reask/` — question pre-search and a final-answer re-ask for Haiku with a search tool
 
