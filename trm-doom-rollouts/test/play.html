@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// One level, headless: ?map=E1M4&skill=2&tics=7000&seed=0&arm=base|roll&planner=oracle|trm&opts={"horizon":35}
+import { runLevel } from "../web/runner.js";
+import { RolloutBot } from "../web/combat.js";
+import { Bot } from "../../trm-doom/web/bot.js";
+import { OraclePlanner } from "../../trm-doom/web/oracle.js";
+import { TRMPlanner } from "../../trm-doom/web/trm.js";
+const q = new URLSearchParams(location.search);
+const D = "/oaustegard.github.io/games/doom/";
+try {
+  const doom = { engine: await import(D + "engine.js"), info: await import(D + "info.js"), specials: await import(D + "specials.js") };
+  const ad = await navigator.gpu.requestAdapter();
+  const device = await ad.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
+  const wadBytes = await (await fetch(D + "e1.wad.gz")).arrayBuffer();
+  let planner, globalPlanner;
+  if (q.get("planner") === "trm") {
+    const wb = new Float32Array(await (await fetch(D + "bot/trm.bin")).arrayBuffer()), man = await (await fetch(D + "bot/trm.json")).json();
+    planner = await TRMPlanner.create(device, wb, man);
+    const cache = new Map();
+    globalPlanner = async (n) => { if (!cache.has(n)) cache.set(n, await TRMPlanner.create(device, wb, man, { w: n, h: n })); return cache.get(n); };
+  } else { planner = new OraclePlanner(); globalPlanner = async () => planner; }
+  const roll = q.get("arm") === "roll";
+  const r = await runLevel({ device, doom, wadBytes, planner, Bot, globalPlanner, map: q.get("map") || "E1M1", skill: +(q.get("skill") || 3),
+    maxTics: +(q.get("tics") || 3500), seed: +(q.get("seed") || 0), frameEvery: +(q.get("frames") || 0),
+    wrap: roll ? (bot, fk, ctx, o) => new RolloutBot(bot, fk, ctx, o) : null, wrapOpts: JSON.parse(q.get("opts") || "{}"),
+    onProgress: (f, d) => console.log("progress " + JSON.stringify(d)) });
+  if (r.frames.length) {
+    const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode(...u8.subarray(i, i + 8192)); return btoa(s); };
+    r.frames = r.frames.map(b64); r.palette = Array.from(r.palette);
+  } else { delete r.frames; delete r.palette; }
+  window.RESULT = r;
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>

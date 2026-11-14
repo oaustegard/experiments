@@ -1,0 +1,54 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// Fork check: does a restored game continue exactly as the original, with and without drawing? And how fast
+// are undrawn tics and small readbacks on this GPU? ?map=E1M1&skill=3
+import { Forker } from "../web/fork.js";
+const q = new URLSearchParams(location.search);
+const D = q.get("doom") || "/oaustegard.github.io/games/doom/";
+try {
+  const { Engine, unpackWad, freshPlayer, W } = await import(D + "engine.js");
+  const ad = await navigator.gpu.requestAdapter();
+  const device = await ad.requestDevice({ requiredLimits: { maxStorageBufferBindingSize: ad.limits.maxStorageBufferBindingSize, maxBufferSize: ad.limits.maxBufferSize } });
+  const wadBytes = new Uint8Array(await (await fetch(D + "e1.wad.gz")).arrayBuffer());
+  const eng = await Engine.create(device, await unpackWad(wadBytes), { width: 320, height: 200, skill: +(q.get("skill") || 3), maxWidth: 320, maxHeight: 200 });
+  await eng.loadMap(q.get("map") || "E1M1", { ...freshPlayer(), rng: 0 });
+  const fk = new Forker(eng, device);
+  const inputAt = (t) => ({ forward: (t >> 5) & 1 ? 50 : 25, side: (t >> 4) & 1 ? 20 : -20, turn: (t >> 6) & 1 ? 0.04 : -0.03, fire: t % 9 === 0 });
+  const drawTic = (t) => { const enc = device.createCommandEncoder(); eng.encodeFrame(enc, 1, { ...inputAt(t), frac: 1 }); device.queue.submit([enc.finish()]); };
+  const SKIP = new Set([W.lastframe, W.rx, W.ry, W.rz, W.ra, W.mrng, W.face, W.facecount, W.facepri, W.viscount]);
+  const snap = async () => {
+    const bs = fk.live(); const out = await fk.read(bs.map((b) => [b, 0, b.size]));
+    const h = (u, skip) => { let x = 2166136261 >>> 0; for (let i = 0; i < u.length; i++) { if (skip && skip.has(i)) continue; x = Math.imul(x ^ u[i], 16777619) >>> 0; } return x.toString(16); };
+    const u = out.map((a) => new Uint32Array(a));
+    return { sec: h(u[0]), mobj: h(u[1]), ls: h(u[2]), world: h(u[3], SKIP), worldRaw: u[3] };
+  };
+  const N0 = 120, N = 175;
+  for (let t = 0; t < N0; t++) drawTic(t);
+  fk.save();
+  for (let t = N0; t < N0 + N; t++) drawTic(t);
+  const A = await snap();
+  fk.restore();
+  let t0 = performance.now();
+  for (let t = N0; t < N0 + N; t++) fk.tic(inputAt(t));
+  await device.queue.onSubmittedWorkDone();
+  const undrawnMs = (performance.now() - t0) / N;
+  const B = await snap();
+  fk.restore();
+  t0 = performance.now();
+  for (let t = N0; t < N0 + N; t++) drawTic(t);
+  await device.queue.onSubmittedWorkDone();
+  const drawnMs = (performance.now() - t0) / N;
+  const C = await snap();
+  // reseeded: same inputs, another random-number index
+  fk.restore(); fk.setWord(W.rng, 77);
+  for (let t = N0; t < N0 + N; t++) fk.tic(inputAt(t));
+  const R = await snap();
+  // small readback latency: world + two things
+  t0 = performance.now();
+  for (let i = 0; i < 20; i++) await fk.read([[eng.worldBuf, 0, 1280], [eng.mobjBuf, 0, 128], [eng.mobjBuf, 128 * 5, 128]]);
+  const readMs = (performance.now() - t0) / 20;
+  const diffW = (a, b) => { const o = []; for (let i = 0; i < a.length; i++) if (a[i] !== b[i] && !SKIP.has(i)) o.push(i); return o.slice(0, 20); };
+  const pick = (s) => ({ sec: s.sec, mobj: s.mobj, ls: s.ls, world: s.world, health: new Int32Array(s.worldRaw.buffer)[W.health], kills: new Int32Array(s.worldRaw.buffer)[W.killcount] });
+  window.RESULT = { A: pick(A), B: pick(B), C: pick(C), R: pick(R), worldDiffAB: diffW(A.worldRaw, B.worldRaw), worldDiffAC: diffW(A.worldRaw, C.worldRaw),
+    undrawnMsPerTic: +undrawnMs.toFixed(2), drawnMsPerTic: +drawnMs.toFixed(2), readMs: +readMs.toFixed(2), maxMobjs: eng.maxMobjs, mobjBytes: eng.mobjBuf.size };
+} catch (e) { window.RESULT = { error: String(e.stack || e) }; }
+</script>
