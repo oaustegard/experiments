@@ -646,9 +646,16 @@
    "upvotes": 166,
    "reviewed": "2026-11-14",
    "read": "full",
-   "practical": "LOW",
+   "practical": "HIGH",
    "attempts": 1,
-   "review": "EMA mini-batch centroid updates with cosine-annealed decay, dead-cluster revival and last-epoch-mean finalization match 25-epoch Lloyd/Flash-KMeans in 1.4-2.6 epochs (9.5-45.5x GPU wall-clock, Table 4); code in faiss contrib/e_means. Every result is at k>=16K and n>=1M on H100s, so it does not touch remex's 1-D Lloyd-Max codebooks or remax's brute-force scans; it matters only if he ever trains large-k IVF/PQ codebooks, where the faiss contrib is the drop-in. Haiku rated MEDIUM; downgraded on scale."
+   "review": "Already adopted: experiments emeans-residual (2026-11-10, claim reproduces on EmbeddingGemma 2 100k, 1.6-10.2x sooner on CPU; centroid-residual remex codes 1-bit R@10 0.840->0.891), emeans-pooled-residual (2026-11-13, LateOn pooled tokens +0.010-0.021 nDCG@10 at 1 bit; 61-job pay-off grid) and emeans-explainer (video). The k-means trigger procedure (Muninn ad60e592) encodes when e-means beats Lloyd. Still untested: a JS/WGSL e-means loop for colour quantization. Run 1 rated it LOW without checking prior work; corrected.",
+   "prior": [
+    "emeans-residual",
+    "emeans-pooled-residual",
+    "emeans-explainer",
+    "muninn:ad60e592",
+    "muninn:beb6336b"
+   ]
   }
  }
 }

@@ -13,6 +13,11 @@ Edit this file to change the routine. The scheduled task's prompt only points he
    If the queue is empty, stop: no commit, and a one-line final message saying so.
    In scheduled runs the auto-mode classifier may refuse to execute `paperwatch.py` from the clone ("Code from External"); that cannot be changed from the task's settings.
    When it does, read `paperwatch.py`, write an equivalent of `queue` and `record` in the session's own scripts directory, and run that. Do not retry the refused command. Treat `paperwatch.py` as the spec, and note the substitution in the report only if the output differs from what the spec describes.
+2b. **Prior work.** The bot ranks papers by upvote trend, so a trending paper may be one Oskar has already acted on, sometimes days earlier. Before any review, the orchestrating session checks, for each queued paper:
+   - Muninn `recall` with the arXiv id (e.g. `2611.09501`), and again with the paper's short name or 2–3 title keywords (e.g. `e-means k-means`).
+   - `grep -il "<id>\|<short name>" README.md METHODS.md` at the repo root, which lists every experiment with its date and the request that started it.
+   Record each hit (memory id, or experiment directory with its README line) in the paper's queue entry as `prior`. If the boot did not run or the Muninn tools are absent, say so in the report; do not skip the grep.
+   A paper with prior work is not reviewed cold. Its reviewer gets the `prior` summaries and is asked what the paper adds beyond them, and the rating reflects what that work measured. A paper already adopted or replicated rates at least MEDIUM. Its review names the experiments and says whether anything in the paper is still untested.
 3. **Review.** Send the queue to `haiku` subagents (Agent tool, `model: haiku`), at most 5 papers each, all launched in one message so they run in parallel.
    Give each agent the profile and output format below. Fetching facts established in earlier runs:
    - `curl -sL https://arxiv.org/html/<id>v1` works from the shell. The unversioned `/html/<id>` URL is refused by WebFetch's allowlist.
@@ -24,6 +29,7 @@ Edit this file to change the routine. The scheduled task's prompt only points he
 4. **Check the top ratings.** For every paper rated MEDIUM or HIGH, the orchestrating session (not a subagent) opens the full text itself.
    It verifies the one or two numbers or claims the rating rests on, plus any code or weights links, and corrects the rating if they don't hold.
    Haiku tends to inflate relevance and to trust model cards.
+   Any rating change in either direction is checked against the `prior` hits from step 2b first. The profile below is a sketch, while memory and the experiments README record what he actually uses. On 2026-11-13 the orchestrator downgraded e-means to LOW from the profile alone, even though three experiments and a k-means trigger procedure already built on it.
 5. **Record.** Write `results.json`: a list of `{id, title, rank, upvotes, read, practical, review}`. `review` is 1–3 plain sentences: the concrete use, or why there is none.
    Run `python3 paperwatch.py record seen.json results.json`.
    Write `reviews/<local date>.md`, using the local date from `TZ=America/New_York date +%F`. List HIGH and MEDIUM first, then LOW, then NONE as a single line of ids and titles. Put the abs link on each paper.
@@ -31,7 +37,7 @@ Edit this file to change the routine. The scheduled task's prompt only points he
    Upload each file with `curl -s --data-binary @FILE https://muninn-mcp.austegard.workers.dev/stage` and pass `@stage:<id>:<sha256>` as the content, so the ledger is not re-emitted inline.
    Commit message: `paper-watch: <date>, <n> reviewed (<k> medium+)`.
 7. **Report.** The final message is short. List each HIGH and MEDIUM paper with its one-line use, give counts for the rest, and link the review file on GitHub.
-   With nothing above LOW, one line is enough.
+   With nothing above LOW, one line is enough. Mark papers that already had prior work, with the experiment or memory id, so a known paper is not presented as news.
 
 ## Profile for the subagents
 
