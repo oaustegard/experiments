@@ -7,7 +7,7 @@ name, query = sys.argv[1], sys.argv[2]
 tmo = int(sys.argv[3]) if len(sys.argv) > 3 else 7200
 env = dict(os.environ, NODE_PATH=subprocess.run(["npm", "root", "-g"], capture_output=True, text=True).stdout.strip())
 t0 = time.time()
-p = subprocess.run(["node", str(HERE / "run_page.cjs"), "test/play.html", str(tmo), query], capture_output=True, text=True, env=env, cwd=HERE.parent)
+p = subprocess.run(["node", str(HERE / "run_page.cjs"), os.environ.get("PLAY_PAGE", "test/play.html"), str(tmo), query], capture_output=True, text=True, env=env, cwd=HERE.parent)
 out = p.stdout
 i = out.find("\n{")
 try: r = json.loads(out[i:] if i >= 0 else out[out.find("{"):])
