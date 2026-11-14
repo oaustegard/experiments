@@ -150,3 +150,13 @@ made it cross-origin isolated (4 wasm threads), the model came from R2 brotli-en
 4.0 s, the session started in 2.4 s, and line 1 (29 words, 10.8 s of speech) took 8.8 s, with no page errors. The
 first deploy failed: Pages publishes only listed web file types, and `.f16` was not one, so the voice packs are
 now `.f16.bin`.
+
+### Play button fix (2026-11-14)
+
+Oskar: "Nothing happens when I hit Play." The click started generation with no sign of it (a line takes about as
+long as its own audio on 4 threads), the page froze while onnxruntime ran on the main thread, and the
+AudioContext was created after that wait, outside the click, where Safari and some Chrome states keep it
+suspended and silent. Now the click creates and resumes the AudioContext before anything else, onnxruntime runs in
+its worker (`ort.env.wasm.proxy`), a "Generating… N s" clock shows progress, errors show on the line, and a line is
+generated once and replayed. `click_check.mjs` clicks Play in headless Chromium with gestures required for audio:
+the clock ticked 9 times during the 8.5 s generation, a sound source started, and all 29 words got highlight spans.

@@ -90,6 +90,8 @@ const ortModule = await import(ORT + (EP === "webgpu" ? "ort.webgpu.min.mjs" : "
 const ort = ortModule.default ?? ortModule;
 ort.env.wasm.wasmPaths = ORT;
 ort.env.wasm.numThreads = crossOriginIsolated ? THREADS : 1;
+// Run onnxruntime in a worker so the page keeps painting (and the Generating clock ticks) while a line is made.
+ort.env.wasm.proxy = EP === "wasm" && q.get("proxy") !== "0";
 const [vocab, lines] = await Promise.all(["vocab.json", "lines.json"].map((u) => fetch(u).then((r) => r.json())));
 const speakers = [...new Set(lines.flatMap((l) => l.speaker.split(",")))];
 const packs = {};
@@ -120,9 +122,14 @@ status.textContent = "Ready. Press play on a line.";
 
 const blends = {};
 const packFor = (speaker) => (blends[speaker] ??= K.blend(packs, speaker));
+// The AudioContext is made and resumed inside the click itself: browsers (Safari above all) keep one made later,
+// after the seconds of generation, suspended and silent. The default sample rate is used; a 24 kHz buffer plays in it.
 let ctx;
+function unlockAudio() {
+  ctx ??= new AudioContext();
+  if (ctx.state !== "running") ctx.resume();
+}
 function play(audio, spans, words) {
-  ctx ??= new AudioContext({ sampleRate: K.SAMPLE_RATE });
   const buf = ctx.createBuffer(1, audio.length, K.SAMPLE_RATE);
   buf.copyToChannel(audio, 0);
   const src = ctx.createBufferSource();
@@ -146,16 +153,28 @@ for (const line of lines) {
   wordsEl.textContent = line.text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
   const meta = document.createElement("div"); meta.className = "meta";
   body.append(wordsEl, meta); row.append(btn, body); linesEl.append(row);
+  let made, spans; // a line is generated once; Play again replays it
   btn.onclick = async () => {
+    unlockAudio();
     btn.disabled = true;
-    const r = await K.speak(model, vocab, packFor(line.speaker), line);
-    wordsEl.innerHTML = "";
-    const spans = r.words.map((w) => { const s = document.createElement("span"); s.textContent = w.word; return s; });
-    spans.forEach((s, k) => wordsEl.append(s, k < spans.length - 1 ? " " : ""));
-    const secs = r.audio.length / K.SAMPLE_RATE;
-    meta.textContent = `${secs.toFixed(1)} s of speech made in ${(r.ms / 1000).toFixed(2)} s (${(secs / (r.ms / 1000)).toFixed(1)}× real time)`;
-    play(r.audio, spans, r.words);
-    btn.disabled = false;
+    try {
+      if (!made) {
+        const t0 = performance.now();
+        const clock = setInterval(() => (meta.textContent = `Generating… ${((performance.now() - t0) / 1000).toFixed(0)} s`), 250);
+        meta.textContent = "Generating…";
+        try { made = await K.speak(model, vocab, packFor(line.speaker), line); } finally { clearInterval(clock); }
+        wordsEl.innerHTML = "";
+        spans = made.words.map((w) => { const s = document.createElement("span"); s.textContent = w.word; return s; });
+        spans.forEach((s, k) => wordsEl.append(s, k < spans.length - 1 ? " " : ""));
+        const secs = made.audio.length / K.SAMPLE_RATE;
+        meta.textContent = `${secs.toFixed(1)} s of speech made in ${(made.ms / 1000).toFixed(2)} s (${(secs / (made.ms / 1000)).toFixed(1)}× real time)`;
+      }
+      play(made.audio, spans, made.words);
+    } catch (e) {
+      meta.textContent = `Error: ${e?.message || e}`;
+    } finally {
+      btn.disabled = false;
+    }
   };
 }
 
