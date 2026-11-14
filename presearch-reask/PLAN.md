@@ -59,3 +59,28 @@ bootstrap (10k) for arm differences. Splits: hop count; questions CB gets wrong
   within 3 F1 on 2-hop.
 - **P6** CB F1 ≤ 0.30.
 - **P7** PS+AG3 issues ≥ 0.5 fewer model-written searches per question than AG4.
+
+## Round 2 — research subagents with live web search
+
+Oskar asked whether pre-search carries over to Haiku subagents doing web research.
+Fixture: 100 of round 1's questions (the first 50 2-hop, 33 3-hop, 17 4-hop in
+`data/eval.jsonl`). Arms, both `claude -p --model haiku` at default effort with
+WebSearch and WebFetch allowed and no search budget (`run/web_arms.py`):
+
+- **WEB** the question only.
+- **PSWEB** the question plus the raw result of one WebSearch on the question
+  verbatim, run first by a separate call standing in for the orchestrator; its cost
+  is added to the arm.
+
+MuSiQue questions are posted online (dataset viewers), so a verbatim search can
+return the answer from the dataset itself. Tool results are scanned for
+`musique`, `huggingface.co/datasets` and the dataset's field names; leaked
+questions are reported and the comparison is repeated without them.
+
+Predictions (written before the full run; a 2-question smoke test had run):
+
+- **W1** PSWEB beats WEB by ≥ 0.03 F1 (n = 100, so the CI may include 0).
+- **W2** WEB averages ≤ 2.5 searches per question and answers ≥ 10% with no search.
+- **W3** PSWEB writes fewer searches than WEB.
+- **W4** PSWEB costs no more than WEB per question, pre-search call included.
+- **W5** Leakage shows up in ≥ 5% of PSWEB pre-search results.
