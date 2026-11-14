@@ -648,7 +648,7 @@
    "read": "full",
    "practical": "HIGH",
    "attempts": 1,
-   "review": "Already adopted: experiments emeans-residual (2026-11-10, claim reproduces on EmbeddingGemma 2 100k, 1.6-10.2x sooner on CPU; centroid-residual remex codes 1-bit R@10 0.840->0.891), emeans-pooled-residual (2026-11-13, LateOn pooled tokens +0.010-0.021 nDCG@10 at 1 bit; 61-job pay-off grid) and emeans-explainer (video); write-up at muninn.austegard.com/blog/two-passes-of-e-means.html. The k-means trigger procedure (Muninn ad60e592) encodes when e-means beats Lloyd. Still untested: a JS/WGSL e-means loop for colour quantization. Run 1 rated it LOW without checking prior work; corrected.",
+   "review": "Already adopted: experiments emeans-residual (2026-11-10, claim reproduces on EmbeddingGemma 2 100k, 1.6-10.2x sooner on CPU; centroid-residual remex codes 1-bit R@10 0.840->0.891), emeans-pooled-residual (2026-11-13, LateOn pooled tokens +0.010-0.021 nDCG@10 at 1 bit; 61-job pay-off grid) and emeans-explainer (video); write-up at muninn.austegard.com/blog/two-passes-of-e-means.html. The k-means trigger procedure (Muninn ad60e592) encodes when e-means beats Lloyd. Colour quantization (d = 3) is the exception where Lloyd stays faster in faiss from k ~256; e-means wins only at k <= 64. Run 1 rated it LOW without checking prior work; corrected.",
    "prior": [
     "emeans-residual",
     "emeans-pooled-residual",
