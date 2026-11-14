@@ -17,7 +17,7 @@ export const MOVES = [
 export class RolloutBot {
   constructor(bot, forker, ctx, opts = {}) {
     this.bot = bot; this.fk = forker; this.W = ctx.W; this.MF = ctx.MF; this.eng = ctx.eng;
-    this.o = { horizon: 35, commit: 8, scenarios: 2, readEvery: 3, risk: 0.5, wDamage: 1, wKill: 50, wHurt: 4, wDeath: 2000, hysteresis: 5, ...opts };
+    this.o = { horizon: 70, commit: 12, moves: ["bot", "stand", "toward", "away", "left", "right"], scenarios: 2, readEvery: 3, risk: 0.5, wDamage: 1, wKill: 50, wHurt: 4, wDeath: 2000, hysteresis: 5, ...opts };
     this.plan = null;
     this.rstats = { decisions: 0, rolloutTics: 0, ms: 0, chosen: {}, overrides: 0 };
     this.decisions = [];
@@ -110,6 +110,7 @@ export class RolloutBot {
     const rng0 = new Uint32Array(this.st.world)[this.W.rng];
     const rows = [];
     for (const move of MOVES) {
+      if (!o.moves.includes(move[0])) continue;
       if (!this.safe(move, base, p, en)) continue;
       const sc = [];
       // reseeded copies, never the game's own index: the futures could happen, they are not the one that will
