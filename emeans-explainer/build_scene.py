@@ -32,10 +32,10 @@ VO = [
     "rounds of Lloyd do.",
     # 4 grid
     "We timed both on sixty-one clustering jobs, up to a million points and sixteen thousand clusters. "
-    "[[high]]With thirty-two or more dimensions and at least fifty points per cluster, two passes of e-means "
-    "usually beat twenty-five rounds of Lloyd outright, and reached Lloyd's error at least one and a half to "
-    "nine times sooner. [[torch]]Its PyTorch version, which also swaps in a faster search, was up to fifty-two "
-    "times sooner.",
+    "[[high]]With thirty-two or more dimensions and at least twenty-five points per cluster, two passes of "
+    "e-means finished one and a half to twelve times sooner than twenty-five rounds of Lloyd, and ended within "
+    "one percent of Lloyd's error, or below it. [[torch]]Its PyTorch version, which also swaps in a faster "
+    "search, was up to fifty-two times sooner.",
     # 5 limits
     "[[few]]On our synthetic data, below about twenty-five points per cluster, e-means stopped at a higher "
     "error than Lloyd. [[three]]And on three-dimensional data like pixel colours, with a thousand clusters or more, it was "
@@ -157,17 +157,17 @@ text("s3c", "2 passes ≈ 25 Lloyd rounds", "50%", 880, k, "vo3:revive+1.2", sty
 k = 4
 text("s4h", "61 clustering jobs: n to 1M, k to 16,384", "50%", 100, k, "vo4.in+0.2", style="heading",
      size=60, enter="rise")
-text("s4m", "how much sooner e-means reaches Lloyd's error (median, numpy, ≥ 50 points per cluster)", "50%",
-     175, k, "vo4:high", style="label", fill=MUTED, enter="fade")
-text("s4lb", "most are lower bounds: in 27 of 32 jobs Lloyd never reached e-means' error", "50%", 222, k,
+text("s4m", "time for 25 Lloyd rounds ÷ time for 2 e-means passes (median, NumPy, ≥ 25 points per cluster)",
+     "50%", 175, k, "vo4:high", style="label", fill=MUTED, enter="fade")
+text("s4lb", "at 32+ dimensions e-means ended within 1% of Lloyd's error or below it", "50%", 222, k,
      "vo4:high+0.6", style="label", fill=MUTED, size=24, enter="fade")
-add({"use": "barChart", "id": "s4c", "data": [["d = 3", 0.91], ["d = 32", 2.65], ["d = 128", 4.91],
+add({"use": "barChart", "id": "s4c", "data": [["d = 3", 0.96], ["d = 32", 2.65], ["d = 128", 4.91],
                                               ["d = 768", 4.42]],
-     "format": "{:.1f}×", "x": "50%", "y": 500, "w": 1100, "h": 470, "max": 6, "highlight": [2, 3, 4],
+     "format": "{:.2f}×", "x": "50%", "y": 500, "w": 1100, "h": 470, "max": 6, "highlight": [2, 3, 4],
      "at": "vo4:high", "until": nxt(4)}, k, exit_=False)
 add({"id": "s4ref", "type": "line", "points": [[410, 657], [1510, 657]], "stroke": TEXT, "strokeWidth": 3,
      "dash": [14, 10], "at": "vo4:high+1.5", "enter": "draw"}, k)
-text("s4one", "1× = Lloyd", 1530, 657, k, "vo4:high+1.7", style="label", fill=TEXT, anchor="left", enter="fade")
+text("s4one", "1× = same time", 1530, 657, k, "vo4:high+1.7", style="label", fill=TEXT, anchor="left", enter="fade")
 text("s4t", "PyTorch on CPU, with its own search: up to 52×", "50%", 850, k, "vo4:torch", style="body", fill=ACC, weight=700,
      enter="pop")
 
@@ -264,7 +264,7 @@ text("s8c2", "fit time, 16,384 centroids", 1200, 220, k, "vo8:faster", style="la
 # ------------------------------------------------------------------ 9 takeaway
 k = 9
 text("s9h", "Where e-means pays", "50%", 200, k, "vo9.in+0.1", style="heading", fill=MUTED, enter="rise")
-for i, (mark, s) in enumerate([("r1", "1   ≥ 32 dimensions, ≥ 50 points per cluster"),
+for i, (mark, s) in enumerate([("r1", "1   ≥ 32 dimensions, ≥ 25 points per cluster"),
                                ("r2", "2   Keep Lloyd for small clusters and 3-d faiss jobs"),
                                ("r3", "3   Check whether your metric notices")]):
     text(f"s9l{i}", s, 300, 370 + 130 * i, k, f"vo9:{mark}", style="body", size=56, weight=700,

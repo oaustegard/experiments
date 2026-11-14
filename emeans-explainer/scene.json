@@ -3747,7 +3747,7 @@
   {
    "id": "s4m",
    "type": "text",
-   "text": "how much sooner e-means reaches Lloyd's error (median, numpy, ≥ 50 points per cluster)",
+   "text": "time for 25 Lloyd rounds ÷ time for 2 e-means passes (median, NumPy, ≥ 25 points per cluster)",
    "x": "50%",
    "y": 175,
    "textStyle": "label",
@@ -3763,7 +3763,7 @@
   {
    "id": "s4lb",
    "type": "text",
-   "text": "most are lower bounds: in 27 of 32 jobs Lloyd never reached e-means' error",
+   "text": "at 32+ dimensions e-means ended within 1% of Lloyd's error or below it",
    "x": "50%",
    "y": 222,
    "textStyle": "label",
@@ -3783,7 +3783,7 @@
    "data": [
     [
      "d = 3",
-     0.91
+     0.96
     ],
     [
      "d = 32",
@@ -3798,7 +3798,7 @@
      4.42
     ]
    ],
-   "format": "{:.1f}×",
+   "format": "{:.2f}×",
    "x": "50%",
    "y": 500,
    "w": 1100,
@@ -3842,7 +3842,7 @@
   {
    "id": "s4one",
    "type": "text",
-   "text": "1× = Lloyd",
+   "text": "1× = same time",
    "x": 1530,
    "y": 657,
    "textStyle": "label",
@@ -5379,7 +5379,7 @@
   {
    "id": "s9l0",
    "type": "text",
-   "text": "1   ≥ 32 dimensions, ≥ 50 points per cluster",
+   "text": "1   ≥ 32 dimensions, ≥ 25 points per cluster",
    "x": 300,
    "y": 370,
    "textStyle": "body",
@@ -5487,7 +5487,7 @@
   {
    "id": "vo4",
    "role": "voice",
-   "text": "We timed both on sixty-one clustering jobs, up to a million points and sixteen thousand clusters. [[high]]With thirty-two or more dimensions and at least fifty points per cluster, two passes of e-means usually beat twenty-five rounds of Lloyd outright, and reached Lloyd's error at least one and a half to nine times sooner. [[torch]]Its PyTorch version, which also swaps in a faster search, was up to fifty-two times sooner.",
+   "text": "We timed both on sixty-one clustering jobs, up to a million points and sixteen thousand clusters. [[high]]With thirty-two or more dimensions and at least twenty-five points per cluster, two passes of e-means finished one and a half to twelve times sooner than twenty-five rounds of Lloyd, and ended within one percent of Lloyd's error, or below it. [[torch]]Its PyTorch version, which also swaps in a faster search, was up to fifty-two times sooner.",
    "rate": 0.9,
    "at": "vo3.out+0.35"
   },
