@@ -23,6 +23,9 @@ try {
   drv.attach(eng, W);
   drv.bot.globalPlanner = async () => oracle;
   if (drv.rollout) drv.rollout.o.slowMs = 1e12; // SwiftShader is slow by design here; keep rollouts on
+  // ?log: the page's flight recorder (bot/log.js) riding along, to check what it captures
+  let botLog = null;
+  if (q.has("log")) { const { BotLog } = await import(D + "bot/log.js"); botLog = new BotLog({}); drv.log = botLog; botLog.level(q.get("map") || "E1M4", 2); }
 
   const speed = +(q.get("speed") || 1 / 15), maxTics = +(q.get("tics") || 700);
   const trace = [];
@@ -40,6 +43,8 @@ try {
         if (drv.cur === curSeen) { staleTics += tics; maxStale = Math.max(maxStale, staleTics); } else { staleTics = 0; curSeen = drv.cur; }
         const c = drv.cur;
         input = drv.input({});
+        input.mouseturn = 0; input.lookturn = 0;
+        botLog?.frame(input, tics, drv);
         const p = drv.bot.s?.p, r = drv.rollout;
         trace.push([tic, Math.round(input.forward || 0), Math.round(input.side || 0), +(input.turn || 0).toFixed(2), input.fire ? 1 : 0,
           r?.plan?.name || "", r?.busy ? 1 : 0, staleTics, p ? Math.round(p.x) : null, p ? Math.round(p.y) : null, p?.health ?? null]);
@@ -55,7 +60,9 @@ try {
   });
   drv.stop();
   const p = drv.bot.s.p, r = drv.rollout;
-  window.RESULT = { map: q.get("map") || "E1M4", tics: tic, kills: p.kills, health: p.health, dead: p.dead, maxStaleTics: maxStale,
+  const logged = botLog ? botLog.build(drv) : null;
+  window.RESULT = { log: logged && { bytes: JSON.stringify(logged).length, rows: logged.rows.length, cols: logged.cols, firstRows: logged.rows.slice(100, 104),
+    decisions: logged.decisions.slice(0, 2), statuses: logged.statuses.slice(0, 3), errors: logged.errors, device: logged.device, version: logged.version }, map: q.get("map") || "E1M4", tics: tic, kills: p.kills, health: p.health, dead: p.dead, maxStaleTics: maxStale,
     decisions: r?.decisions, decisionMs: r ? Math.round(r.ms / Math.max(1, r.decisions)) : null, status: drv.lastStatus, trace };
 } catch (e) { window.RESULT = { error: String(e.stack || e) }; }
 </script>
