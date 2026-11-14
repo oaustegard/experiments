@@ -209,3 +209,12 @@ Typed text plays through the same sentence streaming. A sentence under 40 phonem
 alone played for 1.2 s and left a 2.4 s gap while the next sentence was made. With it joined, the sample text
 started after 4.0 s and played through without a gap. The dictionaries take about 0.7 s to load in Node, and the
 first guess 0.4 s more to index the pieces.
+
+### Silent after returning to the page (2026-11-14)
+
+Oskar on the iPhone: after one paragraph played, he left the page, came back, and played another: the highlighting
+moved but no sound came. Leaving a page interrupts iOS audio, and the AudioContext can keep its clock running on
+return while nothing reaches the speaker. The page now marks its context stale when it is hidden (or leaves the
+running state), and the next tap closes it and makes a new one; each play keeps the context it started in.
+`revisit_check.mjs` plays line 5, fakes hide-and-return, plays line 10: the first context was closed, a second was
+made, and line 10's sound started in it while it was running.

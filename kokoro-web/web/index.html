@@ -153,21 +153,30 @@ const packFor = (speaker) => (blends[speaker] ??= K.blend(packs, speaker));
 // Audio on phones. Inside the tap itself: ask for the "playback" audio session (Safari 16.4+), so the iPhone's
 // silent switch does not mute Web Audio, create and resume the AudioContext, and start a one-sample silent buffer,
 // which is what iOS needs to let later sound out. Done afterwards, after seconds of generation, it stays silent.
-let ctx;
+// Leaving the page interrupts iOS audio, and on return a context can keep its clock running (the highlighting moves)
+// while nothing reaches the speaker; resume() does not reliably bring it back. So a context that was hidden, or is
+// not running, is closed and a new one made in the tap.
+let ctx, stale = false;
+document.addEventListener("visibilitychange", () => { if (document.hidden) stale = true; });
+addEventListener("pagehide", () => { stale = true; });
 function unlockAudio() {
   try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  if (ctx && (stale || ctx.state !== "running")) { ctx.close().catch(() => {}); ctx = null; }
+  stale = false;
   ctx ??= new AudioContext();
+  ctx.onstatechange = () => { if (ctx && ctx.state !== "running") stale = true; };
   if (ctx.state !== "running") ctx.resume();
   const blank = ctx.createBufferSource();
   blank.buffer = ctx.createBuffer(1, 1, 22050);
   blank.connect(ctx.destination);
   blank.start(0);
+  return ctx;
 }
-function startBuffer(audio, when) {
-  const buf = ctx.createBuffer(1, audio.length, K.SAMPLE_RATE);
+function startBuffer(ac, audio, when) {
+  const buf = ac.createBuffer(1, audio.length, K.SAMPLE_RATE);
   buf.copyToChannel(audio, 0);
-  const src = ctx.createBufferSource();
-  src.buffer = buf; src.connect(ctx.destination); src.start(when);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.connect(ac.destination); src.start(when);
 }
 
 // Each line is spoken sentence by sentence: the first sentence plays as soon as it is made, and the rest are made
@@ -175,19 +184,19 @@ function startBuffer(audio, when) {
 function player(btn, wordsEl, meta) {
   let made = null, madeFor = null; // [{audio, words}] per sentence, for the line it was made from
   return async (line) => {
-    unlockAudio();
+    const ac = ctx ?? unlockAudio(); // the tap made or renewed it (unlockAudio in each click handler)
     btn.disabled = true;
     if (madeFor !== line) { made = null; madeFor = line; }
     const timed = []; // {span, start, end} in AudioContext time
-    let next = ctx.currentTime + 0.1, end = next, playing = true;
+    let next = ac.currentTime + 0.1, end = next, playing = true;
     const tick = () => {
-      const t = ctx.currentTime;
+      const t = ac.currentTime;
       for (const w of timed) w.span.classList.toggle("on", t >= w.start && t < w.end);
       if (playing || t < end) requestAnimationFrame(tick); else timed.forEach((w) => w.span.classList.remove("on"));
     };
     const schedule = (part) => {
-      const at = Math.max(next, ctx.currentTime + 0.05);
-      startBuffer(part.audio, at);
+      const at = Math.max(next, ac.currentTime + 0.05);
+      startBuffer(ac, part.audio, at);
       next = end = at + part.audio.length / K.SAMPLE_RATE;
       for (const w of part.words) {
         const span = document.createElement("span"); span.textContent = w.word;
@@ -236,7 +245,7 @@ for (const line of lines) {
   const meta = document.createElement("div"); meta.className = "meta";
   body.append(wordsEl, meta); row.append(btn, body); linesEl.append(row);
   const play = player(btn, wordsEl, meta);
-  btn.onclick = () => play(line);
+  btn.onclick = () => { unlockAudio(); play(line); };
 }
 
 // Typed text: misaki's dictionary path, ported to JS (g2p.js), then KPipeline's chunking. Words in neither
