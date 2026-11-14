@@ -160,3 +160,20 @@ suspended and silent. Now the click creates and resumes the AudioContext before 
 its worker (`ort.env.wasm.proxy`), a "Generating… N s" clock shows progress, errors show on the line, and a line is
 generated once and replayed. `click_check.mjs` clicks Play in headless Chromium with gestures required for audio:
 the clock ticked 9 times during the 8.5 s generation, a sound source started, and all 29 words got highlight spans.
+
+### iPhone audio and sentence streaming (2026-11-14)
+
+Oskar on an iPhone: the line generated (10.8 s of speech in 8.07 s, 4 threads) but no sound came. iOS mutes Web
+Audio when the ring/silent switch is on silent, and wants a sound started inside the tap. The tap now sets
+`navigator.audioSession.type = "playback"` (Safari 16.4+), which plays through the silent switch, resumes the
+AudioContext and starts a one-sample silent buffer.
+
+He also asked for smaller batches. A line is now spoken sentence by sentence (`sentences()`, `speakStream()` in
+`web/kokoro.js`): the first sentence plays as soon as it is made and the rest are made while it plays. Each sentence
+after the first keeps 0.05 s before its first word, and each but the last keeps 0.2 s after its last word, since a
+Kokoro clip on its own opens with about 0.3 s of silence and trails off for longer than a full stop inside a line.
+On line 1 in headless Chromium (4 threads), first sound came 3.3 s after the tap instead of about 8.5 s, every
+sentence was ready before the one before it ended, and the line ran 12.2 s against 10.8 s spoken whole. Untrimmed it
+was 13.1 s. The rest of the difference is in the speech: a sentence on its own ends as a final sentence does. Word
+times in streaming mode are therefore no longer KPipeline's; the whole-line `speak()` that the PyTorch comparison
+uses is unchanged, and on three lines it gave the same word entries as before the refactor.

@@ -122,28 +122,28 @@ status.textContent = "Ready. Press play on a line.";
 
 const blends = {};
 const packFor = (speaker) => (blends[speaker] ??= K.blend(packs, speaker));
-// The AudioContext is made and resumed inside the click itself: browsers (Safari above all) keep one made later,
-// after the seconds of generation, suspended and silent. The default sample rate is used; a 24 kHz buffer plays in it.
+// Audio on phones. Inside the tap itself: ask for the "playback" audio session (Safari 16.4+), so the iPhone's
+// silent switch does not mute Web Audio, create and resume the AudioContext, and start a one-sample silent buffer,
+// which is what iOS needs to let later sound out. Done afterwards, after seconds of generation, it stays silent.
 let ctx;
 function unlockAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
   ctx ??= new AudioContext();
   if (ctx.state !== "running") ctx.resume();
+  const blank = ctx.createBufferSource();
+  blank.buffer = ctx.createBuffer(1, 1, 22050);
+  blank.connect(ctx.destination);
+  blank.start(0);
 }
-function play(audio, spans, words) {
+function startBuffer(audio, when) {
   const buf = ctx.createBuffer(1, audio.length, K.SAMPLE_RATE);
   buf.copyToChannel(audio, 0);
   const src = ctx.createBufferSource();
-  src.buffer = buf; src.connect(ctx.destination);
-  const start = ctx.currentTime + 0.05;
-  src.start(start);
-  const tick = () => {
-    const t = ctx.currentTime - start;
-    words.forEach((w, k) => spans[k]?.classList.toggle("on", t >= w.start && t < w.end));
-    if (t < audio.length / K.SAMPLE_RATE) requestAnimationFrame(tick); else spans.forEach((s) => s.classList.remove("on"));
-  };
-  requestAnimationFrame(tick);
+  src.buffer = buf; src.connect(ctx.destination); src.start(when);
 }
 
+// Each line is spoken sentence by sentence: the first sentence plays as soon as it is made, and the rest are made
+// while it plays (generation runs faster than real time on four threads). Played sentences are kept for replay.
 const linesEl = document.getElementById("lines");
 for (const line of lines) {
   const row = document.createElement("div"); row.className = "line";
@@ -153,26 +153,53 @@ for (const line of lines) {
   wordsEl.textContent = line.text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
   const meta = document.createElement("div"); meta.className = "meta";
   body.append(wordsEl, meta); row.append(btn, body); linesEl.append(row);
-  let made, spans; // a line is generated once; Play again replays it
+  let made = null; // [{audio, words}] per sentence, once generated
   btn.onclick = async () => {
     unlockAudio();
     btn.disabled = true;
-    try {
-      if (!made) {
-        const t0 = performance.now();
-        const clock = setInterval(() => (meta.textContent = `Generating… ${((performance.now() - t0) / 1000).toFixed(0)} s`), 250);
-        meta.textContent = "Generating…";
-        try { made = await K.speak(model, vocab, packFor(line.speaker), line); } finally { clearInterval(clock); }
-        wordsEl.innerHTML = "";
-        spans = made.words.map((w) => { const s = document.createElement("span"); s.textContent = w.word; return s; });
-        spans.forEach((s, k) => wordsEl.append(s, k < spans.length - 1 ? " " : ""));
-        const secs = made.audio.length / K.SAMPLE_RATE;
-        meta.textContent = `${secs.toFixed(1)} s of speech made in ${(made.ms / 1000).toFixed(2)} s (${(secs / (made.ms / 1000)).toFixed(1)}× real time)`;
+    const timed = []; // {span, start, end} in AudioContext time
+    let next = ctx.currentTime + 0.1, end = next, playing = true;
+    const tick = () => {
+      const t = ctx.currentTime;
+      for (const w of timed) w.span.classList.toggle("on", t >= w.start && t < w.end);
+      if (playing || t < end) requestAnimationFrame(tick); else timed.forEach((w) => w.span.classList.remove("on"));
+    };
+    const schedule = (part) => {
+      const at = Math.max(next, ctx.currentTime + 0.05);
+      startBuffer(part.audio, at);
+      next = end = at + part.audio.length / K.SAMPLE_RATE;
+      for (const w of part.words) {
+        const span = document.createElement("span"); span.textContent = w.word;
+        if (wordsEl.childNodes.length) wordsEl.append(" ");
+        wordsEl.append(span);
+        timed.push({ span, start: at + w.start, end: at + w.end });
       }
-      play(made.audio, spans, made.words);
+    };
+    try {
+      wordsEl.textContent = "";
+      requestAnimationFrame(tick);
+      if (made) {
+        made.forEach(schedule);
+      } else {
+        const t0 = performance.now(), parts = [];
+        let first = null, ms = 0;
+        meta.textContent = "Generating…";
+        for await (const part of K.speakStream(model, vocab, packFor(line.speaker), line)) {
+          first ??= performance.now() - t0;
+          ms += part.ms;
+          parts.push(part);
+          schedule(part);
+          meta.textContent = part.index + 1 < part.count ? `Playing; making sentence ${part.index + 2} of ${part.count}…` : "Playing";
+        }
+        made = parts;
+        const secs = parts.reduce((a, p) => a + p.audio.length, 0) / K.SAMPLE_RATE;
+        meta.textContent = `${secs.toFixed(1)} s of speech in ${parts.length} sentence${parts.length > 1 ? "s" : ""}; ` +
+          `first sound after ${(first / 1000).toFixed(1)} s; made at ${(secs / (ms / 1000)).toFixed(1)}× real time`;
+      }
     } catch (e) {
       meta.textContent = `Error: ${e?.message || e}`;
     } finally {
+      playing = false;
       btn.disabled = false;
     }
   };

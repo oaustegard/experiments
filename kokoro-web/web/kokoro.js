@@ -90,32 +90,78 @@ export function wordsFromTokens(tokens, offset) {
   return timed;
 }
 
-/** Speak one baked line: returns {audio: Float32Array, words, ms} (ms = time spent in session.run). */
-export async function speak({ ort, session }, vocab, pack, line) {
+/** Run the model on one chunk (at most 510 phonemes): {audio, words (from 0 s), ms}. */
+export async function speakChunk({ ort, session }, vocab, pack, chunk, rate) {
+  const ps = [...chunk.ps];
+  const ids = ps.map((p) => vocab[p]).filter((x) => x !== undefined); // KModel drops unknown phonemes
+  const input = new BigInt64Array(ids.length + 2);
+  ids.forEach((x, k) => (input[k + 1] = BigInt(x)));
+  const row = ps.length - 1; // style row by phoneme count, as KPipeline indexes pack[len(ps) - 1]
+  const t0 = performance.now();
+  const out = await session.run({
+    input_ids: new ort.Tensor("int64", input, [1, input.length]),
+    style: new ort.Tensor("float32", pack.slice(row * 256, row * 256 + 256), [1, 256]),
+    speed: new ort.Tensor("float32", new Float32Array([rate]), [1]),
+  });
+  const ms = performance.now() - t0;
+  const tokens = chunk.tokens.map((t) => ({ ...t }));
+  joinTimestamps(tokens, Array.from(out.duration.data, Number));
+  return { audio: out.waveform.data, words: wordsFromTokens(tokens, 0), ms };
+}
+
+/** Speak one baked line in KPipeline's chunks (a whole line is one chunk below 510 phonemes): {audio, words, ms}.
+ * This is the path compared with PyTorch. */
+export async function speak(model, vocab, pack, line) {
   const parts = [], words = [];
   let at = 0, ms = 0;
   for (const chunk of line.chunks) {
-    const ps = [...chunk.ps];
-    const ids = ps.map((p) => vocab[p]).filter((x) => x !== undefined); // KModel drops unknown phonemes
-    const input = new BigInt64Array(ids.length + 2);
-    ids.forEach((x, k) => (input[k + 1] = BigInt(x)));
-    const row = ps.length - 1; // style row by phoneme count, as KPipeline indexes pack[len(ps) - 1]
-    const t0 = performance.now();
-    const out = await session.run({
-      input_ids: new ort.Tensor("int64", input, [1, input.length]),
-      style: new ort.Tensor("float32", pack.slice(row * 256, row * 256 + 256), [1, 256]),
-      speed: new ort.Tensor("float32", new Float32Array([line.rate]), [1]),
-    });
-    ms += performance.now() - t0;
-    const audio = out.waveform.data, dur = Array.from(out.duration.data, Number);
-    const tokens = chunk.tokens.map((t) => ({ ...t }));
-    joinTimestamps(tokens, dur);
-    words.push(...wordsFromTokens(tokens, at / SAMPLE_RATE));
-    parts.push(audio);
-    at += audio.length;
+    const r = await speakChunk(model, vocab, pack, chunk, line.rate);
+    words.push(...r.words.map((w) => ({ ...w, start: w.start + at / SAMPLE_RATE, end: w.end + at / SAMPLE_RATE })));
+    parts.push(r.audio);
+    at += r.audio.length;
+    ms += r.ms;
   }
   const audio = new Float32Array(at);
   let o = 0;
   for (const p of parts) { audio.set(p, o); o += p.length; }
   return { audio, words, ms };
+}
+
+/** A line's chunks cut after every sentence end (. ! ? …), so the first sentence can play while the rest are made.
+ * Each sentence is then spoken on its own, which changes timing slightly against KPipeline's whole-line chunk. */
+export function sentences(line) {
+  const out = [];
+  for (const chunk of line.chunks) {
+    let cur = [];
+    const flush = () => {
+      if (!cur.length) return;
+      const ps = cur.map((t) => t.phonemes + (t.ws ? " " : "")).join("").trim();
+      if (ps) out.push({ ps, tokens: cur });
+      cur = [];
+    };
+    for (const t of chunk.tokens) {
+      cur.push(t);
+      if (/^[.!?…]+$/.test(t.phonemes) && t.ws) flush();
+    }
+    flush();
+  }
+  return out;
+}
+
+/** Speak a line sentence by sentence: yields {audio, words (from the sentence's start), ms, index, count}.
+ * Every Kokoro clip opens with about 0.3 s of silence; after the first sentence that adds to the previous one's
+ * trailing pause, so later sentences keep only `lead` seconds before their first word. */
+export async function* speakStream(model, vocab, pack, line, { lead = 0.05, tail = 0.2 } = {}) {
+  const parts = sentences(line);
+  for (let k = 0; k < parts.length; k++) {
+    const r = await speakChunk(model, vocab, pack, parts[k], line.rate);
+    const cut = k && r.words.length ? Math.max(0, r.words[0].start - lead) : 0;
+    const n = Math.round(cut * SAMPLE_RATE);
+    // and every sentence but the last keeps `tail` seconds after its last word: a whole line pauses about 0.25 s
+    // at a full stop, while a clip on its own trails off for longer
+    const last = r.words.at(-1);
+    const stop = k < parts.length - 1 && last ? Math.min(r.audio.length, Math.round((last.end + tail) * SAMPLE_RATE)) : r.audio.length;
+    yield { audio: r.audio.subarray(n, Math.max(n, stop)), words: r.words.map((w) => ({ ...w, start: w.start - n / SAMPLE_RATE,
+            end: w.end - n / SAMPLE_RATE })), ms: r.ms, index: k, count: parts.length };
+  }
 }

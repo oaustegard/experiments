@@ -26,9 +26,12 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 await page.addInitScript(() => {
-  window.__starts = 0;
+  window.__starts = [];
   const orig = AudioBufferSourceNode.prototype.start;
-  AudioBufferSourceNode.prototype.start = function (...a) { window.__starts++; return orig.apply(this, a); };
+  AudioBufferSourceNode.prototype.start = function (...a) {
+    window.__starts.push({ at: performance.now(), samples: this.buffer?.length ?? 0, state: this.context.state });
+    return orig.apply(this, a);
+  };
 });
 await page.goto(`http://localhost:${server.address().port}/?ort=/ort/&model=models/kokoro-web.onnx&${process.argv[2] || ""}`);
 for (let i = 0; ; i++) {
@@ -37,6 +40,7 @@ for (let i = 0; ; i++) {
 }
 const backend = await page.evaluate(() => document.getElementById("s-backend")?.textContent);
 const t0 = Date.now();
+const clickAt = await page.evaluate(() => performance.now());
 await page.locator(".line button").first().click();
 const seen = new Set();
 let done = false;
@@ -44,11 +48,11 @@ while (!done && Date.now() - t0 < 300000) {
   const m = await page.locator(".line .meta").first().textContent();
   seen.add(m.replace(/\d+ s$/, "N s"));
   if (m.startsWith("Generating")) seen.add(m);
-  done = /real time|Error/.test(m);
+  done = /real time|Error/.test(m) && !/^Playing/.test(m);
   await new Promise((r) => setTimeout(r, 400));
 }
-const state = await page.evaluate(() => ({ starts: window.__starts, meta: document.querySelector(".line .meta").textContent,
-  highlighted: document.querySelectorAll(".words span").length }));
+const state = await page.evaluate((c) => ({ starts: window.__starts.map((x) => ({ after_s: +((x.at - c) / 1000).toFixed(2), samples: x.samples, ctx: x.state })), meta: document.querySelector(".line .meta").textContent,
+  highlighted: document.querySelectorAll(".words span").length }), clickAt);
 const ticks = [...seen].filter((s) => /^Generating… \d+ s$/.test(s)).length;
 console.log(JSON.stringify({ backend, seconds: (Date.now() - t0) / 1000, clockTicksSeen: ticks, ...state, errors }));
 await browser.close(); server.close();
