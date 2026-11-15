@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-14T01:51:09.159458+00:00",
+ "last_run": "2026-11-15T01:52:04.560740+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -658,6 +658,39 @@
     "muninn:1a81a162",
     "blog:https://muninn.austegard.com/blog/two-passes-of-e-means.html"
    ]
+  },
+  "2610.30949": {
+   "title": "IQuest-Q1: Advancing Foundation Capabilities for Agentic CLI Systems",
+   "first_seen": "2026-11-15",
+   "best_rank": 28,
+   "upvotes": 158,
+   "reviewed": "2026-11-15",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A 320B-total/15B-active MoE for CLI agents trained on 29T tokens, too large to use as a cheap subagent and too costly to replicate; weights are promised, with no URL given. Its reward-hacking hygiene (strip git history, block solution lookups through harness hooks, audit trajectories) maps onto Claude Code hooks. The benchmark table mixes self-run and vendor-reported scores."
+  },
+  "2611.00859": {
+   "title": "Wave Forcing: Towards Speed-of-Light Streaming Video Generation",
+   "first_seen": "2026-11-15",
+   "best_rank": 29,
+   "upvotes": 155,
+   "reviewed": "2026-11-15",
+   "read": "full",
+   "practical": "NONE",
+   "attempts": 1,
+   "review": "Streaming video diffusion pipelined across 8 H200s (134.8 FPS, 7.07x one GPU) with a fine-tuned Wan2.1-1.3B; code and weights are released. It touches none of his WebGPU, retrieval or agent work, and the throughput numbers were measured with dummy weights."
+  },
+  "2611.12177": {
+   "title": "Embodied First Exam",
+   "first_seen": "2026-11-15",
+   "best_rank": 30,
+   "upvotes": 151,
+   "reviewed": "2026-11-15",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A benchmark of 1,156 simulated-robot tasks for coding agents; reproducing it would take months. Two findings carry over to eval design: the same model scored 34% in Codex vs 22% in Claude Code (partly confounded by an adapter), and privileged-access scores (77%) overstate the standard setting (30%), so evals should use the deployed interface and budget."
   }
  }
 }
