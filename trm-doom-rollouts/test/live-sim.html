@@ -18,8 +18,10 @@ try {
 
   // a BotDriver without BotDriver.create(), which loads TRM: BFS routes, whole-level plans included
   const drv = Object.create(BotDriver.prototype);
-  const oracle = new OraclePlanner();
-  Object.assign(drv, { device, onStatus: (t) => { drv.lastStatus = t; }, planner: oracle, fast: false, globals: new Map(), cur: {}, gen: 0, plans: 0, planMs: 0 });
+  const bfs = new OraclePlanner(), planDelay = +(q.get("planDelay") || 0);
+  // ?planDelay=1100: each plan takes that long, as TRM did on an iPhone (2026-11-15 log: 1.0-1.15 s a plan)
+  const oracle = { plan: async (g) => { if (planDelay) await new Promise((r) => setTimeout(r, planDelay)); return bfs.plan(g); } };
+  Object.assign(drv, { device, onStatus: (t) => { drv.lastStatus = t; }, planner: oracle, fast: false, globals: new Map(), cur: {}, gen: 0, plans: 0, planMs: 0, issued: 0, stepIssued: 0, lead: +(q.get("lead") || 2), held: 0 });
   drv.attach(eng, W);
   drv.bot.globalPlanner = async () => oracle;
   if (drv.rollout) drv.rollout.o.slowMs = 1e12; // SwiftShader is slow by design here; keep rollouts on
@@ -37,12 +39,14 @@ try {
       if (inFlight >= 2) { last = now; return; }
       acc += (now - last) * 35 * speed / 1000; last = now;
       let tics = Math.floor(acc); acc -= tics; if (tics > 4) { tics = 4; acc = 0; }
+      // as index.html: the game waits for the bot (q lead=1e9 turns the wait off)
+      if (tics > 0 && drv.allowance) { const a = drv.allowance(); if (tics > a) { tics = a; acc = Math.min(acc, 1); drv.held++; } }
       let input = {};
       if (tics > 0) {
         // how many tics the driver's input has gone without a fresh step from the bot
         if (drv.cur === curSeen) { staleTics += tics; maxStale = Math.max(maxStale, staleTics); } else { staleTics = 0; curSeen = drv.cur; }
         const c = drv.cur;
-        input = drv.input({});
+        input = drv.input({}, tics);
         input.mouseturn = 0; input.lookturn = 0;
         botLog?.frame(input, tics, drv);
         const p = drv.bot.s?.p, r = drv.rollout;
@@ -62,7 +66,7 @@ try {
   const p = drv.bot.s.p, r = drv.rollout;
   const logged = botLog ? botLog.build(drv) : null;
   window.RESULT = { log: logged && { bytes: JSON.stringify(logged).length, rows: logged.rows.length, cols: logged.cols, firstRows: logged.rows.slice(100, 104),
-    decisions: logged.decisions.slice(0, 2), statuses: logged.statuses.slice(0, 3), errors: logged.errors, device: logged.device, version: logged.version }, map: q.get("map") || "E1M4", tics: tic, kills: p.kills, health: p.health, dead: p.dead, maxStaleTics: maxStale,
+    decisions: logged.decisions.slice(0, 2), statuses: logged.statuses.slice(0, 3), errors: logged.errors, device: logged.device, version: logged.version }, map: q.get("map") || "E1M4", tics: tic, kills: p.kills, health: p.health, dead: p.dead, maxStaleTics: maxStale, heldFrames: drv.held,
     decisions: r?.decisions, decisionMs: r ? Math.round(r.ms / Math.max(1, r.decisions)) : null, status: drv.lastStatus, trace };
 } catch (e) { window.RESULT = { error: String(e.stack || e) }; }
 </script>

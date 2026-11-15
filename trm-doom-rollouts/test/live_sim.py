@@ -15,7 +15,7 @@ T = r["trace"]
 fight = [t for t in T if t[5] or t[6]]
 flips = sum(1 for a, b in zip(fight, fight[1:]) if a[2] * b[2] < 0)
 stale = [t[7] for t in fight]
-print(name, {k: r[k] for k in ("tics", "kills", "health", "dead", "maxStaleTics", "decisions", "decisionMs")})
+print(name, {k: r[k] for k in ("tics", "kills", "health", "dead", "maxStaleTics", "heldFrames", "decisions", "decisionMs")})
 print("  fight tics", len(fight), "side flips", flips, "mean stale tics in fights", round(sum(stale) / max(1, len(stale)), 1),
       "tics with turn 0 in fights", sum(1 for t in fight if t[3] == 0))
 print("  status:", r.get("status"))
