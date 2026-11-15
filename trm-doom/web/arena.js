@@ -3,13 +3,16 @@
 // session picks it up. The game runs in lockstep with the bot: each tic waits for the bot's input, so
 // a slow GPU slows the game instead of leaving the bot behind it.
 //
+// Agent Log (arena.html loads it) keeps the console output below in this browser: one "bot tick" line a second and
+// one "attempt" line per attempt, for the user to export from the badge and hand to the Claude session.
+//
 // ?doom=<url of the gPu(doom) directory> (default /games/doom/), ?weights=<url without .bin/.json>,
 // ?map= ?skill= ?stuck= ?cap= ?tries= ?fast preset the controls, ?auto starts at once, ?planner=oracle swaps
 // TRM for exact BFS (a debug stand-in, never for reported runs).
 
-import { Bot } from "./bot.js?v=20261102-230527";
-import { TRMPlanner } from "./trm.js?v=20261102-230527";
-import { OraclePlanner } from "./oracle.js?v=20261102-230527";
+import { Bot } from "./bot.js?v=20261115-002634";
+import { TRMPlanner } from "./trm.js?v=20261115-002634";
+import { OraclePlanner } from "./oracle.js?v=20261115-002634";
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -164,6 +167,7 @@ async function playLevel(map, carry, opts) {
   else if (fast) bot.globalPlanner = async (n) => { if (!globals.has(n)) globals.set(n, await TRMPlanner.create(device, weights, man, { w: n, h: n })); return globals.get(n); };
   if (exact && !oracle) { bot.globalSupFor = (n) => Math.ceil(n / 3) + 4; bot.globalMinSup = 1; }
   const t0 = performance.now(), thumbs = [], trace = [];
+  let evSeen = 0;
   let result = "running", world = null, tic = 0, bestScore = -1, bestTic = 0, last = performance.now();
   const score = () => { const p = bot.s.p; let v = 0; for (const x of bot.visited) v += x; return p.kills * 3 + p.items * 2 + v + Object.values(bot.stats.targets).reduce((a, b) => a + b, 0) * 2; };
   while (running) {
@@ -182,6 +186,16 @@ async function playLevel(map, carry, opts) {
     }
     if (tic % (35 * 20) === 0 && thumbs.length < 30) thumbs.push([tic, await thumb()]);
     const input = await bot.step();
+    if (tic % 35 === 0) {
+      // TEMP(agent-log): the bot's state once a second, as attributes Agent Log can filter on; remove when the bot debugging is done
+      try {
+        const d = bot.debug(), ev = bot.events.slice(evSeen, evSeen + 20); evSeen = bot.events.length;
+        console.log("bot tick", { map, tryNo: opts.tryNo, tic, pos: { x: Math.round(p.x), y: Math.round(p.y) }, angle: +p.angle.toFixed(2), health: p.health,
+          kills: p.kills, sector: bot.map.spawnSector(p.x, p.y), target: d.target?.kind ?? null, targetKey: d.target?.key ?? null, path: d.fine?.len ?? null,
+          action: { forward: input.forward ?? 0, side: input.side ?? 0, turn: input.turn ?? 0, fire: !!input.fire, use: !!input.use },
+          plans: plan.plans, planMs: Math.round(plan.ms / Math.max(1, plan.plans)), events: ev });
+      } catch (e) { console.warn("bot tick log failed", e); } // a debug line must not stop the run
+    }
     const enc = device.createCommandEncoder();
     eng.encodeFrame(enc, 1, { ...input, frac: 1 });
     eng.present(enc, context.getCurrentTexture().createView());
@@ -222,6 +236,8 @@ async function campaign() {
     for (const [t, png] of r.thumbs) files[`${base}-t${String(t).padStart(6, "0")}.png`] = { bytes: png };
     const line = `${map} try ${tryNo}: ${r.result} at ${r.seconds} s, kills ${r.kills}, hp ${r.health}`;
     logLine(line);
+    console.info("attempt", { session: SESSION, n: attemptNo, map, tryNo, result: r.result, seconds: r.seconds, wallS: r.wallS, kills: r.kills, items: r.items,
+      secrets: r.secrets, health: r.health, plans: r.plans, planMs: r.planMs, seed: r.seed, log: base + ".json" });
     ship(files, `doom-arena: ${line}`, `doom-arena \`${SESSION}\` (v ${VERSION}): ${line} — \`${base}.json\``);
     if (r.result === "exit" || r.result === "secret-exit") { map = (r.result === "secret-exit" ? SECRET[map] : null) || NEXT[map]; carry = r.carry; tryNo = 1; }
     else if (tryNo < opts.tries) { tryNo++; carry = null; }             // pistol start on a retry

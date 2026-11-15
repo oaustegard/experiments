@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DOOM Arena</title>
+<!-- Agent Log records this page's console, errors and requests in the browser; ?logging=false turns it off. https://austegard.com/web-utilities/agent-log.html -->
+<script src="https://austegard.com/web-utilities/agent-log.js" data-start></script>
 <style>
 :root { --bg: #111; --fg: #ddd; --dim: #888; --acc: #f0c060; --err: #f66; }
 * { box-sizing: border-box; }
@@ -32,7 +34,7 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
 <main>
   <h1>DOOM Arena <small id="ver" class="ver"></small></h1>
   <div id="newver" class="row" hidden><span class="pill wait" id="newvertext"></span> <button id="reload" type="button">Reload</button></div>
-  <p class="lede">The TRM bot plays gPu(doom) here, on this device's GPU. After every attempt the log goes to the GPU-bridge repo and a comment wakes the Claude session. A level that stops making progress is restarted, and after a few tries skipped.</p>
+  <p class="lede">The TRM bot plays gPu(doom) here, on this device's GPU. After every attempt the log goes to the GPU-bridge repo and a comment wakes the Claude session. A level that stops making progress is restarted, and after a few tries skipped. The red Logging badge is <a href="https://austegard.com/web-utilities/agent-log.html" style="color:inherit">Agent Log</a>: it keeps the bot's console lines and any errors in this browser, and Download there saves them for the Claude session.</p>
   <canvas id="screen" width="640" height="480"></canvas>
   <div id="status"></div>
   <div class="row"><span id="connstate" class="pill">Not connected: logs stay on this page</span> <button id="change" type="button">Connect to GitHub</button> <span id="uploads"></span></div>
@@ -58,6 +60,6 @@ button.go { background: #a33; border-color: #d55; color: #fff; }
   </div>
   <div id="log"></div>
 </main>
-<script type="module" src="arena.js?v=20261102-230527"></script>
+<script type="module" src="arena.js?v=20261115-002634"></script>
 </body>
 </html>
