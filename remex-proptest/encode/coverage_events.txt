@@ -1,0 +1,1032 @@
+.......x..........x...x......x.x..........xx..............               [100%]
+============================ Hypothesis Statistics =============================
+test_encode_props.py::test_chunked_encode_equals_whole:
+
+  - during generate phase (7.74 seconds):
+    - Typical runtimes: ~ 1-130 ms, of which ~ 0-5 ms in data generation
+    - 220 passing, 0 failing, and 16 invalid test cases
+    - Events:
+      * 67.80%, centered=False
+      * 58.47%, env.parallel_min=None
+      * 50.42%, cfg.rotation=none
+      * 49.58%, cfg.rotation=rht
+      * 43.64%, corpus.n=2-8
+      * 39.41%, env.block=default
+      * 38.14%, cfg.d=even
+      * 36.44%, chunks=1
+      * 34.75%, env.parallel_min=1
+      * 33.05%, env.block=tiny
+      * 32.20%, centered=True
+      * 29.24%, chunks=5
+      * 28.39%, cfg.bits=3
+      * 27.54%, cfg.bits=2
+      * 26.27%, env.threads=None
+      * 25.85%, corpus.n=9+
+      * 21.19%, env.threads=1
+      * 20.76%, cfg.bits=1
+      * 20.76%, cfg.d=pow2
+      * 20.76%, env.block=big
+      * 20.34%, corpus.n=0
+      * 19.49%, cfg.bits=8
+      * 18.22%, cfg.d=2
+      * 18.22%, env.threads=2
+      * 15.25%, cfg.d=odd
+      * 15.25%, corpus.kind=onehot
+      * 15.25%, env.threads=4
+      * 14.83%, chunks=3
+      * 12.29%, corpus.kind=raw
+      * 12.29%, env.threads=3
+      * 11.86%, corpus.kind=dups
+      * 11.44%, corpus.kind=const
+      * 11.02%, chunks=2
+      * 10.59%, corpus.kind=gauss
+      * 10.17%, corpus.n=1
+      * 8.47%, chunks=4
+      * 8.47%, corpus.kind=hug
+      * 8.05%, corpus.kind=grid
+      * 8.05%, corpus.kind=zero_rows
+      * 7.63%, cfg.d=1
+      * 6.36%, corpus.kind=heavy
+      * 5.51%, corpus.kind=lowrank
+      * 3.81%, cfg.bits=4
+      * 2.12%, corpus.kind=walsh
+
+  - Stopped because settings.max_examples=220
+
+
+test_encode_props.py::test_haar_chunking_only_differs_near_boundaries:
+
+  - during generate phase (6.38 seconds):
+    - Typical runtimes: ~ 0-115 ms, of which ~ 0-5 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, cfg.rotation=haar
+      * 91.33%, haar.chunk_mismatch=no
+      * 59.33%, corpus.n=2-8
+      * 40.67%, cfg.d=even
+      * 40.67%, corpus.n=9+
+      * 36.67%, cfg.d=odd
+      * 31.33%, cfg.bits=2
+      * 31.33%, cfg.bits=3
+      * 19.33%, cfg.bits=1
+      * 15.33%, corpus.kind=onehot
+      * 15.33%, corpus.kind=raw
+      * 14.67%, corpus.kind=grid
+      * 10.00%, corpus.kind=gauss
+      * 9.33%, cfg.bits=4
+      * 9.33%, cfg.d=pow2
+      * 8.67%, cfg.bits=8
+      * 8.67%, corpus.kind=hug
+      * 8.67%, corpus.kind=zero_rows
+      * 8.67%, haar.chunk_mismatch=yes
+      * 7.33%, cfg.d=1
+      * 7.33%, corpus.kind=lowrank
+      * 6.00%, cfg.d=2
+      * 6.00%, corpus.kind=dups
+      * 5.33%, corpus.kind=const
+      * 4.67%, corpus.kind=heavy
+      * 4.00%, corpus.kind=walsh
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_row_permutation_commutes_with_encode:
+
+  - during generate phase (7.91 seconds):
+    - Typical runtimes: ~ 1-140 ms, of which ~ 0-5 ms in data generation
+    - 200 passing, 0 failing, and 6 invalid test cases
+    - Events:
+      * 62.14%, env.parallel_min=None
+      * 53.40%, cfg.d=even
+      * 50.97%, cfg.rotation=rht
+      * 49.03%, cfg.rotation=none
+      * 42.72%, env.block=tiny
+      * 39.32%, corpus.n=1
+      * 34.95%, env.parallel_min=1
+      * 34.47%, corpus.n=9+
+      * 33.01%, env.threads=None
+      * 28.16%, env.block=default
+      * 27.18%, cfg.bits=3
+      * 26.21%, corpus.n=2-8
+      * 26.21%, env.block=big
+      * 25.73%, cfg.bits=1
+      * 23.30%, cfg.bits=8
+      * 22.33%, env.threads=2
+      * 15.53%, corpus.kind=dups
+      * 15.05%, cfg.d=odd
+      * 14.56%, env.threads=4
+      * 14.08%, cfg.d=pow2
+      * 13.59%, env.threads=1
+      * 13.59%, env.threads=3
+      * 13.11%, corpus.kind=hug
+      * 13.11%, corpus.kind=raw
+      * 12.62%, cfg.bits=4
+      * 11.17%, cfg.bits=2
+      * 11.17%, corpus.kind=gauss
+      * 10.19%, corpus.kind=lowrank
+      * 10.19%, corpus.kind=zero_rows
+      * 9.22%, cfg.d=1
+      * 8.74%, corpus.kind=walsh
+      * 8.25%, cfg.d=2
+      * 6.31%, corpus.kind=onehot
+      * 5.83%, corpus.kind=const
+      * 3.40%, corpus.kind=heavy
+      * 2.43%, corpus.kind=grid
+
+  - Stopped because settings.max_examples=200
+
+
+test_encode_props.py::test_encode_is_deterministic_across_calls_and_fresh_instances:
+
+  - during generate phase (27.78 seconds):
+    - Typical runtimes: ~ 142-321 ms, of which ~ 0-4 ms in data generation
+    - 120 passing, 0 failing, and 1 invalid test cases
+    - Events:
+      * 44.63%, cfg.d=even
+      * 39.67%, corpus.n=9+
+      * 38.84%, cfg.rotation=none
+      * 38.84%, cfg.rotation=rht
+      * 38.02%, corpus.n=0
+      * 28.93%, cfg.bits=4
+      * 24.79%, cfg.bits=3
+      * 23.14%, corpus.kind=heavy
+      * 22.31%, cfg.rotation=haar
+      * 19.01%, cfg.bits=2
+      * 16.53%, cfg.d=odd
+      * 16.53%, corpus.kind=hug
+      * 14.88%, cfg.bits=8
+      * 14.05%, cfg.d=2
+      * 14.05%, corpus.kind=raw
+      * 14.05%, corpus.kind=zero_rows
+      * 12.40%, cfg.bits=1
+      * 12.40%, cfg.d=1
+      * 12.40%, cfg.d=pow2
+      * 12.40%, corpus.n=2-8
+      * 9.92%, corpus.n=1
+      * 8.26%, corpus.kind=grid
+      * 8.26%, corpus.kind=lowrank
+      * 7.44%, corpus.kind=gauss
+      * 5.79%, corpus.kind=const
+      * 1.65%, corpus.kind=onehot
+      * 0.83%, corpus.kind=walsh
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_native_and_numpy_paths_give_identical_bits:
+
+  - during generate phase (5.97 seconds):
+    - Typical runtimes: ~ 1-119 ms, of which ~ 0-4 ms in data generation
+    - 160 passing, 0 failing, and 3 invalid test cases
+    - Events:
+      * 58.90%, env.parallel_min=None
+      * 54.60%, env.block=tiny
+      * 52.15%, cfg.d=even
+      * 42.33%, cfg.rotation=none
+      * 39.88%, cfg.rotation=rht
+      * 39.26%, env.parallel_min=1
+      * 36.81%, corpus.n=9+
+      * 36.81%, mode=normalized
+      * 35.58%, mode=scalar
+      * 33.74%, corpus.n=0
+      * 29.45%, cfg.bits=4
+      * 29.45%, env.threads=1
+      * 27.61%, env.block=big
+      * 27.61%, mode=centered
+      * 25.77%, corpus.n=2-8
+      * 25.15%, cfg.bits=3
+      * 23.93%, corpus.kind=zero_rows
+      * 22.70%, cfg.bits=1
+      * 21.47%, env.threads=None
+      * 17.79%, cfg.rotation=haar
+      * 15.95%, env.block=default
+      * 15.95%, env.threads=3
+      * 15.95%, env.threads=4
+      * 15.34%, env.threads=2
+      * 13.50%, cfg.bits=2
+      * 13.50%, cfg.d=odd
+      * 13.50%, cfg.d=pow2
+      * 13.50%, corpus.kind=gauss
+      * 12.88%, corpus.kind=raw
+      * 11.04%, cfg.d=2
+      * 11.04%, corpus.kind=heavy
+      * 9.82%, cfg.d=1
+      * 9.82%, corpus.kind=onehot
+      * 9.20%, cfg.bits=8
+      * 9.20%, corpus.kind=const
+      * 6.13%, corpus.kind=grid
+      * 4.91%, corpus.kind=dups
+      * 3.68%, corpus.n=1
+      * 3.07%, corpus.kind=hug
+      * 3.07%, corpus.kind=lowrank
+      * 2.45%, corpus.kind=walsh
+
+  - Stopped because settings.max_examples=160
+
+
+test_encode_props.py::test_negation_mirrors_codes:
+
+  - during generate phase (11.10 seconds):
+    - Typical runtimes: ~ 0-195 ms, of which ~ 0-5 ms in data generation
+    - 200 passing, 0 failing, and 3 invalid test cases
+    - Events:
+      * 76.35%, ties=no
+      * 52.22%, scalar=True
+      * 47.78%, scalar=False
+      * 41.38%, cfg.bits=1
+      * 41.38%, cfg.d=even
+      * 37.44%, cfg.rotation=rht
+      * 36.95%, corpus.n=0
+      * 32.02%, cfg.rotation=none
+      * 30.54%, cfg.rotation=haar
+      * 29.56%, corpus.n=9+
+      * 24.63%, cfg.bits=2
+      * 22.17%, ties=yes
+      * 18.23%, corpus.n=2-8
+      * 16.26%, cfg.d=1
+      * 16.26%, cfg.d=odd
+      * 15.76%, cfg.d=2
+      * 15.76%, corpus.kind=heavy
+      * 15.27%, cfg.bits=3
+      * 15.27%, corpus.n=1
+      * 12.81%, corpus.kind=walsh
+      * 11.82%, corpus.kind=const
+      * 11.33%, cfg.bits=8
+      * 10.34%, cfg.d=pow2
+      * 9.85%, corpus.kind=raw
+      * 9.36%, corpus.kind=dups
+      * 9.36%, corpus.kind=gauss
+      * 8.87%, corpus.kind=zero_rows
+      * 8.37%, corpus.kind=grid
+      * 7.39%, cfg.bits=4
+      * 4.93%, corpus.kind=hug
+      * 4.43%, corpus.kind=lowrank
+      * 4.43%, corpus.kind=onehot
+
+  - Stopped because settings.max_examples=200
+
+
+test_encode_props.py::test_power_of_two_scaling_leaves_direction_codes_alone:
+
+  - during generate phase (5.69 seconds):
+    - Typical runtimes: ~ 0-125 ms, of which ~ 0-4 ms in data generation
+    - 200 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 49.50%, k=pos
+      * 48.50%, cfg.rotation=haar
+      * 46.00%, corpus.n=1
+      * 34.00%, cfg.d=even
+      * 32.00%, corpus.n=9+
+      * 29.00%, cfg.rotation=none
+      * 28.00%, cfg.bits=8
+      * 27.50%, cfg.bits=4
+      * 26.50%, k=zero
+      * 25.00%, cfg.d=odd
+      * 24.00%, k=neg
+      * 23.00%, corpus.kind=gauss
+      * 22.50%, cfg.rotation=rht
+      * 22.00%, corpus.n=2-8
+      * 21.00%, cfg.d=pow2
+      * 19.50%, cfg.bits=1
+      * 14.00%, corpus.kind=grid
+      * 13.00%, cfg.bits=2
+      * 12.00%, cfg.bits=3
+      * 11.00%, corpus.kind=heavy
+      * 10.50%, cfg.d=1
+      * 9.50%, cfg.d=2
+      * 9.50%, corpus.kind=lowrank
+      * 9.50%, corpus.kind=walsh
+      * 9.00%, corpus.kind=zero_rows
+      * 6.50%, corpus.kind=const
+      * 6.00%, corpus.kind=dups
+      * 6.00%, corpus.kind=raw
+      * 5.00%, corpus.kind=onehot
+      * 0.50%, corpus.kind=hug
+
+  - Stopped because settings.max_examples=200
+
+
+test_encode_props.py::test_direction_codes_below_the_1e8_floor:
+
+  - during generate phase (0.26 seconds):
+    - Typical runtimes: ~ 0-208 ms, of which ~ 0-5 ms in data generation
+    - 2 passing, 6 failing, and 2 invalid test cases
+    - Found 1 distinct error in this phase
+    - Events:
+      * 90.00%, cfg.rotation=none
+      * 80.00%, cfg.d=even
+      * 70.00%, cfg.bits=3
+      * 70.00%, corpus.kind=heavy
+      * 70.00%, corpus.n=1
+      * 30.00%, corpus.n=2-8
+      * 20.00%, cfg.bits=1
+      * 20.00%, cfg.d=2
+      * 20.00%, corpus.kind=gauss
+      * 20.00%, gave up because: failed to satisfy assume() in test_direction_codes_below_the_1e8_floor (line 548)
+      * 10.00%, cfg.bits=4
+      * 10.00%, cfg.rotation=rht
+      * 10.00%, corpus.kind=grid
+
+  - during shrink phase (0.63 seconds):
+    - Typical runtimes: ~ 0-134 ms, of which < 1ms in data generation
+    - 5 passing, 6 failing, and 25 invalid test cases
+    - Tried 36 shrinks of which 9 were successful
+
+  - during explain phase (0.70 seconds):
+    - Typical runtimes: ~ 0-7 ms, of which ~ 0-4 ms in data generation
+    - 1 passing, 81 failing, and 129 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_norms_are_float32_rounded_l2_norms:
+
+  - during generate phase (7.12 seconds):
+    - Typical runtimes: ~ 0-149 ms, of which ~ 0-4 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 54.00%, cfg.rotation=haar
+      * 46.00%, cfg.rotation=none
+      * 44.00%, corpus.n=9+
+      * 36.67%, cfg.d=even
+      * 36.67%, corpus.n=1
+      * 36.00%, cfg.d=odd
+      * 26.67%, cfg.bits=4
+      * 22.00%, cfg.bits=2
+      * 19.33%, corpus.n=2-8
+      * 18.00%, cfg.bits=1
+      * 17.33%, cfg.bits=3
+      * 16.67%, corpus.kind=gauss
+      * 16.00%, cfg.bits=8
+      * 13.33%, corpus.kind=const
+      * 13.33%, corpus.kind=heavy
+      * 12.67%, corpus.kind=hug
+      * 12.00%, cfg.d=1
+      * 11.33%, cfg.d=pow2
+      * 11.33%, corpus.kind=onehot
+      * 8.67%, corpus.kind=zero_rows
+      * 7.33%, corpus.kind=raw
+      * 7.33%, corpus.kind=walsh
+      * 6.00%, corpus.kind=lowrank
+      * 4.00%, cfg.d=2
+      * 2.00%, corpus.kind=dups
+      * 1.33%, corpus.kind=grid
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_encode_matches_nearest_centroid_oracle:
+
+  - during generate phase (8.48 seconds):
+    - Typical runtimes: ~ 1-223 ms, of which ~ 0-5 ms in data generation
+    - 160 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 50.62%, semantic.near_boundary=no
+      * 50.00%, mode=scalar
+      * 49.38%, semantic.near_boundary=yes
+      * 42.50%, cfg.rotation=none
+      * 40.62%, corpus.n=1
+      * 38.12%, cfg.d=even
+      * 31.25%, cfg.bits=2
+      * 31.25%, cfg.rotation=haar
+      * 30.62%, corpus.n=9+
+      * 28.75%, corpus.n=2-8
+      * 26.25%, cfg.d=odd
+      * 26.25%, cfg.rotation=rht
+      * 25.62%, mode=normalized
+      * 24.38%, mode=centered
+      * 21.88%, cfg.bits=1
+      * 21.25%, cfg.bits=4
+      * 19.38%, corpus.kind=raw
+      * 18.75%, cfg.bits=3
+      * 16.25%, corpus.kind=const
+      * 14.38%, cfg.d=1
+      * 12.50%, corpus.kind=hug
+      * 12.50%, corpus.kind=zero_rows
+      * 11.25%, cfg.d=2
+      * 10.62%, corpus.kind=gauss
+      * 10.62%, corpus.kind=heavy
+      * 10.00%, cfg.d=pow2
+      * 8.75%, corpus.kind=grid
+      * 6.88%, cfg.bits=8
+      * 4.38%, corpus.kind=lowrank
+      * 3.12%, corpus.kind=dups
+      * 1.25%, corpus.kind=onehot
+      * 0.62%, corpus.kind=walsh
+
+  - Stopped because settings.max_examples=160
+
+
+test_encode_props.py::test_codebook_invariants:
+
+  - during generate phase (8.32 seconds):
+    - Typical runtimes: ~ 51-131 ms, of which < 1ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 69.00%, sigma=explicit
+      * 31.00%, sigma=default
+
+  - Stopped because settings.max_examples=100
+
+
+test_encode_props.py::test_codebook_scale_equivariance_for_powers_of_two:
+
+  - during generate phase (4.88 seconds):
+    - Typical runtimes: ~ 50-137 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+test_encode_props.py::test_codebook_matches_independent_lloyd_reference:
+
+  - during generate phase (2.74 seconds):
+    - Typical runtimes: ~ 38-59 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+test_encode_props.py::test_nested_codebook_invariants:
+
+  - during generate phase (5.46 seconds):
+    - Typical runtimes: ~ 52-128 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+test_encode_props.py::test_matryoshka_codes_nest:
+
+  - during generate phase (8.38 seconds):
+    - Typical runtimes: ~ 0-215 ms, of which ~ 0-4 ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 51.67%, corpus.n=1
+      * 51.67%, scalar=False
+      * 48.33%, scalar=True
+      * 45.00%, cfg.rotation=rht
+      * 41.67%, cfg.d=even
+      * 37.50%, cfg.bits=3
+      * 35.83%, cfg.rotation=haar
+      * 35.83%, corpus.n=9+
+      * 22.50%, cfg.bits=2
+      * 21.67%, cfg.bits=8
+      * 20.00%, corpus.kind=const
+      * 19.17%, cfg.rotation=none
+      * 18.33%, cfg.bits=4
+      * 18.33%, cfg.d=1
+      * 16.67%, corpus.kind=hug
+      * 15.83%, cfg.d=pow2
+      * 14.17%, cfg.d=2
+      * 13.33%, corpus.kind=onehot
+      * 12.50%, corpus.n=2-8
+      * 11.67%, corpus.kind=grid
+      * 10.00%, cfg.d=odd
+      * 9.17%, corpus.kind=gauss
+      * 9.17%, corpus.kind=lowrank
+      * 7.50%, corpus.kind=walsh
+      * 5.83%, corpus.kind=heavy
+      * 4.17%, corpus.kind=dups
+      * 1.67%, corpus.kind=raw
+      * 0.83%, corpus.kind=zero_rows
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_assign_codes_equals_searchsorted:
+
+  - during generate phase (3.31 seconds):
+    - Typical runtimes: ~ 1-27 ms, of which ~ 0-23 ms in data generation
+    - 300 passing, 0 failing, and 3 invalid test cases
+    - Events:
+      * 80.20%, has_nan=no
+      * 75.58%, hit_boundary=yes
+      * 62.38%, boundaries=arbitrary
+      * 56.11%, env.block=tiny
+      * 49.83%, env.parallel_min=1
+      * 49.17%, env.parallel_min=None
+      * 44.88%, hay.dtype=float32
+      * 37.62%, boundaries=codebook
+      * 33.00%, layout=c
+      * 30.36%, hay.dtype=float16
+      * 29.04%, layout=fortran
+      * 28.05%, env.threads=None
+      * 27.39%, env.block=big
+      * 24.75%, hay.dtype=float64
+      * 24.42%, env.threads=3
+      * 23.43%, hit_boundary=no
+      * 22.77%, layout=reversed
+      * 18.81%, has_nan=yes
+      * 18.15%, env.threads=1
+      * 15.51%, env.block=default
+      * 15.51%, env.threads=4
+      * 14.85%, layout=readonly
+      * 12.87%, env.threads=2
+
+  - Stopped because settings.max_examples=300
+
+
+test_encode_props.py::test_assign_codes_wider_domain_matches_searchsorted:
+
+  - during generate phase (0.07 seconds):
+    - Typical runtimes: ~ 1-8 ms, of which ~ 0-5 ms in data generation
+    - 2 passing, 8 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+    - Events:
+      * 90.00%, boundaries=arbitrary
+      * 70.00%, wide=>f8
+      * 20.00%, wide=f64_boundaries
+      * 10.00%, boundaries=codebook
+      * 10.00%, wide=int64
+
+  - during shrink phase (0.28 seconds):
+    - Typical runtimes: ~ 0-211 ms, of which ~ 0-210 ms in data generation
+    - 1 passing, 5 failing, and 8 invalid test cases
+    - Tried 14 shrinks of which 7 were successful
+
+  - during explain phase (0.69 seconds):
+    - Typical runtimes: ~ 0-12 ms, of which ~ 0-4 ms in data generation
+    - 5 passing, 42 failing, and 21 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_rotations_are_orthogonal_and_deterministic:
+
+  - during generate phase (0.22 seconds):
+    - Typical runtimes: ~ 0-5 ms, of which < 1ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 30.67%, rht.odd_d_rejected
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_rht_operator_matches_dense_and_independent_reference:
+
+  - during generate phase (1.19 seconds):
+    - Typical runtimes: ~ 1-13 ms, of which ~ 0-4 ms in data generation
+    - 200 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=200
+
+
+test_encode_props.py::test_haar_matches_unique_qr_factor:
+
+  - during generate phase (0.27 seconds):
+    - Typical runtimes: ~ 0-9 ms, of which < 1ms in data generation
+    - 80 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=80
+
+
+test_encode_props.py::test_rht_rounds_for_large_d_is_floating_point_safe:
+
+  - during generate phase (0.08 seconds):
+    - Typical runtimes: ~ 0-4 ms, of which < 1ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=100
+
+
+test_encode_props.py::test_default_rotation_selection_and_odd_rht_error:
+
+  - during generate phase (6.39 seconds):
+    - Typical runtimes: ~ 65-161 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+test_encode_props.py::test_rht_decode_depends_on_seed_at_tiny_d:
+
+  - during generate phase (6.23 seconds):
+    - Typical runtimes: ~ 231-1178 ms, of which < 1ms in data generation
+    - 3 passing, 7 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - during shrink phase (1.93 seconds):
+    - Typical runtimes: ~ 0-768 ms, of which ~ 0-4 ms in data generation
+    - 1 passing, 2 failing, and 14 invalid test cases
+    - Tried 17 shrinks of which 0 were successful
+
+  - during explain phase (85.98 seconds):
+    - Typical runtimes: ~ 240-1117 ms, of which < 1ms in data generation
+    - 36 passing, 100 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_rht_leaves_no_basis_vector_unmixed_from_d16:
+
+  - during generate phase (0.16 seconds):
+    - Typical runtimes: ~ 0-4 ms, of which < 1ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_rht_leaves_no_basis_vector_unmixed_small_d:
+
+  - during generate phase (0.02 seconds):
+    - Typical runtimes: ~ 0-4 ms, of which < 1ms in data generation
+    - 6 passing, 4 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - during shrink phase (0.00 seconds):
+    - Typical runtimes: ~ 1ms, of which < 1ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+    - Tried 1 shrinks of which 0 were successful
+
+  - during explain phase (0.00 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 1 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_scalar_none_codes_are_searchsorted_and_nearest_centroid:
+
+  - during generate phase (8.71 seconds):
+    - Typical runtimes: ~ 0-146 ms, of which ~ 0-4 ms in data generation
+    - 220 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 70.00%, scalar.has_nan=no
+      * 62.73%, scalar.has_inf=no
+      * 48.18%, cfg.rotation=none
+      * 40.00%, cfg.d=even
+      * 37.27%, scalar.has_inf=yes
+      * 30.00%, scalar.has_nan=yes
+      * 28.18%, cfg.rotation=haar
+      * 25.00%, cfg.d=1
+      * 24.55%, cfg.bits=4
+      * 23.64%, cfg.rotation=rht
+      * 22.27%, cfg.bits=8
+      * 19.55%, cfg.bits=1
+      * 16.82%, cfg.bits=2
+      * 16.82%, cfg.bits=3
+      * 13.64%, cfg.d=odd
+      * 13.18%, cfg.d=pow2
+      * 8.18%, cfg.d=2
+
+  - Stopped because settings.max_examples=220
+
+
+test_encode_props.py::test_scalar_equal_inputs_equal_codes_and_monotone:
+
+  - during generate phase (8.38 seconds):
+    - Typical runtimes: ~ 0-123 ms, of which ~ 0-4 ms in data generation
+    - 150 passing, 0 failing, and 38 invalid test cases
+    - Events:
+      * 56.91%, scalar.has_inf=yes
+      * 54.79%, scalar.has_nan=yes
+      * 48.40%, cfg.rotation=haar
+      * 45.21%, scalar.has_nan=no
+      * 43.09%, scalar.has_inf=no
+      * 35.64%, cfg.d=even
+      * 30.85%, cfg.bits=1
+      * 29.79%, cfg.d=odd
+      * 27.13%, cfg.rotation=none
+      * 24.47%, cfg.rotation=rht
+      * 20.74%, cfg.bits=3
+      * 20.21%, gave up because: failed to satisfy assume() in test_scalar_equal_inputs_equal_codes_and_monotone (line 1004)
+      * 17.55%, cfg.bits=2
+      * 15.43%, cfg.bits=4
+      * 15.43%, cfg.bits=8
+      * 13.30%, cfg.d=pow2
+      * 11.70%, cfg.d=2
+      * 9.57%, cfg.d=1
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_scalar_decode_returns_the_centroids:
+
+  - during generate phase (3.40 seconds):
+    - Typical runtimes: ~ 1-101 ms, of which ~ 0-1 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 70.00%, scalar.has_nan=no
+      * 61.33%, scalar.has_inf=no
+      * 46.67%, cfg.d=even
+      * 44.00%, cfg.rotation=none
+      * 38.67%, scalar.has_inf=yes
+      * 31.33%, cfg.rotation=haar
+      * 30.00%, scalar.has_nan=yes
+      * 26.00%, cfg.bits=8
+      * 24.67%, cfg.rotation=rht
+      * 24.00%, cfg.bits=4
+      * 21.33%, cfg.d=1
+      * 19.33%, cfg.bits=2
+      * 18.00%, cfg.bits=3
+      * 14.00%, cfg.d=pow2
+      * 12.67%, cfg.bits=1
+      * 12.67%, cfg.d=odd
+      * 5.33%, cfg.d=2
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_scalar_power_of_two_covariance:
+
+  - during generate phase (6.57 seconds):
+    - Typical runtimes: ~ 0-186 ms, of which ~ 0-1 ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 62.50%, scalar.has_nan=no
+      * 53.33%, scalar.has_inf=yes
+      * 48.33%, cfg.rotation=none
+      * 46.67%, scalar.has_inf=no
+      * 39.17%, k=pos
+      * 37.50%, cfg.bits=1
+      * 37.50%, scalar.has_nan=yes
+      * 35.83%, cfg.d=odd
+      * 34.17%, k=zero
+      * 31.67%, cfg.bits=4
+      * 30.83%, cfg.bits=2
+      * 29.17%, cfg.d=even
+      * 27.50%, cfg.rotation=haar
+      * 26.67%, k=neg
+      * 24.17%, cfg.rotation=rht
+      * 19.17%, cfg.d=1
+      * 10.83%, cfg.d=2
+      * 5.00%, cfg.d=pow2
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_modes_cannot_be_mixed:
+
+  - during generate phase (14.04 seconds):
+    - Typical runtimes: ~ 1-406 ms, of which ~ 0-5 ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 44.00%, corpus.n=9+
+      * 42.00%, cfg.bits=2
+      * 38.00%, corpus.n=1
+      * 37.00%, cfg.d=even
+      * 37.00%, cfg.rotation=haar
+      * 37.00%, cfg.rotation=none
+      * 31.00%, cfg.bits=1
+      * 30.00%, cfg.d=odd
+      * 27.00%, cfg.bits=4
+      * 26.00%, cfg.rotation=rht
+      * 19.00%, corpus.kind=heavy
+      * 18.00%, corpus.n=2-8
+      * 15.00%, corpus.kind=hug
+      * 14.00%, cfg.d=pow2
+      * 14.00%, corpus.kind=zero_rows
+      * 12.00%, cfg.d=2
+      * 12.00%, corpus.kind=gauss
+      * 9.00%, corpus.kind=grid
+      * 8.00%, corpus.kind=walsh
+      * 7.00%, cfg.d=1
+      * 7.00%, corpus.kind=lowrank
+      * 7.00%, corpus.kind=raw
+      * 5.00%, corpus.kind=onehot
+      * 4.00%, corpus.kind=const
+
+  - Stopped because settings.max_examples=100
+
+
+test_encode_props.py::test_any_accepted_scale_yields_a_usable_codebook:
+
+  - during generate phase (0.75 seconds):
+    - Typical runtimes: ~ 1-208 ms, of which ~ 0-4 ms in data generation
+    - 3 passing, 7 failing, and 0 invalid test cases
+    - Found 2 distinct errors in this phase
+
+  - during shrink phase (7.36 seconds):
+    - Typical runtimes: ~ 1-208 ms, of which < 1ms in data generation
+    - 5 passing, 131 failing, and 0 invalid test cases
+    - Tried 136 shrinks of which 100 were successful
+
+  - during explain phase (0.90 seconds):
+    - Typical runtimes: ~ 1-282 ms, of which ~ 0-8 ms in data generation
+    - 1 passing, 7 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_scalar_mode_saturates_huge_finite_values_under_rotation:
+
+  - during generate phase (0.97 seconds):
+    - Typical runtimes: ~ 0-212 ms, of which < 1ms in data generation
+    - 4 passing, 6 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - during shrink phase (0.01 seconds):
+    - Typical runtimes: ~ 10ms, of which < 1ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+    - Tried 1 shrinks of which 0 were successful
+
+  - during explain phase (0.88 seconds):
+    - Typical runtimes: ~ 5-175 ms, of which < 1ms in data generation
+    - 1 passing, 11 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_encode_props.py::test_empty_and_singleton_batches:
+
+  - during generate phase (3.46 seconds):
+    - Typical runtimes: ~ 0-119 ms, of which ~ 0-5 ms in data generation
+    - 100 passing, 0 failing, and 1 invalid test cases
+    - Events:
+      * 100.00%, corpus.n=1
+      * 37.62%, cfg.rotation=none
+      * 35.64%, cfg.rotation=rht
+      * 33.66%, cfg.d=even
+      * 32.67%, cfg.bits=8
+      * 26.73%, cfg.rotation=haar
+      * 24.75%, cfg.d=1
+      * 22.77%, cfg.bits=1
+      * 21.78%, corpus.kind=heavy
+      * 20.79%, cfg.bits=3
+      * 15.84%, cfg.d=pow2
+      * 14.85%, corpus.kind=zero_rows
+      * 13.86%, cfg.d=2
+      * 11.88%, cfg.bits=2
+      * 11.88%, cfg.bits=4
+      * 11.88%, cfg.d=odd
+      * 11.88%, corpus.kind=walsh
+      * 10.89%, corpus.kind=gauss
+      * 9.90%, corpus.kind=grid
+      * 7.92%, corpus.kind=dups
+      * 7.92%, corpus.kind=raw
+      * 5.94%, corpus.kind=hug
+      * 5.94%, corpus.kind=onehot
+      * 2.97%, corpus.kind=lowrank
+
+  - Stopped because settings.max_examples=100
+
+
+test_encode_props.py::test_input_dtype_and_layout_do_not_change_codes_and_input_is_untouched:
+
+  - during generate phase (5.87 seconds):
+    - Typical runtimes: ~ 1-139 ms, of which ~ 0-4 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 54.67%, cfg.rotation=none
+      * 52.67%, cfg.d=even
+      * 45.33%, cfg.rotation=rht
+      * 41.33%, corpus.n=1
+      * 40.67%, corpus.kind=gauss
+      * 37.33%, corpus.n=9+
+      * 26.00%, cfg.bits=1
+      * 25.33%, cfg.bits=2
+      * 22.00%, layout=strided
+      * 22.00%, layout=transposed
+      * 21.33%, corpus.n=2-8
+      * 20.67%, dtype=int8
+      * 20.00%, dtype=float64
+      * 19.33%, corpus.kind=zero_rows
+      * 18.67%, cfg.bits=3
+      * 17.33%, corpus.kind=grid
+      * 17.33%, layout=c
+      * 17.33%, layout=reversed
+      * 15.33%, cfg.bits=4
+      * 15.33%, cfg.d=1
+      * 14.67%, cfg.bits=8
+      * 14.67%, dtype=float32
+      * 12.67%, dtype=int32
+      * 12.67%, layout=fortran
+      * 12.00%, cfg.d=odd
+      * 11.33%, corpus.kind=dups
+      * 11.33%, corpus.kind=onehot
+      * 10.67%, cfg.d=2
+      * 10.67%, dtype=uint8
+      * 9.33%, cfg.d=pow2
+      * 8.67%, layout=readonly
+      * 8.00%, dtype=float16
+      * 8.00%, dtype=int64
+      * 5.33%, dtype=bool
+
+  - Stopped because settings.max_examples=150
+
+
+test_encode_props.py::test_non_finite_input_is_total_and_row_local:
+
+  - during generate phase (3.63 seconds):
+    - Typical runtimes: ~ 1-112 ms, of which ~ 0-5 ms in data generation
+    - 120 passing, 0 failing, and 46 invalid test cases
+    - Events:
+      * 51.81%, cfg.d=even
+      * 51.81%, corpus.n=9+
+      * 48.19%, corpus.n=2-8
+      * 40.96%, nonfinite.scalar=False
+      * 36.14%, cfg.rotation=none
+      * 32.53%, cfg.rotation=rht
+      * 31.33%, cfg.rotation=haar
+      * 31.33%, nonfinite.scalar=True
+      * 28.92%, cfg.bits=4
+      * 25.90%, cfg.bits=3
+      * 24.10%, cfg.d=odd
+      * 21.69%, cfg.bits=1
+      * 17.47%, corpus.kind=walsh
+      * 16.27%, corpus.kind=dups
+      * 15.06%, cfg.bits=2
+      * 12.65%, corpus.kind=lowrank
+      * 12.05%, corpus.kind=zero_rows
+      * 10.84%, cfg.d=pow2
+      * 10.24%, cfg.d=2
+      * 8.43%, cfg.bits=8
+      * 8.43%, corpus.kind=const
+      * 8.43%, corpus.kind=gauss
+      * 7.83%, corpus.kind=raw
+      * 7.23%, corpus.kind=grid
+      * 4.82%, corpus.kind=hug
+      * 4.22%, corpus.kind=onehot
+      * 3.01%, cfg.d=1
+      * 0.60%, corpus.kind=heavy
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_corpus_mean_and_anisotropy_properties:
+
+  - during generate phase (1.53 seconds):
+    - Typical runtimes: ~ 0-112 ms, of which < 1ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 29.00%, stats.kind=zeros
+      * 28.00%, stats.kind=same_row
+      * 18.00%, stats.kind=normal
+      * 16.00%, stats.kind=lowrank
+      * 9.00%, stats.kind=ints
+
+  - Stopped because settings.max_examples=100
+
+
+test_encode_props.py::test_anisotropy_check_agrees_with_anisotropy_and_never_changes_codes:
+
+  - during generate phase (2.83 seconds):
+    - Typical runtimes: ~ 0-114 ms, of which ~ 0-4 ms in data generation
+    - 80 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, corpus.n=9+
+      * 66.25%, anisotropy.warned=False
+      * 30.00%, corpus.kind=heavy
+      * 22.50%, corpus.kind=gauss
+      * 16.25%, corpus.kind=dups
+      * 16.25%, corpus.kind=zero_rows
+      * 10.00%, anisotropy.warned=True
+      * 8.75%, corpus.kind=const
+      * 6.25%, corpus.kind=lowrank
+
+  - Stopped because settings.max_examples=80
+
+
+test_encode_props.py::test_dense_matrix_path_agrees_with_operator_except_at_boundaries:
+
+  - during generate phase (5.26 seconds):
+    - Typical runtimes: ~ 1-150 ms, of which ~ 0-6 ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, cfg.rotation=rht
+      * 65.83%, cfg.d=even
+      * 65.83%, dense_vs_operator.differs=no
+      * 42.50%, corpus.n=9+
+      * 40.00%, cfg.bits=3
+      * 34.17%, dense_vs_operator.differs=yes
+      * 33.33%, corpus.n=1
+      * 30.00%, cfg.bits=2
+      * 26.67%, corpus.kind=raw
+      * 24.17%, corpus.n=2-8
+      * 17.50%, cfg.bits=1
+      * 17.50%, cfg.d=pow2
+      * 16.67%, cfg.d=2
+      * 11.67%, corpus.kind=gauss
+      * 10.83%, corpus.kind=lowrank
+      * 8.33%, cfg.bits=8
+      * 8.33%, corpus.kind=grid
+      * 8.33%, corpus.kind=onehot
+      * 8.33%, corpus.kind=zero_rows
+      * 7.50%, corpus.kind=const
+      * 6.67%, corpus.kind=heavy
+      * 5.83%, corpus.kind=dups
+      * 5.83%, corpus.kind=hug
+      * 4.17%, cfg.bits=4
+
+  - Stopped because settings.max_examples=120
+
+
+test_encode_props.py::test_rht_operator_at_embedding_sized_d:
+
+  - during generate phase (8.77 seconds):
+    - Typical runtimes: ~ 1-1068 ms, of which < 1ms in data generation
+    - 25 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=25
+
+
+=========================== short test summary info ============================
+XFAIL test_encode_props.py::test_direction_codes_below_the_1e8_floor - finding F2: np.maximum(lengths, 1e-8) is an absolute floor, codes of vectors shorter than 1e-8 are not scale invariant
+XFAIL test_encode_props.py::test_shipped_codebook_is_lloyd_optimal_at_8_bits - finding F6: n_iter=300 Jacobi Lloyd is unconverged at 8 bits (MSE ~ +20% over the fixed point)
+XFAIL test_encode_props.py::test_assign_codes_wider_domain_matches_searchsorted - finding F4: assign_codes casts anything that is not native float32/float64 to float32 and casts float64 boundaries to float32
+XFAIL test_encode_props.py::test_rht_decode_depends_on_seed_at_tiny_d - finding F1: at d=2 (and d=4) every seed gives the same decodes; rht_rounds=2 cannot mix 2 coordinates
+XFAIL test_encode_props.py::test_rht_leaves_no_basis_vector_unmixed_small_d - finding F1b: for d in {8,10,12,14,20,...} a sizeable fraction of seeds map some basis vector to a single coordinate (rotation does not mix)
+XFAIL test_encode_props.py::test_any_accepted_scale_yields_a_usable_codebook - finding F3: scale outside ~[1e-43, 7e37] is accepted but the float32 tables collapse or overflow
+XFAIL test_encode_props.py::test_scalar_mode_saturates_huge_finite_values_under_rotation - finding F7: overflow inside the rotation voids the scalar-mode saturation claim for |x| near float64 max
+51 passed, 7 xfailed in 321.08s (0:05:21)
