@@ -1,0 +1,83 @@
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+__________________________ TestGpuIvfMachine.runTest ___________________________
+
+self = <hypothesis.stateful.GpuIvfMachine.TestCase testMethod=runTest>
+
+    def runTest(self):
+>       run_state_machine_as_test(cls, settings=self.settings)
+
+/usr/local/lib/python3.13/site-packages/hypothesis/stateful.py:558: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.13/site-packages/hypothesis/stateful.py:308: in run_state_machine_as_test
+    state_machine_test()
+/usr/local/lib/python3.13/site-packages/hypothesis/stateful.py:154: in run_state_machine
+    @given(st.data())
+               ^^^
+test_stateful_props.py:1318: in gpu_answer
+    check_topk(ref, ids[r_i], sc[r_i], k, tolerance(ref), what="GPUSearcher.search_batch")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+ref = array([ 1.59162613e-01,  7.93904736e+00, -1.49736287e+00,  1.86380121e+02,
+        1.36262660e-01,  8.93096618e-02,  1...1, -2.73404030e+02,
+       -1.37822026e+02,  1.37787793e+02,  1.91097002e-01,  1.59102723e-01,
+        1.59785724e-01])
+ids = array([ 3, 13,  1,  6,  8, 14,  7, 10,  0, 15, 16,  4,  9,  5,  2, 12, 11])
+scores = array([ 1.86316010e+02,  1.37790680e+02,  7.94095469e+00,  1.06589675e+00,
+        2.78638691e-01,  1.93380594e-01,  1...1,  1.39327288e-01,
+        1.34198427e-01,  9.46071148e-02, -1.49388099e+00, -1.37821411e+02,
+       -2.73405762e+02])
+k = 25, tol = 0.05468080604217395, allowed = None
+what = 'GPUSearcher.search_batch'
+
+    def check_topk(ref, ids, scores, k, tol, allowed=None, what="search"):
+        """Assert (ids, scores) is a valid top-k of the reference scores ``ref``.
+    
+        Tolerance-aware: ties and float32-vs-float64 rounding may reorder items
+        whose reference scores are within ``tol``.  Checks length, id range and
+        uniqueness, descending order, returned scores against the reference for the
+        same ids, and both soundness (nothing returned that the reference ranks
+        clearly below the cut) and completeness (nothing clearly above the cut
+        omitted).  ``allowed`` restricts the universe (IVF candidate cells).
+        """
+        ref = np.asarray(ref, dtype=np.float64)
+        ids = np.asarray(ids)
+        scores = np.asarray(scores, dtype=np.float64)
+        universe = np.arange(len(ref)) if allowed is None else np.asarray(sorted(allowed), dtype=np.int64)
+        exp_len = min(int(k), len(universe))
+        assert ids.shape == (exp_len,), f"{what}: returned {ids.shape[0]} ids, expected {exp_len}"
+        assert scores.shape == (exp_len,), f"{what}: returned {scores.shape[0]} scores, expected {exp_len}"
+        if exp_len == 0:
+            return
+        assert len(set(ids.tolist())) == exp_len, f"{what}: duplicate ids {ids.tolist()}"
+        assert set(ids.tolist()) <= set(universe.tolist()), f"{what}: ids outside the searchable set {ids.tolist()}"
+        assert np.all(np.diff(scores) <= tol), f"{what}: scores not descending {scores.tolist()}"
+        got_ref = ref[ids]
+>       assert np.allclose(scores, got_ref, rtol=0, atol=tol), (
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            f"{what}: returned scores {scores.tolist()} != reference scores of the same ids {got_ref.tolist()} (tol={tol:.2e})")
+E       AssertionError: GPUSearcher.search_batch: returned scores [186.31600952148438, 137.79067993164062, 7.940954685211182, 1.06589674949646, 0.27863869071006775, 0.19338059425354004, 0.18132762610912323, 0.18030454218387604, 0.1634836196899414, 0.16299346089363098, 0.16256573796272278, 0.1393272876739502, 0.13419842720031738, 0.09460711479187012, -1.4938809871673584, -137.8214111328125, -273.40576171875] != reference scores of the same ids [186.38012063505212, 137.78779314300056, 7.939047363278635, 1.0627096075590499, 0.2777739453508337, 0.19109700194671236, 0.17813133744653986, 0.17895083222390867, 0.1591626126565555, 0.15910272278839693, 0.15978572431722898, 0.13626265971523072, 0.13174121001659922, 0.08930966183539757, -1.4973628726793566, -137.8220262910964, -273.40403021086973] (tol=5.47e-02)
+E       Failing test case: <state machine>
+E       state = GpuIvfMachine()
+E       state.setup(cfg={'renorm': False,
+E           'rotation': None,
+E           'scale': 0.5,
+E           'seed': 0,
+E           'data_seed': 16195126,
+E           'kind': 'scaled',
+E           'mode': 'centered',
+E           'n': 17,
+E           'd': 16,
+E           'mean_kind': 'corpus',
+E           'bits': 8})
+E       state.build_gpu()
+E       state.gpu_answer(cand=2, chunk=3, cprec=9, i=2, k=25, method='search_batch', prec=7, qsel=1)
+E       state.teardown()
+E       
+E       You can reproduce this test case by temporarily adding @reproduce_failure('6.170.15', b'AXicY3BkcmQBYgYGRwZHQReG73JmQD4jkMPiyOzI6cjqyO7IAaRBkIvBkRuokAHEYAKq4QSSkkBV7I6MAHPaCdw=') as a decorator on your test function
+
+_oracle.py:139: AssertionError
+=========================== short test summary info ============================
+FAILED test_stateful_props.py::TestGpuIvfMachine::runTest - AssertionError: G...
+1 failed, 2 passed, 31 deselected in 264.44s (0:04:24)
+exit 1

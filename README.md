@@ -1,7 +1,7 @@
 # Experiments
 
 Research and build experiments by Oskar Austegard and Muninn, his Claude-based
-assistant: 242 of them as of 2026-11-16, one directory each. Most fall into a
+assistant: 243 of them as of 2026-11-16, one directory each. Most fall into a
 few threads: small models running in the browser on hand-written WebGPU
 kernels, embedding compression (remex), small decision models and LoRA
 adapters, and WebGPU toys, games and media.
@@ -26,6 +26,7 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`remex-proptest/`](remex-proptest/RESULTS.md) | 2026-11-16 | **done — four Sonnet agents property-tested remex 2.2.0 (search paths, containers, stateful index and caches, encode) with the proptest-praxis method. Their regressions fail on 2.2.0 in 68 cases covering 19 distinct defects; the worst was silent code corruption when one container class read the other's `.npz` at `d*bits % 8 != 0`, plus a pickle segfault and a guard skipped on a warm cache. Fixed in remex 2.2.1 (10 cases left: two design questions that change stored codes, corners, ambiguous). 72 of 73 planted bugs caught.** | [`RESULTS.md`](remex-proptest/RESULTS.md) + `search/` `containers/` `stateful/` `encode/` + `record.py` | Oskar, after the bm25 pilot: *"Fix the found bugs, yes. Then run the test skill against remex"* |
 | [`bm25-proptest/`](bm25-proptest/RESULTS.md) | 2026-11-16 | **done — a model-based property test (Hypothesis state machine against a plain-Python Okapi BM25) of the bm25 skill found two bugs: the session cache serves a stale index after files are edited, deleted or added (the cache key ignores file contents), and a corpus with no indexable terms crashes the CLI. Scoring and ranking matched the model over 1,500 histories; two planted mutants were caught. The 34-line fix, which the suite caught in a wrong first version, shipped as bm25 0.2.2.** | [`RESULTS.md`](bm25-proptest/RESULTS.md) + `test_bm25_model.py` + `test_regressions.py` + `bm25-fix.diff` | Oskar, after reviewing the proptest-praxis skill: *"run the pilot on the BM25 index"* |
 | [`trm-doom-rollouts/`](trm-doom-rollouts/RESULTS.md) | 2026-11-14 | **done — the trm-doom bot (TRM routes, scripted fights) with fights decided by playing 6 moves 2 s ahead in copies of the game on the GPU. Over 18 same-seed pairs on Freedoom E1M4–E1M6 (200 s each): deaths 16 → 1, kills 288 → 663, exits 0 → 1. Forking gPu(doom) is a copy of four GPU buffers. 6 pairs on a Mac with TRM routes, 12 on SwiftShader with BFS routes, since TRM was too slow there; the Mac overheated on the third rollout job.** | [`RESULTS.md`](trm-doom-rollouts/RESULTS.md) | Oskar, 2026-11-14: "Let's test it to see if our gpu(doom) bot can get better" |
 | [`presearch-reask/`](presearch-reask/RESULTS.md) | 2026-11-14 | **done — two options from HyperSkill's execution protocol (arXiv 2611.15178) tested on Haiku 5.5 at `--effort low`, 300 MuSiQue questions over a 14,661-paragraph BM25 index. Sending the question verbatim to search once before the model starts lifted F1 from 0.532 (3-search tool) to 0.570, and beat a 4-search budget by 0.045 (CI 0.008 to 0.083) with fewer searches (1.11 vs 1.97 per question): Haiku leaves extra searches unused, and (likely, not measured) seeing results first improves its follow-ups. A re-ask for a missing final answer fired on 1 of 300; the claude-workspace `scripts/decide.py` classifier at low effort parsed 312/312 replies, so there is nothing for a re-ask to recover there either. Round 2: Haiku research subagents with live WebSearch on 100 of the questions gained nothing from pre-search (F1 0.353 vs 0.365, CI -0.062 to 0.037); it cut searches 1.77 to 1.31 and run time 18 to 14 s but raised cost $0.024 to $0.031 per question as a separate call, and the web tool's results already carry a written summary. $1.48 + $5.47** | [`RESULTS.md`](presearch-reask/RESULTS.md) + [`PLAN.md`](presearch-reask/PLAN.md) + `run/prep.py` + `run/bm25.py` + `run/arms.py` + `run/score.py` + `run/decider_low.py` + `run/web_arms.py` + `run/web_score.py` + `results/` | Oskar, after the HyperSkill review: *"Is there anything in the scaffolding that may be a target for adoption?"*, then *"Ok try those two. Probably need to run them against Haiku on Low"*; round 2 after *"So this seems worth reaching for especially when using haiku sub agents for research, etc?"*. The two were pre-search and the re-ask, the only protocol options not already measured in this repo. |
@@ -270,6 +271,10 @@ under five minutes. `remex-vs-higgs-ablation/` has all three.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `remex-proptest/` — property tests of remex by four agents
+
+One directory per area, each with a Hypothesis harness, deterministic regressions (`xfail(strict)` marks the ambiguous ones) and its mutant runner. `record.py <remex clone>` reruns the regressions against 2.2.0 and the fixed commit and tallies mutants into `results/summary.json`. The fixes and 35 distilled cases live in remex itself (`tests/test_property_findings.py`).
 
 ### `bm25-proptest/` — property-testing the bm25 skill
 

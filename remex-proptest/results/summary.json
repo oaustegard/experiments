@@ -1,0 +1,73 @@
+{
+  "old_commit": "b8d527a",
+  "new_commit": "0319e2d",
+  "regressions": {
+    "search": {
+      "old": {
+        "failed": 12,
+        "passed": 5
+      },
+      "new": {
+        "failed": 3,
+        "passed": 14
+      }
+    },
+    "containers": {
+      "old": {
+        "failed": 22,
+        "passed": 1,
+        "xfailed": 14
+      },
+      "new": {
+        "passed": 23,
+        "xfailed": 14
+      }
+    },
+    "stateful": {
+      "old": {
+        "failed": 15,
+        "passed": 8,
+        "xfailed": 4
+      },
+      "new": {
+        "passed": 23,
+        "xfailed": 4
+      }
+    },
+    "encode": {
+      "old": {
+        "failed": 19,
+        "xfailed": 1
+      },
+      "new": {
+        "failed": 7,
+        "passed": 12,
+        "xfailed": 1
+      }
+    }
+  },
+  "mutants_caught_of": {
+    "search": [
+      15,
+      15
+    ],
+    "containers": [
+      24,
+      24
+    ],
+    "stateful": [
+      16,
+      17
+    ],
+    "encode": [
+      17,
+      17
+    ]
+  },
+  "totals": {
+    "regression_failures_on_old": 68,
+    "regression_failures_on_new": 10,
+    "mutants_caught": 72,
+    "mutants_planted": 73
+  }
+}

@@ -1316,7 +1316,7 @@ def make_mismatched_reader(case, kind, data):
     return make_pq(d, bits, seed, rot, normalize, scale, renorm, mean_key)
 
 
-@PROFILE
+@settings(PROFILE, max_examples=max(EXAMPLES, 1500))   # rare precondition: warm cache + scalar/renorm=False writer
 @given(data=st.data())
 def test_mismatched_reader_is_refused_on_every_path(data):
     """README.md:23: "decoding against a quantizer that differs in any of them
