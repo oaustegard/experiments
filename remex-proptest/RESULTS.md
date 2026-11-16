@@ -27,7 +27,7 @@ IVF an optional index over the codes.
 Does the method find real bugs in a library that already has a careful test
 suite? Yes. The four harnesses produced deterministic regression tests that fail
 on remex 2.2.0 for 68 cases <!-- @evidence[[results/summary.json#totals.regression_failures_on_old]] -->.
-Those cases cover the 19 distinct defects listed under Findings. The worst was
+Those cases cover the 21 distinct defects listed under Findings. The worst was
 silent data corruption. The two container classes wrote `.npz` files in
 different bit layouts, so whenever `d * bits` was not a multiple of 8, a file
 saved by one and loaded by the other returned wrong codes with no error. All of
@@ -65,7 +65,7 @@ tables, the dense rotation matrix), so defects there are invisible to them.
 5. **Vectors shorter than 1e-8 were coded off their direction.** An absolute
    floor shrank them into the central cells. At d=64 and 4 bits, decode quality
    fell to 1-bit level by a norm of 7e-12. (encode F2)
-6. **Twelve smaller defects, all fixed:**
+6. **Fourteen smaller defects, all fixed:**
    - `RemexIndex.load` bypassed `open_npz`;
    - IVF built indexes from codes its quantizer refuses;
    - `save_arrow` extra metadata could relabel the encoding;
@@ -77,7 +77,9 @@ tables, the dense rotation matrix), so defects there are invisible to them.
    - `candidate_indices` returned a writable view;
    - degenerate `scale` codebooks were accepted;
    - `assign_codes` mishandled dtypes;
-   - a spurious warning fired on inf input.
+   - a spurious warning fired on inf input;
+   - `coordinate_sigma` accepted `d <= 0`;
+   - `corpus_mean` of an empty corpus returned NaN.
 7. **Two design questions, not changed.**
    - The 8-bit Lloyd-Max table stops at 300 iterations, with MSE 20% above its
      fixed point (4.94e-5 against 4.12e-5).
@@ -157,3 +159,12 @@ regression results on 2.2.0 → 2.2.1:
 
 One remex test changed: `test_ivf_empty_cell_still_runs_the_guards` now builds
 the index inside `pytest.raises`, because the guard fires at build time.
+
+### Round 2 — 2026-11-16, count corrected
+
+The Answer said 19 distinct defects, and Findings item 6 listed twelve smaller
+ones. The 2.2.1 changelog fixes 19, including `coordinate_sigma` refusing
+`d <= 0` and `corpus_mean` refusing an empty corpus, which item 6 had left out.
+Adding the two design questions gives 21, the figure Oskar used when he
+announced the release. remex 2.2.1 was released the same day (tag `v2.2.1` at
+0319e2d, published to PyPI).

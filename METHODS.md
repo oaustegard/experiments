@@ -527,7 +527,7 @@ remex's ~600 tests all passed while the two `.npz` writers disagreed whenever
 `d * bits` is not a multiple of 8: no test loaded one class's file with the
 other at such a width, so cross-class reads were silently wrong. Generating small odd `d` found it at once.
 Four agents, one per area (search paths, containers, stateful caches, encode),
-produced 68 failing regression cases, about 20 distinct defects, and three of
+produced 68 failing regression cases covering 21 distinct defects, and three of
 the four found the same warm-cache guard bypass independently, which is a
 useful confidence signal. Practicalities: tell each agent to wait on long runs
 with a background job and its completion notice, never a `sleep` loop (three of
