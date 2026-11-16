@@ -1,0 +1,943 @@
+.x.F..ssssssssssssFFFF.FFF....FFFF.FF.FF.xxx                             [100%]
+=================================== FAILURES ===================================
+____________________ TestRemexIndexRejectsKnownBug.runTest _____________________
+[XPASS(strict)] F1: RemexIndex._check_dim records dim before the batch is accepted (st.py:304-308, 310-319, 321-336)
+_____________ test_f1_empty_add_on_modelless_index_is_a_valueerror _____________
+
+    def test_f1_empty_add_on_modelless_index_is_a_valueerror():
+        """``RemexIndex(bits=4).add([])`` should be rejected like every other empty batch
+        (``_embed`` raises ValueError("expected a non-empty (n, d) batch")).  The list ``[]``
+        becomes a (1, 0) array after the 1-D promotion at st.py:312-313, slips past the
+        emptiness test at 314, and the index then dies with ZeroDivisionError building a d=0
+        Quantizer."""
+        idx = RemexIndex(bits=4)
+        try:
+            idx.add([])
+        except Exception as exc:                       # noqa: BLE001
+            raised = exc
+        else:
+            raised = None
+>       assert isinstance(raised, ValueError), f"add([]) raised {type(raised).__name__}: {raised}"
+E       AssertionError: add([]) raised ZeroDivisionError: float division by zero
+E       assert False
+E        +  where False = isinstance(ZeroDivisionError('float division by zero'), ValueError)
+
+test_stateful_regressions.py:47: AssertionError
+_________________ test_f1_rejected_empty_add_leaves_dim_unset __________________
+
+    def test_f1_rejected_empty_add_leaves_dim_unset():
+        """A rejected ``add`` must not change the index: ``_check_dim`` (st.py:304-308) records
+        ``self.dim`` from the batch before the batch is accepted, so ``add([])`` leaves dim=0."""
+        idx = RemexIndex(bits=4)
+        with pytest.raises(Exception):
+            idx.add([])
+>       assert idx.dim is None, f"rejected add left dim={idx.dim!r}"
+E       AssertionError: rejected add left dim=0
+E       assert 0 is None
+E        +  where 0 = RemexIndex(n=0, dim=0, bits=4, similarity='cosine', center=False).dim
+
+test_stateful_regressions.py:56: AssertionError
+__________ test_f1_modelless_index_is_usable_after_rejected_empty_add __________
+
+    def test_f1_modelless_index_is_usable_after_rejected_empty_add():
+        """Consequence of the above: the next valid add is refused with 'expected dim=0, got 16'
+        and the index can never be used again."""
+        idx = RemexIndex(bits=4)
+        with pytest.raises(Exception):
+            idx.add([])
+>       ids = idx.add(_gauss(5, 16))
+              ^^^^^^^^^^^^^^^^^^^^^^
+
+test_stateful_regressions.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../remex/remex/st.py:379: in add
+    X = self._embed(documents, "document", encode_kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../remex/remex/st.py:318: in _embed
+    self._check_dim(X.shape[1])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = RemexIndex(n=0, dim=0, bits=4, similarity='cosine', center=False), d = 16
+
+    def _check_dim(self, d: int) -> None:
+        if self.dim is None:
+            self.dim = d
+        elif d != self.dim:
+>           raise ValueError(f"expected dim={self.dim}, got {d}")
+E           ValueError: expected dim=0, got 16
+
+../../../remex/remex/st.py:308: ValueError
+___________ test_f1_rejected_mixed_dim_maxsim_batch_leaves_dim_unset ___________
+
+    def test_f1_rejected_mixed_dim_maxsim_batch_leaves_dim_unset():
+        """Same root cause through ``_embed_tokens`` (st.py:321-336): the loop records the first
+        matrix's dimension, then raises on the second.  The index keeps dim=8 although nothing
+        was added, and a later batch of dimension 5 is refused."""
+        rng = np.random.default_rng(0)
+        idx = RemexIndex(bits=2, similarity="maxsim")
+        with pytest.raises(ValueError):
+            idx.add([rng.standard_normal((3, 8)).astype(np.float32),
+                     rng.standard_normal((2, 5)).astype(np.float32)])
+>       assert idx.dim is None, f"rejected batch left dim={idx.dim!r}"
+E       AssertionError: rejected batch left dim=8
+E       assert 8 is None
+E        +  where 8 = RemexIndex(n=0, dim=8, bits=2, similarity='maxsim', center=False).dim
+
+test_stateful_regressions.py:78: AssertionError
+_ test_f2_warm_search_refuses_centred_codes_when_quantizer_has_no_mean_and_renorm_false _
+
+    def test_f2_warm_search_refuses_centred_codes_when_quantizer_has_no_mean_and_renorm_false():
+        """Cold, the codes are refused ('mean mismatch'); warm, they are scored without their
+        mean and the answer is silently wrong (about 14 against the correct 31)."""
+        owner, c, q, correct = _warm_centered_container()
+        reader = Quantizer(16, 2, renorm=False)
+>       with pytest.raises(ValueError, match="mean mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_stateful_regressions.py:116: Failed
+___ test_f2_warm_search_refuses_codes_of_another_bit_width_when_renorm_false ___
+
+    def test_f2_warm_search_refuses_codes_of_another_bit_width_when_renorm_false():
+        owner = Quantizer(16, 4)
+        c = owner.encode(_gauss(40, 16))
+        q = _gauss(1, 16, seed=9)[0]
+        owner.search(c, q, k=3)
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_stateful_regressions.py:126: Failed
+____ test_f2_warm_search_refuses_codes_of_another_bit_width_in_scalar_mode _____
+
+    def test_f2_warm_search_refuses_codes_of_another_bit_width_in_scalar_mode():
+        """Scalar codes carry no norms, so ``_effective_norms`` never reaches the guards at all."""
+        owner = Quantizer(8, 3, normalize=False, rotation="none")
+        c = owner.encode(_gauss(20, 8))
+        q = _gauss(1, 8, seed=9)[0]
+        owner.search(c, q, k=3)
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_stateful_regressions.py:136: Failed
+____________________ test_f3_load_finds_the_file_save_wrote ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-74/test_f3_load_finds_the_file_sa0')
+
+    def test_f3_load_finds_the_file_save_wrote(tmp_path):
+        """CHANGELOG 2.1.0: 'save("index") writes index.npz ... load("index") now reads it'
+        (tests/test_integrity.py B-04 covers CompressedVectors/PackedVectors).  RemexIndex.load
+        calls np.load directly and raises FileNotFoundError for the suffix-less name."""
+        written = _small_index().save(str(tmp_path / "index"))
+        assert written.endswith("index.npz")
+>       assert len(RemexIndex.load(str(tmp_path / "index"))) == 10
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_stateful_regressions.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../remex/remex/st.py:534: in load
+    with np.load(path) as data:
+         ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = '/tmp/pytest-of-root/pytest-74/test_f3_load_finds_the_file_sa0/index'
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-74/test_f3_load_finds_the_file_sa0/index'
+
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+__________________ test_f3_load_names_a_damaged_file[garbage] __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-74/test_f3_load_names_a_damaged_f0')
+kind = 'garbage'
+
+    @pytest.mark.parametrize("kind", ["garbage", "empty", "truncated"])
+    def test_f3_load_names_a_damaged_file(tmp_path, kind):
+        """CHANGELOG 2.1.0: damaged files raise 'is not a readable .npz archive' rather than
+        EOFError / BadZipFile / NumPy's pickle advice.  RemexIndex.load passes all three through."""
+        good = _small_index().save(str(tmp_path / "good"))
+        data = {"garbage": b"this is not an archive", "empty": b"",
+                "truncated": open(good, "rb").read()[:200]}[kind]
+        bad = tmp_path / f"{kind}.npz"
+        bad.write_bytes(data)
+>       with pytest.raises(ValueError, match="not a readable .npz archive"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'not a readable .npz archive'
+E         Actual message: 'This file contains pickled (object) data. If you trust the file you can load it unsafely using the `allow_pickle=` keyword argument or `pickle.load()`.'
+
+test_stateful_regressions.py:187: AssertionError
+___________________ test_f3_load_names_a_damaged_file[empty] ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-74/test_f3_load_names_a_damaged_f1')
+kind = 'empty'
+
+    @pytest.mark.parametrize("kind", ["garbage", "empty", "truncated"])
+    def test_f3_load_names_a_damaged_file(tmp_path, kind):
+        """CHANGELOG 2.1.0: damaged files raise 'is not a readable .npz archive' rather than
+        EOFError / BadZipFile / NumPy's pickle advice.  RemexIndex.load passes all three through."""
+        good = _small_index().save(str(tmp_path / "good"))
+        data = {"garbage": b"this is not an archive", "empty": b"",
+                "truncated": open(good, "rb").read()[:200]}[kind]
+        bad = tmp_path / f"{kind}.npz"
+        bad.write_bytes(data)
+        with pytest.raises(ValueError, match="not a readable .npz archive"):
+>           RemexIndex.load(str(bad))
+
+test_stateful_regressions.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../remex/remex/st.py:534: in load
+    with np.load(path) as data:
+         ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = '/tmp/pytest-of-root/pytest-74/test_f3_load_names_a_damaged_f1/empty.npz'
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+                fid = stack.enter_context(open(os.fspath(file), "rb"))
+                own_fid = True
+    
+            # Code to distinguish from NumPy binary files and pickles.
+            _ZIP_PREFIX = b'PK\x03\x04'
+            _ZIP_SUFFIX = b'PK\x05\x06'  # empty zip files start with this
+            N = len(format.MAGIC_PREFIX)
+            magic = fid.read(N)
+            if not magic:
+>               raise EOFError("No data left in file")
+E               EOFError: No data left in file
+
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:463: EOFError
+_________________ test_f3_load_names_a_damaged_file[truncated] _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-74/test_f3_load_names_a_damaged_f2')
+kind = 'truncated'
+
+    @pytest.mark.parametrize("kind", ["garbage", "empty", "truncated"])
+    def test_f3_load_names_a_damaged_file(tmp_path, kind):
+        """CHANGELOG 2.1.0: damaged files raise 'is not a readable .npz archive' rather than
+        EOFError / BadZipFile / NumPy's pickle advice.  RemexIndex.load passes all three through."""
+        good = _small_index().save(str(tmp_path / "good"))
+        data = {"garbage": b"this is not an archive", "empty": b"",
+                "truncated": open(good, "rb").read()[:200]}[kind]
+        bad = tmp_path / f"{kind}.npz"
+        bad.write_bytes(data)
+        with pytest.raises(ValueError, match="not a readable .npz archive"):
+>           RemexIndex.load(str(bad))
+
+test_stateful_regressions.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../remex/remex/st.py:534: in load
+    with np.load(path) as data:
+         ^^^^^^^^^^^^^
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:471: in load
+    ret = NpzFile(fid, own_fid=own_fid, allow_pickle=allow_pickle,
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:197: in __init__
+    _zip = zipfile_factory(fid)
+           ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:112: in zipfile_factory
+    return zipfile.ZipFile(file, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.13/zipfile/__init__.py:1432: in __init__
+    self._RealGetContents()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <zipfile.ZipFile [closed]>
+
+    def _RealGetContents(self):
+        """Read in the table of contents for the ZIP file."""
+        fp = self.fp
+        try:
+            endrec = _EndRecData(fp)
+        except OSError:
+            raise BadZipFile("File is not a zip file")
+        if not endrec:
+>           raise BadZipFile("File is not a zip file")
+E           zipfile.BadZipFile: File is not a zip file
+
+/usr/local/lib/python3.13/zipfile/__init__.py:1499: BadZipFile
+___________ test_f4_pickled_rht_quantizer_encodes_in_a_fresh_process ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-74/test_f4_pickled_rht_quantizer_0')
+
+    def test_f4_pickled_rht_quantizer_encodes_in_a_fresh_process(tmp_path):
+        """Pickling a never-used default Quantizer succeeds; unpickling it in a new process and
+        encoding crashes the interpreter (SIGSEGV, return code -11) because the stored pointers
+        belong to the parent's address space.  Acceptable outcomes: pickling is refused with a
+        TypeError/PicklingError, or the child reproduces the parent's codes."""
+        import pickle
+        q = Quantizer(64, 4)                                     # rotation='rht' (even d)
+        assert q.rotation == "rht"
+        X = np.random.default_rng(0).standard_normal((50, 64)).astype(np.float32)
+        want = Quantizer(64, 4).encode(X).indices
+        try:
+            blob = pickle.dumps(q)
+        except (TypeError, pickle.PicklingError):
+            return                                               # refusing is a legitimate fix
+        (tmp_path / "q.pkl").write_bytes(blob)
+        proc = subprocess.run([sys.executable, "-c", _CHILD_PICKLE, str(tmp_path / "q.pkl"), str(tmp_path / "out.npy")],
+                              capture_output=True, text=True, timeout=120)
+>       assert proc.returncode == 0, f"child died with return code {proc.returncode}: {proc.stderr[-300:]}"
+E       AssertionError: child died with return code -11: 
+E       assert -11 == 0
+E        +  where -11 = CompletedProcess(args=['/usr/local/bin/python3', '-c', '\nimport pickle, sys, numpy as np\nq = pickle.loads(open(sys.a...q.pkl', '/tmp/pytest-of-root/pytest-74/test_f4_pickled_rht_quantizer_0/out.npy'], returncode=-11, stdout='', stderr='').returncode
+
+test_stateful_regressions.py:236: AssertionError
+______ test_f4_deepcopied_rht_quantizer_survives_the_original_being_freed ______
+
+    def test_f4_deepcopied_rht_quantizer_survives_the_original_being_freed():
+        """deepcopy of an unused Quantizer 'works', but its operator still points into the
+        original's tables; once the original is freed and its memory reused the copy reads
+        garbage or segfaults (return code -11 / 139 here)."""
+        proc = subprocess.run([sys.executable, "-c", _CHILD_DEEPCOPY], capture_output=True, text=True, timeout=120)
+>       assert proc.returncode == 0, f"child ended with return code {proc.returncode} (3 = wrong codes, negative = signal)"
+E       AssertionError: child ended with return code -11 (3 = wrong codes, negative = signal)
+E       assert -11 == 0
+E        +  where -11 = CompletedProcess(args=['/usr/local/bin/python3', '-c', '\nimport copy, gc, numpy as np\nfrom remex import Quantizer\nX...2.encode(X).indices\nraise SystemExit(0 if np.array_equal(got, want) else 3)\n'], returncode=-11, stdout='', stderr='').returncode
+
+test_stateful_regressions.py:267: AssertionError
+______________ test_f5_ivf_constructor_names_a_bit_width_mismatch ______________
+
+    def test_f5_ivf_constructor_names_a_bit_width_mismatch():
+        """A 2-bit container under a 1-bit quantizer: the MSB shift is computed from the
+        quantizer's width (ivf.py:143-145), cell ids exceed n_cells and construction dies in
+        np.cumsum with 'provided out is the wrong size'.  Expected: the 'bits mismatch' message
+        every other read path gives."""
+        c = Quantizer(8, 2).encode(_gauss(10, 8))
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'bits mismatch'
+E         Actual message: 'provided out is the wrong size for the accumulation.'
+
+test_stateful_regressions.py:290: AssertionError
+_________ test_f5_ivf_constructor_refuses_codes_it_would_hash_wrongly __________
+
+    def test_f5_ivf_constructor_refuses_codes_it_would_hash_wrongly():
+        """A 2-bit container under a 4-bit quantizer: shift=3 turns every code into 0, so the
+        constructor silently builds an index with all rows in one cell (it only fails later, at
+        the first search).  Expected: refusal at construction."""
+        c = Quantizer(8, 2).encode(_gauss(10, 8))
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+test_stateful_regressions.py:299: Failed
+============================ Hypothesis Statistics =============================
+test_stateful_props.py::TestCacheMachine::runTest:
+
+  - during generate phase (16.56 seconds):
+    - Typical runtimes: ~ 100-615 ms, of which ~ 1-12 ms in data generation
+    - 60 passing, 0 failing, and 3 invalid test cases
+    - Events:
+      * 65.08%, cache:renorm=True
+      * 63.49%, cache:precision_switch
+      * 61.90%, Retried draw from sampled_from([Rule(function=new_quantizer_same_params, _cached_hash=-3184340300085041737), Rule(function=assign_own_R_to_quantizer, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=8089633492045695822, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=drop_cache, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=4374551891804421469, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=every_foreign_encoding_is_refused, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=-4433188208379663503, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=read_R, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=172745253984240174, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=save_and_load, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=-7531565661562886402, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=to_packed, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=-6819250772391890519, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=verify_content_equals_fresh_encode, arguments={'i': integers(min_value=0, max_value=99)}, _cached_hash=-1012464819318757293, arguments_strategies={'i': integers(min_value=0, max_value=99)}), Rule(function=quantizer_with_replaced_R, arguments={'seed': integers(min_value=0, max_value=1048576), 'sel': integers(min_value=0, max_value=1048576)}, _cached_hash=-4839453744181886120, arguments_strategies={'seed': integers(min_value=0, max_value=1048576), 'sel': integers(min_value=0, max_value=1048576)}), Rule(function=encode_rows, arguments={'qi': integers(min_value=0, max_value=9), 'sel': integers(min_value=0, max_value=1048576), 'size': integers(min_value=1, max_value=24)}, _cached_hash=7548061129700021954, arguments_strategies={'qi': integers(min_value=0, max_value=9), 'sel': integers(min_value=0, max_value=1048576), 'size': integers(min_value=1, max_value=24)}), Rule(function=subset, arguments={'i': integers(min_value=0, max_value=3), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative', 'empty', 'all']), 'seed': integers(min_value=0, max_value=1048576)}, _cached_hash=-1682850186809142176, arguments_strategies={'i': integers(min_value=0, max_value=3), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative', 'empty', 'all']), 'seed': integers(min_value=0, max_value=1048576)}), Rule(function=invalid_precision_is_refused, arguments={'i': integers(min_value=0, max_value=99), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=1, max_value=40), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'search_twostage', 'decode'])}, _cached_hash=-2977960235712267809, arguments_strategies={'i': integers(min_value=0, max_value=99), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'search_twostage', 'decode']), 'prec': integers(min_value=1, max_value=40), 'qi': integers(min_value=0, max_value=9)}), Rule(function=answer_decode, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=2088558157885704573, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6695637917166275661, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_batch, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6930622368517396512, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=warm_only, arguments={'i': integers(min_value=0, max_value=99), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=-8552469408450679692, arguments_strategies={'i': integers(min_value=0, max_value=99), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_adc, arguments={'chunk': sampled_from([1, 3, 4096]), 'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=3030612468731654223, arguments_strategies={'chunk': sampled_from([1, 3, 4096]), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_twostage, arguments={'cand': integers(min_value=0, max_value=3), 'cprec': integers(min_value=0, max_value=12), 'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=8817634370713029875, arguments_strategies={'cand': integers(min_value=0, max_value=3), 'cprec': integers(min_value=0, max_value=12), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=precision_cycle, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'p1': integers(min_value=0, max_value=12), 'p2': integers(min_value=0, max_value=12), 'drop': booleans(), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'decode']), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6251740786866712208, arguments_strategies={'drop': booleans(), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'decode']), 'p1': integers(min_value=0, max_value=12), 'p2': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=warm_derive_search, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative']), 'seed': integers(min_value=0, max_value=1048576), 'p': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5), 'via': sampled_from(['subset', 'save_load', 'packed'])}, _cached_hash=-3048593811917288868, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative']), 'p': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5), 'seed': integers(min_value=0, max_value=1048576), 'via': sampled_from(['subset', 'save_load', 'packed'])})]).filter(RuleStrategy(machine=CacheMachine({...}))._rule_is_enabled) to satisfy filter
+      * 61.90%, cache:xhat_cold_at_call
+      * 60.32%, cache:mode=plain
+      * 60.32%, cache:save_load
+      * 53.97%, cache:method=search_batch
+      * 50.79%, cache:batch_nq=1
+      * 50.79%, cache:method=search
+      * 49.21%, cache:xhat_warm_at_call
+      * 47.62%, cache:R_setter_same_matrix
+      * 47.62%, cache:second_quantizer_built
+      * 44.44%, cache:R_read
+      * 44.44%, cache:bits=2
+      * 44.44%, cache:dense_R_quantizer
+      * 42.86%, cache:content_equals_fresh_encode_checked
+      * 42.86%, cache:rotation=haar
+      * 41.27%, cache:guard_d_cold
+      * 41.27%, cache:guard_d_warm
+      * 41.27%, cache:guard_mode_cold
+      * 41.27%, cache:guard_mode_warm
+      * 41.27%, cache:method=search_twostage
+      * 39.68%, cache:drop_cache
+      * 38.10%, cache:guard_bits_cold
+      * 38.10%, cache:guard_bits_warm
+      * 38.10%, cache:guard_mean_cold
+      * 38.10%, cache:guard_mean_warm
+      * 36.51%, cache:search_after_drop_cache
+      * 34.92%, cache:batch_nq=2
+      * 34.92%, cache:memo_repeat_checked
+      * 34.92%, cache:precision_cycle
+      * 34.92%, cache:renorm=False
+      * 34.92%, cache:twostage_candidates=exhaustive
+      * 34.92%, cache:warm_only_search
+      * 33.33%, cache:drop_inside_cycle
+      * 33.33%, cache:rotation=rht
+      * 30.16%, cache:invalid_precision_refused
+      * 30.16%, cache:method=search_adc
+      * 28.57%, cache:guard_rotation_cold
+      * 28.57%, cache:guard_rotation_warm
+      * 28.57%, cache:guard_seed_cold
+      * 28.57%, cache:guard_seed_warm
+      * 26.98%, cache:batch_nq=3
+      * 26.98%, cache:corpus_kind=gauss
+      * 26.98%, cache:method=decode
+      * 26.98%, cache:to_packed
+      * 23.81%, cache:R_setter_replaced_matrix
+      * 23.81%, cache:corpus_kind=dups
+      * 23.81%, cache:mode=scalar
+      * 23.81%, cache:rotation=none
+      * 23.81%, cache:subset_empty
+      * 22.22%, cache:bits=1
+      * 22.22%, cache:corpus_kind=scaled
+      * 22.22%, cache:warm_then_derive_subset
+      * 17.46%, cache:container_encoded
+      * 17.46%, cache:subset_mask
+      * 17.46%, cache:twostage_candidates=partial
+      * 17.46%, cache:warm_then_derive_save_load
+      * 15.87%, cache:bits=8
+      * 15.87%, cache:mode=centered
+      * 15.87%, cache:warm_then_derive_packed
+      * 14.29%, cache:bits=4
+      * 14.29%, cache:corpus_kind=shifted
+      * 12.70%, cache:corpus_kind=zeros
+      * 12.70%, cache:subset_negative
+      * 11.11%, cache:subset_unsorted
+      * 6.35%, cache:other_quantizer_than_encoder
+      * 6.35%, cache:subset_all
+      * 6.35%, cache:subset_sorted
+      * 3.17%, cache:bits=3
+      * 1.59%, cache:subset_dups
+
+  - Stopped because settings.max_examples=60
+
+
+test_stateful_props.py::TestCacheMachineGuardKnownBug::runTest:
+
+  - during generate phase (1.52 seconds):
+    - Typical runtimes: ~ 1-420 ms, of which ~ 0-19 ms in data generation
+    - 3 passing, 5 failing, and 2 invalid test cases
+    - Found 1 distinct error in this phase
+    - Events:
+      * 70.00%, cache:rotation=rht
+      * 60.00%, cache:bits=2
+      * 60.00%, cache:corpus_kind=zeros
+      * 50.00%, cache:guard_bits_warm
+      * 50.00%, cache:mode=scalar
+      * 50.00%, cache:renorm=True
+      * 30.00%, cache:mode=plain
+      * 30.00%, cache:renorm=False
+      * 30.00%, cache:second_quantizer_built
+      * 20.00%, cache:batch_nq=1
+      * 20.00%, cache:bits=1
+      * 20.00%, cache:corpus_kind=gauss
+      * 20.00%, cache:method=search_batch
+      * 20.00%, cache:xhat_cold_at_call
+      * 10.00%, Retried draw from sampled_from([Rule(function=new_quantizer_same_params, _cached_hash=-3184340300085041737), Rule(function=assign_own_R_to_quantizer, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=8089633492045695822, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=drop_cache, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=4374551891804421469, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=every_foreign_encoding_is_refused, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=-4433188208379663503, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=focus_a, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=805158027013729635, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=focus_b, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=-5372080272866739386, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=focus_c, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=1025272728165683118, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=read_R, arguments={'qi': integers(min_value=0, max_value=9)}, _cached_hash=172745253984240174, arguments_strategies={'qi': integers(min_value=0, max_value=9)}), Rule(function=save_and_load, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=-7531565661562886402, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=to_packed, arguments={'i': integers(min_value=0, max_value=3)}, _cached_hash=-6819250772391890519, arguments_strategies={'i': integers(min_value=0, max_value=3)}), Rule(function=verify_content_equals_fresh_encode, arguments={'i': integers(min_value=0, max_value=99)}, _cached_hash=-1012464819318757293, arguments_strategies={'i': integers(min_value=0, max_value=99)}), Rule(function=quantizer_with_replaced_R, arguments={'seed': integers(min_value=0, max_value=1048576), 'sel': integers(min_value=0, max_value=1048576)}, _cached_hash=-4839453744181886120, arguments_strategies={'seed': integers(min_value=0, max_value=1048576), 'sel': integers(min_value=0, max_value=1048576)}), Rule(function=encode_rows, arguments={'qi': integers(min_value=0, max_value=9), 'sel': integers(min_value=0, max_value=1048576), 'size': integers(min_value=1, max_value=24)}, _cached_hash=7548061129700021954, arguments_strategies={'qi': integers(min_value=0, max_value=9), 'sel': integers(min_value=0, max_value=1048576), 'size': integers(min_value=1, max_value=24)}), Rule(function=subset, arguments={'i': integers(min_value=0, max_value=3), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative', 'empty', 'all']), 'seed': integers(min_value=0, max_value=1048576)}, _cached_hash=-1682850186809142176, arguments_strategies={'i': integers(min_value=0, max_value=3), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative', 'empty', 'all']), 'seed': integers(min_value=0, max_value=1048576)}), Rule(function=invalid_precision_is_refused, arguments={'i': integers(min_value=0, max_value=99), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=1, max_value=40), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'search_twostage', 'decode'])}, _cached_hash=-2977960235712267809, arguments_strategies={'i': integers(min_value=0, max_value=99), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'search_twostage', 'decode']), 'prec': integers(min_value=1, max_value=40), 'qi': integers(min_value=0, max_value=9)}), Rule(function=answer_decode, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=2088558157885704573, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6695637917166275661, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_batch, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6930622368517396512, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=warm_only, arguments={'i': integers(min_value=0, max_value=99), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=-8552469408450679692, arguments_strategies={'i': integers(min_value=0, max_value=99), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_adc, arguments={'chunk': sampled_from([1, 3, 4096]), 'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=3030612468731654223, arguments_strategies={'chunk': sampled_from([1, 3, 4096]), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=answer_search_twostage, arguments={'cand': integers(min_value=0, max_value=3), 'cprec': integers(min_value=0, max_value=12), 'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=8817634370713029875, arguments_strategies={'cand': integers(min_value=0, max_value=3), 'cprec': integers(min_value=0, max_value=12), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'prec': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=precision_cycle, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'p1': integers(min_value=0, max_value=12), 'p2': integers(min_value=0, max_value=12), 'drop': booleans(), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'decode']), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5)}, _cached_hash=6251740786866712208, arguments_strategies={'drop': booleans(), 'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'method': sampled_from(['search', 'search_batch', 'search_adc', 'decode']), 'p1': integers(min_value=0, max_value=12), 'p2': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=warm_derive_search, arguments={'i': integers(min_value=0, max_value=3), 'qi': integers(min_value=0, max_value=9), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative']), 'seed': integers(min_value=0, max_value=1048576), 'p': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=30), 'qsel': integers(min_value=0, max_value=5), 'via': sampled_from(['subset', 'save_load', 'packed'])}, _cached_hash=-3048593811917288868, arguments_strategies={'i': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=30), 'kind': sampled_from(['sorted', 'unsorted', 'dups', 'mask', 'negative']), 'p': integers(min_value=0, max_value=12), 'qi': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5), 'seed': integers(min_value=0, max_value=1048576), 'via': sampled_from(['subset', 'save_load', 'packed'])})]).filter(RuleStrategy(machine=CacheMachineGuardKnownBug({...}))._rule_is_enabled) to satisfy filter
+      * 10.00%, cache:batch_nq=2
+      * 10.00%, cache:batch_nq=3
+      * 10.00%, cache:method=decode
+      * 10.00%, cache:precision_switch
+      * 10.00%, cache:rotation=haar
+      * 10.00%, cache:xhat_warm_at_call
+
+  - during shrink phase (45.92 seconds):
+    - Typical runtimes: ~ 97-377 ms, of which ~ 0-5 ms in data generation
+    - 0 passing, 19 failing, and 199 invalid test cases
+    - Tried 218 shrinks of which 13 were successful
+
+  - during explain phase (41.52 seconds):
+    - Typical runtimes: ~ 264-592 ms, of which ~ 0-5 ms in data generation
+    - 0 passing, 100 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_stateful_props.py::TestRemexIndexMachine::runTest:
+
+  - during generate phase (5.44 seconds):
+    - Typical runtimes: ~ 1-285 ms, of which ~ 0-8 ms in data generation
+    - 60 passing, 0 failing, and 5 invalid test cases
+    - Events:
+      * 96.92%, idx:d_parity=even(rht)
+      * 69.23%, idx:model=True
+      * 67.69%, Retried draw from sampled_from([Rule(function=codes_equal_from_scratch, _cached_hash=-2542326976610971168), Rule(function=rejected_operation, arguments={'which': integers(min_value=0, max_value=4)}, _cached_hash=-3315984637120124875, arguments_strategies={'which': integers(min_value=0, max_value=4)}), Rule(function=save, arguments={'name': sampled_from(['a', 'b']), 'suffix': booleans()}, _cached_hash=-4311131207867454989, arguments_strategies={'name': sampled_from(['a', 'b']), 'suffix': booleans()}), Rule(function=add_text, arguments={'size': sampled_from([1, 1, 2, 3, 5, 6]), 'seed': integers(min_value=0, max_value=1048576), 'dup': booleans()}, _cached_hash=-7053759460005769639, arguments_strategies={'dup': booleans(), 'seed': integers(min_value=0, max_value=1048576), 'size': sampled_from([1, 1, 2, 3, 5, 6])}), Rule(function=add_embeddings, arguments={'size': sampled_from([1, 1, 2, 3, 5, 6]), 'seed': integers(min_value=0, max_value=1048576), 'dup': booleans(), 'shape': sampled_from(['list', 'single'])}, _cached_hash=4589303382438165711, arguments_strategies={'dup': booleans(), 'seed': integers(min_value=0, max_value=1048576), 'shape': sampled_from(['list', 'single']), 'size': sampled_from([1, 1, 2, 3, 5, 6])}), Rule(function=load, arguments={'name': sampled_from(['a', 'b']), 'low_memory': booleans(), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576)}, _cached_hash=-8181814280302628291, arguments_strategies={'low_memory': booleans(), 'name': sampled_from(['a', 'b']), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576)}), Rule(function=search, arguments={'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'nq': integers(min_value=1, max_value=3), 'top_k': integers(min_value=1, max_value=45)}, _cached_hash=-1926136107625901827, arguments_strategies={'nq': integers(min_value=1, max_value=3), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'top_k': integers(min_value=1, max_value=45)}), Rule(function=warm_add_search, arguments={'sizes': lists(sampled_from([1, 1, 2, 3, 5, 6]), min_size=1, max_size=3), 'seed': integers(min_value=0, max_value=1048576), 'qmode': sampled_from(['text', 'list', 'array']), 'top_k': integers(min_value=1, max_value=45), 'warm': booleans()}, _cached_hash=8939446700137663932, arguments_strategies={'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'sizes': lists(sampled_from([1, 1, 2, 3, 5, 6]), min_size=1, max_size=3), 'top_k': integers(min_value=1, max_value=45), 'warm': booleans()})]).filter(RuleStrategy(machine=RemexIndexMachine({...}))._rule_is_enabled) to satisfy filter
+      * 64.62%, idx:pooling=None
+      * 61.54%, idx:low_memory=False
+      * 55.38%, idx:add_size=1
+      * 53.85%, idx:center=False
+      * 52.31%, idx:block=8
+      * 50.77%, idx:add_size=2
+      * 47.69%, idx:add_size=4
+      * 46.15%, idx:add_size=3
+      * 44.62%, idx:add_input=text
+      * 43.08%, idx:bits=2
+      * 43.08%, idx:center=True
+      * 43.08%, idx:kind=dot
+      * 38.46%, idx:add_with_duplicate_document
+      * 35.38%, idx:add_input=array
+      * 35.38%, idx:low_memory=True
+      * 32.31%, idx:kind=meanmaxsim
+      * 30.77%, idx:block=None
+      * 27.69%, idx:model=False
+      * 26.15%, idx:codes_equal_from_scratch_checked
+      * 23.08%, idx:bits=8
+      * 23.08%, idx:warm_search_before_adds
+      * 21.54%, idx:adds_between_searches=1
+      * 21.54%, idx:adds_between_searches=2
+      * 21.54%, idx:pooling=dict
+      * 21.54%, idx:save
+      * 21.54%, idx:save_with_unsearched_adds
+      * 20.00%, idx:add_after_snapshot_taken
+      * 18.46%, idx:adds_before_search=0
+      * 18.46%, idx:search_query=array
+      * 16.92%, idx:search_query=list
+      * 16.92%, idx:search_top_k_exceeds_corpus
+      * 16.92%, idx:search_top_k_within_corpus
+      * 15.38%, idx:kind=maxsim
+      * 13.85%, idx:block=64
+      * 13.85%, idx:rejected_empty_add
+      * 13.85%, idx:rejected_query
+      * 12.31%, idx:bits=3
+      * 10.77%, idx:adds_before_search=2
+      * 10.77%, idx:bits=4
+      * 10.77%, idx:pooling=instance
+      * 9.23%, idx:adds_between_searches=3
+      * 7.69%, idx:bits=1
+      * 6.15%, idx:kind=cosine
+      * 6.15%, idx:load
+      * 6.15%, idx:load_rewinds_history
+      * 6.15%, idx:rejected_wrong_dim_add
+      * 4.62%, idx:adds_before_search=1
+      * 4.62%, idx:search_query=text
+      * 1.54%, idx:rejected_text_without_model
+
+  - Stopped because settings.max_examples=60
+
+
+test_stateful_props.py::TestRemexIndexRejectsKnownBug::runTest:
+
+  - during generate phase (10.80 seconds):
+    - Typical runtimes: ~ 2-558 ms, of which ~ 1-12 ms in data generation
+    - 60 passing, 0 failing, and 1 invalid test cases
+    - Events:
+      * 100.00%, idx:model=False
+      * 88.52%, Retried draw from sampled_from([Rule(function=codes_equal_from_scratch, _cached_hash=-2542326976610971168), Rule(function=rejected_operation, arguments={'which': integers(min_value=0, max_value=4)}, _cached_hash=-3315984637120124875, arguments_strategies={'which': integers(min_value=0, max_value=4)}), Rule(function=save, arguments={'name': sampled_from(['a', 'b']), 'suffix': booleans()}, _cached_hash=-4311131207867454989, arguments_strategies={'name': sampled_from(['a', 'b']), 'suffix': booleans()}), Rule(function=add_text, arguments={'size': sampled_from([1, 1, 2, 3, 5, 6]), 'seed': integers(min_value=0, max_value=1048576), 'dup': booleans()}, _cached_hash=-7053759460005769639, arguments_strategies={'dup': booleans(), 'seed': integers(min_value=0, max_value=1048576), 'size': sampled_from([1, 1, 2, 3, 5, 6])}), Rule(function=add_embeddings, arguments={'size': sampled_from([1, 1, 2, 3, 5, 6]), 'seed': integers(min_value=0, max_value=1048576), 'dup': booleans(), 'shape': sampled_from(['list', 'single'])}, _cached_hash=4589303382438165711, arguments_strategies={'dup': booleans(), 'seed': integers(min_value=0, max_value=1048576), 'shape': sampled_from(['list', 'single']), 'size': sampled_from([1, 1, 2, 3, 5, 6])}), Rule(function=load, arguments={'name': sampled_from(['a', 'b']), 'low_memory': booleans(), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576)}, _cached_hash=-8181814280302628291, arguments_strategies={'low_memory': booleans(), 'name': sampled_from(['a', 'b']), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576)}), Rule(function=search, arguments={'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'nq': integers(min_value=1, max_value=3), 'top_k': integers(min_value=1, max_value=45)}, _cached_hash=-1926136107625901827, arguments_strategies={'nq': integers(min_value=1, max_value=3), 'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'top_k': integers(min_value=1, max_value=45)}), Rule(function=warm_add_search, arguments={'sizes': lists(sampled_from([1, 1, 2, 3, 5, 6]), min_size=1, max_size=3), 'seed': integers(min_value=0, max_value=1048576), 'qmode': sampled_from(['text', 'list', 'array']), 'top_k': integers(min_value=1, max_value=45), 'warm': booleans()}, _cached_hash=8939446700137663932, arguments_strategies={'qmode': sampled_from(['text', 'list', 'array']), 'seed': integers(min_value=0, max_value=1048576), 'sizes': lists(sampled_from([1, 1, 2, 3, 5, 6]), min_size=1, max_size=3), 'top_k': integers(min_value=1, max_value=45), 'warm': booleans()})]).filter(RuleStrategy(machine=RemexIndexRejectsKnownBug({...}))._rule_is_enabled) to satisfy filter
+      * 80.33%, idx:add_input=array
+      * 77.05%, idx:d_parity=even(rht)
+      * 73.77%, idx:add_size=1
+      * 67.21%, idx:add_size=3
+      * 65.57%, idx:add_size=4
+      * 62.30%, idx:add_with_duplicate_document
+      * 62.30%, idx:center=True
+      * 62.30%, idx:codes_equal_from_scratch_checked
+      * 62.30%, idx:low_memory=True
+      * 62.30%, idx:pooling=None
+      * 60.66%, idx:add_size=2
+      * 60.66%, idx:block=None
+      * 40.98%, idx:add_after_snapshot_taken
+      * 40.98%, idx:adds_between_searches=2
+      * 40.98%, idx:save
+      * 40.98%, idx:warm_search_before_adds
+      * 39.34%, idx:adds_before_search=0
+      * 39.34%, idx:search_top_k_exceeds_corpus
+      * 37.70%, idx:adds_before_search=1
+      * 37.70%, idx:block=8
+      * 37.70%, idx:center=False
+      * 37.70%, idx:kind=cosine
+      * 37.70%, idx:low_memory=False
+      * 36.07%, idx:pooling=instance
+      * 36.07%, idx:search_query=list
+      * 32.79%, idx:adds_between_searches=3
+      * 31.15%, idx:kind=meanmaxsim
+      * 29.51%, idx:adds_between_searches=1
+      * 27.87%, idx:kind=maxsim
+      * 27.87%, idx:rejected_text_without_model
+      * 27.87%, idx:search_query=array
+      * 26.23%, idx:save_with_unsearched_adds
+      * 26.23%, idx:search_query=text
+      * 24.59%, idx:bits=3
+      * 24.59%, idx:rejected_empty_add
+      * 22.95%, idx:bits=4
+      * 22.95%, idx:d_parity=odd(haar)
+      * 22.95%, idx:rejected_query
+      * 21.31%, idx:bits=1
+      * 19.67%, idx:bits=8
+      * 19.67%, idx:load
+      * 19.67%, idx:load_rewinds_history
+      * 18.03%, idx:search_top_k_within_corpus
+      * 13.11%, idx:adds_before_search=2
+      * 11.48%, idx:bits=2
+      * 3.28%, idx:kind=dot
+      * 1.64%, idx:adds_before_search=3
+      * 1.64%, idx:block=64
+      * 1.64%, idx:pooling=dict
+
+  - Stopped because settings.max_examples=60
+
+
+test_stateful_props.py::TestGpuIvfMachine::runTest:
+
+  - during generate phase (14.77 seconds):
+    - Typical runtimes: ~ 59-572 ms, of which ~ 1-9 ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 81.67%, Retried draw from sampled_from([Rule(function=build_gpu, _cached_hash=5092538167864371013), Rule(function=drop_cpu_cache, _cached_hash=5488820192626072212), Rule(function=drop_gpu_cache, arguments={'i': integers(min_value=0, max_value=9)}, _cached_hash=185007464678374546, arguments_strategies={'i': integers(min_value=0, max_value=9)}), Rule(function=foreign_container_refused_at_build, arguments={'kind': sampled_from(['bits', 'seed', 'd', 'rotation']), 'which': sampled_from(['gpu', 'ivf'])}, _cached_hash=7363699021712487650, arguments_strategies={'kind': sampled_from(['bits', 'seed', 'd', 'rotation']), 'which': sampled_from(['gpu', 'ivf'])}), Rule(function=invalid_precision_is_refused, arguments={'i': integers(min_value=0, max_value=9), 'pick': integers(min_value=0, max_value=3)}, _cached_hash=-768734027437427528, arguments_strategies={'i': integers(min_value=0, max_value=9), 'pick': integers(min_value=0, max_value=3)}), Rule(function=warm_cpu, arguments={'prec': integers(min_value=0, max_value=12), 'qsel': integers(min_value=0, max_value=5), 'k': integers(min_value=1, max_value=40)}, _cached_hash=-4726152601441434130, arguments_strategies={'k': integers(min_value=1, max_value=40), 'prec': integers(min_value=0, max_value=12), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=build_ivf, arguments={'mode': sampled_from(['lsh', 'rotated_prefix']), 'n_bits': integers(min_value=1, max_value=4), 'use_packed': booleans(), 'seed': sampled_from([0, 3])}, _cached_hash=-4831838259111825306, arguments_strategies={'mode': sampled_from(['lsh', 'rotated_prefix']), 'n_bits': integers(min_value=1, max_value=4), 'seed': sampled_from([0, 3]), 'use_packed': booleans()}), Rule(function=cpu_answer, arguments={'method': sampled_from(['search', 'search_adc', 'search_twostage', 'search_batch']), 'prec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=45), 'qsel': integers(min_value=0, max_value=5), 'cand': integers(min_value=0, max_value=3), 'use_packed': booleans()}, _cached_hash=8320120393795510645, arguments_strategies={'cand': integers(min_value=0, max_value=3), 'k': integers(min_value=1, max_value=45), 'method': sampled_from(['search', 'search_adc', 'search_twostage', 'search_batch']), 'prec': integers(min_value=0, max_value=12), 'qsel': integers(min_value=0, max_value=5), 'use_packed': booleans()}), Rule(function=ivf_search_coarse, arguments={'j': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5), 'nprobe': integers(min_value=0, max_value=20), 'k': integers(min_value=1, max_value=45), 'prec': integers(min_value=0, max_value=12), 'chunk': sampled_from([1, 3, 4096])}, _cached_hash=-8923906548803441998, arguments_strategies={'chunk': sampled_from([1, 3, 4096]), 'j': integers(min_value=0, max_value=9), 'k': integers(min_value=1, max_value=45), 'nprobe': integers(min_value=0, max_value=20), 'prec': integers(min_value=0, max_value=12), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=ivf_twostage, arguments={'j': integers(min_value=0, max_value=9), 'qsel': integers(min_value=0, max_value=5), 'nprobe': integers(min_value=1, max_value=20), 'k': integers(min_value=1, max_value=45), 'cprec': integers(min_value=0, max_value=12), 'cand': integers(min_value=0, max_value=3)}, _cached_hash=7946860973607839061, arguments_strategies={'cand': integers(min_value=0, max_value=3), 'cprec': integers(min_value=0, max_value=12), 'j': integers(min_value=0, max_value=9), 'k': integers(min_value=1, max_value=45), 'nprobe': integers(min_value=1, max_value=20), 'qsel': integers(min_value=0, max_value=5)}), Rule(function=gpu_answer, arguments={'i': integers(min_value=0, max_value=9), 'method': sampled_from(['search', 'search_adc', 'search_twostage', 'search_batch']), 'prec': integers(min_value=0, max_value=12), 'cprec': integers(min_value=0, max_value=12), 'k': integers(min_value=1, max_value=45), 'qsel': integers(min_value=0, max_value=5), 'cand': integers(min_value=0, max_value=3), 'chunk': sampled_from([1, 3, 4096])}, _cached_hash=-3720564487829759641, arguments_strategies={'cand': integers(min_value=0, max_value=3), 'chunk': sampled_from([1, 3, 4096]), 'cprec': integers(min_value=0, max_value=12), 'i': integers(min_value=0, max_value=9), 'k': integers(min_value=1, max_value=45), 'method': sampled_from(['search', 'search_adc', 'search_twostage', 'search_batch']), 'prec': integers(min_value=0, max_value=12), 'qsel': integers(min_value=0, max_value=5)})]).filter(RuleStrategy(machine=GpuIvfMachine({...}))._rule_is_enabled) to satisfy filter
+      * 70.00%, gpuivf:gpu_built_on_cold_cpu_cache
+      * 63.33%, gpuivf:cpu_warm_search
+      * 61.67%, gpuivf:mode=plain
+      * 55.00%, gpuivf:ivf_structure_checked
+      * 55.00%, gpuivf:n=>8
+      * 53.33%, gpuivf:bits=1
+      * 53.33%, gpuivf:cpu_drop_cache
+      * 50.00%, gpuivf:cpu_xhat_cold
+      * 38.33%, gpuivf:gpu_drop_cache
+      * 38.33%, gpuivf:gpu_xhat_cold
+      * 38.33%, gpuivf:invalid_precision_refused
+      * 38.33%, gpuivf:ivf_on_packed
+      * 35.00%, gpuivf:foreign_bits_gpu_refused
+      * 31.67%, gpuivf:foreign_d_gpu_refused
+      * 31.67%, gpuivf:ivf_on_dense
+      * 28.33%, gpuivf:ivf_lsh_n_bits=2
+      * 28.33%, gpuivf:ivf_nprobe=partial
+      * 26.67%, gpuivf:gpu_search
+      * 26.67%, gpuivf:mode=centered
+      * 25.00%, gpuivf:bits=8
+      * 25.00%, gpuivf:foreign_rotation_gpu_refused
+      * 25.00%, gpuivf:n=1
+      * 23.33%, gpuivf:ivf_lsh_n_bits=1
+      * 20.00%, gpuivf:ivf_rotated_prefix_n_bits=3
+      * 20.00%, gpuivf:n=<=8
+      * 18.33%, gpuivf:gpu_xhat_warm
+      * 18.33%, gpuivf:ivf_twostage
+      * 16.67%, gpuivf:bits=3
+      * 16.67%, gpuivf:ivf_full_probe_matches_flat_scan
+      * 16.67%, gpuivf:ivf_nprobe=all
+      * 16.67%, gpuivf:ivf_rotated_prefix_n_bits=2
+      * 15.00%, gpuivf:foreign_bits_ivf_refused
+      * 15.00%, gpuivf:foreign_d_ivf_refused
+      * 15.00%, gpuivf:foreign_rotation_ivf_refused
+      * 15.00%, gpuivf:foreign_seed_ivf_refused
+      * 13.33%, gpuivf:gpu_search_adc
+      * 13.33%, gpuivf:gpu_search_batch
+      * 13.33%, gpuivf:ivf_rotated_prefix_n_bits=1
+      * 11.67%, gpuivf:foreign_seed_gpu_refused
+      * 11.67%, gpuivf:gpu_built_on_warm_cpu_cache
+      * 11.67%, gpuivf:ivf_lsh_n_bits=3
+      * 11.67%, gpuivf:mode=scalar
+      * 10.00%, gpuivf:ivf_rotated_prefix_n_bits=4
+      * 8.33%, gpuivf:ivf_lsh_n_bits=4
+      * 3.33%, gpuivf:bits=2
+      * 1.67%, gpuivf:bits=4
+      * 1.67%, gpuivf:cpu_xhat_warm
+      * 1.67%, gpuivf:gpu_search_twostage
+
+  - Stopped because settings.max_examples=60
+
+
+test_stateful_props.py::test_rht_encode_is_independent_of_thread_pool_history:
+
+  - during generate phase (6.70 seconds):
+    - Typical runtimes: ~ 108-226 ms, of which < 1ms in data generation
+    - 40 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 25.00%, plain:rht_threads=3_threshold=default-ish
+      * 20.00%, plain:rht_threads=1_threshold=tiny
+      * 15.00%, plain:rht_threads=1_threshold=default-ish
+      * 12.50%, plain:rht_threads=2_threshold=default-ish
+      * 10.00%, plain:rht_threads=4_threshold=default-ish
+      * 10.00%, plain:rht_threads=4_threshold=tiny
+      * 7.50%, plain:rht_threads=2_threshold=tiny
+
+  - Stopped because settings.max_examples=40
+
+
+=========================== short test summary info ============================
+XFAIL test_stateful_props.py::TestCacheMachineGuardKnownBug::runTest - F2: Quantizer.search skips _check_bits/_check_mean on a warm cache when renorm=False (core.py:1665-1672)
+XFAIL test_stateful_regressions.py::test_f6_gpu_and_cpu_agree_after_assigning_R_to_an_identity_quantizer - AMBIGUOUS F6: the R setter on a rotation='none' quantizer is ignored by the CPU paths (identity short-circuit) but read by GPUSearcher
+XFAIL test_stateful_regressions.py::test_f7_resident_bytes_counts_the_direction_length_cache - AMBIGUOUS F7: resident_bytes is documented as 'actual RAM including any active caches' but ignores the per-precision _dir_len arrays
+XFAIL test_stateful_regressions.py::test_f7_packed_vectors_cache_is_visible_and_droppable - AMBIGUOUS F7: PackedVectors.resident_bytes says 'no caches' and has no drop_cache, yet ADC search fills _dir_len
+16 failed, 12 passed, 12 skipped, 4 xfailed in 150.64s (0:02:30)

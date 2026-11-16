@@ -1,0 +1,47 @@
+[
+ {
+  "id": "baseline",
+  "machine": "RemexIndexMachine",
+  "what": "unmutated remex",
+  "caught": false,
+  "examples": 155,
+  "seconds": 22.7,
+  "error": ""
+ },
+ {
+  "id": "baseline",
+  "machine": "CacheMachine",
+  "what": "unmutated remex",
+  "caught": false,
+  "examples": 156,
+  "seconds": 38.5,
+  "error": ""
+ },
+ {
+  "id": "baseline",
+  "machine": "GpuIvfMachine",
+  "what": "unmutated remex",
+  "caught": false,
+  "examples": 155,
+  "seconds": 36.0,
+  "error": ""
+ },
+ {
+  "id": "M07",
+  "machine": "CacheMachine",
+  "what": "CompressedVectors.subset copies the parent's whole float32 cache instead of the selected rows",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.7,
+  "error": "AssertionError: "
+ },
+ {
+  "id": "M17",
+  "machine": "CacheMachine",
+  "what": "Quantizer._effective_norms skips the per-search guards when the container is warm (renorm shortcut)",
+  "caught": true,
+  "examples": 50,
+  "seconds": 12.3,
+  "error": "Failed: DID NOT RAISE ValueError"
+ }
+]
