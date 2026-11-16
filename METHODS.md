@@ -521,6 +521,24 @@ survives exactly the sanity checks people run.
   decode economics by most of a decimal order.
   (`luna-onprem-tco/params.json:hardware`, `RESULTS.md`)
 
+### 8. A property suite that finds nothing is first a coverage question; plant a bug to find out
+
+Before reading a quiet run as "correct", plant a plausible defect (drop a file
+from a walk, skip a normalisation step, omit a cache invalidation) and check that
+the suite goes red, then revert. Also count what the generator actually produced:
+use small key and name pools so operations collide, and record events (k < N,
+documents with nonzero scores, overwrites) with Hypothesis `event()` and
+`--hypothesis-show-statistics`. In `bm25-proptest`, a 4-name pool with an
+8-word vocabulary reached a stale cache in 4 steps; both planted mutants were
+caught on the first example. The suite also rejected a plausible first fix
+(returning `[]` for an empty vocabulary) that a hand-written regression accepted.
+Hash file *content*, not `(size, mtime)`, for a cache key over files: a
+same-size edit within one coarse mtime tick keeps the key unchanged.
+(`bm25-proptest/RESULTS.md`)
+
+**Use when:** testing a cache, index or other derived state with Hypothesis
+`RuleBasedStateMachine` or proptest.
+
 ---
 
 - **A prompt comparison run zero-shot can be decided by output *shape* rather
