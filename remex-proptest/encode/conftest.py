@@ -82,12 +82,13 @@ def apply(name):
                    "centroids = np.linspace(-3 * sigma, 3.0001 * sigma, n_levels)")
         core.lloyd_max_codebook = f
     elif name == "anisotropy_uses_max_norm":
-        _patch(core, "anisotropy", "mean_len = float(np.sqrt(np.sum(X64 ** 2, axis=1)).mean())",
-               "mean_len = float(np.sqrt(np.sum(X64 ** 2, axis=1)).max())")
+        import remex
+        remex.anisotropy = _patch(core, "anisotropy", "mean_len = float(np.sqrt(np.sum(X64 ** 2, axis=1)).mean())",
+                                  "mean_len = float(np.sqrt(np.sum(X64 ** 2, axis=1)).max())")
     elif name == "encode_ratio_drops_zero_guard":
         # the in-encode ratio loses the norm_total > 0 guard: all-zero corpora
         # divide 0/0 and warn about a "common direction"
-        _patch(core, "encode", "if judge and norm_total > 0.0:", "if judge:")
+        _patch(core, "encode", "if judge and norm_total > 0.0:", "if judge:", cls="Quantizer")
     else:
         raise SystemExit(f"unknown mutant {name!r}")
 

@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import mutants  # noqa: E402
 
-BASELINE_FAILING = ["test_ivf_flat_limit_is_byte_identical_to_adc",
+BASELINE_FAILING = ["test_mismatched_reader_is_refused_on_every_path", "test_ivf_flat_limit_is_byte_identical_to_adc",
                     "test_score_vectors_accepts_packed",
                     "test_query_offset_cannot_reorder"]
 DESELECT = " and ".join(f"not {t}" for t in BASELINE_FAILING)

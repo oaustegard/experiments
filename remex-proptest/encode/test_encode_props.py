@@ -124,7 +124,10 @@ env_strategy = st.fixed_dictionaries({
 })
 
 
-def note_env(env):
+def note_env(env, n=None):
+    if n is not None:
+        parallel = env["parallel_min"] == 1 and env["threads"] != 1 and n >= 2
+        event(f"parallel_path_executed={parallel}")
     event(f"env.threads={env['threads']}")
     event(f"env.parallel_min={env['parallel_min']}")
     event(f"env.block={'default' if env['block'] is None else 'tiny' if env['block'] <= 17 else 'big'}")
@@ -167,7 +170,7 @@ def configs(draw, rotations=("rht", "haar", "none"), bits=BITS, dims=dim_strateg
 
 
 CORPUS_KINDS = ("gauss", "heavy", "onehot", "const", "zero_rows", "dups", "walsh",
-                "grid", "raw", "lowrank", "hug")
+                "grid", "raw", "lowrank", "hug", "zeros")
 
 
 def hug_rows(rng, q, n):
@@ -236,6 +239,8 @@ def corpora(draw, d, n_min=0, n_max=20, kinds=CORPUS_KINDS, min_norm=None, q=Non
             X = hadamard(m)[rng.integers(0, m, n)][:, :d].astype(np.float64) if n else np.zeros((0, d))
         elif kind == "grid":
             X = rng.integers(-3, 4, (n, d)).astype(np.float64)
+        elif kind == "zeros":
+            X = np.zeros((n, d))
         elif kind == "hug":
             X = hug_rows(rng, q, n) if (q is not None and d > 1) else rng.standard_normal((n, d))
         elif kind == "lowrank":
@@ -386,7 +391,7 @@ def test_chunked_encode_equals_whole(data):
     cuts = sorted(data.draw(st.lists(st.integers(0, n), max_size=4)))
     event(f"chunks={len(cuts) + 1}")
     env = data.draw(env_strategy)
-    note_env(env)
+    note_env(env, n)
     whole = q.encode(X)
     with encode_env(**env):
         parts = [q.encode(p) for p in np.split(X, cuts)]
@@ -522,8 +527,11 @@ def test_power_of_two_scaling_leaves_direction_codes_alone(data):
     test_direction_codes_below_the_1e8_floor."""
     d, bits, seed, rotation = data.draw(configs(rotations=("rht", "haar", "none")))
     X = data.draw(corpora(d, n_min=1, min_norm=1e-3))
-    k = data.draw(st.integers(-12, 12))
+    k = data.draw(st.integers(-30, 30))
     event(f"k={'neg' if k < 0 else 'pos' if k else 'zero'}")
+    nz = np.sqrt((X.astype(np.float64) ** 2).sum(axis=1))
+    nz = nz[nz > 0]
+    assume(len(nz) == 0 or (nz.min() * 2.0 ** k >= 1e-6 and nz.max() * 2.0 ** k < 1e30))
     q = Q(d, bits, seed, rotation)
     f = np.float32(2.0) ** np.float32(k)
     a, b = q.encode(X), q.encode(X * f)
@@ -928,11 +936,15 @@ def test_rht_decode_depends_on_seed_at_tiny_d(seeds, d):
     assert len(set(decodes)) > 1
 
 
-@S(120)
-@given(d=st.sampled_from([16, 18, 24, 30, 32, 48, 64, 100, 128]), seed=st.integers(0, 2**32 - 1))
-def test_rht_leaves_no_basis_vector_unmixed_from_d16(d, seed):
-    R = rht_rotation(d, seed)
-    assert np.abs(R).max() < 0.999
+@pytest.mark.parametrize("d", [16, 18, 24, 30, 32, 48, 64, 100, 128])
+def test_rht_unmixed_basis_vectors_are_rare_from_d16(d):
+    """Mixing is only probabilistic (see the xfail below), but from d=16 on at most
+    ~0.5% of seeds leave a basis vector unmixed (measured over 1500 seeds: d=16
+    7, d=20 1, d=28 1, d=34 1, d=50 2, the rest 0). Pin a 2% ceiling over 400
+    fixed seeds so a construction change that makes it common is noticed."""
+    I = np.eye(d, dtype=np.float32)
+    unmixed = sum(np.abs(RHTOperator(d, s).unrotate_rows(I)).max() > 0.999 for s in range(400))
+    assert unmixed <= 8, f"{unmixed}/400 seeds leave a basis vector unmixed at d={d}"
 
 
 @pytest.mark.xfail(strict=True, reason="finding F1b: for d in {8,10,12,14,20,...} a sizeable fraction of seeds "
@@ -1034,7 +1046,7 @@ def test_scalar_decode_returns_the_centroids(data):
         else:
             M = ref_rotation_matrix(rotation, d, seed)
             ref = centroids.astype(np.float64) @ M.T      # unrotate: X_rot @ R
-            assert np.abs(got - ref).max(initial=0.0) < 5e-6 * max(1.0, float(np.abs(table).max())) * 4
+            assert np.abs(got - ref).max(initial=0.0) <= 3e-5 * float(np.abs(table).max())
 
 
 @S(120)
@@ -1276,7 +1288,7 @@ def test_anisotropy_check_agrees_with_anisotropy_and_never_changes_codes(data):
     d = data.draw(st.integers(2, 12))
     bits = data.draw(st.sampled_from([1, 2, 3, 4, 8]))
     rotation = data.draw(st.sampled_from(["haar", "none"] + (["rht"] if d % 2 == 0 else [])))
-    X = data.draw(corpora(d, n_min=100, n_max=130, kinds=("gauss", "lowrank", "heavy", "const", "dups", "zero_rows"),
+    X = data.draw(corpora(d, n_min=100, n_max=130, kinds=("gauss", "lowrank", "heavy", "const", "dups", "zero_rows", "zeros"),
                           min_norm=1e-3))
     q = Q(d, bits, 5, rotation)
     seen = []
@@ -1308,6 +1320,47 @@ def test_anisotropy_check_agrees_with_anisotropy_and_never_changes_codes(data):
     event(f"anisotropy.warned={warned}")
     if abs(expected - core.ANISOTROPY_WARN_RATIO) > 1e-6:
         assert warned == (expected >= core.ANISOTROPY_WARN_RATIO)
+
+
+@S(120)
+@given(st.data())
+def test_renorm_zero_mean_and_container_metadata(data):
+    """renorm is not part of the encoding (README: 'changes how codes are read,
+    never what they are'); a zero mean is the uncentred encoding; the container
+    records exactly what the quantizer is."""
+    d, bits, seed, rotation = data.draw(configs())
+    q = Q(d, bits, seed, rotation)
+    X = data.draw(corpora(d, n_min=0, q=q))
+    a = q.encode(X)
+    nr = Quantizer(d, bits, seed=seed, rotation=rotation, renorm=False)
+    assert_same_container(a, nr.encode(X), "renorm=False")
+    if len(X):
+        zm = with_mean(q, np.zeros(d, np.float32)).encode(X)
+        assert np.array_equal(a.indices, zm.indices) and bit_equal(a.norms, zm.norms), "zero mean != uncentred"
+        assert np.all(zm.mean_dots == 0)
+    assert a.indices.dtype == np.uint8 and a.indices.shape == (len(X), d)
+    assert a.norms.dtype == np.float32 and a.norms.shape == (len(X),)
+    assert (a.d, a.bits, a.rotation, a.seed, a.n) == (d, bits, rotation, seed, len(X))
+    assert a.scale is None and a.mean is None and a.mean_dots is None
+    assert a.indices.max(initial=0) < 2 ** bits
+    s = Q(d, bits, seed, rotation, False, 2.0).encode(X.astype(np.float64))
+    assert s.norms is None and s.scale == 2.0 and s.seed == seed and s.rotation == rotation
+
+
+def test_unknown_rotation_and_bits_are_rejected_everywhere():
+    from remex.rotation import ROTATION_CODES, rotation_from_code, validate_rotation
+    for bad in ("foo", "", "RHT", None, 3):
+        if bad is None:
+            continue
+        with pytest.raises(ValueError):
+            validate_rotation(bad)
+    with pytest.raises(ValueError):
+        Quantizer(8, 4, rotation="foo")
+    with pytest.raises(ValueError):
+        rotation_from_code(max(ROTATION_CODES.values()) + 1)
+    for bits in (0, 5, 6, 7, 9, -1, 16):
+        with pytest.raises(ValueError):
+            Quantizer(8, bits)
 
 
 @S(120)

@@ -2,7 +2,8 @@
 Matryoshka precision and bit packing.
 
 Run:   pytest test_containers_props.py -q --hypothesis-show-statistics
-Time:  about 3-4 minutes on one core (all tests together).
+Time:  about 2 minutes on one core (all 27 properties + 7 xfail-strict known findings;
+       measured 133 s wall at load average 7 on 4 cores, fresh example database).
 
 Method (proptest-praxis): independent reference models, operation-sequence
 tests, near-valid / malformed inputs, boundary-value analysis, metamorphic
@@ -201,17 +202,14 @@ def cfgs(draw, *, scalar=True, mean=True, max_d=64, bits=None, seeds=None,
     if rot == "rht" and d % 2:
         d += 1 if d < max_d else -1
     b = draw(st.sampled_from(SUPPORTED)) if bits is None else bits
-    if unaligned is True:
-        assume_ok = (d * b) % 8 != 0
-        if not assume_ok:                      # shift d to an unaligned value
-            for dd in range(d, d + 9):
-                if (dd * b) % 8 != 0 and not (rot == "rht" and dd % 2):
-                    d = dd
-                    break
-            else:
-                d, b = 3, 2 if rot != "rht" else 4
-                d = 6 if rot == "rht" else 3
-                b = 3
+    if unaligned is True and (d * b) % 8 == 0:
+        # shift d to the nearest value whose rows are not byte-aligned (rht needs even d)
+        for dd in range(d, d + 9):
+            if (dd * b) % 8 != 0 and not (rot == "rht" and dd % 2):
+                d = dd
+                break
+        else:
+            d, b = (6 if rot == "rht" else 3), 3
     seed = draw(st.one_of(st.sampled_from(SEEDS), st.integers(0, 2**31))) \
         if seeds is None else draw(seeds)
     norm_mode = draw(st.sampled_from([True, True, True, False])) if normalize is None else normalize
@@ -1178,8 +1176,6 @@ def test_mismatched_quantizers_are_refused_cold_and_warm(data, kind, warm, packe
         expect_raise = False
     if kind == "scale" and cv.scale is None:
         expect_raise = False
-    if kind == "bits" and False:
-        pass
     for name, fn in call_all(bad_q, obj, qry, not packed):
         if (expect_raise and warm and name == "search" and kind in ("bits", "mean_drop")
                 and (not other.renorm or not cfg.normalize)):

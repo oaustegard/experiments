@@ -5,7 +5,7 @@
   "what": "unmutated remex",
   "caught": false,
   "examples": 155,
-  "seconds": 22.7,
+  "seconds": 31.4,
   "error": ""
  },
  {
@@ -14,7 +14,7 @@
   "what": "unmutated remex",
   "caught": false,
   "examples": 156,
-  "seconds": 38.5,
+  "seconds": 49.7,
   "error": ""
  },
  {
@@ -22,9 +22,63 @@
   "machine": "GpuIvfMachine",
   "what": "unmutated remex",
   "caught": false,
-  "examples": 155,
-  "seconds": 36.0,
+  "examples": 153,
+  "seconds": 35.0,
   "error": ""
+ },
+ {
+  "id": "M01",
+  "machine": "RemexIndexMachine",
+  "what": "RemexIndex.add forgets to reset the decoded-token cache (stale _decoded after add)",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.6,
+  "error": "IndexError: index 54 out-of-bounds in maximum.reduceat [0, 54)"
+ },
+ {
+  "id": "M02",
+  "machine": "RemexIndexMachine",
+  "what": "RemexIndex.add returns ids counted from 0 instead of from len(index)",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.2,
+  "error": "AssertionError: add returned ids [np.int64(0), np.int64(1)], expected 1..2"
+ },
+ {
+  "id": "M03",
+  "machine": "RemexIndexMachine",
+  "what": "RemexIndex.add re-derives the centring mean from every batch instead of the first",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.4,
+  "error": "ValueError: mean mismatch: these codes were encoded against a different corpus mean. Decoding against this one would shift every reconstructed vector by the difference."
+ },
+ {
+  "id": "M04",
+  "machine": "RemexIndexMachine",
+  "what": "RemexIndex.load drops the corpus mean when rebuilding the quantizer",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.3,
+  "error": "ValueError: mean mismatch: these codes were encoded with a corpus mean but this Quantizer uses no mean. Rebuild the Quantizer with the mean that wrote them."
+ },
+ {
+  "id": "M05",
+  "machine": "RemexIndexMachine",
+  "what": "MaxSim block loop forgets to rebase reduceat offsets (breaks once the corpus spans several blocks)",
+  "caught": true,
+  "examples": 19,
+  "seconds": 5.1,
+  "error": "IndexError: index 32 out-of-bounds in maximum.reduceat [0, 15)"
+ },
+ {
+  "id": "M06",
+  "machine": "CacheMachine",
+  "what": "CompressedVectors.drop_cache does not clear _dir_len (answer-equivalent: only the structural postcondition sees it)",
+  "caught": true,
+  "examples": 10,
+  "seconds": 3.1,
+  "error": "AssertionError: drop_cache left per-precision state behind"
  },
  {
   "id": "M07",
@@ -32,8 +86,89 @@
   "what": "CompressedVectors.subset copies the parent's whole float32 cache instead of the selected rows",
   "caught": true,
   "examples": 4,
+  "seconds": 1.0,
+  "error": "AssertionError: "
+ },
+ {
+  "id": "M08",
+  "machine": "CacheMachine",
+  "what": "Quantizer._direction_lengths caches under one key regardless of precision",
+  "caught": true,
+  "examples": 6,
+  "seconds": 1.6,
+  "error": "AssertionError: decode at precision 4 disagrees with the cache-free reconstruction"
+ },
+ {
+  "id": "M09",
+  "machine": "CacheMachine",
+  "what": "Quantizer.R setter does not drop the RHT operator (assigned matrix ignored)",
+  "caught": true,
+  "examples": 12,
+  "seconds": 3.6,
+  "error": "AssertionError: search_twostage cp=1 cand=7: scores [1.6786531209945679, 0.7138461470603943, 0.34738782048225403, 0.11198185384273529, 0.08872437477111816, -1.4201886653900146, -2.262355327606201] != fine reference ["
+ },
+ {
+  "id": "M10",
+  "machine": "CacheMachine",
+  "what": "Quantizer._get_x_hat_rot serves the full-precision cache to every precision",
+  "caught": true,
+  "examples": 6,
+  "seconds": 2.0,
+  "error": "AssertionError: search_batch row 0 p=4: returned scores [12.983535766601562, 7.174972057342529, 3.630688190460205, 3.630688190460205, 3.630688190460205, 1.7133898735046387, 1.3124076128005981, 1.3124076128005981, 1.2"
+ },
+ {
+  "id": "M11",
+  "machine": "CacheMachine",
+  "what": "CompressedVectors.subset does not slice mean_dots (centred containers)",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.7,
+  "error": "ValueError: mean_dots has 5 rows, the codes have 3"
+ },
+ {
+  "id": "M12",
+  "machine": "CacheMachine",
+  "what": "Quantizer._row_bias caches the centred bias under one key regardless of precision",
+  "caught": true,
+  "examples": 82,
+  "seconds": 18.5,
+  "error": "AssertionError: search_batch row 0 p=None: returned scores [1.8079841136932373, 1.104323148727417, 1.104323148727417, 1.104323148727417, -6.653833389282227, -6.653833389282227, -6.653833389282227, -6.653833389282227]"
+ },
+ {
+  "id": "M13",
+  "machine": "GpuIvfMachine",
+  "what": "GPUSearcher caches the device scale/bias under one key regardless of precision",
+  "caught": false,
+  "examples": 153,
+  "seconds": 25.3,
+  "error": ""
+ },
+ {
+  "id": "M14",
+  "machine": "GpuIvfMachine",
+  "what": "GPUSearcher.drop_cache does not release the device cache (answer-equivalent)",
+  "caught": true,
+  "examples": 6,
   "seconds": 0.7,
   "error": "AssertionError: "
+ },
+ {
+  "id": "M15",
+  "machine": "GpuIvfMachine",
+  "what": "IVF probe order breaks Hamming ties by descending cell id",
+  "caught": true,
+  "examples": 10,
+  "seconds": 1.8,
+  "error": "AssertionError: IVF.search_twostage nprobe=13: returned (8,) ids / (8,) scores, expected 0"
+ },
+ {
+  "id": "M16",
+  "machine": "GpuIvfMachine",
+  "what": "IVF candidate_indices drops the last row of every visited cell",
+  "caught": true,
+  "examples": 4,
+  "seconds": 0.7,
+  "error": "AssertionError: candidate set for nprobe=15 differs from an independent derivation"
  },
  {
   "id": "M17",
@@ -41,7 +176,7 @@
   "what": "Quantizer._effective_norms skips the per-search guards when the container is warm (renorm shortcut)",
   "caught": true,
   "examples": 50,
-  "seconds": 12.3,
+  "seconds": 10.8,
   "error": "Failed: DID NOT RAISE ValueError"
  }
 ]

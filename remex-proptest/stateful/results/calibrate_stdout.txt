@@ -1,0 +1,20 @@
+baseline RemexIndexMachine  caught=False examples= 155   31.4s  
+baseline CacheMachine       caught=False examples= 156   49.7s  
+baseline GpuIvfMachine      caught=False examples= 153   35.0s  
+M01 RemexIndexMachine  caught=True  examples=   4    0.6s  IndexError: index 54 out-of-bounds in maximum.reduceat [0, 54)
+M02 RemexIndexMachine  caught=True  examples=   4    0.2s  AssertionError: add returned ids [np.int64(0), np.int64(1)], expected 1..2
+M03 RemexIndexMachine  caught=True  examples=   4    0.4s  ValueError: mean mismatch: these codes were encoded against a different corpus mean. Decoding against this one
+M04 RemexIndexMachine  caught=True  examples=   4    0.3s  ValueError: mean mismatch: these codes were encoded with a corpus mean but this Quantizer uses no mean. Rebuil
+M05 RemexIndexMachine  caught=True  examples=  19    5.1s  IndexError: index 32 out-of-bounds in maximum.reduceat [0, 15)
+M06 CacheMachine       caught=True  examples=  10    3.1s  AssertionError: drop_cache left per-precision state behind
+M07 CacheMachine       caught=True  examples=   4    1.0s  AssertionError: 
+M08 CacheMachine       caught=True  examples=   6    1.6s  AssertionError: decode at precision 4 disagrees with the cache-free reconstruction
+M09 CacheMachine       caught=True  examples=  12    3.6s  AssertionError: search_twostage cp=1 cand=7: scores [1.6786531209945679, 0.7138461470603943, 0.347387820482254
+M10 CacheMachine       caught=True  examples=   6    2.0s  AssertionError: search_batch row 0 p=4: returned scores [12.983535766601562, 7.174972057342529, 3.630688190460
+M11 CacheMachine       caught=True  examples=   4    0.7s  ValueError: mean_dots has 5 rows, the codes have 3
+M12 CacheMachine       caught=True  examples=  82   18.5s  AssertionError: search_batch row 0 p=None: returned scores [1.8079841136932373, 1.104323148727417, 1.104323148
+M13 GpuIvfMachine      caught=False examples= 153   25.3s  
+M14 GpuIvfMachine      caught=True  examples=   6    0.7s  AssertionError: 
+M15 GpuIvfMachine      caught=True  examples=  10    1.8s  AssertionError: IVF.search_twostage nprobe=13: returned (8,) ids / (8,) scores, expected 0
+M16 GpuIvfMachine      caught=True  examples=   4    0.7s  AssertionError: candidate set for nprobe=15 differs from an independent derivation
+M17 CacheMachine       caught=True  examples=  50   10.8s  Failed: DID NOT RAISE ValueError

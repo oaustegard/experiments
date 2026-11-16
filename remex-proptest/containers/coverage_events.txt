@@ -1,9 +1,776 @@
-...........................xxxxxxx                                       [100%]
+...........................xxxxxxxFFFFFFFFFFFFFFFFFFFFFF.xxxxxxxxxxxxxx  [100%]
+=================================== FAILURES ===================================
+_ TestConfirmed.test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes[7-3-5] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d6c53b10>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by0')
+d = 7, bits = 3, n = 5
+
+    @pytest.mark.parametrize("d,bits,n", [
+        (7, 3, 5),    # silently wrong codes: the byte counts coincide (15 == 15)
+        (3, 2, 5),    # obscure numpy reshape error: 4 bytes vs 5 rows x 1 byte
+        (5, 1, 9),    # silently wrong or reshape error depending on n
+        (6, 3, 4),    # 4-bit-aligned only: still row padded for 3-bit codes
+    ])
+    def test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """CompressedVectors.save packs the whole (n*d) code stream flat
+        (core.py:329); PackedVectors.save writes row-padded rows
+        (core.py:694).  Both use the same .npz keys and neither records its
+        layout, so PackedVectors.load (core.py:716-718) reinterprets flat bytes
+        as rows whenever d*bits % 8 != 0 and returns other codes or raises a
+        reshape error.  Contract: PackedVectors docstring (core.py:410-412)
+        offers load() for disk data; README.md:319 documents one .npz format."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = c.save(tmp_path / "c.npz")
+        got = PackedVectors.load(path).unpack_rows(0, n)
+>       assert np.array_equal(got, c.indices)
+E       assert False
+E        +  where False = <function array_equal at 0x7fa2f18d73b0>(array([[3, 4, 6, 2, 7, 5, 4],\n       [6, 3, 4, 1, 5, 6, 3],\n       [4, 3, 2, 3, 3, 3, 6],\n       [1, 3, 3, 4, 4, 1, 6],\n       [1, 5, 2, 0, 0, 0, 0]], dtype=uint8), array([[3, 4, 6, 2, 7, 5, 4],\n       [3, 6, 3, 4, 1, 5, 6],\n       [3, 0, 4, 3, 2, 3, 3],\n       [3, 6, 1, 1, 3, 3, 4],\n       [4, 1, 6, 5, 1, 5, 2]], dtype=uint8))
+E        +    where <function array_equal at 0x7fa2f18d73b0> = np.array_equal
+E        +    and   array([[3, 4, 6, 2, 7, 5, 4],\n       [3, 6, 3, 4, 1, 5, 6],\n       [3, 0, 4, 3, 2, 3, 3],\n       [3, 6, 1, 1, 3, 3, 4],\n       [4, 1, 6, 5, 1, 5, 2]], dtype=uint8) = <remex.core.CompressedVectors object at 0x7fa2d0a01240>.indices
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:53: AssertionError
+_ TestConfirmed.test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes[3-2-5] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d6c53c50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by1')
+d = 3, bits = 2, n = 5
+
+    @pytest.mark.parametrize("d,bits,n", [
+        (7, 3, 5),    # silently wrong codes: the byte counts coincide (15 == 15)
+        (3, 2, 5),    # obscure numpy reshape error: 4 bytes vs 5 rows x 1 byte
+        (5, 1, 9),    # silently wrong or reshape error depending on n
+        (6, 3, 4),    # 4-bit-aligned only: still row padded for 3-bit codes
+    ])
+    def test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """CompressedVectors.save packs the whole (n*d) code stream flat
+        (core.py:329); PackedVectors.save writes row-padded rows
+        (core.py:694).  Both use the same .npz keys and neither records its
+        layout, so PackedVectors.load (core.py:716-718) reinterprets flat bytes
+        as rows whenever d*bits % 8 != 0 and returns other codes or raises a
+        reshape error.  Contract: PackedVectors docstring (core.py:410-412)
+        offers load() for disk data; README.md:319 documents one .npz format."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = c.save(tmp_path / "c.npz")
+>       got = PackedVectors.load(path).unpack_rows(0, n)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'remex.core.PackedVectors'>
+path = '/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by1/c.npz'
+
+    @classmethod
+    def load(cls, path: str) -> "PackedVectors":
+        """Load from .npz file, keeping indices packed.
+    
+        A file with no ``rotation`` entry predates the field and is Haar.
+        A file with no ``norms`` entry is scalar mode.
+        """
+        with open_npz(path) as data:
+            d = int(data["d"])
+            bits = int(data["bits"])
+            n = int(data["n"])
+            rotation = (str(data["rotation"]) if "rotation" in data
+                        else LEGACY_ROTATION)
+            row_bytes = packed_nbytes(1, d, bits)
+            packed_flat = data["packed_indices"]
+>           packed = packed_flat.reshape(n, row_bytes)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: cannot reshape array of size 4 into shape (5,1)
+
+/home/user/remex/remex/core.py:718: ValueError
+_ TestConfirmed.test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes[5-1-9] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d53e9350>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by2')
+d = 5, bits = 1, n = 9
+
+    @pytest.mark.parametrize("d,bits,n", [
+        (7, 3, 5),    # silently wrong codes: the byte counts coincide (15 == 15)
+        (3, 2, 5),    # obscure numpy reshape error: 4 bytes vs 5 rows x 1 byte
+        (5, 1, 9),    # silently wrong or reshape error depending on n
+        (6, 3, 4),    # 4-bit-aligned only: still row padded for 3-bit codes
+    ])
+    def test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """CompressedVectors.save packs the whole (n*d) code stream flat
+        (core.py:329); PackedVectors.save writes row-padded rows
+        (core.py:694).  Both use the same .npz keys and neither records its
+        layout, so PackedVectors.load (core.py:716-718) reinterprets flat bytes
+        as rows whenever d*bits % 8 != 0 and returns other codes or raises a
+        reshape error.  Contract: PackedVectors docstring (core.py:410-412)
+        offers load() for disk data; README.md:319 documents one .npz format."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = c.save(tmp_path / "c.npz")
+>       got = PackedVectors.load(path).unpack_rows(0, n)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'remex.core.PackedVectors'>
+path = '/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by2/c.npz'
+
+    @classmethod
+    def load(cls, path: str) -> "PackedVectors":
+        """Load from .npz file, keeping indices packed.
+    
+        A file with no ``rotation`` entry predates the field and is Haar.
+        A file with no ``norms`` entry is scalar mode.
+        """
+        with open_npz(path) as data:
+            d = int(data["d"])
+            bits = int(data["bits"])
+            n = int(data["n"])
+            rotation = (str(data["rotation"]) if "rotation" in data
+                        else LEGACY_ROTATION)
+            row_bytes = packed_nbytes(1, d, bits)
+            packed_flat = data["packed_indices"]
+>           packed = packed_flat.reshape(n, row_bytes)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: cannot reshape array of size 6 into shape (9,1)
+
+/home/user/remex/remex/core.py:718: ValueError
+_ TestConfirmed.test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes[6-3-4] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d53e9220>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by3')
+d = 6, bits = 3, n = 4
+
+    @pytest.mark.parametrize("d,bits,n", [
+        (7, 3, 5),    # silently wrong codes: the byte counts coincide (15 == 15)
+        (3, 2, 5),    # obscure numpy reshape error: 4 bytes vs 5 rows x 1 byte
+        (5, 1, 9),    # silently wrong or reshape error depending on n
+        (6, 3, 4),    # 4-bit-aligned only: still row padded for 3-bit codes
+    ])
+    def test_F1_compressed_npz_read_by_packedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """CompressedVectors.save packs the whole (n*d) code stream flat
+        (core.py:329); PackedVectors.save writes row-padded rows
+        (core.py:694).  Both use the same .npz keys and neither records its
+        layout, so PackedVectors.load (core.py:716-718) reinterprets flat bytes
+        as rows whenever d*bits % 8 != 0 and returns other codes or raises a
+        reshape error.  Contract: PackedVectors docstring (core.py:410-412)
+        offers load() for disk data; README.md:319 documents one .npz format."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = c.save(tmp_path / "c.npz")
+>       got = PackedVectors.load(path).unpack_rows(0, n)
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'remex.core.PackedVectors'>
+path = '/tmp/pytest-of-root/pytest-118/test_F1_compressed_npz_read_by3/c.npz'
+
+    @classmethod
+    def load(cls, path: str) -> "PackedVectors":
+        """Load from .npz file, keeping indices packed.
+    
+        A file with no ``rotation`` entry predates the field and is Haar.
+        A file with no ``norms`` entry is scalar mode.
+        """
+        with open_npz(path) as data:
+            d = int(data["d"])
+            bits = int(data["bits"])
+            n = int(data["n"])
+            rotation = (str(data["rotation"]) if "rotation" in data
+                        else LEGACY_ROTATION)
+            row_bytes = packed_nbytes(1, d, bits)
+            packed_flat = data["packed_indices"]
+>           packed = packed_flat.reshape(n, row_bytes)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: cannot reshape array of size 9 into shape (4,3)
+
+/home/user/remex/remex/core.py:718: ValueError
+_ TestConfirmed.test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes[7-3-5] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0ef2b10>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_packed_npz_read_by_com0')
+d = 7, bits = 3, n = 5
+
+    @pytest.mark.parametrize("d,bits,n", [(7, 3, 5), (3, 2, 5), (5, 1, 9)])
+    def test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """Same defect, other direction: CompressedVectors.load (core.py:364)
+        unpacks row-padded bytes as one flat stream and silently returns
+        different indices."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = PackedVectors.from_compressed(c).save(tmp_path / "p.npz")
+        got = CompressedVectors.load(path).indices
+>       assert np.array_equal(got, c.indices)
+E       assert False
+E        +  where False = <function array_equal at 0x7fa2f18d73b0>(array([[3, 4, 6, 2, 7, 5, 4],\n       [0, 3, 6, 3, 4, 1, 5],\n       [6, 0, 3, 0, 4, 3, 2],\n       [3, 3, 0, 3, 6, 1, 1],\n       [3, 3, 4, 0, 4, 1, 6]], dtype=uint8), array([[3, 4, 6, 2, 7, 5, 4],\n       [3, 6, 3, 4, 1, 5, 6],\n       [3, 0, 4, 3, 2, 3, 3],\n       [3, 6, 1, 1, 3, 3, 4],\n       [4, 1, 6, 5, 1, 5, 2]], dtype=uint8))
+E        +    where <function array_equal at 0x7fa2f18d73b0> = np.array_equal
+E        +    and   array([[3, 4, 6, 2, 7, 5, 4],\n       [3, 6, 3, 4, 1, 5, 6],\n       [3, 0, 4, 3, 2, 3, 3],\n       [3, 6, 1, 1, 3, 3, 4],\n       [4, 1, 6, 5, 1, 5, 2]], dtype=uint8) = <remex.core.CompressedVectors object at 0x7fa2d0cd45c0>.indices
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:64: AssertionError
+_ TestConfirmed.test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes[3-2-5] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d53ae140>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_packed_npz_read_by_com1')
+d = 3, bits = 2, n = 5
+
+    @pytest.mark.parametrize("d,bits,n", [(7, 3, 5), (3, 2, 5), (5, 1, 9)])
+    def test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """Same defect, other direction: CompressedVectors.load (core.py:364)
+        unpacks row-padded bytes as one flat stream and silently returns
+        different indices."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = PackedVectors.from_compressed(c).save(tmp_path / "p.npz")
+        got = CompressedVectors.load(path).indices
+>       assert np.array_equal(got, c.indices)
+E       assert False
+E        +  where False = <function array_equal at 0x7fa2f18d73b0>(array([[1, 0, 3],\n       [0, 0, 1],\n       [2, 0, 3],\n       [1, 1, 0],\n       [0, 3, 2]], dtype=uint8), array([[1, 0, 3],\n       [0, 1, 2],\n       [3, 1, 1],\n       [0, 3, 2],\n       [1, 3, 1]], dtype=uint8))
+E        +    where <function array_equal at 0x7fa2f18d73b0> = np.array_equal
+E        +    and   array([[1, 0, 3],\n       [0, 1, 2],\n       [3, 1, 1],\n       [0, 3, 2],\n       [1, 3, 1]], dtype=uint8) = <remex.core.CompressedVectors object at 0x7fa2d0cd63c0>.indices
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:64: AssertionError
+_ TestConfirmed.test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes[5-1-9] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d53ae360>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F1_packed_npz_read_by_com2')
+d = 5, bits = 1, n = 9
+
+    @pytest.mark.parametrize("d,bits,n", [(7, 3, 5), (3, 2, 5), (5, 1, 9)])
+    def test_F1_packed_npz_read_by_compressedvectors_load_gives_the_same_codes(
+            self, tmp_path, d, bits, n):
+        """Same defect, other direction: CompressedVectors.load (core.py:364)
+        unpacks row-padded bytes as one flat stream and silently returns
+        different indices."""
+        c = Quantizer(d, bits, seed=1, rotation="haar").encode(rows(n, d))
+        path = PackedVectors.from_compressed(c).save(tmp_path / "p.npz")
+        got = CompressedVectors.load(path).indices
+>       assert np.array_equal(got, c.indices)
+E       assert False
+E        +  where False = <function array_equal at 0x7fa2f18d73b0>(array([[1, 0, 0, 1, 1],\n       [0, 0, 0, 1, 0],\n       [0, 1, 1, 0, 0],\n       [0, 0, 0, 1, 1],\n       [0, 0, 0, 0, 0],\n       [1, 1, 0, 0, 0],\n       [0, 0, 1, 0, 1],\n       [0, 0, 0, 0, 0],\n       [0, 1, 0, 1, 0]], dtype=uint8), array([[1, 0, 0, 1, 1],\n       [1, 0, 0, 1, 1],\n       [0, 0, 1, 1, 0],\n       [0, 1, 1, 0, 0],\n       [1, 0, 1, 0, 0],\n       [0, 1, 0, 1, 0],\n       [0, 0, 1, 0, 1],\n       [0, 1, 1, 0, 0],\n       [1, 0, 1, 0, 1]], dtype=uint8))
+E        +    where <function array_equal at 0x7fa2f18d73b0> = np.array_equal
+E        +    and   array([[1, 0, 0, 1, 1],\n       [1, 0, 0, 1, 1],\n       [0, 0, 1, 1, 0],\n       [0, 1, 1, 0, 0],\n       [1, 0, 1, 0, 0],\n       [0, 1, 0, 1, 0],\n       [0, 0, 1, 0, 1],\n       [0, 1, 1, 0, 0],\n       [1, 0, 1, 0, 1]], dtype=uint8) = <remex.core.CompressedVectors object at 0x7fa2d0cd4940>.indices
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:64: AssertionError
+_ TestConfirmed.test_F2_search_on_a_warm_scalar_container_refuses_another_bit_width _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2f238a950>
+
+    def test_F2_search_on_a_warm_scalar_container_refuses_another_bit_width(self):
+        """Quantizer.search runs only _check_rotation before reusing a warm
+        compressed._x_hat_rot (core.py:1665-1669).  The bits guard lives in
+        _resolve_centroids (core.py:2028) and _effective_norms (core.py:1411),
+        and _effective_norms returns early when norms is None (core.py:1406).
+        A cold container raises 'bits mismatch'; a warm scalar-mode one does
+        not.  Contract: _check_bits docstring (core.py:1261-1266); CHANGELOG
+        2.0.0 'The mean and rotation guards ran in _resolve_centroids, which a
+        warm container skips' (same class, not fully fixed)."""
+        X = rows(6, 8, seed=1)
+        q4 = Quantizer(8, 4, rotation="none", normalize=False)
+        q3 = Quantizer(8, 3, rotation="none", normalize=False)
+        cold = q4.encode(X)
+        with pytest.raises(ValueError, match="bits mismatch"):
+            q3.search(cold, X[0], k=2)              # control: cold raises
+        warm = q4.encode(X)
+        q4.search(warm, X[0], k=2)                  # warm _x_hat_rot
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:84: Failed
+_ TestConfirmed.test_F2_search_on_a_warm_centred_container_refuses_an_uncentred_reader _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d530f650>
+
+    def test_F2_search_on_a_warm_centred_container_refuses_an_uncentred_reader(self):
+        """Same mechanism with the mean guard and a renorm=False reader, which
+        also returns *wrong scores* (uncentred estimator on centred codes)
+        rather than only skipping a refusal.  Contract: _check_mean docstring
+        (core.py:1277-1283) and CLAUDE.md design decision 4 ('a mismatch raises
+        rather than returning vectors shifted')."""
+        X = rows(30, 16, seed=2) + 3.0
+        mu = X.mean(axis=0).astype(np.float32)
+        qc = Quantizer(16, 4, rotation="rht", seed=1, mean=mu)
+        qr = Quantizer(16, 4, rotation="rht", seed=1, renorm=False)
+        cold = qc.encode(X)
+        with pytest.raises(ValueError, match="mean mismatch"):
+            qr.search(cold, X[0], k=3)              # control: cold raises
+        warm = qc.encode(X)
+        qc.search(warm, X[0], k=3)
+>       with pytest.raises(ValueError, match="mean mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:102: Failed
+____ TestConfirmed.test_F2_a_subset_inherits_the_warm_cache_and_so_the_hole ____
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d537a030>
+
+    def test_F2_a_subset_inherits_the_warm_cache_and_so_the_hole(self):
+        """subset() copies _x_hat_rot (core.py:268-269), so the unguarded warm
+        path is reachable from a container that was never searched itself."""
+        X = rows(10, 8, seed=3)
+        q4 = Quantizer(8, 4, rotation="none", normalize=False)
+        q3 = Quantizer(8, 3, rotation="none", normalize=False)
+        warm = q4.encode(X)
+        q4.search(warm, X[0], k=2)
+        sub = warm.subset([0, 2, 4])
+>       with pytest.raises(ValueError, match="bits mismatch"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:114: Failed
+_ TestConfirmed.test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept[False-9223372036854775808] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d537a5d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F3_npz_records_a_seed_tha0')
+seed = 9223372036854775808, packed = False
+
+    @pytest.mark.parametrize("seed", [2**63, 2**64 - 1])
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept(
+            self, tmp_path, seed, packed):
+        """_tag_npz stores the seed as np.int64 (core.py:54), so any seed
+        >= 2**63 raises OverflowError at save, although Quantizer encodes with
+        it (numpy's default_rng takes it) and Arrow records it as text
+        (core.py:768).  Contract: CLAUDE.md 'every persisted container records
+        the seed'; CHANGELOG 2.1.0 'Containers now record seed (.npz key ...)'."""
+        c = Quantizer(8, 3, seed=seed, rotation="rht").encode(rows(3, 8))
+        c.save_arrow(str(tmp_path / "a.arrow"))                       # control
+        assert PackedVectors.load_arrow(str(tmp_path / "a.arrow")).seed == seed
+        obj = PackedVectors.from_compressed(c) if packed else c
+>       back = type(obj).load(obj.save(tmp_path / "x.npz"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/user/remex/remex/core.py:318: in save
+    fields = self._npz_fields()
+             ^^^^^^^^^^^^^^^^^^
+/home/user/remex/remex/core.py:341: in _npz_fields
+    return _tag_npz(fields, self.seed, self.scale)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+fields = {'packed_indices': array([ 79, 186, 218, 186, 103,  77, 122, 176,  93], dtype=uint8), 'd': np.int32(8), 'bits': np.int32(3), 'n': np.int32(3), ...}
+seed = 9223372036854775808, scale = None
+
+    def _tag_npz(fields: dict, seed, scale) -> dict:
+        """Add the recorded seed and scale to a container's ``.npz`` fields."""
+        if seed is not None:
+>           fields["seed"] = np.int64(seed)
+                             ^^^^^^^^^^^^^^
+E           OverflowError: Python int too large to convert to C long
+
+/home/user/remex/remex/core.py:54: OverflowError
+_ TestConfirmed.test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept[False-18446744073709551615] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0eedef0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F3_npz_records_a_seed_tha1')
+seed = 18446744073709551615, packed = False
+
+    @pytest.mark.parametrize("seed", [2**63, 2**64 - 1])
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept(
+            self, tmp_path, seed, packed):
+        """_tag_npz stores the seed as np.int64 (core.py:54), so any seed
+        >= 2**63 raises OverflowError at save, although Quantizer encodes with
+        it (numpy's default_rng takes it) and Arrow records it as text
+        (core.py:768).  Contract: CLAUDE.md 'every persisted container records
+        the seed'; CHANGELOG 2.1.0 'Containers now record seed (.npz key ...)'."""
+        c = Quantizer(8, 3, seed=seed, rotation="rht").encode(rows(3, 8))
+        c.save_arrow(str(tmp_path / "a.arrow"))                       # control
+        assert PackedVectors.load_arrow(str(tmp_path / "a.arrow")).seed == seed
+        obj = PackedVectors.from_compressed(c) if packed else c
+>       back = type(obj).load(obj.save(tmp_path / "x.npz"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/user/remex/remex/core.py:318: in save
+    fields = self._npz_fields()
+             ^^^^^^^^^^^^^^^^^^
+/home/user/remex/remex/core.py:341: in _npz_fields
+    return _tag_npz(fields, self.seed, self.scale)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+fields = {'packed_indices': array([ 87,  39, 236,  49, 170, 152, 147, 232, 225], dtype=uint8), 'd': np.int32(8), 'bits': np.int32(3), 'n': np.int32(3), ...}
+seed = 18446744073709551615, scale = None
+
+    def _tag_npz(fields: dict, seed, scale) -> dict:
+        """Add the recorded seed and scale to a container's ``.npz`` fields."""
+        if seed is not None:
+>           fields["seed"] = np.int64(seed)
+                             ^^^^^^^^^^^^^^
+E           OverflowError: Python int too large to convert to C long
+
+/home/user/remex/remex/core.py:54: OverflowError
+_ TestConfirmed.test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept[True-9223372036854775808] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0eedc50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F3_npz_records_a_seed_tha2')
+seed = 9223372036854775808, packed = True
+
+    @pytest.mark.parametrize("seed", [2**63, 2**64 - 1])
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept(
+            self, tmp_path, seed, packed):
+        """_tag_npz stores the seed as np.int64 (core.py:54), so any seed
+        >= 2**63 raises OverflowError at save, although Quantizer encodes with
+        it (numpy's default_rng takes it) and Arrow records it as text
+        (core.py:768).  Contract: CLAUDE.md 'every persisted container records
+        the seed'; CHANGELOG 2.1.0 'Containers now record seed (.npz key ...)'."""
+        c = Quantizer(8, 3, seed=seed, rotation="rht").encode(rows(3, 8))
+        c.save_arrow(str(tmp_path / "a.arrow"))                       # control
+        assert PackedVectors.load_arrow(str(tmp_path / "a.arrow")).seed == seed
+        obj = PackedVectors.from_compressed(c) if packed else c
+>       back = type(obj).load(obj.save(tmp_path / "x.npz"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/user/remex/remex/core.py:688: in save
+    _tag_npz(optional, self.seed, self.scale)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+fields = {'norms': array([1.862653 , 3.1668377, 2.0254195], dtype=float32)}
+seed = 9223372036854775808, scale = None
+
+    def _tag_npz(fields: dict, seed, scale) -> dict:
+        """Add the recorded seed and scale to a container's ``.npz`` fields."""
+        if seed is not None:
+>           fields["seed"] = np.int64(seed)
+                             ^^^^^^^^^^^^^^
+E           OverflowError: Python int too large to convert to C long
+
+/home/user/remex/remex/core.py:54: OverflowError
+_ TestConfirmed.test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept[True-18446744073709551615] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0ecaea0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F3_npz_records_a_seed_tha3')
+seed = 18446744073709551615, packed = True
+
+    @pytest.mark.parametrize("seed", [2**63, 2**64 - 1])
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F3_npz_records_a_seed_that_quantizer_and_arrow_accept(
+            self, tmp_path, seed, packed):
+        """_tag_npz stores the seed as np.int64 (core.py:54), so any seed
+        >= 2**63 raises OverflowError at save, although Quantizer encodes with
+        it (numpy's default_rng takes it) and Arrow records it as text
+        (core.py:768).  Contract: CLAUDE.md 'every persisted container records
+        the seed'; CHANGELOG 2.1.0 'Containers now record seed (.npz key ...)'."""
+        c = Quantizer(8, 3, seed=seed, rotation="rht").encode(rows(3, 8))
+        c.save_arrow(str(tmp_path / "a.arrow"))                       # control
+        assert PackedVectors.load_arrow(str(tmp_path / "a.arrow")).seed == seed
+        obj = PackedVectors.from_compressed(c) if packed else c
+>       back = type(obj).load(obj.save(tmp_path / "x.npz"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/user/remex/remex/core.py:688: in save
+    _tag_npz(optional, self.seed, self.scale)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+fields = {'norms': array([1.862653 , 3.1668377, 2.0254195], dtype=float32)}
+seed = 18446744073709551615, scale = None
+
+    def _tag_npz(fields: dict, seed, scale) -> dict:
+        """Add the recorded seed and scale to a container's ``.npz`` fields."""
+        if seed is not None:
+>           fields["seed"] = np.int64(seed)
+                             ^^^^^^^^^^^^^^
+E           OverflowError: Python int too large to convert to C long
+
+/home/user/remex/remex/core.py:54: OverflowError
+_ TestConfirmed.test_F4_arrow_extra_metadata_cannot_relabel_the_encoding[rotation-haar] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0f10650>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F4_arrow_extra_metadata_c0')
+key = 'rotation', value = 'haar'
+
+    @pytest.mark.parametrize("key,value", [
+        ("rotation", "haar"),
+        ("bits", 2),
+        ("d", 4),
+        ("n", 2),
+    ])
+    def test_F4_arrow_extra_metadata_cannot_relabel_the_encoding(
+            self, tmp_path, key, value):
+        """save_arrow copies **extra_metadata over the reserved keys
+        (core.py:771-773) after writing them (core.py:761-766), so
+        save_arrow(p, rotation='haar') on an 'rht' container labels the file
+        'haar' and load_arrow then decodes against the wrong rotation without
+        complaint.  The same method refuses a contradicting seed=
+        (core.py:746-750), so contradiction is meant to be refused.  Either a
+        ValueError or ignoring the key satisfies this test."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(4, 8))
+        p = str(tmp_path / "x.arrow")
+        try:
+            c.save_arrow(p, **{key: value})
+        except ValueError:
+            return
+        back = PackedVectors.load_arrow(p)
+>       assert (back.rotation, back.bits, back.d, back.n) == (
+            c.rotation, c.bits, c.d, c.n)
+E       AssertionError: assert ('haar', 4, 8, 4) == ('rht', 4, 8, 4)
+E         
+E         At index 0 diff: 'haar' != 'rht'
+E         Use -v to get more diff
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:157: AssertionError
+_ TestConfirmed.test_F4_arrow_extra_metadata_cannot_relabel_the_encoding[bits-2] _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0f107d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F4_arrow_extra_metadata_c1')
+key = 'bits', value = 2
+
+    @pytest.mark.parametrize("key,value", [
+        ("rotation", "haar"),
+        ("bits", 2),
+        ("d", 4),
+        ("n", 2),
+    ])
+    def test_F4_arrow_extra_metadata_cannot_relabel_the_encoding(
+            self, tmp_path, key, value):
+        """save_arrow copies **extra_metadata over the reserved keys
+        (core.py:771-773) after writing them (core.py:761-766), so
+        save_arrow(p, rotation='haar') on an 'rht' container labels the file
+        'haar' and load_arrow then decodes against the wrong rotation without
+        complaint.  The same method refuses a contradicting seed=
+        (core.py:746-750), so contradiction is meant to be refused.  Either a
+        ValueError or ignoring the key satisfies this test."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(4, 8))
+        p = str(tmp_path / "x.arrow")
+        try:
+            c.save_arrow(p, **{key: value})
+        except ValueError:
+            return
+        back = PackedVectors.load_arrow(p)
+>       assert (back.rotation, back.bits, back.d, back.n) == (
+            c.rotation, c.bits, c.d, c.n)
+E       AssertionError: assert ('rht', 2, 8, 4) == ('rht', 4, 8, 4)
+E         
+E         At index 1 diff: 2 != 4
+E         Use -v to get more diff
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:157: AssertionError
+_ TestConfirmed.test_F4_arrow_extra_metadata_cannot_relabel_the_encoding[d-4] __
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d5356830>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F4_arrow_extra_metadata_c2')
+key = 'd', value = 4
+
+    @pytest.mark.parametrize("key,value", [
+        ("rotation", "haar"),
+        ("bits", 2),
+        ("d", 4),
+        ("n", 2),
+    ])
+    def test_F4_arrow_extra_metadata_cannot_relabel_the_encoding(
+            self, tmp_path, key, value):
+        """save_arrow copies **extra_metadata over the reserved keys
+        (core.py:771-773) after writing them (core.py:761-766), so
+        save_arrow(p, rotation='haar') on an 'rht' container labels the file
+        'haar' and load_arrow then decodes against the wrong rotation without
+        complaint.  The same method refuses a contradicting seed=
+        (core.py:746-750), so contradiction is meant to be refused.  Either a
+        ValueError or ignoring the key satisfies this test."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(4, 8))
+        p = str(tmp_path / "x.arrow")
+        try:
+            c.save_arrow(p, **{key: value})
+        except ValueError:
+            return
+        back = PackedVectors.load_arrow(p)
+>       assert (back.rotation, back.bits, back.d, back.n) == (
+            c.rotation, c.bits, c.d, c.n)
+E       AssertionError: assert ('rht', 4, 4, 4) == ('rht', 4, 8, 4)
+E         
+E         At index 2 diff: 4 != 8
+E         Use -v to get more diff
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:157: AssertionError
+_ TestConfirmed.test_F4_arrow_extra_metadata_cannot_relabel_the_encoding[n-2] __
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d5356780>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F4_arrow_extra_metadata_c3')
+key = 'n', value = 2
+
+    @pytest.mark.parametrize("key,value", [
+        ("rotation", "haar"),
+        ("bits", 2),
+        ("d", 4),
+        ("n", 2),
+    ])
+    def test_F4_arrow_extra_metadata_cannot_relabel_the_encoding(
+            self, tmp_path, key, value):
+        """save_arrow copies **extra_metadata over the reserved keys
+        (core.py:771-773) after writing them (core.py:761-766), so
+        save_arrow(p, rotation='haar') on an 'rht' container labels the file
+        'haar' and load_arrow then decodes against the wrong rotation without
+        complaint.  The same method refuses a contradicting seed=
+        (core.py:746-750), so contradiction is meant to be refused.  Either a
+        ValueError or ignoring the key satisfies this test."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(4, 8))
+        p = str(tmp_path / "x.arrow")
+        try:
+            c.save_arrow(p, **{key: value})
+        except ValueError:
+            return
+        back = PackedVectors.load_arrow(p)
+>       assert (back.rotation, back.bits, back.d, back.n) == (
+            c.rotation, c.bits, c.d, c.n)
+E       AssertionError: assert ('rht', 4, 8, 2) == ('rht', 4, 8, 4)
+E         
+E         At index 3 diff: 2 != 4
+E         Use -v to get more diff
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:157: AssertionError
+_ TestConfirmed.test_F4_extra_metadata_mean_turns_an_uncentred_file_into_a_centred_one _
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0ed2df0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F4_extra_metadata_mean_tu0')
+
+    def test_F4_extra_metadata_mean_turns_an_uncentred_file_into_a_centred_one(
+            self, tmp_path):
+        """Same hole through the 'mean' key: with no mean the writer does not
+        overwrite it, so a caller keyword becomes the container's mean bytes."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(4, 8))
+        p = str(tmp_path / "x.arrow")
+        try:
+            c.save_arrow(p, mean="x" * 32)      # str() of it becomes 32 raw bytes = 8 float32
+        except ValueError:
+            return
+>       assert PackedVectors.load_arrow(p).mean is None
+E       AssertionError: assert array([2.0158328e+34, 2.0158328e+34, 2.0158328e+34, 2.0158328e+34,\n       2.0158328e+34, 2.0158328e+34, 2.0158328e+34, 2.0158328e+34],\n      dtype=float32) is None
+E        +  where array([2.0158328e+34, 2.0158328e+34, 2.0158328e+34, 2.0158328e+34,\n       2.0158328e+34, 2.0158328e+34, 2.0158328e+34, 2.0158328e+34],\n      dtype=float32) = <remex.core.PackedVectors object at 0x7fa2c0d2e5f0>.mean
+E        +    where <remex.core.PackedVectors object at 0x7fa2c0d2e5f0> = load_arrow('/tmp/pytest-of-root/pytest-118/test_F4_extra_metadata_mean_tu0/x.arrow')
+E        +      where load_arrow = PackedVectors.load_arrow
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:170: AssertionError
+____ TestConfirmed.test_F5_packedvectors_load_of_a_legacy_indices_only_npz _____
+
+self = <test_containers_regressions.TestConfirmed object at 0x7fa2d0ed28f0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F5_packedvectors_load_of_0')
+
+    def test_F5_packedvectors_load_of_a_legacy_indices_only_npz(self, tmp_path):
+        """open_npz (_io.py:98) and CompressedVectors.load (core.py:363-368)
+        accept the pre-bit-packing layout (an 'indices' array and no
+        'packed_indices'); PackedVectors.load indexes data['packed_indices']
+        unconditionally (core.py:717) and leaks KeyError, the raw-error class
+        open_npz exists to prevent (CHANGELOG 2.1.0 'Damaged and foreign files
+        say so').  Loading it or a named ValueError would both be fine."""
+        c = Quantizer(8, 4, seed=1, rotation="rht").encode(rows(3, 8))
+        p = tmp_path / "legacy.npz"
+        np.savez(p, indices=c.indices, norms=c.norms, d=np.int32(8),
+                 bits=np.int32(4), n=np.int32(3))
+        assert CompressedVectors.load(p).n == 3        # control: CV handles it
+        try:
+>           got = PackedVectors.load(p)
+                  ^^^^^^^^^^^^^^^^^^^^^
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/user/remex/remex/core.py:717: in load
+    packed_flat = data["packed_indices"]
+                  ^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = NpzFile 'object' with keys: indices, norms, d, bits, n
+key = 'packed_indices'
+
+    def __getitem__(self, key):
+        try:
+            key = self._files[key]
+        except KeyError:
+>           raise KeyError(f"{key} is not a file in the archive") from None
+E           KeyError: 'packed_indices is not a file in the archive'
+
+/usr/local/lib/python3.13/site-packages/numpy/lib/_npyio_impl.py:243: KeyError
+_ TestConfirmedDamagedFiles.test_F6_a_damaged_npz_member_raises_the_named_value_error[False] _
+
+self = <test_containers_regressions.TestConfirmedDamagedFiles object at 0x7fa2d6c53d90>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F6_a_damaged_npz_member_r0')
+packed = False
+
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F6_a_damaged_npz_member_raises_the_named_value_error(self, tmp_path, packed):
+        """open_npz (_io.py:87-93) turns BadZipFile/EOFError/ValueError into
+        'is not a readable .npz archive' but only around np.load; the members
+        are read lazily afterwards (core.py:357-373, 710-722), so a corrupted
+        member leaks BadZipFile / zlib.error / NotImplementedError / OSError.
+        Contract: _io.py:3-14 ('np.load on a damaged file raises EOFError,
+        BadZipFile ... open_npz turns all of those into one message naming the
+        file') and CHANGELOG 2.1.0 'Damaged and foreign files say so'.
+        Brute force: flip every byte of a small archive once; every outcome
+        must be a clean load or ValueError.  Truncation is already handled."""
+        c = Quantizer(16, 4, seed=1, rotation="rht").encode(rows(20, 16))
+        obj = PackedVectors.from_compressed(c) if packed else c
+        p = tmp_path / "a.npz"
+        obj.save(p)
+        raw = p.read_bytes()
+        bad = {}
+        for pos in range(len(raw)):
+            b = bytearray(raw)
+            b[pos] ^= 0x01
+            p.write_bytes(bytes(b))
+            try:
+                type(obj).load(p)
+            except ValueError:
+                pass
+            except Exception as e:
+                bad.setdefault(type(e).__name__, pos)
+>       assert not bad, f"exception types that escaped open_npz (first byte offset): {bad}"
+E       AssertionError: exception types that escaped open_npz (first byte offset): {'BadZipFile': 26, 'error': 124, 'RuntimeError': 1169, 'NotImplementedError': 1171, 'OSError': 1566}
+E       assert not {'BadZipFile': 26, 'error': 124, 'RuntimeError': 1169, 'NotImplementedError': 1171, ...}
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:221: AssertionError
+_ TestConfirmedDamagedFiles.test_F6_a_damaged_npz_member_raises_the_named_value_error[True] _
+
+self = <test_containers_regressions.TestConfirmedDamagedFiles object at 0x7fa2d6c53ed0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-118/test_F6_a_damaged_npz_member_r1')
+packed = True
+
+    @pytest.mark.parametrize("packed", [False, True])
+    def test_F6_a_damaged_npz_member_raises_the_named_value_error(self, tmp_path, packed):
+        """open_npz (_io.py:87-93) turns BadZipFile/EOFError/ValueError into
+        'is not a readable .npz archive' but only around np.load; the members
+        are read lazily afterwards (core.py:357-373, 710-722), so a corrupted
+        member leaks BadZipFile / zlib.error / NotImplementedError / OSError.
+        Contract: _io.py:3-14 ('np.load on a damaged file raises EOFError,
+        BadZipFile ... open_npz turns all of those into one message naming the
+        file') and CHANGELOG 2.1.0 'Damaged and foreign files say so'.
+        Brute force: flip every byte of a small archive once; every outcome
+        must be a clean load or ValueError.  Truncation is already handled."""
+        c = Quantizer(16, 4, seed=1, rotation="rht").encode(rows(20, 16))
+        obj = PackedVectors.from_compressed(c) if packed else c
+        p = tmp_path / "a.npz"
+        obj.save(p)
+        raw = p.read_bytes()
+        bad = {}
+        for pos in range(len(raw)):
+            b = bytearray(raw)
+            b[pos] ^= 0x01
+            p.write_bytes(bytes(b))
+            try:
+                type(obj).load(p)
+            except ValueError:
+                pass
+            except Exception as e:
+                bad.setdefault(type(e).__name__, pos)
+>       assert not bad, f"exception types that escaped open_npz (first byte offset): {bad}"
+E       AssertionError: exception types that escaped open_npz (first byte offset): {'BadZipFile': 26, 'error': 124, 'RuntimeError': 1169, 'NotImplementedError': 1171, 'OSError': 1566}
+E       assert not {'BadZipFile': 26, 'error': 124, 'RuntimeError': 1169, 'NotImplementedError': 1171, ...}
+
+/home/user/experiments/remex-proptest/containers/test_containers_regressions.py:221: AssertionError
 ============================ Hypothesis Statistics =============================
 test_containers_props.py::test_pack_matches_bitstream_reference_and_roundtrips:
 
-  - during generate phase (0.40 seconds):
-    - Typical runtimes: ~ 0-4 ms, of which < 1ms in data generation
+  - during generate phase (0.37 seconds):
+    - Typical runtimes: ~ 0-1 ms, of which < 1ms in data generation
     - 250 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 48.80%, pack:n%group!=0
@@ -20,7 +787,7 @@ test_containers_props.py::test_pack_matches_bitstream_reference_and_roundtrips:
 
 test_containers_props.py::test_packed_nbytes_arithmetic:
 
-  - during generate phase (0.15 seconds):
+  - during generate phase (0.23 seconds):
     - Typical runtimes: < 1ms, of which < 1ms in data generation
     - 300 passing, 0 failing, and 0 invalid test cases
 
@@ -29,8 +796,8 @@ test_containers_props.py::test_packed_nbytes_arithmetic:
 
 test_containers_props.py::test_encode_produces_wellformed_containers:
 
-  - during generate phase (5.79 seconds):
-    - Typical runtimes: ~ 1-85 ms, of which ~ 0-3 ms in data generation
+  - during generate phase (8.77 seconds):
+    - Typical runtimes: ~ 1-137 ms, of which ~ 0-2 ms in data generation
     - 150 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 84.67%, mode:normalized
@@ -71,8 +838,8 @@ test_containers_props.py::test_encode_produces_wellformed_containers:
 
 test_containers_props.py::test_encode_is_independent_of_row_block_size:
 
-  - during generate phase (1.77 seconds):
-    - Typical runtimes: ~ 1-73 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (2.47 seconds):
+    - Typical runtimes: ~ 1-105 ms, of which ~ 0-1 ms in data generation
     - 60 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 100.00%, n:many
@@ -109,8 +876,8 @@ test_containers_props.py::test_encode_is_independent_of_row_block_size:
 
 test_containers_props.py::test_every_format_roundtrips_losslessly:
 
-  - during generate phase (1.50 seconds):
-    - Typical runtimes: ~ 5-17 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (5.95 seconds):
+    - Typical runtimes: ~ 6-16 ms, of which ~ 0-1 ms in data generation
     - 120 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 100.00%, arrow:writer=cv
@@ -154,8 +921,8 @@ test_containers_props.py::test_every_format_roundtrips_losslessly:
 
 test_containers_props.py::test_hand_built_containers_roundtrip_every_writer:
 
-  - during generate phase (0.62 seconds):
-    - Typical runtimes: ~ 2-6 ms, of which < 1ms in data generation
+  - during generate phase (0.99 seconds):
+    - Typical runtimes: ~ 3-13 ms, of which ~ 0-1 ms in data generation
     - 150 passing, 0 failing, and 3 invalid test cases
     - Events:
       * 56.21%, hand:UNALIGNED
@@ -174,111 +941,122 @@ test_containers_props.py::test_hand_built_containers_roundtrip_every_writer:
 
 test_containers_props.py::test_operation_sequences_keep_container_and_model_in_agreement:
 
-  - during generate phase (9.13 seconds):
-    - Typical runtimes: ~ 2-149 ms, of which ~ 0-2 ms in data generation
-    - 220 passing, 0 failing, and 3 invalid test cases
+  - during generate phase (12.69 seconds):
+    - Typical runtimes: ~ 2-262 ms, of which ~ 1-7 ms in data generation
+    - 220 passing, 0 failing, and 5 invalid test cases
     - Events:
-      * 78.92%, mode:normalized
-      * 77.58%, renorm:on
-      * 58.30%, start:pv
-      * 57.85%, op:subset
-      * 55.61%, mean:none
-      * 55.16%, final:pv
-      * 53.81%, layout:UNALIGNED-rows
-      * 52.91%, op:warm
-      * 52.91%, warm:cache-populated
-      * 50.22%, final-n:many
-      * 49.78%, d:even
-      * 49.33%, n:many
-      * 45.29%, layout:row-aligned
-      * 43.95%, rot:haar
-      * 43.50%, final:cv
-      * 39.46%, d:odd
-      * 39.01%, subset:nonempty-of-nonempty
-      * 38.12%, rot:none
-      * 37.22%, final-bits:1
-      * 35.87%, op:at_precision
-      * 31.84%, final-n:0
-      * 30.94%, start:cold-cv
-      * 29.60%, bits:4
-      * 27.80%, bits:1
-      * 27.35%, final-bits:4
-      * 27.35%, op:arrow
-      * 25.11%, n:0
-      * 24.66%, n:1
-      * 23.77%, op:convert
-      * 22.42%, final-bits:2
-      * 21.97%, op:check
-      * 21.52%, bits:2
-      * 21.52%, op:pq
-      * 21.52%, renorm:off
-      * 21.08%, at_precision:invalid-raises
-      * 21.08%, data:gauss
-      * 21.08%, op:rows
-      * 20.18%, mean:unit
-      * 20.18%, mode:scalar
-      * 20.18%, op:unpack
-      * 20.18%, unpack:at
-      * 19.73%, unpack:rows-slice
-      * 19.28%, op:drop_cache
-      * 18.39%, data:mixed
-      * 17.04%, rot:rht
-      * 16.59%, data:tiny
-      * 16.59%, final-n:1
-      * 16.59%, mean:big
-      * 16.14%, arrow:pv->cv
-      * 15.70%, subset:ints
-      * 13.90%, pq:centred-refused
-      * 13.45%, data:dups
-      * 13.00%, subset:to-empty
-      * 11.21%, subset:all
-      * 10.31%, bits:3
-      * 9.87%, bits:8
-      * 9.87%, d:1
-      * 9.87%, data:sparse
-      * 9.87%, subset:neg
-      * 9.42%, start:warmed-cv
-      * 9.42%, subset:bool
-      * 8.97%, arrow:pv->pv+mmap
-      * 8.07%, final-bits:3
-      * 7.62%, pq:roundtrip
-      * 7.62%, subset:oob_hi
-      * 7.62%, subset:oob_lo
-      * 7.62%, subset:perm
-      * 6.73%, arrow:pv->pv
-      * 6.73%, data:zeros
-      * 6.73%, mean:zero
-      * 6.28%, data:big
-      * 5.38%, op:npz
-      * 5.38%, rows:n=0 (from_rows cannot build empty; uses subset)
-      * 4.93%, arrow:cv->cv
-      * 4.93%, subset:boollist
-      * 4.04%, at_precision:4->2
-      * 4.04%, data:extreme
-      * 4.04%, subset:head
-      * 3.59%, at_precision:3->1
-      * 3.59%, final-bits:8
-      * 3.59%, subset:empty_arr
-      * 3.14%, at_precision:8->1
-      * 3.14%, at_precision:8->4
-      * 3.14%, subset:dups
-      * 3.14%, subset:tuple
-      * 2.69%, at_precision:2->1
-      * 2.69%, data:onehot
-      * 2.69%, npz:path-form-0
-      * 2.24%, npz:path-form-1
-      * 1.35%, at_precision:4->3
-      * 0.90%, arrow:cv->pv
-      * 0.90%, arrow:cv->pv+mmap
-      * 0.90%, npz:path-form-2
+      * 80.00%, start-state:encoded
+      * 70.67%, renorm:on
+      * 69.33%, mode:normalized
+      * 64.89%, op:subset
+      * 62.67%, final:pv
+      * 58.67%, d:even
+      * 53.33%, n:many
+      * 49.78%, final-n:many
+      * 48.00%, op:warm
+      * 48.00%, warm:cache-populated
+      * 44.00%, layout:UNALIGNED-rows
+      * 40.00%, start:pv
+      * 38.67%, subset:nonempty-of-nonempty
+      * 37.78%, mean:unit
+      * 37.78%, op:pq
+      * 36.44%, final-bits:1
+      * 36.00%, layout:row-aligned
+      * 36.00%, op:convert
+      * 36.00%, start:cold-cv
+      * 35.11%, final:cv
+      * 33.33%, final-n:0
+      * 33.33%, mean:none
+      * 32.89%, rot:rht
+      * 32.00%, op:at_precision
+      * 31.56%, final-bits:3
+      * 29.33%, op:drop_cache
+      * 28.89%, bits:3
+      * 27.56%, op:unpack
+      * 27.56%, unpack:at
+      * 25.78%, op:rows
+      * 24.44%, rot:none
+      * 24.00%, data:gauss
+      * 23.11%, subset:to-empty
+      * 22.67%, at_precision:invalid-raises
+      * 22.67%, rot:haar
+      * 21.78%, start:warmed-cv
+      * 20.89%, pq:roundtrip
+      * 20.44%, op:npz
+      * 20.00%, unpack:rows-slice
+      * 19.56%, data:onehot
+      * 19.11%, start-state:hand-built
+      * 18.67%, op:arrow
+      * 16.89%, pq:centred-refused
+      * 16.44%, bits:4
+      * 16.00%, bits:1
+      * 16.00%, d:odd
+      * 16.00%, n:0
+      * 15.56%, subset:ints
+      * 15.11%, bits:2
+      * 15.11%, final-bits:4
+      * 14.67%, final-n:1
+      * 12.00%, final-bits:2
+      * 12.00%, subset:all
+      * 11.56%, at_precision:2->1
+      * 10.67%, arrow:pv->pv
+      * 10.67%, hand:aligned
+      * 10.67%, mode:scalar
+      * 10.67%, n:1
+      * 10.22%, arrow:pv->cv
+      * 10.22%, npz:path-form-0
+      * 9.78%, data:sparse
+      * 9.33%, data:tiny
+      * 9.33%, renorm:off
+      * 9.33%, subset:bool
+      * 9.33%, subset:empty_arr
+      * 8.89%, subset:neg
+      * 8.44%, hand:UNALIGNED
+      * 7.56%, hand:bits=3
+      * 7.56%, hand:scalar
+      * 7.56%, npz:path-form-1
+      * 6.22%, hand:bits=2
+      * 6.22%, subset:boollist
+      * 6.22%, subset:head
+      * 6.22%, subset:perm
+      * 5.78%, data:big
+      * 5.78%, hand:centred
+      * 5.78%, hand:plain
+      * 5.78%, mean:big
+      * 5.33%, d:1
+      * 5.33%, subset:oob_hi
+      * 5.33%, subset:oob_lo
+      * 4.89%, subset:tuple
+      * 4.44%, arrow:cv->pv
+      * 4.44%, at_precision:3->1
+      * 4.00%, data:mixed
+      * 4.00%, data:zeros
+      * 3.56%, bits:8
+      * 3.56%, hand:bits=4
+      * 3.11%, arrow:cv->pv+mmap
+      * 3.11%, mean:zero
+      * 2.67%, final-bits:8
+      * 2.67%, npz:path-form-2
+      * 2.22%, at_precision:4->1
+      * 2.22%, data:extreme
+      * 1.78%, arrow:cv->cv
+      * 1.78%, hand:bits=1
+      * 1.33%, at_precision:3->2
+      * 1.33%, data:dups
+      * 1.33%, op:check
+      * 0.89%, at_precision:4->2
+      * 0.89%, at_precision:4->3
+      * 0.44%, at_precision:8->1
+      * 0.44%, at_precision:8->2
+      * 0.44%, npz:path-form-3
 
   - Stopped because settings.max_examples=220
 
 
 test_containers_props.py::test_subset_accepts_documented_forms_and_rejects_the_rest:
 
-  - during generate phase (11.95 seconds):
-    - Typical runtimes: ~ 1-143 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (22.06 seconds):
+    - Typical runtimes: ~ 2-292 ms, of which ~ 1-5 ms in data generation
     - 220 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 76.36%, renorm:on
@@ -337,8 +1115,8 @@ test_containers_props.py::test_subset_accepts_documented_forms_and_rejects_the_r
 
 test_containers_props.py::test_at_precision_is_right_shift_and_composes:
 
-  - during generate phase (7.19 seconds):
-    - Typical runtimes: ~ 2-110 ms, of which ~ 0-5 ms in data generation
+  - during generate phase (9.83 seconds):
+    - Typical runtimes: ~ 2-157 ms, of which ~ 0-5 ms in data generation
     - 150 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 88.67%, mode:normalized
@@ -391,8 +1169,8 @@ test_containers_props.py::test_at_precision_is_right_shift_and_composes:
 
 test_containers_props.py::test_one_bit_matryoshka_level_is_exactly_the_standalone_one_bit_code:
 
-  - during generate phase (6.72 seconds):
-    - Typical runtimes: ~ 1-174 ms, of which ~ 0-5 ms in data generation
+  - during generate phase (9.73 seconds):
+    - Typical runtimes: ~ 1-235 ms, of which ~ 0-5 ms in data generation
     - 100 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 95.00%, renorm:on
@@ -432,8 +1210,8 @@ test_containers_props.py::test_one_bit_matryoshka_level_is_exactly_the_standalon
 
 test_containers_props.py::test_mismatched_quantizers_are_refused_cold_and_warm:
 
-  - during generate phase (26.59 seconds):
-    - Typical runtimes: ~ 0-158 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (35.89 seconds):
+    - Typical runtimes: ~ 0-206 ms, of which ~ 0-4 ms in data generation
     - 600 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 70.50%, raised:search_adc
@@ -492,8 +1270,8 @@ test_containers_props.py::test_mismatched_quantizers_are_refused_cold_and_warm:
 
 test_containers_props.py::test_roundtripped_containers_keep_guards_armed:
 
-  - during generate phase (5.44 seconds):
-    - Typical runtimes: ~ 0-199 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (7.08 seconds):
+    - Typical runtimes: ~ 1-309 ms, of which ~ 0-4 ms in data generation
     - 80 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 82.50%, guard-after:arrow_cv
@@ -513,8 +1291,8 @@ test_containers_props.py::test_roundtripped_containers_keep_guards_armed:
 
 test_containers_props.py::test_damaged_pq_is_a_valid_container_or_a_value_error:
 
-  - during generate phase (5.93 seconds):
-    - Typical runtimes: ~ 1-97 ms, of which ~ 0-4 ms in data generation
+  - during generate phase (8.13 seconds):
+    - Typical runtimes: ~ 1-118 ms, of which ~ 0-5 ms in data generation
     - 150 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 68.67%, pq-damage:refused
@@ -537,8 +1315,8 @@ test_containers_props.py::test_damaged_pq_is_a_valid_container_or_a_value_error:
 
 test_containers_props.py::test_damaged_npz_and_arrow_never_yield_a_wrong_shaped_container:
 
-  - during generate phase (3.58 seconds):
-    - Typical runtimes: ~ 2-107 ms, of which ~ 0-2 ms in data generation
+  - during generate phase (5.56 seconds):
+    - Typical runtimes: ~ 3-156 ms, of which ~ 0-5 ms in data generation
     - 120 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 90.83%, damage:.npz:refused
@@ -564,8 +1342,8 @@ test_containers_props.py::test_damaged_npz_and_arrow_never_yield_a_wrong_shaped_
 
 test_containers_props.py::test_writers_are_all_or_nothing:
 
-  - during generate phase (2.69 seconds):
-    - Typical runtimes: ~ 2-112 ms, of which ~ 0-4 ms in data generation
+  - during generate phase (3.57 seconds):
+    - Typical runtimes: ~ 2-157 ms, of which ~ 0-5 ms in data generation
     - 60 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 63.33%, dest:absent
@@ -592,8 +1370,8 @@ test_containers_props.py::test_writers_are_all_or_nothing:
 
 test_containers_props.py::test_save_params_file_contents:
 
-  - during generate phase (14.51 seconds):
-    - Typical runtimes: ~ 62-371 ms, of which ~ 0-4 ms in data generation
+  - during generate phase (14.15 seconds):
+    - Typical runtimes: ~ 63-433 ms, of which ~ 0-4 ms in data generation
     - 60 passing, 0 failing, and 0 invalid test cases
 
   - Stopped because settings.max_examples=60
@@ -601,8 +1379,8 @@ test_containers_props.py::test_save_params_file_contents:
 
 test_containers_props.py::test_nbytes_and_compression_ratio_arithmetic:
 
-  - during generate phase (0.71 seconds):
-    - Typical runtimes: ~ 0-6 ms, of which ~ 0-5 ms in data generation
+  - during generate phase (0.34 seconds):
+    - Typical runtimes: ~ 0-2 ms, of which < 1ms in data generation
     - 200 passing, 0 failing, and 3 invalid test cases
     - Events:
       * 61.08%, hand:UNALIGNED
@@ -623,8 +1401,8 @@ test_containers_props.py::test_nbytes_and_compression_ratio_arithmetic:
 
 test_containers_props.py::test_chunk_boundaries_at_4096:
 
-  - during generate phase (14.62 seconds):
-    - Typical runtimes: ~ 71-1200 ms, of which < 1ms in data generation
+  - during generate phase (14.81 seconds):
+    - Typical runtimes: ~ 80-1215 ms, of which < 1ms in data generation
     - 24 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 29.17%, chunk:n=4095
@@ -639,8 +1417,8 @@ test_containers_props.py::test_chunk_boundaries_at_4096:
 
 test_containers_props.py::test_decode_and_scores_match_an_independent_oracle_after_reload:
 
-  - during generate phase (5.60 seconds):
-    - Typical runtimes: ~ 2-99 ms, of which ~ 0-1 ms in data generation
+  - during generate phase (5.14 seconds):
+    - Typical runtimes: ~ 2-81 ms, of which ~ 0-1 ms in data generation
     - 150 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 88.67%, mode:normalized
@@ -683,8 +1461,8 @@ test_containers_props.py::test_decode_and_scores_match_an_independent_oracle_aft
 
 test_containers_props.py::test_derived_containers_do_not_alias_their_parent:
 
-  - during generate phase (3.55 seconds):
-    - Typical runtimes: ~ 1-111 ms, of which ~ 0-5 ms in data generation
+  - during generate phase (2.69 seconds):
+    - Typical runtimes: ~ 1-72 ms, of which ~ 0-1 ms in data generation
     - 80 passing, 0 failing, and 0 invalid test cases
     - Events:
       * 100.00%, alias-check:ok
@@ -702,7 +1480,7 @@ test_containers_props.py::test_derived_containers_do_not_alias_their_parent:
 test_containers_props.py::test_known_npz_layouts_disagree:
 
   - during generate phase (0.00 seconds):
-    - Typical runtimes: ~ 2ms, of which < 1ms in data generation
+    - Typical runtimes: ~ 4ms, of which < 1ms in data generation
     - 0 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
     - Events:
@@ -713,8 +1491,8 @@ test_containers_props.py::test_known_npz_layouts_disagree:
 
 test_containers_props.py::test_known_search_guards_skipped_on_warm_container:
 
-  - during generate phase (0.09 seconds):
-    - Typical runtimes: ~ 85ms, of which < 1ms in data generation
+  - during generate phase (0.07 seconds):
+    - Typical runtimes: ~ 68ms, of which ~ 1ms in data generation
     - 0 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
     - Events:
@@ -726,8 +1504,8 @@ test_containers_props.py::test_known_search_guards_skipped_on_warm_container:
 
 test_containers_props.py::test_known_large_seeds_roundtrip_npz:
 
-  - during generate phase (0.09 seconds):
-    - Typical runtimes: ~ 92ms, of which < 1ms in data generation
+  - during generate phase (0.10 seconds):
+    - Typical runtimes: ~ 97ms, of which < 1ms in data generation
     - 0 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
 
@@ -736,8 +1514,8 @@ test_containers_props.py::test_known_large_seeds_roundtrip_npz:
 
 test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding:
 
-  - during generate phase (0.01 seconds):
-    - Typical runtimes: ~ 5ms, of which < 1ms in data generation
+  - during generate phase (0.00 seconds):
+    - Typical runtimes: ~ 2ms, of which < 1ms in data generation
     - 0 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
 
@@ -747,7 +1525,7 @@ test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encodi
 test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz:
 
   - during generate phase (0.00 seconds):
-    - Typical runtimes: ~ 2ms, of which < 1ms in data generation
+    - Typical runtimes: ~ 4ms, of which < 1ms in data generation
     - 0 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
 
@@ -766,8 +1544,8 @@ test_containers_props.py::test_known_compression_ratio_of_empty_container:
 
 test_containers_props.py::test_known_damaged_npz_member_names_the_file:
 
-  - during generate phase (0.02 seconds):
-    - Typical runtimes: ~ 5-10 ms, of which ~ 0-7 ms in data generation
+  - during generate phase (0.01 seconds):
+    - Typical runtimes: ~ 2-7 ms, of which ~ 0-1 ms in data generation
     - 2 passing, 1 failing, and 0 invalid test cases
     - Found 1 distinct error in this phase
     - Events:
@@ -780,11 +1558,25 @@ test_containers_props.py::test_known_damaged_npz_member_names_the_file:
 
 
 =========================== short test summary info ============================
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_npz_layouts_disagree - F1: CompressedVectors.save and PackedVectors.save write different packed_indices layouts (flat vs row-padded) under the same .npz keys when d*bits % 8 != 0
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_search_guards_skipped_on_warm_container - F2: Quantizer.search consults only _check_rotation before using a warm _x_hat_rot; _effective_norms returns before its guards under renorm=False or in scalar mode, so the mean and bits guards are skipped
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_large_seeds_roundtrip_npz - F3: .npz stores the seed as np.int64, so a seed in [2**63, inf) that Quantizer and Arrow accept overflows at save
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding - F4: save_arrow(**extra_metadata) overwrites the reserved d/n/bits/rotation/mean/scale keys, so a caller keyword can silently relabel the encoding
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz - F5: open_npz accepts the legacy indices-only layout but PackedVectors.load indexes 'packed_indices' unconditionally -> raw KeyError
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_compression_ratio_of_empty_container - A1: compression_ratio divides 0/0 for an empty container (ZeroDivisionError)
-XFAIL ../../../../../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_damaged_npz_member_names_the_file - F6: open_npz wraps BadZipFile/EOFError/ValueError only around np.load; a damaged member (flipped byte) fails later, in the lazy member read, as BadZipFile / zlib.error / NotImplementedError / RuntimeError / OSError instead of the named ValueError
-27 passed, 7 xfailed in 132.81s (0:02:12)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_npz_layouts_disagree - F1: CompressedVectors.save and PackedVectors.save write different packed_indices layouts (flat vs row-padded) under the same .npz keys when d*bits % 8 != 0
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_search_guards_skipped_on_warm_container - F2: Quantizer.search consults only _check_rotation before using a warm _x_hat_rot; _effective_norms returns before its guards under renorm=False or in scalar mode, so the mean and bits guards are skipped
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_large_seeds_roundtrip_npz - F3: .npz stores the seed as np.int64, so a seed in [2**63, inf) that Quantizer and Arrow accept overflows at save
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding - F4: save_arrow(**extra_metadata) overwrites the reserved d/n/bits/rotation/mean/scale keys, so a caller keyword can silently relabel the encoding
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz - F5: open_npz accepts the legacy indices-only layout but PackedVectors.load indexes 'packed_indices' unconditionally -> raw KeyError
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_compression_ratio_of_empty_container - A1: compression_ratio divides 0/0 for an empty container (ZeroDivisionError)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_props.py::test_known_damaged_npz_member_names_the_file - F6: open_npz wraps BadZipFile/EOFError/ValueError only around np.load; a damaged member (flipped byte) fails later, in the lazy member read, as BadZipFile / zlib.error / NotImplementedError / RuntimeError / OSError instead of the named ValueError
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A1_compression_ratio_of_an_empty_container[False] - A1: compression_ratio is n*d*4 / nbytes with no guard for n == 0 (core.py:285-287, 672-674)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A1_compression_ratio_of_an_empty_container[True] - A1: compression_ratio is n*d*4 / nbytes with no guard for n == 0 (core.py:285-287, 672-674)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A2_subset_with_a_scalar_index - A2: subset(int) is not rejected: CompressedVectors builds a malformed container whose n is d (core.py:259-270)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A3_unpack_rows_never_returns_more_rows_than_exist - A3: unpack_rows on a byte-unaligned row layout wraps negative starts and can return more rows than the container has; the aligned layout raises (core.py:476-484)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A4_unpack_at_accepts_an_empty_list - A4: unpack_at([]) raises IndexError (float64 empty index) although subset([]) was made to accept an empty list (CHANGELOG 2.0.0) (core.py:495-499)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A5_from_rows_validates_lengths - A5: from_rows accepts a norms vector of the wrong length and rows of the wrong byte width without complaint (core.py:571-584)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A6_from_rows_with_no_rows - A6: from_rows([]) cannot build an empty container although every other path can (np.stack on an empty list, core.py:577)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A7_at_precision_to_unpackable_widths[5] - A7: at_precision documents 1..self.bits (core.py:592-599) but 5,6,7 raise from pack(); Quantizer(bits=8).search(precision=5) works
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A7_at_precision_to_unpackable_widths[6] - A7: at_precision documents 1..self.bits (core.py:592-599) but 5,6,7 raise from pack(); Quantizer(bits=8).search(precision=5) works
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A7_at_precision_to_unpackable_widths[7] - A7: at_precision documents 1..self.bits (core.py:592-599) but 5,6,7 raise from pack(); Quantizer(bits=8).search(precision=5) works
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A8_in_place_edit_of_a_derived_mean_does_not_reach_the_parent - A8: CompressedVectors.subset hands the parent's mean array to the child (core.py:264) while every PackedVectors conversion copies it; encode() also shares it with the Quantizer, so an in-place edit defeats _check_mean
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A9_pq_trailing_bytes_are_rejected - A9: load_pq ignores bytes after the norms section and accepts d=0 (pq_format.py:178-179)
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A10_npz_row_count_narrowing - A10: .npz stores n (and d, bits) as np.int32 (core.py:332-334, 695-697) so a container of >= 2**31 rows cannot be saved, while .pq (u64) and Arrow (text) can
+XFAIL ../../home/user/experiments/remex-proptest/containers/test_containers_regressions.py::TestAmbiguous::test_A11_reduced_container_reads_like_the_nested_precision_read - A11: an at_precision(k) container is indistinguishable from a native k-bit one, so the only Quantizer that accepts it (bits=k) decodes it with the STANDALONE k-bit table, not the nested level table that Quantizer(bits=b).decode(c, precision=k) uses; Quantizer(bits=b) refuses it (_check_bits), so no public call reads it with the nested table
+22 failed, 28 passed, 21 xfailed in 192.52s (0:03:12)
