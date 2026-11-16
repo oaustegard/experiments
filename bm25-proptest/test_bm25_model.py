@@ -38,6 +38,8 @@ if MUTANT == "drop_last":  # plausible defect: off-by-one in the corpus walk
 elif MUTANT == "query_case":  # plausible defect: query not lowercased like the corpus
     import bm25s as _b
     def _q(self, q, k=10):
+        if getattr(self, "retriever", None) is None:  # same guard as the fix
+            return [(i, 0.0) for i in range(min(k, len(self.docs)))]
         t = _b.tokenize([q], lower=False, stopwords=None, show_progress=False)
         i, s = self.retriever.retrieve(t, k=min(k, len(self.docs)), show_progress=False)
         return [(int(a), float(b)) for a, b in zip(i[0], s[0])]
@@ -113,7 +115,7 @@ class _Base(RuleBasedStateMachine):
     @rule(q=QUERY, k=K)
     def query(self, q, k):
         if KNOWN_EMPTY_VOCAB and not any(tok(t) for t in self.docs.values()):
-            return  # finding 1 (empty vocabulary crash) -- tested in test_empty_vocab_*
+            return  # finding 2 (empty vocabulary crash) -- tested in test_empty_vocab_*
         idx, _, _ = bm25cli.get_or_build_index(
             self.root, [], [], 2_000_000, use_cache=self.use_cache)
         # contents seen by the index must be the live corpus

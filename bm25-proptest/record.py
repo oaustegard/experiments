@@ -30,9 +30,11 @@ def main():
     out["all_fixed_2000"], _ = pytest("test_bm25_model.py", BM25_PY=fixed, N=2000, SKIP_KNOWN=0)
     out["mutants"] = {}
     for m in ("drop_last", "query_case"):
-        res, _ = pytest("test_bm25_model.py", "-k", "NoCache", BM25_PY=fixed, N=1500,
-                        SKIP_KNOWN=0, BM25_MUTANT=m)
-        out["mutants"][m] = {"caught": res["failed"] > 0}
+        res, text = pytest("test_bm25_model.py", "-k", "NoCache", BM25_PY=fixed, N=1500,
+                           SKIP_KNOWN=0, BM25_MUTANT=m)
+        errs = sorted(set(re.findall(r"^E\s+(\w+Error)", text, re.M)))
+        out["mutants"][m] = {"caught": res["failed"] > 0, "errors": errs,
+                             "by_assertion": errs == ["AssertionError"]}
     _, text = pytest("test_bm25_model.py", "-k", "NoCache", "--hypothesis-show-statistics",
                      BM25_PY=OLD, N=500)
     ev = {}
@@ -42,6 +44,8 @@ def main():
     multi = sum(v for k, v in ev.items() if k.startswith("nonzero-scored docs=") and int(k.split("=")[1]) >= 2)
     out["coverage_pct"] = {"k_lt_n": round(k_lt_n), "two_plus_nonzero": round(multi),
                            "no_match": round(ev.get("nonzero-scored docs=0", 0)), "raw": ev}
+    out["regression_tests"] = {"functions": 4, "cases": 5}  # 3 tests + 1 parametrized twice
+    out["property_file"] = {"state_machines": 2, "plain_tests": 2}
     (HERE / "results").mkdir(exist_ok=True)
     (HERE / "results" / "summary.json").write_text(json.dumps(out, indent=2) + "\n")
     print(json.dumps({k: v for k, v in out.items() if k != "coverage_pct"}, indent=1))

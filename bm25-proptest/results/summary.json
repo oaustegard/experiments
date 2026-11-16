@@ -17,30 +17,46 @@
   },
   "mutants": {
     "drop_last": {
-      "caught": true
+      "caught": true,
+      "errors": [
+        "AssertionError"
+      ],
+      "by_assertion": true
     },
     "query_case": {
-      "caught": true
+      "caught": true,
+      "errors": [
+        "AssertionError"
+      ],
+      "by_assertion": true
     }
   },
   "coverage_pct": {
-    "k_lt_n": 17,
-    "two_plus_nonzero": 27,
-    "no_match": 16,
+    "k_lt_n": 34,
+    "two_plus_nonzero": 38,
+    "no_match": 21,
     "raw": {
-      "Retried draw from sampled_from([Rule(function=delete, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}, _cached_hash=-1209893308864184006, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}), Rule(function=query, arguments={'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join), 'k': integers(min_value=1, max_value=6)}, _cached_hash=1403338879047175830, arguments_strategies={'k': integers(min_value=1, max_value=6), 'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join)}), Rule(function=write, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)}, _cached_hash=8997737407361364702, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)})]).filter(RuleStrategy(machine=NoCacheMachine({...}))._rule_is_enabled) to satisfy filter": 69.76,
-      "nonzero-scored docs=1": 24.6,
-      "N=2 k<N=False": 21.17,
-      "N=1 k<N=False": 20.36,
-      "nonzero-scored docs=2": 18.35,
-      "nonzero-scored docs=0": 15.93,
-      "N=3 k<N=False": 8.47,
-      "N=3 k<N=True": 7.66,
-      "nonzero-scored docs=3": 6.65,
-      "N=2 k<N=True": 5.44,
-      "N=4 k<N=False": 4.64,
-      "N=4 k<N=True": 3.83,
-      "nonzero-scored docs=4": 2.22
+      "Retried draw from sampled_from([Rule(function=delete, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}, _cached_hash=5313821045787053709, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}), Rule(function=query, arguments={'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join), 'k': integers(min_value=1, max_value=6)}, _cached_hash=-8731221326844913592, arguments_strategies={'k': integers(min_value=1, max_value=6), 'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join)}), Rule(function=write, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)}, _cached_hash=-1466018665924175742, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)})]).filter(RuleStrategy(machine=NoCacheMachine({...}))._rule_is_enabled) to satisfy filter": 67.49,
+      "nonzero-scored docs=1": 33.13,
+      "N=1 k<N=False": 25.05,
+      "N=2 k<N=False": 24.43,
+      "nonzero-scored docs=2": 22.98,
+      "nonzero-scored docs=0": 20.91,
+      "N=3 k<N=False": 15.32,
+      "N=2 k<N=True": 12.84,
+      "nonzero-scored docs=3": 12.42,
+      "N=3 k<N=True": 11.39,
+      "N=4 k<N=True": 9.32,
+      "N=4 k<N=False": 8.49,
+      "nonzero-scored docs=4": 2.48
     }
+  },
+  "regression_tests": {
+    "functions": 4,
+    "cases": 5
+  },
+  "property_file": {
+    "state_machines": 2,
+    "plain_tests": 2
   }
 }
