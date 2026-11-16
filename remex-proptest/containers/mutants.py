@@ -253,6 +253,9 @@ ORDER = [
     "test_damaged_npz_and_arrow_never_yield_a_wrong_shaped_container",
     "test_unsupported_bit_widths_are_refused_everywhere",
 ]
+if os.environ.get("MUTANT_SKIP"):          # e.g. MUTANT_SKIP=sequences: how much do the others catch alone?
+    ORDER = [t for t in ORDER if os.environ["MUTANT_SKIP"] not in t]
+    RESULTS = HERE / f"mutation_results_without_{os.environ['MUTANT_SKIP']}.txt"
 TEST_FILE = str(HERE / "test_containers_props.py")
 PYTEST_ARGS = ["-x", "-q", "--no-header", "-p", "no:cacheprovider", "--tb=line",
                f"--hypothesis-seed={SEED}", "-W", "ignore"]

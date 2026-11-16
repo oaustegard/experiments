@@ -13,17 +13,48 @@ Both are rebuilt from the codebook tables, the dense rotation matrix and the
 stored per-row floats -- not from any production scoring helper.
 
 Run:   pytest -q test_search_props.py -p no:cacheprovider
-       REMEX_PT_EXAMPLES=300 pytest ...            # more examples per property
+       REMEX_PT_EXAMPLES=2000 pytest ...           # more examples per property
        REMEX_PT_EVENTS=events.json pytest ...      # dump event() counters
        pytest --hypothesis-show-statistics ...     # Hypothesis' own event table
+       REMEX_PT_DERANDOMIZE=1 / REMEX_PT_NODB=1    # fixed seed / no example database
+Config sweeps worth repeating:  REMEX_NO_NATIVE=1,  REMEX_PARALLEL_MIN=1 REMEX_NUM_THREADS=3
+
+Properties (each pins a documented agreement):
+  test_cpu_paths_match_oracle                    operation scripts on one warming container
+  test_cold_cache_each_path                      same, fresh container per call
+  test_score_vectors_accepts_packed              _score_vectors(PackedVectors) in every mode   [FAILS: F2]
+  test_gpu_numpy_backend_matches                 GPUSearcher vs oracle and vs the CPU paths
+  test_ivf_flat_limit_matches_oracle_and_flat_paths   nprobe=2**n_bits == flat scan (tolerance)
+  test_ivf_flat_limit_is_byte_identical_to_adc   README "byte-identical" claim                 [FAILS: F3]
+  test_ivf_partial_probe_sound                   Hamming pool, valid top-k within the pool
+  test_ivf_structure                             CSR layout, cell ids, self-query cell
+  test_batch_equals_single_and_permutation       batch == single, row-permutation, equal rows
+  test_query_scaling_and_mean_shift_invariance   linearity in q (uncentred / scalar)
+  test_derived_containers_search_like_their_rows subset / to_compressed / at_precision after warming
+  test_invalid_precision_rejected_uniformly      ValueError on every path
+  test_empty_corpus_and_query_dtypes             n = 0, query as list / tuple / float64
+  test_query_offset_cannot_reorder               "a row-constant cannot reorder"             [FAILS: F4]
+  test_serialized_containers_search_identically  npz / arrow / mmap / from_rows / .pq
+  test_adc_scores_independent_of_chunking_and_position
+  test_renorm_is_a_reader_property_and_caches_do_not_leak
+  test_precision_equal_to_bits_is_full_precision
+  test_mismatched_reader_is_refused_on_every_path   guards hold on warm caches             [FAILS: F1]
+  test_large_n_chunk_boundaries / test_large_n_ivf_prefix_chunk_boundary / test_encode_block_size_...
+
+The four properties marked FAILS fail on remex 2.2.0 (b8d527a) and pass on the
+fix sketches in the report; test_search_regressions.py holds the minimal
+deterministic repro for each.
 
 What each property is allowed to disagree about, explicitly:
   * float32 accumulation order  -> `oracle.score_tol` (absolute, scaled)
   * tie order at the top-k boundary -> `check_topk` accepts any member of a tie
-    class within 2*tol and *reports* it (event "tie_boundary")
+    class within 2*tol and *reports* it (events "tie_boundary",
+    "path_vs_path_tie_difference")
   * recall of approximate paths (IVF with nprobe < 2**n_bits, two-stage with
     candidates < n) -> only soundness + candidate-set-restricted optimality
   * centred search != q . decode(x)  (documented)  -> oracle is the estimator
+  * BLAS gemv gives identical rows slightly different float32 scores
+    (event "identical_rows_unequal_scores_in_search(BLAS gemv)") -> within tol
 """
 from __future__ import annotations
 
@@ -65,7 +96,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::remex.AnisotropyWarning")
 # --------------------------------------------------------------------------
 # harness plumbing: example budget, event counters, codebook cache
 # --------------------------------------------------------------------------
-EXAMPLES = int(os.environ.get("REMEX_PT_EXAMPLES", "120"))
+EXAMPLES = int(os.environ.get("REMEX_PT_EXAMPLES", "400"))
 PROFILE = settings(
     max_examples=EXAMPLES,
     deadline=None,
@@ -374,7 +405,7 @@ def verify_twostage(case, qi, ids, scores, cp_eff, candidates, expect_len, label
     returned = set(ids.tolist())
     worst = fine[ids].min()
     for f in floor:
-        if int(f) not in returned and fine[f] > worst + 2 * tol and len(ids) == min(case.k, len(floor)):
+        if int(f) not in returned and fine[f] > worst + 2 * tol:
             raise Violation(f"{label}: stage-1 candidate {int(f)} (fine {fine[f]!r}) "
                             f"beats returned worst {worst!r}\n  case={case.desc}")
     if len(ceil) > len(floor):
@@ -394,8 +425,9 @@ def scripts(draw, case):
     bits = case.pq.bits
     n = case.n
     out = []
-    for _ in range(draw(st.integers(1, 6))):
-        op = draw(st.sampled_from(CPU_OPS))
+    enabled = draw(st.lists(st.sampled_from(CPU_OPS), min_size=1, max_size=4, unique=True))   # swarm
+    for _ in range(draw(st.integers(1, 8))):
+        op = draw(st.sampled_from(enabled))
         prec = draw(precisions(bits))
         cp = draw(precisions(bits))
         chunk = draw(st.sampled_from([1, 2, 3, 7, 4096]))
@@ -1230,3 +1262,107 @@ def test_encode_block_size_does_not_change_the_container(data):
                        (small.mean_dots, case.gt.mean_dots, "mean_dots")):
         if (a is None) != (b is None) or (a is not None and not np.array_equal(a, b)):
             raise Violation(f"container {name} depends on the encode block size  case={case.desc}")
+
+
+# ---------------------------------------------------------------------------
+# A reader that differs from the writer must be refused on EVERY path, warm or cold
+# ---------------------------------------------------------------------------
+MISMATCHES = ["bits", "seed", "rotation", "mean_dropped", "mean_added", "mean_changed",
+              "scale", "mode", "dim"]
+
+
+def make_mismatched_reader(case, kind, data):
+    """A Quantizer that differs from `case.pq` in exactly one encoding parameter,
+    or None when the case cannot express that mismatch."""
+    w = case.pq
+    d, bits, seed, rot = w.d, w.bits, w.seed, w.rotation
+    normalize, renorm = w.normalize, w.renorm
+    scale = None if w.normalize else w.scale
+    mean_key = None if w.mean is None else tuple(float(x) for x in w.mean)
+    if kind == "bits":
+        other = [b for b in BITS_CHOICES if b != bits]
+        bits = data.draw(st.sampled_from(other))
+    elif kind == "seed":
+        if rot == "none":
+            return None
+        seed = seed + 1
+    elif kind == "rotation":
+        options = [r for r in ("haar", "none") + (("rht",) if d % 2 == 0 else ()) if r != rot]
+        rot = data.draw(st.sampled_from(options))
+    elif kind == "mean_dropped":
+        if mean_key is None:
+            return None
+        mean_key = None
+    elif kind == "mean_added":
+        if mean_key is not None or not normalize or not renorm:
+            return None
+        mean_key = tuple([0.25] * d)
+    elif kind == "mean_changed":
+        if mean_key is None:
+            return None
+        mean_key = tuple(x + 1.0 for x in mean_key)
+    elif kind == "scale":
+        if normalize:
+            return None
+        scale = scale * 2.0
+    elif kind == "mode":
+        if mean_key is not None:
+            return None
+        normalize = not normalize
+        scale = None if normalize else 1.0
+        renorm = True
+    elif kind == "dim":
+        return None      # dimension mismatch needs a different d for the *container*, covered separately
+    return make_pq(d, bits, seed, rot, normalize, scale, renorm, mean_key)
+
+
+@PROFILE
+@given(data=st.data())
+def test_mismatched_reader_is_refused_on_every_path(data):
+    """README.md:23: "decoding against a quantizer that differs in any of them
+    raises rather than returning wrong-but-plausible vectors".  Every search
+    path must raise ValueError for a reader whose bits / seed / rotation / mean /
+    scale / mode differ from the writer's -- including after another reader
+    warmed the container's caches (history dependence)."""
+    case = data.draw(cases(allow_k0=False))
+    kind = data.draw(st.sampled_from(MISMATCHES))
+    reader = make_mismatched_reader(case, kind, data)
+    if reader is None:
+        ev("mismatch:not_expressible")
+        return
+    w, cv, q = case.pq, case.cv, case.Q[0]
+    warm = data.draw(st.booleans())
+    if warm:
+        # the legitimate writer warms every cache it can
+        w.search(cv, q, k=1)
+        w.search_adc(cv, q, k=1)
+        w.search_batch(cv, case.Q, k=1)
+        w.search_twostage(cv, q, k=1)
+        _ = case.packed
+        w.search_adc(case.packed, q, k=1)
+    ev(f"mismatch:{kind}:{'warm' if warm else 'cold'}")
+    calls = {
+        "search": lambda: reader.search(cv, q, k=1),
+        "search_adc": lambda: reader.search_adc(cv, q, k=1),
+        "search_adc[packed]": lambda: reader.search_adc(case.packed, q, k=1),
+        "search_batch": lambda: reader.search_batch(cv, case.Q, k=1),
+        "search_twostage": lambda: reader.search_twostage(cv, q, k=1),
+        "search_twostage[packed]": lambda: reader.search_twostage(case.packed, q, k=1),
+        "decode": lambda: reader.decode(cv),
+        "gpu.__init__": lambda: GPUSearcher(reader, cv, backend="numpy"),
+        "ivf.search_coarse": lambda: IVFCoarseIndex(reader, cv, n_bits=1, mode="lsh").search_coarse(q, k=1, nprobe=2),
+    }
+    accepted = []
+    for name, fn in calls.items():
+        try:
+            fn()
+        except ValueError:
+            continue
+        except Exception as e:  # noqa: BLE001
+            accepted.append(f"{name}: wrong exception {type(e).__name__}: {e}")
+            continue
+        accepted.append(f"{name}: ACCEPTED")
+    if accepted:
+        raise Violation(f"reader differing in `{kind}` (container {'warm' if warm else 'cold'}) was not refused "
+                        f"by: {accepted}  writer={case.desc} reader(bits={reader.bits}, rot={reader.rotation}, "
+                        f"renorm={reader.renorm}, centred={reader.mean is not None})")

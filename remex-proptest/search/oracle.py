@@ -124,16 +124,20 @@ def score_tol(pq, cv, query) -> float:
     """
     q = np.asarray(query, dtype=np.float32).astype(np.float64)
     qn = float(np.linalg.norm(q))
+    # float32 eps is 6e-8; d accumulated terms give ~sqrt(d) eps.  Measured worst
+    # error / scale over the generated corpora is ~1.4e-7 at small d, so this is
+    # about 8x headroom at d=1 and 3x at d=256 (calibrated, see MUTATION_RESULTS.md).
+    c = 1e-6 * (1.0 + math.sqrt(pq.d) / 4.0)
     if cv.norms is None:
         # scalar mode: terms are (centroid_j * q_rot_j), centroid scale ~ pq.scale
         cmax = float(np.abs(pq.centroids).max())
-        return 2e-5 * (1.0 + qn * cmax * math.sqrt(pq.d))
+        return c * (1.0 + qn * cmax * math.sqrt(pq.d))
     nmax = float(np.abs(cv.norms).max()) if len(cv.norms) else 0.0
     if pq.mean is None:
-        return 2e-5 * (1.0 + qn * nmax)
+        return c * (1.0 + qn * nmax)
     mn = float(np.linalg.norm(pq.mean))
     kmin = max(kappa_oracle(pq, 1), 0.1)
-    return 2e-5 * (1.0 + (qn + mn) * (nmax / kmin + mn))
+    return c * (1.0 + (qn + mn) * (nmax / kmin + mn))
 
 
 def check_topk(ids, scores, oracle, k_expected, tol, *, label="", pool=None,

@@ -1,6 +1,9 @@
-
-# run 2026-11-16 06:13:37  seed=7  args: -x -q --no-header -p no:cacheprovider --tb=line -k not known --hypothesis-seed=7 -W ignore
-M0   SURVIVED     168s  baseline (no mutation)
+# Mutation calibration of test_containers_props.py (non-known properties), 2026-11-16
+# Each mutant is a monkeypatch of /home/user/remex (never edited on disk); pytest -x --hypothesis-seed=7,
+# properties ordered most-sensitive first (see mutants.py ORDER). 'by' = first failing property.
+# M0 ran with the original -k 'not known' ordering (27 tests), M1-M24 with the ordered list.
+# Wall times are inflated 2-4x by other agents' jobs sharing the 4 cores.
+M0   BASELINE PASS 168s  no mutation: all 27 non-known properties green (expected)
        by: -   [27 passed, 7 deselected in 166.62s (0:02:46)]
 M1   CAUGHT        28s  CompressedVectors.subset drops the seed
        by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 24.50s]
@@ -24,3 +27,32 @@ M10  CAUGHT        31s  PackedVectors.subset de-duplicates and sorts the selecti
        by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 28.73s]
 M11  CAUGHT        20s  PackedVectors.save_arrow forgets the mean (the 2.0.0 bug class)
        by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 18.46s]
+M12  CAUGHT        42s  Quantizer._check_seed never fires
+       by: test_mismatched_quantizers_are_refused_cold_and_warm   [1 failed, 5 passed in 40.32s]
+M13  CAUGHT         9s  PackedVectors.at_precision drops the seed
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 7.82s]
+M14  CAUGHT        31s  PackedVectors.from_rows ignores its seed argument
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 29.13s]
+M15  CAUGHT        25s  PackedVectors.unpack_at sorts the index array
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 23.51s]
+M16  CAUGHT        50s  packed_nbytes 3-bit: no group padding
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 47.73s]
+M17  CAUGHT        33s  Quantizer.search drops its _check_rotation call
+       by: test_mismatched_quantizers_are_refused_cold_and_warm   [1 failed, 5 passed in 31.68s]
+M18  CAUGHT        17s  CompressedVectors._npz_fields writes mean_dots reversed
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 15.74s]
+M19  CAUGHT         9s  _tag_from_npz never reads scale
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 7.68s]
+M20  CAUGHT         6s  CompressedVectors.subset slices norms with sorted indices
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 4.21s]
+M21  CAUGHT        13s  PackedVectors.to_compressed drops scale
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 11.33s]
+M22  CAUGHT        68s  at_precision chunk loop drops the final row when n > 4096
+       by: test_chunk_boundaries_at_4096   [1 failed, 9 passed in 67.02s (0:01:07)]
+M23  CAUGHT         4s  _adc_score_packed ignores the precision shift
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 3.31s]
+M24  CAUGHT         6s  save_pq always writes rotation code 0
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 4.06s]
+
+
+Summary: 24 of 24 mutants caught; baseline green.

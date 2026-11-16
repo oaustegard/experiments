@@ -1,0 +1,22 @@
+
+# run 2026-11-16 06:26:03  seed=7  args: -x -q --no-header -p no:cacheprovider --tb=line --hypothesis-seed=7 -W ignore
+M1   CAUGHT        15s  CompressedVectors.subset drops the seed
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 13.73s]
+M2   CAUGHT        43s  CompressedVectors.subset carries _x_hat_rot unsliced (stale cache)
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 41.28s]
+M5   CAUGHT         8s  PackedVectors.from_compressed drops scale
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 6.69s]
+M10  CAUGHT        27s  PackedVectors.subset de-duplicates and sorts the selection
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 25.76s]
+M13  CAUGHT        41s  PackedVectors.at_precision drops the seed
+       by: test_at_precision_is_right_shift_and_composes   [1 failed, 3 passed in 39.29s]
+M14  SURVIVED     104s  PackedVectors.from_rows ignores its seed argument
+       by: -   [26 passed in 102.49s (0:01:42)]
+M18  CAUGHT        14s  CompressedVectors._npz_fields writes mean_dots reversed
+       by: test_every_format_roundtrips_losslessly   [1 failed, 1 passed in 13.37s]
+M20  CAUGHT         7s  CompressedVectors.subset slices norms with sorted indices
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 5.94s]
+M21  CAUGHT        15s  PackedVectors.to_compressed drops scale
+       by: test_every_format_roundtrips_losslessly   [1 failed, 1 passed in 13.52s]
+M3   CAUGHT        15s  PackedVectors.unpack_rows off-by-one in the unaligned row loop (last row never written)
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed in 13.02s]
