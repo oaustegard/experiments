@@ -1,0 +1,46 @@
+{
+  "regressions_old": {
+    "passed": 0,
+    "failed": 5
+  },
+  "regressions_fixed": {
+    "passed": 5,
+    "failed": 0
+  },
+  "nocache_old_1500": {
+    "passed": 1,
+    "failed": 0
+  },
+  "all_fixed_2000": {
+    "passed": 4,
+    "failed": 0
+  },
+  "mutants": {
+    "drop_last": {
+      "caught": true
+    },
+    "query_case": {
+      "caught": true
+    }
+  },
+  "coverage_pct": {
+    "k_lt_n": 17,
+    "two_plus_nonzero": 27,
+    "no_match": 16,
+    "raw": {
+      "Retried draw from sampled_from([Rule(function=delete, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}, _cached_hash=-1209893308864184006, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py'])}), Rule(function=query, arguments={'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join), 'k': integers(min_value=1, max_value=6)}, _cached_hash=1403338879047175830, arguments_strategies={'k': integers(min_value=1, max_value=6), 'q': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), min_size=1, max_size=3).map(' '.join)}), Rule(function=write, arguments={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)}, _cached_hash=8997737407361364702, arguments_strategies={'name': sampled_from(['a.txt', 'b.txt', 'c.md', 'd.py']), 'text': lists(sampled_from(['alpha', 'beta', 'gamma', 'delta', 'Alpha', 'x', 'beta-gamma', '\u00e9p\u00e9e']), max_size=8).map(' '.join)})]).filter(RuleStrategy(machine=NoCacheMachine({...}))._rule_is_enabled) to satisfy filter": 69.76,
+      "nonzero-scored docs=1": 24.6,
+      "N=2 k<N=False": 21.17,
+      "N=1 k<N=False": 20.36,
+      "nonzero-scored docs=2": 18.35,
+      "nonzero-scored docs=0": 15.93,
+      "N=3 k<N=False": 8.47,
+      "N=3 k<N=True": 7.66,
+      "nonzero-scored docs=3": 6.65,
+      "N=2 k<N=True": 5.44,
+      "N=4 k<N=False": 4.64,
+      "N=4 k<N=True": 3.83,
+      "nonzero-scored docs=4": 2.22
+    }
+  }
+}

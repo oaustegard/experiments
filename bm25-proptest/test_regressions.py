@@ -3,7 +3,7 @@ import importlib.util, os, shutil, subprocess, sys, tempfile
 from pathlib import Path
 import pytest
 
-SKILL = Path(os.environ.get("BM25_PY", "/mnt/skills/user/bm25/scripts/bm25.py"))
+SKILL = Path(os.environ.get("BM25_PY", Path(__file__).resolve().parent / "bm25_v0.2.1.py"))
 spec = importlib.util.spec_from_file_location("bm25cli", SKILL)
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 

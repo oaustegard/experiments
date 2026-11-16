@@ -23,7 +23,7 @@ from pathlib import Path
 from hypothesis import HealthCheck, event, settings, strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, initialize, rule
 
-SKILL = Path(os.environ.get("BM25_PY", "/mnt/skills/user/bm25/scripts/bm25.py"))
+SKILL = Path(os.environ.get("BM25_PY", Path(__file__).resolve().parent / "bm25_v0.2.1.py"))
 spec = importlib.util.spec_from_file_location("bm25cli", SKILL)
 bm25cli = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bm25cli)
