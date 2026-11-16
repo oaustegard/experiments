@@ -5790,3 +5790,23 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
 - **A local driver that keeps a Colab VM alive dies at the harness's two-hour background limit, on a hung
   `colab` call, and on a container restart.** The remote job runs on. Start the job detached, make the driver
   attachable, catch `TimeoutExpired`, and re-attach from the check-in. (`run/colab_drive.py`)
+
+### Converting a small encoder for the Apple Neural Engine (ettin-ane)
+
+- **Use Apple's layout and Core ML keeps the whole model on the Neural Engine.** With `(1, C, 1, S)` activations,
+  1×1 convolutions for every linear layer, per-head einsum attention and a fixed length, 715 of 716 operations of
+  Ettin-17m were assigned to it; only the embedding gather stayed on the CPU. RoPE tables and the local-attention
+  mask go in as constants for that length. (`ettin-ane/run/ane_model.py`)
+- **On an M1 the GPU is the slowest Core ML target for a model this small.** 512 tokens: Neural Engine 2.9 ms,
+  CPU 6.3 ms, GPU 13.6 ms. At 32 tokens (a 6-layer BERT embedder) the CPU and the Neural Engine tie at 1.1 ms.
+- **A cosine against a unit reference does not check the norm.** A 32-token Core ML model returned vectors of
+  norm 27.7 on the CPU path although the graph ends in an L2 normalise; `min(worst, v @ r)` started at 1.0 and
+  reported 1.0000. Check `np.linalg.norm` as well, or normalise outside the graph.
+- **A LayerNorm eps of 1e-12 underflows in fp16.** BERT checkpoints carry it; raise it to about 1e-7 before
+  converting at fp16 precision.
+- **`gh api ... -H "Accept: application/vnd.github.raw" > file` corrupts binary files.** An 11.5 MB `weights.bin`
+  arrived as 16.5 MB of re-encoded UTF-8. `curl -o` on the `git/blobs/<sha>` endpoint with the same header gives
+  the right bytes.
+- **Pins.** coremltools 8.3.0 with torch 2.5.1 and transformers 4.51.3; transformers 5.x disables itself on
+  torch below 2.6.
+

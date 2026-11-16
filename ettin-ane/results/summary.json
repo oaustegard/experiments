@@ -1,0 +1,145 @@
+{
+ "machine": "Apple M1",
+ "ram_gb": 8.0,
+ "macos": "27.0",
+ "torch": "2.5.1",
+ "coremltools": "8.3.0",
+ "pack": "browser-decider/web/models/decider",
+ "variant": "t4-w8L31",
+ "params_m": 16.8,
+ "questions": 500,
+ "tokens": {
+  "min": 126,
+  "median": 307,
+  "p95": 390,
+  "max": 596
+ },
+ "reference": {
+  "accuracy": 0.75,
+  "ms_median": 10.784083511680365
+ },
+ "lengths": {
+  "512": {
+   "fit": 490,
+   "reference_accuracy_on_fit": 0.746938775510204,
+   "torch_rewrite": {
+    "max_abs_dp": 1.1920928955078125e-06,
+    "top_answer_agree": 490
+   },
+   "convert_s": 9.3,
+   "package_mb": 34.6,
+   "units": {
+    "cpu": {
+     "load_s": 1.21,
+     "ms_median": 6.256,
+     "ms_p90": 6.855,
+     "ms_min": 5.678,
+     "accuracy": 0.7428571428571429,
+     "top_answer_agree": 488,
+     "max_abs_dp": 0.0086
+    },
+    "cpu_gpu": {
+     "load_s": 0.7,
+     "ms_median": 13.558,
+     "ms_p90": 15.134,
+     "ms_min": 10.507,
+     "accuracy": 0.7489795918367347,
+     "top_answer_agree": 489,
+     "max_abs_dp": 0.0026
+    },
+    "cpu_ne": {
+     "load_s": 4.16,
+     "ms_median": 3.068,
+     "ms_p90": 3.697,
+     "ms_min": 2.786,
+     "accuracy": 0.746938775510204,
+     "top_answer_agree": 488,
+     "max_abs_dp": 0.007
+    },
+    "all": {
+     "load_s": 4.23,
+     "ms_median": 2.927,
+     "ms_p90": 3.115,
+     "ms_min": 2.807,
+     "accuracy": 0.746938775510204,
+     "top_answer_agree": 488,
+     "max_abs_dp": 0.007
+    }
+   },
+   "plan": {
+    "ops_by_device": {
+     "CPU": 1,
+     "NeuralEngine": 715
+    },
+    "ops_not_on_neural_engine": {
+     "ios17.gather": 1
+    },
+    "estimated_cost_share": {
+     "CPU": 0.213,
+     "NeuralEngine": 0.787
+    }
+   }
+  },
+  "256": {
+   "fit": 154,
+   "reference_accuracy_on_fit": 0.7467532467532467,
+   "torch_rewrite": {
+    "max_abs_dp": 6.854534149169922e-07,
+    "top_answer_agree": 154
+   },
+   "convert_s": 8.5,
+   "package_mb": 34.2,
+   "units": {
+    "cpu": {
+     "load_s": 0.45,
+     "ms_median": 2.636,
+     "ms_p90": 2.924,
+     "ms_min": 2.489,
+     "accuracy": 0.7402597402597403,
+     "top_answer_agree": 153,
+     "max_abs_dp": 0.0069
+    },
+    "cpu_gpu": {
+     "load_s": 0.54,
+     "ms_median": 7.72,
+     "ms_p90": 10.399,
+     "ms_min": 6.503,
+     "accuracy": 0.7467532467532467,
+     "top_answer_agree": 154,
+     "max_abs_dp": 0.0012
+    },
+    "cpu_ne": {
+     "load_s": 3.83,
+     "ms_median": 1.299,
+     "ms_p90": 1.605,
+     "ms_min": 1.206,
+     "accuracy": 0.7402597402597403,
+     "top_answer_agree": 153,
+     "max_abs_dp": 0.0022
+    },
+    "all": {
+     "load_s": 3.3,
+     "ms_median": 1.323,
+     "ms_p90": 1.522,
+     "ms_min": 1.189,
+     "accuracy": 0.7402597402597403,
+     "top_answer_agree": 153,
+     "max_abs_dp": 0.0022
+    }
+   },
+   "plan": {
+    "ops_by_device": {
+     "CPU": 1,
+     "NeuralEngine": 715
+    },
+    "ops_not_on_neural_engine": {
+     "ios17.gather": 1
+    },
+    "estimated_cost_share": {
+     "CPU": 0.408,
+     "NeuralEngine": 0.592
+    }
+   }
+  }
+ }
+}
