@@ -1,0 +1,26 @@
+
+# run 2026-11-16 06:13:37  seed=7  args: -x -q --no-header -p no:cacheprovider --tb=line -k not known --hypothesis-seed=7 -W ignore
+M0   SURVIVED     168s  baseline (no mutation)
+       by: -   [27 passed, 7 deselected in 166.62s (0:02:46)]
+M1   CAUGHT        28s  CompressedVectors.subset drops the seed
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 24.50s]
+M2   CAUGHT        58s  CompressedVectors.subset carries _x_hat_rot unsliced (stale cache)
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 55.90s]
+M3   CAUGHT        20s  PackedVectors.unpack_rows off-by-one in the unaligned row loop (last row never written)
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 17.57s]
+M4   CAUGHT        11s  PackedVectors.at_precision shifts by bits-target-1
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 8.83s]
+M5   CAUGHT         9s  PackedVectors.from_compressed drops scale
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 6.75s]
+M6   CAUGHT        12s  pack(): 3-bit byte-1 layout uses >>1 instead of >>2
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 10.06s]
+M7   CAUGHT        14s  _tag_npz never records scale
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 10.85s]
+M8   CAUGHT        37s  _as_rows: wrong-length bool mask no longer refused
+       by: test_subset_accepts_documented_forms_and_rejects_the_rest   [1 failed, 1 passed in 34.40s]
+M9   CAUGHT         9s  load_pq ignores the no-norms flag
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 7.08s]
+M10  CAUGHT        31s  PackedVectors.subset de-duplicates and sorts the selection
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 28.73s]
+M11  CAUGHT        20s  PackedVectors.save_arrow forgets the mean (the 2.0.0 bug class)
+       by: test_operation_sequences_keep_container_and_model_in_agreement   [1 failed in 18.46s]

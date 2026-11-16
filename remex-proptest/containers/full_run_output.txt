@@ -1,0 +1,806 @@
+...........................xxxxxxx                                       [100%]
+============================ Hypothesis Statistics =============================
+test_containers_props.py::test_pack_matches_bitstream_reference_and_roundtrips:
+
+  - during generate phase (0.14 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 250 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 55.60%, pack:n%group!=0
+      * 24.40%, pack:n=0
+      * 21.20%, pack:bits=2
+      * 21.20%, pack:bits=8
+      * 20.40%, pack:bits=4
+      * 20.00%, pack:bits=1
+      * 20.00%, pack:n%group==0
+      * 17.20%, pack:bits=3
+
+  - Stopped because settings.max_examples=250
+
+
+test_containers_props.py::test_packed_nbytes_arithmetic:
+
+  - during generate phase (0.12 seconds):
+    - Typical runtimes: < 1ms, of which < 1ms in data generation
+    - 300 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=300
+
+
+test_containers_props.py::test_encode_produces_wellformed_containers:
+
+  - during generate phase (5.52 seconds):
+    - Typical runtimes: ~ 1-69 ms, of which ~ 0-1 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 84.00%, renorm:on
+      * 80.00%, mode:normalized
+      * 75.33%, d:even
+      * 56.00%, n:many
+      * 53.33%, layout:row-aligned
+      * 46.67%, layout:UNALIGNED-rows
+      * 40.67%, mean:unit
+      * 39.33%, mean:none
+      * 36.00%, data:gauss
+      * 34.67%, rot:none
+      * 33.33%, rot:rht
+      * 32.00%, rot:haar
+      * 28.00%, bits:2
+      * 26.00%, n:1
+      * 22.00%, bits:1
+      * 20.00%, mode:scalar
+      * 19.33%, bits:3
+      * 19.33%, data:dups
+      * 18.00%, n:0
+      * 16.67%, bits:8
+      * 16.00%, data:onehot
+      * 16.00%, renorm:off
+      * 14.00%, bits:4
+      * 12.67%, d:1
+      * 12.67%, mean:big
+      * 12.00%, d:odd
+      * 11.33%, data:zeros
+      * 10.00%, data:big
+      * 7.33%, mean:zero
+      * 3.33%, data:sparse
+      * 2.67%, data:mixed
+      * 0.67%, data:extreme
+      * 0.67%, data:tiny
+
+  - Stopped because settings.max_examples=150
+
+
+test_containers_props.py::test_encode_is_independent_of_row_block_size:
+
+  - during generate phase (1.63 seconds):
+    - Typical runtimes: ~ 1-66 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, n:many
+      * 93.33%, renorm:on
+      * 91.67%, mode:normalized
+      * 71.67%, d:even
+      * 60.00%, mean:none
+      * 58.33%, layout:row-aligned
+      * 41.67%, data:gauss
+      * 41.67%, layout:UNALIGNED-rows
+      * 41.67%, rot:rht
+      * 36.67%, bits:8
+      * 31.67%, rot:none
+      * 26.67%, rot:haar
+      * 25.00%, bits:3
+      * 23.33%, mean:unit
+      * 18.33%, d:odd
+      * 18.33%, data:tiny
+      * 16.67%, bits:1
+      * 15.00%, mean:big
+      * 13.33%, bits:2
+      * 13.33%, data:big
+      * 11.67%, data:dups
+      * 11.67%, data:zeros
+      * 10.00%, d:1
+      * 8.33%, bits:4
+      * 8.33%, mode:scalar
+      * 6.67%, renorm:off
+      * 1.67%, data:mixed
+      * 1.67%, data:onehot
+      * 1.67%, mean:zero
+
+  - Stopped because settings.max_examples=60
+
+
+test_containers_props.py::test_every_format_roundtrips_losslessly:
+
+  - during generate phase (5.61 seconds):
+    - Typical runtimes: ~ 6-86 ms, of which ~ 0-1 ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, arrow:writer=cv
+      * 100.00%, arrow:writer=pv
+      * 80.00%, mode:normalized
+      * 74.17%, renorm:on
+      * 66.67%, mean:none
+      * 56.67%, n:many
+      * 54.17%, rot:haar
+      * 53.33%, layout:UNALIGNED-rows
+      * 51.67%, d:even
+      * 46.67%, layout:row-aligned
+      * 36.67%, data:gauss
+      * 33.33%, bits:8
+      * 33.33%, d:odd
+      * 33.33%, pq:centred-refused
+      * 30.83%, bits:3
+      * 25.83%, renorm:off
+      * 24.17%, bits:1
+      * 24.17%, n:0
+      * 24.17%, rot:rht
+      * 21.67%, rot:none
+      * 20.00%, mean:big
+      * 20.00%, mode:scalar
+      * 19.17%, data:tiny
+      * 19.17%, n:1
+      * 15.00%, d:1
+      * 11.67%, bits:4
+      * 11.67%, data:dups
+      * 11.67%, data:mixed
+      * 11.67%, mean:unit
+      * 7.50%, data:big
+      * 6.67%, data:sparse
+      * 5.83%, data:extreme
+      * 1.67%, mean:zero
+      * 0.83%, data:zeros
+
+  - Stopped because settings.max_examples=120
+
+
+test_containers_props.py::test_hand_built_containers_roundtrip_every_writer:
+
+  - during generate phase (0.76 seconds):
+    - Typical runtimes: ~ 3-7 ms, of which ~ 0-1 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 57.33%, hand:UNALIGNED
+      * 46.67%, hand:scalar
+      * 42.67%, hand:aligned
+      * 32.00%, hand:plain
+      * 27.33%, hand:bits=8
+      * 23.33%, hand:bits=2
+      * 21.33%, hand:centred
+      * 19.33%, hand:bits=3
+      * 16.00%, hand:bits=4
+      * 14.00%, hand:bits=1
+
+  - Stopped because settings.max_examples=150
+
+
+test_containers_props.py::test_operation_sequences_keep_container_and_model_in_agreement:
+
+  - during generate phase (7.63 seconds):
+    - Typical runtimes: ~ 2-134 ms, of which ~ 0-2 ms in data generation
+    - 220 passing, 0 failing, and 2 invalid test cases
+    - Events:
+      * 82.43%, mode:normalized
+      * 77.93%, renorm:on
+      * 63.96%, op:subset
+      * 58.11%, d:even
+      * 55.41%, final-n:many
+      * 55.41%, n:many
+      * 53.60%, layout:UNALIGNED-rows
+      * 52.70%, mean:none
+      * 51.35%, final:cv
+      * 47.75%, final:pv
+      * 47.30%, start:pv
+      * 45.50%, layout:row-aligned
+      * 44.59%, subset:nonempty-of-nonempty
+      * 43.24%, op:warm
+      * 43.24%, warm:cache-populated
+      * 40.99%, start:cold-cv
+      * 34.23%, rot:haar
+      * 32.88%, rot:rht
+      * 31.98%, rot:none
+      * 30.63%, op:convert
+      * 28.83%, data:gauss
+      * 28.83%, op:arrow
+      * 27.48%, op:rows
+      * 26.13%, d:odd
+      * 25.68%, final-bits:1
+      * 25.68%, op:npz
+      * 24.77%, bits:3
+      * 24.77%, final-n:0
+      * 24.77%, subset:ints
+      * 23.42%, mean:big
+      * 23.42%, n:1
+      * 22.97%, final-bits:2
+      * 22.97%, mean:unit
+      * 22.52%, bits:8
+      * 22.07%, final-bits:8
+      * 21.62%, op:drop_cache
+      * 21.17%, renorm:off
+      * 20.27%, final-bits:3
+      * 20.27%, n:0
+      * 19.37%, bits:2
+      * 19.37%, op:at_precision
+      * 19.37%, op:pq
+      * 18.92%, final-n:1
+      * 18.02%, bits:1
+      * 16.67%, mode:scalar
+      * 16.67%, op:check
+      * 16.67%, subset:perm
+      * 15.77%, data:dups
+      * 14.86%, d:1
+      * 14.41%, bits:4
+      * 14.41%, op:unpack
+      * 14.41%, unpack:at
+      * 12.61%, subset:to-empty
+      * 12.16%, data:sparse
+      * 11.71%, arrow:pv->cv
+      * 11.71%, data:zeros
+      * 11.26%, pq:roundtrip
+      * 11.26%, unpack:rows-slice
+      * 10.81%, npz:path-form-3
+      * 10.81%, start:warmed-cv
+      * 9.91%, data:tiny
+      * 9.46%, subset:dups
+      * 8.56%, npz:path-form-0
+      * 8.56%, npz:path-form-1
+      * 8.11%, data:onehot
+      * 8.11%, final-bits:4
+      * 8.11%, pq:centred-refused
+      * 7.66%, arrow:pv->pv+mmap
+      * 7.21%, arrow:cv->pv+mmap
+      * 6.76%, data:mixed
+      * 6.76%, subset:head
+      * 6.76%, subset:oob_lo
+      * 6.31%, subset:all
+      * 5.86%, data:big
+      * 4.95%, at_precision:3->2
+      * 4.50%, at_precision:2->1
+      * 4.05%, rows:n=0 (from_rows cannot build empty; uses subset)
+      * 4.05%, subset:bool
+      * 4.05%, subset:empty_arr
+      * 4.05%, subset:oob_hi
+      * 3.60%, arrow:cv->cv
+      * 3.15%, arrow:pv->pv
+      * 3.15%, at_precision:3->1
+      * 3.15%, at_precision:4->2
+      * 3.15%, at_precision:4->3
+      * 3.15%, subset:boollist
+      * 2.70%, npz:path-form-2
+      * 2.70%, subset:tuple
+      * 2.25%, at_precision:invalid-raises
+      * 2.25%, subset:range
+      * 1.35%, arrow:cv->pv
+      * 0.45%, at_precision:8->3
+
+  - Stopped because settings.max_examples=220
+
+
+test_containers_props.py::test_subset_accepts_documented_forms_and_rejects_the_rest:
+
+  - during generate phase (11.94 seconds):
+    - Typical runtimes: ~ 1-138 ms, of which ~ 0-1 ms in data generation
+    - 220 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 86.36%, mode:normalized
+      * 72.73%, renorm:on
+      * 67.27%, d:even
+      * 56.36%, layout:UNALIGNED-rows
+      * 50.45%, n:many
+      * 45.91%, mean:none
+      * 43.64%, layout:row-aligned
+      * 43.18%, cache:warm
+      * 43.18%, rot:haar
+      * 29.55%, mean:big
+      * 29.55%, n:0
+      * 29.55%, rot:rht
+      * 28.64%, data:gauss
+      * 27.27%, bits:2
+      * 27.27%, renorm:off
+      * 27.27%, rot:none
+      * 25.45%, d:odd
+      * 24.09%, bits:4
+      * 20.00%, n:1
+      * 18.18%, mean:unit
+      * 17.27%, selector:ints
+      * 16.82%, bits:3
+      * 16.36%, bits:8
+      * 15.45%, bits:1
+      * 15.45%, data:dups
+      * 13.64%, mode:scalar
+      * 13.64%, selector:perm
+      * 13.18%, data:sparse
+      * 11.82%, data:onehot
+      * 10.91%, selector:oob_lo
+      * 9.09%, data:mixed
+      * 9.09%, data:zeros
+      * 9.09%, selector:tuple
+      * 7.27%, d:1
+      * 6.36%, data:big
+      * 6.36%, data:tiny
+      * 6.36%, mean:zero
+      * 6.36%, selector:boollist
+      * 6.36%, selector:head
+      * 5.00%, selector:all
+      * 5.00%, selector:empty_mask
+      * 5.00%, selector:mask_long
+      * 5.00%, selector:neg
+      * 4.09%, selector:dups
+      * 3.64%, selector:empty_arr
+      * 3.18%, selector:bool
+      * 3.18%, selector:range
+      * 2.27%, selector:empty_list
+
+  - Stopped because settings.max_examples=220
+
+
+test_containers_props.py::test_at_precision_is_right_shift_and_composes:
+
+  - during generate phase (5.69 seconds):
+    - Typical runtimes: ~ 1-69 ms, of which < 1ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 85.33%, mode:normalized
+      * 76.67%, renorm:on
+      * 56.00%, layout:UNALIGNED-rows
+      * 55.33%, n:many
+      * 54.67%, data:gauss
+      * 52.00%, d:even
+      * 44.00%, layout:row-aligned
+      * 43.33%, mean:none
+      * 42.00%, mean:unit
+      * 38.67%, rot:rht
+      * 33.33%, d:odd
+      * 31.33%, rot:haar
+      * 30.00%, bits:4
+      * 30.00%, precision:4->1
+      * 30.00%, precision:4->2
+      * 30.00%, precision:4->3
+      * 30.00%, precision:4->4
+      * 30.00%, rot:none
+      * 28.67%, n:1
+      * 26.00%, bits:3
+      * 26.00%, precision:3->1
+      * 26.00%, precision:3->2
+      * 26.00%, precision:3->3
+      * 24.00%, bits:2
+      * 24.00%, precision:2->1
+      * 24.00%, precision:2->2
+      * 23.33%, renorm:off
+      * 20.00%, bits:8
+      * 20.00%, precision:8->1
+      * 20.00%, precision:8->2
+      * 20.00%, precision:8->3
+      * 20.00%, precision:8->4
+      * 20.00%, precision:8->8
+      * 16.00%, data:zeros
+      * 16.00%, n:0
+      * 14.67%, d:1
+      * 14.67%, mode:scalar
+      * 14.00%, mean:big
+      * 9.33%, data:tiny
+      * 6.67%, data:big
+      * 6.00%, data:dups
+      * 4.67%, data:onehot
+      * 2.00%, data:sparse
+      * 0.67%, data:mixed
+      * 0.67%, mean:zero
+
+  - Stopped because settings.max_examples=150
+
+
+test_containers_props.py::test_one_bit_matryoshka_level_is_exactly_the_standalone_one_bit_code:
+
+  - during generate phase (5.71 seconds):
+    - Typical runtimes: ~ 1-117 ms, of which < 1ms in data generation
+    - 100 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 89.00%, mode:normalized
+      * 82.00%, renorm:on
+      * 66.00%, d:even
+      * 66.00%, n:many
+      * 64.00%, layout:row-aligned
+      * 55.00%, mean:none
+      * 50.00%, data:gauss
+      * 43.00%, rot:rht
+      * 39.00%, bits:4
+      * 36.00%, layout:UNALIGNED-rows
+      * 34.00%, n:1
+      * 34.00%, rot:haar
+      * 28.00%, d:odd
+      * 23.00%, rot:none
+      * 22.00%, bits:3
+      * 21.00%, mean:big
+      * 20.00%, bits:2
+      * 19.00%, bits:8
+      * 18.00%, renorm:off
+      * 14.00%, mean:unit
+      * 13.00%, data:tiny
+      * 11.00%, data:big
+      * 11.00%, data:mixed
+      * 11.00%, mode:scalar
+      * 10.00%, mean:zero
+      * 6.00%, d:1
+      * 6.00%, data:sparse
+      * 5.00%, data:onehot
+      * 4.00%, data:dups
+
+  - Stopped because settings.max_examples=100
+
+
+test_containers_props.py::test_mismatched_quantizers_are_refused_cold_and_warm:
+
+  - during generate phase (9.93 seconds):
+    - Typical runtimes: ~ 0-132 ms, of which < 1ms in data generation
+    - 300 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 72.00%, raised:search_adc
+      * 72.00%, raised:search_twostage
+      * 64.33%, renorm:on
+      * 62.33%, reader-renorm:True
+      * 60.33%, mode:normalized
+      * 50.67%, state:warm
+      * 46.67%, n:many
+      * 46.33%, d:even
+      * 44.00%, mean:none
+      * 43.33%, layout:UNALIGNED-rows
+      * 36.00%, layout:row-aligned
+      * 32.67%, n:1
+      * 28.67%, raised:decode
+      * 28.67%, raised:search_batch
+      * 28.67%, state:cold
+      * 28.33%, raised:search
+      * 27.33%, rot:none
+      * 26.67%, rot:haar
+      * 25.33%, rot:rht
+      * 22.33%, data:gauss
+      * 21.67%, d:odd
+      * 19.33%, bits:3
+      * 19.00%, mode:scalar
+      * 18.33%, bits:1
+      * 17.00%, reader-renorm:False
+      * 15.67%, bits:4
+      * 15.00%, mismatch:mode
+      * 15.00%, renorm:off
+      * 14.67%, bits:8
+      * 14.00%, mean:big
+      * 13.00%, data:tiny
+      * 12.33%, mean:unit
+      * 11.33%, bits:2
+      * 11.33%, d:1
+      * 10.33%, mismatch:d
+      * 10.33%, mismatch:mean_other
+      * 10.00%, mismatch:rotation
+      * 9.67%, data:onehot
+      * 9.67%, mismatch:mean_add
+      * 9.33%, data:dups
+      * 9.00%, mean:zero
+      * 8.00%, mismatch:seed
+      * 7.67%, data:sparse
+      * 7.00%, mismatch:bits
+      * 6.33%, data:zeros
+      * 6.00%, data:mixed
+      * 6.00%, mismatch:mean_drop
+      * 5.00%, data:big
+      * 3.00%, mismatch:scale
+      * 0.33%, skipped:F2 (search, warm, renorm=False/scalar)
+
+  - Stopped because settings.max_examples=300
+
+
+test_containers_props.py::test_roundtripped_containers_keep_guards_armed:
+
+  - during generate phase (4.51 seconds):
+    - Typical runtimes: ~ 0-135 ms, of which < 1ms in data generation
+    - 80 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 83.75%, guard-after:arrow_cv
+      * 83.75%, guard-after:arrow_pv
+      * 83.75%, guard-after:cv_npz
+      * 83.75%, guard-after:pv_npz
+      * 22.50%, data:gauss
+      * 22.50%, data:onehot
+      * 17.50%, data:mixed
+      * 12.50%, data:sparse
+      * 8.75%, data:zeros
+
+  - Stopped because settings.max_examples=80
+
+
+test_containers_props.py::test_damaged_pq_is_a_valid_container_or_a_value_error:
+
+  - during generate phase (3.52 seconds):
+    - Typical runtimes: ~ 1-67 ms, of which ~ 0-1 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 73.33%, pq-damage:refused
+      * 38.00%, pq-damage:zero-header
+      * 26.67%, data:gauss
+      * 26.67%, data:zeros
+      * 26.67%, pq-damage:accepted
+      * 24.00%, pq-damage:flip
+      * 19.33%, pq-damage:truncate
+      * 18.67%, pq-damage:append
+      * 14.00%, data:big
+      * 14.00%, data:tiny
+      * 9.33%, data:sparse
+      * 6.00%, data:mixed
+      * 3.33%, data:onehot
+
+  - Stopped because settings.max_examples=150
+
+
+test_containers_props.py::test_damaged_npz_and_arrow_never_yield_a_wrong_shaped_container:
+
+  - during generate phase (2.93 seconds):
+    - Typical runtimes: ~ 2-56 ms, of which ~ 0-1 ms in data generation
+    - 120 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 84.17%, damage:.npz:refused
+      * 70.00%, damage:.arrow:refused
+      * 54.17%, damage:.arrow:flip
+      * 54.17%, damage:.npz:flip
+      * 45.83%, damage:.arrow:truncate
+      * 45.83%, damage:.npz:truncate
+      * 40.00%, data:gauss
+      * 30.00%, damage:.arrow:accepted
+      * 24.17%, data:tiny
+      * 23.33%, data:big
+      * 15.83%, damage:.npz:accepted
+      * 5.83%, data:sparse
+      * 4.17%, data:extreme
+      * 1.67%, data:onehot
+      * 0.83%, data:dups
+
+  - Stopped because settings.max_examples=120
+
+
+test_containers_props.py::test_writers_are_all_or_nothing:
+
+  - during generate phase (2.08 seconds):
+    - Typical runtimes: ~ 1-70 ms, of which ~ 0-1 ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 60.00%, fail-at:rename
+      * 53.33%, dest:preexisting
+      * 46.67%, dest:absent
+      * 40.00%, fail-at:partial
+      * 21.67%, data:mixed
+      * 21.67%, data:onehot
+      * 20.00%, data:zeros
+      * 20.00%, writer:cv_arrow
+      * 18.33%, writer:pv_npz
+      * 16.67%, writer:pv_arrow
+      * 15.00%, writer:cv_npz
+      * 15.00%, writer:params
+      * 15.00%, writer:pq
+      * 13.33%, data:gauss
+      * 10.00%, data:dups
+      * 8.33%, data:sparse
+      * 3.33%, data:tiny
+      * 1.67%, data:big
+
+  - Stopped because settings.max_examples=60
+
+
+test_containers_props.py::test_save_params_file_contents:
+
+  - during generate phase (8.80 seconds):
+    - Typical runtimes: ~ 1-217 ms, of which < 1ms in data generation
+    - 60 passing, 0 failing, and 0 invalid test cases
+
+  - Stopped because settings.max_examples=60
+
+
+test_containers_props.py::test_nbytes_and_compression_ratio_arithmetic:
+
+  - during generate phase (0.35 seconds):
+    - Typical runtimes: ~ 0-1 ms, of which < 1ms in data generation
+    - 200 passing, 0 failing, and 2 invalid test cases
+    - Events:
+      * 66.34%, hand:UNALIGNED
+      * 66.34%, size:unaligned
+      * 56.44%, hand:scalar
+      * 32.67%, hand:aligned
+      * 32.67%, size:aligned-equal
+      * 30.69%, hand:plain
+      * 25.25%, hand:bits=1
+      * 22.77%, hand:bits=4
+      * 21.78%, hand:bits=3
+      * 16.34%, hand:bits=2
+      * 12.87%, hand:bits=8
+      * 11.88%, hand:centred
+
+  - Stopped because settings.max_examples=200
+
+
+test_containers_props.py::test_chunk_boundaries_at_4096:
+
+  - during generate phase (7.64 seconds):
+    - Typical runtimes: ~ 55-1528 ms, of which < 1ms in data generation
+    - 14 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 28.57%, chunk:n=4095
+      * 21.43%, chunk:n=4097
+      * 21.43%, chunk:n=8193
+      * 14.29%, chunk:n=8192
+      * 7.14%, chunk:n=4096
+      * 7.14%, chunk:n=8191
+
+  - Stopped because settings.max_examples=14
+
+
+test_containers_props.py::test_decode_and_scores_match_an_independent_oracle_after_reload:
+
+  - during generate phase (4.99 seconds):
+    - Typical runtimes: ~ 2-74 ms, of which ~ 0-1 ms in data generation
+    - 150 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 88.67%, renorm:on
+      * 82.67%, mode:normalized
+      * 78.67%, d:even
+      * 68.67%, mean:none
+      * 68.67%, oracle:plain/scalar decode
+      * 61.33%, layout:row-aligned
+      * 55.33%, n:1
+      * 44.67%, n:many
+      * 42.67%, bits:4
+      * 38.67%, layout:UNALIGNED-rows
+      * 37.33%, rot:haar
+      * 31.33%, oracle:centred invariant
+      * 31.33%, rot:none
+      * 31.33%, rot:rht
+      * 20.67%, data:onehot
+      * 20.00%, bits:8
+      * 19.33%, data:gauss
+      * 18.67%, mean:unit
+      * 18.00%, data:big
+      * 17.33%, bits:3
+      * 17.33%, mode:scalar
+      * 15.33%, data:dups
+      * 14.00%, d:odd
+      * 12.67%, mean:big
+      * 12.00%, bits:1
+      * 11.33%, data:mixed
+      * 11.33%, renorm:off
+      * 8.00%, bits:2
+      * 7.33%, d:1
+      * 7.33%, data:zeros
+      * 5.33%, data:sparse
+      * 2.67%, data:tiny
+
+  - Stopped because settings.max_examples=150
+
+
+test_containers_props.py::test_derived_containers_do_not_alias_their_parent:
+
+  - during generate phase (2.65 seconds):
+    - Typical runtimes: ~ 1-66 ms, of which ~ 0-1 ms in data generation
+    - 80 passing, 0 failing, and 0 invalid test cases
+    - Events:
+      * 100.00%, alias-check:ok
+      * 38.75%, data:gauss
+      * 27.50%, data:zeros
+      * 13.75%, data:mixed
+      * 10.00%, data:tiny
+      * 8.75%, data:dups
+      * 1.25%, data:sparse
+
+  - Stopped because settings.max_examples=80
+
+
+test_containers_props.py::test_known_npz_layouts_disagree:
+
+  - during reuse phase (0.11 seconds):
+    - Typical runtimes: ~ 3-109 ms, of which ~ 1-2 ms in data generation
+    - 0 passing, 2 failing, and 0 invalid test cases
+    - Found 2 distinct errors in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_search_guards_skipped_on_warm_container:
+
+  - during reuse phase (0.06 seconds):
+    - Typical runtimes: ~ 54ms, of which < 1ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_large_seeds_roundtrip_npz:
+
+  - during reuse phase (0.06 seconds):
+    - Typical runtimes: ~ 54ms, of which < 1ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding:
+
+  - during reuse phase (0.15 seconds):
+    - Typical runtimes: ~ 2-138 ms, of which < 1ms in data generation
+    - 0 passing, 4 failing, and 0 invalid test cases
+    - Found 4 distinct errors in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz:
+
+  - during reuse phase (0.00 seconds):
+    - Typical runtimes: ~ 2ms, of which < 1ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_compression_ratio_of_empty_container:
+
+  - during reuse phase (0.00 seconds):
+    - Typical runtimes: ~ 1ms, of which < 1ms in data generation
+    - 0 passing, 2 failing, and 0 invalid test cases
+    - Found 2 distinct errors in this phase
+
+  - Stopped because nothing left to do
+
+
+test_containers_props.py::test_known_damaged_npz_member_names_the_file:
+
+  - during reuse phase (0.09 seconds):
+    - Typical runtimes: ~ 3-76 ms, of which ~ 0-1 ms in data generation
+    - 0 passing, 5 failing, and 0 invalid test cases
+    - Found 5 distinct errors in this phase
+
+  - Stopped because nothing left to do
+
+
+============================= slowest 40 durations =============================
+11.94s call     test_containers_props.py::test_subset_accepts_documented_forms_and_rejects_the_rest
+9.93s call     test_containers_props.py::test_mismatched_quantizers_are_refused_cold_and_warm
+8.81s call     test_containers_props.py::test_save_params_file_contents
+7.64s call     test_containers_props.py::test_chunk_boundaries_at_4096
+7.63s call     test_containers_props.py::test_operation_sequences_keep_container_and_model_in_agreement
+5.71s call     test_containers_props.py::test_one_bit_matryoshka_level_is_exactly_the_standalone_one_bit_code
+5.69s call     test_containers_props.py::test_at_precision_is_right_shift_and_composes
+5.61s call     test_containers_props.py::test_every_format_roundtrips_losslessly
+5.52s call     test_containers_props.py::test_encode_produces_wellformed_containers
+4.99s call     test_containers_props.py::test_decode_and_scores_match_an_independent_oracle_after_reload
+4.51s call     test_containers_props.py::test_roundtripped_containers_keep_guards_armed
+3.52s call     test_containers_props.py::test_damaged_pq_is_a_valid_container_or_a_value_error
+2.93s call     test_containers_props.py::test_damaged_npz_and_arrow_never_yield_a_wrong_shaped_container
+2.65s call     test_containers_props.py::test_derived_containers_do_not_alias_their_parent
+2.08s call     test_containers_props.py::test_writers_are_all_or_nothing
+1.63s call     test_containers_props.py::test_encode_is_independent_of_row_block_size
+0.91s call     test_containers_props.py::test_known_damaged_npz_member_names_the_file
+0.77s call     test_containers_props.py::test_hand_built_containers_roundtrip_every_writer
+0.52s call     test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding
+0.36s call     test_containers_props.py::test_known_npz_layouts_disagree
+0.36s call     test_containers_props.py::test_nbytes_and_compression_ratio_arithmetic
+0.23s call     test_containers_props.py::test_known_large_seeds_roundtrip_npz
+0.22s call     test_containers_props.py::test_known_compression_ratio_of_empty_container
+0.14s call     test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz
+0.14s call     test_containers_props.py::test_pack_matches_bitstream_reference_and_roundtrips
+0.13s call     test_containers_props.py::test_known_search_guards_skipped_on_warm_container
+0.12s call     test_containers_props.py::test_packed_nbytes_arithmetic
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[0]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[16]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[9]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[6]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[-1]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[7]
+0.05s call     test_containers_props.py::test_unsupported_bit_widths_are_refused_everywhere[5]
+
+(6 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+XFAIL test_containers_props.py::test_known_npz_layouts_disagree - F1: CompressedVectors.save and PackedVectors.save write different packed_indices layouts (flat vs row-padded) under the same .npz keys when d*bits % 8 != 0
+XFAIL test_containers_props.py::test_known_search_guards_skipped_on_warm_container - F2: Quantizer.search consults only _check_rotation before using a warm _x_hat_rot; _effective_norms returns before its guards under renorm=False or in scalar mode, so the mean and bits guards are skipped
+XFAIL test_containers_props.py::test_known_large_seeds_roundtrip_npz - F3: .npz stores the seed as np.int64, so a seed in [2**63, inf) that Quantizer and Arrow accept overflows at save
+XFAIL test_containers_props.py::test_known_arrow_extra_metadata_cannot_override_encoding - F4: save_arrow(**extra_metadata) overwrites the reserved d/n/bits/rotation/mean/scale keys, so a caller keyword can silently relabel the encoding
+XFAIL test_containers_props.py::test_known_packedvectors_load_of_legacy_indices_npz - F5: open_npz accepts the legacy indices-only layout but PackedVectors.load indexes 'packed_indices' unconditionally -> raw KeyError
+XFAIL test_containers_props.py::test_known_compression_ratio_of_empty_container - A1: compression_ratio divides 0/0 for an empty container (ZeroDivisionError)
+XFAIL test_containers_props.py::test_known_damaged_npz_member_names_the_file - A2: .npz readers wrap truncated files but not damaged members: a flipped byte inside the archive surfaces as BadZipFile/zlib.error from the lazy member read, not the named ValueError
+27 passed, 7 xfailed in 95.91s (0:01:35)
