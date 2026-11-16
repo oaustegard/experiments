@@ -1,0 +1,1301 @@
+..F..F.......F...............................                            [100%]
+=================================== FAILURES ===================================
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/user/experiments/remex-proptest/search/test_search_props.py", line 543, in test_score_vectors_accepts_packed
+  |     @given(data=st.data())
+  |                    ^^^
+  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/user/experiments/remex-proptest/search/test_search_props.py", line 553, in test_score_vectors_accepts_packed
+    |     Y2, b2 = pq._score_vectors(case.packed, prec)
+    |              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+    |   File "/home/user/remex/remex/core.py", line 1618, in _score_vectors
+    |     return self.decode(compressed, precision), None
+    |            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/user/remex/remex/core.py", line 1595, in decode
+    |     indices = self._resolve_indices(compressed, precision)
+    |   File "/home/user/remex/remex/core.py", line 2045, in _resolve_indices
+    |     return compressed.indices >> shift
+    |            ^^^^^^^^^^^^^^^^^^
+    | AttributeError: 'PackedVectors' object has no attribute 'indices'
+    | Failing test case: test_score_vectors_accepts_packed(
+    |     data=data(...),
+    | )
+    | Draw 1: <test_search_props.Case object at 0x7f8081c6c2d0>
+    | Draw 2: 1  # or any other generated value
+    | Explanation:
+    |     These lines were always and only run by failing test cases:
+    |         /home/user/remex/remex/core.py:32
+    |         /home/user/remex/remex/core.py:1287
+    |         /home/user/remex/remex/core.py:1599
+    |         /home/user/remex/remex/core.py:1618
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/user/experiments/remex-proptest/search/test_search_props.py", line 553, in test_score_vectors_accepts_packed
+    |     Y2, b2 = pq._score_vectors(case.packed, prec)
+    |              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+    |   File "/home/user/remex/remex/core.py", line 1618, in _score_vectors
+    |     return self.decode(compressed, precision), None
+    |            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/home/user/remex/remex/core.py", line 1595, in decode
+    |     indices = self._resolve_indices(compressed, precision)
+    |   File "/home/user/remex/remex/core.py", line 2043, in _resolve_indices
+    |     return compressed.indices
+    |            ^^^^^^^^^^^^^^^^^^
+    | AttributeError: 'PackedVectors' object has no attribute 'indices'
+    | Failing test case: test_score_vectors_accepts_packed(
+    |     data=data(...),
+    | )
+    | Draw 1: <test_search_props.Case object at 0x7f8081c32fd0>
+    | Draw 2: None  # or any other generated value
+    | Explanation:
+    |     These lines were always and only run by failing test cases:
+    |         /home/user/remex/remex/core.py:32
+    |         /home/user/remex/remex/core.py:1066
+    |         /home/user/remex/remex/core.py:1083
+    |         /home/user/remex/remex/core.py:1105
+    |         /home/user/remex/remex/core.py:1618
+    +------------------------------------
+/home/user/experiments/remex-proptest/search/test_search_props.py:543: ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)
+E   test_search_props.Violation: ivf.search_coarse(nprobe=2**n_bits) scores are not byte-identical to search_adc: max |diff| 1.788e-07, ulps=3  case={'mode': 'centred', 'd': 1, 'bits': 1, 'rotation': 'haar', 'n': 1, 'k': 1, 'm': 1} precision=None
+    Failing test case: test_ivf_flat_limit_is_byte_identical_to_adc(
+        # The test always failed when commented parts were varied together.
+        data=data(...),
+    )
+    Draw 1: (<test_search_props.Case object at 0x7f8081fbccd0>,
+     <remex.ivf.IVFCoarseIndex object at 0x7f808080a360>,
+     <remex.core.CompressedVectors object at 0x7f80818fb5c0>)
+    Draw 2: 0  # or any other generated value
+    Draw 3: None  # or any other generated value
+    Explanation:
+        These lines were always and only run by failing test cases:
+            /home/user/experiments/remex-proptest/search/test_search_props.py:708
+            /home/user/experiments/remex-proptest/search/test_search_props.py:709
+/home/user/experiments/remex-proptest/search/test_search_props.py:708: test_search_props.Violation: ivf.search_coarse(nprobe=2**n_bits) scores are not byte-identical to search_adc: max |diff| 1.788e-07, ulps=3  case={'mode': 'centred', 'd': 1, 'bits': 1, 'rotation': 'haar', 'n': 1, 'k': 1, 'm': 1} precision=None
+E   test_search_props.Violation: search_adc: adding the constant q.mu=1.000e+10 changed the top-5 set: row 53 has offset-free score np.float64(15584.6728515625) vs boundary np.float64(15453.556640625); d=8 bits=4 n=60 |mu|=100000 sigma=0.1
+    Failing test case: test_query_offset_cannot_reorder(
+        data=data(...),
+    )
+    Draw 1: 8
+    Draw 2: 4  # or any other generated value
+    Draw 3: 60
+    Draw 4: 100000.0
+    Draw 5: 0.1
+    Draw 6: 39
+    Draw 7: 5
+    Explanation:
+        These lines were always and only run by failing test cases:
+            /home/user/experiments/remex-proptest/search/test_search_props.py:1042
+/home/user/experiments/remex-proptest/search/test_search_props.py:1046: test_search_props.Violation: search_adc: adding the constant q.mu=1.000e+10 changed the top-5 set: row 53 has offset-free score np.float64(15584.6728515625) vs boundary np.float64(15453.556640625); d=8 bits=4 n=60 |mu|=100000 sigma=0.1
+============================ Hypothesis Statistics =============================
+test_search_props.py::test_cpu_paths_match_oracle:
+
+  - during generate phase (11.17 seconds):
+    - Typical runtimes: ~ 2-99 ms, of which ~ 1-89 ms in data generation
+    - 400 passing, 0 failing, and 54 invalid test cases
+    - Events:
+      * 56.61%, k<n
+      * 52.86%, duplicate_rows
+      * 49.34%, row_unaligned_packing
+      * 48.90%, row_aligned_packing
+      * 47.14%, rotation=haar
+      * 41.85%, n=4-24
+      * 39.21%, tiny_or_zero_norm_rows
+      * 38.77%, d=9-33
+      * 35.68%, zero_rows
+      * 34.58%, mode=unit_norenorm
+      * 34.36%, d=even_pow2
+      * 33.92%, d=odd
+      * 32.82%, script_len=1
+      * 29.96%, rotation=rht
+      * 27.09%, mode=unit
+      * 25.33%, k>n
+      * 24.67%, cpu_op=search
+      * 24.01%, d=even
+      * 21.81%, bits=1
+      * 21.59%, k=0
+      * 21.37%, bits=8
+      * 21.15%, rotation=none
+      * 20.26%, bits=2
+      * 20.04%, bits=4
+      * 19.82%, n=1
+      * 19.38%, cpu_op=search:precision=None
+      * 18.72%, d=3-8
+      * 18.50%, mode=centred
+      * 18.28%, n=2
+      * 18.06%, mode=scalar
+      * 16.30%, k==n
+      * 15.42%, cpu_op=adc
+      * 14.98%, d=65-256
+      * 14.76%, bits=3
+      * 13.66%, n=25+
+      * 13.00%, tie_boundary_stage1
+      * 12.33%, cpu_op=score_vectors
+      * 11.89%, cpu_op=adc:precision=None
+      * 11.67%, script_len=3
+      * 10.79%, cpu_op=drop_cache
+      * 10.57%, cpu_op=twostage_full
+      * 10.13%, d=2
+      * 9.91%, cpu_op=twostage_part
+      * 9.69%, d=34-64
+      * 9.69%, script_len=8
+      * 9.47%, cpu_op=decode_dot
+      * 9.25%, cpu_op=batch
+      * 9.25%, script_len=2
+      * 9.03%, cpu_op=twostage_part:precision=None
+      * 8.15%, cpu_op=search:precision=lower
+      * 8.15%, script_len=6
+      * 7.93%, cpu_op=adc:precision=lower
+      * 7.93%, cpu_op=score_vectors:precision=None
+      * 7.71%, cpu_op=packed_adc
+      * 7.49%, cpu_op=packed_twostage_full
+      * 7.49%, cpu_op=packed_twostage_part
+      * 7.27%, cpu_op=packed_twostage_full:precision=None
+      * 7.27%, zero_query
+      * 7.05%, cpu_op=twostage_full:precision=None
+      * 6.83%, cpu_op=batch:precision=None
+      * 6.17%, script_len=5
+      * 6.17%, script_len=7
+      * 5.95%, cpu_op=score_vectors:precision=lower
+      * 5.95%, d=1
+      * 5.95%, d=odd_pow2
+      * 5.73%, cpu_op=packed_adc:precision=lower
+      * 5.51%, cpu_op=packed_twostage_part:precision=None
+      * 5.29%, cpu_op=packed_adc:precision=None
+      * 5.07%, cpu_op=batch:precision=bits
+      * 5.07%, cpu_op=decode_dot:precision=lower
+      * 4.85%, tie_boundary
+      * 4.63%, centred_mean=const
+      * 4.63%, cpu_op=twostage_full:precision=lower
+      * 4.63%, n=3
+      * 4.41%, centred_mean=zero
+      * 4.19%, script_len=4
+      * 3.74%, cpu_op=decode_dot:precision=None
+      * 3.74%, cpu_op=score_vectors:precision=bits
+      * 3.52%, cpu_op=twostage_full:precision=bits
+      * 3.08%, cpu_op=adc:precision=bits
+      * 3.08%, decode_dot:skipped_centred
+      * 2.86%, centred_mean=spike
+      * 2.86%, cpu_op=batch:precision=lower
+      * 2.64%, centred_mean=big
+      * 2.64%, cpu_op=packed_twostage_full:precision=bits
+      * 2.42%, cpu_op=decode_dot:precision=bits
+      * 2.42%, cpu_op=packed_twostage_full:precision=lower
+      * 2.42%, cpu_op=packed_twostage_part:precision=lower
+      * 2.20%, centred_mean=mix
+      * 2.20%, cpu_op=twostage_part:precision=bits
+      * 1.98%, cpu_op=packed_twostage_part:precision=bits
+      * 1.76%, centred_mean=corpus
+      * 1.76%, cpu_op=search:precision=bits
+      * 1.76%, cpu_op=twostage_part:precision=lower
+      * 1.54%, cpu_op=packed_adc:precision=bits
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_cold_cache_each_path:
+
+  - during generate phase (12.56 seconds):
+    - Typical runtimes: ~ 2-125 ms, of which ~ 1-101 ms in data generation
+    - 400 passing, 0 failing, and 64 invalid test cases
+    - Events:
+      * 58.84%, k<n
+      * 55.17%, duplicate_rows
+      * 51.94%, row_unaligned_packing
+      * 46.34%, rotation=haar
+      * 46.12%, tiny_or_zero_norm_rows
+      * 44.40%, d=odd
+      * 44.18%, d=9-33
+      * 44.18%, n=4-24
+      * 43.10%, row_aligned_packing
+      * 39.22%, zero_rows
+      * 31.03%, rotation=none
+      * 27.80%, mode=unit_norenorm
+      * 24.57%, bits=3
+      * 24.14%, cpu_op=search
+      * 24.14%, d=3-8
+      * 22.84%, mode=unit
+      * 22.63%, d=even
+      * 22.63%, mode=scalar
+      * 21.77%, mode=centred
+      * 21.34%, d=even_pow2
+      * 21.12%, cpu_op=search:precision=None
+      * 20.47%, bits=1
+      * 20.26%, k=0
+      * 19.83%, n=1
+      * 18.53%, k==n
+      * 17.67%, bits=2
+      * 17.67%, k>n
+      * 17.67%, rotation=rht
+      * 17.24%, bits=8
+      * 15.09%, bits=4
+      * 14.66%, cpu_op=score_vectors
+      * 13.36%, cpu_op=packed_adc
+      * 13.36%, n=25+
+      * 12.28%, cpu_op=twostage_full
+      * 12.07%, cpu_op=twostage_part
+      * 11.64%, cpu_op=batch
+      * 11.64%, n=2
+      * 11.42%, cpu_op=adc
+      * 11.42%, cpu_op=decode_dot
+      * 11.42%, d=34-64
+      * 11.21%, tie_boundary
+      * 10.99%, tie_boundary_stage1
+      * 9.91%, cpu_op=score_vectors:precision=None
+      * 9.70%, cpu_op=batch:precision=None
+      * 9.05%, cpu_op=adc:precision=None
+      * 8.84%, cpu_op=packed_adc:precision=None
+      * 8.41%, cpu_op=twostage_full:precision=None
+      * 8.19%, cpu_op=score_vectors:precision=lower
+      * 7.76%, cpu_op=decode_dot:precision=None
+      * 7.54%, centred_mean=zero
+      * 7.11%, cpu_op=twostage_part:precision=None
+      * 6.90%, cpu_op=packed_twostage_part
+      * 6.68%, d=1
+      * 6.68%, d=odd_pow2
+      * 6.03%, cpu_op=packed_adc:precision=bits
+      * 6.03%, n=3
+      * 5.82%, cpu_op=decode_dot:precision=bits
+      * 5.82%, zero_query
+      * 5.60%, cpu_op=packed_twostage_part:precision=None
+      * 5.60%, cpu_op=search:precision=lower
+      * 5.39%, cpu_op=twostage_full:precision=lower
+      * 5.39%, cpu_op=twostage_part:precision=lower
+      * 5.17%, cpu_op=packed_twostage_full
+      * 4.96%, cpu_op=packed_adc:precision=lower
+      * 4.74%, centred_mean=const
+      * 4.53%, cpu_op=search:precision=bits
+      * 4.53%, d=65-256
+      * 4.09%, d=2
+      * 3.88%, cpu_op=packed_twostage_full:precision=None
+      * 3.45%, cpu_op=decode_dot:precision=lower
+      * 3.23%, centred_mean=corpus
+      * 3.23%, cpu_op=packed_twostage_part:precision=lower
+      * 3.02%, cpu_op=adc:precision=bits
+      * 3.02%, cpu_op=twostage_part:precision=bits
+      * 2.80%, cpu_op=batch:precision=lower
+      * 2.80%, cpu_op=packed_twostage_full:precision=lower
+      * 2.59%, centred_mean=big
+      * 2.59%, centred_mean=spike
+      * 2.59%, cpu_op=batch:precision=bits
+      * 2.59%, cpu_op=score_vectors:precision=bits
+      * 2.37%, cpu_op=adc:precision=lower
+      * 2.37%, cpu_op=twostage_full:precision=bits
+      * 1.51%, centred_mean=mix
+      * 1.51%, cpu_op=packed_twostage_full:precision=bits
+      * 1.51%, decode_dot:skipped_centred
+      * 1.29%, threaded_kernel_regime(n*d>=2^15)
+      * 0.65%, cpu_op=packed_twostage_part:precision=bits
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_score_vectors_accepts_packed:
+
+  - during generate phase (0.75 seconds):
+    - Typical runtimes: ~ 1-270 ms, of which ~ 0-266 ms in data generation
+    - 0 passing, 7 failing, and 3 invalid test cases
+    - Found 2 distinct errors in this phase
+    - Events:
+      * 60.00%, mode=scalar
+      * 60.00%, row_aligned_packing
+      * 60.00%, score_vectors_packed:scalar
+      * 40.00%, k==n
+      * 40.00%, n=1
+      * 40.00%, rotation=haar
+      * 30.00%, bits=4
+      * 30.00%, bits=8
+      * 30.00%, d=3-8
+      * 30.00%, d=9-33
+      * 30.00%, d=even
+      * 30.00%, d=even_pow2
+      * 30.00%, duplicate_rows
+      * 30.00%, k<n
+      * 30.00%, n=25+
+      * 30.00%, rotation=rht
+      * 30.00%, tiny_or_zero_norm_rows
+      * 30.00%, zero_rows
+      * 10.00%, bits=1
+      * 10.00%, d=1
+      * 10.00%, d=odd_pow2
+      * 10.00%, mode=unit
+      * 10.00%, row_unaligned_packing
+      * 10.00%, score_vectors_packed:unit
+      * 10.00%, zero_query
+
+  - during shrink phase (0.14 seconds):
+    - Typical runtimes: ~ 0-4 ms, of which ~ 0-2 ms in data generation
+    - 0 passing, 18 failing, and 26 invalid test cases
+    - Tried 44 shrinks of which 10 were successful
+
+  - during explain phase (0.18 seconds):
+    - Typical runtimes: ~ 2-23 ms, of which ~ 1-16 ms in data generation
+    - 4 passing, 4 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_search_props.py::test_gpu_numpy_backend_matches:
+
+  - during generate phase (7.47 seconds):
+    - Typical runtimes: ~ 2-84 ms, of which ~ 1-73 ms in data generation
+    - 400 passing, 0 failing, and 56 invalid test cases
+    - Events:
+      * 66.89%, k<n
+      * 60.96%, row_aligned_packing
+      * 59.43%, duplicate_rows
+      * 49.12%, tiny_or_zero_norm_rows
+      * 47.15%, rotation=haar
+      * 45.39%, d=9-33
+      * 44.08%, zero_rows
+      * 41.45%, gpu_op=search
+      * 41.01%, d=even_pow2
+      * 39.25%, n=4-24
+      * 35.09%, row_unaligned_packing
+      * 31.36%, d=odd
+      * 29.82%, rotation=rht
+      * 29.61%, mode=unit_norenorm
+      * 26.75%, d=3-8
+      * 26.54%, gpu_op=adc
+      * 26.32%, gpu:cpu_warmed_first
+      * 26.10%, gpu_op=twostage_full
+      * 25.44%, bits=8
+      * 25.00%, mode=centred
+      * 24.78%, gpu_op=drop_cache
+      * 23.90%, mode=unit
+      * 22.81%, k=0
+      * 21.71%, n=25+
+      * 21.49%, bits=1
+      * 21.05%, gpu_op=twostage_part
+      * 19.74%, d=even
+      * 19.08%, rotation=none
+      * 18.86%, bits=3
+      * 18.64%, k>n
+      * 17.54%, mode=scalar
+      * 15.57%, gpu_op=batch
+      * 15.35%, bits=2
+      * 15.13%, n=1
+      * 14.91%, bits=4
+      * 14.25%, d=34-64
+      * 14.25%, tie_boundary_stage1
+      * 10.75%, n=2
+      * 10.53%, k==n
+      * 9.21%, n=3
+      * 9.21%, tie_boundary
+      * 7.02%, centred_mean=big
+      * 6.36%, centred_mean=const
+      * 6.36%, centred_mean=zero
+      * 3.95%, d=1
+      * 3.95%, d=odd_pow2
+      * 3.29%, d=65-256
+      * 2.85%, zero_query
+      * 2.41%, centred_mean=mix
+      * 2.41%, d=2
+      * 1.54%, centred_mean=corpus
+      * 1.54%, centred_mean=spike
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_ivf_flat_limit_matches_oracle_and_flat_paths:
+
+  - during generate phase (20.60 seconds):
+    - Typical runtimes: ~ 3-192 ms, of which ~ 1-99 ms in data generation
+    - 400 passing, 0 failing, and 51 invalid test cases
+    - Events:
+      * 63.86%, ivf_src=compressed
+      * 62.31%, ivf_mode=lsh
+      * 60.09%, row_aligned_packing
+      * 59.65%, ivf_n_bits=1-4
+      * 59.20%, k<n
+      * 56.76%, duplicate_rows
+      * 50.11%, tiny_or_zero_norm_rows
+      * 48.78%, rotation=haar
+      * 47.45%, d=9-33
+      * 44.57%, zero_rows
+      * 43.46%, n=4-24
+      * 43.02%, d=odd
+      * 35.70%, row_unaligned_packing
+      * 33.04%, d=even
+      * 31.93%, ivf_mode=rotated_prefix
+      * 30.38%, ivf_src=packed
+      * 28.60%, mode=unit_norenorm
+      * 26.83%, rotation=none
+      * 25.28%, bits=8
+      * 24.39%, mode=unit
+      * 24.17%, k>n
+      * 22.17%, bits=4
+      * 21.95%, d=3-8
+      * 21.73%, mode=scalar
+      * 21.06%, mode=centred
+      * 20.18%, rotation=rht
+      * 19.73%, n=1
+      * 18.85%, ivf_n_bits=5-8
+      * 18.85%, k=0
+      * 18.63%, bits=1
+      * 17.52%, d=even_pow2
+      * 17.29%, bits=2
+      * 15.74%, ivf_n_bits=12-16
+      * 15.52%, n=25+
+      * 13.08%, d=65-256
+      * 12.42%, bits=3
+      * 12.42%, k==n
+      * 11.09%, d=34-64
+      * 9.98%, n=3
+      * 9.53%, tie_boundary
+      * 7.10%, n=2
+      * 5.32%, centred_mean=zero
+      * 4.88%, centred_mean=spike
+      * 3.55%, centred_mean=mix
+      * 3.33%, centred_mean=corpus
+      * 2.88%, centred_mean=const
+      * 2.66%, zero_query
+      * 2.22%, d=1
+      * 2.22%, d=odd_pow2
+      * 1.77%, path_vs_path_tie_difference
+      * 1.55%, centred_mean=big
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_ivf_flat_limit_is_byte_identical_to_adc:
+
+  - during generate phase (3.66 seconds):
+    - Typical runtimes: ~ 2-130 ms, of which ~ 2-125 ms in data generation
+    - 88 passing, 3 failing, and 13 invalid test cases
+    - Found 1 distinct error in this phase
+    - Events:
+      * 78.85%, ivf_mode=lsh
+      * 73.08%, byte_identical:uncentred
+      * 69.23%, ivf_src=compressed
+      * 68.27%, row_unaligned_packing
+      * 65.38%, k<n
+      * 53.85%, ivf_n_bits=1-4
+      * 52.88%, d=9-33
+      * 51.92%, rotation=haar
+      * 49.04%, d=odd
+      * 47.12%, k=0
+      * 37.50%, mode=scalar
+      * 35.58%, n=1
+      * 33.65%, bits=1
+      * 33.65%, duplicate_rows
+      * 32.69%, mode=unit_norenorm
+      * 31.73%, tiny_or_zero_norm_rows
+      * 31.73%, zero_rows
+      * 25.96%, n=4-24
+      * 25.96%, rotation=none
+      * 25.00%, row_aligned_packing
+      * 24.04%, ivf_n_bits=5-8
+      * 23.08%, bits=4
+      * 21.15%, ivf_src=packed
+      * 20.19%, n=3
+      * 19.23%, d=3-8
+      * 18.27%, bits=2
+      * 18.27%, d=even_pow2
+      * 18.27%, k>n
+      * 15.38%, d=even
+      * 15.38%, rotation=rht
+      * 14.42%, byte_identical:centred
+      * 14.42%, mode=centred
+      * 12.50%, bits=3
+      * 12.50%, ivf_n_bits=12-16
+      * 11.54%, ivf_mode=rotated_prefix
+      * 11.54%, n=25+
+      * 10.58%, d=1
+      * 10.58%, d=odd_pow2
+      * 9.62%, k==n
+      * 8.65%, mode=unit
+      * 7.69%, centred_mean=zero
+      * 5.77%, bits=8
+      * 4.81%, d=34-64
+      * 3.85%, centred_mean=big
+      * 3.85%, d=65-256
+      * 1.92%, centred_mean=spike
+      * 1.92%, d=2
+      * 0.96%, centred_mean=mix
+
+  - during shrink phase (2.15 seconds):
+    - Typical runtimes: ~ 1-47 ms, of which ~ 1-25 ms in data generation
+    - 49 passing, 16 failing, and 78 invalid test cases
+    - Tried 143 shrinks of which 15 were successful
+
+  - during explain phase (0.10 seconds):
+    - Typical runtimes: ~ 8ms, of which ~ 4ms in data generation
+    - 0 passing, 1 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_search_props.py::test_ivf_partial_probe_sound:
+
+  - during generate phase (11.96 seconds):
+    - Typical runtimes: ~ 3-95 ms, of which ~ 1-76 ms in data generation
+    - 400 passing, 0 failing, and 64 invalid test cases
+    - Events:
+      * 64.44%, duplicate_rows
+      * 63.36%, ivf_mode=lsh
+      * 62.07%, ivf_src=compressed
+      * 60.78%, k<n
+      * 59.27%, ivf_n_bits=1-4
+      * 53.23%, row_unaligned_packing
+      * 51.29%, rotation=haar
+      * 49.14%, ivf_pool=empty
+      * 43.32%, d=odd
+      * 43.10%, n=4-24
+      * 41.16%, row_aligned_packing
+      * 40.30%, tiny_or_zero_norm_rows
+      * 40.09%, zero_rows
+      * 33.41%, d=9-33
+      * 31.03%, ivf_src=packed
+      * 29.74%, ivf_mode=rotated_prefix
+      * 28.45%, mode=unit_norenorm
+      * 26.94%, d=even
+      * 24.14%, d=3-8
+      * 24.14%, mode=scalar
+      * 23.06%, bits=1
+      * 22.41%, ivf_n_bits=5-8
+      * 22.41%, rotation=rht
+      * 22.20%, bits=3
+      * 21.98%, ivf_pool=partial
+      * 21.77%, mode=unit
+      * 20.69%, rotation=none
+      * 20.47%, ivf_pool=all
+      * 20.04%, mode=centred
+      * 19.83%, n=25+
+      * 18.75%, k>n
+      * 18.10%, k=0
+      * 17.67%, bits=2
+      * 17.24%, n=1
+      * 16.81%, bits=8
+      * 16.59%, d=34-64
+      * 16.16%, d=even_pow2
+      * 16.16%, tie_boundary_stage1
+      * 14.87%, k==n
+      * 14.66%, bits=4
+      * 11.42%, ivf_n_bits=12-16
+      * 11.42%, n=3
+      * 8.84%, zero_query
+      * 8.19%, tie_boundary
+      * 7.97%, d=1
+      * 7.97%, d=odd_pow2
+      * 7.76%, d=65-256
+      * 5.39%, centred_mean=zero
+      * 5.17%, centred_mean=corpus
+      * 4.53%, d=2
+      * 3.66%, centred_mean=spike
+      * 2.80%, centred_mean=const
+      * 2.80%, n=2
+      * 2.37%, centred_mean=mix
+      * 0.65%, centred_mean=big
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_ivf_structure:
+
+  - during generate phase (8.36 seconds):
+    - Typical runtimes: ~ 1-99 ms, of which ~ 1-88 ms in data generation
+    - 400 passing, 0 failing, and 88 invalid test cases
+    - Events:
+      * 59.63%, ivf_mode=lsh
+      * 59.63%, k<n
+      * 58.61%, ivf_src=compressed
+      * 53.07%, ivf_n_bits=1-4
+      * 46.93%, duplicate_rows
+      * 45.49%, row_aligned_packing
+      * 44.26%, d=odd
+      * 43.24%, row_unaligned_packing
+      * 42.42%, rotation=haar
+      * 39.75%, n=4-24
+      * 36.68%, tiny_or_zero_norm_rows
+      * 36.07%, d=9-33
+      * 34.63%, zero_rows
+      * 31.97%, k=0
+      * 25.61%, rotation=none
+      * 24.39%, mode=unit_norenorm
+      * 23.98%, bits=1
+      * 23.36%, d=3-8
+      * 23.36%, ivf_src=packed
+      * 23.36%, mode=scalar
+      * 22.75%, d=even_pow2
+      * 22.34%, ivf_mode=rotated_prefix
+      * 20.90%, mode=centred
+      * 20.70%, rotation=rht
+      * 20.49%, n=1
+      * 20.08%, mode=unit
+      * 18.65%, bits=4
+      * 18.24%, ivf_n_bits=5-8
+      * 17.42%, bits=8
+      * 16.80%, k>n
+      * 16.19%, d=even
+      * 15.98%, bits=3
+      * 14.34%, ivf_self_query_cell_checked
+      * 13.73%, d=34-64
+      * 12.70%, bits=2
+      * 12.70%, n=3
+      * 12.30%, k==n
+      * 10.66%, ivf_n_bits=12-16
+      * 10.04%, n=25+
+      * 9.02%, zero_query
+      * 7.38%, centred_mean=zero
+      * 7.17%, d=65-256
+      * 5.74%, n=2
+      * 5.53%, d=1
+      * 5.53%, d=odd_pow2
+      * 3.69%, centred_mean=big
+      * 3.07%, centred_mean=const
+      * 2.87%, d=2
+      * 2.66%, centred_mean=spike
+      * 2.46%, centred_mean=mix
+      * 1.64%, centred_mean=corpus
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_batch_equals_single_and_permutation:
+
+  - during generate phase (10.97 seconds):
+    - Typical runtimes: ~ 2-70 ms, of which ~ 1-58 ms in data generation
+    - 400 passing, 0 failing, and 70 invalid test cases
+    - Events:
+      * 85.11%, permuted_corpus_checked
+      * 52.77%, duplicate_rows
+      * 51.06%, row_aligned_packing
+      * 49.79%, identical_code_rows_compared
+      * 48.30%, tiny_or_zero_norm_rows
+      * 47.02%, k<n
+      * 46.38%, zero_rows
+      * 42.34%, d=odd
+      * 40.00%, row_unaligned_packing
+      * 35.96%, d=9-33
+      * 34.47%, rotation=haar
+      * 31.49%, n=4-24
+      * 28.94%, rotation=none
+      * 27.87%, mode=centred
+      * 27.66%, rotation=rht
+      * 24.47%, k==n
+      * 24.47%, n=1
+      * 23.83%, bits=4
+      * 23.83%, mode=unit_norenorm
+      * 23.19%, d=even_pow2
+      * 21.91%, d=3-8
+      * 21.91%, d=even
+      * 20.85%, mode=unit
+      * 19.79%, bits=3
+      * 19.57%, k>n
+      * 19.57%, n=25+
+      * 18.51%, mode=scalar
+      * 17.66%, bits=1
+      * 17.45%, d=34-64
+      * 15.11%, bits=8
+      * 14.68%, bits=2
+      * 10.64%, centred_mean=zero
+      * 10.21%, d=65-256
+      * 9.79%, n=3
+      * 9.57%, zero_query
+      * 8.09%, centred_mean=spike
+      * 5.74%, n=2
+      * 4.26%, centred_mean=big
+      * 4.26%, identical_rows_unequal_scores_in_search(BLAS gemv)
+      * 3.62%, d=1
+      * 3.62%, d=odd_pow2
+      * 2.34%, centred_mean=const
+      * 1.91%, d=2
+      * 1.70%, centred_mean=corpus
+      * 1.28%, centred_mean=mix
+      * 0.21%, path_vs_path_tie_difference
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_query_scaling_and_mean_shift_invariance:
+
+  - during generate phase (7.07 seconds):
+    - Typical runtimes: ~ 1-45 ms, of which ~ 1-40 ms in data generation
+    - 400 passing, 0 failing, and 59 invalid test cases
+    - Events:
+      * 64.49%, scaling_checked:linear
+      * 58.39%, duplicate_rows
+      * 50.76%, k<n
+      * 45.75%, row_unaligned_packing
+      * 42.92%, row_aligned_packing
+      * 42.05%, tiny_or_zero_norm_rows
+      * 40.74%, rotation=haar
+      * 40.31%, d=9-33
+      * 38.34%, d=odd
+      * 38.34%, n=4-24
+      * 37.47%, zero_rows
+      * 28.54%, d=even_pow2
+      * 27.67%, bits=1
+      * 25.93%, rotation=none
+      * 24.62%, d=3-8
+      * 23.97%, mode=unit_norenorm
+      * 23.53%, k==n
+      * 23.09%, mode=centred
+      * 22.66%, scaling_checked:centred
+      * 22.00%, rotation=rht
+      * 21.35%, mode=scalar
+      * 20.48%, bits=8
+      * 20.26%, mode=unit
+      * 20.04%, n=25+
+      * 19.83%, d=even
+      * 18.30%, n=1
+      * 18.08%, bits=2
+      * 16.78%, bits=3
+      * 14.38%, k>n
+      * 13.73%, d=34-64
+      * 8.06%, centred_mean=zero
+      * 6.97%, n=2
+      * 5.66%, bits=4
+      * 5.66%, centred_mean=const
+      * 5.66%, zero_query
+      * 5.45%, d=2
+      * 5.01%, n=3
+      * 4.79%, centred_mean=spike
+      * 3.05%, centred_mean=corpus
+      * 2.83%, centred_mean=mix
+      * 2.61%, d=65-256
+      * 1.96%, d=1
+      * 1.96%, d=odd_pow2
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_derived_containers_search_like_their_rows:
+
+  - during generate phase (6.35 seconds):
+    - Typical runtimes: ~ 2-37 ms, of which ~ 1-24 ms in data generation
+    - 400 passing, 0 failing, and 58 invalid test cases
+    - Events:
+      * 93.89%, derive:caches_warmed
+      * 93.67%, derive:CompressedVectors.subset
+      * 93.23%, derive:PackedVectors.subset
+      * 91.92%, derive:PackedVectors.to_compressed.subset
+      * 65.72%, derive:at_precision_codes_checked
+      * 51.31%, k<n
+      * 48.25%, row_aligned_packing
+      * 46.72%, d=9-33
+      * 46.07%, duplicate_rows
+      * 45.63%, row_unaligned_packing
+      * 44.32%, rotation=haar
+      * 41.48%, d=odd
+      * 37.77%, tiny_or_zero_norm_rows
+      * 36.68%, mode=unit
+      * 34.06%, zero_rows
+      * 32.97%, n=4-24
+      * 27.51%, rotation=rht
+      * 26.20%, d=even
+      * 25.76%, bits=8
+      * 25.11%, mode=unit_norenorm
+      * 23.36%, bits=1
+      * 22.71%, d=even_pow2
+      * 22.49%, k==n
+      * 22.05%, rotation=none
+      * 21.62%, d=3-8
+      * 20.09%, k>n
+      * 20.09%, n=1
+      * 19.00%, bits=4
+      * 16.38%, n=2
+      * 16.16%, mode=scalar
+      * 15.94%, mode=centred
+      * 15.50%, bits=3
+      * 13.97%, n=25+
+      * 12.01%, d=34-64
+      * 10.48%, n=3
+      * 10.26%, bits=2
+      * 6.11%, d=2
+      * 5.68%, centred_mean=big
+      * 5.68%, centred_mean=zero
+      * 5.02%, zero_query
+      * 3.93%, d=65-256
+      * 3.49%, d=1
+      * 3.49%, d=odd_pow2
+      * 1.53%, centred_mean=const
+      * 1.31%, centred_mean=corpus
+      * 1.31%, centred_mean=mix
+      * 0.87%, centred_mean=spike
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_invalid_precision_rejected_uniformly:
+
+  - during generate phase (7.59 seconds):
+    - Typical runtimes: ~ 1-66 ms, of which ~ 1-52 ms in data generation
+    - 400 passing, 0 failing, and 61 invalid test cases
+    - Events:
+      * 86.77%, invalid_precision:decode
+      * 86.77%, invalid_precision:gpu.search_adc
+      * 86.77%, invalid_precision:gpu.search_twostage
+      * 86.77%, invalid_precision:ivf.search_coarse
+      * 86.77%, invalid_precision:ivf.search_twostage
+      * 86.77%, invalid_precision:search
+      * 86.77%, invalid_precision:search_adc
+      * 86.77%, invalid_precision:search_adc[packed]
+      * 86.77%, invalid_precision:search_batch
+      * 86.77%, invalid_precision:search_twostage
+      * 86.77%, invalid_precision:search_twostage[packed]
+      * 60.09%, duplicate_rows
+      * 53.15%, k<n
+      * 46.20%, row_aligned_packing
+      * 41.65%, row_unaligned_packing
+      * 39.48%, tiny_or_zero_norm_rows
+      * 39.26%, zero_rows
+      * 39.05%, d=odd
+      * 37.31%, rotation=haar
+      * 36.44%, n=4-24
+      * 32.54%, d=3-8
+      * 30.80%, d=9-33
+      * 29.93%, rotation=none
+      * 24.30%, mode=unit
+      * 23.64%, n=25+
+      * 23.43%, d=even
+      * 23.43%, mode=scalar
+      * 23.21%, bits=1
+      * 21.69%, d=even_pow2
+      * 20.82%, mode=unit_norenorm
+      * 20.61%, rotation=rht
+      * 20.39%, k==n
+      * 19.31%, mode=centred
+      * 18.66%, bits=2
+      * 18.00%, bits=8
+      * 16.70%, bits=3
+      * 14.32%, k>n
+      * 11.28%, bits=4
+      * 10.41%, n=1
+      * 10.20%, d=65-256
+      * 8.68%, n=2
+      * 8.68%, n=3
+      * 8.03%, zero_query
+      * 7.38%, d=34-64
+      * 5.64%, centred_mean=corpus
+      * 4.56%, centred_mean=const
+      * 4.56%, centred_mean=spike
+      * 3.69%, d=1
+      * 3.69%, d=odd_pow2
+      * 3.25%, d=2
+      * 2.82%, centred_mean=zero
+      * 1.52%, centred_mean=mix
+      * 1.08%, centred_mean=big
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_empty_corpus_and_query_dtypes:
+
+  - during generate phase (4.45 seconds):
+    - Typical runtimes: ~ 1-13 ms, of which ~ 0-10 ms in data generation
+    - 400 passing, 0 failing, and 75 invalid test cases
+    - Events:
+      * 84.21%, empty_corpus
+      * 84.21%, query_dtype_checked
+      * 49.26%, k<n
+      * 43.58%, duplicate_rows
+      * 43.58%, row_aligned_packing
+      * 41.05%, d=9-33
+      * 40.63%, row_unaligned_packing
+      * 36.63%, rotation=haar
+      * 36.42%, n=4-24
+      * 34.95%, d=odd
+      * 33.26%, tiny_or_zero_norm_rows
+      * 29.47%, rotation=none
+      * 29.05%, zero_rows
+      * 28.21%, mode=centred
+      * 22.95%, d=even
+      * 21.26%, d=even_pow2
+      * 21.05%, mode=scalar
+      * 19.58%, bits=1
+      * 19.37%, k>n
+      * 18.95%, bits=8
+      * 18.53%, mode=unit_norenorm
+      * 18.11%, rotation=rht
+      * 17.68%, bits=4
+      * 17.47%, d=3-8
+      * 16.42%, mode=unit
+      * 15.79%, bits=2
+      * 15.79%, n=1
+      * 15.58%, k==n
+      * 12.21%, bits=3
+      * 11.37%, n=3
+      * 10.95%, d=34-64
+      * 10.74%, centred_mean=zero
+      * 10.53%, n=25+
+      * 10.11%, n=2
+      * 8.63%, centred_mean=corpus
+      * 7.79%, d=65-256
+      * 7.16%, zero_query
+      * 5.05%, d=1
+      * 5.05%, d=odd_pow2
+      * 4.84%, centred_mean=spike
+      * 3.79%, centred_mean=big
+      * 2.53%, centred_mean=const
+      * 1.89%, d=2
+      * 0.42%, centred_mean=mix
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_query_offset_cannot_reorder:
+
+  - during generate phase (0.11 seconds):
+    - Typical runtimes: ~ 3-17 ms, of which ~ 0-1 ms in data generation
+    - 7 passing, 3 failing, and 0 invalid test cases
+    - Found 1 distinct error in this phase
+    - Events:
+      * 80.00%, offset_reorder:mean_norm=<1e6
+      * 20.00%, offset_reorder:mean_norm=>=1e6
+
+  - during shrink phase (0.86 seconds):
+    - Typical runtimes: ~ 0-13 ms, of which < 1ms in data generation
+    - 67 passing, 13 failing, and 25 invalid test cases
+    - Tried 105 shrinks of which 12 were successful
+
+  - during explain phase (0.02 seconds):
+    - Typical runtimes: ~ 2-6 ms, of which < 1ms in data generation
+    - 1 passing, 1 failing, and 0 invalid test cases
+
+  - Stopped because nothing left to do
+
+
+test_search_props.py::test_serialized_containers_search_identically:
+
+  - during generate phase (9.08 seconds):
+    - Typical runtimes: ~ 1-64 ms, of which ~ 1-34 ms in data generation
+    - 400 passing, 0 failing, and 65 invalid test cases
+    - Events:
+      * 86.02%, roundtrip:CompressedVectors.load(npz)
+      * 86.02%, roundtrip:CompressedVectors.load_arrow
+      * 86.02%, roundtrip:PackedVectors.from_rows
+      * 86.02%, roundtrip:PackedVectors.load(npz)
+      * 86.02%, roundtrip:PackedVectors.load_arrow
+      * 86.02%, roundtrip:PackedVectors.load_arrow(mmap)
+      * 67.53%, roundtrip:save_pq/load_pq
+      * 51.40%, duplicate_rows
+      * 46.67%, row_aligned_packing
+      * 46.67%, tiny_or_zero_norm_rows
+      * 45.59%, k<n
+      * 44.30%, zero_rows
+      * 43.87%, rotation=haar
+      * 41.29%, row_unaligned_packing
+      * 40.00%, n=4-24
+      * 37.20%, d=9-33
+      * 32.69%, d=odd
+      * 29.25%, d=even
+      * 27.31%, mode=unit_norenorm
+      * 25.59%, k>n
+      * 23.87%, d=3-8
+      * 23.66%, rotation=none
+      * 23.44%, mode=scalar
+      * 22.15%, d=even_pow2
+      * 20.65%, bits=1
+      * 20.43%, rotation=rht
+      * 19.14%, mode=centred
+      * 18.71%, bits=4
+      * 18.28%, bits=2
+      * 18.06%, mode=unit
+      * 16.77%, bits=3
+      * 16.77%, k==n
+      * 16.13%, n=1
+      * 15.48%, n=25+
+      * 13.55%, bits=8
+      * 11.18%, d=34-64
+      * 9.03%, d=65-256
+      * 8.39%, n=3
+      * 7.96%, n=2
+      * 5.59%, zero_query
+      * 4.95%, centred_mean=const
+      * 4.52%, centred_mean=zero
+      * 3.87%, d=1
+      * 3.87%, d=odd_pow2
+      * 3.44%, centred_mean=mix
+      * 2.80%, centred_mean=spike
+      * 2.80%, d=2
+      * 2.15%, centred_mean=corpus
+      * 1.94%, centred_mean=big
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_adc_scores_independent_of_chunking_and_position:
+
+  - during generate phase (6.06 seconds):
+    - Typical runtimes: ~ 1-40 ms, of which ~ 1-29 ms in data generation
+    - 400 passing, 0 failing, and 63 invalid test cases
+    - Events:
+      * 86.39%, adc_chunk_invariance:CompressedVectors
+      * 86.39%, adc_chunk_invariance:PackedVectors
+      * 54.21%, k<n
+      * 49.03%, duplicate_rows
+      * 49.03%, row_unaligned_packing
+      * 46.65%, rotation=haar
+      * 44.49%, n=4-24
+      * 41.47%, tiny_or_zero_norm_rows
+      * 39.74%, row_aligned_packing
+      * 35.42%, zero_rows
+      * 34.56%, d=odd
+      * 33.05%, d=9-33
+      * 31.10%, mode=centred
+      * 27.21%, bits=4
+      * 25.05%, d=3-8
+      * 24.62%, d=even
+      * 22.68%, rotation=none
+      * 19.65%, mode=unit_norenorm
+      * 19.44%, d=even_pow2
+      * 19.44%, mode=unit
+      * 19.44%, rotation=rht
+      * 19.22%, bits=2
+      * 18.57%, mode=scalar
+      * 17.49%, bits=3
+      * 17.49%, k>n
+      * 17.06%, k==n
+      * 17.06%, n=1
+      * 15.12%, n=25+
+      * 14.04%, bits=8
+      * 11.45%, centred_mean=zero
+      * 10.80%, bits=1
+      * 10.58%, n=2
+      * 10.15%, d=1
+      * 10.15%, d=odd_pow2
+      * 8.64%, centred_mean=big
+      * 8.42%, centred_mean=const
+      * 7.99%, d=65-256
+      * 6.48%, d=34-64
+      * 6.26%, zero_query
+      * 6.05%, d=2
+      * 3.67%, centred_mean=corpus
+      * 2.16%, centred_mean=spike
+      * 1.51%, n=3
+      * 0.22%, centred_mean=mix
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_renorm_is_a_reader_property_and_caches_do_not_leak:
+
+  - during generate phase (5.73 seconds):
+    - Typical runtimes: ~ 1-29 ms, of which ~ 1-24 ms in data generation
+    - 400 passing, 0 failing, and 66 invalid test cases
+    - Events:
+      * 85.84%, renorm_reader=raw
+      * 85.84%, renorm_reader=renorm
+      * 61.59%, duplicate_rows
+      * 55.36%, k<n
+      * 48.07%, row_aligned_packing
+      * 46.14%, mode=unit
+      * 45.71%, tiny_or_zero_norm_rows
+      * 44.64%, mode=unit_norenorm
+      * 43.78%, rotation=haar
+      * 43.35%, zero_rows
+      * 42.70%, row_unaligned_packing
+      * 42.49%, n=4-24
+      * 42.27%, d=9-33
+      * 34.33%, d=even
+      * 33.05%, d=odd
+      * 28.33%, bits=4
+      * 26.39%, d=3-8
+      * 26.39%, rotation=none
+      * 20.60%, rotation=rht
+      * 19.96%, d=even_pow2
+      * 18.88%, k==n
+      * 18.67%, bits=3
+      * 18.67%, n=25+
+      * 17.81%, bits=8
+      * 16.52%, k>n
+      * 16.31%, bits=2
+      * 14.16%, n=1
+      * 9.66%, bits=1
+      * 9.66%, n=2
+      * 8.58%, d=65-256
+      * 6.22%, d=34-64
+      * 5.79%, n=3
+      * 5.15%, zero_query
+      * 3.86%, d=2
+      * 3.43%, d=1
+      * 3.43%, d=odd_pow2
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_precision_equal_to_bits_is_full_precision:
+
+  - during generate phase (9.03 seconds):
+    - Typical runtimes: ~ 1-64 ms, of which ~ 1-50 ms in data generation
+    - 400 passing, 0 failing, and 64 invalid test cases
+    - Events:
+      * 86.21%, precision_bits_eq_none:gpu.search_adc
+      * 86.21%, precision_bits_eq_none:ivf.search_coarse
+      * 86.21%, precision_bits_eq_none:search
+      * 86.21%, precision_bits_eq_none:search_adc
+      * 86.21%, precision_bits_eq_none:search_adc[packed]
+      * 86.21%, precision_bits_eq_none:search_batch
+      * 54.09%, duplicate_rows
+      * 53.45%, k<n
+      * 47.84%, row_aligned_packing
+      * 42.89%, rotation=haar
+      * 38.79%, tiny_or_zero_norm_rows
+      * 38.36%, row_unaligned_packing
+      * 37.28%, d=9-33
+      * 35.99%, zero_rows
+      * 35.78%, d=odd
+      * 32.54%, n=4-24
+      * 26.29%, mode=unit
+      * 26.08%, d=even_pow2
+      * 25.00%, rotation=none
+      * 23.28%, mode=unit_norenorm
+      * 21.34%, d=even
+      * 20.04%, bits=4
+      * 19.61%, mode=scalar
+      * 19.40%, n=25+
+      * 18.53%, bits=3
+      * 18.32%, d=3-8
+      * 18.32%, rotation=rht
+      * 17.03%, k>n
+      * 17.03%, mode=centred
+      * 16.59%, bits=2
+      * 16.16%, bits=8
+      * 16.16%, n=1
+      * 15.73%, k==n
+      * 14.87%, bits=1
+      * 12.07%, d=34-64
+      * 10.56%, d=65-256
+      * 9.05%, n=2
+      * 9.05%, n=3
+      * 6.90%, zero_query
+      * 4.96%, d=2
+      * 4.74%, centred_mean=mix
+      * 4.74%, centred_mean=zero
+      * 3.66%, centred_mean=const
+      * 3.02%, d=1
+      * 3.02%, d=odd_pow2
+      * 2.80%, centred_mean=big
+      * 2.16%, centred_mean=corpus
+      * 0.22%, centred_mean=spike
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_encode_block_size_does_not_change_the_container:
+
+  - during generate phase (6.05 seconds):
+    - Typical runtimes: ~ 1-46 ms, of which ~ 1-37 ms in data generation
+    - 400 passing, 0 failing, and 81 invalid test cases
+    - Events:
+      * 83.16%, encode_block_small
+      * 60.91%, k<n
+      * 54.89%, row_unaligned_packing
+      * 48.65%, duplicate_rows
+      * 44.28%, tiny_or_zero_norm_rows
+      * 42.41%, d=odd
+      * 38.67%, zero_rows
+      * 38.25%, d=9-33
+      * 35.97%, rotation=haar
+      * 31.81%, n=4-24
+      * 31.81%, row_aligned_packing
+      * 31.19%, rotation=none
+      * 27.65%, d=even
+      * 27.65%, mode=scalar
+      * 26.61%, mode=unit_norenorm
+      * 22.25%, bits=4
+      * 21.21%, d=3-8
+      * 19.96%, bits=1
+      * 19.54%, rotation=rht
+      * 18.71%, bits=2
+      * 17.88%, mode=centred
+      * 17.67%, n=25+
+      * 14.55%, mode=unit
+      * 14.55%, n=3
+      * 13.31%, bits=8
+      * 13.10%, k==n
+      * 12.68%, k>n
+      * 12.68%, n=1
+      * 12.47%, bits=3
+      * 11.02%, d=34-64
+      * 10.60%, d=even_pow2
+      * 9.98%, n=2
+      * 8.73%, d=65-256
+      * 6.86%, centred_mean=zero
+      * 6.44%, zero_query
+      * 6.03%, d=1
+      * 6.03%, d=odd_pow2
+      * 3.74%, centred_mean=mix
+      * 2.91%, centred_mean=big
+      * 2.70%, centred_mean=const
+      * 2.08%, centred_mean=corpus
+      * 1.46%, centred_mean=spike
+      * 1.46%, d=2
+
+  - Stopped because settings.max_examples=400
+
+
+test_search_props.py::test_mismatched_reader_is_refused_on_every_path:
+
+  - during generate phase (7.00 seconds):
+    - Typical runtimes: ~ 1-52 ms, of which ~ 1-28 ms in data generation
+    - 400 passing, 0 failing, and 79 invalid test cases
+    - Events:
+      * 52.19%, row_aligned_packing
+      * 51.57%, k<n
+      * 47.39%, duplicate_rows
+      * 42.17%, tiny_or_zero_norm_rows
+      * 38.00%, zero_rows
+      * 37.16%, mismatch:not_expressible
+      * 33.61%, row_unaligned_packing
+      * 32.57%, n=4-24
+      * 30.69%, d=9-33
+      * 30.27%, rotation=haar
+      * 29.02%, rotation=rht
+      * 28.18%, d=even
+      * 27.14%, d=odd
+      * 26.51%, rotation=none
+      * 26.10%, d=3-8
+      * 25.89%, d=even_pow2
+      * 25.26%, mode=unit
+      * 24.01%, mode=scalar
+      * 21.50%, bits=1
+      * 20.88%, mode=centred
+      * 20.25%, mismatch:bits:cold
+      * 19.83%, n=3
+      * 19.62%, bits=8
+      * 17.12%, k==n
+      * 17.12%, k>n
+      * 16.91%, bits=2
+      * 15.66%, mode=unit_norenorm
+      * 15.45%, bits=4
+      * 14.82%, n=1
+      * 12.32%, bits=3
+      * 10.86%, n=25+
+      * 10.65%, d=34-64
+      * 9.60%, centred_mean=zero
+      * 7.72%, n=2
+      * 7.52%, d=2
+      * 7.52%, mismatch:rotation:cold
+      * 7.10%, zero_query
+      * 6.26%, d=65-256
+      * 4.59%, d=1
+      * 4.59%, d=odd_pow2
+      * 4.38%, mismatch:seed:cold
+      * 4.18%, centred_mean=big
+      * 4.18%, mismatch:mode:cold
+      * 3.13%, centred_mean=const
+      * 2.51%, centred_mean=corpus
+      * 1.88%, centred_mean=spike
+      * 1.88%, mismatch:mode:warm
+      * 1.67%, mismatch:scale:warm
+      * 1.46%, centred_mean=mix
+      * 1.46%, mismatch:rotation:warm
+      * 1.25%, mismatch:mean_added:cold
+      * 1.25%, mismatch:mean_changed:cold
+      * 1.04%, mismatch:seed:warm
+      * 0.84%, mismatch:bits:warm
+      * 0.42%, mismatch:mean_dropped:cold
+      * 0.21%, mismatch:scale:cold
+
+  - Stopped because settings.max_examples=400
+
+
+=========================== short test summary info ============================
+FAILED test_search_props.py::test_score_vectors_accepts_packed - ExceptionGro...
+FAILED test_search_props.py::test_ivf_flat_limit_is_byte_identical_to_adc - t...
+FAILED test_search_props.py::test_query_offset_cannot_reorder - test_search_p...
+3 failed, 42 passed in 160.83s (0:02:40)
