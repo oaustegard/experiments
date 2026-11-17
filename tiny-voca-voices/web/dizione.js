@@ -68,23 +68,38 @@
       const c = src[i];
       if (c === "\\") { out += escape(false); continue; }
       if (c === "[") {
-        let j = i + 1, body = "", extra = "";
-        if (src[j] === "^") { body = "^"; j++; }
-        i = j;
-        while (src[i] !== "]") {
-          if (src[i] === "\\") { body += escape(true); continue; }
+        let body = "", extra = "";
+        i++;
+        if (src[i] === "^") { body = "^"; i++; }
+        // one member of a class: [JS text, the character it stands for or null for \w \d \s]
+        const atom = () => {
+          if (src[i] === "\\") {
+            if (src[i + 1] === "u" && src[i + 2] === "{") {
+              const j = src.indexOf("}", i);
+              const ch = String.fromCodePoint(parseInt(src.slice(i + 3, j), 16));
+              i = j + 1;
+              return [classChar(ch), ch];
+            }
+            const literal = /[wdsWDS0-9nrtfvx]/.test(src[i + 1]) ? null : src[i + 1];
+            return [escape(true), literal];
+          }
           const ch = String.fromCodePoint(src.codePointAt(i));
           i += ch.length;
+          return [classChar(ch), ch];
+        };
+        while (src[i] !== "]") {
+          const [text, ch] = atom();
           if (src[i] === "-" && src[i + 1] !== "]") {
-            const hi = String.fromCodePoint(src.codePointAt(i + 1));
-            i += 1 + hi.length;
-            body += classChar(ch) + "-" + classChar(hi);
+            i++;
+            const [hiText, hi] = atom();
+            if (ch === null || hi === null) throw new Error("bad range in " + src);
+            body += text + "-" + hiText;
             if (on && /[a-z]/.test(ch) && /[a-z]/.test(hi)) extra += ch.toUpperCase() + "-" + hi.toUpperCase() + "ıİſ\u{212a}";
             else if (on && /[A-Z]/.test(ch) && /[A-Z]/.test(hi)) extra += ch.toLowerCase() + "-" + hi.toLowerCase() + "ıİſ\u{212a}";
             continue;
           }
-          body += classChar(ch);
-          if (on && isCased(ch)) extra += caseVariants(ch).map(classChar).join("");
+          body += text;
+          if (on && ch !== null && isCased(ch)) extra += caseVariants(ch).map(classChar).join("");
         }
         i++;
         out += "[" + body + extra + "]";
@@ -1107,12 +1122,7 @@
       const y = new Float32Array(frames * out);
       for (let t = 0; t < frames; t++) {
         const row = t * n;
-        for (let o = 0; o < out; o++) {
-          const wr = o * n;
-          let s = 0;
-          for (let k = 0; k < n; k++) s += x[row + k] * weight[wr + k];
-          y[t * out + o] = f32(f32(s) + bias[o]);
-        }
+        for (let o = 0; o < out; o++) y[t * out + o] = f32(f32(dot(x, row, weight, o * n, n)) + bias[o]);
       }
       return y;
     }
@@ -1123,18 +1133,12 @@
       const size = whh.shape[1], gates = 3 * size;
       const inputs = Model.linear(x, frames, n, wih.data, bih, gates);
       const hh = whh.data;
-      let state = new Float32Array(size);
+      let state = new Float32Array(size), next = new Float32Array(size);
       const out = new Float32Array(frames * size);
       const recurrent = new Float32Array(gates);
       for (let step = 0; step < frames; step++) {
         const t = reverse ? frames - 1 - step : step;
-        for (let o = 0; o < gates; o++) {
-          let s = 0;
-          const wr = o * size;
-          for (let k = 0; k < size; k++) s += hh[wr + k] * state[k];
-          recurrent[o] = f32(f32(s) + bhh[o]);
-        }
-        const next = new Float32Array(size);
+        for (let o = 0; o < gates; o++) recurrent[o] = f32(f32(dot(hh, o * size, state, 0, size)) + bhh[o]);
         const row = t * gates;
         for (let k = 0; k < size; k++) {
           const reset = sigmoid(f32(inputs[row + k] + recurrent[k]));
@@ -1142,7 +1146,7 @@
           const candidate = f32(Math.tanh(f32(inputs[row + 2 * size + k] + f32(reset * recurrent[2 * size + k]))));
           next[k] = f32(f32(f32(1.0 - update) * candidate) + f32(update * state[k]));
         }
-        state = next;
+        [state, next] = [next, state];
         out.set(state, t * size);
       }
       return { out, size };
@@ -1200,6 +1204,18 @@
     }
   }
   function sigmoid(x) { return f32(1.0 / f32(1.0 + f32(Math.exp(-x)))); }
+  // a[i..i+n) . b[j..j+n) in float64 (each float32 product is exact in float64)
+  function dot(a, i, b, j, n) {
+    let s0 = 0, s1 = 0, s2 = 0, s3 = 0, k = 0;
+    for (; k + 3 < n; k += 4) {
+      s0 += a[i + k] * b[j + k];
+      s1 += a[i + k + 1] * b[j + k + 1];
+      s2 += a[i + k + 2] * b[j + k + 2];
+      s3 += a[i + k + 3] * b[j + k + 3];
+    }
+    for (; k < n; k++) s0 += a[i + k] * b[j + k];
+    return (s0 + s1) + (s2 + s3);
+  }
   // NumPy's pairwise summation for float32 (blocks of 8 partial sums below 128 elements).
   function pairwiseSum(a, lo = 0, n = a.length) {
     if (n < 8) {
@@ -2645,5 +2661,5 @@
     return build(bytes);
   }
 
-  root.Dizione = { load, build, DATA_FILE, ValueError, version: "0.1.0" };
+  root.Dizione = { load, build, DATA_FILE, ValueError, version: "0.1.0", _internals: { rx, RE, sub, Normalizer } };
 })(typeof self !== "undefined" ? self : globalThis);

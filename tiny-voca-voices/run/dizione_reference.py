@@ -3,12 +3,14 @@
     sh scripts/jail.sh -C /tmp/jail/tv -e PYTHONPATH=/tmp/jail/tv/diz/src -e DIZIONE_DATA=/tmp/jail/tv/w/phonemizer \
         -- python3 port/dizione_reference.py sentences CORPUS.json OUT.jsonl [DEBUG.jsonl]
     ... -- python3 port/dizione_reference.py g2p WORDS.json OUT.jsonl
+    ... -- python3 port/dizione_reference.py words WORDS.json OUT.jsonl
 
 sentences: one JSON line per corpus entry, in order, with what tinyvoca.js got from Pyodide: "ok" with ids, stress
 and text; "null" when dizione.phonemize raised ValueError and dizione.pieces has no words; "throw" with the error
 otherwise. The optional DEBUG file holds the normaliser's tokens and every word's source, for finding a mismatch.
 g2p: the unknown-word model alone, Model.predict for each word, with the smallest gap between the two best
 log-probabilities over the frames (how close the argmax came to a tie).
+words: Phonemizer.word for each word (dictionary, endings, compounds, -leigh and -virus, the model), as phones.
 """
 
 import json
@@ -78,11 +80,28 @@ def g2p(words, out):
     print(f"{len(items)} words in {time.perf_counter() - start:.1f} s")
 
 
+def word_sources(words, out):
+    phonemizer = dizione.get()
+    items = json.load(open(words, encoding="utf-8"))
+    start = time.perf_counter()
+    with open(out, "w", encoding="utf-8") as sink:
+        for word in items:
+            try:
+                phones, source = phonemizer.word(word)
+                record = {"w": word, "phones": to_text(phones), "source": source}
+            except Exception as error:          # noqa: BLE001
+                record = {"w": word, "error": f"{type(error).__name__}: {error}"[:200]}
+            sink.write(json.dumps(record, ensure_ascii=False) + "\n")
+    print(f"{len(items)} words in {time.perf_counter() - start:.1f} s")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1]
     if mode == "sentences":
         sentences(*sys.argv[2:])
     elif mode == "g2p":
         g2p(*sys.argv[2:])
+    elif mode == "words":
+        word_sources(*sys.argv[2:])
     else:
         sys.exit(__doc__)
