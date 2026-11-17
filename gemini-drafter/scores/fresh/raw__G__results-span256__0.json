@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "quantized remex indexes match or beat the 768-dimensional index in fewer bytes when given at least 3 bits per dimension",
+   "why": "\"remex\" is never explained. Also, the 768-dim baseline is a 2-bit index, which the text doesn't say until later. The 3-bit result (0.868) is only slightly above 0.857, and the byte counts are not compared in this sentence."
+  },
+  {
+   "quote": "Oskar asked, \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is not introduced. \"The widening\" refers to an earlier discussion that the text never describes. The sentence also interrupts the findings."
+  },
+  {
+   "quote": "Folding Ettin-17m's final 256-to-768 output matrix into a 256-to-256 matrix",
+   "why": "The text doesn't explain what folding means or why the model has a 256-to-768 output matrix. It never says how the fold works or that it is exact."
+  },
+  {
+   "quote": "outperform the 768-dimensional 2-bit baseline (200 bytes, 0.857 recall@10 against float search) once the bit width increases",
+   "why": "This is ambiguous. The baseline is 200 bytes, but 768 dims at 2 bits would be 192 bytes. The 256-dim 3-bit result is 104 bytes, which doesn't match 96 bytes either, so the byte accounting is unexplained. The text also says the 3-bit codes beat the baseline, but 4 bits is the first setting that clearly does."
+  },
+  {
+   "quote": "Remex's rotation also folds into that 256-to-256 matrix so the model emits rotated coordinates directly, reaching 0.931 recall@10 at 4 bits with an int8 head.",
+   "why": "The text doesn't say what the rotation is, and \"int8 head\" is undefined. It also doesn't say whether the 0.931 figure uses the same 136-byte size as the earlier 4-bit result."
+  },
+  {
+   "quote": "The List Scout page runs the folded 256-dimensional model today",
+   "why": "List Scout is not explained. \"Today\" is relative, and the \"classifier answers\" and \"fitting time\" are not tied to any setup described earlier."
+  },
+  {
+   "quote": "identical float search accuracy",
+   "why": "The text says \"identical\", but it later reports scores differing by up to 1.1e-06. This is a minor contradiction. Hit@10 is also not defined."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix lets you store 256-dimensional embeddings with no loss in float search accuracy, and quantizing them at 3–4 bits or more matches or beats the 2-bit 768-dimensional baseline in fewer bytes, though several terms and numbers are left unexplained."
+}

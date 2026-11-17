@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev is a small decision model that returns a calibrated probability for a yes/no question in about 160 ms.",
+   "why": "Jev is introduced without saying who built it or what it is. The text also never says what the yes/no question is when Jev reviews lint hits, for example whether the hit is a real tic."
+  },
+  {
+   "quote": "On 2026-11-07 Oskar asked: \"Should we implement Jev in our public posting review process?\"",
+   "why": "Oskar is never introduced, and the 'public posting review process' is not described. The reader can't tell who the 'we' and 'I' are."
+  },
+  {
+   "quote": "I was hopeful, because Jev had done well on routing questions.",
+   "why": "This relies on earlier work that the text never describes. The reader can't tell what routing questions are or how well Jev did on them."
+  },
+  {
+   "quote": "35.2% of those 261 were real tics.",
+   "why": "The text doesn't say how a 'real tic' was decided. The reader also can't tell whether the 'tic' is a defined writing pattern or what the two judges were asked."
+  },
+  {
+   "quote": "With the tic's definition from `register.md` in its prompt",
+   "why": "`register.md` and the definition of the tic are never explained, and the text never says which tic is meant. It is also unclear whether a single tic or a family of tics is meant."
+  },
+  {
+   "quote": "it settled 24.5% of them, against a bar of 50% that was set in advance.",
+   "why": "'Settled' is never defined. The text doesn't say what the 5% error budget means or how the 50% bar was chosen. The reader can't reproduce the 24.5% figure."
+  },
+  {
+   "quote": "at a 5% error budget it settled 24.5% of them",
+   "why": "The text implies Jev does not settle the rest, but it never says what happens to those hits (for example, whether they go to the writer or to a human)."
+  },
+  {
+   "quote": "At a 0.5 threshold it beat Jev on accuracy, 0.751 to 0.732.",
+   "why": "The text doesn't say which accuracy figure belongs to which model. It also gives no reason to think the 'baseline' accuracy is measured fairly, for example on the same 261 hits or on held-out data."
+  },
+  {
+   "quote": "Jev is not added to the review.",
+   "why": "This repeats the opening claim, but 'the review' is never defined. The title says 'lint hits' and the opening says 'public posting review', and it is unclear whether these are the same thing."
+  }
+ ],
+ "point": "Jev, a small probability model, ranked lint hits only modestly better than a simple per-category baseline and settled just 24.5% of hits against a 50% bar, so it was not added to the public posting review."
+}

@@ -1,0 +1,1 @@
+https://austegard.com/fun-and-games/soap-film.html simulates a soap film in WebGPU compute. Thick film sinks toward your phone's tilt while black film spreads from the top until it pops. Interference LUT colour is within 0.07 ΔE76. Built 2026-11-09; tested on a software GPU, untested on a phone.

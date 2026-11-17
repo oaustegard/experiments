@@ -1,0 +1,1 @@
+No edits: the draft is already plain current-state prose with label headers, nothing staged and nothing that depends on the old options screen or 'Start engine' calibration. That history belongs in the changelog. No factual problems or contradictions; the newcomer read was done by eye and was not independent.

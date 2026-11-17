@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose.",
+   "why": "The judges are never introduced. It is also unclear what 'legitimate prose' means, because the previous sentence says table cells hold numbers and labels rather than sentences. It reads as if 58 of 63 hits were valid. That undercuts the reason for skipping tables and seems to contradict it."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "This implies that tables, blockquotes and italics all count as 'quoted'. The text never says why, and it does not explain what 'quoted' covers."
+  },
+  {
+   "quote": "That suits drafts that quote bad prose in italics on purpose, where the italics should still be scanned and the tables should not.",
+   "why": "This is confusing. Scanning italics that quote bad prose on purpose would flag the deliberate examples. The text doesn't say why you would want that."
+  },
+  {
+   "quote": "blanks every line that starts with `|` before scanning",
+   "why": "A line that starts with `|` is only a rough test for a table row. The text doesn't say whether indented rows are covered or whether non-table lines starting with `|` are blanked too. It also says table 'cells' are blanked in one place and whole lines in another."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The text never says what a 'hit' is or what the 'lint' checks for. It doesn't explain 'declauding' either, and I can't tell whether the hits were meant to be true problems."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to `declaude_lint.py` that blanks Markdown table lines, so tables can be skipped without also skipping blockquotes and italics. The justification is muddled, though, because the cited data seems to say that most of the table hits were legitimate."
+}

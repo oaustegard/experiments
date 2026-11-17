@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "Four 503 responses followed by failure",
+   "why": "The text says it retries up to 4 times, which means 5 requests. It's unclear whether this case is four 503s in total, which would contradict that, or four retries after an initial 503. It's also unclear what 'failure' means here."
+  },
+  {
+   "quote": "so that boot no longer fails",
+   "why": "'Boot' is never explained. It doesn't say what boots, such as the app, a service, or the muninn agent, or why it calls Turso's `execute()`."
+  },
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "It doesn't say what the refactor was or what the retry count was before it. It also doesn't say whether this branch restores that earlier behavior or does something new."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry HTTP 503 and 429 responses with jittered exponential backoff, so cold-start 503s no longer make boot fail with a misleading `auth failed`, and it adds tests and cold-boot measurements to back that up."
+}

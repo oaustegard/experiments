@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Two judges labelled 58 of those 63 table hits as legitimate prose.",
+   "why": "Contradicts the preceding clause that table cells hold numbers and labels instead of full sentences. It also undercuts the reason for skipping tables: if 58 of 63 hits were legitimate, skipping them hides real hits. 'Legitimate prose' is ambiguous, since it could mean legitimately flagged or legitimately acceptable."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells alongside blockquotes and italics.",
+   "why": "This conflicts with the opening goal of ignoring tables 'without ignoring blockquotes or italics'. It also doesn't say why the existing flag is not enough."
+  },
+  {
+   "quote": "which covers drafts where tables should be skipped while quoted bad prose in italics is scanned",
+   "why": "Unclear. Quoted bad prose in italics is said to be scanned, yet `--skip-quoted` blanks italics. The text never says what 'quoted bad prose' is or why it must be scanned."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The text never says which scan, which lint rules or which posts. The 'hits' are not defined, so a reader can't tell what 'legitimate' means or check the numbers."
+  },
+  {
+   "quote": "blanks any line that starts with `|` before scanning",
+   "why": "Doesn't say whether leading whitespace counts, so indented tables may be missed. It also doesn't say whether the check is the same as the one `--skip-quoted` uses for table cells."
+  },
+  {
+   "quote": "The `declauding` skill bumps from 0.13.2 to 0.13.3 with a CHANGELOG entry.",
+   "why": "The 'declauding' skill and the CHANGELOG location are never explained, and 'bumps' is odd phrasing for a change this PR makes. This is minor."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to `declaude_lint.py` that blanks only Markdown table lines, justified by a scan whose figures seem to argue against skipping them."
+}

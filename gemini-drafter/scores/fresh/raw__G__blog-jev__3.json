@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev settles 24.5% of lint hits at a 5% error budget, below the 50% bar.",
+   "why": "\"Settles\", \"error budget\" and the \"50% bar\" are never defined. It's unclear whether 50% is a required settlement rate, and the 24.5% figure is never derived. The later \"0.5 threshold\" is a different thing and is easy to confuse with it."
+  },
+  {
+   "quote": "Jev, a small decision model",
+   "why": "Jev is introduced without saying what it is or who built it. The text also assumes I know what \"routing questions\" are."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is never introduced, and neither is the \"public posting review process\". The \"we\" in the text is also unexplained."
+  },
+  {
+   "quote": "`declaude_lint`",
+   "why": "The text never explains this tool or its rules, and it doesn't say what counts as a \"tic\". Its link to \"a regex prose linter\" is only implied."
+  },
+  {
+   "quote": "With the tic's definition from `register.md` in its prompt",
+   "why": "`register.md` is never explained. The text also doesn't say whether the 0.808 headline run or the 0.697 run was the one used for the 24.5% result."
+  },
+  {
+   "quote": "35.2% of the 261 were real tics",
+   "why": "The text never says how the 39 hits the judges disagreed on were treated. Accuracy and AUROC may rest on different subsets, which is unclear."
+  },
+  {
+   "quote": "At a 0.5 threshold, that category baseline beat Jev on accuracy, 0.751 to 0.732.",
+   "why": "The text doesn't say which Jev variant this compares against. It also never ties this result to the 24.5% settled figure. Whether the baseline would settle more hits is left open."
+  },
+  {
+   "quote": "The category carries most of the signal because precision varies sharply",
+   "why": "The baseline's AUROC of 0.769 is only slightly below Jev's 0.808, and Jev's own prompt may already encode category. The causal claim isn't supported by the numbers. The \"historical tic rate\" source is also unspecified."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, settled only 24.5% of declaude_lint hits at a 5% error budget, and a simple per-rule tic-rate baseline did about as well on ranking and better on accuracy, so Jev was kept out of public posting review."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Two judges labelled 58 of those 63 table hits as legitimate prose.",
+   "why": "Contradicts the preceding clause that table cells held numbers and labels rather than sentences, and undermines the rationale for skipping tables. It also doesn't say who the judges were or what 'legitimate prose' means. It could mean the hits were false positives, or that they were real prose issues."
+  },
+  {
+   "quote": "`--skip-quoted` already blanked table cells alongside blockquotes and italics.",
+   "why": "'Already' refers to existing behavior that the text never describes. It is unclear whether --skip-quoted is a separate flag or how it relates to the new one."
+  },
+  {
+   "quote": "blanks any line that starts with `|`",
+   "why": "This is a loose definition of a table row. It doesn't say whether leading whitespace counts, and it doesn't say whether header or separator lines are included. It also differs from the 'Markdown table rows' wording in the summary."
+  },
+  {
+   "quote": "`declaude_lint.py` in the `declauding` skill",
+   "why": "Neither the skill nor the term 'declauding' is explained, and neither is what the lint checks for or what a 'hit' is. The reader can't judge what counts as a legitimate hit."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The posts are not identified, and the text doesn't say whether they are the project's own posts. The date also gives no context for how the scan was run."
+  }
+ ],
+ "point": "The PR adds a --skip-tables flag to declaude_lint.py that blanks table-row lines (keeping line numbers), but its stated rationale is internally muddled about whether the table hits were noise or real."
+}

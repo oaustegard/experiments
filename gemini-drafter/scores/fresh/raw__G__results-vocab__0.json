@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-06: \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+   "why": "Oskar is never introduced, and the quote is elided. It's unclear whether this question is the experiment's goal or just background. Ettin is also never explained."
+  },
+  {
+   "quote": "Our first pass kept the GPT-2 pre-tokenizer and saved 8%, which looked like domain vocabulary did not help much.",
+   "why": "This refers to an earlier attempt that the text doesn't describe. It doesn't say what the 8% was measured against or on what data. It also isn't clear whether the 21% is a separate run or a revision of this one."
+  },
+  {
+   "quote": "cuts token count by 21% on 2,000 held-out PubMed abstracts",
+   "why": "The text never says what the 21% is relative to. The next sentence implies Ettin's stock tokenizer at 376 tokens per abstract, but the text doesn't say so. It also never gives the new tokenizer's resulting count."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this",
+   "why": "This overreaches. Two models that reuse Ettin's tokenizer don't show that no published model has tried a custom vocabulary. It also doesn't say what 'this' is: a custom vocabulary, or whitespace-only pre-tokenization."
+  },
+  {
+   "quote": "Training models on the new token table moves to a follow-up experiment, `lifesci-ettin`.",
+   "why": "The question was whether the vocabulary makes Ettin cheaper. The text measures only token count and never says whether that means cheaper compute. 'Moves to' also suggests a planned scope change that the text doesn't explain."
+  }
+ ],
+ "point": "A PubMed-specific 50K BPE vocabulary with whitespace-only pre-tokenization cuts tokens per abstract by 21% against Ettin's stock tokenizer, which averages 376. The GPT-2 pre-tokenizer's splitting of terms like GLP-1 was what hid most of the gain, but nobody has trained a model on the new vocabulary yet."
+}

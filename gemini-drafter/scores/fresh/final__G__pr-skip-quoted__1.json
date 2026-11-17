@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose: numbers and labels, not sentences.",
+   "why": "Contradicts itself and the argument. \"Legitimate prose\" conflicts with \"numbers and labels, not sentences\". The point only works if the 58 were false positives, so the wording looks inverted. The text also never says who \"the two judges\" are."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it blanks blockquotes and italics along with them.",
+   "why": "This says --skip-quoted blanks table cells. The Behaviour section only describes blanking lines that start with `|`. It's unclear whether the two flags detect tables the same way."
+  },
+  {
+   "quote": "Some drafts quote bad prose in italics on purpose, so they need `--skip-quoted` off",
+   "why": "The text never says what the linter or the `declauding` skill is for. \"Bad prose\" and \"lint hits\" are therefore undefined, and I can't tell why quoted bad prose should still be scanned."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The text doesn't say which scan or which tool produced this, or whether it ran with `--skip-quoted`. The \"judges\" and the hit labelling are also unexplained."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the linter that blanks lines starting with `|` and leaves blockquotes and italics scanned, because most of the table-cell hits in one scan were false positives. The sentence that states this evidence is worded the opposite way."
+}

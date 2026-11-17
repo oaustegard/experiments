@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or where it lives."
+  },
+  {
+   "quote": "because direct calls return 403",
+   "why": "This doesn't say why direct calls get a 403, for example a session credential limit. The reader can't tell whether the guard prevents the error or only redirects around it."
+  },
+  {
+   "quote": "`gh api -X POST repos/O/R/releases` bypassed the guard",
+   "why": "O/R are unexplained placeholders. They are probably owner/repo, but the text doesn't say so."
+  }
+ ],
+ "point": "The commit extends guard_gh_route so it also blocks `gh api` POSTs to paths ending in `/releases` or `/git/refs`, not just `gh release create`, because these calls bypassed the guard and returned 403."
+}

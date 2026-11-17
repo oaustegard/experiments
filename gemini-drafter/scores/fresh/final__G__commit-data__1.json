@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the `register.md` entry",
+   "why": "Jev is never explained (a model? a tool?), nor is what the register.md entry is or how it is added."
+  },
+  {
+   "quote": "the category prior (0.769)",
+   "why": "Not explained what the category prior is, i.e. what baseline it refers to."
+  },
+  {
+   "quote": "the settled fraction at 5% error (24.5%)",
+   "why": "'Settled fraction' is undefined, and it's unclear what is being settled or what 5% error refers to."
+  },
+  {
+   "quote": "cite each number in `jev-prose-lint/RESULTS.md` with an `@evidence` marker",
+   "why": "The @evidence marker format and what _lib/evidence.py checks are not described, and RESULTS.md's existing state is not given."
+  },
+  {
+   "quote": "AUROC for Jev with the `register.md` entry (0.808), Jev without the entry (0.697)",
+   "why": "The task being classified and the dataset are not named, so the AUROC values have no context."
+  }
+ ],
+ "point": "The commit adds an analysis script and a metrics file for jev-prose-lint, and it ties the numbers in RESULTS.md to that file with @evidence markers so the evidence checker passes. The AUROC with the entry is only slightly above the prior, and the CI includes zero."
+}

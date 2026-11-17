@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Quantized remex codes on those 256 dimensions beat the live 768-dimensional index at 3 and 4 bits per dimension, in fewer bytes.",
+   "why": "\"remex\" is never explained, and \"live index\" is not defined. It also seems to contradict the table: 3 bits gives 0.868 against the live 0.857, but at 104 bytes versus 200 the byte claim only holds because of the figures given later."
+  },
+  {
+   "quote": "with no loss in float search",
+   "why": "The text never says what \"float search\" is, and the evidence is only hit@10 and score agreement. It then reports recall@10 loss under quantization, so \"no loss\" applies only to the unquantized folded model."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is not introduced. The question refers to an earlier statement about \"widening\" that is not in the text. The passage does not say whether it answers the question or whether \"reversing the widening\" is the same as the folding described next."
+  },
+  {
+   "quote": "Ettin-17m's final 256-to-768 output matrix folds into a 256-to-256 matrix.",
+   "why": "It is unclear what this matrix is or why folding it removes the loss. The text does not say what is folded into what, or how."
+  },
+  {
+   "quote": "On all 9,500 evaluation queries, both versions reach hit@10 of 0.918",
+   "why": "\"Both versions\" has no stated referent. It presumably means the original 768-dimensional model and the folded 256-dimensional model. hit@10 is not defined, and neither is the evaluation set."
+  },
+  {
+   "quote": "takes 200 bytes and reaches 0.857 recall@10 against float search",
+   "why": "2 bits × 768 dimensions is 192 bytes, so 200 implies about 8 bytes of overhead that is never explained. The 256-dimension byte counts (104, 136, 264) also include unexplained overhead."
+  },
+  {
+   "quote": "Remex's rotation also folds into the same 256-to-256 matrix, so the model can emit rotated coordinates directly. With an int8 head, this reaches 0.931 recall@10 at 4 bits.",
+   "why": "\"rotation\" and \"int8 head\" are not explained. It is unclear whether the 0.931 is a different configuration from the 0.927 in the table or a variant of it. It is also unclear whether it counts as an improvement."
+  },
+  {
+   "quote": "The List Scout page runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout, its classifier and \"fitting\" are never explained. The text does not say what is being fit."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions leaves float retrieval unchanged, and quantized 256-dimension codes at 3–4 bits match or beat the 2-bit 768-dimension index in fewer bytes, but at the same 2 bits they do worse."
+}

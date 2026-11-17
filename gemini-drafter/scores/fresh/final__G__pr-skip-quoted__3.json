@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The two judges labelled 58 of those 63 as legitimate prose",
+   "why": "\"The two judges\" are never introduced (human reviewers? LLM graders?). Also, \"legitimate prose\" seems to conflict with the next clause saying the cells held numbers and labels, not sentences. It is unclear whether the hits were false positives."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it blanks blockquotes and italics along with them.",
+   "why": "This conflicts with the intended use. If the draft quotes bad prose in italics on purpose, `--skip-quoted` would skip that italic text, and `--skip-tables` would keep scanning it. The text does not say whether the reader wants italics scanned or skipped."
+  },
+  {
+   "quote": "It is meant for drafts that quote bad prose in italics on purpose but whose tables should be skipped.",
+   "why": "It is unclear why scanning intentionally quoted bad prose is wanted. The sentence reads as if the italics should be skipped, so the use case is ambiguous."
+  },
+  {
+   "quote": "blanks every line that starts with `|`",
+   "why": "Not clear whether leading whitespace counts. Also unclear whether this matches the earlier phrase \"Markdown table rows\" or catches non-table lines that start with `|`."
+  },
+  {
+   "quote": "`declaude_lint.py` in the `declauding` skill",
+   "why": "The skill, the linter, and what a \"lint hit\" is are never explained. The reader cannot tell what is being scanned for."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to the declauding lint script. It blanks table rows in place so line numbers stay the same, and it does this without also skipping the blockquotes and italics that `--skip-quoted` skips."
+}

@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells hold 70% while scanning 34%",
+   "why": "remex is never explained, and the 'hash cells' (what hash, e.g. LSH or sign bits) are undefined. The first sentence implies hash cells are a generic method, but here they belong to remex."
+  },
+  {
+   "quote": "4,096 e-means centroids",
+   "why": "e-means is never defined. A k-means engineer can't tell how it differs from Lloyd's, and the arXiv citation is the only pointer."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work by an unnamed 'our' (Oskar and the author) that the text never describes."
+  },
+  {
+   "quote": "I had assumed that e-means would mainly speed up training, and that coding vectors as offsets would be the win while index cells would be a side note; it came out the other way.",
+   "why": "It is unclear what 'the other way' reverses. The text then says the choice of algorithm affects only training time, which seems to contradict the first assumption's reversal."
+  },
+  {
+   "quote": "remex's 1-bit quantization",
+   "why": "The quantization scheme is not explained, and 'adding a second bit per dimension' is unclear against it. The baseline for recall 0.840 vs 0.891 is also unstated."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The figure is unexplained. 4,096 centroids × the dimensions × 4 bytes divided by 100,000 vectors depends on a dimension count never given, and it isn't compared with the actual cost of a second bit."
+  },
+  {
+   "quote": "matches the error of 25 iterations of Lloyd's k-means in 1 to 3 passes",
+   "why": "'Passes' is undefined for e-means, and 'error' is not defined (e.g. quantization MSE). The speedup range of 1.6 to 10.2 times is not tied to those pass counts."
+  },
+  {
+   "quote": "recall@10 rose from 0.840 to 0.891",
+   "why": "This is recall of what, and in what setup? It is not obviously the same measure as the '90% of true neighbours' capture, and the offset-coded result is never set against the index-cell result."
+  }
+ ],
+ "point": "Using e-means centroids as index cells captures 90% of true neighbours while scanning only 0.56% of 100k vectors (versus 70% at 34% for remex's hash cells), and e-means mainly cuts training time compared with Lloyd's k-means."
+}

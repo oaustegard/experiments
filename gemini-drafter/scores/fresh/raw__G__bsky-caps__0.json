@@ -1,0 +1,18 @@
+{
+ "stumbles": [
+  {
+   "quote": "violations were 42 of 43 in every form",
+   "why": "Unclear what the 43 items are (prompts? trials?) and what 'every form' covers. It's also unclear whether 42 of 43 violating means near-total non-compliance."
+  },
+  {
+   "quote": "Naming a forbidden word raised its probability by ~2.5 log-odds.",
+   "why": "It doesn't say compared to what baseline, or whether this was in the same model and experiment. The link to the capitalisation result is unclear."
+  },
+  {
+   "quote": "Its 22,100-doc corpus held one capitalised instruction.",
+   "those": "",
+   "why": "'Its' is ambiguous. It probably means the model's training corpus, but that isn't stated. It also isn't clear why this matters or how it connects to the earlier findings."
+  }
+ ],
+ "point": "Capitalising an instruction didn't make a tiny model (Baguettotron, 321M) obey it, and naming a forbidden word made it more likely to say it, possibly because its training corpus almost never contained capitalised instructions."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the `register.md` entry (0.808), Jev without it (0.697)",
+   "why": "\"Jev\" is never explained (tool, model, person?), and the `register.md` entry is not described, so I can't tell what is being compared."
+  },
+  {
+   "quote": "the category prior (0.769)",
+   "why": "Not explained: which categories, and what a prior-based baseline is here."
+  },
+  {
+   "quote": "The settled fraction at 5% error is 24.5%.",
+   "why": "\"Settled fraction\" is undefined, and so is what is being 5% in error. The text doesn't say what it measures."
+  },
+  {
+   "quote": "each number cites `metrics.json` with an `@evidence` marker",
+   "why": "The `@evidence` marker's syntax and purpose are not explained. It also isn't clear how `_lib/evidence.py` checks it."
+  },
+  {
+   "quote": "[-0.025, 0.106]",
+   "why": "The interval includes zero, but the message doesn't say what that means. It is unclear whether Jev-with-entry beats the prior, so the point of the results is left open."
+  }
+ ],
+ "point": "The commit adds an analysis script and a metrics file, and makes RESULTS.md cite each number with an evidence marker. It reports that Jev with the register entry has a higher AUROC than the category prior, but the CI includes zero, and the terms are mostly unexplained."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the `register.md` entry (0.808), Jev without it (0.697)",
+   "why": "\"Jev\" is never explained (a tool, model, or person?), nor what the `register.md` entry is, so the comparison is opaque."
+  },
+  {
+   "quote": "the category prior (0.769)",
+   "why": "\"Category prior\" is not defined: which categories, and what baseline it predicts."
+  },
+  {
+   "quote": "The settled fraction at 5% error is 24.5%.",
+   "why": "\"Settled fraction\" and what is being measured at 5% error are never defined."
+  },
+  {
+   "quote": "each number cites `metrics.json` with an `@evidence` marker",
+   "why": "The `@evidence` marker syntax and what `_lib/evidence.py` checks are not explained, so \"passes\" has no clear meaning."
+  },
+  {
+   "quote": "[-0.025, 0.106]",
+   "why": "The interval includes zero, yet the message gives no interpretation. It is unclear whether Jev-with-entry is meant to beat the prior."
+  }
+ ],
+ "point": "The commit adds an analysis script and metrics file for jev-prose-lint and makes RESULTS.md cite each number via @evidence, reporting AUROC figures where Jev with the entry isn't clearly better than the category prior."
+}

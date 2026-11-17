@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "it violated the rule 42 of 43 times in every form",
+   "why": "Unclear which rule, and what \"every form\" means (which capitalisation variants). Also unclear whether 42/43 is per form or overall, and what the baseline was."
+  },
+  {
+   "quote": "naming a forbidden word raised its probability by ~2.5 log-odds",
+   "why": "Unclear what the forbidden word is, relative to what baseline, and how this relates to the rule violations. It's also not clear that this is the model mentioning the word rather than the prompt doing so."
+  },
+  {
+   "quote": "Its 22,100-doc corpus held one ALL-CAPS rule",
+   "why": "\"Its corpus\" is presumably the training corpus, but the text never says so. The link between this fact and the null result is also left implicit."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name is unexplained, and \"321M\" is assumed to mean parameters."
+  }
+ ],
+ "point": "Capitalising prompt rules didn't help a small 321M model follow them, and mentioning the forbidden word made it more likely to say it, possibly because its training data had almost no ALL-CAPS rules."
+}

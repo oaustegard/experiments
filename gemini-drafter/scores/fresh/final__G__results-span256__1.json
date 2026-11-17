@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is never introduced, and the question refers to 'that' and 'the widening' from an earlier conversation. The widening is only explained in the next sentence."
+  },
+  {
+   "quote": "the live index's codes",
+   "why": "'The live index' is never defined. It is unclear what it is, where it runs, or why it is the baseline. It is also unclear whether it is the same as the 'search indexes on the site'."
+  },
+  {
+   "quote": "Wider codes beat the live index, and the 3-bit and 4-bit codes also use fewer bytes",
+   "why": "This contradicts the table and the 200-byte figure. 4-bit codes take 136 bytes, which is fewer than 200, but the 2-bit 768-dimensional codes already take 200 bytes, so the byte comparison is hard to follow. 'Wider' also means more bits here, not more dimensions. The opening says 3 or 4 bits are smaller, yet 8-bit is also listed, and it is larger (264 bytes)."
+  },
+  {
+   "quote": "remex codes",
+   "why": "Remex is never explained. The reader cannot tell whether it is a quantizer, a library or a format. The text also gives no definition for 'recall@10 against float search' or 'hit@10'."
+  },
+  {
+   "quote": "so the model can emit rotated coordinates directly. With an int8 head, 4-bit codes reach 0.931.",
+   "why": "'Int8 head' is undefined. It is unclear whether this is a separate experiment or the folded model, and whether 0.931 is comparable to the 0.927 in the table."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout is an unexplained name. What the classifier is and what 'fitting' means are not stated. The 'folded model' is not clearly the 256-dimensional model."
+  },
+  {
+   "quote": "no loss in float search",
+   "why": "The claim is stated flatly, but the following evidence reports scores that agree within 1.1e-06. That is approximately equal, not exact, which makes it slightly contradictory."
+  }
+ ],
+ "point": "Folding Ettin-17m's final 256-to-768 matrix leaves float search unchanged at 256 dimensions, and 3- or 4-bit remex codes at 256 dimensions are smaller and more accurate than the live 2-bit 768-dimensional index."
+}

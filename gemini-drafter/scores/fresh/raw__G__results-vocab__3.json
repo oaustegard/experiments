@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-06: \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+   "why": "Oskar is never introduced, and the quote is not tied to the result. It is unclear whether the 21% figure answers the question, since the section never says whether the answer is yes or no."
+  },
+  {
+   "quote": "I had concluded after the first run that a domain vocabulary helped little",
+   "why": "The first run is never described. It is unclear whether it is the 8% run, and 'I' is an unnamed author. The sentence also seems to conflict with the 8% figure, which is a saving."
+  },
+  {
+   "quote": "Ettin's stock BPE tokenizer spends 376 tokens per abstract on a 2,000-abstract held-out set.",
+   "why": "The baseline is given only for the stock tokenizer. It is unclear whether 376 is the baseline for the 21% figure, and the custom tokenizer's count is never stated. Ettin itself is never defined."
+  },
+  {
+   "quote": "cuts token count on PubMed text by 21% over Ettin's tokenizer when it uses whitespace-only pre-tokenization",
+   "why": "The first sentence says the 21% comes from the whitespace-only setup. The next paragraph says that replacing the pre-tokenizer produced it. 'Replacing' is not tied to 'whitespace-only', and the 8% case is not clearly separated from it."
+  },
+  {
+   "quote": "Training models on the new token table is the subject of the `lifesci-ettin` follow-up experiment.",
+   "why": "The `lifesci-ettin` experiment is not explained. The section does not say whether it has been run or what it found, and a reader cannot tell if 'cheaper' is settled."
+  }
+ ],
+ "point": "A custom 50K PubMed-trained BPE vocabulary with whitespace-only pre-tokenization cuts tokens by about 21% versus Ettin's tokenizer (8% if Ettin's GPT-2 pre-tokenizer is kept), but whether models trained on it are any better is untested."
+}

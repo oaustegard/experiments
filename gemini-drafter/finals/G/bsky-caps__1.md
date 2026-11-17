@@ -1,0 +1,1 @@
+Capitals changed nothing in PleIAs/Baguettotron (321M): 42/43 violations with any directive or none. Every directive naming a forbidden word raised its log-odds ~2.5. Its 22,100 training docs hold one caps rule: 'NEVER give a baby honey'. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

@@ -1,0 +1,1 @@
+Capitalising a prompt directive changed nothing on PleIAs/Baguettotron (321M): it violated the rule 42 of 43 times in every form, and naming a forbidden word raised its probability by ~2.5 log-odds. Its 22,100-doc corpus held one ALL-CAPS rule: 'NEVER give a baby honey'. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

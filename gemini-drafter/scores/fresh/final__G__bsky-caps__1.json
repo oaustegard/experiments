@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations with any directive or none",
+   "why": "Unclear what the violations are (violations of what rule/task?), what 43 refers to (trials?), and what 'any directive or none' means without the experimental setup."
+  },
+  {
+   "quote": "Every directive naming a forbidden word raised its log-odds ~2.5.",
+   "why": "Unclear whose log-odds: the forbidden word's probability of being produced? It also seems to conflict with 'changed nothing' since violations were already 42/43 and caps vs. not isn't separated from naming."
+  },
+  {
+   "quote": "Capitals changed nothing",
+   "why": "It's not stated what was compared (caps vs. lowercase directives), and 'directive' is undefined, so the claim is hard to interpret."
+  },
+  {
+   "quote": "Its 22,100 training docs hold one caps rule: 'NEVER give a baby honey'.",
+   "why": "It's not explained how the training corpus is known or why that matters; the implied link (caps are nearly absent from training data so the model can't use them) is left unsaid. 'Its' also has a distant referent."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "Unexplained model name; the reader must guess it's a small language model with 321M parameters."
+  }
+ ],
+ "point": "In a tiny 321M-parameter model, capitalized emphasis didn't reduce rule violations, and naming a forbidden word in any instruction made it more likely to appear, perhaps because its training data has almost no caps-style rules."
+}

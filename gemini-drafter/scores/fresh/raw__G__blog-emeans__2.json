@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "in remex, 4,096 centroids trained with e-means",
+   "why": "\"remex\" is never explained (library? project?), and \"e-means\" is only given an arXiv number, never described. Readers who know k-means can't tell what it changes."
+  },
+  {
+   "quote": "Remex's hash cells hold 70% of true neighbours while scanning 34% of the same corpus.",
+   "why": "The hash partitioning is never described (LSH? random hyperplanes? how many cells?), so the comparison has no stated basis."
+  },
+  {
+   "quote": "Centroids from Lloyd's k-means and centroids from e-means give the same recall within 0.005, so choosing between the two algorithms affects only your training time.",
+   "why": "This conflicts with the later claim that the author \"first assumed e-means would mainly speed up training\" and was wrong. The text also never says what e-means contributes beyond speed, so the \"it came out the other way\" reversal is hard to reconcile."
+  },
+  {
+   "quote": "I first assumed e-means would mainly speed up training, and I also expected residual coding to be the structural win while index cells remained a side note; it came out the other way.",
+   "why": "\"The other way\" is ambiguous. The title and opening say cells are the win, but the next sentence gives residual coding a recall gain (0.840 to 0.891). It is unclear what was surprising."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that is never described. \"Oskar\" is also not introduced."
+  },
+  {
+   "quote": "Coding each vector as an offset from its nearest of the 4,096 centroids before remex's 1-bit quantization raised recall@10 from 0.840 to 0.891.",
+   "why": "The baseline is unspecified (1-bit without residuals?). The corpus size and the relation of recall@10 to the 90% \"true neighbours\" figure are also unclear."
+  },
+  {
+   "quote": "storing that 4,096-centroid table costs 126 bytes per vector, which exceeds the memory cost of adding a second bit per dimension.",
+   "why": "A fixed table of 4,096 centroids amortized over 100,000 vectors is not obviously 126 bytes per vector. The dimension is not given (EmbeddingGemma's is unstated), so the second-bit cost can't be checked. The sentence also reads as a cost of the residual approach without saying whether that undercuts the recall gain."
+  },
+  {
+   "quote": "matches the error of 25 iterations of Lloyd's k-means in 1 to 3 passes, finishing 1.6 to 10.2 times sooner",
+   "why": "\"Error\" is not defined (quantization MSE?). \"Passes\" are not defined relative to iterations. The range's dependence on conditions is not explained."
+  }
+ ],
+ "point": "Using 4,096 e-means centroids as index cells gets 90% recall while scanning 0.56% of the corpus (versus 70% at 34% for hash cells). Recall matches Lloyd's k-means, so e-means mainly saves training time. Residual coding also improves recall but has a memory cost the text says is high."
+}

@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev, a small decision model that returns a calibrated probability for a yes/no question in about 160 ms",
+   "why": "Jev is introduced as a model but never explained further (who made it, how it is used). 'Routing questions' later leans on unstated prior use."
+  },
+  {
+   "quote": "I was disappointed when its probabilities clustered between 0.3 and 0.8 instead.",
+   "why": "The link between this clustering and the 24.5% result is never stated. The text also doesn't explain how a '5% error budget' turns probabilities into settled hits, or what 'settle' means."
+  },
+  {
+   "quote": "because it had done well on routing questions",
+   "why": "Refers to earlier Jev work that the text never describes, and 'routing' is not defined."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is not introduced. 'Our public posting review process' is also never described."
+  },
+  {
+   "quote": "our advance bar of settling 50% of hits",
+   "why": "The heading calls it 'the 50% bar'. The text never says when or why this bar was set, or why 50% is the threshold."
+  },
+  {
+   "quote": "`register.md`",
+   "why": "The file is never explained. The reader can't tell what the 'tic's definition' contains."
+  },
+  {
+   "quote": "35.2% of the 261 were real tics",
+   "why": "'Tic' is never defined. The reader has to infer it means an AI-writing pattern that the linter flags correctly."
+  },
+  {
+   "quote": "A baseline that uses only the hit's lint category—its historical tic rate—",
+   "why": "The text doesn't say where the historical rate comes from. If it comes from the same 300 hits, the comparison may be circular. The category names (`negation-first`, `triad`, `participle`) are also unexplained."
+  },
+  {
+   "quote": "In the underlying `declaude_lint` rules, 16 of 18 `negation-first` hits",
+   "why": "The counts (18, 44, 43) cover only part of the 261 hits, and the other categories are not shown. The text doesn't say how this per-category breakdown bears on the decision."
+  }
+ ],
+ "point": "Jev was only modestly better than a simple per-category baseline at ranking lint hits, and it settled just 24.5% of hits at the 5% error budget, below the 50% bar, so it was not adopted for public posting review."
+}

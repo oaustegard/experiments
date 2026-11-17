@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The question came from Oskar on 2026-11-06",
+   "why": "Oskar is never introduced; the reader doesn't know who he is or why his question matters."
+  },
+  {
+   "quote": "Round 1 kept the GPT-2 pre-tokenizer, measured the 8%, and concluded that a domain vocabulary does not help much. Round 2 traced",
+   "why": "Refers to earlier rounds the text never describes. It's unclear whether they are earlier experiments or stages of this one, and the 'Answer' reads as if it came from a prior version."
+  },
+  {
+   "quote": "That work is in `lifesci-ettin`.",
+   "why": "`lifesci-ettin` is not explained. It could be a repo, directory or model, and there is no link or location."
+  },
+  {
+   "quote": "A 50K-token BPE vocabulary retrained on 39,000 abstracts",
+   "why": "Unclear whether the 'Ettin's BPE tokenizer' baseline of 376 tokens uses a different vocabulary size, so the comparison isn't fully specified. The text also doesn't say how 'cheaper' is measured: it seems to mean fewer tokens, but that is not stated."
+  },
+  {
+   "quote": "BioClinical ModernBERT and Clinical ModernBERT ship Ettin's tokenizer unchanged",
+   "why": "These models are not explained, and it is unclear why they use Ettin's tokenizer, since ModernBERT and Ettin are not described as related. The claim that no published model has tried a domain vocabulary is a stretch from this evidence."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed abstracts cuts token count per abstract by 21% versus Ettin's tokenizer, but only if the pre-tokenizer splits on whitespace alone. With the GPT-2 pre-tokenizer the cut is only 8%."
+}

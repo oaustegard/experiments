@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev is a small decision model that returns a calibrated probability for a yes/no question in about 160 ms.",
+   "why": "Jev is never explained beyond this; unclear whether it is a custom model, who built it, or what base model it is."
+  },
+  {
+   "quote": "`declaude_lint`",
+   "why": "Tool name used without explanation; the reader isn't told what it checks for beyond 'regex prose linter' or what a 'tic' is."
+  },
+  {
+   "quote": "`register.md`",
+   "why": "Referenced file and its 'tic' definition are never described, so what the definition contains is unknown."
+  },
+  {
+   "quote": "Jev had done well on routing questions",
+   "why": "Refers to earlier work not described in this text."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is not introduced; the reader doesn't know his role."
+  },
+  {
+   "quote": "settle 50% of hits",
+   "why": "'Settle' is never defined. It seems to mean decide confidently within the error budget, but this is not stated, and the 5% error budget is not tied to it."
+  },
+  {
+   "quote": "An Opus judge and a Sonnet judge agreed on 261 of them (87%), and 35.2% of those 261 were real tics.",
+   "why": "It is unclear how 'real tic' is determined (the judges' agreed label?). The 261 agreed hits are not clearly the evaluation set, and the 300 hits come from published posts, which may bias the sample."
+  },
+  {
+   "quote": "the category baseline also beat Jev on accuracy, 0.751 to 0.732",
+   "why": "It's unclear which Jev condition (with or without the definition) is being compared, and the baseline's AUROC (0.769) is lower than Jev's 0.808, so 'also beat' is confusing."
+  },
+  {
+   "quote": "16 of 18 `negation-first` hits were real tics, against 5 of 44 `triad` hits and 5 of 43 `participle` hits",
+   "why": "The category counts are not tied to the 261 total, and the category names are not explained."
+  },
+  {
+   "quote": "Jev's probabilities clustered between 0.3 and 0.8, which is why so few hits fell inside the 5% error budget.",
+   "why": "The mechanism connecting probability clustering to the error budget is not explained."
+  }
+ ],
+ "point": "Jev, a small calibrated decision model, was tested for dismissing false positives from a prose linter, but it settled only 24.5% of hits at a 5% error budget, below the 50% bar and barely better than a category-rate baseline, so it was left out of the review."
+}

@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `'auth failed'`.",
+   "why": "\"Boot\" is never explained (which process?), and it's unclear why a 503 would be read as an auth failure; the mechanism is missing."
+  },
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "The refactor is not described, and it doesn't say whether retries previously existed or how this connects to the 503 cause."
+  },
+  {
+   "quote": "Any other HTTP status fails immediately as before",
+   "why": "\"As before\" depends on earlier behavior. It also sits oddly with the claim that the retry count was 0, so 503 and 429 also failed immediately before."
+  },
+  {
+   "quote": "up to 4 times",
+   "why": "Ambiguous: 4 retries or 4 attempts in total? The test \"Four 503 responses followed by failure\" suggests 4 attempts, which would be 3 retries, so the two may conflict."
+  },
+  {
+   "quote": "with a median added latency of 1.1 s on the boots that retried",
+   "why": "The baseline is unclear: the earlier boots failed, so it's not stated what the latency is added to. It's also unclear how this fits with backoff starting at 0.5 s."
+  },
+  {
+   "quote": "Backoff timing stays within bounds",
+   "why": "The bounds are never specified."
+  }
+ ],
+ "point": "The PR adds retries with jittered exponential backoff for HTTP 503 and 429 in Turso's `execute()` so that cold-start errors stop failing boot, and it reports that all 40 cold boots succeeded in testing."
+}

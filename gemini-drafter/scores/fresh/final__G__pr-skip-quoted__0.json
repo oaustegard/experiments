@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "the two judges labelled 58 of those 63 as legitimate prose: numbers and labels, not sentences",
+   "why": "The two judges are never introduced (humans? LLMs?). The sentence also contradicts itself: it says the cells are 'legitimate prose' but then describes them as 'not sentences'. It is also unclear whether 'legitimate prose' means the hits were false positives or real prose."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells, but it also blanks blockquotes and italics.",
+   "why": "The flag is mentioned without any explanation. It is unclear whether it is an existing flag in the same script. It is also unclear how it blanks cells, since the new flag blanks only lines starting with `|`."
+  },
+  {
+   "quote": "any line that starts with `|` is blanked before scanning",
+   "why": "The summary says it blanks 'table rows', but the rule only matches lines that start with `|`. Indented tables or tables without leading pipes would not be matched, and the text never says whether that is intended."
+  },
+  {
+   "quote": "two new test cases. The full suite passes (212 tests).",
+   "why": "The two test cases are not described, so you can't tell what they cover."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to `declaude_lint.py` that blanks only lines starting with `|`, which removes table-cell false positives while italics and blockquotes are still scanned and line numbers stay the same."
+}

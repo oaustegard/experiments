@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells",
+   "why": "remex is never explained (a library? a project?). Its hash partitioning scheme is also undefined, so the 70%/34% baseline can't be interpreted."
+  },
+  {
+   "quote": "e-means",
+   "why": "The algorithm is never defined. Only an arXiv number is given, so it's unclear how it differs from k-means or what a 'pass' is."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work by Oskar and the author that the text never describes. 'Oskar' is also an unexplained name."
+  },
+  {
+   "quote": "I had assumed that e-means would mainly speed up training, and I had expected residual offset coding to be the win while index cells were a side note; the two uses came out the other way.",
+   "why": "It's unclear what 'the two uses came out the other way' means. Faster training was a stated result and residual coding gave a modest recall gain, so the reversal is confusing. The text also names three uses (training, residual coding, index cells), not two."
+  },
+  {
+   "quote": "storing that 4,096-centroid table costs 126 bytes per vector",
+   "why": "A fixed centroid table amortized over 100,000 vectors is a small fraction of a byte per vector, or about 126 bytes only under unstated dimension and precision assumptions. The number is not derivable and looks inconsistent. The comparison to adding a second bit per dimension is also unquantified."
+  },
+  {
+   "quote": "in 1 to 3 passes",
+   "why": "Passes are not defined or related to Lloyd iterations. The earlier '1.6 to 10.2 times sooner' speedup claim isn't reconciled with this."
+  },
+  {
+   "quote": "so choosing between the two algorithms affects only how long index construction takes",
+   "why": "This conflicts with the earlier framing that e-means mainly changes cells and recall. It also ignores that the recall comparison is only reported within 0.005 on one dataset."
+  },
+  {
+   "quote": "recall@10 rises from 0.840 to 0.891",
+   "why": "The baseline is unclear: it doesn't say whether 0.840 is plain 1-bit quantization, nor whether the table cost is included. The 90% neighbour capture figure is a different metric, which is also left undefined."
+  }
+ ],
+ "point": "Using 4,096 e-means centroids as index cells captures 90% of true neighbours while scanning 0.56% of the corpus, far better than hash cells, and e-means gives the same recall as Lloyd's k-means with faster training."
+}

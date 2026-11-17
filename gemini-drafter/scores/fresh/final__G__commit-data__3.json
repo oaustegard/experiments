@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC of 0.808 for Jev with the `register.md` entry, 0.697 for Jev without it",
+   "why": "\"Jev\" is never explained (a model, tool, or person?), nor what the `register.md` entry is or what task the AUROC measures."
+  },
+  {
+   "quote": "0.769 for the category prior",
+   "why": "\"Category prior\" is undefined; it is unclear what baseline this is or what categories are meant."
+  },
+  {
+   "quote": "The settled fraction at 5% error is 24.5%.",
+   "why": "\"Settled fraction\" and \"5% error\" are not defined, so the metric cannot be interpreted."
+  },
+  {
+   "quote": "cite each number in `jev-prose-lint/RESULTS.md` with an `@evidence` marker",
+   "why": "The `@evidence` marker syntax and the `_lib/evidence.py` checker are not explained, and RESULTS.md is described as already existing with no context for it."
+  },
+  {
+   "quote": "[-0.025, 0.106]",
+   "why": "The interval includes zero, but the message does not state the conclusion, so the relevance of the 0.808 vs 0.769 gap is unclear."
+  }
+ ],
+ "point": "The commit adds an analysis script and metrics file for the jev-prose-lint experiment and ties the numbers in RESULTS.md to them through evidence markers, reporting that Jev with the entry scores AUROC 0.808, but the CI against the category prior includes zero."
+}

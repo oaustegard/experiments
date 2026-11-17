@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained; a reader doesn't know what it is or why its tool replaces gh."
+  },
+  {
+   "quote": "before they return 403",
+   "why": "Unclear why these calls would 403 (session lacks permission?). Also ambiguous whether the guard denies them before the 403 or they return 403 first."
+  },
+  {
+   "quote": "a path ending in `/releases` or `/git/refs`",
+   "why": "Subject says '/releases' and '/git/refs', but a POST to a tag-creating path like /git/refs/tags or a release sub-path wouldn't end that way; unclear if intended."
+  }
+ ],
+ "point": "The commit extends the guard script so it also blocks `gh api` POSTs to the releases and git/refs endpoints, not just `gh release create`, closing a gap that let a session hit a 403."
+}

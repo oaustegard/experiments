@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "Refers to an unexplained refactor; unclear whether the refactor set it to 0 or it was always 0, and what a retry count of 0 means for the existing behavior. Also conflicts with 'retries... as before' implying prior retry logic is unclear."
+  },
+  {
+   "quote": "Any other HTTP status fails immediately, as before.",
+   "why": "'As before' relies on earlier behavior; with retry count 0 all statuses failed immediately, so it's fine, but the text never states prior behavior, and 'Boot' is also unexplained."
+  },
+  {
+   "quote": "Boot treated a 503 response as a credential failure and printed `'auth failed'`.",
+   "why": "'Boot' is never defined (which program/process boots?), and why a 503 maps to 'auth failed' is not explained."
+  },
+  {
+   "quote": "up to 4 times",
+   "why": "Ambiguous: 4 retries (5 attempts) or 4 attempts total. The test 'Four 503 responses followed by failure' is hard to reconcile with either reading."
+  },
+  {
+   "quote": "Four 503 responses followed by failure",
+   "why": "If 4 retries are allowed, four 503s followed by failure doesn't clearly show exhaustion (the fifth attempt would be the one that fails); unclear what 'failure' is, and it seems to conflict with 'up to 4 times'."
+  },
+  {
+   "quote": "The error message names the status code.",
+   "why": "Unclear whether this is a new change or existing; the previous message was 'auth failed', so presented as part of change but not described as altering the message."
+  },
+  {
+   "quote": "all 40 completed",
+   "why": "Seems at odds with the 4-retry limit only if some boots needed more; also 'median added latency of 1.1 s on the boots that retried' lacks a baseline and says nothing about worst case."
+  }
+ ],
+ "point": "The PR makes the Turso client's execute() retry 503 and 429 responses with jittered exponential backoff so cold-start boots succeed instead of falsely reporting 'auth failed', and it backs this with a 40-boot test and 6 unit tests."
+}

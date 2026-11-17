@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "Four 503s followed by failure",
+   "why": "The Change section says it retries up to 4 times, which means 5 attempts in total. Four 503s would then be followed by a fifth try, not by failure. It is unclear whether 4 counts retries or attempts, so the test reads as contradicting the description."
+  },
+  {
+   "quote": "Boot treated that 503 as a credential failure and printed `auth failed`.",
+   "why": "\"Boot\" is never explained. I can't tell what boots (the app, the client, a startup routine) or how it relates to `execute()`. The text also doesn't say where `auth failed` comes from."
+  },
+  {
+   "quote": "Error message naming the HTTP status code",
+   "why": "The Change section never says error messages were changed or what they looked like before. I can't tell whether this is new behavior or a regression check."
+  }
+ ],
+ "point": "The PR makes the Turso client's `execute()` retry HTTP 503 and 429 responses with jittered exponential backoff, so cold-start 503s no longer show up as `auth failed` at boot, and it backs this with a 40-boot check and 6 new tests."
+}

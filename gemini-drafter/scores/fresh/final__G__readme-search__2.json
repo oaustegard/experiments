@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "`query` is the line number of the query in `QUERY_FILE`.",
+   "why": "Doesn't say whether line numbers start at 0 or 1."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`",
+   "why": "The text never explains how an index is built. `--keep-float` is a build flag, and no build command is shown."
+  },
+  {
+   "quote": "`--bits` defaults to 4.",
+   "why": "It isn't stated that `--bits` is a `search` option. It isn't in the usage line, and it's unclear how it relates to the index's own quantization. An index built at one bit width may not support a different one."
+  },
+  {
+   "quote": "rescores the top 100 candidates for each query against the float vectors",
+   "why": "It's unclear whether the rescoring affects the quoted recall figures or the 3 ms timing. It's also unclear how it interacts with `-k`, for example when `-k` is larger than 100."
+  },
+  {
+   "quote": "On the 100,000-vector EmbeddingGemma test set, 4-bit search reaches 0.93 recall@10",
+   "why": "The text doesn't say whether this test set was built with `--keep-float`, so I can't tell whether the figure includes rescoring. 'EmbeddingGemma test set' is also unexplained."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` runs a quantized nearest-neighbor search, with `-k` for the result count and `--bits` for the speed/recall tradeoff. It writes one JSON line per query and optionally rescores against floats if the index was built with `--keep-float`."
+}

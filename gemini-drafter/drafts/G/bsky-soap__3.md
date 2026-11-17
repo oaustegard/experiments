@@ -1,0 +1,1 @@
+https://austegard.com/fun-and-games/soap-film.html simulates soap film in WebGPU compute. Thick film sinks in the direction that the phone is tilted. An interference LUT matches a reference to a mean ΔE76 of 0.07. The 2026-11-09 build was checked headless on a software GPU, not yet on a real phone.

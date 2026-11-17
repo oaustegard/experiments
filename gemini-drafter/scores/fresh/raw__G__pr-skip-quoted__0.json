@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "the two judges labelled 58 of the 63 as legitimate prose",
+   "why": "\"The two judges\" are never introduced (human reviewers? LLMs?). Calling the hits \"legitimate prose\" is also unclear: it could mean they were false positives, but that is never said."
+  },
+  {
+   "quote": "`--skip-quoted` already blanks table cells alongside blockquotes and italics.",
+   "why": "If --skip-quoted already blanks table cells, the reason for a separate flag depends on the difference, which is explained only briefly. Also, \"cells\" conflicts with the Changes section, which blanks whole lines that start with `|`."
+  },
+  {
+   "quote": "any line that starts with `|` is blanked before scanning",
+   "why": "It is unclear whether leading whitespace counts. It is also unclear whether table rows that don't start with `|` are handled, since the intro says \"table rows\" and the Why section says \"cells\"."
+  },
+  {
+   "quote": "adds 2 test cases; the full suite of 212 tests passes",
+   "why": "The text never says what the two tests cover. It is also unclear whether 212 includes the 2 new tests."
+  },
+  {
+   "quote": "a scan of 41 published posts produced 300 lint hits",
+   "why": "The text doesn't say which posts were scanned or what \"lint hits\" means for this tool, since the `declauding` skill is never explained. The 58/63 figure also doesn't clearly justify a flag that skips every table."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to declaude_lint.py that blanks Markdown table lines before scanning, because most lint hits inside tables were judged to be false positives, and it leaves the existing `--skip-quoted` behavior as it was."
+}

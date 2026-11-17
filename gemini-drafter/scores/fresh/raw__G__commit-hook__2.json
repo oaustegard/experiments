@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "it names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, and it's unclear what the `github` tool is or how it is called."
+  },
+  {
+   "quote": "from a session",
+   "why": "Unclear what kind of session this means (an agent session, a shell session, or something else) and who runs it."
+  },
+  {
+   "quote": "before they fail with 403",
+   "why": "The text doesn't say why these calls would get a 403. The reader can't tell whether the guard is meant to stop a known permission problem."
+  }
+ ],
+ "point": "The commit extends the guard script so that `gh api` POST calls to paths ending in `/releases` or `/git/refs` are denied, as `gh release create` already was, because a session got past the guard that way and received a 403."
+}

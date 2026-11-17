@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what the 43 items are, what a violation is, or what 'every form' means (caps, lowercase, etc.). 'No directive' is also undefined."
+  },
+  {
+   "quote": "Naming a forbidden word raised its log-odds ~2.5.",
+   "why": "It doesn't say the log-odds of what (the word being produced?). It also doesn't say which forbidden word, or how this ties to the caps result."
+  },
+  {
+   "quote": "Capitals made no difference",
+   "why": "It doesn't say what task or instruction was tested, so I can't tell what 'difference' is measured against."
+  },
+  {
+   "quote": "Its 22,100-doc corpus has one caps rule: 'NEVER give a baby honey'.",
+   "why": "'Its' presumably means the model's training corpus, but this isn't stated. The link to the findings is implied rather than explained: does it suggest caps never appear as emphasis in training?"
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name is unexplained, and '321M' is presumably parameters but isn't stated."
+  }
+ ],
+ "point": "A tiny 321M-parameter model ignores ALL-CAPS emphasis in prompts, and naming a forbidden word actually makes it more likely to say it, perhaps because its training corpus almost never uses caps for emphasis."
+}

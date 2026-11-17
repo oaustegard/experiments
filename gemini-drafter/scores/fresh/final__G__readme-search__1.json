@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "`remex` searches at `--bits 4` by default.",
+   "why": "Bit width is never explained: the text doesn't say what it quantizes or that it is a search-time option. It also doesn't say whether it must match how the index was built."
+  },
+  {
+   "quote": "If `INDEX` was built with `--keep-float`",
+   "why": "The build command is never described, so I don't know how to create an index or what `--keep-float` does."
+  },
+  {
+   "quote": "The `query` field is the line number of the query in `QUERY_FILE`.",
+   "why": "It doesn't say whether line numbers start at 0 or 1."
+  },
+  {
+   "quote": "the 100,000-vector EmbeddingGemma test set",
+   "why": "It doesn't say where this dataset comes from or whether I can get it. EmbeddingGemma is also not explained, though it is presumably an embedding model."
+  },
+  {
+   "quote": "`remex` rescores the top 100 candidates for each query against the float vectors.",
+   "why": "It's unclear how this interacts with `-k` (for example if k > 100). It's also unclear whether the recall figures include rescoring."
+  },
+  {
+   "quote": "\"scores\": [...]",
+   "why": "It doesn't say what the scores mean (distance or similarity) or how they are ordered."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` prints the top-k nearest matches per query vector as JSON Lines. Lower bit width trades recall for speed, and rescoring happens only if the index was built with `--keep-float`."
+}

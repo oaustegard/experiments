@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "42/43 violations in every form, even with no directive",
+   "why": "Unclear what 42/43 counts (violations out of 43 trials?). \"Every form\" and \"no directive\" are undefined. It also reads oddly: if violations were near-total in all conditions, compliance was near zero everywhere."
+  },
+  {
+   "quote": "Capitals didn't change compliance",
+   "why": "Compliance with what? The post never says what instruction or task the model was given, or what \"forbidden word\" refers to."
+  },
+  {
+   "quote": "Naming a forbidden word added ~2.5 log-odds to that word.",
+   "why": "It's unclear whether the log-odds are of the model producing the word. It also isn't clear how this squares with \"no directive\" conditions, or whether naming the word is itself the manipulation."
+  },
+  {
+   "quote": "The 22,100-doc training corpus had one capitalised instruction.",
+   "why": "The post doesn't say whose corpus this is (presumably the model's pretraining data) or how it connects to the result. The causal link is implied but not stated."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name and \"321M\" (parameters?) are not explained. A reader who doesn't know it can't tell it's a small model."
+  }
+ ],
+ "point": "A tiny 321M-parameter model ignored \\\"forbidden word\\\" instructions whether or not they were capitalised, and mentioning the word made it more likely to say it, which may be because its training data almost never had capitalised instructions."
+}

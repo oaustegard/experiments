@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Today, `--skip-quoted` blanks table cells alongside blockquotes and italics.",
+   "why": "`--skip-quoted` is never introduced or related to the new flag. It's unclear whether it still blanks tables, whether it is unchanged, or how it interacts with `--skip-tables`. The opening says the new flag excludes tables 'without suppressing blockquotes or italics', but the text never says what `--skip-quoted` does when the two flags are combined."
+  },
+  {
+   "quote": "Drafts that intentionally quote bad prose in italics still need italic text checked while skipping tables.",
+   "why": "The reason is only implied. The text never says that `--skip-quoted` would hide those italics, so a reader can't tell why the new flag is needed rather than the old one."
+  },
+  {
+   "quote": "blanks any line that starts with `|` before scanning",
+   "why": "This is a line-prefix rule, but the opening speaks of 'Markdown tables' and the Reason speaks of 'table cells'. Indented tables, or table rows that don't begin with `|`, would not be matched. The text doesn't say whether that is acceptable."
+  },
+  {
+   "quote": "Two judges labelled 58 of those 63 table hits as legitimate numbers and labels",
+   "why": "The 'judges' are never explained: humans or models, and by what criteria. The 41 posts and the 300 hits are also unexplained. The numbers support the change, but a reader can't evaluate them."
+  },
+  {
+   "quote": "adds two test cases for `--skip-tables`, and the full suite of 212 tests passes",
+   "why": "It is unclear whether 212 includes the two new tests. The text also doesn't say what the new tests cover."
+  }
+ ],
+ "point": "The PR adds a `--skip-tables` flag to `declaude_lint.py` that blanks lines starting with `|`, so table hits (mostly false positives) are ignored while italics and blockquotes are still scanned, and it bumps the version to 0.13.3."
+}

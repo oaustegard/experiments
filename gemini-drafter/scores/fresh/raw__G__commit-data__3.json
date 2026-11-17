@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "AUROC of 0.808 for Jev with the `register.md` entry, 0.697 for Jev without it",
+   "why": "Jev, the register.md entry, and what is being classified are never explained; AUROC for what task is unclear."
+  },
+  {
+   "quote": "0.769 for the category prior",
+   "why": "'Category prior' is an unexplained baseline; it is not clear what it is or how it is computed."
+  },
+  {
+   "quote": "The settled fraction at 5% error is 24.5%.",
+   "why": "'Settled fraction' and what the 5% error refers to are undefined."
+  },
+  {
+   "quote": "cite each number in `jev-prose-lint/RESULTS.md` with an `@evidence` marker",
+   "why": "The @evidence marker format and what _lib/evidence.py checks are not explained, and the contents of RESULTS.md are unseen."
+  },
+  {
+   "quote": "The bootstrap 95% CI on Jev-with-entry minus the category prior is [-0.025, 0.106]",
+   "why": "The interval includes zero, but the message does not say what this implies. It also does not say that the 0.039 gap (0.808 vs 0.769) is not significant, so the reader cannot tell what conclusion to draw."
+  },
+  {
+   "quote": "Add `jev-prose-lint/analyze.py`",
+   "why": "The message does not say what analyze.py does or what data it reads, and the commit contains no explanation of how the metrics were produced."
+  }
+ ],
+ "point": "The commit adds an analysis script and a metrics file for the jev-prose-lint experiment, and it cites the reported numbers (AUROCs, settled fraction, bootstrap CI) in RESULTS.md so the evidence checker passes. The message never defines the terms behind those numbers."
+}

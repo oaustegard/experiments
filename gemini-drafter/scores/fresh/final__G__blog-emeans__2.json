@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "Remex is never introduced (a system? a library?), nor are its \"hash cells\"; the reader doesn't know what is being compared against the centroid cells."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work between Oskar and the author that the text never describes; \"Oskar\" is also unexplained."
+  },
+  {
+   "quote": "Centroids from Lloyd's k-means and centroids from e-means give the same recall within 0.005, so the choice between them is about training time only.",
+   "why": "e-means is never defined (only an arXiv number), so the reader cannot tell what it is; the claim is also stated before any evidence, and the setup (dataset/recall metric) is unspecified."
+  },
+  {
+   "quote": "Recall@10 rose from 0.840 to 0.891.",
+   "why": "The headline 90% recall figure is of a different kind (fraction of true neighbours in the cells) than Recall@10; it's unclear whether they are the same metric, and the baseline (remex 1-bit alone) is only implied."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "A centroid table of 4,096 centroids is a fixed cost; 126 bytes/vector at 100,000 vectors implies ~12.6 MB, which depends on unstated dimension and precision (e.g. 768 dims × 4 bytes × 4096 ≈ 12.6 MB). The reader can't verify it or see why it is per-vector."
+  },
+  {
+   "quote": "which is more than adding a second bit per dimension would cost",
+   "why": "The cost of a second bit per dimension is not given (depends on dimension, 768 dims would be 96 bytes), so the comparison can't be checked, and it's unclear whether it refers to 1-bit remex."
+  },
+  {
+   "quote": "I had expected the offset coding to be the win and the index cells to be a side note. It came out the other way.",
+   "why": "Contradicts the earlier statement that the author assumed e-means would mainly speed up training; the expectation about what the 'win' was shifts between speed, offset coding, and index cells."
+  },
+  {
+   "quote": "On 4 CPUs that is 1.6 to 10.2 times sooner.",
+   "why": "Ambiguous: it is unclear whether this compares e-means against 25 Lloyd iterations in wall-clock time, and how 1 to 3 passes map to a range up to 10.2x."
+  }
+ ],
+ "point": "Using 4,096 k-means centroids as index cells retrieves 90% of true neighbours while scanning just 0.56% of the corpus, which proved more valuable than using centroids for offset coding of remex's 1-bit quantization, and e-means only speeds up the training."
+}

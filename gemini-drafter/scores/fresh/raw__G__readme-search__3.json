@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "`remex search` runs at `--bits 4` by default.",
+   "why": "`--bits` is never explained. It isn't clear whether it is a search flag or an index-build setting, or what it means. It also isn't clear whether an index built at one precision can be searched at another."
+  },
+  {
+   "quote": "when you search an index that was built with `--keep-float`",
+   "why": "The text never says how to build an index or what `--keep-float` does. It only implies that the flag belongs to a build command that isn't shown."
+  },
+  {
+   "quote": "`remex` rescores the top 100 candidates against the stored float vectors",
+   "why": "It is unclear how rescoring interacts with `-k` and with `--bits`. The text also doesn't say whether the 0.93 and 0.84 recall figures include rescoring."
+  },
+  {
+   "quote": "On the 100,000-vector EmbeddingGemma test set, 4-bit search reaches `0.93` recall@10",
+   "why": "The test set is not explained, and neither is the setup, such as whether the index was built with `--keep-float`. The 3 ms figure is also unclear. It could be per query for one thread or for the whole batch, and the text doesn't say how to set the 4 cores."
+  },
+  {
+   "quote": "\"query\": <line number>",
+   "why": "It isn't stated whether line numbers start at 0 or 1. It also doesn't say how blank lines or other malformed lines are handled."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` prints the top-k nearest neighbours for each query vector as JSON Lines. It uses 4-bit precision by default, which is faster and less accurate than keeping floats, and it rescores candidates only when the index was built with `--keep-float`."
+}

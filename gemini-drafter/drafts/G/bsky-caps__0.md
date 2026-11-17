@@ -1,0 +1,1 @@
+Capitalising a prompt directive did not change compliance on PleIAs/Baguettotron (321M): violations were 42 of 43 in every form. Naming a forbidden word raised its probability by ~2.5 log-odds. Its 22,100-doc corpus held one capitalised instruction. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

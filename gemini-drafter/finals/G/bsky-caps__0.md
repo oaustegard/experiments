@@ -1,0 +1,1 @@
+Capitals didn't change compliance on PleIAs/Baguettotron (321M): 42/43 violations in every form, even with no directive. Naming a forbidden word added ~2.5 log-odds to that word. The 22,100-doc training corpus had one capitalised instruction. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

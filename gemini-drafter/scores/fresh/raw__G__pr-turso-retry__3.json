@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "Boot had assumed any error response meant bad credentials and printed `'auth failed'`.",
+   "why": "\"Boot\" is never explained (a startup routine? a separate component?), so it's unclear what code made this assumption or where it lives relative to the Turso client."
+  },
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "It doesn't say which refactor this was. It also doesn't say whether this change restores a default or adds new behavior. It is unclear how a retry count of 0 relates to the \"auth failed\" assumption."
+  },
+  {
+   "quote": "Any other error status fails at once as before, and the error message names the status code.",
+   "why": "\"As before\" implies the old behavior already failed at once. The message naming the status code reads as new, though, because the old behavior printed 'auth failed'. It is unclear whether the boot message still says 'auth failed' for non-retryable errors."
+  },
+  {
+   "quote": "The public API does not change.",
+   "why": "The error message text changes and the retry behavior changes, so it is unclear what counts as the public API."
+  },
+  {
+   "quote": "31 out of 40 cold boots hit at least one 503. With this fix all 40 completed",
+   "why": "The text doesn't say whether the 40 boots were the same runs or a separate batch after the fix, and it doesn't give a baseline. It says nothing about how many completed before the fix, so the comparison is incomplete."
+  },
+  {
+   "quote": "with a median added latency of 1.1 s on the boots that retried",
+   "why": "The baseline for \"added\" is not stated. It is also unclear how this fits the stated backoff, which starts at 0.5 s and is jittered."
+  },
+  {
+   "quote": "up to 4 times",
+   "why": "It is ambiguous whether this means 4 retries (5 attempts in total) or 4 attempts. The test case \"four 503s then failure\" conflicts with the 4-retry reading, because four 503s followed by failure would mean only 4 attempts."
+  }
+ ],
+ "point": "The PR makes Turso's `execute()` retry 503 and 429 responses with jittered exponential backoff, so that cold-start failures stop appearing as auth errors, and it reports that all 40 test cold boots then succeeded."
+}

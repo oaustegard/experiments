@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "Interference LUT colour is within 0.07 ΔE76.",
+   "why": "LUT is never expanded, and it's unclear what it maps (film thickness to colour?). It also doesn't say what the colour is compared against, so I can't tell what the 0.07 figure means."
+  },
+  {
+   "quote": "Thick film sinks toward your phone's tilt while black film spreads from the top until it pops.",
+   "why": "'Black film' is never defined. I'd guess it means the thinnest film, but the text doesn't say. 'Pops' is also unexplained: does the simulation end or reset?"
+  },
+  {
+   "quote": "tested on a software GPU, untested on a phone.",
+   "why": "The simulation responds to phone tilt, but it was never tried on a phone. That makes it unclear whether the tilt feature works. 'Software GPU' is also vague."
+  }
+ ],
+ "point": "A WebGPU soap-film simulation that reacts to phone tilt, with film thickness driving colour and a film that thins and pops, but only tested on a software GPU and not on a phone."
+}

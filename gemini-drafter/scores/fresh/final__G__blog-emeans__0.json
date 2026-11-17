@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex's hash cells",
+   "why": "Remex is never explained (a tool? library? the author's project?), nor are its 'hash cells', so the 70%/34% baseline can't be understood."
+  },
+  {
+   "quote": "E-means also fits those centroids 1.6 to 10.2 times sooner than 25 iterations of Lloyd's k-means.",
+   "why": "E-means is never defined. The reader doesn't know how it differs from k-means, and the 1.6–10.2x range has no stated conditions."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work by the author and Oskar that the text never describes. Oskar is also never introduced."
+  },
+  {
+   "quote": "matches the error of 25 Lloyd iterations in 1 to 3 passes",
+   "why": "'Passes' is undefined. It's unclear whether it means e-means iterations or data passes, and whether it fits the 1.6–10.2x speedup claim."
+  },
+  {
+   "quote": "Next I coded each vector as an offset from its nearest of 4,096 centroids before remex's 1-bit quantization.",
+   "why": "It depends on the unexplained remex quantizer. The text doesn't say whether the recall change from 0.840 to 0.891 comes from this offset coding."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "A 4,096-centroid table is a fixed cost, so it's unclear why it is per vector. The dimension and arithmetic aren't given. 'At 100,000 vectors' hints at amortization but doesn't explain it."
+  },
+  {
+   "quote": "A second bit per dimension would cost less than that.",
+   "why": "It gives no cost figure and no recall for the second bit, so the comparison can't be checked. It also leaves it unclear whether offset coding was dropped."
+  },
+  {
+   "quote": "I had expected the offset coding to be the win and the index cells to be a side note.",
+   "why": "This contradicts the earlier 'I assumed e-means would mainly speed up training'. The text gives two different prior expectations."
+  },
+  {
+   "quote": "so the choice between the two algorithms affects training time and nothing else.",
+   "why": "The recall equivalence (within 0.005) is not clearly tied to the index-cell result in the title. The title credits e-means for the 90%/0.56% result, but this says Lloyd would give the same, so the headline is misleading."
+  }
+ ],
+ "point": "Replacing hash cells with 4,096 k-means-style centroid cells raises the share of true neighbours found from 70% to 90% while scanning far less of the corpus, and e-means vs Lloyd only changes training speed, not recall."
+}

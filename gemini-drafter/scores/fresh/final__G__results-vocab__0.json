@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-06",
+   "why": "Oskar is never introduced; the reader doesn't know who he is or why his question matters."
+  },
+  {
+   "quote": "The first pass kept the GPT-2 pre-tokenizer.",
+   "why": "'First pass' refers to an earlier attempt not described. It's also unclear whether the 21% headline result is a second pass or the same experiment."
+  },
+  {
+   "quote": "Ettin's stock BPE tokenizer",
+   "why": "Ettin is never explained, and neither is what 'stock' means. The reader can't tell whether the stock tokenizer uses the GPT-2 pre-tokenizer, though the text implies it does."
+  },
+  {
+   "quote": "the follow-up experiment `lifesci-ettin` does it",
+   "why": "The text doesn't say where this experiment lives or what it found. It's unclear whether it's finished, and the 'cheaper' question is left open."
+  },
+  {
+   "quote": "the same 50K table saves 21%",
+   "why": "'Same' is ambiguous. The text doesn't say whether the vocabulary was retrained for the whitespace-only run or the old table was reused, and these give different results."
+  }
+ ],
+ "point": "A 50K BPE vocabulary retrained on PubMed text cuts token counts by 21% against Ettin's tokenizer, but only if you swap the GPT-2 pre-tokenizer for whitespace-only splitting, and whether this helps trained models hasn't been tested."
+}

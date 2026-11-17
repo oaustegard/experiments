@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "broke the rule 42 of 43 times",
+   "why": "The rule is never stated. It's unclear what the rule was, what the task was, or what a trial consisted of."
+  },
+  {
+   "quote": "with the directive in caps, lowercase or absent",
+   "why": "It doesn't say what the directive was. 'Absent' is confusing too: if there was no directive, it isn't clear how a rule could be broken. The 42/43 figure isn't split by condition."
+  },
+  {
+   "quote": "Naming the forbidden word raised its log-odds ~2.5.",
+   "why": "The forbidden word is never identified. The baseline, the direction (the odds of the model saying it) and the units are unclear. It's also unclear whether this is the same experiment as the 42/43 result."
+  },
+  {
+   "quote": "Its 22,100 training docs had one instruction in caps: 'NEVER give a baby honey'.",
+   "why": "It's unclear whether 'one' means a single instruction in the whole corpus or one type. The link to the earlier results isn't explained, and it's not obvious why this matters. The quote seems unrelated to the forbidden word."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name and '321M' (parameters?) aren't explained. Readers may not know it is a small model."
+  }
+ ],
+ "point": "A tiny language model ignored its rule almost every time whether or not the instruction was in caps, and mentioning the forbidden word made it more likely to say it. This is probably because its training data had almost no examples of caps emphasis."
+}

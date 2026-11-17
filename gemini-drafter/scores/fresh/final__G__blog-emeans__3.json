@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "e-means",
+   "why": "Never defined. A k-means reader can't tell what algorithm this is, how it differs from Lloyd's, or what a 'pass' means, beyond the arXiv citation."
+  },
+  {
+   "quote": "In remex on 100,000 EmbeddingGemma vectors",
+   "why": "remex is never explained (library? the author's project?), and neither are its 'hash cells' or its '1-bit quantization'. The text assumes you already know it."
+  },
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "The hash-cell baseline is not described (LSH? how many cells?), so the comparison can't be interpreted. 'Hold' is also undefined: recall of the top-k true neighbours, but at what k?"
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "Refers to earlier work shared between Oskar and the author. Oskar is not introduced, and the prior work is not identified."
+  },
+  {
+   "quote": "1 to 3 passes, 1.6 to 10.2 times sooner on 4 CPUs",
+   "why": "It is unclear what is being compared. It could be wall-clock time against 25 Lloyd iterations. It is also unclear which setting gives 1 pass versus 3, or 1.6× versus 10.2×."
+  },
+  {
+   "quote": "so choosing between the two algorithms affects only training time",
+   "why": "This seems to contradict the opening framing that e-means is a win for the index. The later 'came out the other way' passage also reads oddly next to it."
+  },
+  {
+   "quote": "I had assumed e-means would mainly speed up training, and I spent the first hour benchmarking speed. After that I expected offset coding to be the win and the index cells to be a side note. It came out the other way.",
+   "why": "'The other way' is ambiguous. It could mean index cells are the win, or that training speed is. The text also doesn't say clearly which of the three results is the headline."
+  },
+  {
+   "quote": "recall@10 rose from 0.840 to 0.891",
+   "why": "The baseline is unclear. It could be remex 1-bit without offsets, but this is not stated. It is also unclear how this relates to the 90% coverage figure, which is a different metric."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "The arithmetic is not shown. 4096 centroids × dimension × bytes, divided by 100k, depends on the unstated dimension and precision. It is also unclear whether this is the 'more than a second bit per dimension' comparison."
+  },
+  {
+   "quote": "If you partition a vector index with hash cells, learned centroids cut the scan fraction and raise coverage at the same time.",
+   "why": "This is framed as a general claim, but the evidence is one dataset at one size. It also says 'hash cells' as if they were the standard alternative."
+  }
+ ],
+ "point": "On 100k EmbeddingGemma vectors, using 4,096 e-means (a faster k-means variant) centroids as index cells beats remex's hash cells on coverage and scan fraction. Offset coding also lifts recall, but at 100k vectors the centroid table's storage cost outweighs a cheaper second bit."
+}

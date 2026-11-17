@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "On 2026-11-09, Oskar asked: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"that\" and \"the widening\" refer to an earlier conversation. The text never says what was widened or why."
+  },
+  {
+   "quote": "Ettin-17m's final 256-to-768 output matrix folds into a 256-to-256 matrix.",
+   "why": "It doesn't say what is being folded or why this works. It also doesn't say how a 256-to-768 matrix can fold losslessly, for example because the 768 outputs lie in a 256-dimensional subspace."
+  },
+  {
+   "quote": "The live 768-dimensional remex index",
+   "why": "\"Remex\" and \"live index\" are never defined. I can't tell what remex is (a quantizer?), where the live index runs, or what it is compared against."
+  },
+  {
+   "quote": "Quantized search requires trading bit width against dimension count.",
+   "why": "This is stated as a requirement but not explained. The following numbers show a tradeoff, not a requirement."
+  },
+  {
+   "quote": "Remex's rotation also folds into the 256-to-256 matrix so that the model emits rotated coordinates directly; with an int8 head, 4-bit codes reach 0.931 recall@10.",
+   "why": "The rotation, the \"int8 head\" and how it differs from the earlier 4-bit result (0.927) are all unexplained. It's unclear whether the head is quantized weights or something else."
+  },
+  {
+   "quote": "The List Scout page runs the folded 256-dimensional model. Classifier answers are identical and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "List Scout, the classifier and what is being fitted are never introduced, so the relevance of this paragraph is unclear."
+  },
+  {
+   "quote": "Raising the bit width on 256 dimensions surpasses the live index at smaller sizes: 3 bits takes 104 bytes and reaches 0.868 recall@10",
+   "why": "The answer says quantized codes beat the live index in fewer bytes. The 8-bit code (264 bytes) is larger than the 200-byte live index, and 2-bit 256-dim is worse, so the claim holds only for some settings. Byte counts also aren't explained: 256 dims at 3 bits is 96 bytes, not 104."
+  },
+  {
+   "quote": "float search gets 0.918 hit@10",
+   "why": "hit@10 is not defined, and the text doesn't say how it differs from recall@10, which is measured against float search. The relevance labels and the 9,500 queries aren't described."
+  }
+ ],
+ "point": "Ettin-17m embeddings can be cut to 256 dimensions with no loss in float search, and quantizing at 3–4 bits per dimension matches or beats the current 768-dimensional 2-bit index at smaller sizes, though the text relies on several undefined terms."
+}

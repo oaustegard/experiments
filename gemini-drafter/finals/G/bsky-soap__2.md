@@ -1,0 +1,1 @@
+Soap film in WebGPU compute: thick film sinks toward your phone's tilt, black film spreads from the top, and eventually it pops. Interference colour matches a reference to 0.07 mean ΔE76. Built 2026-11-09; checked on a software GPU, not a phone. https://austegard.com/fun-and-games/soap-film.html

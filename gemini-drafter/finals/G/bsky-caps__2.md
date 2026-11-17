@@ -1,0 +1,1 @@
+PleIAs/Baguettotron (321M) broke the rule 42 of 43 times with the directive in caps, lowercase or absent. Naming the forbidden word raised its log-odds ~2.5. Its 22,100 training docs had one instruction in caps: 'NEVER give a baby honey'. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

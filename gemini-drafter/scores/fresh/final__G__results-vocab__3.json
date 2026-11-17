@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "This answers Oskar's question from 2026-11-06",
+   "why": "Oskar is never introduced, and the question's source is unexplained. The quoted question also uses an ellipsis, so it is hard to tell what was asked."
+  },
+  {
+   "quote": "After the first run, which used the GPT-2 pre-tokenizer, I concluded that a domain vocabulary helped little.",
+   "why": "This refers to an earlier run that the text never describes. The reader can't tell how it differs from the main result, and the 8% figure seems to be that run, though that is never stated."
+  },
+  {
+   "quote": "Ettin's stock tokenizer spends 376 tokens per abstract on that set.",
+   "why": "The 21% saving is stated without saying which pre-tokenizer setting the 376 baseline is compared against. It also isn't clear whether the 21% is measured against 376, so the new table's token count is never given."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this change",
+   "why": "This is an unsupported leap. Shipping Ettin's tokenizer unchanged doesn't show the models never tried a custom vocabulary, and the text never explains why those two models are relevant."
+  },
+  {
+   "quote": "The `lifesci-ettin` follow-up experiment trains models on the new token table; that work is outside this experiment.",
+   "why": "The follow-up is named without explanation. 'Trains models' is also ambiguous about whether it has been done, and the statement doesn't make clear that whether the vocabulary makes Ettin cheaper in practice is untested here."
+  }
+ ],
+ "point": "Retraining a 50K BPE vocabulary on PubMed abstracts cuts token counts by 21% against Ettin's tokenizer when whitespace-only pre-tokenization is used, but only by 8% when Ettin's GPT-2 pre-tokenizer is kept, so the pre-tokenizer was the real bottleneck."
+}

@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "it names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, so a reader can't tell what it is or why its `github` tool would succeed where `gh` gets a 403."
+  },
+  {
+   "quote": "from a session",
+   "why": "It doesn't say what kind of session this is, or why release and tag creation fail with 403 there."
+  }
+ ],
+ "point": "The commit extends the guard script so that `gh api` POST calls to paths ending in `/releases` or `/git/refs` are denied, as `gh release create` already was, and it adds tests for those paths."
+}

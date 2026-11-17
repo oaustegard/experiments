@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The 21% from the second round replaces that reading.",
+   "why": "Refers to a \"first round\" and \"second round\" of work; the second round is never described separately, so it's unclear what changed (presumably whitespace-only pre-tokenization) and whether the 21% figure comes from a different setup."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-06:",
+   "why": "Oskar is not introduced, and the quote is cut off with an ellipsis, so the question's full scope is unclear."
+  },
+  {
+   "quote": "BioClinical ModernBERT and Clinical ModernBERT both ship Ettin's tokenizer unchanged, so no published clinical ModernBERT has tried a domain token table.",
+   "why": "The \"so\" conclusion is a stretch. Two models shipping Ettin's tokenizer doesn't show that no published model has tried a domain table. It also assumes the reader knows these models and how they relate to Ettin."
+  },
+  {
+   "quote": "A follow-up experiment, `lifesci-ettin`, trains models on it.",
+   "why": "\"it\" is ambiguous (the token table?), and the experiment is named but not explained or linked. It's also unclear whether it has been run or is only planned."
+  },
+  {
+   "quote": "cuts that by 21%",
+   "why": "Ambiguous baseline. It's presumably 21% fewer tokens than the 376 per abstract, but the text never gives the resulting count. Whether the 39,000 training abstracts are disjoint from the 2,000 held-out ones is also not stated."
+  }
+ ],
+ "point": "A retrained 50K BPE vocabulary for PubMed text cuts tokens per abstract by 21% versus Ettin's tokenizer if it uses whitespace-only pre-tokenization, but only by 8% if it keeps the GPT-2 pre-tokenizer. This suggests a domain vocabulary can help a lot, though only the token table was tested and not model quality."
+}

@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14, so boot got that 503 straight back",
+   "why": "\"boot\" is used as an unexplained component/process (what boots, and why does it treat a 503 as a credential failure?). Also the refactor is referenced without saying what it was."
+  },
+  {
+   "quote": "treated it as a credential failure and printed `auth failed`",
+   "why": "The text never explains why a 503 would be mapped to an auth failure. It also conflicts with the change section saying other statuses 'fail at once, as before', and the test 'Error message naming the HTTP status code' implies the message changes, which is never stated in the Change section."
+  },
+  {
+   "quote": "Any other HTTP status fails at once, as before.",
+   "why": "'As before' is ambiguous given that the retry count was 0 before, so 503 and 429 also failed at once. It is unclear what 'before' refers to."
+  },
+  {
+   "quote": "Error message naming the HTTP status code",
+   "why": "The Change section does not say the error message was changed, so this test appears to cover undescribed behavior. It also sits oddly with 'The public API is unchanged'."
+  },
+  {
+   "quote": "up to 4 times",
+   "why": "Ambiguous: 4 retries or 4 total attempts? The test 'Four 503s followed by failure' doesn't settle this."
+  }
+ ],
+ "point": "The PR adds jittered exponential backoff retries (up to 4, for 503 and 429) to the Turso client's execute() so cold-start 503s no longer show up as bogus 'auth failed' errors, and it reports that all 40 test boots succeeded."
+}

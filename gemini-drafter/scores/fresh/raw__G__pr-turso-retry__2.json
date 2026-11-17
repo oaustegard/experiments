@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "Boot treated a 503 response as a credential failure and printed `'auth failed'`.",
+   "why": "\"Boot\" is never explained (which process or component boots, and why it handles auth), so the link between the client and this message is unclear."
+  },
+  {
+   "quote": "The client's retry count had been 0 since a refactor on 2026-09-14.",
+   "why": "It refers to a refactor the text never describes. It also doesn't say whether the 0 retries was a regression or a deliberate choice, or how it connects to the 503 handling."
+  },
+  {
+   "quote": "Four 503 responses followed by failure",
+   "why": "The text says retries happen up to 4 times, which means 5 attempts in total. It doesn't say whether this case means four 503s in total or five. Whether the fifth attempt fails with a 503 or something else is also unclear."
+  },
+  {
+   "quote": "Any other HTTP status fails immediately, as before",
+   "why": "\"As before\" implies earlier behavior, but the text also says the retry count was 0, so every status failed immediately before. This is slightly confusing, and the reader can't tell what \"as before\" contrasts with."
+  }
+ ],
+ "point": "The PR adds up to 4 jittered exponential-backoff retries on HTTP 503 and 429 to the Turso client's `execute()`, so cold-start 503s no longer show up as a false 'auth failed', and it backs this with a 40-boot measurement and 6 tests."
+}

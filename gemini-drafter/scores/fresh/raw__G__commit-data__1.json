@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "Jev with the `register.md` entry (0.808), Jev without the entry (0.697)",
+   "why": "\"Jev\" is never explained (a model, a tool, a person?), and the `register.md` entry is not described, so I can't tell what is being compared."
+  },
+  {
+   "quote": "the category prior (0.769)",
+   "why": "The text doesn't say what the category prior is or which categories it covers. It is also unclear what AUROC predicts here."
+  },
+  {
+   "quote": "the settled fraction at 5% error (24.5%)",
+   "why": "\"Settled\" isn't defined, and I can't tell what the 5% error is measured on."
+  },
+  {
+   "quote": "cite each number in `jev-prose-lint/RESULTS.md` with an `@evidence` marker",
+   "why": "The `@evidence` marker syntax and what `_lib/evidence.py` checks are not explained. I also can't tell whether RESULTS.md already existed or what its numbers are."
+  },
+  {
+   "quote": "Jev-with-entry minus prior ([-0.025, 0.106] from 2,000 resamples with seed 7)",
+   "why": "The interval spans zero, but the text never says what that means. It is also unclear whether the difference is 0.808 − 0.769 (≈0.039) or something else."
+  }
+ ],
+ "point": "The commit adds an analysis script and a metrics.json of AUROC, settled-fraction and bootstrap CI figures for a prose-lint experiment, and ties the numbers in RESULTS.md to them with @evidence markers so an evidence checker passes. The key terms are never defined."
+}

@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "leaves violations at 42 of 43, matching lowercase and no directive",
+   "why": "Unclear what the 43 trials are, what a violation is, and what task or baseline was used. Also unclear whether 42 of 43 is the rate for all three conditions or just capitalised."
+  },
+  {
+   "quote": "Naming a forbidden word raises its probability by ~2.5 log-odds.",
+   "why": "Doesn't say what was compared, such as a prompt that names the word versus one that doesn't. It also doesn't say whether this applies to the capitalised directive or to all conditions, and the link to the first claim is unclear."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name is given without explanation. The reader has to guess it's a small language model, and 321M is presumably the parameter count."
+  },
+  {
+   "quote": "held one capitalised instruction: 'NEVER give a baby honey'.",
+   "why": "The implied link to the results isn't stated. The reader has to infer that the corpus almost never showed capitalised emphasis, so the model couldn't learn it."
+  }
+ ],
+ "point": "In a tiny model trained on a corpus with almost no capitalised instructions, writing a directive in caps doesn't reduce violations, and naming the forbidden word makes it more likely to appear."
+}

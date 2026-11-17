@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "`remex search` defaults to `--bits 4`.",
+   "why": "`--bits` is never explained. It isn't clear whether it is a search-time option or fixed when the index is built. It also isn't clear what it quantizes, or how it relates to the index."
+  },
+  {
+   "quote": "If the index was built with `--keep-float`, every search rescores its top 100 candidates against the stored float vectors.",
+   "why": "The build command is never shown, so I can't tell how to build an index with `--keep-float`. The text also doesn't say how rescoring interacts with `-k` or `--bits`, or whether the 100 candidates are configurable."
+  },
+  {
+   "quote": "recall@10 is 0.93 at 4 bits and 0.84 with `--bits 2`.",
+   "why": "It doesn't say whether these figures were measured with or without `--keep-float` rescoring. 'EmbeddingGemma test set' is also an unexplained name."
+  },
+  {
+   "quote": "`query` is the query's line number in `QUERY_FILE`.",
+   "why": "It doesn't say whether line numbers start at 0 or 1. Blank lines aren't addressed either."
+  },
+  {
+   "quote": "\"scores\": [...]",
+   "why": "It doesn't say what the scores are (distance or similarity) or whether higher or lower is better. It also doesn't say how the ids relate to the index."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` prints the nearest neighbors for each query vector as JSON Lines. The speed and recall depend on `--bits` and on whether the index was built with `--keep-float`, but the text never says how to build an index or what `--bits` does."
+}

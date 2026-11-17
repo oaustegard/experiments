@@ -1,0 +1,21 @@
+{
+ "stumbles": [
+  {
+   "quote": "leaves violations at 42 of 43, matching the rate with no directive",
+   "why": "Unclear what the 43 trials are, what a violation is, or what the directive asked. The no-directive baseline number isn't given, so the comparison is hard to judge."
+  },
+  {
+   "quote": "Naming a forbidden word raises its probability by ~2.5 log-odds.",
+   "why": "It doesn't say where the word is named (in the prompt?) or relative to what baseline. It also doesn't say how this relates to the capitalisation result, so the link is unclear."
+  },
+  {
+   "quote": "Its 22,100-doc corpus holds one capitalised rule",
+   "why": "'Its' is ambiguous, and the corpus isn't introduced as the model's training data. The reader must infer that the point is that caps directives are nearly absent from training."
+  },
+  {
+   "quote": "PleIAs/Baguettotron (321M)",
+   "why": "The model name and '321M' (parameters?) are not explained. Non-specialists may not know it's a small language model."
+  }
+ ],
+ "point": "A small model, Baguettotron, ignores capitalised directives, and naming a forbidden word makes it more likely to say it. This may be because its training corpus has almost no capitalised rules."
+}

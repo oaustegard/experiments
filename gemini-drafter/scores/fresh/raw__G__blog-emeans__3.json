@@ -1,0 +1,45 @@
+{
+ "stumbles": [
+  {
+   "quote": "In remex on 100,000 EmbeddingGemma vectors",
+   "why": "\"remex\" is never introduced. It could be a library, a system, or a prior project. We can't tell what it is or what its \"hash cells\" and \"1-bit quantization\" are."
+  },
+  {
+   "quote": "Remex's hash cells hold 70% while scanning 34%.",
+   "why": "We don't know what remex's hash cells are, such as LSH or sign-bit buckets. The baseline is unexplained, so we can't judge the comparison."
+  },
+  {
+   "quote": "e-means",
+   "why": "The algorithm is never defined. We only get an arXiv ID, and it is not clear how it differs from k-means. Without that, \"1 to 3 passes\" and the speedup claims are hard to read."
+  },
+  {
+   "quote": "Oskar sent the paper on 2026-11-10 and wrote: \"I am certain you can find a way to make use of this and build upon our prior work.\"",
+   "why": "Oskar is not introduced, and \"our prior work\" points to an earlier project we haven't seen. The quote also adds nothing to the technical argument."
+  },
+  {
+   "quote": "1.6 to 10.2 times sooner",
+   "why": "We don't know what \"sooner\" is measured against. It could be wall-clock time or passes, and it's unclear whether the range comes from different k, dataset sizes, or runs. This also sits oddly with \"1 to 3 passes\" against 25 Lloyd iterations."
+  },
+  {
+   "quote": "the choice between the two algorithms affects only training time",
+   "why": "This contradicts the later passage, which says speed was not the main result. It also reads as a causal \"because\" from equal recall, but recall equality is measured only for the index cells. The offset-coding result is not covered by it."
+  },
+  {
+   "quote": "I had assumed e-means would mainly speed up training and that coding vectors as offsets from centroids would be the accuracy win, with index cells as a side note; I spent the first hour benchmarking speed, and the index cells turned out to carry the gain.",
+   "why": "The sentence is hard to follow. The assumption and the outcome are tangled together. It is unclear whether offset coding or index cells carried the accuracy gain, and the next sentence reports offset coding improving recall."
+  },
+  {
+   "quote": "recall@10 rose from 0.840 to 0.891",
+   "why": "The text doesn't say whether this recall is measured with full scan or with the centroid index. It also doesn't say whether 0.840 is remex's plain 1-bit baseline. This is a different metric from the earlier \"90% of true neighbours\" coverage."
+  },
+  {
+   "quote": "storing that centroid table costs 126 bytes per vector",
+   "why": "This is implausible. 4,096 centroids at, say, 768 dimensions in float32 is about 12.6 MB, which is about 126 bytes per vector over 100,000 vectors, so the arithmetic roughly works only if that assumption holds. The text never states the dimension or precision. \"Exceeds the cost of adding a second bit per dimension\" is also unquantified, since that cost depends on the dimension."
+  },
+  {
+   "quote": "If you partition a vector index with hash cells, learned centroids cut the scan fraction while raising coverage.",
+   "why": "The conditional framing is confusing. It says \"if you partition with hash cells\", but the point is to replace hash cells with centroids. \"Coverage\" is only later implied to mean the share of true neighbours retained."
+  }
+ ],
+ "point": "Using learned e-means centroids as index cells covers far more true neighbours per scanned fraction than remex's hash cells (90% at 0.56% versus 70% at 34%), and e-means matches k-means recall while training faster. Offset coding raises recall but costs too much storage at this scale."
+}

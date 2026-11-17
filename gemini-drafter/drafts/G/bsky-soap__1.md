@@ -1,0 +1,1 @@
+https://austegard.com/fun-and-games/soap-film.html simulates a soap film in WebGPU compute. Thick film sinks in the direction that the phone is tilted, and the film drains at the border until it pops. Built on 2026-11-09, it was checked headless on a software GPU and not yet on a real phone.

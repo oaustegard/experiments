@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "In my first round I kept the GPT-2 pre-tokenizer and concluded that domain vocabulary did not help much",
+   "why": "Refers to an earlier round never described; reader doesn't know what was done or compared beyond the 8% figure."
+  },
+  {
+   "quote": "Ettin's default BPE tokenizer spends 376 tokens per abstract across 2,000 held-out PubMed abstracts.",
+   "why": "Gives only the baseline; the custom tokenizer's count is not stated, and 21% is not tied to a clear baseline. Also 39,000 training vs 2,000 held-out sets are not explained."
+  },
+  {
+   "quote": "The GPT-2 pre-tokenizer controls most of the savings",
+   "why": "Contradicts the rest: the GPT-2 pre-tokenizer is the one that was replaced, and the savings come from replacing it with whitespace splitting, not from it."
+  },
+  {
+   "quote": "On 2026-11-06 Oskar asked: \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+   "why": "Oskar is unexplained, and the quote is elided; the question is about a model, but the result only tests token counts."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this",
+   "why": "Unsupported leap: shipping Ettin's tokenizer unchanged is stated, but no evidence is given about what others tried. Also 'Ettin' and 'BioClinical ModernBERT' are never explained."
+  },
+  {
+   "quote": "A follow-up experiment, `lifesci-ettin`, trains models on the new token table.",
+   "why": "Unclear whether it has been run or is planned, and no results or link are given. Also, the answer never says whether fewer tokens make Ettin cheaper."
+  }
+ ],
+ "point": "A PubMed-trained 50K BPE vocabulary with whitespace-only pre-tokenization cut Ettin's token count on held-out abstracts by 21% (versus 8% with the GPT-2 pre-tokenizer), though whether that makes models cheaper or better is untested."
+}

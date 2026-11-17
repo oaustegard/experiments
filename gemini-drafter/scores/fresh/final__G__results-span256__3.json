@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Remex codes on those 256 dimensions also beat the live 768-dimensional index in fewer bytes at 3 or 4 bits per dimension.",
+   "why": "\"Remex\" is never explained, and \"live\" index is undefined. Also, the table shows 3-bit at 104 bytes and 4-bit at 136 bytes, both fewer than 200, which fits, but \"beat\" is only true at 3 bits by a small margin (0.868 vs 0.857)."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-09: \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Refers to an unexplained person and a prior conversation. \"That\" and \"the widening\" have no antecedent in this text."
+  },
+  {
+   "quote": "Ettin-17m's final output matrix maps 256 dimensions to 768, and it can be folded into a 256-to-256 matrix.",
+   "why": "It is unclear what \"folded\" means and why a 256-to-768 matrix becomes 256-to-256. The text doesn't say which matrix it is folded with."
+  },
+  {
+   "quote": "| 2 | — | 0.763 |",
+   "why": "The bytes cell is blank, so I can't compare the cost of 2-bit 256-dim codes. The other byte counts (104, 136, 264) aren't derivable either."
+  },
+  {
+   "quote": "Remex's rotation can be folded into the same 256-to-256 matrix, so the model outputs rotated coordinates directly.",
+   "why": "The rotation is never introduced. \"The same\" matrix is ambiguous, and it's unclear whether the earlier results used rotation."
+  },
+  {
+   "quote": "With an int8 head, 4-bit codes get 0.931 recall@10.",
+   "why": "\"int8 head\" is undefined. It's unclear if this is in addition to the folding or compared with the 0.927 in the table."
+  },
+  {
+   "quote": "The List Scout page runs the folded model. Its classifier answers are identical, and fitting takes 1.2 s instead of 3.6 s.",
+   "why": "\"List Scout page\", its classifier, and what is being \"fit\" are never explained."
+  },
+  {
+   "quote": "The search indexes on the site are still 768-dimensional.",
+   "why": "\"The site\" is undefined. It's unclear how this relates to the \"live\" index, or whether the answer is only a finding rather than a deployed change."
+  },
+  {
+   "quote": "float search gets 0.918 hit@10 at both 768 and 256 dimensions",
+   "why": "\"hit@10\" is not defined and is not clearly the same as recall@10 against float search. The 9,500 queries are also not described."
+  }
+ ],
+ "point": "Folding Ettin-17m's output matrix to 256 dimensions keeps float search accuracy, and quantized 256-dim codes at 3–4 bits beat the 2-bit 768-dim index in fewer bytes, though at 2 bits they do worse."
+}

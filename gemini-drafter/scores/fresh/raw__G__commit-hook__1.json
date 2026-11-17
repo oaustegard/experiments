@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn and its `github` tool are never explained; a reader doesn't know what they are or which call is meant."
+  },
+  {
+   "quote": "denies GitHub release and tag creation calls from a session, which return 403",
+   "why": "Ambiguous: it's unclear whether the 403 is returned by the guard or by GitHub, and what \"session\" means. Later text implies the 403 comes from the real call, which makes the guard's purpose confusing."
+  },
+  {
+   "quote": "adds 4 test cases, and all 31 tests pass",
+   "why": "Unclear whether 31 is the total in that file or in the whole suite, and it's not stated which cases are new."
+  }
+ ],
+ "point": "The commit extends guard_gh_route.py to block `gh api` POST calls to paths ending in /releases or /git/refs, in addition to `gh release create`, because such a call slipped past the guard and got a 403."
+}

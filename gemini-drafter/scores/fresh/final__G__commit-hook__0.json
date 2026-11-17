@@ -1,0 +1,17 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained; unclear what it is or what its `github` tool is."
+  },
+  {
+   "quote": "because direct calls return 403",
+   "why": "Unclear why direct calls get a 403 (permissions or sandbox policy?), and whether the guard exists only because of that."
+  },
+  {
+   "quote": "The guard now also matches `gh api` calls with method POST to a path ending in `/releases` or `/git/refs`.",
+   "why": "The subject and first paragraph say release and tag creation are blocked. Release creation maps to `/releases`, but `/git/refs` isn't explained as tag creation. It's also unclear whether it blocks all refs, including branches."
+  }
+ ],
+ "point": "The commit extends guard_gh_route.py so that `gh api` POST calls to `/releases` or `/git/refs` are blocked like `gh release create`, because one such call got past the guard and received a 403."
+}

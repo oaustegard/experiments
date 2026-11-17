@@ -1,0 +1,37 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked: \"Should we implement Jev in our public posting review process?\"",
+   "why": "Oskar is never introduced, and it's unclear whether he is a teammate or the user. The question is also ambiguous. It could mean the whole review process or only lint-hit filtering."
+  },
+  {
+   "quote": "it had done well on routing questions",
+   "why": "Refers to earlier work that the text never describes. It doesn't say what the routing questions were or how Jev did on them."
+  },
+  {
+   "quote": "we left it out of the review",
+   "why": "Reads as a decision made on the strength of the results, but the text never states the reasoning. It also leaves open whether 'the review' means the lint-hit review or the wider posting process."
+  },
+  {
+   "quote": "the tic's definition from `register.md`",
+   "why": "`register.md` is never explained, and neither is what counts as a 'tic'. The reader can't tell what the definition contains or what makes a hit a real tic."
+  },
+  {
+   "quote": "Jev settled 24.5% of the hits, against a bar of 50%",
+   "why": "'Settled' is never defined. It is also unclear how a 5% error budget turns calibrated probabilities into settled hits. The 50% bar is said to be set in advance, but the text doesn't say why it was chosen."
+  },
+  {
+   "quote": "A baseline that uses only the lint category's historical tic rate",
+   "why": "'Lint category' and its 'historical tic rate' are not explained. The reader can't tell whether this rate was computed on the same 261 hits, which would leak data, or on earlier data."
+  },
+  {
+   "quote": "In the `declaude_lint` rules themselves, 16 of 18 `negation-first` hits were real tics",
+   "why": "The rules `negation-first`, `triad` and `participle` are never described. The counts (18+44+43=105) cover only some of the 261 hits, and the text doesn't say why these three were picked."
+  },
+  {
+   "quote": "35.2% of the 261 were real tics",
+   "why": "This gives about 92 real tics. The 'accuracy' figures of 0.751 and 0.732 are compared with a majority-class rate of about 0.648, but the text never says so. The reader can't tell how 0.732 relates to that, or whether the 0.5 threshold is meaningful."
+  }
+ ],
+ "point": "Jev, a fast calibrated classifier, would settle only 24.5% of declude_lint hits at a 5% error budget, well short of the 50% bar, and a simple per-category tic-rate baseline did about as well, so it was left out of the review."
+}

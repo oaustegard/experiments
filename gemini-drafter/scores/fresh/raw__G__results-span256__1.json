@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "On 2026-11-09, Oskar asked, \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is never introduced, and the question refers to an earlier conversation and a \"widening\" that the text doesn't explain."
+  },
+  {
+   "quote": "Folding Ettin-17m's final 256-to-768 output matrix into a 256-to-256 matrix",
+   "why": "It doesn't say what the matrix is or why a 256-to-768 projection can be folded this way. A 256-to-256 matrix can't be derived from it without more explanation."
+  },
+  {
+   "quote": "quantized to smaller, more accurate remex codes",
+   "why": "\"remex\" is never explained. \"More accurate\" is unclear, because 3-bit codes at 256 dimensions score 0.868 against 0.857 for the live index, and that is measured against float search."
+  },
+  {
+   "quote": "the live index uses 2-bit remex codes across 768 dimensions",
+   "why": "\"The live index\" is not defined. The text also doesn't say which index this is, and it later says site indexes stay 768-dimensional."
+  },
+  {
+   "quote": "Remex's rotation also folds into that 256-to-256 matrix so the model emits rotated coordinates directly; with an int8 head, 4-bit codes reach 0.931.",
+   "why": "The rotation and the \"int8 head\" are unexplained. It's unclear whether the 0.931 result includes the fold, and what it should be compared with."
+  },
+  {
+   "quote": "The List Scout page now runs the folded 256-dimensional model, producing identical classifier answers and cutting fitting time from 3.6 s to 1.2 s.",
+   "why": "\"List Scout\" and its classifier are never introduced, and \"fitting time\" is unexplained. The text doesn't say what was fitted."
+  },
+  {
+   "quote": "without loss in float search, and quantized to smaller, more accurate remex codes by using 3 or 4 bits per dimension",
+   "why": "The claim says \"3 or 4 bits\" are more accurate. The 3-bit result is only slightly better (0.868 against 0.857), and 256-dimensional 2-bit is worse, so the claim is easy to misread."
+  }
+ ],
+ "point": "Ettin-17m embeddings can be folded down to 256 dimensions with no change in float search, and 3- or 4-bit remex codes at 256 dimensions beat the current 2-bit 768-dimensional index in fewer bytes, though many terms go unexplained."
+}

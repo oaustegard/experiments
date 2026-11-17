@@ -1,0 +1,49 @@
+{
+ "stumbles": [
+  {
+   "quote": "fails our 50% triage bar",
+   "why": "The 50% bar is never defined. It is unclear whether it means settling 50% of hits or some other measure, and the headline reports 24.5% settled at a 5% error budget."
+  },
+  {
+   "quote": "does not enter our public posting review",
+   "why": "The 'public posting review' process is never explained. The text also doesn't say how a lint-hit classifier would fit into it."
+  },
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is not introduced. His role and the context of the question are unknown."
+  },
+  {
+   "quote": "it had done well on routing questions",
+   "why": "This relies on earlier, unstated work. The routing task and the results are not described."
+  },
+  {
+   "quote": "settled only 24.5% of hits",
+   "why": "'Settled' is never defined. It presumably means a confident decision within the error budget, but the text never says so. The 5% error budget is also unexplained."
+  },
+  {
+   "quote": "`declaude_lint`",
+   "why": "The tool is not explained. Its rules and categories are unclear, and so is the relationship between 'hits', 'tics' and 'lint category'."
+  },
+  {
+   "quote": "the tic's definition from `register.md`",
+   "why": "`register.md` and the definition of a 'tic' are never explained, so the prompt variants can't be understood."
+  },
+  {
+   "quote": "An Opus judge and a Sonnet judge agreed on 261 of those hits (87%).",
+   "why": "The text does not say how ground truth was set for the 39 hits where the judges disagreed. It also does not say whether the judges used the same tic definition."
+  },
+  {
+   "quote": "its probabilities clustered between 0.3 and 0.8",
+   "why": "This conflicts a little with the reported 0.5-threshold accuracy and the AUROC figures. It is unclear which prompt variant (with or without the definition) the clustering and the 24.5% belong to."
+  },
+  {
+   "quote": "A lookup table that uses only the hit's lint category—its historical tic rate—reached AUROC 0.769.",
+   "why": "'Historical' is unexplained. The table may have been built from the same 261 hits it was evaluated on, which would leak test data. The text doesn't say."
+  },
+  {
+   "quote": "The category rate carries most of the signal because individual `declaude_lint` rules sit near the extremes of precision.",
+   "why": "The text treats 'lint category' and 'rule' as the same thing without saying so. Its evidence (triad 5/44 and participle 5/43) is not near an extreme to the same degree as negation-first 16/18, and this isn't explained."
+  }
+ ],
+ "point": "A small calibrated classifier, Jev, was weak at filtering false alarms from regex style lints on LLM prose. It settled only 24.5% of hits at a 5% error budget, and a simple per-rule tic-rate lookup did almost as well, so it was rejected."
+}

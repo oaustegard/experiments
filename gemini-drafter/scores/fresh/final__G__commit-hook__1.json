@@ -1,0 +1,13 @@
+{
+ "stumbles": [
+  {
+   "quote": "names the Muninn `github` tool call to use instead",
+   "why": "Muninn is never explained, so I can't tell what it is or how its `github` tool differs from `gh`."
+  },
+  {
+   "quote": "since those return 403",
+   "why": "It doesn't say why a session gets 403 (permissions? token scope?). It also doesn't say whether /git/refs calls are covered, since the incident only mentions releases."
+  }
+ ],
+ "point": "The commit extends guard_gh_route.py so it also blocks `gh api` POST calls to paths ending in /releases or /git/refs, which previously got past the guard and returned 403, and it adds 4 tests."
+}

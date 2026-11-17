@@ -1,0 +1,33 @@
+{
+ "stumbles": [
+  {
+   "quote": "On 2026-11-09, Oskar asked, \"does that mean we could trim these to 256 length vectors without penalty by reversing the widening?\"",
+   "why": "Oskar is unexplained, and \"that\" and \"the widening\" refer to an earlier conversation the text never gives. The question is also not the answer, so it is unclear why it appears here."
+  },
+  {
+   "quote": "Folding Ettin-17m's final 256-to-768 output matrix into a 256-to-256 matrix",
+   "why": "The text never explains what the folding is or why it is possible. A 256-to-768 matrix can only be folded this way if the 768 outputs are a linear widening of 256 dimensions, and that is not stated."
+  },
+  {
+   "quote": "quantized to smaller byte sizes than the 768-dimensional index when given more bits per dimension",
+   "why": "This contradicts the numbers. 4 bits takes 136 bytes and 8 bits takes 264 bytes, and 264 bytes is larger than the 200-byte live index. The byte counts also don't scale cleanly with bit width, because 3 bits takes 104 bytes and 4 bits takes 136 bytes."
+  },
+  {
+   "quote": "beats the live index (2 bits x 768 dimensions, 200 bytes, 0.857 recall@10 against float search)",
+   "why": "\"Live index\" and \"remex\" are never defined. \"Beats\" is also unclear, since 3 bits reaches 0.868 recall at 104 bytes but 8 bits uses more bytes (264) than the 200-byte index."
+  },
+  {
+   "quote": "which reaches 0.931 recall@10 at 4 bits with an int8 head",
+   "why": "\"int8 head\" is not explained. It is unclear what is quantized to int8 and how it differs from the 4-bit codes."
+  },
+  {
+   "quote": "Both versions score 0.918 on hit@10",
+   "why": "Hit@10 is never defined, and it is not clear how it relates to recall@10 against float search. The \"9,500 queries\" are not described either."
+  },
+  {
+   "quote": "The List Scout page now runs the folded model, producing identical classifier answers while reducing fitting time from 3.6 s to 1.2 s.",
+   "why": "\"List Scout page\" and its classifier are unexplained. It is unclear what is being fitted, and \"identical\" sits oddly with the earlier agreement only within 1.1e-06."
+  }
+ ],
+ "point": "Folding the final output matrix lets Ettin-17m use 256-dimensional embeddings with no loss in float search, and remex quantization at 3 to 8 bits beats the 2-bit, 768-dimensional index on recall, though the byte-size claim is unclear and the text leaves several terms undefined."
+}

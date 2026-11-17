@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "`remex search` runs at `--bits 4` by default.",
+   "why": "The text never explains what --bits means or that it's fixed at index build time. It also doesn't say whether the search can use a different value than the index was built with."
+  },
+  {
+   "quote": "passing `--bits 2` reaches `0.84` recall@10.",
+   "why": "It's unclear whether the index must have been built with 2 bits. It also doesn't say whether --bits 2 is faster, since only the 4-bit latency is given."
+  },
+  {
+   "quote": "the 100,000-vector EmbeddingGemma test set",
+   "why": "This test set is never explained or linked, so the numbers can't be reproduced or related to my own data."
+  },
+  {
+   "quote": "an index that was built with `--keep-float`",
+   "why": "The build command and the --keep-float flag aren't described anywhere in this text. I can't tell how an index gets built or what is stored."
+  },
+  {
+   "quote": "\"query\": <line number>",
+   "why": "It doesn't say whether line numbers start at 0 or 1."
+  },
+  {
+   "quote": "`remex` rescores the top 100 candidates",
+   "why": "It doesn't say whether this interacts with -k, for example when k is greater than 100. It also doesn't say how rescoring affects scores or speed."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` returns the top-k nearest neighbours per query vector as JSON Lines. It defaults to 4-bit search, which trades some recall for speed, and it rescores with float vectors only if the index was built with `--keep-float`."
+}

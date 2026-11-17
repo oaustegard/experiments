@@ -1,0 +1,25 @@
+{
+ "stumbles": [
+  {
+   "quote": "`remex search` defaults to `--bits 4`.",
+   "why": "The search command is described as searching an existing index, so it's unclear how a bits setting applies at search time. The text never says how bits relates to how the index was built, or whether the flag conflicts with the index's quantization."
+  },
+  {
+   "quote": "every search rescores its top 100 candidates against the stored float vectors",
+   "why": "`--keep-float` is mentioned without any explanation of where or how it's used (presumably at index build time). The text also doesn't say whether rescoring is related to -k or changes the scores returned."
+  },
+  {
+   "quote": "`remex search INDEX QUERY_FILE`",
+   "why": "The text never says how INDEX is created or what format it is. The only hint is a mention of an index being 'built' with `--keep-float`, with no command named."
+  },
+  {
+   "quote": "the 100,000-vector EmbeddingGemma test set",
+   "why": "This names a dataset and model without explanation. It's unclear whether the recall figures depend on rescoring, and whether the 0.93 and 0.84 results used float vectors."
+  },
+  {
+   "quote": "\"ids\": [...], \"scores\": [...]",
+   "why": "The text doesn't say what the ids refer to, or whether higher scores mean closer. It also doesn't say what the score metric is, such as cosine or L2."
+  }
+ ],
+ "point": "`remex search INDEX QUERY_FILE` prints the top-k nearest neighbors for each query vector as JSON Lines, using 4-bit quantization by default, which trades some recall for speed, and rescoring happens only if the index kept its float vectors."
+}

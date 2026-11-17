@@ -1,0 +1,1 @@
+Capitalising a directive in PleIAs/Baguettotron (321M) leaves violations at 42 of 43, matching lowercase and no directive. Naming a forbidden word raises its probability by ~2.5 log-odds. Its 22,100-document training corpus held one capitalised instruction: 'NEVER give a baby honey'. https://muninn.austegard.com/blog/caps-emphasis-corpus.html

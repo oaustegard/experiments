@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-07",
+   "why": "Oskar is never introduced; unclear who he is or why his question matters."
+  },
+  {
+   "quote": "Jev had done well on routing questions",
+   "why": "Refers to earlier unstated work; what routing questions were and how Jev did is unexplained."
+  },
+  {
+   "quote": "With the tic's definition from `register.md` in its prompt",
+   "why": "'The tic' and `register.md` are never defined; reader doesn't know what a tic is or what the file contains."
+  },
+  {
+   "quote": "`declaude_lint` hits",
+   "why": "Tool name unexplained; unclear which rules it has beyond the categories listed."
+  },
+  {
+   "quote": "the 50% triage bar we set in advance",
+   "why": "Bar is not defined: 'settles' hits and the 5% error budget are unexplained, so the 50% is unclear until later, and 'settle' is never defined."
+  },
+  {
+   "quote": "at a 5% error budget it could settle only 24.5% of hits",
+   "why": "Unclear what 'settle' means (auto-decide with confidence?) and what error is counted, so the figure can't be interpreted."
+  },
+  {
+   "quote": "Knowing only the hit's lint category, which gives its historical tic rate, reached AUROC 0.769.",
+   "why": "Historical rate source is unclear, and it may be computed on the same 261 hits, a leakage question; baseline not explained."
+  },
+  {
+   "quote": "35.2% of those 261 were real tics",
+   "why": "The headline 'Jev settles' and 'accuracy 0.751 to 0.732' are hard to reconcile: a 35% base rate would give 64.8% accuracy by always saying no; and what 'real' is depends on judges' labels. Minor, but unclear."
+  },
+  {
+   "quote": "it is not going into our public posting review",
+   "why": "Mildly redundant/contradictory framing: 'public posting review' is never explained, and the final 'Jev is not added to the review' refers to the same unexplained process."
+  }
+ ],
+ "point": "Jev, a fast calibrated classifier for filtering false-positive style lint hits, ranked hits only modestly better than a simple per-category rate and could confidently settle just 24.5% of hits at a 5% error budget, missing the 50% bar, so it won't be adopted."
+}

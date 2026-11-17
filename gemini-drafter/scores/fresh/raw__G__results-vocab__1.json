@@ -1,0 +1,29 @@
+{
+ "stumbles": [
+  {
+   "quote": "Oskar asked on 2026-11-06: \"could we create an entirely custom domain Ettin model with custom token table ... for life sciences?\"",
+   "why": "Oskar is never introduced, and the quote is the only statement of the question. Ettin is also never explained, so I can't tell whether it is a model family or a tokenizer."
+  },
+  {
+   "quote": "An initial round that kept the GPT-2 pre-tokenizer led to the assumption that a domain vocabulary does not help much",
+   "why": "This leans on an earlier round that the text never describes. It also sits oddly with the 8% gain stated just before it, which is not 'not much' by any threshold given."
+  },
+  {
+   "quote": "Keeping the default GPT-2 pre-tokenizer caps the gain at 8%",
+   "why": "The text doesn't say what the 8% is measured against. It could be the 376-token baseline or something else. The word 'default' is also ambiguous, because it is unclear whether it describes Ettin's own tokenizer or GPT-2's."
+  },
+  {
+   "quote": "moves to `lifesci-ettin`",
+   "why": "This names something I have never seen. I can't tell whether it is a repo, an experiment, or a model, or whether it already exists."
+  },
+  {
+   "quote": "so no published clinical ModernBERT has tried this",
+   "why": "The text never says what 'this' is. It is also an overclaim, because two models are named and 'no published' covers all of them. Neither BioClinical ModernBERT nor Clinical ModernBERT is explained."
+  },
+  {
+   "quote": "A 50K-token BPE vocabulary retrained on 39,000 PubMed abstracts",
+   "why": "It doesn't say whether the 21% comes from the 50K vocabulary alone or from the whitespace pre-tokenizer. It also doesn't say if the 50K matches Ettin's default vocabulary size, so the comparison may not be like for like."
+  }
+ ],
+ "point": "A BPE vocabulary retrained on PubMed with whitespace-only pre-tokenization cuts the token count on held-out abstracts by 21%, against 8% with the GPT-2 pre-tokenizer, but the text never shows whether this makes a model cheaper or better."
+}

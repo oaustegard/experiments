@@ -1,0 +1,41 @@
+{
+ "stumbles": [
+  {
+   "quote": "remex's hash cells hold 70% while scanning 34%.",
+   "why": "remex is never introduced, and its 'hash cells' are never described. It is unclear whether this is a baseline index, an LSH scheme, or something else, so the comparison has no clear meaning."
+  },
+  {
+   "quote": "build upon our prior work",
+   "why": "The 'prior work' is never identified. It refers to earlier work by the author and Oskar that the text doesn't describe, and Oskar is also not introduced."
+  },
+  {
+   "quote": "e-means",
+   "why": "The algorithm is never explained. A k-means reader can't tell how it differs from Lloyd's, what a 'pass' is, or why it would be faster. The text only cites an arXiv ID."
+  },
+  {
+   "quote": "in 1 to 3 passes",
+   "why": "'Passes' is not defined and is not compared with Lloyd's iterations. It could mean full data sweeps or something else. The '1.6 to 10.2 times sooner' figure also doesn't say whether it measures wall-clock time or something else."
+  },
+  {
+   "quote": "hold 90% of true neighbours",
+   "why": "The metric is not defined. It could be recall@10, recall@k, or something else. It is also unclear how many cells are probed, which is what produces the 0.56% scanned. The cell size is also unclear: 0.56% of the corpus is about 23 cells' worth of 4,096 only if the data is evenly spread, and the text doesn't say how this was set up."
+  },
+  {
+   "quote": "the centroid table costs 126 bytes per vector",
+   "why": "4,096 centroids at 768 dimensions in float32 is about 12.6 MB. Spread over 100,000 vectors that is about 126 bytes each, but the text never gives the dimension or precision. The claim that a second bit per dimension 'would cost less' also can't be checked without the dimension."
+  },
+  {
+   "quote": "Recall@10 rose from 0.840 to 0.891.",
+   "why": "The text doesn't say what the baseline is. It is presumably plain remex 1-bit without offset coding. 'Recall@10' is also not defined against any corpus or query set."
+  },
+  {
+   "quote": "I had expected the offset coding to be the win and the index cells to be a side note. It came out the other way.",
+   "why": "This contradicts the earlier sentence that the author 'assumed e-means would mainly speed up training'. The text gives two different prior expectations: speed, then offset coding. The headline also reports only the index-cell result."
+  },
+  {
+   "quote": "so the choice between them is about training time only.",
+   "why": "The text compares recall for the two methods, but it doesn't give the training time for the index-cell setup. It also doesn't say whether the 0.005 equivalence holds for the offset-coding test."
+  }
+ ],
+ "point": "Using 4,096 e-means centroids as index cells in remex retrieves far more true neighbours per fraction of the corpus scanned than remex's hash cells, and e-means differs from Lloyd's k-means mainly in how fast it trains."
+}
