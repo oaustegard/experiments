@@ -269,3 +269,16 @@ With 1.18, the checks gave the same results as before:
 F2's sung opening word was misheard once more, which makes 3 of 7 F2 runs; the other voices were clean. A real
 iPhone has not confirmed the fix yet.
 
+### Round 11 (2026-11-17): confirmed on the iPhone, through relay.js
+
+The tuner now reports its own log to `gpu-bridge-comms` via `gpu-bridge/web/relay.js`, which runs only on
+Oskar's devices and after `?log=1`. The first iPhone session ran with Chrome 157 on iOS 27.2.1, build relay1
+(onnxruntime-web 1.18), loading on the page (`logs/tiny-voca-tuner/2026-11-17/030252-iPhone-702j4n.jsonl`):
+
+- the model started without an out-of-memory error;
+- the tuner was ready 0.8 s after the page opened, with the files already cached;
+- it spoke 5.82 s of audio in 0.215 s and sang the 18.69 s score in 0.786 s.
+
+The earlier iPhone errors came from builds diz1 and diz3, which the phone kept serving from cache after newer
+builds were live. The page now checks `build.json` past every cache and reloads once when it is stale.
+
