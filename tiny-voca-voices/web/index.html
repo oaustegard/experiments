@@ -164,8 +164,8 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
         <p class="hint-text">Hyphenate words into syllables (<code>A-maz-ing</code>), one phrase per line. Write one note per
           syllable, in order, as <code>NOTE/BEATS</code>: <code>D4/1</code>, <code>F#4/.5</code>. Join notes with
           <code>~</code> to stretch one syllable over several (<code>B4/.5~G4/.5</code>); a rest is <code>r/1</code>.
-          The default is the first verse of "Amazing Grace" (John Newton, 1779) to "New Britain" (1829), both public
-          domain. Male voices sound best an octave down: Transpose −12.</p>
+          The default is the first verse of "Amazing Grace" (John Newton, 1779) to "New Britain" (1829) as E. O. Excell
+          set it in 1900, all public domain. A song can have any number of lines; one line can last up to about 30 s. Male voices sound best an octave down: Transpose −12.</p>
       </div>
       <div class="row">
         <button id="speak" class="primary" type="button" disabled>Speak</button>
@@ -233,9 +233,12 @@ const SONG = [
   { id: "glide", label: "Glide", min: 0, max: 0.2, step: 0.01, value: 0.04, fmt: (v) => `${Math.round(v * 1000)} ms` },
   { id: "voices", label: "Chorus", min: 1, max: 8, step: 1, value: 1, fmt: (v) => (v === 1 ? "solo" : `${v} voices`) },
 ];
+// The first verse of "Amazing Grace" (John Newton, 1779) to "New Britain" (1829), as E. O. Excell set it in 1900,
+// all public domain; the melody follows the LilyPond score in the English Wikipedia article "Amazing Grace".
 const SONG_DEFAULT = {
-  lyrics: "A-maz-ing grace, how sweet the sound\nThat saved a wretch like me",
-  notes: "D4/1 G4/2 B4/.5~G4/.5 B4/2 A4/1 G4/2 E4/1 D4/2 r/1\nD4/1 G4/2 B4/.5~G4/.5 B4/2 A4/1 D5/5 r/1",
+  lyrics: "A-maz-ing grace, how sweet the sound\nThat saved a wretch like me\nI once was lost, but now am found\nWas blind, but now I see",
+  notes: "D4/1 G4/2 B4/.5~G4/.5 B4/2 A4/1 G4/2 E4/1 D4/2\nD4/1 G4/2 B4/.5~G4/.5 B4/2 A4/1 D5/2\n" +
+         "B4/1 D5/1.5~B4/.5 D5/.5~B4/.5 G4/2 D4/1 E4/1.5~G4/.5 G4/.5~E4/.5 D4/2\nD4/1 G4/2 B4/.5~G4/.5 B4/2 A4/1 G4/3",
 };
 const PRESETS = {
   "F2": {},
@@ -406,7 +409,7 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-chorus1";   // keep equal to build.json
+const BUILD = "2026-11-17-verse1";   // keep equal to build.json
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tiny-voca-tuner", build: BUILD });
 // A phone can keep serving a cached copy of this page after a deploy (one ran build diz3 after ort118 was live).
 // build.json is fetched past every cache; when it names another build, reload once under a URL no cache holds.

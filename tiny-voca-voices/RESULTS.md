@@ -308,3 +308,21 @@ away. Save WAV writes stereo.
 
 `samples/chorus-amazing-grace-4-voices.mp3` is the 4-voice mix.
 
+### Round 13 (2026-11-17): the full verse
+
+Asked whether there is a length limit. Each lyric line is one model call, so one line can last at most 3,000 frames
+(32 s) and hold at most 512 phonemes. A song can have any number of lines. The default is now the whole first verse
+of "Amazing Grace" (Newton, 1779) to "New Britain" (1829), in E. O. Excell's 1900 setting. All three are public
+domain. The melody comes from the LilyPond score in the English Wikipedia article. That score has no rest between
+phrases ("sound" is two beats and "That" is the pickup), so the earlier two-line default's rests were dropped.
+
+Solo, in four voices (`run/sing_check.mjs`, `run/sing_score.py`):
+- the verse was 30.9 s long and took 2.5–2.7 s to make in the container;
+- the median note error was 0.7–1.4 cents;
+- every measured note was within 50 cents (35 of 35 in both F2 voices, 32–33 measured of 35 in the M2 voices);
+- WER was 3.8–11.5%. The errors clustered on the slurred "now am" in line 3, heard as "now all I am" or "now I
+  am", and Whisper dropped the end of line 4 in two voices.
+
+As a chorus (seed 12345), 4 voices took 9.6 s and 8 voices 19.3 s. Each mix had a 4% WER (one word), and 95% of
+voiced frames were within 50 cents of one of the melody's pitch classes.
+
