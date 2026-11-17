@@ -244,3 +244,28 @@ error of at most 1.0 cents with lyrics transcribed exactly. Across the earlier P
 had the opening "Amazing" misheard, which matches run-to-run noise. The iPhone result still needs a test on a real
 device.
 
+### Round 10 (2026-11-17): the iPhone out-of-memory error
+
+Chrome on an iPhone stopped at "Starting the model" with `no available backend found. ERR: [wasm] RangeError: Out
+of memory`. The error appeared first in the worker, and again after iOS was switched to loading on the page, while
+`example.html` worked. Wrapping `WebAssembly.Memory` in WebKit showed onnxruntime-web 1.20.1 creating
+`{"initial":256,"maximum":65536,"shared":true}`: a shared memory with a 4 GB maximum, which has to be reserved in
+full up front. 1.19 and later ship only that threaded build. 1.18.0 still ships a non-threaded `ort-wasm-simd.wasm`
+that creates its own growable memory, and with one thread and no cross-origin isolation it selects that build.
+After the switch, no shared memory is requested.
+
+Two smaller changes reduce the memory in use when the runtime starts:
+- Downloads are read into one buffer instead of collecting chunks and joining them. The chunk version doubled each
+  file's peak.
+- The dictionary's in-memory tables (about 14 MB, measured in Node) are built after the model session starts.
+
+With 1.18, the checks gave the same results as before:
+- presets and slider ends clean except speed ×2;
+- singing at a median note error of 0.6–1.1 cents, with every measured note within 50 cents;
+- identical sample counts in the reuse check;
+- the second visit still works offline (onnxruntime's wasm comes from jsDelivr's HTTP cache, since 1.18 has no
+  `wasmBinary` option).
+
+F2's sung opening word was misheard once more, which makes 3 of 7 F2 runs; the other voices were clean. A real
+iPhone has not confirmed the fix yet.
+

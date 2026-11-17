@@ -19,7 +19,7 @@
 // web/public/worker.js, Apache-2.0).
 (function (root) {
   "use strict";
-  const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+  const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/";
   // Model files are named after their content, so a cached copy can never be stale.
   const MODEL = { file: "tiny-voca-7cb6639de307.bin", sha256: "7cb6639de307e7b228f560e4ec83b3c955e31c88ddfd3858fa036a4f2077c8ef" };
   // Voice files made with earlier exports of the same weights name those exports; they play unchanged.
@@ -43,6 +43,10 @@
     });
   }
 
+  // Fetch through Cache Storage. The body is read into one buffer: when the length is known the buffer is sized up
+  // front and filled as chunks arrive; when it is not (a gzip response's length counts compressed bytes), the
+  // browser reads the whole body and a timer keeps reporting progress. Collecting chunks and joining them would
+  // hold every file twice at its peak, which matters on phones.
   async function download(url, label, onStatus) {
     let store = null;
     try {
@@ -52,26 +56,26 @@
     } catch (error) { store = null; }
     const response = await fetch(url);
     if (!response.ok) throw new Error(`${url}: ${response.status}`);
-    // A compressed response's content-length counts compressed bytes while the body yields decompressed ones,
-    // so a percentage would overshoot (it read 451%); show no percentage then.
     const total = response.headers.get("content-encoding") ? 0 : Number(response.headers.get("content-length")) || 0;
     let bytes;
-    if (!response.body) {
-      bytes = new Uint8Array(await response.arrayBuffer());
-    } else {
+    if (total && response.body) {
+      bytes = new Uint8Array(total);
       const reader = response.body.getReader();
-      const chunks = [];
       let received = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        chunks.push(value);
+        if (received + value.length > total) throw new Error(`${url}: more bytes than its content-length`);
+        bytes.set(value, received);
         received += value.length;
-        onStatus(label, total ? Math.min(received / total, 1) : null, received);
+        onStatus(label, received / total, received);
       }
-      bytes = new Uint8Array(received);
-      let offset = 0;
-      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+      if (received !== total) bytes = bytes.subarray(0, received);
+    } else {
+      onStatus(label);
+      const started = Date.now();
+      const tick = setInterval(() => onStatus(`${label} (${Math.round((Date.now() - started) / 1000)} s)`), 3000);
+      try { bytes = new Uint8Array(await response.arrayBuffer()); } finally { clearInterval(tick); }
     }
     if (store) store.put(url, new Response(bytes)).catch(() => {});
     return bytes;
@@ -199,32 +203,36 @@
     if (typeof ort === "undefined") await loadScript(ORT + "ort.wasm.min.js");
     const space = await (await fetch(new URL("voice-space.json", base))).json();
 
-    // dizione, ported to JavaScript (dizione.js; identical to Python dizione on a 12,450-sentence corpus).
-    // Returns the JSON string the callers below parse: {ids, stress, text}, or "null" when nothing is pronounceable.
-    async function phonemizer() {
+    // The dictionary downloads alongside the model, but its in-memory tables (about 14 MB) are built only after
+    // the model's session exists: onnxruntime asks for its WebAssembly memory when the session starts, and on a
+    // phone that request is the one most likely to fail.
+    async function phonemizerFiles() {
       onStatus("Loading the phonemizer");
       // The script URL carries its bundle's hash, so a cached older dizione.js is never paired with a newer bundle.
       if (typeof Dizione === "undefined") await loadScript(new URL(`dizione.js?v=${DIZIONE_BUNDLE}`, base).href);
-      onStatus("Loading the dictionary");
-      const bytes = await download(new URL(Dizione.DATA_FILE, base).href, "Loading the dictionary", onStatus);
-      onStatus("Starting the phonemizer");
-      const dizione = await Dizione.load({ bundle: bytes });
-      onStatus("Phonemizer ready");
-      return (text) => JSON.stringify(dizione.phonemize(text));
+      return download(new URL(Dizione.DATA_FILE, base).href, "Loading the dictionary", onStatus);
     }
 
+    // onnxruntime-web 1.18's non-threaded build (ort-wasm-simd.wasm) grows its memory as needed. 1.19 and later
+    // ship only a threaded build, which reserves a 4 GB shared memory up front; on an iPhone that reservation
+    // failed with "RangeError: Out of memory". With one thread and no cross-origin isolation, 1.18 picks the
+    // non-threaded build. Its wasm file comes from jsDelivr's HTTP cache (versioned, cached for a year).
     async function model() {
       const bytes = await download(new URL(MODEL.file, base).href, "Loading the model", onStatus);
       onStatus("Starting the model");
       ort.env.wasm.wasmPaths = ORT;
       ort.env.wasm.numThreads = threads;
-      // The runtime's WebAssembly goes through the same cache as the model, so a second visit fetches nothing.
-      try { ort.env.wasm.wasmBinary = await download(ORT + "ort-wasm-simd-threaded.wasm", "Loading the runtime", onStatus); }
-      catch (error) { /* onnxruntime fetches it itself */ }
       return ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
     }
 
-    const [phonemize, session] = await Promise.all([phonemizer(), model()]);
+    const dictionary = phonemizerFiles();
+    dictionary.catch(() => {});                  // reported below, after the model, if it failed
+    const session = await model();
+    const bundle = await dictionary;
+    onStatus("Starting the phonemizer");
+    const dizione = await Dizione.load({ bundle });
+    onStatus("Phonemizer ready");
+    const phonemize = (text) => JSON.stringify(dizione.phonemize(text));
 
     // One sentence -> utterances of at most max_tokens phonemes (cut at commas, then between words).
     function fit(sentence) {
