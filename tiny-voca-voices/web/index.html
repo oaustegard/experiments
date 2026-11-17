@@ -55,6 +55,14 @@ button:disabled { opacity: 0.5; cursor: default; }
 .reach.over { color: var(--warn); }
 progress { width: 100%; height: 6px; accent-color: var(--accent); }
 .phonemes { font: 0.8rem/1.6 var(--mono); color: var(--muted); overflow-wrap: anywhere; max-height: 7rem; overflow: auto; }
+input[type=text] { font: 0.92rem var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 9px; min-width: 0; flex: 1 1 8rem; }
+.file-button { font: 500 0.92rem var(--sans); border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.file-button:hover { border-color: var(--accent); }
+.hint-text { font-size: 0.84rem; color: var(--muted); }
+pre.code { margin: 0; font: 0.76rem/1.5 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px; overflow-x: auto; white-space: pre; }
 label.check { display: inline-flex; gap: 6px; align-items: center; font-size: 0.9rem; color: var(--muted); }
 .notes { font-size: 0.86rem; color: var(--muted); display: grid; gap: 8px; }
 code { font-family: var(--mono); font-size: 0.9em; }
@@ -66,7 +74,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   <header>
     <h1>tiny-voca Voice Tuner</h1>
     <p class="lede">Build your own voice for <a href="https://huggingface.co/n4ze3m/tiny-voca">tiny-voca</a>, a 4.5M-parameter
-      text-to-speech model with two stock voices, F2 and M2. Everything runs in this page: the model is 10 MB and
+      text-to-speech model with two stock voices, F2 and M2, and save it as a file to use in your own pages and scripts. Everything runs in this page: the model is 10 MB and
       speaks about 16× faster than real time on one WebAssembly (CPU) thread.</p>
     <p class="lede">Once it has loaded, pick a preset and press Speak, then drag a slider: each release speaks the text
       again in the new voice.</p>
@@ -92,6 +100,29 @@ code { font-family: var(--mono); font-size: 0.9em; }
         <button id="random" type="button">Surprise me</button>
         <button id="reset" type="button">Reset to F2</button>
         <button id="share" type="button">Copy link to this voice</button>
+      </div>
+      <div class="group" id="g-keep">
+        <h2>Keep this voice</h2>
+        <div class="row">
+          <input type="text" id="voice-name" value="my voice" aria-label="Voice name" maxlength="60">
+          <button id="export" type="button" disabled>Save voice file</button>
+          <label class="file-button" for="import">Load voice file</label>
+          <input type="file" id="import" accept=".json,application/json" hidden>
+        </div>
+        <p class="hint-text">A voice file (<code>.voice.json</code>, about 4 KB) holds the voice itself: the two embeddings and
+          the six controls the model reads. Play it in your own page or script:</p>
+        <pre class="code" id="code-js">&lt;script src="https://austegard.com/experiments/tiny-voca-voices/web/tinyvoca.js"&gt;&lt;/script&gt;
+&lt;script type="module"&gt;
+  const tts = await TinyVoca.load();
+  const voice = await (await fetch("my-voice.voice.json")).json();
+  const audio = await tts.speak("Hello there.", voice);   // Float32Array, 24 kHz
+  const wavBlob = TinyVoca.wav(audio);
+&lt;/script&gt;</pre>
+        <pre class="code" id="code-py"># Python: pip install onnxruntime numpy soundfile git+https://github.com/n4ze3m/dizione
+python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
+        <p class="hint-text"><a href="tinyvoca.js">tinyvoca.js</a> ·
+          <a href="https://github.com/oaustegard/experiments/blob/main/tiny-voca-voices/speak.py">speak.py</a> ·
+          <a href="example.html">a minimal example page</a></p>
       </div>
     </section>
 
@@ -239,6 +270,7 @@ $("share").addEventListener("click", async () => {
 
 // Worker and playback.
 const worker = new Worker("worker.js");
+let lastVoice = null;
 let ready = false, request = 0, lastClip = null, context = null, player = null;
 function setStatus(text, error = false) { $("status").textContent = text; $("status").classList.toggle("error", error); }
 worker.onmessage = ({ data }) => {
@@ -249,6 +281,7 @@ worker.onmessage = ({ data }) => {
     ready = true;
     $("progress").value = 1;
     $("speak").disabled = false;
+    $("export").disabled = false;
     setStatus("Ready. Pick a preset, move a slider, or press Speak.");
   } else if (data.type === "sentence" && data.id === request) {
     if (data.index === 0) $("phonemes").textContent = "";
@@ -259,7 +292,16 @@ worker.onmessage = ({ data }) => {
     $("save").disabled = false;
     const seconds = data.audio.length / data.sampleRate;
     if (!player.end()) playWhole(data.audio, data.sampleRate);
-    setStatus(`Spoke ${seconds.toFixed(1)} s of audio in ${(data.totalTime / 1000).toFixed(2)} s (model ${(data.modelTime / 1000).toFixed(2)} s).`);
+    setStatus(`Spoke ${seconds.toFixed(1)} s of audio in ${(data.totalTime / 1000).toFixed(2)} s.`);
+  } else if (data.type === "voice") {
+    const blob = new Blob([JSON.stringify(data.voice)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (data.voice.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "voice") + ".voice.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    lastVoice = data.voice;
+    setStatus(`Saved ${a.download}.`);
   } else if (data.type === "error") {
     setStatus(data.plain ? data.message : "Something went wrong: " + data.message, true);
     if (player) player.end();
@@ -282,11 +324,33 @@ function speak() {
   request += 1;
   const v = values();
   setStatus("Speaking…");
-  worker.postMessage({ type: "speak", id: request, text, settings: {
-    mix: v.mix, axes: [v.a1, v.a2, v.a3, v.a4], pitch: v.pitch, range: v.range, speed: v.speed,
-    formant: v.formant, tilt: v.tilt, breath: v.breath } });
+  worker.postMessage({ type: "speak", id: request, text, settings: settingsOf(v) });
 }
 $("speak").addEventListener("click", speak);
+function settingsOf(v) {
+  return { mix: v.mix, axes: [v.a1, v.a2, v.a3, v.a4], pitch: v.pitch, range: v.range, speed: v.speed,
+           formant: v.formant, tilt: v.tilt, breath: v.breath };
+}
+$("export").addEventListener("click", () => {
+  worker.postMessage({ type: "export", id: 0, settings: settingsOf(values()), name: $("voice-name").value.trim() || "my voice" });
+});
+// A voice file from this tuner carries its slider settings; load them back.
+$("import").addEventListener("change", async () => {
+  const file = $("import").files[0];
+  $("import").value = "";
+  if (!file) return;
+  try {
+    const voice = JSON.parse(await file.text());
+    if (voice.format !== "tiny-voca-voice/1") throw new Error("not a tiny-voca voice file");
+    const s = voice.settings;
+    if (!s || !Array.isArray(s.axes)) throw new Error("this voice file has no tuner settings to load");
+    apply({ mix: s.mix, a1: s.axes[0], a2: s.axes[1], a3: s.axes[2], a4: s.axes[3], pitch: s.pitch, range: s.range,
+            speed: s.speed, formant: s.formant, tilt: s.tilt, breath: s.breath });
+    if (voice.name) $("voice-name").value = voice.name;
+    setStatus(`Loaded ${voice.name || file.name}.`);
+    if (ready) speak();
+  } catch (error) { setStatus("Could not load that file: " + error.message, true); }
+});
 $("stop").addEventListener("click", () => player && player.stop());
 $("text").addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && ready) speak(); });
 

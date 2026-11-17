@@ -8,12 +8,12 @@ that change a voice without retraining, and how far each goes before speech stop
 
 ## Answer
 
-Eleven sliders, all inputs to one ONNX file of 10.0 MB. <!-- @evidence[[results/headline.json#model_mb_browser]] -->
+A voice designed with eleven sliders saves as a 4.0 KB file that plays in other pages and in Python. <!-- @evidence[[results/headline.json#reuse_voice_kb]] -->
+The sliders feed one 10.0 MB ONNX file. <!-- @evidence[[results/headline.json#model_mb_browser]] -->
 It loads in 5.9 s in headless Chromium <!-- @evidence[[results/headline.json#browser_load_s]] -->
 and speaks 15.8× faster than real time on one WebAssembly thread. <!-- @evidence[[results/headline.json#browser_realtime_factor_median]] -->
-The voice comes from the model's learned voice vectors: a walk between F2 and M2, plus four directions
-off that line, drawn once at random with a fixed seed. Pitch, pitch movement and speed are the model's own
-controls; formant scale, brightness and breath reshape the filter its vocoder predicts.
+Voices come from the learned F2 and M2 vectors and four fixed random directions off that line, the model's own
+pitch and speed controls, and a reshaped vocoder filter.
 
 The voice vector is what limits intelligibility (Whisper transcribing exactly); of the other slider ends tested,
 only speed ×2 lost a word. Off the F2–M2 line the combined distance decides, in units where 1.0 is as far as F2 is
@@ -21,7 +21,7 @@ from M2. Of 12 random voices with each axis uniform in ±1, 4 of 4 up to a dista
 Past 1.15, 6 of 8 garbled a word. <!-- @evidence[[results/headline.json#random_far_with_errors]] -->
 The page caps each axis at ±1, warns past 1.0, and keeps "Surprise me" within 0.9.
 All 16 of 16 such voices were clean. <!-- @evidence[[results/headline.json#bounded_random_clean]] -->
-Median pitch ran from 141 Hz <!-- @evidence[[results/headline.json#bounded_random_f0_min]] -->
+Pitch ran from 141 Hz <!-- @evidence[[results/headline.json#bounded_random_f0_min]] -->
 to 383 Hz. <!-- @evidence[[results/headline.json#bounded_random_f0_max]] -->
 
 Nobody has run a listening test; one could change which settings count as good.
@@ -34,12 +34,19 @@ Nobody has run a listening test; one could change which settings count as good.
    The exception was axis 2 at −1 on M2, which turned "and a" into "in a".
    At ±1.5, 7 of 8 had errors. <!-- @evidence[[results/headline.json#single_axis_pm15_with_errors]] -->
    (Round 5, browser checks 2 and 3)
-2. **The sliders other than the four axes stay intelligible at their ends.** Eleven ends were tested: the F2↔M2
+2. **A saved voice plays the same in the tuner, in other pages and in Python.** The voice file holds the two
+   embeddings and six controls the model reads, plus the slider settings for reloading. Spoken from the same file,
+   the tuner, `tinyvoca.js` on `example.html` and `speak.py` (onnxruntime, no PyTorch) each produced 133632 samples. <!-- @evidence[[results/headline.json#reuse_samples]] -->
+   Against the tuner, pitch differed by 4.4 cents at p90 for the library <!-- @evidence[[results/headline.json#reuse_library_pitch_cents_p90]] -->
+   and 5.0 cents for Python. <!-- @evidence[[results/headline.json#reuse_python_pitch_cents_p90]] -->
+   Each transcribed exactly (0.0% WER), and the file loaded back into the tuner restored every slider. <!-- @evidence[[results/headline.json#reuse_wer_pct]] -->
+   The noise signal is random in each runtime, so waveforms differ. (Round 6)
+3. **The sliders other than the four axes stay intelligible at their ends.** Eleven ends were tested: the F2↔M2
    slider at −0.5 and 1.5, pitch ±12 semitones, formant scale 0.8 and 1.25, brightness ±4 dB per octave, breath +12 dB, and speed 0.5
    and 2. Of these, 10 of 11 transcribed exactly. <!-- @evidence[[results/headline.json#other_slider_ends_clean]] -->
    The one error was speed ×2, which slurred one word. Pitch movement and breath −12 dB were not tested at their
    ends. (Round 5, browser check 1)
-3. **The weights can be stored as 8-bit integers (int8) everywhere except where durations are set.** The shipped
+4. **The weights can be stored as 8-bit integers (int8) everywhere except where durations are set.** The shipped
    file, "int8-dur", keeps the text encoder and duration predictor at 16-bit floats and stores every other matrix
    at int8. It is 10.0 MB.
    At fp32 the file is 21.39 MB. <!-- @evidence[[results/headline.json#model_mb_fp32]] -->
@@ -47,17 +54,17 @@ Nobody has run a listening test; one could change which settings count as good.
    Pitch moved 6.6 cents (hundredths of a semitone) at the 90th percentile. <!-- @evidence[[results/headline.json#int8dur_pitch_cents_p90]] -->
    int8 everywhere moved pitch 30.6 cents, and 0.5% of durations changed. <!-- @evidence[[results/headline.json#int8all_pitch_cents_p90]] -->
    This is the same split [`kokoro-web`](../kokoro-web/RESULTS.md) found for Kokoro (its Finding 1). (Round 4)
-4. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
+5. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
    cepstrum, a compact description of a spectrum's shape. Its Fourier transform gives the filter's log-magnitude
    and its phase directly, and both can be stretched along frequency by linear interpolation.
    A 0.90 setting moves the filter envelope by exactly 0.90 (`check_warp.py`). In the graph the warp is one
    interpolation matrix built from the input. A spectrum measured from the audio understates the shift at high
    pitch: 0.975 for F2 at 0.90, because F2's harmonics are far apart and sample the envelope coarsely. (Round 2)
-5. **The tunable graph matches PyTorch.** Given the same noise, the ONNX graph and the PyTorch module produce the
+6. **The tunable graph matches PyTorch.** Given the same noise, the ONNX graph and the PyTorch module produce the
    same number of samples for every case.
    They differ by at most 1.456% of peak. <!-- @evidence[[results/headline.json#onnx_parity_max_err_pct_peak]] -->
    tiny-voca's own export reports 0.6% for its stock graph. (Round 4)
-6. **Stock F2 is pitched high for an adult.** Its median pitch is 268 Hz. <!-- @evidence[[results/headline.json#lab_f2_f0]] -->
+7. **Stock F2 is pitched high for an adult.** Its median pitch is 268 Hz. <!-- @evidence[[results/headline.json#lab_f2_f0]] -->
    That matches the model card's note that F2 sounds younger than designed.
    The F2-adult preset brings it to 216 Hz and lowers the formants 6%. <!-- @evidence[[results/headline.json#lab_f2_adult_f0]] -->
    Stock M2 is at 175 Hz. <!-- @evidence[[results/headline.json#lab_m2_f0]] -->
@@ -145,3 +152,20 @@ on F2 and M2 (31 of 32 clean), plus 12 random voices drawn with axes uniform in 
 was clean, and 6 of 8 past 1.15 were not (`results/browser_axes_random.json`). The axes were capped at ±1, a distance
 readout with a warning past 1.0 was added, and "Surprise me" now draws within 0.9. Check 3 then gave 16 of 16 clean
 voices (`results/browser_bounded_random.json`).
+
+### Round 6 (2026-11-17): reuse outside the page
+
+Asked: "I thought we were supposed to give the user a way to reuse the voice in their own efforts?" The tuner only
+saved WAVs and a link. Added a voice file (`tiny-voca-voice/1`: name, model URL and hash, both embeddings, the six
+controls, and the tuner settings) with Save and Load buttons; `web/tinyvoca.js`, a library that loads the model and
+phonemizer and speaks text in any voice file, in a page or a worker (the tuner's worker now runs on it);
+`web/example.html`, a 40-line page that uses it; and `speak.py` for Python. `run/reuse_check.mjs` designs a voice,
+saves it with the page's button, reloads it into a fresh tuner and speaks it through `example.html`. `speak.py`
+then speaks the same file in the jail, and `run/reuse_score.py` compares the three (`results/reuse.json`):
+
+| runtime | samples | median F0 | pitch vs tuner, p90 | WER |
+|---|---:|---:|---:|---:|
+| tuner | 133,632 | 191.8 Hz | — | 0% |
+| tinyvoca.js | 133,632 | 192.0 Hz | 4.4 cents | 0% |
+| speak.py | 133,632 | 191.9 Hz | 5.0 cents | 0% |
+

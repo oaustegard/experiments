@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tinyvoca.js example</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 16px; }
+  textarea { width: 100%; min-height: 5rem; font: inherit; }
+  pre { background: rgba(127,127,127,.12); padding: 10px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>tinyvoca.js example</h1>
+<p>The smallest page that speaks in a saved tiny-voca voice. Choose a <code>.voice.json</code> file from the
+  <a href="./">Voice Tuner</a> (or leave it empty for stock F2), type, press Speak. View source: it is about 40 lines.</p>
+<p><input type="file" id="file" accept=".json"> <span id="name">stock F2</span></p>
+<textarea id="text">Hello! This voice was designed in the tuner and saved to a file.</textarea>
+<p><button id="speak" disabled>Speak</button> <span id="status">Loading…</span></p>
+<script src="tinyvoca.js"></script>
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+  const tts = await TinyVoca.load({ onStatus: (text, p) => { $("status").textContent = p == null ? text : `${text} ${Math.round(100 * p)}%`; } });
+  // Without a file: stock F2, built from the tuner's default settings.
+  let voice = tts.voiceFromSettings({ mix: 0, axes: [0, 0, 0, 0], pitch: 0, range: 1, speed: 1, formant: 1, tilt: 0, breath: 0 }, "stock F2");
+  $("status").textContent = "Ready.";
+  $("speak").disabled = false;
+  $("file").addEventListener("change", async () => {
+    try {
+      voice = TinyVoca.checkVoice(JSON.parse(await $("file").files[0].text()));
+      $("name").textContent = voice.name;
+    } catch (error) { $("status").textContent = error.message; }
+  });
+  $("speak").addEventListener("click", async () => {
+    const context = new AudioContext();
+    $("status").textContent = "Speaking…";
+    const audio = await tts.speak($("text").value, voice);
+    const buffer = context.createBuffer(1, audio.length, tts.sampleRate);
+    buffer.getChannelData(0).set(audio);
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.start();
+    $("status").textContent = `${(audio.length / tts.sampleRate).toFixed(1)} s`;
+  });
+</script>
+</body>
+</html>
