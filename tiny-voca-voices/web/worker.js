@@ -10,7 +10,7 @@ const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
 // The phonemizer data, pinned to the model repository's revision of 2026-11-16.
 const HF = "https://huggingface.co/n4ze3m/tiny-voca/resolve/d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14/phonemizer/";
 const DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json"];
-const VERSION = "1";
+const VERSION = "2";
 
 importScripts(PYODIDE + "pyodide.js", ORT + "ort.wasm.min.js");
 
@@ -55,7 +55,7 @@ async function loadPhonemizer() {
   pyodide = await loadPyodide({ indexURL: PYODIDE });
   await pyodide.loadPackage("numpy");
   const [source, ...files] = await Promise.all([
-    download("dizione.zip", "Loading the phonemizer"),
+    download("dizione-src.bin", "Loading the phonemizer"),
     ...DATA.map((name) => download(HF + name, "Loading the dictionary")),
   ]);
   status("Starting the phonemizer");
@@ -84,7 +84,7 @@ phonemize_json("Warm up.")
 
 async function loadModel() {
   space = await (await fetch("voice-space.json")).json();
-  const bytes = await download("tiny-voca-tunable.onnx", "Loading the model");
+  const bytes = await download("tiny-voca-tunable.bin", "Loading the model");
   status("Starting the model");
   ort.env.wasm.wasmPaths = ORT;
   ort.env.wasm.numThreads = 1;
