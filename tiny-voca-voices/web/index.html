@@ -409,7 +409,7 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-sync1";   // keep equal to build.json
+const BUILD = "2026-11-17-play1";   // keep equal to build.json
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tiny-voca-tuner", build: BUILD });
 // A phone can keep serving a cached copy of this page after a deploy (one ran build diz3 after ort118 was live).
 // build.json is fetched past every cache; when it names another build, reload once under a URL no cache holds.
@@ -543,24 +543,42 @@ engine = wanted === "page" || (IOS && wanted !== "worker") ? null : startWorker(
 if (engine) engine.post({ type: "load" });
 else fallBack(IOS && wanted !== "page" ? "iOS gives background workers too little memory for the model" : "this link asked for it");
 
+// Whole clips (a chorus, or a clip the live player could not stream) play outside the live player, so they are
+// tracked here: starting anything new, or Stop, ends them. Before this, a slider release during a song started
+// a second copy on top of the first; on an iPhone, copies 3-6 s apart played at once, "several bars behind".
+const oneShots = new Set();
+function stopOneShots() {
+  for (const source of oneShots) { source.onended = null; try { source.stop(); } catch (e) { /* already ended */ } }
+  oneShots.clear();
+  if (player) $("stop").disabled = !player.playing;
+}
+function playBuffer(buffer) {
+  stopOneShots();
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.connect(context.destination);
+  source.onended = () => { oneShots.delete(source); $("stop").disabled = !(player && player.playing) && !oneShots.size; };
+  oneShots.add(source);
+  source.start();
+  $("stop").disabled = false;
+}
 function playStereo(left, right, rate) {
   const buffer = context.createBuffer(2, left.length, rate);
   buffer.getChannelData(0).set(left);
   buffer.getChannelData(1).set(right);
-  const source = context.createBufferSource();
-  source.buffer = buffer; source.connect(context.destination); source.start();
+  playBuffer(buffer);
 }
 function playWhole(samples, rate) {
   const buffer = context.createBuffer(1, samples.length, rate);
   buffer.getChannelData(0).set(samples);
-  const source = context.createBufferSource();
-  source.buffer = buffer; source.connect(context.destination); source.start();
+  playBuffer(buffer);
 }
 function speak() {
   const text = $("text").value.trim();
   if (!text) { setStatus("Type something to speak.", true); return; }
   context = context || new (window.AudioContext || window.webkitAudioContext)();
-  player = player || livePlayer(context, () => { $("stop").disabled = !player.playing; });
+  player = player || livePlayer(context, () => { $("stop").disabled = !player.playing && !oneShots.size; });
+  stopOneShots();
   player.begin();
   request += 1;
   const v = values();
@@ -569,7 +587,8 @@ function speak() {
 }
 function sing() {
   context = context || new (window.AudioContext || window.webkitAudioContext)();
-  player = player || livePlayer(context, () => { $("stop").disabled = !player.playing; });
+  player = player || livePlayer(context, () => { $("stop").disabled = !player.playing && !oneShots.size; });
+  stopOneShots();
   player.begin();
   request += 1;
   const { voices, ...rest } = song();
@@ -608,7 +627,7 @@ $("import").addEventListener("change", async () => {
     if (ready) perform();
   } catch (error) { setStatus("Could not load that file: " + error.message, true); }
 });
-$("stop").addEventListener("click", () => player && player.stop());
+$("stop").addEventListener("click", () => { if (player) player.stop(); stopOneShots(); });
 for (const id of ["text", "lyrics", "notes"]) {
   $(id).addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && ready) perform(); });
 }

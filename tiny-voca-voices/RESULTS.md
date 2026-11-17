@@ -346,3 +346,19 @@ After the fix:
 - Whisper transcribed the 4-voice mix exactly and missed one word in the 8-voice mix;
 - 94% of voiced frames were within 50 cents of the melody's pitch classes.
 
+### Round 15 (2026-11-17): songs playing over each other
+
+Oskar heard some chorus voices "several bars behind" the others. The relay log from the iPhone showed new songs
+starting 3–6 s apart while each lasted 15.7 s. Most likely each was a slider release with "Play again" on. Inside one
+mix the parts are line-aligned, so the bars of delay came from whole performances overlapping:
+- a chorus, and any clip the live player could not stream, played as a one-shot buffer that nothing tracked;
+- starting the next performance, and pressing Stop, left those one-shots playing.
+
+All one-shots are now tracked, and a new performance or Stop ends them. `run/overlap_check.mjs` tags every
+`AudioBufferSourceNode` with its request and sings twice in a row:
+- on the old build, the first chorus was still playing under the second;
+- on the new build, only the second sounds, in Chromium and in WebKit with iPhone emulation.
+
+Solo singing streamed through the tracked player and did not overlap in either browser here. The iPhone's solo
+overlaps most likely went through the untracked whole-clip path, which is now tracked too.
+
