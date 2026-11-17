@@ -148,14 +148,19 @@
     return samples;
   }
 
+  // 16-bit PCM WAV. wav(mono[, rate]) or wav([left, right][, rate]) for stereo (e.g. a chorus).
   function wav(samples, rate = 24000) {
-    const data = new DataView(new ArrayBuffer(44 + samples.length * 2));
+    const channels = Array.isArray(samples) ? samples : [samples];
+    const n = channels[0].length, k = channels.length;
+    const data = new DataView(new ArrayBuffer(44 + n * 2 * k));
     const text = (o, s) => [...s].forEach((ch, i) => data.setUint8(o + i, ch.charCodeAt(0)));
-    text(0, "RIFF"); data.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVEfmt ");
-    data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, 1, true);
-    data.setUint32(24, rate, true); data.setUint32(28, rate * 2, true); data.setUint16(32, 2, true); data.setUint16(34, 16, true);
-    text(36, "data"); data.setUint32(40, samples.length * 2, true);
-    for (let i = 0; i < samples.length; i++) data.setInt16(44 + 2 * i, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+    text(0, "RIFF"); data.setUint32(4, 36 + n * 2 * k, true); text(8, "WAVEfmt ");
+    data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, k, true);
+    data.setUint32(24, rate, true); data.setUint32(28, rate * 2 * k, true); data.setUint16(32, 2 * k, true); data.setUint16(34, 16, true);
+    text(36, "data"); data.setUint32(40, n * 2 * k, true);
+    for (let i = 0, o = 44; i < n; i++) {
+      for (let c = 0; c < k; c++, o += 2) data.setInt16(o, Math.max(-1, Math.min(1, channels[c][i])) * 32767, true);
+    }
     return new Blob([data], { type: "audio/wav" });
   }
 
@@ -433,7 +438,40 @@
       return limitPeak(audio);
     }
 
-    return { speak, sing, run, synthesize, phonemize: (text) => JSON.parse(phonemize(text)), space, sampleRate: space.sample_rate,
+
+    // ---- Chorus -----------------------------------------------------------------------------------------------
+    // Sing one score in several voices and mix them to stereo. parts: [{voice, transpose = 0 (semitones, may be
+    // fractional: a few cents of detune keeps unison voices from phasing), delayMs = 0, vibratoRate, pan = 0
+    // (-1 left .. 1 right)}]. Returns {left, right, parts}: Float32Arrays at 24 kHz; the mix peaks at most 0.99.
+    // onPart(index, total) is called as each part starts.
+    async function chorus(score, parts, { onPart } = {}) {
+      if (!parts.length) throw new Error("a chorus needs at least one voice");
+      const sung = [];
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        if (onPart) onPart(i, parts.length);
+        const audio = await sing({ ...score, transpose: (score.transpose || 0) + (p.transpose || 0),
+                                   vibratoRate: p.vibratoRate ?? score.vibratoRate }, p.voice);
+        const lead = Math.max(0, Math.round((p.delayMs || 0) * space.sample_rate / 1000));
+        const shifted = new Float32Array(audio.length + lead);
+        shifted.set(audio, lead);
+        sung.push(shifted);
+      }
+      const n = Math.max(...sung.map((a) => a.length));
+      const left = new Float32Array(n), right = new Float32Array(n);
+      const gain = 1 / Math.sqrt(parts.length);
+      sung.forEach((a, i) => {
+        const angle = (Math.max(-1, Math.min(1, parts[i].pan || 0)) + 1) * Math.PI / 4;   // equal-power pan
+        const l = Math.cos(angle) * gain * Math.SQRT2, r = Math.sin(angle) * gain * Math.SQRT2;
+        for (let j = 0; j < a.length; j++) { left[j] += a[j] * l; right[j] += a[j] * r; }
+      });
+      let loudest = 0;
+      for (let j = 0; j < n; j++) loudest = Math.max(loudest, Math.abs(left[j]), Math.abs(right[j]));
+      if (loudest > PEAK) for (let j = 0; j < n; j++) { left[j] *= PEAK / loudest; right[j] *= PEAK / loudest; }
+      return { left, right, parts: sung };
+    }
+
+    return { speak, sing, chorus, run, synthesize, phonemize: (text) => JSON.parse(phonemize(text)), space, sampleRate: space.sample_rate,
              voiceFromSettings: (settings, name) => voiceFromSettings(space, settings, name, base) };
   }
 

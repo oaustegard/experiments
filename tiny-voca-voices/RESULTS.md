@@ -282,3 +282,29 @@ Oskar's devices and after `?log=1`. The first iPhone session ran with Chrome 157
 The earlier iPhone errors came from builds diz1 and diz3, which the phone kept serving from cache after newer
 builds were live. The page now checks `build.json` past every cache and reloads once when it is stale.
 
+### Round 12 (2026-11-17): chorus
+
+Asked to make it a chorus by singing several "Surprise me" voices at once. `tinyvoca.js` `chorus(score, parts)`
+sings the score once per part and mixes the parts to stereo with equal-power panning, scaling the sum by
+1/sqrt(n) and capping its peak at 0.99. Each part can set a fractional transpose (detune), a delay, a vibrato
+rate and a pan position. In the tuner, the Chorus slider (solo to 8) makes the slider voice the lead. The other
+voices come from the Surprise-me sampler, so they stay inside the tested-clear distance of 0.9. A seed in the link
+fixes which voices are drawn.
+
+Each added voice gets:
+- up to ±8 cents of detune;
+- up to 25 ms of delay;
+- a vibrato rate of 5.5 ± 0.7 Hz;
+- a place spread from −0.7 to 0.7 across the stereo field, with the lead nearest the centre.
+
+With "octave" on (the default), a voice on the other side of the F2–M2 midpoint from the lead sings an octave
+away. Save WAV writes stereo.
+
+`run/chorus_check.mjs` checked seed 12345 (`results/chorus.json`):
+- In Chromium and in WebKit with iPhone emulation, the seed drew the same voices.
+- The container took 5.5 s to sing a 4-voice chorus of the 18.7 s score and 10–11 s for 8 voices.
+- Whisper transcribed the mono fold-down exactly every time.
+- 96% of voiced frames were within 50 cents of one of the melody's pitch classes (octaves folded).
+
+`samples/chorus-amazing-grace-4-voices.mp3` is the 4-voice mix.
+

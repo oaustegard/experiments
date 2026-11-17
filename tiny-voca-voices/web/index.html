@@ -154,6 +154,13 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
         <h2>Notes</h2>
         <textarea id="notes" class="mono" aria-label="Notes" spellcheck="false"></textarea>
         <div class="group" id="g-song"></div>
+        <div class="row" id="chorus-row">
+          <button id="reseed" type="button">New chorus</button>
+          <label class="check"><input type="checkbox" id="octave" checked> Lower voices sing an octave down</label>
+        </div>
+        <p class="hint-text" id="chorus-note">With Chorus above 1, your voice leads and the others are drawn the way
+          "Surprise me" draws them, each slightly detuned, a few milliseconds late and placed left to right.
+          "New chorus" draws another set; the link keeps the set.</p>
         <p class="hint-text">Hyphenate words into syllables (<code>A-maz-ing</code>), one phrase per line. Write one note per
           syllable, in order, as <code>NOTE/BEATS</code>: <code>D4/1</code>, <code>F#4/.5</code>. Join notes with
           <code>~</code> to stretch one syllable over several (<code>B4/.5~G4/.5</code>); a rest is <code>r/1</code>.
@@ -224,6 +231,7 @@ const SONG = [
   { id: "transpose", label: "Transpose", min: -24, max: 12, step: 1, value: 0, fmt: (v) => `${v > 0 ? "+" : ""}${v} st` },
   { id: "vibrato", label: "Vibrato", min: 0, max: 1.5, step: 0.05, value: 0.35, fmt: (v) => `${v.toFixed(2)} st` },
   { id: "glide", label: "Glide", min: 0, max: 0.2, step: 0.01, value: 0.04, fmt: (v) => `${Math.round(v * 1000)} ms` },
+  { id: "voices", label: "Chorus", min: 1, max: 8, step: 1, value: 1, fmt: (v) => (v === 1 ? "solo" : `${v} voices`) },
 ];
 const SONG_DEFAULT = {
   lyrics: "A-maz-ing grace, how sweet the sound\nThat saved a wretch like me",
@@ -322,7 +330,8 @@ const later = (fn) => { clearTimeout(textTimer); textTimer = setTimeout(fn, 400)
 $("text").addEventListener("input", () => later(() => setQuery({ text: $("text").value.slice(0, 2000) })));
 function rememberSong() {
   later(() => setQuery({ lyrics: $("lyrics").value.slice(0, 3000), notes: $("notes").value.slice(0, 3000),
-                         ...Object.fromEntries(SONG.map((c) => [c.id, c.input.value])) }));
+                         ...Object.fromEntries(SONG.map((c) => [c.id, c.input.value])),
+                         seed: song().voices > 1 ? chorusSeed : null, octave: $("octave").checked ? null : "0" }));
 }
 $("lyrics").addEventListener("input", rememberSong);
 $("notes").addEventListener("input", rememberSong);
@@ -343,18 +352,51 @@ $("tab-sing").addEventListener("click", () => setMode("sing"));
 setMode(mode);
 
 // Random voices stay inside the range where tested voices transcribed exactly: off-line distance at most 0.9.
-$("random").addEventListener("click", () => {
-  const r = (a, b) => a + Math.random() * (b - a);
+// A random voice inside the range where tested voices transcribed exactly (off-line distance at most 0.9).
+// "Surprise me" and the chorus both draw from it; the chorus passes a seeded generator so a link can keep its set.
+function randomSettings(rand = Math.random) {
+  const r = (a, b) => a + rand() * (b - a);
   const snap = (x, s) => Math.round(x / s) * s;
-  const g = () => { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); };
+  const g = () => { let u = 0; while (!u) u = rand(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand()); };
   const d = [g(), g(), g(), g()];
   const n = Math.hypot(...d);
   const reach = r(0.2, 0.9);
   const [a1, a2, a3, a4] = d.map((x) => snap(x / n * reach, 0.05));
-  apply({ mix: snap(r(-0.25, 1.25), 0.05), a1, a2, a3, a4, pitch: snap(r(-5, 4), 0.5), range: snap(r(0.8, 1.3), 0.05),
-          speed: snap(r(0.9, 1.1), 0.05), formant: snap(r(0.9, 1.08), 0.01), tilt: snap(r(-2, 1.5), 0.25), breath: snap(r(-3, 6), 0.5) });
+  return { mix: snap(r(-0.25, 1.25), 0.05), a1, a2, a3, a4, pitch: snap(r(-5, 4), 0.5), range: snap(r(0.8, 1.3), 0.05),
+           speed: snap(r(0.9, 1.1), 0.05), formant: snap(r(0.9, 1.08), 0.01), tilt: snap(r(-2, 1.5), 0.25), breath: snap(r(-3, 6), 0.5) };
+}
+function seeded(seed) {             // mulberry32
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+let chorusSeed = Number(params.get("seed")) >>> 0 || (Math.random() * 2 ** 32) >>> 0;
+if (params.get("octave") === "0") $("octave").checked = false;
+// The lead is the voice on the sliders; the others come from the seed. Each gets a few cents of detune, up to
+// 25 ms of delay, its own vibrato rate and a place in the stereo field; with "octave" on, a voice on the other
+// side of the F2-M2 midpoint from the lead sings an octave away from it.
+function chorusParts(count) {
+  const rand = seeded(chorusSeed);
+  const lead = values();
+  const male = (v) => v.mix > 0.5;
+  const pans = Array.from({ length: count }, (_, i) => (count === 1 ? 0 : -0.7 + 1.4 * i / (count - 1)));
+  const order = pans.map((p, i) => i).sort((x, y) => Math.abs(pans[x]) - Math.abs(pans[y]));   // lead nearest the centre
+  return Array.from({ length: count }, (_, k) => {
+    const v = k === 0 ? lead : randomSettings(rand);
+    const octave = k === 0 || !$("octave").checked ? 0 : male(v) && !male(lead) ? -12 : !male(v) && male(lead) ? 12 : 0;
+    return { settings: settingsOf(v), transpose: octave + (k === 0 ? 0 : (rand() * 2 - 1) * 0.08),
+             delayMs: k === 0 ? 0 : rand() * 25, vibratoRate: k === 0 ? 5.5 : 5.5 + (rand() * 2 - 1) * 0.7, pan: pans[order[k]] };
+  });
+}
+$("random").addEventListener("click", () => {
+  apply(randomSettings());
   if (ready) perform();
 });
+$("reseed").addEventListener("click", () => {
+  chorusSeed = (Math.random() * 2 ** 32) >>> 0;
+  rememberSong();
+  if (ready && mode === "sing") perform();
+});
+$("octave").addEventListener("change", () => { rememberSong(); if (ready && mode === "sing" && $("auto").checked) perform(); });
 $("reset").addEventListener("click", () => { apply(DEFAULTS); if (ready) perform(); });
 $("share").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(location.href); setStatus("Link copied."); }
@@ -364,7 +406,7 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-relay1";   // keep equal to build.json
+const BUILD = "2026-11-17-chorus1";   // keep equal to build.json
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tiny-voca-tuner", build: BUILD });
 // A phone can keep serving a cached copy of this page after a deploy (one ran build diz3 after ort118 was live).
 // build.json is fetched past every cache; when it names another build, reload once under a URL no cache holds.
@@ -458,6 +500,14 @@ function onEngineMessage(data) {
     if (data.index === 0) $("phonemes").textContent = "";
     if (data.phonemes) $("phonemes").textContent += (data.index ? "  ·  " : "") + data.phonemes;
     player.add(data.audio, data.sampleRate);
+  } else if (data.type === "done" && data.id === request && data.chorus) {
+    lastClip = { audio: data.left, left: data.left, right: data.right, rate: data.sampleRate, id: data.id };
+    $("save").disabled = false;
+    const seconds = data.left.length / data.sampleRate;
+    player.end();
+    playStereo(data.left, data.right, data.sampleRate);
+    setStatus(`Sang a chorus of ${data.chorus} voices: ${seconds.toFixed(1)} s of audio in ${(data.totalTime / 1000).toFixed(2)} s.`);
+    relay.log("sang chorus", { voices: data.chorus, seconds: +seconds.toFixed(2), ms: Math.round(data.totalTime), onPage });
   } else if (data.type === "done" && data.id === request) {
     lastClip = { audio: data.audio, rate: data.sampleRate, id: data.id };
     $("save").disabled = false;
@@ -490,6 +540,13 @@ engine = wanted === "page" || (IOS && wanted !== "worker") ? null : startWorker(
 if (engine) engine.post({ type: "load" });
 else fallBack(IOS && wanted !== "page" ? "iOS gives background workers too little memory for the model" : "this link asked for it");
 
+function playStereo(left, right, rate) {
+  const buffer = context.createBuffer(2, left.length, rate);
+  buffer.getChannelData(0).set(left);
+  buffer.getChannelData(1).set(right);
+  const source = context.createBufferSource();
+  source.buffer = buffer; source.connect(context.destination); source.start();
+}
 function playWhole(samples, rate) {
   const buffer = context.createBuffer(1, samples.length, rate);
   buffer.getChannelData(0).set(samples);
@@ -512,9 +569,15 @@ function sing() {
   player = player || livePlayer(context, () => { $("stop").disabled = !player.playing; });
   player.begin();
   request += 1;
-  setStatus("Singing…");
-  engine.post({ type: "sing", id: request, settings: settingsOf(values()),
-                       score: { lyrics: $("lyrics").value, notes: $("notes").value, ...song() } });
+  const { voices, ...rest } = song();
+  const score = { lyrics: $("lyrics").value, notes: $("notes").value, ...rest };
+  if (voices > 1) {
+    setStatus(`Singing a chorus of ${voices} voices…`);
+    engine.post({ type: "chorus", id: request, score, parts: chorusParts(voices) });
+  } else {
+    setStatus("Singing…");
+    engine.post({ type: "sing", id: request, settings: settingsOf(values()), score });
+  }
 }
 function perform() { return mode === "sing" ? sing() : speak(); }
 $("speak").addEventListener("click", perform);
@@ -547,20 +610,23 @@ for (const id of ["text", "lyrics", "notes"]) {
   $(id).addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && ready) perform(); });
 }
 
+// 16-bit PCM WAV, mono or [left, right]; tinyvoca.js has the same as TinyVoca.wav (it is not loaded here in worker mode).
 function wav(samples, rate) {
-  const data = new DataView(new ArrayBuffer(44 + samples.length * 2));
+  const channels = Array.isArray(samples) ? samples : [samples];
+  const n = channels[0].length, k = channels.length;
+  const data = new DataView(new ArrayBuffer(44 + n * 2 * k));
   const text = (o, s) => [...s].forEach((ch, i) => data.setUint8(o + i, ch.charCodeAt(0)));
-  text(0, "RIFF"); data.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVEfmt ");
-  data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, 1, true);
-  data.setUint32(24, rate, true); data.setUint32(28, rate * 2, true); data.setUint16(32, 2, true); data.setUint16(34, 16, true);
-  text(36, "data"); data.setUint32(40, samples.length * 2, true);
-  for (let i = 0; i < samples.length; i++) data.setInt16(44 + 2 * i, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+  text(0, "RIFF"); data.setUint32(4, 36 + n * 2 * k, true); text(8, "WAVEfmt ");
+  data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, k, true);
+  data.setUint32(24, rate, true); data.setUint32(28, rate * 2 * k, true); data.setUint16(32, 2 * k, true); data.setUint16(34, 16, true);
+  text(36, "data"); data.setUint32(40, n * 2 * k, true);
+  for (let i = 0, o = 44; i < n; i++) for (let c = 0; c < k; c++, o += 2) data.setInt16(o, Math.max(-1, Math.min(1, channels[c][i])) * 32767, true);
   return new Blob([data], { type: "audio/wav" });
 }
 $("save").addEventListener("click", () => {
   if (!lastClip) return;
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(wav(lastClip.audio, lastClip.rate));
+  a.href = URL.createObjectURL(wav(lastClip.left ? [lastClip.left, lastClip.right] : lastClip.audio, lastClip.rate));
   a.download = mode === "sing" ? "tiny-voca-song.wav" : "tiny-voca-voice.wav";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
