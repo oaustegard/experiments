@@ -6,10 +6,11 @@
 //   const audio = await tts.speak("Hello there.", voice);                  // Float32Array, 24 kHz mono
 //   const wav = TinyVoca.wav(audio);                                       // Blob, 16-bit PCM
 //
-// load() fetches onnxruntime-web and Pyodide from jsDelivr, the model and phonemizer source from `base` (this
-// file's folder on austegard.com by default), and dizione's dictionary from Hugging Face. About 22 MB transferred
-// the first time (8.4 MB model, 11 MB Pyodide, numpy and dictionary, 2.5 MB onnxruntime); kept in Cache Storage after. Self-hosting: copy tinyvoca.js, tiny-voca-tunable.bin,
-// dizione-src.bin and voice-space.json to one folder and pass its URL as `base`.
+// load() fetches onnxruntime-web from jsDelivr, and the model, the phonemizer (dizione.js, a JavaScript port of
+// dizione) and its data from `base` (this file's folder on austegard.com by default). There is no Python in the
+// browser. The first visit downloads about 11 MB; everything is kept in Cache Storage after that, so later
+// visits work offline. Self-hosting: copy tinyvoca.js, dizione.js, the tiny-voca-*.bin and dizione-*.bin files
+// and voice-space.json to one folder and pass its URL as `base`.
 //
 // A voice file (format "tiny-voca-voice/1") carries the two 192-value embeddings the model reads and the six
 // numeric controls, so it plays without the tuner. `settings` holds the tuner's slider values, for reloading.
@@ -18,10 +19,7 @@
 // web/public/worker.js, Apache-2.0).
 (function (root) {
   "use strict";
-  const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
   const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
-  const HF = "https://huggingface.co/n4ze3m/tiny-voca/resolve/d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14/phonemizer/";
-  const DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json"];
   // Model files are named after their content, so a cached copy can never be stale.
   const MODEL = { file: "tiny-voca-7cb6639de307.bin", sha256: "7cb6639de307e7b228f560e4ec83b3c955e31c88ddfd3858fa036a4f2077c8ef" };
   // Voice files made with earlier exports of the same weights name those exports; they play unchanged.
@@ -196,39 +194,17 @@
   async function loadOnce({ base = DEFAULT_BASE, onStatus = () => {}, threads = 1 } = {}) {
     pruneCaches();
     if (typeof ort === "undefined") await loadScript(ORT + "ort.wasm.min.js");
-    if (typeof loadPyodide === "undefined") await loadScript(PYODIDE + "pyodide.js");
     const space = await (await fetch(new URL("voice-space.json", base))).json();
 
+    // dizione, ported to JavaScript (dizione.js; identical to Python dizione on a 12,450-sentence corpus).
+    // Returns the JSON string the callers below parse: {ids, stress, text}, or "null" when nothing is pronounceable.
     async function phonemizer() {
       onStatus("Loading the phonemizer");
-      const pyodide = await loadPyodide({ indexURL: PYODIDE });
-      await pyodide.loadPackage("numpy");
-      const [source, ...files] = await Promise.all([
-        download(new URL("dizione-src.bin", base).href, "Loading the phonemizer", onStatus),
-        ...DATA.map((name) => download(HF + name, "Loading the dictionary", onStatus)),
-      ]);
+      if (typeof Dizione === "undefined") await loadScript(new URL("dizione.js", base).href);
+      const bytes = await download(new URL(Dizione.DATA_FILE, base).href, "Loading the dictionary", onStatus);
       onStatus("Starting the phonemizer");
-      pyodide.FS.mkdirTree("/dizione-data");
-      DATA.forEach((name, index) => pyodide.FS.writeFile("/dizione-data/" + name, files[index]));
-      pyodide.unpackArchive(source.buffer, "zip", { extractDir: "/dizione-src" });
-      pyodide.runPython(`
-import json, os, sys
-os.environ["DIZIONE_DATA"] = "/dizione-data"
-sys.path.insert(0, "/dizione-src")
-import dizione
-
-def phonemize_json(text):
-    try:
-        result = dizione.phonemize(text)
-    except ValueError:
-        if any(word for mark, words in dizione.pieces(text) if not mark for word in words):
-            raise
-        return "null"
-    return json.dumps({"ids": list(result.ids), "stress": list(result.stress), "text": str(result)})
-
-phonemize_json("Warm up.")
-`);
-      return pyodide.globals.get("phonemize_json");
+      const dizione = await Dizione.load({ bundle: bytes });
+      return (text) => JSON.stringify(dizione.phonemize(text));
     }
 
     async function model() {
