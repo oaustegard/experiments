@@ -159,7 +159,7 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
           <label class="check"><input type="checkbox" id="octave" checked> Lower voices sing an octave down</label>
         </div>
         <p class="hint-text" id="chorus-note">With Chorus above 1, your voice leads and the others are drawn the way
-          "Surprise me" draws them, each slightly detuned, a few milliseconds late and placed left to right.
+          "Surprise me" draws them, all on the lead's timing, each slightly detuned and placed left to right.
           "New chorus" draws another set; the link keeps the set.</p>
         <p class="hint-text">Hyphenate words into syllables (<code>A-maz-ing</code>), one phrase per line. Write one note per
           syllable, in order, as <code>NOTE/BEATS</code>: <code>D4/1</code>, <code>F#4/.5</code>. Join notes with
@@ -374,8 +374,8 @@ function seeded(seed) {             // mulberry32
 }
 let chorusSeed = Number(params.get("seed")) >>> 0 || (Math.random() * 2 ** 32) >>> 0;
 if (params.get("octave") === "0") $("octave").checked = false;
-// The lead is the voice on the sliders; the others come from the seed. Each gets a few cents of detune, up to
-// 25 ms of delay, its own vibrato rate and a place in the stereo field; with "octave" on, a voice on the other
+// The lead is the voice on the sliders; the others come from the seed. All parts share the lead's timing; each
+// other part gets a few cents of detune, up to 6 ms of delay, its own vibrato rate and a place in the stereo field; with "octave" on, a voice on the other
 // side of the F2-M2 midpoint from the lead sings an octave away from it.
 function chorusParts(count) {
   const rand = seeded(chorusSeed);
@@ -387,7 +387,7 @@ function chorusParts(count) {
     const v = k === 0 ? lead : randomSettings(rand);
     const octave = k === 0 || !$("octave").checked ? 0 : male(v) && !male(lead) ? -12 : !male(v) && male(lead) ? 12 : 0;
     return { settings: settingsOf(v), transpose: octave + (k === 0 ? 0 : (rand() * 2 - 1) * 0.08),
-             delayMs: k === 0 ? 0 : rand() * 25, vibratoRate: k === 0 ? 5.5 : 5.5 + (rand() * 2 - 1) * 0.7, pan: pans[order[k]] };
+             delayMs: k === 0 ? 0 : rand() * 6, vibratoRate: k === 0 ? 5.5 : 5.5 + (rand() * 2 - 1) * 0.7, pan: pans[order[k]] };
   });
 }
 $("random").addEventListener("click", () => {
@@ -409,7 +409,7 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-verse1";   // keep equal to build.json
+const BUILD = "2026-11-17-sync1";   // keep equal to build.json
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tiny-voca-tuner", build: BUILD });
 // A phone can keep serving a cached copy of this page after a deploy (one ran build diz3 after ort118 was live).
 // build.json is fetched past every cache; when it names another build, reload once under a URL no cache holds.

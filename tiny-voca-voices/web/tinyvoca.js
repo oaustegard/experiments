@@ -304,7 +304,7 @@
     //   transpose in semitones; vibrato depth in semitones; glide in seconds.
     // The voice's timbre is used as is; its pitch shift and speed are not (the notes set pitch and timing).
     // Returns Float32Array at 24 kHz. onLine(audio, index, total) is called as each lyric line is made.
-    async function sing(score, voice, { onLine } = {}) {
+    async function sing(score, voice, { onLine, timingVoice, onPlan } = {}) {
       checkVoice(voice);
       const bpm = score.bpm || 90, transpose = score.transpose || 0;
       const depth = score.vibrato ?? 0.35, rate = score.vibratoRate ?? 5.5, glide = score.glide ?? 0.04;
@@ -334,7 +334,10 @@
         if (wordTokens.length !== words.length) {
           throw new Error(`line ${li + 1}: the phonemizer read ${wordTokens.length} words where the lyrics have ${words.length}; spell out numbers and symbols`);
         }
-        const predicted = (await run(phones, voice)).durations;
+        // Consonant lengths come from the model's prediction. A chorus passes its lead as timingVoice so every
+        // part gets the same frames per phoneme; with each part's own prediction they drifted 20-40 ms apart
+        // (median, 150 ms at worst; run/chorus_sync.mjs).
+        const predicted = (await run(phones, timingVoice || voice)).durations;
         const frames = phones.ids.map(() => 0);
         const notesOf = new Map();       // token index -> [{hz, frames}] for vowels, {hz} for consonants
         // Rests before the first syllable of a word go on the gap token before it.
@@ -425,6 +428,7 @@
           y = y ? y + (target - y) * alpha : target;
           f0[n] = Math.exp(y);
         }
+        if (onPlan) onPlan(li, frames.slice());       // frames per phoneme of this line, for checking alignment
         const { audio } = await run(phones, voice, { frames, f0, pitchShift: 0 });
         chunks.push(audio);
         if (onLine) onLine(limitPeak(audio.slice()), li, lines.length);
@@ -444,14 +448,15 @@
     // fractional: a few cents of detune keeps unison voices from phasing), delayMs = 0, vibratoRate, pan = 0
     // (-1 left .. 1 right)}]. Returns {left, right, parts}: Float32Arrays at 24 kHz; the mix peaks at most 0.99.
     // onPart(index, total) is called as each part starts.
-    async function chorus(score, parts, { onPart } = {}) {
+    async function chorus(score, parts, { onPart, onPlan } = {}) {
       if (!parts.length) throw new Error("a chorus needs at least one voice");
       const sung = [];
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i];
         if (onPart) onPart(i, parts.length);
         const audio = await sing({ ...score, transpose: (score.transpose || 0) + (p.transpose || 0),
-                                   vibratoRate: p.vibratoRate ?? score.vibratoRate }, p.voice);
+                                   vibratoRate: p.vibratoRate ?? score.vibratoRate }, p.voice,
+                                 { timingVoice: parts[0].voice, onPlan: onPlan && ((line, frames) => onPlan(i, line, frames)) });
         const lead = Math.max(0, Math.round((p.delayMs || 0) * space.sample_rate / 1000));
         const shifted = new Float32Array(audio.length + lead);
         shifted.set(audio, lead);

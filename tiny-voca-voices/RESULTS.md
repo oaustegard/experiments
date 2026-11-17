@@ -326,3 +326,23 @@ Solo, in four voices (`run/sing_check.mjs`, `run/sing_score.py`):
 As a chorus (seed 12345), 4 voices took 9.6 s and 8 voices 19.3 s. Each mix had a 4% WER (one word), and 95% of
 voiced frames were within 50 cents of one of the melody's pitch classes.
 
+### Round 14 (2026-11-17): chorus voices out of step
+
+Oskar heard the chorus voices start at different times. There were two causes. Each part planned its own timing,
+so consonants took that voice's predicted length and its vowels started at slightly different frames. On top of
+that, each part got up to 25 ms of deliberate delay. `run/chorus_plan.mjs` records each part's frames per phoneme
+through `chorus()`'s new `onPlan` callback and compares every part with the lead. With each part timing itself,
+14–28 of the verse's 111 phonemes started at a different time from the lead (up to 21 ms), before the delay was
+added.
+
+`sing()` now takes a `timingVoice`, and `chorus()` passes the lead, so all parts share one plan. After the change,
+0 of 111 phonemes differ. The deliberate delay is now at most 6 ms. Two indirect measures were tried first and
+left in `run/`:
+- loudness-envelope cross-correlation (`chorus_sync.mjs`) does not separate timing from timbre;
+- voicing onsets (`chorus_onsets.py`) do not pair up across octaves.
+
+After the fix:
+- 4 voices took 8.9 s in the container and 8 voices 19.1 s;
+- Whisper transcribed the 4-voice mix exactly and missed one word in the 8-voice mix;
+- 94% of voiced frames were within 50 cents of the melody's pitch classes.
+
