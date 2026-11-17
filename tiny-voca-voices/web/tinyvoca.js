@@ -56,7 +56,7 @@
     // so a percentage would overshoot (it read 451%); show no percentage then.
     const total = response.headers.get("content-encoding") ? 0 : Number(response.headers.get("content-length")) || 0;
     let bytes;
-    if (!response.body || !total) {
+    if (!response.body) {
       bytes = new Uint8Array(await response.arrayBuffer());
     } else {
       const reader = response.body.getReader();
@@ -67,7 +67,7 @@
         if (done) break;
         chunks.push(value);
         received += value.length;
-        onStatus(label, Math.min(received / total, 1));
+        onStatus(label, total ? Math.min(received / total, 1) : null, received);
       }
       bytes = new Uint8Array(received);
       let offset = 0;

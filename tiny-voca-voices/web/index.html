@@ -81,8 +81,8 @@ code { font-family: var(--mono); font-size: 0.9em; }
 <div class="wrap">
   <header>
     <h1>tiny-voca Voice Tuner</h1>
-    <p class="lede">Build your own voice for <a href="https://huggingface.co/n4ze3m/tiny-voca">tiny-voca</a>, a 4.5M-parameter
-      text-to-speech model with two stock voices, F2 and M2, and save it as a file to use in your own pages and scripts. Everything runs in this page, from an 11 MB download, and the model
+    <p class="lede"><a href="https://huggingface.co/n4ze3m/tiny-voca">tiny-voca</a> is a 4.5M-parameter
+      text-to-speech model with two stock voices, F2 and M2. Build your own voice for it here and save it as a file to use in your own pages and scripts. Everything runs in this page, from an 11 MB download, and the model
       speaks about 16× faster than real time on one WebAssembly (CPU) thread.</p>
     <p class="lede">Once it has loaded, pick a preset and press Speak, then drag a slider: each release plays the text
       again in the new voice. Switch to <b>Sing</b> to hear the same voice sing lyrics to notes you write.</p>
@@ -117,8 +117,8 @@ code { font-family: var(--mono); font-size: 0.9em; }
           <label class="file-button" for="import">Load voice file</label>
           <input type="file" id="import" accept=".json,application/json" hidden>
         </div>
-        <p class="hint-text">A voice file (<code>.voice.json</code>, about 4 KB) holds the voice itself: the two embeddings and
-          the six controls the model reads. Play it in your own page or script:</p>
+        <p class="hint-text">A voice file (<code>.voice.json</code>, about 4 KB) contains the two embeddings and
+          the six controls that the model reads. Play it in your own page or script:</p>
         <pre class="code" id="code-js">&lt;script src="https://austegard.com/experiments/tiny-voca-voices/web/tinyvoca.js"&gt;&lt;/script&gt;
 &lt;script type="module"&gt;
   const tts = await TinyVoca.load();
@@ -129,8 +129,8 @@ code { font-family: var(--mono); font-size: 0.9em; }
         <pre class="code" id="code-py"># Python: pip install onnxruntime numpy soundfile git+https://github.com/n4ze3m/dizione
 python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
         <p class="hint-text">Ready-made files for every preset are in <code>voices/</code>, e.g.
-          <a href="voices/F2-adult.voice.json">voices/F2-adult.voice.json</a>. Links take text too:
-          <code>?text=Hello</code> here, or <a href="example.html?text=Hello%20from%20a%20saved%20voice.&amp;voice=voices/M2-baritone.voice.json">example.html?text=…&amp;voice=voices/M2-baritone.voice.json</a>.</p>
+          <a href="voices/F2-adult.voice.json">voices/F2-adult.voice.json</a>. A link can set the text too:
+          <code>?text=Hello</code> on this page, or <a href="example.html?text=Hello%20from%20a%20saved%20voice.&amp;voice=voices/M2-baritone.voice.json">example.html?text=…&amp;voice=voices/M2-baritone.voice.json</a>.</p>
         <p class="hint-text"><a href="tinyvoca.js">tinyvoca.js</a> ·
           <a href="https://github.com/oaustegard/experiments/blob/main/tiny-voca-voices/speak.py">speak.py</a> ·
           <a href="example.html">a minimal example page</a></p>
@@ -171,17 +171,17 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
         <div class="phonemes" id="phonemes">—</div>
       </div>
       <div class="notes">
-        <p><b>Voice embedding.</b> The model learned one 192-number vector per voice, at the phoneme and the frame
-          level. The first slider walks between F2 (0) and M2 (1) and past them. The four axes point away from that
+        <p><b>Voice embedding.</b> For each voice the model learned two 192-number vectors, one at the phoneme level and one at the
+          frame level. The first slider walks between F2 (0) and M2 (1) and past them. The four axes point away from that
           line in fixed random directions; 1.0 is as far as F2 is from M2. Each hint says what that axis did at +1 on
-          F2 in tests. Their combined distance off the line (shown under the axes) is what matters: every random voice up to
+          F2 in tests. Whether words stay clear depends on the axes' combined distance off the line, shown under the axes. Every random voice up to
           1.13 stayed clear, one axis at a time at ±1 lost a word once in 32 tries, and past about 1.15, 6 of 8 random
           voices garbled a word. "Surprise me" stays within 0.9.</p>
-        <p><b>Vocal tract and texture.</b> The waveform comes from a pulse train and noise, each shaped by a filter the
-          network predicts every 10.7 ms. Formant scale resamples that filter along frequency: below 1 sounds larger
-          and older. Brightness tilts the voiced filter, breath raises the noise filter.</p>
-        <p>Every preset transcribed exactly in Whisper, a speech recognizer. So did the ends of the other sliders,
-          except speed ×2, which slurred one word. Method and measurements:
+        <p><b>Vocal tract and texture.</b> The waveform comes from a pulse train and noise, each shaped by a filter that the
+          network predicts every 10.7 ms. Formant scale resamples that filter along frequency: below 1, the speaker sounds larger
+          and older. Brightness tilts the voiced filter, and Breath raises or lowers the noise filter.</p>
+        <p>Whisper, a speech recognizer, transcribed every preset exactly. It did the same with each of the other sliders set to
+          either end, except speed ×2, which slurred one word. Method and measurements:
           <a href="https://github.com/oaustegard/experiments/tree/main/tiny-voca-voices">experiments/tiny-voca-voices</a>.
           Build <code id="build"></code>.</p>
       </div>
@@ -271,7 +271,7 @@ function show(c) {
   if (c.id[0] === "a" && $("reach")) {
     const reach = Math.hypot(...["a1", "a2", "a3", "a4"].map((k) => Number(inputs[k].value)));
     $("reach").textContent = `Distance off the F2–M2 line: ${reach.toFixed(2)}` +
-      (reach > 1.0 ? ". Past 1.0, words start to blur." : "");
+      (reach > 1.0 ? ". Past 1.0 is beyond the tested-clear range; past about 1.15, most voices garbled a word." : "");
     $("reach").classList.toggle("over", reach > 1.0);
   }
 }
@@ -362,31 +362,70 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-diz1";
+const BUILD = "2026-11-17-diz2";
 $("build").textContent = BUILD;
-const worker = new Worker("worker.js?build=" + BUILD);
-// Loading must never stall silently: a failed worker, an error, or a step with no news for 20 s says so.
-let failed = false, lastNews = Date.now(), lastStep = "starting the worker";
-worker.onerror = (event) => {
-  failed = true;
-  setStatus(`The worker stopped while ${lastStep}: ${event.message || "no message"}` +
-            (event.lineno ? ` (${(event.filename || "").split("/").pop()} line ${event.lineno})` : "") + ` [build ${BUILD}]`, true);
-};
+// The engine (engine.js) normally runs in a background worker. If the worker fails, reports an error while
+// loading, or goes 20 s without news, the page loads the same engine itself, as example.html does; on one
+// iPhone only that worked. ?engine=page starts on the page.
+let failed = false, lastNews = Date.now(), lastStep = "starting the worker", onPage = false, engine = null;
+function startWorker() {
+  const w = new Worker("worker.js?build=" + BUILD);
+  w.onmessage = ({ data }) => onEngineMessage(data);
+  w.onerror = (event) => fallBack(`the background worker stopped (${event.message || "no message"})`);
+  return { post: (message) => w.postMessage(message), stop: () => w.terminate() };
+}
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const tag = document.createElement("script");
+    tag.src = src;
+    tag.onload = resolve;
+    tag.onerror = () => reject(new Error("could not load " + src));
+    document.head.appendChild(tag);
+  });
+}
+async function startOnPage() {
+  if (typeof TinyVoca === "undefined") await loadScript("tinyvoca.js?build=" + BUILD);
+  if (typeof makeTunerEngine === "undefined") await loadScript("engine.js?build=" + BUILD);
+  const handle = makeTunerEngine((message) => onEngineMessage(message));
+  return { post: (message) => handle(message), stop: () => {} };
+}
+async function fallBack(reason) {
+  if (onPage || ready) {
+    failed = true;
+    setStatus(`Something went wrong: ${reason} [build ${BUILD}]`, true);
+    return;
+  }
+  onPage = true;
+  if (engine) engine.stop();
+  lastNews = Date.now();
+  lastStep = "loading on the page";
+  setStatus(`Loading on the page instead, because ${reason}…`);
+  try {
+    engine = await startOnPage();
+    engine.post({ type: "load" });
+  } catch (error) {
+    failed = true;
+    setStatus(`Could not load on the page either: ${error.message} [build ${BUILD}]`, true);
+  }
+}
 const watchdog = setInterval(() => {
   if (ready || failed) return clearInterval(watchdog);
   if (Date.now() - lastNews > 20000) {
-    setStatus(`Still waiting after 20 s at: ${lastStep} [build ${BUILD}]. If this does not move, that step is where it is stuck.`, true);
+    if (!onPage) fallBack(`the background worker made no progress for 20 s at: ${lastStep}`);
+    else setStatus(`Still waiting after 20 s at: ${lastStep} [build ${BUILD}]. If this does not change, it is stuck at that step.`, true);
   }
 }, 2000);
 let lastVoice = null;
 let ready = false, request = 0, lastClip = null, context = null, player = null;
 function setStatus(text, error = false) { $("status").textContent = text; $("status").classList.toggle("error", error); }
-worker.onmessage = ({ data }) => {
+function onEngineMessage(data) {
   lastNews = Date.now();
   if (data.type === "status") {
     lastStep = data.text.toLowerCase();
     if (failed) return;          // keep an error on screen; later progress must not overwrite it
-    setStatus(data.text + (data.progress != null ? ` ${Math.round(100 * data.progress)}%` : "…"));
+    const amount = data.progress != null ? ` ${Math.round(100 * data.progress)}%` :
+                   data.bytes ? ` ${(data.bytes / 1e6).toFixed(1)} MB` : "…";
+    setStatus((onPage ? "On the page: " : "") + data.text + amount);
     if (data.progress != null) $("progress").value = data.progress;
   } else if (data.type === "ready") {
     ready = true;
@@ -415,12 +454,14 @@ worker.onmessage = ({ data }) => {
     lastVoice = data.voice;
     setStatus(`Saved ${a.download}.`);
   } else if (data.type === "error") {
+    if (!ready && !onPage) { fallBack(`the background worker failed while ${lastStep}: ${data.message}`); return; }
     if (!ready) failed = true;
     setStatus(data.plain ? data.message : `Something went wrong while ${lastStep}: ${data.message} [build ${BUILD}]`, true);
     if (player) player.end();
   }
-};
-worker.postMessage({ type: "load" });
+}
+engine = new URLSearchParams(location.search).get("engine") === "page" ? null : startWorker();
+if (engine) engine.post({ type: "load" }); else fallBack("this link asked for it");
 
 function playWhole(samples, rate) {
   const buffer = context.createBuffer(1, samples.length, rate);
@@ -437,7 +478,7 @@ function speak() {
   request += 1;
   const v = values();
   setStatus("Speaking…");
-  worker.postMessage({ type: "speak", id: request, text, settings: settingsOf(v) });
+  engine.post({ type: "speak", id: request, text, settings: settingsOf(v) });
 }
 function sing() {
   context = context || new (window.AudioContext || window.webkitAudioContext)();
@@ -445,7 +486,7 @@ function sing() {
   player.begin();
   request += 1;
   setStatus("Singing…");
-  worker.postMessage({ type: "sing", id: request, settings: settingsOf(values()),
+  engine.post({ type: "sing", id: request, settings: settingsOf(values()),
                        score: { lyrics: $("lyrics").value, notes: $("notes").value, ...song() } });
 }
 function perform() { return mode === "sing" ? sing() : speak(); }
@@ -455,7 +496,7 @@ function settingsOf(v) {
            formant: v.formant, tilt: v.tilt, breath: v.breath };
 }
 $("export").addEventListener("click", () => {
-  worker.postMessage({ type: "export", id: 0, settings: settingsOf(values()), name: $("voice-name").value.trim() || "my voice" });
+  engine.post({ type: "export", id: 0, settings: settingsOf(values()), name: $("voice-name").value.trim() || "my voice" });
 });
 // A voice file from this tuner carries its slider settings; load them back.
 $("import").addEventListener("change", async () => {

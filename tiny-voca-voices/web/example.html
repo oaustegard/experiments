@@ -13,12 +13,12 @@
 </head>
 <body>
 <h1>tinyvoca.js example</h1>
-<p>The smallest page that speaks in a saved tiny-voca voice. Choose a <code>.voice.json</code> file from the
-  <a href="./">Voice Tuner</a> (or leave it empty for stock F2), type, press Speak. View source: it is about 50 lines.</p>
+<p>This is the smallest page that speaks in a saved tiny-voca voice. Choose a <code>.voice.json</code> file from the
+  <a href="./">Voice Tuner</a> (or leave it empty for stock F2), type some text and press Speak. View source: it is about 60 lines.</p>
 <p>Query parameters: <code>?text=Hello</code> fills the text, <code>&amp;voice=URL</code> loads a voice file from a URL
   (the host must allow cross-origin requests; GitHub Pages and raw.githubusercontent.com do).</p>
 <p><input type="file" id="file" accept=".json"> <span id="name">stock F2</span></p>
-<textarea id="text">Hello! This voice was designed in the tuner and saved to a file.</textarea>
+<textarea id="text">Hello! This is tiny-voca, speaking in this page.</textarea>
 <p><button id="speak" disabled>Speak</button> <span id="status">Loading…</span></p>
 <script src="tinyvoca.js"></script>
 <script type="module">
