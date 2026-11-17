@@ -738,6 +738,25 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
   the floor.** Two PyTorch Kokoro runs correlate at 0.985, not 1.0. Seed with `torch.manual_seed` for exact A/B
   tests of a component swap. (`kokoro-onnx-kinescript` round 3)
 
+- **A source-filter TTS whose network predicts cepstra exposes formant, tilt and breath controls without
+  retraining.** rfft of a complex cepstrum gives log-magnitude (real part) and an already-continuous phase
+  (imaginary part), so resampling both linearly along frequency warps every formant by an exact factor (measured
+  0.90 → 0.90 at the filter). In ONNX the warp is a hat-function interpolation matrix built from a scalar input and
+  multiplied into the fixed cepstrum-to-spectrum matrices. tiny-voca, DDSP and neural-homomorphic vocoders all have
+  this shape. (`tiny-voca-voices` Finding 4)
+- **Exploring a speaker-embedding space from two voices: cap the combined off-line distance, not each axis.** Random
+  directions orthogonal to the F2–M2 line in tiny-voca stayed intelligible up to about the F2–M2 distance in total
+  norm (every random voice to 1.13 clean). Past 1.15, 6 of 8 garbled words, even with every single axis at ±1 or
+  less. Measure with Whisper WER on the rendered audio. (`tiny-voca-voices` Finding 1)
+- **A long-term spectral envelope understates a formant shift at high pitch.** For a voice at 268 Hz, a 0.90 filter
+  warp measured 0.975 from cepstrally smoothed long-term spectra, because widely spaced harmonics sample the
+  envelope coarsely. Measure a warp at the filter, not from the audio. (`tiny-voca-voices` Finding 4)
+- **FastSpeech-style TTS packs like Kokoro: int8 everywhere except the encoder and duration predictor.** For
+  tiny-voca that gives 10.0 MB against 21.4 MB at fp32, with every duration identical and pitch p90 at 6.6 cents.
+  int8 on the duration path moved 0.5% of durations and pitch p90 to 30.6 cents. (`tiny-voca-voices` Finding 3)
+- **faster-whisper next to a system PyAV of another version fails in `decode_audio`** (`open() got an unexpected
+  keyword argument 'metadata_errors'`). Pass a float32 numpy array at 16 kHz instead of a path. (`tiny-voca-voices`)
+
 - **Slicing inside a loop over an `np.load(...npz)` handle re-reads the whole array each time.**
   `NpzFile.__getitem__` decompresses the member on every `z["T"]` (here the token-vector array), and a slice of each copy is a view that pins
   it: merging 1,000 per-document slices from a 130 MB chunk took 13 GB and an OOM (exit 137). Read each member

@@ -5,7 +5,7 @@ from pathlib import Path
 
 here = Path(__file__).parent
 presets = json.loads((here / "presets.json").read_text())
-scores = json.loads((here / "scores.json").read_text())
+scores = json.loads((here.parent / "results/lab_scores.json").read_text())
 
 NOTES = {
     "F2": "Stock voice. Median pitch 268 Hz is high for the adult woman it was designed as, which is why it reads young.",
@@ -44,7 +44,7 @@ def recipe(p):
 
 
 def audio(name, i):
-    data = base64.b64encode((here / f"samples/{name}-{i}.mp3").read_bytes()).decode()
+    data = base64.b64encode((here.parent / f"samples/{name}-{i}.mp3").read_bytes()).decode()
     return f'<audio controls preload="none" src="data:audio/mpeg;base64,{data}"></audio>'
 
 
@@ -141,5 +141,5 @@ audio {{ width: 100%; }}
   </section>
 </main>
 '''
-(here / "voice-lab.html").write_text(page)
+(here.parent / "voice-lab.html").write_text(page)
 print(len(page) // 1024, "KB")
