@@ -41,12 +41,20 @@ Nobody has run a listening test; one could change which settings count as good.
    and 5.0 cents for Python. <!-- @evidence[[results/headline.json#reuse_python_pitch_cents_p90]] -->
    Each transcribed exactly (0.0% WER), and the file loaded back into the tuner restored every slider. <!-- @evidence[[results/headline.json#reuse_wer_pct]] -->
    The noise signal is random in each runtime, so waveforms differ. (Round 6)
-3. **The sliders other than the four axes stay intelligible at their ends.** Eleven ends were tested: the F2↔M2
+3. **The speech model sings in tune when told each sound's length and pitch.** Two graph inputs override the
+   predicted frames per phoneme and the pitch per frame. With them off, the output is unchanged (max difference 0.0
+   against the previous file). <!-- @evidence[[results/headline.json#sing_override_off_max_diff]] -->
+   `tinyvoca.js` maps hyphenated lyrics onto the phonemes and notes onto the vowels, with glides and vibrato.
+   Sung in four voices, the median note error was at most 1.0 cents. <!-- @evidence[[results/headline.json#sing_note_error_cents_max_median]] -->
+   In both F2 voices, 32 of 32 notes landed within 50 cents. <!-- @evidence[[results/headline.json#sing_f2_notes_in_tune]] -->
+   Whisper transcribed the sung lyrics with 0.0% WER in every voice. <!-- @evidence[[results/headline.json#sing_wer_pct_max]] -->
+   In M2 an octave down, 13 of 15 measured notes were within 50 cents. (Round 8)
+4. **The sliders other than the four axes stay intelligible at their ends.** Eleven ends were tested: the F2↔M2
    slider at −0.5 and 1.5, pitch ±12 semitones, formant scale 0.8 and 1.25, brightness ±4 dB per octave, breath +12 dB, and speed 0.5
    and 2. Of these, 10 of 11 transcribed exactly. <!-- @evidence[[results/headline.json#other_slider_ends_clean]] -->
    The one error was speed ×2, which slurred one word. Pitch movement and breath −12 dB were not tested at their
    ends. (Round 5, browser check 1)
-4. **The weights can be stored as 8-bit integers (int8) everywhere except where durations are set.** The shipped
+5. **The weights can be stored as 8-bit integers (int8) everywhere except where durations are set.** The shipped
    file, "int8-dur", keeps the text encoder and duration predictor at 16-bit floats and stores every other matrix
    at int8. It is 10.0 MB.
    At fp32 the file is 21.39 MB. <!-- @evidence[[results/headline.json#model_mb_fp32]] -->
@@ -56,17 +64,17 @@ Nobody has run a listening test; one could change which settings count as good.
    A first visit transfers 21.98 MB compressed, in 29 requests. <!-- @evidence[[results/headline.json#first_visit_transfer_mb]] -->
    The model is 8.4 MB of that, and the phonemizer (Pyodide, numpy and the dictionary) 11 MB.
    This is the same split [`kokoro-web`](../kokoro-web/RESULTS.md) found for Kokoro (its Finding 1). (Round 4)
-5. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
+6. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
    cepstrum, a compact description of a spectrum's shape. Its Fourier transform gives the filter's log-magnitude
    and its phase directly, and both can be stretched along frequency by linear interpolation.
    A 0.90 setting moves the filter envelope by exactly 0.90 (`check_warp.py`). In the graph the warp is one
    interpolation matrix built from the input. A spectrum measured from the audio understates the shift at high
    pitch: 0.975 for F2 at 0.90, because F2's harmonics are far apart and sample the envelope coarsely. (Round 2)
-6. **The tunable graph matches PyTorch.** Given the same noise, the ONNX graph and the PyTorch module produce the
+7. **The tunable graph matches PyTorch.** Given the same noise, the ONNX graph and the PyTorch module produce the
    same number of samples for every case.
    They differ by at most 1.456% of peak. <!-- @evidence[[results/headline.json#onnx_parity_max_err_pct_peak]] -->
    tiny-voca's own export reports 0.6% for its stock graph. (Round 4)
-7. **Stock F2 is pitched high for an adult.** Its median pitch is 268 Hz. <!-- @evidence[[results/headline.json#lab_f2_f0]] -->
+8. **Stock F2 is pitched high for an adult.** Its median pitch is 268 Hz. <!-- @evidence[[results/headline.json#lab_f2_f0]] -->
    That matches the model card's note that F2 sounds younger than designed.
    The F2-adult preset brings it to 216 Hz and lowers the formants 6%. <!-- @evidence[[results/headline.json#lab_f2_adult_f0]] -->
    Stock M2 is at 175 Hz. <!-- @evidence[[results/headline.json#lab_m2_f0]] -->
@@ -181,4 +189,30 @@ and `?text=` plus `&voice=URL` to `example.html`. The ten presets ship as voice 
 (`run/make_preset_voices.mjs`). Browsers start sound only from a click, so neither page speaks on load.
 `run/query_check.mjs` passed every check, and the tuner and `example.html` gave the same 105,984 samples for
 M2-baritone.
+
+### Round 8 (2026-11-17): singing
+
+Asked to make it sing the chorus of a Leonard Cohen song. That song's lyrics and melody are under copyright, so
+the demo uses the first verse of "Amazing Grace" (Newton, 1779; tune "New Britain", 1829), and the page takes any
+lyrics and notes a user enters. `export_tunable.py` gained `frames_override` (int64 per token, −1 = predicted) and
+`f0_override` (Hz per frame, 0 = predicted). With both off the new int8-dur file reproduces the previous one exactly
+(max difference 0.0 with the same noise). Doubling every duration and asking for 220 Hz gave exactly the requested
+frame count and a median pitch of 219.9 Hz. Old voice files stay valid (the library accepts both model hashes).
+
+`tinyvoca.js` `sing()` phonemizes each lyric line, runs the model once for its predicted durations, then gives
+consonants their predicted length (at most 7 frames, about 75 ms) and vowels the rest of each note. It builds a
+pitch track from the notes with a one-pole glide and vibrato on notes over 0.35 s, and runs the model again with
+both overrides. `web/sing.html` is the page. `run/sing_check.mjs` sang the score in four voices, and
+`run/sing_score.py` measured Praat pitch over the middle half of each note and Whisper WER
+(`results/sing_scores.json`):
+
+| voice | transpose | note error (median) | notes within 50 cents | WER |
+|---|---:|---:|---:|---:|
+| F2 | 0 | 0.8 cents | 16 of 16 | 0% |
+| F2-adult | 0 | 0.7 cents | 16 of 16 | 0% |
+| M2-baritone | −12 | 0.7 cents | 15 of 15 measured | 0% |
+| M2 | −12 | 1.0 cents | 13 of 15 measured | 0% |
+
+18.7 s of song took 1.5 to 1.75 s to make. The reuse, query and preset checks passed again on the new model with
+the same numbers. Nobody has listened to the singing; the pitch and words are measured, while the tone is not.
 

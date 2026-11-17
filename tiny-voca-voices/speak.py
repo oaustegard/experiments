@@ -22,7 +22,8 @@ from pathlib import Path
 import numpy as np
 
 MODEL_URL = "https://austegard.com/experiments/tiny-voca-voices/web/tiny-voca-tunable.bin"
-MODEL_SHA256 = "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d"
+MODEL_SHA256 = "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d"
+COMPATIBLE = {MODEL_SHA256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d"}  # voice files from before singing name the earlier export
 HF = "https://huggingface.co/n4ze3m/tiny-voca/resolve/d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14/phonemizer/"
 DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json", "lexicon.json", "sources.json"]
 FORMAT = "tiny-voca-voice/1"
@@ -77,7 +78,7 @@ def check_voice(voice):
     for key in ("voice", "frame_voice"):
         if len(voice.get(key, [])) != 192:
             raise ValueError(f"voice file: {key} must hold 192 numbers")
-    if voice.get("model", {}).get("sha256", MODEL_SHA256) != MODEL_SHA256:
+    if voice.get("model", {}).get("sha256", MODEL_SHA256) not in COMPATIBLE:
         raise ValueError("voice file was made for a different model file")
     return voice
 
@@ -122,7 +123,8 @@ class TinyVoca:
             "frame_voice": np.array([voice["frame_voice"]], dtype=np.float32),
             "speed": one(voice["speed"]), "pitch_shift": one(voice["pitch_shift"]),
             "pitch_range": one(voice["pitch_range"]), "formant": one(voice["formant"]),
-            "tilt": one(voice["tilt"]), "breath": one(voice["breath"])})
+            "tilt": one(voice["tilt"]), "breath": one(voice["breath"]),
+            "frames_override": np.full((1, len(ids)), -1, dtype=np.int64), "f0_override": np.zeros((1, 1), np.float32)})
         return audio[0]
 
     def speak(self, text, voice):

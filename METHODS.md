@@ -754,6 +754,12 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
 - **FastSpeech-style TTS packs like Kokoro: int8 everywhere except the encoder and duration predictor.** For
   tiny-voca that gives 10.0 MB against 21.4 MB at fp32, with every duration identical and pitch p90 at 6.6 cents.
   int8 on the duration path moved 0.5% of durations and pitch p90 to 30.6 cents. (`tiny-voca-voices` Finding 3)
+- **A FastSpeech-style TTS sings in tune if you override its durations and its pitch track.** Expose
+  per-token frames and per-frame F0 as graph inputs (with "use the prediction" sentinels so speech is unchanged),
+  run the model once for predicted durations, give consonants their predicted length capped near 75 ms and vowels
+  the rest of each note. tiny-voca, trained only on speech, hit a median note error under 1 cent, and Whisper still
+  transcribed the sung lyrics exactly. Keep feeding the overridden pitch to the decoder's prosody conditioning so the
+  envelope follows it. (`tiny-voca-voices` Finding 3)
 - **faster-whisper next to a system PyAV of another version fails in `decode_audio`** (`open() got an unexpected
   keyword argument 'metadata_errors'`). Pass a float32 numpy array at 16 kHz instead of a path. (`tiny-voca-voices`)
 
