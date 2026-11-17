@@ -21,9 +21,10 @@ from pathlib import Path
 
 import numpy as np
 
-MODEL_URL = "https://austegard.com/experiments/tiny-voca-voices/web/tiny-voca-tunable.bin"
-MODEL_SHA256 = "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d"
-COMPATIBLE = {MODEL_SHA256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d"}  # voice files from before singing name the earlier export
+MODEL_URL = "https://austegard.com/experiments/tiny-voca-voices/web/tiny-voca-7cb6639de307.bin"
+MODEL_SHA256 = "7cb6639de307e7b228f560e4ec83b3c955e31c88ddfd3858fa036a4f2077c8ef"
+COMPATIBLE = {MODEL_SHA256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d",
+              "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d"}  # voice files from earlier exports of the same weights
 HF = "https://huggingface.co/n4ze3m/tiny-voca/resolve/d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14/phonemizer/"
 DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json", "lexicon.json", "sources.json"]
 FORMAT = "tiny-voca-voice/1"
@@ -96,7 +97,7 @@ class TinyVoca:
         options = ort.SessionOptions()
         if threads:
             options.intra_op_num_threads = threads
-        path = Path(model) if model else fetch(MODEL_URL, cache / "tiny-voca-tunable.bin", MODEL_SHA256)
+        path = Path(model) if model else fetch(MODEL_URL, cache / "tiny-voca-7cb6639de307.bin", MODEL_SHA256)
         self.session = ort.InferenceSession(str(path), options, providers=["CPUExecutionProvider"])
 
     def _utterances(self, sentence):
@@ -144,7 +145,7 @@ def main():
     parser.add_argument("text")
     parser.add_argument("output", type=Path, help=".wav file to write")
     parser.add_argument("--cache", type=Path, default=Path.home() / ".cache" / "tinyvoca")
-    parser.add_argument("--model", type=Path, help="a local copy of tiny-voca-tunable.bin")
+    parser.add_argument("--model", type=Path, help="a local copy of the model file")
     args = parser.parse_args()
     import soundfile as sf
     tts = TinyVoca(args.cache, args.model)

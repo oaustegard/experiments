@@ -22,9 +22,11 @@
   const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
   const HF = "https://huggingface.co/n4ze3m/tiny-voca/resolve/d94d2a0338fd1e0eab7dd896ec0ad23d8cdf7c14/phonemizer/";
   const DATA = ["lexicon.tsv", "align.json", "g2p.json", "g2p.npz", "homographs.json"];
-  const MODEL = { file: "tiny-voca-tunable.bin", sha256: "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d" };
-  // Voice files made before singing was added name the earlier export of the same weights; they play unchanged.
-  const COMPATIBLE = new Set([MODEL.sha256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d"]);
+  // Model files are named after their content, so a cached copy can never be stale.
+  const MODEL = { file: "tiny-voca-7cb6639de307.bin", sha256: "7cb6639de307e7b228f560e4ec83b3c955e31c88ddfd3858fa036a4f2077c8ef" };
+  // Voice files made with earlier exports of the same weights name those exports; they play unchanged.
+  const COMPATIBLE = new Set([MODEL.sha256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d", "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d"]);
+  const CACHE = "tinyvoca-2";
   const FORMAT = "tiny-voca-voice/1";
   const SEMITONE = Math.log(2) / 12;
   const PEAK = 0.99;
@@ -45,7 +47,7 @@
   async function download(url, label, onStatus) {
     let store = null;
     try {
-      store = await caches.open("tinyvoca-1");
+      store = await caches.open(CACHE);
       const hit = await store.match(url);
       if (hit) return new Uint8Array(await hit.arrayBuffer());
     } catch (error) { store = null; }
@@ -174,7 +176,25 @@
     });
   }
 
-  async function load({ base = DEFAULT_BASE, onStatus = () => {}, threads = 1 } = {}) {
+  // One load per page and base: later calls share the first one's model, phonemizer and session.
+  const loaded = new Map();
+  function load(options = {}) {
+    const key = `${options.base || DEFAULT_BASE}|${options.threads || 1}`;
+    if (!loaded.has(key)) loaded.set(key, loadOnce(options).catch((error) => { loaded.delete(key); throw error; }));
+    return loaded.get(key);
+  }
+
+  // Drop caches written by earlier versions of this library and of the tuner (their files were renamed).
+  async function pruneCaches() {
+    try {
+      for (const name of await caches.keys()) {
+        if ((name.startsWith("tinyvoca-") || name.startsWith("tiny-voca-tuner-")) && name !== CACHE) await caches.delete(name);
+      }
+    } catch (error) { /* no Cache Storage: nothing to prune */ }
+  }
+
+  async function loadOnce({ base = DEFAULT_BASE, onStatus = () => {}, threads = 1 } = {}) {
+    pruneCaches();
     if (typeof ort === "undefined") await loadScript(ORT + "ort.wasm.min.js");
     if (typeof loadPyodide === "undefined") await loadScript(PYODIDE + "pyodide.js");
     const space = await (await fetch(new URL("voice-space.json", base))).json();
@@ -216,6 +236,9 @@ phonemize_json("Warm up.")
       onStatus("Starting the model");
       ort.env.wasm.wasmPaths = ORT;
       ort.env.wasm.numThreads = threads;
+      // The runtime's WebAssembly goes through the same cache as the model, so a second visit fetches nothing.
+      try { ort.env.wasm.wasmBinary = await download(ORT + "ort-wasm-simd-threaded.wasm", "Loading the runtime", onStatus); }
+      catch (error) { /* onnxruntime fetches it itself */ }
       return ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
     }
 
