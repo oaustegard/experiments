@@ -20,6 +20,8 @@
 <p><input type="file" id="file" accept=".json"> <span id="name">stock F2</span></p>
 <textarea id="text">Hello! This is tiny-voca, speaking in this page.</textarea>
 <p><button id="speak" disabled>Speak</button> <span id="status">Loading…</span></p>
+<script src="../../gpu-bridge/web/relay.js"></script>
+<script>window.Relay && Relay.start({ page: "tiny-voca-example" });</script>
 <script src="tinyvoca.js"></script>
 <script type="module">
   const $ = (id) => document.getElementById(id);

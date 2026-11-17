@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>tiny-voca Voice Tuner</title>
+<!-- Logs go to the GPU bridge repo only in a browser holding the bridge token, after ?log=1 (see relay.js). -->
+<script src="../../gpu-bridge/web/relay.js"></script>
 <meta name="description" content="Design your own voice for tiny-voca, a 4.5M-parameter text-to-speech model, and hear it in your browser.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -362,11 +364,25 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-ort118";
+const BUILD = "2026-11-17-relay1";   // keep equal to build.json
+const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tiny-voca-tuner", build: BUILD });
+// A phone can keep serving a cached copy of this page after a deploy (one ran build diz3 after ort118 was live).
+// build.json is fetched past every cache; when it names another build, reload once under a URL no cache holds.
+fetch("build.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((b) => {
+  if (!b || !b.build || b.build === BUILD) return;
+  relay.warn("stale page", { running: BUILD, current: b.build });
+  let tried = null;
+  try { tried = sessionStorage.getItem("tinyvoca:reloaded-for"); sessionStorage.setItem("tinyvoca:reloaded-for", b.build); } catch (e) {}
+  if (tried === b.build) return;
+  const url = new URL(location.href);
+  url.searchParams.set("b", b.build);
+  location.replace(url.href);
+}).catch(() => {});
 $("build").textContent = BUILD;
 // The engine (engine.js) normally runs in a background worker. If the worker fails, reports an error while
 // loading, or goes 20 s without news, the page loads the same engine itself, as example.html does; on one
 // iPhone only that worked. ?engine=page starts on the page; ?engine=worker forces the worker.
+const loggedSteps = new Set();
 let failed = false, lastNews = Date.now(), lastStep = "starting the worker", onPage = false, engine = null;
 function startWorker() {
   const w = new Worker("worker.js?build=" + BUILD);
@@ -390,6 +406,7 @@ async function startOnPage() {
   return { post: (message) => handle(message), stop: () => {} };
 }
 async function fallBack(reason) {
+  relay.warn("fallback to the page", { reason, ready, onPage });
   if (onPage || ready) {
     failed = true;
     setStatus(`Something went wrong: ${reason} [build ${BUILD}]`, true);
@@ -422,6 +439,8 @@ function onEngineMessage(data) {
   lastNews = Date.now();
   if (data.type === "status") {
     lastStep = data.text.toLowerCase();
+    const step = data.text.replace(/ \(\d+ s\)$/, "");
+    if (!loggedSteps.has(step)) { loggedSteps.add(step); relay.log("step: " + step, { onPage }); }
     if (failed) return;          // keep an error on screen; later progress must not overwrite it
     const amount = data.progress != null ? ` ${Math.round(100 * data.progress)}%` :
                    data.bytes ? ` ${(data.bytes / 1e6).toFixed(1)} MB` : "…";
@@ -429,6 +448,7 @@ function onEngineMessage(data) {
     if (data.progress != null) $("progress").value = data.progress;
   } else if (data.type === "ready") {
     ready = true;
+    relay.log("ready", { onPage, msSinceStart: Math.round(performance.now()) });
     $("progress").value = 1;
     $("speak").disabled = false;
     $("export").disabled = false;
@@ -444,6 +464,7 @@ function onEngineMessage(data) {
     const seconds = data.audio.length / data.sampleRate;
     if (!player.end()) playWhole(data.audio, data.sampleRate);
     setStatus(`${data.sung ? "Sang" : "Spoke"} ${seconds.toFixed(1)} s of audio in ${(data.totalTime / 1000).toFixed(2)} s.`);
+    relay.log(data.sung ? "sang" : "spoke", { seconds: +seconds.toFixed(2), ms: Math.round(data.totalTime), onPage });
   } else if (data.type === "voice") {
     const blob = new Blob([JSON.stringify(data.voice)], { type: "application/json" });
     const a = document.createElement("a");
@@ -454,6 +475,7 @@ function onEngineMessage(data) {
     lastVoice = data.voice;
     setStatus(`Saved ${a.download}.`);
   } else if (data.type === "error") {
+    relay.error("engine error: " + data.message, { step: lastStep, ready, onPage, build: BUILD });
     if (!ready && !onPage) { fallBack(`the background worker failed while ${lastStep}: ${data.message}`); return; }
     if (!ready) failed = true;
     setStatus(data.plain ? data.message : `Something went wrong while ${lastStep}: ${data.message} [build ${BUILD}]`, true);
