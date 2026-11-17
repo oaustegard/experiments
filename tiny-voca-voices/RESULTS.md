@@ -53,6 +53,8 @@ Nobody has run a listening test; one could change which settings count as good.
    100% of token durations stayed identical. <!-- @evidence[[results/headline.json#int8dur_durations_identical_pct]] -->
    Pitch moved 6.6 cents (hundredths of a semitone) at the 90th percentile. <!-- @evidence[[results/headline.json#int8dur_pitch_cents_p90]] -->
    int8 everywhere moved pitch 30.6 cents, and 0.5% of durations changed. <!-- @evidence[[results/headline.json#int8all_pitch_cents_p90]] -->
+   A first visit transfers 21.98 MB compressed, in 29 requests. <!-- @evidence[[results/headline.json#first_visit_transfer_mb]] -->
+   The model is 8.4 MB of that, and the phonemizer (Pyodide, numpy and the dictionary) 11 MB.
    This is the same split [`kokoro-web`](../kokoro-web/RESULTS.md) found for Kokoro (its Finding 1). (Round 4)
 5. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
    cepstrum, a compact description of a spectrum's shape. Its Fourier transform gives the filter's log-magnitude
@@ -168,4 +170,15 @@ then speaks the same file in the jail, and `run/reuse_score.py` compares the thr
 | tuner | 133,632 | 191.8 Hz | — | 0% |
 | tinyvoca.js | 133,632 | 192.0 Hz | 4.4 cents | 0% |
 | speak.py | 133,632 | 191.9 Hz | 5.0 cents | 0% |
+
+### Round 7 (2026-11-17): download size and a text parameter
+
+Asked for the total download and for the text as an optional query parameter. A fresh headless load of the live
+page transferred 21.98 MB in 29 requests (`results/transfer.json`): model 8.4 MB (gzip from GitHub Pages), Pyodide and
+numpy 8.0 MB, dictionary 2.9 MB, onnxruntime-web 2.5 MB. The page had claimed about 30 MB; corrected. Added
+`?text=` to the tuner (the voice stays in `#v=`, and editing the text updates the address, so "Copy link" shares both)
+and `?text=` plus `&voice=URL` to `example.html`. The ten presets ship as voice files in `web/voices/`
+(`run/make_preset_voices.mjs`). Browsers start sound only from a click, so neither page speaks on load.
+`run/query_check.mjs` passed every check, and the tuner and `example.html` gave the same 105,984 samples for
+M2-baritone.
 

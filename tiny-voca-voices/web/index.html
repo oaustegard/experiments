@@ -120,6 +120,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
 &lt;/script&gt;</pre>
         <pre class="code" id="code-py"># Python: pip install onnxruntime numpy soundfile git+https://github.com/n4ze3m/dizione
 python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
+        <p class="hint-text">Ready-made files for every preset are in <code>voices/</code>, e.g.
+          <a href="voices/F2-adult.voice.json">voices/F2-adult.voice.json</a>. Links take text too:
+          <code>?text=Hello</code> here, or <a href="example.html?text=Hello%20from%20a%20saved%20voice.&amp;voice=voices/M2-baritone.voice.json">example.html?text=…&amp;voice=voices/M2-baritone.voice.json</a>.</p>
         <p class="hint-text"><a href="tinyvoca.js">tinyvoca.js</a> ·
           <a href="https://github.com/oaustegard/experiments/blob/main/tiny-voca-voices/speak.py">speak.py</a> ·
           <a href="example.html">a minimal example page</a></p>
@@ -138,7 +141,7 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
         </div>
       </div>
       <progress id="progress" max="1" value="0"></progress>
-      <div class="status" id="status" role="status">Loading (about 30 MB the first time, cached after: the 10 MB model, plus the Python runtime and dictionary that turn text into phonemes).</div>
+      <div class="status" id="status" role="status">Loading (about 22 MB the first time, cached after: the model is 8.4 MB of it, and the Python runtime and dictionary that turn text into phonemes are 11 MB).</div>
       <div class="group">
         <h2>Phonemes the model read</h2>
         <div class="phonemes" id="phonemes">—</div>
@@ -249,6 +252,19 @@ function fromHash() {
 }
 apply(fromHash() || DEFAULTS);
 
+// ?text=... fills the text box; the voice rides in #v=.... Both stay in the address, so "Copy link" shares them.
+const params = new URLSearchParams(location.search);
+if (params.has("text")) $("text").value = params.get("text").slice(0, 5000);
+let textTimer = 0;
+$("text").addEventListener("input", () => {
+  clearTimeout(textTimer);
+  textTimer = setTimeout(() => {
+    const url = new URL(location.href);
+    url.searchParams.set("text", $("text").value.slice(0, 2000));
+    try { history.replaceState(null, "", url); } catch (e) {}
+  }, 400);
+});
+
 // Random voices stay inside the range where tested voices transcribed exactly: off-line distance at most 0.9.
 $("random").addEventListener("click", () => {
   const r = (a, b) => a + Math.random() * (b - a);
@@ -282,7 +298,7 @@ worker.onmessage = ({ data }) => {
     $("progress").value = 1;
     $("speak").disabled = false;
     $("export").disabled = false;
-    setStatus("Ready. Pick a preset, move a slider, or press Speak.");
+    setStatus(params.has("text") ? "Ready. Press Speak to hear the text." : "Ready. Pick a preset, move a slider, or press Speak.");
   } else if (data.type === "sentence" && data.id === request) {
     if (data.index === 0) $("phonemes").textContent = "";
     $("phonemes").textContent += (data.index ? "  ·  " : "") + data.phonemes;

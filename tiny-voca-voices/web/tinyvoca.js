@@ -7,8 +7,8 @@
 //   const wav = TinyVoca.wav(audio);                                       // Blob, 16-bit PCM
 //
 // load() fetches onnxruntime-web and Pyodide from jsDelivr, the model and phonemizer source from `base` (this
-// file's folder on austegard.com by default), and dizione's dictionary from Hugging Face. About 30 MB the first
-// time; the files are kept in Cache Storage after that. Self-hosting: copy tinyvoca.js, tiny-voca-tunable.bin,
+// file's folder on austegard.com by default), and dizione's dictionary from Hugging Face. About 22 MB transferred
+// the first time (8.4 MB model, 11 MB Pyodide, numpy and dictionary, 2.5 MB onnxruntime); kept in Cache Storage after. Self-hosting: copy tinyvoca.js, tiny-voca-tunable.bin,
 // dizione-src.bin and voice-space.json to one folder and pass its URL as `base`.
 //
 // A voice file (format "tiny-voca-voice/1") carries the two 192-value embeddings the model reads and the six
