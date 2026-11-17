@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-16T01:50:49.324330+00:00",
+ "last_run": "2026-11-17T01:51:09.453030+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -702,6 +702,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Tutorial that recasts classifiers, generative models, representation learning, RL and verifier search as energy-based models; no new experiments, code or weights. The one idea touching agent design, sampling from a model-times-verifier product (power sampling), costs many extra forward passes and the paper gives no cost-matched comparison."
+  },
+  "2611.17334": {
+   "title": "Unbundling Multimodal Vision Encoding",
+   "first_seen": "2026-11-17",
+   "best_rank": 11,
+   "upvotes": 237,
+   "reviewed": "2026-11-17",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Controlled from-scratch study (0.6B-6.4B, 224px) finding that dedicated vision capacity matters but can sit in a backbone's early layers instead of a separate pre-fusion encoder, and that a MetaCLIP-pretrained encoder buys little at matched compute. No code or weights, and every result needs a full VLM training run; it does not touch his pretrained in-browser encoders (MobileCLIP-S0, EG2 vision)."
   }
  }
 }
