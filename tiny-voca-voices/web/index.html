@@ -167,7 +167,7 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
       <progress id="progress" max="1" value="0"></progress>
       <div class="status" id="status" role="status">Loading (about 11 MB the first time; cached after that, so later visits work offline).</div>
       <div class="group" id="g-phonemes">
-        <h2>Phonemes the model read</h2>
+        <h2>Phonemes</h2>
         <div class="phonemes" id="phonemes">—</div>
       </div>
       <div class="notes">
@@ -362,11 +362,11 @@ $("share").addEventListener("click", async () => {
 // Worker and playback.
 // Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
 // browser keeps running a cached older copy.
-const BUILD = "2026-11-17-diz2";
+const BUILD = "2026-11-17-diz3";
 $("build").textContent = BUILD;
 // The engine (engine.js) normally runs in a background worker. If the worker fails, reports an error while
 // loading, or goes 20 s without news, the page loads the same engine itself, as example.html does; on one
-// iPhone only that worked. ?engine=page starts on the page.
+// iPhone only that worked. ?engine=page starts on the page; ?engine=worker forces the worker.
 let failed = false, lastNews = Date.now(), lastStep = "starting the worker", onPage = false, engine = null;
 function startWorker() {
   const w = new Worker("worker.js?build=" + BUILD);
@@ -460,8 +460,13 @@ function onEngineMessage(data) {
     if (player) player.end();
   }
 }
-engine = new URLSearchParams(location.search).get("engine") === "page" ? null : startWorker();
-if (engine) engine.post({ type: "load" }); else fallBack("this link asked for it");
+// iOS gives workers too little memory for onnxruntime's WebAssembly ("RangeError: Out of memory" while starting
+// the model, on an iPhone), so iPhones and iPads load on the page from the start.
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const wanted = new URLSearchParams(location.search).get("engine");
+engine = wanted === "page" || (IOS && wanted !== "worker") ? null : startWorker();
+if (engine) engine.post({ type: "load" });
+else fallBack(IOS && wanted !== "page" ? "iOS gives background workers too little memory for the model" : "this link asked for it");
 
 function playWhole(samples, rate) {
   const buffer = context.createBuffer(1, samples.length, rate);
