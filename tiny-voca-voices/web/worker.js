@@ -3,7 +3,10 @@
 //      {type: "export", id, settings, name}
 // Out: status, ready, sentence (audio as soon as it is made), done (whole clip), voice (a voice file), error
 
-importScripts("tinyvoca.js");
+// The page passes its build id; asking for tinyvoca.js under it means a browser never pairs a new page with a
+// cached old library.
+const BUILD = new URL(location.href).searchParams.get("build") || "";
+importScripts("tinyvoca.js?build=" + encodeURIComponent(BUILD));
 
 let tts;
 

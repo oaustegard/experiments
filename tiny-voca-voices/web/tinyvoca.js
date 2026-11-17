@@ -25,6 +25,7 @@
   // Voice files made with earlier exports of the same weights name those exports; they play unchanged.
   const COMPATIBLE = new Set([MODEL.sha256, "a3dcc3e6317e58621e4c1623992cffd471f67e5156519868dd5a31f69a50619d", "4631b3249cb7fe7aa923a23a815a762caeda6576f89ebbd5eccd1294236cfe5d"]);
   const CACHE = "tinyvoca-2";
+  const DIZIONE_BUNDLE = "da3503a79b1c";   // the hash in dizione.js's DATA_FILE name
   const FORMAT = "tiny-voca-voice/1";
   const SEMITONE = Math.log(2) / 12;
   const PEAK = 0.99;
@@ -51,7 +52,9 @@
     } catch (error) { store = null; }
     const response = await fetch(url);
     if (!response.ok) throw new Error(`${url}: ${response.status}`);
-    const total = Number(response.headers.get("content-length")) || 0;
+    // A compressed response's content-length counts compressed bytes while the body yields decompressed ones,
+    // so a percentage would overshoot (it read 451%); show no percentage then.
+    const total = response.headers.get("content-encoding") ? 0 : Number(response.headers.get("content-length")) || 0;
     let bytes;
     if (!response.body || !total) {
       bytes = new Uint8Array(await response.arrayBuffer());
@@ -64,7 +67,7 @@
         if (done) break;
         chunks.push(value);
         received += value.length;
-        onStatus(label, received / total);
+        onStatus(label, Math.min(received / total, 1));
       }
       bytes = new Uint8Array(received);
       let offset = 0;
@@ -200,10 +203,13 @@
     // Returns the JSON string the callers below parse: {ids, stress, text}, or "null" when nothing is pronounceable.
     async function phonemizer() {
       onStatus("Loading the phonemizer");
-      if (typeof Dizione === "undefined") await loadScript(new URL("dizione.js", base).href);
+      // The script URL carries its bundle's hash, so a cached older dizione.js is never paired with a newer bundle.
+      if (typeof Dizione === "undefined") await loadScript(new URL(`dizione.js?v=${DIZIONE_BUNDLE}`, base).href);
+      onStatus("Loading the dictionary");
       const bytes = await download(new URL(Dizione.DATA_FILE, base).href, "Loading the dictionary", onStatus);
       onStatus("Starting the phonemizer");
       const dizione = await Dizione.load({ bundle: bytes });
+      onStatus("Phonemizer ready");
       return (text) => JSON.stringify(dizione.phonemize(text));
     }
 

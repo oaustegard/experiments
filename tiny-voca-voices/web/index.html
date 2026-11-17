@@ -182,7 +182,8 @@ python speak.py my-voice.voice.json "Hello there." hello.wav</pre>
           and older. Brightness tilts the voiced filter, breath raises the noise filter.</p>
         <p>Every preset transcribed exactly in Whisper, a speech recognizer. So did the ends of the other sliders,
           except speed ×2, which slurred one word. Method and measurements:
-          <a href="https://github.com/oaustegard/experiments/tree/main/tiny-voca-voices">experiments/tiny-voca-voices</a>.</p>
+          <a href="https://github.com/oaustegard/experiments/tree/main/tiny-voca-voices">experiments/tiny-voca-voices</a>.
+          Build <code id="build"></code>.</p>
       </div>
     </section>
   </div>
@@ -359,12 +360,32 @@ $("share").addEventListener("click", async () => {
 });
 
 // Worker and playback.
-const worker = new Worker("worker.js");
+// Bump BUILD on every deploy that changes worker.js, tinyvoca.js or dizione.js: their URLs carry it, so no
+// browser keeps running a cached older copy.
+const BUILD = "2026-11-17-diz1";
+$("build").textContent = BUILD;
+const worker = new Worker("worker.js?build=" + BUILD);
+// Loading must never stall silently: a failed worker, an error, or a step with no news for 20 s says so.
+let failed = false, lastNews = Date.now(), lastStep = "starting the worker";
+worker.onerror = (event) => {
+  failed = true;
+  setStatus(`The worker stopped while ${lastStep}: ${event.message || "no message"}` +
+            (event.lineno ? ` (${(event.filename || "").split("/").pop()} line ${event.lineno})` : "") + ` [build ${BUILD}]`, true);
+};
+const watchdog = setInterval(() => {
+  if (ready || failed) return clearInterval(watchdog);
+  if (Date.now() - lastNews > 20000) {
+    setStatus(`Still waiting after 20 s at: ${lastStep} [build ${BUILD}]. If this does not move, that step is where it is stuck.`, true);
+  }
+}, 2000);
 let lastVoice = null;
 let ready = false, request = 0, lastClip = null, context = null, player = null;
 function setStatus(text, error = false) { $("status").textContent = text; $("status").classList.toggle("error", error); }
 worker.onmessage = ({ data }) => {
+  lastNews = Date.now();
   if (data.type === "status") {
+    lastStep = data.text.toLowerCase();
+    if (failed) return;          // keep an error on screen; later progress must not overwrite it
     setStatus(data.text + (data.progress != null ? ` ${Math.round(100 * data.progress)}%` : "…"));
     if (data.progress != null) $("progress").value = data.progress;
   } else if (data.type === "ready") {
@@ -394,7 +415,8 @@ worker.onmessage = ({ data }) => {
     lastVoice = data.voice;
     setStatus(`Saved ${a.download}.`);
   } else if (data.type === "error") {
-    setStatus(data.plain ? data.message : "Something went wrong: " + data.message, true);
+    if (!ready) failed = true;
+    setStatus(data.plain ? data.message : `Something went wrong while ${lastStep}: ${data.message} [build ${BUILD}]`, true);
     if (player) player.end();
   }
 };
