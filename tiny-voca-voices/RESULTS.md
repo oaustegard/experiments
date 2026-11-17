@@ -61,8 +61,9 @@ Nobody has run a listening test; one could change which settings count as good.
    100% of token durations stayed identical. <!-- @evidence[[results/headline.json#int8dur_durations_identical_pct]] -->
    Pitch moved 6.6 cents (hundredths of a semitone) at the 90th percentile. <!-- @evidence[[results/headline.json#int8dur_pitch_cents_p90]] -->
    int8 everywhere moved pitch 30.6 cents, and 0.5% of durations changed. <!-- @evidence[[results/headline.json#int8all_pitch_cents_p90]] -->
-   A first visit transfers 21.98 MB compressed, in 29 requests. <!-- @evidence[[results/headline.json#first_visit_transfer_mb]] -->
-   The model is 8.4 MB of that, and the phonemizer (Pyodide, numpy and the dictionary) 11 MB.
+   A first visit transfers 11.22 MB compressed, down from 21.98 MB with Pyodide. <!-- @evidence[[results/headline.json#first_visit_transfer_mb]] -->
+   The phonemizer is a JavaScript port of dizione that matches Python on 12450 of 12450 corpus sentences. <!-- @evidence[[results/headline.json#dizione_agree]] -->
+   A second visit loads offline, in 1.1 s. <!-- @evidence[[results/headline.json#offline_second_visit_s]] -->
    This is the same split [`kokoro-web`](../kokoro-web/RESULTS.md) found for Kokoro (its Finding 1). (Round 4)
 6. **The formant warp is exact at the filter.** For each 10.7 ms frame, the model predicts the filter as a
    cepstrum, a compact description of a spectrum's shape. Its Fourier transform gives the filter's log-magnitude
@@ -215,4 +216,31 @@ both overrides. `web/sing.html` is the page. `run/sing_check.mjs` sang the score
 
 18.7 s of song took 1.5 to 1.75 s to make. The reuse, query and preset checks passed again on the new model with
 the same numbers. Nobody has listened to the singing; the pitch and words are measured, while the tone is not.
+
+### Round 9 (2026-11-17): one page, smaller, cached, no Python
+
+Asked why the tuning sliders were gone from singing (they were on another page), and to cut the download and
+cache it. Oskar then reported both pages stuck at "Starting the phonemizer" in Chrome on iPhone. iOS browsers all
+use WebKit, and every check here runs Chromium. The cause was not reproduced, but the stall was inside Pyodide.
+
+- **One page:** Sing became a tab of the tuner, so every voice slider applies to singing. `sing.html` redirects
+  to it.
+- **Smaller model:** the model's fixed DFT tables (STFT kernels and cepstrum matrices, 2.8 MB of float32) are
+  computed at load by `run/compute_constants.py`. Each is checked against the stored table to 2e-7 before it is
+  replaced. With the same noise the output is within 0.0002% of peak, and every duration is identical. Gzipped,
+  the model went from 8.43 MB to 6.26 MB.
+- **Caching:** model and data files are named by content hash. The onnxruntime wasm goes through the library's
+  Cache Storage, `load()` is memoized, and old caches are pruned.
+- **No Python:** a subagent ported dizione to JavaScript (`web/dizione.js` plus a 3.1 MB bundle, 2.3 MB gzip).
+  It matched Python on 12,450 of 12,450 sentences (`results/dizione_agreement.json`). The corpus covered tests,
+  Gutenberg prose, numbers, dates, money, units, chat forms, names, homographs, words outside the dictionary,
+  other scripts, fuzz and edge cases. The ids and stress match exactly, and so do the null and error cases.
+  Pyodide, numpy and the Hugging Face fetches are gone.
+
+Live after the change (`results/cache_live.json`): the first visit transfers 11.22 MB and loads in 3.1 s. With
+the network off, a second visit loads in 1.1 s and speaks. A second `TinyVoca.load()` returns the same instance.
+The preset, singing, reuse and query checks all passed again. All four voices sang the score at a median note
+error of at most 1.0 cents with lyrics transcribed exactly. Across the earlier Pyodide runs, two of 20 F2 renders
+had the opening "Amazing" misheard, which matches run-to-run noise. The iPhone result still needs a test on a real
+device.
 
