@@ -1,0 +1,1 @@
+"use client";import{n as e}from"./chunks/CUFQhez8.js";import{n as t,r as n,t as r}from"./chunks/CSgzbgSs.js";var i=e(t,{root:`div`,panel:`div`,handle:`div`}),a=i.Root,o=i.Panel,s=i.Handle;export{a as Resizable,s as ResizableHandle,o as ResizablePanel,r as createResizableController,n as resizableStorageKey};

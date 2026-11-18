@@ -1,0 +1,1 @@
+"use client";import{n as e}from"./chunks/CUFQhez8.js";import{separator as t}from"./core/separator.js";var n=e(t,{root:`div`}).Root;export{n as Separator};

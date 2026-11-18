@@ -1,0 +1,1 @@
+"use client";import{n as e}from"./chunks/CUFQhez8.js";import{t}from"./chunks/BNYg8s0A.js";var n=e(t,{root:`span`,image:`img`,fallback:`span`}),r=n.Root,i=n.Image,a=n.Fallback;export{r as Avatar,a as AvatarFallback,i as AvatarImage};

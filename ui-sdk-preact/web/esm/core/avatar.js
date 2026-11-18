@@ -1,0 +1,1 @@
+import{t as e}from"../chunks/BNYg8s0A.js";export{e as avatar};
