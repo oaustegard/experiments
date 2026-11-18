@@ -17,6 +17,7 @@ import { Vocab, flip, hasRtl, pySplit, pyStrip } from "./text.js";
 import { isAlpha, isRtl, setExceptions } from "./uprops.js";
 import { lmFactory } from "./lm.js";
 import { Deskew } from "./deskew.js";
+import { GpuCrops, cropPlan } from "./crops.js";
 
 const ADAPTIVE_MIN_H = 9.0, ADAPTIVE_TARGET_H = 12.0, ADAPTIVE_MAX_SIDE = 2048;
 const SPLIT_GAP = 3.0, CELL_GAP = 1.8, GUTTER_GAP = 1.6, GUTTER_EDGES = 3;
@@ -233,6 +234,7 @@ export class Indra {
     o.bytes = models.reduce((s, m) => s + m.bytes, 0);
     o.det = new ConvNet(o.gpu, by.det);
     o.deskew = new Deskew(o.gpu);
+    o.crops = new GpuCrops(o.gpu);
     o.rec = new Recognizer(o.gpu, by.rec);
     o.order = by.order ? new OrderNet(by.order) : null;
     o.orient = by.orient ? new ConvNet(o.gpu, by.orient) : null;
@@ -360,11 +362,19 @@ export class Indra {
     });
   }
 
+  // a batch whose pixels the GPU fills: {data: recorder, B, H, W, widths}
+  gpuBatch(items) {
+    const H = items[0].h;
+    const Wm = Math.ceil(Math.max(...items.map((c) => c.w)) / WIDTH_MULTIPLE) * WIDTH_MULTIPLE;
+    return { data: () => this.crops.record(items, H, Wm), B: items.length, H, W: Wm, widths: items.map((c) => c.w) };
+  }
+
   async lineGroups(crops) {
     const names = crops.map(() => "base"), sure = crops.map(() => true);
     for (const idx of widthBatches(crops.map((c) => c.w))) {
-      const b = padBatch(idx.map((j) => crops[j]));
+      const b = crops[idx[0]].plan ? this.gpuBatch(idx.map((j) => crops[j])) : padBatch(idx.map((j) => crops[j]));
       const p = await this.script.classify(b.data, b.B, b.H, b.W, b.widths);
+      this.crops.release();
       idx.forEach((j, k) => {
         const pk = p[k];
         let am = 0;
@@ -382,8 +392,19 @@ export class Indra {
     const dark = this.window > 1 ? boxes.map((b) => isDarkLine(gray, b)) : boxes.map(() => null);
     const darkOf = (j) => (dark[j] === null ? isDarkLine(gray, boxes[j]) : dark[j]);
     let tc = now();
-    const crops = boxes.map((b, j) => cropLine(gray, b, this.height, 1, darkOf(j)));
-    const tall = this.window > 1 ? boxes.map((b, j) => cropLine(gray, b, this.height, this.window, dark[j])) : crops;
+    // crops: on the GPU straight into each batch (plans only on the CPU), or on the CPU
+    const gpuCrops = !this.cpuCrops;
+    let crops, tall;
+    if (gpuCrops) {
+      this.crops.setPage(gray);
+      const darks = boxes.map((_, j) => darkOf(j));
+      crops = boxes.map((b, j) => ({ plan: cropPlan(b, this.height, 1), dark: darks[j] }));
+      crops.forEach((c) => { c.w = c.plan.outW; c.h = c.plan.H; });
+      tall = this.window > 1 ? boxes.map((b, j) => { const plan = cropPlan(b, this.height, this.window); return { plan, dark: darks[j], w: plan.outW, h: plan.H }; }) : crops;
+    } else {
+      crops = boxes.map((b, j) => cropLine(gray, b, this.height, 1, darkOf(j)));
+      tall = this.window > 1 ? boxes.map((b, j) => cropLine(gray, b, this.height, this.window, dark[j])) : crops;
+    }
     this.rt.crop_ms += now() - tc;
     const out = crops.map(() => ["", 0.0, []]);
     let plan = [{ name: "base", sel: crops.map((_, j) => j), asChars: false }];
@@ -403,10 +424,12 @@ export class Indra {
       const parts = widthBatches(sel.map((j) => crops[j].w)).map((part) => part.map((i) => sel[i]));
       const src = name === "base" ? tall : crops;
       tc = now();
-      const bs = parts.map((idx) => padBatch(idx.map((j) => src[j])));
+      const bs = parts.map((idx) => (src[idx[0]].plan ? this.gpuBatch(idx.map((j) => src[j])) : padBatch(idx.map((j) => src[j]))));
       this.rt.batch_ms += now() - tc;
       tc = now();
-      const rs = await grp.rec.runMany(bs.map((b) => ({ data: b.data, B: b.B, H: b.H, W: b.W, widths: b.widths })));
+      const rows = (buf, B, Hx, h, W, r0) => this.crops.rows(buf, B, Hx, h, W, r0);
+      const rs = await grp.rec.runMany(bs.map((b) => ({ data: b.data, B: b.B, H: b.H, W: b.W, widths: b.widths, rows })));
+      this.crops.release();
       this.rt.net_ms += now() - tc;
       for (let q = 0; q < parts.length; q++) {
         const idx = parts[q], b = bs[q], r = rs[q];

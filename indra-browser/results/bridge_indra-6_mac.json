@@ -1,0 +1,353 @@
+{
+ "id": "indra-6",
+ "startedAt": 1794975391634,
+ "finishedAt": 1794976121340,
+ "runMs": 50430.80000001192,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "ijua8e99",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "retry 1/3 in 2 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js",
+  "retry 2/3 in 6 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js?retry=1",
+  "retry 3/3 in 15 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js?retry=2",
+  "models loaded: det, rec, order, orient, script (1.20 MB decoded weights file) in 88 ms",
+  "loaded the base n-gram table (order 4) in 139 ms",
+  "loaded the world recognizer (0.74 MB) in 44 ms",
+  "loaded the world n-gram table (order 3) in 66 ms",
+  "page 1: warm 2214/1551 ms, gpu 64.6 ms in kernels",
+  "page 2: warm 2716/2709 ms, gpu 76.5 ms in kernels",
+  "loaded the cjk recognizer (1.34 MB) in 82 ms",
+  "loaded the cjk n-gram table (order 3) in 320 ms",
+  "loaded the rtl recognizer (0.63 MB) in 36 ms",
+  "page 3: warm 3663/2902 ms, gpu 41.7 ms in kernels",
+  "page 4: warm 1132/1071 ms, gpu 36.4 ms in kernels"
+ ],
+ "attempts": [
+  {
+   "at": 1794976042170,
+   "error": "TypeError: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js?retry=3",
+   "logs": [
+    "retry 1/3 in 2 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js",
+    "retry 2/3 in 6 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js?retry=1",
+    "retry 3/3 in 15 s: Failed to fetch dynamically imported module: https://cdn.jsdelivr.net/gh/oaustegard/experiments@045d72412b15906ac98c724038a7b66768aa24c7/indra-browser/web/indra.js?retry=2"
+   ]
+  }
+ ],
+ "outputs": {
+  "pages": [
+   {
+    "id": "multiling_finepdfs-amh_Ethi_79144957-p1",
+    "lines": 71,
+    "warm": [
+     {
+      "ms": 2214,
+      "orient_ms": 129,
+      "det_ms": 106,
+      "rec_ms": 1338,
+      "crop_ms": 746,
+      "script_ms": 23,
+      "batch_ms": 3,
+      "net_ms": 136,
+      "lm_ms": 156,
+      "order_ms": 636,
+      "total_ms": 3272
+     },
+     {
+      "ms": 1551,
+      "orient_ms": 101,
+      "det_ms": 102,
+      "rec_ms": 876,
+      "crop_ms": 699,
+      "script_ms": 22,
+      "batch_ms": 2,
+      "net_ms": 61,
+      "lm_ms": 77,
+      "order_ms": 469,
+      "total_ms": 2409
+     }
+    ],
+    "profiledMs": 1416,
+    "gpuMs": 64.55296000000014,
+    "prof": {
+     "ms": {
+      "pre.area": 0.786432,
+      "pre.deskew.rowsum": 1.507328,
+      "cls.conv.3x3": 6.029311999999998,
+      "cls.conv.dw": 1.2451840000000003,
+      "cls.mm": 1.4417920000000002,
+      "det.conv.3x3": 1.048576,
+      "det.conv.dw": 3.9321599999999997,
+      "det.mm": 3.735552,
+      "det.move": 0.6553600000000002,
+      "cls.move": 0.589824,
+      "rec.conv.32x4": 2.4248319999999994,
+      "rec.conv.4x4": 0.7864320000000002,
+      "rec.conv.dw": 2.7525119999999985,
+      "rec.mm": 24.57600000000014,
+      "rec.ctx": 0.065536,
+      "rec.seq": 4.390911999999995,
+      "rec.mm.head": 1.31072,
+      "rec.ctc": 7.274496000000001
+     },
+     "calls": {
+      "pre.area": 3,
+      "pre.deskew.rowsum": 3,
+      "cls.conv.3x3": 37,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 45,
+      "rec.conv.32x4": 14,
+      "rec.conv.4x4": 7,
+      "rec.conv.dw": 147,
+      "rec.mm": 581,
+      "rec.ctx": 7,
+      "rec.seq": 294,
+      "rec.mm.head": 14,
+      "rec.ctc": 14
+     }
+    }
+   },
+   {
+    "id": "tables_derived-PMC10627924.1_doc-p4",
+    "lines": 141,
+    "warm": [
+     {
+      "ms": 2716,
+      "orient_ms": 72,
+      "det_ms": 75,
+      "rec_ms": 1642,
+      "crop_ms": 1484,
+      "script_ms": 50,
+      "batch_ms": 6,
+      "net_ms": 75,
+      "lm_ms": 8,
+      "order_ms": 924,
+      "total_ms": 4336
+     },
+     {
+      "ms": 2709,
+      "orient_ms": 52,
+      "det_ms": 77,
+      "rec_ms": 1633,
+      "crop_ms": 1502,
+      "script_ms": 31,
+      "batch_ms": 5,
+      "net_ms": 71,
+      "lm_ms": 5,
+      "order_ms": 945,
+      "total_ms": 4320
+     }
+    ],
+    "profiledMs": 2781,
+    "gpuMs": 76.54604800000001,
+    "prof": {
+     "ms": {
+      "pre.area": 1.048576,
+      "pre.deskew.rowsum": 1.3107199999999999,
+      "cls.conv.3x3": 13.107199999999999,
+      "cls.conv.dw": 1.3762560000000001,
+      "cls.mm": 1.5073280000000004,
+      "det.conv.3x3": 1.114112,
+      "det.conv.dw": 4.063231999999999,
+      "det.mm": 3.4734080000000005,
+      "det.move": 1.179648,
+      "cls.move": 0.39321599999999995,
+      "rec.conv.32x4": 5.046272,
+      "rec.conv.4x4": 4.390912,
+      "rec.conv.dw": 5.570559999999996,
+      "rec.mm": 17.760256000000002,
+      "rec.ctx": 0.131072,
+      "rec.seq": 4.718591999999997,
+      "rec.mm.head": 1.6383999999999999,
+      "rec.ctc": 8.716288
+     },
+     "calls": {
+      "pre.area": 5,
+      "pre.deskew.rowsum": 3,
+      "cls.conv.3x3": 33,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 40,
+      "rec.conv.32x4": 8,
+      "rec.conv.4x4": 8,
+      "rec.conv.dw": 88,
+      "rec.mm": 344,
+      "rec.ctx": 8,
+      "rec.seq": 168,
+      "rec.mm.head": 8,
+      "rec.ctc": 8
+     }
+    }
+   },
+   {
+    "id": "olmo_old_scans-87-p1",
+    "lines": 19,
+    "warm": [
+     {
+      "ms": 3663,
+      "orient_ms": 164,
+      "det_ms": 89,
+      "rec_ms": 3301,
+      "crop_ms": 2630,
+      "script_ms": 16,
+      "batch_ms": 1,
+      "net_ms": 119,
+      "lm_ms": 31,
+      "order_ms": 108,
+      "total_ms": 6459
+     },
+     {
+      "ms": 2902,
+      "orient_ms": 146,
+      "det_ms": 100,
+      "rec_ms": 2552,
+      "crop_ms": 2424,
+      "script_ms": 15,
+      "batch_ms": 0,
+      "net_ms": 32,
+      "lm_ms": 17,
+      "order_ms": 103,
+      "total_ms": 5390
+     }
+    ],
+    "profiledMs": 3101,
+    "gpuMs": 41.68089599999998,
+    "prof": {
+     "ms": {
+      "pre.area": 2.162688,
+      "pre.deskew.rowsum": 1.507328,
+      "pre.deskew.rotate": 2.62144,
+      "cls.conv.3x3": 2.4903680000000006,
+      "cls.conv.dw": 1.1796480000000003,
+      "cls.mm": 1.5073280000000002,
+      "det.conv.3x3": 1.179648,
+      "det.conv.dw": 4.194304000000001,
+      "det.mm": 3.7355520000000006,
+      "det.move": 0.9175040000000001,
+      "cls.move": 0.32767999999999997,
+      "rec.conv.32x4": 0.524288,
+      "rec.conv.4x4": 0.262144,
+      "rec.conv.dw": 0.7208960000000001,
+      "rec.mm": 13.238271999999975,
+      "rec.ctx": 0,
+      "rec.seq": 1.3107200000000003,
+      "rec.mm.head": 0.39321599999999995,
+      "rec.ctc": 3.4078720000000002
+     },
+     "calls": {
+      "pre.area": 3,
+      "pre.deskew.rowsum": 3,
+      "pre.deskew.rotate": 2,
+      "cls.conv.3x3": 21,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 25,
+      "rec.conv.32x4": 7,
+      "rec.conv.4x4": 5,
+      "rec.conv.dw": 75,
+      "rec.mm": 295,
+      "rec.ctx": 5,
+      "rec.seq": 147,
+      "rec.mm.head": 7,
+      "rec.ctc": 7
+     }
+    }
+   },
+   {
+    "id": "synth_copies-images_sv5a6924ae-p1",
+    "lines": 28,
+    "warm": [
+     {
+      "ms": 1132,
+      "orient_ms": 67,
+      "det_ms": 70,
+      "rec_ms": 837,
+      "crop_ms": 748,
+      "script_ms": 10,
+      "batch_ms": 1,
+      "net_ms": 34,
+      "lm_ms": 28,
+      "order_ms": 155,
+      "total_ms": 1950
+     },
+     {
+      "ms": 1071,
+      "orient_ms": 71,
+      "det_ms": 77,
+      "rec_ms": 767,
+      "crop_ms": 691,
+      "script_ms": 9,
+      "batch_ms": 1,
+      "net_ms": 33,
+      "lm_ms": 17,
+      "order_ms": 156,
+      "total_ms": 1820
+     }
+    ],
+    "profiledMs": 1136,
+    "gpuMs": 36.37247999999998,
+    "prof": {
+     "ms": {
+      "pre.area": 0.8519680000000001,
+      "pre.deskew.rowsum": 1.245184,
+      "pre.deskew.rotate": 0.45875200000000005,
+      "cls.conv.3x3": 2.4248320000000003,
+      "cls.conv.dw": 1.1796480000000003,
+      "cls.mm": 1.5073280000000002,
+      "det.conv.3x3": 0.98304,
+      "det.conv.dw": 3.538944,
+      "det.mm": 3.801088000000001,
+      "det.move": 0.7208960000000001,
+      "cls.move": 0.45875199999999994,
+      "rec.conv.32x4": 0.458752,
+      "rec.conv.4x4": 0.458752,
+      "rec.conv.dw": 0.65536,
+      "rec.mm": 12.713983999999975,
+      "rec.ctx": 0.131072,
+      "rec.seq": 1.2451840000000003,
+      "rec.mm.head": 0.32767999999999997,
+      "rec.ctc": 3.2112640000000003
+     },
+     "calls": {
+      "pre.area": 5,
+      "pre.deskew.rowsum": 3,
+      "pre.deskew.rotate": 2,
+      "cls.conv.3x3": 21,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 25,
+      "rec.conv.32x4": 7,
+      "rec.conv.4x4": 5,
+      "rec.conv.dw": 75,
+      "rec.mm": 295,
+      "rec.ctx": 5,
+      "rec.seq": 147,
+      "rec.mm.head": 7,
+      "rec.ctc": 7
+     }
+    }
+   }
+  ]
+ }
+}

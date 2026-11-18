@@ -92,7 +92,7 @@ function areaDecimate(src, dw, dh, sx, sy) {
 
 // separable linear interpolation, OpenCV's coordinate rules for INTER_LINEAR or INTER_AREA
 // (upscaling), 11-bit fixed-point coefficients, scalar rounding
-function coefs(ssize, dsize, areaMode) {
+export function coefs(ssize, dsize, areaMode) {
   const scale = ssize / dsize, inv = dsize / ssize;
   const idx = new Int32Array(dsize), a0 = new Int32Array(dsize), a1 = new Int32Array(dsize);
   for (let d = 0; d < dsize; d++) {

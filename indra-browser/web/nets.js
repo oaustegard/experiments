@@ -88,9 +88,11 @@ export class ConvNet {
   async run(x, N, H, W, C, want = null) {
     const gpu = this.gpu;
     gpu.scope = this.e.post ? "det" : "cls";
-    const T = { [this.e.input]: { buf: gpu.upload(x), N, H, W, C } };
-    const ops = this.e.ops.filter((o) => o.op !== "gemm" && o.op !== "gmean" && o.op !== "hmean");
+    const onGpu = typeof x === "function";
+    const inBuf = onGpu ? null : gpu.upload(x);
     gpu.begin();
+    const T = { [this.e.input]: { buf: onGpu ? x(gpu) : inBuf, N, H, W, C } };
+    const ops = this.e.ops.filter((o) => o.op !== "gemm" && o.op !== "gmean" && o.op !== "hmean");
     for (const op of ops) {
       if (op.op === "conv") {
         const w = this.w.conv(op.w);
@@ -225,13 +227,15 @@ export class Recognizer {
   async runMany(batches) {
     const gpu = this.gpu;
     gpu.begin();
-    const recs = batches.map((b) => this.record(b.data, b.B, b.H, b.W, b.widths));
+    const recs = batches.map((b) => this.record(b.data, b.B, b.H, b.W, b.widths, b.rows));
     const res = await gpu.end(recs.map((r) => [r.out, 4 * r.B * r.T * 19]));
     for (const r of recs) for (const b of r.inputs) b.destroy();
     return recs.map((r, i) => ({ T: r.T, lengths: r.lengths, out: new Float32Array(res[i]) }));
   }
 
-  record(x, B, H, Wd, widths) {
+  // x: Float32Array [B, H, Wd], or a function recording the batch into the open pass and
+  // returning its buffer (crops.js); rows(buf, B, Hx, h, W, r0) slices rows on the GPU.
+  record(x, B, H, Wd, widths, rows = null) {
     const gpu = this.gpu, w = this.w;
     gpu.scope = "rec";
     const free = (...ts) => { for (const t of ts) gpu.free(t.buf ?? t); };
@@ -240,15 +244,19 @@ export class Recognizer {
     const mask = new Float32Array(B * T);
     for (let b = 0; b < B; b++) for (let t = 0; t < lengths[b]; t++) mask[b * T + t] = 1;
     const mbuf = gpu.upload(mask);
-    const xin = { buf: gpu.upload(x), N: B, H, W: Wd, C: 1 };
-    const inputs = [mbuf, xin.buf];
+    const onGpu = typeof x === "function";
+    const xin = { buf: onGpu ? x(gpu) : gpu.upload(x), N: B, H, W: Wd, C: 1 };
+    const inputs = onGpu ? [mbuf] : [mbuf, xin.buf];
     // the line band: rows 32..63 of the window, as its own tensor
     let band = xin;
     if (this.window) {
-      const bx = new Float32Array(B * 32 * Wd);
-      for (let b = 0; b < B; b++) bx.set(x.subarray((b * H + 32) * Wd, (b * H + 64) * Wd), b * 32 * Wd);
-      band = { buf: gpu.upload(bx), N: B, H: 32, W: Wd, C: 1 };
-      inputs.push(band.buf);
+      if (onGpu) band = { buf: rows(xin.buf, B, H, 32, Wd, 32), N: B, H: 32, W: Wd, C: 1 };
+      else {
+        const bx = new Float32Array(B * 32 * Wd);
+        for (let b = 0; b < B; b++) bx.set(x.subarray((b * H + 32) * Wd, (b * H + 64) * Wd), b * 32 * Wd);
+        band = { buf: gpu.upload(bx), N: B, H: 32, W: Wd, C: 1 };
+        inputs.push(band.buf);
+      }
     }
     let h = conv(gpu, band, w.conv("rec.stem.weight"), w.vec("rec.stem.bias"), { s: [32, 4] }); // [B, 1, T, 128]
     if (this.window) {
