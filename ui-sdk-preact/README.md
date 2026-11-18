@@ -1,65 +1,83 @@
 # ui-sdk-preact
 
-[ui-sdk](https://ui-sdk.dev) (vercel-labs/ui, Apache-2.0) ships adapters for
-React, Vue, Svelte, Solid and web components. This is a Preact port: the
-published `@ui-sdk/react` 0.1.0-beta.10, run on Preact 11.2 through
-`preact/compat`, plus a 90-line module that fixes three places where Preact
-renders the adapter's output differently from React. The adapter's code is not
-changed. [Demo page](https://austegard.com/experiments/ui-sdk-preact/web/).
+[ui-sdk](https://ui-sdk.dev) (vercel-labs/ui, Apache-2.0) is a library of
+unstyled UI behaviors: menus, dialogs, tabs, comboboxes and about 60 more, with
+keyboard handling, focus management and ARIA built in. It ships adapters for
+React, Vue, Svelte, Solid and web components, none for Preact.
 
-Started 2026-11-18. Oskar: "Could we build a Preact port for these?
-https://ui-sdk.dev/docs/core".
+The question: does the React adapter run on Preact unchanged, through
+`preact/compat` (Preact's React compatibility layer), and what breaks? Almost
+all of it runs. On ui-sdk's own React test suite, Preact 11 passes 2,868 of
+2,991 tests against React's 2,884. The difference is 16 tests: two React
+features Preact doesn't have, and one bounded memory leak. Getting there took a
+90-line module, `src/fixes.js`, which corrects three places where Preact
+renders the adapter's output differently from React. The adapter's code is not
+changed. It needs Preact 11 (see Use). [Demo
+page](https://austegard.com/experiments/ui-sdk-preact/web/).
+
+Started 2026-11-18, from Oskar Austegard's request: "Could we build a Preact
+port for these? https://ui-sdk.dev/docs/core".
 
 ## Results
 
-ui-sdk's own Playwright suite was the test: the 2,991 tests of its `react`
-project (behavior, accessibility, screen reader, right-to-left, rendering,
-kitchen sinks, count gates and leak specs, on the playground's React fixtures),
-run once on React 19.2 and once with `react` and `react-dom` aliased to
-Preact. A probe confirmed which library rendered each page: Preact's `__k` on
-the root, and no React container keys.
+The test was ui-sdk's own Playwright suite: the 2,991 tests of its `react`
+project, run against the repo's playground pages for the React adapter. They
+cover behavior, accessibility, screen-reader announcements, right-to-left
+layout and custom rendering, plus "kitchen sink" pages that mount every variant
+of a component, gates on how many times a component re-renders, and leak checks. The first three runs used vercel-labs/ui at main `56a7c93`; the fourth checked out the release tag the npm package was built from, which has one more test. Four runs, all in Chromium:
 
 | Run | Passed | Failed or timed out | Skipped |
 |---|---|---|---|
-| React 19.2.3 | 2,826 | 1 | 105 |
-| Preact 11.2.0, compat only | 2,761 | 66 | 105 |
-| Preact 11.2.0, compat + `fixes.js` (adapter source, main `56a7c93`) | 2,810 | 17 | 105 |
-| Preact 11.2.0, the built package (`dist/`, tag `@ui-sdk/react@0.1.0-beta.10`) | 2,810 | 18 | 105 |
+| React 19.2.3 | 2,884 | 1 | 106 |
+| Preact 11.2.0, `preact/compat` only | 2,819 | 66 | 106 |
+| Preact 11.2.0, compat + `fixes.js`, adapter source | 2,868 | 17 | 106 |
+| Preact 11.2.0, the built package (`dist/`) at tag `@ui-sdk/react@0.1.0-beta.10` (2,992 tests) | 2,868 | 18 | 106 |
 
-The one React failure (`scroll-area.enhancements` "hiding native scrollbars
-injects no style element") failed on every run. The built package's extra
-failure, a menu pointer test, passed 5 of 5 on a rerun; it also failed once on
-React at the same tag, so it is a timing flake.
+For the Preact runs, `react` and `react-dom` resolved to `preact/compat`. A
+check on the rendered page confirmed Preact did the rendering: Preact's own
+field (`__k`) was on the root element, and React's container keys were absent.
+The last two runs also had the harness fix described below. The skipped tests
+are the same 106 in every run (the suite skips them in this project).
+
+One test failed on React and on every Preact run: `scroll-area.enhancements`,
+"hiding native scrollbars injects no style element". So of the compat-only
+run's 66 failures, 65 were Preact-only, and of the fixed run's 17, 16 were.
+The built package's 18th failure, a menu pointer test ("moving from a submenu
+trigger straight to another item highlights that item"), passed 5 of 5 when
+rerun on its own; rerun against React at the same tag it also passed 5 of 5,
+having failed there at least once in an earlier rerun. It is timing under load.
 
 ### The 65 Preact-only failures, by cause
 
-| Cause | Tests | Status |
+| Cause | Tests | After the fixes |
 |---|---|---|
-| My harness: Vite was not told to pre-bundle `@guidepup/virtual-screen-reader`, so every `*.sr` spec timed out | 40 | fixed in the harness |
-| Preact's `useId` restarts at `P0-0` in every `render()` root, so kitchen-sink pages (one root per variant) repeated ids and triggers found another root's panel | 6 | fixed in `fixes.js` |
-| Removing a prop that is a DOM property sets it to `""`, so a button rendered as `<a>` kept `type=""` | 2 | fixed in `fixes.js` |
-| Core writes `webkitdirectory=""` for present; Preact assigns the boolean property, where `""` is false, so folder picking was off | 3 | fixed in `fixes.js` |
-| `<Activity>` (cached pages) has no Preact counterpart | 8 (10 after the fix run) | React-only |
-| `useTransition` holding the old selection until the new one commits: Preact's is synchronous | 3 | React-only |
-| One closed popup's DOM stays reachable after 200 open/close and mount cycles (dialog, combobox, autocomplete) | 3 | open |
+| The test harness: Vite was not told to pre-bundle `@guidepup/virtual-screen-reader`, so every screen-reader spec (`*.sr`) timed out | 38 | pass (harness fixed) |
+| Preact's `useId` restarts at `P0-0` in every `render()` root. Kitchen-sink pages mount one root per variant, so ids repeated and a trigger's `aria-controls` found another root's panel | 6 | pass |
+| Removing a prop that is a DOM property makes Preact set the property to `""` instead of removing the attribute, so a button rendered as a link kept `type=""` | 2 | pass |
+| Core writes `webkitdirectory=""` to mean present. Preact assigns the boolean property, where `""` is false, so the folder picker was off | 3 | pass |
+| React's `<Activity>`, which keeps a hidden page's state, has no Preact counterpart (the cached-page specs) | 10 | fail: React-only |
+| React's concurrent `useTransition` keeps the old selection on screen until the new one commits; Preact's runs synchronously | 3 | fail: React-only |
+| After 200 open/close and 200 mount cycles, one closed popup's DOM is still reachable (dialog, combobox, autocomplete) | 3 | fail: open |
 
-The leak is bounded: the count is the parts of one popup, not 200, and the
-unmount-while-open leak specs pass. It looks like a reference Preact keeps to
-the last tree it rendered; not diagnosed further. The two cached-page tests
-added in the fix run are the sheet-presentation variants, which timed out on
-the same missing `<Activity>`; the first run had stopped them earlier.
+The leak count is one popup's parts, not one per cycle: 4 parts for the dialog
+(close, content, description, title) and 5 each for the combobox and the
+autocomplete (content, list, items), after 200 cycles.
+The specs that unmount a popup while it is open pass. The retaining reference
+was not found.
 
-Preact's repeated `useId` across roots is a known Preact issue with no fix
+Preact repeating `useId` across roots is a known Preact issue with no fix
 upstream ([write-up](https://dev.to/teetotum/whats-wrong-with-useid-react-and-preact-1ifg)).
-`fixes.js` numbers each container on its first client render and leaves the
-first one at `P0-`, so a single-root page, and a hydrated one, renders the ids
-Preact always did.
+`fixes.js` gives each container a number the first time it renders on the
+client: the first gets `P0-0`, `P0-1`, …, as stock Preact does, the second
+`P1-0`, and so on. A page with one root renders the ids it always did.
+Hydration was not tested.
 
 ### Size
 
 `web/esm/` is a code-split build of every component and every `@ui-sdk/core`
 entry point, 1.05 MB in 294 files, with Preact left to the page's import map.
-What a page loads for one component (minified, gzipped as one stream):
+What a page loads for one component, from that build (all the files it
+imports, minified, gzipped as one stream):
 
 | Component | Files | Minified | Gzip |
 |---|---|---|---|
@@ -70,15 +88,20 @@ What a page loads for one component (minified, gzipped as one stream):
 | select | 60 | 169.4 KB | 59.8 KB |
 | combobox | 60 | 176.7 KB | 62.2 KB |
 
-A single-component esbuild bundle of the same code, Preact excluded, gzips to
-11,628 bytes for button, 46,472 for dialog and 59,605 for menu. Upstream's
-`size-budget.json` measures `@ui-sdk/react` the same way, gzip with React
-excluded: 10,110, 43,784 and 55,187 bytes with the lazy parts. The 7 to 15%
-gap is bundler output, not added code; compat itself is 3,982 bytes gzip on
-top. esbuild's code splitting
-was tried first and pulled 248 KB into a button, because it assigns whole files
-to chunks and core's barrels reach most of them; rolldown chunks by what each
-entry uses.
+A split build costs something over bundling one component alone, because
+shared chunks carry code that other components also use. Bundled alone, with
+Preact excluded, the same code gzips to 11,628 bytes for button, 46,472 for
+dialog and 59,605 for menu. Upstream's `size-budget.json` measures
+`@ui-sdk/react` the same way (gzip, React excluded, lazy parts included):
+10,110, 43,784 and 55,187 bytes, so the Preact build is 6 to 15% larger;
+different bundlers produced the two, and the gap was not traced further. The comparison is between single-component bundles; the
+split build in the table above costs more per component. Neither figure
+includes Preact itself: a page also loads `preact` (4,997 bytes gzip),
+`preact/hooks` (1,589) and `preact/compat` (3,982).
+
+The split build is rolldown's. esbuild's code splitting was tried first and
+put 248 KB in front of a button: it assigns whole files to chunks, and core's
+barrel modules reach most of the library.
 
 ## Use
 
@@ -134,7 +157,7 @@ function components as a prop; Preact 11 does too, Preact 10 does not without
 | `src/fixes.js` | The three fixes, as Preact option hooks scoped to ui-sdk parts (`data-slot`) |
 | `src/compat.js`, `src/jsx-runtime.js` | What the package imports in place of `react` and `react/jsx-runtime` |
 | `esm.mjs` | Builds `web/esm/` with rolldown |
-| `web/index.html` | Demo: menu, dialog, and tabs in two roots, with no build step. Reports to `gpu-bridge` with `?log=1` |
+| `web/index.html` | Demo: menu, dialog, and tabs in two roots, with no build step. With `?log=1` on Oskar's devices it sends its console log to his log relay (`gpu-bridge`) |
 | `web/esm/`, `web/vendor/` | The build (ui-sdk's LICENSE in `esm/`), Preact 11.2.0 and htm 3.1.1 (MIT) |
 | `harness/` | The Vite configs, the runner and the result differ (`diff.py`) used to put ui-sdk's suite on Preact. `react-on-preact.ts` imports `preact-fixes.js`, a copy of `src/fixes.js` placed next to it in the playground |
 

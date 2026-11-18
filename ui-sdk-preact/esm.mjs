@@ -60,7 +60,8 @@ const result = await bundle.write({
   format: "es",
   minify: true,
   entryFileNames: "[name].js",
-  chunkFileNames: "chunks/[hash].js",
+  // The Pages build skips names that start with "_" or ".", which a hash can.
+  chunkFileNames: "chunks/c-[hash].js",
 })
 await bundle.close()
 

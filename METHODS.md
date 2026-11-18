@@ -790,6 +790,23 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
 - **Stock OpenEvolve can run fully jailed against a host-side model gateway through a Unix socket.** The jail's
   network namespace has only `lo`; a path-based Unix socket crosses it, so a small TCP-to-socket forwarder inside
   the jail gives OpenEvolve an OpenAI-compatible endpoint and nothing else. (`haiku-swarm-poc/jailside/bridge.py`)
+- **npm dependencies for a jailed JavaScript repo: install from a manifests-only copy, then copy `node_modules` in.**
+  `scripts/guard_jail_route.py` refuses `pnpm`, `node`, `timeout` and shell loops on any command that names
+  `/tmp/jail/`, and the jail has no network. Copy only the `package.json` files, the lockfile, the workspace file
+  and `patches/` to a directory outside the jail, run `pnpm install --ignore-scripts --frozen-lockfile` there (no
+  repo code runs), tar the `node_modules` directories into the checkout, then run the dev server and Playwright
+  together in one `jail.sh` call, since each call gets its own network namespace. (`ui-sdk-preact/README.md`)
+- **The Pages build skips any file whose name starts with `_` or `.`, and a bundler's content hash can start
+  with `_`.** rolldown named two of 158 chunks `_DulnfUa.js` and `__wPtCv-.js`; `_lib/pages_site.py` would have
+  dropped them and every component importing them would 404. Give chunks a prefix (`chunkFileNames:
+  "chunks/c-[hash].js"`). (`ui-sdk-preact/esm.mjs`)
+- **For a no-build ESM library with many entry points, chunk with rolldown, not esbuild.** esbuild's
+  `splitting` assigns whole files to chunks, so with 136 entries over a library whose barrels re-export most of
+  it, one button pulled 248 KB minified through bare side-effect imports. rolldown chunks by what each entry
+  uses: 45.6 KB, close to a single-entry bundle (28 KB). (`ui-sdk-preact/esm.mjs`)
+- **Preact's `useId` repeats across `render()` roots.** Every root starts at `P0-0`, so a page that mounts one
+  root per widget gets duplicate ids and broken `aria-controls`. React's client ids are unique per page. Number
+  each container from the `options.__` root hook (`ui-sdk-preact/src/fixes.js`) or render one root.
 
 - **A game loop that caps time per frame runs slower than real time on SwiftShader, so wait on game state.**
   A WebGPU game drew 8.5 frames a second in headless Chromium on SwiftShader and capped each frame at 0.05 s of
