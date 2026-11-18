@@ -14,12 +14,12 @@ given the same weights, the browser's markdown equals the Python package's chara
 compared, 15 of 15 without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
 Accuracy is Omni Parse Bench's headline (the mean of its text, tables and layout pass rates, in percent) on all
 2,937 pages, read without the PDF text layer. fp32 weights score 61.51 and fp16 61.55; 4-bit weights collapse to 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
-8-bit (61.18) halves the download but leans negative (interval −0.75 to +0.04), and Oskar chose accuracy over two
+8-bit (61.18) halves the core download to 2.06 MB but leans negative (interval −0.75 to +0.04), and Oskar chose accuracy over two
 megabytes, so the page ships fp16: the detector, Latin recognizer, reading-order, orientation and script models come
 to 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
 The n-gram word models pack much further: 2-bit values keep their handwriting gain, and a trie layout takes the
 Latin table from 15.7 MB (npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
-A warm page takes 54 to 97 ms on Oskar's Mac with every network on the GPU, the reading-order transformer included (Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
+Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Apple Metal-3), with every network on the GPU, the reading-order transformer included (Log, Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
 
 ## Findings
 
