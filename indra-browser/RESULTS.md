@@ -18,7 +18,7 @@ megabytes, so the page ships fp16: the detector, Latin recognizer, reading-order
 to 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
 The n-gram word models pack much further: 2-bit values keep their handwriting gain, and a trie layout takes the
 Latin table from 15.7 MB (npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
-A warm page took 0.17 to 0.42 s on Oskar's Mac in the run below.
+A warm page takes 71 to 180 ms on Oskar's Mac, all of the pipeline but reading order on the GPU. <!-- @evidence[[results/summary.json#/mac_indra7/tables_derived-PMC10627924.1_doc-p4/warm_ms]] -->
 
 ## Findings
 
@@ -46,7 +46,8 @@ A warm page took 0.17 to 0.42 s on Oskar's Mac in the run below.
 5. **The GPU does tens of milliseconds of a page's work.** On the handwritten-letter test page the kernels summed to 59.3 ms; <!-- @evidence[[results/summary.json#mac_indra5_gpu_kernel_ms.synth_copies-images_sv5a6924ae-p1]] -->
    the rest of the page's time went to JS around them (per-batch submits, line crops, the skew search). Those parts
    then moved to the GPU or into one submit (Round 1). With only the deskew and downscales moved, a 30-megapixel
-   scan took 416 ms warm, against 1,820 ms with them on the CPU. <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
+   scan took 416 ms warm, against 1,820 ms with them on the CPU; <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
+   with the line crops moved too, it takes 112 ms, of which crops are 2 ms (`results/bridge_indra-7_mac.json`). <!-- @evidence[[results/summary.json#mac_indra7.olmo_old_scans-87-p1.warm_ms]] -->
 
 ## Method
 
@@ -96,6 +97,7 @@ n-gram tables heavily quantized and models loaded on demand.
 | fp16 small models, 8-bit recognizers and order (mix8) | 61.36 | −0.15 | −0.37 to +0.04 | 40.33 | 52.28 | 91.47 | ~2.2 MB |
 | 8-bit | 61.18 | −0.34 | −0.75 to +0.04 | 40.10 | 51.88 | 91.55 | 2.06 MB |
 | 6-bit | 60.40 | −1.11 | −1.87 to −0.48 | 39.31 | 50.84 | 91.05 | |
+| 5-bit | 58.51 | −3.00 | | | | | |
 | 4-bit | 49.56 | −11.95 | −13.10 to −10.71 | 28.02 | 33.36 | 87.31 | 1.02 MB |
 
 | n-gram arm (fp32 weights) | headline | Δ | handwriting |
@@ -111,7 +113,7 @@ n-gram tables heavily quantized and models loaded on demand.
 
 Shipped pack `web/models/f16`, gzipped: core 4.05 MB, Latin word model 2.54 MB, right-to-left group 2.18 MB, world
 group 4.49 MB, CJK group 9.24 MB (each group: its recognizer, vocabulary and word model), page code 0.05 MB. The 5-bit and grouped 4-bit arms were still running at write
-time. Prediction before the sweep: 4-bit would cost under a point, as for gliner-browser; it cost 12.
+time; 5-bit then scored 58.51. Prediction before the sweep: 4-bit would cost under a point, as for gliner-browser; it cost 12.
 
 Mac timings (GPU Bridge, Chrome 157, Apple Metal-3), warm, GPU deskew and downscale against the CPU versions:
 
@@ -122,7 +124,15 @@ Mac timings (GPU Bridge, Chrome 157, Apple Metal-3), warm, GPU deskew and downsc
 | 30 MP handwritten scan | 18 | 416 ms | 1,820 ms |
 | handwritten letter | 27 | 171 ms | 559 ms |
 
-Later bridge runs were 4 to 6 times slower across every stage, including plain-JS reading order, so their absolute
-numbers are not comparable; their GPU-vs-CPU ratios and per-kernel profiles are. What broke along the way: a
+Two later bridge runs were 4 to 6 times slower across every stage, including plain-JS reading order, so their
+absolute numbers are not comparable; their GPU-vs-CPU ratios and per-kernel profiles are. The last run, with
+recognizer batches in one submit and line crops on the GPU (`results/bridge_indra-7_mac.json`), warm:
+
+| page | lines | total | orientation | detection | recognition | of which crops | reading order |
+|---|---|---|---|---|---|---|---|
+| Amharic page | 71 | 159 ms | 39 | 20 | 59 | 1 | 42 |
+| table page | 141 | 180 ms | 18 | 19 | 52 | 1 | 90 |
+| 30 MP handwritten scan | 19 | 112 ms | 38 | 17 | 47 | 2 | 10 |
+| handwritten letter | 28 | 71 ms | 16 | 12 | 28 | 1 | 15 | What broke along the way: a
 `warpAffine` that mirrored every rotation (sampled through the forward matrix), a skew threshold missed by `np.arange`
 rounding, and a two-hour background limit that killed the first sweep chain partway through the weight arms.
