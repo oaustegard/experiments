@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page to Markdown</title>
+<meta name="description" content="Indra OCR in your browser tab: a scanned page or PDF turned into markdown on your GPU, with models packed to about 1.5 MB.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<header>
+  <h1>Turn a page into markdown, on your own GPU</h1>
+  <p class="lede">Drop a scan, a photo of a page or a PDF. A small OCR model finds the text lines, reads them and puts them in
+  reading order, with headings, lists and tables, all inside this tab: the page is not uploaded anywhere. It is
+  <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab, its weights packed to a few bits each.</p>
+</header>
+
+<div id="status" class="status" role="status" aria-live="polite">
+  <span id="status-text">Starting…</span>
+  <progress id="status-bar" max="1" value="0" hidden></progress>
+</div>
+
+<section class="input" aria-label="Page">
+  <label id="drop" class="drop" for="file">
+    <input id="file" type="file" accept="image/*,application/pdf">
+    <span><strong>Choose a page</strong> or drop one here: PNG, JPEG, WebP or PDF</span>
+  </label>
+  <div class="row">
+    <span id="pdf-nav" class="pdf-nav" hidden>
+      <button type="button" id="prev" aria-label="Previous page">‹</button>
+      <span id="page-of"></span>
+      <button type="button" id="next" aria-label="Next page">›</button>
+    </span>
+    <label class="check"><input type="checkbox" id="furniture"> keep page headers and footers</label>
+    <label class="check"><input type="checkbox" id="lm" checked> word model for unsure lines</label>
+  </div>
+</section>
+
+<section id="result" class="result" hidden>
+  <div class="pane page-pane">
+    <h2>Page</h2>
+    <div class="legend" id="legend"></div>
+    <div class="canvas-wrap"><canvas id="canvas" aria-label="The page, with the lines it found boxed"></canvas></div>
+  </div>
+  <div class="pane md-pane">
+    <div class="pane-head">
+      <h2>Markdown</h2>
+      <span class="actions">
+        <button type="button" id="copy">Copy</button>
+        <button type="button" id="save">Save .md</button>
+      </span>
+    </div>
+    <pre id="md" class="md" tabindex="0"></pre>
+    <p id="stats" class="muted small"></p>
+  </div>
+</section>
+
+<footer class="muted small">
+  <p>How it works: a detector finds the text lines; a recognizer reads each line (a CJK, right-to-left or "world" recognizer is
+  fetched the first time a line in those scripts turns up); a small transformer puts the lines in reading order and labels
+  headings, lists and tables. The models run on WebGPU, ported from the
+  <a href="https://pypi.org/project/indra-ocr/">indra-ocr</a> package, whose output this page reproduces line for line.
+  Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/indra-browser">indra-browser</a>.</p>
+  <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE">copy</a>): free for
+  research and personal use, with use restrictions in its Attachment A. The files served here are quantized derivatives
+  of the originals, changed only by rounding their weights and n-gram values. Build <code id="build"></code>.</p>
+</footer>
+</main>
+<script src="../../gpu-bridge/web/relay.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
