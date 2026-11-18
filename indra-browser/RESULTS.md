@@ -142,6 +142,8 @@ recognizer batches in one submit and line crops on the GPU (`results/bridge_indr
 | Amharic page | 71 | 159 ms | 39 | 20 | 59 | 1 | 42 |
 | table page | 141 | 180 ms | 18 | 19 | 52 | 1 | 90 |
 | 30 MP handwritten scan | 19 | 112 ms | 38 | 17 | 47 | 2 | 10 |
-| handwritten letter | 28 | 71 ms | 16 | 12 | 28 | 1 | 15 | What broke along the way: a
+| handwritten letter | 28 | 71 ms | 16 | 12 | 28 | 1 | 15 |
+
+What broke along the way: a
 `warpAffine` that mirrored every rotation (sampled through the forward matrix), a skew threshold missed by `np.arange`
 rounding, and a two-hour background limit that killed the first sweep chain partway through the weight arms.
