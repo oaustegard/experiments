@@ -3,6 +3,7 @@
 // warp through the inverse matrix, round half to even), on 8-bit images packed 4 pixels per u32.
 
 import { areaTab, img, rotationMatrix } from "./imgproc.js";
+import { registerKernel } from "./gpu.js";
 
 const SAMPLE = /* wgsl */ `
 fn px(x: i32, y: i32) -> f32 {
@@ -72,6 +73,7 @@ export class Deskew {
   // sum over rows of (row sum difference)^2 of `ink` turned by each angle (border 0)
   async sharpness(ink, angles) {
     const gpu = this.gpu;
+    gpu.scope = "pre";
     const src = packed(gpu, ink);
     const mats = new Float32Array(angles.length * 6);
     angles.forEach((a, i) => mats.set(inverse(rotationMatrix(ink.w / 2, ink.h / 2, a, 1)), i * 6));
@@ -92,6 +94,7 @@ export class Deskew {
   // the page turned by `deg` about its centre, borders replicated (pipeline.rotate_page)
   async rotate(gray, deg) {
     const gpu = this.gpu;
+    gpu.scope = "pre";
     const W = gray.w, H = gray.h;
     // each thread writes 4 whole bytes of the packed output, so it handles 4 consecutive pixel indices
     const n4 = Math.ceil((W * H) / 4);
@@ -178,6 +181,7 @@ function tables(ssize, dsize, scale) {
 
 Deskew.prototype.area = async function (src, dw, dh) {
   const gpu = this.gpu;
+  gpu.scope = "pre";
   const [xr, xs, xa] = tables(src.w, dw, src.w / dw), [yr, ys, ya] = tables(src.h, dh, src.h / dh);
   const bufs = [packed(gpu, src), ...[xr, xs, xa, yr, ys, ya].map((a) => gpu.upload(a))];
   const n4 = Math.ceil((dw * dh) / 4);
@@ -189,3 +193,7 @@ Deskew.prototype.area = async function (src, dw, dh) {
   for (const b of [...bufs, out]) b.destroy();
   return img(dw, dh, new Uint8Array(res, 0, dw * dh).slice());
 };
+
+registerKernel(ROWSUM, "deskew.rowsum");
+registerKernel(WARP2, "deskew.rotate");
+registerKernel(AREA, "area");

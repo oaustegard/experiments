@@ -258,7 +258,7 @@ def main():
         print(f"{name}: {e['bytes']/1e3:.0f} KB, {len(e['tensors'])} tensors" +
               (f", {len(e['ops'])} ops" if "ops" in e else ""))
     if a.lm:
-        from lmpack import write as write_lm
+        from lmpack import write_trie as write_lm
 
         man["lm"] = {}
         for spec in a.lm.split(","):

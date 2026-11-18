@@ -61,6 +61,12 @@ def main():
     print(f"{a.base}: headline {100 * base_h:.2f} " + " ".join(f"{k} {100 * v:.2f}" for k, v in sorted(base_f.items())))
     for arm in a.arms:
         at, ap_ = load(a.out / arm)
+        # an arm run on some pages only (--pages with --base): the rest are the base's
+        for p, r in bp.items():
+            if p not in ap_:
+                ap_[p] = r
+                for ln in r["lines"]:
+                    at.setdefault(ln["test_id"], bt[ln["test_id"]])
         if set(at) != set(bt):
             print(f"{arm}: {len(set(bt) - set(at))} tests missing, skipped")
             continue

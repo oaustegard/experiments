@@ -31,6 +31,76 @@ function decodeKeys(buf, off, len, n) {
   return { hi, lo };
 }
 
+function leb(bytes, count) {
+  const out = new Float64Array(count); // values stay under 2^53
+  let p = 0;
+  for (let i = 0; i < count; i++) {
+    let v = 0, mul = 1, b;
+    do { b = bytes[p++]; v += (b & 0x7f) * mul; mul *= 128; } while (b & 0x80);
+    out[i] = v;
+  }
+  return out;
+}
+
+function codesOf(bytes, count, b) {
+  const out = new Uint16Array(count);
+  for (let i = 0, bit = 0; i < count; i++, bit += b) {
+    let v = 0;
+    for (let j = 0; j < b; j++) { const q = bit + j; v |= ((bytes[q >> 3] >> (q & 7)) & 1) << j; }
+    out[i] = v;
+  }
+  return out;
+}
+
+// indra-lm/2 (lmpack.write_trie) back to sorted (hi, lo) keys and float values per table
+function decodeTrie(buf, base, head) {
+  const B = head.bits, t = {};
+  const sec = ([o, n]) => new Uint8Array(buf, base + o, n);
+  const vals = (spec, count) => {
+    if (spec.f32) return new Float32Array(buf.slice(base + spec.f32[0], base + spec.f32[0] + 4 * count));
+    const lv = new Float32Array(buf.slice(base + spec.levels[0], base + spec.levels[0] + spec.levels[1]));
+    const c = codesOf(sec(spec.codes), count, spec.bits);
+    const out = new Float32Array(count);
+    for (let i = 0; i < count; i++) out[i] = lv[c[i]];
+    return out;
+  };
+  let prev = null;
+  for (const tb of head.tables) {
+    const n = tb.n;
+    const ex = tb.extras.map((s) => BigInt(s)).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    // histories: the selected (n-1)-gram keys merged with the extras, sorted
+    const hh = new Uint32Array(tb.nhk), hl = new Uint32Array(tb.nhk);
+    let m = 0;
+    const pushBig = (v) => { hh[m] = Number(v >> 32n); hl[m] = Number(v & 0xffffffffn); m++; };
+    if (n === 0) ex.forEach(pushBig);
+    else {
+      const bm = sec(tb.bitmap);
+      let e = 0;
+      for (let i = 0; i < prev.n; i++) {
+        if (!((bm[i >> 3] >> (i & 7)) & 1)) continue;
+        while (e < ex.length) {
+          const xh = Number(ex[e] >> 32n), xl = Number(ex[e] & 0xffffffffn);
+          if (xh < prev.hi[i] || (xh === prev.hi[i] && xl < prev.lo[i])) { pushBig(ex[e]); e++; } else break;
+        }
+        hh[m] = prev.hi[i]; hl[m] = prev.lo[i]; m++;
+      }
+      while (e < ex.length) pushBig(ex[e++]);
+    }
+    const cnt = leb(sec(tb.counts), tb.nhk), gaps = leb(sec(tb.gaps), tb.nk);
+    const kh = new Uint32Array(tb.nk), kl = new Uint32Array(tb.nk);
+    let q = 0;
+    for (let j = 0; j < tb.nhk; j++) {
+      const sh = ((hh[j] << B) | (hl[j] >>> (32 - B))) >>> 0, sl = (hl[j] << B) >>> 0;
+      let tok = 0;
+      for (let c = 0; c < cnt[j]; c++, q++) { tok += gaps[q]; kh[q] = sh; kl[q] = (sl | tok) >>> 0; }
+    }
+    t[`hk${n}`] = { hi: hh, lo: hl, vals: vals(tb.hb, tb.nhk), n: tb.nhk };
+    t[`k${n}`] = { hi: kh, lo: kl, vals: vals(tb.v, tb.nk), n: tb.nk };
+    prev = t[`k${n}`];
+  }
+  return t;
+}
+
 export class NgramLM {
   constructor(buf) {
     const hl = new DataView(buf).getUint32(0, true);
@@ -40,6 +110,18 @@ export class NgramLM {
     this.vocabSize = head.vocab_size;
     this.bits = head.bits;
     this.t = {};
+    if (head.format === "indra-lm/2") {
+      this.t = decodeTrie(buf, base, head);
+      let maxP = -Infinity, bo = 0;
+      for (const [name, tb] of Object.entries(this.t)) {
+        let mx = -Infinity;
+        for (const v of tb.vals) if (v > mx) mx = v;
+        if (name.startsWith("hk")) bo += Math.max(0, tb.n ? mx : 0); else maxP = Math.max(maxP, mx);
+      }
+      this.maxLogp = Math.max(maxP, -LOG(this.vocabSize)) + bo;
+      this.cache = new Map();
+      return;
+    }
     let maxP = -Infinity;
     const hbMax = [];
     for (const t of head.tables) {

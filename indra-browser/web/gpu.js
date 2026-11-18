@@ -9,6 +9,7 @@ export class Gpu {
     if (!adapter) throw new Error("no WebGPU adapter");
     const L = adapter.limits;
     const device = await adapter.requestDevice({
+      requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [],
       requiredLimits: {
         maxStorageBufferBindingSize: L.maxStorageBufferBindingSize,
         maxBufferSize: L.maxBufferSize,
@@ -49,14 +50,26 @@ export class Gpu {
     return p;
   }
 
+  // Per-kernel GPU time: startProfile(), run, then profileReport() gives ms per kernel name
+  // (one compute pass per dispatch while profiling, so totals run a little high).
+  startProfile() {
+    if (!this.device.features.has("timestamp-query")) return false;
+    this.prof = { ms: {}, calls: {} };
+    return true;
+  }
+  profileReport() { const r = this.prof; this.prof = null; return r; }
+
   begin() {
     if (this.enc) throw new Error("pass already open");
     this.enc = this.device.createCommandEncoder();
-    this.pass = this.enc.beginComputePass();
+    if (this.prof) {
+      this.pq = { set: this.device.createQuerySet({ type: "timestamp", count: 2 * 2048 }), labels: [] };
+      this.pass = null;
+    } else this.pass = this.enc.beginComputePass();
   }
 
   // words: array of numbers; ints go as u32, a {f: x} entry as f32.
-  dispatch(code, bufs, words, groups) {
+  dispatch(code, bufs, words, groups, label = null) {
     const u = new ArrayBuffer(Math.max(16, Math.ceil(words.length / 4) * 16));
     const dv = new DataView(u);
     words.forEach((w, i) => {
@@ -67,12 +80,20 @@ export class Gpu {
     this.device.queue.writeBuffer(ub, 0, u);
     this.uniforms.push(ub);
     const pipe = this.pipeline(code);
+    if (this.prof) {
+      const i = this.pq.labels.length;
+      if (i < 2048) {
+        this.pass = this.enc.beginComputePass({ timestampWrites: { querySet: this.pq.set, beginningOfPassWriteIndex: 2 * i, endOfPassWriteIndex: 2 * i + 1 } });
+        this.pq.labels.push((this.scope ? this.scope + "." : "") + (label ?? KERNEL_NAMES.get(code) ?? "other"));
+      } else this.pass = this.enc.beginComputePass();
+    }
     const entries = [{ binding: 0, resource: { buffer: ub } }, ...bufs.map((b, i) => ({ binding: i + 1, resource: { buffer: b ?? this.dummy } }))];
     const bg = this.device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries });
     this.pass.setPipeline(pipe);
     this.pass.setBindGroup(0, bg);
     const [x, y = 1, z = 1] = groups;
     this.pass.dispatchWorkgroups(x, y, z);
+    if (this.prof) { this.pass.end(); this.pass = null; }
   }
 
   // 1-D work of n threads in workgroups of 64, split over x and y past the 65,535 limit.
@@ -83,7 +104,16 @@ export class Gpu {
   }
 
   async end(reads = []) {
-    this.pass.end();
+    let pbuf = null, pn = 0;
+    if (this.prof) {
+      pn = this.pq.labels.length;
+      if (pn) {
+        const rb = this.device.createBuffer({ size: 16 * pn, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC });
+        this.enc.resolveQuerySet(this.pq.set, 0, 2 * pn, rb, 0);
+        pbuf = this.device.createBuffer({ size: 16 * pn, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+        this.enc.copyBufferToBuffer(rb, 0, pbuf, 0, 16 * pn);
+      }
+    } else this.pass.end();
     const stage = reads.map(([b, bytes]) => {
       const s = this.device.createBuffer({ size: Math.ceil(bytes / 4) * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
       this.enc.copyBufferToBuffer(b, 0, s, 0, Math.ceil(bytes / 4) * 4);
@@ -98,6 +128,16 @@ export class Gpu {
       s.destroy();
     }
     if (!reads.length) await this.device.queue.onSubmittedWorkDone();
+    if (pbuf) {
+      await pbuf.mapAsync(GPUMapMode.READ);
+      const t = new BigUint64Array(pbuf.getMappedRange());
+      this.pq.labels.forEach((l, i) => {
+        this.prof.ms[l] = (this.prof.ms[l] ?? 0) + Number(t[2 * i + 1] - t[2 * i]) / 1e6;
+        this.prof.calls[l] = (this.prof.calls[l] ?? 0) + 1;
+      });
+      pbuf.destroy();
+      this.pq.set.destroy();
+    }
     for (const u of this.uniforms) u.destroy();
     this.uniforms = [];
     if (this.lost) throw new Error(`GPU device lost: ${this.lost.message}`);
@@ -387,3 +427,6 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) l
     }
   }
 }`;
+
+export const KERNEL_NAMES = new Map([[CONV, "conv"], [MOVE, "move"], [SEQ, "seq"], [CTX, "ctx"], [CTC, "ctc"], [MM, "mm"]]);
+export const registerKernel = (code, name) => KERNEL_NAMES.set(code, name);

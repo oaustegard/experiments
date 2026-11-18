@@ -50,14 +50,15 @@ function conv(gpu, x, w, b, { s = [1, 1], p = [0, 0, 0, 0], g = 1, act = 0, res 
       (!mask || Ho === 1)) {
     const R = x.N * Ho * Wo;
     gpu.dispatch(MM, [x.buf, w.buf, b, res?.buf, mask, y.buf],
-      [R, x.C, O, act, res ? resAt : 0, mask ? 1 : 0, y.cs ?? O, y.co ?? 0], [Math.ceil(O / 64), Math.ceil(R / 64)]);
+      [R, x.C, O, act, res ? resAt : 0, mask ? 1 : 0, y.cs ?? O, y.co ?? 0], [Math.ceil(O / 64), Math.ceil(R / 64)], `mm${O > 1000 ? ".head" : ""}`);
     return y;
   }
   const total = x.N * Ho * Wo * O;
   const grid = gpu.grid(total);
   gpu.dispatch(CONV, [x.buf, w.buf, b, res?.buf, mask, y.buf], [
     x.N, x.H, x.W, x.C, Ho, Wo, O, w.kh, w.kw, s[0], s[1], p[0], p[1], g, act,
-    res ? resAt : 0, x.cs ?? x.C, x.co ?? 0, y.cs ?? O, y.co ?? 0, mask ? 1 : 0, total, grid[0], 0], grid);
+    res ? resAt : 0, x.cs ?? x.C, x.co ?? 0, y.cs ?? O, y.co ?? 0, mask ? 1 : 0, total, grid[0], 0], grid,
+    g > 1 ? "conv.dw" : `conv.${w.kh}x${w.kw}`);
   return y;
 }
 
@@ -86,6 +87,7 @@ export class ConvNet {
   // the last GPU op's output) with their shapes.
   async run(x, N, H, W, C, want = null) {
     const gpu = this.gpu;
+    gpu.scope = this.e.post ? "det" : "cls";
     const T = { [this.e.input]: { buf: gpu.upload(x), N, H, W, C } };
     const ops = this.e.ops.filter((o) => o.op !== "gemm" && o.op !== "gmean" && o.op !== "hmean");
     gpu.begin();
@@ -216,6 +218,7 @@ export class Recognizer {
   // -> {T, lengths, out: Float32Array [B, T, 19]} (see CTC)
   async run(x, B, H, Wd, widths) {
     const gpu = this.gpu, w = this.w;
+    gpu.scope = "rec";
     const T = Math.floor(Wd / 4);
     const lengths = widths.map((v) => Math.min(Math.ceil(v / 4), T));
     const mask = new Float32Array(B * T);
