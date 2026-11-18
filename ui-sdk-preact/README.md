@@ -157,6 +157,7 @@ function components as a prop; Preact 11 does too, Preact 10 does not without
 | `src/fixes.js` | The three fixes, as Preact option hooks scoped to ui-sdk parts (`data-slot`) |
 | `src/compat.js`, `src/jsx-runtime.js` | What the package imports in place of `react` and `react/jsx-runtime` |
 | `esm.mjs` | Builds `web/esm/` with rolldown |
+| `catalog.mjs` | Writes the component catalog in the developing-preact skill's `references/ui-sdk.md` from the npm package's docs and the `web/esm/` exports |
 | `web/index.html` | Demo: menu, dialog, and tabs in two roots, with no build step. With `?log=1` on Oskar's devices it sends its console log to his log relay (`gpu-bridge`) |
 | `web/esm/`, `web/vendor/` | The build (ui-sdk's LICENSE in `esm/`), Preact 11.2.0 and htm 3.1.1 (MIT) |
 | `harness/` | The Vite configs, the runner and the result differ (`diff.py`) used to put ui-sdk's suite on Preact. `react-on-preact.ts` imports `preact-fixes.js`, a copy of `src/fixes.js` placed next to it in the playground |
