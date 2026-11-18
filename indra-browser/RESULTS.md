@@ -14,10 +14,10 @@ with the same weights the browser's markdown equals the Python package's on the 
 15 of 15 without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
 Accuracy is Omni Parse Bench's headline (the mean of its text, tables and layout pass rates, in percent) on 2,937
 pages read without the PDF text layer. fp32 weights score 61.51 and fp16 61.55; 4-bit collapses to 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
-The demo page ships fp16, whose detector, Latin recognizer, reading-order, orientation and script models come to
+In fp16 the detector, Latin recognizer, reading-order, orientation and script models come to
 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
-The anything-to-text converter on austegard.com loads a second pack (Log, Round 3) with 8-bit recognizers and
-reading-order model, which scores 61.36 at 2.24 MB. <!-- @evidence[[results/summary.json#bytes_mix8.core]] -->
+The demo page and the anything-to-text converter ship a pack with 8-bit recognizers and
+reading-order model instead, which scores 61.36 at 2.24 MB (Log, Round 3). <!-- @evidence[[results/summary.json#bytes_mix8.core]] -->
 The n-gram word models pack further: 2-bit values keep their handwriting gain, and the Latin table goes from 15.7 MB
 (npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
 Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Apple Metal-3), with every network on the GPU (Log, Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
@@ -189,8 +189,8 @@ orientation (12 to 34 ms) the next (`results/summary.json`, `mac_indra8`).
 ### Round 3 (2026-11-18): a smaller pack for anything-to-text
 
 Asked (Oskar): ship the 8-bit option, `mix8` (8-bit recognizers and reading-order model, fp16 detector, orientation
-and script models), plus a byte shuffle of the fp16 data, after checking parity; then, for the anything-to-text
-converter only. This page keeps the fp16 pack.
+and script models), plus a byte shuffle of the fp16 data, after checking parity; first for the anything-to-text
+converter, then, at 0.15 points below fp32, for the demo page too.
 
 The byte shuffle stores each fp16 array as its low bytes, then its high bytes (`"planes": 1` on a tensor's record), so
 the sign-and-exponent bytes sit together and gzip better. On the fp16 pack it would cut the core files by 5 to 8%
@@ -214,4 +214,5 @@ fp16 pack also reads "N.V." (the package: "N.Y."), with the GPU or the CPU for c
 difference predates mix8 and was outside the Round 1 parity pages. Python's run with every model at 8 bits (`i8c`) reads "N.V." as well.
 anything-to-text now loads `models/mix8/`; its smoke test (headless Chromium, a synthetic page) gives the same markdown
 as with fp16.
-
+The demo page then switched to `models/mix8/` as well (build `2026-11-18-c`); its smoke test reads the same page to the
+same markdown. `web/models/f16` stays in the repo for the parity and benchmark checks.

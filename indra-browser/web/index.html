@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page to Markdown</title>
-<meta name="description" content="Indra OCR in your browser tab: a scanned page or PDF turned into markdown on your GPU, with about 4 MB of models.">
+<meta name="description" content="Indra OCR in your browser tab: a scanned page or PDF turned into markdown on your GPU, with about 2.3 MB of models.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,8 +13,8 @@
   <h1>Turn a page into markdown, on your own GPU</h1>
   <p class="lede">Drop a scan, a photo of a page or a PDF. A small OCR model finds the text lines, reads them and puts them in
   reading order, with headings, lists and tables, all inside this tab: the page is not uploaded anywhere. It is
-  <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab, its weights stored as 16-bit floats, which score the
-  same as the originals: the first visit downloads about 4 MB. It needs a browser with WebGPU; it was tested in Chrome on a Mac.</p>
+  <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab. Its line readers and reading-order model are stored as 8-bit integers and the rest as 16-bit floats,
+  which scores 0.15 points below the originals on Datalab's benchmark (61.36 against 61.51): the first visit downloads about 2.3 MB. It needs a browser with WebGPU; it was tested in Chrome on a Mac.</p>
 </header>
 
 <div id="status" class="status" role="status" aria-live="polite">
@@ -60,7 +60,7 @@
 
 <footer class="muted small">
   <p>How it works: a detector finds the text lines. A recognizer reads each line; the first one reads Latin, Greek, Cyrillic,
-  Devanagari and Bengali, and three more are downloaded (2 to 9 MB each, with their word models) the first time a line needs them: Chinese,
+  Devanagari and Bengali, and three more are downloaded (1 to 7 MB each, with their word models) the first time a line needs them: Chinese,
   Japanese and Korean; Arabic and Hebrew; and other scripts such as Thai, Ethiopic and the South Indian scripts. A line the
   recognizer is unsure of is read again with a word model (an n-gram table of which characters usually follow which) that
   breaks close calls; the Latin one (2.5 MB) is downloaded the first time a line needs it. A small transformer then puts the lines in reading order and labels headings, lists and tables.
@@ -70,7 +70,7 @@
   <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE.txt">full license text</a>):
   free for research and personal use; companies with more than $20M in revenue or funding, or that compete with Datalab,
   need a commercial license from Datalab. The weights and word models served here are Datalab's, rounded to fewer bits
-  (weights to 16-bit floats, word-model values to 2 bits); nothing else in them is changed. Build <code id="build"></code>.</p>
+  (weights to 8-bit integers or 16-bit floats, word-model values to 2 bits); nothing else in them is changed. Build <code id="build"></code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

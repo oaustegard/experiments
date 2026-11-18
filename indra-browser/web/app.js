@@ -2,8 +2,8 @@
 // the markdown out. Logs go through relay.js (?log=1 on Oskar's devices).
 import { Indra } from "./indra.js";
 
-const BUILD = "2026-11-18-b"; // keep equal to build.json
-const PACK = "models/f16/";
+const BUILD = "2026-11-18-c"; // keep equal to build.json
+const PACK = "models/mix8/";
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
 const DPI = 200, MAX_PAGE_PIXELS = 100e6;
