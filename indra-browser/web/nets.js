@@ -363,7 +363,7 @@ export class OrderNet {
   constructor(model) { this.W = model.tensors; }
 
   // feats [N, 16] -> {a, cls, same, tab} (Float32Arrays [N*N], [N*10], [N*N], [3*N*N])
-  run(feats, N) {
+  run(feats, N, withTab = false) {
     const W = this.W;
     const x0 = new Float32Array(N * 144);
     for (let n = 0; n < N; n++) {
@@ -428,11 +428,15 @@ export class OrderNet {
     const s2 = pair(lin("bu", 128), lin("bw", 128), 128, 0, 0, 128, 128);
     const same = new Float32Array(N * N);
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) same[i * N + j] = s2[i * N + j] + s2[j * N + i];
-    const tu = lin("tu", 384), tw = lin("tw", 384);
-    const tab = new Float32Array(3 * N * N);
-    for (let c = 0; c < 3; c++) {
-      const t = pair(tu, tw, 128, c * 128, c * 128, 384, 384);
-      for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) tab[c * N * N + i * N + j] = t[i * N + j] + t[j * N + i];
+    // the table heads (tu, tw) are left out: indra-ocr reads them only with table_heads=True
+    let tab = null;
+    if (withTab) {
+      const tu = lin("tu", 384), tw = lin("tw", 384);
+      tab = new Float32Array(3 * N * N);
+      for (let c = 0; c < 3; c++) {
+        const t = pair(tu, tw, 128, c * 128, c * 128, 384, 384);
+        for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) tab[c * N * N + i * N + j] = t[i * N + j] + t[j * N + i];
+      }
     }
     return { a, cls: lin("cls", 10), same, tab };
   }
