@@ -9,17 +9,18 @@ the weights packed to as few bytes as the benchmark allows. Page: https://austeg
 
 ## Answer
 
-Can Indra run in a browser tab, how small can its download get, and what does the packing cost in accuracy? It runs:
-given the same weights, the browser's markdown equals the Python package's character for character on every page
-compared, 15 of 15 without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
-Accuracy is Omni Parse Bench's headline (the mean of its text, tables and layout pass rates, in percent) on all
-2,937 pages, read without the PDF text layer. fp32 weights score 61.51 and fp16 61.55; 4-bit weights collapse to 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
-8-bit (61.18) halves the core download to 2.06 MB but leans negative (interval −0.75 to +0.04), and Oskar chose accuracy over two
-megabytes, so the page ships fp16: the detector, Latin recognizer, reading-order, orientation and script models come
-to 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
-The n-gram word models pack much further: 2-bit values keep their handwriting gain, and a trie layout takes the
-Latin table from 15.7 MB (npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
-Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Apple Metal-3), with every network on the GPU, the reading-order transformer included (Log, Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
+Can Indra run in a browser tab, how small can its download get, and what does packing cost? It runs, and
+with the same weights the browser's markdown equals the Python package's on the pages compared:
+15 of 15 without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
+Accuracy is Omni Parse Bench's headline (the mean of its text, tables and layout pass rates, in percent) on 2,937
+pages read without the PDF text layer. fp32 weights score 61.51 and fp16 61.55; 4-bit collapses to 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
+The demo page ships fp16, whose detector, Latin recognizer, reading-order, orientation and script models come to
+4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
+The anything-to-text converter on austegard.com loads a second pack (Log, Round 3) with 8-bit recognizers and
+reading-order model, which scores 61.36 at 2.24 MB. <!-- @evidence[[results/summary.json#bytes_mix8.core]] -->
+The n-gram word models pack further: 2-bit values keep their handwriting gain, and the Latin table goes from 15.7 MB
+(npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
+Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Apple Metal-3), with every network on the GPU (Log, Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
 
 ## Findings
 
@@ -39,9 +40,11 @@ Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157,
    Every history of n tokens is itself a stored (n−1)-token entry, except the history of n line-starts. So the
    file stores histories as one bit per lower-order entry, and entries as a count per history plus the gaps between
    its token ids: 32% fewer key bytes than gap-coded sorted keys (Round 1).
-4. **The browser reproduces the package exactly.** With the same weights, every line's text and box and the
+4. **The browser reproduces the package on nearly every page.** With the same weights, every line's text and box and the
    markdown match indra-ocr on the same pixels: 1452 lines on 15 pages without the word model, <!-- @evidence[[results/summary.json#parity.nolm.lines]] -->
-   10 pages with it, and 9 pages with the line crops on the GPU as the page ships them (Round 1). Two ports had to
+   10 pages with it, and 9 pages with the line crops on the GPU as the page ships them (Round 1). With the 8-bit pack
+   the markdown matches on 59 of 60 pages; <!-- @evidence[[results/summary.json#parity.mix8.same_markdown]] -->
+   on the 60th one line reads "N.V." where the package reads "N.Y.", and the 16-bit pack reads it the same way (Round 3). Two ports had to
    match OpenCV 5 and NumPy to the bit: `warpAffine` samples through the inverse matrix in float32, and NumPy's
    `arange` computes its step as `(start + step) − start`, which decides whether some pages cross the 0.3° deskew
    threshold.
@@ -182,3 +185,33 @@ Reading order takes 3.5 ms on the table page, where the JS transformer and decod
 Page totals also move with the other stages from read to read, so the page columns differ by a few milliseconds from
 the order columns' difference. With GPU order, recognition (26 to 52 ms) is the largest stage on every page and
 orientation (12 to 34 ms) the next (`results/summary.json`, `mac_indra8`).
+
+### Round 3 (2026-11-18): a smaller pack for anything-to-text
+
+Asked (Oskar): ship the 8-bit option, `mix8` (8-bit recognizers and reading-order model, fp16 detector, orientation
+and script models), plus a byte shuffle of the fp16 data, after checking parity; then, for the anything-to-text
+converter only. This page keeps the fp16 pack.
+
+The byte shuffle stores each fp16 array as its low bytes, then its high bytes (`"planes": 1` on a tensor's record), so
+the sign-and-exponent bytes sit together and gzip better. On the fp16 pack it would cut the core files by 5 to 8%
+(`rec.bin` 2.26 to 2.09 MB). On `mix8` it saves 9 KB (2.248 to 2.239 MB), because the recognizers' and order model's weights are
+8-bit codes and only the three small models and the per-row scales remain fp16. It stays in the format: older packs
+load unchanged, and the two layouts decode to identical weights (652 tensors, in `run/ref.py` and `web/pack.js`).
+
+| pack, gzipped | core | Latin word model | English page (core, Latin word model, 0.05 MB page code) | world group | CJK group | right-to-left group |
+|---|---|---|---|---|---|---|
+| fp16 (`web/models/f16`) | 4.05 MB | 2.54 MB | 6.64 MB | 4.49 MB | 9.24 MB | 2.18 MB |
+| mix8 (`web/models/mix8`) | 2.24 MB | 2.54 MB | 4.83 MB | 3.18 MB | 6.71 MB | 1.09 MB |
+
+Accuracy, from the Round 1 sweep: headline 61.36 against fp16's 61.55 and fp32's 61.51 (difference from fp32 −0.15,
+95% interval −0.37 to +0.04); the 833 handwriting text and table checks 25.6 against fp16's 25.8. `check_engine.mjs` on
+the mix8 pack: every net within 1.1e-5 of the NumPy reference.
+
+Parity, with a mix8 pack whose word-model values stay float32 so it matches the Python mix8 run: the browser's markdown
+and line texts equal the package's on 59 of the 60 parity pages (5,209 lines). On the other page one line reads
+"With N.V. Co. Clerk and Register" where the package reads "N.Y."; its box differs by 0.1 px. The same page with the
+fp16 pack also reads "N.V." (the package: "N.Y."), with the GPU or the CPU for crops, deskew and order, so the
+difference predates mix8 and was outside the Round 1 parity pages. Python's run with every model at 8 bits (`i8c`) reads "N.V." as well.
+anything-to-text now loads `models/mix8/`; its smoke test (headless Chromium, a synthetic page) gives the same markdown
+as with fp16.
+
