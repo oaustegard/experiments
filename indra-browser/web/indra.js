@@ -59,7 +59,8 @@ function rowSharpness(ink, a) {
   return s;
 }
 
-const arange = (a, b, st) => { const out = []; const n = Math.ceil((b - a) / st); for (let i = 0; i < n; i++) out.push(a + i * st); return out; };
+// np.arange: n = ceil((stop - start) / step), values start + i * ((start + step) - start)
+const arange = (a, b, st) => { const out = []; const n = Math.ceil((b - a) / st), d = (a + st) - a; for (let i = 0; i < n; i++) out.push(a + i * d); return out; };
 
 export function estimateSkew(gray, side = 800) {
   const fine = inkThumb(gray, side);

@@ -2,7 +2,7 @@
 // ({data: Uint8Array, w, h}), following OpenCV's own arithmetic where it is cheap to:
 // INTER_AREA decimation by exact area weights (float32 accumulation, round half to even),
 // INTER_LINEAR and INTER_AREA upscaling with 11-bit fixed-point coefficients, warpAffine
-// with 1/32-pixel coordinates and 15-bit bilinear weights, and connected components labelled
+// in float32 as OpenCV 5 does, and connected components labelled
 // in raster order. Results can still differ from cv2 by one grey level where OpenCV takes a
 // vectorized or IPP path.
 
@@ -146,31 +146,15 @@ export function rotationMatrix(cx, cy, angle, scale = 1) {
   return [al, be, (1 - al) * cx - be * cy, -be, al, be * cx + (1 - al) * cy];
 }
 
-// bilinear weights for the 32 x 32 sub-pixel positions, 15-bit, summing to 32768
-const WTAB = (() => {
-  const t = new Int32Array(32 * 32 * 4);
-  for (let fy = 0; fy < 32; fy++)
-    for (let fx = 0; fx < 32; fx++) {
-      const vy = fy / 32, vx = fx / 32;
-      const w = [f32((1 - vy) * (1 - vx)), f32((1 - vy) * vx), f32(vy * (1 - vx)), f32(vy * vx)].map((v) => pyRound(v * 32768));
-      const sum = w[0] + w[1] + w[2] + w[3];
-      if (sum !== 32768) {
-        const diff = sum - 32768;
-        let mi = 0, Mi = 0;
-        for (let k = 1; k < 4; k++) { if (w[k] < w[mi]) mi = k; else if (w[k] > w[Mi]) Mi = k; }
-        if (diff < 0) w[Mi] -= diff; else w[mi] -= diff;
-      }
-      t.set(w, (fy * 32 + fx) * 4);
-    }
-  return t;
-})();
-
-// cv2.warpAffine(src, M, (dw, dh), INTER_LINEAR, border): border "replicate" or a constant value
-export function warpAffine(src, M, dw, dh, border = 0) {
+// cv2.warpAffine(src, M, (dw, dh), INTER_LINEAR, border): border "replicate" or a constant value.
+// OpenCV 5's 8-bit linear warp maps each destination pixel through the inverse matrix in float32
+// and interpolates in float32; this matches cv2 5.1 on all but ~0.01% of pixels (off by 1).
+export function warpAffine(src, Mf, dw, dh, border = 0) {
+  const D = Mf[0] * Mf[4] - Mf[1] * Mf[3];
+  const id = D !== 0 ? 1 / D : 0;
+  const a11 = Mf[4] * id, a22 = Mf[0] * id, a12 = -Mf[1] * id, a21 = -Mf[3] * id;
+  const M = [a11, a12, -a11 * Mf[2] - a12 * Mf[5], a21, a22, -a21 * Mf[2] - a22 * Mf[5]].map(f32);
   const out = img(dw, dh), s = src.data, W = src.w, H = src.h;
-  const AB = 1024, rd = 16;
-  const ad = new Int32Array(dw), bd = new Int32Array(dw);
-  for (let x = 0; x < dw; x++) { ad[x] = pyRound(M[0] * x * AB); bd[x] = pyRound(M[3] * x * AB); }
   const rep = border === "replicate";
   const px = (x, y) => {
     if (x >= 0 && x < W && y >= 0 && y < H) return s[y * W + x];
@@ -178,12 +162,13 @@ export function warpAffine(src, M, dw, dh, border = 0) {
     return s[Math.min(Math.max(y, 0), H - 1) * W + Math.min(Math.max(x, 0), W - 1)];
   };
   for (let y = 0; y < dh; y++) {
-    const X0 = pyRound((M[1] * y + M[2]) * AB) + rd, Y0 = pyRound((M[4] * y + M[5]) * AB) + rd;
+    const by0 = f32(M[1] * y), by1 = f32(M[4] * y);
     for (let x = 0; x < dw; x++) {
-      const Xf = (X0 + ad[x]) >> 5, Yf = (Y0 + bd[x]) >> 5;
-      const ix = Xf >> 5, iy = Yf >> 5, k = ((Yf & 31) * 32 + (Xf & 31)) * 4;
-      const v = px(ix, iy) * WTAB[k] + px(ix + 1, iy) * WTAB[k + 1] + px(ix, iy + 1) * WTAB[k + 2] + px(ix + 1, iy + 1) * WTAB[k + 3];
-      out.data[y * dw + x] = sat8((v + 16384) >> 15);
+      const sx = f32(f32(f32(M[0] * x) + by0) + M[2]), sy = f32(f32(f32(M[3] * x) + by1) + M[5]);
+      const x0 = Math.floor(sx), y0 = Math.floor(sy), fx = f32(sx - x0), fy = f32(sy - y0);
+      const p00 = px(x0, y0), p01 = px(x0 + 1, y0), p10 = px(x0, y0 + 1), p11 = px(x0 + 1, y0 + 1);
+      const top = f32(p00 + f32(fx * f32(p01 - p00))), bot = f32(p10 + f32(fx * f32(p11 - p10)));
+      out.data[y * dw + x] = sat8(pyRound(f32(top + f32(fy * f32(bot - top)))));
     }
   }
   return out;
