@@ -155,7 +155,14 @@ def convnet_program(m) -> tuple[list, str, dict]:
     return keep, first, weights
 
 
-def tensor_record(name, arr, how, scheme, buf: bytearray) -> dict:
+def halves(a, planes: bool) -> bytes:
+    """fp16 bytes; with planes, every value's low byte first, then every high byte. The high bytes
+    (sign and exponent) repeat a few values, so they gzip much better grouped (5-8% of a file)."""
+    b = np.ascontiguousarray(a, np.float16).view(np.uint8).reshape(-1, 2)
+    return (b[:, 0].tobytes() + b[:, 1].tobytes()) if planes else b.tobytes()
+
+
+def tensor_record(name, arr, how, scheme, buf: bytearray, planes: bool = True) -> dict:
     """Append one tensor to buf; its manifest record."""
     def put(b: bytes) -> int:
         while len(buf) % 4:
@@ -165,6 +172,8 @@ def tensor_record(name, arr, how, scheme, buf: bytearray) -> dict:
         return off
 
     rec = {"shape": list(arr.shape)}
+    if planes:
+        rec["planes"] = 1
     if how is not None and arr.size >= 1024 and arr.ndim >= 2 and scheme not in ("f16", "f32"):
         w2 = to_ok(arr, how)
         r = quantize(w2, scheme)
@@ -184,17 +193,17 @@ def tensor_record(name, arr, how, scheme, buf: bytearray) -> dict:
         rec |= {"enc": "q", "view": "conv" if how[0] == "conv" or (how[0] == "gemm" and how[1]) else "matmul",
                 "O": O, "K": K, "bits": bits, "sym": sym, "G": G,
                 "codes": put(packed.tobytes()),
-                "scales": put(r["scales"].astype(np.float16).tobytes())}
+                "scales": put(halves(r["scales"], planes))}
         if not sym:
             rec["zp"] = put(np.asarray(r.get("zp", np.zeros(len(r["scales"]))), np.uint8).tobytes())
     elif scheme == "f32":
         rec |= {"enc": "f32", "data": put(arr.astype(np.float32).tobytes())}
     else:
-        rec |= {"enc": "f16", "data": put(arr.astype(np.float16).tobytes())}
+        rec |= {"enc": "f16", "data": put(halves(arr, planes))}
     return rec
 
 
-def export_model(path: Path, scheme: str, out_dir: Path) -> dict:
+def export_model(path: Path, scheme: str, out_dir: Path, planes: bool = True) -> dict:
     m = onnx.load(str(path))
     name = path.stem
     axes = weight_axes(m)
@@ -226,7 +235,7 @@ def export_model(path: Path, scheme: str, out_dir: Path) -> dict:
         arr = numpy_helper.to_array(init[tn])
         if arr.dtype != np.float32:
             continue
-        tensors[entry.get("rename", {}).get(tn, tn)] = tensor_record(tn, arr, axes.get(tn), scheme, buf)
+        tensors[entry.get("rename", {}).get(tn, tn)] = tensor_record(tn, arr, axes.get(tn), scheme, buf, planes)
     entry["tensors"] = tensors
     entry.pop("rename", None)
     (out_dir / entry["file"]).write_bytes(bytes(buf))
@@ -243,6 +252,7 @@ def main():
     ap.add_argument("--models", default="det,orient,script,rec,rec_world,rec_cjk,rec_rtl,order")
     ap.add_argument("--lm", default="", help="n-gram tables: base=ORDER:VBITS,world=...,cjk=... "
                     "(ORDER 0 keeps every order, VBITS 32 keeps float32 values); empty: none")
+    ap.add_argument("--no-planes", action="store_true", help="fp16 bytes interleaved, as packs before 2026-11-18")
     a = ap.parse_args()
     per = dict(kv.split("=") for kv in a.per.split(",") if kv)
     a.out.mkdir(parents=True, exist_ok=True)
@@ -253,7 +263,7 @@ def main():
            "rec_window": meta.get("rec_window", 1), "script_groups": meta.get("script_groups"),
            "lm_params": meta.get("lm_params", {})}
     for name in a.models.split(","):
-        e = export_model(a.src / f"{name}.onnx", per.get(name, a.scheme), a.out)
+        e = export_model(a.src / f"{name}.onnx", per.get(name, a.scheme), a.out, not a.no_planes)
         man["models"][name] = e
         print(f"{name}: {e['bytes']/1e3:.0f} KB, {len(e['tensors'])} tensors" +
               (f", {len(e['ops'])} ops" if "ops" in e else ""))

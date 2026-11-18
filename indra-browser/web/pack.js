@@ -1,6 +1,7 @@
 // Packed Indra weights (run/export.py) back to float32, once, at load.
 //
-// A model's .bin holds each tensor as fp16, or as b-bit codes (a little-endian bit stream) with fp16 scales per row of
+// A model's .bin holds each tensor as fp16 (byte planes when the record has planes: low bytes,
+// then high bytes), or as b-bit codes (a little-endian bit stream) with fp16 scales per row of
 // its [O, K] view (and a byte zero point per row for asymmetric schemes); a scheme with groups
 // has one scale per G values of a row. Every tensor comes back in its ONNX shape, row-major.
 
@@ -13,15 +14,22 @@ const f16 = (h) => {
 const F16 = new Float32Array(65536);
 for (let i = 0; i < 65536; i++) F16[i] = f16(i);
 
-function halfs(buf, off, n) {
-  const u = new Uint16Array(buf, off, n), out = new Float32Array(n);
+// n fp16 values at off; planes: all n low bytes, then all n high bytes (they gzip better grouped)
+function halfs(buf, off, n, planes) {
+  const out = new Float32Array(n);
+  if (planes) {
+    const b = new Uint8Array(buf, off, 2 * n);
+    for (let i = 0; i < n; i++) out[i] = F16[b[i] | (b[n + i] << 8)];
+    return out;
+  }
+  const u = new Uint16Array(buf, off, n);
   for (let i = 0; i < n; i++) out[i] = F16[u[i]];
   return out;
 }
 
 export function decodeTensor(buf, r) {
   const n = r.shape.reduce((a, b) => a * b, 1);
-  if (r.enc === "f16") return halfs(buf, r.data, n);
+  if (r.enc === "f16") return halfs(buf, r.data, n, r.planes);
   if (r.enc === "f32") return new Float32Array(buf.slice(r.data, r.data + 4 * n));
   const { O, K, G, bits, sym } = r;
   // b-bit codes, little-endian bit stream
@@ -33,7 +41,7 @@ export function decodeTensor(buf, r) {
     codes[i] = v;
   }
   const ng = G ? Math.ceil(K / G) : 1;
-  const sc = halfs(buf, r.scales, O * ng);
+  const sc = halfs(buf, r.scales, O * ng, r.planes);
   const zp = sym ? null : new Uint8Array(buf, r.zp, O * ng);
   const bias = sym ? 2 ** (bits - 1) - 1 : 0;
   const w2 = new Float32Array(O * K); // [O, K]

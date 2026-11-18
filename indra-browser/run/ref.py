@@ -15,6 +15,14 @@ import numpy as np
 
 # ------------------------------------------------------------------ pack loader
 
+def halves(buf: bytes, off: int, n: int, planes) -> np.ndarray:
+    """n fp16 values at off, as float32; planes: all low bytes, then all high bytes."""
+    if not planes:
+        return np.frombuffer(buf, np.float16, n, off).astype(np.float32)
+    b = np.frombuffer(buf, np.uint8, 2 * n, off)
+    return np.stack([b[:n], b[n:]], 1).copy().view(np.float16).ravel().astype(np.float32)
+
+
 def load_pack(d: Path, name: str) -> tuple[dict, dict]:
     man = json.loads((d / "manifest.json").read_text())
     e = man["models"][name]
@@ -24,7 +32,7 @@ def load_pack(d: Path, name: str) -> tuple[dict, dict]:
         shape = r["shape"]
         n = int(np.prod(shape))
         if r["enc"] == "f16":
-            out[tn] = np.frombuffer(buf, np.float16, n, r["data"]).astype(np.float32).reshape(shape)
+            out[tn] = halves(buf, r["data"], n, r.get("planes")).reshape(shape)
         elif r["enc"] == "f32":
             out[tn] = np.frombuffer(buf, np.float32, n, r["data"]).reshape(shape)
         else:
@@ -34,7 +42,7 @@ def load_pack(d: Path, name: str) -> tuple[dict, dict]:
             codes = (bitsarr.reshape(O * K, r["bits"]).astype(np.int64) << np.arange(r["bits"])).sum(1)
             codes = codes.astype(np.float32).reshape(O, K)
             rows = O * (-(-K // G)) if G else O
-            sc = np.frombuffer(buf, np.float16, rows, r["scales"]).astype(np.float32)
+            sc = halves(buf, r["scales"], rows, r.get("planes"))
             if r["sym"]:
                 codes = codes - (2 ** (r["bits"] - 1) - 1)
             if G:
