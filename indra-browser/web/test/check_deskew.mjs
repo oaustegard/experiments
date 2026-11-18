@@ -41,7 +41,16 @@ const out = await page.evaluate(async (pages) => {
     const rgba = ctx.getImageData(0, 0, bm.width, bm.height).data;
     const g = new Uint8Array(bm.width * bm.height);
     for (let i = 0; i < g.length; i++) g[i] = rgba[4 * i];
-    const small = preview({ w: bm.width, h: bm.height, data: g });
+    const small = await preview({ w: bm.width, h: bm.height, data: g });
+    const { resize } = await import("/web/imgproc.js");
+    const areas = [];
+    for (const [src, side] of [[{ w: bm.width, h: bm.height, data: g }, 1600], [{ w: bm.width, h: bm.height, data: g }, 1024], [small, 800], [small, 400]]) {
+      const sc = side / Math.max(src.w, src.h), dw = Math.max(1, Math.round(src.w * sc)), dh = Math.max(1, Math.round(src.h * sc));
+      if (sc >= 1) continue;
+      const a = resize(src, dw, dh, "area"), b = await dk.area(src, dw, dh);
+      let n = 0; for (let i = 0; i < a.data.length; i++) if (a.data[i] !== b.data[i]) n++;
+      areas.push(`${src.w}x${src.h}->${dw}x${dh}: ${n} differ`);
+    }
     let cs = [], gs = [];
     const t0 = performance.now();
     const aCpu = await estimateSkew(small, 800, async (ink, angles) => { const v = angles.map((a) => { const r = []; return a; }); const { warpAffine, rotationMatrix } = await import("/web/imgproc.js"); const s = angles.map((a) => { const q = warpAffine(ink, rotationMatrix(ink.w / 2, ink.h / 2, a, 1), ink.w, ink.h, 0); let prev = null, t = 0; for (let y = 0; y < q.h; y++) { let p = 0; for (let x = 0; x < q.w; x++) p += q.data[y * q.w + x]; if (prev !== null) t += (p - prev) ** 2; prev = p; } return t; }); cs.push(...s); return s; });
@@ -55,7 +64,7 @@ const out = await page.evaluate(async (pages) => {
     const r1 = rotatePage(full, deg), r2 = await dk.rotate(full, deg);
     let n = 0, mx = 0;
     for (let i = 0; i < r1.data.length; i++) { const d = Math.abs(r1.data[i] - r2.data[i]); if (d) n++; mx = Math.max(mx, d); }
-    res.push({ id, aCpu, aGpu, scores: cs.length === gs.length, maxRelScoreDiff: rel, rotateDeg: deg, pixelsDiffering: n, of: r1.data.length, maxPixelDiff: mx, cpuMs: Math.round(t1 - t0), gpuMs: Math.round(t2 - t1) });
+    res.push({ id, areas, aCpu, aGpu, scores: cs.length === gs.length, maxRelScoreDiff: rel, rotateDeg: deg, pixelsDiffering: n, of: r1.data.length, maxPixelDiff: mx, cpuMs: Math.round(t1 - t0), gpuMs: Math.round(t2 - t1) });
   }
   return { device: gpu.label, res };
 }, pages);

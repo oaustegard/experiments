@@ -9,7 +9,7 @@
 // fetched the first time the script classifier sends a line to them.
 
 import { Gpu } from "./gpu.js";
-import { components, img, pyRound, resize, rot90, rotationMatrix, warpAffine } from "./imgproc.js";
+import { components, img, isAreaDecimate, pyRound, resize, rot90, rotationMatrix, warpAffine } from "./imgproc.js";
 import { ConvNet, OrderNet, Recognizer } from "./nets.js";
 import { loadModel } from "./pack.js";
 import { BLOCK_CLASSES, GRID_LABELS, decodeBlocksOrder, lineFeatures, median, orderXycut, pageBlocks, pageMarkdown, xycutBlocks } from "./layout.js";
@@ -32,18 +32,21 @@ const now = () => performance.now();
 
 // ------------------------------------------------------------------ page geometry
 
-function shrinkTo(gray, side, interp = "area") {
+// rs: a resizer (gray, w, h, interp) -> image, sync or async (the GPU's for area decimation)
+const cpuResize = (g, w, h, interp) => resize(g, w, h, interp);
+
+async function shrinkTo(gray, side, rs = cpuResize) {
   const s = side / Math.max(gray.h, gray.w);
-  return resize(gray, Math.max(1, pyRound(gray.w * s)), Math.max(1, pyRound(gray.h * s)), interp);
+  return rs(gray, Math.max(1, pyRound(gray.w * s)), Math.max(1, pyRound(gray.h * s)), "area");
 }
 
-export function preview(gray, side = PREVIEW_SIDE) {
+export async function preview(gray, side = PREVIEW_SIDE, rs = cpuResize) {
   const s = side / Math.max(gray.h, gray.w);
-  return s >= 1 ? gray : shrinkTo(gray, side);
+  return s >= 1 ? gray : shrinkTo(gray, side, rs);
 }
 
-function inkThumb(gray, side) {
-  const t = shrinkTo(gray, side);
+async function inkThumb(gray, side, rs) {
+  const t = await shrinkTo(gray, side, rs);
   for (let i = 0; i < t.data.length; i++) t.data[i] = 255 - t.data[i];
   return t;
 }
@@ -65,13 +68,13 @@ const arange = (a, b, st) => { const out = []; const n = Math.ceil((b - a) / st)
 
 // pipeline.estimate_skew. `score(ink, angles)` gives each angle's row sharpness: on the CPU
 // (rowSharpness) or the GPU (deskew.js), same arithmetic.
-export async function estimateSkew(gray, side = 800, score = null) {
+export async function estimateSkew(gray, side = 800, score = null, rs = cpuResize) {
   score ??= async (ink, angles) => angles.map((a) => rowSharpness(ink, a));
-  const fine = inkThumb(gray, side);
+  const fine = await inkThumb(gray, side, rs);
   let m = 0;
   for (const v of fine.data) m += v;
   if (m / fine.data.length < 0.003 * 255) return 0.0;
-  const coarse = inkThumb(gray, Math.floor(side / 2));
+  const coarse = await inkThumb(gray, Math.floor(side / 2), rs);
   const grid = arange(-DESKEW_MAX, DESKEW_MAX + 1e-6, 2.0);
   const scores = await score(coarse, grid);
   const top = scores.map((s, i) => [s, i]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).slice(-2).map((p) => grid[p[1]]);
@@ -102,8 +105,8 @@ function unrotateBox(box, deg, w, h) {
   return [cl(Math.min(...xs), w), cl(Math.min(...ys), h), cl(Math.max(...xs), w), cl(Math.max(...ys), h)].map((v) => pyRound(v * 10) / 10);
 }
 
-function orientInput(gray, side = ORIENT_SIDE) {
-  const small = shrinkTo(gray, side);
+async function orientInput(gray, side = ORIENT_SIDE, rs = cpuResize) {
+  const small = await shrinkTo(gray, side, rs);
   const out = new Float32Array(side * side);
   for (let y = 0; y < small.h; y++) for (let x = 0; x < small.w; x++) out[y * side + x] = Math.fround(1 - Math.fround(small.data[y * small.w + x] / 255));
   return out;
@@ -266,7 +269,7 @@ export class Indra {
   async read(gray, { turn = true } = {}) {
     const t = {};
     let t0 = now();
-    const small = preview(gray);
+    const small = await preview(gray, PREVIEW_SIDE, this.rs);
     const a = await this.skew(small);
     let k = 0;
     if (turn && this.orient) {
@@ -304,12 +307,16 @@ export class Indra {
   }
 
   async orientationProbs(gray) {
-    const x = orientInput(gray);
+    const x = await orientInput(gray, ORIENT_SIDE, this.rs);
     return (await this.orient.classify(x, 1, ORIENT_SIDE, ORIENT_SIDE))[0];
   }
 
   // the deskew's angle search and rotation run on the GPU unless this.cpuDeskew
-  skew(gray) { return estimateSkew(gray, 800, this.cpuDeskew ? null : (ink, angles) => this.deskew.sharpness(ink, angles)); }
+  skew(gray) { return estimateSkew(gray, 800, this.cpuDeskew ? null : (ink, angles) => this.deskew.sharpness(ink, angles), this.rs); }
+  // the page's downscales: area decimation on the GPU, anything else (and cpuDeskew) on the CPU
+  get rs() {
+    return (g, w, h, interp) => (!this.cpuDeskew && isAreaDecimate(g, w, h, interp) ? this.deskew.area(g, w, h) : resize(g, w, h, interp));
+  }
   rotate(gray, deg) { return this.cpuDeskew ? rotatePage(gray, deg) : this.deskew.rotate(gray, deg); }
 
   async turnPage(gray, k, a, small) {
@@ -325,7 +332,7 @@ export class Indra {
   async detectAt(gray, longSide) {
     const scale = longSide / Math.max(gray.h, gray.w);
     const nh = Math.max(1, pyRound(gray.h * scale)), nw = Math.max(1, pyRound(gray.w * scale));
-    const g = nh !== gray.h || nw !== gray.w ? resize(gray, nw, nh, scale < 1 ? "area" : "linear") : gray;
+    const g = nh !== gray.h || nw !== gray.w ? await this.rs(gray, nw, nh, scale < 1 ? "area" : "linear") : gray;
     const ph = Math.ceil(nh / 32) * 32, pw = Math.ceil(nw / 32) * 32;
     const x = new Float32Array(ph * pw);
     for (let y = 0; y < nh; y++) for (let xx = 0; xx < nw; xx++) x[y * pw + xx] = Math.fround(1 - Math.fround(g.data[y * nw + xx] / 255));

@@ -2,7 +2,7 @@
 // the full-page rotation. Both sample as imgproc.warpAffine does (OpenCV 5's float32 bilinear
 // warp through the inverse matrix, round half to even), on 8-bit images packed 4 pixels per u32.
 
-import { img, rotationMatrix } from "./imgproc.js";
+import { areaTab, img, rotationMatrix } from "./imgproc.js";
 
 const SAMPLE = /* wgsl */ `
 fn px(x: i32, y: i32) -> f32 {
@@ -128,3 +128,64 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   }
   out[t] = word;
 }`;
+
+// INTER_AREA decimation (imgproc.areaDecimate) on the GPU, in the same order of float32 sums:
+// for each destination pixel, over its source rows (weight beta), the row's weighted sum over its
+// source columns (weights alpha). Tables: per destination column / row, [start, count] into
+// (source index, weight) lists. One thread per 4 packed output pixels.
+const AREA = /* wgsl */ `
+struct P { W: u32, H: u32, dw: u32, dh: u32, N4: u32, nx: u32, pad0: u32, pad1: u32 };
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> src: array<u32>;
+@group(0) @binding(2) var<storage, read> xr: array<u32>;
+@group(0) @binding(3) var<storage, read> xs: array<u32>;
+@group(0) @binding(4) var<storage, read> xa: array<f32>;
+@group(0) @binding(5) var<storage, read> yr: array<u32>;
+@group(0) @binding(6) var<storage, read> ys: array<u32>;
+@group(0) @binding(7) var<storage, read> ya: array<f32>;
+@group(0) @binding(8) var<storage, read_write> out: array<u32>;
+fn at(i: u32) -> f32 { return f32((src[i >> 2u] >> ((i & 3u) * 8u)) & 255u); }
+fn one(x: u32, y: u32) -> u32 {
+  var sum = 0.0;
+  let y0 = yr[2u * y]; let yn = yr[2u * y + 1u];
+  let x0 = xr[2u * x]; let xn = xr[2u * x + 1u];
+  for (var j = 0u; j < yn; j++) {
+    let row = ys[y0 + j] * p.W;
+    var buf = 0.0;
+    for (var i = 0u; i < xn; i++) { buf = buf + at(row + xs[x0 + i]) * xa[x0 + i]; }
+    if (j == 0u) { sum = ya[y0] * buf; } else { sum = sum + ya[y0 + j] * buf; }
+  }
+  return u32(clamp(round(sum), 0.0, 255.0));
+}
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let t = g.x + g.y * p.nx * 64u;
+  if (t >= p.N4) { return; }
+  var word = 0u;
+  for (var j = 0u; j < 4u; j++) {
+    let i = t * 4u + j;
+    if (i < p.dw * p.dh) { word |= one(i % p.dw, i / p.dw) << (8u * j); }
+  }
+  out[t] = word;
+}`;
+
+function tables(ssize, dsize, scale) {
+  const tab = areaTab(ssize, dsize, scale); // [d, s, w], grouped by d in order
+  const r = new Uint32Array(2 * dsize), si = new Uint32Array(tab.length), w = new Float32Array(tab.length);
+  tab.forEach(([d, s, a], k) => { if (r[2 * d + 1] === 0) r[2 * d] = k; r[2 * d + 1]++; si[k] = s; w[k] = a; });
+  return [r, si, w];
+}
+
+Deskew.prototype.area = async function (src, dw, dh) {
+  const gpu = this.gpu;
+  const [xr, xs, xa] = tables(src.w, dw, src.w / dw), [yr, ys, ya] = tables(src.h, dh, src.h / dh);
+  const bufs = [packed(gpu, src), ...[xr, xs, xa, yr, ys, ya].map((a) => gpu.upload(a))];
+  const n4 = Math.ceil((dw * dh) / 4);
+  const out = gpu.buffer(4 * n4);
+  const grid = gpu.grid(n4);
+  gpu.begin();
+  gpu.dispatch(AREA, [...bufs, out], [src.w, src.h, dw, dh, n4, grid[0], 0, 0], grid);
+  const [res] = await gpu.end([[out, 4 * n4]]);
+  for (const b of [...bufs, out]) b.destroy();
+  return img(dw, dh, new Uint8Array(res, 0, dw * dh).slice());
+};

@@ -19,6 +19,13 @@ const sat8 = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 const f32 = Math.fround;
 
 // cv2.resize(src, (dw, dh), interpolation) for INTER_AREA ("area") or INTER_LINEAR ("linear")
+// whether resize() takes the area-decimation path (the one deskew.js also runs on the GPU)
+export function isAreaDecimate(src, dw, dh, interp) {
+  const sx = src.w / dw, sy = src.h / dh;
+  if (interp !== "area" || sx < 1 || sy < 1 || (dw === src.w && dh === src.h)) return false;
+  return !(Math.abs(sx - Math.round(sx)) < 1e-12 && Math.abs(sy - Math.round(sy)) < 1e-12);
+}
+
 export function resize(src, dw, dh, interp) {
   if (dw === src.w && dh === src.h) return img(dw, dh, src.data.slice());
   const sx = src.w / dw, sy = src.h / dh; // scale = source / destination
@@ -47,7 +54,7 @@ function areaFast(src, dw, dh, kx, ky) {
 }
 
 // computeResizeAreaTab: [{di, si, alpha}] for one axis
-function areaTab(ssize, dsize, scale) {
+export function areaTab(ssize, dsize, scale) {
   const tab = [];
   for (let dx = 0; dx < dsize; dx++) {
     const fsx1 = dx * scale, fsx2 = fsx1 + scale;
