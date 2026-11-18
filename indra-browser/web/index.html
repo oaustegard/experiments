@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page to Markdown</title>
-<meta name="description" content="Indra OCR in your browser tab: a scanned page or PDF turned into markdown on your GPU, with models packed to about 1.5 MB.">
+<meta name="description" content="Indra OCR in your browser tab: a scanned page or PDF turned into markdown on your GPU, with models packed to about 1.2 MB.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +13,8 @@
   <h1>Turn a page into markdown, on your own GPU</h1>
   <p class="lede">Drop a scan, a photo of a page or a PDF. A small OCR model finds the text lines, reads them and puts them in
   reading order, with headings, lists and tables, all inside this tab: the page is not uploaded anywhere. It is
-  <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab, its weights packed to a few bits each.</p>
+  <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab, with each weight rounded to a few bits so the
+  first visit downloads about 1.2 MB. It needs a browser with WebGPU: a recent Chrome or Edge, or Safari 26.</p>
 </header>
 
 <div id="status" class="status" role="status" aria-live="polite">
@@ -28,12 +29,13 @@
   </label>
   <div class="row">
     <span id="pdf-nav" class="pdf-nav" hidden>
+      <span class="muted">PDF pages are read one at a time:</span>
       <button type="button" id="prev" aria-label="Previous page">‹</button>
       <span id="page-of"></span>
       <button type="button" id="next" aria-label="Next page">›</button>
     </span>
     <label class="check"><input type="checkbox" id="furniture"> keep page headers and footers</label>
-    <label class="check"><input type="checkbox" id="lm" checked> word model for unsure lines</label>
+    <label class="check" title="Lines the recognizer is unsure of are read again with a word model, which breaks close calls between readings"><input type="checkbox" id="lm" checked> re-read unsure lines with a word model</label>
   </div>
 </section>
 
@@ -57,14 +59,18 @@
 </section>
 
 <footer class="muted small">
-  <p>How it works: a detector finds the text lines; a recognizer reads each line (a CJK, right-to-left or "world" recognizer is
-  fetched the first time a line in those scripts turns up); a small transformer puts the lines in reading order and labels
-  headings, lists and tables. The models run on WebGPU, ported from the
-  <a href="https://pypi.org/project/indra-ocr/">indra-ocr</a> package, whose output this page reproduces line for line.
+  <p>How it works: a detector finds the text lines. A recognizer reads each line; the first one reads Latin, Greek, Cyrillic,
+  Devanagari and Bengali, and three more are downloaded (0.6 to 1.1 MB each) the first time a line needs them: Chinese,
+  Japanese and Korean; Arabic and Hebrew; and other scripts such as Thai, Ethiopic and the South Indian scripts. A line the
+  recognizer is unsure of is read again with a word model (an n-gram table of which characters usually follow which) that
+  breaks close calls. A small transformer then puts the lines in reading order and labels headings, lists and tables.
+  Everything runs on WebGPU, in code ported from Datalab's <a href="https://pypi.org/project/indra-ocr/">indra-ocr</a>
+  Python package: given the same rounded weights, the two produce the same text and markdown on the pages compared.
   Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/indra-browser">indra-browser</a>.</p>
-  <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE">copy</a>): free for
-  research and personal use, with use restrictions in its Attachment A. The files served here are quantized derivatives
-  of the originals, changed only by rounding their weights and n-gram values. Build <code id="build"></code>.</p>
+  <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE">full license text</a>):
+  free for research and personal use; companies with more than $20M in revenue or funding, or that compete with Datalab,
+  need a commercial license from Datalab. The weights and word models served here are Datalab's, rounded to fewer bits;
+  nothing else in them is changed. Build <code id="build"></code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>
