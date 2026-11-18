@@ -1,7 +1,7 @@
 // Indra's networks on the GPU (gpu.js kernels) and the order model on the CPU, following
 // run/ref.py op for op. Tensors are NHWC float32.
 
-import { CONV, CTC, CTX, MOVE, SEQ } from "./gpu.js";
+import { CONV, CTC, CTX, MM, MOVE, SEQ } from "./gpu.js";
 
 const ACT = { null: 0, undefined: 0, hardswish: 1, relu: 2, sigmoid: 3 };
 
@@ -45,6 +45,14 @@ function conv(gpu, x, w, b, { s = [1, 1], p = [0, 0, 0, 0], g = 1, act = 0, res 
   const Wo = Math.floor((x.W + p[1] + p[3] - w.kw) / s[1]) + 1;
   const O = w.O;
   const y = out ?? { buf: gpu.buffer(4 * x.N * Ho * Wo * O), N: x.N, H: Ho, W: Wo, C: O };
+  // a plain 1x1 convolution over a contiguous input is a matmul over its pixels
+  if (w.kh === 1 && w.kw === 1 && s[0] === 1 && s[1] === 1 && !p.some((v) => v) && g === 1 && !(x.cs && x.cs !== x.C) && !gpu.naiveConv &&
+      (!mask || Ho === 1)) {
+    const R = x.N * Ho * Wo;
+    gpu.dispatch(MM, [x.buf, w.buf, b, res?.buf, mask, y.buf],
+      [R, x.C, O, act, res ? resAt : 0, mask ? 1 : 0, y.cs ?? O, y.co ?? 0], [Math.ceil(O / 64), Math.ceil(R / 64)]);
+    return y;
+  }
   const total = x.N * Ho * Wo * O;
   const grid = gpu.grid(total);
   gpu.dispatch(CONV, [x.buf, w.buf, b, res?.buf, mask, y.buf], [

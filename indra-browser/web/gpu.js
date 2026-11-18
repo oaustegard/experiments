@@ -327,3 +327,63 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) l
     y[o + 2u] = l[base] - lse;
   }
 }`;
+
+// 1x1 convolution as a tiled matmul: Y[r, n] = epilogue(sum_k X[r, k] W[n, k] + b[n]) for rows r
+// (pixels) of X [R, K] and weights W [N, K]. 64 x 64 outputs per workgroup of 256 threads, each
+// computing 4 x 4, K in tiles of 16 through workgroup memory. Same epilogue as CONV (residual
+// before / after the activation, mask per row), output channel slice by outCs / outCo.
+export const MM = /* wgsl */ `
+struct P { R: u32, K: u32, N: u32, act: u32, res: u32, mask: u32, outCs: u32, outCo: u32 };
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> x: array<f32>;
+@group(0) @binding(2) var<storage, read> w: array<f32>;
+@group(0) @binding(3) var<storage, read> b: array<f32>;
+@group(0) @binding(4) var<storage, read> r: array<f32>;
+@group(0) @binding(5) var<storage, read> m: array<f32>;
+@group(0) @binding(6) var<storage, read_write> y: array<f32>;
+var<workgroup> xs: array<f32, 1024>; // [16 k][64 rows]
+var<workgroup> ws: array<f32, 1024>; // [16 k][64 cols]
+@compute @workgroup_size(256)
+fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) l: u32) {
+  let r0 = wg.y * 64u; let n0 = wg.x * 64u;
+  let tr = (l / 16u) * 4u; let tn = (l % 16u) * 4u;
+  var acc: array<f32, 16>;
+  for (var i = 0u; i < 16u; i++) { acc[i] = 0.0; }
+  for (var k0 = 0u; k0 < p.K; k0 += 16u) {
+    for (var q = 0u; q < 4u; q++) {
+      let e = l + q * 256u;        // 0..1023
+      let kk = e % 16u; let rr = e / 16u;
+      let row = r0 + rr; let k = k0 + kk;
+      xs[kk * 64u + rr] = select(0.0, x[row * p.K + k], row < p.R && k < p.K);
+      let col = n0 + rr;
+      ws[kk * 64u + rr] = select(0.0, w[col * p.K + k], col < p.N && k < p.K);
+    }
+    workgroupBarrier();
+    for (var kk = 0u; kk < 16u; kk++) {
+      let a = vec4<f32>(xs[kk * 64u + tr], xs[kk * 64u + tr + 1u], xs[kk * 64u + tr + 2u], xs[kk * 64u + tr + 3u]);
+      let c = vec4<f32>(ws[kk * 64u + tn], ws[kk * 64u + tn + 1u], ws[kk * 64u + tn + 2u], ws[kk * 64u + tn + 3u]);
+      for (var i = 0u; i < 4u; i++) {
+        acc[i * 4u] += a[i] * c.x; acc[i * 4u + 1u] += a[i] * c.y;
+        acc[i * 4u + 2u] += a[i] * c.z; acc[i * 4u + 3u] += a[i] * c.w;
+      }
+    }
+    workgroupBarrier();
+  }
+  for (var i = 0u; i < 4u; i++) {
+    let row = r0 + tr + i;
+    if (row >= p.R) { continue; }
+    for (var j = 0u; j < 4u; j++) {
+      let n = n0 + tn + j;
+      if (n >= p.N) { continue; }
+      var v = acc[i * 4u + j] + b[n];
+      let oi = row * p.N + n;
+      if (p.res == 1u) { v += r[oi]; }
+      if (p.act == 1u) { v = v * clamp(v + 3.0, 0.0, 6.0) / 6.0; }
+      else if (p.act == 2u) { v = max(v, 0.0); }
+      else if (p.act == 3u) { v = 1.0 / (1.0 + exp(-v)); }
+      if (p.res == 2u) { v += r[oi]; }
+      if (p.mask == 1u) { v *= m[row]; }
+      y[row * p.outCs + p.outCo + n] = v;
+    }
+  }
+}`;
