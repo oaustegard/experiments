@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-17T01:51:09.453030+00:00",
+ "last_run": "2026-11-18T01:50:53.545697+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -713,6 +713,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Controlled from-scratch study (0.6B-6.4B, 224px) finding that dedicated vision capacity matters but can sit in a backbone's early layers instead of a separate pre-fusion encoder, and that a MetaCLIP-pretrained encoder buys little at matched compute. No code or weights, and every result needs a full VLM training run; it does not touch his pretrained in-browser encoders (MobileCLIP-S0, EG2 vision)."
+  },
+  "2611.18397": {
+   "title": "Gamer: A Generalist Vision-Language-Action Foundation Model for Long-Horizon Real-Time Game Agent",
+   "first_seen": "2026-11-18",
+   "best_rank": 29,
+   "upvotes": 165,
+   "reviewed": "2026-11-18",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "8B and 35B-A3B Qwen VLA game agents trained with CPT, SFT and RL on H200s; the smallest model is about 22 GB served and the SFT/RL checkpoints are not released, so nothing transfers to the in-browser DOOM Arena bot. The usable idea is the context pattern: write a summary before old turns are evicted under a fixed budget (512 tokens, 20-turn window) and reason only at decision points. Its headline win over frontier models holds only in real-time play; time-paused, GPT-5.6-Sol scores higher."
   }
  }
 }
