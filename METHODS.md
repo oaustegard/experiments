@@ -5841,11 +5841,13 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
 
 - **Conv nets lose accuracy per bit far faster than transformers; measure before reusing a 4-bit result.** Indra OCR
   on Omni Parse Bench: fp16 +0.04, 8-bit per channel −0.34, 6-bit −1.11, 4-bit per channel −11.95 points, where
-  gliner-browser's transformer held 4-bit token tables at no cost. fp16 small models with an 8-bit recognizer: −0.15.
+  gliner-browser's transformer held 4-bit token tables at no cost. fp16 detector, orientation and script models with
+  8-bit recognizers and order model: −0.15.
   (`indra-browser/RESULTS.md` Finding 1)
 - **n-gram backoff tables compress to a 2-bit value codebook and a trie.** Per-table 1-D k-means levels at 2 bits kept
-  the handwriting slice (25.0 vs 25.3). Every history of length n is a seen (n−1)-gram (bar the all-line-start one),
-  so histories are one bit per lower-order key and n-grams per-history counts plus token gaps: 32% fewer key bytes
+  the pass rate on the benchmark's 833 handwriting tests (25.0% vs 25.3% with fp32 values; 22.0% with no word model). Every history of length n is a seen (n−1)-gram (bar the all-line-start one),
+  so the file stores each history length as one bit per lower-order entry (is this entry also a history?), and each
+  n-gram table as a count per history plus the gaps between its token ids: 32% fewer key bytes
   than LEB128 gaps of the sorted keys. Dropping the longest orders costs more than any value precision does.
   (`indra-browser/run/lmpack.py` `write_trie`)
 - **Bit-pack weight codes for GitHub Pages' gzip.** Pages gzips `.bin` on the fly and serves no brotli; Chrome 157's
@@ -5856,12 +5858,13 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   `invertAffineTransform`, rounded half to even, differed on 58 of 513,600. INTER_AREA decimation reproduces cv2
   exactly with float32 sums in OpenCV's table order. (`indra-browser/web/imgproc.js`)
 - **`np.arange` steps by `(start + step) − start`.** `np.arange(-1.0, 1e-6, 0.1)[7]` is −0.30000000000000016;
-  `start + i * step` gives −0.29999999999999993, which failed indra-ocr's `abs(a) >= 0.3` deskew test and changed a
-  page. (`indra-browser/web/indra.js` `arange`)
+  `start + i * step` gives −0.29999999999999993, which failed indra-ocr's `abs(a) >= 0.3` deskew test and left a
+  tilted page unstraightened. (`indra-browser/web/indra.js` `arange`)
 - **Profile kernels before tuning them.** WebGPU timestamp queries (one pass per dispatch) put a page's GPU work at
   36 to 84 ms of about a second; the rest was JS line crops, per-batch submits and per-dispatch buffer creation. A
   tiled matmul changed nothing measurable; one submit per recognizer group with pooled buffers and GPU line crops did.
-  A GPU Bridge tab in the background slows every stage 4 to 6 times, plain JS included. (`indra-browser/web/gpu.js`
+  A GPU Bridge tab (`gpu-bridge/`: jobs run in a browser tab on Oskar's devices) left in the background slows every
+  stage 4 to 6 times, plain JS included. (`indra-browser/web/gpu.js`
   `startProfile`)
-- **Omni Parse Bench in the jail:** `fuzzysearch` has no wheel (copy its pure-Python package onto `PYTHONPATH`), and the
+- **Omni Parse Bench inside the hub's `scripts/jail.sh` (no network, no secrets, for code nobody here wrote):** `fuzzysearch` has no wheel (copy its pure-Python package onto `PYTHONPATH`), and the
   scorer's adapter imports need `openai` and `httpx` even to score saved outputs. (`indra-browser/run/opb_eval.py`)

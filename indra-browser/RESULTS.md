@@ -4,7 +4,8 @@ Datalab's [Indra OCR](https://huggingface.co/datalab-to/indra-ocr) (indra-ocr 1.
 markdown with about 12M parameters: a line detector, CTC line recognizers per script group, n-gram word models for
 unsure lines, an orientation classifier and a small reading-order transformer. This experiment runs all of it in a
 browser tab on WebGPU, with no onnxruntime: hand-written WGSL kernels, the package's Python pipeline ported to JS, and
-the weights packed to as few bytes as the benchmark allows. Page: `web/index.html`.
+the weights packed to as few bytes as the benchmark allows. Page: https://austegard.com/experiments/indra-browser/web/
+(`web/index.html`). Oskar Austegard, who owns this repo, asked for it.
 
 ## Answer
 
@@ -23,12 +24,12 @@ A warm page takes 71 to 180 ms on Oskar's Mac, all of the pipeline but reading o
 ## Findings
 
 1. **Weights hold at fp16 and 8-bit, and break below.** Against fp32's 61.51: fp16 61.55 (+0.04, CI −0.03 to
-   +0.11); fp16 for the three small models with 8-bit recognizer and order model 61.36 (−0.15, CI −0.37 to +0.04);
-   8-bit everywhere 61.18 (−0.34, CI −0.75 to +0.04); 4-bit 49.56 (−11.95, tables 52.78 to 33.36);
-   6-bit 60.40 (−1.11, CI −1.87 to −0.48). <!-- @evidence[[results/summary.json#s6c.headline]] --> These conv nets lose accuracy far faster per bit than the
+   +0.11); fp16 for the three small models (detector, orientation, script) with 8-bit recognizers and order model 61.36 (−0.15, CI −0.37 to +0.04);
+   8-bit everywhere 61.18 (−0.34, CI −0.75 to +0.04); 4-bit 49.56 (−11.95; its tables score falls from fp32's 52.78
+   to 33.36); and between them 6-bit 60.40 (−1.11, CI −1.87 to −0.48). <!-- @evidence[[results/summary.json#s6c.headline]] --> These conv nets lose accuracy far faster per bit than the
    transformer in `gliner-browser` (a packed named-entity model in this repo), which held 4-bit token tables at no
    cost (Round 1).
-2. **The word model matters for handwriting and not overall.** Off, the headline moves +0.11 (CI −0.17 to +0.40)
+2. **The word model matters for handwriting and not overall.** With the word model off, the headline moves +0.11 (CI −0.17 to +0.40)
    while the 833 handwriting text and table tests drop from 25.3 to 22.0 (no interval computed). <!-- @evidence[[results/summary.json#handwriting.lm-off]] -->
    The longest orders carry the gain: the Latin table goes to 5-grams, and keeping up to 3-grams scores 22.4,
    up to 4-grams 23.5 (Round 1).
@@ -40,14 +41,15 @@ A warm page takes 71 to 180 ms on Oskar's Mac, all of the pipeline but reading o
 4. **The browser reproduces the package exactly.** With the same weights, every line's text and box and the
    markdown match indra-ocr on the same pixels: 1452 lines on 15 pages without the word model, <!-- @evidence[[results/summary.json#parity.nolm.lines]] -->
    10 pages with it, and 9 pages with the line crops on the GPU as the page ships them (Round 1). Two ports had to
-   match OpenCV 5 and NumPy to the bit. OpenCV 5's `warpAffine` samples through the inverse matrix in float32; my
-   first port used the forward matrix and turned every page the wrong way. NumPy's `arange` computes its step as
-   `(start + step) − start`, and a step computed as `start + i * step` missed the 0.3° threshold for deskewing one page.
-5. **The GPU does tens of milliseconds of a page's work.** On the handwritten-letter test page the kernels summed to 59.3 ms; <!-- @evidence[[results/summary.json#mac_indra5_gpu_kernel_ms.synth_copies-images_sv5a6924ae-p1]] -->
+   match OpenCV 5 and NumPy to the bit: `warpAffine` samples through the inverse matrix in float32, and NumPy's
+   `arange` computes its step as `(start + step) − start`, which decides whether some pages cross the 0.3° deskew
+   threshold.
+5. **The GPU does tens of milliseconds of a page's work; JS around it was the cost.** A 30-megapixel scan now takes
+   112 ms warm, its line crops 2 ms. <!-- @evidence[[results/summary.json#mac_indra7.olmo_old_scans-87-p1.warm_ms]] -->
+   In an earlier build the handwritten-letter test page's kernels summed to 59.3 ms; <!-- @evidence[[results/summary.json#mac_indra5_gpu_kernel_ms.synth_copies-images_sv5a6924ae-p1]] -->
    the rest of the page's time went to JS around them (per-batch submits, line crops, the skew search). Those parts
-   then moved to the GPU or into one submit (Round 1). With only the deskew and downscales moved, a 30-megapixel
-   scan took 416 ms warm, against 1,820 ms with them on the CPU; <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
-   with the line crops moved too, it takes 112 ms, of which crops are 2 ms (`results/bridge_indra-7_mac.json`). <!-- @evidence[[results/summary.json#mac_indra7.olmo_old_scans-87-p1.warm_ms]] -->
+   then moved to the GPU or into one submit (Round 1). The deskew and downscales alone took the scan from 1,820 ms
+   to 416 ms. <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
 
 ## Method
 
@@ -75,12 +77,17 @@ and line crops on the GPU (`deskew.js`, `crops.js`), the pipeline (`indra.js`, `
 `imgproc.js`) and the page. `run/ref.py` is a NumPy forward pass that matches ONNX Runtime to 1e-5;
 `web/test/check_engine.mjs` checks the WGSL nets against it, `web/test/check_pages.mjs` runs the pipeline on pages
 for `run/compare_pages.py`. Mac timings come from the GPU Bridge, this repo's job runner on a browser tab of Oskar's Mac
-(Chrome 157, Apple Metal-3): `results/bridge_indra-*_mac.json`. Accuracy is measured in Python with the rounded
-weights; the browser's own score follows from the parity checks, not from a separate run.
+(Chrome 157, Apple Metal-3): `results/bridge_indra-*_mac.json`. Each bridge job has an id (`indra-1` to `indra-7`, one per build
+timed). Accuracy is measured in Python with the rounded weights; the browser's own score follows from the parity checks, not from a separate run.
 
 Arm names in `results/`: `f16`, `i8c` (8-bit per channel), `s6c`/`s5c`/`s4c` (6/5/4-bit per channel), `s4g32`
 (4-bit, a scale per 32), `mix8` (fp16 detector, orientation and script models, 8-bit recognizers and order model);
 `lm-off`, `lm-oN` (orders up to N), `lm-top1` (longest order dropped), `lm-qB` (all orders, B-bit values).
+
+**Running it.** Scoring an arm: `sh run/sweep.sh ARM` (needs the jail's dependencies, see `run/opb_eval.py`).
+Browser checks: `node web/test/check_engine.mjs PACK FIXTURES` (fixtures from `run/make_fixtures.py`) and
+`node web/test/check_pages.mjs PACK GRAY_DIR PAGES.txt OUT`, then `python3 run/compare_pages.py OUT RUN_DIR`.
+Packing: `python3 run/export.py --src MODEL_DIR --out web/models/f16 --scheme f16 --lm base=0:2,world=0:2,cjk=0:2`.
 
 ## Log
 
