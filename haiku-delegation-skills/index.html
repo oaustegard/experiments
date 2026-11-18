@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Haiku delegation skills</title>
+<meta name="description" content="Which claude-skills skill to reach for when handing work to Claude Haiku 5.5: routing, prompting, launching, per-item workers, swarms and fan-out from chat.">
+<style>
+:root{--bg:#fafaf7;--fg:#1c1c1a;--mut:#6b6b64;--line:#dcdcd3;--card:#fff;--acc:#2f5d8a;--warn:#a4452c;--ok:#3b6b3a;--chip:#eceee6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161715;--fg:#e8e8e2;--mut:#9a9a90;--line:#33352f;--card:#1e201d;--acc:#8ab4dc;--warn:#e08a70;--ok:#8cc08a;--chip:#2a2c27}}
+:root[data-theme="dark"]{--bg:#161715;--fg:#e8e8e2;--mut:#9a9a90;--line:#33352f;--card:#1e201d;--acc:#8ab4dc;--warn:#e08a70;--ok:#8cc08a;--chip:#2a2c27}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:2rem 16px 4rem}
+h1{font-size:1.9rem;margin:.2em 0}
+h2{font-size:1.3rem;margin:2.4em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:.25em}
+h3{font-size:1.05rem;margin:0}
+p,li{max-width:76ch}
+a{color:var(--acc)}
+.sub{color:var(--mut);margin:0 0 1.5rem}
+.lede{color:var(--mut);margin:.2em 0 1em}
+code{font:.86em ui-monospace,Menlo,monospace;background:var(--chip);padding:.05em .35em;border-radius:3px;overflow-wrap:anywhere}
+ol.path{padding-left:1.4em}
+ol.path li{margin:.35em 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.9rem 1rem}
+.card header{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem}
+.ver{font:.78rem ui-monospace,Menlo,monospace;color:var(--mut)}
+.card p{margin:.3em 0;font-size:.93rem}
+.card dl{margin:.5em 0 0;font-size:.9rem}
+.card dt{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);margin-top:.5em}
+.card dd{margin:.1em 0 0}
+.tag{display:inline-block;font-size:.72rem;padding:.05em .45em;border-radius:3px;background:var(--chip);color:var(--mut);margin-left:.3em}
+.tag.warn{color:var(--warn)}
+.tag.ok{color:var(--ok)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:.45rem .65rem;border-bottom:1px solid var(--line)}
+th{background:var(--chip);font-weight:600}
+td.n{text-align:right;white-space:nowrap}
+footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Haiku delegation skills</h1>
+<p class="sub">Snapshot 2026-11-18 of <code>/mnt/skills/user/</code> (claude-skills, 128 entries). Each card says what the skill does and when you would reach for it when the worker is Claude Haiku 5.5. Versions and numbers are read from each <code>SKILL.md</code>; the grouping and the advice are my judgment. Each skill is <code>&lt;name&gt;/SKILL.md</code> in <a href="https://github.com/oaustegard/claude-skills">oaustegard/claude-skills</a>, if you want to check a claim. The 2026-10-14 <a href="../delegation-skill-map/">delegation skill map</a> covers all agent skills regardless of model; this page is the Haiku cut of that space, plus the skills added since.</p>
+
+<h2>Why Haiku is the default worker</h2>
+<p>Haiku 5.5 lists at $0.10 in and $0.50 out per million tokens, 20× under Sonnet 5.5 on every token class. One Agent-tool spawn costs $0.005–0.011 on a small repo against Sonnet's $0.17. <code>agent-routing</code>'s rule is that short, checkable work goes to Haiku and the burden of proof is on routing up. The 240/240 on its mechanical battery was Haiku 4.5; the 5.5 evidence is an independent 60-item run where Haiku scored 0.968 against Sonnet's 0.994 for about 1/16 of the cost, on tasks that each stated their rule and had one checkable answer. The skills below differ in what they help with: deciding to delegate, writing the prompt, launching the children, or doing one specific job with Haiku inside.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>model</th><th class="n">$/MTok in</th><th class="n">out</th><th class="n">one Agent spawn, small repo</th></tr></thead>
+<tbody>
+<tr><td>Haiku 5.5</td><td class="n">$0.10</td><td class="n">$0.50</td><td class="n">$0.005–0.011</td></tr>
+<tr><td>Sonnet 5.5</td><td class="n">$2</td><td class="n">$10</td><td class="n">$0.17</td></tr>
+<tr><td>Opus 5.5</td><td class="n">$4</td><td class="n">$20</td><td class="n">~$0.34 (not measured)</td></tr>
+</tbody></table></div>
+
+<h2>Which one to open</h2>
+<p class="lede">Take the first yes. Jev is TypeSafe's decision model, reached through the Muninn <code>decide</code> tool in these sessions; it returns a probability per option in about a second.</p>
+<ol class="path">
+<li>One classify, route, yes/no or score call per item? Call Muninn <code>decide</code> (Jev) if it is listed; otherwise <code>deciding-with-confidence</code>. If the label set is too big to put in a prompt, <code>hallucinating-labels</code>.</li>
+<li>Checking findings from a code review? <code>verifying-review-findings</code>.</li>
+<li>A program to improve against a numeric scorer on a small budget? <code>evolving-with-swarms</code>.</li>
+<li>Hundreds of failing tests and hours of runtime? <code>swarming-to-green</code>.</li>
+<li>Otherwise you are fanning out generic tasks. In Claude Code, <code>dispatching-subagents</code> picks the mechanism; in claude.ai chat, <code>orchestrating-chat-agents</code>.</li>
+<li>Before the launch: <code>agent-routing</code> confirms Haiku is the right tier and sets the escalation path; <code>down-skilling</code> writes the prompt when the task needs judgment; <code>delegating-with-context</code> keeps the Agent-tool prompt to the task alone.</li>
+</ol>
+
+<h2>Deciding and prompting</h2>
+<p class="lede">Skills that run no agents themselves. They settle whether Haiku gets the task, and what it is told.</p>
+<div class="grid">
+
+<article class="card"><header><h3>agent-routing</h3><span class="ver">2.9.1</span></header>
+<p>Picks the model, effort and cascade for each subagent from measured cost per completed task, not per-token price.</p>
+<dl><dt>Use when</dt><dd>You are choosing a subagent's model or effort, or deciding how to escalate after a failure. Its routing table sends extraction, classification, state tracking, bulk scans and tested code edits to Haiku, with a second Haiku attempt that is told why the first failed, then Sonnet on a second failure.</dd>
+<dt>Not for</dt><dd>claude.ai chat. Judging another model's output, which it routes to Sonnet or above so the judge differs from the worker.</dd></dl></article>
+
+<article class="card"><header><h3>down-skilling</h3><span class="ver">1.7.1</span></header>
+<p>Turns Opus-level understanding of a task into a prompt Haiku can follow: rules, output schema and boundary examples.</p>
+<dl><dt>Use when</dt><dd>The output needs judgment (tone, relevance, moderation) and Haiku will run it many times. On 5.5 it starts from a bare prompt and adds one rule or one boundary example per miss on a 10–20 item test set, typically ending at 0–3 examples.</dd>
+<dt>Not for</dt><dd>Mechanically checkable output: write a verifier and retry instead. Don't instruct Haiku 5.5's thinking either, since it follows such instructions near 0% of the time.</dd></dl></article>
+
+<article class="card"><header><h3>writing-instructions</h3><span class="ver">0.3.0</span></header>
+<p>Sentence-level craft for instructions, with per-tier calibration: Haiku gets explicit imperatives and decision trees ("When X, do Y").</p>
+<dl><dt>Use when</dt><dd>An existing Haiku prompt or skill is being ignored or misread and the fix is in the wording.</dd>
+<dt>Not for</dt><dd>Building a Haiku prompt from scratch with a test set; that is <code>down-skilling</code>.</dd></dl></article>
+
+<article class="card"><header><h3>reasoning-semiformally</h3><span class="ver">0.4.0</span></header>
+<p>Certificate-style reasoning for patch verification, fault localization and patch equivalence. Ships a separate <code>haiku.md</code> with full procedural templates and worked examples.</p>
+<dl><dt>Use when</dt><dd>A Haiku worker has to reason about code across files: hand it <code>haiku.md</code> as part of its prompt.</dd>
+<dt>Not for</dt><dd>Choosing or launching the worker.</dd></dl></article>
+
+</div>
+
+<h2>Launching from Claude Code</h2>
+<div class="grid">
+
+<article class="card"><header><h3>dispatching-subagents</h3><span class="ver">0.3.0</span></header>
+<p>Chooses between the Agent tool, a Workflow script and headless <code>claude -p</code> children, and runs the headless fan-out from one background command with a cost cap, schema-verified outputs and resume.</p>
+<dl><dt>Use when</dt><dd>Ten or more independent tasks whose inputs fit in a prompt or file and whose output a script can check: judges, graders, extractors, per-file reviews. <code>--model haiku --concurrency 16 --max-usd 5</code> is the stock call; headless children are limited by RAM (about 210 MB each), while a Workflow runs only 2 at once on a 4-vCPU container.</dd>
+<dt>Not for</dt><dd>A child that needs MCP, the parent's transcript or a worktree (use the Agent tool), or work where task N+1 depends on N's answer.</dd></dl></article>
+
+<article class="card"><header><h3>delegating-with-context</h3><span class="ver">0.3.0</span></header>
+<p>Lets you write only the task in an Agent or <code>create_session</code> prompt; a PreToolUse hook pages the parent transcript through Jev and appends the chunks the task needs.</p>
+<dl><dt>Use when</dt><dd>Any Agent-tool delegation in a session that has history the child needs. Run <code>preview.py</code> first to see which chunks it would pass.</dd>
+<dt>Not for</dt><dd>Headless children (no hooks run there) or claude.ai, where the hook is not wired.</dd></dl></article>
+
+</div>
+
+<h2>Haiku as a per-item worker</h2>
+<p class="lede">Each of these does one job and runs Haiku inside it. A Haiku Agent-tool subagent costs about 32,500 tokens before it reads your prompt, so all three batch items or call the API rather than spawn one subagent per item.</p>
+<div class="grid">
+
+<article class="card"><header><h3>deciding-with-confidence</h3><span class="ver">0.4.0</span></header>
+<p>Routes, triages, flags and rates text with a probability for every option, in the request and response shapes of OpenAI's Decisions API or TypeSafe's System One.</p>
+<dl><dt>Use when</dt><dd>Jev is not available and you need "which queue", "is this grounded", "how severe" with a calibrated confidence. Takes a file or the session transcript as evidence.</dd>
+<dt>Not for</dt><dd>Free-form extraction or explanations. When Jev is listed, call it: 0.1–0.3 s against ~0.7–4 s here.</dd></dl></article>
+
+<article class="card"><header><h3>hallucinating-labels</h3><span class="ver">0.1.0</span></header>
+<p>Assigns items to a closed vocabulary too large for a prompt: a cheap model writes the label it expects, and an embedder snaps it to the nearest legal value.</p>
+<dl><dt>Use when</dt><dd>Taxonomies, tag lists or code lists of thousands of labels, or an enum a provider rejects. Batch 40 items per call.</dd>
+<dt>Not for</dt><dd>A vocabulary that fits in a prompt: shipping all 860 labels got the top label right 70.1% of the time against this skill's 56.4%.</dd></dl></article>
+
+<article class="card"><header><h3>verifying-review-findings</h3><span class="ver">0.1.1</span></header>
+<p>Drops review findings whose quoted code is not in the file, then asks a decision model whether each remaining defect is real, with P(confirmed), severity and whether the fix works.</p>
+<dl><dt>Use when</dt><dd>Filtering a reviewer's false positives, or a CI gate that blocks only on confirmed high-severity findings.</dd>
+<dt>Note</dt><dd>Jev is the primary verifier; Haiku through <code>deciding-with-confidence</code> is the fallback path.</dd></dl></article>
+
+</div>
+
+<h2>Haiku swarms</h2>
+<p class="lede">Both run many Haiku workers through headless <code>claude -p</code> for long stretches, with a harness that checks every result.</p>
+<div class="grid">
+
+<article class="card"><header><h3>evolving-with-swarms</h3><span class="ver">0.1.1</span></header>
+<p>OpenEvolve-style search on a budget: per round, eight Haiku proposers at <code>low</code> each suggest a 45-word idea and one writer at <code>medium</code> turns them into a program that a scorer ranks, all under a dollar cap.</p>
+<dl><dt>Use when</dt><dd>One program, a script that scores it, and a small budget. It reached 99% of reference for $0.013–0.50 where a Sonnet loop needed $0.32–1.02.</dd>
+<dt>Not for</dt><dd>When wall-clock time matters and $3+ is available: Sonnet reaches the same finals in 7–42 minutes, while the swarm runs at about $1 an hour.</dd></dl></article>
+
+<article class="card"><header><h3>swarming-to-green</h3><span class="ver">0.7.1</span></header>
+<p>Hundreds to thousands of Haiku coding workers drive a failing-test backlog to green: failures clustered by signature, one worktree per fix, a serial no-regression merge gate, an effort ladder, resume across restarts and federation over sibling sessions.</p>
+<dl><dt>Use when</dt><dd>Machine-readable test output, hundreds of failures, and hours of runtime. Haiku solved clusters at $0.011–0.012 each against Sonnet's $0.075–0.087.</dd>
+<dt>Not for</dt><dd>A handful of failing tests, or fewer than ten tasks; use the Agent tool directly.</dd></dl></article>
+
+</div>
+
+<h2>Fan-out from claude.ai chat</h2>
+<p class="lede">Chat has no Agent tool, so these call the model APIs directly. <code>orchestrating-chat-agents</code> names Gemini (through Cloudflare) as the default engine in chat and its Claude path for when you want Claude output; that path and the skills built on it default to Sonnet 5.5, so pass a Haiku model id where the task fits the routing table. In Claude Code each one says to use the native runtime instead.</p>
+<div class="grid">
+
+<article class="card"><header><h3>orchestrating-chat-agents</h3><span class="ver">1.0.0</span></header>
+<p>Parallel Claude calls over httpx with a shared cached context, streaming, cached conversation threads and named agent pools; also delegates to Gemini through Cloudflare.</p>
+<dl><dt>Use when</dt><dd>Multi-perspective analysis or task decomposition from claude.ai when you want Claude rather than Gemini output, cached multi-turn threads, or Python that calls several Claude instances at once.</dd>
+<dt>Not for</dt><dd>Claude Code, where <code>dispatching-subagents</code> applies.</dd></dl></article>
+
+<article class="card"><header><h3>orchestrating-skills</h3><span class="ver">0.4.1</span></header>
+<p>Plans skill-typed subtasks, hands each only the slice of context it needs, runs them in parallel and synthesizes; answers trivial lookups inline without spawning.</p>
+<dl><dt>Use when</dt><dd>A large text context in chat where subtasks each need only part of it.</dd>
+<dt>Not for</dt><dd>Tool use or code execution; it is text analysis only.</dd></dl></article>
+
+<article class="card"><header><h3>tiling-tree</h3><span class="ver">1.1.1</span></header>
+<p>Partitions a problem into mutually exclusive, collectively exhaustive subsets recursively through parallel subagents, then scores the leaf ideas.</p>
+<dl><dt>Use when</dt><dd>"What are all the ways to…": exhaustive exploration rather than throughput. Hard-codes Sonnet 5.5 in its script.</dd></dl></article>
+
+<article class="card"><header><h3>convening-experts</h3><span class="ver">1.2.1</span></header>
+<p>Runs a panel of named expert perspectives (domain roles, DMAIC, RAPID, Socratic and Stoic methods) over one problem.</p>
+<dl><dt>Use when</dt><dd>A decision or root-cause question that benefits from distinct viewpoints, from chat. <code>muninn_utils.dispatch</code> already implements the panel with 17 lenses; the skill says to prefer it.</dd></dl></article>
+
+<article class="card"><header><h3>challenging</h3><span class="ver">0.13.0</span></header>
+<p>Adversarial review of a finished deliverable by a fresh-context subagent (Task tool in Claude Code, API in chat), returning structured findings and a verdict.</p>
+<dl><dt>Use when</dt><dd>Before shipping a post, recommendation or code where accuracy beats speed. <code>agent-routing</code> sends judging to Sonnet or above, so the reviewer is rarely Haiku.</dd></dl></article>
+
+<article class="card"><header><h3>orchestrating-agents</h3><span class="ver">0.9.0</span><span class="tag warn">deprecated</span></header>
+<p>The old name of <code>orchestrating-chat-agents</code>, kept so existing imports keep working. Every module re-exports the new one.</p></article>
+
+</div>
+
+<h2>Domain skills with a Haiku option inside</h2>
+<p class="lede">These do not delegate as such, but each lets you choose Haiku for its model calls, and most say when not to.</p>
+<div class="scroll"><table>
+<thead><tr><th>skill</th><th>ver</th><th>what Haiku does there</th><th>verdict in the skill</th></tr></thead>
+<tbody>
+<tr><td><code>curating-bsky-list</code></td><td>0.1.2</td><td>Judges candidate accounts in batches of 25 via <code>claude -p --model haiku</code></td><td><span class="tag ok">default</span></td></tr>
+<tr><td><code>reading-business-cards</code></td><td>2.3.0</td><td><code>--model haiku</code> reads each card tile at temperature 0; the script tiles more aggressively for it</td><td>Sonnet is the default floor</td></tr>
+<tr><td><code>browsing-bluesky</code></td><td>0.7.1</td><td><code>transcribe="haiku"</code> for images in posts</td><td><span class="tag warn">avoid</span> 18% token recall against Gemini's 95–100%: it summarizes instead of transcribing (Haiku 4.5; 5.5 not re-measured)</td></tr>
+<tr><td><code>transcribing-images</code></td><td>0.2.1</td><td>Image transcription</td><td><span class="tag warn">avoid</span> weak on dense text (Haiku 4.5; 5.5 not re-measured)</td></tr>
+<tr><td><code>declauding</code></td><td>0.14.0</td><td>Per-model prose tics: <code>models/haiku.md</code> profiles Haiku 4.5</td><td>Haiku 5.5 not yet profiled</td></tr>
+</tbody></table></div>
+
+<h2>Beside the skills</h2>
+<p>Three Haiku entry points in <code>claude-workspace</code> are not skills. The <code>decider</code> agent type is the Haiku stand-in for Jev, fed by <code>scripts/decide.py emit</code> and pooled by <code>decide.py aggregate</code>. The <code>auditor</code> agent type is a read-only Haiku checker for fan-out audits, with Bash gated read-only and Write limited to one declared output path. <code>scripts/fanout.py</code> dispatches the same <code>{id, prompt, out}</code> task file as the headless runner in <code>dispatching-subagents</code>, but over the Agent tool, so one task list runs on either engine.</p>
+
+<footer>Built 2026-11-18 from the installed skills. Grouping and verdicts are judgment; numbers are quoted from each skill's own measurements, which cite their experiments in this repo.</footer>
+</main>
+</body>
+</html>
