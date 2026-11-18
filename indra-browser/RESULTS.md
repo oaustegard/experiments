@@ -26,7 +26,8 @@ A warm page takes 71 to 180 ms on Oskar's Mac, all of the pipeline but reading o
 1. **Weights hold at fp16 and 8-bit, and break below.** Against fp32's 61.51: fp16 61.55 (+0.04, CI −0.03 to
    +0.11); fp16 for the three small models (detector, orientation, script) with 8-bit recognizers and order model 61.36 (−0.15, CI −0.37 to +0.04);
    8-bit everywhere 61.18 (−0.34, CI −0.75 to +0.04); 4-bit 49.56 (−11.95; its tables score falls from fp32's 52.78
-   to 33.36); and between them 6-bit 60.40 (−1.11, CI −1.87 to −0.48). <!-- @evidence[[results/summary.json#s6c.headline]] --> These conv nets lose accuracy far faster per bit than the
+   to 33.36); and between them 6-bit 60.40 (−1.11, CI −1.87 to −0.48). <!-- @evidence[[results/summary.json#s6c.headline]] -->
+   A scale per 32 weights lifts 4-bit only to 55.43. <!-- @evidence[[results/summary.json#s4g32.headline]] --> These conv nets lose accuracy far faster per bit than the
    transformer in `gliner-browser` (a packed named-entity model in this repo), which held 4-bit token tables at no
    cost (Round 1).
 2. **The word model matters for handwriting and not overall.** With the word model off, the headline moves +0.11 (CI −0.17 to +0.40)
@@ -105,6 +106,7 @@ n-gram tables heavily quantized and models loaded on demand.
 | 8-bit | 61.18 | −0.34 | −0.75 to +0.04 | 40.10 | 51.88 | 91.55 | 2.06 MB |
 | 6-bit | 60.40 | −1.11 | −1.87 to −0.48 | 39.31 | 50.84 | 91.05 | |
 | 5-bit | 58.51 | −3.00 | | | | | |
+| 4-bit, a scale per 32 | 55.43 | −6.08 | | 32.16 | 43.67 | 90.47 | |
 | 4-bit | 49.56 | −11.95 | −13.10 to −10.71 | 28.02 | 33.36 | 87.31 | 1.02 MB |
 
 | n-gram arm (fp32 weights) | headline | Δ | handwriting |
@@ -120,7 +122,7 @@ n-gram tables heavily quantized and models loaded on demand.
 
 Shipped pack `web/models/f16`, gzipped: core 4.05 MB, Latin word model 2.54 MB, right-to-left group 2.18 MB, world
 group 4.49 MB, CJK group 9.24 MB (each group: its recognizer, vocabulary and word model), page code 0.05 MB. The 5-bit and grouped 4-bit arms were still running at write
-time; 5-bit then scored 58.51. Prediction before the sweep: 4-bit would cost under a point, as for gliner-browser; it cost 12.
+time; 5-bit then scored 58.51 and 4-bit with a scale per 32 weights 55.43. Prediction before the sweep: 4-bit would cost under a point, as for gliner-browser; it cost 12.
 
 Mac timings (GPU Bridge, Chrome 157, Apple Metal-3), warm, GPU deskew and downscale against the CPU versions:
 
