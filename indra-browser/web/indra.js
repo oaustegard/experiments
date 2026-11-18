@@ -16,6 +16,7 @@ import { BLOCK_CLASSES, GRID_LABELS, decodeBlocksOrder, lineFeatures, median, or
 import { Vocab, flip, hasRtl, pySplit, pyStrip } from "./text.js";
 import { isAlpha, isRtl, setExceptions } from "./uprops.js";
 import { lmFactory } from "./lm.js";
+import { Deskew } from "./deskew.js";
 
 const ADAPTIVE_MIN_H = 9.0, ADAPTIVE_TARGET_H = 12.0, ADAPTIVE_MAX_SIDE = 2048;
 const SPLIT_GAP = 3.0, CELL_GAP = 1.8, GUTTER_GAP = 1.6, GUTTER_EDGES = 3;
@@ -62,24 +63,29 @@ function rowSharpness(ink, a) {
 // np.arange: n = ceil((stop - start) / step), values start + i * ((start + step) - start)
 const arange = (a, b, st) => { const out = []; const n = Math.ceil((b - a) / st), d = (a + st) - a; for (let i = 0; i < n; i++) out.push(a + i * d); return out; };
 
-export function estimateSkew(gray, side = 800) {
+// pipeline.estimate_skew. `score(ink, angles)` gives each angle's row sharpness: on the CPU
+// (rowSharpness) or the GPU (deskew.js), same arithmetic.
+export async function estimateSkew(gray, side = 800, score = null) {
+  score ??= async (ink, angles) => angles.map((a) => rowSharpness(ink, a));
   const fine = inkThumb(gray, side);
   let m = 0;
   for (const v of fine.data) m += v;
   if (m / fine.data.length < 0.003 * 255) return 0.0;
   const coarse = inkThumb(gray, Math.floor(side / 2));
   const grid = arange(-DESKEW_MAX, DESKEW_MAX + 1e-6, 2.0);
-  const scores = grid.map((a) => rowSharpness(coarse, a));
+  const scores = await score(coarse, grid);
   const top = scores.map((s, i) => [s, i]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).slice(-2).map((p) => grid[p[1]]);
   const starts = [...new Set([0.0, ...top])];
   const near = starts.flatMap((a0) => arange(a0 - 2.0, a0 + 2.0 + 1e-6, 0.5));
-  const seen = new Map();
-  for (const a of near) if (!seen.has(a)) seen.set(a, rowSharpness(fine, a));
+  const uniq = [...new Set(near)];
+  const vals = await score(fine, uniq);
+  const seen = new Map(uniq.map((a, i) => [a, vals[i]]));
   let a1 = near[0];
   for (const a of near) if (seen.get(a) > seen.get(a1)) a1 = a;
   const last = arange(a1 - 0.5, a1 + 0.5 + 1e-6, 0.1);
+  const lv = await score(fine, last);
   let best = last[0], bv = -Infinity;
-  for (const a of last) { const v = rowSharpness(fine, a); if (v > bv) { bv = v; best = a; } }
+  last.forEach((a, i) => { if (lv[i] > bv) { bv = lv[i]; best = a; } });
   return best;
 }
 
@@ -223,6 +229,7 @@ export class Indra {
     const by = Object.fromEntries(core.map((m, i) => [m, models[i]]));
     o.bytes = models.reduce((s, m) => s + m.bytes, 0);
     o.det = new ConvNet(o.gpu, by.det);
+    o.deskew = new Deskew(o.gpu);
     o.rec = new Recognizer(o.gpu, by.rec);
     o.order = by.order ? new OrderNet(by.order) : null;
     o.orient = by.orient ? new ConvNet(o.gpu, by.orient) : null;
@@ -260,16 +267,16 @@ export class Indra {
     const t = {};
     let t0 = now();
     const small = preview(gray);
-    const a = estimateSkew(small);
+    const a = await this.skew(small);
     let k = 0;
     if (turn && this.orient) {
-      const p = await this.orientationProbs(Math.abs(a) >= DESKEW_MIN ? rotatePage(small, a) : small);
+      const p = await this.orientationProbs(Math.abs(a) >= DESKEW_MIN ? await this.rotate(small, a) : small);
       k = p.indexOf(Math.max(...p));
       if (!(p[k] > ORIENT_MIN)) k = 0;
     }
     t.orient_ms = now() - t0;
     t0 = now();
-    const [g2, k2, skew] = this.turnPage(gray, k, a, small);
+    const [g2, k2, skew] = await this.turnPage(gray, k, a, small);
     t.orient_ms += now() - t0;
     t0 = now();
     const boxes = await this.detect(g2);
@@ -301,12 +308,16 @@ export class Indra {
     return (await this.orient.classify(x, 1, ORIENT_SIDE, ORIENT_SIDE))[0];
   }
 
-  turnPage(gray, k, a, small) {
+  // the deskew's angle search and rotation run on the GPU unless this.cpuDeskew
+  skew(gray) { return estimateSkew(gray, 800, this.cpuDeskew ? null : (ink, angles) => this.deskew.sharpness(ink, angles)); }
+  rotate(gray, deg) { return this.cpuDeskew ? rotatePage(gray, deg) : this.deskew.rotate(gray, deg); }
+
+  async turnPage(gray, k, a, small) {
     const q = k === VERTICAL ? 1 : -k;
     if (k === VERTICAL) gray = rot90(gray, 1);
     else if (k) gray = rot90(gray, -k);
-    if (k === 1 || k === 3 || k === VERTICAL) a = estimateSkew(small ? rot90(small, q) : gray);
-    if (Math.abs(a) >= DESKEW_MIN) gray = rotatePage(gray, a);
+    if (k === 1 || k === 3 || k === VERTICAL) a = await this.skew(small ? rot90(small, q) : gray);
+    if (Math.abs(a) >= DESKEW_MIN) gray = await this.rotate(gray, a);
     else a = 0.0;
     return [gray, k, a];
   }
