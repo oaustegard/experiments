@@ -14,7 +14,7 @@
   <p class="lede">Drop a scan, a photo of a page or a PDF. A small OCR model finds the text lines, reads them and puts them in
   reading order, with headings, lists and tables, all inside this tab: the page is not uploaded anywhere. It is
   <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> by Datalab, its weights stored as 16-bit floats, which score the
-  same as the originals: the first visit downloads about 4 MB. It needs a browser with WebGPU: a recent Chrome or Edge, or Safari 26.</p>
+  same as the originals: the first visit downloads about 4 MB. It needs a browser with WebGPU; it was tested in Chrome on a Mac.</p>
 </header>
 
 <div id="status" class="status" role="status" aria-live="polite">
@@ -67,7 +67,7 @@
   Everything runs on WebGPU, in code ported from Datalab's <a href="https://pypi.org/project/indra-ocr/">indra-ocr</a>
   Python package: given the same rounded weights, the two produce the same text and markdown on the pages compared.
   Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/indra-browser">indra-browser</a>.</p>
-  <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE">full license text</a>):
+  <p>The model weights are Datalab's, under a modified OpenRAIL-M license (<a href="models/LICENSE.txt">full license text</a>):
   free for research and personal use; companies with more than $20M in revenue or funding, or that compete with Datalab,
   need a commercial license from Datalab. The weights and word models served here are Datalab's, rounded to fewer bits
   (weights to 16-bit floats, word-model values to 2 bits); nothing else in them is changed. Build <code id="build"></code>.</p>
