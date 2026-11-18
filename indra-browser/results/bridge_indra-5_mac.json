@@ -1,0 +1,299 @@
+{
+ "id": "indra-5",
+ "startedAt": 1794972512004,
+ "finishedAt": 1794974176178,
+ "runMs": 32432.59999999404,
+ "adapter": "apple metal-3",
+ "device": "Mac",
+ "tab": "ijua8e99",
+ "tabName": "Mac",
+ "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+ "mode": "persistent",
+ "pageVersion": 10,
+ "status": "done",
+ "logs": [
+  "models loaded: det, rec, order, orient, script (1.20 MB decoded weights file) in 83 ms",
+  "loaded the base n-gram table (order 4) in 102 ms",
+  "loaded the world recognizer (0.74 MB) in 45 ms",
+  "loaded the world n-gram table (order 3) in 65 ms",
+  "page 1: warm 2269/1669 ms, gpu 84.1 ms in kernels",
+  "page 2: warm 2717/2688 ms, gpu 60.8 ms in kernels",
+  "loaded the cjk recognizer (1.34 MB) in 93 ms",
+  "loaded the cjk n-gram table (order 3) in 315 ms",
+  "loaded the rtl recognizer (0.63 MB) in 36 ms",
+  "page 3: warm 3611/3723 ms, gpu 57.2 ms in kernels",
+  "page 4: warm 1146/1306 ms, gpu 59.3 ms in kernels"
+ ],
+ "outputs": {
+  "pages": [
+   {
+    "id": "multiling_finepdfs-amh_Ethi_79144957-p1",
+    "lines": 71,
+    "warm": [
+     {
+      "ms": 2269,
+      "orient_ms": 124,
+      "det_ms": 105,
+      "rec_ms": 1401,
+      "order_ms": 633,
+      "total_ms": 2263
+     },
+     {
+      "ms": 1669,
+      "orient_ms": 101,
+      "det_ms": 109,
+      "rec_ms": 946,
+      "order_ms": 508,
+      "total_ms": 1665
+     }
+    ],
+    "profiledMs": 1984,
+    "gpuMs": 84.14822400000021,
+    "prof": {
+     "ms": {
+      "pre.area": 0.786432,
+      "pre.deskew.rowsum": 1.376256,
+      "cls.conv.3x3": 6.356991999999999,
+      "cls.conv.dw": 1.3762560000000004,
+      "cls.mm": 1.31072,
+      "det.conv.3x3": 1.114112,
+      "det.conv.dw": 4.2598400000000005,
+      "det.mm": 3.211264000000001,
+      "det.move": 0.589824,
+      "cls.move": 0.39321599999999995,
+      "rec.conv.32x4": 2.8180479999999988,
+      "rec.conv.4x4": 2.6869759999999996,
+      "rec.conv.dw": 3.604479999999996,
+      "rec.mm": 34.60300800000024,
+      "rec.ctx": 0.196608,
+      "rec.seq": 6.9468159999999886,
+      "rec.mm.head": 1.7694720000000002,
+      "rec.ctc": 10.747904000000002
+     },
+     "calls": {
+      "pre.area": 3,
+      "pre.deskew.rowsum": 3,
+      "cls.conv.3x3": 37,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 45,
+      "rec.conv.32x4": 14,
+      "rec.conv.4x4": 7,
+      "rec.conv.dw": 147,
+      "rec.mm": 581,
+      "rec.ctx": 7,
+      "rec.seq": 294,
+      "rec.mm.head": 14,
+      "rec.ctc": 14
+     }
+    }
+   },
+   {
+    "id": "tables_derived-PMC10627924.1_doc-p4",
+    "lines": 141,
+    "warm": [
+     {
+      "ms": 2717,
+      "orient_ms": 78,
+      "det_ms": 79,
+      "rec_ms": 1633,
+      "order_ms": 924,
+      "total_ms": 2714
+     },
+     {
+      "ms": 2688,
+      "orient_ms": 52,
+      "det_ms": 67,
+      "rec_ms": 1614,
+      "order_ms": 951,
+      "total_ms": 2684
+     }
+    ],
+    "profiledMs": 2508,
+    "gpuMs": 60.81740799999997,
+    "prof": {
+     "ms": {
+      "pre.area": 0.9830399999999999,
+      "pre.deskew.rowsum": 1.3107199999999999,
+      "cls.conv.3x3": 12.713984,
+      "cls.conv.dw": 1.4417920000000002,
+      "cls.mm": 1.245184,
+      "det.conv.3x3": 1.114112,
+      "det.conv.dw": 3.538944,
+      "det.mm": 4.128767999999999,
+      "det.move": 0.524288,
+      "cls.move": 0.7864320000000001,
+      "rec.conv.32x4": 2.0971520000000003,
+      "rec.conv.4x4": 2.031616,
+      "rec.conv.dw": 3.145728,
+      "rec.mm": 14.54899199999997,
+      "rec.ctx": 0.196608,
+      "rec.seq": 2.0316160000000005,
+      "rec.mm.head": 1.572864,
+      "rec.ctc": 7.405568
+     },
+     "calls": {
+      "pre.area": 5,
+      "pre.deskew.rowsum": 3,
+      "cls.conv.3x3": 33,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 40,
+      "rec.conv.32x4": 8,
+      "rec.conv.4x4": 8,
+      "rec.conv.dw": 88,
+      "rec.mm": 344,
+      "rec.ctx": 8,
+      "rec.seq": 168,
+      "rec.mm.head": 8,
+      "rec.ctc": 8
+     }
+    }
+   },
+   {
+    "id": "olmo_old_scans-87-p1",
+    "lines": 19,
+    "warm": [
+     {
+      "ms": 3611,
+      "orient_ms": 139,
+      "det_ms": 91,
+      "rec_ms": 3273,
+      "order_ms": 107,
+      "total_ms": 3610
+     },
+     {
+      "ms": 3723,
+      "orient_ms": 140,
+      "det_ms": 83,
+      "rec_ms": 3395,
+      "order_ms": 104,
+      "total_ms": 3722
+     }
+    ],
+    "profiledMs": 3158,
+    "gpuMs": 57.212928000000055,
+    "prof": {
+     "ms": {
+      "pre.area": 2.2937600000000002,
+      "pre.deskew.rowsum": 1.441792,
+      "pre.deskew.rotate": 2.62144,
+      "cls.conv.3x3": 2.5559040000000004,
+      "cls.conv.dw": 1.2451840000000003,
+      "cls.mm": 1.4417920000000002,
+      "det.conv.3x3": 1.179648,
+      "det.conv.dw": 3.8010879999999996,
+      "det.mm": 3.8010879999999996,
+      "det.move": 0.458752,
+      "cls.move": 0.262144,
+      "rec.conv.32x4": 0.8519680000000001,
+      "rec.conv.4x4": 0.720896,
+      "rec.conv.dw": 1.5728640000000005,
+      "rec.mm": 22.740992000000062,
+      "rec.ctx": 0.131072,
+      "rec.seq": 2.7525119999999985,
+      "rec.mm.head": 0.720896,
+      "rec.ctc": 6.619136
+     },
+     "calls": {
+      "pre.area": 3,
+      "pre.deskew.rowsum": 3,
+      "pre.deskew.rotate": 2,
+      "cls.conv.3x3": 21,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 25,
+      "rec.conv.32x4": 7,
+      "rec.conv.4x4": 5,
+      "rec.conv.dw": 75,
+      "rec.mm": 295,
+      "rec.ctx": 5,
+      "rec.seq": 147,
+      "rec.mm.head": 7,
+      "rec.ctc": 7
+     }
+    }
+   },
+   {
+    "id": "synth_copies-images_sv5a6924ae-p1",
+    "lines": 28,
+    "warm": [
+     {
+      "ms": 1146,
+      "orient_ms": 79,
+      "det_ms": 64,
+      "rec_ms": 846,
+      "order_ms": 155,
+      "total_ms": 1144
+     },
+     {
+      "ms": 1306,
+      "orient_ms": 75,
+      "det_ms": 63,
+      "rec_ms": 1050,
+      "order_ms": 117,
+      "total_ms": 1305
+     }
+    ],
+    "profiledMs": 1052,
+    "gpuMs": 59.310080000000035,
+    "prof": {
+     "ms": {
+      "pre.area": 0.9830399999999999,
+      "pre.deskew.rowsum": 1.376256,
+      "pre.deskew.rotate": 0.5242880000000001,
+      "cls.conv.3x3": 2.4903679999999997,
+      "cls.conv.dw": 1.4417920000000002,
+      "cls.mm": 1.2451840000000003,
+      "det.conv.3x3": 0.98304,
+      "det.conv.dw": 3.4078719999999993,
+      "det.mm": 3.3423360000000004,
+      "det.move": 0.589824,
+      "cls.move": 0.39321599999999995,
+      "rec.conv.32x4": 1.179648,
+      "rec.conv.4x4": 0.98304,
+      "rec.conv.dw": 1.4417920000000004,
+      "rec.mm": 26.148864000000042,
+      "rec.ctx": 0.065536,
+      "rec.seq": 3.6700159999999964,
+      "rec.mm.head": 0.851968,
+      "rec.ctc": 8.192
+     },
+     "calls": {
+      "pre.area": 5,
+      "pre.deskew.rowsum": 3,
+      "pre.deskew.rotate": 2,
+      "cls.conv.3x3": 21,
+      "cls.conv.dw": 10,
+      "cls.mm": 15,
+      "det.conv.3x3": 1,
+      "det.conv.dw": 13,
+      "det.mm": 25,
+      "det.move": 7,
+      "cls.move": 25,
+      "rec.conv.32x4": 7,
+      "rec.conv.4x4": 5,
+      "rec.conv.dw": 75,
+      "rec.mm": 295,
+      "rec.ctx": 5,
+      "rec.seq": 147,
+      "rec.mm.head": 7,
+      "rec.ctc": 7
+     }
+    }
+   }
+  ]
+ }
+}

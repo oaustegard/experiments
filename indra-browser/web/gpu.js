@@ -27,11 +27,28 @@ export class Gpu {
     this.dummy = this.buffer(16);
     this.enc = null;
     this.uniforms = [];
+    this.pool = new Map();
+    this.uchunks = []; // uniform buffers of 256 slots x 256 bytes, reused across passes
     this.lost = null;
     device.lost?.then((i) => { this.lost = i; });
   }
 
+  // A temporary (no data) asked for while a pass is open comes from a pool of power-of-two sizes;
+  // free() hands it back for later dispatches of the same pass (WebGPU orders a pass's dispatches,
+  // so a buffer can be rewritten once its readers are recorded). Pooled buffers ignore destroy().
   buffer(bytes, data) {
+    if (!data && this.enc) {
+      const size = 2 ** Math.max(8, Math.ceil(Math.log2(Math.max(bytes, 4))));
+      const pool = this.pool.get(size);
+      let b = pool && pool.length ? pool.pop() : null;
+      if (!b) {
+        b = this.device.createBuffer({ size, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+        b.pooled = size;
+        b.destroy = () => {};
+      }
+      this.out.add(b);
+      return b;
+    }
     const size = Math.max(16, Math.ceil(bytes / 4) * 4);
     const b = this.device.createBuffer({ size, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
     if (data) this.device.queue.writeBuffer(b, 0, data.buffer, data.byteOffset, data.byteLength);
@@ -39,6 +56,12 @@ export class Gpu {
   }
 
   upload(typed) { return this.buffer(typed.byteLength, typed); }
+
+  free(b) {
+    if (!b || !b.pooled || !this.out.delete(b)) return;
+    if (!this.pool.has(b.pooled)) this.pool.set(b.pooled, []);
+    this.pool.get(b.pooled).push(b);
+  }
 
   pipeline(code) {
     let p = this.pipes.get(code);
@@ -62,6 +85,8 @@ export class Gpu {
   begin() {
     if (this.enc) throw new Error("pass already open");
     this.enc = this.device.createCommandEncoder();
+    this.uslot = 0;
+    this.out = new Set();
     if (this.prof) {
       this.pq = { set: this.device.createQuerySet({ type: "timestamp", count: 2 * 2048 }), labels: [] };
       this.pass = null;
@@ -70,15 +95,14 @@ export class Gpu {
 
   // words: array of numbers; ints go as u32, a {f: x} entry as f32.
   dispatch(code, bufs, words, groups, label = null) {
-    const u = new ArrayBuffer(Math.max(16, Math.ceil(words.length / 4) * 16));
-    const dv = new DataView(u);
+    const slot = this.uslot++;
+    const ci = slot >> 8, off = (slot & 255) * 256;
+    while (this.uchunks.length <= ci) this.uchunks.push({ buf: this.device.createBuffer({ size: 65536, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }), data: new ArrayBuffer(65536) });
+    const dv = new DataView(this.uchunks[ci].data, off, 256);
     words.forEach((w, i) => {
       if (typeof w === "object") dv.setFloat32(4 * i, w.f, true);
       else dv.setUint32(4 * i, w >>> 0, true);
     });
-    const ub = this.device.createBuffer({ size: u.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    this.device.queue.writeBuffer(ub, 0, u);
-    this.uniforms.push(ub);
     const pipe = this.pipeline(code);
     if (this.prof) {
       const i = this.pq.labels.length;
@@ -87,7 +111,7 @@ export class Gpu {
         this.pq.labels.push((this.scope ? this.scope + "." : "") + (label ?? KERNEL_NAMES.get(code) ?? "other"));
       } else this.pass = this.enc.beginComputePass();
     }
-    const entries = [{ binding: 0, resource: { buffer: ub } }, ...bufs.map((b, i) => ({ binding: i + 1, resource: { buffer: b ?? this.dummy } }))];
+    const entries = [{ binding: 0, resource: { buffer: this.uchunks[ci].buf, offset: off, size: Math.max(16, Math.ceil(words.length / 4) * 16) } }, ...bufs.map((b, i) => ({ binding: i + 1, resource: { buffer: b ?? this.dummy } }))];
     const bg = this.device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries });
     this.pass.setPipeline(pipe);
     this.pass.setBindGroup(0, bg);
@@ -119,7 +143,11 @@ export class Gpu {
       this.enc.copyBufferToBuffer(b, 0, s, 0, Math.ceil(bytes / 4) * 4);
       return s;
     });
+    for (let c = 0; c * 256 < this.uslot; c++) this.device.queue.writeBuffer(this.uchunks[c].buf, 0, this.uchunks[c].data, 0, Math.min(256, this.uslot - c * 256) * 256);
     this.device.queue.submit([this.enc.finish()]);
+    // every temporary of this pass goes back to the pool for later passes
+    for (const b of this.out) { if (!this.pool.has(b.pooled)) this.pool.set(b.pooled, []); this.pool.get(b.pooled).push(b); }
+    this.out = new Set();
     this.enc = null;
     const out = [];
     for (const s of stage) {
@@ -138,8 +166,6 @@ export class Gpu {
       pbuf.destroy();
       this.pq.set.destroy();
     }
-    for (const u of this.uniforms) u.destroy();
-    this.uniforms = [];
     if (this.lost) throw new Error(`GPU device lost: ${this.lost.message}`);
     return out;
   }

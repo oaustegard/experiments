@@ -286,8 +286,10 @@ export class Indra {
     t.det_ms = now() - t0;
     t0 = now();
     const vertical = k2 === VERTICAL;
+    this.rt = { crop_ms: 0, script_ms: 0, batch_ms: 0, net_ms: 0, lm_ms: 0 };
     const rec = await this.recognize(g2, boxes, vertical);
     t.rec_ms = now() - t0;
+    Object.assign(t, this.rt);
     const page = this.assemble([g2.w, g2.h], boxes, rec, t, vertical);
     page.rotation = vertical ? 0 : 90 * k2;
     page.skew = pyRound(skew * 100) / 100;
@@ -379,13 +381,17 @@ export class Indra {
     if (!boxes.length) return [];
     const dark = this.window > 1 ? boxes.map((b) => isDarkLine(gray, b)) : boxes.map(() => null);
     const darkOf = (j) => (dark[j] === null ? isDarkLine(gray, boxes[j]) : dark[j]);
+    let tc = now();
     const crops = boxes.map((b, j) => cropLine(gray, b, this.height, 1, darkOf(j)));
     const tall = this.window > 1 ? boxes.map((b, j) => cropLine(gray, b, this.height, this.window, dark[j])) : crops;
+    this.rt.crop_ms += now() - tc;
     const out = crops.map(() => ["", 0.0, []]);
     let plan = [{ name: "base", sel: crops.map((_, j) => j), asChars: false }];
     if (vertical && this.groupNames.includes("cjk")) plan = [{ name: "cjk", sel: crops.map((_, j) => j), asChars: true }];
     else if (this.script) {
+      tc = now();
       const [names, sure] = await this.lineGroups(crops);
+      this.rt.script_ms += now() - tc;
       plan = [{ name: "base", sel: names.map((g, j) => (g === "base" || !sure[j] ? j : -1)).filter((j) => j >= 0), asChars: false }];
       for (const g of this.groupNames) plan.push({ name: g, sel: names.map((n, j) => (n === g ? j : -1)).filter((j) => j >= 0), asChars: true });
     }
@@ -394,11 +400,16 @@ export class Indra {
       if (!sel.length) continue;
       const grp = name === "base" ? { rec: this.rec, vocab: this.vocab } : await this.group(name);
       const lm = await this.lmFor(name);
-      for (const part of widthBatches(sel.map((j) => crops[j].w))) {
-        const idx = part.map((i) => sel[i]);
-        const src = name === "base" ? tall : crops;
-        const b = padBatch(idx.map((j) => src[j]));
-        const r = await grp.rec.run(b.data, b.B, b.H, b.W, b.widths);
+      const parts = widthBatches(sel.map((j) => crops[j].w)).map((part) => part.map((i) => sel[i]));
+      const src = name === "base" ? tall : crops;
+      tc = now();
+      const bs = parts.map((idx) => padBatch(idx.map((j) => src[j])));
+      this.rt.batch_ms += now() - tc;
+      tc = now();
+      const rs = await grp.rec.runMany(bs.map((b) => ({ data: b.data, B: b.B, H: b.H, W: b.W, widths: b.widths })));
+      this.rt.net_ms += now() - tc;
+      for (let q = 0; q < parts.length; q++) {
+        const idx = parts[q], b = bs[q], r = rs[q];
         const T = r.T, stride = b.W / Math.max(T, 1);
         idx.forEach((j, k) => {
           const n = r.lengths[k];
@@ -416,7 +427,9 @@ export class Indra {
           const f = cw / crops[j].w;
           if (lm && MIN_CONF <= conf && conf < lm.gate) {
             const sl = (o, m) => { const a = new Float32Array(n * m); for (let s = 0; s < n; s++) for (let q = 0; q < m; q++) a[s * m + q] = r.out[(k * T + s) * 19 + o + q]; return a; };
+            const tl = now();
             [ids, t] = lm.search(sl(2, 1), sl(3, 8), sl(11, 8), n);
+            this.rt.lm_ms += now() - tl;
           }
           const xs = t.map((s) => ix0 + (s + 0.5) * stride * f);
           const toks = asChars ? ids.map((id, q) => [grp.vocab.chars[id - 1], xs[q]]) : ids.map((id, q) => [id, xs[q]]);

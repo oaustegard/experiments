@@ -217,59 +217,82 @@ export class Recognizer {
   // x: Float32Array [B, H, Wd] ink (H = 96 windowed, 32 otherwise), widths [B]
   // -> {T, lengths, out: Float32Array [B, T, 19]} (see CTC)
   async run(x, B, H, Wd, widths) {
+    return (await this.runMany([{ data: x, B, H, W: Wd, widths }]))[0];
+  }
+
+  // Several batches in one submit and one readback; each batch's temporaries go back to the
+  // pool as soon as their last reader is recorded.
+  async runMany(batches) {
+    const gpu = this.gpu;
+    gpu.begin();
+    const recs = batches.map((b) => this.record(b.data, b.B, b.H, b.W, b.widths));
+    const res = await gpu.end(recs.map((r) => [r.out, 4 * r.B * r.T * 19]));
+    for (const r of recs) for (const b of r.inputs) b.destroy();
+    return recs.map((r, i) => ({ T: r.T, lengths: r.lengths, out: new Float32Array(res[i]) }));
+  }
+
+  record(x, B, H, Wd, widths) {
     const gpu = this.gpu, w = this.w;
     gpu.scope = "rec";
+    const free = (...ts) => { for (const t of ts) gpu.free(t.buf ?? t); };
     const T = Math.floor(Wd / 4);
     const lengths = widths.map((v) => Math.min(Math.ceil(v / 4), T));
     const mask = new Float32Array(B * T);
     for (let b = 0; b < B; b++) for (let t = 0; t < lengths[b]; t++) mask[b * T + t] = 1;
     const mbuf = gpu.upload(mask);
     const xin = { buf: gpu.upload(x), N: B, H, W: Wd, C: 1 };
-    const tmp = [mbuf, xin.buf];
-    const keep = (t) => { tmp.push(t.buf); return t; };
-    gpu.begin();
+    const inputs = [mbuf, xin.buf];
     // the line band: rows 32..63 of the window, as its own tensor
     let band = xin;
     if (this.window) {
       const bx = new Float32Array(B * 32 * Wd);
       for (let b = 0; b < B; b++) bx.set(x.subarray((b * H + 32) * Wd, (b * H + 64) * Wd), b * 32 * Wd);
       band = { buf: gpu.upload(bx), N: B, H: 32, W: Wd, C: 1 };
-      tmp.push(band.buf);
+      inputs.push(band.buf);
     }
-    const stemW = w.conv("rec.stem.weight");
-    let h = keep(conv(gpu, band, stemW, w.vec("rec.stem.bias"), { s: [32, 4] })); // [B, 1, T, 128]
+    let h = conv(gpu, band, w.conv("rec.stem.weight"), w.vec("rec.stem.bias"), { s: [32, 4] }); // [B, 1, T, 128]
     if (this.window) {
-      let c = keep(conv(gpu, xin, w.conv("rec.context.patch.Conv.weight"), w.vec("rec.context.patch.Conv.bias"), { s: [4, 4], act: 1 }));
-      c = keep(conv(gpu, c, w.conv("rec.context.dw.weight"), this.zeroVec(32), { p: [1, 1, 1, 1], g: 32 }));
-      c = keep(conv(gpu, c, w.conv("rec.context.pw.Conv.weight"), w.vec("rec.context.pw.Conv.bias"), { act: 1 })); // [B, 24, T, 64]
-      const sc = keep(conv(gpu, c, w.conv("rec.context.score.weight"), w.vec("rec.context.score.bias"), {})); // [B, 24, T, 4]
+      const c0 = conv(gpu, xin, w.conv("rec.context.patch.Conv.weight"), w.vec("rec.context.patch.Conv.bias"), { s: [4, 4], act: 1 });
+      const c1 = conv(gpu, c0, w.conv("rec.context.dw.weight"), this.zeroVec(32), { p: [1, 1, 1, 1], g: 32 });
+      free(c0);
+      const c = conv(gpu, c1, w.conv("rec.context.pw.Conv.weight"), w.vec("rec.context.pw.Conv.bias"), { act: 1 }); // [B, 24, T, 64]
+      free(c1);
+      const sc = conv(gpu, c, w.conv("rec.context.score.weight"), w.vec("rec.context.score.bias"), {}); // [B, 24, T, 4]
       const ctx = { buf: gpu.buffer(4 * B * T * 64), N: B, H: 1, W: T, C: 64 };
-      keep(ctx);
       const total = B * T * 64, grid = gpu.grid(total);
       gpu.dispatch(CTX, [c.buf, sc.buf, this.prior, ctx.buf], [B, T, total, grid[0]], grid);
-      h = keep(conv(gpu, ctx, w.conv("rec.context.proj.weight", 1, 1), w.vec("rec.context.proj.bias"), { res: h, resAt: 1 }));
+      free(c, sc);
+      const h2 = conv(gpu, ctx, w.conv("rec.context.proj.weight", 1, 1), w.vec("rec.context.proj.bias"), { res: h, resAt: 1 });
+      free(ctx, h);
+      h = h2;
     }
     // batch norm, hardswish, mask
-    h = keep(this.seq(0, h, this.bnS, this.bnT, mbuf, B, T, 128, 1));
+    let hn = this.seq(0, h, this.bnS, this.bnT, mbuf, B, T, 128, 1);
+    free(h);
+    h = hn;
     for (let i = 0; i < 10; i++) {
       const p = `rec.blocks.${i}`;
-      const y0 = keep(conv(gpu, h, w.conv(`${this.dw[i]}.weight`, 1, 9), w.vec(`${this.dw[i]}.bias`), { p: [0, 4, 0, 4], g: 128 }));
-      const y1 = keep(conv(gpu, y0, w.conv(`${p}.expand.weight`, 1, 1), w.vec(`${p}.expand.bias`), { act: 1 })); // [B, 1, T, 256]
-      const pooled = keep(this.seq(1, y1, null, null, mbuf, B, T, 256, 0, B * 256));
+      const y0 = conv(gpu, h, w.conv(`${this.dw[i]}.weight`, 1, 9), w.vec(`${this.dw[i]}.bias`), { p: [0, 4, 0, 4], g: 128 });
+      const y1 = conv(gpu, y0, w.conv(`${p}.expand.weight`, 1, 1), w.vec(`${p}.expand.bias`), { act: 1 }); // [B, 1, T, 256]
+      free(y0);
+      const pooled = this.seq(1, y1, null, null, mbuf, B, T, 256, 0, B * 256);
       const pv = { buf: pooled.buf, N: B, H: 1, W: 1, C: 256 };
-      const s1 = keep(conv(gpu, pv, w.conv(`${p}.se.fc1.weight`, 1, 1), w.vec(`${p}.se.fc1.bias`), { act: 2 }));
-      const s2 = keep(conv(gpu, s1, w.conv(`${p}.se.fc2.weight`, 1, 1), w.vec(`${p}.se.fc2.bias`), { act: 3 }));
-      const y2 = keep(this.seq(2, y1, s2.buf, null, null, B, T, 256, 0));
-      h = keep(conv(gpu, y2, w.conv(`${p}.project.weight`, 1, 1), w.vec(`${p}.project.bias`), { res: h, resAt: 1, mask: mbuf }));
+      const s1 = conv(gpu, pv, w.conv(`${p}.se.fc1.weight`, 1, 1), w.vec(`${p}.se.fc1.bias`), { act: 2 });
+      const s2 = conv(gpu, s1, w.conv(`${p}.se.fc2.weight`, 1, 1), w.vec(`${p}.se.fc2.bias`), { act: 3 });
+      free(pooled, s1);
+      const y2 = this.seq(2, y1, s2.buf, null, null, B, T, 256, 0);
+      free(y1, s2);
+      hn = conv(gpu, y2, w.conv(`${p}.project.weight`, 1, 1), w.vec(`${p}.project.bias`), { res: h, resAt: 1, mask: mbuf });
+      free(y2, h);
+      h = hn;
     }
-    const lg = keep(conv(gpu, h, w.conv("rec.head.weight", 1, 1), w.vec("rec.head.bias"), {})); // [B, 1, T, V]
+    const lg = conv(gpu, h, w.conv("rec.head.weight", 1, 1), w.vec("rec.head.bias"), {}); // [B, 1, T, V]
+    free(h);
     const out = gpu.buffer(4 * B * T * 19);
-    tmp.push(out);
     const R = B * T, nx = Math.min(R, 65535);
     gpu.dispatch(CTC, [lg.buf, out], [R, this.V, nx, 0], [nx, Math.ceil(R / nx)]);
-    const [res] = await gpu.end([[out, 4 * B * T * 19]]);
-    for (const b of tmp) b.destroy();
-    return { T, lengths, out: new Float32Array(res) };
+    free(lg);
+    return { B, T, lengths, out, inputs };
   }
 
   seq(kind, x, s, t, m, B, T, C, act, total = B * T * C) {
