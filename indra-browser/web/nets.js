@@ -317,7 +317,7 @@ export class Recognizer {
   }
 }
 
-// ------------------------------------------------------------------ order model (CPU)
+// ------------------------------------------------------------------ order model (CPU; GPU in order.js)
 
 const FREQS = Float32Array.from({ length: 16 }, (_, i) => (Math.PI / 2) * 2 ** i);
 
@@ -359,23 +359,30 @@ function ln(x, N, D, w, b) {
   return y;
 }
 
+// the order model's input [N, 144]: the 16 line features, then sin and cos of the first four
+// (box coordinates) at 16 frequencies each
+export function orderInput(feats, N) {
+  const x0 = new Float32Array(N * 144);
+  for (let n = 0; n < N; n++) {
+    for (let d = 0; d < 16; d++) x0[n * 144 + d] = feats[n * 16 + d];
+    for (let f = 0; f < 4; f++) {
+      for (let k = 0; k < 16; k++) {
+        const v = Math.fround(feats[n * 16 + f] * FREQS[k]);
+        x0[n * 144 + 16 + f * 32 + k] = Math.sin(v);
+        x0[n * 144 + 16 + f * 32 + 16 + k] = Math.cos(v);
+      }
+    }
+  }
+  return x0;
+}
+
 export class OrderNet {
   constructor(model) { this.W = model.tensors; }
 
   // feats [N, 16] -> {a, cls, same, tab} (Float32Arrays [N*N], [N*10], [N*N], [3*N*N])
   run(feats, N, withTab = false) {
     const W = this.W;
-    const x0 = new Float32Array(N * 144);
-    for (let n = 0; n < N; n++) {
-      for (let d = 0; d < 16; d++) x0[n * 144 + d] = feats[n * 16 + d];
-      for (let f = 0; f < 4; f++) {
-        for (let k = 0; k < 16; k++) {
-          const v = Math.fround(feats[n * 16 + f] * FREQS[k]);
-          x0[n * 144 + 16 + f * 32 + k] = Math.sin(v);
-          x0[n * 144 + 16 + f * 32 + 16 + k] = Math.cos(v);
-        }
-      }
-    }
+    const x0 = orderInput(feats, N);
     let x = mm(x0, N, 144, W["inp.inp.0.MatMul.weight"], 128, W["inp.0.bias"]).map(gelu);
     x = mm(x, N, 128, W["inp.inp.2.MatMul.weight"], 128, W["inp.2.bias"]);
     for (let i = 0; i < 4; i++) {

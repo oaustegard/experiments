@@ -85,6 +85,10 @@ const out = await page.evaluate(async () => {
     const net = new OrderNet(await loadModel(base, man, "order"));
     const got = net.run(await f32(c.x), N, true);
     for (const k of ["a", "cls", "same", "tab"]) res.push({ name: `order.${k}`, ...diff(got[k], await f32(c[k])) });
+    const { GpuOrderNet } = await import("/web/order.js");
+    const gnet = new GpuOrderNet(gpu, await loadModel(base, man, "order"));
+    const g = await gnet.run(await f32(c.x), N);
+    for (const k of ["a", "cls", "same"]) res.push({ name: `gpuorder.${k}`, ...diff(g[k], await f32(c[k])) });
   }
   return { device: gpu.label, ms: performance.now() - t0, res };
 });

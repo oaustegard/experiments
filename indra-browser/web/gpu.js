@@ -178,7 +178,7 @@ fn gid(g: vec3<u32>, n: vec3<u32>) -> u32 { return g.x + g.y * n.x * 64u; }`;
 
 // NHWC convolution, any kernel, stride, padding and group count. One thread per output value.
 // Weights are [O][kh][kw][C/g]. Epilogue: + bias, + residual (mode 1, before the activation),
-// activation (0 none, 1 hardswish, 2 relu, 3 sigmoid), + residual (mode 2, after it), times a
+// activation (0 none, 1 hardswish, 2 relu, 3 sigmoid, 4 GELU in MM), + residual (mode 2, after it), times a
 // per-pixel mask (sequences: mask[n * W + x]). The input and output may be channel slices of
 // wider tensors (stride inCs / outCs, offset inCo / outCo).
 export const CONV = /* wgsl */ `
@@ -397,7 +397,8 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) l
 // 1x1 convolution as a tiled matmul: Y[r, n] = epilogue(sum_k X[r, k] W[n, k] + b[n]) for rows r
 // (pixels) of X [R, K] and weights W [N, K]. 64 x 64 outputs per workgroup of 256 threads, each
 // computing 4 x 4, K in tiles of 16 through workgroup memory. Same epilogue as CONV (residual
-// before / after the activation, mask per row), output channel slice by outCs / outCo.
+// before / after the activation, mask per row; activation 4 is GELU, for the order model), output
+// channel slice by outCs / outCo.
 export const MM = /* wgsl */ `
 struct P { R: u32, K: u32, N: u32, act: u32, res: u32, mask: u32, outCs: u32, outCo: u32 };
 @group(0) @binding(0) var<uniform> p: P;
@@ -407,6 +408,13 @@ struct P { R: u32, K: u32, N: u32, act: u32, res: u32, mask: u32, outCs: u32, ou
 @group(0) @binding(4) var<storage, read> r: array<f32>;
 @group(0) @binding(5) var<storage, read> m: array<f32>;
 @group(0) @binding(6) var<storage, read_write> y: array<f32>;
+// GELU with erf from Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7), as nets.js computes it
+fn gelu(x: f32) -> f32 {
+  let z = x / sqrt(2.0);
+  let a = abs(z); let t = 1.0 / (1.0 + 0.3275911 * a);
+  let e = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-a * a);
+  return 0.5 * x * (1.0 + select(e, -e, z < 0.0));
+}
 var<workgroup> xs: array<f32, 1024>; // [16 k][64 rows]
 var<workgroup> ws: array<f32, 1024>; // [16 k][64 cols]
 @compute @workgroup_size(256)
@@ -447,6 +455,7 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) l
       if (p.act == 1u) { v = v * clamp(v + 3.0, 0.0, 6.0) / 6.0; }
       else if (p.act == 2u) { v = max(v, 0.0); }
       else if (p.act == 3u) { v = 1.0 / (1.0 + exp(-v)); }
+      else if (p.act == 4u) { v = gelu(v); }
       if (p.res == 2u) { v += r[oi]; }
       if (p.mask == 1u) { v *= m[row]; }
       y[row * p.outCs + p.outCo + n] = v;

@@ -11,6 +11,7 @@
 import { Gpu } from "./gpu.js";
 import { components, img, isAreaDecimate, pyRound, resize, rot90, rotationMatrix, warpAffine } from "./imgproc.js";
 import { ConvNet, OrderNet, Recognizer } from "./nets.js";
+import { GpuOrderNet } from "./order.js";
 import { loadModel } from "./pack.js";
 import { BLOCK_CLASSES, GRID_LABELS, decodeBlocksOrder, lineFeatures, median, orderXycut, pageBlocks, pageMarkdown, xycutBlocks } from "./layout.js";
 import { Vocab, flip, hasRtl, pySplit, pyStrip } from "./text.js";
@@ -237,6 +238,7 @@ export class Indra {
     o.crops = new GpuCrops(o.gpu);
     o.rec = new Recognizer(o.gpu, by.rec);
     o.order = by.order ? new OrderNet(by.order) : null;
+    o.gpuOrder = by.order ? new GpuOrderNet(o.gpu, by.order) : null;
     o.orient = by.orient ? new ConvNet(o.gpu, by.orient) : null;
     o.script = by.script ? new ConvNet(o.gpu, by.script) : null;
     o.vocab = new Vocab(await json("vocab.json"));
@@ -292,7 +294,7 @@ export class Indra {
     const rec = await this.recognize(g2, boxes, vertical);
     t.rec_ms = now() - t0;
     Object.assign(t, this.rt);
-    const page = this.assemble([g2.w, g2.h], boxes, rec, t, vertical);
+    const page = await this.assemble([g2.w, g2.h], boxes, rec, t, vertical);
     page.rotation = vertical ? 0 : 90 * k2;
     page.skew = pyRound(skew * 100) / 100;
     page.vertical = vertical;
@@ -526,15 +528,21 @@ export class Indra {
     });
   }
 
-  readingOrder(boxes, texts, wh) {
+  // the order model runs on the GPU unless this.cpuOrder
+  async readingOrder(boxes, texts, wh) {
     if (boxes.length < 2 || !this.order) return [boxes.length ? orderXycut(boxes) : [], null];
     const f = lineFeatures(boxes, wh[0], wh[1], texts);
     const n = boxes.length;
-    const o = this.order.run(f, n);
-    return [decodeBlocksOrder(o.a, o.same, boxes, o.cls, n), { cls: o.cls, same: o.same }];
+    let t0 = now();
+    const o = this.cpuOrder ? this.order.run(f, n) : await this.gpuOrder.run(f, n);
+    this.rt.order_net_ms = now() - t0;
+    t0 = now();
+    const order = decodeBlocksOrder(o.a, o.same, boxes, o.cls, n);
+    this.rt.order_decode_ms = now() - t0;
+    return [order, { cls: o.cls, same: o.same }];
   }
 
-  assemble(wh, boxes, rec, t, vertical = false) {
+  async assemble(wh, boxes, rec, t, vertical = false) {
     let t0 = now();
     const letters = rec.flatMap((r) => Array.from(r[0]).filter(isAlpha));
     const nRtl = letters.filter(isRtl).length;
@@ -551,7 +559,7 @@ export class Indra {
     rec = nrec;
     const texts = rec.map((r) => r[0]);
     const gb = boxes.map(geo);
-    let [order, layout] = this.readingOrder(gb, texts, wh);
+    let [order, layout] = await this.readingOrder(gb, texts, wh);
     if (vertical && layout) {
       const blocks = xycutBlocks(boxes);
       order = blocks.flat();
@@ -564,6 +572,8 @@ export class Indra {
     }
     t.order_ms = now() - t0;
     t.total_ms = Object.entries(t).filter(([k]) => k !== "total_ms").reduce((s, [, v]) => s + v, 0);
+    // parts of order_ms, added after the total so they are not counted twice
+    if (this.rt.order_net_ms !== undefined) { t.order_net_ms = this.rt.order_net_ms; t.order_decode_ms = this.rt.order_decode_ms; }
     const lines = order.map((i) => ({ box: boxes[i].slice(0, 4).map((v) => pyRound(v * 10) / 10), text: rec[i][0], conf: pyRound(rec[i][1] * 1e4) / 1e4 }));
     let md = null, blocks = [];
     if (layout) {
