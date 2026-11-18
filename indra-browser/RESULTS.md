@@ -19,7 +19,7 @@ megabytes, so the page ships fp16: the detector, Latin recognizer, reading-order
 to 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
 The n-gram word models pack much further: 2-bit values keep their handwriting gain, and a trie layout takes the
 Latin table from 15.7 MB (npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
-A warm page takes 71 to 180 ms on Oskar's Mac, all of the pipeline but reading order on the GPU. <!-- @evidence[[results/summary.json#/mac_indra7/tables_derived-PMC10627924.1_doc-p4/warm_ms]] -->
+A warm page takes 54 to 97 ms on Oskar's Mac with every network on the GPU, the reading-order transformer included (Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
 
 ## Findings
 
@@ -147,3 +147,38 @@ recognizer batches in one submit and line crops on the GPU (`results/bridge_indr
 What broke along the way: a
 `warpAffine` that mirrored every rotation (sampled through the forward matrix), a skew threshold missed by `np.arange`
 rounding, and a two-hour background limit that killed the first sweep chain partway through the weight arms.
+
+### Round 2 (2026-11-18): reading order on the GPU
+
+Asked (Oskar): move reading order to the GPU. The page's `order_ms` timer covers the reading-order transformer and
+the decode after it, which clusters lines into blocks and orders the blocks (`decodeBlocksOrder` in `web/layout.js`).
+Timed separately in headless Chromium in the container (software GPU, CPU-bound JS), the transformer took 252 ms and
+the decode 7 ms of the 263 ms stage on the 141-line table page; the rest is line splitting before them.
+
+`web/order.js` now runs the transformer on the GPU in one submission: input projection, four layers of layer norm,
+4-head attention and a GELU feed-forward (GELU is a new activation in `gpu.js`'s tiled matmul kernel), then its five
+output projections (order query and key, same-block query and key, block class) as one matmul, and a kernel that
+forms the pairwise order and same-block scores from them. Only those two N x N score matrices and the class logits are
+read back. The decode stays in JS. `ocr.cpuOrder = true` keeps the JS transformer.
+
+Against the NumPy reference (`run/ref.py`, fixtures rebuilt from `web/models/f16`, the shipped 16-bit pack) the GPU
+transformer's outputs differ by at most 2.3e-6 and the JS one's by 3.2e-6, both inside `check_engine.mjs`'s 1e-4
+relative tolerance. On the 59 parity pages in headless Chromium, the first 30 finished before a 30-minute limit
+stopped the run, and on all 30 (1,817 lines) CPU and GPU order gave identical markdown, lines and blocks.
+
+On the Mac (GPU Bridge job `indra-8`, Chrome 157, Apple Metal-3) each page was read with the JS transformer three times
+and then with the GPU one three times; the table gives the last full read of each. The job used the same pack files as
+`indra-7`; every pack is dequantized to float32 at load, so the timings do not depend on its precision. "Same output"
+means the two reads' markdown, lines and blocks were identical.
+
+| page | lines | order, JS | order, GPU | page, JS order | page, GPU order | same output |
+|---|---|---|---|---|---|---|
+| Amharic page | 71 | 62.2 ms | 2.9 ms | 154 ms | 80 ms | yes |
+| table page | 141 | 77.4 ms | 3.5 ms | 157 ms | 74 ms | yes |
+| 30 MP handwritten scan | 19 | 9.2 ms | 1.4 ms | 104 ms | 97 ms | yes |
+| handwritten letter | 28 | 13.5 ms | 1.3 ms | 71 ms | 54 ms | yes |
+
+Reading order takes 3.5 ms on the table page, where the JS transformer and decode took 77.4 ms. <!-- @evidence[[results/summary.json#/mac_indra8/tables_derived-PMC10627924.1_doc-p4/gpu_order/order_ms]] -->
+Page totals also move with the other stages from read to read, so the page columns differ by a few milliseconds from
+the order columns' difference. With GPU order, recognition (26 to 52 ms) is the largest stage on every page and
+orientation (12 to 34 ms) the next (`results/summary.json`, `mac_indra8`).
