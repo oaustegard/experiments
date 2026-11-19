@@ -31,7 +31,8 @@ def build(pages, engines, dtype, max_new, deadline_h, batch, extra=()):
     for k, v in sets.items():
         src, n = re.subn(rf"(?m)^{k} = .*$", lambda m: f"{k} = {v}", src, count=1)
         assert n == 1, k
-    return src + f"\nSELF_SRC = {base64.b64encode(src.encode()).decode()!r}\n" \
+    pack = base64.b64encode((HERE / "pack_quant.py").read_bytes()).decode()
+    return src + f"\nPACK_SRC = {pack!r}\nSELF_SRC = {base64.b64encode(src.encode()).decode()!r}\n" \
         "if __name__ == '__main__':\n    main()\n"
 
 

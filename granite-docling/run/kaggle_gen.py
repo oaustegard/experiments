@@ -30,6 +30,7 @@ CHUNK = 32            # pages per llm.generate call. vLLM preprocesses a whole c
                       # at 128 docling pages (up to 17 tiles of 512 px each, fp32) a worker's engine was
                       # killed for host memory on 2026-11-19. The KV cache holds ~28 pages at once anyway.
 TAG = "docling"
+PACK_ARMS = []        # e.g. ["pack", "pack-head8"]: run fake-quantized copies (run/pack_quant.py) instead
 DS_REV = "d70182b9f901d1660a27e60bf6be6d6e6ea83013"
 # ---- end CONFIG ----
 
@@ -122,6 +123,36 @@ def render(src, dst):
     cv2.imwrite(str(dst), gray, [cv2.IMWRITE_PNG_COMPRESSION, 1])
     return {"png": str(dst), "w": int(gray.shape[1]), "h": int(gray.shape[0]),
             "md5": hashlib.md5(gray.tobytes()).hexdigest()}
+
+
+def pack_copy(model_dir, arm, info):
+    """A copy of the model folder whose weights are fake-quantized by run/pack_quant.py (PACK_SRC)."""
+    import shutil
+
+    import torch
+    from safetensors.torch import load_file, save_file
+
+    ns = {}
+    exec(base64.b64decode(PACK_SRC).decode(), ns)
+    dst = CACHE / f"model-{arm}"
+    if dst.exists():
+        return str(dst)
+    shutil.copytree(model_dir, dst, ignore=shutil.ignore_patterns("*.safetensors"))
+    files = sorted(Path(model_dir).glob("*.safetensors"))
+    state = {}
+    for f in files:
+        state.update(load_file(str(f)))
+    out = ns["fake"](state, arm)
+    info[f"{arm}_bytes"] = ns["sizes"](state)
+    diffs = {n: float((out[n] - state[n].float()).abs().max()) for n in state if out[n].ndim == 2}
+    info[f"{arm}_max_abs_change"] = max(diffs.values())
+    save_file({n: t.contiguous().to(torch.float32) for n, t in out.items()}, str(dst / "model.safetensors"),
+              metadata={"format": "pt"})
+    idx = dst / "model.safetensors.index.json"
+    if idx.exists():
+        idx.unlink()
+    print(f"{arm}: packed copy written, {len(state)} tensors", flush=True)
+    return str(dst)
 
 
 def worker(engine, gpu, pids, pages, outdir, model_dir):
@@ -218,14 +249,17 @@ def main():
     from huggingface_hub import snapshot_download
 
     model_dir = snapshot_download(MODEL, revision=REVISION, cache_dir=CACHE)
+    runs = [(TAG, model_dir)]
+    if PACK_ARMS:
+        runs = [(arm, pack_copy(model_dir, arm, info)) for arm in PACK_ARMS]
     t = time.time()
     pages = fetch_pages()
     info["fetch_s"] = round(time.time() - t, 1)
     (CACHE / "pages.json").write_text(json.dumps(pages))
     W.mkdir(exist_ok=True)
     (W / "render.json").write_text(json.dumps({p: v["md5"] for p, v in pages.items()}))
-    for engine in ENGINES:
-        outdir = W / f"pages-{TAG}-{engine}-{DTYPE}"
+    for (tag, model_dir), engine in ((r, e) for r in runs for e in ENGINES):
+        outdir = W / f"pages-{tag}-{engine}-{DTYPE}"
         outdir.mkdir(exist_ok=True)
         ids = list(pages)
         t = time.time()
@@ -262,9 +296,9 @@ def main():
                     procs[gpu] = subprocess.Popen([sys.executable, str(SELF), "--worker", json.dumps(a)], env=env)
                     continue
                 rcs[gpu] = rc
-        info[f"{engine}_rc"] = rcs
-        info[f"{engine}_wall_s"] = round(time.time() - t, 1)
-        info[f"{engine}_done"] = len(list(outdir.glob("*.json")))
+        info[f"{tag}_{engine}_rc"] = rcs
+        info[f"{tag}_{engine}_wall_s"] = round(time.time() - t, 1)
+        info[f"{tag}_{engine}_done"] = len(list(outdir.glob("*.json")))
         print(info, flush=True)
     info["total_s"] = round(time.time() - T0, 1)
     (W / "info.json").write_text(json.dumps(info, indent=1))
