@@ -176,3 +176,94 @@ export function recordPool(gpu, { conv, out, lines, H }) {
   const L = gpu.upload(lineTable(lines));
   gpu.dispatch(POOL_WGSL, [u, L, conv, out], Gpu.grid(Math.ceil(total / WG)));
 }
+
+// Fused Convolve + FC + tanh + Maxpool (tesseract-gpu round 2): one thread per pool output
+// (line, py, px) evaluates the 3x3 conv positions of its block and keeps the per-channel max,
+// so the [sum H*W, 16] conv buffer (462 MB for 343 lines) is never written. The line is found
+// by binary search over pool_off instead of a scan of every line. Same arithmetic per conv
+// position as CONV_WGSL, so results equal recordConv + recordPool.
+const FUSED_WGSL = (intMode) => `
+@group(0) @binding(0) var<uniform> P: vec4<u32>;            // H, nLines, total pool rows, -
+@group(0) @binding(1) var<storage, read> L: array<u32>;     // per line: W, in_off, pad_off, pool_off
+@group(0) @binding(2) var<storage, read> X: array<f32>;
+@group(0) @binding(3) var<storage, read> PADS: array<f32>;
+@group(0) @binding(4) var<storage, read> WT: array<f32>;
+@group(0) @binding(5) var<storage, read> S: array<f32>;
+@group(0) @binding(6) var<storage, read> tanhT: array<f32>;
+@group(0) @binding(7) var<storage, read_write> OUT: array<f32>; // [sum Hp*T, 16]
+
+const INT_MODE: bool = ${intMode ? "true" : "false"};
+
+${TANH_FN}
+
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {
+  let g = gid.x + gid.y * nwg.x * ${WG}u;
+  if (g >= P.z) { return; }
+  let H = P.x;
+  let Hp = H / 3u;
+  // last line whose pool_off <= g (lines are packed in order, pool_off increasing)
+  var lo = 0u;
+  var hi = P.y - 1u;
+  while (lo < hi) {
+    let mid = (lo + hi + 1u) / 2u;
+    if (L[4u * mid + 3u] <= g) { lo = mid; } else { hi = mid - 1u; }
+  }
+  let W = L[4u * lo];
+  let in_off = L[4u * lo + 1u];
+  let pad_off = L[4u * lo + 2u];
+  let T = W / 3u;
+  let p = g - L[4u * lo + 3u];
+  let py = p / T;
+  let px = p - py * T;
+
+  var m: array<f32, 16>;
+  for (var o = 0u; o < 16u; o++) { m[o] = -3.0e38; }
+  for (var dy = 0u; dy < 3u; dy++) {
+    for (var dx = 0u; dx < 3u; dx++) {
+      let y = py * 3u + dy;
+      let x = px * 3u + dx;
+      let border_row = (y == 0u) || (y == H - 1u);
+      let border_pix = border_row || x == 0u || x == W - 1u;
+      var bi = 0u;
+      if (border_pix) {
+        var base = 0u;
+        if (y > 0u) { base = W + (y - 1u) * min(2u, W); }
+        if (border_row) { bi = base + x; } else { bi = base + select(0u, 1u, x > 0u); }
+      }
+      var f: array<f32, 9>;
+      for (var k = 0u; k < 9u; k++) {
+        let yy = i32(y) + i32(k % 3u) - 1;
+        let xx = i32(x) + i32(k / 3u) - 1;
+        if (yy >= 0 && yy < i32(H) && xx >= 0 && xx < i32(W)) {
+          f[k] = X[in_off + u32(yy) * W + u32(xx)];
+        } else {
+          f[k] = PADS[(pad_off + bi) * 9u + k];
+        }
+      }
+      for (var o = 0u; o < 16u; o++) {
+        let wb = o * 10u;
+        var acc = 0.0;
+        for (var k = 0u; k < 9u; k++) { acc += WT[wb + k] * f[k]; }
+        var v: f32;
+        if (INT_MODE) { v = (acc + WT[wb + 9u] * 127.0) * S[o]; } else { v = acc + WT[wb + 9u]; }
+        var q = tanh_lut(v);
+        if (INT_MODE) {
+          let r = 127.0 * clamp(q, -1.0, 1.0);
+          q = clamp(sign(r) * floor(abs(r) + 0.5), -127.0, 127.0);
+        }
+        m[o] = max(m[o], q);
+      }
+    }
+  }
+  for (var o = 0u; o < 16u; o++) { OUT[g * 16u + o] = m[o]; }
+}`;
+
+export function recordConvPool(gpu, { x, pads, w, s, tanhT, out, lines, H, intMode }) {
+  const Hp = Math.floor(H / 3);
+  const total = lines.reduce((a, l) => a + Hp * Math.floor(l.W / 3), 0);
+  const sBuf = intMode ? s : gpu.buffer(64);
+  const u = gpu.uniform(new Uint32Array([H, lines.length, total, 0]));
+  const L = gpu.upload(lineTable(lines));
+  gpu.dispatch(FUSED_WGSL(!!intMode), [u, L, x, pads, w, sBuf, tanhT, out], Gpu.grid(Math.ceil(total / WG)));
+}

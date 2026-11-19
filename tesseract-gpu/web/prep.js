@@ -105,25 +105,26 @@ export class MinStd {
 // ref.pad_table. Every line starts from the same seed.
 export function padTable(H, W, sampleIteration, intMode) {
   const rng = new MinStd(sampleIteration);
-  const draw = () => (intMode ? roundAway(rng.signed(127)) : Math.fround(rng.signed(1.0)));
-  const rows = [];
-  for (let y = 0; y < H; y++) {
-    const edgeY = y === 0 || y === H - 1;
-    for (let x = 0; x < W; x++) {
-      if (!edgeY && x !== 0 && x !== W - 1) continue;
-      const row = new Float32Array(9);
-      for (let dx = -1; dx <= 1; dx++) {
-        const base = (dx + 1) * 3;
-        if (x + dx < 0 || x + dx >= W) {
-          for (let k = 0; k < 3; k++) row[base + k] = draw();
-        } else {
-          for (let dy = -1; dy <= 1; dy++) if (y + dy < 0 || y + dy >= H) row[base + dy + 1] = draw();
-        }
+  const draw = intMode ? () => roundAway(rng.signed(127)) : () => Math.fround(rng.signed(1.0));
+  const nb = H <= 2 ? H * W : 2 * W + (H - 2) * Math.min(2, W);
+  const out = new Float32Array(nb * 9);
+  let r = 0;
+  const fill = (y, x) => {
+    const o = r * 9;
+    for (let dx = -1; dx <= 1; dx++) {
+      const base = o + (dx + 1) * 3;
+      if (x + dx < 0 || x + dx >= W) {
+        out[base] = draw(); out[base + 1] = draw(); out[base + 2] = draw();
+      } else {
+        if (y - 1 < 0) out[base] = draw();
+        if (y + 1 >= H) out[base + 2] = draw();
       }
-      rows.push(row);
     }
+    r++;
+  };
+  for (let y = 0; y < H; y++) {
+    if (y === 0 || y === H - 1) for (let x = 0; x < W; x++) fill(y, x);
+    else { fill(y, 0); if (W > 1) fill(y, W - 1); }
   }
-  const out = new Float32Array(rows.length * 9);
-  rows.forEach((r, i) => out.set(r, i * 9));
   return out;
 }

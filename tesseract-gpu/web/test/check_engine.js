@@ -12,8 +12,8 @@ export default async function run({ cases }) {
     const want = new Float32Array(await (await fetch(base + man.files.probs.file)).arrayBuffer());
     const model = await TessModel.load(gpu, `/web/models/${man.case.replace("_", "-")}/`);
     const lines = man.lines.map((l) => ({ data: Uint8Array.from(gray.subarray(l.in_off, l.in_off + man.H * l.W)), width: l.W, height: man.H }));
-    await recognize(gpu, model, lines.slice(0, 1)); // warm-up: pipeline compiles
-    const out = await recognize(gpu, model, lines, { wantProbs: true });
+    await recognize(gpu, model, lines.slice(0, 1), { decoder: "greedy" }); // warm-up: pipeline compiles
+    const out = await recognize(gpu, model, lines, { wantProbs: true, decoder: "greedy" });
     const got = new Float32Array(want.length);
     man.lines.forEach((l, i) => got.set(out[i].probs, l.t_off * man.C));
     const c = compare(got, want, 1e-4);

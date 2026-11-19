@@ -91,7 +91,7 @@ def pack(model_path, out_dir, fmt="f32"):
         "format": "tesseract-gpu/1", "source": Path(model_path).name,
         "variant": Path(model_path).parent.name, "weights": "int8-native" if m.int_mode else fmt,
         "version": m.version, "spec": m.network_str, "H": m.input_height, "C": m.num_classes,
-        "int_mode": m.int_mode, "null_char": m.null_char, "sample_iteration": m.sample_iteration,
+        "int_mode": m.int_mode, "simple_text": m.simple_text, "null_char": m.null_char, "sample_iteration": m.sample_iteration,
         "ns": ns, "ni": ni, "unichars": m.unicharset, "codes": [list(c) for c in m.recoder],
         "tensors": entries, "bytes": len(blob),
     }

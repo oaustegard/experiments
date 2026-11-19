@@ -10,12 +10,13 @@
 // first so the lines still running at step s of an x LSTM are a prefix of the batch.
 
 import { Gpu } from "./gpu.js";
-import { recordConv, recordPool } from "./kernels/conv.js";
-import { recordYLstm } from "./kernels/ylstm.js";
+import { recordConvPool } from "./kernels/conv.js";
+import { recordYLstm } from "./kernels/ylstm2.js";
 import { recordXLstm as recordXLstm1 } from "./kernels/xlstm.js";
 import { recordXLstm as recordXLstm2, interleaveGates } from "./kernels/xlstm2.js";
 import { recordOutput } from "./kernels/output.js";
 import { normalise, padTable, scaleToHeight } from "./prep.js";
+import { decode as beamDecode } from "./beam.js";
 
 const f32 = Float32Array.BYTES_PER_ELEMENT;
 
@@ -65,7 +66,7 @@ export class TessModel {
         }
       }
       this.w[name] = gpu.upload(w);
-      if (name.startsWith("w_x")) this.w[name + "_4"] = gpu.upload(interleaveGates(w, t.shape[0] / 4, t.shape[1]));
+      if (name.startsWith("w_x") || name === "w_y") this.w[name + "_4"] = gpu.upload(interleaveGates(w, t.shape[0] / 4, t.shape[1]));
     }
     const tanh = new Float32Array(4096), logi = new Float32Array(4096);
     for (let i = 0; i < 4096; i++) {
@@ -107,9 +108,11 @@ export class TessModel {
 
 // lines: [{ data: Uint8Array grey, width, height }]. Returns [{ text, T, best?, probs? }]
 // in input order, plus timings on the array (out.ms).
+// opts.decoder: "beam" (Tesseract's RecodeBeamSearch without dictionary, web/beam.js; reads
+// back every softmax row) or "greedy" (argmax per step, reads back one code per step).
 // opts.xlstm: "v2" (coalesced, default) or "v1"; opts.stages: run only the first n of the
-// 7 stages (conv+pool, ylstm, x1, x2, x3, output) for per-stage timing (no text then).
-export async function recognize(gpu, model, lines, { wantProbs = false, xlstm = "v2", stages = 7 } = {}) {
+// stages (conv+pool, ylstm, x1, x2, x3, output) for per-stage timing (no text then).
+export async function recognize(gpu, model, lines, { wantProbs = false, decoder = "beam", xlstm = "v2", stages = 7 } = {}) {
   const t0 = performance.now();
   const H = model.H, Hp = Math.floor(H / 3);
   const prepared = lines.map((l, i) => {
@@ -136,7 +139,7 @@ export async function recognize(gpu, model, lines, { wantProbs = false, xlstm = 
   const buf = (n) => gpu.buffer(Math.max(1, n) * f32);
   const xBuf = gpu.upload(cat(xs, inOff));
   const padBuf = gpu.upload(cat(pads, padOff * 9));
-  const conv = buf(inOff * 16), pool = buf(poolOff * 16);
+  const pool = buf(poolOff * 16);
   const y = buf(tOff * ns.y), x1 = buf(tOff * ns.x1), x2 = buf(tOff * ns.x2), x3 = buf(tOff * ns.x3);
   const state = buf(meta.length * Math.max(ns.x1, ns.x2, ns.x3));
   const probs = buf(tOff * model.C), best = buf(tOff), bestp = buf(tOff);
@@ -145,9 +148,8 @@ export async function recognize(gpu, model, lines, { wantProbs = false, xlstm = 
   const wx = (n) => (xlstm === "v1" ? w[n] : w[n + "_4"]);
   gpu.begin();
   const steps = [
-    () => { recordConv(gpu, { x: xBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: conv, lines: meta, H, intMode });
-            recordPool(gpu, { conv, out: pool, lines: meta, H }); },
-    () => recordYLstm(gpu, { ...common, pool, w: w.w_y, s: s.w_y, out: y, H, ns: ns.y }),
+    () => recordConvPool(gpu, { x: xBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: pool, lines: meta, H, intMode }),
+    () => recordYLstm(gpu, { ...common, pool, w: w.w_y_4, s: s.w_y, out: y, H, ns: ns.y }),
     () => rx(gpu, { ...common, x: y, w: wx("w_x1"), s: s.w_x1, out: x1, state, ni: ni.x1, ns: ns.x1, reverse: false }),
     () => rx(gpu, { ...common, x: x1, w: wx("w_x2"), s: s.w_x2, out: x2, state, ni: ni.x2, ns: ns.x2, reverse: true }),
     () => rx(gpu, { ...common, x: x2, w: wx("w_x3"), s: s.w_x3, out: x3, state, ni: ni.x3, ns: ns.x3, reverse: false }),
@@ -155,18 +157,27 @@ export async function recognize(gpu, model, lines, { wantProbs = false, xlstm = 
   ];
   steps.slice(0, Math.min(stages, steps.length)).forEach((f) => f());
   gpu.submit();
-  const bestHost = await gpu.read(stages >= steps.length ? best : conv, Uint32Array, 16).then(() =>
+  const bestHost = await gpu.read(stages >= steps.length ? best : pool, Uint32Array, 16).then(() =>
     stages >= steps.length ? gpu.read(best, Uint32Array, Math.max(16, tOff * 4)) : new Uint32Array(tOff));
   const tGpu = performance.now();
-  const probsHost = wantProbs ? await gpu.read(probs, Float32Array, Math.max(16, tOff * model.C * 4)) : null;
+  const full = stages >= 6;
+  const probsHost = full && (wantProbs || decoder === "beam") ? await gpu.read(probs, Float32Array, Math.max(16, tOff * model.C * 4)) : null;
+  const tRead = performance.now();
   const out = new Array(lines.length).fill(null).map(() => ({ text: "", T: 0 }));
   for (const m of meta) {
-    const r = { text: model.decode(bestHost, m.t_off, m.T), T: m.T };
+    const r = { T: m.T };
     if (probsHost) r.probs = probsHost.subarray(m.t_off * model.C, (m.t_off + m.T) * model.C);
+    if (!full) r.text = "";
+    else if (decoder === "beam") {
+      const ids = beamDecode(r.probs, m.T, model.C, model.man);
+      r.text = ids.map((u) => model.man.unichars[u]).join("").split(/\s+/).filter(Boolean).join(" ");
+    } else r.text = model.decode(bestHost, m.t_off, m.T);
+    if (!wantProbs) delete r.probs;
     out[m.src] = r;
   }
-  for (const b of [xBuf, padBuf, conv, pool, y, x1, x2, x3, state, probs, best, bestp]) b.destroy();
-  out.ms = { prep: tPrep - t0, gpu: tGpu - tPrep, total: performance.now() - t0, lines: meta.length, steps: meta.length ? meta[0].T : 0 };
+  for (const b of [xBuf, padBuf, pool, y, x1, x2, x3, state, probs, best, bestp]) b.destroy();
+  const tEnd = performance.now();
+  out.ms = { prep: tPrep - t0, gpu: tGpu - tPrep, readback: tRead - tGpu, decode: tEnd - tRead, total: tEnd - t0, lines: meta.length, steps: meta.length ? meta[0].T : 0 };
   return out;
 }
 
