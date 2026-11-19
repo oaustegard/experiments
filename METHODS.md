@@ -807,6 +807,11 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
 - **Preact's `useId` repeats across `render()` roots.** Every root starts at `P0-0`, so a page that mounts one
   root per widget gets duplicate ids and broken `aria-controls`. React's client ids are unique per page. Number
   each container from the `options.__` root hook (`ui-sdk-preact/src/fixes.js`) or render one root.
+- **Check a restyle's contrast on the rendered pages, not only on the token pairs.** Every pair in the ui-sdk
+  showcase palette passed 4.5:1, and axe-core still found 79 violations per theme: upstream colors keyboard
+  shortcuts and group labels with `--line`, outside-month calendar days with `--line-disabled`, and mixes 60% ink
+  into the surface for a highlighted row's shortcut. A dotted stage background had also left 1,920 checks
+  "incomplete": axe cannot read contrast over a gradient. (`ui-sdk-preact/showcase/check.mjs`)
 
 - **A game loop that caps time per frame runs slower than real time on SwiftShader, so wait on game state.**
   A WebGPU game drew 8.5 frames a second in headless Chromium on SwiftShader and capped each frame at 0.05 s of
