@@ -26,7 +26,9 @@ MODEL = "ibm-granite/granite-docling-258M"
 REVISION = "untied"   # vLLM's Idefics3 wants the untied revision (the model card's vLLM example); same weights
 PROMPT = "Convert this page to docling."
 MAX_LEN = 8192        # vLLM max_model_len (prompt + generation)
-CHUNK = 128           # pages per llm.generate call; the deadline is checked between chunks
+CHUNK = 32            # pages per llm.generate call. vLLM preprocesses a whole call before generating:
+                      # at 128 docling pages (up to 17 tiles of 512 px each, fp32) a worker's engine was
+                      # killed for host memory on 2026-11-19. The KV cache holds ~28 pages at once anyway.
 TAG = "docling"
 DS_REV = "d70182b9f901d1660a27e60bf6be6d6e6ea83013"
 # ---- end CONFIG ----
@@ -146,8 +148,12 @@ def worker(engine, gpu, pids, pages, outdir, model_dir):
     if engine == "vllm":
         from vllm import LLM, SamplingParams
 
-        llm = LLM(model=model_dir, dtype=DTYPE, limit_mm_per_prompt={"image": 1}, max_model_len=MAX_LEN,
+        kw = dict(model=model_dir, dtype=DTYPE, limit_mm_per_prompt={"image": 1}, max_model_len=MAX_LEN,
                   gpu_memory_utilization=0.88, seed=0)
+        try:
+            llm = LLM(**kw, mm_processor_cache_gb=0)
+        except TypeError:  # an engine version without that argument
+            llm = LLM(**kw)
         sp = SamplingParams(temperature=0.0, max_tokens=MAX_NEW, skip_special_tokens=False)
         print(f"gpu{gpu} engine ready {time.time() - T0:.0f}s after start", flush=True)
         # Chunks bound the work lost to the deadline; vLLM batches continuously inside a chunk.
@@ -232,13 +238,30 @@ def main():
             procs.append(subprocess.Popen([sys.executable, str(SELF), "--worker", json.dumps(a)], env=env))
         # Hard stop: a worker still running half an hour past the deadline is killed, so a hang cannot
         # hold the GPUs (and the weekly quota) until Kaggle's 12 h limit. Saved pages stay saved.
-        rcs = []
-        for p in procs:
-            try:
-                rcs.append(p.wait(timeout=max(60.0, DEADLINE_S + 1800 - (time.time() - T0))))
-            except subprocess.TimeoutExpired:
-                p.kill()
-                rcs.append("killed")
+        # A worker that dies (an engine killed for memory) is restarted once on its remaining pages.
+        retries = {0: 1, 1: 1}
+        rcs = [None, None]
+        while any(r is None for r in rcs):
+            time.sleep(20)
+            over = time.time() - T0 > DEADLINE_S + 1800
+            for gpu, p in enumerate(procs):
+                if rcs[gpu] is not None:
+                    continue
+                rc = p.poll()
+                if rc is None:
+                    if over:
+                        p.kill()
+                        rcs[gpu] = "killed"
+                    continue
+                if rc != 0 and retries[gpu] and time.time() - T0 < DEADLINE_S:
+                    retries[gpu] -= 1
+                    print(f"gpu{gpu} worker exited {rc}; restarting it on its remaining pages", flush=True)
+                    a = {"engine": engine, "gpu": gpu, "pids": ids[gpu::2], "pages": str(CACHE / "pages.json"),
+                         "out": str(outdir), "model": model_dir}
+                    env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu))
+                    procs[gpu] = subprocess.Popen([sys.executable, str(SELF), "--worker", json.dumps(a)], env=env)
+                    continue
+                rcs[gpu] = rc
         info[f"{engine}_rc"] = rcs
         info[f"{engine}_wall_s"] = round(time.time() - t, 1)
         info[f"{engine}_done"] = len(list(outdir.glob("*.json")))
