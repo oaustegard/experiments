@@ -23,7 +23,12 @@ code{font:.86em ui-monospace,Menlo,monospace;background:var(--chip);padding:.05e
 ol.path{padding-left:1.4em}
 ol.path li{margin:.35em 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.9rem 1rem}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.9rem 1rem;transition:border-color .15s}
+.card:hover,.card:focus-within{border-color:var(--acc)}
+.card-link{color:inherit;text-decoration:none}
+.card-link::after{content:"";position:absolute;inset:0;border-radius:8px}
+.card-link:focus-visible{outline:none}
+.card:focus-within{outline:2px solid var(--acc);outline-offset:2px}
 .card header{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem}
 .ver{font:.78rem ui-monospace,Menlo,monospace;color:var(--mut)}
 .card p{margin:.3em 0;font-size:.93rem}
@@ -72,22 +77,22 @@ footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
 <p class="lede">Skills that run no agents themselves. They settle whether Haiku gets the task, and what it is told.</p>
 <div class="grid">
 
-<article class="card"><header><h3>agent-routing</h3><span class="ver">2.9.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=agent-routing&amp;expanded=true">agent-routing</a></h3><span class="ver">2.9.1</span></header>
 <p>Picks the model, effort and cascade for each subagent from measured cost per completed task, not per-token price.</p>
 <dl><dt>Use when</dt><dd>You are choosing a subagent's model or effort, or deciding how to escalate after a failure. Its routing table sends extraction, classification, state tracking, bulk scans and tested code edits to Haiku, with a second Haiku attempt that is told why the first failed, then Sonnet on a second failure.</dd>
 <dt>Not for</dt><dd>claude.ai chat. Judging another model's output, which it routes to Sonnet or above so the judge differs from the worker.</dd></dl></article>
 
-<article class="card"><header><h3>down-skilling</h3><span class="ver">1.7.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=down-skilling&amp;expanded=true">down-skilling</a></h3><span class="ver">1.7.1</span></header>
 <p>Turns Opus-level understanding of a task into a prompt Haiku can follow: rules, output schema and boundary examples.</p>
 <dl><dt>Use when</dt><dd>The output needs judgment (tone, relevance, moderation) and Haiku will run it many times. For Haiku 5.5 it starts from a bare prompt and adds one rule or one boundary example per miss on a 10–20 item test set, typically ending at 0–3 examples.</dd>
 <dt>Not for</dt><dd>Mechanically checkable output: write a verifier and retry instead. Don't instruct Haiku 5.5's thinking either, since it follows such instructions near 0% of the time.</dd></dl></article>
 
-<article class="card"><header><h3>writing-instructions</h3><span class="ver">0.3.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=writing-instructions&amp;expanded=true">writing-instructions</a></h3><span class="ver">0.3.0</span></header>
 <p>Sentence-level craft for instructions, with per-tier calibration: Haiku gets explicit imperatives and decision trees ("When X, do Y").</p>
 <dl><dt>Use when</dt><dd>An existing Haiku prompt or skill is being ignored or misread and the fix is in the wording.</dd>
 <dt>Not for</dt><dd>Building a Haiku prompt from scratch with a test set; that is <code>down-skilling</code>.</dd></dl></article>
 
-<article class="card"><header><h3>reasoning-semiformally</h3><span class="ver">0.4.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=reasoning-semiformally&amp;expanded=true">reasoning-semiformally</a></h3><span class="ver">0.4.0</span></header>
 <p>Certificate-style reasoning for patch verification, fault localization and patch equivalence. Ships <code>reasoning-semiformally/haiku.md</code> with full procedural templates and worked examples.</p>
 <dl><dt>Use when</dt><dd>A Haiku worker has to reason about code across files: hand it <code>haiku.md</code> as part of its prompt.</dd>
 <dt>Not for</dt><dd>Choosing or launching the worker.</dd></dl></article>
@@ -97,12 +102,12 @@ footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
 <h2>Launching from Claude Code</h2>
 <div class="grid">
 
-<article class="card"><header><h3>dispatching-subagents</h3><span class="ver">0.3.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=dispatching-subagents&amp;expanded=true">dispatching-subagents</a></h3><span class="ver">0.3.0</span></header>
 <p>Chooses between the Agent tool, the Workflow tool (a JavaScript script that orchestrates many subagents) and headless <code>claude -p</code> children, and runs the headless fan-out from one background command with a cost cap, schema-verified outputs and resume.</p>
 <dl><dt>Use when</dt><dd>Ten or more independent tasks whose inputs fit in a prompt or file and whose output a script can check: judges, graders, extractors, per-file reviews. <code>--model haiku --concurrency 16 --max-usd 5</code> is the stock call; headless children are limited by RAM (about 210 MB each), while a Workflow runs only 2 at once on a 4-vCPU container.</dd>
 <dt>Not for</dt><dd>A child that needs MCP, the parent's transcript or a worktree (use the Agent tool), or work where task N+1 depends on N's answer.</dd></dl></article>
 
-<article class="card"><header><h3>delegating-with-context</h3><span class="ver">0.3.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=delegating-with-context&amp;expanded=true">delegating-with-context</a></h3><span class="ver">0.3.0</span></header>
 <p>Lets you write only the task in an Agent or <code>create_session</code> prompt; a PreToolUse hook searches the parent transcript with Jev and appends the chunks the task needs.</p>
 <dl><dt>Use when</dt><dd>Any Agent-tool delegation in a session that has history the child needs. Run <code>scripts/preview.py</code> first to see which chunks it would pass.</dd>
 <dt>Not for</dt><dd>Headless children (no hooks run there) or claude.ai, where the hook is not wired.</dd></dl></article>
@@ -113,17 +118,17 @@ footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
 <p class="lede">Each of these does one job and runs Haiku inside it. A Haiku Agent-tool subagent costs about 32,500 tokens before it reads your prompt, so all three batch items or call the API rather than spawn one subagent per item.</p>
 <div class="grid">
 
-<article class="card"><header><h3>deciding-with-confidence</h3><span class="ver">0.4.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=deciding-with-confidence&amp;expanded=true">deciding-with-confidence</a></h3><span class="ver">0.4.0</span></header>
 <p>Routes, triages, flags and rates text with a probability for every option, using the request and response formats of two hosted decision APIs (OpenAI's Decisions API and TypeSafe's System One), so code written for either works unchanged.</p>
 <dl><dt>Use when</dt><dd>Jev is not available and you need "which queue", "is this grounded", "how severe" with a calibrated confidence. Takes a file or the session transcript as evidence.</dd>
 <dt>Not for</dt><dd>Free-form extraction or explanations. When Jev is listed, call it: 0.1–0.3 s against ~0.7–4 s through this skill.</dd></dl></article>
 
-<article class="card"><header><h3>hallucinating-labels</h3><span class="ver">0.1.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=hallucinating-labels&amp;expanded=true">hallucinating-labels</a></h3><span class="ver">0.1.0</span></header>
 <p>Assigns items to a closed vocabulary too large for a prompt: a cheap model writes the label it expects, and an embedder snaps it to the nearest legal value.</p>
 <dl><dt>Use when</dt><dd>Taxonomies, tag lists or code lists of thousands of labels, or an enum a provider rejects. Batch 40 items per call.</dd>
 <dt>Not for</dt><dd>A vocabulary that fits in a prompt: on the WANDS product-search benchmark, shipping all 860 labels got the top label right 70.1% of the time against this skill's 56.4%.</dd></dl></article>
 
-<article class="card"><header><h3>verifying-review-findings</h3><span class="ver">0.1.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=verifying-review-findings&amp;expanded=true">verifying-review-findings</a></h3><span class="ver">0.1.1</span></header>
 <p>Drops review findings whose quoted code is not in the file, then asks a decision model whether each remaining defect is real, with P(confirmed), severity and whether the fix works.</p>
 <dl><dt>Use when</dt><dd>Filtering a reviewer's false positives, or a CI gate that blocks only on confirmed high-severity findings.</dd>
 <dt>Note</dt><dd>Jev is the primary verifier; Haiku through <code>deciding-with-confidence</code> is the fallback path.</dd></dl></article>
@@ -134,12 +139,12 @@ footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
 <p class="lede">Both run many Haiku workers through headless <code>claude -p</code> for long stretches, with a harness that checks every result.</p>
 <div class="grid">
 
-<article class="card"><header><h3>evolving-with-swarms</h3><span class="ver">0.1.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=evolving-with-swarms&amp;expanded=true">evolving-with-swarms</a></h3><span class="ver">0.1.1</span></header>
 <p>Evolutionary program search, like the open-source OpenEvolve, on a budget: per round, eight Haiku proposers at <code>low</code> effort each suggest a 45-word idea and one writer at <code>medium</code> effort turns them into a program that a scorer ranks, all under a dollar cap.</p>
 <dl><dt>Use when</dt><dd>One program, a script that scores it, and a small budget. It reached 99% of the best known score for $0.013–0.50 where a Sonnet loop needed $0.32–1.02.</dd>
 <dt>Not for</dt><dd>When wall-clock time matters and $3+ is available: Sonnet reaches the same final scores in 7–42 minutes, while the swarm runs at about $1 an hour.</dd></dl></article>
 
-<article class="card"><header><h3>swarming-to-green</h3><span class="ver">0.7.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=swarming-to-green&amp;expanded=true">swarming-to-green</a></h3><span class="ver">0.7.1</span></header>
 <p>Hundreds to thousands of Haiku coding workers drive a failing-test backlog to green: failures clustered by signature, one worktree per fix, a serial merge gate that rejects any fix that breaks another test, retries at higher effort, resume across restarts, and the option to spread the work over several cloud sessions.</p>
 <dl><dt>Use when</dt><dd>Machine-readable test output, hundreds of failures, and hours of runtime. Haiku solved clusters at $0.011–0.012 each against Sonnet's $0.075–0.087.</dd>
 <dt>Not for</dt><dd>A handful of failing tests, or fewer than ten tasks; use the Agent tool directly.</dd></dl></article>
@@ -150,25 +155,25 @@ footer{margin-top:3rem;color:var(--mut);font-size:.85rem}
 <p class="lede">Chat has no Agent tool, so these call the model APIs directly. <code>orchestrating-chat-agents</code> names Gemini (through Cloudflare) as the default engine in chat and its Claude path for when you want Claude output; that path and the skills built on it default to Sonnet 5.5, so pass a Haiku model id where the task fits the routing table. In Claude Code each one says to use the Agent or Workflow tool instead. <code>orchestrating-agents</code> is a deprecated alias of <code>orchestrating-chat-agents</code>.</p>
 <div class="grid">
 
-<article class="card"><header><h3>orchestrating-chat-agents</h3><span class="ver">1.0.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=orchestrating-chat-agents&amp;expanded=true">orchestrating-chat-agents</a></h3><span class="ver">1.0.0</span></header>
 <p>Parallel Claude calls over httpx with a shared cached context, streaming, cached conversation threads and named agent pools; also delegates to Gemini through Cloudflare.</p>
 <dl><dt>Use when</dt><dd>Multi-perspective analysis or task decomposition from claude.ai when you want Claude rather than Gemini output, cached multi-turn threads, or Python that calls several Claude instances at once.</dd>
 <dt>Not for</dt><dd>Claude Code, where <code>dispatching-subagents</code> applies.</dd></dl></article>
 
-<article class="card"><header><h3>orchestrating-skills</h3><span class="ver">0.4.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=orchestrating-skills&amp;expanded=true">orchestrating-skills</a></h3><span class="ver">0.4.1</span></header>
 <p>Plans skill-typed subtasks, hands each only the slice of context it needs, runs them in parallel and synthesizes; answers trivial lookups inline without spawning.</p>
 <dl><dt>Use when</dt><dd>A large text context in chat where subtasks each need only part of it.</dd>
 <dt>Not for</dt><dd>Tool use or code execution; it is text analysis only.</dd></dl></article>
 
-<article class="card"><header><h3>tiling-tree</h3><span class="ver">1.1.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=tiling-tree&amp;expanded=true">tiling-tree</a></h3><span class="ver">1.1.1</span></header>
 <p>Partitions a problem into mutually exclusive, collectively exhaustive subsets recursively through parallel subagents, then scores the leaf ideas.</p>
 <dl><dt>Use when</dt><dd>"What are all the ways to…": exhaustive exploration rather than throughput. Its script hard-codes Sonnet 5.5 with no option to change it, so Haiku means editing the script.</dd></dl></article>
 
-<article class="card"><header><h3>convening-experts</h3><span class="ver">1.2.1</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=convening-experts&amp;expanded=true">convening-experts</a></h3><span class="ver">1.2.1</span></header>
 <p>Runs a panel of named expert perspectives (domain roles, DMAIC, RAPID, Socratic and Stoic methods) over one problem.</p>
 <dl><dt>Use when</dt><dd>A decision or root-cause question that benefits from distinct viewpoints, from chat.</dd></dl></article>
 
-<article class="card"><header><h3>challenging</h3><span class="ver">0.13.0</span></header>
+<article class="card"><header><h3><a class="card-link" href="https://github.com/oaustegard/claude-skills/releases?q=challenging&amp;expanded=true">challenging</a></h3><span class="ver">0.13.0</span></header>
 <p>Adversarial review of a finished deliverable by a fresh-context subagent (Task tool in Claude Code, API in chat), returning structured findings and a verdict.</p>
 <dl><dt>Use when</dt><dd>Before shipping a post, recommendation or code where accuracy beats speed. <code>agent-routing</code> sends judging to Sonnet or above, so the reviewer is rarely Haiku.</dd></dl></article>
 
