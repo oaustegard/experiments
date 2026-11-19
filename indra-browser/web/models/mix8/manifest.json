@@ -9397,5 +9397,2280 @@
   "base": "lm.bin",
   "world": "lm_world.bin",
   "cjk": "lm_cjk.bin"
+ },
+ "math": {
+  "models": {
+   "mathcls": {
+    "file": "mathcls.bin",
+    "kind": "convnet",
+    "input": "x",
+    "ops": [
+     {
+      "op": "pool",
+      "kind": "avg",
+      "in": "x",
+      "out": "/m/body/body.0/AveragePool_output_0"
+     },
+     {
+      "op": "conv",
+      "in": "/m/body/body.0/AveragePool_output_0",
+      "out": "/m/body/body.1/Conv_output_0",
+      "w": "onnx::Conv_80",
+      "b": "onnx::Conv_81",
+      "k": [
+       3,
+       3
+      ],
+      "s": [
+       1,
+       1
+      ],
+      "p": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "g": 1,
+      "act": "relu",
+      "res": null
+     },
+     {
+      "op": "pool",
+      "kind": "max",
+      "in": "/m/body/body.1/Conv_output_0",
+      "out": "/m/body/body.4/MaxPool_output_0"
+     },
+     {
+      "op": "conv",
+      "in": "/m/body/body.4/MaxPool_output_0",
+      "out": "/m/body/body.5/Conv_output_0",
+      "w": "onnx::Conv_83",
+      "b": "onnx::Conv_84",
+      "k": [
+       3,
+       3
+      ],
+      "s": [
+       1,
+       1
+      ],
+      "p": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "g": 1,
+      "act": "relu",
+      "res": null
+     },
+     {
+      "op": "pool",
+      "kind": "max",
+      "in": "/m/body/body.5/Conv_output_0",
+      "out": "/m/body/body.8/MaxPool_output_0"
+     },
+     {
+      "op": "conv",
+      "in": "/m/body/body.8/MaxPool_output_0",
+      "out": "/m/body/body.9/Conv_output_0",
+      "w": "onnx::Conv_86",
+      "b": "onnx::Conv_87",
+      "k": [
+       3,
+       3
+      ],
+      "s": [
+       1,
+       1
+      ],
+      "p": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "g": 1,
+      "act": "relu",
+      "res": null
+     },
+     {
+      "op": "pool",
+      "kind": "max",
+      "in": "/m/body/body.9/Conv_output_0",
+      "out": "/m/body/body.12/MaxPool_output_0"
+     },
+     {
+      "op": "conv",
+      "in": "/m/body/body.12/MaxPool_output_0",
+      "out": "/m/body/body.13/Conv_output_0",
+      "w": "onnx::Conv_89",
+      "b": "onnx::Conv_90",
+      "k": [
+       3,
+       3
+      ],
+      "s": [
+       1,
+       1
+      ],
+      "p": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "g": 1,
+      "act": "relu",
+      "res": null
+     },
+     {
+      "op": "pool",
+      "kind": "max",
+      "in": "/m/body/body.13/Conv_output_0",
+      "out": "/m/body/body.16/MaxPool_output_0"
+     },
+     {
+      "op": "hmean",
+      "in": "/m/body/body.16/MaxPool_output_0",
+      "out": "/m/ReduceMean_output_0"
+     },
+     {
+      "op": "gemm",
+      "in": "/m/ReduceMean_output_0",
+      "out": "/m/head/Gemm_output_0",
+      "w": "m.head.weight",
+      "b": "m.head.bias",
+      "act": null,
+      "wdiv": 32
+     }
+    ],
+    "tensors": {
+     "onnx::Conv_80": {
+      "shape": [
+       16,
+       1,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 0
+     },
+     "onnx::Conv_81": {
+      "shape": [
+       16
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 288
+     },
+     "onnx::Conv_83": {
+      "shape": [
+       32,
+       16,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 320
+     },
+     "onnx::Conv_84": {
+      "shape": [
+       32
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 9536
+     },
+     "onnx::Conv_86": {
+      "shape": [
+       48,
+       32,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 9600
+     },
+     "onnx::Conv_87": {
+      "shape": [
+       48
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 37248
+     },
+     "onnx::Conv_89": {
+      "shape": [
+       64,
+       48,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 37344
+     },
+     "onnx::Conv_90": {
+      "shape": [
+       64
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 92640
+     },
+     "m.head.weight": {
+      "shape": [
+       1,
+       64
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 92768
+     },
+     "m.head.bias": {
+      "shape": [
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 92896
+     }
+    },
+    "bytes": 92898
+   },
+   "math": {
+    "file": "math.bin",
+    "kind": "math",
+    "scheme": "f16",
+    "tensors": {
+     "enc.fold.weight": {
+      "shape": [
+       192,
+       96,
+       8,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 0
+     },
+     "enc.fold.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 294912
+     },
+     "enc.fold_bn.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 295296
+     },
+     "enc.fold_bn.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 295680
+     },
+     "enc.fold_bn.running_mean": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 296064
+     },
+     "enc.fold_bn.running_var": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 296448
+     },
+     "enc.blocks.0.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 296832
+     },
+     "enc.blocks.0.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 444288
+     },
+     "enc.blocks.0.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 445056
+     },
+     "enc.blocks.0.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 518784
+     },
+     "enc.blocks.0.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 518976
+     },
+     "enc.blocks.0.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 592704
+     },
+     "enc.blocks.0.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 593472
+     },
+     "enc.blocks.0.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 740928
+     },
+     "enc.blocks.1.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 741312
+     },
+     "enc.blocks.1.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 888768
+     },
+     "enc.blocks.1.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 889536
+     },
+     "enc.blocks.1.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 963264
+     },
+     "enc.blocks.1.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 963456
+     },
+     "enc.blocks.1.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1037184
+     },
+     "enc.blocks.1.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1037952
+     },
+     "enc.blocks.1.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1185408
+     },
+     "enc.blocks.2.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1185792
+     },
+     "enc.blocks.2.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1333248
+     },
+     "enc.blocks.2.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1334016
+     },
+     "enc.blocks.2.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1407744
+     },
+     "enc.blocks.2.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1407936
+     },
+     "enc.blocks.2.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1481664
+     },
+     "enc.blocks.2.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1482432
+     },
+     "enc.blocks.2.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1629888
+     },
+     "enc.blocks.3.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1630272
+     },
+     "enc.blocks.3.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1777728
+     },
+     "enc.blocks.3.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1778496
+     },
+     "enc.blocks.3.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1852224
+     },
+     "enc.blocks.3.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1852416
+     },
+     "enc.blocks.3.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1926144
+     },
+     "enc.blocks.3.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 1926912
+     },
+     "enc.blocks.3.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2074368
+     },
+     "enc.blocks.4.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2074752
+     },
+     "enc.blocks.4.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2222208
+     },
+     "enc.blocks.4.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2222976
+     },
+     "enc.blocks.4.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2296704
+     },
+     "enc.blocks.4.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2296896
+     },
+     "enc.blocks.4.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2370624
+     },
+     "enc.blocks.4.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2371392
+     },
+     "enc.blocks.4.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2518848
+     },
+     "enc.blocks.5.expand.weight": {
+      "shape": [
+       384,
+       192,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2519232
+     },
+     "enc.blocks.5.expand.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2666688
+     },
+     "enc.blocks.5.se.fc1.weight": {
+      "shape": [
+       96,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2667456
+     },
+     "enc.blocks.5.se.fc1.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2741184
+     },
+     "enc.blocks.5.se.fc2.weight": {
+      "shape": [
+       384,
+       96,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2741376
+     },
+     "enc.blocks.5.se.fc2.bias": {
+      "shape": [
+       384
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2815104
+     },
+     "enc.blocks.5.project.weight": {
+      "shape": [
+       192,
+       384,
+       1
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2815872
+     },
+     "enc.blocks.5.project.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2963328
+     },
+     "enc.attn.0.ln1.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2963712
+     },
+     "enc.attn.0.ln1.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2964096
+     },
+     "enc.attn.0.qkv.bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2964480
+     },
+     "enc.attn.0.out.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2965632
+     },
+     "enc.attn.0.ln2.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2966016
+     },
+     "enc.attn.0.ln2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2966400
+     },
+     "enc.attn.0.ff1.bias": {
+      "shape": [
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2966784
+     },
+     "enc.attn.0.ff2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2968320
+     },
+     "enc.attn.1.ln1.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2968704
+     },
+     "enc.attn.1.ln1.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2969088
+     },
+     "enc.attn.1.qkv.bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2969472
+     },
+     "enc.attn.1.out.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2970624
+     },
+     "enc.attn.1.ln2.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2971008
+     },
+     "enc.attn.1.ln2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2971392
+     },
+     "enc.attn.1.ff1.bias": {
+      "shape": [
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2971776
+     },
+     "enc.attn.1.ff2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2973312
+     },
+     "enc.front.front.0.Conv.weight": {
+      "shape": [
+       32,
+       1,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2973696
+     },
+     "enc.front.front.0.Conv.bias": {
+      "shape": [
+       32
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2974272
+     },
+     "enc.front.front.3.Conv.weight": {
+      "shape": [
+       64,
+       32,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 2974336
+     },
+     "enc.front.front.3.Conv.bias": {
+      "shape": [
+       64
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3011200
+     },
+     "enc.front.front.6.Conv.weight": {
+      "shape": [
+       96,
+       64,
+       3,
+       3
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3011328
+     },
+     "enc.front.front.6.Conv.bias": {
+      "shape": [
+       96
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3121920
+     },
+     "enc.blocks.0.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3122112
+     },
+     "enc.blocks.0.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3125568
+     },
+     "enc.blocks.1.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3125952
+     },
+     "enc.blocks.1.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3129408
+     },
+     "enc.blocks.2.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3129792
+     },
+     "enc.blocks.2.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3133248
+     },
+     "enc.blocks.3.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3133632
+     },
+     "enc.blocks.3.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3137088
+     },
+     "enc.blocks.4.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3137472
+     },
+     "enc.blocks.4.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3140928
+     },
+     "enc.blocks.5.dw.Conv.weight": {
+      "shape": [
+       192,
+       1,
+       9
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3141312
+     },
+     "enc.blocks.5.dw.Conv.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3144768
+     },
+     "enc.attn.0.qkv.weight": {
+      "shape": [
+       192,
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3145152
+     },
+     "enc.attn.0.out.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3366336
+     },
+     "enc.attn.0.ff1.weight": {
+      "shape": [
+       192,
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3440064
+     },
+     "enc.attn.0.ff2.weight": {
+      "shape": [
+       768,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 3734976
+     },
+     "enc.attn.1.qkv.weight": {
+      "shape": [
+       192,
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 4029888
+     },
+     "enc.attn.1.out.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 4251072
+     },
+     "enc.attn.1.ff1.weight": {
+      "shape": [
+       192,
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 4324800
+     },
+     "enc.attn.1.ff2.weight": {
+      "shape": [
+       768,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 4619712
+     },
+     "dec.layers.layers.0.multihead_attn.in_proj_weight": {
+      "shape": [
+       576,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 4914624
+     },
+     "dec.layers.layers.0.multihead_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5135808
+     },
+     "dec.layers.layers.1.multihead_attn.in_proj_weight": {
+      "shape": [
+       576,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5136960
+     },
+     "dec.layers.layers.1.multihead_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5358144
+     },
+     "dec.layers.layers.2.multihead_attn.in_proj_weight": {
+      "shape": [
+       576,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5359296
+     },
+     "dec.layers.layers.2.multihead_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5580480
+     },
+     "dec.emb.weight": {
+      "shape": [
+       652,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5581632
+     },
+     "dec.pos.weight": {
+      "shape": [
+       321,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5832000
+     },
+     "dec.layers.layers.0.self_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5955264
+     },
+     "dec.layers.layers.0.self_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5956416
+     },
+     "dec.layers.layers.0.multihead_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5956800
+     },
+     "dec.layers.layers.0.linear1.bias": {
+      "shape": [
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5957184
+     },
+     "dec.layers.layers.0.linear2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5958720
+     },
+     "dec.layers.layers.0.norm1.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5959104
+     },
+     "dec.layers.layers.0.norm1.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5959488
+     },
+     "dec.layers.layers.0.norm2.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5959872
+     },
+     "dec.layers.layers.0.norm2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5960256
+     },
+     "dec.layers.layers.0.norm3.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5960640
+     },
+     "dec.layers.layers.0.norm3.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5961024
+     },
+     "dec.layers.layers.1.self_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5961408
+     },
+     "dec.layers.layers.1.self_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5962560
+     },
+     "dec.layers.layers.1.multihead_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5962944
+     },
+     "dec.layers.layers.1.linear1.bias": {
+      "shape": [
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5963328
+     },
+     "dec.layers.layers.1.linear2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5964864
+     },
+     "dec.layers.layers.1.norm1.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5965248
+     },
+     "dec.layers.layers.1.norm1.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5965632
+     },
+     "dec.layers.layers.1.norm2.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5966016
+     },
+     "dec.layers.layers.1.norm2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5966400
+     },
+     "dec.layers.layers.1.norm3.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5966784
+     },
+     "dec.layers.layers.1.norm3.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5967168
+     },
+     "dec.layers.layers.2.self_attn.in_proj_bias": {
+      "shape": [
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5967552
+     },
+     "dec.layers.layers.2.self_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5968704
+     },
+     "dec.layers.layers.2.multihead_attn.out_proj.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5969088
+     },
+     "dec.layers.layers.2.linear1.bias": {
+      "shape": [
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5969472
+     },
+     "dec.layers.layers.2.linear2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5971008
+     },
+     "dec.layers.layers.2.norm1.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5971392
+     },
+     "dec.layers.layers.2.norm1.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5971776
+     },
+     "dec.layers.layers.2.norm2.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5972160
+     },
+     "dec.layers.layers.2.norm2.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5972544
+     },
+     "dec.layers.layers.2.norm3.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5972928
+     },
+     "dec.layers.layers.2.norm3.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5973312
+     },
+     "dec.norm.weight": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5973696
+     },
+     "dec.norm.bias": {
+      "shape": [
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5974080
+     },
+     "dec.out.bias": {
+      "shape": [
+       652
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5974464
+     },
+     "dec.layers.layers.0.self_attn.in_proj_weight": {
+      "shape": [
+       192,
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 5975768
+     },
+     "dec.layers.layers.0.self_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 6196952
+     },
+     "dec.layers.layers.0.multihead_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 6270680
+     },
+     "dec.layers.layers.0.linear1.weight": {
+      "shape": [
+       192,
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 6344408
+     },
+     "dec.layers.layers.0.linear2.weight": {
+      "shape": [
+       768,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 6639320
+     },
+     "dec.layers.layers.1.self_attn.in_proj_weight": {
+      "shape": [
+       192,
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 6934232
+     },
+     "dec.layers.layers.1.self_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 7155416
+     },
+     "dec.layers.layers.1.multihead_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 7229144
+     },
+     "dec.layers.layers.1.linear1.weight": {
+      "shape": [
+       192,
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 7302872
+     },
+     "dec.layers.layers.1.linear2.weight": {
+      "shape": [
+       768,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 7597784
+     },
+     "dec.layers.layers.2.self_attn.in_proj_weight": {
+      "shape": [
+       192,
+       576
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 7892696
+     },
+     "dec.layers.layers.2.self_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 8113880
+     },
+     "dec.layers.layers.2.multihead_attn.out_proj.weight": {
+      "shape": [
+       192,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 8187608
+     },
+     "dec.layers.layers.2.linear1.weight": {
+      "shape": [
+       192,
+       768
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 8261336
+     },
+     "dec.layers.layers.2.linear2.weight": {
+      "shape": [
+       768,
+       192
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 8556248
+     },
+     "dec.out.weight": {
+      "shape": [
+       192,
+       652
+      ],
+      "planes": 1,
+      "enc": "f16",
+      "data": 8851160
+     }
+    },
+    "bytes": 9101528,
+    "config": {
+     "height": 64,
+     "front": [
+      32,
+      64,
+      96
+     ],
+     "channels": 192,
+     "expansion": 384,
+     "blocks": 6,
+     "kernel": 9,
+     "se_reduction": 4,
+     "attn_layers": 2,
+     "attn_heads": 8,
+     "attn_ffn": 768,
+     "dec_layers": 3,
+     "dec_heads": 8,
+     "dec_ffn": 768,
+     "max_tokens": 320,
+     "n_tokens": 652
+    },
+    "tokens": [
+     " ",
+     "!",
+     "\"",
+     "$",
+     "'",
+     "(",
+     ")",
+     "*",
+     "+",
+     ",",
+     "-",
+     ".",
+     "/",
+     "0",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7",
+     "8",
+     "9",
+     ":",
+     ";",
+     "<",
+     "=",
+     ">",
+     "?",
+     "@",
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "I",
+     "J",
+     "K",
+     "L",
+     "M",
+     "N",
+     "O",
+     "P",
+     "Q",
+     "R",
+     "S",
+     "T",
+     "U",
+     "V",
+     "W",
+     "X",
+     "Y",
+     "Z",
+     "[",
+     "\\ ",
+     "\\!",
+     "\\#",
+     "\\%",
+     "\\&",
+     "\\,",
+     "\\/",
+     "\\:",
+     "\\;",
+     "\\AA",
+     "\\Bar",
+     "\\Bbbk",
+     "\\Big",
+     "\\Bigg",
+     "\\Biggl",
+     "\\Biggr",
+     "\\Bigl",
+     "\\Bigr",
+     "\\Bumpeq",
+     "\\Cap",
+     "\\Cup",
+     "\\Ddot",
+     "\\Delta",
+     "\\Dot",
+     "\\Downarrow",
+     "\\Game",
+     "\\Gamma",
+     "\\Hat",
+     "\\Im",
+     "\\Join",
+     "\\L",
+     "\\Lambda",
+     "\\Leftarrow",
+     "\\Leftrightarrow",
+     "\\Lleftarrow",
+     "\\Longleftarrow",
+     "\\Longleftrightarrow",
+     "\\Longrightarrow",
+     "\\Lsh",
+     "\\O",
+     "\\Omega",
+     "\\P",
+     "\\Phi",
+     "\\Pi",
+     "\\Pr",
+     "\\Psi",
+     "\\Re",
+     "\\Rightarrow",
+     "\\Rrightarrow",
+     "\\Rsh",
+     "\\S",
+     "\\Sigma",
+     "\\Subset",
+     "\\Supset",
+     "\\Theta",
+     "\\Tilde",
+     "\\Uparrow",
+     "\\Updownarrow",
+     "\\Upsilon",
+     "\\Vdash",
+     "\\Vec",
+     "\\Vert",
+     "\\Vvdash",
+     "\\Xi",
+     "\\_",
+     "\\acute",
+     "\\aleph",
+     "\\alpha",
+     "\\amalg",
+     "\\angle",
+     "\\approx",
+     "\\approxeq",
+     "\\arcsin",
+     "\\arctan",
+     "\\arg",
+     "\\ast",
+     "\\asymp",
+     "\\atop",
+     "\\b",
+     "\\backprime",
+     "\\backsim",
+     "\\backsimeq",
+     "\\backslash",
+     "\\bar",
+     "\\barwedge",
+     "\\because",
+     "\\beta",
+     "\\beth",
+     "\\between",
+     "\\bf",
+     "\\big",
+     "\\bigcap",
+     "\\bigcirc",
+     "\\bigcup",
+     "\\bigg",
+     "\\biggl",
+     "\\biggr",
+     "\\bigl",
+     "\\bigoplus",
+     "\\bigr",
+     "\\bigstar",
+     "\\bigtriangledown",
+     "\\bigtriangleup",
+     "\\bigwedge",
+     "\\binom",
+     "\\blacktriangle",
+     "\\blacktriangledown",
+     "\\blacktriangleleft",
+     "\\blacktriangleright",
+     "\\bmod",
+     "\\boldmath",
+     "\\boldsymbol",
+     "\\bot",
+     "\\bowtie",
+     "\\boxdot",
+     "\\boxminus",
+     "\\boxplus",
+     "\\boxtimes",
+     "\\breve",
+     "\\bullet",
+     "\\bumpeq",
+     "\\cal",
+     "\\cap",
+     "\\cdot",
+     "\\cdots",
+     "\\centering",
+     "\\cfrac",
+     "\\check",
+     "\\checkmark",
+     "\\chi",
+     "\\circ",
+     "\\circeq",
+     "\\circledast",
+     "\\circledcirc",
+     "\\circleddash",
+     "\\clubsuit",
+     "\\colon",
+     "\\complement",
+     "\\cong",
+     "\\copyright",
+     "\\cos",
+     "\\cosh",
+     "\\cot",
+     "\\coth",
+     "\\csc",
+     "\\cup",
+     "\\curlyeqprec",
+     "\\curlyeqsucc",
+     "\\curlyvee",
+     "\\curlywedge",
+     "\\curvearrowleft",
+     "\\curvearrowright",
+     "\\d",
+     "\\dag",
+     "\\dagger",
+     "\\daleth",
+     "\\dashv",
+     "\\ddag",
+     "\\ddagger",
+     "\\ddot",
+     "\\deg",
+     "\\delta",
+     "\\diagup",
+     "\\diamond",
+     "\\diamondsuit",
+     "\\dim",
+     "\\displaystyle",
+     "\\div",
+     "\\divideontimes",
+     "\\dot",
+     "\\doteq",
+     "\\dotplus",
+     "\\dots",
+     "\\dotsb",
+     "\\dotsc",
+     "\\doublebarwedge",
+     "\\downarrow",
+     "\\downdownarrows",
+     "\\downharpoonleft",
+     "\\downharpoonright",
+     "\\ell",
+     "\\emph",
+     "\\emptyset",
+     "\\enspace",
+     "\\ensuremath",
+     "\\epsilon",
+     "\\eqcirc",
+     "\\eqsim",
+     "\\eqslantgtr",
+     "\\eqslantless",
+     "\\equiv",
+     "\\eta",
+     "\\eth",
+     "\\exists",
+     "\\exp",
+     "\\fallingdotseq",
+     "\\flat",
+     "\\forall",
+     "\\frac",
+     "\\frown",
+     "\\gamma",
+     "\\ge",
+     "\\geq",
+     "\\geqq",
+     "\\geqslant",
+     "\\gets",
+     "\\gg",
+     "\\ggg",
+     "\\gimel",
+     "\\gnapprox",
+     "\\gneq",
+     "\\gneqq",
+     "\\gnsim",
+     "\\grave",
+     "\\gtrapprox",
+     "\\gtrdot",
+     "\\gtreqless",
+     "\\gtreqqless",
+     "\\gtrless",
+     "\\gtrsim",
+     "\\hat",
+     "\\hbar",
+     "\\hdots",
+     "\\heartsuit",
+     "\\hookleftarrow",
+     "\\hookrightarrow",
+     "\\hslash",
+     "\\i",
+     "\\iff",
+     "\\iiint",
+     "\\iint",
+     "\\imath",
+     "\\implies",
+     "\\in",
+     "\\infty",
+     "\\int",
+     "\\intercal",
+     "\\iota",
+     "\\it",
+     "\\j",
+     "\\jmath",
+     "\\kappa",
+     "\\ker",
+     "\\l",
+     "\\lVert",
+     "\\lambda",
+     "\\land",
+     "\\langle",
+     "\\lbrace",
+     "\\lbrack",
+     "\\lceil",
+     "\\ldots",
+     "\\le",
+     "\\left",
+     "\\leftarrow",
+     "\\leftarrowtail",
+     "\\leftharpoondown",
+     "\\leftharpoonup",
+     "\\leftleftarrows",
+     "\\leftrightarrow",
+     "\\leftrightarrows",
+     "\\leftrightharpoons",
+     "\\leftrightsquigarrow",
+     "\\leftthreetimes",
+     "\\leq",
+     "\\leqq",
+     "\\leqslant",
+     "\\lessapprox",
+     "\\lessdot",
+     "\\lesseqgtr",
+     "\\lesseqqgtr",
+     "\\lessgtr",
+     "\\lesssim",
+     "\\lfloor",
+     "\\lg",
+     "\\lim",
+     "\\limits",
+     "\\ll",
+     "\\llcorner",
+     "\\lll",
+     "\\ln",
+     "\\lnapprox",
+     "\\lneq",
+     "\\lneqq",
+     "\\lnot",
+     "\\lnsim",
+     "\\log",
+     "\\longleftarrow",
+     "\\longleftrightarrow",
+     "\\longmapsto",
+     "\\longrightarrow",
+     "\\looparrowleft",
+     "\\looparrowright",
+     "\\lor",
+     "\\lrcorner",
+     "\\ltimes",
+     "\\lvert",
+     "\\mapsto",
+     "\\mathbb",
+     "\\mathbf",
+     "\\mathcal",
+     "\\mathfrak",
+     "\\mathinner",
+     "\\mathit",
+     "\\mathnormal",
+     "\\mathop",
+     "\\mathopen",
+     "\\mathord",
+     "\\mathrel",
+     "\\mathring",
+     "\\mathrm",
+     "\\mathscr",
+     "\\mathsection",
+     "\\mathsf",
+     "\\mathtt",
+     "\\measuredangle",
+     "\\mho",
+     "\\mid",
+     "\\mod",
+     "\\models",
+     "\\mp",
+     "\\mu",
+     "\\multimap",
+     "\\nLeftarrow",
+     "\\nLeftrightarrow",
+     "\\nRightarrow",
+     "\\nVDash",
+     "\\nVdash",
+     "\\nabla",
+     "\\natural",
+     "\\ncong",
+     "\\ne",
+     "\\nearrow",
+     "\\neg",
+     "\\neq",
+     "\\nexists",
+     "\\ngeq",
+     "\\ngtr",
+     "\\ni",
+     "\\nleftarrow",
+     "\\nleftrightarrow",
+     "\\nleq",
+     "\\nless",
+     "\\nmid",
+     "\\nonumber",
+     "\\normalfont",
+     "\\not",
+     "\\notin",
+     "\\nparallel",
+     "\\nprec",
+     "\\nrightarrow",
+     "\\nsim",
+     "\\nsubseteq",
+     "\\nsucc",
+     "\\nsupseteq",
+     "\\ntrianglelefteq",
+     "\\ntrianglerighteq",
+     "\\nu",
+     "\\nvDash",
+     "\\nvdash",
+     "\\nwarrow",
+     "\\o",
+     "\\odot",
+     "\\oint",
+     "\\omega",
+     "\\ominus",
+     "\\operatorname",
+     "\\operatorname*",
+     "\\oplus",
+     "\\oslash",
+     "\\otimes",
+     "\\overleftarrow",
+     "\\overleftrightarrow",
+     "\\overline",
+     "\\overrightarrow",
+     "\\overset",
+     "\\parallel",
+     "\\partial",
+     "\\perp",
+     "\\phantom",
+     "\\phi",
+     "\\pi",
+     "\\pitchfork",
+     "\\pm",
+     "\\pmb",
+     "\\pmod",
+     "\\pounds",
+     "\\prec",
+     "\\precapprox",
+     "\\preccurlyeq",
+     "\\preceq",
+     "\\precneqq",
+     "\\precnsim",
+     "\\precsim",
+     "\\prime",
+     "\\prod",
+     "\\propto",
+     "\\protect",
+     "\\psi",
+     "\\qquad",
+     "\\quad",
+     "\\rVert",
+     "\\rangle",
+     "\\rbrace",
+     "\\rbrack",
+     "\\rceil",
+     "\\rfloor",
+     "\\rho",
+     "\\right",
+     "\\rightarrow",
+     "\\rightarrowtail",
+     "\\rightharpoondown",
+     "\\rightharpoonup",
+     "\\rightleftarrows",
+     "\\rightleftharpoons",
+     "\\rightrightarrows",
+     "\\rightsquigarrow",
+     "\\rightthreetimes",
+     "\\risingdotseq",
+     "\\romannumeral",
+     "\\rtimes",
+     "\\rvert",
+     "\\sb",
+     "\\scriptscriptstyle",
+     "\\scriptsize",
+     "\\scriptstyle",
+     "\\searrow",
+     "\\sec",
+     "\\setminus",
+     "\\sf",
+     "\\sharp",
+     "\\sigma",
+     "\\sim",
+     "\\simeq",
+     "\\sin",
+     "\\sinh",
+     "\\slash",
+     "\\small",
+     "\\smash",
+     "\\smile",
+     "\\sp",
+     "\\spadesuit",
+     "\\sphericalangle",
+     "\\sqcap",
+     "\\sqcup",
+     "\\sqrt",
+     "\\sqsubset",
+     "\\sqsubseteq",
+     "\\sqsupset",
+     "\\sqsupseteq",
+     "\\stackrel",
+     "\\star",
+     "\\subset",
+     "\\subseteq",
+     "\\subseteqq",
+     "\\subsetneq",
+     "\\substack",
+     "\\succ",
+     "\\succapprox",
+     "\\succcurlyeq",
+     "\\succeq",
+     "\\succnapprox",
+     "\\succneqq",
+     "\\succnsim",
+     "\\succsim",
+     "\\sum",
+     "\\supset",
+     "\\supseteq",
+     "\\supsetneq",
+     "\\supsetneqq",
+     "\\surd",
+     "\\swarrow",
+     "\\tan",
+     "\\tau",
+     "\\textbf",
+     "\\textit",
+     "\\textless",
+     "\\textmd",
+     "\\textmu",
+     "\\textnormal",
+     "\\textrm",
+     "\\textsc",
+     "\\textsf",
+     "\\textsl",
+     "\\textstyle",
+     "\\textsubscript",
+     "\\textsuperscript",
+     "\\texttt",
+     "\\textup",
+     "\\therefore",
+     "\\theta",
+     "\\tilde",
+     "\\times",
+     "\\tiny",
+     "\\to",
+     "\\top",
+     "\\triangle",
+     "\\triangledown",
+     "\\triangleleft",
+     "\\trianglelefteq",
+     "\\triangleq",
+     "\\triangleright",
+     "\\trianglerighteq",
+     "\\tt",
+     "\\twoheadleftarrow",
+     "\\twoheadrightarrow",
+     "\\ulcorner",
+     "\\underbrace",
+     "\\underline",
+     "\\underset",
+     "\\uparrow",
+     "\\updownarrow",
+     "\\upharpoonleft",
+     "\\upharpoonright",
+     "\\uplus",
+     "\\upsilon",
+     "\\upuparrows",
+     "\\urcorner",
+     "\\vDash",
+     "\\varDelta",
+     "\\varLambda",
+     "\\varOmega",
+     "\\varPhi",
+     "\\varPsi",
+     "\\varepsilon",
+     "\\varkappa",
+     "\\varnothing",
+     "\\varphi",
+     "\\varpi",
+     "\\varrho",
+     "\\varsigma",
+     "\\vartheta",
+     "\\vartriangle",
+     "\\vartriangleleft",
+     "\\vartriangleright",
+     "\\vdash",
+     "\\vdots",
+     "\\vec",
+     "\\vee",
+     "\\veebar",
+     "\\vert",
+     "\\vphantom",
+     "\\wedge",
+     "\\widehat",
+     "\\widetilde",
+     "\\wp",
+     "\\wr",
+     "\\xi",
+     "\\xrightarrow",
+     "\\zeta",
+     "\\{",
+     "\\|",
+     "\\}",
+     "]",
+     "^",
+     "_",
+     "`",
+     "a",
+     "b",
+     "c",
+     "d",
+     "e",
+     "f",
+     "g",
+     "h",
+     "i",
+     "j",
+     "k",
+     "l",
+     "m",
+     "n",
+     "o",
+     "p",
+     "q",
+     "r",
+     "s",
+     "t",
+     "u",
+     "v",
+     "w",
+     "x",
+     "y",
+     "z",
+     "{",
+     "|",
+     "}",
+     "~",
+     "°",
+     "–",
+     "’",
+     "⁄"
+    ]
+   }
+  }
  }
 }

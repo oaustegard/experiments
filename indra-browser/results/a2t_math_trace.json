@@ -1,0 +1,67 @@
+{
+ "math_mode": "auto",
+ "text_page": {
+  "file": "text_page.png",
+  "indra_requests": [
+   "indra.js",
+   "gpu.js",
+   "imgproc.js",
+   "nets.js",
+   "order.js",
+   "pack.js",
+   "layout.js",
+   "text.js",
+   "uprops.js",
+   "lm.js",
+   "deskew.js",
+   "crops.js",
+   "math.js",
+   "models/mix8/manifest.json",
+   "models/mix8/uexc.json",
+   "models/mix8/det.bin",
+   "models/mix8/rec.bin",
+   "models/mix8/order.bin",
+   "models/mix8/orient.bin",
+   "models/mix8/script.bin",
+   "models/mix8/vocab.json",
+   "models/mix8/lm.bin",
+   "models/mix8/rec_world.bin",
+   "models/mix8/vocab_world.json",
+   "models/mix8/lm_world.bin",
+   "models/mix8/rec_cjk.bin",
+   "models/mix8/vocab_cjk.json",
+   "models/mix8/lm_cjk.bin",
+   "models/mix8/rec_rtl.bin",
+   "models/mix8/vocab_rtl.json",
+   "models/mix8/mathcls.bin"
+  ],
+  "math_bin": 0,
+  "mathcls_bin": 1,
+  "latex_spans": 0,
+  "indra_log": [
+   "[indra] models loaded: det, rec, order, orient, script (2.49 MB decoded weights file) in 159 ms",
+   "[indra] ready on google swiftshader",
+   "[indra] loaded the base n-gram table (order 5) in 301 ms",
+   "[indra] loaded the world recognizer (1.43 MB) in 161 ms",
+   "[indra] loaded the world n-gram table (order 4) in 267 ms",
+   "[indra] loaded the cjk recognizer (2.60 MB) in 287 ms",
+   "[indra] loaded the cjk n-gram table (order 3) in 384 ms",
+   "[indra] loaded the rtl recognizer (1.22 MB) in 119 ms",
+   "[indra] loaded the math line classifier (0.09 MB) in 6 ms",
+   "[indra] text_page.png 55 lines   {orient_ms: 9874.899999999441, det_ms: 19805.10000000056, rec_ms: 54750.299999999814, crop_ms: 23.700000000186265, script_ms: 3811.7000000001863}"
+  ]
+ },
+ "math_page": {
+  "file": "math_page.png",
+  "indra_requests": [
+   "models/mix8/math.bin"
+  ],
+  "math_bin": 1,
+  "mathcls_bin": 0,
+  "latex_spans": 9,
+  "indra_log": [
+   "[indra] loaded the math reader (9.10 MB) in 330 ms",
+   "[indra] math_page.png 41 lines   {orient_ms: 8384.900000000373, det_ms: 17080.799999999814, rec_ms: 197115.90000000037, crop_ms: 4, script_ms: 6708.299999999814}"
+  ]
+ }
+}

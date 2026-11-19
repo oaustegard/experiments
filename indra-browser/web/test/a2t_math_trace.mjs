@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
   });
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
+const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, } : undefined;
 const browser = await chromium.launch({ proxy, args: ["--enable-unsafe-webgpu", "--use-angle=swiftshader", "--use-webgpu-adapter=swiftshader", "--enable-features=Vulkan"] });
 const page = await browser.newPage();
 const log = [];
@@ -45,7 +45,14 @@ await page.route(INDRA + "**", (route) => {
 });
 let reqs = [];
 page.on("request", (r) => { if (r.url().startsWith(INDRA)) reqs.push(r.url().slice(INDRA.length)); });
-await page.goto(`http://127.0.0.1:${server.address().port}/web-utilities/anything-to-text.html`);
+// the site from the checkout, at a made-up origin the proxy never sees
+await page.route("https://a2t.local/**", (route) => {
+  const u = decodeURIComponent(new URL(route.request().url()).pathname);
+  const f = path.join(site, u);
+  if (!fs.existsSync(f)) return route.fulfill({ status: 404, body: "" });
+  return route.fulfill({ status: 200, contentType: type(f), body: fs.readFileSync(f) });
+});
+await page.goto("https://a2t.local/web-utilities/anything-to-text.html");
 const mathMode = await page.$eval("#math", (e) => e.value);
 
 async function readOne(png) {

@@ -221,7 +221,7 @@ function decodeDet(det, thresh = 0.5, minArea = 2) {
 
 export class Indra {
   // math: "off" (no math models are fetched), "auto" (the 90 KB line classifier is fetched with the
-  // first page; the math reader, 4-8 MB, only when the classifier flags a line) or "on" (both are
+  // first page; the math reader, about 8 MB, only when the classifier flags a line) or "on" (both are
   // fetched now). A pack without the manifest's "math" key reads no math.
   static async load(base, { fetchBytes, log = () => {}, gpu = null, math = "off" } = {}) {
     const url = new URL(base, location.href);
