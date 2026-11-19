@@ -12,8 +12,9 @@ all of it runs. On ui-sdk's own React test suite, Preact 11 passes 2,868 of
 features Preact doesn't have, and one bounded memory leak. Getting there took a
 90-line module, `src/fixes.js`, which corrects three places where Preact
 renders the adapter's output differently from React. The adapter's code is not
-changed. It needs Preact 11 (see Use). [Demo
-page](https://austegard.com/experiments/ui-sdk-preact/web/).
+changed. It needs Preact 11 (see Use). The
+[showcase](https://austegard.com/ai-tools/ui-sdk-preact/) runs all 55 components
+and every upstream example for them on Preact.
 
 Started 2026-11-18, from Oskar Austegard's request: "Could we build a Preact
 port for these? https://ui-sdk.dev/docs/core".
@@ -117,7 +118,7 @@ node build.mjs ui-sdk-react-0.1.0-beta.10.tgz ui-sdk-preact/
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from "ui-sdk-preact/dialog"
 ```
 
-Without one, map Preact and the ESM build in an import map, as `web/index.html`
+Without one, map Preact and the ESM build in an import map, as the showcase
 does, and write the markup with htm:
 
 ```html
@@ -158,7 +159,8 @@ function components as a prop; Preact 11 does too, Preact 10 does not without
 | `src/compat.js`, `src/jsx-runtime.js` | What the package imports in place of `react` and `react/jsx-runtime` |
 | `esm.mjs` | Builds `web/esm/` with rolldown |
 | `catalog.mjs` | Writes the component catalog in the developing-preact skill's `references/ui-sdk.md` from the npm package's docs and the `web/esm/` exports |
-| `web/index.html` | Demo: menu, dialog, and tabs in two roots, with no build step. With `?log=1` on Oskar's devices it sends its console log to his log relay (`gpu-bridge`) |
+| `showcase/` | The page at austegard.com/ai-tools/ui-sdk-preact/: `build.mjs` compiles all 578 upstream React examples (from the release tag) into one module per component and adds the ESM build, Preact and upstream's example CSS; `app.jsx` is the shell (menubar, palette, sidebar), `theme.css` the restyle, `check.mjs` the check (run inside `jail.sh`). Checked in headless Chromium: all 580 example placements mount without an error, and axe-core finds no color-contrast violation on any page in light or dark |
+| `web/index.html` | Redirects to the showcase (it was the first, three-widget demo) |
 | `web/esm/`, `web/vendor/` | The build (ui-sdk's LICENSE in `esm/`), Preact 11.2.0 and htm 3.1.1 (MIT) |
 | `harness/` | The Vite configs, the runner and the result differ (`diff.py`) used to put ui-sdk's suite on Preact. `react-on-preact.ts` imports `preact-fixes.js`, a copy of `src/fixes.js` placed next to it in the playground |
 
