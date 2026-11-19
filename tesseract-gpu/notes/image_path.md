@@ -1,9 +1,16 @@
 # Tesseract 5: how a page image reaches the LSTM
 
+This file explains how Tesseract 5 turns a page image into the pixels its LSTM
+recognizer reads, and what a GPU pipeline could change on that path. The GPU
+pipeline means the two tesseract-gpu engines (`server/torch_engine.py` and
+`web/engine.js`) fed by Indra's line detector, the detector from Datalab's Indra
+OCR. That pipeline does not use Tesseract's own page layout, so the sections
+below describe the path it replaces.
+
 Source: a shallow clone of `tesseract-ocr/tesseract` at commit `9c1f34d3`, read but not built or run.
 Every reference is `src/...:line` relative to the clone root, and the lines were checked against that tree.
 Leptonica (`pixOtsuAdaptiveThreshold`, `pixSauvolaBinarizeTiled`, `pixRotateOrth`) is external and is not described here.
-`Input::PrepareLSTMInputs` and `NetworkIO::FromPix` are out of scope.
+`Input::PrepareLSTMInputs` and `NetworkIO::FromPix` are not described here.
 
 ## Order of operations
 
@@ -32,7 +39,7 @@ No stage resamples the page. `ImageThresholder::SetImage` sets `scale_ = 1` (`sr
 
 The layout resolution is then clipped to the same range and stored (`src/api/baseapi.cpp:2077-2085`).
 
-**Estimate from text size.** This runs only when the source resolution is still 70 (`src/ccmain/pagesegmain.cpp:318-319`). The estimate is `to_block->line_size × kResolutionEstimationFactor` (`src/ccmain/pagesegmain.cpp:321`; `include/tesseract/publictypes.h:43`). It is accepted only if it is larger than 70 and below 2400 (`src/ccmain/pagesegmain.cpp:322-325`).
+**Estimate from text size.** This runs only when the source resolution is still 70 (`src/ccmain/pagesegmain.cpp:318-319`). The estimate is `to_block->line_size × kResolutionEstimationFactor`, where `kResolutionEstimationFactor` is 10 (`src/ccmain/pagesegmain.cpp:321`; `include/tesseract/publictypes.h:43`). It is accepted only if it is larger than 70 and below 2400 (`src/ccmain/pagesegmain.cpp:322-325`).
 
 Note: the code uses `line_size`, the median height of text partitions (`src/textord/colpartitiongrid.cpp:727-731`; `src/textord/colpartition.cpp:1676`). It does not use the x-height. The per-row x-height is computed later in `src/textord/makerow.cpp:1379`.
 
@@ -46,7 +53,7 @@ Note: the code uses `line_size`, the median height of text partitions (`src/text
 
 **Crop.** `GetRectImage` pads the box by `kImagePadding = 4` px on each side (`src/ccmain/linerec.cpp:164-167`; `src/ccstruct/imagedata.h:39`). If the block is rotated by 90, 180 or 270 degrees, it rotates the box back (`src/ccmain/linerec.cpp:172-183`). It clips to the image (`src/ccmain/linerec.cpp:185-194`), flips the y-axis for `pixClipRectangle` (`src/ccmain/linerec.cpp:195-197`), and rotates the crop orthogonally with `pixRotateOrth` (`src/ccmain/linerec.cpp:202-206`). Depths below 8 bit go to 8 bit (`src/ccmain/linerec.cpp:208-214`).
 
-**No fine deskew of pixels.** The only rotation in the recognition path is the orthogonal one above. No other rotation call exists in `linerec.cpp`, `control.cpp` or `lstm/lstmrecognizer.cpp`, checked by grep. A skewed line is therefore cropped axis-aligned, and its slope is left for the network input step, which is out of scope here.
+**No fine deskew of pixels.** The only rotation in the recognition path is the orthogonal one above. No other rotation call exists in `linerec.cpp`, `control.cpp` or `lstm/lstmrecognizer.cpp`, checked by grep. A skewed line is therefore cropped axis-aligned, and its slope is left to the network input step, which is not described here.
 
 **Training.** `GetLineData` uses the same `GetRectImage` with the same padding to build training lines (`src/ccmain/linerec.cpp:132-156`, called from `116`).
 
@@ -83,17 +90,17 @@ Page orientation is a separate step. `OrientationIdToValue` maps OSD ids to 0, 9
 - **Coloured or shaded backgrounds.** With Otsu, one threshold per channel is used for the whole rectangle (`src/ccmain/thresholder.cpp:382-389`, `321-336`). A gradient or a coloured highlight then produces wrong black and white. Only LeptonicaOtsu and Sauvola adapt locally (`src/ccmain/thresholder.cpp:248`, `273`).
 - **Low resolution.** A missing DPI is taken as 70 (`src/api/baseapi.cpp:2036-2043`). The text-size estimate only raises it, and only by `line_size × 10` (`src/ccmain/pagesegmain.cpp:318-326`). Layout then works on sizes that are too small.
 - **Skew and rotation.** Deskew is refused above about 30 degrees, because `kCosMaxSkewAngle = 0.866025` (`src/textord/tabfind.cpp:60`, `1290-1292`). It runs only with column finding. Page orientation is limited to multiples of 90 degrees (`src/ccmain/osdetect.cpp:560-572`).
-- **`--psm` modes.** The enum is at `include/tesseract/publictypes.h:158-174`. `PSM_OSD_ONLY` runs only `FindLines` (`src/api/baseapi.cpp:1224-1225`). `PSM_AUTO_ONLY` runs only `AnalyseLayout` (`src/api/baseapi.cpp:1219-1223`). The default is `PSM_SINGLE_BLOCK` (`src/ccmain/tesseractclass.cpp:77-79`; `include/tesseract/publictypes.h:166`). `PSM_SINGLE_LINE` (7) and `PSM_SINGLE_WORD` (8) still use layout, with the line-find macro at `include/tesseract/publictypes.h:201-206`. `PSM_RAW_LINE` (13) bypasses layout and uses the whole image (`src/ccmain/linerec.cpp:233-236`).
+- **`--psm` modes.** The enum is at `include/tesseract/publictypes.h:158-174`. `PSM_OSD_ONLY` runs only `FindLines` (`src/api/baseapi.cpp:1224-1225`). `PSM_AUTO_ONLY` runs only `AnalyseLayout` (`src/api/baseapi.cpp:1219-1223`). The default is `PSM_SINGLE_BLOCK` (`src/ccmain/tesseractclass.cpp:77-79`; `include/tesseract/publictypes.h:166`). `PSM_SINGLE_LINE` (7) and `PSM_SINGLE_WORD` (8) still run layout analysis. The modes that run line finding are the range that `PSM_LINE_FIND_ENABLED` tests (`include/tesseract/publictypes.h:201-206`). `PSM_RAW_LINE` (13) bypasses layout and uses the whole image (`src/ccmain/linerec.cpp:233-236`).
 
 ## 5. Ranked improvement candidates for a GPU pipeline
 
-Each candidate is the current Tesseract behaviour, the expected effect, and how to measure it on a line benchmark. The benchmark is a set of line crops with ground-truth text and polygon boxes, scored by character error rate (CER), line match rate and throughput. Each is run against the same weights so that only the image path changes.
+Each candidate gives the current Tesseract behaviour, the expected effect and a measurement. The measurements use the line sets in `data/lines` (synthetic, see `data.md`) and `data/real` (scanned FUNSD and SROIE lines, see `data_real.md`), scored by character error rate (CER) on the text. Neither set has polygon boxes, so the line-detection measures need page-level line labels that do not exist yet. No measurement in this section has been run. Each should use the same weights, so that only the image path changes.
 
-1. **Learned line detector giving grey or colour crops.** Now: lines come from binary components and `make_rows` (`src/ccmain/pagesegmain.cpp:309`; `src/textord/textord.cpp:224`), and crops are axis-aligned from the row box (`src/ccmain/linerec.cpp:238-246`). Expected effect: fixes touching and merged lines and shaded backgrounds, and is likely the largest gain. Measure: line-level AP at IoU 0.5, CER on the matched lines, and split and merge counts, against Tesseract's own line boxes on the same pages.
-2. **GPU deskew of each line crop by its baseline slope.** Now: crops are axis-aligned, with only orthogonal rotation (`src/ccmain/linerec.cpp:172-206`), and page deskew stops at about 30 degrees (`src/textord/tabfind.cpp:1290`). Expected effect: fewer errors on slanted glyphs and on skewed scans. Measure: CER across injected rotations of 0, 2, 5, 10 and 15 degrees on the same lines, plus a real-skew subset.
-3. **Per-line contrast normalisation on the grey crop before the network.** Now: the network reads the original pixels, and any normalisation sits in `PrepareLSTMInputs`, which is out of scope (`src/lstm/lstmrecognizer.cpp:358`). Expected effect: helps low-contrast and shaded lines, where the global Otsu of `src/ccmain/thresholder.cpp:382-389` is wrong. Measure: CER on a low-contrast subset, with and without the step.
+1. **Learned line detector giving grey or colour crops.** Now: lines come from binary components and `make_rows` (`src/ccmain/pagesegmain.cpp:309`; `src/textord/textord.cpp:224`), and crops are axis-aligned from the row box (`src/ccmain/linerec.cpp:238-246`). Expected effect: fixes touching and merged lines and shaded backgrounds, and is likely the largest gain. Measure (not yet run; needs page-level line boxes): line-level AP at IoU 0.5, CER on the matched lines, and split and merge counts, against Tesseract's line boxes on the same pages.
+2. **GPU deskew of each line crop by its baseline slope.** Now: crops are axis-aligned, with only orthogonal rotation (`src/ccmain/linerec.cpp:172-206`), and page deskew stops at about 30 degrees (`src/textord/tabfind.cpp:1290`). Expected effect: fewer errors on slanted glyphs and on skewed scans. Measure (not yet run): CER on the line sets with injected rotations of 0, 2, 5, 10 and 15 degrees. `data/lines` already has a `rotate` condition at plus or minus 2 degrees.
+3. **Per-line contrast normalisation on the grey crop before the network.** Now: the network reads the original pixels, and any normalisation sits in `PrepareLSTMInputs`, which is not described here (`src/lstm/lstmrecognizer.cpp:358`). Expected effect: helps low-contrast and shaded lines, where the global Otsu of `src/ccmain/thresholder.cpp:382-389` is wrong. Measure: CER on a low-contrast subset, with and without the step.
 4. **Inversion decided per line before the forward pass.** Now: one forward pass, then a second one with the whole image inverted if the mean is below 0.7 (`src/lstm/lstmrecognizer.cpp:380-400`; `src/ccmain/tesseractclass.cpp:71`). Expected effect: roughly halves the cost of inverted lines, and may catch the lines the mean rule misses. Measure: fraction of lines inverted, GPU ms per line, CER on inverted lines, and the false-invert rate.
-5. **Upscaling small text before height normalisation.** Now: the page path never resamples (`src/ccmain/thresholder.cpp:181`), and small-text handling is in the out-of-scope input step. Expected effect: better CER for x-heights below about 12 px. Measure: CER binned by x-height at 150, 200 and 300 dpi on a downsampled set, comparing super-resolution, bicubic and no upscaling.
+5. **Upscaling small text before height normalisation.** Now: the page path never resamples (`src/ccmain/thresholder.cpp:181`), and small-text handling sits in the input step, which is not described here. Expected effect: better CER for x-heights below about 12 px. Measure (not yet run): CER binned by x-height, with the line sets downsampled to the x-heights that 150, 200 and 300 dpi scans give, comparing super-resolution, bicubic and no upscaling.
 6. **Resolution estimate from detected line heights.** Now: a missing DPI falls to 70, and the estimate is `line_size × 10`, only ever raising (`src/api/baseapi.cpp:2036-2043`; `src/ccmain/pagesegmain.cpp:318-326`). Expected effect: correct layout sizes on pages with no DPI metadata. Measure: estimate error on pages with known DPI, and layout F1 or CER on pages without it.
 7. **Dewarping, or curved baselines in the crop.** Now: baselines are fitted with `BaselineDetect` (`src/textord/textord.cpp:231`) and spline rows exist (`src/textord/makerow.cpp:2006`), but crops are rectangles (`src/ccmain/linerec.cpp:164-225`). Expected effect: better reading on curved or photographed pages. Measure: CER on a set of pages with known curvature, before and after dewarping.
 8. **Per-channel or colour-aware binarisation for coloured backgrounds.** Now: one per-channel Otsu over the rectangle (`src/ccmain/thresholder.cpp:382-411`). The LSTM reads colour, but edge offsets and layout depend on the global threshold (`src/api/baseapi.cpp:2055`). Expected effect: better layout on highlighted or coloured-background pages. Measure: layout precision and recall, and CER on a coloured subset.
@@ -104,5 +111,5 @@ Each candidate is the current Tesseract behaviour, the expected effect, and how 
 
 - Nothing was built or run. Every claim is from reading the source.
 - Leptonica internals (`pixOtsuAdaptiveThreshold`, `pixSauvolaBinarizeTiled`, `pixRotateOrth`) are not in this tree.
-- The network input normalisation (`Input::PrepareLSTMInputs`, `NetworkIO::FromPix`) is excluded by request. The line `src/lstm/lstmrecognizer.cpp:358` is cited only as the call site.
-- The source's "resolution estimate" uses `line_size`, the median text-partition height, not the x-height as the task described.
+- The network input normalisation (`Input::PrepareLSTMInputs`, `NetworkIO::FromPix`) is not described here. `src/lstm/lstmrecognizer.cpp:358` is cited only as the call site.
+- The resolution estimate uses `line_size`, the median text-partition height, not the x-height.
