@@ -119,6 +119,10 @@ def weight_axes(model) -> dict:
         elif n.op_type == "Gemm":
             tb = next((a.i for a in n.attribute if a.name == "transB"), 0)
             out.setdefault(n.input[1], ("gemm", tb))
+        elif n.op_type == "Slice" and n.input[0].endswith("in_proj_weight"):
+            # the math decoder's attention projections [3D, D], sliced by rows into q, k, v
+            # (then transposed into a MatMul): rows are output channels, as in a conv
+            out.setdefault(n.input[0], ("conv",))
     return out
 
 

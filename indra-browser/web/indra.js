@@ -19,6 +19,7 @@ import { isAlpha, isRtl, setExceptions } from "./uprops.js";
 import { lmFactory } from "./lm.js";
 import { Deskew } from "./deskew.js";
 import { GpuCrops, cropPlan } from "./crops.js";
+import { MATH_MIN, MATH_MIN_CONF, MathNet } from "./math.js";
 
 const ADAPTIVE_MIN_H = 9.0, ADAPTIVE_TARGET_H = 12.0, ADAPTIVE_MAX_SIDE = 2048;
 const SPLIT_GAP = 3.0, CELL_GAP = 1.8, GUTTER_GAP = 1.6, GUTTER_EDGES = 3;
@@ -29,6 +30,9 @@ const DESKEW_MAX = 45.0, DESKEW_MIN = 0.3, PREVIEW_SIDE = 1600;
 const PAD_X = 0.3, PAD_Y = 0.2, WIDTH_MULTIPLE = 8;
 const CORE_X_SHRINK = 0.15, OUT_STRIDE = 2;
 const GROUPS = ["base", "cjk", "rtl", "other"];
+// math crops per batch, B x W: the encoder's first conv writes 2 KB per crop column
+// (indra-ocr batches up to 16 x 64 x 640 columns; a line reads the same in any batch)
+const MATH_AREA = 16384;
 
 const now = () => performance.now();
 
@@ -216,7 +220,10 @@ function decodeDet(det, thresh = 0.5, minArea = 2) {
 // ------------------------------------------------------------------ the reader
 
 export class Indra {
-  static async load(base, { fetchBytes, log = () => {}, gpu = null } = {}) {
+  // math: "off" (no math models are fetched), "auto" (the 90 KB line classifier is fetched with the
+  // first page; the math reader, 4-8 MB, only when the classifier flags a line) or "on" (both are
+  // fetched now). A pack without the manifest's "math" key reads no math.
+  static async load(base, { fetchBytes, log = () => {}, gpu = null, math = "off" } = {}) {
     const url = new URL(base, location.href);
     const fb = fetchBytes ?? (async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u}: HTTP ${r.status}`); return r.arrayBuffer(); });
     const json = async (f) => JSON.parse(new TextDecoder().decode(await fb(new URL(f, url).href)));
@@ -251,8 +258,30 @@ export class Indra {
     o.window = man.rec_window ?? 1;
     o.longSide = man.det_long_side;
     o.loadMs = now() - t0;
+    o.mathParts = new Map(); // "mathcls" | "math" -> Promise<ConvNet | MathNet>
+    o.setMath(math);
     log(`models loaded: ${core.join(", ")} (${(o.bytes / 1e6).toFixed(2)} MB decoded weights file) in ${o.loadMs.toFixed(0)} ms`);
     return o;
+  }
+
+  // switch the math mode ("off", "auto", "on"); "on" starts fetching the math models now
+  setMath(mode) {
+    this.mathMode = this.man.math ? mode : "off";
+    if (this.mathMode === "on") { this.mathPart("mathcls"); this.mathPart("math"); }
+  }
+
+  mathPart(name) {
+    if (!this.mathParts.has(name)) {
+      this.mathParts.set(name, (async () => {
+        const t0 = now();
+        const m = await loadModel(this.base, { models: this.man.math.models }, name, this.fetchBytes);
+        const net = name === "math" ? new MathNet(this.gpu, m) : new ConvNet(this.gpu, m);
+        this.log(`loaded the math ${name === "math" ? "reader" : "line classifier"} (${(m.bytes / 1e6).toFixed(2)} MB) in ${(now() - t0).toFixed(0)} ms`);
+        return net;
+      })());
+      this.mathParts.get(name).catch(() => this.mathParts.delete(name));
+    }
+    return this.mathParts.get(name);
   }
 
   async group(name) {
@@ -464,7 +493,52 @@ export class Indra {
         });
       }
     }
+    if (this.mathMode !== "off" && crops.length) await this.readMath(gray, boxes, crops, darkOf, out);
     return out;
+  }
+
+  // Math (indra-ocr pipeline.recognize with math=True): the classifier on the recognizer's crops;
+  // the lines it flags are read again by the math reader from taller crops, and a confident
+  // reading with math replaces the line, as one token that is never split.
+  async readMath(gray, boxes, crops, darkOf, out) {
+    let tc = now();
+    const cls = await this.mathPart("mathcls");
+    const sel = [];
+    for (const idx of widthBatches(crops.map((c) => c.w))) {
+      const b = crops[idx[0]].plan ? this.gpuBatch(idx.map((j) => crops[j])) : padBatch(idx.map((j) => crops[j]));
+      const p = await cls.classify(b.data, b.B, b.H, b.W, b.widths);
+      this.crops.release();
+      idx.forEach((j, k) => { if (p[k][0] > MATH_MIN) sel.push(j); });
+    }
+    sel.sort((a, b) => a - b);
+    this.rt.mathcls_ms = now() - tc;
+    this.rt.math_lines = sel.length;
+    if (!sel.length) return;
+    tc = now();
+    const net = await this.mathPart("math");
+    this.rt.math_load_ms = now() - tc;
+    tc = now();
+    const H = net.height;
+    const mc = sel.map((j) => {
+      if (!crops[j].plan) return cropLine(gray, boxes[j], H, 1, darkOf(j));
+      const plan = cropPlan(boxes[j], H, 1);
+      return { plan, dark: crops[j].dark, w: plan.outW, h: plan.H };
+    });
+    let used = 0;
+    for (const part of widthBatches(mc.map((c) => c.w), 64, 4.0, 64, MATH_AREA)) {
+      const b = mc[part[0]].plan ? this.gpuBatch(part.map((k) => mc[k])) : padBatch(part.map((k) => mc[k]));
+      const reads = await net.readBatch(b, this.rt);
+      this.crops.release();
+      part.forEach((k, q) => {
+        const [text, conf] = reads[q];
+        if (!text.includes("$") || !(conf >= MATH_MIN_CONF)) return;
+        const j = sel[k];
+        out[j] = [text, 1.0, [[text, Math.fround(boxes[j][0] + boxes[j][2]) / 2]]];
+        used++;
+      });
+    }
+    this.rt.math_used = used;
+    this.rt.math_ms = now() - tc;
   }
 
   async lmFor(name) {

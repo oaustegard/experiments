@@ -2,6 +2,9 @@
 // WebGPU); writes one JSON per page (lines, markdown, blocks, timings) for compare_pages.py.
 //
 //   node web/test/check_pages.mjs PACK_DIR GRAY_DIR PAGES.txt OUT_DIR
+//
+// MATH=auto (or on) reads math lines as LaTeX, as indra-ocr --math does (the pack needs the math
+// models: run/export.py --math); the default is off.
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -32,11 +35,11 @@ const page = await browser.newPage();
 page.on("console", (m) => process.stderr.write(`${m.text()}\n`));
 page.on("pageerror", (e) => process.stderr.write(`pageerror: ${e.message}\n`));
 await page.goto(`http://127.0.0.1:${server.address().port}/`);
-await page.evaluate(async () => {
+await page.evaluate(async (math) => {
   const { Indra } = await import("/web/indra.js");
-  window.ocr = await Indra.load("/pack/", { log: (m) => console.log(m) });
+  window.ocr = await Indra.load("/pack/", { log: (m) => console.log(m), math });
   window.ocr.gpu.device.addEventListener("uncapturederror", (e) => console.log("GPU error: " + e.error.message));
-});
+}, process.env.MATH || "off");
 let done = 0;
 for (const id of pages) {
   const dst = path.join(outDir, `${id}.json`);

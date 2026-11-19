@@ -243,6 +243,52 @@ def export_model(path: Path, scheme: str, out_dir: Path, planes: bool = True) ->
     return entry
 
 
+MATH = ["math_enc", "math_dec_init", "math_dec_step"]
+
+
+def export_math(src: Path, scheme: str, out_dir: Path, planes: bool = True) -> dict:
+    """The math reader (math.py in indra-ocr) as one weights file, fetched only when a page
+    has math: the encoder, and the decoder's tensors from its init and step graphs (they
+    share the cross-attention projections; each tensor is stored once). Anonymous tensors
+    get names: a conv's from its node ("enc.blocks.0.dw.Conv.weight"), a MatMul weight from
+    the bias added to its output ("...linear1.bias" -> "...linear1.weight"). The decoder's
+    "c." prefix is dropped. Its forward passes are written out in web/math.js."""
+    buf = bytearray()
+    tensors: dict = {}
+    for name in MATH:
+        m = onnx.load(str(src / f"{name}.onnx"))
+        axes = weight_axes(m)
+        init = {t.name: t for t in m.graph.initializer}
+        cons: dict = {}
+        for n in m.graph.node:
+            for i in n.input:
+                cons.setdefault(i, []).append(n)
+        rename = {}
+        for n in m.graph.node:
+            if n.op_type == "Conv" and n.input[1].startswith("onnx::"):
+                base = n.name.strip("/").replace("/", ".")
+                rename[n.input[1]] = base + ".weight"
+                if len(n.input) > 2:
+                    rename[n.input[2]] = base + ".bias"
+            elif n.op_type == "MatMul" and n.input[1] in init and n.input[1].startswith("onnx::"):
+                bias = [i for c in cons.get(n.output[0], []) if c.op_type == "Add" for i in c.input if i in init]
+                assert len(bias) == 1 and bias[0].endswith("bias"), (name, n.name)
+                rename[n.input[1]] = bias[0][: -len("bias")] + "weight"
+        for tn, t in init.items():
+            arr = numpy_helper.to_array(t)
+            if arr.dtype != np.float32:
+                continue
+            key = rename.get(tn, tn)
+            key = key[2:] if key.startswith("c.") else key
+            if key in tensors:
+                continue
+            tensors[key] = tensor_record(tn, arr, axes.get(tn), scheme, buf, planes)
+    (out_dir / "math.bin").write_bytes(bytes(buf))
+    meta = json.loads((src / "math_meta.json").read_text())
+    return {"file": "math.bin", "kind": "math", "scheme": scheme, "tensors": tensors, "bytes": len(buf),
+            "config": meta["config"], "tokens": meta["tokens"]}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", type=Path, required=True)
@@ -253,6 +299,8 @@ def main():
     ap.add_argument("--lm", default="", help="n-gram tables: base=ORDER:VBITS,world=...,cjk=... "
                     "(ORDER 0 keeps every order, VBITS 32 keeps float32 values); empty: none")
     ap.add_argument("--no-planes", action="store_true", help="fp16 bytes interleaved, as packs before 2026-11-18")
+    ap.add_argument("--math", default="", help="the math reader's scheme (f16, i8c, ...): mathcls.bin (fp16) "
+                    "and math.bin, under the manifest's \"math\" key, outside the core models; empty: none")
     a = ap.parse_args()
     per = dict(kv.split("=") for kv in a.per.split(",") if kv)
     a.out.mkdir(parents=True, exist_ok=True)
@@ -279,6 +327,12 @@ def main():
             write_lm(str(src), str(a.out / dst), order or None, vbits)
             man["lm"][name] = dst
             print(f"lm {name}: order {order or 'all'}, {vbits}-bit values, {(a.out / dst).stat().st_size / 1e3:.0f} KB")
+    if a.math:
+        cls = export_model(a.src / "mathcls.onnx", "f16", a.out, not a.no_planes)
+        net = export_math(a.src, a.math, a.out, not a.no_planes)
+        man["math"] = {"models": {"mathcls": cls, "math": net}}
+        print(f"mathcls: {cls['bytes']/1e3:.0f} KB, {len(cls['ops'])} ops; math ({a.math}): "
+              f"{net['bytes']/1e6:.2f} MB, {len(net['tensors'])} tensors")
     for k in [k for k in meta if k.startswith("vocab")]:
         (a.out / f"{k}.json").write_text(json.dumps(json.loads(meta[k])["chars"], ensure_ascii=False))
     (a.out / "manifest.json").write_text(json.dumps(man, indent=1, ensure_ascii=False))

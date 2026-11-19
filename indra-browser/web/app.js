@@ -2,8 +2,10 @@
 // the markdown out. Logs go through relay.js (?log=1 on Oskar's devices).
 import { Indra } from "./indra.js";
 
-const BUILD = "2026-11-18-c"; // keep equal to build.json
+const BUILD = "2026-11-19-math"; // keep equal to build.json
 const PACK = "models/mix8/";
+// math lines as LaTeX: "auto" fetches the math reader only for a page with math (?math=on|off)
+const MATH = new URLSearchParams(location.search).get("math") || "auto";
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
 const DPI = 200, MAX_PAGE_PIXELS = 100e6;
@@ -49,7 +51,7 @@ async function boot() {
   try {
     status("Loading the models…", "", null);
     const t0 = performance.now();
-    ocr = await Indra.load(PACK, { fetchBytes, log: (m) => relay.log(m) });
+    ocr = await Indra.load(PACK, { fetchBytes, log: (m) => relay.log(m), math: MATH });
     const ms = performance.now() - t0;
     relay.log("ready", { ms: Math.round(ms), gpu: ocr.gpu.label, bytes: fetched });
     status(`Ready: ${(fetched / 1e6).toFixed(2)} MB of models loaded in ${(ms / 1000).toFixed(1)} s (${ocr.gpu.label || "WebGPU"}). Choose a page.`, "ready");
@@ -144,6 +146,7 @@ async function run(gray, name) {
     const msg = `${page.lines.length} lines in ${(ms / 1000).toFixed(2)} s` +
       ` (orientation ${t.orient_ms.toFixed(0)} ms, detection ${t.det_ms.toFixed(0)} ms, reading ${t.rec_ms.toFixed(0)} ms, order ${t.order_ms.toFixed(0)} ms)` +
       (page.rotation ? `; the page was turned ${page.rotation}°` : "") + (page.skew ? `; straightened by ${page.skew}°` : "") +
+      (t.math_used ? `; ${t.math_used} math line${t.math_used > 1 ? "s" : ""} as LaTeX (${(t.math_ms / 1000).toFixed(2)} s)` : "") +
       (extra ? `; fetched ${(extra / 1e6).toFixed(2)} MB more models for this page` : "");
     relay.log("page", { name, w: gray.w, h: gray.h, lines: page.lines.length, ms: Math.round(ms), timings: t, rotation: page.rotation, skew: page.skew, fetched: extra });
     status(msg, "ready");

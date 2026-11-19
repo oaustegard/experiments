@@ -178,7 +178,7 @@ fn gid(g: vec3<u32>, n: vec3<u32>) -> u32 { return g.x + g.y * n.x * 64u; }`;
 
 // NHWC convolution, any kernel, stride, padding and group count. One thread per output value.
 // Weights are [O][kh][kw][C/g]. Epilogue: + bias, + residual (mode 1, before the activation),
-// activation (0 none, 1 hardswish, 2 relu, 3 sigmoid, 4 GELU in MM), + residual (mode 2, after it), times a
+// activation (0 none, 1 hardswish, 2 relu, 3 sigmoid, 4 GELU), + residual (mode 2, after it), times a
 // per-pixel mask (sequences: mask[n * W + x]). The input and output may be channel slices of
 // wider tensors (stride inCs / outCs, offset inCo / outCo).
 export const CONV = /* wgsl */ `
@@ -192,6 +192,13 @@ struct P { N: u32, H: u32, W: u32, C: u32, Ho: u32, Wo: u32, O: u32, kh: u32,
 @group(0) @binding(4) var<storage, read> r: array<f32>;
 @group(0) @binding(5) var<storage, read> m: array<f32>;
 @group(0) @binding(6) var<storage, read_write> y: array<f32>;
+// GELU with erf from Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7), as nets.js computes it
+fn gelu(x: f32) -> f32 {
+  let z = x / sqrt(2.0);
+  let a = abs(z); let t = 1.0 / (1.0 + 0.3275911 * a);
+  let e = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-a * a);
+  return 0.5 * x * (1.0 + select(e, -e, z < 0.0));
+}
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let idx = g.x + g.y * p.nx * 64u;
@@ -221,6 +228,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   if (p.act == 1u) { acc = acc * clamp(acc + 3.0, 0.0, 6.0) / 6.0; }
   else if (p.act == 2u) { acc = max(acc, 0.0); }
   else if (p.act == 3u) { acc = 1.0 / (1.0 + exp(-acc)); }
+  else if (p.act == 4u) { acc = gelu(acc); }
   if (p.res == 2u) { acc += r[oi]; }
   if (p.mask == 1u) { acc *= m[n * p.Wo + ox]; }
   y[pix * p.outCs + p.outCo + o] = acc;
@@ -263,7 +271,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   y[pix * p.outCs + p.outCo + c] = v;
 }`;
 
-// Sequence ops over [B, T, C]. kind 0: y = act(x * s[c] + t[c]) * mask (batch norm, hardswish).
+// Sequence ops over [B, T, C]. kind 0: y = act(x * s[c] + t[c]) * mask (batch norm, hardswish or GELU).
 // 1: pooled[b, c] = sum_t x[b, t, c] mask[b, t] / max(1, sum_t mask[b, t]) (one thread per (b, c)).
 // 2: y[b, t, c] = x[b, t, c] * s[b, c] (squeeze-excite scale).
 export const SEQ = /* wgsl */ `
@@ -274,6 +282,13 @@ struct P { kind: u32, B: u32, T: u32, C: u32, total: u32, nx: u32, act: u32, pad
 @group(0) @binding(3) var<storage, read> t: array<f32>;
 @group(0) @binding(4) var<storage, read> m: array<f32>;
 @group(0) @binding(5) var<storage, read_write> y: array<f32>;
+// GELU with erf from Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7), as nets.js computes it
+fn gelu(x: f32) -> f32 {
+  let z = x / sqrt(2.0);
+  let a = abs(z); let t = 1.0 / (1.0 + 0.3275911 * a);
+  let e = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-a * a);
+  return 0.5 * x * (1.0 + select(e, -e, z < 0.0));
+}
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let idx = g.x + g.y * p.nx * 64u;
@@ -282,6 +297,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
     let c = idx % p.C; let bt = idx / p.C;
     var v = x[idx] * s[c] + t[c];
     if (p.act == 1u) { v = v * clamp(v + 3.0, 0.0, 6.0) / 6.0; }
+    else if (p.act == 4u) { v = gelu(v); }
     y[idx] = v * m[bt];
   } else if (p.kind == 1u) {
     let c = idx % p.C; let b = idx / p.C;

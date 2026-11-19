@@ -15,7 +15,7 @@ function convWeight(w, O, cg, kh, kw) {
   return out;
 }
 
-class Weights {
+export class Weights {
   constructor(gpu, tensors, shapes) {
     this.gpu = gpu;
     this.t = tensors;
@@ -40,7 +40,7 @@ class Weights {
 }
 
 // One conv dispatch. x: {buf, N, H, W, C, cs?, co?}. Returns the output tensor descriptor.
-function conv(gpu, x, w, b, { s = [1, 1], p = [0, 0, 0, 0], g = 1, act = 0, res = null, resAt = 1, mask = null, out = null }) {
+export function conv(gpu, x, w, b, { s = [1, 1], p = [0, 0, 0, 0], g = 1, act = 0, res = null, resAt = 1, mask = null, out = null }) {
   const Ho = Math.floor((x.H + p[0] + p[2] - w.kh) / s[0]) + 1;
   const Wo = Math.floor((x.W + p[1] + p[3] - w.kw) / s[1]) + 1;
   const O = w.O;
@@ -150,7 +150,7 @@ export class ConvNet {
     return { data, h: shape[1], w: shape[2] };
   }
 
-  // orient / script: inputs [N, H, W] -> class probabilities [N, k]
+  // orient / script: inputs [N, H, W] -> class probabilities [N, k]; mathcls: [N, 1], a sigmoid
   async classify(x, N, H, W, widths = null) {
     const gemm = this.e.ops.find((o) => o.op === "gemm");
     const last = this.e.ops.filter((o) => o.op !== "gemm" && o.op !== "gmean" && o.op !== "hmean").at(-1);
@@ -180,6 +180,8 @@ export class ConvNet {
         for (let k = 0; k < K; k++) s += feat[n * C + k] * Wg[o * K + k];
         z[o] = s;
       }
+      // mathcls: one logit, read through a sigmoid (its graph gathers it before the Sigmoid)
+      if (O === 1) { out.push([1 / (1 + Math.exp(-z[0]))]); continue; }
       const mx = Math.max(...z);
       let den = 0;
       for (let o = 0; o < O; o++) { z[o] = Math.exp(z[o] - mx); den += z[o]; }
