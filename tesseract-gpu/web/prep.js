@@ -54,8 +54,19 @@ function ile(counts, frac) {
   return i - (s - target) / counts[i - 1];
 }
 
-// NetworkIO::FromPixes + SetPixel. Returns Float32Array H*W (int models: integers -127..127).
-export function normalise(gray, W, H, intMode) {
+// Light text on a dark ground? Tesseract answers this after the fact (a second forward pass on
+// the inverted line when the mean best-path probability is under 0.7); the image says it up
+// front: most pixels darker than halfway between Tesseract's own black and white estimates.
+// 86/86 inverted and 0/600 normal lines on the synthetic sample, 1/800 real scanned lines.
+export function isInverted(gray, W, H) {
+  const [black, white] = blackWhite(gray, W, H);
+  const mid = (black + white) / 2;
+  let dark = 0;
+  for (let i = 0; i < W * H; i++) if (gray[i] < mid) dark++;
+  return dark > 0.5 * W * H;
+}
+
+function blackWhite(gray, W, H) {
   const mins = new Float64Array(256), maxes = new Float64Array(256);
   if (W >= 3) {
     const r = Math.floor(H / 2) * W;
@@ -67,8 +78,28 @@ export function normalise(gray, W, H, intMode) {
   }
   if (!mins.some((v) => v)) mins[0] = 1;
   if (!maxes.some((v) => v)) maxes[255] = 1;
-  const black = Math.fround(ile(mins, 0.25));
-  const white = ile(maxes, 0.75);
+  return [ile(mins, 0.25), ile(maxes, 0.75)];
+}
+
+// The normalised value of every possible pixel for one line (NetworkIO::SetPixel with that line's
+// black and contrast): normalise() is this table applied to the pixels.
+export function normTable(gray, W, H, intMode) {
+  const [b0, white] = blackWhite(gray, W, H);
+  const black = Math.fround(b0);
+  let contrast = Math.fround((white - black) / 2);
+  if (contrast <= 0) contrast = 1;
+  const t = new Float32Array(256);
+  for (let p = 0; p < 256; p++) {
+    const v = Math.fround(Math.fround(Math.fround(p - black) / contrast) - 1);
+    t[p] = intMode ? Math.max(-127, Math.min(127, roundAway(Math.fround(128 * v)))) : v;
+  }
+  return t;
+}
+
+// NetworkIO::FromPixes + SetPixel. Returns Float32Array H*W (int models: integers -127..127).
+export function normalise(gray, W, H, intMode) {
+  const [b0, white] = blackWhite(gray, W, H);
+  const black = Math.fround(b0);
   let contrast = Math.fround((white - black) / 2);
   if (contrast <= 0) contrast = 1;
   const out = new Float32Array(W * H);
@@ -103,21 +134,36 @@ export class MinStd {
 
 // Convolve padding as [nb, 9] in border raster order, slot (dx+1)*3 + (dy+1); see
 // ref.pad_table. Every line starts from the same seed.
+// One random stream per model: every line starts from the same seed, so a line's padding is a
+// prefix of the same sequence of draws (already rounded as Tesseract stores them).
+const streams = new Map();
+function stream(sampleIteration, intMode, n) {
+  const key = `${sampleIteration}:${intMode}`;
+  let s = streams.get(key);
+  if (!s || s.vals.length < n) {
+    const rng = new MinStd(sampleIteration);
+    const vals = new Float32Array(Math.max(n, 2 * (s ? s.vals.length : 4096)));
+    for (let i = 0; i < vals.length; i++) vals[i] = intMode ? roundAway(rng.signed(127)) : Math.fround(rng.signed(1.0));
+    s = { vals };
+    streams.set(key, s);
+  }
+  return s.vals;
+}
+
 export function padTable(H, W, sampleIteration, intMode) {
-  const rng = new MinStd(sampleIteration);
-  const draw = intMode ? () => roundAway(rng.signed(127)) : () => Math.fround(rng.signed(1.0));
   const nb = H <= 2 ? H * W : 2 * W + (H - 2) * Math.min(2, W);
+  const vals = stream(sampleIteration, intMode, 12 * (W + H) + 64);
   const out = new Float32Array(nb * 9);
-  let r = 0;
+  let r = 0, d = 0;
   const fill = (y, x) => {
     const o = r * 9;
     for (let dx = -1; dx <= 1; dx++) {
       const base = o + (dx + 1) * 3;
       if (x + dx < 0 || x + dx >= W) {
-        out[base] = draw(); out[base + 1] = draw(); out[base + 2] = draw();
+        out[base] = vals[d]; out[base + 1] = vals[d + 1]; out[base + 2] = vals[d + 2]; d += 3;
       } else {
-        if (y - 1 < 0) out[base] = draw();
-        if (y + 1 >= H) out[base + 2] = draw();
+        if (y - 1 < 0) out[base] = vals[d++];
+        if (y + 1 >= H) out[base + 2] = vals[d++];
       }
     }
     r++;

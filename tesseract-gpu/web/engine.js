@@ -10,12 +10,12 @@
 // first so the lines still running at step s of an x LSTM are a prefix of the batch.
 
 import { Gpu } from "./gpu.js";
-import { recordConvPool } from "./kernels/conv.js";
+import { recordConvPoolU8 } from "./kernels/conv.js";
 import { recordYLstm } from "./kernels/ylstm2.js";
 import { recordXLstm as recordXLstm1 } from "./kernels/xlstm.js";
 import { recordXLstm as recordXLstm2, interleaveGates } from "./kernels/xlstm2.js";
-import { recordOutput } from "./kernels/output.js";
-import { normalise, padTable, scaleToHeight } from "./prep.js";
+import { recordOutput } from "./kernels/output2.js";
+import { isInverted, normTable, padTable, scaleToHeight } from "./prep.js";
 import { decode as beamDecode } from "./beam.js";
 
 const f32 = Float32Array.BYTES_PER_ELEMENT;
@@ -112,24 +112,27 @@ export class TessModel {
 // back every softmax row) or "greedy" (argmax per step, reads back one code per step).
 // opts.xlstm: "v2" (coalesced, default) or "v1"; opts.stages: run only the first n of the
 // stages (conv+pool, ylstm, x1, x2, x3, output) for per-stage timing (no text then).
-export async function recognize(gpu, model, lines, { wantProbs = false, decoder = "beam", xlstm = "v2", stages = 7 } = {}) {
+// opts.invert: "auto" (default) flips a line whose pixels are mostly darker than halfway between
+// its black and white levels (light text on a dark ground) before normalising; "off" never does.
+export async function recognize(gpu, model, lines, { wantProbs = false, decoder = "beam", xlstm = "v2", stages = 7, invert = "auto" } = {}) {
   const t0 = performance.now();
   const H = model.H, Hp = Math.floor(H / 3);
   const prepared = lines.map((l, i) => {
-    const { data, width } = scaleToHeight(l.data, l.width, l.height, H);
-    return { i, W: width, gray: data };
+    let { data, width } = scaleToHeight(l.data, l.width, l.height, H);
+    const inverted = invert === "auto" && width >= 3 && isInverted(data, width, H);
+    if (inverted) data = data.map((v) => 255 - v);
+    return { i, W: width, gray: data, inverted };
   }).filter((l) => l.W >= 3);
   prepared.sort((a, b) => b.W - a.W);
   const meta = [];
   let inOff = 0, padOff = 0, poolOff = 0, tOff = 0;
-  const xs = [], pads = [];
+  const luts = [], pads = [];
   for (const p of prepared) {
     const T = Math.floor(p.W / 3);
-    const x = normalise(p.gray, p.W, H, model.intMode);
+    luts.push(normTable(p.gray, p.W, H, model.intMode));
     const pt = padTable(H, p.W, model.man.sample_iteration, model.intMode);
     const nb = pt.length / 9;
-    meta.push({ src: p.i, W: p.W, T, nb, in_off: inOff, pad_off: padOff, pool_off: poolOff, t_off: tOff });
-    xs.push(x);
+    meta.push({ src: p.i, W: p.W, T, nb, in_off: inOff, pad_off: padOff, pool_off: poolOff, t_off: tOff, inverted: p.inverted });
     pads.push(pt);
     inOff += H * p.W; padOff += nb; poolOff += Hp * T; tOff += T;
   }
@@ -137,7 +140,10 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
   const tPrep = performance.now();
   const ns = model.ns, ni = model.ni, intMode = model.intMode, w = model.w, s = model.s;
   const buf = (n) => gpu.buffer(Math.max(1, n) * f32);
-  const xBuf = gpu.upload(cat(xs, inOff));
+  const px = new Uint8Array(Math.ceil(inOff / 4) * 4);
+  for (const [k, p] of prepared.entries()) px.set(p.gray, meta[k].in_off);
+  const xBuf = gpu.upload(px);
+  const lutBuf = gpu.upload(cat(luts, 256 * luts.length));
   const padBuf = gpu.upload(cat(pads, padOff * 9));
   const pool = buf(poolOff * 16);
   const y = buf(tOff * ns.y), x1 = buf(tOff * ns.x1), x2 = buf(tOff * ns.x2), x3 = buf(tOff * ns.x3);
@@ -148,7 +154,7 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
   const wx = (n) => (xlstm === "v1" ? w[n] : w[n + "_4"]);
   gpu.begin();
   const steps = [
-    () => recordConvPool(gpu, { x: xBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: pool, lines: meta, H, intMode }),
+    () => recordConvPoolU8(gpu, { x: xBuf, lut: lutBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: pool, lines: meta, H, intMode }),
     () => recordYLstm(gpu, { ...common, pool, w: w.w_y_4, s: s.w_y, out: y, H, ns: ns.y }),
     () => rx(gpu, { ...common, x: y, w: wx("w_x1"), s: s.w_x1, out: x1, state, ni: ni.x1, ns: ns.x1, reverse: false }),
     () => rx(gpu, { ...common, x: x1, w: wx("w_x2"), s: s.w_x2, out: x2, state, ni: ni.x2, ns: ns.x2, reverse: true }),
@@ -165,7 +171,7 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
   const tRead = performance.now();
   const out = new Array(lines.length).fill(null).map(() => ({ text: "", T: 0 }));
   for (const m of meta) {
-    const r = { T: m.T };
+    const r = { T: m.T, inverted: !!m.inverted };
     if (probsHost) r.probs = probsHost.subarray(m.t_off * model.C, (m.t_off + m.T) * model.C);
     if (!full) r.text = "";
     else if (decoder === "beam") {
@@ -175,7 +181,7 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
     if (!wantProbs) delete r.probs;
     out[m.src] = r;
   }
-  for (const b of [xBuf, padBuf, pool, y, x1, x2, x3, state, probs, best, bestp]) b.destroy();
+  for (const b of [xBuf, lutBuf, padBuf, pool, y, x1, x2, x3, state, probs, best, bestp]) b.destroy();
   const tEnd = performance.now();
   out.ms = { prep: tPrep - t0, gpu: tGpu - tPrep, readback: tRead - tGpu, decode: tEnd - tRead, total: tEnd - t0, lines: meta.length, steps: meta.length ? meta[0].T : 0 };
   return out;

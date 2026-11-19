@@ -13,7 +13,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from tessgpu import decode, ref  # noqa: E402
+from tessgpu import beam, decode, ref  # noqa: E402
 from tessgpu.traineddata import load  # noqa: E402
 
 _M = {}
@@ -25,7 +25,8 @@ def text(args):
         m = load(ROOT / f"models/{variant}/eng.traineddata")
         _M[variant] = (m, decode.Codec(m))
     m, c = _M[variant]
-    return decode.greedy(ref.forward(m, np.asarray(Image.open(png))), c)
+    p = ref.forward(m, np.asarray(Image.open(png)))
+    return decode.greedy(p, c), decode.clean("".join(m.unicharset[i] for i in beam.decode(p, m)))
 
 
 def main():
@@ -37,7 +38,10 @@ def main():
     np.concatenate([g.ravel() for g in imgs]).astype(np.uint8).tofile(out / "lines.bin")
     np.array([g.shape[1] for g in imgs], np.uint32).tofile(out / "widths.bin")
     with Pool(3) as p:
-        exp = {v: p.map(text, [(v, str(sample / r["png"])) for r in rows]) for v in ("best", "fast")}
+        res = {v: p.map(text, [(v, str(sample / r["png"])) for r in rows]) for v in ("best", "fast")}
+    exp = {v: [g for g, _ in res[v]] for v in res}
+    exp.update({v + "_beam": [b for _, b in res[v]] for v in res})
+    exp["gt"] = [r["text"] for r in rows]
     (out / "expect.json").write_text(json.dumps({"ids": [r["id"] + "_" + r["cond"] for r in rows], **exp},
                                                 ensure_ascii=False))
     print(len(rows), "lines,", sum(g.shape[1] for g in imgs), "px wide in total")

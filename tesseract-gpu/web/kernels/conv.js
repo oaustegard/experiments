@@ -267,3 +267,27 @@ export function recordConvPool(gpu, { x, pads, w, s, tanhT, out, lines, H, intMo
   const L = gpu.upload(lineTable(lines));
   gpu.dispatch(FUSED_WGSL(!!intMode), [u, L, x, pads, w, sBuf, tanhT, out], Gpu.grid(Math.ceil(total / WG)));
 }
+
+
+// u8 variant (round 3): pixels arrive as packed bytes (4 per u32) and are normalised through a
+// per-line 256-entry table that the CPU computes with Tesseract's own float32 operations
+// (prep.normTable), so the GPU result is bit-identical to normalising on the CPU and the upload is
+// a quarter of the size. Line records gain lut_off (entry 4).
+const FUSED_U8_WGSL = (intMode) => FUSED_WGSL(intMode)
+  .replace("@group(0) @binding(2) var<storage, read> X: array<f32>;",
+    "@group(0) @binding(2) var<storage, read> X: array<u32>;\n@group(0) @binding(8) var<storage, read> LUT: array<f32>;")
+  .replace("var lo = 0u;", "var lo = 0u;").replace(/L\[4u \* /g, "L[5u * ")
+  .replace("let pad_off = L[5u * lo + 2u];", "let pad_off = L[5u * lo + 2u];\n  let lut_off = L[5u * lo + 4u];")
+  .replace("f[k] = X[in_off + u32(yy) * W + u32(xx)];",
+    "let pi = in_off + u32(yy) * W + u32(xx);\n          f[k] = LUT[lut_off + ((X[pi >> 2u] >> ((pi & 3u) * 8u)) & 255u)];");
+
+export function recordConvPoolU8(gpu, { x, lut, pads, w, s, tanhT, out, lines, H, intMode }) {
+  const Hp = Math.floor(H / 3);
+  const total = lines.reduce((a, l) => a + Hp * Math.floor(l.W / 3), 0);
+  const sBuf = intMode ? s : gpu.buffer(64);
+  const u = gpu.uniform(new Uint32Array([H, lines.length, total, 0]));
+  const t = new Uint32Array(5 * lines.length);
+  lines.forEach((l, i) => { t.set([l.W, l.in_off, l.pad_off | 0, l.pool_off | 0, 256 * i], 5 * i); });
+  gpu.dispatch(FUSED_U8_WGSL(!!intMode), [u, gpu.upload(t), x, pads, w, sBuf, tanhT, out, lut],
+    Gpu.grid(Math.ceil(total / WG)));
+}

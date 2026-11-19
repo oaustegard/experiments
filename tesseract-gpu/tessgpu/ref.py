@@ -147,6 +147,14 @@ def black_white(gray):
     return stats_ile(mins, 0.25), stats_ile(maxes, 0.75)
 
 
+def needs_invert(gray):
+    """Light text on a dark ground: most pixels darker than halfway between black and white
+    (Tesseract instead reruns the network on the inverted line when its mean best-path
+    probability is under 0.7)."""
+    black, white = black_white(gray)
+    return (gray < (black + white) / 2).mean() > 0.5
+
+
 def normalise(gray, int_mode):
     """NetworkIO::FromPixes + SetPixel for an 8-bit image already at the input height."""
     black, white = black_white(gray)
