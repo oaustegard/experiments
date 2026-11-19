@@ -299,3 +299,49 @@ def scale_to_height(gray, height):
     nw = max(1, int(round(w * f)))
     im = Image.fromarray(gray).resize((nw, height), Image.BOX if f < 1 else Image.BILINEAR)
     return np.asarray(im)
+
+
+# ---------------------------------------------------------------------------------------
+# Packed form of the Convolve padding, shared by the GPU engines.
+
+def border_positions(h, w, half_x=1, half_y=1):
+    """(y, x) of every output position whose window leaves the image, in raster order."""
+    return [(y, x) for y in range(h) for x in range(w)
+            if y < half_y or y >= h - half_y or x < half_x or x >= w - half_x]
+
+
+def pad_table(h, w, rng, int_mode, half_x=1, half_y=1):
+    """Convolve padding as a [n_border, kx*ky] table in border raster order; slot
+    k = (dx + half_x) * ky + (dy + half_y). In-image slots hold 0 and are never read."""
+    ky = 2 * half_y + 1
+    pos = border_positions(h, w, half_x, half_y)
+    index = {p: i for i, p in enumerate(pos)}
+    table = np.zeros((len(pos), (2 * half_x + 1) * ky))
+    for y, x, off, vals in conv_pad_values(h, w, half_x, half_y, 1, rng, int_mode):
+        table[index[(y, x)], off:off + len(vals)] = vals
+    return table
+
+
+def layer_outputs(model, gray, kind="minstd"):
+    """Every top-level layer's output for one line, keyed by the GPU stage names:
+    in [H,W], conv [H,W,16], pool [H/3,W/3,16], ylstm [T,nsy], x1, x2, x3 [T,ns], probs [T,C]."""
+    x = normalise(gray, model.int_mode)
+    rng = TRand.for_line(model.sample_iteration, kind)
+    h, w = x.shape
+    ctx = {"rng": rng, "int": model.int_mode}
+    kids = model.network.children
+    names = ["in", "conv", "pool", "ylstm", "x1", "x2", "x3", "probs"]
+    out = {"in": x}
+    a = x[:, :, None]
+    for name, node in zip(names[1:], kids[1:]):
+        if name == "conv":
+            pads = conv_pad_values(h, w, *node.children[0].half, 1, rng, model.int_mode)
+            ctx["pads"] = pads
+            a = run(node, a, ctx)
+            ctx.pop("pads")
+            out["pad_table"] = pad_table(h, w, TRand.for_line(model.sample_iteration, kind),
+                                         model.int_mode)
+        else:
+            a = run(node, a, ctx)
+        out[name] = a[0] if a.shape[0] == 1 else a
+    return out
