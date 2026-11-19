@@ -216,3 +216,29 @@ anything-to-text now loads `models/mix8/`; its smoke test (headless Chromium, a 
 as with fp16.
 The demo page then switched to `models/mix8/` as well (build `2026-11-18-c`); its smoke test reads the same page to the
 same markdown. `web/models/f16` stays in the repo for the parity and benchmark checks.
+
+### Round 4 (2026-11-19): does Tesseract read what Indra misses?
+
+Question from Oskar: would Tesseract, as a second reader, cover pages where Indra fails? The benchmark publishes a
+verdict per system and test (`results.parquet`), Tesseract's included, from its own adapter: html only, script detected
+with `--psm 0`, PDFs rendered at 300 DPI, no text layer. The published Indra row is indra-ocr 0.3.2 reading PDF text
+layers with math on, so Indra was run again here as the browser runs it: 1.1.2, models v1.1.0 fp32, OCR mode, math
+off, furniture on (`run/opb_eval.py`, all 2,937 pages, 0 failed; headline 61.55, text 40.33, tables 52.90, layout
+91.43, against Round 1's fp32 61.51). `run/tess_pair.py` pairs the two on the 8,499 text-family tests Tesseract can
+attempt; results in `results/tess_pair.json`.
+
+| | Indra passes | Indra fails |
+|---|---:|---:|
+| Tesseract passes | 1,307 | 186 |
+| Tesseract fails | 2,121 | 4,885 |
+
+Tesseract passes 17.6% and Indra 40.3%. Tesseract passes 186 tests Indra fails, 3.7% of Indra's failures; 99 of the
+125 pages holding them hold one. Choosing the right reader for every test, which no real router can do, would lift the
+text family from 40.33 to 42.52, about 0.7 on the headline. Most rescues are scattered, with two clusters: Ancient
+Greek (`grc`: Indra 0 of 18, Tesseract 16 of 18, but only 4 pages, all in `multiling_finepdfs`) and filled French
+forms in `multilingual` (17 rescues on 16 pages). Modern Greek goes the other way (3 rescues, 11 losses on the 44
+non-`grc` Greek tests), so routing by script would not isolate the polytonic pages. Indra beats Tesseract on every other
+script with 20 or more tests. Math tests are lost by both (2.4% and 1.6%): Tesseract writes no LaTeX and this run has math off.
+
+The published Indra row tells the same story: 177 rescues, 3% of its failures. No GPU port of Tesseract is warranted
+by this; a Tesseract fallback stays an option only for browsers without WebGPU.

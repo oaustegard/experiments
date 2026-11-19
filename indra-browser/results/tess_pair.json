@@ -1,0 +1,506 @@
+{
+ "tests": 8499,
+ "tests_missing_locally": 0,
+ "indra": {
+  "pass": 0.4033,
+  "crosstab": {
+   "fail/fail": 4885,
+   "fail/pass": 186,
+   "pass/fail": 2121,
+   "pass/pass": 1307
+  }
+ },
+ "pub_indra": {
+  "pass": 0.6029,
+  "crosstab": {
+   "fail/fail": 3198,
+   "fail/pass": 177,
+   "pass/fail": 3808,
+   "pass/pass": 1316
+  }
+ },
+ "tess_pass": 0.1757,
+ "rescued": 186,
+ "rescued_share_of_indra_fails": 0.0367,
+ "oracle_text_pass": 0.4252,
+ "rescues_per_page": {
+  "1": 99,
+  "2": 16,
+  "3": 10,
+  "4": 5,
+  "5": 1
+ },
+ "by_source": [
+  {
+   "source": "pdf",
+   "tests": 5876,
+   "indra_pass": 0.298,
+   "tess_pass": 0.182,
+   "rescued": 126,
+   "lost": 809
+  },
+  {
+   "source": "image",
+   "tests": 2623,
+   "indra_pass": 0.639,
+   "tess_pass": 0.161,
+   "rescued": 60,
+   "lost": 1312
+  }
+ ],
+ "by_suite": [
+  {
+   "suite": "synth_copies",
+   "tests": 1500,
+   "indra_pass": 0.633,
+   "tess_pass": 0.217,
+   "rescued": 45,
+   "lost": 669
+  },
+  {
+   "suite": "multiling_finepdfs",
+   "tests": 465,
+   "indra_pass": 0.731,
+   "tess_pass": 0.308,
+   "rescued": 32,
+   "lost": 229
+  },
+  {
+   "suite": "multilingual",
+   "tests": 75,
+   "indra_pass": 0.333,
+   "tess_pass": 0.44,
+   "rescued": 18,
+   "lost": 10
+  },
+  {
+   "suite": "olmo_multi_column",
+   "tests": 230,
+   "indra_pass": 0.765,
+   "tess_pass": 0.652,
+   "rescued": 18,
+   "lost": 44
+  },
+  {
+   "suite": "olmo_arxiv_math",
+   "tests": 2830,
+   "indra_pass": 0.012,
+   "tess_pass": 0.011,
+   "rescued": 15,
+   "lost": 19
+  },
+  {
+   "suite": "olmo_long_tiny_text",
+   "tests": 167,
+   "indra_pass": 0.701,
+   "tess_pass": 0.395,
+   "rescued": 10,
+   "lost": 61
+  },
+  {
+   "suite": "tiny_plans",
+   "tests": 351,
+   "indra_pass": 0.912,
+   "tess_pass": 0.752,
+   "rescued": 7,
+   "lost": 63
+  },
+  {
+   "suite": "olmo_old_scans_math",
+   "tests": 438,
+   "indra_pass": 0.103,
+   "tess_pass": 0.053,
+   "rescued": 6,
+   "lost": 28
+  },
+  {
+   "suite": "realdoc_pdfs",
+   "tests": 224,
+   "indra_pass": 0.692,
+   "tess_pass": 0.304,
+   "rescued": 6,
+   "lost": 93
+  },
+  {
+   "suite": "tables_derived",
+   "tests": 184,
+   "indra_pass": 0.641,
+   "tess_pass": 0.527,
+   "rescued": 6,
+   "lost": 27
+  },
+  {
+   "suite": "large_format",
+   "tests": 46,
+   "indra_pass": 0.63,
+   "tess_pass": 0.152,
+   "rescued": 5,
+   "lost": 27
+  },
+  {
+   "suite": "rotation_skew",
+   "tests": 312,
+   "indra_pass": 0.756,
+   "tess_pass": 0.112,
+   "rescued": 5,
+   "lost": 206
+  },
+  {
+   "suite": "forms_federal",
+   "tests": 100,
+   "indra_pass": 0.79,
+   "tess_pass": 0.31,
+   "rescued": 4,
+   "lost": 52
+  },
+  {
+   "suite": "forms_filled",
+   "tests": 77,
+   "indra_pass": 0.805,
+   "tess_pass": 0.662,
+   "rescued": 4,
+   "lost": 15
+  },
+  {
+   "suite": "handwriting_samples",
+   "tests": 280,
+   "indra_pass": 0.039,
+   "tess_pass": 0.007,
+   "rescued": 2,
+   "lost": 11
+  },
+  {
+   "suite": "forms_documentcloud",
+   "tests": 28,
+   "indra_pass": 0.786,
+   "tess_pass": 0.75,
+   "rescued": 1,
+   "lost": 2
+  },
+  {
+   "suite": "parsebench_docs",
+   "tests": 212,
+   "indra_pass": 0.788,
+   "tess_pass": 0.528,
+   "rescued": 1,
+   "lost": 56
+  },
+  {
+   "suite": "realdoc_pages",
+   "tests": 383,
+   "indra_pass": 0.789,
+   "tess_pass": 0.065,
+   "rescued": 1,
+   "lost": 278
+  },
+  {
+   "suite": "docparsing_images",
+   "tests": 237,
+   "indra_pass": 0.797,
+   "tess_pass": 0.034,
+   "rescued": 0,
+   "lost": 181
+  },
+  {
+   "suite": "frbench_handwriting",
+   "tests": 41,
+   "indra_pass": 0.098,
+   "tess_pass": 0.024,
+   "rescued": 0,
+   "lost": 3
+  },
+  {
+   "suite": "olmo_old_scans",
+   "tests": 319,
+   "indra_pass": 0.15,
+   "tess_pass": 0.003,
+   "rescued": 0,
+   "lost": 47
+  }
+ ],
+ "by_test_type": [
+  {
+   "test_type": "present",
+   "tests": 7275,
+   "indra_pass": 0.366,
+   "tess_pass": 0.16,
+   "rescued": 139,
+   "lost": 1637
+  },
+  {
+   "test_type": "order",
+   "tests": 1189,
+   "indra_pass": 0.628,
+   "tess_pass": 0.264,
+   "rescued": 46,
+   "lost": 479
+  },
+  {
+   "test_type": "repeat",
+   "tests": 35,
+   "indra_pass": 0.543,
+   "tess_pass": 0.429,
+   "rescued": 1,
+   "lost": 5
+  }
+ ],
+ "by_tag": [
+  {
+   "tags": "Latn",
+   "tests": 4160,
+   "indra_pass": 0.601,
+   "tess_pass": 0.243,
+   "rescued": 128,
+   "lost": 1616
+  },
+  {
+   "tags": "eng",
+   "tests": 3312,
+   "indra_pass": 0.604,
+   "tess_pass": 0.237,
+   "rescued": 88,
+   "lost": 1306
+  },
+  {
+   "tags": "multi_column",
+   "tests": 2064,
+   "indra_pass": 0.535,
+   "tess_pass": 0.32,
+   "rescued": 59,
+   "lost": 503
+  },
+  {
+   "tags": "form",
+   "tests": 945,
+   "indra_pass": 0.602,
+   "tess_pass": 0.289,
+   "rescued": 48,
+   "lost": 344
+  },
+  {
+   "tags": "list",
+   "tests": 854,
+   "indra_pass": 0.707,
+   "tess_pass": 0.42,
+   "rescued": 27,
+   "lost": 272
+  },
+  {
+   "tags": "tiny",
+   "tests": 642,
+   "indra_pass": 0.779,
+   "tess_pass": 0.516,
+   "rescued": 23,
+   "lost": 192
+  },
+  {
+   "tags": "math",
+   "tests": 3271,
+   "indra_pass": 0.024,
+   "tess_pass": 0.016,
+   "rescued": 21,
+   "lost": 48
+  },
+  {
+   "tags": "Grek",
+   "tests": 62,
+   "indra_pass": 0.21,
+   "tess_pass": 0.339,
+   "rescued": 19,
+   "lost": 11
+  },
+  {
+   "tags": "fra",
+   "tests": 174,
+   "indra_pass": 0.328,
+   "tess_pass": 0.31,
+   "rescued": 19,
+   "lost": 22
+  },
+  {
+   "tags": "grc",
+   "tests": 18,
+   "indra_pass": 0.0,
+   "tess_pass": 0.889,
+   "rescued": 16,
+   "lost": 0
+  },
+  {
+   "tags": "table",
+   "tests": 777,
+   "indra_pass": 0.637,
+   "tess_pass": 0.254,
+   "rescued": 15,
+   "lost": 313
+  },
+  {
+   "tags": "rotated",
+   "tests": 231,
+   "indra_pass": 0.688,
+   "tess_pass": 0.121,
+   "rescued": 13,
+   "lost": 144
+  },
+  {
+   "tags": "header_footer",
+   "tests": 225,
+   "indra_pass": 0.587,
+   "tess_pass": 0.164,
+   "rescued": 11,
+   "lost": 106
+  },
+  {
+   "tags": "degraded",
+   "tests": 535,
+   "indra_pass": 0.279,
+   "tess_pass": 0.054,
+   "rescued": 10,
+   "lost": 130
+  },
+  {
+   "tags": "Beng",
+   "tests": 40,
+   "indra_pass": 0.8,
+   "tess_pass": 0.625,
+   "rescued": 8,
+   "lost": 15
+  },
+  {
+   "tags": "heading",
+   "tests": 362,
+   "indra_pass": 0.685,
+   "tess_pass": 0.204,
+   "rescued": 8,
+   "lost": 182
+  },
+  {
+   "tags": "footnote",
+   "tests": 103,
+   "indra_pass": 0.699,
+   "tess_pass": 0.34,
+   "rescued": 7,
+   "lost": 44
+  },
+  {
+   "tags": "caption",
+   "tests": 81,
+   "indra_pass": 0.568,
+   "tess_pass": 0.247,
+   "rescued": 3,
+   "lost": 29
+  },
+  {
+   "tags": "handwriting",
+   "tests": 795,
+   "indra_pass": 0.264,
+   "tess_pass": 0.016,
+   "rescued": 3,
+   "lost": 200
+  },
+  {
+   "tags": "Mlym",
+   "tests": 40,
+   "indra_pass": 0.625,
+   "tess_pass": 0.1,
+   "rescued": 2,
+   "lost": 23
+  },
+  {
+   "tags": "ben",
+   "tests": 33,
+   "indra_pass": 0.939,
+   "tess_pass": 0.576,
+   "rescued": 2,
+   "lost": 14
+  },
+  {
+   "tags": "mal",
+   "tests": 40,
+   "indra_pass": 0.625,
+   "tess_pass": 0.1,
+   "rescued": 2,
+   "lost": 23
+  },
+  {
+   "tags": "ron",
+   "tests": 26,
+   "indra_pass": 0.615,
+   "tess_pass": 0.269,
+   "rescued": 2,
+   "lost": 11
+  },
+  {
+   "tags": "Cyrl",
+   "tests": 74,
+   "indra_pass": 0.662,
+   "tess_pass": 0.189,
+   "rescued": 1,
+   "lost": 36
+  },
+  {
+   "tags": "Deva",
+   "tests": 20,
+   "indra_pass": 0.9,
+   "tess_pass": 0.35,
+   "rescued": 1,
+   "lost": 12
+  },
+  {
+   "tags": "Knda",
+   "tests": 48,
+   "indra_pass": 0.958,
+   "tess_pass": 0.667,
+   "rescued": 1,
+   "lost": 15
+  },
+  {
+   "tags": "Telu",
+   "tests": 33,
+   "indra_pass": 0.939,
+   "tess_pass": 0.97,
+   "rescued": 1,
+   "lost": 0
+  },
+  {
+   "tags": "Thai",
+   "tests": 39,
+   "indra_pass": 0.923,
+   "tess_pass": 0.692,
+   "rescued": 1,
+   "lost": 10
+  },
+  {
+   "tags": "hau",
+   "tests": 23,
+   "indra_pass": 0.826,
+   "tess_pass": 0.13,
+   "rescued": 1,
+   "lost": 17
+  },
+  {
+   "tags": "kan",
+   "tests": 48,
+   "indra_pass": 0.958,
+   "tess_pass": 0.667,
+   "rescued": 1,
+   "lost": 15
+  }
+ ],
+ "top_pages": {
+  "olmo_multi_column-05eac72b90295dbb76786d1fe5e2fe0db27d_page_6_pg1-p1": 5,
+  "multiling_finepdfs-grc_Grek_01202390-p1": 4,
+  "multiling_finepdfs-grc_Grek_20525348-p1": 4,
+  "multiling_finepdfs-images_grc_Grek_01202390-p1": 4,
+  "multiling_finepdfs-images_grc_Grek_20525348-p1": 4,
+  "olmo_long_tiny_text-17_pg34_pg1-p1": 4,
+  "multiling_finepdfs-asm_Beng_57262107-p1": 3,
+  "multiling_finepdfs-ell_Grek_96090206-p1": 3,
+  "multiling_finepdfs-images_asm_Beng_57262107-p1": 3,
+  "olmo_arxiv_math-2503.06293_pg24-p1": 3,
+  "olmo_arxiv_math-2503.07072_pg1-p1": 3,
+  "olmo_multi_column-0b2e551bbc33b030f810311118e2088d7ae3_page_12_pg1-p1": 3,
+  "synth_copies-images_sv21de3d34-p1": 3,
+  "synth_copies-images_svb85f574d-p1": 3,
+  "synth_copies-sv5b6bab89-p1": 3
+ }
+}
