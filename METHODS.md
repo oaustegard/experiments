@@ -5896,3 +5896,18 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   `startProfile`)
 - **Omni Parse Bench inside the hub's `scripts/jail.sh` (no network, no secrets, for code nobody here wrote):** `fuzzysearch` has no wheel (copy its pure-Python package onto `PYTHONPATH`), and the
   scorer's adapter imports need `openai` and `httpx` even to score saved outputs. (`indra-browser/run/opb_eval.py`)
+
+### Running a VLM on Kaggle's T4s with vLLM (granite-docling)
+
+- granite-docling-258M's `generation_config.json` sets `use_cache: false`; plain transformers `generate` then
+  recomputes the whole sequence every step (a 24-page probe ran an hour). Pass `use_cache=True`, or use vLLM.
+- vLLM 0.34 runs on a T4 (compute 7.5) at fp32 or fp16, not bf16. fp32 holds bf16 weights exactly; at 258M it
+  gave about 294 generated tokens/s per T4.
+- vLLM preprocesses every prompt of one `generate` call before generating. 128 docling pages (up to 17 tiles of
+  512 px each, fp32) held about 6.8 GB of host memory per engine, and one engine was killed. Use calls of about
+  32 pages and `mm_processor_cache_gb=0`.
+- Kaggle allows two GPU sessions at once, has no API call that cancels a running session (only deleting the
+  kernel stops it, and its output goes with it), lists a session's output in pages of 500 files, and its log stream
+  runs well behind the job. Put a hard deadline inside the job. `granite-docling/RESULTS.md`.
+- Score a model that loops by splitting pages at the token cap: granite-docling's 9-point deficit to Indra on
+  Omni Parse Bench sat entirely on the 27% of pages that ran to 8,192 tokens. `granite-docling/RESULTS.md`.
