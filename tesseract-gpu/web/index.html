@@ -71,7 +71,14 @@
   accurate), loaded from jsDelivr on first use.</p>
   <p>Downloads: Indra's layout models, about 4 MB, fetched once; its math reader, 4 to 8 MB, only when a math line appears; plus the
   Tesseract model for the language you pick.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-19-tess1</code>.</p>
+  <p>Licences: the Tesseract parts (the network, its beam search and the model reader) are ports of Tesseract's
+  Apache-2.0 code, and the tessdata models are Apache-2.0. Indra's layout and math models are Datalab's, under a modified
+  OpenRAIL-M license (<a href="../../indra-browser/web/models/LICENSE.txt">full text</a>). By using this page you agree to
+  that license's use restrictions (its Attachment A): free for personal use and research; other use by anyone with more
+  than $20M in revenue or funding needs a commercial license from <a href="https://www.datalab.to/pricing">Datalab</a>,
+  and no use is allowed by anyone offering a product that competes with Datalab's. The license also covers what Indra's
+  models output. Details: <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-19-tess2</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

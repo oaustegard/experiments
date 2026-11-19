@@ -6,7 +6,7 @@ import { rot90 } from "https://austegard.com/experiments/indra-browser/web/imgpr
 import { Gpu, recognize } from "./engine.js";
 import { loadTraineddata } from "./traineddata.js";
 
-const BUILD = "2026-11-19-tess1"; // keep equal to build.json
+const BUILD = "2026-11-19-tess2"; // keep equal to build.json
 const INDRA_MODELS = "https://austegard.com/experiments/indra-browser/web/models/f16/";
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
