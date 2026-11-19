@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 import traceback
@@ -93,7 +94,8 @@ def page(row, gen_path: Path, gray_path: Path, gt_path: Path, html_from: str, ki
         rec["gen"] = {k: g.get(k) for k in ("gen_tokens", "prompt_tokens", "finish", "batch_seconds", "md5")}
         outputs = {}
         if kind == "markdown":  # a model that answers in Markdown (granite-vision): html only, no blocks
-            md = g["doctags"].replace(END, "").strip()
+            # granite-vision wraps most answers in <md>...</md>; the tags are transport, not page text.
+            md = re.sub(r"</?md>", "", g["doctags"].replace(END, "")).strip()
             if "html" in pg.outputs:
                 outputs["html"] = markdown.to_html(md)
         else:
