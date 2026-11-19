@@ -1,0 +1,72 @@
+{
+ "docling-bf16": {
+  "pages": 20,
+  "median_s": 32.2,
+  "p90_s": 158.6,
+  "max_s": 170.6,
+  "total_min": 17.1,
+  "peak_mem_mb": 867.4,
+  "mem_note": "max per-page ru_maxrss of llama-mtmd-cli",
+  "capped_pages": [
+   "olmo_old_scans-74-p1",
+   "rotation_skew-rs0700454e_rot270-p1",
+   "synth_copies-images_sv165e4b2d-p1"
+  ],
+  "error_pages": [
+   "olmo_old_scans-74-p1",
+   "rotation_skew-rs0700454e_rot270-p1",
+   "synth_copies-images_sv165e4b2d-p1"
+  ],
+  "model": "models/docling/granite-docling-258M-BF16.gguf",
+  "mmproj": "models/docling/mmproj-model-f16.gguf",
+  "median_s_uncapped": 29.7
+ },
+ "gv41-q4km": {
+  "pages": 8,
+  "median_s": 599.4,
+  "p90_s": 611.5,
+  "max_s": 829.7,
+  "total_min": 59.0,
+  "peak_mem_mb": 6738.6,
+  "mem_note": "max per-page ru_maxrss of llama-mtmd-cli",
+  "capped_pages": [
+   "olmo_arxiv_math-2503.05844_pg8-p1",
+   "realdoc_pages-images_4aa5ef65_images_06b65d46-b66a-4a4c-91f7-7fc201650829-p1",
+   "synth_copies-images_sv165e4b2d-p1",
+   "synth_copies-images_sv50e4e41d-p1",
+   "synth_copies-svb1b97b0e-p1"
+  ],
+  "error_pages": [],
+  "model": "models/gv41/granite-vision-4.1-4b-Q4_K_M.gguf",
+  "mmproj": "models/gv41/mmproj-model-f16.gguf",
+  "median_s_uncapped": 115.0
+ },
+ "mineru-q8": {
+  "pages": 20,
+  "median_s": 125.9,
+  "p90_s": 166.0,
+  "max_s": 240.3,
+  "total_min": 43.4,
+  "peak_mem_mb": 3697.0,
+  "mem_note": "llama-server VmHWM over the whole arm",
+  "capped_pages": [],
+  "error_pages": [],
+  "model": "models/mineru/MinerU2.5-Pro-2605-1.2B.Q8_0.gguf",
+  "mmproj": "models/mineru/MinerU2.5-Pro-2605-1.2B.mmproj-Q8_0.gguf",
+  "median_s_uncapped": 125.9
+ },
+ "mineru-q8-nocache": {
+  "pages": 4,
+  "median_s": 152.4,
+  "p90_s": 173.5,
+  "max_s": 173.5,
+  "total_min": 9.8,
+  "peak_mem_mb": 2324.3,
+  "mem_note": "llama-server VmHWM over the whole arm",
+  "capped_pages": [],
+  "error_pages": [],
+  "model": "models/mineru/MinerU2.5-Pro-2605-1.2B.Q8_0.gguf",
+  "mmproj": "models/mineru/MinerU2.5-Pro-2605-1.2B.mmproj-Q8_0.gguf",
+  "median_s_uncapped": 152.4
+ }
+}
