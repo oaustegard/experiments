@@ -47,7 +47,7 @@ def main():
         r = json.loads(f.read_text())
         suites[r["suite"]].append(r["page_id"])
     pages = sorted(p for ps in suites.values() for p in ps)
-    res = {"pages": len(pages), "capped": sum(capped.get(p, False) for p in pages)}
+    res = {"pages": len(pages), "capped_pages": sum(capped.get(p, False) for p in pages)}
     for name, keep in (("ended", [p for p in pages if not capped.get(p, False)]),
                        ("capped", [p for p in pages if capped.get(p, False)])):
         c = compare(a.out, a.base, a.run, keep, 1000)
@@ -60,7 +60,7 @@ def main():
                             a.run: round(100 * c["runs"][a.run]["headline"], 2)}
     a.json.parent.mkdir(parents=True, exist_ok=True)
     a.json.write_text(json.dumps(res, indent=1))
-    print(json.dumps({k: res[k] for k in ("pages", "capped")}))
+    print(json.dumps({k: res[k] for k in ("pages", "capped_pages")}))
     for k in ("ended", "capped"):
         r = res[k]
         print(k, r["pages"], "pages:", a.base, round(100 * r[a.base]["headline"], 2), a.run,
