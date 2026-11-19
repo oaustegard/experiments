@@ -3,16 +3,21 @@
 // once and run unchanged on Preact, behind a navigation shell made of ui-sdk
 // itself.
 //
-//   node build.mjs --upstream <dir> --esm <web/esm> --vendor <web/vendor> \
-//     --modules <node_modules with rolldown, lucide-react> --out <dir>
+//   node build.mjs --upstream <dir> --modules <node_modules> --out <dir>
+//
+// <node_modules> holds rolldown, preact, lucide-react, @ui-sdk/core and
+// ui-sdk-preact (the package build.mjs one directory up makes).
 //
 // <upstream> holds components/, shared/, styles/ and docs/ (the React .mdx
 // pages) from vercel-labs/ui at the tag the ESM build was made from, so the
 // examples and the library are the same release.
 //
-// Every @ui-sdk import becomes a bare `ui-sdk/<name>.js` import that the page's
-// import map resolves to the ESM build, so the shell and all examples share
-// one instance of ui-sdk. React resolves to preact/compat.
+// ui-sdk, Preact and the icons go into one shared chunk, so the shell and all
+// examples share one instance of ui-sdk and a page needs a handful of module
+// requests. Split per module (an import map over the ESM build) a component
+// page made 50 to 100; one transient 503 from the CDN among them failed the
+// whole import ("Importing a module script failed" in Safari). React resolves
+// to ui-sdk-preact's compat entry, which loads preact/compat and the fixes.
 
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from "node:fs"
 import { join, dirname, basename } from "node:path"
@@ -25,7 +30,7 @@ const args = Object.fromEntries(
     return pairs
   }, [])
 )
-for (const key of ["upstream", "esm", "vendor", "modules", "out"]) {
+for (const key of ["upstream", "modules", "out"]) {
   if (!args[key]) {
     console.error(`missing --${key}`)
     process.exit(2)
@@ -171,15 +176,13 @@ const catalogModule = () => {
 const require = createRequire(join(args.modules, "x.js"))
 const { rolldown } = await import(pathToFileURL(require.resolve("rolldown")).href)
 
-const external = (id) => {
+const port = join(args.modules, "ui-sdk-preact", "dist")
+const alias = (id) => {
   let m
-  if ((m = id.match(/^@ui-sdk\/react\/(.+)$/))) return `ui-sdk/${m[1]}.js`
-  if (id === "@ui-sdk/core") return "ui-sdk/core/index.js"
-  if ((m = id.match(/^@ui-sdk\/core\/(.+)$/))) return `ui-sdk/core/${m[1]}.js`
-  if (/^react\/jsx(-dev)?-runtime$/.test(id)) return "preact/compat/jsx-runtime"
-  if (id === "react" || id === "react-dom") return "preact/compat"
-  if (/^preact(\/|$)/.test(id)) return id
-  if (/^(react-dom\/|ui-sdk\/)/.test(id)) throw new Error(`unmapped import ${id}`)
+  if ((m = id.match(/^@ui-sdk\/react\/(.+)$/))) return join(port, `${m[1]}.js`)
+  if (/^react\/jsx(-dev)?-runtime$/.test(id)) return join(port, "_preact", "jsx-runtime.js")
+  if (id === "react" || id === "react-dom") return join(port, "_preact", "compat.js")
+  if (/^react-dom\//.test(id)) throw new Error(`unmapped import ${id}`)
   return null
 }
 
@@ -187,7 +190,7 @@ const out = args.out
 rmSync(out, { recursive: true, force: true })
 mkdirSync(out, { recursive: true })
 
-const input = { app: join(here, "app.jsx"), "examples/log": join(up, "shared", "react", "log.ts") }
+const input = { app: join(here, "app.jsx") }
 for (const name of categorized) input[`examples/${name}`] = VIRTUAL + "page:" + name
 
 const bundle = await rolldown({
@@ -207,8 +210,7 @@ const bundle = await rolldown({
         if (id.startsWith(VIRTUAL)) return id
         if (id === "showcase:catalog") return VIRTUAL + "catalog"
         if (id === "showcase:log") return join(up, "shared", "react", "log.ts")
-        const mapped = external(id)
-        return mapped ? { id: mapped, external: true } : null
+        return alias(id)
       },
       load(id) {
         if (id === VIRTUAL + "catalog") return catalogModule()
@@ -232,6 +234,9 @@ const result = await bundle.write({
   minify: true,
   entryFileNames: "[name].js",
   chunkFileNames: "chunks/c-[hash].js",
+  codeSplitting: {
+    groups: [{ name: "lib", test: /node_modules|[\\/]shared[\\/]react[\\/]log\.ts$/ }],
+  },
 })
 await bundle.close()
 
@@ -245,19 +250,11 @@ const css = [
 ].join("\n")
 writeFileSync(join(out, "examples.css"), `/* ui-sdk example styles, vercel-labs/ui (Apache-2.0) */\n${css}`)
 
-cpSync(args.esm, join(out, "esm"), { recursive: true })
-cpSync(args.vendor, join(out, "vendor"), { recursive: true })
+// austegard.com's deploy skips every file named LICENSE, so the licences ship as .txt.
 cpSync(join(up, "LICENSE"), join(out, "LICENSE-ui-sdk.txt"))
+cpSync(join(args.modules, "preact", "LICENSE"), join(out, "LICENSE-preact.txt"))
+cpSync(join(args.modules, "lucide-react", "LICENSE"), join(out, "LICENSE-lucide.txt"))
 for (const f of ["index.html", "theme.css", "avatar.svg"]) cpSync(join(here, f), join(out, f))
-// austegard.com's deploy skips every file named LICENSE; give the licence files an extension so they ship.
-rmSync(join(out, "esm", "LICENSE"), { force: true })
-for (const dir of readdirSync(join(out, "vendor"))) {
-  const from = join(out, "vendor", dir, "LICENSE")
-  if (existsSync(from)) {
-    cpSync(from, join(out, "vendor", dir, "LICENSE.txt"))
-    rmSync(from)
-  }
-}
 
 const BUILD = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")
 writeFileSync(join(out, "index.html"), readFileSync(join(out, "index.html"), "utf8").replaceAll("__BUILD__", BUILD))

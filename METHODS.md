@@ -812,6 +812,12 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
   shortcuts and group labels with `--line`, outside-month calendar days with `--line-disabled`, and mixes 60% ink
   into the surface for a highlighted row's shortcut. A dotted stage background had also left 1,920 checks
   "incomplete": axe cannot read contrast over a gradient. (`ui-sdk-preact/showcase/check.mjs`)
+- **A page that imports 50 to 100 ES modules from austegard.com can fail on one transient 503.** Fetching all 401
+  files of the ui-sdk showcase from the live site returned one 503 (200 on three retries); a component page then
+  imported 50 to 100 modules, and one failure rejects the whole dynamic import ("Importing a module script failed" in
+  Safari, which was the first report from Oskar's device). Bundle shared code into a few chunks, and on a failed
+  import reload once: a browser keeps a failed module fetch for the life of the page, so retrying the import in place
+  does not refetch. (`ui-sdk-preact/showcase/build.mjs`, `app.jsx`)
 
 - **A game loop that caps time per frame runs slower than real time on SwiftShader, so wait on game state.**
   A WebGPU game drew 8.5 frames a second in headless Chromium on SwiftShader and capped each frame at 0.05 s of

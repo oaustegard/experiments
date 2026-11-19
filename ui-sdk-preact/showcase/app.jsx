@@ -145,8 +145,21 @@ function ComponentPage({ name, showSource }) {
       })
       .catch((e) => {
         if (!live) return
-        setError(String(e?.message || e))
-        relay.error("page failed to load", { name, message: String(e?.message || e) })
+        const message = String(e?.message || e)
+        relay.error("page failed to load", { name, message })
+        // A browser keeps a failed module import for the page's lifetime, so the retry is a reload; the
+        // files that did arrive come from the cache. Reload once on its own, then leave it to a button.
+        const key = `ui-sdk-preact:reloaded:${name}:${window.BUILD || ""}`
+        let tried = null
+        try {
+          tried = sessionStorage.getItem(key)
+          sessionStorage.setItem(key, "1")
+        } catch {}
+        if (!tried) {
+          location.reload()
+          return
+        }
+        setError(message)
       })
     return () => {
       live = false
@@ -166,15 +179,15 @@ function ComponentPage({ name, showSource }) {
         <a href={`https://github.com/vercel-labs/ui/tree/@ui-sdk/react@0.1.0-beta.10/examples/components/${name}/react`}>
           Example sources
         </a>
-        <span aria-hidden="true"> · </span>
-        <span>
-          import from <code>ui-sdk/{name}.js</code>
-        </span>
+
       </p>
       {error && (
-        <p class="ex-error" role="alert">
-          The examples did not load: {error}
-        </p>
+        <div class="ex-error" role="alert">
+          <p>The examples did not load: {error}</p>
+          <button type="button" class="retry" onClick={() => location.reload()}>
+            Try again
+          </button>
+        </div>
       )}
       {!page && !error && <p class="loading">Loading {item.count} examples…</p>}
       {page &&
