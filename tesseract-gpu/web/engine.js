@@ -12,7 +12,8 @@
 import { Gpu } from "./gpu.js";
 import { recordConv, recordPool } from "./kernels/conv.js";
 import { recordYLstm } from "./kernels/ylstm.js";
-import { recordXLstm } from "./kernels/xlstm.js";
+import { recordXLstm as recordXLstm1 } from "./kernels/xlstm.js";
+import { recordXLstm as recordXLstm2, interleaveGates } from "./kernels/xlstm2.js";
 import { recordOutput } from "./kernels/output.js";
 import { normalise, padTable, scaleToHeight } from "./prep.js";
 
@@ -64,6 +65,7 @@ export class TessModel {
         }
       }
       this.w[name] = gpu.upload(w);
+      if (name.startsWith("w_x")) this.w[name + "_4"] = gpu.upload(interleaveGates(w, t.shape[0] / 4, t.shape[1]));
     }
     const tanh = new Float32Array(4096), logi = new Float32Array(4096);
     for (let i = 0; i < 4096; i++) {
@@ -105,7 +107,9 @@ export class TessModel {
 
 // lines: [{ data: Uint8Array grey, width, height }]. Returns [{ text, T, best?, probs? }]
 // in input order, plus timings on the array (out.ms).
-export async function recognize(gpu, model, lines, { wantProbs = false } = {}) {
+// opts.xlstm: "v2" (coalesced, default) or "v1"; opts.stages: run only the first n of the
+// 7 stages (conv+pool, ylstm, x1, x2, x3, output) for per-stage timing (no text then).
+export async function recognize(gpu, model, lines, { wantProbs = false, xlstm = "v2", stages = 7 } = {}) {
   const t0 = performance.now();
   const H = model.H, Hp = Math.floor(H / 3);
   const prepared = lines.map((l, i) => {
@@ -137,16 +141,22 @@ export async function recognize(gpu, model, lines, { wantProbs = false } = {}) {
   const state = buf(meta.length * Math.max(ns.x1, ns.x2, ns.x3));
   const probs = buf(tOff * model.C), best = buf(tOff), bestp = buf(tOff);
   const common = { tanhT: model.tanhT, logT: model.logT, lines: meta, intMode };
+  const rx = xlstm === "v1" ? recordXLstm1 : recordXLstm2;
+  const wx = (n) => (xlstm === "v1" ? w[n] : w[n + "_4"]);
   gpu.begin();
-  recordConv(gpu, { x: xBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: conv, lines: meta, H, intMode });
-  recordPool(gpu, { conv, out: pool, lines: meta, H });
-  recordYLstm(gpu, { ...common, pool, w: w.w_y, s: s.w_y, out: y, H, ns: ns.y });
-  recordXLstm(gpu, { ...common, x: y, w: w.w_x1, s: s.w_x1, out: x1, state, ni: ni.x1, ns: ns.x1, reverse: false });
-  recordXLstm(gpu, { ...common, x: x1, w: w.w_x2, s: s.w_x2, out: x2, state, ni: ni.x2, ns: ns.x2, reverse: true });
-  recordXLstm(gpu, { ...common, x: x2, w: w.w_x3, s: s.w_x3, out: x3, state, ni: ni.x3, ns: ns.x3, reverse: false });
-  recordOutput(gpu, { x: x3, w: w.w_out, s: s.w_out, out: probs, best, bestp, T: tOff, ni: ns.x3, C: model.C, intMode });
+  const steps = [
+    () => { recordConv(gpu, { x: xBuf, pads: padBuf, w: w.w_conv, s: s.w_conv, tanhT: model.tanhT, out: conv, lines: meta, H, intMode });
+            recordPool(gpu, { conv, out: pool, lines: meta, H }); },
+    () => recordYLstm(gpu, { ...common, pool, w: w.w_y, s: s.w_y, out: y, H, ns: ns.y }),
+    () => rx(gpu, { ...common, x: y, w: wx("w_x1"), s: s.w_x1, out: x1, state, ni: ni.x1, ns: ns.x1, reverse: false }),
+    () => rx(gpu, { ...common, x: x1, w: wx("w_x2"), s: s.w_x2, out: x2, state, ni: ni.x2, ns: ns.x2, reverse: true }),
+    () => rx(gpu, { ...common, x: x2, w: wx("w_x3"), s: s.w_x3, out: x3, state, ni: ni.x3, ns: ns.x3, reverse: false }),
+    () => recordOutput(gpu, { x: x3, w: w.w_out, s: s.w_out, out: probs, best, bestp, T: tOff, ni: ns.x3, C: model.C, intMode }),
+  ];
+  steps.slice(0, Math.min(stages, steps.length)).forEach((f) => f());
   gpu.submit();
-  const bestHost = await gpu.read(best, Uint32Array, Math.max(16, tOff * 4));
+  const bestHost = await gpu.read(stages >= steps.length ? best : conv, Uint32Array, 16).then(() =>
+    stages >= steps.length ? gpu.read(best, Uint32Array, Math.max(16, tOff * 4)) : new Uint32Array(tOff));
   const tGpu = performance.now();
   const probsHost = wantProbs ? await gpu.read(probs, Float32Array, Math.max(16, tOff * model.C * 4)) : null;
   const out = new Array(lines.length).fill(null).map(() => ({ text: "", T: 0 }));

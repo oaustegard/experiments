@@ -29,8 +29,21 @@ LOGISTIC_T = 1.0 / (1.0 + np.exp(-_IDX))
 STATE_CLIP = 100.0
 
 
+TANH_T32 = TANH_T.astype(np.float32)
+LOGISTIC_T32 = LOGISTIC_T.astype(np.float32)
+F32 = np.float32
+
+
 def _lut(x, table):
+    """functions.h Tanh/Logistic for x >= 0: table lookup with linear interpolation.
+    float32 inputs are evaluated in float32 op for op, as Tesseract's TFloat=float build does."""
     a = np.abs(x)
+    if a.dtype == np.float32:
+        t = TANH_T32 if table is TANH_T else LOGISTIC_T32
+        xs = a * F32(SCALE)
+        idx = np.minimum(xs.astype(np.int64), TABLE - 2)
+        v = t[idx] + (t[idx + 1] - t[idx]) * (xs - idx.astype(np.float32))
+        return np.where(xs >= F32(TABLE - 1), F32(1), v).astype(np.float32)
     xs = a * SCALE
     idx = np.minimum(xs.astype(np.int64), TABLE - 2)
     v = table[idx] + (table[idx + 1] - table[idx]) * (xs - idx)
@@ -44,17 +57,27 @@ def tanh(x):
 
 def logistic(x):
     v = _lut(x, LOGISTIC_T)
-    return np.where(x < 0, 1.0 - v, v)
+    one = F32(1) if v.dtype == np.float32 else 1.0
+    return np.where(x < 0, one - v, v)
 
 
 def int_cast_rounded(x):
-    x = np.asarray(x, dtype=np.float64)
+    """helpers.h IntCastRounded: the double overload, or the float one for float32 input
+    (x + 0.5F rounds in float32)."""
+    x = np.asarray(x)
+    if x.dtype == np.float32:
+        h = F32(0.5)
+        return np.where(x >= 0, np.floor(x + h), -np.floor(-x + h)).astype(np.int64)
+    x = x.astype(np.float64)
     return np.where(x >= 0, np.floor(x + 0.5), -np.floor(-x + 0.5)).astype(np.int64)
 
 
 def quant(v):
-    """NetworkIO::WriteTimeStepPart in int mode: clip to [-1, 1], round(127 v)."""
-    return int_cast_rounded(np.clip(v, -1.0, 1.0) * 127)
+    """NetworkIO::WriteTimeStepPart in int mode: ClipToRange(IntCastRounded(v * 127), +-127)."""
+    v = np.asarray(v)
+    if v.dtype == np.float32:
+        return np.clip(int_cast_rounded(v * F32(127)), -127, 127)
+    return np.clip(int_cast_rounded(v * 127.0), -127, 127)
 
 
 class TRand:
@@ -133,7 +156,7 @@ def normalise(gray, int_mode):
         contrast = np.float32(1.0)
     v = (gray.astype(np.float32) - black) / contrast - np.float32(1.0)
     if int_mode:
-        return np.clip(int_cast_rounded(128.0 * v.astype(np.float64)), -127, 127)
+        return np.clip(int_cast_rounded(F32(128) * v), -127, 127)
     return v.astype(np.float64)
 
 
@@ -192,7 +215,7 @@ def dense(x, wts, int_mode):
     if int_mode:
         q = wts.q.astype(np.int64)
         acc = x.astype(np.int64) @ q[:, :-1].T + q[:, -1] * 127
-        return acc * wts.scale
+        return acc.astype(np.float32) * wts.scale.astype(np.float32)
     w = wts.w
     return x @ w[:, :-1].T + w[:, -1]
 
@@ -209,7 +232,7 @@ def fully_connected(a, node, int_mode):
     elif t in ("Softmax", "SoftmaxNoCTC"):
         m = v.max(axis=-1, keepdims=True)
         e = np.exp(np.clip(v - m, -86, 0))
-        return e / e.sum(axis=-1, keepdims=True)  # softmax output is always float
+        return (e / e.sum(axis=-1, keepdims=True)).astype(np.float64)  # float output
     elif t != "Linear":
         raise ValueError(t)
     return quant(v) if int_mode else v
@@ -230,8 +253,9 @@ def lstm(a, node, int_mode):
     h, w, ni = a.shape
     ns = node.ns
     g = node.gates
-    state = np.zeros((h, ns))
-    out_f = np.zeros((h, ns))
+    dt = np.float32 if int_mode else np.float64
+    state = np.zeros((h, ns), dt)
+    out_f = np.zeros((h, ns), dt)
     prev = np.zeros((h, ns), np.int64) if int_mode else out_f
     outs = []
     for t in range(w):
@@ -240,7 +264,8 @@ def lstm(a, node, int_mode):
         gi = logistic(dense(src, g["GI"], int_mode))
         gf = logistic(dense(src, g["GF1"], int_mode))
         go = logistic(dense(src, g["GO"], int_mode))
-        state = np.clip(state * gf + ci * gi, -STATE_CLIP, STATE_CLIP)
+        state = state * gf
+        state = np.clip(state + ci * gi, dt(-STATE_CLIP), dt(STATE_CLIP))
         out_f = tanh(state) * go
         prev = quant(out_f) if int_mode else out_f
         outs.append(prev)

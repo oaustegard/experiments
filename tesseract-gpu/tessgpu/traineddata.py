@@ -234,6 +234,12 @@ class Model:
     components: dict
     int_mode: bool
     sample_iteration: int = 0
+    training_flags: int = 0
+
+    @property
+    def simple_text(self):
+        """LSTMRecognizer::SimpleTextOutput: no TF_COMPRESS_UNICHARSET (64) flag."""
+        return (self.training_flags & 64) == 0
 
     @property
     def input_height(self):
@@ -267,7 +273,7 @@ def load(path):
     if include_charsets:
         raise ValueError("charsets embedded in the LSTM component are not supported")
     network_str = r.string()
-    _flags, training_iteration, sample_iteration, null_char = r.take("iiii")
+    training_flags, training_iteration, sample_iteration, null_char = r.take("iiii")
     r.take("fff")  # learning_rate, momentum, adam_beta
     if r.remaining() != 0:
         raise ValueError(f"{path}: {r.remaining()} trailing bytes in the LSTM component")
@@ -277,7 +283,7 @@ def load(path):
     version = comps.get(23, b"").decode("utf-8", "replace")
     return Model(path, version, net, network_str, null_char, uni, rec,
                  {COMPONENTS.get(k, str(k)): len(v) for k, v in comps.items()}, int_mode,
-                 sample_iteration)
+                 sample_iteration, training_flags)
 
 
 if __name__ == "__main__":
