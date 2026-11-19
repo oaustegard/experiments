@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page to text, with Tesseract on WebGPU</title>
+<meta name="description" content="A scanned page or photo read in your browser on the GPU: Indra OCR finds the lines and Tesseract's LSTM recognizer reads them, in the languages and scripts Tesseract ships LSTM models for.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<header>
+  <h1>Read a page with Tesseract, on your own GPU</h1>
+  <p class="lede">Drop a scan or a photo of a page. <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> finds the text lines and
+  their reading order; Tesseract's LSTM recognizer, run as WebGPU kernels, reads each line in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages and scripts, each in both
+  sizes; the legacy-only equ and osd models are not offered). The page is not uploaded anywhere. Models come from Datalab's and
+  Tesseract's public repositories: the first use of a language downloads its model. It needs a browser with WebGPU; without one
+  the page shows a message and does nothing else.</p>
+</header>
+
+<div id="status" class="status" role="status" aria-live="polite">
+  <span id="status-text">Starting…</span>
+  <progress id="status-bar" max="1" value="0" hidden></progress>
+</div>
+
+<section class="input" aria-label="Page">
+  <label id="drop" class="drop" for="file">
+    <input id="file" type="file" accept="image/*">
+    <span><strong>Choose a page</strong>, drop one here, or paste a screenshot: PNG, JPEG or WebP</span>
+  </label>
+  <div class="picker">
+    <label class="muted small" for="lang">Language</label>
+    <select id="lang" aria-label="Language of the text" disabled></select>
+    <div class="seg" role="radiogroup" aria-label="Model size">
+      <label><input type="radio" name="variant" value="fast" checked><span>fast</span></label>
+      <label><input type="radio" name="variant" value="best"><span>best</span></label>
+    </div>
+    <span id="model-info" class="muted small"></span>
+    <p class="muted small picker-note"><b>fast</b>: Google's 8-bit model, about 1 to 5 MB a language. <b>best</b>: the float model, about 1.5 to 15 MB, slightly more accurate.</p>
+  </div>
+  <div class="row">
+    <label class="check"><input type="checkbox" id="compare"> show Indra's own text beside each line</label>
+    <button type="button" id="copy" disabled>Copy text</button>
+  </div>
+</section>
+
+<section id="result" class="result" hidden>
+  <div class="pane page-pane">
+    <h2>Page</h2>
+    <div class="legend" id="legend"></div>
+    <div class="canvas-wrap"><canvas id="canvas" aria-label="The page, with the lines Indra found boxed"></canvas></div>
+    <table class="timings" id="timings" aria-label="Timings"></table>
+    <p id="adapter" class="adapter"></p>
+  </div>
+  <div class="pane text-pane">
+    <div class="pane-head">
+      <h2>Text, in reading order</h2>
+      <span class="muted small" id="count"></span>
+    </div>
+    <ol id="lines" class="lines" tabindex="0"></ol>
+    <p id="stats" class="muted small"></p>
+  </div>
+</section>
+
+<footer class="muted small">
+  <p>How it works: Indra's detector finds the text lines and its small transformer puts them in reading order. Indra also
+  reads each line with its own recognizer; that text is only shown for comparison. Each line is cropped from the page and
+  read on the GPU by Tesseract's LSTM recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels. Math lines are found by Indra's math classifier, which flags a line, and Indra's math reader writes
+  it as LaTeX; Tesseract has no math model, so flagged lines are not sent to it. Language models are Tesseract's
+  <code>tessdata_fast</code> (about 1 to 5 MB per language) and <code>tessdata_best</code> (about 1.5 to 15 MB, slightly more
+  accurate), loaded from jsDelivr on first use.</p>
+  <p>Downloads: Indra's layout models, about 4 MB, fetched once; its math reader, 4 to 8 MB, only when a math line appears; plus the
+  Tesseract model for the language you pick.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-19-tess1</code>.</p>
+</footer>
+</main>
+<script src="../../gpu-bridge/web/relay.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
