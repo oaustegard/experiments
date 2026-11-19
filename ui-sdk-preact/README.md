@@ -10,7 +10,7 @@ The question: does the React adapter run on Preact unchanged, through
 all of it runs. On ui-sdk's own React test suite, Preact 11 passes 2,868 of
 2,991 tests against React's 2,884. The difference is 16 tests: two React
 features Preact doesn't have, and one bounded memory leak. Getting there took a
-90-line module, `src/fixes.js`, which corrects three places where Preact
+83-line module, `src/fixes.js`, which corrects three places where Preact
 renders the adapter's output differently from React. The adapter's code is not
 changed. It needs Preact 11 (see Use). The
 [showcase](https://austegard.com/ai-tools/ui-sdk-preact/) runs all 55 components
