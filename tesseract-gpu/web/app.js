@@ -9,7 +9,7 @@ import { cleanLine } from "./lineprep.js";
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess8"; // keep equal to build.json
+const BUILD = "2026-11-20-tess9"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
@@ -92,6 +92,9 @@ async function switchModel() {
   if (!gpu || !langs) return;
   if (busy) { status("Still reading; choose again in a moment.", ""); return; }
   const entry = entryFor($("lang").value);
+  // Word lists help Google's models and cost the fine-tuned one 0.6 points (results/ft_eval.json): langs.json says which.
+  $("dict").checked = entry.dict !== false;
+  if (last) last.dict = $("dict").checked;
   const variant = selectedVariant();
   const v = resolveVariant(entry, variant);
   const key = `${v}/${entry[v].url || entry[v].path}`;

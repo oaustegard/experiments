@@ -89,7 +89,7 @@ these lines at 5.0%.
    CLI; on synthetic English 0.26% against 0.88%. Its character set covers 76.5% of the Ancient Greek test text, which it
    reads at 56% CER against Tesseract's 4.6% (`run/pp_rec_compare.py`, `results/pp_rec_compare.json`). It is a reference
    point, not part of either engine.
-11. **Tesseract's word lists help on every set.** The dictionary path of `RecodeBeamSearch` (`tessgpu/beam_dict.py`,
+11. **The word lists help Google's models on every set (not the fine-tuned one, Finding 13).** The dictionary path of `RecodeBeamSearch` (`tessgpu/beam_dict.py`,
    `web/beam_dict.js`) returns Tesseract 5.3.4's own dict-on ids on 2,972/2,972 lines (eng, fra, grc, best and fast,
    plus 800 real lines). With it, real scans go from 13.04% <!-- @evidence[[results/beam_dict.json#accuracy.real_eng.all.cer_off]] -->
    to 12.26% CER <!-- @evidence[[results/beam_dict.json#accuracy.real_eng.all.cer_on]] --> (82 lines better, 36 worse)

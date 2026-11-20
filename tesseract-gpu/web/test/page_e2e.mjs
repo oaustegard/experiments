@@ -47,6 +47,7 @@ try {
   run += 1; // switching the model rereads the open page
   await page.waitForFunction((n) => Number(document.getElementById("result").dataset.run || 0) >= n, run, { timeout: 180000 });
   console.log(`\n== english, fine-tuned model: ${await page.textContent("#status-text")} | ${await page.textContent("#model-info")}`);
+  if (await page.isChecked("#dict")) { console.log("FAIL word lists on for the fine-tuned model"); ok = false; }
   console.log((await page.$$eval("#lines li .t", (els) => els.map((e) => e.textContent))).slice(0, 3).map((l, i) => `  ${i + 1}. ${l}`).join("\n"));
   await page.selectOption("#lang", "fra");
   run += 1; // switching the model rereads the open page
