@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page to text, with Tesseract on WebGPU</title>
-<meta name="description" content="A scanned page or photo read in your browser on the GPU: Indra OCR finds the lines and Tesseract's LSTM recognizer reads them, in the languages and scripts Tesseract ships LSTM models for.">
+<meta name="description" content="A scanned page or photo read in your browser on the GPU: PP-OCRv6 or Tesseract's own layout finds the lines and Tesseract's LSTM recognizer reads them. Apache-2.0 and MIT throughout.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
 <header>
   <h1>Read a page with Tesseract, on your own GPU</h1>
-  <p class="lede">Drop a scan or a photo of a page. <a href="https://huggingface.co/datalab-to/indra-ocr">Indra OCR</a> finds the text lines and
-  their reading order; Tesseract's LSTM recognizer, run as WebGPU kernels, reads each line in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages and scripts, each in both
-  sizes; the legacy-only equ and osd models are not offered). The page is not uploaded anywhere. Models come from Datalab's and
-  Tesseract's public repositories: the first use of a language downloads its model. It needs a browser with WebGPU; without one
+  <p class="lede">Drop a scan or a photo of a page. The text lines are found either by <a href="https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx">PP-OCRv6's text detector</a>, run as WebGPU kernels, or by Tesseract's own page layout.
+  Tesseract's LSTM recognizer, also on WebGPU, reads each line in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages and scripts, each in both
+  sizes; the legacy-only equ and osd models are not offered). <b>Math is not read for now:</b> math lines are read as text, and a permissively licensed math reader is planned.
+  The page is not uploaded anywhere. Models load on first use from this site, jsDelivr and Tesseract's public repository. It needs a browser with WebGPU; without one
   the page shows a message and does nothing else.</p>
 </header>
 
@@ -29,6 +29,19 @@
     <span><strong>Choose a page</strong>, drop one here, or paste a screenshot: PNG, JPEG or WebP</span>
   </label>
   <div class="picker">
+    <label class="muted small" for="finder">Find lines with</label>
+    <select id="finder" aria-label="How the text lines are found">
+      <option value="detector" selected>Detector (PP-OCRv6)</option>
+      <option value="tess">Tesseract layout</option>
+    </select>
+    <label class="muted small" for="order">Reading order</label>
+    <select id="order" aria-label="Reading order of the lines (detector only)">
+      <option value="bands" selected>Columns (default)</option>
+      <option value="xycut">XY-cut</option>
+    </select>
+    <span class="muted small">reading order applies to the detector</span>
+  </div>
+  <div class="picker">
     <label class="muted small" for="lang">Language</label>
     <select id="lang" aria-label="Language of the text" disabled></select>
     <div class="seg" role="radiogroup" aria-label="Model size">
@@ -39,8 +52,8 @@
     <p class="muted small picker-note"><b>fast</b>: Google's 8-bit model, about 1 to 5 MB a language. <b>best</b>: the float model, about 1.5 to 15 MB, slightly more accurate.</p>
   </div>
   <div class="row">
-    <label class="check"><input type="checkbox" id="compare"> show Indra's own text beside each line</label>
     <button type="button" id="copy" disabled>Copy text</button>
+    <button type="button" id="export" disabled>Download positioned HTML</button>
   </div>
 </section>
 
@@ -48,7 +61,7 @@
   <div class="pane page-pane">
     <h2>Page</h2>
     <div class="legend" id="legend"></div>
-    <div class="canvas-wrap"><canvas id="canvas" aria-label="The page, with the lines Indra found boxed"></canvas></div>
+    <div class="canvas-wrap"><canvas id="canvas" aria-label="The page, with the text lines boxed and numbered in reading order"></canvas></div>
     <table class="timings" id="timings" aria-label="Timings"></table>
     <p id="adapter" class="adapter"></p>
   </div>
@@ -63,25 +76,21 @@
 </section>
 
 <footer class="muted small">
-  <p>How it works: Indra's detector finds the text lines and its small transformer puts them in reading order. Indra also
-  reads each line with its own recognizer; that text is only shown for comparison. Each line is cropped from the page and
-  read on the GPU by Tesseract's LSTM recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels. Math lines are found by Indra's math classifier, which flags a line, and Indra's math reader writes
-  it as LaTeX; Tesseract has no math model, so flagged lines are not sent to it. Language models are Tesseract's
-  <code>tessdata_fast</code> (about 1 to 5 MB per language) and <code>tessdata_best</code> (about 1.5 to 15 MB, slightly more
-  accurate), loaded from jsDelivr on first use.</p>
-  <p>Downloads: Indra's layout models, about 4 MB, fetched once; its math reader, 4 to 8 MB, only when a math line appears; plus the
-  Tesseract model for the language you pick.</p>
-  <p>Licences: the Tesseract parts (the network, its beam search and the model reader) are ports of Tesseract's
-  Apache-2.0 code, and the tessdata models are Apache-2.0. Indra's layout and math models are Datalab's, under a modified
-  OpenRAIL-M license (<a href="../../indra-browser/web/models/LICENSE.txt">full text</a>). By using this page you agree to
-  that license's use restrictions (its Attachment A): free for personal use and research; other use by anyone with more
-  than $20M in revenue or funding needs a commercial license from <a href="https://www.datalab.to/pricing">Datalab</a>,
-  and no use is allowed by anyone offering a product that competes with Datalab's. The license also covers what Indra's
-  models output. Details: <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-19-tess2</code>.</p>
+  <p>How it works: PP-OCRv6's detector finds the text lines as a probability map, and <code>layout.js</code> turns that map into line boxes and a
+  reading order (columns by default, or XY-cut). Tesseract's own layout analysis (<code>tesslayout.js</code>, the tesseract.js-core build of Tesseract 5.1) can find the lines instead.
+  Each line is cropped from the page with 3 px of padding and read on the GPU by Tesseract's LSTM recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels,
+  with Tesseract's beam search for the text. Math lines are read as text for now.</p>
+  <p>Downloads: the detector's weights, about 1.7 MB, come with the page. Tesseract's layout engine (about 2.8 MB) and its English model (about 4 MB) load once, on first use of that
+  option. The recognizer model for the language you pick loads on first use of it, from jsDelivr.</p>
+  <p>Licences: Tesseract's code and the tessdata models are Apache-2.0. The PP-OCRv6 detector weights are Apache-2.0
+  (PaddlePaddle, <a href="https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx">PP-OCRv6_tiny_det_onnx</a>). tesseract.js-core is Apache-2.0.
+  This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
+  <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess4</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>
+<script src="layout.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
