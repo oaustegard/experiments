@@ -5897,17 +5897,32 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
 - **Omni Parse Bench inside the hub's `scripts/jail.sh` (no network, no secrets, for code nobody here wrote):** `fuzzysearch` has no wheel (copy its pure-Python package onto `PYTHONPATH`), and the
   scorer's adapter imports need `openai` and `httpx` even to score saved outputs. (`indra-browser/run/opb_eval.py`)
 
-### Running a VLM on Kaggle's T4s with vLLM (granite-docling)
+### Porting Tesseract's LSTM recognizer to the GPU (tesseract-gpu)
 
-- granite-docling-258M's `generation_config.json` sets `use_cache: false`; plain transformers `generate` then
-  recomputes the whole sequence every step (a 24-page probe ran an hour). Pass `use_cache=True`, or use vLLM.
-- vLLM 0.34 runs on a T4 (compute 7.5) at fp32 or fp16, not bf16. fp32 holds bf16 weights exactly; at 258M it
-  gave about 294 generated tokens/s per T4.
-- vLLM preprocesses every prompt of one `generate` call before generating. 128 docling pages (up to 17 tiles of
-  512 px each, fp32) held about 6.8 GB of host memory per engine, and one engine was killed. Use calls of about
-  32 pages and `mm_processor_cache_gb=0`.
-- Kaggle allows two GPU sessions at once, has no API call that cancels a running session (only deleting the
-  kernel stops it, and its output goes with it), lists a session's output in pages of 500 files, and its log stream
-  runs well behind the job. Put a hard deadline inside the job. `granite-docling/RESULTS.md`.
-- Score a model that loops by splitting pages at the token cap: granite-docling's 9-point deficit to Indra on
-  Omni Parse Bench sat entirely on the 27% of pages that ran to 8,192 tokens. `granite-docling/RESULTS.md`.
+- **Prove a port against the library's own numbers, not its CLI text.** A 60-line C++ harness linking Tesseract 5.3.4
+  (built inside the hub's `scripts/jail.sh`) dumps `LSTMRecognizer::RecognizeLine`'s softmax and `RecodeBeamSearch`'s
+  ids, and a second one dumps every layer, which found the one differing layer in a single run. The `tesseract` binary's
+  text is not the recognizer's: page-level word post-processing drops junk characters at line ends.
+  (`tesseract-gpu/harness/`)
+- **Tesseract's network output depends on the version through its RNG.** Convolve fills out-of-image positions from
+  `TRand` seeded with `sample_iteration * 0x10000001`; 5.0 to 5.3.x use `std::minstd_rand`, current master a 64-bit LCG.
+  Border columns, and sometimes a line's first or last character, change with it. (`tessgpu/ref.py` `TRand`)
+- **tessdata_fast (8-bit) parity needs float32 op for op.** Scale multiply, lookup-table interpolation, gate math and
+  `IntCastRounded(float)`, which adds `0.5F` in float: in float64, 20 to 24% of lines diverged within a step or two of a
+  rounding flip; in float32, 0 of 686. On Apple's GPU the WGSL kernels still diverge on 4/343 such lines (fused
+  multiply-adds), while SwiftShader matches them all; float (tessdata_best) models match on both. (`tessgpu/ref.py`)
+- **Greedy CTC is not Tesseract's decoder.** Argmax per step gives Tesseract's text on 76 to 85% of lines at the same
+  CER; the ported `RecodeBeamSearch` (no dictionary) matches 1,372/1,372. (`tessgpu/beam.py`, `web/beam.js`)
+- **A 36-px-high line read with `--psm 13` reaches the network unscaled**, so parity tests need no Leptonica resampling.
+- **Packed variable-length batches on WebGPU: never scan the line table per thread.** One thread per pixel scanning 343
+  line records made the first conv stage 60 ms on a Mac; a binary search over the packed offsets and fusing conv with
+  max-pooling (no 462 MB intermediate) fixed it. Normalising byte pixels through a 256-entry float table per line keeps
+  the CPU's float32 arithmetic exactly on the GPU (WGSL division only promises 2.5 ULP) and quarters the upload.
+  (`tesseract-gpu/web/kernels/conv.js`)
+- **If GPU throughput is flat across batch sizes and across models of different compute, the host is the bottleneck.**
+  The PyTorch engine read 289 lines/s on a T4 whether the model did 1x or 3x the work, all in per-line NumPy index
+  building. (`tesseract-gpu/results/kaggle_t4_server_bench_1.json`)
+- **Indra OCR's weight licence (modified OpenRAIL-M, Attachment A 2(c)) bars any use by anyone offering a product that
+  competes with Datalab's, with no personal or research exception** (unlike the $20M revenue and funding clauses), and
+  section 8 applies the licence to the models' output. Its code is Apache-2.0. A page that loads the weights must carry
+  the licence and its use restrictions. (`tesseract-gpu/NOTICE.md`, `indra-browser/NOTICE.md`)

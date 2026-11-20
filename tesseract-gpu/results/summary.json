@@ -1,0 +1,103 @@
+{
+ "parity": {
+  "lines_per_model": 343,
+  "best_max_dp": 3.339599401447346e-05,
+  "fast_max_dp": 1.2516975402832031e-06,
+  "argmax_all_steps_share_min": 1.0,
+  "greedy_eq_beam_min": 0.7602339181286549,
+  "greedy_eq_beam_max": 0.8483965014577259
+ },
+ "beam": {
+  "lines": 1372,
+  "identical": 1372
+ },
+ "baseline_binary": {
+  "best_cer": 0.01789,
+  "fast_cer": 0.01923,
+  "best_s_per_line_4proc": 0.1871
+ },
+ "pack": {
+  "best_eng_f16": 0.012625112049399883,
+  "best_eng_f32": 0.012625112049399883,
+  "best_eng_q4": 0.023982777900661344,
+  "best_eng_q6": 0.011362780608970915,
+  "best_eng_q8": 0.012786357942529835,
+  "best_fra_f16": 0.020470210467624247,
+  "best_fra_f32": 0.020470210467624247,
+  "best_fra_q4": 0.1216789653289959,
+  "best_fra_q6": 0.019686922634817153,
+  "best_fra_q8": 0.020327208808400055,
+  "best_grc_f16": 0.04896075806731932,
+  "best_grc_f32": 0.04896075806731932,
+  "best_grc_q4": 0.19893734691987727,
+  "best_grc_q6": 0.05449637949230489,
+  "best_grc_q8": 0.049993699272732284,
+  "fast_eng_int8": 0.013451923439920393,
+  "fast_fra_int8": 0.02214656464336392,
+  "fast_grc_int8": 0.050123212417618045
+ },
+ "pack_same_text": {
+  "best_eng_f16": 1.0,
+  "best_eng_f32": 1.0,
+  "best_eng_q4": 0.5,
+  "best_eng_q6": 0.8466666666666667,
+  "best_eng_q8": 0.9633333333333334,
+  "best_fra_f16": 1.0,
+  "best_fra_f32": 1.0,
+  "best_fra_q4": 0.05333333333333334,
+  "best_fra_q6": 0.78,
+  "best_fra_q8": 0.9133333333333333,
+  "best_grc_f16": 1.0,
+  "best_grc_f32": 1.0,
+  "best_grc_q4": 0.0,
+  "best_grc_q6": 0.4866666666666667,
+  "best_grc_q8": 0.76,
+  "fast_eng_int8": 0.5933333333333334,
+  "fast_fra_int8": 0.49333333333333335,
+  "fast_grc_int8": 0.68
+ },
+ "mac": {
+  "lines": 343,
+  "best_gpu_ms_r1": 223.5,
+  "best_gpu_ms": 176.39999997615814,
+  "fast_gpu_ms": 152.89999997615814,
+  "best_parity_beam": "343/343",
+  "fast_parity_beam": "339/343",
+  "best_beam_decode_ms_r2": 1339.1000000238419,
+  "best_stages_ms": {
+   "1": 38.89999997615814,
+   "2": 49.80000001192093,
+   "3": 71.5,
+   "4": 104.30000001192093,
+   "5": 154.80000001192093,
+   "6": 204
+  }
+ },
+ "t4": {
+  "best_exact_b4096": 214.1,
+  "best_cudnn_b4096": 288.5,
+  "fast_exact_b4096": 216.5,
+  "fast_cudnn_b4096": 277.2
+ },
+ "t4_parity": {
+  "best": {
+   "max_dp": 4.640318194970572e-06,
+   "argmax_lines": 24
+  },
+  "fast": {
+   "max_dp": 3.5762786865234375e-07,
+   "argmax_lines": 24
+  }
+ },
+ "flops": {
+  "best_eng_x3_share": 0.731,
+  "best_eng_seq_share": 0.811,
+  "fast_eng_vs_best": 0.317
+ },
+ "torch_cpu": {
+  "exact_b64": 24.345556925252314,
+  "exact_b256": 21.97454684153433,
+  "cudnn_b64": 66.96304501671247,
+  "cudnn_b256": 114.4679125043378
+ }
+}
