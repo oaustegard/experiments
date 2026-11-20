@@ -4124,6 +4124,14 @@ Lessons from measuring Jev as a completion judge on 158 worker attempts (`tempor
 - **Naming banned phrases in a drafter's context did not prime them in Opus 5.5 at effort low.** Drafts written with the voice signature and declauding (every tell named) had 4.88 lint hits per 1,000 words; drafts from a brief with none named had 5.34, CI on the difference [-1.60, +2.93] over 12 tasks × 4 drafts. The caps-emphasis rebound (+2.5 log-odds for a named word on a 321M model) does not transfer to stylistic tells at this resolution. Do not budget a tic reduction from stripping prohibitions out of a writer prompt; a do-because brief bought a small focus gain instead. (`positive-writer-brief/RESULTS.md`)
 - **A cross-family judge panel shows self-preference worth about half a point on a 7-point scale.** In `gemini-drafter`, Opus and Sonnet judges and a `gemini-4-carbon` judge rated the same shuffled, unlabelled Opus and Gemini drafts in identical prompts. The Gemini judge favoured Gemini's drafts by +0.43 on register and +0.70 on focus more than the Claude judges did. A model-versus-model comparison judged by one family alone carries that bias in a known direction. Use judges from both families and report the gap, or treat a single family's verdict as one-sided. Swapping the drafter to Gemini 4 Carbon did not improve register (+0.03 under Claude judges), so do not expect a different vendor's drafter to remove the stock constructions an editor pass catches. (`gemini-drafter/RESULTS.md`)
 
+### Score a feature probe against the free tool first: EG2 reads letters, Tesseract reads them 6x better (eg2-ocr-probe)
+
+A CTC probe on EmbeddingGemma 2's frozen vision encoder passed its pre-set bar (1.53% CER on synthetic printed
+lines, against 73.87% for random weights), and still lost to Tesseract 5 at 0.26% on the identical lines with no
+training. The probe's bar was set against the random control; the decision needed the baseline. Run the existing
+free tool on the probe's evaluation set first: it costs a minute of CPU and can make the probe unnecessary.
+(`eg2-ocr-probe/baselines.py`)
+
 ### OpenEvolve's hexagon-packing evaluator accepts a 1e-9 outer hexagon (haiku-swarm-poc)
 
 `examples/alphaevolve_math_problems/hexagon_packing` tests containment with an absolute 1e-6 tolerance on an

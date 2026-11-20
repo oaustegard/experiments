@@ -7,44 +7,47 @@ on one.
 
 ## Answer
 
-Yes, at this resolution. The encoder keeps letter-level detail. Pooling its 16 px patches into the 48 px image
-tokens a language model receives (each token averages 3 x 3 patches) loses much of it.
+The encoder can read, but not well enough to be worth building on for printed text. Tesseract already reads these
+lines about six times better.
 
 A small reader, a BiLSTM trained with CTC loss (the standard way to read characters off image columns), was
-trained on the frozen encoder's output for synthetic printed text lines. On the 16 px patches its
-character error rate (CER) was 1.53% on unseen text in the 9 training fonts <!-- @evidence[[results/result_pretrained.json#seen_fonts.prepool.cer]] -->,
-and 2.17% in a font it never saw <!-- @evidence[[results/result_pretrained.json#heldout_font.prepool.cer]] -->.
-The bar set before the run was 3% or less in the training fonts. With random encoder weights the same reader got
-73.87% wrong <!-- @evidence[[results/result_random.json#seen_fonts.prepool.cer]] -->,
-so the reading comes from the trained weights.
+trained on the frozen encoder's output for synthetic printed text lines. On its 16 px patches the character error
+rate (CER) was 1.53% on unseen text in the 9 training fonts <!-- @evidence[[results/result_pretrained.json#seen_fonts.prepool.cer]] -->.
+With random encoder weights the same reader got 73.87% wrong <!-- @evidence[[results/result_random.json#seen_fonts.prepool.cer]] -->,
+so the encoder does keep letters. On the 48 px tokens a language model would receive (each averages 3 x 3
+patches) the CER was 8.07% <!-- @evidence[[results/result_pretrained.json#seen_fonts.pooled.cer]] -->.
 
-On the pooled 48 px tokens the error rate was 8.07% <!-- @evidence[[results/result_pretrained.json#seen_fonts.pooled.cer]] -->,
-about five times worse. An OCR model on this encoder should feed its decoder unpooled patches; a larger token
-budget might also work, untested.
+On the identical lines, Tesseract 5 (Apache-2.0, a model of a few MB, CPU) scored 0.26% <!-- @evidence[[results/baselines.json#tesseract.seen_fonts.cer]] -->,
+with no training. A 167M-parameter encoder plus a decoder still to be built would have to close a sixfold gap
+just to match a free tool.
 
-What would change this: real scans, and pages at the default budget of 280 image tokens. These lines used 22–30
-px fonts, roughly body text on a page at the 1,120-token maximum; at 280 tokens letters would be about half that.
-One run, one seed.
+What would change this: inputs where Tesseract fails (photos, degraded scans, handwriting) and the encoder holds
+up. Neither side was tested on those, and stronger models such as Indra and MinerU already exist there.
 
 ## Findings
 
-1. The frozen encoder's 16 px patch features read printed lines at 1.53% character error rate (CER) on unseen
+1. Tesseract 5.3.4 (`--psm 7`, English LSTM model) reads the same 2,000 evaluation lines at 0.26% CER,
+   93.65% of lines exactly right <!-- @evidence[[results/baselines.json#tesseract.seen_fonts.exact]] -->, and the held-out font at 0.13% <!-- @evidence[[results/baselines.json#tesseract.heldout_font.cer]] -->,
+   about six times fewer errors than the best EG2 reader, at about 0.1 s a line per CPU core. PaddleOCR's
+   PP-OCRv3 recognizer (its Chinese model, which drops many English spaces) scores 3.09% <!-- @evidence[[results/baselines.json#ppocr_v3.seen_fonts.cer]] -->.
+   (`baselines.py`, `results/baselines.json`)
+2. The frozen encoder's 16 px patch features read printed lines at 1.53% character error rate (CER) on unseen
    text in seen fonts, 65.05% of lines exactly right <!-- @evidence[[results/result_pretrained.json#seen_fonts.prepool.exact]] -->,
    and 2.17% CER in an unseen font. (`results/result_pretrained.json`)
-2. The random-weight control reaches 73.87% CER and gets no line exactly right, so the head alone cannot read
+3. The random-weight control reaches 73.87% CER and gets no line exactly right, so the head alone cannot read
    these features. (`results/result_random.json`)
-3. The 3x3-pooled 48 px tokens cost a factor of about five: 8.07% CER in seen fonts and 11.17% <!-- @evidence[[results/result_pretrained.json#heldout_font.pooled.cer]] -->
+4. The 3x3-pooled 48 px tokens cost a factor of about five: 8.07% CER in seen fonts and 11.17% <!-- @evidence[[results/result_pretrained.json#heldout_font.pooled.cer]] -->
    in the unseen font. (`results/result_pretrained.json`)
-4. The pretrained error curve was still falling at 3,000 steps, from 6.13% <!-- @evidence[[results/result_pretrained.json#curve.0.prepool]] -->
+5. The pretrained error curve was still falling at 3,000 steps, from 6.13% <!-- @evidence[[results/result_pretrained.json#curve.0.prepool]] -->
    at step 500 to 1.42% <!-- @evidence[[results/result_pretrained.json#curve.4.prepool]] --> at step 2,500, so these
    are probably not this head's floor (the curve points use the first 400 evaluation lines; the final numbers use
    all 2,000, which is why step 3,000 reads 1.53% after 1.42% at 2,500). Several errors in the sample output are
    doubled letters (`modifiied`, `leastt`), which suggests some of the remaining error is in CTC decoding, not in
    the features; this was not counted.
-5. A 300-step run is too short to say anything: both variants sat on CTC's all-blank plateau at 100% CER <!-- @evidence[[results-short/result_pretrained.json#curve.5.prepool]] -->.
+6. A 300-step run is too short to say anything: both variants sat on CTC's all-blank plateau at 100% CER <!-- @evidence[[results-short/result_pretrained.json#curve.5.prepool]] -->.
    By step 500 the long run was already at 6.13% CER, so the plateau ends somewhere between 300 and 500 steps; a
    quick version of this test should run about 1,000 steps. (`results-short/`)
-6. `Gemma4ImageProcessor` resizes every image up to fill its soft-token budget. A 768x48 line becomes 198x12
+7. `Gemma4ImageProcessor` resizes every image up to fill its soft-token budget. A 768x48 line becomes 198x12
    patches at the 280-token default. To control resolution, patchify by hand; `probe.py` `patchify()` matches the
    processor's `do_resize=False` path. (`probe.py` `verify_patchify`)
 
@@ -70,6 +73,22 @@ One run, one seed.
   probably because both processes rendered their training lines on the same 4 CPUs; this was not profiled.
 
 ## Log
+
+### 2026-11-20 — baselines on the same lines (`baselines.py`)
+
+Asked: with the first goal of deciding whether more effort is worth it, take the least-effort next step. The
+cheapest decider was whether existing free engines already beat the probe on its own evaluation lines; if they
+do, an EG2-based OCR model has nothing to win on printed text. `baselines.py` regenerates the evaluation sets
+(the first 12 texts match the Kaggle run's, 12 of 12) and runs each engine on CPU, 4 processes.
+
+| engine | seen fonts CER | held-out font CER | exact lines (seen) | wall-clock, 2,000 lines |
+|---|---|---|---|---|
+| Tesseract 5.3.4, `--psm 7` | 0.26% | 0.13% | 93.65% | 58 s |
+| PP-OCRv3 rec (rapidocr, Chinese model) | 3.09% | 4.31% | 60.4% | 159 s |
+| EG2 encoder + BiLSTM CTC, 16 px patches | 1.53% | 2.17% | 65.05% | (GPU) |
+
+Reading at the time: stop. The decision rule from the first round passed, but against the wrong comparison;
+clean synthetic printed lines are Tesseract's best case, and the probe was the only remaining argument for EG2.
 
 ### 2026-11-20 — first run, 3,000 steps (`austegard/eg2-ocr-probe` v1)
 
