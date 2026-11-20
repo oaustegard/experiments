@@ -1,0 +1,82 @@
+{
+ "labels": "data/real/labels.jsonl",
+ "tesseract": "tesseract 5.3.4",
+ "psm": 7,
+ "oem": 1,
+ "jobs": 2,
+ "n_images": 800,
+ "rows": [
+  {
+   "lang": "eng",
+   "cond": "real",
+   "set": "funsd",
+   "model": "best",
+   "n": 400,
+   "n_failed": 0,
+   "mean_cer": 0.13574,
+   "median_cer": 0.0,
+   "exact_line_rate": 0.5175,
+   "sec_per_line": 0.1334
+  },
+  {
+   "lang": "eng",
+   "cond": "real",
+   "set": "sroie",
+   "model": "best",
+   "n": 400,
+   "n_failed": 0,
+   "mean_cer": 0.28366,
+   "median_cer": 0.08221,
+   "exact_line_rate": 0.4325,
+   "sec_per_line": 0.1323
+  },
+  {
+   "lang": "eng",
+   "cond": "real",
+   "set": "funsd",
+   "model": "fast",
+   "n": 400,
+   "n_failed": 0,
+   "mean_cer": 0.14024,
+   "median_cer": 0.03848,
+   "exact_line_rate": 0.4625,
+   "sec_per_line": 0.0849
+  },
+  {
+   "lang": "eng",
+   "cond": "real",
+   "set": "sroie",
+   "model": "fast",
+   "n": 400,
+   "n_failed": 0,
+   "mean_cer": 0.28239,
+   "median_cer": 0.07846,
+   "exact_line_rate": 0.4325,
+   "sec_per_line": 0.0893
+  }
+ ],
+ "overall": [
+  {
+   "model": "best",
+   "lang": "all",
+   "cond": "all",
+   "n": 800,
+   "n_failed": 0,
+   "mean_cer": 0.2097,
+   "median_cer": 0.03923,
+   "exact_line_rate": 0.475,
+   "sec_per_line": 0.1328
+  },
+  {
+   "model": "fast",
+   "lang": "all",
+   "cond": "all",
+   "n": 800,
+   "n_failed": 0,
+   "mean_cer": 0.21131,
+   "median_cer": 0.0531,
+   "exact_line_rate": 0.4475,
+   "sec_per_line": 0.0871
+  }
+ ]
+}
