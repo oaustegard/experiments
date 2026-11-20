@@ -242,3 +242,37 @@ script with 20 or more tests. Math tests are lost by both (2.4% and 1.6%): Tesse
 
 The published Indra row tells the same story: 177 rescues, 3% of its failures. No GPU port of Tesseract is warranted
 by this; a Tesseract fallback stays an option only for browsers without WebGPU.
+
+### Round 5 (2026-11-19): math as LaTeX, fetched only for pages with math
+
+Asked (Oskar): add Indra's math path to the WebGPU port and load it lazily in anything-to-text
+(issue [#114](https://github.com/oaustegard/experiments/issues/114)).
+
+indra-ocr with `math=True` runs a line classifier (`mathcls`, a small conv net on the recognizer's 32-pixel crops) and
+reads each flagged line again with an encoder-decoder from a 64-pixel crop. The encoder is three stride-2 convs with
+GELU, a fold of the remaining 8 rows, six blocks like the recognizer's, and two attention layers whose scores fall off
+with distance (ALiBi). The decoder is a 3-layer transformer that writes one LaTeX token per step. A reading replaces the
+line only if it holds `$` and its mean token probability is at least 0.9. `web/math.js` ports both nets to WGSL, with the
+decoder's keys and values cached on the GPU, 16 greedy steps per pass, and math.py's stopping rules on the CPU.
+Against ONNX Runtime on real crops (`web/test/check_math.mjs`, fixtures from `run/make_math_fixtures.py`), every output
+is within 1.4e-5 (1e-6 of its range), and the greedy tokens of 24 steps × 8 lines are identical.
+
+**Pack.** `run/export.py --math f16` writes `mathcls.bin` (0.08 MB gzipped) and `math.bin` (8.01 MB gzipped) under the
+manifest's `math` key; the core files are unchanged. 8-bit math (4.43 MB) did not hold. With the mix8 core on all 550 math
+pages, fp16 math gives the same markdown as fp32 math on 531 pages and the same reading on 9,298 of 9,314 replaced lines;
+8-bit gives 330 pages and 9,026 lines. <!-- @evidence[[results/math_arms.json]] -->
+
+**Score.** OmniParseBench 1.6.0, all 2,937 pages, mix8 core: math off 61.41, math on 67.80 (text 40.33 to 60.47; tables
+52.41 to 51.58; layout 91.47 to 91.34). The `olmo_arxiv_math` suite goes from 14.2 to 66.1; old scanned math stays near
+13. <!-- @evidence[[results/opb_math.json]] -->
+
+**Parity.** `MATH=auto node web/test/check_pages.mjs` against `run/ref_pages.py --math` on the same weights:
+with the shipped pack (2-bit word-model values) the markdown matched on 10 of 24 olmo_arxiv_math pages. The mismatches
+checked so far are recognizer lines re-read by the word model, whose values the Python arm keeps in float32. The run with
+a float32 word-model pack, as in Round 3, is in progress.
+
+**Lazy loading.** `Indra.load(base, {math})` takes `off`, `auto` or `on`. On auto the classifier comes with the first page and
+`math.bin` only when it flags a line. In a headless trace of anything-to-text (`web/test/a2t_math_trace.mjs`) a text-only
+page fetched `mathcls.bin` and no `math.bin`; a math page then fetched `math.bin` once and showed 9 LaTeX spans.
+<!-- @evidence[[results/a2t_math_trace.json]] --> anything-to-text has a Math select (Auto by default); the demo page reads
+on auto (`?math=on|off`). PDF pages that anything-to-text takes from their text layer are not OCRed and get no LaTeX.
