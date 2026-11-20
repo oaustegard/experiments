@@ -6,5 +6,21 @@
  "fast_eng_ms_total": 4831,
  "lines": 343,
  "best_eng_ms_per_line": 68.5,
- "fast_eng_ms_per_line": 14.1
+ "fast_eng_ms_per_line": 14.1,
+ "quiet_rerun": {
+  "date": "2026-11-20",
+  "host": "same 4-vCPU container (Intel Xeon @ 2.10GHz), load average under 0.6, two runs",
+  "best_eng_ms_total": [
+   21301,
+   19952
+  ],
+  "fast_eng_ms_total": [
+   6448,
+   5478
+  ],
+  "lines": 343,
+  "best_eng_ms_per_line": 60.1,
+  "fast_eng_ms_per_line": 17.4,
+  "note": "includes writing each line's softmax dump to disk; model loaded once"
+ }
 }

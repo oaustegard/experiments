@@ -5950,3 +5950,27 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   regardless of correctness, so a confidence pick scores −0.06. Averaging per-timestep posteriors over crop variants
   with fixed boxes is neutral (−0.03). Confidence is not comparable across input perturbations; budget a trained
   selector before counting on any oracle from multiple passes or multiple engines. (`indra-browser/RESULTS.md` Round 6)
+- **A line recognizer that scales to a fixed height needs a tight crop.** Tesseract's eng network sees 36 px; a line
+  crop with generous margins reaches it with smaller text. Cropping to the ink (flat-fielded pixels under 128, 4 px
+  pad) took eng best from 1.06% to 0.28% CER on clean synthetic lines and shaded ones from 1.48% to 0.52% with
+  flat-fielding (`tessgpu/lineprep.py`, `results/crop_check.json`). Check how a benchmark's crops were cut before
+  comparing recognizers on it.
+- **Tesseract's failures on uneven lighting are in its binarized layout, not its recognizer.** The CLI (`--psm 7`)
+  returned empty text on 13 of 300 shaded lines because its blob finding works on a thresholded page; the LSTM reads
+  greyscale (`Tesseract::BestPix()` prefers the original image). (`results/flatfield_check.json`)
+- **nielsr/funsd (the parquet FUNSD on the Hub) stores boxes scaled to 0-1000 on both axes**, LayoutLM style; x
+  reaches 931 on 754-px-wide pages. Used as pixels they crop the wrong text; multiply by width/1000 and height/1000.
+  (`tesseract-gpu/run/make_real.py`)
+- **SROIE's line transcriptions are uppercase even where the receipt prints lowercase.** Score it case-insensitively,
+  and filter before training on it: a third of the lines from receipts 30 onward had an all-caps label over lowercase
+  print by the stock model's reading. (`tesseract-gpu/run/ft/sroie_train.py`)
+- **Tesseract's LSTM word lists are worth porting with the beam search.** The dictionary path of `RecodeBeamSearch`
+  (punc, word and number dawgs; constants 2.25, -0.085, -25/7) matches Tesseract's dict-on ids on 2,972/2,972 lines
+  and lowers CER on every set (real scans 13.04% to 12.26%), at about 1.6x the decode time; its losses are mostly
+  apostrophe style. (`tesseract-gpu/tessgpu/beam_dict.py`, `results/beam_dict.json`)
+- **To fine-tune a tessdata_best model outside Tesseract's trainer, patch the weights in place.** Record each float64
+  matrix's byte offset while parsing the lstm component and write original + (trained - initial) back at the same
+  offsets: an untrained export is byte-identical, and stock Tesseract loads the result. The CTC blank is the model's
+  `null_char`; targets are the recoder's codes for each unichar. (`tesseract-gpu/tessgpu/tessnet.py`)
+- **Training a 1.4M-parameter LSTM OCR network on 4 shared CPUs ran at 39 s a step (batch 24)**; move it to a GPU
+  before the first real run. (`tesseract-gpu/run/ft/`)
