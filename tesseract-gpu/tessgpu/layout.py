@@ -392,9 +392,174 @@ def _rows(ids, yd, boxes):
     return out
 
 
+# ---------------------------------------------------------------- step 3b: column bands
+#
+# order='bands' (second ordering mode; XY-cut stays the default). Ported from the
+# anything-to-text reader in oaustegard.github.io (anything-to-text.html: lineify,
+# detectColumnCuts, orderByColumns). Its items are the line boxes from step 2, one box each.
+# web/layout.js carries the same functions line for line.
+
+BAND_BINS = 120   # x-bins for the occupancy projection
+BAND_RANK = 12    # the peak is the 13th largest bin count, i.e. floor(BAND_BINS * 0.1)
+
+
+def _median_h(ids, boxes):
+    heights = sorted(h for h in (boxes[i][3] - boxes[i][1] for i in ids) if h > 0)
+    return heights[len(heights) // 2] if heights else 12
+
+
+def _lineify(ids, boxes):
+    """Group items into lines by vertical proximity.
+
+    Items are visited top to bottom; each joins the first existing line whose top is within
+    tol = max(4, 0.6 * median height of the group). Returns lines top to bottom, each a list of
+    item ids sorted left to right.
+    """
+    if not ids:
+        return []
+    tol = max(4, _median_h(ids, boxes) * 0.6)
+    lines = []  # [top y, members]
+    for i in sorted(ids, key=lambda i: boxes[i][1]):
+        y = boxes[i][1]
+        line = None
+        for L in lines:
+            if abs(L[0] - y) <= tol:
+                line = L
+                break
+        if line is None:
+            line = [y, []]
+            lines.append(line)
+        line[1].append(i)
+    lines.sort(key=lambda L: L[0])
+    return [sorted(L[1], key=lambda i: boxes[i][0]) for L in lines]
+
+
+def _detect_column_cuts(ids, boxes):
+    """Column gutters from a 2-D occupancy projection (anything-to-text detectColumnCuts).
+
+    The content box is tiled into BAND_BINS x-bins and ROWS y-rows; a bin's count is the number
+    of rows that hold any item. A gutter is a run of bins at or below 25% of the peak count,
+    at least 2 bins wide, with a bin at or above 50% of the peak on both sides. At most 3 cuts.
+    Returns [] for fewer than 12 items or no gutter.
+    """
+    if len(ids) < 12:
+        return []
+    minX = min(boxes[i][0] for i in ids)
+    maxX = max(boxes[i][2] for i in ids)
+    minY = min(boxes[i][1] for i in ids)
+    maxY = max(boxes[i][3] for i in ids)
+    spanX = maxX - minX
+    spanY = maxY - minY
+    if spanX <= 0 or spanY <= 0:
+        return []
+    BINS = BAND_BINS
+    binW = spanX / BINS
+    ROWS = max(8, min(240, _rnd(spanY / max(4, _median_h(ids, boxes)))))
+    rowH = spanY / ROWS
+    occ = [bytearray(ROWS) for _ in range(BINS)]
+    for i in ids:
+        x0 = max(0, math.floor((boxes[i][0] - minX) / binW))
+        x1 = min(BINS - 1, math.floor((boxes[i][2] - minX) / binW))
+        y0 = max(0, math.floor((boxes[i][1] - minY) / rowH))
+        y1 = min(ROWS - 1, math.floor((boxes[i][3] - minY) / rowH))
+        for b in range(x0, x1 + 1):
+            for rr in range(y0, y1 + 1):
+                occ[b][rr] = 1
+    rowCount = [sum(col) for col in occ]
+    pk = sorted(rowCount, reverse=True)[BAND_RANK]
+    peak = pk if pk else 1
+    thresh = max(1, peak * 0.25)
+    hi = peak * 0.5
+    minRun = max(2, _rnd(BINS * 0.015))
+    runs = []
+    run = None
+    for i in range(BINS):
+        if rowCount[i] <= thresh:
+            if run is None:
+                run = [i, i]
+            else:
+                run[1] = i
+        elif run is not None:
+            runs.append(run)
+            run = None
+    if run is not None:
+        runs.append(run)
+    cuts = []
+    for s, e in runs:
+        if e - s + 1 < minRun:
+            continue
+        if not any(v >= hi for v in rowCount[:s]):
+            continue
+        if not any(v >= hi for v in rowCount[e + 1:]):
+            continue
+        cuts.append(minX + ((s + e + 1) / 2) * binW)
+    return cuts[:3]
+
+
+def _order_bands(ids, boxes):
+    """Column-aware order over line boxes (anything-to-text orderByColumns).
+
+    Returns (bands, cuts). A band is a list of (line, column): line is a list of item ids (one
+    visual line, left to right), column is the gutter column index. An item that straddles a
+    gutter is a full-width band of its own, column -1. Between full-width items the page is
+    emitted one column at a time, left to right, each column top to bottom. Band numbers are
+    positions in the returned list. With no cuts there is one band, column 0.
+    """
+    cuts = _detect_column_cuts(ids, boxes)
+    if not cuts:
+        groups = _lineify(ids, boxes)
+        return ([[(g, 0) for g in groups]] if groups else []), cuts
+
+    def cx(i):
+        return boxes[i][0] + (boxes[i][2] - boxes[i][0]) / 2
+
+    def cy(i):
+        return boxes[i][1] + (boxes[i][3] - boxes[i][1]) / 2
+
+    def spans(i):
+        return any(boxes[i][0] < c - 1 and boxes[i][2] > c + 1 for c in cuts)
+
+    def col_of(i):
+        k = 0
+        while k < len(cuts) and cx(i) >= cuts[k]:
+            k += 1
+        return k
+
+    full = sorted((i for i in ids if spans(i)), key=cy)
+    col_ids = [i for i in ids if not spans(i)]
+    bands = []
+
+    def stripe(y_top, y_bot):
+        cells = []
+        for ci in range(len(cuts) + 1):
+            g = [i for i in col_ids if col_of(i) == ci and y_top <= cy(i) < y_bot]
+            for line in _lineify(g, boxes):
+                cells.append((line, ci))
+        if cells:
+            bands.append(cells)
+
+    prev = -math.inf
+    for f in full:
+        stripe(prev, cy(f))
+        bands.append([([f], -1)])
+        prev = cy(f)
+    stripe(prev, math.inf)
+    return bands, cuts
+
+
 # ---------------------------------------------------------------- driver
 
-def layout(prob, scale_x, scale_y, page_w, page_h, **overrides):
+ORDERS = ('xycut', 'bands')
+
+
+def layout(prob, scale_x, scale_y, page_w, page_h, order='xycut', **overrides):
+    """order='xycut' (default, recursive XY-cut) or 'bands' (column-aware, see _order_bands).
+
+    With order='bands' each line also carries 'band' and 'column', the result carries 'cuts',
+    and 'blocks' lists the ids of each band in reading order. 'block' is then the band index.
+    """
+    if order not in ORDERS:
+        raise ValueError("order must be one of %r, got %r" % (ORDERS, order))
     opt = dict(DEFAULTS)
     opt.update(overrides)
     p = np.asarray(prob, dtype=np.float64)
@@ -437,29 +602,48 @@ def layout(prob, scale_x, scale_y, page_w, page_h, **overrides):
     mh = _median([_dist(L['quad'][1], L['quad'][2]) for L in lines]) if n else 0.0
     yd = [((b[1] + b[3]) / 2) - skew * ((b[0] + b[2]) / 2) for b in boxes]
 
-    blocks = []
-    if n:
-        _xycut(list(range(n)), boxes, mh, opt, blocks)
-    order = []
-    block_of = [0] * n
-    for bi, b in enumerate(blocks):
-        for i in _rows(b, yd, boxes):
-            block_of[i] = bi
-            order.append(i)
+    band_of = [0] * n
+    col_of = [0] * n
+    cuts = None
+    if order == 'bands':
+        bands, cuts = _order_bands(list(range(n)), boxes)
+        blocks = [[i for line, _ in band for i in line] for band in bands]
+        seq = [i for block in blocks for i in block]
+        block_of = [0] * n
+        for bi, band in enumerate(bands):
+            for line, ci in band:
+                for i in line:
+                    block_of[i] = bi
+                    band_of[i] = bi
+                    col_of[i] = ci
+    else:
+        blocks = []
+        if n:
+            _xycut(list(range(n)), boxes, mh, opt, blocks)
+        seq = []
+        block_of = [0] * n
+        for bi, b in enumerate(blocks):
+            for i in _rows(b, yd, boxes):
+                block_of[i] = bi
+                seq.append(i)
 
     out_lines = []
     for i, L in enumerate(lines):
-        out_lines.append({
+        line = {
             'id': i,
             'box': L['box'],
             'quad': [[round2(x), round2(y)] for x, y in L['quad']],
             'score': round4(L['score']),
             'block': block_of[i],
-        })
-    return {
+        }
+        if cuts is not None:
+            line['band'] = band_of[i]
+            line['column'] = col_of[i]
+        out_lines.append(line)
+    result = {
         'page': {'w': page_w, 'h': page_h},
         'lines': out_lines,
-        'order': order,
+        'order': seq,
         'blocks': blocks,
         'skew': round6(skew),
         'median_h': mh,
@@ -467,6 +651,9 @@ def layout(prob, scale_x, scale_y, page_w, page_h, **overrides):
         'n_pieces': len(pieces),
         'n_db_boxes': n_db,
     }
+    if cuts is not None:
+        result['cuts'] = cuts
+    return result
 
 
 def round2(v):

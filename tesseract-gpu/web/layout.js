@@ -396,8 +396,132 @@
   function round2(v) { return Math.floor(v * 100 + 0.5) / 100; }
   function round4(v) { return Math.floor(v * 10000 + 0.5) / 10000; }
   function round6(v) { return Math.floor(v * 1000000 + 0.5) / 1000000; }
+  function rnd(v) { return Math.floor(v + 0.5); }
+
+  // ---- step 3b: column bands (order: 'bands'). Ported from the anything-to-text reader in
+  // oaustegard.github.io (anything-to-text.html: lineify, detectColumnCuts, orderByColumns).
+  // Line-for-line with tessgpu/layout.py; the Python file has the same comments.
+  const BAND_BINS = 120;
+  const BAND_RANK = 12;
+
+  function medianH(ids, boxes) {
+    const hs = ids.map((i) => boxes[i][3] - boxes[i][1]).filter((h) => h > 0).sort((a, b) => a - b);
+    return hs.length ? hs[Math.floor(hs.length / 2)] : 12;
+  }
+
+  function lineify(ids, boxes) {
+    if (!ids.length) return [];
+    const tol = Math.max(4, medianH(ids, boxes) * 0.6);
+    const byY = ids.slice().sort((a, b) => boxes[a][1] - boxes[b][1]);
+    const lines = []; // [top y, members]
+    for (const i of byY) {
+      const y = boxes[i][1];
+      let line = null;
+      for (const L of lines) {
+        if (Math.abs(L[0] - y) <= tol) { line = L; break; }
+      }
+      if (line === null) { line = [y, []]; lines.push(line); }
+      line[1].push(i);
+    }
+    lines.sort((a, b) => a[0] - b[0]);
+    return lines.map((L) => L[1].slice().sort((a, b) => boxes[a][0] - boxes[b][0]));
+  }
+
+  function detectColumnCuts(ids, boxes) {
+    if (ids.length < 12) return [];
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const i of ids) {
+      const b = boxes[i];
+      if (b[0] < minX) minX = b[0];
+      if (b[2] > maxX) maxX = b[2];
+      if (b[1] < minY) minY = b[1];
+      if (b[3] > maxY) maxY = b[3];
+    }
+    const spanX = maxX - minX, spanY = maxY - minY;
+    if (spanX <= 0 || spanY <= 0) return [];
+    const BINS = BAND_BINS;
+    const binW = spanX / BINS;
+    const ROWS = Math.max(8, Math.min(240, rnd(spanY / Math.max(4, medianH(ids, boxes)))));
+    const rowH = spanY / ROWS;
+    const occ = [];
+    for (let b = 0; b < BINS; b++) occ.push(new Uint8Array(ROWS));
+    for (const i of ids) {
+      const bx = boxes[i];
+      const x0 = Math.max(0, Math.floor((bx[0] - minX) / binW));
+      const x1 = Math.min(BINS - 1, Math.floor((bx[2] - minX) / binW));
+      const y0 = Math.max(0, Math.floor((bx[1] - minY) / rowH));
+      const y1 = Math.min(ROWS - 1, Math.floor((bx[3] - minY) / rowH));
+      for (let b = x0; b <= x1; b++) {
+        for (let rr = y0; rr <= y1; rr++) occ[b][rr] = 1;
+      }
+    }
+    const rowCount = occ.map((col) => col.reduce((s, v) => s + v, 0));
+    const peak = rowCount.slice().sort((a, b) => b - a)[BAND_RANK] || 1;
+    const thresh = Math.max(1, peak * 0.25);
+    const hi = peak * 0.5;
+    const minRun = Math.max(2, rnd(BINS * 0.015));
+    const runs = [];
+    let run = null;
+    for (let i = 0; i < BINS; i++) {
+      if (rowCount[i] <= thresh) {
+        if (run === null) run = [i, i];
+        else run[1] = i;
+      } else if (run !== null) {
+        runs.push(run);
+        run = null;
+      }
+    }
+    if (run !== null) runs.push(run);
+    const cuts = [];
+    for (const [s, e] of runs) {
+      if (e - s + 1 < minRun) continue;
+      if (!rowCount.slice(0, s).some((v) => v >= hi)) continue;
+      if (!rowCount.slice(e + 1).some((v) => v >= hi)) continue;
+      cuts.push(minX + ((s + e + 1) / 2) * binW);
+    }
+    return cuts.slice(0, 3);
+  }
+
+  function orderBands(ids, boxes) {
+    const cuts = detectColumnCuts(ids, boxes);
+    if (!cuts.length) {
+      const groups = lineify(ids, boxes);
+      return { bands: groups.length ? [groups.map((g) => [g, 0])] : [], cuts };
+    }
+    const cx = (i) => boxes[i][0] + (boxes[i][2] - boxes[i][0]) / 2;
+    const cy = (i) => boxes[i][1] + (boxes[i][3] - boxes[i][1]) / 2;
+    const spans = (i) => cuts.some((c) => boxes[i][0] < c - 1 && boxes[i][2] > c + 1);
+    const colOf = (i) => {
+      let k = 0;
+      while (k < cuts.length && cx(i) >= cuts[k]) k += 1;
+      return k;
+    };
+    const full = ids.filter((i) => spans(i)).sort((a, b) => cy(a) - cy(b));
+    const colIds = ids.filter((i) => !spans(i));
+    const bands = [];
+    const stripe = (yTop, yBot) => {
+      const cells = [];
+      for (let ci = 0; ci <= cuts.length; ci++) {
+        const g = colIds.filter((i) => colOf(i) === ci && cy(i) >= yTop && cy(i) < yBot);
+        for (const line of lineify(g, boxes)) cells.push([line, ci]);
+      }
+      if (cells.length) bands.push(cells);
+    };
+    let prev = -Infinity;
+    for (const f of full) {
+      stripe(prev, cy(f));
+      bands.push([[[f], -1]]);
+      prev = cy(f);
+    }
+    stripe(prev, Infinity);
+    return { bands, cuts };
+  }
+
+  const ORDERS = ['xycut', 'bands'];
 
   function layout(prob, H, W, scaleX, scaleY, pageW, pageH, overrides) {
+    const mode = overrides && 'order' in overrides ? overrides.order : 'xycut';
+    if (ORDERS.indexOf(mode) < 0) throw new Error('order must be one of ' + ORDERS.join(', ') + ', got ' + mode);
     const opt = Object.assign({}, DEFAULTS, overrides || {});
     if (prob.length !== H * W) throw new Error('prob must have length H*W');
     const q = new Float64Array(H * W);
@@ -440,28 +564,56 @@
     const mh = n ? median(lines.map((L) => dist(L.quad[1], L.quad[2]))) : 0.0;
     const yd = boxes.map((b) => ((b[1] + b[3]) / 2) - skew * ((b[0] + b[2]) / 2));
 
-    const blocks = [];
-    if (n) xycut(Array.from({ length: n }, (_, i) => i), boxes, mh, opt, blocks);
-    const order = [];
-    const blockOf = new Array(n).fill(0);
-    blocks.forEach((b, bi) => {
-      for (const i of rows(b, yd, boxes)) {
-        blockOf[i] = bi;
-        order.push(i);
-      }
-    });
+    const bandOf = new Array(n).fill(0);
+    const colOf = new Array(n).fill(0);
+    let cuts = null;
+    let blocks, seq, blockOf;
+    if (mode === 'bands') {
+      const res = orderBands(Array.from({ length: n }, (_, i) => i), boxes);
+      cuts = res.cuts;
+      blocks = res.bands.map((band) => [].concat(...band.map(([line]) => line)));
+      seq = [].concat(...blocks);
+      blockOf = new Array(n).fill(0);
+      res.bands.forEach((band, bi) => {
+        for (const [line, ci] of band) {
+          for (const i of line) {
+            blockOf[i] = bi;
+            bandOf[i] = bi;
+            colOf[i] = ci;
+          }
+        }
+      });
+    } else {
+      blocks = [];
+      if (n) xycut(Array.from({ length: n }, (_, i) => i), boxes, mh, opt, blocks);
+      seq = [];
+      blockOf = new Array(n).fill(0);
+      blocks.forEach((b, bi) => {
+        for (const i of rows(b, yd, boxes)) {
+          blockOf[i] = bi;
+          seq.push(i);
+        }
+      });
+    }
 
-    const outLines = lines.map((L, i) => ({
-      id: i,
-      box: L.box,
-      quad: L.quad.map(([x, y]) => [round2(x), round2(y)]),
-      score: round4(L.score),
-      block: blockOf[i],
-    }));
-    return {
+    const outLines = lines.map((L, i) => {
+      const line = {
+        id: i,
+        box: L.box,
+        quad: L.quad.map(([x, y]) => [round2(x), round2(y)]),
+        score: round4(L.score),
+        block: blockOf[i],
+      };
+      if (cuts !== null) {
+        line.band = bandOf[i];
+        line.column = colOf[i];
+      }
+      return line;
+    });
+    const result = {
       page: { w: pageW, h: pageH },
       lines: outLines,
-      order,
+      order: seq,
       blocks,
       skew: round6(skew),
       median_h: mh,
@@ -469,6 +621,8 @@
       n_pieces: pieces.length,
       n_db_boxes: nDb,
     };
+    if (cuts !== null) result.cuts = cuts;
+    return result;
   }
 
   return { layout, DEFAULTS };
