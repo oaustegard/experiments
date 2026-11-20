@@ -283,7 +283,7 @@ on auto (`?math=on|off`). PDF pages that anything-to-text takes from their text 
 
 ### Round 6 (2026-11-20): read the same page several times, perturbed
 
-Question from Oskar, as an alternative to Round 4's second engine: read each page several times with Indra itself,
+Question from Oskar, as an alternative to Round 4's second engine (pairing Indra with Tesseract, a separate OCR engine): read each page several times with Indra itself,
 changing the image slightly each time (contrast, exposure, color), and combine the readings. Indra feeds its
 recognizer `1 − pixel/255` with no per-crop normalization, so a contrast or exposure change does reach the network.
 It reads every page as grayscale, so a color change reaches it only through the gray conversion; the color arm
@@ -314,15 +314,15 @@ many, so Indra's reading of a page changes under small pixel changes in both dir
 (`run/tta_analyze.py`, `results/tta_pages.json`):
 
 - **Ceiling.** If each page took whichever of the 13 readings scores best on it against the ground truth, the
-  headline would be 67.04 (+5.53, CI +4.80 to +6.31), tables 62.01 and text 45.18. Base plus gamma 0.5 alone
-  reaches +2.00, and adding gamma 2 reaches +3.09. Across all three families, 1,087 of the base's 7,821 failing
+  headline would be 67.04 (+5.53, CI +4.80 to +6.31), tables 62.01 and text 45.18. The same per-page oracle
+  over just the base and gamma 0.5 reaches +2.00, and over base, gamma 0.5 and gamma 2 +3.09. Across all three families, 1,087 of the base's 7,821 failing
   tests pass under some arm, but 551 of those
   pass under only one or two of the twelve, so part of the ceiling is lucky flips that no selector could find.
 - **Selecting by confidence.** Indra's recognizer is a CTC network (it emits a probability over characters at each
   horizontal step); a line's confidence is the mean of its peak probabilities. Taking, per page, the reading whose
   lines have the highest confidence (weighted by text length) scores 61.45 (−0.06, CI −0.67 to +0.56). Confidence
   prefers the washed-out arms (contrast 0.6 on 410 of 2,937 pages, gamma 0.5 on 403) whatever they read: the
-  best-per-page ceiling picks the unperturbed reading on 2,417 pages, and the confidence selector on 193. The best pair, base or gamma 0.5 by confidence, gains
+  best-per-page ceiling picks the unperturbed reading on 2,417 pages, and the confidence selector picks it on only 193. The best pair, base or gamma 0.5 by confidence, gains
   +0.41 (CI −0.01 to +0.84).
 - **Averaging probabilities.** `run/rec_tta.py make` adds each recognizer's log-softmax as an output; `--rec-tta`
   reads every line crop under several `perturb.CROP` variants with the boxes fixed, averages the probabilities per
@@ -336,12 +336,12 @@ Against Tesseract on Round 4's 8,499 text tests, the ones Tesseract can attempt 
 second reader passes: Tesseract rescues 186 and gamma 0.5 169 (of its 372 fixes in the table, which count all
 families), contrast 0.6 166. The two kinds of second reader
 fix different tests: gamma 0.5 shares 25 rescues with Tesseract, and 113 of Tesseract's 186 are fixed by none of the
-twelve arms. Taking the better of base and one second reader per test gives a text pass rate of 42.51 with Tesseract and 42.31
-with gamma 0.5; all twelve arms give 46.13, and adding Tesseract 47.46. These are oracles: the combiner that could reach
+twelve arms. As an oracle, taking the better of base and one second reader per test gives a text pass rate of 42.51 with
+Tesseract and 42.31 with gamma 0.5; all twelve arms give 46.13, and adding Tesseract 47.46. These are oracles: the combiner that could reach
 them would need to know which reading is right, and Indra's confidence does not.
 
 Reading: perturbing the page exposes as many recoverable errors as a second engine, more with several perturbations,
 but none of it is reachable with the signals Indra provides. A selector trained on page features or a calibrated
-confidence is the next thing to try; an untrained combiner (confidence choice or posterior average) recovers nothing.
+confidence is the next thing to try; an untrained combiner (confidence choice or probability average) recovers nothing.
 The note was passed to the session porting Tesseract to the GPU (`tesseract-gpu`), since a router between Indra and Tesseract by confidence would hit
 the same wall.

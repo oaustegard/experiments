@@ -5943,9 +5943,9 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   the licence and its use restrictions. (`tesseract-gpu/NOTICE.md`, `indra-browser/NOTICE.md`)
 - **Test-time augmentation of a CTC OCR model: the oracle over perturbations is large and unreachable.** Twelve small
   page perturbations of Indra OCR (gamma, contrast, binarization, stroke width, blur, sharpen, rescale, gray conversion)
-  each fix and break a few hundred OmniParseBench tests; none beats the plain reading beyond noise (best +0.13, CI
+  each run over the whole benchmark (an arm) fixes and breaks a few hundred OmniParseBench pass/fail tests; none beats the plain reading beyond noise (best +0.13, CI
   −0.46 to +0.72). The best reading per page by
-  ground truth is +5.53 headline, but half the fixable tests flip under only one or two arms (luck, not signal). The
+  ground truth is +5.53 on the benchmark headline, but 551 of the 1,087 fixable tests flip under only one or two arms (luck, not signal). The
   model's mean CTC peak probability does not select across arms: low-contrast and lightened inputs raise it
   regardless of correctness, so a confidence pick scores −0.06. Averaging per-timestep posteriors over crop variants
   with fixed boxes is neutral (−0.03). Confidence is not comparable across input perturbations; budget a trained
