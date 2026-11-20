@@ -53,6 +53,7 @@ Reading math lines as LaTeX lifts mix8 to 67.80 <!-- @evidence[[results/opb_math
    then moved to the GPU or into one submit (Round 1). The deskew and downscales alone took the scan from 1,820 ms
    to 416 ms. <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
 6. **Math as LaTeX is the largest single gain and ships at fp16, not 8-bit.** Math on lifts the headline from 61.41 <!-- @evidence[[results/opb_math.json#math_off.headline]] --> to 67.80 (+6.39) (arXiv math pages 14.2 to 66.1); fp16 math matches fp32 math on 531 of 550 math pages and 8-bit only on 330 <!-- @evidence[[results/math_arms.json#math-mix8m8.same_markdown_as_fp32]] -->, and with float32 word-model values the browser matches the package on 24 of 24 math pages (10 of 24 with the shipped 2-bit word model, whose differences are outside the math lines; Round 5).
+7. **Reading a page several times, perturbed, exposes errors that nothing available can select.** None of 12 page perturbations beats the unperturbed 61.51 beyond noise; if each page could keep whichever of the 13 readings scores best against the ground truth (an oracle, not a method), the headline would be 67.04 (+5.53), <!-- @evidence[[results/summary.json#tta.oracle_page_headline]] --> but picking the reading with the highest recognizer confidence scores 61.45 <!-- @evidence[[results/summary.json#tta.select_conf_headline]] --> and averaging the recognizer's per-step character probabilities over 4 perturbed copies of each line crop scores 61.48 <!-- @evidence[[results/summary.json#tta.ravg4_headline]] -->. On Round 4's 8,499 text tests, a second Indra pass at gamma 0.5 passes 169 tests the plain reading fails and Tesseract, a separate OCR engine, 186, with only 25 in common (Round 6). <!-- @evidence[[results/summary.json#tta.gamma05_tess_shared]] -->
 
 ## Method
 
@@ -279,3 +280,68 @@ math page in the anything-to-text trace, against about 85 s for the text page; t
 page fetched `mathcls.bin` and no `math.bin`; a math page then fetched `math.bin` once and showed 9 LaTeX spans.
 <!-- @evidence[[results/a2t_math_trace.json]] --> anything-to-text has a Math select (Auto by default); the demo page reads
 on auto (`?math=on|off`). PDF pages that anything-to-text takes from their text layer are not OCRed and get no LaTeX.
+
+### Round 6 (2026-11-20): read the same page several times, perturbed
+
+Question from Oskar, as an alternative to Round 4's second engine: read each page several times with Indra itself,
+changing the image slightly each time (contrast, exposure, color), and combine the readings. Indra feeds its
+recognizer `1 − pixel/255` with no per-crop normalization, so a contrast or exposure change does reach the network.
+It reads every page as grayscale, so a color change reaches it only through the gray conversion; the color arm
+converts by the darkest of the three channels instead (`run/prerender.py --mode min`), which changes 1,596 of the
+2,937 pages by more than 2 gray levels on average.
+
+Each perturbation is an arm: one full run over the benchmark with that change applied to the prerendered page before
+the whole pipeline (`run/perturb.py` PAGE). The base is the unperturbed run. Twelve arms were scored like Round 1's fp32 (`run/tta_sweep.sh`, 1.1.2, models v1.1.0 fp32, OCR mode, math off); the unperturbed base
+reproduced Round 1 exactly (61.51, text 40.32). Each arm took about 11 minutes on 4 CPUs.
+
+| arm | headline | Δ vs base (95% CI) | text | tables | tests fixed / broken vs base, all families |
+|---|---:|---:|---:|---:|---:|
+| gamma 0.5 (midtones lighter) | 61.64 | +0.13 (−0.46 to +0.72) | 40.13 | 53.36 | 372 / 357 |
+| gamma 2 (midtones darker) | 61.43 | −0.08 (−0.72 to +0.50) | 39.97 | 52.93 | 355 / 378 |
+| contrast 1.5 | 60.74 | −0.77 (−1.27 to −0.30) | 39.28 | 52.30 | 228 / 362 |
+| contrast 0.6 | 61.35 | −0.17 (−0.72 to +0.36) | 40.48 | 52.14 | 327 / 349 |
+| Otsu binarization | 58.40 | −3.11 (−3.89 to −2.43) | 34.80 | 49.59 | 289 / 945 |
+| darkest channel (color) | 61.53 | +0.02 (−0.50 to +0.55) | 40.13 | 52.95 | 238 / 243 |
+| thicken strokes (2×2 min) | 59.94 | −1.57 (−2.23 to −0.94) | 37.27 | 50.98 | 337 / 690 |
+| thin strokes (2×2 max) | 52.10 | −9.41 (−10.54 to −8.23) | 33.46 | 32.08 | 289 / 2,003 |
+| blur (σ 1) | 60.47 | −1.04 (−1.66 to −0.43) | 38.52 | 51.67 | 288 / 506 |
+| sharpen (unsharp mask) | 61.30 | −0.21 (−0.73 to +0.29) | 39.96 | 52.67 | 275 / 316 |
+| scale 0.75× | 60.77 | −0.74 (−1.29 to −0.22) | 39.08 | 51.97 | 278 / 432 |
+| scale 1.33× | 61.43 | −0.09 (−0.57 to +0.39) | 40.32 | 52.49 | 265 / 280 |
+
+No arm beats the base. Every arm still fixes a few hundred tests the base fails, and each mild arm breaks about as
+many, so Indra's reading of a page changes under small pixel changes in both directions. Combining the readings
+(`run/tta_analyze.py`, `results/tta_pages.json`):
+
+- **Ceiling.** If each page took whichever of the 13 readings scores best on it against the ground truth, the
+  headline would be 67.04 (+5.53, CI +4.80 to +6.31), tables 62.01 and text 45.18. Base plus gamma 0.5 alone
+  reaches +2.00, and adding gamma 2 reaches +3.09. Across all three families, 1,087 of the base's 7,821 failing
+  tests pass under some arm, but 551 of those
+  pass under only one or two of the twelve, so part of the ceiling is lucky flips that no selector could find.
+- **Selecting by confidence.** Indra's recognizer is a CTC network (it emits a probability over characters at each
+  horizontal step); a line's confidence is the mean of its peak probabilities. Taking, per page, the reading whose
+  lines have the highest confidence (weighted by text length) scores 61.45 (−0.06, CI −0.67 to +0.56). Confidence
+  prefers the washed-out arms (contrast 0.6 on 410 of 2,937 pages, gamma 0.5 on 403) whatever they read: the
+  best-per-page ceiling picks the unperturbed reading on 2,417 pages, and the confidence selector on 193. The best pair, base or gamma 0.5 by confidence, gains
+  +0.41 (CI −0.01 to +0.84).
+- **Averaging probabilities.** `run/rec_tta.py make` adds each recognizer's log-softmax as an output; `--rec-tta`
+  reads every line crop under several `perturb.CROP` variants with the boxes fixed, averages the probabilities per
+  timestep and decodes the average as usual (greedy, confidence gate and word-model beam search unchanged). With the
+  original crop alone it reproduces the base markdown on 24 of 24 sampled pages. Averaging the original, gamma 0.5,
+  gamma 2 and contrast 0.6 scores 61.48 (−0.03, CI −0.29 to +0.21), fixing 97 tests and breaking 99, at 3.1 s a page
+  against the base's 0.8 s (`results/tta_ravg.json`). Averaging smooths out the flips instead of choosing among them.
+
+Against Tesseract on Round 4's 8,499 text tests, the ones Tesseract can attempt (`run/tta_vs_tess.py`,
+`results/tta_vs_tess.json`; base text pass rate 40.32, 5,072 failures). A rescue is a test the base fails and the
+second reader passes: Tesseract rescues 186 and gamma 0.5 169 (of its 372 fixes in the table, which count all
+families), contrast 0.6 166. The two kinds of second reader
+fix different tests: gamma 0.5 shares 25 rescues with Tesseract, and 113 of Tesseract's 186 are fixed by none of the
+twelve arms. Taking the better of base and one second reader per test gives a text pass rate of 42.51 with Tesseract and 42.31
+with gamma 0.5; all twelve arms give 46.13, and adding Tesseract 47.46. These are oracles: the combiner that could reach
+them would need to know which reading is right, and Indra's confidence does not.
+
+Reading: perturbing the page exposes as many recoverable errors as a second engine, more with several perturbations,
+but none of it is reachable with the signals Indra provides. A selector trained on page features or a calibrated
+confidence is the next thing to try; an untrained combiner (confidence choice or posterior average) recovers nothing.
+The note was passed to the session porting Tesseract to the GPU (`tesseract-gpu`), since a router between Indra and Tesseract by confidence would hit
+the same wall.

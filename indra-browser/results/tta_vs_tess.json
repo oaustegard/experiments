@@ -1,0 +1,139 @@
+{
+ "tests": 8499,
+ "base_text_pass": 0.40322390869514063,
+ "base_fails": 5072,
+ "second": {
+  "Tesseract": {
+   "rescued": 186,
+   "lost": 2120,
+   "rescued_also_by_tesseract": 186,
+   "alone": 0.1756677256147782,
+   "oracle_pair": 0.4251088363336863,
+   "rescued_share_of_base_fails": 0.03667192429022082
+  },
+  "p-gamma0.5": {
+   "rescued": 169,
+   "lost": 185,
+   "rescued_also_by_tesseract": 25,
+   "alone": 0.40134133427462054,
+   "oracle_pair": 0.42310860101188374,
+   "rescued_share_of_base_fails": 0.03332018927444795
+  },
+  "p-gamma2": {
+   "rescued": 150,
+   "lost": 180,
+   "rescued_also_by_tesseract": 26,
+   "alone": 0.3996940816566655,
+   "oracle_pair": 0.4208730438875162,
+   "rescued_share_of_base_fails": 0.029574132492113565
+  },
+  "p-contrast1.5": {
+   "rescued": 116,
+   "lost": 205,
+   "rescued_also_by_tesseract": 22,
+   "alone": 0.39275208848099774,
+   "oracle_pair": 0.416872573243911,
+   "rescued_share_of_base_fails": 0.022870662460567823
+  },
+  "p-contrast0.6": {
+   "rescued": 166,
+   "lost": 153,
+   "rescued_also_by_tesseract": 30,
+   "alone": 0.4047535004118131,
+   "oracle_pair": 0.42275561830803626,
+   "rescued_share_of_base_fails": 0.032728706624605676
+  },
+  "p-otsu": {
+   "rescued": 138,
+   "lost": 607,
+   "rescued_also_by_tesseract": 25,
+   "alone": 0.3480409459936463,
+   "oracle_pair": 0.41946111307212613,
+   "rescued_share_of_base_fails": 0.02720820189274448
+  },
+  "p-min": {
+   "rescued": 75,
+   "lost": 91,
+   "rescued_also_by_tesseract": 17,
+   "alone": 0.40134133427462054,
+   "oracle_pair": 0.4120484762913284,
+   "rescued_share_of_base_fails": 0.014787066246056782
+  },
+  "p-thicken": {
+   "rescued": 161,
+   "lost": 420,
+   "rescued_also_by_tesseract": 35,
+   "alone": 0.3727497352629721,
+   "oracle_pair": 0.4221673138016237,
+   "rescued_share_of_base_fails": 0.03174290220820189
+  },
+  "p-thin": {
+   "rescued": 160,
+   "lost": 743,
+   "rescued_also_by_tesseract": 39,
+   "alone": 0.3346276032474409,
+   "oracle_pair": 0.42204965290034124,
+   "rescued_share_of_base_fails": 0.031545741324921134
+  },
+  "p-blur": {
+   "rescued": 133,
+   "lost": 286,
+   "rescued_also_by_tesseract": 22,
+   "alone": 0.3852217907989175,
+   "oracle_pair": 0.41887280856571363,
+   "rescued_share_of_base_fails": 0.026222397476340694
+  },
+  "p-sharpen": {
+   "rescued": 125,
+   "lost": 156,
+   "rescued_also_by_tesseract": 23,
+   "alone": 0.39957642075538297,
+   "oracle_pair": 0.4179315213554536,
+   "rescued_share_of_base_fails": 0.024645110410094637
+  },
+  "p-scale0.75": {
+   "rescued": 138,
+   "lost": 244,
+   "rescued_also_by_tesseract": 26,
+   "alone": 0.3907518531591952,
+   "oracle_pair": 0.41946111307212613,
+   "rescued_share_of_base_fails": 0.02720820189274448
+  },
+  "p-scale1.33": {
+   "rescued": 136,
+   "lost": 136,
+   "rescued_also_by_tesseract": 22,
+   "alone": 0.40322390869514063,
+   "oracle_pair": 0.4192257912695611,
+   "rescued_share_of_base_fails": 0.026813880126182965
+  },
+  "r-avg4": {
+   "rescued": 60,
+   "lost": 46,
+   "rescued_also_by_tesseract": 8,
+   "alone": 0.40487116131309564,
+   "oracle_pair": 0.4102835627720908,
+   "rescued_share_of_base_fails": 0.011829652996845425
+  }
+ },
+ "page_arms_union": {
+  "arms": [
+   "p-gamma0.5",
+   "p-gamma2",
+   "p-contrast1.5",
+   "p-contrast0.6",
+   "p-otsu",
+   "p-min",
+   "p-thicken",
+   "p-thin",
+   "p-blur",
+   "p-sharpen",
+   "p-scale0.75",
+   "p-scale1.33"
+  ],
+  "rescued": 494,
+  "tesseract_rescues_no_page_arm_fixes": 113,
+  "oracle": 0.4613483939286975,
+  "oracle_with_tesseract": 0.47464407577362044
+ }
+}
