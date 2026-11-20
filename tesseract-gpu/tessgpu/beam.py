@@ -399,3 +399,49 @@ def decode(probs, model):
     if best is None:
         return []
     return _path_ids(_path(best))
+
+
+# ---------------------------------------------------------------- character positions
+
+def _path_with_x(path):
+    """ExtractPathAsUnicharIds: the unichar ids and, for each, the timestep where it starts.
+
+    Same walk as _path_ids; xcoords[i] is the first network timestep of character i after any
+    leading nulls (Tesseract pushes t at the same point). Tesseract also appends the path width
+    as a sentinel; that is left out here, so len(xcoords) == len(ids).
+    """
+    ids = []
+    xs = []
+    t = 0
+    width = len(path)
+    while t < width:
+        while t < width and path[t].uid == INVALID:
+            t += 1
+        if t < width:
+            ids.append(path[t].uid)
+            xs.append(t)
+            t += 1
+            while t < width and path[t].dup:
+                t += 1
+    return ids, xs
+
+
+def decode_with_x(probs, model):
+    """decode() plus per-character start timesteps: [T, C] float32 -> (unichar ids, xcoords).
+
+    The ids are exactly decode()'s. xcoords[i] is the network timestep (3 pixels of the line
+    scaled to the model height, see tessgpu.words) where character ids[i] starts.
+    """
+    rows = np.asarray(probs, dtype=np.float32)
+    if rows.ndim != 2 or rows.shape[0] == 0:
+        return [], []
+    rows = rows.tolist()
+    rc = _Recoder(model.recoder)
+    s = _Search(rc, model.null_char, bool(model.simple_text))
+    for t, outs in enumerate(rows):
+        s.compute_top_n(outs, BEAM_WIDTHS[0])
+        s.decode_step(t)
+    best = s.best_node()
+    if best is None:
+        return [], []
+    return _path_with_x(_path(best))

@@ -799,3 +799,40 @@ export function decode(probs, T, C, model) {
   if (best < 0) return [];
   return s.pathIds(best);
 }
+
+
+// Per-character start timesteps, the twin of tessgpu/beam.py decode_with_x. Returns
+// { ids, xcoords }: xcoords[i] is the first timestep of ids[i] (Tesseract's xcoords without the
+// end sentinel), so xcoords.length === ids.length. ids are exactly decode()'s ids.
+function pathIdsWithX(s, node) {
+  const path = [];
+  for (let n = node; n >= 0; n = s.nPrev[n]) path.push(n);
+  path.reverse();
+  const ids = [];
+  const xcoords = [];
+  const width = path.length;
+  let t = 0;
+  while (t < width) {
+    while (t < width && s.nUid[path[t]] === INVALID) t++;
+    if (t < width) {
+      ids.push(s.nUid[path[t]]);
+      xcoords.push(t);
+      t++;
+      while (t < width && s.nDup[path[t]] === 1) t++;
+    }
+  }
+  return { ids, xcoords };
+}
+
+export function decodeWithX(probs, T, C, model) {
+  if (!(T > 0)) return { ids: [], xcoords: [] };
+  const rc = recoderFor(model.codes);
+  const s = searchFor(rc, model.null_char, !!model.simple_text, C);
+  for (let t = 0; t < T; t++) {
+    s.computeTopN(probs, t * C, C, BEAM_WIDTHS[0]);
+    s.decodeStep(t);
+  }
+  const best = s.bestNode();
+  if (best < 0) return { ids: [], xcoords: [] };
+  return pathIdsWithX(s, best);
+}
