@@ -52,6 +52,9 @@ try {
   run += 1; // switching the model rereads the open page
   await page.waitForFunction((n) => Number(document.getElementById("result").dataset.run || 0) >= n, run, { timeout: 180000 });
   await step("french sample, French model", () => page.setInputFiles("#file", join(here, "../samples/french.png")));
+  await step("two-page PDF, page 1 (French model)", () => page.setInputFiles("#file", join(here, "../samples/two-pages.pdf")));
+  if (await page.isHidden("#pdfnav")) { console.log("FAIL pdf navigation hidden"); ok = false; }
+  await step("two-page PDF, page 2", () => page.click("#pdfnext"));
   if (errors.length) { ok = false; console.log("page errors:", errors); }
 } finally {
   await browser.close();

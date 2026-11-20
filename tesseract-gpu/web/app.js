@@ -9,7 +9,7 @@ import { cleanLine } from "./lineprep.js";
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess7"; // keep equal to build.json
+const BUILD = "2026-11-20-tess8"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
@@ -159,13 +159,73 @@ async function imageToGray(blob) {
   return toGray(ctx.getImageData(0, 0, w, h).data, w, h);
 }
 
+// ------------------------------------------------------------------ PDF
+// pdf.js (Mozilla, Apache-2.0) renders each PDF page to a canvas; the page is then read like an image. Every page is
+// OCR'd, scanned or born-digital, at about PDF_LONG_SIDE pixels on its long side (about 240 dpi for a letter page).
+const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
+const PDF_LONG_SIDE = 2600;
+let pdfjsPromise = null;
+let pdf = null; // {doc, name, n, page}
+
+function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import(PDFJS + "pdf.min.mjs").then((m) => {
+      m.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.mjs";
+      return m;
+    });
+    pdfjsPromise.catch(() => { pdfjsPromise = null; });
+  }
+  return pdfjsPromise;
+}
+
+async function pdfPageToGray(n) {
+  const page = await pdf.doc.getPage(n);
+  const v1 = page.getViewport({ scale: 1 });
+  const scale = PDF_LONG_SIDE / Math.max(v1.width, v1.height);
+  const vp = page.getViewport({ scale });
+  const c = new OffscreenCanvas(Math.round(vp.width), Math.round(vp.height));
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  page.cleanup();
+  return toGray(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+}
+
+async function readPdfPage(n) {
+  if (!pdf || busy) return;
+  pdf.page = n;
+  $("pdfpage").value = String(n);
+  status(`Rendering page ${n} of ${pdf.n} of ${pdf.name}…`);
+  const t0 = performance.now();
+  const gray = await pdfPageToGray(n);
+  relay.log("pdf page", { page: n, of: pdf.n, w: gray.w, h: gray.h, ms: Math.round(performance.now() - t0) });
+  await runPage(gray, `${pdf.name}, page ${n} of ${pdf.n}`);
+}
+
+async function openPdf(file) {
+  status(`Opening ${file.name}…`);
+  const pdfjs = await loadPdfjs();
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  pdf = { doc, name: file.name, n: doc.numPages, page: 1 };
+  relay.log("pdf", { pages: doc.numPages, bytes: file.size });
+  const sel = $("pdfpage");
+  sel.innerHTML = Array.from({ length: doc.numPages }, (_, i) => `<option value="${i + 1}">Page ${i + 1} of ${doc.numPages}</option>`).join("");
+  $("pdfnav").hidden = doc.numPages < 2;
+  await readPdfPage(1);
+}
+
 async function handle(file) {
   if (!gpu || busy) return;
-  if (!/^image\//.test(file.type)) {
-    status(`${file.name} is not an image. Save the page as PNG or JPEG first (PDF pages are not read by this page yet).`, "error");
+  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  if (!isPdf && !/^image\//.test(file.type)) {
+    status(`${file.name} is neither an image nor a PDF.`, "error");
     return;
   }
   try {
+    if (isPdf) return await openPdf(file);
+    pdf = null;
+    $("pdfnav").hidden = true;
     const gray = await imageToGray(file);
     relay.log("image", { w: gray.w, h: gray.h, bytes: file.size, type: file.type });
     await runPage(gray, file.name);
@@ -399,6 +459,9 @@ $("clean").addEventListener("change", rereadLast);
 $("dict").addEventListener("change", rereadLast);
 $("order").addEventListener("change", rereadLast);
 $("file").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) handle(f); });
+$("pdfpage").addEventListener("change", (e) => readPdfPage(Number(e.target.value)).catch((err) => { relay.error(err); status(`Could not read that page: ${err.message}`, "error"); }));
+$("pdfprev").addEventListener("click", () => { if (pdf && pdf.page > 1) readPdfPage(pdf.page - 1); });
+$("pdfnext").addEventListener("click", () => { if (pdf && pdf.page < pdf.n) readPdfPage(pdf.page + 1); });
 $("lang").addEventListener("change", switchModel);
 document.querySelectorAll('input[name="variant"]').forEach((r) => r.addEventListener("change", switchModel));
 const drop = $("drop");

@@ -11,7 +11,7 @@
 <main>
 <header>
   <h1>Read a page with Tesseract, on your own GPU</h1>
-  <p class="lede">Drop a scan or a photo of a page. Each text line is flat-fielded and cropped tightly to its ink, and
+  <p class="lede">Drop a scan, a photo or a PDF. Each text line is flat-fielded and cropped tightly to its ink, and
   Tesseract's LSTM recognizer, ported to WebGPU, reads every line in one batch, in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages
   and scripts, each in both sizes; the legacy-only equ and osd models are not offered). Math is read as plain text.
   The page is not uploaded anywhere. Models load on first use from this site, jsDelivr and Tesseract's public repository. It needs a browser with WebGPU; without one
@@ -25,9 +25,14 @@
 
 <section class="input" aria-label="Page">
   <label id="drop" class="drop" for="file">
-    <input id="file" type="file" accept="image/*">
-    <span><strong>Choose a page</strong>, drop one here, or paste a screenshot: PNG, JPEG or WebP</span>
+    <input id="file" type="file" accept="image/*,application/pdf,.pdf">
+    <span><strong>Choose a page or a PDF</strong>, drop one here, or paste a screenshot: PNG, JPEG, WebP or PDF</span>
   </label>
+  <div class="picker" id="pdfnav" hidden>
+    <button type="button" id="pdfprev" aria-label="Previous PDF page">‹</button>
+    <select id="pdfpage" aria-label="PDF page to read"></select>
+    <button type="button" id="pdfnext" aria-label="Next PDF page">›</button>
+  </div>
   <div class="picker">
     <label class="muted small" for="order">Reading order</label>
     <select id="order" aria-label="Reading order of the lines">
@@ -80,9 +85,11 @@
   3 px of padding and read as is.</p>
   <p>Downloads: Tesseract's layout engine (about 2.8 MB) and the English model it uses for layout (about 4 MB) load once, from jsDelivr. The recognizer model for the
   language you pick loads on first use of it.</p>
-  <p>Licences: Tesseract's code, the tessdata models and tesseract.js-core are Apache-2.0. This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
+  <p>PDFs: each page is rendered by pdf.js (Mozilla, Apache-2.0, loaded from jsDelivr on first use) at about 240 dpi and read
+  like an image, so scanned and born-digital PDFs are both OCR'd.</p>
+  <p>Licences: Tesseract's code, the tessdata models, tesseract.js-core and pdf.js are Apache-2.0. This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
   <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess7</code>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess8</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

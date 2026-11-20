@@ -35,6 +35,11 @@ CC BY-SA), generated receipt and form strings, and line crops from CORD v2 recei
 CC BY 4.0, Park et al., "CORD: A Consolidated Receipt Dataset for Post-OCR Parsing", 2019). Rendering fonts: those
 installed on the build machine and 18 SIL Open Font License fonts from google/fonts.
 
+## PDF rendering (Apache-2.0)
+
+The demo page renders PDF pages with pdf.js (https://github.com/mozilla/pdf.js, `pdfjs-dist` 4.10.38, Apache License
+2.0, Mozilla), loaded from jsDelivr at run time; it is not redistributed here.
+
 ## Line finding (Apache-2.0)
 
 `web/tesslayout.js` loads tesseract.js-core
