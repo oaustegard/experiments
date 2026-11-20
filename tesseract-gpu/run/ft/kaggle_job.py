@@ -1,9 +1,9 @@
-"""Kaggle batch job (2x Tesla T4, internet on): fine-tune eng tessdata_best two ways, one arm per GPU.
+"""Kaggle batch job (Tesla T4, internet on): fine-tune eng tessdata_best on generated lines plus CORD receipts.
 
-    python3 /home/user/claude-workspace/scripts/kaggle_job.py push tess-ft-1 run/ft/kaggle_job.py --accel gpu --internet
+    python3 /home/user/claude-workspace/scripts/kaggle_job.py push tess-ft-2 run/ft/kaggle_job.py --accel gpu --internet
 
-  arm A  generated document lines only (run/ft/make_train.py)
-  arm B  the same plus SROIE receipt lines from receipts 30+ (run/ft/sroie_train.py)
+  arm C  generated document lines (run/ft/make_train.py) plus CORD v2 receipt lines (run/ft/cord_train.py, CC BY 4.0)
+  (tess-ft-1 ran arm A, generated only, and arm B, plus SROIE receipts 30+, whose licence is unconfirmed)
 Both: run/ft/train.py, batch 32, lr 1e-4 with warm-up and cosine decay, validation on held-out generated lines
 and held-out SROIE receipts (never on the experiment's evaluation sets, which stay on the coordinator's machine).
 Outputs in /kaggle/working/<arm>/: eng.traineddata, log.jsonl, train.log. The code comes from
@@ -63,14 +63,14 @@ def main():
     print(f"{got}/{len(FONTS)} fonts", flush=True)
     env = f"cd {R} && FT_FONT_DIR={fd}"
     sh(f"{env} python3 run/ft/make_train.py --n 30000 --jobs 4", log=f"{W}/make_train.log")
-    sh(f"{env} python3 run/ft/sroie_train.py", log=f"{W}/sroie_train.log")
-    sh(f"{env} python3 run/ft/train.py prep --extra data/ft/sroie/labels.jsonl", log=f"{W}/prep.log")
+    sh(f"{env} python3 run/ft/cord_train.py", log=f"{W}/cord_train.log")
+    sh(f"{env} python3 run/ft/train.py prep --extra data/ft/cord/labels.jsonl", log=f"{W}/prep.log")
     common = f"--steps {STEPS} --batch 32 --eval-every 500 --threads 2 --max-minutes 300"
-    pa = subprocess.Popen(f"{env} python3 run/ft/train.py train --run armA --device cuda:0 {common} > {W}/armA_train.log 2>&1", shell=True)
-    pb = subprocess.Popen(f"{env} python3 run/ft/train.py train --run armB --device cuda:1 --sroie {common} > {W}/armB_train.log 2>&1", shell=True)
-    ra, rb = pa.wait(), pb.wait()
-    print("train exit codes", ra, rb, flush=True)
-    for arm, rc in (("armA", ra), ("armB", rb)):
+    pc = subprocess.Popen(f"{env} python3 run/ft/train.py train --run armC --device cuda:0 --real-src cord {common} > {W}/armC_train.log 2>&1", shell=True)
+    rc_ = pc.wait()
+    print("train exit code", rc_, flush=True)
+    ra = rb = rc_
+    for arm, rc in (("armC", rc_),):
         os.makedirs(f"{W}/{arm}", exist_ok=True)
         if os.path.exists(f"{R}/data/ft/{arm}/last.pt"):
             sh(f"{env} python3 run/ft/train.py export --run {arm}")

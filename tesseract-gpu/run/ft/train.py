@@ -77,7 +77,7 @@ def prep(extra_label_files=()):
             if not codes:
                 continue
             src = r.get("src", "synth")
-            val = (r.get("receipt", 1) % 10 == 0) if src == "sroie" else (r.get("i", 1) % 50 == 0)
+            val = (r.get("receipt", 1) % 10 == 0) if src != "synth" else (r.get("i", 1) % 50 == 0)
             items.append((str(base / r["file"]), rng.random() < 0.6, r["text"], codes, src, val))
     with Pool(2) as pool:
         imgs = pool.map(_prep_one, [(p, c, m.input_height) for p, c, *_ in items], chunksize=64)
@@ -86,10 +86,10 @@ def prep(extra_label_files=()):
 
 
 def val_sets(data, m):
-    out = {"val_synth": [], "val_sroie": []}
+    out = {"val_synth": []}
     for im, t, c, src, val in data:
         if val:
-            out["val_sroie" if src == "sroie" else "val_synth"].append((ref.normalise(im, False), t))
+            out.setdefault(f"val_{src}", []).append((ref.normalise(im, False), t))
     return {k: v for k, v in out.items() if v}
 
 
@@ -124,7 +124,7 @@ def evaluate(net, codec, sets, gen):
             P = logp.exp().cpu().numpy()
             for b, i in enumerate(order):
                 pred = decode.greedy(P[:int(Ls[b]), b], codec)
-                errs.append(cer(chunk[i][1], pred, fold=k.startswith("real") or k.endswith("sroie")))
+                errs.append(cer(chunk[i][1], pred, fold=k.startswith("real") or k == "val_sroie"))
         res[k] = round(float(np.mean(errs)), 5)
     syn = [v for k, v in res.items() if k.startswith("synth")]
     if syn:
@@ -151,8 +151,10 @@ def train(a):
     run.mkdir(parents=True, exist_ok=True)
     data = pickle.load(open(FT / a.data, "rb"))
     sets = eval_sets(m) if a.eval == "local" else val_sets(data, m)
-    data = [d for d in data if not d[4] and (a.sroie or d[3] != "sroie")]
-    print(f"{len(data)} training lines ({sum(d[3] == 'sroie' for d in data)} sroie); eval sets "
+    real = set(a.real_src) | ({"sroie"} if a.sroie else set())
+    sets = {k: v for k, v in sets.items() if k == "val_synth" or k[4:] in real or a.eval == "local"}
+    data = [d for d in data if not d[4] and (d[3] == "synth" or d[3] in real)]
+    print(f"{len(data)} training lines ({sum(d[3] != 'synth' for d in data)} real: {sorted(real)}); eval sets "
           f"{ {k: len(v) for k, v in sets.items()} }", flush=True)
     dev = torch.device(a.device)
     net = TessNet(m).to(dev)
@@ -237,6 +239,7 @@ if __name__ == "__main__":
     ap.add_argument("--batch", type=int, default=BATCH)
     ap.add_argument("--data", default="prep.pkl")
     ap.add_argument("--sroie", action="store_true", help="include SROIE training lines (src 'sroie')")
+    ap.add_argument("--real-src", nargs="*", default=[], help="real-line sources to train on, e.g. cord")
     ap.add_argument("--extra", nargs="*", default=[], help="extra labels.jsonl files for prep")
     a = ap.parse_args()
     if a.cmd == "prep":
