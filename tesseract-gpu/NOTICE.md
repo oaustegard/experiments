@@ -34,10 +34,6 @@ from anything-to-text in oaustegard.github.io (same owner). `web/tesslayout.js` 
 (https://github.com/naptha/tesseract.js-core, Apache-2.0, Tesseract 5.1) from jsDelivr at run time for Tesseract's own
 page layout; the server pipeline uses tesserocr (MIT) over Tesseract's own library.
 
-The demo page no longer uses Indra OCR. Earlier versions loaded Indra's models, whose weights carry a modified
-OpenRAIL-M licence with use restrictions; nothing in the current page or engines depends on them. The math survey
-(`notes/math_permissive.md`) lists permissively licensed replacements for Indra's math reader.
-
 ## Benchmark data
 
 The line images and their sources are described in `notes/data.md` and `notes/data_real.md`. None of them are committed

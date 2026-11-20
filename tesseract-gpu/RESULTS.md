@@ -11,7 +11,7 @@ of the 320 LSTM models in tessdata_best and tessdata_fast unchanged. Oskar Auste
 and asked that the work be split into small parallel tasks for Claude Haiku. Error rates are CER: character edits
 divided by the length of the true text. Mac timings come from the GPU Bridge, this repo's job runner in a browser tab
 on Oskar's Mac; "SwiftShader" is Chrome's CPU implementation of WebGPU, used for headless correctness checks here. See `NOTICE.md` for the licences of the
-Tesseract code, the tessdata models and the Indra OCR models the demo page uses.
+Tesseract code, the tessdata models and the PP-OCRv6 detector the demo page uses.
 
 ## Answer
 
@@ -107,9 +107,8 @@ Kaggle T4 batch job (`run/kaggle/server_bench.py`, `results/kaggle_t4_server_ben
 **Demo page.** PaddlePaddle's PP-OCRv6 text detector (Apache-2.0, ported to WebGPU in `web/det/`, within 5.6e-4 of
 onnxruntime) or Tesseract 5.1's own layout (`web/tesslayout.js`, tesseract.js-core) finds the lines; `web/layout.js`
 orders them (column-aware by default, a port of anything-to-text's ordering, or XY-cut); every line then goes through
-this engine in one batch. Math lines are read as plain text for now. Models load from this site and jsDelivr; every
-model is Apache-2.0 (`NOTICE.md`). Earlier versions used Indra OCR for layout and math, whose weights carry a
-use-restricted licence.
+this engine in one batch. Math lines are read as plain text. Models load from this site and jsDelivr; every
+model is Apache-2.0 (`NOTICE.md`).
 
 **Delegation.** The work ran as one coordinating session and 17 Claude Haiku subagents, each with a task, a
 deliverable and a check it had to pass: benchmark data (2), model inventory, math and image-path surveys, the four
