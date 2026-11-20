@@ -1134,6 +1134,15 @@ same-size edit within one coarse mtime tick keeps the key unchanged.
   about a quarter cell larger, while its first six partial ratios matched the Bessel-zero ratios
   within 0.26%. A rectangle aligned with the grid matched the scheme's discrete dispersion relation to
   0.09 cents, which is the stronger check of the code. (`room-drum/test/verify.mjs modes`)
+- **Gemma 4's image processor scales every image up to fill its token budget.** `Gemma4ImageProcessor` resizes to
+  the largest size that fits `max_soft_tokens` (280 by default), so a 768x48 text line becomes 3168x192 px (198 x 12
+  patches) whatever its source resolution. To feed an image at a chosen resolution, patchify by hand: 16 px
+  patches, row-major, each patch flattened as (16, 16, 3), positions (x, y), pixels in [0, 1], no normalisation.
+  `eg2-ocr-probe/probe.py` `patchify()` matches the processor's `do_resize=False` path.
+- **A CTC head sits on the all-blank plateau for hundreds of steps.** On frozen features with a BiLSTM head, 300
+  steps at batch 64 gave 100% character error rate for both a pretrained and a random encoder; the pretrained one
+  was at 6% by step 500. A short CTC smoke run shows the pipeline works, not whether the features read.
+  (`eg2-ocr-probe/RESULTS.md`)
 - **transformers' EmbeddingGemma 2 config rewrites the last layer of a cut model.**
   `EmbeddingGemma2TextConfig.__post_init__` forces the last entry of `layer_types` to
   `full_attention`, editing the list you passed in place, so a model cut after a sliding
@@ -5911,6 +5920,11 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   runs well behind the job. Put a hard deadline inside the job. `granite-docling/RESULTS.md`.
 - Score a model that loops by splitting pages at the token cap: granite-docling's 9-point deficit to Indra on
   Omni Parse Bench sat entirely on the 27% of pages that ran to 8,192 tokens. `granite-docling/RESULTS.md`.
+- **Kaggle's live log carries only the pushed script's own stdout.** `kaggle_job.py logs SLUG` (hub) reads it
+  while the job runs, and on 2026-11-20 it was under a minute behind. Worker subprocesses that write to files are
+  invisible until the run ends, so relay their output through the parent's stdout. `kagglesdk` 0.1.x also lists a
+  `cancel_kernel_session` call (not yet tried). Push a short run first: `eg2-ocr-probe` ran 2 h with nothing to
+  read. `eg2-ocr-probe/RESULTS.md`.
 
 ### Porting Tesseract's LSTM recognizer to the GPU (tesseract-gpu)
 
