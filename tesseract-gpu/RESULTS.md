@@ -89,7 +89,7 @@ retraining.
    Apache-2.0) reads the 800 real lines at 5.0% CER (case-insensitive), the 1.1M-parameter tiny at 6.8%, against 12.9% for the Tesseract
    CLI; on synthetic English 0.26% against 0.88%. Its character set covers 76.5% of the Ancient Greek test text, which it
    reads at 56% CER against Tesseract's 4.6% (`run/pp_rec_compare.py`, `results/pp_rec_compare.json`). It is a reference
-   point here, not a component: this experiment keeps Tesseract's own models end to end.
+   point, not part of either engine.
 
 ## Method
 
@@ -120,7 +120,7 @@ fixtures from `run/make_fixtures.py`), `run/check_torch.py`, `run/check_beam.py`
 Real-GPU timing: GPU Bridge jobs on Oskar's Mac (`run/bridge/`, results in `results/bridge_tess-gpu-*_mac.json`) and a
 Kaggle T4 batch job (`run/kaggle/server_bench.py`, `results/kaggle_t4_server_bench_1.json`).
 
-**Demo page.** Tesseract 5.1's own layout (`web/tesslayout.js`, tesseract.js-core in WebAssembly) finds the lines and
+**Demo page.** Tesseract 5.1's layout analysis (`web/tesslayout.js`, tesseract.js-core in WebAssembly) finds the lines and
 their reading order, or `web/layout.js` reorders them by column bands (a port of anything-to-text's ordering). Each line
 is flat-fielded and cropped to its ink (`web/lineprep.js`, within 2 grey levels of `tessgpu/lineprep.py` on 48 test
 lines, `web/test/check_lineprep.mjs`), then every line goes through this engine in one batch. Math lines are read as

@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page to text, with Tesseract on WebGPU</title>
-<meta name="description" content="A scanned page or photo read in your browser on the GPU by Tesseract: its own layout finds the lines, each line is cleaned up, and its LSTM recognizer reads them all in one batch on WebGPU.">
+<meta name="description" content="A scanned page or photo read in your browser on the GPU by Tesseract's LSTM recognizer, ported to WebGPU: every line is cleaned up and all of them are read in one batch.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
 <header>
   <h1>Read a page with Tesseract, on your own GPU</h1>
-  <p class="lede">Drop a scan or a photo of a page. Tesseract's own page layout finds the text lines, each line is flat-fielded and cropped tightly to its ink, and
+  <p class="lede">Drop a scan or a photo of a page. Each text line is flat-fielded and cropped tightly to its ink, and
   Tesseract's LSTM recognizer, ported to WebGPU, reads every line in one batch, in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages
   and scripts, each in both sizes; the legacy-only equ and osd models are not offered). Math is read as plain text.
   The page is not uploaded anywhere. Models load on first use from this site, jsDelivr and Tesseract's public repository. It needs a browser with WebGPU; without one

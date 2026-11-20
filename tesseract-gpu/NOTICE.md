@@ -26,7 +26,7 @@ fetches them from jsDelivr at run time; this repository does not redistribute th
 
 ## Line finding (Apache-2.0)
 
-The demo page finds lines with Tesseract's own layout: `web/tesslayout.js` loads tesseract.js-core
+`web/tesslayout.js` loads tesseract.js-core
 (https://github.com/naptha/tesseract.js-core, Apache-2.0, Tesseract 5.1) from jsDelivr at run time, and the server
 pipeline uses tesserocr (MIT) over Tesseract's own library. The column-band reading order in `web/layout.js` and
 `tessgpu/layout.py` is ported from anything-to-text in oaustegard.github.io (same owner).
