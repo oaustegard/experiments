@@ -64,6 +64,7 @@ class Weights:
     w: np.ndarray = None
     q: np.ndarray = None
     scale: np.ndarray = None
+    off: int = None   # float models: byte offset of w inside the lstm component (tessgpu.tessnet.export)
 
     def dense(self):
         if self.int_mode:
@@ -90,13 +91,14 @@ def read_weights(r, training):
         return Weights(True, q=q, scale=scale)
     d1, d2 = r.take("II")
     r.take("d")
+    off = r.o
     w = r.array(np.float64, d1 * d2).reshape(d1, d2)
     if training:  # updates_ (and Adam's dw_sq_sum_) follow in a training dump
         for _ in range(2 if adam else 1):
             e1, e2 = r.take("II")
             r.take("d")
             r.array(np.float64, e1 * e2)
-    return Weights(False, w=w)
+    return Weights(False, w=w, off=off)
 
 
 @dataclass

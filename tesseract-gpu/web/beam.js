@@ -1,6 +1,7 @@
 // Port of Tesseract 5.3.4 RecodeBeamSearch, no-dictionary path (see tessgpu/beam.py, which this
 // mirrors step for step). decode(probs, T, C, model) -> unichar ids, the same ids as
-// ExtractBestPathAsUnicharIds.
+// ExtractBestPathAsUnicharIds. decode(probs, T, C, model, dict) with a dictionary from
+// web/beam_dict.js loadDict() runs the dictionary path in that file instead.
 //
 //   probs : Float32Array of length T*C, row-major over timesteps (Tesseract's softmax output)
 //   model : { null_char, codes, simple_text }
@@ -25,6 +26,8 @@
 //    exact whenever the top three values are distinct. The rest of the top five (only needed by
 //    the second pass, which the first pass nearly always makes unnecessary) is computed by the
 //    heap algorithm on demand. Ties or NaN fall back to the heap algorithm at once.
+
+import { decodeDict, decodeDictFull } from "./beam_dict.js";
 
 const INVALID = -1;
 const MIN_CERT = -20;                       // RecodeBeamSearch::kMinCertainty (float)
@@ -787,7 +790,10 @@ function searchFor(rc, nul, simple, C) {
   return s;
 }
 
-export function decode(probs, T, C, model) {
+// dict (optional): a dictionary from loadDict() in web/beam_dict.js; the search then runs the
+// dictionary path there (tessgpu/beam_dict.py's twin). Without it, the code below, unchanged.
+export function decode(probs, T, C, model, dict = null) {
+  if (dict) return decodeDict(probs, T, C, model, dict);
   if (!(T > 0)) return [];
   const rc = recoderFor(model.codes);
   const s = searchFor(rc, model.null_char, !!model.simple_text, C);
@@ -824,7 +830,11 @@ function pathIdsWithX(s, node) {
   return { ids, xcoords };
 }
 
-export function decodeWithX(probs, T, C, model) {
+export function decodeWithX(probs, T, C, model, dict = null) {
+  if (dict) {
+    const r = decodeDictFull(probs, T, C, model, dict);
+    return { ids: r.ids, xcoords: r.xcoords };
+  }
   if (!(T > 0)) return { ids: [], xcoords: [] };
   const rc = recoderFor(model.codes);
   const s = searchFor(rc, model.null_char, !!model.simple_text, C);

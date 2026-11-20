@@ -15,6 +15,10 @@ sift order, same storage order), because tie-breaks and the ExtractBestPaths sca
 storage order.
 
 decode(probs, model) -> list[int] of unichar ids, the same as ExtractBestPathAsUnicharIds.
+
+decode(probs, model, dict=True) runs the dictionary path instead (the model's lstm-punc/word/
+number dawgs, as LSTMRecognizer loads them); that port lives in tessgpu/beam_dict.py and leaves
+the code here unchanged.
 """
 
 import math
@@ -384,8 +388,24 @@ def _path_ids(path):
     return ids
 
 
-def decode(probs, model):
-    """Tesseract's RecodeBeamSearch (no dictionary) over one line: [T, C] float32 -> unichar ids."""
+def _dictionary(model, dict):
+    """The dict option: None/False -> None, True -> the model's LSTM dawgs, else as given."""
+    if dict is None or dict is False:
+        return None
+    from . import beam_dict
+    return beam_dict.load_dict(model) if dict is True else dict
+
+
+def decode(probs, model, dict=None):
+    """Tesseract's RecodeBeamSearch over one line: [T, C] float32 -> unichar ids.
+
+    dict=None (default): no dictionary, the code below. dict=True: the model's own LSTM dawgs
+    (tessgpu.beam_dict.load_dict(model); a model without dawgs decodes as with None, like
+    Tesseract), or pass a beam_dict.LSTMDict. The dictionary path is tessgpu/beam_dict.py."""
+    d = _dictionary(model, dict)
+    if d is not None:
+        from . import beam_dict
+        return beam_dict.decode(probs, model, d)
     rows = np.asarray(probs, dtype=np.float32)
     if rows.ndim != 2 or rows.shape[0] == 0:
         return []
@@ -426,12 +446,18 @@ def _path_with_x(path):
     return ids, xs
 
 
-def decode_with_x(probs, model):
+def decode_with_x(probs, model, dict=None):
     """decode() plus per-character start timesteps: [T, C] float32 -> (unichar ids, xcoords).
 
     The ids are exactly decode()'s. xcoords[i] is the network timestep (3 pixels of the line
-    scaled to the model height, see tessgpu.words) where character ids[i] starts.
+    scaled to the model height, see tessgpu.words) where character ids[i] starts. dict as in
+    decode().
     """
+    d = _dictionary(model, dict)
+    if d is not None:
+        from . import beam_dict
+        r = beam_dict.decode_full(probs, model, d)
+        return r["ids"], r["xcoords"]
     rows = np.asarray(probs, dtype=np.float32)
     if rows.ndim != 2 or rows.shape[0] == 0:
         return [], []

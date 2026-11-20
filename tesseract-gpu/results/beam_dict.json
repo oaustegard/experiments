@@ -1,0 +1,638 @@
+{
+ "what": "Tesseract 5.3.4 LSTM beam search with its dictionary (tessgpu/beam_dict.py): parity with the library and CER with the dictionary off and on",
+ "constants": {
+  "dict_ratio": 2.25,
+  "cert_offset": -0.085,
+  "worst_dict_cert": -3.5714285373687744,
+  "dawgs": "lstm-punc-dawg, lstm-word-dawg, lstm-number-dawg"
+ },
+ "parity": {
+  "best_eng": {
+   "model": "best/eng",
+   "lines": 343,
+   "dict_ids_identical": 343,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 343,
+   "nodict_ids_identical": 343,
+   "nodict_port_ids_identical": 343,
+   "lines_where_tesseract_dict_changes_ids": 81,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "fast_eng": {
+   "model": "fast/eng",
+   "lines": 343,
+   "dict_ids_identical": 343,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 343,
+   "nodict_ids_identical": 343,
+   "nodict_port_ids_identical": 343,
+   "lines_where_tesseract_dict_changes_ids": 95,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "best_fra": {
+   "model": "best/fra",
+   "lines": 172,
+   "dict_ids_identical": 172,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 172,
+   "nodict_ids_identical": 172,
+   "nodict_port_ids_identical": 172,
+   "lines_where_tesseract_dict_changes_ids": 47,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "fast_fra": {
+   "model": "fast/fra",
+   "lines": 172,
+   "dict_ids_identical": 172,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 172,
+   "nodict_ids_identical": 172,
+   "nodict_port_ids_identical": 172,
+   "lines_where_tesseract_dict_changes_ids": 55,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "best_grc": {
+   "model": "best/grc",
+   "lines": 171,
+   "dict_ids_identical": 171,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 171,
+   "nodict_ids_identical": 171,
+   "nodict_port_ids_identical": 171,
+   "lines_where_tesseract_dict_changes_ids": 59,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "fast_grc": {
+   "model": "fast/grc",
+   "lines": 171,
+   "dict_ids_identical": 171,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 171,
+   "nodict_ids_identical": 171,
+   "nodict_port_ids_identical": 171,
+   "lines_where_tesseract_dict_changes_ids": 69,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "best_eng_real": {
+   "model": "best/eng",
+   "lines": 800,
+   "dict_ids_identical": 800,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 800,
+   "nodict_ids_identical": 800,
+   "nodict_port_ids_identical": 800,
+   "lines_where_tesseract_dict_changes_ids": 171,
+   "meets_bar_99": true,
+   "mismatches": []
+  },
+  "fast_eng_real": {
+   "model": "fast/eng",
+   "lines": 800,
+   "dict_ids_identical": 800,
+   "dict_ids_share": 1.0,
+   "dict_words_identical": 800,
+   "nodict_ids_identical": 800,
+   "nodict_port_ids_identical": 800,
+   "lines_where_tesseract_dict_changes_ids": 169,
+   "meets_bar_99": true,
+   "mismatches": []
+  }
+ },
+ "parity_wall_seconds": 275.4,
+ "accuracy": {
+  "synth_eng": {
+   "all": {
+    "n": 2400,
+    "cer_off": 0.00375,
+    "cer_on": 0.00329,
+    "delta_on_minus_off": -0.00045,
+    "delta_ci95": [
+     -0.00066,
+     -0.00028
+    ],
+    "exact_off": 0.8758,
+    "exact_on": 0.8871,
+    "lines_text_changed": 88,
+    "lines_better": 54,
+    "lines_worse": 15,
+    "decode_ms_off": 34.3,
+    "decode_ms_on": 53.65
+   },
+   "by_cond": {
+    "clean": {
+     "n": 300,
+     "cer_off": 0.00276,
+     "cer_on": 0.00247,
+     "delta_on_minus_off": -0.00029,
+     "delta_ci95": [
+      -0.00072,
+      5e-05
+     ],
+     "exact_off": 0.9,
+     "exact_on": 0.91,
+     "lines_text_changed": 7,
+     "lines_better": 4,
+     "lines_worse": 1,
+     "decode_ms_off": 37.61,
+     "decode_ms_on": 54.51
+    },
+    "blur": {
+     "n": 300,
+     "cer_off": 0.00287,
+     "cer_on": 0.00274,
+     "delta_on_minus_off": -0.00013,
+     "delta_ci95": [
+      -0.00052,
+      0.00017
+     ],
+     "exact_off": 0.8933,
+     "exact_on": 0.8933,
+     "lines_text_changed": 6,
+     "lines_better": 2,
+     "lines_worse": 2,
+     "decode_ms_off": 33.46,
+     "decode_ms_on": 58.16
+    },
+    "noise": {
+     "n": 300,
+     "cer_off": 0.00373,
+     "cer_on": 0.00286,
+     "delta_on_minus_off": -0.00087,
+     "delta_ci95": [
+      -0.00148,
+      -0.00033
+     ],
+     "exact_off": 0.8867,
+     "exact_on": 0.9033,
+     "lines_text_changed": 10,
+     "lines_better": 9,
+     "lines_worse": 0,
+     "decode_ms_off": 35.32,
+     "decode_ms_on": 57.19
+    },
+    "jpeg": {
+     "n": 300,
+     "cer_off": 0.00312,
+     "cer_on": 0.0023,
+     "delta_on_minus_off": -0.00083,
+     "delta_ci95": [
+      -0.00152,
+      -0.00028
+     ],
+     "exact_off": 0.9,
+     "exact_on": 0.92,
+     "lines_text_changed": 11,
+     "lines_better": 9,
+     "lines_worse": 1,
+     "decode_ms_off": 36.14,
+     "decode_ms_on": 54.63
+    },
+    "lowres": {
+     "n": 300,
+     "cer_off": 0.00433,
+     "cer_on": 0.00457,
+     "delta_on_minus_off": 0.00024,
+     "delta_ci95": [
+      -0.00023,
+      0.00079
+     ],
+     "exact_off": 0.8467,
+     "exact_on": 0.8533,
+     "lines_text_changed": 13,
+     "lines_better": 4,
+     "lines_worse": 5,
+     "decode_ms_off": 32.1,
+     "decode_ms_on": 47.05
+    },
+    "rotate": {
+     "n": 300,
+     "cer_off": 0.0052,
+     "cer_on": 0.00441,
+     "delta_on_minus_off": -0.00078,
+     "delta_ci95": [
+      -0.00144,
+      -0.00025
+     ],
+     "exact_off": 0.8233,
+     "exact_on": 0.8467,
+     "lines_text_changed": 19,
+     "lines_better": 13,
+     "lines_worse": 3,
+     "decode_ms_off": 28.66,
+     "decode_ms_on": 45.83
+    },
+    "shade": {
+     "n": 300,
+     "cer_off": 0.0052,
+     "cer_on": 0.00451,
+     "delta_on_minus_off": -0.00069,
+     "delta_ci95": [
+      -0.0014,
+      -0.00014
+     ],
+     "exact_off": 0.8567,
+     "exact_on": 0.86,
+     "lines_text_changed": 15,
+     "lines_better": 9,
+     "lines_worse": 2,
+     "decode_ms_off": 35.47,
+     "decode_ms_on": 57.67
+    },
+    "invert": {
+     "n": 300,
+     "cer_off": 0.00276,
+     "cer_on": 0.00247,
+     "delta_on_minus_off": -0.00029,
+     "delta_ci95": [
+      -0.00072,
+      5e-05
+     ],
+     "exact_off": 0.9,
+     "exact_on": 0.91,
+     "lines_text_changed": 7,
+     "lines_better": 4,
+     "lines_worse": 1,
+     "decode_ms_off": 35.62,
+     "decode_ms_on": 54.19
+    }
+   }
+  },
+  "real_eng": {
+   "all": {
+    "n": 800,
+    "cer_off": 0.13043,
+    "cer_on": 0.12264,
+    "delta_on_minus_off": -0.00779,
+    "delta_ci95": [
+     -0.01332,
+     -0.00204
+    ],
+    "exact_off": 0.5162,
+    "exact_on": 0.56,
+    "lines_text_changed": 159,
+    "lines_better": 82,
+    "lines_worse": 36,
+    "decode_ms_off": 9.24,
+    "decode_ms_on": 15.74
+   },
+   "by_cond": {
+    "funsd": {
+     "n": 400,
+     "cer_off": 0.13979,
+     "cer_on": 0.12653,
+     "delta_on_minus_off": -0.01325,
+     "delta_ci95": [
+      -0.0212,
+      -0.00592
+     ],
+     "exact_off": 0.47,
+     "exact_on": 0.5225,
+     "lines_text_changed": 85,
+     "lines_better": 49,
+     "lines_worse": 14,
+     "decode_ms_off": 9.23,
+     "decode_ms_on": 17.07
+    },
+    "sroie": {
+     "n": 400,
+     "cer_off": 0.12108,
+     "cer_on": 0.11876,
+     "delta_on_minus_off": -0.00232,
+     "delta_ci95": [
+      -0.01027,
+      0.00738
+     ],
+     "exact_off": 0.5625,
+     "exact_on": 0.5975,
+     "lines_text_changed": 74,
+     "lines_better": 33,
+     "lines_worse": 22,
+     "decode_ms_off": 9.24,
+     "decode_ms_on": 14.41
+    }
+   }
+  },
+  "synth_fra": {
+   "all": {
+    "n": 1200,
+    "cer_off": 0.00668,
+    "cer_on": 0.00627,
+    "delta_on_minus_off": -0.00041,
+    "delta_ci95": [
+     -0.00072,
+     -8e-05
+    ],
+    "exact_off": 0.8067,
+    "exact_on": 0.8125,
+    "lines_text_changed": 65,
+    "lines_better": 39,
+    "lines_worse": 16,
+    "decode_ms_off": 32.26,
+    "decode_ms_on": 49.72
+   },
+   "by_cond": {
+    "clean": {
+     "n": 150,
+     "cer_off": 0.00534,
+     "cer_on": 0.00501,
+     "delta_on_minus_off": -0.00034,
+     "delta_ci95": [
+      -0.00098,
+      0.00017
+     ],
+     "exact_off": 0.8467,
+     "exact_on": 0.8467,
+     "lines_text_changed": 4,
+     "lines_better": 3,
+     "lines_worse": 1,
+     "decode_ms_off": 31.96,
+     "decode_ms_on": 55.71
+    },
+    "blur": {
+     "n": 150,
+     "cer_off": 0.00574,
+     "cer_on": 0.00511,
+     "delta_on_minus_off": -0.00063,
+     "delta_ci95": [
+      -0.00166,
+      0.00035
+     ],
+     "exact_off": 0.8267,
+     "exact_on": 0.8333,
+     "lines_text_changed": 8,
+     "lines_better": 5,
+     "lines_worse": 1,
+     "decode_ms_off": 35.52,
+     "decode_ms_on": 52.07
+    },
+    "noise": {
+     "n": 150,
+     "cer_off": 0.00776,
+     "cer_on": 0.00727,
+     "delta_on_minus_off": -0.00048,
+     "delta_ci95": [
+      -0.00136,
+      0.00034
+     ],
+     "exact_off": 0.82,
+     "exact_on": 0.84,
+     "lines_text_changed": 9,
+     "lines_better": 6,
+     "lines_worse": 2,
+     "decode_ms_off": 34.13,
+     "decode_ms_on": 49.84
+    },
+    "jpeg": {
+     "n": 150,
+     "cer_off": 0.00715,
+     "cer_on": 0.00611,
+     "delta_on_minus_off": -0.00105,
+     "delta_ci95": [
+      -0.00197,
+      -0.00028
+     ],
+     "exact_off": 0.8,
+     "exact_on": 0.82,
+     "lines_text_changed": 7,
+     "lines_better": 6,
+     "lines_worse": 0,
+     "decode_ms_off": 32.07,
+     "decode_ms_on": 54.46
+    },
+    "lowres": {
+     "n": 150,
+     "cer_off": 0.00685,
+     "cer_on": 0.00716,
+     "delta_on_minus_off": 0.00031,
+     "delta_ci95": [
+      -0.00081,
+      0.00152
+     ],
+     "exact_off": 0.78,
+     "exact_on": 0.78,
+     "lines_text_changed": 11,
+     "lines_better": 4,
+     "lines_worse": 5,
+     "decode_ms_off": 32.43,
+     "decode_ms_on": 41.04
+    },
+    "rotate": {
+     "n": 150,
+     "cer_off": 0.00691,
+     "cer_on": 0.00656,
+     "delta_on_minus_off": -0.00035,
+     "delta_ci95": [
+      -0.00158,
+      0.00096
+     ],
+     "exact_off": 0.7533,
+     "exact_on": 0.76,
+     "lines_text_changed": 11,
+     "lines_better": 7,
+     "lines_worse": 3,
+     "decode_ms_off": 30.84,
+     "decode_ms_on": 37.75
+    },
+    "shade": {
+     "n": 150,
+     "cer_off": 0.00834,
+     "cer_on": 0.00793,
+     "delta_on_minus_off": -0.00042,
+     "delta_ci95": [
+      -0.00133,
+      0.00038
+     ],
+     "exact_off": 0.78,
+     "exact_on": 0.7733,
+     "lines_text_changed": 11,
+     "lines_better": 5,
+     "lines_worse": 3,
+     "decode_ms_off": 31.51,
+     "decode_ms_on": 49.69
+    },
+    "invert": {
+     "n": 150,
+     "cer_off": 0.00534,
+     "cer_on": 0.00501,
+     "delta_on_minus_off": -0.00034,
+     "delta_ci95": [
+      -0.00098,
+      0.00017
+     ],
+     "exact_off": 0.8467,
+     "exact_on": 0.8467,
+     "lines_text_changed": 4,
+     "lines_better": 3,
+     "lines_worse": 1,
+     "decode_ms_off": 29.64,
+     "decode_ms_on": 57.16
+    }
+   }
+  },
+  "synth_grc": {
+   "all": {
+    "n": 1200,
+    "cer_off": 0.03886,
+    "cer_on": 0.03619,
+    "delta_on_minus_off": -0.00266,
+    "delta_ci95": [
+     -0.00325,
+     -0.00214
+    ],
+    "exact_off": 0.175,
+    "exact_on": 0.2008,
+    "lines_text_changed": 244,
+    "lines_better": 126,
+    "lines_worse": 13,
+    "decode_ms_off": 47.13,
+    "decode_ms_on": 69.21
+   },
+   "by_cond": {
+    "clean": {
+     "n": 150,
+     "cer_off": 0.03834,
+     "cer_on": 0.03637,
+     "delta_on_minus_off": -0.00197,
+     "delta_ci95": [
+      -0.00349,
+      -0.00058
+     ],
+     "exact_off": 0.1933,
+     "exact_on": 0.22,
+     "lines_text_changed": 28,
+     "lines_better": 13,
+     "lines_worse": 3,
+     "decode_ms_off": 51.1,
+     "decode_ms_on": 72.59
+    },
+    "blur": {
+     "n": 150,
+     "cer_off": 0.03505,
+     "cer_on": 0.03297,
+     "delta_on_minus_off": -0.00208,
+     "delta_ci95": [
+      -0.00345,
+      -0.00086
+     ],
+     "exact_off": 0.1933,
+     "exact_on": 0.2133,
+     "lines_text_changed": 25,
+     "lines_better": 14,
+     "lines_worse": 2,
+     "decode_ms_off": 50.0,
+     "decode_ms_on": 66.11
+    },
+    "noise": {
+     "n": 150,
+     "cer_off": 0.04089,
+     "cer_on": 0.03695,
+     "delta_on_minus_off": -0.00394,
+     "delta_ci95": [
+      -0.00562,
+      -0.00236
+     ],
+     "exact_off": 0.16,
+     "exact_on": 0.2133,
+     "lines_text_changed": 36,
+     "lines_better": 22,
+     "lines_worse": 0,
+     "decode_ms_off": 49.77,
+     "decode_ms_on": 72.72
+    },
+    "jpeg": {
+     "n": 150,
+     "cer_off": 0.04122,
+     "cer_on": 0.03806,
+     "delta_on_minus_off": -0.00315,
+     "delta_ci95": [
+      -0.00501,
+      -0.00154
+     ],
+     "exact_off": 0.1733,
+     "exact_on": 0.1933,
+     "lines_text_changed": 31,
+     "lines_better": 15,
+     "lines_worse": 1,
+     "decode_ms_off": 49.83,
+     "decode_ms_on": 71.53
+    },
+    "lowres": {
+     "n": 150,
+     "cer_off": 0.03698,
+     "cer_on": 0.03528,
+     "delta_on_minus_off": -0.0017,
+     "delta_ci95": [
+      -0.003,
+      -0.00057
+     ],
+     "exact_off": 0.14,
+     "exact_on": 0.1733,
+     "lines_text_changed": 30,
+     "lines_better": 12,
+     "lines_worse": 2,
+     "decode_ms_off": 40.78,
+     "decode_ms_on": 65.97
+    },
+    "rotate": {
+     "n": 150,
+     "cer_off": 0.0385,
+     "cer_on": 0.03542,
+     "delta_on_minus_off": -0.00308,
+     "delta_ci95": [
+      -0.00466,
+      -0.00168
+     ],
+     "exact_off": 0.1667,
+     "exact_on": 0.18,
+     "lines_text_changed": 29,
+     "lines_better": 16,
+     "lines_worse": 0,
+     "decode_ms_off": 41.69,
+     "decode_ms_on": 59.07
+    },
+    "shade": {
+     "n": 150,
+     "cer_off": 0.04154,
+     "cer_on": 0.03812,
+     "delta_on_minus_off": -0.00342,
+     "delta_ci95": [
+      -0.00513,
+      -0.00181
+     ],
+     "exact_off": 0.18,
+     "exact_on": 0.1933,
+     "lines_text_changed": 37,
+     "lines_better": 21,
+     "lines_worse": 2,
+     "decode_ms_off": 48.56,
+     "decode_ms_on": 71.0
+    },
+    "invert": {
+     "n": 150,
+     "cer_off": 0.03834,
+     "cer_on": 0.03637,
+     "delta_on_minus_off": -0.00197,
+     "delta_ci95": [
+      -0.00349,
+      -0.00058
+     ],
+     "exact_off": 0.1933,
+     "exact_on": 0.22,
+     "lines_text_changed": 28,
+     "lines_better": 13,
+     "lines_worse": 3,
+     "decode_ms_off": 45.32,
+     "decode_ms_on": 74.7
+    }
+   }
+  }
+ },
+ "accuracy_setup": "clean_line + TorchTess exact, tessdata_best per language, dictionary off vs on over the same softmax; real set case-insensitive; torch threads 2",
+ "accuracy_wall_seconds": 1455.6
+}
