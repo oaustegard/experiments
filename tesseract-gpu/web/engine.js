@@ -177,6 +177,10 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
     if (!full) r.text = "";
     else if (decoder === "beam") {
       const ids = beamDecode(r.probs, m.T, model.C, model.man, dawgs);
+      // Confidence: mean over timesteps of the best softmax value (as tessgpu.improve.confidence / server pipeline).
+      let cs = 0;
+      for (let t = 0; t < m.T; t++) { let mx = 0; for (let c = 0; c < model.C; c++) { const v = r.probs[t * model.C + c]; if (v > mx) mx = v; } cs += mx; }
+      r.conf = m.T ? cs / m.T : null;
       r.text = ids.map((u) => model.man.unichars[u]).join("").split(/\s+/).filter(Boolean).join(" ");
     } else r.text = model.decode(bestHost, m.t_off, m.T);
     if (!wantProbs) delete r.probs;

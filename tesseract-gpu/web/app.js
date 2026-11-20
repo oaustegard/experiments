@@ -310,6 +310,7 @@ function dedupe(boxes) {
 
 // Table rules inside a line read as runs of =, ~, —, _ or |: drop tokens made only of such characters, and drop a
 // line with fewer than three letters or digits (a speck or a fragment of a ruling).
+const MIN_CONF = 0.6;
 const RULE_TOKEN = /^[=~—–_|§«»‘’“”'".,:;·•\-]+$/;
 function tidy(t) {
   const kept = t.split(/\s+/).filter((w) => w && !RULE_TOKEN.test(w)).join(" ");
@@ -470,6 +471,12 @@ async function recogniseLast() {
   const recMs = performance.now() - t1;
   const texts = boxes.map((_, i) => (last.fixed[i] === null ? "" : last.fixed[i]));
   idx.forEach((i, k) => { texts[i] = tidy(((out[k] && out[k].text) || "").trim()); });
+  last.confs = boxes.map(() => null);
+  idx.forEach((i, k) => { last.confs[i] = out[k] ? out[k].conf : null; });
+  // A line whose mean best-path probability is under MIN_CONF is junk (a ruling or picture read as letters): on a scanned
+  // certificate with ruled tables, junk scored 0.44 to 0.67 and real lines 0.72 to 0.94. It does not catch confident
+  // misreads (logo text scored 0.83), so it is a junk filter, not a quality score.
+  last.confs.forEach((c, i) => { if (c != null && c < MIN_CONF) texts[i] = ""; });
   last.texts = texts;
   last.timings = {
     find: last.findMs,
@@ -554,6 +561,7 @@ function showText() {
     tx.className = t ? "t" : "t empty";
     tx.textContent = t || "no text";
     li.append(n, tx);
+    if (last.confs && last.confs[i] != null) li.dataset.conf = last.confs[i].toFixed(3);
     ol.appendChild(li);
   });
   $("count").textContent = `${counts.lines} lines, ${counts.text} with text${counts.layer ? `, ${counts.layer} from the text layer` : ""}`;
