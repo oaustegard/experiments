@@ -90,6 +90,18 @@ retraining.
    CLI; on synthetic English 0.26% against 0.88%. Its character set covers 76.5% of the Ancient Greek test text, which it
    reads at 56% CER against Tesseract's 4.6% (`run/pp_rec_compare.py`, `results/pp_rec_compare.json`). It is a reference
    point, not part of either engine.
+11. **Tesseract's word lists help on every set.** The dictionary path of `RecodeBeamSearch` (`tessgpu/beam_dict.py`,
+   `web/beam_dict.js`) returns Tesseract 5.3.4's own dict-on ids on 2,972/2,972 lines (eng, fra, grc, best and fast,
+   plus 800 real lines). With it, real scans go from 13.04% <!-- @evidence[[results/beam_dict.json#accuracy.real_eng.all.cer_off]] -->
+   to 12.26% CER <!-- @evidence[[results/beam_dict.json#accuracy.real_eng.all.cer_on]] --> (82 lines better, 36 worse)
+   and Greek from 3.89% to 3.62%; <!-- @evidence[[results/beam_dict.json#accuracy.synth_grc.all.cer_on]] --> most
+   losses are apostrophe style (' against ’). It costs about 1.6x the decode time; on the page it is on by default.
+12. **Re-reading a line under several image views does not pay.** Eight views (gamma, contrast, Otsu, thicken, thin)
+   with a character vote reach 11.89% on real scans <!-- @evidence[[results/improve_lines.json#arms.rover_conf_all.cer.real.all_casefold]] -->
+   against 12.41% <!-- @evidence[[results/improve_lines.json#arms.tight_ff.cer.real.all_casefold]] --> for one cleaned
+   read of the same sample, at 8x the compute; picking the most confident view is worse than not re-reading. The best
+   view per line, chosen with the truth, would reach 8.81%: <!-- @evidence[[results/improve_lines.json#arms.views_oracle.cer.real.all_casefold]] -->
+   the readings differ usefully, but nothing available at run time picks the right one (`run/improve_lines.py`).
 
 ## Method
 
@@ -186,4 +198,22 @@ and real unchanged (`results/flatfield_check.json`).
 Decision: the page and the server pipeline use Tesseract's layout and Tesseract's models only, with clean-up on by
 default. The PP-OCRv6 detector port (`web/det/`, `server/pipeline.py layout="det"`) stays in the repository as a
 reference and is not used by the page.
+
+### Round 3 (2026-11-20): word lists, image views, fine-tuning
+
+Asked: improve the LSTM itself (fine-tuning Tesseract's own model) and add Tesseract's dictionary to the beam search.
+
+Dictionary: a ported harness (`harness/tess_dump_dict.cpp`) dumps Tesseract's dict-on beam output; the Python and JS
+ports match it on every line (`results/beam_dict.json`, `results/beam_dict_js.json`). Accuracy as in Finding 11.
+
+Image views: `run/improve_lines.py` on a quarter of the synthetic set and all 800 real lines (`results/improve_lines.json`).
+Fixed against broken lines per view on the real set, against the cleaned baseline: gamma 2 20/25, gamma 0.5 14/25,
+Otsu 17/71, thicken 17/53, thin 8/116. The fixes barely overlap (the real top three fix 39 lines in union, 5 shared).
+
+Fine-tuning: `tessgpu/tessnet.py` holds eng best as a trainable module (within 3.6e-7 of the engine when fed
+Tesseract's own convolution padding; with fresh random padding, greedy text differs on 21 of 120 lines, all at a
+line's first or last character). Training on this container's CPUs ran at 39 s a step, so the run moved to a
+Kaggle job (`run/ft/kaggle_job.py`): 30,000 generated document lines (`run/ft/make_train.py`), plus in one arm SROIE
+lines from receipts 30 onward (`run/ft/sroie_train.py`; 10,097 of 29,480 dropped because their all-caps label sat
+over lowercase print).
 
