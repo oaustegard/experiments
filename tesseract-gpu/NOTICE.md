@@ -24,6 +24,17 @@ Tesseract's page layout, dictionaries or legacy engine is included.
 The tessdata models (https://github.com/tesseract-ocr/tessdata_best, `tessdata_fast`) are Apache-2.0. The demo page
 fetches them from jsDelivr at run time; this repository does not redistribute them (`models/` is git-ignored).
 
+## Fine-tuned English model (Apache-2.0)
+
+`web/models/eng-ft/best/eng.traineddata` is a modified version of Google's tessdata_best `eng.traineddata`
+(https://github.com/tesseract-ocr/tessdata_best, Apache License 2.0): the LSTM weights were fine-tuned by
+`run/ft/train.py` and written back in place by `tessgpu/tessnet.py`; every other component is unchanged.
+`web/models/eng-ft/fast/eng.traineddata` is the same model converted to 8-bit by Tesseract's `combine_tessdata -c`.
+Both are distributed under Apache-2.0 with this notice of modification. Training data: WikiText-103 (Wikipedia text,
+CC BY-SA), generated receipt and form strings, and line crops from CORD v2 receipt photos (naver-clova-ix/cord-v2,
+CC BY 4.0, Park et al., "CORD: A Consolidated Receipt Dataset for Post-OCR Parsing", 2019). Rendering fonts: those
+installed on the build machine and 18 SIL Open Font License fonts from google/fonts.
+
 ## Line finding (Apache-2.0)
 
 `web/tesslayout.js` loads tesseract.js-core

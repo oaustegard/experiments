@@ -9,7 +9,7 @@ import { cleanLine } from "./lineprep.js";
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess6"; // keep equal to build.json
+const BUILD = "2026-11-20-tess7"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };

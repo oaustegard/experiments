@@ -24,8 +24,8 @@ Tesseract takes 0.19 s <!-- @evidence[[results/summary.json#baseline_binary.best
 Cropping lines to their ink and flat-fielding them beats stock Tesseract on English synthetic lines: 0.28% <!-- @evidence[[results/crop_check.json#cer.clean.tight+ff]] -->
 CER on clean lines against 0.31%, 0.52% on shaded ones <!-- @evidence[[results/crop_check.json#cer.shade.tight+ff]] -->
 against 4.86%. On real scanned forms and receipts the stock model reads 13.04% CER; <!-- @evidence[[results/ft_eval.json#stock.engine_nodict.real_all]] -->
-fine-tuned for 10 GPU-minutes on generated document lines and receipt lines it reads 7.69%, <!-- @evidence[[results/ft_eval.json#B.engine_nodict.real_all]] -->
-and 8.06% <!-- @evidence[[results/ft_eval.json#B.cli.real_all]] --> in unmodified Tesseract (Finding 13). PP-OCRv6 reads
+fine-tuned for 6 GPU-minutes on generated document lines and CORD receipt lines it reads 9.02%, <!-- @evidence[[results/ft_eval.json#C.engine_nodict.real_all]] -->
+and 9.75% <!-- @evidence[[results/ft_eval.json#C.cli.real_all]] --> in unmodified Tesseract (Finding 13). PP-OCRv6 reads
 these lines at 5.0%.
 
 ## Findings
@@ -101,16 +101,19 @@ these lines at 5.0%.
    read of the same sample, at 8x the compute; picking the most confident view is worse than not re-reading. The best
    view per line, chosen with the truth, would reach 8.81%: <!-- @evidence[[results/improve_lines.json#arms.views_oracle.cer.real.all_casefold]] -->
    the readings differ usefully, but nothing available at run time picks the right one (`run/improve_lines.py`).
-13. **Fine-tuning Tesseract's own eng model on document lines cuts real-scan errors by about 40%, in stock Tesseract
-   too.** `tessgpu/tessnet.py` trains eng best with CTC; 5,000 steps (batch 32, one Kaggle T4, about 6 minutes) on
-   30,000 generated document lines plus SROIE lines from receipts 30 onward (arm B) take real scans from 13.04% to
-   7.69% CER on the engine. FUNSD forms, unlike anything trained on, go from 13.98% <!-- @evidence[[results/ft_eval.json#stock.engine_nodict.real_funsd]] -->
-   to 7.90%; <!-- @evidence[[results/ft_eval.json#B.engine_nodict.real_funsd]] --> synthetic English improves on every condition
-   (0.375% to 0.276%). <!-- @evidence[[results/ft_eval.json#B.engine_nodict.synth_eng]] --> Generated lines alone (arm A)
-   reach 9.83%. <!-- @evidence[[results/ft_eval.json#A.engine_nodict.real_all]] --> Dropped into Tesseract 5.3.4 the file
-   reads real scans at 8.06% against 12.87%. With the fine-tuned model the word lists no longer help (7.80% with them).
-   An 8-bit version made by Tesseract's `combine_tessdata -c` reads 7.82% on the engine and 8.88% in the CLI. Not yet
-   published: SROIE's upstream licence is unconfirmed (Round 3). `results/ft_eval.json`, `run/ft/`.
+13. **Fine-tuning Tesseract's own eng model on document lines cuts real-scan errors by about 30%, in stock Tesseract
+   too.** `tessgpu/tessnet.py` trains eng best with CTC. 5,000 steps (batch 32, one Kaggle T4, about 6 minutes) on
+   30,000 generated document lines plus 7,800 line crops from CORD v2 receipt photos (CC BY 4.0; arm C) take the 800
+   real lines from 13.04% to 9.02% CER on the engine. <!-- @evidence[[results/ft_eval.json#C.engine_nodict.real_all]] -->
+   FUNSD forms, unlike anything trained on, go from 13.98% <!-- @evidence[[results/ft_eval.json#stock.engine_nodict.real_funsd]] -->
+   to 9.79%; <!-- @evidence[[results/ft_eval.json#C.engine_nodict.real_funsd]] --> synthetic English improves from 0.375%
+   to 0.269%. <!-- @evidence[[results/ft_eval.json#C.engine_nodict.synth_eng]] --> In unmodified Tesseract 5.3.4 the file
+   reads real scans at 9.75% <!-- @evidence[[results/ft_eval.json#C.cli.real_all]] --> against 12.87%, and synthetic
+   English at 0.91% against 0.88%. More in-domain real lines buy more: with SROIE receipts instead of CORD (arm B) the
+   engine reads 7.69%, <!-- @evidence[[results/ft_eval.json#B.engine_nodict.real_all]] --> but SROIE's licence is
+   unconfirmed, so B is not published; generated lines alone (arm A) reach 9.83%. With a fine-tuned model the word lists
+   no longer help. Arm C ships as `web/models/eng-ft/` (best, and 8-bit by Tesseract's `combine_tessdata -c`; on arm B
+   that conversion cost 0.1 point on the engine). `results/ft_eval.json`, `run/ft/`.
 
 ## Method
 
@@ -231,4 +234,8 @@ from 9.5% to 5.9% (generated) and 9.6% to 6.6% (SROIE), for arm B to 6.4% and 3.
 with `run/ft/eval_models.py` (`results/ft_eval.json`): the engine (clean-up, beam with and without word lists) and the
 stock CLI with the file in a tessdata directory. The SROIE evaluation receipts (0 to 8) come from the same collection
 as arm B's training receipts, so SROIE gains are partly in-domain; FUNSD is the out-of-domain check.
+Kaggle job `tess-ft-2` (one T4): arm C, generated lines plus CORD v2 (8,658 lines from 900 receipt photos, train and
+validation splits; 1,607 rotated and 2,218 short fields dropped), in place of SROIE, whose licence could not be
+confirmed. Held-out CORD receipts went from 34.1% to 21.1% CER (case-sensitive; CORD's labels space some fields
+differently from the print). Scored once on the evaluation sets as in Finding 13.
 
