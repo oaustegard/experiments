@@ -1,8 +1,8 @@
 """Parity of the engines on a community fine-tune (tessdata_contrib grc_hist) against Tesseract 5.3.4's own output.
 
     python3 run/check_contrib.py MODEL BENCH_DIR DUMP_DIR     # harness/dump_contrib.sh makes DUMP_DIR
-Per line: max |softmax difference| reference vs Tesseract, argmax agreement, and whether the beam-search port
-returns Tesseract's ids. Also the exact PyTorch engine against the reference.
+Max |softmax difference| of the exact engine against Tesseract, argmax agreement, and whether the beam-search port
+on the engine's softmax returns Tesseract's ids.
 """
 import sys
 from pathlib import Path
@@ -17,27 +17,26 @@ from tessgpu.traineddata import load  # noqa: E402
 
 
 def main(model, bench, dumps):
+    """The exact engine (checked against tessgpu.ref on the stock models) straight against Tesseract's dumps."""
+    import torch
     from server.torch_engine import TorchTess
+    torch.set_num_threads(2)
     m = load(model)
     eng = TorchTess(model, mode="exact")
-    pngs = sorted(Path(bench).glob("*.png"))
-    worst, arg, same_ids, eng_worst, n = 0.0, [], 0, 0.0, 0
-    for png in pngs:
-        dump = Path(dumps) / (png.name + ".bin")
-        if not dump.exists():
-            continue
-        g = np.asarray(Image.open(png))
-        p = ref.forward(m, g)
+    pairs = [(png, Path(dumps) / (png.name + ".bin")) for png in sorted(Path(bench).glob("*.png"))]
+    pairs = [(p, d) for p, d in pairs if d.exists()]
+    imgs = [np.asarray(Image.open(p)) for p, _ in pairs]
+    probs = eng.recognize(imgs)
+    worst, all_arg, same_ids = 0.0, 0, 0
+    for (png, dump), p in zip(pairs, probs):
         d = tessdump.read(str(dump))
         tp = d["probs"]
         worst = max(worst, float(np.abs(p - tp).max()))
-        arg.append(float((p.argmax(1) == tp.argmax(1)).mean()))
-        same_ids += list(beam.decode(tp.astype(np.float32), m)) == list(d["ids"])
-        pe = eng.recognize([g])[0]
-        eng_worst = max(eng_worst, float(np.abs(pe - p).max()))
-        n += 1
-    print(f"{Path(model).name}: {n} lines; reference vs Tesseract max |dp| {worst:.2e}, argmax identical at every step on "
-          f"{sum(a == 1.0 for a in arg)}/{n} lines; beam port = Tesseract ids on {same_ids}/{n}; exact engine vs reference max |dp| {eng_worst:.2e}")
+        all_arg += bool((p.argmax(1) == tp.argmax(1)).all())
+        same_ids += list(beam.decode(p.astype(np.float32), m)) == list(d["ids"])
+    n = len(pairs)
+    print(f"{Path(model).name}: {n} lines; exact engine vs Tesseract max |dp| {worst:.2e}; argmax identical at every "
+          f"step on {all_arg}/{n} lines; beam port on the engine's softmax = Tesseract's ids on {same_ids}/{n}")
 
 
 if __name__ == "__main__":
