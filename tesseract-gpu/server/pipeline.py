@@ -1,7 +1,7 @@
 """Page image -> text in reading order: line finding, then the GPU-style line recogniser.
 
     from server.pipeline import read_page
-    res = read_page(gray, layout="det")      # or layout="tess"
+    res = read_page(gray)                     # Tesseract layout, cleaned lines
     res["text"]                               # reading-order text, blank line between blocks
     res["lines"]                              # [{"box": [x0, y0, x1, y1], "text": str, "conf": float}]
     res["ms"]                                 # per-stage milliseconds
@@ -17,8 +17,10 @@ Line finding
                  CUDA provider when available) -> tessgpu.layout (boxes, lines, reading order).
 
 Recognition
-  Each line box is padded by PAD pixels (Tesseract pads a line box by 4 px), inverted when
-  tessgpu.ref.needs_invert says the line is light-on-dark, and all lines of the page go through
+  Each line box is padded by PAD pixels (Tesseract pads a line box by 4 px). With clean=True (the
+  default) the crop goes through tessgpu.lineprep.clean_line (flip if light-on-dark, flat-field, tight
+  crop to the ink); with clean=False it is only inverted when tessgpu.ref.needs_invert says the line
+  is light-on-dark, which is the input Tesseract itself would use. All lines of the page go through
   TorchTess.recognize in one batch. tessgpu.beam.decode gives the unichar ids, which are joined
   into the line text. conf is the mean over timesteps of the highest softmax value.
 
@@ -42,7 +44,7 @@ import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
 from server.torch_engine import TorchTess  # noqa: E402
-from tessgpu import beam, layout, ref  # noqa: E402
+from tessgpu import beam, layout, lineprep, ref  # noqa: E402
 
 PAD = 4                                                    # Tesseract's line-box padding, px
 DEFAULT_MODEL = os.path.join(ROOT, 'models', 'best', 'eng.traineddata')
@@ -215,7 +217,7 @@ def _layout_det(gray, det):
 
 # ---------------------------------------------------------------- recognition
 
-def _recognise(gray, boxes, eng):
+def _recognise(gray, boxes, eng, clean=True):
     """Crop, invert, batch-recognise and beam-decode the lines. Returns per-line text and conf."""
     H, W = gray.shape
     t0 = time.perf_counter()
@@ -227,7 +229,9 @@ def _recognise(gray, boxes, eng):
         if x1 <= x0 or y1 <= y0:
             continue
         c = np.ascontiguousarray(gray[y0:y1, x0:x1])
-        if ref.needs_invert(c):
+        if clean:
+            c = lineprep.clean_line(c)
+        elif ref.needs_invert(c):
             c = np.ascontiguousarray(255 - c)
         crops.append(c)
         idx.append(i)
@@ -252,8 +256,9 @@ def _recognise(gray, boxes, eng):
 
 # ---------------------------------------------------------------- public
 
-def read_page(gray, layout="det", model=DEFAULT_MODEL, device="cpu", mode="exact", det="tiny"):
-    """Read one page. layout: "det" (PP-OCRv6 lines) or "tess" (Tesseract's layout)."""
+def read_page(gray, layout="tess", model=DEFAULT_MODEL, device="cpu", mode="exact", det="tiny", clean=True):
+    """Read one page. layout: "tess" (Tesseract's layout, default) or "det" (PP-OCRv6 lines, kept as a
+    reference point). clean: tessgpu.lineprep clean-up of every line before recognition."""
     if layout not in ("det", "tess"):
         raise ValueError("layout must be 'det' or 'tess', got %r" % (layout,))
     g = _grey(gray)
@@ -268,7 +273,7 @@ def read_page(gray, layout="det", model=DEFAULT_MODEL, device="cpu", mode="exact
     t_layout = time.perf_counter() - t0
 
     eng = _engine(model, device, mode)
-    texts, confs, t = _recognise(g, boxes, eng)
+    texts, confs, t = _recognise(g, boxes, eng, clean)
 
     lines = []
     blocks = []

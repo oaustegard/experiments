@@ -11,21 +11,23 @@ of the 320 LSTM models in tessdata_best and tessdata_fast unchanged. Oskar Auste
 and asked that the work be split into small parallel tasks for Claude Haiku. Error rates are CER: character edits
 divided by the length of the true text. Mac timings come from the GPU Bridge, this repo's job runner in a browser tab
 on Oskar's Mac; "SwiftShader" is Chrome's CPU implementation of WebGPU, used for headless correctness checks here. See `NOTICE.md` for the licences of the
-Tesseract code, the tessdata models and the PP-OCRv6 detector the demo page uses.
+Tesseract code, the tessdata models and the tesseract.js-core build the demo page uses.
 
 ## Answer
 
-Can Tesseract's recognizer run on a GPU and still be Tesseract? Yes. On 686 English, French and Ancient Greek
-benchmark lines, the reference that both engines are checked against reproduces Tesseract 5.3.4's own
-softmax output to within 3.3e-5 for the float models <!-- @evidence[[results/summary.json#parity.best_max_dp]] -->
-and 1.3e-6 for the 8-bit models, <!-- @evidence[[results/summary.json#parity.fast_max_dp]] --> with the same best
-character at every timestep, and a port of Tesseract's beam search returns its exact characters on all 1,372
-readings. <!-- @evidence[[results/summary.json#beam.identical]] --> On Oskar's Mac
-(Chrome 157), 343 lines take 176 ms of GPU time with eng best, <!-- @evidence[[results/summary.json#mac.best_gpu_ms]] -->
-and the text equals the reference on every line (beam decoding not included). On a Kaggle Tesla T4 the server engine reads 1,143 lines per second, <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
-still limited by preparing lines on the CPU rather than by the GPU. Stock
-Tesseract took 0.19 s a line in each of four parallel processes on four CPUs, about 21 lines per second in all. <!-- @evidence[[results/summary.json#baseline_binary.best_s_per_line_4proc]] --> Packing
-tessdata_best's weights to 8 bits keeps its error rate within 0.1 point on all three languages. Making the LSTM itself cheaper would need retraining (Finding 7, Log).
+Can Tesseract's recognizer run on a GPU, still be Tesseract, and read better? Yes. The reference both engines are
+checked against reproduces Tesseract 5.3.4's softmax to within 3.3e-5 for float models <!-- @evidence[[results/summary.json#parity.best_max_dp]] -->
+and 1.3e-6 for 8-bit ones <!-- @evidence[[results/summary.json#parity.fast_max_dp]] --> on 686 English, French and
+Ancient Greek lines, and a port of Tesseract's beam search returns its exact characters on all 1,372 readings. <!-- @evidence[[results/summary.json#beam.identical]] -->
+On Oskar's Mac, 343 lines take 176 ms of GPU time with eng best; <!-- @evidence[[results/summary.json#mac.best_gpu_ms]] -->
+on a Kaggle T4 the server engine reads 1,143 lines a second, <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
+where stock Tesseract takes 0.19 s <!-- @evidence[[results/summary.json#baseline_binary.best_s_per_line_4proc]] --> a line per CPU.
+Cropping each line to its ink and flat-fielding its lighting makes the same model beat stock Tesseract on English
+synthetic lines: 0.28% CER on clean lines <!-- @evidence[[results/crop_check.json#cer.clean.tight+ff]] --> against
+0.31%, and 0.52% on shaded ones <!-- @evidence[[results/crop_check.json#cer.shade.tight+ff]] --> against 4.86%.
+tessdata_best packs to 8-bit weights within 0.1 CER point. On real scanned forms and receipts Tesseract's models read
+about 13% CER where PP-OCRv6 reads 5%, a gap in the model that preprocessing does not close; closing it would take
+retraining.
 
 ## Findings
 
@@ -72,8 +74,22 @@ tessdata_best's weights to 8 bits keeps its error rate within 0.1 point on all t
    one topology (12 size variants; `notes/inventory.md`), so one set of kernels serves every language.
 8. **Inverted lines can be caught before the network.** Tesseract reruns a line inverted when its mean best-path
    probability is under 0.7. Checking whether most pixels are darker than halfway between Tesseract's own black and
-   white levels flagged 86/86 inverted and 0/600 normal synthetic lines; on 800 real scanned lines it flagged one, which
-   has not been inspected. The engines invert such lines up front and run the network once.
+   white levels flagged 86/86 inverted and 0/600 normal synthetic lines; on 800 real scanned lines it flagged one, a
+   false positive (a faint grey "11.23" on a receipt). The engines invert such lines up front and run the network once.
+9. **Line clean-up beats stock Tesseract on the same model.** Scaling a loosely cropped line to the 48 px input makes
+   the text small; cropping to the ink (flat-fielded pixels under 128, 4 px pad) first takes eng best on the exact
+   engine from 1.06% to 0.28% CER on clean synthetic lines. <!-- @evidence[[results/crop_check.json#cer.clean.tight]] -->
+   Flat-fielding (grey closing over 1.5x the line height, divided out) adds the rest on shaded lines: 1.48% to
+   0.52%. <!-- @evidence[[results/crop_check.json#cer.shade.tight+ff]] --> The Tesseract CLI reads the shaded lines at
+   4.86%, <!-- @evidence[[results/flatfield_check.json#rows.3.cer_before]] --> almost all of it 13 lines where its
+   binarized layout found no text and it returned nothing; the recognizer reads greyscale (`BestPix()`), so only the
+   layout stage is black and white. Real scans move only from 14.2% to 13.0% (`run/crop_check.py`; on by default in
+   `tessgpu/lineprep.py`, `web/lineprep.js` and `server/pipeline.py`).
+10. **PP-OCRv6 sets the bar on real scans.** On the same crops, PaddlePaddle's PP-OCRv6 small recognizer (21 MB,
+   Apache-2.0) reads the 800 real lines at 5.0% CER (case-insensitive), the 1.1M-parameter tiny at 6.8%, against 12.9% for the Tesseract
+   CLI; on synthetic English 0.26% against 0.88%. Its character set covers 76.5% of the Ancient Greek test text, which it
+   reads at 56% CER against Tesseract's 4.6% (`run/pp_rec_compare.py`, `results/pp_rec_compare.json`). It is a reference
+   point here, not a component: this experiment keeps Tesseract's own models end to end.
 
 ## Method
 
@@ -104,11 +120,12 @@ fixtures from `run/make_fixtures.py`), `run/check_torch.py`, `run/check_beam.py`
 Real-GPU timing: GPU Bridge jobs on Oskar's Mac (`run/bridge/`, results in `results/bridge_tess-gpu-*_mac.json`) and a
 Kaggle T4 batch job (`run/kaggle/server_bench.py`, `results/kaggle_t4_server_bench_1.json`).
 
-**Demo page.** PaddlePaddle's PP-OCRv6 text detector (Apache-2.0, ported to WebGPU in `web/det/`, within 5.6e-4 of
-onnxruntime) or Tesseract 5.1's own layout (`web/tesslayout.js`, tesseract.js-core) finds the lines; `web/layout.js`
-orders them (column-aware by default, a port of anything-to-text's ordering, or XY-cut); every line then goes through
-this engine in one batch. Math lines are read as plain text. Models load from this site and jsDelivr; every
-model is Apache-2.0 (`NOTICE.md`).
+**Demo page.** Tesseract 5.1's own layout (`web/tesslayout.js`, tesseract.js-core in WebAssembly) finds the lines and
+their reading order, or `web/layout.js` reorders them by column bands (a port of anything-to-text's ordering). Each line
+is flat-fielded and cropped to its ink (`web/lineprep.js`, within 2 grey levels of `tessgpu/lineprep.py` on 48 test
+lines, `web/test/check_lineprep.mjs`), then every line goes through this engine in one batch. Math lines are read as
+plain text. `web/test/page_e2e.mjs` reads the two sample pages end to end in headless Chromium. Everything the page
+loads is Apache-2.0 (`NOTICE.md`).
 
 **Delegation.** The work ran as one coordinating session and 17 Claude Haiku subagents, each with a task, a
 deliverable and a check it had to pass: benchmark data (2), model inventory, math and image-path surveys, the four
@@ -148,3 +165,25 @@ Open: vectorising the remaining per-line preprocessing in the server engine; Mac
 dot products (`dot4I8Packed`) for tessdata_fast; f16 weights in the kernels; a CER comparison of the demo pipeline
 (Indra layout plus Tesseract recognizer) on Omni Parse Bench pages; distilling the LSTM into a model whose x-direction
 layers run in parallel over time, which needs training.
+
+### Round 2 (2026-11-20): line finding, line clean-up, a PP-OCRv6 reference
+
+Asked: Tesseract's own layout on the page, improvements over CPU Tesseract where possible, a geometry-aware reading order
+(from anything-to-text), and then whether PaddlePaddle's PP-OCRv6 components belong in a polished Tesseract at all.
+
+The real-scan line set was mis-cropped until this round: the FUNSD copy (nielsr/funsd) stores boxes scaled to 0-1000 and
+`run/make_real.py` used them as pixels, so the 400 FUNSD crops showed the wrong text. Fixed and rebuilt; every
+real-set number above is from the rebuilt set.
+
+PP-OCRv6 recognizers on the same crops (onnxruntime, CPU): synthetic English tiny 0.52%, small 0.26%; French 1.11%,
+0.62%; Greek 71%, 56%; real 6.8%, 5.0%. The Tesseract CLI on the same: 0.88%, 0.84%, 4.55%, 12.9%. The medium model was
+stopped part-way once tiny and small had answered the question.
+
+Clean-up, eng best, exact engine (`results/crop_check.json`): clean 1.06 -> 0.28 (tight crop), shaded 1.48 -> 0.73 (tight)
+-> 0.52 (tight + flat-field), real 14.16 -> 13.04. Flat-fielding alone in front of the CLI: shaded 4.86 -> 3.70, clean
+and real unchanged (`results/flatfield_check.json`).
+
+Decision: the page and the server pipeline use Tesseract's layout and Tesseract's models only, with clean-up on by
+default. The PP-OCRv6 detector port (`web/det/`, `server/pipeline.py layout="det"`) stays in the repository as a
+reference and is not used by the page.
+

@@ -625,5 +625,14 @@
     return result;
   }
 
-  return { layout, DEFAULTS };
+  // Column-band reading order for boxes found elsewhere (Tesseract's own layout on the page): indices into boxes.
+  function orderBoxes(boxes) {
+    const res = orderBands(Array.from({ length: boxes.length }, (_, i) => i), boxes);
+    const seq = [].concat(...res.bands.map((band) => [].concat(...band.map(([line]) => line))));
+    const seen = new Set(seq);
+    for (let i = 0; i < boxes.length; i++) if (!seen.has(i)) seq.push(i);
+    return seq;
+  }
+
+  return { layout, orderBoxes, DEFAULTS };
 });

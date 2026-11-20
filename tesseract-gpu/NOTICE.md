@@ -1,7 +1,7 @@
 # Licences and third-party material in tesseract-gpu
 
 The experiment's own code is MIT (the repository's `LICENSE`, copyright Oskar Austegard). Parts of it are ports of
-Apache-2.0 code, and every model it loads (Tesseract's tessdata, PaddlePaddle's PP-OCRv6 detector) is Apache-2.0.
+Apache-2.0 code, and every model it loads is Apache-2.0.
 
 ## Tesseract (Apache-2.0)
 
@@ -26,13 +26,17 @@ fetches them from jsDelivr at run time; this repository does not redistribute th
 
 ## Line finding (Apache-2.0)
 
-The PP-OCRv6 text-line detector weights (https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx and `_small_`,
+The demo page finds lines with Tesseract's own layout: `web/tesslayout.js` loads tesseract.js-core
+(https://github.com/naptha/tesseract.js-core, Apache-2.0, Tesseract 5.1) from jsDelivr at run time, and the server
+pipeline uses tesserocr (MIT) over Tesseract's own library. The column-band reading order in `web/layout.js` and
+`tessgpu/layout.py` is ported from anything-to-text in oaustegard.github.io (same owner).
+
+Kept in the repository as a reference, not used by the page: the PP-OCRv6 text-line detector weights (https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx and `_small_`,
 PaddlePaddle, Apache License 2.0) are converted by `run/export_det.py` into `web/det/models/` (weights unchanged in
-value, re-laid out for the WebGPU kernels) and run by `web/det/`. The box post-processing in `tessgpu/layout.py` and
-`web/layout.js` follows the algorithm of PaddleOCR's DBPostProcess (Apache-2.0); the column-aware ordering is ported
-from anything-to-text in oaustegard.github.io (same owner). `web/tesslayout.js` loads tesseract.js-core
-(https://github.com/naptha/tesseract.js-core, Apache-2.0, Tesseract 5.1) from jsDelivr at run time for Tesseract's own
-page layout; the server pipeline uses tesserocr (MIT) over Tesseract's own library.
+value, re-laid out for the WebGPU kernels) and run by `web/det/` and `server/pipeline.py layout="det"`; its box
+post-processing in `tessgpu/layout.py` and `web/layout.js` follows PaddleOCR's DBPostProcess (Apache-2.0). The
+PP-OCRv6 recognizers used for comparison in `run/pp_rec_compare.py` (Apache-2.0) are downloaded at run time and not
+redistributed.
 
 ## Benchmark data
 

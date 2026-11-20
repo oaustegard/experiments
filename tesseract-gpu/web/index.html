@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page to text, with Tesseract on WebGPU</title>
-<meta name="description" content="A scanned page or photo read in your browser on the GPU: PP-OCRv6 or Tesseract's own layout finds the lines and Tesseract's LSTM recognizer reads them. Apache-2.0 and MIT throughout.">
+<meta name="description" content="A scanned page or photo read in your browser on the GPU by Tesseract: its own layout finds the lines, each line is cleaned up, and its LSTM recognizer reads them all in one batch on WebGPU.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
 <header>
   <h1>Read a page with Tesseract, on your own GPU</h1>
-  <p class="lede">Drop a scan or a photo of a page. The text lines are found either by <a href="https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx">PP-OCRv6's text detector</a>, run as WebGPU kernels, or by Tesseract's own page layout.
-  Tesseract's LSTM recognizer, also on WebGPU, reads each line in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages and scripts, each in both
-  sizes; the legacy-only equ and osd models are not offered). <b>Math is not read for now:</b> math lines are read as text, and a permissively licensed math reader is planned.
+  <p class="lede">Drop a scan or a photo of a page. Tesseract's own page layout finds the text lines, each line is flat-fielded and cropped tightly to its ink, and
+  Tesseract's LSTM recognizer, ported to WebGPU, reads every line in one batch, in any of the 320 LSTM models in tessdata_fast and tessdata_best (about 160 languages
+  and scripts, each in both sizes; the legacy-only equ and osd models are not offered). Math is read as plain text.
   The page is not uploaded anywhere. Models load on first use from this site, jsDelivr and Tesseract's public repository. It needs a browser with WebGPU; without one
   the page shows a message and does nothing else.</p>
 </header>
@@ -29,17 +29,12 @@
     <span><strong>Choose a page</strong>, drop one here, or paste a screenshot: PNG, JPEG or WebP</span>
   </label>
   <div class="picker">
-    <label class="muted small" for="finder">Find lines with</label>
-    <select id="finder" aria-label="How the text lines are found">
-      <option value="detector" selected>Detector (PP-OCRv6)</option>
-      <option value="tess">Tesseract layout</option>
-    </select>
     <label class="muted small" for="order">Reading order</label>
-    <select id="order" aria-label="Reading order of the lines (detector only)">
-      <option value="bands" selected>Columns (default)</option>
-      <option value="xycut">XY-cut</option>
+    <select id="order" aria-label="Reading order of the lines">
+      <option value="tess" selected>Tesseract's</option>
+      <option value="columns">Column bands</option>
     </select>
-    <span class="muted small">reading order applies to the detector</span>
+    <label class="muted small check"><input type="checkbox" id="clean" checked> Clean up lines (flat-field, tight crop)</label>
   </div>
   <div class="picker">
     <label class="muted small" for="lang">Language</label>
@@ -76,17 +71,16 @@
 </section>
 
 <footer class="muted small">
-  <p>How it works: PP-OCRv6's detector finds the text lines as a probability map, and <code>layout.js</code> turns that map into line boxes and a
-  reading order (columns by default, or XY-cut). Tesseract's own layout analysis (<code>tesslayout.js</code>, the tesseract.js-core build of Tesseract 5.1) can find the lines instead.
-  Each line is cropped from the page with 3 px of padding and read on the GPU by Tesseract's LSTM recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels,
-  with Tesseract's beam search for the text. Math lines are read as text for now.</p>
-  <p>Downloads: the detector's weights, about 1.7 MB, come with the page. Tesseract's layout engine (about 2.8 MB) and its English model (about 4 MB) load once, on first use of that
-  option. The recognizer model for the language you pick loads on first use of it, from jsDelivr.</p>
-  <p>Licences: Tesseract's code and the tessdata models are Apache-2.0. The PP-OCRv6 detector weights are Apache-2.0
-  (PaddlePaddle, <a href="https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx">PP-OCRv6_tiny_det_onnx</a>). tesseract.js-core is Apache-2.0.
-  This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
+  <p>How it works: Tesseract's layout analysis (<code>tesslayout.js</code>, the tesseract.js-core build of Tesseract 5.1) finds the text lines and their reading order;
+  <i>Column bands</i> reorders them by the column structure of the page instead (<code>layout.js</code>). Each line is cropped from the page and, with clean-up on,
+  flat-fielded (the paper's uneven lighting divided out) and cropped tightly to its ink (<code>lineprep.js</code>). Every line is then read on the GPU by Tesseract's LSTM
+  recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels, with Tesseract's beam search for the text. With clean-up off, each line is cropped with
+  3 px of padding and read as is.</p>
+  <p>Downloads: Tesseract's layout engine (about 2.8 MB) and the English model it uses for layout (about 4 MB) load once, from jsDelivr. The recognizer model for the
+  language you pick loads on first use of it.</p>
+  <p>Licences: Tesseract's code, the tessdata models and tesseract.js-core are Apache-2.0. This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
   <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess4</code>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess5</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

@@ -1,21 +1,18 @@
-// The page: an image in, its text lines found on the GPU (PP-OCRv6's detector with layout.js, or Tesseract's own
-// layout from tesslayout.js), every line read by Tesseract's LSTM recognizer on WebGPU in one batch, and the text in
-// reading order. Every component is Apache-2.0 or MIT. Logs go through relay.js (?log=1 on Oskar's devices).
+// The page: an image in, its text lines found by Tesseract's own layout (tesslayout.js), each line cleaned up
+// (lineprep.js: flat-field, tight crop) and read by Tesseract's LSTM recognizer on WebGPU in one batch, and the text
+// in Tesseract's reading order or by column bands (layout.js). Logs go through relay.js (?log=1 on Oskar's devices).
 import { Gpu, recognize } from "./engine.js";
 import { loadTraineddata } from "./traineddata.js";
-import { DetNet } from "./det/engine.js";
 import { tessLayout } from "./tesslayout.js";
+import { cleanLine } from "./lineprep.js";
 
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
-const detLayout = (...args) => window.TessLayout.layout(...args);
+const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess4"; // keep equal to build.json
-const DET_BASE = "det/models/tiny/";
-const DET_LONG_SIDE = 1280;
+const BUILD = "2026-11-20-tess5"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
-const FINDER_LABEL = { detector: "Detector (PP-OCRv6)", tess: "Tesseract layout" };
-const ORDER_LABEL = { bands: "columns", xycut: "XY-cut" };
+const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
 const BOX_COLOR = "#2f5fd0";
 
 const $ = (id) => document.getElementById(id);
@@ -47,13 +44,12 @@ function status(text, kind = "", frac = null) {
 // ------------------------------------------------------------------ state
 
 let gpu = null;          // WebGPU device (engine.js)
-let detNet = null;       // PP-OCRv6 detector (det/engine.js)
 let langs = null;        // langs.json
 let byCode = new Map();
 const models = new Map(); // "variant/path" -> Promise<{model, ms, bytes, variant, code, name}>
 let current = null;      // the recogniser model in use
-let last = null;         // {name, gray, boxes (reading order, page px), finder, order, findMs, texts, timings, counts}
-let detCache = null;     // {gray, prob, H, W, scale}: the detector's map for one page, reused when only the order changes
+let last = null;         // {name, gray, boxes (reading order, page px), order, clean, findMs, texts, timings, counts}
+let layoutCache = null;  // {gray, boxes (Tesseract's order), ms}: one layout per page, reused when only the order or clean-up changes
 let runs = 0;            // completed page readings in this load
 let busy = false;
 
@@ -164,7 +160,7 @@ async function imageToGray(blob) {
 }
 
 async function handle(file) {
-  if (!detNet || busy) return;
+  if (!gpu || busy) return;
   if (!/^image\//.test(file.type)) {
     status(`${file.name} is not an image. Save the page as PNG or JPEG first (PDF pages are not read by this page yet).`, "error");
     return;
@@ -182,33 +178,21 @@ async function handle(file) {
 // ------------------------------------------------------------------ reading
 
 // Line boxes in reading order, as [x0, y0, x1, y1] in page pixels.
-async function findLines(gray, finder, order) {
-  if (finder === "tess") {
+async function findLines(gray, order) {
+  if (!layoutCache || layoutCache.gray !== gray) {
     const t0 = performance.now();
     const r = await tessLayout(gray.data, gray.w, gray.h);
     const took = performance.now() - t0;
     relay.log("tess layout", { lines: r.lines.length, ms: Math.round(took), core_ms: Math.round(r.ms) });
-    return { boxes: r.lines.map((ln) => ln.box), ms: took };
+    layoutCache = { gray, boxes: r.lines.map((ln) => ln.box), ms: took };
   }
-  // The detector's time is kept with its map, so a reread that only changes the order still reports what finding the lines cost.
-  if (!detCache || detCache.gray !== gray) {
-    const t0 = performance.now();
-    const out = await detNet.run(gray.data, gray.w, gray.h, DET_LONG_SIDE);
-    const detMs = performance.now() - t0;
-    detCache = { gray, prob: out.prob, H: out.H, W: out.W, scale: out.scale, ms: detMs };
-    relay.log("det", { w: gray.w, h: gray.h, H: out.H, W: out.W, ms: Math.round(detMs) });
-  }
+  const { boxes, ms: took } = layoutCache;
+  if (order !== "columns") return { boxes, ms: took };
   const t1 = performance.now();
-  const { prob, H, W, scale } = detCache;
-  // scale is map pixels per page pixel (det/README.md), so the layout takes page pixels per map pixel
-  const res = detLayout(prob, H, W, 1 / scale, 1 / scale, gray.w, gray.h, { order });
-  const seq = res.order.slice();
-  const seen = new Set(seq);
-  for (let i = 0; i < res.lines.length; i++) if (!seen.has(i)) seq.push(i); // a line the order missed goes last
-  const boxes = seq.map((i) => res.lines[i].box);
-  const layoutMs = performance.now() - t1;
-  relay.log("layout", { order, lines: boxes.length, blocks: res.blocks.length, skew: res.skew, ms: Math.round(layoutMs) });
-  return { boxes, ms: detCache.ms + layoutMs };
+  const seq = orderBoxes(boxes);
+  const ordMs = performance.now() - t1;
+  relay.log("order", { order, lines: boxes.length, ms: Math.round(ordMs) });
+  return { boxes: seq.map((i) => boxes[i]), ms: took + ordMs };
 }
 
 // One crop per line: axis-aligned, padded by PAD px, clamped to the page. null for a box with no area.
@@ -229,12 +213,12 @@ function cropOf(gray, box) {
 async function runPage(gray, name) {
   busy = true;
   try {
-    const finder = $("finder").value;
     const order = $("order").value;
-    status(`Finding the lines of ${name} with ${FINDER_LABEL[finder]} (${gray.w} × ${gray.h})…`);
-    const found = await findLines(gray, finder, order);
-    last = { name, gray, boxes: found.boxes, finder, order, findMs: found.ms };
-    relay.log("page", { name, w: gray.w, h: gray.h, lines: found.boxes.length, finder, order, ms: Math.round(found.ms) });
+    const clean = $("clean").checked;
+    status(`Finding the lines of ${name} with Tesseract's layout (${gray.w} × ${gray.h})…`);
+    const found = await findLines(gray, order);
+    last = { name, gray, boxes: found.boxes, order, clean, findMs: found.ms };
+    relay.log("page", { name, w: gray.w, h: gray.h, lines: found.boxes.length, order, clean, ms: Math.round(found.ms) });
     showPage();
     await recogniseLast();
   } catch (e) {
@@ -253,7 +237,7 @@ async function recogniseLast() {
   const idx = [], crops = [];
   boxes.forEach((b, i) => {
     const c = cropOf(gray, b);
-    if (c) { idx.push(i); crops.push(c); }
+    if (c) { idx.push(i); crops.push(last.clean ? cleanLine(c) : c); }
   });
   const cropMs = performance.now() - tc;
   const t1 = performance.now();
@@ -276,7 +260,7 @@ async function recogniseLast() {
   runs += 1;
   $("result").dataset.run = String(runs);
   showText();
-  status(`${boxes.length} lines in ${last.name}, found by ${FINDER_LABEL[last.finder]}; read with ${current.name} (${current.variant}).`, "ready");
+  status(`${boxes.length} lines in ${last.name}; read with ${current.name} (${current.variant}).`, "ready");
 }
 
 // ------------------------------------------------------------------ output
@@ -316,7 +300,7 @@ function showPage() {
     ctx.fillText(label, x0 + 3, y0 + 2);
   });
   ctx.globalAlpha = 1;
-  $("legend").innerHTML = `<span><i class="box"></i>line box, numbered in reading order</span><span>found by ${FINDER_LABEL[last.finder]}${last.finder === "detector" ? `, ${ORDER_LABEL[last.order]}` : ""}</span>`;
+  $("legend").innerHTML = `<span><i class="box"></i>line box, numbered in reading order</span><span>found by Tesseract's layout, ${ORDER_LABEL[last.order]}</span>`;
   const info = gpu.info;
   const adapter = [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(" ");
   $("adapter").textContent = `WebGPU adapter: ${adapter || "not named by the browser"}`;
@@ -338,10 +322,9 @@ function showText() {
     ol.appendChild(li);
   });
   $("count").textContent = `${counts.lines} lines, ${counts.text} with text`;
-  const finding = last.finder === "detector" ? `Line finding: detector, ${ORDER_LABEL[last.order]}` : "Line finding: Tesseract layout";
   const rows = [
-    [finding, timings.find],
-    ["Crop (page to line images, 3 px padding)", timings.crop],
+    [`Line finding: Tesseract layout, ${ORDER_LABEL[last.order]}`, timings.find],
+    [last.clean ? "Crop and clean-up (flat-field, tight crop)" : "Crop (page to line images, 3 px padding)", timings.crop],
     ["Recognition on GPU (prep, kernels, readback)", timings.gpu],
     ["Decode (beam search)", timings.decode],
   ];
@@ -370,7 +353,7 @@ function asHtml() {
     const fs = ((y1 - y0) / H * 100 * 0.78).toFixed(3);
     return `<div class="seg" title="line ${i + 1}" style="left:${left}%;top:${top}%;width:${w}%;height:${h}%;font-size:${fs}cqh;">${escapeHtml(texts[i])}</div>`;
   }).join("\n");
-  const from = `lines by ${FINDER_LABEL[last.finder]}, read by Tesseract ${current.name} (${current.variant})`;
+  const from = `read by Tesseract ${current.name} (${current.variant})`;
   return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     `<title>${escapeHtml(name)}: positioned text</title>\n<style>\n` +
     'body{margin:0;background:#525659;font-family:Arial,Helvetica,sans-serif;}\n' +
@@ -406,15 +389,12 @@ $("export").addEventListener("click", () => {
   relay.log("export", { lines: last.boxes.length, with_text: last.counts.text });
 });
 
-function syncOrder() {
-  $("order").disabled = $("finder").value !== "detector";
-}
-// Changing how lines are found or ordered rereads the page already open; the detector's map is reused.
+// Changing the order or the clean-up rereads the page already open; Tesseract's layout is reused.
 function rereadLast() {
   if (busy) { status("Still reading; choose again in a moment.", ""); return; }
   if (last) runPage(last.gray, last.name);
 }
-$("finder").addEventListener("change", () => { syncOrder(); rereadLast(); });
+$("clean").addEventListener("change", rereadLast);
 $("order").addEventListener("change", rereadLast);
 $("file").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) handle(f); });
 $("lang").addEventListener("change", switchModel);
@@ -438,7 +418,7 @@ async function boot() {
     return;
   }
   try {
-    status("Loading the line detector and the Tesseract engine…");
+    status("Loading the Tesseract engine…");
     const [index, engineGpu] = await Promise.all([
       fetch("langs.json", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(`langs.json: HTTP ${r.status}`); return r.json(); }),
       Gpu.create(),
@@ -446,13 +426,11 @@ async function boot() {
     langs = index;
     byCode = new Map(langs.entries.map((e) => [e.code, e]));
     gpu = engineGpu;
-    const t0 = performance.now();
-    detNet = await DetNet.load(gpu, DET_BASE);
-    relay.log("detector ready", { ms: Math.round(performance.now() - t0), base: DET_BASE, gpu: gpu.info });
     populatePicker();
-    syncOrder();
     await switchModel();
     $("file").disabled = false;
+    // Warm Tesseract's layout engine (about 7 MB with its model) while the reader picks a page.
+    tessLayout(new Uint8Array(32 * 32).fill(255), 32, 32).catch((e) => relay.warn("layout warm-up failed", { e: String(e) }));
     relay.log("ready", { build: BUILD, lang: langs.default, adapter: gpu.info });
   } catch (e) {
     relay.error(e);
