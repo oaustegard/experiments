@@ -385,17 +385,30 @@ def main():
     log("torch", torch.__version__, "cuda", torch.cuda.is_available(), torch.cuda.device_count())
     verify_patchify()
     ngpu = torch.cuda.device_count()
-    procs = []
+    import threading
+
+    def relay(proc, name):
+        # Workers print to the parent's stdout, prefixed, so Kaggle's live log stream
+        # (kaggle_job.py logs) shows their progress; the per-worker file is a copy.
+        with open(OUT / f"log_{name}.txt", "w") as f:
+            for line in proc.stdout:
+                f.write(line)
+                f.flush()
+                print(f"[{name}] {line}", end="", flush=True)
+
+    procs, relays = [], []
     for i, v in enumerate(["pretrained", "random"]):
         dev = f"cuda:{i % max(1, ngpu)}" if ngpu else "cpu"
-        f = open(OUT / f"log_{v}.txt", "w")  # noqa: SIM115 - the child process owns it until wait()
-        procs.append(subprocess.Popen([sys.executable, __file__, "--variant", v, "--device", dev,
-                                       "--steps", str(a.steps), "--bs", str(a.bs), "--n-eval", str(a.n_eval)],
-                                      stdout=f, stderr=subprocess.STDOUT))
+        p = subprocess.Popen([sys.executable, "-u", __file__, "--variant", v, "--device", dev,
+                              "--steps", str(a.steps), "--bs", str(a.bs), "--n-eval", str(a.n_eval)],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        procs.append(p)
+        relays.append(threading.Thread(target=relay, args=(p, v)))
+        relays[-1].start()
     codes = [p.wait() for p in procs]
+    for t in relays:
+        t.join()
     log("exit codes", codes)
-    for v in ["pretrained", "random"]:
-        print((OUT / f"log_{v}.txt").read_text()[-3000:])
 
 
 if __name__ == "__main__":
