@@ -65,11 +65,11 @@ function resolveVariant(entry, variant) {
 function getModel(entry, variant) {
   const v = resolveVariant(entry, variant);
   const info = entry[v];
-  const key = `${v}/${info.path}`;
+  const key = `${v}/${info.url || info.path}`;
   if (!models.has(key)) {
     const p = (async () => {
       const t0 = performance.now();
-      const model = await loadTraineddata(gpu, TESS_CDN(v) + info.path);
+      const model = await loadTraineddata(gpu, info.url || TESS_CDN(v) + info.path); // url: a model served with this page (key includes it)
       const took = performance.now() - t0;
       relay.log("model", { code: entry.code, variant: v, bytes: info.bytes, ms: Math.round(took) });
       return { model, ms: took, bytes: info.bytes, variant: v, code: entry.code, name: entry.name, cached: false };
@@ -94,7 +94,7 @@ async function switchModel() {
   const entry = entryFor($("lang").value);
   const variant = selectedVariant();
   const v = resolveVariant(entry, variant);
-  const key = `${v}/${entry[v].path}`;
+  const key = `${v}/${entry[v].url || entry[v].path}`;
   const fresh = !models.has(key);
   busy = true;
   try {

@@ -39,13 +39,14 @@ def cer(gt, pred, fold):
     return Levenshtein.distance(g, p) / max(1, len(g))
 
 
-def rows():
+def rows(lang="eng"):
     out = []
-    for r in map(json.loads, open(ROOT / "data/real/labels.jsonl", encoding="utf-8")):
-        out.append(dict(group=f"real_{r['set']}", cond="real", path=str(ROOT / r["file"]), text=r["text"], fold=True))
+    if lang == "eng":
+        for r in map(json.loads, open(ROOT / "data/real/labels.jsonl", encoding="utf-8")):
+            out.append(dict(group=f"real_{r['set']}", cond="real", path=str(ROOT / r["file"]), text=r["text"], fold=True))
     for r in map(json.loads, open(ROOT / "data/lines/labels.jsonl", encoding="utf-8")):
-        if r["lang"] == "eng":
-            out.append(dict(group="synth_eng", cond=r["cond"], path=str(ROOT / "data/lines" / r["file"]), text=r["text"], fold=False))
+        if r["lang"] == lang:
+            out.append(dict(group=f"synth_{lang}", cond=r["cond"], path=str(ROOT / "data/lines" / r["file"]), text=r["text"], fold=False))
     return out
 
 
@@ -55,13 +56,14 @@ def summarise(rs, preds):
         if p is None:
             continue
         c = cer(r["text"], p, r["fold"])
-        for k in (r["group"], f"{r['group']}:{r['cond']}" if r["group"] == "synth_eng" else None):
+        for k in (r["group"], f"{r['group']}:{r['cond']}" if r["group"].startswith("synth_") else None):
             if k:
                 groups.setdefault(k, []).append(c)
     out = {k: round(float(np.mean(v)), 5) for k, v in sorted(groups.items())}
     out["n_failed"] = sum(p is None for p in preds)
     real = [cer(r["text"], p, True) for r, p in zip(rs, preds) if p is not None and r["cond"] == "real"]
-    out["real_all"] = round(float(np.mean(real)), 5)
+    if real:
+        out["real_all"] = round(float(np.mean(real)), 5)
     return out
 
 
@@ -82,12 +84,12 @@ def engine_preds(path, rs):
     return off, on
 
 
-def cli_preds(path, rs, jobs=4):
+def cli_preds(path, rs, jobs=4, lang="eng"):
     tmp = tempfile.mkdtemp()
-    shutil.copy(path, Path(tmp) / "eng.traineddata")
+    shutil.copy(path, Path(tmp) / f"{lang}.traineddata")
 
     def one(r):
-        p = subprocess.run(["tesseract", r["path"], "stdout", "--oem", "1", "--psm", "7", "--tessdata-dir", tmp, "-l", "eng"],
+        p = subprocess.run(["tesseract", r["path"], "stdout", "--oem", "1", "--psm", "7", "--tessdata-dir", tmp, "-l", lang],
                            capture_output=True, text=True, timeout=120, env={"OMP_THREAD_LIMIT": "1", "PATH": "/usr/bin:/bin"})
         return p.stdout.strip() if p.returncode == 0 else None
 
@@ -98,20 +100,23 @@ def cli_preds(path, rs, jobs=4):
 
 
 def main():
+    import os
+    lang = os.environ.get("EVAL_LANG", "eng")
     models = dict(a.split("=", 1) for a in sys.argv[1:])
-    rs = rows()
-    out_path = ROOT / "results/ft_eval.json"
+    rs = rows(lang)
+    out_path = ROOT / ("results/ft_eval.json" if lang == "eng" else f"results/ft_eval_{lang}.json")
     res = json.loads(out_path.read_text()) if out_path.exists() else {}
     res["note"] = __doc__.strip().split("\n\n")[0] + " See run/ft/eval_models.py."
     for name, path in models.items():
         print(f"== {name}: {path}", flush=True)
         off, on = engine_preds(path, rs)
-        cli = cli_preds(path, rs)
+        cli = cli_preds(path, rs, lang=lang)
         res[name] = {"file": str(path), "engine_nodict": summarise(rs, off), "engine_dict": summarise(rs, on),
                      "cli": summarise(rs, cli)}
         for k in ("engine_nodict", "engine_dict", "cli"):
             s = res[name][k]
-            print(f"  {k:14} real {100*s['real_all']:.2f}% (funsd {100*s['real_funsd']:.2f}, sroie {100*s['real_sroie']:.2f})  synth eng {100*s['synth_eng']:.3f}%", flush=True)
+            real = f"real {100*s['real_all']:.2f}% (funsd {100*s['real_funsd']:.2f}, sroie {100*s['real_sroie']:.2f})  " if "real_all" in s else ""
+            print(f"  {k:14} {real}synth {lang} {100*s[f'synth_{lang}']:.3f}%", flush=True)
         out_path.write_text(json.dumps(res, indent=1))
 
 
