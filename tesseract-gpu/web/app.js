@@ -5,15 +5,20 @@ import { Gpu, recognize } from "./engine.js";
 import { loadTraineddata } from "./traineddata.js";
 import { tessLayout } from "./tesslayout.js";
 import { cleanLine } from "./lineprep.js";
+import { pageTextLayer, coverage, looseCer } from "./pdftext.js";
 
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess10"; // keep equal to build.json
+const BUILD = "2026-11-20-tess11"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
 const BOX_COLOR = "#2f5fd0";
+const LAYER_COLOR = "#1f8a4c"; // lines taken from a PDF's own text layer
+const SPOT_LINES = 12;        // text-layer lines OCR'd to check the layer against the page image
+const SPOT_MAX_CER = 0.5;     // median disagreement above this rejects the layer
+const MISSING = 0.5;          // a Tesseract line box less covered than this by text-layer lines is OCR'd
 
 const $ = (id) => document.getElementById(id);
 const relay = (window.Relay || { start() { return this; }, log() {}, warn() {}, error() {} }).start({ page: "tesseract-gpu", build: BUILD });
@@ -106,7 +111,8 @@ async function switchModel() {
     if (!fresh) m.cached = true;
     current = m;
     $("model-info").textContent = describeModel(m);
-    if (last) await recogniseLast();
+    // A PDF page's text-layer check depends on the model, so such a page is planned again; others are only reread.
+    if (last) await (last.layer && last.mode !== "ocr" ? runPage(last.gray, last.name, last.layer) : recogniseLast());
     status(`Ready: ${entry.name} (${v}). ${last ? "Text reread with this model." : "Choose a page."}`, "ready");
   } catch (e) {
     relay.error(e);
@@ -163,12 +169,16 @@ async function imageToGray(blob) {
 }
 
 // ------------------------------------------------------------------ PDF
-// pdf.js (Mozilla, Apache-2.0) renders each PDF page to a canvas; the page is then read like an image. Every page is
-// OCR'd, scanned or born-digital, at about PDF_LONG_SIDE pixels on its long side (about 240 dpi for a letter page).
+// pdf.js (Mozilla, Apache-2.0) renders each PDF page to a canvas at about PDF_LONG_SIDE pixels on its long side (about
+// 240 dpi for a letter page) and gives its text layer (pdftext.js). "PDF text" picks what is read:
+//   auto  the text layer where it passes its checks; Tesseract reads only the lines it does not cover, and only on
+//         pages that paint an image. A layer that fails falls back to OCR of the whole page.
+//   ocr   every page OCR'd like an image, text layer ignored.
+//   text  the text layer even when its checks fail, no OCR.
 const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
 const PDF_LONG_SIDE = 2600;
 let pdfjsPromise = null;
-let pdf = null; // {doc, name, n, page}
+let pdf = null; // {doc, name, n, page, pdfjs}
 
 function loadPdfjs() {
   if (!pdfjsPromise) {
@@ -181,7 +191,8 @@ function loadPdfjs() {
   return pdfjsPromise;
 }
 
-async function pdfPageToGray(n) {
+// The page as grey pixels, and its text layer in those pixels (null when the layer cannot be read).
+async function pdfPage(n) {
   const page = await pdf.doc.getPage(n);
   const v1 = page.getViewport({ scale: 1 });
   const scale = PDF_LONG_SIDE / Math.max(v1.width, v1.height);
@@ -191,8 +202,16 @@ async function pdfPageToGray(n) {
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, c.width, c.height);
   await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  const gray = toGray(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+  let layer = null;
+  try {
+    layer = await pageTextLayer(pdf.pdfjs, page, vp);
+    relay.log("text layer", { page: n, runs: layer.runs, lines: layer.lines.length, chars: layer.verdict.chars, bad: layer.verdict.bad, images: layer.images, ok: layer.verdict.ok, ms: Math.round(layer.ms) });
+  } catch (e) {
+    relay.warn("text layer failed", { page: n, e: String(e) });
+  }
   page.cleanup();
-  return toGray(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+  return { gray, layer };
 }
 
 async function readPdfPage(n) {
@@ -201,20 +220,21 @@ async function readPdfPage(n) {
   $("pdfpage").value = String(n);
   status(`Rendering page ${n} of ${pdf.n} of ${pdf.name}…`);
   const t0 = performance.now();
-  const gray = await pdfPageToGray(n);
+  const { gray, layer } = await pdfPage(n);
   relay.log("pdf page", { page: n, of: pdf.n, w: gray.w, h: gray.h, ms: Math.round(performance.now() - t0) });
-  await runPage(gray, `${pdf.name}, page ${n} of ${pdf.n}`);
+  await runPage(gray, `${pdf.name}, page ${n} of ${pdf.n}`, layer);
 }
 
 async function openPdf(file) {
   status(`Opening ${file.name}…`);
   const pdfjs = await loadPdfjs();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-  pdf = { doc, name: file.name, n: doc.numPages, page: 1 };
+  pdf = { doc, name: file.name, n: doc.numPages, page: 1, pdfjs };
   relay.log("pdf", { pages: doc.numPages, bytes: file.size });
   const sel = $("pdfpage");
   sel.innerHTML = Array.from({ length: doc.numPages }, (_, i) => `<option value="${i + 1}">Page ${i + 1} of ${doc.numPages}</option>`).join("");
   $("pdfnav").hidden = doc.numPages < 2;
+  $("pdfmodes").hidden = false;
   await readPdfPage(1);
 }
 
@@ -229,6 +249,7 @@ async function handle(file) {
     if (isPdf) return await openPdf(file);
     pdf = null;
     $("pdfnav").hidden = true;
+    $("pdfmodes").hidden = true;
     const gray = await imageToGray(file);
     relay.log("image", { w: gray.w, h: gray.h, bytes: file.size, type: file.type });
     await runPage(gray, file.name);
@@ -331,16 +352,96 @@ function cropOf(gray, box) {
   return { data, width: w, height: h };
 }
 
-async function runPage(gray, name) {
+// OCR a sample of text-layer lines and compare: a layer whose glyphs map to the wrong characters (a font with a broken
+// ToUnicode map, or an invisible OCR layer that was wrong) disagrees with the page image on nearly every line. The
+// verdict is kept per layer and model. With a model for another script every line disagrees too, so the page then
+// falls back to OCR with that model, which is what the reader asked for.
+async function spotCheck(gray, layer, clean) {
+  const key = `${current.code}/${current.variant}/${clean}`;
+  if (layer.spot && layer.spot.key === key) return { ...layer.spot, ms: 0 };
+  const t0 = performance.now();
+  const cands = layer.lines.map((l, i) => i).filter((i) => layer.lines[i].text.replace(/\s/g, "").length >= 8);
+  const pick = [];
+  for (let k = 0; k < Math.min(SPOT_LINES, cands.length); k++) pick.push(cands[Math.floor((k * cands.length) / Math.min(SPOT_LINES, cands.length))]);
+  if (!pick.length) return (layer.spot = { key, ok: true, why: "", n: 0, cer: null, ms: 0 });
+  const crops = [], used = [];
+  for (const i of pick) { const c = cropOf(gray, layer.lines[i].box); if (c) { crops.push(clean ? cleanLine(c) : c); used.push(i); } }
+  const out = crops.length ? await recognize(gpu, current.model, crops, { dict: $("dict").checked }) : [];
+  const cers = used.map((i, k) => looseCer(layer.lines[i].text, (out[k] && out[k].text) || "")).sort((a, b) => a - b);
+  const med = cers.length ? cers[cers.length >> 1] : 0;
+  const ok = med <= SPOT_MAX_CER;
+  const took = performance.now() - t0;
+  layer.spot = { key, ok, n: cers.length, cer: med, ms: took, why: ok ? "" : `the text layer disagrees with the page image (median CER ${(100 * med).toFixed(0)}% on ${cers.length} lines)` };
+  relay.log("text layer check", { lines: cers.length, median_cer: Number(med.toFixed(3)), ok, model: key, ms: Math.round(took) });
+  return layer.spot;
+}
+
+// Lines of a PDF page from its text layer, plus Tesseract's lines the layer does not cover (only on pages that paint
+// an image, where text inside the image is not in the layer). Returns null when the page should be OCR'd instead.
+async function layerLines(gray, layer, mode, order, clean) {
+  if (mode === "ocr" || !layer || !layer.lines.length) return null;
+  let spotMs = 0;
+  if (mode === "auto") {
+    if (!layer.verdict.ok) return { reject: layer.verdict.why, spotMs };
+    const spot = await spotCheck(gray, layer, clean);
+    spotMs = spot.ms;
+    if (!spot.ok) return { reject: spot.why, spotMs };
+  }
+  const text = layer.lines;
+  let extra = [], findMs = 0;
+  if (mode === "auto" && layer.images) {
+    const found = await findLines(gray, "tess");
+    findMs = found.ms;
+    const tb = text.map((l) => l.box);
+    extra = found.boxes.filter((b) => coverage(b, tb) < MISSING);
+  }
+  // Order: column bands over every line, or the PDF's own order with each OCR'd line placed before the first
+  // text-layer line that starts below it.
+  let items = text.map((l) => ({ box: l.box, text: l.text, src: "layer" }));
+  const ocr = extra.map((b) => ({ box: b, text: null, src: "ocr" }));
+  if (order === "columns") {
+    const all = items.concat(ocr);
+    items = orderBoxes(all.map((x) => x.box)).map((i) => all[i]);
+  } else {
+    for (const o of ocr) {
+      const at = items.findIndex((x) => x.src === "layer" && x.box[1] > o.box[1]);
+      if (at < 0) items.push(o); else items.splice(at, 0, o);
+    }
+  }
+  return { items, findMs, spotMs, ocr: ocr.length };
+}
+
+async function runPage(gray, name, layer = null) {
   busy = true;
   try {
     const order = $("order").value;
     const clean = $("clean").checked;
     const dict = $("dict").checked;
-    status(`Finding the lines of ${name} with Tesseract's layout (${gray.w} × ${gray.h})…`);
-    const found = await findLines(gray, order);
-    last = { name, gray, boxes: found.boxes, order, clean, dict, findMs: found.ms };
-    relay.log("page", { name, w: gray.w, h: gray.h, lines: found.boxes.length, order, clean, ms: Math.round(found.ms) });
+    const mode = layer ? $("pdfmode").value : "ocr";
+    let plan = null, note = "", spotMs = 0;
+    if (layer && mode !== "ocr" && layer.lines.length) {
+      status(`Checking the text layer of ${name}…`);
+      plan = await layerLines(gray, layer, mode, order, clean);
+      if (plan) spotMs = plan.spotMs;
+      if (plan && plan.reject) { note = `Text layer not used: ${plan.reject}.`; plan = null; }
+    } else if (layer && mode !== "ocr") note = "This page has no text layer.";
+    if (plan) {
+      last = {
+        name, gray, order, clean, dict, layer, mode, note,
+        boxes: plan.items.map((x) => x.box), src: plan.items.map((x) => x.src), fixed: plan.items.map((x) => x.text),
+        findMs: plan.findMs, layerMs: layer.ms + spotMs, spotMs,
+      };
+    } else {
+      status(`Finding the lines of ${name} with Tesseract's layout (${gray.w} × ${gray.h})…`);
+      const found = await findLines(gray, order);
+      last = {
+        name, gray, order, clean, dict, layer, mode, note,
+        boxes: found.boxes, src: found.boxes.map(() => "ocr"), fixed: found.boxes.map(() => null),
+        findMs: found.ms, layerMs: layer ? layer.ms + spotMs : 0, spotMs,
+      };
+    }
+    const fromLayer = last.src.filter((s) => s === "layer").length;
+    relay.log("page", { name, w: gray.w, h: gray.h, lines: last.boxes.length, from_layer: fromLayer, mode, order, clean, note, ms: Math.round(last.findMs) });
     showPage();
     await recogniseLast();
   } catch (e) {
@@ -351,13 +452,15 @@ async function runPage(gray, name) {
   }
 }
 
-// Tesseract reads every line of the page in one recognize() call; the text lands in reading order.
+// Tesseract reads every line of the page that needs OCR in one recognize() call; lines from a PDF's text layer keep
+// their text. The text lands in reading order.
 async function recogniseLast() {
   if (!last || !current) return;
   const { gray, boxes } = last;
   const tc = performance.now();
   const idx = [], crops = [];
   boxes.forEach((b, i) => {
+    if (last.src[i] !== "ocr") return;
     const c = cropOf(gray, b);
     if (c) { idx.push(i); crops.push(last.clean ? cleanLine(c) : c); }
   });
@@ -365,7 +468,7 @@ async function recogniseLast() {
   const t1 = performance.now();
   const out = crops.length ? await recognize(gpu, current.model, crops, { dict: last.dict }) : [];
   const recMs = performance.now() - t1;
-  const texts = boxes.map(() => "");
+  const texts = boxes.map((_, i) => (last.fixed[i] === null ? "" : last.fixed[i]));
   idx.forEach((i, k) => { texts[i] = tidy(((out[k] && out[k].text) || "").trim()); });
   last.texts = texts;
   last.timings = {
@@ -373,8 +476,9 @@ async function recogniseLast() {
     crop: cropMs,
     gpu: out.ms ? out.ms.prep + out.ms.gpu + out.ms.readback : recMs,
     decode: out.ms ? out.ms.decode : 0,
+    layer: last.layerMs,
   };
-  last.counts = { lines: boxes.length, read: idx.length, text: texts.filter(Boolean).length };
+  last.counts = { lines: boxes.length, read: idx.length, layer: boxes.length - last.src.filter((s) => s === "ocr").length, text: texts.filter(Boolean).length };
   relay.log("recognize", {
     code: current.code, variant: current.variant, lines: idx.length, with_text: last.counts.text,
     crop_ms: Math.round(cropMs), rec_ms: Math.round(recMs), tess: out.ms,
@@ -382,7 +486,10 @@ async function recogniseLast() {
   runs += 1;
   $("result").dataset.run = String(runs);
   showText();
-  status(`${boxes.length} lines in ${last.name}; read with ${current.name} (${current.variant}).`, "ready");
+  const how = last.counts.layer
+    ? (idx.length ? `${last.counts.layer} from the PDF's text layer, ${idx.length} read with ${current.name} (${current.variant})` : "all from the PDF's text layer, no OCR")
+    : `read with ${current.name} (${current.variant})`;
+  status(`${boxes.length} lines in ${last.name}; ${how}.${last.note ? " " + last.note : ""}`, "ready");
 }
 
 // ------------------------------------------------------------------ output
@@ -407,11 +514,13 @@ function showPage() {
   ctx.lineWidth = Math.max(1, 2 * scale);
   boxes.forEach((b, i) => {
     const [x0, y0, x1, y1] = b.map((v) => v * scale);
+    const color = last.src[i] === "layer" ? LAYER_COLOR : BOX_COLOR;
     ctx.globalAlpha = 0.18;
-    ctx.fillStyle = BOX_COLOR;
+    ctx.fillStyle = color;
     ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
     ctx.globalAlpha = 0.9;
-    ctx.strokeStyle = BOX_COLOR;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
     ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
     const label = String(i + 1);
     const tw = ctx.measureText(label).width + 6, th = fs + 4;
@@ -422,7 +531,10 @@ function showPage() {
     ctx.fillText(label, x0 + 3, y0 + 2);
   });
   ctx.globalAlpha = 1;
-  $("legend").innerHTML = `<span><i class="box"></i>line box, numbered in reading order</span><span>found by Tesseract's layout, ${ORDER_LABEL[last.order]}</span>`;
+  const nLayer = last.src.filter((s) => s === "layer").length;
+  $("legend").innerHTML = nLayer
+    ? `<span><i class="layer"></i>line from the PDF's text layer</span>${nLayer < boxes.length ? `<span><i class="box"></i>line OCR'd (not in the text layer)</span>` : ""}<span>numbered in ${last.order === "columns" ? "column bands" : "the PDF's order"}</span>`
+    : `<span><i class="box"></i>line box, numbered in reading order</span><span>found by Tesseract's layout, ${ORDER_LABEL[last.order]}</span>`;
   const info = gpu.info;
   const adapter = [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(" ");
   $("adapter").textContent = `WebGPU adapter: ${adapter || "not named by the browser"}`;
@@ -434,6 +546,7 @@ function showText() {
   ol.innerHTML = "";
   texts.forEach((t, i) => {
     const li = document.createElement("li");
+    li.dataset.src = last.src[i];
     const n = document.createElement("span");
     n.className = "n";
     n.textContent = `${i + 1}`;
@@ -443,17 +556,21 @@ function showText() {
     li.append(n, tx);
     ol.appendChild(li);
   });
-  $("count").textContent = `${counts.lines} lines, ${counts.text} with text`;
-  const rows = [
-    [`Line finding: Tesseract layout, ${ORDER_LABEL[last.order]}`, timings.find],
-    [last.clean ? "Crop and clean-up (flat-field, tight crop)" : "Crop (page to line images, 3 px padding)", timings.crop],
-    ["Recognition on GPU (prep, kernels, readback)", timings.gpu],
-    [last.dict && current.model.dict ? "Decode (beam search with Tesseract's word lists)" : "Decode (beam search)", timings.decode],
-  ];
+  $("count").textContent = `${counts.lines} lines, ${counts.text} with text${counts.layer ? `, ${counts.layer} from the text layer` : ""}`;
+  const rows = [];
+  if (last.layer) rows.push([last.spotMs ? "PDF text layer (read, grouped into lines, a sample OCR'd to check it)" : "PDF text layer (read, grouped into lines)", timings.layer]);
+  if (counts.read || !counts.layer) {
+    rows.push(
+      [counts.layer ? "Line finding: Tesseract layout, lines the text layer misses" : `Line finding: Tesseract layout, ${ORDER_LABEL[last.order]}`, timings.find],
+      [last.clean ? "Crop and clean-up (flat-field, tight crop)" : "Crop (page to line images, 3 px padding)", timings.crop],
+      ["Recognition on GPU (prep, kernels, readback)", timings.gpu],
+      [last.dict && current.model.dict ? "Decode (beam search with Tesseract's word lists)" : "Decode (beam search)", timings.decode],
+    );
+  }
   $("timings").innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${ms(v)}</td></tr>`).join("");
   $("copy").disabled = !plainText();
   $("export").disabled = !counts.lines;
-  $("stats").textContent = `Page ${last.gray.w} × ${last.gray.h} px. Recognition model: ${current.name}, ${current.variant}.`;
+  $("stats").textContent = `Page ${last.gray.w} × ${last.gray.h} px. Recognition model: ${current.name}, ${current.variant}.${last.note ? " " + last.note : ""}`;
 }
 
 function plainText() {
@@ -478,7 +595,9 @@ function asHtml() {
     const fs = (Math.min(hFit, wFit, cap) / H * 100).toFixed(3);
     return `<div class="seg" title="line ${i + 1}" style="left:${left}%;top:${top}%;width:${w}%;height:${h}%;font-size:${fs}cqh;">${escapeHtml(texts[i])}</div>`;
   }).join("\n");
-  const from = `read by Tesseract ${current.name} (${current.variant})`;
+  const nLayer = last.src.filter((s) => s === "layer").length;
+  const ocrd = `read by Tesseract ${current.name} (${current.variant})`;
+  const from = !nLayer ? ocrd : nLayer === boxes.length ? "the PDF's text layer" : `the PDF's text layer; other lines ${ocrd}`;
   return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     `<title>${escapeHtml(name)}: positioned text</title>\n<style>\n` +
     'body{margin:0;background:#525659;font-family:Arial,Helvetica,sans-serif;}\n' +
@@ -517,11 +636,12 @@ $("export").addEventListener("click", () => {
 // Changing the order or the clean-up rereads the page already open; Tesseract's layout is reused.
 function rereadLast() {
   if (busy) { status("Still reading; choose again in a moment.", ""); return; }
-  if (last) runPage(last.gray, last.name);
+  if (last) runPage(last.gray, last.name, last.layer);
 }
 $("clean").addEventListener("change", rereadLast);
 $("dict").addEventListener("change", rereadLast);
 $("order").addEventListener("change", rereadLast);
+$("pdfmode").addEventListener("change", rereadLast);
 $("file").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) handle(f); });
 $("pdfpage").addEventListener("change", (e) => readPdfPage(Number(e.target.value)).catch((err) => { relay.error(err); status(`Could not read that page: ${err.message}`, "error"); }));
 $("pdfprev").addEventListener("click", () => { if (pdf && pdf.page > 1) readPdfPage(pdf.page - 1); });

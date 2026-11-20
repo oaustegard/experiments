@@ -33,6 +33,14 @@
     <select id="pdfpage" aria-label="PDF page to read"></select>
     <button type="button" id="pdfnext" aria-label="Next PDF page">›</button>
   </div>
+  <div class="picker" id="pdfmodes" hidden>
+    <label class="muted small" for="pdfmode">PDF text</label>
+    <select id="pdfmode" aria-label="How to read the PDF's text">
+      <option value="auto" selected>Text layer where it checks out, OCR the rest</option>
+      <option value="ocr">OCR every page, ignore the text layer</option>
+      <option value="text">Text layer only, no OCR</option>
+    </select>
+  </div>
   <div class="picker">
     <label class="muted small" for="order">Reading order</label>
     <select id="order" aria-label="Reading order of the lines">
@@ -85,11 +93,15 @@
   3 px of padding and read as is.</p>
   <p>Downloads: Tesseract's layout engine (about 2.8 MB) and the English model it uses for layout (about 4 MB) load once, from jsDelivr. The recognizer model for the
   language you pick loads on first use of it.</p>
-  <p>PDFs: each page is rendered by pdf.js (Mozilla, Apache-2.0, loaded from jsDelivr on first use) at about 240 dpi and read
-  like an image, so scanned and born-digital PDFs are both OCR'd.</p>
+  <p>PDFs: each page is rendered by pdf.js (Mozilla, Apache-2.0, loaded from jsDelivr on first use) at about 240 dpi. A born-digital
+  page carries its own text, so by default the page reads that text layer (<code>pdftext.js</code>, green boxes) instead of OCR'ing it.
+  The layer is used only if few of its characters are unmapped glyphs and a sample of its lines, OCR'd, agrees with it; otherwise the
+  whole page is OCR'd. On a page that paints an image, Tesseract's layout still runs and the lines the layer does not cover (text inside
+  the image) are OCR'd (blue boxes). Scanned PDFs have no text layer and are OCR'd as before. <i>PDF text</i> switches this off or
+  trusts the layer without checks.</p>
   <p>Licences: Tesseract's code, the tessdata models, tesseract.js-core and pdf.js are Apache-2.0. This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
   <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess10</code>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess11</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

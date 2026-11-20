@@ -1,0 +1,127 @@
+{
+ "pass": true,
+ "summary": {
+  "p1_layer_lines": 9,
+  "p1_ocr_lines": 7,
+  "p1_columns_exact": "8/8",
+  "p2_spot_median_cer": 0.97,
+  "p2_spot_lines": 12,
+  "p3_ocr_lines": 0,
+  "checks": "15/15"
+ },
+ "checks": [
+  {
+   "name": "p1 every column line comes from the layer, exactly",
+   "pass": true,
+   "detail": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "p1 the two columns are separate lines",
+   "pass": true,
+   "detail": 9
+  },
+  {
+   "name": "p1 text inside the picture is OCR'd",
+   "pass": true,
+   "detail": [
+    "A Short Note on Reading",
+    "The quick brown fox jumps over the lazy dog while the sun sets.",
+    "Optical character recognition turns printed pages into text that",
+    "can be searched, copied and read aloud by a computer program."
+   ]
+  },
+  {
+   "name": "p1 no OCR line duplicates a layer line",
+   "pass": true,
+   "detail": [
+    1.26,
+    0.75,
+    0.68,
+    0.75,
+    0.75,
+    0.73,
+    0.8
+   ]
+  },
+  {
+   "name": "p2 wrong layer rejected",
+   "pass": true,
+   "detail": "7 lines in born-digital.pdf, page 2 of 3; read with English (fast). Text layer not used: the text layer disagrees with the page image (median CER 97% on 12 lines)."
+  },
+  {
+   "name": "p2 every line OCR'd",
+   "pass": true,
+   "detail": 7
+  },
+  {
+   "name": "p2 no wrong-layer text in output",
+   "pass": true
+  },
+  {
+   "name": "p3 all lines from the layer",
+   "pass": true,
+   "detail": [
+    "Quarterly report, third quarter of 2026",
+    "Revenue rose 12 percent over the prior year.1",
+    "Costs were flat apart from one-off items.",
+    "The board met on 14 October and approved the plan."
+   ]
+  },
+  {
+   "name": "p3 superscript joins its line",
+   "pass": true,
+   "detail": "Revenue rose 12 percent over the prior year.1"
+  },
+  {
+   "name": "p3 no recognition rows in timings",
+   "pass": true,
+   "detail": [
+    "PDF text layer (read, grouped into lines, a sample OCR'd to check it)2348 ms"
+   ]
+  },
+  {
+   "name": "ocr mode reads page 3 by OCR",
+   "pass": true,
+   "detail": [
+    "Quarterly report, third quarter of 2026",
+    "Revenue rose 12 percent over the prior year.*",
+    "Costs were flat apart from one-off items.",
+    "The board met on 14 October and approved the plan."
+   ]
+  },
+  {
+   "name": "ocr mode reads page 3 well",
+   "pass": true,
+   "detail": [
+    0,
+    0.027,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "text mode trusts even the wrong layer",
+   "pass": true,
+   "detail": 30
+  },
+  {
+   "name": "image input: all OCR, PDF control hidden",
+   "pass": true,
+   "detail": 7
+  },
+  {
+   "name": "no page errors",
+   "pass": true,
+   "detail": []
+  }
+ ]
+}

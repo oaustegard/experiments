@@ -114,6 +114,18 @@ these lines at 5.0%.
    unconfirmed, so B is not published; generated lines alone (arm A) reach 9.83%. With a fine-tuned model the word lists
    no longer help. Arm C ships as `web/models/eng-ft/` (best, and 8-bit by Tesseract's `combine_tessdata -c`; on arm B
    that conversion cost 0.1 point on the engine). `results/ft_eval.json`, `run/ft/`.
+14. **A born-digital PDF page needs no OCR.** The page now reads a PDF's own text layer (`web/pdftext.js`: pdf.js text
+   runs grouped into lines with boxes in the rendered page's pixels) and OCRs only what the layer lacks. A layer is used
+   when under 5% of its characters are unmapped glyphs (U+FFFD, private use, control codes) and a sample of up to 12 of
+   its lines, OCR'd, agrees with it (median loose CER at most 50%). On a page that paints an image, Tesseract's layout
+   still runs and its line boxes less than half covered by layer lines are OCR'd. On the three-page test PDF
+   (`run/make_textlayer_pdf.py`) the layer gives 8/8 column lines exactly, <!-- @evidence[[results/textlayer_check.json#summary.p1_columns_exact]] -->
+   the 7 lines inside a picture are OCR'd <!-- @evidence[[results/textlayer_check.json#summary.p1_ocr_lines]] --> and
+   none duplicates a layer line, an invisible layer of wrong text over a scan is rejected (median CER 97%) <!-- @evidence[[results/textlayer_check.json#summary.p2_spot_median_cer]] -->
+   and the scan OCR'd, and a text-only page is read with 0 lines OCR'd; <!-- @evidence[[results/textlayer_check.json#summary.p3_ocr_lines]] -->
+   15/15 checks pass <!-- @evidence[[results/textlayer_check.json#summary.checks]] --> (`run/check_textlayer.mjs`). The check costs one recognition batch of at most 12 lines: about 2.5 s on SwiftShader, not yet
+   timed on a real GPU, where Finding 4 read 343 lines in 176 ms. Scanned PDFs have no layer and are read as before. The idea comes from Indra
+   OCR's "auto" mode; no Indra code or weights are used.
 
 ## Method
 
@@ -148,7 +160,8 @@ Kaggle T4 batch job (`run/kaggle/server_bench.py`, `results/kaggle_t4_server_ben
 their reading order, or `web/layout.js` reorders them by column bands (a port of anything-to-text's ordering). Each line
 is flat-fielded and cropped to its ink (`web/lineprep.js`, within 2 grey levels of `tessgpu/lineprep.py` on 48 test
 lines, `web/test/check_lineprep.mjs`), then every line goes through this engine in one batch. Math lines are read as
-plain text. `web/test/page_e2e.mjs` reads the two sample pages end to end in headless Chromium. Everything the page
+plain text. PDF pages with a text layer use it instead, as in Finding 14; a *PDF text* menu turns the layer off or
+trusts it without checks. `web/test/page_e2e.mjs` reads the two sample pages end to end in headless Chromium. Everything the page
 loads is Apache-2.0 (`NOTICE.md`).
 
 **Delegation.** The work ran as one coordinating session and 17 Claude Haiku subagents, each with a task, a
@@ -239,3 +252,13 @@ validation splits; 1,607 rotated and 2,218 short fields dropped), in place of SR
 confirmed. Held-out CORD receipts went from 34.1% to 21.1% CER (case-sensitive; CORD's labels space some fields
 differently from the print). Scored once on the evaluation sets as in Finding 13.
 
+### Round 4 (2026-11-20): the PDF text layer
+
+Asked: of the parts of Indra OCR's design that could help a GPU Tesseract without bringing in another model, add the
+text-layer front end. `web/pdftext.js` groups pdf.js text runs into lines (same baseline within 0.35 font heights, or a
+smaller super- or subscript inside the line; a gap under one font height joins, over 0.12 adds a space) and counts the
+page's image-painting operators. `web/app.js` uses the layer when it passes the checks in Finding 14, OCRs Tesseract's
+line boxes that the layer leaves uncovered on pages with images, and otherwise falls back to OCR of the whole page.
+Text-layer lines are boxed green, OCR'd ones blue, and each list item carries `data-src`. The check's verdict is kept per
+model, so switching the language plans the page again. `web/test/page_e2e.mjs` still passes on the scanned samples
+("This page has no text layer").
