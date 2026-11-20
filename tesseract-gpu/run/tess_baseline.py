@@ -47,7 +47,9 @@ def cer(gt: str, pred: str) -> float:
 
 
 def run_one(row, base, tessdata):
-    cmd = ["tesseract", str(base / row["file"]), "stdout", "--oem", "1", "--psm", "7",
+    # synthetic labels name files relative to their own dir, real ones relative to ROOT
+    path = base / row["file"] if (base / row["file"]).exists() else ROOT / row["file"]
+    cmd = ["tesseract", str(path), "stdout", "--oem", "1", "--psm", "7",
            "--tessdata-dir", str(tessdata), "-l", row["lang"]]
     t0 = time.perf_counter()
     try:

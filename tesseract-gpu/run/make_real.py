@@ -100,8 +100,13 @@ def cluster_lines(items):
 
 
 def funsd_lines(rec):
-    """Yield (text, box, slope_deg) for each merged line in a FUNSD form."""
-    groups = group_words(rec["words"], rec["bboxes"], rec["ner_tags_names"])
+    """Yield (text, box, slope_deg) for each merged line in a FUNSD form.
+
+    nielsr/funsd stores LayoutLM-style boxes scaled to 0-1000 on both axes (x reaches 931 on a
+    754-px-wide page), so they are mapped back to pixels before anything else uses them."""
+    w, h = image_of(rec).size
+    boxes = [(x0 * w / 1000, y0 * h / 1000, x1 * w / 1000, y1 * h / 1000) for x0, y0, x1, y1 in rec["bboxes"]]
+    groups = group_words(rec["words"], boxes, rec["ner_tags_names"])
     for g in groups:
         for text, box, _ in cluster_lines(g):
             yield text, box, 0.0
