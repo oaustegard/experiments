@@ -99,27 +99,6 @@ def pad_table_fast(model, H, W):
     return table
 
 
-def _window_index(H, W, Wp, in_off, pad_row0, pad_base, K, hx, hy, zero_idx):
-    """Gather index [H, Wp, K] into the packed buffer V = [inputs | pad rows | 0]."""
-    ys = np.arange(H)[:, None]
-    xs = np.arange(W)[None, :]
-    border = (ys < hy) | (ys >= H - hy) | (xs < hx) | (xs >= W - hx)
-    rank = np.cumsum(border.ravel()).reshape(H, W) - 1       # border position -> pad row
-    out = np.empty((H, Wp, K), np.int64)
-    out[:, W:, :] = zero_idx
-    k = 0
-    for dx in range(-hx, hx + 1):
-        for dy in range(-hy, hy + 1):
-            yy = ys + dy
-            xx = xs + dx
-            inside = (yy >= 0) & (yy < H) & (xx >= 0) & (xx < W)
-            inv = in_off + np.clip(yy, 0, H - 1) * W + np.clip(xx, 0, W - 1)
-            pidx = pad_base + K * (pad_row0 + rank) + k
-            out[:, :W, k] = np.where(inside, inv, pidx)
-            k += 1
-    return out
-
-
 # ----------------------------------------------------------------------------------------
 # Weights
 
@@ -227,6 +206,17 @@ class TorchTess:
         self.nsy = self.y.ns
         self.tanh_t = torch.as_tensor(ref.TANH_T, dtype=torch.float32, device=dev)
         self.log_t = torch.as_tensor(ref.LOGISTIC_T, dtype=torch.float32, device=dev)
+        # caches that depend only on the model, or on (H, W)
+        self.scale = 1.0 / 127.0 if (mode == "cudnn" and self.int_mode) else 1.0
+        self._pv = None                      # pad draws of the model's stream, scaled
+        self._pad_cache = {}                 # W -> pad_table_fast(H, W), keep=True only
+        ky = 2 * self.half[1] + 1
+        k = torch.arange(self.K, device=dev)
+        self._dxk = k // ky - self.half[0]   # slot k = (dx+hx)*ky + (dy+hy)
+        self._dyk = k % ky - self.half[1]
+        ys = torch.arange(self.H, device=dev)
+        yn = ys[:, None] + self._dyk[None, :]
+        self._outy = (yn < 0) | (yn >= self.H)                              # [H, K]
 
     # activations: LUT in exact mode, plain functions in cudnn mode
     def _tanh(self, x):
@@ -298,11 +288,74 @@ class TorchTess:
         Ls = np.full(seq.shape[0], seq.shape[1], np.int64)
         return self._lstm(self.y, seq, Ls)[:, -1]
 
+    def _pad_table(self, W):
+        """pad_table_fast for one width, cached per (H, W). Used only by the keep=True path."""
+        t = self._pad_cache.get(W)
+        if t is None:
+            t = self._pad_cache[W] = pad_table_fast(self.model, self.H, W)
+        return t
+
+    def _pad_stream(self, n):
+        """First n pad draws of the model's stream as float32, times the input scale.
+
+        Every line draws from the same stream prefix in border order, so one array serves
+        all (H, W). It grows geometrically and is cached on the device."""
+        if self._pv is None or self._pv.shape[0] < n:
+            have = 0 if self._pv is None else self._pv.shape[0]
+            m = max(n, 2 * have, 4096)
+            st = _minstd_states(self.model.sample_iteration, m)
+            if self.int_mode:
+                raw = 127.0 * 2.0 * st / _MINSTD_M - 127.0
+                vals = np.where(raw >= 0, np.floor(raw + 0.5), -np.floor(-raw + 0.5))
+            else:
+                raw = 1.0 * 2.0 * st / _MINSTD_M - 1.0
+                vals = raw.astype(np.float32).astype(np.float64)
+            self._pv = torch.as_tensor(vals.astype(np.float32) * np.float32(self.scale),
+                                       device=self.device)
+        return self._pv
+
+    def _windows(self, V, off, Wb, Wp):
+        """Conv windows [c, H, Wp, K] for one chunk, with no per-line Python.
+
+        V: flat scaled buffer [line pixels ..., 0]; off [c]: each line's start in V;
+        Wb [c]: each line's width; Wp: chunk width (>= every Wb, a multiple of 3). Slot
+        k = (dx+hx)*ky + (dy+hy). In-image slots read the padded image; out-of-image slots
+        take the Convolve pad draws in border raster order; columns >= Wb are zero."""
+        H, K = self.H, self.K
+        hx, hy = self.half
+        kx, ky = 2 * hx + 1, 2 * hy + 1
+        dev = self.device
+        c = int(Wb.shape[0])
+        zero = V.shape[0] - 1
+        # zero-padded image P [c, H+2hy, Wp+2hx], gathered from V
+        r = torch.arange(H + 2 * hy, device=dev) - hy
+        col = torch.arange(Wp + 2 * hx, device=dev) - hx
+        ok = ((r >= 0) & (r < H))[None, :, None] & \
+             ((col[None, :] >= 0) & (col[None, :] < Wb[:, None]))[:, None, :]
+        rr = r.clamp(0, H - 1)
+        cc = torch.minimum(col.clamp(min=0)[None, :], Wb[:, None] - 1)
+        flat = off[:, None, None] + rr[None, :, None] * Wb[:, None, None] + cc[:, None, :]
+        P = V[torch.where(ok, flat, zero)]
+        win = P.unfold(1, ky, 1).unfold(2, kx, 1)                         # [c,H,Wp,ky,kx]
+        win = win.permute(0, 1, 2, 4, 3).reshape(c, H, Wp, K)              # slot = ix*ky+iy
+        # which slots leave the image, and the pad draws they take
+        xs = torch.arange(Wp, device=dev)
+        nx = xs[None, :, None] + self._dxk[None, None, :]                  # [1,Wp,K]
+        outx = (nx < 0) | (nx >= Wb[:, None, None])                        # [c,Wp,K]
+        out = self._outy[None, :, None, :] | outx[:, None, :, :]           # [c,H,Wp,K]
+        valid = (xs[None, :] < Wb[:, None])[:, None, :, None]              # [c,1,Wp,1]
+        drawn = out & valid
+        fd = drawn.reshape(c, -1)
+        pv = self._pad_stream(int(fd.sum(dim=1).max()))
+        pos = (torch.cumsum(fd, dim=1) - fd.long()).clamp_(max=pv.shape[0] - 1)
+        vals = pv[pos].reshape(c, H, Wp, K)
+        return torch.where(drawn, vals, torch.where(valid, win, 0.0))
+
     @torch.inference_mode()
     def _stages(self, xs, keep=False):
         """xs: normalised float arrays [H, W_i] in input order. Returns a dict of lists in
         input order: probs (float32 [T_i, C]), and with keep=True every stage per line."""
-        H, K, hx, hy = self.H, self.K, self.half[0], self.half[1]
+        H = self.H
         Hp = H // 3
         n_all = len(xs)
         res = {"probs": [np.zeros((0, self.C), np.float32)] * n_all}
@@ -318,16 +371,11 @@ class TorchTess:
         Wl = [xs[i].shape[1] for i in lines]
         Ls = np.asarray([w // 3 for w in Wl], np.int64)
         B = len(lines)
-        pads = [pad_table_fast(self.model, H, w) for w in Wl]
-        in_off = np.concatenate([[0], np.cumsum([H * w for w in Wl])])
-        pad_off = np.concatenate([[0], np.cumsum([p.shape[0] for p in pads])])
-        total_in = int(in_off[-1])
-        total_nb = int(pad_off[-1])
-        zero_idx = total_in + K * total_nb
-        scale = 1.0 / 127.0 if (self.mode == "cudnn" and self.int_mode) else 1.0
-        V = np.concatenate([xs[i].ravel() for i in lines] + [p.ravel() for p in pads]
-                           + [np.zeros(1)]).astype(np.float32) * np.float32(scale)
-        V = torch.as_tensor(V, device=self.device)
+        in_off = np.concatenate([[0], np.cumsum([H * w for w in Wl])]).astype(np.int64)
+        V = np.concatenate([xs[i].ravel() for i in lines] + [np.zeros(1)])
+        V = torch.as_tensor(V.astype(np.float32) * np.float32(self.scale), device=self.device)
+        Wl_t = torch.as_tensor(np.asarray(Wl, np.int64), device=self.device)
+        off_t = torch.as_tensor(in_off[:-1], device=self.device)
 
         Tmax = -(-Wl[0] // 3)
         YL = torch.zeros(B, Tmax, self.nsy, device=self.device)
@@ -337,24 +385,19 @@ class TorchTess:
             c = c1 - c0
             Wp = -(-Wl[c0] // 3) * 3
             Tc = Wp // 3
-            idx = np.empty((c, H, Wp, K), np.int64)
-            for j in range(c):
-                b = c0 + j
-                idx[j] = _window_index(H, Wl[b], Wp, in_off[b], pad_off[b], total_in, K,
-                                       hx, hy, zero_idx)
-            win = V[torch.as_tensor(idx, device=self.device)]               # [c,H,Wp,K]
+            win = self._windows(V, off_t[c0:c1], Wl_t[c0:c1], Wp)
             feat = self._act(self._tanh(self._affine(win, self.conv)))      # [c,H,Wp,16]
             pooled = feat.reshape(c, Hp, 3, Tc, 3, F).amax(dim=(2, 4))     # [c,Hp,Tc,16]
             seq = pooled.permute(0, 2, 1, 3).reshape(c * Tc, Hp, F)
-            yl = self._lstm_y(seq).reshape(c, Tc, self.nsy)
-            YL[c0:c1, :Tc] = yl
+            YL[c0:c1, :Tc] = self._lstm_y(seq).reshape(c, Tc, self.nsy)
             if keep:
+                feat_np, pooled_np = feat.cpu().numpy(), pooled.cpu().numpy()
                 for j in range(c):
                     b = c0 + j
                     i = lines[b]
-                    res["conv"][i] = feat[j, :, :Wl[b]].cpu().numpy()
-                    res["pool"][i] = pooled[j, :, :Ls[b]].cpu().numpy()
-                    res["pads"][i] = pads[b]
+                    res["conv"][i] = feat_np[j, :, :Wl[b]]
+                    res["pool"][i] = pooled_np[j, :, :Ls[b]]
+                    res["pads"][i] = self._pad_table(Wl[b])
 
         x1 = self._lstm(self.x1, YL, Ls)
         x2 = self._lstm_reversed(self.x2, x1, Ls)
@@ -362,16 +405,18 @@ class TorchTess:
         v = self._affine(x3, self.out)
         m = v.max(dim=-1, keepdim=True).values
         e = torch.exp(torch.clamp(v - m, -86.0, 0.0))
-        probs = e / e.sum(dim=-1, keepdim=True)
+        probs = (e / e.sum(dim=-1, keepdim=True)).cpu().numpy()          # one transfer
         for b in range(B):
-            i = lines[b]
-            t = int(Ls[b])
-            res["probs"][i] = probs[b, :t].cpu().numpy()
-            if keep:
-                res["ylstm"][i] = YL[b, :t].cpu().numpy()
-                res["x1"][i] = x1[b, :t].cpu().numpy()
-                res["x2"][i] = x2[b, :t].cpu().numpy()
-                res["x3"][i] = x3[b, :t].cpu().numpy()
+            res["probs"][lines[b]] = probs[b, :int(Ls[b])]
+        if keep:
+            YL_np, x1_np, x2_np, x3_np = (t.cpu().numpy() for t in (YL, x1, x2, x3))
+            for b in range(B):
+                i = lines[b]
+                t = int(Ls[b])
+                res["ylstm"][i] = YL_np[b, :t]
+                res["x1"][i] = x1_np[b, :t]
+                res["x2"][i] = x2_np[b, :t]
+                res["x3"][i] = x3_np[b, :t]
         return res
 
     def _normalise(self, images):
