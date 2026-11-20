@@ -29,14 +29,24 @@ from types import SimpleNamespace
 
 _OCR = None
 _BEAMS = [0]
+_PERTURB = [None]
 
 
-def _init(models: str, math: bool, furniture: bool):
+def _init(models: str, math: bool, furniture: bool, perturb: str | None = None,
+          tta: str | None = None):
     global _OCR
     from indra_ocr import lm
     from indra_ocr.pipeline import OrtOCR
 
     _OCR = OrtOCR(models, threads=1, furniture=furniture, math=math)
+    if perturb:
+        import perturb as PT
+
+        _PERTURB[0] = PT.PAGE[perturb]
+    if tta:
+        import rec_tta
+
+        rec_tta.install(_OCR, rec_tta_names(tta))
     # Count the lines the n-gram beam search reads (recognize imports it at call time):
     # a page with none reads the same under every n-gram arm.
     inner = lm.beam_search
@@ -46,6 +56,10 @@ def _init(models: str, math: bool, furniture: bool):
         return inner(*args, **kw)
 
     lm.beam_search = counted
+
+
+def rec_tta_names(spec: str) -> list[str]:
+    return [n for n in spec.split(",") if n]
 
 
 def _page(job):
@@ -64,6 +78,8 @@ def _page(job):
     _BEAMS[0] = 0
     try:
         gray = cv2.imread(str(gray_path), cv2.IMREAD_GRAYSCALE)
+        if _PERTURB[0] is not None:
+            gray = _PERTURB[0](gray)
         pg = _OCR(gray, True)
         raw = {"markdown": pg.markdown, "text": pg.text, "blocks": pg.blocks,
                "rotation": pg.rotation, "skew": pg.skew,
@@ -97,6 +113,9 @@ def main():
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--math", action="store_true")
     ap.add_argument("--no-furniture", action="store_true")
+    ap.add_argument("--perturb", help="a perturb.PAGE variant applied to each page before reading")
+    ap.add_argument("--rec-tta", help="comma-separated perturb.CROP variants whose recognizer "
+                    "posteriors are averaged (models folder needs rec_tta.py's logp output)")
     ap.add_argument("--base", type=Path, help="run folder whose page results stand in for pages not "
                     "listed in --pages (an arm that only changes some pages)")
     a = ap.parse_args()
@@ -117,7 +136,8 @@ def main():
     if todo:
         from multiprocessing import get_context
 
-        with get_context("spawn").Pool(a.workers, _init, (a.models, a.math, not a.no_furniture)) as pool:
+        with get_context("spawn").Pool(a.workers, _init,
+                                       (a.models, a.math, not a.no_furniture, a.perturb, a.rec_tta)) as pool:
             for i, ok in enumerate(pool.imap_unordered(_page, todo, chunksize=2), 1):
                 if i % 50 == 0 or i == len(todo):
                     print(f"{i}/{len(todo)} {time.time() - t0:.0f}s", flush=True)
@@ -138,6 +158,7 @@ def main():
     keep = {k: s[k] for k in ("score", "families", "per_suite") if k in s}
     keep |= {"pages": len(jobs), "failed_pages": failed, "models": a.models,
              "math": a.math, "furniture": not a.no_furniture,
+             "perturb": a.perturb, "rec_tta": a.rec_tta,
              "ms_median": sorted(ms)[len(ms) // 2] if ms else None}
     (a.out / "summary.json").write_text(json.dumps(keep, indent=1))
     print(json.dumps({k: keep[k] for k in ("score", "pages", "failed_pages")}), flush=True)

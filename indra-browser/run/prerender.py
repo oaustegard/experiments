@@ -19,7 +19,7 @@ MAX_PAGE_PIXELS = 100e6
 
 
 def render(args):
-    src, dst = args
+    src, dst, mode = args
     import cv2
     import numpy as np
 
@@ -38,12 +38,19 @@ def render(args):
                 page = doc[0]
                 w, h = page.get_size()
                 k = min(DPI / 72.0, (MAX_PAGE_PIXELS / max(w * h, 1.0)) ** 0.5)
-                arr = page.render(scale=k, grayscale=True).to_numpy()
-                gray = np.ascontiguousarray(arr[..., 0] if arr.ndim == 3 else arr)
+                arr = page.render(scale=k, grayscale=mode == "gray").to_numpy()
+                if mode == "min" and arr.ndim == 3:
+                    gray = np.ascontiguousarray(arr[..., :3].min(-1))
+                else:
+                    gray = np.ascontiguousarray(arr[..., 0] if arr.ndim == 3 else arr)
             finally:
                 doc.close()
         else:
-            gray = cv2.imread(str(src), cv2.IMREAD_GRAYSCALE)
+            if mode == "min":
+                bgr = cv2.imread(str(src), cv2.IMREAD_COLOR)
+                gray = None if bgr is None else np.ascontiguousarray(bgr.min(-1))
+            else:
+                gray = cv2.imread(str(src), cv2.IMREAD_GRAYSCALE)
             if gray is None:
                 return f"{src.name}: unreadable"
         tmp = dst.with_suffix(".tmp.png")
@@ -59,12 +66,15 @@ def main():
     ap.add_argument("--ds", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--mode", choices=("gray", "min"), default="gray",
+                    help="min: the darkest of the three color channels (colored ink turns dark, "
+                    "white paper stays white), a color perturbation for a grayscale reader")
     a = ap.parse_args()
     import pandas as pd
 
     m = pd.read_parquet(a.ds / "manifest.parquet")
     a.out.mkdir(parents=True, exist_ok=True)
-    jobs = [(a.ds / r.doc_path, a.out / f"{r.page_id}.png") for r in m.itertuples()]
+    jobs = [(a.ds / r.doc_path, a.out / f"{r.page_id}.png", a.mode) for r in m.itertuples()]
     with ProcessPoolExecutor(a.workers) as ex:
         errs = [e for e in ex.map(render, jobs, chunksize=8) if e]
     print(f"{len(jobs)} pages, {len(errs)} errors")
