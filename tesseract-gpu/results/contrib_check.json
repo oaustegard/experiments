@@ -1,0 +1,9 @@
+{
+ "what": "exact engine (server/torch_engine.py) against Tesseract 5.3.4's own softmax and no-dictionary beam ids, harness/dump_contrib.sh + run/check_contrib.py",
+ "model": "tessdata_contrib grc_hist/best/grc_hist.traineddata (AjaxMultiCommentary; fine-tuned from grc; built with Tesseract 5.3.0-2-gb76b5; 300 unichars)",
+ "lines": 171,
+ "max_dp": 0.00538,
+ "argmax_identical_all_steps": 171,
+ "beam_ids_identical": 171,
+ "note": "max |dp| is above the 3.3e-5 of Google's float models; not investigated, and it changes no argmax or beam output"
+}
