@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-18T01:50:53.545697+00:00",
+ "last_run": "2026-11-20T01:51:54.504546+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -724,6 +724,50 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "8B and 35B-A3B Qwen VLA game agents trained with CPT, SFT and RL on H200s; the smallest model is about 22 GB served and the SFT/RL checkpoints are not released, so nothing transfers to the in-browser DOOM Arena bot. The usable idea is the context pattern: write a summary before old turns are evicted under a fixed budget (512 tokens, 20-turn window) and reason only at decision points. Its headline win over frontier models holds only in real-time play; time-paused, GPT-5.6-Sol scores higher."
+  },
+  "2611.22115": {
+   "title": "TeleChat to Xing4: Advancing Frontier Agentic Models on Domestic Chips and Frameworks",
+   "first_seen": "2026-11-20",
+   "best_rank": 25,
+   "upvotes": 159,
+   "reviewed": "2026-11-20",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Technical report on the Xing 4 series trained on Ascend 910C/MindSpore (MLA+DSA+IndexShare attention, wider-shallower MoE, DSpark speculative decoding). Every throughput number (DSpark 1.48-2.10x over MTP3 decode) is for the unreleased 285B model on Ascend or from simulation, and the open 29B-A4B gets no quality benchmarks. Server-side decoding tricks are not a lever for an API-calling agent."
+  },
+  "2611.21607": {
+   "title": "ScaleVLA: Scaling Vision-Language-Action Models to 552 Billion Parameters",
+   "first_seen": "2026-11-20",
+   "best_rank": 28,
+   "upvotes": 150,
+   "reviewed": "2026-11-20",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "A frozen 552B MoE VLM as encoder for a flow-matching action head; needs four H200s and releases no code or weights. The 4/10 to 9/10 robot headline is against the weakest baseline; against pi0.5 it is 9/10 vs 8/10 on 10 trials. The only transferable point is that a bigger frozen backbone helps most when labelled data is scarce."
+  },
+  "2610.38331": {
+   "title": "Multi-Token Prediction Done Right",
+   "first_seen": "2026-11-20",
+   "best_rank": 29,
+   "upvotes": 149,
+   "reviewed": "2026-11-20",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Soft-MTP drops the noisy residual from the MTP gradient with a one-line straight-through change (code: github.com/JaydenTeoh/Soft-MTP). Gains at 1.2B are small and unseeded: perplexity 10.74 vs 10.89, HumanEval pass@64 43.9 vs 40.9, acceptance length +1-4%. It is a pretraining objective he would not run."
+  },
+  "2610.36729": {
+   "title": "Hy-Nomas: Towards Free-form Interactive World Generation",
+   "first_seen": "2026-11-20",
+   "best_rank": 30,
+   "upvotes": 147,
+   "reviewed": "2026-11-20",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "8B autoregressive interactive video world model with released weights (huggingface.co/tencent/Hy-Nomas) that runs on one RTX 4090 via INT8 weights and KV cache plus sliding-window attention. Evaluation is 60-case pairwise human judging, and Genie 3 wins on spatial memory. Video world generation is off his path; the INT8 KV-cache-on-consumer-GPU engineering is the only reusable note."
   }
  }
 }
