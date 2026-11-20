@@ -1,0 +1,104 @@
+{
+ "pages": 2937,
+ "documents": 2343,
+ "tests": 16288,
+ "benchmark": "datalab-to/omni_parse_bench @ d70182b9, scorer omni-parse-bench 1.6.0, OCR mode, math off, furniture on",
+ "docling_score": 52.46,
+ "docling_pages": 2937,
+ "opb": {
+  "indra_fp32": {
+   "headline": 61.51,
+   "text": 40.32,
+   "tables": 52.78,
+   "layout": 91.43
+  },
+  "indra_f16": {
+   "headline": 61.55,
+   "text": 40.36,
+   "tables": 52.78,
+   "layout": 91.51,
+   "delta": 0.04,
+   "ci95": [
+    -0.03,
+    0.11
+   ]
+  },
+  "indra_mix8": {
+   "headline": 61.36,
+   "text": 40.33,
+   "tables": 52.28,
+   "layout": 91.47,
+   "delta": -0.15,
+   "ci95": [
+    -0.37,
+    0.04
+   ]
+  },
+  "docling_fp32_docling_html": {
+   "headline": 52.46,
+   "text": 30.45,
+   "tables": 45.32,
+   "layout": 81.61,
+   "delta": -9.05,
+   "ci95": [
+    -11.1,
+    -6.93
+   ]
+  },
+  "docling_fp32_markdown": {
+   "headline": 51.17,
+   "text": 28.89,
+   "tables": 43.02,
+   "layout": 81.61,
+   "delta": -10.34,
+   "ci95": [
+    -12.34,
+    -8.17
+   ]
+  }
+ },
+ "docling_failed_pages": 7,
+ "loops": {
+  "capped_pages": 790,
+  "share": 0.269,
+  "ended": {
+   "pages": 2147,
+   "indra_fp32": 59.41,
+   "docling": 60.03,
+   "ci95": [
+    -1.23,
+    2.38
+   ]
+  },
+  "capped": {
+   "pages": 790,
+   "indra_fp32": 61.71,
+   "docling": 19.39
+  }
+ },
+ "speed": {
+  "docling_s_per_page_per_t4": 9.94,
+  "docling_hardware": "Tesla T4 (Kaggle), vLLM 0.34.0, fp32 compute, max 8192 new tokens, greedy",
+  "docling_gen_tokens_mean": 2919,
+  "docling_gen_tokens_median": 1575,
+  "docling_tokens_per_s_per_t4": 294,
+  "indra_ms_per_page_median": 917.0,
+  "indra_hardware": "1 CPU thread per page, ONNX Runtime 1.32 (indra-ocr 1.1.2), 4 workers, container x86"
+ },
+ "download_mb": {
+  "indra_f16_core_gzip": 4.05,
+  "indra_mix8_core_gzip": 2.24,
+  "docling_bf16_safetensors": 515.09,
+  "docling_webgpu_space": 1148.3,
+  "docling_webgpu_space_parts": {
+   "embed_tokens_fp16": 115.61,
+   "vision_encoder_fp32": 374.04,
+   "decoder_model_merged_fp32": 658.12
+  },
+  "docling_onnx_smallest_listed": 205.9,
+  "docling_pack_recipe": 237.31,
+  "docling_pack_recipe_head8": 295.31
+ },
+ "surya_25_opb_reported": 85.9,
+ "indra_opb_reported": 69.5
+}
