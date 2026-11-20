@@ -9,7 +9,7 @@ import { cleanLine } from "./lineprep.js";
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess5"; // keep equal to build.json
+const BUILD = "2026-11-20-tess6"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
 const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
@@ -215,9 +215,10 @@ async function runPage(gray, name) {
   try {
     const order = $("order").value;
     const clean = $("clean").checked;
+    const dict = $("dict").checked;
     status(`Finding the lines of ${name} with Tesseract's layout (${gray.w} × ${gray.h})…`);
     const found = await findLines(gray, order);
-    last = { name, gray, boxes: found.boxes, order, clean, findMs: found.ms };
+    last = { name, gray, boxes: found.boxes, order, clean, dict, findMs: found.ms };
     relay.log("page", { name, w: gray.w, h: gray.h, lines: found.boxes.length, order, clean, ms: Math.round(found.ms) });
     showPage();
     await recogniseLast();
@@ -241,7 +242,7 @@ async function recogniseLast() {
   });
   const cropMs = performance.now() - tc;
   const t1 = performance.now();
-  const out = crops.length ? await recognize(gpu, current.model, crops) : [];
+  const out = crops.length ? await recognize(gpu, current.model, crops, { dict: last.dict }) : [];
   const recMs = performance.now() - t1;
   const texts = boxes.map(() => "");
   idx.forEach((i, k) => { texts[i] = ((out[k] && out[k].text) || "").trim(); });
@@ -326,7 +327,7 @@ function showText() {
     [`Line finding: Tesseract layout, ${ORDER_LABEL[last.order]}`, timings.find],
     [last.clean ? "Crop and clean-up (flat-field, tight crop)" : "Crop (page to line images, 3 px padding)", timings.crop],
     ["Recognition on GPU (prep, kernels, readback)", timings.gpu],
-    ["Decode (beam search)", timings.decode],
+    [last.dict && current.model.dict ? "Decode (beam search with Tesseract's word lists)" : "Decode (beam search)", timings.decode],
   ];
   $("timings").innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td>${ms(v)}</td></tr>`).join("");
   $("copy").disabled = !plainText();
@@ -395,6 +396,7 @@ function rereadLast() {
   if (last) runPage(last.gray, last.name);
 }
 $("clean").addEventListener("change", rereadLast);
+$("dict").addEventListener("change", rereadLast);
 $("order").addEventListener("change", rereadLast);
 $("file").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) handle(f); });
 $("lang").addEventListener("change", switchModel);

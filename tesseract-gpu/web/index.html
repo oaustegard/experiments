@@ -35,6 +35,7 @@
       <option value="columns">Column bands</option>
     </select>
     <label class="muted small check"><input type="checkbox" id="clean" checked> Clean up lines (flat-field, tight crop)</label>
+    <label class="muted small check"><input type="checkbox" id="dict" checked> Word lists</label>
   </div>
   <div class="picker">
     <label class="muted small" for="lang">Language</label>
@@ -74,13 +75,14 @@
   <p>How it works: Tesseract's layout analysis (<code>tesslayout.js</code>, the tesseract.js-core build of Tesseract 5.1) finds the text lines and their reading order;
   <i>Column bands</i> reorders them by the column structure of the page instead (<code>layout.js</code>). Each line is cropped from the page and, with clean-up on,
   flat-fielded (the paper's uneven lighting divided out) and cropped tightly to its ink (<code>lineprep.js</code>). Every line is then read on the GPU by Tesseract's LSTM
-  recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels, with Tesseract's beam search for the text. With clean-up off, each line is cropped with
+  recognizer, the same network Tesseract 5 runs on the CPU, ported to WebGPU kernels, with Tesseract's beam search for the text, which by default also consults the model's own word, punctuation and number lists, as
+  Tesseract does. With clean-up off, each line is cropped with
   3 px of padding and read as is.</p>
   <p>Downloads: Tesseract's layout engine (about 2.8 MB) and the English model it uses for layout (about 4 MB) load once, from jsDelivr. The recognizer model for the
   language you pick loads on first use of it.</p>
   <p>Licences: Tesseract's code, the tessdata models and tesseract.js-core are Apache-2.0. This page's code is MIT. Details, including which files are ports of which Apache-2.0 code:
   <a href="https://github.com/oaustegard/experiments/blob/main/tesseract-gpu/NOTICE.md">NOTICE.md</a>.</p>
-  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess5</code>.</p>
+  <p>Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/tesseract-gpu">tesseract-gpu</a>. Page build <code id="build">2026-11-20-tess6</code>.</p>
 </footer>
 </main>
 <script src="../../gpu-bridge/web/relay.js"></script>

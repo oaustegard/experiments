@@ -41,6 +41,8 @@ try {
   await step("english, clean-up off", () => page.setChecked("#clean", false));
   await step("english, clean-up on", () => page.setChecked("#clean", true));
   await step("english, column bands", () => page.selectOption("#order", "columns"));
+  await step("english, word lists off", () => page.setChecked("#dict", false));
+  await step("english, word lists on", () => page.setChecked("#dict", true));
   await page.selectOption("#lang", "fra");
   run += 1; // switching the model rereads the open page
   await page.waitForFunction((n) => Number(document.getElementById("result").dataset.run || 0) >= n, run, { timeout: 180000 });

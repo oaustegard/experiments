@@ -217,7 +217,18 @@ def _layout_det(gray, det):
 
 # ---------------------------------------------------------------- recognition
 
-def _recognise(gray, boxes, eng, clean=True):
+_DICTS = {}
+
+
+def _dict_for(eng):
+    """The model's LSTM word lists for the beam search (tessgpu.beam_dict), loaded once per model."""
+    if eng.model.path not in _DICTS:
+        from tessgpu import beam_dict
+        _DICTS[eng.model.path] = beam_dict.load_dict(eng.model)
+    return _DICTS[eng.model.path]
+
+
+def _recognise(gray, boxes, eng, clean=True, dict=True):
     """Crop, invert, batch-recognise and beam-decode the lines. Returns per-line text and conf."""
     H, W = gray.shape
     t0 = time.perf_counter()
@@ -246,7 +257,7 @@ def _recognise(gray, boxes, eng, clean=True):
     confs = [None] * len(boxes)
     chars = eng.model.unicharset
     for i, p in zip(idx, probs):
-        ids = beam.decode(p, eng.model)
+        ids = beam.decode(p, eng.model, dict=_dict_for(eng) if dict else None)
         raw = ''.join(chars[u] for u in ids)
         texts[i] = ' '.join(raw.split())
         confs[i] = float(p.max(axis=1).mean()) if p.shape[0] else None
@@ -256,9 +267,10 @@ def _recognise(gray, boxes, eng, clean=True):
 
 # ---------------------------------------------------------------- public
 
-def read_page(gray, layout="tess", model=DEFAULT_MODEL, device="cpu", mode="exact", det="tiny", clean=True):
+def read_page(gray, layout="tess", model=DEFAULT_MODEL, device="cpu", mode="exact", det="tiny", clean=True, dict=True):
     """Read one page. layout: "tess" (Tesseract's layout, default) or "det" (PP-OCRv6 lines, kept as a
-    reference point). clean: tessgpu.lineprep clean-up of every line before recognition."""
+    reference point). clean: tessgpu.lineprep clean-up of every line before recognition. dict: the model's
+    LSTM word lists in the beam search (tessgpu.beam_dict), as Tesseract uses them."""
     if layout not in ("det", "tess"):
         raise ValueError("layout must be 'det' or 'tess', got %r" % (layout,))
     g = _grey(gray)
@@ -273,7 +285,7 @@ def read_page(gray, layout="tess", model=DEFAULT_MODEL, device="cpu", mode="exac
     t_layout = time.perf_counter() - t0
 
     eng = _engine(model, device, mode)
-    texts, confs, t = _recognise(g, boxes, eng, clean)
+    texts, confs, t = _recognise(g, boxes, eng, clean, dict)
 
     lines = []
     blocks = []

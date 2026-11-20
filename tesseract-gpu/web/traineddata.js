@@ -6,6 +6,7 @@
 //   const model = await loadTraineddata(gpu, "models/best/eng.traineddata");
 
 import { TessModel } from "./engine.js";
+import { loadDict } from "./beam_dict.js";
 
 const TYPE_NAMES = [
   "Invalid", "Input", "Convolve", "Maxpool", "Parallel", "Replicated", "ParBidiLSTM",
@@ -357,5 +358,7 @@ async function defaultFetchBytes(url) {
 export async function loadTraineddata(gpu, url, { fetchBytes = defaultFetchBytes } = {}) {
   const buf = await fetchBytes(url);
   const { man, bin } = parseTraineddata(buf, { name: url });
-  return new TessModel(gpu, man, bin);
+  const model = new TessModel(gpu, man, bin);
+  model.dict = loadDict(buf); // the model's lstm-*-dawg word lists, or null when it has none
+  return model;
 }

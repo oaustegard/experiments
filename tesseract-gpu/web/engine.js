@@ -114,7 +114,8 @@ export class TessModel {
 // stages (conv+pool, ylstm, x1, x2, x3, output) for per-stage timing (no text then).
 // opts.invert: "auto" (default) flips a line whose pixels are mostly darker than halfway between
 // its black and white levels (light text on a dark ground) before normalising; "off" never does.
-export async function recognize(gpu, model, lines, { wantProbs = false, decoder = "beam", xlstm = "v2", stages = 7, invert = "auto" } = {}) {
+export async function recognize(gpu, model, lines, { wantProbs = false, decoder = "beam", xlstm = "v2", stages = 7, invert = "auto", dict = true } = {}) {
+  const dawgs = dict && model.dict ? model.dict : null; // Tesseract's word lists in the beam search (web/beam_dict.js)
   const t0 = performance.now();
   const H = model.H, Hp = Math.floor(H / 3);
   const prepared = lines.map((l, i) => {
@@ -175,7 +176,7 @@ export async function recognize(gpu, model, lines, { wantProbs = false, decoder 
     if (probsHost) r.probs = probsHost.subarray(m.t_off * model.C, (m.t_off + m.T) * model.C);
     if (!full) r.text = "";
     else if (decoder === "beam") {
-      const ids = beamDecode(r.probs, m.T, model.C, model.man);
+      const ids = beamDecode(r.probs, m.T, model.C, model.man, dawgs);
       r.text = ids.map((u) => model.man.unichars[u]).join("").split(/\s+/).filter(Boolean).join(" ");
     } else r.text = model.decode(bestHost, m.t_off, m.T);
     if (!wantProbs) delete r.probs;
