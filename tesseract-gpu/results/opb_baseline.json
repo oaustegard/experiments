@@ -1,0 +1,237 @@
+{
+ "dataset": {
+  "repo": "datalab-to/omni_parse_bench",
+  "revision": "d70182b9f901d1660a27e60bf6be6d6e6ea83013"
+ },
+ "subset": {
+  "pages": 400,
+  "text_tests": 1516,
+  "text_types": [
+   "order",
+   "page_near_empty",
+   "present",
+   "repeat"
+  ],
+  "seed": 0
+ },
+ "a_published_tesseract": {
+  "source": "results.parquet, system Tesseract (the benchmark's own run: its adapter, the page's script detected with --psm 0, PDFs at 300 DPI, no text layer)",
+  "tests": 1516,
+  "pass": 264,
+  "pass_rate": 0.1741,
+  "fail": 1252,
+  "unsupported": 0,
+  "missing": 0,
+  "by_suite": {
+   "docparsing_images": {
+    "tests": 45,
+    "pass_rate": 0.0
+   },
+   "forms_documentcloud": {
+    "tests": 5,
+    "pass_rate": 0.8
+   },
+   "forms_federal": {
+    "tests": 16,
+    "pass_rate": 0.25
+   },
+   "forms_filled": {
+    "tests": 13,
+    "pass_rate": 0.4615
+   },
+   "frbench_handwriting": {
+    "tests": 8,
+    "pass_rate": 0.0
+   },
+   "handwriting_samples": {
+    "tests": 54,
+    "pass_rate": 0.0
+   },
+   "large_format": {
+    "tests": 10,
+    "pass_rate": 0.2
+   },
+   "multiling_finepdfs": {
+    "tests": 74,
+    "pass_rate": 0.3919
+   },
+   "multilingual": {
+    "tests": 15,
+    "pass_rate": 0.5333
+   },
+   "olmo_arxiv_math": {
+    "tests": 496,
+    "pass_rate": 0.0101
+   },
+   "olmo_long_tiny_text": {
+    "tests": 24,
+    "pass_rate": 0.4583
+   },
+   "olmo_multi_column": {
+    "tests": 38,
+    "pass_rate": 0.6579
+   },
+   "olmo_old_scans": {
+    "tests": 47,
+    "pass_rate": 0.0
+   },
+   "olmo_old_scans_math": {
+    "tests": 102,
+    "pass_rate": 0.0686
+   },
+   "parsebench_docs": {
+    "tests": 53,
+    "pass_rate": 0.434
+   },
+   "realdoc_pages": {
+    "tests": 57,
+    "pass_rate": 0.0702
+   },
+   "realdoc_pdfs": {
+    "tests": 47,
+    "pass_rate": 0.234
+   },
+   "rotation_skew": {
+    "tests": 44,
+    "pass_rate": 0.0909
+   },
+   "synth_copies": {
+    "tests": 272,
+    "pass_rate": 0.2132
+   },
+   "tables_derived": {
+    "tests": 36,
+    "pass_rate": 0.5556
+   },
+   "tiny_plans": {
+    "tests": 60,
+    "pass_rate": 0.7167
+   }
+  }
+ },
+ "b_local_tesseract_cli": {
+  "command": "tesseract <page>.png - --psm 3 --oem 1 -l eng (OMP_THREAD_LIMIT=1)",
+  "version": "tesseract 5.3.4",
+  "tessdata": {
+   "file": "/usr/share/tesseract-ocr/5/tessdata/eng.traineddata",
+   "bytes": 4113088
+  },
+  "tests": 1516,
+  "pass": 278,
+  "pass_rate": 0.1834,
+  "pages": 400,
+  "pages_missing": 0,
+  "failed_pages": 0,
+  "same_test_set_as_gold": true,
+  "by_suite": {
+   "docparsing_images": {
+    "tests": 45,
+    "pass_rate": 0.2
+   },
+   "forms_documentcloud": {
+    "tests": 5,
+    "pass_rate": 0.8
+   },
+   "forms_federal": {
+    "tests": 16,
+    "pass_rate": 0.3125
+   },
+   "forms_filled": {
+    "tests": 13,
+    "pass_rate": 0.3077
+   },
+   "frbench_handwriting": {
+    "tests": 8,
+    "pass_rate": 0.0
+   },
+   "handwriting_samples": {
+    "tests": 54,
+    "pass_rate": 0.0
+   },
+   "large_format": {
+    "tests": 10,
+    "pass_rate": 0.6
+   },
+   "multiling_finepdfs": {
+    "tests": 74,
+    "pass_rate": 0.027
+   },
+   "multilingual": {
+    "tests": 15,
+    "pass_rate": 0.1333
+   },
+   "olmo_arxiv_math": {
+    "tests": 496,
+    "pass_rate": 0.0101
+   },
+   "olmo_long_tiny_text": {
+    "tests": 24,
+    "pass_rate": 0.5
+   },
+   "olmo_multi_column": {
+    "tests": 38,
+    "pass_rate": 0.6842
+   },
+   "olmo_old_scans": {
+    "tests": 47,
+    "pass_rate": 0.1277
+   },
+   "olmo_old_scans_math": {
+    "tests": 102,
+    "pass_rate": 0.1373
+   },
+   "parsebench_docs": {
+    "tests": 53,
+    "pass_rate": 0.1887
+   },
+   "realdoc_pages": {
+    "tests": 57,
+    "pass_rate": 0.2456
+   },
+   "realdoc_pdfs": {
+    "tests": 47,
+    "pass_rate": 0.4681
+   },
+   "rotation_skew": {
+    "tests": 44,
+    "pass_rate": 0.0909
+   },
+   "synth_copies": {
+    "tests": 272,
+    "pass_rate": 0.2537
+   },
+   "tables_derived": {
+    "tests": 36,
+    "pass_rate": 0.5556
+   },
+   "tiny_plans": {
+    "tests": 60,
+    "pass_rate": 0.7333
+   }
+  }
+ },
+ "gap_b_minus_a_pp": 0.93,
+ "gap_by_suite_pp": {
+  "docparsing_images": 20.0,
+  "forms_documentcloud": 0.0,
+  "forms_federal": 6.25,
+  "forms_filled": -15.38,
+  "frbench_handwriting": 0.0,
+  "handwriting_samples": 0.0,
+  "large_format": 40.0,
+  "multiling_finepdfs": -36.49,
+  "multilingual": -40.0,
+  "olmo_arxiv_math": 0.0,
+  "olmo_long_tiny_text": 4.17,
+  "olmo_multi_column": 2.63,
+  "olmo_old_scans": 12.77,
+  "olmo_old_scans_math": 6.87,
+  "parsebench_docs": -24.53,
+  "realdoc_pages": 17.54,
+  "realdoc_pdfs": 23.41,
+  "rotation_skew": 0.0,
+  "synth_copies": 4.05,
+  "tables_derived": 0.0,
+  "tiny_plans": 1.66
+ }
+}
