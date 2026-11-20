@@ -10,7 +10,8 @@ pack = j("pack_sweep.json")["by"]
 base = {r["model"]: r for r in j("tess_baseline.json")["overall"]}
 b1 = j("bridge_tess-gpu-1_mac.json")["outputs"]["models"]
 b2 = j("bridge_tess-gpu-2_mac.json")["outputs"]["models"]
-k = j("kaggle_t4_server_bench_1.json")["results"]
+k = j("kaggle_t4_server_bench_2.json")["results"]
+k1 = j("kaggle_t4_server_bench_1.json")["results"]
 fl = j("flops.json")
 torch_check = j("torch_check.json")
 s = {
@@ -39,6 +40,8 @@ s = {
     },
     "t4": {f"{m}_{mode}_b4096": round(k[m][f"{mode}_b4096"]["lines_per_s"], 1)
            for m in ("best", "fast") for mode in ("exact", "cudnn")},
+    "t4_run1": {f"{m}_{mode}_b4096": round(k1[m][f"{mode}_b4096"]["lines_per_s"], 1)
+                for m in ("best", "fast") for mode in ("exact", "cudnn")},
     "t4_parity": {m: {"max_dp": k[m]["exact_vs_ref_max_dp"], "argmax_lines": k[m]["exact_vs_ref_argmax_lines_equal"]}
                   for m in ("best", "fast")},
     "flops": {"best_eng_x3_share": fl["[1,36,0,1Ct3,3,16Mp3,3Lfys64Lfx96Lrx96Lfx512O1c1]"]["share"]["x3"],

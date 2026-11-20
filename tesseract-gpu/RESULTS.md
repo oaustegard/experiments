@@ -22,8 +22,8 @@ and 1.3e-6 for the 8-bit models, <!-- @evidence[[results/summary.json#parity.fas
 character at every timestep, and a port of Tesseract's beam search returns its exact characters on all 1,372
 readings. <!-- @evidence[[results/summary.json#beam.identical]] --> On Oskar's Mac
 (Chrome 157), 343 lines take 176 ms of GPU time with eng best, <!-- @evidence[[results/summary.json#mac.best_gpu_ms]] -->
-and the text equals the reference on every line (beam decoding not included). On a Kaggle Tesla T4 the server engine reads 289 lines per second, <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
-held back by per-line Python on the host rather than by the GPU; vectorising that host code is in progress. Stock
+and the text equals the reference on every line (beam decoding not included). On a Kaggle Tesla T4 the server engine reads 1,143 lines per second, <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
+still limited by preparing lines on the CPU rather than by the GPU. Stock
 Tesseract took 0.19 s a line in each of four parallel processes on four CPUs, about 21 lines per second in all. <!-- @evidence[[results/summary.json#baseline_binary.best_s_per_line_4proc]] --> Packing
 tessdata_best's weights to 8 bits keeps its error rate within 0.1 point on all three languages. Making the LSTM itself cheaper would need retraining (Finding 7, Log).
 
@@ -51,10 +51,11 @@ tessdata_best's weights to 8 bits keeps its error rate within 0.1 point on all t
    The three sequential x-LSTMs take about 105 ms of the 176; one dispatch per timestep covers every line still
    running. Before the beam decoder was sped up it cost 1,339 ms for the same batch on the Mac
    (<!-- @evidence[[results/summary.json#mac.best_beam_decode_ms_r2]] -->job `tess-gpu-2`; not re-measured since).
-5. **The server engine is CPU-bound on the host.** On a Kaggle T4 at 4,096 lines, cuDNN mode reads 289 lines/s <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
-   with eng best and 277 <!-- @evidence[[results/summary.json#t4.fast_cudnn_b4096]] --> with eng fast,
-   exact mode 214 and 217, flat across batch sizes and models of 3x different compute; a profile puts the time in
-   per-line NumPy (building convolution windows, about 1.3 ms a line). Exact mode on CUDA matches the reference
+5. **The server engine is bound by its host-side preparation.** On a Kaggle T4 at 4,096 lines, cuDNN mode reads 1,143 <!-- @evidence[[results/summary.json#t4.best_cudnn_b4096]] -->
+   lines/s with eng best and 1,165 <!-- @evidence[[results/summary.json#t4.fast_cudnn_b4096]] --> with eng fast, exact
+   mode 431 and 497. Building the convolution windows with tensor ops instead of per-line NumPy took cuDNN mode from
+   289 lines/s; <!-- @evidence[[results/summary.json#t4_run1.best_cudnn_b4096]] --> best and fast still run at about the same rate, so the remaining
+   limit is the per-line preprocessing (resizing and Tesseract's black and white levels) on the CPU. Exact mode on CUDA matches the reference
    (24/24 lines, max |Δp| 4.6e-6). Exact mode reproduces the reference; cuDNN mode uses PyTorch's `nn.LSTM` (plain tanh and sigmoid, no 8-bit
    activations) and gives the same text as exact mode on 100% of 1,024 best lines and 87% of fast lines.
 6. **tessdata_best packs to 8 bits.** CER on the benchmark sample (600 lines, beam decoding): eng 1.26% at f32, 1.26%
@@ -109,8 +110,7 @@ as LaTeX; every other line goes through this engine in one batch. Models load fr
 **Delegation.** The work ran as one coordinating session and 17 Claude Haiku subagents, each with a task, a
 deliverable and a check it had to pass: benchmark data (2), model inventory, math and image-path surveys, the four
 WGSL kernels, the PyTorch engine, the beam-search port and its speed-up, the JS model reader, the output kernel rewrite,
-the demo page, note revisions, host-side vectorisation (still running). The 16 finished agents used about 2.8M tokens,
-120k to 390k each. Every kernel passed
+the demo page, note revisions, host-side vectorisation. The 17 agents used about 2.9M tokens, 120k to 390k each. Every kernel passed
 its parity check on delivery; the reference, the parity harness, the engine integration and the performance work stayed
 with the coordinator.
 
@@ -135,9 +135,13 @@ layer and moved normalisation to the GPU: 176 ms (job `tess-gpu-2`). The x-LSTM 
 was not faster than v1 on Apple's GPU; it stays as the default because it matches v1 exactly.
 
 Kaggle T4 (`tess-gpu-server-bench`, 2026-11-19): 214 to 289 lines/s, flat across batch and model; profile points at
-per-line NumPy in the host code.
+per-line NumPy in the host code. After the conv windows were built with batched tensor ops (2026-11-20, version 2 of
+the same job): 1,143 lines/s (best, cuDNN) and 431 (best, exact); `results/kaggle_t4_server_bench_2.json`.
 
-Open: host-side vectorisation of the server engine and a second T4 run; Mac timing after the beam speed-up; 8-bit
+Tesseract's own recognizer, in-process on one thread with the model loaded once, took 68.5 ms a line with eng best and
+14.1 ms with eng fast on the (busy) container (`results/tess_recognizer_cpu_timing.json`).
+
+Open: vectorising the remaining per-line preprocessing in the server engine; Mac timing after the beam speed-up; 8-bit
 dot products (`dot4I8Packed`) for tessdata_fast; f16 weights in the kernels; a CER comparison of the demo pipeline
 (Indra layout plus Tesseract recognizer) on Omni Parse Bench pages; distilling the LSTM into a model whose x-direction
 layers run in parallel over time, which needs training.
