@@ -10,17 +10,15 @@ the weights packed to as few bytes as the benchmark allows. Page: https://austeg
 ## Answer
 
 Can Indra run in a browser tab, how small can its download get, and what does packing cost? It runs, and
-with the same weights the browser's markdown equals the Python package's on the pages compared:
-15 of 15 without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
-Accuracy is Omni Parse Bench's headline (the mean of its text, tables and layout pass rates, in percent) on 2,937
-pages read without the PDF text layer. fp32 weights score 61.51 and fp16 61.55; 4-bit collapses to 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
+with the same weights the browser's markdown equals the Python package's: 15 of 15 pages without the word model. <!-- @evidence[[results/summary.json#parity.nolm.same_markdown]] -->
+Accuracy is Omni Parse Bench's headline (mean of text, tables and layout pass rates) on 2,937 pages. fp32 scores 61.51, fp16 61.55, 4-bit 49.56. <!-- @evidence[[results/summary.json#s4c.headline]] -->
 In fp16 the detector, Latin recognizer, reading-order, orientation and script models come to
 4.05 MB gzipped. <!-- @evidence[[results/summary.json#bytes_f16.core]] -->
 The demo page and the anything-to-text converter ship a pack with 8-bit recognizers and
-reading-order model instead, which scores 61.36 at 2.24 MB (Log, Round 3). <!-- @evidence[[results/summary.json#bytes_mix8.core]] -->
-The n-gram word models pack further: 2-bit values keep their handwriting gain, and the Latin table goes from 15.7 MB
-(npz) to 2.54 MB gzipped, fetched only when a line needs it. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
-Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Apple Metal-3), with every network on the GPU (Log, Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
+reading-order model instead (`mix8`), which scores 61.36 at 2.24 MB (Log, Round 3). <!-- @evidence[[results/summary.json#bytes_mix8.core]] -->
+The n-gram word models pack to 2-bit values: the Latin table, 15.7 MB as npz, is 2.54 MB gzipped, fetched only when needed. <!-- @evidence[[results/summary.json#bytes_f16.lm-base]] -->
+Once loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157, Metal-3) (Round 2). <!-- @evidence[[results/summary.json#/mac_indra8/olmo_old_scans-87-p1/gpu_order/warm_ms]] -->
+Reading math lines as LaTeX lifts mix8 to 67.80 <!-- @evidence[[results/opb_math.json#math_on.headline]] --> (61.41 off, Round 5); the 8.01 MB math pack loads only for pages with math.
 
 ## Findings
 
@@ -54,6 +52,7 @@ Once the models are loaded, a page takes 54 to 97 ms on Oskar's Mac (Chrome 157,
    the rest of the page's time went to JS around them (per-batch submits, line crops, the skew search). Those parts
    then moved to the GPU or into one submit (Round 1). The deskew and downscales alone took the scan from 1,820 ms
    to 416 ms. <!-- @evidence[[results/summary.json#mac_indra3.olmo_old_scans-87-p1.gpu_ms]] -->
+6. **Math as LaTeX is the largest single gain and ships at fp16, not 8-bit.** Math on lifts the headline from 61.41 <!-- @evidence[[results/opb_math.json#math_off.headline]] --> to 67.80 (+6.39) (arXiv math pages 14.2 to 66.1); fp16 math matches fp32 math on 531 of 550 math pages and 8-bit only on 330 <!-- @evidence[[results/math_arms.json#math-mix8m8.same_markdown_as_fp32]] -->, and with float32 word-model values the browser matches the package on 24 of 24 math pages (10 of 24 with the shipped 2-bit word model, whose differences are outside the math lines; Round 5).
 
 ## Method
 
@@ -262,16 +261,20 @@ manifest's `math` key; the core files are unchanged. 8-bit math (4.43 MB) did no
 pages, fp16 math gives the same markdown as fp32 math on 531 pages and the same reading on 9,298 of 9,314 replaced lines;
 8-bit gives 330 pages and 9,026 lines. <!-- @evidence[[results/math_arms.json]] -->
 
-**Score.** OmniParseBench 1.6.0, all 2,937 pages, mix8 core: math off 61.41, math on 67.80 (text 40.33 to 60.47; tables
+**Score.** OmniParseBench 1.6.0, all 2,937 pages, mix8 core (pass rates in percent): math off 61.41, math on 67.80 (text 40.33 to 60.47; tables
 52.41 to 51.58; layout 91.47 to 91.34). The `olmo_arxiv_math` suite goes from 14.2 to 66.1; old scanned math stays near
-13. <!-- @evidence[[results/opb_math.json]] -->
+13 (`olmo_old_scans_math`). This run's math-off 61.41 is 0.05 above Round 1's mix8 61.36; the cause was not traced. <!-- @evidence[[results/opb_math.json]] -->
 
 **Parity.** `MATH=auto node web/test/check_pages.mjs` against `run/ref_pages.py --math` on the same weights:
-with the shipped pack (2-bit word-model values) the markdown matched on 10 of 24 olmo_arxiv_math pages. The mismatches
-checked so far are recognizer lines re-read by the word model, whose values the Python arm keeps in float32. The run with
-a float32 word-model pack, as in Round 3, is in progress.
+with a pack whose word-model values stay float32 as in Round 3, the markdown and line texts equal the package's on
+24 of 24 olmo_arxiv_math pages (1,213 lines). <!-- @evidence[[results/parity_math.json#summary.same_markdown]] -->
+With the shipped 2-bit word-model values, 10 of 24 matched: the differences were recognizer lines re-read by the word
+model, not math lines; only the 14 mismatched pages were rerun with the float32 pack.
 
-**Lazy loading.** `Indra.load(base, {math})` takes `off`, `auto` or `on`. On auto the classifier comes with the first page and
+**Speed.** Not measured on a real GPU yet. Headless Chromium on SwiftShader (a CPU emulation) took about 220 s for a
+math page in the anything-to-text trace, against about 85 s for the text page; the decoder, one pass per 16 tokens, dominates.
+
+**Lazy loading.** `Indra.load(base, {math})` takes `off`, `auto` or `on`. On auto the classifier (0.08 MB) comes with the first page and
 `math.bin` only when it flags a line. In a headless trace of anything-to-text (`web/test/a2t_math_trace.mjs`) a text-only
 page fetched `mathcls.bin` and no `math.bin`; a math page then fetched `math.bin` once and showed 9 LaTeX spans.
 <!-- @evidence[[results/a2t_math_trace.json]] --> anything-to-text has a Math select (Auto by default); the demo page reads
