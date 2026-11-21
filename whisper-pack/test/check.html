@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8"><title>whisper-pack engine check</title><pre id="log"></pre>
+<script type="module">
+import { Whisper } from "../web/whisper.js";
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+const f32 = async (u) => new Float32Array(await (await fetch(u)).arrayBuffer());
+const stats = (a, b) => {
+  let mx = 0, dot = 0, na = 0, nb = 0, ref = 0;
+  for (let i = 0; i < a.length; i++) { mx = Math.max(mx, Math.abs(a[i] - b[i])); ref = Math.max(ref, Math.abs(b[i])); dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  return { max: mx, rel: mx / ref, cos: dot / Math.sqrt(na * nb) };
+};
+try {
+  const only = new URLSearchParams(location.search).get("only");
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+  device.addEventListener("uncapturederror", (e) => log("GPU error: " + e.error.message));
+  const index = await (await fetch("fixtures/engine/index.json")).json();
+  const rows = [];
+  for (const pk of index) {
+    if (only && !pk.slug.includes(only)) continue;
+    const t0 = performance.now();
+    const w = await Whisper.load(device, "../" + pk.pack);
+    log(`${pk.slug} (${pk.scheme}) loaded in ${(performance.now() - t0).toFixed(0)} ms`);
+    for (const c of pk.cases) {
+      const mel = await f32(`fixtures/engine/${pk.slug}-mel${c.i}.f32`);
+      const encRef = await f32(`fixtures/engine/${pk.slug}-enc${c.i}.f32`);
+      const logRef = await f32(`fixtures/engine/${pk.slug}-logits${c.i}.f32`);
+      let t = performance.now();
+      await w.encode(mel);
+      const encMs = performance.now() - t;
+      const e = stats(await w.probe("enc", encRef.length), encRef);
+      let first = null;
+      t = performance.now();
+      const ids = await w.decode(pk.prompt, { onLogits: (l, n) => { if (n === 0) first = l.slice(); } });
+      const decMs = performance.now() - t;
+      const l = stats(first, logRef);
+      const same = ids.length === c.ids.length && ids.every((v, i) => v === c.ids[i]);
+      const row = { slug: pk.slug, i: c.i, encCos: e.cos, encRel: e.rel, logitCos: l.cos, logitMax: l.max, same, tokens: ids.length, encMs, msPerToken: decMs / (ids.length + 1) };
+      rows.push(row);
+      log(JSON.stringify(row));
+    }
+  }
+  window.result = { rows };
+} catch (e) { log("ERROR " + (e.stack || e)); window.result = { error: String(e.stack || e) }; }
+</script>

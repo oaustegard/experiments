@@ -10,7 +10,7 @@ Specs per part (grammar of quant.py, restricted to what the engine reads):
   f16 | f32   any part
 
 Record layouts (all offsets absolute and 4-byte aligned, one weights.bin):
-  matmul   {"q": int8 [K,N], "s": float32 [N], "K", "N", "b": float16 [N] or absent}
+  matmul   {"q": int8 [N,K] (one row per output, read by the GPU as is), "s": float32 [N], "K", "N", "b": float16 [N] or absent}
            f16/f32 parts: {"f16_t" | "f32_t": [N,K] (torch layout), "K", "N", "b"}
   conv     weights stored [out, k, in]; {"kind": "f16"|"f32", "w", "b"} or
            {"kind": "int8", "q": int8 [out,k,in], "s": float32 [out], "b"}; plus in/out/k
@@ -124,7 +124,7 @@ def build(model_id, scheme, out):
         else:
             c, s = row_codes(w, int(spec[1:]))
             exact(c, s, w, spec)
-            r = {"q": P.add(c.T.numpy(), np.int8), "s": P.add(s.reshape(-1).numpy(), np.float32), "K": K, "N": N}
+            r = {"q": P.add(c.numpy(), np.int8), "s": P.add(s.reshape(-1).numpy(), np.float32), "K": K, "N": N}
         if bkey:
             r["b"] = f16(sd[bkey])
         return r

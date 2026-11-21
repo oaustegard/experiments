@@ -65,7 +65,7 @@ def load(pack_dir):
     def lin(r):
         """-> (W [K, N] float32, bias or None)"""
         if "q" in r:
-            W = t(r["q"]).astype(np.float32) * t(r["s"])
+            W = (t(r["q"]).astype(np.float32) * t(r["s"])[:, None]).T
         else:
             W = f(r["f16_t"] if "f16_t" in r else r["f32_t"]).T
         return np.ascontiguousarray(W), (f(r["b"]) if "b" in r else None)
