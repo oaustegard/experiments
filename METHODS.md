@@ -5997,3 +5997,47 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   `null_char`; targets are the recoder's codes for each unichar. (`tesseract-gpu/tessgpu/tessnet.py`)
 - **Training a 1.4M-parameter LSTM OCR network on 4 shared CPUs ran at 39 s a step (batch 24)**; move it to a GPU
   before the first real run. (`tesseract-gpu/run/ft/`)
+
+### Packing Whisper for the browser (whisper-pack)
+
+- **Measure a multilingual model's quantization on more than English.** Whisper-small at ±31 per row changed English
+  WER by +0.01 and WER on four FLEURS languages by +0.77; turbo at ±15 changed them by +0.04 and +0.79. An English-only
+  sweep would have shipped both as free. (`whisper-pack/results/table-*.json`)
+- **A 4-bit token table is not free when the table is also the output projection.** The group-of-32 4-bit table that
+  cost GLiNER and the Ettin deciders nothing cost Whisper base 0.8 points and tiny 1.47 with ±63 matrices; turbo
+  absorbed it. Check the tied output head before reusing a table recipe. (`whisper-pack` Finding 4)
+- **Per-row scales collapse at 4 bits; per-32 scales with a clip search do not.** Whisper at ±7 with one scale per
+  output row scored over 80 WER at every size, and with one scale per 32 weights lost 0.2 points on turbo's English.
+  Between them, 5 bits per row (±15) held English on turbo and small. (`whisper-pack` Finding 3)
+- **English-only checkpoints quantize worse than their multilingual siblings.** `small.en` lost 4.56 points at ±15
+  where multilingual small lost 0.43. Sweep each checkpoint, not the family. (`whisper-pack` Finding 5)
+- **`from_pretrained` returns float16 for a checkpoint stored in float16 (transformers 5).**
+  `openai/whisper-large-v3-turbo` loaded as fp16, so values written back by a quantizer were rounded again. Pass
+  `torch_dtype=torch.float32` or call `.float()` before quantizing, and assert that the pack decodes bit for bit.
+  (`whisper-pack/run/pack.py`)
+- **Whisper's encoder position table is the float64 sinusoid rounded to float32 and then to fp16.** Regenerating it
+  in float32 alone differs by 2.4e-4; with both roundings it matches the checkpoint exactly, so it need not be stored.
+  (`whisper-pack/run/ref.py`, `web/whisper.js`)
+- **An attention step with one query row needs one GPU thread per key, not per head.** A decoder token took 28 ms on
+  a Mac with a thread per head walking 1,500 encoder frames, and 5.1 ms after splitting it into a scores kernel
+  (thread per key and head) and a mix kernel (thread per output value). (`whisper-pack/web/whisper.js` `ASCORE`, `AMIX`)
+- **Decode a weight word once for several rows, and keep attention scores in a function-local array.** A linear
+  kernel with one thread per (output column, 8 rows) and X bound as `vec4`, plus encoder attention that stores its
+  1,500 scores in a local array instead of scoring twice, took turbo's encoder from 1,932 ms to 457 ms per 30 s window
+  on Apple Metal. Shapes are WGSL constants, one pipeline per shape. (`whisper-pack/web/whisper.js` `linear8`, `attnE`)
+- **Time a speech engine from raw audio, not from the spectrogram.** Turbo's encoder plus decoder took 0.68 s on a
+  7.3 s clip, and the whole call (spectrogram in JS, language detection, timestamp rules, per-token readback) 1.17 s,
+  against 1.18 s for transformers.js. The first figure alone read as a 1.7x win that the full path does not have.
+  (`whisper-pack` jobs `whisper-pack-turbo-2`, `whisper-pack-live-1`)
+- **One int8 per weight on the GPU costs memory that gzip hides.** Turbo at ±15 is 412 MB gzipped and 815 MB in a
+  buffer; the download shrank and GPU memory did not. Bit-pack on the GPU if memory is the goal. (`whisper-pack`)
+- **R2 serves a pre-gzipped object with `Content-Encoding: gzip` and the browser inflates it; other static hosts may
+  not.** Shards uploaded with that header load with plain `fetch`. A loader should also check for the gzip magic
+  bytes and inflate with `DecompressionStream`, since `python3 -m http.server` sends the file as is.
+  (`whisper-pack/run/shard.py`, `web/whisper.js`)
+- **The full clone of `gpu-bridge-comms` is 18 GB and fills a session's disk.** Clone it blobless and sparse
+  (`--filter=blob:none --no-checkout`, then `sparse-checkout set --no-cone '/bridge/' '/jobs/<prefix>-*/'
+  '/results/<prefix>-*/'`); `gpu_bridge.py submit` and `fetch` work in that clone.
+- **A bridge job's return value must be cloneable.** Returning `ctx.describe()` without `await` failed the job with
+  `DataCloneError` and lost its timings.
+

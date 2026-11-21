@@ -9,48 +9,75 @@ compares download size and speed with what the page used before. The demo is
 
 ## Answer
 
-Yes. Each Whisper size now has two packs: an English-optimized one and an all-languages one. For large-v3-turbo the English pack is a 412 MB download <!-- @evidence[[results/headline.json#turbo_en_gzip_mb]] -->
-and the all-languages pack 493 MB, <!-- @evidence[[results/headline.json#turbo_all_gzip_mb]] -->
-against 759.1 MB for the ONNX files the page used. <!-- @evidence[[results/headline.json#page_turbo_mb]] -->
-The English pack changes English WER by +0.04 points (95% interval −0.13 to +0.22) from full precision. <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
-Tiny, base and small shrink more: base is 47 MB <!-- @evidence[[results/headline.json#base_en_gzip_mb]] -->
-against 187.2 MB. <!-- @evidence[[results/headline.json#page_base_mb]] -->
+Yes, and it is now the page's default on WebGPU. Whisper runs from "packs": weights stored as small integers, read
+by hand-written WebGPU kernels. Each size has an English-optimized pack and an all-languages pack.
 
-On a Mac (Apple Metal, Chrome 157) the engine transcribed a 7.28 s clip with turbo in 0.68 s, <!-- @evidence[[results/headline.json#mac_turbo_clip_s]] -->
-where transformers.js with the ONNX q4 files took 1.18 s. <!-- @evidence[[results/headline.json#mac_tjs_clip_s]] -->
-The engine's tokens equal the NumPy reference's, which equal Hugging Face's.
+For large-v3-turbo the English pack is a 412 MB download <!-- @evidence[[results/headline.json#turbo_en_gzip_mb]] -->
+and the all-languages pack 493 MB, where the ONNX files the page used are 759.1 MB. <!-- @evidence[[results/headline.json#page_turbo_mb]] -->
+Base is 47 MB where it was 187 MB.
 
-The turbo saving is in the download. Unpacked, and on the GPU, the turbo English pack is 815 MB, <!-- @evidence[[results/headline.json#turbo_en_raw_mb]] -->
-because the engine holds each weight in one byte.
+Accuracy is word error rate (WER, the percentage of words wrong) against the same model at full precision.
+Turbo's English pack changes English WER by +0.04 points (95% interval −0.13 to +0.22) <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
+and costs +0.79 points on four other languages; the all-languages pack costs +0.15 there, an interval that
+includes zero.
 
-What would change this: a speed comparison on more than one clip and one machine, the WER of the ONNX q4 files themselves (not measured here), and bit-packed weights on the GPU, which would cut memory.
+Speed is about equal to transformers.js. On one 7.28 s clip on one Mac, from raw audio to timestamped text,
+turbo's English pack took 1.17 s <!-- @evidence[[results/headline.json#mac_turbo_en_e2e_s]] -->
+and its all-languages pack 1.44 s, where transformers.js with the ONNX files took 1.18 s.
+
+The saving is in the download, not in memory: on the GPU the turbo English pack occupies 815 MB, because the engine
+keeps each weight in one byte.
+
+What would change this: timings on more clips and machines, the WER of the ONNX files (not measured), and
+bit-packed weights on the GPU.
 
 ## Findings
 
-1. **Turbo holds English accuracy at 5 bits per weight, and loses it on other languages.** Codes in ±15 for every matrix and the token table change English WER by +0.04 <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
-   and WER on four other languages by +0.79 (interval +0.47 to +1.12). <!-- @evidence[[results/headline.json#turbo_r15_fleurs_diff]] -->
-   That is why there are two packs. The all-languages turbo pack uses a 4-bit token table and ±31 matrices: +0.02 on English <!-- @evidence[[results/headline.json#turbo_t4r31_en_diff]] -->
-   and +0.15 on the other languages, an interval that spans zero. <!-- @evidence[[results/headline.json#turbo_t4r31_fleurs_diff]] -->
-   (sweep, turbo) 2. **English test sets hide the damage on other languages.** For whisper-small, ±31 everywhere costs +0.01 on English <!-- @evidence[[results/headline.json#small_r31_en_diff]] -->
-   and +0.77 on the other four languages. <!-- @evidence[[results/headline.json#small_r31_fleurs_diff]] -->
-   Only ±63 was clean on both: +0.02 and +0.02. <!-- @evidence[[results/headline.json#small_r63_fleurs_diff]] -->
-   (sweep, small) 3. **One scale per row does not survive 4 bits at any size.** With codes in ±7 and one scale per output row, turbo's English WER is 142.73. <!-- @evidence[[results/headline.json#turbo_r7_en_wer]] -->
-   With one scale per 32 weights and a clip search, the scheme closest to what the ONNX q4 files use, turbo loses 0.21 on English <!-- @evidence[[results/headline.json#turbo_g32r7_en_diff]] -->
+Notation: "codes in ±15" means each weight is stored as an integer from −15 to 15 (5 bits) times a scale shared by
+its matrix row; ±31 is 6 bits and ±63 is 7. English is LibriSpeech; "other languages" are Spanish, German, French
+and Norwegian from FLEURS. Changes are WER percentage points against full precision.
+
+1. **Turbo keeps its English accuracy at codes in ±15 and loses accuracy on other languages.**
+   English changes by +0.04 <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
+   and the other languages by +0.79, with an interval from +0.47 to +1.12. <!-- @evidence[[results/headline.json#turbo_r15_fleurs_diff]] -->
+   With a 4-bit token table and matrices at ±31, English changes by +0.02 <!-- @evidence[[results/headline.json#turbo_t4r31_en_diff]] -->
+   and the other languages by +0.15. <!-- @evidence[[results/headline.json#turbo_t4r31_fleurs_diff]] -->
+   (Round 1, `results/table-whisper-large-v3-turbo-*.json`)
+2. **English test sets hide the cost on other languages.**
+   Whisper-small at ±31 changes English by +0.01 <!-- @evidence[[results/headline.json#small_r31_en_diff]] -->
+   and the other languages by +0.77. <!-- @evidence[[results/headline.json#small_r31_fleurs_diff]] -->
+   At ±63 it changes both by +0.02. <!-- @evidence[[results/headline.json#small_r63_fleurs_diff]] -->
+   (Round 1, `results/table-whisper-small-*.json`)
+3. **Four bits per weight needs more than one scale per row.**
+   With codes in ±7 and one scale per row, turbo's English WER is 142.73. <!-- @evidence[[results/headline.json#turbo_r7_en_wer]] -->
+   With one scale per 32 weights, each chosen to minimise error, turbo loses 0.21 points on English <!-- @evidence[[results/headline.json#turbo_g32r7_en_diff]] -->
    and 0.53 on the other languages. <!-- @evidence[[results/headline.json#turbo_g32r7_fleurs_diff]] -->
-   (sweep, turbo) 4. **The 4-bit token table that was free for our text encoders costs Whisper's small models accuracy.** With ±63 matrices it costs base 0.8 points on English <!-- @evidence[[results/headline.json#base_rec_en_diff]] -->
+   The ONNX q4 files use a scheme of that second kind; their own WER was not measured. (Round 1)
+4. **A 4-bit token table costs Whisper's small models accuracy.**
+   Combined with matrices at ±63, it costs base 0.8 points on English <!-- @evidence[[results/headline.json#base_rec_en_diff]] -->
    and tiny 1.47. <!-- @evidence[[results/headline.json#tiny_rec_en_diff]] -->
-   In Whisper the table is also the output projection, so every predicted token passes through it. (sweep, tiny and base) 5. **The English-only checkpoints are the better English default for tiny, base and small, and they need gentler packing.** At ±63, `small.en` scores 4.68 WER <!-- @evidence[[results/headline.json#small_en_r63_wer]] -->
-   where multilingual small scores 5.37. <!-- @evidence[[results/headline.json#small_r63_wer]] -->
+   The same table recipe cost the text encoders in `gliner-browser` and `browser-decider` nothing; in Whisper the
+   table is also the output projection, so every predicted token passes through it. (Round 1)
+5. **OpenAI's English-only checkpoints score better on English at ±63 and break sooner below it.**
+   At ±63, `small.en` scores 4.68 WER <!-- @evidence[[results/headline.json#small_en_r63_wer]] -->
+   and multilingual small 5.37; <!-- @evidence[[results/headline.json#small_r63_wer]] -->
+   whether that gap exceeds sampling noise was not tested.
    At ±15, `small.en` loses 4.56 points <!-- @evidence[[results/headline.json#small_en_r15_diff]] -->
-   and multilingual small 0.43. <!-- @evidence[[results/headline.json#small_r15_en_diff]] -->
-   (English-only sweep) 6. **The engine reproduces the reference.** In headless Chromium, 4 of 4 cases give the NumPy reference's tokens for an 8-bit and a 4-bit token table, <!-- @evidence[[results/headline.json#parity_cases]] -->
-   and with timestamps on, 3 of 3 clips give Hugging Face's tokens. <!-- @evidence[[results/headline.json#ts_cases]] -->
-   On the Mac both turbo packs gave the reference tokens. (`test/check.mjs`, bridge job `whisper-pack-turbo-1`) 7. **Two kernel changes took turbo's encoder from 1,932 ms to 457 ms per 30 s window on the Mac.** <!-- @evidence[[results/headline.json#mac_turbo_encode_ms]] -->
-   The matrix multiply decodes each weight word once for 8 rows, and attention keeps its scores in a local array so each key is scored once. A decoded token takes 7.9 ms. <!-- @evidence[[results/headline.json#mac_turbo_ms_per_token]] -->
-   (bridge jobs `whisper-pack-turbo-1`, `-2`) 8. **A decoder step with one query must not walk the keys in one thread.** With one GPU thread per head scanning 1,500 audio frames, a token took 28 ms on tiny; with one thread per key and a second kernel for the weighted sum it takes 5.1 ms. <!-- @evidence[[results/headline.json#mac_tiny_ms_per_token]] -->
-   (bridge jobs `whisper-pack-time-2`, `-3`)
-
-
+   where multilingual small loses 0.43. <!-- @evidence[[results/headline.json#small_r15_en_diff]] -->
+   The English packs of tiny, base and small are these checkpoints at ±63; turbo has no English-only checkpoint,
+   so its English pack is the multilingual model at ±15. (Round 2)
+6. **The engine reproduces Hugging Face's output.**
+   In headless Chromium, 4 of 4 test cases give the same tokens as a NumPy reference that itself equals Hugging Face's `generate`. <!-- @evidence[[results/headline.json#parity_cases]] -->
+   With timestamps on, 3 of 3 clips give Hugging Face's tokens, timestamps included. <!-- @evidence[[results/headline.json#ts_cases]] -->
+   On the Mac both turbo packs give the reference's tokens. (Round 3, `test/check.mjs`, job `whisper-pack-turbo-1`)
+7. **Turbo's encoder takes 457 ms per 30 s window on the Mac, and a decoded token 7.9 ms.** <!-- @evidence[[results/headline.json#mac_turbo_encode_ms]] -->
+   The matrix-multiply kernel reads each packed group of four weights once and applies it to 8 rows.
+   The attention kernel keeps its 1,500 scores in a local array, so each audio frame is scored once.
+   A version without those two choices took 1,932 ms. <!-- @evidence[[results/headline.json#mac_turbo_encode_before_ms]] -->
+   (Round 3, jobs `whisper-pack-turbo-1`, `-turbo-2`)
+8. **In the decoder, attention over the audio runs one GPU thread per frame.**
+   A decoded token takes 5.1 ms on tiny that way; <!-- @evidence[[results/headline.json#mac_tiny_ms_per_token]] -->
+   with one thread per attention head scanning all 1,500 frames it took 28 ms. (Round 3, jobs `whisper-pack-time-2`, `-time-3`)
 
 ## Method
 
@@ -77,10 +104,12 @@ decodes tokens, and `web/transcribe.js` adds language detection, Whisper's times
 and the seek loop for audio longer than 30 s. `test/check.mjs` compares the engine with the reference in headless
 Chromium on SwiftShader, a software GPU whose timings mean nothing.
 
-**Speed.** Timings come from GPU Bridge jobs on Oskar's Mac (Apple Metal, Chrome 157): the engine loading the
-hosted packs, and transformers.js 4.2.0 with `onnx-community/whisper-large-v3-turbo` q4 on WebGPU, on the same
-7.28 s clip. The engine's figure is encode time plus tokens times the time per token, from the spectrogram on;
-the transformers.js figure is the whole pipeline call including its own spectrogram.
+**Speed.** Timings come from GPU Bridge jobs, which run a script in a tab on Oskar's Mac (Apple Metal, Chrome 157) and
+return its output. The end-to-end figures run the deployed modules and hosted packs on a 7.28 s clip from raw audio:
+spectrogram, encoding, language detection and decoding with timestamps (job `whisper-pack-live-1`, median of three
+runs after a warm-up). The transformers.js figure is its pipeline call on the same clip with the language given
+(job `whisper-pack-tjs-1`). Encoder and per-token times are from jobs `whisper-pack-turbo-1`, `-turbo-2`, `-time-2`
+and `-time-3`.
 
 **Sizes of what the page used.** Encoder plus merged decoder from the Hugging Face file listing: turbo q4 759.1 MB;
 base, small and tiny with an fp32 encoder and fp16 decoder 187.2, 661.4 and 92.5 MB.
@@ -130,7 +159,9 @@ Packs as hosted (gzip, MB): tiny 25 English and 28 all languages, base 47 and 55
 the pack writer does not support it yet.
 
 Mac timings: tiny encodes a 30 s window in 59 ms and base in 107 ms. Turbo took 13.9 s to download, inflate and
-upload on first load.
+upload on first load. End to end on the 7.28 s clip: `base.en` 0.9 s and tiny 0.82 s, which is slower per unit of
+model than turbo because the spectrogram and the per-token readback do not shrink with the model. Counting only
+encoding and decoding, turbo's English pack takes 0.68 s on that clip.
 
 ### Round 4, 2026-11-21: timestamps, long audio, the page
 
