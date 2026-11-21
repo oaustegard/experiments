@@ -47,8 +47,9 @@ def transcribe(model, proc, audio, lang, batch, device):
         chunk = [np.asarray(a, dtype=np.float32) for a in audio[i:i + batch]]
         feats = proc.feature_extractor(chunk, sampling_rate=16000, return_tensors="pt").input_features.to(device)
         with torch.inference_mode():
-            out = model.generate(feats, language=lang, task="transcribe", num_beams=1, do_sample=False,
-                                 return_timestamps=False, max_new_tokens=224)
+            # English-only checkpoints (*.en) take no language or task token
+            lt = {} if not model.config.to_dict().get("is_multilingual", model.config.vocab_size >= 51865) else {"language": lang, "task": "transcribe"}
+            out = model.generate(feats, num_beams=1, do_sample=False, return_timestamps=False, max_new_tokens=224, **lt)
         hyps += proc.tokenizer.batch_decode(out, skip_special_tokens=True)
     return [h.strip() for h in hyps]
 
