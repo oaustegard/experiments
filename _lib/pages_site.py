@@ -13,7 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = {".html", ".htm", ".js", ".mjs", ".css", ".json", ".png", ".jpg", ".jpeg", ".gif", ".svg",
-       ".webp", ".avif", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".wasm", ".mp3", ".mp4", ".webm", ".txt", ".bin"}
+       ".webp", ".avif", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".wasm", ".mp3", ".mp4", ".webm", ".txt", ".bin",
+       ".traineddata", ".pdf"}
 MAX_FILE = 50 * 1024 * 1024  # GitHub Pages rejects files over 100 MB; stay well under
 
 
