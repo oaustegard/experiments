@@ -189,6 +189,6 @@ page's settings, and `transcribe()` spending 715 ms in the spectrogram while the
 100 ms. The bridge page runs jobs in one long-lived worker, and a worker keeps each ES module it has loaded under its
 URL: the jobs loaded `transcribe.js` with a cache-busting query, but its own `import "./mel.js"` resolved to the plain
 URL already loaded hours earlier, so every run used the old spectrogram. With all modules loaded from a commit-pinned
-jsDelivr address (`fair-4`): 7 s clip 0.80 s against 1.29 s, 28 s clip 1.69 s against 2.69 s, 1.6 times faster on both.
+jsDelivr address (`fair-4`): 7 s clip 0.80 s against 1.29 s, 28 s clip 1.69 s against 2.69 s, 1.6 times faster on both. The all-languages pack (`fair-5`): 0.80 s against 1.34 s, and 1.57 s against 2.28 s.
 Transformers.js itself moved 5 to 15% between identical runs.
 
