@@ -9,12 +9,11 @@ compares download size and speed with what the page used before. The demo is
 
 ## Answer
 
-Yes, and it is now the page's default on WebGPU. Whisper runs from "packs": weights stored as small integers, read
+Yes; it is now the page's default on WebGPU. Whisper runs from "packs": weights stored as small integers, read
 by hand-written WebGPU kernels. Each size has an English-optimized pack and an all-languages pack.
 
 For large-v3-turbo the English pack is a 412 MB download <!-- @evidence[[results/headline.json#turbo_en_gzip_mb]] -->
 and the all-languages pack 493 MB, where the ONNX files the page used are 759.1 MB. <!-- @evidence[[results/headline.json#page_turbo_mb]] -->
-Base is 47 MB where it was 187 MB.
 
 Accuracy is word error rate (WER, the percentage of words wrong) against the same model at full precision.
 Turbo's English pack changes English WER by +0.04 points (95% interval −0.13 to +0.22) <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
