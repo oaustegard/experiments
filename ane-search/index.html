@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects Search</title>
+<style>
+:root { --bg:#fbfaf7; --fg:#1d1c1a; --mut:#6b675f; --line:#e4e0d7; --card:#fff; --acc:#0b6e69; --mark:#fff1b8; }
+@media (prefers-color-scheme: dark) { :root { --bg:#151514; --fg:#ecebe6; --mut:#9a968c; --line:#2d2c29; --card:#1d1d1b; --acc:#5fc9c1; --mark:#4a4320; } }
+* { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, system-ui, sans-serif }
+main { max-width:860px; margin:0 auto; padding:28px 16px 80px }
+h1 { font-size:20px; margin:0 0 14px; letter-spacing:-.01em }
+.bar { display:flex; gap:8px; flex-wrap:wrap; position:sticky; top:0; background:var(--bg); padding:8px 0 10px; z-index:1 }
+input, select { font:inherit; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 12px }
+#q { flex:1 1 320px; font-size:17px } #under { flex:0 1 190px } input:focus, select:focus { outline:2px solid var(--acc); outline-offset:1px }
+#status { color:var(--mut); font-size:13px; margin:2px 0 14px; min-height:20px; font-variant-numeric:tabular-nums }
+.r { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:0 0 10px; cursor:pointer }
+.r:hover, .r:focus { border-color:var(--acc); outline:none }
+.path { font:13px ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--acc); overflow-wrap:anywhere }
+.head { font-weight:600; margin:2px 0 4px } .text { color:var(--fg); white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; max-height:8.6em; overflow:hidden }
+.meta { color:var(--mut); font-size:12px; margin-top:6px; font-variant-numeric:tabular-nums } mark { background:var(--mark); color:inherit; border-radius:2px }
+.empty { color:var(--mut); padding:30px 0 }
+</style></head><body><main>
+<h1>Projects Search</h1>
+<div class="bar">
+  <input id="q" type="search" placeholder="Search your write-ups by meaning…" autofocus autocomplete="off" spellcheck="false">
+  <select id="mode" title="Ranking"><option value="hybrid">Meaning + keywords</option><option value="semantic">Meaning only</option><option value="keyword">Keywords only</option></select>
+  <input id="under" type="text" placeholder="Folder, e.g. experiments/" autocomplete="off" spellcheck="false">
+</div>
+<div id="status"></div><div id="out"></div>
+</main><script>
+const $ = id => document.getElementById(id), F = ["q", "mode", "under"];
+const P = new URLSearchParams(location.search);
+F.forEach(k => { if (P.has(k)) $(k).value = P.get(k) });
+let seq = 0, stats = null;
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function hl(text, q) {
+  const ws = [...new Set(q.toLowerCase().match(/[a-z0-9]{3,}/g) || [])];
+  let h = esc(text); if (!ws.length) return h;
+  return h.replace(new RegExp("\\b(" + ws.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi"), "<mark>$1</mark>");
+}
+function syncUrl() {
+  const u = new URLSearchParams();
+  F.forEach(k => { const v = $(k).value.trim(); if (v && !(k === "mode" && v === "hybrid")) u.set(k, v) });
+  history.replaceState(null, "", u.toString() ? "?" + u : location.pathname);
+}
+async function run() {
+  syncUrl();
+  const q = $("q").value.trim(), me = ++seq;
+  if (!q) { $("out").innerHTML = ""; $("status").textContent = stats ? `${stats.chunks.toLocaleString()} passages from ${stats.files.toLocaleString()} files under ${stats.root} · indexed ${stats.built}` : ""; return }
+  const t = performance.now();
+  const r = await fetch("/search?" + new URLSearchParams({ q, mode: $("mode").value, under: $("under").value.trim() })).then(r => r.json());
+  if (me !== seq) return;
+  if (r.error) { $("status").textContent = r.error; return }
+  $("status").textContent = `${r.results.length} results · query embedded in ${r.embed_ms} ms, ranked in ${r.rank_ms} ms · ${Math.round(performance.now() - t)} ms round trip`;
+  $("out").innerHTML = r.results.length ? r.results.map(x => `<div class="r" tabindex="0" data-i="${x.i}" title="Open the file">
+    <div class="path">${esc(x.path)}:${x.line}</div>${x.head ? `<div class="head">${esc(x.head)}</div>` : ""}
+    <div class="text">${hl(x.text, q)}</div><div class="meta">similarity ${x.cos.toFixed(3)} · keyword score ${x.bm25}</div></div>`).join("") : `<div class="empty">Nothing matched.</div>`;
+}
+let timer; const later = () => { clearTimeout(timer); timer = setTimeout(run, 60) };
+F.forEach(k => $(k).addEventListener("input", later));
+$("out").addEventListener("click", e => { const r = e.target.closest(".r"); if (r && !getSelection().toString()) fetch("/open?i=" + r.dataset.i) });
+$("out").addEventListener("keydown", e => { if (e.key === "Enter") e.target.closest(".r")?.click() });
+fetch("/stats").then(r => r.json()).then(s => { stats = s; run() });
+</script></body></html>

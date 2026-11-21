@@ -1,0 +1,10 @@
+{
+  "effortLevel": "low",
+  "permissions": {"allow": ["Bash", "Skill", "Agent", "Read", "Grep", "Glob"]},
+  "hooks": {
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 /Users/austegard/Projects/effort-advisor/hooktest/hooks/user_prompt_submit.py", "timeout": 120}]}],
+    "PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /Users/austegard/Projects/effort-advisor/hooktest/hooks/deliver_advice.py PreToolUse"}]}],
+    "PostToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /Users/austegard/Projects/effort-advisor/hooktest/hooks/deliver_advice.py PostToolUse"}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 /Users/austegard/Projects/effort-advisor/hooktest/hooks/stop.py"}]}]
+  }
+}

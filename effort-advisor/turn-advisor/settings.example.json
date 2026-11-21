@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/turn_advisor.py prompt"}]}],
+    "PostToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/turn_advisor.py deliver PostToolUse"}]}]
+  }
+}
