@@ -30,7 +30,7 @@ def run(model_id, scheme, n, data, pack_dir=None, quiet=False):
     p = ref.load(pack_dir)
     g = p.gen
 
-    model = WhisperForConditionalGeneration.from_pretrained(model_id).eval()
+    model = WhisperForConditionalGeneration.from_pretrained(model_id).float().eval()
     quant.apply_scheme(model, scheme)
     fe = WhisperFeatureExtractor.from_pretrained(model_id)
     z = np.load(data, allow_pickle=True)

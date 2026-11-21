@@ -94,7 +94,7 @@ def build(model_id, scheme, out):
     specs = quant.parse(scheme)
     for part, sp in specs.items():
         check_spec(part, sp)
-    model = WhisperForConditionalGeneration.from_pretrained(model_id).eval()
+    model = WhisperForConditionalGeneration.from_pretrained(model_id).float().eval()  # turbo ships fp16 and loads as fp16
     cfg, gc = model.config, model.generation_config
     sd = {k: v.detach().cpu() for k, v in model.state_dict().items()}
     d = cfg.d_model
