@@ -161,7 +161,7 @@ class LoopedMonad(nn.Module):
         own = {}
         for k, v in sd.items():
             k2 = k[len("model."):] if k.startswith("model.") else k
-            k2 = k2.replace("self_attn.", "").replace("mlp.", "")
+            k2 = k2.replace("_orig_mod.", "").replace("self_attn.", "").replace("mlp.", "")   # _orig_mod: torch.compile wrapper
             own[k2] = v
         own.pop("lm_head.weight", None)
         missing, unexpected = m.load_state_dict(own, strict=False)
@@ -181,6 +181,7 @@ class LoopedMonad(nn.Module):
         path.mkdir(parents=True, exist_ok=True)
         sd = {}
         for k, v in self.state_dict().items():
+            k = k.replace("_orig_mod.", "")
             if k == "gate":
                 continue
             if k.startswith("layers."):
