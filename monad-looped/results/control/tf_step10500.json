@@ -1,0 +1,45 @@
+{
+ "split": "test",
+ "rows": 384,
+ "model": "/content/ckpt/control/step10500",
+ "device": "cuda",
+ "dtype": "fp32",
+ "elapsed_s": 9.3,
+ "configs": {
+  "control": {
+   "name": "control"
+  }
+ },
+ "results": {
+  "control": {
+   "all": {
+    "ans_nll@0.0": 1.4371,
+    "ans_nll@0.5": 1.341,
+    "ans_nll@1.0": 1.106,
+    "trace_nll": 1.2494,
+    "kl": 0.0
+   },
+   "math": {
+    "ans_nll@0.0": 1.1151,
+    "ans_nll@0.5": 1.02,
+    "ans_nll@1.0": 0.7881,
+    "trace_nll": 0.9282,
+    "kl": 0.0
+   },
+   "mcq": {
+    "ans_nll@0.0": 0.8511,
+    "ans_nll@0.5": 1.0324,
+    "ans_nll@1.0": 0.029,
+    "trace_nll": 1.2781,
+    "kl": 0.0
+   },
+   "memorization": {
+    "ans_nll@0.0": 1.7568,
+    "ans_nll@0.5": 1.6368,
+    "ans_nll@1.0": 1.4628,
+    "trace_nll": 1.4711,
+    "kl": 0.0
+   }
+  }
+ }
+}

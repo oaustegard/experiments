@@ -6048,4 +6048,16 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   '/results/<prefix>-*/'`); `gpu_bridge.py submit` and `fetch` work in that clone.
 - **A bridge job's return value must be cloneable.** Returning `ctx.describe()` without `await` failed the job with
   `DataCloneError` and lost its timings.
+- **`colab download` does not keep a `colab new` VM assigned; only `colab exec` does.** Two L4 VMs were reclaimed about
+  24 minutes after the last `colab exec` while a watcher downloaded each log every 4 minutes (HTTP 200 until the VM went,
+  then 404), and the CLI then pruned both sessions as stale; about an hour of training went with their disks. Run a trivial
+  `colab exec` every few minutes and mirror checkpoints off the VM as they are written. (`monad-looped/colab/watch.sh`)
+- **A `torch.compile`d submodule saves its weights under `_orig_mod.`.** Wrapping each layer with `torch.compile` before
+  training made `state_dict()` keys `layers.0._orig_mod.q_proj.weight`, so every saved checkpoint failed a strict load.
+  Strip `_orig_mod.` when saving, or save the uncompiled module. (`monad-looped/loopmodel.py`)
+- **A loop retrofitted onto a trained model by continued training may never be used: check the gate, not the loss.**
+  Monad with a band of 8 layers looped up to 3 times, gate initialised at zero, trained 300M tokens: the gate stayed at
+  ~0.01 and 1-, 2- and 3-pass losses agreed to 0.0001. Forcing the gate open with a scheduled gain made the learned
+  correction converge to cancel it (−0.92 against +1.0). Training loss split by pass count looked like a difference only
+  because each pass count saw different batches. (`monad-looped/RESULTS.md`)
 
