@@ -6,7 +6,7 @@ const { Whisper } = await ctx.importModule(`https://cdn.jsdelivr.net/gh/oaustega
 const device = await ctx.gpu();
 const errors = [];
 device.addEventListener("uncapturederror", (e) => errors.push(e.error.message));
-const out = { adapter: ctx.describe(), rows: [], errors };
+const out = { rows: [], errors };
 for (const [pi, pk] of packs.entries()) {
   const key = pk.slug.replace(/[^a-z0-9]/gi, "_");
   const wbytes = ctx.inputs[key + "_weights"];

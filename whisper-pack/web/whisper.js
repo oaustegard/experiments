@@ -210,7 +210,56 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   _ = d.n.x;
 }`;
 
-const SHADERS = { linear: LINEAR, conv: CONV, norm: NORM, attn: ATTN, embed: EMBED, logits4: LOGITS4 };
+// Attention for one query row (the decoder), split so the keys run in parallel.
+// ASCORE: SC[h * Tk + j] = q_h . k_{j,h} / 8, one thread per (key, head).
+// AMIX:   O[h * 64 + e] = sum_j softmax(SC[h])_j V[j, h, e], one thread per output value.
+// a = (Tk, H, D, flags)  flags: 1 Tk = d.n.x + 1
+const ASCORE = HEAD + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> Q: array<f32>;
+@group(0) @binding(3) var<storage, read> KK: array<f32>;
+@group(0) @binding(4) var<storage, read_write> SC: array<f32>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  let H = p.a.y; let Dm = p.a.z;
+  var Tk = p.a.x;
+  if ((p.a.w & 1u) != 0u) { Tk = d.n.x + 1u; }
+  if (i >= Tk * H) { return; }
+  let j = i / H; let h = i % H;
+  let qo = h * 64u; let ko = j * Dm + h * 64u;
+  var s = vec4<f32>(0.0);
+  for (var e = 0u; e < 64u; e += 4u) {
+    s += vec4<f32>(Q[qo + e], Q[qo + e + 1u], Q[qo + e + 2u], Q[qo + e + 3u])
+       * vec4<f32>(KK[ko + e], KK[ko + e + 1u], KK[ko + e + 2u], KK[ko + e + 3u]);
+  }
+  SC[h * Tk + j] = (s.x + s.y + s.z + s.w) * 0.125;
+}`;
+const AMIX = HEAD + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> SC: array<f32>;
+@group(0) @binding(3) var<storage, read> V: array<f32>;
+@group(0) @binding(4) var<storage, read_write> O: array<f32>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x;
+  let H = p.a.y; let Dm = p.a.z;
+  if (i >= Dm) { return; }
+  var Tk = p.a.x;
+  if ((p.a.w & 1u) != 0u) { Tk = d.n.x + 1u; }
+  let h = i / 64u;
+  let so = h * Tk;
+  var mx = -1e30;
+  for (var j = 0u; j < Tk; j++) { mx = max(mx, SC[so + j]); }
+  var z = 0.0;
+  var acc = 0.0;
+  for (var j = 0u; j < Tk; j++) {
+    let w = exp(SC[so + j] - mx);
+    z += w;
+    acc += w * V[j * Dm + i];
+  }
+  O[i] = acc / z + f32(H) * 0.0;
+}`;
+
+const SHADERS = { linear: LINEAR, conv: CONV, norm: NORM, attn: ATTN, ascore: ASCORE, amix: AMIX, embed: EMBED, logits4: LOGITS4 };
 
 function halfToFloat(u16) {
   const out = new Float32Array(u16.length);
@@ -408,6 +457,11 @@ export class Whisper {
     const dpos = up(this.m.dec.pos, "dec.pos");
     b.dx = this._buf(D, "dx"); b.dn = this._buf(D, "dn"); b.dq = this._buf(D, "dq");
     b.da = this._buf(D, "da"); b.dh = this._buf(F, "dh"); b.logits = this._buf(V, "logits");
+    b.sc = this._buf(H * TA, "sc");
+    const attn1 = (list, K, Vb, Tk, flags) => {   // one query row: scores over the keys, then the mix
+      this._step(list, "ascore", { a: [Tk, H, D, flags] }, [b.dq, K, b.sc], Math.max(Tk, TT) * H);
+      this._step(list, "amix", { a: [Tk, H, D, flags] }, [b.sc, Vb, b.da], D);
+    };
     const dnorm = norm(this.m.dec.ln, "dec.ln");
     s = this.decSteps = [];
     this._step(s, "embed", { a: [D, T.bits, 0, 0] }, [table.codes, table.scales, dpos, b.dx], D);
@@ -416,11 +470,11 @@ export class Whisper {
       linear(s, o.sq, b.dn, b.dq, 1);
       linear(s, o.sk, b.dn, o.kc, 1, 4);
       linear(s, o.sv, b.dn, o.vc, 1, 4);
-      attn(s, b.dq, o.kc, o.vc, b.da, 1, 0, 1);
+      attn1(s, o.kc, o.vc, 0, 1);
       linear(s, o.so, b.da, b.dx, 1, 2);
       ln(s, o.ln2, b.dx, b.dn, 1);
       linear(s, o.cq, b.dn, b.dq, 1);
-      attn(s, b.dq, o.xk, o.xv, b.da, 1, TA, 0);
+      attn1(s, o.xk, o.xv, TA, 0);
       linear(s, o.co, b.da, b.dx, 1, 2);
       ln(s, o.ln3, b.dx, b.dn, 1);
       linear(s, o.fc1, b.dn, b.dh, 1, 1);
