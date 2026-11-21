@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-20T01:51:54.504546+00:00",
+ "last_run": "2026-11-21T01:51:42.249705+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -768,6 +768,50 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "8B autoregressive interactive video world model with released weights (huggingface.co/tencent/Hy-Nomas) that runs on one RTX 4090 via INT8 weights and KV cache plus sliding-window attention. Evaluation is 60-case pairwise human judging, and Genie 3 wins on spatial memory. Video world generation is off his path; the INT8 KV-cache-on-consumer-GPU engineering is the only reusable note."
+  },
+  "2611.21885": {
+   "title": "Language Models Can Rewrite Their Own Weights",
+   "first_seen": "2026-11-21",
+   "best_rank": 5,
+   "upvotes": 326,
+   "reviewed": "2026-11-21",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Qwen3.5-27B measures a 'does not stop' direction from finished vs looping hidden states and removes 5% of it from layer-8 o_proj/down_proj (W <- W - 0.05uu^T W), keeping the edit only when same-seed paired tests favour it; +6.6 points on 490 held-out problems x 8 answers (first-protocol edit only 57.2% to 58.3%), and a corrupted copy repaired from 0.0% to 33.0% (base 58.5%). This is the same kind of rank-one loop-direction edit as his Monad A8p o_proj edit, and the paired same-seed acceptance test is a ready protocol for those edits. One session per model size and no code released."
+  },
+  "2611.24778": {
+   "title": "Counterfactual World Models: JEPAs That Reason About \"What If\"",
+   "first_seen": "2026-11-21",
+   "best_rank": 21,
+   "upvotes": 169,
+   "reviewed": "2026-11-21",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Residual reuse: the counterfactual next embedding is the observed one plus mu(z,a') - mu(z,a) from a factual JEPA predictor, with no training; counterfactual R^2 86-96% vs 38-46% without the outcome on four rendered simulators (code: github.com/galilai-group/counterfactual-WM). He runs no action-conditioned world model, and the validity condition needs paired outcomes to check."
+  },
+  "2611.24738": {
+   "title": "Jeveration: System One Models Now Generate",
+   "first_seen": "2026-11-21",
+   "best_rank": 23,
+   "upvotes": 166,
+   "reviewed": "2026-11-21",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "NUS, not TypeSafe: a frozen Qwen3.5-4B with rank-256 LoRA picks 128 TA-TiTok image codes in one pass conditioned on a shared random state; GenEval 0.74 in 78 ms (5.2B params) vs one-step SANA-Sprint 0.6B 0.72 and Janus-Pro-7B 0.80, no code. It is image generation and reports nothing on Typed Decisions, so it changes nothing for his decide/haiku-decider/dettin work; its reference list cites SO-Arena (arXiv 2611.15777), a benchmark of System One models that may be worth a look."
+  },
+  "2611.18359": {
+   "title": "Envisioning Agentic Robotics: A New Era of Robotic Systems",
+   "first_seen": "2026-11-21",
+   "best_rank": 28,
+   "upvotes": 160,
+   "reviewed": "2026-11-21",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Position/survey paper defining agentic robotics as foundation model plus harness (memory, tools, verifier, budget, safety gate), with no experiments of its own and no release. The one transferable caution: reported success swings with how tools are exposed (EmbodiedSkillBench 92/61/85%), so model and harness must be held fixed separately in routing evals."
   }
  }
 }
