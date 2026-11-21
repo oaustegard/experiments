@@ -278,7 +278,7 @@ export class Whisper {
     this.dev = device;
     this.m = manifest;
     this.dims = manifest.dims;
-    this.gen = manifest.gen;
+    this.gen = manifest.generation;
     this.pipes = {};
     this.zero = {};
     this.dyn = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
