@@ -104,9 +104,14 @@ function logMelOne(pcm, nMels) {
     padded[pad + N_SAMPLES - 1 + i] = x[reflectIndex(N_SAMPLES - 1 + i, N_SAMPLES)];
   }
   const fb = melFilters(nMels);
+  const span = filterSpans(nMels, fb);
   const power = new Float64Array(N_FRAMES * N_FREQ);
   const inRe = new Float64Array(N_FFT), inIm = new Float64Array(N_FFT);
-  for (let t = 0; t < N_FRAMES; t += 2) {
+  // Frames that lie wholly in the zero padding have zero power: skip their FFTs (exact).
+  let last = padded.length - 1;
+  while (last >= 0 && padded[last] === 0) last--;
+  const tEnd = Math.min(N_FRAMES, Math.floor(last / HOP) + 1);
+  for (let t = 0; t < tEnd; t += 2) {
     const two = t + 1 < N_FRAMES;
     const a = t * HOP, b = (t + 1) * HOP;
     for (let i = 0; i < N_FFT; i++) {
@@ -132,7 +137,8 @@ function logMelOne(pcm, nMels) {
     const row = m * N_FREQ;
     for (let t = 0; t < N_FRAMES; t++) {
       let s = 0; const p = t * N_FREQ;
-      for (let k = 0; k < N_FREQ; k++) s += fb[row + k] * power[p + k];
+      // each filter is non-zero only on [lo, hi); the zero terms add nothing (exact)
+      for (let k = span[2 * m]; k < span[2 * m + 1]; k++) s += fb[row + k] * power[p + k];
       const v = Math.log10(Math.max(s, 1e-10));
       out[m * N_FRAMES + t] = v;
       if (v > max) max = v;
@@ -141,6 +147,21 @@ function logMelOne(pcm, nMels) {
   const res = new Float32Array(nMels * N_FRAMES), floor = max - 8;
   for (let i = 0; i < res.length; i++) res[i] = (Math.max(out[i], floor) + 4) / 4;
   return res;
+}
+
+const spanCache = new Map();
+/** Per filter, the first and one-past-last frequency bin with a non-zero weight. */
+function filterSpans(nMels, fb) {
+  if (spanCache.has(nMels)) return spanCache.get(nMels);
+  const span = new Int32Array(2 * nMels);
+  for (let m = 0; m < nMels; m++) {
+    let lo = 0, hi = N_FREQ;
+    while (lo < N_FREQ && fb[m * N_FREQ + lo] === 0) lo++;
+    while (hi > lo && fb[m * N_FREQ + hi - 1] === 0) hi--;
+    span[2 * m] = lo; span[2 * m + 1] = hi;
+  }
+  spanCache.set(nMels, span);
+  return span;
 }
 
 /** pcm: Float32Array, 16 kHz mono. Returns Float32Array nMels*3000 [mel, frame]. */
