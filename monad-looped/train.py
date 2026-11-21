@@ -95,6 +95,8 @@ def main():
     ap.add_argument("--grad-ckpt", action="store_true")
     ap.add_argument("--compile", action="store_true")
     ap.add_argument("--max-steps", type=int, default=0, help="stop after this many steps (smoke runs)")
+    ap.add_argument("--init-from", default="", help="Monad-format checkpoint to resume weights from when state.pt is gone")
+    ap.add_argument("--init-step", type=int, default=0, help="step that checkpoint was saved at")
     a = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -102,7 +104,9 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     band = tuple(int(x) for x in a.band.split(",")) if a.band else None
     kw = [float(x) for x in a.kweights.split(",")]
-    model = LoopedMonad.from_pretrained(a.model, band=band, kmax=a.kmax if band else 1).to(dev)
+    src = a.init_from if (a.init_from and not (out / "state.pt").exists()) else a.model
+    model = LoopedMonad.from_pretrained(src, band=band, kmax=a.kmax if band else 1).to(dev)
+    model.band, model.kmax = band, (a.kmax if band else 1)
     model.grad_ckpt = a.grad_ckpt
     if a.compile:
         for i, l in enumerate(model.layers):
@@ -131,6 +135,10 @@ def main():
         opt.load_state_dict(s["opt"])
         step = s["step"]
         print(f"resumed at step {step}", flush=True)
+    elif a.init_from:
+        step = a.init_step
+        print(f"resumed weights from {a.init_from} at step {step}; optimizer state is fresh (200-step re-warmup)", flush=True)
+    rewarm_from = step if (a.init_from and step and not st.exists()) else None
     meta = {"band": band, "kmax": a.kmax, "kweights": kw, "steps": total, "batches_per_epoch": len(batches),
             "epochs": round(epochs_needed, 3), "tok_per_batch": float(tok_per_batch), "lr": a.lr, "gate_lr": a.gate_lr,
             "batch_tokens": a.batch_tokens, "device": torch.cuda.get_device_name(0) if dev == "cuda" else "cpu"}
@@ -147,6 +155,8 @@ def main():
         x, m = x.to(dev, non_blocking=True), m.to(dev, non_blocking=True)
         K = ks[step] if band else 1
         lr_f = (step + 1) / warm if step < warm else 0.5 * (1 + math.cos(math.pi * (step - warm) / max(1, total - warm)))
+        if rewarm_from is not None:
+            lr_f *= min(1.0, (step - rewarm_from + 1) / 200)
         opt.param_groups[0]["lr"] = a.lr * lr_f
         if gate_params:
             opt.param_groups[1]["lr"] = a.gate_lr * lr_f
