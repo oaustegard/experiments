@@ -4130,7 +4130,8 @@ A CTC probe on EmbeddingGemma 2's frozen vision encoder passed its pre-set bar (
 lines, against 73.87% for random weights), and still lost to Tesseract 5 at 0.26% on the identical lines with no
 training. The probe's bar was set against the random control; the decision needed the baseline. Run the existing
 free tool on the probe's evaluation set first: it costs a minute of CPU and can make the probe unnecessary.
-(`eg2-ocr-probe/baselines.py`)
+On IAM handwriting the same probe reached 14.70% CER against TrOCR-small's 6.16%. (`eg2-ocr-probe/baselines.py`,
+`iam_baselines.py`)
 
 ### OpenEvolve's hexagon-packing evaluator accepts a 1e-9 outer hexagon (haiku-swarm-poc)
 
