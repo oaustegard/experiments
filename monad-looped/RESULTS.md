@@ -1,56 +1,48 @@
 # monad-looped
 
-PleIAs' [Monad](https://huggingface.co/PleIAs/Monad) is a 56.7M-parameter reasoning model, 64 layers deep and 256 wide,
-that writes its reasoning inside a `<think>` block before answering. Thinking Machines' Inkling 2 Mini (2026-11-20) runs
-its middle layers three times with shared weights and reports reaching answers with fewer reasoning tokens. The question
-here: can Monad be made deeper by looping a band of its own layers, and can that latent depth replace enough written
-reasoning to make answers faster? The plan and its predictions were registered before any arm ran: [`PLAN.md`](PLAN.md).
+Inkling 2 Mini (Thinking Machines, 2026-11-20) runs its middle layers three times per token and needs fewer reasoning
+tokens to reach an answer. Monad (PleIAs, 56.7M parameters, 64 thin layers) spends about 520 tokens thinking before each
+answer. If Monad could do some of that thinking by rerunning a band of its layers instead of writing it out, it would answer
+faster. This experiment tried to teach it that, and Monad refused every time.
 
 ## Answer
 
-No, not at this scale and budget. The loop reruns a band of layers up to three times; each extra pass reads the band's
-input plus a gated share ("mixing") of the previous pass's output, and gate 0 is the plain model. Quality is answer NLL,
-nats per token on reference answers from held-out SYNTH rows (Monad's training set).
+Monad will not use a repeated pass of its own layers, so the speedup is not available this way.
 
-Without training, every looped setting is worse than the base model: the best adds 0.002 nats per token <!-- @evidence[[results/summary.json#delta.best_screen_f1]] -->,
-layers 12–19 rerun 3 times with full mixing add 0.556 <!-- @evidence[[results/summary.json#delta.B1_K3_a1p0_f1]] -->. Retrofitted with 300M
-tokens and a learned gate starting at zero, the gate stayed near 0.013 <!-- @evidence[[results/summary.json#gate.loopB1_final_mean]] -->,
-so extra passes changed nothing and the arm matched a same-data control without a loop to 0.0001 nats. With the gate forced
-open on a schedule, training drove a learned correction to −0.92 <!-- @evidence[[results/summary.json#gate.loopB1r_last_mean]] -->
-against the scheduled 1.0, closing it again; at step 6,000 that arm was level with the control (1.1118 against 1.1116).
+The loop reruns a band of layers (12–19 in the main arms) up to three times; each extra pass reads the band's input plus a
+gated share of what the previous pass produced. Gate 0 is the unchanged model. Quality is answer NLL: how surprised the
+model is by the reference answers of 384 held-out SYNTH questions (SYNTH is Monad's training set).
 
-The speedup stage (training shorter traces) was not started. What would change this: a far larger training budget with the
-gate held open, or a model wide enough that a repeated pass has room to compute something new.
+Three tries, one outcome:
+
+- **Bolted on without training**, every setting made answers worse, from +0.002 nats at the gentlest <!-- @evidence[[results/summary.json#delta.best_screen_f1]] -->
+  to +0.556 with full mixing at 3 passes <!-- @evidence[[results/summary.json#delta.B1_K3_a1p0_f1]] -->.
+- **Trained in with a gate free to open** (300M tokens), the gate stayed at 0.013 <!-- @evidence[[results/summary.json#gate.loopB1_final_mean]] -->.
+  The model learned to ignore the loop and ended level with a control trained on the same data without one.
+- **Forced open on a schedule**, training grew a counter-weight of −0.92 against the +1.0 <!-- @evidence[[results/summary.json#gate.loopB1r_last_mean]] -->
+  and shut it again.
+
+So the loop never carried any reasoning, and the second stage (training shorter traces to cash in the speed) was not run.
+A much larger training budget with the gate locked open, or a wider model, could change this.
 
 ## Findings
 
-1. **Training-free looping only hurts, in proportion to how much of the previous pass is mixed in.** On 384 held-out SYNTH
-   rows, base answer NLL is 1.1046 with the full trace <!-- @evidence[[results/summary.json#base.f1]] -->; the
-   gentlest arm (layers 12–19, 2 passes, mixing 0.1) gives 1.1068 <!-- @evidence[[results/summary.json#screen.B1_K2_a0p1.f1]] -->,
-   and the 16-layer band at 3 passes with full mixing 1.9826 <!-- @evidence[[results/summary.json#screen.B3_K3_a1p0.f1]] -->.
-   The ordering holds for every band, pass count and trace fraction (Round 2).
-2. **A learned gate that starts at zero stays shut.** After 300M tokens the gate on the looped band averaged 0.013, largest
-   entry 0.034 <!-- @evidence[[results/summary.json#gate.loopB1_final_absmax]] -->. Final answer NLL at 1 and 3 passes:
-   1.1057 and 1.1057 <!-- @evidence[[results/summary.json#loopB1_K3_final.f1]] -->, control 1.1056 <!-- @evidence[[results/summary.json#control_final.f1]] --> (Round 3).
-3. **A forced-open gate is undone by training.** With a scheduled gain ramping to 1.0 over the first 30% of training plus a
-   learned per-channel correction, the correction reached −0.61 by step 3,300 (scheduled gain 0.88) and −0.92 by step 7,300,
-   leaving an effective gate near 0.08 (1.0 − 0.92). At step 6,000: answer NLL 1.1118 at 2 passes <!-- @evidence[[results/summary.json#loopB1r_K2_6000.f1]] -->
-   against the control's 1.1116 <!-- @evidence[[results/summary.json#control_6000.f1]] -->; with no trace kept,
-   1.4466 against 1.4421 (Round 4).
-4. **No sign of reasoning moving into the latent.** The prediction (PLAN.md P4) was that a used loop would help most when
-   the trace is truncated. At step 6,000 the forced-gate arm at 2 passes trails the control by 0.0045 nats with no trace kept
-   and by 0.0002 with the full trace, so truncation makes it slightly worse, not better; the learned-gate arm's gaps are
-   within ±0.003 at every fraction (Rounds 3–4).
-5. **Continued training on SYNTH does not improve Monad on held-out SYNTH.** The control's final answer NLL is 1.1056 against
-   the base model's 1.1046, so 300M more tokens of Monad's own data at learning rate 1e-4 left it where it was (Round 3).
-6. **Dev-set accuracy is too noisy at this size to separate arms.** On the 128 MMLU + GSM8K prompts of the 192-prompt dev
-   fixture (a different, harder-to-score set than Finding 7's test prompts), base Monad answers
-   9.4% <!-- @evidence[[results/summary.json#dev.base.acc]] -->, the control 13.3% and the screen arms 0–14.8%; a few
-   prompts move these numbers. Full mixing at 3 passes makes 64.8% of answers end in a repetition loop <!-- @evidence[[results/summary.json#dev.B1_K3_a1p0.loop]] --> (Round 2).
-7. **Baseline cost of a right answer.** On the 350 MMLU + GSM8K test prompts from `monad-weight-edit`, the loop-edited
-   model is right 18.9% of the time <!-- @evidence[[results/summary.json#baseline.A8p_acc]] -->, thinks for 520 tokens on
-   average when it closes its think block <!-- @evidence[[results/summary.json#baseline.A8p_think]] -->, and generates
-   3,357 tokens per correct answer <!-- @evidence[[results/summary.json#baseline.A8p_tok_per_correct]] --> (Round 1).
+1. **Untrained, more looping is strictly worse.** Base answer NLL 1.1046 <!-- @evidence[[results/summary.json#base.f1]] -->;
+   layers 12–19 rerun twice at gate 0.1 give 1.1068 <!-- @evidence[[results/summary.json#screen.B1_K2_a0p1.f1]] -->; the
+   16-layer band rerun three times at gate 1 gives 1.9826 <!-- @evidence[[results/summary.json#screen.B3_K3_a1p0.f1]] -->,
+   and 64.8% of its answers end in a repetition loop <!-- @evidence[[results/summary.json#dev.B1_K3_a1p0.loop]] -->. Every
+   band, pass count and gate value orders the same way (Round 2).
+2. **Given the choice, training keeps the loop closed.** The learned gate ended at 0.013 on average, 0.034 at most <!-- @evidence[[results/summary.json#gate.loopB1_final_absmax]] -->;
+   one pass and three passes score 1.1057 <!-- @evidence[[results/summary.json#loopB1_K3_final.f1]] -->,
+   the no-loop control 1.1056 <!-- @evidence[[results/summary.json#control_final.f1]] --> (Round 3).
+3. **Forced open, training closes it anyway.** The learned counter-weight reached −0.61 by step 3,300 and −0.92 by step
+   7,300, leaving about 8% of the message. At step 6,000 the arm scores 1.1118 <!-- @evidence[[results/summary.json#loopB1r_K2_6000.f1]] -->
+   against the control's 1.1116 <!-- @evidence[[results/summary.json#control_6000.f1]] -->, and it is no better when the
+   reference reasoning is cut out, where latent reasoning would have shown: 1.4466 against 1.4421 (Round 4).
+4. **The extra training itself bought nothing.** 300M more tokens of SYNTH left the control at 1.1056 against the original
+   model's 1.1046, so the loop arms were not competing with a moving target (Round 3).
+5. **The bar a speedup had to clear.** The loop-edited Monad from `monad-weight-edit` is right 18.9% of the time <!-- @evidence[[results/summary.json#baseline.A8p_acc]] -->
+   on 350 MMLU + GSM8K test prompts and writes 3,357 tokens per correct answer <!-- @evidence[[results/summary.json#baseline.A8p_tok_per_correct]] --> (Round 1).
 
 ## Method
 
@@ -69,7 +61,8 @@ run read: 128 each of memorization, math exercise and mcq. Answer NLL per token 
 kept; trace NLL; KL to the base model.
 
 **Generation** (`gen_eval.py`, `score.py`). Greedy decoding on `monad-weight-edit`'s 192-prompt dev fixture, 1,024 new
-tokens (1,536 for IFEval). Scored on MMLU and GSM8K only: IFEval's checker needs NLTK data, whose download was refused in
+tokens (1,536 for IFEval). With 128 scorable prompts, accuracy moved by a few prompts between arms (base 9.4%, control
+13.3%, screen arms 0–14.8%) and could not separate them. Scored on MMLU and GSM8K only: IFEval's checker needs NLTK data, whose download was refused in
 this environment.
 
 **Training** (`prep_data.py`, `train.py`). SYNTH shards 1–5, English rows, 607k rows and 614M tokens; each row is the chat
