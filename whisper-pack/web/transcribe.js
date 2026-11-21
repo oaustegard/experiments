@@ -123,8 +123,11 @@ export class Transcriber {
     return { chunks, advance, last };
   }
 
-  // pcm: Float32Array, 16 kHz mono, any length.
+  // pcm: Float32Array, 16 kHz mono, any length. opts.timings, if given an object, receives the
+  // milliseconds spent per phase summed over windows: mel, encode, detect, decode, parse, total.
   async transcribe(pcm, opts = {}) {
+    const tm = opts.timings || null, now = () => performance.now(), t0 = now();
+    const add = (k, t) => { if (tm) tm[k] = (tm[k] || 0) + (now() - t); };
     const total = pcm.length / SR;
     const chunks = [];
     let language = opts.language && opts.language !== "auto" ? opts.language : null;
@@ -132,21 +135,28 @@ export class Transcriber {
     const single = total <= WINDOW;
     while (seek < total - 0.1 || windows === 0) {
       const from = Math.round(seek * SR);
+      let t = now();
       const mel = logMel(pcm.subarray(from, from + WINDOW * SR), this.w.dims.n_mels);
+      add("mel", t); t = now();
       await this.w.encode(mel);
-      if (!language) language = await this.detectLanguage();
+      add("encode", t); t = now();
+      if (!language) { language = await this.detectLanguage(); add("detect", t); }
+      t = now();
       let live = [];
       const ids = await this.decodeWindow({
         language, task: opts.task, timestamps: opts.timestamps, noRepeatNgram: opts.noRepeatNgram ?? 3,
         onToken: (id, seq) => { if (opts.onPartial && id < this.tsBegin) { live.push(id); opts.onPartial(this.tok.decode(live), seek); } },
       });
+      add("decode", t); t = now();
       const left = Math.min(WINDOW, total - seek);
       const p = this.parseWindow(ids, seek, left);
+      add("parse", t);
       chunks.push(...p.chunks);
       windows++;
       seek += single ? WINDOW : Math.max(p.advance, 1);
       if (opts.onProgress) opts.onProgress(Math.min(1, seek / total), windows);
     }
+    if (tm) tm.total = now() - t0;
     return { text: chunks.map((c) => c.text).join("").trim(), chunks, language, windows };
   }
 }
