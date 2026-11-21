@@ -11,11 +11,12 @@ mkdir -p "$D"
 K=$(mktemp --suffix=.py)
 cat > "$K" <<'EOF'
 import subprocess
-print(subprocess.run("ls -d /content/ckpt/*/step* 2>/dev/null | tr '\n' ' '", shell=True, capture_output=True, text=True).stdout)
+print("KEEPALIVE_OK", subprocess.run("ls -d /content/ckpt/*/step* 2>/dev/null | tr '\n' ' '", shell=True, capture_output=True, text=True).stdout)
 EOF
 while true; do
-  steps=$(timeout 150 colab exec -s "$S" -f "$K" --timeout 120 2>/dev/null | grep -o '/content/ckpt/[^ ]*' )
-  [ -z "$steps" ] && echo "$(date -u +%H:%M) keepalive exec returned nothing"
+  ex=$(timeout 150 colab exec -s "$S" -f "$K" --timeout 120 2>/dev/null)
+  case "$ex" in *KEEPALIVE_OK*) ka=ok;; *) ka=FAILED;; esac
+  steps=$(echo "$ex" | grep -o '/content/ckpt/[^ ]*')
   timeout 150 colab download -s "$S" "$LOG" "$D/$(basename "$LOG")" >/dev/null 2>&1 || echo "$(date -u +%H:%M) download failed: $LOG"
   if [ -n "$CK" ]; then
     for st in $(echo "$steps" | grep "^$CK/"); do
@@ -30,7 +31,7 @@ while true; do
     done
   fi
   last=$(tail -n 1 "$D/$(basename "$LOG")" 2>/dev/null)
-  echo "$(date -u +%H:%M) $(grep -v Warn "$D/$(basename "$LOG")" 2>/dev/null | tail -n 1 | cut -c1-200)"
+  echo "$(date -u +%H:%M) keepalive=$ka $(grep -v Warn "$D/$(basename "$LOG")" 2>/dev/null | tail -n 1 | cut -c1-200)"
   case "$last" in EXIT*) echo "job finished: $last"; exit 0;; esac
   sleep 240
 done
