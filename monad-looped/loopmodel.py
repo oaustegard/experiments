@@ -92,6 +92,8 @@ class LoopedMonad(nn.Module):
         self.kmax = kmax
         # gate[k-2] is g_k for pass k = 2..kmax; zero = exact base model
         self.gate = nn.Parameter(torch.zeros(max(kmax - 1, 1), d))
+        # scheduled gain added to the learned gate (round 3: Inkling opens the message gate on a schedule)
+        self.gate_bias = 0.0
         inv = 1.0 / (cfg.get("rope_theta", 10000.0) ** (torch.arange(0, cfg["head_dim"], 2).float() / cfg["head_dim"]))
         self.register_buffer("inv_freq", inv, persistent=False)
         self.grad_ckpt = False
@@ -139,7 +141,7 @@ class LoopedMonad(nn.Module):
             if self.band and K > 1 and i == s and mix == 0 and xp is None:
                 xp = x                                         # prelude output, input of pass 1
             if mix:
-                g = (torch.full_like(self.gate[0], alpha) if alpha is not None else self.gate[mix - 2]).to(x.dtype)
+                g = (torch.full_like(self.gate[0], alpha) if alpha is not None else self.gate[mix - 2] + self.gate_bias).to(x.dtype)
                 x = xp + g * (x - xp)                          # x here is h_{k-1}
             layer = self.layers[i]
             if self.grad_ckpt and self.training:
@@ -172,6 +174,7 @@ class LoopedMonad(nn.Module):
             g = torch.load(gp, map_location="cpu")
             m.band, m.kmax = tuple(g["band"]), g["kmax"]
             m.gate = nn.Parameter(g["gate"].float())
+            m.gate_bias = float(g.get("bias", 0.0))
         return m.to(dtype)
 
     def save(self, path, src):
@@ -198,7 +201,7 @@ class LoopedMonad(nn.Module):
             if p.exists():
                 (path / f).write_bytes(p.read_bytes())
         if self.band:
-            torch.save({"band": list(self.band), "kmax": self.kmax, "gate": self.gate.detach().float().cpu()},
+            torch.save({"band": list(self.band), "kmax": self.kmax, "gate": self.gate.detach().float().cpu(), "bias": float(self.gate_bias)},
                        path / "loop_gate.pt")
 
 

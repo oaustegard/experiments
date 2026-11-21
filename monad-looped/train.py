@@ -92,6 +92,8 @@ def main():
     ap.add_argument("--log-every", type=int, default=20)
     ap.add_argument("--save-every", type=int, default=1000)
     ap.add_argument("--ckpt-every", type=int, default=200)
+    ap.add_argument("--gate-ramp", type=float, default=0.0,
+                    help="fraction of training over which a scheduled gain on the message rises 0 -> 1 (0 = learned gate only)")
     ap.add_argument("--grad-ckpt", action="store_true")
     ap.add_argument("--compile", action="store_true")
     ap.add_argument("--max-steps", type=int, default=0, help="stop after this many steps (smoke runs)")
@@ -135,6 +137,8 @@ def main():
         opt.load_state_dict(s["opt"])
         step = s["step"]
         print(f"resumed at step {step}", flush=True)
+        if band and a.gate_ramp > 0:
+            model.gate_bias = min(1.0, step / (a.gate_ramp * total))
     elif a.init_from:
         step = a.init_step
         print(f"resumed weights from {a.init_from} at step {step}; optimizer state is fresh (200-step re-warmup)", flush=True)
@@ -154,6 +158,8 @@ def main():
         x, m = collate(ids, off, tgt, b, pad)
         x, m = x.to(dev, non_blocking=True), m.to(dev, non_blocking=True)
         K = ks[step] if band else 1
+        if band and a.gate_ramp > 0:
+            model.gate_bias = min(1.0, step / (a.gate_ramp * total))
         lr_f = (step + 1) / warm if step < warm else 0.5 * (1 + math.cos(math.pi * (step - warm) / max(1, total - warm)))
         if rewarm_from is not None:
             lr_f *= min(1.0, (step - rewarm_from + 1) / 200)
@@ -179,6 +185,7 @@ def main():
                    "tok_s": round(tok_seen / dt), "elapsed_s": round(dt),
                    "loss_by_K": {str(k): round(v[0] / v[1], 4) for k, v in sorted(agg.items())}}
             if band:
+                rec["gate_bias"] = round(model.gate_bias, 4)
                 rec["gate_mean"] = [round(float(g.mean()), 4) for g in model.gate.detach()]
                 rec["gate_absmax"] = [round(float(g.abs().max()), 4) for g in model.gate.detach()]
             print(json.dumps(rec), flush=True)

@@ -1,0 +1,121 @@
+{
+ "split": "test",
+ "rows": 384,
+ "model": "/content/ckpt/loopB1/step12518",
+ "device": "cuda",
+ "dtype": "fp32",
+ "elapsed_s": 30.1,
+ "configs": {
+  "loopB1_K1": {
+   "name": "loopB1_K1"
+  },
+  "loopB1_K2": {
+   "name": "loopB1_K2",
+   "band": [
+    12,
+    20
+   ],
+   "K": 2
+  },
+  "loopB1_K3": {
+   "name": "loopB1_K3",
+   "band": [
+    12,
+    20
+   ],
+   "K": 3
+  }
+ },
+ "results": {
+  "loopB1_K1": {
+   "all": {
+    "ans_nll@0.0": 1.4382,
+    "ans_nll@0.5": 1.3384,
+    "ans_nll@1.0": 1.1057,
+    "trace_nll": 1.2487,
+    "kl": 0.0
+   },
+   "math": {
+    "ans_nll@0.0": 1.1173,
+    "ans_nll@0.5": 1.0181,
+    "ans_nll@1.0": 0.7879,
+    "trace_nll": 0.9274,
+    "kl": 0.0
+   },
+   "mcq": {
+    "ans_nll@0.0": 0.8562,
+    "ans_nll@0.5": 1.0172,
+    "ans_nll@1.0": 0.0281,
+    "trace_nll": 1.2775,
+    "kl": 0.0
+   },
+   "memorization": {
+    "ans_nll@0.0": 1.7565,
+    "ans_nll@0.5": 1.6347,
+    "ans_nll@1.0": 1.4625,
+    "trace_nll": 1.4704,
+    "kl": 0.0
+   }
+  },
+  "loopB1_K2": {
+   "all": {
+    "ans_nll@0.0": 1.4381,
+    "ans_nll@0.5": 1.3384,
+    "ans_nll@1.0": 1.1057,
+    "trace_nll": 1.2486,
+    "kl": 0.0001
+   },
+   "math": {
+    "ans_nll@0.0": 1.1172,
+    "ans_nll@0.5": 1.0183,
+    "ans_nll@1.0": 0.7879,
+    "trace_nll": 0.9274,
+    "kl": 0.0001
+   },
+   "mcq": {
+    "ans_nll@0.0": 0.8529,
+    "ans_nll@0.5": 1.0165,
+    "ans_nll@1.0": 0.028,
+    "trace_nll": 1.2774,
+    "kl": 0.0001
+   },
+   "memorization": {
+    "ans_nll@0.0": 1.7567,
+    "ans_nll@0.5": 1.6346,
+    "ans_nll@1.0": 1.4625,
+    "trace_nll": 1.4703,
+    "kl": 0.0001
+   }
+  },
+  "loopB1_K3": {
+   "all": {
+    "ans_nll@0.0": 1.4381,
+    "ans_nll@0.5": 1.3384,
+    "ans_nll@1.0": 1.1057,
+    "trace_nll": 1.2486,
+    "kl": 0.0001
+   },
+   "math": {
+    "ans_nll@0.0": 1.1171,
+    "ans_nll@0.5": 1.0183,
+    "ans_nll@1.0": 0.7879,
+    "trace_nll": 0.9274,
+    "kl": 0.0001
+   },
+   "mcq": {
+    "ans_nll@0.0": 0.8523,
+    "ans_nll@0.5": 1.0164,
+    "ans_nll@1.0": 0.028,
+    "trace_nll": 1.2774,
+    "kl": 0.0001
+   },
+   "memorization": {
+    "ans_nll@0.0": 1.7568,
+    "ans_nll@0.5": 1.6346,
+    "ans_nll@1.0": 1.4625,
+    "trace_nll": 1.4702,
+    "kl": 0.0001
+   }
+  }
+ }
+}
