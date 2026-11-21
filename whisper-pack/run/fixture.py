@@ -45,4 +45,6 @@ for k, scheme in enumerate(SCHEMES):
         cases.append({"i": i, "ids": [int(t) for t in ids]})
         print(slug, i, len(ids), "tokens", flush=True)
     index.append({"slug": slug, "scheme": scheme, "pack": f"out/packs/{slug}/", "prompt": prompt, "cases": cases})
-(out / "index.json").write_text(json.dumps(index))
+ip = out / "index.json"   # keep other models' entries
+old = [e for e in (json.loads(ip.read_text()) if ip.exists() else []) if e["slug"] not in {x["slug"] for x in index}]
+ip.write_text(json.dumps(old + index))
