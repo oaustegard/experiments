@@ -17,12 +17,15 @@ try {
   const page = await browser.newPage();
   page.on("console", (m) => console.log(m.text()));
   page.on("pageerror", (e) => console.log("pageerror", e.message));
-  const q = process.argv[2] ? "?only=" + process.argv[2] : "";
-  await page.goto(`http://127.0.0.1:${port}/test/check.html${q}`);
+  const ts = process.argv[2] === "--ts";   // timestamp-mode check instead of the parity check
+  const q = !ts && process.argv[2] ? "?only=" + process.argv[2] : "";
+  await page.goto(`http://127.0.0.1:${port}/test/${ts ? "check_ts" : "check"}.html${q}`);
   await page.waitForFunction(() => window.result, null, { timeout: 3600_000 });
   const r = await page.evaluate(() => window.result);
   await browser.close();
-  if (!r.error && r.rows.length && r.rows.every((x) => x.same && x.encCos >= 0.9999 && x.logitCos >= 0.9999)) code = 0;
+  const ok = ts ? (x) => x.same !== false && x.wer <= 0.25 && x.detected === "en" && x.chunks.length > 0
+    : (x) => x.same && x.encCos >= 0.9999 && x.logitCos >= 0.9999;
+  if (!r.error && r.rows.length && r.rows.every(ok)) code = 0;
   console.log(code === 0 ? `PASS ${r.rows.length} cases` : "FAIL");
 } finally { srv.kill(); }
 process.exit(code);

@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>whisper-pack timestamp check</title><pre id="log"></pre>
+<script type="module">
+import { Whisper } from "../web/whisper.js";
+import { Tokenizer } from "../web/tokenizer.js";
+import { Transcriber } from "../web/transcribe.js";
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+const norm = (s) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, " ").split(/\s+/).filter(Boolean);
+// word error rate by edit distance
+const wer = (h, r) => {
+  const d = Array.from({ length: h.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= r.length; j++) d[0][j] = j;
+  for (let i = 1; i <= h.length; i++) for (let j = 1; j <= r.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (h[i - 1] === r[j - 1] ? 0 : 1));
+  return d[h.length][r.length] / r.length;
+};
+try {
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const ix = await (await fetch("fixtures/ts/index.json")).json();
+  const w = await Whisper.load(device, "../" + ix.pack);
+  const tok = await Tokenizer.load("../" + ix.pack + "tokenizer.json");
+  const tr = new Transcriber(w, tok);
+  const rows = [];
+  for (const c of ix.cases) {
+    const pcm = new Float32Array(await (await fetch(`fixtures/ts/clip${c.i}.f32`)).arrayBuffer());
+    const row = { i: c.i, seconds: c.seconds };
+    if (c.ids) {   // one window: ids must equal Hugging Face's, timestamps included
+      const { logMel } = await import("../web/mel.js");
+      await w.encode(logMel(pcm, w.dims.n_mels));
+      const ids = await tr.decodeWindow({ language: "en", noRepeatNgram: 3 });
+      row.same = ids.length === c.ids.length && ids.every((v, k) => v === c.ids[k]);
+      if (!row.same) { row.got = ids; row.want = c.ids; }
+      const lang = await (await w.encode(logMel(pcm, w.dims.n_mels)), tr.detectLanguage());
+      row.lang = lang;
+    }
+    const out = await tr.transcribe(pcm, { language: "auto" });
+    row.windows = out.windows;
+    row.chunks = out.chunks.map((x) => [x.timestamp[0], x.timestamp[1], x.text]);
+    row.wer = wer(norm(out.text), norm(c.ref));
+    row.detected = out.language;
+    rows.push(row);
+    log(JSON.stringify(row));
+  }
+  window.result = { rows };
+} catch (e) { log("ERROR " + (e.stack || e)); window.result = { error: String(e.stack || e) }; }
+</script>
