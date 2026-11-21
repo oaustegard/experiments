@@ -315,9 +315,27 @@ export class Whisper {
   static async load(device, base, opts = {}) {
     const manifest = await (await fetch(base + "manifest.json")).json();
     if (manifest.format !== "whisper-pack/1") throw new Error("not a whisper-pack/1 manifest");
-    const res = await fetch(base + (manifest.weights || "weights.bin"));
-    if (!res.ok) throw new Error("weights: HTTP " + res.status);
-    return Whisper.fromBytes(device, manifest, await res.arrayBuffer());
+    let bytes;
+    if (manifest.shards) {   // hosted packs: gzip shards the browser inflates, fetched in order
+      const total = manifest.shards.reduce((n, s) => n + s.bytes, 0);
+      const all = new Uint8Array(total);
+      let at = 0;
+      for (const s of manifest.shards) {
+        const res = await fetch(base + s.file);
+        if (!res.ok) throw new Error(s.file + ": HTTP " + res.status);
+        const part = new Uint8Array(await res.arrayBuffer());
+        if (part.length !== s.bytes) throw new Error(`${s.file}: ${part.length} bytes, expected ${s.bytes}`);
+        all.set(part, at);
+        at += part.length;
+        if (opts.onProgress) opts.onProgress(at, total);
+      }
+      bytes = all.buffer;
+    } else {
+      const res = await fetch(base + (manifest.weights || "weights.bin"));
+      if (!res.ok) throw new Error("weights: HTTP " + res.status);
+      bytes = await res.arrayBuffer();
+    }
+    return Whisper.fromBytes(device, manifest, bytes);
   }
 
   // manifest: the parsed manifest.json; bytes: weights.bin as an ArrayBuffer.
