@@ -268,7 +268,11 @@ export class Whisper {
     if (manifest.format !== "whisper-pack/1") throw new Error("not a whisper-pack/1 manifest");
     const res = await fetch(base + (manifest.weights || "weights.bin"));
     if (!res.ok) throw new Error("weights: HTTP " + res.status);
-    const bytes = await res.arrayBuffer();
+    return Whisper.fromBytes(device, manifest, await res.arrayBuffer());
+  }
+
+  // manifest: the parsed manifest.json; bytes: weights.bin as an ArrayBuffer.
+  static fromBytes(device, manifest, bytes) {
     const w = new Whisper(device, manifest);
     w._build(bytes);
     return w;
