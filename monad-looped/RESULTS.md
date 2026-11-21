@@ -12,10 +12,10 @@ No, not at this scale and budget. The loop reruns a band of layers up to three t
 input plus a gated share ("mixing") of the previous pass's output, and gate 0 is the plain model. Quality is answer NLL,
 nats per token on reference answers from held-out SYNTH rows (Monad's training set).
 
-Without training, every looped setting is worse than the base model: the best adds 0.002 nats <!-- @evidence[[results/summary.json#delta.best_screen_f1]] -->,
-full mixing at 3 passes adds 0.556 <!-- @evidence[[results/summary.json#delta.B1_K3_a1p0_f1]] -->. Retrofitted with 300M
+Without training, every looped setting is worse than the base model: the best adds 0.002 nats per token <!-- @evidence[[results/summary.json#delta.best_screen_f1]] -->,
+layers 12–19 rerun 3 times with full mixing add 0.556 <!-- @evidence[[results/summary.json#delta.B1_K3_a1p0_f1]] -->. Retrofitted with 300M
 tokens and a learned gate starting at zero, the gate stayed near 0.013 <!-- @evidence[[results/summary.json#gate.loopB1_final_mean]] -->,
-so extra passes changed nothing and the arm matched a same-data control without a loop to 0.001 nats. With the gate forced
+so extra passes changed nothing and the arm matched a same-data control without a loop to 0.0001 nats. With the gate forced
 open on a schedule, training drove a learned correction to −0.92 <!-- @evidence[[results/summary.json#gate.loopB1r_last_mean]] -->
 against the scheduled 1.0, closing it again; at step 6,000 that arm was level with the control (1.1118 against 1.1116).
 
@@ -56,7 +56,7 @@ gate held open, or a model wide enough that a repeated pass has room to compute 
 
 **Model and loop** (`loopmodel.py`). Monad reimplemented in plain PyTorch, loading `model.safetensors` directly. Layers
 `[0, s)` are the prelude, `[s, e)` the band, `[e, 64)` the coda. Pass 1 of the band reads the prelude output x_p; pass k
-reads `x_p + g_k ⊙ (h_{k−1} − x_p)`, with h the previous pass's band output and g a per-channel gate. Each pass keeps its own
+reads `x_p + g_k ⊙ (h_{k−1} − x_p)`, with h the previous pass's band output and g a per-channel gate. In the scheduled arm, g = s(t) + c: a gain s rising from 0 to 1 over the first 30% of training plus a learned per-channel correction c (the "learned correction" below). The coda reads the last pass's output. Each pass keeps its own
 KV cache. g = 0 reproduces the base model; `check_parity.py` matches Hugging Face's Monad to 0.0 logit difference and cached
 decoding to uncached decoding token for token. Inkling mixes through attention residuals; the gated interpolation is a
 simplification.
@@ -66,7 +66,7 @@ simplification.
 
 **Teacher-forced metrics** (`tf_eval.py`, `data/eval_synth.jsonl`). 384 English SYNTH rows from shard 500, which no training
 run read: 128 each of memorization, math exercise and mcq. Answer NLL per token with 0%, 50% or 100% of the reference trace
-kept; trace NLL; KL to the first config.
+kept; trace NLL; KL to the base model.
 
 **Generation** (`gen_eval.py`, `score.py`). Greedy decoding on `monad-weight-edit`'s 192-prompt dev fixture, 1,024 new
 tokens (1,536 for IFEval). Scored on MMLU and GSM8K only: IFEval's checker needs NLTK data, whose download was refused in
@@ -79,9 +79,11 @@ prompt then `reasoning </think> answer`, loss on the target. Continued from base
 ignores it, so both see identical batches in identical order. Two Colab A100-40GB VMs; the control trained at 142,677 tokens/s <!-- @evidence[[results/summary.json#throughput.a100_control_tok_s]] -->, the looped arm at 129,164.
 
 **Arms.** control (no loop); loopB1 (B1, learned gate from zero); loopB1r (B1, learned gate plus a scheduled gain rising from
-0 to 1 over the first 30% of steps; stopped at step 7,300 when the experiment was cut, scored at its step-6,000 checkpoint).
+0 to 1 over the first 30% of steps; stopped at step 7,300 when Oskar ended the experiment at a fixed time; scored at step 6,000, its newest checkpoint copied off the VM).
 
 ## Log
+
+Round 1 is the baseline, Round 2 the training-free screen (3 bands × 2 or 3 passes × gate 0.1, 0.25, 0.5, 1), Round 3 the learned-gate retrofit (arm loopB1, "learned-gate arm"), Round 4 the scheduled-gate retrofit (arm loopB1r, "forced-gate arm").
 
 ### Round 1 — baseline (2026-11-21)
 
