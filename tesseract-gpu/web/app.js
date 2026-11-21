@@ -5,14 +5,14 @@ import { Gpu, recognize } from "./engine.js";
 import { loadTraineddata } from "./traineddata.js";
 import { tessLayout } from "./tesslayout.js";
 import { cleanLine } from "./lineprep.js";
+import { MIN_CONF, medianOf, refineBoxes, tidy, cropOf } from "./pagepipe.js";
 import { pageTextLayer, coverage, looseCer } from "./pdftext.js";
 
 // layout.js is a classic (UMD) script, loaded before this module; it sets window.TessLayout.
 const orderBoxes = (boxes) => window.TessLayout.orderBoxes(boxes);
 
-const BUILD = "2026-11-20-tess11"; // keep equal to build.json
+const BUILD = "2026-11-21-tess12"; // keep equal to build.json
 const TESS_CDN = (variant) => `https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_${variant}@main/`;
-const PAD = 3; // px of page around each line's box, clamped to the page
 const ORDER_LABEL = { tess: "Tesseract's reading order", columns: "column bands" };
 const BOX_COLOR = "#2f5fd0";
 const LAYER_COLOR = "#1f8a4c"; // lines taken from a PDF's own text layer
@@ -261,61 +261,7 @@ async function handle(file) {
 
 // ------------------------------------------------------------------ reading
 
-// Tesseract's layout returns some "lines" that are not one text line: table rules (a few px wide, hundreds tall),
-// logos and banners, cells holding several lines. Drop boxes too narrow to hold text, and split any box taller than
-// 1.8 median line heights at its empty or ruled pixel rows; pieces shorter than 0.4 median heights are dropped; then
-// drop duplicates (dedupe).
-function medianOf(v) { const s = v.slice().sort((a, b) => a - b); return s.length ? s[s.length >> 1] : 0; }
 
-function refineBoxes(gray, boxes) {
-  const med = medianOf(boxes.map((b) => b[3] - b[1])) || 20;
-  const out = [];
-  for (const b of boxes) {
-    const [x0, y0, x1, y1] = b.map(Math.round);
-    const w = x1 - x0, h = y1 - y0;
-    if (w < 1.2 * med) continue;
-    if (h <= 1.8 * med) { out.push(b); continue; }
-    let lo = 255, hi = 0;
-    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const v = gray.data[y * gray.w + x]; if (v < lo) lo = v; if (v > hi) hi = v; }
-    const thr = (lo + hi) / 2;
-    const ink = [];
-    for (let y = y0; y < y1; y++) {
-      let n = 0;
-      for (let x = x0; x < x1; x++) if (gray.data[y * gray.w + x] < thr) n++;
-      ink.push(n > 0.002 * w && n < 0.6 * w); // a row that is mostly ink is a ruling, not text
-    }
-    let start = -1;
-    for (let i = 0; i <= ink.length; i++) {
-      if (i < ink.length && ink[i]) { if (start < 0) start = i; continue; }
-      if (start >= 0 && i - start >= 0.4 * med) out.push([x0, Math.max(y0, y0 + start - 2), x1, Math.min(y1, y0 + i + 2)]);
-      start = -1;
-    }
-  }
-  return dedupe(out);
-}
-
-// Table regions come back twice, as rows and again inside a table-wide block: where two boxes overlap by more than
-// half of the smaller, keep the smaller (tighter) one. Reading order is kept.
-function dedupe(boxes) {
-  const area = (b) => Math.max(0, b[2] - b[0]) * Math.max(0, b[3] - b[1]);
-  const inter = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
-  const idx = boxes.map((_, i) => i).sort((i, j) => area(boxes[i]) - area(boxes[j]));
-  const kept = [];
-  for (const i of idx) {
-    if (!kept.some((k) => inter(boxes[i], boxes[k]) > 0.5 * Math.min(area(boxes[i]), area(boxes[k])))) kept.push(i);
-  }
-  const keep = new Set(kept);
-  return boxes.filter((_, i) => keep.has(i));
-}
-
-// Table rules inside a line read as runs of =, ~, —, _ or |: drop tokens made only of such characters, and drop a
-// line with fewer than three letters or digits (a speck or a fragment of a ruling).
-const MIN_CONF = 0.6;
-const RULE_TOKEN = /^[=~—–_|§«»‘’“”'".,:;·•\-]+$/;
-function tidy(t) {
-  const kept = t.split(/\s+/).filter((w) => w && !RULE_TOKEN.test(w)).join(" ");
-  return (kept.match(/[\p{L}\p{N}]/gu) || []).length >= 3 ? kept : "";
-}
 
 // Line boxes in reading order, as [x0, y0, x1, y1] in page pixels.
 async function findLines(gray, order) {
@@ -338,20 +284,6 @@ async function findLines(gray, order) {
   return { boxes: seq.map((i) => boxes[i]), ms: took + ordMs };
 }
 
-// One crop per line: axis-aligned, padded by PAD px, clamped to the page. null for a box with no area.
-function cropOf(gray, box) {
-  const [x0, y0, x1, y1] = box;
-  const sx = Math.max(0, Math.floor(x0) - PAD), sy = Math.max(0, Math.floor(y0) - PAD);
-  const ex = Math.min(gray.w, Math.ceil(x1) + PAD), ey = Math.min(gray.h, Math.ceil(y1) + PAD);
-  const w = ex - sx, h = ey - sy;
-  if (w < 2 || h < 2) return null;
-  const data = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) {
-    const o = (sy + y) * gray.w + sx;
-    data.set(gray.data.subarray(o, o + w), y * w);
-  }
-  return { data, width: w, height: h };
-}
 
 // OCR a sample of text-layer lines and compare: a layer whose glyphs map to the wrong characters (a font with a broken
 // ToUnicode map, or an invisible OCR layer that was wrong) disagrees with the page image on nearly every line. The
