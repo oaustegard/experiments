@@ -15,20 +15,19 @@ by hand-written WebGPU kernels. Each size has an English-optimized pack and an a
 For large-v3-turbo the English pack is a 412 MB download <!-- @evidence[[results/headline.json#turbo_en_gzip_mb]] -->
 and the all-languages pack 493 MB, where the ONNX files the page used are 759.1 MB. <!-- @evidence[[results/headline.json#page_turbo_mb]] -->
 
-Accuracy is word error rate (WER, the percentage of words wrong) against the same model at full precision.
-Turbo's English pack changes English WER by +0.04 points (95% interval −0.13 to +0.22) <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
+Against the same model at full precision, turbo's English pack changes English word error rate (WER) by +0.04 points (95% interval −0.13 to +0.22) <!-- @evidence[[results/headline.json#turbo_r15_en_diff]] -->
 and costs +0.79 points on four other languages; the all-languages pack costs +0.15 there, an interval that
 includes zero.
 
-Speed is about equal to transformers.js. On one 7.28 s clip on one Mac, from raw audio to timestamped text,
-turbo's English pack took 1.17 s <!-- @evidence[[results/headline.json#mac_turbo_en_e2e_s]] -->
-and its all-languages pack 1.44 s, where transformers.js with the ONNX files took 1.18 s.
+It is also faster than transformers.js. On one Mac, from raw audio to timestamped text with the page's settings on
+both sides, turbo's English pack took 0.8 s on a 7 s clip <!-- @evidence[[results/headline.json#fair_en_7s_s]] -->
+where transformers.js with the ONNX files took 1.29 s, <!-- @evidence[[results/headline.json#fair_tjs_7s_s]] -->
+and 1.69 s on a 28 s clip against 2.69 s. <!-- @evidence[[results/headline.json#fair_en_28s_s]] -->
 
 The saving is in the download, not in memory: on the GPU the turbo English pack occupies 815 MB, because the engine
 keeps each weight in one byte.
 
-What would change this: timings on more clips and machines, the WER of the ONNX files (not measured), and
-bit-packed weights on the GPU.
+Not yet measured: other machines, and the WER of the ONNX files.
 
 ## Findings
 
@@ -77,6 +76,11 @@ and Norwegian from FLEURS. Changes are WER percentage points against full precis
 8. **In the decoder, attention over the audio runs one GPU thread per frame.**
    A decoded token takes 5.1 ms on tiny that way; <!-- @evidence[[results/headline.json#mac_tiny_ms_per_token]] -->
    with one thread per attention head scanning all 1,500 frames it took 28 ms. (Round 3, jobs `whisper-pack-time-2`, `-time-3`)
+9. **The spectrogram, computed on the CPU, was half of a short clip's time until it skipped work that adds nothing.**
+   Each of the 128 mel filters was summed over all 201 frequency bins, though it is non-zero on a few, and the
+   silence that pads audio to 30 s went through the Fourier transform frame by frame. Skipping both changes no output
+   value and took the 7 s clip's spectrogram on the Mac from 731 ms to 103 ms. <!-- @evidence[[results/headline.json#mel_7s_after_ms]] -->
+   (Round 5, `test/mel_ab.mjs`, job `whisper-pack-fair-4`)
 
 ## Method
 
@@ -104,11 +108,11 @@ and the seek loop for audio longer than 30 s. `test/check.mjs` compares the engi
 Chromium on SwiftShader, a software GPU whose timings mean nothing.
 
 **Speed.** Timings come from GPU Bridge jobs, which run a script in a tab on Oskar's Mac (Apple Metal, Chrome 157) and
-return its output. The end-to-end figures run the deployed modules and hosted packs on a 7.28 s clip from raw audio:
-spectrogram, encoding, language detection and decoding with timestamps (job `whisper-pack-live-1`, median of three
-runs after a warm-up). The transformers.js figure is its pipeline call on the same clip with the language given
-(job `whisper-pack-tjs-1`). Encoder and per-token times are from jobs `whisper-pack-turbo-1`, `-turbo-2`, `-time-2`
-and `-time-3`.
+return its output. The comparison with transformers.js (job `whisper-pack-fair-4`) runs both engines on the same
+7.28 s and 28 s clips from raw 16 kHz audio with the page's settings: language given, timestamps on, a ban on
+repeated 3-grams. Each figure is the median of three runs after a warm-up. Our modules load from a commit-pinned
+jsDelivr address, because the bridge worker caches modules by URL for as long as the tab is open. Encoder and
+per-token times are from jobs `whisper-pack-turbo-1`, `-turbo-2`, `-time-2` and `-time-3`.
 
 **Sizes of what the page used.** Encoder plus merged decoder from the Hugging Face file listing: turbo q4 759.1 MB;
 base, small and tiny with an fp32 encoder and fp16 decoder 187.2, 661.4 and 92.5 MB.
@@ -169,3 +173,22 @@ when WebGPU is present, with a Build selector, and falls back to the transformer
 The English builds of tiny, base and small are English-only checkpoints, so the page uses them only when English
 is selected; with Auto-detect those sizes use the all-languages build. Turbo's English build is the multilingual
 checkpoint and serves Auto-detect.
+
+### Round 5, 2026-11-21: a fair speed comparison
+
+Oskar asked whether the engine had been made faster. Round 4's end-to-end figure (1.17 s against 1.18 s) compared our
+run with language detection and timestamps against a transformers.js run with the language given and timestamps off.
+
+With the page's settings on both sides (job `whisper-pack-fair-2`): 7 s clip 1.44 s against 1.37 s, 28 s clip 2.16 s
+against 2.85 s. Our spectrogram took 731 ms of the 1.44 s. It summed each mel filter over all 201 frequency bins and
+transformed every silent padding frame; skipping both is exact (`test/mel_ab.mjs`: 0 differing values on 7 clips and
+2 filterbanks) and took the 7 s spectrogram in Node from 282 to 38 ms.
+
+The next two runs (`fair-3`, profiles 1 to 4) showed no gain. Profiling found the decoder at 7.7 ms a step with the
+page's settings, and `transcribe()` spending 715 ms in the spectrogram while the same function timed alone took
+100 ms. The bridge page runs jobs in one long-lived worker, and a worker keeps each ES module it has loaded under its
+URL: the jobs loaded `transcribe.js` with a cache-busting query, but its own `import "./mel.js"` resolved to the plain
+URL already loaded hours earlier, so every run used the old spectrogram. With all modules loaded from a commit-pinned
+jsDelivr address (`fair-4`): 7 s clip 0.80 s against 1.29 s, 28 s clip 1.69 s against 2.69 s, 1.6 times faster on both.
+Transformers.js itself moved 5 to 15% between identical runs.
+

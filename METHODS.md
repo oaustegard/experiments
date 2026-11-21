@@ -6025,10 +6025,18 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   kernel with one thread per (output column, 8 rows) and X bound as `vec4`, plus encoder attention that stores its
   1,500 scores in a local array instead of scoring twice, took turbo's encoder from 1,932 ms to 457 ms per 30 s window
   on Apple Metal. Shapes are WGSL constants, one pipeline per shape. (`whisper-pack/web/whisper.js` `linear8`, `attnE`)
-- **Time a speech engine from raw audio, not from the spectrogram.** Turbo's encoder plus decoder took 0.68 s on a
-  7.3 s clip, and the whole call (spectrogram in JS, language detection, timestamp rules, per-token readback) 1.17 s,
-  against 1.18 s for transformers.js. The first figure alone read as a 1.7x win that the full path does not have.
-  (`whisper-pack` jobs `whisper-pack-turbo-2`, `whisper-pack-live-1`)
+- **Compare engines from raw audio with the same options on both sides.** A run with language detection and
+  timestamps against a transformers.js run with the language given and timestamps off read as parity (1.17 s against
+  1.18 s); with the page's settings on both, the packed engine is 1.6 times as fast. Timing from a precomputed
+  spectrogram overstates any engine. (`whisper-pack` jobs `whisper-pack-live-1`, `-fair-4`)
+- **A GPU Bridge job can run stale code from a module that another module imports.** The bridge runs every job in one
+  long-lived worker, and a worker keeps each ES module under its URL until it closes. A cache-busting query on the
+  job's own imports does not reach `import "./mel.js"` inside them, so three timing runs measured a spectrogram
+  replaced hours earlier. Load the modules from a commit-pinned jsDelivr URL, or time the inner function alone and
+  compare. (`whisper-pack` jobs `whisper-pack-profile-4`, `-fair-4`)
+- **Skip the zero work in a log-mel spectrogram.** Each Slaney mel filter is non-zero on a few frequency bins, and the
+  silence that pads short audio to 30 s has zero power; summing only each filter's span and skipping all-silent frames
+  is exact and cut Whisper's spectrogram on a 7 s clip from 731 ms to 103 ms in Chrome. (`whisper-pack/web/mel.js`)
 - **One int8 per weight on the GPU costs memory that gzip hides.** Turbo at ±15 is 412 MB gzipped and 815 MB in a
   buffer; the download shrank and GPU memory did not. Bit-pack on the GPU if memory is the goal. (`whisper-pack`)
 - **R2 serves a pre-gzipped object with `Content-Encoding: gzip` and the browser inflates it; other static hosts may

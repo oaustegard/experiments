@@ -2,7 +2,9 @@
 // timestamps on, 3-gram ban), same clips, both from raw 16 kHz audio. Times our spectrogram separately.
 const { reps = 3, pack = "turbo-en-r15" } = ctx.inputs;
 const clips = Object.fromEntries(Object.entries(ctx.inputs).filter(([k]) => k.startsWith("clip_")));
-const SITE = "https://austegard.com/experiments/whisper-pack/web/", bust = "?t=" + Date.now();
+// `base` (a commit-pinned URL) gives every module, including the ones they import, a fresh address: the bridge
+// worker caches modules by URL for its lifetime, so a plain URL can serve code from hours ago.
+const SITE = ctx.inputs.base || "https://austegard.com/experiments/whisper-pack/web/", bust = ctx.inputs.base ? "" : "?t=" + Date.now();
 const R2 = "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/models/whisper-pack/";
 const med = (a) => { const s = a.slice(1).sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
 const out = { ours: [], tjs: [], errors: [] };
