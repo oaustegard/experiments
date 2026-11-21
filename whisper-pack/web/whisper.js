@@ -396,7 +396,10 @@ export class Whisper {
       for (const s of manifest.shards) {
         const res = await fetch(base + s.file);
         if (!res.ok) throw new Error(s.file + ": HTTP " + res.status);
-        const part = new Uint8Array(await res.arrayBuffer());
+        let part = new Uint8Array(await res.arrayBuffer());
+        if (part.length !== s.bytes && part[0] === 0x1f && part[1] === 0x8b) {   // a host that did not send Content-Encoding
+          part = new Uint8Array(await new Response(new Blob([part]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+        }
         if (part.length !== s.bytes) throw new Error(`${s.file}: ${part.length} bytes, expected ${s.bytes}`);
         all.set(part, at);
         at += part.length;

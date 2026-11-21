@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisper, packed</title>
+<meta name="description" content="Whisper speech-to-text running entirely in your browser tab on WebGPU, from a quantized weight pack.">
+<style>
+:root { --bg:#fafaf7; --fg:#1d1d1b; --mute:#63635d; --line:#d8d8d0; --card:#fff; --acc:#1f5fbf; --accfg:#fff; --err:#b3261e; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#16171a; --fg:#e8e8e3; --mute:#9a9a92; --line:#33353a; --card:#1e2024; --acc:#6ea2f0; --accfg:#0d1626; --err:#f2877f; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+main { max-width: 44rem; margin: 0 auto; padding: 24px 16px 40px; }
+h1 { font-size: 1.7rem; margin: 0 0 .4rem; }
+p { margin: 0 0 1rem; }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 1.2rem 0; }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+label { display:block; font-size:.85rem; color:var(--mute); margin-bottom:2px; }
+select, input[type=file] { width:100%; font:inherit; color:var(--fg); background:var(--card); border:1px solid var(--line); border-radius:6px; padding:8px; }
+.row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin: 1rem 0; }
+button { font:inherit; padding:9px 16px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--fg); cursor:pointer; }
+button.rec.on { border-color: var(--err); color: var(--err); }
+button:disabled, select:disabled, input:disabled { opacity:.5; cursor:not-allowed; }
+:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+.hint { color:var(--mute); font-size:.9rem; }
+#status { min-height:1.5em; margin: .5rem 0; }
+#status.err, #nogpu { color: var(--err); }
+progress { width:100%; height:10px; }
+#bar[hidden] { display:none; }
+#partial { white-space:pre-wrap; color:var(--mute); margin: .5rem 0; }
+ol#segs { list-style:none; padding:0; margin:1rem 0; }
+#segs li { display:flex; gap:12px; padding:6px 0; border-top:1px solid var(--line); }
+#segs time { flex:none; font:.82rem/1.7 ui-monospace,Menlo,Consolas,monospace; color:var(--mute); }
+#stats { font-size:.9rem; color:var(--mute); }
+footer { margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--line); font-size:.85rem; color:var(--mute); }
+a { color: var(--acc); }
+</style>
+<script src="../../gpu-bridge/web/relay.js" onerror="void 0"></script>
+</head>
+<body>
+<main>
+<h1>Whisper, packed</h1>
+<p>This is OpenAI's Whisper speech-to-text model running entirely in this browser tab on WebGPU, from a quantized weight pack that is downloaded once and cached by your browser. Nothing you record or load is uploaded anywhere.</p>
+<p id="nogpu" hidden role="alert">WebGPU is not available in this browser, so this page cannot run Whisper. Try a recent Chrome, Edge or Safari on a device with WebGPU.</p>
+
+<div class="grid">
+  <div><label for="size">Model size</label>
+    <select id="size">
+      <option value="tiny">tiny</option>
+      <option value="base" selected>base</option>
+      <option value="small">small</option>
+      <option value="turbo">large-v3-turbo</option>
+    </select></div>
+  <div><label for="build">Build</label>
+    <select id="build">
+      <option value="en" selected>English-optimized</option>
+      <option value="all">All languages</option>
+    </select></div>
+  <div id="langwrap" hidden><label for="lang">Language</label>
+    <select id="lang">
+      <option value="auto">Auto-detect</option>
+      <option value="en">English</option>
+      <option value="es">Spanish</option>
+      <option value="fr">French</option>
+      <option value="de">German</option>
+      <option value="no">Norwegian</option>
+      <option value="ja">Japanese</option>
+    </select></div>
+  <div style="grid-column:1/-1"><label for="file">Audio or video file</label>
+    <input id="file" type="file" accept="audio/*,video/*"></div>
+</div>
+<div class="row">
+  <button id="rec" class="rec" type="button">Record</button>
+  <span class="hint" id="dl">Download: about 47 MB, first use only.</span>
+</div>
+
+<div id="status" role="status" aria-live="polite"></div>
+<progress id="bar" max="1" value="0" hidden></progress>
+<div id="partial" aria-live="off"></div>
+<ol id="segs"></ol>
+<div id="stats"></div>
+
+<footer>
+  Whisper weights &copy; OpenAI, MIT license. Packs: quantized copies of openai/whisper-*.
+  <a href="https://github.com/oaustegard/experiments/tree/main/whisper-pack">Source</a>
+</footer>
+</main>
+<script>
+"use strict";
+const BUILD = "2026-11-21-demo1";   // keep equal to build.json
+const relay = (window.Relay && typeof Relay.start === "function" ? Relay : { start() { return this; }, log() {}, warn() {}, error() {} })
+  .start({ page: "whisper-pack", build: BUILD }) || { log() {}, warn() {}, error() {} };
+const L = {
+  log: (m, a) => { try { (relay.log || (() => {}))(m, a); } catch (e) {} },
+  warn: (m, a) => { try { (relay.warn || (() => {}))(m, a); } catch (e) {} },
+  error: (m, a) => { try { (relay.error || (() => {}))(m, a); } catch (e) {} },
+};
+fetch("build.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((b) => {
+  if (!b || !b.build || b.build === BUILD) return;
+  L.warn("stale page", { running: BUILD, current: b.build });
+  let tried = null;
+  try { tried = sessionStorage.getItem("whisperpack:reloaded-for"); sessionStorage.setItem("whisperpack:reloaded-for", b.build); } catch (e) {}
+  if (tried === b.build) return;
+  const url = new URL(location.href);
+  url.searchParams.set("b", b.build);
+  location.replace(url.href);
+}).catch(() => {});
+
+const BASE = "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/models/whisper-pack/";
+const PACKS = {
+  en:  { tiny: "tiny.en-r63/", base: "base.en-r63/", small: "small.en-r63/", turbo: "turbo-en-r15/" },
+  all: { tiny: "tiny-r63/", base: "base-r63/", small: "small-r63/", turbo: "turbo-t4r31/" },
+};
+const MB = { en: { tiny: 28, base: 47, small: 170, turbo: 412 }, all: { tiny: 28, base: 47, small: 170, turbo: 493 } };
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const packOverride = params.get("pack");
+const clipUrl = params.get("clip");
+
+function packUrl() {
+  if (packOverride) return new URL(packOverride, location.href).href;
+  return BASE + PACKS[$("build").value][$("size").value];
+}
+function packName() {
+  const u = packUrl().replace(/\/$/, "");
+  return u.slice(u.lastIndexOf("/") + 1);
+}
+const controls = ["size", "build", "lang", "file", "rec"].map($);
+function setBusy(b) { controls.forEach((c) => { c.disabled = b || !navigator.gpu; }); }
+function status(t, err) { const s = $("status"); s.textContent = t; s.className = err ? "err" : ""; }
+function refresh() {
+  const all = $("build").value === "all";
+  $("langwrap").hidden = !all;
+  const mb = MB[$("build").value][$("size").value];
+  $("dl").textContent = `Download: about ${mb} MB (gzip), first use only.`;
+}
+["size", "build"].forEach((id) => $(id).addEventListener("change", () => { refresh(); L.log("pack chosen", { pack: packName(), url: packUrl() }); }));
+
+const fmt = (t) => { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, "0") + ":" + s.toFixed(1).padStart(4, "0"); };
+
+// ---- worker ----
+let worker = null, loadedUrl = null, waiter = null;
+function getWorker() {
+  if (worker) return worker;
+  worker = new Worker("worker.js?b=" + encodeURIComponent(BUILD), { type: "module" });
+  worker.onmessage = (e) => {
+    const m = e.data;
+    if (m.type === "download") {
+      const p = m.payload;
+      if (p && p.total) { $("bar").hidden = false; $("bar").value = p.loaded / p.total;
+        status(`Downloading pack: ${(p.loaded / 1048576).toFixed(0)} of ${(p.total / 1048576).toFixed(0)} MB`); }
+    } else if (m.type === "partial") { $("partial").textContent = m.text;
+    } else if (m.type === "progress") {
+      status(`Transcribing: window ${m.windowsDone} of ${m.totalWindows}`);
+      $("bar").hidden = false; $("bar").value = m.frac;
+    } else if (m.type === "log") { L.log("worker: " + m.message);
+    } else if (m.type === "error") { L.error("worker error: " + m.message); if (waiter) { const w = waiter; waiter = null; w.reject(new Error(m.message)); }
+    } else if (m.type === "ready" || m.type === "complete") { if (waiter) { const w = waiter; waiter = null; w.resolve(m); } }
+  };
+  worker.onerror = (e) => { const msg = e.message || "worker failed to start"; L.error("worker onerror: " + msg); if (waiter) { const w = waiter; waiter = null; w.reject(new Error(msg)); } };
+  return worker;
+}
+function ask(msg, transfer) {
+  return new Promise((resolve, reject) => { waiter = { resolve, reject }; getWorker().postMessage(msg, transfer || []); });
+}
+
+// ---- audio ----
+async function decodeTo16k(arrayBuffer) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  let buf;
+  try { buf = await ctx.decodeAudioData(arrayBuffer); } finally { try { ctx.close(); } catch (e) {} }
+  const n = Math.max(1, Math.ceil(buf.duration * 16000));
+  const off = new OfflineAudioContext(1, n, 16000);   // one channel: the graph mixes down to mono
+  const src = off.createBufferSource();
+  src.buffer = buf; src.connect(off.destination); src.start();
+  const out = await off.startRendering();
+  return out.getChannelData(0);
+}
+
+async function run(getAudio, label) {
+  if (!navigator.gpu) return;
+  setBusy(true);
+  $("segs").textContent = ""; $("stats").textContent = ""; $("partial").textContent = "";
+  try {
+    const url = packUrl(), name = packName();
+    L.log("run start", { source: label, pack: name, build: $("build").value, language: $("lang").value });
+    status("Decoding audio...");
+    const audio = await getAudio();
+    const secs = audio.length / 16000;
+    L.log("audio decoded", { seconds: +secs.toFixed(2) });
+    if (loadedUrl !== url) {
+      status("Loading pack..."); $("bar").hidden = false; $("bar").value = 0;
+      const t0 = performance.now();
+      await ask({ type: "load", model: url });
+      loadedUrl = url;
+      L.log("pack loaded", { pack: name, seconds: +((performance.now() - t0) / 1000).toFixed(1) });
+    }
+    status("Transcribing..."); $("bar").value = 0;
+    const t1 = performance.now();
+    const r = await ask({ type: "transcribe", audio, language: $("build").value === "all" ? $("lang").value : "en", task: "transcribe" }, [audio.buffer]);
+    const took = r.elapsed || (performance.now() - t1) / 1000;
+    $("partial").textContent = "";
+    const ol = $("segs");
+    for (const c of r.chunks || []) {
+      const li = document.createElement("li"), t = document.createElement("time"), s = document.createElement("span");
+      t.textContent = `[${fmt(c.timestamp[0])} – ${fmt(c.timestamp[1] == null ? secs : c.timestamp[1])}]`;
+      s.textContent = c.text.trim();
+      li.append(t, s); ol.append(li);
+    }
+    $("stats").textContent = `Audio ${secs.toFixed(1)} s, took ${took.toFixed(1)} s (${(secs / took).toFixed(1)}x real time), language ${r.language || "unknown"}, pack ${name}`;
+    status("Done.");
+    L.log("run complete", { audioSeconds: +secs.toFixed(2), tookSeconds: +took.toFixed(2), ratio: +(secs / took).toFixed(2), language: r.language, pack: name, chunks: (r.chunks || []).length });
+    window.result = { text: r.text, chunks: r.chunks, elapsed: r.elapsed, language: r.language };
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err);
+    status("Error: " + msg, true);
+    L.error("run failed: " + msg);
+    window.result = { error: msg };
+  } finally {
+    $("bar").hidden = true;
+    setBusy(false);
+  }
+}
+
+$("file").addEventListener("change", () => {
+  const f = $("file").files[0];
+  if (f) run(async () => decodeTo16k(await f.arrayBuffer()), "file " + f.name);
+});
+
+let recorder = null, chunks = [], stream = null;
+$("rec").addEventListener("click", async () => {
+  if (recorder) { recorder.stop(); return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) { status("Microphone unavailable: " + err.message, true); L.error("getUserMedia: " + err.message); return; }
+  chunks = []; recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: recorder.mimeType });
+    stream.getTracks().forEach((t) => t.stop()); recorder = null;
+    $("rec").textContent = "Record"; $("rec").classList.remove("on");
+    run(async () => decodeTo16k(await blob.arrayBuffer()), "recording");
+  };
+  recorder.start();
+  $("rec").textContent = "Stop"; $("rec").classList.add("on");
+  status("Recording...");
+});
+
+refresh();
+if (!navigator.gpu) {
+  $("nogpu").hidden = false;
+  setBusy(true);
+  status("WebGPU is not available.", true);
+  L.warn("no WebGPU");
+  if (clipUrl) window.result = { error: "WebGPU is not available" };
+} else if (clipUrl) {
+  run(async () => {
+    const r = await fetch(clipUrl);
+    if (!r.ok) throw new Error("clip fetch failed: " + r.status);
+    return new Float32Array(await r.arrayBuffer());
+  }, "clip " + clipUrl);
+}
+</script>
+</body>
+</html>
