@@ -259,6 +259,79 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   O[i] = acc / z + f32(H) * 0.0;
 }`;
 
+// Encoder-sized linear: one thread per (output column, block of 8 rows), so each weight word is
+// decoded once and applied to 8 rows; X is read as vec4. K, N, T and the flags are constants.
+const linear8 = (K, N, T, flags) => HEAD + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> W: array<u32>;
+@group(0) @binding(3) var<storage, read> S: array<f32>;
+@group(0) @binding(4) var<storage, read> B: array<f32>;
+@group(0) @binding(5) var<storage, read> X: array<vec4<f32>>;
+@group(0) @binding(6) var<storage, read_write> Y: array<f32>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  if (i >= p.c.y) { return; }
+  let n = i % ${N}u;
+  let r0 = (i / ${N}u) * 8u;
+  var rr: array<u32, 8>;
+  for (var t = 0u; t < 8u; t++) { rr[t] = min(r0 + t, ${T - 1}u) * ${K / 4}u; }
+  var acc = array<f32, 8>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  let wo = n * ${K / 4}u;
+  for (var b = 0u; b < ${K / 4}u; b++) {
+    let wv = i8x4(W[wo + b]);
+    for (var t = 0u; t < 8u; t++) { acc[t] += dot(wv, X[rr[t] + b]); }
+  }
+  let sc = S[n]; let bias = B[n];
+  for (var t = 0u; t < 8u; t++) {
+    let r = r0 + t;
+    if (r < ${T}u) {
+      var y = acc[t] * sc + bias;
+      ${flags & 1 ? "y = gelu(y);" : ""}
+      let yi = r * ${N}u + n;
+      ${flags & 2 ? "Y[yi] = Y[yi] + y;" : "Y[yi] = y;"}
+    }
+  }
+  _ = d.n.x;
+}`;
+
+// Encoder self-attention: one thread per (query row, head) keeps its scores in a local array, so
+// each key is scored once. T, H and D are constants; head dim 64.
+const attnE = (T, H, Dm) => HEAD + /* wgsl */ `
+@group(0) @binding(2) var<storage, read> Q: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> KK: array<vec4<f32>>;
+@group(0) @binding(4) var<storage, read> V: array<vec4<f32>>;
+@group(0) @binding(5) var<storage, read_write> O: array<vec4<f32>>;
+@compute @workgroup_size(${WG})
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let i = g.x + g.y * p.c.x;
+  if (i >= p.c.y) { return; }
+  let t = i / ${H}u; let h = i % ${H}u;
+  let qo = t * ${Dm / 4}u + h * 16u;
+  var q: array<vec4<f32>, 16>;
+  for (var e = 0u; e < 16u; e++) { q[e] = Q[qo + e] * 0.125; }
+  var sc: array<f32, ${T}>;
+  var mx = -1e30;
+  for (var j = 0u; j < ${T}u; j++) {
+    let ko = j * ${Dm / 4}u + h * 16u;
+    var s = 0.0;
+    for (var e = 0u; e < 16u; e++) { s += dot(q[e], KK[ko + e]); }
+    sc[j] = s;
+    mx = max(mx, s);
+  }
+  var acc: array<vec4<f32>, 16>;
+  for (var e = 0u; e < 16u; e++) { acc[e] = vec4<f32>(0.0); }
+  var z = 0.0;
+  for (var j = 0u; j < ${T}u; j++) {
+    let w = exp(sc[j] - mx);
+    z += w;
+    let vo = j * ${Dm / 4}u + h * 16u;
+    for (var e = 0u; e < 16u; e++) { acc[e] += w * V[vo + e]; }
+  }
+  let inv = 1.0 / z;
+  for (var e = 0u; e < 16u; e++) { O[qo + e] = acc[e] * inv; }
+  _ = d.n.x;
+}`;
+
 const SHADERS = { linear: LINEAR, conv: CONV, norm: NORM, attn: ATTN, ascore: ASCORE, amix: AMIX, embed: EMBED, logits4: LOGITS4 };
 
 function halfToFloat(u16) {
@@ -335,18 +408,19 @@ export class Whisper {
       if (!res.ok) throw new Error("weights: HTTP " + res.status);
       bytes = await res.arrayBuffer();
     }
-    return Whisper.fromBytes(device, manifest, bytes);
+    return Whisper.fromBytes(device, manifest, bytes, opts);
   }
 
   // manifest: the parsed manifest.json; bytes: weights.bin as an ArrayBuffer.
-  static fromBytes(device, manifest, bytes) {
-    const w = new Whisper(device, manifest);
+  static fromBytes(device, manifest, bytes, opts = {}) {
+    const w = new Whisper(device, manifest, opts);
     w._build(bytes);
     return w;
   }
 
-  constructor(device, manifest) {
+  constructor(device, manifest, opts = {}) {
     this.dev = device;
+    this.opts = opts;
     this.m = manifest;
     this.dims = manifest.dims;
     this.gen = manifest.generation;
@@ -355,9 +429,9 @@ export class Whisper {
     this.dyn = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   }
 
-  _pipe(kind) {
+  _pipe(kind, code) {
     if (!this.pipes[kind]) {
-      const module = this.dev.createShaderModule({ code: SHADERS[kind] });
+      const module = this.dev.createShaderModule({ code: code || SHADERS[kind] });
       this.pipes[kind] = this.dev.createComputePipeline({ layout: "auto", compute: { module, entryPoint: "main" } });
     }
     return this.pipes[kind];
@@ -381,8 +455,8 @@ export class Whisper {
   }
 
   // One recorded dispatch. threads = number of outputs; params = { a, b, f } arrays.
-  _step(list, kind, params, bufs, threads) {
-    const pipe = this._pipe(kind);
+  _step(list, kind, params, bufs, threads, code) {
+    const pipe = this._pipe(kind, code);
     const groups = Math.ceil(threads / WG);
     const gx = Math.min(groups, 16384), gy = Math.ceil(groups / gx);
     const u = new ArrayBuffer(64), u32 = new Uint32Array(u), f32 = new Float32Array(u);
@@ -415,8 +489,12 @@ export class Whisper {
       return { W: up(r.w, label + ".w"), B: up(r.b, label + ".b") };
     };
     const b = this.b = {};
-    const linear = (list, w, X, Y, T, flags = 0, xrow = 0, yrow = 0) =>
-      this._step(list, "linear", { a: [T, w.K, w.N, flags], b: [xrow, yrow, 0, 0] }, [w.W, w.S, w.B, X, Y], T * w.N);
+    const fast = this.opts.fast !== false;   // opts.fast = false keeps the plain kernels, for A/B checks
+    const linear = (list, w, X, Y, T, flags = 0, xrow = 0, yrow = 0) => {
+      if (fast && T >= 8 && !xrow && !yrow && !(flags & 4))
+        return this._step(list, `linear8_${w.K}_${w.N}_${T}_${flags}`, {}, [w.W, w.S, w.B, X, Y], Math.ceil(T / 8) * w.N, linear8(w.K, w.N, T, flags));
+      return this._step(list, "linear", { a: [T, w.K, w.N, flags], b: [xrow, yrow, 0, 0] }, [w.W, w.S, w.B, X, Y], T * w.N);
+    };
     const ln = (list, n, X, Y, T) =>
       this._step(list, "norm", { a: [T, D, 0, 0], b: [0, 0, 0, 0], f: [eps] }, [n.G, n.B, X, Y], T);
     const attn = (list, Q, K, Vb, O, Tq, Tk, flags) =>
@@ -447,7 +525,8 @@ export class Whisper {
       linear(s, lin(L.q, `e${i}.q`), b.xn, b.q, TA);
       linear(s, lin(L.k, `e${i}.k`), b.xn, b.k, TA);
       linear(s, lin(L.v, `e${i}.v`), b.xn, b.v, TA);
-      attn(s, b.q, b.k, b.v, b.att, TA, TA, 0);
+      if (fast) this._step(s, `attnE_${TA}_${H}_${D}`, {}, [b.q, b.k, b.v, b.att], TA * H, attnE(TA, H, D));
+      else attn(s, b.q, b.k, b.v, b.att, TA, TA, 0);
       linear(s, lin(L.o, `e${i}.o`), b.att, b.x, TA, 2);
       ln(s, n2, b.x, b.xn, TA);
       linear(s, lin(L.fc1, `e${i}.fc1`), b.xn, b.h, TA, 1);
