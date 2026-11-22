@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-21T01:51:42.249705+00:00",
+ "last_run": "2026-11-22T01:51:43.264516+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -812,6 +812,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "Position/survey paper defining agentic robotics as foundation model plus harness (memory, tools, verifier, budget, safety gate), with no experiments of its own and no release. The one transferable caution: reported success swings with how tools are exposed (EmbodiedSkillBench 92/61/85%), so model and harness must be held fixed separately in routing evals."
+  },
+  "2611.21003": {
+   "title": "K2-Horizon: A Frontier Fleet of Open Source Language Models",
+   "first_seen": "2026-11-22",
+   "best_rank": 30,
+   "upvotes": 150,
+   "reviewed": "2026-11-22",
+   "read": "full",
+   "practical": "MEDIUM",
+   "attempts": 1,
+   "review": "Six Apache-2.0 open models (0.9B to 375B-A23B) with base 0.9B/7B in MLX and GGUF, plus Uno LoRA adapters for lossless self-speculative decoding: 7B-Uno about 2.2x at batch 1 (H200, tree sampler), 0.9B-Uno only about 1.2x (576 to 681 tok/s). The 7B uses full attention in every layer, so it avoids the linear-attention problem noted for Qwen3.8 in memory e3fc0758 and is the cleanest target for the planned Uno-on-M5-Max port; Uno itself has no MLX/Metal path yet (code is CUDA/Nano-vLLM). Small models lose 5-7 points at Q4_K_M."
   }
  }
 }
