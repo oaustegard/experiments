@@ -1,0 +1,169 @@
+{
+ "machine": {
+  "model": "MacBook Air M1",
+  "ram_gb": 8,
+  "free_disk_gb_at_start": 44
+ },
+ "model": {
+  "name": "thinkingmachines/Inkling-2-Mini",
+  "params_b": 26.4,
+  "active_b": 3.4,
+  "experts": 128,
+  "experts_used": 8,
+  "quant": "unsloth UD-IQ1_S (Mainline_Support layout)",
+  "file_gb": 7.76,
+  "expert_tensor_gb": 6.53
+ },
+ "speed_m1": {
+  "iq1s_ngl0_default_tps": 0.8,
+  "iq1s_cpu_moe_metal_tps": 0.4,
+  "iq1s_full_metal": "GPU out of memory",
+  "iq1s_device_none_b128_tps_best": 4.6,
+  "iq1s_device_none_b128_tps_worst": 2.1,
+  "iq1s_threads": {
+   "4": 2.3,
+   "6": 2.1,
+   "8": 1.8
+  },
+  "pruned64_device_none_tps": 9.5,
+  "metal_compute_buffer_mib_ngl0_ctx2048": 1856.79,
+  "metal_compute_buffer_mib_ngl0_ctx8192": 2492.79,
+  "cpu_compute_buffer_mib_device_none_b128": 145.43,
+  "nemotron_bolt_e4b_metal_tps": 15.8,
+  "nemotron_bolt_e4b_cpu_tps": 12.1,
+  "nemotron_bolt_e4b_rss_gb_metal": 2.87,
+  "nemotron_bolt_e4b_file_gb": 6.18,
+  "speedup_metal_off": 5.7
+ },
+ "quality_colab": {
+  "wiki_ppl_q4": 6.7667,
+  "wiki_ppl_iq1s": 7.4656,
+  "wiki_iq1s_same_top_vs_q4": 85.627,
+  "code_ppl_q4": 2.3714,
+  "code_ppl_iq1s": 2.4848,
+  "code_iq1s_same_top_vs_q4": 92.559,
+  "general_selected": {
+   "96": {
+    "size_gb": 6.13,
+    "coverage_mean": 0.903,
+    "wiki_ppl": 8.0888,
+    "wiki_same_top_vs_q4": 82.598,
+    "code_ppl": 2.8077,
+    "code_same_top_vs_q4": 87.534
+   },
+   "80": {
+    "size_gb": 5.32,
+    "coverage_mean": 0.823,
+    "wiki_ppl": 9.455,
+    "wiki_same_top_vs_q4": 77.108,
+    "code_ppl": 3.3253,
+    "code_same_top_vs_q4": 82.294
+   },
+   "64": {
+    "size_gb": 4.5,
+    "coverage_mean": 0.726,
+    "wiki_ppl": 11.4035,
+    "wiki_same_top_vs_q4": 72.029,
+    "code_ppl": 4.1769,
+    "code_same_top_vs_q4": 76.583
+   },
+   "56": {
+    "size_gb": 4.09,
+    "coverage_mean": 0.671,
+    "wiki_ppl": 13.0324,
+    "wiki_same_top_vs_q4": 67.51,
+    "code_ppl": 4.7909,
+    "code_same_top_vs_q4": 73.24
+   },
+   "48": {
+    "size_gb": 3.68,
+    "coverage_mean": 0.611,
+    "wiki_ppl": 14.9721,
+    "wiki_same_top_vs_q4": 64.284,
+    "code_ppl": 5.8257,
+    "code_same_top_vs_q4": 68.882
+   },
+   "40": {
+    "size_gb": 3.27,
+    "coverage_mean": 0.546,
+    "wiki_ppl": 19.5149,
+    "wiki_same_top_vs_q4": 58.98,
+    "code_ppl": 7.1297,
+    "code_same_top_vs_q4": 65.157
+   },
+   "32": {
+    "size_gb": 2.87,
+    "coverage_mean": 0.474,
+    "wiki_ppl": 26.527,
+    "wiki_same_top_vs_q4": 53.118,
+    "code_ppl": 9.6548,
+    "code_same_top_vs_q4": 60.059
+   }
+  },
+  "code_selected": {
+   "96": {
+    "coverage_mean": 0.952,
+    "code_ppl": 2.5475,
+    "code_same_top_vs_q4": 90.98,
+    "wiki_ppl": 13.8495,
+    "wiki_same_top_vs_q4": 65.373
+   },
+   "64": {
+    "coverage_mean": 0.832,
+    "code_ppl": 2.9804,
+    "code_same_top_vs_q4": 86.181,
+    "wiki_ppl": 50.5945,
+    "wiki_same_top_vs_q4": 43.186
+   },
+   "48": {
+    "coverage_mean": 0.736,
+    "code_ppl": 3.5857,
+    "code_same_top_vs_q4": 80.863,
+    "wiki_ppl": 91.5474,
+    "wiki_same_top_vs_q4": 35.824
+   }
+  },
+  "blended_selected": {
+   "72": {
+    "size_gb": 4.91,
+    "code_ppl": 2.7956,
+    "code_same_top_vs_q4": 87.412,
+    "wiki_ppl": 17.3845,
+    "wiki_same_top_vs_q4": 60.912
+   },
+   "64": {
+    "size_gb": 4.5,
+    "code_ppl": 2.9845,
+    "code_same_top_vs_q4": 85.5,
+    "wiki_ppl": 22.0422,
+    "wiki_same_top_vs_q4": 56.402
+   },
+   "56": {
+    "size_gb": 4.09,
+    "code_ppl": 3.183,
+    "code_same_top_vs_q4": 83.672,
+    "wiki_ppl": 29.0781,
+    "wiki_same_top_vs_q4": 51.539
+   },
+   "48": {
+    "size_gb": 3.68,
+    "code_ppl": 3.549,
+    "code_same_top_vs_q4": 80.652,
+    "wiki_ppl": 37.9657,
+    "wiki_same_top_vs_q4": 47.775
+   }
+  }
+ },
+ "corpora": {
+  "heldout_code_files": 42,
+  "heldout_code_chars": 264632,
+  "calib_code_files": 57,
+  "calib_code_chars": 716263,
+  "calibration_text": "bartowski calibration-v6 (160 x 512 tokens)",
+  "wiki": "wikitext-2-raw test, 40 x 512 tokens"
+ },
+ "cost": {
+  "colab_l4_hours_approx": 4.5,
+  "colab_balance_after_units": 288.3
+ }
+}

@@ -6049,6 +6049,26 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
 - **A bridge job's return value must be cloneable.** Returning `ctx.describe()` without `await` failed the job with
   `DataCloneError` and lost its timings.
 
+### Running and pruning a large MoE on an 8 GB Apple-silicon Mac (inkling-8gb-m1)
+
+- **llama.cpp's `-ngl 0` still reserves a Metal compute buffer.** With every layer on the CPU, the M1 still got
+  `MTL0 compute buffer size = 1856.79 MiB` (2K context, default batch 2048; 2492.79 MiB at 8K). On unified memory that is
+  RAM taken from an mmap'd model too big to fit, and generation fell to 0.8 tokens/s. `--device none -b 128 -ub 128`
+  left a 145 MiB CPU buffer and gave 2.1–4.6 tokens/s on the same 7.76 GB file. For a model that fits, Metal on is
+  faster (15.8 against 12.1 tokens/s for a 4B-effective model). Check the `compute buffer` lines with `-v`. (`inkling-8gb-m1/RESULTS.md`)
+- **pip's `gguf` package cannot read NVFP4 tensors.** `GGUFReader` failed with `42 is not a valid GGMLQuantizationType`
+  on unsloth's Inkling quants; put llama.cpp's own `gguf-py` first on `PYTHONPATH`. (`inkling-8gb-m1/colab/stage4.sh`)
+- **To write raw quantized bytes with `GGUFWriter.add_tensor`, pass them as int8, not uint8.** With a uint8 array the
+  writer treats `raw_shape` as a byte shape and rejects rows that are not a multiple of the block size. (`inkling-8gb-m1/prune_tools.py`)
+- **llama.cpp's `ffn_moe_topk-N` tensor is a strided view of the full argsort.** An eval callback that reads it as
+  contiguous gets wrong expert ids; read its `view_src` and index with the view's strides. (`inkling-8gb-m1/expert-usage.patch`)
+- **Measure expert pruning without rewriting the file:** set the pruned experts' selection bias (`exp_probs_b`) to −1e9
+  in place, run `llama-perplexity --kl-divergence`, restore. Works only for models whose router has that bias. (`inkling-8gb-m1/prune_tools.py`)
+- **Expert pruning by usage frequency is task-bound.** On Inkling 2 Mini, experts chosen from code usage held code
+  perplexity at 2.98 (64 of 128 kept) and took WikiText perplexity to 50.6; general-text selection gave 4.18 on code.
+  Calibrate on the task mix the model will see, and score on both. (`inkling-8gb-m1/RESULTS.md`)
+- **`llama-perplexity` returns NaN on Inkling 2 Mini at a 64-token context;** 512 works. (`inkling-8gb-m1/RESULTS.md`)
+
 ### Retrofitting a layer loop onto Monad on Colab (monad-looped)
 
 - **`colab download` does not keep a `colab new` VM assigned; only `colab exec` does.** Two L4 VMs were reclaimed about

@@ -1,0 +1,66 @@
+diff --git a/tools/perplexity/perplexity.cpp b/tools/perplexity/perplexity.cpp
+index 601361a..52d072d 100644
+--- a/tools/perplexity/perplexity.cpp
++++ b/tools/perplexity/perplexity.cpp
+@@ -20,6 +20,49 @@
+ #include <thread>
+ #include <vector>
+ 
++// --- expert usage recorder (LLAMA_EXPERT_USAGE=out.tsv) ---
++#include <map>
++#include <cstdlib>
++#include <cstring>
++#include "ggml-backend.h"
++static std::map<int, std::vector<uint64_t>> g_exp_usage;
++static bool exp_usage_cb(struct ggml_tensor * t, bool ask, void *) {
++    const bool want = strncmp(t->name, "ffn_moe_topk-", 13) == 0;
++    if (ask) return want;
++    if (!want) return true;
++    const int il = atoi(t->name + 13);
++    // the top-k tensor is usually a strided view of the full argsort: read its source and index by strides
++    const ggml_tensor * src = t->view_src ? t->view_src : t;
++    std::vector<uint8_t> buf(ggml_nbytes(src));
++    ggml_backend_tensor_get(src, buf.data(), 0, buf.size());
++    const size_t base = t->view_src ? t->view_offs : 0;
++    auto & h = g_exp_usage[il];
++    for (int64_t j = 0; j < t->ne[1]; ++j) {
++        for (int64_t i = 0; i < t->ne[0]; ++i) {
++            const size_t off = base + i*t->nb[0] + j*t->nb[1];
++            if (off + sizeof(int32_t) > buf.size()) continue;
++            int32_t id;
++            memcpy(&id, buf.data() + off, sizeof(id));
++            if (id < 0 || id > 4096) continue;
++            if ((size_t) id >= h.size()) h.resize(id + 1, 0);
++            h[id]++;
++        }
++    }
++    return true;
++}
++static void exp_usage_dump() {
++    const char * path = getenv("LLAMA_EXPERT_USAGE");
++    if (!path) return;
++    FILE * f = fopen(path, "w");
++    if (!f) return;
++    for (auto & kv : g_exp_usage) {
++        fprintf(f, "%d", kv.first);
++        for (uint64_t c : kv.second) fprintf(f, "\t%llu", (unsigned long long) c);
++        fprintf(f, "\n");
++    }
++    fclose(f);
++}
++
+ #if defined(_MSC_VER)
+ #pragma warning(disable: 4244 4267) // possible loss of data
+ #endif
+@@ -2023,6 +2066,11 @@ int llama_perplexity(int argc, char ** argv) {
+     llama_backend_init();
+     llama_numa_init(params.numa);
+ 
++    if (getenv("LLAMA_EXPERT_USAGE")) {
++        params.cb_eval = exp_usage_cb;
++        params.cb_eval_user_data = nullptr;
++        atexit(exp_usage_dump);
++    }
+     // load the model and apply lora adapter, if any
+     auto llama_init = common_init_from_params(params);
+ 

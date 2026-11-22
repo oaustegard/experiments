@@ -1,0 +1,123 @@
+launched stage4
+== base logits on code (Q4)
+1.11.173.664 I Final estimate: PPL = 2.3714 +/- 0.03234
+== IQ1_S unpruned vs Q4 on code
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   2.484788 ±   0.034463
+Same top p: 92.559 ± 0.184 %
+#### K=96
+K=96: selections covered per layer min 0.863 mean 0.903
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   8.088782 ±   0.202745
+Same top p: 88.431 ± 0.317 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   8.088782 ±   0.202745
+Same top p: 82.598 ± 0.375 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   2.807678 ±   0.041157
+Same top p: 87.534 ± 0.231 %
+restored 24 layers
+#### K=80
+K=80: selections covered per layer min 0.769 mean 0.823
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   9.455037 ±   0.242175
+Same top p: 81.706 ± 0.383 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   9.455037 ±   0.242175
+Same top p: 77.108 ± 0.416 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   3.325286 ±   0.051322
+Same top p: 82.294 ± 0.267 %
+restored 24 layers
+#### K=64
+K=64: selections covered per layer min 0.661 mean 0.726
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  11.403507 ±   0.298769
+Same top p: 75.627 ± 0.425 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  11.403507 ±   0.298769
+Same top p: 72.029 ± 0.444 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   4.176948 ±   0.068823
+Same top p: 76.583 ± 0.297 %
+restored 24 layers
+#### K=56
+K=56: selections covered per layer min 0.601 mean 0.671
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  13.032375 ±   0.346684
+Same top p: 70.863 ± 0.450 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  13.032375 ±   0.346684
+Same top p: 67.510 ± 0.464 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   4.790870 ±   0.081611
+Same top p: 73.240 ± 0.310 %
+restored 24 layers
+#### K=48
+K=48: selections covered per layer min 0.539 mean 0.611
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  14.972077 ±   0.404190
+Same top p: 67.402 ± 0.464 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  14.972077 ±   0.404190
+Same top p: 64.284 ± 0.474 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   5.825734 ±   0.104151
+Same top p: 68.882 ± 0.324 %
+restored 24 layers
+#### K=40
+K=40: selections covered per layer min 0.470 mean 0.546
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  19.514851 ±   0.548878
+Same top p: 61.559 ± 0.482 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  19.514851 ±   0.548878
+Same top p: 58.980 ± 0.487 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   7.129710 ±   0.134562
+Same top p: 65.157 ± 0.334 %
+restored 24 layers
+#### K=32
+K=32: selections covered per layer min 0.398 mean 0.474
+masked 24 layers
+-- wiki vs unpruned IQ1_S
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  26.527034 ±   0.772201
+Same top p: 55.333 ± 0.492 %
+-- wiki vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :  26.527034 ±   0.772201
+Same top p: 53.118 ± 0.494 %
+-- code vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Mean PPL(Q)                   :   9.654833 ±   0.193976
+Same top p: 60.059 ± 0.343 %
+restored 24 layers
+STAGE4_DONE
+
+
+[exited with code 0]

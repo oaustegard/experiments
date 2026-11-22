@@ -1,0 +1,25 @@
+launched stage1
+
+
+== sanity Q4 wiki 8 chunks
+0.14.876.156 I Final estimate: PPL = 7.7909 +/- 0.43935
+== sanity IQ1_S wiki 8 chunks
+0.33.028.811 I Final estimate: PPL = 8.6645 +/- 0.49385
+== usage IQ1_S on calibration text
+1.51.355.674 I Final estimate: PPL = 5.2532 +/- 0.06399
+== usage Q4 on calibration text
+2.02.294.228 I Final estimate: PPL = 4.9743 +/- 0.06045
+== base logits (wiki, 40 chunks)
+0.39.455.918 I Final estimate: PPL = 6.7667 +/- 0.16576
+0.35.665.879 I Final estimate: PPL = 7.4656 +/- 0.18491
+== IQ1_S vs Q4
+chunk             PPL               ln(PPL(Q)/PPL(base))          KL Divergence              Δp RMS            Same top p
+Maximum KLD:   4.820569
+Same top p: 85.627 ± 0.347 %
+   48 /content/usage_iq1.tsv
+   48 /content/usage_q4.tsv
+   96 total
+STAGE1_DONE
+
+
+[exited with code 0]
