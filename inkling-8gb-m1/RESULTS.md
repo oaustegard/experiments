@@ -19,7 +19,9 @@ It runs but doesn't fit, and pruning doesn't make it fit at acceptable quality. 
 - Experts chosen from code keep code far better but wreck prose: WikiText perplexity 50.6. An equal-weight blend kept neither well. <!-- @evidence[[results/summary.json#quality_colab.code_selected.64.wiki_ppl]] -->
 - The faster option that fits is Nemotron 3.5 Bolt E4B: 15.8 tokens/s, under 3 GB in RAM; quality not compared head to head. <!-- @evidence[[results/summary.json#speed_m1.nemotron_bolt_e4b_metal_tps]] -->
 
-What would change this: training the routers to work within a 48-expert subset (untested; last Log round).
+Distillation does not change this yet (Round 8). Training adapters on the 96 kept experts to imitate the full model
+moved them toward it, but mainline llama.cpp's requantization of the healed experts to IQ1_S lost more than the
+training gained, so no healed file beats unsloth's own 96-expert slice (code perplexity 2.61, WikiText 9.44).
 
 ## Findings
 
@@ -136,3 +138,70 @@ within the blended 48-expert set, on held-out code. Needs the 20 GB checkpoint i
 than 24 GB. Go on if code perplexity falls from 3.55 (blended 48, round 6) toward 2.5–2.8 without WikiText getting worse.
 
 Cost: about 4.5 Colab L4 hours (balance afterwards 288.3 units).
+
+### Round 8 — healing a 96-expert cut by distillation (2026-11-22/23)
+
+Question: after keeping 96 of 128 experts per layer, does training the kept experts to imitate the full model
+recover the lost quality, and does the gain survive into a 1-bit GGUF that runs on the M1?
+
+**Selection.** Routing statistics from the full checkpoint (transformers 5.24, `inkling2_loop`) on 0.5-1 M tokens
+of the training mix, scored three ways per expert: usage count, REAP (mean gate weight x output norm over routed
+tokens) and REAP summed over tokens. Each 96-expert cut was scored against the full model without training; REAP-sum
+had the lowest total KL and was kept (87.5-87.8% of routing selections covered).
+
+**Training.** Teacher = the full model; its top-32 next-token log-probabilities were stored per token. Student = the
+96-expert model with the router masked to the kept experts, a trainable per-layer router correction and a rank-8
+LoRA on every kept expert's gate/up and down projections; loss = KL on the teacher's top-32 plus a tail bucket.
+The experts stay in their released NVFP4/MXFP8 form on the GPU and are dequantized per expert group inside the
+matmul (a Triton kernel, bit-identical to transformers' own dequantization), so teacher and student fit in 20 GB.
+Data: 24 M tokens, 20% oaustegard repos (the 41 still-existing held-out files of `results/heldout_code_files.txt`
+excluded), 20% codeparrot-clean, 30% smoltalk chat, 30% fineweb-edu. 300 steps x 8 K tokens = 2.46 M tokens on a
+Colab L4 at ~112 tokens/s (5.9 h). Three A100 runtimes were reclaimed by Colab before that, two of them
+mid-training, so the run moved to the L4 with checkpoints copied off the VM every 10 minutes.
+
+Evaluation against the full model in PyTorch (held-out code = the Round 4 files, WikiText-2 test, smoltalk chat;
+KL is on the teacher's top-32 plus tail):
+
+| | code KL / top-1 / PPL | WikiText KL / top-1 / PPL | chat KL / top-1 |
+|---|---|---|---|
+| full model | 0 / - / 2.412 | 0 / - / 7.801 | 0 / - |
+| 96 experts, untrained | 0.0433 / 93.98% / 2.469 | 0.1695 / 83.16% / 9.120 | 0.2390 / 87.12% |
+| after 100 steps | 0.0407 / 94.19% / 2.463 | 0.1477 / 84.49% / 8.971 | 0.1399 / 88.15% |
+| after 200 steps | 0.0395 / 94.21% / 2.463 | 0.1440 / 84.69% / 8.958 | 0.1276 / 88.72% |
+| after 300 steps | 0.0393 / 94.27% / 2.462 | 0.1430 / 84.74% / 8.953 | 0.1240 / 88.88% |
+
+Most of the gain came in the first 100 steps. Chat KL nearly halved; WikiText closed 13% of its perplexity gap.
+
+**GGUF.** Healed experts were exported, spliced into unsloth's mainline UD-IQ1_S at Q8_0 (keeping its per-expert
+`.scale` factors and its other tensors byte for byte), then requantized with `llama-quantize` to unsloth's
+per-tensor types. Scores against UD-Q4_K_XL logits, same method and text as Rounds 4-6:
+
+| model | size | code PPL / top-1 | WikiText PPL / top-1 |
+|---|---|---|---|
+| UD-Q4_K_XL (reference) | 17.6 GB | 2.403 / - | 6.740 / - |
+| UD-IQ1_S, 128 experts | 7.76 GB | 2.533 / 92.37% | 7.423 / 85.46% |
+| UD-IQ1_S sliced to REAP-sum 96 | 6.12 GB | 2.612 / 90.92% | 9.440 / 77.27% |
+| same slice, healed router rows only | 6.12 GB | 2.613 / 90.92% | 9.429 / 77.50% |
+| 96 experts at Q8_0, untrained | 20.7 GB | 2.472 / 93.96% | 8.506 / 82.22% |
+| 96 experts at Q8_0, healed | 20.7 GB | 2.472 / 94.10% | 8.393 / 82.84% |
+| untrained, requantized to IQ1_S | 6.12 GB | 2.995 / 85.60% | 12.535 / 69.28% |
+| healed, requantized to IQ1_S | 6.12 GB | 2.981 / 85.82% | 12.034 / 70.14% |
+
+- The splice is correct: at Q8_0 the 96-expert model beats every IQ1_S file on code.
+- Healing helps in a GGUF too: WikiText KLD 0.252 to 0.232 at Q8_0.
+- The loss is in `llama-quantize` going from Q8_0 to IQ1_S: 9.44 becomes 12.5 on WikiText for the same untrained
+  experts. Unsloth's importance matrix (8,238 chunks, sliced to the kept experts) gave the same result as one built
+  from 100 K tokens, so the matrix is not the cause; unsloth's IQ1_S expert weights come from a different pipeline.
+- The router correction alone, swapped into unsloth's file, changes almost nothing; the gain needs the expert LoRA.
+
+Prediction before the run: healing would bring the sliced-96 WikiText perplexity within 1.0 of the 128-expert
+file (7.42). It did not: the best deployable file is still unsloth's plain slice.
+
+What would change it: requantizing only what training changed (keep unsloth's IQ1_S rows and add the LoRA as a
+llama.cpp adapter), or unsloth's own quantizer for the healed experts. Scripts: `heal96/` (`heal.py` teacher,
+select, train, export; `gguf_heal.py` splice; `slice_imatrix.py`; `router_swap.py`). Training log and the
+expert selection: `results/heal96/`.
+
+Cost: about 72 Colab compute units over two days, much of it on A100 runtimes that Colab reclaimed before they
+finished (balance afterwards 216.5 units).
+

@@ -6068,6 +6068,20 @@ are measured on the actual prompt shape. Ember accepts `minimal`, which `claude 
   perplexity at 2.98 (64 of 128 kept) and took WikiText perplexity to 50.6; general-text selection gave 4.18 on code.
   Calibrate on the task mix the model will see, and score on both. (`inkling-8gb-m1/RESULTS.md`)
 - **`llama-perplexity` returns NaN on Inkling 2 Mini at a 64-token context;** 512 works. (`inkling-8gb-m1/RESULTS.md`)
+- **Mainline `llama-quantize` to IQ1_S loses far more than unsloth's IQ1_S on the same experts.** Inkling's 96 kept
+  experts spliced in at Q8_0 scored WikiText perplexity 8.5; requantized to unsloth's exact per-tensor types they
+  scored 12.5, against 9.4 for unsloth's own file sliced to the same experts. Unsloth's importance matrix did not
+  close the gap. Retrained weights do not survive a mainline 1-bit requant; keep the vendor's quantized rows and
+  ship changes as an adapter instead. (`inkling-8gb-m1/RESULTS.md`, Round 8)
+- **Train against packed NVFP4/MXFP8 experts instead of dequantizing the checkpoint.** A custom autograd matmul
+  that dequantizes each expert group on the fly (Triton kernel, bit-identical to transformers'
+  `Inkling2LoopDequantizeExperts`) keeps the 26 B-parameter teacher in 20 GB and a 96-expert student with LoRA in
+  22 GB. The fixed-saved-tensor autograd functions matter under gradient checkpointing: anything whose saved
+  tensors depend on routing (per-expert matmul fallbacks, atomic `index_add_`) breaks the recompute.
+  (`inkling-8gb-m1/heal96/heal.py`)
+- **Colab A100s are preemptible in practice.** Three were reclaimed within 30 min to 3 h in one night, one while a
+  busy-kernel guard cell ran; an L4 ran 11 h+. Copy checkpoints off the VM every few minutes.
+  (`inkling-8gb-m1/RESULTS.md`, Round 8)
 
 ### Retrofitting a layer loop onto Monad on Colab (monad-looped)
 
