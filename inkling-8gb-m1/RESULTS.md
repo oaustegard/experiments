@@ -19,9 +19,11 @@ It runs but doesn't fit, and pruning doesn't make it fit at acceptable quality. 
 - Experts chosen from code keep code far better but wreck prose: WikiText perplexity 50.6. An equal-weight blend kept neither well. <!-- @evidence[[results/summary.json#quality_colab.code_selected.64.wiki_ppl]] -->
 - The faster option that fits is Nemotron 3.5 Bolt E4B: 15.8 tokens/s, under 3 GB in RAM; quality not compared head to head. <!-- @evidence[[results/summary.json#speed_m1.nemotron_bolt_e4b_metal_tps]] -->
 
-Distillation does not change this yet (Round 8). Training adapters on the 96 kept experts to imitate the full model
-moved them toward it, but mainline llama.cpp's requantization of the healed experts to IQ1_S lost more than the
-training gained, so no healed file beats unsloth's own 96-expert slice (code perplexity 2.61, WikiText 9.44).
+Distillation helps a little (Rounds 8-9). LoRA adapters trained on the 96 kept experts to imitate the full model,
+loaded at run time with `--lora` on top of unsloth's untouched 96-expert IQ1_S slice (6.12 GB + 0.30 GB adapter),
+take WikiText perplexity from 9.44 to 9.21 and code from 2.61 to 2.60. The full 128-expert file is at 7.42 and 2.53,
+so most of the pruning loss on prose remains. Requantizing the healed experts to IQ1_S with mainline llama.cpp
+instead loses more than the training gains.
 
 ## Findings
 
@@ -204,4 +206,30 @@ expert selection: `results/heal96/`.
 
 Cost: about 72 Colab compute units over two days, much of it on A100 runtimes that Colab reclaimed before they
 finished (balance afterwards 216.5 units).
+
+### Round 9 — the healed experts as a llama.cpp LoRA adapter (2026-11-23/24)
+
+Round 8 found that mainline `llama-quantize` destroys more than healing adds, so the healed weights went in as an
+adapter instead. llama.cpp's MoE path (`build_lora_mm_id`) adds a LoRA delta to `mul_mat_id` expert matmuls, after
+the per-expert `.scale` multiply, i.e. in true weight units, which is what `heal.py` trained. `heal96/lora_gguf.py`
+writes the step-300 adapters as a LoRA GGUF (48 pairs, rank 8, alpha 16, f16, 297 MB; the checkpoint's interleaved
+gate/up rows reordered to the GGUF's [gate; up]). Scored on a fresh L4 against UD-Q4_K_XL, same text and method as
+Rounds 4-8:
+
+| model | code PPL / top-1 / KLD | WikiText PPL / top-1 / KLD |
+|---|---|---|
+| UD-IQ1_S sliced to REAP-sum 96 | 2.612 / 90.92% / 0.1038 | 9.440 / 77.27% / 0.3633 |
+| same + healed expert LoRA | 2.597 / 91.13% / 0.0989 | 9.205 / 78.23% / 0.3352 |
+| same + healed router rows + LoRA | 2.605 / 91.07% / 0.1000 | 9.229 / 78.38% / 0.3354 |
+
+The adapter cuts KL to Q4 by 5% on code and 8% on WikiText, about the same relative gain healing gave at Q8_0
+(Round 8: WikiText KLD 0.252 to 0.232). The trained router correction adds nothing on top. Speed with the adapter on
+the M1 is not measured: it adds two small matmuls per expert per layer and 0.3 GB of RAM, which an 8 GB machine
+can ill afford.
+
+Prediction before the run: the adapter would recover the Q8_0-level healing gain on top of unsloth's slice. It
+did, in relative terms; in absolute terms that gain is small next to the 7.42 of the unpruned file.
+
+Cost: about 3 Colab units (an L4 lost mid-run when the client stopped contacting it; see `docs/colab.md` in
+claude-workspace), balance afterwards 213.7 units.
 
