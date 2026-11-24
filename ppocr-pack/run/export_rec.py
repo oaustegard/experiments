@@ -38,9 +38,10 @@ into the conv first. Per tensor format:
   f16   one IEEE half per weight
   i8    int8 codes in [-L, L], one fp16 scale per output channel (conv: dim 0 of [O, I, kh, kw];
         MatMul weight [K, N]: per column N); scale = fp16(max|w| / L), code = round(w / scale)
-  t4    4-bit codes in [-7, 7], groups of 32 consecutive K values within a column of [K, N], one fp16
-        scale per group (max|w| / 7); stored column-major [N][K padded to 32], code + 8 in a nibble,
-        low nibble first. CTC head only.
+  t4    4-bit codes in [-7, 7], groups of 32 consecutive K values within a column of [K, N] (the last
+        group may be shorter), one fp16 scale per group (max|w| / 7); codes row-major [K, N], code + 8 in
+        a nibble, two consecutive elements per byte, low nibble first; scales [ceil(K / 32), N]
+        row-major. CTC head only.
 
 Weights under 1,024 values and every bias and LayerNorm parameter stay f32. The dequantised value is
 float32(code) * float32(scale), rounded once to f32, in the exporter, run/ref_rec.py and engine.js.
@@ -127,16 +128,17 @@ def quant_rows(w2, L):
 
 
 def quant_t4(w, G=32):
-    """w [K, N] -> codes [N, Kp] int8 in [-7, 7] (Kp = K rounded up to G), fp16 scales [N, Kp/G]."""
+    """w [K, N] -> codes [K, N] int8 in [-7, 7], fp16 scales [ceil(K / G), N]: groups of G along K per column
+    (the last group of a column may be shorter), as run/quant.py quant_t4."""
     K, N = w.shape
-    Kp = -(-K // G) * G
-    wt = np.zeros((N, Kp), np.float32)
-    wt[:, :K] = w.T
-    g = wt.reshape(N, Kp // G, G)
-    s16, s = f16_scale(np.abs(g).max(axis=2), 7)
+    ng = -(-K // G)
+    pad = np.zeros((ng * G, N), np.float32)
+    pad[:K] = w
+    g = pad.reshape(ng, G, N)
+    s16, s = f16_scale(np.abs(g).max(axis=1), 7)
     with np.errstate(divide="ignore", invalid="ignore"):
-        q = np.where(s[..., None] > 0, np.rint(g / s[..., None]), 0)
-    return np.clip(q, -7, 7).astype(np.int8).reshape(N, Kp), s16
+        q = np.where(s[:, None, :] > 0, np.rint(g / s[:, None, :]), 0)
+    return np.clip(q, -7, 7).astype(np.int8).reshape(ng * G, N)[:K], s16
 
 
 def dequant(e, raw):
@@ -155,14 +157,12 @@ def dequant(e, raw):
     if e["fmt"] == "t4":
         K, N = shape
         G = e["group"]
-        Kp = -(-K // G) * G
-        b = np.frombuffer(raw, np.uint8, N * Kp // 2, e["off"])
-        q = np.empty(N * Kp, np.float32)
+        b = np.frombuffer(raw, np.uint8, (n + 1) // 2, e["off"])
+        q = np.empty(2 * b.size, np.float32)
         q[0::2] = (b & 15).astype(np.float32) - 8
         q[1::2] = (b >> 4).astype(np.float32) - 8
-        s = np.frombuffer(raw, "<f2", N * Kp // G, e["sc"]).astype(np.float32)
-        w = (q.reshape(N, Kp // G, G) * s.reshape(N, Kp // G, 1)).reshape(N, Kp)
-        return np.ascontiguousarray(w[:, :K].T)
+        s = np.frombuffer(raw, "<f2", e["nsc"], e["sc"]).astype(np.float32).reshape(-1, N)
+        return q[:n].reshape(K, N) * s[np.arange(K) // G]
     raise ValueError(e["fmt"])
 
 
@@ -200,7 +200,9 @@ def pack(tensors, spec):
         elif fmt == "t4":
             assert a.ndim == 2, "t4 is for a MatMul weight [K, N]"
             q, s16 = quant_t4(a)
-            u = (q.reshape(-1) + 8).astype(np.uint8)
+            u = (q.reshape(-1).astype(np.int16) + 8).astype(np.uint8)
+            if u.size % 2:
+                u = np.append(u, np.uint8(8))
             e.update(fmt="t4", group=32, off=blob.add((u[0::2] | (u[1::2] << 4)).astype(np.uint8).tobytes()),
                      sc=blob.add(s16.astype("<f2").tobytes()), nsc=int(s16.size))
         else:
@@ -444,10 +446,11 @@ class Exporter:
                 B = B + c.astype(np.float32).reshape(-1)
                 self.stats["bias_add_folded"] += 1
             elif m.op_type == "BatchNormalization":
-                gamma, beta, mean, var = [self.init[i].astype(np.float32) for i in m.input[1:5]]
-                f = gamma / np.sqrt(var + np.float32(attr(m).get("epsilon", 1e-5)))
-                W = W * f.reshape(-1, *([1] * (W.ndim - 1)))
-                B = (B - mean) * f + beta
+                # in float64, rounded once to f32, exactly as run/quant.py folds
+                gamma, beta, mean, var = [self.init[i].astype(np.float64) for i in m.input[1:5]]
+                f = gamma / np.sqrt(var + attr(m).get("epsilon", 1e-5))
+                W = (W.astype(np.float64) * f.reshape(-1, *([1] * (W.ndim - 1)))).astype(np.float32)
+                B = ((B.astype(np.float64) - mean) * f + beta).astype(np.float32)
                 self.stats["batchnorm_folded"] += 1
             elif self.squeeze_keeps_chw(m):
                 pass

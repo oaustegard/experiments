@@ -69,14 +69,13 @@ export function unpackParams(man, raw) {
         for (let i = 0; i < n; i++) out[at + i] = q[i] * s[i % N];
       }
     } else if (t.fmt === "t4") {
-      const [Kd, N] = t.shape, G = t.group, Kp = Math.ceil(Kd / G) * G, ng = Kp / G;
+      // codes row-major [K, N], two per byte (low nibble first, + 8); scales [ceil(K / group), N]
+      const N = t.shape[1], G = t.group;
       const s = Array.from(new Uint16Array(raw, t.sc, t.nsc), f16);
-      for (let c = 0; c < N; c++) {
-        for (let k = 0; k < Kd; k++) {
-          const e = c * Kp + k;
-          const nib = (u8[t.off + (e >> 1)] >> (4 * (e & 1))) & 15;
-          out[at + k * N + c] = (nib - 8) * s[c * ng + Math.floor(k / G)];
-        }
+      for (let i = 0; i < n; i++) {
+        const nib = (u8[t.off + (i >> 1)] >> (4 * (i & 1))) & 15;
+        const k = Math.floor(i / N);
+        out[at + i] = (nib - 8) * s[Math.floor(k / G) * N + (i - k * N)];
       }
     } else {
       throw new Error(`tensor ${t.name}: unknown format ${t.fmt}`);
