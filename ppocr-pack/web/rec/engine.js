@@ -210,6 +210,7 @@ export class RecNet {
   get(bytes) {
     let s = 256;
     while (s < bytes) s *= 2;
+    if (s > this.device.limits.maxStorageBufferBindingSize) s = Math.ceil(bytes / 256) * 256;   // exact size near the limit
     const list = this.free.get(s);
     if (list && list.length) return list.pop();
     return this.device.createBuffer({ size: s, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
