@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-23T01:50:49.131400+00:00",
+ "last_run": "2026-11-24T01:51:57.319246+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -834,6 +834,28 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "A ~0.5B feed-forward model that predicts geometry, camera poses, metric scale, point tracks and motion masks from uncalibrated video. It is outside the retrieval/WebGPU/agent stack, and its lead over Pi3X is thin (average rank 3.00 vs 3.10). The released weights at github.com/yyfz/Pi4 could estimate camera poses from video if that ever becomes needed."
+  },
+  "2611.20404": {
+   "title": "Latent Feedback Is a Compute and Data Amplifier",
+   "first_seen": "2026-11-24",
+   "best_rank": 8,
+   "upvotes": 272,
+   "reviewed": "2026-11-24",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Pretraining recipe that feeds each token's top-layer state into the next token's input; claims a 1.34-1.91x compute/data multiplier at 60M-778M. Adopting it means pretraining a modified architecture, and the paper's own control shows a ~1.2x larger plain Transformer at equal FLOPs reaches lower loss. Nothing to adopt in routing, retrieval or browser inference."
+  },
+  "2611.18562": {
+   "title": "Training Reasoning Models in Simulation to Natively Use Real Robots",
+   "first_seen": "2026-11-24",
+   "best_rank": 30,
+   "upvotes": 161,
+   "reviewed": "2026-11-24",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "GRPO in simulation teaches Qwen3.8-27B to emit end-effector poses from camera frames (LIBERO 1.6% to 74.4%; real robot 18/30); ~50k H100-hours and robotics are outside the stack. One finding bears on cheap-tier routing: cutting reasoning effort to about a quarter of the thinking tokens dropped closed-loop success from 74.4% to 21.9%, one model on one benchmark."
   }
  }
 }
