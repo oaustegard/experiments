@@ -59,6 +59,8 @@ synthetic line crops per recognizer (widths 82 to 1,412 px, several scripts), 4 
 
 Page: `web/index.html`, `web/app.js`. Smoke test: `web/test/smoke_page.mjs`.
 
+Porting a server PaddleOCR app to this engine: `web/README.md`.
+
 ## Log
 
 ### Round 1, 2026-11-24: sweep, engines, page

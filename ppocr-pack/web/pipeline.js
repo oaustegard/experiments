@@ -720,3 +720,35 @@ export class TextPipeline {
     return out;
   }
 }
+
+// ------------------------------------------------------------------ PaddleOCR-shaped result
+
+// The OCR result of PaddleOCR 3.x (Python `PaddleOCR().predict(img)[0]`, paddlex OCRResult; `res.json["res"]`
+// has the same keys), from TextPipeline lines:
+//
+//   const r = toPaddleResult(await pipe.run(canvas), { width: canvas.width, height: canvas.height });
+//   r.rec_texts[i], r.rec_scores[i], r.rec_polys[i], r.rec_boxes[i]
+//
+//   dt_polys    every detected box, reading order, [[x, y] x 4] page pixels, clockwise from the top-left corner
+//               (numpy int16 in Python; plain integer arrays here)
+//   rec_texts   string per kept line, same order as dt_polys
+//   rec_scores  recognizer confidence per kept line, 0 to 1 (numpy float64 in Python)
+//   rec_polys   the polygons of the kept lines (dt_polys minus the lines below text_rec_score_thresh)
+//   rec_boxes   [x0, y0, x1, y1] of each rec_polys entry, as paddlex convert_points_to_boxes: min and max of x and y
+//
+// Options: width, height clip the corners to [0, width] and [0, height] as DBPostProcess does (omit to skip);
+// minScore is text_rec_score_thresh (default 0, PaddleOCR's default): lines scoring lower stay in dt_polys and
+// leave rec_*. If TextPipeline ran with its own minScore above 0, those lines are already gone and dt_polys
+// equals rec_polys. Not produced: input_path, page_index, model_settings, doc_preprocessor_res, text_det_params,
+// text_type, text_rec_score_thresh, return_word_box, textline_orientation_angles (README.md lists why).
+export function toPaddleResult(lines, { width = Infinity, height = Infinity, minScore = 0 } = {}) {
+  const clip = (v, hi) => Math.max(0, Math.min(Math.round(v), hi));
+  const dt_polys = lines.map((l) => l.box.map(([x, y]) => [clip(x, width), clip(y, height)]));
+  const kept = lines.map((l, i) => i).filter((i) => lines[i].score >= minScore);
+  const rec_polys = kept.map((i) => dt_polys[i]);
+  const rec_boxes = rec_polys.map((p) => {
+    const xs = p.map((q) => q[0]), ys = p.map((q) => q[1]);
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+  });
+  return { dt_polys, rec_texts: kept.map((i) => lines[i].text), rec_scores: kept.map((i) => lines[i].score), rec_polys, rec_boxes };
+}
