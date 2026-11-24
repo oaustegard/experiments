@@ -11,6 +11,7 @@ from web/rec/models/<name>-f32/ (unquantized) with NumPy, run onnxruntime on the
 compare the [T, V] probabilities and the greedy CTC text. Writes, for the browser test:
 
   web/rec/test/fixtures/<line>/<model>.ref.f32   NumPy probabilities with the packed weights
+                                                 (<model>-<pack>.ref.f32 with --pack)
   web/rec/test/fixtures/<line>/<model>.ort.f32   onnxruntime probabilities (fp32 ONNX)
   web/rec/test/fixtures/batch4/<model>.ref.f32   NumPy probabilities of the padded 4-line batch
 
@@ -261,7 +262,8 @@ def main(argv):
     res["fixtures"] = {"lines": len(lines), "widths": [e["W"] for e in lines], "batch": index["batch"]}
     ok = True
     for name in a.models:
-        pq = Program(MODELS / (f"{name}-{a.pack}" if a.pack else name))
+        key = f"{name}-{a.pack}" if a.pack else name   # results key and reference file stem
+        pq = Program(MODELS / key)
         pf = Program(MODELS / f"{name}-f32")
         sess = ort_session(name)
         iname = sess.get_inputs()[0].name
@@ -275,7 +277,7 @@ def main(argv):
             p_f32 = pf.forward(x)
             p_q = pq.forward(x)
             assert p_ort.shape == p_q.shape == p_f32.shape and p_q.shape[1] == V
-            p_q.astype("<f4").tofile(d / f"{name}.ref.f32")
+            p_q.astype("<f4").tofile(d / f"{key}.ref.f32")
             p_ort.astype("<f4").tofile(d / f"{name}.ort.f32")
             t_ort, t_q = greedy(p_ort, pq.chars), pq.decode(p_q)
             r = {
@@ -295,8 +297,8 @@ def main(argv):
         b = index["batch"]
         xb = np.fromfile(FIX / b["id"] / "x.f32", np.float32).reshape(b["B"], 3, 48, b["W"])
         pb = np.stack([pq.forward(xb[j]) for j in range(b["B"])])
-        pb.astype("<f4").tofile(FIX / b["id"] / f"{name}.ref.f32")
-        m = res["models"].setdefault(name, {})
+        pb.astype("<f4").tofile(FIX / b["id"] / f"{key}.ref.f32")
+        m = res["models"].setdefault(key, {})
         m.update({
             "pack": pq.dir.name, "V": V, "lines": rows,
             "numpy_f32_vs_ort_max_abs": max(r["numpy_f32_vs_ort_max_abs"] for r in rows.values()),
