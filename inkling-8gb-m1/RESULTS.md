@@ -19,11 +19,20 @@ It runs but doesn't fit, and pruning doesn't make it fit at acceptable quality. 
 - Experts chosen from code keep code far better but wreck prose: WikiText perplexity 50.6. An equal-weight blend kept neither well. <!-- @evidence[[results/summary.json#quality_colab.code_selected.64.wiki_ppl]] -->
 - The faster option that fits is Nemotron 3.5 Bolt E4B: 15.8 tokens/s, under 3 GB in RAM; quality not compared head to head. <!-- @evidence[[results/summary.json#speed_m1.nemotron_bolt_e4b_metal_tps]] -->
 
-Distillation helps a little (Rounds 8-9). LoRA adapters trained on the 96 kept experts to imitate the full model,
-loaded at run time with `--lora` on top of unsloth's untouched 96-expert IQ1_S slice (6.12 GB + 0.30 GB adapter),
-take WikiText perplexity from 9.44 to 9.21 and code from 2.61 to 2.60. The full 128-expert file is at 7.42 and 2.53,
-so most of the pruning loss on prose remains. Requantizing the healed experts to IQ1_S with mainline llama.cpp
-instead loses more than the training gains.
+Distillation helps a little (Rounds 8-10). LoRA adapters trained to imitate the full model, loaded at run time with
+`--lora` on top of unsloth's untouched IQ1_S slices, cut KL to the 4-bit reference by 5-8% at 96 experts and 11-12%
+at 80:
+
+| file | size | code PPL | WikiText PPL |
+|---|---|---|---|
+| UD-IQ1_S, 128 experts | 7.76 GB | 2.53 | 7.42 |
+| sliced to 96 + adapter | 6.12 + 0.30 GB | 2.60 | 9.21 |
+| sliced to 80 + adapter | 5.31 + 0.25 GB | 2.72 | 10.28 |
+
+Most of the pruning loss on prose remains. On WikiText perplexity, 96 experts plus adapter costs about as much as a
+13B-to-7B step within a model family, and 80 plus adapter about an 8B-to-3B step; code holds up far better.
+Requantizing the healed experts with mainline llama.cpp instead of using an adapter loses more than training gains.
+Speed on the M1 with an adapter is not yet measured.
 
 ## Findings
 
@@ -233,3 +242,39 @@ did, in relative terms; in absolute terms that gain is small next to the 7.42 of
 Cost: about 3 Colab units (an L4 lost mid-run when the client stopped contacting it; see `docs/colab.md` in
 claude-workspace), balance afterwards 213.7 units.
 
+
+### Round 10 — the same recipe at 80 experts (2026-11-24)
+
+Question: Oskar's 8 GB budget leaves little room for 6.12 GB plus an adapter, so the Round 8-9 recipe was repeated
+with 80 experts per layer (REAP-sum on train_0002, 77.8% of routing selections covered), rank-8 LoRA plus router
+correction, 300 steps x 8 K tokens on a Colab L4 at ~121 tokens/s (5.6 h), teacher top-32 shards reused from
+Round 8. A pinger (`heal96/pinger.py`) touched the runtime every 5 min; nothing was lost.
+
+PyTorch against the full model (KL / top-1 / PPL):
+
+| | code | WikiText | chat |
+|---|---|---|---|
+| 80 experts, step 100 | 0.0887 / 91.40% / 2.581 | 0.2396 / 80.30% / 9.939 | 0.1938 / 85.49% |
+| 80 experts, step 200 | 0.0855 / 91.57% / 2.572 | 0.2311 / 80.69% / 9.863 | 0.1806 / 85.82% |
+| 80 experts, step 300 | 0.0847 / 91.67% / 2.571 | 0.2288 / 80.68% / 9.851 | 0.1785 / 86.00% |
+| 96 experts, step 300 (Round 8) | 0.0393 / 94.27% / 2.462 | 0.1430 / 84.74% / 8.953 | 0.1240 / 88.88% |
+
+No untrained 80-expert PyTorch eval was run, so the training gain is measured in the GGUF instead. Against
+UD-Q4_K_XL, same text and method as Rounds 4-9:
+
+| model | size | code PPL / top-1 / KLD | WikiText PPL / top-1 / KLD |
+|---|---|---|---|
+| UD-IQ1_S sliced to REAP-sum 80 | 5.31 GB | 2.775 / 88.45% / 0.1705 | 10.865 / 72.70% / 0.5083 |
+| same + healed expert LoRA | + 0.25 GB | 2.724 / 89.03% / 0.1525 | 10.280 / 74.65% / 0.4463 |
+| Round 4 general-selected 80 (for reference) | 5.30 GB | 3.33 / 82.3% | 9.46 / 77.1% |
+
+The adapter cuts KL by 11% on code and 12% on WikiText, more than at 96 (5% and 8%): the deeper cut leaves more
+for training to recover. REAP-sum selection on the training mix holds code far better than Round 4's general
+selection (2.72 against 3.33) and prose worse (10.28 against 9.46); the mix is 40% code. Gains flattened after
+step 100 again.
+
+Prediction before the run: 80 experts plus adapter would land near Round 4's untrained 80 on WikiText and well
+above it on code. Code held; WikiText came in 0.8 worse.
+
+Cost: about 13 Colab units (balance afterwards 200.4). Adapter: `heal96/lora_gguf.py` on
+`run/adapters_00300.pt`; selection in `results/heal96/keep_best_80.json`.
