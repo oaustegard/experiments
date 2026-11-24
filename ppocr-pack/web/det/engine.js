@@ -115,7 +115,7 @@ function unpackWeight(wq, shape, raw, params, at) {
 // Dequantises weights.bin into one f32 array: every conv, ConvTranspose and squeeze-excite fc
 // weight, each followed by its bias (f32 in the file). Sets entry.wf and entry.bf (f32 element
 // offsets) and entry.n (weight elements) on every such entry of the manifest.
-function unpackParams(man, raw) {
+export function unpackParams(man, raw) {
   const entries = [];
   for (const op of man.ops) {
     if (op.op === "conv") entries.push([op, op.wshape[0], 0]);

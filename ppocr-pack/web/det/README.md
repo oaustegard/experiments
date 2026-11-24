@@ -12,6 +12,7 @@ python3 -I web/det/test/make_pages.py && python3 -I web/det/test/fetch_funsd.py 
 python3 -I run/ref_det.py                                               # NumPy executor + fixtures
 node web/det/test/run_det.mjs [tiny=page,page] [small=page]             # WGSL in headless Chromium vs NumPy
 python3 -I run/ref_pipeline.py && node web/det/test/check_pipeline.mjs  # web/pipeline.js vs PaddleOCR's code
+node web/det/test/run_e2e.mjs [tiny|small] [page]                       # real det + rec through pipeline.js
 ```
 
 ## Files
@@ -23,6 +24,7 @@ python3 -I run/ref_pipeline.py && node web/det/test/check_pipeline.mjs  # web/pi
 | `kernels.js`, `gpu.js` | WGSL (conv, convT, maxpool, resize, squeeze-excite, add) and the small WebGPU helper |
 | `test/check_det.js`, `test/run_det.mjs` | parity: WGSL against the NumPy executor on the same packed weights, prob map max abs 1e-3 |
 | `test/check_pipeline.mjs` | `../pipeline.js` against `run/ref_pipeline.py` on the same probability maps, in Node |
+| `test/run_e2e.mjs`, `test/check_e2e.js` | detector, `../pipeline.js` and the `web/rec` recognizer on a fixture page in headless Chromium (needs `run/export_rec.py`) |
 | `test/make_pages.py`, `test/fetch_funsd.py` | the test pages (data only, never committed) |
 
 `../pipeline.js` is the page pipeline (detector postprocess, crops, recognizer batches); see its header.
