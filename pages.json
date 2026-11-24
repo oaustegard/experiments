@@ -20,6 +20,12 @@
       "blurb": "A scanned page, photo or PDF turned into markdown on your GPU: Datalab's Indra OCR (12M parameters) ported to WebGPU, reproducing the Python package line for line, with 4 MB of fp16 models and per-script recognizers and word models fetched on first need"
     },
     {
+      "title": "Packed OCR",
+      "experiment": "ppocr-pack",
+      "path": "ppocr-pack/web",
+      "blurb": "PaddlePaddle's PP-OCRv6 text detection and recognition in the tab, with the weights packed to 8-bit integers (1.6 MB for tiny, 6.3 MB for small, gzipped) and run on hand-written WebGPU kernels with no onnxruntime: boxes over your image, the text in reading order, and the time each stage took"
+    },
+    {
       "title": "Tesseract on the GPU",
       "experiment": "tesseract-gpu",
       "path": "tesseract-gpu/web",

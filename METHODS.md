@@ -3673,6 +3673,7 @@ The traps, each of which cost a revision:
 - **A learned planner that is fast on a GPU can be unusable on SwiftShader.** The trm-doom TRM planner did
   not finish 77 s of game in 50 minutes on SwiftShader. Test the control flow with the exact planner it
   imitates (BFS), and keep TRM runs for a real GPU.
+- **Packing a small conv OCR model: 8-bit per-channel weights cost nothing measurable, 7-bit costs at tiny size, and a CTC head wants more than 4 bits.** PP-OCRv6 tiny and small (detector and recognizer), BatchNorm folded, int8 codes with one fp16 scale per output channel: codes within ±127 left the recognizer's character error unchanged within a 95% paired bootstrap interval (tiny recognizer on 400 real form lines +0.08%, interval -0.25 to +0.42); ±63 added +2.13% on tiny (+1.38 to +2.92) and ±31 more; the tiny detector's box F1 fell from 0.993 to 0.981 going from ±127 to ±63, while the small detector held 0.999 at ±63. The CTC output layer is about half of each recognizer's weights and is also the table from features to characters, so, like a token table, 4-bit there cost +0.09% on Latin lines (tiny). Do not carry a 6-bit result from a larger model down to a tiny one, and test the output layer's bits separately from the body's. Sample size matters: "not measurable" here means intervals of about ±0.4% on 400 lines. (`ppocr-pack/RESULTS.md`)
 
 ## Cache and measurement hygiene
 

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Packed OCR</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="PP-OCRv6 tiny and small text detection and recognition in the browser: int8 weight packs on hand-written WebGPU kernels, no onnxruntime.">
+<style>
+:root { --bg: #fbfbfa; --fg: #1b1b19; --muted: #66655f; --line: #dcdbd5; --panel: #fff; --accent: #2f5fd0; --accent-fg: #fff; --err-bg: #fdeceb; --err-fg: #8a1f17; --box: #e0301e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #161615; --fg: #ecebe7; --muted: #a3a29a; --line: #3a3936; --panel: #1f1f1d; --accent: #7aa2ff; --accent-fg: #0d1a3a; --err-bg: #3d1a17; --err-fg: #ffb4ab; --box: #ff6a55; } }
+:root[data-theme="dark"] { --bg: #161615; --fg: #ecebe7; --muted: #a3a29a; --line: #3a3936; --panel: #1f1f1d; --accent: #7aa2ff; --accent-fg: #0d1a3a; --err-bg: #3d1a17; --err-fg: #ffb4ab; --box: #ff6a55; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 8px; }
+h2 { font-size: 1.05rem; margin: 0 0 6px; }
+a { color: var(--accent); }
+.lede { margin: 0 0 16px; color: var(--muted); max-width: 75ch; }
+.muted { color: var(--muted); } .small { font-size: .875rem; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 0 0 14px; }
+.bar label { display: inline-flex; gap: 6px; align-items: center; }
+button, select, input[type=file] { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px; }
+button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.stage { position: relative; }
+.stage canvas { display: block; width: 100%; height: auto; border-radius: 4px; }
+#text { white-space: pre-wrap; margin: 0; font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; max-height: 420px; overflow: auto; }
+#text span.hl { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: 8px; }
+td, th { text-align: left; padding: 2px 8px 2px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+#status { margin: 0 0 12px; min-height: 1.5em; }
+.err { background: var(--err-bg); color: var(--err-fg); border-radius: 6px; padding: 8px 12px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Packed OCR</h1>
+<p class="lede">Text detection and recognition from PaddlePaddle's PP-OCRv6 models, with the weights packed to 8-bit integers (tiny 1.6 MB, small 6.3 MB, gzip) and run on hand-written WebGPU kernels in this tab. Nothing is uploaded.</p>
+<p id="nogpu" class="err" hidden>This browser has no WebGPU, so the models cannot run here. Try a current Chrome, Edge or Safari on a computer with a GPU.</p>
+<div id="ui">
+<div class="bar">
+  <label>Model <select id="size"><option value="tiny">tiny (1.6 MB)</option><option value="small">small (6.3 MB)</option></select></label>
+  <label>Sample <select id="sample"><option value="samples/letter.png">cafe notice</option><option value="samples/receipt.png">receipt</option></select></label>
+  <label>or an image <input id="file" type="file" accept="image/*"></label>
+  <label>Long side <select id="long"><option>640</option><option selected>960</option><option>1280</option></select></label>
+  <button id="run" class="primary" disabled>Run</button>
+</div>
+<p id="status" class="muted" role="status">Starting.</p>
+<div class="grid">
+  <div class="panel"><div class="stage"><canvas id="cv" width="900" height="560"></canvas></div></div>
+  <div>
+    <div class="panel"><h2>Text, in reading order</h2><pre id="text" class="muted">Run to read the image.</pre></div>
+    <div class="panel" style="margin-top:16px"><h2>Timings and download</h2>
+      <table id="stats"><tbody></tbody></table>
+      <p class="muted small">Times are this device's GPU and CPU, measured in the page. Download is what the model files weighed on the wire (decoded size in parentheses when it differs).</p>
+    </div>
+  </div>
+</div>
+</div>
+<footer class="muted small">
+<p>A detector draws a box round each text line, each line is cropped straight, and a recognizer reads it. Both are PaddlePaddle's <a href="https://huggingface.co/PaddlePaddle">PP-OCRv6</a> (Apache-2.0), rounded to 8-bit integers (the small detector to 7 bits) with one scale per output channel, dequantized once on load and run by WGSL kernels. Write-up: <a href="https://github.com/oaustegard/experiments/tree/main/ppocr-pack">ppocr-pack</a>. Build <code id="build"></code>.</p>
+</footer>
+</main>
+<script src="../../gpu-bridge/web/relay.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
