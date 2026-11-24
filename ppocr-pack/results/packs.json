@@ -8,7 +8,8 @@
    "shipped_raw_bytes": 503760,
    "shipped_gzip_bytes": 454259,
    "shipped_gzip_over_upstream": 0.2551,
-   "upstream_over_shipped_gzip": 3.92
+   "upstream_over_shipped_gzip": 3.92,
+   "upstream_onnx_gzip_bytes": 1589489
   },
   "tiny_rec": {
    "scheme": "r127",
@@ -18,7 +19,8 @@
    "shipped_raw_bytes": 1224844,
    "shipped_gzip_bytes": 1110974,
    "shipped_gzip_over_upstream": 0.249,
-   "upstream_over_shipped_gzip": 4.02
+   "upstream_over_shipped_gzip": 4.02,
+   "upstream_onnx_gzip_bytes": 4105137
   },
   "small_det": {
    "scheme": "r63",
@@ -28,7 +30,8 @@
    "shipped_raw_bytes": 2555492,
    "shipped_gzip_bytes": 1528683,
    "shipped_gzip_over_upstream": 0.1547,
-   "upstream_over_shipped_gzip": 6.46
+   "upstream_over_shipped_gzip": 6.46,
+   "upstream_onnx_gzip_bytes": 7530991
   },
   "small_rec": {
    "scheme": "r127",
@@ -38,7 +41,8 @@
    "shipped_raw_bytes": 5554019,
    "shipped_gzip_bytes": 4733153,
    "shipped_gzip_over_upstream": 0.2237,
-   "upstream_over_shipped_gzip": 4.47
+   "upstream_over_shipped_gzip": 4.47,
+   "upstream_onnx_gzip_bytes": 18481888
   }
  },
  "totals": {
@@ -46,13 +50,26 @@
    "upstream_onnx_bytes": 6243229,
    "shipped_raw_bytes": 1728604,
    "shipped_gzip_bytes": 1565233,
-   "upstream_over_shipped_gzip": 3.99
+   "upstream_over_shipped_gzip": 3.99,
+   "upstream_onnx_gzip_bytes": 5694626,
+   "upstream_gzip_over_shipped_gzip": 3.64
   },
   "small": {
    "upstream_onnx_bytes": 31039890,
    "shipped_raw_bytes": 8109511,
    "shipped_gzip_bytes": 6261836,
-   "upstream_over_shipped_gzip": 4.96
+   "upstream_over_shipped_gzip": 4.96,
+   "upstream_onnx_gzip_bytes": 26012879,
+   "upstream_gzip_over_shipped_gzip": 4.15
   }
+ },
+ "engine_js_gzip_bytes": 29346,
+ "engine_js_note": "gzip -9 of web/pipeline.js + web/det/{engine,kernels,gpu}.js + web/rec/{engine,kernels}.js concatenated",
+ "onnxruntime_web_1_20_1": {
+  "jsep_wasm_raw_bytes": 21663894,
+  "jsep_wasm_gzip_bytes": 5171684,
+  "wasm_raw_bytes": 11246032,
+  "wasm_gzip_bytes": 2961303,
+  "note": "dist/ort-wasm-simd-threaded.jsep.wasm (WebGPU build) and ort-wasm-simd-threaded.wasm from jsDelivr, gzip -9"
  }
 }
