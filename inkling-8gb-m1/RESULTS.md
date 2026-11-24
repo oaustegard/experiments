@@ -278,3 +278,8 @@ above it on code. Code held; WikiText came in 0.8 worse.
 
 Cost: about 13 Colab units (balance afterwards 200.4). Adapter: `heal96/lora_gguf.py` on
 `run/adapters_00300.pt`; selection in `results/heal96/keep_best_80.json`.
+
+The adapters are on R2 (public): `https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/models/inkling-2-mini/`
+`heal80-lora.gguf` (248 MB) and `heal96-lora.gguf` (297 MB), checksums in `SHA256SUMS` there. Use with the
+matching slice: `prune_tools.py slice <mainline UD-IQ1_S> results/heal96/keep_best_80.json sliced80.gguf`, then
+`llama-cli -m sliced80.gguf --lora heal80-lora.gguf`.
