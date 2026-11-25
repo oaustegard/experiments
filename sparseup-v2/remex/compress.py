@@ -180,20 +180,37 @@ def index_bytes(Dk, value_bits, scale_bytes):
 
 
 # ---------------------------------------------------------------- scoring
-def score_topn(Q, D, n=100, exclude=None):
+def score_topn(Q, D, n=100, exclude=None, tiekey=None):
+    """Top-n doc indices per query by exact dot product. Score ties are broken as
+    trec_eval does (doc id descending) when `tiekey` (rank of each doc id string) is given."""
     S = (Q @ D.T).toarray()
     if exclude is not None:
         for qi, di in exclude:
             S[qi, di] = -np.inf
-    top = np.argpartition(-S, n, axis=1)[:, :n]
+    if tiekey is not None:  # widen the candidate set so ties at the boundary are resolved too
+        top = np.argpartition(-S, n + 50, axis=1)[:, : n + 50]
+    else:
+        top = np.argpartition(-S, n, axis=1)[:, :n]
     ts = np.take_along_axis(S, top, 1)
-    o = np.argsort(-ts, axis=1, kind="stable")
-    return np.take_along_axis(top, o, 1)
+    if tiekey is None:
+        o = np.argsort(-ts, axis=1, kind="stable")
+    else:
+        o = np.lexsort((-tiekey[top], -ts), axis=1)
+    return np.take_along_axis(top, o, 1)[:, :n]
 
 
-def metrics(top, qrels_idx, ideal10):
+def tie_key(dids):
+    order = np.argsort(np.array(dids, dtype=object))
+    key = np.empty(len(dids), dtype=np.int64)
+    key[order] = np.arange(len(dids))
+    return key
+
+
+def metrics(top, qrels_idx, ideal10, npos=None):
     """Per-query nDCG@10 (linear gain, as trec_eval) and R@100 (rel > 0)."""
     nq = top.shape[0]
+    if npos is None:
+        npos = [sum(1 for v in r.values() if v > 0) for r in qrels_idx]
     nd = np.zeros(nq)
     rc = np.zeros(nq)
     disc = 1 / np.log2(np.arange(2, 12))
@@ -202,22 +219,24 @@ def metrics(top, qrels_idx, ideal10):
         g = np.array([rel.get(int(d), 0) for d in top[i, :10]], dtype=float)
         g = np.maximum(g, 0)
         nd[i] = (g * disc[: len(g)]).sum() / ideal10[i] if ideal10[i] > 0 else 0
-        npos = sum(1 for v in rel.values() if v > 0)
-        rc[i] = sum(1 for d in top[i] if rel.get(int(d), 0) > 0) / npos
+        rc[i] = sum(1 for d in top[i] if rel.get(int(d), 0) > 0) / npos[i]
     return nd, rc
 
 
 def prep_qrels(meta):
     did_ix = {d: i for i, d in enumerate(meta["dids"])}
-    qrels_idx, ideal = [], []
+    # Ideal DCG and the recall denominator use every judged doc, as trec_eval does,
+    # including judged docs absent from the corpus (they exist in ArguAna and NFCorpus).
+    qrels_idx, ideal, npos = [], [], []
     disc = 1 / np.log2(np.arange(2, 12))
     for q in meta["qids"]:
-        r = {did_ix[d]: s for d, s in meta["qrels"][q].items() if d in did_ix}
-        qrels_idx.append(r)
-        gains = sorted([s for s in r.values() if s > 0], reverse=True)[:10]
+        full = meta["qrels"][q]
+        qrels_idx.append({did_ix[d]: s for d, s in full.items() if d in did_ix})
+        gains = sorted([s for s in full.values() if s > 0], reverse=True)[:10]
         ideal.append(float((np.array(gains) * disc[: len(gains)]).sum()))
+        npos.append(sum(1 for s in full.values() if s > 0))
     exclude = [(qi, did_ix[q]) for qi, q in enumerate(meta["qids"]) if q in did_ix]  # BEIR ignore_identical_ids
-    return qrels_idx, np.array(ideal), exclude
+    return qrels_idx, np.array(ideal), exclude, np.array(npos)
 
 
 def boot_ci(delta, n=N_BOOT, seed=RNG_SEED):
@@ -241,6 +260,7 @@ def arms(quick=False):
         for s in SCALES:
             yield {"k": k, "codebook": "binary", "bits": 1, "scale": s}
         yield {"k": k, "codebook": "anserini8", "bits": 8, "scale": "none"}
+        yield {"k": k, "codebook": "table8", "bits": 8, "scale": "none"}
 
 
 def build(Dk, arm, sample_rows):
@@ -254,17 +274,22 @@ def build(Dk, arm, sample_rows):
         return binary_docs(Dk, s), 0, (0 if s == "none" else 2)
     if cb == "anserini8":
         return anserini_8bit(Dk), 8, 0
+    if cb == "table8":  # exact: an 8-bit index into the table of distinct bf16-derived values
+        n_distinct = len(np.unique(Dk.data))
+        assert n_distinct <= 256, n_distinct
+        return Dk, 8, 0
     Dq, _ = quantize_docs(Dk, cb, b, s, sample_rows)
     return Dq, b, (0 if s == "none" else 2)
 
 
 def run_dataset(name, quick=False, variant=None, extra_arms=None):
     D, Q, meta = load(name, variant)
-    qrels_idx, ideal, exclude = prep_qrels(meta)
+    qrels_idx, ideal, exclude, npos = prep_qrels(meta)
     rng = np.random.default_rng(RNG_SEED)
     sample_rows = rng.choice(D.shape[0], size=min(D.shape[0], 5000), replace=False)
-    base_top = score_topn(Q, D, exclude=exclude)
-    base_nd, base_rc = metrics(base_top, qrels_idx, ideal)
+    tk = tie_key(meta["dids"])
+    base_top = score_topn(Q, D, exclude=exclude, tiekey=tk)
+    base_nd, base_rc = metrics(base_top, qrels_idx, ideal, npos)
     records, perq = [], {"base_ndcg": base_nd, "base_r100": base_rc}
     Q8 = query_8bit(Q)
     t0 = time.time()
@@ -277,8 +302,8 @@ def run_dataset(name, quick=False, variant=None, extra_arms=None):
         Dk = cache_k[k]
         Dq, vbits, sbytes = build(Dk, arm, sample_rows)
         Qa = Q8 if arm.get("query") == "8bit" else Q
-        top = score_topn(Qa, Dq, exclude=exclude)
-        nd, rc = metrics(top, qrels_idx, ideal)
+        top = score_topn(Qa, Dq, exclude=exclude, tiekey=tk)
+        nd, rc = metrics(top, qrels_idx, ideal, npos)
         fixed, varint, nnz = index_bytes(Dq, vbits, sbytes)
         dn, dr = nd - base_nd, rc - base_rc
         rec = dict(arm, dataset=name, ndcg10=float(nd.mean()), r100=float(rc.mean()),
