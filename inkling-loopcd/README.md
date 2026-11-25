@@ -11,7 +11,7 @@ The paper tests Ouro, Huginn, Parcae and a looped Qwen3. Inkling 2 Mini (`model_
 is also looped: layers 0–5 run once, 6–17 run three times, 18–23 run once. This directory applies
 LoopCD to it in mlx-lm and measures whether it helps.
 
-**Status: code written, not yet run.** The tests and the sweep need MLX, so they run on the Mac.
+**Status: tests pass, sweep not yet run.** The 7 tests in `test_loopcd.py` pass on MLX 0.32.4 (CPU) with mlx-lm PR #2086. The sweep needs the real model and a 32 GB+ Mac.
 
 ## What's here
 

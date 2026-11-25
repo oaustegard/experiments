@@ -11,7 +11,7 @@ from mlx_lm.models.inkling2 import Model, ModelArgs
 
 TEXT = dict(
     hidden_size=64,
-    num_hidden_layers=6,
+    num_hidden_layers=8,
     vocab_size=128,
     unpadded_vocab_size=120,
     num_attention_heads=4,
@@ -21,7 +21,7 @@ TEXT = dict(
     swa_num_key_value_heads=2,
     swa_head_dim=16,
     sliding_window_size=16,
-    local_layer_ids=[0, 2, 4],
+    local_layer_ids=[0, 2, 4, 6],
     d_rel=4,
     rel_extent=32,
     log_scaling_n_floor=64,
@@ -38,7 +38,9 @@ TEXT = dict(
     mlp_up_softcap=25.0,
     route_scale=1.0,
     final_logit_softcapping=30.0,
-    loop_config=dict(core_start=2, core_end=4, num_passes=3, gate_rank=8),
+    # Like the real model (block size 6, core 6-17): the core's first block
+    # boundary sees the prelude output, its second one differs per pass.
+    loop_config=dict(core_start=2, core_end=6, num_passes=3, gate_rank=8),
 )
 
 
@@ -96,9 +98,9 @@ def test_prefill_then_decode_matches_one_forward(model, passes):
 
 
 def test_passes_resizes_cache_and_restores(model):
-    stock_len = len(model.make_cache())  # 2 + 3*2 + 2
+    stock_len = len(model.make_cache())  # 2 + 3*4 + 2
     loopcd.enable(model, omega=0.3, passes=2)
-    assert len(model.make_cache()) == stock_len - 2
+    assert len(model.make_cache()) == stock_len - 4
     logits(model)
     loopcd.disable(model)
     assert len(model.make_cache()) == stock_len
