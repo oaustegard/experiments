@@ -7,7 +7,8 @@
 The job rebuilds the needed slice of the experiments repo from embedded files, downloads the model,
 builds both packs, registers the NVIDIA Vulkan driver, and runs web/engine.js under Node on Dawn (run_node.mjs)
 on a Tesla T4: int8 and q4 vectors for every fixture text, scored by check.py --source t4, plus T4 timing.
-Headless Chromium on Kaggle exposes only SwiftShader, hence Node. Outputs land in /kaggle/working/out/.
+--mode q4swift instead runs check.py on SwiftShader for q4 (Kaggle grants no Vulkan; the Node path finds no driver).
+Outputs land in /kaggle/working/out/.
 """
 import argparse
 import base64
@@ -51,25 +52,37 @@ for f in ["config.json", "model.safetensors", "tokenizer.json", "tokenizer_confi
 for q in ("int8", "q4"):
     sh(f"{sys.executable} pack.py --hf hf --out packs/{q} --quant q4".replace("--quant q4", f"--quant {q}"), cwd=P, check=True)
 
-sh("cd /tmp && curl -sSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.xz | tar xJ && ln -sf /tmp/node-v22.11.0-linux-x64/bin/* /usr/local/bin/ && node --version")
-sh("npm init -y >/dev/null && npm i webgpu@0.3.8 2>&1 | tail -2", cwd=P)
-sh("vulkaninfo --summary 2>&1 | head -20 || true")
-def run(pack, extra, tag):
-    out = OUT / f"wgsl_{pack}_t4{tag}.json"
-    r = sh(f"node run_node.mjs packs/{pack} web/fixtures/parity.json {out} {extra}", cwd=P)
-    if out.exists():
-        d = P / "cache" / f"wgsl_{pack}_t4"; d.mkdir(parents=True, exist_ok=True)
-        (d / "000.json").write_bytes(out.read_bytes())
-        sh(f"{sys.executable} check.py --pack {pack} --source t4", cwd=P)
-        f = P / "results" / f"parity_{pack}_t4.json"
+if MODE == "q4swift":
+    # Kaggle containers get compute,utility driver capabilities only (no Vulkan), so WebGPU runs on SwiftShader.
+    sh("python3 -m playwright install --with-deps chromium 2>&1 | tail -2")
+    env = dict(os.environ, CHROME_PATH="playwright")
+    for start, n in ((0, 28), (28, 7)):
+        sh(f"{sys.executable} -u check.py --pack q4 --start {start} --only {n} --no-timing", cwd=P, env=env)
+    for f in sorted((P / "cache" / "wgsl_q4").glob("*.json")):
+        (OUT / f"wgsl_q4_chunk_{f.name}").write_bytes(f.read_bytes())
+    for f in (P / "results" / "parity_q4.json", P / "results" / "wgsl_q4_swiftshader.json"):
         if f.exists():
             (OUT / f.name).write_bytes(f.read_bytes())
-    return r.returncode
-if MODE == "smoke":
-    run("int8", "--only 3", "_smoke")
 else:
-    for pack in ("int8", "q4"):
-        run(pack, "--reps 20", "")
+    sh("cd /tmp && curl -sSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.xz | tar xJ && ln -sf /tmp/node-v22.11.0-linux-x64/bin/* /usr/local/bin/ && node --version")
+    sh("npm init -y >/dev/null && npm i webgpu@0.3.8 2>&1 | tail -2", cwd=P)
+    sh("vulkaninfo --summary 2>&1 | head -20 || true")
+    def run(pack, extra, tag):
+        out = OUT / f"wgsl_{pack}_t4{tag}.json"
+        r = sh(f"node run_node.mjs packs/{pack} web/fixtures/parity.json {out} {extra}", cwd=P)
+        if out.exists():
+            d = P / "cache" / f"wgsl_{pack}_t4"; d.mkdir(parents=True, exist_ok=True)
+            (d / "000.json").write_bytes(out.read_bytes())
+            sh(f"{sys.executable} check.py --pack {pack} --source t4", cwd=P)
+            f = P / "results" / f"parity_{pack}_t4.json"
+            if f.exists():
+                (OUT / f.name).write_bytes(f.read_bytes())
+        return r.returncode
+    if MODE == "smoke":
+        run("int8", "--only 3", "_smoke")
+    else:
+        for pack in ("int8", "q4"):
+            run(pack, "--reps 20", "")
 print("done", flush=True)
 '''
 
@@ -77,7 +90,7 @@ print("done", flush=True)
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", default="full")
-    ap.add_argument("--mode", choices=["smoke", "full"], default="full")
+    ap.add_argument("--mode", choices=["smoke", "full", "q4swift"], default="full")
     a = ap.parse_args()
     text = {f: (REPO / f).read_text() for f in FILES}
     binary = {f: base64.b64encode((REPO / f).read_bytes()).decode() for f in BINARY}
