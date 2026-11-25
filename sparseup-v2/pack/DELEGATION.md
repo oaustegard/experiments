@@ -4,7 +4,7 @@ This directory puts the SparseUp v2 sparse retriever in a browser page (see REPO
 mechanical coding go to cheaper models than the Claude session running the work. That session kept the
 GPU kernel design, the PyTorch reference (`ref.py`), the accuracy checks and REPORT.md, and wrote each
 delegated job's spec. A job is accepted when its output passes that session's review and the checks
-that use it. This table lists every delegated job so far.
+that use it. This table lists every delegated job as of 2026-11-25.
 
 Gemini runs through the Muninn `generate` tool. gemini-4-hydrogen costs $1.50 per million input tokens
 and $7.50 per million output tokens, with its reasoning ("thinking") tokens billed as output. "Thinking

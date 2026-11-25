@@ -63,8 +63,8 @@ Dogs wag their tails to communicate excitement, fear or aggression, depending on
 
 <footer>
   <small class="legend"><i style="background:var(--bar)"></i>term in the text &nbsp; <i style="background:var(--exp)"></i>expansion term (not among the text's own tokens)</small>
-  <small>The model merges each word's spelling variants (capitalized, lowercase, with or without a leading space) into one term, so a word that is in the text can still be marked as expansion when its merged form is a different token.</small>
-  <small>Model <a href="https://huggingface.co/Linkup-Platform/linkup-sparseup-embed-v2">Linkup-Platform/linkup-sparseup-embed-v2</a> (apache-2.0). It runs on WebGPU compute shaders written for this page, with weights stored as 8-bit integers (int8), and needs no ML library. Everything runs in this browser tab; nothing is sent anywhere. <a href="../REPORT.md">Build notes and accuracy measurements</a>.</small>
+  <small>The model merges each word's spelling variants (capitalized, lowercase, with or without a leading space) into one term, so "Cats" in a text may be scored under the token for " cats" and then be marked as expansion.</small>
+  <small>Model <a href="https://huggingface.co/Linkup-Platform/linkup-sparseup-embed-v2">Linkup-Platform/linkup-sparseup-embed-v2</a> (apache-2.0). It runs on WebGPU with weights stored as 8-bit integers (int8). Everything runs in this browser tab; nothing is sent anywhere. <a href="../REPORT.md">Build notes and accuracy measurements</a>.</small>
 </footer>
 
 <script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>

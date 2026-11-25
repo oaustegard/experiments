@@ -16,8 +16,9 @@
 <h1 style="font-size:16px">SparseUp v2 in WebGPU: accuracy and speed check</h1>
 <p>Runs the 47 fixture texts (fixtures/parity.json) through the browser encoder and records each sparse vector, so
 check.py can compare them with the PyTorch reference, then times one text at 128 and at 512 tokens.
-Open it as /sparseup-v2/pack/web/check.html?pack=int8 from a server at the experiments repo root, with the pack built
-by pack.py; add &amp;reps=10 for more timing runs.</p>
+Build the pack (python3 pack.py --hf hf --out packs/int8 --quant int8), run python3 -m http.server at the root of the
+experiments repo, and open /sparseup-v2/pack/web/check.html?pack=int8 (or pack=q4); add &amp;reps=10 for more timing runs.
+Results appear below and in window.check, which check.py reads.</p>
 <pre id="log"></pre>
 <script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>
 <script type="module">
