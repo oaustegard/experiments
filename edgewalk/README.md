@@ -1,9 +1,9 @@
 # Edgewalk: is it a sandwich?
 
-Edgewalk is a browser game about a model that can't decide whether a food is a sandwich. You start from
+Edgewalk is a browser game played against a model that judges whether a food is a sandwich. You start from
 a food it rates near 50/50, change the food one piece at a time, and try to keep the model undecided
 while the food turns into something else. **Play it at https://austegard.com/experiments/edgewalk/web/.**
-It runs in any browser; the model is 140 KB of JSON and plain JavaScript.
+The model is 140 KB of JSON evaluated in plain JavaScript.
 
 ## Rules
 
@@ -21,18 +21,20 @@ It runs in any browser; the model is 140 KB of JSON and plain JavaScript.
 
 - Distance is the share of the food that differs from where it started: each piece counts 0 or 1, except
   temperature and size, which count the fraction of their scale moved.
-- The piece you just changed is locked for one turn. A game is 12 moves, with 3 probes that show where a
-  move would land without making it.
+- The piece you just changed is locked for one turn. A game is 12 moves; your score stands at the end. You
+  also get 3 probes: press **Probe**, then tap a value, to see where that move would land without making it.
 - **Daily** gives every player the same starting food for the date; **Random** draws one. A start is one
   of twelve well-known foods (hot dog, burrito, ice cream sandwich, avocado toast…) with at most two
-  pieces changed, which both Jev and the page's model put near 50%. There are 211.
+  pieces changed, which both Jev and the page's model (below) put within 10 and 7 points of 50%: 211 starting foods.
+- **Best** is your top score in this browser. **Copy result** gives your score and one square per move.
 
 ## The model
 
-The judge is a copy of [Jev](https://typesafe.ai), TypeSafe's decision model, asked the yes/no question
-"This food is a sandwich." about 14,000 generated foods (`run/label.py`, no failed calls). A third of
+The judge is a small network trained to imitate [Jev](https://typesafe.ai), TypeSafe's decision model, which answers
+a typed question about a piece of input with a probability. Jev was asked the yes/no question
+"This food is a sandwich." about 14,000 generated foods (`run/label.py`). A third of
 the foods are random combinations of pieces; two thirds are 1–8 random moves away from one of the twelve
-well-known foods, which is how a game moves. Some of Jev's verdicts: a deli ham and cheese 0.98, a hot
+well-known foods, the kind of foods a game passes through. Some of Jev's verdicts: a deli ham and cheese 0.98, a hot
 dog 0.57, an ice cream sandwich 0.67, a taco 0.18, a sushi hand roll 0.07.
 
 `run/train.py` fits a network with two tanh layers of 32 units (3,489 parameters) to Jev's
@@ -44,7 +46,7 @@ first 6,000 labels (`results/sweep.json`).
 | mean \|page model − Jev\| | 0.027 |
 | correlation with Jev | 0.983 |
 | same zone as Jev | 78.5% |
-| Jev against itself, same food asked twice (300 foods) | 0.012, same zone 92.3% |
+| noise floor: Jev against itself, same food asked twice (300 foods) | 0.012, same zone 92.3% |
 
 The page model is a smoothed Jev, not Jev: on one food in five it puts you in a different zone than Jev
 would. The 6,000 → 14,000 labels took held-out error from 0.032 to 0.027, so more labels would still help.
@@ -60,18 +62,19 @@ simulated games (`results/random_player.json`):
 | random moves | 76% | 119 (median 6 moves) |
 | a bot that sees every move's outcome | never | 1,572 |
 
-A player who reads the model sits between the two.
+No human games have been measured yet.
 
 ## Files
 
 | file | what |
 |---|---|
 | `run/sandwich.py` | the pieces, their values, the twelve well-known foods, the case sampler |
-| `run/label.py` | asks Jev about each food; resumable; needs a Jev key (`TYPESAFE_API_KEY`) and claude-workspace's `scripts/model_advisor.py` |
+| `run/label.py` | asks Jev about each food; resumable; needs a Jev key (`TYPESAFE_API_KEY`); calls Jev through `scripts/model_advisor.py` in the separate oaustegard/claude-workspace repo |
 | `run/train.py` | trains the page model; writes `web/sandwich.json` and `results/train.json` |
 | `run/repeat.py` | asks Jev about 300 held-out foods a second time (`results/jev_repeat.json`) |
 | `data/labels.jsonl` | the 14,000 foods and Jev's P(sandwich) |
 | `web/` | the game: `index.html`, `edgewalk.js`, `sandwich.json` |
 
-Run the scripts from the repo root. The page loads `gpu-bridge/web/relay.js`, which sends a game log to
+Run the scripts from the repo root. To serve the page locally, run `python3 -m http.server` from the repo
+root and open `/edgewalk/web/`. The page loads `gpu-bridge/web/relay.js`, a shared logging helper, which sends a game log to
 a private repo only from a browser that holds that repo's token and has `?log=1` switched on.

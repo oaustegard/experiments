@@ -105,8 +105,8 @@ footer a { color: inherit; }
     <p>A model has opinions about what counts as a sandwich. You start with a food it can't decide on. Change the food one piece at a time and keep the model stuck. The more of the food you have changed, the more each move scores.</p>
     <ul>
       <li>Tap a piece (what holds it, the filling, the sauce, what the menu calls it…), then tap a new value. That is one move.</li>
-      <li><b>Edge</b>, 45–55% sandwich: the move scores 200 × how far the food has changed. <b>Fence</b>, 35–65%: 100 ×.</li>
-      <li><b>Slipping</b>, 15–35% or 65–85%: the move scores nothing, and your next move must bring it back inside 35–65% or the model decides.</li>
+      <li><b>Edge</b>, 45–55% sandwich: the move scores 200 × how far the food has changed. <b>Fence</b>, 35–45% or 55–65%: 100 × the distance.</li>
+      <li><b>Slipping</b>, 15–35% or 65–85%: the move scores nothing, and your next move must bring it back inside 35–65% or the game ends.</li>
       <li><b>Decided</b>, below 15% or above 85%: the game ends.</li>
       <li>The piece you just changed is locked for one turn. You have 12 moves and 3 probes: press Probe, then tap a value to see where it would land without making the move.</li>
       <li><b>Daily</b> is the same starting food for everyone today; <b>Random</b> draws a new one. <b>Best</b> is your top score in this browser.</li>
@@ -142,7 +142,7 @@ footer a { color: inherit; }
     </section>
   </div>
   <footer>
-    The model is a 3,489-parameter network trained to copy <a href="https://typesafe.ai">Jev</a>, a decision model, which answered “This food is a sandwich” for 14,000 generated foods. It runs in this page; nothing is sent anywhere.
+    The model is a 3,489-parameter network trained to copy <a href="https://typesafe.ai">Jev</a>, a decision model, which answered “This food is a sandwich” for 14,000 generated foods. It runs in this page.
     <a href="https://github.com/oaustegard/experiments/tree/main/edgewalk">Source</a>
   </footer>
 </main>
@@ -161,7 +161,7 @@ footer a { color: inherit; }
 </dialog>
 <script>
 "use strict";
-window.EDGEWALK_BUILD = "2026-11-25-b";   // keep equal to build.json
+window.EDGEWALK_BUILD = "2026-11-25-c";   // keep equal to build.json
 window.relay = (window.Relay && typeof Relay.start === "function" ? Relay : { start() { return this; }, log() {} })
   .start({ page: "edgewalk", build: window.EDGEWALK_BUILD }) || { log() {} };
 fetch("build.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((b) => {
