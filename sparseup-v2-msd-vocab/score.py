@@ -103,7 +103,7 @@ if ids:
                 res["scifact"][t]["vs_untouched"] = boot(np.array(v) - np.array(nd[ref_t]))
 
 (HERE / "results").mkdir(exist_ok=True)
-(HERE / "results" / f"{OUT.name}.json").write_text(json.dumps(res, indent=1))
+(HERE / "results" / f"{OUT.parent.name if OUT.name == 'out' else OUT.name}.json").write_text(json.dumps(res, indent=1))
 for t, o in res["fixture"].items():
     print(t, "nnz d/q", o["doc_nnz"], o["query_nnz"], " | ".join(
         f"{f} {o[f]['alone']['r10'][0]:.3f}/{o[f]['alone']['mrr'][0]:.3f} +tag {o[f]['rrf_tag']['r10'][0]:.3f} +tag+tfidf {o[f]['rrf_tag_tfidf']['r10'][0]:.3f}"
