@@ -116,6 +116,9 @@ def main():
     ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--doc-len", type=int, default=256)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--flops", type=float, default=1.0, help="multiplier on the FLOPS regulariser (1 = 3e-4 queries, 1e-4 docs)")
+    ap.add_argument("--kl", type=float, default=0.5, help="weight of the teacher KL term in stage 2")
+    ap.add_argument("--init-rows", default=None, help="s1_new_rows.pt from an earlier stage-1 run: start from those rows")
     a = ap.parse_args()
     D = Path(a.data)
     out = Path(a.out)
@@ -211,7 +214,7 @@ def main():
                     mask[i, j] = True
         scores = scores.masked_fill(mask, -1e4)
         loss = F.cross_entropy(scores, torch.arange(len(b), device=scores.device))
-        flops = 3e-4 * (q.mean(0) ** 2).sum() + 1e-4 * (d.mean(0) ** 2).sum()
+        flops = a.flops * (3e-4 * (q.mean(0) ** 2).sum() + 1e-4 * (d.mean(0) ** 2).sum())
         kl = torch.zeros((), device=scores.device)
         if teacher_scores is not None:
             kl = F.kl_div(F.log_softmax(scores, -1), F.softmax(teacher_scores.masked_fill(mask, -1e4), -1), reduction="batchmean")
@@ -226,6 +229,14 @@ def main():
             p.requires_grad_(False)
         teacher = Splade(tmodel.eval(), tfold, raw["logit_shift"], raw["logit_sigma"], raw["position_top_k"])
 
+    if a.init_rows:
+        r = torch.load(a.init_rows, map_location=dev)
+        with torch.no_grad():
+            emb[V0:] = r["rows"].to(emb.dtype)
+            model.decoder.bias[V0:] = r["bias"].to(model.decoder.bias.dtype)
+        log("loaded new rows from", a.init_rows)
+        if 1 not in stages:
+            evaluate("s1_loaded")
     for stage in (1, 2):
         if stage not in stages:
             continue
@@ -265,7 +276,7 @@ def main():
                 q = student(*batchify([x for x, _, _ in qs], dev))
                 d = student(*batchify([e["doc"] for e in b], dev))
             loss, flops, kl = loss_fn(q.float(), d.float(), b, qs, ts)
-            total = loss + flops + 0.5 * kl
+            total = loss + flops + a.kl * kl
             if not math.isfinite(total.item()):
                 raise RuntimeError(f"non-finite loss at stage {stage} step {step}")
             opt.zero_grad(set_to_none=True)
