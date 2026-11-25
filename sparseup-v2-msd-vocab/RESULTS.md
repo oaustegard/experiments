@@ -84,4 +84,6 @@ encoding 32 × 512-token abstracts (the head materialises 51k logits per token) 
 Stage 0 lost 0.22; stage 1 gained 0.08 and saturated by 6k steps. Two unanchored stage-2 runs reached 0.80 on
 MSD but collapsed the vectors and lost 0.06–0.08 on SciFact; the cosine anchor to the teacher's vectors kept
 SciFact level at 0.790 on MSD. Anchor weight 4 with 4,000 steps then reached 0.800 on MSD and 0.744 on SciFact,
-the best on both. Its weights are in `cache/colab5/out/s2_model_fp16.pt` (379 MB, not in git).
+the best on both. Its weights (fp16 state dict, 379 MB in eight parts), the stage-1 rows, `vocab.json`, the
+rewrite code, a README and SHA256SUMS are on R2: https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/sparseup-v2/msd-vocab-v1/README.md
+(bucket austegard-media, public, Apache-2.0 as the base model).
