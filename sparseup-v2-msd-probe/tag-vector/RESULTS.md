@@ -115,8 +115,8 @@ Paired R@10 differences, 95% bootstrap CI:
 - int8 − fp32: all +0.000 [−0.003, +0.004]
 
 Reading: sparseup is the best single lexical-style arm and the only one that handles the heading wording,
-where its expansions bridge `Proto-Oncogene Proteins c-akt` or `Receptor, ErbB-2`-style names to the words
-abstracts use. On gene symbols it fragments as the tokenizer probe predicted and stays near TF-IDF. The tag
+the headings where the other arms find little: `Iodide Peroxidase` R@10 0.78 against at most 0.22,
+`Apolipoproteins E` 0.70 against 0.30, `Leucine-Rich Repeat Serine-Threonine Protein Kinase-2` 1.00 against 0.75. On gene symbols it fragments as the tokenizer probe predicted and stays near TF-IDF. The tag
 vector keeps its dictionary advantage on the two forms built from its own sources. The fusions trade: adding
 TF-IDF lifts MeSH and catalog and costs symbol queries.
 
