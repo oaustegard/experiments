@@ -23,8 +23,7 @@ top-32 term overlap 0.971, about the gap between the model's own bf16 default an
 
 Neither SciFact change is distinguishable from zero. q4 drifts further from fp32 (cosine
 median 0.982), saves 33 MB and is no faster. Under SwiftShader (WebGPU emulated on 4
-CPU cores, not a GPU number) a text costs about 0.5 s per token: 72 s at 137 tokens, 141 s at
-279. Use int8.
+CPU cores, not a GPU number) a text takes 60 s at 128 tokens and 238 s at 512. <!-- @evidence[[results/summary.json#int8.swiftshader_s_512]] --> Use int8.
 
 ## Findings
 
@@ -128,4 +127,8 @@ stayed in this session.
 Built the pack, engine, reference and harness; parity first on SwiftShader (3 texts, exact), then
 all 47 texts on the Mac through the GPU Bridge in 4.6 s (int8) and 2.1 s (q4) of job time. SciFact
 on Kaggle T4s in 11 minutes for four variants. The local SwiftShader run of all 47 texts and its
-128 / 512-token timing was still running when this was written.
+128 / 512-token timing finished later: the same 47 texts give the same exact match there (cosine min
+0.99999982), the JavaScript tokenizer matches the Python one on all 47, a packed batch equals
+one-at-a-time runs bit for bit, and SwiftShader takes 59.9 s at 128 tokens and 237.8 s at 512 (median
+of 3; `results/parity_int8.json`). A Kaggle SwiftShader run of q4 on 35 texts matches dequantized q4
+at cosine min 0.99999988 (`results/parity_q4_swiftshader_kaggle.json`).
