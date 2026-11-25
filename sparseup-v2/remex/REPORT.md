@@ -5,28 +5,42 @@ sparse vector over its 50,370-token vocabulary, about 280 nonzero weights per
 document. Stored naively (16-bit term id + fp32 weight) that is ~1.7 KB per
 document. This study asks how far that index can shrink before retrieval quality
 drops. remex (oaustegard/remex) quantizes dense vectors with an exact fp32 norm,
-a random rotation and a Lloyd-Max scalar codebook; a rotation would make a
-sparse vector dense, so this study uses the other two parts plus top-k pruning.
+a random rotation and a Lloyd-Max scalar codebook. A rotation would make a
+sparse vector dense, so this study keeps the norm (as a per-document scale) and
+the codebook, applies them to the nonzero weights, and adds top-k pruning.
+
+Terms used below. *fp32 / fp16 / bf16*: 32-, 16-bit floats and bfloat16, the
+model's native precision. *Top-k*: keep a document's k largest weights (*full* =
+keep all). *Codebook at b bits*: each weight is replaced by one of 2^b levels;
+*uniform* spaces them evenly on [0, max], *Lloyd-Max* fits them to the weight
+distribution (minimising squared error), *log-Lloyd* does that on log weights.
+*Scale*: an fp16 per-document number (the document's max weight, or its L2 norm
+with the decoded vector rescaled to it, as remex does) that weights are divided by
+before coding. *Arm*: one combination of these. *Binary*: no value bits; the score
+is the sum of query weights over the document's terms. *Frontier*: arms that no
+other arm beats on both bytes and quality. The study ran as three steps: encode the
+baseline, compress the document vectors, then quantize the model's own weights.
+
+![nDCG@10 change vs bytes per document, per dataset and averaged](results/frontier.png)
 
 ## Answer
 
 "Delta" is nDCG@10 change vs unpruned fp32, averaged over SciFact, NFCorpus, FiQA
-and ArguAna; brackets are 95% bootstrap CIs. Top-k keeps a document's k largest
-weights; Lloyd-Max levels are fitted to the values. 16-bit term ids. fp32 is 1,672 B/doc. <!-- @evidence[[results/summary.json#by_key.None_fp32_32_none_fp32.bytes_fixed]] -->
+and ArguAna; brackets are 95% bootstrap CIs. Bytes assume 16-bit term ids; fp32 is 1,672 B/doc. <!-- @evidence[[results/summary.json#by_key.None_fp32_32_none_fp32.bytes_fixed]] -->
 
 - **8 bits per value is exactly lossless.** bf16 output has under 256
-  distinct values, so an 8-bit table holds them all: 836 B/doc, delta 0.0000. <!-- @evidence[[results/summary.json#by_key.None_table8_8_none_fp32.bytes_fixed]] -->
+  distinct values, so an 8-bit index into a table of them is exact: 836 B/doc, delta 0.0000. <!-- @evidence[[results/summary.json#by_key.None_table8_8_none_fp32.bytes_fixed]] -->
 - **Top-256 at 3-bit Lloyd-Max: 565 B/doc,** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.bytes_fixed]] -->
-  **delta +0.0043 [+0.0011, +0.0073].** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d]] --> The gain comes from
-  ArguAna; FiQA is −0.006. <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d_fiqa]] -->
-- **Top-128 at 2 bits: 287 B/doc, 5.8x smaller,** <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.bytes_fixed]] -->
-  **delta −0.0016 [−0.0067, +0.0035]**, <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d]] --> but per dataset FiQA
+  **delta +0.0043 [+0.0011, +0.0073].** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d]] --> The gain is ArguAna's;
+  FiQA is −0.006. <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d_fiqa]] -->
+- **Top-128 at 2 bits: 287 B/doc,** <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.bytes_fixed]] -->
+  **delta −0.0016 [−0.0067, +0.0035]** (5.8x smaller than fp32), <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d]] --> but per dataset FiQA
   −0.022 and ArguAna +0.031. <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d_arguana]] -->
 
 Spending bytes on terms beats spending them on bits: at ~256 B, top-128 at 2 bits
 beats top-64 at fp16 by 0.026 [0.019, 0.032]. <!-- @evidence[[results/paired.json#k128_lloyd2_minus_k64_fp16.d]] --> remex's exact
-per-document norm hurts here (−0.006 at 2 bits). Corpora like FiQA, where top-128
-is already lossy, would change the answer.
+per-document norm hurts on these vectors (−0.006 at 2 bits, Finding 5). Safe default: top-256
+at 3 bits. Top-128 at 2 bits is cheaper; check it on your corpus first.
 
 ## Findings
 
@@ -49,13 +63,14 @@ is already lossy, would change the answer.
    k128 at 2 bits beats k64 at fp16 by +0.026 [+0.019, +0.032] paired. <!-- @evidence[[results/paired.json#k128_lloyd2_minus_k64_fp16.d]] -->
    k128 binary (L2 scale) vs k64 fp16, both ~256 B: +0.007 [−0.002, +0.016], not resolved. <!-- @evidence[[results/paired.json#k128_binary_l2_minus_k64_fp16.d]] -->
 5. **A per-document scale (remex's exact-norm idea) does not help.** (Round 1) At full k and
-   2 bits, paired against no scale, an fp16 doc max costs −0.0072 [−0.0112, −0.0030]{P("full_lloyd2_docmax_minus_none.d")}
-   and the exact L2 norm with remex-style renormalisation −0.0061 [−0.0104, −0.0020].{P("full_lloyd2_l2_minus_none.d")}
-   Against fp32: no scale +0.0009; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_none_fp32.d]] -->
+   2 bits, paired against no scale, an fp16 doc max costs −0.0072 [−0.0112, −0.0030] <!-- @evidence[[results/paired.json#full_lloyd2_docmax_minus_none.d]] -->
+   and the exact L2 norm with remex-style renormalisation −0.0061 [−0.0104, −0.0020]. <!-- @evidence[[results/paired.json#full_lloyd2_l2_minus_none.d]] -->
+   (Paired = same queries, scaled arm minus unscaled arm.) Each against fp32: no scale +0.0009; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_none_fp32.d]] -->
    with an fp16 doc max −0.0062; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_docmax_fp32.d]] -->
    with the exact L2 norm and remex-style renormalisation −0.0052. <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_l2_fp32.d]] -->
    The values already share one scale (logits through a fixed activation), and
-   normalising each document moves its values off the shared grid.
+   normalising each document puts the same raw weight on a different code level
+   in different documents.
 6. **Binary presence (score = sum of query weights over the doc's terms) costs
    0.030 at full k**, −0.0296 [−0.0374, −0.0227]; <!-- @evidence[[results/summary.json#by_key.None_binary_1_none_fp32.d]] --> SciFact −0.010, FiQA −0.054. <!-- @evidence[[results/summary.json#by_key.None_binary_1_none_fp32.d_fiqa]] -->
    It reaches the frontier only at the low end (k ≤ 64, and k128 with an L2 scale).
@@ -84,7 +99,7 @@ is already lossy, would change the answer.
   `trust_remote_code`), `encode_document` / `encode_query` (adds `[D]` / `[Q]`),
   no `max_active_dims`, bf16 weights (the card's precision), fp32 output, docs
   truncated to 512 tokens (config default is 8,192; 2 to 5% of docs are longer).
-  SciFact, NFCorpus and ArguAna on this container's 4 CPUs (AMX bf16, 41 min total);
+  SciFact, NFCorpus and ArguAna on a 4-CPU cloud container (AMX bf16, 41 min total);
   FiQA on a Kaggle T4 in bf16 (29 min). GPU bf16 vs CPU bf16 on 400 SciFact docs:
   cosine 0.9995.
 - **Scoring.** Exact dot product over the whole corpus (scipy sparse), top 100.
@@ -113,8 +128,13 @@ is already lossy, would change the answer.
 - **Tests.** `test_compress.py`, 11 black-box tests written by a second model from
   the spec (DELEGATION.md).
 
-What the paper (arXiv 2611.09680 v2) already reports, so nothing here is claimed
-as missing from it: Matryoshka top-k training with levels (q, d) =
+- **Reproduce.** `python3 encode.py scifact nfcorpus arguana` (CPU, caches CSR
+  vectors in `cache/`); FiQA and the weight-quant encodes with `kaggle_encode.py`
+  (set `MODE`) on a Kaggle GPU; then `compress.py scifact nfcorpus arguana fiqa`,
+  `analyze.py`, `weightquant.py`, `plot.py`. Per-arm numbers in `results/arms_*.json`,
+  macro values and CIs in `results/summary.json` and `results/paired.json`.
+
+What the paper (arXiv 2611.09680 v2) already reports: Matryoshka top-k training with levels (query k, doc k) =
 (16, 64), (32, 128), (64, 256), reported as "improves nDCG@10 by 1.5 points at 64
 entries per document and by 0.7 points at 128" and "without pruning Matryoshka
 costs at most 0.4 points" (Sec. 4.3); document non-zeros as its storage proxy. It

@@ -1,7 +1,9 @@
 # Delegation ledger
 
-Design, verification and the write-up stayed with the coordinating session
-(Opus). Mechanical or independent work went to cheaper workers. Prices: Gemini
+This study ran as one Claude Opus session. It kept design, verification and the
+write-up, and sent mechanical or independent jobs to cheaper models: Gemini via
+the Muninn `generate` tool (Muninn is Oskar's agent toolkit), and Claude subagents
+(run inside the session's subscription, so no per-call price). Prices: Gemini
 4 Hydrogen $1.50 / $7.50 per M tokens in / out (thinking billed as output).
 
 | # | job | worker | tokens in / out | cost est. | outcome |
