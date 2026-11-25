@@ -4,28 +4,29 @@ SPARSEUP-v2 (`Linkup-Platform/linkup-sparseup-embed-v2`) turns a document into a
 sparse vector over its 50,370-token vocabulary, about 280 nonzero weights per
 document. Stored naively (16-bit term id + fp32 weight) that is ~1.7 KB per
 document. This study asks how far that index can shrink before retrieval quality
-drops, using two parts of remex (a scalar codebook and an exact per-document
-scale) plus top-k term pruning.
+drops. remex (oaustegard/remex) quantizes dense vectors with an exact fp32 norm,
+a random rotation and a Lloyd-Max scalar codebook; a rotation would make a
+sparse vector dense, so this study uses the other two parts plus top-k pruning.
 
 ## Answer
 
-Two thirds of the index goes at no cost, five sixths within noise on average. Macro nDCG@10 deltas over SciFact, NFCorpus, FiQA and
-ArguAna, against unpruned fp32, with 16-bit term ids:
+"Delta" is nDCG@10 change vs unpruned fp32, averaged over SciFact, NFCorpus, FiQA
+and ArguAna; brackets are 95% bootstrap CIs. Top-k keeps a document's k largest
+weights; Lloyd-Max levels are fitted to the values. 16-bit term ids. fp32 is 1,672 B/doc. <!-- @evidence[[results/summary.json#by_key.None_fp32_32_none_fp32.bytes_fixed]] -->
 
-- **8 bits per value is exactly lossless**: the model emits bf16, so fewer than 256
-  distinct values occur and an 8-bit table holds them all.
-  836 B/doc, delta 0.0000. <!-- @evidence[[results/summary.json#by_key.None_table8_8_none_fp32.bytes_fixed]] -->
-- **Top-256 terms at 3-bit Lloyd-Max: 565 B/doc,** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.bytes_fixed]] -->
-  **+0.0043 [+0.0011, +0.0073]**: smaller and slightly better. <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d]] -->
-- **Top-128 terms at 2 bits: 287 B/doc** <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.bytes_fixed]] -->
-  (240 B with delta-varint ids), <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.bytes_varint]] -->
-  **−0.0016 [−0.0067, +0.0035]**, 5.8x smaller than fp32. <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d]] -->
-  The datasets split: FiQA −0.022, ArguAna +0.031. <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d_arguana]] -->
+- **8 bits per value is exactly lossless.** bf16 output has under 256
+  distinct values, so an 8-bit table holds them all: 836 B/doc, delta 0.0000. <!-- @evidence[[results/summary.json#by_key.None_table8_8_none_fp32.bytes_fixed]] -->
+- **Top-256 at 3-bit Lloyd-Max: 565 B/doc,** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.bytes_fixed]] -->
+  **delta +0.0043 [+0.0011, +0.0073].** <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d]] --> The gain comes from
+  ArguAna; FiQA is −0.006. <!-- @evidence[[results/summary.json#by_key.256_lloyd_3_none_fp32.d_fiqa]] -->
+- **Top-128 at 2 bits: 287 B/doc, 5.8x smaller,** <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.bytes_fixed]] -->
+  **delta −0.0016 [−0.0067, +0.0035]**, <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d]] --> but per dataset FiQA
+  −0.022 and ArguAna +0.031. <!-- @evidence[[results/summary.json#by_key.128_lloyd_2_none_fp32.d_arguana]] -->
 
-At a fixed budget, more terms at fewer bits win: at ~256 B, top-64 at fp16 is
-−0.027. <!-- @evidence[[results/summary.json#by_key.64_fp16_16_none_fp32.d]] --> Term ids cost 2 B each and a value 0.25 to 0.5 B,
-so ids dominate. remex's exact-norm idea (a per-document scale) hurts at 2 to 3
-bits. What would change this: corpora where FiQA's 2-bit top-128 loss is typical.
+Spending bytes on terms beats spending them on bits: at ~256 B, top-128 at 2 bits
+beats top-64 at fp16 by 0.026 [0.019, 0.032]. <!-- @evidence[[results/paired.json#k128_lloyd2_minus_k64_fp16.d]] --> remex's exact
+per-document norm hurts here (−0.006 at 2 bits). Corpora like FiQA, where top-128
+is already lossy, would change the answer.
 
 ## Findings
 
@@ -34,19 +35,23 @@ bits. What would change this: corpora where FiQA's 2-bit top-128 loss is typical
    per corpus. An 8-bit index into that table reproduces fp32 rankings exactly.
    8-bit uniform on [0, max] is within ±0.0002; Anserini-style 8-bit impacts
    (prior art) are −0.0002 [−0.0006, +0.0002] and drop no terms. <!-- @evidence[[results/summary.json#by_key.None_anserini8_8_none_fp32.d]] -->
-2. **Pruning to the top 256 terms improves retrieval** (Round 1): +0.0042 [+0.0024, +0.0061] <!-- @evidence[[results/summary.json#by_key.256_fp32_32_none_fp32.d]] -->
-   (the model was trained with a Matryoshka top-256 level). Top-128 is flat on
+2. **Pruning to the top 256 terms raises macro nDCG@10** (Round 1): +0.0042 [+0.0024, +0.0061] <!-- @evidence[[results/summary.json#by_key.256_fp32_32_none_fp32.d]] -->
+   (the model was trained with a Matryoshka top-256 level), driven by ArguAna
+   (+0.011) and SciFact; FiQA is −0.0005. Top-128 is flat on
    average, +0.0002, <!-- @evidence[[results/summary.json#by_key.128_fp32_32_none_fp32.d]] --> but FiQA −0.013 and ArguAna +0.022.
    Top-64 −0.027, <!-- @evidence[[results/summary.json#by_key.64_fp32_32_none_fp32.d]] --> top-32 −0.088, <!-- @evidence[[results/summary.json#by_key.32_fp32_32_none_fp32.d]] --> top-16 −0.146. <!-- @evidence[[results/summary.json#by_key.16_fp32_32_none_fp32.d]] -->
 3. **The macro frontier above 100 B uses 1 to 4 bits per value at k = 64 to 256,
    never 8 or 16.** Every fp16 or 8-bit arm is dominated by a lower-bit arm with
-   more terms. Frontier points: k64 2-bit L2-scaled −0.025; <!-- @evidence[[results/summary.json#by_key.64_lloyd_2_l2_fp32.d]] -->
-   k128 3-bit 303 B; <!-- @evidence[[results/summary.json#by_key.128_lloyd_3_none_fp32.bytes_fixed]] --> k256 2-bit 536 B, +0.0024. <!-- @evidence[[results/summary.json#by_key.256_lloyd_2_none_fp32.d]] -->
-4. **Matched bytes favour more terms.** (Round 1) At ~256 B, k128 binary with an L2 scale
-   −0.020 <!-- @evidence[[results/summary.json#by_key.128_binary_1_l2_fp32.d]] --> against k64 fp16 −0.027.
-   At ~100 to 150 B, k64 2-bit (L2) beats k32 at 8 bits, −0.088 at 96 B. <!-- @evidence[[results/summary.json#by_key.32_table8_8_none_fp32.d]] -->
+   more terms. The frontier ranks point estimates; most deltas near zero sit inside
+   their CIs. Frontier points: k64 2-bit L2-scaled −0.025; <!-- @evidence[[results/summary.json#by_key.64_lloyd_2_l2_fp32.d]] -->
+   k128 3-bit 303 B, +0.0003; <!-- @evidence[[results/summary.json#by_key.128_lloyd_3_none_fp32.bytes_fixed]] --> k256 2-bit 536 B, +0.0024. <!-- @evidence[[results/summary.json#by_key.256_lloyd_2_none_fp32.d]] -->
+4. **At matched bytes, more terms at fewer bits wins.** (Round 1, `results/paired.json`) At ~256 to 287 B,
+   k128 at 2 bits beats k64 at fp16 by +0.026 [+0.019, +0.032] paired. <!-- @evidence[[results/paired.json#k128_lloyd2_minus_k64_fp16.d]] -->
+   k128 binary (L2 scale) vs k64 fp16, both ~256 B: +0.007 [−0.002, +0.016], not resolved. <!-- @evidence[[results/paired.json#k128_binary_l2_minus_k64_fp16.d]] -->
 5. **A per-document scale (remex's exact-norm idea) does not help.** (Round 1) At full k and
-   2 bits Lloyd-Max with no scale is +0.0009; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_none_fp32.d]] -->
+   2 bits, paired against no scale, an fp16 doc max costs −0.0072 [−0.0112, −0.0030]{P("full_lloyd2_docmax_minus_none.d")}
+   and the exact L2 norm with remex-style renormalisation −0.0061 [−0.0104, −0.0020].{P("full_lloyd2_l2_minus_none.d")}
+   Against fp32: no scale +0.0009; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_none_fp32.d]] -->
    with an fp16 doc max −0.0062; <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_docmax_fp32.d]] -->
    with the exact L2 norm and remex-style renormalisation −0.0052. <!-- @evidence[[results/summary.json#by_key.None_lloyd_2_l2_fp32.d]] -->
    The values already share one scale (logits through a fixed activation), and
@@ -55,8 +60,8 @@ bits. What would change this: corpora where FiQA's 2-bit top-128 loss is typical
    0.030 at full k**, −0.0296 [−0.0374, −0.0227]; <!-- @evidence[[results/summary.json#by_key.None_binary_1_none_fp32.d]] --> SciFact −0.010, FiQA −0.054. <!-- @evidence[[results/summary.json#by_key.None_binary_1_none_fp32.d_fiqa]] -->
    It reaches the frontier only at the low end (k ≤ 64, and k128 with an L2 scale).
 7. **Delta-varint term ids cost 1.41 B per term at full k** (Round 1) <!-- @evidence[[results/summary.json#by_key.None_binary_1_none_fp32.varint_bytes_per_term]] -->
-   and 1.96 B at k=16, <!-- @evidence[[results/summary.json#by_key.16_binary_1_none_fp32.varint_bytes_per_term]] --> against 2 B fixed; varint
-   saves 10 to 20% at k ≥ 128 and nearly nothing at k=16.
+   (30% under 2 B fixed), 1.63 B at k=128 <!-- @evidence[[results/summary.json#by_key.128_binary_1_none_fp32.varint_bytes_per_term]] -->
+   and 1.96 B at k=16, <!-- @evidence[[results/summary.json#by_key.16_binary_1_none_fp32.varint_bytes_per_term]] --> where sparser rows mean larger gaps.
 8. **Query precision does not matter:** (Round 1) 8-bit queries cost −0.0003 [−0.0007, −0.0000]. <!-- @evidence[[results/summary.json#by_key.None_fp32_32_none_8bit.d]] -->
 9. **Weight quantization (step 3).** (Round 1, `results/weightquant.json`) int8 per-row weights, against the fp32 vectors: doc
    cosine 0.999, <!-- @evidence[[results/weightquant.json#datasets.scifact.int8.doc_cos_mean]] --> top-32 overlap 0.985, <!-- @evidence[[results/weightquant.json#datasets.scifact.int8.doc_top32_overlap]] -->
@@ -167,6 +172,11 @@ tail removable.
   GPU bf16 on a T4 is no faster than fp32 (emulated).
 - Not run: query-side top-k (the card's q-64), docs longer than 512 tokens, other
   BEIR sets, a search engine (Seismic, Lucene) end to end, latency.
+
+**Reader review.** A fresh Sonnet reader spot-checked five numbers (all matched)
+and flagged overstatements: "improves" for a gain carried by ArguAna, a matched-bytes
+claim whose CIs overlapped, an unmatched 146 B vs 96 B comparison, and a varint
+percentage that mixed id and value bytes. Fixed with paired CIs (`results/paired.json`).
 
 **Cost.** CPU: 41 min encode, ~12 min arm grid. Kaggle T4: 2 min smoke, 29 min
 FiQA, ~16 min weight-quant re-encodes. Delegation in `DELEGATION.md`: Gemini 4
