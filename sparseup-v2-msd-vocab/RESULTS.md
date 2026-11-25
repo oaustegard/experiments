@@ -7,11 +7,11 @@ PubMed abstracts about a catalog analyte better than the stock model?
 ## Answer
 
 Yes. Adding one vocabulary row per catalog analyte (696 rows, 50,370 → 51,066) and training in two stages
-lifts R@10 on the MSD retrieval test from 0.673 to 0.790 (+0.116, 95% CI +0.076 to +0.155), with general
-retrieval unchanged within noise (SciFact nDCG@10 0.738 against 0.748, difference −0.009, CI −0.025 to
-+0.006). Gene-symbol queries gain most (0.58 → 0.86), catalog names gain 0.08, MeSH-heading queries hold
-(0.70 → 0.71, MRR 0.94 → 0.96). The tuned model alone now beats the earlier tag-vector dictionary (0.746)
-and fuses with it and TF-IDF to 0.817.
+lifts R@10 on the MSD retrieval test from 0.673 to 0.800 (+0.127, 95% CI +0.091 to +0.165) and MRR from
+0.929 to 0.969, with general retrieval unchanged within noise (SciFact nDCG@10 0.744 against 0.748,
+difference −0.004, CI −0.019 to +0.011). Gene-symbol queries gain most (0.58 → 0.86), catalog names gain
+0.09, MeSH-heading queries 0.70 → 0.73 (CI spans 0). The tuned model alone beats the earlier tag-vector
+dictionary (0.746) and fuses with it and TF-IDF to 0.822.
 
 What makes it work: every spelling of an analyte (`IL-1β`, `IL1B`, `interleukin-1 beta`) is rewritten to one
 new token before encoding, the new rows are trained first on their own, and the full fine-tune is anchored to
@@ -23,8 +23,10 @@ this measures learning the catalog, not generalising to analytes outside it.
 
 ## Findings
 
-1. **Anchored stage 2 is the candidate**: MSD R@10 0.790, MRR 0.960, SciFact 0.738 (−0.009, CI spans 0); abstracts
-   keep 251 active terms, queries 11 (`results/colab4.json`, run colab4).
+1. **Anchored stage 2 is the candidate**: with anchor weight 4 and 4,000 steps, MSD R@10 0.800, MRR 0.969, SciFact
+   0.744 (−0.004, CI spans 0); abstracts keep 235 active terms, queries 13 (`results/colab5.json`, run colab5). Anchor
+   weight 2 and 2,500 steps gave 0.790 / 0.738 (`results/colab4.json`): a stronger anchor trained longer is better
+   on both sides.
 2. **Stage 1 alone (only the 696 new rows train, the model frozen) gets most of the way**: 0.751 (+0.077 [+0.037,
    +0.118]), SciFact −0.011 (CI spans 0). Gene symbols 0.58 → 0.82; MeSH −0.04 (n.s.) (`results/colab2.json`, s1).
 3. **Stage 1 saturates**: 6,000 steps instead of 2,000 give 0.758 (`results/kaggle2.json`).
@@ -44,7 +46,8 @@ this measures learning the catalog, not generalising to analytes outside it.
 | stage 1 (6k steps) | 0.795 | 0.846 | 0.646 | 0.758 | 0.931 | 0.809 | 0.739 |
 | stage 2, sparsity penalty | 0.832 | 0.883 | 0.711 | 0.805 | 0.936 | 0.778 | 0.664 |
 | stage 2, no penalty | 0.823 | 0.877 | 0.699 | 0.796 | 0.941 | 0.816 | 0.693 |
-| **stage 2, anchored** | 0.811 | 0.861 | 0.707 | **0.790** | **0.960** | **0.817** | **0.738** |
+| stage 2, anchored ×2, 2.5k steps | 0.811 | 0.861 | 0.707 | 0.790 | 0.960 | 0.817 | 0.738 |
+| **stage 2, anchored ×4, 4k steps** | 0.814 | 0.864 | **0.732** | **0.800** | **0.969** | **0.822** | **0.744** |
 
 ## Method
 
@@ -63,7 +66,8 @@ this measures learning the catalog, not generalising to analytes outside it.
   2,000 steps of 16 pairs. **Stage 2**: everything trains (2e-5 or 1e-5; new rows 2e-4), the original model
   runs frozen as teacher on the raw text. Losses: cross-entropy over dot-product scores, KL to the teacher's
   in-batch score distribution, and, in the anchored run, 2 × (1 − cosine) between the student's and the
-  teacher's query and document vectors over the original 50,370 dimensions.
+  teacher's query and document vectors over the original 50,370 dimensions, weighted 2 (2,500 steps) or 4
+  (4,000 steps, the candidate).
 - **Evaluation**: the frozen `evaluate.py` of the tag-vector study (91 test concepts, 260 queries, 1,241
   abstracts; labels from NLM's MeSH indexing), run by `score.py`; SciFact test (300 queries, 5,183 abstracts)
   for general retrieval. Encodes in fp16 on the GPU. 95% bootstrap CIs over queries, paired against the stock
@@ -79,4 +83,5 @@ Built the concept-token rewrite and the stage 0/1/2 trainer; CPU smoke test; fir
 encoding 32 × 512-token abstracts (the head materialises 51k logits per token) and now batches by tokens.
 Stage 0 lost 0.22; stage 1 gained 0.08 and saturated by 6k steps. Two unanchored stage-2 runs reached 0.80 on
 MSD but collapsed the vectors and lost 0.06–0.08 on SciFact; the cosine anchor to the teacher's vectors kept
-SciFact level at 0.790 on MSD. A run with anchor weight 4 and 4,000 steps was started on the same A100.
+SciFact level at 0.790 on MSD. Anchor weight 4 with 4,000 steps then reached 0.800 on MSD and 0.744 on SciFact,
+the best on both. Its weights are in `cache/colab5/out/s2_model_fp16.pt` (379 MB, not in git).
