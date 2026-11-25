@@ -532,6 +532,7 @@ export const cases = [
   normCase("ln", 256, 0, false),
   normCase("ln", 256, 1, true),
   normCase("ln", 512, 0, true),
+  normCase("ln", 768, 0, false),
   normCase("rms", 64, 1, false),
   attnCase({ nh: 4, nkv: 4, hd: 64, fused: true }),
   attnCase({ nh: 4, nkv: 4, hd: 64, fused: true, window: 16 }),

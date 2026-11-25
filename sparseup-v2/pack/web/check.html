@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SparseUp WGSL check</title>
+<style>
+  :root { --bg: #fcfcfb; --fg: #1a1a19; --muted: #6b6a64; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; } }
+  :root[data-theme="dark"] { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, Menlo, monospace; margin: 16px; }
+  #log { white-space: pre-wrap; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1 style="font-size:16px">SparseUp v2 WGSL engine: parity fixture and timing</h1>
+<pre id="log"></pre>
+<script type="module">
+// ?pack=int8|q4  ?only=N (first N fixture rows)  ?reps=3  ?timing=0 to skip timing. Results in window.check.
+import { loadSparseUp } from "./sparseup.js";
+const Q = new URLSearchParams(location.search);
+const pack = Q.get("pack") || "int8", reps = +(Q.get("reps") || 3), only = +(Q.get("only") || 0);
+const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+const res = window.check = { pack, rows: [], timing: {}, done: false };
+try {
+  let fx = await fetch("fixtures/parity.json").then((r) => r.json());
+  if (only) fx = fx.slice(0, only);
+  const sp = await loadSparseUp(`../packs/${pack}/`);
+  res.info = { ...sp.info, adapter: { vendor: sp.info.adapter.vendor, architecture: sp.info.adapter.architecture, description: sp.info.adapter.description } };
+  log(`pack ${pack}: ${(sp.info.bytes / 1e6).toFixed(1)} MB, fetch ${sp.info.fetchMs.toFixed(0)} ms, init ${sp.info.initMs.toFixed(0)} ms, adapter ${JSON.stringify(res.info.adapter)}`);
+  const V = sp.manifest.vpad;
+  for (const r of fx) {
+    const t = sp.tokenize(r.text, r.kind);
+    const tokOk = t.ids.length === r.ids.length && t.ids.every((x, j) => x === r.ids[j]) && t.pool.every((x, j) => x === r.pool[j]);
+    const t0 = performance.now();
+    const [row] = await sp.run([{ ids: r.ids, pool: r.pool }]);
+    const ms = performance.now() - t0;
+    const i = [], w = [];
+    for (let v = 0; v < V; v++) if (row[v] > 0) { i.push(v); w.push(row[v]); }
+    res.rows.push({ name: r.name, n: r.ids.length, tokOk, ms, i, w });
+    log(`${r.name} n=${r.ids.length} tok ${tokOk ? "same" : "DIFF"} nnz ${i.length} ${ms.toFixed(0)} ms`);
+  }
+  // A packed batch of several texts must give the same rows as one at a time.
+  const small = fx.filter((r) => r.n <= 64).slice(0, 6);
+  if (small.length) {
+    const rows = await sp.run(small.map((r) => ({ ids: r.ids, pool: r.pool })));
+    res.batch = small.map((r, b) => {
+      const one = res.rows.find((x) => x.name === r.name), m = new Map(one.i.map((v, k) => [v, one.w[k]]));
+      let d = 0;
+      for (let v = 0; v < V; v++) d = Math.max(d, Math.abs(rows[b][v] - (m.get(v) ?? 0)));
+      return { name: r.name, maxDiff: d };
+    });
+    log(`batch of ${small.length} vs one at a time: max diff ${Math.max(...res.batch.map((x) => x.maxDiff))}`);
+  }
+  if (Q.get("timing") !== "0") {
+    const long = fx.find((r) => r.n === 512) ?? fx.reduce((a, b) => (a.n > b.n ? a : b));
+    for (const n of [128, 512]) {
+      const ids = long.ids.length >= n ? long.ids.slice(0, n - 1).concat(long.ids[long.ids.length - 1]) : long.ids;
+      const item = { ids, pool: ids.map((_, j) => (j === 1 ? 0 : 1)) };
+      await sp.run([item]);   // warm
+      const ts = [];
+      for (let k = 0; k < reps; k++) { const t0 = performance.now(); await sp.run([item]); ts.push(performance.now() - t0); }
+      ts.sort((a, b) => a - b);
+      res.timing[n] = { tokens: ids.length, median_ms: ts[Math.floor(ts.length / 2)], all_ms: ts };
+      log(`timing ${ids.length} tokens: median ${res.timing[n].median_ms.toFixed(0)} ms of ${reps}`);
+    }
+  }
+} catch (e) {
+  res.error = String(e.stack || e);
+  log("ERROR " + res.error);
+}
+res.done = true;
+</script>
+</body>
+</html>

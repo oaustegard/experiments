@@ -112,7 +112,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_index) 
 }`;
 }
 
-// Row normalization over D values (a multiple of 64, at most 512), one workgroup of 64 per row,
+// Row normalization over D values (a multiple of 64, at most 1024), one workgroup of 64 per row,
 // thread l holding elements l + 64 i. kind rms: x / rms(x) * w; kind ln: (x - mean) / std * w (+ bias).
 // mode 0: y = norm(x).  mode 1: y = norm(y + x) (residual first, BERT post-LN).
 // mode 2: y = (y + norm(x)) * scalar (residual after, Gemma sandwich norm with layer scalar).
@@ -296,7 +296,7 @@ export function matmul(e, w, W, X, Y, { rowsSel = 0, alpha = 1, bias = NONE, gel
 
 // kind "rms" | "ln"; wOff / bOff word offsets in W (bOff NONE for none); mode 0 | 1 | 2 as above.
 export function norm(e, kind, W, wOff, X, Y, { D, eps, bOff = NONE, mode = 0, scalar = 1, rowsSel = 0, mult = 1 }) {
-  if (D > 512 || D % 64) throw new Error(`norm: D ${D} must be a multiple of 64 up to 512`);
+  if (D > 1024 || D % 64) throw new Error(`norm: D ${D} must be a multiple of 64 up to 1024`);
   const bias = bOff !== NONE;
   const k = variant(e, `norm_${kind}_${D}_${mode}${bias ? "_b" : ""}`, () => normWGSL(kind, D, mode, bias));
   e.step(k, { a: [wOff, bias ? bOff : 0], b: [rowsSel, mult], f: [eps, scalar] }, [W, X, Y], (n) => split(n[rowsSel] * mult));
