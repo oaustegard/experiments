@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SparseUp in the browser</title>
+<style>
+  :root { --bg: #fcfcfb; --fg: #1a1a19; --muted: #6b6a64; --line: #e6e5e0; --bar: #3b6fb6; --exp: #c4721b; --err: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; --line: #34332f; --bar: #7ba7e0; --exp: #e8a057; --err: #f2867e; } }
+  :root[data-theme="dark"] { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; --line: #34332f; --bar: #7ba7e0; --exp: #e8a057; --err: #f2867e; }
+  * { box-sizing: border-box; }
+  html { overflow-x: hidden; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 ui-monospace, Menlo, monospace; margin: 0; padding: 16px; max-width: 760px; margin-inline: auto; overflow-wrap: anywhere; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 14px; margin: 24px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  p { margin: 6px 0; }
+  label { display: block; margin: 12px 0 4px; color: var(--muted); }
+  textarea { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 8px; font: inherit; resize: vertical; }
+  button { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--fg); border-radius: 4px; padding: 6px 16px; margin-top: 12px; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  .muted, small { color: var(--muted); }
+  small { font-size: 12px; display: block; margin: 6px 0; }
+  #status { margin: 12px 0; color: var(--muted); white-space: pre-wrap; }
+  #status.err { color: var(--err); }
+  .card { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin: 10px 0; }
+  .card h3 { font-size: 13px; margin: 0 0 2px; }
+  .meta { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .txt { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .row { display: grid; grid-template-columns: minmax(70px, 28%) 1fr 44px; gap: 8px; align-items: center; font-size: 12px; }
+  .row .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .w { text-align: right; }
+  .track { height: 10px; }
+  .bar { height: 100%; background: var(--bar); border-radius: 2px; }
+  .row.exp .bar { background: var(--exp); }
+  .row.exp .t { color: var(--exp); font-style: italic; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  .rank { display: flex; justify-content: space-between; gap: 8px; font-weight: bold; }
+  .shared { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  footer { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 8px; }
+  a { color: var(--bar); }
+</style>
+</head>
+<body>
+<h1>SparseUp in the browser</h1>
+<p class="muted">A learned sparse retriever: each text becomes a handful of weighted vocabulary terms, including terms it never contains.
+A document's score for the query is the dot product of the two term lists: the sum, over shared terms, of query weight times document weight. Higher means more relevant.
+The page needs WebGPU and loads a 151 MB weight pack from this server before the button turns on.</p>
+<div id="status">checking for WebGPU</div>
+
+<label for="q">Query</label>
+<textarea id="q" rows="2">why do cats purr</textarea>
+<label for="d">Documents (one per blank-line-separated block)</label>
+<textarea id="d" rows="10">Cats purr by rapidly twitching the muscles of the larynx, which makes the vocal folds vibrate as they breathe. Purring often signals contentment but also helps cats soothe themselves when stressed or hurt.
+
+The Eiffel Tower was completed in 1889 and stands about 330 metres tall. It was built for the World's Fair in Paris.
+
+Python is a programming language known for readable syntax. It is widely used for data analysis and web development.
+
+Dogs wag their tails to communicate excitement, fear or aggression, depending on the height and speed of the wag.</textarea>
+<button id="go" disabled>Encode</button>
+
+<div id="out"></div>
+
+<footer>
+  <small class="legend"><i style="background:var(--bar)"></i>term in the text &nbsp; <i style="background:var(--exp)"></i>expansion term (not among the text's own tokens)</small>
+  <small>The model merges each word's spelling variants (capitalized, lowercase, with or without a leading space) into one term, so a word that is in the text can still be marked as expansion when its merged form is a different token.</small>
+  <small>Model <a href="https://huggingface.co/Linkup-Platform/linkup-sparseup-embed-v2">Linkup-Platform/linkup-sparseup-embed-v2</a> (apache-2.0). It runs on WebGPU compute shaders written for this page, with weights stored as 8-bit integers (int8), and needs no ML library. Everything runs in this browser tab; nothing is sent anywhere. <a href="../REPORT.md">Build notes and accuracy measurements</a>.</small>
+</footer>
+
+<script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>
+<script type="module">
+import { loadSparseUp } from "./sparseup.js";
+const BUILD = "2026-11-25-1";   // keep equal to build.json
+const relay = window.Relay?.start?.({ page: "sparseup-pack-demo", build: BUILD }) ?? null;
+const $ = (id) => document.getElementById(id);
+const status = (s, err) => {
+  $("status").textContent = s; $("status").className = err ? "err" : "";
+  try { relay?.[err ? "error" : "log"]?.(s); } catch (e) { /* relay is optional */ }
+};
+fetch("build.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((b) => {
+  if (b?.build && b.build !== BUILD) location.reload();
+}).catch(() => {});
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const TOPK = 24;
+const pack = new URLSearchParams(location.search).get("pack") || "../packs/int8/";
+let sp;
+
+async function init() {
+  if (!navigator.gpu) {
+    status("This browser has no WebGPU, which the encoder needs. Try a recent Chrome, Edge or Safari on a device with a GPU.", true);
+    return;
+  }
+  try {
+    status(`loading pack ${pack} (tokenizer, ~150 MB of weights, then compiling shaders)...`);
+    const t0 = performance.now();
+    const tick = setInterval(() => status(`loading pack ${pack} ... ${((performance.now() - t0) / 1000).toFixed(0)} s`), 500);
+    try { sp = await loadSparseUp(pack); } finally { clearInterval(tick); }
+    const i = sp.info;
+    status(`ready: ${(i.bytes / 1e6).toFixed(0)} MB fetched in ${(i.fetchMs / 1000).toFixed(1)} s, engine built in ${(i.initMs / 1000).toFixed(1)} s` +
+           (i.adapter?.description || i.adapter?.vendor ? `, adapter ${i.adapter.description || i.adapter.vendor}` : ""));
+    $("go").disabled = false;
+  } catch (e) {
+    console.error(e);
+    const m = String(e?.message || e);
+    status(m.includes("no WebGPU adapter")
+      ? "No WebGPU adapter is available in this browser, and the encoder needs one."
+      : `Could not load the pack at ${pack}\n(${m})\n\nBuild it with:\n  python3 pack.py --hf hf --out packs/int8 --quant int8\nthen serve the experiments repo root with:\n  python3 -m http.server\nand open /sparseup-v2/pack/web/`, true);
+  }
+}
+
+async function timed(text, kind) {
+  const t0 = performance.now();
+  const [v] = await sp.encode([text], kind, 0);
+  return { v, ms: performance.now() - t0 };
+}
+
+function card(title, text, kind, v, ms) {
+  const own = new Set(sp.tokenize(text, kind).ids);
+  const ent = Object.entries(v).map(([k, w]) => [+k, w]).sort((a, b) => b[1] - a[1]);
+  const max = ent.length ? ent[0][1] : 1;
+  const rows = ent.slice(0, TOPK).map(([id, w]) =>
+    `<div class="row ${own.has(id) ? "" : "exp"}"><span class="t" title="${esc(sp.token(id))}${own.has(id) ? "" : " (expansion)"}">${esc(sp.token(id))}</span>` +
+    `<span class="track"><div class="bar" style="width:${(100 * w / max).toFixed(1)}%"></div></span><span class="w">${w.toFixed(2)}</span></div>`).join("");
+  return `<div class="card"><h3>${esc(title)}</h3><div class="txt">${esc(text.length > 140 ? text.slice(0, 140) + "..." : text)}</div>` +
+    `<div class="meta">${ent.length} active terms, ${ms.toFixed(0)} ms, top ${Math.min(TOPK, ent.length)} shown</div>${rows}</div>`;
+}
+
+async function encode() {
+  $("go").disabled = true;
+  try {
+    const qt = $("q").value.trim();
+    const docs = $("d").value.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+    if (!qt || !docs.length) { status("Enter a query and at least one document.", true); return; }
+    status("encoding...");
+    const q = await timed(qt, "query");
+    const ds = [];
+    for (const [i, d] of docs.entries()) { status(`encoding document ${i + 1} of ${docs.length}...`); ds.push(await timed(d, "document")); }
+    const ranked = ds.map((r, i) => {
+      const parts = Object.keys(r.v).filter((k) => k in q.v).map((k) => [+k, q.v[k] * r.v[k]]).sort((a, b) => b[1] - a[1]);
+      return { i, score: sp.score(q.v, r.v), parts: parts.slice(0, 5), nShared: parts.length };
+    }).sort((a, b) => b.score - a.score);
+    let html = `<h2>Ranking</h2>` + ranked.map((r, n) =>
+      `<div class="card"><div class="rank"><span>${n + 1}. document ${r.i + 1}</span><span>${r.score.toFixed(2)}</span></div>` +
+      `<div class="txt">${esc(docs[r.i].length > 140 ? docs[r.i].slice(0, 140) + "..." : docs[r.i])}</div>` +
+      `<div class="shared">top shared terms (query x document): ${r.parts.length ? r.parts.map(([t, c]) => `${esc(sp.token(t))} ${c.toFixed(2)}`).join(", ") : "none"}</div></div>`).join("");
+    html += `<h2>Expansion terms</h2>` + card("Query", qt, "query", q.v, q.ms) + ds.map((r, i) => card(`Document ${i + 1}`, docs[i], "document", r.v, r.ms)).join("");
+    $("out").innerHTML = html;
+    window.demo = { top: ranked[0].i, score: ranked[0].score, done: true };
+    status("done");
+  } catch (e) {
+    console.error(e);
+    status("Encoding failed: " + (e?.message || e), true);
+  } finally { $("go").disabled = false; }
+}
+$("go").addEventListener("click", encode);
+init();
+</script>
+</body>
+</html>

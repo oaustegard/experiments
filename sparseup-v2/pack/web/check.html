@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SparseUp WGSL check</title>
+<title>SparseUp WebGPU check</title>
 <style>
   :root { --bg: #fcfcfb; --fg: #1a1a19; --muted: #6b6a64; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1a1a19; --fg: #f0efec; --muted: #a9a89f; } }
@@ -13,14 +13,28 @@
 </style>
 </head>
 <body>
-<h1 style="font-size:16px">SparseUp v2 WGSL engine: parity fixture and timing</h1>
+<h1 style="font-size:16px">SparseUp v2 in WebGPU: accuracy and speed check</h1>
+<p>Runs the 47 fixture texts (fixtures/parity.json) through the browser encoder and records each sparse vector, so
+check.py can compare them with the PyTorch reference, then times one text at 128 and at 512 tokens.
+Open it as /sparseup-v2/pack/web/check.html?pack=int8 from a server at the experiments repo root, with the pack built
+by pack.py; add &amp;reps=10 for more timing runs.</p>
 <pre id="log"></pre>
+<script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>
 <script type="module">
 // ?pack=int8|q4  ?only=N (first N fixture rows)  ?reps=3  ?timing=0 to skip timing. Results in window.check.
+// On Oskar's devices, ?log=1 sends the log to gpu-bridge-comms (gpu-bridge/web/relay.js).
 import { loadSparseUp } from "./sparseup.js";
+const BUILD = "2026-11-25-1";   // keep equal to build.json
+const relay = window.Relay?.start?.({ page: "sparseup-pack-check", build: BUILD }) ?? null;
 const Q = new URLSearchParams(location.search);
 const pack = Q.get("pack") || "int8", reps = +(Q.get("reps") || 3), only = +(Q.get("only") || 0);
-const log = (s) => { document.getElementById("log").textContent += s + "\n"; console.log(s); };
+const log = (s, attrs) => {
+  document.getElementById("log").textContent += s + "\n"; console.log(s);
+  try { relay?.log?.(s, attrs); } catch (e) { /* relay is optional */ }
+};
+fetch("build.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((b) => {
+  if (b?.build && b.build !== BUILD) { log(`stale page ${BUILD}, current ${b.build}: reloading`); location.reload(); }
+}).catch(() => {});
 const res = window.check = { pack, rows: [], timing: {}, done: false };
 try {
   let fx = await fetch("fixtures/parity.json").then((r) => r.json());
