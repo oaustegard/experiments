@@ -17,8 +17,11 @@ The tag vector's advantage is that the analyte's surface forms (`IL-1β`, `IL1B`
 collapse to one dimension. Each of its three query forms lands within 0.05 of the others where the
 tagger covers all three; BM25's forms spread by 0.22.
 
-sparseup v2 was not run. Its weights sit on hf.co and the int8 pack on an R2 host, and both are refused
-at this container's egress. The Hugging Face connector reads text files only, and there is no torch here.
+Running sparseup v2 itself (added later, section below) reverses the MeSH result: on heading queries it
+reaches R@10 0.70 against 0.59 for the tag vector and 0.64 for BM25, and its MRR is the best of any single arm
+(0.93 pooled). It does not catch the tag vector on catalog names or gene symbols (0.74 and 0.60 against 0.81 and
+0.85). Fusing all three, RRF of sparseup, tag and TF-IDF, gives the best pooled R@10 (0.77) and MRR (0.94);
+the R@10 gain over the tag vector alone is inside its CI, the MRR gain is not.
 
 ## Test split (91 concepts, 260 queries, 1,144 abstracts)
 
@@ -77,6 +80,54 @@ Written before any run (`PREDICTIONS.md`, commit 11794a7).
    57 test concepts with all three forms tagged; BM25 0.698/0.481/0.674 on the same queries.
 
 Same bias as 37dc9ebe: the absolute numbers came in higher than predicted, by 0.05 to 0.15 for the tag arm.
+
+## sparseup v2, run for real (added 2026-11-25)
+
+`Linkup-Platform/linkup-sparseup-embed-v2` in PyTorch: queries with the `[Q]` prompt, title + abstract
+with `[D]`, 512 tokens, dot product of the folded sparse vectors (`sparseup_encode.py`, `sparseup_eval.py`).
+The reference is `../../sparseup-v2/pack/ref.py`, which matches the model's own `modeling_splade.py`
+(38 of 47 vectors bit-identical). int8 is the same compute on the weights of the browser pack that runs
+at austegard.com/experiments/sparseup-v2/pack/web/. Predictions were committed before the encode
+(`PREDICTIONS-sparseup.md`, dcbb6e9c).
+
+**Fixture.** The PubMed records were re-fetched from E-utilities, which returned all 1,329 seed PMIDs,
+including the 113 the original copy lost, so this run has 1,241 abstracts against 1,144. Concepts and the
+dev/test split are pinned to `data/concepts.tsv` (with the extra records GAPDH would otherwise pass the
+label check and reshuffle the split). Every baseline was re-run on this fixture with the frozen
+`evaluate.py`; they land within 0.005 of the published table (all-forms R@10 tag 0.746, BM25 0.616,
+TF-IDF 0.646). Abstracts average 299 active terms, queries 39.
+
+Test R@10 (MRR), 91 concepts, 260 queries, 1,241 abstracts (`results/sparseup_test.json`):
+
+| query form | tag_jaccard | bm25 | tfidf_wc | sparseup | rrf(sparseup, tag) | rrf(sparseup, tag, tfidf) |
+|---|---|---|---|---|---|---|
+| catalog name | **0.810** (0.941) | 0.689 (0.950) | 0.730 (0.967) | 0.740 (0.954) | 0.815 (0.956) | **0.831** (0.971) |
+| HGNC symbol | **0.850** (0.962) | 0.505 (0.876) | 0.581 (0.912) | 0.601 (0.901) | 0.809 (0.958) | 0.732 (0.975) |
+| MeSH heading | 0.593 (0.681) | 0.638 (0.912) | 0.617 (0.871) | 0.696 (0.927) | 0.648 (0.851) | **0.731** (0.890) |
+| all | 0.746 (0.857) | 0.616 (0.914) | 0.646 (0.917) | 0.683 (0.929) | 0.755 (0.920) | **0.766** (0.944) |
+
+Paired R@10 differences, 95% bootstrap CI:
+
+- sparseup − tag: catalog −0.070 [−0.129, −0.008]; symbol −0.249 [−0.329, −0.169]; MeSH +0.103 [+0.015, +0.193]
+- sparseup − BM25: all +0.067 [+0.042, +0.093]; MeSH +0.058 [+0.024, +0.093]
+- sparseup − TF-IDF: all +0.037 [+0.014, +0.060]; MeSH +0.079 [+0.042, +0.118]
+- rrf(sparseup, tag, tfidf) − tag: all +0.020 [−0.016, +0.059]; MeSH +0.138 [+0.070, +0.207]; symbol −0.117 [−0.187, −0.052]
+- int8 − fp32: all +0.000 [−0.003, +0.004]
+
+Reading: sparseup is the best single lexical-style arm and the only one that handles the heading wording,
+where its expansions bridge `Proto-Oncogene Proteins c-akt` or `Receptor, ErbB-2`-style names to the words
+abstracts use. On gene symbols it fragments as the tokenizer probe predicted and stays near TF-IDF. The tag
+vector keeps its dictionary advantage on the two forms built from its own sources. The fusions trade: adding
+TF-IDF lifts MeSH and catalog and costs symbol queries.
+
+Predictions (`PREDICTIONS-sparseup.md`), scored: (1) sparseup beats BM25 and TF-IDF on MeSH queries beyond
+the CI: **held**. (2) sparseup trails the tag vector on symbols beyond the CI: **held**. (3) rrf(sparseup, tag)
+is the best pooled arm: **wrong**, the three-way fusion is higher (0.766 against 0.755) and neither beats the
+tag vector alone on R@10 beyond the CI. (4) int8 within 0.01 of fp32 on every form: **held** (largest gap 0.002).
+Predicted sparseup R@10 catalog / symbol / MeSH / all 0.78 / 0.62 / 0.70 / 0.70; measured 0.74 / 0.60 / 0.70 / 0.68.
+
+Encoding ran on this container's CPU (4 cores, about 3 abstracts per second); the dev split was not
+scored because nothing was tuned.
 
 ## Method
 
