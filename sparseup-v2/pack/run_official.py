@@ -6,6 +6,7 @@ Result: results/official_vs_ref.json (38/47 vectors bit-identical to ref.py, max
 """
 import json
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -13,7 +14,7 @@ from transformers import AutoModel
 
 torch.set_num_threads(2)
 m = AutoModel.from_pretrained(sys.argv[1], trust_remote_code=True, dtype=torch.float32, local_files_only=True).eval()
-rows = json.load(open(sys.argv[2]))
+rows = json.loads(Path(sys.argv[2]).read_text())
 out, ids_ok = [], 0
 with torch.inference_mode():
     for r in rows:
