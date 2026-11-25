@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-24T01:51:57.319246+00:00",
+ "last_run": "2026-11-25T01:51:12.779975+00:00",
  "papers": {
   "2610.18861": {
    "title": "Hybrid Reasoning Agents",
@@ -856,6 +856,17 @@
    "practical": "LOW",
    "attempts": 1,
    "review": "GRPO in simulation teaches Qwen3.8-27B to emit end-effector poses from camera frames (LIBERO 1.6% to 74.4%; real robot 18/30); ~50k H100-hours and robotics are outside the stack. One finding bears on cheap-tier routing: cutting reasoning effort to about a quarter of the thinking tokens dropped closed-loop success from 74.4% to 21.9%, one model on one benchmark."
+  },
+  "2611.29897": {
+   "title": "Motion Mamba 2.0: Autoregressive Diffusion Mamba for Long-Horizon Humanoid Control",
+   "first_seen": "2026-11-25",
+   "best_rank": 23,
+   "upvotes": 171,
+   "reviewed": "2026-11-25",
+   "read": "full",
+   "practical": "LOW",
+   "attempts": 1,
+   "review": "Humanoid (Unitree G1) motion generation that needs a 100k-update training run on a 589-hour custom corpus; quality gains are single-digit centimetres and its per-window latency is about 3x ARDY's. Two lessons transfer: write only accepted state, never speculative candidates, into persistent memory; and most of its 6.1x speedup came from CUDA-graph replay that cut dispatch count (285 ms vs 276 ms with kernel fusion added), which bears on WebGPU dispatch-count work."
   }
  }
 }
