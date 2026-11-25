@@ -14,18 +14,17 @@ import sys
 import time
 from pathlib import Path
 
-import numpy as np
 import scipy.sparse as sp
 import torch
 
 HERE = Path(__file__).resolve().parent
 PACK = HERE.parents[1] / "sparseup-v2" / "pack"
 sys.path.insert(0, str(PACK))
-from pack import dequant_state_dict  # noqa: E402
-from ref import Reference  # noqa: E402
+from pack import dequant_state_dict
+from ref import Reference
 
 variant = sys.argv[1] if len(sys.argv) > 1 else "fp32"
-fx = json.load(open(HERE / "data" / "fixture.json", encoding="utf-8"))
+fx = json.loads((HERE / "data" / "fixture.json").read_text(encoding="utf-8"))
 docs = [d["title"] + " " + d["abstract"] for d in fx["docs"]]
 queries = sorted({q for c in fx["concepts"] for q in c["forms"].values()})
 

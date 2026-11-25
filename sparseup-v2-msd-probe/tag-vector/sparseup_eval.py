@@ -67,8 +67,8 @@ for form in ("catalog", "symbol", "mesh", "all"):
     summary[form] = out
 
 D32 = sp.load_npz(HERE / "cache" / "sparseup_fp32_docs.npz")
-json.dump({"split": SPLIT, "n_docs": D32.shape[0], "doc_nnz_mean": round(D32.getnnz() / D32.shape[0], 1),
-           "summary": summary, "rows": rows},
-          open(HERE / "results" / f"sparseup_{SPLIT}.json", "w"), indent=1, ensure_ascii=False)
+(HERE / "results" / f"sparseup_{SPLIT}.json").write_text(json.dumps(
+    {"split": SPLIT, "n_docs": D32.shape[0], "doc_nnz_mean": round(D32.getnnz() / D32.shape[0], 1),
+     "summary": summary, "rows": rows}, indent=1, ensure_ascii=False))
 for form, o in summary.items():
     print(form, o["n_queries"], " ".join(f"{a}={o[a]['r10'][0]:.3f}/{o[a]['mrr'][0]:.3f}" for a in ARMS))
