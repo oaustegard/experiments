@@ -75,12 +75,19 @@ def batchify(items, device, pad=50283):
 
 
 @torch.no_grad()
-def encode_all(sp_model, items, device, bs=32):
+def encode_all(sp_model, items, device, budget=4096):
+    """Batches of at most `budget` padded tokens: the head materialises [tokens, 51,066] logits."""
     order = sorted(range(len(items)), key=lambda i: len(items[i][0]))
     out = [None] * len(items)
     sp_model.eval()
-    for s in range(0, len(order), bs):
-        idx = order[s: s + bs]
+    groups, cur = [], []
+    for i in order:
+        if cur and (len(cur) + 1) * len(items[i][0]) > budget:
+            groups.append(cur)
+            cur = []
+        cur.append(i)
+    groups.append(cur)
+    for idx in groups:
         with torch.autocast("cuda", dtype=torch.float16, enabled=device.type == "cuda"):
             v = sp_model(*batchify([items[i] for i in idx], device))
         v = v.float().cpu().numpy()
