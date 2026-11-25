@@ -31,7 +31,7 @@ HEAD_KEYS = ("logit_shift", "logit_sigma", "position_top_k", "vocab_fold", "quer
 
 
 class Reference:
-    def __init__(self, hf_dir: str | Path, dtype=torch.float32, threads: int | None = None):
+    def __init__(self, hf_dir: str | Path, dtype=torch.float32, threads: int | None = None, device: str = "cpu"):
         hf_dir = Path(hf_dir)
         if threads:
             torch.set_num_threads(threads)
@@ -48,7 +48,12 @@ class Reference:
             raise RuntimeError(f"state dict mismatch: missing {missing}, unexpected {unexpected}")
         self.model.tie_weights()
         assert self.model.decoder.weight.data_ptr() == self.model.model.embeddings.tok_embeddings.weight.data_ptr()
-        self.model.to(dtype)
+        self.device = torch.device(device)
+        if self.device.type == "cuda":   # keep fp32 matmuls fp32 (no TF32)
+            torch.backends.cuda.matmul.allow_tf32 = False
+            torch.backends.cudnn.allow_tf32 = False
+        self.model.to(self.device, dtype)
+        self.fold = self.fold.to(self.device)
         self.dtype = dtype
         self.tok = AutoTokenizer.from_pretrained(str(hf_dir))
         self.V = conf.vocab_size
@@ -77,7 +82,7 @@ class Reference:
     @torch.inference_mode()
     def token_weights(self, ids: list[int]) -> torch.Tensor:
         """[L, V] gated per-position weights (before pooling mask)."""
-        x = torch.tensor([ids])
+        x = torch.tensor([ids], device=self.device)
         logits = self.model(input_ids=x, attention_mask=torch.ones_like(x)).logits[0].float()
         w = torch.log1p(torch.relu(logits - self.cfg["logit_shift"]) / self.cfg["logit_sigma"])
         k = self.cfg.get("position_top_k")
@@ -88,11 +93,11 @@ class Reference:
 
     @torch.inference_mode()
     def encode_ids(self, ids: list[int], pool: list[int]) -> torch.Tensor:
-        w = self.token_weights(ids) * torch.tensor(pool, dtype=torch.float32)[:, None]
+        w = self.token_weights(ids) * torch.tensor(pool, dtype=torch.float32, device=self.device)[:, None]
         v = w.max(dim=0).values
         if self.cfg.get("vocab_fold"):
             v = torch.zeros_like(v).scatter_reduce(0, self.fold, v, reduce="amax", include_self=False)
-        return v
+        return v.cpu()
 
     def encode(self, texts: list[str], kind: str = "document", max_length: int = 512) -> torch.Tensor:
         return torch.stack([self.encode_ids(*self.tokenize(t, kind, max_length)) for t in texts])

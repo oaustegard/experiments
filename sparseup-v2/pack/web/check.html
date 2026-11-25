@@ -22,13 +22,14 @@ Results appear below and in window.check, which check.py reads.</p>
 <pre id="log"></pre>
 <script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>
 <script type="module">
-// ?pack=int8|q4  ?only=N (first N fixture rows)  ?reps=3  ?timing=0 to skip timing. Results in window.check.
+// ?pack=int8|q4  ?start=S&only=N (fixture rows S..S+N-1)  ?reps=3  ?timing=0 to skip timing. Results in window.check.
 // On Oskar's devices, ?log=1 sends the log to gpu-bridge-comms (gpu-bridge/web/relay.js).
 import { loadSparseUp } from "./sparseup.js";
 const BUILD = "2026-11-25-1";   // keep equal to build.json
 const relay = window.Relay?.start?.({ page: "sparseup-pack-check", build: BUILD }) ?? null;
 const Q = new URLSearchParams(location.search);
 const pack = Q.get("pack") || "int8", reps = +(Q.get("reps") || 3), only = +(Q.get("only") || 0);
+const start = +(Q.get("start") || 0);
 const log = (s, attrs) => {
   document.getElementById("log").textContent += s + "\n"; console.log(s);
   try { relay?.log?.(s, attrs); } catch (e) { /* relay is optional */ }
@@ -38,8 +39,8 @@ fetch("build.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null))
 }).catch(() => {});
 const res = window.check = { pack, rows: [], timing: {}, done: false };
 try {
-  let fx = await fetch("fixtures/parity.json").then((r) => r.json());
-  if (only) fx = fx.slice(0, only);
+  const all = await fetch("fixtures/parity.json").then((r) => r.json());
+  const fx = all.slice(start, only ? start + only : undefined);
   const sp = await loadSparseUp(`../packs/${pack}/`);
   res.info = { ...sp.info, adapter: { vendor: sp.info.adapter.vendor, architecture: sp.info.adapter.architecture, description: sp.info.adapter.description } };
   log(`pack ${pack}: ${(sp.info.bytes / 1e6).toFixed(1)} MB, fetch ${sp.info.fetchMs.toFixed(0)} ms, init ${sp.info.initMs.toFixed(0)} ms, adapter ${JSON.stringify(res.info.adapter)}`);
@@ -68,7 +69,7 @@ try {
     log(`batch of ${small.length} vs one at a time: max diff ${Math.max(...res.batch.map((x) => x.maxDiff))}`);
   }
   if (Q.get("timing") !== "0") {
-    const long = fx.find((r) => r.n === 512) ?? fx.reduce((a, b) => (a.n > b.n ? a : b));
+    const long = all.find((r) => r.n === 512) ?? all.reduce((a, b) => (a.n > b.n ? a : b));
     for (const n of [128, 512]) {
       const ids = long.ids.length >= n ? long.ids.slice(0, n - 1).concat(long.ids[long.ids.length - 1]) : long.ids;
       const item = { ids, pool: ids.map((_, j) => (j === 1 ? 0 : 1)) };

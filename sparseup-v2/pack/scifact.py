@@ -94,7 +94,7 @@ def _encode_one(ref: Reference, text: str, kind: str) -> tuple[np.ndarray, np.nd
     return nz, vals
 
 
-def encode_variant(variant: str, threads: int, limit: int | None):
+def encode_variant(variant: str, threads: int, limit: int | None, device: str = "cpu"):
     query_ids, query_texts, doc_ids, doc_texts, _ = load_data()
     if limit is not None:
         doc_ids = doc_ids[:limit]
@@ -118,7 +118,7 @@ def encode_variant(variant: str, threads: int, limit: int | None):
         print(f"[{variant}] Already complete ({len(doc_ids)} docs)")
         return
 
-    ref = Reference(HERE / "hf", threads=threads)
+    ref = Reference(HERE / "hf", threads=threads, device=device)
     if variant in ("int8", "q4"):
         ref.load_weights(dequant_state_dict(HERE / "packs" / variant))
     elif variant == "bf16":
@@ -269,6 +269,7 @@ def main():
     p_enc.add_argument("--variant", required=True, choices=["fp32", "bf16", "int8", "q4"])
     p_enc.add_argument("--threads", type=int, default=4)
     p_enc.add_argument("--limit", type=int, default=None)
+    p_enc.add_argument("--device", default="cpu")
 
     p_score = sub.add_parser("score", help="Score encoded variants")
     p_score.add_argument("--variants", default="fp32,bf16,int8,q4")
@@ -276,7 +277,7 @@ def main():
 
     args = parser.parse_args()
     if args.cmd == "encode":
-        encode_variant(args.variant, args.threads, args.limit)
+        encode_variant(args.variant, args.threads, args.limit, args.device)
     elif args.cmd == "score":
         score_variants([v.strip() for v in args.variants.split(",") if v.strip()], args.boot)
 

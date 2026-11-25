@@ -1,0 +1,61 @@
+{
+  "dataset": "BeIR/scifact test",
+  "n_queries": 300,
+  "n_docs": 5183,
+  "max_length": 512,
+  "variants": {
+    "fp32": {
+      "ndcg10": 0.74758,
+      "recall100": 0.98333,
+      "nnz_query": 57.35333,
+      "nnz_doc": 294.22612
+    },
+    "bf16": {
+      "ndcg10": 0.74617,
+      "recall100": 0.98333,
+      "nnz_query": 55.98667,
+      "nnz_doc": 287.93787
+    },
+    "int8": {
+      "ndcg10": 0.74491,
+      "recall100": 0.98333,
+      "nnz_query": 57.31,
+      "nnz_doc": 293.07698
+    },
+    "q4": {
+      "ndcg10": 0.75001,
+      "recall100": 0.98,
+      "nnz_query": 54.24,
+      "nnz_doc": 271.45032
+    }
+  },
+  "vs_fp32": {
+    "bf16": {
+      "delta_ndcg10": -0.00141,
+      "ci95": [
+        -0.00389,
+        0.00033
+      ],
+      "frac_queries_changed": 0.02333,
+      "top10_overlap": 0.98433
+    },
+    "int8": {
+      "delta_ndcg10": -0.00267,
+      "ci95": [
+        -0.00681,
+        0.00148
+      ],
+      "frac_queries_changed": 0.04333,
+      "top10_overlap": 0.974
+    },
+    "q4": {
+      "delta_ndcg10": 0.00243,
+      "ci95": [
+        -0.0073,
+        0.01229
+      ],
+      "frac_queries_changed": 0.16,
+      "top10_overlap": 0.89967
+    }
+  }
+}
