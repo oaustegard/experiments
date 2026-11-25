@@ -118,6 +118,9 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--flops", type=float, default=1.0, help="multiplier on the FLOPS regulariser (1 = 3e-4 queries, 1e-4 docs)")
     ap.add_argument("--kl", type=float, default=0.5, help="weight of the teacher KL term in stage 2")
+    ap.add_argument("--anchor", type=float, default=0.0,
+                    help="stage 2: weight of 1 - cosine between student and teacher vectors over the original vocabulary")
+    ap.add_argument("--lr2", type=float, default=2e-5, help="stage 2 learning rate for the pretrained weights")
     ap.add_argument("--init-rows", default=None, help="s1_new_rows.pt from an earlier stage-1 run: start from those rows")
     a = ap.parse_args()
     D = Path(a.data)
@@ -258,7 +261,7 @@ def main():
             for p in model.parameters():
                 p.requires_grad_(True)
             others = [p for p in model.parameters() if p is not emb and p is not model.decoder.bias]
-            opt = torch.optim.AdamW([{"params": others, "lr": 2e-5}, {"params": [emb, model.decoder.bias], "lr": 2e-4}],
+            opt = torch.optim.AdamW([{"params": others, "lr": a.lr2}, {"params": [emb, model.decoder.bias], "lr": 2e-4}],
                                     weight_decay=0.01)
             lr_at = lambda s, n=steps: min(1.0, (s + 1) / 100) * max(0.0, 1 - s / n)
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_at)
@@ -266,7 +269,7 @@ def main():
         model.train()
         t0 = time.time()
         for step, (b, qs) in enumerate(batches(steps)):
-            ts = None
+            ts = tq = td = None
             if stage == 2:
                 with torch.no_grad(), torch.autocast("cuda", dtype=torch.float16, enabled=tdev.type == "cuda"):
                     tq = teacher(*batchify([ct.encode(s, "query", 64, rewrite=False) for _, _, s in qs], tdev))
@@ -276,7 +279,11 @@ def main():
                 q = student(*batchify([x for x, _, _ in qs], dev))
                 d = student(*batchify([e["doc"] for e in b], dev))
             loss, flops, kl = loss_fn(q.float(), d.float(), b, qs, ts)
-            total = loss + flops + a.kl * kl
+            anchor = torch.zeros((), device=dev)
+            if stage == 2 and a.anchor:
+                cos = lambda s_, t_: F.cosine_similarity(s_[:, :V0].float(), t_.float().to(dev), dim=1, eps=1e-6)
+                anchor = (1 - cos(q, tq)).mean() + (1 - cos(d, td)).mean()
+            total = loss + flops + a.kl * kl + a.anchor * anchor
             if not math.isfinite(total.item()):
                 raise RuntimeError(f"non-finite loss at stage {stage} step {step}")
             opt.zero_grad(set_to_none=True)
@@ -287,7 +294,7 @@ def main():
             scaler.update()
             sched.step()
             if step % 50 == 0 or step == steps - 1:
-                log(f"stage{stage} step {step}/{steps} loss {loss.item():.3f} flops {flops.item():.4f} kl {kl.item():.3f} "
+                log(f"stage{stage} step {step}/{steps} loss {loss.item():.3f} flops {flops.item():.4f} kl {kl.item():.3f} anchor {anchor.item():.3f} "
                     f"q_nnz {(q > 0).sum(1).float().mean():.0f} d_nnz {(d > 0).sum(1).float().mean():.0f} {time.time() - t0:.0f}s")
         model.eval()
         evaluate(f"s{stage}")
