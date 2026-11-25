@@ -1912,6 +1912,7 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Gradient descent on a logistic loss over standardised inputs needs a step that shrinks with the dimension.** A weighted logistic regression trained online in a page used a fixed learning rate of 0.5. On 256 standardised dimensions (Ettin vectors) max|z|² is about 256, so the curvature bound max|z|²/4 is near 64 and the weights went to NaN; on 31 standardised counted features it oscillated. Take the step as 1/L, with L = max_i |z_i|²/4 + λ/W, where z_i is a standardised input row, λ the L2 penalty and W the sum of sample weights (the loss is divided by W). It converged without tuning at both sizes tested. (`strudel-taste/web/taste.js` `Logit.fit`, `run/sim.py` `fit`)
 - **The `gliner` library tokenizes each word without its leading space, which costs a BPE backbone about 7 points.**
   It passes words to the tokenizer one at a time, so on a GPT-2-style BPE (Ettin, ModernBERT) every word gets the
   form the model saw only at the start of a text: `Mountain` became `M` + `ountain`. Training Ettin-17m with every
@@ -4124,6 +4125,10 @@ Lessons from measuring Jev as a completion judge on 158 worker attempts (`tempor
 
 - **Naming banned phrases in a drafter's context did not prime them in Opus 5.5 at effort low.** Drafts written with the voice signature and declauding (every tell named) had 4.88 lint hits per 1,000 words; drafts from a brief with none named had 5.34, CI on the difference [-1.60, +2.93] over 12 tasks × 4 drafts. The caps-emphasis rebound (+2.5 log-odds for a named word on a 321M model) does not transfer to stylistic tells at this resolution. Do not budget a tic reduction from stripping prohibitions out of a writer prompt; a do-because brief bought a small focus gain instead. (`positive-writer-brief/RESULTS.md`)
 - **A cross-family judge panel shows self-preference worth about half a point on a 7-point scale.** In `gemini-drafter`, Opus and Sonnet judges and a `gemini-4-carbon` judge rated the same shuffled, unlabelled Opus and Gemini drafts in identical prompts. The Gemini judge favoured Gemini's drafts by +0.43 on register and +0.70 on focus more than the Claude judges did. A model-versus-model comparison judged by one family alone carries that bias in a known direction. Use judges from both families and report the gap, or treat a single family's verdict as one-sided. Swapping the drafter to Gemini 4 Carbon did not improve register (+0.03 under Claude judges), so do not expect a different vendor's drafter to remove the stock constructions an editor pass catches. (`gemini-drafter/RESULTS.md`)
+
+### Frozen decision-model [MASK] vectors learn a listener's taste far slower than counted features (strudel-taste)
+
+A logistic model trained online from ♥/skip reactions over the browser decider's frozen Ettin-17m [MASK] vectors of a candidate's description reached percentile 0.56 of simulated listeners' rankings after 40–60 reactions; the same model over 31 counted features reached 0.81 (random 0.51). The encoder was fine-tuned on business-workflow decisions and carries little about numbers written as text ("kick 4, closed hats 3.8"). Its one edge, 0.55 against 0.49, came on taste no counted feature carried (chord roots). For few-shot preference learning over generated objects, count the properties first; reach for an encoder only for what cannot be counted, and expect to fine-tune it. (`strudel-taste/RESULTS.md`)
 
 ### Score a feature probe against the free tool first: EG2 reads letters, Tesseract reads them 6x better (eg2-ocr-probe)
 
