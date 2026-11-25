@@ -16,7 +16,7 @@ The browser encoder reproduces the int8 model exactly. On 47 texts (20 queries, 
 All remaining difference from fp32 is quantization: int8 vs fp32 cosine min 0.9931, median 0.9992, <!-- @evidence[[results/summary.json#int8.vs_fp32_cos_min]] -->
 top-32 term overlap 0.971, about the gap between the model's own bf16 default and fp32 (min 0.9968).
 
-| pack | raw | brotli | SciFact nDCG@10 vs fp32 0.7476 | Mac GPU, 128 / 512 tokens |
+| pack | raw | brotli | SciFact nDCG@10 change from fp32 (0.7476) [95% CI] | Mac GPU, 128 / 512 tokens |
 |---|---|---|---|---|
 | int8 | 154.5 MB | 137.5 MB | −0.0027 [−0.0068, +0.0015] | 8.6 / 34.4 ms |
 | q4 (attention + MLP-up 4-bit) | 121.4 MB | 105.0 MB | +0.0024 [−0.0073, +0.0123] | 9.3 / 36.1 ms |
@@ -33,17 +33,16 @@ CPU cores, not a GPU number) a text costs about 0.5 s per token: 72 s at 137 tok
    (`results/parity_int8_mac.json`, `results/parity_q4_mac.json`, Mac Chrome 157, Apple Metal).
 2. **int8 costs as much fidelity as bf16 does.** int8 vs fp32: cosine min 0.9931, median 0.9992,
    top-32 Jaccard mean 0.971. bf16 (the model card's default dtype) vs fp32: min 0.9968, median
-   0.9998, Jaccard 0.975. <!-- @evidence[[results/summary.json#bf16.vs_fp32_cos_median]] --> Weight differences up to 1.6 come from terms crossing a position's
+   0.9998, Jaccard 0.975. <!-- @evidence[[results/summary.json#bf16.vs_fp32_cos_median]] --> int8-vs-fp32 weight differences of up to 1.6 come from terms crossing a position's
    top-12 cutoff, which is a step function.
 3. **Retrieval does not move at int8 or q4.** SciFact (300 test queries, 5,183 documents, 512-token
    cap): fp32 0.7476, int8 −0.0027 [−0.0068, +0.0015], q4 +0.0024 [−0.0073, +0.0123], bf16 −0.0014
    (`results/scifact.json`, paired bootstrap, 10k resamples). q4 keeps 90% of fp32's top-10 and int8 97%. <!-- @evidence[[results/summary.json#q4.scifact_top10_overlap]] -->
-   The sibling compression study measured the same int8 delta independently (−0.00267,
+   The compression study of the same model's document vectors (`../remex/`) measured the same int8 delta independently (−0.00267,
    `../remex/results/weightquant.json`) and an all-4-bit variant at −0.0009.
 4. **Speed on a laptop GPU: 34 ms for a full 512-token document.** Mac, Chrome 157, Apple Metal,
    median of 20: 8.6 ms at 128 tokens, 34.4 ms at 512, 13.3 ms for 16 queries (221 tokens) in one
-   batch. Engine build 2.7 s after the 151 MB download. q4 is 5% slower: the 4-bit matmul decodes
-   more per weight and this GPU is not bandwidth-bound at these sizes.
+   batch. Engine build 2.7 s once the weights are in memory. q4 is 5% slower (36.1 ms at 512 tokens).
 5. **The reference is the model's own code.** `modeling_splade.py`, run sandboxed, agrees with
    `ref.py` on all 47 texts: token ids and pooling masks identical, 38 vectors bit-identical, <!-- @evidence[[results/summary.json#official.identical_texts]] --> max
    |difference| 1.1e-5, identical active terms (`results/official_vs_ref.json`).
