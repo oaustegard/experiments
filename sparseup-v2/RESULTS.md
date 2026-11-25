@@ -4,7 +4,8 @@
 ModernBERT-base (paper arXiv 2611.09680): every text becomes a few dozen to a few hundred
 weighted vocabulary terms, scored by dot product. Two sessions worked on it on 2026-11-25:
 [`remex/`](remex/REPORT.md) measured how small its document vectors can get, and
-[`pack/`](pack/REPORT.md) runs the encoder in a browser tab on hand-written WGSL. This file
+[`pack/`](pack/REPORT.md) runs the encoder in a browser tab on hand-written WGSL
+([demo](https://austegard.com/experiments/sparseup-v2/pack/web/)). This file
 joins the two; each subdirectory's REPORT.md has the full tables.
 
 ## Answer
@@ -53,6 +54,8 @@ would change this.
    The reference itself is the model's own `modeling_splade.py`, which agrees with the
    pack's `ref.py` bit for bit on 38 of 47 texts; <!-- @evidence[[pack/results/official_vs_ref.json#identical_texts]] -->
    on the other 9 the largest weight difference is 1.1e-5. <!-- @evidence[[pack/results/official_vs_ref.json#max_abs_max]] -->
+   On SwiftShader the same 47 texts give cosine min 0.99999982, <!-- @evidence[[pack/results/summary.json#int8.swiftshader_kernel_vs_dequant_cos_min]] -->
+   and the page's JS tokenizer matches Python on 47 of 47. <!-- @evidence[[pack/results/summary.json#js_tokenizer_matches]] -->
 6. **int8 weights stay within noise of fp32 on retrieval, and the two sessions reproduce
    each other's int8 number.** (Round 1, `pack/results/summary.json`) int8 vs fp32 cosine
    median 0.9992, <!-- @evidence[[pack/results/summary.json#int8.vs_fp32_cos_median]] --> bf16 vs fp32 0.9998. <!-- @evidence[[pack/results/summary.json#bf16.vs_fp32_cos_median]] -->
@@ -67,7 +70,8 @@ would change this.
 8. **Speed on a laptop GPU.** (Round 1, `pack/results/summary.json`) Apple Metal through
    Chrome: 8.6 ms at 128 tokens, <!-- @evidence[[pack/results/summary.json#int8.mac_ms_128]] -->
    13.3 ms for 16 queries in one batch. <!-- @evidence[[pack/results/summary.json#int8.mac_ms_batch16q]] -->
-   SwiftShader (WebGPU emulated on CPU) takes about 0.5 s per token and is no guide to GPU speed.
+   SwiftShader (WebGPU emulated on CPU) takes 60 s at 128 tokens and 238 s at 512, <!-- @evidence[[pack/results/summary.json#int8.swiftshader_s_512]] -->
+   no guide to GPU speed.
 9. **The paper already covers pruning, not quantization.** (Round 1, `remex/REPORT.md`)
    arXiv 2611.09680 reports Matryoshka top-k training and its nDCG cost, with non-zeros as
    its storage measure. It does not report value quantization, bytes per document, posting
@@ -124,5 +128,5 @@ it; it then ran sandboxed with no network. A bf16 CPU encode depends on batch co
 the k-th value, which 70 to 99% of rows have.
 
 **Not run.** Query-side top-k, documents past 512 tokens, an end-to-end search engine
-(Seismic, Lucene) and its latency. The pack's full 47-text SwiftShader run was still going
-when this was written. No README index row or METHODS.md entry yet.
+(Seismic, Lucene) and its latency. The README index row and METHODS.md entries are drafted
+in `INDEX-PATCH.md` on branch `sparseup-v2-index` and not yet applied to main.
