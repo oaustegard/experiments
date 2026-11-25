@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edgewalk</title>
+<meta name="description" content="Is it a sandwich? Change a food one piece at a time and keep the model stuck at 50/50 while you turn it into something else entirely.">
+<script src="../../gpu-bridge/web/relay.js"></script>
+<style>
+:root {
+  --bg: #f6f4ef; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #dedbd2;
+  --edge: #2f9e6e; --fence: #c9a227; --slip: #e07a2f; --fall: #b8352b;
+  --abyss: #efd9d4; --slope: #f6e7d2; --ground: #f3f1ea; --ridge: #dcefe4;
+  --accent: #3b5bdb; --chip: #f1efe8; --chip-ink: #2b2b28;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161614; --panel: #201f1c; --ink: #ecebe6; --muted: #9c9a92; --line: #34322d;
+    --abyss: #3a201d; --slope: #3a2f1f; --ground: #24231f; --ridge: #1f3a2d;
+    --accent: #8ea6ff; --chip: #2c2b27; --chip-ink: #e6e4dc;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161614; --panel: #201f1c; --ink: #ecebe6; --muted: #9c9a92; --line: #34322d;
+  --abyss: #3a201d; --slope: #3a2f1f; --ground: #24231f; --ridge: #1f3a2d;
+  --accent: #8ea6ff; --chip: #2c2b27; --chip-ink: #e6e4dc;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 8px; }
+h1 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+.tag { color: var(--muted); font-size: 14px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--panel); color: var(--ink); padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+button.act { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+button.act:disabled { opacity: .45; cursor: default; }
+button.act.on { border-color: var(--accent); color: var(--accent); }
+details.rules { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; }
+details.rules summary { cursor: pointer; font-weight: 600; }
+details.rules p, details.rules ul { margin: 6px 0; }
+details.rules li { margin: 2px 0; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.left { position: sticky; top: 8px; }
+@media (max-width: 760px) { .left { position: static; } }
+.readout { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.big { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.side { color: var(--muted); }
+.zone { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff; }
+.z-edge { background: var(--edge); } .z-fence { background: var(--fence); } .z-slip { background: var(--slip); } .z-fall { background: var(--fall); }
+.stats { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 14px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); }
+svg#canyon { width: 100%; height: auto; display: block; margin-top: 8px; touch-action: manipulation; }
+.msg { min-height: 1.5em; margin-top: 6px; font-size: 14px; }
+.msg.warn { color: var(--slip); font-weight: 600; }
+.case-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+#mini { display: none; }
+@media (max-width: 760px) { #mini { display: inline-block; } .case-head { position: sticky; top: 0; z-index: 2; background: var(--panel); padding: 8px 0; } }
+.case-head h2 { font-size: 17px; margin: 0; }
+.case-blurb { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+.piece { border-top: 1px solid var(--line); padding: 8px 2px; }
+.piece:first-of-type { border-top: 0; }
+.ph { display: flex; gap: 8px; align-items: baseline; cursor: pointer; flex-wrap: wrap; }
+.ph .lbl { color: var(--muted); font-size: 13px; min-width: 9.5em; }
+.ph .val { font-weight: 600; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ph .val.changed { color: var(--accent); }
+.ph .was { color: var(--muted); font-size: 12px; text-decoration: line-through; overflow-wrap: anywhere; }
+.ph .lock { font-size: 12px; color: var(--muted); }
+.piece.locked .ph { cursor: not-allowed; opacity: .55; }
+.piece.open { background: color-mix(in srgb, var(--accent) 6%, transparent); border-radius: 8px; }
+.evidence { font-size: 13px; color: var(--muted); margin: 6px 0 2px; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.opts button { border: 1px solid var(--line); background: var(--chip); color: var(--chip-ink); border-radius: 8px; padding: 5px 10px; font: inherit; font-size: 14px; cursor: pointer; text-align: left; }
+.opts button.cur { border-color: var(--accent); color: var(--accent); cursor: default; }
+.opts button .probe { font-size: 12px; font-weight: 700; margin-left: 6px; }
+.opts button:disabled { opacity: .5; cursor: default; }
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); max-width: min(560px, calc(100vw - 32px)); padding: 18px; }
+dialog::backdrop { background: rgb(0 0 0 / .45); }
+dialog h2 { margin: 0 0 4px; }
+.emoji { font-size: 22px; letter-spacing: 2px; margin: 8px 0; }
+.diff { font-size: 14px; margin: 8px 0; padding-left: 18px; }
+.diff li { margin: 3px 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.food { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; margin: 4px 0 10px; padding: 10px 12px; background: var(--chip); border-radius: 10px; }
+.food .emo { font-size: 34px; line-height: 1; }
+.ft { margin: 2px 0 8px; font-size: 14px; }
+.loading { padding: 28px 8px; text-align: center; color: var(--muted); }
+footer { color: var(--muted); font-size: 13px; margin-top: 18px; }
+footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Edgewalk: is it a sandwich?</h1>
+    <span class="tag">Keep the model unsure. Change as much as you can.</span>
+  </header>
+  <details class="rules" id="rules">
+    <summary>How to play</summary>
+    <p>A model has opinions about what counts as a sandwich. You start with a food it can't decide on. Change the food one piece at a time and keep the model stuck. The more of the food you have changed, the more each move scores.</p>
+    <ul>
+      <li>Tap a piece (what holds it, the filling, the sauce, what the menu calls it…), then tap a new value. That is one move.</li>
+      <li><b>Edge</b>, 45–55% sandwich: the move scores 200 × how far the food has changed. <b>Fence</b>, 35–65%: 100 ×.</li>
+      <li><b>Slipping</b>, 15–35% or 65–85%: the move scores nothing, and your next move must bring it back inside 35–65% or the model decides.</li>
+      <li><b>Decided</b>, below 15% or above 85%: the game ends.</li>
+      <li>The piece you just changed is locked for one turn. You have 12 moves and 3 probes: press Probe, then tap a value to see where it would land without making the move.</li>
+      <li><b>Daily</b> is the same starting food for everyone today; <b>Random</b> draws a new one. <b>Best</b> is your top score in this browser.</li>
+    </ul>
+  </details>
+  <div class="bar">
+    <div class="seg" id="modeSeg">
+      <button data-mode="daily">Daily</button><button data-mode="random">Random</button>
+    </div>
+    <button class="act" id="probeBtn">Probe</button>
+  </div>
+  <div class="grid">
+    <section class="panel left">
+      <div class="readout">
+        <div><span class="big" id="pct">–</span> <span class="side">sandwich</span></div>
+        <span class="zone" id="zone"></span>
+      </div>
+      <div class="stats">
+        <span>Move <b id="turn">0</b>/12</span>
+        <span>Distance <b id="drift">0%</b></span>
+        <span>Score <b id="score">0</b></span>
+        <span>Probes <b id="probes">3</b></span>
+        <span>Best <b id="best">–</b></span>
+      </div>
+      <svg id="canyon" viewBox="0 0 400 300" role="img" aria-label="Your path: the model's verdict across, how far the food has changed upward"></svg>
+      <div class="msg" id="msg"></div>
+    </section>
+    <section class="panel">
+      <div class="case-head"><h2>The food</h2><span class="zone" id="mini"></span></div>
+      <div class="tag" id="caseId"></div>
+      <p class="food" id="food">Loading…</p>
+      <div id="pieces"></div>
+    </section>
+  </div>
+  <footer>
+    The model is a 3,489-parameter network trained to copy <a href="https://typesafe.ai">Jev</a>, a decision model, which answered “This food is a sandwich” for 14,000 generated foods. It runs in this page; nothing is sent anywhere.
+    <a href="https://github.com/oaustegard/experiments/tree/main/edgewalk">Source</a>
+  </footer>
+</main>
+<dialog id="end">
+  <h2 id="endTitle"></h2>
+  <div id="endSub" class="tag"></div>
+  <div class="emoji" id="endEmoji"></div>
+  <div id="endStats"></div>
+  <p class="tag">It started as</p><p class="ft" id="endFrom"></p>
+  <p class="tag">and ended as</p><p class="ft" id="endTo"></p>
+  <div class="row">
+    <button class="act" id="copyBtn">Copy result</button>
+    <button class="act" id="againBtn">New random food</button>
+    <button class="act" id="closeBtn">Close</button>
+  </div>
+</dialog>
+<script>
+"use strict";
+window.EDGEWALK_BUILD = "2026-11-25-b";   // keep equal to build.json
+window.relay = (window.Relay && typeof Relay.start === "function" ? Relay : { start() { return this; }, log() {} })
+  .start({ page: "edgewalk", build: window.EDGEWALK_BUILD }) || { log() {} };
+fetch("build.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((b) => {
+  if (!b || !b.build || b.build === window.EDGEWALK_BUILD) return;
+  let tried = null;
+  try { tried = sessionStorage.getItem("edgewalk:reloaded-for"); sessionStorage.setItem("edgewalk:reloaded-for", b.build); } catch (e) {}
+  if (tried === b.build) return;
+  const url = new URL(location.href); url.searchParams.set("b", b.build); location.replace(url.href);
+}).catch(() => {});
+</script>
+<script type="module" src="edgewalk.js"></script>
+</body>
+</html>

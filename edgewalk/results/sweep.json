@@ -1,0 +1,18 @@
+{
+ "_doc": "Student settings tried on the first 6,000 Jev labels (15% held out by hash). mae = mean |student - Jev| on held-out cases; zone = share of held-out cases where both land in the same game zone (edge/fence/slip/fall). Jev asked twice about 300 held-out cases: results/jev_repeat.json.",
+ "runs": [
+  {"hidden": 48, "weight_decay": 0.001, "epochs": 400, "dropout": 0, "mae": 0.0402, "zone": 0.709},
+  {"hidden": 48, "weight_decay": 0.01, "epochs": 100, "dropout": 0, "mae": 0.0325, "zone": 0.747},
+  {"hidden": 48, "weight_decay": 0.01, "epochs": 60, "dropout": 0.1, "mae": 0.0375, "zone": 0.730},
+  {"hidden": 64, "weight_decay": 0.05, "epochs": 80, "dropout": 0.2, "mae": 0.0411, "zone": 0.706},
+  {"hidden": 32, "weight_decay": 0.01, "epochs": 80, "dropout": 0, "mae": 0.0316, "zone": 0.758},
+  {"hidden": 96, "weight_decay": 0.1, "epochs": 60, "dropout": 0.3, "mae": 0.0440, "zone": 0.669},
+  {"hidden": 128, "weight_decay": 0.01, "epochs": 40, "dropout": 0.2, "mae": 0.0395, "zone": 0.711},
+  {"hidden": 32, "weight_decay": 0.01, "epochs": 40, "dropout": 0, "mae": 0.0349, "zone": 0.744},
+  {"hidden": 32, "weight_decay": 0.01, "epochs": 60, "dropout": 0, "mae": 0.0324, "zone": 0.731},
+  {"hidden": 24, "weight_decay": 0.01, "epochs": 80, "dropout": 0, "mae": 0.0334, "zone": 0.753},
+  {"hidden": 16, "weight_decay": 0.01, "epochs": 100, "dropout": 0, "mae": 0.0329, "zone": 0.762},
+  {"hidden": 32, "weight_decay": 0.03, "epochs": 80, "dropout": 0, "mae": 0.0316, "zone": 0.756},
+  {"hidden": 24, "weight_decay": 0.01, "epochs": 120, "dropout": 0, "mae": 0.0334, "zone": 0.747}
+ ]
+}
