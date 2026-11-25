@@ -98,8 +98,9 @@ python3 -m http.server                                       # at the experiment
 # open /sparseup-v2/pack/web/ (demo) or /sparseup-v2/pack/web/check.html?pack=int8&reps=10 (timing)
 ```
 
-`bridge/job.js` is the same timing as a GPU Bridge job. Weights are not hosted anywhere; the
-page loads a local pack.
+The demo is live at https://austegard.com/experiments/sparseup-v2/pack/web/ and loads the int8 pack from
+R2 (`austegard-media/sparseup-v2/int8-v1/`: manifest, four 38 MB weight parts, tokenizer, Apache-2.0 NOTICE);
+`?pack=../packs/int8/` uses a local build. `bridge/job.js` is the same timing as a GPU Bridge job.
 
 ### What did not work
 

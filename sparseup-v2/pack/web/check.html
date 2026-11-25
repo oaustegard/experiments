@@ -25,7 +25,7 @@ Results appear below and in window.check, which check.py reads.</p>
 // ?pack=int8|q4  ?start=S&only=N (fixture rows S..S+N-1)  ?reps=3  ?timing=0 to skip timing. Results in window.check.
 // On Oskar's devices, ?log=1 sends the log to gpu-bridge-comms (gpu-bridge/web/relay.js).
 import { loadSparseUp } from "./sparseup.js";
-const BUILD = "2026-11-25-1";   // keep equal to build.json
+const BUILD = "2026-11-25-2";   // keep equal to build.json
 const relay = window.Relay?.start?.({ page: "sparseup-pack-check", build: BUILD }) ?? null;
 const Q = new URLSearchParams(location.search);
 const pack = Q.get("pack") || "int8", reps = +(Q.get("reps") || 3), only = +(Q.get("only") || 0);

@@ -1,7 +1,7 @@
 // linkup-sparseup-embed-v2 in the browser: tokenizer + WGSL engine (engine.js) on a local pack directory
 // written by pack.py (manifest.json, weights.bin, tokenizer.json).
 //
-//   const sp = await loadSparseUp("../packs/int8/");
+//   const sp = await loadSparseUp(PACK_URL);   // a directory with manifest.json, weights, tokenizer.json
 //   const [q] = await sp.encode(["what is a cat"], "query");       // [{ id: weight }] per text, folded
 //   sp.token(id)                                                    // "cat" (word-start marker stripped)
 //   sp.score(q, d)                                                  // dot product of two sparse maps
@@ -16,11 +16,19 @@ const TOKENIZERS = "https://cdn.jsdelivr.net/npm/@huggingface/tokenizers@0.2.0/d
 export async function loadSparseUp(base, opts = {}) {
   base = new URL(base.endsWith("/") ? base : base + "/", location.href);
   const t0 = performance.now();
-  const [manifest, tj, data, { Tokenizer }] = await Promise.all([
-    fetch(new URL("manifest.json", base)).then((r) => r.json()),
+  const bytesOf = (name) => fetch(new URL(name, base)).then((r) => {
+    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+    return r.arrayBuffer();
+  });
+  const manifest = await fetch(new URL("manifest.json", base)).then((r) => r.json());
+  // A pack is weights.bin, or weights.0.bin ... listed in manifest.weights_parts (hosted packs, < 50 MB per file).
+  const names = manifest.weights_parts ?? ["weights.bin"];
+  const [tj, parts, { Tokenizer }] = await Promise.all([
     fetch(new URL("tokenizer.json", base)).then((r) => r.json()),
-    fetch(new URL("weights.bin", base)).then((r) => { if (!r.ok) throw new Error(`weights.bin: HTTP ${r.status}`); return r.arrayBuffer(); }),
+    Promise.all(names.map(bytesOf)),
     import(TOKENIZERS)]);
+  const data = new Uint8Array(parts.reduce((s, x) => s + x.byteLength, 0));
+  parts.reduce((o, x) => { data.set(new Uint8Array(x), o); return o + x.byteLength; }, 0);
   const fetchMs = performance.now() - t0;
   const tok = new Tokenizer(tj, {});
   const vocab = [];

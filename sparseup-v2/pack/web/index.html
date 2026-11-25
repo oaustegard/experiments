@@ -44,7 +44,7 @@
 <h1>SparseUp in the browser</h1>
 <p class="muted">A learned sparse retriever: each text becomes a handful of weighted vocabulary terms, including terms it never contains.
 A document's score for the query is the dot product of the two term lists: the sum, over shared terms, of query weight times document weight. Higher means more relevant.
-The page needs WebGPU and loads a 151 MB weight pack from this server before the button turns on.</p>
+The page needs WebGPU and downloads 151 MB of weights before the button turns on.</p>
 <div id="status">checking for WebGPU</div>
 
 <label for="q">Query</label>
@@ -70,7 +70,7 @@ Dogs wag their tails to communicate excitement, fear or aggression, depending on
 <script src="../../../gpu-bridge/web/relay.js" onerror="void 0"></script>
 <script type="module">
 import { loadSparseUp } from "./sparseup.js";
-const BUILD = "2026-11-25-1";   // keep equal to build.json
+const BUILD = "2026-11-25-2";   // keep equal to build.json
 const relay = window.Relay?.start?.({ page: "sparseup-pack-demo", build: BUILD }) ?? null;
 const $ = (id) => document.getElementById(id);
 const status = (s, err) => {
@@ -82,7 +82,9 @@ fetch("build.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null))
 }).catch(() => {});
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const TOPK = 24;
-const pack = new URLSearchParams(location.search).get("pack") || "../packs/int8/";
+// The int8 pack hosted on R2 (sparseup-v2/int8-v1/, NOTICE.md there); ?pack=../packs/int8/ uses a local build.
+const HOSTED = "https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/sparseup-v2/int8-v1/";
+const pack = new URLSearchParams(location.search).get("pack") || HOSTED;
 let sp;
 
 async function init() {
@@ -91,7 +93,7 @@ async function init() {
     return;
   }
   try {
-    status(`loading pack ${pack} (tokenizer, ~150 MB of weights, then compiling shaders)...`);
+    status(`loading the model (151 MB of weights, then compiling shaders)...`);
     const t0 = performance.now();
     const tick = setInterval(() => status(`loading pack ${pack} ... ${((performance.now() - t0) / 1000).toFixed(0)} s`), 500);
     try { sp = await loadSparseUp(pack); } finally { clearInterval(tick); }
@@ -104,7 +106,7 @@ async function init() {
     const m = String(e?.message || e);
     status(m.includes("no WebGPU adapter")
       ? "No WebGPU adapter is available in this browser, and the encoder needs one."
-      : `Could not load the pack at ${pack}\n(${m})\n\nBuild it with:\n  python3 pack.py --hf hf --out packs/int8 --quant int8\nthen serve the experiments repo root with:\n  python3 -m http.server\nand open /sparseup-v2/pack/web/`, true);
+      : `Could not load the model from ${pack}\n(${m})\n\nTo use a local copy, build it with python3 pack.py --hf hf --out packs/int8 --quant int8, serve the experiments repo root with python3 -m http.server, and open /sparseup-v2/pack/web/?pack=../packs/int8/`, true);
   }
 }
 
