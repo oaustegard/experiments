@@ -1,0 +1,205 @@
+{
+ "pages": 2544,
+ "summaries": {
+  "base": {
+   "score": 0.6766220478572024,
+   "families": {
+    "text": {
+     "score": 0.5996849980312376,
+     "tests": 7619
+    },
+    "tables": {
+     "score": 0.7375868278878313,
+     "tests": 3887
+    },
+    "layout": {
+     "score": 0.6925943176525384,
+     "tests": 2147
+    }
+   },
+   "per_suite": {
+    "docparsing_images": 0.633,
+    "forms_documentcloud": 0.8511,
+    "forms_federal": 0.8333,
+    "forms_filled": 0.8972,
+    "frbench_handwriting": 0.0,
+    "large_format": 0.7018,
+    "multiling_finepdfs": 0.6731,
+    "multilingual": 0.6957,
+    "olmo_arxiv_math": 0.6794,
+    "olmo_long_tiny_text": 0.8628,
+    "olmo_multi_column": 0.7788,
+    "olmo_old_scans": 0.2538,
+    "olmo_old_scans_math": 0.14,
+    "olmo_table_tests": 0.6133,
+    "parsebench_docs": 0.7747,
+    "realdoc_pages": 0.6128,
+    "realdoc_pdfs": 0.7176,
+    "rotation_skew": 0.7321,
+    "synth_copies": 0.5584,
+    "tables_derived": 0.7177,
+    "tiny_plans": 0.9223
+   },
+   "failed_pages": 0,
+   "ms_median": 3098,
+   "ms_mean": 7643.9
+  },
+  "Indra OCR": {
+   "score": 0.7170495301074798,
+   "families": {
+    "text": {
+     "score": 0.6342039637747736,
+     "tests": 7619
+    },
+    "tables": {
+     "score": 0.5989194751736557,
+     "tests": 3887
+    },
+    "layout": {
+     "score": 0.9180251513740102,
+     "tests": 2147
+    }
+   },
+   "per_suite": {
+    "docparsing_images": 0.798,
+    "forms_documentcloud": 0.8298,
+    "forms_federal": 0.8519,
+    "forms_filled": 0.8411,
+    "frbench_handwriting": 0.0588,
+    "large_format": 0.6667,
+    "multiling_finepdfs": 0.858,
+    "multilingual": 0.4457,
+    "olmo_arxiv_math": 0.6669,
+    "olmo_long_tiny_text": 0.7655,
+    "olmo_multi_column": 0.8378,
+    "olmo_old_scans": 0.2919,
+    "olmo_old_scans_math": 0.1378,
+    "olmo_table_tests": 0.6952,
+    "parsebench_docs": 0.8908,
+    "realdoc_pages": 0.7859,
+    "realdoc_pdfs": 0.7098,
+    "rotation_skew": 0.7878,
+    "synth_copies": 0.6883,
+    "tables_derived": 0.6424,
+    "tiny_plans": 0.9612
+   }
+  },
+  "Tesseract": {
+   "score": 0.053069081681760506,
+   "families": {
+    "text": {
+     "score": 0.15920724504528153,
+     "tests": 7619
+    },
+    "tables": {
+     "score": 0.0,
+     "tests": 3887
+    },
+    "layout": {
+     "score": 0.0,
+     "tests": 2147
+    }
+   },
+   "per_suite": {
+    "docparsing_images": 0.0269,
+    "forms_documentcloud": 0.4468,
+    "forms_federal": 0.2963,
+    "forms_filled": 0.4766,
+    "frbench_handwriting": 0.0,
+    "large_format": 0.1228,
+    "multiling_finepdfs": 0.2441,
+    "multilingual": 0.3587,
+    "olmo_arxiv_math": 0.0067,
+    "olmo_long_tiny_text": 0.292,
+    "olmo_multi_column": 0.413,
+    "olmo_old_scans": 0.0025,
+    "olmo_old_scans_math": 0.0533,
+    "olmo_table_tests": 0.0,
+    "parsebench_docs": 0.3584,
+    "realdoc_pages": 0.0569,
+    "realdoc_pdfs": 0.2667,
+    "rotation_skew": 0.0928,
+    "synth_copies": 0.1564,
+    "tables_derived": 0.0191,
+    "tiny_plans": 0.8738
+   }
+  }
+ },
+ "paired": {
+  "base vs Indra OCR": {
+   "a": 0.6766220478572024,
+   "b": 0.7170495301074798,
+   "gap": -0.04042748225027748,
+   "low": -0.060199998645467545,
+   "high": -0.02031545325420833,
+   "excludes_zero": true,
+   "families": {
+    "text": {
+     "gap": -0.03451896574353597,
+     "low": -0.05323331351230639,
+     "high": -0.015525665686900277
+    },
+    "tables": {
+     "gap": 0.13866735271417552,
+     "low": 0.09261633783729033,
+     "high": 0.18637013089894622
+    },
+    "layout": {
+     "gap": -0.22543083372147177,
+     "low": -0.26068673625511074,
+     "high": -0.19012039128862754
+    }
+   }
+  },
+  "base vs Tesseract": {
+   "a": 0.6766220478572024,
+   "b": 0.053069081681760506,
+   "gap": 0.6235529661754419,
+   "low": 0.6048629337340901,
+   "high": 0.6434229232161328,
+   "excludes_zero": true,
+   "families": {
+    "text": {
+     "gap": 0.44047775298595615,
+     "low": 0.4109281344626827,
+     "high": 0.46927390167988636
+    },
+    "tables": {
+     "gap": 0.7375868278878313,
+     "low": 0.7021808164151558,
+     "high": 0.7739245707396867
+    },
+    "layout": {
+     "gap": 0.6925943176525384,
+     "low": 0.6557126928386987,
+     "high": 0.7248579397469531
+    }
+   }
+  },
+  "Indra OCR vs Tesseract": {
+   "a": 0.7170495301074798,
+   "b": 0.053069081681760506,
+   "gap": 0.6639804484257193,
+   "low": 0.6452986139239121,
+   "high": 0.6826442335794924,
+   "excludes_zero": true,
+   "families": {
+    "text": {
+     "gap": 0.4749967187294921,
+     "low": 0.4432260074584822,
+     "high": 0.5051862454361066
+    },
+    "tables": {
+     "gap": 0.5989194751736557,
+     "low": 0.5566226650078105,
+     "high": 0.6463584934966434
+    },
+    "layout": {
+     "gap": 0.9180251513740102,
+     "low": 0.9004962980101805,
+     "high": 0.9336535542046822
+    }
+   }
+  }
+ }
+}

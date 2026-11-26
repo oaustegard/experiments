@@ -1,0 +1,120 @@
+{
+ "pages": 206,
+ "summaries": {
+  "g600-L127": {
+   "score": 0.45476085610444233,
+   "families": {
+    "text": {
+     "score": 0.2508591065292096,
+     "tests": 582
+    },
+    "tables": {
+     "score": 0.45433255269320844,
+     "tests": 427
+    },
+    "layout": {
+     "score": 0.6590909090909091,
+     "tests": 132
+    }
+   },
+   "per_suite": {
+    "docparsing_images": 0.8,
+    "forms_documentcloud": 1.0,
+    "forms_federal": 0.4286,
+    "forms_filled": 0.7778,
+    "frbench_handwriting": 0.0,
+    "handwriting_samples": 0.2,
+    "large_format": 0.0,
+    "multiling_finepdfs": 0.2778,
+    "multilingual": 0.4,
+    "olmo_arxiv_math": 0.1184,
+    "olmo_long_tiny_text": 0.5,
+    "olmo_multi_column": 0.8,
+    "olmo_old_scans": 0.069,
+    "olmo_old_scans_math": 0.0,
+    "olmo_table_tests": 0.6531,
+    "parsebench_docs": 0.4667,
+    "realdoc_pages": 0.7692,
+    "realdoc_pdfs": 0.5,
+    "rotation_skew": 0.4667,
+    "synth_copies": 0.5568,
+    "tables_derived": 0.4359,
+    "tiny_plans": 0.8889
+   },
+   "failed_pages": 0,
+   "ms_median": 29382,
+   "ms_mean": 31591.2
+  },
+  "g600-fp32": {
+   "score": 0.4580667487545973,
+   "families": {
+    "text": {
+     "score": 0.2508591065292096,
+     "tests": 582
+    },
+    "tables": {
+     "score": 0.4566744730679157,
+     "tests": 427
+    },
+    "layout": {
+     "score": 0.6666666666666666,
+     "tests": 132
+    }
+   },
+   "per_suite": {
+    "docparsing_images": 0.8,
+    "forms_documentcloud": 1.0,
+    "forms_federal": 0.4286,
+    "forms_filled": 0.7778,
+    "frbench_handwriting": 0.0,
+    "handwriting_samples": 0.2,
+    "large_format": 0.0,
+    "multiling_finepdfs": 0.2778,
+    "multilingual": 0.4,
+    "olmo_arxiv_math": 0.1184,
+    "olmo_long_tiny_text": 0.5,
+    "olmo_multi_column": 0.8,
+    "olmo_old_scans": 0.069,
+    "olmo_old_scans_math": 0.0,
+    "olmo_table_tests": 0.6735,
+    "parsebench_docs": 0.4667,
+    "realdoc_pages": 0.7692,
+    "realdoc_pdfs": 0.5,
+    "rotation_skew": 0.4,
+    "synth_copies": 0.5682,
+    "tables_derived": 0.4359,
+    "tiny_plans": 0.9444
+   },
+   "failed_pages": 0,
+   "ms_median": 15154,
+   "ms_mean": 16782.7
+  }
+ },
+ "paired": {
+  "g600-L127 vs g600-fp32": {
+   "a": 0.45476085610444233,
+   "b": 0.4580667487545973,
+   "gap": -0.0033058926501549624,
+   "low": -0.009817580445301325,
+   "high": 0.0006447343784802314,
+   "excludes_zero": false,
+   "families": {
+    "text": {
+     "gap": 0.0,
+     "low": -0.005136986301369857,
+     "high": 0.004975954949791946
+    },
+    "tables": {
+     "gap": -0.0023419203747072626,
+     "low": -0.007876104346373187,
+     "high": 0.0
+    },
+    "layout": {
+     "gap": -0.007575757575757569,
+     "low": -0.02631578947368418,
+     "high": 0.0
+    }
+   }
+  }
+ }
+}
