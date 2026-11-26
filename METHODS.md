@@ -1912,6 +1912,23 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A smaller ViT encoder can take 4-bit weights far worse than a bigger one from the same family.** With the same
+  scheme (encoder linears int4 in groups of 32, everything else int8), Nemotron Parse 2.0 (C-RADIOv2-H, width 1280)
+  lost 2.88 Omni Parse Bench points (interval includes zero) and Nemotron 3.5 Parse (C-RADIOv4-SO400M, width 1152)
+  lost 7.86 (interval −11.86 to −4.02), mostly on tables; all-int8 cost 3.5 only 0.72. An 8-page greedy-text
+  similarity pilot did not separate them (0.961 and 0.964): grade the packing arm on the benchmark before shipping.
+  (`nemotron-parse-pack/results/summary.json`)
+- **`from_pretrained` can hand back bf16-rounded weights even with `torch_dtype=float32`.** Nemotron Parse's
+  `__init__` casts submodules to the config's bfloat16, so `.float()` afterwards holds bf16 values (0.008 absolute
+  error in one embedding). Reload `model.safetensors` with `load_state_dict(strict=False)` before measuring a
+  quantization against "fp32". (`nemotron-parse-pack/run/ref.py`, `run/kaggle_eval.py`)
+- **On a T4 in fp32, `F.scaled_dot_product_attention` falls back to the math kernel and builds the whole score
+  matrix.** 13k ViT tokens asked for 10.6 GB and OOMed; splitting queries into chunks of 2048 gives the same
+  attention in about 1.7 GB. (`nemotron-parse-pack/run/kaggle_eval.py` `_chunked`)
+- **Nemotron Parse writes `{}` in table cells a `\multirow` covers, and NVIDIA's `latex2html` keeps them as cells.**
+  Every row under a merged cell shifts right by one; read `{}` as empty before converting.
+  (`nemotron-parse-pack/run/np_pages.py`)
+
 - **Gradient descent on a logistic loss over standardised inputs needs a step that shrinks with the dimension.** A weighted logistic regression trained online in a page used a fixed learning rate of 0.5. On 256 standardised dimensions (Ettin vectors) max|z|² is about 256, so the curvature bound max|z|²/4 is near 64 and the weights went to NaN; on 31 standardised counted features it oscillated. Take the step as 1/L, with L = max_i |z_i|²/4 + λ/W, where z_i is a standardised input row, λ the L2 penalty and W the sum of sample weights (the loss is divided by W). It converged without tuning at both sizes tested. (`strudel-taste/web/taste.js` `Logit.fit`, `run/sim.py` `fit`)
 - **The `gliner` library tokenizes each word without its leading space, which costs a BPE backbone about 7 points.**
   It passes words to the tokenizer one at a time, so on a GPT-2-style BPE (Ettin, ModernBERT) every word gets the
