@@ -471,7 +471,7 @@ ${seq(RB * CB, (i) => `  acc[${i}] = s${i};`)}
 ` + src.slice(src.indexOf("  for (var i = 0u; i < " + RB + "u; i = i + 1u) {\n    let r = r0 + i;"));
 };
 
-const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT, direct) => {
+const attnTiledUnrolledWGSL = (H, hd, Dm, QB, KT, direct, qg) => {   // qg: read the query from Q at each use instead of holding it
   const HV = hd / 4;
   const kk = (e) => (direct ? `Ks[sb + ${e}u]` : `k${e}`), vv = (e) => (direct ? `Vs[sb + ${e}u]` : `v${e}`);   // direct: no local copy of the key
   return HEAD + `
@@ -490,7 +490,7 @@ fn main(@builtin(local_invocation_id) lid: vec3<u32>, @builtin(workgroup_id) wid
   let qi0 = wid.y * ${64 * QB}u + li * ${QB}u;
 ${seq(QB, (b) => `  let qb${b} = (qRow0 + min(qi0 + ${b}u, Tq - 1u)) * ${Dm / 4}u + hBase;
   var m${b} = -1e30; var z${b} = 0.0;
-${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u] * ${1 / Math.sqrt(hd)}; var a${b}_${e} = vec4<f32>(0.0);`)}`)}
+${seq(HV, (e) => `  ${qg ? "" : `let q${b}_${e} = Q[qb${b} + ${e}u];`} var a${b}_${e} = vec4<f32>(0.0);`)}`)}
   for (var k0 = 0u; k0 < Tk; k0 = k0 + ${KT}u) {
     for (var idx = li; idx < ${KT * HV}u; idx = idx + 64u) {
       let kRow = k0 + idx / ${HV}u;
@@ -509,7 +509,7 @@ ${seq(HV, (e) => `  let q${b}_${e} = Q[qb${b} + ${e}u] * ${1 / Math.sqrt(hd)}; v
       let sb = j * ${HV}u;
 ${direct ? "" : seq(HV, (e) => `      let k${e} = Ks[sb + ${e}u]; let v${e} = Vs[sb + ${e}u];`)}
 ${seq(QB, (b) => `      {
-        let s = ${seq(HV, (e) => `dot(q${b}_${e}, ${kk(e)})`, " + ")};
+        let s = (${seq(HV, (e) => `dot(${qg ? `Q[qb${b} + ${e}u]` : `q${b}_${e}`}, ${kk(e)})`, " + ")}) * ${1 / Math.sqrt(hd)};
         if (s > m${b}) {
           let c = exp(m${b} - s);
           z${b} *= c;
@@ -807,7 +807,7 @@ export class NemotronParse {
     this.gen = manifest.generation;
     this.budget = opts.budget || 4e9;
     // Encoder kernel choice and tile shapes; setTune() changes them (benchmarks, A/B checks).
-    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, unroll: false, direct: false, tiledBudget: 3e10, QM: 8, matBytes: 1 << 27, ...(opts.tune || {}) };
+    this.tune = { lin: "tiled", attn: "tiled", KT: 16, RB: 8, CB: 8, QB: 4, AKT: 16, unroll: false, direct: false, qg: false, tiledBudget: 3e10, QM: 8, matBytes: 1 << 27, ...(opts.tune || {}) };
     this._tag = "";
     this.maxBind = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize);
     this.pipes = {};
@@ -1114,12 +1114,12 @@ export class NemotronParse {
           this._step(s, `amx_${EH}_${hd}_${E}_${tn.QM}`, { a }, [b.sc, b.zi, b.v, b.xn], Math.ceil(t / tn.QM) * EH * (hd / 4), attnMixWGSL(EH, hd, E, tn.QM), own);
         }
       } else if (tn.attn === "tiled" && 2 * tn.AKT * hd * 4 <= 16384) {
-        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}_${tn.unroll ? 1 : 0}_${tn.direct ? 1 : 0}`;
+        const per = 64 * tn.QB, kind = `attnt_${EH}_${hd}_${E}_${tn.QB}_${tn.AKT}_${tn.unroll ? 1 : 0}_${tn.direct ? 1 : 0}_${tn.qg ? 1 : 0}`;
         const qt = Math.max(per, Math.floor(tn.tiledBudget / (T * EH * hd * 2) / per) * per);
         for (let r = 0; r < T; r += qt) {
           const t = Math.min(qt, T - r);
           this._step(s, kind, { a: [t, r, T, 0], dispatch: [EH, Math.ceil(t / per)] }, [b.q, b.k, b.v, b.xn], 1,
-            this.pipes[kind] ? null : (tn.unroll ? attnTiledUnrolledWGSL : attnTiledWGSL)(EH, hd, E, tn.QB, tn.AKT, tn.direct), own);
+            this.pipes[kind] ? null : (tn.unroll ? attnTiledUnrolledWGSL : attnTiledWGSL)(EH, hd, E, tn.QB, tn.AKT, tn.direct, tn.qg), own);
         }
       } else {
         for (let r = 0; r < T; r += qPer) {
